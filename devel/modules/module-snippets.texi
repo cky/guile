@@ -1,0 +1,734 @@
+\input texinfo
+@c -*-texinfo-*-
+@c %**start of header
+@setfilename module-snippets.info
+@settitle Module Snippets
+@iftex
+@afourpaper
+@end iftex
+@c %**end of header
+
+@set UPDATED 7May 2001
+@set EDITION 0.0.1
+@set VERSION 0.0.1
+
+@dircategory Guile
+@direntry
+* module-snippets: (module-snippets). Documentation for the Guile Module System
+@end direntry
+
+
+@c --- title page starts here ---
+
+@titlepage
+@title Module Snippets
+@subtitle Documentation for the Guile Module System
+@subtitle Version @value{VERSION}
+@author Martin Grabmueller
+
+@c  The following two commands
+@c  start the copyright page.
+@page
+@vskip 0pt plus 1filll
+Copyright @copyright{} 2001 Martin Grabmueller
+
+Permission is granted to make and distribute verbatim copies of
+this manual provided the copyright notice and this permission notice
+are preserved on all copies.
+@end titlepage
+
+@c --- title page ends here ---
+
+@syncodeindex vr cp
+@syncodeindex fn cp
+
+@c ===================================================================
+
+@node Top, Introduction, (dir), (dir)
+
+@ifinfo
+This file tries to shed some light on Guile's current module system.
+@end ifinfo
+
+@menu
+* Introduction::                What is this all about?
+* Module Data Type::            Modules from a data-centric view.
+* Modules and Evaluation::      Interaction between the module system
+                                and the evaluator.
+* Index::                       Procedure index.
+@end menu
+
+
+@c ===================================================================
+
+@node Introduction, Module Data Type, Top, Top
+@chapter Introduction
+
+This document contains all information about the module system I have
+been able to deduce from the source code or from mailing list
+conversation.  I have written down everything while trying to figure out
+how the Guile module system actually works, and some of the text is
+taken from commentary in the file @file{boot-9.scm}.
+
+The information contained herein is surely not complete, and I will be
+happy to receive additions, corrections and suggestions for improving
+it.
+
+Also note that the information contained in this document reflects the
+current state as of the time writing, and the facts stated are not
+guaranteed to be stable.  A complete redesign of the module system is
+planned for a long time now, and actually might happen some day.
+
+There are basically three views on the module system:
+
+@itemize @bullet
+@item
+Data-centric: The module as a data type, with all procedures for
+creating and manipulating modules.  This is documented in the
+@ref{Module Data Type}.
+
+@item
+Declarational: How to use declarations like @code{use-modules} or
+@code{define-module} for dealing with modules and the scoping mechanisms
+they provide.  This issue is documented in the Guile Reference Manual,
+and will not be covered in detail here.
+
+@item
+Internal: How do the module system and the Guile evaluator interact?
+This is documented in @ref{Modules and Evaluation}.
+@end itemize
+
+
+@c ===================================================================
+
+@node Module Data Type, Modules and Evaluation, Introduction, Top
+@chapter Module Data Type
+
+This chapter will describe the module system from the point of the data
+type @code{module}.  Thus we will first see what this data type looks
+like and what operations are defined on it.
+
+Modules in Guile are instances of a data type @code{module}.  A module
+has the following fields.
+
+@table @var
+@item obarray
+This is a hash table which contains all bindings made in the module.
+
+@item uses-list
+List of the modules imported by the module.  A lot of search procedures
+search through all modules in this list when a specified binding cannot
+be found in the module's obarray.
+
+@item lazy-binding-proc
+A procedure for determining a binding for a module lazily.  This is
+invoked if a binding for a name is requested from the module, but does
+not exist.  The procedure can create a new binding, by loading
+additional code or fetching it from another module/data structure.
+
+@item eval-closure
+A procedure for determining a binding in a module.  The evaluator uses
+this procedure for accessing top-level variables.
+
+@item transformer
+The syntax transformer used for all evaluations in the module.
+
+@item name
+The name of the module.  This is a list of symbols, such as
+@code{(guile)} or @code{(ice-9 popen)}.
+
+@item kind
+A symbol describing the type of the module.  Normal modules are of type
+@code{module}, interfaces are of type @code{interface} and directories
+(modules which implement the hierarchical namespace) are of kind
+@code{directory}).  Autoload modules (placeholder for not-yet-loaded
+modules) are of type @code{autoload}.  FIXME: Are there other types?
+
+@item observers
+A list of procedures to call when one of the module's bindings is
+removed or modified or a new binding is created.
+
+@item weak-observers
+Similar to @var{observers}, but this is a hash table from which the
+observer procedures will magically disappear when there are no other
+references to the procedure left except from the module they observe.
+
+@item observer-id
+This is an integer, which specifies the identifer the next weak observer
+will get.  It is incremented each time a weak observer is added.
+@end table
+
+@menu
+* The Data Type::               The data type @code{module}.
+* Module Loading::              How to load modules.
+* Modules and Variables::       How do variables and modules relate.
+* Iterating over Module Bindings::  How to access all bindings of a module.
+* The Lazy Binder::             The lazy binding procedures.
+* Module Observers::            The observer protocol.
+* The Current Module::          Notion of ``current module'' in Guile.
+* High-Level Module Access::    High-level access to module features.
+* Recursive Namespaces::        Hierarchical organisation of namespaces.
+* Module Hierarchy::            The currently implemented hierarchy.
+* Modules and Interfaces::      How modules implement different scopes.
+* Modules and Environments::    Relation between modules and environments.
+* Modules Miscallenea::         Miscellaneous module procedures.
+@end menu
+
+
+@c ===================================================================
+
+@node The Data Type, Module Loading, Module Data Type, Module Data Type
+@section The Data Type
+
+A new module is created using @code{make-module}.  Several procedures
+are defined for accessing the members of a module.
+
+@deffn procedure make-module size uses-list lazy-binding-proc
+Create a new module and initialize its fields with the parameters.
+
+@table @var
+@item size
+Size of the module's obarray.
+
+@item uses-list
+List of the modules imported by the module.
+
+@item lazy-binding-proc
+The procedure for determining a binding for a module lazily.
+@end table
+@end deffn
+
+The various fields of a module can be accessed and modified using the
+following procedures:
+
+@deffn procedure module-obarray module
+@deffnx procedure set-module-obarray! module obj
+@deffnx procedure module-uses module
+@deffnx procedure set-module-uses! module obj
+@deffnx procedure module-binder module
+@deffnx procedure set-module-binder! module obj
+@deffnx procedure module-eval-closure module
+@deffnx procedure set-module-eval-closure! module obj
+@deffnx procedure module-transformer module
+@deffnx procedure set-module-transformer! module obj
+@deffnx procedure module-name module
+@deffnx procedure set-module-name! module obj
+@deffnx procedure module-kind module
+@deffnx procedure set-module-kind! module obj
+@deffnx procedure module-observers module
+@deffnx procedure set-module-observers! module obj
+@deffnx procedure module-weak-observers module
+@deffnx procedure module-observer-id module
+@deffnx procedure set-module-observer-id! module obj
+Read the corresponding member of @var{module}, or write the value
+@var{obj} into the slot.
+@end deffn
+
+@deffn procedure module? obj
+This is the type predicate for modules, which will return @code{#t} if
+its argument is a module, and @code{#f} otherwise.
+@end deffn
+
+@deffn procedure make-scm-module
+This will create a module which represents Guile's builtin bindings.
+Initially, it is empty, but when variable lookups are made in it, the
+requested bindings will get copied into the module from the internal
+obarray.  Bindings will get copied even if only accessed.
+@end deffn
+
+@deffn procedure make-root-module
+Create a new module which works on the internal obarrary.  The
+difference to the modules returned by @code{make-scm-module} is that
+bindings are only copied to the obarray if they are explicitly defined.
+@end deffn
+
+
+@c ===================================================================
+
+@node Module Loading, Modules and Variables, The Data Type, Module Data Type
+@section Module Loading
+
+The normal way of loading modules in Scheme programs is to use the
+special form @code{use-modules}, which loads the source of one or more
+specified modules and imports their public bindings into the current
+module.  This procedure is documented in the Guile Reference Manual, so
+I will not go into details here.  This section rather contains the
+underlying mechanisms, on which @code{use-modules} is built.
+
+Normally, you will not need to create new modules explicitly, adding
+definitions to it manually.  For more often, you will want to load some
+Scheme code from a file, and install its definitions into a module, only
+exporting the public bits.  This is what the procedure
+@code{resolve-module} is for.
+
+@deffn procedure resolve-module name [maybe-autoload]
+If the module @var{name} already exists, return it.  Otherwise, try to
+load the Scheme code for @var{name} into a newly created module, adding
+the exports to the public interface.
+
+The parameter @var{maybe-autoload} controls the behaviour when the
+module code is going to be loaded.
+
+@table @asis
+@item @var{maybe-autoload} == @code{#f}
+Do not defer loading.
+
+@item @var{maybe-autoload} == @code{#t}
+Defer loading of the source code until a binding from the module is
+requested.
+
+@item @var{maybe-autoload} not given
+Like @var{maybe-autoload} == @code{#t}.
+@end table
+@end deffn
+
+
+@c ===================================================================
+
+@node Modules and Variables, Iterating over Module Bindings, Module Loading, Module Data Type
+@section Modules and Variables
+
+Modules can be regarded as mappings from symbols (variable names) to
+bindings (variable locations).  The procedures documented in this
+section can be used to test whether such a mapping exists for a given
+variable name, how to add mappings and how to retrieve a variables
+value.
+
+We sometimes want to look for properties of a symbol just within the
+obarray of one module.  If the property holds, then it is said to hold
+``locally'' as in, ``The symbol @code{display} is locally rebound in the
+module @code{safe-guile}.''
+
+Other times, we want to test for a symbol property in the obarray of
+@var{m} and, if it is not found there, try each of the modules in the
+uses list of @var{m}.  This is the normal way of testing for some
+property, so we state these properties without qualification as in:
+``The symbol 'fnord is interned in module M because it is interned
+locally in module @var{m2} which is a member of the uses list of
+@var{m}.''
+
+@deffn procedure module-locally-bound? module sym
+Test if @var{sym} is bound in @var{module} directly, e.g. it does not
+suffice that @var{sym} is bound in one of the used modules of
+@var{module}.  @dfn{Bound} means that the symbol is interned and bound
+to some well-defined value.
+@end deffn
+
+@deffn procedure module-bound? module sym
+Return true if @var{sym} is bound in @var{module} or one of the modules
+in @var{module}'s uses list.  The search looks in all transitively used
+modules.  @dfn{Bound} means that the symbol is interned and bound to
+some well-defined value.
+@end deffn
+
+@deffn procedure module-symbol-locally-interned? module sym
+Test if @var{sym} is interned in @var{module} directly, e.g. it does not
+suffice that @var{sym} is bound in one of the used modules of
+@var{module}.  Unlike @code{module-locally-bound}, the symbol is not
+required to be bound to a well-defined value.
+@end deffn
+
+@deffn procedure module-symbol-interned? module sym
+Return true if @var{sym} is interned in @var{module} or one of the
+modules in @var{module}'s uses list.  The search looks in all
+transitively used modules.  Unlike @code{module-bound}, the symbol is
+not required to be bound to a well-defined value.
+@end deffn
+
+@deffn procedure module-local-variable module sym
+Return a variable object for @var{SYM} in the module @var{module}, or
+@code{#f} if no such symbol is defined in @var{module}.  If the symbols
+is not found at first, but the module has a lazy binder, then try the
+binder.
+@end deffn
+
+@deffn procedure module-variable module sym
+Return a variable object for @var{sym} in the module @var{module} or one
+of its used modules, or @code{#f} if no such symbol is defined in
+@var{module} or its uses.
+@end deffn
+
+@deffn procedure module-symbol-local-binding module symbol [opt-value]
+Return the value of the binding called @var{symbol} in @var{module}, or
+@var{opt-val} if no such binding exists.  If no @var{opt-value} is given
+and no binding exists, an error is thrown.
+@end deffn
+
+@deffn procedure module-symbol-binding module symbol [opt-value]
+Return the value of the binding called @var{symbol} in @var{module}, or
+@var{opt-val} if no such binding exists.  If no @var{opt-value} is given
+and no binding exists, an error is thrown.  Unlike
+@code{module-symbol-local-binding}, this will search all used modules as
+well as @var{module}.
+@end deffn
+
+@deffn procedure module-make-local-var! module symbol
+Create a binding for a variable called @var{symbol} in @var{module} and
+return the variable object representing the new location in the module.
+If @var{symbol} is already defined in @var{module}, nothing happens.
+@end deffn
+
+@deffn procedure module-add! module symbol var
+Add the variable @var{var} to @var{module} under the name @var{symbol}.
+@end deffn
+
+@deffn procedure module-remove! module symbol
+Remove the binding for @var{symbol} in @var{module}.  The return value
+is not specified.
+@end deffn
+
+@deffn procedure module-clear! module
+Remove all bindings from @var{module}.
+@end deffn
+
+
+@c ===================================================================
+
+@node Iterating over Module Bindings, The Lazy Binder, Modules and Variables, Module Data Type
+@section Iterating over Module Bindings
+
+@deffn procedure module-for-each proc module
+Apply @var{proc} to every binding in @var{module}.  @var{proc} is called
+with two parameters, the name and variable for each binding.
+@end deffn
+
+@deffn procedure module-map proc module
+Apply @var{proc} to every binding in @var{module} and return a list of
+the results of all applications of @var{proc}.  @var{proc} is called
+with two parameters, the name and variable for each binding.
+@end deffn
+
+
+@c ===================================================================
+
+@node The Lazy Binder, Module Observers, Iterating over Module Bindings, Module Data Type
+@section The Lazy Binder
+
+The lazy binding procedures which are connected to modules are invoked
+every time a binding is searched in a module, but is not present.  A
+binder is called with three arguments.
+
+When a lazy binder returns a variable object, the search is successful
+and the return value will be used.  If the return value is @code{#f},
+the search is continued in the modules from the uses list.  FIXME: Is
+this always the case or only in the standard eval closure?
+
+@table @var
+@item module
+The module for which the binding is requested.
+
+@item symbol
+The name of the searched symbol.
+
+@item define?
+@code{#t} if the binding should be defined, @code{#f} otherwise.
+@end table
+
+
+@c ===================================================================
+
+@node Module Observers, The Current Module, The Lazy Binder, Module Data Type
+@section Module Observers
+
+A module can have a number of @dfn{observers} attached.  These are
+procedures which are called whenever something withing the module
+changes.  This can be the creation, deletion or modification of a
+binding.
+
+When a change occurs, the procedure @code{module-modified} (documented
+below in this section) will be called which in turn will apply all
+observer procedures to the modified module.
+
+@deffn procedure module-observe module proc
+Add the observer @var{proc} to @var{module} and return a pair of
+@var{module} and @var{proc}.  The returned value can be used with
+@code{module-unobserve}.
+@end deffn
+
+@deffn procedure module-observe-weak module proc
+Add @var{proc} as a weak observer to @var{module} and erturn a pair of
+@var{module} and a unique integer, the observer ID.  The returned value
+can be used with @code{module-unobserve}.
+@end deffn
+
+@deffn procedure module-unobserve token
+Remove an observer from a module.  The module and the observer to be
+removed are taken from @var{token}, which must be returned by
+@code{module-observe} or @code{module-unobserve}.
+@end deffn
+
+@deffn procedure module-modified m
+Signal a modification of module @var{m} to all associated observers.
+@end deffn
+
+
+
+@c ===================================================================
+
+@node The Current Module, High-Level Module Access, Module Observers, Module Data Type
+@section The Current Module
+
+For all evaluations, Guile maintains a so-called @dfn{current
+module}.@footnote{A current module does not exist until Guile has been
+completely booted, that means until @file{boot-9.scm} has been loaded.
+But this should be no issue unless you are doing weird things withe the
+module system, which might be a bad idea, but YMMV.}  This is used for
+all top-level definitions and variable lookups.  When the current module
+changes, new definitions will go to the new module.  The procedures in
+this section manipulate the notion of the current module.
+
+The current module is also used when C code calls @code{scm_make_gsubr}
+for creating new primitives or @code{scm_sysintern} for interning
+symbols.  From C, the current module can be set by calling
+@code{scm_set_current_module}, which will return the old module.  This
+returned module can later be used to switch back to the old module after
+creating a new one and installing bindings there.
+
+
+@deffn procedure set-current-module module
+Make @var{module} the current module, into which all following
+definitions will go.  Return the old module in effect before the call to
+@code{set-current-module}.
+@end deffn
+
+@deffn procedure current-module
+Return the module which is currently registered as the @dfn{current
+module}.
+@end deffn
+
+
+
+@c ===================================================================
+
+@node High-Level Module Access, Recursive Namespaces, The Current Module, Module Data Type
+@section High-Level Module Access
+
+The procedure in the previous chapter are not for general use.  The
+current chapter will document all procedures which are meant to be used
+by users who need to work with modules.
+
+The parameter @var{module} in the following descriptions must be a
+module, @var{name} must be a symbol (which most probably will need to be
+quoted).
+
+@deffn procedure module-ref module name [default]
+Return the value of a variable called @var{name} in @var{module} or any
+of its used modules.  If there is no such variable, then if the optional
+third argument @var{default} is present, it is returned; otherwise an
+error is signaled.
+@end deffn
+
+@deffn procedure module-set! module name value
+Sets the variable called @var{name} in @var{module} (or in a module that
+@var{module} uses) to @var{value}; if there is no such variable, an
+error is signaled.
+@end deffn
+
+@deffn procedure module-define! module name value
+Sets the variable called @var{name} in @var{module} to @var{value}; if
+there is no such variable, it is added first.
+@end deffn
+
+@deffn procedure module-defined? module name
+Return @code{#t} if @var{name} is defined in @var{module} (or in a
+module that @var{module} uses).
+@end deffn
+
+@deffn procedure module-use! module interface
+Add @var{interface} to the list of interfaces used by @var{module}.  For
+information what an @dfn{interface} is, see @ref{Modules and
+Interfaces}.
+@end deffn
+
+@deffn procedure module-export! module names
+Add all variables from @var{names} (a list of symbols) to the public
+interface of @var{module} (@pxref{Modules and Interfaces}).
+@end deffn
+
+@c ===================================================================
+
+@node Recursive Namespaces, Module Hierarchy, High-Level Module Access, Module Data Type
+@section Recursive Namespaces
+
+A hierarchical namespace emerges if we consider some module to be root,
+and variables bound to modules as nested namespaces.
+
+The modules which implement the internal nodes are of kind
+@code{directory}. FIXME: Is this correct?
+
+The routines in this chapter manage variable names in hierarchical
+namespace.  Each variable name is a list of elements, looked up in
+successively nested modules.
+
+@example
+(nested-ref some-root-module '(foo bar baz))
+@result{}
+<value of a variable named baz in the module bound to bar in
+the module bound to foo in some-root-module>
+@end example
+
+@deffn procedure nested-ref root names
+Look up the variable identified by the symbol list @var{names}, starting
+in the module @var{root}.
+@end deffn
+
+@deffn procedure nested-set! root names val
+Set the variable identified by the symbol list @var{names} to @var{val},
+starting the variable lookup in module @var{root}.  The return value is
+not specified.
+@end deffn
+
+@deffn procedure nested-define! root names val
+Set the variable identified by the symbol list @var{names} to @var{val},
+starting the variable lookup in module @var{root}.  If the variable does
+not exist, create it before setting its value.  The return value is not
+specified.
+@end deffn
+
+@deffn procedure nested-remove! root names
+Remove the variable identified by the symbol list @var{names}, starting
+the variable lookup in module @var{root}.  The return value is not
+specified.
+@end deffn
+
+@deffn procedure local-ref names
+@deffnx procedure local-set! names val
+@deffnx procedure local-define! names val
+@deffnx procedure local-remove! names
+Like the @code{nested-ref}, @code{nested-set!}, @code{nested-define!}
+and @code{nested-remove!} procedures above, but start the variable
+lookup in the module returned by @code{current-module}.
+@end deffn
+
+
+@c ===================================================================
+
+@node Module Hierarchy, Modules and Interfaces, Recursive Namespaces, Module Data Type
+@section Module Hierarchy
+
+Currently, the following entries are defined in the hierarchical
+namespace.
+
+@table @code
+@item (app)
+This is the root of all named objects which are not in the top level.
+
+@item (app modules)
+This is the directory of all modules.
+
+@item (app modules guile)
+This is the standard root module.
+@end table
+
+User modules which are loaded into Guile as well as the modules shipped
+with the Guile distribution are installed under @code{(app modules)} as
+well.
+
+
+@c ===================================================================
+
+@node Modules and Interfaces, Modules and Environments, Module Hierarchy, Module Data Type
+@section Modules and Interfaces
+
+Interfaces are modules of kind @code{interface}.  They always belong to
+another module and contain the bindings which are exported from that
+module.  Interfaces are the means by which the different scopes of a
+module (private vs. public bindings) are implemented.
+
+Every module can define a special variable called
+@code{%module-public-interface}, which is bound to the module's
+interface.
+
+Whenever a variable is exported (with the @code{export} form or the
+@code{:export} keyword in the @code{define-module} form), this variable
+is added to the defining module's interface.  Because importing a module
+means adding other modules' interfaces to the uses list, the exported
+variables become visible in the importing module.
+
+@deffn procedure module-public-interface m
+Return the public interface of module @var{m}, or @code{#f} if @var{m}
+does not have a public interface.
+@end deffn
+
+@deffn procedure set-module-public-interface! m i
+Set the public interface of the module @var{m} to @var{i}.
+@end deffn
+
+
+@c ===================================================================
+
+@node Modules and Environments, Modules Miscallenea, Modules and Interfaces, Module Data Type
+@section Modules and Environments
+
+An environment belongs to a specific module, which can be determined by
+calling @code{environment-module}.
+
+@deffn procedure environment-module env
+@end deffn
+
+
+@c ===================================================================
+
+@node Modules Miscallenea,  , Modules and Environments, Module Data Type
+@section Modules Miscallenea
+
+This chapter contains all miscellaneous information and procedure
+documentation which I have not been able to include elsewhere.  If
+someone knows how to include them into other chapters, suggestions are
+welcome.
+
+@deffn procedure set-system-module! m s
+Set the @code{system-module} property of the module @var{m} to @var{s}.
+@var{s} should be a module telling whehter @var{m} is a system module or
+not.  System modules are treated specially in some cases, for example
+procedures defined in system modules are excluded from backtraces.
+FIXME: Is this last sentence true?
+@end deffn
+
+
+@c ===================================================================
+
+@node Modules and Evaluation, Index, Module Data Type, Top
+@chapter Modules and Evaluation
+
+Up to here, we have seen how modules are implemented as a data type,
+which can be manipulated by C and Scheme code to implement module system
+work like providing private and public name spaces, loading of modules
+and creating new modules.
+
+This chapter will describe the connection between the module system and
+the Guile evaluator.  Top-level variables (that is, variables not
+lexically bound) need to be resolved in the current module, and if not
+defined there, in the used modules, and so on, until the root module has
+been asked for the bindings.
+
+First, we have to recall how Guile normally figures out the location for
+a given variable when evaluating a form.  The evaluator starts by
+scanning the lexical environment it maintains.  It first looks in each
+slot in the top-most environment frame, continuing in the next frame and
+so on, until it reaches the end of the lexical environment chain.
+
+The @sc{car} of the last pair of the environment chain is either
+@code{#f}, or it is a procedure.  When it is @code{#f}, the normal
+system obarray is searched for the variable, otherwise the procedure is
+called for returning the requested variable.  This procedure is the
+current module's @dfn{eval closure}, and is responsible for searching a
+variable's binding, installing it if necessary.
+
+When a variable is finally found, the reference to the variable in the
+currently executed Scheme code is replaced by a special value (a
+so-called @code{gloc}), so that this environment search is not necessary
+the next time the variable is looked up.
+
+
+@c ===================================================================
+
+@node Index,  , Modules and Evaluation, Top
+@comment    node-name,         next,       previous, up
+@unnumbered Index
+     
+@printindex cp
+
+@contents
+
+@bye
