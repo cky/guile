@@ -1,3 +1,8 @@
+Mon Mar 17 05:57:11 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* snarf.h (SCM_PROC1): Bugfix: Use (void) rather than (...) for
+	zero arg subrs.
+
 Sun Mar 16 11:43:49 1997  Mikael Djurfeldt  <mdj@floss.cyclic.com>
 
  	* eval.c (safe_setjmp): Temporarily use old setjmp until someone
