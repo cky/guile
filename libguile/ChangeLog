@@ -1,3 +1,24 @@
+1998-12-23  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+
+	* Makefile.am: New files: guardians.c, guardians.x, guardians.h
+
+	* guardians.c, guardians.h (scm_make_guardian,
+	scm_guardian_gc_init, scm_guardian_zombify, scm_guard,
+	scm_get_one_zombie, scm_init_guardian): This is an implementation
+	of guardians as described in R. Kent Dybvig, Carl Bruggeman, and
+	David Eby (1993) "Guardians in a Generation-Based Garbage
+	Collector" ACM SIGPLAN Conference on Programming Language Design
+	and Implementation, June 1993 ftp://ftp.cs.indiana.edu
+	/pub/scheme-repository/doc/pubs/guardians.ps.gz
+	Author: Michael	N. Livshin.
+
+	* gc.h (SCM_MARKEDP, SCM_NMARKEDP): New macros.
+
+	* gc.c (scm_igc): Call scm_guardian_gc_init and
+	scm_guardian_zombify.
+
+	* init.c (scm_boot_guile_1): Call scm_init_guardian.
+
 1998-12-19  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
 	* macros.c (scm_makacro, scm_makmacro, scm_makmmacro): Added
@@ -215,27 +236,6 @@ Mon Dec 14 18:10:12 1998  Maciej Stachowiak  <mstachow@mit.edu>
 
 	* evalext.c, evalext.h (scm_m_sequence_to_list): Removed.
 	Replaced by macro `collect' in boot-9.scm.
-
-1998-11-12  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
-
-	* Makefile.am: New files: guardians.c, guardians.x, guardians.h
-
-	* guardians.c, guardians.h (scm_make_guardian,
-	scm_guardian_gc_init, scm_guardian_zombify, scm_guard,
-	scm_get_one_zombie, scm_init_guardian): This is an implementation
-	of guardians as described in R. Kent Dybvig, Carl Bruggeman, and
-	David Eby (1993) "Guardians in a Generation-Based Garbage
-	Collector" ACM SIGPLAN Conference on Programming Language Design
-	and Implementation, June 1993 ftp://ftp.cs.indiana.edu
-	/pub/scheme-repository/doc/pubs/guardians.ps.gz
-	Author: Michael	N. Livshin.
-
-	* gc.h (SCM_MARKEDP, SCM_NMARKEDP): New macros.
-
-	* gc.c (scm_igc): Call scm_guardian_gc_init and
-	scm_guardian_zombify.
-
-	* init.c (scm_boot_guile_1): Call scm_init_guardian.
 
 1998-11-10  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
