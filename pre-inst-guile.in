@@ -28,7 +28,7 @@
 # passing ARGS to it.  In the process, env var GUILE is clobbered, and the
 # following env vars are modified (but not clobbered):
 #   GUILE_LOAD_PATH
-#   LTDL_LOAD_PATH
+#   LTDL_LIBRARY_PATH
 #
 # This script can be used as a drop-in replacement for $bindir/guile;
 # if there is a discrepency in behavior, that's a bug.
