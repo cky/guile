@@ -1,5 +1,9 @@
 2001-03-23  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* guile-tut.texi, ChangeLog-guile-doc-tutorial: Added to CVS.  It
+	seems that I somehow missed these out when I moved everything from
+	guile-doc to guile-core.
+
 	* posix.texi, scheme-data.texi, scheme-evaluation.texi,
 	scheme-io.texi, scheme-memory.texi: Automatic docstring updates.
 
