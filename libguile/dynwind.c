@@ -234,6 +234,12 @@ scm_frame_rewind_handler_with_scm (void (*proc) (SCM), SCM data,
     proc (data);
 }
 
+void
+scm_frame_free (void *mem)
+{
+  scm_frame_unwind_handler (free, mem, SCM_F_WIND_EXPLICITLY);
+}
+
 #ifdef GUILE_DEBUG
 SCM_DEFINE (scm_wind_chain, "wind-chain", 0, 0, 0, 
             (),

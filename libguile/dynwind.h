@@ -63,6 +63,8 @@ SCM_API void scm_frame_unwind_handler_with_scm (void (*func) (SCM), SCM data,
 SCM_API void scm_frame_rewind_handler_with_scm (void (*func) (SCM), SCM data,
 						scm_t_wind_flags);
 
+SCM_API void scm_frame_free (void *mem);
+
 #ifdef GUILE_DEBUG
 SCM_API SCM scm_wind_chain (void);
 #endif /*GUILE_DEBUG*/
