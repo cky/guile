@@ -1,3 +1,7 @@
+2000-06-28  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* gc.c (MIN_GC_YIELD):  Removed.
+
 2000-06-28  Michael Livshin  <mlivshin@bigfoot.com>
 
 	* gc.c (scm_gc_for_newcell): don't try to do GC if it's blocked,

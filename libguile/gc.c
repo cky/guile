@@ -47,6 +47,7 @@
 
 #include <stdio.h>
 #include "libguile/_scm.h"
+#include "libguile/eval.h"
 #include "libguile/stime.h"
 #include "libguile/stackchk.h"
 #include "libguile/struct.h"
@@ -239,13 +240,7 @@ int scm_gc_heap_lock = 0;
  * Don't pause for collection if this is set -- just
  * expand the heap.
  */
-
 int scm_block_gc = 1;
-
-/* If fewer than MIN_GC_YIELD cells are recovered during a garbage
- * collection (GC) more space is allocated for the heap.
- */
-#define MIN_GC_YIELD(freelist) (freelist->heap_size / 4)
 
 /* During collection, this accumulates objects holding
  * weak references.
