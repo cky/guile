@@ -1,5 +1,8 @@
 1999-09-09  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
+	* procs.c (scm_setter): Signal WTA if handed an entity or operator
+	lacking a setter.
+
 	* feature.c, feature.h: (scm_hook_p, scm_hook_empty_p): New
 	primitives. (Thanks to Greg Badros);
 	(scm_hook_to_list): New primitive; Hooks are now smobs.
