@@ -1,3 +1,8 @@
+2003-05-04  Marius Vollmer  <mvo@zagadka.de>
+
+	* throw.c (scm_ithrow): Remove "asm volatile" hack.  It used to
+	work around a bug in GCC 2.95.2 but is now a bug in itself.
+
 2003-05-02  Marius Vollmer  <mvo@zagadka.de>
 
 	* deprecated.h (scm_rstate, scm_rng, SCM_SLOPPY_CONSP,
