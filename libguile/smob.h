@@ -53,16 +53,28 @@ typedef struct scm_smob_descriptor
 {
   char *name;
   scm_sizet size;
+
+  /* Basic functions */
   SCM (*mark) (SCM);
   scm_sizet (*free) (SCM);
   int (*print) (SCM exp, SCM port, scm_print_state *pstate);
   SCM (*equalp) (SCM, SCM);
+
+  /* Apply functions */
   SCM (*apply) ();
   SCM (*apply_0) (SCM);
   SCM (*apply_1) (SCM, SCM);
   SCM (*apply_2) (SCM, SCM, SCM);
   SCM (*apply_3) (SCM, SCM, SCM, SCM);
   int gsubr_type; /* Used in procprop.c */
+
+  /* Dump functions */
+  SCM (*dump_mark) (SCM, SCM);
+  void (*dump_dealloc) (SCM, SCM);
+  void (*dump_store) (SCM, SCM);
+  SCM (*undump_alloc) (SCM);
+  void (*undump_restore) (SCM, SCM);
+  void (*undump_init) (SCM);
 } scm_smob_descriptor;
 
 
@@ -145,20 +157,31 @@ extern int scm_smob_print (SCM exp, SCM port, scm_print_state *pstate);
 
 extern scm_bits_t scm_make_smob_type (char *name, scm_sizet size);
 
-extern void scm_set_smob_mark (long tc, SCM (*mark) (SCM));
-extern void scm_set_smob_free (long tc, scm_sizet (*free) (SCM));
-extern void scm_set_smob_print (long tc, int (*print) (SCM,
-						       SCM,
-						       scm_print_state*));
-extern void scm_set_smob_equalp (long tc, SCM (*equalp) (SCM, SCM));
-extern void scm_set_smob_apply (long tc, SCM (*apply) (),
+extern void scm_set_smob_mark (scm_bits_t tc,
+			       SCM (*mark) (SCM));
+extern void scm_set_smob_free (scm_bits_t tc,
+			       scm_sizet (*free) (SCM));
+extern void scm_set_smob_print (scm_bits_t tc,
+				int (*print) (SCM, SCM, scm_print_state*));
+extern void scm_set_smob_equalp (scm_bits_t tc,
+				 SCM (*equalp) (SCM, SCM));
+extern void scm_set_smob_apply (scm_bits_t tc,
+				SCM (*apply) (),
 				unsigned int req,
 				unsigned int opt,
 				unsigned int rst);
+extern void scm_set_smob_dump (scm_bits_t tc,
+			       SCM (*mark) (SCM, SCM),
+			       void (*dealloc) (SCM, SCM),
+			       void (*store) (SCM, SCM));
+extern void scm_set_smob_undump (scm_bits_t tc,
+				 SCM (*alloc) (SCM),
+				 void (*restore) (SCM, SCM),
+				 void (*init) (SCM));
 
 /* Function for creating smobs */
 
-extern SCM scm_make_smob (long tc);
+extern SCM scm_make_smob (scm_bits_t tc);
 extern void scm_smob_prehistory (void);
 
 

@@ -38,56 +38,47 @@ guile_SOURCES = guile.c
 guile_LDADD = libguile.la ${THREAD_LIBS_LOCAL}
 guile_LDFLAGS = @DLPREOPEN@
 
-libguile_la_SOURCES =							 \
-    alist.c arbiters.c async.c backtrace.c boolean.c chars.c		 \
-    continuations.c debug.c dynl.c dynwind.c environments.c eq.c error.c \
-    eval.c evalext.c feature.c fluids.c fports.c gc.c gdbint.c gh_data.c \
-    gh_eval.c gh_funcs.c gh_init.c gh_io.c gh_list.c gh_predicates.c	 \
-    goops.c gsubr.c guardians.c hash.c hashtab.c hooks.c init.c ioext.c	 \
-    iselect.c keywords.c lang.c list.c load.c macros.c mallocs.c	 \
-    modules.c numbers.c objects.c objprop.c options.c pairs.c ports.c	 \
-    print.c procprop.c procs.c random.c rdelim.c \
-    read.c root.c scmsigs.c \
-    script.c simpos.c smob.c sort.c srcprop.c stackchk.c stacks.c	 \
-    stime.c strings.c strop.c strorder.c strports.c struct.c symbols.c	 \
-    tag.c throw.c values.c variable.c vectors.c version.c vports.c weaks.c \
-    gc_os_dep.c properties.c
+libguile_la_SOURCES = alist.c arbiters.c async.c backtrace.c boolean.c	     \
+    chars.c continuations.c debug.c dump.c dynl.c dynwind.c		     \
+    environments.c eq.c error.c eval.c evalext.c feature.c fluids.c fports.c \
+    gc.c gc_os_dep.c gdbint.c gh_data.c gh_eval.c gh_funcs.c gh_init.c	     \
+    gh_io.c gh_list.c gh_predicates.c goops.c gsubr.c guardians.c hash.c     \
+    hashtab.c hooks.c init.c ioext.c iselect.c keywords.c lang.c list.c	     \
+    load.c macros.c mallocs.c modules.c numbers.c objects.c objprop.c	     \
+    options.c pairs.c ports.c print.c procprop.c procs.c properties.c	     \
+    random.c rdelim.c read.c root.c scmsigs.c script.c simpos.c smob.c	     \
+    sort.c srcprop.c stackchk.c stacks.c stime.c strings.c strop.c	     \
+    strorder.c strports.c struct.c symbols.c tag.c throw.c values.c	     \
+    variable.c vectors.c version.c vports.c weaks.c
 
-DOT_X_FILES =								\
-    alist.x arbiters.x							\
-    async.x backtrace.x boolean.x chars.x continuations.x debug.x	\
-    dynl.x dynwind.x environments.x eq.x error.x eval.x evalext.x	\
-    feature.x								\
-    fluids.x fports.x gc.x goops.x gsubr.x guardians.x hash.x hashtab.x	\
-    hooks.x init.x ioext.x iselect.x keywords.x lang.x list.x load.x	\
-    macros.x mallocs.x modules.x net_db.x numbers.x objects.x		\
-    objprop.x options.x pairs.x ports.x posix.x print.x procprop.x	\
-    procs.x random.x rdelim.x read.x root.x scmsigs.x \
-    script.x simpos.x smob.x socket.x sort.x srcprop.x stackchk.x	\
-    stacks.x stime.x strings.x strop.x strorder.x strports.x struct.x	\
-    symbols.x tag.x throw.x values.x variable.x vectors.x		\
-    version.x vports.x weaks.x properties.x
+DOT_X_FILES = alist.x arbiters.x async.x backtrace.x boolean.x chars.x	    \
+    continuations.x debug.x dump.x dynl.x dynwind.x environments.x eq.x	    \
+    error.x eval.x evalext.x feature.x fluids.x fports.x gc.x goops.x	    \
+    gsubr.x guardians.x hash.x hashtab.x hooks.x init.x ioext.x iselect.x   \
+    keywords.x lang.x list.x load.x macros.x mallocs.x modules.x net_db.x   \
+    numbers.x objects.x objprop.x options.x pairs.x ports.x posix.x print.x \
+    procprop.x procs.x properties.x random.x rdelim.x read.x root.x	    \
+    scmsigs.x script.x simpos.x smob.x socket.x sort.x srcprop.x	    \
+    stackchk.x stacks.x stime.x strings.x strop.x strorder.x strports.x	    \
+    struct.x symbols.x tag.x throw.x values.x variable.x vectors.x	    \
+    version.x vports.x weaks.x
 
 EXTRA_DOT_X_FILES = debug-malloc.x filesys.x net_db.x posix.x ramap.x	\
                     regex-posix.x socket.x threads.x unif.x
 
-DOT_DOC_FILES =								  \
-    alist.doc arbiters.doc async.doc backtrace.doc boolean.doc		  \
-    chars.doc continuations.doc debug.doc dynl.doc dynwind.doc		  \
-    environments.doc eq.doc						  \
-    error.doc eval.doc evalext.doc feature.doc fluids.doc fports.doc	  \
-    gc.doc goops.doc gsubr.doc guardians.doc hash.doc hashtab.doc	  \
-    hooks.doc init.doc							  \
-    ioext.doc iselect.doc keywords.doc lang.doc list.doc load.doc	  \
-    macros.doc mallocs.doc modules.doc net_db.doc numbers.doc objects.doc \
-    objprop.doc options.doc pairs.doc ports.doc posix.doc print.doc	  \
-    procprop.doc procs.doc random.doc rdelim.doc \
-    read.doc root.doc scmsigs.doc	  \
-    script.doc simpos.doc smob.doc socket.doc sort.doc srcprop.doc	  \
-    stackchk.doc stacks.doc stime.doc strings.doc strop.doc strorder.doc  \
-    strports.doc struct.doc symbols.doc tag.doc throw.doc values.doc	  \
-    variable.doc vectors.doc version.doc vports.doc weaks.doc             \
-    properties.doc
+DOT_DOC_FILES = alist.doc arbiters.doc async.doc backtrace.doc		   \
+    boolean.doc chars.doc continuations.doc debug.doc dump.doc dynl.doc	   \
+    dynwind.doc environments.doc eq.doc error.doc eval.doc evalext.doc	   \
+    feature.doc fluids.doc fports.doc gc.doc goops.doc gsubr.doc	   \
+    guardians.doc hash.doc hashtab.doc hooks.doc init.doc ioext.doc	   \
+    iselect.doc keywords.doc lang.doc list.doc load.doc macros.doc	   \
+    mallocs.doc modules.doc net_db.doc numbers.doc objects.doc objprop.doc \
+    options.doc pairs.doc ports.doc posix.doc print.doc procprop.doc	   \
+    procs.doc properties.doc random.doc rdelim.doc read.doc root.doc	   \
+    scmsigs.doc script.doc simpos.doc smob.doc socket.doc sort.doc	   \
+    srcprop.doc stackchk.doc stacks.doc stime.doc strings.doc strop.doc	   \
+    strorder.doc strports.doc struct.doc symbols.doc tag.doc throw.doc	   \
+    values.doc variable.doc vectors.doc version.doc vports.doc weaks.doc
 
 EXTRA_DOT_DOC_FILES = @EXTRA_DOT_DOC_FILES@
 
@@ -120,23 +111,18 @@ pkginclude_HEADERS = gh.h
 
 # These are headers visible as <libguile/mumble.h>.
 modincludedir = $(includedir)/libguile
-modinclude_HEADERS =							 \
-    __scm.h alist.h arbiters.h async.h backtrace.h boolean.h chars.h	 \
-    continuations.h debug.h dynl.h dynwind.h environments.h eq.h	 \
-    error.h eval.h							 \
-    evalext.h feature.h filesys.h fports.h gc.h gdb_interface.h		 \
-    gdbint.h goops.h gsubr.h guardians.h hash.h hashtab.h hooks.h init.h \
-    ioext.h keywords.h lang.h list.h load.h macros.h mallocs.h		 \
-    modules.h net_db.h numbers.h objects.h objprop.h options.h pairs.h	 \
-    ports.h posix.h regex-posix.h print.h procprop.h procs.h random.h	 \
-    ramap.h rdelim.h \
-    read.h root.h scmsigs.h validate.h script.h simpos.h	 \
-    smob.h socket.h sort.h srcprop.h stackchk.h stacks.h stime.h	 \
-    strings.h strop.h strorder.h strports.h struct.h symbols.h tag.h	 \
-    tags.h throw.h unif.h values.h variable.h vectors.h version.h        \
-    vports.h                                                             \
-    weaks.h snarf.h threads.h coop-defs.h fluids.h iselect.h		 \
-    debug-malloc.h properties.h
+modinclude_HEADERS = __scm.h alist.h arbiters.h async.h backtrace.h boolean.h \
+    chars.h continuations.h coop-defs.h debug.h debug-malloc.h dump.h	      \
+    dynl.h dynwind.h environments.h eq.h error.h eval.h evalext.h	      \
+    feature.h filesys.h fluids.h fports.h gc.h gdb_interface.h gdbint.h	      \
+    goops.h gsubr.h guardians.h hash.h hashtab.h hooks.h init.h ioext.h	      \
+    iselect.h keywords.h lang.h list.h load.h macros.h mallocs.h modules.h    \
+    net_db.h numbers.h objects.h objprop.h options.h pairs.h ports.h posix.h  \
+    regex-posix.h print.h procprop.h procs.h properties.h random.h ramap.h    \
+    rdelim.h read.h root.h scmsigs.h validate.h script.h simpos.h smob.h      \
+    snarf.h socket.h sort.h srcprop.h stackchk.h stacks.h stime.h strings.h   \
+    strop.h strorder.h strports.h struct.h symbols.h tag.h tags.h threads.h   \
+    throw.h unif.h values.h variable.h vectors.h version.h vports.h weaks.h
 
 ## This file is generated at configure time.  That is why it is DATA
 ## and not a header -- headers are included in the distribution.

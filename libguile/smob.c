@@ -288,18 +288,24 @@ scm_make_smob_type (char *name, scm_sizet size)
   if (tmp)
     {
       scm_smobs = (scm_smob_descriptor *) tmp;
-      scm_smobs[scm_numsmob].name = name;
-      scm_smobs[scm_numsmob].size = size;
-      scm_smobs[scm_numsmob].mark = 0;
-      scm_smobs[scm_numsmob].free = (size == 0 ? scm_free0 : scm_smob_free);
-      scm_smobs[scm_numsmob].print = scm_smob_print;
-      scm_smobs[scm_numsmob].equalp = 0;
-      scm_smobs[scm_numsmob].apply = 0;
+      scm_smobs[scm_numsmob].name    = name;
+      scm_smobs[scm_numsmob].size    = size;
+      scm_smobs[scm_numsmob].mark    = 0;
+      scm_smobs[scm_numsmob].free    = (size == 0 ? scm_free0 : scm_smob_free);
+      scm_smobs[scm_numsmob].print   = scm_smob_print;
+      scm_smobs[scm_numsmob].equalp  = 0;
+      scm_smobs[scm_numsmob].apply   = 0;
       scm_smobs[scm_numsmob].apply_0 = 0;
       scm_smobs[scm_numsmob].apply_1 = 0;
       scm_smobs[scm_numsmob].apply_2 = 0;
       scm_smobs[scm_numsmob].apply_3 = 0;
-      scm_smobs[scm_numsmob].gsubr_type = 0;
+      scm_smobs[scm_numsmob].gsubr_type     = 0;
+      scm_smobs[scm_numsmob].dump_mark      = 0;
+      scm_smobs[scm_numsmob].dump_dealloc   = 0;
+      scm_smobs[scm_numsmob].dump_store     = 0;
+      scm_smobs[scm_numsmob].undump_alloc   = 0;
+      scm_smobs[scm_numsmob].undump_restore = 0;
+      scm_smobs[scm_numsmob].undump_init    = 0;
       scm_numsmob++;
     }
   SCM_ALLOW_INTS;
@@ -316,31 +322,31 @@ scm_make_smob_type (char *name, scm_sizet size)
 }
 
 void
-scm_set_smob_mark (long tc, SCM (*mark) (SCM))
+scm_set_smob_mark (scm_bits_t tc, SCM (*mark) (SCM))
 {
   scm_smobs[SCM_TC2SMOBNUM (tc)].mark = mark;
 }
 
 void
-scm_set_smob_free (long tc, scm_sizet (*free) (SCM))
+scm_set_smob_free (scm_bits_t tc, scm_sizet (*free) (SCM))
 {
   scm_smobs[SCM_TC2SMOBNUM (tc)].free = free;
 }
 
 void
-scm_set_smob_print (long tc, int (*print) (SCM, SCM, scm_print_state*))
+scm_set_smob_print (scm_bits_t tc, int (*print) (SCM, SCM, scm_print_state*))
 {
   scm_smobs[SCM_TC2SMOBNUM (tc)].print = print;
 }
 
 void
-scm_set_smob_equalp (long tc, SCM (*equalp) (SCM, SCM))
+scm_set_smob_equalp (scm_bits_t tc, SCM (*equalp) (SCM, SCM))
 {
   scm_smobs[SCM_TC2SMOBNUM (tc)].equalp = equalp;
 }
 
 void
-scm_set_smob_apply (long tc, SCM (*apply) (),
+scm_set_smob_apply (scm_bits_t tc, SCM (*apply) (),
 		    unsigned int req, unsigned int opt, unsigned int rst)
 {
   SCM (*apply_0) (SCM);
@@ -441,7 +447,7 @@ scm_set_smob_apply (long tc, SCM (*apply) (),
       apply_3 = scm_smob_apply_3_error; break;
     }
 
-  scm_smobs[SCM_TC2SMOBNUM (tc)].apply = apply;
+  scm_smobs[SCM_TC2SMOBNUM (tc)].apply   = apply;
   scm_smobs[SCM_TC2SMOBNUM (tc)].apply_0 = apply_0;
   scm_smobs[SCM_TC2SMOBNUM (tc)].apply_1 = apply_1;
   scm_smobs[SCM_TC2SMOBNUM (tc)].apply_2 = apply_2;
@@ -449,8 +455,30 @@ scm_set_smob_apply (long tc, SCM (*apply) (),
   scm_smobs[SCM_TC2SMOBNUM (tc)].gsubr_type = type;
 }
 
+void
+scm_set_smob_dump (scm_bits_t tc,
+		   SCM (*mark) (SCM, SCM),
+		   void (*dealloc) (SCM, SCM),
+		   void (*store) (SCM, SCM))
+{
+  scm_smobs[SCM_TC2SMOBNUM (tc)].dump_mark    = mark;
+  scm_smobs[SCM_TC2SMOBNUM (tc)].dump_dealloc = dealloc;
+  scm_smobs[SCM_TC2SMOBNUM (tc)].dump_store   = store;
+}
+
+void
+scm_set_smob_undump (scm_bits_t tc,
+		     SCM (*alloc) (SCM),
+		     void (*restore) (SCM, SCM),
+		     void (*init) (SCM))
+{
+  scm_smobs[SCM_TC2SMOBNUM (tc)].undump_alloc   = alloc;
+  scm_smobs[SCM_TC2SMOBNUM (tc)].undump_restore = restore;
+  scm_smobs[SCM_TC2SMOBNUM (tc)].undump_init    = init;
+}
+
 SCM
-scm_make_smob (long tc)
+scm_make_smob (scm_bits_t tc)
 {
   int n = SCM_TC2SMOBNUM (tc);
   scm_sizet size = scm_smobs[n].size;

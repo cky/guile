@@ -1,3 +1,20 @@
+2001-02-02  Keisuke Nishida  <kxn30@po.cwru.edu>
+
+	* dump.c, dump.h: New files.
+	* Makefile.am: Added dump.c, dump.h, dump.x, dump.doc.
+	* init.c: #include "libguile/dump.h".
+	(scm_init_guile_1): Call scm_init_dump.
+	* smob.h (scm_smob_descriptor): New slots: dump_mark,
+	dump_dealloc, dump_store, undump_alloc, undump_restore,
+	undump_init.
+	* smob.c (scm_make_smob_type): Init the new slots.
+	(scm_set_smob_dump, scm_set_smob_undump): New functions.
+	* smob.h (scm_set_smob_dump, scm_set_smob_undump): Declared.
+
+	* keywords.c: #include "libguile/dump.h".
+	(keyword_dealloc, keyword_alloc): New functions.
+	(scm_init_keywords): Set smob_dump and smob_undump.
+
 2001-02-01  Keisuke Nishida  <kxn30@po.cwru.edu>
 
 	* vectors.c (scm_c_make_vector): New function.
