@@ -673,12 +673,12 @@ scm_iprlist (hdr, exp, tlr, port, pstate)
      O(depth * N) instead of O(N^2). */
   hare = SCM_CDR (exp);
   tortoise = exp;
-  while (SCM_NIMP (hare))
+  while (SCM_NIMP (hare) && SCM_ECONSP (hare))
     {
       if (hare == tortoise)
 	goto fancy_printing;
       hare = SCM_CDR (hare);
-      if (SCM_IMP (hare))
+      if (SCM_IMP (hare) || SCM_NECONSP (hare))
 	break;
       hare = SCM_CDR (hare);
       tortoise = SCM_CDR (tortoise);
