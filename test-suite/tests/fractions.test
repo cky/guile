@@ -1,4 +1,4 @@
-;;;; Copyright (C) 2004 Free Software Foundation, Inc.
+;;;; Copyright (C) 2004, 2005 Free Software Foundation, Inc.
 ;;;;
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License version 2 as
@@ -279,9 +279,6 @@
   (testeqv (/ 1/2 1/4) 2)
   (testeqv (/ 2 1/4) 8)
   (testeqv (/ 1/4 2) 1/8)
-  (testeqv (ash 1/2 0) 1/2)
-  (testeqv (ash 1/2 1) 1)
-  ;;(testeqv (ash 1/2 -1) 1/4)
 
   (testeqv (floor 5/2) 2)
   (testeqv (ceiling 5/2) 3)
