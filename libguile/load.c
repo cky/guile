@@ -55,6 +55,7 @@
 #include "libguile/dynwind.h"
 #include "libguile/root.h"
 #include "libguile/strings.h"
+#include "libguile/modules.h"
 
 #include "libguile/validate.h"
 #include "libguile/load.h"
@@ -94,7 +95,14 @@ load (void *data)
       SCM form = scm_read (port);
       if (SCM_EOF_OBJECT_P (form))
 	break;
-      scm_eval_x (form);
+      /* Ugh!  We need to re-check the environment for every form.
+       * We should change this in the new module system.
+       */
+      scm_i_eval_x (form,
+		    scm_module_system_booted_p
+		    ? (scm_top_level_env
+		       (SCM_MODULE_EVAL_CLOSURE (scm_selected_module ())))
+		    : SCM_EOL);
     }
   return SCM_UNSPECIFIED;
 }
@@ -451,9 +459,9 @@ SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-/* The following function seems trivial - and indeed it is.  Its
- * existence is motivated by its ability to evaluate expressions
- * without copying them first (as is done in "eval").
+#if SCM_DEBUG_DEPRECATED == 0
+
+/* Eval now copies source properties, so this function is no longer required.
  */
 
 SCM_SYMBOL (scm_end_of_file_key, "end-of-file");
@@ -469,9 +477,11 @@ SCM_DEFINE (scm_read_and_eval_x, "read-and-eval!", 0, 1, 0,
   SCM form = scm_read (port);
   if (SCM_EOF_OBJECT_P (form))
     scm_ithrow (scm_end_of_file_key, SCM_EOL, 1);
-  return scm_eval_x (form);
+  return scm_eval_x (form, scm_selected_module ());
 }
 #undef FUNC_NAME
+
+#endif
 
 
 /* Information about the build environment.  */
