@@ -1088,8 +1088,8 @@ set in the result if it is set in an odd number of arguments.
 
 @deffn {Scheme Procedure} lognot n
 @deffnx {C Function} scm_lognot (n)
-Return the integer which is the 2s-complement of the integer
-argument.
+Return the integer which is the ones-complement of the integer
+argument, ie.@: each 0 bit is changed to 1 and each 1 bit to 0.
 
 @lisp
 (number->string (lognot #b10000000) 2)
