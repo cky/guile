@@ -1,3 +1,9 @@
+2004-01-23  Marius Vollmer  <mvo@zagadka.de>
+
+	* tests/r5rs_pitfall.scm: Removed again.  I was confused.  The
+	file added to SCM_TESTS was r5rs_pitfall.test, not
+	r5rs_pitfall.scm.
+
 2004-01-23  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
 
 	* tests/syntax.test: Added test for unmemoizing internal defines.
