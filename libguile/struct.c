@@ -377,7 +377,7 @@ scm_free_structs (void *dummy1, void *dummy2, void *dummy3)
     {
       /* Mark vtables in GC chain.  GC mark set means delay freeing. */
       SCM chain = newchain;
-      while (SCM_NNULLP (chain))
+      while (!SCM_NULLP (chain))
 	{
 	  SCM vtable = SCM_STRUCT_VTABLE (chain);
 	  if (SCM_STRUCT_GC_CHAIN (vtable) != 0 && vtable != chain)
@@ -387,7 +387,7 @@ scm_free_structs (void *dummy1, void *dummy2, void *dummy3)
       /* Free unmarked structs.  */
       chain = newchain;
       newchain = SCM_EOL;
-      while (SCM_NNULLP (chain))
+      while (!SCM_NULLP (chain))
 	{
 	  SCM obj = chain;
 	  chain = SCM_STRUCT_GC_CHAIN (chain);
@@ -402,7 +402,7 @@ scm_free_structs (void *dummy1, void *dummy2, void *dummy3)
 	      scm_bits_t word0 = SCM_CELL_WORD_0 (obj) - scm_tc3_cons_gloc;
 	      /* access as struct */
 	      scm_bits_t * vtable_data = (scm_bits_t *) word0;
-	      scm_bits_t * data = (scm_bits_t *) SCM_UNPACK (SCM_CDR (obj));
+	      scm_bits_t * data = SCM_STRUCT_DATA (obj);
 	      scm_struct_free_t free_struct_data
 		= ((scm_struct_free_t) vtable_data[scm_struct_i_free]);
 	      SCM_SET_CELL_TYPE (obj, scm_tc_free_cell);
@@ -410,7 +410,7 @@ scm_free_structs (void *dummy1, void *dummy2, void *dummy3)
 	    }
 	}
     }
-  while (SCM_NNULLP (newchain));
+  while (!SCM_NULLP (newchain));
   return 0;
 }
 
