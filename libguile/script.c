@@ -591,7 +591,7 @@ scm_compile_shell_switches (int argc, char **argv)
 
   /* Make any remaining arguments available to the
      script/command/whatever.  */
-  scm_set_program_arguments (argc - i, argv + i, argv0);
+  scm_set_program_arguments (argc ? argc - i : 0, argv + i, argv0);
   
   /* If the --emacs switch was set, now is when we process it.  */
   scm_sysintern ("use-emacs-interface",

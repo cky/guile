@@ -1,3 +1,17 @@
+1998-04-18  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* Makefile.am (BUILT_SOURCES): Added cpp_err_symbols.c,
+	cpp_sig_symbols.c, libpath.h and versiondat.h to BUILT_SOURCES
+	(libpath.h, versiondat.h): Replaced dependency on Makefile with
+	dependencies on $(srcdir)/Makefile.in
+	$(top_builddir)/config.status in order to avoid circularity.
+
+	* script.c (scm_compile_shell_switches): Bugfix: Don't discount i
+	from argc if argc was 0 initially.
+
+	* Makefile.am (Makefile.am): Replaced THREAD_LIBS --> GUILE_LIBS
+	in generation of libpath.h.
+
 1998-04-15  Mikael Djurfeldt  <mdj@nada.kth.se>
 
 	* Makefile.am (libguile_la_LDFLAGS): Bumped version number of
