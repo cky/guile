@@ -2121,64 +2121,108 @@ dispatch:
       x = SCM_CDR (x);
       while (!SCM_NULLP (x))
 	{
-	  proc = SCM_CAR (x);
-	  if (SCM_EQ_P (SCM_CAR (proc), scm_sym_else))
+	  SCM clause = SCM_CAR (x);
+	  if (SCM_EQ_P (SCM_CAR (clause), scm_sym_else))
 	    {
-	      x = SCM_CDR (proc);
+	      x = SCM_CDR (clause);
 	      PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
 	      goto begin;
 	    }
-	  t.arg1 = EVALCAR (proc, env);
-	  if (!SCM_FALSEP (t.arg1) && !SCM_NILP (t.arg1))
+	  else
 	    {
-	      x = SCM_CDR (proc);
-	      if (SCM_NULLP (x))
-		RETURN (t.arg1);
-	      else if (!SCM_EQ_P (SCM_CAR (x), scm_sym_arrow))
+	      t.arg1 = EVALCAR (clause, env);
+	      if (!SCM_FALSEP (t.arg1) && !SCM_NILP (t.arg1))
 		{
-		  PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
-		  goto begin;
+		  x = SCM_CDR (clause);
+		  if (SCM_NULLP (x))
+		    RETURN (t.arg1);
+		  else if (!SCM_EQ_P (SCM_CAR (x), scm_sym_arrow))
+		    {
+		      PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
+		      goto begin;
+		    }
+		  else
+		    {
+		      proc = SCM_CDR (x);
+		      proc = EVALCAR (proc, env);
+		      SCM_ASRTGO (!SCM_IMP (proc), badfun);
+		      PREP_APPLY (proc, scm_list_1 (t.arg1));
+		      ENTER_APPLY;
+		      if (SCM_CLOSUREP(proc) && scm_badformalsp (proc, 1))
+			goto umwrongnumargs;
+		      else
+			goto evap1;
+		    }
 		}
-	      proc = SCM_CDR (x);
-	      proc = EVALCAR (proc, env);
-	      SCM_ASRTGO (!SCM_IMP (proc), badfun);
-	      PREP_APPLY (proc, scm_list_1 (t.arg1));
-	      ENTER_APPLY;
-	      if (SCM_CLOSUREP(proc) && scm_badformalsp (proc, 1))
-		goto umwrongnumargs;
-	      goto evap1;
+	      x = SCM_CDR (x);
 	    }
-	  x = SCM_CDR (x);
 	}
       RETURN (SCM_UNSPECIFIED);
 
 
-    case SCM_BIT8(SCM_IM_DO):
+    case SCM_BIT8 (SCM_IM_DO):
       x = SCM_CDR (x);
-      proc = SCM_CADR (x); /* inits */
-      t.arg1 = SCM_EOL;		/* values */
-      while (!SCM_NULLP (proc))
-	{
-	  t.arg1 = scm_cons (EVALCAR (proc, env), t.arg1);
-	  proc = SCM_CDR (proc);
-	}
-      env = EXTEND_ENV (SCM_CAR (x), t.arg1, env);
+      {
+	/* Compute the initialization values and the initial environment.  */
+	SCM init_forms = SCM_CADR (x);
+	SCM init_values = SCM_EOL;
+	while (!SCM_NULLP (init_forms))
+	  {
+	    init_values = scm_cons (EVALCAR (init_forms, env), init_values);
+	    init_forms = SCM_CDR (init_forms);
+	  }
+	env = EXTEND_ENV (SCM_CAR (x), init_values, env);
+      }
       x = SCM_CDDR (x);
-      while (proc = SCM_CAR (x),
-	     SCM_FALSEP (t.arg1 = EVALCAR (proc, env)) || SCM_NILP (t.arg1))
-	{
-	  for (proc = SCM_CADR (x); SCM_NIMP (proc); proc = SCM_CDR (proc))
+      {
+	SCM test_form = SCM_CAR (x);
+	SCM body_forms = SCM_CADR (x);
+	SCM step_forms = SCM_CDDR (x);
+
+	SCM test_result = EVALCAR (test_form, env);
+
+	while (SCM_FALSEP (test_result) || SCM_NILP (test_result))
+	  {
 	    {
-	      t.arg1 = SCM_CAR (proc); /* body */
-	      SIDEVAL (t.arg1, env);
+	      /* Evaluate body forms.  */
+	      SCM temp_forms;
+	      for (temp_forms = body_forms;
+		   !SCM_NULLP (temp_forms);
+		   temp_forms = SCM_CDR (temp_forms))
+		{
+		  SCM form = SCM_CAR (temp_forms);
+		  /* Dirk:FIXME: We only need to eval forms, that may have a
+		   * side effect here.  This is only true for forms that start
+		   * with a pair.  All others are just constants.  However,
+		   * since in the common case there is no constant expression
+		   * in a body of a do form, we just check for immediates here
+		   * and have SCM_CEVAL take care of other cases.  In the long
+		   * run it would make sense to get rid of this test and have
+		   * the macro transformer of 'do' eliminate all forms that
+		   * have no sideeffect.  */
+		  if (!SCM_IMP (form))
+		    SCM_CEVAL (form, env);
+		}
 	    }
-	  for (t.arg1 = SCM_EOL, proc = SCM_CDDR (x);
-	       SCM_NIMP (proc);
-	       proc = SCM_CDR (proc))
-	    t.arg1 = scm_cons (EVALCAR (proc, env), t.arg1); /* steps */
-	  env = EXTEND_ENV (SCM_CAAR (env), t.arg1, SCM_CDR (env));
-	}
-      x = SCM_CDR (proc);
+
+	    {
+	      /* Evaluate the step expressions.  */
+	      SCM temp_forms;
+	      SCM step_values = SCM_EOL;
+	      for (temp_forms = step_forms;
+		   !SCM_NULLP (temp_forms);
+		   temp_forms = SCM_CDR (temp_forms))
+		{
+		  SCM value = EVALCAR (temp_forms, env);
+		  step_values = scm_cons (value, step_values);
+		}
+	      env = EXTEND_ENV (SCM_CAAR (env), step_values, SCM_CDR (env));
+	    }
+
+	    test_result = EVALCAR (test_form, env);
+	  }
+      }
+      x = SCM_CDAR (x);
       if (SCM_NULLP (x))
 	RETURN (SCM_UNSPECIFIED);
       PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
