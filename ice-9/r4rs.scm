@@ -25,6 +25,7 @@
 ;;; procedures, we define them as closures in terms of the primitive
 ;;; macros @apply and @call-with-current-continuation.
 (set! apply (lambda (fun . args) (@apply fun (apply:nconc2last args))))
+(set-procedure-property! apply 'name 'apply)
 (define (call-with-current-continuation proc)
   (@call-with-current-continuation proc))
 

@@ -1,3 +1,7 @@
+Thu Sep 18 01:24:31 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* r4rs.scm (apply): Set name property to 'apply.
+
 Tue Sep 16 22:09:50 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* boot-9.scm (keyword->symbol, display-usage-report): Changed
