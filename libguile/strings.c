@@ -58,8 +58,9 @@
  */
 
 SCM_DEFINE (scm_string_p, "string?", 1, 0, 0, 
-           (SCM obj),
-	    "Returns #t iff OBJ is a string, else returns #f.")
+	    (SCM obj),
+	    "Returns @code{#t} iff @var{obj} is a string, else returns\n"
+	    "@code{#f}.")
 #define FUNC_NAME s_scm_string_p
 {
   return SCM_BOOL (SCM_STRINGP (obj));
@@ -73,8 +74,8 @@ SCM_DEFINE (scm_string_p, "string?", 1, 0, 0,
  */
 
 SCM_DEFINE (scm_read_only_string_p, "read-only-string?", 1, 0, 0, 
-           (SCM x),
-	    "Return true if OBJ can be read as a string,\n\n"
+	    (SCM obj),
+	    "Return true if @var{obj} can be read as a string,\n\n"
 	    "This illustrates the difference between @code{string?} and\n"
 	    "@code{read-only-string?}:\n\n"
 	    "@example\n"
@@ -85,7 +86,7 @@ SCM_DEFINE (scm_read_only_string_p, "read-only-string?", 1, 0, 0,
 	    "@end example")
 #define FUNC_NAME s_scm_read_only_string_p
 {
-  return SCM_BOOL(SCM_ROSTRINGP (x));
+  return SCM_BOOL(SCM_ROSTRINGP (obj));
 }
 #undef FUNC_NAME
 
@@ -96,7 +97,8 @@ SCM_REGISTER_PROC (s_scm_list_to_string, "list->string", 1, 0, 0, scm_string);
 SCM_DEFINE (scm_string, "string", 0, 0, 1, 
             (SCM chrs),
 	    "@deffnx primitive list->string chrs\n"
-	    "Returns a newly allocated string composed of the arguments, CHRS.")
+	    "Returns a newly allocated string composed of the arguments,\n"
+	    "@var{chrs}.")
 #define FUNC_NAME s_scm_string
 {
   SCM result;
@@ -223,10 +225,10 @@ scm_makfrom0str_opt (const char *src)
 
 SCM_DEFINE (scm_make_string, "make-string", 1, 1, 0,
             (SCM k, SCM chr),
-	    "Returns a newly allocated string of\n"
-            "length K.  If CHR is given, then all elements of the string\n"
-            "are initialized to CHR, otherwise the contents of the\n"
-            "STRING are unspecified.\n")
+	    "Return a newly allocated string of\n"
+            "length @var{k}.  If @var{chr} is given, then all elements of\n"
+	    "the string are initialized to @var{chr}, otherwise the contents\n"
+	    "of the @var{string} are unspecified.\n")
 #define FUNC_NAME s_scm_make_string
 {
   if (SCM_INUMP (k))
@@ -258,8 +260,8 @@ SCM_DEFINE (scm_make_string, "make-string", 1, 1, 0,
 
 
 SCM_DEFINE (scm_string_length, "string-length", 1, 0, 0, 
-           (SCM string),
-	    "Returns the number of characters in STRING")
+	    (SCM string),
+	    "Return the number of characters in @var{string}.")
 #define FUNC_NAME s_scm_string_length
 {
   SCM_VALIDATE_STRING (1, string);
@@ -269,8 +271,8 @@ SCM_DEFINE (scm_string_length, "string-length", 1, 0, 0,
 
 SCM_DEFINE (scm_string_ref, "string-ref", 2, 0, 0,
             (SCM str, SCM k),
-	    "Returns character K of STR using zero-origin indexing.\n"
-            "K must be a valid index of STR.")
+	    "Return character @var{k} of @var{str} using zero-origin\n"
+	    "indexing. @var{k} must be a valid index of @var{str}.")
 #define FUNC_NAME s_scm_string_ref
 {
   int idx;
@@ -285,8 +287,9 @@ SCM_DEFINE (scm_string_ref, "string-ref", 2, 0, 0,
 
 SCM_DEFINE (scm_string_set_x, "string-set!", 3, 0, 0,
             (SCM str, SCM k, SCM chr),
-	    "Stores CHR in element K of STRING and returns an unspecified value.\n"
-            "K must be a valid index of STR.")
+	    "Store @var{chr} in element @var{k} of @var{str} and return\n"
+	    "an unspecified value. @var{k} must be a valid index of\n"
+	    "@var{str}.")
 #define FUNC_NAME s_scm_string_set_x
 {
 #if (SCM_DEBUG_DEPRECATED == 0)
@@ -303,12 +306,13 @@ SCM_DEFINE (scm_string_set_x, "string-set!", 3, 0, 0,
 
 
 SCM_DEFINE (scm_substring, "substring", 2, 1, 0,
-           (SCM str, SCM start, SCM end),
-	    "Returns a newly allocated string formed from the characters\n"
-            "of STR beginning with index START (inclusive) and ending with\n"
-            "index END (exclusive).\n"
-            "STR must be a string, START and END must be exact integers satisfying:\n\n"
-            "0 <= START <= END <= (string-length STR).")
+	    (SCM str, SCM start, SCM end),
+	    "Return a newly allocated string formed from the characters\n"
+            "of @var{str} beginning with index @var{start} (inclusive) and\n"
+	    "ending with index @var{end} (exclusive).\n"
+            "@var{str} must be a string, @var{start} and @var{end} must be\n"
+	    "exact integers satisfying:\n\n"
+            "0 <= @var{start} <= @var{end} <= (string-length @var{str}).")
 #define FUNC_NAME s_scm_substring
 {
   long int from;
@@ -330,8 +334,8 @@ SCM_DEFINE (scm_substring, "substring", 2, 1, 0,
 
 SCM_DEFINE (scm_string_append, "string-append", 0, 0, 1, 
             (SCM args),
-	    "Returns a newly allocated string whose characters form the\n"
-            "concatenation of the given strings, ARGS.")
+	    "Return a newly allocated string whose characters form the\n"
+            "concatenation of the given strings, @var{args}.")
 #define FUNC_NAME s_scm_string_append
 {
   SCM res;
