@@ -328,6 +328,14 @@ Wed Sep 18 17:13:35 1996  Mikael Djurfeldt  <mdj@kenneth>
  	_scm_make_srcprops --> scm_make_srcprops; Remove one layer of
  	function calls in the definition of the whash access macros.
 
+Tue Sep 17 11:33:16 1996  Lee Iverson  <leei@Canada.AI.SRI.COM>
+
+	* init.c (scm_boot_guile): Add level of indirection to
+ 	scm_boot_guile_1() to ensure that stack base pointer is properly
+ 	initialized.  There was no guarantee that variable i was the
+ 	highest/lowest variable on stack (i.e. the call frame of
+ 	scm_boot_guile was not completely protected from gc).
+
 Tue Sep 17 01:40:56 1996  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* ports.h (scm_port_table): put back file_name, it will be used to
