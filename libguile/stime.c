@@ -160,6 +160,10 @@ scm_get_internal_real_time()
 }
 #endif
 
+#ifndef HAVE_TZSET
+/* GNU-WIN32's cygwin.dll doesn't have this. */
+#define tzset()
+#endif
 
 
 static long scm_my_base = 0;

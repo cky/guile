@@ -109,6 +109,7 @@ scm_inet_ntoa (inetid)
   return answer;
 }
 
+#ifdef HAVE_INET_NETOF
 SCM_PROC (s_inet_netof, "inet-netof", 1, 0, 0, scm_inet_netof);
 
 SCM 
@@ -119,7 +120,9 @@ scm_inet_netof (address)
   addr.s_addr = htonl (scm_num2ulong (address, (char *) SCM_ARG1, s_inet_netof));
   return scm_ulong2num ((unsigned long) inet_netof (addr));
 }
+#endif
 
+#ifdef HAVE_INET_LNAOF
 SCM_PROC (s_lnaof, "inet-lnaof", 1, 0, 0, scm_lnaof);
 
 SCM 
@@ -130,8 +133,9 @@ scm_lnaof (address)
   addr.s_addr = htonl (scm_num2ulong (address, (char *) SCM_ARG1, s_lnaof));
   return scm_ulong2num ((unsigned long) inet_lnaof (addr));
 }
+#endif
 
-
+#ifdef HAVE_INET_MAKEADDR
 SCM_PROC (s_inet_makeaddr, "inet-makeaddr", 2, 0, 0, scm_inet_makeaddr);
 
 SCM 
@@ -148,6 +152,7 @@ scm_inet_makeaddr (net, lna)
   addr = inet_makeaddr (netnum, lnanum);
   return scm_ulong2num (ntohl (addr.s_addr));
 }
+#endif
 
 
 /* !!! Doesn't take address format.
@@ -244,6 +249,7 @@ scm_gethost (name)
    doesn't seem quite right (what if errno gets set as part of healthy
    operation?), but it seems to work okay.  We'll see.  */
 
+#if defined(HAVE_GETNETENT) && defined(HAVE_GETNETBYNAME) && defined(HAVE_GETNETBYADDR)
 SCM_PROC (s_getnet, "getnet", 0, 1, 0, scm_getnet);
 
 SCM 
@@ -293,7 +299,9 @@ scm_getnet (name)
   ve[3] = scm_ulong2num (entry->n_net + 0L);
   return ans;
 }
+#endif
 
+#ifdef HAVE_GETPROTOENT
 SCM_PROC (s_getproto, "getproto", 0, 1, 0, scm_getproto);
 
 SCM 
@@ -342,7 +350,7 @@ scm_getproto (name)
   ve[2] = SCM_MAKINUM (entry->p_proto + 0L);
   return ans;
 }
-
+#endif
 
 static SCM scm_return_entry SCM_P ((struct servent *entry));
 
@@ -363,6 +371,7 @@ scm_return_entry (entry)
   return ans;
 }
 
+#ifdef HAVE_GETSERVENT
 SCM_PROC (s_getserv, "getserv", 0, 2, 0, scm_getserv);
 
 SCM 
@@ -406,7 +415,9 @@ scm_getserv (name, proto)
   SCM_ALLOW_INTS;
   return scm_return_entry (entry);
 }
+#endif
 
+#if defined(HAVE_SETHOSTENT) && defined(HAVE_ENDHOSTENT)
 SCM_PROC (s_sethost, "sethost", 0, 1, 0, scm_sethost);
 
 SCM 
@@ -419,7 +430,9 @@ scm_sethost (arg)
     sethostent (SCM_NFALSEP (arg));
   return SCM_UNSPECIFIED;
 }
+#endif
 
+#if defined(HAVE_SETNETENT) && defined(HAVE_ENDNETENT) 
 SCM_PROC (s_setnet, "setnet", 0, 1, 0, scm_setnet);
 
 SCM 
@@ -432,7 +445,9 @@ scm_setnet (arg)
     setnetent (SCM_NFALSEP (arg));
   return SCM_UNSPECIFIED;
 }
+#endif
 
+#if defined(HAVE_SETPROTOENT) && defined(HAVE_ENDPROTOENT)
 SCM_PROC (s_setproto, "setproto", 0, 1, 0, scm_setproto);
 
 SCM 
@@ -445,7 +460,9 @@ scm_setproto (arg)
     setprotoent (SCM_NFALSEP (arg));
   return SCM_UNSPECIFIED;
 }
+#endif
 
+#if defined(HAVE_SETSERVENT) && defined(HAVE_ENDSERVENT)
 SCM_PROC (s_setserv, "setserv", 0, 1, 0, scm_setserv);
 
 SCM 
@@ -458,6 +475,7 @@ scm_setserv (arg)
     setservent (SCM_NFALSEP (arg));
   return SCM_UNSPECIFIED;
 }
+#endif
 
 
 void 

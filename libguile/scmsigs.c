@@ -329,6 +329,7 @@ scm_alarm (i)
   return SCM_MAKINUM (j);
 }
 
+#ifdef HAVE_PAUSE
 SCM_PROC(s_pause, "pause", 0, 0, 0, scm_pause);
 
 SCM 
@@ -337,6 +338,7 @@ scm_pause ()
   pause ();
   return SCM_UNSPECIFIED;
 }
+#endif
 
 SCM_PROC(s_sleep, "sleep", 1, 0, 0, scm_sleep);
 

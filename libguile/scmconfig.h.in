@@ -155,6 +155,9 @@
 /* Define if the operating system can restart system calls.  */
 #undef HAVE_RESTARTS
 
+/* Define if the system supports Unix-domain (file-domain) sockets.  */
+#undef HAVE_UNIX_DOMAIN_SOCKETS
+
 /* Define if you have the ctermid function.  */
 #undef HAVE_CTERMID
 
@@ -166,6 +169,9 @@
 
 /* Define if you have the geteuid function.  */
 #undef HAVE_GETEUID
+
+/* Define if you have the getgroups function.  */
+#undef HAVE_GETGROUPS
 
 /* Define if you have the gethostent function.  */
 #undef HAVE_GETHOSTENT
@@ -187,6 +193,9 @@
 
 /* Define if you have the nice function.  */
 #undef HAVE_NICE
+
+/* Define if you have the pause function.  */
+#undef HAVE_PAUSE
 
 /* Define if you have the putenv function.  */
 #undef HAVE_PUTENV
@@ -218,6 +227,9 @@
 /* Define if you have the setpgid function.  */
 #undef HAVE_SETPGID
 
+/* Define if you have the setpwent function.  */
+#undef HAVE_SETPWENT
+
 /* Define if you have the setsid function.  */
 #undef HAVE_SETSID
 
@@ -226,6 +238,9 @@
 
 /* Define if you have the sigaction function.  */
 #undef HAVE_SIGACTION
+
+/* Define if you have the socketpair function.  */
+#undef HAVE_SOCKETPAIR
 
 /* Define if you have the strerror function.  */
 #undef HAVE_STRERROR
@@ -251,6 +266,9 @@
 /* Define if you have the times function.  */
 #undef HAVE_TIMES
 
+/* Define if you have the tzset function.  */
+#undef HAVE_TZSET
+
 /* Define if you have the uname function.  */
 #undef HAVE_UNAME
 
@@ -274,6 +292,9 @@
 
 /* Define if you have the <ndir.h> header file.  */
 #undef HAVE_NDIR_H
+
+/* Define if you have the <regex.h> header file.  */
+#undef HAVE_REGEX_H
 
 /* Define if you have the <string.h> header file.  */
 #undef HAVE_STRING_H

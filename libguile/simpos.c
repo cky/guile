@@ -117,7 +117,7 @@ scm_primitive_exit (SCM status)
 #ifdef vms
 # define SYSTNAME "VMS"
 #endif
-#if defined (unix) || defined (__unix)
+#if defined (unix) || defined (__unix) || defined(__CYGWIN32__)
 # define SYSTNAME "UNIX"
 #endif
 #ifdef MWC
