@@ -1041,7 +1041,7 @@ the @code{tmpnam} function in the system libraries.")
   SCM_SYSCALL (tmpnam (name););
   return scm_makfrom0str (name);
 }
-#undef FUNC_NAME;
+#undef FUNC_NAME
 
 #endif
 

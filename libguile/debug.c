@@ -296,7 +296,7 @@ SCM_DEFINE (scm_make_iloc, "make-iloc", 3, 0, 0,
 SCM_DEFINE (scm_iloc_p, "iloc?", 1, 0, 0, 
           (SCM obj),
 "")
-#define FUNC_NAME s_scm_iGUILE_p
+#define FUNC_NAME s_scm_iloc_p
 {
   return SCM_BOOL(SCM_ILOCP (obj));
 }

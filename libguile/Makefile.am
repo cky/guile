@@ -105,7 +105,7 @@ modinclude_HEADERS = \
 ## and not a header -- headers are included in the distribution.
 modinclude_DATA = scmconfig.h
 
-bin_SCRIPTS = guile-snarf guile-doc-snarf guile-snarf.awk
+bin_SCRIPTS = guile-snarf guile-doc-snarf guile-snarf.awk guile-func-name-check
 
 check_ldadd = libguile.la ${THREAD_LIBS_LOCAL}
 check_PROGRAMS = gh_test_c gh_test_repl

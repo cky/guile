@@ -743,7 +743,7 @@ SCM_DEFINE (scm_sort_x, "sort!", 2, 0, 0,
   else
     RETURN_SCM_WTA (1,items);
 }
-#undef FUNC_NAME				/* scm_sort_x */
+#undef FUNC_NAME
 
 /* scm_sort manages lists and vectors, not stable sort */
 
@@ -781,7 +781,7 @@ SCM_DEFINE (scm_sort, "sort", 2, 0, 0,
   else
     RETURN_SCM_WTA (1,items);
 }
-#undef FUNC_NAME				/* scm_sort */
+#undef FUNC_NAME
 
 static void
 scm_merge_vector_x (void *const vecbase,
@@ -872,7 +872,7 @@ SCM_DEFINE (scm_stable_sort_x, "stable-sort!", 2, 0, 0,
   else
     RETURN_SCM_WTA (1,items);
 }
-#undef FUNC_NAME				/* scm_stable_sort_x */
+#undef FUNC_NAME
 
 /* stable_sort manages lists and vectors */
 
@@ -916,7 +916,7 @@ SCM_DEFINE (scm_stable_sort, "stable-sort", 2, 0, 0,
   else
     RETURN_SCM_WTA (1,items);
 }
-#undef FUNC_NAME				/* scm_stable_sort */
+#undef FUNC_NAME
 
 /* stable */
 SCM_DEFINE (scm_sort_list_x, "sort-list!", 2, 0, 0, 
@@ -929,7 +929,7 @@ SCM_DEFINE (scm_sort_list_x, "sort-list!", 2, 0, 0,
   SCM_VALIDATE_NIM (2,less);
   return scm_merge_list_step (&items, scm_cmp_function (less), less, len);
 }
-#undef FUNC_NAME				/* scm_sort_list_x */
+#undef FUNC_NAME
 
 /* stable */
 SCM_DEFINE (scm_sort_list, "sort-list", 2, 0, 0, 
@@ -943,7 +943,7 @@ SCM_DEFINE (scm_sort_list, "sort-list", 2, 0, 0,
   items = scm_list_copy (items);
   return scm_merge_list_step (&items, scm_cmp_function (less), less, len);
 }
-#undef FUNC_NAME				/* scm_sort_list_x */
+#undef FUNC_NAME
 
 void
 scm_init_sort ()

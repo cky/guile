@@ -2050,7 +2050,8 @@ same type, and have corresponding elements which are either
 @code{equal?} in that a one dimensional shared array may be
 @var{array-equal?} but not @var{equal?} to a vector or uniform vector.")
 #define FUNC_NAME s_scm_array_equal_p
-...
+{
+}
 #undef FUNC_NAME
 #endif
 
