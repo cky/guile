@@ -30,9 +30,10 @@ by the @file{configure} script, typically by adding the tests to
 Users of your package then run @file{configure} in the normal way.
 
 Macros are a way to make common feature tests easy to express.  Autoconf
-provides a wide range macros (@pxref{Existing Tests,,,autoconf}), and Guile
-installation provides Guile-specific tests in the areas of: program detection,
-compilation flags reporting, and Scheme module checks.
+provides a wide range of macros (@pxref{Existing Tests,,,autoconf}), and
+Guile installation provides Guile-specific tests in the areas of:
+program detection, compilation flags reporting, and Scheme module
+checks.
 
 
 @node Autoconf Macros

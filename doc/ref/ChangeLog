@@ -1,3 +1,7 @@
+2002-03-03  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* autoconf.texi (Autoconf Background): Insert missing `of'.
+
 2002-03-01  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* api.txt, data-rep.texi: Renamed the struct scm_cell to
