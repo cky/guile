@@ -2737,6 +2737,13 @@
   `(with-fluids* (list ,@(map car bindings)) (list ,@(map cadr bindings))
 		 (lambda () ,@body)))
 
+;;; Environments
+
+(define the-environment
+  (procedure->syntax
+   (lambda (x e)
+     e)))
+
 
 
 ;;; {Macros}

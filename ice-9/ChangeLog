@@ -1,3 +1,9 @@
+1998-11-21  Mikael Djurfeldt  <mdj@kenneth>
+
+	* boot-9.scm (the-environment): New special form: Returns an
+	object representing the current local evaluation environment.
+	This object can be used in `local-eval' and `defined?'.
+
 1998-11-13  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
 	* boot-9.scm (collect): New syntax.  Similar to begin but returns
