@@ -2003,8 +2003,8 @@
 ;;; {Macros}
 ;;;
 
-(define macro-table (make-weak-hash-table 523))
-(define xformer-table (make-weak-hash-table 523))
+(define macro-table (make-weak-key-hash-table 523))
+(define xformer-table (make-weak-key-hash-table 523))
 
 (define (defmacro? m)  (hashq-ref macro-table m))
 (define (assert-defmacro?! m) (hashq-set! macro-table m #t))
