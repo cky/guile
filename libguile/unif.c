@@ -1284,7 +1284,7 @@ scm_array_set_x (v, obj, args)
       break;
     case scm_tc7_byvect:
       if (SCM_ICHRP (obj))
-	obj = SCM_MAKINUM (SCM_ICHR (obj));
+	obj = SCM_MAKINUM ((char) SCM_ICHR (obj));
       SCM_ASRTGO (SCM_INUMP (obj), badobj);
       ((char *)SCM_CHARS (v))[pos] = SCM_INUM (obj);
       break;

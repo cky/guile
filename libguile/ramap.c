@@ -160,6 +160,7 @@ scm_ra_matchp (ra0, ras)
 	return 0;
       case scm_tc7_vector:
       case scm_tc7_string:
+      case scm_tc7_byvect:
       case scm_tc7_bvect:
       case scm_tc7_uvect:
       case scm_tc7_ivect:
@@ -191,6 +192,7 @@ scm_ra_matchp (ra0, ras)
 	      return 0;
 	    case scm_tc7_vector:
 	    case scm_tc7_string:
+	    case scm_tc7_byvect:
 	    case scm_tc7_bvect:
 	    case scm_tc7_uvect:
 	    case scm_tc7_ivect:
@@ -435,6 +437,15 @@ scm_array_fill_int (ra, fill, ignore)
 	for (i = base; n--; i += inc)
 	  SCM_CHARS (ra)[i] = SCM_ICHR (fill);
 	break;
+      case scm_tc7_byvect:
+	if (SCM_ICHRP (fill))
+	  fill = SCM_MAKINUM ((char) SCM_ICHR (fill));
+	SCM_ASRTGO (SCM_INUMP (fill)
+		    && -128 <= SCM_INUM (fill) && SCM_INUM (fill) < 128,
+		    badarg2);
+	for (i = base; n--; i += inc)
+	  SCM_CHARS (ra)[i] = SCM_INUM (fill);
+	break;
       case scm_tc7_bvect:
 	{
 	  long *ve = (long *) SCM_VELTS (ra);
@@ -552,6 +563,7 @@ racp (src, dst)
 	  scm_array_set_x (dst, scm_cvref (src, i_s, SCM_UNDEFINED), SCM_MAKINUM (i_d));
 	break;
       case scm_tc7_string:
+      case scm_tc7_byvect:
 	if (scm_tc7_string != SCM_TYP7 (dst))
 	  goto gencase;
 	for (; n-- > 0; i_s += inc_s, i_d += inc_d)
@@ -1816,6 +1828,7 @@ scm_array_index_map_x (ra, proc)
 	  return SCM_UNSPECIFIED;
 	}
       case scm_tc7_string:
+      case scm_tc7_byvect:
       case scm_tc7_bvect:
       case scm_tc7_uvect:
       case scm_tc7_ivect:
@@ -1915,6 +1928,7 @@ raeql_1 (ra0, as_equal, ra1)
 	  }
 	return 1;
       case scm_tc7_string:
+      case scm_tc7_byvect:
 	{
 	  char *v0 = SCM_CHARS (ra0) + i0;
 	  char *v1 = SCM_CHARS (ra1) + i1;
@@ -2067,6 +2081,7 @@ scm_array_equal_p (ra0, ra1)
 	goto callequal;
       case scm_tc7_bvect:
       case scm_tc7_string:
+      case scm_tc7_byvect:
       case scm_tc7_uvect:
       case scm_tc7_ivect:
       case scm_tc7_fvect:
@@ -2085,6 +2100,7 @@ scm_array_equal_p (ra0, ra1)
 	goto callequal;
       case scm_tc7_bvect:
       case scm_tc7_string:
+      case scm_tc7_byvect:
       case scm_tc7_uvect:
       case scm_tc7_ivect:
       case scm_tc7_fvect:
