@@ -1,0 +1,47 @@
+;;;; ramap.test --- test array mapping functions -*- scheme -*-
+;;;; 
+;;;; Copyright (C) 2004 Free Software Foundation, Inc.
+;;;;
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 2.1 of the License, or (at your option) any later version.
+;;;; 
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;; 
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+
+(define-module (test-suite test-ramap)
+  #:use-module (test-suite lib))
+
+;;;
+;;; array-map!
+;;;
+
+(with-test-prefix "array-map!"
+
+  (pass-if-exception "no args" exception:wrong-num-args
+    (array-map!))
+
+  (pass-if-exception "one args" exception:wrong-num-args
+    (array-map! (make-array #f 5)))
+
+  ;; in Guile 1.6.4 and earlier this resulted in a segv
+  (pass-if-exception "no sources" exception:wrong-num-args
+    (array-map! (make-array #f 5) noop))
+
+  ;; in Guile 1.6.5 and 1.6.6 this was an error
+  (pass-if "one source"
+    (let ((a (make-array #f 5)))
+      (array-map! a 1+ (make-array 123 5))
+      (equal? a (make-array 124 5))))
+
+  (pass-if "two sources"
+    (let ((a (make-array #f 4)))
+      (array-map! a + #(1 2 3 4) #(5 6 7 8))
+      (equal? a #(6 8 10 12)))))
