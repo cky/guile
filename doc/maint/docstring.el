@@ -109,14 +109,14 @@ to which new docstrings should be added.")
     result))
 
 ;; Return t if the current buffer position is in the scope of the
-;; specified MODULE, as determined by "@c module ..." comments in the
+;; specified MODULE, as determined by "@c module-for-docstring ..." comments in the
 ;; buffer.  DEFAULT-OK specifies the return value in the case that
 ;; there are no preceding module comments at all.
 (defun docstring-in-module (module default-ok)
   (save-excursion
-    (if (re-search-backward "^@c module " nil t)
+    (if (re-search-backward "^@c module-for-docstring " nil t)
         (progn
-          (search-forward "@c module ")
+          (search-forward "@c module-for-docstring ")
           (equal module (read (current-buffer))))
       default-ok)))
 
@@ -222,12 +222,12 @@ to which new docstrings should be added.")
         (module '(guile)))
     (save-excursion
       (goto-char (point-min))
-      (while (re-search-forward "^\\(@c module \\|@deffnx? \\({[^}]+}\\|[^ ]+\\) \\([^ \n]+\\)\\)"
+      (while (re-search-forward "^\\(@c module-for-docstring \\|@deffnx? \\({[^}]+}\\|[^ ]+\\) \\([^ \n]+\\)\\)"
                                 nil
                                 t)
         (let ((matched (buffer-substring (match-beginning 1)
                                          (match-end 1))))
-          (if (string-equal matched "@c module ")
+          (if (string-equal matched "@c module-for-docstring ")
               (setq module (read (current-buffer)))
 	    (let ((type (buffer-substring (match-beginning 2)
 					  (match-end 2))))
@@ -311,7 +311,7 @@ to which new docstrings should be added.")
       (set-buffer buf)
       (goto-char (point-max))
       (or (docstring-in-module module nil)
-          (insert "\n@c module " (prin1-to-string module) "\n"))
+          (insert "\n@c module-for-docstring " (prin1-to-string module) "\n"))
       (insert "\n" (location-to-docstring (find-snarfed-docstring module
                                                                   description))))))
 
