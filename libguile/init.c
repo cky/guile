@@ -47,6 +47,9 @@
    We call all their initialization functions.  */
 
 #include <stdio.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
 #include "_scm.h"
 
 /* Everybody has an init function.  */
@@ -248,13 +251,29 @@ check_config (void)
 /* Like scm_fdes_to_port, except that:
    - NAME is a standard C string, not a Guile string
    - we set the revealed count for FILE's file descriptor to 1, so
-     that fdes won't be closed when the port object is GC'd.  */
+     that FDES won't be closed when the port object is GC'd.
+   - when FDES is not a valid file descripter (as determined by
+     fstat), we open "/dev/null" and use that instead.  In that case,
+     the revealed count is left at zero.
+*/
 static SCM
 scm_standard_stream_to_port (int fdes, char *mode, char *name)
 {
-  SCM port = scm_fdes_to_port (fdes, mode, scm_makfrom0str (name));
-  scm_set_port_revealed_x (port, SCM_MAKINUM (1));
-  return port;
+  struct stat st;
+  if (fstat (fdes, &st) == -1)
+    {
+      /* We do not bother to check errno.  When fstat fails, there is
+         generally no point in trying to use FDES, I think. */
+
+      fdes = open ("/dev/null", (mode[0] == 'r')? O_RDONLY : O_WRONLY);
+      return scm_fdes_to_port (fdes, mode, scm_makfrom0str (name));
+    }
+  else
+    {
+      SCM port = scm_fdes_to_port (fdes, mode, scm_makfrom0str (name));
+      scm_set_port_revealed_x (port, SCM_MAKINUM (1));
+      return port;
+    }
 }
 
 /* Create standard ports from stdin, stdout, and stderr.  */
