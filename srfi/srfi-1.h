@@ -50,6 +50,8 @@ SCM_SRFI1_API SCM scm_srfi1_partition (SCM pred, SCM list);
 SCM_SRFI1_API SCM scm_srfi1_partition_x (SCM pred, SCM list);
 SCM_SRFI1_API SCM scm_srfi1_remove (SCM pred, SCM list);
 SCM_SRFI1_API SCM scm_srfi1_remove_x (SCM pred, SCM list);
+SCM_SRFI1_API SCM scm_srfi1_split_at (SCM lst, SCM n);
+SCM_SRFI1_API SCM scm_srfi1_split_at_x (SCM lst, SCM n);
 SCM_SRFI1_API SCM scm_srfi1_take_right (SCM lst, SCM n);
 
 SCM_SRFI1_API void scm_init_srfi_1 (void);

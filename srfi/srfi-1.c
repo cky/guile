@@ -1007,6 +1007,57 @@ SCM_DEFINE (scm_srfi1_remove_x, "remove!", 2, 0, 0,
 #undef FUNC_NAME
 
 
+SCM_DEFINE (scm_srfi1_split_at, "split-at", 2, 0, 0,
+            (SCM lst, SCM n),
+	    "Return two values (multiple values), being a list of the\n"
+	    "elements before index @var{n} in @var{lst}, and a list of those\n"
+	    "after.")
+#define FUNC_NAME s_scm_srfi1_split_at
+{
+  size_t nn;
+  /* pre is a list of elements before the i split point, loc is the CDRLOC
+     of the last cell, ie. where to store to append to it */
+  SCM pre = SCM_EOL;
+  SCM *loc = &pre;
+
+  for (nn = scm_to_size_t (n); nn != 0; nn--)
+    {
+      SCM_VALIDATE_CONS (SCM_ARG1, lst);
+
+      *loc = scm_cons (SCM_CAR (lst), SCM_EOL);
+      loc = SCM_CDRLOC (*loc);
+      lst = SCM_CDR(lst);
+    }
+  return scm_values (scm_list_2 (pre, lst));
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_srfi1_split_at_x, "split-at!", 2, 0, 0,
+            (SCM lst, SCM n),
+	    "Return two values (multiple values), being a list of the\n"
+	    "elements before index @var{n} in @var{lst}, and a list of those\n"
+	    "after.  @var{lst} is modified to form those values.")
+#define FUNC_NAME s_scm_srfi1_split_at
+{
+  size_t nn;
+  SCM upto = lst;
+  SCM *loc = &lst;
+
+  for (nn = scm_to_size_t (n); nn != 0; nn--)
+    {
+      SCM_VALIDATE_CONS (SCM_ARG1, upto);
+
+      loc = SCM_CDRLOC (upto);
+      upto = SCM_CDR (upto);
+    }
+
+  *loc = SCM_EOL;
+  return scm_values (scm_list_2 (lst, upto));
+}
+#undef FUNC_NAME
+
+
 SCM_DEFINE (scm_srfi1_take_right, "take-right", 2, 0, 0,
             (SCM lst, SCM n),
 	    "Return the a list containing the @var{n} last elements of\n"
