@@ -1,3 +1,8 @@
+1999-12-19  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* objects.c (scm_class_of): Bugfix: Inserted missing SCM_CDR
+	setting struct table class.
+
 Sun Dec 19 10:22:34 1999  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* threads.c, mit-pthreads.c, list.c, coop.c:  Remove K&R
@@ -47,6 +52,7 @@ Sat Dec 18 15:22:10 1999  Greg J. Badros  <gjb@cs.washington.edu>
 	argument name was the explicit argument in the old function call.
 	These were just missed in my first pass of changes.
 
+>>>>>>> 1.715
 1999-12-18  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* guile-doc-snarf.in (filename): Strip path to source dir before
