@@ -1,3 +1,10 @@
+Tue Apr 15 17:46:54 1997  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* PLUGIN/OPT: Don't mention "threads", because that causes
+	"threads" to appear in the list of directories to be configured.
+	Just say enough to get qt to appear in the list.  I don't think qt
+	needs to be built before or after anything else in particular...
+
 Mon Feb 24 21:47:16 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* configure.in: Added AM_MAINTAINER_MODE
