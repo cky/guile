@@ -1,5 +1,8 @@
 Mon Sep  9 20:00:15 1996  Jim Blandy  <jimb@floss.cyclic.com>
 
+	* init.c: Don't forget to #include smob.h and init.h.
+	* Makefile.in: Dependencies updated.
+
 	* smob.h: Use PROTO instead of #if __STDC__.
 
 	* continuations.c (scm_dynthrow): Use PROTO, not SCM_P. 
