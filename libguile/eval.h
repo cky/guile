@@ -93,24 +93,24 @@ extern SCM scm_eval_options_interface SCM_P ((SCM setting));
  * For an explanation of symbols containing "EVAL", see beginning of eval.c.
  */
 #ifdef MEMOIZE_LOCALS
-#define SCM_EVALIM(x, env) (SCM_ILOCP(x)?*scm_ilookup((x), env):x)
+#define SCM_EVALIM(x, env) (SCM_ILOCP (x) ? *scm_ilookup ((x), env) : x)
 #else
 #define SCM_EVALIM(x, env) x
 #endif
 #ifdef DEBUG_EXTENSIONS
-#define SCM_XEVAL(x, env) (SCM_IMP(x) \
-		      ? (x) \
-		      : (*scm_ceval_ptr) ((x), (env)))
-#define SCM_XEVALCAR(x, env) (SCM_NCELLP(SCM_CAR(x)) \
-			  ? (SCM_IMP(SCM_CAR(x)) \
-			     ? SCM_EVALIM(SCM_CAR(x), env) \
-			     : SCM_GLOC_VAL(SCM_CAR(x))) \
-			  : (SCM_SYMBOLP(SCM_CAR(x)) \
-			     ? *scm_lookupcar(x, env, 1) \
-			     : (*scm_ceval_ptr) (SCM_CAR(x), env)))
+#define SCM_XEVAL(x, env) (SCM_IMP (x) \
+			   ? (x) \
+			   : (*scm_ceval_ptr) ((x), (env)))
+#define SCM_XEVALCAR(x, env) (SCM_NCELLP (SCM_CAR (x)) \
+			      ? (SCM_IMP (SCM_CAR (x)) \
+				 ? SCM_EVALIM (SCM_CAR (x), env) \
+				 : SCM_GLOC_VAL (SCM_CAR (x))) \
+			      : (SCM_SYMBOLP (SCM_CAR (x)) \
+			         ? *scm_lookupcar (x, env, 1) \
+			         : (*scm_ceval_ptr) (SCM_CAR (x), env)))
 #else
-#define SCM_XEVAL(x, env) (SCM_IMP(x)?(x):scm_ceval((x), (env)))
-#define SCM_XEVALCAR(x, env) EVALCAR(x, env)
+#define SCM_XEVAL(x, env) (SCM_IMP (x) ? (x) : scm_ceval ((x), (env)))
+#define SCM_XEVALCAR(x, env) EVALCAR (x, env)
 #endif /* DEBUG_EXTENSIONS */
 
 
