@@ -2438,11 +2438,18 @@
 (define before-read-hook '())
 (define after-read-hook '())
 
+;;; The default repl-reader function.  We may override this if we've
+;;; the readline library.
+(define repl-reader
+  (lambda (prompt)
+    (display prompt)
+    (force-output)
+    (read (current-input-port))))
+
 (define (scm-style-repl)
   (letrec (
 	   (start-gc-rt #f)
 	   (start-rt #f)
-	   (repl-report-reset (lambda () #f))
 	   (repl-report-start-timing (lambda ()
 				       (set! start-gc-rt (gc-run-time))
 				       (set! start-rt (get-internal-run-time))))
@@ -2468,17 +2475,19 @@
 		 ((char=? ch #\newline)
 		  (read-char))))))
 	   (-read (lambda ()
-		    (if scm-repl-prompt
-			(begin
-			  (display (cond ((string? scm-repl-prompt)
-					  scm-repl-prompt)
-					 ((thunk? scm-repl-prompt)
-					  (scm-repl-prompt))
-					 (else "> ")))
-			  (force-output)
-			  (repl-report-reset)))
+		    ;; It would be nice if we could run this after the
+		    ;; first prompt was printed, but with readline
+		    ;; that's not possible, so we punt.
 		    (run-hooks before-read-hook)
-		    (let ((val (read (current-input-port))))
+		    (let ((val
+			   (let ((prompt (cond ((string? scm-repl-prompt)
+						scm-repl-prompt)
+					       ((thunk? scm-repl-prompt)
+						(scm-repl-prompt))
+					       (scm-repl-prompt "> ")
+					       (else ""))))
+			     (repl-reader prompt))))
+
 		      ;; As described in R4RS, the READ procedure updates the
 		      ;; port to point to the first characetr past the end of
 		      ;; the external representation of the object.  This
@@ -2761,6 +2770,17 @@
 
      ;; the protected thunk.
      (lambda ()
+
+       ;; If we've got readline, use it to prompt the user.  This is a
+       ;; kludge, but we'll fix it soon.  At least we only get
+       ;; readline involved when we're actually running the repl.
+       (if (memq 'readline *features*)
+	   (begin
+	     (set-current-input-port (readline-port))
+	     (set! repl-reader
+		   (lambda (prompt)
+		     (set-readline-prompt! prompt)
+		     (read)))))
        (scm-style-repl))
 
      ;; call at exit.
@@ -2823,6 +2843,15 @@
 
 (if (memq 'regex *features*)
     (define-module (guile) :use-module (ice-9 regex)))
+
+
+;;; Load readline code if rreadline primitives are available.
+;;;
+;;; Ideally, we wouldn't do this until we were sure we were actually
+;;; going to enter the repl, but autoloading individual functions is
+;;; clumsy at the moment.
+(if (memq 'readline *features*)
+    (define-module (guile) :use-module (ice-9 readline)))
 
 
 ;;; {Check that the interpreter and scheme code match up.}
