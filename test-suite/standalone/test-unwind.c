@@ -124,7 +124,7 @@ check_cont (int rewindable)
   SCM res;
   
   res = scm_internal_catch (SCM_BOOL_T,
-			    check_cont_body, (void *)rewindable,
+			    check_cont_body, (void *)(long)rewindable,
 			    return_tag, NULL);
 
   /* RES is now either the created continuation, the value passed to
