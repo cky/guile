@@ -33,6 +33,8 @@ Anthony Green: wrote the following files in libguile:
 and ice-9/threads.scm.
 
 Mikael Djurfeldt:
+In the subdirectory ice-9, wrote:
+    emacs.scm	 syncase.scm
 In the subdirectory libguile, wrote:
     backtrace.c  debug.c      options.c    root.c       srcprop.c    stacks.c
     backtrace.h  debug.h      options.h    root.h       srcprop.h    stacks.h
@@ -59,3 +61,16 @@ In the subdirectory libguile, wrote:
 In the subdirectory libguile, rewrote:
     dynl.c	dynl-dl.c	dynl-shl.c
     dynl.h	dynl-dld.c
+
+R. Kent Dybvig:
+In the subdirectory ice-9, wrote:
+    psyntax.ss
+
+Roland Orre:
+In the subdirectory ice-9, wrote:
+    session.scm
+
+Michael N. Livshin:
+In the subdirectory libguile, wrote:
+    guardians.c
+    guardians.h

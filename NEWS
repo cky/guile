@@ -44,6 +44,13 @@ These functions used to operate on numbers in the range of a C signed
 long; however, this seems inappropriate, because Guile integers don't
 overflow.
 
+** New function: make-guardian
+This is an implementation of guardians as described in
+R. Kent Dybvig, Carl Bruggeman, and David Eby (1993) "Guardians in a
+Generation-Based Garbage Collector" ACM SIGPLAN Conference on
+Programming Language Design and Implementation, June 1993
+ftp://ftp.cs.indiana.edu/pub/scheme-repository/doc/pubs/guardians.ps.gz
+
 ** New functions: delq1!, delv1!, delete1!
 These procedures behave similar to delq! and friends but delete only
 one object if at all.
