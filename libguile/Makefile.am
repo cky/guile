@@ -32,11 +32,13 @@ ETAGS_ARGS = --regex='/SCM_\(GLOBAL_\)?\(G?PROC\|G?PROC1\|SYMBOL\|VCELL\|CONST_L
    --regex='/[ \t]*SCM_[G]?DEFINE1?[ \t]*(\([^,]*\),[^,]*/\1/'
 
 lib_LTLIBRARIES = libguile.la
-bin_PROGRAMS = guile
+bin_PROGRAMS = guile guile_filter_doc_snarfage
 
 guile_SOURCES = guile.c
 guile_LDADD = libguile.la ${THREAD_LIBS_LOCAL}
 guile_LDFLAGS = @DLPREOPEN@
+
+guile_filter_doc_snarfage_SOURCES = filter-doc-snarfage.c
 
 libguile_la_SOURCES = alist.c arbiters.c async.c backtrace.c boolean.c	    \
     chars.c continuations.c debug.c deprecation.c dynl.c dynwind.c	    \
@@ -87,13 +89,15 @@ DOT_DOC_FILES = alist.doc arbiters.doc async.doc backtrace.doc		    \
 EXTRA_DOT_DOC_FILES = @EXTRA_DOT_DOC_FILES@
 
 BUILT_SOURCES = cpp_err_symbols.c cpp_sig_symbols.c libpath.h scmconfig.h \
-    $(DOT_X_FILES) $(EXTRA_DOT_X_FILES) $(DOT_DOC_FILES)
+    $(DOT_X_FILES) $(EXTRA_DOT_X_FILES)
 
 EXTRA_libguile_la_SOURCES = _scm.h			\
     alloca.c inet_aton.c memmove.c putenv.c strerror.c	\
     threads.c regex-posix.c				\
     filesys.c posix.c net_db.c socket.c			\
     ramap.c unif.c debug-malloc.c
+
+Makefile: $(DOT_X_FILES)
 
 ## In next release, threads will be factored out of libguile.
 ## Until then, the machine specific headers is a temporary kludge.
@@ -133,10 +137,13 @@ modinclude_HEADERS = __scm.h alist.h arbiters.h async.h backtrace.h boolean.h \
 ## and not a header -- headers are included in the distribution.
 modinclude_DATA = scmconfig.h
 
-bin_SCRIPTS = guile-snarf guile-doc-snarf guile-snarf.awk guile-func-name-check
+bin_SCRIPTS = guile-snarf guile-doc-snarf guile-snarf-docs \
+    guile-snarf-docs-texi guile-func-name-check
 
 EXTRA_DIST = ChangeLog-gh ChangeLog-scm ChangeLog-threads cpp_signal.c	\
     cpp_errno.c cpp_err_symbols.in cpp_sig_symbols.in cpp_cnvt.awk
+#    $(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES) \
+#    guile-procedures.txt guile.texi
 
 ## FIXME: Consider using timestamp file, to avoid unnecessary rebuilds.
 libpath.h: $(srcdir)/Makefile.in  $(top_builddir)/config.status
@@ -178,22 +185,24 @@ libpath.h: $(srcdir)/Makefile.in  $(top_builddir)/config.status
 
 SUFFIXES = .x .doc
 .c.x:
-	./guile-doc-snarf $< $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< > $@ \
+	./guile-snarf $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< > $@ \
 	|| { rm $@; false; }
-.x.doc:
-	./guile-doc-snarf $(srcdir)/$*.c $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $(srcdir)/$*.c > /dev/null \
+.c.doc:
+	-(test -n "${AWK+set}" || AWK="@AWK@"; ${AWK} -f ./guile-func-name-check $<)
+	./guile-snarf-docs $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< > $@ \
         || { rm $@; false; }
 
-*.x: snarf.h guile-doc-snarf.in
-*.doc: guile-snarf.awk.in
+$(DOT_X_FILES) $(EXTRA_DOT_DOC_FILES): snarf.h guile-snarf.in
+
+$(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES): snarf.h guile-snarf-docs.in guile_filter_doc_snarfage
 
 error.x: cpp_err_symbols.c
 posix.x: cpp_sig_symbols.c
 load.x: libpath.h
 
-guile.texi: $(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES)
-	echo "@paragraphindent 0" > $@
-	cat *.doc >> $@
+guile.texi: $(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES) guile-snarf-docs-texi.in guile
+	./guile-snarf-docs-texi $(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES) > $@ \
+	|| { rm $@; false; }
 
 guile-procedures.txt: guile.texi
 	rm -f $@
@@ -250,4 +259,4 @@ MOSTLYCLEANFILES = \
 	cpp_err_symbols_here cpp_err_symbols_diff cpp_err_symbols_new \
 	cpp_sig_symbols_here cpp_sig_symbols_diff cpp_sig_symbols_new
 
-CLEANFILES = libpath.h *.x *.doc
+CLEANFILES = libpath.h *.x *.doc guile-procedures.txt guile.texi

@@ -1,3 +1,19 @@
+2001-05-31  Michael Livshin  <mlivshin@bigfoot.com>
+
+	* guile-snarf-docs.in, guile-snarf-docs-texi.in,
+	filter-doc-snarfage.c: new files.
+
+	* Makefile.am: add stuff to [build,] use and distribute
+	guile-snarf-docs, guile-snarf-docs-texi, guile_filter_doc_snarfage.
+
+	* guile-snarf.in: grok the new snarf output.
+
+	* snarf.h: make the output both texttools- and `read'-friendly.
+
+	* guile-doc-snarf.in (bindir): reimplement in terms of guile-snarf
+	and guile-snarf-docs.  (should also deprecate, I guess.  maybe
+	not).
+
 2001-05-31  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* print.c (scm_simple_format): Support "~~" and "~%".  Signal
