@@ -702,8 +702,15 @@ scm_print_struct (exp, port, pstate)
     scm_printer_apply (SCM_STRUCT_PRINTER (exp), exp, port, pstate);
   else
     {
-      scm_lfwrite ("#<struct ", sizeof ("#<struct ") - 1, port);
-      scm_intprint (SCM_STRUCT_VTABLE (exp), 16, port);
+      SCM vtable = SCM_STRUCT_VTABLE (exp);
+      SCM name = scm_struct_vtable_name (vtable);
+      scm_puts ("#<", port);
+      if (SCM_NFALSEP (name))
+	scm_display (name, port);
+      else
+	scm_puts ("struct", port);
+      scm_putc (' ', port);
+      scm_intprint (vtable, 16, port);
       scm_putc (':', port);
       scm_intprint (exp, 16, port);
       scm_putc ('>', port);
