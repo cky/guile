@@ -1862,7 +1862,7 @@ scm_sys_compute_applicable_methods (SCM gf, SCM args)
 #undef FUNC_NAME
 
 SCM_SYMBOL (sym_compute_applicable_methods, "compute-applicable-methods");
-SCM_VARIABLE_INIT (var_compute_applicable_methods, "compute-applicable-methods", scm_make_gsubr (s_sys_compute_applicable_methods, 2, 0, 0, scm_sys_compute_applicable_methods));
+SCM_VARIABLE_INIT (var_compute_applicable_methods, "compute-applicable-methods", scm_c_define_gsubr (s_sys_compute_applicable_methods, 2, 0, 0, scm_sys_compute_applicable_methods));
 
 SCM_SYNTAX (s_atslot_ref, "@slot-ref", scm_makmmacro, scm_m_atslot_ref);
 
@@ -2511,9 +2511,9 @@ scm_add_slot (SCM class, char *slot_name, SCM slot_class,
 	      char *accessor_name)
 {
   {
-    SCM get = scm_make_subr_opt ("goops:get", scm_tc7_subr_1, getter, 0);
-    SCM set = scm_make_subr_opt ("goops:set", scm_tc7_subr_2,
-				 setter ? setter : default_setter, 0);
+    SCM get = scm_c_make_subr ("goops:get", scm_tc7_subr_1, getter);
+    SCM set = scm_c_make_subr ("goops:set", scm_tc7_subr_2,
+			       setter ? setter : default_setter);
     SCM getm = scm_closure (SCM_LIST2 (SCM_LIST1 (sym_o),
 				       SCM_LIST2 (get, sym_o)),
 			    SCM_EOL);
@@ -2693,7 +2693,8 @@ scm_init_goops_builtins (void)
 void
 scm_init_goops ()
 {
-  scm_make_gsubr ("%init-goops-builtins", 0, 0, 0, scm_init_goops_builtins);
+  scm_c_define_gsubr ("%init-goops-builtins", 0, 0, 0,
+		      scm_init_goops_builtins);
 }
 
 /*

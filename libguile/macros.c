@@ -221,7 +221,7 @@ SCM
 scm_make_synt (const char *name, SCM (*macroizer) (), SCM (*fcn)() )
 {
   SCM var = scm_c_define (name, SCM_UNDEFINED);
-  SCM transformer = scm_make_subr_opt (name, scm_tc7_subr_2, fcn, 0);
+  SCM transformer = scm_c_make_subr (name, scm_tc7_subr_2, fcn);
   SCM_VARIABLE_SET (var, macroizer (transformer));
   return SCM_UNSPECIFIED;
 }

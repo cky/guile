@@ -92,8 +92,8 @@ static const char s_ ## FNAME [] = PRIMNAME; \
 SCM FNAME ARGLIST\
 )\
 SCM_SNARF_INIT(\
-scm_make_gsubr (s_ ## FNAME, REQ, OPT, VAR, \
-                (SCM_FUNC_CAST_ARBITRARY_ARGS) FNAME); \
+scm_c_define_gsubr (s_ ## FNAME, REQ, OPT, VAR, \
+                    (SCM_FUNC_CAST_ARBITRARY_ARGS) FNAME); \
 )\
 SCM_SNARF_DOCS(\
 SCM_SNARF_DOC_STARTP PRIMNAME #ARGLIST | REQ | OPT | VAR | __FILE__:__LINE__ | \
@@ -105,7 +105,7 @@ SCM_SNARF_HERE(\
 static const char s_ ## FNAME [] = PRIMNAME; \
 SCM FNAME ARGLIST\
 )\
-SCM_SNARF_INIT(scm_make_subr (s_ ## FNAME, TYPE, FNAME); ) \
+SCM_SNARF_INIT(scm_c_define_subr (s_ ## FNAME, TYPE, FNAME); ) \
 SCM_SNARF_DOCS(\
 SCM_SNARF_DOC_START1 PRIMNAME #ARGLIST | 2 | 0 | 0 | __FILE__:__LINE__ | \
  SCM_SNARF_DOCSTRING_START DOCSTRING SCM_SNARF_DOCSTRING_END \
@@ -113,13 +113,13 @@ SCM_SNARF_DOC_START1 PRIMNAME #ARGLIST | 2 | 0 | 0 | __FILE__:__LINE__ | \
 
 #define SCM_PROC(RANAME, STR, REQ, OPT, VAR, CFN)  \
 SCM_SNARF_HERE(static const char RANAME[]=STR) \
-SCM_SNARF_INIT(scm_make_gsubr (RANAME, REQ, OPT, VAR, \
-                               (SCM_FUNC_CAST_ARBITRARY_ARGS) CFN))
+SCM_SNARF_INIT(scm_c_define_gsubr (RANAME, REQ, OPT, VAR, \
+                                   (SCM_FUNC_CAST_ARBITRARY_ARGS) CFN))
 
 #define SCM_REGISTER_PROC(RANAME, STR, REQ, OPT, VAR, CFN)  \
 SCM_SNARF_HERE(static const char RANAME[]=STR) \
-SCM_SNARF_INIT(scm_make_gsubr (RANAME, REQ, OPT, VAR, \
-                               (SCM_FUNC_CAST_ARBITRARY_ARGS) CFN);) \
+SCM_SNARF_INIT(scm_c_define_gsubr (RANAME, REQ, OPT, VAR, \
+                                   (SCM_FUNC_CAST_ARBITRARY_ARGS) CFN);) \
 SCM_SNARF_DOCS(\
 SCM_SNARF_DOC_STARTR STR | REQ | OPT | VAR | __FILE__:__LINE__ | \
  SCM_SNARF_DOCSTRING_START CFN SCM_SNARF_DOCSTRING_END \
@@ -131,14 +131,14 @@ static const char RANAME[]=STR;\
 static SCM GF \
 )SCM_SNARF_INIT(\
 GF = SCM_PACK (0);  /* Dirk:FIXME:: Can we safely use #f instead of 0? */ \
-scm_make_gsubr_with_generic (RANAME, REQ, OPT, VAR, \
-                             (SCM_FUNC_CAST_ARBITRARY_ARGS) CFN, &GF) \
+scm_c_define_gsubr_with_generic (RANAME, REQ, OPT, VAR, \
+                                 (SCM_FUNC_CAST_ARBITRARY_ARGS) CFN, &GF) \
 )
 
 #define SCM_PROC1(RANAME, STR, TYPE, CFN) \
 SCM_SNARF_HERE(static const char RANAME[]=STR) \
 SCM_SNARF_INIT(\
-scm_make_subr (RANAME, TYPE, (SCM_FUNC_CAST_ARBITRARY_ARGS) CFN) \
+scm_c_define_subr (RANAME, TYPE, (SCM_FUNC_CAST_ARBITRARY_ARGS) CFN) \
 )
 
 
@@ -148,8 +148,8 @@ static const char RANAME[]=STR; \
 static SCM GF \
 )SCM_SNARF_INIT(\
 GF = SCM_PACK (0);  /* Dirk:FIXME:: Can we safely use #f instead of 0? */ \
-scm_make_subr_with_generic (RANAME, TYPE, \
-                            (SCM_FUNC_CAST_ARBITRARY_ARGS) CFN, &GF) \
+scm_c_define_subr_with_generic (RANAME, TYPE, \
+                                (SCM_FUNC_CAST_ARBITRARY_ARGS) CFN, &GF) \
 )
 
 #define SCM_SYNTAX(RANAME, STR, TYPE, CFN)  \

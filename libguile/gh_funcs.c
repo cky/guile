@@ -50,8 +50,8 @@ SCM
 gh_new_procedure (const char *proc_name, SCM (*fn) (),
 		  int n_required_args, int n_optional_args, int varp)
 {
-  return scm_make_gsubr (proc_name, n_required_args, n_optional_args,
-			 varp, fn);
+  return scm_c_define_gsubr (proc_name, n_required_args, n_optional_args,
+			     varp, fn);
 }
 
 SCM

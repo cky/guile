@@ -96,7 +96,8 @@ SCM_DEFINE (scm_values, "values", 0, 0, 1,
 void
 scm_init_values (void)
 {
-  SCM print = scm_make_subr ("%print-values", scm_tc7_subr_2, print_values);
+  SCM print = scm_c_define_subr ("%print-values", scm_tc7_subr_2,
+				 print_values);
 
   scm_values_vtable 
     = scm_permanent_object (scm_make_vtable_vtable (scm_makfrom0str ("pr"),

@@ -307,7 +307,8 @@ scm_init_rdelim_builtins (void)
 void
 scm_init_rdelim (void)
 {
-  scm_make_gsubr ("%init-rdelim-builtins", 0, 0, 0, scm_init_rdelim_builtins);
+  scm_c_define_gsubr ("%init-rdelim-builtins", 0, 0, 0,
+		      scm_init_rdelim_builtins);
 }
 
 /*

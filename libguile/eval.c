@@ -4098,7 +4098,7 @@ scm_init_eval ()
   SCM_SETCDR (scm_undefineds, scm_undefineds);
   scm_listofnull = scm_cons (SCM_EOL, SCM_EOL);
 
-  scm_f_apply = scm_make_subr ("apply", scm_tc7_lsubr_2, scm_apply);
+  scm_f_apply = scm_c_define_subr ("apply", scm_tc7_lsubr_2, scm_apply);
 
   /* acros */
   /* end of acros */

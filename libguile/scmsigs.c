@@ -494,8 +494,9 @@ scm_init_scmsigs ()
   signal_handlers =
     SCM_VARIABLE_LOC (scm_c_define ("signal-handlers",
 				  scm_c_make_vector (NSIG, SCM_BOOL_F)));
-  thunk = scm_make_gsubr ("%deliver-signals", 0, 0, 0,
-			  sys_deliver_signals);
+  /* XXX - use scm_c_make_gsubr here instead of `define'? */
+  thunk = scm_c_define_gsubr ("%deliver-signals", 0, 0, 0,
+			      sys_deliver_signals);
   signal_async = scm_system_async (thunk);
 
   for (i = 0; i < NSIG; i++)

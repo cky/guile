@@ -173,7 +173,7 @@ scm_init_rw_builtins ()
 void
 scm_init_rw ()
 {
-  scm_make_gsubr ("%init-rw-builtins", 0, 0, 0, scm_init_rw_builtins);
+  scm_c_define_gsubr ("%init-rw-builtins", 0, 0, 0, scm_init_rw_builtins);
 }
 
 /*
