@@ -774,10 +774,11 @@ static int gensym_counter;
 
 SCM_DEFINE (scm_gensym, "gensym", 0, 1, 0,
             (SCM prefix),
-	    "Create a new symbol with name constructed from a prefix and a counter value.\n"
-	    "The string PREFIX can be specified as an optional argument.\n"
-	    "Default prefix is @code{g}.  The counter is increased by 1 at each call.\n"
-	    "There is no provision for resetting the counter.")
+	    "Create a new symbol with a name constructed from a prefix and\n"
+	    "a counter value. The string @var{prefix} can be specified as\n"
+	    "an optional argument. Default prefix is @code{g}.  The counter\n"
+	    "is increased by 1 at each call. There is no provision for\n"
+	    "resetting the counter.")
 #define FUNC_NAME s_scm_gensym
 {
   char buf[MAX_PREFIX_LENGTH + SCM_INTBUFLEN];
@@ -811,10 +812,11 @@ static int gentemp_counter;
 SCM_DEFINE (scm_gentemp, "gentemp", 0, 2, 0,
             (SCM prefix, SCM obarray),
 	    "Create a new symbol with a name unique in an obarray.\n"
-	    "The name is constructed from an optional string PREFIX and a counter\n"
-	    "value.  The default prefix is @var{t}.  The OBARRAY is specified as a\n"
-	    "second optional argument.  Default is the system obarray where all\n"
-	    "normal symbols are interned.  The counter is increased by 1 at each\n"
+	    "The name is constructed from an optional string @var{prefix}\n"
+	    "and a counter value.  The default prefix is @code{t}.  The\n"
+	    "@var{obarray} is specified as a second optional argument.\n"
+	    "Default is the system obarray where all normal symbols are\n"
+	    "interned.  The counter is increased by 1 at each\n"
 	    "call.  There is no provision for resetting the counter.")
 #define FUNC_NAME s_scm_gentemp
 {
