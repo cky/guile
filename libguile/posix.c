@@ -1498,9 +1498,10 @@ SCM_DEFINE (scm_cuserid, "cuserid", 0, 0, 0,
 	    "information cannot be obtained.")
 #define FUNC_NAME s_scm_cuserid
 {
+  char buf[L_cuserid];
   char * p;
 
-  p = cuserid (NULL);
+  p = cuserid (buf);
   if (!p || !*p)
     return SCM_BOOL_F;
   return scm_makfrom0str (p);
