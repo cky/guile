@@ -175,7 +175,7 @@ options and switches them on, @code{read-disable} switches them off.
 @deffnx {C Function} scm_read_options (setting)
 Option interface for the read options. Instead of using
 this procedure directly, use the procedures @code{read-enable},
-@code{read-disable}, @code{read-set!} and @var{read-options}.
+@code{read-disable}, @code{read-set!} and @code{read-options}.
 @end deffn
 
 
@@ -386,7 +386,7 @@ options and switches them on, @code{eval-disable} switches them off.
 @deffnx {C Function} scm_eval_options_interface (setting)
 Option interface for the evaluation options. Instead of using
 this procedure directly, use the procedures @code{eval-enable},
-@code{eval-disable}, @code{eval-set!} and @var{eval-options}.
+@code{eval-disable}, @code{eval-set!} and @code{eval-options}.
 @end deffn
 
 @c FIXME::martin: Why aren't these procedure named like the other options

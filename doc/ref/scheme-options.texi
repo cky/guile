@@ -154,6 +154,7 @@ closure-hook    #f      Hook for printing closures.
 
 @node Evaluator options
 @section Evaluator options
+
 These are the evaluator options with their default values, as they are
 printed by typing @code{(eval-options 'full)} in Guile.
 

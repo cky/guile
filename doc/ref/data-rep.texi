@@ -46,7 +46,7 @@
 @c essay @sp 10
 @c essay @comment The title is printed in a large font.
 @c essay @title Data Representation in Guile
-@c essay @subtitle $Id: data-rep.texi,v 1.5 2002-03-01 00:19:20 dirk Exp $
+@c essay @subtitle $Id: data-rep.texi,v 1.6 2002-03-12 21:08:57 ossau Exp $
 @c essay @subtitle For use with Guile @value{VERSION}
 @c essay @author Jim Blandy
 @c essay @author Free Software Foundation
@@ -1608,6 +1608,7 @@ make_image (SCM name, SCM s_width, SCM s_height)
   SCM_RETURN_NEWSMOB (image_tag, image);
 @}
 @end example
+
 
 @node Type checking
 @subsection Type checking
