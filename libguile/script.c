@@ -399,6 +399,9 @@ SCM_SYMBOL (sym_use_srfis, "use-srfis");
 SCM_SYMBOL (sym_load_path, "%load-path");
 SCM_SYMBOL (sym_set_x, "set!");
 SCM_SYMBOL (sym_cons, "cons");
+SCM_SYMBOL (sym_at, "@");
+SCM_SYMBOL (sym_atat, "@@");
+SCM_SYMBOL (sym_main, "main");
 
 /* Given an array of command-line switches, return a Scheme expression
    to carry out the actions specified by the switches.
@@ -410,6 +413,18 @@ SCM_SYMBOL (sym_cons, "cons");
  */
 
 static char guile[] = "guile";
+
+static int
+all_symbols (SCM list)
+{
+  while (scm_is_pair (list))
+    {
+      if (!scm_is_symbol (SCM_CAR (list)))
+	return 0;
+      list = SCM_CDR (list);
+    }
+  return 1;
+}
 
 SCM
 scm_compile_shell_switches (int argc, char **argv)
@@ -517,9 +532,30 @@ scm_compile_shell_switches (int argc, char **argv)
       else if (! strcmp (argv[i], "-e")) /* entry point */
 	{
 	  if (++i < argc)
-	    entry_point = scm_c_read_string (argv[i]);
+	    {
+	      SCM port 
+		= scm_open_input_string (scm_from_locale_string (argv[i]));
+	      SCM arg1 = scm_read (port);
+	      SCM arg2 = scm_read (port);
+
+	      /* Recognize syntax of certain versions of Guile 1.4 and
+		 transform to (@ MODULE-NAME FUNC).
+	       */
+	      if (scm_is_false (scm_eof_object_p (arg2)))
+		entry_point = scm_list_3 (sym_at, arg1, arg2);
+	      else if (scm_is_pair (arg1)
+		       && !(scm_is_eq (SCM_CAR (arg1), sym_at)
+			    || scm_is_eq (SCM_CAR (arg1), sym_atat))
+		       && all_symbols (arg1))
+		entry_point = scm_list_3 (sym_at, arg1, sym_main);
+	      else
+		entry_point = arg1;
+	    }
 	  else
 	    scm_shell_usage (1, "missing argument to `-e' switch");
+
+	  scm_display (entry_point, SCM_UNDEFINED);
+	  scm_newline (SCM_UNDEFINED);
 	}
 
       else if (! strcmp (argv[i], "-ds")) /* do script here */
