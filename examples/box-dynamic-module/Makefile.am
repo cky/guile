@@ -19,7 +19,13 @@
 ##   to the Free Software Foundation, Inc., 59 Temple Place, Suite
 ##   330, Boston, MA 02111-1307 USA
 
-SUBDIRS = scripts box box-module box-dynamic box-dynamic-module\
- modules safe
+EXTRA_DIST = README box.c
 
-EXTRA_DIST = README
+CFLAGS=`guile-config compile`
+LIBS=`guile-config link`
+
+libbox-module: box.lo
+	sh ../../libtool --mode=link $(CC) $< $(LIBS) -rpath $(prefix)/lib -o libbox-module.la
+
+box.lo: box.c
+	sh ../../libtool --mode=compile $(CC) $(CFLAGS) -c $< 

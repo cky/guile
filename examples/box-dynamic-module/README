@@ -1,0 +1,52 @@
+							       -*- text -*-
+
+This directory includes an example program for extending Guile with a
+new (and even useful) data type, putting it into a shared library, so it 
+can be called from an unmodified guile interpreter. Further, the shared 
+library defines a new guile module.
+
+To build the example, simply type
+
+  make libbox-module
+
+in this directory.
+
+A box is simply an object for storing one other object in.  It can be
+used for passing parameters by reference, for example.  You simply
+store an object into a box, pass it to another procedure which can
+store a new object into it and thus return a value via the box.
+
+Box objects are created with `make-box', set with `box-set!' and
+examined with `box-ref'.  Note that these procedures are placed in a
+module called (box-module) and can thus only be accessed after using
+this module.  See the following example session for usage details:
+
+Extend your LD_LIBRARY_PATH variable (or equivalent) to include . and
+.libs 
+
+If you like this example so much that you want to have it available
+for normal usage, install the dynamic libraries in the .libs directory
+to the directory $(prefix)/lib
+
+Note that after loading the extension, an explicit call to use-modules
+is needed to make the exported procedures available.
+
+$ guile
+guile> (load-extension "libbox-module" "scm_init_box")
+guile> make-box
+<unnamed port>: In expression make-box:
+<unnamed port>: Unbound variable: make-box
+ABORT: (unbound-variable)
+
+Type "(backtrace)" to get more information or "(debug)" to enter the debugger.
+guile> (use-modules (box-module))
+guile> (define b (make-box))
+guile> b
+#<box #f>
+guile> (box-set! b '(list of values))
+guile> b
+#<box (list of values)>
+guile> (box-ref b)
+(list of values)
+guile> (quit)
+$

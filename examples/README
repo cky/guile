@@ -5,9 +5,15 @@ programming.
 
 See the README files in the subdirectories for details.
 
-scripts     Examples for writing simple scripts in Guile Scheme.
-box	    Example for extending Guile with a new data type.
-box-module  Similar to `box', but define new procedures in a named module.
-box-dynamic Implements the box type in a dynamically loadable library.
-modules     Examples for writing and using Guile modules.
-safe        Examples for creating and using safe environments.
+scripts             Examples for writing simple scripts in Guile Scheme.
+box		    Example for extending Guile with a new data type.
+box-module	    Similar to `box', but defines new procedures in a
+		    named module.
+box-dynamic	    Implements the box type in a dynamically loadable
+		    library.
+box-dynamic-module  Combination of `box-module' and `box-dynamic': 
+		    Implements the `box' type in a shared library and
+		    defines the procedures in a Guile module.
+modules		    Examples for writing and using Guile modules.
+safe		    Examples for creating and using safe environments.
+

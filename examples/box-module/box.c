@@ -34,7 +34,7 @@ static SCM
 mark_box (SCM b)
 {
   /* Since we have only one SCM object to protect, we simply return it
-     and the caller with mark it.  */
+     and the caller will mark it.  */
   return SCM_CELL_OBJECT_1 (b);
 }
 

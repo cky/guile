@@ -1,4 +1,4 @@
-/* examples/box/box.c
+/* examples/box-dynamic-module/box.c
  * 
  *	Copyright (C) 1998,2001 Free Software Foundation, Inc.
  * 
@@ -108,9 +108,13 @@ box_set_x (SCM b, SCM value)
 
 
 /* Create and initialize the new smob type, and register the
-   primitives withe the interpreter library.  */
+   primitives withe the interpreter library.
+
+   This function must be declared a bit different from the example in
+   the ../box directory, because it will be called by
+   `scm_c_define_module', called from below.  */
 static void
-init_box_type (void)
+init_box_type (void * unused)
 {
   scm_tc16_box = scm_make_smob_type ("box", 0);
   scm_set_smob_mark (scm_tc16_box, mark_box);
@@ -119,30 +123,25 @@ init_box_type (void)
   scm_c_define_gsubr ("make-box", 0, 0, 0, make_box);
   scm_c_define_gsubr ("box-set!", 2, 0, 0, box_set_x);
   scm_c_define_gsubr ("box-ref", 1, 0, 0, box_ref);
+
+  /* This is new too: Since the procedures are now in a module, we
+     have to explicitly export them before they can be used.  */
+  scm_c_export ("make-box", "box-set!", "box-ref", NULL);
 }
 
-
-/* This is the function which gets called by scm_boot_guile after the
-   Guile library is completely initialized.  */
-static void
-inner_main (void *closure, int argc, char **argv)
+/* This is the function which must be given to `load-extension' as the
+   second argument.  It will initialize the shared, library, but will
+   place the definitions in a module called (box-module), so that an
+   additional (use-modules (box-module)) is needed to make them
+   accessible.  */
+void
+scm_init_box ()
 {
-  /* First, we create our data type... */
-  init_box_type ();
-  /* ... then we start a shell, in which the box data type can be
-     used.  */
-  scm_shell (argc, argv);
-}
-
-
-/* Main program.  */
-int
-main (int argc, char **argv)
-{
-  /* Initialize Guile, then call `inner_main' with the arguments 0,
-     argc and argv.  */
-  scm_boot_guile (argc, argv, inner_main, 0);
-  return 0; /* Never reached.  */
+  /* Unlike the example in ../box, init_box_type is not called
+     directly, but by scm_c_define_module, which will create a module
+     named (box-module) and make this module current while called
+     init_box_type, thus placing the definitions into that module.  */
+  scm_c_define_module ("box-module", init_box_type, NULL);
 }
 
 /* End of file.  */

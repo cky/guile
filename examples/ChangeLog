@@ -1,3 +1,13 @@
+2001-06-05  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* box-dynamic-module: New directory, implements the box type in a
+	shared library and places the definitions in a C-only module.
+
+	Thanks to Thomas Wawrzinek for this, too!
+	
+	* box-dynamic/box.c, box/box.c, box-dynamic-module/box.c,
+	box-module/box.c (mark_box): Fixed typo in comment.
+
 2001-06-01  Rob Browning  <rlb@cs.utexas.edu>
 
 	* .cvsignore: here and in all subdirectories listing Makefile and
