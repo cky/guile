@@ -47,6 +47,14 @@
 long scm_numsmob;
 scm_smob_descriptor scm_smobs[MAX_SMOB_COUNT];
 
+/* Lower 16 bit of data must be zero. 
+*/
+void
+scm_i_set_smob_flags (SCM x, scm_t_bits data)
+{
+  SCM_SET_CELL_WORD_0 (x, (SCM_CELL_WORD_0 (x) & 0xFFFF) | data);
+}
+
 /* {Mark}
  */
 

@@ -81,8 +81,25 @@ do { \
   } while (0)
 
 
+#define SCM_SMOB_FLAGS(x)               (SCM_CELL_WORD_0 (x) >> 16)
 #define SCM_SMOB_DATA(x)		(SCM_CELL_WORD_1 (x))
+#define SCM_SMOB_DATA_2(x)		(SCM_CELL_WORD_2 (x))
+#define SCM_SMOB_DATA_3(x)		(SCM_CELL_WORD_3 (x))
 #define SCM_SET_SMOB_DATA(x, data)	(SCM_SET_CELL_WORD_1 ((x), (data)))
+#define SCM_SET_SMOB_DATA_2(x, data)	(SCM_SET_CELL_WORD_2 ((x), (data)))
+#define SCM_SET_SMOB_DATA_3(x, data)	(SCM_SET_CELL_WORD_3 ((x), (data)))
+#define SCM_SET_SMOB_FLAGS(x, data)     (scm_i_set_smob_flags((x),(data)<<16))
+
+#define SCM_SMOB_OBJECT(x)		(SCM_CELL_OBJECT_1 (x))
+#define SCM_SMOB_OBJECT_2(x)	        (SCM_CELL_OBJECT_2 (x))
+#define SCM_SMOB_OBJECT_3(x)	        (SCM_CELL_OBJECT_3 (x))
+#define SCM_SET_SMOB_OBJECT(x,obj)	(SCM_SET_CELL_OBJECT_1 ((x), (obj)))
+#define SCM_SET_SMOB_OBJECT_2(x,obj)    (SCM_SET_CELL_OBJECT_2 ((x), (obj)))
+#define SCM_SET_SMOB_OBJECT_3(x,obj)    (SCM_SET_CELL_OBJECT_3 ((x), (obj)))
+#define SCM_SMOB_OBJECT_LOC(x)		(SCM_CELL_OBJECT_LOC ((x), 1))
+#define SCM_SMOB_OBJECT_2_LOC(x)	(SCM_CELL_OBJECT_LOC ((x), 2))
+#define SCM_SMOB_OBJECT_3_LOC(x)	(SCM_CELL_OBJECT_LOC ((x), 3))
+
 #define SCM_TC2SMOBNUM(x)		(0x0ff & ((x) >> 8))
 #define SCM_SMOBNUM(x)			(SCM_TC2SMOBNUM (SCM_CELL_TYPE (x)))
 /* SCM_SMOBNAME can be 0 if name is missing */
@@ -97,6 +114,8 @@ do { \
 
 SCM_API long scm_numsmob;
 SCM_API scm_smob_descriptor scm_smobs[];
+
+SCM_API void scm_i_set_smob_flags (SCM x, scm_t_bits data);
 
 
 
