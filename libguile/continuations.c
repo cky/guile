@@ -21,7 +21,9 @@
 #include "libguile/_scm.h"
 
 #include <string.h>
+#include <stdio.h>
 
+#include "libguile/async.h"
 #include "libguile/debug.h"
 #include "libguile/root.h"
 #include "libguile/stackchk.h"
@@ -266,6 +268,12 @@ scm_dynthrow (SCM cont, SCM val)
   scm_t_contregs *continuation = SCM_CONTREGS (cont);
   SCM_STACKITEM *dst = thread->continuation_base;
   SCM_STACKITEM stack_top_element;
+
+  if (scm_i_critical_section_level)
+    {
+      fprintf (stderr, "continuation invoked from within critical section.\n");
+      abort ();
+    }
 
 #if SCM_STACK_GROWS_UP
   if (dst + continuation->num_stack_items >= &stack_top_element)
