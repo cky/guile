@@ -74,14 +74,13 @@ static unsigned long hashtable_size[] = {
 
 #define HASHTABLE_SIZE_N (sizeof(hashtable_size)/sizeof(unsigned long))
 
-/* Turn an empty vector hash table into an opaque resizable one. */
-
 static char *s_hashtable = "hashtable";
 
 SCM weak_hashtables = SCM_EOL;
 
 static SCM
-make_hash_table (int flags, unsigned long k, const char *func_name) {
+make_hash_table (int flags, unsigned long k, const char *func_name) 
+{
   SCM table, vector;
   scm_t_hashtable *t;
   int i = 0, n = k ? k : 31;
@@ -330,7 +329,7 @@ scm_c_make_hash_table (unsigned long k)
 
 SCM_DEFINE (scm_make_hash_table, "make-hash-table", 0, 1, 0,
 	    (SCM n),
-	    "Make a hash table with optional minimum number of buckets @var{n}\n")
+	    "Make a new abstract hash table object with minimum number of buckets @var{n}\n")
 #define FUNC_NAME s_scm_make_hash_table
 {
   if (SCM_UNBNDP (n))
@@ -344,9 +343,7 @@ SCM_DEFINE (scm_make_weak_key_hash_table, "make-weak-key-hash-table", 0, 1, 0,
 	    (SCM n),
 	    "@deffnx {Scheme Procedure} make-weak-value-hash-table size\n"
 	    "@deffnx {Scheme Procedure} make-doubly-weak-hash-table size\n"
-	    "Return a weak hash table with @var{size} buckets. As with any\n"
-	    "hash table, choosing a good size for the table requires some\n"
-	    "caution.\n"
+	    "Return a weak hash table with @var{size} buckets.\n"
 	    "\n"
 	    "You can modify weak hash tables in exactly the same way you\n"
 	    "would modify regular hash tables. (@pxref{Hash Tables})")
@@ -400,7 +397,7 @@ SCM_DEFINE (scm_make_doubly_weak_hash_table, "make-doubly-weak-hash-table", 1, 0
 
 SCM_DEFINE (scm_hash_table_p, "hash-table?", 1, 0, 0, 
             (SCM obj),
-	    "Return @code{#t} if @var{obj} is a hash table.")
+	    "Return @code{#t} if @var{obj} is an abstract hash table object.")
 #define FUNC_NAME s_scm_hash_table_p
 {
   return scm_from_bool (SCM_HASHTABLE_P (obj));
@@ -546,12 +543,11 @@ scm_hash_fn_set_x (SCM table, SCM obj, SCM val, unsigned long (*hash_fn)(),
 }
 
 
-
-
-
 SCM 
-scm_hash_fn_remove_x (SCM table, SCM obj, unsigned long (*hash_fn)(), SCM (*assoc_fn)(),
-                      SCM (*delete_fn)(), void * closure)
+scm_hash_fn_remove_x (SCM table, SCM obj,
+		      unsigned long (*hash_fn)(),
+		      SCM (*assoc_fn)(),
+                      void *closure)
 {
   unsigned long k;
   SCM buckets, h;
@@ -574,8 +570,7 @@ scm_hash_fn_remove_x (SCM table, SCM obj, unsigned long (*hash_fn)(), SCM (*asso
   if (scm_is_true (h))
     {
       SCM_SIMPLE_VECTOR_SET 
-	(buckets, k,
-	 delete_fn (h, SCM_SIMPLE_VECTOR_REF (buckets, k)));
+	(buckets, k, scm_delq_x (h, SCM_SIMPLE_VECTOR_REF (buckets, k)));
       if (!scm_is_eq (table, buckets))
 	{
 	  SCM_HASHTABLE_DECREMENT (table);
@@ -588,12 +583,16 @@ scm_hash_fn_remove_x (SCM table, SCM obj, unsigned long (*hash_fn)(), SCM (*asso
 
 SCM_DEFINE (scm_hash_clear_x, "hash-clear!", 1, 0, 0,
 	    (SCM table),
-	    "Remove all items from TABLE (without triggering a resize).")
+	    "Remove all items from @var{table} (without triggering a resize).")
 #define FUNC_NAME s_scm_hash_clear_x
 {
-  SCM_VALIDATE_HASHTABLE (1, table);
-  scm_vector_fill_x (SCM_HASHTABLE_VECTOR (table), SCM_EOL);
-  SCM_SET_HASHTABLE_N_ITEMS (table, 0);
+  if (SCM_HASHTABLE_P (table))
+    {
+      scm_vector_fill_x (SCM_HASHTABLE_VECTOR (table), SCM_EOL);
+      SCM_SET_HASHTABLE_N_ITEMS (table, 0);
+    }
+  else
+    scm_vector_fill_x (table, SCM_EOL);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -659,8 +658,7 @@ SCM_DEFINE (scm_hashq_remove_x, "hashq-remove!", 2, 0, 0,
 	    "@var{table}.  Uses @code{eq?} for equality tests.")
 #define FUNC_NAME s_scm_hashq_remove_x
 {
-  return scm_hash_fn_remove_x (table, key, scm_ihashq, scm_sloppy_assq,
-			       scm_delq_x, 0);
+  return scm_hash_fn_remove_x (table, key, scm_ihashq, scm_sloppy_assq, 0);
 }
 #undef FUNC_NAME
 
@@ -726,8 +724,7 @@ SCM_DEFINE (scm_hashv_remove_x, "hashv-remove!", 2, 0, 0,
 	    "@var{table}.  Uses @code{eqv?} for equality tests.")
 #define FUNC_NAME s_scm_hashv_remove_x
 {
-  return scm_hash_fn_remove_x (table, key, scm_ihashv, scm_sloppy_assv,
-			       scm_delv_x, 0);
+  return scm_hash_fn_remove_x (table, key, scm_ihashv, scm_sloppy_assv, 0);
 }
 #undef FUNC_NAME
 
@@ -793,8 +790,7 @@ SCM_DEFINE (scm_hash_remove_x, "hash-remove!", 2, 0, 0,
 	    "@var{table}.  Uses @code{equal?} for equality tests.")
 #define FUNC_NAME s_scm_hash_remove_x
 {
-  return scm_hash_fn_remove_x (table, key, scm_ihash, scm_sloppy_assoc,
-			       scm_delete_x, 0);
+  return scm_hash_fn_remove_x (table, key, scm_ihash, scm_sloppy_assoc, 0);
 }
 #undef FUNC_NAME
 
@@ -805,7 +801,6 @@ typedef struct scm_t_ihashx_closure
 {
   SCM hash;
   SCM assoc;
-  SCM delete;
 } scm_t_ihashx_closure;
 
 
@@ -824,16 +819,6 @@ scm_sloppy_assx (SCM obj, SCM alist, scm_t_ihashx_closure *closure)
 {
   return scm_call_2 (closure->assoc, obj, alist);
 }
-
-
-
-
-static SCM
-scm_delx_x (SCM obj, SCM alist, scm_t_ihashx_closure *closure)
-{
-  return scm_call_2 (closure->delete, obj, alist);
-}
-
 
 
 SCM_DEFINE (scm_hashx_get_handle, "hashx-get-handle", 4, 0, 0, 
@@ -922,17 +907,25 @@ SCM_DEFINE (scm_hashx_set_x, "hashx-set!", 5, 0, 0,
 }
 #undef FUNC_NAME
 
-
-
-SCM
-scm_hashx_remove_x (SCM hash, SCM assoc, SCM delete, SCM table, SCM obj)
+SCM_DEFINE (scm_hashx_remove_x, "hashx-remove!", 4, 0, 0,
+	    (SCM hash, SCM assoc, SCM table, SCM obj),
+	    "This behaves the same way as the corresponding @code{remove!}\n"
+	    "function, but uses @var{hash} as a hash function and\n"
+	    "@var{assoc} to compare keys.  @code{hash} must be a function\n"
+	    "that takes two arguments, a key to be hashed and a table size.\n"
+	    "@code{assoc} must be an associator function, like @code{assoc},\n"
+	    "@code{assq} or @code{assv}.\n"
+	    "\n"
+	    " By way of illustration, @code{hashq-remove! table key} is\n"
+	    "equivalent to @code{hashx-remove!  hashq assq #f table key}.")
+#define FUNC_NAME s_scm_hashx_remove_x
 {
   scm_t_ihashx_closure closure;
   closure.hash = hash;
   closure.assoc = assoc;
-  closure.delete = delete;
-  return scm_hash_fn_remove_x (table, obj, scm_ihashx, scm_sloppy_assx, scm_delx_x, 0);
+  return scm_hash_fn_remove_x (table, obj, scm_ihashx, scm_sloppy_assx, 0);
 }
+#undef FUNC_NAME
 
 /* Hash table iterators */
 

@@ -103,7 +103,7 @@ SCM_API SCM scm_hash_fn_get_handle (SCM table, SCM obj, unsigned long (*hash_fn)
 SCM_API SCM scm_hash_fn_create_handle_x (SCM table, SCM obj, SCM init, unsigned long (*hash_fn) (), SCM (*assoc_fn) (), void * closure);
 SCM_API SCM scm_hash_fn_ref (SCM table, SCM obj, SCM dflt, unsigned long (*hash_fn) (), SCM (*assoc_fn) (), void * closure);
 SCM_API SCM scm_hash_fn_set_x (SCM table, SCM obj, SCM val, unsigned long (*hash_fn) (), SCM (*assoc_fn) (), void * closure);
-SCM_API SCM scm_hash_fn_remove_x (SCM table, SCM obj, unsigned long (*hash_fn) (), SCM (*assoc_fn) (), SCM (*delete_fn) (), void * closure);
+SCM_API SCM scm_hash_fn_remove_x (SCM table, SCM obj, unsigned long (*hash_fn) (), SCM (*assoc_fn) (), void * closure);
 SCM_API SCM scm_internal_hash_fold (SCM (*fn) (), void *closure, SCM init, SCM table);
 SCM_API void scm_internal_hash_for_each_handle (SCM (*fn) (), void *closure, SCM table);
 SCM_API SCM scm_hash_clear_x (SCM table);
@@ -127,7 +127,7 @@ SCM_API SCM scm_hashx_get_handle (SCM hash, SCM assoc, SCM table, SCM obj);
 SCM_API SCM scm_hashx_create_handle_x (SCM hash, SCM assoc, SCM table, SCM obj, SCM init);
 SCM_API SCM scm_hashx_ref (SCM hash, SCM assoc, SCM table, SCM obj, SCM dflt);
 SCM_API SCM scm_hashx_set_x (SCM hash, SCM assoc, SCM table, SCM obj, SCM val);
-SCM_API SCM scm_hashx_remove_x (SCM hash, SCM assoc, SCM del, SCM table, SCM obj);
+SCM_API SCM scm_hashx_remove_x (SCM hash, SCM assoc, SCM table, SCM obj);
 SCM_API SCM scm_hash_fold (SCM proc, SCM init, SCM hash);
 SCM_API SCM scm_hash_for_each (SCM proc, SCM hash);
 SCM_API SCM scm_hash_for_each_handle (SCM proc, SCM hash);
