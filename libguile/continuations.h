@@ -48,6 +48,10 @@
 
 #include "libguile/__scm.h"
 
+#ifdef __ia64__
+#include <sys/ucontext.h>
+extern unsigned long  __libc_ia64_register_backing_store_base;
+#endif
 
 
 /* a continuation SCM is a non-immediate pointing to a heap cell with:
@@ -65,6 +69,11 @@ typedef struct
   SCM throw_value;
   jmp_buf jmpbuf;
   SCM dynenv;
+#ifdef __ia64__
+  ucontext_t ctx;
+  void *backing_store;
+  unsigned long backing_store_size;
+#endif /* __ia64__ */
   SCM_STACKITEM *base;      /* base of the live stack, before it was saved.  */
   size_t num_stack_items;   /* size of the saved stack.  */
   unsigned long seq;        /* dynamic root identifier.  */
