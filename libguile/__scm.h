@@ -406,11 +406,9 @@ typedef long SCM_STACKITEM;
 #define SCM_THREAD_SWITCHING_CODE
 #endif
 
-SCM_API int scm_asyncs_pending_p;
-
 #define SCM_ASYNC_TICK /*fixme* should change names */ \
 do { \
-  if (scm_asyncs_pending_p) \
+  if (scm_active_asyncs != SCM_EOL) \
     scm_async_click (); \
 } while (0)
 
