@@ -1,3 +1,77 @@
+Tue Aug 20 18:48:40 1996  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* Makefile.in: Added {debug,options,srcprop}.{h,c}
+	
+	* __scm.h: Removed symbols for debugging support.
+
+	* acconfig.h: Added symbols for debugging support.
+
+*	* configure.in: Added user option for debugging support.
+	--enable-debug will include the debugging code into libguile.a.
+
+	* continuations.c (scm_make_cont): Enlarged the #if 0 around
+	scm_relocate_chunk_to_heap.
+	
+*	* debug.c: New file: low-level debugging support.  It also
+ 	includes support for debugging with gdb.  (The extensions to gdb
+ 	are written by Per Bothner at Cygnus.)
+
+	* debug.h: New file: low-level debugging support.
+
+*	* eval.c: scm_m_set and SCM_IM_SET no longer supports multiple
+ 	argument pairs.  Extensive modifications to the debugging
+ 	evaluator.  Added "SECTION:" commentaries to clarify what happens
+ 	when, during double compilation.  Renamed EVALIMP --> EVALIM.
+  	Renamed EVAL --> XEVAL.  Removed function evalcar.  Defined
+ 	evalcar to scm_eval_car.  Added explanation of "EVAL" symbols to
+ 	the beginning of the file.  New procedure: scm_unmemocopy.
+	Added some global state variables needed by the debugging
+	evaluator: scm_ceval_ptr, last_debug_info_frame, debug_mode,
+	check_entry, check_apply, check_exit, debug_options and
+	evaluator_traps.  New acro: undefine.
+	
+	* eval.h: Renamed EVAL --> XEVAL.
+
+	* gc.c (scm_init_storage): Renamed scm_make_weak_hash_table
+	--> scm_make_weak_key_hash_table.
+	
+	* init.c (scm_restart_stack, scm_boot_guile): Added initialization
+	of SCM_DFRAME.  Added calls to scm_init_{debug,options,srcprop}.
+	
+	* libguile.h: Conditionally include debug.h
+
+*	* objprop.c (scm_object_properties, scm_set_object_properties_x):
+ 	scm_object_properties shouldn't return handle.  `handle' now gets
+ 	initialized in scm_set_object_properties_x.  scm_object_properties
+	doesn't any longer create an entry in scm_object_whash.
+	
+*	* options.c: New file: handling of run time options.
+	
+	* options.h: New file: handling of run time options.
+
+	* posix.c (scm_getpgrp): Cast pointer to getpgrp.
+	
+*	* print.c: New procedure: scm_print_options
+
+	* print.h: Defines for print options.
+	
+*	* read.c: New procedure: scm_read_options
+
+	* read.h: Defines for reader options.
+	
+	* root.h: Added scm_source_whash among scm_sys_protects.
+
+*	* srcprop.c: New file: source properties.
+	
+	* srcprop.h: New file: source properties.
+	
+	* throw.c (jbsmob): Jump buffers are now correctly allocated.
+	(Bug found by A. Green.)
+
+*	* weak.c: Renamed scm_weak_hash_table --> scm_weak_key_hash_table.
+	
+	* weak.h: Renamed scm_weak_hash_table --> scm_weak_key_hash_table.
+
 Thu Aug 15 02:05:14 1996  Jim Blandy  <jimb@totoro.cyclic.com>
 
 	* libguile.h: #include "objprop.h"; I guess this was forgotten.
