@@ -20,22 +20,161 @@
 (use-modules (srfi srfi-1)
 	     (test-suite lib))
 
+(define (ref-delete x lst . proc)
+  "Reference implemenation of srfi-1 `delete'."
+  (set! proc (if (null? proc) equal? (car proc)))
+  (do ((ret '())
+       (lst lst (cdr lst)))
+      ((null? lst)
+       (reverse! ret))
+    (if (not (proc x (car lst)))
+	(set! ret (cons (car lst) ret)))))
+
+(define (ref-delete-duplicates lst . proc)
+  "Reference implemenation of srfi-1 `delete-duplicates'."
+  (set! proc (if (null? proc) equal? (car proc)))
+  (if (null? lst)
+      '()
+      (do ((keep '()))
+	  ((null? lst)
+	   (reverse! keep))
+	(let ((elem (car lst)))
+	  (set! keep (cons elem keep))
+	  (set! lst  (ref-delete elem lst proc))))))
+
 
 ;;
 ;; delete and delete!
 ;;
 
 (let ()	
+  ;; Call (PROC lst) for all lists of length up to 6, with all combinations
+  ;; of elements to be retained or deleted.  Elements to retain are numbers,
+  ;; 0 upwards.  Elements to be deleted are #f.
+  (define (test-lists proc)
+    (do ((n 0 (1+ n)))
+	((>= n 6))
+      (do ((limit (ash 1 n))
+	   (i 0 (1+ i)))
+	  ((>= i limit))
+	(let ((lst '()))
+	  (do ((bit 0 (1+ bit)))
+	      ((>= bit n))
+	    (set! lst  (cons (if (logbit? bit i) bit #f) lst)))
+	  (proc lst)))))
+  
   (define (common-tests delete-proc)
+    (pass-if-exception "too few args" exception:wrong-num-args
+      (delete-proc 0))
+    
+    (pass-if-exception "too many args" exception:wrong-num-args
+      (delete-proc 0 '() equal? 99))
+    
+    (pass-if "empty"
+      (eq? '() (delete-proc 0 '())))
+    
+    (pass-if "equal? (the default)"
+      (equal? '((1) (3))
+	      (delete-proc '(2) '((1) (2) (3)))))
+    
+    (pass-if "eq?"
+      (equal? '((1) (2) (3))
+	      (delete-proc '(2) '((1) (2) (3)) eq?)))
+    
     (pass-if "called arg order"
       (equal? '(1 2 3)
 	      (delete-proc 3 '(1 2 3 4 5) <))))
   
   (with-test-prefix "delete"
-    (common-tests delete))
+    (common-tests delete)
     
+    (test-lists
+     (lambda (lst)
+       (let ((lst-copy (list-copy lst)))
+	 (with-test-prefix lst-copy
+	   (pass-if "result"
+	     (equal? (delete     #f lst)
+		     (ref-delete #f lst)))
+	   (pass-if "non-destructive"
+	     (equal? lst-copy lst)))))))  
+  
   (with-test-prefix "delete!"
-    (common-tests delete!)))
+    (common-tests delete!)
+    
+    (test-lists
+     (lambda (lst)
+       (pass-if lst
+	 (equal? (delete!    #f lst)
+		 (ref-delete #f lst)))))))
+
+;;
+;; delete-duplicates and delete-duplicates!
+;;
+
+(let ()	
+  ;; Call (PROC lst) for all lists of length 1 <= n <= 4, with all
+  ;; combinations of numbers 1 to n in the elements
+  (define (test-lists proc)
+    (do ((n 1 (1+ n)))
+	((> n 4))
+      (do ((limit (integer-expt n n))
+	   (i 0 (1+ i)))
+	  ((>= i limit))
+	(let ((lst '()))
+	  (do ((j 0 (1+ j))
+	       (rem i (quotient rem n)))
+	      ((>= j n))
+	    (set! lst (cons (remainder rem n) lst)))
+	  (proc lst)))))
+
+  (define (common-tests delete-duplicates-proc)
+    (pass-if-exception "too few args" exception:wrong-num-args
+      (delete-duplicates-proc))
+    
+    (pass-if-exception "too many args" exception:wrong-num-args
+      (delete-duplicates-proc '() equal? 99))
+    
+    (pass-if "empty"
+      (eq? '() (delete-duplicates-proc '())))
+    
+    (pass-if "equal? (the default)"
+      (equal? '((2))
+	      (delete-duplicates-proc '((2) (2) (2)))))
+    
+    (pass-if "eq?"
+      (equal? '((2) (2) (2))
+	      (delete-duplicates-proc '((2) (2) (2)) eq?)))
+
+    (pass-if "called arg order"
+      (let ((ok #t))
+	(delete-duplicates-proc '(1 2 3 4 5)
+				(lambda (x y)
+				  (if (> x y)
+				      (set! ok #f))
+				  #f))
+	ok)))
+  
+  (with-test-prefix "delete-duplicates"
+    (common-tests delete-duplicates)
+    
+    (test-lists
+     (lambda (lst)
+       (let ((lst-copy (list-copy lst)))
+	 (with-test-prefix lst-copy
+	   (pass-if "result"
+	     (equal? (delete-duplicates     lst)
+		     (ref-delete-duplicates lst)))
+	   (pass-if "non-destructive"
+	     (equal? lst-copy lst)))))))  
+  
+  (with-test-prefix "delete-duplicates!"
+    (common-tests delete-duplicates!)
+    
+    (test-lists
+     (lambda (lst)
+       (pass-if lst
+	 (equal? (delete-duplicates!    lst)
+		 (ref-delete-duplicates lst)))))))
 
 ;;
 ;; drop
