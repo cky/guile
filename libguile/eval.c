@@ -547,7 +547,7 @@ scm_m_set_x (SCM xorig, SCM env)
 {
   SCM x = SCM_CDR (xorig);
   SCM_ASSYNT (2 == scm_ilength (x), xorig, scm_s_expression, scm_s_set_x);
-  SCM_ASSYNT (SCM_NIMP (SCM_CAR (x)) && SCM_SYMBOLP (SCM_CAR (x)),
+  SCM_ASSYNT (SCM_SYMBOLP (SCM_CAR (x)),
 	      xorig, scm_s_variable, scm_s_set_x);
   return scm_cons (SCM_IM_SET_X, x);
 }
@@ -3407,8 +3407,7 @@ tail:
       else
 	{
 	  SCM tl = args = scm_cons (SCM_CAR (arg1), SCM_UNSPECIFIED);
-	  while (SCM_NIMP (arg1 = SCM_CDR (arg1))
-		 && SCM_CONSP (arg1))
+	  while (arg1 = SCM_CDR (arg1), SCM_CONSP (arg1))
 	    {
 	      SCM_SETCDR (tl, scm_cons (SCM_CAR (arg1),
 					SCM_UNSPECIFIED));
@@ -3773,7 +3772,7 @@ any other object.")
   ans = tl = scm_cons_source (obj,
 			      scm_copy_tree (SCM_CAR (obj)),
 			      SCM_UNSPECIFIED);
-  while (SCM_NIMP (obj = SCM_CDR (obj)) && SCM_CONSP (obj))
+  while (obj = SCM_CDR (obj), SCM_CONSP (obj))
     {
       SCM_SETCDR (tl, scm_cons (scm_copy_tree (SCM_CAR (obj)),
 				SCM_UNSPECIFIED));

@@ -413,7 +413,7 @@ scm_make_mutex (void)
 SCM
 scm_lock_mutex (SCM m)
 {
-  SCM_ASSERT (SCM_NIMP (m) && SCM_MUTEXP (m), m, SCM_ARG1, s_lock_mutex);
+  SCM_ASSERT (SCM_MUTEXP (m), m, SCM_ARG1, s_lock_mutex);
   coop_mutex_lock (SCM_MUTEX_DATA (m));
   return SCM_BOOL_T;
 }

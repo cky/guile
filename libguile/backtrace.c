@@ -157,8 +157,7 @@ display_expression (SCM frame,SCM pname,SCM source,SCM port)
   pstate->length = 3;
   if (SCM_ROSTRINGP (pname))
     {
-      if (SCM_NIMP (frame)
-	  && SCM_FRAMEP (frame)
+      if (SCM_FRAMEP (frame)
 	  && SCM_FRAME_EVAL_ARGS_P (frame))
 	scm_puts ("While evaluating arguments to ", port);
       else
@@ -199,7 +198,6 @@ display_error_body (struct display_error_args *a)
   SCM prev_frame = SCM_BOOL_F;
 
   if (SCM_DEBUGGINGP
-      && SCM_NIMP (a->stack)
       && SCM_STACKP (a->stack)
       && SCM_STACK_LENGTH (a->stack) > 0)
     {

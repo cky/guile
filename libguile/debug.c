@@ -274,8 +274,7 @@ GUILE_PROC (scm_gloc_p, "gloc?", 1, 0, 0,
 "")
 #define FUNC_NAME s_scm_gloc_p
 {
-  return SCM_BOOL((SCM_NIMP (obj)
-                   && SCM_MEMOIZEDP (obj)
+  return SCM_BOOL((SCM_MEMOIZEDP (obj)
                    && (SCM_MEMOIZED_EXP (obj) & 7) == 1));
 }
 #undef FUNC_NAME
@@ -540,10 +539,8 @@ static SCM
 scm_m_start_stack (SCM exp, SCM env)
 {
   exp = SCM_CDR (exp);
-  SCM_ASSERT (SCM_NIMP (exp)
-	      && SCM_ECONSP (exp)
-	      && SCM_NIMP (SCM_CDR (exp))
-	      && SCM_ECONSP (SCM_CDR (exp))
+  SCM_ASSERT (SCM_ECONSP (exp)
+              && SCM_ECONSP (SCM_CDR (exp))
 	      && SCM_NULLP (SCM_CDDR (exp)),
 	      exp,
 	      SCM_WNA,
