@@ -1,3 +1,7 @@
+2000-08-05  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* iselect.c: Include <unistd.h>.  Thanks to Bertrand Petit!
+
 2000-08-02  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
 
 	* struct.c (scm_make_struct_layout, scm_make_struct,
