@@ -125,17 +125,12 @@ static SCM before_read;
 static int
 current_input_getc (FILE *in)
 {
-  SCM ans;
   if (promptp && SCM_NIMP (before_read))
     {
       scm_apply (before_read, SCM_EOL, SCM_EOL);
       promptp = 0;
     }
-  ans = scm_getc (input_port);
-  /* GJB:FIXME:: why not just
-     return scm_getc(input_port);
-  */
-  return ans;
+  return scm_getc (input_port);
 }
 
 static void
@@ -470,7 +465,7 @@ find_matching_paren(int k)
 static int
 match_paren (int x, int k)
 {
-  int tmp;
+  int tmp, fno;
   SELECT_TYPE readset;
   struct timeval timeout;
   
@@ -487,7 +482,8 @@ match_paren (int x, int k)
   timeout.tv_sec = tmp / 1000000;
   timeout.tv_usec = tmp % 1000000;
   FD_ZERO (&readset);
-  FD_SET (fileno (rl_instream), &readset);
+  fno = fileno (rl_instream);
+  FD_SET (fno, &readset);
   
   if (rl_point > 1)
     {
@@ -496,7 +492,7 @@ match_paren (int x, int k)
       if (rl_point > -1)
 	{
 	  rl_redisplay ();
-	  scm_internal_select (fileno + 1, &readset, NULL, NULL, &timeout);
+	  scm_internal_select (fno + 1, &readset, NULL, NULL, &timeout);
 	}
       rl_point = tmp;
     }
