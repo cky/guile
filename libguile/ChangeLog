@@ -5,7 +5,7 @@
 
 	* deprecated.c, deprecated.h (SCM_CHARS, SCM_LENGTH): Removed.
 
-	* strings.h, strings.c (SCM_MAKE_STRING_TAG): Rename dto
+	* strings.h, strings.c (SCM_MAKE_STRING_TAG): Renamed to
 	SCM_I_MAKE_STRING_TAG, changed all uses.
 	(SCM_STRING_CHARS, SCM_STRING_UCHARS, SCM_STRING_LENGTH): Renamed
 	to SCM_I_STRING_CHARS, SCM_I_STRING_UCHARS, and SCM_I_LENGTH

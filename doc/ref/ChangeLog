@@ -1,3 +1,14 @@
+2004-08-10  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* api-control.texi: Updated example to use scm_to_locale_string
+	instead of roll-your-own scm_to_string.  Also showcase
+	scm_frame_free.
+
+	* api-data.texi: Docs for scm_is_string, scm_to_locale_string*,
+	and scm_from_locale_string*.
+
+	* api-memory.texi: Docs for scm_frame_free.
+
 2004-08-09  Kevin Ryde  <user42@zip.com.au>
 
 	* api-io.texi (File Ports): In open-file, describe the "b" binary flag.
