@@ -25,7 +25,7 @@
 
 
 #include "libguile/_scm.h"
-#if defined (HAVE_RL_GETC_FUNCTION)
+#ifdef HAVE_RL_GETC_FUNCTION
 #include "libguile.h"
 #include "libguile/gh.h"
 #include "libguile/iselect.h"
@@ -499,10 +499,12 @@ match_paren (int x, int k)
   return 0;
 }
 
+#endif /* HAVE_RL_GETC_FUNCTION */
 
 void
 scm_init_readline ()
 {
+#ifdef HAVE_RL_GETC_FUNCTION
 #include "guile-readline/readline.x"
   scm_readline_completion_function_var
     = scm_sysintern ("*readline-completion-function*", SCM_BOOL_F);
@@ -520,9 +522,8 @@ scm_init_readline ()
 		 SCM_N_READLINE_OPTIONS);
   init_bouncing_parens();
   scm_add_feature ("readline");
+#endif /* HAVE_RL_GETC_FUNCTION */
 }
-
-#endif 
 
 /*
   Local Variables:
