@@ -83,7 +83,7 @@ SCM_DEFINE (scm_nil_car, "nil-car", 1, 0, 0,
 #define FUNC_NAME s_scm_nil_car
 {
   if (SCM_NILP (x))
-    return scm_nil;
+    return scm_lisp_nil;
   SCM_VALIDATE_CONS (1,x);
   return SCM_CAR (x);
 }
@@ -95,20 +95,20 @@ SCM_DEFINE (scm_nil_cdr, "nil-cdr", 1, 0, 0,
 #define FUNC_NAME s_scm_nil_cdr
 {
   if (SCM_NILP (x))
-    return scm_nil;
+    return scm_lisp_nil;
   SCM_VALIDATE_CONS (1,x);
   return SCM_EOL2NIL (SCM_CDR (x), x);
 }
 #undef FUNC_NAME
 
-/* GJB:FIXME:: why does this return scm_nil instead of SCM_BOOL_F?
+/* GJB:FIXME:: why does this return scm_lisp_nil instead of SCM_BOOL_F?
    Could use SCM_BOOL, below, otherwise */
 SCM_DEFINE (scm_null, "null", 1, 0, 0, 
             (SCM x),
 "")
 #define FUNC_NAME s_scm_null
 {
-  return (SCM_NILP (x) || SCM_NULLP (x) || SCM_FALSEP (x)) ? scm_t : scm_nil;
+  return (SCM_NILP (x) || SCM_NULLP (x) || SCM_FALSEP (x)) ? scm_lisp_t : scm_lisp_nil;
 }
 #undef FUNC_NAME
 
@@ -126,10 +126,10 @@ scm_m_while (SCM exp, SCM env)
 	}
       z = scm_eval_car (x = exp, env);
     }
-  return scm_nil;
+  return scm_lisp_nil;
 }
 
-/* GJB:FIXME:: why does this return scm_nil instead of SCM_BOOL_F?
+/* GJB:FIXME:: why does this return scm_lisp_nil instead of SCM_BOOL_F?
    Could use SCM_BOOL, below, otherwise */
 SCM_DEFINE1 (scm_nil_eq, "nil-eq", scm_tc7_rpsubr, 
              (SCM x, SCM y),
@@ -139,8 +139,8 @@ SCM_DEFINE1 (scm_nil_eq, "nil-eq", scm_tc7_rpsubr,
   return (((x==y)
 	   || (SCM_NILP (x) && (SCM_NULLP (y) || SCM_FALSEP (y)))
 	   || (SCM_NILP (y) && (SCM_NULLP (x) || SCM_FALSEP (x))))
-	  ? scm_t
-	  : scm_nil);
+	  ? scm_lisp_t
+	  : scm_lisp_nil);
 }
 #undef FUNC_NAME
 

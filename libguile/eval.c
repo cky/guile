@@ -1065,8 +1065,8 @@ scm_m_cont (SCM xorig, SCM env)
 
 /* Multi-language support */
 
-SCM scm_nil;
-SCM scm_t;
+SCM scm_lisp_nil;
+SCM scm_lisp_t;
 
 SCM_SYNTAX (s_nil_cond, "nil-cond", scm_makmmacro, scm_m_nil_cond);
 
@@ -2356,7 +2356,7 @@ dispatch:
 	  while (SCM_NIMP (x = SCM_CDR (proc)))
 	    {
 	      if (!(SCM_FALSEP (t.arg1 = EVALCAR (proc, env))
-		    || t.arg1 == scm_nil))
+		    || t.arg1 == scm_lisp_nil))
 		{
 		  if (SCM_CAR (x) == SCM_UNSPECIFIED)
 		    RETURN (t.arg1);
@@ -2372,12 +2372,12 @@ dispatch:
 	case (SCM_ISYMNUM (SCM_IM_NIL_IFY)):
 	  x = SCM_CDR (x);
 	  RETURN ((SCM_FALSEP (proc = EVALCAR (x, env)) || SCM_NULLP (proc))
-		   ? scm_nil
+		   ? scm_lisp_nil
 		   : proc)
 	    
 	case (SCM_ISYMNUM (SCM_IM_T_IFY)):
 	  x = SCM_CDR (x);
-	  RETURN (SCM_NFALSEP (EVALCAR (x, env)) ? scm_t : scm_nil)
+	  RETURN (SCM_NFALSEP (EVALCAR (x, env)) ? scm_lisp_t : scm_lisp_nil)
 	    
 	case (SCM_ISYMNUM (SCM_IM_0_COND)):
 	  proc = SCM_CDR (x);
@@ -3863,12 +3863,12 @@ scm_init_eval ()
   scm_sym_unquote = SCM_CAR (scm_sysintern ("unquote", SCM_UNDEFINED));
   scm_sym_uq_splicing = SCM_CAR (scm_sysintern ("unquote-splicing", SCM_UNDEFINED));
 
-  scm_nil = scm_sysintern ("nil", SCM_UNDEFINED);
-  SCM_SETCDR (scm_nil, SCM_CAR (scm_nil));
-  scm_nil = SCM_CAR (scm_nil);
-  scm_t = scm_sysintern ("t", SCM_UNDEFINED);
-  SCM_SETCDR (scm_t, SCM_CAR (scm_t));
-  scm_t = SCM_CAR (scm_t);
+  scm_lisp_nil = scm_sysintern ("nil", SCM_UNDEFINED);
+  SCM_SETCDR (scm_lisp_nil, SCM_CAR (scm_lisp_nil));
+  scm_lisp_nil = SCM_CAR (scm_lisp_nil);
+  scm_lisp_t = scm_sysintern ("t", SCM_UNDEFINED);
+  SCM_SETCDR (scm_lisp_t, SCM_CAR (scm_lisp_t));
+  scm_lisp_t = SCM_CAR (scm_lisp_t);
   
   /* acros */
   /* end of acros */
