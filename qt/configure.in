@@ -12,9 +12,9 @@ AC_CONFIG_AUX_DIR(..) #`cd $srcdir; pwd`/..)
 builtin(sinclude, ../aclocal.m4)
 CY_AC_WITH_THREADS
 
-target_all=
+threads_enabled=false
 if test "$cy_cv_threads_package" = COOP; then
-	target_all=libqt.a
+	threads_enabled=true
 fi
 
 # Determine the host we are working on
@@ -52,11 +52,24 @@ sparc-*-*)
 	;;
 *)
 	echo "Unknown configuration; threads package disabled"
-	target_all=''
+	threads_enabled=false
 	;;
 esac
 
+
+if $threads_enabled; then
+	target_all=libqt.a
+	target_install=install_qt
+	target_uninstall=uninstall_qt
+else
+	target_all=''	
+	target_install=''
+	target_uninstall=''
+fi
+
 AC_SUBST(target_all)
+AC_SUBST(target_install)
+AC_SUBST(target_uninstall)
 AC_SUBST(qtmd_h)
 AC_SUBST(qtmdc_c)
 AC_SUBST(qtmds_s)

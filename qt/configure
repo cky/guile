@@ -964,9 +964,9 @@ fi
 echo "$ac_t""$cy_cv_threads_package" 1>&6
 
 
-target_all=
+threads_enabled=false
 if test "$cy_cv_threads_package" = COOP; then
-	target_all=libqt.a
+	threads_enabled=true
 fi
 
 # Determine the host we are working on
@@ -1029,9 +1029,22 @@ sparc-*-*)
 	;;
 *)
 	echo "Unknown configuration; threads package disabled"
-	target_all=''
+	threads_enabled=false
 	;;
 esac
+
+
+if $threads_enabled; then
+	target_all=libqt.a
+	target_install=install_qt
+	target_uninstall=uninstall_qt
+else
+	target_all=''	
+	target_install=''
+	target_uninstall=''
+fi
+
+
 
 
 
@@ -1179,6 +1192,8 @@ s%@host_cpu@%$host_cpu%g
 s%@host_vendor@%$host_vendor%g
 s%@host_os@%$host_os%g
 s%@target_all@%$target_all%g
+s%@target_install@%$target_install%g
+s%@target_uninstall@%$target_uninstall%g
 s%@qtmd_h@%$qtmd_h%g
 s%@qtmdc_c@%$qtmdc_c%g
 s%@qtmds_s@%$qtmds_s%g

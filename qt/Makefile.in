@@ -92,14 +92,16 @@ dist-dir:
 	done
 
 
-install: all
+install: @target_install@
+install_qt: all
 	test -d $(prefix) || mkdir $(prefix)
 	test -d $(libdir) || mkdir $(libdir)
 	$(INSTALL) libqt.a $(libdir)/libqt.a
 	$(RANLIB) $(libdir)/libqt.a
 	$(INSTALL) $(srcdir)/qt.h $(includedir); 
 
-uninstall:
+uninstall: @target_uninstall@
+uninstall_qt:
 	-rm -f $(libdir)/libqt.a
 	-rm -f $(includedir)/qt.h
 
