@@ -97,10 +97,11 @@ SCM_REGISTER_PROC (s_list_star, "list*", 1, 0, 1, scm_cons_star);
 
 SCM_DEFINE (scm_cons_star, "cons*", 1, 0, 1, 
             (SCM arg, SCM rest),
-	    "Works like `list' except that it returns an improper list of\n"
-	    "the arguments, where the last argument is the cdr of the last\n"
-	    "pair.  If there is only one argument then the result is just\n"
-	    "that argument.  Sometimes this function is called cons*.")
+	    "Like `list', but the last arg provides the tail of the constructed list,\n"
+	    "returning (cons ARG1 (cons ARG2 (cons ... ARGn))).\n"
+	    "Requires at least one argument.  If given one argument, that argument\n"
+	    "is returned as result.\n"
+	    "This function is called `list*' in some other Schemes and in Common LISP.")
 #define FUNC_NAME s_scm_cons_star
 {
   SCM_VALIDATE_REST_ARGUMENT (rest);
