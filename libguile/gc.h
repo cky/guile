@@ -249,19 +249,12 @@ typedef unsigned long scm_c_bvec_limb_t;
 #define SCM_SET_FREE_CELL_CDR(x, v) \
   (((scm_bits_t *) SCM2PTR (x)) [1] = SCM_UNPACK (v))
 
-/* the allocated thing:  The car of new cells is set to
-   scm_tc16_allocated to avoid the fragile state of newcells wrt the
-   gc.  If it stays as a freecell, any allocation afterwards could
-   cause the cell to go back on the freelist, which will bite you
-   sometime afterwards. */
-
 #ifdef GUILE_DEBUG_FREELIST
 #define SCM_NEWCELL(_into) do { _into = scm_debug_newcell (); } while (0)
 #define SCM_NEWCELL2(_into) do { _into = scm_debug_newcell2 (); } while (0)
 #else
 /* When we introduce POSIX threads support, every thread will have
-   a freelist of its own.  Then it won't any longer be necessary to
-   initialize cells with scm_tc16_allocated.  */
+   a freelist of its own.  */
 #define SCM_NEWCELL(_into) \
         do { \
           if (SCM_IMP (scm_freelist)) \
@@ -271,7 +264,6 @@ typedef unsigned long scm_c_bvec_limb_t;
             { \
                _into = scm_freelist; \
                scm_freelist = SCM_FREE_CELL_CDR (scm_freelist); \
-               SCM_SET_FREE_CELL_TYPE (_into, scm_tc16_allocated); \
             } \
         } while(0)
 #define SCM_NEWCELL2(_into) \
@@ -283,7 +275,6 @@ typedef unsigned long scm_c_bvec_limb_t;
             { \
                _into = scm_freelist2; \
                scm_freelist2 = SCM_FREE_CELL_CDR (scm_freelist2); \
-               SCM_SET_FREE_CELL_TYPE (_into, scm_tc16_allocated); \
             } \
         } while(0)
 #endif
