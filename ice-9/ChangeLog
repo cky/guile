@@ -1,5 +1,13 @@
 Sat Mar  1 15:24:39 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
+	* boot-9.scm: Removed the old printer code.
+
+	* r4rs.scm (apply, call-with-current-continuation): Added comment
+	explaining why apply and call/cc need to be closures.
+
+	* boot-9.scm (apply, call-with-current-continuation): Bugfix:
+	Removed. These definitions are already present in r4rs.scm.
+
 	* debug.scm (trace-entry, trace-exit): Check that we're on a repl
  	stack before printing traced frames; Re-enable trace flag at end
  	of handlers.

@@ -20,9 +20,9 @@
 
 ;;;; apply and call-with-current-continuation
 
-;;; These turn syntax, @apply and @call-with-current-continuation,
-;;; into procedures.  If someone knows why they have to be syntax to
-;;; begin with, please fix this comment.
+;;; We want these to be tail-recursive, so instead of using primitive
+;;; procedures, we define them as closures in terms of the primitive
+;;; macros @apply and @call-with-current-continuation.
 (set! apply (lambda (fun . args) (@apply fun (apply:nconc2last args))))
 (define (call-with-current-continuation proc)
   (@call-with-current-continuation proc))
