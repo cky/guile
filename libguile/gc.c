@@ -2663,11 +2663,7 @@ scm_init_storage ()
 
 SCM scm_after_gc_hook;
 
-#if (SCM_DEBUG_DEPRECATED == 0)
-static SCM scm_gc_vcell;  /* the vcell for gc-thunk. */
-#endif  /* SCM_DEBUG_DEPRECATED == 0 */
 static SCM gc_async;
-
 
 /* The function gc_async_thunk causes the execution of the after-gc-hook.  It
  * is run after the gc, as soon as the asynchronous events are handled by the
@@ -2677,20 +2673,6 @@ static SCM
 gc_async_thunk (void)
 {
   scm_c_run_hook (scm_after_gc_hook, SCM_EOL);
-
-#if (SCM_DEBUG_DEPRECATED == 0)
-
-  /* The following code will be removed in Guile 1.5.  */
-  if (SCM_NFALSEP (scm_gc_vcell))
-    {
-      SCM proc = SCM_CDR (scm_gc_vcell);
-
-      if (SCM_NFALSEP (proc) && !SCM_UNBNDP (proc))
-	scm_apply (proc, SCM_EOL, SCM_EOL);
-    }
-
-#endif  /* SCM_DEBUG_DEPRECATED == 0 */
-
   return SCM_UNSPECIFIED;
 }
 
@@ -2719,9 +2701,6 @@ scm_init_gc ()
 
   scm_after_gc_hook = scm_create_hook ("after-gc-hook", 0);
 
-#if (SCM_DEBUG_DEPRECATED == 0)
-  scm_gc_vcell = scm_sysintern ("gc-thunk", SCM_BOOL_F);
-#endif  /* SCM_DEBUG_DEPRECATED == 0 */
   after_gc_thunk = scm_make_subr_opt ("%gc-thunk", scm_tc7_subr_0, gc_async_thunk, 0);
   gc_async = scm_system_async (after_gc_thunk);  /* protected via scm_asyncs */
 
