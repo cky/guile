@@ -136,7 +136,7 @@ static SCM before_read;
 static int
 current_input_getc (FILE *in SCM_UNUSED)
 {
-  if (promptp && !SCM_FALSEP (before_read))
+  if (promptp && scm_is_true (before_read))
     {
       scm_apply (before_read, SCM_EOL, SCM_EOL);
       promptp = 0;
@@ -190,9 +190,9 @@ SCM_DEFINE (scm_readline, "%readline", 0, 4, 0,
 		      SCM_EOL);
     }
 
-  if (!(SCM_UNBNDP (read_hook) || SCM_FALSEP (read_hook)))
+  if (!(SCM_UNBNDP (read_hook) || scm_is_false (read_hook)))
     {
-      if (!(SCM_NFALSEP (scm_thunk_p (read_hook))))
+      if (scm_is_false (scm_thunk_p (read_hook)))
 	{
 	  --in_readline;
 	  scm_wrong_type_arg (s_scm_readline, SCM_ARG4, read_hook);
@@ -377,9 +377,9 @@ SCM_DEFINE (scm_filename_completion_function, "filename-completion-function", 2,
   SCM ans;
   SCM_VALIDATE_STRING (1,text);
 #ifdef HAVE_RL_FILENAME_COMPLETION_FUNCTION
-  s = rl_filename_completion_function (SCM_STRING_CHARS (text), SCM_NFALSEP (continuep));
+  s = rl_filename_completion_function (SCM_STRING_CHARS (text), scm_is_true (continuep));
 #else
-  s = filename_completion_function (SCM_STRING_CHARS (text), SCM_NFALSEP (continuep));
+  s = filename_completion_function (SCM_STRING_CHARS (text), scm_is_true (continuep));
 #endif
   ans = scm_makfrom0str (s);
   free (s);
@@ -400,15 +400,15 @@ completion_function (char *text, int continuep)
   SCM compfunc = SCM_VARIABLE_REF (scm_readline_completion_function_var);
   SCM res;
 
-  if (SCM_FALSEP (compfunc))
+  if (scm_is_false (compfunc))
     return NULL; /* #f => completion disabled */
   else
     {
       SCM t = scm_makfrom0str (text);
-      SCM c = continuep ? SCM_BOOL_T : SCM_BOOL_F;
+      SCM c = scm_from_bool (continuep);
       res = scm_apply (compfunc, scm_list_2 (t, c), SCM_EOL);
   
-      if (SCM_FALSEP (res))
+      if (scm_is_false (res))
 	return NULL;
   
       if (!SCM_STRINGP (res))
