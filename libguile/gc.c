@@ -328,6 +328,7 @@ scm_debug_newcell (void)
     {
       new = scm_freelist;
       scm_freelist = SCM_CDR (scm_freelist);
+      SCM_SETCAR (new, scm_tc16_allocated);
       ++scm_cells_allocated;
     }
 

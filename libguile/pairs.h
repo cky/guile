@@ -147,6 +147,11 @@ typedef SCM  huge *SCMPTR;
 #define SCM_CADDDR(OBJ)		SCM_CAR (SCM_CDR (SCM_CDR (SCM_CDR (OBJ))))
 #define SCM_CDDDDR(OBJ)		SCM_CDR (SCM_CDR (SCM_CDR (SCM_CDR (OBJ))))
 
+/* the allocated thing: The car of newcells are set to
+   scm_tc16_allocated to avoid the fragile state of newcells wrt the
+   gc. If it stays as a freecell, any allocation afterwards could
+   cause the cell to go back on the freelist, which will bite you
+   sometime afterwards */
 
 #ifdef GUILE_DEBUG_FREELIST
 #define SCM_NEWCELL(_into) do { _into = scm_debug_newcell (); } while (0)
