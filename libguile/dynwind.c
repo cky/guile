@@ -113,8 +113,7 @@ SCM_DEFINE (scm_dynamic_wind, "dynamic-wind", 3, 0, 0,
 	    "@result{} normal-binding\n\n"
 	    "a-cont\n"
 	    "@result{} special-binding\n"
-	    "@end example\n"
-	    "")
+	    "@end example\n")
 #define FUNC_NAME s_scm_dynamic_wind
 {
   SCM ans;
@@ -172,7 +171,9 @@ scm_internal_dynamic_wind (scm_guard_t before,
 #ifdef GUILE_DEBUG
 SCM_DEFINE (scm_wind_chain, "wind-chain", 0, 0, 0, 
             (),
-	    "")
+	    "Return the current wind chain. The wind chain contains all\n"
+	    "information required by @code{dynamic-wind} to call its\n"
+	    "argument thunks when entering/exiting its scope.")
 #define FUNC_NAME s_scm_wind_chain
 {
   return scm_dynwinds;
