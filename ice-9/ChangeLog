@@ -1,3 +1,7 @@
+2002-12-18  Mikael Djurfeldt  <mdj@kvast.blakulla.net>
+
+	* threads.scm: Removed bogus definition of future-ref.
+
 2002-12-15  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* threads.scm (par-map, par-for-each): Reimplemented using

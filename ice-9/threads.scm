@@ -72,8 +72,6 @@
 
 
 
-(define future-ref join-thread)
-
 (define ((par-mapper mapper)  proc . arglists)
   (mapper join-thread
 	  (apply map
