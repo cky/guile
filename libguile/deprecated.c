@@ -651,6 +651,33 @@ scm_strprint_obj (SCM obj)
   return scm_object_to_string (obj, SCM_UNDEFINED);
 }
 
+char *
+scm_i_object_chars (SCM obj)
+{
+  scm_c_issue_deprecation_warning 
+    ("SCM_CHARS is deprecated.  See the manual for alternatives.");
+  if (SCM_STRINGP (obj))
+    return SCM_STRING_CHARS (obj);
+  if (SCM_SYMBOLP (obj))
+    return SCM_SYMBOL_CHARS (obj);
+  abort ();
+}
+
+long
+scm_i_object_length (SCM obj)
+{
+  scm_c_issue_deprecation_warning 
+    ("SCM_LENGTH is deprecated.  "
+     "Use scm_c_string_length instead, for example, or see the manual.");
+  if (SCM_STRINGP (obj))
+    return SCM_STRING_LENGTH (obj);
+  if (SCM_SYMBOLP (obj))
+    return SCM_SYMBOL_LENGTH (obj);
+  if (SCM_VECTORP (obj))
+    return SCM_VECTOR_LENGTH (obj);
+  abort ();
+}
+
 SCM 
 scm_sym2ovcell_soft (SCM sym, SCM obarray)
 {

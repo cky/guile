@@ -226,6 +226,15 @@ SCM_API SCM scm_strprint_obj (SCM obj);
 SCM_API SCM scm_read_0str (char *expr);
 SCM_API SCM scm_eval_0str (const char *expr);
 
+SCM_API char *scm_i_object_chars (SCM);
+
+#define SCM_CHARS(x)   scm_i_object_chars(x)
+#define SCM_UCHARS(x)  ((unsigned char *)SCM_CHARS(x))
+
+SCM_API long scm_i_object_length (SCM);
+
+#define SCM_LENGTH(x) scm_i_object_length(x)
+
 #define scm_strhash(str, len, n) (scm_string_hash ((str), (len)) % (n))
 
 SCM_API SCM scm_sym2ovcell_soft (SCM sym, SCM obarray);
