@@ -573,14 +573,44 @@ to use @code{inexact->exact} on the arguments.
 
 @end deffn
 
-@deffn {Scheme Procedure} inf? x
+@deffn  {Scheme Procedure} inf? x
+@deffnx {C Function} scm_inf_p (x)
 Return @code{#t} if @var{x} is either @samp{+inf.0} or @samp{-inf.0},
 @code{#f} otherwise.
 @end deffn
 
 @deffn {Scheme Procedure} nan? x
+@deffnx {C Function} scm_nan_p (x)
 Return @code{#t} if @var{x} is @samp{+nan.0}, @code{#f} otherwise.
 @end deffn
+
+@deffn {Scheme Procedure} numerator x
+@deffnx {C Function} scm_numerator (x)
+Return the numerator of the rational number @var{x}.
+@end deffn
+
+@deffn {Scheme Procedure} denominator x
+@deffnx {C Function} scm_denominator (x)
+Return the denominator of the rational number @var{x}.
+@end deffn
+
+@deftypefn  {C Function} int scm_is_real (SCM val)
+@deftypefnx {C Function} int scm_is_rational (SCM val)
+Equivalent to @code{scm_is_true (scm_real_p (val))} and
+@code{scm_is_true (scm_rational_p (val))}, respectively.
+@end deftypefn
+
+@deftypefn {C Function} double scm_to_double (SCM val)
+Returns the number closest to @var{val} that is representable as a
+@code{double}.  Returns infinity for a @var{val} that is too large in
+magnitude.  The argument @var{val} must be a real number.
+@end deftypefn
+
+@deftypefn {C Function} SCM scm_from_double (double val)
+Return the @code{SCM} value that representats @var{val}.  The returned
+value is inexact according to the predicate @code{inexact?}, but it
+will be exactly equal to @var{val}.
+@end deftypefn
 
 @node Complex Numbers
 @subsubsection Complex Numbers
