@@ -978,6 +978,18 @@ types and Scheme numbers.
 
 See above.
 
+** New functions: scm_gc_protect_object, scm_gc_unprotect_object
+
+These are just nicer-named old scm_protect_object and
+scm_unprotect_object.
+
+** Deprecated functions: scm_protect_object, scm_unprotect_object
+
+** New functions: scm_gc_[un]register_root, scm_gc_[un]register_roots
+
+These functions can be used to register pointers to locations that
+hold SCM values.
+
 
 Changes since Guile 1.3.4:
 
