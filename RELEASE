@@ -7,6 +7,11 @@ absinthe, etc.  However, the first release containing the module
 system should be called Godot: "This is the one you've been waiting
 for."
 
+Before releasing the next version of libguile which is not binary compatible
+with the one released with 1.4:
+- remove struct members system_transformer and top_level_lookup_closure_var
+  from struct scm_root_state in root.h.
+
 In release 1.5:
 - remove deprecated macros: SCM_INPORTP, SCM_OUTPORTP, SCM_CRDY, SCM_ICHRP,
   SCM_ICHR, SCM_MAKICHR, SCM_SETJMPBUF, SCM_NSTRINGP, SCM_NRWSTRINGP,
