@@ -417,7 +417,7 @@ SCM_DEFINE (scm_make_stack, "make-stack", 1, 0, 1,
 	    "evaluation stack is used for creating the stack frames,\n"
 	    "otherwise the frames are taken from @var{obj} (which must be\n"
 	    "either a debug object or a continuation).\n"
-	    "@var{args} must be a list if integers and specifies how the\n"
+	    "@var{args} must be a list of integers and specifies how the\n"
 	    "resulting stack will be narrowed.")
 #define FUNC_NAME s_scm_make_stack
 {

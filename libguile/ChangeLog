@@ -1,3 +1,7 @@
+2001-04-28  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* stacks.c (scm_make_stack): Fix typo in docstring.
+
 2001-04-27  Rob Browning  <rlb@cs.utexas.edu>
 
 	* error.c (scm_sysmissing): deprecation expired - removed.
