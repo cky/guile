@@ -1,3 +1,36 @@
+2000-03-12  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+
+	* readline.c (match_paren): Bugfix: First arg to select is not
+	number of descriptors but the number of the highest descriptor +
+	1.
+
+	This is a preliminary attempt at a cleanup of the threads support
+	code.  It moves things to better places, makes arguments more
+	consistent with the POSIX API (which is used in GNOME's glib), and
+	adds new functionality.
+	
+	* readline.c (scm_init_readline): Added new arg to scm_init_mutex.
+
+	* coop-defs.h (scm_mutex_trylock): New macro: alias for
+	coop_mutex_trylock.
+	(scm_cond_init): Changed definition to
+	coop_new_condition_variable_init.
+        (scm_mutex_init): Changed definition to	coop_new_mutex_init.
+	
+	* coop.c: #include <errno.h>
+	(coop_timeout_qinsert): Moved here from iselect.c
+	(coop_new_mutex_init, coop_new_condition_variable_init): New
+	functions.  The strange names are temporary.  Use scm_mutex_init
+	and scm_cond_init instead.
+	(coop_mutex_trylock): New function.  Uses errno.h:EBUSY.  errno.h
+	is ANSI C, but should we check for individual error codes in
+	configure.in?
+	(coop_condition_variable_timed_wait_mutex): New function.
+	(coop_key_create, coop_setspecific, coop_getspecific,
+	coop_key_delete, 
+
+	* iselect.c (coop_timout_qinsert): Moved to coop.c
+
 2000-03-11  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* pairs.h (SCM_SETAND_CAR, SCM_SETAND_CDR, SCM_SETOR_CAR,
