@@ -127,6 +127,8 @@ In the subdirectory srfi, wrote:
     srfi-14.scm
     srfi-13.c
     srfi-14.c
+In the subdirectory scripts, wrote:
+    doc-snarf
 In the subdirectory doc, wrote:
     script-getopt.texi
     srfi-modules.texi
@@ -176,6 +178,23 @@ In the subdirectory doc, changes to:
 In the subdirectory doc/maint, wrote:
     docstring.el
 
-Thien Thi Nguyen:
+Thien-Thi Nguyen:
+In the top-level directory, wrote:
+    check-guile.in	guile-tools.in
+In the subdirectory ice-9, changes to:
+    boot-9.scm		documentation.scm	emacs.scm
+    ls.scm		session.scm		string-fun.scm
+    threads.scm
+In the subdirectory scripts, wrote:
+    Makefile.am		PROGRAM
+    display-commentary	generate-autoload
+    punify		read-scheme-source
+    use2dot
+In the subdirectory scripts, changes to:
+    doc-snarf
+In the subdirectory libguile, changes to:
+    guile-doc-snarf.in	regex-posix.c
 In the subdirectory doc, changes to:
-    preface.texi    scheme-scheduling.texi
+    intro.texi			preface.texi
+    scheme-modules.texi		scheme-procedures.texi
+    scheme-scheduling.texi
