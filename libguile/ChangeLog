@@ -8,7 +8,7 @@
 
 	* smob.c, smob.h (scm_assert_smob_type): New.
 
-	* Makefile.am (guile_CFLAGS, guile_LDFLAGS, libguile_la_CFLAGS, ):
+	* Makefile.am (guile_CFLAGS, guile_LDFLAGS, libguile_la_CFLAGS):
 	Include GUILE_CFLAGS.
 	(libguile_la_LIBADD): Removed THREAD_LIBS_LOCAL, which is unused
 	now.
@@ -50,8 +50,7 @@
 
 	* i18n.c (scm_i_to_lc_category): New name and export.  Support all
 	LC categories.
-
-	* posix.c (s_scm_setlocale): Use it.
+	* posix.c (scm_setlocale): Use it.
 
 	* i18n.h, i18n.c (scm_textdomain, scm_bindtextdomain,
 	scm_bind_textdomain_codeset): Make wrappers similar to C function
@@ -92,7 +91,7 @@
 	too short to contain s2.
 
 	* regex-posix.c (scm_regexp_exec): Convert string to
-	zero-temrinated locale string before matching against it.
+	zero-terminated locale string before matching against it.
 
 	* strings.h, strings.c (scm_substring_read_only,
 	scm_c_substring_read_only, scm_i_substring_read_only): New.
@@ -135,7 +134,7 @@
 
 2004-09-13  Jan Nieuwenhuizen  <janneke@gnu.org>
 
-	* srfi-13.c (scm_string_contains, s_scm_string_contains_ci):
+	* srfi-13.c (scm_string_contains, scm_string_contains_ci):
 	Bugfix: when subtracting unsigned values, make sure that result
 	does not wrap.
 
