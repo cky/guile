@@ -22,13 +22,15 @@ srcdir=@srcdir@
 subdirs=@build_subdirs@
 dist_dirs=@existingdirs@ doc
 
-DISTFILES =	COPYING \
+DISTFILES =	AUTHORS \
+		COPYING \
 		ChangeLog \
 		GUILE-VERSION \
 		INSTALL \
 		NEWS \
 		README \
 		TODO \
+		aclocal.m4 \
 		Makefile.in \
 		configure \
 		configure.in \
