@@ -545,7 +545,6 @@
 ;;;
 ;;; (and-map fn lst) is like (and (fn (car lst)) (fn (cadr lst)) (fn...) ...)
 ;;; (or-map fn lst) is like (or (fn (car lst)) (fn (cadr lst)) (fn...) ...)
-;;; (map-in-order fn lst) is like (map fn lst) but definately in order of lst.
 ;;;
 
 ;; and-map f l
