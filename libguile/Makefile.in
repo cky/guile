@@ -126,16 +126,17 @@ pkginclude_HEADERS = gh.h
 
 # These are headers visible as <libguile/mumble.h>.
 modincludedir = $(includedir)/libguile
-modinclude_HEADERS = __scm.h alist.h arbiters.h async.h \
-    backtrace.h boolean.h chars.h continuations.h debug.h dynl.h dynwind.h \
-    eq.h error.h eval.h feature.h filesys.h fports.h gc.h \
-    gdb_interface.h gdbint.h genio.h gsubr.h hash.h hashtab.h init.h \
-    ioext.h kw.h list.h load.h mallocs.h markers.h net_db.h \
-    numbers.h objects.h objprop.h options.h pairs.h ports.h posix.h \
-    regex-posix.h print.h procprop.h procs.h ramap.h read.h root.h scmsigs.h \
-    script.h simpos.h smob.h socket.h srcprop.h stackchk.h stacks.h \
-    stime.h strings.h strop.h strorder.h strports.h struct.h symbols.h \
-    tag.h tags.h throw.h unif.h variable.h vectors.h version.h vports.h \
+modinclude_HEADERS = \
+    __scm.h alist.h arbiters.h async.h backtrace.h boolean.h chars.h \
+    continuations.h debug.h dynl.h dynwind.h eq.h error.h eval.h \
+    feature.h filesys.h fports.h gc.h gdb_interface.h gdbint.h genio.h \
+    gsubr.h hash.h hashtab.h init.h ioext.h kw.h list.h load.h \
+    mallocs.h markers.h net_db.h numbers.h objects.h objprop.h \
+    options.h pairs.h ports.h posix.h regex-posix.h print.h procprop.h \
+    procs.h ramap.h read.h readline.h root.h scmsigs.h script.h \
+    simpos.h smob.h socket.h srcprop.h stackchk.h stacks.h stime.h \
+    strings.h strop.h strorder.h strports.h struct.h symbols.h tag.h \
+    tags.h throw.h unif.h variable.h vectors.h version.h vports.h \
     weaks.h snarf.h threads.h coop-defs.h fluids.h
 
 modinclude_DATA = scmconfig.h
