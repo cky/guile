@@ -1,5 +1,9 @@
 1999-07-19  Jim Blandy  <jimb@savonarola.red-bean.com>
 
+	* eval.c (scm_m_lambda): Let bodycheck check the body of the
+	lambda.  Let your sins be purified by the blood of the lambda.
+	(Thanks to Eric Hanchrow.)
+
 	* net_db.c (h_errno): Don't declare this if it's #defined.  Eew.
 	(Thanks to Valdis Kletnieks.)
 
