@@ -1,5 +1,22 @@
 2000-04-12  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* gc.c (scm_gc_sweep):  Simplify the computation of freed memory
+	size for msymbols.
+
+	* symbols.h (SCM_SLOTS, SCM_SYMBOL_FUNC, SCM_SYMBOL_PROPS,
+	SCM_SYMBOL_HASH):  The msymbol slots are now a field of scm_bits_t
+	values.
+
+	* symbols.h (SCM_SET_SYMBOL_FUNC, SCM_SET_SYMBOL_PROPS):  New
+	macros.
+
+	symbols.c (scm_intern_obarray_soft, msymbolize, scm_symbol_fset_x,
+	scm_symbol_pset_x):  Use them.
+
+	* symbols.c (scm_symbol_hash):  Unpack to access SCM raw data. 
+
+2000-04-12  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* ports.c (scm_port_print):  The port data is read as raw data.
 
 	* ports.h (SCM_TC2PTOBNUM, SCM_PTOBNUM):  Fix SCM/scm_bits_t
@@ -16,7 +33,7 @@
 
 	* objects.h (SCM_SET_ENTITY_PROCEDURE):  New macro.
 
-	* objects.c (scm_set_object_procedure_x):  Use it.
+	objects.c (scm_set_object_procedure_x):  Use it.
 
 	* struct.c (scm_struct_init):  Unused variable 'data' removed.
 
@@ -31,7 +48,7 @@
 
 	* struct.h (SCM_SET_STRUCT_LAYOUT):  New macro.
 
-	* struct.c (scm_make_vtable_vtable):  Use it.
+	struct.c (scm_make_vtable_vtable):  Use it.
 
 2000-04-11  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 

@@ -289,7 +289,7 @@ scm_intern_obarray_soft (const char *name,scm_sizet len,SCM obarray,int softness
 
   SCM_SETLENGTH (lsym, (long) len, scm_tc7_msymbol);
   SCM_SYMBOL_HASH (lsym) = scm_hash;
-  SCM_SYMBOL_PROPS (lsym) = SCM_EOL;
+  SCM_SET_SYMBOL_PROPS (lsym, SCM_EOL);
   if (SCM_FALSEP (obarray))
     {
       SCM answer;
@@ -704,7 +704,7 @@ msymbolize (SCM s)
   SCM_SETLENGTH (s, SCM_LENGTH (s), scm_tc7_msymbol);
   SCM_SETCDR (string, SCM_EOL);
   SCM_SETCAR (string, SCM_EOL);
-  SCM_SYMBOL_PROPS (s) = SCM_EOL;
+  SCM_SET_SYMBOL_PROPS (s, SCM_EOL);
   /* If it's a tc7_ssymbol, it comes from scm_symhash */
   SCM_SYMBOL_HASH (s) = scm_strhash (SCM_UCHARS (s),
 				     (scm_sizet) SCM_LENGTH (s),
@@ -752,7 +752,7 @@ SCM_DEFINE (scm_symbol_fset_x, "symbol-fset!", 2, 0, 0,
   if (SCM_TYP7(s) == scm_tc7_ssymbol)
     msymbolize (s);
   SCM_ALLOW_INTS;
-  SCM_SYMBOL_FUNC (s) = val;
+  SCM_SET_SYMBOL_FUNC (s, val);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -767,7 +767,7 @@ SCM_DEFINE (scm_symbol_pset_x, "symbol-pset!", 2, 0, 0,
   SCM_DEFER_INTS;
   if (SCM_TYP7(s) == scm_tc7_ssymbol)
     msymbolize (s);
-  SCM_SYMBOL_PROPS (s) = val;
+  SCM_SET_SYMBOL_PROPS (s, val);
   SCM_ALLOW_INTS;
   return SCM_UNSPECIFIED;
 }
@@ -783,7 +783,7 @@ SCM_DEFINE (scm_symbol_hash, "symbol-hash", 1, 0, 0,
   SCM_VALIDATE_SYMBOL (1,s);
   if (SCM_TYP7(s) == scm_tc7_ssymbol)
     msymbolize (s);
-  return SCM_MAKINUM ((unsigned long)s ^ SCM_SYMBOL_HASH (s));
+  return SCM_MAKINUM (SCM_UNPACK (s) ^ SCM_SYMBOL_HASH (s));
 }
 #undef FUNC_NAME
 

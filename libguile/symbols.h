@@ -87,11 +87,13 @@ extern int scm_symhash_dim;
 #define SCM_UCHARS(x)		((unsigned char *) (SCM_CELL_WORD_1 (x)))
 #define SCM_SETCHARS(x, v)	(SCM_SET_CELL_WORD_1 ((x), (scm_bits_t) (v)))
 
-#define SCM_SYMBOL_SLOTS	4
-#define SCM_SLOTS(x)		((SCM *) (* ((SCM *) SCM_CHARS (x) - 1)))
-#define SCM_SYMBOL_FUNC(X)	(SCM_SLOTS (X)[0])
-#define SCM_SYMBOL_PROPS(X)	(SCM_SLOTS (X)[1])
-#define SCM_SYMBOL_HASH(X)	(*(unsigned long*) (&SCM_SLOTS (X)[2]))
+#define SCM_SYMBOL_SLOTS	    4
+#define SCM_SLOTS(x)		    ((scm_bits_t *) (* ((scm_bits_t *) SCM_CHARS (x) - 1)))
+#define SCM_SYMBOL_FUNC(X)	    (SCM_PACK (SCM_SLOTS (X) [0]))
+#define SCM_SET_SYMBOL_FUNC(X, v)   (SCM_SLOTS (X) [0] = SCM_UNPACK (v))
+#define SCM_SYMBOL_PROPS(X)	    (SCM_PACK (SCM_SLOTS (X) [1]))
+#define SCM_SET_SYMBOL_PROPS(X, v)  (SCM_SLOTS (X) [1] = SCM_UNPACK (v))
+#define SCM_SYMBOL_HASH(X)	    (SCM_SLOTS (X) [2])
 
 #define SCM_ROSTRINGP(x) (SCM_NIMP(x) && ((SCM_TYP7S(x)==scm_tc7_string) \
 			  || (SCM_TYP7S(x) == scm_tc7_ssymbol)))

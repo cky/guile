@@ -1747,9 +1747,8 @@ scm_gc_sweep ()
 	    case scm_tc7_msymbol:
 	      if (SCM_GC8MARKP (scmptr))
 		goto c8mrkcontinue;
-	      m += (  SCM_LENGTH (scmptr)
-		    + 1
-		    + sizeof (SCM) * ((SCM *)SCM_CHARS (scmptr) - SCM_SLOTS(scmptr)));
+	      m += (SCM_LENGTH (scmptr) + 1
+		    + (SCM_CHARS (scmptr) - (char *) SCM_SLOTS (scmptr)));
 	      scm_must_free ((char *)SCM_SLOTS (scmptr));
 	      break;
 	    case scm_tc7_contin:
