@@ -222,11 +222,8 @@ with the CC_FOR_BUILD variable in the usual way, for instance
 
     ./configure --host=m68k-unknown-linux-gnu CC_FOR_BUILD=/my/local/gcc
 
-A further special option for cross building is available:
-
---with-guile-for-build   --- native Guile executable, to be used during build
-                             defaults to: `guile', assuming you just
-                             installed this guile natively.
+Guile for the build system can be specified similarly with the
+GUILE_FOR_BUILD variable, it defaults to just "guile".
 
 
 Using Guile Without Installing It =========================================
