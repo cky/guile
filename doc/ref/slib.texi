@@ -28,17 +28,17 @@ guile> (probably-prime? 13)
 @node SLIB installation
 @section SLIB installation
 
-The following seems to work, at least with slib 2c7:
+The following seems to work (e.g., with slib versions 2c7 and 2d2):
 
 @enumerate
 @item
-Unpack slib somewhere, e.g., /usr/local/lib/slib.
+Unpack slib somewhere, e.g., /usr/local/share/slib.
 
 @item
 Create a symlink in the Guile site directory to slib, e.g.,:
 
 @example
-ln -s /usr/local/lib/slib /usr/local/share/guile/site/slib
+ln -s /usr/local/share/slib /usr/local/share/guile/site/slib
 @end example
 
 @item
@@ -47,7 +47,7 @@ Use Guile to create the catalogue file, e.g.,:
 @example
 # guile
 guile> (use-modules (ice-9 slib))
-guile> (load "/usr/local/lib/slib/mklibcat.scm")
+guile> (load "/usr/local/share/slib/mklibcat.scm")
 guile> (quit)
 @end example
 
@@ -68,7 +68,7 @@ offending variables.
 Install the documentation:
 
 @example
-cd /usr/local/lib/slib
+cd /usr/local/share/slib
 rm /usr/local/info/slib.info*
 cp slib.info /usr/local/info
 install-info slib.info /usr/local/info/dir
