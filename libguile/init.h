@@ -47,6 +47,8 @@
 #include "libguile/__scm.h"
 
 
+extern int scm_initialized_p;
+
 extern void scm_boot_guile (int argc, char **argv,
 			    void (*main_func) (void *closure,
 					       int argc,

@@ -451,10 +451,11 @@ scm_boot_guile (int argc, char ** argv, void (*main_func) (), void *closure)
 
 int scm_boot_guile_1_live = 0;
 
+int scm_initialized_p = 0;
+
 static void
 scm_boot_guile_1 (SCM_STACKITEM *base, struct main_func_closure *closure)
 {
-  static int initialized = 0;
   /* static int live = 0; */
   setjmp_type setjmp_val;
 
@@ -467,7 +468,7 @@ scm_boot_guile_1 (SCM_STACKITEM *base, struct main_func_closure *closure)
   scm_ints_disabled = 1;
   scm_block_gc = 1;
   
-  if (initialized)
+  if (scm_initialized_p)
     {
       restart_stack (base);
     }
@@ -582,7 +583,7 @@ scm_boot_guile_1 (SCM_STACKITEM *base, struct main_func_closure *closure)
       scm_init_dynamic_linking ();
       scm_init_lang ();
       scm_init_script ();
-      initialized = 1;
+      scm_initialized_p = 1;
     }
 
   scm_block_gc = 0;		/* permit the gc to run */
