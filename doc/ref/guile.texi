@@ -137,7 +137,7 @@ x
 @comment The title is printed in a large font.
 @title Guile Reference Manual
 @subtitle Edition @value{MANUAL-EDITION}, for use with Guile @value{VERSION}
-@c @subtitle $Id: guile.texi,v 1.33 2004-07-28 00:53:09 kryde Exp $
+@c @subtitle $Id: guile.texi,v 1.34 2004-08-02 11:46:57 mvo Exp $
 
 @c See preface.texi for the list of authors
 @author The Guile Developers
@@ -271,7 +271,7 @@ etc. that make up Guile's application programming interface (API),
 @include libguile-concepts.texi
 @include libguile-smobs.texi
 @include libguile-snarf.texi
-@include program.texi
+@include libguile-program.texi
 
 @node API Reference
 @chapter API Reference
