@@ -882,14 +882,14 @@ if test "$use_threads" != no; then
      if test -f $srcdir/../qt/qt.c || test -f $srcdir/qt/qt.c; then
 	threads_package=COOP
 	cy_cv_threads_cflags="-I$srcdir/../qt -I../qt"
-	cy_cv_threads_libs="../qt/libqt.a"
+	cy_cv_threads_libs="../threads/libthreads.a ../qt/libqt.a"
      fi
   else
      if test -f $use_threads/qt.c; then
 	# FIXME seems as though we should try to use an installed qt here.
 	threads_package=COOP
 	cy_cv_threads_cflags="-I$use_threads -I../qt"
-	cy_cv_threads_libs="../qt/libqt.a"
+	cy_cv_threads_libs="../threads/libthreads.a ../qt/libqt.a"
      fi
   fi
   if test "$use_threads" = pthreads; then
@@ -1801,7 +1801,7 @@ fi
 
 
   echo $ac_n "checking whether we need POSIX to get struct utimbuf""... $ac_c" 1>&6
-  if eval "test \"`echo '$''{'guile_cv_struct_utimbuf_needs_posix'+set}'`\" = set"; then
+if eval "test \"`echo '$''{'guile_cv_struct_utimbuf_needs_posix'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
@@ -1826,15 +1826,17 @@ else
   echo "$ac_err" >&5
   rm -rf conftest*
   guile_cv_struct_utimbuf_needs_posix=yes
-                cat >> confdefs.h <<\EOF
-#define UTIMBUF_NEEDS_POSIX 1
-EOF
-
 fi
 rm -f conftest*
 fi
 
-  echo "$ac_t""$guile_cv_struct_utimbuf_needs_posix" 1>&6
+echo "$ac_t""$guile_cv_struct_utimbuf_needs_posix" 1>&6
+  if test "$guile_cv_struct_utimbuf_needs_posix" = yes; then
+     cat >> confdefs.h <<\EOF
+#define UTIMBUF_NEEDS_POSIX 1
+EOF
+
+  fi
 
 #--------------------------------------------------------------------
 #
@@ -1846,13 +1848,13 @@ if test "$cross_compiling" = yes; then
   echo "configure: warning: Guessing that stack grows down -- see scmconfig.h.in" 1>&2
 else
 cat > conftest.$ac_ext <<EOF
-#line 1850 "configure"
+#line 1852 "configure"
 #include "confdefs.h"
 aux (l) unsigned long l;
 	     { int x; exit (l >= ((unsigned long)&x)); }
 	   main () { int q; aux((unsigned long)&q); }
 EOF
-{ (eval echo configure:1856: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; }
+{ (eval echo configure:1858: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; }
 if test -s conftest && (./conftest; exit) 2>/dev/null; then
   cat >> confdefs.h <<\EOF
 #define SCM_STACK_GROWS_UP 1
@@ -1871,11 +1873,11 @@ EOF
 	   echo "configure: warning: Guessing that sizeof(long) == sizeof(float) -- see scmconfig.h.in" 1>&2
 else
 cat > conftest.$ac_ext <<EOF
-#line 1875 "configure"
+#line 1877 "configure"
 #include "confdefs.h"
 main () { exit (sizeof(float) != sizeof(long)); }
 EOF
-{ (eval echo configure:1879: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; }
+{ (eval echo configure:1881: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; }
 if test -s conftest && (./conftest; exit) 2>/dev/null; then
   cat >> confdefs.h <<\EOF
 #define SCM_SINGLES 1
@@ -1890,7 +1892,7 @@ if eval "test \"`echo '$''{'scm_cv_struct_linger'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 1894 "configure"
+#line 1896 "configure"
 #include "confdefs.h"
 #include <sys/socket.h>
 int main() { return 0; }
@@ -1898,7 +1900,7 @@ int t() {
 struct linger lgr;  lgr.l_linger = 100
 ; return 0; }
 EOF
-if { (eval echo configure:1902: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+if { (eval echo configure:1904: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
   scm_cv_struct_linger="yes"
 else
@@ -1927,7 +1929,7 @@ FD_SETTER=""
 
 if test "x$FD_SETTER" = x; then
   cat > conftest.$ac_ext <<EOF
-#line 1931 "configure"
+#line 1933 "configure"
 #include "confdefs.h"
 #include <stdio.h>
 
@@ -1936,7 +1938,7 @@ int t() {
 stdout->_file = 1
 ; return 0; }
 EOF
-if { (eval echo configure:1940: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+if { (eval echo configure:1942: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
   FD_SETTER="((F)->_file = (D))"
 fi
@@ -1946,7 +1948,7 @@ fi
 
 if test "x$FD_SETTER" = x; then
  cat > conftest.$ac_ext <<EOF
-#line 1950 "configure"
+#line 1952 "configure"
 #include "confdefs.h"
 #include <stdio.h>
 
@@ -1955,7 +1957,7 @@ int t() {
 stdout->_fileno
 ; return 0; }
 EOF
-if { (eval echo configure:1959: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+if { (eval echo configure:1961: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
   FD_SETTER="((F)->_fileno = (D))"
 fi
