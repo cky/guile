@@ -66,11 +66,7 @@
 int close P ((int fd));
 #endif /* STDC_HEADERS */
 
-#ifdef __STDC__
-extern int inet_aton (const char *, struct in_addr *);
-#else
 extern int inet_aton ();
-#endif
 
 SCM_PROC (s_sys_inet_aton, "inet-aton", 1, 0, 0, scm_sys_inet_aton);
 #ifdef __STDC__
