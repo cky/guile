@@ -1,3 +1,8 @@
+2001-06-28  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* fluids.c (scm_c_with_fluid): Use scm_list_1() instead of
+	SCM_LIST1.
+
 2001-06-28  Keisuke Nishida  <kxn30@po.cwru.edu>
 
 	* list.h (scm_list_1, scm_list_2, scm_list_3, scm_list_4, scm_list_5,
