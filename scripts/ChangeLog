@@ -1,3 +1,7 @@
+2002-01-02  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* snarf-guile-m4-docs: New script.
+
 2001-11-28  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* punify (write-punily): Handle symbols w/ ":" prefix specially.

@@ -1,3 +1,10 @@
+2002-01-02  Thien-Thi Nguyen  <ttn@glug.org>
+
+	* guile.m4: Rewrite comments in texi.
+
+	(GUILE_FLAGS): Rewrite.
+	Thanks to Alexandre Duret-Lutz.
+
 2001-12-28  Thien-Thi Nguyen  <ttn@glug.org>
 
 	* guile.m4 (GUILE_PROGS, GUILE_SITE_DIR, GUILE_CHECK,
