@@ -80,23 +80,22 @@ SCM gh_eval_file_with_standard_handler(const char *scheme_code);
 #define gh_defer_ints() SCM_DEFER_INTS
 #define gh_allow_ints() SCM_ALLOW_INTS
 
-SCM gh_new_procedure(char *proc_name, SCM (*fn)(),
+SCM gh_new_procedure(const char *proc_name, SCM (*fn)(),
 		     int n_required_args, int n_optional_args, int varp);
-SCM gh_new_procedure0_0(char *proc_name, SCM (*fn)(void));
-SCM gh_new_procedure0_1(char *proc_name, SCM (*fn)(SCM));
-SCM gh_new_procedure0_2(char *proc_name, SCM (*fn)(SCM, SCM));
-SCM gh_new_procedure1_0(char *proc_name, SCM (*fn)(SCM));
-SCM gh_new_procedure1_1(char *proc_name, SCM (*fn)(SCM, SCM));
-SCM gh_new_procedure1_2(char *proc_name, SCM (*fn)(SCM, SCM, SCM));
-SCM gh_new_procedure2_0(char *proc_name, SCM (*fn)(SCM, SCM));
-SCM gh_new_procedure2_1(char *proc_name, SCM (*fn)(SCM, SCM, SCM));
-SCM gh_new_procedure2_2(char *proc_name, SCM (*fn)(SCM, SCM, SCM, SCM));
-SCM gh_new_procedure3_0(char *proc_name, SCM (*fn)(SCM, SCM, SCM));
-SCM gh_new_procedure4_0(char *proc_name, SCM (*fn)(SCM, SCM, SCM, SCM));
-SCM gh_new_procedure5_0(char *proc_name, SCM (*fn)(SCM, SCM, SCM, SCM, SCM));
+SCM gh_new_procedure0_0(const char *proc_name, SCM (*fn)(void));
+SCM gh_new_procedure0_1(const char *proc_name, SCM (*fn)(SCM));
+SCM gh_new_procedure0_2(const char *proc_name, SCM (*fn)(SCM, SCM));
+SCM gh_new_procedure1_0(const char *proc_name, SCM (*fn)(SCM));
+SCM gh_new_procedure1_1(const char *proc_name, SCM (*fn)(SCM, SCM));
+SCM gh_new_procedure1_2(const char *proc_name, SCM (*fn)(SCM, SCM, SCM));
+SCM gh_new_procedure2_0(const char *proc_name, SCM (*fn)(SCM, SCM));
+SCM gh_new_procedure2_1(const char *proc_name, SCM (*fn)(SCM, SCM, SCM));
+SCM gh_new_procedure2_2(const char *proc_name, SCM (*fn)(SCM, SCM, SCM, SCM));
+SCM gh_new_procedure3_0(const char *proc_name, SCM (*fn)(SCM, SCM, SCM));
+SCM gh_new_procedure4_0(const char *proc_name, SCM (*fn)(SCM, SCM, SCM, SCM));
+SCM gh_new_procedure5_0(const char *proc_name, SCM (*fn)(SCM, SCM, SCM, SCM, SCM));
 
 /* C to Scheme conversion */
-SCM gh_int2scmb(int x);		/* this is being phased out */
 SCM gh_bool2scm(int x);
 SCM gh_int2scm(int x);
 SCM gh_ulong2scm(unsigned long x);
@@ -110,15 +109,15 @@ SCM gh_symbol2scm(const char *symbol_str);
 SCM gh_ints2scm(int *d, int n);
 
 #ifdef HAVE_ARRAYS
-SCM gh_chars2byvect(char *d, int n);
-SCM gh_shorts2svect(short *d, int n);
-SCM gh_longs2ivect(long *d, int n);
-SCM gh_ulongs2uvect(unsigned long *d, int n);
-SCM gh_floats2fvect(float *d, int n);
-SCM gh_doubles2dvect(double *d, int n);
+SCM gh_chars2byvect(const char *d, int n);
+SCM gh_shorts2svect(const short *d, int n);
+SCM gh_longs2ivect(const long *d, int n);
+SCM gh_ulongs2uvect(const unsigned long *d, int n);
+SCM gh_floats2fvect(const float *d, int n);
+SCM gh_doubles2dvect(const double *d, int n);
 #endif
 
-SCM gh_doubles2scm(double *d, int n);
+SCM gh_doubles2scm(const double *d, int n);
 
 /* Scheme to C conversion */
 int gh_scm2bool(SCM obj);
@@ -160,7 +159,7 @@ int gh_null_p(SCM l);
 
 #define gh_not(x) scm_not(x)
 
-SCM gh_define(char *name, SCM val);
+SCM gh_define(const char *name, SCM val);
 
 /* vector manipulation routines */
 /* note that gh_vector() does not behave quite like the Scheme (vector
@@ -177,8 +176,8 @@ SCM gh_uniform_vector_ref (SCM v, SCM ilist);
 #define gh_list_to_vector(ls) scm_vector(ls)
 #define gh_vector_to_list(v) scm_vector_to_list(v)
 
-SCM gh_lookup (char *sname);
-SCM gh_module_lookup (SCM vector, char *sname);
+SCM gh_lookup (const char *sname);
+SCM gh_module_lookup (SCM vector, const char *sname);
 
 SCM gh_cons(SCM x, SCM y);
 #define gh_list scm_listify
@@ -240,6 +239,14 @@ void gh_newline (void);
 /* void *gh_get_ext_data(SCM)         : return extension data from SCM. */
 
 /* void  gh_assert(int cond, char *msg, SCM obj); */
+
+
+
+#if (SCM_DEBUG_DEPRECATED == 0)
+
+SCM gh_int2scmb(int x);		/* this is being phased out */
+
+#endif  /* SCM_DEBUG_DEPRECATED == 0 */
 
 #ifdef __cplusplus
 }

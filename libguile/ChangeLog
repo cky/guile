@@ -1,4 +1,13 @@
-2000-05-17  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+2000-05-18  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* gh.h gh_data.c gh_funcs.c (gh_new_procedure*, gh_chars2byvect,
+	gh_shorts2svect, gh_longs2ivect, gh_ulongs2uvect, gh_floats2fvect,
+	gh_doubles2dvect, gh_doubles2scm, gh_define, gh_lookup,
+	gh_module_lookup):  Accept const pointers as parameters.
+
+	* gh.h gh_data.c (gh_int2scmb):  Deprecated.
+
+2000-05-18  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* __scm.h (SCM_DEBUG_REST_ARGUMENT):  Renamed from
 	SCM_DEBUG_REST_ARGUMENTS in order to clarify that we don't test

@@ -49,7 +49,7 @@
 
 /* allows you to define new scheme primitives written in C */
 SCM
-gh_new_procedure (char *proc_name, SCM (*fn) (),
+gh_new_procedure (const char *proc_name, SCM (*fn) (),
 		  int n_required_args, int n_optional_args, int varp)
 {
   return scm_make_gsubr (proc_name, n_required_args, n_optional_args,
@@ -57,80 +57,80 @@ gh_new_procedure (char *proc_name, SCM (*fn) (),
 }
 
 SCM
-gh_new_procedure0_0 (char *proc_name, SCM (*fn) ())
+gh_new_procedure0_0 (const char *proc_name, SCM (*fn) ())
 {
   return gh_new_procedure (proc_name, fn, 0, 0, 0);
 }
 
 SCM
-gh_new_procedure0_1 (char *proc_name, SCM (*fn) ())
+gh_new_procedure0_1 (const char *proc_name, SCM (*fn) ())
 {
   return gh_new_procedure (proc_name, fn, 0, 1, 0);
 }
 
 SCM
-gh_new_procedure0_2 (char *proc_name, SCM (*fn) ())
+gh_new_procedure0_2 (const char *proc_name, SCM (*fn) ())
 {
   return gh_new_procedure (proc_name, fn, 0, 2, 0);
 }
 
 SCM
-gh_new_procedure1_0 (char *proc_name, SCM (*fn) ())
+gh_new_procedure1_0 (const char *proc_name, SCM (*fn) ())
 {
   return gh_new_procedure (proc_name, fn, 1, 0, 0);
 }
 
 SCM
-gh_new_procedure1_1 (char *proc_name, SCM (*fn) ())
+gh_new_procedure1_1 (const char *proc_name, SCM (*fn) ())
 {
   return gh_new_procedure (proc_name, fn, 1, 1, 0);
 }
 
 SCM
-gh_new_procedure1_2 (char *proc_name, SCM (*fn) ())
+gh_new_procedure1_2 (const char *proc_name, SCM (*fn) ())
 {
   return gh_new_procedure (proc_name, fn, 1, 2, 0);
 }
 
 SCM
-gh_new_procedure2_0 (char *proc_name, SCM (*fn) ())
+gh_new_procedure2_0 (const char *proc_name, SCM (*fn) ())
 {
   return gh_new_procedure (proc_name, fn, 2, 0, 0);
 }
 
 SCM
-gh_new_procedure2_1 (char *proc_name, SCM (*fn) ())
+gh_new_procedure2_1 (const char *proc_name, SCM (*fn) ())
 {
   return gh_new_procedure (proc_name, fn, 2, 1, 0);
 }
 
 SCM
-gh_new_procedure2_2 (char *proc_name, SCM (*fn) ())
+gh_new_procedure2_2 (const char *proc_name, SCM (*fn) ())
 {
   return gh_new_procedure (proc_name, fn, 2, 2, 0);
 }
 
 SCM
-gh_new_procedure3_0 (char *proc_name, SCM (*fn) ())
+gh_new_procedure3_0 (const char *proc_name, SCM (*fn) ())
 {
   return gh_new_procedure (proc_name, fn, 3, 0, 0);
 }
 
 SCM
-gh_new_procedure4_0 (char *proc_name, SCM (*fn) ())
+gh_new_procedure4_0 (const char *proc_name, SCM (*fn) ())
 {
   return gh_new_procedure (proc_name, fn, 4, 0, 0);
 }
 
 SCM
-gh_new_procedure5_0 (char *proc_name, SCM (*fn) ())
+gh_new_procedure5_0 (const char *proc_name, SCM (*fn) ())
 {
   return gh_new_procedure (proc_name, fn, 5, 0, 0);
 }
 
 /* some (possibly most) Scheme functions available from C */
 SCM
-gh_define (char *name, SCM val)
+gh_define (const char *name, SCM val)
 {
   return scm_sysintern (name, val);
 }

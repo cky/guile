@@ -49,11 +49,17 @@
 #endif
 
 /* data conversion C->scheme */
+
+#if (SCM_DEBUG_DEPRECATED == 0)
+
 SCM 
 gh_int2scmb (int x)		/* this is being phased out */
 {
   return SCM_BOOL(x);
 }
+
+#endif  /* SCM_DEBUG_DEPRECATED == 0 */
+
 SCM 
 gh_bool2scm (int x)
 {
@@ -144,7 +150,7 @@ gh_ints2scm (int *d, int n)
 }
 
 SCM
-gh_doubles2scm (double *d, int n)
+gh_doubles2scm (const double *d, int n)
 {
   int i;
   SCM v = scm_make_vector(SCM_MAKINUM(n), SCM_UNSPECIFIED);
@@ -172,7 +178,7 @@ makvect (char* m, int len, int type)
 }
 
 SCM
-gh_chars2byvect (char *d, int n)
+gh_chars2byvect (const char *d, int n)
 {
   char *m = scm_must_malloc (n * sizeof (char), "vector");
   memcpy (m, d, n * sizeof (char));
@@ -180,7 +186,7 @@ gh_chars2byvect (char *d, int n)
 }
 
 SCM
-gh_shorts2svect (short *d, int n)
+gh_shorts2svect (const short *d, int n)
 {
   char *m = scm_must_malloc (n * sizeof (short), "vector");
   memcpy (m, d, n * sizeof (short));
@@ -188,7 +194,7 @@ gh_shorts2svect (short *d, int n)
 }
 
 SCM
-gh_longs2ivect (long *d, int n)
+gh_longs2ivect (const long *d, int n)
 {
   char *m = scm_must_malloc (n * sizeof (long), "vector");
   memcpy (m, d, n * sizeof (long));
@@ -196,7 +202,7 @@ gh_longs2ivect (long *d, int n)
 }
 
 SCM
-gh_ulongs2uvect (unsigned long *d, int n)
+gh_ulongs2uvect (const unsigned long *d, int n)
 {
   char *m = scm_must_malloc (n * sizeof (unsigned long), "vector");
   memcpy (m, d, n * sizeof (unsigned long));
@@ -204,7 +210,7 @@ gh_ulongs2uvect (unsigned long *d, int n)
 }
 
 SCM
-gh_floats2fvect (float *d, int n)
+gh_floats2fvect (const float *d, int n)
 {
   char *m = scm_must_malloc (n * sizeof (float), "vector");
   memcpy (m, d, n * sizeof (float));
@@ -212,7 +218,7 @@ gh_floats2fvect (float *d, int n)
 }
 
 SCM
-gh_doubles2dvect (double *d, int n)
+gh_doubles2dvect (const double *d, int n)
 {
   char *m = scm_must_malloc (n * sizeof (double), "vector");
   memcpy (m, d, n * sizeof (double));
@@ -678,13 +684,13 @@ gh_uniform_vector_ref (SCM v, SCM ilist)
    -twp] */
 
 SCM
-gh_lookup (char *sname)
+gh_lookup (const char *sname)
 {
   return gh_module_lookup (SCM_BOOL_F, sname);
 }
 
 SCM
-gh_module_lookup (SCM vec, char *sname)
+gh_module_lookup (SCM vec, const char *sname)
 {
   SCM sym = gh_symbol2scm (sname);
   if (SCM_TRUE_P (scm_symbol_bound_p (vec, sym)))
