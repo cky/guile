@@ -2702,7 +2702,7 @@ error_defined_variable (SCM symbol)
      the displayed message.
   */
   scm_error (scm_unbound_variable_key, NULL,
-	     "Undefined variable: ~S",
+	     "Variable used before given a value: ~S",
 	     scm_list_1 (symbol), SCM_BOOL_F);
 }
 
