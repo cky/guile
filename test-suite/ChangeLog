@@ -1,3 +1,7 @@
+2004-09-02  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/format.test (~@d): New tests.
+
 2004-09-01  Han-Wen Nienhuys <hanwen@cs.uu.nl>, Kevin Ryde <user42@zip.com.au>
 
 	* tests/gc.test: Exercise record in weak-values hash table, exposing a
