@@ -1,5 +1,41 @@
 2000-06-28  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* async.c (scm_gc_async, scm_gc_vcell, scm_sys_gc_async_thunk):
+	Moved to gc.c.
+
+	(scm_init_async):  Moved initialization for scm_gc_async and
+	scm_gc_vcell to gc.c.  Moved initialization of scm_asyncs here
+	from gc.c.
+
+	* async.h (scm_gc_async):  Not globally visible any more.
+
+	* gc.c (scm_gc_stats):  Made callable even from within regions
+	where gc is blocked.
+
+	(scm_gc_end):  Eliminate the hardcoding of the marking of the
+	scm_gc_async from the gc core.
+
+	(scm_init_storage):  Don't initialize the scm_asyncs list here.
+	This is now done in asyncs.c.
+
+	(scm_gc_vcell):  Moved here from async.c.
+
+	(gc_async):  Renamed from scm_gc_async, moved here from async.c
+	and made static.
+
+	(gc_async_thunk):  Renamed from scm_sys_gc_async_thunk and moved
+	here from async.c.
+
+	(mark_gc_async):  New hook function for scm_after_gc_c_hook.
+
+	(scm_init_gc):  Added initialization of scm_gc_vcell and
+	gc_async.  Further, add mark_gc_async to scm_after_gc_c_hook.
+
+	* init.c (scm_boot_guile_1):  scm_init_gc requires asyncs to be
+	initialized.
+
+2000-06-28  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* gc.c (scm_igc):  Removed commented code that once was intended
 	to unprotect struct types with no instances.
 

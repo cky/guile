@@ -572,7 +572,9 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
   SCM answer;
 
   SCM_DEFER_INTS;
-  scm_block_gc = 1;
+
+  ++scm_block_gc;
+
  retry:
   heap_segs = SCM_EOL;
   n = scm_n_heap_segs;
@@ -582,7 +584,8 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
 			  heap_segs);
   if (scm_n_heap_segs != n)
     goto retry;
-  scm_block_gc = 0;
+
+  --scm_block_gc;
 
   /* Below, we cons to produce the resulting list.  We want a snapshot of
    * the heap situation before consing.
@@ -619,12 +622,12 @@ scm_gc_start (const char *what)
   scm_gc_ports_collected = 0;
 }
 
+
 void
 scm_gc_end ()
 {
   scm_gc_rt = SCM_INUM (scm_get_internal_run_time ()) - scm_gc_rt;
   scm_gc_time_taken += scm_gc_rt;
-  scm_system_async_mark (scm_gc_async);
 }
 
 
@@ -746,7 +749,6 @@ scm_alloc_cluster (scm_freelist_t *master)
 }
 #endif
 
-SCM scm_after_gc_hook;
 
 scm_c_hook_t scm_before_gc_c_hook;
 scm_c_hook_t scm_before_mark_c_hook;
@@ -880,6 +882,7 @@ scm_igc (const char *what)
 }
 
 
+
 /* {Mark/Sweep}
  */
 
@@ -2309,7 +2312,6 @@ scm_init_storage (scm_sizet init_heap_size_1, int gc_trigger_1,
   scm_stand_in_procs = SCM_EOL;
   scm_permobjs = SCM_EOL;
   scm_protects = scm_make_vector (SCM_MAKINUM (31), SCM_EOL);
-  scm_asyncs = SCM_EOL;
   scm_sysintern ("most-positive-fixnum", SCM_MAKINUM (SCM_MOST_POSITIVE_FIXNUM));
   scm_sysintern ("most-negative-fixnum", SCM_MAKINUM (SCM_MOST_NEGATIVE_FIXNUM));
 #ifdef SCM_BIGDIG
@@ -2317,12 +2319,72 @@ scm_init_storage (scm_sizet init_heap_size_1, int gc_trigger_1,
 #endif
   return 0;
 }
+
 
+
+SCM scm_after_gc_hook;
+
+#if (SCM_DEBUG_DEPRECATED == 0)
+static SCM scm_gc_vcell;  /* the vcell for gc-thunk. */
+#endif  /* SCM_DEBUG_DEPRECATED == 0 */
+static SCM gc_async;
+
+
+/* The function gc_async_thunk causes the execution of the after-gc-hook.  It
+ * is run after the gc, as soon as the asynchronous events are handled by the
+ * evaluator.
+ */
+static SCM
+gc_async_thunk (void)
+{
+  scm_c_run_hook (scm_after_gc_hook, SCM_EOL);
+
+#if (SCM_DEBUG_DEPRECATED == 0)
+
+  /* The following code will be removed in Guile 1.5.  */
+  if (SCM_NFALSEP (scm_gc_vcell))
+    {
+      SCM proc = SCM_CDR (scm_gc_vcell);
+
+      if (SCM_NFALSEP (proc) && !SCM_UNBNDP (proc))
+	scm_apply (proc, SCM_EOL, SCM_EOL);
+    }
+
+#endif  /* SCM_DEBUG_DEPRECATED == 0 */
+
+  return SCM_UNSPECIFIED;
+}
+
+
+/* The function mark_gc_async is run by the scm_after_gc_c_hook at the end of
+ * the garbage collection.  The only purpose of this function is to mark the
+ * gc_async (which will eventually lead to the execution of the
+ * gc_async_thunk).
+ */
+static void *
+mark_gc_async (void * hook_data, void *func_data, void *data)
+{
+  scm_system_async_mark (gc_async);
+  return NULL;
+}
+
 
 void
 scm_init_gc ()
 {
+  SCM after_gc_thunk;
+
   scm_after_gc_hook = scm_create_hook ("after-gc-hook", 0);
+
+#if (SCM_DEBUG_DEPRECATED == 0)
+  scm_gc_vcell = scm_sysintern ("gc-thunk", SCM_BOOL_F);
+#endif  /* SCM_DEBUG_DEPRECATED == 0 */
+  /* Dirk:FIXME:: We don't really want a binding here. */
+  after_gc_thunk = scm_make_gsubr ("%gc-thunk", 0, 0, 0, gc_async_thunk);
+  gc_async = scm_system_async (after_gc_thunk);
+
+  scm_c_hook_add (&scm_after_gc_c_hook, mark_gc_async, NULL, 0);
+
 #include "libguile/gc.x"
 }
 

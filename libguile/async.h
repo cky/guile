@@ -49,11 +49,10 @@
 
 #include "libguile/__scm.h"
 
-
 
 
 extern unsigned int scm_mask_ints;
-extern SCM scm_gc_async;
+
 
 
 extern int scm_asyncs_pending (void);

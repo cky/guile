@@ -51,7 +51,6 @@
 #include "libguile/throw.h"
 #include "libguile/root.h"
 #include "libguile/smob.h"
-#include "libguile/gc.h"
 
 #include "libguile/validate.h"
 #include "libguile/async.h"
@@ -442,36 +441,6 @@ SCM_DEFINE (scm_set_switch_rate, "set-switch-rate", 1, 0, 0,
 #undef FUNC_NAME
 
 #endif
-
-
-/* points to the GC system-async, so that scm_gc_end can find it.  */
-SCM scm_gc_async;
-
-/* the vcell for gc-thunk.  */
-static SCM scm_gc_vcell;
-
-/* the thunk installed in the GC system-async, which is marked at the
-   end of garbage collection.  */
-static SCM
-scm_sys_gc_async_thunk (void)
-{
-  scm_c_run_hook (scm_after_gc_hook, SCM_EOL);
-
-#if (SCM_DEBUG_DEPRECATED == 0)
-
-  /* The following code will be removed in Guile 1.5.  */
-  if (SCM_NFALSEP (scm_gc_vcell))
-    {
-      SCM proc = SCM_CDR (scm_gc_vcell);
-
-      if (SCM_NFALSEP (proc) && !SCM_UNBNDP (proc))
-	scm_apply (proc, SCM_EOL, SCM_EOL);
-    }
-
-#endif  /* SCM_DEBUG_DEPRECATED == 0 */
-
-  return SCM_UNSPECIFIED;
-}
 
 
 
@@ -501,14 +470,9 @@ SCM_DEFINE (scm_mask_signals, "mask-signals", 0, 0, 0,
 void
 scm_init_async ()
 {
-  SCM a_thunk;
-
+  scm_asyncs = SCM_EOL;
   tc16_async = scm_make_smob_type ("async", 0);
   scm_set_smob_mark (tc16_async, mark_async);
-
-  scm_gc_vcell = scm_sysintern ("gc-thunk", SCM_BOOL_F);
-  a_thunk = scm_make_gsubr ("%gc-thunk", 0, 0, 0, scm_sys_gc_async_thunk);
-  scm_gc_async = scm_system_async (a_thunk);
 
 #include "libguile/async.x"
 }

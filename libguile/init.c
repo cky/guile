@@ -514,7 +514,7 @@ scm_boot_guile_1 (SCM_STACKITEM *base, struct main_func_closure *closure)
       scm_init_hashtab ();
       scm_init_objprop ();
       scm_init_hooks ();        /* Requires objprop until hook names are removed */
-      scm_init_gc ();		/* Requires hooks */
+      scm_init_gc ();		/* Requires hooks, async */
 #ifdef GUILE_ISELECT
       scm_init_iselect ();
 #endif
