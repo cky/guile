@@ -60,6 +60,11 @@ always invokes the @var{function} as the @emph{last} action it performs.
 This is weird, but because of the way script invocation works under
 POSIX, the @code{-s} option must always come last in the list.
 
+The @var{function} is most often a simple symbol that names a function
+that is defined in the script.  It can also be of the form @code{(@@
+@var{module-name} @var{symbol}} and in that case, the symbol is
+looked up in the module named @var{module-name}.
+
 @xref{Scripting Examples}.
 
 @item -ds

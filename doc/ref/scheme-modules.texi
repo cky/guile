@@ -254,6 +254,32 @@ close-pipe                      unixy:close-pipe
 This example also shows how to use the convenience procedure
 @code{symbol-prefix-proc}.
 
+You can also directly refer to bindings in a module by using the
+@code{@@} syntax.  For example, instead of using the
+@code{use-modules} statement from above and writing
+@code{unixy:pipe-open} to refer to the @code{pipe-open} from the
+@code{(ice-9 popen)}, you could also write @code{(@@ (ice-9 popen)
+open-pipe)}.  Thus an alternative to the complete @code{use-modules}
+statement would be
+
+@smalllisp
+(define unixy:pipe-open (@@ (ice-9 popen) open-pipe))
+(define unixy:close-pipe (@@ (ice-9 popen) close-pipe))
+@end smalllisp
+
+There is also @code{@@@@}, which can be used like @code{@@}, but does
+not check whether the variable that is being accessed is actually
+exported.  Thus, @code{@@@@} can be thought of as the impolite version
+of @code{@@} and should only be used as a last resort or for
+debugging, for example.
+
+Note that just as with a @code{use-modules} statement, any module that
+has not yet been loaded yet will be loaded when referenced by a
+@code{@@} or @code{@@@@} form.
+
+You can also use the @code{@@} and @code{@@@@} syntaxes as the target
+of a @code{set!} when the binding refers to a variable.
+
 @c begin (scm-doc-string "boot-9.scm" "symbol-prefix-proc")
 @deffn {Scheme Procedure} symbol-prefix-proc prefix-sym
 Return a procedure that prefixes its arg (a symbol) with
@@ -302,6 +328,17 @@ transformer as the system transformer for the currently defined module,
 as well as installing it as the current system transformer.
 @end deffn
 
+@deffn syntax @@ module-name binding-name
+Refer to the binding named @var{binding-name} in module
+@var{module-name}.  The binding must have been exported by the module.
+@end deffn
+
+@deffn syntax @@@@ module-name binding-name
+Refer to the binding named @var{binding-name} in module
+@var{module-name}.  The binding must not have been exported by the
+module.  This syntax is only intended for debugging purposes or as a
+last resort.
+@end deffn
 
 @node Creating Guile Modules
 @subsection Creating Guile Modules
