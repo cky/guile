@@ -71,8 +71,6 @@
 
 
 
-extern unsigned long scm_string_hash (const unsigned char *str, scm_sizet len);
-
 extern SCM scm_mem2symbol (const char*, scm_sizet);
 extern SCM scm_str2symbol (const char*);
 

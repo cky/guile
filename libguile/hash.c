@@ -61,6 +61,28 @@ extern double floor();
 #endif
 
 
+unsigned long 
+scm_string_hash (const unsigned char *str, scm_sizet len)
+{
+  if (len > 5)
+    {
+      scm_sizet i = 5;
+      unsigned long h = 264;
+      while (i--)
+	h = (h << 8) + ((unsigned) (scm_downcase (str[h % len])));
+      return h;
+    }
+  else
+    {
+      scm_sizet i = len;
+      unsigned long h = 0;
+      while (i)
+	h = (h << 8) + ((unsigned) (scm_downcase (str[--i])));
+      return h;
+    }
+}
+
+
 /* Dirk:FIXME:: why downcase for characters? (2x: scm_hasher, scm_ihashv) */
 /* Dirk:FIXME:: scm_hasher could be made static. */
 

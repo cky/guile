@@ -1,3 +1,8 @@
+2000-12-12  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* hash.[ch] (scm_string_hash), symbols.[ch] (scm_string_hash):
+	Moved function scm_string_hash to hash.c.
+
 2000-12-11  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* gc_os_dep.c (scm_get_stack_base) [MSWIN32]: Added detection of

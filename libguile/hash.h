@@ -48,6 +48,7 @@
 
 
 
+extern unsigned long scm_string_hash (const unsigned char *str, scm_sizet len);
 extern unsigned long scm_hasher (SCM obj, unsigned long n, scm_sizet d);
 extern unsigned int scm_ihashq (SCM obj, unsigned int n);
 extern SCM scm_hashq (SCM obj, SCM n);

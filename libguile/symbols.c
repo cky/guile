@@ -48,6 +48,7 @@
 #include "libguile/_scm.h"
 #include "libguile/chars.h"
 #include "libguile/eval.h"
+#include "libguile/hash.h"
 #include "libguile/smob.h"
 #include "libguile/variable.h"
 #include "libguile/alist.h"
@@ -79,28 +80,6 @@ duplicate_string (const char * src, unsigned long length)
 
 /* {Symbols}
  */
-
-
-unsigned long 
-scm_string_hash (const unsigned char *str, scm_sizet len)
-{
-  if (len > 5)
-    {
-      scm_sizet i = 5;
-      unsigned long h = 264;
-      while (i--)
-	h = (h << 8) + ((unsigned) (scm_downcase (str[h % len])));
-      return h;
-    }
-  else
-    {
-      scm_sizet i = len;
-      unsigned long h = 0;
-      while (i)
-	h = (h << 8) + ((unsigned) (scm_downcase (str[--i])));
-      return h;
-    }
-}
 
 
 /* scm_sym2vcell
