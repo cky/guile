@@ -26,7 +26,7 @@
 ;;;;
 
 (define-module (oop goops)
-  :export-syntax (define-class class
+  :export-syntax (define-class class standard-define-class
 		  define-generic define-accessor define-method
 		  define-extended-generic define-extended-generics
 		  method)
@@ -244,8 +244,7 @@
 			  (variable-set! var (class-redefinition old class))
 			  (variable-set! var class)))))))))))
 
-(defmacro standard-define-class args
-  `(define-class ,@args))
+(define standard-define-class define-class)
 
 ;;; (class (SUPER ...) SLOT-DEFINITION ... OPTION ...)
 ;;;

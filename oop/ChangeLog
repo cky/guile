@@ -1,3 +1,10 @@
+2005-03-24  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* accessors.scm, simple.scm: New files.
+
+	* goops.scm (standard-define-class): Removed; Export
+	define-class as standard-define-class.
+
 2005-01-18  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* goops.scm (class-of): Changed from being re-exported to just
