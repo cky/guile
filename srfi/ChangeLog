@@ -2,6 +2,8 @@
 
 	* srfi-4.c (uvec_sizes): Add "const".
 
+	* srfi-31.scm: Correction to heading comment.
+
 2004-06-20  Rob Browning  <rlb@defaultvalue.org>
 
 	* srfi-4.c: fix #ifdef checks for 64-bit types; should be #if.
