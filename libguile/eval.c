@@ -2560,7 +2560,7 @@ dispatch:
       RETURN (x);
 
     case scm_tc7_variable:
-      return SCM_VARIABLE_REF(x);
+      RETURN (SCM_VARIABLE_REF(x));
 
 #ifdef MEMOIZE_LOCALS
     case SCM_BIT8(SCM_ILOC00):
