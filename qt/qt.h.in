@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#include <@qtmd_h@>
+#include <qt/@qtmd_h@>
 
 
 /* A QuickThreads thread is represented by it's current stack pointer.

@@ -49,7 +49,7 @@
 #include "libguile/alist.h"
 #include "libguile/strings.h"
 
-#include "debug-malloc.h"
+#include "libguile/debug-malloc.h"
 
 /*
  * The following code is a hack written quickly in order to solve a
@@ -71,7 +71,7 @@ typedef struct hash_entry {
 
 static int malloc_type_size = 31;
 static hash_entry_t *malloc_type = 0;
-static int malloc_object_size = 9973;
+static int malloc_object_size = 8191;
 static hash_entry_t *malloc_object = 0;
 
 #define TABLE(table) malloc_ ## table
@@ -135,7 +135,7 @@ grow (hash_entry_t **table, int *size)
   hash_entry_t *TABLE (new) = 0;
   int SIZE (new);
   int i, j;
-  SIZE (new) = 2 * (oldsize - N_SEEK);
+  SIZE (new) = 2 * (oldsize - N_SEEK + 1) - 1;
  again:
   TABLE (new) = realloc (TABLE (new),
 			 sizeof (hash_entry_t) * (SIZE (new) + N_SEEK));
@@ -263,5 +263,5 @@ scm_debug_malloc_prehistory ()
 void
 scm_init_debug_malloc ()
 {
-#include "debug-malloc.x"
+#include "libguile/debug-malloc.x"
 }

@@ -51,7 +51,7 @@
 #include "libguile/root.h"
 
 #include "libguile/validate.h"
-#include "lang.h"
+#include "libguile/lang.h"
 
 
 
