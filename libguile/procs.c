@@ -102,6 +102,19 @@ scm_makcclo (proc, len)
   SCM_ALLOW_INTS;
   return s;
 }
+
+/* Undocumented debugging procedure */
+#ifdef GUILE_DEBUG
+SCM_PROC (s_make_cclo, "make-cclo", 2, 0, 0, scm_make_cclo);
+
+SCM
+scm_make_cclo (proc, len)
+     SCM proc;
+     SCM len;
+{
+  return scm_makcclo (proc, SCM_INUM (len));
+}
+#endif
 #endif
 
 
