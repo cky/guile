@@ -1,6 +1,10 @@
 This directory contains some tests for Guile, and some generic test
 support code.
 
+To run these tests, you will need a version of Guile more recent than
+15 Feb 1999 --- the tests use the (ice-9 and-let*) and (ice-9
+getopt-long) modules, which were added to Guile around then.
+
 Right now, we only have tests for I/O ports.
 
 To run the test suite, you'll need to:
