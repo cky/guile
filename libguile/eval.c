@@ -653,7 +653,7 @@ scm_m_lambda (xorig, env)
      SCM env;
 {
   SCM proc, x = SCM_CDR (xorig);
-  if (scm_ilength (x) < 2)
+  if (scm_ilength (x) < 1)
     goto badforms;
   proc = SCM_CAR (x);
   if (SCM_NULLP (proc))
