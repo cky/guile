@@ -8,8 +8,8 @@ Changes since the stable branch:
 
 * Changes to the distribution
 
-** There is a new thread implementation option "null", which is also
-   the default now.
+** There are two new thread implementation options: "null" and
+   "coop-pthreads".
 
 When you configure "--with-threads=null", you will get the usual
 threading API (call-with-new-thread, make-mutex, etc), but you can't
@@ -18,11 +18,14 @@ equivalent to "--with-threads=null".  This means that the thread API
 is always present, although you might not be able to create new
 threads.
 
-When cooperative threading is not supported on your platform, you will
-get the "null" threads instead.
+When "coop" threading is not supported on your platform, you will get
+the "null" threads instead.
 
-The long term plan is to make the selection of a thread implementation
-a run-time option, not a configure time option.
+The "coop-pthread" (or shorter: "copt") thread implementation will use
+portable POSIX threads but will restrict them so that only one thread
+can execute 'in Guile' at any one time.  This option will give you the
+same basic behavior as the "coop" option, but hopefully in a more
+portable way.
 
 ** Guile now includes its own version of libltdl.
 

@@ -1,3 +1,13 @@
+2002-11-02  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* coop-pthreads.c, coop-pthreads.h: Redone completely, you might
+	start testing it now.
+
+	* _scm.h: Include <errno.h< so that SCM_SYSCALL is correctly
+	defined when HAVE_RESTARTABLE_SYSCALLS is not defined.
+	(HAVE_RESTARTABLE_SYSCALLS): Do not define when USE_COPT_THREADS
+	is defined.
+
 2002-10-27  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* scmsigs.c (signal_cell_handlers, install_handler_data,
