@@ -68,6 +68,9 @@
 #include "gsubr.h"
 #include "hash.h"
 #include "hashtab.h"
+#ifdef GUILE_ISELECT
+#include "iselect.h"
+#endif
 #include "ioext.h"
 #include "kw.h"
 #include "list.h"
@@ -405,6 +408,9 @@ scm_boot_guile_1 (base, closure)
       scm_init_gdbint ();
       scm_init_hash ();
       scm_init_hashtab ();
+#ifdef GUILE_ISELECT
+      scm_init_iselect ();
+#endif
       scm_init_ioext ();
       scm_init_kw ();
       scm_init_list ();

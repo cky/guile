@@ -45,6 +45,7 @@
 #include "smob.h"
 #include "feature.h"
 #include "fports.h"
+#include "iselect.h"
 
 #include "filesys.h"
 
@@ -81,23 +82,6 @@
 
 #include <pwd.h>
 
-
-#ifdef FD_SET
-
-#define SELECT_TYPE fd_set
-#define SELECT_SET_SIZE FD_SETSIZE
-
-#else /* no FD_SET */
-
-/* Define the macros to access a single-int bitmap of descriptors.  */
-#define SELECT_SET_SIZE 32
-#define SELECT_TYPE int
-#define FD_SET(n, p) (*(p) |= (1 << (n)))
-#define FD_CLR(n, p) (*(p) &= ~(1 << (n)))
-#define FD_ISSET(n, p) (*(p) & (1 << (n)))
-#define FD_ZERO(p) (*(p) = 0)
-
-#endif /* no FD_SET */
 
 #if HAVE_DIRENT_H
 # include <dirent.h>
@@ -987,8 +971,13 @@ scm_select (reads, writes, excepts, secs, usecs)
     }
 
   SCM_DEFER_INTS;
+#ifdef GUILE_ISELECT
+  sreturn = scm_internal_select (SELECT_SET_SIZE,
+				 &read_set, &write_set, &except_set, time_p);
+#else
   sreturn = select (SELECT_SET_SIZE,
 		    &read_set, &write_set, &except_set, time_p);
+#endif
   if (sreturn < 0)
     scm_syserror (s_select);
   SCM_ALLOW_INTS;

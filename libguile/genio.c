@@ -42,6 +42,9 @@
 #include <stdio.h>
 #include "_scm.h"
 #include "chars.h"
+#ifdef GUILE_ISELECT
+#include "filesys.h"
+#endif
 
 #include "genio.h"
 
@@ -107,6 +110,21 @@ scm_getc (port)
     {
       f = SCM_STREAM (port);
       i = SCM_PTOBNUM (port);
+#ifdef GUILE_ISELECT
+      if (SCM_FPORTP (port) && !scm_input_waiting_p ((FILE *) f, "scm_getc"))
+	{
+	  int n;
+	  SELECT_TYPE readfds;
+	  int fd = fileno ((FILE *) f);
+	  FD_ZERO (&readfds);
+	  do
+	    {
+	      FD_SET (fd, &readfds);
+	      n = scm_internal_select (fd + 1, &readfds, NULL, NULL, NULL);
+	    }
+	  while (n == -1 && errno == EINTR);
+	}
+#endif
       SCM_SYSCALL (c = (scm_ptobs[i].fgetc) (f));
     }
 

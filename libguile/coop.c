@@ -40,7 +40,7 @@
  * If you do not wish that, delete this exception notice.  */
 
 
-/* $Id: coop.c,v 1.2 1997-05-26 22:31:48 jimb Exp $ */
+/* $Id: coop.c,v 1.3 1997-11-27 18:04:53 mdj Exp $ */
 
 /* Cooperative thread library, based on QuickThreads */
 
@@ -69,14 +69,21 @@ coop_qinit (q)
 
   q->t.all_prev = NULL;
   q->t.all_next = NULL;
+#ifdef GUILE_ISELECT
+  q->t.nfds = 0;
+  q->t.readfds = NULL;
+  q->t.writefds = NULL;
+  q->t.exceptfds = NULL;
+  q->t.timeoutp = 0;
+#endif
 }
 
 
 #ifdef __STDC__
-static coop_t *
+coop_t *
 coop_qget (coop_q_t *q)
 #else
-static coop_t *
+coop_t *
 coop_qget (q)
      coop_q_t *q;
 #endif
@@ -96,10 +103,10 @@ coop_qget (q)
 
 
 #ifdef __STDC__
-static void
+void
 coop_qput (coop_q_t *q, coop_t *t)
 #else
-static void
+void
 coop_qput (q, t)
      coop_q_t *q;
      coop_t *t;
@@ -148,12 +155,12 @@ coop_all_qremove (q, t)
 
 /* Thread routines. */
 
-coop_q_t coop_global_runq;		 /* A queue of runable threads. */
-coop_q_t coop_global_sleepq;	 /* A queue of sleeping threads. */
-static coop_q_t tmp_queue;	         /* A temp working queue */
-coop_q_t coop_global_allq;  /* A queue of all threads. */
-static coop_t coop_global_main;    /* Thread for the process. */
-coop_t *coop_global_curr;	 /* Currently-executing thread. */
+coop_q_t coop_global_runq;	/* A queue of runable threads. */
+coop_q_t coop_global_sleepq;	/* A queue of sleeping threads. */
+coop_q_t coop_tmp_queue;        /* A temp working queue */
+coop_q_t coop_global_allq;      /* A queue of all threads. */
+static coop_t coop_global_main; /* Thread for the process. */
+coop_t *coop_global_curr;	/* Currently-executing thread. */
 
 static void *coop_starthelp (qt_t *old, void *ignore0, void *ignore1);
 static void coop_only (void *pu, void *pt, qt_userf_t *f);
@@ -171,7 +178,7 @@ coop_init()
 {
   coop_qinit (&coop_global_runq);
   coop_qinit (&coop_global_sleepq);
-  coop_qinit (&tmp_queue);
+  coop_qinit (&coop_tmp_queue);
   coop_qinit (&coop_global_allq);
   coop_global_curr = &coop_global_main;
 }
@@ -181,6 +188,9 @@ coop_init()
    and there are sleeping threads - wait until one wakes up. Otherwise,
    return NULL. */
 
+#ifdef GUILE_ISELECT
+extern coop_t *coop_next_runnable_thread ();
+#else
 #ifdef __STDC__
 coop_t *
 coop_next_runnable_thread()
@@ -204,9 +214,9 @@ coop_next_runnable_thread()
 	if (t->wakeup_time <= now)
 	  coop_qput(&coop_global_runq, t);
 	else
-	  coop_qput(&tmp_queue, t);
+	  coop_qput(&coop_tmp_queue, t);
       }
-    while ((t = coop_qget(&tmp_queue)) != NULL)
+    while ((t = coop_qget(&coop_tmp_queue)) != NULL)
       coop_qput(&coop_global_sleepq, t);
     
     t = coop_qget (&coop_global_runq);
@@ -215,7 +225,7 @@ coop_next_runnable_thread()
 
   return t;
 }
-
+#endif
 
 #ifdef __STDC__
 void
@@ -284,7 +294,11 @@ coop_mutex_lock ()
       /* Record the current top-of-stack before going to sleep */
       coop_global_curr->top = &old;
 
+#ifdef GUILE_ISELECT
+      newthread = coop_wait_for_runnable_thread();
+#else
       newthread = coop_next_runnable_thread();
+#endif
       old = coop_global_curr;
       coop_global_curr = newthread;
       QT_BLOCK (coop_yieldhelp, old, &(m->waiting), newthread->sp);
@@ -344,7 +358,11 @@ coop_condition_variable_wait (c)
 {
   coop_t *old, *newthread;
 
+#ifdef GUILE_ISELECT
+  newthread = coop_wait_for_runnable_thread();
+#else
   newthread = coop_next_runnable_thread();
+#endif
   old = coop_global_curr;
   coop_global_curr = newthread;
   QT_BLOCK (coop_yieldhelp, old, &(c->waiting), newthread->sp);
@@ -436,7 +454,11 @@ coop_abort ()
       free(coop_global_curr->joining);
     }
 
+#ifdef GUILE_ISELECT
+  newthread = coop_wait_for_runnable_thread();
+#else
   newthread = coop_next_runnable_thread();
+#endif
   coop_all_qremove(&coop_global_allq, coop_global_curr);
   old = coop_global_curr;
   coop_global_curr = newthread;
@@ -490,7 +512,11 @@ coop_join()
       coop_qinit((coop_q_t *) t->joining);
     }
 
+#ifdef GUILE_ISELECT
+  newthread = coop_wait_for_runnable_thread();
+#else
   newthread = coop_next_runnable_thread();
+#endif
   old = coop_global_curr;
   coop_global_curr = newthread;
   QT_BLOCK (coop_yieldhelp, old, (coop_q_t *) t->joining, newthread->sp);
@@ -541,10 +567,10 @@ coop_yieldhelp (sp, old, blockq)
    for the process - but not for the system (it busy-waits) */
 
 #ifdef __STDC__
-static void *
+void *
 coop_sleephelp (qt_t *sp, void *old, void *blockq)
 #else
-static void *
+void *
 coop_sleephelp (sp, old, bolckq)
      qt_t *sp;
      void *old;
@@ -557,6 +583,32 @@ coop_sleephelp (sp, old, bolckq)
   return NULL;
 }
 
+#ifdef GUILE_ISELECT
+
+void
+usleep (unsigned usec)
+{
+  struct timeval timeout;
+  timeout.tv_sec = 0;
+  timeout.tv_usec = usec;
+  scm_internal_select (0, NULL, NULL, NULL, &timeout);
+}
+
+unsigned
+sleep (unsigned sec)
+{
+  time_t now = time (NULL);
+  struct timeval timeout;
+  int slept;
+  timeout.tv_sec = sec;
+  timeout.tv_usec = 0;
+  scm_internal_select (0, NULL, NULL, NULL, &timeout);
+  slept = time (NULL) - now;
+  return slept > sec ? 0 : sec - slept;
+}
+
+#else /* GUILE_ISELECT */
+
 #ifdef __STDC__
 unsigned
 sleep (unsigned s)
@@ -567,7 +619,7 @@ sleep (s)
 #endif
 {
   coop_t *newthread, *old;
-  time_t now = time(NULL);
+  time_t now = time (NULL);
   coop_global_curr->wakeup_time = now + s;
 
   /* Put the current thread on the sleep queue */
@@ -586,3 +638,5 @@ sleep (s)
 
   return s;
 }
+
+#endif /* GUILE_ISELECT */

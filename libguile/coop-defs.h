@@ -58,6 +58,10 @@
 #  endif
 # endif
 
+#ifdef GUILE_ISELECT
+#include "iselect.h"
+#endif
+
 /* This file is included by threads.h, which, in turn, is included by
    libguile.h while coop-threads.h only is included by
    coop-threads.c. */
@@ -89,7 +93,18 @@ typedef struct coop_t {
   void *joining;         /* A queue of threads waiting to join this
 			    thread */
 
+#ifdef GUILE_ISELECT
+  int nfds;
+  SELECT_TYPE *readfds;
+  SELECT_TYPE *writefds;
+  SELECT_TYPE *exceptfds;
+  int timeoutp;
+  struct timeval wakeup_time;	/* Time to stop sleeping */
+  int errno;
+  int retval;
+#else
   time_t wakeup_time;    /* Time to stop sleeping */
+#endif
 
 } coop_t;
 

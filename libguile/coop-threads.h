@@ -132,8 +132,19 @@ extern void coop_yield (void);
 
 extern void coop_abort (void);
 
+/* The following are needed in iselect.c */
+
+extern coop_t *coop_qget (coop_q_t *);
+extern void coop_qput (coop_q_t *, coop_t *);
+extern void *coop_sleephelp (qt_t *, void *, void *);
+
+#ifdef GUILE_ISELECT
+extern coop_t *coop_wait_for_runnable_thread ();
+#endif
+
 extern coop_q_t coop_global_runq;	/* A queue of runable threads. */
-extern coop_q_t coop_global_sleepq;	
+extern coop_q_t coop_global_sleepq;
+extern coop_q_t coop_tmp_queue;
 extern coop_q_t coop_global_allq;	/* A queue of all threads. */
 extern coop_t *coop_global_curr;       	/* Currently-executing thread. */
 
