@@ -332,7 +332,7 @@
       (procedure->memoizing-macro
         (lambda (exp env)
 	  (if (null? (cadr exp))
-	      `(begin ,@(map transformer (cddr exp)))
+	      `(,begin ,@(map transformer (cddr exp)))
 	      (car (let loop ((bindings (cadr exp)))
 		     (if (null? bindings)
 			 (map transformer (cddr exp))

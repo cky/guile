@@ -1,3 +1,8 @@
+2002-02-01  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* transform.scm (transformer), primitives/syntax.scm (let*):
+	Unquote uses of `begin' in transformed code.
+
 2002-01-29  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* transform.scm (transform-1, transform-2, transform-3,

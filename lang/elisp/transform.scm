@@ -25,7 +25,7 @@
 	 (case (car x)
 	   ((@fop @bind define-module use-modules use-syntax) x)
 	   ; Escape to Scheme syntax
-	   ((scheme) (cons 'begin (cdr x)))
+	   ((scheme) (cons begin (cdr x)))
 	   ; Should be handled in reader
 	   ((quote function) `(,quote ,@(cars->nil (cdr x))))
 	   ((quasiquote) (m-quasiquote x '()))
