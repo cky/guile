@@ -6,19 +6,29 @@ To build Guile on unix, there are two basic steps:
 	2. Type "make", to build the package.
 
 Generic instructions for configuring and compiling GNU distributions
-are included below.  For Guile, you might type the commands below.
-Their voluminous output is not shown.
+are included below.
 
-	$ tar xvfz guile-970416.tar.gz	        # unpack the sources
-	$ cd guile-970416
-	$ ./configure				# adapt Guile to your system
-	$ make					# compile Guile
-        $ make install				# install in the usual places
 
-(Note: under SunOS 4.1 and HP/UX, you may need to say:
+Special Instructions For Some Systems =====================================
+
+We would like Guile to build on all systems using the simple
+instructions above, but it seems that a few systems still need special
+treatment.  If you can send us fixes for these problems, we'd be
+grateful.
+
+SunOS 4.1: Guile's shared library support seems to be confused, but
+    hey; shared libraries are confusing.  You may need to configure
+    Guile with a command like:
 	./configure --disable-shared
-Guile's shared library support for that system seems to be confused, but
-hey; shared libraries are confusing.)
+    For more information on `--disable-shared', see below, "Flags
+    Accepted by Configure".
+
+HP/UX: GCC 2.7.2 (and maybe other versions) have trouble creating
+    shared libraries if they depend on any non-shared libraries.  GCC
+    seems to have other problems as well.  To work around this, we
+    suggest you configure Guile to use the system's C compiler:
+	CC=cc ./configure
+
 
 What You Get ==============================================================
 
