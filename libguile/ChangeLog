@@ -1,13 +1,22 @@
-1999-08-31  James Blandy  <jimb@mule.m17n.org>
+1999-09-01  James Blandy  <jimb@mule.m17n.org>
 
-	* numbers.c (scm_init_numbers): Claim to support the `complex'
-	feature, as expected by (ice-9 format).  (Thanks to Ceri Storey.)
+	I take it all back --- bcopy does handle overlapping source and
+	destination areas correctly.  At least on every system I could
+	find.  But it is better to use AC_REPLACE_FUNCS than to introduce
+	new CPP conditionals.
+	* memmove.c: New file, implementing memmove in terms of bcopy.
+	* scmconfig.h.in: Regenerated.
 
 	Allocators should use the `void *' type for generic pointers.
 	* gc.c (scm_must_malloc, scm_must_realloc, scm_must_free): Change
 	argument and return types.
 	* gc.h: Corresponding changes to prototypes.
 	(Thanks to Forcer.)
+
+1999-08-31  James Blandy  <jimb@mule.m17n.org>
+
+	* numbers.c (scm_init_numbers): Claim to support the `complex'
+	feature, as expected by (ice-9 format).  (Thanks to Ceri Storey.)
 
 	* Makefile.am (check-local): Set GUILE_LOAD_PATH so the tests can
 	find (ice-9 boot-9) when Guile was compiled in a separate
@@ -56,7 +65,7 @@
 	(Thanks to Karoly Lorentey.)
 
 	* gh_data.c, ports.c, strop.c: Alternatively use bcopy if memmove
-	isn't present.  (Thanks to suzukis@file.phys.tohoku.ac.jp.)
+	isn't present.  (Thanks to Suzuki Toshiya.)
 
 	* ports.c: Use ANSI C prototypes in definitions.  (Thanks to
 	Bernard Urban.)
@@ -813,13 +822,13 @@ Fri Jun 25 22:14:32 1999  Greg Badros  <gjb@cs.washington.edu>
 	
 1999-07-04  Gary Houston  <ghouston@easynet.co.uk>
 
-	* unif.c (scm_uniform_array_write): likewise.
-	* ioext.c (scm_redirect_port): likewise.
 	* ports.c (scm_putc): call scm_read_flush.
 	(scm_puts): likewise.
 	(scm_lfwrite): likewise.
 	(scm_lseek): likewise.
 	(scm_ftruncate): likewise.
+	* unif.c (scm_uniform_array_write): likewise.
+	* ioext.c (scm_redirect_port): likewise.
 
 	* ports.c (scm_fill_buffer): don't take pt argument.  change callers.
 	(read_flush_void_port): new proc, for void port ptob.
@@ -1075,7 +1084,7 @@ Fri Jun 25 22:14:32 1999  Greg Badros  <gjb@cs.washington.edu>
 	* ports.h (SCM_BUFLINE): New flag for ports.
 	* init.c (scm_init_standard_ports): Request line-buffering on
 	the standard output port.
-*	* ports.c (scm_mode_bits): Recognize 'l' as a request for line
+	* ports.c (scm_mode_bits): Recognize 'l' as a request for line
 	buffering.
 	(scm_putc, scm_puts, scm_lfwrite): If the port is line-buffered,
 	and there's a newline to be written, flush the port.
@@ -1102,7 +1111,7 @@ Fri Jun 25 22:14:32 1999  Greg Badros  <gjb@cs.washington.edu>
 	ports.h (scm_ptobfuns): add ftruncate.
 	ports.c (scm_newptob): set ftruncate.
 	adjust ptob tables.
-*	ports.c (scm_ftruncate): new procedure.
+	ports.c (scm_ftruncate): new procedure.
 	fports.c (local_ftrunate), strports.c (str_ftruncate): new procs.
 	strports.c (st_seek, st_grow_port): new procs.
 	fports.h (scm_port): change size types from int to off_t.
@@ -1303,7 +1312,7 @@ Fri Jun 25 22:14:32 1999  Greg Badros  <gjb@cs.washington.edu>
 	* fports.c (scm_fdes_to_port), ports.c (scm_void_port),
 	filesys.c (scm_opendir):
 	restore defer interrupts while the port is constructed.
-*	(scm_setvbuf): if mode is _IOFBF and size is not supplied,
+	(scm_setvbuf): if mode is _IOFBF and size is not supplied,
 	derive buffer size from fdes or use a default.
 	(scm_fdes_to_port): use setvbuf instead of creating the buffers
 	directly.
@@ -1323,7 +1332,7 @@ Fri Jun 25 22:14:32 1999  Greg Badros  <gjb@cs.washington.edu>
 	* ports.c (scm_force_output): call scm_fflush.
 
 	* print.c (scm_newline): don't check errno for EPIPE (it wouldn't
-*	reach this point.)  don't flush port (if scm_cur_outp).
+	reach this point.)  don't flush port (if scm_cur_outp).
 
 	* fports.h (SCM_FPORT_FDES): new macro.
 
@@ -1344,7 +1353,7 @@ Fri Jun 25 22:14:32 1999  Greg Badros  <gjb@cs.washington.edu>
 	proc runs.
 
         *fports.c (print_pipe_port, local_pclose, scm_pipob): deleted.
-*	open-pipe, close-pipe are emulated in (ice-9 popen)
+	open-pipe, close-pipe are emulated in (ice-9 popen)
 	ports.c (scm_ports_prehistory): don't init scm_pipob.
 	ports.h (scm_tc16_pipe): deleted.
 	posix.c (scm_open_pipe, scm_close_pipe): deleted.
@@ -1374,7 +1383,7 @@ Fri Jun 25 22:14:32 1999  Greg Badros  <gjb@cs.washington.edu>
 	(scm_setvbuf): set the buffer.
 	(scm_setfileno): deleted.
 	(scm_evict_ports): set fdes directly.
-*	(scm_freopen): deleted.  doesn't seem useful in Guile.
+	(scm_freopen): deleted.  doesn't seem useful in Guile.
 	(scm_stdio_to_port): deleted.
 	fports.h (struct scm_fport): add shortbuf member to avoid separate
 	code for unbuffered ports.
@@ -1395,7 +1404,7 @@ Fri Jun 25 22:14:32 1999  Greg Badros  <gjb@cs.washington.edu>
 	new members.
 	* init.c (scm_init_standard_ports): pass fdes instead of FILE *.
 
-*	* ports.c (scm_drain_input): new procedure.
+	* ports.c (scm_drain_input): new procedure.
 	ports.h: prototype.
 	* fports.c (FPORT_READ_SAFE, FPORT_WRITE_SAFE, FPORT_ALL_OKAY,
 	pre_read, pre_write): removed.

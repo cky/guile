@@ -1,3 +1,10 @@
+1999-09-01  James Blandy  <jimb@mule.m17n.org>
+
+	* configure.in: Use AC_REPLACE_FUNCS to grab libguile/memmove.c if
+	the system doesn't have memmove.  Don't test for memmove and bcopy
+	with AC_CHECK_FUNCS.
+	* configure: Regenerated.
+
 1999-08-30  Mikael Djurfeldt  <mdj@mdj-pc.nada.kth.se>
 
 	* configure.in: Test for atexit.

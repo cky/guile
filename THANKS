@@ -2,20 +2,24 @@ The Guile core distribution:
 
 I (Jim Blandy) made the Guile 1.3.2 release in a bit of a rush, and
 then skipped town for a week.  Mikael Djurfeldt did a fantastic job of
-fixing my mistakes and putting together a new release.  I'm very
+fixing my mistakes and putting together a new release file.  I'm very
 grateful to Mikael for this; Guile is very lucky to have him.
 
 Bug reports and fixes from:
 
+ Rodney Brown
+        Forcer
     Ian Grant
  Anders Holst
  Karoly Lorentey
 Keisuke Nishida
     Ken Raeburn
    Bill Schottstaedt
+   Ceri Storey
     Tom Tromey
 Bernard Urban
 
-suzukis@file.phys.tohoku.ac.jp
+ Suzuki Toshiya (sort under Suzuki, not Toshiya)
+
 
 Also, thanks to:

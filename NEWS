@@ -4,12 +4,15 @@ See the end for copying conditions.
 
 Please send Guile bug reports to bug-guile@gnu.org.
 
-Changes since Guile 1.3.4:
-
-
 Changes since Guile 1.3.2:
 
 * Changes to Scheme functions and syntax
+
+** `map' signals an error if its argument lists are not all the same length.
+
+This is the behavior required by R5RS, so this change is really a bug
+fix.  But it seems to affect a lot of people's code, so we're
+mentioning it here anyway.
 
 ** Print-state handling has been made more transparent
 
@@ -1161,7 +1164,7 @@ read again in last-in first-out order.
 ** the procedures uniform-array-read! and uniform-array-write! now
 work on any kind of port, not just ports which are open on a file.
 
-** now 'l' in a port mode requests line buffering.
+** Now 'l' in a port mode requests line buffering.
 
 ** The procedure truncate-file now works on string ports as well
 as file ports.  If the size argument is omitted, the current
