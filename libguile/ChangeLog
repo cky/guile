@@ -1,5 +1,18 @@
 2000-08-26  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
 
+	* objects.c (scm_init_objects), print.c (scm_init_print), struct.c
+	(scm_init_struct): First arg to scm_make_vtable_vtable should be a
+	string, not a symbol.  (`make-vtable-vtable' needs to append this
+	string to another string and then pass it through
+	`make-struct-layout'.)
+
+	* stacks.c (scm_init_stacks): Pass a string, not a layout object,
+	to scm_make_vtable_vtable.  (Thanks to Dale P. Smith.)
+	
+	* struct.c (scm_make_struct_layout): Removed reference to
+	"read-only string" in comment; Check that argument is a string.
+	(scm_make_vtable_vtable): Check that argument is a string.
+
 	* environments.c (scm_init_environments): All internal includes in
 	libguile must use the prefix "libguile/" in path names since inly
 	the top-level source directory is on the include list.  (That, in

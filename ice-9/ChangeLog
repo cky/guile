@@ -1,3 +1,17 @@
+2000-08-26  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
+
+	* boot-9.scm (make-record-type): Use `string-append' instead of
+	`symbol-append'.
+	(symbol-append): Map `symbol->string' on
+	args.
+	(obarray-symbol-append, obarray-gensym): Simply removed.  I don't
+	think I'll announce this in NEWS even.  One of the functions never
+	even worked...  /mdj.
+	(find-and-link-dynamic-module, keyword->symbol): Use
+	`symbol->string'.
+	(try-module-autoload, process-define-module): Rewrote using R5RS
+	semantics.
+
 2000-08-24  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* psyntax.ss (set!): Added generalized set! support to core syntax
