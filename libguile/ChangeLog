@@ -1,3 +1,14 @@
+Fri Aug 23 02:03:32 1996  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* configure, scmconfig.h.in: Updated, using autoconf and autoheader.
+
+	* Makefile.in (c_files): add strerror.c.
+
+	* strerror.c: new file from Emacs' sysdep.c.
+	maybe configure should also check for sys_errlist.
+
+	* configure.in (AC_REPLACE_FUNCS): add strerror.
+
 Fri Aug 23 03:02:46 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
 
 	* debug.c (scm_init_debug): Added initialization for

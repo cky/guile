@@ -274,6 +274,7 @@ c_files=	alist.c \
 		srcprop.c \
 		stackchk.c \
 		stime.c \
+		strerror.c \
 		strings.c \
 		strop.c \
 		strorder.c \

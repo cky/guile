@@ -44,7 +44,7 @@ AC_TYPE_MODE_T
 
 AC_CHECK_FUNCS(ctermid ftime getcwd geteuid lstat mkdir mknod nice putenv readlink rename rmdir select setegid seteuid setlocale setpgid setsid strftime strptime symlink sync tcgetpgrp tcsetpgrp times uname waitpid)
 
-AC_REPLACE_FUNCS(inet_aton)
+AC_REPLACE_FUNCS(inet_aton strerror)
 
 AC_STRUCT_ST_RDEV
 AC_STRUCT_ST_BLKSIZE
