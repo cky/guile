@@ -1,4 +1,36 @@
-1998-09-05  Jim Blandy  <jimb@zwingli.cygnus.com>
+1998-09-06  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* objects.h (scm_set_object_procedure_x, scm_make_class_object,
+ 	scm_make_subclass_object): Add external prototypes.
+
+	* numbers.c (scm_mkbig): Add cast, and note that signed/unsigned
+ 	comparison is okay here.
+
+	* numbers.c (scm_istr2int): Add cast; len is known to be positive.
+
+	* numbers.c (scm_bigcomp): Clarify logic, and avoid relying on the
+	(true, but confusing) fact that -1 == ((unsigned) 0 - 1).
+
+	* numbers.c (scm_adjbig): Make nsiz an scm_sizet, to avoid mixing
+ 	signed/unsigned.
+
+	* load.c (swap_port): Make this function static.
+
+	* load.c (scm_search_path): Make max_path_len and max_ext_len
+ 	unsigned, since they're compared against string sizes.
+
+	* load.c (init_build_info): Make i unsigned.
+
+	* ioext.h (scm_read_line): Add prototype.
+	
+	* hashtab.c (scm_hash_fn_get_handle, scm_hash_fn_create_handle_x,
+ 	scm_hash_fn_remove_x): Make hash bucket index local variable k
+ 	unsigned.  Use scm_ulong2num to pass it to SCM_ASSERT as
+ 	accurately as possible.
+
+	* gh_data.c (gh_set_substr): Add casts to avoid signed/unsigned
+	comparisons, and range checking to make sure those casts are
+	harmless.
 
 	* stackchk.h (SCM_STACK_OVERFLOW_P): Change definition to avoid
 	signed/unsigned comparisons.

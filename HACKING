@@ -125,5 +125,11 @@ same when you add new procedures/C functions for debugging purpose.
 You can define the GUILE_DEBUG flag by passing --enable-guile-debug to
 the configure script.
 
+- You'll see uses of the macro SCM_P scattered throughout the code;
+those are vestiges of a time when Guile was meant to compile on
+pre-ANSI compilers.  Guile now requires ANSI C, so when you write new
+functions, feel free to use ANSI declarations, and please provide
+prototypes for everything.
+
 
 Jim Blandy
