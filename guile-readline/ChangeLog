@@ -1,5 +1,9 @@
 2001-06-14  Marius Vollmer  <mvo@zagadka.ping.de>
 
+	* readline.c, readline.h: Replace "scm_*_t" with "scm_t_*".
+
+2001-06-14  Marius Vollmer  <mvo@zagadka.ping.de>
+
 	Thanks to Matthias Köppe!
 
 	* configure.in: Check for rl_filename_completion_function.
