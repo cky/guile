@@ -103,7 +103,8 @@
 #include "libguile/stacks.h"
 #include "libguile/stime.h"
 #include "libguile/strings.h"
-#include "libguile/strop.h"
+#include "libguile/srfi-13.h"
+#include "libguile/srfi-14.h"
 #include "libguile/strorder.h"
 #include "libguile/strports.h"
 #include "libguile/struct.h"
@@ -513,7 +514,8 @@ scm_init_guile_1 (SCM_STACKITEM *base)
   scm_init_read ();
   scm_init_stime ();
   scm_init_strorder ();
-  scm_init_strop ();
+  scm_init_srfi_13 ();
+  scm_init_srfi_14 ();
   scm_init_throw ();
   scm_init_vectors ();
   scm_init_version ();
