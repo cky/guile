@@ -525,15 +525,15 @@ SCM_DEFINE1 (scm_logand, "logand", scm_tc7_asubr,
 	     "   @result{} \"1000\"")
 #define FUNC_NAME s_scm_logand
 {
-  int i1, i2;
+  long i1, i2;
   if (SCM_UNBNDP (n2))
     {
       if (SCM_UNBNDP (n1))
 	return SCM_MAKINUM (-1);
       return n1;
     }
-  SCM_VALIDATE_ULONG_COPY (1,n1,i1);
-  SCM_VALIDATE_ULONG_COPY (2,n2,i2);
+  SCM_VALIDATE_LONG_COPY (1,n1,i1);
+  SCM_VALIDATE_LONG_COPY (2,n2,i2);
   return SCM_LOGOP_RETURN (i1 & i2);
 }
 #undef FUNC_NAME
@@ -549,15 +549,15 @@ SCM_DEFINE1 (scm_logior, "logior", scm_tc7_asubr,
 	     "@end lisp")
 #define FUNC_NAME s_scm_logior
 {
-  int i1, i2;
+  long i1, i2;
   if (SCM_UNBNDP (n2))
     {
       if (SCM_UNBNDP (n1))
 	return SCM_INUM0;
       return n1;
     }
-  SCM_VALIDATE_ULONG_COPY (1,n1,i1);
-  SCM_VALIDATE_ULONG_COPY (2,n2,i2);
+  SCM_VALIDATE_LONG_COPY (1,n1,i1);
+  SCM_VALIDATE_LONG_COPY (2,n2,i2);
   return SCM_LOGOP_RETURN (i1 | i2);
 }
 #undef FUNC_NAME
@@ -573,15 +573,15 @@ SCM_DEFINE1 (scm_logxor, "logxor", scm_tc7_asubr,
 	     "@end lisp")
 #define FUNC_NAME s_scm_logxor
 {
-  int i1, i2;
+  long i1, i2;
   if (SCM_UNBNDP (n2))
     {
       if (SCM_UNBNDP (n1))
 	return SCM_INUM0;
       return n1;
     }
-  SCM_VALIDATE_ULONG_COPY (1,n1,i1);
-  SCM_VALIDATE_ULONG_COPY (2,n2,i2);
+  SCM_VALIDATE_LONG_COPY (1,n1,i1);
+  SCM_VALIDATE_LONG_COPY (2,n2,i2);
   return SCM_LOGOP_RETURN (i1 ^ i2);
 }
 #undef FUNC_NAME
@@ -595,9 +595,9 @@ SCM_DEFINE (scm_logtest, "logtest", 2, 0, 0,
 	    "@end example")
 #define FUNC_NAME s_scm_logtest
 {
-  int i1, i2;
-  SCM_VALIDATE_ULONG_COPY (1,n1,i1);
-  SCM_VALIDATE_ULONG_COPY (2,n2,i2);
+  long i1, i2;
+  SCM_VALIDATE_LONG_COPY (1,n1,i1);
+  SCM_VALIDATE_LONG_COPY (2,n2,i2);
   return SCM_BOOL(i1 & i2);
 }
 #undef FUNC_NAME
@@ -615,9 +615,9 @@ SCM_DEFINE (scm_logbit_p, "logbit?", 2, 0, 0,
 	    "@end example")
 #define FUNC_NAME s_scm_logbit_p
 {
-  int i1, i2;
+  long i1, i2;
   SCM_VALIDATE_INUM_MIN_COPY (1,index,0,i1);
-  SCM_VALIDATE_ULONG_COPY (2,j,i2);
+  SCM_VALIDATE_LONG_COPY (2,j,i2);
   return SCM_BOOL((1 << i1) & i2);
 }
 #undef FUNC_NAME
