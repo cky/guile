@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2003 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2003, 2004 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -179,6 +179,13 @@ SCM_DEFINE (scm_get_internal_run_time, "get-internal-run-time", 0, 0, 0,
   return scm_long2num (scm_c_get_internal_run_time ());
 }
 #undef FUNC_NAME
+
+/* For reference, note that current-time and gettimeofday both should be
+   protected against setzone/restorezone changes in another thread, since on
+   DOS the system time is normally kept as local time, which means TZ
+   affects the return from current-time and gettimeofday.  Not sure if DJGPP
+   etc actually has concurrent multi-threading, but it seems prudent not to
+   make assumptions about this.  */
 
 SCM_DEFINE (scm_current_time, "current-time", 0, 0, 0,
            (void),
