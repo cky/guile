@@ -301,7 +301,11 @@ SCM_DEFINE (scm_vector_move_left_x, "vector-move-left!", 5, 0, 0,
   SCM_ASSERT_RANGE (5, start2, e-i+j <= SCM_VECTOR_LENGTH (vec2));
 
   while (i<e)
-    SCM_VECTOR_SET (vec2, j++, SCM_VELTS (vec1)[i++]);
+    {
+      SCM_VECTOR_SET (vec2, j, SCM_VELTS (vec1)[i]);
+      i++;
+      j++;
+    }
   
   return SCM_UNSPECIFIED;
 }
@@ -333,7 +337,12 @@ SCM_DEFINE (scm_vector_move_right_x, "vector-move-right!", 5, 0, 0,
   j = e - i + j;
   SCM_ASSERT_RANGE (5, start2, j <= SCM_VECTOR_LENGTH (vec2));
   while (i < e)
-    SCM_VECTOR_SET (vec2, --j, SCM_VELTS (vec1)[--e]);
+    {
+      j--;
+      e--;
+      SCM_VECTOR_SET (vec2, j, SCM_VELTS (vec1)[e]);
+    }
+  
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME

@@ -222,7 +222,7 @@ SCM_DEFINE (scm_getgroups, "getgroups", 0, 0, 0,
 	    "supplementary group IDs.")
 #define FUNC_NAME s_scm_getgroups
 {
-  SCM ans;
+  SCM result;
   int ngroups;
   size_t size;
   GETGROUPS_T *groups;
@@ -235,16 +235,16 @@ SCM_DEFINE (scm_getgroups, "getgroups", 0, 0, 0,
   groups = scm_malloc (size);
   getgroups (ngroups, groups);
 
-  ans = scm_c_make_vector (ngroups, SCM_UNDEFINED);
+  result = scm_c_make_vector (ngroups, SCM_UNDEFINED);
 
   {
-    SCM * ve = SCM_WRITABLE_VELTS(ans);
+    SCM * ve = SCM_WRITABLE_VELTS(result);
     
     while (--ngroups >= 0) 
       ve[ngroups] = SCM_MAKINUM (groups [ngroups]);
   }
   free (groups);
-  return ans;
+  return result;
 }
 #undef FUNC_NAME  
 #endif
@@ -259,7 +259,7 @@ SCM_DEFINE (scm_getpwuid, "getpw", 0, 1, 0,
 {
   struct passwd *entry;
 
-  SCM ans = scm_c_make_vector (7, SCM_UNSPECIFIED);
+  SCM result = scm_c_make_vector (7, SCM_UNSPECIFIED);
   if (SCM_UNBNDP (user) || SCM_FALSEP (user))
     {
       SCM_SYSCALL (entry = getpwent ());
@@ -280,20 +280,20 @@ SCM_DEFINE (scm_getpwuid, "getpw", 0, 1, 0,
   if (!entry)
     SCM_MISC_ERROR ("entry not found", SCM_EOL);
 
-  SCM_VECTOR_SET(ans, 0, scm_makfrom0str (entry->pw_name));
-  SCM_VECTOR_SET(ans, 1, scm_makfrom0str (entry->pw_passwd));
-  SCM_VECTOR_SET(ans, 2, scm_ulong2num ((unsigned long) entry->pw_uid));
-  SCM_VECTOR_SET(ans, 3, scm_ulong2num ((unsigned long) entry->pw_gid));
-  SCM_VECTOR_SET(ans, 4, scm_makfrom0str (entry->pw_gecos));
+  SCM_VECTOR_SET(result, 0, scm_makfrom0str (entry->pw_name));
+  SCM_VECTOR_SET(result, 1, scm_makfrom0str (entry->pw_passwd));
+  SCM_VECTOR_SET(result, 2, scm_ulong2num ((unsigned long) entry->pw_uid));
+  SCM_VECTOR_SET(result, 3, scm_ulong2num ((unsigned long) entry->pw_gid));
+  SCM_VECTOR_SET(result, 4, scm_makfrom0str (entry->pw_gecos));
   if (!entry->pw_dir)
-    SCM_VECTOR_SET(ans, 5, scm_makfrom0str (""));
+    SCM_VECTOR_SET(result, 5, scm_makfrom0str (""));
   else
-    SCM_VECTOR_SET(ans, 5, scm_makfrom0str (entry->pw_dir));
+    SCM_VECTOR_SET(result, 5, scm_makfrom0str (entry->pw_dir));
   if (!entry->pw_shell)
-    SCM_VECTOR_SET(ans, 6, scm_makfrom0str (""));
+    SCM_VECTOR_SET(result, 6, scm_makfrom0str (""));
   else
-    SCM_VECTOR_SET(ans, 6, scm_makfrom0str (entry->pw_shell));
-  return ans;
+    SCM_VECTOR_SET(result, 6, scm_makfrom0str (entry->pw_shell));
+  return result;
 }
 #undef FUNC_NAME
 #endif /* HAVE_GETPWENT */
@@ -327,7 +327,7 @@ SCM_DEFINE (scm_getgrgid, "getgr", 0, 1, 0,
 #define FUNC_NAME s_scm_getgrgid
 {
   struct group *entry;
-  SCM ans = scm_c_make_vector (4, SCM_UNSPECIFIED);
+  SCM result = scm_c_make_vector (4, SCM_UNSPECIFIED);
 
   if (SCM_UNBNDP (name) || SCM_FALSEP (name))
     {
@@ -347,11 +347,11 @@ SCM_DEFINE (scm_getgrgid, "getgr", 0, 1, 0,
   if (!entry)
     SCM_SYSERROR;
 
-  SCM_VECTOR_SET(ans, 0, scm_makfrom0str (entry->gr_name));
-  SCM_VECTOR_SET(ans, 1, scm_makfrom0str (entry->gr_passwd));
-  SCM_VECTOR_SET(ans, 2, scm_ulong2num ((unsigned long) entry->gr_gid));
-  SCM_VECTOR_SET(ans, 3, scm_makfromstrs (-1, entry->gr_mem));
-  return ans;
+  SCM_VECTOR_SET(result, 0, scm_makfrom0str (entry->gr_name));
+  SCM_VECTOR_SET(result, 1, scm_makfrom0str (entry->gr_passwd));
+  SCM_VECTOR_SET(result, 2, scm_ulong2num ((unsigned long) entry->gr_gid));
+  SCM_VECTOR_SET(result, 3, scm_makfromstrs (-1, entry->gr_mem));
+  return result;
 }
 #undef FUNC_NAME
 
@@ -741,7 +741,7 @@ SCM_DEFINE (scm_ttyname, "ttyname", 1, 0, 0,
 	    "underlying @var{port}.")
 #define FUNC_NAME s_scm_ttyname
 {
-  char *ans;
+  char *result;
   int fd;
 
   port = SCM_COERCE_OUTPORT (port);
@@ -749,11 +749,11 @@ SCM_DEFINE (scm_ttyname, "ttyname", 1, 0, 0,
   if (!SCM_FPORTP (port))
     return SCM_BOOL_F;
   fd = SCM_FPORT_FDES (port);
-  SCM_SYSCALL (ans = ttyname (fd));
-  if (!ans)
+  SCM_SYSCALL (result = ttyname (fd));
+  if (!result)
     SCM_SYSERROR;
-  /* ans could be overwritten by another call to ttyname */
-  return (scm_makfrom0str (ans));
+  /* result could be overwritten by another call to ttyname */
+  return (scm_makfrom0str (result));
 }
 #undef FUNC_NAME
 #endif /* HAVE_TTYNAME */
@@ -982,19 +982,19 @@ SCM_DEFINE (scm_uname, "uname", 0, 0, 0,
 #define FUNC_NAME s_scm_uname
 {
   struct utsname buf;
-  SCM ans = scm_c_make_vector (5, SCM_UNSPECIFIED);
+  SCM result = scm_c_make_vector (5, SCM_UNSPECIFIED);
   if (uname (&buf) < 0)
     SCM_SYSERROR;
-  SCM_VECTOR_SET(ans, 0, scm_makfrom0str (buf.sysname));
-  SCM_VECTOR_SET(ans, 1, scm_makfrom0str (buf.nodename));
-  SCM_VECTOR_SET(ans, 2, scm_makfrom0str (buf.release));
-  SCM_VECTOR_SET(ans, 3, scm_makfrom0str (buf.version));
-  SCM_VECTOR_SET(ans, 4, scm_makfrom0str (buf.machine));
+  SCM_VECTOR_SET(result, 0, scm_makfrom0str (buf.sysname));
+  SCM_VECTOR_SET(result, 1, scm_makfrom0str (buf.nodename));
+  SCM_VECTOR_SET(result, 2, scm_makfrom0str (buf.release));
+  SCM_VECTOR_SET(result, 3, scm_makfrom0str (buf.version));
+  SCM_VECTOR_SET(result, 4, scm_makfrom0str (buf.machine));
 /* 
    a linux special?
-  SCM_VECTOR_SET(ans, 5, scm_makfrom0str (buf.domainname));
+  SCM_VECTOR_SET(result, 5, scm_makfrom0str (buf.domainname));
 */
-  return ans;
+  return result;
 }
 #undef FUNC_NAME
 #endif /* HAVE_UNAME */

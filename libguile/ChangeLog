@@ -1,3 +1,23 @@
+2002-07-21  Han-Wen  <hanwen@cs.uu.nl>
+
+	* goops.c (scm_compute_applicable_methods): use
+	scm_remember_upto_here_1 iso scm_remember_upto_here
+
+	* macros.c: include deprecation.h
+
+	* vectors.c (s_scm_vector_move_right_x): remove side effect in
+	macro arg.
+	(s_scm_vector_move_left_x): idem.
+
+	* net_db.c, posix.c, socket.c: variable naming: change ans to
+	result.
+
+	* sort.c (scm_merge_vector_x): accept vector as argument
+	iso. SCM*. This is needed for full GC correctness.
+
+	* gc.h: undo previous undocumented changes related to #ifdef
+	GENGC.
+
 2002-07-20  Han-Wen  <hanwen@cs.uu.nl>
 
 	* *.c: add space after commas everywhere.

@@ -80,22 +80,12 @@ typedef scm_t_cell * SCM_CELLPTR;
 #  define PTR2SCM(x) (SCM_PACK ((scm_t_bits) (x)))
 #endif /* def _UNICOS */
 
-#ifdef GENGC
-/*
-  TODO
- */
-#else /* ! genGC */ 
-
 #define SCM_GC_CARD_N_HEADER_CELLS 1
 #define SCM_GC_CARD_N_CELLS        256
-
-#define SCM_GC_CARD_GENERATION(card)  
-#define SCM_GC_FLAG_OBJECT_WRITE(x)  
 
 #define SCM_GC_CARD_BVEC(card)  ((scm_t_c_bvec_limb *) ((card)->word_0))
 #define SCM_GC_SET_CARD_BVEC(card, bvec) \
     ((card)->word_0 = (scm_t_bits) (bvec))
-#endif
 
 
 #define SCM_GC_CARD_SIZE           (SCM_GC_CARD_N_CELLS * sizeof (scm_t_cell))

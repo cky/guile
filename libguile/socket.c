@@ -925,7 +925,7 @@ static SCM
 scm_addr_vector (const struct sockaddr *address, const char *proc)
 {
   short int fam = address->sa_family;
-  SCM ans =SCM_EOL;
+  SCM result =SCM_EOL;
 
 
   switch (fam)
@@ -934,11 +934,11 @@ scm_addr_vector (const struct sockaddr *address, const char *proc)
       {
 	const struct sockaddr_in *nad = (struct sockaddr_in *) address;
 
-	ans = scm_c_make_vector (3, SCM_UNSPECIFIED);
+	result = scm_c_make_vector (3, SCM_UNSPECIFIED);
 
-	SCM_VECTOR_SET(ans, 0, scm_ulong2num ((unsigned long) fam));
-	SCM_VECTOR_SET(ans, 1, scm_ulong2num (ntohl (nad->sin_addr.s_addr)));
-	SCM_VECTOR_SET(ans, 2, scm_ulong2num ((unsigned long) ntohs (nad->sin_port)));
+	SCM_VECTOR_SET(result, 0, scm_ulong2num ((unsigned long) fam));
+	SCM_VECTOR_SET(result, 1, scm_ulong2num (ntohl (nad->sin_addr.s_addr)));
+	SCM_VECTOR_SET(result, 2, scm_ulong2num ((unsigned long) ntohs (nad->sin_port)));
       }
       break;
 #ifdef HAVE_IPV6
@@ -946,15 +946,15 @@ scm_addr_vector (const struct sockaddr *address, const char *proc)
       {
 	const struct sockaddr_in6 *nad = (struct sockaddr_in6 *) address;
 
-	ans = scm_c_make_vector (5, SCM_UNSPECIFIED);
-	SCM_VECTOR_SET(ans, 0, scm_ulong2num ((unsigned long) fam));
-	SCM_VECTOR_SET(ans, 1, ipv6_net_to_num (nad->sin6_addr.s6_addr));
-	SCM_VECTOR_SET(ans, 2, scm_ulong2num ((unsigned long) ntohs (nad->sin6_port)));
-	SCM_VECTOR_SET(ans, 3, scm_ulong2num ((unsigned long) nad->sin6_flowinfo));
+	result = scm_c_make_vector (5, SCM_UNSPECIFIED);
+	SCM_VECTOR_SET(result, 0, scm_ulong2num ((unsigned long) fam));
+	SCM_VECTOR_SET(result, 1, ipv6_net_to_num (nad->sin6_addr.s6_addr));
+	SCM_VECTOR_SET(result, 2, scm_ulong2num ((unsigned long) ntohs (nad->sin6_port)));
+	SCM_VECTOR_SET(result, 3, scm_ulong2num ((unsigned long) nad->sin6_flowinfo));
 #ifdef HAVE_SIN6_SCOPE_ID
-	SCM_VECTOR_SET(ans, 4, scm_ulong2num ((unsigned long) nad->sin6_scope_id));
+	SCM_VECTOR_SET(result, 4, scm_ulong2num ((unsigned long) nad->sin6_scope_id));
 #else
-	SCM_VECTOR_SET(ans, 4, SCM_INUM0);
+	SCM_VECTOR_SET(result, 4, SCM_INUM0);
 #endif
       }
       break;
@@ -964,10 +964,10 @@ scm_addr_vector (const struct sockaddr *address, const char *proc)
       {
 	const struct sockaddr_un *nad = (struct sockaddr_un *) address;
 
-	ans = scm_c_make_vector (2, SCM_UNSPECIFIED);
+	result = scm_c_make_vector (2, SCM_UNSPECIFIED);
 
-	SCM_VECTOR_SET(ans, 0, scm_ulong2num ((unsigned long) fam));
-	SCM_VECTOR_SET(ans, 1, scm_mem2string (nad->sun_path, strlen (nad->sun_path)));
+	SCM_VECTOR_SET(result, 0, scm_ulong2num ((unsigned long) fam));
+	SCM_VECTOR_SET(result, 1, scm_mem2string (nad->sun_path, strlen (nad->sun_path)));
       }
       break;
 #endif
@@ -975,7 +975,7 @@ scm_addr_vector (const struct sockaddr *address, const char *proc)
       scm_misc_error (proc, "Unrecognised address family: ~A",
 		      scm_list_1 (SCM_MAKINUM (fam)));
     }
-  return ans;
+  return result;
 }
 
 /* calculate the size of a buffer large enough to hold any supported

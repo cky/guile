@@ -49,6 +49,7 @@
 #include "libguile/print.h"
 #include "libguile/root.h"
 #include "libguile/smob.h"
+#include "libguile/deprecation.h"
 
 #include "libguile/validate.h"
 #include "libguile/macros.h"

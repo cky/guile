@@ -594,6 +594,9 @@ obarray_retrieve (SCM obarray, SCM sym)
   PRECONDITION:
 
   length (ALIST) >= 1
+
+  This could also be done by combining scm_delq1_x () and
+  scm_sloppy_assq(), at the cost of walking the list another time.
  */
 static
 SCM

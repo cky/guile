@@ -437,7 +437,6 @@ SCM_DEFINE (scm_restricted_vector_sort_x, "restricted-vector-sort!", 4, 0, 0,
   len = SCM_INUM (endpos) - spos;
 
   quicksort (&vp[spos], len, size, scm_cmp_function (less), less);
-  SCM_GC_FLAG_OBJECT_WRITE(vec);
   
   return SCM_UNSPECIFIED;
   /* return vec; */
@@ -784,43 +783,55 @@ SCM_DEFINE (scm_sort, "sort", 2, 0, 0,
 #undef FUNC_NAME
 
 static void
-scm_merge_vector_x (void *const vecbase,
-		    void *const tempbase,
+scm_merge_vector_x (SCM vec,
+		    SCM * temp,
 		    cmp_fun_t cmp,
 		    SCM less,
 		    long low,
 		    long mid,
 		    long high)
 {
-  register SCM *vp = (SCM *) vecbase;
-  register SCM *temp = (SCM *) tempbase;
   long it;	     	/* Index for temp vector */
   long i1 = low;      	/* Index for lower vector segment */
   long i2 = mid + 1;  	/* Index for upper vector segment */
 
   /* Copy while both segments contain more characters */
   for (it = low; (i1 <= mid) && (i2 <= high); ++it)
-    if ((*cmp) (less, &vp[i2], &vp[i1]))
-      temp[it] = vp[i2++];
-    else
-      temp[it] = vp[i1++];
+    {
+      /*
+	Every call of LESS might invoke GC.  For full correctness, we
+	should reset the generation of vecbase and tempbase between
+	every call of less.
 
-  /* Copy while first segment contains more characters */
-  while (i1 <= mid)
-    temp[it++] = vp[i1++];
+       */
+      register SCM *vp = SCM_WRITABLE_VELTS(vec);
+      
+      if ((*cmp) (less, &vp[i2], &vp[i1]))
+	temp[it] = vp[i2++];
+      else
+	temp[it] = vp[i1++];
+    }
 
-  /* Copy while second segment contains more characters */
-  while (i2 <= high)
-    temp[it++] = vp[i2++];
+  {
+    register SCM *vp = SCM_WRITABLE_VELTS(vec);
+    
+    /* Copy while first segment contains more characters */
+    while (i1 <= mid)
+      temp[it++] = vp[i1++];
 
-  /* Copy back from temp to vp */
-  for (it = low; it <= high; ++it)
-    vp[it] = temp[it];
-}	        		/* scm_merge_vector_x */
+    /* Copy while second segment contains more characters */
+    while (i2 <= high)
+      temp[it++] = vp[i2++];
+
+    /* Copy back from temp to vp */
+    for (it = low; it <= high; ++it)
+      vp[it] = temp[it];
+  }
+} 	        		/* scm_merge_vector_x */
 
 static void
-scm_merge_vector_step (void *const vp,
-		       void *const temp,
+scm_merge_vector_step (SCM vp,
+		       SCM * temp,
 		       cmp_fun_t cmp,
 		       SCM less,
 		       long low,
@@ -860,18 +871,16 @@ SCM_DEFINE (scm_stable_sort_x, "stable-sort!", 2, 0, 0,
     }
   else if (SCM_VECTORP (items))
     {
-      SCM *temp, *vp;
+      SCM *temp;
       len = SCM_VECTOR_LENGTH (items);
+
+      /*
+	 the following array does not contain any new references to
+	 SCM objects, so we can get away with allocing it on the heap.
+      */
       temp = malloc (len * sizeof(SCM));
 
-
-      vp = SCM_WRITABLE_VELTS (items);
-      /*
-	This routine modifies VP
-       */
-
-      SCM_GC_FLAG_OBJECT_WRITE(items);
-      scm_merge_vector_step (vp,
+      scm_merge_vector_step (items,
 			     temp,
 			     scm_cmp_function (less),
 			     less,
@@ -886,7 +895,6 @@ SCM_DEFINE (scm_stable_sort_x, "stable-sort!", 2, 0, 0,
 #undef FUNC_NAME
 
 /* stable_sort manages lists and vectors */
-
 SCM_DEFINE (scm_stable_sort, "stable-sort", 2, 0, 0, 
             (SCM items, SCM less),
 	    "Sort the sequence @var{items}, which may be a list or a\n"
@@ -894,13 +902,14 @@ SCM_DEFINE (scm_stable_sort, "stable-sort", 2, 0, 0,
 	    "This is a stable sort.")
 #define FUNC_NAME s_scm_stable_sort
 {
-  long len;			/* list/vector length */
+
   if (SCM_NULL_OR_NIL_P (items))
     return items;
 
   SCM_VALIDATE_NIM (2, less);
   if (SCM_CONSP (items))
     {
+      long len;			/* list/vector length */      
       SCM_VALIDATE_LIST_COPYLEN (1, items, len);
       items = scm_list_copy (items);
       return scm_merge_list_step (&items, scm_cmp_function (less), less, len);
@@ -909,19 +918,12 @@ SCM_DEFINE (scm_stable_sort, "stable-sort", 2, 0, 0,
   /* support ordinary vectors even if arrays not available?  */
   else if (SCM_VECTORP (items))
     {
-      SCM retvec;
-      SCM *temp, *vp;
-      len = SCM_VECTOR_LENGTH (items);
-      retvec = scm_make_uve (len, scm_array_prototype (items));
+      long len = SCM_VECTOR_LENGTH (items);
+      SCM *temp = malloc (len * sizeof (SCM));
+      SCM retvec = scm_make_uve (len, scm_array_prototype (items));
       scm_array_copy_x (items, retvec);
-      temp = malloc (len * sizeof (SCM));
 
-      /*
-	don't worry about write barrier: retvec is new anyway.
-      */
-      vp = SCM_WRITABLE_VELTS (retvec);
-
-      scm_merge_vector_step (vp,
+      scm_merge_vector_step (retvec,
 			     temp,
 			     scm_cmp_function (less),
 			     less,

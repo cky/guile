@@ -22,6 +22,7 @@ errnos.list
 fd.h
 gh_test_c
 gh_test_repl
+goops.c
 guile
 guile-doc-snarf
 guile-func-name-check

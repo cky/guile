@@ -153,8 +153,7 @@ SCM_DEFINE (scm_gethost, "gethost", 0, 1, 0,
 	    "@code{system-error} or @code{misc_error} keys.")
 #define FUNC_NAME s_scm_gethost
 {
-  SCM ans = scm_c_make_vector (5, SCM_UNSPECIFIED);
-  SCM *ve = SCM_WRITABLE_VELTS (ans);
+  SCM result = scm_c_make_vector (5, SCM_UNSPECIFIED);
   SCM lst = SCM_EOL;
   struct hostent *entry;
   struct in_addr inad;
@@ -190,14 +189,14 @@ SCM_DEFINE (scm_gethost, "gethost", 0, 1, 0,
   if (!entry)
     scm_resolv_error (FUNC_NAME, host);
   
-  SCM_VECTOR_SET(ans, 0, scm_mem2string (entry->h_name, strlen (entry->h_name)));
-  SCM_VECTOR_SET(ans, 1, scm_makfromstrs (-1, entry->h_aliases));
-  SCM_VECTOR_SET(ans, 2, SCM_MAKINUM (entry->h_addrtype + 0L));
-  SCM_VECTOR_SET(ans, 3, SCM_MAKINUM (entry->h_length + 0L));
+  SCM_VECTOR_SET(result, 0, scm_mem2string (entry->h_name, strlen (entry->h_name)));
+  SCM_VECTOR_SET(result, 1, scm_makfromstrs (-1, entry->h_aliases));
+  SCM_VECTOR_SET(result, 2, SCM_MAKINUM (entry->h_addrtype + 0L));
+  SCM_VECTOR_SET(result, 3, SCM_MAKINUM (entry->h_length + 0L));
   if (sizeof (struct in_addr) != entry->h_length)
     {
-      SCM_VECTOR_SET(ans, 4, SCM_BOOL_F);
-      return ans;
+      SCM_VECTOR_SET(result, 4, SCM_BOOL_F);
+      return result;
     }
   for (argv = entry->h_addr_list; argv[i]; i++);
   while (i--)
@@ -205,8 +204,8 @@ SCM_DEFINE (scm_gethost, "gethost", 0, 1, 0,
       inad = *(struct in_addr *) argv[i];
       lst = scm_cons (scm_ulong2num (ntohl (inad.s_addr)), lst);
     }
-  SCM_VECTOR_SET(ans, 4, lst);
-  return ans;
+  SCM_VECTOR_SET(result, 4, lst);
+  return result;
 }
 #undef FUNC_NAME
 
@@ -232,13 +231,9 @@ SCM_DEFINE (scm_getnet, "getnet", 0, 1, 0,
 	    "given.")
 #define FUNC_NAME s_scm_getnet
 {
-  SCM ans;
-  SCM *ve;
+  SCM   result = scm_c_make_vector (4, SCM_UNSPECIFIED);
   struct netent *entry;
 
-  ans = scm_c_make_vector (4, SCM_UNSPECIFIED);
-  ve = SCM_WRITABLE_VELTS (ans);
-  
   if (SCM_UNBNDP (net))
     {
       entry = getnetent ();
@@ -262,11 +257,11 @@ SCM_DEFINE (scm_getnet, "getnet", 0, 1, 0,
     }
   if (!entry)
     SCM_SYSERROR_MSG ("no such network ~A", scm_list_1 (net), errno);
-  SCM_VECTOR_SET(ans, 0, scm_mem2string (entry->n_name, strlen (entry->n_name)));
-  SCM_VECTOR_SET(ans, 1, scm_makfromstrs (-1, entry->n_aliases));
-  SCM_VECTOR_SET(ans, 2, SCM_MAKINUM (entry->n_addrtype + 0L));
-  SCM_VECTOR_SET(ans, 3, scm_ulong2num (entry->n_net + 0L));
-  return ans;
+  SCM_VECTOR_SET(result, 0, scm_mem2string (entry->n_name, strlen (entry->n_name)));
+  SCM_VECTOR_SET(result, 1, scm_makfromstrs (-1, entry->n_aliases));
+  SCM_VECTOR_SET(result, 2, SCM_MAKINUM (entry->n_addrtype + 0L));
+  SCM_VECTOR_SET(result, 3, scm_ulong2num (entry->n_net + 0L));
+  return result;
 }
 #undef FUNC_NAME
 #endif
@@ -282,12 +277,9 @@ SCM_DEFINE (scm_getproto, "getproto", 0, 1, 0,
 	    "@code{getprotoent} (see below) if no arguments are supplied.")
 #define FUNC_NAME s_scm_getproto
 {
-  SCM ans;
-  SCM *ve;
-  struct protoent *entry;
+  SCM   result = scm_c_make_vector (3, SCM_UNSPECIFIED);
 
-  ans = scm_c_make_vector (3, SCM_UNSPECIFIED);
-  ve = SCM_WRITABLE_VELTS (ans);
+  struct protoent *entry;
   if (SCM_UNBNDP (protocol))
     {
       entry = getprotoent ();
@@ -311,10 +303,10 @@ SCM_DEFINE (scm_getproto, "getproto", 0, 1, 0,
     }
   if (!entry)
     SCM_SYSERROR_MSG ("no such protocol ~A", scm_list_1 (protocol), errno);
-  SCM_VECTOR_SET(ans, 0, scm_mem2string (entry->p_name, strlen (entry->p_name)));
-  SCM_VECTOR_SET(ans, 1, scm_makfromstrs (-1, entry->p_aliases));
-  SCM_VECTOR_SET(ans, 2, SCM_MAKINUM (entry->p_proto + 0L));
-  return ans;
+  SCM_VECTOR_SET(result, 0, scm_mem2string (entry->p_name, strlen (entry->p_name)));
+  SCM_VECTOR_SET(result, 1, scm_makfromstrs (-1, entry->p_aliases));
+  SCM_VECTOR_SET(result, 2, SCM_MAKINUM (entry->p_proto + 0L));
+  return result;
 }
 #undef FUNC_NAME
 #endif
@@ -323,16 +315,13 @@ SCM_DEFINE (scm_getproto, "getproto", 0, 1, 0,
 static SCM
 scm_return_entry (struct servent *entry)
 {
-  SCM ans;
-  SCM *ve;
+  SCM result = scm_c_make_vector (4, SCM_UNSPECIFIED);
 
-  ans = scm_c_make_vector (4, SCM_UNSPECIFIED);
-  ve = SCM_WRITABLE_VELTS (ans);
-  SCM_VECTOR_SET(ans, 0, scm_mem2string (entry->s_name, strlen (entry->s_name)));
-  SCM_VECTOR_SET(ans, 1, scm_makfromstrs (-1, entry->s_aliases));
-  SCM_VECTOR_SET(ans, 2, SCM_MAKINUM (ntohs (entry->s_port) + 0L));
-  SCM_VECTOR_SET(ans, 3, scm_mem2string (entry->s_proto, strlen (entry->s_proto)));
-  return ans;
+  SCM_VECTOR_SET(result, 0, scm_mem2string (entry->s_name, strlen (entry->s_name)));
+  SCM_VECTOR_SET(result, 1, scm_makfromstrs (-1, entry->s_aliases));
+  SCM_VECTOR_SET(result, 2, SCM_MAKINUM (ntohs (entry->s_port) + 0L));
+  SCM_VECTOR_SET(result, 3, scm_mem2string (entry->s_proto, strlen (entry->s_proto)));
+  return result;
 }
 
 SCM_DEFINE (scm_getserv, "getserv", 0, 2, 0,
