@@ -126,7 +126,7 @@ elements.  @code{let-optional} binds all variables simultaneously, while
 @code{let-optional*} binds them sequentially, consistent with @code{let}
 and @code{let*} (@pxref{Local Bindings}).
 
-@deffn {libary syntax} let-optional rest-arg (binding @dots{}) expr @dots{}
+@deffn {library syntax} let-optional rest-arg (binding @dots{}) expr @dots{}
 @deffnx {library syntax} let-optional* rest-arg (binding @dots{}) expr @dots{}
 These two macros give you an optional argument interface that is very
 @dfn{Schemey} and introduces no fancy syntax. They are compatible with
