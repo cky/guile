@@ -1,5 +1,8 @@
 2005-03-01  Kevin Ryde  <user42@zip.com.au>
 
+	* api-compound.texi (Shared Arrays): New section.  Rewrite
+	make-shared-array for clarity, adding examples.
+
 	* libguile-concepts.texi (Control Flow): Cross reference Tail Calls.
 
 2005-02-17  Kevin Ryde  <user42@zip.com.au>
