@@ -1,6 +1,6 @@
 ;;; gap-buffer.scm --- String buffer that supports point
 
-;;;	Copyright (C) 2002 Free Software Foundation, Inc.
+;;;	Copyright (C) 2002, 2003 Free Software Foundation, Inc.
 ;;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -215,12 +215,12 @@
   (aft-ofs! gb (all-sz: gb)))
 
 (define (point++n! gb n s gap-ofs aft-ofs) ; n>0; warning: reckless
-  (substring-move-left! s aft-ofs (+ aft-ofs n) s gap-ofs)
+  (substring-move! s aft-ofs (+ aft-ofs n) s gap-ofs)
   (gap-ofs! gb (+ gap-ofs n))
   (aft-ofs! gb (+ aft-ofs n)))
 
 (define (point+-n! gb n s gap-ofs aft-ofs) ; n<0; warning: reckless
-  (substring-move-right! s (+ gap-ofs n) gap-ofs s (+ aft-ofs n))
+  (substring-move! s (+ gap-ofs n) gap-ofs s (+ aft-ofs n))
   (gap-ofs! gb (+ gap-ofs n))
   (aft-ofs! gb (+ aft-ofs n)))
 
