@@ -1,3 +1,9 @@
+1997-12-20  Tim Pierce  <twp@skepsis.com>
+
+	* fports.c (scm_pipob): Use scm_generic_fgets for line i/o, since
+	scm_fgets now depends on ftell(3) to know how many bytes were
+	read.  Sigh.
+
 1997-12-15  Tim Pierce  <twp@skepsis.com>
 
 	* gh_data.c (gh_scm2newstr, gh_get_substr): Use RO macros for

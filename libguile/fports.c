@@ -483,7 +483,7 @@ scm_ptobfuns scm_pipob =
   (scm_sizet (*) SCM_P ((char *, scm_sizet, scm_sizet, SCM))) local_ffwrite,
   (int (*) SCM_P ((SCM))) local_fflush,
   (int (*) SCM_P ((SCM))) scm_fgetc,
-  (char * (*) SCM_P ((SCM, int *))) scm_fgets,
+  (char * (*) SCM_P ((SCM, int *))) scm_generic_fgets,
   (int (*) SCM_P ((SCM))) local_pclose
 };
 
