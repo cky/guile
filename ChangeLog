@@ -1,3 +1,7 @@
+2002-05-10  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* libguile.h: Added inclusion of "extensions.h".
+
 2002-05-06  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* configure.in: Include <sys/types.h> before <netinet/in.h> when
