@@ -51,11 +51,11 @@
 /* Needed for FD_SET on some systems.  */
 #include <sys/types.h>
 
-#ifdef SCM_HAVE_SYS_SELECT_H
-#include <sys/select.h>
+#if SCM_HAVE_SYS_SELECT_H
+# include <sys/select.h>
 #endif
 
-#ifdef SCM_HAVE_WINSOCK2_H
+#if SCM_HAVE_WINSOCK2_H
 # include <winsock2.h>
 #endif
 
@@ -82,7 +82,7 @@ SCM_API int scm_internal_select (int fds,
 				 SELECT_TYPE *efds,
 				 struct timeval *timeout);
 
-#ifdef SCM_USE_COOP_THREADS
+#if SCM_USE_COOP_THREADS
 
 SCM_API int scm_I_am_dead;
 
