@@ -356,15 +356,6 @@ scm_struct_free_entity (scm_t_bits * vtable SCM_UNUSED, scm_t_bits * data)
 }
 
 static void *
-scm_struct_gc_init (void *dummy1 SCM_UNUSED,
-		    void *dummy2 SCM_UNUSED,
-		    void *dummy3 SCM_UNUSED)
-{
-  scm_i_structs_to_free = SCM_EOL;
-  return 0;
-}
-
-static void *
 scm_free_structs (void *dummy1 SCM_UNUSED,
 		  void *dummy2 SCM_UNUSED,
 		  void *dummy3 SCM_UNUSED)
@@ -408,6 +399,7 @@ scm_free_structs (void *dummy1 SCM_UNUSED,
 	}
     }
   while (!SCM_NULLP (newchain));
+  scm_i_structs_to_free = SCM_EOL;
   return 0;
 }
 
@@ -804,7 +796,7 @@ scm_print_struct (SCM exp, SCM port, scm_print_state *pstate)
 void
 scm_struct_prehistory ()
 {
-  scm_c_hook_add (&scm_before_mark_c_hook, scm_struct_gc_init, 0, 0);
+  scm_i_structs_to_free = SCM_EOL;
   scm_c_hook_add (&scm_after_sweep_c_hook, scm_free_structs, 0, 0);
 }
 

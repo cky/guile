@@ -1,3 +1,11 @@
+2003-02-24  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* struct.c (scm_struct_gc_init): Removed.
+	(scm_struct_prehistory): Init scm_i_structs_to_free to SCM_EOL.
+	(This fixes a serious GC bug, introduced during the latest
+	reorganization of the GC, preventing freeing of structs and GOOPS
+	objects.)
+
 2003-02-19  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* environments.c (DEFAULT_OBARRAY_SIZE): Changed from 137 to 31
