@@ -36,6 +36,7 @@ INSTALL_DATA = $(INSTALL) -m 644
 
 scm_files = \
 	boot-9.scm \
+	r4rs.scm \
 	debug.scm \
 	expect.scm \
 	hcons.scm \
@@ -44,7 +45,8 @@ scm_files = \
 	poe.scm \
 	slib.scm  \
 	tags.scm \
-	threads.scm
+	threads.scm \
+	test.scm
 
 aux_files = \
 	.cvsignore \
