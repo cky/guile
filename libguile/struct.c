@@ -552,7 +552,7 @@ integer value small enough to fit in one machine word.")
   fields_desc = (unsigned char *) SCM_CHARS (layout);
   n_fields = data[scm_struct_i_n_words];
   
-  SCM_ASSERT (p < n_fields, pos, SCM_OUTOFRANGE, FUNC_NAME);
+  SCM_ASSERT_RANGE(1,pos, p < n_fields);
 
   if (p * 2 < SCM_LENGTH (layout))
     {
@@ -629,7 +629,7 @@ GUILE_PROC (scm_struct_set_x, "struct-set!", 3, 0, 0,
   fields_desc = (unsigned char *)SCM_CHARS (layout);
   n_fields = data[scm_struct_i_n_words];
 
-  SCM_ASSERT (p < n_fields, pos, SCM_OUTOFRANGE, FUNC_NAME);
+  SCM_ASSERT_RANGE (1,pos, p < n_fields);
 
   if (p * 2 < SCM_LENGTH (layout))
     {

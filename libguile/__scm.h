@@ -449,6 +449,15 @@ extern SCM scm_apply_generic (SCM gf, SCM args);
 #define SCM_GASSERTn(cond, gf, args, pos, subr) \
   if (!(cond)) SCM_WTA_DISPATCH_n((gf), (args), (pos), (subr))
 
+#ifndef SCM_MAGIC_SNARFER
+/* Let these macros pass through if
+   we are snarfing;  thus we can tell the
+   difference between the use of an actual
+   number vs. the use of one of these macros --
+   actual numbers in SCM_VALIDATE_*/SCM_ASSERT
+   constructs must match the formal argument name,
+   but using SCM_ARG* avoids the test */
+
 #define SCM_ARGn 		0
 #define SCM_ARG1 		1
 #define SCM_ARG2 		2
@@ -472,6 +481,7 @@ extern SCM scm_apply_generic (SCM gf, SCM args);
      /* #define SCM_STACK_OVFLOW	12 */
      /* #define SCM_EXIT 		13 */
 
+#endif /* SCM_MAGIC_SNARFER */
 
 /* (...still matching scm_errmsgs)  These
  * are signals.  Signals may become errors

@@ -768,7 +768,6 @@ racp (SCM src, SCM dst)
 #endif /* SCM_FLOATS */
   return 1;
 }
-#undef FUNC_NAME
 
 
 /* This name is obsolete.  Will go away in release 1.5.  */

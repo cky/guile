@@ -380,7 +380,7 @@ GUILE_PROC (scm_copy_random_state, "copy-random-state", 0, 1, 0,
 {
   if (SCM_UNBNDP (state))
     state = SCM_CDR (scm_var_random_state);
-  SCM_VALIDATE_RSTATE(2,state);
+  SCM_VALIDATE_RSTATE(1,state);
   return make_rstate (scm_the_rng.copy_rstate (SCM_RSTATE (state)));
 }
 #undef FUNC_NAME
@@ -525,7 +525,7 @@ GUILE_PROC (scm_random_exp, "random:exp", 0, 1, 0,
 {
   if (SCM_UNBNDP (state))
     state = SCM_CDR (scm_var_random_state);
-  SCM_VALIDATE_RSTATE(2,state);
+  SCM_VALIDATE_RSTATE(1,state);
   return scm_makdbl (scm_c_exp1 (SCM_RSTATE (state)), 0.0);
 }
 #undef FUNC_NAME
