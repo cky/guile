@@ -1,23 +1,35 @@
 ;;;; 	Copyright (C) 1996, 1998, 1999 Free Software Foundation, Inc.
-;;;; 
+;;;;
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
 ;;;; the Free Software Foundation; either version 2, or (at your option)
 ;;;; any later version.
-;;;; 
+;;;;
 ;;;; This program is distributed in the hope that it will be useful,
 ;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;;;; GNU General Public License for more details.
-;;;; 
+;;;;
 ;;;; You should have received a copy of the GNU General Public License
 ;;;; along with this software; see the file COPYING.  If not, write to
 ;;;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
 ;;;; Boston, MA 02111-1307 USA
-;;;; 
+;;;;
 
+;;; Commentary:
 
-(define-module (ice-9 expect) :use-module (ice-9 regex))
+;; This module is documented in the Guile Reference Manual.
+;; Briefly, these are exported:
+;;  procedures: expec-select, expect-regexec
+;;   variables: expect-port, expect-timeout, expect-timeout-proc,
+;;              expect-eof-proc, expect-char-proc,
+;;              expect-strings-compile-flags, expect-strings-exec-flags,
+;;      macros: expect
+
+;;; Code:
+
+(define-module (ice-9 expect)
+  :use-module (ice-9 regex))
 
 ;;; Expect: a macro for selecting actions based on what it reads from a port.
 ;;; The idea is from Don Libes' expect based on Tcl.
@@ -86,7 +98,7 @@
 						  #f)
 				       `((apply ,(cadar exprs)
 						(,(car tests) ,s ,port)))))
-				  (else 
+				  (else
 				   (car exprs))))
 			body)))))
 		;; if none of the clauses matched the current string.
@@ -128,7 +140,7 @@
 ;;; timeout is an absolute time in floating point seconds.
 (define-public (expect-select port timeout)
   (let* ((secs-usecs (gettimeofday))
-	 (relative (- timeout 
+	 (relative (- timeout
 		      (car secs-usecs)
 		      (/ (cdr secs-usecs)
 			 1000000))))	; one million.
@@ -153,3 +165,4 @@
 	    ((< i 0) result))
 	#f)))
 
+;;; expect.scm ends here
