@@ -11,12 +11,14 @@ it in the distribution.
    b) Update NEWS and the Texinfo documentation as appropriate.
    c) Remove the user-visible markers from the log entries once they're
       documented.
-3) Update the version numbers in GUILE-VERSION, and README, to remove the
+3) Scan output from `cvs log' to find files that have changed a lot, but
+   do not have up-to-date copyright notices.
+4) Update the version numbers in GUILE-VERSION, and README, to remove the
    "unreleased" indications.  They should be straight numbers, of the form
    "N.M", not alpha numbers, of the form "N.Ma".
-4) Do a `cvs update -A', to get rid of any sticky tags.
-5) Commit all changes to the CVS repository.
-6) Verify that the disty works, too:
+5) Do a `cvs update -A', to get rid of any sticky tags.
+6) Commit all changes to the CVS repository.
+7) Verify that the disty works, too:
    a) Make a disty, using 'make dist'.
    b) Unpack it somewhere else.
    c) Remove automake and autoconf from your path, or turn off their
@@ -24,16 +26,16 @@ it in the distribution.
       without installing those tools.)
    d) Configure, make, and install.
    e) Test the installed version; don't forget to unset SCHEME_LOAD_PATH.
-   f) If you made any fixes, commit them, and start from the top of 6).
-7) Tag the entire source tree with a tag of the form "release_N_M".
-8) Copy the tar file over to the GNU machines, and ask the appropriate
+   f) If you made any fixes, commit them, and start from a) again
+8) Tag the entire source tree with a tag of the form "release_N_M".
+9) Copy the tar file over to the GNU machines, and ask the appropriate
    person to put it on prep.  At the time of this writing, Daniel Hagerty
-   <hag@ai.mit.edu> has usually been generous enough to help with that.
-9) Send an announcement message to gnu-announce@prep.ai.mit.edu.  If I
-   remember correctly, the moderator will delay it until the tar file
-   appears on prep.  The announcement text should be mostly taken from 
-   Guile's README file.
-10) Tweak the version numbers in GUILE-VERSION, and README to indicate that 
+   <hag@ai.mit.edu> has been generous about helping with that.
+10) Send an announcement message to gnu-announce@prep.ai.mit.edu.  If I
+    remember correctly, the moderator will delay it until the tar file
+    appears on prep.  The announcement text should be mostly taken from 
+    Guile's README file.
+11) Tweak the version numbers in GUILE-VERSION, and README to indicate that 
     the sources are snapshot again.  Snapshots should have version numbers 
     of the form "N.Ma", where the "a" means "alpha".
-11) Start a new section of the NEWS file.
+12) Start a new section of the NEWS file.
