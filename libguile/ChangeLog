@@ -1,3 +1,7 @@
+2001-01-26  Keisuke Nishida  <kxn30@po.cwru.edu>
+
+	* goops.c (s_scm_get_keyword): Bug fix.
+
 2001-01-26  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	The following patch was sent by Martin Grabmueller.  It makes sure

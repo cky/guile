@@ -378,7 +378,7 @@ SCM_DEFINE (scm_get_keyword, "get-keyword", 3, 0, 0,
 
   SCM_ASSERT (SCM_KEYWORDP (key), key, SCM_ARG1, FUNC_NAME);
   len = scm_ilength (l);
-  if (len < 0 || len % 1 == 1)
+  if (len < 0 || len % 2 == 1)
     scm_misc_error (FUNC_NAME, "Bad keyword-value list: ~S", SCM_LIST1 (l));
 
   return scm_i_get_keyword (key, l, len, default_value, FUNC_NAME);
