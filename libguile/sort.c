@@ -1,4 +1,4 @@
-/* Copyright (C) 1999,2000,2001,2002 Free Software Foundation, Inc.
+/* Copyright (C) 1999,2000,2001,2002, 2004 Free Software Foundation, Inc.
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -127,17 +127,16 @@ quicksort (SCM *const base_ptr, size_t nr_elems, scm_t_trampoline_2 cmp, SCM les
 	{
 	  size_t left;
 	  size_t right;
+	  size_t mid = lo + (hi - lo) / 2;
 	  SCM pivot;
 
-	  SCM_TICK;
-	
 	  /* Select median value from among LO, MID, and HI. Rearrange
 	     LO and HI so the three values are sorted. This lowers the
 	     probability of picking a pathological pivot value and
 	     skips a comparison for both the left and right. */
 
-	  size_t mid = lo + (hi - lo) / 2;
-
+	  SCM_TICK;
+	
 	  if (scm_is_true ((*cmp) (less, base_ptr[mid], base_ptr[lo])))
 	    SWAP (base_ptr[mid], base_ptr[lo]);
 	  if (scm_is_true ((*cmp) (less, base_ptr[hi], base_ptr[mid])))
