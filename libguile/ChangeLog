@@ -1,3 +1,8 @@
+2000-03-14  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* eval.c, lang.c, lang.h (scm_lisp_nil, scm_lisp_t): Renamed from
+	scm_nil, scm_t.  (Thanks to Dirk Herrmann.)
+
 2000-03-14  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* init.c (scm_boot_guile_1): Use same initial segment size for
