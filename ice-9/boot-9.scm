@@ -2033,7 +2033,8 @@
 	      ,(make-disable interface))
 	    (defmacro ,(caaddr option-group) (opt val)
 	      `(,,(car options/enable/disable)
-		(list ',opt ,val)))))))))
+		(append (,,(car options/enable/disable))
+			(list ',opt ,val))))))))))
 
 (define-option-interface
   (eval-options-interface

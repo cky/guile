@@ -1,3 +1,12 @@
+2002-11-05  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* boot-9.scm (define-option-interface): Fix to "simplification"
+	change below.
+
+	* debugger/breakpoints/source.scm: Enable source property
+	recording when module is loaded.
+	(##): Cope with ports whose `filename' is not a string.
+
 2002-11-04  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* boot-9.scm (define-option-interface): Simplify code-generation

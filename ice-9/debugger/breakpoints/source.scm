@@ -257,8 +257,14 @@
 				       (set-source-property! x' 'column
 							     column)
 				       x'))))
+			;; Don't allow breakpointed expression to have
+			;; a filename property that isn't a string.
+			(or (string? filename)
+			    (set-source-property! x' 'filename "<unnamed port>"))
 			(break! x x')
 			x'))))
+
+(read-enable 'positions)
 
 ; (define g (make-guardian))
 ; (read-hash-extend #\g
