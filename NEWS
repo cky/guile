@@ -2470,10 +2470,6 @@ These macros will be removed in a future release of Guile.
 scm_dblproc, SCM_UNEGFIXABLE, SCM_FLOBUFLEN, SCM_INEXP, SCM_CPLXP, SCM_REAL,
 SCM_IMAG, SCM_REALPART, scm_makdbl, SCM_SINGP, SCM_NUM2DBL, SCM_NO_BIGDIG
 
-Further, it is recommended not to rely on implementation details for guile's
-current implementation of bignums.  It is planned to replace this
-implementation with gmp in the future.
-
 ** Port internals: the rw_random variable in the scm_port structure
 must be set to non-zero in any random access port.  In recent Guile
 releases it was only set for bidirectional random-access ports.
