@@ -137,8 +137,6 @@ singp (SCM obj)
     }
 }
 
-static const char s_scm_make_uve[];
-
 static SCM
 make_uve (long type, long k, size_t size)
 #define FUNC_NAME "scm_make_uve"
