@@ -471,337 +471,362 @@ depends:
 
 ###
 alist.o: alist.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h eq.h alist.h alist.x
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h eq.h \
+ alist.h alist.x
 append.o: append.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h append.h append.x
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
+ append.h append.x
 appinit.o: appinit.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h
 arbiters.o: arbiters.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h smob.h ports.h genio.h \
- print.h options.h markers.h \
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h smob.h \
+ ports.h genio.h markers.h \
  arbiters.h arbiters.x
 async.o: async.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h eval.h throw.h smob.h ports.h \
- genio.h print.h options.h \
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h eval.h \
+ throw.h smob.h ports.h genio.h \
  markers.h async.x
 boolean.o: boolean.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h boolean.x
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
+ boolean.x
 chars.o: chars.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h chars.h chars.x
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
+ chars.h chars.x
 continuations.o: continuations.c _scm.h __scm.h \
  scmconfig.h tags.h error.h \
- __scm.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
- stackchk.h continuations.h debug.h \
- options.h debug.h dynwind.h continuations.h \
- continuations.x
-debug.o: debug.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
+ __scm.h print.h options.h pairs.h list.h gc.h \
  gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h eval.h throw.h genio.h print.h \
- options.h smob.h ports.h genio.h \
+ root.h ports.h async.h stackchk.h continuations.h \
+ debug.h debug.h dynwind.h continuations.h continuations.x
+debug.o: debug.c _scm.h __scm.h scmconfig.h \
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h eval.h \
+ throw.h genio.h smob.h ports.h genio.h \
  markers.h procprop.h srcprop.h alist.h continuations.h \
  strports.h read.h feature.h debug.h debug.x
 dynwind.o: dynwind.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h eval.h alist.h dynwind.h dynwind.x
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h eval.h \
+ alist.h dynwind.h dynwind.x
 eq.o: eq.c _scm.h __scm.h scmconfig.h tags.h \
- error.h __scm.h pairs.h list.h gc.h gsubr.h procs.h \
- numbers.h symbols.h boolean.h strings.h vectors.h root.h ports.h \
- async.h stackchk.h continuations.h debug.h \
- options.h strorder.h smob.h ports.h \
- genio.h print.h markers.h unif.h \
+ error.h __scm.h print.h options.h pairs.h \
+ list.h gc.h gsubr.h procs.h numbers.h symbols.h boolean.h strings.h \
+ vectors.h root.h ports.h async.h ramap.h stackchk.h \
+ continuations.h debug.h strorder.h smob.h \
+ ports.h genio.h markers.h unif.h \
  eq.h eq.x
 error.o: error.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h genio.h print.h \
- options.h throw.h error.x
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
+ genio.h throw.h error.x
 eval.o: eval.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h debug.h options.h append.h alist.h \
- sequences.h eq.h continuations.h throw.h smob.h ports.h \
- genio.h print.h markers.h \
- markers.h procprop.h hashtab.h srcprop.h stackchk.h \
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
+ debug.h append.h alist.h sequences.h eq.h continuations.h throw.h \
+ smob.h ports.h genio.h markers.h \
+ markers.h procprop.h hashtab.h hash.h srcprop.h stackchk.h \
  continuations.h debug.h eval.h eval.c eval.x
 extchrs.o: extchrs.c extchrs.h
 fdsocket.o: fdsocket.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h filesys.h unif.h fdsocket.h fdsocket.x
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
+ filesys.h unif.h fdsocket.h fdsocket.x
 feature.o: feature.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h feature.h feature.x
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
+ feature.h feature.x
 filesys.o: filesys.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h genio.h print.h \
- options.h smob.h ports.h genio.h \
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
+ genio.h smob.h ports.h genio.h \
  markers.h filesys.h filesys.x
 fports.o: fports.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h markers.h fports.h ports.h \
- fports.x
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
+ markers.h fports.h ports.h fports.x
 gc.o: gc.c _scm.h __scm.h scmconfig.h tags.h \
- error.h __scm.h pairs.h list.h gc.h gsubr.h procs.h \
- numbers.h symbols.h boolean.h strings.h vectors.h root.h ports.h \
- async.h stime.h stackchk.h continuations.h \
- debug.h options.h struct.h genio.h \
- print.h weaks.h smob.h ports.h \
- genio.h markers.h unif.h gc.x
+ error.h __scm.h print.h options.h pairs.h \
+ list.h gc.h gsubr.h procs.h numbers.h symbols.h boolean.h strings.h \
+ vectors.h root.h ports.h async.h stime.h stackchk.h \
+ continuations.h debug.h struct.h genio.h \
+ weaks.h smob.h ports.h genio.h \
+ markers.h unif.h gc.x
 gdbint.o: gdbint.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h tag.h strports.h read.h options.h \
- print.h eval.h chars.h gdbint.h gdb_interface.h
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h tag.h \
+ strports.h read.h eval.h chars.h gdbint.h gdb_interface.h
 genio.o: genio.c extchrs.h _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h chars.h genio.h print.h \
- options.h
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
+ chars.h genio.h
 gsubr.o: gsubr.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h genio.h print.h \
- options.h
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
+ genio.h
 hash.o: hash.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h chars.h hash.h hash.x
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
+ chars.h hash.h hash.x
 hashtab.o: hashtab.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h alist.h hash.h eval.h hashtab.h hashtab.x
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
+ alist.h hash.h eval.h hashtab.h hashtab.x
 inet_aton.o: inet_aton.c
 init.o: init.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h alist.h append.h arbiters.h chars.h \
- continuations.h debug.h options.h dynwind.h eq.h eval.h \
- fdsocket.h feature.h filesys.h fports.h ports.h gdbint.h \
- hash.h hashtab.h ioext.h kw.h load.h mallocs.h mbstrings.h \
- symbols.h objprop.h options.h posix.h print.h procprop.h \
- ramap.h read.h scmsigs.h sequences.h simpos.h smob.h \
- genio.h print.h markers.h \
- socket.h srcprop.h stackchk.h continuations.h \
- debug.h stime.h strop.h strorder.h strports.h struct.h \
- tag.h throw.h unif.h variable.h version.h vports.h weaks.h init.h
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
+ alist.h append.h arbiters.h chars.h continuations.h debug.h dynwind.h \
+ eq.h eval.h fdsocket.h feature.h filesys.h fports.h \
+ ports.h gdbint.h hash.h hashtab.h ioext.h kw.h load.h \
+ mallocs.h mbstrings.h symbols.h objprop.h options.h \
+ posix.h procprop.h ramap.h read.h scmsigs.h sequences.h simpos.h \
+ smob.h genio.h markers.h socket.h srcprop.h \
+ stackchk.h continuations.h debug.h stime.h \
+ strop.h strorder.h strports.h struct.h tag.h throw.h unif.h \
+ variable.h version.h vports.h weaks.h init.h
 ioext.o: ioext.c fd.h _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h fports.h ports.h ioext.h ioext.x
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
+ fports.h ports.h ioext.h ioext.x
 kw.o: kw.c _scm.h __scm.h scmconfig.h tags.h \
- error.h __scm.h pairs.h list.h gc.h gsubr.h procs.h \
- numbers.h symbols.h boolean.h strings.h vectors.h root.h ports.h \
- async.h genio.h print.h options.h mbstrings.h \
+ error.h __scm.h print.h options.h pairs.h \
+ list.h gc.h gsubr.h procs.h numbers.h symbols.h boolean.h strings.h \
+ vectors.h root.h ports.h async.h genio.h mbstrings.h \
  symbols.h smob.h ports.h genio.h \
  markers.h kw.h kw.x
 list.o: list.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h eq.h list.x
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h eq.h \
+ list.x
 load.o: load.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h libpath.h fports.h ports.h read.h \
- options.h eval.h load.h load.x
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
+ libpath.h fports.h ports.h read.h eval.h load.h load.x
 mallocs.o: mallocs.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h genio.h print.h \
- options.h smob.h ports.h genio.h \
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
+ genio.h smob.h ports.h genio.h \
  markers.h mallocs.h
 markers.o: markers.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h markers.h
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
+ markers.h
 mbstrings.o: mbstrings.c extchrs.h _scm.h __scm.h \
  scmconfig.h tags.h error.h \
- __scm.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
- symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
- chars.h unif.h genio.h print.h options.h \
- read.h mbstrings.h symbols.h mbstrings.x
+ __scm.h print.h options.h pairs.h list.h gc.h \
+ gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
+ root.h ports.h async.h chars.h unif.h genio.h read.h mbstrings.h \
+ symbols.h mbstrings.x
 numbers.o: numbers.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h genio.h print.h \
- options.h unif.h numbers.x
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
+ genio.h unif.h numbers.x
 objprop.o: objprop.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h hashtab.h alist.h weaks.h objprop.h objprop.x
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
+ hashtab.h alist.h weaks.h objprop.h objprop.x
 options.o: options.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h options.h options.x
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
+ options.h options.x
 pairs.o: pairs.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h pairs.x
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
+ pairs.x
 ports.o: ports.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h genio.h print.h \
- options.h chars.h markers.h fports.h ports.h \
- strports.h vports.h ports.x
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
+ genio.h chars.h markers.h fports.h ports.h strports.h \
+ vports.h ports.x
 posix.o: posix.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h fports.h ports.h genio.h \
- print.h options.h scmsigs.h read.h unif.h \
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
+ fports.h ports.h genio.h scmsigs.h read.h unif.h \
  feature.h sequences.h posix.h posix.x
 print.o: print.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h chars.h genio.h print.h \
- options.h mbstrings.h symbols.h smob.h \
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
+ chars.h genio.h mbstrings.h symbols.h smob.h \
  ports.h genio.h markers.h eval.h \
- procprop.h read.h weaks.h unif.h print.h print.x
+ procprop.h read.h weaks.h unif.h alist.h struct.h print.x
 procprop.o: procprop.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h alist.h eval.h procprop.h procprop.x
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
+ alist.h eval.h procprop.h procprop.x
 procs.o: procs.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h procs.x
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
+ procs.x
 ramap.o: ramap.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h unif.h smob.h ports.h \
- genio.h print.h options.h \
- markers.h chars.h eq.h eval.h feature.h ramap.h ramap.x
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h unif.h \
+ smob.h ports.h genio.h markers.h \
+ chars.h eq.h eval.h feature.h ramap.h ramap.x
 read.o: read.c extchrs.h _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h chars.h genio.h print.h \
- options.h eval.h unif.h mbstrings.h symbols.h \
- kw.h alist.h read.h read.x
-root.o: root.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h stackchk.h continuations.h \
- debug.h options.h root.x
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
+ chars.h genio.h eval.h unif.h mbstrings.h symbols.h kw.h \
+ alist.h srcprop.h hashtab.h hash.h read.h read.x
 scmsigs.o: scmsigs.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h scmsigs.h scmsigs.x
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
+ scmsigs.h scmsigs.x
 sequences.o: sequences.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h sequences.h sequences.x
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
+ sequences.h sequences.x
 simpos.o: simpos.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h scmsigs.h simpos.h simpos.x
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
+ scmsigs.h simpos.h simpos.x
 smob.o: smob.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h smob.h ports.h genio.h \
- print.h options.h markers.h
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h smob.h \
+ ports.h genio.h markers.h
 socket.o: socket.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h feature.h socket.h socket.x
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
+ feature.h socket.h socket.x
 srcprop.o: srcprop.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h smob.h ports.h genio.h \
- print.h options.h markers.h \
- alist.h debug.h hashtab.h weaks.h srcprop.h srcprop.x
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h smob.h \
+ ports.h genio.h markers.h alist.h \
+ debug.h hashtab.h hash.h weaks.h srcprop.h srcprop.x
 stackchk.o: stackchk.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h genio.h print.h \
- options.h stackchk.h continuations.h \
- debug.h stackchk.x
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
+ genio.h stackchk.h continuations.h debug.h \
+ stackchk.x
 stime.o: stime.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h stime.h stime.x
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
+ stime.h stime.x
 strerror.o: strerror.c
 strings.o: strings.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h chars.h strings.x
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
+ chars.h strings.x
 strop.o: strop.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h chars.h strop.h strop.x
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
+ chars.h strop.h strop.x
 strorder.o: strorder.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h chars.h strorder.h strorder.x
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
+ chars.h strorder.h strorder.x
 strports.o: strports.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h unif.h eval.h print.h options.h \
- strports.h strports.x
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h unif.h \
+ eval.h strports.h strports.x
 struct.o: struct.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h chars.h struct.h struct.x
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
+ chars.h struct.h struct.x
 symbols.o: symbols.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h chars.h eval.h variable.h alist.h mbstrings.h \
- symbols.h symbols.x
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
+ chars.h eval.h variable.h alist.h mbstrings.h symbols.h \
+ symbols.x
 tag.o: tag.c _scm.h __scm.h scmconfig.h tags.h \
- error.h __scm.h pairs.h list.h gc.h gsubr.h procs.h \
- numbers.h symbols.h boolean.h strings.h vectors.h root.h ports.h \
- async.h chars.h struct.h tag.h tag.x
+ error.h __scm.h print.h options.h pairs.h \
+ list.h gc.h gsubr.h procs.h numbers.h symbols.h boolean.h strings.h \
+ vectors.h root.h ports.h async.h chars.h struct.h tag.h tag.x
 throw.o: throw.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h genio.h print.h \
- options.h smob.h ports.h genio.h \
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
+ genio.h smob.h ports.h genio.h \
  markers.h alist.h eval.h dynwind.h debug.h \
- continuations.h throw.h throw.x
+ continuations.h stackchk.h continuations.h \
+ debug.h throw.h throw.x
 unif.o: unif.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h chars.h eval.h genio.h print.h \
- options.h smob.h ports.h genio.h \
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
+ chars.h eval.h genio.h smob.h ports.h genio.h \
  markers.h sequences.h strop.h feature.h unif.h ramap.h \
  unif.x
 variable.o: variable.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h genio.h print.h \
- options.h smob.h ports.h genio.h \
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
+ genio.h smob.h ports.h genio.h \
  markers.h variable.h variable.x
 vectors.o: vectors.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h eq.h vectors.x
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h eq.h \
+ vectors.x
 version.o: version.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h version.h version.x
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
+ version.h version.x
 vports.o: vports.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h eval.h chars.h fports.h ports.h \
- vports.h vports.x
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h eval.h \
+ chars.h fports.h ports.h vports.h vports.x
 weaks.o: weaks.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
- gsubr.h procs.h numbers.h symbols.h boolean.h strings.h vectors.h \
- root.h ports.h async.h weaks.h weaks.x
+ tags.h error.h __scm.h print.h \
+ options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
+ symbols.h boolean.h strings.h vectors.h root.h ports.h async.h \
+ weaks.h weaks.x
