@@ -1,11 +1,17 @@
 2000-06-12  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
+	* Makefile.am (DOT_DOC_FILES): List doc-files explicitly.  (We
+	shouldn't use Make rules which aren't supported by most Make
+	programs.)
+	(OMIT_DEPENDENCIES): Defined to ltdl.h.  (We don't want this
+	dependency recorded, since it will become a relative path which
+	doesn't work when using a separate built directory.)
+	(EXTRA_DOT_X_FILES, EXTRA_DOT_DOC_FILES): New variables.
+	(guile-procedures.txt): Depend on EXTRA_DOT_DOC_FILES.
+	(modinclude_HEADERS): Removed kw.h.
+
 	* guile-snarf.in: Change regexp "^SCM__I" --> "^ *SCM__I".
 	(The preprocessor might insert spaces before the identifier.)
-
-	* Makefile.am (EXTRA_DOT_X_FILES, EXTRA_DOT_DOC_FILES): New
-	variables.
-	(guile-procedures.txt): Depend on EXTRA_DOT_DOC_FILES.
 
 	* snarf.h (SCM_SNARF_HERE, SCM_SNARF_INIT, SCM_SNARF_DOCS):
 	Renamed from SCM_HERE, SCM_INIT, SCM_DOCS.
@@ -17,8 +23,6 @@
 
 	* keywords.c (scm_tc16_kw): Removed deprecated type.
 	(Replaced by scm_tc16_keyword.)
-
-	* Makefile.am (modinclude_HEADERS): Removed kw.h.
 
 	* kw.h: Removed deprecated header file.
 
