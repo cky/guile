@@ -1,5 +1,8 @@
 2001-11-02  Mikael Djurfeldt  <mdj@linnaeus>
 
+	* print.c (scm_iprin1): Mark print state as revealed when
+	dispatching to generic write or display.
+
 	* unif.c (scm_ra2contig): Fixed memory overwrite bug.
 
 2001-11-02  Marius Vollmer  <mvo@zagadka.ping.de>

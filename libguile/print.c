@@ -462,6 +462,7 @@ scm_iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 		SCM_NEWSMOB (pwps,
 			     scm_tc16_port_with_ps,
 			     SCM_UNPACK (scm_cons (port, pstate->handle)));
+		pstate->revealed = 1;
 		scm_call_generic_2 (print, exp, pwps);
 	      }
 	    else
