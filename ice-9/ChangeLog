@@ -1,3 +1,8 @@
+1997-10-31  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* boot-9.scm (inherit-print-state): Moved definition to the
+	neighborhood of the record code.
+
 Mon Oct 27 02:05:49 1997  Jim Blandy  <jimb@totoro.red-bean.com>
 
 	* boot-9.scm: Revert changes to this file from Oct 23.  It turns
