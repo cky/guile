@@ -1,3 +1,8 @@
+2001-08-27  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* check-guile.in: Do not include ".libs" in LTDL_LIBRARY_PATH,
+	libltdl provides it itself.
+
 2001-08-24  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* configure.in (AC_CONFIG_FILES): Add per-manual doc directory

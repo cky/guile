@@ -1,3 +1,9 @@
+2001-08-27  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* ports.c, ports.h, fprots.c, gc.c, ioext.c: Replaced
+	"scm_t_portable" with "scm_port_table" which was an artifact from
+	the great "scm_*_t -> scm_t_" renaming.
+
 2001-08-25  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
 	* gc_os_dep.c (GC_noop1): Move before `GC_find_limit' where it is
