@@ -1,5 +1,10 @@
 2003-04-20  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* numbers.c (scm_logtest):  Fixed argument bug in the call to
+	mpz_and, which showed up when compiling with SCM_DEBUG defined.
+
+2003-04-20  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* gc-card.c (scm_i_sweep_card, scm_i_init_card_freelist): Fixed
 	type errors that showed up when compiling with SCM_DEBUG defined.
 

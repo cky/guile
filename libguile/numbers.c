@@ -1073,7 +1073,7 @@ SCM_DEFINE (scm_logtest, "logtest", 2, 0, 0,
       SCM result;
       mpz_t result_z;
       mpz_init (result_z);
-      mpz_and (SCM_I_BIG_MPZ (result_z),
+      mpz_and (result_z,
                SCM_I_BIG_MPZ (j),
                SCM_I_BIG_MPZ (k));
       scm_remember_upto_here_2 (j, k);
