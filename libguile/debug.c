@@ -543,7 +543,7 @@ scm_start_stack (id, exp, env)
   vframe.vect = &vframe_vect_body;
   vframe.vect[0].id = id;
   scm_last_debug_frame = &vframe;
-  answer = scm_eval_3 (exp, 0, env);
+  answer = scm_eval_3 (exp, 1, env);
   scm_last_debug_frame = vframe.prev;
   return answer;
 }
