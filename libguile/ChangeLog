@@ -1,3 +1,9 @@
+2005-01-17  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* random.c (scm_random_solid_sphere_x): Use
+	scm_c_generalized_vector_length instead of
+	scm_uniform_vector_length.
+
 2005-01-16  Marius Vollmer  <mvo@zagadka.de>
 
 	* script.c (scm_compile_shell_switches): Removed debugging output.
