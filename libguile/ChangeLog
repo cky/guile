@@ -1,3 +1,12 @@
+1999-08-30  James Blandy  <jimb@mule.m17n.org>
+
+	* gh_data.c (gh_set_substr): Revert change of 1999-08-29; bcopy is
+	not a correct substitute for memmove, because it doesn't handle
+	overlapping source and destination areas on many platforms.
+	Overlaps are the primary reason to use memmove in the first place.
+	* ports.c (scm_ungetc): Same.
+	* strop.c (scm_substring_move_x): Same.
+
 1999-08-30  Mikael Djurfeldt  <mdj@mdj-pc.nada.kth.se>
 
 	* gc.c (scm_init_storage): Skip registration of cleanup on systems
