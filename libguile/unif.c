@@ -569,6 +569,7 @@ scm_dimensions_to_uniform_array (dims, prot, fill)
   scm_array_dim *s;
   SCM ra;
   if (SCM_INUMP (dims))
+    {
       if (SCM_INUM (dims) < SCM_LENGTH_MAX)
 	{
 	  SCM answer;
@@ -588,6 +589,7 @@ scm_dimensions_to_uniform_array (dims, prot, fill)
 	}
     else
       dims = scm_cons (dims, SCM_EOL);
+    }
   SCM_ASSERT (SCM_NULLP (dims) || (SCM_NIMP (dims) && SCM_CONSP (dims)),
 	  dims, SCM_ARG1, s_dimensions_to_uniform_array);
   ra = scm_shap2ra (dims, s_dimensions_to_uniform_array);

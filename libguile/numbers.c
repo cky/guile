@@ -1241,13 +1241,17 @@ idbl2str(f, a)
 # else
   efmt = (exp < -3) || (exp > wp+2);
   if (!efmt)
-    if (exp < 0) {
-      a[ch++] = '0';
-      a[ch++] = '.';
-      dpt = exp;
-      while (++dpt)  a[ch++] = '0';
-    } else
-      dpt = exp+1;
+    {
+      if (exp < 0)
+	{
+	  a[ch++] = '0';
+	  a[ch++] = '.';
+	  dpt = exp;
+	  while (++dpt)  a[ch++] = '0';
+	}
+      else
+	dpt = exp+1;
+    }
   else
     dpt = 1;
 # endif
@@ -1266,19 +1270,23 @@ idbl2str(f, a)
   } while (wp--);
 
   if (dpt > 0)
+    {
 # ifndef ENGNOT
-    if ((dpt > 4) && (exp > 6)) {
-      d = (a[0]=='-'?2:1);
-      for (i = ch++; i > d; i--)
-	a[i] = a[i-1];
-      a[d] = '.';
-      efmt = 1;
-    } else
+      if ((dpt > 4) && (exp > 6))
+	{
+	  d = (a[0]=='-'?2:1);
+	  for (i = ch++; i > d; i--)
+	    a[i] = a[i-1];
+	  a[d] = '.';
+	  efmt = 1;
+	}
+      else
 # endif
-      {
-	while (--dpt)  a[ch++] = '0';
-	a[ch++] = '.';
-      }
+	{
+	  while (--dpt)  a[ch++] = '0';
+	  a[ch++] = '.';
+	}
+    }
   if (a[ch-1]=='.')  a[ch++]='0'; /* trailing zero */
   if (efmt && exp) {
     a[ch++] = 'e';
@@ -2617,12 +2625,16 @@ scm_difference(x, y)
     SCM_ASRTGO(SCM_INEXP(x), badx);
     SCM_ASRTGO(SCM_NIMP(y) && SCM_INEXP(y), bady);
 # endif
-    if SCM_CPLXP(x)
-      if SCM_CPLXP(y)
-	return scm_makdbl(SCM_REAL(x)-SCM_REAL(y), SCM_IMAG(x)-SCM_IMAG(y));
-      else
-	return scm_makdbl(SCM_REAL(x)-SCM_REALPART(y), SCM_IMAG(x));
-    return scm_makdbl(SCM_REALPART(x)-SCM_REALPART(y), SCM_CPLXP(y)?-SCM_IMAG(y):0.0);
+    if (SCM_CPLXP (x))
+      {
+	if (SCM_CPLXP (y))
+	  return scm_makdbl (SCM_REAL (x) - SCM_REAL (y),
+			     SCM_IMAG (x) - SCM_IMAG (y));
+	else
+	  return scm_makdbl (SCM_REAL (x) - SCM_REALPART(y), SCM_IMAG (x));
+      }
+    return scm_makdbl (SCM_REALPART (x) - SCM_REALPART (y),
+		       SCM_CPLXP(y) ? - SCM_IMAG (y) : 0.0);
   }
   if SCM_UNBNDP(y) {x = -SCM_INUM(x); goto checkx;}
   if SCM_NINUMP(y) {
@@ -2763,14 +2775,19 @@ scm_product(x, y)
     bady: scm_wta(y, (char *)SCM_ARG2, s_product);
 #  endif
 # endif
-    if SCM_CPLXP(x)
-      if SCM_CPLXP(y)
-	return scm_makdbl(SCM_REAL(x)*SCM_REAL(y)-SCM_IMAG(x)*SCM_IMAG(y),
-			  SCM_REAL(x)*SCM_IMAG(y)+SCM_IMAG(x)*SCM_REAL(y));
-      else
-	return scm_makdbl(SCM_REAL(x)*SCM_REALPART(y), SCM_IMAG(x)*SCM_REALPART(y));
-    return scm_makdbl(SCM_REALPART(x)*SCM_REALPART(y),
-		      SCM_CPLXP(y)?SCM_REALPART(x)*SCM_IMAG(y):0.0);
+    if (SCM_CPLXP(x))
+      {
+	if (SCM_CPLXP(y))
+	  return scm_makdbl (SCM_REAL (x) * SCM_REAL (y)
+			     - SCM_IMAG (x) * SCM_IMAG (y),
+			     SCM_REAL (x) * SCM_IMAG (y)
+			     + SCM_IMAG (x) * SCM_REAL (y));
+	else
+	  return scm_makdbl (SCM_REAL (x) * SCM_REALPART (y),
+			     SCM_IMAG (x) * SCM_REALPART(y));
+      }
+    return scm_makdbl (SCM_REALPART (x) * SCM_REALPART (y),
+		       SCM_CPLXP (y) ? SCM_REALPART (x) * SCM_IMAG (y) : 0.0);
   }
   if SCM_NINUMP(y) {
 # ifdef SCM_BIGDIG

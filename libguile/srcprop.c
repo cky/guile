@@ -284,18 +284,26 @@ scm_set_source_property_x (obj, key, datum)
       p = SCM_EOL;
     }
   if (scm_i_breakpoint == key)
-    if (SCM_FALSEP (datum))
-      CLEARSRCPROPBRK (SCM_NIMP (p) && SRCPROPSP (p)
+    {
+      if (SCM_FALSEP (datum))
+	CLEARSRCPROPBRK (SCM_NIMP (p) && SRCPROPSP (p)
+			 ? p
+			 : SCM_WHASHSET (scm_source_whash, h,
+					 scm_make_srcprops (0,
+							    0,
+							    SCM_UNDEFINED,
+							    SCM_UNDEFINED,
+							    p)));
+      else
+	SETSRCPROPBRK (SCM_NIMP (p) && SRCPROPSP (p)
 		       ? p
 		       : SCM_WHASHSET (scm_source_whash, h,
-				   scm_make_srcprops (0, 0, SCM_UNDEFINED,
-						       SCM_UNDEFINED, p)));
-    else
-      SETSRCPROPBRK (SCM_NIMP (p) && SRCPROPSP (p)
-		     ? p
-		     : SCM_WHASHSET (scm_source_whash, h,
-				 scm_make_srcprops (0, 0, SCM_UNDEFINED,
-						     SCM_UNDEFINED, p)));
+				       scm_make_srcprops (0,
+							  0,
+							  SCM_UNDEFINED,
+							  SCM_UNDEFINED,
+							  p)));
+    }
   else if (scm_i_line == key)
     {
       if (SCM_NIMP (p) && SRCPROPSP (p))

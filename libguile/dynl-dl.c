@@ -87,7 +87,9 @@ sysdep_dynl_func (symb, handle, subr)
 {
     void *fptr;
     char *err;
+#if defined(USCORE) && !defined(DLSYM_ADDS_USCORE)
     char *usymb;
+#endif
 
 #if defined(USCORE) && !defined(DLSYM_ADDS_USCORE)
     usymb = (char *) malloc (strlen (symb) + 2);
