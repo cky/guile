@@ -22,7 +22,7 @@
 
 bin_SCRIPTS=guile-config
 CLEANFILES=guile-config
-EXTRA_DIST=guile-config.in guile.m4
+EXTRA_DIST=guile-config.in guile.m4 qthreads.m4
 
 ## FIXME: in the future there will be direct automake support for
 ## doing this.  When that happens, switch over.
