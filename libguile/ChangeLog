@@ -1,3 +1,10 @@
+Sat Jun 28 16:14:09 1997  Tim Pierce  <twp@twp.tezcat.com>
+
+	* Makefile.am (libguile_la_LIBADD): Remove @ALLOCA@, since
+	alloca.lo will be included in @LIBLOBJS@.  Something better than
+	this should be possible.
+	* Makefile.in: Regenerated.
+
 Sat Jun 28 03:40:15 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* simpos.h: prototype for scm_primitive_exit.

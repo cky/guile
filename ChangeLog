@@ -1,3 +1,9 @@
+Sat Jun 28 16:13:43 1997  Tim Pierce  <twp@twp.tezcat.com>
+
+	* configure.in: Add alloca.o explicitly to LIBOBJS (thanks Eric
+	Backus for reporting this problem and suggesting a fix).
+	* configure: Regenerated.
+
 Tue Jun 24 13:34:20 1997  Tim Pierce  <twpierce@bio-5.bsd.uchicago.edu>
 
 	* aclocal.m4 (AM_PATH_PROG_LD): Change `ac_cv_path_LD' typo to

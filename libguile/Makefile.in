@@ -111,7 +111,7 @@ EXTRA_libguile_la_SOURCES = _scm.h \
 noinst_HEADERS = coop-threads.c coop-threads.h coop.c
 
 libguile_la_DEPENDENCIES = @LIBLOBJS@
-libguile_la_LIBADD = @LIBLOBJS@ @ALLOCA@
+libguile_la_LIBADD = @LIBLOBJS@
 libguile_la_LDFLAGS = -version-info 2:0 -rpath $(libdir)
 
 include_HEADERS = libguile.h
@@ -205,8 +205,8 @@ DATA =  $(modinclude_DATA)
 HEADERS =  $(include_HEADERS) $(modinclude_HEADERS) $(noinst_HEADERS) \
 $(pkginclude_HEADERS)
 
-DIST_COMMON =  COPYING ChangeLog Makefile.am Makefile.in alloca.c \
-guile-snarf.in scmconfig.h.in stamp-h.in
+DIST_COMMON =  COPYING ChangeLog Makefile.am Makefile.in guile-snarf.in \
+scmconfig.h.in stamp-h.in
 
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
