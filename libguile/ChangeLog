@@ -1,3 +1,9 @@
+2000-12-11  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* gc_os_dep.c (scm_get_stack_base) [MSWIN32]: Added detection of
+	page size on the w32 architecture.  Updated from Boehms gc5.2.
+	Thanks to Lars J. Aas!
+
 2000-12-11  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* debug.c (scm_sym_procname, scm_sym_dots, scm_sym_source,
