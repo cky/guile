@@ -6,6 +6,9 @@ Thu Oct 17 20:33:08 1996  Gary Houston  <ghouston@actrix.gen.nz>
 	Just interpret (almost) any throw with 4 args as an error throw.
 	Delete some try-load stuff that was already commented out.
 
+	Second thoughts, keep handle-system-error but call it from
+	error-catching-loop.
+
 Tue Oct 15 17:07:20 1996  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* boot-9.scm: Doc fixes.

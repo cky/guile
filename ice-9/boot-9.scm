@@ -2039,23 +2039,24 @@
 		  ;; This is the other cons-leak closure...
 		  (lambda ()
 		    (cond ((= (length args) 4)
-			   ;; anything with 4 args is interpreted as an
-			   ;; error throw.
-			   (let ((cep (current-error-port)))
-			     (if (and (memq 'backtrace (debug-options))
-				      (stack? the-last-stack))
-				 (begin
-				   (newline cep)
-				   (display-backtrace the-last-stack cep)
-				   (newline cep)))
-			     (apply display-error the-last-stack cep args)
-			     (force-output cep)
-			   (throw 'abort key)))
+			   (apply handle-system-error key args))
 			  (else
 			   (apply bad-throw key args))))))))))
       (and next (loop next))))
   (loop (lambda () #t)))
 
+(define (handle-system-error key . args)
+  (let ((cep (current-error-port)))
+    (if (and (memq 'backtrace (debug-options))
+	     (stack? the-last-stack))
+	(begin
+	  (newline cep)
+	  (display-backtrace the-last-stack cep)
+	  (newline cep)))
+    (apply display-error the-last-stack cep args)
+    (force-output cep)
+    (throw 'abort key)))
+  
 (define (quit . args)
   (apply throw 'quit args))
 
