@@ -232,7 +232,7 @@ SCM_DEFINE (scm_parse_path, "parse-path", 1, 1, 0,
     tail = SCM_EOL;
   return (SCM_FALSEP (path)
 	  ? tail
-	  : scm_internal_parse_path (SCM_ROCHARS (path), tail));
+	  : scm_internal_parse_path (SCM_STRING_CHARS (path), tail));
 }
 #undef FUNC_NAME
 
@@ -282,7 +282,7 @@ SCM_DEFINE (scm_search_path, "search-path", 2, 1, 0,
   else
     SCM_VALIDATE_LIST (3,extensions);
 
-  filename_chars = SCM_ROCHARS (filename);
+  filename_chars = SCM_STRING_CHARS (filename);
   filename_len = SCM_STRING_LENGTH (filename);
 
   /* If FILENAME is absolute, return it unchanged.  */
@@ -365,7 +365,7 @@ SCM_DEFINE (scm_search_path, "search-path", 2, 1, 0,
 
 	/* Concatenate the path name and the filename. */
 	len = SCM_STRING_LENGTH (dir);
-	memcpy (buf, SCM_ROCHARS (dir), len);
+	memcpy (buf, SCM_STRING_CHARS (dir), len);
 	if (len >= 1 && buf[len - 1] != '/')
 	  buf[len++] = '/';
 	memcpy (buf + len, filename_chars, filename_len);
@@ -380,7 +380,7 @@ SCM_DEFINE (scm_search_path, "search-path", 2, 1, 0,
 	    struct stat mode;
 
 	    /* Concatenate the extension. */
-	    memcpy (buf + len, SCM_ROCHARS (ext), ext_len);
+	    memcpy (buf + len, SCM_STRING_CHARS (ext), ext_len);
 	    buf[len + ext_len] = '\0';
 	    
 	    /* If the file exists at all, we should return it.  If the
@@ -448,7 +448,7 @@ SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 1, 0, 0,
   if (SCM_FALSEP (full_filename))
     {
       int absolute = (SCM_STRING_LENGTH (filename) >= 1
-		      && SCM_ROCHARS (filename)[0] == '/');
+		      && SCM_STRING_CHARS (filename)[0] == '/');
       SCM_MISC_ERROR ((absolute
 		       ? "Unable to load file ~S"
 		       : "Unable to find file ~S in load path"),

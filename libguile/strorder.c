@@ -71,8 +71,8 @@ SCM_DEFINE1 (scm_string_equal_p, "string=?", scm_tc7_rpsubr,
   length = SCM_STRING_LENGTH (s2);
   if (SCM_STRING_LENGTH (s1) == length)
     {
-      unsigned char *c1 = SCM_ROUCHARS (s1) + length - 1;
-      unsigned char *c2 = SCM_ROUCHARS (s2) + length - 1;
+      unsigned char *c1 = SCM_STRING_UCHARS (s1) + length - 1;
+      unsigned char *c2 = SCM_STRING_UCHARS (s2) + length - 1;
       scm_sizet i;
 
       /* comparing from back to front typically finds mismatches faster */
@@ -105,8 +105,8 @@ SCM_DEFINE1 (scm_string_ci_equal_p, "string-ci=?", scm_tc7_rpsubr,
   length = SCM_STRING_LENGTH (s2);
   if (SCM_STRING_LENGTH (s1) == length)
     {
-      unsigned char *c1 = SCM_ROUCHARS (s1) + length - 1;
-      unsigned char *c2 = SCM_ROUCHARS (s2) + length - 1;
+      unsigned char *c1 = SCM_STRING_UCHARS (s1) + length - 1;
+      unsigned char *c2 = SCM_STRING_UCHARS (s2) + length - 1;
       scm_sizet i;
 
       /* comparing from back to front typically finds mismatches faster */
@@ -139,8 +139,8 @@ SCM_DEFINE1 (scm_string_less_p, "string<?", scm_tc7_rpsubr,
   length1 = SCM_STRING_LENGTH (s1);
   length2 = SCM_STRING_LENGTH (s2);
   lengthm = min (length1, length2);
-  c1 = SCM_ROUCHARS (s1);
-  c2 = SCM_ROUCHARS (s2);
+  c1 = SCM_STRING_UCHARS (s1);
+  c2 = SCM_STRING_UCHARS (s2);
 
   for (i = 0; i != lengthm; ++i, ++c1, ++c2) {
     int c = *c1 - *c2;
@@ -202,8 +202,8 @@ SCM_DEFINE1 (scm_string_ci_less_p, "string-ci<?", scm_tc7_rpsubr,
   length1 = SCM_STRING_LENGTH (s1);
   length2 = SCM_STRING_LENGTH (s2);
   lengthm = min (length1, length2);
-  c1 = SCM_ROUCHARS (s1);
-  c2 = SCM_ROUCHARS (s2);
+  c1 = SCM_STRING_UCHARS (s1);
+  c2 = SCM_STRING_UCHARS (s2);
 
   for (i = 0; i != lengthm; ++i, ++c1, ++c2) {
     int c = scm_upcase (*c1) - scm_upcase (*c2);

@@ -447,7 +447,7 @@ taloop:
 	    else if (SCM_STRINGP (name))
 	      {
 		scm_putc (' ', port);
-		scm_lfwrite (SCM_ROCHARS (name), SCM_STRING_LENGTH (name), port);
+		scm_lfwrite (SCM_STRING_CHARS (name), SCM_STRING_LENGTH (name), port);
 	      }
 	    if (!SCM_UNBNDP (code))
 	      {
@@ -483,20 +483,19 @@ taloop:
 
 	      scm_putc ('"', port);
 	      for (i = 0; i < SCM_STRING_LENGTH (exp); ++i)
-		switch (SCM_ROCHARS (exp)[i])
+		switch (SCM_STRING_CHARS (exp)[i])
 		  {
 		  case '"':
 		  case '\\':
 		    scm_putc ('\\', port);
 		  default:
-		    scm_putc (SCM_ROCHARS (exp)[i], port);
+		    scm_putc (SCM_STRING_CHARS (exp)[i], port);
 		  }
 	      scm_putc ('"', port);
 	      break;
 	    }
 	  else
-	    scm_lfwrite (SCM_ROCHARS (exp), (scm_sizet) SCM_STRING_LENGTH (exp),
-			 port);
+	    scm_lfwrite (SCM_STRING_CHARS (exp), SCM_STRING_LENGTH (exp), port);
 	  break;
 	case scm_tc7_symbol:
 	    {
@@ -1000,7 +999,7 @@ SCM_DEFINE (scm_simple_format, "simple-format", 2, 0, 1,
   SCM_VALIDATE_STRING (2, message);
   SCM_VALIDATE_REST_ARGUMENT (args);
 
-  start = SCM_ROCHARS (message);
+  start = SCM_STRING_CHARS (message);
   end = start + SCM_STRING_LENGTH (message);
   for (p = start; p != end; ++p)
     if (*p == '~')

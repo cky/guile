@@ -82,7 +82,7 @@ scm_i_index (SCM *str, SCM chr, int direction, SCM sub_start,
 
   if (direction > 0)
     {
-      p = (unsigned char *)SCM_ROCHARS (*str) + lower;
+      p = SCM_STRING_UCHARS (*str) + lower;
       ch = SCM_CHAR (chr);
 
       for (x = SCM_INUM (sub_start); x < upper; ++x, ++p)
@@ -91,7 +91,7 @@ scm_i_index (SCM *str, SCM chr, int direction, SCM sub_start,
     }
   else
     {
-      p = upper - 1 + (unsigned char *)SCM_ROCHARS (*str);
+      p = upper - 1 + SCM_STRING_UCHARS (*str);
       ch = SCM_CHAR (chr);
       for (x = upper - 1; x >= lower; --x, --p)
 	if (*p == ch)
@@ -327,7 +327,7 @@ SCM_DEFINE (scm_string_to_list, "string->list", 1, 0, 0,
   SCM res = SCM_EOL;
   unsigned char *src;
   SCM_VALIDATE_STRING (1,str);
-  src = SCM_ROUCHARS (str);
+  src = SCM_STRING_UCHARS (str);
   for (i = SCM_STRING_LENGTH (str)-1;i >= 0;i--) res = scm_cons (SCM_MAKE_CHAR (src[i]), res);
   return res;
 }
@@ -341,7 +341,7 @@ SCM_DEFINE (scm_string_copy, "string-copy", 1, 0, 0,
 #define FUNC_NAME s_scm_string_copy
 {
   SCM_VALIDATE_STRING (1, str);
-  return scm_makfromstr (SCM_ROCHARS (str), SCM_STRING_LENGTH (str), 0);
+  return scm_makfromstr (SCM_STRING_CHARS (str), SCM_STRING_LENGTH (str), 0);
 }
 #undef FUNC_NAME
 

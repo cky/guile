@@ -60,7 +60,7 @@
 
 #define SCM_STRING_COERCE_0TERMINATION_X(x) \
   { if (SCM_NIMP (x) && (SCM_TYP7 (x) == scm_tc7_substring)) \
-      x = scm_makfromstr (SCM_ROCHARS (x), SCM_STRING_LENGTH (x), 0); }
+      x = scm_makfromstr (SCM_STRING_CHARS (x), SCM_STRING_LENGTH (x), 0); }
 
 
 

@@ -257,7 +257,7 @@ SCM_DEFINE (scm_string_ref, "string-ref", 2, 0, 0,
   SCM_VALIDATE_STRING (1, str);
   SCM_VALIDATE_INUM_COPY (2, k, idx);
   SCM_ASSERT_RANGE (2, k, idx >= 0 && idx < SCM_STRING_LENGTH (str));
-  return SCM_MAKE_CHAR (SCM_ROUCHARS (str)[idx]);
+  return SCM_MAKE_CHAR (SCM_STRING_UCHARS (str)[idx]);
 }
 #undef FUNC_NAME
 
@@ -302,7 +302,7 @@ SCM_DEFINE (scm_substring, "substring", 2, 1, 0,
   to = SCM_INUM (end);
   SCM_ASSERT_RANGE (3, end, from <= to && to <= SCM_STRING_LENGTH (str));
 
-  return scm_makfromstr (&SCM_ROCHARS (str)[from], (scm_sizet) (to - from), 0);
+  return scm_makfromstr (&SCM_STRING_CHARS (str)[from], (scm_sizet) (to - from), 0);
 }
 #undef FUNC_NAME
 
@@ -328,7 +328,7 @@ SCM_DEFINE (scm_string_append, "string-append", 0, 0, 1,
   data = SCM_STRING_UCHARS (res);
   for (l = args;SCM_NIMP (l);l = SCM_CDR (l)) {
     s = SCM_CAR (l);
-    for (i = 0;i<SCM_STRING_LENGTH (s);i++) *data++ = SCM_ROUCHARS (s)[i];
+    for (i = 0;i<SCM_STRING_LENGTH (s);i++) *data++ = SCM_STRING_UCHARS (s)[i];
   }
   return res;
 }

@@ -1349,7 +1349,7 @@ SCM_DEFINE (scm_dirname, "dirname", 1, 0, 0,
 
   SCM_VALIDATE_STRING (1,filename);
 
-  s = SCM_ROCHARS (filename);
+  s = SCM_STRING_CHARS (filename);
   len = SCM_STRING_LENGTH (filename);
 
   i = len - 1;
@@ -1377,7 +1377,7 @@ SCM_DEFINE (scm_basename, "basename", 1, 1, 0,
   int i, j, len, end;
 
   SCM_VALIDATE_STRING (1,filename);
-  f = SCM_ROCHARS (filename);
+  f = SCM_STRING_CHARS (filename);
   len = SCM_STRING_LENGTH (filename);
 
   if (SCM_UNBNDP (suffix))
@@ -1385,7 +1385,7 @@ SCM_DEFINE (scm_basename, "basename", 1, 1, 0,
   else
     {
       SCM_VALIDATE_STRING (2, suffix);
-      s = SCM_ROCHARS (suffix);
+      s = SCM_STRING_CHARS (suffix);
       j = SCM_STRING_LENGTH (suffix) - 1;
     }
   i = len - 1;

@@ -282,7 +282,7 @@ scm_mkstrport (SCM pos, SCM str, long modes, const char *caller)
   SCM_SET_CELL_TYPE (z, scm_tc16_strport | modes);
   SCM_SETPTAB_ENTRY (z, pt);
   SCM_SETSTREAM (z, SCM_UNPACK (str));
-  pt->write_buf = pt->read_buf = SCM_ROUCHARS (str);
+  pt->write_buf = pt->read_buf = SCM_STRING_UCHARS (str);
   pt->read_pos = pt->write_pos = pt->read_buf + SCM_INUM (pos);
   pt->write_buf_size = pt->read_buf_size = str_len;
   pt->write_end = pt->read_end = pt->read_buf + pt->read_buf_size;

@@ -88,7 +88,7 @@ SCM_DEFINE (scm_make_struct_layout, "make-struct-layout", 1, 0, 0,
     int x;
 
     len = SCM_STRING_LENGTH (fields);
-    field_desc = SCM_ROCHARS (fields);
+    field_desc = SCM_STRING_CHARS (fields);
     SCM_ASSERT (!(len & 1), fields, "odd length field specification", FUNC_NAME);
 
     for (x = 0; x < len; x += 2)

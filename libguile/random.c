@@ -405,7 +405,7 @@ SCM_DEFINE (scm_seed_to_random_state, "seed->random-state", 1, 0, 0,
   if (SCM_NUMBERP (seed))
     seed = scm_number_to_string (seed, SCM_UNDEFINED);
   SCM_VALIDATE_STRING (1,seed);
-  return make_rstate (scm_c_make_rstate (SCM_ROCHARS (seed),
+  return make_rstate (scm_c_make_rstate (SCM_STRING_CHARS (seed),
 					 SCM_STRING_LENGTH (seed)));
 }
 #undef FUNC_NAME

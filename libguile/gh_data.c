@@ -542,7 +542,7 @@ gh_scm2newstr (SCM str, int *lenp)
   ret_str = (char *) scm_must_malloc ((len + 1) * sizeof (char),
 				      "gh_scm2newstr");
   /* so we copy tmp_str to ret_str, which is what we will allocate */
-  memcpy (ret_str, SCM_ROCHARS (str), len);	/* test ROCHARS here -twp */
+  memcpy (ret_str, SCM_STRING_CHARS (str), len);
   /* from now on we don't mind if str gets GC collected. */
   scm_remember (&str);
   /* now make sure we null-terminate it */
@@ -573,7 +573,7 @@ gh_get_substr (SCM src, char *dst, int start, int len)
 
   src_len = SCM_STRING_LENGTH (src);
   effective_length = (len < src_len) ? len : src_len;
-  memcpy (dst + start, SCM_ROCHARS (src), effective_length * sizeof (char));
+  memcpy (dst + start, SCM_STRING_CHARS (src), effective_length * sizeof (char));
   /* FIXME: must signal an error if len > src_len */
   scm_remember (&src);
 }

@@ -1,3 +1,25 @@
+2000-11-22  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* dynl.c (scm_make_argv_from_stringlist), filesys.c (scm_dirname,
+	scm_basename), gh_data.c (gh_scm2newstr, gh_get_substr), hash.c
+	(scm_hasher), load.c (scm_parse_path, scm_search_path,
+	scm_primitive_load_path), numbers.c (scm_string_to_number),
+	ports.c (scm_unread_string), posix.c (scm_convert_exec_args,
+	environ_list_to_c, scm_putenv), print.c (scm_iprin1,
+	scm_simple_format), random.c (scm_seed_to_random_state), socket.c
+	(scm_fill_sockaddr, scm_send, scm_sendto), strings.c
+	(scm_string_ref, scm_substring, scm_string_append), strings.h
+	(SCM_STRING_COERCE_0TERMINATION_X), strop.c (scm_i_index,
+	scm_string_to_list, scm_string_copy), strorder.c
+	(scm_string_equal_p, scm_string_ci_equal_p, scm_string_less_p,
+	scm_string_ci_less_p), strports.c (scm_mkstrport), struct.c
+	(scm_make_struct_layout), symbols.c (scm_string_to_symbol,
+	scm_string_to_obarray_symbol, scm_gensym, scm_gentemp):  Replace
+	calls to SCM_ROU?CHARS with the corresponding call to
+	SCM_STRING_U?CHARS.
+
+	* symbols.h (SCM_ROCHARS, SCM_ROUCHARS):  Deprecated.
+
 2000-11-21  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* ports.c:  Include eval.h.

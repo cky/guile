@@ -105,7 +105,7 @@ scm_make_argv_from_stringlist (SCM args,int *argcp,const char *subr,int argn)
 
     SCM_ASSERT (SCM_STRINGP (arg), args, argn, subr);
     len = SCM_STRING_LENGTH (arg);
-    src = SCM_ROCHARS (arg);
+    src = SCM_STRING_CHARS (arg);
     dst = (char *) scm_must_malloc (len + 1, subr);
     memcpy (dst, src, len);
     dst[len] = 0;

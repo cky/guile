@@ -2808,7 +2808,7 @@ SCM_DEFINE (scm_string_to_number, "string->number", 1, 1, 0,
   int base;
   SCM_VALIDATE_STRING (1, string);
   SCM_VALIDATE_INUM_MIN_DEF_COPY (2,radix,2,10,base);
-  answer = scm_istring2number (SCM_ROCHARS (string),
+  answer = scm_istring2number (SCM_STRING_CHARS (string),
 			       SCM_STRING_LENGTH (string),
                                base);
   return scm_return_first (answer, string);

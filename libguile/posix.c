@@ -818,7 +818,7 @@ scm_convert_exec_args (SCM args, int argn, const char *subr)
 
       SCM_ASSERT (SCM_STRINGP (arg), args, argn, subr);
       len = SCM_STRING_LENGTH (arg);
-      src = SCM_ROCHARS (arg);
+      src = SCM_STRING_CHARS (arg);
       dst = (char *) scm_must_malloc (len + 1, subr);
       memcpy (dst, src, len);
       dst[len] = 0;
@@ -893,7 +893,7 @@ environ_list_to_c (SCM envlist, int arg, const char *proc)
 
       SCM_ASSERT (SCM_STRINGP (str), envlist, arg, proc);
       len = SCM_STRING_LENGTH (str);
-      src = SCM_ROCHARS (str);
+      src = SCM_STRING_CHARS (str);
       result[i] = malloc (len + 1);
       if (result[i] == NULL)
 	scm_memory_error (proc);
@@ -1130,7 +1130,7 @@ SCM_DEFINE (scm_putenv, "putenv", 1, 0, 0,
   ptr = malloc (SCM_STRING_LENGTH (str) + 1);
   if (ptr == NULL)
     SCM_MEMORY_ERROR;
-  strncpy (ptr, SCM_ROCHARS (str), SCM_STRING_LENGTH (str));
+  strncpy (ptr, SCM_STRING_CHARS (str), SCM_STRING_LENGTH (str));
   ptr[SCM_STRING_LENGTH (str)] = 0;
   rv = putenv (ptr);
   if (rv < 0)

@@ -75,17 +75,6 @@ extern int scm_symhash_dim;
 #define SCM_SYMBOL_HASH(X)	    (SCM_CELL_WORD_2 (X))
 #define SCM_SET_SYMBOL_HASH(X, v)   (SCM_SET_CELL_WORD_2 ((X), (v)))
 
-#define SCM_ROCHARS(x) ((SCM_TYP7 (x) == scm_tc7_substring) \
-			? (SCM_INUM (SCM_CADR (x)) + SCM_STRING_CHARS (SCM_CDDR (x))) \
-			: ((SCM_TYP7 (x) == scm_tc7_string) \
-			   ? SCM_STRING_CHARS (x) \
-			   : SCM_SYMBOL_CHARS (x)))
-#define SCM_ROUCHARS(x) ((SCM_TYP7 (x) == scm_tc7_substring) \
-			 ? (SCM_INUM (SCM_CADR (x)) + SCM_STRING_UCHARS (SCM_CDDR (x))) \
-			 : ((SCM_TYP7 (x) == scm_tc7_string) \
-			    ? SCM_STRING_UCHARS (x) \
-			    : SCM_SYMBOL_UCHARS (x)))
-
 
 
 extern unsigned long scm_string_hash (const unsigned char *str, scm_sizet len);
@@ -134,6 +123,16 @@ extern void scm_init_symbols (void);
 #define SCM_ROSTRINGP(x) (SCM_NIMP(x) && ((SCM_TYP7S(x)==scm_tc7_string) \
 			  || (SCM_TYP7(x) == scm_tc7_symbol)))
 #define SCM_ROLENGTH(x) SCM_LENGTH (x)
+#define SCM_ROCHARS(x) ((SCM_TYP7 (x) == scm_tc7_substring) \
+			? (SCM_INUM (SCM_CADR (x)) + SCM_STRING_CHARS (SCM_CDDR (x))) \
+			: ((SCM_TYP7 (x) == scm_tc7_string) \
+			   ? SCM_STRING_CHARS (x) \
+			   : SCM_SYMBOL_CHARS (x)))
+#define SCM_ROUCHARS(x) ((SCM_TYP7 (x) == scm_tc7_substring) \
+			 ? (SCM_INUM (SCM_CADR (x)) + SCM_STRING_UCHARS (SCM_CDDR (x))) \
+			 : ((SCM_TYP7 (x) == scm_tc7_string) \
+			    ? SCM_STRING_UCHARS (x) \
+			    : SCM_SYMBOL_UCHARS (x)))
 #define SCM_SUBSTRP(x) (SCM_NIMP (x) && (SCM_TYP7 (x) == scm_tc7_substring))
 #define SCM_COERCE_SUBSTR(x) SCM_STRING_COERCE_0TERMINATION_X (x)
 #define scm_strhash(str, len, n) (scm_string_hash ((str), (len)) % (n))

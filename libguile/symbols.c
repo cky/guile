@@ -498,7 +498,7 @@ SCM_DEFINE (scm_string_to_symbol, "string->symbol", 1, 0, 0,
   SCM answer;
 
   SCM_VALIDATE_STRING (1,s);
-  vcell = scm_intern (SCM_ROCHARS (s), SCM_STRING_LENGTH (s));
+  vcell = scm_intern (SCM_STRING_CHARS (s), SCM_STRING_LENGTH (s));
   answer = SCM_CAR (vcell);
   return answer;
 }
@@ -534,7 +534,7 @@ SCM_DEFINE (scm_string_to_obarray_symbol, "string->obarray-symbol", 2, 1, 0,
   else if (SCM_EQ_P (o, SCM_BOOL_T))
     o = SCM_BOOL_F;
     
-  vcell = scm_intern_obarray_soft (SCM_ROCHARS(s),
+  vcell = scm_intern_obarray_soft (SCM_STRING_CHARS(s),
 				   SCM_STRING_LENGTH (s),
 				   o,
 				   softness);
@@ -837,7 +837,7 @@ SCM_DEFINE (scm_gensym, "gensym", 0, 1, 0,
       len = SCM_STRING_LENGTH (prefix);
       if (len > MAX_PREFIX_LENGTH)
 	name = SCM_MUST_MALLOC (MAX_PREFIX_LENGTH + SCM_INTBUFLEN);
-      strncpy (name, SCM_ROCHARS (prefix), len);
+      strncpy (name, SCM_STRING_CHARS (prefix), len);
     }
   {
     int n_digits = scm_iint2str (gensym_counter++, 10, &name[len]);
@@ -875,7 +875,7 @@ SCM_DEFINE (scm_gentemp, "gentemp", 0, 2, 0,
       len = SCM_STRING_LENGTH (prefix);
       if (len > MAX_PREFIX_LENGTH)
 	name = SCM_MUST_MALLOC (MAX_PREFIX_LENGTH + SCM_INTBUFLEN);
-      strncpy (name, SCM_ROCHARS (prefix), len);
+      strncpy (name, SCM_STRING_CHARS (prefix), len);
     }
 
   if (SCM_UNBNDP (obarray))
