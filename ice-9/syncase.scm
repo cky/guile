@@ -226,7 +226,10 @@
 			    '*sc-expander*
 			    '(define))))
 
-(define syncase sc-expand)
+(define (syncase exp)
+  (with-fluids ((expansion-eval-closure
+		 (module-eval-closure (current-module))))
+    (sc-expand exp)))
 
 (set-module-transformer! the-syncase-module syncase)
 

@@ -1,12 +1,16 @@
 2003-01-15  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
+	* boot-9.scm (use-syntax): Return *unspecified*.
+
 	* syncase.scm: Set expansion-eval-closure to
 	the-syncase-eval-closure during booting so that variables are
-	created in the correct module;
+	created in the correct module.
+	(syncase): Set expansion-eval-closure.
 	(define-syntax define-syntax-public eval-when fluid-let-syntax
 	identifier-syntax let-syntax letrec-syntax syntax syntax-case
 	syntax-rules with-syntax include): Removed definitions (these are
 	created from within psyntax.pp).
+
 
 2003-01-10  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
