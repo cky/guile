@@ -399,7 +399,8 @@ scm_isatty_p (port)
 
   port = SCM_COERCE_OUTPORT (port);
 
-  SCM_ASSERT (SCM_NIMP (port) && SCM_OPFPORTP (port), port, SCM_ARG1, s_isatty);
+  if (!(SCM_NIMP (port) && SCM_OPFPORTP (port)))
+    return SCM_BOOL_F;
   rv = fileno ((FILE *)SCM_STREAM (port));
   if (rv == -1)
     scm_syserror (s_isatty);

@@ -1,5 +1,8 @@
 1998-06-09  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
+	* ioext.c (scm_isatty_p): Accept any kind of data as argument.  If
+	not a tty, return #f.
+
 	* regex-posix.c (scm_regexp_exec): Free malloced memory.  (Thanks
 	to Julian Satchell and Roland Kaufmann.)
 
