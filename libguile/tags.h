@@ -477,6 +477,7 @@ extern char *scm_isymnames[];   /* defined in print.c */
 #define SCM_IM_BIND		SCM_MAKISYM (31)
 
 #define SCM_IM_DELAY		SCM_MAKISYM (32)
+#define SCM_IM_CALL_WITH_VALUES SCM_MAKISYM (33)
 
 /* When a variable is unbound this is marked by the SCM_UNDEFINED
  * value.  The following is an unbound value which can be handled on
