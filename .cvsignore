@@ -1,7 +1,11 @@
 Makefile
+Makefile.in
+aclocal.m4
+config.build-subdirs
 config.cache
+config.h.in
 config.log
 config.status
+configure
 guile-*.tar.gz
-config.build-subdirs
 libtool

@@ -1,8 +1,37 @@
 1999-10-05  Jim Blandy  <jimb@savonarola.red-bean.com>
 
+	* autogen.sh: Call autoheader explicitly.  autoreconf runs
+	autoconf before autoheader, and autoconf complains if
+	libguile/scmconfig.h.in doesn't exist.
+
+	Straighten up the situation regarding guile.m4 and qthreads.m4.
+	
+	We can't have .m4 files which are installed where aclocal can
+	see them, but also used by guile's own configure.in, because
+	aclocal will read both copies, complain about duplicate macro
+	definitions, and refuse to generate aclocal.m4 at all.  This
+	happens if you invoke it as `aclocal -I .', as autoreconf does.
+	This is probably a flaw in the autotools, but Guile doesn't need
+	that flaw fixed immediately.
+
+	guile.m4 is intended for use by people linking against guile, so
+	it needs to be installed.  But Guile itself doesn't use it.  So
+	move guile.m4 into guile-config.  That makes sense, since
+	guile.m4's GUILE_FLAGS macro is just an easy way to call
+	guile-config.
+
+	qthreads.m4 is indented to help configure a qthreads tree.  It's
+	only useful to a package which actually includes a qthreads tree,
+	and it's intimately related to that tree, so it's not useful to
+	install this.  So don't install it.
+
+	* guile.m4: Moved to guile-config.
+	* Makefile.am (aclocaldir, aclocal_DATA): Delete.
+	(EXTRA_DIST): Move qthreads.m4 here.
+
 	Don't store generated files in the repository any more.  Instead,
 	require people to run autogen.sh on trees from snapshots and CVS.
-	* Makefile.in, acconfig.h, aclocal.m4, configure: Deleted.
+	* Makefile.in, aclocal.m4, configure: Deleted.
 	* autogen.sh: New file.
 	* ANON-CVS, SNAPSHOTS: Updated instructions.
 

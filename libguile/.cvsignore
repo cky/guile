@@ -4,6 +4,7 @@
 .deps
 .libs
 Makefile
+Makefile.in
 config.cache
 config.log
 config.status
@@ -18,5 +19,6 @@ guile-snarf
 libpath.h
 libtool
 scmconfig.h
+scmconfig.h.in
 stamp-h
 versiondat.h

@@ -1,7 +1,7 @@
 1999-10-05  Jim Blandy  <jimb@savonarola.red-bean.com>
 
-	* Makefile.in: Deleted from CVS repository.  Run the autogen.sh
-	script to create generated files like this one.
+	* Makefile.in, configure, aclocal.m4: Deleted from CVS repository.
+	Run the autogen.sh script to create generated files like these.
 
 1999-09-22  Jim Blandy  <jimb@savonarola.red-bean.com>
 

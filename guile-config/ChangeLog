@@ -1,5 +1,10 @@
 1999-10-05  Jim Blandy  <jimb@savonarola.red-bean.com>
 
+	* guile.m4: Moved here from top-level directory; see the ChangeLog
+	entry there.
+	* Makefile.am (aclocaldir, aclocal_DATA): New variables, ensuring
+	that guile.m4 gets installed.
+
 	* Makefile.in: Deleted from CVS repository.  Run the autogen.sh
 	script to create generated files like this one.
 

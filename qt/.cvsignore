@@ -3,6 +3,7 @@
 .deps
 .libs
 Makefile
+Makefile.in
 config.log
 config.status
 qt.h
