@@ -1,3 +1,14 @@
+2001-03-12  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* load.c (scm_primitive_load, scm_primitive_load_path),
+	(scm_sys_search_load_path): Corrected docstrings (file ->
+	filename).
+
+	* eval.c (scm_force): Added texinfo markup to docstring.
+	(scm_promise_p): Renamed parameter to `obj' to match docstring.
+
+	* debug-malloc.c: Reinserted #include <stdio.h>.
+
 2001-03-11  Keisuke Nishida  <kxn30@po.cwru.edu>
 
 	* list.c (s_scm_reverse_x): Use SCM_VALIDATE_LIST.

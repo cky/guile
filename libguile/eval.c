@@ -3760,9 +3760,10 @@ promise_print (SCM exp, SCM port, scm_print_state *pstate)
 
 
 SCM_DEFINE (scm_force, "force", 1, 0, 0, 
-           (SCM x),
-	    "If the promise X has not been computed yet, compute and return\n"
-	    "X, otherwise just return the previously computed value.")
+	    (SCM x),
+	    "If the promise @var{x} has not been computed yet, compute and\n"
+	    "return @var{x}, otherwise just return the previously computed\n"
+	    "value.")
 #define FUNC_NAME s_scm_force
 {
   SCM_VALIDATE_SMOB (1, x, promise);
@@ -3783,12 +3784,12 @@ SCM_DEFINE (scm_force, "force", 1, 0, 0,
 
 
 SCM_DEFINE (scm_promise_p, "promise?", 1, 0, 0, 
-            (SCM x),
+            (SCM obj),
 	    "Return true if @var{obj} is a promise, i.e. a delayed computation\n"
 	    "(@pxref{Delayed evaluation,,,r4rs.info,The Revised^4 Report on Scheme}).")
 #define FUNC_NAME s_scm_promise_p
 {
-  return SCM_BOOL (SCM_TYP16_PREDICATE (scm_tc16_promise, x));
+  return SCM_BOOL (SCM_TYP16_PREDICATE (scm_tc16_promise, obj));
 }
 #undef FUNC_NAME
 

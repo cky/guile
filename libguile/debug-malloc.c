@@ -40,6 +40,7 @@
  * If you do not wish that, delete this exception notice.  */
 
 #include <string.h>
+#include <stdio.h>
 
 #include "libguile/_scm.h"
 #include "libguile/alist.h"

@@ -103,12 +103,13 @@ load (void *data)
 
 SCM_DEFINE (scm_primitive_load, "primitive-load", 1, 0, 0, 
            (SCM filename),
-	    "Load @var{file} and evaluate its contents in the top-level environment.\n"
-	    "The load paths are not searched; @var{file} must either be a full\n"
-	    "pathname or be a pathname relative to the current directory.  If the\n"
-	    "variable @code{%load-hook} is defined, it should be bound to a procedure\n"
-	    "that will be called before any code is loaded.  See documentation for\n"
-	    "@code{%load-hook} later in this section.")
+	    "Load the file named @var{filename} and evaluate its contents in\n"
+	    "the top-level environment. The load paths are not searched;\n"
+	    "@var{filename} must either be a full pathname or be a pathname\n"
+	    "relative to the current directory.  If the  variable\n"
+	    "@code{%load-hook} is defined, it should be bound to a procedure\n"
+	    "that will be called before any code is loaded.  See the\n"
+	    "documentation for @code{%load-hook} later in this section.")
 #define FUNC_NAME s_scm_primitive_load
 {
   SCM hook = *scm_loc_load_hook;
@@ -409,13 +410,14 @@ SCM_DEFINE (scm_search_path, "search-path", 2, 1, 0,
    If we find one, return its full filename; otherwise, return #f.
    If FILENAME is absolute, return it unchanged.  */
 SCM_DEFINE (scm_sys_search_load_path, "%search-load-path", 1, 0, 0, 
-           (SCM filename),
-	    "Search @var{%load-path} for @var{file}, which must be readable by the\n"
-	    "current user.  If @var{file} is found in the list of paths to search or\n"
-	    "is an absolute pathname, return its full pathname.  Otherwise, return\n"
-	    "@code{#f}.  Filenames may have any of the optional extensions in the\n"
-	    "@code{%load-extensions} list; @code{%search-load-path} will try each\n"
-	    "extension automatically.")
+	    (SCM filename),
+	    "Search @var{%load-path} for the file named @var{filename},\n"
+	    "which must be readable by the current user.  If @var{filename}\n"
+	    "is found in the list of paths to search or is an absolute\n"
+	    "pathname, return its full pathname.  Otherwise, return\n"
+	    "@code{#f}.  Filenames may have any of the optional extensions\n"
+	    "in the @code{%load-extensions} list; @code{%search-load-path}\n"
+	    "will try each extension automatically.")
 #define FUNC_NAME s_scm_sys_search_load_path
 {
   SCM path = *scm_loc_load_path;
@@ -432,10 +434,11 @@ SCM_DEFINE (scm_sys_search_load_path, "%search-load-path", 1, 0, 0,
 
 
 SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 1, 0, 0, 
-           (SCM filename),
-	    "Search @var{%load-path} for @var{file} and load it into the top-level\n"
-	    "environment.  If @var{file} is a relative pathname and is not found in\n"
-	    "the list of search paths, an error is signalled.")
+	    (SCM filename),
+	    "Search @var{%load-path} for the file named @var{filename} and\n"
+	    "load it into the top-level environment.  If @var{filename} is a\n"
+	    "relative pathname and is not found in the list of search paths,\n"
+	    "an error is signalled.")
 #define FUNC_NAME s_scm_primitive_load_path
 {
   SCM full_filename;
