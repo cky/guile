@@ -1,3 +1,8 @@
+2004-09-25  Marius Vollmer  <mvo@zagadka.de>
+
+	* libguile-smobs.texi, api-smobs.texi: More words abot what a free
+	function is allowed to do.
+
 2004-09-24  Marius Vollmer  <mvo@zagadka.de>
 
 	* libguile-smobs.texi: Bugfix in example code, use SCM_NEWSMOB
