@@ -1,23 +1,22 @@
--*-text-*-
+The Guile TODO List (actually, an -*-outline-*-)
+
+* Protocol
 
 These TODO items are grouped by target release version.  The first group is
 the "Eventually" group, which is not associated w/ any particular version.
-Move these items under a version upon completion (or better yet, ownership).
+Items should be initially added to this group, and then later moved under a
+version upon either ownership or sponsorship.
+
+Maintainers (w/ write privs) indicate ownership by `[USERNAME]'.  Use
+`[ACTUAL-OWNER:MAINTAINER]' to indicate sponsorship, where both elements are
+usernames.
 
 Upon completion, simply change the "-" to a "+", but do not delete the item.
 At release time, the "+" entries will be deleted after review to make sure
-that user-visible changes are reflected in NEWS (and that proper credit is
-applied :-).
+that user-visible changes are reflected in NEWS.
 
-Ownership is indicated by `[USERNAME]'.  Maintainers (w/ write privs) can
-indicate sponsorship by `[ACTUAL-OWNER:MAINTAINER]', where both elements are
-usernames.
 
-See also file HACKING.
-
-------------------------------------------------------------------------------
-
-=== Eventually:
+* Eventually
 
 - [after signal handling and threading have been fixed] remove the code
   corresponding to GUILE_OLD_ASYNC_CLICK and the corresponding
@@ -30,11 +29,7 @@ See also file HACKING.
 - revise the fluid implementation
 - implement the GC thread synchronization (all threads: go to sleep!)
 - implementing the libguileposix threads glue library
-- GOOPS
-  - develop better representation for GOOPS objects
-  - rewrite method cache management in C
-  - rewrite core macros (define-class et al) in C
-  - define C API
+- develop better representation for GOOPS objects
 - write Orbit CORBA interface
 - [after new module system] factor out modules sort.c and random.c should be
   factored out into separate modules
@@ -61,8 +56,15 @@ See also file HACKING.
   implement the symbol->string semantics of R5RS.
 - implement internationalized strings
 - revise the uniform vector implementation
+- make the set of error signalling functions more consistent
 
-=== Before releasing 1.8.0:
+
+* Before releasing 1.8.0:
+
+- For GOOPS: [ttn]
+  - rewrite method cache management in C
+  - rewrite core macros (define-class et al) in C
+  - define C API
 
 - Move sample .gdbinit in HACKING to somewhere more appropriate (manual?).
 
@@ -76,9 +78,11 @@ See also file HACKING.
 
 - Start a new THANKS file.
 
-=== Before releasing 1.10.0:
+
+* Before releasing 1.10.0:
 
 - in boot-9.scm:
   remove deprecated function `feature?´.
+
 
 [TODO ends here]
