@@ -41,7 +41,11 @@
    whether to permit this exception to apply to your modifications.
    If you do not wish that, delete this exception notice.  */
 
-#include "libguile/scmconfig.h"
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
+#include "libguile/__scm.h"
 
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
@@ -60,13 +64,6 @@
 #endif
 #ifdef __MINGW32__
 #include <process.h>
-#endif
-
-/* We need to provide a type for gcc_uint64_t.  */
-#ifdef __GNUC__
-typedef unsigned long long gcc_uint64_t;
-#else
-typedef unsigned long gcc_uint64_t;
 #endif
 
 #ifndef TMP_MAX
@@ -89,7 +86,7 @@ mkstemp (template)
 {
   static const char letters[]
     = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  static gcc_uint64_t value;
+  static scm_t_uint64 value;
 #ifdef HAVE_GETTIMEOFDAY
   struct timeval tv;
 #endif
@@ -110,14 +107,14 @@ mkstemp (template)
 #ifdef HAVE_GETTIMEOFDAY
   /* Get some more or less random data.  */
   gettimeofday (&tv, NULL);
-  value += ((gcc_uint64_t) tv.tv_usec << 16) ^ tv.tv_sec ^ getpid ();
+  value += ((scm_t_uint64) tv.tv_usec << 16) ^ tv.tv_sec ^ getpid ();
 #else
   value += getpid ();
 #endif
 
   for (count = 0; count < TMP_MAX; ++count)
     {
-      gcc_uint64_t v = value;
+      scm_t_uint64 v = value;
       int fd;
 
       /* Fill in the random bits.  */
