@@ -108,6 +108,8 @@ SCM_API scm_root_state *scm_i_thread_root (SCM thread);
 
 #ifdef USE_COOP_THREADS
 #include "libguile/coop-defs.h"
+#else
+#include "libguile/null-threads.h"
 #endif
 
 #endif  /* SCM_THREADS_H */

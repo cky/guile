@@ -133,6 +133,8 @@ SCM_REGISTER_PROC(s_signal_condition_variable, "signal-condition-variable", 1, 0
 
 #ifdef USE_COOP_THREADS
 #include "libguile/coop-threads.c"
+#else
+#include "libguile/null-threads.c"
 #endif
 
 
@@ -141,8 +143,9 @@ void
 scm_init_threads (SCM_STACKITEM *i)
 {
   scm_tc16_thread = scm_make_smob_type ("thread", 0);
-  scm_tc16_mutex = scm_make_smob_type ("mutex", sizeof (coop_m));
-  scm_tc16_condvar = scm_make_smob_type ("condition-variable", sizeof (coop_c));
+  scm_tc16_mutex = scm_make_smob_type ("mutex", sizeof (scm_t_mutex));
+  scm_tc16_condvar = scm_make_smob_type ("condition-variable",
+					 sizeof (scm_t_condvar));
                                         
 #include "libguile/threads.x"
   /* Initialize implementation specific details of the threads support */
