@@ -393,9 +393,29 @@ Equivalent to a @code{(use-modules @var{interface-specification})}
 Use @var{module} when loading the currently defined module, and install
 it as the syntax transformer.
 
-@item #:autoload @var{module} @var{symbol}
+@item #:autoload @var{module} @var{symbol-list}
 @cindex autoload
-Load @var{module} whenever @var{symbol} is accessed.
+Load @var{module} when any of @var{symbol-list} are accessed.  For
+example,
+
+@example
+(define-module (my mod)
+  #:autoload (srfi srfi-1) (partition delete-duplicates))
+...
+(if something
+    (set! foo (delete-duplicates ...)))
+@end example
+
+When a module is autoloaded, all it's bindings become available.
+@var{symbol-list} is just those that will first trigger the load.
+
+An autoload is a good way to put off loading a big module until it's
+really needed, for instance for faster startup or if it will only be
+needed in certain circumstances.
+
+@code{@@} can do a similar thing (@pxref{Using Guile Modules}), but in
+that case an @code{@@} form must be written every time a binding from
+the module is used.
 
 @item #:export @var{list}
 @cindex export
