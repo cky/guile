@@ -1,5 +1,17 @@
 1998-04-19  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
+	* dynl.c (scm_must_free_argv): Fixed memory leak due to negated
+	condition.  (Thanks to John Tobey.)
+
+	* continuations.c (scm_make_cont), debug.c (scm_make_memoized,
+	scm_make_debugobj), eval.c (scm_makprom): SCM_DEFER/ALLOW_INTS -->
+	A section.
+
+	* __scm.h: Start the long-term project of moving to POSIX threads.
+	Phase 1: Classification of all critical sections.
+	(SCM_ENTER_A_SECTION, SCM_EXIT_A_SECTION): New macros: Delimiters
+	for A sections.  (See comments in __scm.h for details.)
+
 	* dynl.c: Only check that HAVE_DLOPEN is defined before loading
 	dynl-dl.c; Test on HAVE_LIBDLD instead of HAVE_DLD.
 

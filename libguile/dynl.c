@@ -114,8 +114,8 @@ scm_must_free_argv(argv)
      char **argv;
 {
     char **av = argv;
-    while(!(*av))
-	free(*(av++));
+    while (*av)
+      free(*(av++));
     free(argv);
 }
 
