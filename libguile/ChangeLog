@@ -1,3 +1,31 @@
+2004-04-28  Kevin Ryde  <user42@zip.com.au>
+
+	* backtrace.c (display_frame_expr), numbers.c (XDIGIT2UINT,
+	mem2uinteger, mem2decimal_from_point, mem2ureal): Cast char to int for
+	ctype.h tests, to avoid warnings from gcc on HP-UX about char as array
+	subscript.  Reported by Andreas Vögele.
+	Also cast through unsigned char to avoid passing negatives to those
+	macros if input contains 8-bit values.
+
+	* num2integral.i.c (NUM2INTEGRAL): Under non-BIGMPZ_FITSP case,
+	corrections to range check for signed numbers.  Remove
+	scm_remember_upto_here_1(num) from these checks, since num is used
+	subsequently anyway.
+
+	* num2integral.i.c (NUM2INTEGRAL): Test BIGMPZ_FITSP with "!= 0" to
+	avoid warning from gcc 3.4.  Reported by Hyperdivision.
+	
+	* numbers.c (scm_bit_extract): Use min instead of MIN.
+	(MIN): Remove, this conflicts with similar macro defined by limits.h
+	on HP-UX.  Reported by Andreas Vögele.
+
+	* stime.c (_POSIX_C_SOURCE): Define to 199506L to get gmtime_r (in
+	particular on HP-UX).  Reported by Andreas Vögele.
+
+	* threads-plugin.h (SCM_MUTEX_MAXSIZE): Increase to 25*sizeof(long),
+	for the benefit of hpux11 where pthread_mutex_t is 88 bytes.  Reported
+	by Andreas Vögele.
+
 2004-04-22  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
 
 	* eval.c (s_macro_keyword): New static identifier.

@@ -1,3 +1,10 @@
+2004-04-28  Kevin Ryde  <user42@zip.com.au>
+
+	* standalone/test-num2integral.c (test_long_long): Exercise
+	out-of-range errors on various cases.
+	(test_ulong_long): New function, split from test_long_long and
+	similarly exercising out-of-range.
+
 2004-04-26  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
 
 	* tests/syntax.test: Add test case to check the correct handling
