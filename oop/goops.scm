@@ -1193,27 +1193,45 @@
 	       (lambda () init)))))
 
   (define (verify-accessors slot l)
-    (if (pair? l)
-	(let ((get (car l)) 
-	      (set (cadr l)))
-	  (if (not (and (closure? get)
-			(= (car (procedure-property get 'arity)) 1)))
-	      (goops-error "Bad getter closure for slot `~S' in ~S: ~S"
-			   slot class get))
-	  (if (not (and (closure? set)
-			(= (car (procedure-property set 'arity)) 2)))
-	    (goops-error "Bad setter closure for slot `~S' in ~S: ~S"
-			 slot class set)))))
+    (cond ((integer? l))
+	  ((not (and (list? l) (= (length l) 2)))
+	   (goops-error "Bad getter and setter for slot `~S' in ~S: ~S"
+			slot class l))
+	  (else
+	   (let ((get (car l)) 
+		 (set (cadr l)))
+	     (if (not (and (closure? get)
+			   (= (car (procedure-property get 'arity)) 1)))
+		 (goops-error "Bad getter closure for slot `~S' in ~S: ~S"
+			      slot class get))
+	     (if (not (and (closure? set)
+			   (= (car (procedure-property set 'arity)) 2)))
+		 (goops-error "Bad setter closure for slot `~S' in ~S: ~S"
+			      slot class set))))))
 
   (map (lambda (s)
-	 (let* ((g-n-s (compute-get-n-set class s))
+	 ;; The strange treatment of nfields is due to backward compatibility.
+	 (let* ((index (slot-ref class 'nfields))
+		(g-n-s (compute-get-n-set class s))
+		(size (- (slot-ref class 'nfields) index))
 		(name  (slot-definition-name s)))
-	   ; For each slot we have '(name init-function getter setter)
-	   ; If slot, we have the simplest form '(name init-function . index)
+	   ;; NOTE: The following is interdependent with C macros
+	   ;; defined above goops.c:scm_sys_prep_layout_x.
+	   ;;
+	   ;; For simple instance slots, we have the simplest form
+	   ;; '(name init-function . index)
+	   ;; For other slots we have
+	   ;; '(name init-function getter setter . alloc)
+	   ;; where alloc is:
+	   ;;   '(index size) for instance allocated slots
+	   ;;   '() for other slots
 	   (verify-accessors name g-n-s)
 	   (cons name
 		 (cons (compute-slot-init-function s)
-		       g-n-s))))
+		       (if (or (integer? g-n-s)
+			       (zero? size))
+			   g-n-s
+			   (append g-n-s index size))))))
        slots))
 
 ;;; compute-cpl
