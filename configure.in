@@ -348,6 +348,8 @@ LIBLOBJS="`echo ${LIBOBJS} | sed 's/\.o/.lo/g'`"
 AC_SUBST(GUILE_MAJOR_VERSION)
 AC_SUBST(GUILE_MINOR_VERSION)
 AC_SUBST(GUILE_VERSION)
+GUILE_LIBS="$LDFLAGS $THREAD_LIBS $LIBS"
+AC_SUBST(GUILE_LIBS)
 
 dnl timestamping the interpreter and scheme libraries:
 dnl
