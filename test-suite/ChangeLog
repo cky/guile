@@ -1,3 +1,9 @@
+2004-02-18  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/fractions.test: Remove 1/3 == 1.0/3.0, not true.
+
+	* tests/numbers.test (=): Exercise frac+real and frac+complex.
+
 2004-02-17  Marius Vollmer  <mvo@zagadka.de>
 
 	* Makefile.am (SCM_TESTS): Added test/fractions.test.

@@ -1,3 +1,24 @@
+2004-02-18  Kevin Ryde  <user42@zip.com.au>
+
+	* num2integral.i.c (INTEGRAL2BIG): WORDS_BIGENDIAN not right for word
+	order parameter to mpz_import, in fact with just one word there's no
+	order to worry about at all.
+
+	* numbers.c (scm_num_eq_p): For real==frac, complex==frac, frac==real
+	and frac==complex, make an exact comparison rather than converting
+	with fraction2double.
+
+	* posix.c, putenv.c, stime.c (environ): Use _NSGetEnviron in Darwin
+	shared library, since environ is not directly available there.
+
+	* script.c (scm_shell_usage): Print to stdout for --help, per GNU
+	standard.
+
+	* stime.c (scm_localtime, scm_gmtime, scm_mktime): Provide a default
+	errno EINVAL in case localtime and gmtime don't set it.
+	(scm_mktime, scm_strptime): Forcibly use errno EINVAL for our
+	SCM_SYSERROR, since mktime and strptime generally don't set errno.
+
 2004-02-16  Kevin Ryde  <kevin@swox.se>
 
 	* gc-malloc.c (scm_done_malloc, scm_done_free): Allow negative sizes,
