@@ -1,5 +1,10 @@
 2003-05-12  Kevin Ryde  <user42@zip.com.au>
 
+	* configure.in (CC_FOR_BUILD): Use AC_ARG_VAR.
+
+	* configure.in (SCM_SINGLES): Use AC_CHECK_SIZEOF(float), to
+	eliminated guess-yes when cross compiling.
+
 	* configure.in (SCM_I_GSC_STACK_GROWS_UP): Fix missing comma in
 	AC_TRY_RUN.
 
