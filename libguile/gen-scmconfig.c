@@ -401,7 +401,7 @@ main (int argc, char *argv[])
       "#endif\n");
   printf ("\n");
 
-  pf ("#define SCM_HAVE_ARRAYS +++ /* always true now */\n");
+  pf ("#define SCM_HAVE_ARRAYS 1 /* always true now */\n");
 
   printf ("#endif\n");
 
