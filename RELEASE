@@ -107,7 +107,8 @@ After signal handling and threading have been fixed:
   scm_info_frame, scm_stack, scm_array, scm_array_dim.
 - remove deprecated functions: scm_mkbig, scm_big2num, scm_adjbig,
   scm_normbig, scm_copybig, scm_2ulong2big, scm_dbl2big, scm_big2dbl.
-- remove deprecated functions: scm_protect_object, scm_unprotect_object.
+- remove deprecated functions: scm_protect_object,
+  scm_unprotect_object, scm_create_hook.
 
 Modules sort.c and random.c should be factored out into separate
 modules (but still be distributed with guile-core) when we get a new

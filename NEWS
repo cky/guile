@@ -990,6 +990,11 @@ scm_unprotect_object.
 These functions can be used to register pointers to locations that
 hold SCM values.
 
+** Deprecated function: scm_create_hook.
+
+Its sins are: misleading name, non-modularity and lack of general
+usefulness.
+
 
 Changes since Guile 1.3.4:
 
