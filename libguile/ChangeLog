@@ -1,3 +1,26 @@
+1999-01-10  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+
+	* sort.c, sort.h: New files: Implement slib's and scsh's sort
+	interfaces.  Author: Roland Orre.
+
+	* Makefile.am: Added sort.c, sort.h, sort.x.
+
+	* init.c: #include "sort.h";
+	(scm_boot_guile_1): Call scm_init_sort ().
+
+	* numbers.h: Added #include "libguile/print.h".
+
+	* numbers.c: Formatted according to Guile conventions;
+	Renamed s_bignum --> scm_s_bignum.
+
+	* random.c, random.h: New files: Random number support.
+	Interface same as slib's.
+
+	* Makefile.am: Added random.c, random.h, random.x.
+	
+	* init.c: #include "random.h";
+	(scm_boot_guile_1): Call scm_init_random ().
+
 1998-12-23  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
 	* Makefile.am: New files: guardians.c, guardians.x, guardians.h
