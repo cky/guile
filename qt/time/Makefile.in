@@ -30,7 +30,7 @@ pkgdatadir = $(datadir)/@PACKAGE@
 pkglibdir = $(libdir)/@PACKAGE@
 pkgincludedir = $(includedir)/@PACKAGE@
 
-top_builddir = ..
+top_builddir = ../..
 
 ACLOCAL = @ACLOCAL@
 AUTOCONF = @AUTOCONF@
@@ -51,12 +51,15 @@ PRE_UNINSTALL = true
 POST_UNINSTALL = true
 host_alias = @host_alias@
 host_triplet = @host@
+AWK = @AWK@
 CC = @CC@
+LIBLOBJS = @LIBLOBJS@
+LIBTOOL = @LIBTOOL@
 MAINT = @MAINT@
 PACKAGE = @PACKAGE@
 RANLIB = @RANLIB@
+THREAD_LIBS = @THREAD_LIBS@
 VERSION = @VERSION@
-module = @module@
 qtmd_h = @qtmd_h@
 qtmdb_s = @qtmdb_s@
 qtmdc_c = @qtmdc_c@
@@ -64,11 +67,13 @@ qtmdc_o = @qtmdc_o@
 qtmds_o = @qtmds_o@
 qtmds_s = @qtmds_s@
 target_libs = @target_libs@
+xtra_PLUGIN_guile_libs = @xtra_PLUGIN_guile_libs@
 
 AUTOMAKE_OPTIONS = foreign
 
 EXTRA_DIST = README.time assim cswap go init prim raw
-mkinstalldirs = $(SHELL) $(top_srcdir)/../mkinstalldirs
+mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+CONFIG_HEADER = ../../libguile/scmconfig.h
 CONFIG_CLEAN_FILES = 
 DIST_COMMON =  Makefile.am Makefile.in
 
@@ -81,7 +86,7 @@ default: all
 
 .SUFFIXES:
 $(srcdir)/Makefile.in: @MAINT@ Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
-	cd $(top_srcdir) && $(AUTOMAKE) --foreign time/Makefile
+	cd $(top_srcdir) && $(AUTOMAKE) --foreign qt/time/Makefile
 
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status $(BUILT_SOURCES)
 	cd $(top_builddir) \
@@ -93,7 +98,7 @@ TAGS:
 
 distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
 
-subdir = time
+subdir = qt/time
 distdir: $(DISTFILES)
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
@@ -144,6 +149,7 @@ clean:  clean-generic mostlyclean
 
 distclean:  distclean-generic clean
 	rm -f config.status
+	rm -f libtool
 
 maintainer-clean:  maintainer-clean-generic distclean
 	@echo "This command is intended for maintainers to use;"
