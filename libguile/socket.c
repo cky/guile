@@ -325,6 +325,8 @@ scm_fill_sockaddr (fam, address, args, which_arg, proc, size)
 
 	soka = (struct sockaddr_in *)
 	  scm_must_malloc (sizeof (struct sockaddr_in), proc);
+	/* e.g., for BSDs which don't like invalid sin_len.  */
+	memset (soka, 0, sizeof (struct sockaddr_in));
 	soka->sin_family = AF_INET;
 	soka->sin_addr.s_addr =
 	  htonl (scm_num2ulong (address, (char *) which_arg, proc));
@@ -344,6 +346,7 @@ scm_fill_sockaddr (fam, address, args, which_arg, proc, size)
 
 	soka = (struct sockaddr_un *)
 	  scm_must_malloc (sizeof (struct sockaddr_un), proc);
+	memset (soka, 0, sizeof (struct sockaddr_un));
 	soka->sun_family = AF_UNIX;
 	SCM_ASSERT (SCM_NIMP (address) && SCM_ROSTRINGP (address), address,
 		    which_arg, proc);
