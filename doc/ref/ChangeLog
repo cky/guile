@@ -1,3 +1,8 @@
+2001-09-25  Thien-Thi Nguyen  <ttn@glug.org>
+
+	* scheme-procedures.texi (Syntax Rules): Add `cindex' directive.
+	Thanks to suggestion by Alex Schroeder.
+
 2001-08-30  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* guile.texi (Top): Group all index nodes together so that
