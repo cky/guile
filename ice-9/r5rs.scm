@@ -47,17 +47,19 @@
 (module-use! %module-public-interface (resolve-interface '(ice-9 safe-r5rs)))
 
 (export scheme-report-environment
-	interaction-environment
-
-	call-with-input-file call-with-output-file
-	with-input-from-file with-output-to-file
-	open-input-file open-output-file
-	close-input-port close-output-port
-
-	load
 	;;transcript-on
 	;;transcript-off
 	)
+
+(re-export interaction-environment
+
+	   call-with-input-file call-with-output-file
+	   with-input-from-file with-output-to-file
+	   open-input-file open-output-file
+	   close-input-port close-output-port
+
+	   load
+	   )
 
 (define scheme-report-interface %module-public-interface)
 
