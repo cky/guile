@@ -207,7 +207,7 @@ scm_sys_try_load_path (filename, case_insensitive_p, sharp)
   SCM full_filename = scm_sys_search_load_path (filename);
   if (SCM_FALSEP (full_filename))
     {
-      lgh_error (scm_misc_error_key,
+      scm_error (scm_misc_error_key,
 		 s_sys_try_load_path,
 		 "Unable to find file %S in %S",
 		 scm_listify (filename, *scm_loc_load_path, SCM_UNDEFINED),

@@ -109,13 +109,8 @@
 #endif
 
 #ifdef HAVE_TIMES
-#ifdef __STDC__
-static
-long mytime(void)
-#else
 static
 long mytime()
-#endif
 {
   struct tms time_buffer;
   times(&time_buffer);
@@ -137,13 +132,8 @@ extern int ftime (struct timeb *);
 
 struct timeb scm_your_base = {0};
 SCM_PROC(s_get_internal_real_time, "get-internal-real-time", 0, 0, 0, scm_get_internal_real_time);
-#ifdef __STDC__
-SCM
-scm_get_internal_real_time(void)
-#else
 SCM
 scm_get_internal_real_time()
-#endif
 {
   struct timeb time_buffer;
   long tmp;
@@ -160,13 +150,8 @@ scm_get_internal_real_time()
 
 timet scm_your_base = 0;
 SCM_PROC(s_get_internal_real_time, "get-internal-real-time", 0, 0, 0, scm_get_internal_real_time);
-#ifdef __STDC__
-SCM
-scm_get_internal_real_time(void)
-#else
 SCM
 scm_get_internal_real_time()
-#endif
 {
 	return SCM_MAKINUM((time((timet*)0) - scm_your_base) * (int)CLKTCK);
 }
@@ -177,25 +162,15 @@ scm_get_internal_real_time()
 static long scm_my_base = 0;
 
 SCM_PROC(s_get_internal_run_time, "get-internal-run-time", 0, 0, 0, scm_get_internal_run_time);
-#ifdef __STDC__
-SCM
-scm_get_internal_run_time(void)
-#else
 SCM
 scm_get_internal_run_time()
-#endif
 {
   return SCM_MAKINUM(mytime()-scm_my_base);
 }
 
 SCM_PROC(s_current_time, "current-time", 0, 0, 0, scm_current_time);
-#ifdef __STDC__
-SCM
-scm_current_time(void)
-#else
 SCM
 scm_current_time()
-#endif
 {
   timet timv = time((timet*)0);
   SCM ans;
@@ -203,27 +178,17 @@ scm_current_time()
   return SCM_BOOL_F==ans ? SCM_MAKINUM(timv) : ans;
 }
 
-#ifdef __STDC__
-long 
-scm_time_in_msec(long x)
-#else
 long 
 scm_time_in_msec(x)
      long x;
-#endif
 {
   if (CLKTCK==60) return (x*50)/3;
   else
     return (CLKTCK < 1000 ? x*(1000L/(long)CLKTCK) : (x*1000L)/(long)CLKTCK);
 }
 
-#ifdef __STDC__
-void
-scm_init_stime(void)
-#else
 void
 scm_init_stime()
-#endif
 {
   scm_sysintern("internal-time-units-per-second",
 		SCM_MAKINUM((long)CLKTCK));

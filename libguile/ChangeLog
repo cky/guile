@@ -1,3 +1,11 @@
+Sat Oct 12 21:49:29 1996  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* error.c, eval.c, load.c, stackchk.c: use scm_error not lgh_error.
+
+	* __scm.h (lgh_error): removed, lgh shouldn't be in libguile.
+
+	* stime.c, stime.h: use SCM_P method.
+	
 Fri Oct 11 03:58:25 1996  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* eval.c (scm_nconc2last): Revert last change; there seems to be

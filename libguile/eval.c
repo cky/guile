@@ -243,7 +243,7 @@ scm_lookupcar (vloc, genv)
       var = SCM_CAR (var);
     errout:
       /* scm_everr (vloc, genv,...) */
-      lgh_error (scm_misc_error_key,
+      scm_error (scm_misc_error_key,
 		 NULL,
 		 SCM_NULLP (env)
 		 ? "Unbound variable: %S"
@@ -436,7 +436,7 @@ scm_m_vref (xorig, env)
   if (SCM_NIMP(x) && UDSCM_VARIABLEP (SCM_CAR (x)))
     {
       /* scm_everr (SCM_UNDEFINED, env,..., "global variable reference") */
-      lgh_error (scm_misc_error_key,
+      scm_error (scm_misc_error_key,
 		 NULL,
 		 "Bad variable: %S",
 		 scm_listify (SCM_CAR (SCM_CDR (x)), SCM_UNDEFINED),
@@ -1858,7 +1858,7 @@ dispatch:
       proc = x;
     badfun:
       /* scm_everr (x, env,...) */
-      lgh_error (scm_misc_error_key,
+      scm_error (scm_misc_error_key,
 		 NULL,
 		 "Wrong type to apply: %S",
 		 scm_listify (proc, SCM_UNDEFINED),

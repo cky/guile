@@ -325,9 +325,6 @@ extern unsigned int scm_async_clock;
           goto _label
 #endif
 
-#define lgh_error(_key, _subr, _message, _args, _rest) \
-	scm_error (_key, _subr, _message, _args, _rest)
-
 #define SCM_ARGn 		0
 #define SCM_ARG1 		1
 #define SCM_ARG2 		2

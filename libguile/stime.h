@@ -47,25 +47,10 @@
 #include "libguile/__scm.h"
 
 
-#ifdef __STDC__
-extern SCM scm_get_internal_real_time(void);
-extern SCM scm_get_internal_run_time(void);
-extern SCM scm_current_time(void);
-extern long scm_time_in_msec(long x);
-extern void scm_init_stime(void);
-
-#else /* STDC */
-extern SCM scm_get_internal_real_time();
-extern SCM scm_get_internal_run_time();
-extern SCM scm_current_time();
-extern long scm_time_in_msec();
-extern void scm_init_stime();
-
-#endif /* STDC */
-
-
-
-
-
+extern SCM scm_get_internal_real_time SCM_P ((void));
+extern SCM scm_get_internal_run_time SCM_P ((void));
+extern SCM scm_current_time SCM_P ((void));
+extern long scm_time_in_msec SCM_P ((long x));
+extern void scm_init_stime SCM_P ((void));
 
 #endif  /* TIMEH */

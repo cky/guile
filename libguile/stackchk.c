@@ -57,7 +57,7 @@ void
 scm_report_stack_overflow ()
 {
   scm_stack_checking_enabled_p = 0;
-  lgh_error (scm_stack_overflow_key,
+  scm_error (scm_stack_overflow_key,
 	     NULL,
 	     "Stack overflow",
 	     SCM_BOOL_F,

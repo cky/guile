@@ -123,7 +123,7 @@ scm_perror (arg)
 void (*scm_error_callback) () = 0;
 
 /* all errors thrown from C should pass through here.  */
-/* also known as lgh_error.  */
+/* also known as scm_error.  */
 void
 scm_error (key, subr, message, args, rest)
      SCM key;
@@ -164,7 +164,7 @@ void
 scm_syserror (subr)
      char *subr;
 {
-  lgh_error (scm_system_error_key,
+  scm_error (scm_system_error_key,
 	     subr,
 	     "%s",
 	     scm_listify (scm_makfrom0str (strerror (errno)),
@@ -178,7 +178,7 @@ scm_syserror_msg (subr, message, args)
      char *message;
      SCM args;
 {
-  lgh_error (scm_system_error_key,
+  scm_error (scm_system_error_key,
 	     subr,
 	     message,
 	     args,
@@ -190,13 +190,13 @@ scm_sysmissing (subr)
      char *subr;
 {
 #ifdef ENOSYS
-  lgh_error (scm_system_error_key,
+  scm_error (scm_system_error_key,
 	     subr,
 	     "%s",
 	     scm_listify (scm_makfrom0str (strerror (ENOSYS)), SCM_UNDEFINED),
 	     scm_listify (SCM_MAKINUM (ENOSYS), SCM_UNDEFINED));
 #else
-  lgh_error (scm_system_error_key,
+  scm_error (scm_system_error_key,
 	     subr,
 	     "Missing function",
 	     SCM_BOOL_F,
@@ -208,7 +208,7 @@ void
 scm_num_overflow (subr)
   char *subr;
 {
-  lgh_error (scm_num_overflow_key,
+  scm_error (scm_num_overflow_key,
 	     subr,
 	     "Numerical overflow",
 	     SCM_BOOL_F,
@@ -220,7 +220,7 @@ scm_out_of_range (subr, bad_value)
      char *subr;
      SCM bad_value;
 {
-  lgh_error (scm_out_of_range_key,
+  scm_error (scm_out_of_range_key,
 	     subr,
 	     "Argument out of range: %S",
 	     scm_listify (bad_value, SCM_UNDEFINED),
@@ -231,7 +231,7 @@ void
 scm_wrong_num_args (proc)
      SCM proc;
 {
-  lgh_error (scm_args_number_key,
+  scm_error (scm_args_number_key,
 	     NULL,
 	     "Wrong number of arguments to %s",
 	     scm_listify (proc, SCM_UNDEFINED),
@@ -244,7 +244,7 @@ scm_wrong_type_arg (subr, pos, bad_value)
      int pos;
      SCM bad_value;
 {
-  lgh_error (scm_arg_type_key,
+  scm_error (scm_arg_type_key,
 	     subr,
 	     (pos == 0) ? "Wrong type argument: %S"
 	     : "Wrong type argument in position %s: %S",
@@ -257,7 +257,7 @@ void
 scm_memory_error (subr)
      char *subr;
 {
-  lgh_error (scm_memory_alloc_key,
+  scm_error (scm_memory_alloc_key,
 	     subr,
 	     "Memory allocation error",
 	     SCM_BOOL_F,
@@ -276,7 +276,7 @@ scm_wta (arg, pos, s_subr)
   if ((~0x1fL) & (long) pos)
     {
       /* error string supplied.  */
-      lgh_error (scm_misc_error_key,
+      scm_error (scm_misc_error_key,
 		 s_subr,
 		 pos,
 		 SCM_BOOL_F,
@@ -309,7 +309,7 @@ scm_wta (arg, pos, s_subr)
 	  scm_memory_error (s_subr);
 	default:
 	  /* this shouldn't happen.  */
-	  lgh_error (scm_misc_error_key,
+	  scm_error (scm_misc_error_key,
 		     s_subr,
 		     "Unknown error",
 		     SCM_BOOL_F,
