@@ -1,3 +1,12 @@
+2005-01-28  Kevin Ryde  <user42@zip.com.au>
+
+	* numbers.c (scm_ash): Rewrite using shifts, much faster than
+	integer-expt and multiply/divide.  Inexacts and fractions no longer
+	supported (they happened to work before for left shifts, but not
+	right).  Don't really need inexacts and fractions, since ash is
+	documented as a "bitwise operation", and all the rest of those only
+	take exact integers.
+
 2005-01-27  Han-Wen Nienhuys  <hanwen@xs4all.nl>
 
 	* gc-card.c (scm_i_card_statistics): map structs, closures and
@@ -21,6 +30,14 @@
 	POSIX and C99 don't document errno being set.  Reported by Bruno
 	Haible.
 	(scm_flock): Update docstring from manual.
+
+	* random.c (scm_i_init_rstate): Compare w to -1 not 0xffffffffUL, now
+	that it's an scm_t_int32.  Otherwise gcc 3.4 says it's always false on
+	a 64-bit system.
+
+	* scmsigs.c (scm_sigaction_for_thread): Use scm_to_long for
+	sa_handler, needs to be a long on 64-bit systems where int is only 32
+	bits.
 
 2005-01-20  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
