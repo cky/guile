@@ -360,11 +360,15 @@ scm_setter (SCM proc)
     return SCM_SETTER (proc);
   else if (SCM_STRUCTP (proc))
     {
+      SCM setter;
       SCM_GASSERT1 (SCM_I_OPERATORP (proc),
 		    g_setter, proc, SCM_ARG1, s_setter);
-      return (SCM_I_ENTITYP (proc)
-	      ? SCM_ENTITY_SETTER (proc)
-	      : SCM_OPERATOR_SETTER (proc));
+      setter = (SCM_I_ENTITYP (proc)
+		? SCM_ENTITY_SETTER (proc)
+		: SCM_OPERATOR_SETTER (proc));
+      if (SCM_NIMP (setter))
+	return setter;
+      /* fall through */
     }
   SCM_WTA_DISPATCH_1 (g_setter, proc, SCM_ARG1, s_setter);
   return 0;
