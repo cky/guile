@@ -97,7 +97,31 @@
       (eq? (class-name <class>) '<class>))
 
     (pass-if "direct superclass"
-      (equal? (class-direct-supers <class>) (list <object>)))))
+      (equal? (class-direct-supers <class>) (list <object>))))
+
+  (with-test-prefix "class-precedence-list"
+    (for-each (lambda (class)
+		(run-test (if (slot-bound? class 'name)
+			      (class-name class)
+			      (with-output-to-string
+				(lambda ()
+				  (display class))))
+			  #t
+			  (lambda ()
+			    (catch #t
+				   (lambda ()
+				     (equal? (class-precedence-list class)
+					     (compute-cpl class)))
+				   (lambda args #t)))))
+	      (let ((table (make-hash-table)))
+		(let rec ((class <top>))
+		  (hash-create-handle! table class #f)
+		  (for-each rec (class-direct-subclasses class)))
+		(hash-fold (lambda (class ignore classes)
+			     (cons class classes))
+			   '()
+			   table))))
+  )
 
 (with-test-prefix "defining classes"
 
@@ -185,6 +209,23 @@
 	     (z #:accessor z #:init-value 789))
 	  (current-module))
     (eval '(and (= (y foo) 456) (= (z foo) 789)) (current-module))))
+
+(with-test-prefix "equal?"
+  (pass-if "equal"
+	   (eval '(begin
+		    (define-class <c> ()
+		      (x #:accessor x #:init-keyword #:x)
+		      (y #:accessor y #:init-keyword #:y))
+		    (define-method (equal? (a <c>) (b <c>))
+		      (equal? (y a) (y b)))
+		    (define o1 (make <c> #:x '(1) #:y '(3)))
+		    (define o2 (make <c> #:x '(2) #:y '(3)))
+		    (define o3 (make <c> #:x '(2) #:y '(4)))
+		    (equal? o1 o2))
+		 (current-module)))
+  (pass-if "not equal"
+	   (eval '(not (equal? o2 o3))
+		 (current-module))))
 
 (use-modules (oop goops active-slot))
 
