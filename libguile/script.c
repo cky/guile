@@ -644,7 +644,8 @@ scm_shell (int argc, char **argv)
       }
   }
 
-  exit (scm_exit_status (scm_eval_x (scm_compile_shell_switches (argc,argv))));
+  exit (scm_exit_status (scm_eval_x (scm_compile_shell_switches (argc, argv),
+				     scm_the_root_module ())));
 }
 
 
