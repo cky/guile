@@ -543,7 +543,7 @@ scm_array_fill_int (SCM ra, SCM fill, SCM ignore)
     case scm_tc7_uvect:
       { /* scope */
 	unsigned long f = SCM_NUM2ULONG (2,fill);
-	unsigned long *ve = (long *) SCM_VELTS (ra);
+	unsigned long *ve = (unsigned long *) SCM_VELTS (ra);
 
 	for (i = base; n--; i += inc)
 	  ve[i] = f;
