@@ -73,10 +73,10 @@ libqt.a, which you will need to link into your programs after
 libguile.a.  That is, you should pass the switches -lguile -qt to your
 linker.
 
-Coop threads are not yet thoroughly tested; once they are, they will
-be enabled by default.  The interaction with blocking I/O is pretty ad
-hoc at the moment.  In our experience, bugs in the thread support do
-not affect you if you don't actually use threads.
+Cooperative threads are not yet thoroughly tested; once they are, they
+will be enabled by default.  The interaction with blocking I/O is
+pretty ad hoc at the moment.  In our experience, bugs in the thread
+support do not affect you if you don't actually use threads.
 
 --enable-dynamic-linking --- Build a Guile executable and library
 providing Scheme functions which can load a shared library and
@@ -102,23 +102,15 @@ separate build directory, you'll need to include the build directory
 in the path as well.
 
 For example, suppose the Guile distribution unpacked into a directory
-called `/home/jimb/guile-snap' (so the full name of this file would be
-`/home/jimb/guile-snap/INSTALL').  Then you might say:
+called `/home/jimb/guile-snap' (so the full name of this INSTALL file
+would be `/home/jimb/guile-snap/INSTALL').  Then you might say, if
+you're using Bash or any other Bourne shell variant,
 
   export GUILE_LOAD_PATH=/home/jimb/guile-snap
 
-if you're using Bash or any other Bourne shell variant, or
+or if you're using CSH or one of its variants:
 
   setenv GUILE_LOAD_PATH /home/jimb/guile-snap
-
-if you're using CSH or one of its variants.
-
-If you built Guile in a separate directory from the source tree, then
-you'll need to include your build directory in the GUILE_LOAD_PATH as
-well.  For example, if you built in a subdirectory of the source tree
-called `pentium', you might say:
-
-  export GUILE_LOAD_PATH=/home/jimb/guile-snap:/home/jimb/guile-snap/pentium
 
 
 Building a Statically Linked Guile ========================================
