@@ -1925,56 +1925,6 @@ scm_bit_invert_x (v)
 }
 
 
-SCM_PROC(s_string_upcase_x, "string-upcase!", 1, 0, 0, scm_string_upcase_x);
-
-SCM 
-scm_string_upcase_x (v)
-     SCM v;
-{
-  register long k;
-  register unsigned char *cs;
-  SCM_ASRTGO (SCM_NIMP (v), badarg1);
-  k = SCM_LENGTH (v);
-  switch SCM_TYP7
-    (v)
-    {
-    case scm_tc7_string:
-      cs = SCM_UCHARS (v);
-      while (k--)
-	cs[k] = scm_upcase(cs[k]);
-      break;
-    default:
-    badarg1:scm_wta (v, (char *) SCM_ARG1, s_string_upcase_x);
-    }
-  return v;
-}
-
-SCM_PROC(s_string_downcase_x, "string-downcase!", 1, 0, 0, scm_string_downcase_x);
-
-SCM 
-scm_string_downcase_x (v)
-     SCM v;
-{
-  register long k;
-  register unsigned char *cs;
-  SCM_ASRTGO (SCM_NIMP (v), badarg1);
-  k = SCM_LENGTH (v);
-  switch SCM_TYP7
-    (v)
-    {
-    case scm_tc7_string:
-      cs = SCM_UCHARS (v);
-      while (k--)
-	cs[k] = scm_downcase(cs[k]);
-      break;
-    default:
-    badarg1:scm_wta (v, (char *) SCM_ARG1, s_string_downcase_x);
-    }
-  return v;
-}
-
-
-
 SCM 
 scm_istr2bve (str, len)
      char *str;

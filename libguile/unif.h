@@ -102,8 +102,6 @@ extern SCM scm_bit_position SCM_P ((SCM item, SCM v, SCM k));
 extern SCM scm_bit_set_star_x SCM_P ((SCM v, SCM kv, SCM obj));
 extern SCM scm_bit_count_star SCM_P ((SCM v, SCM kv, SCM obj));
 extern SCM scm_bit_invert_x SCM_P ((SCM v));
-extern SCM scm_string_upcase_x SCM_P ((SCM v));
-extern SCM scm_string_downcase_x SCM_P ((SCM v));
 extern SCM scm_istr2bve SCM_P ((char *str, long len));
 extern SCM scm_array_to_list SCM_P ((SCM v));
 extern SCM scm_list_to_uniform_array SCM_P ((SCM ndim, SCM prot, SCM lst));

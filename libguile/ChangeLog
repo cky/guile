@@ -1,3 +1,19 @@
+Thu Feb  6 03:10:32 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* strop.c (scm_string_upcase_x, scm_string_downcase_x):	moved from
+	unif.c.
+	strop.h: move prototypes too.
+
+Wed Feb  5 08:33:00 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* posix.c (scm_init_posix): don't intern EINTR since it's now done
+	elsewhere.
+
+	* ioext.c (scm_init_ioext): don't intern stat macros, S_IRUSR
+	etc.  I deleted them from filesys.c long ago, but didn't
+	notice they were here too (although ineffective since 
+	sys/stat.h wasn't included).
+
 Tue Feb  4 18:17:50 1997  Tom Tromey  <tromey@cygnus.com>
 
 	* eval.c: Don't define alloca in GCC case.  gcc will automatically

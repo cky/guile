@@ -1214,10 +1214,6 @@ scm_init_posix ()
   scm_sysintern ("WUNTRACED", SCM_MAKINUM (WUNTRACED));
 #endif
 
-#ifdef EINTR
-  scm_sysintern ("EINTR", SCM_MAKINUM (EINTR));
-#endif
-
 #ifdef SIGHUP
   scm_sysintern ("SIGHUP", SCM_MAKINUM (SIGHUP));
 #endif

@@ -2,7 +2,7 @@
 
 #ifndef STROPH
 #define STROPH
-/*	Copyright (C) 1995,1996 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996,1997 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -59,5 +59,7 @@ extern SCM scm_string_to_list SCM_P ((SCM str));
 extern SCM scm_string_copy SCM_P ((SCM str));
 extern SCM scm_string_fill_x SCM_P ((SCM str, SCM chr));
 extern void scm_init_strop SCM_P ((void));
+extern SCM scm_string_upcase_x SCM_P ((SCM v));
+extern SCM scm_string_downcase_x SCM_P ((SCM v));
 
 #endif  /* STROPH */
