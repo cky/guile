@@ -300,27 +300,34 @@ print_circref (SCM port, scm_print_state *pstate, SCM ref)
 void
 scm_print_symbol_name (const char *str, size_t len, SCM port)
 {
-  size_t pos;
+  /* This points to the first character that has not yet been written to the
+   * port. */
+  size_t pos = 0;
+  /* This points to the character we're currently looking at. */
   size_t end;
-  int weird;
-  int maybe_weird;
+  /* If the name contains weird characters, we'll escape them with
+   * backslashes and set this flag; it indicates that we should surround the
+   * name with "#{" and "}#". */
+  int weird = 0;
+  /* Backslashes are not sufficient to make a name weird, but if a name is
+   * weird because of other characters, backslahes need to be escaped too.
+   * The first time we see a backslash, we set maybe_weird, and mw_pos points
+   * to the backslash.  Then if the name turns out to be weird, we re-process
+   * everything starting from mw_pos. */
+  int maybe_weird = 0;
   size_t mw_pos = 0;
-  
-  pos = 0;
-  weird = 0;
-  maybe_weird = 0;
-  
-  /* XXX - Lots of weird symbol names are missed, such as "12" or
-     "'a". */
+  /* If the name is purely numeric, then it's weird as a whole, even though
+   * none of the individual characters is weird.  But we won't know this
+   * until we reach the end of the name.  This flag describes the part of the
+   * name we've looked at so far. */
+  int all_digits = 1;
 
-  if (len == 0)
-    scm_lfwrite ("#{}#", 4, port);
-  else if (str[0] == '#' || str[0] == ':' || str[len-1] == ':')
+  if (len == 0 || str[0] == '\'' || str[0] == ':' || str[len-1] == ':')
     {
       scm_lfwrite ("#{", 2, port);
       weird = 1;
     }
-  
+
   for (end = pos; end < len; ++end)
     switch (str[end])
       {
@@ -332,8 +339,10 @@ scm_print_symbol_name (const char *str, size_t len, SCM port)
       case ')':
       case '"':
       case ';':
+      case '#':
       case SCM_WHITE_SPACES:
       case SCM_LINE_INCREMENTORS:
+	all_digits = 0;
       weird_handler:
 	if (maybe_weird)
 	  {
@@ -346,9 +355,7 @@ scm_print_symbol_name (const char *str, size_t len, SCM port)
 	    weird = 1;
 	  }
 	if (pos < end)
-	  {
-	    scm_lfwrite (str + pos, end - pos, port);
-	  }
+	  scm_lfwrite (str + pos, end - pos, port);
 	{
 	  char buf[2];
 	  buf[0] = '\\';
@@ -358,6 +365,7 @@ scm_print_symbol_name (const char *str, size_t len, SCM port)
 	pos = end + 1;
 	break;
       case '\\':
+	all_digits = 0;
 	if (weird)
 	  goto weird_handler;
 	if (!maybe_weird)
@@ -366,14 +374,18 @@ scm_print_symbol_name (const char *str, size_t len, SCM port)
 	    mw_pos = pos;
 	  }
 	break;
-      case '}':
-      case '#':
-	if (weird)
-	  goto weird_handler;
+      case '0': case '1': case '2': case '3': case '4':
+      case '5': case '6': case '7': case '8': case '9':
 	break;
       default:
+	all_digits = 0;
 	break;
       }
+  if (all_digits)
+    {
+      scm_lfwrite ("#{", 2, port);
+      weird = 1;
+    }
   if (pos < end)
     scm_lfwrite (str + pos, end - pos, port);
   if (weird)
