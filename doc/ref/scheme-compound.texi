@@ -1386,43 +1386,74 @@ memory.
 @node Array Mapping
 @subsection Array Mapping
 
-@deffn {Scheme Procedure} array-map! ra0 proc . lra
-@deffnx {Scheme Procedure} array-map-in-order! ra0 proc . lra
-@deffnx {C Function} scm_array_map_x (ra0, proc, lra)
-@var{array1}, @dots{} must have the same number of dimensions as
-@var{array0} and have a range for each index which includes the range
-for the corresponding index in @var{array0}.  @var{proc} is applied to
-each tuple of elements of @var{array1} @dots{} and the result is stored
-as the corresponding element in @var{array0}.  The value returned is
-unspecified.  The order of application is unspecified.
+@c  FIXME: array-map! accepts no source arrays at all, and in that
+@c  case makes calls "(proc)".  Is that meant to be a documented
+@c  feature?
+@c
+@c  FIXME: array-for-each doesn't say what happens if the sources have
+@c  different index ranges.  The code currently iterates over the
+@c  indices of the first and expects the others to cover those.  That
+@c  at least vaguely matches array-map!, but is is meant to be a
+@c  documented feature?
+
+@deffn {Scheme Procedure} array-map! dst proc src1 @dots{} srcN
+@deffnx {Scheme Procedure} array-map-in-order! dst proc src1 @dots{} srcN
+@deffnx {C Function} scm_array_map_x (dst, proc, srclist)
+Set each element of the @var{dst} array to values obtained from calls
+to @var{proc}.  The value returned is unspecified.
+
+Each call is @code{(@var{proc} @var{elem1} @dots{} @var{elemN})},
+where each @var{elem} is from the corresponding @var{src} array, at
+the @var{dst} index.  @code{array-map-in-order!} makes the calls in
+row-major order, @code{array-map!} makes them in an unspecified order.
+
+The @var{src} arrays must have the same number of dimensions as
+@var{dst}, and must have a range for each dimension which covers the
+range in @var{dst}.  This ensures all @var{dst} indices are valid in
+each @var{src}.
 @end deffn
 
-@deffn {Scheme Procedure} array-for-each proc ra0 . lra
-@deffnx {C Function} scm_array_for_each (proc, ra0, lra)
-Apply @var{proc} to each tuple of elements of @var{array0} @dots{}
-in row-major order.  The value returned is unspecified.
+@deffn {Scheme Procedure} array-for-each proc src1 @dots{} srcN
+@deffnx {C Function} scm_array_for_each (proc, src1, srclist)
+Apply @var{proc} to each tuple of elements of @var{src1} @dots{}
+@var{srcN}, in row-major order.  The value returned is unspecified.
 @end deffn
 
-@deffn {Scheme Procedure} array-index-map! ra proc
-@deffnx {C Function} scm_array_index_map_x (ra, proc)
-Apply @var{proc} to the indices of each element of @var{array} in
-turn, storing the result in the corresponding element.  The value
-returned and the order of application are unspecified.
+@deffn {Scheme Procedure} array-index-map! dst proc
+@deffnx {C Function} scm_array_index_map_x (dst, proc)
+Set each element of the @var{dst} array to values returned by calls to
+@var{proc}.  The value returned is unspecified.
 
-One can implement @var{array-indexes} as
-@lisp
-(define (array-indexes array)
-    (let ((ra (apply make-array #f (array-shape array))))
-      (array-index-map! ra (lambda x x))
-      ra))
-@end lisp
-Another example:
-@lisp
-(define (apl:index-generator n)
-    (let ((v (make-uniform-vector n 1)))
-      (array-index-map! v (lambda (i) i))
-      v))
-@end lisp
+Each call is @code{(@var{proc} @var{i1} @dots{} @var{iN})}, where
+@var{i1}@dots{}@var{iN} is the destination index, one parameter for
+each dimension.  The order in which the calls are made is unspecified.
+
+For example, to create a @m{4\times4, 4x4} matrix representing a
+cyclic group,
+
+@tex
+\advance\leftskip by 2\lispnarrowing {
+$\left(\matrix{%
+0 & 1 & 2 & 3 \cr
+1 & 2 & 3 & 0 \cr
+2 & 3 & 0 & 1 \cr
+3 & 0 & 1 & 2 \cr
+}\right)$} \par
+@end tex
+@ifnottex
+@example
+    / 0 1 2 3 \
+    | 1 2 3 0 |
+    | 2 3 0 1 |
+    \ 3 0 1 2 /
+@end example
+@end ifnottex
+
+@example
+(define a (make-array #f 4 4))
+(array-index-map! a (lambda (i j)
+                      (modulo (+ i j) 4)))
+@end example
 @end deffn
 
 @node Uniform Arrays
