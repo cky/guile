@@ -297,10 +297,15 @@ gh_scm2chars (SCM obj, char *m)
       break;
 #ifdef HAVE_ARRAYS
     case scm_tc7_byvect:
+      n = SCM_UVECTOR_LENGTH (obj);
+      if (m == 0)
+	m = (char *) malloc (n * sizeof (char));
+      memcpy (m, SCM_VELTS (obj), n * sizeof (char));
+      break;
 #endif
     case scm_tc7_string:
     case scm_tc7_substring:
-      n = SCM_LENGTH (obj);
+      n = SCM_STRING_LENGTH (obj);
       if (m == 0)
 	m = (char *) malloc (n * sizeof (char));
       memcpy (m, SCM_VELTS (obj), n * sizeof (char));

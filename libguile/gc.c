@@ -1010,7 +1010,7 @@ scm_igc (const char *what)
     int bound;
     SCM * elts;
     elts = SCM_VELTS (scm_continuation_stack);
-    bound = SCM_LENGTH (scm_continuation_stack);
+    bound = SCM_VECTOR_LENGTH (scm_continuation_stack);
     x = SCM_INUM (scm_continuation_stack_ptr);
     while (x < bound)
       {
@@ -1172,7 +1172,7 @@ gc_mark_nimp:
           {
             /* ptr is a struct */
             SCM layout = SCM_PACK (vtable_data [scm_vtable_index_layout]);
-            int len = SCM_LENGTH (layout);
+            int len = SCM_SYMBOL_LENGTH (layout);
             char * fields_desc = SCM_SYMBOL_CHARS (layout);
             scm_bits_t * struct_data = (scm_bits_t *) SCM_STRUCT_DATA (ptr);
 
@@ -1213,10 +1213,7 @@ gc_mark_nimp:
       ptr = SCM_CDR (ptr);
       goto gc_mark_nimp;
     case scm_tc7_vector:
-#ifdef CCLO
-    case scm_tc7_cclo:
-#endif
-      i = SCM_LENGTH (ptr);
+      i = SCM_VECTOR_LENGTH (ptr);
       if (i == 0)
 	break;
       while (--i > 0)
@@ -1224,11 +1221,22 @@ gc_mark_nimp:
 	  scm_gc_mark (SCM_VELTS (ptr)[i]);
       ptr = SCM_VELTS (ptr)[0];
       goto gc_mark_loop;
+#ifdef CCLO
+    case scm_tc7_cclo:
+      i = SCM_CCLO_LENGTH (ptr);
+      if (i == 0)
+	break;
+      while (--i > 0)
+	if (SCM_NIMP (SCM_VELTS (ptr)[i]))
+	  scm_gc_mark (SCM_VELTS (ptr)[i]);
+      ptr = SCM_VELTS (ptr)[0];
+      goto gc_mark_loop;
+#endif
     case scm_tc7_contin:
       if (SCM_VELTS (ptr))
 	scm_mark_locations (SCM_VELTS_AS_STACKITEMS (ptr),
 			    (scm_sizet)
-			    (SCM_LENGTH (ptr) +
+			    (SCM_CONTINUATION_LENGTH (ptr) +
 			     (sizeof (SCM_STACKITEM) + -1 +
 			      sizeof (scm_contregs)) /
 			     sizeof (SCM_STACKITEM)));
@@ -1263,7 +1271,7 @@ gc_mark_nimp:
 	  int weak_keys;
 	  int weak_values;
 
-	  len = SCM_LENGTH (ptr);
+	  len = SCM_VECTOR_LENGTH (ptr);
 	  weak_keys = SCM_IS_WHVEC (ptr) || SCM_IS_WHVEC_B (ptr);
 	  weak_values = SCM_IS_WHVEC_V (ptr) || SCM_IS_WHVEC_B (ptr);
 
@@ -1603,23 +1611,23 @@ scm_gc_sweep ()
 	    case scm_tc7_pws:
 	      break;
 	    case scm_tc7_wvect:
-              m += (2 + SCM_LENGTH (scmptr)) * sizeof (SCM);
+              m += (2 + SCM_VECTOR_LENGTH (scmptr)) * sizeof (SCM);
               scm_must_free (SCM_VECTOR_BASE (scmptr) - 2);
               break;
 	    case scm_tc7_vector:
-	      m += (SCM_LENGTH (scmptr) * sizeof (SCM));
+	      m += (SCM_VECTOR_LENGTH (scmptr) * sizeof (SCM));
 	      scm_must_free (SCM_VECTOR_BASE (scmptr));
 	      break;
 #ifdef CCLO
 	    case scm_tc7_cclo:
-	      m += (SCM_LENGTH (scmptr) * sizeof (SCM));
+	      m += (SCM_CCLO_LENGTH (scmptr) * sizeof (SCM));
 	      scm_must_free (SCM_CCLO_BASE (scmptr));
 	      break;
 #endif
 #ifdef HAVE_ARRAYS
 	    case scm_tc7_bvect:
-	      m += sizeof (long) * ((SCM_HUGE_LENGTH (scmptr) + SCM_LONG_BIT - 1) / SCM_LONG_BIT);
-	      scm_must_free (SCM_UVECTOR_BASE (scmptr));
+	      m += sizeof (long) * ((SCM_BITVECTOR_LENGTH (scmptr) + SCM_LONG_BIT - 1) / SCM_LONG_BIT);
+	      scm_must_free (SCM_BITVECTOR_BASE (scmptr));
 	      break;
 	    case scm_tc7_byvect:
 	    case scm_tc7_ivect:
@@ -1638,15 +1646,16 @@ scm_gc_sweep ()
 	    case scm_tc7_substring:
 	      break;
 	    case scm_tc7_string:
-	      m += SCM_HUGE_LENGTH (scmptr) + 1;
+	      m += SCM_STRING_LENGTH (scmptr) + 1;
 	      scm_must_free (SCM_STRING_CHARS (scmptr));
 	      break;
 	    case scm_tc7_symbol:
-	      m += SCM_LENGTH (scmptr) + 1;
+	      m += SCM_SYMBOL_LENGTH (scmptr) + 1;
 	      scm_must_free (SCM_SYMBOL_CHARS (scmptr));
 	      break;
 	    case scm_tc7_contin:
-	      m += SCM_LENGTH (scmptr) * sizeof (SCM_STACKITEM) + sizeof (scm_contregs);
+	      m += SCM_CONTINUATION_LENGTH (scmptr) * sizeof (SCM_STACKITEM)
+		   + sizeof (scm_contregs);
 	      if (SCM_CONTREGS (scmptr))
 		{
 		  scm_must_free (SCM_CONTREGS (scmptr));

@@ -1,3 +1,25 @@
+2000-10-10  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* unif.h (SCM_BITVECTOR_P, SCM_BITVECTOR_BASE):  Added.
+
+	* eval.c (iqq, SCM_CEVAL, SCM_APPLY, check_map_args, scm_map,
+	scm_for_each, scm_copy_tree), gc.c (scm_igc, scm_gc_mark,
+	scm_gc_sweep), gh_data.c (gh_scm2chars), sort.c
+	(scm_restricted_vector_sort_x, scm_sorted_p, scm_sort_x,
+	scm_sort, scm_stable_sort_x, scm_stable_sort), vectors.c
+	(scm_vector_length, scm_vector_ref, scm_vector_set_x,
+	scm_vector_to_list, scm_vector_fill_x, scm_vector_equal_p,
+	scm_vector_move_left_x, scm_vector_move_right_x, ):  Replace
+	SCM_LENGTH with the appropriate SCM_<type>_LENGTH macro.
+
+	* gc.c (scm_gc_sweep):  Use SCM_BITVECTOR_BASE for bitvectors.
+
+	* sort.c (scm_restricted_vector_sort_x, scm_sorted_p):	Eliminated
+	dummy type dispatch.
+
+	(scm_sort_x, scm_sort, scm_stable_sort_x, scm_stable_sort):
+	Eliminated redundant NIM test.
+
 2000-10-09  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* filesys.c (fill_select_type, retrieve_select_type, scm_select),

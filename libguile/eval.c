@@ -811,7 +811,7 @@ iqq (SCM form,SCM env,int depth)
     return form;
   if (SCM_VECTORP (form))
     {
-      long i = SCM_LENGTH (form);
+      long i = SCM_VECTOR_LENGTH (form);
       SCM *data = SCM_VELTS (form);
       tmp = SCM_EOL;
       for (; --i >= 0;)
@@ -2276,7 +2276,7 @@ dispatch:
 		/* Prepare for linear search */
 		mask = -1;
 		i = 0;
-		end = SCM_LENGTH (proc);
+		end = SCM_VECTOR_LENGTH (proc);
 	      }
 	    else
 	      {
@@ -2765,7 +2765,7 @@ evapply:
 	    }
 	  proc = SCM_SNAME (proc);
 	  {
-	    char *chrs = SCM_SYMBOL_CHARS (proc) + SCM_LENGTH (proc) - 1;
+	    char *chrs = SCM_SYMBOL_CHARS (proc) + SCM_SYMBOL_LENGTH (proc) - 1;
 	    while ('c' != *--chrs)
 	      {
 		SCM_ASSERT (SCM_CONSP (t.arg1),
@@ -3396,7 +3396,7 @@ tail:
 	}
       proc = SCM_SNAME (proc);
       {
-	char *chrs = SCM_SYMBOL_CHARS (proc) + SCM_LENGTH (proc) - 1;
+	char *chrs = SCM_SYMBOL_CHARS (proc) + SCM_SYMBOL_LENGTH (proc) - 1;
 	while ('c' != *--chrs)
 	  {
 	    SCM_ASSERT (SCM_CONSP (arg1),
@@ -3604,7 +3604,7 @@ check_map_args (SCM argv,
   SCM *ve = SCM_VELTS (argv);
   int i;
 
-  for (i = SCM_LENGTH (argv) - 1; i >= 1; i--)
+  for (i = SCM_VECTOR_LENGTH (argv) - 1; i >= 1; i--)
     {
       int elt_len = scm_ilength (ve[i]);
 
@@ -3665,7 +3665,7 @@ scm_map (SCM proc, SCM arg1, SCM args)
   while (1)
     {
       arg1 = SCM_EOL;
-      for (i = SCM_LENGTH (args) - 1; i >= 0; i--)
+      for (i = SCM_VECTOR_LENGTH (args) - 1; i >= 0; i--)
 	{
 	  if (SCM_IMP (ve[i])) 
 	    return res;
@@ -3708,7 +3708,7 @@ scm_for_each (SCM proc, SCM arg1, SCM args)
   while (1)
     {
       arg1 = SCM_EOL;
-      for (i = SCM_LENGTH (args) - 1; i >= 0; i--)
+      for (i = SCM_VECTOR_LENGTH (args) - 1; i >= 0; i--)
 	{
 	  if SCM_IMP
 	    (ve[i]) return SCM_UNSPECIFIED;
@@ -3823,7 +3823,7 @@ SCM_DEFINE (scm_copy_tree, "copy-tree", 1, 0, 0,
     return obj;
   if (SCM_VECTORP (obj))
     {
-      scm_sizet i = SCM_LENGTH (obj);
+      scm_sizet i = SCM_VECTOR_LENGTH (obj);
       ans = scm_make_vector (SCM_MAKINUM (i), SCM_UNSPECIFIED);
       while (i--)
 	SCM_VELTS (ans)[i] = scm_copy_tree (SCM_VELTS (obj)[i]);

@@ -424,23 +424,11 @@ SCM_DEFINE (scm_restricted_vector_sort_x, "restricted-vector-sort!", 4, 0, 0,
   size_t  vlen, spos, len, size = sizeof (SCM);
   SCM *vp;
 
-  SCM_VALIDATE_NIM (1,vec);
+  SCM_VALIDATE_VECTOR (1,vec);
   SCM_VALIDATE_NIM (2,less);
-  switch (SCM_TYP7 (vec))
-    {
-    case scm_tc7_vector:	/* the only type we manage is vector */
-      break;
-#if 0 /* HAVE_ARRAYS */
-    case scm_tc7_ivect:	/* long */
-    case scm_tc7_uvect:	/* unsigned */
-    case scm_tc7_fvect:	/* float */
-    case scm_tc7_dvect:	/* double */
-#endif
-    default:
-      SCM_WTA (1,vec);
-    }
+
   vp = SCM_VELTS (vec);		/* vector pointer */
-  vlen = SCM_LENGTH (vec);
+  vlen = SCM_VECTOR_LENGTH (vec);
 
   SCM_VALIDATE_INUM_COPY (3,startpos,spos);
   SCM_ASSERT_RANGE (3,startpos,(spos >= 0) && (spos <= vlen));
@@ -470,7 +458,6 @@ SCM_DEFINE (scm_sorted_p, "sorted?", 2, 0, 0,
   if (SCM_NULLP (items))
     return SCM_BOOL_T;
 
-  SCM_VALIDATE_NIM (1,items);
   SCM_VALIDATE_NIM (2,less);
 
   if (SCM_CONSP (items))
@@ -498,36 +485,24 @@ SCM_DEFINE (scm_sorted_p, "sorted?", 2, 0, 0,
     }
   else
     {
-      switch (SCM_TYP7 (items))
+      SCM_VALIDATE_VECTOR (1, items);
+
+      vp = SCM_VELTS (items);	/* vector pointer */
+      len = SCM_VECTOR_LENGTH (items);
+      j = len - 1;
+      while (j > 0)
 	{
-	case scm_tc7_vector:
-	  {
-	    vp = SCM_VELTS (items);	/* vector pointer */
-	    len = SCM_LENGTH (items);
-	    j = len - 1;
-	    while (j > 0)
-	      {
-		if ((*cmp) (less, &vp[1], vp))
-		  return SCM_BOOL_F;
-		else
-		  {
-		    vp++;
-		    j--;
-		  }
-	      }
-	    return SCM_BOOL_T;
-	  }
-	  break;
-#if 0 /* HAVE_ARRAYS */
-	case scm_tc7_ivect:	/* long */
-	case scm_tc7_uvect:	/* unsigned */
-	case scm_tc7_fvect:	/* float */
-	case scm_tc7_dvect:	/* double */
-#endif
-	default:
-	  SCM_WTA (1,items);
+	  if ((*cmp) (less, &vp[1], vp))
+	    return SCM_BOOL_F;
+	  else
+	    {
+	      vp++;
+	      j--;
+	    }
 	}
+      return SCM_BOOL_T;
     }
+
   return SCM_BOOL_F;
 }
 #undef FUNC_NAME
@@ -724,7 +699,7 @@ SCM_DEFINE (scm_sort_x, "sort!", 2, 0, 0,
   long len;			/* list/vector length */
   if (SCM_NULLP(items))
     return SCM_EOL;
-  SCM_VALIDATE_NIM (1,items);
+
   SCM_VALIDATE_NIM (2,less);
 
   if (SCM_CONSP (items))
@@ -734,7 +709,7 @@ SCM_DEFINE (scm_sort_x, "sort!", 2, 0, 0,
     }
   else if (SCM_VECTORP (items))
     {
-      len = SCM_LENGTH (items);
+      len = SCM_VECTOR_LENGTH (items);
       scm_restricted_vector_sort_x (items,
 				    less,
 				    SCM_MAKINUM (0L),
@@ -757,7 +732,7 @@ SCM_DEFINE (scm_sort, "sort", 2, 0, 0,
   long len;			/* list/vector length */
   if (SCM_NULLP(items))
     return SCM_EOL;
-  SCM_VALIDATE_NIM (1,items);
+
   SCM_VALIDATE_NIM (2,less);
   if (SCM_CONSP (items))
     {
@@ -769,7 +744,7 @@ SCM_DEFINE (scm_sort, "sort", 2, 0, 0,
   /* support ordinary vectors even if arrays not available?  */
   else if (SCM_VECTORP (items))
     {
-      len = SCM_LENGTH (items);
+      len = SCM_VECTOR_LENGTH (items);
       sortvec = scm_make_uve (len, scm_array_prototype (items));
       scm_array_copy_x (items, sortvec);
       scm_restricted_vector_sort_x (sortvec,
@@ -848,7 +823,7 @@ SCM_DEFINE (scm_stable_sort_x, "stable-sort!", 2, 0, 0,
 
   if (SCM_NULLP (items))
     return SCM_EOL;
-  SCM_VALIDATE_NIM (1,items);
+
   SCM_VALIDATE_NIM (2,less);
   if (SCM_CONSP (items))
     {
@@ -858,7 +833,7 @@ SCM_DEFINE (scm_stable_sort_x, "stable-sort!", 2, 0, 0,
   else if (SCM_VECTORP (items))
     {
       SCM *temp, *vp;
-      len = SCM_LENGTH (items);
+      len = SCM_VECTOR_LENGTH (items);
       temp = malloc (len * sizeof(SCM));
       vp = SCM_VELTS (items);
       scm_merge_vector_step (vp,
@@ -885,7 +860,7 @@ SCM_DEFINE (scm_stable_sort, "stable-sort", 2, 0, 0,
   long len;			/* list/vector length */
   if (SCM_NULLP (items))
     return SCM_EOL;
-  SCM_VALIDATE_NIM (1,items);
+
   SCM_VALIDATE_NIM (2,less);
   if (SCM_CONSP (items))
     {
@@ -899,7 +874,7 @@ SCM_DEFINE (scm_stable_sort, "stable-sort", 2, 0, 0,
     {
       SCM retvec;
       SCM *temp, *vp;
-      len = SCM_LENGTH (items);
+      len = SCM_VECTOR_LENGTH (items);
       retvec = scm_make_uve (len, scm_array_prototype (items));
       scm_array_copy_x (items, retvec);
       temp = malloc (len * sizeof (SCM));
