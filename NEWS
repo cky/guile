@@ -8,6 +8,21 @@ Changes since Guile 1.3.2:
 
 * Changes to Scheme functions and syntax
 
+** Hooks
+
+*** New function: hook? OBJ
+
+Return #t if OBJ is a hook, otherwise #f.
+
+*** New function: hook-empty? HOOK
+
+Return #t if HOOK doesn't contain any procedures, otherwise #f.
+
+*** New function: hook->list HOOK
+
+Return a list of the procedures that are called when run-hook is
+applied to HOOK.
+
 ** `map' signals an error if its argument lists are not all the same length.
 
 This is the behavior required by R5RS, so this change is really a bug

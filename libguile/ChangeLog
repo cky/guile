@@ -1,3 +1,9 @@
+1999-09-09  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* feature.c, feature.h: (scm_hook_p, scm_hook_empty_p): New
+	primitives. (Thanks to Greg Badros);
+	(scm_hook_to_list): New primitive; Hooks are now smobs.
+
 1999-09-08  Gary Houston  <ghouston@easynet.co.uk>
 
 	* stime.c (bdtime2c): rewrite the ASSERTs.  Accept a value
