@@ -128,7 +128,7 @@ SCM2CTYPES (SCM obj, CTYPE *data)
 	}
       break;
 
-#ifdef SCM_HAVE_ARRAYS
+#if SCM_HAVE_ARRAYS
       /* array conversions (uniform vectors) */
     case ARRAYTYPE:
 #ifdef ARRAYTYPE_OPTIONAL
