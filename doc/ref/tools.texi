@@ -75,9 +75,10 @@ Usage: guile-snarf [-d | -D] [-o OUTFILE] INFILE [CPP-OPTIONS ...]
 What @code{guile-snarf} does:
 
 Process INFILE using the C pre-processor and some other programs.
-Write output to a file, named OUTFILE if specified, or STEM.x if
-INFILE looks like STEM.c and no OUTFILE is specified.  Ignore
-lines from the input matching grep(1) regular expression:
+Write output to a file named OUTFILE or to the standard output when no
+OUTFILE has been specified or when OUTFILE is @code{-}.  When writing
+to a file, ignore lines from the input matching the following grep(1)
+regular expression:
 
 @example
       ^#include ".*OUTFILE"
@@ -92,6 +93,9 @@ do the same thing but signal error and exit with non-zero status.
 
 If env var CPP is set, use its value instead of the C pre-processor
 determined at Guile configure-time.
+
+During snarfing, the pre-processor macro @code{SCM_MAGIC_SNARFER} is
+defined.
 
 @xref{Macros guile-snarf recognizes}, for a list of the special (some would
 say magic) cpp macros you can use, including the list of deprecated macros.
