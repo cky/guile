@@ -44,11 +44,12 @@
 #include <limits.h>
 #include <string.h>
 
+#include "libguile/_scm.h"
+
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
 
-#include "libguile/_scm.h"
 #include "libguile/async.h"
 
 #include "libguile/iselect.h"
