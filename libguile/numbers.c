@@ -1749,7 +1749,7 @@ SCM_DEFINE (scm_ash, "ash", 2, 0, 0,
 	    "Return @var{n} shifted left by @var{cnt} bits, or shifted right\n"
 	    "if @var{cnt} is negative.  This is an ``arithmetic'' shift.\n"
 	    "\n"
-	    "This is effectively a multiplication by 2^@var{cnt}}, and when\n"
+	    "This is effectively a multiplication by 2^@var{cnt}, and when\n"
 	    "@var{cnt} is negative it's a division, rounded towards negative\n"
 	    "infinity.  (Note that this is not the same rounding as\n"
 	    "@code{quotient} does.)\n"
