@@ -1,3 +1,8 @@
+2002-05-11  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* scan-api (scan-api): Fix bug: No longer omit `C' and `Scheme' in
+	groups in the presence of the grouper.
+
 2002-05-10  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* scan-api (add-props): New proc.
