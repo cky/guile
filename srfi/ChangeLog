@@ -1,3 +1,7 @@
+2005-01-02  Kevin Ryde  <user42@zip.com.au>
+
+	* Makefile.am (srfi_DATA): Add srfi-39.scm.
+
 2004-12-20  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* README: Update, document available SRFIs.
