@@ -201,7 +201,7 @@ scm_class_of (SCM x)
 		  SCM class = scm_make_extended_class (SCM_NFALSEP (name)
 						       ? SCM_ROCHARS (name)
 						       : 0);
-		  SCM_SET_STRUCT_TABLE_CLASS (handle, class);
+		  SCM_SET_STRUCT_TABLE_CLASS (SCM_CDR (handle), class);
 		  return class;
 		}
 	    }
