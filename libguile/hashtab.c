@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2003 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2003, 2004 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -904,30 +904,9 @@ scm_hashx_remove_x (SCM hash, SCM assoc, SCM delete, SCM table, SCM obj)
   return scm_hash_fn_remove_x (table, obj, scm_ihashx, scm_sloppy_assx, scm_delx_x, 0);
 }
 
-static SCM
-fold_proc (void *proc, SCM key, SCM data, SCM value)
-{
-  return scm_call_3 (SCM_PACK (proc), key, data, value);
-}
+/* Hash table iterators */
 
-SCM_DEFINE (scm_hash_fold, "hash-fold", 3, 0, 0, 
-            (SCM proc, SCM init, SCM table),
-	    "An iterator over hash-table elements.\n"
-            "Accumulates and returns a result by applying PROC successively.\n"
-            "The arguments to PROC are \"(key value prior-result)\" where key\n"
-            "and value are successive pairs from the hash table TABLE, and\n"
-            "prior-result is either INIT (for the first application of PROC)\n"
-            "or the return value of the previous application of PROC.\n"
-            "For example, @code{(hash-fold acons '() tab)} will convert a hash\n"
-            "table into an a-list of key-value pairs.")
-#define FUNC_NAME s_scm_hash_fold
-{
-  SCM_VALIDATE_PROC (1, proc);
-  if (!SCM_HASHTABLE_P (table))
-    SCM_VALIDATE_VECTOR (3, table);
-  return scm_internal_hash_fold (fold_proc, (void *) SCM_UNPACK (proc), init, table);
-}
-#undef FUNC_NAME
+static const char s_scm_hash_fold[];
 
 SCM
 scm_internal_hash_fold (SCM (*fn) (), void *closure, SCM init, SCM table)
@@ -959,10 +938,65 @@ scm_internal_hash_fold (SCM (*fn) (), void *closure, SCM init, SCM table)
   return result;
 }
 
-static SCM
-for_each_proc (void *proc, SCM key, SCM data, SCM value)
+/* The following redundant code is here in order to be able to support
+   hash-for-each-handle.  An alternative would have been to replace
+   this code and scm_internal_hash_fold above with a single
+   scm_internal_hash_fold_handles, but we don't want to promote such
+   an API. */
+
+static const char s_scm_hash_for_each[];
+
+void
+scm_internal_hash_for_each_handle (SCM (*fn) (), void *closure, SCM table)
 {
-  return scm_call_2 (SCM_PACK (proc), key, data);
+  long i, n;
+  SCM buckets;
+  
+  if (SCM_HASHTABLE_P (table))
+    buckets = SCM_HASHTABLE_VECTOR (table);
+  else
+    buckets = table;
+  
+  n = SCM_VECTOR_LENGTH (buckets);
+  for (i = 0; i < n; ++i)
+    {
+      SCM ls = SCM_VELTS (buckets)[i], handle;
+      while (!SCM_NULLP (ls))
+	{
+	  if (!SCM_CONSP (ls))
+	    scm_wrong_type_arg (s_scm_hash_for_each, SCM_ARG3, buckets);
+	  handle = SCM_CAR (ls);
+	  if (!SCM_CONSP (handle))
+	    scm_wrong_type_arg (s_scm_hash_for_each, SCM_ARG3, buckets);
+	  fn (closure, handle);
+	  ls = SCM_CDR (ls);
+	}
+    }
+}
+
+SCM_DEFINE (scm_hash_fold, "hash-fold", 3, 0, 0, 
+            (SCM proc, SCM init, SCM table),
+	    "An iterator over hash-table elements.\n"
+            "Accumulates and returns a result by applying PROC successively.\n"
+            "The arguments to PROC are \"(key value prior-result)\" where key\n"
+            "and value are successive pairs from the hash table TABLE, and\n"
+            "prior-result is either INIT (for the first application of PROC)\n"
+            "or the return value of the previous application of PROC.\n"
+            "For example, @code{(hash-fold acons '() tab)} will convert a hash\n"
+            "table into an a-list of key-value pairs.")
+#define FUNC_NAME s_scm_hash_fold
+{
+  SCM_VALIDATE_PROC (1, proc);
+  if (!SCM_HASHTABLE_P (table))
+    SCM_VALIDATE_VECTOR (3, table);
+  return scm_internal_hash_fold (scm_call_3, (void *) SCM_UNPACK (proc), init, table);
+}
+#undef FUNC_NAME
+
+static SCM
+for_each_proc (void *proc, SCM handle)
+{
+  return scm_call_2 (SCM_PACK (proc), SCM_CAR (handle), SCM_CDR (handle));
 }
 
 SCM_DEFINE (scm_hash_for_each, "hash-for-each", 2, 0, 0, 
@@ -976,10 +1010,28 @@ SCM_DEFINE (scm_hash_for_each, "hash-for-each", 2, 0, 0,
   SCM_VALIDATE_PROC (1, proc);
   if (!SCM_HASHTABLE_P (table))
     SCM_VALIDATE_VECTOR (2, table);
-  scm_internal_hash_fold (for_each_proc,
-			  (void *) SCM_UNPACK (proc),
-			  SCM_BOOL_F,
-			  table);
+  
+  scm_internal_hash_for_each_handle (for_each_proc,
+				     (void *) SCM_UNPACK (proc),
+				     table);
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_hash_for_each_handle, "hash-for-each-handle", 2, 0, 0, 
+            (SCM proc, SCM table),
+	    "An iterator over hash-table elements.\n"
+            "Applies PROC successively on all hash table handles.")
+#define FUNC_NAME s_scm_hash_for_each_handle
+{
+  scm_t_trampoline_1 call = scm_trampoline_1 (proc);
+  SCM_ASSERT (call, proc, 1, FUNC_NAME);
+  if (!SCM_HASHTABLE_P (table))
+    SCM_VALIDATE_VECTOR (2, table);
+  
+  scm_internal_hash_for_each_handle (call,
+				     (void *) SCM_UNPACK (proc),
+				     table);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -990,13 +1042,13 @@ map_proc (void *proc, SCM key, SCM data, SCM value)
   return scm_cons (scm_call_2 (SCM_PACK (proc), key, data), value);
 }
 
-SCM_DEFINE (scm_hash_map, "hash-map", 2, 0, 0, 
+SCM_DEFINE (scm_hash_map_to_list, "hash-map->list", 2, 0, 0, 
             (SCM proc, SCM table),
 	    "An iterator over hash-table elements.\n"
             "Accumulates and returns as a list the results of applying PROC successively.\n"
             "The arguments to PROC are \"(key value)\" where key\n"
             "and value are successive pairs from the hash table TABLE.")
-#define FUNC_NAME s_scm_hash_map
+#define FUNC_NAME s_scm_hash_map_to_list
 {
   SCM_VALIDATE_PROC (1, proc);
   if (!SCM_HASHTABLE_P (table))

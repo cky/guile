@@ -137,45 +137,45 @@ singp (SCM obj)
     }
 }
 
+static const char s_scm_make_uve[];
+
+static SCM
+make_uve (long type, long k, size_t size)
+#define FUNC_NAME "scm_make_uve"
+{
+  SCM_ASSERT_RANGE (1, scm_long2num (k), k <= SCM_UVECTOR_MAX_LENGTH);
+
+  return scm_cell (SCM_MAKE_UVECTOR_TAG (k, type),
+		   (scm_t_bits) scm_gc_malloc (k * size, "vector"));
+}
+#undef FUNC_NAME
+
 SCM 
 scm_make_uve (long k, SCM prot)
 #define FUNC_NAME "scm_make_uve"
 {
-  SCM v;
-  long i, type;
-
   if (SCM_EQ_P (prot, SCM_BOOL_T))
     {
       if (k > 0)
 	{
+	  long i;
 	  SCM_ASSERT_RANGE (1,
 			    scm_long2num (k), k <= SCM_BITVECTOR_MAX_LENGTH);
 	  i = sizeof (long) * ((k + SCM_LONG_BIT - 1) / SCM_LONG_BIT);
-	  v = scm_cell (SCM_MAKE_BITVECTOR_TAG (k), 
-			(scm_t_bits) scm_gc_malloc (i, "vector"));
+	  return scm_cell (SCM_MAKE_BITVECTOR_TAG (k), 
+			   (scm_t_bits) scm_gc_malloc (i, "vector"));
 	}
       else
-	v = scm_cell (SCM_MAKE_BITVECTOR_TAG (0), 0);
-      return v;
+	return scm_cell (SCM_MAKE_BITVECTOR_TAG (0), 0);
     }
   else if (SCM_CHARP (prot) && (SCM_CHAR (prot) == '\0'))
-    {
-      i = sizeof (char) * k;
-      type = scm_tc7_byvect;
-    }
+    return make_uve (scm_tc7_byvect, k, sizeof (char));
   else if (SCM_CHARP (prot))
-    {
-      i = sizeof (char) * k;
-      return scm_allocate_string (i);
-    }
+    return scm_allocate_string (sizeof (char) * k);
   else if (SCM_INUMP (prot))
-    {
-      i = sizeof (long) * k;
-      if (SCM_INUM (prot) > 0)
-	type = scm_tc7_uvect;
-      else
-	type = scm_tc7_ivect;
-    }
+    return make_uve (SCM_INUM (prot) > 0 ? scm_tc7_uvect : scm_tc7_ivect,
+		     k,
+		     sizeof (long));
   else if (SCM_FRACTIONP (prot))
     {
       if (scm_num_eq_p (exactly_one_third, prot))
@@ -187,50 +187,26 @@ scm_make_uve (long k, SCM prot)
 
       s = SCM_SYMBOL_CHARS (prot)[0];
       if (s == 's')
-	{
-	  i = sizeof (short) * k;
-	  type = scm_tc7_svect;
-	}
+	return make_uve (scm_tc7_svect, k, sizeof (short));
 #if SCM_SIZEOF_LONG_LONG != 0
       else if (s == 'l')
-	{
-	  i = sizeof (long long) * k;
-	  type = scm_tc7_llvect;
-	}
+	return make_uve (scm_tc7_llvect, k, sizeof (long long));
 #endif
       else
-	{
-	  return scm_c_make_vector (k, SCM_UNDEFINED);
-	}
+	return scm_c_make_vector (k, SCM_UNDEFINED);
     }
   else if (!SCM_INEXACTP (prot))
     /* Huge non-unif vectors are NOT supported. */
     /* no special scm_vector */
     return scm_c_make_vector (k, SCM_UNDEFINED);
   else if (singp (prot))
-    {
-      i = sizeof (float) * k;
-      type = scm_tc7_fvect;
-    }
+    return make_uve (scm_tc7_fvect, k, sizeof (float));
   else if (SCM_COMPLEXP (prot))
-    {
-      i = 2 * sizeof (double) * k;
-      type = scm_tc7_cvect;
-    }
-  else
-    {
-    dvect:
-      i = sizeof (double) * k;
-      type = scm_tc7_dvect;
-    }
-
-  SCM_ASSERT_RANGE (1, scm_long2num (k), k <= SCM_UVECTOR_MAX_LENGTH);
-
-  return scm_cell (SCM_MAKE_UVECTOR_TAG (k, type),
-		   (scm_t_bits) scm_gc_malloc (i, "vector"));
+    return make_uve (scm_tc7_cvect, k, 2 * sizeof (double));
+ dvect:
+  return make_uve (scm_tc7_dvect, k, sizeof (double));
 }
 #undef FUNC_NAME
-
 
 SCM_DEFINE (scm_uniform_vector_length, "uniform-vector-length", 1, 0, 0, 
 	    (SCM v),

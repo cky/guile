@@ -1,3 +1,18 @@
+2004-02-13  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* unif.c (scm_make_uve): Removed local variable and simplified
+	code in order to avoid compiler used uninitialized warnings.
+
+	* hashtab.c, hashtab.h (scm_hash_map_to_list): Renamed from
+	scm_hash_map.
+	(scm_hash_fold): Use scm_call_3 directly in the call to
+	scm_internal_hash_fold instead of going via fold_proc (which is
+	now removed).
+	(scm_hash_for_each): Use a trampoline +
+	scm_internal_hash_for_each_handle.
+	(scm_internal_hash_for_each_handle, scm_hash_for_each_handle): New
+	functions.
+
 2004-02-12  Kevin Ryde  <user42@zip.com.au>
 
 	* ramap.c (scm_array_fill_x): For fvect and dvect, use scm_num2dbl to

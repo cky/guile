@@ -1436,7 +1436,7 @@
   (hash-for-each proc (module-obarray module)))
 
 (define (module-map proc module)
-  (hash-map proc (module-obarray module)))
+  (hash-map->list proc (module-obarray module)))
 
 
 
