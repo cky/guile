@@ -1,3 +1,10 @@
+2001-03-09  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
+
+	* goops.texi (VERSION): Bumped to version 0.3.
+
+	* goops-tutorial.texi, goops.texi: Updated to reflext new
+	define-method syntax.
+
 2001-03-09  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* Makefile.am: Change HTML to HTMLDOC, now that we're part of a

@@ -7,7 +7,7 @@
 @paragraphindent 0
 @c %**end of header
 
-@set VERSION 0.2
+@set VERSION 0.3
 
 @dircategory The Algorithmic Language Scheme
 @direntry
@@ -25,7 +25,7 @@ Guile
 @ifinfo
 This file documents GOOPS, an object oriented extension for Guile.
 
-Copyright (C) 1999, 2000 Free Software Foundation
+Copyright (C) 1999, 2000, 2001 Free Software Foundation
 
 Permission is granted to make and distribute verbatim copies of
 this manual provided the copyright notice and this permission notice
@@ -157,7 +157,7 @@ We're now ready to try some basic GOOPS functionality.
 
 @smalllisp
 @group
-(define-method + ((x <string>) (y <string>))
+(define-method (+ (x <string>) (y <string>))
   (string-append x y))
 
 (+ 1 2) --> 3
@@ -176,7 +176,7 @@ We're now ready to try some basic GOOPS functionality.
 @group
 (use-modules (ice-9 format))
 
-(define-method write ((obj <2D-vector>) port)
+(define-method (write (obj <2D-vector>) port)
   (display (format #f "<~S, ~S>" (x-component obj) (y-component obj))
            port))
 
@@ -186,7 +186,7 @@ v --> <3, 4>
 @end group
 
 @group
-(define-method + ((x <2D-vector>) (y <2D-vector>))
+(define-method (+ (x <2D-vector>) (y <2D-vector>))
   (make <2D-vector>
         #:x (+ (x-component x) (x-component y))
         #:y (+ (y-component x) (y-component y))))
@@ -557,7 +557,7 @@ Reference methods for an accessor are defined in the same way as generic
 function methods.
 
 @example
-(define-method perimeter ((s <square>))
+(define-method (perimeter (s <square>))
   (* 4 (side-length s)))
 @end example
 
@@ -566,7 +566,7 @@ Setter methods for an accessor are defined by specifying ``(setter
 call.
 
 @example
-(define-method (setter perimeter) ((s <square>) (n <number>))
+(define-method ((setter perimeter) (s <square>) (n <number>))
   (set! (side-length s) (/ n 4)))
 @end example
 
@@ -864,7 +864,7 @@ specialized method of the generic function @code{initialize}, whose
 signature is
 
 @example
-(define-method initialize ((object <object>) initargs) ...)
+(define-method (initialize (object <object>) initargs) ...)
 @end example
 
 The initialization of instances of any given class can be customized by
@@ -1086,7 +1086,7 @@ allocation to do this.
 
 (let ((batch-allocation-count 0)
       (batch-get-n-set #f))
-  (define-method compute-get-n-set ((class <batched-allocation-metaclass>) s)
+  (define-method (compute-get-n-set (class <batched-allocation-metaclass>) s)
     (case (slot-definition-allocation s)
       ((#:batched)
        ;; If we've already used the same slot storage for 10 instances,
@@ -1665,21 +1665,17 @@ procedures described in this section may disappear as well.
 
 To add a method to a generic function, use the @code{define-method} form.
 
-@deffn syntax define-method symbol (parameter @dots{}) . body
-Define a method for the generic function or accessor @var{symbol} with
+@deffn syntax define-method (generic parameter @dots{}) . body
+Define a method for the generic function or accessor @var{generic} with
 parameters @var{parameter}s and body @var{body}.
 
-@var{symbol} must be either a symbol for a variable bound to a generic
-function or accessor, or @code{(setter @var{accessor-symbol})}, where
-@var{accessor-symbol} is a symbol for a variable bound to an accessor.
-If the former, @code{define-method} defines a reference method for the
-specified generic function or accessor; if the latter,
-@code{define-method} defines a setter method for the specified accessor.
-The @var{symbol} parameter is subject to these restrictions (rather than
-being allowed to be anything that evaluates to a generic function) so
-that @code{define-method} can construct a call to @code{define-generic}
-or @code{define-accessor} if @var{symbol} is not already defined as a
-generic function.
+@var{generic} is a generic function.  If @var{generic} is a variable
+which is not yet bound to a generic function object, the expansion of
+@code{define-method} will include a call to @code{define-generic}.  If
+@var{generic} is @code{(setter @var{generic-with-setter})}, where
+@var{generic-with-setter} is a variable which is not yet bound to a
+generic-with-setter object, the expansion will include a call to
+@code{define-accessor}.
 
 Each @var{parameter} must be either a symbol or a two-element list
 @code{(@var{symbol} @var{class})}.  The symbols refer to variables in
@@ -1695,7 +1691,7 @@ can be applied.
 procedure definitions of the form
 
 @example
-(define name (lambda (formals @dots{}) . body))
+(define (name formals @dots{}) . body)
 @end example
 
 The most important difference is that each formal parameter, apart from the
@@ -1997,7 +1993,7 @@ is specialized for this metaclass:
 @example
 (define-class <can-be-nameless> (<class>))
 
-(define-method class-redefinition ((old <can-be-nameless>) (new <class>))
+(define-method (class-redefinition (old <can-be-nameless>) (new <class>))
   new)
 @end example
 
@@ -2304,7 +2300,7 @@ Return an expression that prints to show the definition of method
 @example
 (define-generic cube)
 
-(define-method cube ((n <number>))
+(define-method (cube (n <number>))
   (* n n n))
 
 (map method-source (generic-function-methods cube))
