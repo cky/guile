@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996,1997,1998 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998, 1999 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -392,7 +392,8 @@ bdtime2c (SCM sbd_time, struct tm *lt, int pos, const char *subr)
 	      && SCM_INUMP (SCM_VELTS (sbd_time)[5])
 	      && SCM_INUMP (SCM_VELTS (sbd_time)[6])
 	      && SCM_INUMP (SCM_VELTS (sbd_time)[7])
-	      && SCM_INUMP (SCM_VELTS (sbd_time)[8]),
+	      && SCM_INUMP (SCM_VELTS (sbd_time)[8])
+	      && SCM_STRINGP (SCM_VELTS (sbd_time)[10]),
 	      sbd_time, pos, subr);
   lt->tm_sec = SCM_INUM (SCM_VELTS (sbd_time)[0]);
   lt->tm_min = SCM_INUM (SCM_VELTS (sbd_time)[1]);
@@ -403,6 +404,10 @@ bdtime2c (SCM sbd_time, struct tm *lt, int pos, const char *subr)
   lt->tm_wday = SCM_INUM (SCM_VELTS (sbd_time)[6]);
   lt->tm_yday = SCM_INUM (SCM_VELTS (sbd_time)[7]);
   lt->tm_isdst = SCM_INUM (SCM_VELTS (sbd_time)[8]);
+#ifdef HAVE_TM_ZONE
+  lt->tm_gmtoff = SCM_INUM (SCM_VELTS (sbd_time)[9]);
+  lt->tm_zone  = SCM_CHARS (SCM_VELTS (sbd_time)[10]);
+#endif
 }
 
 SCM_PROC (s_mktime, "mktime", 1, 1, 0, scm_mktime);
