@@ -1,5 +1,13 @@
 2004-07-07  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
+	* data-rep.texi (How Guile does it): Mark as being in limbo.  All
+	the real documentation will be in the nodes "Programming in C" and
+	"API Reference".
+	(Boolean Data): Just refer to node "Booleans".
+
+	* gh.texi: Replace references to SCM_NFALSEP, etc with
+	scm_is_true, etc.
+
 	* scheme-data.texi (Booleans): Flag all function-like definitions
 	as "C Functions".
 
