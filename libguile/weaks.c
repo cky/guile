@@ -119,18 +119,18 @@ scm_weak_vector_p (x)
 
 
 
-SCM_PROC(s_make_weak_hash_table, "make-weak-hash-table", 1, 0, 0, scm_make_weak_hash_table);
+SCM_PROC(s_make_weak_key_hash_table, "make-weak-key-hash-table", 1, 0, 0, scm_make_weak_key_hash_table);
 #ifdef __STDC__
 SCM
-scm_make_weak_hash_table (SCM k)
+scm_make_weak_key_hash_table (SCM k)
 #else
 SCM
-scm_make_weak_hash_table (k)
+scm_make_weak_key_hash_table (k)
      SCM k;
 #endif
 {
   SCM v;
-  SCM_ASSERT (SCM_INUMP (k), k, SCM_ARG1, s_make_weak_hash_table);
+  SCM_ASSERT (SCM_INUMP (k), k, SCM_ARG1, s_make_weak_key_hash_table);
   v = scm_make_weak_vector (k, SCM_EOL);
   SCM_ALLOW_INTS;
   SCM_VELTS (v)[-1] = 1;
@@ -171,7 +171,7 @@ scm_make_doubly_weak_hash_table (k)
 #endif
 {
   SCM v;
-  SCM_ASSERT (SCM_INUMP (k), k, SCM_ARG1, s_make_weak_value_hash_table);
+  SCM_ASSERT (SCM_INUMP (k), k, SCM_ARG1, s_make_doubly_weak_hash_table);
   v = scm_make_weak_vector (k, SCM_EOL);
   SCM_ALLOW_INTS;
   SCM_VELTS (v)[-1] = 3;
@@ -179,13 +179,13 @@ scm_make_doubly_weak_hash_table (k)
   return v;
 }
 
-SCM_PROC(s_weak_hash_table_p, "weak-hash-table?", 1, 0, 0, scm_weak_hash_table_p);
+SCM_PROC(s_weak_key_hash_table_p, "weak-key-hash-table?", 1, 0, 0, scm_weak_key_hash_table_p);
 #ifdef __STDC__
 SCM
-scm_weak_hash_table_p (SCM x)
+scm_weak_key_hash_table_p (SCM x)
 #else
 SCM
-scm_weak_hash_table_p (x)
+scm_weak_key_hash_table_p (x)
      SCM x;
 #endif
 {

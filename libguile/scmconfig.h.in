@@ -54,6 +54,11 @@
 /* Define to `int' if <sys/types.h> doesn't define.  */
 #undef uid_t
 
+/* Define these two if you want support for debugging of Scheme
+   programs.  */
+#undef DEBUG_EXTENSIONS
+#undef READER_EXTENSIONS
+
 /* Define this if your system has a way to set a stdio stream's file
    descriptor.  You should also copy fd.h.in to fd.h, and give the
    macro SET_FILE_FD_FIELD an appropriate definition.  See
@@ -176,6 +181,9 @@
 /* Define if you have the <sys/dir.h> header file.  */
 #undef HAVE_SYS_DIR_H
 
+/* Define if you have the <sys/ioctl.h> header file.  */
+#undef HAVE_SYS_IOCTL_H
+
 /* Define if you have the <sys/ndir.h> header file.  */
 #undef HAVE_SYS_NDIR_H
 
@@ -193,9 +201,6 @@
 
 /* Define if you have the <sys/types.h> header file.  */
 #undef HAVE_SYS_TYPES_H
-
-/* Define if you have the <sys/ioctl.h> header file.  */
-#undef HAVE_SYS_IOCTL_H
 
 /* Define if you have the <time.h> header file.  */
 #undef HAVE_TIME_H
