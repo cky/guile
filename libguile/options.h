@@ -55,19 +55,22 @@ typedef struct scm_option
 {
   int type;
   char *name;
-  int val;
-  SCM sym;
+  unsigned long val;
+  char *doc;
 } scm_option;
 
 #define SCM_OPTION_BOOLEAN 0
 #define SCM_OPTION_INTEGER 1
+#define SCM_OPTION_SCM     2
+
+extern SCM scm_yes_sym, scm_no_sym;
 
 #ifdef __STDC__
-extern SCM scm_change_options (SCM new_mode, scm_option options[], int n, char *s);
+extern SCM scm_options (SCM new_mode, scm_option options[], int n, char *s);
 extern void scm_init_opts (SCM (*func) (SCM), scm_option options[], int n);
 extern void scm_init_options (void);
 #else /* STDC */
-extern SCM scm_change_options ();
+extern SCM scm_options ();
 extern void scm_init_opts ();
 extern void scm_init_options ();
 #endif /* STDC */
