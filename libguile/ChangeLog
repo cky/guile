@@ -1,3 +1,8 @@
+1998-01-20  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* gh.h, gh_data.c (gh_doubles2scm, gh_doubles2dvect,
+	gh_doubles2scm): New functions.
+
 1998-01-15  Mark Galassi  <rosalia@nis.lanl.gov>
 
 	* gh_eval.c (gh_eval_str): cleanup -- threw out the old

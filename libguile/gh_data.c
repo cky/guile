@@ -122,6 +122,37 @@ gh_symbol2scm (char *symbol_str)
   return SCM_CAR (scm_intern (symbol_str, strlen (symbol_str)));
 }
 
+SCM
+gh_doubles2scm (double *d, int n)
+{
+  SCM ans;
+  SCM *m = (SCM*) scm_must_malloc (n * sizeof (SCM), "vector");
+  int i;
+  for (i = 0; i < n; ++i)
+    m[i] = scm_makdbl (d[i], 0.0);
+  SCM_NEWCELL (ans);
+  SCM_DEFER_INTS;
+  SCM_SETCHARS (ans, m);
+  SCM_SETLENGTH (ans, n, scm_tc7_vector);
+  SCM_ALLOW_INTS;
+  return ans;
+}
+
+#ifdef SCM_FLOATS
+SCM
+gh_doubles2dvect (double *d, int n)
+{
+  SCM ans;
+  char *m = scm_must_malloc (n * sizeof (double), "vector");
+  memcpy (m, d, n * sizeof (double));
+  SCM_NEWCELL (ans);
+  SCM_DEFER_INTS;
+  SCM_SETCHARS (ans, m);
+  SCM_SETLENGTH (ans, n, scm_tc7_dvect);
+  SCM_ALLOW_INTS;
+  return ans;
+}
+#endif
 
 /* data conversion scheme->C */
 int 
@@ -154,6 +185,58 @@ char
 gh_scm2char (SCM obj)
 {
   return SCM_ICHR (obj);
+}
+
+/* Convert a vector, weak vector or uniform vector into a malloced
+   array of doubles. */
+double*
+gh_scm2doubles (SCM obj)
+{
+  int i, n;
+  double *m;
+  SCM val;
+  if (!SCM_NIMP (obj))
+    scm_wrong_type_arg (0, 0, obj);
+  switch (SCM_TYP7 (obj))
+    {
+    case scm_tc7_vector:
+    case scm_tc7_wvect:
+      n = SCM_LENGTH (obj);
+      m = (double*) malloc (n * sizeof (double));
+      for (i = 0; i < n; ++i)
+	{
+	  val = SCM_VELTS (obj)[i];
+	  if (SCM_INUMP (val))
+	    m[i] = SCM_INUM (val);
+	  else if (SCM_NIMP (val) && SCM_REALP (val))
+	    m[i] = SCM_REALPART (val);
+	  else
+	    {
+	      free (m);
+	      scm_wrong_type_arg (0, 0, val);
+	    }
+	}
+      break;
+#ifdef SCM_FLOATS
+#ifdef SCM_SINGLES
+    case scm_tc7_fvect:
+      n = SCM_LENGTH (obj);
+      m = (double*) malloc (n * sizeof (double));
+      for (i = 0; i < n; ++i)
+	m[i] = ((float*) SCM_VELTS (obj))[i];
+      break;
+#endif
+    case scm_tc7_dvect:
+      n = SCM_LENGTH (obj);
+      m = (double*) malloc (n * sizeof (double));
+      for (i = 0; i < n; ++i)
+	m[i] = ((double*) SCM_VELTS (obj))[i];
+      break;
+#endif
+    default:
+      scm_wrong_type_arg (0, 0, obj);
+    }
+  return m;
 }
 
 /* string conversions between C and Scheme */

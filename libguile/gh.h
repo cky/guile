@@ -113,6 +113,10 @@ SCM gh_str2scm(char *s, int len);
 SCM gh_str02scm(char *s);
 void gh_set_substr(char *src, SCM dst, int start, int len);
 SCM gh_symbol2scm(char *symbol_str);
+SCM gh_doubles2scm(double *d, int n);
+#ifdef SCM_FLOATS
+SCM gh_doubles2dvect(double *d, int n);
+#endif
 
 
 /* Scheme to C conversion */
@@ -125,6 +129,7 @@ double gh_scm2double(SCM obj);
 char *gh_scm2newstr(SCM str, int *lenp);
 void gh_get_substr(SCM src, char *dst, int start, int len);
 char *gh_symbol2newstr(SCM sym, int *lenp);
+double *gh_scm2doubles(SCM vector);
 
 /* type predicates: tell you if an SCM object has a given type */
 int gh_boolean_p(SCM val);
