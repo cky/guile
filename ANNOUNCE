@@ -2,11 +2,11 @@ We are pleased to announce the release of Guile 1.7.1.  This is a
 'technology preview' for the upcoming Guile 1.8.  It can be found
 here:
 
-    ftp://alpha.gnu.org/pub/guile/guile-1.7.1.tar.gz
+    ftp://alpha.gnu.org/gnu/guile/guile-1.7.1.tar.gz
 
 Its MD5 checksum is
 
-    XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX  guile-1.7.1.tar.gz
+    21c9f4061166900d2926955ade0ef5cc  guile-1.7.1.tar.gz
 
 This version is guaranteed to contain serious bugs, and the publically
 visible interfaces will almost certainly change before 1.8 is
