@@ -101,35 +101,32 @@ guile_SOURCES = guile.c
 guile_LDADD = libguile.la ${THREAD_LIBS_LOCAL}
 
 libguile_la_SOURCES = \
-    alist.c arbiters.c async.c boolean.c chars.c \
-    continuations.c dynl.c dynwind.c eq.c error.c eval.c feature.c \
-    filesys.c fports.c gc.c gdbint.c genio.c gh_data.c gh_eval.c \
-    gh_funcs.c gh_init.c gh_io.c gh_list.c gh_predicates.c gsubr.c \
-    hash.c hashtab.c init.c ioext.c kw.c list.c load.c mallocs.c \
-    markers.c net_db.c numbers.c objects.c objprop.c options.c pairs.c \
-    ports.c posix.c print.c procprop.c procs.c ramap.c read.c \
-    readline.c root.c scmsigs.c script.c simpos.c smob.c socket.c \
-    stackchk.c stime.c strings.c strop.c strorder.c strports.c \
-    struct.c symbols.c tag.c throw.c unif.c variable.c vectors.c \
-    version.c vports.c weaks.c fluids.c \
-    backtrace.c stacks.c debug.c srcprop.c
+    alist.c arbiters.c async.c backtrace.c boolean.c chars.c \
+    continuations.c debug.c dynl.c dynwind.c eq.c error.c eval.c \
+    feature.c filesys.c fluids.c fports.c gc.c gdbint.c genio.c \
+    gh_data.c gh_eval.c gh_funcs.c gh_init.c gh_io.c gh_list.c \
+    gh_predicates.c gsubr.c hash.c hashtab.c init.c ioext.c kw.c \
+    list.c load.c mallocs.c markers.c net_db.c numbers.c objects.c \
+    objprop.c options.c pairs.c ports.c posix.c print.c procprop.c \
+    procs.c ramap.c read.c readline.c root.c scmsigs.c script.c \
+    simpos.c smob.c socket.c srcprop.c stackchk.c stacks.c stime.c \
+    strings.c strop.c strorder.c strports.c struct.c symbols.c tag.c \
+    throw.c unif.c variable.c vectors.c version.c vports.c weaks.c
 
 BUILT_SOURCES = \
     cpp_err_symbols.c cpp_sig_symbols.c libpath.h \
-    alist.x arbiters.x async.x boolean.x chars.x \
-    continuations.x dynl.x dynwind.x eq.x error.x eval.x feature.x \
-    filesys.x fports.x gc.x gdbint.x genio.x gh_data.x gh_eval.x \
-    gh_funcs.x gh_init.x gh_io.x gh_list.x gh_predicates.x gsubr.x \
-    hash.x hashtab.x init.x ioext.x kw.x list.x load.x mallocs.x \
-    markers.x net_db.x numbers.x objects.x objprop.x options.x pairs.x \
-    ports.x posix.x print.x procprop.x procs.x ramap.x read.x \
-    readline.x root.x scmsigs.x script.x simpos.x smob.x socket.x \
-    stackchk.x stime.x strings.x strop.x strorder.x strports.x \
-    struct.x symbols.x tag.x throw.x unif.x variable.x vectors.x \
-    version.x vports.x weaks.x fluids.x \
-    backtrace.x stacks.x debug.x srcprop.x \
-    threads.x \
-    regex-posix.x iselect.x
+    alist.x arbiters.x async.x backtrace.x boolean.x chars.x \
+    continuations.x debug.x dynl.x dynwind.x eq.x error.x eval.x \
+    feature.x filesys.x fluids.x fports.x gc.x gdbint.x genio.x \
+    gh_data.x gh_eval.x gh_funcs.x gh_init.x gh_io.x gh_list.x \
+    gh_predicates.x gsubr.x hash.x hashtab.x init.x ioext.x iselect.x \
+    kw.x list.x load.x mallocs.x markers.x net_db.x numbers.x \
+    objects.x objprop.x options.x pairs.x ports.x posix.x print.x \
+    procprop.x procs.x ramap.x read.x readline.x regex-posix.x root.x \
+    scmsigs.x script.x simpos.x smob.x socket.x srcprop.x stackchk.x \
+    stacks.x stime.x strings.x strop.x strorder.x strports.x struct.x \
+    symbols.x tag.x threads.x throw.x unif.x variable.x vectors.x \
+    version.x vports.x weaks.x
 
 EXTRA_libguile_la_SOURCES = _scm.h \
     strerror.c inet_aton.c putenv.c \
@@ -199,18 +196,18 @@ DEFS = @DEFS@ -I. -I$(srcdir) -I.
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
-libguile_la_OBJECTS =  alist.lo arbiters.lo async.lo boolean.lo chars.lo \
-continuations.lo dynl.lo dynwind.lo eq.lo error.lo eval.lo feature.lo \
-filesys.lo fports.lo gc.lo gdbint.lo genio.lo gh_data.lo gh_eval.lo \
-gh_funcs.lo gh_init.lo gh_io.lo gh_list.lo gh_predicates.lo gsubr.lo \
-hash.lo hashtab.lo init.lo ioext.lo kw.lo list.lo load.lo mallocs.lo \
-markers.lo net_db.lo numbers.lo objects.lo objprop.lo options.lo \
-pairs.lo ports.lo posix.lo print.lo procprop.lo procs.lo ramap.lo \
-read.lo readline.lo root.lo scmsigs.lo script.lo simpos.lo smob.lo \
-socket.lo stackchk.lo stime.lo strings.lo strop.lo strorder.lo \
-strports.lo struct.lo symbols.lo tag.lo throw.lo unif.lo variable.lo \
-vectors.lo version.lo vports.lo weaks.lo fluids.lo backtrace.lo \
-stacks.lo debug.lo srcprop.lo
+libguile_la_OBJECTS =  alist.lo arbiters.lo async.lo backtrace.lo \
+boolean.lo chars.lo continuations.lo debug.lo dynl.lo dynwind.lo eq.lo \
+error.lo eval.lo feature.lo filesys.lo fluids.lo fports.lo gc.lo \
+gdbint.lo genio.lo gh_data.lo gh_eval.lo gh_funcs.lo gh_init.lo \
+gh_io.lo gh_list.lo gh_predicates.lo gsubr.lo hash.lo hashtab.lo \
+init.lo ioext.lo kw.lo list.lo load.lo mallocs.lo markers.lo net_db.lo \
+numbers.lo objects.lo objprop.lo options.lo pairs.lo ports.lo posix.lo \
+print.lo procprop.lo procs.lo ramap.lo read.lo readline.lo root.lo \
+scmsigs.lo script.lo simpos.lo smob.lo socket.lo srcprop.lo stackchk.lo \
+stacks.lo stime.lo strings.lo strop.lo strorder.lo strports.lo \
+struct.lo symbols.lo tag.lo throw.lo unif.lo variable.lo vectors.lo \
+version.lo vports.lo weaks.lo
 PROGRAMS =  $(bin_PROGRAMS)
 
 guile_OBJECTS =  guile.o
