@@ -203,37 +203,46 @@ typedef unsigned long long ulong_long;
 
 
 
-/* Define
+/* {Architecture and compiler properties}
  *
- * SCM_CHAR_CODE_LIMIT		== UCHAR_MAX + 1
- * SCM_MOST_POSITIVE_FIXNUM 	(LONG_MAX>>2)
- * SCM_MOST_NEGATIVE_FIXNUM 	== SCM_SRS((long)LONG_MIN, 2)
+ * Guile as of today can only work on systems which fulfill at least the
+ * following requirements:
+ * - long ints have at least 32 bits.
+ *   Guile's type system is based on this assumption.
+ * - long ints consist of at least four characters.
+ *   It is assumed that cells, i. e. pairs of long ints, are eight character
+ *   aligned, because three bits of a cell pointer are used for type data.
+ * - sizeof (void*) == sizeof (long int)
+ *   Pointers are stored in SCM objects, and sometimes SCM objects are passed
+ *   as void*.  Thus, there has to be a one-to-one correspondence.
+ * - numbers are encoded using two's complement.
+ *   The implementation of the bitwise scheme level operations is based on
+ *   this assumption.
+ * - ... add more
  */
 
 #ifdef HAVE_LIMITS_H
 # include <limits.h>
-# ifdef UCHAR_MAX
-#  define SCM_CHAR_CODE_LIMIT (UCHAR_MAX+1L)
-# else
-#  define SCM_CHAR_CODE_LIMIT 256L
-# endif /* def UCHAR_MAX */
-# define SCM_FIXNUM_BIT (LONG_BIT - 2)
-# define SCM_MOST_POSITIVE_FIXNUM (LONG_MAX>>2)
-# ifdef _UNICOS			/* Stupid cray bug */
-#  define SCM_MOST_NEGATIVE_FIXNUM ((long)LONG_MIN/4)
-# else
-#  define SCM_MOST_NEGATIVE_FIXNUM SCM_SRS((long)LONG_MIN, 2)
-# endif				/* UNICOS */
+#endif
+
+#ifdef CHAR_BIT
+# define SCM_CHAR_BIT CHAR_BIT
+#else
+# define SCM_CHAR_BIT 8
+#endif
+
+#ifdef LONG_BIT
+# define SCM_LONG_BIT LONG_BIT
+#else
+# define SCM_LONG_BIT (SCM_CHAR_BIT * sizeof (long) / sizeof (char))
+#endif
+
+#ifdef UCHAR_MAX
+# define SCM_CHAR_CODE_LIMIT (UCHAR_MAX + 1L)
 #else
 # define SCM_CHAR_CODE_LIMIT 256L
-# define SCM_FIXNUM_BIT 30
-# define SCM_MOST_POSITIVE_FIXNUM ((long)((unsigned long)~0L>>3))
-# if (0 != ~0)
-#  define SCM_MOST_NEGATIVE_FIXNUM (-SCM_MOST_POSITIVE_FIXNUM-1)
-# else
-#  define SCM_MOST_NEGATIVE_FIXNUM (-SCM_MOST_POSITIVE_FIXNUM)
-# endif /*  (0 != ~0) */
-#endif /* def HAVE_LIMITS_H */
+#endif
+
 
 
 #ifdef STDC_HEADERS

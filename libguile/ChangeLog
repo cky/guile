@@ -1,3 +1,18 @@
+2001-01-18  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* __scm.h:  Added comment about architecture and compiler
+	properties that are required by guile.
+
+	(SCM_FIXNUM_BIT, SCM_MOST_POSITIVE_FIXNUM,
+	SCM_MOST_NEGATIVE_FIXNUM):  Moved to numbers.h.
+
+	(SCM_CHAR_BIT, SCM_LONG_BIT):  Moved here from numbers.h.
+
+	* numbers.h (SCM_CHAR_BIT, SCM_LONG_BIT):  Moved to __scm.h.
+
+	(SCM_FIXNUM_BIT, SCM_MOST_POSITIVE_FIXNUM,
+	SCM_MOST_NEGATIVE_FIXNUM):  Moved here from __scm.h.
+
 2001-01-17  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* __scm.h (SCM_FIXNUM_BIT):  Added.  The name is chosen in analogy

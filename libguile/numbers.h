@@ -52,7 +52,6 @@
 
 
 
-
 /* Immediate Numbers 
  *
  * Inums are exact integer data that fits within an SCM word.
@@ -62,6 +61,11 @@
  * to be a SCM_CONSP.  If x is only known to be a SCM_NIMP, 
  * SCM_INUMP (SCM_CAR (x)) can give wrong answers.
  */
+
+#define SCM_FIXNUM_BIT (SCM_LONG_BIT - 2)
+#define SCM_MOST_POSITIVE_FIXNUM ((1L << (SCM_FIXNUM_BIT - 1)) - 1)
+#define SCM_MOST_NEGATIVE_FIXNUM (-SCM_MOST_POSITIVE_FIXNUM - 1)
+
 
 /* SCM_SRS is signed right shift */
 #if (-1 == (((-1) << 2) + 2) >> 2)
@@ -111,15 +115,7 @@
 /* SCM_INTBUFLEN is the maximum number of characters neccessary for the
  * printed or scm_string representation of an exact immediate.
  */
-
-#ifndef SCM_CHAR_BIT
-# define SCM_CHAR_BIT 8
-#endif /* ndef SCM_CHAR_BIT */
-#ifndef SCM_LONG_BIT
-# define SCM_LONG_BIT (SCM_CHAR_BIT*sizeof(long)/sizeof(char))
-#endif /* ndef SCM_LONG_BIT */
-#define SCM_INTBUFLEN (5+SCM_LONG_BIT)
-
+#define SCM_INTBUFLEN (5 + SCM_LONG_BIT)
 
 
 
