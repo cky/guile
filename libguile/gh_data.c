@@ -133,9 +133,10 @@ makvect (char *m, size_t len, int type)
 SCM
 gh_chars2byvect (const char *d, long n)
 {
-  char *m = scm_gc_malloc (n * sizeof (char), "vector");
+  SCM uvec = scm_make_s8vector (scm_from_long (n), SCM_UNDEFINED);
+  char *m = scm_s8vector_elements (uvec);
   memcpy (m, d, n * sizeof (char));
-  return makvect (m, n, scm_tc7_byvect);
+  return uvec;
 }
 
 SCM
@@ -250,14 +251,20 @@ gh_scm2chars (SCM obj, char *m)
 	m[i] = SCM_I_INUM (SCM_VELTS (obj)[i]);
       break;
 #if SCM_HAVE_ARRAYS
-    case scm_tc7_byvect:
-      n = SCM_UVECTOR_LENGTH (obj);
-      if (m == 0)
-	m = (char *) malloc (n * sizeof (char));
-      if (m == NULL)
-	return NULL;
-      memcpy (m, SCM_VELTS (obj), n * sizeof (char));
-      break;
+    case scm_tc7_smob:
+      if (scm_is_true (scm_s8vector_p (obj)))
+	{
+	  n = scm_to_long (scm_s8vector_length (obj));
+	  if (m == 0)
+	    m = (char *) malloc (n * sizeof (char));
+	  if (m == NULL)
+	    return NULL;
+	  memcpy (m, scm_s8vector_elements (obj), n * sizeof (char));
+	  scm_remember_upto_here_1 (obj);
+	  break;
+	}
+      else
+	goto wrong_type;
 #endif
     case scm_tc7_string:
       n = scm_i_string_length (obj);
@@ -268,6 +275,7 @@ gh_scm2chars (SCM obj, char *m)
       memcpy (m, scm_i_string_chars (obj), n * sizeof (char));
       break;
     default:
+    wrong_type:
       scm_wrong_type_arg (0, 0, obj);
     }
   return m;
