@@ -1,7 +1,13 @@
 Thu Apr 24 01:20:34 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
-	Changes for reduced Guile distribution: one configure script,
-	no plugins.
+	Get threads to work again.
+	* Makefile.am (SUBDIRS): List libguile last, so qt gets built
+	first.
+	* Makefile.in: Regenerated.
+	* aclocal.m4, configure: Regenerate, with modern definition of
+ 	CY_AC_WITH_THREADS.  Where did the old text come from?  Creepy...
+
+	Reduced Guile distribution: one configure script, no plugins.
 	* configure.in: Merged the old text from qt/configure.in and
 	libguile/configure.in; Tom Tromey says automake only wants one
 	configure.in script.  This seems fishy, but...
