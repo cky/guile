@@ -1,3 +1,24 @@
+Tue Jan 11 10:41:46 2000  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* dynl.c, error.c, eval.c, feature.c, filesys.c, fports.c, list.c, load.c,
+ 	net_db.c, read.c, socket.c: Update error messages to use ~A for
+ 	%s, ~S for %S to work with new `simple-format' format and be
+ 	standardized better.
+
+	* print.h, print.c (scm_simple_format): Added `simple-format'
+	primitive.  It's the old scm_display_error, with ARGS now a rest
+	parameter, and the destination first instead of last (and a couple 
+	new capabilities inspired by `format' -- #t as destination means
+	current-output-port, #f means return the formatted text as a
+	string.
+
+	* gh.h, gh_data.c, ports.h, ports.c: Added some missing const specifications.
+
+	* backtrace.c (scm_display_error_message): Rewrote to use
+	scm_simple_format() procedure.
+
+	* __scm.h: Added commented-out #define of GUILE_DEBUG_FREELIST
+
 2000-01-09  Marius Vollmer  <mvo@zagadka.ping.de>
 
  	Finally applied the libltdl patch from Thomas Tanner, with slight
