@@ -1,3 +1,23 @@
+1998-12-15  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+
+	Move the procedure slots of entities to invisible slots (so that
+	we can have operator class objects which themselves are entities).
+	* struct.h (scm_struct_i_proc, scm_struct_i_flags,
+	SCM_STRUCTF_ENTITY): New constants.
+
+	* struct.c (scm_make_struct): Allocate "invisible" room for
+	procedures if SCM_STRUCTF_ENTITY is set in vtable.
+
+	* gc.c (scm_gc_mark): Mark entity procedures.
+
+        * struct.c, struct.h (scm_alloc_struct): Renamed from alloc_struct
+        and made global.
+        (scm_struct_init): Renamed from init_struct and made global.
+
+	* objects.h (SCM_ENTITY, scm_entity): Removed.
+	(SCM_ENTITY_PROC_0, SCM_ENTITY_PROC_0, SCM_ENTITY_PROC_0,
+	SCM_ENTITY_PROC_3): Adjusted for new location of procedure slots.
+
 Mon Dec 14 18:10:12 1998  Maciej Stachowiak  <mstachow@mit.edu>
 
 	* snarf.h (SCM_SYNTAX): New macro to allow convenient declaration
