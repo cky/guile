@@ -1,3 +1,10 @@
+2005-02-25  Marius Vollmer  <mvo@zagadka.de>
+
+	* hashtab.c (scm_i_rehash): Remove elements from old bucket vector
+	so that no two weak alist vectors share a spine.
+	(scm_hash_fn_create_handle_x): Deal with a possible rehashing
+	during GC before inserting the new alist cell.
+
 2005-02-23  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* hashtab.c (scm_i_rehash): Cope with the case that a GC modifies
