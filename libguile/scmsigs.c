@@ -143,8 +143,6 @@ take_signal (int signum)
   }
 #endif
   scm_system_async_mark (signal_async);
-  if (signum == SIGSEGV || signum == SIGILL || signum == SIGBUS)
-    SCM_ASYNC_TICK;
   errno = saved_errno;
 }
 
@@ -178,7 +176,7 @@ sys_deliver_signals (void)
 /* user interface for installation of signal handlers.  */
 SCM_DEFINE (scm_sigaction, "sigaction", 1, 2, 0, 
            (SCM signum, SCM handler, SCM flags),
-	    "Install or report the signal hander for a specified signal.\n\n"
+	    "Install or report the signal handler for a specified signal.\n\n"
 	    "@var{signum} is the signal number, which can be specified using the value\n"
 	    "of variables such as @code{SIGINT}.\n\n"
 	    "If @var{action} is omitted, @code{sigaction} returns a pair: the\n"
@@ -193,7 +191,7 @@ SCM_DEFINE (scm_sigaction, "sigaction", 1, 2, 0,
 	    "@code{SIG_IGN} (ignore), or @code{#f} to restore whatever signal handler\n"
 	    "was installed before @code{sigaction} was first used.  Flags can\n"
 	    "optionally be specified for the new handler (@code{SA_RESTART} will\n"
-	    "always be added if it's available and the system is using rstartable\n"
+	    "always be added if it's available and the system is using restartable\n"
 	    "system calls.)  The return value is a pair with information about the\n"
 	    "old handler as described above.\n\n"
 	    "This interface does not provide access to the \"signal blocking\"\n"
@@ -288,6 +286,31 @@ SCM_DEFINE (scm_sigaction, "sigaction", 1, 2, 0,
 #endif
       scheme_handlers[csig] = handler;
     }
+  
+  /* XXX - Silently ignore setting handlers for `program error signals'
+     because they can't currently be handled by Scheme code.
+  */
+
+  switch (csig)
+    {
+      /* This list of program error signals is from the GNU Libc
+         Reference Manual */
+    case SIGFPE:
+    case SIGILL:
+    case SIGSEGV:
+    case SIGBUS:
+    case SIGABRT:
+#if SIGIOT != SIGABRT
+    case SIGIOT:
+#endif
+    case SIGTRAP:
+#ifdef SIGEMT
+    case SIGEMT:
+#endif
+    case SIGSYS:
+      query_only = 1;
+    }
+
 #ifdef HAVE_SIGACTION
   if (query_only)
     {
