@@ -2665,7 +2665,7 @@ It connects to the HTTP daemon running on the local machine and
 returns the contents of the root index URL.
 
 @example
-(let ((s (socket AF_INET SOCK_STREAM 0)))
+(let ((s (socket PF_INET SOCK_STREAM 0)))
   (connect s AF_INET (inet-aton "127.0.0.1") 80)
   (display "GET / HTTP/1.0\r\n\r\n" s)
 
@@ -2684,7 +2684,7 @@ port 2904 for incoming connections and sends a greeting back to the
 client.
 
 @example
-(let ((s (socket AF_INET SOCK_STREAM 0)))
+(let ((s (socket PF_INET SOCK_STREAM 0)))
   (setsockopt s SOL_SOCKET SO_REUSEADDR 1)
   ;; @r{Specific address?}
   ;; @r{(bind s AF_INET (inet-aton "127.0.0.1") 2904)}
