@@ -233,7 +233,7 @@ GUILE_PROC (scm_append_x, "append!", 0, 0, 1,
   args = SCM_CDR(args);
   if (SCM_NULLP(args)) return arg;
   if (SCM_NULLP(arg)) goto tail;
-  SCM_VALIDATE_NIMCONS(SCM_ARG1,arg);
+  SCM_VALIDATE_CONS(SCM_ARG1,arg);
   SCM_SETCDR (scm_last_pair (arg), scm_append_x (args));
   return arg;
 }
@@ -252,7 +252,7 @@ GUILE_PROC(scm_last_pair, "last-pair", 1, 0, 0,
   if (SCM_NULLP (sx))
     return SCM_EOL;
 
-  SCM_VALIDATE_NIMCONS(SCM_ARG1,res);
+  SCM_VALIDATE_CONS(SCM_ARG1,res);
   while (!0) {
     x = SCM_CDR(res);
     if (SCM_IMP(x) || SCM_NCONSP(x)) return res;
@@ -386,7 +386,7 @@ or returning the results of cdring @var{k} times down @var{lst}.")
   register long i;
   SCM_VALIDATE_INT_MIN_COPY(2,k,0,i);
   while (i-- > 0) {
-    SCM_VALIDATE_NIMCONS(1,lst);
+    SCM_VALIDATE_CONS(1,lst);
     lst = SCM_CDR(lst);
   }
   return lst;
@@ -432,7 +432,7 @@ return it.")
   pos = &answer;
   while (i-- > 0)
     {
-      SCM_VALIDATE_NIMCONS(1,lst);
+      SCM_VALIDATE_CONS(1,lst);
       *pos = scm_cons (SCM_CAR (lst), SCM_EOL);
       pos = SCM_CDRLOC (*pos);
       lst = SCM_CDR(lst);

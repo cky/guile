@@ -883,7 +883,7 @@ any unflushed buffered port data is ignored.")
     flg = 0;
   else
     {
-      SCM_VALIDATE_NIMCONS(5,args_and_flags);
+      SCM_VALIDATE_CONS(5,args_and_flags);
       flg = SCM_NUM2ULONG (5,SCM_CAR (args_and_flags));
     }
   SCM_SYSCALL (rv = sendto (fd, SCM_ROCHARS (message), SCM_ROLENGTH (message),

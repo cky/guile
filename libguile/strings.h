@@ -55,7 +55,8 @@
 
 
 
-#define SCM_STRINGP(x) (SCM_NIMP(x) && (SCM_TYP7S(x)==scm_tc7_string))
+#define SCM_SLOPPY_STRINGP(x) ((SCM_TYP7S(x)==scm_tc7_string))
+#define SCM_STRINGP(x) (SCM_NIMP(x) && SCM_SLOPPY_STRINGP(x))
 #define SCM_NSTRINGP(x) (!SCM_STRINGP(x))
 
 /* Is X a writable string (i.e., not a substring)?  */

@@ -1,4 +1,4 @@
-/* $Id: scm_validate.h,v 1.7 1999-12-16 20:48:04 gjb Exp $ */
+/* $Id: scm_validate.h,v 1.8 1999-12-19 01:04:36 gjb Exp $ */
 /*	Copyright (C) 1999 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
@@ -85,33 +85,26 @@
 
 #define SCM_MUST_MALLOC(size) (scm_must_malloc((size), FUNC_NAME))
 
-#define SCM_MAKE_NIM_VALIDATE(pos,var,pred) \
-  do { SCM_ASSERT (SCM_NIMP(var) && SCM ## pred(var), var, pos, FUNC_NAME); } while (0)
-
 #define SCM_MAKE_VALIDATE(pos,var,pred) \
-  do { SCM_ASSERT (SCM ## pred(var), var, pos, FUNC_NAME); } while (0)
+  do { SCM_ASSERT (SCM_ ## pred(var), var, pos, FUNC_NAME); } while (0)
 
 
 
-#define SCM_VALIDATE_NIM(pos,scm) \
-  do { SCM_ASSERT(SCM_NIMP(scm), scm, pos, FUNC_NAME); } while (0)
+#define SCM_VALIDATE_NIM(pos,scm) SCM_MAKE_VALIDATE(pos,scm,NIMP)
 
-#define SCM_VALIDATE_BOOL(pos,flag) \
-  do { SCM_ASSERT(SCM_BOOLP(flag), pos, FUNC_NAME); } while (0)
+#define SCM_VALIDATE_BOOL(pos,flag) SCM_MAKE_VALIDATE(pos,flag,BOOLP)
 
 #define SCM_VALIDATE_BOOL_COPY(pos,flag,cvar) \
   do { SCM_ASSERT(SCM_BOOLP(flags), flag, pos, FUNC_NAME); \
        cvar = (SCM_BOOL_T == flag)? 1: 0; } while (0)
 
-#define SCM_VALIDATE_CHAR(pos,scm) \
-  do { SCM_ASSERT(SCM_ICHRP(scm), scm, pos, FUNC_NAME); } while (0)
+#define SCM_VALIDATE_CHAR(pos,scm) SCM_MAKE_VALIDATE(pos,scm,ICHRP)
 
 #define SCM_VALIDATE_CHAR_COPY(pos,scm,cvar) \
   do { SCM_ASSERT(SCM_ICHRP(scm), scm, pos, FUNC_NAME); \
        cvar = SCM_ICHR(scm); } while (0)
 
-#define SCM_VALIDATE_ROSTRING(pos,str) \
-  do { SCM_ASSERT(SCM_NIMP (str) && SCM_ROSTRINGP (str), str, pos, FUNC_NAME); } while (0)
+#define SCM_VALIDATE_ROSTRING(pos,str) SCM_MAKE_VALIDATE(pos,str,ROSTRINGP)
 
 #define SCM_VALIDATE_ROSTRING_COPY(pos,str,cvar) \
   do { SCM_ASSERT(SCM_NIMP (str) && SCM_ROSTRINGP (str), str, pos, FUNC_NAME); \
@@ -121,50 +114,48 @@
   do { SCM_ASSERT(SCM_FALSEP(str) || (SCM_NIMP (str) && SCM_ROSTRINGP (str)), str, pos, FUNC_NAME); \
        if (SCM_FALSEP(str)) cvar = NULL; else cvar = SCM_ROCHARS(str); } while (0)
 
-#define SCM_VALIDATE_STRING(pos,str) \
-  do { SCM_ASSERT(SCM_NIMP (str) && SCM_STRINGP (str), str, pos, FUNC_NAME); } while (0)
+#define SCM_VALIDATE_STRING(pos,str) SCM_MAKE_VALIDATE(pos,str,STRINGP)
 
 #define SCM_VALIDATE_STRINGORSUBSTR(pos,str) \
-  do { SCM_ASSERT(SCM_NIMP (str) && (SCM_STRINGP (str) || SCM_SUBSTRP(str)), str, pos, FUNC_NAME); } while (0)
+  do { SCM_ASSERT(SCM_NIMP (str) && \
+       (SCM_SLOPPY_STRINGP (str) || SCM_SLOPPY_SUBSTRP(str)), str, pos, FUNC_NAME); } while (0)
 
 #define SCM_VALIDATE_STRING_COPY(pos,str,cvar) \
-  do { SCM_ASSERT(SCM_NIMP (str) && SCM_STRINGP (str), str, pos, FUNC_NAME); \
+  do { SCM_ASSERT(SCM_STRINGP (str), str, pos, FUNC_NAME); \
        cvar = SCM_CHARS(str); } while (0)
 
 #define SCM_VALIDATE_RWSTRING(pos,str) \
-  do { SCM_ASSERT(SCM_NIMP (str) && SCM_STRINGP (str), str, pos, FUNC_NAME); \
+  do { SCM_ASSERT(SCM_STRINGP (str), str, pos, FUNC_NAME); \
        if (!SCM_RWSTRINGP(str)) scm_misc_error(FUNC_NAME, "argument is a read-only string", str);  } while (0)
 
-#define SCM_VALIDATE_REAL(pos,z) \
-  do { SCM_ASSERT (SCM_NIMP (z) && SCM_REALP (z), z, pos, FUNC_NAME); } while (0)
+#define SCM_VALIDATE_REAL(pos,z) SCM_MAKE_VALIDATE(pos,z,REALP)
 
-#define SCM_VALIDATE_INT(pos,k) \
-  do { SCM_ASSERT(SCM_INUMP(k), k, pos, FUNC_NAME); } while (0)
+#define SCM_VALIDATE_INT(pos,k) SCM_MAKE_VALIDATE(pos,k,INUMP)
 
 #define SCM_VALIDATE_INT_COPY(pos,k,cvar) \
-  do { cvar = scm_num2ulong(k,(char *)pos,FUNC_NAME); } while (0)
+  do { SCM_ASSERT(SCM_INUMP(k), k, pos, FUNC_NAME); \
+       cvar = SCM_INUM(k); } while (0)
 
-#define SCM_VALIDATE_BIGINT(pos,k) \
-  do { SCM_ASSERT(SCM_NIMP(k) && SCM_BIGP(k), k, pos, FUNC_NAME); } while (0)
+#define SCM_VALIDATE_BIGINT(pos,k) SCM_MAKE_VALIDATE(pos,k,BIGP)
 
 #define SCM_VALIDATE_INT_MIN(pos,k,min) \
   do { SCM_ASSERT(SCM_INUMP(k), k, pos, FUNC_NAME); \
-       SCM_ASSERT(SCM_INUM(k) >= min, k, SCM_OUTOFRANGE, FUNC_NAME); } while (0)
+       SCM_ASSERT_RANGE(pos,k,(SCM_INUM(k) >= min)); } while (0)
 
 #define SCM_VALIDATE_INT_MIN_COPY(pos,k,min,cvar) \
   do { SCM_ASSERT(SCM_INUMP(k), k, pos, FUNC_NAME); \
        cvar = SCM_INUM(k); \
-       SCM_ASSERT(cvar >= min, k, SCM_OUTOFRANGE, FUNC_NAME); } while (0)
+       SCM_ASSERT_RANGE(pos,k,(cvar >= min)); } while (0)
 
 #define SCM_VALIDATE_INT_MIN_DEF_COPY(pos,k,min,default,cvar) \
   do { if (SCM_UNBNDP(k)) k = SCM_MAKINUM(default); \
        SCM_ASSERT(SCM_INUMP(k), k, pos, FUNC_NAME); \
        cvar = SCM_INUM(k); \
-       SCM_ASSERT(cvar >= min, k, SCM_OUTOFRANGE, FUNC_NAME); } while (0)
-
+       SCM_ASSERT_RANGE(pos,k,(cvar >= min)); } while (0)
 
 #define SCM_VALIDATE_INT_DEF(pos,k,default) \
-  do { if (SCM_UNDEFINED==k) k = SCM_MAKINUM(default); else SCM_ASSERT(SCM_INUMP(k), k, pos, FUNC_NAME); } while (0)
+  do { if (SCM_UNDEFINED==k) k = SCM_MAKINUM(default); \
+       else SCM_ASSERT(SCM_INUMP(k), k, pos, FUNC_NAME); } while (0)
 
 #define SCM_VALIDATE_INT_DEF_COPY(pos,k,default,cvar) \
   do { if (SCM_UNDEFINED==k) { k = SCM_MAKINUM(default); cvar=default; } \
@@ -173,18 +164,12 @@
 /* [low,high) */
 #define SCM_VALIDATE_INT_RANGE(pos,k,low,high) \
   do { SCM_ASSERT(SCM_INUMP(k), k, pos, FUNC_NAME); \
-       SCM_ASSERT(SCM_INUM (k) >= low && ((unsigned) SCM_INUM (k)) < high, \
-                  k, SCM_OUTOFRANGE, FUNC_NAME); } while (0)
+       SCM_ASSERT_RANGE(pos,k,(SCM_INUM (k) >= low && ((unsigned) SCM_INUM (k)) < high)); \
+     } while (0)
 
-#define SCM_VALIDATE_NULL(pos,scm) \
-  do { SCM_ASSERT(SCM_NULLP(scm), scm, pos, FUNC_NAME); } while (0)
+#define SCM_VALIDATE_NULL(pos,scm) SCM_MAKE_VALIDATE(pos,scm,NULLP)
 
-#define SCM_VALIDATE_CONS(pos,scm) \
-  do { SCM_ASSERT(SCM_CONSP(scm), scm, pos, FUNC_NAME); } while (0)
-
-#define SCM_VALIDATE_NIMCONS(pos,scm) \
-  do { SCM_ASSERT(SCM_CONSP(scm), scm, pos, FUNC_NAME); } while (0)
-
+#define SCM_VALIDATE_CONS(pos,scm) SCM_MAKE_VALIDATE(pos,scm,CONSP)
 
 #define SCM_VALIDATE_LIST(pos,lst) \
   do { SCM_ASSERT (scm_ilength (lst) >= 0, lst, pos, FUNC_NAME); } while (0)
@@ -197,117 +182,94 @@
 
 #define SCM_VALIDATE_ALISTCELL(pos,alist) \
   do { \
-    SCM_ASSERT(SCM_CONSP(alist), alist, pos, FUNC_NAME); \
-    { SCM tmp = SCM_CAR(alist); \
-      SCM_ASSERT(SCM_NIMP(tmp) && SCM_CONSP(tmp), alist, pos, FUNC_NAME); } } while (0)
+    SCM_ASSERT(SCM_CONSP(alist) && SCM_CONSP(SCM_CAR(alist)), alist, pos, FUNC_NAME); \
+  } while (0)
 
-#define SCM_VALIDATE_ALISTCELL_COPYSCM(pos,alist,tmp) \
+#define SCM_VALIDATE_ALISTCELL_COPYSCM(pos,alist,cvar) \
   do { \
     SCM_ASSERT(SCM_CONSP(alist), alist, pos, FUNC_NAME); \
-    tmp = SCM_CAR(alist); \
-    SCM_ASSERT(SCM_NIMP(tmp) && SCM_CONSP(tmp), alist, pos, FUNC_NAME); } while (0)
+    cvar = SCM_CAR(alist); \
+    SCM_ASSERT(SCM_CONSP(cvar), alist, pos, FUNC_NAME); } while (0)
 
 #define SCM_VALIDATE_OPORT_VALUE(pos,port) \
   do { SCM_ASSERT (scm_valid_oport_value_p (port), port, pos, FUNC_NAME); } while (0)
 
-#define SCM_VALIDATE_PRINTSTATE(pos,a) \
-  do { SCM_ASSERT (SCM_NIMP (a) && SCM_PRINT_STATE_P (a), a, pos, FUNC_NAME); } while (0)
+#define SCM_VALIDATE_PRINTSTATE(pos,a) SCM_MAKE_VALIDATE(pos,a,PRINT_STATE_P)
 
 #define SCM_VALIDATE_SMOB(pos,obj,type) \
   do { SCM_ASSERT ((SCM_NIMP(obj) && SCM_TYP16 (obj) == scm_tc16_ ## type), obj, pos, FUNC_NAME); } while (0)
 
-#define SCM_VALIDATE_ASYNC(pos,a) \
-  do { SCM_ASSERT (SCM_NIMP (a) && SCM_ASYNCP (a), a, pos, FUNC_NAME); } while (0)
+#define SCM_VALIDATE_ASYNC(pos,a) SCM_MAKE_VALIDATE(pos,a,ASYNCP)
 
 #define SCM_VALIDATE_ASYNC_COPY(pos,a,cvar) \
-  do { SCM_ASSERT (SCM_NIMP (a) && SCM_ASYNCP (a), a, pos, FUNC_NAME); \
+  do { SCM_ASSERT (SCM_ASYNCP (a), a, pos, FUNC_NAME); \
        cvar = SCM_ASYNC(a); } while (0)
 
-#define SCM_VALIDATE_THREAD(pos,a) \
-  do { SCM_ASSERT (SCM_NIMP (a) && SCM_THREADP (a), a, pos, FUNC_NAME); } while (0)
+#define SCM_VALIDATE_THREAD(pos,a) SCM_MAKE_VALIDATE(pos,a,THREADP)
 
 #define SCM_VALIDATE_THUNK(pos,thunk) \
   do { SCM_ASSERT (SCM_NFALSEP (scm_thunk_p (thunk)), thunk, pos, FUNC_NAME); } while (0)
 
-#define SCM_VALIDATE_SYMBOL(pos,sym) \
-  do { SCM_ASSERT (SCM_NIMP(sym) && SCM_SYMBOLP(sym), sym, pos, FUNC_NAME); } while (0)
+#define SCM_VALIDATE_SYMBOL(pos,sym) SCM_MAKE_VALIDATE(pos,sym,SYMBOLP)
 
-#define SCM_VALIDATE_VARIABLE(pos,var) \
-  do { SCM_ASSERT (SCM_NIMP(var) && SCM_VARIABLEP(var), var, pos, FUNC_NAME); } while (0)
+#define SCM_VALIDATE_VARIABLE(pos,var) SCM_MAKE_VALIDATE(pos,var,VARIABLEP)
 
-#define SCM_VALIDATE_MEMOIZED(pos,obj) \
-  do { SCM_ASSERT (SCM_NIMP(obj) && SCM_MEMOIZEDP(obj), obj, pos, FUNC_NAME); } while (0)
+#define SCM_VALIDATE_MEMOIZED(pos,obj) SCM_MAKE_VALIDATE(pos,obj,MEMOIZEDP)
 
-#define SCM_VALIDATE_CLOSURE(pos,obj) \
-  do { SCM_ASSERT (SCM_NIMP(obj) && SCM_CLOSUREP(obj), obj, pos, FUNC_NAME); } while (0)
+#define SCM_VALIDATE_CLOSURE(pos,obj) SCM_MAKE_VALIDATE(pos,obj,CLOSUREP)
 
 #define SCM_VALIDATE_PROC(pos,proc) \
   do { SCM_ASSERT ( SCM_BOOL_T == scm_procedure_p(proc), proc, pos, FUNC_NAME); } while (0)
 
 #define SCM_VALIDATE_NULLORCONS(pos,env) \
-  do { SCM_ASSERT (SCM_NULLP (env) || (SCM_NIMP (env) && SCM_CONSP (env)), env, pos, FUNC_NAME); } while (0)
+  do { SCM_ASSERT (SCM_NULLP (env) || SCM_CONSP (env), env, pos, FUNC_NAME); } while (0)
 
-#define SCM_VALIDATE_HOOK(pos,a) \
-  do { SCM_ASSERT (SCM_NIMP (a) && SCM_HOOKP (a), a, pos, FUNC_NAME); } while (0)
+#define SCM_VALIDATE_HOOK(pos,a) SCM_MAKE_VALIDATE(pos,a,HOOKP)
 
-#define SCM_VALIDATE_RGXP(pos,a) \
-  do { SCM_ASSERT (SCM_NIMP (a) && SCM_RGXP (a), a, pos, FUNC_NAME); } while (0)
+#define SCM_VALIDATE_RGXP(pos,a) SCM_MAKE_VALIDATE(pos,a,RGXP)
 
-#define SCM_VALIDATE_OPDIR(pos,port) \
-  do { SCM_ASSERT (SCM_NIMP (port) && SCM_OPDIRP (port), port, pos, FUNC_NAME); } while (0)
+#define SCM_VALIDATE_OPDIR(pos,port) SCM_MAKE_VALIDATE(pos,port,OPDIRP)
 
-#define SCM_VALIDATE_DIR(pos,port) \
-  do { SCM_ASSERT (SCM_NIMP (port) && SCM_DIRP (port), port, pos, FUNC_NAME); } while (0)
+#define SCM_VALIDATE_DIR(pos,port) SCM_MAKE_VALIDATE(pos,port,DIRP)
 
-#define SCM_VALIDATE_PORT(pos,port) \
-  do { SCM_ASSERT (SCM_NIMP (port) && SCM_PORTP (port), port, pos, FUNC_NAME); } while (0)
+#define SCM_VALIDATE_PORT(pos,port) SCM_MAKE_VALIDATE(pos,port,PORTP)
 
-#define SCM_VALIDATE_FPORT(pos,port) \
-  do { SCM_ASSERT (SCM_NIMP (port) && SCM_FPORTP (port), port, pos, FUNC_NAME); } while (0)
+#define SCM_VALIDATE_FPORT(pos,port) SCM_MAKE_VALIDATE(pos,port,FPORTP)
 
-#define SCM_VALIDATE_OPFPORT(pos,port) \
-  do { SCM_ASSERT (SCM_NIMP (port) && SCM_OPFPORTP (port), port, pos, FUNC_NAME); } while (0)
+#define SCM_VALIDATE_OPFPORT(pos,port) SCM_MAKE_VALIDATE(pos,port,OPFPORTP)
 
-#define SCM_VALIDATE_OPINPORT(pos,port) \
-  do { SCM_ASSERT (SCM_NIMP (port) && SCM_OPINPORTP (port), port, pos, FUNC_NAME); } while (0)
+#define SCM_VALIDATE_OPINPORT(pos,port) SCM_MAKE_VALIDATE(pos,port,OPINPORTP)
 
 #define SCM_VALIDATE_OPENPORT(pos,port) \
-  do { SCM_ASSERT (SCM_NIMP (port) && SCM_PORTP (port) && SCM_OPENP(port), port, pos, FUNC_NAME); } while (0)
+  do { SCM_ASSERT (SCM_PORTP (port) && SCM_OPENP(port), port, pos, FUNC_NAME); } while (0)
 
-#define SCM_VALIDATE_OPPORT(pos,port) \
-  do { SCM_ASSERT (SCM_NIMP (port) && SCM_OPPORTP (port), port, pos, FUNC_NAME); } while (0)
+#define SCM_VALIDATE_OPPORT(pos,port) SCM_MAKE_VALIDATE(pos,port,OPPORTP)
 
-#define SCM_VALIDATE_OPOUTPORT(pos,port) \
-  do { SCM_ASSERT (SCM_NIMP (port) && SCM_OPOUTPORTP (port), port, pos, FUNC_NAME); } while (0)
+#define SCM_VALIDATE_OPOUTPORT(pos,port) SCM_MAKE_VALIDATE(pos,port,OPOUTPORTP)
 
-#define SCM_VALIDATE_FLUID(pos,fluid) \
-  do { SCM_ASSERT (SCM_NIMP (fluid) && SCM_FLUIDP (fluid), fluid, pos, FUNC_NAME); } while (0)
+#define SCM_VALIDATE_FLUID(pos,fluid) SCM_MAKE_VALIDATE(pos,fluid,FLUIDP)
 
-#define SCM_VALIDATE_KEYWORD(pos,v) \
-  do { SCM_ASSERT (SCM_NIMP (v) && SCM_KEYWORDP (v), v, pos, FUNC_NAME); } while (0)
+#define SCM_VALIDATE_KEYWORD(pos,v) SCM_MAKE_VALIDATE(pos,v,KEYWORDP)
 
-#define SCM_VALIDATE_STACK(pos,v) \
-  do { SCM_ASSERT (SCM_NIMP (v) && SCM_STACKP (v), v, pos, FUNC_NAME); } while (0)
+#define SCM_VALIDATE_STACK(pos,v) SCM_MAKE_VALIDATE(pos,v,STACKP)
 
-#define SCM_VALIDATE_FRAME(pos,v) \
-  do { SCM_ASSERT (SCM_NIMP (v) && SCM_FRAMEP (v), v, pos, FUNC_NAME); } while (0)
+#define SCM_VALIDATE_FRAME(pos,v) SCM_MAKE_VALIDATE(pos,v,FRAMEP)
 
-#define SCM_VALIDATE_RSTATE(pos,v) \
-  do { SCM_ASSERT (SCM_NIMP (v) && SCM_RSTATEP (v), v, pos, FUNC_NAME); } while (0)
+#define SCM_VALIDATE_RSTATE(pos,v) SCM_MAKE_VALIDATE(pos,v,RSTATEP)
 
 #define SCM_VALIDATE_ARRAY(pos,v) \
-  do { SCM_ASSERT (SCM_NIMP (v) && SCM_BOOL_F != scm_array_p(v,SCM_UNDEFINED), v, pos, FUNC_NAME); } while (0)
+  do { SCM_ASSERT (SCM_NIMP (v) && \
+                   SCM_BOOL_F != scm_array_p(v,SCM_UNDEFINED), \
+                   v, pos, FUNC_NAME); } while (0)
 
-#define SCM_VALIDATE_VECTOR(pos,v) \
-  do { SCM_ASSERT (SCM_NIMP (v) && SCM_VECTORP (v), v, pos, FUNC_NAME); } while (0)
+#define SCM_VALIDATE_VECTOR(pos,v) SCM_MAKE_VALIDATE(pos,v,VECTORP)
 
-#define SCM_VALIDATE_STRUCT(pos,v) \
-  do { SCM_ASSERT (SCM_NIMP (v) && SCM_STRUCTP (v), v, pos, FUNC_NAME); } while (0)
+#define SCM_VALIDATE_STRUCT(pos,v) SCM_MAKE_VALIDATE(pos,v,STRUCTP)
 
 #define SCM_VALIDATE_VTABLE(pos,v) \
   do { SCM_ASSERT (SCM_NIMP (v) && SCM_NFALSEP(scm_struct_vtable_p(v)), v, pos, FUNC_NAME); } while (0)
 
 #define SCM_VALIDATE_VECTOR_LEN(pos,v,len) \
-  do { SCM_ASSERT (SCM_NIMP (v) && SCM_VECTORP (v) && len == SCM_LENGTH(v), v, pos, FUNC_NAME); } while (0)
+  do { SCM_ASSERT (SCM_VECTORP (v) && len == SCM_LENGTH(v), v, pos, FUNC_NAME); } while (0)
 
 #endif

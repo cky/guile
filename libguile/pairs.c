@@ -99,7 +99,7 @@ GUILE_PROC (scm_set_car_x, "set-car!", 2, 0, 0,
 "")
 #define FUNC_NAME s_scm_set_car_x
 {
-  SCM_VALIDATE_NIMCONS(1,pair);
+  SCM_VALIDATE_CONS(1,pair);
   SCM_SETCAR (pair, value);
   return SCM_UNSPECIFIED;
 }
@@ -110,7 +110,7 @@ GUILE_PROC (scm_set_cdr_x, "set-cdr!", 2, 0, 0,
 "")
 #define FUNC_NAME s_scm_set_cdr_x
 {
-  SCM_VALIDATE_NIMCONS(1,pair);
+  SCM_VALIDATE_CONS(1,pair);
   SCM_SETCDR (pair, value);
   return SCM_UNSPECIFIED;
 }

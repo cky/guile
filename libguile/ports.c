@@ -610,7 +610,7 @@ which are not needed in the new process.")
 #define FUNC_NAME s_scm_close_all_ports_except
 {
   int i = 0;
-  SCM_VALIDATE_NIMCONS(1,ports);
+  SCM_VALIDATE_CONS(1,ports);
   while (i < scm_port_table_size)
     {
       SCM thisport = scm_port_table[i]->port;

@@ -98,7 +98,8 @@ extern int scm_symhash_dim;
 			 ? SCM_INUM (SCM_CADR (x)) + SCM_UCHARS (SCM_CDDR (x))\
 			 : SCM_UCHARS (x)))
 #define SCM_ROLENGTH(x) SCM_LENGTH (x)
-#define SCM_SUBSTRP(x) (SCM_NIMP(x) && ((SCM_TYP7(x) == scm_tc7_substring)))
+#define SCM_SLOPPY_SUBSTRP(x) (SCM_TYP7(x) == scm_tc7_substring)
+#define SCM_SUBSTRP(x) (SCM_NIMP(x) && SCM_SLOPPY_SUBSTRP(x))
 #define SCM_SUBSTR_STR(x) (SCM_CDDR (x))
 #define SCM_SUBSTR_OFFSET(x) (SCM_CADR (x))
 

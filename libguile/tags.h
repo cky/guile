@@ -265,10 +265,10 @@ typedef long SCM;
  */
 
 #define SCM_SLOPPY_NCONSP(x) (1 & SCM_CAR (x))
-#define SCM_SLOPPY_CONSP(x)  (!(1 & SCM_CAR (x)))
+#define SCM_SLOPPY_CONSP(x)  (!SCM_SLOPPY_NCONSP(x))
 
-#define SCM_NCONSP(x) (SCM_IMP (x)  || (1 & SCM_CAR (x)))
-#define SCM_CONSP(x)  (SCM_NIMP (x) && !(1 & SCM_CAR (x)))
+#define SCM_NCONSP(x) (SCM_IMP (x) || SCM_SLOPPY_NCONSP(x))
+#define SCM_CONSP(x)  (SCM_NIMP (x) && SCM_SLOPPY_CONSP(x))
 
 
 /* SCM_ECONSP should be used instead of SCM_CONSP at places where GLOCS
