@@ -56,6 +56,7 @@
 	  coop.c
 	    <qt.h>
 
+    * second #inclusion
 */
 
 #include <stdio.h>
