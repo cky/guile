@@ -43,17 +43,241 @@
 #include <stdio.h>
 #include "_scm.h"
 #include "stackchk.h"
+#include "dynwind.h"
+#include "eval.h"
+#include "genio.h"
+#include "smob.h"
+#include "pairs.h"
+#include "throw.h"
 
 #include "root.h"
 
 
 SCM scm_sys_protects[SCM_NUM_PROTECTS];
-struct scm_root_state the_scm_root;
-struct scm_root_state * scm_root = &the_scm_root;
+
+long scm_tc16_root;
+
+#ifndef USE_THREADS
+struct scm_root_state *scm_root;
+#endif
 
 
 
+static SCM mark_root SCM_P ((SCM));
 
+static SCM
+mark_root (root)
+     SCM root;
+{
+  scm_root_state *s = SCM_ROOT_STATE (root);
+  SCM_SETGC8MARK (root);
+  scm_gc_mark (s->rootcont);
+  scm_gc_mark (s->dynwinds);
+  scm_gc_mark (s->continuation_stack);
+  scm_gc_mark (s->continuation_stack_ptr);
+  scm_gc_mark (s->progargs);
+  scm_gc_mark (s->exitval);
+  scm_gc_mark (s->cur_inp);
+  scm_gc_mark (s->cur_outp);
+  scm_gc_mark (s->cur_errp);
+  scm_gc_mark (s->def_inp);
+  scm_gc_mark (s->def_outp);
+  scm_gc_mark (s->def_errp);
+  scm_gc_mark (s->top_level_lookup_thunk_var);
+  scm_gc_mark (s->system_transformer);
+  return SCM_ROOT_STATE (root) -> parent;
+}
+
+static scm_sizet free_root SCM_P ((SCM));
+
+static scm_sizet
+free_root (root)
+     SCM root;
+{
+  scm_must_free ((char *) SCM_ROOT_STATE (root));
+  return sizeof (scm_root_state);
+}
+
+static int print_root SCM_P ((SCM exp, SCM port, scm_print_state *pstate));
+
+static int
+print_root (exp, port, pstate)
+     SCM exp;
+     SCM port;
+     scm_print_state *pstate;
+{
+  scm_gen_puts (scm_regular_string, "#<root ", port);
+  scm_intprint(SCM_SEQ (SCM_ROOT_STATE (exp) -> rootcont), 16, port);
+  scm_gen_putc('>', port);
+  return 1;
+}
+
+static scm_smobfuns root_smob =
+{
+  mark_root,
+  free_root,
+  print_root,
+  0
+};
+
+
+
+SCM
+scm_make_root (parent)
+     SCM parent;
+{
+  SCM root;
+  scm_root_state *root_state;
+
+  root_state = (scm_root_state *) scm_must_malloc (sizeof (scm_root_state),
+						   "scm_make_root");
+  if (SCM_NIMP (parent) && SCM_ROOTP (parent))
+    {
+      memcpy (root_state, SCM_ROOT_STATE (parent), sizeof (scm_root_state));
+      root_state->parent = parent;
+    }
+  else
+    {
+      root_state->parent = SCM_BOOL_F;
+    }
+  SCM_NEWCELL (root);
+  SCM_REDEFER_INTS;
+  SCM_SETCAR (root, scm_tc16_root);
+  SCM_SETCDR (root, root_state);
+  root_state->handle = root;
+  SCM_REALLOW_INTS;
+  return root;
+}
+
+/* {call-with-new-root}
+ *
+ * Suspending the current thread to evaluate a thunk on the
+ * same C stack but under a new root.
+ *
+ * Calls to call-with-new-root return exactly once (unless
+ * the process is somehow exitted).
+ */
+
+#if 0
+SCM scm_exitval;		/* INUM with return value */
+#endif
+static int n_dynamic_roots = 0;
+
+static SCM cwnr SCM_P ((SCM thunk, SCM a1, SCM args, SCM handler, SCM_STACKITEM *stack_start));
+
+/* This is the basic code for new root creation.
+ *
+ * WARNING!  The order of actions in this routine is in many ways
+ * critical.  E. g., it is essential that an error doesn't leave Guile
+ * in a messed up state.
+ */
+
+static SCM 
+cwnr (thunk, a1, args, handler, stack_start)
+     SCM thunk;
+     SCM a1;
+     SCM args;
+     SCM handler;
+     SCM_STACKITEM *stack_start;
+{
+  int old_ints_disabled = scm_ints_disabled;
+  SCM root, old_winds;
+  SCM answer;
+
+  /* Create the new root with current root as parent. */
+  root = scm_make_root (scm_root->handle);
+  
+  /* Create a fresh root continuation.
+   */
+  {
+    SCM new_rootcont;
+    SCM_NEWCELL (new_rootcont);
+    SCM_REDEFER_INTS;
+    SCM_SETJMPBUF (new_rootcont,
+		   scm_must_malloc ((long) sizeof (regs),
+				    "inferior root continuation"));
+    SCM_CAR (new_rootcont) = scm_tc7_contin;
+    SCM_DYNENV (new_rootcont) = SCM_EOL;
+    SCM_BASE (new_rootcont) = stack_start;
+    SCM_SEQ (new_rootcont) = n_dynamic_roots++;
+#ifdef DEBUG_EXTENSIONS
+    SCM_DFRAME (new_rootcont) = 0;
+#endif
+    SCM_ROOT_STATE (root)->rootcont = new_rootcont;
+    SCM_REALLOW_INTS;
+  }
+
+  /* Enter new root state. */
+  SCM_REDEFER_INTS;
+  scm_set_root (SCM_ROOT_STATE (root));
+#ifdef DEBUG_EXTENSIONS
+  last_debug_info_frame = 0;
+#endif
+  SCM_REALLOW_INTS;
+  
+  /* Exit caller's dynamic state (using new, private scm_dynwinds).
+   */
+  old_winds = scm_root->dynwinds;
+  scm_dowinds (SCM_EOL, scm_ilength (scm_root->dynwinds));
+
+  /* Catch all errors. */
+  answer = scm_catch (SCM_BOOL_T, thunk, handler);
+  
+  scm_dowinds (old_winds, - scm_ilength (old_winds));
+  SCM_REDEFER_INTS;
+  scm_set_root (SCM_ROOT_STATE (scm_root->parent));
+#ifdef DEBUG_EXTENSIONS
+  last_debug_info_frame = SCM_DFRAME (scm_root->rootcont);
+#endif
+  SCM_REALLOW_INTS;
+  scm_ints_disabled = old_ints_disabled;
+  return answer;
+}
+
+
+SCM_PROC(s_call_with_new_root, "call-with-new-root", 2, 0, 0, scm_call_with_new_root);
+#ifdef __STDC__
+SCM
+scm_call_with_new_root (SCM thunk, SCM handler)
+#else
+SCM
+scm_call_new_root (thunk, handler)
+     SCM thunk;
+     SCM handler;
+#endif
+{
+  SCM_STACKITEM stack_place;
+
+  return cwnr (thunk, SCM_EOL, SCM_EOL, handler, &stack_place);
+}
+
+SCM_PROC(s_dynamic_root, "dynamic-root", 0, 0, 0, scm_dynamic_root);
+#ifdef __STDC__
+SCM
+scm_dynamic_root (void)
+#else
+SCM
+scm_dynamic_root ()
+#endif
+{
+  return scm_ulong2num (SCM_SEQ (scm_root->rootcont));
+}
+
+#ifdef __STDC__
+SCM
+scm_app_wdr (SCM proc, SCM a1, SCM args, SCM error)
+#else
+SCM
+scm_app_wdr (proc, a1, args, error)
+     SCM proc;
+     SCM a1;
+     SCM args;
+     SCM error;
+#endif
+{
+  SCM_STACKITEM stack_place;
+  return cwnr (proc, a1, args, error, &stack_place);
+}
 
 
 
@@ -72,13 +296,13 @@ typedef long setjmp_type;
 
 #ifdef __STDC__
 SCM
-scm_call_catching_errors (SCM (*thunk)(), SCM (*err_filter)(), void * closure)
+scm_call_catching_errors (SCM (*thunk)(), SCM (*err_filter)(), void *closure)
 #else
 SCM
 scm_call_catching_errors (thunk, err_filter, closure)
      SCM (*thunk)();
      SCM (*err_filter)();
-     void * closure;
+     void *closure;
 #endif
 {
   SCM answer;
@@ -103,7 +327,9 @@ scm_call_catching_errors (thunk, err_filter, closure)
   return answer;
 }
 
-
-
-
-
+void
+scm_init_root ()
+{
+  scm_tc16_root = scm_newsmob (&root_smob);
+#include "root.x"
+}
