@@ -1,33 +1,120 @@
 @page
-@node Programming Options
-@chapter Programming Options in Guile
+@node Programming Overview
+@chapter An Overview of Guile Programming
 
-What does it mean to program using Guile?
+Guile is designed as an extension language interpreter that is
+straightforward to integrate with applications written in C (and C++).
+The big win here for the application developer is that Guile
+integration, as the Guile web page says, ``lowers your project's
+hacktivation energy.''  Lowering the hacktivation energy means that you,
+as the application developer, @emph{and your users}, reap the benefits
+that flow from being able to extend the application in a high level
+extension language rather than in plain old C.
 
-If you are an application developer, and want to combine Guile in some
-way with your application, there is a range of possibilities available
-to you@dots{}
+Underlying this argument is the assumption that programming in a high
+level language, specifically Guile's implementation of Scheme, is
+necessarily better in some way than programming in C.  What do we mean
+by this claim, and how can we be so sure?
+
+One class of advantages applies not only to Scheme, but more generally
+to any interpretable, high level, scripting language, such as Emacs
+Lisp, Python, Ruby, or @TeX{}'s macro language.  Common features of all
+such languages, when compared to C, are that:
 
 @itemize @bullet
 @item
-You could choose to write your whole application in Scheme (or one of
-the other high level languages that Guile supports through translation),
-and simply use Guile as an interpreter (and hopefully in the future a
-compiler) for Scheme.
+They lend themselves to rapid and experimental development cycles,
+owing usually to a combination of their interpretability and the
+integrated development environment in which they are used.
 
 @item
-You could write a small amount of C code that implements domain-specific
-@dfn{primitive} functions for your application and connects these to the
-Scheme level of Guile, and then write the rest of your application,
-using these application-specific primitives, in Scheme.
+They free developers from some of the low level bookkeeping tasks
+associated with C programming, notably memory management.
 
 @item
-You could write almost all of your application in C, and only call out
-to Guile occasionally for specific actions such as reading a
-configuration file or executing a user-specified extension.
+They provide high level features such as container objects and exception
+handling that make common programming tasks easier.
 @end itemize
 
-Underlying these choices are two basic questions.
+In the case of Scheme, further features that make programming easier ---
+and more fun! --- are its powerful mechanisms for abstracting parts of
+programs (closures --- @pxref{About Closure}) and for iteration
+(@pxref{while do}).
+
+The evidence in support of this argument is empirical: the huge amount
+of code that has been written in extension languages for applications
+that support this mechanism.  Most notable are extensions written in
+Emacs Lisp for GNU Emacs, in @TeX{}'s macro language for @TeX{}, and in
+Script-Fu for the Gimp, but there is increasingly now a significant code
+eco-system for Guile-based applications as well, such as Lilypond and
+GnuCash.  It is close to inconceivable that similar amounts of
+functionality could have been added to these applications just by
+writing new code in their base implementation languages.
+
+@menu
+* Testbed Example::             Example: using Guile in a testbed.
+* Programming Options::         Options for Guile programming.
+* User Programming::            How about application users?
+@end menu
+
+
+@node Testbed Example
+@section Example: Using Guile for an Application Testbed
+
+As an example of what this means in practice, imagine writing a testbed
+for an application that is tested by submitting various requests (via a
+C interface) and validating the output received.  Suppose further that
+the application keeps an idea of its current state, and that the
+``correct'' output for a given request may depend on the current
+application state.  A complete ``white box''@footnote{A @dfn{white box}
+test plan is one that incorporates knowledge of the internal design of
+the application under test.} test plan for this application would aim to
+submit all possible requests in each distinguishable state, and validate
+the output for all request/state combinations.
+
+To write all this test code in C would be very tedious.  Suppose instead
+that the testbed code adds a single new C function, to submit an
+arbitrary request and return the response, and then uses Guile to export
+this function as a Scheme procedure.  The rest of the testbed can then
+be written in Scheme, and so benefits from all the advantages of
+programming in Scheme that were described in the previous section.
+
+(In this particular example, there is an additional benefit of writing
+most of the testbed in Scheme.  A common problem for white box testing
+is that mistakes and mistaken assumptions in the application under test
+can easily be reproduced in the testbed code.  It is more difficult to
+copy mistakes like this when the testbed is written in a different
+language from the application.)
+
+
+@node Programming Options
+@section A Choice of Programming Options
+
+The preceding arguments and example point to a model of Guile
+programming that is applicable in many cases.  According to this model,
+Guile programming involves a balance between C and Scheme programming,
+with the aim being to extract the greatest possible Scheme level benefit
+from the least amount of C level work.
+
+The C level work required in this model usually consists of packaging
+and exporting functions and application objects such that they can be
+seen and manipulated on the Scheme level.  To help with this, Guile's C
+language interface includes utility features that aim to make this kind
+of integration very easy for the application developer.  These features
+are documented later in this part of the manual: see REFFIXME.
+
+This model, though, is really just one of a range of possible
+programming options.  If all of the functionality that you need is
+available from Scheme, you could choose instead to write your whole
+application in Scheme (or one of the other high level languages that
+Guile supports through translation), and simply use Guile as an
+interpreter for Scheme.  (In the future, we hope that Guile will also be
+able to compile Scheme code, so lessening the performance gap between C
+and Scheme code.)  Or, at the other end of the C--Scheme scale, you
+could write the majority of your application in C, and only call out to
+Guile occasionally for specific actions such as reading a configuration
+file or executing a user-specified extension.  The choices boil down to
+two basic questions:
 
 @itemize @bullet
 @item
@@ -41,21 +128,20 @@ application?
 
 These are of course design questions, and the right design for any given
 application will always depend upon the particular requirements that you
-are trying to meet.  In the Guile world, however, there are some
-generally applicable considerations that can help you when searching for
-the answers.
+are trying to meet.  In the context of Guile, however, there are some
+generally applicable considerations that can help you when designing
+your answers.
 
 @menu
 * Available Functionality::     What functionality is already available?
 * Basic Constraints::           Functional and performance constraints.
 * Style Choices::               Your preferred programming style.
 * Program Control::             What controls program execution?
-* User Programming::            How about application users?
 @end menu
 
 
 @node Available Functionality
-@section What Functionality is Already Available?
+@subsection What Functionality is Already Available?
 
 Suppose, for the sake of argument, that you would prefer to write your
 whole application in Scheme.  Then the API available to you consists of:
@@ -89,12 +175,12 @@ selection of these modules together with new application code written in
 Scheme.
 
 If this approach is not enough, because the functionality that your
-application needs is not already available in this form, or because it
-is impossible or unacceptable (e.g. for performance reasons) to write
-the new functionality in Scheme, you will need to write some C code.  If
-the required function is already available in C (e.g. in a library), all
-you need is a little glue to connect it to the world of Guile.  If not,
-you need both to write the basic code and to plumb it into Guile.
+application needs is not already available in this form, and it is
+impossible to write the new functionality in Scheme, you will need to
+write some C code.  If the required function is already available in C
+(e.g. in a library), all you need is a little glue to connect it to the
+world of Guile.  If not, you need both to write the basic code and to
+plumb it into Guile.
 
 In either case, two general considerations are important.  Firstly, what
 is the interface by which the functionality is presented to the Scheme
@@ -107,21 +193,20 @@ of Scheme objects?  In the case where the basic C code is not already
 written, most of the difficulties of memory management can be avoided by
 using Guile's C interface features from the start.
 
-For further information, tips and guidelines on writing C code for
-Guile, or for connecting existing C code to the Guile world, see
-REFFIXME.
+For the full documentation on writing C code for Guile and connecting
+existing C code to the Guile world, see REFFIXME.
 
 
 @node Basic Constraints
-@section Functional and Performance Constraints
+@subsection Functional and Performance Constraints
 
 
 @node Style Choices
-@section Your Preferred Programming Style
+@subsection Your Preferred Programming Style
 
 
 @node Program Control
-@section What Controls Program Execution?
+@subsection What Controls Program Execution?
 
 
 @node User Programming

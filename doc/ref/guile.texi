@@ -94,7 +94,7 @@ by the Free Software Foundation.
 @sp 10
 @comment The title is printed in a large font.
 @title Guile Reference Manual
-@subtitle $Id: guile.texi,v 1.9 2001-12-07 17:08:19 ossau Exp $
+@subtitle $Id: guile.texi,v 1.10 2001-12-22 12:39:10 ossau Exp $
 @subtitle For use with Guile @value{VERSION}
 
 @c AUTHORS
@@ -209,8 +209,8 @@ Part I: Introduction to Guile
 
 Part II: Programming with Guile
 
-* Programming Intro::           Intoduction to programming with Guile.
-* Programming Options::         Programming Options in Guile.
+* Programming Intro::           Intoduction to this part.
+* Programming Overview::        An overview of Guile programming.
 * Scheme Intro::                Introduction to Guile Scheme.
 * Basic Ideas::                 Basic ideas in Scheme.
 * Guile Scripting::             How to write Guile scripts.
