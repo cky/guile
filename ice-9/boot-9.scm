@@ -1701,7 +1701,7 @@
                                  spec))
                       (set-module-transformer!
                        module
-                       (module-ref interface (car (last-pair module-name))
+                       (module-ref interface (car (last-pair spec))
                                    #f)))
                  (loop (cddr kws)
                        (cons interface reversed-interfaces)
@@ -2598,7 +2598,9 @@
 (defmacro define-module args
   `(eval-case
     ((load-toplevel)
-     (set-current-module (process-define-module ',args)))
+     (let ((m (process-define-module ',args)))
+       (set-current-module m)
+       m))
     (else
      (error "define-module can only be used at the top level"))))
 
