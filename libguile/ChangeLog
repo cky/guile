@@ -9,6 +9,8 @@
 	for "l" not "s", fix dvect to be false for singp(prot) since such a
 	value is for fvect.
 	(scm_array_prototype): Return 1/3 for dvect, rather than 0.33..33.
+	(exactly_one_third): New variable.
+	(scm_init_unif): Initialize it.
 
 2004-02-10  Neil Jerram  <neil@ossau.uklinux.net>
 
