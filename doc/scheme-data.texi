@@ -943,6 +943,7 @@ Return the hyperbolic arctangent of @var{x}.
 @deffn primitive logand n1 n2
 Return the integer which is the bit-wise AND of the two integer
 arguments.
+
 @lisp
 (number->string (logand #b1100 #b1010) 2)
    @result{} "1000"
@@ -952,6 +953,7 @@ arguments.
 @deffn primitive logior n1 n2
 Return the integer which is the bit-wise OR of the two integer
 arguments.
+
 @lisp
 (number->string (logior #b1100 #b1010) 2)
    @result{} "1110"
@@ -961,6 +963,7 @@ arguments.
 @deffn primitive logxor n1 n2
 Return the integer which is the bit-wise XOR of the two integer
 arguments.
+
 @lisp
 (number->string (logxor #b1100 #b1010) 2)
    @result{} "110"
@@ -970,6 +973,7 @@ arguments.
 @deffn primitive lognot n
 Return the integer which is the 2s-complement of the integer
 argument.
+
 @lisp
 (number->string (lognot #b10000000) 2)
    @result{} "-10000001"
@@ -1007,8 +1011,10 @@ structure of @var{n}, but rather guarantees that the result
 will always be rounded towards minus infinity.  Therefore, the
 results of ash and a corresponding bitwise shift will differ if
 @var{n} is negative.
+
 Formally, the function returns an integer equivalent to
 @code{(inexact->exact (floor (* @var{n} (expt 2 @var{cnt}))))}.
+
 @lisp
 (number->string (ash #b1 3) 2)     @result{} "1000"
 (number->string (ash #b1010 -1) 2) @result{} "101"
@@ -1020,6 +1026,7 @@ Return the number of bits in integer @var{n}.  If integer is
 positive, the 1-bits in its binary representation are counted.
 If negative, the 0-bits in its two's-complement binary
 representation are counted.  If 0, 0 is returned.
+
 @lisp
 (logcount #b10101010)
    @result{} 4
@@ -1032,6 +1039,7 @@ representation are counted.  If 0, 0 is returned.
 
 @deffn primitive integer-length n
 Return the number of bits neccessary to represent @var{n}.
+
 @lisp
 (integer-length #b10101010)
    @result{} 8
@@ -1045,6 +1053,7 @@ Return the number of bits neccessary to represent @var{n}.
 @deffn primitive integer-expt n k
 Return @var{n} raised to the non-negative integer exponent
 @var{k}.
+
 @lisp
 (integer-expt 2 5)
    @result{} 32
@@ -1057,6 +1066,7 @@ Return @var{n} raised to the non-negative integer exponent
 Return the integer composed of the @var{start} (inclusive)
 through @var{end} (exclusive) bits of @var{n}.  The
 @var{start}th bit becomes the 0-th bit in the result.
+
 @lisp
 (number->string (bit-extract #b1101101010 0 4) 2)
    @result{} "1010"
@@ -1075,10 +1085,12 @@ Return a copy of the random state @var{state}.
 
 @deffn primitive random n [state]
 Return a number in [0,N).
+
 Accepts a positive integer or real n and returns a
 number of the same type between zero (inclusive) and
 N (exclusive). The values returned have a uniform
 distribution.
+
 The optional argument @var{state} must be of the type produced
 by @code{seed->random-state}. It defaults to the value of the
 variable @var{*random-state*}. This object is used to maintain
@@ -1514,6 +1526,7 @@ return an unspecified value.
 @deffn primitive substring-fill! str start end fill
 Change every character in @var{str} between @var{start} and
 @var{end} to @var{fill}.
+
 @lisp
 (define y "abcdefg")
 (substring-fill! y 1 3 #\r)
@@ -1610,6 +1623,7 @@ ending in @code{-ci} ignore the character case when comparing strings.
 Lexicographic equality predicate; return @code{#t} if the two
 strings are the same length and contain the same characters in
 the same positions, otherwise return @code{#f}.
+
 The procedure @code{string-ci=?} treats upper and lower case
 letters as though they were the same character, but
 @code{string=?} treats upper and lower case as distinct
@@ -1689,6 +1703,7 @@ Return the index of the first occurrence of @var{chr} in
 @var{to} limit the search to a portion of the string.  This
 procedure essentially implements the @code{index} or
 @code{strchr} functions from the C library.
+
 @lisp
 (string-index "weiner" #\e)
 @result{} 1
@@ -1706,6 +1721,7 @@ Like @code{string-index}, but search from the right of the
 string rather than from the left.  This procedure essentially
 implements the @code{rindex} or @code{strrchr} functions from
 the C library.
+
 @lisp
 (string-rindex "weiner" #\e)
 @result{} 4
@@ -1763,6 +1779,7 @@ capitalized.
 @deffn primitive string-capitalize! str
 Upcase the first character of every word in @var{str}
 destructively and return @var{str}.
+
 @lisp
 y                      @result{} "hello world"
 (string-capitalize! y) @result{} "Hello World"
@@ -1862,8 +1879,10 @@ Compile the regular expression described by @var{pat}, and
 return the compiled regexp structure.  If @var{pat} does not
 describe a legal regular expression, @code{make-regexp} throws
 a @code{regular-expression-syntax} error.
+
 The @var{flags} arguments change the behavior of the compiled
 regular expression.  The following flags may be supplied:
+
 @table @code
 @item regexp/icase
 Consider uppercase and lowercase letters to be the same when
@@ -2354,8 +2373,10 @@ letters in the non-standard case, but it is usually a bad idea
 to create such symbols because in some implementations of
 Scheme they cannot be read as themselves.  See
 @code{symbol->string}.
+
 The following examples assume that the implementation's
 standard case is lower case:
+
 @lisp
 (eq? 'mISSISSIppi 'mississippi) @result{} #t
 (string->symbol "mISSISSIppi") @result{} @r{the symbol with name "mISSISSIppi"}
@@ -2383,8 +2404,10 @@ returned will be the same as the case in the string that was
 passed to @code{string->symbol}.  It is an error to apply
 mutation procedures like @code{string-set!} to strings returned
 by this procedure.
+
 The following examples assume that the implementation's
 standard case is lower case:
+
 @lisp
 (symbol->string 'flying-fish)    @result{} "flying-fish"
 (symbol->string 'Martin)         @result{}  "martin"
@@ -3804,11 +3827,13 @@ dimensions arranged in a different order.  There must be one
 @var{dim0}, @var{dim1}, @dots{} should be integers between 0
 and the rank of the array to be returned.  Each integer in that
 range must appear at least once in the argument list.
+
 The values of @var{dim0}, @var{dim1}, @dots{} correspond to
 dimensions in the array to be returned, their positions in the
 argument list to dimensions of @var{array}.  Several @var{dim}s
 may have the same value, in which case the returned array will
 have smaller rank than @var{array}.
+
 @lisp
 (transpose-array '#2((a b) (c d)) 1 0) @result{} #2((a c) (b d))
 (transpose-array '#2((a b) (c d)) 0 0) @result{} #1(a d)
@@ -4705,6 +4730,7 @@ function, but uses @var{hash} as a hash function and
 that takes two arguments, a key to be hashed and a table size.
 @code{assoc} must be an associator function, like @code{assoc},
 @code{assq} or @code{assv}.
+
 By way of illustration, @code{hashq-ref table key} is
 equivalent to @code{hashx-ref hashq assq table key}.
 @end deffn
@@ -4716,6 +4742,7 @@ function, but uses @var{hash} as a hash function and
 that takes two arguments, a key to be hashed and a table size.
 @code{assoc} must be an associator function, like @code{assoc},
 @code{assq} or @code{assv}.
+
  By way of illustration, @code{hashq-set! table key} is
 equivalent to @code{hashx-set!  hashq assq table key}.
 @end deffn
@@ -4849,6 +4876,7 @@ unspecified.
 @deffnx primitive list->vector l
 Return a newly allocated vector whose elements contain the
 given arguments.  Analogous to @code{list}.
+
 @lisp
 (vector 'a 'b 'c) @result{} #(a b c)
 @end lisp
@@ -4858,6 +4886,7 @@ given arguments.  Analogous to @code{list}.
 @deffn primitive vector->list v
 Return a newly allocated list of the objects contained in the
 elements of @var{vector}.
+
 @lisp
 (vector->list '#(dah dah didah)) @result{}  (dah dah didah)
 (list->vector '(dididit dah)) @result{}  #(dididit dah)

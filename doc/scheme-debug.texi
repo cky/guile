@@ -139,7 +139,7 @@ Create a new stack. If @var{obj} is @code{#t}, the current
 evaluation stack is used for creating the stack frames,
 otherwise the frames are taken from @var{obj} (which must be
 either a debug object or a continuation).
-@var{args} must be a list if integers and specifies how the
+@var{args} must be a list of integers and specifies how the
 resulting stack will be narrowed.
 @end deffn
 

@@ -409,8 +409,7 @@ more conveniently.
 * Exception Terminology::       Different ways to say the same thing.
 * Catch::                       Setting up to catch exceptions.
 * Throw::                       Throwing an exception.
-* Lazy Catch::                  Catch without unwinding.
-* Stack Catch::                 Capturing the stack at a throw.
+* Lazy Catch::                  Catch without unwinding the stack.
 * Exception Implementation::    How Guile implements exceptions.
 @end menu
 
@@ -497,12 +496,16 @@ exceptions matching @var{key}.  If thunk throws to the symbol
 @lisp
 (handler key args ...)
 @end lisp
+
 @var{key} is a symbol or @code{#t}.
+
 @var{thunk} takes no arguments.  If @var{thunk} returns
 normally, that is the return value of @code{catch}.
+
 Handler is invoked outside the scope of its own @code{catch}.
 If @var{handler} again throws to the same key, a new handler
 from further up the call chain is invoked.
+
 If the key is @code{#t}, then a throw to @emph{any} symbol will
 match this call to @code{catch}.
 @end deffn
@@ -543,10 +546,10 @@ for that kind of exception.
 
 @deffn primitive throw key . args
 Invoke the catch form matching @var{key}, passing @var{args} to the
-@var{handler}.
+@var{handler}.  
 
 @var{key} is a symbol.  It will match catches of the same symbol or of
-#t.
+@code{#t}.
 
 If there is no handler at all, Guile prints an error and then exits.
 @end deffn
@@ -596,26 +599,113 @@ expression.
 @node Lazy Catch
 @subsection Catch Without Unwinding
 
+A @dfn{lazy catch} is used in the same way as a normal @code{catch},
+with @var{key}, @var{thunk} and @var{handler} arguments specifying the
+exception type, normal case code and handler procedure, but differs in
+two important respects.
+
+@itemize
+@item
+The handler procedure is executed without unwinding the call stack from
+the context of the @code{throw} expression that caused the handler to be
+invoked.
+
+@item
+If the handler returns normally --- i.e. does not @emph{itself} throw an
+exception --- then the @code{throw} expression returns normally to its
+caller with the handler's value.
+@end itemize
+
 @deffn primitive lazy-catch key thunk handler
 This behaves exactly like @code{catch}, except that it does
 not unwind the stack (this is the major difference), and if
 handler returns, its value is returned from the throw.
 @end deffn
 
+The net result is that throwing an exception that is caught by a
+@code{lazy-catch} is @emph{almost} equivalent to calling the
+@code{lazy-catch}'s handler inline instead of each @code{throw}, and
+then omitting the surrounding @code{lazy-catch}.  In other words,
+
 @lisp
-(lazy-catch 'badex
+(lazy-catch 'key
+  (lambda () @dots{} (throw 'key args @dots{}) @dots{})
+  handler)
+@end lisp
+
+@noindent
+is @emph{almost} equivalent to
+
+@lisp
+((lambda () @dots{} (handler 'key args @dots{}) @dots{}))
+@end lisp
+
+@noindent
+But why only @emph{almost}?  The difference is that with
+@code{lazy-catch}, the dynamic context is unwound back to just outside
+the @code{lazy-catch} expression before invoking the handler.  (For an
+introduction to what is meant by dynamic context, @xref{Dynamic Wind}.)
+
+Then, if the handler @emph{itself} throws an exception, that exception
+must be caught by some kind of @code{catch} (including perhaps another
+@code{lazy-catch}) higher up the call stack.  On the other hand, if the
+handler returns normally, the dynamic context is wound back to that of
+the @code{throw} expression before passing the handler's return value to
+the continuation of the @code{throw}.
+
+In most cases where @code{lazy-catch} is used, the handler does indeed
+throw another exception, which is caught by a higher-level @code{catch}.
+But this pattern is not mandatory, and it can be useful for the handler
+to return normally.  In the following example, the @code{lazy-catch}
+handler is called twice and the results of the two calls added together.
+
+@lisp
+(lazy-catch 'foo
             (lambda ()
-              (+ (throw 'badex 1)
-                 (throw 'badex 2)))
+              (+ (throw 'foo 1)
+                 (throw 'foo 2)))
             (lambda args
               (cadr args)))
 @result{}
 3
 @end lisp
 
+To see the point about dynamic context, consider the case where the
+normal case thunk uses @code{with-fluids} (REFFIXME) to temporarily
+change the value of a fluid:
 
-@node Stack Catch
-@subsection Capturing the Stack at a Throw
+@lisp
+(define f (make-fluid))
+(fluid-set! f "top level value")
+
+(define (handler . args)
+  (cons (fluid-ref f) args))
+
+(lazy-catch 'foo
+            (lambda ()
+              (with-fluids ((f "local value"))
+                (throw 'foo)))
+            handler)
+@result{}
+("top level value" foo)
+
+((lambda ()
+   (with-fluids ((f "local value"))
+     (handler 'foo))))
+@result{}
+("local value" foo)
+@end lisp
+
+@noindent
+In the @code{lazy-catch} version, the unwinding of dynamic context
+restores @code{f} to its value outside the @code{with-fluids} block
+before the handler is invoked, so the handler's @code{(fluid-ref f)}
+returns the external value.
+
+@code{lazy-catch} is useful because it permits the implementation of
+debuggers and other reflective programming tools that need to access the
+state of the call stack at the exact point where an exception or an
+error is thrown.  For an example of this, see REFFIXME:stack-catch.
 
 
 @node Exception Implementation
@@ -702,6 +792,7 @@ be reviewed]
 All three arguments must be 0-argument procedures.
 @var{in_guard} is called, then @var{thunk}, then
 @var{out_guard}.
+
 If, any time during the execution of @var{thunk}, the
 continuation of the @code{dynamic_wind} expression is escaped
 non-locally, @var{out_guard} is called.  If the continuation of
@@ -718,15 +809,18 @@ times.
 			  ;; in-guard:
 			  ;;
 			  (lambda () (set! x 'special-binding))
+
 			  ;; thunk
 			  ;;
 		 	  (lambda () (display x) (newline)
 				     (call-with-current-continuation escape)
 				     (display x) (newline)
 				     x)
+
 			  ;; out-guard:
 			  ;;
 			  (lambda () (set! x old-x)))))))
+
 ;; Prints:
 special-binding
 ;; Evaluates to:

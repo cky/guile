@@ -96,17 +96,35 @@ BEGIN { FS="|";
 		 print "@deffn primitive " nicer_function_proto > dot_doc_file;
 }
 
-/SCM_SNARF_DOCSTRING_START/,/SCM_SNARF_DOCSTRING_END.*$/ { copy = $0; 
-                      gsub(/.*SCM_SNARF_DOCSTRING_START/,"",copy); 
-		      sub(/^\#.*/,"", copy);
-		      sub(/^[ \t]*\"?/,"", copy);
-		      sub(/\"?[ \t]*SCM_SNARF_DOCSTRING_END.*$/,"", copy);
-                      gsub(/\\n\\n\"?/,"\n",copy);
-                      gsub(/\\n\"?[ \t]*$/,"",copy);
-                      gsub(/\\\"/,"\"",copy);
-                      gsub(/\\\\/,"\\",copy);
-                      gsub(/[ \t]*$/,"", copy);
-                      if (copy != "") { print copy > dot_doc_file }
+/SCM_SNARF_DOCSTRING_START/,/SCM_SNARF_DOCSTRING_END.*$/ { copy = $0;
+
+                 # Trim everything up to and including
+                 # SCM_SNARF_DOCSTRING_START marker.
+                 gsub(/.*SCM_SNARF_DOCSTRING_START/,"",copy); 
+		 
+		 # Trim leading whitespace and opening quote.
+		 sub(/^[ \t]*\"?/,"", copy);
+		 
+		 # Trim closing quote and trailing whitespace, or
+                 # closing quote and whitespace followed by the
+                 # SCM_SNARF_DOCSTRING_END marker.
+                 sub(/[ \t]*\"?[ \t]*$/,"", copy);
+		 sub(/[ \t]*\"?[ \t]*SCM_SNARF_DOCSTRING_END.*$/,"", copy);
+		 
+		 # Replace escaped characters.
+		 gsub(/\\n/,"\n",copy);
+                 gsub(/\\\"/,"\"",copy);
+                 gsub(/\\\\/,"\\",copy);
+
+		 # Some docstrings end each line with "\n", while
+                 # others don't.  Therefore we always strip off one "\n"
+                 # if present at the end of the line.  Docstrings must
+		 # therefore always use "\n\n" to indicate a blank line.
+                 if (copy != "")
+		   {
+		     sub(/[ \t]*\n$/, "", copy);
+		     print copy > dot_doc_file;
+		   }
                 }
 
 /SCM_SNARF_DOCSTRING_END[ \t]*/ { print "@end deffn" >> dot_doc_file; }

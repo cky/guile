@@ -226,7 +226,7 @@ the current module.
 
 @deffn primitive eval2 obj env_thunk
 Evaluate @var{exp}, a Scheme expression, in the environment
-designated by @var{lookup}, a symbol-lookup function."
+designated by @var{lookup}, a symbol-lookup function.
 Do not use this version of eval, it does not play well
 with the module system.  Use @code{eval} or
 @code{primitive-eval} instead.

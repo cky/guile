@@ -3809,7 +3809,7 @@ SCM_DEFINE (scm_force, "force", 1, 0, 0,
 SCM_DEFINE (scm_promise_p, "promise?", 1, 0, 0, 
             (SCM obj),
 	    "Return true if @var{obj} is a promise, i.e. a delayed computation\n"
-	    "(@pxref{Delayed evaluation,,,r4rs.info,The Revised^4 Report on Scheme}).")
+	    "(@pxref{Delayed evaluation,,,r5rs.info,The Revised^5 Report on Scheme}).")
 #define FUNC_NAME s_scm_promise_p
 {
   return SCM_BOOL (SCM_TYP16_PREDICATE (scm_tc16_promise, obj));

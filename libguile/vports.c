@@ -171,7 +171,7 @@ SCM_DEFINE (scm_make_soft_port, "make-soft-port", 2, 0, 0,
 	    "there is no useful operation for them to perform.\n"
 	    "\n"
 	    "If thunk 3 returns @code{#f} or an @code{eof-object}\n"
-	    "(@pxref{Input, eof-object?, ,r4rs, The Revised^4 Report on\n"
+	    "(@pxref{Input, eof-object?, ,r5rs, The Revised^5 Report on\n"
 	    "Scheme}) it indicates that the port has reached end-of-file.\n"
 	    "For example:\n"
 	    "\n"

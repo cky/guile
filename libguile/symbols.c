@@ -430,7 +430,7 @@ SCM_DEFINE (scm_symbol_to_string, "symbol->string", 1, 0, 0,
            (SCM s),
 	    "Return the name of @var{symbol} as a string.  If the symbol was\n"
 	    "part of an object returned as the value of a literal expression\n"
-	    "(section @pxref{Literal expressions,,,r4rs, The Revised^4\n"
+	    "(section @pxref{Literal expressions,,,r5rs, The Revised^5\n"
 	    "Report on Scheme}) or by a call to the @code{read} procedure,\n"
 	    "and its name contains alphabetic characters, then the string\n"
 	    "returned will contain characters in the implementation's\n"

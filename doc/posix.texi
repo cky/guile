@@ -295,6 +295,7 @@ flushed) to the output port can be read from the input port.
 Pipes are commonly used for communication with a newly forked
 child process.  The need to flush the output port can be
 avoided by making it unbuffered using @code{setvbuf}.
+
 Writes occur atomically provided the size of the data in bytes
 is not greater than the value of @code{PIPE_BUF}.  Note that
 the output port is likely to block if too much data (typically
@@ -511,9 +512,11 @@ and the current process has the type of access specified by
 using the values of the variables listed below.  Multiple
 values can be combined using a bitwise or, in which case
 @code{#t} will only be returned if all accesses are granted.
+
 Permissions are checked using the real id of the current
 process, not the effective id, although it's the effective id
 which determines whether the access would actually be granted.
+
 @defvar R_OK
 test for read permission.
 @end defvar
@@ -535,9 +538,11 @@ determined by @var{obj}.  @var{obj} can be a string containing
 a file name or a port or integer file descriptor which is open
 on a file (in which case @code{fstat} is used as the underlying
 system call).
+
 The object returned by @code{stat} can be passed as a single
 parameter to the following procedures, all of which return
 integers:
+
 @table @code
 @item stat:dev
 The device containing the file.
@@ -572,8 +577,10 @@ bytes.
 The amount of disk space that the file occupies measured in
 units of 512 byte blocks.
 @end table
+
 In addition, the following procedures return the information
 from stat:mode in a more convenient form:
+
 @table @code
 @item stat:type
 A symbol representing the type of file.  Possible values are
@@ -993,6 +1000,7 @@ reported by the following procedures.
 Return an object with information about real and processor
 time.  The following procedures accept such an object as an
 argument and return a selected component:
+
 @table @code
 @item tms:clock
 The current real time, expressed as time units relative to an
@@ -1262,6 +1270,7 @@ processor".  Under Unix this is usually the default shell
 @code{sh}.  The value returned is @var{cmd}'s exit status as
 returned by @code{waitpid}, which can be interpreted using the
 functions above.
+
 If @code{system} is called without arguments, return a boolean
 indicating whether the command processor is available.
 @end deffn
@@ -1475,6 +1484,7 @@ terminal for the current process.
 Return the process group ID of the foreground process group
 associated with the terminal open on the file descriptor
 underlying @var{port}.
+
 If there is no foreground process group, the return value is a
 number greater than 1 that does not match the process group ID
 of any existing process group.  This can happen if all of the
@@ -1546,24 +1556,27 @@ the database routines since they are not reentrant.
 @subsubsection Address Conversion
 
 @deffn primitive inet-aton address
-Converts a string containing an Internet host address in the
-traditional dotted decimal notation into an integer.
+Convert an IPv4 Internet address from printable string
+(dotted decimal notation) to an integer.  E.g.,
+
 @lisp
 (inet-aton "127.0.0.1") @result{} 2130706433
 @end lisp
 @end deffn
 
 @deffn primitive inet-ntoa inetid
-Converts an integer Internet host address into a string with
-the traditional dotted decimal representation.
+Convert an IPv4 Internet address to a printable
+(dotted decimal notation) string.  E.g.,
+
 @lisp
 (inet-ntoa 2130706433) @result{} "127.0.0.1"
 @end lisp
 @end deffn
 
 @deffn primitive inet-netof address
-Return the network number part of the given integer Internet
-address.
+Return the network number part of the given IPv4
+Internet address.  E.g.,
+
 @lisp
 (inet-netof 2130706433) @result{} 127
 @end lisp
@@ -1571,18 +1584,49 @@ address.
 
 @deffn primitive inet-lnaof address
 Return the local-address-with-network part of the given
-Internet address.
+IPv4 Internet address, using the obsolete class A/B/C system.
+E.g.,
+
 @lisp
 (inet-lnaof 2130706433) @result{} 1
 @end lisp
 @end deffn
 
 @deffn primitive inet-makeaddr net lna
-Makes an Internet host address by combining the network number
+Make an IPv4 Internet address by combining the network number
 @var{net} with the local-address-within-network number
-@var{lna}.
+@var{lna}.  E.g.,
+
 @lisp
 (inet-makeaddr 127 1) @result{} 2130706433
+@end lisp
+@end deffn
+
+@subsubsection IPv6 Address Conversion
+
+@deffn primitive inet-ntop family address
+Convert a network address into a printable string.
+Note that unlike the C version of this function,
+the input is an integer with normal host byte ordering.
+@var{family} can be @code{AF_INET} or @code{AF_INET6}.  E.g.,
+
+@lisp
+(inet-ntop AF_INET 2130706433) @result{} "127.0.0.1"
+(inet-ntop AF_INET6 (- (expt 2 128) 1)) @result{}
+ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff
+@end lisp
+@end deffn
+
+@deffn primitive inet-pton family address
+Convert a string containing a printable network address to
+an integer address.  Note that unlike the C version of this
+function,
+the result is an integer with normal host byte ordering.
+@var{family} can be @code{AF_INET} or @code{AF_INET6}.  E.g.,
+
+@lisp
+(inet-pton AF_INET "127.0.0.1") @result{} 2130706433
+(inet-pton AF_INET6 "::1") @result{} 1
 @end lisp
 @end deffn
 
@@ -1836,40 +1880,43 @@ required.  The arguments and return values are thus in host order.
 
 @deffn primitive socket family style proto
 Return a new socket port of the type specified by @var{family},
-@var{style} and @var{protocol}.  All three parameters are
+@var{style} and @var{proto}.  All three parameters are
 integers.  Supported values for @var{family} are
 @code{AF_UNIX}, @code{AF_INET} and @code{AF_INET6}.
 Typical values for @var{style} are @code{SOCK_STREAM},
 @code{SOCK_DGRAM} and @code{SOCK_RAW}.
-@var{protocol} can be obtained from a protocol name using
+
+@var{proto} can be obtained from a protocol name using
 @code{getprotobyname}.  A value of zero specifies the default
 protocol, which is usually right.
+
 A single socket port cannot by used for communication until it
 has been connected to another socket.
 @end deffn
 
 @deffn primitive socketpair family style proto
 Return a pair of connected (but unnamed) socket ports of the
-type specified by @var{family}, @var{style} and @var{protocol}.
+type specified by @var{family}, @var{style} and @var{proto}.
 Many systems support only socket pairs of the @code{AF_UNIX}
 family.  Zero is likely to be the only meaningful value for
-@var{protocol}.
+@var{proto}.
 @end deffn
 
 @deffn primitive getsockopt sock level optname
 Return the value of a particular socket option for the socket
-port @var{socket}.  @var{level} is an integer code for type of
+port @var{sock}.  @var{level} is an integer code for type of
 option being requested, e.g., @code{SOL_SOCKET} for
 socket-level options.  @var{optname} is an integer code for the
 option required and should be specified using one of the
 symbols @code{SO_DEBUG}, @code{SO_REUSEADDR} etc.
+
 The returned value is typically an integer but @code{SO_LINGER}
 returns a pair of integers.
 @end deffn
 
 @deffn primitive setsockopt sock level optname value
-Sets the value of a particular socket option for the socket
-port @var{socket}.  @var{level} is an integer code for type of option
+Set the value of a particular socket option for the socket
+port @var{sock}.  @var{level} is an integer code for type of option
 being set, e.g., @code{SOL_SOCKET} for socket-level options.
 @var{optname} is an
 integer code for the option to set and should be specified using one of
@@ -1902,7 +1949,7 @@ The return value is unspecified.
 @end deffn
 
 @deffn primitive connect sock fam address . args
-Initiates a connection from a socket using a specified address
+Initiate a connection from a socket using a specified address
 family to the address
 specified by @var{address} and possibly @var{args}.
 The format required for @var{address}
@@ -1926,24 +1973,25 @@ The return value is unspecified.
 @end deffn
 
 @deffn primitive bind sock fam address . args
-Assigns an address to the socket port @var{socket}.
+Assign an address to the socket port @var{sock}.
 Generally this only needs to be done for server sockets,
 so they know where to look for incoming connections.  A socket
 without an address will be assigned one automatically when it
 starts communicating.
 
-The format of @var{address} and @var{ARG} @dots{} depends on the family
-of the socket.
+The format of @var{address} and @var{args} depends
+on the family of the socket.
 
-For a socket of family @code{AF_UNIX}, only @var{address} is specified
-and must be a string with the filename where the socket is to be
-created.
+For a socket of family @code{AF_UNIX}, only @var{address}
+is specified and must be a string with the filename where
+the socket is to be created.
 
-For a socket of family @code{AF_INET}, @var{address} must be an integer
-Internet host address and @var{arg} @dots{} must be a single integer
-port number.
+For a socket of family @code{AF_INET}, @var{address}
+must be an integer IPv4 address and @var{args}
+must be a single integer port number.
 
-The values of the following variables can also be used for @var{address}:
+The values of the following variables can also be used for
+@var{address}:
 
 @defvar INADDR_ANY
 Allow connections from any address.
@@ -1961,33 +2009,40 @@ The broadcast address on the local network.
 No address.
 @end defvar
 
+For a socket of family @code{AF_INET6}, @var{address}
+must be an integer IPv6 address and @var{args}
+may be up to three integers:
+port [flowinfo] [scope_id],
+where flowinfo and scope_id default to zero.
+
 The return value is unspecified.
 @end deffn
 
 @deffn primitive listen sock backlog
-This procedure enables @var{socket} to accept connection
+Enable @var{sock} to accept connection
 requests.  @var{backlog} is an integer specifying
 the maximum length of the queue for pending connections.
-If the queue fills, new clients will fail to connect until the
-server calls @code{accept} to accept a connection from the queue.
+If the queue fills, new clients will fail to connect until
+the server calls @code{accept} to accept a connection from
+the queue.
 
 The return value is unspecified.
 @end deffn
 
 @deffn primitive accept sock
-Accepts a connection on a bound, listening socket @var{socket}.  If there
-are no pending connections in the queue, it waits until
-one is available unless the non-blocking option has been set on the
-socket.
+Accept a connection on a bound, listening socket.
+If there
+are no pending connections in the queue, wait until
+one is available unless the non-blocking option has been
+set on the socket.
 
 The return value is a
-pair in which the CAR is a new socket port for the connection and
-the CDR is an object with address information about the client which
-initiated the connection.
+pair in which the @emph{car} is a new socket port for the
+connection and
+the @emph{cdr} is an object with address information about the
+client which initiated the connection.
 
-If the address is not available then the CDR will be an empty vector.
-
-@var{socket} does not become part of the
+@var{sock} does not become part of the
 connection and will continue to accept new requests.
 @end deffn
 
@@ -2010,79 +2065,101 @@ number.
 @end table
 
 @deffn primitive getsockname sock
-Return the address of @var{socket}, in the same form as the
+Return the address of @var{sock}, in the same form as the
 object returned by @code{accept}.  On many systems the address
 of a socket in the @code{AF_FILE} namespace cannot be read.
 @end deffn
 
 @deffn primitive getpeername sock
-Return the address of the socket that the socket @var{socket}
+Return the address that @var{sock}
 is connected to, in the same form as the object returned by
 @code{accept}.  On many systems the address of a socket in the
 @code{AF_FILE} namespace cannot be read.
 @end deffn
 
 @deffn primitive recv! sock buf [flags]
-Receives data from the socket port @var{socket}.  @var{socket} must already
+Receive data from a socket port.
+@var{sock} must already
 be bound to the address from which data is to be received.
 @var{buf} is a string into which
-the data will be written.  The size of @var{buf} limits the amount of
+the data will be written.  The size of @var{buf} limits
+the amount of
 data which can be received: in the case of packet
-protocols, if a packet larger than this limit is encountered then some data
+protocols, if a packet larger than this limit is encountered
+then some data
 will be irrevocably lost.
 
 The optional @var{flags} argument is a value or
 bitwise OR of MSG_OOB, MSG_PEEK, MSG_DONTROUTE etc.
 
-The value returned is the number of bytes read from the socket.
+The value returned is the number of bytes read from the
+socket.
 
-Note that the data is read directly from the socket file descriptor:
+Note that the data is read directly from the socket file
+descriptor:
 any unread buffered port data is ignored.
 @end deffn
 
 @deffn primitive send sock message [flags]
-Transmits the string @var{message} on the socket port @var{socket}.
-@var{socket} must already be bound to a destination address.  The
-value returned is the number of bytes transmitted -- it's possible for
-this to be less than the length of @var{message} if the socket is
-set to be non-blocking.  The optional @var{flags} argument is a value or
+Transmit the string @var{message} on a socket port @var{sock}.
+@var{sock} must already be bound to a destination address.  The
+value returned is the number of bytes transmitted --
+it's possible for
+this to be less than the length of @var{message}
+if the socket is
+set to be non-blocking.  The optional @var{flags} argument
+is a value or
 bitwise OR of MSG_OOB, MSG_PEEK, MSG_DONTROUTE etc.
 
-Note that the data is written directly to the socket file descriptor:
+Note that the data is written directly to the socket
+file descriptor:
 any unflushed buffered port data is ignored.
 @end deffn
 
 @deffn primitive recvfrom! sock str [flags [start [end]]]
-Return data from the socket port @var{socket} and also
+Return data from the socket port @var{sock} and also
 information about where the data was received from.
-@var{socket} must already be bound to the address from which
+@var{sock} must already be bound to the address from which
 data is to be received.  @code{str}, is a string into which the
 data will be written.  The size of @var{str} limits the amount
 of data which can be received: in the case of packet protocols,
 if a packet larger than this limit is encountered then some
 data will be irrevocably lost.
+
 The optional @var{flags} argument is a value or bitwise OR of
 @code{MSG_OOB}, @code{MSG_PEEK}, @code{MSG_DONTROUTE} etc.
+
 The value returned is a pair: the @emph{car} is the number of
 bytes read from the socket and the @emph{cdr} an address object
-in the same form as returned by @code{accept}.
+in the same form as returned by @code{accept}.  The address
+will given as @code{#f} if not available, as is usually the
+case for stream sockets.
+
 The @var{start} and @var{end} arguments specify a substring of
 @var{str} to which the data should be written.
+
 Note that the data is read directly from the socket file
 descriptor: any unread buffered port data is ignored.
 @end deffn
 
 @deffn primitive sendto sock message fam address . args_and_flags
-Transmits the string @var{message} on the socket port @var{socket}.  The
-destination address is specified using the @var{family}, @var{address} and
-@var{arg} arguments, in a similar way to the @code{connect}
-procedure.  The
-value returned is the number of bytes transmitted -- it's possible for
-this to be less than the length of @var{message} if the socket is
-set to be non-blocking.  The optional @var{flags} argument is a value or
+Transmit the string @var{message} on the socket port
+@var{sock}.  The
+destination address is specified using the @var{fam},
+@var{address} and
+@var{args_and_flags} arguments, in a similar way to the
+@code{connect} procedure.  @var{args_and_flags} contains
+the usual connection arguments optionally followed by
+a flags argument, which is a value or
 bitwise OR of MSG_OOB, MSG_PEEK, MSG_DONTROUTE etc.
 
-Note that the data is written directly to the socket file descriptor:
+The value returned is the number of bytes transmitted --
+it's possible for
+this to be less than the length of @var{message} if the
+socket is
+set to be non-blocking.
+Note that the data is written directly to the socket
+file descriptor:
 any unflushed buffered port data is ignored.
 @end deffn
 
@@ -2091,28 +2168,28 @@ between "host" and "network" order.  Although the procedures above do
 this automatically for addresses, the conversion will still need to
 be done when sending or receiving encoded integer data from the network.
 
-@deffn primitive htons in
-Return a new integer from @var{value} by converting from host
-to network order. @var{value} must be within the range of a C
-unsigned short integer.
+@deffn primitive htons value
+Convert a 16 bit quantity from host to network byte ordering.
+@var{value} is packed into 2 bytes, which are then converted
+and returned as a new integer.
 @end deffn
 
-@deffn primitive ntohs in
-Return a new integer from @var{value} by converting from
-network to host order.  @var{value} must be within the range of
-a C unsigned short integer.
+@deffn primitive ntohs value
+Convert a 16 bit quantity from network to host byte ordering.
+@var{value} is packed into 2 bytes, which are then converted
+and returned as a new integer.
 @end deffn
 
-@deffn primitive htonl in
-Return a new integer from @var{value} by converting from host
-to network order. @var{value} must be within the range of a C
-unsigned long integer.
+@deffn primitive htonl value
+Convert a 32 bit quantity from host to network byte ordering.
+@var{value} is packed into 4 bytes, which are then converted
+and returned as a new integer.
 @end deffn
 
-@deffn primitive ntohl in
-Return a new integer from @var{value} by converting from
-network to host order. @var{value} must be within the range of
-a C unsigned long integer.
+@deffn primitive ntohl value
+Convert a 32 bit quantity from network to host byte ordering.
+@var{value} is packed into 4 bytes, which are then converted
+and returned as a new integer.
 @end deffn
 
 These procedures are inconvenient to use at present, but consider:
@@ -2190,6 +2267,7 @@ If @var{locale} is omitted, return the current value of the
 specified locale category as a system-dependent string.
 @var{category} should be specified using the values
 @code{LC_COLLATE}, @code{LC_ALL} etc.
+
 Otherwise the specified locale category is set to the string
 @var{locale} and the new value is returned as a
 system-dependent string.  If @var{locale} is an empty string,

@@ -1,3 +1,18 @@
+2001-05-04  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* new-docstrings.texi, posix.texi, scheme-control.texi,
+	scheme-data.texi, scheme-debug.texi, scheme-evaluation.texi,
+	scheme-io.texi, scheme-memory.texi, scheme-procedures.texi:
+	Automatic docstring updates (mostly argument name updates and
+	blank lines).
+
+	* scheme-modules.texi: Change double hyphens to single.
+	
+	* scheme-control.texi (Lazy Catch): Completed.
+
+	* posix.texi (Network Databases and Address Conversion): New
+	subsubsection `IPv6 Address Conversion'.
+
 2001-05-04  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
 	* preface.texi (iff): Use proper texi markup.

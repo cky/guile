@@ -470,7 +470,6 @@ SCM_DEFINE (scm_usleep, "usleep", 1, 0, 0,
 
 SCM_DEFINE (scm_raise, "raise", 1, 0, 0,
            (SCM sig),
-	    "\n"
 	    "Sends a specified signal @var{sig} to the current process, where\n"
 	    "@var{sig} is as described for the kill procedure.")
 #define FUNC_NAME s_scm_raise

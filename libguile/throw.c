@@ -591,7 +591,7 @@ SCM_DEFINE (scm_throw, "throw", 1, 0, 1,
 	    "Invoke the catch form matching @var{key}, passing @var{args} to the\n"
 	    "@var{handler}.  \n\n"
 	    "@var{key} is a symbol.  It will match catches of the same symbol or of\n"
-	    "#t.\n\n"
+	    "@code{#t}.\n\n"
 	    "If there is no handler at all, Guile prints an error and then exits.")
 #define FUNC_NAME s_scm_throw
 {

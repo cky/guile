@@ -1,3 +1,17 @@
+2001-05-04  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* eval.c (scm_promise_p), list.c (scm_append_x, scm_reverse_x),
+	symbols.c (scm_symbol_to_string), vports.c (scm_make_soft_port):
+	Change R4RS references to R5RS.
+
+	* guile-snarf.awk.in: Fixes so that (i) blank lines in the
+	docstring source are correctly reproduced in the output (ii)
+	we don't anymore get occasional trailing quotes.  Also reorganized
+	and commented the code a little.
+
+	* scmsigs.c (scm_raise), throw.c (scm_throw): Docstring format
+	fixes.
+
 2001-05-04  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* strop.c (scm_string_split): New procedure.

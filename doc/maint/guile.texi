@@ -462,6 +462,23 @@ is implicit).
 Return @code{#t} if @var{obj} is a debug object.
 @end deffn
 
+issue-deprecation-warning
+@c snarfed from deprecation.c:78
+@deffn primitive issue-deprecation-warning . msgs
+Output @var{msgs} to @code{(current-error-port)} when this
+is the first call to @code{issue-deprecation-warning} with
+this specific @var{msg}.  Do nothing otherwise.
+The argument @var{msgs} should be a list of strings;
+they are printed in turn, each one followed by a newline.
+@end deffn
+
+include-deprecated-features
+@c snarfed from deprecation.c:120
+@deffn primitive include-deprecated-features
+Return @code{#t} iff deprecated features should be included
+in public interfaces.
+@end deffn
+
 c-registered-modules
 @c snarfed from dynl.c:183
 @deffn primitive c-registered-modules
@@ -562,6 +579,7 @@ converted to a Scheme number and returned from the call to
 All three arguments must be 0-argument procedures.
 @var{in_guard} is called, then @var{thunk}, then
 @var{out_guard}.
+
 If, any time during the execution of @var{thunk}, the
 continuation of the @code{dynamic_wind} expression is escaped
 non-locally, @var{out_guard} is called.  If the continuation of
@@ -578,15 +596,18 @@ times.
 			  ;; in-guard:
 			  ;;
 			  (lambda () (set! x 'special-binding))
+
 			  ;; thunk
 			  ;;
 		 	  (lambda () (display x) (newline)
 				     (call-with-current-continuation escape)
 				     (display x) (newline)
 				     x)
+
 			  ;; out-guard:
 			  ;;
 			  (lambda () (set! x old-x)))))))
+
 ;; Prints:
 special-binding
 ;; Evaluates to:
@@ -1051,14 +1072,14 @@ any other object.
 @end deffn
 
 primitive-eval
-@c snarfed from eval.c:3940
+@c snarfed from eval.c:3938
 @deffn primitive primitive-eval exp
 Evaluate @var{exp} in the top-level environment specified by
 the current module.
 @end deffn
 
 eval
-@c snarfed from eval.c:4009
+@c snarfed from eval.c:4007
 @deffn primitive eval exp module
 Evaluate @var{exp}, a list representing a Scheme expression,
 in the top-level environment specified by @var{module}.
@@ -1068,10 +1089,10 @@ is reset to its previous value when @var{eval} returns.
 @end deffn
 
 eval2
-@c snarfed from eval.c:4052
+@c snarfed from eval.c:4051
 @deffn primitive eval2 obj env_thunk
 Evaluate @var{exp}, a Scheme expression, in the environment
-designated by @var{lookup}, a symbol-lookup function."
+designated by @var{lookup}, a symbol-lookup function.
 Do not use this version of eval, it does not play well
 with the module system.  Use @code{eval} or
 @code{primitive-eval} instead.
@@ -1219,9 +1240,11 @@ determined by @var{obj}.  @var{obj} can be a string containing
 a file name or a port or integer file descriptor which is open
 on a file (in which case @code{fstat} is used as the underlying
 system call).
+
 The object returned by @code{stat} can be passed as a single
 parameter to the following procedures, all of which return
 integers:
+
 @table @code
 @item stat:dev
 The device containing the file.
@@ -1256,8 +1279,10 @@ bytes.
 The amount of disk space that the file occupies measured in
 units of 512 byte blocks.
 @end table
+
 In addition, the following procedures return the information
 from stat:mode in a more convenient form:
+
 @table @code
 @item stat:type
 A symbol representing the type of file.  Possible values are
@@ -2136,6 +2161,7 @@ function, but uses @var{hash} as a hash function and
 that takes two arguments, a key to be hashed and a table size.
 @code{assoc} must be an associator function, like @code{assoc},
 @code{assq} or @code{assv}.
+
 By way of illustration, @code{hashq-ref table key} is
 equivalent to @code{hashx-ref hashq assq table key}.
 @end deffn
@@ -2149,6 +2175,7 @@ function, but uses @var{hash} as a hash function and
 that takes two arguments, a key to be hashed and a table size.
 @code{assoc} must be an associator function, like @code{assoc},
 @code{assq} or @code{assv}.
+
  By way of illustration, @code{hashq-set! table key} is
 equivalent to @code{hashx-set!  hashq assq table key}.
 @end deffn
@@ -2228,61 +2255,19 @@ last.
 Convert the procedure list of @var{hook} to a list.
 @end deffn
 
-read-string!/partial
-@c snarfed from ioext.c:114
-@deffn primitive read-string!/partial str [port_or_fdes [start [end]]]
-Read characters from an fport or file descriptor into a
-string @var{str}.  This procedure is scsh-compatible
-and can efficiently read large strings.  It will:
-
-@itemize
-@item
-attempt to fill the entire string, unless the @var{start}
-and/or @var{end} arguments are supplied.  i.e., @var{start}
-defaults to 0 and @var{end} defaults to
-@code{(string-length str)}
-@item
-use the current input port if @var{port_or_fdes} is not
-supplied.
-@item
-read any characters that are currently available,
-without waiting for the rest (short reads are possible).
-
-@item
-wait for as long as it needs to for the first character to
-become available, unless the port is in non-blocking mode
-@item
-return @code{#f} if end-of-file is encountered before reading
-any characters, otherwise return the number of characters
-read.
-@item
-return 0 if the port is in non-blocking mode and no characters
-are immediately available.
-@item
-return 0 if the request is for 0 bytes, with no
-end-of-file check
-@end itemize
-@end deffn
-
 ftell
-@c snarfed from ioext.c:174
+@c snarfed from ioext.c:71
 @deffn primitive ftell fd_port
 Return an integer representing the current position of
 @var{fd/port}, measured from the beginning.  Equivalent to:
+
 @lisp
 (seek port 0 SEEK_CUR)
 @end lisp
 @end deffn
 
-fseek
-@c snarfed from ioext.c:187
-@deffn primitive fseek fd_port offset whence
-Obsolete.  Almost the same as @code{seek}, but the return value
-is unspecified.
-@end deffn
-
 redirect-port
-@c snarfed from ioext.c:209
+@c snarfed from ioext.c:89
 @deffn primitive redirect-port old new
 This procedure takes two ports and duplicates the underlying file
 descriptor from @var{old-port} into @var{new-port}.  The
@@ -2300,7 +2285,7 @@ revealed counts.
 @end deffn
 
 dup->fdes
-@c snarfed from ioext.c:248
+@c snarfed from ioext.c:128
 @deffn primitive dup->fdes fd_or_port [fd]
 Return a new integer file descriptor referring to the open file
 designated by @var{fd_or_port}, which must be either an open
@@ -2308,7 +2293,7 @@ file port or a file descriptor.
 @end deffn
 
 dup2
-@c snarfed from ioext.c:295
+@c snarfed from ioext.c:175
 @deffn primitive dup2 oldfd newfd
 A simple wrapper for the @code{dup2} system call.
 Copies the file descriptor @var{oldfd} to descriptor
@@ -2321,21 +2306,21 @@ The return value is unspecified.
 @end deffn
 
 fileno
-@c snarfed from ioext.c:314
+@c snarfed from ioext.c:194
 @deffn primitive fileno port
 Return the integer file descriptor underlying @var{port}.  Does
 not change its revealed count.
 @end deffn
 
 isatty?
-@c snarfed from ioext.c:330
+@c snarfed from ioext.c:210
 @deffn primitive isatty? port
 Return @code{#t} if @var{port} is using a serial non--file
 device, otherwise @code{#f}.
 @end deffn
 
 fdopen
-@c snarfed from ioext.c:352
+@c snarfed from ioext.c:232
 @deffn primitive fdopen fdes modes
 Return a new port based on the file descriptor @var{fdes}.
 Modes are given by the string @var{modes}.  The revealed count
@@ -2344,7 +2329,7 @@ same as that accepted by @ref{File Ports, open-file}.
 @end deffn
 
 primitive-move->fdes
-@c snarfed from ioext.c:377
+@c snarfed from ioext.c:257
 @deffn primitive primitive-move->fdes port fd
 Moves the underlying file descriptor for @var{port} to the integer
 value @var{fdes} without changing the revealed count of @var{port}.
@@ -2355,7 +2340,7 @@ required value or @code{#t} if it was moved.
 @end deffn
 
 fdes->ports
-@c snarfed from ioext.c:411
+@c snarfed from ioext.c:291
 @deffn primitive fdes->ports fd
 Return a list of existing ports which have @var{fdes} as an
 underlying file descriptor, without changing their revealed
@@ -2807,6 +2792,7 @@ result of applying @var{code} to the expression and the
 environment.  The value returned from @var{code} which has been
 passed to @code{procedure->memoizing-macro} replaces the form
 passed to @var{code}.  For example:
+
 @lisp
 (define trace
   (procedure->macro
@@ -2825,6 +2811,7 @@ result of applying @var{proc} to the expression and the
 environment.  The value returned from @var{proc} which has been
 passed to @code{procedure->memoizing-macro} replaces the form
 passed to @var{proc}.  For example:
+
 @lisp
 (define trace
   (procedure->macro
@@ -2863,8 +2850,21 @@ Return the name of the macro @var{m}.
 Return the transformer of the macro @var{m}.
 @end deffn
 
+current-module
+@c snarfed from modules.c:78
+@deffn primitive current-module
+Return the current module.
+@end deffn
+
+set-current-module
+@c snarfed from modules.c:95
+@deffn primitive set-current-module module
+Set the current module to @var{module} and return
+the previous current module.
+@end deffn
+
 interaction-environment
-@c snarfed from modules.c:102
+@c snarfed from modules.c:128
 @deffn primitive interaction-environment
 Return a specifier for the environment that contains
 implementation--defined bindings, typically a superset of those
@@ -2874,64 +2874,13 @@ evaluate expressions dynamically typed by the user.
 @end deffn
 
 standard-eval-closure
-@c snarfed from modules.c:271
+@c snarfed from modules.c:312
 @deffn primitive standard-eval-closure module
 Return an eval closure for the module @var{module}.
 @end deffn
 
-inet-aton
-@c snarfed from net_db.c:96
-@deffn primitive inet-aton address
-Converts a string containing an Internet host address in the
-traditional dotted decimal notation into an integer.
-@lisp
-(inet-aton "127.0.0.1") @result{} 2130706433
-@end lisp
-@end deffn
-
-inet-ntoa
-@c snarfed from net_db.c:116
-@deffn primitive inet-ntoa inetid
-Converts an integer Internet host address into a string with
-the traditional dotted decimal representation.
-@lisp
-(inet-ntoa 2130706433) @result{} "127.0.0.1"
-@end lisp
-@end deffn
-
-inet-netof
-@c snarfed from net_db.c:136
-@deffn primitive inet-netof address
-Return the network number part of the given integer Internet
-address.
-@lisp
-(inet-netof 2130706433) @result{} 127
-@end lisp
-@end deffn
-
-inet-lnaof
-@c snarfed from net_db.c:153
-@deffn primitive inet-lnaof address
-Return the local-address-with-network part of the given
-Internet address.
-@lisp
-(inet-lnaof 2130706433) @result{} 1
-@end lisp
-@end deffn
-
-inet-makeaddr
-@c snarfed from net_db.c:171
-@deffn primitive inet-makeaddr net lna
-Makes an Internet host address by combining the network number
-@var{net} with the local-address-within-network number
-@var{lna}.
-@lisp
-(inet-makeaddr 127 1) @result{} 2130706433
-@end lisp
-@end deffn
-
 gethost
-@c snarfed from net_db.c:256
+@c snarfed from net_db.c:146
 @deffn primitive gethost [host]
 @deffnx procedure gethostbyname hostname
 @deffnx procedure gethostbyaddr address
@@ -2947,7 +2896,7 @@ Unusual conditions may result in errors thrown to the
 @end deffn
 
 getnet
-@c snarfed from net_db.c:337
+@c snarfed from net_db.c:227
 @deffn primitive getnet [net]
 @deffnx procedure getnetbyname net-name
 @deffnx procedure getnetbyaddr net-number
@@ -2959,7 +2908,7 @@ given.
 @end deffn
 
 getproto
-@c snarfed from net_db.c:387
+@c snarfed from net_db.c:277
 @deffn primitive getproto [protocol]
 @deffnx procedure getprotobyname name
 @deffnx procedure getprotobynumber number
@@ -2970,7 +2919,7 @@ argument.  @code{getproto} will accept either type, behaving like
 @end deffn
 
 getserv
-@c snarfed from net_db.c:454
+@c snarfed from net_db.c:344
 @deffn primitive getserv [name [protocol]]
 @deffnx procedure getservbyname name protocol
 @deffnx procedure getservbyport port protocol
@@ -2985,59 +2934,60 @@ as its first argument; if given no arguments, it behaves like
 @end deffn
 
 sethost
-@c snarfed from net_db.c:493
+@c snarfed from net_db.c:383
 @deffn primitive sethost [stayopen]
 If @var{stayopen} is omitted, this is equivalent to @code{endhostent}.
 Otherwise it is equivalent to @code{sethostent stayopen}.
 @end deffn
 
 setnet
-@c snarfed from net_db.c:509
+@c snarfed from net_db.c:399
 @deffn primitive setnet [stayopen]
 If @var{stayopen} is omitted, this is equivalent to @code{endnetent}.
 Otherwise it is equivalent to @code{setnetent stayopen}.
 @end deffn
 
 setproto
-@c snarfed from net_db.c:525
+@c snarfed from net_db.c:415
 @deffn primitive setproto [stayopen]
 If @var{stayopen} is omitted, this is equivalent to @code{endprotoent}.
 Otherwise it is equivalent to @code{setprotoent stayopen}.
 @end deffn
 
 setserv
-@c snarfed from net_db.c:541
+@c snarfed from net_db.c:431
 @deffn primitive setserv [stayopen]
 If @var{stayopen} is omitted, this is equivalent to @code{endservent}.
 Otherwise it is equivalent to @code{setservent stayopen}.
 @end deffn
 
 exact?
-@c snarfed from numbers.c:106
+@c snarfed from numbers.c:107
 @deffn primitive exact? x
 Return @code{#t} if @var{x} is an exact number, @code{#f}
 otherwise.
 @end deffn
 
 odd?
-@c snarfed from numbers.c:123
+@c snarfed from numbers.c:124
 @deffn primitive odd? n
 Return @code{#t} if @var{n} is an odd number, @code{#f}
 otherwise.
 @end deffn
 
 even?
-@c snarfed from numbers.c:140
+@c snarfed from numbers.c:141
 @deffn primitive even? n
 Return @code{#t} if @var{n} is an even number, @code{#f}
 otherwise.
 @end deffn
 
 logand
-@c snarfed from numbers.c:755
+@c snarfed from numbers.c:756
 @deffn primitive logand n1 n2
 Return the integer which is the bit-wise AND of the two integer
 arguments.
+
 @lisp
 (number->string (logand #b1100 #b1010) 2)
    @result{} "1000"
@@ -3045,10 +2995,11 @@ arguments.
 @end deffn
 
 logior
-@c snarfed from numbers.c:842
+@c snarfed from numbers.c:843
 @deffn primitive logior n1 n2
 Return the integer which is the bit-wise OR of the two integer
 arguments.
+
 @lisp
 (number->string (logior #b1100 #b1010) 2)
    @result{} "1110"
@@ -3056,10 +3007,11 @@ arguments.
 @end deffn
 
 logxor
-@c snarfed from numbers.c:928
+@c snarfed from numbers.c:929
 @deffn primitive logxor n1 n2
 Return the integer which is the bit-wise XOR of the two integer
 arguments.
+
 @lisp
 (number->string (logxor #b1100 #b1010) 2)
    @result{} "110"
@@ -3067,7 +3019,7 @@ arguments.
 @end deffn
 
 logtest
-@c snarfed from numbers.c:997
+@c snarfed from numbers.c:998
 @deffn primitive logtest j k
 @lisp
 (logtest j k) @equiv{} (not (zero? (logand j k)))
@@ -3078,7 +3030,7 @@ arguments.
 @end deffn
 
 logbit?
-@c snarfed from numbers.c:1054
+@c snarfed from numbers.c:1055
 @deffn primitive logbit? index j
 @lisp
 (logbit? index j) @equiv{} (logtest (integer-expt 2 index) j)
@@ -3092,10 +3044,11 @@ arguments.
 @end deffn
 
 lognot
-@c snarfed from numbers.c:1103
+@c snarfed from numbers.c:1104
 @deffn primitive lognot n
 Return the integer which is the 2s-complement of the integer
 argument.
+
 @lisp
 (number->string (lognot #b10000000) 2)
    @result{} "-10000001"
@@ -3105,10 +3058,11 @@ argument.
 @end deffn
 
 integer-expt
-@c snarfed from numbers.c:1120
+@c snarfed from numbers.c:1121
 @deffn primitive integer-expt n k
 Return @var{n} raised to the non-negative integer exponent
 @var{k}.
+
 @lisp
 (integer-expt 2 5)
    @result{} 32
@@ -3118,7 +3072,7 @@ Return @var{n} raised to the non-negative integer exponent
 @end deffn
 
 ash
-@c snarfed from numbers.c:1167
+@c snarfed from numbers.c:1168
 @deffn primitive ash n cnt
 The function ash performs an arithmetic shift left by @var{cnt}
 bits (or shift right, if @var{cnt} is negative).  'Arithmetic'
@@ -3127,8 +3081,10 @@ structure of @var{n}, but rather guarantees that the result
 will always be rounded towards minus infinity.  Therefore, the
 results of ash and a corresponding bitwise shift will differ if
 @var{n} is negative.
+
 Formally, the function returns an integer equivalent to
 @code{(inexact->exact (floor (* @var{n} (expt 2 @var{cnt}))))}.
+
 @lisp
 (number->string (ash #b1 3) 2)     @result{} "1000"
 (number->string (ash #b1010 -1) 2) @result{} "101"
@@ -3136,11 +3092,12 @@ Formally, the function returns an integer equivalent to
 @end deffn
 
 bit-extract
-@c snarfed from numbers.c:1220
+@c snarfed from numbers.c:1221
 @deffn primitive bit-extract n start end
 Return the integer composed of the @var{start} (inclusive)
 through @var{end} (exclusive) bits of @var{n}.  The
 @var{start}th bit becomes the 0-th bit in the result.
+
 @lisp
 (number->string (bit-extract #b1101101010 0 4) 2)
    @result{} "1010"
@@ -3150,12 +3107,13 @@ through @var{end} (exclusive) bits of @var{n}.  The
 @end deffn
 
 logcount
-@c snarfed from numbers.c:1292
+@c snarfed from numbers.c:1293
 @deffn primitive logcount n
 Return the number of bits in integer @var{n}.  If integer is
 positive, the 1-bits in its binary representation are counted.
 If negative, the 0-bits in its two's-complement binary
 representation are counted.  If 0, 0 is returned.
+
 @lisp
 (logcount #b10101010)
    @result{} 4
@@ -3167,9 +3125,10 @@ representation are counted.  If 0, 0 is returned.
 @end deffn
 
 integer-length
-@c snarfed from numbers.c:1343
+@c snarfed from numbers.c:1344
 @deffn primitive integer-length n
 Return the number of bits neccessary to represent @var{n}.
+
 @lisp
 (integer-length #b10101010)
    @result{} 8
@@ -3181,7 +3140,7 @@ Return the number of bits neccessary to represent @var{n}.
 @end deffn
 
 number->string
-@c snarfed from numbers.c:2289
+@c snarfed from numbers.c:2290
 @deffn primitive number->string n [radix]
 Return a string holding the external representation of the
 number @var{n} in the given @var{radix}.  If @var{n} is
@@ -3189,7 +3148,7 @@ inexact, a radix of 10 will be used.
 @end deffn
 
 string->number
-@c snarfed from numbers.c:2874
+@c snarfed from numbers.c:2875
 @deffn primitive string->number string [radix]
 Return a number of the maximally precise representation
 expressed by the given @var{string}. @var{radix} must be an
@@ -3202,13 +3161,13 @@ syntactically valid notation for a number, then
 @end deffn
 
 number?
-@c snarfed from numbers.c:2941
+@c snarfed from numbers.c:2942
 @deffn primitive number?
 scm_number_p
 @end deffn
 
 complex?
-@c snarfed from numbers.c:2953
+@c snarfed from numbers.c:2954
 @deffn primitive complex? x
 Return @code{#t} if @var{x} is a complex number, @code{#f}
 else.  Note that the sets of real, rational and integer
@@ -3218,13 +3177,13 @@ rational or integer number.
 @end deffn
 
 real?
-@c snarfed from numbers.c:2961
+@c snarfed from numbers.c:2962
 @deffn primitive real?
 scm_real_p
 @end deffn
 
 rational?
-@c snarfed from numbers.c:2974
+@c snarfed from numbers.c:2975
 @deffn primitive rational? x
 Return @code{#t} if @var{x} is a rational number, @code{#f}
 else.  Note that the set of integer values forms a subset of
@@ -3235,28 +3194,28 @@ precision.
 @end deffn
 
 integer?
-@c snarfed from numbers.c:2995
+@c snarfed from numbers.c:2996
 @deffn primitive integer? x
 Return @code{#t} if @var{x} is an integer number, @code{#f}
 else.
 @end deffn
 
 inexact?
-@c snarfed from numbers.c:3020
+@c snarfed from numbers.c:3021
 @deffn primitive inexact? x
 Return @code{#t} if @var{x} is an inexact number, @code{#f}
 else.
 @end deffn
 
 $expt
-@c snarfed from numbers.c:4072
+@c snarfed from numbers.c:4073
 @deffn primitive $expt x y
 Return @var{x} raised to the power of @var{y}. This
 procedure does not accept complex arguments.
 @end deffn
 
 $atan2
-@c snarfed from numbers.c:4088
+@c snarfed from numbers.c:4089
 @deffn primitive $atan2 x y
 Return the arc tangent of the two arguments @var{x} and
 @var{y}. This is similar to calculating the arc tangent of
@@ -3266,20 +3225,20 @@ procedure does not accept complex arguments.
 @end deffn
 
 make-rectangular
-@c snarfed from numbers.c:4101
+@c snarfed from numbers.c:4102
 @deffn primitive make-rectangular real imaginary
 Return a complex number constructed of the given @var{real} and
 @var{imaginary} parts.
 @end deffn
 
 make-polar
-@c snarfed from numbers.c:4114
+@c snarfed from numbers.c:4115
 @deffn primitive make-polar x y
 Return the complex number @var{x} * e^(i * @var{y}).
 @end deffn
 
 inexact->exact
-@c snarfed from numbers.c:4232
+@c snarfed from numbers.c:4233
 @deffn primitive inexact->exact z
 Return an exact number that is numerically closest to @var{z}.
 @end deffn
@@ -3642,6 +3601,7 @@ unread characters will be read again in last-in first-out order.  If
 Sets the current position of @var{fd/port} to the integer
 @var{offset}, which is interpreted according to the value of
 @var{whence}.
+
 One of the following variables should be supplied for
 @var{whence}:
 @defvar SEEK_SET
@@ -3655,6 +3615,7 @@ Seek from the end of the file.
 @end defvar
 If @var{fd/port} is a file descriptor, the underlying system
 call is @code{lseek}.  @var{port} may be a string port.
+
 The value returned is the new position in the file.  This means
 that the current position of a port can be obtained using:
 @lisp
@@ -3743,6 +3704,7 @@ flushed) to the output port can be read from the input port.
 Pipes are commonly used for communication with a newly forked
 child process.  The need to flush the output port can be
 avoided by making it unbuffered using @code{setvbuf}.
+
 Writes occur atomically provided the size of the data in bytes
 is not greater than the value of @code{PIPE_BUF}.  Note that
 the output port is likely to block if too much data (typically
@@ -4008,6 +3970,7 @@ terminal for the current process.
 Return the process group ID of the foreground process group
 associated with the terminal open on the file descriptor
 underlying @var{port}.
+
 If there is no foreground process group, the return value is a
 number greater than 1 that does not match the process group ID
 of any existing process group.  This can happen if all of the
@@ -4139,9 +4102,11 @@ and the current process has the type of access specified by
 using the values of the variables listed below.  Multiple
 values can be combined using a bitwise or, in which case
 @code{#t} will only be returned if all accesses are granted.
+
 Permissions are checked using the real id of the current
 process, not the effective id, although it's the effective id
 which determines whether the access would actually be granted.
+
 @defvar R_OK
 test for read permission.
 @end defvar
@@ -4185,6 +4150,7 @@ If @var{locale} is omitted, return the current value of the
 specified locale category as a system-dependent string.
 @var{category} should be specified using the values
 @code{LC_COLLATE}, @code{LC_ALL} etc.
+
 Otherwise the specified locale category is set to the string
 @var{locale} and the new value is returned as a
 system-dependent string.  If @var{locale} is an empty string,
@@ -4572,10 +4538,12 @@ Another example:
 @c snarfed from random.c:370
 @deffn primitive random n [state]
 Return a number in [0,N).
+
 Accepts a positive integer or real n and returns a
 number of the same type between zero (inclusive) and
 N (exclusive). The values returned have a uniform
 distribution.
+
 The optional argument @var{state} must be of the type produced
 by @code{seed->random-state}. It defaults to the value of the
 variable @var{*random-state*}. This object is used to maintain
@@ -4661,6 +4629,7 @@ otherwise, leave it in the input stream for the next read.  If
 specified, store data only into the substring of @var{str}
 bounded by @var{start} and @var{end} (which default to the
 beginning and end of the string, respectively).
+
  Return a pair consisting of the delimiter that terminated the
 string and the number of characters read.  If reading stopped
 at the end of file, the delimiter returned is the
@@ -4731,8 +4700,10 @@ Compile the regular expression described by @var{pat}, and
 return the compiled regexp structure.  If @var{pat} does not
 describe a legal regular expression, @code{make-regexp} throws
 a @code{regular-expression-syntax} error.
+
 The @var{flags} arguments change the behavior of the compiled
 regular expression.  The following flags may be supplied:
+
 @table @code
 @item regexp/icase
 Consider uppercase and lowercase letters to be the same when
@@ -4831,6 +4802,42 @@ They are currently represented as numbers, but your code should
 in no way depend on this.
 @end deffn
 
+read-string!/partial
+@c snarfed from rw.c:110
+@deffn primitive read-string!/partial str [port_or_fdes [start [end]]]
+Read characters from an fport or file descriptor into a
+string @var{str}.  This procedure is scsh-compatible
+and can efficiently read large strings.  It will:
+
+@itemize
+@item
+attempt to fill the entire string, unless the @var{start}
+and/or @var{end} arguments are supplied.  i.e., @var{start}
+defaults to 0 and @var{end} defaults to
+@code{(string-length str)}
+@item
+use the current input port if @var{port_or_fdes} is not
+supplied.
+@item
+read any characters that are currently available,
+without waiting for the rest (short reads are possible).
+
+@item
+wait for as long as it needs to for the first character to
+become available, unless the port is in non-blocking mode
+@item
+return @code{#f} if end-of-file is encountered before reading
+any characters, otherwise return the number of characters
+read.
+@item
+return 0 if the port is in non-blocking mode and no characters
+are immediately available.
+@item
+return 0 if the request is for 0 bytes, with no
+end-of-file check
+@end itemize
+@end deffn
+
 sigaction
 @c snarfed from scmsigs.c:201
 @deffn primitive sigaction signum [handler [flags]]
@@ -4907,7 +4914,7 @@ all platforms.
 @end deffn
 
 raise
-@c snarfed from scmsigs.c:475
+@c snarfed from scmsigs.c:474
 @deffn primitive raise sig
 Sends a specified signal @var{sig} to the current process, where
 @var{sig} is as described for the kill procedure.
@@ -4921,6 +4928,7 @@ processor".  Under Unix this is usually the default shell
 @code{sh}.  The value returned is @var{cmd}'s exit status as
 returned by @code{waitpid}, which can be interpreted using the
 functions above.
+
 If @code{system} is called without arguments, return a boolean
 indicating whether the command processor is available.
 @end deffn
@@ -4943,80 +4951,170 @@ is @var{status} if supplied, otherwise zero.
 
 htons
 @c snarfed from socket.c:89
-@deffn primitive htons in
-Return a new integer from @var{value} by converting from host
-to network order. @var{value} must be within the range of a C
-unsigned short integer.
+@deffn primitive htons value
+Convert a 16 bit quantity from host to network byte ordering.
+@var{value} is packed into 2 bytes, which are then converted
+and returned as a new integer.
 @end deffn
 
 ntohs
 @c snarfed from socket.c:106
-@deffn primitive ntohs in
-Return a new integer from @var{value} by converting from
-network to host order.  @var{value} must be within the range of
-a C unsigned short integer.
+@deffn primitive ntohs value
+Convert a 16 bit quantity from network to host byte ordering.
+@var{value} is packed into 2 bytes, which are then converted
+and returned as a new integer.
 @end deffn
 
 htonl
 @c snarfed from socket.c:123
-@deffn primitive htonl in
-Return a new integer from @var{value} by converting from host
-to network order. @var{value} must be within the range of a C
-unsigned long integer.
+@deffn primitive htonl value
+Convert a 32 bit quantity from host to network byte ordering.
+@var{value} is packed into 4 bytes, which are then converted
+and returned as a new integer.
 @end deffn
 
 ntohl
-@c snarfed from socket.c:135
-@deffn primitive ntohl in
-Return a new integer from @var{value} by converting from
-network to host order. @var{value} must be within the range of
-a C unsigned long integer.
+@c snarfed from socket.c:136
+@deffn primitive ntohl value
+Convert a 32 bit quantity from network to host byte ordering.
+@var{value} is packed into 4 bytes, which are then converted
+and returned as a new integer.
+@end deffn
+
+inet-aton
+@c snarfed from socket.c:156
+@deffn primitive inet-aton address
+Convert an IPv4 Internet address from printable string
+(dotted decimal notation) to an integer.  E.g.,
+
+@lisp
+(inet-aton "127.0.0.1") @result{} 2130706433
+@end lisp
+@end deffn
+
+inet-ntoa
+@c snarfed from socket.c:176
+@deffn primitive inet-ntoa inetid
+Convert an IPv4 Internet address to a printable
+(dotted decimal notation) string.  E.g.,
+
+@lisp
+(inet-ntoa 2130706433) @result{} "127.0.0.1"
+@end lisp
+@end deffn
+
+inet-netof
+@c snarfed from socket.c:196
+@deffn primitive inet-netof address
+Return the network number part of the given IPv4
+Internet address.  E.g.,
+
+@lisp
+(inet-netof 2130706433) @result{} 127
+@end lisp
+@end deffn
+
+inet-lnaof
+@c snarfed from socket.c:214
+@deffn primitive inet-lnaof address
+Return the local-address-with-network part of the given
+IPv4 Internet address, using the obsolete class A/B/C system.
+E.g.,
+
+@lisp
+(inet-lnaof 2130706433) @result{} 1
+@end lisp
+@end deffn
+
+inet-makeaddr
+@c snarfed from socket.c:232
+@deffn primitive inet-makeaddr net lna
+Make an IPv4 Internet address by combining the network number
+@var{net} with the local-address-within-network number
+@var{lna}.  E.g.,
+
+@lisp
+(inet-makeaddr 127 1) @result{} 2130706433
+@end lisp
+@end deffn
+
+inet-pton
+@c snarfed from socket.c:350
+@deffn primitive inet-pton family address
+Convert a string containing a printable network address to
+an integer address.  Note that unlike the C version of this
+function,
+the result is an integer with normal host byte ordering.
+@var{family} can be @code{AF_INET} or @code{AF_INET6}.  E.g.,
+
+@lisp
+(inet-pton AF_INET "127.0.0.1") @result{} 2130706433
+(inet-pton AF_INET6 "::1") @result{} 1
+@end lisp
+@end deffn
+
+inet-ntop
+@c snarfed from socket.c:385
+@deffn primitive inet-ntop family address
+Convert a network address into a printable string.
+Note that unlike the C version of this function,
+the input is an integer with normal host byte ordering.
+@var{family} can be @code{AF_INET} or @code{AF_INET6}.  E.g.,
+
+@lisp
+(inet-ntop AF_INET 2130706433) @result{} "127.0.0.1"
+(inet-ntop AF_INET6 (- (expt 2 128) 1)) @result{}
+ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff
+@end lisp
 @end deffn
 
 socket
-@c snarfed from socket.c:161
+@c snarfed from socket.c:430
 @deffn primitive socket family style proto
 Return a new socket port of the type specified by @var{family},
-@var{style} and @var{protocol}.  All three parameters are
+@var{style} and @var{proto}.  All three parameters are
 integers.  Supported values for @var{family} are
 @code{AF_UNIX}, @code{AF_INET} and @code{AF_INET6}.
 Typical values for @var{style} are @code{SOCK_STREAM},
 @code{SOCK_DGRAM} and @code{SOCK_RAW}.
-@var{protocol} can be obtained from a protocol name using
+
+@var{proto} can be obtained from a protocol name using
 @code{getprotobyname}.  A value of zero specifies the default
 protocol, which is usually right.
+
 A single socket port cannot by used for communication until it
 has been connected to another socket.
 @end deffn
 
 socketpair
-@c snarfed from socket.c:183
+@c snarfed from socket.c:452
 @deffn primitive socketpair family style proto
 Return a pair of connected (but unnamed) socket ports of the
-type specified by @var{family}, @var{style} and @var{protocol}.
+type specified by @var{family}, @var{style} and @var{proto}.
 Many systems support only socket pairs of the @code{AF_UNIX}
 family.  Zero is likely to be the only meaningful value for
-@var{protocol}.
+@var{proto}.
 @end deffn
 
 getsockopt
-@c snarfed from socket.c:213
+@c snarfed from socket.c:481
 @deffn primitive getsockopt sock level optname
 Return the value of a particular socket option for the socket
-port @var{socket}.  @var{level} is an integer code for type of
+port @var{sock}.  @var{level} is an integer code for type of
 option being requested, e.g., @code{SOL_SOCKET} for
 socket-level options.  @var{optname} is an integer code for the
 option required and should be specified using one of the
 symbols @code{SO_DEBUG}, @code{SO_REUSEADDR} etc.
+
 The returned value is typically an integer but @code{SO_LINGER}
 returns a pair of integers.
 @end deffn
 
 setsockopt
-@c snarfed from socket.c:281
+@c snarfed from socket.c:549
 @deffn primitive setsockopt sock level optname value
-Sets the value of a particular socket option for the socket
-port @var{socket}.  @var{level} is an integer code for type of option
+Set the value of a particular socket option for the socket
+port @var{sock}.  @var{level} is an integer code for type of option
 being set, e.g., @code{SOL_SOCKET} for socket-level options.
 @var{optname} is an
 integer code for the option to set and should be specified using one of
@@ -5029,7 +5127,7 @@ The return value is unspecified.
 @end deffn
 
 shutdown
-@c snarfed from socket.c:403
+@c snarfed from socket.c:653
 @deffn primitive shutdown sock how
 Sockets can be closed simply by using @code{close-port}. The
 @code{shutdown} procedure allows reception or tranmission on a
@@ -5051,9 +5149,9 @@ The return value is unspecified.
 @end deffn
 
 connect
-@c snarfed from socket.c:569
+@c snarfed from socket.c:797
 @deffn primitive connect sock fam address . args
-Initiates a connection from a socket using a specified address
+Initiate a connection from a socket using a specified address
 family to the address
 specified by @var{address} and possibly @var{args}.
 The format required for @var{address}
@@ -5077,26 +5175,27 @@ The return value is unspecified.
 @end deffn
 
 bind
-@c snarfed from socket.c:623
+@c snarfed from socket.c:857
 @deffn primitive bind sock fam address . args
-Assigns an address to the socket port @var{socket}.
+Assign an address to the socket port @var{sock}.
 Generally this only needs to be done for server sockets,
 so they know where to look for incoming connections.  A socket
 without an address will be assigned one automatically when it
 starts communicating.
 
-The format of @var{address} and @var{ARG} @dots{} depends on the family
-of the socket.
+The format of @var{address} and @var{args} depends
+on the family of the socket.
 
 For a socket of family @code{AF_UNIX}, only @var{address}
-is specified and must
-be a string with the filename where the socket is to be created.
+is specified and must be a string with the filename where
+the socket is to be created.
 
-For a socket of family @code{AF_INET}, @var{address} must be an integer
-Internet host address and @var{arg} @dots{} must be a single integer
-port number.
+For a socket of family @code{AF_INET}, @var{address}
+must be an integer IPv4 address and @var{args}
+must be a single integer port number.
 
-The values of the following variables can also be used for @var{address}:
+The values of the following variables can also be used for
+@var{address}:
 
 @defvar INADDR_ANY
 Allow connections from any address.
@@ -5114,126 +5213,155 @@ The broadcast address on the local network.
 No address.
 @end defvar
 
+For a socket of family @code{AF_INET6}, @var{address}
+must be an integer IPv6 address and @var{args}
+may be up to three integers:
+port [flowinfo] [scope_id],
+where flowinfo and scope_id default to zero.
+
 The return value is unspecified.
 @end deffn
 
 listen
-@c snarfed from socket.c:656
+@c snarfed from socket.c:891
 @deffn primitive listen sock backlog
-This procedure enables @var{socket} to accept connection
+Enable @var{sock} to accept connection
 requests.  @var{backlog} is an integer specifying
 the maximum length of the queue for pending connections.
-If the queue fills, new clients will fail to connect until the
-server calls @code{accept} to accept a connection from the queue.
+If the queue fills, new clients will fail to connect until
+the server calls @code{accept} to accept a connection from
+the queue.
 
 The return value is unspecified.
 @end deffn
 
 accept
-@c snarfed from socket.c:793
+@c snarfed from socket.c:997
 @deffn primitive accept sock
-Accepts a connection on a bound, listening socket @var{socket}.  If there
-are no pending connections in the queue, it waits until
-one is available unless the non-blocking option has been set on the
-socket.
+Accept a connection on a bound, listening socket.
+If there
+are no pending connections in the queue, wait until
+one is available unless the non-blocking option has been
+set on the socket.
 
 The return value is a
-pair in which the CAR is a new socket port for the connection and
-the CDR is an object with address information about the client which
-initiated the connection.
+pair in which the @emph{car} is a new socket port for the
+connection and
+the @emph{cdr} is an object with address information about the
+client which initiated the connection.
 
-If the address is not available then the CDR will be an empty vector.
-
-@var{socket} does not become part of the
+@var{sock} does not become part of the
 connection and will continue to accept new requests.
 @end deffn
 
 getsockname
-@c snarfed from socket.c:824
+@c snarfed from socket.c:1024
 @deffn primitive getsockname sock
-Return the address of @var{socket}, in the same form as the
+Return the address of @var{sock}, in the same form as the
 object returned by @code{accept}.  On many systems the address
 of a socket in the @code{AF_FILE} namespace cannot be read.
 @end deffn
 
 getpeername
-@c snarfed from socket.c:851
+@c snarfed from socket.c:1046
 @deffn primitive getpeername sock
-Return the address of the socket that the socket @var{socket}
+Return the address that @var{sock}
 is connected to, in the same form as the object returned by
 @code{accept}.  On many systems the address of a socket in the
 @code{AF_FILE} namespace cannot be read.
 @end deffn
 
 recv!
-@c snarfed from socket.c:886
+@c snarfed from socket.c:1081
 @deffn primitive recv! sock buf [flags]
-Receives data from the socket port @var{socket}.  @var{socket} must already
+Receive data from a socket port.
+@var{sock} must already
 be bound to the address from which data is to be received.
 @var{buf} is a string into which
-the data will be written.  The size of @var{buf} limits the amount of
+the data will be written.  The size of @var{buf} limits
+the amount of
 data which can be received: in the case of packet
-protocols, if a packet larger than this limit is encountered then some data
+protocols, if a packet larger than this limit is encountered
+then some data
 will be irrevocably lost.
 
 The optional @var{flags} argument is a value or
 bitwise OR of MSG_OOB, MSG_PEEK, MSG_DONTROUTE etc.
 
-The value returned is the number of bytes read from the socket.
+The value returned is the number of bytes read from the
+socket.
 
-Note that the data is read directly from the socket file descriptor:
+Note that the data is read directly from the socket file
+descriptor:
 any unread buffered port data is ignored.
 @end deffn
 
 send
-@c snarfed from socket.c:915
+@c snarfed from socket.c:1114
 @deffn primitive send sock message [flags]
-Transmits the string @var{message} on the socket port @var{socket}.
-@var{socket} must already be bound to a destination address.  The
-value returned is the number of bytes transmitted -- it's possible for
-this to be less than the length of @var{message} if the socket is
-set to be non-blocking.  The optional @var{flags} argument is a value or
+Transmit the string @var{message} on a socket port @var{sock}.
+@var{sock} must already be bound to a destination address.  The
+value returned is the number of bytes transmitted --
+it's possible for
+this to be less than the length of @var{message}
+if the socket is
+set to be non-blocking.  The optional @var{flags} argument
+is a value or
 bitwise OR of MSG_OOB, MSG_PEEK, MSG_DONTROUTE etc.
 
-Note that the data is written directly to the socket file descriptor:
+Note that the data is written directly to the socket
+file descriptor:
 any unflushed buffered port data is ignored.
 @end deffn
 
 recvfrom!
-@c snarfed from socket.c:957
+@c snarfed from socket.c:1154
 @deffn primitive recvfrom! sock str [flags [start [end]]]
-Return data from the socket port @var{socket} and also
+Return data from the socket port @var{sock} and also
 information about where the data was received from.
-@var{socket} must already be bound to the address from which
+@var{sock} must already be bound to the address from which
 data is to be received.  @code{str}, is a string into which the
 data will be written.  The size of @var{str} limits the amount
 of data which can be received: in the case of packet protocols,
 if a packet larger than this limit is encountered then some
 data will be irrevocably lost.
+
 The optional @var{flags} argument is a value or bitwise OR of
 @code{MSG_OOB}, @code{MSG_PEEK}, @code{MSG_DONTROUTE} etc.
+
 The value returned is a pair: the @emph{car} is the number of
 bytes read from the socket and the @emph{cdr} an address object
-in the same form as returned by @code{accept}.
+in the same form as returned by @code{accept}.  The address
+will given as @code{#f} if not available, as is usually the
+case for stream sockets.
+
 The @var{start} and @var{end} arguments specify a substring of
 @var{str} to which the data should be written.
+
 Note that the data is read directly from the socket file
 descriptor: any unread buffered port data is ignored.
 @end deffn
 
 sendto
-@c snarfed from socket.c:1008
+@c snarfed from socket.c:1212
 @deffn primitive sendto sock message fam address . args_and_flags
-Transmits the string @var{message} on the socket port @var{socket}.  The
-destination address is specified using the @var{family}, @var{address} and
-@var{arg} arguments, in a similar way to the @code{connect}
-procedure.  The
-value returned is the number of bytes transmitted -- it's possible for
-this to be less than the length of @var{message} if the socket is
-set to be non-blocking.  The optional @var{flags} argument is a value or
+Transmit the string @var{message} on the socket port
+@var{sock}.  The
+destination address is specified using the @var{fam},
+@var{address} and
+@var{args_and_flags} arguments, in a similar way to the
+@code{connect} procedure.  @var{args_and_flags} contains
+the usual connection arguments optionally followed by
+a flags argument, which is a value or
 bitwise OR of MSG_OOB, MSG_PEEK, MSG_DONTROUTE etc.
 
-Note that the data is written directly to the socket file descriptor:
+The value returned is the number of bytes transmitted --
+it's possible for
+this to be less than the length of @var{message} if the
+socket is
+set to be non-blocking.
+Note that the data is written directly to the socket
+file descriptor:
 any unflushed buffered port data is ignored.
 @end deffn
 
@@ -5369,7 +5497,7 @@ Create a new stack. If @var{obj} is @code{#t}, the current
 evaluation stack is used for creating the stack frames,
 otherwise the frames are taken from @var{obj} (which must be
 either a debug object or a continuation).
-@var{args} must be a list if integers and specifies how the
+@var{args} must be a list of integers and specifies how the
 resulting stack will be narrowed.
 @end deffn
 
@@ -5481,6 +5609,7 @@ started.
 Return an object with information about real and processor
 time.  The following procedures accept such an object as an
 argument and return a selected component:
+
 @table @code
 @item tms:clock
 The current real time, expressed as time units relative to an
@@ -5688,6 +5817,7 @@ Return the index of the first occurrence of @var{chr} in
 @var{to} limit the search to a portion of the string.  This
 procedure essentially implements the @code{index} or
 @code{strchr} functions from the C library.
+
 @lisp
 (string-index "weiner" #\e)
 @result{} 1
@@ -5707,6 +5837,7 @@ Like @code{string-index}, but search from the right of the
 string rather than from the left.  This procedure essentially
 implements the @code{rindex} or @code{strrchr} functions from
 the C library.
+
 @lisp
 (string-rindex "weiner" #\e)
 @result{} 4
@@ -5759,6 +5890,7 @@ are different strings, it does not matter which function you use.
 @deffn primitive substring-fill! str start end fill
 Change every character in @var{str} between @var{start} and
 @var{end} to @var{fill}.
+
 @lisp
 (define y "abcdefg")
 (substring-fill! y 1 3 #\r)
@@ -5844,6 +5976,7 @@ Return a freshly allocation string containing the characters in
 @deffn primitive string-capitalize! str
 Upcase the first character of every word in @var{str}
 destructively and return @var{str}.
+
 @lisp
 y                      @result{} "hello world"
 (string-capitalize! y) @result{} "Hello World"
@@ -5873,6 +6006,7 @@ is currently reading symbols case--insensitively.
 Lexicographic equality predicate; return @code{#t} if the two
 strings are the same length and contain the same characters in
 the same positions, otherwise return @code{#f}.
+
 The procedure @code{string-ci=?} treats upper and lower case
 letters as though they were the same character, but
 @code{string=?} treats upper and lower case as distinct
@@ -6194,8 +6328,10 @@ returned will be the same as the case in the string that was
 passed to @code{string->symbol}.  It is an error to apply
 mutation procedures like @code{string-set!} to strings returned
 by this procedure.
+
 The following examples assume that the implementation's
 standard case is lower case:
+
 @lisp
 (symbol->string 'flying-fish)    @result{} "flying-fish"
 (symbol->string 'Martin)         @result{}  "martin"
@@ -6213,8 +6349,10 @@ letters in the non-standard case, but it is usually a bad idea
 to create such symbols because in some implementations of
 Scheme they cannot be read as themselves.  See
 @code{symbol->string}.
+
 The following examples assume that the implementation's
 standard case is lower case:
+
 @lisp
 (eq? 'mISSISSIppi 'mississippi) @result{} #t
 (string->symbol "mISSISSIppi") @result{} @r{the symbol with name "mISSISSIppi"}
@@ -6355,12 +6493,6 @@ interned.  The counter is increased by 1 at each
 call.  There is no provision for resetting the counter.
 @end deffn
 
-tag
-@c snarfed from tag.c:98
-@deffn primitive tag x
-Return an integer corresponding to the type of X.  Deprecated.
-@end deffn
-
 catch
 @c snarfed from throw.c:535
 @deffn primitive catch key thunk handler
@@ -6370,12 +6502,16 @@ exceptions matching @var{key}.  If thunk throws to the symbol
 @lisp
 (handler key args ...)
 @end lisp
+
 @var{key} is a symbol or @code{#t}.
+
 @var{thunk} takes no arguments.  If @var{thunk} returns
 normally, that is the return value of @code{catch}.
+
 Handler is invoked outside the scope of its own @code{catch}.
 If @var{handler} again throws to the same key, a new handler
 from further up the call chain is invoked.
+
 If the key is @code{#t}, then a throw to @emph{any} symbol will
 match this call to @code{catch}.
 @end deffn
@@ -6395,9 +6531,9 @@ Invoke the catch form matching @var{key}, passing @var{args} to the
 @var{handler}.  
 
 @var{key} is a symbol.  It will match catches of the same symbol or of
-#t.
+@code{#t}.
 
-If there is no handler at all, an error is signaled.
+If there is no handler at all, Guile prints an error and then exits.
 @end deffn
 
 uniform-vector-length
@@ -6488,11 +6624,13 @@ dimensions arranged in a different order.  There must be one
 @var{dim0}, @var{dim1}, @dots{} should be integers between 0
 and the rank of the array to be returned.  Each integer in that
 range must appear at least once in the argument list.
+
 The values of @var{dim0}, @var{dim1}, @dots{} correspond to
 dimensions in the array to be returned, their positions in the
 argument list to dimensions of @var{array}.  Several @var{dim}s
 may have the same value, in which case the returned array will
 have smaller rank than @var{array}.
+
 @lisp
 (transpose-array '#2((a b) (c d)) 1 0) @result{} #2((a c) (b d))
 (transpose-array '#2((a b) (c d)) 0 0) @result{} #1(a d)
@@ -6772,6 +6910,7 @@ scm_vector
 @deffnx primitive list->vector l
 Return a newly allocated vector whose elements contain the
 given arguments.  Analogous to @code{list}.
+
 @lisp
 (vector 'a 'b 'c) @result{} #(a b c)
 @end lisp
@@ -6791,6 +6930,7 @@ unspecified.
 @deffn primitive vector->list v
 Return a newly allocated list of the objects contained in the
 elements of @var{vector}.
+
 @lisp
 (vector->list '#(dah dah didah)) @result{}  (dah dah didah)
 (list->vector '(dididit dah)) @result{}  #(dididit dah)
@@ -6852,6 +6992,7 @@ Return a port capable of receiving or delivering characters as
 specified by the @var{modes} string (@pxref{File Ports,
 open-file}).  @var{pv} must be a vector of length 5.  Its
 components are as follows:
+
 @enumerate 0
 @item
 procedure accepting one character for output
@@ -6864,14 +7005,17 @@ thunk for getting one character
 @item
 thunk for closing port (not by garbage collection)
 @end enumerate
+
 For an output-only port only elements 0, 1, 2, and 4 need be
 procedures.  For an input-only port only elements 3 and 4 need
 be procedures.  Thunks 2 and 4 can instead be @code{#f} if
 there is no useful operation for them to perform.
+
 If thunk 3 returns @code{#f} or an @code{eof-object}
 (@pxref{Input, eof-object?, ,r4rs, The Revised^4 Report on
 Scheme}) it indicates that the port has reached end-of-file.
 For example:
+
 @lisp
 (define stdout (current-output-port))
 (define p (make-soft-port
@@ -6882,6 +7026,7 @@ For example:
             (lambda () (char-upcase (read-char)))
             (lambda () (display "@@" stdout)))
            "rw"))
+
 (write p p) @result{} #<input-output: soft 8081e20>
 @end lisp
 @end deffn
@@ -6926,6 +7071,7 @@ weak hashes are also weak vectors.
 Return a weak hash table with @var{size} buckets. As with any
 hash table, choosing a good size for the table requires some
 caution.
+
 You can modify weak hash tables in exactly the same way you
 would modify regular hash tables. (@pxref{Hash Tables})
 @end deffn

@@ -99,7 +99,7 @@ to have access to all procedures and variables exported from the module.
 * General Information about Modules::  Guile module basics.
 * Loading Guile Modules::       How to use existing modules.
 * Creating Guile Modules::      How to package your code into modules.
-* More Module Procedures::      Low--level module code.
+* More Module Procedures::      Low-level module code.
 * Included Guile Modules::      Which modules come with Guile?
 @end menu
 
@@ -108,7 +108,7 @@ to have access to all procedures and variables exported from the module.
 
 A Guile module is a collection of procedures, variables and syntactic
 forms (macros), which are either public or private.  Public bindings are
-in the so--called @dfn{export list} of a module and can be made visible
+in the so-called @dfn{export list} of a module and can be made visible
 to other modules, which import them.  This @dfn{module import} is called
 @dfn{using} of a module, and consists of loading of the module code (if
 it has not already been loaded) and making all exported items of the
@@ -132,7 +132,7 @@ example, the @code{(ice-9 popen)} module would result in the filename
 Guile and in all other directories in the load path.
 
 @c FIXME::martin:  Not sure about this, maybe someone knows better?
-Every module has a so--called syntax transformer associated with it.
+Every module has a so-called syntax transformer associated with it.
 This is a procedure which performs all syntax transformation for the
 time the module is read in and evaluated.  When working with modules,
 you can manipulate the current syntax transformer using the
@@ -150,7 +150,7 @@ the expansion.
 When two or more modules are imported, and they export bindings with the
 same names, the last imported module wins, and the exported binding of
 that last module will silently be used.  This might lead to
-hard--to--find errors because wrong procedures or variables are used.
+hard-to-find errors because wrong procedures or variables are used.
 
 
 @node Loading Guile Modules
@@ -225,7 +225,7 @@ example of this is
 @code{define-module} makes this module available to Guile programs under
 the given @var{module-specification}.
 
-The @var{options} are keyword/value--pairs which specify more about the
+The @var{options} are keyword/value pairs which specify more about the
 defined module.  The recognized options and their meaning is shown in
 the following table.
 
@@ -315,7 +315,7 @@ Mikael Djurfeldt's source-level debugging support for Guile
 Guile's support for multi threaded execution (@pxref{Scheduling}).
 
 @item (ice-9 rdelim)
-Line-- and character--delimited input (REFFIXME).
+Line- and character-delimited input (REFFIXME).
 
 @item (ice-9 documentation)
 Online documentation (REFFIXME).
@@ -327,26 +327,26 @@ Support for @code{and-let*} (REFFIXME).
 Support for some additional string port procedures (REFFIXME).
 
 @item (srfi srfi-8)
-Multiple--value handling with @code{receive} (REFFIXME).
+Multiple-value handling with @code{receive} (REFFIXME).
 
 @item (srfi srfi-9)
 Record definition with @code{define-record-type} (REFFIXME).
 
 @item (srfi srfi-10)
-Read--hash extension @code{#,()} (REFFIXME).
+Read hash extension @code{#,()} (REFFIXME).
 
 @item (srfi srfi-11)
-Multiple--value handling with @code{let-values} and @code{let-values*}
+Multiple-value handling with @code{let-values} and @code{let-values*}
 (REFFIXME).
 
 @item (srfi srfi-13)
 String library (REFFIXME).
 
 @item (srfi srfi-14)
-Character--set library (REFFIXME).
+Character-set library (REFFIXME).
 
 @item (srfi srfi-17)
-Getter--with--setter support (REFFIXME).
+Getter-with-setter support (REFFIXME).
 
 @item (ice-9 slib)
 This module contains hooks for using Aubrey Jaffer's portable Scheme

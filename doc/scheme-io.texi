@@ -249,6 +249,7 @@ open.
 Sets the current position of @var{fd/port} to the integer
 @var{offset}, which is interpreted according to the value of
 @var{whence}.
+
 One of the following variables should be supplied for
 @var{whence}:
 @defvar SEEK_SET
@@ -262,6 +263,7 @@ Seek from the end of the file.
 @end defvar
 If @var{fd/port} is a file descriptor, the underlying system
 call is @code{lseek}.  @var{port} may be a string port.
+
 The value returned is the new position in the file.  This means
 that the current position of a port can be obtained using:
 @lisp
@@ -272,6 +274,7 @@ that the current position of a port can be obtained using:
 @deffn primitive ftell fd_port
 Return an integer representing the current position of
 @var{fd/port}, measured from the beginning.  Equivalent to:
+
 @lisp
 (seek port 0 SEEK_CUR)
 @end lisp
@@ -378,6 +381,7 @@ otherwise, leave it in the input stream for the next read.  If
 specified, store data only into the substring of @var{str}
 bounded by @var{start} and @var{end} (which default to the
 beginning and end of the string, respectively).
+
  Return a pair consisting of the delimiter that terminated the
 string and the number of characters read.  If reading stopped
 at the end of file, the delimiter returned is the
@@ -714,6 +718,7 @@ Return a port capable of receiving or delivering characters as
 specified by the @var{modes} string (@pxref{File Ports,
 open-file}).  @var{pv} must be a vector of length 5.  Its
 components are as follows:
+
 @enumerate 0
 @item
 procedure accepting one character for output
@@ -726,14 +731,17 @@ thunk for getting one character
 @item
 thunk for closing port (not by garbage collection)
 @end enumerate
+
 For an output-only port only elements 0, 1, 2, and 4 need be
 procedures.  For an input-only port only elements 3 and 4 need
 be procedures.  Thunks 2 and 4 can instead be @code{#f} if
 there is no useful operation for them to perform.
+
 If thunk 3 returns @code{#f} or an @code{eof-object}
 (@pxref{Input, eof-object?, ,r5rs, The Revised^5 Report on
 Scheme}) it indicates that the port has reached end-of-file.
 For example:
+
 @lisp
 (define stdout (current-output-port))
 (define p (make-soft-port
@@ -744,6 +752,7 @@ For example:
             (lambda () (char-upcase (read-char)))
             (lambda () (display "@@" stdout)))
            "rw"))
+
 (write p p) @result{} #<input-output: soft 8081e20>
 @end lisp
 @end deffn

@@ -521,6 +521,7 @@ result of applying @var{code} to the expression and the
 environment.  The value returned from @var{code} which has been
 passed to @code{procedure->memoizing-macro} replaces the form
 passed to @var{code}.  For example:
+
 @lisp
 (define trace
   (procedure->macro
@@ -537,6 +538,7 @@ result of applying @var{proc} to the expression and the
 environment.  The value returned from @var{proc} which has been
 passed to @code{procedure->memoizing-macro} replaces the form
 passed to @var{proc}.  For example:
+
 @lisp
 (define trace
   (procedure->macro

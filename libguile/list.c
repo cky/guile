@@ -237,7 +237,7 @@ SCM_DEFINE (scm_append, "append", 0, 0, 1,
 SCM_DEFINE (scm_append_x, "append!", 0, 0, 1, 
             (SCM lists),
 	    "A destructive version of @code{append} (@pxref{Pairs and\n"
-	    "Lists,,,r4rs, The Revised^4 Report on Scheme}).  The cdr field\n"
+	    "Lists,,,r5rs, The Revised^5 Report on Scheme}).  The cdr field\n"
 	    "of each list's final pair is changed to point to the head of\n"
 	    "the next list, so no consing is performed.  Return a pointer to\n"
 	    "the mutated list.")
@@ -321,8 +321,8 @@ SCM_DEFINE (scm_reverse, "reverse", 1, 0, 0,
 
 SCM_DEFINE (scm_reverse_x, "reverse!", 1, 1, 0,
             (SCM lst, SCM new_tail),
-	    "A destructive version of @code{reverse} (@pxref{Pairs and Lists,,,r4rs,\n"
-	    "The Revised^4 Report on Scheme}).  The cdr of each cell in @var{lst} is\n"
+	    "A destructive version of @code{reverse} (@pxref{Pairs and Lists,,,r5rs,\n"
+	    "The Revised^5 Report on Scheme}).  The cdr of each cell in @var{lst} is\n"
 	    "modified to point to the previous list element.  Return a pointer to the\n"
 	    "head of the reversed list.\n\n"
 	    "Caveat: because the list is modified in place, the tail of the original\n"
