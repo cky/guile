@@ -1,3 +1,12 @@
+Tue Jan 11 18:24:18 2000  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* guile-doc-snarf.in: Use new $fullfilename for running
+	guile-func-name-check, and put "$fullfilename" and "$filename" in
+	quotes at uses to make sure re-splitting on whitespace does not
+	occur (so filenames w/ embedded whitespace would work okay, though 
+	I sure hope we never have to deal with that! :-) ).  Thanks to
+	Mikael for pointing out the source_dir != build_dir was broken.
+
 Tue Jan 11 17:42:40 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* scm_validate.h: Added SCM_NUM2LONG_DEF macro.  Make
