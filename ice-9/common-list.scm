@@ -54,16 +54,18 @@ in the result list."
 (define-public (intersection l1 l2)
   "Returns a new list that is the intersection of L1 and L2.
 Only elements that occur in both lists will occur in the result list."
-  (cond ((null? l1) l1)
-	((null? l2) l2)
-	((memv (car l1) l2) (cons (car l1) (intersection (cdr l1) l2)))
-	(else (intersection (cdr l1) l2))))
+  (if (null? l2) l2
+      (let loop ((l1 l1) (result '()))
+	(cond ((null? l1) (reverse! result))
+	      ((memv (car l1) l2) (loop (cdr l1) (cons (car l1) result)))
+	      (else (loop (cdr l1) result))))))
 
 (define-public (set-difference l1 l2)
   "Return elements from list L1 that are not in list L2."
-  (cond ((null? l1) l1)
-	((memv (car l1) l2) (set-difference (cdr l1) l2))
-	(else (cons (car l1) (set-difference (cdr l1) l2)))))
+  (let loop ((l1 l1) (result '()))
+    (cond ((null? l1) (reverse! result))
+	  ((memv (car l1) l2) (loop (cdr l1) result))
+	  (else (loop (cdr l1) (cons (car l1) result))))))
 
 (define-public (reduce-init p init l)
   "Same as `reduce' except it implicitly inserts INIT at the start of L."
@@ -137,37 +139,39 @@ if PRED does not apply to any element in L."
 	((pred (car l)) l)
 	(else (member-if pred (cdr l)))))
 
-(define-public (remove-if p l)
-  "Removes all elements from L where (P element) is true.
+(define-public (remove-if pred? l)
+  "Removes all elements from L where (PRED? element) is true.
 Returns everything that's left."
-  (cond ((null? l) '())
-	((p (car l)) (remove-if p (cdr l)))
-	(else (cons (car l) (remove-if p (cdr l))))))
+  (let loop ((l l) (result '()))
+    (cond ((null? l) (reverse! result))
+	  ((pred? (car l)) (loop (cdr l) result))
+	  (else (loop (cdr l) (cons (car l) result))))))
 
-(define-public (remove-if-not p l)
-  "Removes all elements from L where (P element) is #f.
+(define-public (remove-if-not pred? l)
+  "Removes all elements from L where (PRED? element) is #f.
 Returns everything that's left."
-  (cond ((null? l) '())
-	((not (p (car l))) (remove-if-not p (cdr l)))
-	(else (cons (car l) (remove-if-not p (cdr l))))))
+  (let loop ((l l) (result '()))
+    (cond ((null? l) (reverse! result))
+	  ((not (pred? (car l))) (loop (cdr l) result))
+	  (else (loop (cdr l) (cons (car l) result))))))
 
-(define-public (delete-if! pred list)
+(define-public (delete-if! pred l)
   "Destructive version of `remove-if'."
-  (let delete-if ((list list))
-    (cond ((null? list) '())
-	  ((pred (car list)) (delete-if (cdr list)))
+  (let delete-if ((l l))
+    (cond ((null? l) '())
+	  ((pred (car l)) (delete-if (cdr l)))
 	  (else
-	   (set-cdr! list (delete-if (cdr list)))
-	   list)))) 
+	   (set-cdr! l (delete-if (cdr l)))
+	   l)))) 
 
-(define-public (delete-if-not! pred list)
+(define-public (delete-if-not! pred l)
   "Destructive version of `remove-if-not'."
-  (let delete-if-not ((list list))
-    (cond ((null? list) '())
-	  ((not (pred (car list))) (delete-if-not (cdr list)))
+  (let delete-if-not ((l l))
+    (cond ((null? l) '())
+	  ((not (pred (car l))) (delete-if-not (cdr l)))
 	  (else
-	   (set-cdr! list (delete-if-not (cdr list)))
-	   list))))
+	   (set-cdr! l (delete-if-not (cdr l)))
+	   l))))
 
 (define-public (butlast lst n)
   "Return all but the last N elements of LST."

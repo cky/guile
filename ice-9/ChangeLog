@@ -1,3 +1,13 @@
+2000-06-16  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* common-list.scm (intersection, set-difference, remove-if,
+	remove-if-not):  Made tail-recursive.  Thanks to William Webber
+	for the hint.
+
+	(delete-if!, delete-if-not!):  Renamed parameter from `list' to
+	`l' in order to avoid confusion.  Note:  These functions are not
+	tail recursive yet.
+
 2000-06-21  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* boot-9.scm: Turned `the-module', `*top-level-lookup-closure*',

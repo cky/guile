@@ -1,5 +1,9 @@
 2000-06-21  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* tests/common-list.test:  Added.
+
+2000-06-21  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* tests/eval.test:  Added.
 
 2000-06-16  Dirk Herrmann  <D.Herrmann@tu-bs.de>
