@@ -2,7 +2,7 @@
 
 #ifndef GOOPSH
 #define GOOPSH
-/*	Copyright (C) 1998, 1999, 2000 Free Software Foundation, Inc.
+/*	Copyright (C) 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -257,7 +257,8 @@ SCM scm_generic_function_methods (SCM obj);
 SCM scm_method_generic_function (SCM obj); 
 SCM scm_method_specializers (SCM obj); 
 SCM scm_method_procedure (SCM obj); 
-SCM scm_accessor_method_slot_definition (SCM obj); 
+SCM scm_accessor_method_slot_definition (SCM obj);
+SCM scm_sys_pre_expand_closure_x (SCM closure);
 SCM scm_sys_fast_slot_ref (SCM obj, SCM index); 
 SCM scm_sys_fast_slot_set_x (SCM obj, SCM index, SCM value); 
 SCM scm_slot_ref_using_class (SCM cls, SCM obj, SCM slot_name); 
