@@ -128,27 +128,6 @@ SELECT_TYPE rexceptfds;
    when polling.  */
 static struct timeval timeout0;
 
-/* Insert thread t into the ordered queue q.
-   q is ordered after wakeup_time.  Threads which aren't sleeping but
-   waiting for I/O go last into the queue. */
-static void
-coop_timeout_qinsert (coop_q_t *q, coop_t *t)
-{
-  coop_t *pred = &q->t;
-  int sec = t->wakeup_time.tv_sec;
-  int usec = t->wakeup_time.tv_usec;
-  while (pred->next != &q->t
-	 && pred->next->timeoutp
-	 && (pred->next->wakeup_time.tv_sec < sec
-	     || (pred->next->wakeup_time.tv_sec == sec
-		 && pred->next->wakeup_time.tv_usec < usec)))
-    pred = pred->next;
-  t->next = pred->next;
-  pred->next = t;
-  if (t->next == &q->t)
-    q->tail = t;
-}
-
 /* As select, but doesn't destroy the file descriptor sets passed as
    arguments.  The results are stored into the result sets.  */
 static int
