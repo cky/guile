@@ -1,3 +1,39 @@
+2001-05-10  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	Merge from mvo-vcell-clenaup-1-branch.
+	
+	* session.scm (apropos): Do not use `builtin-bindings', always use
+	the module obarray.
+	(apropos-fold): Likewise.
+
+	* optargs.scm (bound?): Removed.  We should not play games with
+	the magical undefined value.
+	(let-o-k-template): Use `#f' instead of the undefined value as
+	the default default for bindings.
+	
+	* boot-9.scm (module-make-local-var!): Do not pass name hint to
+	make-undefined-variable, use `variable-set-name-hint!' instead.
+	(root-module-closure): Removed.
+	(make-root-module): Set the obarray of the module to the
+	`pre-modules-obarray'.  Do not use a lazy binder.
+	(scm-module-closure): Removed.
+	(make-root-module): Set the obarray of the module to the
+	`pre-modules-obarray'.  Do not use a lazy binder.  Set the
+	eval-closure to a `standard-interface-eval-closure'.
+	(module-define!): Do not pass name hint to make-variable, use
+	`variable-set-name-hint!' instead.
+	(make-modules-in, beautify-user-module, resolve-module): Moved
+	towards the beginning of boot-9.scm, across the call to
+	set-current-module that boots the module system.  These
+	definitions need to be visible at the time of the first
+	`set-current-module' call.
+	(try-module-autoload): Define a `#f' before the call to
+	set-current-module.  It is redefined later.
+
+	* debug.scm: Use `module-set!' instead of `variable-set!' to set
+	insert `debug-options' into the-root-module.
+	* format.scm: Likewise, for `format'.
+
 2001-05-15  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* boot-9.scm (error-catching-repl): Call the E
@@ -23,7 +59,7 @@
 
 	* boot-9.scm (resolve-module): Abstraction maintenance: Use
 	`module-public-interface'.
-	(resolve-module): Extend to handle selection and renaming in spec.
+	(resolve-interface): Extend to handle selection and renaming in spec.
 	Arg is now `spec' which can be a simple module name (list of symbols)
 	or a interface spec.
 	(symbol-prefix-proc): New proc.

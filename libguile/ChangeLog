@@ -1,3 +1,169 @@
+2001-05-10  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	Merge from mvo-vcell-clenaup-1-branch.
+	
+	The concept of vcells has been removed from Guile.  With it,
+	explicit obarrays and associated operations are gone.  Use
+	hashtables instead of obarrays.
+	
+	Throughout: use scm_sym2var instead of scm_sym2vcell and treat
+	result as variable instead of vcell.  Glocs no longer point to a
+	vcell but to a variable.  Use scm_c_define instead of
+	scm_sysintern and treat the result as a variable (which it is),
+	not a vcell.
+	
+	* variable.c, variable.h (SCM_VARVCELL, SCM_UDVARIABLEP,
+	SCM_DEFVARIABLEP): Deprecated.
+	(SCM_VARIABLE_REF, SCM_VARIABLE_SET, SCM_VARIABLE_LOC): New.
+	(variable_print): Do not print name of variable.
+	(variable_equalp): Compare values, not vcells.
+	(anonymous_variable_sym): Removed.
+	(make_vcell_variable): Removed.
+	(make_variable): New, as replacement.
+	(scm_make_variable, scm_make_undefined_variable): Do not take name
+	hint parameter.
+	(scm_variable_ref): Check for SCM_UNDEFINED and throw "unbound"
+	error in that case.
+	(scm_builtin_variable): Deprecated.
+
+	* symbols.c, symbols.h (scm_sym2vcell, scm_sym2ovcell_soft,
+	scm_sym2ovcell, scm_intern_obarray_soft, scm_intern_obarray,
+	scm_intern, scm_intern0, scm_sysintern0_no_module_lookup,
+	scm_sysintern, scm_sysintern0, scm_symbol_value0,
+	scm_string_to_obarray_symbol, scm_intern_symbol,
+	scm_unintern_symbol, scm_symbol_binding, scm_symbol_interned,
+	scm_symbol_bound_p, scm_symbol_set_x, scm_gentmp, gentmp_counter):
+	Deprecated and moved to "symbols-deprecated.c".
+	(copy_and_prune_obarray, scm_builtin_bindings): Removed.
+	(scm_init_symbols): Call scm_init_symbols_deprecated.
+	* symbols-deprecated.c: New file.
+	* Makefile.am: Added symbols-deprecated.c and related files in all
+	the right places.
+	
+	* snarf.h (SCM_VCELL, SCM_GLOBAL_VCELL, SCM_VCELL_INIT,
+	SCM_GLOBAL_VCELL_INIT): Deprecated.
+	(SCM_VARIABLE, SCM_GLOBAL_VARIABLE, SCM_VARIABLE_INIT,
+	SCM_GLOBAL_VARIABLE_INIT): New, as replacement.  Changed all uses.
+	
+	* print.c (scm_iprin1): Use scm_module_reverse_lookup instead of
+	SCM_GLOC_SYM.
+
+	* evalext.c, filesys.c, fports.c, gdbint.c, gh_data.c, gsubr.c,
+	hooks.c, load.c, numbers.c, objects.c, ports.c, posix.c, procs.c,
+	ramap.c, random.c, read.c, regex-posix.c, scmsigs.c, script.c,
+	socket.c, srcprop.c, stacks.c, stime.c, struct.c, tag.c, throw.c:
+	Changed according to the `throughout' comments.
+
+	* modules.h, modules.c (scm_module_system_booted_p): Changed type
+	to `int'.
+	(scm_module_type): Removed.
+	(the_root_module): Renamed to the_root_module_var.  Now points to
+	a variable instead of a vcell.  Updated all uses.
+	(scm_the_root_module): Return SCM_BOOL_F when module systems
+	hasn't been booted yet.
+	(SCM_VALIDATE_STRUCT_TYPE): Removed.
+	(scm_post_boot_init_modules): Made static.
+	(scm_set_current_module): Call scm_post_boot_init_modules on first
+	call.
+	(make_modules_in, beautify_user_module_x, resolve_module,
+	try_module_autoload, module_make_local_var_x): Tacked on "_var"
+	suffix.  Now point to variables instead of vcells.  Updated all
+	uses.
+	(scm_module_lookup_closure): Deal with the module being SCM_BOOL_F
+	and return SCM_BOOL_F in that case.
+	(scm_module_transformer): Likewise.
+	(sym_module, scm_lookup_closure_module, scm_env_module): New.
+	(SCM_F_EVAL_CLOSURE_INTERFACE, SCM_EVAL_CLOSURE_INTERFACE_P): New.
+	(scm_eval_closure_lookup): Do not allow new definitions when
+	`interface' flag is set.
+	(scm_standard_interface_eval_closure): New.
+	(scm_pre_modules_obarray, scm_sym2var, scm_module_lookup,
+	scm_lookup, scm_module_define, scm_define, scm_c_module_lookup,
+	scm_c_lookup, scm_c_module_define, scm_c_define,
+	scm_module_reverse_lookup, scm_get_pre_modules_obarray,
+	scm_modules_prehistory): New.
+	(scm_post_boot_init_modules): Use scm_c_define and scm_c_lookup
+	instead of scm_intern0.
+	
+	* macros.c (scm_make_synt): Return SCM_UNSPECIFIED instead of the
+	symbol.
+
+	* keywords.c (s_scm_make_keyword_from_dash_symbol): Use a regular
+	hashtable operations to maintain the keywords, not obarray ones.
+
+	* init.c (scm_load_startup_files): Do not call
+	scm_post_boot_init_modules.  This is done by
+	scm_set_current_module now.
+	(scm_init_guile_1): Call scm_modules_prehistory.  Call
+	scm_init_variable early on.
+
+	* goops.c (s_scm_sys_goops_loaded): Get
+	var_compute_applicable_methods from scm_sym2var, not from a direct
+	invocation of scm_goops_lookup_closure.
+
+	* gh_funcs.c (gh_define): Return SCM_UNSPECIFIED instead of vcell.
+
+	* gc.c: Added simple debugging hack to mark phase of GC: When
+	activated, do not tail-call scm_gc_mark.  This gives nice
+	backtraces.
+	(scm_unhash_name): Removed.
+
+	* feature.c (features): Renamed to features_var.  Now points to a
+	variable instead of a vcell.  Updated all uses.
+
+	* eval.h (SCM_TOP_LEVEL_LOOKUP_CLOSURE): Use
+	`scm_current_module_lookup_closure' which will do the right thing
+	when the module system hasn't been booted yet.
+	(SCM_GLOC_SYM): Removed.
+	(SCM_GLOC_VAR, SCM_GLOC_SET_VAL): New.
+	(SCM_GLOC_VAL, SCM_GLOC_LOC): Reimplemented in terms of variables.
+	
+	* eval.c (scm_lookupcar, scm_lookupcar1): Deal with variables
+	instead of with vcells.  Do not overwrite `var' with the result of
+	the lookup, use the new `real_var' instead.  Remove `var2' in
+	exchange (which was only used with threads).
+	(sym_three_question_marks): New.
+	(scm_unmemocar): Use `scm_module_reverse_lookup' instead of
+	`SCM_GLOC_SYM'.
+	(scm_lisp_nil, scm_lisp_t): Directly define as symbols.
+	(scm_m_atfop): Expect the function definition to be a variable
+	instead of a vcell.
+	(scm_macroexp): Do not use `unmemocar', explicitely remember the
+	symbol instead.
+	(scm_unmemocopy): Removed thoughts about anti-macro interface.
+	(scm_eval_args): Use more explicit code in the gloc branch of the
+	atrocious struct ambiguity test.  The optimizer will sort this
+	out.
+	(scm_deval_args): Likewise.
+	(SCM_CEVAL): Likewise.  Also, do not use unmemocar, explicitely
+	remember the symbol instead.  Added some comments where
+	scm_tc3_cons_gloc really exclusively refers to structs.
+	(scm_init_eval): Use scm_define to initialize "nil" and "t" to
+	scm_lisp_nil and scm_lisp_t, respectively.  Use scm_define instead
+	of scm_sysintern in general.
+
+	* dynwind.c (scm_swap_bindings): Use SCM_GLOC_SET_VAL instead of
+	explicit magic.
+
+	* debug.c (s_scm_make_gloc): Only allow proper variables, no
+	pairs.  Put the variable directly in the gloc.
+	(s_scm_gloc_p): Use `scm_tc3_cons_gloc' instead of the magic `1'.
+	(scm_init_debug): Use scm_c_define instead scm_sysintern.
+
+	* cpp_cnvt.awk: Emit "scm_c_define" instead of "scm_sysintern".
+
+	* backtrace.h, backtrace.c (scm_the_last_stack_fluid): Renamed to
+	scm_the_last_stack_fluid_var.  It now points to a variable instead
+	of a vcell.  Updated all uses.
+	(scm_has_shown_backtrace_hint_p_var): Now points to a variable
+	instead of a vcell.  Updated all uses.
+
+	* _scm.h: Include "variables.h" and "modules.h" since almost
+	everybody needs them now.
+
+	* root.h (scm_symhash, scm_symhash_vars): Removed.
+	* gc.c (scm_init_storage): Do not initialize them.
+	
 2001-05-15  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* eval.c (scm_init_eval):  Initialize scm_undefineds and

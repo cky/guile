@@ -1,3 +1,10 @@
+2001-05-10  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* readline.c (completion_function): Use SCM_VARIABLE_REF to access
+	scm_readline_completion_function_var.
+	(scm_init_readline): Use scm_c_define instead of scm_sysintern to
+	create scm_readline_completion_function_var.
+
 2001-04-09  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* readline.c (scm_clear_history): New function.

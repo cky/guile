@@ -22,6 +22,10 @@ After signal handling and threading have been fixed:
 
 === In release 1.8.0:
 
+- remove vcell and obarray support.
+  Remove all code bracketed by `#if SCM_ENABLE_VCELLS'.
+  Also remove `variable-set-name-hint' completely.
+
 - remove compatability module (ice-9 and-let*).  It
   has been replaced by (ice-9 and-let-star) and/or (srfi srfi-2).
 

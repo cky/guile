@@ -1,3 +1,9 @@
+2001-05-10  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* goops/compile.scm (compile-method): Insert comment that
+	`procedure-source' can not be guaranteed to be reliable or
+	efficient.
+
 2001-05-05  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* goops.scm (initialize-object-procedure): Use

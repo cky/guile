@@ -660,6 +660,12 @@ If you have old code using the old syntax, import
 
   (use-modules (oop goops old-define-method) (oop goops))
 
+** Deprecated function: builtin-variable
+   Removed function: builtin-bindings
+
+There is no longer a distinction between builtin or other variables.
+Use module system operations for all variables.
+
 * Changes to the gh_ interface
 
 * Changes to the scm_ interface
@@ -879,6 +885,26 @@ Use scm_object_to_string instead.
 
 Use scm_wrong_type_arg, or another appropriate error signalling function
 instead.
+
+** Explicit support for obarrays has been deprecated.
+
+Use `scm_str2symbol' and the generic hashtable functions instead.
+
+** The concept of `vcells' has been deprecated.
+
+The data type `variable' is now used exclusively.  `Vcells' have been
+a low-level concept so you are likely not affected by this change.
+
+*** Deprecated functions: scm_sym2vcell, scm_sysintern,
+    scm_sysintern0, scm_symbol_value0, scm_intern, scm_intern0.
+
+Use scm_c_define or scm_c_lookup instead, as appropriate.
+
+*** New functions: scm_c_module_lookup, scm_c_lookup,
+    scm_c_module_define, scm_c_define, scm_module_lookup, scm_lookup,
+    scm_module_define, scm_define.
+
+These functions work with variables instead of with vcells.
 
 
 Changes since Guile 1.3.4:
