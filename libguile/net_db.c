@@ -1,5 +1,5 @@
 /* "net_db.c" network database support
- * Copyright (C) 1995, 1996, 1997, 1998, 1999 Free Software Foundation, Inc.
+ * Copyright (C) 1995-2000 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -175,7 +175,7 @@ with the local-address-within-network number @var{lna}.
   unsigned long netnum;
   unsigned long lnanum;
 
-#ifdef 0 /* GJB:FIXME:: */
+#if 0 /* GJB:FIXME:: */
   SCM_VALIDATE_INUM_COPY (1,net,netnum);
   SCM_VALIDATE_INUM_COPY (2,lna,lnanum);
 #else
