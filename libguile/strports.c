@@ -273,7 +273,11 @@ scm_eval_string (string)
   while (!SCM_EOF_OBJECT_P (form = scm_read (port)))
     ans = scm_eval_x (form);
 
-  scm_close_port (port);
+  /* Don't close the port here; if we re-enter this function via a
+     continuation, then the next time we enter it, we'll get an error.
+     It's a string port anyway, so there's no advantage to closing it
+     early.  */
+
   return ans;
 }
 
