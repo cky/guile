@@ -1,3 +1,8 @@
+2003-03-04  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* session.scm (apropos): Use hash-for-each instead of
+	array-for-each.
+
 2003-02-19  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* boot-9.scm (make-module): Changed default size from 1021 to 31

@@ -1,4 +1,4 @@
-;;;; 	Copyright (C) 1997, 2000, 2001 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1997, 2000, 2001, 2003 Free Software Foundation, Inc.
 ;;;;
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -276,30 +276,25 @@ where OPTIONSET is one of debug, read, eval, print
 	   (let* ((name (module-name module))
 		  (obarray (module-obarray module)))
 	     ;; XXX - should use hash-fold here
-	     (array-for-each
-	      (lambda (oblist)
-		(for-each
-		 (lambda (x)
-		   (cond ((regexp-exec match (symbol->string (car x)))
-			  (display name)
-			  (display ": ")
-			  (display (car x))
-			  (cond ((variable-bound? (cdr x))
-				 (let ((val (variable-ref (cdr x))))
-				   (cond ((or (procedure? val) value)
-					  (display separator)
-					  (display val)))))
-				(else
-				 (display separator)
-				 (display "(unbound)")))
-			  (if (and shadow
-				   (not (eq? (module-ref module
-							 (car x))
-					     (module-ref (current-module)
-							 (car x)))))
-			      (display " shadowed"))
-			  (newline))))
-		 oblist))
+	     (hash-for-each
+	      (lambda (symbol variable)
+		(cond ((regexp-exec match (symbol->string symbol))
+		       (display name)
+		       (display ": ")
+		       (display symbol)
+		       (cond ((variable-bound? variable)
+			      (let ((val (variable-ref variable)))
+				(cond ((or (procedure? val) value)
+				       (display separator)
+				       (display val)))))
+			     (else
+			      (display separator)
+			      (display "(unbound)")))
+		       (if (and shadow
+				(not (eq? (module-ref module symbol)
+					  (module-ref (current-module) symbol))))
+			   (display " shadowed"))
+		       (newline))))
 	      obarray)))
 	 modules))))
 
