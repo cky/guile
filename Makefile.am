@@ -21,7 +21,7 @@
 
 
 SUBDIRS = oop qt libltdl libguile ice-9 guile-config guile-readline \
-	  scripts srfi doc examples
+	  scripts srfi doc examples test-suite
 
 bin_SCRIPTS = guile-tools
 
@@ -30,7 +30,7 @@ include_HEADERS = libguile.h
 # automake sometimes forgets to distribute acconfig.h,
 # apparently depending on the phase of the moon.
 EXTRA_DIST = qthreads.m4 HACKING GUILE-VERSION ANON-CVS SNAPSHOTS TODO \
-	     test-suite $(ACLOCAL) acconfig.h
+	     $(ACLOCAL) acconfig.h
 
 TESTS = check-guile
 
