@@ -1,3 +1,7 @@
+2001-03-06  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* guile-config.in (build-link): Reverted the previous patch.
+
 2001-03-05  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* guile-config.in (build-link): Fixed duplicate binding bug
