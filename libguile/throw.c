@@ -58,8 +58,7 @@
 #include "throw.h"
 
 
-/* {Catch and Throw} 
- */
+/* the jump buffer data structure */
 static int scm_tc16_jmpbuffer;
 
 #define SCM_JMPBUFP(O) (SCM_TYP16(O) == scm_tc16_jmpbuffer)
@@ -131,6 +130,9 @@ make_jmpbuf ()
   SCM_REALLOW_INTS;
   return answer;
 }
+
+
+/* scm_internal_catch (the guts of catch), and functions to use with it */
 
 struct jmp_buf_and_retval	/* use only on the stack, in scm_catch */
 {
@@ -243,9 +245,11 @@ scm_internal_catch (tag, body, body_data, handler, handler_data)
    want the body to be like Scheme's `catch' --- a thunk, or a
    function of one argument if the tag is #f.
 
-   DATA contains the Scheme procedure to invoke.  If the tag being
-   caught is #f, then we pass JMPBUF to the body procedure; otherwise,
-   it gets no arguments.  */
+   BODY_DATA is a pointer to a scm_body_thunk_data structure, which
+   contains the Scheme procedure to invoke as the body, and the tag
+   we're catching.  If the tag is #f, then we pass JMPBUF (created by
+   scm_internal_catch) to the body procedure; otherwise, the body gets
+   no arguments.  */
 
 SCM
 scm_body_thunk (body_data, jmpbuf)
@@ -261,11 +265,16 @@ scm_body_thunk (body_data, jmpbuf)
 }
 
 
-/* If the user does a throw to this catch, this function runs a
+/* This is a handler function you can pass to scm_internal_catch if
+   you want the handler to act like Scheme's catch --- call a
+   procedure with the tag and the throw arguments.  
+
+   If the user does a throw to this catch, this function runs a
    handler procedure written in Scheme.  HANDLER_DATA is a pointer to
    an SCM variable holding the Scheme procedure object to invoke.  It
-   ought to be a pointer to an automatic, or the procedure object
-   should be otherwise protected from GC.  */
+   ought to be a pointer to an automatic variable (i.e., one living on
+   the stack), or the procedure object should be otherwise protected
+   from GC.  */
 SCM
 scm_handle_by_proc (handler_data, tag, throw_args)
      void *handler_data;
@@ -278,33 +287,81 @@ scm_handle_by_proc (handler_data, tag, throw_args)
 }
 
 
-SCM_PROC(s_catch, "catch", 3, 0, 0, scm_catch);
+/* This is a handler function to use if you want scheme to print a
+   message and die.  Useful for dealing with throws to uncaught keys
+   at the top level.
+
+   At boot time, we establish a catch-all that uses this as its handler.
+   1) If the user wants something different, they can use (catch #t
+   ...) to do what they like.
+   2) Outside the context of a read-eval-print loop, there isn't
+   anything else good to do; libguile should not assume the existence
+   of a read-eval-print loop.
+   3) Given that we shouldn't do anything complex, it's much more
+   robust to do it in C code.
+
+   HANDLER_DATA, if non-zero, is assumed to be a char * pointing to a
+   message header to print; if zero, we use "guile" instead.  That
+   text is followed by a colon, then the message described by ARGS.  */
+
 SCM
-scm_catch (tag, thunk, handler)
+scm_handle_by_message (handler_data, tag, args)
+     void *handler_data;
      SCM tag;
-     SCM thunk;
-     SCM handler;
+     SCM args;
 {
-  struct scm_body_thunk_data c;
+  char *prog_name = (char *) handler_data;
+  SCM p = scm_def_errp;
 
-  SCM_ASSERT ((tag == SCM_BOOL_F)
-	      || (SCM_NIMP(tag) && SCM_SYMBOLP(tag))
-	      || (tag == SCM_BOOL_T),
-	      tag, SCM_ARG1, s_catch);
+  if (SCM_NFALSEP (scm_eq_p (tag, SCM_CAR (scm_intern0 ("quit")))))
+    exit (scm_exit_status (args));
 
-  c.tag = tag;
-  c.body_proc = thunk;
+  if (! prog_name)
+    prog_name = "guile";
 
-  /* scm_internal_catch takes care of all the mechanics of setting up
-     a catch tag; we tell it to call scm_body_thunk to run the body,
-     and scm_handle_by_proc to deal with any throws to this catch.
-     The former receives a pointer to c, telling it how to behave.
-     The latter receives a pointer to HANDLER, so it knows who to call.  */
-  return scm_internal_catch (tag,
-			     scm_body_thunk, &c, 
-			     scm_handle_by_proc, &handler);
+  scm_gen_puts (scm_regular_string, prog_name, p);
+  scm_gen_puts (scm_regular_string, ": ", p);
+
+  if (scm_ilength (args) >= 3)
+    {
+      SCM message = SCM_CADR (args);
+      SCM parts = SCM_CADDR (args);
+
+      scm_display_error_message (message, parts, p);
+    }
+  else
+    {
+      scm_gen_puts (scm_regular_string, "uncaught throw to ", p);
+      scm_prin1 (tag, p, 0);
+      scm_gen_puts (scm_regular_string, ": ", p);
+      scm_prin1 (args, p, 1);
+      scm_gen_putc ('\n', p);
+    }
+
+  exit (2);
 }
 
+
+/* Derive the an exit status from the arguments to (quit ...).  */
+int
+scm_exit_status (args)
+  SCM args;
+{
+  if (SCM_NNULLP (args))
+    {
+      SCM cqa = SCM_CAR (args);
+      
+      if (SCM_INUMP (cqa))
+	return (SCM_INUM (cqa));
+      else if (SCM_FALSEP (cqa))
+	return 1;
+    }
+  return 0;
+}
+	
+
+
+/* scm_internal_lazy_catch (the guts of lazy catching), and friends */
 
 /* The smob tag for lazy_catch smobs.  */
 static long tc16_lazy_catch;
@@ -398,6 +455,37 @@ scm_internal_lazy_catch (tag, body, body_data, handler, handler_data)
 }
 
 
+
+/* the Scheme-visible CATCH and LAZY-CATCH functions */
+
+SCM_PROC(s_catch, "catch", 3, 0, 0, scm_catch);
+SCM
+scm_catch (tag, thunk, handler)
+     SCM tag;
+     SCM thunk;
+     SCM handler;
+{
+  struct scm_body_thunk_data c;
+
+  SCM_ASSERT ((tag == SCM_BOOL_F)
+	      || (SCM_NIMP(tag) && SCM_SYMBOLP(tag))
+	      || (tag == SCM_BOOL_T),
+	      tag, SCM_ARG1, s_catch);
+
+  c.tag = tag;
+  c.body_proc = thunk;
+
+  /* scm_internal_catch takes care of all the mechanics of setting up
+     a catch tag; we tell it to call scm_body_thunk to run the body,
+     and scm_handle_by_proc to deal with any throws to this catch.
+     The former receives a pointer to c, telling it how to behave.
+     The latter receives a pointer to HANDLER, so it knows who to call.  */
+  return scm_internal_catch (tag,
+			     scm_body_thunk, &c, 
+			     scm_handle_by_proc, &handler);
+}
+
+
 SCM_PROC(s_lazy_catch, "lazy-catch", 3, 0, 0, scm_lazy_catch);
 SCM
 scm_lazy_catch (tag, thunk, handler)
@@ -426,74 +514,8 @@ scm_lazy_catch (tag, thunk, handler)
 }
 
 
-/* The user has thrown to an uncaught key --- print a message and die.
-   At boot time, we establish a catch-all that uses this as its handler.
-   1) If the user wants something different, they can use (catch #t
-   ...) to do what they like.
-   2) Outside the context of a read-eval-print loop, there isn't
-   anything else good to do; libguile should not assume the existence
-   of a read-eval-print loop.
-   3) Given that we shouldn't do anything complex, it's much more
-   robust to do it in C code.
-
-   HANDLER_DATA, if non-zero, is assumed to be a char * pointing to a
-   message header to print; if zero, we use "guile" instead.  That
-   text is followed by a colon, then the message described by ARGS.  */
-
-SCM
-scm_handle_by_message (handler_data, tag, args)
-     void *handler_data;
-     SCM tag;
-     SCM args;
-{
-  char *prog_name = (char *) handler_data;
-  SCM p = scm_def_errp;
-
-  if (SCM_NFALSEP (scm_eq_p (tag, SCM_CAR (scm_intern0 ("quit")))))
-    exit (scm_exit_status (args));
-
-  if (! prog_name)
-    prog_name = "guile";
-
-  scm_gen_puts (scm_regular_string, prog_name, p);
-  scm_gen_puts (scm_regular_string, ": ", p);
-
-  if (scm_ilength (args) >= 3)
-    {
-      SCM message = SCM_CADR (args);
-      SCM parts = SCM_CADDR (args);
-
-      scm_display_error_message (message, parts, p);
-    }
-  else
-    {
-      scm_gen_puts (scm_regular_string, "uncaught throw to ", p);
-      scm_prin1 (tag, p, 0);
-      scm_gen_puts (scm_regular_string, ": ", p);
-      scm_prin1 (args, p, 1);
-      scm_gen_putc ('\n', p);
-    }
-
-  exit (2);
-}
-
-/* Derive the an exit status from the arguments to (quit ...).  */
-int
-scm_exit_status (args)
-  SCM args;
-{
-  if (SCM_NNULLP (args))
-    {
-      SCM cqa = SCM_CAR (args);
-      
-      if (SCM_INUMP (cqa))
-	return (SCM_INUM (cqa));
-      else if (SCM_FALSEP (cqa))
-	return 1;
-    }
-  return 0;
-}
-	
+
+/* throwing */
 
 SCM_PROC(s_throw, "throw", 1, 0, 1, scm_throw);
 SCM
