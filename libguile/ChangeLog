@@ -1,3 +1,12 @@
+2000-05-17  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* __scm.h:  Added SCM_DEBUG as default debug option. (Thanks to
+	Keisuke Nishida for the suggestion.)  Added debug option
+	SCM_DEBUG_REST_ARGUMENTS.
+
+	* eval.c (scm_map, scm_for_each):  Make sure all lists have the
+	same length.  Also, removed redundant parameter checks.
+
 2000-05-16  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* Makefile.am:  Let 'make clean' remove *.x and *.doc files.
@@ -26,7 +35,7 @@
 
         * stime.c (scm_strftime): don't reset TZ if zone is an empty
 	string.  append a "0" to the zone for TZ.
-	
+
 2000-05-15  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* numbers.c (scm_logbit_p, scm_bit_extract):  Reordered dispatch

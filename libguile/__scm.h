@@ -152,18 +152,35 @@
  */
 
 
+/* The value of SCM_DEBUG determines the default for most of the not yet
+ * defined debugging options.  This allows, for example, to enable most of the
+ * debugging options by simply defining SCM_DEBUG as 1.
+ */
+#ifndef SCM_DEBUG
+#define SCM_DEBUG 0
+#endif
+
 /* If SCM_DEBUG_DEPRECATED is set to 1, deprecated code is not compiled.  This
  * can be used by developers to get rid of references to deprecated code.
  */
 #ifndef SCM_DEBUG_DEPRECATED
-#define SCM_DEBUG_DEPRECATED 0
+#define SCM_DEBUG_DEPRECATED SCM_DEBUG
+#endif
+
+/* If SCM_DEBUG_REST_ARGUMENTS is set to 1, functions that take rest arguments
+ * will check whether the rest arguments actually form a proper list.
+ * Otherwise it is assumed that the rest arguments form a proper list and only
+ * the parameters themselves, which are given as rest arguments, are checked.
+ */
+#ifndef SCM_DEBUG_REST_ARGUMENTS
+#define SCM_DEBUG_REST_ARGUMENTS SCM_DEBUG
 #endif
 
 /* Use this for _compile time_ type checking only, since the compiled result
  * will be quite inefficient.  The right way to make use of this option is to
  * do a 'make clean; make CFLAGS=-DSCM_DEBUG_TYPING_STRICTNESS=1', fix your
  * errors, and then do 'make clean; make'.
-*/
+ */
 #ifndef SCM_DEBUG_TYPING_STRICTNESS
 #define SCM_DEBUG_TYPING_STRICTNESS 0
 #endif

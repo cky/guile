@@ -3581,8 +3581,6 @@ scm_map (SCM proc, SCM arg1, SCM args)
   SCM *pres = &res;
   SCM *ve = &args;		/* Keep args from being optimized away. */
 
-  if (SCM_NULLP (arg1))
-    return res;
   len = scm_ilength (arg1);
   SCM_GASSERTn (len >= 0,
 		g_map, scm_cons2 (proc, arg1, args), SCM_ARG2, s_map);
@@ -3590,7 +3588,6 @@ scm_map (SCM proc, SCM arg1, SCM args)
     {
       while (SCM_NIMP (arg1))
 	{
-	  SCM_GASSERT2 (SCM_CONSP (arg1), g_map, proc, arg1, SCM_ARG2, s_map);
 	  *pres = scm_cons (scm_apply (proc, SCM_CAR (arg1), scm_listofnull),
 			    SCM_EOL);
 	  pres = SCM_CDRLOC (*pres);
@@ -3626,8 +3623,6 @@ scm_for_each (SCM proc, SCM arg1, SCM args)
 {
   SCM *ve = &args;		/* Keep args from being optimized away. */
   long i, len;
-  if SCM_NULLP (arg1)
-    return SCM_UNSPECIFIED;
   len = scm_ilength (arg1);
   SCM_GASSERTn (len >= 0, g_for_each, scm_cons2 (proc, arg1, args),
 		SCM_ARG2, s_for_each);
@@ -3635,8 +3630,6 @@ scm_for_each (SCM proc, SCM arg1, SCM args)
     {
       while SCM_NIMP (arg1)
 	{
-	  SCM_GASSERT2 (SCM_CONSP (arg1),
-			g_for_each, proc, arg1, SCM_ARG2, s_for_each);
 	  scm_apply (proc, SCM_CAR (arg1), scm_listofnull);
 	  arg1 = SCM_CDR (arg1);
 	}
