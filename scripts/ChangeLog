@@ -1,3 +1,9 @@
+2001-05-14  Thien-Thi Nguyen  <ttn@revel.glug.org>
+
+	* PROGRAM, display-commentary, doc-snarf, generate-autoload,
+	punify, read-scheme-source, use2dot: Move author tag outside
+	commentary; nfc.
+
 2001-05-08  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
 	* read-scheme-source: New file
