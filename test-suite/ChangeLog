@@ -1,5 +1,7 @@
 2005-03-18  Kevin Ryde  <user42@zip.com.au>
 
+	* tests/srfi-1.test (filter-map): More tests.
+
 	* tests/srfi-17.test: A few more tests from the 1.6 branch.
 
 2005-03-16  Kevin Ryde  <user42@zip.com.au>

@@ -1,3 +1,8 @@
+2005-03-18  Kevin Ryde  <user42@zip.com.au>
+
+	* arbiters.c (FETCH_STORE) [generic C]: Should be
+	scm_i_scm_pthread_mutex_lock/unlock now.  Reported by Ludovic Courtès.
+
 2005-03-13  Kevin Ryde  <user42@zip.com.au>
 
 	* numbers.c, numbers.h (scm_i_clonebig): Remove static, so can use in
