@@ -60,6 +60,11 @@ int (*scm_i_plugin_cond_timedwait) (scm_t_cond *,
 				    scm_t_mutex *,
 				    const struct timespec *);
 
+#ifdef SCM_DEBUG_THREADS
+#define FAST_MUTEX 1
+#define REC_MUTEX 2
+#endif
+
 typedef struct rec_mutex {
 #ifdef SCM_DEBUG_THREADS
   int kind;
