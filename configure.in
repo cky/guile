@@ -52,11 +52,8 @@ AC_TYPE_GETGROUPS
 AC_TYPE_SIGNAL
 AC_TYPE_MODE_T
 
-AC_CHECK_LIB(rx, main)
-
-# Checks for dynamic linking
-
 AC_CHECK_LIB(m, main)
+AC_CHECK_LIB(rx, main)
 AC_CHECK_FUNC(gethostbyname)
 if test $ac_cv_func_gethostbyname = no; then
     AC_CHECK_LIB(nsl, gethostbyname)
@@ -65,6 +62,8 @@ AC_CHECK_FUNC(connect)
 if test $ac_cv_func_connect = no; then
     AC_CHECK_LIB(socket, connect)
 fi
+
+# Checks for dynamic linking
 
 if test "$enable_dynamic_linking" = "yes"; then
 
