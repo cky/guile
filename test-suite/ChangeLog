@@ -1,3 +1,17 @@
+2004-01-07  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/numbers.test (<): Add tests inum/bignum/flonum/frac with frac.
+
+	* tests/q.test: New file.
+	(q-pop!): Exercise this, in particular the "not/null?" bug reported by
+	Richard Todd.
+	* Makefile.am (SCM_TESTS): Add q.test.
+
+	* tests/unif.test: New file.
+	(uniform-array-set1!): Exercise this, in particular previous segv on
+	improper arg list.
+	* Makefile.am (SCM_TESTS): Add unif.test.
+
 2004-01-06  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* standalone/test-unwind.c (close_port, delete_file, check_ports):
