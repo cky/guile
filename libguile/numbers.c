@@ -167,10 +167,70 @@ scm_i_dbl2big (double d)
   return z;
 }
 
-SCM_C_INLINE_KEYWORD double
+/* scm_i_big2dbl() rounds to the closest representable double, in accordance
+   with R5RS exact->inexact.
+
+   The approach is to use mpz_get_d to pick out the high DBL_MANT_DIG bits
+   (ie. it truncates towards zero), then adjust to get the closest double by
+   examining the next lower bit and adding 1 if necessary.
+
+   Note that bignums exactly half way between representable doubles are
+   rounded to the next higher absolute value (ie. away from zero).  This
+   seems like an adequate interpretation of R5RS "numerically closest", and
+   it's easier and faster than a full "nearest-even" style.
+
+   The bit test is done on the absolute value of the mpz_t, which means we
+   must use mpz_getlimbn.  mpz_tstbit is not right, it treats negatives as
+   twos complement.
+
+   Prior to GMP 4.2, the rounding done by mpz_get_d was unspecified.  It
+   happened to follow the hardware rounding mode, but on the absolute value
+   of its operand.  This is not what we want, so we put the high
+   DBL_MANT_DIG bits into a temporary.  This extra init/clear is a slowdown,
+   but doesn't matter too much since it's only for older GMP.  */
+
+double
 scm_i_big2dbl (SCM b)
 {
-  double result = mpz_get_d (SCM_I_BIG_MPZ (b));
+  double result;
+  size_t bits;
+
+  bits = mpz_sizeinbase (SCM_I_BIG_MPZ (b), 2);
+
+#if __GNU_MP_VERSION < 4                                        \
+  || (__GNU_MP_VERSION == 4 && __GNU_MP_VERSION_MINOR < 2)
+  {
+    /* GMP prior to 4.2, force truncate towards zero */
+    mpz_t  tmp;
+    if (bits > DBL_MANT_DIG)
+      {
+        size_t  shift = bits - DBL_MANT_DIG;
+        mpz_init2 (tmp, DBL_MANT_DIG);
+        mpz_tdiv_q_2exp (tmp, SCM_I_BIG_MPZ (b), shift);
+        result = ldexp (mpz_get_d (tmp), shift);
+        mpz_clear (tmp);
+      }
+    else
+      {
+        result = mpz_get_d (SCM_I_BIG_MPZ (b));
+      }
+  }
+#else
+  /* GMP 4.2 and up */
+  result = mpz_get_d (SCM_I_BIG_MPZ (b));
+#endif
+
+  if (bits > DBL_MANT_DIG)
+    {
+      unsigned long  pos = bits - DBL_MANT_DIG - 1;
+      /* test bit number "pos" in absolute value */
+      if (mpz_getlimbn (SCM_I_BIG_MPZ (b), pos / GMP_NUMB_BITS)
+          & ((mp_limb_t) 1 << (pos % GMP_NUMB_BITS)))
+        {
+          result += ldexp ((double) mpz_sgn (SCM_I_BIG_MPZ (b)), pos + 1);
+        }
+    }
+
   scm_remember_upto_here_1 (b);
   return result;
 }
