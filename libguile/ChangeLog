@@ -1,3 +1,8 @@
+Mon Dec 13 17:23:22 1999  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* strings.c: Fixed mistaken default value in
+	scm_make_shared_substring; thanks Eric Moore!
+
 Mon Dec 13 16:29:13 1999  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* guile-doc-snarf.awk: Use sub instead of gsub in ^ anchored
