@@ -60,6 +60,11 @@ Fri Oct 18 01:11:56 1996  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 	aren't created with zero length, but should such a strange
 	creature suddenly turn up...
 
+Wed Oct 16 11:08:41 1996  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* hashtab.h (scm_hashx_remove_x): Renamed `delete' parameter to
+ 	`del', for the sake of C++ compilers.  (Patch applied by JimB.)
+
 Tue Oct 15 17:06:13 1996  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* variable.c (scm_make_variable): Make the name hint optional, as

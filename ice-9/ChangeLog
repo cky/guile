@@ -1,3 +1,7 @@
+Mon Oct 21 18:52:36 1996  Jim Blandy  <jimb@totoro.cyclic.com>
+
+	* boot-9.scm: Formatting tweaks.
+
 Fri Oct 18 01:03:08 1996  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* boot-9.scm (handle-system-error): Added hooks before-error-hook,
