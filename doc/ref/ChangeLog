@@ -1,3 +1,7 @@
+2004-09-16  Kevin Ryde  <user42@zip.com.au>
+
+	* api-utility.texi (Equality): Revise for clarity.
+
 2004-09-08  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* api-data.texi (integer-expt): Updated from docstring.
