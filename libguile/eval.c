@@ -475,16 +475,16 @@ scm_m_if (SCM xorig, SCM env SCM_UNUSED)
 
 
 /* Will go into the RnRS module when Guile is factorized.
-SCM_SYNTAX (scm_s_set_x,"set!", scm_makmmacro, scm_m_set_x); */
-const char scm_s_set_x[] = "set!";
-SCM_GLOBAL_SYMBOL (scm_sym_set_x, scm_s_set_x);
+SCM_SYNTAX (s_set_x, "set!", scm_makmmacro, scm_m_set_x); */
+static const char s_set_x[] = "set!";
+SCM_GLOBAL_SYMBOL (scm_sym_set_x, s_set_x);
 
 SCM
 scm_m_set_x (SCM xorig, SCM env SCM_UNUSED)
 {
   SCM x = SCM_CDR (xorig);
-  SCM_ASSYNT (scm_ilength (x) == 2, scm_s_expression, scm_s_set_x);
-  SCM_ASSYNT (SCM_SYMBOLP (SCM_CAR (x)), scm_s_variable, scm_s_set_x);
+  SCM_ASSYNT (scm_ilength (x) == 2, scm_s_expression, s_set_x);
+  SCM_ASSYNT (SCM_SYMBOLP (SCM_CAR (x)), scm_s_variable, s_set_x);
   return scm_cons (SCM_IM_SET_X, x);
 }
 
@@ -791,6 +791,24 @@ scm_m_delay (SCM xorig, SCM env SCM_UNUSED)
 {
   SCM_ASSYNT (scm_ilength (xorig) == 2, scm_s_expression, s_delay);
   return scm_cons2 (SCM_IM_DELAY, SCM_EOL, SCM_CDR (xorig));
+}
+
+
+SCM_SYNTAX (s_gset_x, "set!", scm_makmmacro, scm_m_generalized_set_x);
+SCM_SYMBOL (scm_sym_setter, "setter");
+
+SCM 
+scm_m_generalized_set_x (SCM xorig, SCM env SCM_UNUSED)
+{
+  SCM x = SCM_CDR (xorig);
+  SCM_ASSYNT (2 == scm_ilength (x), scm_s_expression, s_set_x);
+  if (SCM_SYMBOLP (SCM_CAR (x)))
+    return scm_cons (SCM_IM_SET_X, x);
+  else if (SCM_CONSP (SCM_CAR (x)))
+    return scm_cons (scm_list_2 (scm_sym_setter, SCM_CAAR (x)),
+		     scm_append (scm_list_2 (SCM_CDAR (x), SCM_CDR (x))));
+  else
+    scm_misc_error (s_set_x, scm_s_variable, SCM_EOL);
 }
 
 

@@ -1,5 +1,20 @@
 2003-04-20  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* eval.c, eval.h, evalext.c, evalext.h (scm_sym_setter,
+	scm_m_generalized_set_x, scm_init_evalext): Move the declaration
+	and definition of the memoizer for the generalized set! macro from
+	evalext.[ch] to eval.[ch].  Use the SCM_SYNTAX snarfer macro to
+	define the macro object.
+
+	* eval.c, eval.h (s_set_x, scm_s_set_x, scm_m_set_x,
+	scm_m_generalized_set_x): Since now scm_s_set_x is only used in
+	eval.c, it is made static and renamed to s_set_x.
+
+	* evalext.c (scm_defined_p, scm_m_undefine): Prefer !SCM_<foo>
+	over SCM_N<foo>.
+
+2003-04-20  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* eval.c, root.h (scm_undefineds, SCM_NUM_PROTECTS, undefineds,
 	scm_init_eval): Made scm_undefineds static in eval.c, renamed it
 	to undefineds and registered the object as a permanent object.
@@ -10,7 +25,7 @@
 
 2003-04-20  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
-	* eval.c (SCM_BIT8, SCM_BIT8, unmemocopy, SCM_CEVAL): Renamed
+	* eval.c (SCM_BIT7, SCM_BIT8, unmemocopy, SCM_CEVAL): Renamed
 	file-local macro SCM_BIT8 to SCM_BIT7, which is more appropriate.
 
 2003-04-20  Dirk Herrmann  <D.Herrmann@tu-bs.de>

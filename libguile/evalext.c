@@ -1,4 +1,4 @@
-/* Copyright (C) 1998,1999,2000,2001,2002, 2003 Free Software Foundation, Inc.
+/* Copyright (C) 1998,1999,2000,2001,2002,2003 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -27,22 +27,6 @@
 #include "libguile/validate.h"
 #include "libguile/evalext.h"
 
-SCM_SYMBOL (scm_sym_setter, "setter");
-
-SCM 
-scm_m_generalized_set_x (SCM xorig, SCM env SCM_UNUSED)
-{
-  SCM x = SCM_CDR (xorig);
-  SCM_ASSYNT (2 == scm_ilength (x), scm_s_expression, scm_s_set_x);
-  if (SCM_SYMBOLP (SCM_CAR (x)))
-    return scm_cons (SCM_IM_SET_X, x);
-  else if (SCM_CONSP (SCM_CAR (x)))
-    return scm_cons (scm_list_2 (scm_sym_setter, SCM_CAAR (x)),
-		     scm_append (scm_list_2 (SCM_CDAR (x), SCM_CDR (x))));
-  else
-    scm_misc_error (scm_s_set_x, scm_s_variable, SCM_EOL);
-}
-
 SCM_DEFINE (scm_defined_p, "defined?", 1, 1, 0,
             (SCM sym, SCM env),
 	    "Return @code{#t} if @var{sym} is defined in the lexical "
@@ -66,12 +50,12 @@ SCM_DEFINE (scm_defined_p, "defined?", 1, 1, 0,
 	{
 	  SCM_ASSERT (SCM_CONSP (frames), env, SCM_ARG2, FUNC_NAME);
 	  b = SCM_CAR (frames);
-	  if (SCM_NFALSEP (scm_procedure_p (b)))
+	  if (!SCM_FALSEP (scm_procedure_p (b)))
 	    break;
 	  SCM_ASSERT (SCM_CONSP (b), env, SCM_ARG2, FUNC_NAME);
 	  for (b = SCM_CAR (b); SCM_NIMP (b); b = SCM_CDR (b))
 	    {
-	      if (SCM_NCONSP (b))
+	      if (!SCM_CONSP (b))
 		{
 		  if (SCM_EQ_P (b, sym))
 		    return SCM_BOOL_T;
@@ -108,7 +92,7 @@ scm_m_undefine (SCM x, SCM env)
   x = SCM_CAR (x);
   SCM_ASSYNT (SCM_SYMBOLP (x), scm_s_variable, s_undefine);
   arg1 = scm_sym2var (x, scm_env_top_level (env), SCM_BOOL_F);
-  SCM_ASSYNT (SCM_NFALSEP (arg1) && !SCM_UNBNDP (SCM_VARIABLE_REF (arg1)),
+  SCM_ASSYNT (!SCM_FALSEP (arg1) && !SCM_UNBNDP (SCM_VARIABLE_REF (arg1)),
 	      "variable already unbound ", s_undefine);
   SCM_VARIABLE_SET (arg1, SCM_UNDEFINED);
 #ifdef SICP
@@ -175,7 +159,6 @@ SCM_DEFINE (scm_self_evaluating_p, "self-evaluating?", 1, 0, 0,
 void 
 scm_init_evalext ()
 {
-  scm_make_synt (scm_s_set_x, scm_makmmacro, scm_m_generalized_set_x);
 #include "libguile/evalext.x"
 }
 

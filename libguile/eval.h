@@ -134,7 +134,6 @@ SCM_API const char scm_s_bindings[];
 SCM_API const char scm_s_variable[];
 SCM_API const char scm_s_clauses[];
 SCM_API const char scm_s_formals[];
-SCM_API const char scm_s_set_x[];
 
 SCM_API SCM scm_sym_and;
 SCM_API SCM scm_sym_begin;
@@ -187,6 +186,7 @@ SCM_API SCM scm_m_letstar (SCM xorig, SCM env);
 SCM_API SCM scm_m_do (SCM xorig, SCM env);
 SCM_API SCM scm_m_quasiquote (SCM xorig, SCM env);
 SCM_API SCM scm_m_delay (SCM xorig, SCM env);
+SCM_API SCM scm_m_generalized_set_x (SCM xorig, SCM env);
 SCM_API SCM scm_m_future (SCM xorig, SCM env);
 SCM_API SCM scm_m_define (SCM x, SCM env);
 SCM_API SCM scm_m_letrec (SCM xorig, SCM env);

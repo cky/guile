@@ -26,7 +26,6 @@
 
 
 
-SCM_API SCM scm_m_generalized_set_x (SCM xorig, SCM env);
 SCM_API SCM scm_defined_p (SCM sym, SCM env);
 SCM_API SCM scm_self_evaluating_p (SCM obj);
 SCM_API void scm_init_evalext (void);
