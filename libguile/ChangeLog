@@ -1,3 +1,8 @@
+2001-05-16  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* Makefile.am (cpp_sig_symbols.c, cpp_err_symbols.c): Make
+	dependent on cpp_cnvt.awk
+
 2001-05-15  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* script.c (scm_compile_shell_switches): New command line option
@@ -6,7 +11,7 @@
 
 2001-05-10  Marius Vollmer  <mvo@zagadka.ping.de>
 
-	Merge from mvo-vcell-clenaup-1-branch.
+	Merged from mvo-vcell-cleanup-1-branch.
 	
 	The concept of vcells has been removed from Guile.  With it,
 	explicit obarrays and associated operations are gone.  Use
