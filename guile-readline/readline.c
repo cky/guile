@@ -132,6 +132,9 @@ current_input_getc (FILE *in)
       promptp = 0;
     }
   ans = scm_getc (input_port);
+  /* GJB:FIXME:: why not just
+     return scm_getc(input_port);
+  */
   return ans;
 }
 
