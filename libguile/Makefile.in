@@ -41,6 +41,7 @@ host_triplet = @host@
 host_alias = @host_alias@
 ERRNO_EXTRACT = @ERRNO_EXTRACT@
 FD_SETTER = @FD_SETTER@
+LIBLOBJS = @LIBLOBJS@
 AWK = @AWK@
 LIBTOOL = @LIBTOOL@
 VERSION = @VERSION@
@@ -57,16 +58,18 @@ INCLUDES = -I.. -I$(srcdir)/..
 
 lib_PROGRAMS = libguile.la
 libguile_la_SOURCES = alist.c append.c appinit.c arbiters.c async.c \
-backtrace.c boolean.c chars.c continuations.c debug.c dynl.c dynwind.c eq.c \
+boolean.c chars.c continuations.c dynl.c dynwind.c eq.c \
 error.c eval.c extchrs.c feature.c filesys.c fports.c gc.c \
-gdbint.c genio.c gsubr.c hash.c hashtab.c inet_aton.c init.c ioext.c \
+gdbint.c genio.c gsubr.c hash.c hashtab.c init.c ioext.c \
 kw.c list.c load.c mallocs.c markers.c mbstrings.c net_db.c \
 numbers.c objprop.c \
 options.c pairs.c ports.c posix.c print.c procprop.c procs.c ramap.c \
-read.c root.c scmsigs.c sequences.c simpos.c smob.c socket.c srcprop.c \
-stackchk.c stacks.c stime.c strerror.c strings.c strop.c strorder.c \
+read.c root.c scmsigs.c sequences.c simpos.c smob.c socket.c \
+stackchk.c stime.c strings.c strop.c strorder.c \
 strports.c struct.c symbols.c tag.c throw.c unif.c variable.c \
 vectors.c version.c vports.c weaks.c _scm.h
+libguile_la_DEPENDENCIES = @LIBOBJS@
+libguile_la_LDADD = @LIBLOBJS@
 libguile_la_LDFLAGS = -version-info 0:0 -rpath $(libdir)
 
 include_HEADERS = libguile.h
@@ -111,17 +114,15 @@ CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 libguile_la_OBJECTS =  alist.lo append.lo appinit.lo arbiters.lo \
-async.lo backtrace.lo boolean.lo chars.lo continuations.lo debug.lo \
-dynl.lo dynwind.lo eq.lo error.lo eval.lo extchrs.lo feature.lo \
-filesys.lo fports.lo gc.lo gdbint.lo genio.lo gsubr.lo hash.lo \
-hashtab.lo inet_aton.lo init.lo ioext.lo kw.lo list.lo load.lo \
-mallocs.lo markers.lo mbstrings.lo net_db.lo numbers.lo objprop.lo \
-options.lo pairs.lo ports.lo posix.lo print.lo procprop.lo procs.lo \
-ramap.lo read.lo root.lo scmsigs.lo sequences.lo simpos.lo smob.lo \
-socket.lo srcprop.lo stackchk.lo stacks.lo stime.lo strerror.lo \
-strings.lo strop.lo strorder.lo strports.lo struct.lo symbols.lo tag.lo \
-throw.lo unif.lo variable.lo vectors.lo version.lo vports.lo weaks.lo
-libguile_la_LDADD = $(LDADD)
+async.lo boolean.lo chars.lo continuations.lo dynl.lo dynwind.lo eq.lo \
+error.lo eval.lo extchrs.lo feature.lo filesys.lo fports.lo gc.lo \
+gdbint.lo genio.lo gsubr.lo hash.lo hashtab.lo init.lo ioext.lo kw.lo \
+list.lo load.lo mallocs.lo markers.lo mbstrings.lo net_db.lo numbers.lo \
+objprop.lo options.lo pairs.lo ports.lo posix.lo print.lo procprop.lo \
+procs.lo ramap.lo read.lo root.lo scmsigs.lo sequences.lo simpos.lo \
+smob.lo socket.lo stackchk.lo stime.lo strings.lo strop.lo strorder.lo \
+strports.lo struct.lo symbols.lo tag.lo throw.lo unif.lo variable.lo \
+vectors.lo version.lo vports.lo weaks.lo
 SCRIPTS =  $(bin_SCRIPTS)
 
 CFLAGS = @CFLAGS@
@@ -141,22 +142,20 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) \
 
 TAR = tar
 DEP_FILES =  .deps/alist.P .deps/append.P .deps/appinit.P \
-.deps/arbiters.P .deps/async.P .deps/backtrace.P .deps/boolean.P \
-.deps/chars.P .deps/continuations.P .deps/debug.P .deps/dynl.P \
-.deps/dynwind.P .deps/eq.P .deps/error.P .deps/eval.P .deps/extchrs.P \
-.deps/feature.P .deps/filesys.P .deps/fports.P .deps/gc.P \
-.deps/gdbint.P .deps/genio.P .deps/gsubr.P .deps/hash.P .deps/hashtab.P \
-.deps/inet_aton.P .deps/init.P .deps/ioext.P .deps/kw.P .deps/list.P \
-.deps/load.P .deps/mallocs.P .deps/markers.P .deps/mbstrings.P \
-.deps/net_db.P .deps/numbers.P .deps/objprop.P .deps/options.P \
-.deps/pairs.P .deps/ports.P .deps/posix.P .deps/print.P \
+.deps/arbiters.P .deps/async.P .deps/boolean.P .deps/chars.P \
+.deps/continuations.P .deps/dynl.P .deps/dynwind.P .deps/eq.P \
+.deps/error.P .deps/eval.P .deps/extchrs.P .deps/feature.P \
+.deps/filesys.P .deps/fports.P .deps/gc.P .deps/gdbint.P .deps/genio.P \
+.deps/gsubr.P .deps/hash.P .deps/hashtab.P .deps/init.P .deps/ioext.P \
+.deps/kw.P .deps/list.P .deps/load.P .deps/mallocs.P .deps/markers.P \
+.deps/mbstrings.P .deps/net_db.P .deps/numbers.P .deps/objprop.P \
+.deps/options.P .deps/pairs.P .deps/ports.P .deps/posix.P .deps/print.P \
 .deps/procprop.P .deps/procs.P .deps/ramap.P .deps/read.P .deps/root.P \
 .deps/scmsigs.P .deps/sequences.P .deps/simpos.P .deps/smob.P \
-.deps/socket.P .deps/srcprop.P .deps/stackchk.P .deps/stacks.P \
-.deps/stime.P .deps/strerror.P .deps/strings.P .deps/strop.P \
-.deps/strorder.P .deps/strports.P .deps/struct.P .deps/symbols.P \
-.deps/tag.P .deps/throw.P .deps/unif.P .deps/variable.P .deps/vectors.P \
-.deps/version.P .deps/vports.P .deps/weaks.P
+.deps/socket.P .deps/stackchk.P .deps/stime.P .deps/strings.P \
+.deps/strop.P .deps/strorder.P .deps/strports.P .deps/struct.P \
+.deps/symbols.P .deps/tag.P .deps/throw.P .deps/unif.P .deps/variable.P \
+.deps/vectors.P .deps/version.P .deps/vports.P .deps/weaks.P
 SOURCES = $(libguile_la_SOURCES)
 OBJECTS = $(libguile_la_OBJECTS)
 

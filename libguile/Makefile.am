@@ -9,16 +9,18 @@ INCLUDES = -I.. -I$(srcdir)/..
 
 lib_PROGRAMS = libguile.la
 libguile_la_SOURCES = alist.c append.c appinit.c arbiters.c async.c \
-backtrace.c boolean.c chars.c continuations.c debug.c dynl.c dynwind.c eq.c \
+boolean.c chars.c continuations.c dynl.c dynwind.c eq.c \
 error.c eval.c extchrs.c feature.c filesys.c fports.c gc.c \
-gdbint.c genio.c gsubr.c hash.c hashtab.c inet_aton.c init.c ioext.c \
+gdbint.c genio.c gsubr.c hash.c hashtab.c init.c ioext.c \
 kw.c list.c load.c mallocs.c markers.c mbstrings.c net_db.c \
 numbers.c objprop.c \
 options.c pairs.c ports.c posix.c print.c procprop.c procs.c ramap.c \
-read.c root.c scmsigs.c sequences.c simpos.c smob.c socket.c srcprop.c \
-stackchk.c stacks.c stime.c strerror.c strings.c strop.c strorder.c \
+read.c root.c scmsigs.c sequences.c simpos.c smob.c socket.c \
+stackchk.c stime.c strings.c strop.c strorder.c \
 strports.c struct.c symbols.c tag.c throw.c unif.c variable.c \
 vectors.c version.c vports.c weaks.c _scm.h
+libguile_la_DEPENDENCIES = @LIBOBJS@
+libguile_la_LDADD = @LIBLOBJS@
 libguile_la_LDFLAGS = -version-info 0:0 -rpath $(libdir)
 
 include_HEADERS = libguile.h

@@ -234,6 +234,11 @@ else
   AC_MSG_RESULT([no, using default])
 fi
 
+## If we're creating a shared library (using libtool!), then we'll
+## need to generate a list of .lo files corresponding to the .o files
+## given in LIBOBJS.  We'll call it LIBLOBJS.
+LIBLOBJS="`echo ${LIBOBJS} | sed 's/\.o/.lo/g'`"
+
 AC_DEFINE_UNQUOTED(GUILE_MAJOR_VERSION, "$GUILE_MAJOR_VERSION")
 AC_DEFINE_UNQUOTED(GUILE_MINOR_VERSION, "$GUILE_MINOR_VERSION")
 AC_DEFINE_UNQUOTED(GUILE_VERSION, "$GUILE_VERSION")
@@ -241,6 +246,7 @@ AC_DEFINE_UNQUOTED(GUILE_VERSION, "$GUILE_VERSION")
 AC_SUBST(AWK)
 AC_SUBST(FD_SETTER)
 AC_SUBST(ERRNO_EXTRACT)
+AC_SUBST(LIBLOBJS)
 AC_OUTPUT([Makefile fd.h guile-snarf PLUGIN/guile.libs], [chmod +x guile-snarf])
 
 dnl Local Variables:
