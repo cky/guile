@@ -4265,6 +4265,9 @@ scm_i_big2dbl (SCM b)
 #ifndef PTRDIFF_MIN
 /* the below is not really guaranteed to work (I think), but probably does: */
 #define PTRDIFF_MIN ((ptrdiff_t) ((ptrdiff_t)1 << (sizeof (ptrdiff_t)*8 - 1)))
+/* this prevents num2integral.c.i from using PTRDIFF_MIN in
+   preprocessor expressions. */
+#define NO_PREPRO_MAGIC
 #endif
 
 #ifndef PTRDIFF_MAX
