@@ -40,7 +40,7 @@
  * If you do not wish that, delete this exception notice.  */
 
 
-/* $Id: coop.c,v 1.30 2002-08-16 22:01:09 hanwen Exp $ */
+/* $Id: coop.c,v 1.31 2002-08-17 20:39:35 ghouston Exp $ */
 
 /* Cooperative thread library, based on QuickThreads */
 
@@ -620,8 +620,7 @@ coop_create (coop_userf_t *f, void *pu)
   else
 #endif
     {
-      t = scm_malloc (sizeof (coop_t), "coop");
-
+      t = scm_malloc (sizeof (coop_t));
       t->specific = NULL;
       t->n_keys = 0;
 #ifdef GUILE_PTHREAD_COMPAT
