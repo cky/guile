@@ -313,7 +313,7 @@ ss_handler (void *data, SCM tag, SCM throw_args)
 {
   /* Save the stack */
   scm_fluid_set_x (SCM_CDR (scm_the_last_stack_fluid),
-		   scm_make_stack (scm_cons (SCM_BOOL_T, SCM_EOL)));
+		   scm_make_stack (SCM_BOOL_T, SCM_EOL));
   /* Throw the error */
   return scm_throw (tag, throw_args);
 }
@@ -438,7 +438,7 @@ handler_message (void *handler_data, SCM tag, SCM args)
 
   if (scm_ilength (args) >= 3)
     {
-      SCM stack   = scm_make_stack (SCM_LIST1 (SCM_BOOL_T));
+      SCM stack   = scm_make_stack (SCM_BOOL_T, SCM_EOL);
       SCM subr    = SCM_CAR (args);
       SCM message = SCM_CADR (args);
       SCM parts   = SCM_CADDR (args);

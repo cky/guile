@@ -3575,6 +3575,7 @@ SCM_GPROC (s_map, "map", 2, 0, 1, scm_map, g_map);
 
 SCM 
 scm_map (SCM proc, SCM arg1, SCM args)
+#define FUNC_NAME s_map
 {
   long i, len;
   SCM res = SCM_EOL;
@@ -3584,6 +3585,7 @@ scm_map (SCM proc, SCM arg1, SCM args)
   len = scm_ilength (arg1);
   SCM_GASSERTn (len >= 0,
 		g_map, scm_cons2 (proc, arg1, args), SCM_ARG2, s_map);
+  SCM_VALIDATE_REST_ARGUMENT (args);
   if (SCM_NULLP (args))
     {
       while (SCM_NIMP (arg1))
@@ -3614,18 +3616,21 @@ scm_map (SCM proc, SCM arg1, SCM args)
       pres = SCM_CDRLOC (*pres);
     }
 }
+#undef FUNC_NAME
 
 
 SCM_GPROC (s_for_each, "for-each", 2, 0, 1, scm_for_each, g_for_each);
 
 SCM 
 scm_for_each (SCM proc, SCM arg1, SCM args)
+#define FUNC_NAME s_for_each
 {
   SCM *ve = &args;		/* Keep args from being optimized away. */
   long i, len;
   len = scm_ilength (arg1);
   SCM_GASSERTn (len >= 0, g_for_each, scm_cons2 (proc, arg1, args),
 		SCM_ARG2, s_for_each);
+  SCM_VALIDATE_REST_ARGUMENT (args);
   if SCM_NULLP (args)
     {
       while SCM_NIMP (arg1)
@@ -3653,7 +3658,7 @@ scm_for_each (SCM proc, SCM arg1, SCM args)
       scm_apply (proc, arg1, SCM_EOL);
     }
 }
-
+#undef FUNC_NAME
 
 
 SCM 

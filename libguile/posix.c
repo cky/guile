@@ -811,13 +811,11 @@ scm_convert_exec_args (SCM args, int pos, const char *subr)
   int num_args;
   int i;
 
-  SCM_ASSERT (SCM_NULLP (args)
-	      || (SCM_CONSP (args)),
-	      args, pos, subr);
   num_args = scm_ilength (args);
+  SCM_ASSERT (num_args >= 0, args, pos, subr);
   execargv = (char **) 
     scm_must_malloc ((num_args + 1) * sizeof (char *), subr);
-  for (i = 0; SCM_NNULLP (args); args = SCM_CDR (args), ++i)
+  for (i = 0; !SCM_NULLP (args); args = SCM_CDR (args), ++i)
     {
       scm_sizet len;
       char *dst;

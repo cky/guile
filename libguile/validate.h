@@ -1,4 +1,4 @@
-/* $Id: validate.h,v 1.10 2000-05-15 11:47:48 dirk Exp $ */
+/* $Id: validate.h,v 1.11 2000-05-18 08:47:52 dirk Exp $ */
 /*	Copyright (C) 1999, 2000 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -99,6 +99,15 @@
   } while (0)
 
 
+
+#define SCM_VALIDATE_REST_ARGUMENT(x) \
+  do { \
+    if (SCM_DEBUG_REST_ARGUMENT) { \
+      if (scm_ilength (x) < 0) { \
+        SCM_MISC_ERROR ("Rest arguments do not form a proper list.", SCM_EOL); \
+      } \
+    } \
+  } while (0)
 
 #define SCM_VALIDATE_NIM(pos, scm) SCM_MAKE_VALIDATE (pos, scm, NIMP)
 

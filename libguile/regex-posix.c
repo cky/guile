@@ -185,13 +185,14 @@ SCM_DEFINE (scm_make_regexp, "make-regexp", 1, 0, 1,
   int status, cflags;
 
   SCM_VALIDATE_ROSTRING (1,pat);
+  SCM_VALIDATE_REST_ARGUMENT (flags);
   SCM_COERCE_SUBSTR (pat);
 
   /* Examine list of regexp flags.  If REG_BASIC is supplied, then
      turn off REG_EXTENDED flag (on by default). */
   cflags = REG_EXTENDED;
   flag = flags;
-  while (SCM_NNULLP (flag))
+  while (!SCM_NULLP (flag))
     {
       if (SCM_INUM (SCM_CAR (flag)) == REG_BASIC)
 	cflags &= ~REG_EXTENDED;

@@ -232,14 +232,12 @@ SCM_DEFINE (scm_clear_registered_modules, "c-clear-registered-modules", 0, 0, 0,
  * is executed, SCM_DEFER_INTS and SCM_ALLOW_INTS do not nest).
  */
 
-#define DYNL_GLOBAL 0x0001
-
 #ifdef DYNAMIC_LINKING
 
 #include <ltdl.h>
 
 static void *
-sysdep_dynl_link (const char *fname, int flags, const char *subr)
+sysdep_dynl_link (const char *fname, const char *subr)
 {
   lt_dlhandle handle;
   handle = lt_dlopenext (fname);
@@ -298,9 +296,7 @@ no_dynl_error (const char *subr)
 }
     
 static void *
-sysdep_dynl_link (const char *filename,
-		  int flags,
-		  const char *subr)
+sysdep_dynl_link (const char *filename, const char *subr)
 {
   no_dynl_error (subr);
   return NULL;
@@ -348,47 +344,18 @@ print_dynl_obj (SCM exp,SCM port,scm_print_state *pstate)
   return 1;
 }
 
-static SCM kw_global;
-SCM_SYMBOL (sym_global, "-global");
 
-SCM_DEFINE (scm_dynamic_link, "dynamic-link", 1, 0, 1, 
-            (SCM fname, SCM rest),
+SCM_DEFINE (scm_dynamic_link, "dynamic-link", 1, 0, 0, 
+            (SCM fname),
 	    "Open the dynamic library @var{library-file}.  A library handle\n"
 	    "representing the opened library is returned; this handle should be used\n"
 	    "as the @var{lib} argument to the following functions.")
 #define FUNC_NAME s_scm_dynamic_link
 {
   void *handle;
-  int flags = DYNL_GLOBAL;
 
   SCM_COERCE_ROSTRING (1, fname);
-
-  /* collect flags */
-  while (SCM_CONSP (rest))
-    {
-      SCM kw, val;
-
-      kw = SCM_CAR (rest);
-      rest = SCM_CDR (rest);
-      
-      if (!SCM_CONSP (rest))
-	SCM_MISC_ERROR ("keyword without value", SCM_EOL);
-	
-      val = SCM_CAR (rest);
-      rest = SCM_CDR (rest);
-
-      if (SCM_EQ_P (kw, kw_global))
-	{
-	  if (SCM_FALSEP (val))
-	    flags &= ~DYNL_GLOBAL;
-	}
-      else
-	SCM_MISC_ERROR ("unknown keyword argument: ~A",
-			scm_cons (kw, SCM_EOL));
-    }
-
-  handle = sysdep_dynl_link (SCM_CHARS (fname), flags, FUNC_NAME);
-    
+  handle = sysdep_dynl_link (SCM_CHARS (fname), FUNC_NAME);
   SCM_RETURN_NEWSMOB2 (scm_tc16_dynamic_obj, SCM_UNPACK (fname), handle);
 }
 #undef FUNC_NAME
@@ -549,7 +516,6 @@ scm_init_dynamic_linking ()
   scm_set_smob_print (scm_tc16_dynamic_obj, print_dynl_obj);
   sysdep_dynl_init ();
 #include "libguile/dynl.x"
-  kw_global = scm_make_keyword_from_dash_symbol (sym_global);
 }
 
 /*

@@ -412,8 +412,8 @@ SCM_DEFINE (scm_stack_p, "stack?", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_make_stack, "make-stack", 0, 0, 1, 
-            (SCM args),
+SCM_DEFINE (scm_make_stack, "make-stack", 1, 0, 1, 
+            (SCM obj, SCM args),
 	    "")
 #define FUNC_NAME s_scm_make_stack
 {
@@ -422,12 +422,7 @@ SCM_DEFINE (scm_make_stack, "make-stack", 0, 0, 1,
   scm_info_frame *iframe;
   long offset = 0;
   SCM stack, id;
-  SCM obj, inner_cut, outer_cut;
-
-  SCM_ASSERT (SCM_CONSP (args),
-	      SCM_FUNC_NAME, SCM_WNA, NULL);
-  obj = SCM_CAR (args);
-  args = SCM_CDR (args);
+  SCM inner_cut, outer_cut;
 
   /* Extract a pointer to the innermost frame of whatever object
      scm_make_stack was given.  */
@@ -473,17 +468,20 @@ SCM_DEFINE (scm_make_stack, "make-stack", 0, 0, 1,
   SCM_STACK (stack) -> length = n;
 
   /* Narrow the stack according to the arguments given to scm_make_stack. */
-  while (n > 0 && SCM_CONSP (args))
+  SCM_VALIDATE_REST_ARGUMENT (args);
+  while (n > 0 && !SCM_NULLP (args))
     {
       inner_cut = SCM_CAR (args);
       args = SCM_CDR (args);
-      if (SCM_CONSP (args))
+      if (SCM_NULLP (args)) 
+	{
+	outer_cut = SCM_INUM0;
+	} 
+      else
 	{
 	  outer_cut = SCM_CAR (args);
 	  args = SCM_CDR (args);
 	}
-      else
-	outer_cut = SCM_INUM0;
       
       narrow_stack (stack,
 		    SCM_INUMP (inner_cut) ? SCM_INUM (inner_cut) : n,

@@ -379,6 +379,7 @@ SCM_DEFINE (scm_make_struct, "make-struct", 2, 0, 1,
 
   SCM_VALIDATE_VTABLE (1,vtable);
   SCM_VALIDATE_INUM (2,tail_array_size);
+  SCM_VALIDATE_REST_ARGUMENT (init);
 
   layout = SCM_PACK (SCM_STRUCT_DATA (vtable) [scm_vtable_index_layout]);
   basic_size = SCM_LENGTH (layout) / 2;
@@ -474,6 +475,7 @@ SCM_DEFINE (scm_make_vtable_vtable, "make-vtable-vtable", 2, 0, 1,
 
   SCM_VALIDATE_ROSTRING (1,extra_fields);
   SCM_VALIDATE_INUM (2,tail_array_size);
+  SCM_VALIDATE_REST_ARGUMENT (init);
 
   fields = scm_string_append (scm_listify (required_vtable_fields,
 					   extra_fields,

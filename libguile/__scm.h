@@ -167,13 +167,13 @@
 #define SCM_DEBUG_DEPRECATED SCM_DEBUG
 #endif
 
-/* If SCM_DEBUG_REST_ARGUMENTS is set to 1, functions that take rest arguments
- * will check whether the rest arguments actually form a proper list.
- * Otherwise it is assumed that the rest arguments form a proper list and only
- * the parameters themselves, which are given as rest arguments, are checked.
+/* If SCM_DEBUG_REST_ARGUMENT is set to 1, functions that take rest arguments
+ * will check whether the rest arguments are actually passed as a proper list.
+ * Otherwise, if SCM_DEBUG_REST_ARGUMENT is 0, functions that take rest
+ * arguments will take it for granted that these are passed as a proper list.
  */
-#ifndef SCM_DEBUG_REST_ARGUMENTS
-#define SCM_DEBUG_REST_ARGUMENTS SCM_DEBUG
+#ifndef SCM_DEBUG_REST_ARGUMENT
+#define SCM_DEBUG_REST_ARGUMENT SCM_DEBUG
 #endif
 
 /* Use this for _compile time_ type checking only, since the compiled result

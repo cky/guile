@@ -116,7 +116,7 @@ extern SCM scm_stack_type;
 
 
 SCM scm_stack_p (SCM obj);
-SCM scm_make_stack (SCM args);
+SCM scm_make_stack (SCM obj, SCM args);
 SCM scm_stack_id (SCM stack);
 SCM scm_stack_ref (SCM stack, SCM i);
 SCM scm_stack_length (SCM stack);

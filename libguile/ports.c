@@ -675,7 +675,7 @@ SCM_DEFINE (scm_close_all_ports_except, "close-all-ports-except", 0, 0, 1,
 #define FUNC_NAME s_scm_close_all_ports_except
 {
   int i = 0;
-  SCM_VALIDATE_CONS (1,ports);
+  SCM_VALIDATE_REST_ARGUMENT (ports);
   while (i < scm_port_table_size)
     {
       SCM thisport = scm_port_table[i]->port;

@@ -785,8 +785,8 @@ SCM_DEFINE (scm_make_shared_array, "make-shared-array", 2, 0, 1,
 
 
 /* args are RA . DIMS */
-SCM_DEFINE (scm_transpose_array, "transpose-array", 0, 0, 1, 
-           (SCM args),
+SCM_DEFINE (scm_transpose_array, "transpose-array", 1, 0, 1, 
+           (SCM ra, SCM args),
 	    "Returns an array sharing contents with @var{array}, but with dimensions\n"
 	    "arranged in a different order.  There must be one @var{dim} argument for\n"
 	    "each dimension of @var{array}.  @var{dim0}, @var{dim1}, @dots{} should\n"
@@ -806,14 +806,11 @@ SCM_DEFINE (scm_transpose_array, "transpose-array", 0, 0, 1,
 	    "@end example")
 #define FUNC_NAME s_scm_transpose_array
 {
-  SCM ra, res, vargs, *ve = &vargs;
+  SCM res, vargs, *ve = &vargs;
   scm_array_dim *s, *r;
   int ndim, i, k;
-  SCM_ASSERT (SCM_NNULLP (args), scm_makfrom0str (FUNC_NAME),
-	      SCM_WNA, NULL);
-  ra = SCM_CAR (args);
+
   SCM_ASSERT (SCM_NIMP (ra), ra, SCM_ARG1, FUNC_NAME);
-  args = SCM_CDR (args);
   switch (SCM_TYP7 (ra))
     {
     default:
@@ -830,7 +827,7 @@ SCM_DEFINE (scm_transpose_array, "transpose-array", 0, 0, 1,
 #ifdef HAVE_LONG_LONGS
     case scm_tc7_llvect:
 #endif
-      SCM_ASSERT (SCM_NIMP (args) && SCM_NULLP (SCM_CDR (args)),
+      SCM_ASSERT (!SCM_NULLP (args) && SCM_NULLP (SCM_CDR (args)),
 		  scm_makfrom0str (FUNC_NAME), SCM_WNA, NULL);
       SCM_ASSERT (SCM_INUMP (SCM_CAR (args)), SCM_CAR (args), SCM_ARG2,
 		  FUNC_NAME);
@@ -895,8 +892,8 @@ SCM_DEFINE (scm_transpose_array, "transpose-array", 0, 0, 1,
 #undef FUNC_NAME
 
 /* args are RA . AXES */
-SCM_DEFINE (scm_enclose_array, "enclose-array", 0, 0, 1, 
-           (SCM axes),
+SCM_DEFINE (scm_enclose_array, "enclose-array", 1, 0, 1, 
+           (SCM ra, SCM axes),
 	    "@var{dim0}, @var{dim1} @dots{} should be nonnegative integers less than\n"
 	    "the rank of @var{array}.  @var{enclose-array} returns an array\n"
 	    "resembling an array of shared arrays.  The dimensions of each shared\n"
@@ -917,16 +914,14 @@ SCM_DEFINE (scm_enclose_array, "enclose-array", 0, 0, 1,
 	    "@end example")
 #define FUNC_NAME s_scm_enclose_array
 {
-  SCM axv, ra, res, ra_inr;
+  SCM axv, res, ra_inr;
   scm_array_dim vdim, *s = &vdim;
   int ndim, j, k, ninr, noutr;
-  SCM_ASSERT (SCM_NIMP (axes), scm_makfrom0str (FUNC_NAME), SCM_WNA,
-	      NULL);
-  ra = SCM_CAR (axes);
-  axes = SCM_CDR (axes);
+
   if (SCM_NULLP (axes))
       axes = scm_cons ((SCM_ARRAYP (ra) ? SCM_MAKINUM (SCM_ARRAY_NDIM (ra) - 1) : SCM_INUM0), SCM_EOL);
   ninr = scm_ilength (axes);
+  SCM_ASSERT (0 <= ninr, scm_makfrom0str (FUNC_NAME), SCM_WNA, NULL);
   ra_inr = scm_make_ra (ninr);
   SCM_ASRTGO (SCM_NIMP (ra), badarg1);
   switch SCM_TYP7
@@ -965,8 +960,7 @@ SCM_DEFINE (scm_enclose_array, "enclose-array", 0, 0, 1,
     }
   noutr = ndim - ninr;
   axv = scm_make_string (SCM_MAKINUM (ndim), SCM_MAKE_CHAR (0));
-  SCM_ASSERT (0 <= noutr && 0 <= ninr, scm_makfrom0str (FUNC_NAME),
-	      SCM_WNA, NULL);
+  SCM_ASSERT (0 <= noutr, scm_makfrom0str (FUNC_NAME), SCM_WNA, NULL);
   res = scm_make_ra (noutr);
   SCM_ARRAY_BASE (res) = SCM_ARRAY_BASE (ra_inr);
   SCM_ARRAY_V (res) = ra_inr;
@@ -995,20 +989,17 @@ SCM_DEFINE (scm_enclose_array, "enclose-array", 0, 0, 1,
 
 
 
-SCM_DEFINE (scm_array_in_bounds_p, "array-in-bounds?", 0, 0, 1, 
-           (SCM args),
+SCM_DEFINE (scm_array_in_bounds_p, "array-in-bounds?", 1, 0, 1, 
+           (SCM v, SCM args),
 	    "Returns @code{#t} if its arguments would be acceptable to array-ref.")
 #define FUNC_NAME s_scm_array_in_bounds_p
 {
-  SCM v, ind = SCM_EOL;
+  SCM ind = SCM_EOL;
   long pos = 0;
   register scm_sizet k;
   register long j;
   scm_array_dim *s;
-  SCM_ASSERT (SCM_NIMP (args), scm_makfrom0str (FUNC_NAME),
-	      SCM_WNA, NULL);
-  v = SCM_CAR (args);
-  args = SCM_CDR (args);
+
   SCM_ASRTGO (SCM_NIMP (v), badarg1);
   if (SCM_NIMP (args))
 

@@ -969,7 +969,7 @@ SCM_DEFINE (scm_simple_format, "simple-format", 2, 0, 1,
     SCM_VALIDATE_OPORT_VALUE (1,destination);
   }
   SCM_VALIDATE_STRING(2,message);
-  SCM_VALIDATE_LIST(3,args);
+  SCM_VALIDATE_REST_ARGUMENT (args);
 
   start = SCM_ROCHARS (message);
   for (p = start; *p != '\0'; ++p)

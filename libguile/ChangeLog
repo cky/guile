@@ -1,5 +1,52 @@
 2000-05-17  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* __scm.h (SCM_DEBUG_REST_ARGUMENT):  Renamed from
+	SCM_DEBUG_REST_ARGUMENTS in order to clarify that we don't test
+	the actual arguments in the list, but rather the rest argument as
+	a list of arguments.
+
+	* validate.h (SCM_VALIDATE_REST_ARGUMENT):  Added.
+
+	* async.c (scm_noop), eval.c (scm_map, scm_for_each), list.c
+	(scm_list_star, scm_append, scm_append_x), ports.c
+	(scm_close_all_ports_except), ramap.c (scm_array_map_x,
+	scm_array_for_each), regex-posix.c (scm_make_regexp), stacks.c
+	(scm_make_stack), strings.c (scm_string_append), struct.c
+	(scm_make_struct, scm_make_vtable_vtable):  Validate rest arguments.
+
+	* dynl.c (DYNL_GLOBAL, sysdep_dynl_link, kw_global, sym_global,
+	scm_dynamic_link, scm_init_dynamic_linking), dynl.h
+	(scm_dynamic_link):  Removed possibility to pass flags to
+	scm_dynamic_link, as it had no effect anyway.
+
+	* filesys.c (scm_fcntl):  Made single optional rest argument into
+	a standard optional argument.
+
+	* hooks.c (scm_run_hook):  A list of rest arguments is never
+	SCM_UNBNDP.
+
+	* list.c (scm_append, scm_append_x), stacks.c (scm_make_stack),
+	strings.c (scm_string_append):	Don't perform half-hearted checks
+	to see whether the rest argument forms a proper list any more, use
+	SCM_VALIDATE_REST_ARGUMENTS instead.
+
+	* ports.c (scm_close_all_ports_except):  Accept empty list of rest
+	arguments.
+
+	* posix.c (scm_convert_exec_args), print.c (scm_simple_format):
+	Simplify verification of rest argument.
+
+	* stacks.c (scm_make_stack), stacks.h (scm_make_stack), throw.c
+	(ss_handler, handler_message):  Make first mandatory rest argument
+	of scm_make_stack into a standard mandatory argument.  
+
+	* unif.c (scm_transpose_array, scm_enclose_array,
+	scm_array_in_bounds_p), unif.h (scm_transpose_array,
+	scm_enclose_array, scm_array_in_bounds_p):  Make first mandatory
+	rest argument into a standard mandatory argument.
+
+2000-05-17  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* __scm.h:  Added SCM_DEBUG as default debug option. (Thanks to
 	Keisuke Nishida for the suggestion.)  Added debug option
 	SCM_DEBUG_REST_ARGUMENTS.

@@ -400,6 +400,7 @@ SCM_DEFINE (scm_noop, "noop", 0, 0, 1,
 "")
 #define FUNC_NAME s_scm_noop
 {
+  SCM_VALIDATE_REST_ARGUMENT (args);
   return (SCM_NULLP (args) ? SCM_BOOL_F : SCM_CAR (args));
 }
 #undef FUNC_NAME

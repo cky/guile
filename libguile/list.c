@@ -94,7 +94,8 @@ SCM_DEFINE (scm_list_star, "list*", 1, 0, 1,
 	    "Return an improper list of the arguments.")
 #define FUNC_NAME s_scm_list_star
 {
-  if (SCM_NNULLP (rest))
+  SCM_VALIDATE_REST_ARGUMENT (rest);
+  if (!SCM_NULLP (rest))
     {
       SCM prev = arg = scm_cons (arg, rest);
       while (SCM_NNULLP (SCM_CDR (rest)))
@@ -196,27 +197,26 @@ SCM_DEFINE (scm_append, "append", 0, 0, 1,
             "  (append '() 'a)             =>  a\n")
 #define FUNC_NAME s_scm_append
 {
-  SCM res = SCM_EOL;
-  SCM *lloc = &res, arg;
-  if (SCM_IMP(args)) {
-    SCM_VALIDATE_NULL (SCM_ARGn, args);
+  SCM_VALIDATE_REST_ARGUMENT (args);
+  if (SCM_NULLP (args)) {
+    return SCM_EOL;
+  } else {
+    SCM res = SCM_EOL;
+    SCM *lloc = &res;
+    SCM arg = SCM_CAR (args);
+    args = SCM_CDR (args);
+    while (!SCM_NULLP (args)) {
+      while (SCM_CONSP (arg)) {
+	*lloc = scm_cons (SCM_CAR (arg), SCM_EOL);
+	lloc = SCM_CDRLOC (*lloc);
+	arg = SCM_CDR (arg);
+      }
+      SCM_VALIDATE_NULL (SCM_ARGn, arg);
+      arg = SCM_CAR (args);
+      args = SCM_CDR (args);
+    };
+    *lloc = arg;
     return res;
-  }
-  SCM_VALIDATE_CONS (SCM_ARGn, args);
-  while (1) {
-    arg = SCM_CAR(args);
-    args = SCM_CDR(args);
-    if (SCM_IMP(args)) {
-      *lloc = arg;
-      SCM_VALIDATE_NULL (SCM_ARGn, args);
-      return res;
-    }
-    SCM_VALIDATE_CONS (SCM_ARGn, args);
-    for (; SCM_CONSP(arg); arg = SCM_CDR(arg)) {
-      *lloc = scm_cons(SCM_CAR(arg), SCM_EOL);
-      lloc = SCM_CDRLOC(*lloc);
-    }
-    SCM_VALIDATE_NULL (SCM_ARGn, arg);
   }
 }
 #undef FUNC_NAME
@@ -230,16 +230,22 @@ SCM_DEFINE (scm_append_x, "append!", 0, 0, 1,
 	    "performed.  Return a pointer to the mutated list.")
 #define FUNC_NAME s_scm_append_x
 {
-  SCM arg;
- tail:
-  if (SCM_NULLP(args)) return SCM_EOL;
-  arg = SCM_CAR(args);
-  args = SCM_CDR(args);
-  if (SCM_NULLP(args)) return arg;
-  if (SCM_NULLP(arg)) goto tail;
-  SCM_VALIDATE_CONS (SCM_ARG1,arg);
-  SCM_SETCDR (scm_last_pair (arg), scm_append_x (args));
-  return arg;
+  SCM_VALIDATE_REST_ARGUMENT (args);
+  while (1) {
+    if (SCM_NULLP (args)) {
+      return SCM_EOL;
+    } else {
+      SCM arg = SCM_CAR (args);
+      args = SCM_CDR (args);
+      if (SCM_NULLP (args)) {
+	return arg;
+      } else if (!SCM_NULLP (arg)) {
+	SCM_VALIDATE_CONS (SCM_ARG1, arg);
+	SCM_SETCDR (scm_last_pair (arg), scm_append_x (args));
+	return arg;
+      }
+    }
+  }
 }
 #undef FUNC_NAME
 

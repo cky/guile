@@ -308,13 +308,13 @@ SCM_DEFINE (scm_string_append, "string-append", 0, 0, 1,
   register long i = 0;
   register SCM l, s;
   register unsigned char *data;
-  for (l = args;SCM_CONSP (l);) {
+
+  SCM_VALIDATE_REST_ARGUMENT (args);
+  for (l = args; !SCM_NULLP (l); l = SCM_CDR (l)) {
     s = SCM_CAR (l);
     SCM_VALIDATE_ROSTRING (SCM_ARGn,s);
     i += SCM_ROLENGTH (s);
-    l = SCM_CDR (l);
   }
-  SCM_ASSERT (SCM_NULLP (l), args, SCM_ARGn, FUNC_NAME);
   res = scm_makstr (i, 0);
   data = SCM_UCHARS (res);
   for (l = args;SCM_NIMP (l);l = SCM_CDR (l)) {

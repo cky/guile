@@ -1112,7 +1112,7 @@ SCM_DEFINE (scm_select, "select", 3, 2, 0,
 
 
 
-SCM_DEFINE (scm_fcntl, "fcntl", 2, 0, 1,
+SCM_DEFINE (scm_fcntl, "fcntl", 2, 1, 0,
             (SCM object, SCM cmd, SCM value),
 	    "Apply @var{command} to the specified file descriptor or the underlying\n"
 	    "file descriptor of the specified port.  @var{value} is an optional\n"
@@ -1153,13 +1153,13 @@ SCM_DEFINE (scm_fcntl, "fcntl", 2, 0, 1,
       SCM_VALIDATE_INUM (1,object);
       fdes = SCM_INUM (object);
     }
-  if (SCM_NULLP (value))
+
+  if (SCM_UNBNDP (value)) {
     ivalue = 0;
-  else
-    {
-      SCM_ASSERT (SCM_INUMP (SCM_CAR (value)), value, SCM_ARG3, FUNC_NAME);
-      ivalue = SCM_INUM (SCM_CAR (value));
-    }
+  } else {
+    SCM_VALIDATE_INUM_COPY (SCM_ARG3, value, ivalue);
+  }
+
   SCM_SYSCALL (rv = fcntl (fdes, SCM_INUM (cmd), ivalue));
   if (rv == -1)
     SCM_SYSERROR;

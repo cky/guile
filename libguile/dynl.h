@@ -51,7 +51,7 @@ void scm_register_module_xxx (char *module_name, void *init_func);
 SCM scm_registered_modules (void);
 SCM scm_clear_registered_modules (void);
 
-SCM scm_dynamic_link (SCM fname, SCM rest);
+SCM scm_dynamic_link (SCM fname);
 SCM scm_dynamic_unlink (SCM dobj);
 SCM scm_dynamic_object_p (SCM obj);
 SCM scm_dynamic_func (SCM symb, SCM dobj);

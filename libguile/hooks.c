@@ -310,8 +310,6 @@ SCM_DEFINE (scm_run_hook, "run-hook", 1, 0, 1,
 #define FUNC_NAME s_scm_run_hook
 {
   SCM_VALIDATE_HOOK (1,hook);
-  if (SCM_UNBNDP (args))
-    args = SCM_EOL;
   if (scm_ilength (args) != SCM_HOOK_ARITY (hook))
     SCM_MISC_ERROR ("Hook ~S requires ~A arguments",
 		    SCM_LIST2 (hook,SCM_MAKINUM (SCM_HOOK_ARITY (hook))));

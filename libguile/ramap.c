@@ -1520,6 +1520,7 @@ SCM_DEFINE (scm_array_map_x, "array-map!", 2, 0, 1,
 #define FUNC_NAME s_scm_array_map_x
 {
   SCM_VALIDATE_PROC (2,proc);
+  SCM_VALIDATE_REST_ARGUMENT (lra);
   switch (SCM_TYP7 (proc))
     {
     default:
@@ -1666,6 +1667,7 @@ SCM_DEFINE (scm_array_for_each, "array-for-each", 2, 0, 1,
 #define FUNC_NAME s_scm_array_for_each
 {
   SCM_VALIDATE_PROC (1,proc);
+  SCM_VALIDATE_REST_ARGUMENT (lra);
   scm_ramapc (rafe, proc, ra0, lra, FUNC_NAME);
   return SCM_UNSPECIFIED;
 }
