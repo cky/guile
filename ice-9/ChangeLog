@@ -1,3 +1,8 @@
+2001-02-08  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* and-let-star-compat.scm: Display the warning to the
+	`current-error-port'.
+	
 2001-02-04  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	Avoid the use of "*" in file names for the benefit of lesser

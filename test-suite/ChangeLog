@@ -1,3 +1,8 @@
+2001-02-08  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* guile-test: Use (ice-9 and-let-star) instead of (ice-9
+	and-let*).
+
 2001-01-26  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	This patch fixes things that I have broken with the last one :-(

@@ -1,3 +1,17 @@
+2001-02-08  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* modules.h (scm_selected_module, scm_current_module): Renamed
+	scm_selected_module to scm_current_module to synchronize Scheme
+	and C names.
+	(scm_select_module, scm_set_current_module): Likewise.  Changed
+	all uses.
+	
+	* ports.c (scm_port_for_each): Make a snapshot of the port table
+	before iterating over it.  The table might change while the user
+	code is running.  With the snapshot, the user can depend on the
+	fact that each port that was open at teh start of the iteration is
+	encountered exactly once.  (ice-9 popen) depends on this.
+
 2001-02-08  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* strings.h (SCM_STRING_MAX_LENGTH):  New macro.
