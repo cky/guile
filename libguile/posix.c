@@ -1748,7 +1748,7 @@ SCM_DEFINE (scm_gethostname, "gethostname", 0, 0, 0,
 {
   /* 256 is for Solaris, under Linux ENAMETOOLONG is returned if not
      large enough.  */
-  int len = 256, res;
+  int len = 256, res, save_errno;
   char *p = scm_malloc (len);
   SCM name;
 
@@ -1761,7 +1761,9 @@ SCM_DEFINE (scm_gethostname, "gethostname", 0, 0, 0,
     }
   if (res == -1)
     {
+      save_errno = errno;
       free (p);
+      errno = save_errno;
       SCM_SYSERROR;
     }
   name = scm_makfrom0str (p);
