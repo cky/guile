@@ -3610,31 +3610,41 @@ ret:
 
 /* Typechecking for multi-argument MAP and FOR-EACH.
 
-   Verify that each element of the vector ARGS, except for the first,
+   Verify that each element of the vector ARGV, except for the first,
    is a proper list whose length is LEN.  Attribute errors to WHO,
-   and claim that the i'th element of ARGS is WHO's i+2'th argument.  */
+   and claim that the i'th element of ARGV is WHO's i+2'th argument.  */
 static inline void
-check_map_args (long len, SCM args, const char *who)
+check_map_args (SCM argv,
+		long len,
+		SCM gf,
+		SCM proc,
+		SCM args,
+		const char *who)
 {
-  SCM *ve = SCM_VELTS (args);
+  SCM *ve = SCM_VELTS (argv);
   int i;
 
-  for (i = SCM_LENGTH (args) - 1; i >= 1; i--)
+  for (i = SCM_LENGTH (argv) - 1; i >= 1; i--)
     {
       int elt_len = scm_ilength (ve[i]);
 
       if (elt_len < 0)
-	scm_wrong_type_arg (who, i + 2, ve[i]);
+	{
+	  if (gf)
+	    scm_apply_generic (gf, scm_cons (proc, args));
+	  else
+	    scm_wrong_type_arg (who, i + 2, ve[i]);
+	}
 
       if (elt_len != len)
 	scm_out_of_range (who, ve[i]);
     }
 
-  scm_remember (&args);
+  scm_remember (&argv);
 }
 
 
-SCM_PROC (s_map, "map", 2, 0, 1, scm_map);
+SCM_GPROC (s_map, "map", 2, 0, 1, scm_map, g_map);
 
 /* Note: Currently, scm_map applies PROC to the argument list(s)
    sequentially, starting with the first element(s).  This is used in
@@ -3657,22 +3667,24 @@ scm_map (proc, arg1, args)
   if (SCM_NULLP (arg1))
     return res;
   len = scm_ilength (arg1);
-  SCM_ASSERT (len >= 0, arg1, SCM_ARG2, s_map);
+  SCM_GASSERTn (len >= 0,
+		g_map, scm_cons2 (proc, arg1, args), SCM_ARG2, s_map);
   if (SCM_NULLP (args))
     {
       while (SCM_NIMP (arg1))
 	{
-	  SCM_ASSERT (SCM_CONSP (arg1), arg1, SCM_ARG2, s_map);
-	  *pres = scm_cons (scm_apply (proc, SCM_CAR (arg1), scm_listofnull), SCM_EOL);
+	  SCM_GASSERT2 (SCM_CONSP (arg1), g_map, proc, arg1, SCM_ARG2, s_map);
+	  *pres = scm_cons (scm_apply (proc, SCM_CAR (arg1), scm_listofnull),
+			    SCM_EOL);
 	  pres = SCM_CDRLOC (*pres);
 	  arg1 = SCM_CDR (arg1);
 	}
       return res;
     }
-  args = scm_vector (scm_cons (arg1, args));
+  args = scm_vector (arg1 = scm_cons (arg1, args));
   ve = SCM_VELTS (args);
 #ifndef SCM_RECKLESS
-  check_map_args (len, args, s_map);
+  check_map_args (args, len, g_map, proc, arg1, s_map);
 #endif
   while (1)
     {
@@ -3690,7 +3702,7 @@ scm_map (proc, arg1, args)
 }
 
 
-SCM_PROC(s_for_each, "for-each", 2, 0, 1, scm_for_each);
+SCM_GPROC (s_for_each, "for-each", 2, 0, 1, scm_for_each, g_for_each);
 
 SCM 
 scm_for_each (proc, arg1, args)
@@ -3703,21 +3715,23 @@ scm_for_each (proc, arg1, args)
   if SCM_NULLP (arg1)
     return SCM_UNSPECIFIED;
   len = scm_ilength (arg1);
-  SCM_ASSERT (len >= 0, arg1, SCM_ARG2, s_for_each);
+  SCM_GASSERTn (len >= 0, g_for_each, scm_cons2 (proc, arg1, args),
+		SCM_ARG2, s_for_each);
   if SCM_NULLP (args)
     {
       while SCM_NIMP (arg1)
 	{
-	  SCM_ASSERT (SCM_CONSP (arg1), arg1, SCM_ARG2, s_for_each);
+	  SCM_GASSERT2 (SCM_CONSP (arg1),
+			g_for_each, proc, arg1, SCM_ARG2, s_for_each);
 	  scm_apply (proc, SCM_CAR (arg1), scm_listofnull);
 	  arg1 = SCM_CDR (arg1);
 	}
       return SCM_UNSPECIFIED;
     }
-  args = scm_vector (scm_cons (arg1, args));
+  args = scm_vector (arg1 = scm_cons (arg1, args));
   ve = SCM_VELTS (args);
 #ifndef SCM_RECKLESS
-  check_map_args (len, args, s_for_each);
+  check_map_args (args, len, g_for_each, proc, arg1, s_for_each);
 #endif
   while (1)
     {
