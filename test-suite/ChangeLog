@@ -1,3 +1,8 @@
+2004-07-08  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* standalone/test-unwind.c: Use scm_from_int instead of
+	SCM_MAKINUM and scm_is_eq instead SCM_EQ_P.
+
 2004-07-07  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* standalone/test-conversion.c: Don't define SCM_T_INTMAX_MIN,
