@@ -1,3 +1,18 @@
+2000-01-18  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* alist.c, chars.c, debug.c, dynl.c, dynwind.c, error.c, eval.c,
+	   evalext.c, filesys.c, gc.c, hash.c, hashtab.c, ioext.c,
+	   keywords.c, list.c, load.c, macros.c, net_db.c, numbers.c,
+	   objprop.c, ports.c, posix.c, print.c, procprop.c, procs.c,
+	   ramap.c, regex-posix.c, root.c, scmsigs.c, simpos.c, socket.c,
+	   stacks.c, stime.c, strings.c, strop.c, strports.c, struct.c,
+	   symbols.c, throw.c, unif.c, vectors.c, version.c, vports.c,
+	   weaks.c: Converted docstrings to ANSI C format.
+	
+	* filesys.c (scm_chmod), simpos.c (scm_system), version
+	(scm_version), vports (scm_make_soft_port): Escape " occuring
+	inside docstring.
+
 Mon Jan 17 11:41:22 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* scm_validate.h: Added SCM_VALIDATE_ULONG_COPY,

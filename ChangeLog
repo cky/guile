@@ -1,3 +1,7 @@
+2000-01-18  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* emacs: New subdirectory for elisp tools.
+
 2000-01-15  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* README, HACKING: Moved "Hacking it yourself" section from README
