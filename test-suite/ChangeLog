@@ -1,3 +1,8 @@
+2004-09-25  Marius Vollmer  <mvo@zagadka.de>
+
+	* standalone/Makefile.am (AM_LDFLAGS, LD_FLAGS): Use AM_LDFLAGS
+	instead of LDFLAGS; the latter is a user variable.
+
 2004-09-24  Marius Vollmer  <mvo@zagadka.de>
 
 	* standalone/Makefile.am (test_cflags, LDFLAGS): Include
