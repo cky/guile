@@ -1,3 +1,18 @@
+2004-03-26  Kevin Ryde  <user42@zip.com.au>
+
+	* numbers.c (scm_modulo): For inum/big and big/big, remove test of
+	big==0 since that never occurs.
+
+	* numbers.c, numbers.h (scm_modulo_expt): Renamed from
+	scm_modular_expt, matching scheme level name `modulo-expt'.
+
+	* numbers.c (scm_modular_expt): Return a negative remainder for a
+	negative divisor, the same as `modulo' does.
+
+2004-03-26  Eric Hanchrow <offby1@blarg.net>
+
+	* numbers.c, numbers.h (scm_modular_expt): New function.
+
 2004-03-25  Kevin Ryde  <user42@zip.com.au>
 
 	* numbers.c (scm_min, scm_max): Correction to big/real and real/big,
