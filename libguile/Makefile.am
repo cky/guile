@@ -9,7 +9,7 @@ INCLUDES = -I.. -I$(srcdir)/..
 
 lib_LIBRARIES = libguile.a
 libguile_a_SOURCES = alist.c append.c appinit.c arbiters.c async.c \
-backtrace.c boolean.c chars.c continuations.c debug.c dynwind.c eq.c \
+backtrace.c boolean.c chars.c continuations.c debug.c dynl.c dynwind.c eq.c \
 error.c eval.c extchrs.c fdsocket.c feature.c filesys.c fports.c gc.c \
 gdbint.c genio.c gsubr.c hash.c hashtab.c inet_aton.c init.c ioext.c \
 kw.c list.c load.c mallocs.c markers.c mbstrings.c numbers.c objprop.c \
@@ -24,7 +24,7 @@ include_HEADERS = libguile.h
 # These are headers visible as <libguile/mumble.h>.
 modincludedir = $(includedir)/@module@
 modinclude_HEADERS = __scm.h alist.h append.h arbiters.h async.h \
-backtrace.h boolean.h chars.h continuations.h debug.h dynwind.h eq.h \
+backtrace.h boolean.h chars.h continuations.h debug.h dynl.h dynwind.h eq.h \
 error.h eval.h extchrs.h fdsocket.h feature.h filesys.h fports.h gc.h \
 gdb_interface.h gdbint.h genio.h gsubr.h hash.h hashtab.h init.h ioext.h \
 kw.h list.h load.h mallocs.h markers.h mbstrings.h numbers.h objprop.h \
@@ -37,8 +37,8 @@ vports.h weaks.h snarf.h
 ## This file is generated at configure time.
 modinclude_DATA = scmconfig.h
 
-EXTRA_DIST = gscm.c gscm.h ChangeLog-scm PLUGIN/REQ PLUGIN/guile.config \
-PLUGIN/guile.libs
+EXTRA_DIST = gscm.c gscm.h ChangeLog-scm dynl-dl.c dynl-dld.c dynl-shl.c \
+dynl-vms.c PLUGIN/REQ PLUGIN/guile.config PLUGIN/guile.libs
 
 ## FIXME: shouldn't directly generate file; instead generate temp file
 ## and "mv".  Consider using timestamp file as well, to avoid

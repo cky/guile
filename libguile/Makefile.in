@@ -37,9 +37,9 @@ INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 transform = @program_transform_name@
+FD_SETTER = @FD_SETTER@
 RANLIB = @RANLIB@
 CC = @CC@
-FD_SETTER = @FD_SETTER@
 
 AUTOMAKE_OPTIONS = foreign
 
@@ -47,7 +47,7 @@ INCLUDES = -I.. -I$(srcdir)/..
 
 lib_LIBRARIES = libguile.a
 libguile_a_SOURCES = alist.c append.c appinit.c arbiters.c async.c \
-backtrace.c boolean.c chars.c continuations.c debug.c dynwind.c eq.c \
+backtrace.c boolean.c chars.c continuations.c debug.c dynl.c dynwind.c eq.c \
 error.c eval.c extchrs.c fdsocket.c feature.c filesys.c fports.c gc.c \
 gdbint.c genio.c gsubr.c hash.c hashtab.c inet_aton.c init.c ioext.c \
 kw.c list.c load.c mallocs.c markers.c mbstrings.c numbers.c objprop.c \
@@ -62,7 +62,7 @@ include_HEADERS = libguile.h
 # These are headers visible as <libguile/mumble.h>.
 modincludedir = $(includedir)/@module@
 modinclude_HEADERS = __scm.h alist.h append.h arbiters.h async.h \
-backtrace.h boolean.h chars.h continuations.h debug.h dynwind.h eq.h \
+backtrace.h boolean.h chars.h continuations.h debug.h dynl.h dynwind.h eq.h \
 error.h eval.h extchrs.h fdsocket.h feature.h filesys.h fports.h gc.h \
 gdb_interface.h gdbint.h genio.h gsubr.h hash.h hashtab.h init.h ioext.h \
 kw.h list.h load.h mallocs.h markers.h mbstrings.h numbers.h objprop.h \
@@ -74,8 +74,8 @@ vports.h weaks.h snarf.h
 
 modinclude_DATA = scmconfig.h
 
-EXTRA_DIST = gscm.c gscm.h ChangeLog-scm PLUGIN/REQ PLUGIN/guile.config \
-PLUGIN/guile.libs
+EXTRA_DIST = gscm.c gscm.h ChangeLog-scm dynl-dl.c dynl-dld.c dynl-shl.c \
+dynl-vms.c PLUGIN/REQ PLUGIN/guile.config PLUGIN/guile.libs
 
 SUFFIXES = .x
 
@@ -94,22 +94,22 @@ LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 libguile_a_LIBADD = 
 libguile_a_OBJECTS =  alist.o append.o appinit.o arbiters.o async.o \
-backtrace.o boolean.o chars.o continuations.o debug.o dynwind.o eq.o \
-error.o eval.o extchrs.o fdsocket.o feature.o filesys.o fports.o gc.o \
-gdbint.o genio.o gsubr.o hash.o hashtab.o inet_aton.o init.o ioext.o \
-kw.o list.o load.o mallocs.o markers.o mbstrings.o numbers.o objprop.o \
-options.o pairs.o ports.o posix.o print.o procprop.o procs.o ramap.o \
-read.o root.o scmsigs.o sequences.o simpos.o smob.o socket.o srcprop.o \
-stackchk.o stacks.o stime.o strerror.o strings.o strop.o strorder.o \
-strports.o struct.o symbols.o tag.o throw.o unif.o variable.o vectors.o \
-version.o vports.o weaks.o
+backtrace.o boolean.o chars.o continuations.o debug.o dynl.o dynwind.o \
+eq.o error.o eval.o extchrs.o fdsocket.o feature.o filesys.o fports.o \
+gc.o gdbint.o genio.o gsubr.o hash.o hashtab.o inet_aton.o init.o \
+ioext.o kw.o list.o load.o mallocs.o markers.o mbstrings.o numbers.o \
+objprop.o options.o pairs.o ports.o posix.o print.o procprop.o procs.o \
+ramap.o read.o root.o scmsigs.o sequences.o simpos.o smob.o socket.o \
+srcprop.o stackchk.o stacks.o stime.o strerror.o strings.o strop.o \
+strorder.o strports.o struct.o symbols.o tag.o throw.o unif.o \
+variable.o vectors.o version.o vports.o weaks.o
 AR = ar
 CFLAGS = @CFLAGS@
 COMPILE = $(CC) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
 LINK = $(CC) $(LDFLAGS) -o $@
 DATA =  $(modinclude_DATA)
 
-HEADERS =  $(modinclude_HEADERS) $(include_HEADERS)
+HEADERS =  $(include_HEADERS) $(modinclude_HEADERS)
 
 DIST_COMMON =  COPYING ChangeLog Makefile.am Makefile.in acconfig.h \
 acinclude.m4 aclocal.m4 configure configure.in fd.h.in scmconfig.h.in \
@@ -125,20 +125,20 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) \
 TAR = tar
 DEP_FILES =  .deps/alist.P .deps/append.P .deps/appinit.P \
 .deps/arbiters.P .deps/async.P .deps/backtrace.P .deps/boolean.P \
-.deps/chars.P .deps/continuations.P .deps/debug.P .deps/dynwind.P \
-.deps/eq.P .deps/error.P .deps/eval.P .deps/extchrs.P .deps/fdsocket.P \
-.deps/feature.P .deps/filesys.P .deps/fports.P .deps/gc.P \
-.deps/gdbint.P .deps/genio.P .deps/gsubr.P .deps/hash.P .deps/hashtab.P \
-.deps/inet_aton.P .deps/init.P .deps/ioext.P .deps/kw.P .deps/list.P \
-.deps/load.P .deps/mallocs.P .deps/markers.P .deps/mbstrings.P \
-.deps/numbers.P .deps/objprop.P .deps/options.P .deps/pairs.P \
-.deps/ports.P .deps/posix.P .deps/print.P .deps/procprop.P \
-.deps/procs.P .deps/ramap.P .deps/read.P .deps/root.P .deps/scmsigs.P \
-.deps/sequences.P .deps/simpos.P .deps/smob.P .deps/socket.P \
-.deps/srcprop.P .deps/stackchk.P .deps/stacks.P .deps/stime.P \
-.deps/strerror.P .deps/strings.P .deps/strop.P .deps/strorder.P \
-.deps/strports.P .deps/struct.P .deps/symbols.P .deps/tag.P \
-.deps/throw.P .deps/unif.P .deps/variable.P .deps/vectors.P \
+.deps/chars.P .deps/continuations.P .deps/debug.P .deps/dynl.P \
+.deps/dynwind.P .deps/eq.P .deps/error.P .deps/eval.P .deps/extchrs.P \
+.deps/fdsocket.P .deps/feature.P .deps/filesys.P .deps/fports.P \
+.deps/gc.P .deps/gdbint.P .deps/genio.P .deps/gsubr.P .deps/hash.P \
+.deps/hashtab.P .deps/inet_aton.P .deps/init.P .deps/ioext.P .deps/kw.P \
+.deps/list.P .deps/load.P .deps/mallocs.P .deps/markers.P \
+.deps/mbstrings.P .deps/numbers.P .deps/objprop.P .deps/options.P \
+.deps/pairs.P .deps/ports.P .deps/posix.P .deps/print.P \
+.deps/procprop.P .deps/procs.P .deps/ramap.P .deps/read.P .deps/root.P \
+.deps/scmsigs.P .deps/sequences.P .deps/simpos.P .deps/smob.P \
+.deps/socket.P .deps/srcprop.P .deps/stackchk.P .deps/stacks.P \
+.deps/stime.P .deps/strerror.P .deps/strings.P .deps/strop.P \
+.deps/strorder.P .deps/strports.P .deps/struct.P .deps/symbols.P \
+.deps/tag.P .deps/throw.P .deps/unif.P .deps/variable.P .deps/vectors.P \
 .deps/version.P .deps/vports.P .deps/weaks.P
 SOURCES = $(libguile_a_SOURCES)
 OBJECTS = $(libguile_a_OBJECTS)
@@ -248,18 +248,6 @@ uninstall-modincludeDATA:
 	  rm -f $(modincludedir)/$$p; \
 	done
 
-install-modincludeHEADERS: $(modinclude_HEADERS)
-	$(NORMAL_INSTALL)
-	$(mkinstalldirs) $(modincludedir)
-	list="$(modinclude_HEADERS)"; for p in $$list; do \
-	  $(INSTALL_DATA) $(srcdir)/$$p $(modincludedir)/$$p; \
-	done
-
-uninstall-modincludeHEADERS:
-	list="$(modinclude_HEADERS)"; for p in $$list; do \
-	  rm -f $(modincludedir)/$$p; \
-	done
-
 install-includeHEADERS: $(include_HEADERS)
 	$(NORMAL_INSTALL)
 	$(mkinstalldirs) $(includedir)
@@ -270,6 +258,18 @@ install-includeHEADERS: $(include_HEADERS)
 uninstall-includeHEADERS:
 	list="$(include_HEADERS)"; for p in $$list; do \
 	  rm -f $(includedir)/$$p; \
+	done
+
+install-modincludeHEADERS: $(modinclude_HEADERS)
+	$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(modincludedir)
+	list="$(modinclude_HEADERS)"; for p in $$list; do \
+	  $(INSTALL_DATA) $(srcdir)/$$p $(modincludedir)/$$p; \
+	done
+
+uninstall-modincludeHEADERS:
+	list="$(modinclude_HEADERS)"; for p in $$list; do \
+	  rm -f $(modincludedir)/$$p; \
 	done
 
 tags: TAGS
@@ -368,21 +368,21 @@ installcheck:
 install-exec: install-libLIBRARIES
 	$(NORMAL_INSTALL)
 
-install-data: install-modincludeDATA install-modincludeHEADERS install-includeHEADERS
+install-data: install-modincludeDATA install-includeHEADERS install-modincludeHEADERS
 	$(NORMAL_INSTALL)
 
 install: install-exec install-data all
 	@:
 
-uninstall: uninstall-libLIBRARIES uninstall-modincludeDATA uninstall-modincludeHEADERS uninstall-includeHEADERS
+uninstall: uninstall-libLIBRARIES uninstall-modincludeDATA uninstall-includeHEADERS uninstall-modincludeHEADERS
 
 all: $(LIBRARIES) $(DATA) $(HEADERS) Makefile scmconfig.h
 
 install-strip:
 	$(MAKE) INSTALL_PROGRAM='$(INSTALL_PROGRAM) -s' install
 installdirs:
-	$(mkinstalldirs)  $(libdir) $(modincludedir) $(modincludedir) \
-		$(includedir)
+	$(mkinstalldirs)  $(libdir) $(modincludedir) $(includedir) \
+		$(modincludedir)
 
 
 mostlyclean-generic:
@@ -423,14 +423,14 @@ maintainer-clean-hdr mostlyclean-libLIBRARIES distclean-libLIBRARIES \
 clean-libLIBRARIES maintainer-clean-libLIBRARIES uninstall-libLIBRARIES \
 install-libLIBRARIES mostlyclean-compile distclean-compile \
 clean-compile maintainer-clean-compile uninstall-modincludeDATA \
-install-modincludeDATA uninstall-modincludeHEADERS \
-install-modincludeHEADERS uninstall-includeHEADERS \
-install-includeHEADERS tags mostlyclean-tags distclean-tags clean-tags \
-maintainer-clean-tags distdir mostlyclean-depend distclean-depend \
-clean-depend maintainer-clean-depend info dvi installcheck install-exec \
-install-data install uninstall all installdirs mostlyclean-generic \
-distclean-generic clean-generic maintainer-clean-generic clean \
-mostlyclean distclean maintainer-clean
+install-modincludeDATA uninstall-includeHEADERS install-includeHEADERS \
+uninstall-modincludeHEADERS install-modincludeHEADERS tags \
+mostlyclean-tags distclean-tags clean-tags maintainer-clean-tags \
+distdir mostlyclean-depend distclean-depend clean-depend \
+maintainer-clean-depend info dvi installcheck install-exec install-data \
+install uninstall all installdirs mostlyclean-generic distclean-generic \
+clean-generic maintainer-clean-generic clean mostlyclean distclean \
+maintainer-clean
 
 
 libpath.h: Makefile
