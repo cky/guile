@@ -1,5 +1,5 @@
 ;;;; numbers.test --- tests guile's numbers     -*- scheme -*-
-;;;; Copyright (C) 2000, 2001 Free Software Foundation, Inc.
+;;;; Copyright (C) 2000, 2001, 2003 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -1608,6 +1608,12 @@
 ;;;
 ;;; -
 ;;;
+
+(with-test-prefix "-"
+
+  (pass-if "-inum - +bignum"
+    (= #x-100000000000000000000000000000001
+       (- -1 #x100000000000000000000000000000000))))
 
 ;;;
 ;;; *
