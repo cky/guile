@@ -5,7 +5,4 @@
   exit 1
 }
 
-aclocal
-libtoolize --copy --automake
-autoconf
-automake --add-missing
+autoreconf -i
