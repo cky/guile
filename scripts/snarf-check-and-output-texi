@@ -254,8 +254,8 @@ exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
      (('cname ('id . name))
       (set! *c-function-name* (texi-quote (symbol->string name))))
 
-     (('fname ('string . name))
-      (set! *function-name* (texi-quote name)))
+     (('fname ('string . name) ...)
+      (set! *function-name* (texi-quote (apply string-append name))))
 
      (('type ('id . type))
       (set! *snarf-type* type))
