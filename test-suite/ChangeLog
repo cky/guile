@@ -1,3 +1,7 @@
+2005-03-16  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/srfi-1.test (drop-right, partition!, take-right): New tests.
+
 2005-03-14  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/srfi-1.test (find, find-tail, lset-union): New tests.
