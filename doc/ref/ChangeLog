@@ -1,3 +1,11 @@
+2003-03-07  Rob Browning  <rlb@defaultvalue.org>
+
+	* guile.texi: change MANUAL_EDITION to MANUAL-EDITION so we don't
+	choke TeX (thanks to Dale P. Smith).
+
+	* preface.texi: change MANUAL_EDITION to MANUAL-EDITION so we
+	don't choke TeX (thanks to Dale P. Smith).
+
 2003-01-02  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* scheme-scheduling.texi (Low level thread primitives): Fixed typo
