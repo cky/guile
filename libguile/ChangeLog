@@ -1,5 +1,9 @@
 2004-08-06  Kevin Ryde  <user42@zip.com.au>
 
+	* ramap.c (scm_array_fill_x): For byvect char fill, force signed char
+	so as not to depend on signedness of plain char.  For byvect range
+	check, throw out-of-range rather than wrong-type-arg.
+
 	* unif.c (scm_uniform_vector_ref, scm_array_set_x): For byvect, force
 	signed byte range checks by using scm_to_schar and scm_from_schar,
 	don't want to depend on signedness of C char.

@@ -2,6 +2,7 @@
 
 	* tests/unif.test (array-set!): Exercise byte array range checks.
 	(uniform-vector-ref): Exercise byte returns.
+	(array-fill!): Exercise byte range and type checks.
 
 2004-08-03  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
