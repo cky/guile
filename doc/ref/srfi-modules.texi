@@ -27,6 +27,7 @@ get the relevant SRFI documents from the SRFI home page
 * SRFI-14::                     Character-set library.
 * SRFI-16::                     case-lambda
 * SRFI-17::                     Generalized set!
+* SRFI-19::                     Time/Date library.
 @end menu
 
 
