@@ -54,24 +54,29 @@
  * Modified by: Mikael Djurfeldt
  */
 
-#include <stdio.h>
-#include <assert.h>
 
 #include "libguile/_scm.h"
 #include "libguile/ports.h"
 #include "libguile/print.h"
 #include "libguile/smob.h"
-#include "libguile/vectors.h"
 
 #include "libguile/validate.h"
 #include "libguile/guardians.h"
 
-static long scm_tc16_guardian;
 
 /* The live and zombies FIFOs are implemented as tconcs as described
    in Dybvig's paper.  This decouples addition and removal of elements
    so that no synchronization between these needs to take place.
 */
+
+typedef struct tconc_t
+{
+  SCM head;
+  SCM tail;
+} tconc_t;
+
+#define TCONC_EMPTYP(tc) (SCM_EQ_P ((tc).head, (tc).tail))
+
 #define TCONC_IN(tc, obj, pair) \
 do { \
   SCM_SETCAR ((tc).tail, obj); \
@@ -87,13 +92,8 @@ do { \
   (tc).head = SCM_CDR ((tc).head); \
 } while (0)
 
-#define TCONC_EMPTYP(tc) (SCM_EQ_P ((tc).head, (tc).tail))
 
-typedef struct tconc_t
-{
-  SCM head;
-  SCM tail;
-} tconc_t;
+static long tc16_guardian;
 
 typedef struct guardian_t
 {
@@ -107,58 +107,95 @@ typedef struct guardian_t
 #define GUARDIAN_ZOMBIES(x) (GUARDIAN (x)->zombies)
 #define GUARDIAN_NEXT(x) (GUARDIAN (x)->next)
 
-#define CCLO_G(cclo) (SCM_VELTS (cclo)[1])
 
-/* subr constructed from guard below.  */
-static SCM guard1;
+/* during the gc mark phase, live guardians are linked into a list here. */
+static guardian_t *first_live_guardian = NULL;
+static guardian_t **current_link_field = NULL;
 
-/* this is wrapped in a compiled closure and is the Scheme entry point
-   for each guardian: if arg is an object, it's added to the
-   guardian's live list.  if arg is unbound, the next available
-   zombified object (or #f if none) is returned.  */
+
+/* mark a guardian by adding it to the live guardian list.  */
 static SCM
-guard (SCM cclo, SCM arg)
+guardian_mark (SCM ptr)
+{
+  *current_link_field = GUARDIAN (ptr);
+  current_link_field = &GUARDIAN_NEXT (ptr);
+  GUARDIAN_NEXT (ptr) = NULL;
+
+  /* the objects protected by the guardian are not marked here: that
+     would prevent them from ever getting collected.  instead marking
+     is done at the end of the mark phase by scm_guardian_zombify.  */
+  return SCM_BOOL_F;
+}
+
+
+static scm_sizet
+guardian_free (SCM ptr)
+{
+  scm_must_free (GUARDIAN (ptr));
+  return sizeof (guardian_t);
+}
+
+
+static int
+guardian_print (SCM g, SCM port, scm_print_state *pstate)
+{
+  scm_puts ("#<guardian live objs: ", port);
+  scm_display (scm_length (SCM_CDR (GUARDIAN_LIVE (g).head)), port);
+  scm_puts (" zombies: ", port);
+  scm_display (scm_length (SCM_CDR (GUARDIAN_ZOMBIES (g).head)), port);
+  scm_puts (">", port);
+
+  return 1;
+}
+
+
+/* This is the Scheme entry point for each guardian: If arg is an object, it's
+ * added to the guardian's live list.  If arg is unbound, the next available
+ * zombified object (or #f if none) is returned.
+ */ 
+static SCM
+guardian_apply (SCM guardian, SCM arg)
 {
   if (!SCM_UNBNDP (arg))
     {
-      scm_guard (cclo, arg);
+      scm_guard (guardian, arg);
       return SCM_UNSPECIFIED;
     }
   else
-    return scm_get_one_zombie (cclo);
+    return scm_get_one_zombie (guardian);
 }
+
 
 void
 scm_guard (SCM guardian, SCM obj)
 {
-  SCM g = CCLO_G (guardian);
-
-  if (SCM_NIMP (obj))
+  if (!SCM_IMP (obj))
     {
       SCM z;
-      
+
       SCM_NEWCELL (z);
 
       /* This critical section barrier will be replaced by a mutex. */
       SCM_DEFER_INTS;
-      TCONC_IN (GUARDIAN_LIVE (g), obj, z);
+      TCONC_IN (GUARDIAN_LIVE (guardian), obj, z);
       SCM_ALLOW_INTS;
     }
 }
 
+
 SCM
 scm_get_one_zombie (SCM guardian)
 {
-  SCM g = CCLO_G (guardian);
   SCM res = SCM_BOOL_F;
 
   /* This critical section barrier will be replaced by a mutex. */
   SCM_DEFER_INTS;
-  if (!TCONC_EMPTYP (GUARDIAN_ZOMBIES (g)))
-    TCONC_OUT (GUARDIAN_ZOMBIES (g), res);
+  if (!TCONC_EMPTYP (GUARDIAN_ZOMBIES (guardian)))
+    TCONC_OUT (GUARDIAN_ZOMBIES (guardian), res);
   SCM_ALLOW_INTS;
   return res;
 }
+
 
 SCM_DEFINE (scm_make_guardian, "make-guardian", 0, 0, 0, 
             (),
@@ -181,8 +218,7 @@ SCM_DEFINE (scm_make_guardian, "make-guardian", 0, 0, 0,
             "and Implementation, June 1993.")
 #define FUNC_NAME s_scm_make_guardian
 {
-  SCM cclo = scm_makcclo (guard1, 2L);
-  guardian_t *g = SCM_MUST_MALLOC_TYPE(guardian_t);
+  guardian_t *g = SCM_MUST_MALLOC_TYPE (guardian_t);
   SCM z1 = scm_cons (SCM_BOOL_F, SCM_EOL);
   SCM z2 = scm_cons (SCM_BOOL_F, SCM_EOL);
   SCM z;
@@ -191,23 +227,16 @@ SCM_DEFINE (scm_make_guardian, "make-guardian", 0, 0, 0,
   g->live.head = g->live.tail = z1;
   g->zombies.head = g->zombies.tail = z2;
 
-  SCM_NEWSMOB (z, scm_tc16_guardian, g);
+  SCM_NEWSMOB (z, tc16_guardian, g);
 
-  CCLO_G (cclo) = z;
-
-  return cclo;
+  return z;
 }
 #undef FUNC_NAME
 
-/* during the gc mark phase, live guardians are linked into a list
-   here.  */
-static guardian_t *first_live_guardian = NULL;
-static guardian_t **current_link_field = NULL;
 
-/* called before gc mark phase begins to initialise the live guardian
-   list.  */
+/* called before gc mark phase begins to initialise the live guardian list. */
 static void *
-scm_guardian_gc_init (void *dummy1, void *dummy2, void *dummy3)
+guardian_gc_init (void *dummy1, void *dummy2, void *dummy3)
 {
   current_link_field = &first_live_guardian;
   first_live_guardian = NULL;
@@ -215,25 +244,12 @@ scm_guardian_gc_init (void *dummy1, void *dummy2, void *dummy3)
   return 0;
 }
 
-/* mark a guardian by adding it to the live guardian list.  */
-static SCM
-g_mark (SCM ptr)
-{
-  *current_link_field = GUARDIAN (ptr);
-  current_link_field = &GUARDIAN_NEXT (ptr);
-  GUARDIAN_NEXT (ptr) = NULL;
-
-  /* the objects protected by the guardian are not marked here: that
-     would prevent them from ever getting collected.  instead marking
-     is done at the end of the mark phase by scm_guardian_zombify.  */
-  return SCM_BOOL_F;
-}
 
 /* this is called by the garbage collector between the mark and sweep
    phases.  for each marked guardian, it moves any unmarked object in
    its live list (tconc) to its zombie list (tconc).  */
 static void *
-scm_guardian_zombify (void *dummy1, void *dummy2, void *dummy3)
+guardian_zombify (void *dummy1, void *dummy2, void *dummy3)
 {
   guardian_t *first_guardian;
   guardian_t **link_field = &first_live_guardian;
@@ -282,7 +298,7 @@ scm_guardian_zombify (void *dummy1, void *dummy2, void *dummy3)
         /* Mark the cells of the live list (yes, the cells in the list,
            even though we don't care about objects pointed to by the list
            cars, since we know they are already marked).  */
-        for (pair = g->live.head; SCM_NIMP (pair); pair = SCM_GCCDR (pair))
+        for (pair = g->live.head; !SCM_NULLP (pair); pair = SCM_CDR (pair))
           SCM_SETGCMARK (pair);
       }
 
@@ -294,45 +310,33 @@ scm_guardian_zombify (void *dummy1, void *dummy2, void *dummy3)
        guardian procedure to return an object which is referenced,
        so not collectable?  The paper doesn't give this
        impression.
-       
+
        cmm: the paper does explicitly say that an object that is    
        guarded more than once should be returned more than once.    
        I believe this covers the above scenario. */
-          
+
     /* Preserve the zombies in their undead state, by marking to    
        prevent collection.  Note that this may uncover zombified    
        guardians -- if so, they'll be processed in the next loop. */
-      
-    for (g = first_guardian; g && (!*link_field || g != *link_field); g = g->next)
+    for (g = first_guardian; g != *link_field; g = g->next)
       scm_gc_mark (g->zombies.head);
-    
   } while (current_link_field != link_field);
   
   return 0;
 }
 
-/* not generally used, since guardian smob is wrapped in a closure.
-   maybe useful for debugging.  */
-static int
-g_print (SCM exp, SCM port, scm_print_state *pstate)
-{
-  char buf[256];
-  sprintf (buf, "#<guardian live objs: %lu zombies: %lu>",
-	   scm_ilength (SCM_CDR (GUARDIAN_LIVE (exp).head)),
-	   scm_ilength (SCM_CDR (GUARDIAN_ZOMBIES (exp).head)));
-  scm_puts (buf, port);
-
-  return 1;
-}
 
 void
 scm_init_guardian()
 {
-  scm_tc16_guardian = scm_make_smob_type_mfpe ("guardian", sizeof (guardian_t),
-					       g_mark, NULL, g_print, NULL);
-  guard1 = scm_make_subr_opt ("guardian", scm_tc7_subr_2o, guard, 0);
-  scm_c_hook_add (&scm_before_mark_c_hook, scm_guardian_gc_init, 0, 0);
-  scm_c_hook_add (&scm_before_sweep_c_hook, scm_guardian_zombify, 0, 0);
+  tc16_guardian = scm_make_smob_type ("guardian", 0);
+  scm_set_smob_mark (tc16_guardian, guardian_mark);
+  scm_set_smob_free (tc16_guardian, guardian_free);
+  scm_set_smob_print (tc16_guardian, guardian_print);
+  scm_set_smob_apply (tc16_guardian, guardian_apply, 0, 1, 0);
+
+  scm_c_hook_add (&scm_before_mark_c_hook, guardian_gc_init, 0, 0);
+  scm_c_hook_add (&scm_before_sweep_c_hook, guardian_zombify, 0, 0);
 
 #ifndef SCM_MAGIC_SNARFER
 #include "libguile/guardians.x"

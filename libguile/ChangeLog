@@ -1,3 +1,30 @@
+2000-12-05  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* dynl.c (sysdep_dynl_link):  Improved error reporting.
+
+	* guardians.c:  Changed the representation from a compiled closure
+	to an applicable smob.
+
+	(guard1, CCLO_G):  Removed.
+
+	(guard, g_mark, g_print, scm_tc16_guardian, scm_guardian_gc_init,
+	scm_guardian_zombify):  Renamed to guardian_apply, guardian_mark,
+	guardian_print, tc16_guardian, guardian_gc_init and
+	guardian_zombify, respectively.
+
+	(guardian_free):  Added, fixes a memory leak.
+
+	(guardian_print):  Don't use sprintf hack.
+
+	(guardian_apply, scm_guard, scm_get_one_zombie,
+	scm_make_guardian):  Don't use a compiled closure.
+
+	(guardian_zombify):  Prefer !SCM_NULLP over SCM_NIMP.  No need to
+	use SCM_GCCDR any more.  Simplified loop condition.
+
+	(scm_init_guardian):  Don't use scm_make_smob_type_mfpe for smob
+	initialization.  Initialize applicable smob.
+
 2000-12-04  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* chars.c (scm_char_eq_p):  Minor cleanup/optimization.

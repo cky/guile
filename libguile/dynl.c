@@ -239,8 +239,13 @@ sysdep_dynl_link (const char *fname, const char *subr)
   handle = lt_dlopenext (fname);
   if (NULL == handle)
     {
+      SCM fn;
+      SCM msg;
+
       SCM_ALLOW_INTS;
-      scm_misc_error (subr, (char *) lt_dlerror (), SCM_EOL);
+      fn = scm_makfrom0str (fname);
+      msg = scm_makfrom0str (lt_dlerror ());
+      scm_misc_error (subr, "file: ~S, message: ~S", SCM_LIST2 (fn, msg));
     }
   return (void *) handle;
 }
