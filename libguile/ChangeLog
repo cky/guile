@@ -1,5 +1,7 @@
 2001-04-19  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
 
+	* unif.h (SCM_ARRAY_CONTIGUOUS): Reintroduced as deprecated.
+
 	* __scm.h (SCM_WTA_DISPATCH_0, SCM_WTA_DISPATCH_1,
 	SCM_WTA_DISPATCH_2, SCM_WTA_DISPATCH_n): Inserted required
 	parentheses in order to get the correct associativity.

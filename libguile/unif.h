@@ -78,6 +78,10 @@ extern scm_bits_t scm_tc16_array;
 
 #define SCM_ARRAY_FLAG_CONTIGUOUS (1 << 16)
 
+#if (SCM_DEBUG_DEPRECATED == 0)
+#define SCM_ARRAY_CONTIGUOUS SCM_ARRAY_FLAG_CONTIGUOUS
+#endif
+
 #define SCM_ARRAYP(a) 	    SCM_TYP16_PREDICATE (scm_tc16_array, a)
 #define SCM_ARRAY_NDIM(x)   ((scm_sizet) (SCM_CELL_WORD_0 (x) >> 17))
 #define SCM_ARRAY_CONTP(x)  (SCM_CELL_WORD_0 (x) & SCM_ARRAY_FLAG_CONTIGUOUS)

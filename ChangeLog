@@ -1,3 +1,7 @@
+2001-04-19  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
+
+	* RELEASE: Added deprecated macro SCM_ARRAY_CONTIGUOUS
+
 2001-04-17  Gary Houston  <ghouston@arglist.com>
 
 	* configure.in: run the autoconf BIGENDIAN check.
