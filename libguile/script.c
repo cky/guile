@@ -373,7 +373,9 @@ scm_shell_usage (int fatal, char *message)
 	   "                 which is a list of numbers like \"2,13,14\"\n"
            "  -h, --help     display this help and exit\n"
            "  -v, --version  display version information and exit\n"
-	   "  \\              read arguments from following script lines\n",
+	   "  \\              read arguments from following script lines\n"
+           "\n"
+	   "Report bugs to bug-guile@gnu.org\n",
            scm_usage_name);
 
   if (fatal)
