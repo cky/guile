@@ -1,3 +1,7 @@
+1998-04-25  Mikael Djurfeldt  <mdj@kenneth>
+
+	* configure.in: Define USLEEP_RETURNS_VOID on some systems.
+
 1998-04-20  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* configure.in: Check for usleep;  Define DECLARE_BZERO and

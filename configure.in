@@ -106,6 +106,13 @@ case "$host_os" in
   ;;
 esac
 
+# On some systems usleep have no return value
+AC_EGREP_HEADER(changequote(<, >)<void[ 	][ 	]*usleep>changequote([, ]),
+  /usr/include/unistd.h,
+  AC_DEFINE(USLEEP_RETURNS_VOID)
+)
+
+
 dnl <GNU-WIN32 hacks>
 
 AC_CHECK_HEADER(sys/un.h, have_sys_un_h=1)

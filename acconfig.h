@@ -92,3 +92,6 @@
 
 /* Define if the operating system supplies usleep without declaring it. */
 #undef DECLARE_USLEEP
+
+/* Define if usleep doesn't return a value. */
+#undef USLEEP_RETURNS_VOID

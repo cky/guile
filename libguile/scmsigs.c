@@ -53,7 +53,11 @@
 #endif
 
 #if defined(DECLARE_USLEEP) || (defined(GUILE_ISELECT) && !defined(HAVE_USLEEP))
+#ifdef USLEEP_RETURNS_VOID
+extern void usleep (unsigned);
+#else
 extern int usleep (unsigned);
+#endif
 #endif
 
 
@@ -364,8 +368,13 @@ scm_usleep (i)
 {
   int j;
   SCM_ASSERT (SCM_INUMP (i) && (SCM_INUM (i) >= 0), i, SCM_ARG1, s_usleep);
-  j = usleep (SCM_INUM(i));
+#ifdef USLEEP_RETURNS_VOID
+  usleep (SCM_INUM (i));
+  return SCM_INUM0;
+#else
+  j = usleep (SCM_INUM (i));
   return SCM_MAKINUM (j);
+#endif
 }
 #endif
 

@@ -40,7 +40,7 @@
  * If you do not wish that, delete this exception notice.  */
 
 
-/* $Id: coop.c,v 1.9 1998-04-20 00:39:15 mdj Exp $ */
+/* $Id: coop.c,v 1.10 1998-04-24 23:36:02 mdj Exp $ */
 
 /* Cooperative thread library, based on QuickThreads */
 
@@ -652,15 +652,21 @@ coop_sleephelp (sp, old, bolckq)
 
 #ifdef GUILE_ISELECT
 
+#ifdef USLEEP_RETURNS_VOID
+void
+#else
 int
+#endif
 usleep (unsigned usec)
 {
   struct timeval timeout;
   timeout.tv_sec = 0;
   timeout.tv_usec = usec;
   scm_internal_select (0, NULL, NULL, NULL, &timeout);
+#ifndef USLEEP_RETURNS_VOID
   return 0;  /* Maybe we should calculate actual time slept,
 		but this is faster... :) */
+#endif
 }
 
 unsigned

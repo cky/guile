@@ -622,6 +622,7 @@ dnl
 dnl Set the appropriate flags!
 dnl 
   cy_cv_threads_cflags="$CPPFLAGS $cy_cv_threads_cflags"
+  cy_cv_threads_libs="$LDFLAGS $LIBS $cy_cv_threads_libs"
   cy_cv_threads_package=$threads_package
   CPPFLAGS="$saved_CPP"
   LDFLAGS="$saved_LD"
