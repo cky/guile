@@ -1424,7 +1424,10 @@ SCM_DEFINE (scm_copy_file, "copy-file", 2, 0, 0,
   newfd = open (SCM_STRING_CHARS (newfile), O_WRONLY | O_CREAT | O_TRUNC,
 		oldstat.st_mode & 07777);
   if (newfd == -1)
-    SCM_SYSERROR;
+    {
+      close (oldfd);
+      SCM_SYSERROR;
+    }
 
   while ((n = read (oldfd, buf, sizeof buf)) > 0)
     if (write (newfd, buf, n) != n)
