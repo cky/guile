@@ -121,6 +121,7 @@
 #include "version.h"
 #include "vports.h"
 #include "weaks.h"
+#include "guardians.h"
 
 #include "init.h"
 
@@ -486,6 +487,7 @@ scm_boot_guile_1 (base, closure)
       scm_init_vectors ();
       scm_init_version ();
       scm_init_weaks ();
+      scm_init_guardian ();
       scm_init_vports ();
       scm_init_eval ();
       scm_init_evalext ();
