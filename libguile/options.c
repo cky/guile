@@ -100,10 +100,9 @@
  *
  * For boolean options, the presence of the symbol of that option in
  * the option setting indicates a true value.  If the symbol isn't a
- * member of the option setting list, this represents a false value.
+ * member of the option setting this represents a false value.
  *
- * Other options are represented by a symbol followed by that options
- * value.
+ * Other options are represented by a symbol followed by the value.
  *
  * If scm_options is called without arguments, the current option
  * setting is returned.  If the argument is an option setting, options
