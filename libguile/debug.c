@@ -160,12 +160,14 @@ scm_memoized_p (obj)
   return SCM_NIMP (obj) && SCM_MEMOIZEDP (obj) ? SCM_BOOL_T : SCM_BOOL_F;
 }
 
+SCM_PROC (s_make_memoized, "make-memoized", 2, 0, 0, scm_make_memoized);
 
 SCM
 scm_make_memoized (exp, env)
      SCM exp;
      SCM env;
 {
+  /* *fixme* Check that env is a valid environment. */
   register SCM z, ans;
   SCM_DEFER_INTS;
   SCM_NEWCELL (z);
@@ -184,7 +186,7 @@ SCM
 scm_unmemoize (m)
      SCM m;
 {
-  SCM_ASSERT (SCM_MEMOIZEDP (m), m, SCM_ARG1, s_unmemoize);
+  SCM_ASSERT (SCM_NIMP (m) && SCM_MEMOIZEDP (m), m, SCM_ARG1, s_unmemoize);
   return scm_unmemocopy (SCM_MEMOIZED_EXP (m), SCM_MEMOIZED_ENV (m));
 }
 
@@ -194,7 +196,7 @@ SCM
 scm_memoized_environment (m)
      SCM m;
 {
-  SCM_ASSERT (SCM_MEMOIZEDP (m), m, SCM_ARG1, s_unmemoize);
+  SCM_ASSERT (SCM_NIMP (m) && SCM_MEMOIZEDP (m), m, SCM_ARG1, s_unmemoize);
   return SCM_MEMOIZED_ENV (m);
 }
 
@@ -293,13 +295,18 @@ scm_procedure_environment (proc)
  * evaluating.  Probably the best solution would be to have eval.c generate
  * yet another evaluator.  They are not very big actually.
  */
-SCM_PROC (s_local_eval, "local-eval", 2, 0, 0, scm_local_eval);
+SCM_PROC (s_local_eval, "local-eval", 1, 1, 0, scm_local_eval);
 
 SCM
 scm_local_eval (exp, env)
      SCM exp;
      SCM env;
 {
+  if (SCM_UNBNDP (env))
+  {
+    SCM_ASSERT (SCM_NIMP (exp) && SCM_MEMOIZEDP (exp));
+    return scm_eval_3 (SCM_MEMOIZED_EXP (exp), 0, SCM_MEMOIZED_ENV (exp));
+  }
   return scm_eval_3 (exp, 1, env);
 }
 
