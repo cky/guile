@@ -170,6 +170,9 @@
 /* Define if you have the geteuid function.  */
 #undef HAVE_GETEUID
 
+/* Define if you have the gethostent function.  */
+#undef HAVE_GETHOSTENT
+
 /* Define if you have the gettimeofday function.  */
 #undef HAVE_GETTIMEOFDAY
 

@@ -166,7 +166,11 @@ scm_gethost (name)
   if (SCM_UNBNDP (name))
     {
       SCM_DEFER_INTS;
+#ifdef HAVE_GETHOSTENT
       entry = gethostent ();
+#else
+      entry = NULL;
+#endif
     }
   else if (SCM_NIMP (name) && SCM_ROSTRINGP (name))
     {
