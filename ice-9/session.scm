@@ -113,3 +113,13 @@
 	      (list (module-obarray module)))))
        modules))
     (cdr vars)))
+
+(define-public (name obj)
+  (cond ((procedure? obj) (procedure-name obj))
+	((macro? obj) (macro-name obj))
+	(else #f)))
+
+(define-public (source obj)
+  (cond ((procedure? obj) (procedure-source obj))
+	((macro? obj) (procedure-source (macro-transformer obj)))
+	(else #f)))
