@@ -1326,7 +1326,7 @@
     (set-module-obarray! m (%get-pre-modules-obarray))
     m))
 
-;; make-scm-module 
+;; make-scm-module
 
 ;; The root interface is a module that uses the same obarray as the
 ;; root module.  It does not allow new definitions, tho.
@@ -1626,41 +1626,46 @@
 ;; returned interface has no bindings.  If the `:select' clause is omitted,
 ;; RENAMER operates on the used module's public interface.
 ;;
-;; Signal error if module name is not resolvable.
+;; Signal "no code for module" error if module name is not resolvable or its
+;; public interface is not available.  Signal "no binding" error if selected
+;; binding does not exist in the used module.
 ;;
 (define (resolve-interface spec)
   (let* ((simple? (not (pair? (car spec))))
          (name (if simple? spec (car spec)))
-         (module (resolve-module name)))
-    (if (not module)
-        (error "no code for module" name)
-        (let ((public-i (module-public-interface module)))
-          (cond ((not public-i)
-                 (beautify-user-module! module)
-                 (set! public-i (module-public-interface module))))
-          (if simple?
-              public-i
-              (let ((selection (cond ((memq ':select spec) => cadr)
-                                     (else (module-map (lambda (sym var) sym)
-                                                       public-i))))
-                    (rename (cond ((memq ':rename spec)
-                                   => (lambda (x)
-                                        (eval (cadr x) (current-module))))
-                                  (else identity)))
-                    (partial-i (make-module 31)))
-                (set-module-kind! partial-i 'interface)
-                (for-each (lambda (sel-spec)
-                            (let* ((direct? (symbol? sel-spec))
-                                   (orig (if direct?
-                                             sel-spec
-                                             (car sel-spec)))
-                                   (seen (if direct?
-                                             sel-spec
-                                             (cdr sel-spec))))
-                              (module-add! partial-i (rename seen)
-                                           (module-variable module orig))))
-                          selection)
-                partial-i))))))
+         (module (resolve-module name))
+         (public-i (and module (module-public-interface module))))
+    (and (or (not module) (not public-i))
+         (error "no code for module" name))
+    (if simple?
+        public-i
+        (let ((selection (cond ((memq ':select spec) => cadr)
+                               (else (module-map (lambda (sym var) sym)
+                                                 public-i))))
+              (rename (cond ((memq ':rename spec)
+                             => (lambda (x)
+                                  ;; fixme:ttn -- move to macroexpansion time
+                                  (eval (cadr x) (current-module))))
+                            (else identity)))
+              (custom-i (make-module 31)))
+          (set-module-kind! custom-i 'interface)
+          (for-each (lambda (sel-spec)
+                      (let* ((direct? (symbol? sel-spec))
+                             (orig (if direct?
+                                       sel-spec
+                                       (car sel-spec)))
+                             (seen (if direct?
+                                       sel-spec
+                                       (cdr sel-spec))))
+                        (module-add! custom-i (rename seen)
+                                     (or (module-local-variable module orig)
+                                         (error
+                                          ;; fixme: format manually for now
+                                          (simple-format
+                                           #f "no binding `~A' in module ~A"
+                                           orig name))))))
+                    selection)
+          custom-i))))
 
 (define (symbol-prefix-proc prefix)
   (lambda (symbol)
