@@ -828,6 +828,39 @@
 	good))))
 
 ;;
+;; lset-adjoin
+;;
+
+(with-test-prefix "lset-adjoin"
+
+  (pass-if "no args"
+    (eq? #t (lset= eq?)))
+
+  ;; in guile 1.6.7 and earlier, lset-adjoin didn't actually use the given
+  ;; `=' procedure, all comparisons were just with `equal?
+  ;;
+  (with-test-prefix "case-insensitive ="
+
+    (pass-if "(\"x\") \"X\""
+      (equal? '("x") (lset-adjoin string-ci=? '("x") "X"))))
+
+  (pass-if "called arg order"
+    (let ((good #f))
+      (lset-adjoin (lambda (x y)
+		     (set! good (and (= x 1) (= y 2))))
+		   '(1) 2)
+      good))
+
+  (pass-if "called against arg list only"
+    (let ((good #t))
+      (lset-adjoin (lambda (x y)
+		     (set! good (and good
+				     (= x 1)
+				     (or (= y 2) (= y 3)))))
+		   '(1) 2 3)
+      good)))
+
+;;
 ;; member
 ;;
 
