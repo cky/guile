@@ -1,3 +1,9 @@
+2003-01-27  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* syncase.scm (guile-macro): Strip syntactic information from
+	expression before trying to treat it as a Guile macro call.
+	(Thanks to Kevin Ryde.)
+
 2003-01-24  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* threads.scm (parallel, letpar): Rewritten.

@@ -157,21 +157,22 @@
 (define guile-macro
   (cons 'external-macro
 	(lambda (e r w s)
-	  (if (symbol? e)
-	      ;; pass the expression through
-	      e
-	      (let* ((eval-closure (fluid-ref expansion-eval-closure))
-		     (m (variable-ref (eval-closure (car e) #f))))
-		(if (eq? (macro-type m) 'syntax)
-		    ;; pass the expression through
-		    e
-		    ;; perform Guile macro transform
-		    (let ((e ((macro-transformer m)
-			      e
-			      (append r (list eval-closure)))))
-		      (if (null? r)
-			  (sc-expand e)
-			  (sc-chi e r w)))))))))
+	  (let ((e (syntax-object->datum e)))
+	    (if (symbol? e)
+		;; pass the expression through
+		e
+		(let* ((eval-closure (fluid-ref expansion-eval-closure))
+		       (m (variable-ref (eval-closure (car e) #f))))
+		  (if (eq? (macro-type m) 'syntax)
+		      ;; pass the expression through
+		      e
+		      ;; perform Guile macro transform
+		      (let ((e ((macro-transformer m)
+				e
+				(append r (list eval-closure)))))
+			(if (null? r)
+			    (sc-expand e)
+			    (sc-chi e r w))))))))))
 
 (define generated-symbols (make-weak-key-hash-table 1019))
 
