@@ -33,7 +33,7 @@ progname=`echo "$0" | sed 's%^.*/%%'`
 # Constants:
 PROGRAM=ltconfig
 PACKAGE=libtool
-VERSION=0.9g
+VERSION=0.9h
 ac_compile='${CC-cc} -c $CFLAGS $CPPFLAGS conftest.c 1>&5'
 rm="rm -f"
 
@@ -434,6 +434,7 @@ else
   solaris2*)
     pic_flag='-KPIC'
     link_static_flag='-Bstatic'
+    wl='-Wl,'
     ;;
 
   sunos4*)
@@ -496,8 +497,42 @@ else
   echo $ac_t none 1>&6
 fi
 
+if test -z "$LD"; then
+  # Find the linker that we think the C compiler uses.
+  echo $ac_n "checking for ld used by $compiler... $ac_c" 1>&6
+
+  IFS="${IFS= 	}"; ac_save_ifs="$IFS"; IFS="${IFS}:"
+  for ac_dir in $PATH; do
+    test -z "$ac_dir" && ac_dir=.
+    if test -f "$ac_dir/ld"; then
+      # Check to see if the program is GNU ld.  I'd rather use --version,
+      # but apparently some GNU ld's only accept -v.
+      if "$ac_dir/ld" -v 2>&1 < /dev/null | egrep '(GNU ld|with BFD)' > /dev/null; then
+        # If it was GNU ld, only accept it if we're using GCC.
+        LD="$ac_dir/ld"
+	test "$with_gcc" = yes && break
+      else
+        # If it was not GNU ld, and we are not using GCC, then accept it.
+        LD="$ac_dir/ld"
+        break
+      fi
+    fi
+  done
+  IFS="$ac_save_ifs"
+
+  if test -n "$CC"; then
+    echo "$ac_t""$LD" 1>&6
+  else
+    echo "$ac_t""no" 1>&6
+  fi
+
+  if test -z "$LD"; then
+    echo "$progname: error: no acceptable ld found in \$PATH" 1>&2
+    exit 1
+  fi
+fi
+
 # See if we're really using GNU ld.
-test -z "$LD" && LD="ld"
 with_gnu_ld=no
 # Allow LD to be a program name with arguments.
 set dummy $LD

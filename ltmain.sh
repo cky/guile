@@ -28,7 +28,7 @@ progname=`echo "$0" | sed 's%^.*/%%'`
 # Constants.
 PROGRAM=ltmain.sh
 PACKAGE=libtool
-VERSION=0.9g
+VERSION=0.9h
 
 default_mode=NONE
 help="Try \`$progname --help' for more information."
@@ -826,7 +826,15 @@ if test -z "$show_help"; then
       # Exit if we aren't doing a library object file.
       test -z "$libobj" && exit 0
 
-      if test "$build_libtool_libs" = yes && test -n "$pic_flag"; then
+      if test "$build_libtool_libs" != yes; then
+        # Create an invalid libtool object if no PIC, so that we don't
+        # accidentally link it into a program.
+	$show "echo timestamp > $libobj"
+	eval "$run echo timestamp > $libobj" || exit $?
+	exit 0
+      fi
+
+      if test -n "$pic_flag"; then
 	# Only do commands if we really have different PIC objects.
 	reload_objs="$libobjs"
 	output="$libobj"
@@ -1172,15 +1180,34 @@ EOF
     test -d "$dest" && isdir=yes
     if test -n "$isdir"; then
       destdir="$dest"
+      destname=
     else
       destdir=`echo "$dest" | sed 's%/[^/]*$%%'`
+      test "$destdir" = "$dest" && destdir=.
+      destname=`echo "$dest" | sed 's%^.*/%%'`
+
+      # Not a directory, so check to see that there is only one file specified.
+      set dummy $files
+      if test $# -gt 2; then
+        echo "$progname: \`$dest' is not a directory" 1>&2
+        echo "$help" 1>&2
+	exit 1
+      fi
     fi
     case "$destdir" in
     /*) ;;
     *)
-      echo "$progname: $destdir must be an absolute directory name" 1>&2
-      echo "$help" 1>&2
-      exit 1
+      for file in $files; do
+	case "$file" in
+	*.lo) ;;
+	*)
+	  echo "$progname: \`$destdir' must be an absolute directory name" 1>&2
+	  echo "$help" 1>&2
+	  exit 1
+	  ;;
+	esac
+      done
+      ;;
     esac
 
     staticlibs=
@@ -1296,6 +1323,50 @@ EOF
 
 	# Maybe install the static library, too.
 	test -n "$old_library" && staticlibs="$staticlibs $dir/$old_library"
+	;;
+
+      *.lo)
+        # Install (i.e. copy) a libtool object.
+
+        # Figure out destination file name, if it wasn't already specified.
+        if test -n "$destname"; then
+	  destfile="$destdir/$destname"
+	else
+	  destfile=`echo "$file" | sed 's%^.*/%%;'`
+	  destfile="$destdir/$destfile"
+        fi
+
+	# Deduce the name of the destination old-style object file.
+	case "$destfile" in
+	*.lo)
+	  staticdest=`echo "$destfile" | sed 's/\.lo$/\.o/;'`
+	  ;;
+	*.o)
+	  staticdest="$destfile"
+	  destfile=
+	  ;;
+	*)
+	  echo "$progname: cannot copy a libtool object to \`$destfile'" 1>&2
+	  echo "$help" 1>&2
+	  exit 1
+          ;;
+	esac
+
+	# Install the libtool object if requested.
+	if test -n "$destfile"; then
+	  $show "$install_prog $file $destfile"
+	  $run $install_prog $file $destfile || exit $?
+	fi
+
+	# Install the old object if enabled.
+	if test "$build_old_libs" = yes; then
+	  # Deduce the name of the old-style object file.
+	  staticobj=`echo "$file" | sed 's/\.lo$/\.o/;'`
+
+	  $show "$install_prog $staticobj $staticdest"
+	  $run $install_prog $staticobj $staticdest || exit $?
+	fi
+	exit 0
 	;;
 
       *)
@@ -1542,6 +1613,13 @@ EOF
 	  # FIXME: should reinstall the best remaining shared library.
 	fi
 	;;
+
+      *.lo)
+	if test "$build_old_libs" = yes; then
+      	  oldobj=`echo "$name" | sed 's/\.lo$/\.o/'`
+	  rmfiles="$rmfiles $dir/$oldobj"
+	fi
+  	;;
       esac
 
       $show "$rm $rmfiles"
