@@ -128,7 +128,7 @@ SCM_DEFINE (scm_error_scm, "scm-error", 5, 0, 0,
 
 SCM_DEFINE (scm_strerror, "strerror", 1, 0, 0, 
             (SCM err),
-	    "Returns the Unix error message corresponding to @var{errno}, an integer.")
+	    "Returns the Unix error message corresponding to @var{err}, an integer.")
 #define FUNC_NAME s_scm_strerror
 {
   SCM_VALIDATE_INUM (1,err);
@@ -140,11 +140,13 @@ SCM_SYMBOL (scm_system_error_key, "system-error");
 void
 scm_syserror (const char *subr)
 {
+  int save_errno = errno;
+  
   scm_error (scm_system_error_key,
 	     subr,
 	     "~A",
-	     scm_cons (scm_makfrom0str (strerror (errno)), SCM_EOL),
-	     scm_cons (SCM_MAKINUM (errno), SCM_EOL));
+	     scm_cons (scm_makfrom0str (strerror (save_errno)), SCM_EOL),
+	     scm_cons (SCM_MAKINUM (save_errno), SCM_EOL));
 }
 
 void
