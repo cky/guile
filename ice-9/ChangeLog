@@ -1,3 +1,13 @@
+Thu Feb 27 16:04:45 1997  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* boot-9.scm (module-defined?): New function.
+	(macroexpand-1, macroexpand): Use local-ref instead of defined?
+ 	and eval.
+	* r4rs.scm (%load-verbosely): Use "module-defined?" instead of
+ 	"defined?".
+	* slib.scm (defined?): New function to take the place of the
+ 	builtin "defined?".  It allways examines the slib module.
+
 Mon Feb 24 21:46:15 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* configure.in: Added AM_MAINTAINER_MODE
