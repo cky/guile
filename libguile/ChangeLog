@@ -1,3 +1,53 @@
+1999-06-23  Mikael Djurfeldt  <mdj@mdj-pc.nada.kth.se>
+
+	* struct.c, struct.h:
+
+	In order to support different kinds of deallocation, a destructor
+	slot has been added to struct vtables.  This allows for structs
+	containing pointers to other memory blocks.
+	
+	(scm_struct_i_free): New hidden struct slot.  Holds destructor for
+	instances to this vtable.
+	(scm_struct_free_0): New destructor: Doesn't deallocate data.
+	(scm_struct_free_light): New destructor: Deallocates a light
+	struct (i.e. a struct without hidden slots).
+	(scm_struct_free_standard): New destructor: Deallocates standard
+	structs.
+	(scm_struct_free_entity): New destructor: Deallocates entity
+	structs.
+	(SCM_SET_VTABLE_DESTRUCTOR): New macro.
+
+	Changes to hidden slots:
+
+	(scm_struct_i_size): scm_struct_i_flags now shares space with
+	scm_struct_i_size which holds the size of light structs.
+	(scm_struct_i_n_words): This slot has changed meaning.  Previously
+	it included hidden slots.  Now it indicates visible slots.
+	(scm_alloc_struct): Clear flags.
+	(SCM_STRUCTF_MASK): 4 new flag positions added => 12 bits.
+	
+	(struct_num, scm_struct_i_tag): Removed.
+	(scm_struct_vtable_tag): Base tag on the pointer to mallocated
+	memory.
+	(scm_struct_ihashq): Base hash value on pointer to struct handle.
+	
+	* tag.c (scm_tag): Base tag on vtable pointer.
+
+	* objects.c (scm_init_objects): Initialize destructor slot of the
+	primordial entity class.
+
+	* objects.h (SCM_SET_CLASS_DESTRUCTOR,
+	SCM_SET_CLASS_INSTANCE_SIZE): New macros.
+	
+	* gc.c (scm_gc_sweep): Call struct free slot.
+
+	* keywords.c, keywords.h (scm_c_make_keyword): New function.
+	(We should remove the use of the prefix '-'.)
+
+	* snarf.h (SCM_KEYWORD, SCM_GLOBAL_KEYWORD): New macros.
+
+	* libguile.h: #include "objects.h"
+
 1999-06-22  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* dynl.c (DYNL_GLOBAL): New.
