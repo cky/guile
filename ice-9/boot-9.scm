@@ -284,7 +284,7 @@
   (define make-uniform-vector dimensions->uniform-array)
   ;      (define uniform-vector-ref array-ref)
   (define (uniform-vector-set! u i o)
-    (uniform-vector-set1! u o i))
+    (uniform-array-set1! u o i))
   (define uniform-vector-fill! array-fill!)
   (define uniform-vector-read! uniform-array-read!)
   (define uniform-vector-write uniform-array-write)
@@ -940,7 +940,6 @@
 (define end-of-program #f)
 (define hang-up #f)
 (define arithmetic-error #f)
-(define read-sharp #f)
 
 
 
@@ -965,7 +964,7 @@
 				     (map string->symbol fields))))
 	 
 
-(define (%read-sharp c port)
+(define (read-sharp c port)
   (define (barf)
     (error "unknown # object" c))
 
@@ -1016,9 +1015,6 @@
   (if (eq? #\( (peek-char port))
       (list->uniform-array 1 proto (read port #t read-sharp))
       (error "read:uniform-vector list not found")))
-
-
-(define read-sharp (lambda a (apply %read-sharp a)))
 
 
 

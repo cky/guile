@@ -1,3 +1,13 @@
+Sat Feb 15 04:51:20 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* boot-9.scm (read-sharp): define directly, don't go through a
+	%read-sharp layer.
+
+Tue Feb 11 08:45:48 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* boot-9.scm (uniform-vector-set!): use uniform-array-set1!, not
+	uniform-vector-set1! which doesn't exist.
+
 Mon Feb 10 03:01:48 1997  Mikael Djurfeldt  <mdj@kenneth>
 
 	* boot-9.scm (backtrace): Removed.  (A C version now exists in
