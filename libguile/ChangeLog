@@ -1,3 +1,15 @@
+1998-10-03  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* Makefile.in: Regenerated with a patched automake, to get
+	dependency generation right when using EGCS.
+
+	* inet_aton.c (inet_aton): Add prototype, to remove compiler
+ 	warning. (Thanks to Robert Pluim.)
+
+	* inet_aton.c (inet_aton): Reassure the compiler that the
+ 	arguments to the <ctype.h> macros are all unsigned characters, not
+ 	signed characters.
+
 1998-10-03    <jimb@savonarola.red-bean.com>
 
 	Getting rid of more warnings...
