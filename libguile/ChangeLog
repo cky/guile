@@ -1,5 +1,39 @@
 1999-08-29  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
+	Cleanup and simplification of generic method dispatch.
+	Also, the quadruple representation of entity and operator
+	procedures has been replaced with single.
+	
+	* tags.h (SCM_IM_HASH_DISPATCH): Removed.
+	
+	* print.c (scm_isymnames): Removed #@hash-dispatch.
+
+	* objects.c, objects.h (scm_mcache_lookup_cmethod): Moved here
+	from eval.c; Support 0 arity methods.
+	(scm_set_object_procedure_x): Removed scm_sym_atdispatch;
+	(scm_apply_generic_env): Removed.
+	Replaced slots proc0-3 with procedure.
+	
+	* objects.h (SCM_OPERATOR_PROC_0, SCM_OPERATOR_PROC_1,
+	SCM_OPERATOR_PROC_2, SCM_OPERATOR_PROC_3): Replaced by
+	SCM_OPERATOR_PROCEDURE.
+	(SCM_ENTITY_PROC_0, SCM_ENTITY_PROC_1, SCM_ENTITY_PROC_2,
+	SCM_ENTITY_PROC_3): Replaced by SCM_ENTITY_PROCEDURE.
+	
+	* struct.c, struct.h: Replace 4 procedure slots with one.
+	(scm_struct_i_procedure): Replaces scm_struct_i_procedure.
+
+	* gc.c (scm_gc_mark): Mark 1 procedure slot in entities instead of
+	4.
+
+	* eval.c (scm_sym_args): Removed.
+	(SCM_CEVAL): Simplified entity application.
+	Moved dispatch code to objects.c.
+
+	* procprop.c (scm_i_procedure_arity): Bugfix: Handle generics.
+	
+1999-08-29  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
 	* sort.c (closureless): Use scm_eval_body.
 
 	* eval.c (SCM_APPLY): Fixed serious evaluator bug: If a closure

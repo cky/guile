@@ -39,3 +39,16 @@ Low-level things
 
 * Use the SCM trick of tagging environments with immediates (see m_letrec1)
   to convert source correctly in unmemocopy.
+
+
+Optimizations
+
+* Eliminate argument checking for closures.  One way to do it is to
+  set the cdr of application forms to an immediate representing the
+  arity of the call.  If the closure contains a corresponding
+  immediate, these can be matched against eachother.
+
+* Implement a thread-safe alternative to SCM's environment caches:
+
+  Add an extra argument to SCM_CEVAL: "evaluation context".
+  Evaluation contexts contain a stack of locations.
