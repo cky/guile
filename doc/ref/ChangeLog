@@ -1,3 +1,9 @@
+2004-11-09  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* api-compound.texi (Generalized Vectors): New.
+	(Bit Vectors): More docs.
+	(Uniform Vectors): Call them Uniform numeric vectors.
+
 2004-10-29  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* api-compound.texi (Uniform Vectors): Added c32 and c64 docs.
