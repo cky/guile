@@ -1,3 +1,9 @@
+1999-09-20  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* numbers.c (scm_max, scm_min, scm_sum, scm_difference,
+	scm_product, scm_divide): Bugfix: Don't pass SCM_UNDEFINED to the
+	generic function if the asubr is called with only one arg.
+
 1999-09-20  Gary Houston  <ghouston@freewire.co.uk>
 
 	* scmsigs.c (scm_sigaction): add SA_RESTART to flags only if
