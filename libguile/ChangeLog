@@ -1,3 +1,11 @@
+2000-06-30  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* gc.c (scm_gc_for_newcell): Behave gracefully also if scm_igc
+	doesn't yield any new cells.  In theory this could happen if all
+	cells allocated with NEWCELL are either in use or conservatively
+	marked and all cluster spine cells are conservatively marked.
+	(Thanks to Dirk.)
+
 2000-06-29  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* __scm.h (SCM_NALLOC):  Removed.
