@@ -18,7 +18,7 @@
 
 /*
  * Copied from gc5.2, files "os_dep.c", "gc_priv.h", "mark.c" and "gcconfig.h",
- * and modified for Guile by Marius Vollmer.  
+ * and modified for Guile by Marius Vollmer.
  */
 
 #include <ctype.h>
@@ -225,7 +225,7 @@ typedef int GC_bool;
 # if defined(_AMIGA) && !defined(AMIGA)
 #   define AMIGA
 # endif
-# ifdef AMIGA 
+# ifdef AMIGA
 #   define M68K
 #   define mach_type_known
 # endif
@@ -434,7 +434,7 @@ typedef int GC_bool;
  * Gustavo Rodriguez-Rivera points out that on most (all?) Unix machines,
  * the value of environ is a pointer that can serve as STACKBOTTOM.
  * I expect that HEURISTIC2 can be replaced by this approach, which
- * interferes far less with debugging. 
+ * interferes far less with debugging.
  *
  * If no expression for STACKBOTTOM can be found, and neither of the above
  * heuristics are usable, the collector can still be used with all of the above
@@ -737,7 +737,7 @@ typedef int GC_bool;
 #	define OS_TYPE "SEQUENT"
 	extern int etext;
 #       define DATASTART ((ptr_t)((((word) (&etext)) + 0xfff) & ~0xfff))
-#       define STACKBOTTOM ((ptr_t) 0x3ffff000) 
+#       define STACKBOTTOM ((ptr_t) 0x3ffff000)
 #   endif
 #   ifdef SUNOS5
 #	define OS_TYPE "SUNOS5"
@@ -826,7 +826,7 @@ typedef int GC_bool;
 	    /* cache miss stalls for the targetted load instructions.  But it	*/
 	    /* seems to interfere enough with other cache traffic that the net	*/
 	    /* result is worse than prefetchnta.				*/
-#         if 0 
+#         if 0
 	    /* Using prefetches for write seems to have a slight negative	*/
 	    /* impact on performance, at least for a PIII/500.			*/
 #	    define PREFETCH_FOR_WRITE(x) \
@@ -836,7 +836,7 @@ typedef int GC_bool;
 #	ifdef USE_3DNOW_PREFETCH
 #	  define PREFETCH(x) \
 	    __asm__ __volatile__ ("	prefetch	%0": : "m"(*(char *)(x)))
-#	  define PREFETCH_FOR_WRITE(x) 
+#	  define PREFETCH_FOR_WRITE(x)
 	    __asm__ __volatile__ ("	prefetchw	%0": : "m"(*(char *)(x)))
 #	endif
 #   endif
@@ -1371,7 +1371,7 @@ typedef int GC_bool;
 
 # if defined(LINUX) && !defined(POWERPC)
 
-# if 0 
+# if 0
 #   include <linux/version.h>
 #   if (LINUX_VERSION_CODE <= 0x10400)
       /* Ugly hack to get struct sigcontext_struct definition.  Required  */
@@ -1531,13 +1531,13 @@ typedef int GC_bool;
 
 # endif /*!OS/2 */
 
-/* 
- * Find the base of the stack. 
+/*
+ * Find the base of the stack.
  * Used only in single-threaded environment.
  * With threads, GC_mark_roots needs to know how to do this.
  * Called with allocator lock held.
  */
-# ifdef MSWIN32 
+# ifdef MSWIN32
 # define is_writable(prot) ((prot) == PAGE_READWRITE \
 			    || (prot) == PAGE_WRITECOPY \
 			    || (prot) == PAGE_EXECUTE_READWRITE \
@@ -1551,7 +1551,7 @@ static word GC_get_writable_length(ptr_t p, ptr_t *base)
     MEMORY_BASIC_INFORMATION buf;
     word result;
     word protect;
-    
+
     result = VirtualQuery(p, &buf, sizeof(buf));
     if (result != sizeof(buf)) ABORT("Weird VirtualQuery result");
     if (base != 0) *base = (ptr_t)(buf.AllocationBase);
@@ -1589,7 +1589,7 @@ void *scm_get_stack_base()
 {
     PTIB ptib;
     PPIB ppib;
-    
+
     if (DosGetInfoBlocks(&ptib, &ppib) != NO_ERROR) {
     	GC_err_printf0("DosGetInfoBlocks failed\n");
     	ABORT("DosGetInfoBlocks failed\n");
@@ -1604,7 +1604,7 @@ void *scm_get_stack_base()
 void *scm_get_stack_base()
 {
     struct Process *proc = (struct Process*)SysBase->ThisTask;
- 
+
     /* Reference: Amiga Guru Book Pages: 42,567,574 */
     if (proc->pr_Task.tc_Node.ln_Type==NT_PROCESS
         && proc->pr_CLI != NULL) {
@@ -1651,7 +1651,7 @@ void *scm_get_stack_base()
   /* Some tools to implement HEURISTIC2	*/
 #   define MIN_PAGE_SIZE 256	/* Smallest conceivable page size, bytes */
     /* static */ jmp_buf GC_jmp_buf;
-    
+
     /*ARGSUSED*/
     static void GC_fault_handler(sig)
     int sig;
@@ -1673,7 +1673,7 @@ void *scm_get_stack_base()
 #   else
         static handler old_segv_handler, old_bus_handler;
 #   endif
-    
+
     static void GC_setup_temporary_fault_handler()
     {
 #	if defined(SUNOS5SIGS) || defined(IRIX5) || defined(OSF1)
@@ -1710,7 +1710,7 @@ void *scm_get_stack_base()
 #	  endif
 #	endif
     }
-    
+
     static void GC_reset_fault_handler()
     {
 #       if defined(SUNOS5SIGS) || defined(IRIX5) || defined(OSF1)
@@ -1725,6 +1725,15 @@ void *scm_get_stack_base()
 	    (void) signal(SIGBUS, old_bus_handler);
 #	  endif
 #       endif
+    }
+
+    /* Single argument version, robust against whole program analysis. */
+    static void
+    GC_noop1(x)
+    word x;
+    {
+      static VOLATILE word sink;
+      sink = x;
     }
 
     /* Return the first nonaddressible location > p (up) or 	*/
@@ -1760,15 +1769,6 @@ void *scm_get_stack_base()
 	return(result);
     }
 
-    /* Single argument version, robust against whole program analysis. */
-    static void
-    GC_noop1(x)
-    word x;
-    {
-      static VOLATILE word sink;
-      sink = x;
-    }
-
 # endif
 
 #ifdef LINUX_STACKBOTTOM
@@ -1784,13 +1784,13 @@ void *scm_get_stack_base()
   {
     /* We read the stack base value from /proc/self/stat.  We do this	*/
     /* using direct I/O system calls in order to avoid calling malloc   */
-    /* in case REDIRECT_MALLOC is defined.				*/ 
+    /* in case REDIRECT_MALLOC is defined.				*/
 #   define STAT_BUF_SIZE 4096
 #   ifdef USE_LD_WRAP
 #	define STAT_READ __real_read
 #   else
 #	define STAT_READ read
-#   endif    
+#   endif
     char stat_buf[STAT_BUF_SIZE];
     int f;
     char c;
