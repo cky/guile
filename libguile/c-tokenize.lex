@@ -53,7 +53,7 @@ int cookie_was_last = 0;
 
 ({SPACE}*\n*{SPACE}*)+                     { OUT(eol); }
 
-#                                          { OUT(hash); IS_NOT_COOKIE; }
+#.*\n                                      { OUT(hash); IS_NOT_COOKIE; }
 
 {LETTER}({LETTER}|{DIGIT})*                { OUT_T (id); IS_NOT_COOKIE; }
 
