@@ -2,7 +2,7 @@
 
 #ifndef GDBINTH
 #define GDBINTH
-/*	Copyright (C) 1996 Free Software Foundation
+/*	Copyright (C) 1996, 2000 Free Software Foundation
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
