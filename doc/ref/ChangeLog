@@ -1,3 +1,12 @@
+2001-11-06  Thien-Thi Nguyen  <ttn@glug.org>
+
+	* srfi-modules.texi (SRFI-19, SRFI-19 Constants, SRFI-19 Current
+	time and clock resolution, SRFI-19 Time object and accessors,
+	SRFI-19 Time comparison procedures, SRFI-19 Time arithmetic
+	procedures, SRFI-19 Date object and accessors, SRFI-19
+	Time/Date/Julian Day/Modified Julian Day converters, SRFI-19 Date
+	to string/string to date converters): New nodes.
+
 2001-11-06  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* scripts.texi: Document `--debug' and `--no-debug'.
