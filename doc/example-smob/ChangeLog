@@ -1,3 +1,8 @@
+1998-10-19  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* COPYING: New file.
+	* image-type.c myguile.c: Add copyright notice.
+
 1998-10-16  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	* Makefile (myguile): Fix link command, to put the Guile libraries

@@ -1,3 +1,11 @@
+1998-10-19  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* COPYING: New file.
+	* Makefile.in: Regenerated.
+
+	* Makefile.am (EXAMPLE_SMOB_FILES): List example-smob/COPYING.
+	* Makefile.in: Regenerated.
+
 1998-10-16  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	* Makefile.in: Regenerated, after change to qthreads.m4.

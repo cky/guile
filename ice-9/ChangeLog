@@ -1,5 +1,13 @@
 1998-10-19  Jim Blandy  <jimb@zwingli.cygnus.com>
 
+	* getopt-gnu-style.scm, slib.scm: Add copyright notice.
+
+	Talked to Stallman.  Actually, the syntax-case copyright is no
+	problem.  Duh.
+	* Makefile.am (ice9_sources): Revert last change.
+	* syncase.scm, psyntax.pp, psyntax.ss: Added again.
+	* Makefile.in: Regeneretade.
+
 	* boot-9.scm: Don't assume that this file is loaded just before
 	entering a read-eval-print loop.  Turn code to load (ice-9 emacs)
 	into...

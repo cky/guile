@@ -1,3 +1,8 @@
+1998-10-19  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* COPYING: New file.
+	* Makefile.in: Regenerated.
+
 1998-10-09  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	* guile-config.in: Add copyright notice.
