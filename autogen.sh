@@ -11,5 +11,6 @@ libtoolize --copy --automake --ltdl
 autoheader
 autoconf
 automake --add-missing
+flex -t libguile/c-tokenize.lex > libguile/c-tokenize.c
 
 ( echo "guile-readline..."; cd guile-readline; ./autogen.sh )
