@@ -887,6 +887,108 @@
 ;;;
 ;;; These are the low level data structures for modules.
 ;;;
+;;; Every module object is of the type 'module-type', which is a record
+;;; consisting of the following members:
+;;;
+;;; - eval-closure: the function that defines for its module the strategy that
+;;;   shall be followed when looking up symbols in the module.
+;;;
+;;;   An eval-closure is a function taking two arguments: the symbol to be
+;;;   looked up and a boolean value telling whether a binding for the symbol
+;;;   should be created if it does not exist yet.  If the symbol lookup
+;;;   succeeded (either because an existing binding was found or because a new
+;;;   binding was created), a variable object representing the binding is
+;;;   returned.  Otherwise, the value #f is returned.  Note that the eval
+;;;   closure does not take the module to be searched as an argument: During
+;;;   construction of the eval-closure, the eval-closure has to store the
+;;;   module it belongs to in its environment.  This means, that any
+;;;   eval-closure can belong to only one module.
+;;;
+;;;   The eval-closure of a module can be defined arbitrarily.  However, three
+;;;   special cases of eval-closures are to be distinguished: During startup
+;;;   the module system is not yet activated.  In this phase, no modules are
+;;;   defined and all bindings are automatically stored by the system in the
+;;;   pre-modules-obarray.  Since no eval-closures exist at this time, the
+;;;   functions which require an eval-closure as their argument need to be
+;;;   passed the value #f.
+;;;
+;;;   The other two special cases of eval-closures are the
+;;;   standard-eval-closure and the standard-interface-eval-closure.  Both
+;;;   behave equally for the case that no new binding is to be created.  The
+;;;   difference between the two comes in, when the boolean argument to the
+;;;   eval-closure indicates that a new binding shall be created if it is not
+;;;   found.
+;;;
+;;;   Given that no new binding shall be created, both standard eval-closures
+;;;   define the following standard strategy of searching bindings in the
+;;;   module: First, the module's obarray is searched for the symbol.  Second,
+;;;   if no binding for the symbol was found in the module's obarray, the
+;;;   module's binder procedure is exececuted.  If this procedure did not
+;;;   return a binding for the symbol, the modules referenced in the module's
+;;;   uses list are recursively searched for a binding of the symbol.  If the
+;;;   binding can not be found in these modules also, the symbol lookup has
+;;;   failed.
+;;;
+;;;   If a new binding shall be created, the standard-interface-eval-closure
+;;;   immediately returns indicating failure.  That is, it does not even try
+;;;   to look up the symbol.  In contrast, the standard-eval-closure would
+;;;   first search the obarray, and if no binding was found there, would
+;;;   create a new binding in the obarray, therefore not calling the binder
+;;;   procedure or searching the modules in the uses list.
+;;;
+;;;   The explanation of the following members obarray, binder and uses
+;;;   assumes that the symbol lookup follows the strategy that is defined in
+;;;   the standard-eval-closure and the standard-interface-eval-closure.
+;;;
+;;; - obarray: a hash table that maps symbols to variable objects.  In this
+;;;   hash table, the definitions are found that are local to the module (that
+;;;   is, not imported from other modules).  When looking up bindings in the
+;;;   module, this hash table is searched first.
+;;;
+;;; - binder: either #f or a function taking a module and a symbol argument.
+;;;   If it is a function it is called after the obarray has been
+;;;   unsuccessfully searched for a binding.  It then can provide bindings
+;;;   that would otherwise not be found locally in the module.
+;;;
+;;; - uses: a list of modules from which non-local bindings can be inherited.
+;;;   These modules are the third place queried for bindings after the obarray
+;;;   has been unsuccessfully searched and the binder function did not deliver
+;;;   a result either.
+;;;
+;;; - transformer: either #f or a function taking a scheme expression as
+;;;   delivered by read.  If it is a function, it will be called to perform
+;;;   syntax transformations (e. g. makro expansion) on the given scheme
+;;;   expression. The output of the transformer function will then be passed
+;;;   to Guile's internal memoizer.  This means that the output must be valid
+;;;   scheme code.  The only exception is, that the output may make use of the
+;;;   syntax extensions provided to identify the modules that a binding
+;;;   belongs to.
+;;;
+;;; - name: the name of the module.  This is used for all kinds of printing
+;;;   outputs.  In certain places the module name also serves as a way of
+;;;   identification.  When adding a module to the uses list of another
+;;;   module, it is made sure that the new uses list will not contain two
+;;;   modules of the same name.
+;;;
+;;; - kind: classification of the kind of module.  The value is (currently?)
+;;;   only used for printing.  It has no influence on how a module is treated.
+;;;   Currently the following values are used when setting the module kind:
+;;;   'module, 'directory, 'interface, 'custom-interface.  If no explicit kind
+;;;   is set, it defaults to 'module.
+;;;
+;;; - duplicates-handlers
+;;;
+;;; - duplicates-interface
+;;;
+;;; - observers
+;;;
+;;; - weak-observers
+;;;
+;;; - observer-id
+;;;
+;;; In addition, the module may (must?) contain a binding for
+;;; %module-public-interface... More explanations here...
+;;;
 ;;; !!! warning: The interface to lazy binder procedures is going
 ;;; to be changed in an incompatible way to permit all the basic
 ;;; module ops to be virtualized.

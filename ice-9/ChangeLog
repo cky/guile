@@ -1,3 +1,7 @@
+2003-11-16  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* boot-9.scm: Started comment about module system workings.
+
 2003-11-11  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* debugger.scm: Change ui-* calls to gds-*.
