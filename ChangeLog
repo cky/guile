@@ -1,3 +1,7 @@
+2002-03-06  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* guile-tools.in: Handle "--source" option.
+
 2002-03-04  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* configure.in (top_srcdir_absolute): New AC_SUBST var.
