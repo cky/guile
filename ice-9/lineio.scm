@@ -86,7 +86,7 @@
 		     (let ((c (string-ref (car buffers))))
 		       (if (= 1 (string-length (car buffers)))
 			   (set! buffers (cdr buffers))
-			   (set-car! buffers (make-shared-substring (car buffers) 1)))
+			   (set-car! buffers (substring (car buffers) 1)))
 		       c))))
 
 	 (propogate-close (lambda () (close-port underlying-port)))

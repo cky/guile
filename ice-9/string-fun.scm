@@ -92,71 +92,71 @@
   (let ((end (cond
 	      ((string-index str char) => 1+)
 	      (else (string-length str)))))
-    (ret (make-shared-substring str 0 end)
-	 (make-shared-substring str end))))
+    (ret (substring str 0 end)
+	 (substring str end))))
 
 (define-public (split-before-char char str ret)
   (let ((end (or (string-index str char)
 		 (string-length str))))
-    (ret (make-shared-substring str 0 end)
-	 (make-shared-substring str end))))
+    (ret (substring str 0 end)
+	 (substring str end))))
 
 (define-public (split-discarding-char char str ret)
   (let ((end (string-index str char)))
     (if (not end)
 	(ret str "")
-	(ret (make-shared-substring str 0 end)
-	     (make-shared-substring str (1+ end))))))
+	(ret (substring str 0 end)
+	     (substring str (1+ end))))))
 
 (define-public (split-after-char-last char str ret)
   (let ((end (cond
 	      ((string-rindex str char) => 1+)
 	      (else 0))))
-    (ret (make-shared-substring str 0 end)
-	 (make-shared-substring str end))))
+    (ret (substring str 0 end)
+	 (substring str end))))
 
 (define-public (split-before-char-last char str ret)
   (let ((end (or (string-rindex str char) 0)))
-    (ret (make-shared-substring str 0 end)
-	 (make-shared-substring str end))))
+    (ret (substring str 0 end)
+	 (substring str end))))
 
 (define-public (split-discarding-char-last char str ret)
   (let ((end (string-rindex str char)))
     (if (not end)
 	(ret str "")
-	(ret (make-shared-substring str 0 end)
-	     (make-shared-substring str (1+ end))))))
+	(ret (substring str 0 end)
+	     (substring str (1+ end))))))
 
 (define-public (split-before-predicate pred str ret)
   (let loop ((n 0))
     (cond
      ((= n (string-length str))		(ret str ""))
      ((not (pred (string-ref str n)))	(loop (1+ n)))
-     (else				(ret (make-shared-substring str 0 n)
-					     (make-shared-substring str n))))))
+     (else				(ret (substring str 0 n)
+					     (substring str n))))))
 (define-public (split-after-predicate pred str ret)
   (let loop ((n 0))
     (cond
      ((= n (string-length str))		(ret str ""))
      ((not (pred (string-ref str n)))	(loop (1+ n)))
-     (else				(ret (make-shared-substring str 0 (1+ n))
-					     (make-shared-substring str (1+ n)))))))
+     (else				(ret (substring str 0 (1+ n))
+					     (substring str (1+ n)))))))
 
 (define-public (split-discarding-predicate pred str ret)
   (let loop ((n 0))
     (cond
      ((= n (string-length str))		(ret str ""))
      ((not (pred (string-ref str n)))	(loop (1+ n)))
-     (else				(ret (make-shared-substring str 0 n)
-					     (make-shared-substring str (1+ n)))))))
+     (else				(ret (substring str 0 n)
+					     (substring str (1+ n)))))))
 
 (define-public (separate-fields-discarding-char ch str ret)
   (let loop ((fields '())
 	     (str str))
     (cond
      ((string-rindex str ch)
-      => (lambda (w) (loop (cons (make-shared-substring str (+ 1 w)) fields)
-			   (make-shared-substring str 0 w))))
+      => (lambda (w) (loop (cons (substring str (+ 1 w)) fields)
+			   (substring str 0 w))))
      (else (apply ret str fields)))))
 
 (define-public (separate-fields-after-char ch str ret)
@@ -165,8 +165,8 @@
              (str str))
      (cond
       ((string-index str ch)
-       => (lambda (w) (loop (cons (make-shared-substring str 0 (+ 1 w)) fields)
-                           (make-shared-substring str (+ 1 w)))))
+       => (lambda (w) (loop (cons (substring str 0 (+ 1 w)) fields)
+                           (substring str (+ 1 w)))))
       (else (apply ret str fields))))))
 
 (define-public (separate-fields-before-char ch str ret)
@@ -174,8 +174,8 @@
 	     (str str))
     (cond
      ((string-rindex str ch)
-      => (lambda (w) (loop (cons (make-shared-substring str w) fields)
-			     (make-shared-substring str 0 w))))
+      => (lambda (w) (loop (cons (substring str w) fields)
+			     (substring str 0 w))))
      (else (apply ret str fields)))))
 
 
@@ -185,14 +185,14 @@
 ;;;
 ;;; (define-public ((string-prefix-predicate pred?) prefix str)
 ;;;  (and (<= (string-length prefix) (string-length str))
-;;;	  (pred? prefix (make-shared-substring str 0 (string-length prefix)))))
+;;;	  (pred? prefix (substring str 0 (string-length prefix)))))
 ;;;
 ;;; (define-public string-prefix=? (string-prefix-predicate string=?))
 ;;;
 
 (define-public ((string-prefix-predicate pred?) prefix str)
   (and (<= (string-length prefix) (string-length str))
-       (pred? prefix (make-shared-substring str 0 (string-length prefix)))))
+       (pred? prefix (substring str 0 (string-length prefix)))))
 
 (define-public string-prefix=? (string-prefix-predicate string=?))
 
@@ -218,7 +218,7 @@
 	   (set! end (1- end)))
     (if (< end st)
 	""
-	(make-shared-substring s st end))))
+	(substring s st end))))
 
 (define-public (sans-trailing-whitespace s)
   (let ((st 0)
@@ -228,7 +228,7 @@
 	   (set! end (1- end)))
     (if (< end st)
 	""
-	(make-shared-substring s st end))))
+	(substring s st end))))
 
 (define-public (sans-leading-whitespace s)
   (let ((st 0)
@@ -238,7 +238,7 @@
 	   (set! st (1+ st)))
     (if (< end st)
 	""
-	(make-shared-substring s st end))))
+	(substring s st end))))
 
 (define-public (sans-final-newline str)
   (cond
@@ -246,7 +246,7 @@
     str)
 
    ((char=? #\nl (string-ref str (1- (string-length str))))
-    (make-shared-substring str 0 (1- (string-length str))))
+    (substring str 0 (1- (string-length str))))
 
    (else str)))
 

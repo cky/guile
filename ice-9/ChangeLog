@@ -1,3 +1,19 @@
+2000-11-28  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* boot-9.scm (read-delimited), lineio.scm
+	(make-line-buffering-input-port), regex.scm (match:prefix,
+	match:suffix, match:substring, regexp-substitute/global), slib.scm
+	(slib-parent-dir), string-fun.scm (split-after-char,
+	split-before-char, split-discarding-char, split-after-char-last,
+	split-before-char-last, split-discarding-char-last,
+	split-before-predicate, split-after-predicate,
+	split-discarding-predicate, separate-fields-discarding-char,
+	separate-fields-after-char, separate-fields-before-char,
+	string-prefix-predicate, sans-surrounding-whitespace,
+	sans-trailing-whitespace, sans-leading-whitespace,
+	sans-final-newline):  Use substring instead of
+	make-shared-substring.
+
 2000-11-26  Gary Houston  <ghouston@arglist.com>
 
 	* boot-9.scm: values?, get-values, values, call-with-values:

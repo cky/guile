@@ -36,13 +36,10 @@
   (vector-ref match 0))
 
 (define-public (match:prefix match)
-  (make-shared-substring (match:string match)
-			 0
-			 (match:start match 0)))
+  (substring (match:string match) 0 (match:start match 0)))
 
 (define-public (match:suffix match)
-  (make-shared-substring (match:string match)
-			 (match:end match 0)))
+  (substring (match:string match) (match:end match 0)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; SCSH compatibility routines.
@@ -90,9 +87,7 @@
 		       0))
 	 (start (match:start match matchnum))
 	 (end   (match:end match matchnum)))
-    (and start end (make-shared-substring (match:string match)
-					  start
-					  end))))
+    (and start end (substring (match:string match) start end))))
 
 (define-public (string-match pattern str . args)
   (let ((rx (make-regexp pattern))
@@ -167,7 +162,7 @@
       (let next-match ((matches (list-matches regexp string))
 		       (start 0))
 	(if (null? matches)
-	    (display (make-shared-substring string start) port)
+	    (display (substring string start) port)
 	    (let ((m (car matches)))
 
 	      ;; Process all of the items for this match.  Don't use
@@ -182,7 +177,7 @@
 		   ((procedure? item) (display (item m) port))
 		   ((eq? item 'pre)  
 		    (display
-		     (make-shared-substring string start (match:start m))
+		     (substring string start (match:start m))
 		     port))
 		   ((eq? item 'post)
 		    (next-match (cdr matches) (match:end m)))

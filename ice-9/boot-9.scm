@@ -254,7 +254,7 @@
 				       (not (eof-object? terminator)))
 				  (string terminator)
 				  "")
-			      (cons (make-shared-substring buf 0 nchars)
+			      (cons (substring buf 0 nchars)
 				    substrings))))))
 	     (new-total (+ total-chars nchars)))
 	(cond ((not terminator)
