@@ -1,3 +1,9 @@
+2003-03-19  Marius Vollmer  <mvo@zagadka.de>
+
+	* format.scm (format:out-substr): Update the column counter
+	correctly. This fixes the behavior of ~T (tabbing) after ~F, for
+	instance.  Thanks to Matthias Koeppe!
+
 2003-03-13  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* session.scm (apropos): Don't look in duplicates interface.
