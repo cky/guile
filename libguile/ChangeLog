@@ -1,3 +1,9 @@
+2005-03-04  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* root.c (scm_call_with_dynamic_root): New docstring.
+
+	* eval.c: Define _GNU_SOURCE.
+
 2005-03-02  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	Big merge from the mvo-thread-cleanup branch. The main changes
