@@ -63,6 +63,24 @@ the GC.  See the manual for details. [XXX - write this.]
 The default is "pthreads", unless your platform doesn't have pthreads,
 in which case "null" threads are used.
 
+** There is the new notion of 'discouraged' features.
+
+This is a milder form of deprecation.
+
+Things that are discouraged should not be used in new code, but it is
+OK to leave them in old code for now.  When a discouraged feature is
+used, no warning message is printed like there is for 'deprecated'
+features.  Also, things that are merely discouraged are nevertheless
+implemented efficiently, while deprecated features can be very slow.
+
+You can omit discouraged features from libguile by configuring it with
+the '--disable-discouraged' option.
+
+** Deprecation warnings can be controlled at run-time.
+
+(debug-enable 'warn-deprecated) switches them on and (debug-disable
+'warn-deprecated) switches them off.
+ 
 ** New module (ice-9 serialize):
 
 (serialize FORM1 ...) and (parallelize FORM1 ...) are useful when
@@ -675,19 +693,6 @@ Use symbol->keyword and keyword->symbol instead.
 
 
 * Changes to the C interface
-
-** There is the new notion of 'discouraged' features.
-
-This is a milder form of deprecation.
-
-Things that are discouraged should not be used in new code, but it is
-OK to leave them in old code for now.  When a discouraged feature is
-used, no warning message is printed like there is for 'deprecated'
-features.  Also, things that are merely discouraged are nevertheless
-implemented efficiently, while deprecated features can be very slow.
-
-You can omit discouraged features from libguile by configuring it with
-the '--disable-discouraged' option.
 
 ** A new family of functions for converting between C values and
    Scheme values has been added.
