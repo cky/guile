@@ -494,11 +494,14 @@ coerce_to_uvec (int type, SCM obj)
     return list_to_uvec (type, obj);
   else if (scm_is_generalized_vector (obj))
     {
+      scm_t_array_handle handle;
       size_t len = scm_c_generalized_vector_length (obj), i;
       SCM uvec = alloc_uvec (type, len);
-      void *base = SCM_UVEC_BASE (uvec);
+      scm_array_get_handle (uvec, &handle);
       for (i = 0; i < len; i++)
-	uvec_fast_set_x (type, base, i, scm_c_generalized_vector_ref (obj, i));
+	scm_array_handle_set (&handle, i,
+			      scm_c_generalized_vector_ref (obj, i));
+      scm_array_handle_release (&handle);
       return uvec;
     }
   else
@@ -570,17 +573,14 @@ SCM
 scm_c_uniform_vector_ref (SCM v, size_t idx)
 {
   scm_t_array_handle handle;
-  const void *elts;
   size_t len;
   ssize_t inc;
   SCM res;
-  int type;
 
-  elts = uvec_elements (-1, v, &handle, &len, &inc);
-  type = uvec_type (&handle);
+  uvec_elements (-1, v, &handle, &len, &inc);
   if (idx >= len)
     scm_out_of_range (NULL, scm_from_size_t (idx));
-  res = uvec_fast_ref (type, elts, idx*inc);
+  res = scm_array_handle_ref (&handle, idx*inc);
   scm_array_handle_release (&handle);
   return res;
 }
@@ -612,16 +612,13 @@ void
 scm_c_uniform_vector_set_x (SCM v, size_t idx, SCM val)
 {
   scm_t_array_handle handle;
-  void *elts;
   size_t len;
   ssize_t inc;
-  int type;
 
-  elts = uvec_writable_elements (-1, v, &handle, &len, &inc);
-  type = uvec_type (&handle);
+  uvec_writable_elements (-1, v, &handle, &len, &inc);
   if (idx >= len)
     scm_out_of_range (NULL, scm_from_size_t (idx));
-  uvec_fast_set_x (type, elts, idx*inc, val);
+  scm_array_handle_set (&handle, idx*inc, val);
   scm_array_handle_release (&handle);
 }
 
