@@ -1,3 +1,7 @@
+2000-05-05  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* mambo.test:  Removed dummy file.
+
 2000-03-31  Gary Houston  <ghouston@arglist.com>
 
 	* tests/ports.test (non-blocking-I/O): a couple more details:
