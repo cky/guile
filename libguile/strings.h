@@ -78,6 +78,7 @@ SCM_API SCM scm_string_set_x (SCM str, SCM k, SCM chr);
 SCM_API SCM scm_substring (SCM str, SCM start, SCM end);
 SCM_API SCM scm_string_append (SCM args);
 SCM_API void scm_init_strings (void);
+SCM_API char *scm_c_string2str (SCM obj, char *str, size_t *lenp);
 
 
 

@@ -336,6 +336,42 @@ SCM_DEFINE (scm_string_append, "string-append", 0, 0, 1,
 }
 #undef FUNC_NAME
 
+/* Converts the given Scheme string OBJ into a C string, containing a copy
+   of OBJ's content with a trailing null byte.  If LENP is non-NULL, set
+   *LENP to the string's length.
+
+   When STR is non-NULL it receives the copy and is returned by the function,
+   otherwise new memory is allocated and the caller is responsible for 
+   freeing it via free().  If out of memory, NULL is returned.
+
+   Note that Scheme strings may contain arbitrary data, including null
+   characters.  This means that null termination is not a reliable way to 
+   determine the length of the returned value.  However, the function always 
+   copies the complete contents of OBJ, and sets *LENP to the true length 
+   of the string (if LENP is non-null).  */
+char *
+scm_c_string2str (SCM obj, char *str, size_t *lenp)
+{
+  size_t len;
+
+  SCM_ASSERT (SCM_STRINGP (obj), obj, SCM_ARG1, "scm_c_string2str");
+  len = SCM_STRING_LENGTH (obj);
+
+  /* THINKME: What malloc policy? */
+  if (str == NULL)
+    str = (char *) malloc ((len + 1) * sizeof (char));
+  if (str == NULL)
+    return NULL;
+
+  memcpy (str, SCM_STRING_CHARS (obj), len);
+  /* THINKME: Is this necessary for arguments?  I do not think so... */
+  scm_remember_upto_here_1 (obj);
+  str[len] = '\0';
+
+  if (lenp != NULL)
+    *lenp = len;
+  return str;
+}
 
 void
 scm_init_strings ()

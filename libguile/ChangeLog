@@ -1,3 +1,10 @@
+2001-12-08  Stefan Jahn  <stefan@lkcc.org>
+
+	* strings.c (scm_c_string2str): New function.  Converts a
+	given Scheme string into a C string.  Also put in two 
+	THINKME's regarding the malloc policy for the missing converter
+	routines.
+
 2001-12-01  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* gh_data.c (gh_module_lookup): Use scm_str2symbol rather than
