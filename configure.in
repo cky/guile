@@ -82,8 +82,13 @@ AC_CHECK_FUNCS(connect)
 if test $ac_cv_func_connect = no; then
     AC_CHECK_LIB(socket, connect)
 fi
-AC_CHECK_LIB(termcap, tgoto)
-AC_CHECK_LIB(readline, readline)
+
+dnl Should we check for curses, terminfo, and termlib, too?
+for termlib in ncurses termcap ; do
+   AC_CHECK_LIB(${termlib}, tgoto, 
+                [LIBS="-l${termlib} $LIBS"; break])
+done
+AC_CHECK_LIB(readline, main)
 AC_CHECK_FUNCS(rl_clear_signals rl_cleanup_after_signal)
 
 AC_CACHE_CHECK([for rl_getc_function pointer in readline],
