@@ -17,15 +17,33 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#include <libguile.h>
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
 #include <string.h>
+#include <errno.h>
 #include <stdio.h>
 
+#include "libguile/_scm.h"
+#include "libguile/__scm.h"
 #include "libguile/srfi-4.h"
 #include "libguile/error.h"
 #include "libguile/read.h"
 #include "libguile/ports.h"
 #include "libguile/chars.h"
+#include "libguile/vectors.h"
+#include "libguile/unif.h"
+#include "libguile/strings.h"
+#include "libguile/dynwind.h"
+
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+
+#ifdef HAVE_IO_H
+#include <io.h>
+#endif
 
 /* Smob type code for homogeneous numeric vectors.  */
 int scm_tc16_uvec = 0;
@@ -632,6 +650,187 @@ SCM_DEFINE (scm_uniform_vector_length, "uniform-vector-length", 1, 0, 0,
 #define FUNC_NAME s_scm_uniform_vector_length
 {
   return scm_from_size_t (scm_c_uniform_vector_length (v));
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_uniform_vector_read_x, "uniform-vector-read!", 1, 3, 0,
+           (SCM uvec, SCM port_or_fd, SCM start, SCM end),
+	    "Fill the elements of @var{uvec} by reading\n"
+	    "raw bytes from @var{port-or-fdes}, using host byte order.\n\n"
+	    "The optional arguments @var{start} (inclusive) and @var{end}\n"
+	    "(exclusive) allow a specified region to be read,\n"
+	    "leaving the remainder of the vector unchanged.\n\n"
+	    "When @var{port-or-fdes} is a port, all specified elements\n"
+	    "of @var{uvec} are attempted to be read, potentially blocking\n"
+	    "while waiting formore input or end-of-file.\n"
+	    "When @var{port-or-fd} is an integer, a single call to\n"
+	    "read(2) is made.\n\n"
+	    "An error is signalled when the last element has only\n"
+	    "been partially filled before reaching end-of-file or in\n"
+	    "the single call to read(2).\n\n"
+	    "@code{uniform-array-read!} returns the number of elements read.\n"
+	    "@var{port-or-fdes} may be omitted, in which case it defaults\n"
+	    "to the value returned by @code{(current-input-port)}.")
+#define FUNC_NAME s_scm_uniform_vector_read_x
+{
+  size_t vlen, sz, ans;
+  size_t cstart, cend;
+  size_t remaining, off;
+  void *base;
+
+  if (SCM_UNBNDP (port_or_fd))
+    port_or_fd = scm_cur_inp;
+  else
+    SCM_ASSERT (scm_is_integer (port_or_fd)
+		|| (SCM_OPINPORTP (port_or_fd)),
+		port_or_fd, SCM_ARG2, FUNC_NAME);
+
+  
+  scm_frame_begin (0);
+
+  vlen = scm_c_uniform_vector_length (uvec);
+  sz = scm_uniform_vector_element_size (uvec);
+  base = scm_uniform_vector_elements (uvec);
+  scm_frame_uniform_vector_release (uvec);
+
+  cstart = 0;
+  cend = vlen;
+  if (!SCM_UNBNDP (start))
+    {
+      cstart = scm_to_unsigned_integer (start, 0, vlen);
+      if (!SCM_UNBNDP (end))
+	cend = scm_to_unsigned_integer (end, cstart, vlen);
+    }
+
+  remaining = (cend - cstart) * sz;
+  off = cstart * sz;
+
+  if (SCM_NIMP (port_or_fd))
+    {
+      scm_t_port *pt = SCM_PTAB_ENTRY (port_or_fd);
+
+      if (pt->rw_active == SCM_PORT_WRITE)
+	scm_flush (port_or_fd);
+
+      ans = cend - cstart;
+      while (remaining > 0)
+	{
+	  if (pt->read_pos < pt->read_end)
+	    {
+	      size_t to_copy = min (pt->read_end - pt->read_pos,
+				    remaining);
+
+	      memcpy (base + off, pt->read_pos, to_copy);
+	      pt->read_pos += to_copy;
+	      remaining -= to_copy;
+	      off += to_copy;
+	    }
+	  else
+	    {
+	      if (scm_fill_input (port_or_fd) == EOF)
+		{
+		  if (remaining % sz != 0)
+		    SCM_MISC_ERROR ("unexpected EOF", SCM_EOL);
+		  ans -= remaining / sz;
+		  break;
+		}
+	    }
+	}
+      
+      if (pt->rw_random)
+	pt->rw_active = SCM_PORT_READ;
+    }
+  else /* file descriptor.  */
+    {
+      int fd = scm_to_int (port_or_fd);
+      int n;
+
+      SCM_SYSCALL (n = read (fd, base + off, remaining));
+      if (n == -1)
+	SCM_SYSERROR;
+      if (n % sz != 0)
+	SCM_MISC_ERROR ("unexpected EOF", SCM_EOL);
+      ans = n / sz;
+    }
+
+  scm_frame_end ();
+
+  return scm_from_size_t (ans);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_uniform_vector_write, "uniform-vector-write", 1, 3, 0,
+           (SCM uvec, SCM port_or_fd, SCM start, SCM end),
+	    "Write the elements of @var{uvec} as raw bytes to\n"
+	    "@var{port-or-fdes}, in the host byte order.\n\n"
+	    "The optional arguments @var{start} (inclusive)\n"
+	    "and @var{end} (exclusive) allow\n"
+	    "a specified region to be written.\n\n"
+	    "When @var{port-or-fdes} is a port, all specified elements\n"
+	    "of @var{uvec} are attempted to be written, potentially blocking\n"
+	    "while waiting for more room.\n"
+	    "When @var{port-or-fd} is an integer, a single call to\n"
+	    "write(2) is made.\n\n"
+	    "An error is signalled when the last element has only\n"
+	    "been partially written in the single call to write(2).\n\n"
+	    "The number of objects actually written is returned.\n"
+	    "@var{port-or-fdes} may be\n"
+	    "omitted, in which case it defaults to the value returned by\n"
+	    "@code{(current-output-port)}.")
+#define FUNC_NAME s_scm_uniform_vector_write
+{
+  size_t vlen, sz, ans;
+  size_t cstart, cend;
+  size_t amount, off;
+  void *base;
+
+  port_or_fd = SCM_COERCE_OUTPORT (port_or_fd);
+
+  if (SCM_UNBNDP (port_or_fd))
+    port_or_fd = scm_cur_outp;
+  else
+    SCM_ASSERT (scm_is_integer (port_or_fd)
+		|| (SCM_OPOUTPORTP (port_or_fd)),
+		port_or_fd, SCM_ARG2, FUNC_NAME);
+
+  scm_frame_begin (0);
+
+  vlen = scm_c_generalized_vector_length (uvec);
+  sz = scm_uniform_vector_element_size (uvec);
+  base = scm_uniform_vector_elements (uvec);
+  scm_frame_uniform_vector_release (uvec);
+
+  cstart = 0;
+  cend = vlen;
+  if (!SCM_UNBNDP (start))
+    {
+      cstart = scm_to_unsigned_integer (start, 0, vlen);
+      if (!SCM_UNBNDP (end))
+	cend = scm_to_unsigned_integer (end, cstart, vlen);
+    }
+
+  amount = (cend - cstart) * sz;
+  off = cstart * sz;
+
+  if (SCM_NIMP (port_or_fd))
+    {
+      scm_lfwrite (base + off, amount, port_or_fd);
+      ans = cend - cstart;
+    }
+  else /* file descriptor.  */
+    {
+      int fd = scm_to_int (port_or_fd), n;
+      SCM_SYSCALL (n = write (fd, base + off, amount));
+      if (n == -1)
+	SCM_SYSERROR;
+      if (n % sz != 0)
+	SCM_MISC_ERROR ("last element only written partially", SCM_EOL);
+      ans = n / sz;
+    }
+
+  scm_frame_end ();
+
+  return scm_from_size_t (ans);
 }
 #undef FUNC_NAME
 

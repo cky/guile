@@ -30,6 +30,10 @@ SCM_API SCM scm_uniform_vector_length (SCM v);
 SCM_API SCM scm_uniform_vector_ref (SCM v, SCM idx);
 SCM_API SCM scm_uniform_vector_set_x (SCM v, SCM idx, SCM val);
 SCM_API SCM scm_uniform_vector_to_list (SCM v);
+SCM_API SCM scm_uniform_vector_read_x (SCM v, SCM port_or_fd,
+				       SCM start, SCM end);
+SCM_API SCM scm_uniform_vector_write (SCM v, SCM port_or_fd,
+				      SCM start, SCM end);
 
 SCM_API int scm_is_uniform_vector (SCM obj);
 SCM_API size_t scm_c_uniform_vector_length (SCM v);
