@@ -1,3 +1,14 @@
+Fri Feb 21 18:00:38 1997  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* Makefile.am (EXTRA_libguile_la_SOURCES): New variable to hold
+ 	source files that are not always included in libguile but should
+ 	have their dependencies calculated by automake.  This variable is
+ 	recognized by automake, no further magic is needed.
+	(libguile_la_DEPENDENCIES): Changed to @LIBLOBJS@.  Libtool wants
+ 	to deal exclusively with *.lo files, as it seems.  The *.o files
+ 	are built automatically when the corresponding *.lo file gets
+ 	built.
+
 Wed Feb 19 14:04:23 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* list.h (scm_list_cdr_ref): Delete prototype; function no longer
