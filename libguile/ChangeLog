@@ -1,3 +1,12 @@
+Tue Sep 10 14:01:46 1996  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* gc.c: #include "gc.h"; every module should include its header,
+	to let the compiler cross-check the declarations against the
+	definitions.
+
+	* eq.h, files.h, hashtab.h, load.h, mallocs.h, scmsigs.h,
+	simpos.h: #include "libguile/__scm.h".
+
 Mon Sep  9 20:00:15 1996  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* init.c: Don't forget to #include smob.h and init.h.
