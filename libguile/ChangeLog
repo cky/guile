@@ -1,3 +1,8 @@
+2004-02-10  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* read.c (scm_read_opts): Change `escaped-parens' to
+	`elisp-strings'.
+
 2004-02-08  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* read.c (scm_read_opts): New opts `elisp-vectors' and

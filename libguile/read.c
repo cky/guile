@@ -56,7 +56,7 @@ scm_t_option scm_read_opts[] = {
   ,
   { SCM_OPTION_BOOLEAN, "elisp-vectors", 0,
     "Support Elisp vector syntax, namely `[...]'."},
-  { SCM_OPTION_BOOLEAN, "escaped-parens", 0,
+  { SCM_OPTION_BOOLEAN, "elisp-strings", 0,
     "Support `\\(' and `\\)' in strings."}
 #endif
 };
