@@ -1,3 +1,7 @@
+2001-05-07  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* AUTHORS: Add docs-related authorship details.
+
 2001-05-05  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* configure.in (--enable-deprecated): Recognize "shutup" option

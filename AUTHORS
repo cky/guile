@@ -22,10 +22,18 @@ In the subdirectory libguile, wrote:
 Gary Houston: changes to many files in libguile.
 In the subdirectory ice-9, wrote:
     expect.scm networking.scm popen.scm posix.scm
+In the subdirectory doc, changes to:
+    data-rep.texi   expect.texi     guile-tut.texi
+    posix.texi      r5rs.texi       scheme-io.texi
 
 Jim Blandy: Many changes throughout.
 In the subdirectory libguile, wrote:
     script.c (partially)
+In the subdirectory doc, wrote:
+    data-rep.texi   env.texi        mbapi.texi
+    mltext.texi     hacks.el
+In the subdirectory doc/example-smob, wrote:
+    image-type.c    image-type.h    myguile.c
 
 Tom Lord: Many changes throughout.
 In the subdirectory ice-9, wrote:
@@ -51,6 +59,11 @@ In the subdirectory libguile, wrote:
 In the subdirectory libguile, rewrote:
     coop-threads.c  coop.c          mit-pthreads.c  threads.c print.c
     coop-threads.h  fsu-pthreads.h  mit-pthreads.h  threads.h print.h
+In the subdirectory doc, wrote:
+    goops-tutorial.texi             hierarchy.eps
+    hierarchy.txt   mop.txt         oldfmt.c
+In the subdirectory doc, changes to:
+    data-rep.texi   gh.texi         goops.texi
 Many other changes throughout.
 
 Mark Galassi:
@@ -60,6 +73,8 @@ subdirectory libguile, wrote:
 gh.h             gh_funcs.c       gh_list.c        gh_test_repl.c
 gh_data.c        gh_init.c        gh_predicates.c
 gh_eval.c        gh_io.c          gh_test_c.c
+In the subdirectory doc, wrote:
+    appendices.texi gh.texi         guile-tut.texi
 
 Marius Vollmer:
 In the subdirectory libguile, wrote:
@@ -68,6 +83,9 @@ In the subdirectory libguile, wrote:
 In the subdirectory libguile, rewrote:
     dynl.c	dynl-dl.c	dynl-shl.c
     dynl.h	dynl-dld.c
+In the subdirectory doc, changes to:
+    data-rep.texi   intro.texi      posix.texi
+    scheme-modules.texi
 
 R. Kent Dybvig:
 In the subdirectory ice-9, wrote:
@@ -91,6 +109,8 @@ Tim Pierce:
 In the subdirectory libguile, wrote:
     regex-posix.c
     regex-posix.h
+In the subdirectory doc, changes to:
+    appendices.texi posix.texi
 
 Rob Browning:
   wrote initial srfi/srfi-2.scm.
@@ -108,9 +128,54 @@ In the subdirectory srfi, wrote:
     srfi-13.c
     srfi-14.c
 In the subdirectory doc, wrote:
+    script-getopt.texi
     srfi-modules.texi
     srfi-13-14.texi
     repl-modules.texi
+In the subdirectory doc, changes to:
+    guile.texi      intro.texi      posix.texi
+    scheme-binding.texi             scheme-control.texi
+    scheme-data.texi                scheme-evaluation.texi
+    scheme-indices.texi             scheme-io.texi
+    scheme-memory.texi              scheme-modules.texi
+    scheme-options.texi             scheme-procedures.texi
+    scheme-scheduling.texi          scheme-utility.texi
 
 Will Fitzgerald:
   wrote initial srfi/srfi-19.scm.
+
+Dirk Herrmann:
+In the subdirectory doc, changes to:
+    data-rep.texi
+    scm.texi
+
+Greg Badros:
+In the subdirectory doc, changes to:
+    data-rep.texi
+
+Neil Jerram:
+In the subdirectory ice-9, wrote:
+    buffered-input.scm
+In the subdirectory doc, wrote:
+    deprecated.texi   goops.texi    scheme-ideas.texi
+    scheme-reading.texi
+In the subdirectory doc, changes to:
+    appendices.texi data-rep.texi   expect.texi
+    extend.texi     gh.texi         guile-tut.texi
+    guile.texi      indices.texi    intro.texi
+    posix.texi      preface.texi    r5rs.texi
+    scheme-binding.texi             scheme-modules.texi
+    scheme-control.texi             scheme-data.texi
+    scheme-debug.texi               scheme-evaluation.texi
+    scheme-ideas.texi               scheme-indices.texi
+    scheme-intro.texi               scheme-io.texi
+    scheme-memory.texi              scheme-options.texi
+    scheme-procedures.texi          scheme-scheduling.texi
+    scheme-translation.texi         scheme-utility.texi
+    scm.texi        scripts.texi    script-getopt.texi
+In the subdirectory doc/maint, wrote:
+    docstring.el
+
+Thien Thi Nguyen:
+In the subdirectory doc, changes to:
+    preface.texi    scheme-scheduling.texi
