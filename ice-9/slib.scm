@@ -1,6 +1,6 @@
 ;;;; slib.scm --- definitions needed to get SLIB to work with Guile
 ;;;;
-;;;;	Copyright (C) 1997, 1998, 2000, 2001 Free Software Foundation, Inc.
+;;;;	Copyright (C) 1997, 1998, 2000, 2001, 2002 Free Software Foundation, Inc.
 ;;;;
 ;;;; This file is part of GUILE.
 ;;;; 
