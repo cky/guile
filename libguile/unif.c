@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996,1997,1998 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996,1997,1998, 2000 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -114,12 +114,9 @@ scm_uniform_element_size (SCM obj)
       break;
 #endif 
 
-#ifdef SCM_FLOATS
-#ifdef SCM_SINGLES
     case scm_tc7_fvect:
       result = sizeof (float);
       break;
-#endif
 
     case scm_tc7_dvect:
       result = sizeof (double);
@@ -128,7 +125,6 @@ scm_uniform_element_size (SCM obj)
     case scm_tc7_cvect:
       result = 2 * sizeof (double);
       break;
-#endif
       
     default:
       result = 0;
@@ -136,27 +132,21 @@ scm_uniform_element_size (SCM obj)
   return result;
 }
 
-
-#ifdef SCM_FLOATS
-#ifdef SCM_SINGLES
-
-
-SCM 
-scm_makflo (float x)
+/* Silly function used not to modify the semantics of the silly
+ * prototype system in order to be backward compatible.
+ */
+static int
+singp (SCM obj)
 {
-  SCM z;
-  if (x == 0.0)
-    return scm_flo0;
-  SCM_NEWCELL (z);
-  SCM_DEFER_INTS;
-  SCM_SETCAR (z, scm_tc_flo);
-  SCM_FLO (z) = x;
-  SCM_ALLOW_INTS;
-  return z;
+  if (!SCM_SLOPPY_REALP (obj))
+    return 0;
+  else
+    {
+      double x = SCM_REAL_VALUE (obj);
+      float fx = x;
+      return (- SCM_FLTMAX < x) && (x < SCM_FLTMAX) && (fx == x);
+    }
 }
-#endif
-#endif
-
 
 SCM 
 scm_make_uve (long k, SCM prot)
@@ -209,21 +199,15 @@ scm_make_uve (long k, SCM prot)
 	}
     }
   else
-#ifdef SCM_FLOATS
   if (SCM_IMP (prot) || !SCM_INEXP (prot))
-#endif
     /* Huge non-unif vectors are NOT supported. */
     /* no special scm_vector */
     return scm_make_vector (SCM_MAKINUM (k), SCM_UNDEFINED);
-#ifdef SCM_FLOATS
-#ifdef SCM_SINGLES
-  else if (SCM_SINGP (prot))
-
+  else if (singp (prot))
     {
       i = sizeof (float) * k;
       type = scm_tc7_fvect;
     }
-#endif
   else if (SCM_CPLXP (prot))
     {
       i = 2 * sizeof (double) * k;
@@ -234,7 +218,6 @@ scm_make_uve (long k, SCM prot)
       i = sizeof (double) * k;
       type = scm_tc7_dvect;
     }
-#endif
 
   SCM_NEWCELL (v);
   SCM_DEFER_INTS;
@@ -327,16 +310,12 @@ SCM_DEFINE (scm_array_p, "array?", 1, 1, 0,
  	    && (1 == SCM_LENGTH (prot))
  	    && ('s' == SCM_CHARS (prot)[0]);
 #endif
-# ifdef SCM_FLOATS
-#  ifdef SCM_SINGLES
  	case scm_tc7_fvect:
- 	  protp = SCM_SINGP(prot);
-#  endif
+ 	  protp = singp (prot);
  	case scm_tc7_dvect:
  	  protp = SCM_REALP(prot);
  	case scm_tc7_cvect:
  	  protp = SCM_CPLXP(prot);
-# endif
  	case scm_tc7_vector:
  	case scm_tc7_wvect:
  	  protp = SCM_NULLP(prot);
@@ -1123,16 +1102,10 @@ SCM_DEFINE (scm_uniform_vector_ref, "uniform-vector-ref", 2, 0, 0,
       return SCM_MAKE_CHAR (SCM_UCHARS (v)[pos]);
     case scm_tc7_byvect:
       return SCM_MAKINUM (((char *)SCM_CHARS (v))[pos]);
-# ifdef SCM_INUMS_ONLY
-    case scm_tc7_uvect:
-    case scm_tc7_ivect:
-      return SCM_MAKINUM (SCM_VELTS (v)[pos]);
-# else
   case scm_tc7_uvect:
     return scm_ulong2num((unsigned long ) SCM_VELTS(v)[pos]);
   case scm_tc7_ivect:
     return scm_long2num((long) SCM_VELTS(v)[pos]);
-# endif    
 
     case scm_tc7_svect:
       return SCM_MAKINUM (((short *) SCM_CDR (v))[pos]);
@@ -1141,17 +1114,13 @@ SCM_DEFINE (scm_uniform_vector_ref, "uniform-vector-ref", 2, 0, 0,
       return scm_long_long2num (((long_long *) SCM_CDR (v))[pos]);
 #endif
 
-#ifdef SCM_FLOATS
-#ifdef SCM_SINGLES
     case scm_tc7_fvect:
-      return scm_makflo (((float *) SCM_CDR (v))[pos]);
-#endif
+      return scm_make_real (((float *) SCM_CDR (v))[pos]);
     case scm_tc7_dvect:
-      return scm_makdbl (((double *) SCM_CDR (v))[pos], 0.0);
+      return scm_make_real (((double *) SCM_CDR (v))[pos]);
     case scm_tc7_cvect:
-      return scm_makdbl (((double *) SCM_CDR (v))[2 * pos],
-			 ((double *) SCM_CDR (v))[2 * pos + 1]);
-#endif
+      return scm_make_complex (((double *) SCM_CDR (v))[2 * pos],
+			       ((double *) SCM_CDR (v))[2 * pos + 1]);
     case scm_tc7_vector:
     case scm_tc7_wvect:
       return SCM_VELTS (v)[pos];
@@ -1178,53 +1147,39 @@ scm_cvref (SCM v, scm_sizet pos, SCM last)
       return SCM_MAKE_CHAR (SCM_UCHARS (v)[pos]);
     case scm_tc7_byvect:
       return SCM_MAKINUM (((char *)SCM_CHARS (v))[pos]);
-# ifdef SCM_INUMS_ONLY
-    case scm_tc7_uvect:
-    case scm_tc7_ivect:
-      return SCM_MAKINUM (SCM_VELTS (v)[pos]);
-# else
     case scm_tc7_uvect:
       return scm_ulong2num((unsigned long) SCM_VELTS(v)[pos]);
     case scm_tc7_ivect:
       return scm_long2num((long) SCM_VELTS(v)[pos]);
-# endif    
     case scm_tc7_svect:
       return SCM_MAKINUM (((short *) SCM_CDR (v))[pos]);
 #ifdef HAVE_LONG_LONGS
     case scm_tc7_llvect:
       return scm_long_long2num (((long_long *) SCM_CDR (v))[pos]);
 #endif
-#ifdef SCM_FLOATS
-#ifdef SCM_SINGLES
     case scm_tc7_fvect:
-      if (SCM_NIMP (last) && (last != scm_flo0) && (scm_tc_flo == SCM_UNPACK_CAR (last)))
+      if (SCM_NIMP (last) && last != scm_flo0 && SCM_SLOPPY_REALP (last))
 	{
-	  SCM_FLO (last) = ((float *) SCM_CDR (v))[pos];
+	  SCM_REAL_VALUE (last) = ((float *) SCM_CDR (v))[pos];
 	  return last;
 	}
-      return scm_makflo (((float *) SCM_CDR (v))[pos]);
-#endif
+      return scm_make_real (((float *) SCM_CDR (v))[pos]);
     case scm_tc7_dvect:
-#ifdef SCM_SINGLES
-      if (SCM_NIMP (last) && scm_tc_dblr == SCM_UNPACK_CAR (last))
-#else
-      if (SCM_NIMP (last) && (last != scm_flo0) && (scm_tc_dblr == SCM_CAR (last)))
-#endif
+      if (SCM_NIMP (last) && last != scm_flo0 && SCM_SLOPPY_REALP (last))
 	{
-	  SCM_REAL (last) = ((double *) SCM_CDR (v))[pos];
+	  SCM_REAL_VALUE (last) = ((double *) SCM_CDR (v))[pos];
 	  return last;
 	}
-      return scm_makdbl (((double *) SCM_CDR (v))[pos], 0.0);
+      return scm_make_real (((double *) SCM_CDR (v))[pos]);
     case scm_tc7_cvect:
-      if (SCM_NIMP (last) && scm_tc_dblc == SCM_UNPACK_CAR (last))
+      if (SCM_NIMP (last) && SCM_SLOPPY_COMPLEXP (last))
 	{
-	  SCM_REAL (last) = ((double *) SCM_CDR (v))[2 * pos];
-	  SCM_IMAG (last) = ((double *) SCM_CDR (v))[2 * pos + 1];
+	  SCM_COMPLEX_REAL (last) = ((double *) SCM_CDR (v))[2 * pos];
+	  SCM_COMPLEX_IMAG (last) = ((double *) SCM_CDR (v))[2 * pos + 1];
 	  return last;
 	}
-      return scm_makdbl (((double *) SCM_CDR (v))[2 * pos],
-			 ((double *) SCM_CDR (v))[2 * pos + 1]);
-#endif
+      return scm_make_complex (((double *) SCM_CDR (v))[2 * pos],
+			       ((double *) SCM_CDR (v))[2 * pos + 1]);
     case scm_tc7_vector:
     case scm_tc7_wvect:
       return SCM_VELTS (v)[pos];
@@ -1307,21 +1262,12 @@ SCM_DEFINE (scm_array_set_x, "array-set!", 2, 0, 1,
       SCM_ASRTGO (SCM_INUMP (obj), badobj);
       ((char *)SCM_CHARS (v))[pos] = SCM_INUM (obj);
       break;
-# ifdef SCM_INUMS_ONLY
-    case scm_tc7_uvect:
-      SCM_ASRTGO (SCM_INUM (obj) >= 0, badobj); 
-      /* fall through */
-    case scm_tc7_ivect:
-      SCM_ASRTGO(SCM_INUMP(obj), badobj); SCM_VELTS(v)[pos] = SCM_INUM(obj);
-      break;
-# else
     case scm_tc7_uvect:
       SCM_VELTS(v)[pos] = SCM_PACK (scm_num2ulong(obj, (char *)SCM_ARG2, FUNC_NAME));
       break;
     case scm_tc7_ivect:
       SCM_VELTS(v)[pos] = SCM_PACK (scm_num2long(obj, (char *)SCM_ARG2, FUNC_NAME));
       break;
-# endif
     case scm_tc7_svect:
       SCM_ASRTGO (SCM_INUMP (obj), badobj);
       ((short *) SCM_CDR (v))[pos] = SCM_INUM (obj);
@@ -1333,21 +1279,17 @@ SCM_DEFINE (scm_array_set_x, "array-set!", 2, 0, 1,
 #endif
 
 
-#ifdef SCM_FLOATS
-#ifdef SCM_SINGLES
     case scm_tc7_fvect:
-      ((float *) SCM_CDR (v))[pos] = (float)scm_num2dbl(obj, FUNC_NAME); break;
+      ((float *) SCM_CDR (v))[pos] = (float) scm_num2dbl (obj, FUNC_NAME);
       break;
-#endif
     case scm_tc7_dvect:
-      ((double *) SCM_CDR (v))[pos] = scm_num2dbl(obj, FUNC_NAME); break;
+      ((double *) SCM_CDR (v))[pos] = scm_num2dbl (obj, FUNC_NAME);
       break;
     case scm_tc7_cvect:
       SCM_ASRTGO (SCM_INEXP (obj), badobj);
       ((double *) SCM_CDR (v))[2 * pos] = SCM_REALPART (obj);
       ((double *) SCM_CDR (v))[2 * pos + 1] = SCM_CPLXP (obj) ? SCM_IMAG (obj) : 0.0;
       break;
-#endif
     case scm_tc7_vector:
     case scm_tc7_wvect:
       SCM_VELTS (v)[pos] = obj;
@@ -1530,19 +1472,15 @@ loop:
       sz = sizeof (long_long);
       break;
 #endif
-#ifdef SCM_FLOATS
-#ifdef SCM_SINGLES
     case scm_tc7_fvect:
       sz = sizeof (float);
       break;
-#endif
     case scm_tc7_dvect:
       sz = sizeof (double);
       break;
     case scm_tc7_cvect:
       sz = 2 * sizeof (double);
       break;
-#endif
     }
   
   cend = vlen;
@@ -1684,19 +1622,15 @@ loop:
       sz = sizeof (long_long);
       break;
 #endif
-#ifdef SCM_FLOATS
-#ifdef SCM_SINGLES
     case scm_tc7_fvect:
       sz = sizeof (float);
       break;
-#endif
     case scm_tc7_dvect:
       sz = sizeof (double);
       break;
     case scm_tc7_cvect:
       sz = 2 * sizeof (double);
       break;
-#endif
     }
 
   cend = vlen;
@@ -2098,16 +2032,6 @@ SCM_DEFINE (scm_array_to_list, "array->list", 1, 0, 0,
 	  res = scm_cons (SCM_BOOL(((long *) data)[k] & mask), res);
 	return res;
       }
-# ifdef SCM_INUMS_ONLY
-    case scm_tc7_uvect:
-    case scm_tc7_ivect:
-      {
-	long *data = (long *) SCM_VELTS (v);
-	for (k = SCM_LENGTH (v) - 1; k >= 0; k--)
-	  res = scm_cons (SCM_MAKINUM (data[k]), res);
-	return res;
-      }
-# else
   case scm_tc7_uvect: {
     long *data = (long *)SCM_VELTS(v);
     for (k = SCM_LENGTH(v) - 1; k >= 0; k--)
@@ -2120,7 +2044,6 @@ SCM_DEFINE (scm_array_to_list, "array->list", 1, 0, 0,
       res = scm_cons(scm_long2num(data[k]), res);
     return res;
   }
-# endif
     case scm_tc7_svect: {
       short *data;
       data = (short *)SCM_VELTS(v);
@@ -2139,16 +2062,13 @@ SCM_DEFINE (scm_array_to_list, "array->list", 1, 0, 0,
 #endif
 
 
-#ifdef SCM_FLOATS
-#ifdef SCM_SINGLES
     case scm_tc7_fvect:
       {
 	float *data = (float *) SCM_VELTS (v);
 	for (k = SCM_LENGTH (v) - 1; k >= 0; k--)
-	  res = scm_cons (scm_makflo (data[k]), res);
+	  res = scm_cons (scm_make_real (data[k]), res);
 	return res;
       }
-#endif /*SCM_SINGLES*/
     case scm_tc7_dvect:
       {
 	double *data = (double *) SCM_VELTS (v);
@@ -2163,7 +2083,6 @@ SCM_DEFINE (scm_array_to_list, "array->list", 1, 0, 0,
 	  res = scm_cons (scm_makdbl (data[k][0], data[k][1]), res);
 	return res;
       }
-#endif /*SCM_FLOATS*/
     }
 }
 #undef FUNC_NAME
@@ -2378,54 +2297,54 @@ tail:
 	}
       break;
 
-#ifdef SCM_FLOATS
-#ifdef SCM_SINGLES
     case scm_tc7_fvect:
       if (n-- > 0)
 	{
-	  SCM z = scm_makflo (1.0);
-	  SCM_FLO (z) = ((float *) SCM_VELTS (ra))[j];
-	  scm_floprint (z, port, pstate);
+	  SCM z = scm_make_real (1.0);
+	  SCM_REAL_VALUE (z) = ((float *) SCM_VELTS (ra))[j];
+	  scm_print_real (z, port, pstate);
 	  for (j += inc; n-- > 0; j += inc)
 	    {
 	      scm_putc (' ', port);
-	      SCM_FLO (z) = ((float *) SCM_VELTS (ra))[j];
-	      scm_floprint (z, port, pstate);
+	      SCM_REAL_VALUE (z) = ((float *) SCM_VELTS (ra))[j];
+	      scm_print_real (z, port, pstate);
 	    }
 	}
       break;
-#endif /*SCM_SINGLES*/
     case scm_tc7_dvect:
       if (n-- > 0)
 	{
-	  SCM z = scm_makdbl (1.0 / 3.0, 0.0);
-	  SCM_REAL (z) = ((double *) SCM_VELTS (ra))[j];
-	  scm_floprint (z, port, pstate);
+	  SCM z = scm_make_real (1.0 / 3.0);
+	  SCM_REAL_VALUE (z) = ((double *) SCM_VELTS (ra))[j];
+	  scm_print_real (z, port, pstate);
 	  for (j += inc; n-- > 0; j += inc)
 	    {
 	      scm_putc (' ', port);
-	      SCM_REAL (z) = ((double *) SCM_VELTS (ra))[j];
-	      scm_floprint (z, port, pstate);
+	      SCM_REAL_VALUE (z) = ((double *) SCM_VELTS (ra))[j];
+	      scm_print_real (z, port, pstate);
 	    }
 	}
       break;
     case scm_tc7_cvect:
       if (n-- > 0)
 	{
-	  SCM cz = scm_makdbl (0.0, 1.0), z = scm_makdbl (1.0 / 3.0, 0.0);
-	  SCM_REAL (z) = SCM_REAL (cz) = (((double *) SCM_VELTS (ra))[2 * j]);
-	  SCM_IMAG (cz) = ((double *) SCM_VELTS (ra))[2 * j + 1];
-	  scm_floprint ((0.0 == SCM_IMAG (cz) ? z : cz), port, pstate);
+	  SCM cz = scm_make_complex (0.0, 1.0), z = scm_make_real (1.0 / 3.0);
+	  SCM_REAL_VALUE (z) =
+	    SCM_COMPLEX_REAL (cz) = ((double *) SCM_VELTS (ra))[2 * j];
+	  SCM_COMPLEX_IMAG (cz) = ((double *) SCM_VELTS (ra))[2 * j + 1];
+	  scm_print_complex ((0.0 == SCM_COMPLEX_IMAG (cz) ? z : cz),
+			     port, pstate);
 	  for (j += inc; n-- > 0; j += inc)
 	    {
 	      scm_putc (' ', port);
-	      SCM_REAL (z) = SCM_REAL (cz) = ((double *) SCM_VELTS (ra))[2 * j];
-	      SCM_IMAG (cz) = ((double *) SCM_VELTS (ra))[2 * j + 1];
-	      scm_floprint ((0.0 == SCM_IMAG (cz) ? z : cz), port, pstate);
+	      SCM_REAL_VALUE (z)
+		= SCM_COMPLEX_REAL (cz) = ((double *) SCM_VELTS (ra))[2 * j];
+	      SCM_COMPLEX_IMAG (cz) = ((double *) SCM_VELTS (ra))[2 * j + 1];
+	      scm_print_complex ((0.0 == SCM_COMPLEX_IMAG (cz) ? z : cz),
+				 port, pstate);
 	    }
 	}
       break;
-#endif /*SCM_FLOATS*/
     }
 }
 
@@ -2508,19 +2427,15 @@ tail:
       scm_putc ('l', port);
       break;
 #endif
-#ifdef SCM_FLOATS
-#ifdef SCM_SINGLES
     case scm_tc7_fvect:
       scm_putc ('s', port);
       break;
-#endif /*SCM_SINGLES*/
     case scm_tc7_dvect:
       scm_putc ('i', port);
       break;
     case scm_tc7_cvect:
       scm_putc ('c', port);
       break;
-#endif /*SCM_FLOATS*/
     }
   scm_putc ('(', port);
   rapr1 (exp, base, 0, port, pstate);
@@ -2568,16 +2483,12 @@ loop:
     case scm_tc7_llvect:
       return SCM_CDR (scm_intern ("l", 1));
 #endif
-#ifdef SCM_FLOATS
-#ifdef SCM_SINGLES
     case scm_tc7_fvect:
-      return scm_makflo (1.0);
-#endif
+      return scm_make_real (1.0);
     case scm_tc7_dvect:
-      return scm_makdbl (1.0 / 3.0, 0.0);
+      return scm_make_real (1.0 / 3.0);
     case scm_tc7_cvect:
-      return scm_makdbl (0.0, 1.0);
-#endif
+      return scm_make_complex (0.0, 1.0);
     }
 }
 #undef FUNC_NAME
