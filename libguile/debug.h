@@ -166,9 +166,10 @@ extern scm_debug_frame *scm_last_debug_frame;
 
 extern long scm_tc16_debugobj;
 
-#define SCM_DEBUGOBJP(x) (SCM_NIMP(x) && (scm_tc16_debugobj == SCM_TYP16 (x)))
-#define SCM_DEBUGOBJ_FRAME(x) SCM_CDR (x)
-#define SCM_SET_DEBUGOBJ_FRAME(x, f) SCM_SETCDR (x, f)
+#define SCM_DEBUGOBJP(x)              (SCM_NIMP (x) \
+                                       && (SCM_TYP16 (x) == scm_tc16_debugobj))
+#define SCM_DEBUGOBJ_FRAME(x)         (SCM_CELL_WORD_1 (x))
+#define SCM_SET_DEBUGOBJ_FRAME(x, f)  (SCM_SET_CELL_WORD_1 (x, f))
 
 /* {Memoized Source}
  */

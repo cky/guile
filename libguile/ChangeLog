@@ -1,5 +1,20 @@
 2000-03-31  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* backtrace.c (display_error_body), debug.c (scm_procedure_source,
+	scm_reverse_lookup), dynl.c (scm_dynamic_link):  Don't use C
+	operators to compare SCM values.
+
+	* debug.c (scm_make_debugobj), debug.h (SCM_DEBUGOBJ_FRAME,
+	SCM_SET_DEBUGOBJ_FRAME):  Update SCM_{SET_}?DEBUGOBJ_FRAME to
+	access raw cell data with SCM_{SET_}?CELL_WORD_1.
+
+	* debug.c (scm_make_debugobj):  Don't use SCM_SETCAR to set types.
+
+	* debug.c (scm_make_memoized), dynl.c (scm_dynamic_link):  Smob
+	data is of type scm_bits_t.
+
+2000-03-31  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* gdbint.c (gdb_maybe_valid_type_p), guardians.c (TCONC_EMPTYP,
 	scm_guardian_zombify):  Use SCM_EQ_P to compare SCM values.
 

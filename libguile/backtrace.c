@@ -180,11 +180,10 @@ display_error_body (struct display_error_args *a)
       current_frame = scm_stack_ref (a->stack, SCM_INUM0);
       source = SCM_FRAME_SOURCE (current_frame);
       prev_frame = SCM_FRAME_PREV (current_frame);
-      if (!SCM_MEMOIZEDP (source)
-	  && prev_frame != SCM_BOOL_F)
+      if (!SCM_MEMOIZEDP (source) && !SCM_FALSEP (prev_frame))
 	source = SCM_FRAME_SOURCE (prev_frame);
       if (SCM_FRAME_PROC_P (current_frame)
-	  && scm_procedure_p (SCM_FRAME_PROC (current_frame)) == SCM_BOOL_T)
+	  && SCM_TRUE_P (scm_procedure_p (SCM_FRAME_PROC (current_frame))))
 	pname = scm_procedure_name (SCM_FRAME_PROC (current_frame));
     }
   if (!SCM_ROSTRINGP (pname))

@@ -382,7 +382,7 @@ SCM_DEFINE (scm_dynamic_link, "dynamic-link", 1, 0, 1,
       val = SCM_CAR (rest);
       rest = SCM_CDR (rest);
 
-      if (kw == kw_global)
+      if (SCM_EQ_P (kw, kw_global))
 	{
 	  if (SCM_FALSEP (val))
 	    flags &= ~DYNL_GLOBAL;
@@ -394,7 +394,7 @@ SCM_DEFINE (scm_dynamic_link, "dynamic-link", 1, 0, 1,
 
   handle = sysdep_dynl_link (SCM_CHARS (fname), flags, FUNC_NAME);
     
-  SCM_RETURN_NEWSMOB2 (scm_tc16_dynamic_obj, fname, handle);
+  SCM_RETURN_NEWSMOB2 (scm_tc16_dynamic_obj, SCM_UNPACK (fname), handle);
 }
 #undef FUNC_NAME
 

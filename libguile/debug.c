@@ -177,8 +177,8 @@ scm_make_memoized (SCM exp, SCM env)
   /* *fixme* Check that env is a valid environment. */
   register SCM z, ans;
   SCM_ENTER_A_SECTION;
-  SCM_NEWSMOB (z, exp, env);
-  SCM_NEWSMOB (ans, scm_tc16_memoized, z);
+  SCM_NEWSMOB (z, SCM_UNPACK (exp), SCM_UNPACK (env));
+  SCM_NEWSMOB (ans, scm_tc16_memoized, SCM_UNPACK (z));
   SCM_EXIT_A_SECTION;
   return ans;
 }
@@ -421,7 +421,7 @@ SCM_DEFINE (scm_procedure_source, "procedure-source", 1, 0, 0,
     {
       SCM src;
       src = scm_source_property (SCM_CDR (SCM_CODE (proc)), scm_sym_copy);
-      if (src != SCM_BOOL_F)
+      if (! SCM_FALSEP (src))
 	return scm_cons2 (scm_sym_lambda, SCM_CAR (SCM_CODE (proc)), src);
       src = SCM_CODE (proc);
       return scm_cons (scm_sym_lambda,
@@ -506,12 +506,12 @@ scm_reverse_lookup (SCM env, SCM data)
       values = SCM_CDAR (env);
       while (SCM_CONSP (names))
 	{
-	  if (SCM_CAR (values) == data)
+	  if (SCM_EQ_P (SCM_CAR (values), data))
 	    return SCM_CAR (names);
 	  names = SCM_CDR (names);
 	  values = SCM_CDR (values);
 	}
-      if (names != SCM_EOL && values == data)
+      if (! SCM_NULLP (names) && SCM_EQ_P (values, data))
 	return names;
       env = SCM_CDR (env);
     }
@@ -581,8 +581,8 @@ scm_make_debugobj (scm_debug_frame *frame)
   register SCM z;
   SCM_NEWCELL (z);
   SCM_ENTER_A_SECTION;
-  SCM_SET_DEBUGOBJ_FRAME (z, (SCM) frame);
-  SCM_SETCAR (z, scm_tc16_debugobj);
+  SCM_SET_DEBUGOBJ_FRAME (z, frame);
+  SCM_SET_CELL_TYPE (z, scm_tc16_debugobj);
   SCM_EXIT_A_SECTION;
   return z;
 }
