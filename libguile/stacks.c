@@ -46,10 +46,12 @@
 
 #include <stdio.h>
 #include "_scm.h"
+#include "eval.h"
 #include "debug.h"
 #include "continuations.h"
 #include "struct.h"
 #include "macros.h"
+#include "procprop.h"
 
 #include "stacks.h"
 
@@ -339,6 +341,27 @@ read_frames (dframe, offset, n, iframes)
 
 static void narrow_stack SCM_P ((SCM stack, int inner, SCM inner_key, int outer, SCM outer_key));
 
+/* Narrow STACK by cutting away stackframes (mutatingly).
+ *
+ * Inner frames (most recent) are cut by advancing the frames pointer.
+ * Outer frames are cut by decreasing the recorded length.
+ *
+ * Cut maximally INNER inner frames and OUTER outer frames using
+ * the keys INNER_KEY and OUTER_KEY.
+ *
+ * Frames are cut away starting at the end points and moving towards
+ * the center of the stack.  The key is normally compared to the
+ * operator in application frames.  Frames up to and including the key
+ * are cut.
+ *
+ * If INNER_KEY is #t a different scheme is used for inner frames:
+ *
+ * Frames up to but excluding the first source frame originating from
+ * a user module are cut, except for possible application frames
+ * between the user frame and the last system frame previously
+ * encountered.
+ */
+
 static void
 narrow_stack (stack, inner, inner_key, outer, outer_key)
      SCM stack;
@@ -352,9 +375,40 @@ narrow_stack (stack, inner, inner_key, outer, outer_key)
   int n = s->length;
   
   /* Cut inner part. */
-  for (i = 0; inner; --inner)
-    if (s->frames[i++].proc == inner_key)
-      break;
+  if (inner_key == SCM_BOOL_T)
+    /* Cut all frames up to user module code */
+    {
+      for (i = 0; inner; ++i, --inner)
+	{
+	  SCM m = s->frames[i].source;
+	  if (SCM_NIMP (m)
+	      && SCM_MEMOIZEDP (m)
+	      && SCM_NIMP (SCM_MEMOIZED_ENV (m))
+	      && SCM_FALSEP (scm_system_module_env_p (SCM_MEMOIZED_ENV (m))))
+	    {
+	      /* Back up in order to include any non-source frames */
+	      while (i > 0
+		     && !((SCM_NIMP (m = s->frames[i - 1].source)
+			   && SCM_MEMOIZEDP (m))
+			  || (SCM_NIMP (m = s->frames[i - 1].proc)
+			      && SCM_NFALSEP (scm_procedure_p (m))
+			      && SCM_NFALSEP (scm_procedure_property
+					      (m, scm_sym_system_procedure)))))
+		{
+		  --i;
+		  ++inner;
+		}
+	      break;
+	    }
+	}
+    }
+  else
+    /* Use standard cutting procedure. */
+    {
+      for (i = 0; inner; --inner)
+	if (s->frames[i++].proc == inner_key)
+	  break;
+    }
   s->frames = &s->frames[i];
   n -= i;
 
@@ -500,7 +554,8 @@ scm_stack_id (stack)
 	}
       else if (SCM_STACKP (stack))
 	return SCM_STACK (stack) -> id;
-      else scm_wrong_type_arg (s_stack_id, SCM_ARG1, stack);
+      else
+	scm_wrong_type_arg (s_stack_id, SCM_ARG1, stack);
     }
   while (dframe && !SCM_VOIDFRAMEP (*dframe))
     dframe = RELOC_FRAME (dframe->prev, offset);
