@@ -62,7 +62,7 @@ CFLAGS=@CFLAGS@
 # Check for headers in $(srcdir)/.., so that #include
 # <libguile/MUMBLE.h> will find MUMBLE.h in this dir when we're
 # building.
-INCLUDE_CFLAGS=-I. -I$(srcdir)/.. -I$(srcdir)
+INCLUDE_CFLAGS=-I. -I.. -I$(srcdir)/.. -I$(srcdir)
 ALL_CFLAGS=$(X_CFLAGS) $(INCLUDE_CFLAGS) $(X11_INCLUDES) @DEFS@
 CC=@CC@ $(ALL_CFLAGS)
 
@@ -97,6 +97,7 @@ libobjs=	alist.o \
 		filesys.o \
 		fports.o \
 		gc.o \
+		gdbint.o \
 		genio.o \
 		gsubr.o \
 		hash.o \
@@ -173,6 +174,8 @@ inner_h_files= __scm.h \
 		filesys.h \
 		fports.h \
 		gc.h \
+		gdb_interface.h \
+		gdbint.h \
 		genio.h \
 		gsubr.h \
 		hash.h \
@@ -246,6 +249,7 @@ c_files=	alist.c \
 		filesys.c \
 		fports.c \
 		gc.c \
+		gdbint.c \
 		genio.c \
 		gsubr.c \
 		hash.c \
