@@ -56,108 +56,12 @@
 /* {Multi-language support}
  */
 
-/* Representation of pairs:
- *
- * Since we're going to share data with Scheme, we use EOL instead of nil
- * in all data structures.
- */
-
 #ifdef SCM_ENABLE_ELISP
-#if 0
-
-SCM_DEFINE (scm_nil_cons, "nil-cons", 2, 0, 0,
-            (SCM x, SCM y),
-	    "Create a new cons cell with @var{x} as the car and @var{y} as\n"
-	    "the cdr, but convert @var{y} to Scheme's end-of-list if it is\n"
-	    "a LISP nil.")
-#define FUNC_NAME s_scm_nil_cons
-{
-  return scm_cons (x, SCM_NIL2EOL (y, y));
-}
-#undef FUNC_NAME
-
-
-SCM_DEFINE (scm_nil_car, "nil-car", 1, 0, 0, 
-            (SCM x),
-	    "Return the car of @var{x}, but convert it to LISP nil if it\n"
-	    "is Scheme's end-of-list.")
-#define FUNC_NAME s_scm_nil_car
-{
-  if (SCM_NILP (x))
-    return scm_lisp_nil;
-  SCM_VALIDATE_CONS (1, x);
-  return SCM_CAR (x);
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_nil_cdr, "nil-cdr", 1, 0, 0, 
-            (SCM x),
-	    "Return the cdr of @var{x}, but convert it to LISP nil if it\n"
-	    "is Scheme's end-of-list.")
-#define FUNC_NAME s_scm_nil_cdr
-{
-  if (SCM_NILP (x))
-    return scm_lisp_nil;
-  SCM_VALIDATE_CONS (1, x);
-  return SCM_EOL2NIL (SCM_CDR (x), x);
-}
-#undef FUNC_NAME
-
-/* GJB:FIXME:: why does this return scm_lisp_nil instead of SCM_BOOL_F?
-   Could use SCM_BOOL, below, otherwise */
-SCM_DEFINE (scm_null, "null", 1, 0, 0, 
-            (SCM x),
-	    "Return LISP's @code{t} if @var{x} is nil in the LISP sense,\n"
-	    "return LISP's nil otherwise.")
-#define FUNC_NAME s_scm_null
-{
-  return (SCM_NILP (x) || SCM_NULLP (x) || SCM_FALSEP (x)) ? scm_lisp_t : scm_lisp_nil;
-}
-#undef FUNC_NAME
-
-SCM
-scm_m_while (SCM exp, SCM env)
-{
-  register SCM x = exp = SCM_CDR (exp);
-  SCM z = scm_eval_car (x, env);
-  while (!SCM_NILP (z) && SCM_NFALSEP (z))
-    {
-      while (SCM_NNULLP (x = SCM_CDR (x)))
-	{
-	  if (SCM_NIMP (SCM_CAR (x)))
-	    (*scm_ceval_ptr) (SCM_CAR (x), env);
-	}
-      z = scm_eval_car (x = exp, env);
-    }
-  return scm_lisp_nil;
-}
-
-/* GJB:FIXME:: why does this return scm_lisp_nil instead of SCM_BOOL_F?
-   Could use SCM_BOOL, below, otherwise */
-SCM_DEFINE1 (scm_nil_eq, "nil-eq", scm_tc7_rpsubr, 
-             (SCM x, SCM y),
-	     "Compare @var{x} and @var{y} and return LISP's t if they are\n"
-	     "@code{eq?}, return LISP's nil otherwise.")
-#define FUNC_NAME s_scm_nil_eq
-{
-  return ((SCM_EQ_P (x, y)
-	   || (SCM_NILP (x) && (SCM_NULLP (y) || SCM_FALSEP (y)))
-	   || (SCM_NILP (y) && (SCM_NULLP (x) || SCM_FALSEP (x))))
-	  ? scm_lisp_t
-	  : scm_lisp_nil);
-}
-#undef FUNC_NAME
-
-#endif /* 0 */
-
 
 void
 scm_init_lang ()
 {
-#if 0
 #include "libguile/lang.x"
-  scm_make_synt ("nil-while", scm_makacro, scm_m_while);
-#endif
 
   scm_c_define ("%nil", SCM_ELISP_NIL);
 }

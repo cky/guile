@@ -1,5 +1,9 @@
 2002-12-28  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* lang.c (scm_nil_cons, scm_nil_car, scm_nil_cdr, scm_null,
+	scm_m_while, scm_nil_eq): Remove definitions that were superfluous
+	and already commented out.
+
 	* read.h (scm_lreadparen), read.c (scm_lreadr, scm_read_token,
 	scm_lreadparen): Support reading vectors with Elisp syntax if
 	SCM_ELISP_READ_EXTENSIONS is defined.  (SCM_ELISP_READ_EXTENSIONS
