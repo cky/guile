@@ -452,6 +452,48 @@ platform supports this, too.  The two zeros are equal according to
     (eqv? 0.0 (- 0.0))
     => #f
 
+** Guile now has exact rationals.
+
+Guile can now represent fractions such as 1/3 exactly.  Computing with
+them is also done exactly, of course:
+
+    (* 1/3 3/2)
+    => 1/2
+
+** 'floor', 'ceiling', 'round' and 'truncate' now return exact numbers
+   for exact arguments.
+
+For example: (floor 2) now returns an exact 2 where in the past it
+returned an inexact 2.0.  Likewise, (floor 5/4) returns an exact 1.
+
+** inexact->exact no longer returns only integers.
+
+Without exact rationals, the closest exact number was always an
+integer, but now inexact->exact returns the fraction that is exactly
+equal to a floating point number.  For example:
+
+    (inexact->exact 1.234)
+    => 694680242521899/562949953421312
+
+When you want the old behavior, use 'round' explicitely:
+
+    (inexact->exact (round 1.234))
+    => 1
+
+** New function 'rationalize'.
+
+This function finds a simple fraction that is close to a given real
+number.  For example (and compare with inexact->exact above):
+
+    (rationalize 1.234 0.0005)
+    => 58/47
+
+** 'odd?' and 'even?' work also for inexact integers.
+
+Previously, (odd? 1.0) would signal an error since only exact integers
+were recognized as integers.  Now (odd? 1.0) returns #t, (odd? 2.0)
+returns #f and (odd? 1.5) signals an error.
+
 ** We now have uninterned symbols.
 
 The new function 'make-symbol' will return a uninterned symbol.  This

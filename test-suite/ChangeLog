@@ -1,3 +1,14 @@
+2003-11-18  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* tests/numbers.test ("string->number"): Expect exact rationals
+	for things like "1/2" and "#e1.2".
+	("inexact->exact"): Expect overflow error for infs and nans.
+
+	* tests/fractions.test: New file from Bill Schottstaedt.  Thanks!
+
+	* tests/bit-operations.test (fixnum-bit): Round the result so that
+	fixnum-bit really is an integer.
+
 2003-11-17  Marius Vollmer  <mvo@zagadka.de>
 
 	* tests/srfi-17.test: Expect a "Bad variable" error for (set! #f

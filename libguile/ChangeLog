@@ -1,3 +1,48 @@
+2003-11-18  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	Support for exact fractions from Bill Schottstaedt!  Thanks!
+	
+	* print.c (scm_iprin1): Handle fractions.
+
+	* objects.h (scm_class_fraction): New.
+	* objects.c (scm_class_fraction): New. 
+	(scm_class_of): Handle fractions.
+	
+	* hash.c (scm_hasher): Handle fractions.
+
+	* numbers.c: New code for handling fraction all over the place.
+	(scm_odd_p, scm_even_p): Handle inexact integers.
+	(scm_rational_p): New function, same as scm_real_p.
+	(scm_round_number, scm_truncate_number, scm_ceiling, scm_floor):
+	New exact functions that replace the inexact 'dsubr'
+	implementations.
+	(scm_numerator, scm_denominator): New.
+
+	* numbers.h (SCM_NUMP): Recognize fractions.
+	(SCM_FRACTIONP, SCM_SLOPPY_FRACTIONP, SCM_FRACTION_NUMERATOR,
+	SCM_FRACTION_DENOMINATOR, SCM_FRACTION_SET_NUMERATOR,
+	SCM_FRACTION_SET_DENOMINATOR, SCM_FRACTION_REDUCED_BIT,
+	SCM_FRACTION_REDUCED_SET, SCM_FRACTION_REDUCED_CLEAR,
+	SCM_FRACTION_REDUCED): New.
+	(scm_floor, scm_ceiling, scm_truncate_number, scm_round_number):
+	New prototypes.
+	(scm_make_ratio, scm_rationalize, scm_numerator, scm_denominator,
+	scm_rational_p): New prototypes.
+	(scm_i_dbl2num, scm_i_fraction2double, scm_i_fraction_equalp,
+	scm_i_print_fraction): New prototypes.
+	
+	* goops.c (create_standard_classes): Create "<fraction>" class.
+
+	* gc-mark.c (scm_gc_mark_dependencies): Handle fractions.
+
+	* gc-card.c (scm_i_sweep_card): Include scm_tc16_fraction as a
+	case in the switch, but do nothing for now.
+
+	* eval.c (SCM_CEVAL, SCM_APPLY, call_dsubr_1): Convert fractions
+	to doubles when calling 'dsubr' functions.
+
+	* eq.c (scm_eqv_p, scm_equal_p): Handle fractions.
+
 2003-11-18  Rob Browning  <rlb@defaultvalue.org>
 
 	* gen-scmconfig.c (main): remove public definition of
