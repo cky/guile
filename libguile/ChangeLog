@@ -1,5 +1,8 @@
 2004-05-02  Kevin Ryde  <user42@zip.com.au>
 
+	* eval.c (scm_macroexp): Add prototype, since it's not in eval.h under
+	--disable-deprecated.  Reported by Andreas Vögele.
+
 	* filesys.c (_POSIX_C_SOURCE): Define to 199506L to get readdir_r (in
 	particular on HP-UX).  Reported by Andreas Vögele.
 
