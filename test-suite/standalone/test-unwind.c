@@ -213,20 +213,20 @@ check_fluid ()
   SCM f = scm_make_fluid ();
   SCM x;
 
-  scm_fluid_set_x (f, SCM_MAKINUM (12));
+  scm_fluid_set_x (f, scm_from_int (12));
 
   scm_frame_begin (0);
-  scm_frame_fluid (f, SCM_MAKINUM (13));
+  scm_frame_fluid (f, scm_from_int (13));
   x = scm_fluid_ref (f);
   scm_frame_end ();
 
-  if (!SCM_EQ_P (x, SCM_MAKINUM (13)))
+  if (!scm_is_eq (x, scm_from_int (13)))
     {
       printf ("setting fluid didn't work\n");
       exit (1);
     }
 
-  if (!SCM_EQ_P (scm_fluid_ref (f), SCM_MAKINUM (12)))
+  if (!scm_is_eq (scm_fluid_ref (f), scm_from_int (12)))
     {
       printf ("resetting fluid didn't work\n");
       exit (1);
