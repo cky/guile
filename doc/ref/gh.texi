@@ -620,12 +620,12 @@ These correspond to the Scheme @code{(cons a b)} and @code{(list l0 l1
 These correspond to the Scheme @code{(caadar ls)} procedures etc @dots{}
 @end deftypefun
 
-@deftypefun SCM gh_set_car_x(SCM @var{pair}, SCM @var{value})
+@deftypefun SCM gh_set_car_x (SCM @var{pair}, SCM @var{value})
 Modifies the CAR of @var{pair} to be @var{value}.  This is equivalent to
 the Scheme procedure @code{(set-car! ...)}.
 @end deftypefun
 
-@deftypefun SCM gh_set_cdr_x(SCM @var{pair}, SCM @var{value})
+@deftypefun SCM gh_set_cdr_x (SCM @var{pair}, SCM @var{value})
 Modifies the CDR of @var{pair} to be @var{value}.  This is equivalent to
 the Scheme procedure @code{(set-cdr! ...)}.
 @end deftypefun

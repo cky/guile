@@ -46,7 +46,7 @@
 @c essay @sp 10
 @c essay @comment The title is printed in a large font.
 @c essay @title Data Representation in Guile
-@c essay @subtitle $Id: data-rep.texi,v 1.9 2003-04-26 15:09:18 ossau Exp $
+@c essay @subtitle $Id: data-rep.texi,v 1.10 2003-05-03 22:21:59 kryde Exp $
 @c essay @subtitle For use with Guile @value{VERSION}
 @c essay @author Jim Blandy
 @c essay @author Free Software Foundation
@@ -1489,7 +1489,7 @@ deprecated and will be removed in a future version of Guile.  You should
 use the mechanism described above for new code, and change old code not
 to use deprecated features.
 
-@deftypefun long scm_make_smob_type_mfpe(const char *name, size_t size, SCM (*mark) (SCM), size_t (*free) (SCM), int (*print) (SCM, SCM, scm_print_state*), SCM (*equalp) (SCM, SCM))
+@deftypefun long scm_make_smob_type_mfpe (const char *name, size_t size, SCM (*mark) (SCM), size_t (*free) (SCM), int (*print) (SCM, SCM, scm_print_state*), SCM (*equalp) (SCM, SCM))
 This function invokes @code{scm_make_smob_type} on its first two arguments
 to add a new smob type named @var{name}, with instance size @var{size} to the system.  
 It also registers the @var{mark}, @var{free}, @var{print}, @var{equalp} smob
@@ -1537,9 +1537,9 @@ or @code{SCM_NEWSMOB3}:@footnote{The @code{SCM_NEWSMOB2} and
 @code{SCM_NEWSMOB3} variants will allocate double cells and thus use
 twice as much memory as smobs created by @code{SCM_NEWSMOB}.}
 
-@deftypefn Macro void SCM_NEWSMOB(SCM value, scm_t_bits tag, void *data)
-@deftypefnx Macro void SCM_NEWSMOB2(SCM value, scm_t_bits tag, void *data1, void *data2)
-@deftypefnx Macro void SCM_NEWSMOB3(SCM value, scm_t_bits tag, void *data1, void *data2, void *data3)
+@deftypefn Macro void SCM_NEWSMOB (SCM value, scm_t_bits tag, void *data)
+@deftypefnx Macro void SCM_NEWSMOB2 (SCM value, scm_t_bits tag, void *data1, void *data2)
+@deftypefnx Macro void SCM_NEWSMOB3 (SCM value, scm_t_bits tag, void *data1, void *data2, void *data3)
 Make @var{value} contain a smob instance of the type with tag @var{tag}
 and smob data @var{data} (or @var{data1}, @var{data2}, and @var{data3}).
 @var{value} must be previously declared as C type @code{SCM}.
@@ -1549,9 +1549,9 @@ Since it is often the case (e.g., in smob constructors) that you will
 create a smob instance and return it, there is also a slightly specialized
 macro for this situation:
 
-@deftypefn Macro fn_returns SCM_RETURN_NEWSMOB(scm_t_bits tag, void *data)
-@deftypefnx Macro fn_returns SCM_RETURN_NEWSMOB2(scm_t_bits tag, void *data1, void *data2)
-@deftypefnx Macro fn_returns SCM_RETURN_NEWSMOB3(scm_t_bits tag, void *data1, void *data2, void *data3)
+@deftypefn Macro fn_returns SCM_RETURN_NEWSMOB (scm_t_bits tag, void *data)
+@deftypefnx Macro fn_returns SCM_RETURN_NEWSMOB2 (scm_t_bits tag, void *data1, void *data2)
+@deftypefnx Macro fn_returns SCM_RETURN_NEWSMOB3 (scm_t_bits tag, void *data1, void *data2, void *data3)
 This macro expands to a block of code that creates a smob instance of
 the type with tag @var{tag} and smob data @var{data} (or @var{data1},
 @var{data2}, and @var{data3}), and causes the surrounding function to
