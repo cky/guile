@@ -1,3 +1,8 @@
+Wed Dec 11 21:06:05 1996  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* slib.scm (slib-parent-dir): throw error if #f returned from
+ 	%search-load-path.
+
 Sat Nov 30 23:57:28 1996  Tom Tromey  <tromey@cygnus.com>
 
 	* PLUGIN/greet, PLUGIN/split.sed, PLUGIN/this.configure: Removed.

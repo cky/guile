@@ -127,7 +127,9 @@
 
 (define slib-parent-dir
   (let* ((path (%search-load-path "slib/require.scm")))
-    (make-shared-substring path 0 (- (string-length path) 17))))
+    (if path
+	(make-shared-substring path 0 (- (string-length path) 17))
+	(error "Could not find slib/require.scm in " %load-path))))
 
 (define-public (implementation-vicinity)
   (string-append slib-parent-dir "/"))
