@@ -1,8 +1,8 @@
 /* classes: h_files */
 
-#ifndef PRINTH
-#define PRINTH
-/*	Copyright (C) 1995,1996,1998, 2000 Free Software Foundation, Inc.
+#ifndef SCM_PRINT_H
+#define SCM_PRINT_H
+/* Copyright (C) 1995,1996,1998,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -74,12 +74,11 @@ do { \
 #define SCM_SET_WRITINGP(pstate, x) { (pstate)->writingp = (x); }
 
 #define SCM_PORT_WITH_PS_P(p)    SCM_TYP16_PREDICATE (scm_tc16_port_with_ps, p)
-#define SCM_PORT_WITH_PS_PORT(p) SCM_CADR (p)
-#define SCM_PORT_WITH_PS_PS(p)   SCM_CDDR (p)
+#define SCM_PORT_WITH_PS_PORT(p) SCM_CAR (SCM_CELL_OBJECT_1 (p))
+#define SCM_PORT_WITH_PS_PS(p)   SCM_CDR (SCM_CELL_OBJECT_1 (p))
 
-#define SCM_COERCE_OUTPORT(p) (SCM_NIMP (p) && SCM_PORT_WITH_PS_P (p) \
-			       ? SCM_PORT_WITH_PS_PORT (p) \
-			       : p)
+#define SCM_COERCE_OUTPORT(p) \
+  (SCM_PORT_WITH_PS_P (p) ? SCM_PORT_WITH_PS_PORT (p) : p)
 
 #define SCM_PRINT_STATE_LAYOUT "sruwuwuwuwuwpwuwuwuruopr"
 typedef struct scm_print_state {
@@ -100,7 +99,6 @@ typedef struct scm_print_state {
 
 extern SCM scm_print_state_vtable;
 
-/* ? scm or long?  print.h and print.c disagree */
 extern scm_bits_t scm_tc16_port_with_ps;
 
 extern SCM scm_print_options (SCM setting);
@@ -116,8 +114,7 @@ extern SCM scm_display (SCM obj, SCM port);
 extern SCM scm_simple_format (SCM port, SCM message, SCM args);
 extern SCM scm_newline (SCM port);
 extern SCM scm_write_char (SCM chr, SCM port);
-extern SCM scm_printer_apply (SCM proc, SCM exp, SCM port,
-                              scm_print_state *);
+extern SCM scm_printer_apply (SCM proc, SCM exp, SCM port, scm_print_state *);
 extern SCM scm_port_with_print_state (SCM port, SCM pstate);
 extern SCM scm_get_print_state (SCM port);
 extern int scm_valid_oport_value_p (SCM val);
@@ -126,7 +123,7 @@ extern void scm_init_print (void);
 #ifdef GUILE_DEBUG
 extern SCM scm_current_pstate (void);
 #endif 
-#endif  /* PRINTH */
+#endif  /* SCM_PRINT_H */
 
 /*
   Local Variables:

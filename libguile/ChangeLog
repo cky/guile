@@ -1,3 +1,12 @@
+2001-05-17  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* print.h (PRINTH, SCM_PRINT_H):  Renamed PRINTH to SCM_PRINT_H.
+
+	(SCM_PORT_WITH_PS_PORT, SCM_PORT_WITH_PS_PS):  Only pairs may be
+	accessed with SCM_C[AD]R.
+
+	(SCM_COERCE_OUTPORT):  Removed redundant SCM_NIMP test.
+
 2001-05-16  Rob Browning  <rlb@cs.utexas.edu>
 
 	* version.c (s_scm_major_version): doc fixes.
