@@ -1,3 +1,25 @@
+Thu Sep  5 01:54:33 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
+
+	* gc.c (scm_cellp): New function: C predicate to determine if an
+	SCM value can be regarded as a pointer to a cell on the heap.
+
+	* gc.h: Added declaration of scm_cellp.
+
+	* gdb_interface.h: New file: The GDB interface header from the GDB
+	distribution.
+
+	* gdbint.c: New file: GDB interface.
+
+	* gdbint.h: New file: GDB interface.
+
+	* libguile.h: Added #include <libguile/gdbint.h>.
+
+	* init.c (scm_boot_guile): Added scm_init_gdbint.
+
+	* Makefile.in: Added gdb_interface.h, gdbint.[hc].
+	Added -I.. to INCLUDE_CFLAGS (otherwise the include files won't be
+	found if object files and source are kept separate).
+
 Wed Sep  4 01:30:47 1996  Jim Blandy  <jimb@totoro.cyclic.com>
 
 	* configure.in: Don't substitute the values of TCL_SRC_DIR and
