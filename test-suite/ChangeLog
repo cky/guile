@@ -1,3 +1,11 @@
+2004-04-15  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/numbers.test (max, min): Exercise some inum/frac, frac/inum,
+	big/frac, frac/big and frac/frac cases.
+
+	* tests/numbers.test (min): Correction, test "documented? min" not
+	"documented? max".
+
 2004-04-06  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/numbers.test (quotient, remainder): Exercise inum/big at and

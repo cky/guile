@@ -1,3 +1,13 @@
+2004-04-15  Kevin Ryde  <user42@zip.com.au>
+
+	* cpp_sig_symbols.in: Add SIGSYS.
+	
+	* list.c (scm_append_x): Use iterative style, to avoid non-tail
+	recursion.
+
+	* numbers.c (scm_max, scm_min): For inum/frac, frac/inum, big/frac,
+	frac/big and frac/frac, use scm_less_p for exact comparison.
+
 2004-04-06  Han-Wen Nienhuys   <hanwen@xs4all.nl>
 
 	* inline.h (scm_cell): use SCM_GC_CELL_WORD for checking tag.
