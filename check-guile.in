@@ -12,7 +12,7 @@
 set -e
 
 # this script runs in the top-level build-dir.
-top_builddir=@srcdir@
+top_builddir=`pwd`
 
 top_srcdir=@top_srcdir@
 
