@@ -74,7 +74,7 @@ Thu Apr 24 01:33:33 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 Sat Apr 19 08:03:50 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
-*	* boot-9.scm (eval-string, command-line, load-user-init): New
+	* boot-9.scm (eval-string, command-line, load-user-init): New
 	functions.
 
 Sat Apr 12 08:27:05 1997  Gary Houston  <ghouston@actrix.gen.nz>

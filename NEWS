@@ -19,11 +19,138 @@ guile-rgx-ctax --- the interface between Guile and the Rx regular
 	programming language.  These are packaged together because the
 	Ctax translator uses Rx to parse Ctax source code.
 
+We no longer distribute the documentation, since it was either out of
+date, or incomplete.  As soon as we have current documentation, we
+will distribute it.
+
 * Changes to the stand-alone interpreter
 
-** 
+** guile now accepts command-line arguments compatible with SCSH, Olin
+Shivers' Scheme Shell.
+
+In general, arguments are evaluated from left to right, but there are
+exceptions.  The following switches stop argument processing, and
+stash all remaining command-line arguments as the value returned by
+the (command-line) function.
+  -s SCRIPT      load Scheme source code from FILE, and exit
+  -c EXPR        evalute Scheme expression EXPR, and exit
+  --             stop scanning arguments; run interactively
+
+The switches below are processed as they are encountered.
+  -l FILE        load Scheme source code from FILE
+  -e FUNCTION    after reading script, apply FUNCTION to
+                 command line arguments
+  -ds            do -s script at this point
+  --emacs        enable Emacs protocol (experimental)
+  -h, --help     display this help and exit
+  -v, --version  display version information and exit
+  \              read arguments from following script lines
+
+So, for example, here is a Guile script named `ekko' (thanks, Olin)
+which re-implements the traditional "echo" command:
+
+#!/usr/local/bin/guile -s
+!#
+(define (main args)
+	(map (lambda (arg) (display arg) (display " "))
+	     (cdr args))
+	(newline))
+
+(main (command-line))
+
+Suppose we invoke this script as follows:
+
+	ekko a speckled gecko
+
+Through the magic of Unix script processing (triggered by the `#!'
+token at the top of the file), /usr/local/bin/guile receives the
+following list of command-line arguments:
+
+	("-s" "./ekko" "a" "speckled" "gecko")
+
+Unix inserts the name of the script after the argument specified on
+the first line of the file (in this case, "-s"), and then follows that
+with the arguments given to the script.  Guile loads the script, which
+defines the `main' function, and then applies it to the list of
+remaining command-line arguments, ("a" "speckled" "gecko").
+
+* Changes to the procedure for linking libguile with your programs
+
+** Guile now builds and installs a shared guile library, if your
+system support shared libraries.  (It still builds a static library on
+all systems.)  Guile automatically detects whether your system
+supports shared libraries.  To prevent Guile from buildisg shared
+libraries, pass the `--disable-shared' flag to the configure script.
+
+Guile takes longer to compile when it builds shared libraries, because
+it must compile every file twice --- once to produce position-
+independent object code, and once to produce normal object code.
+
+** The libthreads library has been merged into libguile.
+
+To link a program against Guile, you now need only link against
+-lguile and -lqt; -lthreads is no longer needed.  If you are using
+autoconf to generate configuration scripts for your application, the
+following lines should suffice to add the appropriate libraries to
+your link command:
+
+### Find quickthreads and libguile.
+AC_CHECK_LIB(qt, main)
+AC_CHECK_LIB(guile, scm_shell)
 
 * Changes to Scheme functions
+
+** There are new accessors and setters for the broken-out time vectors
+returned by `localtime', `gmtime', and that ilk.  They are:
+
+  Component                 Accessor     Setter
+  ========================= ============ ============
+  seconds                   tm:sec       set-tm:sec
+  minutes                   tm:min       set-tm:min
+  hours                     tm:hour      set-tm:hour
+  day of the month          tm:mday      set-tm:mday
+  month                     tm:mon       set-tm:mon
+  year                      tm:year      set-tm:year
+  day of the week           tm:wday      set-tm:wday
+  day in the year           tm:yday      set-tm:yday
+  daylight saving time      tm:isdst     set-tm:isdst
+  GMT offset, seconds       tm:gmtoff    set-tm:gmtoff
+  name of time zone         tm:zone      set-tm:zone
+
+** There are new accessors for the vectors returned by `uname'.
+
+  Component                                      Accessor
+  ============================================== ================
+  name of the operating system implementation    utsname:sysname
+  network name of this machine                   utsname:nodename
+  release level of the operating system          utsname:release
+  version level of the operating system          utsname:version
+  machine hardware platform                      utsname:machine
+
+** There is now a complete set of accessors for the vectors returned
+by the `getserv'
+
+** The new function `eval-string' reads Scheme expressions from a
+string and evaluates them, returning the value of the last expression
+in the string.  If the string contains no expressions, it returns an
+unspecified value.
+
+** The new function `command-line' returns the command-line arguments
+given to Guile, as a list of strings.
+
+When using guile as a script interpreter, `command-line' returns the
+script's arguments; those processed by the interpreter (like `-s' or
+`-c') are omitted.  (In other words, you get the normal, expected
+behavior.)  Any application that uses scm_shell to process its
+command-line arguments gets this behavior as well.
+
+** The new function `load-user-init' looks for a file called `.guile'
+in the user's home directory, and loads it if it exists.  This is
+mostly for use by the code generated by scm_compile_shell_switches,
+but we thought it might also be useful in other circumstances.
+
+** The new function `log10' returns the base-10 logarithm of its
+argument.
 
 ** gethost, getproto, and getnet, and getserv now return more helpful
 error codes.
@@ -58,6 +185,11 @@ argument vector, and then process the command-line arguments.  This
 generally means loading a script file or starting up an interactive
 command interpreter.  For details, see "Changes to the stand-alone
 interpreter" above.
+
+** [[new: scm_usage_name, scm_shell_usage, scm_compile_shell_switches]]
+
+** scm_eval_0str now returns SCM_UNSPECIFIED if the string contains no
+expressions.  It used to return SCM_EOL.
 
 * Changes to documentation
 
@@ -163,7 +295,7 @@ you might say
 ** Guile's read-eval-print loop no longer prints #<unspecified>
 results.  If the user wants to see this, she can evaluate the
 expression (assert-repl-print-unspecified #t), perhaps in her startup
-file. 
+file.
 
 ** Guile no longer shows backtraces by default when an error occurs;
 however, it does display a message saying how to get one, and how to
@@ -406,4 +538,10 @@ Copyright (C) 1996,1997 Free Software Foundation, Inc.
    of this document, or of portions of it,
    under the above conditions, provided also that they
    carry prominent notices stating who last changed them.
+
+
+Local variables:
+mode: outline
+paragraph-separate: "[ 	]*$"
+end:
 
