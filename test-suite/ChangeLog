@@ -1,3 +1,9 @@
+2002-01-22  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* Makefile.am (SCM_TESTS): Added elisp.test.
+
+	* tests/elisp.test: New file.
+
 2001-11-22  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* tests/numbers.test: Added more division by zero tests.
