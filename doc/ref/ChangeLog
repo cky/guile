@@ -1,3 +1,9 @@
+2003-11-15  Kevin Ryde  <user42@zip.com.au>
+
+	* scheme-data.texi (Random): Add *random-state* variable, put note at
+	the top of the node about it being the default, rather than just in
+	the description of random.
+
 2003-11-09  Kevin Ryde  <user42@zip.com.au>
 
 	* misc-modules.texi (Pretty Printing): Add new keyword options, break
