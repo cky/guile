@@ -3,7 +3,7 @@
 #ifndef SCM_VECTORS_H
 #define SCM_VECTORS_H
 
-/* Copyright (C) 1995,1996,1998,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,2000,2001, 2002 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -61,7 +61,8 @@
 #define SCM_VELTS(x) ((const SCM *) SCM_CELL_WORD_1 (x))
 #define SCM_VELTS_AS_STACKITEMS(x) ((SCM_STACKITEM *) SCM_CELL_WORD_1 (x))
 #define SCM_SETVELTS(x, v) (SCM_SET_CELL_WORD_1 ((x), (v)))
-#define SCM_VECTOR_SET(x, idx, val)  (((SCM*)SCM_CELL_WORD_1 (x))[(idx)] = (val))
+#define SCM_VECTOR_REF(x, idx) (((const SCM *) SCM_CELL_WORD_1 (x))[(idx)])
+#define SCM_VECTOR_SET(x, idx, val) (((SCM*)SCM_CELL_WORD_1 (x))[(idx)] = (val))
 
 #define SCM_GC_WRITABLE_VELTS(x) ((SCM*) SCM_VELTS(x))
 
