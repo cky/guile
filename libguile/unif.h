@@ -115,12 +115,14 @@ typedef struct {
 SCM_API void scm_array_get_handle (SCM array, scm_t_array_handle *h);
 SCM_API size_t scm_array_handle_rank (scm_t_array_handle *h);
 SCM_API scm_t_array_dim *scm_array_handle_dims (scm_t_array_handle *h);
-SCM_API SCM scm_array_handle_ref (scm_t_array_handle *h, size_t pos);
-SCM_API void scm_array_handle_set (scm_t_array_handle *h, size_t pos, SCM val);
+SCM_API SCM scm_array_handle_ref (scm_t_array_handle *h, ssize_t pos);
+SCM_API void scm_array_handle_set (scm_t_array_handle *h, ssize_t pos, SCM val);
 SCM_API const SCM *scm_array_handle_elements (scm_t_array_handle *h);
 SCM_API SCM *scm_array_handle_writable_elements (scm_t_array_handle *h);
+SCM_API void scm_array_handle_release (scm_t_array_handle *h);
 
-SCM_API void scm_vector_get_handle (SCM vec, scm_t_array_handle *h);
+SCM_API void scm_generalized_vector_get_handle (SCM vec,
+						scm_t_array_handle *h);
 SCM_API const SCM *scm_vector_elements (SCM vec,
 					scm_t_array_handle *h,
 					size_t *lenp, ssize_t *incp);
@@ -157,12 +159,12 @@ SCM_API scm_t_uint32 *scm_array_handle_bit_writable_elements (scm_t_array_handle
 SCM_API size_t scm_array_handle_bit_elements_offset (scm_t_array_handle *h);
 SCM_API const scm_t_uint32 *scm_bitvector_elements (SCM vec,
 						    scm_t_array_handle *h,
-						    size_t *basep,
+						    size_t *offp,
 						    size_t *lenp,
 						    ssize_t *incp);
 SCM_API scm_t_uint32 *scm_bitvector_writable_elements (SCM vec, 
 						       scm_t_array_handle *h,
-						       size_t *basep,
+						       size_t *offp,
 						       size_t *lenp,
 						       ssize_t *incp);
 

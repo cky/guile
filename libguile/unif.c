@@ -274,6 +274,13 @@ scm_array_get_handle (SCM array, scm_t_array_handle *h)
     scm_wrong_type_arg_msg (NULL, 0, array, "array");
 }
 
+void
+scm_array_handle_release (scm_t_array_handle *h)
+{
+  /* Nothing to do here until arrays need to be reserved for real.
+   */
+}
+
 size_t
 scm_array_handle_rank (scm_t_array_handle *h)
 {
@@ -290,7 +297,7 @@ scm_array_handle_dims (scm_t_array_handle *h)
 }
 
 SCM
-scm_array_handle_ref (scm_t_array_handle *h, size_t pos)
+scm_array_handle_ref (scm_t_array_handle *h, ssize_t pos)
 {
   pos += h->base;
   if (SCM_ARRAYP (h->array))
@@ -301,7 +308,7 @@ scm_array_handle_ref (scm_t_array_handle *h, size_t pos)
 }
 
 void
-scm_array_handle_set (scm_t_array_handle *h, size_t pos, SCM val)
+scm_array_handle_set (scm_t_array_handle *h, ssize_t pos, SCM val)
 {
   pos += h->base;
   if (SCM_ARRAYP (h->array))
@@ -334,7 +341,7 @@ scm_array_handle_writable_elements (scm_t_array_handle *h)
 }
 
 void
-scm_vector_get_handle (SCM vec, scm_t_array_handle *h)
+scm_generalized_vector_get_handle (SCM vec, scm_t_array_handle *h)
 {
   scm_array_get_handle (vec, h);
   if (scm_array_handle_rank (h) != 1)
@@ -345,7 +352,7 @@ const SCM *
 scm_vector_elements (SCM vec, scm_t_array_handle *h,
 		     size_t *lenp, ssize_t *incp)
 {
-  scm_vector_get_handle (vec, h);
+  scm_generalized_vector_get_handle (vec, h);
   if (lenp)
     {
       scm_t_array_dim *dim = scm_array_handle_dims (h);
@@ -359,7 +366,7 @@ SCM *
 scm_vector_writable_elements (SCM vec, scm_t_array_handle *h,
 			      size_t *lenp, ssize_t *incp)
 {
-  scm_vector_get_handle (vec, h);
+  scm_generalized_vector_get_handle (vec, h);
   if (lenp)
     {
       scm_t_array_dim *dim = scm_array_handle_dims (h);
@@ -1577,7 +1584,7 @@ scm_bitvector_writable_elements (SCM vec,
 				 size_t *lenp,
 				 ssize_t *incp)
 {
-  scm_vector_get_handle (vec, h);
+  scm_generalized_vector_get_handle (vec, h);
   if (offp)
     {
       scm_t_array_dim *dim = scm_array_handle_dims (h);
@@ -1599,9 +1606,11 @@ scm_c_bitvector_ref (SCM vec, size_t idx)
       if (idx >= BITVECTOR_LENGTH (vec))
 	scm_out_of_range (NULL, scm_from_size_t (idx));
       bits = BITVECTOR_BITS(vec);
+      return scm_from_bool (bits[idx/32] & (1L << (idx%32)));
     }
   else
     {
+      SCM res;
       size_t len, off;
       ssize_t inc;
   
@@ -1609,9 +1618,10 @@ scm_c_bitvector_ref (SCM vec, size_t idx)
       if (idx >= len)
 	scm_out_of_range (NULL, scm_from_size_t (idx));
       idx = idx*inc + off;
+      res = scm_from_bool (bits[idx/32] & (1L << (idx%32)));
+      scm_array_handle_release (&handle);
+      return res;
     }
-
-  return scm_from_bool (bits[idx/32] & (1L << (idx%32)));
 }
 
 SCM_DEFINE (scm_bitvector_ref, "bitvector-ref", 2, 0, 0,
@@ -1652,6 +1662,9 @@ scm_c_bitvector_set_x (SCM vec, size_t idx, SCM val)
     bits[idx/32] |= mask;
   else
     bits[idx/32] &= ~mask;
+
+  if (!IS_BITVECTOR (vec))
+      scm_array_handle_release (&handle);
 }
 
 SCM_DEFINE (scm_bitvector_set_x, "bitvector-set!", 3, 0, 0,
@@ -1704,6 +1717,8 @@ SCM_DEFINE (scm_bitvector_fill_x, "bitvector-fill!", 2, 0, 0,
 	scm_array_handle_set (&handle, i, val);
     }
 
+  scm_array_handle_release (&handle);
+
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -1731,6 +1746,8 @@ SCM_DEFINE (scm_list_to_bitvector, "list->bitvector", 1, 0, 0,
 	if (scm_is_true (SCM_CAR (list)))
 	  bits[i] |= mask;
     }
+
+  scm_array_handle_release (&handle);
 
   return vec;
 }
@@ -1771,6 +1788,8 @@ SCM_DEFINE (scm_bitvector_to_list, "bitvector->list", 1, 0, 0,
       for (i = 0; i < len; i++)
 	res = scm_cons (scm_array_handle_ref (&handle, i), res);
     }
+
+  scm_array_handle_release (&handle);
   
   return scm_reverse_x (res, SCM_EOL);
 }
@@ -1834,6 +1853,8 @@ SCM_DEFINE (scm_bit_count, "bit-count", 2, 0, 0,
 	  count++;
     }
   
+  scm_array_handle_release (&handle);
+
   return scm_from_size_t (bit? count : len-count);
 }
 #undef FUNC_NAME
@@ -1917,6 +1938,8 @@ SCM_DEFINE (scm_bit_position, "bit-position", 3, 0, 0,
 	    }
 	}
     }
+
+  scm_array_handle_release (&handle);
 
   return res;
 }
@@ -2007,6 +2030,9 @@ SCM_DEFINE (scm_bit_set_star_x, "bit-set*!", 3, 0, 0,
 	    if (scm_is_true (scm_array_handle_ref (&kv_handle, i)))
 	      scm_array_handle_set (&v_handle, i, obj);
 	}
+      
+      scm_array_handle_release (&kv_handle);
+
     }
   else if (scm_is_true (scm_u32vector_p (kv)))
     {
@@ -2018,9 +2044,13 @@ SCM_DEFINE (scm_bit_set_star_x, "bit-set*!", 3, 0, 0,
       kv_elts = scm_u32vector_elements (kv, &kv_handle, &kv_len, &kv_inc);
       for (i = 0; i < kv_len; i++, kv_elts += kv_inc)
 	scm_array_handle_set (&v_handle, (size_t) *kv_elts, obj);
+
+      scm_array_handle_release (&kv_handle);
     }
   else 
     scm_wrong_type_arg_msg (NULL, 0, kv, "bitvector or u32vector");
+
+  scm_array_handle_release (&v_handle);
 
   return SCM_UNSPECIFIED;
 }
@@ -2099,6 +2129,9 @@ SCM_DEFINE (scm_bit_count_star, "bit-count*", 3, 0, 0,
 		  count++;
 	      }
 	}
+      
+      scm_array_handle_release (&kv_handle);
+
     }
   else if (scm_is_true (scm_u32vector_p (kv)))
     {
@@ -2114,9 +2147,13 @@ SCM_DEFINE (scm_bit_count_star, "bit-count*", 3, 0, 0,
 	  if ((bit && scm_is_true (elt)) || (!bit && scm_is_false (elt)))
 	    count++;
 	}
+
+      scm_array_handle_release (&kv_handle);
     }
   else 
     scm_wrong_type_arg_msg (NULL, 0, kv, "bitvector or u32vector");
+
+  scm_array_handle_release (&v_handle);
 
   return scm_from_size_t (count);
 }
@@ -2152,6 +2189,8 @@ SCM_DEFINE (scm_bit_invert_x, "bit-invert!", 1, 0, 0,
 	scm_array_handle_set (&handle, i,
 			      scm_not (scm_array_handle_ref (&handle, i)));
     }
+
+  scm_array_handle_release (&handle);
 
   return SCM_UNSPECIFIED;
 }
@@ -2195,6 +2234,7 @@ scm_istr2bve (SCM str)
     }
   
  exit:
+  scm_array_handle_release (&handle);
   scm_remember_upto_here_1 (str);
   return res;
 }
