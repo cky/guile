@@ -41,6 +41,10 @@
 
 /* data initialization and C<->Scheme data conversion */
 
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
 #include "libguile/gh.h"
 #ifdef HAVE_STRING_H
 #include <string.h>
@@ -139,7 +143,7 @@ gh_doubles2scm (const double *d, long n)
   return v;
 }
 
-#ifdef HAVE_ARRAYS
+#ifdef SCM_HAVE_ARRAYS
 /* Do not use this function for building normal Scheme vectors, unless
    you arrange for the elements to be protected from GC while you
    initialize the vector.  */
@@ -268,7 +272,7 @@ gh_scm2chars (SCM obj, char *m)
       for (i = 0; i < n; ++i)
 	m[i] = SCM_INUM (SCM_VELTS (obj)[i]);
       break;
-#ifdef HAVE_ARRAYS
+#ifdef SCM_HAVE_ARRAYS
     case scm_tc7_byvect:
       n = SCM_UVECTOR_LENGTH (obj);
       if (m == 0)
@@ -327,7 +331,7 @@ gh_scm2shorts (SCM obj, short *m)
       for (i = 0; i < n; ++i)
 	m[i] = SCM_INUM (SCM_VELTS (obj)[i]);
       break;
-#ifdef HAVE_ARRAYS
+#ifdef SCM_HAVE_ARRAYS
     case scm_tc7_svect:
       n = SCM_UVECTOR_LENGTH (obj);
       if (m == 0)
@@ -376,7 +380,7 @@ gh_scm2longs (SCM obj, long *m)
 	    : scm_num2long (val, 0, NULL);
 	}
       break;
-#ifdef HAVE_ARRAYS
+#ifdef SCM_HAVE_ARRAYS
     case scm_tc7_ivect:
     case scm_tc7_uvect:
       n = SCM_UVECTOR_LENGTH (obj);
@@ -430,7 +434,7 @@ gh_scm2floats (SCM obj, float *m)
 	    m[i] = SCM_REAL_VALUE (val);
 	}
       break;
-#ifdef HAVE_ARRAYS
+#ifdef SCM_HAVE_ARRAYS
     case scm_tc7_fvect:
       n = SCM_UVECTOR_LENGTH (obj);
       if (m == 0)
@@ -493,7 +497,7 @@ gh_scm2doubles (SCM obj, double *m)
 	    m[i] = SCM_REAL_VALUE (val);
 	}
       break;
-#ifdef HAVE_ARRAYS
+#ifdef SCM_HAVE_ARRAYS
     case scm_tc7_fvect:
       n = SCM_UVECTOR_LENGTH (obj);
       if (m == 0)
@@ -648,7 +652,7 @@ gh_vector_length (SCM v)
   return (unsigned long) SCM_VECTOR_LENGTH (v);
 }
 
-#ifdef HAVE_ARRAYS
+#ifdef SCM_HAVE_ARRAYS
 /* uniform vector support */
 
 /* returns the length as a C unsigned long integer */
