@@ -2811,7 +2811,7 @@ EOF
 
 fi
 
-if test $ac_cv_lib_readline_readline = yes -a $ac_cv_var_rl_getc_function = no; then
+if test "$ac_cv_lib_readline_readline" = yes -a "$ac_cv_var_rl_getc_function" = no; then
   echo 'Warning: libreadline is too old on your system.  Need >= 2.1.'
 fi
 
