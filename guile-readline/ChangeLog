@@ -1,3 +1,10 @@
+2000-09-17  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* configure.in: Check for curses, terminfo and termlib libraries
+	in addition to ncurses and termcap.
+	Check for `readline' in libreadline, not for `main'.
+	Thanks to Albert Chin!
+	
 2000-07-17  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* configure.in (rl_pre_input_hook): Don't check for this with
