@@ -50,7 +50,7 @@
 
 #include "libguile/hooks.h"
 
-#ifdef USE_PTHREAD_THREADS
+#ifdef SCM_USE_PTHREAD_THREADS
 #include "libguile/pthread-threads.h"
 #else
 #include "libguile/null-threads.h"
@@ -137,15 +137,13 @@ typedef struct scm_t_cell
 /* low level bit banging aids */
 typedef unsigned long scm_t_c_bvec_long;
 
-#if (SIZEOF_LONG == 8)
+#if (SCM_SIZEOF_UNSIGNED_LONG == 8)
 #       define SCM_C_BVEC_LONG_BITS    64
 #       define SCM_C_BVEC_OFFSET_SHIFT 6
 #       define SCM_C_BVEC_POS_MASK     63
 #       define SCM_CELL_SIZE_SHIFT     4
-#	define SCM_SIZEOF_LONG SIZEOF_LONG
 #else
 #       define SCM_C_BVEC_LONG_BITS    32
-#	define SCM_SIZEOF_LONG SIZEOF_LONG
 #       define SCM_C_BVEC_OFFSET_SHIFT 5
 #       define SCM_C_BVEC_POS_MASK     31
 #       define SCM_CELL_SIZE_SHIFT     3
