@@ -1,3 +1,7 @@
+2004-12-06  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/srfi-1.test (alist-copy): New tests.
+
 2004-12-05  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/srfi-1.test (append-map, filter-map): New tests.
