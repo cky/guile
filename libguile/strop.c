@@ -28,9 +28,6 @@ Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
 
 
 
-static int scm_i_index (SCM * str, SCM chr, int direction, 
-			SCM sub_start, SCM sub_end, const char * why);
-
 /* implements index if direction > 0 otherwise rindex.  */
 static int
 scm_i_index (SCM *str, SCM chr, int direction, SCM sub_start, 
@@ -120,73 +117,41 @@ scm_string_rindex (SCM str, SCM chr, SCM frm, SCM to)
 }
 
 
-SCM_PROC(s_substring_move_left_x, "substring-move-left!", 5, 0, 0, scm_substring_move_left_x);
+SCM_PROC(s_substring_move_left_x, "substring-move-left!", 5, 0, 0, scm_substring_move_x);
+SCM_PROC(s_substring_move_right_x, "substring-move-right!", 5, 0, 0, scm_substring_move_x);
+SCM_PROC(s_substring_move_x, "substring-move!", 5, 0, 0, scm_substring_move_x);
 
 SCM
-scm_substring_move_left_x (SCM str1, SCM start1, SCM end1, 
-			   SCM str2, SCM start2)
+scm_substring_move_x (SCM str1, SCM start1, SCM end1, 
+		      SCM str2, SCM start2)
     
 {
   long s1, s2, e, len;
 
   SCM_ASSERT (SCM_NIMP (str1) && SCM_STRINGP (str1), str1, 
-	      SCM_ARG1, s_substring_move_left_x);
-  SCM_ASSERT (SCM_INUMP (start1), start1, SCM_ARG2, s_substring_move_left_x);
-  SCM_ASSERT (SCM_INUMP (end1), end1, SCM_ARG3, s_substring_move_left_x);
+	      SCM_ARG1, s_substring_move_x);
+  SCM_ASSERT (SCM_INUMP (start1), start1, SCM_ARG2, s_substring_move_x);
+  SCM_ASSERT (SCM_INUMP (end1), end1, SCM_ARG3, s_substring_move_x);
   SCM_ASSERT (SCM_NIMP (str2) && SCM_STRINGP (str2), str2, 
-	      SCM_ARG4, s_substring_move_left_x);
-  SCM_ASSERT (SCM_INUMP (start2), start2, SCM_ARG5, s_substring_move_left_x);
+	      SCM_ARG4, s_substring_move_x);
+  SCM_ASSERT (SCM_INUMP (start2), start2, SCM_ARG5, s_substring_move_x);
 
   s1 = SCM_INUM (start1), s2 = SCM_INUM (start2), e = SCM_INUM (end1);
   len = e - s1;
   SCM_ASSERT (s1 <= SCM_LENGTH (str1) && s1 >= 0, start1, 
-	      SCM_OUTOFRANGE, s_substring_move_left_x);
+	      SCM_OUTOFRANGE, s_substring_move_x);
   SCM_ASSERT (s2 <= SCM_LENGTH (str2) && s2 >= 0, start2, 
-	      SCM_OUTOFRANGE, s_substring_move_left_x);
+	      SCM_OUTOFRANGE, s_substring_move_x);
   SCM_ASSERT (e <= SCM_LENGTH (str1) && e >= 0, end1, 
-	      SCM_OUTOFRANGE, s_substring_move_left_x);
+	      SCM_OUTOFRANGE, s_substring_move_x);
   SCM_ASSERT (len+s2 <= SCM_LENGTH (str2), start2, 
-	      SCM_OUTOFRANGE, s_substring_move_left_x);
+	      SCM_OUTOFRANGE, s_substring_move_x);
 
-  SCM_SYSCALL(memmove((void *)(&(SCM_CHARS(str2)[s2])),
-			(void *)(&(SCM_CHARS(str1)[s1])),
-			len));
-  
-  return scm_return_first(SCM_UNSPECIFIED, str1, str2);
-}
-
-
-SCM_PROC(s_substring_move_right_x, "substring-move-right!", 5, 0, 0, scm_substring_move_right_x);
-
-SCM
-scm_substring_move_right_x (SCM str1, SCM start1, SCM end1, 
-			    SCM str2, SCM start2)
-{
-  long s1, s2, e, len;
-  
-  SCM_ASSERT (SCM_NIMP (str1) && SCM_STRINGP (str1), str1, 
-	      SCM_ARG1, s_substring_move_right_x);
-  SCM_ASSERT (SCM_INUMP (start1), start1, SCM_ARG2, s_substring_move_right_x);
-  SCM_ASSERT (SCM_INUMP (end1), end1, SCM_ARG3, s_substring_move_right_x);
-  SCM_ASSERT (SCM_NIMP (str2) && SCM_STRINGP (str2), str2, 
-	      SCM_ARG4, s_substring_move_right_x);
-  SCM_ASSERT (SCM_INUMP (start2), start2, SCM_ARG5, s_substring_move_right_x);
-  s1 = SCM_INUM (start1), s2 = SCM_INUM (start2), e = SCM_INUM (end1);
-  len = e-s1;
-  SCM_ASSERT (s1 <= SCM_LENGTH (str1) && s1 >= 0, start1, 
-	      SCM_OUTOFRANGE, s_substring_move_right_x);
-  SCM_ASSERT (s2 <= SCM_LENGTH (str2) && s2 >= 0, start2, 
-	      SCM_OUTOFRANGE, s_substring_move_right_x);
-  SCM_ASSERT (e <= SCM_LENGTH (str1) && e >= 0, end1, 
-	      SCM_OUTOFRANGE, s_substring_move_right_x);
-  SCM_ASSERT (len+s2 <= SCM_LENGTH (str2), start2, 
-	      SCM_OUTOFRANGE, s_substring_move_right_x);
-  
   SCM_SYSCALL(memmove((void *)(&(SCM_CHARS(str2)[s2])),
 		      (void *)(&(SCM_CHARS(str1)[s1])),
 		      len));
   
-  return SCM_UNSPECIFIED;
+  return scm_return_first(SCM_UNSPECIFIED, str1, str2);
 }
 
 
@@ -342,7 +307,7 @@ scm_string_capitalize_x (SCM s)
 {
   char *str;
   int i, len, in_word=0;
-  SCM_ASSERT(SCM_NIMP(s) && SCM_STRINGP(s), str, SCM_ARG1, s_string_capitalize_x);
+  SCM_ASSERT(SCM_NIMP(s) && SCM_STRINGP(s), s, SCM_ARG1, s_string_capitalize_x);
   len = SCM_LENGTH(s);
   str = SCM_CHARS(s);
   for(i=0; i<len;  i++) {
