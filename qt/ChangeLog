@@ -1,6 +1,13 @@
-Mon Dec  9 12:39:14 1996  Anthony Green  <green@cygnus.com>
+Mon Dec  9 17:55:59 1996  Jim Blandy  <jimb@duality.gnu.ai.mit.edu>
 
-	* Makefile.am: Added missing -c options for qtmds.o and qrmdc.o.
+	We need to name the object files produced from the
+	machine-dependent C and assembler files qtmds.o and qtmdc.o, but
+	using -c and -o together on the cc command line isn't portable.
+	* configure.in: Generate the names of the .o files here, and
+	substitute them into Makefile.
+	* Makefile.am (qtmds.o, qtmdc.o): Let CC name them what it wants,
+	and then rename them when it's done.
+	(configure, Makefile.in): Regenerated.
 
 Sat Nov 30 23:59:06 1996  Tom Tromey  <tromey@cygnus.com>
 
