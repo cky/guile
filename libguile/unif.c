@@ -62,8 +62,8 @@
  * unsigned char	string
  * char			byvect
  * boolean		bvect
- * signed int		ivect
- * unsigned int		uvect
+ * signed long		ivect
+ * unsigned long	uvect
  * float		fvect
  * double		dvect
  * complex double	cvect
