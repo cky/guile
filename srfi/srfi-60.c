@@ -36,7 +36,7 @@ SCM_DEFINE (scm_srfi60_log2_binary_factors, "log2-binary-factors", 1, 0, 0,
 {
   SCM ret = SCM_EOL;
 
-  if (SCM_INUMP (n))
+  if (SCM_I_INUMP (n))
     {
       long nn = SCM_I_INUM (n);
       if (nn == 0)
@@ -77,9 +77,9 @@ SCM_DEFINE (scm_srfi60_copy_bit, "copy-bit", 3, 0, 0,
   ii = scm_to_ulong (index);
   bb = scm_to_bool (bit);
 
-  if (SCM_INUMP (n))
+  if (SCM_I_INUMP (n))
     {
-      long nn = SCM_INUM (n);
+      long nn = SCM_I_INUM (n);
 
       /* can't set high bit ii==SCM_LONG_BIT-1, that would change the sign,
          which is not what's wanted */
@@ -146,9 +146,9 @@ SCM_DEFINE (scm_srfi60_rotate_bit_field, "rotate-bit-field", 4, 0, 0,
 
   cc = scm_to_ulong (scm_modulo (count, scm_difference (end, start)));
 
-  if (SCM_INUMP (n))
+  if (SCM_I_INUMP (n))
     {
-      long nn = SCM_INUM (n);
+      long nn = SCM_I_INUM (n);
 
       if (ee <= SCM_LONG_BIT-1)
         {
@@ -234,9 +234,9 @@ SCM_DEFINE (scm_srfi60_reverse_bit_field, "reverse-bit-field", 3, 0, 0,
   long swaps = (ee - ss) / 2;  /* number of swaps */
   SCM b;
 
-  if (SCM_INUMP (n))
+  if (SCM_I_INUMP (n))
     {
-      long nn = SCM_INUM (n);
+      long nn = SCM_I_INUM (n);
 
       if (ee <= SCM_LONG_BIT-1)
         {
@@ -327,7 +327,7 @@ SCM_DEFINE (scm_srfi60_integer_to_list, "integer->list", 1, 1, 0,
     len = scm_integer_length (n);
   ll = scm_to_ulong (len);
 
-  if (SCM_INUMP (n))
+  if (SCM_I_INUMP (n))
     {
       long nn = SCM_I_INUM (n);
       for (i = 0; i < ll; i++)
