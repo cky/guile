@@ -99,7 +99,7 @@
   (pass-if "port?"
     (port? (open-output-pipe "exit 0")))
   
-  ;; exercise file descriptor setups when stdout is the same as stderr  
+  ;; exercise file descriptor setups when stdin is the same as stderr  
   (pass-if "stdin==stderr"
     (let ((port (open-file "/dev/null" "r+")))
       (with-input-from-port port
@@ -145,7 +145,7 @@
 ;; close-pipe
 ;;
 
-(with-test-prefix "open-output-pipe"
+(with-test-prefix "close-pipe"
   
   (pass-if-exception "no args" exception:wrong-num-args
     (close-pipe))
