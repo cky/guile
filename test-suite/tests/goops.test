@@ -1,6 +1,6 @@
 ;;;; goops.test --- test suite for GOOPS                      -*- scheme -*-
 ;;;;
-;;;; 	Copyright (C) 2001 Free Software Foundation, Inc.
+;;;; Copyright (C) 2001 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -27,3 +27,74 @@
 (use-modules (oop goops))
 
 ;;; more tests here...
+
+(with-test-prefix "basic classes"
+
+  (with-test-prefix "<top>"
+
+    (pass-if "instance?"
+      (instance? <top>))
+
+    (pass-if "class-of"
+      (eq? (class-of <top>) <class>))
+
+    (pass-if "is a class?"
+      (is-a? <top> <class>))
+
+    (pass-if "class-name"
+      (eq? (class-name <top>) '<top>))
+
+    (pass-if "direct superclasses"
+      (equal? (class-direct-supers <top>) '()))
+
+    (pass-if "superclasses"
+      (equal? (class-precedence-list <top>) (list <top>)))
+
+    (pass-if "direct slots"
+      (equal? (class-direct-slots <top>) '()))
+
+    (pass-if "slots"
+      (equal? (class-slots <top>) '())))
+
+  (with-test-prefix "<object>"
+
+    (pass-if "instance?"
+      (instance? <object>))
+
+    (pass-if "class-of"
+      (eq? (class-of <object>) <class>))
+
+    (pass-if "is a class?"
+      (is-a? <object> <class>))
+
+    (pass-if "class-name"
+      (eq? (class-name <object>) '<object>))
+
+    (pass-if "direct superclasses"
+      (equal? (class-direct-supers <object>) (list <top>)))
+
+    (pass-if "superclasses"
+      (equal? (class-precedence-list <object>) (list <object> <top>)))
+
+    (pass-if "direct slots"
+      (equal? (class-direct-slots <object>) '()))
+
+    (pass-if "slots"
+      (equal? (class-slots <object>) '())))
+
+  (with-test-prefix "<class>"
+
+    (pass-if "instance?"
+      (instance? <class>))
+
+    (pass-if "class-of"
+      (eq? (class-of <class>) <class>))
+
+    (pass-if "is a class?"
+      (is-a? <class> <class>))
+
+    (pass-if "class-name"
+      (eq? (class-name <class>) '<class>))
+
+    (pass-if "direct superclass"
+      (equal? (class-direct-supers <class>) (list <object>)))))

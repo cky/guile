@@ -1,5 +1,9 @@
 2001-06-30  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* tests/goops.test:  Started with some real tests.
+
+2001-06-30  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* guile-test:  Use module (ice-9 rdelim).
 
 2001-06-27  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
