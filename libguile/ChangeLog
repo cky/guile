@@ -1,3 +1,11 @@
+1998-10-10  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* gc.c (scm_return_first): Remove #ifdef __STDC__ garbage; Guile
+	requires ANSI now.
+
+	* numbers.c (big2str): Protect t from garbage collection until
+	we're done.  (Thanks to Gary Houston.)
+
 1998-10-09  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	* Makefile.am (libguile_la_LDFLAGS): Increment shared library

@@ -1,4 +1,4 @@
-This is a nightly snapshot of Guile, a portable, embeddable Scheme
+This is beta release 1.2.90 of Guile, a portable, embeddable Scheme
 implementation written in C.  Guile provides a machine independent
 execution platform that can be linked in as a library when building
 extensible programs.
@@ -12,12 +12,14 @@ guile --- a stand-alone interpreter for Guile, usually installed in
 	/usr/local/bin.  With no arguments, this is a simple
 	interactive Scheme interpreter.  It can also be used as an
 	interpreter for script files; see the NEWS file for details.
+guile-config --- a Guile script which provides the information necessary
+	to link your programs against the Guile library.
 libguile.a --- an object library containing the Guile interpreter,
 	usually installed in /usr/local/lib.  You can use Guile in
 	your own programs by linking against this.
-libqt.a --- an object library containing the QuickThreads primitives.
-        If you enabled thread support when you configured Guile, you
-        will need to link your code against this too.
+libqthreads.a --- an object library containing the QuickThreads
+	primitives.  If you enabled thread support when you configured
+	Guile, you will need to link your code against this too.
 <libguile.h>, <libguile/*.h> --- header files for libguile.a, usually
 	installed in /usr/local/include.
 ice-9, ice-9/*.scm --- run-time support for Guile: the module
@@ -37,15 +39,15 @@ libguile:
 	The Guile Scheme interpreter --- both the object library
 	for you to link with your programs, and the executable you can run.
 ice-9:  Guile's module system, initialization code, and other infrastructure.
-
+guile-config:
+	Source for the guile-config script.
 qt: 	A cooperative threads package from the University of Washington,
 	which Guile can use.  If you configure Guile with the
         --with-threads flag, you will need to link against the -lqt
         library, found in this directory.  Qt is under a separate
         copyright; see `qt/README' for more details.
-
-(The present release doesn't include any documentation; the Guile
-manual is incomplete, and is currently being revised.)
+doc:	Some preliminary documentation for Guile.  The real Guile
+	manual is incomplete, and is currently being revised..
 
 
 Anonymous CVS Access and FTP snapshots ===============================
@@ -90,6 +92,9 @@ different.
 
 
 Obtaining Guile ======================================================
+
+This beta release of Guile is available via anonymous FTP from
+ftp.red-bean.com, as pub/guile/guile-1.2.90.tar.gz.
 
 The latest official Guile release is available via anonymous FTP from
 prep.ai.mit.edu, as /pub/gnu/guile-1.2.tar.gz.
