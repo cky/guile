@@ -211,6 +211,10 @@ only characters, for compatibility with R5RS.
 ** New procedure: port-closed? PORT
 Returns #t if PORT is closed or #f if it is open.
 
+** Deprecated: list*
+
+The list* functionality is now provided by cons* (SRFI-1 compliant)
+
 ** Removed deprecated: serial-map, serial-array-copy!, serial-array-map!
 
 * Changes to the gh_ interface
@@ -225,11 +229,14 @@ Use gh_bool2scm instead.
 
 Thanks to Greg Badros!
 
-** Guile primitives are defined in a new way: GUILE_PROC/GUILE_PROC1
+** Guile primitives are defined in a new way: SCM_DEFINE/SCM_DEFINE1/SCM_PROC
 
-Now Guile primitives are defined using the GUILE_PROC/GUILE_PROC1 macros
-and must contain a docstring that is extracted into foo.doc using a new
+Now Guile primitives are defined using the SCM_DEFINE/SCM_DEFINE1/SCM_PROC
+macros and must contain a docstring that is extracted into foo.doc using a new
 guile-doc-snarf script (that uses guile-doc-snarf.awk).
+
+However, a major overhaul of these macros is scheduled for the next release of
+guile.
 
 ** Guile primitives use a new technique for validation of arguments
 
@@ -264,6 +271,14 @@ SCM_ICHR, SCM_MAKICHR, SCM_SETJMPBUF, SCM_NSTRINGP, SCM_NRWSTRINGP,
 SCM_NVECTORP
 
 These macros will be removed in a future release of Guile.
+
+** The following types, functions and macros from numbers.h are deprecated:  
+scm_dblproc, SCM_UNEGFIXABLE, SCM_FLOBUFLEN, SCM_INEXP, SCM_CPLXP, SCM_REAL,
+SCM_IMAG, SCM_REALPART, scm_makdbl, SCM_SINGP, SCM_NUM2DBL, SCM_NO_BIGDIG
+
+Further, it is recommended not to rely on implementation details for guile's
+current implementation of bignums.  It is planned to replace this
+implementation with gmp in the future.
 
 ** Port internals: the rw_random variable in the scm_port structure
 must be set to non-zero in any random access port.  In recent Guile
@@ -448,6 +463,13 @@ scm_before_gc_c_hook must not allocate new cells.)
 are run when the heap is locked.  These are intended for extension of
 the GC in a modular fashion.  Examples are the weaks and guardians
 modules.
+
+** Deprecated type tags:  scm_tc16_flo, scm_tc_flo, scm_tc_dblr, scm_tc_dblc
+
+Guile does not provide the float representation for inexact real numbers any
+more.  Now, only doubles are used to represent inexact real numbers.  Further,
+the tag names scm_tc_dblr and scm_tc_dblc have been changed to scm_tc16_real
+and scm_tc16_complex, respectively.
 
 ** Removed deprecated type scm_smobfuns
 

@@ -18,8 +18,15 @@ In release 1.5:
 - remove scm_tag
 - remove code related to the name property of hooks.  Also, check init.c,
   since the dependency between hooks and objprop will then be eliminated.
-Dirk:FIXME:: look into deprecated things in numbers.h and tags.h, don't forget
-to update NEWS accordingly.
+- remove deprecated function scm_list_star/list*  (use SRFI-1 compliant
+  scm_cons_star/cons* instead.)
+- remove scm_tc16_flo, scm_tc_flo (guile always uses doubles to represent
+  inexact real numbers) 
+- remove scm_tc_dblr (replaced by scm_tc16_real)
+- remove scm_tc_dblc (replaced by scm_tc16_complex)
+- remove deprecated types, functions and macros from numbers.h:  scm_dblproc,
+  SCM_UNEGFIXABLE, SCM_FLOBUFLEN, SCM_INEXP, SCM_CPLXP, SCM_REAL, SCM_IMAG,
+  SCM_REALPART, scm_makdbl, SCM_SINGP, SCM_NUM2DBL, SCM_NO_BIGDIG
 
 Modules sort.c and random.c should be factored out into separate
 modules (but still be distributed with guile-core) when we get a new

@@ -1,3 +1,17 @@
+2000-06-19  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* list.[ch] (scm_cons_star/cons*):  Renamed from
+	scm_list_star/list*.
+
+	* list.[ch] (scm_list_star/list*):  Provided as a deprecated alias
+	for scm_cons_star/cons*.
+
+	* gc.c (scm_protect_object):  Updated comment.
+
+	* numbers.h (SCM_NEWREAL, SCM_NEWCOMPLEX):  Removed.
+
+	* tags.h (SCM_UNPACK_CAR, SCM_NDOUBLE_CELLP):  Removed.
+
 2000-06-19  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* init.c, init.h (scm_initialized_p): Renamed from `initialized'
