@@ -1,6 +1,6 @@
 /* dynl.c - dynamic linking
  *
- * Copyright (C) 1990, 91, 92, 93, 94, 95, 96, 97, 98, 99, 2000, 2001 Free Software Foundation, Inc.
+ * Copyright (C) 1990, 91, 92, 93, 94, 95, 96, 97, 98, 99, 2000, 2001, 2002 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -91,14 +91,14 @@ static void *
 sysdep_dynl_link (const char *fname, const char *subr)
 {
   lt_dlhandle handle;
-  handle = lt_dlopenext (fname);
+  handle = scm_lt_dlopenext (fname);
   if (NULL == handle)
     {
       SCM fn;
       SCM msg;
 
       fn = scm_makfrom0str (fname);
-      msg = scm_makfrom0str (lt_dlerror ());
+      msg = scm_makfrom0str (scm_lt_dlerror ());
       scm_misc_error (subr, "file: ~S, message: ~S", scm_list_2 (fn, msg));
     }
   return (void *) handle;
@@ -107,9 +107,9 @@ sysdep_dynl_link (const char *fname, const char *subr)
 static void
 sysdep_dynl_unlink (void *handle, const char *subr)
 {
-  if (lt_dlclose ((lt_dlhandle) handle))
+  if (scm_lt_dlclose ((lt_dlhandle) handle))
     {
-      scm_misc_error (subr, (char *) lt_dlerror (), SCM_EOL);
+      scm_misc_error (subr, (char *) scm_lt_dlerror (), SCM_EOL);
     }
 }
    
@@ -118,10 +118,10 @@ sysdep_dynl_func (const char *symb, void *handle, const char *subr)
 {
   void *fptr;
 
-  fptr = lt_dlsym ((lt_dlhandle) handle, symb);
+  fptr = scm_lt_dlsym ((lt_dlhandle) handle, symb);
   if (!fptr)
     {
-      scm_misc_error (subr, (char *) lt_dlerror (), SCM_EOL);
+      scm_misc_error (subr, (char *) scm_lt_dlerror (), SCM_EOL);
     }
   return fptr;
 }
@@ -129,7 +129,7 @@ sysdep_dynl_func (const char *symb, void *handle, const char *subr)
 static void
 sysdep_dynl_init ()
 {
-  lt_dlinit ();
+  scm_lt_dlinit ();
 }
 
 scm_t_bits scm_tc16_dynamic_obj;
