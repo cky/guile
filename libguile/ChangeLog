@@ -1,3 +1,37 @@
+Mon Sep 15 20:42:03 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* list.h (SCM_LISTn): New macros.  Make list creation in C code
+ 	prettier.  The idea comes from STk.
+
+	* sequences.h, sequences.c, append.h, append.c: Removed.  These
+ 	files implemented non-R4RS operations which would encourage
+ 	non-portable programming style and less easy-to-read code.
+
+	* Makefile.am (sequences.h, sequences.c, append.h, append.c):
+ 	Removed.
+	
+	* libguile.h, eval.c, init.c, stime.c, unif.c: Removed #include
+ 	sequences.h, #include append.h.
+
+	* init.c (scm_boot_guile_1): Removed calls to scm_init_append and
+	scm_init_sequences.
+
+	* gh.h, gh_list.c: Renamed gh_list_length --> gh_length.
+
+	* list.h, list.c: Renamed scm_list_length --> scm_length, scm
+
+	* stime.c (bdtime2c): Changed scm_obj_length --> scm_vector_length.
+
+Sat Sep 13 00:21:41 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* eval.c: Added #include "objects.h"
+
+	* tags.h (scm_tc16_object, scm_tc16_entity): Smobtags for objects
+ 	and entities.
+
+	* smob.c (scm_smob_prehistory): Create two objectsmobs with
+ 	adjacent smob numbers.
+
 Thu Sep 11 00:59:17 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* procprop.h: Added declaration of scm_i_inner_name.

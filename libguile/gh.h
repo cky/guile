@@ -153,7 +153,7 @@ SCM gh_module_lookup (SCM vector, char *sname);
 
 SCM gh_cons(SCM x, SCM y);
 #define gh_list scm_listify
-unsigned long gh_list_length(SCM l);
+unsigned long gh_length(SCM l);
 
 SCM gh_car(SCM x);
 SCM gh_cdr(SCM x);

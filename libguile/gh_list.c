@@ -48,9 +48,9 @@
 
 /* returns the length of a list */
 unsigned long 
-gh_list_length (SCM l)
+gh_length (SCM l)
 {
-  return gh_scm2ulong (scm_list_length (l));
+  return gh_scm2ulong (scm_length (l));
 }
 
 /* list operations */

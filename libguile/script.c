@@ -634,7 +634,7 @@ scm_compile_shell_switches (int argc, char **argv)
   }
 
   {
-    SCM val = scm_cons (sym_begin, scm_list_reverse_x (tail, SCM_UNDEFINED));
+    SCM val = scm_cons (sym_begin, scm_reverse_x (tail, SCM_UNDEFINED));
 
 #if 0
     scm_write (val, SCM_UNDEFINED);

@@ -47,17 +47,36 @@
 #include "libguile/__scm.h"
 
 
+
+#define SCM_LIST0 SCM_EOL
+#define SCM_LIST1(e0) scm_cons ((e0), SCM_EOL)
+#define SCM_LIST2(e0, e1) scm_cons2 ((e0), (e1), SCM_EOL)
+#define SCM_LIST3(e0, e1, e2) scm_cons ((e0), SCM_LIST2 ((e1), (e2)))
+#define SCM_LIST4(e0, e1, e2, e3)\
+     scm_cons2 ((e0), (e1), SCM_LIST2 ((e2), (e3)))
+#define SCM_LIST5(e0, e1, e2, e3, e4)\
+     scm_cons ((e0), SCM_LIST4 ((e1), (e2), (e3), (e4)))
+#define SCM_LIST6(e0, e1, e2, e3, e4, e5)\
+     scm_cons2 ((e0), (e1), SCM_LIST4 ((e2), (e3), (e4), (e5)))
+#define SCM_LIST7(e0, e1, e2, e3, e4, e5, e6)\
+     scm_cons ((e0), SCM_LIST6 ((e1), (e2), (e3), (e4), (e5), (e6)))
+#define SCM_LIST8(e0, e1, e2, e3, e4, e5, e6, e7)\
+     scm_cons2 ((e0), (e1), SCM_LIST6 ((e2), (e3), (e4), (e5), (e6), (e7)))
+#define SCM_LIST9(e0, e1, e2, e3, e4, e5, e6, e7, e8)\
+     scm_cons ((e0),\
+	       SCM_LIST8 ((e1), (e2), (e3), (e4), (e5), (e6), (e7), (e8)))
+
 extern SCM scm_list_head SCM_P ((SCM lst, SCM k));
 extern SCM scm_listify SCM_P ((SCM elt, ...));
 extern SCM scm_list SCM_P ((SCM objs));
 extern SCM scm_null_p SCM_P ((SCM x));
 extern SCM scm_list_p SCM_P ((SCM x));
 extern long scm_ilength SCM_P ((SCM sx));
-extern SCM scm_list_length SCM_P ((SCM x));
-extern SCM scm_list_append SCM_P ((SCM args));
-extern SCM scm_list_append_x SCM_P ((SCM args));
-extern SCM scm_list_reverse SCM_P ((SCM lst));
-extern SCM scm_list_reverse_x SCM_P ((SCM lst, SCM newtail));
+extern SCM scm_length SCM_P ((SCM x));
+extern SCM scm_append SCM_P ((SCM args));
+extern SCM scm_append_x SCM_P ((SCM args));
+extern SCM scm_reverse SCM_P ((SCM lst));
+extern SCM scm_reverse_x SCM_P ((SCM lst, SCM newtail));
 extern SCM scm_list_ref SCM_P ((SCM lst, SCM k));
 extern SCM scm_list_set_x SCM_P ((SCM lst, SCM k, SCM val));
 extern SCM scm_list_cdr_set_x SCM_P ((SCM lst, SCM k, SCM val));

@@ -46,7 +46,6 @@
 #include "eval.h"
 #include "genio.h"
 #include "smob.h"
-#include "sequences.h"
 #include "strop.h"
 #include "feature.h"
 
@@ -725,7 +724,7 @@ scm_make_shared_array (oldra, mapfunc, dims)
 	  return ra;
 	}
     }
-  imap = scm_apply (mapfunc, scm_list_reverse (inds), SCM_EOL);
+  imap = scm_apply (mapfunc, scm_reverse (inds), SCM_EOL);
   if (SCM_ARRAYP (oldra))
       i = (scm_sizet) scm_aind (oldra, imap, s_make_shared_array);
   else

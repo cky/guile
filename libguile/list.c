@@ -148,14 +148,14 @@ scm_ilength(sx)
   return -1;
 }
 
-SCM_PROC(s_list_length, "list-length", 1, 0, 0, scm_list_length);
+SCM_PROC(s_length, "length", 1, 0, 0, scm_length);
 SCM
-scm_list_length(x)
+scm_length(x)
      SCM x;
 {
   int i;
   i = scm_ilength(x);
-  SCM_ASSERT(i >= 0, x, SCM_ARG1, s_list_length);
+  SCM_ASSERT(i >= 0, x, SCM_ARG1, s_length);
   return SCM_MAKINUM (i);
 }
 
@@ -163,40 +163,40 @@ scm_list_length(x)
 
 /* appending lists */
 
-SCM_PROC (s_list_append, "list-append", 0, 0, 1, scm_list_append);
+SCM_PROC (s_append, "append", 0, 0, 1, scm_append);
 SCM
-scm_list_append(args)
+scm_append(args)
      SCM args;
 {
   SCM res = SCM_EOL;
   SCM *lloc = &res, arg;
   if SCM_IMP(args) {
-    SCM_ASSERT(SCM_NULLP(args), args, SCM_ARGn, s_list_append);
+    SCM_ASSERT(SCM_NULLP(args), args, SCM_ARGn, s_append);
     return res;
   }
-  SCM_ASSERT(SCM_CONSP(args), args, SCM_ARGn, s_list_append);
+  SCM_ASSERT(SCM_CONSP(args), args, SCM_ARGn, s_append);
   while (1) {
     arg = SCM_CAR(args);
     args = SCM_CDR(args);
     if SCM_IMP(args) {
       *lloc = arg;
-      SCM_ASSERT(SCM_NULLP(args), args, SCM_ARGn, s_list_append);
+      SCM_ASSERT(SCM_NULLP(args), args, SCM_ARGn, s_append);
       return res;
     }
-    SCM_ASSERT(SCM_CONSP(args), args, SCM_ARGn, s_list_append);
+    SCM_ASSERT(SCM_CONSP(args), args, SCM_ARGn, s_append);
     for(;SCM_NIMP(arg);arg = SCM_CDR(arg)) {
-      SCM_ASSERT(SCM_CONSP(arg), arg, SCM_ARGn, s_list_append);
+      SCM_ASSERT(SCM_CONSP(arg), arg, SCM_ARGn, s_append);
       *lloc = scm_cons(SCM_CAR(arg), SCM_EOL);
       lloc = SCM_CDRLOC(*lloc);
     }
-    SCM_ASSERT(SCM_NULLP(arg), arg, SCM_ARGn, s_list_append);
+    SCM_ASSERT(SCM_NULLP(arg), arg, SCM_ARGn, s_append);
   }
 }
 
 
-SCM_PROC (s_list_append_x, "list-append!", 0, 0, 1, scm_list_append_x);
+SCM_PROC (s_append_x, "append!", 0, 0, 1, scm_append_x);
 SCM
-scm_list_append_x(args)
+scm_append_x(args)
      SCM args;
 {
   SCM arg;
@@ -206,8 +206,8 @@ scm_list_append_x(args)
   args = SCM_CDR(args);
   if SCM_NULLP(args) return arg;
   if SCM_NULLP(arg) goto tail;
-  SCM_ASSERT(SCM_NIMP(arg) && SCM_CONSP(arg), arg, SCM_ARG1, s_list_append_x);
-  SCM_SETCDR (scm_last_pair (arg), scm_list_append_x (args));
+  SCM_ASSERT(SCM_NIMP(arg) && SCM_CONSP(arg), arg, SCM_ARG1, s_append_x);
+  SCM_SETCDR (scm_last_pair (arg), scm_append_x (args));
   return arg;
 }
 
@@ -239,24 +239,24 @@ scm_last_pair(sx)
 
 /* reversing lists */
 
-SCM_PROC (s_list_reverse, "list-reverse", 1, 0, 0, scm_list_reverse);
+SCM_PROC (s_reverse, "reverse", 1, 0, 0, scm_reverse);
 SCM
-scm_list_reverse(lst)
+scm_reverse(lst)
      SCM lst;
 {
 	SCM res = SCM_EOL;
 	SCM p = lst;
 	for(;SCM_NIMP(p);p = SCM_CDR(p)) {
-		SCM_ASSERT(SCM_CONSP(p), lst, SCM_ARG1, s_list_reverse);
+		SCM_ASSERT(SCM_CONSP(p), lst, SCM_ARG1, s_reverse);
 		res = scm_cons(SCM_CAR(p), res);
 	}
-	SCM_ASSERT(SCM_NULLP(p), lst, SCM_ARG1, s_list_reverse);
+	SCM_ASSERT(SCM_NULLP(p), lst, SCM_ARG1, s_reverse);
 	return res;
 }
 
-SCM_PROC (s_list_reverse_x, "list-reverse!", 1, 1, 0, scm_list_reverse_x);
+SCM_PROC (s_reverse_x, "reverse!", 1, 1, 0, scm_reverse_x);
 SCM
-scm_list_reverse_x (lst, newtail)
+scm_reverse_x (lst, newtail)
      SCM lst;
      SCM newtail;
 {
