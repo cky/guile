@@ -60,21 +60,26 @@ inet_addr(cp)
 
 #endif
 
+/* We provide this prototype to avoid compiler warnings.  If this ever
+   conflicts with a declaration in a system header file, we'll find
+   out, because we should include that header file here.  */
+int inet_aton (const char *cp, struct in_addr *addr);
+
 /* 
  * Check whether "cp" is a valid ascii representation
  * of an Internet address and convert to a binary address.
  * Returns 1 if the address is valid, 0 if not.
  * This replaces inet_addr, the return value from which
- * cannot distinguish between failure and a local broadcast address.
- */
+ * cannot distinguish between failure and a local broadcast address.  */
 int
-inet_aton(cp, addr)
-	register const char *cp;
+inet_aton(cp_arg, addr)
+	const char *cp_arg;
 	struct in_addr *addr;
 {
 	register unsigned long val;
 	register int base, n;
-	register char c;
+	register unsigned char c;
+	register unsigned const char *cp = cp_arg;
 	unsigned int parts[4];
 	register unsigned int *pp = parts;
 
