@@ -175,11 +175,12 @@
 #define SCM_BDIGITS(x) ((SCM_BIGDIG *) (SCM_CELL_WORD_1 (x)))
 #define SCM_SET_BIGNUM_BASE(n, b) (SCM_SET_CELL_WORD_1 ((n), (b)))
 #define SCM_NUMDIGS(x) ((size_t) (SCM_CELL_WORD_0 (x) >> SCM_BIGSIZEFIELD))
+#define SCM_MAKE_BIGNUM_TAG(v, sign)              \
+	      (scm_tc16_big                       \
+	       | ((sign) ? SCM_BIGSIGNFLAG : 0)   \
+	       | (((v) + 0L) << SCM_BIGSIZEFIELD))
 #define SCM_SETNUMDIGS(x, v, sign) \
-  SCM_SET_CELL_WORD_0 (x, \
-	      scm_tc16_big \
-	      | ((sign) ? SCM_BIGSIGNFLAG : 0) \
-	      | (((v) + 0L) << SCM_BIGSIZEFIELD))
+  SCM_SET_CELL_WORD_0 (x, SCM_MAKE_BIGNUM_TAG (v, sign))
 
 
 
