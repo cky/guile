@@ -115,9 +115,9 @@ typedef struct scm_t_srcprops_chunk
 #define SETSRCPROPLINE(p,l) SETSRCPROPPOS (p, l, SRCPROPCOL (p))
 #define SETSRCPROPCOL(p,c) SETSRCPROPPOS (p, SRCPROPLINE (p), c)
 
-#define SRCBRKP(x) (!SCM_IMP (t.arg1 = scm_whash_lookup (scm_source_whash, (x)))\
-		    && SRCPROPSP (t.arg1)\
-		    && SRCPROPBRK (t.arg1))
+#define SRCBRKP(x) (!SCM_IMP (arg1 = scm_whash_lookup (scm_source_whash, (x)))\
+		    && SRCPROPSP (arg1)\
+		    && SRCPROPBRK (arg1))
 
 #define PROCTRACEP(x) (!SCM_FALSEP (scm_procedure_property (x, scm_sym_trace)))
 

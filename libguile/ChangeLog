@@ -1,3 +1,9 @@
+2002-03-14  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* eval.c (SCM_CEVAL), srcprop.h (SRCBRKP): Eliminated union 't'.
+
+	* eval.c (SCM_CEVAL): Exlined call to EVALCAR.
+
 2002-03-13  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* guile-snarf.in: Update copyright.

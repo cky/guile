@@ -1890,12 +1890,7 @@ scm_deval (SCM x, SCM env)
 SCM 
 SCM_CEVAL (SCM x, SCM env)
 {
-  union
-    {
-      SCM *lloc;
-      SCM arg1;
-   } t;
-  SCM proc, arg2, orig_sym;
+  SCM proc, arg1, arg2, orig_sym;
 #ifdef DEVAL
   scm_t_debug_frame debug;
   scm_t_debug_info *debug_info_end;
@@ -1961,14 +1956,14 @@ start:
 	SCM tail = SCM_BOOL(SCM_TAILRECP (debug));
 	SCM_SET_TAILREC (debug);
 	if (SCM_CHEAPTRAPS_P)
-	  t.arg1 = scm_make_debugobj (&debug);
+	  arg1 = scm_make_debugobj (&debug);
 	else
 	  {
 	    int first;
 	    SCM val = scm_make_continuation (&first);
 	    
 	    if (first)
-	      t.arg1 = val;
+	      arg1 = val;
 	    else
 	      {
 		x = val;
@@ -1983,7 +1978,7 @@ start:
 	SCM_TRAPS_P = 0;
 	scm_call_4 (SCM_ENTER_FRAME_HDLR,
 		    scm_sym_enter_frame,
-		    t.arg1,
+		    arg1,
 		    tail,
 		    scm_unmemocopy (x, env));
 	SCM_TRAPS_P = 1;
@@ -2130,12 +2125,12 @@ dispatch:
 	    }
 	  else
 	    {
-	      t.arg1 = EVALCAR (clause, env);
-	      if (!SCM_FALSEP (t.arg1) && !SCM_NILP (t.arg1))
+	      arg1 = EVALCAR (clause, env);
+	      if (!SCM_FALSEP (arg1) && !SCM_NILP (arg1))
 		{
 		  x = SCM_CDR (clause);
 		  if (SCM_NULLP (x))
-		    RETURN (t.arg1);
+		    RETURN (arg1);
 		  else if (!SCM_EQ_P (SCM_CAR (x), scm_sym_arrow))
 		    {
 		      PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
@@ -2146,7 +2141,7 @@ dispatch:
 		      proc = SCM_CDR (x);
 		      proc = EVALCAR (proc, env);
 		      SCM_ASRTGO (!SCM_IMP (proc), badfun);
-		      PREP_APPLY (proc, scm_list_1 (t.arg1));
+		      PREP_APPLY (proc, scm_list_1 (arg1));
 		      ENTER_APPLY;
 		      if (SCM_CLOSUREP(proc) && scm_badformalsp (proc, 1))
 			goto umwrongnumargs;
@@ -2362,36 +2357,36 @@ dispatch:
 	  if (SCM_CLOSUREP (proc))
 	    {
 	      PREP_APPLY (proc, SCM_EOL);
-	      t.arg1 = SCM_CDDR (x);
-	      t.arg1 = EVALCAR (t.arg1, env);
+	      arg1 = SCM_CDDR (x);
+	      arg1 = EVALCAR (arg1, env);
 	    apply_closure:
 	      /* Go here to tail-call a closure.  PROC is the closure
-	         and T.ARG1 is the list of arguments.  Do not forget to
-	         call PREP_APPLY. */
+		 and ARG1 is the list of arguments.  Do not forget to
+		 call PREP_APPLY. */
 	      {
 		SCM formals = SCM_CLOSURE_FORMALS (proc);
 #ifdef DEVAL
-		debug.info->a.args = t.arg1;
+		debug.info->a.args = arg1;
 #endif
 #ifndef SCM_RECKLESS
-		if (scm_badargsp (formals, t.arg1))
+		if (scm_badargsp (formals, arg1))
 		  goto wrongnumargs;
 #endif
 		ENTER_APPLY;
 		/* Copy argument list */
-		if (SCM_NULL_OR_NIL_P (t.arg1))
+		if (SCM_NULL_OR_NIL_P (arg1))
 		  env = EXTEND_ENV (formals, SCM_EOL, SCM_ENV (proc));
 		else
 		  {
-		    SCM args = scm_list_1 (SCM_CAR (t.arg1));
+		    SCM args = scm_list_1 (SCM_CAR (arg1));
 		    SCM tail = args;
-		    t.arg1 = SCM_CDR (t.arg1);
-		    while (!SCM_NULL_OR_NIL_P (t.arg1))
+		    arg1 = SCM_CDR (arg1);
+		    while (!SCM_NULL_OR_NIL_P (arg1))
 		      {
-			SCM new_tail = scm_list_1 (SCM_CAR (t.arg1));
+			SCM new_tail = scm_list_1 (SCM_CAR (arg1));
 			SCM_SETCDR (tail, new_tail);
 			tail = new_tail;
-			t.arg1 = SCM_CDR (t.arg1);
+			arg1 = SCM_CDR (arg1);
 		      }
 		    env = EXTEND_ENV (formals, args, SCM_ENV (proc));
 		  }
@@ -2413,14 +2408,14 @@ dispatch:
 	    SCM val = scm_make_continuation (&first);
 
 	    if (first)
-	      t.arg1 = val;
+	      arg1 = val;
 	    else
 	      RETURN (val);
 	  }
 	  proc = SCM_CDR (x);
 	  proc = scm_eval_car (proc, env);
 	  SCM_ASRTGO (SCM_NIMP (proc), badfun);
-	  PREP_APPLY (proc, scm_list_1 (t.arg1));
+	  PREP_APPLY (proc, scm_list_1 (arg1));
 	  ENTER_APPLY;
 	  if (SCM_CLOSUREP(proc) && scm_badformalsp (proc, 1))
 	    goto umwrongnumargs;
@@ -2432,19 +2427,19 @@ dispatch:
 	case (SCM_ISYMNUM (SCM_IM_DISPATCH)):
 	  {
 	    /* If not done yet, evaluate the operand forms.  The result is a
-	     * list of arguments stored in t.arg1, which is used to perform the
+	     * list of arguments stored in arg1, which is used to perform the
 	     * function dispatch.  */
 	    SCM operand_forms = SCM_CADR (x);
 	    PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
 	    if (SCM_ILOCP (operand_forms))
-	      t.arg1 = *scm_ilookup (operand_forms, env);
+	      arg1 = *scm_ilookup (operand_forms, env);
 	    else if (SCM_VARIABLEP (operand_forms))
-	      t.arg1 = SCM_VARIABLE_REF (operand_forms);
+	      arg1 = SCM_VARIABLE_REF (operand_forms);
 	    else if (!SCM_CONSP (operand_forms))
-	      t.arg1 = *scm_lookupcar (SCM_CDR (x), env, 1);
+	      arg1 = *scm_lookupcar (SCM_CDR (x), env, 1);
 	    else
 	      {
-		SCM tail = t.arg1 = scm_list_1 (EVALCAR (operand_forms, env));
+		SCM tail = arg1 = scm_list_1 (EVALCAR (operand_forms, env));
 		operand_forms = SCM_CDR (operand_forms);
 		while (!SCM_NULLP (operand_forms))
 		  {
@@ -2459,7 +2454,7 @@ dispatch:
 	  /* The type dispatch code is duplicated below
 	   * (c.f. objects.c:scm_mcache_compute_cmethod) since that
 	   * cuts down execution time for type dispatch to 50%.  */
-	type_dispatch: /* inputs: x, t.arg1 */
+	type_dispatch: /* inputs: x, arg1 */
 	  /* Type dispatch means to determine from the types of the function
 	   * arguments (i. e. the 'signature' of the call), which method from
 	   * a generic function is to be called.  This process of selecting
@@ -2514,7 +2509,7 @@ dispatch:
 		   * method in the method cache.  */
 		  unsigned long int hashset = SCM_INUM (tmp);
 		  unsigned long int counter = specializers + 1;
-		  SCM tmp_arg = t.arg1;
+		  SCM tmp_arg = arg1;
 		  hash_value = 0;
 		  while (!SCM_NULLP (tmp_arg) && counter != 0)
 		    {
@@ -2553,7 +2548,7 @@ dispatch:
 	      SCM z;
 	      do
 		{
-		  SCM args = t.arg1; /* list of arguments */
+		  SCM args = arg1; /* list of arguments */
 		  z = SCM_VELTS (method_cache)[hash_value];
 		  while (!SCM_NULLP (args))
 		    {
@@ -2572,12 +2567,12 @@ dispatch:
 		} while (hash_value != cache_end_pos);
 
 	      /* No appropriate method was found in the cache.  */
-	      z = scm_memoize_method (x, t.arg1);
+	      z = scm_memoize_method (x, arg1);
 
-	    apply_cmethod: /* inputs: z, t.arg1 */
+	    apply_cmethod: /* inputs: z, arg1 */
 	      {
 		SCM formals = SCM_CMETHOD_FORMALS (z);
-		env = EXTEND_ENV (formals, t.arg1, SCM_CMETHOD_ENV (z));
+		env = EXTEND_ENV (formals, arg1, SCM_CMETHOD_ENV (z));
 		x = SCM_CMETHOD_BODY (z);
 		goto nontoplevel_begin;
 	      }
@@ -2675,17 +2670,17 @@ dispatch:
 	    x = EVALCAR (proc, env);
 	    proc = SCM_CDR (proc);
 	    proc = EVALCAR (proc, env);
-	    t.arg1 = SCM_APPLY (x, SCM_EOL, SCM_EOL);
-	    if (SCM_VALUESP (t.arg1))
-	      t.arg1 = scm_struct_ref (t.arg1, SCM_INUM0);
+	    arg1 = SCM_APPLY (x, SCM_EOL, SCM_EOL);
+	    if (SCM_VALUESP (arg1))
+	      arg1 = scm_struct_ref (arg1, SCM_INUM0);
 	    else
-	      t.arg1 = scm_list_1 (t.arg1);
+	      arg1 = scm_list_1 (arg1);
 	    if (SCM_CLOSUREP (proc))
 	      {
-		PREP_APPLY (proc, t.arg1);
+		PREP_APPLY (proc, arg1);
 		goto apply_closure;
 	      }
-	    return SCM_APPLY (proc, t.arg1, SCM_EOL);
+	    return SCM_APPLY (proc, arg1, SCM_EOL);
 	  }
 
 
@@ -2770,7 +2765,7 @@ dispatch:
 		 application frames can be deleted from the backtrace. */
 	      SCM_SET_MACROEXP (debug);
 #endif
-	      t.arg1 = SCM_APPLY (SCM_MACRO_CODE (proc), x,
+	      arg1 = SCM_APPLY (SCM_MACRO_CODE (proc), x,
 				  scm_cons (env, scm_listofnull));
 
 #ifdef DEVAL
@@ -2779,14 +2774,14 @@ dispatch:
 	      switch (SCM_MACRO_TYPE (proc))
 		{
 		case 2:
-		  if (scm_ilength (t.arg1) <= 0)
-		    t.arg1 = scm_list_2 (SCM_IM_BEGIN, t.arg1);
+		  if (scm_ilength (arg1) <= 0)
+		    arg1 = scm_list_2 (SCM_IM_BEGIN, arg1);
 #ifdef DEVAL
 		  if (!SCM_CLOSUREP (SCM_MACRO_CODE (proc)))
 		    {
 		      SCM_DEFER_INTS;
-		      SCM_SETCAR (x, SCM_CAR (t.arg1));
-		      SCM_SETCDR (x, SCM_CDR (t.arg1));
+		      SCM_SETCAR (x, SCM_CAR (arg1));
+		      SCM_SETCDR (x, SCM_CDR (arg1));
 		      SCM_ALLOW_INTS;
 		      goto dispatch;
 		    }
@@ -2796,15 +2791,15 @@ dispatch:
 						       SCM_CDR (x));
 #endif
 		  SCM_DEFER_INTS;
-		  SCM_SETCAR (x, SCM_CAR (t.arg1));
-		  SCM_SETCDR (x, SCM_CDR (t.arg1));
+		  SCM_SETCAR (x, SCM_CAR (arg1));
+		  SCM_SETCDR (x, SCM_CDR (arg1));
 		  SCM_ALLOW_INTS;
 		  goto loopnoap;
 		case 1:
-		  if (SCM_NIMP (x = t.arg1))
+		  if (SCM_NIMP (x = arg1))
 		    goto loopnoap;
 		case 0:
-		  RETURN (t.arg1);
+		  RETURN (arg1);
 		}
 	    }
 	}
@@ -2818,17 +2813,17 @@ dispatch:
       if (SCM_CLOSUREP (proc))
 	{
 	  arg2 = SCM_CLOSURE_FORMALS (proc);
-	  t.arg1 = SCM_CDR (x);
+	  arg1 = SCM_CDR (x);
 	  while (!SCM_NULLP (arg2))
 	    {
 	      if (!SCM_CONSP (arg2))
 		goto evapply;
-	      if (SCM_IMP (t.arg1))
+	      if (SCM_IMP (arg1))
 		goto umwrongnumargs;
 	      arg2 = SCM_CDR (arg2);
-	      t.arg1 = SCM_CDR (t.arg1);
+	      arg1 = SCM_CDR (arg1);
 	    }
-	  if (!SCM_NULLP (t.arg1))
+	  if (!SCM_NULLP (arg1))
 	    goto umwrongnumargs;
 	}
       else if (SCM_MACROP (proc))
@@ -2859,11 +2854,11 @@ evapply:
 	  goto badfun;
 	RETURN (SCM_SMOB_APPLY_0 (proc));
       case scm_tc7_cclo:
-	t.arg1 = proc;
+	arg1 = proc;
 	proc = SCM_CCLO_SUBR (proc);
 #ifdef DEVAL
 	debug.info->a.proc = proc;
-	debug.info->a.args = scm_list_1 (t.arg1);
+	debug.info->a.args = scm_list_1 (arg1);
 #endif
 	goto evap1;
       case scm_tc7_pws:
@@ -2883,20 +2878,20 @@ evapply:
 	if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
 	  {
 	    x = SCM_ENTITY_PROCEDURE (proc);
-	    t.arg1 = SCM_EOL;
+	    arg1 = SCM_EOL;
 	    goto type_dispatch;
 	  }
 	else if (!SCM_I_OPERATORP (proc))
 	  goto badfun;
 	else
 	  {
-	    t.arg1 = proc;
+	    arg1 = proc;
 	    proc = (SCM_I_ENTITYP (proc)
 		    ? SCM_ENTITY_PROCEDURE (proc)
 		    : SCM_OPERATOR_PROCEDURE (proc));
 #ifdef DEVAL
 	    debug.info->a.proc = proc;
-	    debug.info->a.args = scm_list_1 (t.arg1);
+	    debug.info->a.args = scm_list_1 (arg1);
 #endif
 	    if (SCM_NIMP (proc))
 	      goto evap1;
@@ -2922,22 +2917,15 @@ evapply:
   /* must handle macros by here */
   x = SCM_CDR (x);
 #ifdef SCM_CAUTIOUS
-  if (SCM_IMP (x))
-    goto wrongnumargs;
-  else if (SCM_CONSP (x))
-    {
-      if (SCM_IMP (SCM_CAR (x)))
-	t.arg1 = SCM_EVALIM (SCM_CAR (x), env);
-      else
-	t.arg1 = EVALCELLCAR (x, env);
-    }
+  if (SCM_CONSP (x))
+    arg1 = EVALCAR (x, env);
   else
     goto wrongnumargs;
 #else
-  t.arg1 = EVALCAR (x, env);
+  arg1 = EVALCAR (x, env);
 #endif
 #ifdef DEVAL
-  debug.info->a.args = scm_list_1 (t.arg1);
+  debug.info->a.args = scm_list_1 (arg1);
 #endif
   x = SCM_CDR (x);
   if (SCM_NULLP (x))
@@ -2945,30 +2933,30 @@ evapply:
       ENTER_APPLY;
     evap1:
       switch (SCM_TYP7 (proc))
-	{				/* have one argument in t.arg1 */
+	{				/* have one argument in arg1 */
 	case scm_tc7_subr_2o:
-	  RETURN (SCM_SUBRF (proc) (t.arg1, SCM_UNDEFINED));
+	  RETURN (SCM_SUBRF (proc) (arg1, SCM_UNDEFINED));
 	case scm_tc7_subr_1:
 	case scm_tc7_subr_1o:
-	  RETURN (SCM_SUBRF (proc) (t.arg1));
+	  RETURN (SCM_SUBRF (proc) (arg1));
 	case scm_tc7_cxr:
 	  if (SCM_SUBRF (proc))
 	    {
-	      if (SCM_INUMP (t.arg1))
+	      if (SCM_INUMP (arg1))
 		{
-		  RETURN (scm_make_real (SCM_DSUBRF (proc) ((double) SCM_INUM (t.arg1))));
+		  RETURN (scm_make_real (SCM_DSUBRF (proc) ((double) SCM_INUM (arg1))));
 		}
-	      else if (SCM_REALP (t.arg1))
+	      else if (SCM_REALP (arg1))
 		{
-		  RETURN (scm_make_real (SCM_DSUBRF (proc) (SCM_REAL_VALUE (t.arg1))));
+		  RETURN (scm_make_real (SCM_DSUBRF (proc) (SCM_REAL_VALUE (arg1))));
 		}
 #ifdef SCM_BIGDIG
-	      else if (SCM_BIGP (t.arg1))
+	      else if (SCM_BIGP (arg1))
 		{
-		  RETURN (scm_make_real (SCM_DSUBRF (proc) (scm_i_big2dbl (t.arg1))));
+		  RETURN (scm_make_real (SCM_DSUBRF (proc) (scm_i_big2dbl (arg1))));
 		}
 #endif
-	      SCM_WTA_DISPATCH_1 (*SCM_SUBR_GENERIC (proc), t.arg1,
+	      SCM_WTA_DISPATCH_1 (*SCM_SUBR_GENERIC (proc), arg1,
 				  SCM_ARG1, SCM_SYMBOL_CHARS (SCM_SNAME (proc)));
 	    }
 	  proc = SCM_SNAME (proc);
@@ -2976,32 +2964,32 @@ evapply:
 	    char *chrs = SCM_SYMBOL_CHARS (proc) + SCM_SYMBOL_LENGTH (proc) - 1;
 	    while ('c' != *--chrs)
 	      {
-		SCM_ASSERT (SCM_CONSP (t.arg1),
-			    t.arg1, SCM_ARG1, SCM_SYMBOL_CHARS (proc));
-		t.arg1 = ('a' == *chrs) ? SCM_CAR (t.arg1) : SCM_CDR (t.arg1);
+		SCM_ASSERT (SCM_CONSP (arg1),
+			    arg1, SCM_ARG1, SCM_SYMBOL_CHARS (proc));
+		arg1 = ('a' == *chrs) ? SCM_CAR (arg1) : SCM_CDR (arg1);
 	      }
-	    RETURN (t.arg1);
+	    RETURN (arg1);
 	  }
 	case scm_tc7_rpsubr:
 	  RETURN (SCM_BOOL_T);
 	case scm_tc7_asubr:
-	  RETURN (SCM_SUBRF (proc) (t.arg1, SCM_UNDEFINED));
+	  RETURN (SCM_SUBRF (proc) (arg1, SCM_UNDEFINED));
 	case scm_tc7_lsubr:
 #ifdef DEVAL
 	  RETURN (SCM_SUBRF (proc) (debug.info->a.args));
 #else
-	  RETURN (SCM_SUBRF (proc) (scm_list_1 (t.arg1)));
+	  RETURN (SCM_SUBRF (proc) (scm_list_1 (arg1)));
 #endif
 	case scm_tc7_smob:
 	  if (!SCM_SMOB_APPLICABLE_P (proc))
 	    goto badfun;
-	  RETURN (SCM_SMOB_APPLY_1 (proc, t.arg1));
+	  RETURN (SCM_SMOB_APPLY_1 (proc, arg1));
 	case scm_tc7_cclo:
-	  arg2 = t.arg1;
-	  t.arg1 = proc;
+	  arg2 = arg1;
+	  arg1 = proc;
 	  proc = SCM_CCLO_SUBR (proc);
 #ifdef DEVAL
-	  debug.info->a.args = scm_cons (t.arg1, debug.info->a.args);
+	  debug.info->a.args = scm_cons (arg1, debug.info->a.args);
 	  debug.info->a.proc = proc;
 #endif
 	  goto evap2;
@@ -3020,7 +3008,7 @@ evapply:
 #ifdef DEVAL
 	  env = EXTEND_ENV (SCM_CLOSURE_FORMALS (proc), debug.info->a.args, SCM_ENV (proc));
 #else
-	  env = EXTEND_ENV (SCM_CLOSURE_FORMALS (proc), scm_list_1 (t.arg1), SCM_ENV (proc));
+	  env = EXTEND_ENV (SCM_CLOSURE_FORMALS (proc), scm_list_1 (arg1), SCM_ENV (proc));
 #endif
 	  goto nontoplevel_begin;
 	case scm_tcs_struct:
@@ -3028,9 +3016,9 @@ evapply:
 	    {
 	      x = SCM_ENTITY_PROCEDURE (proc);
 #ifdef DEVAL
-	      t.arg1 = debug.info->a.args;
+	      arg1 = debug.info->a.args;
 #else
-	      t.arg1 = scm_list_1 (t.arg1);
+	      arg1 = scm_list_1 (arg1);
 #endif
 	      goto type_dispatch;
 	    }
@@ -3038,13 +3026,13 @@ evapply:
 	    goto badfun;
 	  else
 	    {
-	      arg2 = t.arg1;
-	      t.arg1 = proc;
+	      arg2 = arg1;
+	      arg1 = proc;
 	      proc = (SCM_I_ENTITYP (proc)
 		      ? SCM_ENTITY_PROCEDURE (proc)
 		      : SCM_OPERATOR_PROCEDURE (proc));
 #ifdef DEVAL
-	      debug.info->a.args = scm_cons (t.arg1, debug.info->a.args);
+	      debug.info->a.args = scm_cons (arg1, debug.info->a.args);
 	      debug.info->a.proc = proc;
 #endif
 	      if (SCM_NIMP (proc))
@@ -3078,7 +3066,7 @@ evapply:
 #endif
   {				/* have two or more arguments */
 #ifdef DEVAL
-    debug.info->a.args = scm_list_2 (t.arg1, arg2);
+    debug.info->a.args = scm_list_2 (arg1, arg2);
 #endif
     x = SCM_CDR (x);
     if (SCM_NULLP (x)) {
@@ -3088,22 +3076,22 @@ evapply:
 	{			/* have two arguments */
 	case scm_tc7_subr_2:
 	case scm_tc7_subr_2o:
-	  RETURN (SCM_SUBRF (proc) (t.arg1, arg2));
+	  RETURN (SCM_SUBRF (proc) (arg1, arg2));
 	case scm_tc7_lsubr:
 #ifdef DEVAL
 	  RETURN (SCM_SUBRF (proc) (debug.info->a.args));
 #else
-	  RETURN (SCM_SUBRF (proc) (scm_list_2 (t.arg1, arg2)));
+	  RETURN (SCM_SUBRF (proc) (scm_list_2 (arg1, arg2)));
 #endif
 	case scm_tc7_lsubr_2:
-	  RETURN (SCM_SUBRF (proc) (t.arg1, arg2, SCM_EOL));
+	  RETURN (SCM_SUBRF (proc) (arg1, arg2, SCM_EOL));
 	case scm_tc7_rpsubr:
 	case scm_tc7_asubr:
-	  RETURN (SCM_SUBRF (proc) (t.arg1, arg2));
+	  RETURN (SCM_SUBRF (proc) (arg1, arg2));
 	case scm_tc7_smob:
 	  if (!SCM_SMOB_APPLICABLE_P (proc))
 	    goto badfun;
-	  RETURN (SCM_SMOB_APPLY_2 (proc, t.arg1, arg2));
+	  RETURN (SCM_SMOB_APPLY_2 (proc, arg1, arg2));
 	cclon:
 	case scm_tc7_cclo:
 #ifdef DEVAL
@@ -3112,7 +3100,7 @@ evapply:
 			     SCM_EOL));
 #else
 	  RETURN (SCM_APPLY (SCM_CCLO_SUBR (proc),
-			     scm_cons2 (proc, t.arg1,
+			     scm_cons2 (proc, arg1,
 					scm_cons (arg2,
 						  scm_eval_args (x,
 								 env,
@@ -3124,9 +3112,9 @@ evapply:
 	    {
 	      x = SCM_ENTITY_PROCEDURE (proc);
 #ifdef DEVAL
-	      t.arg1 = debug.info->a.args;
+	      arg1 = debug.info->a.args;
 #else
-	      t.arg1 = scm_list_2 (t.arg1, arg2);
+	      arg1 = scm_list_2 (arg1, arg2);
 #endif
 	      goto type_dispatch;
 	    }
@@ -3145,7 +3133,7 @@ evapply:
 	      RETURN (SCM_APPLY (SCM_I_ENTITYP (proc)
 				 ? SCM_ENTITY_PROCEDURE (proc)
 				 : SCM_OPERATOR_PROCEDURE (proc),
-				 scm_cons2 (proc, t.arg1,
+				 scm_cons2 (proc, arg1,
 					    scm_cons (arg2,
 						      scm_eval_args (x,
 								     env,
@@ -3178,7 +3166,7 @@ evapply:
 			    SCM_ENV (proc));
 #else
 	  env = EXTEND_ENV (SCM_CLOSURE_FORMALS (proc),
-			    scm_list_2 (t.arg1, arg2), SCM_ENV (proc));
+			    scm_list_2 (arg1, arg2), SCM_ENV (proc));
 #endif
 	  x = SCM_CLOSURE_BODY (proc);
 	  goto nontoplevel_begin;
@@ -3189,7 +3177,7 @@ evapply:
       goto wrongnumargs;
 #endif
 #ifdef DEVAL
-    debug.info->a.args = scm_cons2 (t.arg1, arg2,
+    debug.info->a.args = scm_cons2 (arg1, arg2,
       deval_args (x, env, proc, SCM_CDRLOC (SCM_CDR (debug.info->a.args))));
 #endif
     ENTER_APPLY;
@@ -3199,49 +3187,49 @@ evapply:
 #ifdef DEVAL
       case scm_tc7_subr_3:
 	SCM_ASRTGO (SCM_NULLP (SCM_CDR (x)), wrongnumargs);
-	RETURN (SCM_SUBRF (proc) (t.arg1, arg2,
+	RETURN (SCM_SUBRF (proc) (arg1, arg2,
 				  SCM_CADDR (debug.info->a.args)));
       case scm_tc7_asubr:
 #ifdef BUILTIN_RPASUBR
-	t.arg1 = SCM_SUBRF(proc)(t.arg1, arg2);
+	arg1 = SCM_SUBRF(proc)(arg1, arg2);
 	arg2 = SCM_CDDR (debug.info->a.args);
 	do
 	  {
-	    t.arg1 = SCM_SUBRF(proc)(t.arg1, SCM_CAR (arg2));
+	    arg1 = SCM_SUBRF(proc)(arg1, SCM_CAR (arg2));
 	    arg2 = SCM_CDR (arg2);
 	  }
 	while (SCM_NIMP (arg2));
-	RETURN (t.arg1);
+	RETURN (arg1);
 #endif /* BUILTIN_RPASUBR */
       case scm_tc7_rpsubr:
 #ifdef BUILTIN_RPASUBR
-	if (SCM_FALSEP (SCM_SUBRF (proc) (t.arg1, arg2)))
+	if (SCM_FALSEP (SCM_SUBRF (proc) (arg1, arg2)))
 	  RETURN (SCM_BOOL_F);
-	t.arg1 = SCM_CDDR (debug.info->a.args);
+	arg1 = SCM_CDDR (debug.info->a.args);
 	do
 	  {
-	    if (SCM_FALSEP (SCM_SUBRF (proc) (arg2, SCM_CAR (t.arg1))))
+	    if (SCM_FALSEP (SCM_SUBRF (proc) (arg2, SCM_CAR (arg1))))
 	      RETURN (SCM_BOOL_F);
-	    arg2 = SCM_CAR (t.arg1);
-	    t.arg1 = SCM_CDR (t.arg1);
+	    arg2 = SCM_CAR (arg1);
+	    arg1 = SCM_CDR (arg1);
 	  }
-	while (SCM_NIMP (t.arg1));
+	while (SCM_NIMP (arg1));
 	RETURN (SCM_BOOL_T);
 #else /* BUILTIN_RPASUBR */
-	RETURN (SCM_APPLY (proc, t.arg1,
+	RETURN (SCM_APPLY (proc, arg1,
 			   scm_acons (arg2,
 				      SCM_CDDR (debug.info->a.args),
 				      SCM_EOL)));
 #endif /* BUILTIN_RPASUBR */
       case scm_tc7_lsubr_2:
-	RETURN (SCM_SUBRF (proc) (t.arg1, arg2,
+	RETURN (SCM_SUBRF (proc) (arg1, arg2,
 				  SCM_CDDR (debug.info->a.args)));
       case scm_tc7_lsubr:
 	RETURN (SCM_SUBRF (proc) (debug.info->a.args));
       case scm_tc7_smob:
 	if (!SCM_SMOB_APPLICABLE_P (proc))
 	  goto badfun;
-	RETURN (SCM_SMOB_APPLY_3 (proc, t.arg1, arg2,
+	RETURN (SCM_SMOB_APPLY_3 (proc, arg1, arg2,
 				  SCM_CDDR (debug.info->a.args)));
       case scm_tc7_cclo:
 	goto cclon;
@@ -3262,48 +3250,48 @@ evapply:
 #else /* DEVAL */
       case scm_tc7_subr_3:
 	SCM_ASRTGO (SCM_NULLP (SCM_CDR (x)), wrongnumargs);
-	RETURN (SCM_SUBRF (proc) (t.arg1, arg2, EVALCAR (x, env)));
+	RETURN (SCM_SUBRF (proc) (arg1, arg2, EVALCAR (x, env)));
       case scm_tc7_asubr:
 #ifdef BUILTIN_RPASUBR
-	t.arg1 = SCM_SUBRF (proc) (t.arg1, arg2);
+	arg1 = SCM_SUBRF (proc) (arg1, arg2);
 	do
 	  {
-	    t.arg1 = SCM_SUBRF(proc)(t.arg1, EVALCAR(x, env));
+	    arg1 = SCM_SUBRF(proc)(arg1, EVALCAR(x, env));
 	    x = SCM_CDR(x);
 	  }
 	while (SCM_NIMP (x));
-	RETURN (t.arg1);
+	RETURN (arg1);
 #endif /* BUILTIN_RPASUBR */
       case scm_tc7_rpsubr:
 #ifdef BUILTIN_RPASUBR
-	if (SCM_FALSEP (SCM_SUBRF (proc) (t.arg1, arg2)))
+	if (SCM_FALSEP (SCM_SUBRF (proc) (arg1, arg2)))
 	  RETURN (SCM_BOOL_F);
 	do
 	  {
-	    t.arg1 = EVALCAR (x, env);
-	    if (SCM_FALSEP (SCM_SUBRF (proc) (arg2, t.arg1)))
+	    arg1 = EVALCAR (x, env);
+	    if (SCM_FALSEP (SCM_SUBRF (proc) (arg2, arg1)))
 	      RETURN (SCM_BOOL_F);
-	    arg2 = t.arg1;
+	    arg2 = arg1;
 	    x = SCM_CDR (x);
 	  }
 	while (SCM_NIMP (x));
 	RETURN (SCM_BOOL_T);
 #else /* BUILTIN_RPASUBR */
-	RETURN (SCM_APPLY (proc, t.arg1,
+	RETURN (SCM_APPLY (proc, arg1,
 			   scm_acons (arg2,
 				      scm_eval_args (x, env, proc),
 				      SCM_EOL)));
 #endif /* BUILTIN_RPASUBR */
       case scm_tc7_lsubr_2:
-	RETURN (SCM_SUBRF (proc) (t.arg1, arg2, scm_eval_args (x, env, proc)));
+	RETURN (SCM_SUBRF (proc) (arg1, arg2, scm_eval_args (x, env, proc)));
       case scm_tc7_lsubr:
-	RETURN (SCM_SUBRF (proc) (scm_cons2 (t.arg1,
+	RETURN (SCM_SUBRF (proc) (scm_cons2 (arg1,
 					     arg2,
 					     scm_eval_args (x, env, proc))));
       case scm_tc7_smob:
 	if (!SCM_SMOB_APPLICABLE_P (proc))
 	  goto badfun;
-	RETURN (SCM_SMOB_APPLY_3 (proc, t.arg1, arg2,
+	RETURN (SCM_SMOB_APPLY_3 (proc, arg1, arg2,
 				  scm_eval_args (x, env, proc)));
       case scm_tc7_cclo:
 	goto cclon;
@@ -3325,7 +3313,7 @@ evapply:
 	SCM_SET_ARGSREADY (debug);
 #endif
 	env = EXTEND_ENV (SCM_CLOSURE_FORMALS (proc),
-			      scm_cons2 (t.arg1,
+			      scm_cons2 (arg1,
 					 arg2,
 					 scm_eval_args (x, env, proc)),
 			      SCM_ENV (proc));
@@ -3336,9 +3324,9 @@ evapply:
 	if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
 	  {
 #ifdef DEVAL
-	    t.arg1 = debug.info->a.args;
+	    arg1 = debug.info->a.args;
 #else
-	    t.arg1 = scm_cons2 (t.arg1, arg2, scm_eval_args (x, env, proc));
+	    arg1 = scm_cons2 (arg1, arg2, scm_eval_args (x, env, proc));
 #endif
 	    x = SCM_ENTITY_PROCEDURE (proc);
 	    goto type_dispatch;
@@ -3365,14 +3353,14 @@ exit:
       {
 	SCM_CLEAR_TRACED_FRAME (debug);
 	if (SCM_CHEAPTRAPS_P)
-	  t.arg1 = scm_make_debugobj (&debug);
+	  arg1 = scm_make_debugobj (&debug);
 	else
 	  {
 	    int first;
 	    SCM val = scm_make_continuation (&first);
 	    
 	    if (first)
-	      t.arg1 = val;
+	      arg1 = val;
 	    else
 	      {
 		proc = val;
@@ -3380,7 +3368,7 @@ exit:
 	      }
 	  }
 	SCM_TRAPS_P = 0;
-	scm_call_3 (SCM_EXIT_FRAME_HDLR, scm_sym_exit_frame, t.arg1, proc);
+	scm_call_3 (SCM_EXIT_FRAME_HDLR, scm_sym_exit_frame, arg1, proc);
 	SCM_TRAPS_P = 1;
       }
 ret:
