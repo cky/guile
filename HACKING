@@ -160,6 +160,32 @@ function properly on systems where they are missing.  This usually
 entails adding a test to configure.in, and then adding #ifdefs to your
 code to disable it if the system's features are missing.
 
+- The normal way of removing a function, macro or variable is to mark
+it as "deprecated", keep it for a while, and remove it in a later
+release.  If a function or macro is marked as "deprecated" it
+indicates that people shouldn't use it in new programs, and should try
+to remove it in old.  Make sure that an alternative exists unless it
+is our purpose to remove functionality.  Don't deprecate definitions
+if it is unclear when they will be removed.  (This is to ensure that a
+valid way of implementing some functionality always exists.)
+
+When deprecating a definition, always following this procedure:
+
+1. Mark the definition using
+
+#if (SCM_DEBUG_DEPRECATED == 0)
+...
+#endif
+
+2. Write a comment at the definition explaining how a programmer
+can manage without the deprecated definition.
+
+3. Add an entry that the definition has been deprecated in NEWS
+
+4. At the top of release, there is a list of releases with reminders
+about what to do at each release.  Add a reminder about the removal of
+the deprecated defintion at the appropriate release.
+
 - When you make a user-visible change (i.e. one that should be
 documented, and appear in NEWS, put an asterisk in column zero of the
 start of the ChangeLog entry, like so:
