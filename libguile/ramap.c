@@ -1366,7 +1366,7 @@ ramap_rp (SCM ra0,SCM proc,SCM ras)
 	     */
 	    SCM n1 = SCM_MAKINUM (((long *) SCM_UNPACK (SCM_CDR (ra1)))[i1]);
 	    SCM n2 = SCM_MAKINUM (((long *) SCM_UNPACK (SCM_CDR (ra2)))[i2]);
-	    if (SCM_FALSEP (SCM_SUBRF (proc) (n1, n2)));
+	    if (SCM_FALSEP (SCM_SUBRF (proc) (n1, n2)))
 	      SCM_BITVEC_CLR (ra0, i0);
 	  }
       break;
