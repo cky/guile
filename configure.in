@@ -1005,7 +1005,6 @@ AC_ARG_WITH(threads, [  --with-threads          thread interface],
 case "$with_threads" in
   "yes" | "pthread" | "pthreads" | "pthread-threads" | "")
     ACX_PTHREAD(CC="$PTHREAD_CC"
-      CFLAGS="$PTHREAD_CFLAGS $CFLAGS"
       LIBS="$PTHREAD_LIBS $LIBS"
       SCM_I_GSC_USE_PTHREAD_THREADS=1
       with_threads="pthreads",
@@ -1187,9 +1186,11 @@ AC_SUBST(LIBGUILE_SRFI_SRFI_13_14_INTERFACE)
 
 #######################################################################
 
-dnl Tell guile-config what flags guile users should link against.
-GUILE_LIBS="$LDFLAGS $THREAD_LIBS_INSTALLED $LIBS"
+dnl Tell guile-config what flags guile users should compile and link with.
+GUILE_LIBS"$LDFLAGS $LIBS"
+GUILE_CFLAGS="$PTHREAD_CFLAGS"
 AC_SUBST(GUILE_LIBS)
+AC_SUBST(GUILE_CFLAGS)
 
 AC_SUBST(AWK)
 AC_SUBST(LIBLOBJS)
