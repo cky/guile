@@ -604,9 +604,26 @@ taloop:
 	  break;
 #ifdef CCLO
 	case scm_tc7_cclo:
-	  scm_puts ("#<compiled-closure ", port);
-	  scm_iprin1 (SCM_CCLO_SUBR (exp), port, pstate);
-	  scm_putc ('>', port);
+	  {
+	    SCM proc = SCM_CCLO_SUBR (exp);
+	    if (proc == scm_f_gsubr_apply)
+	      {
+		/* Print gsubrs as primitives */
+		SCM name = scm_procedure_property (exp, scm_i_name);
+		scm_puts ("#<primitive-procedure", port);
+		if (SCM_NFALSEP (name))
+		  {
+		    scm_putc (' ', port);
+		    scm_puts (SCM_CHARS (name), port);
+		  }
+	      }
+	    else
+	      {
+		scm_puts ("#<compiled-closure ", port);
+		scm_iprin1 (proc, port, pstate);
+	      }
+	    scm_putc ('>', port);
+	  }
 	  break;
 #endif
 	case scm_tc7_contin:

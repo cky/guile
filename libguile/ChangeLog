@@ -1,3 +1,7 @@
+1998-11-10  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+
+	* print.c (scm_iprin1): Print gsubrs as primitives.
+
 1998-11-09  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
 	* debug.h (SCM_MACROFRAME, SCM_MACROFRAMEP): New frame type.
