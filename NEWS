@@ -6,7 +6,7 @@ Please send Guile bug reports to bug-guile@prep.ai.mit.edu.
 
 Guile 1.0b3
 
-Changes since Thursday, September 5:
+User-visible changes since Thursday, September 5:
 
 
 * Guile now distinguishes between #f and the empty list.
