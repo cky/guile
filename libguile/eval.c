@@ -3399,7 +3399,7 @@ tail:
       SCM_ASRTGO (SCM_NULLP (args), wrongnumargs);
       RETURN (SCM_SUBRF (proc) (arg1))
     case scm_tc7_cxr:
-      SCM_ASRTGO (SCM_NULLP (args), wrongnumargs);
+      SCM_ASRTGO (!SCM_UNBNDP (arg1) && SCM_NULLP (args), wrongnumargs);
       if (SCM_SUBRF (proc))
 	{
 	  if (SCM_INUMP (arg1))
