@@ -1,3 +1,7 @@
+2003-07-10  Kevin Ryde  <user42@zip.com.au>
+
+	* gc-malloc.c (scm_gc_realloc): Define "ptr" at start of function.
+
 2003-07-08  Matthias Koeppe <mkoeppe@merkur.math.uni-magdeburg.de>
 
 	* tags.h (scm_t_bits, scm_t_signed_bits, etc): Avoid solaris empty
