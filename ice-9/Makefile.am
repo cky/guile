@@ -43,7 +43,10 @@ install-data-local:
            $(subpkgdatadir)/'and-let*.scm'
 
 ## test.scm is not currently installed.
-EXTRA_DIST = $(ice9_sources) test.scm and-let-star-compat.scm
+EXTRA_DIST = $(ice9_sources) test.scm and-let-star-compat.scm \
+             compile-psyntax.scm
 
+if MAINTAINER_MODE
 psyntax.pp: psyntax.ss
-	cd $(srcdir) && guile -c '(load-from-path "ice-9/syncase") (define-module (ice-9 syncase)) (psyncomp)'
+	GUILE_LOAD_PATH=$(srcdir)/..:.. ../libguile/guile -s compile-psyntax.scm $(srcdir)/psyntax.ss $(srcdir)/psyntax.pp
+endif

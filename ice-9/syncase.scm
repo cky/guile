@@ -139,22 +139,6 @@
 
 (define generated-symbols (make-weak-key-hash-table 1019))
 
-;;; Utilities
-
-(define (psyncomp)
-  (system "mv -f psyntax.pp psyntax.pp~")
-  (let ((in (open-input-file "psyntax.ss"))
-	(out (open-output-file "psyntax.pp")))
-    (let loop ((x (read in)))
-      (if (eof-object? x)
-	  (begin
-	    (close-port out)
-	    (close-port in))
-	  (begin
-	    (write (sc-expand3 x 'c '(compile load eval)) out)
-	    (newline out)
-	    (loop (read in)))))))
-
 ;;; Load the preprocessed code
 
 (let ((old-debug #f)
