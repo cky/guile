@@ -89,7 +89,7 @@ scm_debug_options (setting)
   SCM_RESET_DEBUG_MODE;
   scm_stack_checking_enabled_p = SCM_STACK_CHECKING_P;
   scm_debug_eframe_size = 2 * SCM_N_FRAMES;
-  SCM_ALLOW_INTS
+  SCM_ALLOW_INTS;
   return ans;
 }
 

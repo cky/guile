@@ -1796,7 +1796,7 @@ scm_evaluator_traps (setting)
 		     SCM_N_EVALUATOR_TRAPS,
 		     s_evaluator_traps);
   SCM_RESET_DEBUG_MODE;
-  SCM_ALLOW_INTS
+  SCM_ALLOW_INTS;
   return ans;
 }
 

@@ -254,10 +254,10 @@ typedef long SCM_STACKITEM;
 extern unsigned int scm_async_clock;
 
 #define SCM_ASYNC_TICK \
-{ \
+do { \
   if (0 == --scm_async_clock) \
     scm_async_click (); \
-} \
+} while(0)
 
 #ifdef SCM_CAREFUL_INTS
 #define SCM_CHECK_NOT_DISABLED \
@@ -296,25 +296,25 @@ extern unsigned int scm_async_clock;
 #endif
 
 #define SCM_DEFER_INTS \
-{ \
+do { \
   SCM_FENCE; \
   SCM_CHECK_NOT_DISABLED; \
   SCM_THREAD_DEFER; \
   SCM_FENCE; \
   scm_ints_disabled = 1; \
   SCM_FENCE; \
-} \
+} while (0)
 
 
 #define SCM_ALLOW_INTS_ONLY \
-{ \
+do { \
   SCM_THREAD_ALLOW; \
   scm_ints_disabled = 0; \
-} \
+} while (0)
 
 
 #define SCM_ALLOW_INTS \
-{ \
+do { \
   SCM_FENCE; \
   SCM_CHECK_NOT_ENABLED; \
   SCM_THREAD_SWITCHING_CODE; \
@@ -324,20 +324,20 @@ extern unsigned int scm_async_clock;
   SCM_THREAD_ALLOW; \
   SCM_ASYNC_TICK; \
   SCM_FENCE; \
-} \
+} while (0)
 
 
 #define SCM_REDEFER_INTS  \
-{ \
+do { \
   SCM_FENCE; \
   SCM_THREAD_REDEFER; \
   ++scm_ints_disabled; \
   SCM_FENCE; \
-} \
+} while (0)
 
 
 #define SCM_REALLOW_INTS \
-{ \
+do { \
   SCM_FENCE; \
   SCM_THREAD_REALLOW_1; \
   SCM_THREAD_SWITCHING_CODE; \
@@ -349,14 +349,14 @@ extern unsigned int scm_async_clock;
       SCM_ASYNC_TICK; \
     } \
   SCM_FENCE; \
-} \
+} while (0)
 
 
 #define SCM_TICK \
-{ \
+do { \
   SCM_DEFER_INTS; \
   SCM_ALLOW_INTS; \
-} \
+} while (0)
 
 
 
