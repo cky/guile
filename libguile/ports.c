@@ -456,6 +456,11 @@ SCM
 scm_new_port_table_entry (scm_t_bits tag)
 #define FUNC_NAME "scm_new_port_table_entry"
 {
+  /*
+    We initialize the cell to empty, this is in case scm_gc_calloc
+    triggers GC ; we don't want the GC to scan a half-finished Z.
+   */
+  
   SCM z = scm_cons (SCM_EOL, SCM_EOL);
   scm_t_port *entry = (scm_t_port *) scm_gc_calloc (sizeof (scm_t_port), "port");
   if (scm_i_port_table_size == scm_i_port_table_room)
@@ -495,7 +500,7 @@ scm_add_to_port_table (SCM port)
   pt->port = port;
   SCM_SETCAR(z, SCM_EOL);
   SCM_SETCDR(z, SCM_EOL);
-  
+  SCM_SETPTAB_ENTRY (port, pt);
   return pt;
 }
 #endif

@@ -1,6 +1,6 @@
 2002-08-17  Han-Wen Nienhuys  <hanwen@cs.uu.nl>
 
-	* *.c: use scm_malloc in stead of malloc everywhere.
+	* ports.c (scm_add_to_port_table): small bugfix.
 
 	* mallocs.c (scm_malloc_obj): use scm_gc_malloc in stead of
 	malloc.
