@@ -383,6 +383,61 @@ want to re-export bindings, use the new `re-export' in place of
 `export'.  The new `re-export' will not make copies of variables when
 rexporting them, as `export' did wrongly.
 
+** Module system now allows selection and renaming of imported bindings
+
+Previously, when using `use-modules' or the `#:use-module' clause in
+the `define-module' form, all the bindings (association of symbols to
+values) for imported modules were added to the "current module" on an
+as-is basis.  This has been changed to allow finer control through two
+new facilities: selection and renaming.
+
+You can now select which of the imported module's bindings are to be
+visible in the current module by using the `:select' clause.  This
+clause also can be used to rename individual bindings.  For example:
+
+  ;; import all bindings no questions asked
+  (use-modules (ice-9 common-list))
+
+  ;; import four bindings, renaming two of them;
+  ;; the current module sees: every some zonk-y zonk-n
+  (use-modules ((ice-9 common-list)
+                :select (every some
+                         (remove-if     . zonk-y)
+			 (remove-if-not . zonk-n))))
+
+You can also programmatically rename all selected bindings using the
+`:renamer' clause, which specifies a proc that takes a symbol and
+returns another symbol.  Because it is common practice to use a prefix,
+we now provide the convenience procedure `symbol-prefix-proc'.  For
+example:
+
+  ;; import four bindings, renaming two of them specifically,
+  ;; and all four w/ prefix "CL:";
+  ;; the current module sees: CL:every CL:some CL:zonk-y CL:zonk-n
+  (use-modules ((ice-9 common-list)
+                :select (every some
+                         (remove-if     . zonk-y)
+			 (remove-if-not . zonk-n))
+                :renamer (symbol-prefix-proc 'CL:)))
+
+  ;; import four bindings, renaming two of them specifically,
+  ;; and all four by upcasing.
+  ;; the current module sees: EVERY SOME ZONK-Y ZONK-N
+  (define (upcase-symbol sym)
+    (string->symbol (string-upcase (symbol->string sym))))
+
+  (use-modules ((ice-9 common-list)
+                :select (every some
+                         (remove-if     . zonk-y)
+			 (remove-if-not . zonk-n))
+                :renamer upcase-symbol))
+
+Note that programmatic renaming is done *after* individual renaming.
+Also, the above examples show `use-modules', but the same facilities are
+available for the `#:use-module' clause of `define-module'.
+
+See manual for more info.
+
 ** The semantics of guardians have changed.
 
 The changes are for the most part compatible.  An important criterion
