@@ -508,7 +508,7 @@ observer_mark (SCM observer)
 static int
 observer_print (SCM type, SCM port, scm_print_state *pstate)
 {
-  SCM address = scm_ubits2num (SCM_UNPACK (type));
+  SCM address = scm_ulong2num (SCM_UNPACK (type));
   SCM base16 = scm_number_to_string (address, SCM_MAKINUM (16));
 
   scm_puts ("#<observer ", port);
@@ -1004,7 +1004,7 @@ leaf_environment_free (SCM env)
 static int
 leaf_environment_print (SCM type, SCM port, scm_print_state *pstate)
 {
-  SCM address = scm_ubits2num (SCM_UNPACK (type));
+  SCM address = scm_ulong2num (SCM_UNPACK (type));
   SCM base16 = scm_number_to_string (address, SCM_MAKINUM (16));
 
   scm_puts ("#<leaf environment ", port);
@@ -1246,7 +1246,7 @@ eval_environment_folder (SCM extended_data, SCM symbol, SCM value, SCM tail)
   if (!SCM_ENVIRONMENT_BOUND_P (local, symbol))
     {
       SCM proc_as_nr = SCM_CADR (extended_data);
-      scm_ubits_t proc_as_ul = scm_num2ubits (proc_as_nr, 0, NULL);
+      unsigned long int proc_as_ul = scm_num2ulong (proc_as_nr, 0, NULL);
       scm_environment_folder proc = (scm_environment_folder) proc_as_ul;
       SCM data = SCM_CDDR (extended_data);
 
@@ -1264,7 +1264,7 @@ eval_environment_fold (SCM env, scm_environment_folder proc, SCM data, SCM init)
 {
   SCM local = EVAL_ENVIRONMENT (env)->local;
   SCM imported = EVAL_ENVIRONMENT (env)->imported;
-  SCM proc_as_nr = scm_ubits2num ((scm_ubits_t) proc);
+  SCM proc_as_nr = scm_ulong2num ((unsigned long int) proc);
   SCM extended_data = scm_cons2 (local, proc_as_nr, data);
   SCM tmp_result = scm_c_environment_fold (imported, eval_environment_folder, extended_data, init);
 
@@ -1365,7 +1365,7 @@ eval_environment_free (SCM env)
 static int
 eval_environment_print (SCM type, SCM port, scm_print_state *pstate)
 {
-  SCM address = scm_ubits2num (SCM_UNPACK (type));
+  SCM address = scm_ulong2num (SCM_UNPACK (type));
   SCM base16 = scm_number_to_string (address, SCM_MAKINUM (16));
 
   scm_puts ("#<eval environment ", port);
@@ -1652,7 +1652,7 @@ import_environment_folder (SCM extended_data, SCM symbol, SCM value, SCM tail)
   SCM imported_env = SCM_CADR (extended_data);
   SCM owner = import_environment_lookup (import_env, symbol);
   SCM proc_as_nr = SCM_CADDR (extended_data);
-  scm_ubits_t proc_as_ul = scm_num2ubits (proc_as_nr, 0, NULL);
+  unsigned long int proc_as_ul = scm_num2ulong (proc_as_nr, 0, NULL);
   scm_environment_folder proc = (scm_environment_folder) proc_as_ul;
   SCM data = SCM_CDDDR (extended_data);
 
@@ -1670,7 +1670,7 @@ import_environment_folder (SCM extended_data, SCM symbol, SCM value, SCM tail)
 static SCM
 import_environment_fold (SCM env, scm_environment_folder proc, SCM data, SCM init)
 {
-  SCM proc_as_nr = scm_ubits2num ((scm_ubits_t) proc);
+  SCM proc_as_nr = scm_ulong2num ((unsigned long int) proc);
   SCM result = init;
   SCM l;
 
@@ -1781,7 +1781,7 @@ import_environment_free (SCM env)
 static int
 import_environment_print (SCM type, SCM port, scm_print_state *pstate)
 {
-  SCM address = scm_ubits2num (SCM_UNPACK (type));
+  SCM address = scm_ulong2num (SCM_UNPACK (type));
   SCM base16 = scm_number_to_string (address, SCM_MAKINUM (16));
 
   scm_puts ("#<import environment ", port);
@@ -2084,7 +2084,7 @@ export_environment_free (SCM env)
 static int
 export_environment_print (SCM type, SCM port, scm_print_state *pstate)
 {
-  SCM address = scm_ubits2num (SCM_UNPACK (type));
+  SCM address = scm_ulong2num (SCM_UNPACK (type));
   SCM base16 = scm_number_to_string (address, SCM_MAKINUM (16));
 
   scm_puts ("#<export environment ", port);

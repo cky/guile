@@ -55,20 +55,17 @@
 
 
 SCM
-scm_c_make_hash_table (scm_bits_t k)
+scm_c_make_hash_table (unsigned long k)
 {
   return scm_c_make_vector (k, SCM_EOL);
 }
 
 
 SCM
-scm_hash_fn_get_handle (SCM table, SCM obj,
-                        scm_bits_t (*hash_fn) (),
-                        SCM (*assoc_fn) (),
-                        void *closure)
+scm_hash_fn_get_handle (SCM table,SCM obj,unsigned long (*hash_fn)(),SCM (*assoc_fn)(),void * closure)
 #define FUNC_NAME "scm_hash_fn_get_handle"
 {
-  scm_bits_t k;
+  unsigned long k;
   SCM h;
 
   SCM_VALIDATE_VECTOR (1, table);
@@ -84,13 +81,11 @@ scm_hash_fn_get_handle (SCM table, SCM obj,
 
 
 SCM
-scm_hash_fn_create_handle_x (SCM table, SCM obj, SCM init,
-                             scm_bits_t (*hash_fn) (),
-                             SCM (*assoc_fn) (),
-                             void *closure)
+scm_hash_fn_create_handle_x (SCM table,SCM obj,SCM init,unsigned long (*hash_fn)(),
+                             SCM (*assoc_fn)(),void * closure)
 #define FUNC_NAME "scm_hash_fn_create_handle_x"
 {
-  scm_bits_t k;
+  unsigned long k;
   SCM it;
 
   SCM_ASSERT (SCM_VECTORP (table), table, SCM_ARG1, "hash_fn_create_handle_x");
@@ -121,10 +116,8 @@ scm_hash_fn_create_handle_x (SCM table, SCM obj, SCM init,
 
 
 SCM 
-scm_hash_fn_ref (SCM table, SCM obj, SCM dflt,
-                 scm_bits_t (*hash_fn) (),
-                 SCM (*assoc_fn) (),
-                 void *closure)
+scm_hash_fn_ref (SCM table,SCM obj,SCM dflt,unsigned long (*hash_fn)(),
+                 SCM (*assoc_fn)(),void * closure)
 {
   SCM it = scm_hash_fn_get_handle (table, obj, hash_fn, assoc_fn, closure);
   if (SCM_CONSP (it))
@@ -137,10 +130,8 @@ scm_hash_fn_ref (SCM table, SCM obj, SCM dflt,
 
 
 SCM 
-scm_hash_fn_set_x (SCM table, SCM obj, SCM val,
-                   scm_bits_t (*hash_fn) (),
-                   SCM (*assoc_fn) (),
-                   void * closure)
+scm_hash_fn_set_x (SCM table,SCM obj,SCM val,unsigned long (*hash_fn)(),
+                   SCM (*assoc_fn)(),void * closure)
 {
   SCM it;
 
@@ -154,13 +145,10 @@ scm_hash_fn_set_x (SCM table, SCM obj, SCM val,
 
 
 SCM 
-scm_hash_fn_remove_x (SCM table, SCM obj,
-                      scm_bits_t (*hash_fn) (),
-                      SCM (*assoc_fn) (),
-                      SCM (*delete_fn) (),
-                      void *closure)
+scm_hash_fn_remove_x (SCM table,SCM obj,unsigned long (*hash_fn)(),SCM (*assoc_fn)(),
+                      SCM (*delete_fn)(),void * closure)
 {
-  scm_bits_t k;
+  unsigned long k;
   SCM h;
 
   SCM_ASSERT (SCM_VECTORP (table), table, SCM_ARG1, "hash_fn_remove_x");
@@ -387,13 +375,13 @@ typedef struct scm_ihashx_closure_t
 
 
 
-static scm_bits_t
-scm_ihashx (SCM obj, scm_bits_t n, scm_ihashx_closure_t *closure)
+static unsigned long
+scm_ihashx (SCM obj, unsigned long n, scm_ihashx_closure_t *closure)
 {
   SCM answer;
   SCM_DEFER_INTS;
   answer = scm_apply (closure->hash,
-		      SCM_LIST2 (obj, scm_bits2num (n)),
+		      SCM_LIST2 (obj, scm_ulong2num ((unsigned long)n)),
 		      SCM_EOL);
   SCM_ALLOW_INTS;
   return SCM_INUM (answer);
@@ -555,7 +543,7 @@ SCM_DEFINE (scm_hash_fold, "hash-fold", 3, 0, 0,
 SCM
 scm_internal_hash_fold (SCM (*fn) (), void *closure, SCM init, SCM table)
 {
-  scm_bits_t i, n = SCM_VECTOR_LENGTH (table);
+  long i, n = SCM_VECTOR_LENGTH (table);
   SCM result = init;
   for (i = 0; i < n; ++i)
     {

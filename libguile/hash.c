@@ -60,13 +60,13 @@ extern double floor();
 #endif
 
 
-scm_bits_t 
+unsigned long 
 scm_string_hash (const unsigned char *str, size_t len)
 {
   if (len > 5)
     {
       size_t i = 5;
-      scm_bits_t h = 264;
+      unsigned long h = 264;
       while (i--)
 	h = (h << 8) + (unsigned) str[h % len];
       return h;
@@ -74,7 +74,7 @@ scm_string_hash (const unsigned char *str, size_t len)
   else
     {
       size_t i = len;
-      scm_bits_t h = 0;
+      unsigned long h = 0;
       while (i)
 	h = (h << 8) + (unsigned) str[--i];
       return h;
@@ -86,8 +86,8 @@ scm_string_hash (const unsigned char *str, size_t len)
 /* Dirk:FIXME:: scm_hasher could be made static. */
 
 
-scm_bits_t
-scm_hasher (SCM obj, scm_bits_t n, size_t d)
+unsigned long
+scm_hasher(SCM obj, unsigned long n, size_t d)
 {
   switch (SCM_ITAG3 (obj)) {
   case scm_tc3_int_1: 
@@ -95,7 +95,7 @@ scm_hasher (SCM obj, scm_bits_t n, size_t d)
     return SCM_INUM(obj) % n;   /* SCM_INUMP(obj) */
   case scm_tc3_imm24:
     if (SCM_CHARP(obj))
-      return (scm_ubits_t) (scm_downcase(SCM_CHAR(obj))) % n;
+      return (unsigned)(scm_downcase(SCM_CHAR(obj))) % n;
     switch (SCM_UNPACK (obj)) {
 #ifndef SICP
     case SCM_EOL: 
@@ -152,14 +152,14 @@ scm_hasher (SCM obj, scm_bits_t n, size_t d)
 	if (len > 5)
 	  {
 	    size_t i = d/2;
-	    scm_bits_t h = 1;
+	    unsigned long h = 1;
 	    while (i--) h = ((h << 8) + (scm_hasher (data[h % len], n, 2))) % n;
 	    return h;
 	  }
 	else
 	  {
 	    size_t i = len;
-	    scm_bits_t h = (n)-1;
+	    unsigned long h = (n)-1;
 	    while (i--) h = ((h << 8) + (scm_hasher (data[i], n, d/len))) % n;
 	    return h;
 	  }
@@ -182,8 +182,8 @@ scm_hasher (SCM obj, scm_bits_t n, size_t d)
 
 
 
-scm_bits_t
-scm_ihashq (SCM obj, scm_bits_t n)
+unsigned long
+scm_ihashq (SCM obj, unsigned long n)
 {
   return (SCM_UNPACK (obj) >> 1) % n;
 }
@@ -212,14 +212,14 @@ SCM_DEFINE (scm_hashq, "hashq", 2, 0, 0,
 
 
 
-scm_bits_t
-scm_ihashv (SCM obj, scm_bits_t n)
+unsigned long
+scm_ihashv (SCM obj, unsigned long n)
 {
   if (SCM_CHARP(obj))
-    return ((scm_ubits_t)(scm_downcase(SCM_CHAR(obj)))) % n; /* downcase!?!! */
+    return ((unsigned long) (scm_downcase (SCM_CHAR (obj)))) % n; /* downcase!?!! */
 
   if (SCM_NUMP(obj))
-    return (scm_bits_t) scm_hasher(obj, n, 10);
+    return (unsigned long) scm_hasher(obj, n, 10);
   else
     return SCM_UNPACK (obj) % n;
 }
@@ -248,10 +248,10 @@ SCM_DEFINE (scm_hashv, "hashv", 2, 0, 0,
 
 
 
-scm_bits_t
-scm_ihash (SCM obj, scm_bits_t n)
+unsigned long
+scm_ihash (SCM obj, unsigned long n)
 {
-  return (scm_bits_t) scm_hasher (obj, n, 10);
+  return (unsigned long) scm_hasher (obj, n, 10);
 }
 
 SCM_DEFINE (scm_hash, "hash", 2, 0, 0,

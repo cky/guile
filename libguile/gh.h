@@ -103,20 +103,20 @@ SCM gh_double2scm(double x);
 SCM gh_char2scm(char c);
 SCM gh_str2scm(const char *s, size_t len);
 SCM gh_str02scm(const char *s);
-void gh_set_substr(char *src, SCM dst, scm_bits_t start, size_t len);
+void gh_set_substr(char *src, SCM dst, long start, size_t len);
 SCM gh_symbol2scm(const char *symbol_str);
-SCM gh_ints2scm(const int *d, scm_bits_t n);
+SCM gh_ints2scm(const int *d, long n);
 
 #ifdef HAVE_ARRAYS
-SCM gh_chars2byvect(const char *d, scm_bits_t n);
-SCM gh_shorts2svect(const short *d, scm_bits_t n);
-SCM gh_longs2ivect(const long *d, scm_bits_t n);
-SCM gh_ulongs2uvect(const unsigned long *d, scm_bits_t n);
-SCM gh_floats2fvect(const float *d, scm_bits_t n);
-SCM gh_doubles2dvect(const double *d, scm_bits_t n);
+SCM gh_chars2byvect(const char *d, long n);
+SCM gh_shorts2svect(const short *d, long n);
+SCM gh_longs2ivect(const long *d, long n);
+SCM gh_ulongs2uvect(const unsigned long *d, long n);
+SCM gh_floats2fvect(const float *d, long n);
+SCM gh_doubles2dvect(const double *d, long n);
 #endif
 
-SCM gh_doubles2scm(const double *d, scm_bits_t n);
+SCM gh_doubles2scm(const double *d, long n);
 
 /* Scheme to C conversion */
 int gh_scm2bool(SCM obj);
@@ -126,7 +126,7 @@ long gh_scm2long(SCM obj);
 char gh_scm2char(SCM obj);
 double gh_scm2double(SCM obj);
 char *gh_scm2newstr(SCM str, size_t *lenp);
-void gh_get_substr(SCM src, char *dst, scm_bits_t start, size_t len);
+void gh_get_substr(SCM src, char *dst, long start, size_t len);
 char *gh_symbol2newstr(SCM sym, size_t *lenp);
 char *gh_scm2chars(SCM vector, char *result);
 short *gh_scm2shorts(SCM vector, short *result);
@@ -178,8 +178,8 @@ SCM gh_define(const char *name, SCM val);
 SCM gh_make_vector(SCM length, SCM val);
 SCM gh_vector_set_x(SCM vec, SCM pos, SCM val);
 SCM gh_vector_ref(SCM vec, SCM pos);
-scm_bits_t gh_vector_length (SCM v);
-scm_ubits_t gh_uniform_vector_length (SCM v);
+unsigned long gh_vector_length (SCM v);
+unsigned long gh_uniform_vector_length (SCM v);
 SCM gh_uniform_vector_ref (SCM v, SCM ilist);
 #define gh_list_to_vector(ls) scm_vector(ls)
 #define gh_vector_to_list(v) scm_vector_to_list(v)
@@ -189,7 +189,7 @@ SCM gh_module_lookup (SCM module, const char *sname);
 
 SCM gh_cons(SCM x, SCM y);
 #define gh_list scm_listify
-scm_bits_t gh_length(SCM l);
+unsigned long gh_length(SCM l);
 SCM gh_append(SCM args);
 SCM gh_append2(SCM l1, SCM l2);
 SCM gh_append3(SCM l1, SCM l2, SCM l3);

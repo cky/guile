@@ -158,18 +158,18 @@ typedef struct
 #define SCM_SETTER(obj) SCM_CELL_OBJECT_2 (obj)
 
 extern scm_subr_entry_t *scm_subr_table;
-extern scm_bits_t scm_subr_table_size;
-extern scm_bits_t scm_subr_table_room;
+extern long scm_subr_table_size;
+extern long scm_subr_table_room;
 
 
 
 extern void scm_mark_subr_table (void);
 extern void scm_free_subr_entry (SCM subr);
-extern SCM scm_c_make_subr (const char *name, scm_bits_t type, SCM (*fcn)());
-extern SCM scm_c_make_subr_with_generic (const char *name, scm_bits_t type,
+extern SCM scm_c_make_subr (const char *name, long type, SCM (*fcn)());
+extern SCM scm_c_make_subr_with_generic (const char *name, long type,
 					 SCM (*fcn)(), SCM *gf);
-extern SCM scm_c_define_subr (const char *name, scm_bits_t type, SCM (*fcn)());
-extern SCM scm_c_define_subr_with_generic (const char *name, scm_bits_t type,
+extern SCM scm_c_define_subr (const char *name, long type, SCM (*fcn)());
+extern SCM scm_c_define_subr_with_generic (const char *name, long type,
 					   SCM (*fcn)(), SCM *gf);
 extern SCM scm_makcclo (SCM proc, size_t len);
 extern SCM scm_procedure_p (SCM obj);

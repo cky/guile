@@ -52,7 +52,7 @@
 
 
 
-#if SCM_DEBUG_DEPRECATED == 0
+#if (SCM_DEBUG_DEPRECATED == 0)
 
 /* This is either a boolean (when a summary should be printed) or a
    hashtab (when detailed warnings shouold be printed).

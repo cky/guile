@@ -171,7 +171,7 @@ scm_make_root (SCM parent)
 #if 0
 SCM scm_exitval;		/* INUM with return value */
 #endif
-static scm_bits_t n_dynamic_roots = 0;
+static long n_dynamic_roots = 0;
 
 
 /* cwdr fills out both of these structures, and then passes a pointer

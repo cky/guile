@@ -116,7 +116,7 @@ typedef union scm_debug_info_t
   SCM id;
 } scm_debug_info_t;
 
-extern scm_bits_t scm_debug_eframe_size;
+extern long scm_debug_eframe_size;
 
 typedef struct scm_debug_frame_t
 {

@@ -63,8 +63,8 @@ typedef struct
   jmp_buf jmpbuf;
   SCM dynenv;
   SCM_STACKITEM *base;      /* base of the live stack, before it was saved.  */
-  scm_bits_t num_stack_items; /* size of the saved stack.  */
-  scm_ubits_t seq;         /* dynamic root identifier.  */
+  size_t num_stack_items;   /* size of the saved stack.  */
+  unsigned long seq;        /* dynamic root identifier.  */
 
 #ifdef DEBUG_EXTENSIONS
   /* the most recently created debug frame on the live stack, before

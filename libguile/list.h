@@ -72,7 +72,7 @@ extern SCM scm_list (SCM objs);
 extern SCM scm_cons_star (SCM arg, SCM objs);
 extern SCM scm_null_p (SCM x);
 extern SCM scm_list_p (SCM x);
-extern scm_bits_t scm_ilength (SCM sx);
+extern long scm_ilength (SCM sx);
 extern SCM scm_length (SCM x);
 extern SCM scm_append (SCM args);
 extern SCM scm_append_x (SCM args);

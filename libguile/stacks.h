@@ -69,8 +69,8 @@ typedef struct scm_info_frame_t {
 typedef struct scm_stack_t {
   SCM id;			/* Stack id */
   scm_info_frame_t *frames;	/* Info frames */
-  scm_bits_t length;		/* Stack length */
-  scm_bits_t tail_length;
+  unsigned long length;		/* Stack length */
+  unsigned long tail_length;
   scm_info_frame_t tail[1];
 } scm_stack_t;
 

@@ -119,7 +119,7 @@ extern SCM scm_struct_ref (SCM handle, SCM pos);
 extern SCM scm_struct_set_x (SCM handle, SCM pos, SCM val);
 extern SCM scm_struct_vtable (SCM handle);
 extern SCM scm_struct_vtable_tag (SCM handle);
-extern scm_bits_t scm_struct_ihashq (SCM obj, scm_bits_t n);
+extern unsigned long scm_struct_ihashq (SCM obj, unsigned long n);
 extern SCM scm_struct_create_handle (SCM obj);
 extern SCM scm_struct_vtable_name (SCM vtable);
 extern SCM scm_set_struct_vtable_name_x (SCM vtable, SCM name);

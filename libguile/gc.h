@@ -97,7 +97,7 @@ typedef scm_cell * SCM_CELLPTR;
 #define SCM_GC_SET_CARD_BVEC(card, bvec) \
     ((card)->word_0 = (scm_bits_t) (bvec))
 
-#define SCM_GC_GET_CARD_FLAGS(card) ((scm_ubits_t) ((card)->word_1))
+#define SCM_GC_GET_CARD_FLAGS(card) ((long) ((card)->word_1))
 #define SCM_GC_SET_CARD_FLAGS(card, flags) \
     ((card)->word_1 = (scm_bits_t) (flags))
 #define SCM_GC_CLR_CARD_FLAGS(card) (SCM_GC_SET_CARD_FLAGS (card, 0L))
@@ -119,9 +119,9 @@ typedef scm_cell * SCM_CELLPTR;
 #define SCM_GC_CARD_SIZE_MASK  (SCM_GC_CARD_SIZE - 1)
 #define SCM_GC_CARD_ADDR_MASK  (~SCM_GC_CARD_SIZE_MASK)
 
-#define SCM_GC_CELL_CARD(x)    ((SCM_CELLPTR) ((scm_bits_t) (x) & SCM_GC_CARD_ADDR_MASK))
+#define SCM_GC_CELL_CARD(x)    ((SCM_CELLPTR) ((long) (x) & SCM_GC_CARD_ADDR_MASK))
 #define SCM_GC_CELL_SPAN(x)    ((SCM_GC_CARD_DOUBLECELLP (SCM_GC_CELL_CARD (x))) ? 2 : 1)
-#define SCM_GC_CELL_OFFSET(x)  (((scm_bits_t) (x) & SCM_GC_CARD_SIZE_MASK) >> SCM_CELL_SIZE_SHIFT)
+#define SCM_GC_CELL_OFFSET(x)  (((long) (x) & SCM_GC_CARD_SIZE_MASK) >> SCM_CELL_SIZE_SHIFT)
 #define SCM_GC_CELL_BVEC(x)    SCM_GC_CARD_BVEC (SCM_GC_CELL_CARD (x))
 #define SCM_GC_CELL_GET_BIT(x) SCM_C_BVEC_GET (SCM_GC_CELL_BVEC (x), SCM_GC_CELL_OFFSET (x))
 #define SCM_GC_CELL_SET_BIT(x) SCM_C_BVEC_SET (SCM_GC_CELL_BVEC (x), SCM_GC_CELL_OFFSET (x))
@@ -319,13 +319,13 @@ extern SCM scm_freelist;
 extern struct scm_freelist_t scm_master_freelist;
 extern SCM scm_freelist2;
 extern struct scm_freelist_t scm_master_freelist2;
-extern scm_ubits_t scm_gc_cells_collected;
-extern scm_ubits_t scm_gc_yield;
-extern scm_ubits_t scm_gc_malloc_collected;
-extern scm_ubits_t scm_gc_ports_collected;
-extern scm_ubits_t scm_cells_allocated;
-extern scm_ubits_t scm_mallocated;
-extern scm_ubits_t scm_mtrigger;
+extern unsigned long scm_gc_cells_collected;
+extern unsigned long scm_gc_yield;
+extern unsigned long scm_gc_malloc_collected;
+extern unsigned long scm_gc_ports_collected;
+extern unsigned long scm_cells_allocated;
+extern unsigned long scm_mallocated;
+extern unsigned long scm_mtrigger;
 
 extern SCM scm_after_gc_hook;
 
@@ -363,17 +363,17 @@ extern void scm_alloc_cluster (struct scm_freelist_t *master);
 extern void scm_igc (const char *what);
 extern void scm_gc_mark (SCM p);
 extern void scm_gc_mark_dependencies (SCM p);
-extern void scm_mark_locations (SCM_STACKITEM x[], scm_ubits_t n);
+extern void scm_mark_locations (SCM_STACKITEM x[], unsigned long n);
 extern int scm_cellp (SCM value);
 extern void scm_gc_sweep (void);
 extern void * scm_must_malloc (size_t len, const char *what);
 extern void * scm_must_realloc (void *where,
 				size_t olen, size_t len,
 				const char *what);
-extern void scm_done_malloc (scm_bits_t size);
-extern void scm_done_free (scm_bits_t size);
 extern char *scm_must_strdup (const char *str);
 extern char *scm_must_strndup (const char *str, size_t n);
+extern void scm_done_malloc (long size);
+extern void scm_done_free (long size);
 extern void scm_must_free (void *obj);
 extern void scm_remember_upto_here_1 (SCM obj);
 extern void scm_remember_upto_here_2 (SCM obj1, SCM obj2);

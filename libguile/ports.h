@@ -70,7 +70,7 @@ typedef enum scm_port_rw_active_t {
 typedef struct 
 {
   SCM port;			/* Link back to the port object.  */
-  scm_bits_t entry;		/* Index in port table. */
+  long entry;			/* Index in port table. */
   int revealed;			/* 0 not revealed, > 1 revealed.
 				 * Revealed ports do not get GC'd.
 				 */
@@ -133,7 +133,7 @@ typedef struct
 } scm_port_t;
 
 extern scm_port_t **scm_port_table;
-extern scm_bits_t scm_port_table_size; /* Number of ports in scm_port_table.  */
+extern long scm_port_table_size; /* Number of ports in scm_port_table.  */
 
 #define SCM_READ_BUFFER_EMPTY_P(c_port) (c_port->read_pos >= c_port->read_end)
 
@@ -220,8 +220,8 @@ typedef struct scm_ptob_descriptor_t
 
 
 extern scm_ptob_descriptor_t *scm_ptobs;
-extern scm_bits_t scm_numptob;
-extern scm_bits_t scm_port_table_room;
+extern long scm_numptob;
+extern long scm_port_table_room;
 
 
 

@@ -59,7 +59,7 @@ typedef struct scm_option_t
   /*
     schizophrenic use: both SCM and int
    */
-  scm_bits_t val;
+  unsigned long val;
   /* SCM val */
   char *doc;
 } scm_option_t;

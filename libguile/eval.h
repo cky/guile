@@ -58,7 +58,7 @@ extern scm_option_t scm_eval_opts[];
 #define SCM_EVAL_STACK	       scm_eval_opts[0].val
 #define SCM_N_EVAL_OPTIONS 1
 
-extern scm_bits_t scm_eval_stack;
+extern long scm_eval_stack;
 
 extern scm_option_t scm_evaluator_trap_table[];
 
@@ -83,8 +83,8 @@ extern SCM scm_eval_options_interface (SCM setting);
 #define SCM_ICDR		(0x00080000L)
 #define SCM_IFRINC		(0x00000100L)
 #define SCM_IDSTMSK		(-SCM_IDINC)
-#define SCM_IFRAME(n) 		((scm_bits_t)((SCM_ICDR-SCM_IFRINC)>>8) \
-				 & (SCM_UNPACK (n)) >> 8)
+#define SCM_IFRAME(n) 		((long)((SCM_ICDR-SCM_IFRINC)>>8) \
+				 & (SCM_UNPACK (n) >> 8))
 #define SCM_IDIST(n) 		(SCM_UNPACK (n) >> 20)
 #define SCM_ICDRP(n) 		(SCM_ICDR & SCM_UNPACK (n))
 

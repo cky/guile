@@ -148,10 +148,10 @@ SCM_DEFINE (scm_list_p, "list?", 1, 0, 0,
    This uses the "tortoise and hare" algorithm to detect "infinitely
    long" lists (i.e. lists with cycles in their cdrs), and returns -1
    if it does find one.  */
-scm_bits_t
-scm_ilength (SCM sx)
+long
+scm_ilength(SCM sx)
 {
-  scm_bits_t i = 0;
+  long i = 0;
   SCM tortoise = sx;
   SCM hare = sx;
 
@@ -180,7 +180,7 @@ SCM_DEFINE (scm_length, "length", 1, 0, 0,
 	    "Return the number of elements in list @var{lst}.")
 #define FUNC_NAME s_scm_length
 {
-  scm_bits_t i;
+  long i;
   SCM_VALIDATE_LIST_COPYLEN (1,lst,i);
   return SCM_MAKINUM (i);
 }
@@ -360,7 +360,7 @@ SCM_DEFINE (scm_list_ref, "list-ref", 2, 0, 0,
 #define FUNC_NAME s_scm_list_ref
 {
   SCM lst = list;
-  register scm_bits_t i;
+  unsigned long int i;
   SCM_VALIDATE_INUM_MIN_COPY (2,k,0,i);
   while (SCM_CONSP (lst)) {
     if (i == 0)
@@ -384,7 +384,7 @@ SCM_DEFINE (scm_list_set_x, "list-set!", 3, 0, 0,
 #define FUNC_NAME s_scm_list_set_x
 {
   SCM lst = list;
-  register scm_bits_t i;
+  unsigned long int i;
   SCM_VALIDATE_INUM_MIN_COPY (2,k,0,i);
   while (SCM_CONSP (lst)) {
     if (i == 0) {
@@ -415,7 +415,7 @@ SCM_DEFINE (scm_list_tail, "list-tail", 2, 0, 0,
 	    "or returning the results of cdring @var{k} times down @var{lst}.")
 #define FUNC_NAME s_scm_list_tail
 {
-  register scm_bits_t i;
+  register long i;
   SCM_VALIDATE_INUM_MIN_COPY (2,k,0,i);
   while (i-- > 0) {
     SCM_VALIDATE_CONS (1,lst);
@@ -432,7 +432,7 @@ SCM_DEFINE (scm_list_cdr_set_x, "list-cdr-set!", 3, 0, 0,
 #define FUNC_NAME s_scm_list_cdr_set_x
 {
   SCM lst = list;
-  scm_bits_t i;
+  unsigned long int i;
   SCM_VALIDATE_INUM_MIN_COPY (2,k,0,i);
   while (SCM_CONSP (lst)) {
     if (i == 0) {
@@ -462,7 +462,7 @@ SCM_DEFINE (scm_list_head, "list-head", 2, 0, 0,
 {
   SCM answer;
   SCM * pos;
-  register scm_bits_t i;
+  register long i;
 
   SCM_VALIDATE_INUM_MIN_COPY (2,k,0,i);
   answer = SCM_EOL;

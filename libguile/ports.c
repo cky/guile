@@ -87,7 +87,7 @@
  * tags for smobjects (if you know a tag you can get an index and conversely).
  */
 scm_ptob_descriptor_t *scm_ptobs;
-scm_bits_t scm_numptob;
+long scm_numptob;
 
 /* GC marker for a port with stream of SCM type.  */
 SCM 
@@ -314,7 +314,7 @@ SCM_DEFINE (scm_drain_input, "drain-input", 1, 0, 0,
 {
   SCM result;
   scm_port_t *pt = SCM_PTAB_ENTRY (port);
-  scm_bits_t count;
+  long count;
 
   SCM_VALIDATE_OPINPORT (1,port);
 
@@ -424,8 +424,8 @@ SCM_DEFINE (scm_set_current_error_port, "set-current-error-port", 1, 0, 0,
 
 scm_port_t **scm_port_table;
 
-scm_bits_t scm_port_table_size = 0;	/* Number of ports in scm_port_table.  */
-scm_bits_t scm_port_table_room = 20;	/* Size of the array.  */
+long scm_port_table_size = 0;	/* Number of ports in scm_port_table.  */
+long scm_port_table_room = 20;	/* Size of the array.  */
 
 /* Add a port to the table.  */
 
@@ -475,7 +475,7 @@ scm_remove_from_port_table (SCM port)
 #define FUNC_NAME "scm_remove_from_port_table"
 {
   scm_port_t *p = SCM_PTAB_ENTRY (port);
-  scm_bits_t i = p->entry;
+  long i = p->entry;
 
   if (i >= scm_port_table_size)
     SCM_MISC_ERROR ("Port not in table: ~S", SCM_LIST1 (port));
@@ -515,7 +515,7 @@ SCM_DEFINE (scm_pt_member, "pt-member", 1, 0, 0,
 	    "@code{--enable-guile-debug} builds.")
 #define FUNC_NAME s_scm_pt_member
 {
-  scm_bits_t i;
+  long i;
   SCM_VALIDATE_INUM_COPY (1,index,i);
   if (i < 0 || i >= scm_port_table_size)
     return SCM_BOOL_F;
@@ -709,7 +709,7 @@ SCM_DEFINE (scm_port_for_each, "port-for-each", 1, 0, 0,
 	    "have no effect as far as @var{port-for-each} is concerned.\n") 
 #define FUNC_NAME s_scm_port_for_each
 {
-  scm_bits_t i;
+  long i;
   SCM ports;
 
   SCM_VALIDATE_PROC (1, proc);
@@ -752,7 +752,7 @@ SCM_DEFINE (scm_close_all_ports_except, "close-all-ports-except", 0, 0, 1,
 	    "Use port-for-each instead.")
 #define FUNC_NAME s_scm_close_all_ports_except
 {
-  scm_bits_t i = 0;
+  long i = 0;
   SCM_VALIDATE_REST_ARGUMENT (ports);
   while (i < scm_port_table_size)
     {
@@ -1075,14 +1075,14 @@ scm_c_write (SCM port, const void *ptr, size_t size)
 void 
 scm_flush (SCM port)
 {
-  scm_bits_t i = SCM_PTOBNUM (port);
+  long i = SCM_PTOBNUM (port);
   (scm_ptobs[i].flush) (port);
 }
 
 void
 scm_end_input (SCM port)
 {
-  scm_bits_t offset;
+  long offset;
   scm_port_t *pt = SCM_PTAB_ENTRY (port);
 
   if (pt->read_buf == pt->putback_buf)

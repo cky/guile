@@ -58,8 +58,7 @@
 
 /* In the beginning was the Word:
  */
-typedef SCM_BITS_T scm_bits_t;
-typedef SCM_UBITS_T scm_ubits_t;
+typedef long scm_bits_t;
 
 /* But as external interface, we use SCM, which may, according to the desired
  * level of type checking, be defined in several ways:

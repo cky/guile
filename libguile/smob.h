@@ -124,7 +124,7 @@ do { \
 #define SCM_SMOB_APPLY_2(x,a1,a2)	(SCM_SMOB_DESCRIPTOR (x).apply_2 (x, (a1), (a2)))
 #define SCM_SMOB_APPLY_3(x,a1,a2,rst)	(SCM_SMOB_DESCRIPTOR (x).apply_3 (x, (a1), (a2), (rst)))
 
-extern scm_bits_t scm_numsmob;
+extern long scm_numsmob;
 extern scm_smob_descriptor scm_smobs[];
 
 

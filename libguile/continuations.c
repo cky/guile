@@ -116,7 +116,7 @@ scm_make_continuation (int *first)
   volatile SCM cont;
   scm_contregs_t *continuation;
   scm_contregs_t *rootcont = SCM_CONTREGS (scm_rootcont);
-  scm_bits_t stack_size;
+  long stack_size;
   SCM_STACKITEM * src;
 
   SCM_ENTER_A_SECTION;

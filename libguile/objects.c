@@ -158,7 +158,7 @@ SCM_DEFINE (scm_class_of, "class-of", 1, 0, 0,
 
 	case scm_tc7_smob:
 	  {
-	    scm_bits_t type = SCM_TYP16 (x);
+	    long type = SCM_TYP16 (x);
 	    if (type != scm_tc16_port_with_ps)
 	      return scm_smob_class[SCM_TC2SMOBNUM (type)];
 	    x = SCM_PORT_WITH_PS_PORT (x);
@@ -251,7 +251,7 @@ SCM_DEFINE (scm_class_of, "class-of", 1, 0, 0,
 SCM
 scm_mcache_lookup_cmethod (SCM cache, SCM args)
 {
-  scm_bits_t i, n, end, mask;
+  long i, n, end, mask;
   SCM ls, methods, z = SCM_CDDR (cache);
   n = SCM_INUM (SCM_CAR (z)); /* maximum number of specializers */
   methods = SCM_CADR (z);
@@ -266,8 +266,8 @@ scm_mcache_lookup_cmethod (SCM cache, SCM args)
   else
     {
       /* Compute a hash value */
-      scm_bits_t hashset = SCM_INUM (methods);
-      scm_bits_t j = n;
+      long hashset = SCM_INUM (methods);
+      long j = n;
       mask = SCM_INUM (SCM_CAR (z = SCM_CDDR (z)));
       methods = SCM_CADR (z);
       i = 0;
@@ -287,7 +287,7 @@ scm_mcache_lookup_cmethod (SCM cache, SCM args)
   /* Search for match  */
   do
     {
-      scm_bits_t j = n;
+      long j = n;
       z = SCM_VELTS (methods)[i];
       ls = args; /* list of arguments */
       if (SCM_NIMP (ls))
@@ -449,7 +449,7 @@ SCM_DEFINE (scm_object_procedure, "object-procedure", 1, 0, 0,
 SCM
 scm_i_make_class_object (SCM meta,
 			 SCM layout_string,
-			 scm_ubits_t flags)
+			 unsigned long flags)
 {
   SCM c;
   SCM layout = scm_make_struct_layout (layout_string);
@@ -466,7 +466,7 @@ SCM_DEFINE (scm_make_class_object, "make-class-object", 2, 0, 0,
 	    "slot layout specified by @var{layout}.")
 #define FUNC_NAME s_scm_make_class_object
 {
-  scm_ubits_t flags = 0;
+  unsigned long flags = 0;
   SCM_VALIDATE_STRUCT (1,metaclass);
   SCM_VALIDATE_STRING (2,layout);
   if (SCM_EQ_P (metaclass, scm_metaclass_operator))

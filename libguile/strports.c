@@ -101,9 +101,9 @@ st_resize_port (scm_port_t *pt, off_t new_size)
 {
   SCM old_stream = SCM_PACK (pt->stream);
   SCM new_stream = scm_allocate_string (new_size);
-  size_t old_size = SCM_STRING_LENGTH (old_stream);
-  size_t min_size = min (old_size, new_size);
-  size_t i;
+  unsigned long int old_size = SCM_STRING_LENGTH (old_stream);
+  unsigned long int min_size = min (old_size, new_size);
+  unsigned long int i;
 
   off_t index = pt->write_pos - pt->write_buf;
 

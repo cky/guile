@@ -45,7 +45,7 @@
 #include "libguile/gh.h"
 
 /* returns the length of a list */
-scm_bits_t
+unsigned long 
 gh_length (SCM l)
 {
   return gh_scm2ulong (scm_length (l));

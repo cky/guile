@@ -456,7 +456,7 @@ SCM_DEFINE (scm_sorted_p, "sorted?", 2, 0, 0,
 	    "applied to all elements i - 1 and i")
 #define FUNC_NAME s_scm_sorted_p
 {
-  scm_bits_t len, j;		/* list/vector length, temp j */
+  long len, j;			/* list/vector length, temp j */
   SCM item, rest;		/* rest of items loop variable */
   SCM *vp;
   cmp_fun_t cmp = scm_cmp_function (less);
@@ -528,7 +528,7 @@ SCM_DEFINE (scm_merge, "merge", 3, 0, 0,
 	    "Note:  this does _not_ accept vectors.")
 #define FUNC_NAME s_scm_merge
 {
-  scm_bits_t alen, blen;	/* list lengths */
+  long alen, blen;		/* list lengths */
   SCM build, last;
   cmp_fun_t cmp = scm_cmp_function (less);
   SCM_VALIDATE_NIM (3,less);
@@ -641,7 +641,7 @@ SCM_DEFINE (scm_merge_x, "merge!", 3, 0, 0,
 	    "Note:  this does _not_ accept vectors.")
 #define FUNC_NAME s_scm_merge_x
 {
-  scm_bits_t alen, blen;	/* list lengths */
+  long alen, blen;		/* list lengths */
 
   SCM_VALIDATE_NIM (3,less);
   if (SCM_NULLP (alist))
@@ -669,13 +669,13 @@ static SCM
 scm_merge_list_step (SCM * seq,
 		     cmp_fun_t cmp,
 		     SCM less,
-		     scm_bits_t n)
+		     long n)
 {
   SCM a, b;
 
   if (n > 2)
     {
-      scm_bits_t mid = n / 2;
+      long mid = n / 2;
       a = scm_merge_list_step (seq, cmp, less, mid);
       b = scm_merge_list_step (seq, cmp, less, n - mid);
       return scm_merge_list_x (a, b, mid, n - mid, cmp, less);
@@ -717,7 +717,7 @@ SCM_DEFINE (scm_sort_x, "sort!", 2, 0, 0,
 	    "This is not a stable sort.")
 #define FUNC_NAME s_scm_sort_x
 {
-  scm_bits_t len;			/* list/vector length */
+  long len;			/* list/vector length */
   if (SCM_NULLP(items))
     return SCM_EOL;
 
@@ -757,7 +757,7 @@ SCM_DEFINE (scm_sort, "sort", 2, 0, 0,
   SCM_VALIDATE_NIM (2,less);
   if (SCM_CONSP (items))
     {
-      scm_bits_t len;
+      long len;
   
       SCM_VALIDATE_LIST_COPYLEN (1,items,len);
       items = scm_list_copy (items);
@@ -767,7 +767,7 @@ SCM_DEFINE (scm_sort, "sort", 2, 0, 0,
   /* support ordinary vectors even if arrays not available?  */
   else if (SCM_VECTORP (items))
     {
-      scm_bits_t len = SCM_VECTOR_LENGTH (items);
+      long len = SCM_VECTOR_LENGTH (items);
       SCM sortvec = scm_make_uve (len, scm_array_prototype (items));
 
       scm_array_copy_x (items, sortvec);
@@ -788,15 +788,15 @@ scm_merge_vector_x (void *const vecbase,
 		    void *const tempbase,
 		    cmp_fun_t cmp,
 		    SCM less,
-		    scm_bits_t low,
-		    scm_bits_t mid,
-		    scm_bits_t high)
+		    long low,
+		    long mid,
+		    long high)
 {
   register SCM *vp = (SCM *) vecbase;
   register SCM *temp = (SCM *) tempbase;
-  scm_bits_t it;	     	/* Index for temp vector */
-  scm_bits_t i1 = low;      	/* Index for lower vector segment */
-  scm_bits_t i2 = mid + 1;  	/* Index for upper vector segment */
+  long it;	     	/* Index for temp vector */
+  long i1 = low;      	/* Index for lower vector segment */
+  long i2 = mid + 1;  	/* Index for upper vector segment */
 
   /* Copy while both segments contain more characters */
   for (it = low; (i1 <= mid) && (i2 <= high); ++it)
@@ -823,12 +823,12 @@ scm_merge_vector_step (void *const vp,
 		       void *const temp,
 		       cmp_fun_t cmp,
 		       SCM less,
-		       scm_bits_t low,
-		       scm_bits_t high)
+		       long low,
+		       long high)
 {
   if (high > low)
     {
-      scm_bits_t mid = (low + high) / 2;
+      long mid = (low + high) / 2;
       scm_merge_vector_step (vp, temp, cmp, less, low, mid);
       scm_merge_vector_step (vp, temp, cmp, less, mid+1, high);
       scm_merge_vector_x (vp, temp, cmp, less, low, mid, high);
@@ -847,7 +847,7 @@ SCM_DEFINE (scm_stable_sort_x, "stable-sort!", 2, 0, 0,
 	    "This is a stable sort.")
 #define FUNC_NAME s_scm_stable_sort_x
 {
-  scm_bits_t len;			/* list/vector length */
+  long len;			/* list/vector length */
 
   if (SCM_NULLP (items))
     return SCM_EOL;
@@ -887,7 +887,7 @@ SCM_DEFINE (scm_stable_sort, "stable-sort", 2, 0, 0,
 	    "This is a stable sort.")
 #define FUNC_NAME s_scm_stable_sort
 {
-  scm_bits_t len;			/* list/vector length */
+  long len;			/* list/vector length */
   if (SCM_NULLP (items))
     return SCM_EOL;
 
@@ -933,7 +933,7 @@ SCM_DEFINE (scm_sort_list_x, "sort-list!", 2, 0, 0,
 	    "This is a stable sort.")
 #define FUNC_NAME s_scm_sort_list_x
 {
-  scm_bits_t len;
+  long len;
   SCM_VALIDATE_LIST_COPYLEN (1,items,len);
   SCM_VALIDATE_NIM (2,less);
   return scm_merge_list_step (&items, scm_cmp_function (less), less, len);
@@ -947,7 +947,7 @@ SCM_DEFINE (scm_sort_list, "sort-list", 2, 0, 0,
 	    "list elements. This is a stable sort.")
 #define FUNC_NAME s_scm_sort_list
 {
-  scm_bits_t len;
+  long len;
   SCM_VALIDATE_LIST_COPYLEN (1,items,len);
   SCM_VALIDATE_NIM (2,less);
   items = scm_list_copy (items);

@@ -153,10 +153,10 @@
  * is read from a continuation.
  */
 static scm_bits_t
-stack_depth (scm_debug_frame_t *dframe,scm_bits_t offset,SCM *id,int *maxp)
+stack_depth (scm_debug_frame_t *dframe,long offset,SCM *id,int *maxp)
 {
-  scm_bits_t n;
-  scm_bits_t max_depth = SCM_BACKTRACE_MAXDEPTH;
+  long n;
+  long max_depth = SCM_BACKTRACE_MAXDEPTH;
   for (n = 0;
        dframe && !SCM_VOIDFRAMEP (*dframe) && n < max_depth;
        dframe = RELOC_FRAME (dframe->prev, offset))
@@ -185,7 +185,7 @@ stack_depth (scm_debug_frame_t *dframe,scm_bits_t offset,SCM *id,int *maxp)
 /* Read debug info from DFRAME into IFRAME.
  */
 static void
-read_frame (scm_debug_frame_t *dframe,scm_bits_t offset,scm_info_frame_t *iframe)
+read_frame (scm_debug_frame_t *dframe,long offset,scm_info_frame_t *iframe)
 {
   scm_bits_t flags = SCM_UNPACK (SCM_INUM0); /* UGh. */
   if (SCM_EVALFRAMEP (*dframe))
@@ -252,7 +252,7 @@ do { \
  */
 
 static scm_bits_t
-read_frames (scm_debug_frame_t *dframe,scm_bits_t offset,scm_bits_t n,scm_info_frame_t *iframes)
+read_frames (scm_debug_frame_t *dframe,long offset,long n,scm_info_frame_t *iframes)
 {
   scm_info_frame_t *iframe = iframes;
   scm_debug_info_t *info;
@@ -345,11 +345,11 @@ read_frames (scm_debug_frame_t *dframe,scm_bits_t offset,scm_bits_t n,scm_info_f
  */
 
 static void
-narrow_stack (SCM stack,scm_bits_t inner,SCM inner_key,scm_bits_t outer,SCM outer_key)
+narrow_stack (SCM stack,long inner,SCM inner_key,long outer,SCM outer_key)
 {
   scm_stack_t *s = SCM_STACK (stack);
-  scm_bits_t i;
-  scm_bits_t n = s->length;
+  long i;
+  long n = s->length;
   
   /* Cut inner part. */
   if (SCM_EQ_P (inner_key, SCM_BOOL_T))
@@ -421,11 +421,11 @@ SCM_DEFINE (scm_make_stack, "make-stack", 1, 0, 1,
 	    "resulting stack will be narrowed.")
 #define FUNC_NAME s_scm_make_stack
 {
-  scm_bits_t n, size;
+  long n, size;
   int maxp;
   scm_debug_frame_t *dframe = scm_last_debug_frame;
   scm_info_frame_t *iframe;
-  scm_bits_t offset = 0;
+  long offset = 0;
   SCM stack, id;
   SCM inner_cut, outer_cut;
 
@@ -514,7 +514,7 @@ SCM_DEFINE (scm_stack_id, "stack-id", 1, 0, 0,
 #define FUNC_NAME s_scm_stack_id
 {
   scm_debug_frame_t *dframe;
-  scm_bits_t offset = 0;
+  long offset = 0;
   if (SCM_EQ_P (stack, SCM_BOOL_T))
     dframe = scm_last_debug_frame;
   else
@@ -588,7 +588,7 @@ SCM_DEFINE (scm_last_stack_frame, "last-stack-frame", 1, 0, 0,
 #define FUNC_NAME s_scm_last_stack_frame
 {
   scm_debug_frame_t *dframe;
-  scm_bits_t offset = 0;
+  long offset = 0;
   SCM stack;
   
   SCM_VALIDATE_NIM (1,obj);
@@ -672,7 +672,7 @@ SCM_DEFINE (scm_frame_previous, "frame-previous", 1, 0, 0,
 	    "@var{frame} is the first frame in its stack.")
 #define FUNC_NAME s_scm_frame_previous
 {
-  scm_bits_t n;
+  long n;
   SCM_VALIDATE_FRAME (1,frame);
   n = SCM_INUM (SCM_CDR (frame)) + 1;
   if (n >= SCM_STACK_LENGTH (SCM_CAR (frame)))
@@ -688,7 +688,7 @@ SCM_DEFINE (scm_frame_next, "frame-next", 1, 0, 0,
 	    "@var{frame} is the last frame in its stack.")
 #define FUNC_NAME s_scm_frame_next
 {
-  scm_bits_t n;
+  long n;
   SCM_VALIDATE_FRAME (1,frame);
   n = SCM_INUM (SCM_CDR (frame)) - 1;
   if (n < 0)

@@ -214,7 +214,7 @@ extern SCM scm_no_applicable_method;
 
 /* Goops functions. */
 extern SCM scm_make_extended_class (char *type_name);
-extern void scm_make_port_classes (scm_bits_t ptobnum, char *type_name);
+extern void scm_make_port_classes (long ptobnum, char *type_name);
 extern void scm_change_object_class (SCM, SCM, SCM);
 extern SCM scm_memoize_method (SCM x, SCM args);
 
@@ -239,7 +239,7 @@ extern SCM scm_make_class_object (SCM metaclass, SCM layout);
 extern SCM scm_make_subclass_object (SCM c, SCM layout);
 
 extern SCM scm_i_make_class_object (SCM metaclass, SCM layout_string,
-				    scm_ubits_t flags);
+				    unsigned long flags);
 extern void scm_init_objects (void);
 
 #endif /* OBJECTSH */

@@ -96,7 +96,7 @@ SCM_DEFINE (scm_string, "string", 0, 0, 1,
   SCM result;
 
   {
-    scm_bits_t i = scm_ilength (chrs);
+    long i = scm_ilength (chrs);
 
     SCM_ASSERT (i >= 0, chrs, SCM_ARGn, FUNC_NAME);
     result = scm_allocate_string (i);
@@ -248,7 +248,7 @@ SCM_DEFINE (scm_make_string, "make-string", 1, 1, 0,
 {
   if (SCM_INUMP (k))
     {
-      scm_bits_t i = SCM_INUM (k);
+      long int i = SCM_INUM (k);
       SCM res;
 
       SCM_ASSERT_RANGE (1, k, i >= 0);
@@ -290,7 +290,7 @@ SCM_DEFINE (scm_string_ref, "string-ref", 2, 0, 0,
 	    "indexing. @var{k} must be a valid index of @var{str}.")
 #define FUNC_NAME s_scm_string_ref
 {
-  scm_bits_t idx;
+  long idx;
 
   SCM_VALIDATE_STRING (1, str);
   SCM_VALIDATE_INUM_COPY (2, k, idx);
@@ -330,8 +330,8 @@ SCM_DEFINE (scm_substring, "substring", 2, 1, 0,
             "0 <= @var{start} <= @var{end} <= (string-length @var{str}).")
 #define FUNC_NAME s_scm_substring
 {
-  scm_bits_t from;
-  scm_bits_t to;
+  long int from;
+  long int to;
 
   SCM_VALIDATE_STRING (1, str);
   SCM_VALIDATE_INUM (2, start);
@@ -393,8 +393,8 @@ SCM_DEFINE (scm_make_shared_substring, "make-shared-substring", 1, 2, 0,
 	    "occupies the same storage space as @var{str}.")
 #define FUNC_NAME s_scm_make_shared_substring
 {
-  scm_bits_t f;
-  scm_bits_t t;
+  long f;
+  long t;
   SCM answer;
   SCM len_str;
 
@@ -411,7 +411,7 @@ SCM_DEFINE (scm_make_shared_substring, "make-shared-substring", 1, 2, 0,
   SCM_DEFER_INTS;
   if (SCM_SUBSTRP (str))
     {
-      scm_bits_t offset;
+      long offset;
       offset = SCM_INUM (SCM_SUBSTR_OFFSET (str));
       f += offset;
       t += offset;

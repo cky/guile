@@ -62,7 +62,7 @@
  * SCM_INUMP (SCM_CAR (x)) can give wrong answers.
  */
 
-#define SCM_I_FIXNUM_BIT (SCM_BITS_LENGTH - 2)
+#define SCM_I_FIXNUM_BIT (SCM_LONG_BIT - 2)
 #define SCM_MOST_POSITIVE_FIXNUM ((1L << (SCM_I_FIXNUM_BIT - 1)) - 1)
 #define SCM_MOST_NEGATIVE_FIXNUM (-SCM_MOST_POSITIVE_FIXNUM - 1)
 
@@ -115,7 +115,7 @@
 /* SCM_INTBUFLEN is the maximum number of characters neccessary for the
  * printed or scm_string representation of an exact immediate.
  */
-#define SCM_INTBUFLEN (5 + SCM_BITS_LENGTH)
+#define SCM_INTBUFLEN (5 + SCM_LONG_BIT)
 
 
 
@@ -177,7 +177,7 @@
 #define SCM_BIGSIGN(x) (SCM_CELL_WORD_0 (x) & SCM_BIGSIGNFLAG)
 #define SCM_BDIGITS(x) ((SCM_BIGDIG *) (SCM_CELL_WORD_1 (x)))
 #define SCM_SET_BIGNUM_BASE(n, b) (SCM_SET_CELL_WORD_1 ((n), (b)))
-#define SCM_NUMDIGS(x) ((size_t) ((scm_ubits_t) SCM_CELL_WORD_0 (x) >> SCM_BIGSIZEFIELD))
+#define SCM_NUMDIGS(x) ((size_t) (SCM_CELL_WORD_0 (x) >> SCM_BIGSIZEFIELD))
 #define SCM_SETNUMDIGS(x, v, sign) \
   SCM_SET_CELL_WORD_0 (x, \
 	      scm_tc16_big \
@@ -232,8 +232,6 @@ extern SCM scm_i_int2big (int n);
 extern SCM scm_i_uint2big (unsigned int n);
 extern SCM scm_i_long2big (long n);
 extern SCM scm_i_ulong2big (unsigned long n);
-extern SCM scm_i_bits2big (scm_bits_t n);
-extern SCM scm_i_ubits2big (scm_ubits_t n);
 extern SCM scm_i_size2big (size_t n);
 extern SCM scm_i_ptrdiff2big (ptrdiff_t n);
 
@@ -330,8 +328,6 @@ extern SCM scm_int2num (int n);
 extern SCM scm_uint2num (unsigned int n);
 extern SCM scm_long2num (long n);
 extern SCM scm_ulong2num (unsigned long n);
-extern SCM scm_bits2num (scm_bits_t n);
-extern SCM scm_ubits2num (scm_ubits_t n);
 extern SCM scm_size2num (size_t n);
 extern SCM scm_ptrdiff2num (ptrdiff_t n);
 extern short scm_num2short (SCM num, unsigned long int pos,
@@ -346,10 +342,6 @@ extern long scm_num2long (SCM num, unsigned long int pos,
 			  const char *s_caller);
 extern unsigned long scm_num2ulong (SCM num, unsigned long int pos,
                                     const char *s_caller);
-extern scm_bits_t scm_num2bits (SCM num, unsigned long int pos,
-                                const char *s_caller);
-extern scm_ubits_t scm_num2ubits (SCM num, unsigned long int pos,
-                                  const char *s_caller);
 extern ptrdiff_t scm_num2ptrdiff (SCM num, unsigned long int pos,
                                   const char *s_caller);
 extern size_t scm_num2size (SCM num, unsigned long int pos,

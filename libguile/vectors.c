@@ -73,7 +73,7 @@ static char s_vector_set_length_x[] = "vector-set-length!";
 SCM 
 scm_vector_set_length_x (SCM vect, SCM len)
 {
-  scm_bits_t l;
+  long l;
   size_t siz;
   size_t sz;
   char *base;
@@ -84,7 +84,7 @@ scm_vector_set_length_x (SCM vect, SCM len)
 #ifdef HAVE_ARRAYS
   if (SCM_TYP7 (vect) == scm_tc7_bvect)
     {
-      l = (l + SCM_BITS_LENGTH - 1) / SCM_BITS_LENGTH;
+      l = (l + SCM_LONG_BIT - 1) / SCM_LONG_BIT;
     }
   sz = scm_uniform_element_size (vect);
   if (sz != 0)
@@ -180,7 +180,7 @@ SCM_DEFINE (scm_vector, "vector", 0, 0, 1,
 {
   SCM res;
   SCM *data;
-  scm_bits_t i;
+  long i;
 
   /* Dirk:FIXME:: In case of multiple threads, the list might get corrupted
      while the vector is being created. */
@@ -222,7 +222,7 @@ scm_vector_ref (SCM v, SCM k)
   SCM_GASSERT2 (SCM_INUMP (k),
 		g_vector_ref, v, k, SCM_ARG2, s_vector_ref);
   SCM_ASSERT_RANGE (2, k, SCM_INUM (k) < SCM_VECTOR_LENGTH (v) && SCM_INUM (k) >= 0);
-  return SCM_VELTS (v)[(ptrdiff_t) SCM_INUM (k)];
+  return SCM_VELTS (v)[(long) SCM_INUM (k)];
 }
 #undef FUNC_NAME
 
@@ -250,7 +250,7 @@ scm_vector_set_x (SCM v, SCM k, SCM obj)
 		g_vector_set_x, SCM_LIST3 (v, k, obj),
 		SCM_ARG2, s_vector_set_x);
   SCM_ASSERT_RANGE (2, k, SCM_INUM (k) < SCM_VECTOR_LENGTH (v) && SCM_INUM (k) >= 0);
-  SCM_VELTS(v)[(ptrdiff_t) SCM_INUM(k)] = obj;
+  SCM_VELTS(v)[(long) SCM_INUM(k)] = obj;
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -281,7 +281,7 @@ SCM_DEFINE (scm_make_vector, "make-vector", 1, 1, 0,
 
 
 SCM
-scm_c_make_vector (size_t k, SCM fill)
+scm_c_make_vector (unsigned long int k, SCM fill)
 #define FUNC_NAME s_scm_make_vector
 {
   SCM v;
@@ -289,9 +289,9 @@ scm_c_make_vector (size_t k, SCM fill)
 
   if (k > 0) 
     {
-      size_t j;
+      unsigned long int j;
 
-      SCM_ASSERT_RANGE (1, scm_size2num (k), k <= SCM_VECTOR_MAX_LENGTH);
+      SCM_ASSERT_RANGE (1, scm_ulong2num (k), k <= SCM_VECTOR_MAX_LENGTH);
 
       base = scm_must_malloc (k * sizeof (scm_bits_t), FUNC_NAME);
       for (j = 0; j != k; ++j)
@@ -322,7 +322,7 @@ SCM_DEFINE (scm_vector_to_list, "vector->list", 1, 0, 0,
 #define FUNC_NAME s_scm_vector_to_list
 {
   SCM res = SCM_EOL;
-  scm_bits_t i;
+  long i;
   SCM *data;
   SCM_VALIDATE_VECTOR (1,v);
   data = SCM_VELTS(v);
@@ -338,7 +338,7 @@ SCM_DEFINE (scm_vector_fill_x, "vector-fill!", 2, 0, 0,
 	    "returned by @code{vector-fill!} is unspecified.")
 #define FUNC_NAME s_scm_vector_fill_x
 {
-  register scm_bits_t i;
+  register long i;
   register SCM *data;
   SCM_VALIDATE_VECTOR (1, v);
   data = SCM_VELTS (v);
@@ -352,7 +352,7 @@ SCM_DEFINE (scm_vector_fill_x, "vector-fill!", 2, 0, 0,
 SCM
 scm_vector_equal_p(SCM x, SCM y)
 {
-  scm_bits_t i;
+  long i;
   for(i = SCM_VECTOR_LENGTH (x) - 1; i >= 0; i--)
     if (SCM_FALSEP (scm_equal_p (SCM_VELTS (x)[i], SCM_VELTS (y)[i])))
       return SCM_BOOL_F;
@@ -365,9 +365,9 @@ SCM_DEFINE (scm_vector_move_left_x, "vector-move-left!", 5, 0, 0,
 	    "Vector version of @code{substring-move-left!}.")
 #define FUNC_NAME s_scm_vector_move_left_x
 {
-  scm_bits_t i;
-  scm_bits_t j;
-  scm_bits_t e;
+  long i;
+  long j;
+  long e;
   
   SCM_VALIDATE_VECTOR (1,vec1);
   SCM_VALIDATE_INUM_COPY (2,start1,i);
@@ -388,9 +388,9 @@ SCM_DEFINE (scm_vector_move_right_x, "vector-move-right!", 5, 0, 0,
 	    "Vector version of @code{substring-move-right!}.")
 #define FUNC_NAME s_scm_vector_move_right_x
 {
-  scm_bits_t i;
-  scm_bits_t j;
-  scm_bits_t e;
+  long i;
+  long j;
+  long e;
 
   SCM_VALIDATE_VECTOR (1,vec1);
   SCM_VALIDATE_INUM_COPY (2,start1,i);

@@ -53,13 +53,13 @@ typedef SCM scm_assoc_fn_t (SCM key, SCM alist, void *closure);
 typedef SCM scm_delete_fn_t (SCM elt, SCM list);
 #endif
 
-extern SCM scm_c_make_hash_table (scm_bits_t k);
+extern SCM scm_c_make_hash_table (unsigned long k);
 
-extern SCM scm_hash_fn_get_handle (SCM table, SCM obj, scm_bits_t (*hash_fn) (), SCM (*assoc_fn) (), void * closure);
-extern SCM scm_hash_fn_create_handle_x (SCM table, SCM obj, SCM init, scm_bits_t (*hash_fn) (), SCM (*assoc_fn) (), void * closure);
-extern SCM scm_hash_fn_ref (SCM table, SCM obj, SCM dflt, scm_bits_t (*hash_fn) (), SCM (*assoc_fn) (), void * closure);
-extern SCM scm_hash_fn_set_x (SCM table, SCM obj, SCM val, scm_bits_t (*hash_fn) (), SCM (*assoc_fn) (), void * closure);
-extern SCM scm_hash_fn_remove_x (SCM table, SCM obj, scm_bits_t (*hash_fn) (), SCM (*assoc_fn) (), SCM (*delete_fn) (), void * closure);
+extern SCM scm_hash_fn_get_handle (SCM table, SCM obj, unsigned long (*hash_fn) (), SCM (*assoc_fn) (), void * closure);
+extern SCM scm_hash_fn_create_handle_x (SCM table, SCM obj, SCM init, unsigned long (*hash_fn) (), SCM (*assoc_fn) (), void * closure);
+extern SCM scm_hash_fn_ref (SCM table, SCM obj, SCM dflt, unsigned long (*hash_fn) (), SCM (*assoc_fn) (), void * closure);
+extern SCM scm_hash_fn_set_x (SCM table, SCM obj, SCM val, unsigned long (*hash_fn) (), SCM (*assoc_fn) (), void * closure);
+extern SCM scm_hash_fn_remove_x (SCM table, SCM obj, unsigned long (*hash_fn) (), SCM (*assoc_fn) (), SCM (*delete_fn) (), void * closure);
 extern SCM scm_internal_hash_fold (SCM (*fn) (), void *closure, SCM init, SCM table);
 
 extern SCM scm_hashq_get_handle (SCM table, SCM obj);

@@ -214,8 +214,8 @@ scm_gsubr_apply (SCM args)
   SCM self = SCM_CAR (args);
   SCM (*fcn)() = SCM_SUBRF (SCM_GSUBR_PROC (self));
   SCM v[SCM_GSUBR_MAX];
-  scm_bits_t typ = SCM_INUM (SCM_GSUBR_TYPE (self));
-  scm_bits_t i, n = SCM_GSUBR_REQ (typ) + SCM_GSUBR_OPT (typ) + SCM_GSUBR_REST (typ);
+  long typ = SCM_INUM (SCM_GSUBR_TYPE (self));
+  long i, n = SCM_GSUBR_REQ (typ) + SCM_GSUBR_OPT (typ) + SCM_GSUBR_REST (typ);
 #if 0
   if (n > SCM_GSUBR_MAX)
     scm_misc_error (FUNC_NAME, 

@@ -282,8 +282,8 @@ grow_ref_stack (scm_print_state *pstate)
 static void
 print_circref (SCM port,scm_print_state *pstate,SCM ref)
 {
-  register scm_bits_t i;
-  scm_bits_t self = pstate->top - 1;
+  register long i;
+  long self = pstate->top - 1;
   i = pstate->top - 1;
   if (SCM_CONSP (pstate->ref_stack[i]))
     {
@@ -548,8 +548,8 @@ taloop:
 	  scm_puts ("#(", port);
 	common_vector_printer:
 	  {
-	    register scm_bits_t i;
-	    scm_bits_t last = SCM_VECTOR_LENGTH (exp) - 1;
+	    register long i;
+	    long last = SCM_VECTOR_LENGTH (exp) - 1;
 	    int cutp = 0;
 	    if (pstate->fancyp && SCM_VECTOR_LENGTH (exp) > pstate->length)
 	      {
@@ -749,7 +749,7 @@ void
 scm_iprlist (char *hdr,SCM exp,int tlr,SCM port,scm_print_state *pstate)
 {
   register SCM hare, tortoise;
-  scm_bits_t floor = pstate->top - 2;
+  long floor = pstate->top - 2;
   scm_puts (hdr, port);
   /* CHECK_INTS; */
   if (pstate->fancyp)
@@ -774,7 +774,7 @@ scm_iprlist (char *hdr,SCM exp,int tlr,SCM port,scm_print_state *pstate)
   scm_iprin1 (SCM_CAR (exp), port, pstate);
   for (exp = SCM_CDR (exp); SCM_ECONSP (exp); exp = SCM_CDR (exp))
     {
-      register scm_bits_t i;
+      register long i;
 
       for (i = floor; i >= 0; --i)
 	if (SCM_EQ_P (pstate->ref_stack[i], exp))
@@ -797,13 +797,13 @@ end:
   
 fancy_printing:
   {
-    scm_bits_t n = pstate->length;
+    long n = pstate->length;
     
     scm_iprin1 (SCM_CAR (exp), port, pstate);
     exp = SCM_CDR (exp); --n;
     for (; SCM_ECONSP (exp); exp = SCM_CDR (exp))
       {
-	register scm_ubits_t i;
+	register unsigned long i;
 
 	for (i = 0; i < pstate->top; ++i)
 	  if (SCM_EQ_P (pstate->ref_stack[i], exp))

@@ -1,4 +1,4 @@
-/* $Id: validate.h,v 1.32 2001-05-24 00:50:51 cmm Exp $ */
+/* $Id: validate.h,v 1.33 2001-05-26 20:51:22 cmm Exp $ */
 /* Copyright (C) 1999,2000,2001 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -80,16 +80,6 @@
 
 #define SCM_NUM2USHORT_DEF(pos, arg, def) \
   (SCM_UNBNDP (arg) ? def : scm_num2ushort (arg, pos, FUNC_NAME))
-
-#define SCM_NUM2BITS(pos, arg) (scm_num2bits (arg, pos, FUNC_NAME))
-
-#define SCM_NUM2BITS_DEF(pos, arg, def) \
-  (SCM_UNBNDP (arg) ? def : scm_num2bits (arg, pos, FUNC_NAME))
-
-#define SCM_NUM2UBITS(pos, arg) (scm_num2ubits (arg, pos, FUNC_NAME))
-
-#define SCM_NUM2UBITS_DEF(pos, arg, def) \
-  (SCM_UNBNDP (arg) ? def : scm_num2ubits (arg, pos, FUNC_NAME))
 
 #define SCM_NUM2INT(pos, arg) (scm_num2int (arg, pos, FUNC_NAME))
 

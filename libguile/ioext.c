@@ -297,7 +297,7 @@ SCM_DEFINE (scm_fdes_to_ports, "fdes->ports", 1, 0, 0,
 {
   SCM result = SCM_EOL;
   int int_fd;
-  scm_bits_t i;
+  long i;
   
   SCM_VALIDATE_INUM_COPY (1,fd,int_fd);
 

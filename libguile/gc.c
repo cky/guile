@@ -257,11 +257,11 @@ size_t scm_default_max_segment_size = 2097000L;/* a little less (adm) than 2 Mb 
 # define CELL_DN(p, span) MK_FP(FP_SEG(p), ~(8*(span)-1)&FP_OFF(p))
 #else
 # ifdef _UNICOS
-#  define CELL_UP(p, span) (SCM_CELLPTR)(~(span) & ((scm_ubits_t)(p)+(span)))
-#  define CELL_DN(p, span) (SCM_CELLPTR)(~(span) & (scm_ubits_t)(p))
+#  define CELL_UP(p, span) (SCM_CELLPTR)(~(span) & ((long)(p)+(span)))
+#  define CELL_DN(p, span) (SCM_CELLPTR)(~(span) & (long)(p))
 # else
-#  define CELL_UP(p, span) (SCM_CELLPTR)(~(sizeof(scm_cell)*(span)-1L) & ((scm_ubits_t)(p)+sizeof(scm_cell)*(span)-1L))
-#  define CELL_DN(p, span) (SCM_CELLPTR)(~(sizeof(scm_cell)*(span)-1L) & (scm_ubits_t)(p))
+#  define CELL_UP(p, span) (SCM_CELLPTR)(~(sizeof(scm_cell)*(span)-1L) & ((long)(p)+sizeof(scm_cell)*(span)-1L))
+#  define CELL_DN(p, span) (SCM_CELLPTR)(~(sizeof(scm_cell)*(span)-1L) & (long)(p))
 # endif				/* UNICOS */
 #endif				/* PROT386 */
 
@@ -301,13 +301,13 @@ typedef struct scm_freelist_t {
   /* number of cells per object on this list */
   int span;
   /* number of collected cells during last GC */
-  scm_ubits_t collected;
+  unsigned long collected;
   /* number of collected cells during penultimate GC */
-  scm_ubits_t collected_1;
+  unsigned long collected_1;
   /* total number of cells in heap segments
    * belonging to this list.
    */
-  scm_ubits_t heap_size;
+  unsigned long heap_size;
 } scm_freelist_t;
 
 SCM scm_freelist = SCM_EOL;
@@ -322,7 +322,7 @@ scm_freelist_t scm_master_freelist2 = {
 /* scm_mtrigger
  * is the number of bytes of must_malloc allocation needed to trigger gc.
  */
-scm_ubits_t scm_mtrigger;
+unsigned long scm_mtrigger;
 
 /* scm_gc_heap_lock
  * If set, don't expand the heap.  Set only during gc, during which no allocation
@@ -347,20 +347,20 @@ SCM scm_structs_to_free;
 
 /* GC Statistics Keeping
  */
-scm_ubits_t scm_cells_allocated = 0;
-scm_ubits_t scm_mallocated = 0;
-scm_ubits_t scm_gc_cells_collected;
-scm_ubits_t scm_gc_yield;
-static scm_ubits_t scm_gc_yield_1 = 0; /* previous GC yield */
-scm_ubits_t scm_gc_malloc_collected;
-scm_ubits_t scm_gc_ports_collected;
+unsigned long scm_cells_allocated = 0;
+unsigned long scm_mallocated = 0;
+unsigned long scm_gc_cells_collected;
+unsigned long scm_gc_yield;
+static unsigned long scm_gc_yield_1 = 0; /* previous GC yield */
+unsigned long scm_gc_malloc_collected;
+unsigned long scm_gc_ports_collected;
 unsigned long scm_gc_time_taken = 0;
-static scm_ubits_t t_before_gc;
-static scm_ubits_t t_before_sweep;
+static unsigned long t_before_gc;
+static unsigned long t_before_sweep;
 unsigned long scm_gc_mark_time_taken = 0;
 unsigned long scm_gc_sweep_time_taken = 0;
-scm_ubits_t scm_gc_times = 0;
-scm_ubits_t scm_gc_cells_swept = 0;
+unsigned long scm_gc_times = 0;
+unsigned long scm_gc_cells_swept = 0;
 double scm_gc_cells_marked_acc = 0.;
 double scm_gc_cells_swept_acc = 0.;
 
@@ -482,10 +482,10 @@ clear_mark_space ()
 #if defined (GUILE_DEBUG) || defined (GUILE_DEBUG_FREELIST)
 
 /* Return the number of the heap segment containing CELL.  */
-static scm_bits_t
+static long
 which_seg (SCM cell)
 {
-  scm_bits_t i;
+  long i;
 
   for (i = 0; i < scm_n_heap_segs; i++)
     if (SCM_PTR_LE (scm_heap_table[i].bounds[0], SCM2PTR (cell))
@@ -500,12 +500,12 @@ which_seg (SCM cell)
 static void
 map_free_list (scm_freelist_t *master, SCM freelist)
 {
-  scm_bits_t last_seg = -1, count = 0;
+  long last_seg = -1, count = 0;
   SCM f;
 
   for (f = freelist; !SCM_NULLP (f); f = SCM_FREE_CELL_CDR (f))
     {
-      scm_bits_t this_seg = which_seg (f);
+      long this_seg = which_seg (f);
 
       if (this_seg != last_seg)
 	{
@@ -529,7 +529,7 @@ SCM_DEFINE (scm_map_free_list, "map-free-list", 0, 0, 0,
 	    "@code{--enable-guile-debug} builds of Guile.")
 #define FUNC_NAME s_scm_map_free_list
 {
-  scm_bits_t i;
+  long i;
   fprintf (stderr, "%ld segments total (%d:%ld",
 	   (long) scm_n_heap_segs,
 	   scm_heap_table[0].span,
@@ -547,14 +547,14 @@ SCM_DEFINE (scm_map_free_list, "map-free-list", 0, 0, 0,
 }
 #undef FUNC_NAME
 
-static scm_bits_t last_cluster;
-static scm_bits_t last_size;
+static long last_cluster;
+static long last_size;
 
-static scm_bits_t
-free_list_length (char *title, scm_bits_t i, SCM freelist)
+static long
+free_list_length (char *title, long i, SCM freelist)
 {
   SCM ls;
-  scm_bits_t n = 0;
+  long n = 0;
   for (ls = freelist; !SCM_NULLP (ls); ls = SCM_FREE_CELL_CDR (ls))
     if (SCM_FREE_CELL_P (ls))
       ++n;
@@ -586,7 +586,7 @@ static void
 free_list_lengths (char *title, scm_freelist_t *master, SCM freelist)
 {
   SCM clusters;
-  scm_bits_t i = 0, len, n = 0;
+  long i = 0, len, n = 0;
   fprintf (stderr, "%s\n\n", title);
   n += free_list_length ("free list", -1, freelist);
   for (clusters = master->clusters;
@@ -625,8 +625,8 @@ SCM_DEFINE (scm_free_list_length, "free-list-length", 0, 0, 0,
 static int scm_debug_check_freelist = 0;
 
 /* Number of calls to SCM_NEWCELL since startup.  */
-static scm_ubits_t scm_newcell_count;
-static scm_ubits_t scm_newcell2_count;
+static unsigned long scm_newcell_count;
+static unsigned long scm_newcell2_count;
 
 /* Search freelist for anything that isn't marked as a free cell.
    Abort if we find something.  */
@@ -634,7 +634,7 @@ static void
 scm_check_freelist (SCM freelist)
 {
   SCM f;
-  scm_bits_t i = 0;
+  long i = 0;
 
   for (f = freelist; !SCM_NULLP (f); f = SCM_FREE_CELL_CDR (f), i++)
     if (!SCM_FREE_CELL_P (f))
@@ -722,26 +722,26 @@ scm_debug_newcell2 (void)
 
 
 
-static scm_ubits_t
+static unsigned long
 master_cells_allocated (scm_freelist_t *master)
 {
   /* the '- 1' below is to ignore the cluster spine cells. */
-  scm_bits_t objects = master->clusters_allocated * (master->cluster_size - 1);
+  long objects = master->clusters_allocated * (master->cluster_size - 1);
   if (SCM_NULLP (master->clusters))
     objects -= master->left_to_collect;
   return master->span * objects;
 }
 
-static scm_ubits_t
+static unsigned long
 freelist_length (SCM freelist)
 {
-  scm_bits_t n;
+  long n;
   for (n = 0; !SCM_NULLP (freelist); freelist = SCM_FREE_CELL_CDR (freelist))
     ++n;
   return n;
 }
 
-static scm_ubits_t
+static unsigned long
 compute_cells_allocated ()
 {
   return (scm_cells_allocated
@@ -760,17 +760,17 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
 	    "use of storage.")
 #define FUNC_NAME s_scm_gc_stats
 {
-  scm_bits_t i;
-  scm_bits_t n;
+  long i;
+  long n;
   SCM heap_segs;
-  scm_ubits_t local_scm_mtrigger;
-  scm_ubits_t local_scm_mallocated;
-  scm_ubits_t local_scm_heap_size;
-  scm_ubits_t local_scm_cells_allocated;
-  unsigned long local_scm_gc_time_taken;
-  scm_ubits_t local_scm_gc_times;
-  unsigned long local_scm_gc_mark_time_taken;
-  unsigned long local_scm_gc_sweep_time_taken;
+  unsigned long int local_scm_mtrigger;
+  unsigned long int local_scm_mallocated;
+  unsigned long int local_scm_heap_size;
+  unsigned long int local_scm_cells_allocated;
+  unsigned long int local_scm_gc_time_taken;
+  unsigned long int local_scm_gc_times;
+  unsigned long int local_scm_gc_mark_time_taken;
+  unsigned long int local_scm_gc_sweep_time_taken;
   double local_scm_gc_cells_swept;
   double local_scm_gc_cells_marked;
   SCM answer;
@@ -783,8 +783,8 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
   heap_segs = SCM_EOL;
   n = scm_n_heap_segs;
   for (i = scm_n_heap_segs; i--; )
-    heap_segs = scm_cons (scm_cons (scm_ubits2num ((scm_ubits_t)scm_heap_table[i].bounds[1]),
-				    scm_ubits2num ((scm_ubits_t)scm_heap_table[i].bounds[0])),
+    heap_segs = scm_cons (scm_cons (scm_ulong2num ((unsigned long)scm_heap_table[i].bounds[1]),
+				    scm_ulong2num ((unsigned long)scm_heap_table[i].bounds[0])),
 			  heap_segs);
   if (scm_n_heap_segs != n)
     goto retry;
@@ -806,11 +806,11 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
   local_scm_gc_cells_marked = scm_gc_cells_marked_acc;
 
   answer = scm_listify (scm_cons (sym_gc_time_taken, scm_ulong2num (local_scm_gc_time_taken)),
-			scm_cons (sym_cells_allocated, scm_ubits2num (local_scm_cells_allocated)),
-			scm_cons (sym_heap_size, scm_ubits2num (local_scm_heap_size)),
-			scm_cons (sym_mallocated, scm_ubits2num (local_scm_mallocated)),
-			scm_cons (sym_mtrigger, scm_ubits2num (local_scm_mtrigger)),
-			scm_cons (sym_times, scm_ubits2num (local_scm_gc_times)),
+			scm_cons (sym_cells_allocated, scm_ulong2num (local_scm_cells_allocated)),
+			scm_cons (sym_heap_size, scm_ulong2num (local_scm_heap_size)),
+			scm_cons (sym_mallocated, scm_ulong2num (local_scm_mallocated)),
+			scm_cons (sym_mtrigger, scm_ulong2num (local_scm_mtrigger)),
+			scm_cons (sym_times, scm_ulong2num (local_scm_gc_times)),
                         scm_cons (sym_gc_mark_time_taken, scm_ulong2num (local_scm_gc_mark_time_taken)),
                         scm_cons (sym_gc_sweep_time_taken, scm_ulong2num (local_scm_gc_sweep_time_taken)),
                         scm_cons (sym_cells_marked, scm_i_dbl2big (local_scm_gc_cells_marked)),
@@ -857,7 +857,7 @@ SCM_DEFINE (scm_object_address, "object-address", 1, 0, 0,
 	    "returned by this function for @var{obj}")
 #define FUNC_NAME s_scm_object_address
 {
-  return scm_ubits2num (SCM_UNPACK (obj));
+  return scm_ulong2num ((unsigned long) SCM_UNPACK (obj));
 }
 #undef FUNC_NAME
 
@@ -945,7 +945,7 @@ scm_gc_for_newcell (scm_freelist_t *master, SCM *freelist)
 	      fprintf (stderr, "allocated = %lu, ",
 		       (long) (scm_cells_allocated
 		       + master_cells_allocated (&scm_master_freelist)
-                               + master_cells_allocated (&scm_master_freelist2)));
+                       + master_cells_allocated (&scm_master_freelist2)));
 #endif
 	      scm_igc ("cells");
 	      adjust_min_yield (master);
@@ -1002,7 +1002,7 @@ scm_c_hook_t scm_after_gc_c_hook;
 void
 scm_igc (const char *what)
 {
-  scm_bits_t j;
+  long j;
 
   ++scm_gc_running_p;
   scm_c_hook_run (&scm_before_gc_c_hook, 0);
@@ -1034,8 +1034,8 @@ scm_igc (const char *what)
 
   /* flush dead entries from the continuation stack */
   {
-    scm_bits_t x;
-    scm_bits_t bound;
+    long x;
+    long bound;
     SCM * elts;
     elts = SCM_VELTS (scm_continuation_stack);
     bound = SCM_VECTOR_LENGTH (scm_continuation_stack);
@@ -1124,7 +1124,7 @@ void
 MARK (SCM p)
 #define FUNC_NAME FNAME
 {
-  register scm_bits_t i;
+  register long i;
   register SCM ptr;
   scm_bits_t cell_type;
 
@@ -1233,7 +1233,7 @@ gc_mark_loop_first_time:
           {
             /* ptr is a struct */
             SCM layout = SCM_PACK (vtable_data [scm_vtable_index_layout]);
-            scm_bits_t len = SCM_SYMBOL_LENGTH (layout);
+            long len = SCM_SYMBOL_LENGTH (layout);
             char * fields_desc = SCM_SYMBOL_CHARS (layout);
             scm_bits_t * struct_data = (scm_bits_t *) SCM_STRUCT_DATA (ptr);
 
@@ -1244,7 +1244,7 @@ gc_mark_loop_first_time:
               }
             if (len)
               {
-                scm_bits_t x;
+                long x;
 
                 for (x = 0; x < len - 2; x += 2, ++struct_data)
                   if (fields_desc[x] == 'p')
@@ -1322,8 +1322,8 @@ gc_mark_loop_first_time:
       scm_weak_vectors = ptr;
       if (SCM_IS_WHVEC_ANY (ptr))
 	{
-	  scm_bits_t x;
-	  scm_bits_t len;
+	  long x;
+	  long len;
 	  int weak_keys;
 	  int weak_values;
 
@@ -1449,9 +1449,9 @@ gc_mark_loop_first_time:
  */
 
 void
-scm_mark_locations (SCM_STACKITEM x[], scm_ubits_t n)
+scm_mark_locations (SCM_STACKITEM x[], unsigned long n)
 {
-  scm_ubits_t m;
+  unsigned long m;
 
   for (m = 0; m < n; ++m)
     {
@@ -1459,14 +1459,14 @@ scm_mark_locations (SCM_STACKITEM x[], scm_ubits_t n)
       if (SCM_CELLP (obj))
 	{
 	  SCM_CELLPTR ptr = SCM2PTR (obj);
-	  scm_bits_t i = 0;
-	  scm_bits_t j = scm_n_heap_segs - 1;
+	  long i = 0;
+	  long j = scm_n_heap_segs - 1;
 	  if (SCM_PTR_LE (scm_heap_table[i].bounds[0], ptr)
 	      && SCM_PTR_GT (scm_heap_table[j].bounds[1], ptr))
 	    {
 	      while (i <= j)
 		{
-		  scm_bits_t seg_id;
+		  long seg_id;
 		  seg_id = -1;
 		  if ((i == j)
 		      || SCM_PTR_GT (scm_heap_table[i].bounds[1], ptr))
@@ -1475,7 +1475,7 @@ scm_mark_locations (SCM_STACKITEM x[], scm_ubits_t n)
 		    seg_id = j;
 		  else
 		    {
-		      scm_bits_t k;
+		      long k;
 		      k = (i + j) / 2;
 		      if (k == i)
 			break;
@@ -1523,14 +1523,14 @@ scm_cellp (SCM value)
 {
   if (SCM_CELLP (value)) {
     scm_cell * ptr = SCM2PTR (value);
-    scm_bits_t i = 0;
-    scm_bits_t j = scm_n_heap_segs - 1;
+    unsigned long i = 0;
+    unsigned long j = scm_n_heap_segs - 1;
 
     if (SCM_GC_IN_CARD_HEADERP (ptr))
       return 0;
 
     while (i < j) {
-      scm_bits_t k = (i + j) / 2;
+      long k = (i + j) / 2;
       if (SCM_PTR_GT (scm_heap_table[k].bounds[1], ptr)) {
 	j = k;
       } else if (SCM_PTR_LE (scm_heap_table[k].bounds[0], ptr)) {
@@ -1566,7 +1566,7 @@ gc_sweep_freelist_start (scm_freelist_t *freelist)
 static void
 gc_sweep_freelist_finish (scm_freelist_t *freelist)
 {
-  scm_bits_t collected;
+  long collected;
   *freelist->clustertail = freelist->cells;
   if (!SCM_NULLP (freelist->cells))
     {
@@ -1604,9 +1604,9 @@ scm_gc_sweep ()
   register SCM_CELLPTR ptr;
   register SCM nfreelist;
   register scm_freelist_t *freelist;
-  register scm_ubits_t m;
+  register unsigned long m;
   register int span;
-  scm_bits_t i;
+  long i;
   size_t seg_size;
 
   m = 0;
@@ -1616,7 +1616,7 @@ scm_gc_sweep ()
 
   for (i = 0; i < scm_n_heap_segs; i++)
     {
-      register scm_bits_t left_to_collect;
+      register long left_to_collect;
       register size_t j;
 
       /* Unmarked cells go onto the front of the freelist this heap
@@ -1695,7 +1695,7 @@ scm_gc_sweep ()
               break;
 	    case scm_tc7_vector:
 	      {
-		scm_ubits_t length = SCM_VECTOR_LENGTH (scmptr);
+		unsigned long int length = SCM_VECTOR_LENGTH (scmptr);
 		if (length > 0)
 		  {
 		    m += length * sizeof (scm_bits_t);
@@ -1712,10 +1712,10 @@ scm_gc_sweep ()
 #ifdef HAVE_ARRAYS
 	    case scm_tc7_bvect:
 	      {
-		size_t length = SCM_BITVECTOR_LENGTH (scmptr);
+		unsigned long int length = SCM_BITVECTOR_LENGTH (scmptr);
 		if (length > 0)
 		  {
-		    m += sizeof (long) * ((length + SCM_BITS_LENGTH - 1) / SCM_BITS_LENGTH);
+		    m += sizeof (long) * ((length + SCM_LONG_BIT - 1) / SCM_LONG_BIT);
 		    scm_must_free (SCM_BITVECTOR_BASE (scmptr));
 		  }
 	      }
@@ -1827,7 +1827,7 @@ scm_gc_sweep ()
 #ifdef GC_FREE_SEGMENTS
       if (n == seg_size)
 	{
-	  register scm_bits_t j;
+	  register long j;
 
 	  freelist->heap_size -= seg_size;
 	  free ((char *) scm_heap_table[i].bounds[0]);
@@ -1903,7 +1903,7 @@ void *
 scm_must_malloc (size_t size, const char *what)
 {
   void *ptr;
-  scm_ubits_t nm = scm_mallocated + size;
+  unsigned long nm = scm_mallocated + size;
 
   if (nm < size)
     /* The byte count of allocated objects has overflowed.  This is
@@ -1965,7 +1965,7 @@ scm_must_realloc (void *where,
 		  const char *what)
 {
   void *ptr;
-  scm_ubits_t nm;
+  unsigned long nm;
 
   if (size <= old_size)
     return where;
@@ -2065,7 +2065,7 @@ scm_must_free (void *obj)
  * eh?  Or even better, call scm_done_free. */
 
 void
-scm_done_malloc (scm_bits_t size)
+scm_done_malloc (long size)
 {
   if (size < 0) {
     if (scm_mallocated < size)
@@ -2076,7 +2076,7 @@ scm_done_malloc (scm_bits_t size)
          scm_mallocated, which underflowed.  */
       abort ();
   } else {
-    scm_ubits_t nm = scm_mallocated + size;
+    unsigned long nm = scm_mallocated + size;
     if (nm < size)
       /* The byte count of allocated objects has overflowed.  This is
          probably because you forgot to report the correct size of freed
@@ -2100,7 +2100,7 @@ scm_done_malloc (scm_bits_t size)
 }
 
 void
-scm_done_free (scm_bits_t size)
+scm_done_free (long size)
 {
   if (size >= 0) {
     if (scm_mallocated < size)
@@ -2111,7 +2111,7 @@ scm_done_free (scm_bits_t size)
          scm_mallocated, which underflowed.  */
       abort ();
   } else {
-    scm_ubits_t nm = scm_mallocated + size;
+    unsigned long nm = scm_mallocated + size;
     if (nm < size)
       /* The byte count of allocated objects has overflowed.  This is
          probably because you forgot to report the correct size of freed
@@ -2174,7 +2174,7 @@ init_heap_seg (SCM_CELLPTR seg_org, size_t size, scm_freelist_t *freelist)
 {
   register SCM_CELLPTR ptr;
   SCM_CELLPTR seg_end;
-  scm_bits_t new_seg_index;
+  long new_seg_index;
   ptrdiff_t n_new_cells;
   int span = freelist->span;
 
@@ -2359,7 +2359,7 @@ alloc_some_heap (scm_freelist_t *freelist, policy_on_error error_policy)
      * This gives dh > (f * h - y) / (1 - f)
      */
     int f = freelist->min_yield_fraction;
-    scm_ubits_t h = SCM_HEAP_SIZE;
+    unsigned long h = SCM_HEAP_SIZE;
     size_t min_cells = (f * h - 100 * (long) scm_gc_yield) / (99 - f);
     len =  SCM_EXPHEAP (freelist->heap_size);
 #ifdef DEBUGINFO
@@ -2613,7 +2613,7 @@ make_initial_segment (size_t init_heap_size, scm_freelist_t *freelist)
 static void
 init_freelist (scm_freelist_t *freelist,
 	       int span,
-	       scm_bits_t cluster_size,
+	       long cluster_size,
 	       int min_yield)
 {
   freelist->clusters = SCM_EOL;

@@ -79,7 +79,7 @@ static const size_t default_buffer_size = 1024;
 /* create FPORT buffer with specified sizes (or -1 to use default size or
    0 for no buffer.  */
 static void
-scm_fport_buffer_add (SCM port, scm_bits_t read_size, scm_bits_t write_size)
+scm_fport_buffer_add (SCM port, long read_size, int write_size)
 #define FUNC_NAME "scm_fport_buffer_add"
 {
   scm_fport_t *fp = SCM_FSTREAM (port);
@@ -149,7 +149,7 @@ SCM_DEFINE (scm_setvbuf, "setvbuf", 2, 1, 0,
 #define FUNC_NAME s_scm_setvbuf
 {
   int cmode;
-  scm_bits_t csize;
+  long csize;
   scm_port_t *pt;
 
   port = SCM_COERCE_OUTPORT (port);
@@ -203,7 +203,7 @@ SCM_DEFINE (scm_setvbuf, "setvbuf", 2, 1, 0,
 void
 scm_evict_ports (int fd)
 {
-  scm_bits_t i;
+  long i;
 
   for (i = 0; i < scm_port_table_size; i++)
     {
@@ -505,7 +505,7 @@ static void fport_flush (SCM port);
 static int
 fport_fill_input (SCM port)
 {
-  scm_bits_t count;
+  long count;
   scm_port_t *pt = SCM_PTAB_ENTRY (port);
   scm_fport_t *fp = SCM_FSTREAM (port);
 
@@ -675,19 +675,19 @@ fport_flush (SCM port)
   scm_port_t *pt = SCM_PTAB_ENTRY (port);
   scm_fport_t *fp = SCM_FSTREAM (port);
   unsigned char *ptr = pt->write_buf;
-  scm_bits_t init_size = pt->write_pos - pt->write_buf;
-  scm_bits_t remaining = init_size;
+  long init_size = pt->write_pos - pt->write_buf;
+  long remaining = init_size;
 
   while (remaining > 0)
     {
-      scm_bits_t count;
+      long count;
 
       SCM_SYSCALL (count = write (fp->fdes, ptr, remaining));
       if (count < 0)
 	{
 	  /* error.  assume nothing was written this call, but
 	     fix up the buffer for any previous successful writes.  */
-	  scm_bits_t done = init_size - remaining;
+	  long done = init_size - remaining;
 	      
 	  if (done > 0)
 	    {

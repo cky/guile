@@ -255,8 +255,6 @@ typedef unsigned long long ulong_long;
 # define SCM_LONG_BIT (SCM_CHAR_BIT * sizeof (long) / sizeof (char))
 #endif
 
-#define SCM_BITS_LENGTH (SCM_CHAR_BIT * SCM_SIZEOF_BITS_T)
-
 #ifdef UCHAR_MAX
 # define SCM_CHAR_CODE_LIMIT (UCHAR_MAX + 1L)
 #else

@@ -229,7 +229,7 @@ SCM scm_sys_set_object_setter_x (SCM obj, SCM setter);
 SCM scm_slot_ref (SCM obj, SCM slot_name);
 SCM scm_slot_set_x (SCM obj, SCM slot_name, SCM value);
 
-SCM scm_compute_applicable_methods (SCM gf, SCM args, scm_bits_t len, int scm_find_method);
+SCM scm_compute_applicable_methods (SCM gf, SCM args, long len, int scm_find_method);
 SCM scm_sys_compute_applicable_methods (SCM gf, SCM args);
 SCM scm_m_atslot_ref (SCM xorig, SCM env);
 SCM scm_m_atslot_set_x (SCM xorig, SCM env);
@@ -239,7 +239,7 @@ SCM scm_pure_generic_p (SCM obj);
 #endif
 
 SCM scm_sys_compute_slots (SCM c); 
-SCM scm_i_get_keyword (SCM key, SCM l, scm_bits_t len, SCM default_value, const char *subr); 
+SCM scm_i_get_keyword (SCM key, SCM l, long len, SCM default_value, const char *subr); 
 SCM scm_get_keyword (SCM key, SCM l, SCM default_value); 
 SCM scm_sys_initialize_object (SCM obj, SCM initargs); 
 SCM scm_sys_prep_layout_x (SCM c); 

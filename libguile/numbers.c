@@ -4253,22 +4253,6 @@ scm_i_big2dbl (SCM b)
 #define MAX_VALUE ULONG_MAX
 #include "libguile/num2integral.i.c"
 
-#define NUM2INTEGRAL scm_num2bits
-#define INTEGRAL2NUM scm_bits2num
-#define INTEGRAL2BIG scm_i_bits2big
-#define ITYPE scm_bits_t
-#define MIN_VALUE ((scm_bits_t) ((scm_ubits_t)1 << (sizeof (scm_bits_t) - 1)))
-#define MAX_VALUE (~MIN_VALUE)
-#include "libguile/num2integral.i.c"
-
-#define NUM2INTEGRAL scm_num2ubits
-#define INTEGRAL2NUM scm_ubits2num
-#define INTEGRAL2BIG scm_i_ubits2big
-#define UNSIGNED
-#define ITYPE scm_ubits_t
-#define MAX_VALUE ((scm_ubits_t) ((scm_bits_t) (-1)))
-#include "libguile/num2integral.i.c"
-
 #define NUM2INTEGRAL scm_num2ptrdiff
 #define INTEGRAL2NUM scm_ptrdiff2num
 #define INTEGRAL2BIG scm_i_ptrdiff2big
