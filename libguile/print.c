@@ -356,7 +356,7 @@ taloop:
 		name = scm_macro_name (exp);
 		if (!SCM_CLOSUREP (SCM_CDR (exp)))
 		  {
-		    code = 0;
+		    code = env = 0;
 		    scm_gen_puts (scm_regular_string, "#<primitive-",
 				  port);
 		  }
