@@ -1,3 +1,13 @@
+2000-12-29  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* boot-9.scm (root-module-closure, scm-module-closure):  Remove
+	calls '(symbol-interned? #f s)'.  Formerly, these calls were
+	basically no-ops, guaranteed to return #t if 's' was a symbol.
+	After the separation of symbols and bindings, a call to
+	'(symbol-interned? #f s)' will only return #t if there really is a
+	binding for 's' in the scm_symhash table.  Thanks to Dale P. Smith
+	for providing a test case that helped finding this bug.
+
 2000-12-13  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* session.scm (apropos):  Completed the last patch, which did only

@@ -1440,8 +1440,7 @@
 
 
 (define (root-module-closure m s define?)
-  (let ((bi (and (symbol-interned? #f s)
-		 (builtin-variable s))))
+  (let ((bi (builtin-variable s)))
     (and bi
 	 (or define? (variable-bound? bi))
 	 (begin
@@ -1462,8 +1461,7 @@
 ;;
 
 (define (scm-module-closure m s define?)
-  (let ((bi (and (symbol-interned? #f s)
-		 (builtin-variable s))))
+  (let ((bi (builtin-variable s)))
     (and bi
 	 (variable-bound? bi)
 	 (begin
