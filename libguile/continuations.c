@@ -97,8 +97,7 @@ struct rv
   long retval;
   long first_return;
 };
-extern struct rv getcontext (ucontext_t *);
-extern int setcontext (ucontext_t *);
+extern struct rv ia64_getcontext (ucontext_t *) __asm__ ("getcontext");
 #endif /* __ia64__ */
 
 /* this may return more than once: the first time with the escape
@@ -138,7 +137,7 @@ scm_make_continuation (int *first)
   memcpy (continuation->stack, src, sizeof (SCM_STACKITEM) * stack_size);
 
 #ifdef __ia64__
-  rv = getcontext (&continuation->ctx);
+  rv = ia64_getcontext (&continuation->ctx);
   if (rv.first_return)
     {
       continuation->backing_store_size = 

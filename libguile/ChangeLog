@@ -1,3 +1,11 @@
+2003-06-25  Stefan Jahn  <stefan@lkcc.org>
+
+	* continuations.c: Redeclaration of getcontext() via the
+	__asm__ ("getcontext") directive.
+
+	* continuations.h: Include <ucontext.h> instead of 
+	<sys/ucontext.h>.
+
 2003-06-21  Kevin Ryde  <user42@zip.com.au>
 
 	* numbers.c (_GNU_SOURCE): #define, to get C99 things.
