@@ -166,8 +166,30 @@ typedef unsigned long scm_t_c_bvec_limb;
 #define SCM_SETGCMARK(x) SCM_GC_CELL_SET_BIT (x)
 #define SCM_CLRGCMARK(x) SCM_GC_CELL_CLR_BIT (x)
 
-/* Low level cell data accessing macros:
- */
+
+/* Low level cell data accessing macros.  These macros should only be used
+ * from within code related to garbage collection issues, since they will
+ * never check the cells they are applied to - not even if guile is compiled
+ * in debug mode.  In particular these macros will even work for free cells,
+ * which should never be encountered by user code.  */
+
+#define SCM_GC_CELL_WORD(x, n) \
+  (((const scm_t_bits *) SCM2PTR (x)) [n])
+#define SCM_GC_CELL_OBJECT(x, n) \
+  (SCM_PACK (((const scm_t_bits *) SCM2PTR (x)) [n]))
+#define SCM_GC_SET_CELL_WORD(x, n, v) \
+  (((scm_t_bits *) SCM2PTR (x)) [n] = (scm_t_bits) (v))
+#define SCM_GC_SET_CELL_OBJECT(x, n, v) \
+  (((scm_t_bits *) SCM2PTR (x)) [n] = SCM_UNPACK (v))
+#define SCM_GC_CELL_TYPE(x) SCM_GC_CELL_WORD (x, 0)
+
+
+/* Except for the garbage collector, no part of guile should ever run over a
+ * free cell.  Thus, if guile is compiled in debug mode the SCM_CELL_* and
+ * SCM_SET_CELL_* macros below report an error if they are applied to a free
+ * cell.  Some other plausibility checks are also performed.  However, if
+ * guile is not compiled in debug mode, there won't be any time penalty at all
+ * when using these macros.  */
 
 #if (SCM_DEBUG_CELL_ACCESSES == 1)
 #  define SCM_VALIDATE_CELL(cell, expr) (scm_assert_cell_valid (cell), (expr))
@@ -176,28 +198,28 @@ typedef unsigned long scm_t_c_bvec_limb;
 #endif
 
 #define SCM_CELL_WORD(x, n) \
-  SCM_VALIDATE_CELL ((x), ((const scm_t_bits *) SCM2PTR (x)) [n])
+  SCM_VALIDATE_CELL ((x), SCM_GC_CELL_WORD ((x), (n)))
 #define SCM_CELL_WORD_0(x) SCM_CELL_WORD (x, 0)
 #define SCM_CELL_WORD_1(x) SCM_CELL_WORD (x, 1)
 #define SCM_CELL_WORD_2(x) SCM_CELL_WORD (x, 2)
 #define SCM_CELL_WORD_3(x) SCM_CELL_WORD (x, 3)
 
 #define SCM_CELL_OBJECT(x, n) \
-  SCM_VALIDATE_CELL ((x), SCM_PACK (((const scm_t_bits *) SCM2PTR (x)) [n]))
+  SCM_VALIDATE_CELL ((x), SCM_GC_CELL_OBJECT ((x), (n)))
 #define SCM_CELL_OBJECT_0(x) SCM_CELL_OBJECT (x, 0)
 #define SCM_CELL_OBJECT_1(x) SCM_CELL_OBJECT (x, 1)
 #define SCM_CELL_OBJECT_2(x) SCM_CELL_OBJECT (x, 2)
 #define SCM_CELL_OBJECT_3(x) SCM_CELL_OBJECT (x, 3)
 
 #define SCM_SET_CELL_WORD(x, n, v) \
-  SCM_VALIDATE_CELL ((x), ((scm_t_bits *) SCM2PTR (x)) [n] = (scm_t_bits) (v))
+  SCM_VALIDATE_CELL ((x), SCM_GC_SET_CELL_WORD ((x), (n), (v)))
 #define SCM_SET_CELL_WORD_0(x, v) SCM_SET_CELL_WORD (x, 0, v)
 #define SCM_SET_CELL_WORD_1(x, v) SCM_SET_CELL_WORD (x, 1, v)
 #define SCM_SET_CELL_WORD_2(x, v) SCM_SET_CELL_WORD (x, 2, v)
 #define SCM_SET_CELL_WORD_3(x, v) SCM_SET_CELL_WORD (x, 3, v)
 
 #define SCM_SET_CELL_OBJECT(x, n, v) \
-  SCM_VALIDATE_CELL ((x), ((scm_t_bits *) SCM2PTR (x)) [n] = SCM_UNPACK (v))
+  SCM_VALIDATE_CELL ((x), SCM_GC_SET_CELL_OBJECT ((x), (n), (v)))
 #define SCM_SET_CELL_OBJECT_0(x, v) SCM_SET_CELL_OBJECT (x, 0, v)
 #define SCM_SET_CELL_OBJECT_1(x, v) SCM_SET_CELL_OBJECT (x, 1, v)
 #define SCM_SET_CELL_OBJECT_2(x, v) SCM_SET_CELL_OBJECT (x, 2, v)
@@ -207,14 +229,17 @@ typedef unsigned long scm_t_c_bvec_limb;
 #define SCM_SET_CELL_TYPE(x, t) SCM_SET_CELL_WORD_0 (x, t)
 
 
-/* Except for the garbage collector, no part of guile should ever run over a
- * free cell.  Thus, in debug mode the above macros report an error if they
- * are applied to a free cell.  Since the garbage collector is allowed to
- * access free cells, it needs its own way to access cells which will not
- * result in errors when in debug mode.  */
+/* Freelists consist of linked cells where the type entry holds the value
+ * scm_tc_free_cell and the second entry holds a pointer to the next cell of
+ * the freelist.  Due to this structure, freelist cells are not cons cells
+ * and thus may not be accessed using SCM_CAR and SCM_CDR.  */
 
-#define SCM_GC_CELL_TYPE(x) \
-  (((const scm_t_bits *) SCM2PTR (x)) [0])
+#define SCM_FREE_CELL_P(x) \
+  (!SCM_IMP (x) && (SCM_GC_CELL_TYPE (x) == scm_tc_free_cell))
+#define SCM_FREE_CELL_CDR(x) \
+  (SCM_GC_CELL_OBJECT ((x), 1))
+#define SCM_SET_FREE_CELL_CDR(x, v) \
+  (SCM_GC_SET_CELL_OBJECT ((x), 1, (v)))
 
 
 #define SCM_CELL_WORD_LOC(x, n) ((scm_t_bits *) & SCM_CELL_WORD (x, n))
@@ -229,20 +254,6 @@ typedef unsigned long scm_t_c_bvec_limb;
 #define SCM_PTR_GT(x, y) (SCM_PTR_LT (y, x))
 #define SCM_PTR_LE(x, y) (!SCM_PTR_GT (x, y))
 #define SCM_PTR_GE(x, y) (!SCM_PTR_LT (x, y))
-
-
-/* Freelists consist of linked cells where the type entry holds the value
- * scm_tc_free_cell and the second entry holds a pointer to the next cell of
- * the freelist.  Due to this structure, freelist cells are not cons cells
- * and thus may not be accessed using SCM_CAR and SCM_CDR.
- */
-
-#define SCM_FREE_CELL_P(x) \
-  (!SCM_IMP (x) && (* (const scm_t_bits *) SCM2PTR (x) == scm_tc_free_cell))
-#define SCM_FREE_CELL_CDR(x) \
-  (SCM_PACK (((const scm_t_bits *) SCM2PTR (x)) [1]))
-#define SCM_SET_FREE_CELL_CDR(x, v) \
-  (((scm_t_bits *) SCM2PTR (x)) [1] = SCM_UNPACK (v))
 
 
 #define SCM_MARKEDP    SCM_GCMARKP

@@ -1,3 +1,18 @@
+2001-11-28  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* gc.h (SCM_GC_CELL_WORD, SCM_GC_CELL_OBJECT,
+	SCM_GC_SET_CELL_WORD, SCM_GC_SET_CELL_OBJECT):  New macros.
+
+	(SCM_GC_CELL_TYPE, SCM_CELL_WORD, SCM_CELL_OBJECT,
+	SCM_SET_CELL_WORD, SCM_SET_CELL_OBJECT, SCM_FREE_CELL_CDR,
+	SCM_GC_SET_CELL_OBJECT):  Express in terms of SCM_GC_CELL_*
+	macros.
+
+	(SCM_FREE_CELL_P):  Express in terms of SCM_GC_CELL_TYPE.
+
+	* inline.h (scm_alloc_cell, scm_alloc_double_cell):  Use
+	SCM_GC_CELL_* macros when accessing free cells.
+
 2001-11-25  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* vectors.h (SCM_MAKE_VECTOR_TAG): New.

@@ -84,8 +84,8 @@ scm_alloc_cell (scm_t_bits car, scm_t_bits cdr)
      cooperating threads, but it might be important when we get true
      preemptive threads.
   */
-  SCM_SET_CELL_WORD_1 (z, cdr);
-  SCM_SET_CELL_WORD_0 (z, car);
+  SCM_GC_SET_CELL_WORD (z, 1, cdr);
+  SCM_GC_SET_CELL_WORD (z, 0, car);
 
 #ifdef USE_THREADS
 #ifndef USE_COOP_THREADS
@@ -132,10 +132,10 @@ scm_alloc_double_cell (scm_t_bits car, scm_t_bits cbr,
      cooperating threads, but it might be important when we get true
      preemptive threads.
   */
-  SCM_SET_CELL_WORD_1 (z, cbr);
-  SCM_SET_CELL_WORD_2 (z, ccr);
-  SCM_SET_CELL_WORD_3 (z, cdr);
-  SCM_SET_CELL_WORD_0 (z, car);
+  SCM_GC_SET_CELL_WORD (z, 1, cbr);
+  SCM_GC_SET_CELL_WORD (z, 2, ccr);
+  SCM_GC_SET_CELL_WORD (z, 3, cdr);
+  SCM_GC_SET_CELL_WORD (z, 0, car);
 
 #ifdef USE_THREADS
 #ifndef USE_COOP_THREADS
