@@ -1,3 +1,9 @@
+2001-06-27  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* Makefile.am: Added SRFI-4 files in various places.
+
+	* srfi-4.c, srfi-4.h, srfi-4.scm: New files implementing SRFI-4.
+
 2001-06-26  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* srfi-13.c (scm_string_copyS, scm_string_take, scm_string_drop,

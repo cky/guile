@@ -29,16 +29,20 @@ DEFS = @DEFS@
 INCLUDES = -I.. -I$(srcdir)/..
 
 
-lib_LTLIBRARIES = libguile-srfi-srfi-13-14.la
+lib_LTLIBRARIES = libguile-srfi-srfi-13-14.la libguile-srfi-srfi-4.la
 
-BUILT_SOURCES = srfi-13.x srfi-14.x
+BUILT_SOURCES = srfi-13.x srfi-14.x srfi-4.x
 libguile_srfi_srfi_13_14_la_SOURCES = srfi-13.x srfi-13.c srfi-14.x srfi-14.c\
  srfi-13.h srfi-14.h
 libguile_srfi_srfi_13_14_la_LDFLAGS = -version-info 0:0 -export-dynamic
 
+libguile_srfi_srfi_4_la_SOURCES = srfi-4.x srfi-4.c srfi-4.h
+libguile_srfi_srfi_4_la_LDFLAGS = -version-info 0:0 -export-dynamic
+
 srfidir = $(datadir)/guile/$(VERSION)/srfi
 srfi_DATA = srfi-1.scm \
             srfi-2.scm \
+	    srfi-4.scm \
             srfi-6.scm \
             srfi-8.scm \
             srfi-9.scm \
