@@ -18,6 +18,8 @@
 
 	* HACKING: Update deprecation procedure to refer to TODO.
 
+	* README: Also mention guile-tools.
+
 2001-06-27  Michael Livshin  <mlivshin@bigfoot.com>
 
 	* autogen.sh: don't run flex here.
