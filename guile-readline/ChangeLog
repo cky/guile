@@ -1,3 +1,9 @@
+2000-07-17  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* configure.in (rl_pre_input_hook): Don't check for this with
+	AC_CHECK_FUNCS, it doesn't work on HP/UX.  Test for it with
+	AC_TRY_LINK.
+
 2000-06-19  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* readline.c (sigwinch_enable_restart, scm_init_readline):
