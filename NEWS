@@ -846,13 +846,15 @@ SCM_UVECTOR_MAXLENGTH, SCM_UVECTOR_LENGTH, SCM_MAKE_UVECTOR_TAG,
 SCM_SET_UVECTOR_LENGTH, SCM_BITVECTOR_P, SCM_BITVECTOR_BASE,
 SCM_SET_BITVECTOR_BASE, SCM_BITVECTOR_MAX_LENGTH,
 SCM_BITVECTOR_LENGTH, SCM_MAKE_BITVECTOR_TAG,
-SCM_SET_BITVECTOR_LENGTH.
+SCM_SET_BITVECTOR_LENGTH, SCM_BITVEC_REF, SCM_BITVEC_SET,
+SCM_BITVEC_CLR.
 
 ** The macros dealing with vectors have been deprecated.
 
 Use the new functions scm_is_vector, scm_vector_elements,
-scm_vector_writable_elements, etc instead.  See the manual for more
-details.
+scm_vector_writable_elements, etc, or scm_is_simple_vector,
+SCM_SIMPLE_VECTOR_REF, SCM_SIMPLE_VECTOR_SET, etc instead.  See the
+manual for more details.
 
 Deprecated are SCM_VECTORP, SCM_VELTS, SCM_VECTOR_MAX_LENGTH,
 SCM_VECTOR_LENGTH, SCM_VECTOR_REF, SCM_VECTOR_SET, SCM_WRITABLE_VELTS.
