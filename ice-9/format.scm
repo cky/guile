@@ -11,8 +11,7 @@
 ;
 ; Version 3.0
 
-(define-module (ice-9 format)
-  :use-module (ice-9 string-case))
+(define-module (ice-9 format))
 (export format
 	format:symbol-case-conv
 	format:iobj-case-conv
