@@ -1,5 +1,16 @@
 2000-12-06  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* gsubr.c:  No need to include vector.h.
+
+	(scm_gsubr_apply):  Use SCM_GSUBR_MAX instead of hard-coded value.
+	Added FUNC_NAME wrapping.  Improved (temporarily?) disabled
+	debugging code.  Replaced SCM_IMP with SCM_NULLP.  Eliminated call
+	to ASRTGO.
+
+	(scm_init_gsubr):  Eliminated outdated comment.
+
+2000-12-06  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* async.c (SCM_ASYNCP):  Use SCM_TYP16 instead of SCM_GCTYP16.
 
 	* eval.c (scm_m_vref, scm_m_vset, scm_m_define, SCM_CEVAL,

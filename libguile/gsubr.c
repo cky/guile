@@ -48,7 +48,6 @@
 #include "libguile/_scm.h"
 #include "libguile/procprop.h"
 #include "libguile/root.h"
-#include "libguile/vectors.h"
 
 #include "libguile/gsubr.h"
 
@@ -132,21 +131,24 @@ scm_make_gsubr_with_generic (const char *name,
 
 SCM
 scm_gsubr_apply (SCM args)
+#define FUNC_NAME "scm_gsubr_apply"
 {
   SCM self = SCM_CAR(args);
   SCM (*fcn)() = SCM_SUBRF(SCM_GSUBR_PROC(self));
-  SCM v[10];			/* must agree with greatest supported arity */
+  SCM v[SCM_GSUBR_MAX];
   int typ = SCM_INUM(SCM_GSUBR_TYPE(self));
   int i, n = SCM_GSUBR_REQ(typ) + SCM_GSUBR_OPT(typ) + SCM_GSUBR_REST(typ);
 #if 0
-  SCM_ASSERT(n <= sizeof(v)/sizeof(SCM),
-	     self, "internal programming error", FUNC_NAME);
+  if (n > SCM_GSUBR_MAX)
+    scm_misc_error (FUNC_NAME, 
+		    "Function ~S has illegal arity ~S.", 
+		    SCM_LIST2 (self, SCM_MAKINUM (n)));
 #endif
   args = SCM_CDR(args);
   for (i = 0; i < SCM_GSUBR_REQ(typ); i++) {
 #ifndef SCM_RECKLESS
-    if (SCM_IMP(args))
-      wnargs: scm_wrong_num_args (SCM_SNAME(SCM_GSUBR_PROC(self)));
+    if (SCM_NULLP (args))
+      scm_wrong_num_args (SCM_SNAME (SCM_GSUBR_PROC (self)));
 #endif
     v[i] = SCM_CAR(args);
     args = SCM_CDR(args);
@@ -161,8 +163,8 @@ scm_gsubr_apply (SCM args)
   }
   if (SCM_GSUBR_REST(typ))
     v[i] = args;
-  else
-    SCM_ASRTGO(SCM_NULLP(args), wnargs);
+  else if (!SCM_NULLP (args))
+    scm_wrong_num_args (SCM_SNAME (SCM_GSUBR_PROC (self)));
   switch (n) {
   case 2: return (*fcn)(v[0], v[1]);
   case 3: return (*fcn)(v[0], v[1], v[2]);
@@ -176,6 +178,7 @@ scm_gsubr_apply (SCM args)
   }
   return SCM_BOOL_F; /* Never reached. */
 }
+#undef FUNC_NAME
 
 
 #ifdef GSUBR_TEST
@@ -203,8 +206,6 @@ gsubr_21l(SCM req1, SCM req2, SCM opt, SCM rst)
 void
 scm_init_gsubr()
 {
-  /* GJB:FIXME:MD: Use scm_make_subr_opt instead -- gsubr-apply should not be a
-     published primitive available at the Scheme level */
   scm_f_gsubr_apply = scm_make_subr_opt("gsubr-apply", scm_tc7_lsubr, scm_gsubr_apply, 0);
   scm_sym_name = SCM_CAR (scm_sysintern ("name", SCM_UNDEFINED));
   scm_permanent_object (scm_sym_name);
