@@ -20,7 +20,7 @@
 
 # Commentary:
 
-# Usage: guile-snarf [--compat=1.4] [-o OUTFILE] INFILE [CPP-OPTIONS ...]
+# Usage: guile-snarf [-d | -D] [-o OUTFILE] INFILE [CPP-OPTIONS ...]
 #
 # Process INFILE using the C pre-processor and some other programs.
 # Write output to a file, named OUTFILE if specified, or STEM.x if
@@ -32,13 +32,24 @@
 # If there are errors during processing, delete OUTFILE and exit with
 # non-zero status.
 #
-# Optional arg "--compat=1.4" means emulate guile-1.4 guile-snarf.
-# This option is easily misunderstood -- see Guile reference manual.
+# Optional arg "-d" means grep INFILE for deprecated macros and
+# issue a warning if any are found.  Alternatively, "-D" means
+# do the same thing but signal error and exit w/ non-zero status.
 #
 # If env var CPP is set, use its value instead of the C pre-processor
 # determined at Guile configure-time: "@CPP@".
 
 # Code:
+
+## config
+
+deprecated_list="
+ SCM_CONST_LONG
+ SCM_VCELL
+ SCM_VCELL_INIT
+ SCM_GLOBAL_VCELL
+ SCM_GLOBAL_VCELL_INIT
+"
 
 ## funcs
 
@@ -48,17 +59,20 @@ ${cpp} -DSCM_MAGIC_SNARF_INITS "$@" > ${temp} && cpp_ok_p=true
 grep "^ *\^ *\^" ${temp} | sed -e "s/^ *\^ *\^//" -e "s/\^\ *:\ *\^.*/;/"
 }
 
-compat_mode_clean_xxx ()                # modifies $1
+grep_deprecated ()                      # $1 is the filename
 {
-filename=$1
-cp $filename ${temp}
-sed -e 's/SCM_CONST_LONG/SCM_GLOBAL_VCELL_INIT/g' \
-    -e 's/SCM_GLOBAL_VCELL_INIT/SCM_GLOBAL_VARIABLE_INIT/g' \
-    -e 's/SCM_GLOBAL_VCELL/SCM_GLOBAL_VARIABLE/g' \
-    -e 's/SCM_VCELL_INIT/SCM_VARIABLE_INIT/g' \
-    -e 's/SCM_VCELL/SCM_VARIABLE/g' \
-    < ${temp} \
-    > $filename
+regexp="(^greetings!spooks!hows!life)"
+for dep in `echo $deprecated_list` ; do
+    regexp="(^${dep}[^_A-Z])|${regexp}"
+done
+echo $regexp
+egrep -n ${regexp} $1 /dev/null > ${temp}
+if [ -s ${temp} ] ; then
+    if $grep_dep_exit_p ; then hey=ERROR ; else hey=WARNING ; fi
+    echo $0: $hey: deprecated macros found:
+    sed -e 's/.clean.c:/:/g' ${temp}
+    $grep_dep_exit_p && exit 1
+fi
 }
 
 ## main
@@ -69,10 +83,10 @@ if [ x"$1" = x--help ] ; then
         | sed -e 1,2d -e 's/^. *//g'
     exit 0
 fi
-if [ x"$1" = x--compat=1.4 ]
-    then compat_mode_p=true ; shift
-    else compat_mode_p=false
-fi
+case x"$1" in x-d) grep_dep_p=true ; grep_dep_exit_p=false ; shift ;;
+              x-D) grep_dep_p=true ; grep_dep_exit_p=true  ; shift ;;
+              *)   grep_dep_p=false                                ;;
+esac
 if [ x"$1" = x-o ]
     then outfile=$2 ; shift ; shift ; infile=$1 ; shift
     else infile=$1 ; shift ; outfile=`basename $infile .c`.x
@@ -94,7 +108,9 @@ trap "rm -f $temp $clean_infile" 0 1 2 15
 
 # clean input file
 grep -v "$self_blind_regexp" $infile > $clean_infile
-$compat_mode_p && compat_mode_clean_xxx $clean_infile
+
+# grep deprecated
+$grep_dep_p && grep_deprecated $clean_infile
 
 # do the snarfing -- output something extra for needy cpp programs (AIX)
 { echo "/* source: $infile */" ;
