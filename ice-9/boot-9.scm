@@ -1788,7 +1788,7 @@
 ;;; Each variable name is a list of elements, looked up in successively nested
 ;;; modules.
 ;;;
-;;;		(resolved-ref some-root-module '(foo bar baz))
+;;;		(nested-ref some-root-module '(foo bar baz))
 ;;;		=> <value of a variable named baz in the module bound to bar in 
 ;;;		    the module bound to foo in some-root-module>
 ;;;
@@ -1798,23 +1798,23 @@
 ;;;	;; a-root is a module
 ;;;	;; name is a list of symbols
 ;;;
-;;;	resolved-ref a-root name
-;;;	resolved-set! a-root name val
-;;;	resolved-define! a-root name val
-;;;	resolved-remove! a-root name
+;;;	nested-ref a-root name
+;;;	nested-set! a-root name val
+;;;	nested-define! a-root name val
+;;;	nested-remove! a-root name
 ;;;
 ;;;
 ;;; (current-module) is a natural choice for a-root so for convenience there are
 ;;; also:
 ;;;
-;;;	value-ref name		==	resolved-ref (current-module) name
-;;;	value-set! name val	==	resolved-set! (current-module) name val
-;;;	value-define! name val	==	resolved-define! (current-module) name val
-;;;	value-remove! name	==	resolved-remove! (current-module) name
+;;;	local-ref name		==	nested-ref (current-module) name
+;;;	local-set! name val	==	nested-set! (current-module) name val
+;;;	local-define! name val	==	nested-define! (current-module) name val
+;;;	local-remove! name	==	nested-remove! (current-module) name
 ;;;
 
 
-(define (resolved-ref root names)
+(define (nested-ref root names)
   (let loop ((cur root)
 	     (elts names))
     (cond
@@ -1822,31 +1822,31 @@
      ((not (module? cur))	#f)
      (else (loop (module-ref cur (car elts) #f) (cdr elts))))))
 
-(define (resolved-set! root names val)
+(define (nested-set! root names val)
   (let loop ((cur root)
 	     (elts names))
     (if (null? (cdr elts))
 	(module-set! cur (car elts) val)
 	(loop (module-ref cur (car elts)) (cdr elts)))))
 
-(define (resolved-define! root names val)
+(define (nested-define! root names val)
   (let loop ((cur root)
 	     (elts names))
     (if (null? (cdr elts))
 	(module-define! cur (car elts) val)
 	(loop (module-ref cur (car elts)) (cdr elts)))))
 
-(define (resolved-remove! root names)
+(define (nested-remove! root names)
   (let loop ((cur root)
 	     (elts names))
     (if (null? (cdr elts))
 	(module-remove! cur (car elts))
 	(loop (module-ref cur (car elts)) (cdr elts)))))
 
-(define (value-ref names) (resolved-ref (current-module) names))
-(define (value-set! names val) (resolved-set! (current-module) names val))
-(define (value-define names val) (resolved-define! (current-module) names val))
-(define (value-remove names) (resolved-remove! (current-module) names))
+(define (local-ref names) (nested-ref (current-module) names))
+(define (local-set! names val) (nested-set! (current-module) names val))
+(define (local-define names val) (nested-define! (current-module) names val))
+(define (local-remove names) (nested-remove! (current-module) names))
 
 
 
@@ -1873,14 +1873,14 @@
 (set-current-module the-root-module)
 
 (define app (make-module 31))
-(value-define '(app modules) (make-module 31))
-(value-define '(app modules guile) the-root-module)
+(local-define '(app modules) (make-module 31))
+(local-define '(app modules guile) the-root-module)
 
 ;; (define-special-value '(app modules new-ws) (lambda () (make-scm-module)))
 
 (define (resolve-module name)
   (let ((full-name (append '(app modules) name)))
-    (let ((already (value-ref full-name)))
+    (let ((already (local-ref full-name)))
     (or already
 	(begin
 	  (try-module-autoload name)
@@ -2903,7 +2903,7 @@
 ;;;
 
 (define-public (local-definitions-in root names)
-  (let ((m (resolved-ref root names))
+  (let ((m (nested-ref root names))
 	(answer '()))
     (if (not (module? m))
 	(set! answer m)
@@ -2911,7 +2911,7 @@
     answer))
 
 (define-public (definitions-in root names)
-  (let ((m (resolved-ref root names)))
+  (let ((m (nested-ref root names)))
     (if (not (module? m))
 	m
 	(reduce union
@@ -2934,10 +2934,10 @@
 		various-refs)
 	   (local-definitions-in (current-module) (car various-refs)))))
 
-(define-public (recursive-value-define name value)
+(define-public (recursive-local-define name value)
   (let ((parent (reverse! (cdr (reverse name)))))
     (and parent (make-modules-in (current-module) parent))
-    (value-define name value)))
+    (local-define name value)))
 
 (define-module (ice-9 q))
 
