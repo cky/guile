@@ -87,6 +87,8 @@ SCM_DEFINE (scm_srfi1_count, "count", 2, 0, 1,
 #define FUNC_NAME s_scm_srfi1_count
 {
   long  count;
+  SCM   lst;
+  int   argnum;
   SCM_VALIDATE_REST_ARGUMENT (rest);
 
   count = 0;
@@ -101,9 +103,10 @@ SCM_DEFINE (scm_srfi1_count, "count", 2, 0, 1,
       for ( ; scm_is_pair (list1); list1 = SCM_CDR (list1))
         count += scm_is_true (pred_tramp (pred, SCM_CAR (list1)));
 
-    end_lst1:
-      SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P (list1), list1, SCM_ARG2, FUNC_NAME,
-                       "list");
+      /* check below that list1 is a proper list, and done */
+    end_list1:
+      lst = list1;
+      argnum = 2;
     }
   else if (scm_is_pair (rest) && scm_is_null (SCM_CDR (rest)))
     {
@@ -118,11 +121,11 @@ SCM_DEFINE (scm_srfi1_count, "count", 2, 0, 1,
       for (;;)
         {
           if (! scm_is_pair (list1))
-            goto end_lst1;
+            goto end_list1;
           if (! scm_is_pair (list2))
             {
-              SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P (list2), list2, SCM_ARG3,
-                               FUNC_NAME, "list");
+              lst = list2;
+              argnum = 3;
               break;
             }
           count += scm_is_true (pred_tramp
@@ -134,17 +137,14 @@ SCM_DEFINE (scm_srfi1_count, "count", 2, 0, 1,
   else
     {
       /* three or more lists */
-      SCM  lstlst, args, l, a, lst;
-      int  argnum;
+      SCM  lstlst, args, l, a;
 
       /* lstlst is a list of the list arguments */
       lstlst = scm_cons (list1, rest);
 
       /* args is the argument list to pass to pred, same length as lstlst,
          re-used for each call */
-      args = SCM_EOL;
-      for (l = lstlst; scm_is_pair (l); l = SCM_CDR (l))
-        args = scm_cons (SCM_BOOL_F, args);
+      args = scm_list_copy (lstlst);
 
       for (;;)
         {
@@ -156,11 +156,7 @@ SCM_DEFINE (scm_srfi1_count, "count", 2, 0, 1,
             {
               lst = SCM_CAR (l);  /* list argument */
               if (! scm_is_pair (lst))
-                {
-                  SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P (lst), lst,
-                                   argnum, FUNC_NAME, "list");
-                  goto done;
-                }
+                goto check_lst_and_done;
               SCM_SETCAR (a, SCM_CAR (lst));  /* arg for pred */
               SCM_SETCAR (l, SCM_CDR (lst));  /* keep rest of lst */
             }
@@ -168,7 +164,9 @@ SCM_DEFINE (scm_srfi1_count, "count", 2, 0, 1,
           count += scm_is_true (scm_apply (pred, args, SCM_EOL));
         }
     }
- done:
+
+ check_lst_and_done:
+  SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P (lst), lst, argnum, FUNC_NAME, "list");
   return scm_from_long (count);
 }
 #undef FUNC_NAME
