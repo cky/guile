@@ -22,6 +22,8 @@
 	Removed #include "versiondat.h", #include "goops.h".
 
 	* goops.h: Removed various superfluous conditions.
+	Renamed class --> cls, new --> newinst in order to accomodate
+	C++.
 
 	* init.c (scm_init_guile_1): Call the goops module registration
 	function.
