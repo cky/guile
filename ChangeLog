@@ -1,3 +1,8 @@
+2003-03-19  Marius Vollmer  <mvo@zagadka.de>
+
+	* guile-tools.in (guileversion): Use $GUILE_EFFECTIVE_VERSION
+	instead of $GUILE_VERSION.  Thanks to Kevin Ryde!
+
 2003-02-27  Rob Browning  <rlb@defaultvalue.org>
 
 	* configure.in (AC_CONFIG_SRCDIR): use GUILE-VERSION.
