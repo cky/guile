@@ -40,7 +40,6 @@ static SCM
 make_image (SCM name, SCM s_width, SCM s_height)
 {
   struct image *image;
-  SCM image_smob;
   int width, height;
 
   SCM_ASSERT (SCM_NIMP (name) && SCM_STRINGP (name), name,
@@ -58,11 +57,7 @@ make_image (SCM name, SCM s_width, SCM s_height)
   image->name = name;
   image->update_func = SCM_BOOL_F;
 
-  SCM_NEWCELL (image_smob);
-  SCM_SETCDR (image_smob, image);
-  SCM_SETCAR (image_smob, image_tag);
-
-  return image_smob;
+  SCM_RETURN_NEWSMOB (image_tag, image);
 }
 
 static SCM
@@ -127,7 +122,8 @@ static scm_smobfuns image_funs = {
 void
 init_image_type ()
 {
-  image_tag = scm_newsmob (&image_funs);
+  image_tag = scm_make_smob_type_mfpe ("image", sizeof (struct image),
+                                      mark_image, free_image, print_image, NULL);
 
   scm_make_gsubr ("clear-image", 1, 0, 0, clear_image);
   scm_make_gsubr ("make-image", 3, 0, 0, make_image);
