@@ -79,17 +79,28 @@ Using Guile Without Installing It =========================================
 
 If you want to run Guile without installing it, set the environment
 variable `SCHEME_LOAD_PATH' to a colon-separated list of directories,
-including the directory containing this INSTALL file.  For example, if
-you unpacked Guile so that the full filename of this file is
-`/home/jimb/guile-snap/INSTALL', then you might say
+including the directory containing this INSTALL file.  If you used a
+separate build directory, you'll need to include the build directory
+in the path as well.
 
-	export SCHEME_LOAD_PATH=/home/jimb/my-scheme:/home/jimb/guile-snap
+For example, suppose the Guile distribution unpacked into a directory
+called `/home/jimb/guile-snap' (so the full name of this file would be
+`/home/jimb/guile-snap/INSTALL').  Then you might say:
+
+  export SCHEME_LOAD_PATH=/home/jimb/guile-snap
 
 if you're using Bash or any other Bourne shell variant, or
 
-	setenv SCHEME_LOAD_PATH /home/jimb/my-scheme:/home/jimb/guile-snap
+  setenv SCHEME_LOAD_PATH /home/jimb/guile-snap
 
 if you're using CSH or one of its variants.
+
+If you built Guile in a separate directory from the source tree, then
+you'll need to include your build directory in the SCHEME_LOAD_PATH as
+well.  For example, if you built in a subdirectory of the source tree
+called `pentium', you might say:
+
+  export SCHEME_LOAD_PATH=/home/jimb/guile-snap:/home/jimb/guile-snap/pentium
 
 
 Building a Statically Linked Guile ========================================
