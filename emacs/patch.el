@@ -45,6 +45,9 @@
 ;;; Code:
 
 (require 'cl)
+(require 'update-changelog)             ; for stitching
+
+;; outgoing
 
 (defvar patch-greeting "hello guile maintainers,\n\n"
   "*String to insert at beginning of patch mail.")
@@ -94,5 +97,10 @@
     (insert "here is a patch ... [overview/observations/etc]\n\n"
             (patch-changelog-skeleton) "\n\n\n"
             (make-string 72 ?_) "\n")))
+
+;; incoming
+
+
+  
 
 ;;; patch.el ends here

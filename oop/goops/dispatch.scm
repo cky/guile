@@ -1,15 +1,17 @@
+;;;; oop/goop/dispatch.scm --- provide `memoize-method!'
+
 ;;;; 	Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
-;;;; 
+;;;;
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
 ;;;; the Free Software Foundation; either version 2, or (at your option)
 ;;;; any later version.
-;;;; 
+;;;;
 ;;;; This program is distributed in the hope that it will be useful,
 ;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;;;; GNU General Public License for more details.
-;;;; 
+;;;;
 ;;;; You should have received a copy of the GNU General Public License
 ;;;; along with this software; see the file COPYING.  If not, write to
 ;;;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
@@ -38,7 +40,7 @@
 ;;;; If you write modifications of your own for GUILE, it is your choice
 ;;;; whether to permit this exception to apply to your modifications.
 ;;;; If you do not wish that, delete this exception notice.
-;;;; 
+;;;;
 
 
 (define-module (oop goops dispatch)
@@ -235,7 +237,26 @@
     (define (lookup-create-cmethod gf args)
       (no-applicable-method (car args) (cadr args))))
 
-(define (memoize-method! gf args exp)
+(define method-cache-install!
+  (letrec ((first-n
+	    (lambda (ls n)
+	      (if (or (zero? n) (null? ls))
+		  '()
+		  (cons (car ls) (first-n (cdr ls) (- n 1)))))))
+    (lambda (insert! exp args applicable)
+      (let* ((specializers (method-specializers (car applicable)))
+	     (n-specializers
+	      (if (list? specializers)
+		  (length specializers)
+		  (+ 1 (slot-ref (method-cache-generic-function exp)
+				 'n-specialized)))))
+	(let* ((types (map class-of (first-n args n-specializers)))
+	       (entry+cmethod (compute-entry-with-cmethod applicable types)))
+	  (insert! exp (car entry+cmethod)) ; entry = types + cmethod
+	  (cdr entry+cmethod) ; cmethod
+	  )))))
+
+(define (memoize-method!-uninstrumented gf args exp)
   (if (not (slot-ref gf 'used-by))
       (slot-set! gf 'used-by '()))
   (let ((applicable ((if (eq? gf compute-applicable-methods)
@@ -271,23 +292,17 @@
 	   (set-car! args gf)
 	   (lookup-create-cmethod no-applicable-method args)))))
 
+(define -memoize-method!-stats #f)
+
+(define (memoize-method! gf args exp)
+  (memoize-method!-uninstrumented gf args exp))
+
 (set-procedure-property! memoize-method! 'system-procedure #t)
 
-(define method-cache-install!
-  (letrec ((first-n
-	    (lambda (ls n)
-	      (if (or (zero? n) (null? ls))
-		  '()
-		  (cons (car ls) (first-n (cdr ls) (- n 1)))))))
-    (lambda (insert! exp args applicable)
-      (let* ((specializers (method-specializers (car applicable)))
-	     (n-specializers
-	      (if (list? specializers)
-		  (length specializers)
-		  (+ 1 (slot-ref (method-cache-generic-function exp)
-				 'n-specialized)))))
-	(let* ((types (map class-of (first-n args n-specializers)))
-	       (entry+cmethod (compute-entry-with-cmethod applicable types)))
-	  (insert! exp (car entry+cmethod)) ; entry = types + cmethod
-	  (cdr entry+cmethod) ; cmethod
-	  )))))
+;;;
+;;; Memoization Reflection
+;;;
+
+
+
+;;; oop/goop/dispatch.scm ends here
