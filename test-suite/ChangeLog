@@ -1,3 +1,7 @@
+2004-09-09  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/streams.test: New file.
+
 2004-09-08  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* tests/fractions.test: Don't expect (expt 1/2 2.0) to yield an

@@ -1,3 +1,8 @@
+2004-09-04  Kevin Ryde  <user42@zip.com.au>
+
+	* streams.scm (stream-for-each-many): Correction, should recurse into
+	itself, not stream-for-each-one.
+
 2004-09-08  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* boot-9.scm (expt): Only call integer-expt for an exact integer
