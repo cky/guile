@@ -1063,7 +1063,7 @@ scm_igc (const char *what)
 			  / sizeof (SCM_STACKITEM)));
 
   {
-    size_t stack_len = scm_stack_size (scm_stack_base);
+    unsigned long stack_len = scm_stack_size (scm_stack_base);
 #ifdef SCM_STACK_GROWS_UP
     scm_mark_locations (scm_stack_base, stack_len);
 #else
@@ -1081,6 +1081,18 @@ scm_igc (const char *what)
   j = SCM_NUM_PROTECTS;
   while (j--)
     scm_gc_mark (scm_sys_protects[j]);
+
+  /* mark the registered roots */
+  {
+    long i;
+    for (i = 0; i < SCM_VECTOR_LENGTH (scm_gc_registered_roots); ++i) {
+      SCM l = SCM_VELTS (scm_gc_registered_roots)[i];
+      for (; ! SCM_NULLP (l); l = SCM_CDR (l)) {
+        SCM *p = (SCM *) (scm_num2long (SCM_CAAR (l), 0, NULL));
+        scm_gc_mark (*p);
+      }
+    }
+  }
 
   /* FIXME: we should have a means to register C functions to be run
    * in different phases of GC
@@ -2464,6 +2476,22 @@ scm_remember (SCM *ptr)
                                    "Use the `scm_remember_upto_here*' family of functions instead.");
 }
 
+SCM
+scm_protect_object (SCM obj)
+{
+  scm_c_issue_deprecation_warning ("`scm_protect_object' is deprecated. "
+                                   "Use `scm_gc_protect_object' instead.");
+  return scm_gc_protect_object (obj);
+}
+
+SCM
+scm_unprotect_object (SCM obj)
+{
+  scm_c_issue_deprecation_warning ("`scm_unprotect_object' is deprecated. "
+                                   "Use `scm_gc_unprotect_object' instead.");
+  return scm_gc_unprotect_object (obj);
+}
+
 #endif  /* SCM_DEBUG_DEPRECATED == 0 */
 
 /*
@@ -2499,7 +2527,7 @@ scm_permanent_object (SCM obj)
 
 /* Protect OBJ from the garbage collector.  OBJ will not be freed, even if all
    other references are dropped, until the object is unprotected by calling
-   scm_unprotect_object (OBJ).  Calls to scm_protect/unprotect_object nest,
+   scm_gc_unprotect_object (OBJ).  Calls to scm_gc_protect/unprotect_object nest,
    i. e. it is possible to protect the same object several times, but it is
    necessary to unprotect the object the same number of times to actually get
    the object unprotected.  It is an error to unprotect an object more often
@@ -2508,11 +2536,11 @@ scm_permanent_object (SCM obj)
 */
 
 /* Implementation note:  For every object X, there is a counter which
-   scm_protect_object(X) increments and scm_unprotect_object(X) decrements.
+   scm_gc_protect_object(X) increments and scm_gc_unprotect_object(X) decrements.
 */
 
 SCM
-scm_protect_object (SCM obj)
+scm_gc_protect_object (SCM obj)
 {
   SCM handle;
 
@@ -2533,7 +2561,7 @@ scm_protect_object (SCM obj)
 
    See scm_protect_object for more information.  */
 SCM
-scm_unprotect_object (SCM obj)
+scm_gc_unprotect_object (SCM obj)
 {
   SCM handle;
 
@@ -2559,6 +2587,65 @@ scm_unprotect_object (SCM obj)
   SCM_REALLOW_INTS;
 
   return obj;
+}
+
+void
+scm_gc_register_root (SCM *p)
+{
+  SCM handle;
+  SCM key = scm_long2num ((long) p);
+  
+  /* This critical section barrier will be replaced by a mutex. */
+  SCM_REDEFER_INTS;
+
+  handle = scm_hashv_create_handle_x (scm_gc_registered_roots, key, SCM_MAKINUM (0));
+  SCM_SETCDR (handle, scm_sum (SCM_CDR (handle), SCM_MAKINUM (1)));
+
+  SCM_REALLOW_INTS;
+}
+
+void
+scm_gc_unregister_root (SCM *p)
+{
+  SCM handle;
+  SCM key = scm_long2num ((long) p);
+
+  /* This critical section barrier will be replaced by a mutex. */
+  SCM_REDEFER_INTS;
+
+  handle = scm_hashv_get_handle (scm_gc_registered_roots, key);
+
+  if (SCM_FALSEP (handle))
+    {
+      fprintf (stderr, "scm_gc_unregister_root called on unregistered root\n");
+      abort ();
+    }
+  else
+    {
+      SCM count = scm_difference (SCM_CDR (handle), SCM_MAKINUM (1));
+      if (SCM_EQ_P (count, SCM_MAKINUM (0)))
+	scm_hashv_remove_x (scm_gc_registered_roots, key);
+      else
+	SCM_SETCDR (handle, count);
+    }
+
+  SCM_REALLOW_INTS;
+}
+
+void
+scm_gc_register_roots (SCM *b, unsigned long n)
+{
+  SCM *p = b;
+  for (; p < b + n; ++p)
+    scm_gc_register_root (p);
+}
+
+void
+scm_gc_unregister_roots (SCM *b, unsigned long n)
+{
+  SCM *p = b;
+  for (; p < b + n; ++p)
+    scm_gc_unregister_root (p);
 }
 
 int terminating;
@@ -2712,6 +2799,7 @@ scm_init_storage ()
   scm_stand_in_procs = SCM_EOL;
   scm_permobjs = SCM_EOL;
   scm_protects = scm_c_make_hash_table (31);
+  scm_gc_registered_roots = scm_c_make_hash_table (31);
 
   return 0;
 }

@@ -381,8 +381,12 @@ extern void scm_remember_upto_here (SCM obj1, ...);
 extern SCM scm_return_first (SCM elt, ...);
 extern int scm_return_first_int (int x, ...);
 extern SCM scm_permanent_object (SCM obj);
-extern SCM scm_protect_object (SCM obj);
-extern SCM scm_unprotect_object (SCM obj);
+extern SCM scm_gc_protect_object (SCM obj);
+extern SCM scm_gc_unprotect_object (SCM obj);
+extern void scm_gc_register_root (SCM *p);
+extern void scm_gc_unregister_root (SCM *p);
+extern void scm_gc_register_roots (SCM *b, unsigned long n);
+extern void scm_gc_unregister_roots (SCM *b, unsigned long n);
 extern int scm_init_storage (void);
 extern void *scm_get_stack_base (void);
 extern void scm_init_gc (void);
@@ -390,6 +394,9 @@ extern void scm_init_gc (void);
 
 
 #if (SCM_DEBUG_DEPRECATED == 0)
+
+extern SCM scm_protect_object (SCM obj);
+extern SCM scm_unprotect_object (SCM obj);
 
 #define SCM_SETAND_CAR(x, y) \
   (SCM_SETCAR ((x), SCM_PACK (SCM_UNPACK (SCM_CAR (x)) & (y))))

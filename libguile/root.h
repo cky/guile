@@ -68,11 +68,12 @@
 #define scm_asyncs scm_sys_protects[9]
 #define scm_protects scm_sys_protects[10]
 #define scm_properties_whash scm_sys_protects[11]
+#define scm_gc_registered_roots scm_sys_protects[12]
 #ifdef DEBUG_EXTENSIONS
-#define scm_source_whash scm_sys_protects[12]
-#define SCM_NUM_PROTECTS 13
+#define scm_source_whash scm_sys_protects[13]
+#define SCM_NUM_PROTECTS 14
 #else
-#define SCM_NUM_PROTECTS 12
+#define SCM_NUM_PROTECTS 13
 #endif
 
 extern SCM scm_sys_protects[];
