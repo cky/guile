@@ -481,6 +481,8 @@ SCM_DEFINE (scm_eval_string_in_module, "eval-string", 1, 1, 0,
 			    FUNC_NAME);
   if (SCM_UNBNDP (module))
     module = scm_current_module ();
+  else
+    SCM_VALIDATE_MODULE (2, module);
   return scm_c_call_with_current_module (module,
 					 inner_eval_string, (void *)port);
 }
