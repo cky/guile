@@ -116,9 +116,9 @@ scm_getc (port)
 	  int n;
 	  SELECT_TYPE readfds;
 	  int fd = fileno ((FILE *) f);
-	  FD_ZERO (&readfds);
 	  do
 	    {
+	      FD_ZERO (&readfds);
 	      FD_SET (fd, &readfds);
 	      n = scm_internal_select (fd + 1, &readfds, NULL, NULL, NULL);
 	    }
