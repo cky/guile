@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2003 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -214,18 +214,59 @@ SCM_DEFINE (scm_getgroups, "getgroups", 0, 0, 0,
   groups = scm_malloc (size);
   getgroups (ngroups, groups);
 
-  result = scm_c_make_vector (ngroups, SCM_UNDEFINED);
+  result = scm_c_make_vector (ngroups, SCM_BOOL_F);
+  while (--ngroups >= 0) 
+    SCM_VECTOR_SET (result, ngroups, scm_ulong2num (groups[ngroups]));
 
-  {
-    SCM * ve = SCM_WRITABLE_VELTS(result);
-    
-    while (--ngroups >= 0) 
-      ve[ngroups] = SCM_MAKINUM (groups [ngroups]);
-  }
   free (groups);
   return result;
 }
 #undef FUNC_NAME  
+#endif
+
+#ifdef HAVE_SETGROUPS
+SCM_DEFINE (scm_setgroups, "setgroups", 1, 0, 0,
+            (SCM group_vec),
+	    "Set the supplementary group IDs to those found in the vector argument.")
+#define FUNC_NAME s_scm_setgroups
+{
+  size_t ngroups;
+  size_t size;
+  size_t i;
+  int result;
+  int save_errno;
+  GETGROUPS_T *groups;
+
+  SCM_VALIDATE_VECTOR (SCM_ARG1, group_vec);
+
+  ngroups = SCM_VECTOR_LENGTH (group_vec);
+
+  /* validate before allocating, so we don't have to worry about leaks */
+  for (i = 0; i < ngroups; i++)
+    {
+      unsigned long ulong_gid;
+      GETGROUPS_T gid;
+      SCM_VALIDATE_ULONG_COPY (1, SCM_VECTOR_REF (group_vec, i), ulong_gid);
+      gid = ulong_gid;
+      if (gid != ulong_gid)
+	SCM_OUT_OF_RANGE (1, SCM_VECTOR_REF (group_vec, i));
+    }
+
+  size = ngroups * sizeof (GETGROUPS_T);
+  /* XXX - if (size / sizeof (GETGROUPS_T) != ngroups) out-of-range */
+  groups = scm_malloc (size);
+  for(i = 0; i < ngroups; i++)
+    groups [i] = SCM_NUM2ULONG (1, SCM_VECTOR_REF (group_vec, i));
+
+  result = setgroups (ngroups, groups);
+  save_errno = errno; /* don't let free() touch errno */
+  free (groups);
+  errno = save_errno;
+  if (result < 0)
+    SCM_SYSERROR;
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
 #endif
 
 #ifdef HAVE_GETPWENT

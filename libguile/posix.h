@@ -3,7 +3,7 @@
 #ifndef SCM_POSIX_H
 #define SCM_POSIX_H
 
-/* Copyright (C) 1995,1996,1997,1998,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2003 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -36,6 +36,7 @@ SCM_API SCM scm_setsid (void);
 SCM_API SCM scm_setpgid (SCM pid, SCM pgid);
 SCM_API SCM scm_pipe (void);
 SCM_API SCM scm_getgroups (void);
+SCM_API SCM scm_setgroups (SCM groups);
 SCM_API SCM scm_getpgrp (void);
 SCM_API SCM scm_getpwuid (SCM user);
 SCM_API SCM scm_setpwent (SCM arg);
