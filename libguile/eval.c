@@ -2285,20 +2285,24 @@ scm_procedure_documentation (proc)
     }
 }
 
-/* This code processes the 'arg ...' parameters to apply.
+/* This code processes the arguments to apply:
 
    (apply PROC ARG1 ... ARGS)
 
-   The ARG1 ... arguments are consed on to the front of ARGS (which
-   must be a list), and then PROC is applied to the elements of the
+   Given a list (ARG1 ... ARGS), this function conses the ARG1
+   ... arguments onto the front of ARGS, and returns the resulting
+   list.  Note that ARGS is a list; thus, the argument to this
+   function is a list whose last element is a list.
+
+   Apply calls this function, and applies PROC to the elements of the
    result.  apply:nconc2last takes care of building the list of
    arguments, given (ARG1 ... ARGS).
 
-   apply:nconc2last destroys its argument.  On that topic, this code
-   came into my care with the following beautifully cryptic comment on
-   that topic: "This will only screw you if you do (scm_apply
-   scm_apply '( ... ))"  If you know what they're referring to, send
-   me a patch to this comment.  */
+   Rather than do new consing, apply:nconc2last destroys its argument.
+   On that topic, this code came into my care with the following
+   beautifully cryptic comment on that topic: "This will only screw
+   you if you do (scm_apply scm_apply '( ... ))"  If you know what
+   they're referring to, send me a patch to this comment.  */
 
 SCM_PROC(s_nconc2last, "apply:nconc2last", 1, 0, 0, scm_nconc2last);
 
@@ -2344,6 +2348,16 @@ scm_dapply (proc, arg1, args)
 #endif
 
 
+/* Apply a function to a list of arguments.
+
+   This function is exported to the Scheme level as taking two
+   required arguments and a tail argument, as if it were:
+	(lambda (proc arg1 . args) ...)
+   Thus, if you just have a list of arguments to pass to a procedure,
+   pass the list as ARG1, and '() for ARGS.  If you have some fixed
+   args, pass the first as ARG1, then cons any remaining fixed args
+   onto the front of your argument list, and pass that as ARGS.  */
+
 SCM 
 SCM_APPLY (proc, arg1, args)
      SCM proc;
@@ -2367,6 +2381,12 @@ SCM_APPLY (proc, arg1, args)
 #endif
 
   SCM_ASRTGO (SCM_NIMP (proc), badproc);
+
+  /* If ARGS is the empty list, then we're calling apply with only two
+     arguments --- ARG1 is the list of arguments for PROC.  Whatever
+     the case, futz with things so that ARG1 is the first argument to
+     give to PROC (or SCM_UNDEFINED if no args), and ARGS contains the
+     rest.  */
   if (SCM_NULLP (args))
     {
       if (SCM_NULLP (arg1))
@@ -2379,10 +2399,11 @@ SCM_APPLY (proc, arg1, args)
     }
   else
     {
-      /*		SCM_ASRTGO(SCM_NIMP(args) && SCM_CONSP(args), wrongnumargs); */
+      /* SCM_ASRTGO(SCM_NIMP(args) && SCM_CONSP(args), wrongnumargs); */
       args = scm_nconc2last (args);
     }
 #ifdef DEVAL
+  /* Pretty sure this is wrong when applying PROC to no args.  */
   debug.vect[0].a.args = scm_cons (arg1, args);
   if (SCM_ENTER_FRAME_P)
     {
