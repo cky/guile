@@ -486,10 +486,10 @@ SCM_DEFINE (scm_local_eval, "local-eval", 1, 1, 0,
 {
   if (SCM_UNBNDP (env))
   {
-    SCM_VALIDATE_MEMOIZED (1,exp);
-    return scm_eval_3 (SCM_MEMOIZED_EXP (exp), 0, SCM_MEMOIZED_ENV (exp));
+    SCM_VALIDATE_MEMOIZED (1, exp);
+    return scm_i_eval_x (SCM_MEMOIZED_EXP (exp), SCM_MEMOIZED_ENV (exp));
   }
-  return scm_eval_3 (exp, 1, env);
+  return scm_i_eval (exp, env);
 }
 #undef FUNC_NAME
 
@@ -530,7 +530,7 @@ scm_start_stack (SCM id, SCM exp, SCM env)
   vframe.vect = &vframe_vect_body;
   vframe.vect[0].id = id;
   scm_last_debug_frame = &vframe;
-  answer = scm_eval_3 (exp, 1, env);
+  answer = scm_i_eval (exp, env);
   scm_last_debug_frame = vframe.prev;
   return answer;
 }
