@@ -1265,9 +1265,9 @@ above.
 @end deftypefn
 
 @deftypefn {C Function} void scm_frame_uniform_vector_release (SCM uvec)
-Arrange for @code{uniform_vector_release} to be called with @var{uvec}
-when the current frame is unwound, implicitely or explicitely;
-@xref{Frames}.
+Arrange for @code{scm_uniform_vector_release} to be called with
+@var{uvec} when the current frame is unwound, implicitely or
+explicitely; @xref{Frames}.
 @end deftypefn
 
 @deftypefn {C Function} size_t scm_c_uniform_vector_length (SCM uvec)
@@ -1298,17 +1298,29 @@ are displayed as a sequence of @code{0}s and @code{1}s prefixed by
 #*00000000
 @end example
 
+Bit vectors are are also generalized vectors, @xref{Generalized
+Vectors}, and can thus be used with the array procedures, @xref{Arrays}.
+
 @deffn {Scheme Procedure} bitvector? obj
 @deffnx {C Function} scm_bitvector_p (obj)
 Return @code{#t} when @var{obj} is a bitvector, else
 return @code{#f}.
 @end deffn
 
+@deftypefn {C Function} int scm_is_bitvector (SCM obj)
+Return @code{1} when @var{obj} is a bitvector, else return @code{0}.
+@end deftypefn
+
 @deffn {Scheme Procedure} make-bitvector len [fill]
 @deffnx {C Function} scm_make_bitvector (len, fill)
 Create a new bitvector of length @var{len} and
 optionally initialize all elements to @var{fill}.
 @end deffn
+
+@deftypefn {C Function} SCM scm_c_make_bitvector (size_t len, SCM fill)
+Like @code{scm_make_bitvector}, but the length is given as a
+@code{size_t}.
+@end deftypefn
 
 @deffn {Scheme Procedure} bitvector . bits
 @deffnx {C Function} scm_bitvector (bits)
@@ -1320,17 +1332,32 @@ Create a new bitvector with the arguments as elements.
 Return the length of the bitvector @var{vec}.
 @end deffn
 
+@deftypefn {C Function} size_t scm_c_bitvector_length (SCM vec)
+Like @code{scm_bitvector_length}, but the length is returned as a
+@code{size_t}.
+@end deftypefn
+
 @deffn {Scheme Procedure} bitvector-ref vec idx
 @deffnx {C Function} scm_bitvector_ref (vec, idx)
 Return the element at index @var{idx} of the bitvector
 @var{vec}.
 @end deffn
 
+@deftypefn {C Function} SCM scm_c_bitvector_ref (SCM obj, size_t idx)
+Return the element at index @var{idx} of the bitvector
+@var{vec}.
+@end deftypefn
+
 @deffn {Scheme Procedure} bitvector-set! vec idx val
 @deffnx {C Function} scm_bitvector_set_x (vec, idx, val)
 Set the element at index @var{idx} of the bitvector
 @var{vec} when @var{val} is true, else clear it.
 @end deffn
+
+@deftypefn {C Function} SCM scm_c_bitvector_set_x (SCM obj, size_t idx, SCM val)
+Set the element at index @var{idx} of the bitvector
+@var{vec} when @var{val} is true, else clear it.
+@end deftypefn
 
 @deffn {Scheme Procedure} bitvector-fill! vec val
 @deffnx {C Function} scm_bitvector_fill_x (vec, val)
@@ -1349,6 +1376,31 @@ of @var{list}.
 Return a new list initialized with the elements
 of the bitvector @var{vec}.
 @end deffn
+
+@deftypefn {C Function} scm_t_uint32 *scm_bitvector_elements (SCM vec)
+Return a pointer to the memory that holds the elements of @var{vec}.
+Each word pointed to by this pointer has exactly 32 bits, the least
+significant bit having the lowest index.
+
+There are @code{(scm_c_bitvector_length(@var{vec})+31)/32} words in the
+returned memory block.  The last word might be only partially used when
+the bitvector length is not a multiple of 32.  The unused bits must be
+ignored during reading.
+
+For each call to this function, you must call
+@code{scm_bitvector_release} and after that call the pointer to the
+elements becomes invalid.
+@end deftypefn
+
+@deftypefn {C Function} void scm_bitvector_release (SCM vec)
+Finish the access to the elements of a bitvector, as exlained above.
+@end deftypefn
+
+@deftypefn {C Function} void scm_frame_bitvector_release (SCM vec)
+Arrange for @code{scm_bitvector_release} to be called with @var{vec}
+when the current frame is unwound, implicitely or explicitely;
+@xref{Frames}.
+@end deftypefn
 
 @deffn {Scheme Procedure} bit-count bool bitvector
 @deffnx {C Function} scm_bit_count (bool, bitvector)
@@ -1494,29 +1546,79 @@ to @var{val}.
 @subsection Arrays
 @tpindex Arrays
 
-@menu
-* Conventional Arrays::         Arrays with arbitrary data.
-* Array Mapping::               Applying a procedure to the contents of an array.
-* Uniform Arrays::              Arrays with data of a single type.
-@end menu
+@dfn{Arrays} are a collection of cells organized into an arbitrary
+number of dimensions.  Each cell can be accessed in constant time by
+supplying an index for each dimension.
 
-@node Conventional Arrays
-@subsubsection Conventional Arrays
+An array uses a generalized vector for the actual storage of its
+elements.  Any kind of generalized vector will do, so you can have
+arrays of uniform numeric values, arrays of characters, arrays of bits,
+and of course arrays of arbitrary Scheme values.  For example, arrays
+with an underlying @code{c64vector} might be nice for digital signal
+processing, while arrays made from a @code{u8vector} might be used to
+hold gray-scale images.
 
-@dfn{Conventional arrays} are a collection of cells organized into an
-arbitrary number of dimensions.  Each cell can hold any kind of Scheme
-value and can be accessed in constant time by supplying an index for
-each dimension.
+The number of dimensions of an array is called its @dfn{rank}.  Thus, a
+matrix is an array of rank 2, while a vector has rank 1.  When accessing
+an array element, you have to specify one exact integer for each
+dimension.  These integers are called the @dfn{indices} of the element.
+An array specifies the allowed range of indices for each dimension via a
+inclusive lower and upper bound.  These bounds can well be negative, but
+the upper bound must be at grater than or equal to the lower bound.
+When all lower bounds of an array are zero, it is called a
+@dfn{zero-origin} array.
 
-This contrasts with uniform arrays, which use memory more efficiently
-but can hold data of only a single type.  It contrasts also with lists
-where inserting and deleting cells is more efficient, but more time is
-usually required to access a particular cell.
+For example, ordinary vectors can be regarded as rank 1, zero-origin
+arrays.
 
-A conventional array is displayed as @code{#} followed by the @dfn{rank}
-(number of dimensions) followed by the cells, organized into dimensions
-using parentheses.  The nesting depth of the parentheses is equal to
-the rank.
+An array is displayed as @code{#} followed by its rank, followed by a
+tag that describes the underlying vector, optionally followed by the
+lower bounds, and finally followed by the cells, organized into
+dimensions using parentheses.
+
+In more words, the array tag is of the form
+
+@example
+  #<rank><vectag><@@lower><@@lower>...
+@end example
+
+where @code{<rank>} is a positive integer in decimal giving the rank of
+the array.  It is omitted when the rank is 1 and the array is non-shared
+and has zero-origin (see below).  For shared arrays and for a non-zero
+origin, the rank is always printed even when it is 1 to dinstinguish
+them from ordinary vectors.
+
+The @code{<vectag>} part is the tag for a uniform numeric vector, like
+@code{u8}, @code{s16}, etc, @code{b} for bitvectors, or @code{a} for
+strings.  It is empty for ordinary vectors.
+
+The @code{<@@lower>} part is a @samp{@@} sign followed by an integer in
+decimal giving the lower bound of a dimension.  There is one
+@code{<@@lower>} for each dimension.  When all lower bounds are zero,
+all @code{<@@lower>} parts are omitted.
+
+Thus, 
+
+@table @code
+@item #(1 2 3)
+is an ordinary array of rank 1 with lower bound 0 in dimension 0.
+(I.e., a regular vector.)
+
+@item #@@2(1 2 3)
+is an ordinary array of rank 1 with lower bound 2 in dimension 0.
+
+@item #2((1 2 3) (4 5 6))
+is a non-uniform array of rank 2; a 3@cross{}3 matrix with index ranges 0..2
+and 0..2.
+
+@item #u32(0 1 2)
+is a uniform u8 array of rank 1.
+
+@item #2u32@@2@@3((1 2) (2 3))
+is a uniform u8 array of rank 2 with index ranges 2..3 and 3..4.
+
+@end table
+
 
 When an array is created, the range of each dimension must be
 specified, e.g., to create a 2@cross{}3 array with a zero-based index:
@@ -1532,47 +1634,74 @@ way to create the same array:
 (make-array 'ho '(0 1) '(0 2)) @result{} #2((ho ho ho) (ho ho ho))
 @end example
 
-A conventional array with one dimension based at zero is identical to
-a vector:
-
-@example
-(make-array 'ho 3) @result{} #(ho ho ho)
-@end example
-
-The following procedures can be used with conventional arrays (or
-vectors).  An argument shown as @var{idx}@dots{} means one parameter
-for each dimension in the array.  Or a @var{idxlist} is a list of such
+The following procedures can be used with arrays (or vectors).  An
+argument shown as @var{idx}@dots{} means one parameter for each
+dimension in the array.  A @var{idxlist} argument means a list of such
 values, one for each dimension.
 
-@deffn {Scheme Procedure} array? obj [prot]
-@deffnx {C Function} scm_array_p (obj, prot)
+
+@deffn {Scheme Procedure} array? obj [creator]
+@deffnx {C Function} scm_array_p (obj, creator)
 Return @code{#t} if the @var{obj} is an array, and @code{#f} if
 not.
 
-The @var{prot} argument is used with uniform arrays (@pxref{Uniform
-Arrays}).  If given then the return is @code{#t} if @var{obj} is an
-array and of that prototype.
+When @var{creator} is given, @code{#t} is only returned when it is
+@code{eq?} to @code{(array-creator @var{obj})}.
 @end deffn
 
-@deffn {Scheme Procedure} make-array initial-value bound @dots{}
+@deffn {Scheme Procedure} make-array fill bound @dots{}
+Equivalent to @code{(make-array* make-vector @var{fill}
+@var{bound} ...)}.
+@end deffn
+
+@deffn {Scheme Procedure} make-array* creator fill bound @dots{}
 Create and return an array that has as many dimensions as there are
-@var{bound}s and fill it with @var{initial-value}.
+@var{bound}s and (maybe) fill it with @var{fill}.  
 
-Each @var{bound}
-may be a positive non-zero integer @var{N}, in which case the index for
-that dimension can range from 0 through @var{N-1}; or an explicit index
-range specifier in the form @code{(LOWER UPPER)}, where both @var{lower}
-and @var{upper} are integers, possibly less than zero, and possibly the
-same number (however, @var{lower} cannot be greater than @var{upper}).
-See examples above.
+The underlaying storage vector is created by @var{creator}, which must
+be a procedure that returns a generalized vector.  Examples include
+@code{make-vector} for ordinary arrays, @code{make-string} for arrays of
+characters, and @code{make-u8vector} for arrays of unsigned 8-bit
+integers.
+
+Ordinary arrays are filled with @var{fill}.  Other types of arrays are
+only then filled with @var{fill} when @var{fill} is non-@nicode{#f}.
+
+Each @var{bound} may be a positive non-zero integer @var{N}, in which
+case the index for that dimension can range from 0 through @var{N-1}; or
+an explicit index range specifier in the form @code{(LOWER UPPER)},
+where both @var{lower} and @var{upper} are integers, possibly less than
+zero, and possibly the same number (however, @var{lower} cannot be
+greater than @var{upper}).
 @end deffn
 
-@c array-ref's type is `compiled-closure'.  There's some weird stuff
-@c going on in array.c, too.  Let's call it a primitive. -twp
+@deffn {Scheme Procedure} list->array dimspec list
+Equivalent to @code{(list->array* make-vector @var{dimspec}
+@var{list})}.
+@end deffn
+
+@deffn {Scheme Procedure} list->array* creator dimspec list
+@deffnx {C Function} scm_list_to_array_star (creator, dimspec, list)
+Return an array of the type indicated by @var{creator} with elements the
+same as those of @var{list}.
+
+The argument @var{dimspec} determines the number of dimensions of the
+array and their lower bounds.  When @var{dimspec} is an exact integer,
+it gives the number of dimensions directly and all lower bounds are
+zero.  When it is a list of exact integers, then each element is the
+lower index bound of a dimension, and there will be as many dimensions
+as elements in the list.
+@end deffn
+
+@deffn {Scheme Procedure} array-creator array
+Return a procedure that can be used with @code{make-array*}
+to create an array of the same kind as @var{array}.
+
+Note that @code{array-creator} does not necessarily return the exact
+procedure passed to @code{make-array*} when creating @var{array}.
+@end deffn
 
 @deffn {Scheme Procedure} array-ref array idx @dots{}
-@deffnx {Scheme Procedure} uniform-vector-ref vec args
-@deffnx {C Function} scm_uniform_vector_ref (vec, args)
 Return the element at @code{(idx @dots{})} in @var{array}.
 
 @example
@@ -1593,9 +1722,7 @@ Return @code{#t} if the given index would be acceptable to
 @end example
 @end deffn
 
-@c fixme: why do these sigs differ?  -ttn 2001/07/19 01:14:12
 @deffn {Scheme Procedure} array-set! array obj idx @dots{}
-@deffnx {Scheme Procedure} uniform-array-set1! array obj idxlist
 @deffnx {C Function} scm_array_set_x (array, obj, idxlist)
 Set the element at @code{(idx @dots{})} in @var{array} to @var{obj}.
 The return value is unspecified.
@@ -1612,7 +1739,7 @@ a @result{} #2((#f #f) (#f #t))
 @code{make-shared-array} can be used to create shared subarrays of other
 arrays.  The @var{mapper} is a function that translates coordinates in
 the new array into coordinates in the old array.  A @var{mapper} must be
-linear, and its range must stay within the bounds of the old array, but
+affine, and its range must stay within the bounds of the old array, but
 it can be otherwise arbitrary.  A simple example:
 
 @lisp
@@ -1757,16 +1884,13 @@ If @var{array} may be @dfn{unrolled} into a one dimensional shared array
 without changing their order (last subscript changing fastest), then
 @code{array-contents} returns that shared array, otherwise it returns
 @code{#f}.  All arrays made by @code{make-array} and
-@code{make-uniform-array} may be unrolled, some arrays made by
+@code{make-generalized-array} may be unrolled, some arrays made by
 @code{make-shared-array} may not be.
 
 If the optional argument @var{strict} is provided, a shared array will
 be returned only if its elements are stored internally contiguous in
 memory.
 @end deffn
-
-@node Array Mapping
-@subsubsection Array Mapping
 
 @c  FIXME: array-map! accepts no source arrays at all, and in that
 @c  case makes calls "(proc)".  Is that meant to be a documented
@@ -1838,125 +1962,7 @@ $\left(\matrix{%
 @end example
 @end deffn
 
-@node Uniform Arrays
-@subsubsection Uniform Arrays
-@tpindex Uniform Arrays
-
-@noindent
-@dfn{Uniform arrays} have elements all of the
-same type and occupy less storage than conventional
-arrays.  Uniform arrays with a single zero-based dimension
-are also known as @dfn{uniform vectors}.  The procedures in
-this section can also be used on conventional arrays, vectors,
-bit-vectors and strings.
-
-@noindent
-When creating a uniform array, the type of data to be stored
-is indicated with a @var{prototype} argument.  The following table
-lists the types available and example prototypes:
-
-@example
-prototype           type                       printing character
-
-#t             boolean (bit-vector)                    b
-#\a            char (string)                           a
-#\nul          byte (integer)                          y
-'s             short (integer)                         h
-1              unsigned long (integer)                 u
--1             signed long (integer)                   e
-'l             signed long long (integer)              l
-1.0            float (single precision)                s
-1/3            double (double precision float)         i
-0+i            complex (double precision)              c
-()             conventional vector
-@end example
-
-Note that with the introduction of exact fractions in Guile 1.8,
-@samp{1/3} here is now a fraction, where previously such an expression
-was a double @samp{0.333@dots{}}.  For most normal usages this should
-be source code compatible.
-
-Unshared uniform arrays of characters with a single zero-based dimension
-are identical to strings:
-
-@example
-(make-uniform-array #\a 3) @result{}
-"aaa"
-@end example
-
-@noindent
-Unshared uniform arrays of booleans with a single zero-based dimension
-are identical to @ref{Bit Vectors, bit-vectors}.
-
-@example
-(make-uniform-array #t 3) @result{}
-#*111
-@end example
-
-@noindent
-Other uniform vectors are written in a form similar to that of vectors,
-except that a single character from the above table is put between
-@code{#} and @code{(}.  For example, a uniform vector of signed
-long integers is displayed in the form @code{'#e(3 5 9)}.
-
-@deffn {Scheme Procedure} make-uniform-array prototype bound1 bound2 @dots{}
-Create and return a uniform array of type corresponding to
-@var{prototype} that has as many dimensions as there are @var{bound}s
-and fill it with @var{prototype}.
-@end deffn
-
-@deffn {Scheme Procedure} array-creator ra
-@deffnx {C Function} scm_array_creator (ra)
-Return a procedure that would produce an array of the same type
-as @var{array}, if used as the @var{creator} with
-@code{make-uniform-array}.
-@end deffn
-
-@deffn {Scheme Procedure} array-prototype ra
-@deffnx {C Function} scm_array_prototype (ra)
-Return an object that would produce an array of the same type
-as @var{array}, if used as the @var{prototype} for
-@code{make-uniform-array}.
-@end deffn
-
-@deffn {Scheme Procedure} list->uniform-array ndim prot lst
-@deffnx {Scheme Procedure} list->uniform-vector prot lst
-@deffnx {C Function} scm_list_to_uniform_array (ndim, prot, lst)
-Return a uniform array of the type indicated by prototype
-@var{prot} with elements the same as those of @var{lst}.
-Elements must be of the appropriate type, no coercions are
-done.
-
-The argument @var{ndim} determines the number of dimensions
-of the array.  It is either an exact integer, giving the
-number directly, or a list of exact integers, whose length
-specifies the number of dimensions and each element is the
-lower index bound of its dimension.
-@end deffn
-
-@deffn {Scheme Procedure} uniform-vector-fill! uve fill
-Store @var{fill} in every element of @var{uve}.  The value returned is
-unspecified.
-@end deffn
-
-@deffn {Scheme Procedure} uniform-vector-length v
-@deffnx {C Function} scm_uniform_vector_length (v)
-Return the number of elements in the uniform vector @var{v}.
-@end deffn
-
-@deffn {Scheme Procedure} dimensions->uniform-array dims prot [fill]
-@deffnx {Scheme Procedure} make-uniform-vector length prototype [fill]
-@deffnx {C Function} scm_dimensions_to_uniform_array (dims, prot, fill)
-Create and return a uniform array or vector of type
-corresponding to @var{prototype} with dimensions @var{dims} or
-length @var{length}.  If @var{fill} is supplied, it's used to
-fill the array, otherwise @var{prototype} is used.
-@end deffn
-
-@c Another compiled-closure. -twp
-
 @deffn {Scheme Procedure} uniform-array-read! ra [port_or_fd [start [end]]]
-@deffnx {Scheme Procedure} uniform-vector-read! uve [port-or-fdes] [start] [end]
 @deffnx {C Function} scm_uniform_array_read_x (ra, port_or_fd, start, end)
 Attempt to read all elements of @var{ura}, in lexicographic order, as
 binary objects from @var{port-or-fdes}.
@@ -1975,7 +1981,6 @@ returned by @code{(current-input-port)}.
 @end deffn
 
 @deffn {Scheme Procedure} uniform-array-write v [port_or_fd [start [end]]]
-@deffnx {Scheme Procedure} uniform-vector-write uve [port-or-fdes] [start] [end]
 @deffnx {C Function} scm_uniform_array_write (v, port_or_fd, start, end)
 Writes all elements of @var{ura} as binary objects to
 @var{port-or-fdes}.
