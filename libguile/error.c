@@ -135,7 +135,7 @@ SCM_DEFINE (scm_strerror, "strerror", 1, 0, 0,
                             SCM_F_WIND_EXPLICITLY);
   scm_mutex_lock (&scm_i_misc_mutex);
 
-  ret = scm_makfrom0str (SCM_I_STRERROR (scm_to_int (err)));
+  ret = scm_from_locale_string (SCM_I_STRERROR (scm_to_int (err)));
 
   scm_frame_end ();
   return ret;
@@ -215,7 +215,7 @@ scm_error_num_args_subr (const char *subr)
   scm_error (scm_args_number_key,
 	     NULL,
 	     "Wrong number of arguments to ~A",
-	     scm_list_1 (scm_makfrom0str (subr)),
+	     scm_list_1 (scm_from_locale_string (subr)),
 	     SCM_BOOL_F);
 }
 
@@ -236,7 +236,7 @@ scm_wrong_type_arg (const char *subr, int pos, SCM bad_value)
 void
 scm_wrong_type_arg_msg (const char *subr, int pos, SCM bad_value, const char *szMessage)
 {
-  SCM msg = scm_makfrom0str(szMessage);
+  SCM msg = scm_from_locale_string (szMessage);
   if (pos == 0) {
     scm_error (scm_arg_type_key,
                subr, "Wrong type argument (expecting ~A): ~S",
@@ -256,11 +256,8 @@ SCM_GLOBAL_SYMBOL (scm_memory_alloc_key, "memory-allocation-error");
 void
 scm_memory_error (const char *subr)
 {
-  scm_error (scm_memory_alloc_key,
-	     subr,
-	     "Memory allocation error",
-	     SCM_BOOL_F,
-	     SCM_BOOL_F);
+  fprintf (stderr, "FATAL: memory error in %s\n", subr);
+  abort ();
 }
 
 SCM_GLOBAL_SYMBOL (scm_misc_error_key, "misc-error");
