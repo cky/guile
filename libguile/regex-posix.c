@@ -141,19 +141,10 @@ scm_regexp_p (x)
   return (SCM_NIMP (x) && SCM_RGXP (x) ? SCM_BOOL_T : SCM_BOOL_F);
 }
 
-/* FIXME: make-regexp should support flags like
- * REG_BASIC and REG_ICASE.  Maybe these could be optional symbols
- * in the command args: e.g.:
- * (make-regexp "foo.*bar" 'basic
- *			   'ignore-case
- *			   'multi-line)
- */
-
-SCM_PROC (s_make_regexp, "make-regexp", 1, 0, 0, scm_make_regexp);
+SCM_PROC (s_make_regexp, "make-regexp", 1, 1, 0, scm_make_regexp);
 
 SCM
-scm_make_regexp (pat)
-     SCM pat;
+scm_make_regexp (SCM pat, SCM flags)
 {
   SCM result;
   regex_t *rx;
@@ -162,10 +153,13 @@ scm_make_regexp (pat)
   SCM_ASSERT (SCM_NIMP(pat) && SCM_ROSTRINGP(pat), pat, SCM_ARG1, 
 	      s_make_regexp);
   SCM_COERCE_SUBSTR (pat);
+  if (SCM_UNBNDP (flags))
+    flags = SCM_MAKINUM (REG_EXTENDED);
+  SCM_ASSERT (SCM_INUMP (flags), flags, SCM_ARG2, s_make_regexp);
 
   SCM_DEFER_INTS;
   rx = (regex_t *) scm_must_malloc (sizeof (regex_t), s_make_regexp);
-  status = regcomp (rx, SCM_ROCHARS (pat), REG_EXTENDED);
+  status = regcomp (rx, SCM_ROCHARS (pat), SCM_INUM (flags));
   if (status != 0)
     {
       SCM_ALLOW_INTS;
@@ -183,13 +177,10 @@ scm_make_regexp (pat)
   return result;
 }
 
-SCM_PROC (s_regexp_exec, "regexp-exec", 2, 1, 0, scm_regexp_exec);
+SCM_PROC (s_regexp_exec, "regexp-exec", 2, 2, 0, scm_regexp_exec);
 
 SCM
-scm_regexp_exec (rx, str, start)
-     SCM rx;
-     SCM str;
-     SCM start;
+scm_regexp_exec (SCM rx, SCM str, SCM start, SCM flags)
 {
   int status, nmatches, offset;
   regmatch_t *matches;
@@ -209,6 +200,10 @@ scm_regexp_exec (rx, str, start)
 		  SCM_OUTOFRANGE, s_regexp_exec);
     }
 
+  if (SCM_UNBNDP (flags))
+    flags = SCM_INUM0;
+  SCM_ASSERT (SCM_INUMP (flags), flags, SCM_ARG2, s_regexp_exec);
+
   SCM_COERCE_SUBSTR (str);
 
   /* re_nsub doesn't account for the `subexpression' representing the
@@ -218,7 +213,9 @@ scm_regexp_exec (rx, str, start)
   SCM_DEFER_INTS;
   matches = (regmatch_t *) scm_must_malloc (sizeof (regmatch_t) * nmatches,
 					    s_regexp_exec);
-  status = regexec (SCM_RGX (rx), SCM_ROCHARS (str) + offset, nmatches, matches, 0);
+  status = regexec (SCM_RGX (rx), SCM_ROCHARS (str) + offset,
+		    nmatches, matches,
+		    SCM_INUM (flags));
   if (!status)
     {
       int i;
@@ -246,6 +243,17 @@ void
 scm_init_regex_posix ()
 {
   scm_tc16_regex_t = scm_newsmob (&regex_t_smob);
+
+  /* Compilation flags.  */
+  scm_sysintern ("REG_EXTENDED", scm_long2num (REG_EXTENDED));
+  scm_sysintern ("REG_ICASE", scm_long2num (REG_ICASE));
+  scm_sysintern ("REG_NOSUB", scm_long2num (REG_NOSUB));
+  scm_sysintern ("REG_NEWLINE", scm_long2num (REG_NEWLINE));
+
+  /* Execution flags.  */
+  scm_sysintern ("REG_NOTBOL", scm_long2num (REG_NOTBOL));
+  scm_sysintern ("REG_NOTEOL", scm_long2num (REG_NOTEOL));
+
 #include "regex-posix.x"
 
   scm_add_feature ("regex");
