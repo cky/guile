@@ -65,7 +65,6 @@ regexp="(^greetings!spooks!hows!life)"
 for dep in `echo $deprecated_list` ; do
     regexp="(^${dep}[^_A-Z])|${regexp}"
 done
-echo $regexp
 egrep -n ${regexp} $1 /dev/null > ${temp}
 if [ -s ${temp} ] ; then
     if $grep_dep_exit_p ; then hey=ERROR ; else hey=WARNING ; fi
