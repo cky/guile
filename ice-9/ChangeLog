@@ -1,3 +1,8 @@
+2003-05-10  Kevin Ryde  <user42@zip.com.au>
+
+	* documentation.scm (file-commentary, find-documentation-in-file): Use
+	call-with-input-file, to close ports when done.
+
 2003-05-03  Marius Vollmer  <mvo@zagadka.de>
 
 	* gap-buffer.scm (point++n!, point+-n!): Use substring-move!
