@@ -272,6 +272,26 @@ Example:
 (eval '(+ 1 2) m) --> 3
 (eval 'load m) --> ERROR: Unbound variable: load
 
+** New command line option `--use-srfi'
+
+Using this option, SRFI modules can be loaded on startup and be
+available right from the beginning.  This makes programming portable
+Scheme programs easier.
+
+The option `--use-srfi' expects a comma-separated list of numbers,
+each representing a SRFI number to be loaded into the interpreter
+before starting evaluating a script file or the REPL.  Additionally,
+the feature identifier for the loaded SRFIs is recognized by
+`cond-expand' when using this option.
+
+Example:
+$ guile --use-srfi=8,13
+guile> (receive (x z) (values 1 2) (+ 1 2))
+3
+guile> (string-pad "bla" 20)       
+"                 bla"
+
+
 * Changes to Scheme functions and syntax
 
 ** The empty combination is no longer valid syntax.
