@@ -1,3 +1,13 @@
+2001-05-16  Rob Browning  <rlb@cs.utexas.edu>
+
+	* configure.in: add AC_SUBST for GUILE_MICRO_VERSION.
+
+	* GUILE-VERSION
+	(GUILE_VERSION): now MAJOR.MINOR.MICRO
+	(GUILE_MICRO_VERSION): new variable, records final revision.
+	i.e. the 5 in 1.6.5.  MINOR_VERSION is now just the middle number,
+	i.e. the 6.
+
 2001-05-16  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* acconfig.h, configure.in:  Renamed

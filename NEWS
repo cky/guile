@@ -8,6 +8,27 @@ Changes since Guile 1.4:
 
 * Changes to the distribution
 
+** Guile now using versioning scheme similar to that of the Linux kernel.
+
+Guile now always uses three numbers to represent the version,
+i.e. "1.6.5".  The first number, 1, is the major version number, the
+second number, 6, is the minor version number, and the third number,
+5, is the micro version number.  Changes in major version number
+indicate major changes in Guile.
+
+Minor version numbers that are even denote stable releases, and odd
+minor version numbers denote development versions (which may be
+unstable).  The micro version number indicates a minor sub-revision of
+a given MAJOR.MINOR release.
+
+In keeping with the new scheme, (minor-version) and scm_minor_version
+no longer return everything but the major version number.  They now
+just return the minor version number.  Two new functions
+(micro-version) and scm_micro_version have been added to report the
+micro version number.
+
+In addition, ./GUILE-VERSION now defines GUILE_MICRO_VERSION.
+
 ** As per RELEASE directions, deprecated items have been removed
 
 *** Macros removed
