@@ -287,7 +287,7 @@ and I'll take care of the administrivia.  Put the contributions aside
 until we have the necessary papers.
 
 Once you accept a contribution, be sure to keep the files AUTHORS and
-THANKS uptodate.  Feel free to remove authorship info from source files.
+THANKS uptodate.
 
 - When you make substantial changes to a file, add the current year to
 the list of years in the copyright notice at the top of the file.
