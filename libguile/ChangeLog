@@ -1,6 +1,6 @@
 2000-08-25  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
 
-	* procprop.c: #include "libguile/smob.h"; Check applicable smobs.
+	* procprop.c: #include "libguile/smob.h"; handle applicable smobs.
 
 2000-08-24  Keisuke Nishida  <kxn30@po.cwru.edu>
 
