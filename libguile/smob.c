@@ -27,6 +27,7 @@
 #include "libguile/_scm.h"
 
 #include "libguile/objects.h"
+#include "libguile/goops.h"
 #include "libguile/ports.h"
 
 #ifdef HAVE_MALLOC_H
