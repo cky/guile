@@ -1,3 +1,9 @@
+2000-09-05  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* init.c: Include "libguile/properties.h".
+
+	* gh_data.c (gh_scm2char): Validate that argument is a character.
+
 2000-08-25  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* environments.h (SCM_IMPORT_ENVIRONMENT_P,
