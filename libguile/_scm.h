@@ -107,9 +107,9 @@
 
 #ifndef SCM_MAGIC_SNARFER
 #define SCM_PROC(RANAME, STR, REQ, OPT, VAR, CFN)  \
-	static char RANAME[]=STR;
+	static char RANAME[]=STR
 #define SCM_PROC1(RANAME, STR, TYPE, CFN)  \
-	static char RANAME[]=STR;
+	static char RANAME[]=STR
 #else
 #define SCM_PROC(RANAME, STR, REQ, OPT, VAR, CFN)  \
 %%%	scm_make_gsubr (RANAME, REQ, OPT, VAR, CFN)
