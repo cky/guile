@@ -318,10 +318,11 @@ SCM_DEFINE (scm_drain_input, "drain-input", 1, 0, 0,
 #define FUNC_NAME s_scm_drain_input
 {
   SCM result;
-  scm_t_port *pt = SCM_PTAB_ENTRY (port);
+  scm_t_port *pt;
   long count;
 
   SCM_VALIDATE_OPINPORT (1, port);
+  pt = SCM_PTAB_ENTRY (port);
 
   count = pt->read_end - pt->read_pos;
   if (pt->read_buf == pt->putback_buf)
