@@ -85,18 +85,13 @@
 ((struct scm_metaclass_operator *) SCM_STRUCT_DATA (obj))
 #define SCM_OBJ_OPERATOR_CLASS(obj)\
 ((struct scm_metaclass_operator *) SCM_STRUCT_VTABLE_DATA (obj))
-#define SCM_OPERATOR_PROC_0(obj) (SCM_OBJ_OPERATOR_CLASS (obj)->proc0)
-#define SCM_OPERATOR_PROC_1(obj) (SCM_OBJ_OPERATOR_CLASS (obj)->proc1)
-#define SCM_OPERATOR_PROC_2(obj) (SCM_OBJ_OPERATOR_CLASS (obj)->proc2)
-#define SCM_OPERATOR_PROC_3(obj) (SCM_OBJ_OPERATOR_CLASS (obj)->proc3)
+#define SCM_OPERATOR_PROCEDURE(obj) (SCM_OBJ_OPERATOR_CLASS (obj)->procedure)
 #define SCM_OPERATOR_SETTER(obj) (SCM_OBJ_OPERATOR_CLASS (obj)->setter)
 
 #define SCM_I_ENTITYP(obj)\
 ((SCM_OBJ_CLASS_FLAGS (obj) & SCM_CLASSF_ENTITY) != 0)
-#define SCM_ENTITY_PROC_0(obj) (SCM_STRUCT_DATA (obj)[scm_struct_i_proc + 0])
-#define SCM_ENTITY_PROC_1(obj) (SCM_STRUCT_DATA (obj)[scm_struct_i_proc + 1])
-#define SCM_ENTITY_PROC_2(obj) (SCM_STRUCT_DATA (obj)[scm_struct_i_proc + 2])
-#define SCM_ENTITY_PROC_3(obj) (SCM_STRUCT_DATA (obj)[scm_struct_i_proc + 3])
+#define SCM_ENTITY_PROCEDURE(obj) \
+        (SCM_STRUCT_DATA (obj)[scm_struct_i_procedure])
 #define SCM_ENTITY_SETTER(obj) (SCM_STRUCT_DATA (obj)[scm_struct_i_setter])
 
 #define SCM_SET_CLASS_DESTRUCTOR(c, d) SCM_SET_VTABLE_DESTRUCTOR (c, d)
@@ -144,16 +139,13 @@ struct scm_metaclass_standard {
   SCM print;
 };
 
-#define SCM_METACLASS_OPERATOR_LAYOUT "popopopopo"
+#define SCM_METACLASS_OPERATOR_LAYOUT "popo"
 struct scm_metaclass_operator {
   SCM layout;
   SCM vcell;
   SCM vtable;
   SCM print;
-  SCM proc0;
-  SCM proc1;
-  SCM proc2;
-  SCM proc3;
+  SCM procedure;
   SCM setter;
 };
 
@@ -178,8 +170,8 @@ struct scm_metaclass_operator {
 #define SCM_CLASSF_PURE_GENERIC (0x010 << 20)
 #define SCM_CLASSF_GOOPS_VALID  (0x080 << 20)
 #define SCM_CLASSF_GOOPS        (0x100 << 20)
-#define scm_si_redefined         9
-#define scm_si_hashsets         10
+#define scm_si_redefined         6
+#define scm_si_hashsets          7
 #define SCM_CLASS_OF(x)         SCM_STRUCT_VTABLE (x)
 #define SCM_OBJ_CLASS_REDEF(x)  (SCM_STRUCT_VTABLE_DATA(x)[scm_si_redefined])
 
@@ -213,8 +205,6 @@ extern SCM scm_class_unknown;
 extern SCM *scm_port_class;
 extern SCM *scm_smob_class;
 
-extern SCM scm_apply_generic_env;
-
 extern SCM scm_no_applicable_method;
 
 /* Plugin Goops functions. */
@@ -223,11 +213,9 @@ extern void (*scm_make_port_classes) (int ptobnum, char *type_name);
 extern void (*scm_change_object_class) (SCM, SCM, SCM);
 extern SCM (*scm_memoize_method) (SCM x, SCM args);
 
-extern SCM scm_sym_atdispatch;
-
 extern SCM scm_class_of (SCM obj);
 extern SCM scm_mcache_lookup_cmethod (SCM cache, SCM args);
-extern SCM scm_mcache_create_cmethod (SCM cache, SCM args);
+extern SCM scm_mcache_compute_cmethod (SCM cache, SCM args);
 extern SCM scm_call_generic_0 (SCM gf);
 /* The following are declared in __scm.h
 extern SCM scm_call_generic_1 (SCM gf, SCM a1);
@@ -239,7 +227,7 @@ extern SCM scm_entity_p (SCM obj);
 extern SCM scm_operator_p (SCM obj);
 extern SCM scm_set_object_procedure_x (SCM obj, SCM procs);
 #ifdef GUILE_DEBUG
-extern SCM scm_object_procedures (SCM obj);
+extern SCM scm_object_procedure (SCM obj);
 #endif
 extern SCM scm_make_class_object (SCM metaclass, SCM layout);
 extern SCM scm_make_subclass_object (SCM c, SCM layout);
