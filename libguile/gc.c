@@ -2145,12 +2145,8 @@ scm_protect_object (SCM obj)
   /* This critical section barrier will be replaced by a mutex. */
   SCM_REDEFER_INTS;
   
-  handle = scm_hashq_get_handle (scm_protects, obj);
-
-  if (SCM_IMP (handle))
-    scm_hashq_create_handle_x (scm_protects, obj, SCM_MAKINUM (1));
-  else
-    SCM_SETCDR (handle, SCM_MAKINUM (SCM_INUM (SCM_CDR (handle)) + 1));
+  handle = scm_hashq_create_handle_x (scm_protects, obj, SCM_MAKINUM (0));
+  SCM_SETCDR (handle, SCM_MAKINUM (SCM_INUM (SCM_CDR (handle)) + 1));
   
   SCM_REALLOW_INTS;
   
@@ -2171,15 +2167,20 @@ scm_unprotect_object (SCM obj)
   SCM_REDEFER_INTS;
   
   handle = scm_hashq_get_handle (scm_protects, obj);
-
-  if (SCM_NIMP (handle))
+  
+  if (SCM_IMP (handle))
     {
-      int count = SCM_INUM (SCM_CDR (handle)) - 1;
-      if (count <= 0)
-        scm_hashq_remove_x (scm_protects, obj);
-      else
-        SCM_SETCDR (handle, SCM_MAKINUM (count));
+      fprintf (stderr, "scm_unprotect_object called on unprotected object\n");
+      abort ();
     }
+  
+  {
+    int count = SCM_INUM (SCM_CDR (handle)) - 1;
+    if (count <= 0)
+      scm_hashq_remove_x (scm_protects, obj);
+    else
+      SCM_SETCDR (handle, SCM_MAKINUM (count));
+  }
 
   SCM_REALLOW_INTS;
 
