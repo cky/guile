@@ -1,5 +1,11 @@
 1999-09-12  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
+	* __scm.h, backtrace.c, backtrace.h, debug.c, debug.h, dynl-dld.c,
+	dynwind.c, dynwind.h, eval.h, evalext.c, evalext.h, feature.c,
+	feature.h, hashtab.c, hashtab.h, objects.c, objects.h, print.c,
+	procs.c, procs.h, smob.c, smob.h, srcprop.c, strorder.c, struct.c,
+	struct.h: Updated copyrigth notices.
+
 	* srcprop.c (scm_source_property): Bugfix: Use SCM_NECONSP instead
 	of SCM_NCONSP.  (Thanks to Greg Badros.)
 
