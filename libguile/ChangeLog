@@ -1,8 +1,18 @@
+2004-11-14  mvo  <mvo@zagadka.de>
+
+	* unif.c, unif.h (scm_i_cvref): Made non-static for ramap.c.
+
+	* Makefile.am (INCLUDES): It is "@LTDLINCL@", not "@LTDLINC@".
+
 2004-11-12  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	Enclosed arrays are now their own smob.  This has been done to
 	make the code more explicit about them and to prepare for the time
-	when generalized vectors include arbitrary one-dimensional arrays.
+	when generalized vectors include arbitrary one-dimensional
+	arrays. (Uptonow, enclosed arrays have been recognized by their
+	use of an array as their storage 'vector'.  When all generalized
+	vectors are allowed as storage, including one-dimensional arrays,
+	this will no longer work.)
 	
 	* unif.h, unif.c: (scm_tc16_enclosed_array, SCM_ENCLOSED_ARRAYP):
 	New.
