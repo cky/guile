@@ -2,7 +2,7 @@
 
 #ifndef NUMBERSH
 #define NUMBERSH
-/*	Copyright (C) 1995, 1996, 1998 Free Software Foundation, Inc.
+/*	Copyright (C) 1995, 1996, 1998, 2000 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -83,15 +83,16 @@
  * It is believed to be fixed in Turbo C++ v1.01
  */
 #if (-1==(((-1)<<2)+2)>>2) && (__TURBOC__ != 0x295)
-# define SCM_SRS(x, y) (SCM_ASWORD (x)>>y)
+# define SCM_SRS(x, y) ((x) >> y)
 # ifdef __TURBOC__
-#  define SCM_INUM(x) ((SCM_ASWORD(x) >>1) >>1)
+#  define SCM_INUM(x) ((SCM_ASWORD (x) >>1) >>1)
 # else
-#  define SCM_INUM(x) SCM_SRS(x, 2)
+#  define SCM_INUM(x) SCM_SRS (SCM_ASWORD (x), 2)
 # endif /* def __TURBOC__ */
 #else
-# define SCM_SRS(x, y) ((SCM_ASWORD(x) < 0) ? ~( (~SCM_ASWORD(x)) >>y) : (SCM_ASWORD (x)>>y))
-# define SCM_INUM(x) SCM_SRS(x, 2)
+# define SCM_SRS(x, y)\
+ ((SCM_ASWORD (x) < 0) ? ~( (~SCM_ASWORD (x)) >> y) : (SCM_ASWORD (x) >> y))
+# define SCM_INUM(x) SCM_SRS (SCM_ASWORD (x), 2)
 #endif /*  (-1==(((-1)<<2)+2)>>2) && (__TURBOC__ != 0x295) */
 
 
