@@ -466,7 +466,7 @@ scm_addr_vector (address, proc)
     }
   else
     scm_misc_error (proc, "Unrecognised address family: %s",
-		    scm_listify (SCM_MAKINUM (fam), SCM_UNSPECIFIED));
+		    scm_listify (SCM_MAKINUM (fam), SCM_UNDEFINED));
 
   return result;
 }
