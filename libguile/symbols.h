@@ -144,7 +144,8 @@ extern SCM scm_symbol_pset_x (SCM s, SCM val);
 extern SCM scm_symbol_hash (SCM s);
 extern SCM scm_builtin_bindings (void);
 extern SCM scm_builtin_weak_bindings (void);
-extern SCM scm_gensym (SCM name, SCM obarray);
+extern SCM scm_gensym (SCM prefix);
+extern SCM scm_gentemp (SCM prefix, SCM obarray);
 extern void scm_init_symbols (void);
 
 #endif  /* SYMBOLSH */
