@@ -2296,6 +2296,8 @@ supported by the system,
 @defvar SOCK_STREAM
 @defvarx SOCK_DGRAM
 @defvarx SOCK_RAW
+@defvarx SOCK_RDM
+@defvarx SOCK_SEQPACKET
 @end defvar
 
 @var{proto} can be obtained from a protocol name using
