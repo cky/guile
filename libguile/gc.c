@@ -441,6 +441,8 @@ scm_igc (what)
   SCM_THREAD_CRITICAL_SECTION_START;
 #endif
 
+  // fprintf (stderr, "gc: %s\n", what);
+
   scm_gc_start (what);
   if (!scm_stack_base || scm_block_gc)
     {
@@ -689,11 +691,13 @@ gc_mark_nimp:
       if SCM_GC8MARKP
 	(ptr) break;
       SCM_SETGC8MARK (ptr);
-      scm_mark_locations (SCM_VELTS (ptr),
-	       (scm_sizet)
-	       (SCM_LENGTH (ptr) +
-		(sizeof (SCM_STACKITEM) + -1 + sizeof (scm_contregs)) /
-		sizeof (SCM_STACKITEM)));
+      if (SCM_VELTS (ptr))
+	scm_mark_locations (SCM_VELTS (ptr),
+			    (scm_sizet)
+			    (SCM_LENGTH (ptr) +
+			     (sizeof (SCM_STACKITEM) + -1 +
+			      sizeof (scm_contregs)) /
+			     sizeof (SCM_STACKITEM)));
       break;
     case scm_tc7_bvect:
     case scm_tc7_byvect:
@@ -1191,7 +1195,8 @@ scm_gc_sweep ()
 	      if SCM_GC8MARKP (scmptr)
 		goto c8mrkcontinue;
 	      m += SCM_LENGTH (scmptr) * sizeof (SCM_STACKITEM) + sizeof (scm_contregs);
-	      goto freechars;
+	      if (SCM_VELTS (scmptr))
+		goto freechars;
 	    case scm_tc7_ssymbol:
 	      if SCM_GC8MARKP(scmptr)
 		goto c8mrkcontinue;
@@ -1374,7 +1379,7 @@ scm_gc_sweep ()
 
 /* {Front end to malloc}
  *
- * scm_must_malloc, scm_must_realloc, scm_must_free
+ * scm_must_malloc, scm_must_realloc, scm_must_free, scm_done_malloc
  *
  * These functions provide services comperable to malloc, realloc, and
  * free.  They are for allocating malloced parts of scheme objects.
@@ -1482,9 +1487,36 @@ scm_must_free (obj)
   else
     scm_wta (SCM_INUM0, "already free", "");
 }
+
+/* Announce that there has been some malloc done that will be freed
+ * during gc.  A typical use is for a smob that uses some malloced
+ * memory but can not get it from scm_must_malloc (for whatever
+ * reason).  When a new object of this smob is created you call
+ * scm_done_malloc with the size of the object.  When your smob free
+ * function is called, be sure to include this size in the return
+ * value. */
+
+void
+scm_done_malloc (size)
+     long size;
+{
+  scm_mallocated += size;
+
+  if (scm_mallocated > scm_mtrigger)
+    {
+      scm_igc ("foreign mallocs");
+      if (scm_mallocated > scm_mtrigger - SCM_MTRIGGER_HYSTERESIS)
+	{
+	  if (scm_mallocated > scm_mtrigger)
+	    scm_mtrigger = scm_mallocated + scm_mallocated / 2;
+	  else
+	    scm_mtrigger += scm_mtrigger / 2;
+	}
+    }
+}
+
+
 
-
-
 
 /* {Heap Segments}
  *
@@ -1493,8 +1525,7 @@ scm_must_free (obj)
  * A table of segment records is kept that records the upper and
  * lower extents of the segment;  this is used during the conservative
  * phase of gc to identify probably gc roots (because they point
- * into valid segments at reasonable offsets).
- */
+ * into valid segments at reasonable offsets).  */
 
 /* scm_expmem
  * is true if the first segment was smaller than INIT_HEAP_SEG.
