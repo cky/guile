@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996,1997,1998 Free Software Foundation, Inc.
+/* Copyright (C) 1995, 1996, 1997, 1998, 1999 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -212,8 +212,10 @@ scm_sigaction (SCM signum, SCM handler, SCM flags)
     query_only = 1;
   else if (SCM_INUMP (handler))
     {
-      if (SCM_INUM (handler) == (int) SIG_DFL
-	  || SCM_INUM (handler) == (int) SIG_IGN)
+      /* It's really ugly to assume that SIG_DFL can be nicely cast to
+	 a fixnum.  This has got to go.  */
+      if (SCM_INUM (handler) == (SCM) SIG_DFL
+	  || SCM_INUM (handler) == (SCM) SIG_IGN)
 	{
 #ifdef HAVE_SIGACTION
 	  action.sa_handler = (SIGRETTYPE (*) (int)) SCM_INUM (handler);
@@ -276,7 +278,7 @@ scm_sigaction (SCM signum, SCM handler, SCM flags)
 	orig_handlers[csig] = old_action;
     }
   if (old_action.sa_handler == SIG_DFL || old_action.sa_handler == SIG_IGN)
-    old_handler = SCM_MAKINUM ((int) old_action.sa_handler);
+    old_handler = SCM_MAKINUM ((SCM) old_action.sa_handler);
   SCM_ALLOW_INTS;
   return scm_cons (old_handler, SCM_MAKINUM (old_action.sa_flags));
 #else
