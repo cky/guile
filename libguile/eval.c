@@ -67,6 +67,7 @@
 #include "markers.h"
 #include "procprop.h"
 #include "hashtab.h"
+#include "hash.h"
 
 #ifdef DEBUG_EXTENSIONS
 #include "debug.h"
