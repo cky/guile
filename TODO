@@ -1,21 +1,13 @@
-Needed before release
-
 * Add facilities for debugging Scheme programs.
 
-Mikael Djurfeldt <mdj@nada.kth.se> is working on this.  The low-level
-functions are available, but need a user interface.  He has also
-written extensisons to GDB to allow it to print lispy values in lispy
-notation when debugging Guile's C code.
-
-* Merge in the Cygnus threads package.
-
-This is done, but needs debugging.
+The low-level debugging support is done, and we are now working on the
+user interface.
 
 * Documentation.
 
-They should be complete and accurate.  They should also have more
-general explanation (right now they're strictly reference), but
-perhaps that will have to wait until after the first release.
+We have a new layout for the reference manual which covers the
+C/Scheme interface, as well as the scheme variants.  We also want a
+more thorough tutorial manual, but we haven't sketched that out yet.
 
 
 Desired later on
