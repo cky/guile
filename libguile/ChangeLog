@@ -1,3 +1,9 @@
+2000-12-13  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* numbers.c (scm_init_numbers):  Re-introduced bindings for
+	most-positive-fixnum and most-negative-fixnum as requested by
+	Mikael Djurfeldt.
+
 2000-12-12  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	The variable scm_symbols is made static within symbols.c and
