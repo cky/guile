@@ -2282,7 +2282,7 @@
 	(make-options (lambda (interface)
 			`(lambda args
 			   (cond ((null? args) (,interface))
-				 ((pair? (car args))
+				 ((list? (car args))
 				  (,interface (car args)) (,interface))
 				 (else (for-each ,print-option
 						 (,interface #t)))))))
@@ -2361,6 +2361,7 @@
   (save-stack lazy-handler-dispatch)
   (apply throw key args))
 
+(define enter-frame-handler default-lazy-handler)
 (define apply-frame-handler default-lazy-handler)
 (define exit-frame-handler default-lazy-handler)
 
@@ -2370,6 +2371,8 @@
      (apply apply-frame-handler key args))
     ((exit-frame)
      (apply exit-frame-handler key args))
+    ((enter-frame)
+     (apply enter-frame-handler key args))
     (else
      (apply default-lazy-handler key args))))
 
@@ -2400,17 +2403,19 @@
 				    (dynamic-wind
 				     (lambda () (unmask-signals))
 				     (lambda ()
-				       (first)
+				       (with-traps
+					(lambda ()
+					  (first)
 				       
-				       ;; This line is needed because mark
-				       ;; doesn't do closures quite right.
-				       ;; Unreferenced locals should be
-				       ;; collected.
-				       ;;
-				       (set! first #f)
-				       (let loop ((v (thunk)))
-					 (loop (thunk)))
-				       #f)
+					  ;; This line is needed because mark
+					  ;; doesn't do closures quite right.
+					  ;; Unreferenced locals should be
+					  ;; collected.
+					  ;;
+					  (set! first #f)
+					  (let loop ((v (thunk)))
+					    (loop (thunk)))
+					  #f)))
 				     (lambda () (mask-signals))))
 
 				  lazy-handler-dispatch))
