@@ -1,3 +1,17 @@
+2002-02-05  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* pre-inst-guile.am, pre-inst-guile: New files.
+
+	* check-guile.in (srcdir): Delete var.
+	(top_builddir, top_srcdir, guile_opts): New vars.
+
+	Use "set -e".
+	No longer set LTDL_LIBRARY_PATH.
+	Use ${top_srcdir}/pre-inst-guile instead of libguile/guile.
+
+	* configure.in (libguile/guile-snarf-docs-texi): Remove
+	from `AC_CONFIG_FILES' and `AC_CONFIG_COMMANDS'.
+
 2002-01-31  Stefan Jahn  <stefan@lkcc.org>
 
 	* configure.in: Add -DLIBLTDL_DLL_IMPORT to INCLTDL when using
@@ -5,7 +19,7 @@
 
 2002-01-28  Stefan Jahn  <stefan@lkcc.org>
 
-	* configure.in (guile_cv_have_uint32_t): Look also in 
+	* configure.in (guile_cv_have_uint32_t): Look also in
 	`stdint.h' for uint32_t.
 
 2002-01-13  Neil Jerram  <neil@ossau.uklinux.net>
@@ -31,7 +45,7 @@
 
 	* configure.in (HAVE_MAKEINFO): Check for the makeinfo program and
 	set this conditional accordingly.
-	
+
 2001-12-01  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* README: Fix virulent typo.

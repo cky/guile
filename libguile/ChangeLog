@@ -1,3 +1,13 @@
+2002-02-05  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* Makefile.am: Include $(top_srcdir)/pre-inst-guile.am.
+
+	(bin_SCRIPTS): Remove guile-snarf-docs-texi.
+	(alldotdocfiles, snarf2checkedtexi, dotdoc2texi): New vars.
+	(guile.texi, guile-procedures.texi): Use $(dotdoc2texi).
+
+	* guile-snarf-docs-texi.in: Bye bye.
+
 2002-02-04  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* symbols.c (scm_make_symbol): Fix typo in docstring.
@@ -15,13 +25,14 @@
 	This signals a interned symbol.
 	(scm_mem2uninterned_symbol, scm_symbol_interned_p,
 	scm_make_symbol): New.
-	
+
 	* print.c (scm_iprin1): Print uninterned symbols unreadably.
 
 2002-02-02  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* __scm.h (HAVE_UINTPTR_T): Only define if UINTPTR_T attributes
 	are defined: UINTPTR_MAX, INTPTR_MAX, INTPTR_MIN.
+	Thanks to Dave Love.
 
 2002-01-31  Marius Vollmer  <mvo@zagadka.ping.de>
 

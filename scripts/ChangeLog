@@ -1,3 +1,9 @@
+2002-02-05  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* Include $(top_srcdir)/pre-inst-guile.am.
+
+	(overview): Use $(preinstguiletool).
+
 2002-01-11  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* Makefile.am (scripts_sources): Add autofrisk.
