@@ -1,3 +1,10 @@
+2002-02-05  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* Makefile.am: Include $(top_srcdir)/pre-inst-guile.am.
+
+	(GUILE): Delete var.
+	(autoconf-macros.texi): Use $(preinstguiletool).
+
 2002-02-04  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* autoconf.texi (Autofrisk, Using Autofrisk): New sections.
