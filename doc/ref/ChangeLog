@@ -1,5 +1,7 @@
 2004-09-08  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
+	* api-data.texi (integer-expt): Updated from docstring.
+
 	* Makefile.am (CLEANFILES, MAINTAINERCLEANFILES): Moved
 	autoconf-macros.texi to MAINTAINERCLEANFILES.  It is in the
 	tarball and we shouldn't clean it, then.
