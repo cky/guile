@@ -1839,10 +1839,11 @@ scm_gc_sweep ()
  * scm_must_malloc, scm_must_realloc, scm_must_free, scm_done_malloc,
  * scm_done_free
  *
- * These functions provide services comperable to malloc, realloc, and
- * free.  They are for allocating malloced parts of scheme objects.
- * The primary purpose of the front end is to impose calls to gc.  */
-
+ * These functions provide services comparable to malloc, realloc, and
+ * free.  They should be used when allocating memory that will be under
+ * control of the garbage collector, i.e., if the memory may be freed
+ * during garbage collection.
+ */
 
 /* scm_must_malloc
  * Return newly malloced storage or throw an error.

@@ -1,3 +1,16 @@
+2001-03-17  Gary Houston  <ghouston@arglist.com>
+
+	* gc.c (scm_must_malloc): changed the comment explaining when
+	scm_must variants of malloc/free etc., should be used, based on
+	explanation from Dirk Herrmann.
+	* fports.c (scm_fport_buffer_add): use FUNC_NAME instead of a local
+	string with procedure name.  use scm_must_malloc instead of malloc.
+	(scm_setvbuf, scm_fdes_to_port, fport_close): use scm_must variants
+	of malloc/free.
+	* ports.c (scm_add_to_port_table, scm_remove_from_port_table,
+	scm_ungetc): use scm_must variants of malloc/realloc/free.
+	(scm_add_to_port_table, scm_ungetc): define FUNC_NAME.
+
 2001-03-17  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* __scm.h (SCM_ASSERT, SCM_WTA_DISPATCH_0, SCM_WTA_DISPATCH_1,

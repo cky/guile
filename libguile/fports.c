@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996,1997,1998,1999, 2000 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996,1997,1998,1999,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -80,10 +80,10 @@ static const int default_buffer_size = 1024;
    0 for no buffer.  */
 static void
 scm_fport_buffer_add (SCM port, int read_size, int write_size)
+#define FUNC_NAME "scm_fport_buffer_add"
 {
   struct scm_fport *fp = SCM_FSTREAM (port);
   scm_port *pt = SCM_PTAB_ENTRY (port);
-  char *s_scm_fport_buffer_add = "scm_fport_buffer_add";
 
   if (read_size == -1 || write_size == -1)
     {
@@ -104,9 +104,7 @@ scm_fport_buffer_add (SCM port, int read_size, int write_size)
 
   if (SCM_INPUT_PORT_P (port) && read_size > 0)
     {
-      pt->read_buf = malloc (read_size);
-      if (pt->read_buf == NULL)
-	scm_memory_error (s_scm_fport_buffer_add);
+      pt->read_buf = scm_must_malloc (read_size, FUNC_NAME);
       pt->read_pos = pt->read_end = pt->read_buf;
       pt->read_buf_size = read_size;
     }
@@ -118,9 +116,7 @@ scm_fport_buffer_add (SCM port, int read_size, int write_size)
 
   if (SCM_OUTPUT_PORT_P (port) && write_size > 0)
     {
-      pt->write_buf = malloc (write_size);
-      if (pt->write_buf == NULL)
-	scm_memory_error (s_scm_fport_buffer_add);
+      pt->write_buf = scm_must_malloc (write_size, FUNC_NAME);
       pt->write_pos = pt->write_buf;
       pt->write_buf_size = write_size;
     }
@@ -136,6 +132,7 @@ scm_fport_buffer_add (SCM port, int read_size, int write_size)
   else
     SCM_SET_CELL_WORD_0 (port, SCM_CELL_WORD_0 (port) | SCM_BUF0);
 }
+#undef FUNC_NAME
 
 SCM_DEFINE (scm_setvbuf, "setvbuf", 2, 1, 0, 
             (SCM port, SCM mode, SCM size),
@@ -189,9 +186,9 @@ SCM_DEFINE (scm_setvbuf, "setvbuf", 2, 1, 0,
 
   /* silently discards buffered chars.  */
   if (pt->read_buf != &pt->shortbuf)
-    free (pt->read_buf);
+    scm_must_free (pt->read_buf);
   if (pt->write_buf != &pt->shortbuf)
-    free (pt->write_buf);
+    scm_must_free (pt->write_buf);
 
   scm_fport_buffer_add (port, csize, csize);
   return SCM_UNSPECIFIED;
@@ -386,9 +383,9 @@ scm_fdes_to_port (int fdes, char *mode, SCM name)
 
   {
     struct scm_fport *fp
-      = (struct scm_fport *) malloc (sizeof (struct scm_fport));
-    if (fp == NULL)
-      SCM_MEMORY_ERROR;
+      = (struct scm_fport *) scm_must_malloc (sizeof (struct scm_fport),
+					      FUNC_NAME);
+
     fp->fdes = fdes;
     pt->rw_random = SCM_FDES_RANDOM_P (fdes);
     SCM_SETSTREAM (port, fp);
@@ -768,10 +765,10 @@ fport_close (SCM port)
   if (pt->read_buf == pt->putback_buf)
     pt->read_buf = pt->saved_read_buf;
   if (pt->read_buf != &pt->shortbuf)
-    free (pt->read_buf);
+    scm_must_free (pt->read_buf);
   if (pt->write_buf != &pt->shortbuf)
-    free (pt->write_buf);
-  free ((char *) fp);
+    scm_must_free (pt->write_buf);
+  scm_must_free ((char *) fp);
   return rv;
 }
 

@@ -431,11 +431,14 @@ int scm_port_table_room = 20;	/* Size of the array.  */
 
 scm_port *
 scm_add_to_port_table (SCM port)
+#define FUNC_NAME "scm_add_to_port_table"
 {
   scm_port *entry;
 
   if (scm_port_table_size == scm_port_table_room)
     {
+      /* initial malloc is in gc.c.  this doesn't use scm_must_malloc etc.,
+	 since it can never be freed during gc.  */
       void *newt = realloc ((char *) scm_port_table,
 			    (scm_sizet) (sizeof (scm_port *)
 					 * scm_port_table_room * 2));
@@ -444,9 +447,7 @@ scm_add_to_port_table (SCM port)
       scm_port_table = (scm_port **) newt;
       scm_port_table_room *= 2;
     }
-  entry = (scm_port *) malloc (sizeof (scm_port));
-  if (entry == NULL)
-    scm_memory_error ("scm_add_to_port_table");
+  entry = (scm_port *) scm_must_malloc (sizeof (scm_port), FUNC_NAME);
 
   entry->port = port;
   entry->entry = scm_port_table_size;
@@ -465,6 +466,7 @@ scm_add_to_port_table (SCM port)
 
   return entry;
 }
+#undef FUNC_NAME
 
 /* Remove a port from the table and destroy it.  */
 
@@ -478,8 +480,8 @@ scm_remove_from_port_table (SCM port)
   if (i >= scm_port_table_size)
     SCM_MISC_ERROR ("Port not in table: ~S", SCM_LIST1 (port));
   if (p->putback_buf)
-    free (p->putback_buf);
-  free (p);
+    scm_must_free (p->putback_buf);
+  scm_must_free (p);
   /* Since we have just freed slot i we can shrink the table by moving
      the last entry to that slot... */
   if (i < scm_port_table_size - 1)
@@ -1101,6 +1103,7 @@ scm_end_input (SCM port)
 
 void 
 scm_ungetc (int c, SCM port)
+#define FUNC_NAME "scm_ungetc"
 {
   scm_port *pt = SCM_PTAB_ENTRY (port);
 
@@ -1112,11 +1115,10 @@ scm_ungetc (int c, SCM port)
 	  && pt->read_buf == pt->read_pos)
 	{
 	  int new_size = pt->read_buf_size * 2;
-	  unsigned char *tmp = 
-	    (unsigned char *) realloc (pt->putback_buf, new_size);
+	  unsigned char *tmp = (unsigned char *)
+	    scm_must_realloc (pt->putback_buf, pt->read_buf_size, new_size,
+			      FUNC_NAME);
 
-	  if (tmp == NULL)
-	    scm_memory_error ("scm_ungetc");
 	  pt->read_pos = pt->read_buf = pt->putback_buf = tmp;
 	  pt->read_end = pt->read_buf + pt->read_buf_size;
 	  pt->read_buf_size = pt->putback_buf_size = new_size;
@@ -1141,9 +1143,8 @@ scm_ungetc (int c, SCM port)
       if (pt->putback_buf == NULL)
 	{
 	  pt->putback_buf
-	    = (unsigned char *) malloc (SCM_INITIAL_PUTBACK_BUF_SIZE);
-	  if (pt->putback_buf == NULL)
-	    scm_memory_error ("scm_ungetc");
+	    = (unsigned char *) scm_must_malloc (SCM_INITIAL_PUTBACK_BUF_SIZE,
+						 FUNC_NAME);
 	  pt->putback_buf_size = SCM_INITIAL_PUTBACK_BUF_SIZE;
 	}
 
@@ -1172,6 +1173,7 @@ scm_ungetc (int c, SCM port)
   else
     SCM_COL(port) -= 1;
 }
+#undef FUNC_NAME
 
 
 void 
