@@ -1388,8 +1388,6 @@ scm_array_contents (ra, strict)
 	  len *= SCM_ARRAY_DIMS (ra)[k].ubnd - SCM_ARRAY_DIMS (ra)[k].lbnd + 1;
 	if (!SCM_UNBNDP (strict))
 	  {
-	    if (SCM_ARRAY_BASE (ra))
-	      return SCM_BOOL_F;
 	    if (ndim && (1 != SCM_ARRAY_DIMS (ra)[ndim - 1].inc))
 	      return SCM_BOOL_F;
 	    if (scm_tc7_bvect == SCM_TYP7 (SCM_ARRAY_V (ra)))
