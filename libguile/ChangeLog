@@ -1,3 +1,23 @@
+Mon May 26 12:37:30 1997  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* script.c (scm_find_executable): Use prototype-style definition
+ 	here; apparently it's not quite right to have const in a prototype
+ 	and then use a K&R declaration.  I wonder if stuff like this will
+ 	go away if we compile with -Wrequire-prototypes, or whatever that
+ 	is...
+
+	* scmhob.h: New text from Bernard URBAN.
+
+Sat May 17 17:14:36 1997  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* script.c: Don't #define const on hpux.  Configure takes care of
+	this.  (Thanks to Larry Schwimmer.)
+
+	* script.c: Use the HAVE_UNISTD_H symbol provided by autoconf to
+	decide whether to #include <unistd.h>, instead of listing a bunch
+	of systems.  Don't #include stdio twice.  Removed dyked-out
+	definition of scm_find_impl_file.
+
 Fri May 16 03:06:08 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* Makefile.am (libguile_la_LDFLAGS): Update libguile's shared
