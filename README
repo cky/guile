@@ -154,9 +154,9 @@ Tom Lord librarified SCM, yielding Guile.  He wrote Guile's operating
 system, Ice-9, and connected Guile to Tcl/Tk and the `rx' regular
 expression matcher.
 
-Aubrey Jaffer seriously tuned performance and added features.  He
-designed many hairy but beautiful parts of the tag system and
-evaluator.
+Aubrey Jaffer is the author of SCM upon which Guile is based.  Guile
+started from SCM version 4e1 in November -94 and is still largely
+composed of the original SCM code.
 
 George Carrette wrote SIOD, a stand-alone scheme interpreter.
 Although most of this code as been rewritten or replaced over time,

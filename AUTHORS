@@ -3,12 +3,16 @@ Maintainers of GNU Software" (maintain.texi), the section called
 "Recording Changes".
 
 
+Aubrey Jaffer:
+is the author of SCM, the Scheme interpreter upon which Guile is
+based.  Guile started from SCM version 4e1 in November -94 and is
+still largely composed of the original SCM code.
+
 George Carrette:
 wrote files present in Siod version 2.3, released in December of 1989.
-
-Aubrey Jaffer:
-Changes to: eval.c, ioext.c, posix.c, gscm.c, scm.h, socket.c,
-gsubr.c, sys.c, test.scm, stime.c, and unif.c.
+Siod was the starting point for SCM.  The major innovations taken from
+Siod are the evaluator's use of the C-stack and being able to garbage
+collect off the C-stack
 
 Radey Shouman:
 In the subdirectory libguile, wrote:
