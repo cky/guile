@@ -1,3 +1,10 @@
+2001-06-25  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* gh.texi (GH deprecation): Remove paragraph about portability.
+
+	* extend.texi (Libguile Intro): Updated following Marius'
+	suggestions.
+
 2001-06-25  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* Makefile.am (version.texi, version-tutorial.texi): Removed
@@ -8,6 +15,12 @@
 	* gh.texi (scm transition summary): New node for summary of how to
 	transition from GH to scm interface.
 	(GH): Link to new node.
+	(Calling Scheme procedures from C): Remove doc for gh_set_car and
+	gh_set_cdr, which don't actually exist.
+	(Data types and constants defined by gh): Correct
+	SCM_UNSPECIFIED/SCM_UNDEFINED confusion.
+	(Calling Scheme procedures from C): Correct SCM_EOL/SCM_UNDEFINED
+	confusion.
 
 2001-06-20  Neil Jerram  <neil@ossau.uklinux.net>
 

@@ -62,25 +62,17 @@ Finally, the idea of multiple implementations of the GH interface did
 not really crystallize (apart, I believe, from a short lived
 implementation by the MzScheme project).
 
-Where portability is concerned, the @code{scm_} interface is now already
-portable in the sense that other projects could provide an alternative
-implementation of the @code{scm_} header file.  For the majority of
-@code{scm_} functions, all that is needed is a definition of the
-@code{SCM} type, and then those functions are automatically portable by
-virtue of the fact that their signatures refer only to this @code{SCM}
-type.
-
 For all these reasons, the Guile developers have decided to deprecate
 the GH interface --- which means that support for GH will be completely
 removed after the next few releases --- and to focus only on the
 @code{scm_} interface, with additions to ensure that it is as easy to
 use in all respects as GH was.
 
-It remains an open question whether deeper kinds of interface
-portability would be useful for extension language-based applications,
-and it may still be an interesting project to attempt to define a
-corresponding GH-like interface, but the Guile developers no longer plan
-to try to do this as part of the core Guile project.
+It remains an open question whether a deep kind of interface portability
+would be useful for extension language-based applications, and it may
+still be an interesting project to attempt to define a corresponding
+GH-like interface, but the Guile developers no longer plan to try to do
+this as part of the core Guile project.
 
 
 @node gh preliminaries
@@ -127,9 +119,16 @@ tend to just type @code{if (boolean_function()) @{ ... @}}
 @end defvr
 
 @defvr Constant SCM_UNSPECIFIED
-This is an SCM object which does not correspond to any legal Scheme
-value.  It can be used in C to terminate functions with variable numbers
-of arguments, such as @code{gh_list()}.
+This is a SCM value that is not the same as any legal Scheme value.  It
+is the value that a Scheme function returns when its specification says
+that its return value is unspecified.
+@end defvr
+
+@defvr Constant SCM_UNDEFINED
+This is another SCM value that is not the same as any legal Scheme
+value.  It is the value used to mark variables that do not yet have a
+value, and it is also used in C to terminate functions with variable
+numbers of arguments, such as @code{gh_list()}.
 @end defvr
 
 
@@ -600,7 +599,7 @@ I will list these routines here without much explanation, since what
 they do is the same as documented in @ref{Standard procedures, R5RS, ,
 r5rs, R5RS}.  But I will point out that when a procedure takes a
 variable number of arguments (such as @code{gh_list}), you should pass
-the constant @var{SCM_EOL} from C to signify the end of the list.
+the constant @var{SCM_UNDEFINED} from C to signify the end of the list.
 
 @deftypefun SCM gh_define (char *@var{name}, SCM @var{val})
 Corresponds to the Scheme @code{(define name val)}: it binds a value to
@@ -615,13 +614,6 @@ These correspond to the Scheme @code{(cons a b)} and @code{(list l0 l1
 ...)} procedures.  Note that @code{gh_list()} is a C macro that invokes
 @code{scm_listify()}.
 @end deftypefun
-
-@deftypefun SCM gh_set_car (SCM @var{obj}, SCM @var{val})
-@deftypefunx SCM gh_set_cdr (SCM @var{obj}, SCM @var{val})
-These correspond to the Scheme @code{(set-car! ...)} and @code{(set-cdr!
-...)} procedures.
-@end deftypefun
-
 
 @deftypefun SCM gh_car (SCM @var{obj})
 @deftypefunx SCM gh_cdr (SCM @var{obj})
@@ -858,7 +850,7 @@ arbitrary Scheme value.
 @item @code{SCM_BOOL_F} and @code{SCM_BOOL_T}
 No change.
 
-@item @code{SCM_UNSPECIFIED}
+@item @code{SCM_UNSPECIFIED} and @code{SCM_UNDEFINED}
 No change.
 
 @item @code{gh_enter}
@@ -939,16 +931,32 @@ No direct scm equivalent.  [FIXME]
 Use @code{SCM_NFALSEP} instead.
 
 @item @code{gh_scm2int}
-Use @code{scm_num2int} instead.
+Replace @code{gh_scm2int (@var{obj})} by
+@example
+scm_num2int (@var{obj}, SCM_ARG1, @var{str})
+@end example
+where @var{str} is a C string that describes the context of the call.
 
 @item @code{gh_scm2ulong}
-Use @code{scm_num2ulong} instead.
+Replace @code{gh_scm2ulong (@var{obj})} by
+@example
+scm_num2ulong (@var{obj}, SCM_ARG1, @var{str})
+@end example
+where @var{str} is a C string that describes the context of the call.
 
 @item @code{gh_scm2long}
-Use @code{scm_num2long} instead.
+Replace @code{gh_scm2long (@var{obj})} by
+@example
+scm_num2long (@var{obj}, SCM_ARG1, @var{str})
+@end example
+where @var{str} is a C string that describes the context of the call.
 
 @item @code{gh_scm2double}
-Use @code{scm_num2dbl} instead.
+Replace @code{gh_scm2double (@var{obj})} by
+@example
+scm_num2dbl (@var{obj}, @var{str})
+@end example
+where @var{str} is a C string that describes the context of the call.
 
 @item @code{gh_scm2char}
 Use the @code{SCM_CHAR} macro instead, but note that @code{SCM_CHAR}
@@ -1048,7 +1056,96 @@ Replace @code{gh_exact_p (@var{obj})} by
 SCM_NFALSEP (scm_exact_p (@var{obj}))
 @end example
 
+@item @code{gh_eq_p}
+Use the @code{SCM_EQ_P} macro instead, or replace @code{gh_eq_p
+(@var{x}, @var{y})} by
+@example
+SCM_NFALSEP (scm_eq_p (@var{x}, @var{y}))
+@end example
+
+@item @code{gh_eqv_p}
+Replace @code{gh_eqv_p (@var{x}, @var{y})} by
+@example
+SCM_NFALSEP (scm_eqv_p (@var{x}, @var{y}))
+@end example
+
+@item @code{gh_equal_p}
+Replace @code{gh_equal_p (@var{x}, @var{y})} by
+@example
+SCM_NFALSEP (scm_equal_p (@var{x}, @var{y}))
+@end example
+
+@item @code{gh_string_equal_p}
+Replace @code{gh_string_equal_p (@var{x}, @var{y})} by
+@example
+SCM_NFALSEP (scm_string_equal_p (@var{x}, @var{y}))
+@end example
+
+@item @code{gh_null_p}
+Use the @code{SCM_NULLP} macro instead, or replace @code{gh_null_p
+(@var{obj})} by
+@example
+SCM_NFALSEP (scm_null_p (@var{obj}))
+@end example
+
+@item @code{gh_cons}
+Use @code{scm_cons} instead.
+
+@item @code{gh_car} and @code{gh_cdr}
+Use the @code{SCM_CAR} and @code{SCM_CDR} macros instead.
+
+@item @code{gh_cxxr} and @code{gh_cxxxr}
+(Where each x is either @samp{a} or @samp{d}.)  Use the corresponding
+@code{SCM_CXXR} or @code{SCM_CXXXR} macro instead.
+
+@item @code{gh_set_car_x} and @code{gh_set_cdr_x}
+Use @code{scm_set_car_x} and @code{scm_set_cdr_x} instead.
+
 @item @code{gh_list}
 Use @code{scm_listify} instead.
+
+@item @code{gh_length}
+Replace @code{gh_length (@var{lst})} by
+@example
+scm_num2ulong (scm_length (@var{lst}), SCM_ARG1, @var{str})
+@end example
+where @var{str} is a C string that describes the context of the call.
+
+@item @code{gh_append}
+Use @code{scm_append} instead.
+
+@item @code{gh_append2}, @code{gh_append3}, @code{gh_append4}
+Replace @code{gh_append@var{N} (@var{l1}, @dots{}, @var{lN})} by
+@example
+scm_append (scm_listify (@var{l1}, @dots{}, @var{lN}, SCM_UNDEFINED))
+@end example
+
+@item @code{gh_reverse}
+Use @code{scm_reverse} instead.
+
+@item @code{gh_list_tail} and @code{gh_list_ref}
+Use @code{scm_list_tail} and @code{scm_list_ref} instead.
+
+@item @code{gh_memq}, @code{gh_memv} and @code{gh_member}
+Use @code{scm_memq}, @code{scm_memv} and @code{scm_member} instead.
+
+@item @code{gh_assq}, @code{gh_assv} and @code{gh_assoc}
+Use @code{scm_assq}, @code{scm_assv} and @code{scm_assoc} instead.
+
+@item @code{gh_make_vector}
+Use @code{scm_make_vector} instead.
+
+@item @code{gh_vector} or @code{gh_list_to_vector}
+Use @code{scm_vector} instead.
+
+@item @code{gh_vector_ref} and @code{gh_vector_set_x}
+Use @code{scm_vector_ref} and @code{scm_vector_set_x} instead.
+
+@item @code{gh_vector_length}
+Use the @code{SCM_VECTOR_LENGTH} macro instead.
+
+@item @code{gh_apply}
+Use @code{scm_apply} instead, but note that @code{scm_apply} takes an
+additional third argument that you should set to @code{SCM_EOL}.
 
 @end table
