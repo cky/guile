@@ -49,8 +49,8 @@ SCM_DEFINE (scm_system, "system", 0, 1, 0,
 	    "Execute @var{cmd} using the operating system's \"command\n"
 	    "processor\".  Under Unix this is usually the default shell\n"
 	    "@code{sh}.  The value returned is @var{cmd}'s exit status as\n"
-	    "returned by @code{waitpid}, which can be interpreted using the\n"
-	    "functions above.\n"
+	    "returned by @code{waitpid}, which can be interpreted using\n"
+	    "@code{status:exit-val} and friends.\n"
 	    "\n"
 	    "If @code{system} is called without arguments, return a boolean\n"
 	    "indicating whether the command processor is available.")
