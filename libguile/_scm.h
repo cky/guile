@@ -88,8 +88,8 @@
    */
 
 #ifdef HAVE_RESTARTABLE_SYSCALLS
-#ifndef SCM_USE_PTHREAD_THREADS /* However, don't assume SA_RESTART 
-                                   works with pthreads... */
+#if ! SCM_USE_PTHREAD_THREADS /* However, don't assume SA_RESTART 
+                                 works with pthreads... */
 #define SCM_SYSCALL(line) line
 #endif
 #endif
