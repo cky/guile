@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996, 1997 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996, 1997, 2000 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -63,7 +63,7 @@
 static long scm_tc16_arbiter;
 
 
-#define SCM_ARB_LOCKED(arb) (((SCMWORD) SCM_CAR(arb)) & (1L << 16))
+#define SCM_ARB_LOCKED(arb) ((SCM_CARBITS (arb)) & (1L << 16))
 #define SCM_LOCK_ARB(arb) SCM_SETCAR (arb, (SCM) (scm_tc16_arbiter | (1L << 16)));
 #define SCM_UNLOCK_ARB(arb) SCM_SETCAR (arb, (SCM) scm_tc16_arbiter);
 
