@@ -51,7 +51,7 @@ libtoolize --force --copy --automake
 ac_version=`autoconf --version | head -1`
 ac_version=`echo ${ac_version} | sed -e 's/autoconf.* \([0-9].[0-9]\+\)$/\1/'`
 case "${ac_version}" in
-  (2.5?) autoconf=autoconf ;;
+  (2.5?) autoconf=autoconf; autoheader=autoheader ;;
 esac
 
 # configure.in reqs autoconf-2.53; try to find it
@@ -75,7 +75,7 @@ fi
 #detect automake version
 
 
-# configure.in reqs autoconf-2.53; try to find it
+# configure.in reqs automake-1.6; try to find it
 for suf in "-1.6" "1.6" ""  false; do
   version=`automake$suf --version 2>/dev/null | head -1 | awk '{print $NF}' | awk -F. '{print $1 * 10 + $2}'`
   if test "0$version" -eq 16; then
