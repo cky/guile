@@ -92,7 +92,7 @@ info_TEXINFOS = data-rep.texi
 data_rep_TEXINFOS = data-rep.texi version.texi
 
 EXAMPLE_SMOB_FILES = \
-    ChangeLog Makefile README image-type.c image-type.h myguile.c
+    ChangeLog Makefile README COPYING image-type.c image-type.h myguile.c
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = ../libguile/scmconfig.h
 CONFIG_CLEAN_FILES = 
@@ -101,7 +101,7 @@ TEXINFO_TEX = $(srcdir)/texinfo.tex
 INFO_DEPS = data-rep.info
 DVIS = data-rep.dvi
 TEXINFOS = data-rep.texi
-DIST_COMMON =  README $(data_rep_TEXINFOS) ChangeLog Makefile.am \
+DIST_COMMON =  README $(data_rep_TEXINFOS) COPYING ChangeLog Makefile.am \
 Makefile.in mdate-sh stamp-vti texinfo.tex version.texi
 
 

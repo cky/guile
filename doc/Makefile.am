@@ -22,7 +22,7 @@ info_TEXINFOS = data-rep.texi
 data_rep_TEXINFOS = data-rep.texi version.texi
 
 EXAMPLE_SMOB_FILES = \
-    ChangeLog Makefile README image-type.c image-type.h myguile.c
+    ChangeLog Makefile README COPYING image-type.c image-type.h myguile.c
 
 dist-hook:
 	mkdir $(distdir)/example-smob
