@@ -129,7 +129,7 @@ notice identical to this one except for the removal of this paragraph
 @comment The title is printed in a large font.
 @title Guile Reference Manual
 @subtitle Edition @value{MANUAL-EDITION}, for use with Guile @value{VERSION}
-@subtitle $Id: guile.texi,v 1.23 2003-07-18 00:50:23 kryde Exp $
+@subtitle $Id: guile.texi,v 1.24 2003-08-29 23:02:36 kryde Exp $
 
 @c AUTHORS
 
@@ -283,6 +283,8 @@ Indices
 
 @end menu
 
+@contents
+
 @include preface.texi
 
 @iftex
@@ -385,7 +387,5 @@ available through both Scheme and C interfaces.
 
 @include indices.texi
 @include scheme-indices.texi
-
-@contents
 
 @bye
