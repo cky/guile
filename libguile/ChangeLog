@@ -1,3 +1,11 @@
+2001-11-15  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* eval.c (RETURN):  Wrap in do{}while(0) in order to make it
+	safely usable as a single statement followed by a ';', for example
+	in an if statement.
+
+	(SCM_CEVAL, SCM_APPLY):  Clean up code using 'RETURN'.
+
 2001-11-13  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* random.c (scm_random_solid_sphere_x,
