@@ -306,8 +306,8 @@ size_t scm_take_from_input_buffers (SCM port, char *dest, size_t read_len)
 /* Clear a port's read buffers, returning the contents.  */
 SCM_DEFINE (scm_drain_input, "drain-input", 1, 0, 0, 
             (SCM port),
-	    "Drains @var{PORT}'s read buffers (including any pushed-back characters)\n"
-	    "and returns the contents as a single string.")
+	    "Drain @var{port}'s read buffers (including any pushed-back\n"
+	    "characters) and returns the content as a single string.")
 #define FUNC_NAME s_scm_drain_input
 {
   SCM result;
@@ -331,10 +331,10 @@ SCM_DEFINE (scm_drain_input, "drain-input", 1, 0, 0,
 /* Standard ports --- current input, output, error, and more(!).  */
 
 SCM_DEFINE (scm_current_input_port, "current-input-port", 0, 0, 0,
-           (),
-	    "Returns the current input port.  This is the default port used by many\n"
-            "input procedures.  Initially, @code{current-input-port} returns the\n"
-            "value of @code{???}.")
+	    (),
+	    "Return the current input port.  This is the default port used\n"
+	    "by many input procedures.  Initially, @code{current-input-port}\n"
+	    "returns the @dfn{standard input} in Unix and C terminology.")
 #define FUNC_NAME s_scm_current_input_port
 {
   return scm_cur_inp;
@@ -342,10 +342,11 @@ SCM_DEFINE (scm_current_input_port, "current-input-port", 0, 0, 0,
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_current_output_port, "current-output-port", 0, 0, 0,
-           (),
-            "Returns the current output port.  This is the default port used by many\n"
-            "output procedures.  Initially, @code{current-output-port} returns the\n"
-            "value of @code{???}.")
+	    (),
+            "Return the current output port.  This is the default port used\n"
+	    "by many output procedures.  Initially, \n"
+	    "@code{current-output-port} returns the @dfn{standard output} in\n"
+	    "Unix and C terminology.")
 #define FUNC_NAME s_scm_current_output_port
 {
   return scm_cur_outp;
@@ -363,9 +364,9 @@ SCM_DEFINE (scm_current_error_port, "current-error-port", 0, 0, 0,
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_current_load_port, "current-load-port", 0, 0, 0,
-           (),
+	    (),
 	    "Return the current-load-port.\n"
-            "The load port is used internally by `primitive-load'.")
+            "The load port is used internally by @code{primitive-load}.")
 #define FUNC_NAME s_scm_current_load_port
 {
   return scm_cur_loadp;
@@ -390,8 +391,8 @@ SCM_DEFINE (scm_set_current_input_port, "set-current-input-port", 1, 0, 0,
 
 
 SCM_DEFINE (scm_set_current_output_port, "set-current-output-port", 1, 0, 0,
-           (SCM port),
-	    "Set the current default output port to PORT.")
+	    (SCM port),
+	    "Set the current default output port to @var{port}.")
 #define FUNC_NAME s_scm_set_current_output_port
 {
   SCM ooutp = scm_cur_outp;
@@ -404,8 +405,8 @@ SCM_DEFINE (scm_set_current_output_port, "set-current-output-port", 1, 0, 0,
 
 
 SCM_DEFINE (scm_set_current_error_port, "set-current-error-port", 1, 0, 0,
-           (SCM port),
-	    "Set the current default error port to PORT.")
+	    (SCM port),
+	    "Set the current default error port to @var{port}.")
 #define FUNC_NAME s_scm_set_current_error_port
 {
   SCM oerrp = scm_cur_errp;
@@ -1284,7 +1285,7 @@ SCM_DEFINE (scm_truncate_file, "truncate-file", 1, 1, 0,
 
 SCM_DEFINE (scm_port_line, "port-line", 1, 0, 0,
             (SCM port),
-	    "Return the current line number for PORT.")
+	    "Return the current line number for @var{port}.")
 #define FUNC_NAME s_scm_port_line
 {
   port = SCM_COERCE_OUTPORT (port);
@@ -1295,7 +1296,7 @@ SCM_DEFINE (scm_port_line, "port-line", 1, 0, 0,
 
 SCM_DEFINE (scm_set_port_line_x, "set-port-line!", 2, 0, 0,
             (SCM port, SCM line),
-	    "Set the current line number for PORT to LINE.")
+	    "Set the current line number for @var{port} to @var{line}.")
 #define FUNC_NAME s_scm_set_port_line_x
 {
   port = SCM_COERCE_OUTPORT (port);
