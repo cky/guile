@@ -172,9 +172,13 @@
   (pass-if (= 1 (abs -1)))
   (pass-if (= (+ fixnum-max 1) (abs (+ fixnum-max 1))))
   (pass-if (= (+ (- fixnum-min) 1) (abs (- fixnum-min 1))))  
-  (pass-if (positive? (abs 1.0)))
-  (pass-if (positive? (abs -1.0))))
-  
+  (pass-if (= 0.0 (abs 0.0)))
+  (pass-if (= 1.0 (abs 1.0)))
+  (pass-if (= 1.0 (abs -1.0)))
+  (pass-if (nan? (abs +nan.0)))
+  (pass-if (= +inf.0 (abs +inf.0)))
+  (pass-if (= +inf.0 (abs -inf.0))))
+
 ;;;
 ;;; quotient
 ;;;
