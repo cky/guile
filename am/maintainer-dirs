@@ -1,0 +1,37 @@
+## am/maintainer-dirs --- define workbook and mscripts vars
+
+##	Copyright (C) 2002 Free Software Foundation
+##
+##   This file is part of GUILE.
+##
+##   GUILE is free software; you can redistribute it and/or modify
+##   it under the terms of the GNU General Public License as
+##   published by the Free Software Foundation; either version 2, or
+##   (at your option) any later version.
+##
+##   GUILE is distributed in the hope that it will be useful, but
+##   WITHOUT ANY WARRANTY; without even the implied warranty of
+##   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+##   GNU General Public License for more details.
+##
+##   You should have received a copy of the GNU General Public
+##   License along with GUILE; see the file COPYING.  If not, write
+##   to the Free Software Foundation, Inc., 59 Temple Place, Suite
+##   330, Boston, MA 02111-1307 USA
+
+## Commentary:
+
+## This fragment defines two variables: workbook and mscripts.
+## These are only defined in MAINTAINER_MODE.
+## It can be included in any Makefile.am by adding the line:
+##   include $(top_srcdir)/am/maintainer-dirs
+## See $(workbook)/build/maintainer-dirs.text for more info.
+
+## Code:
+
+if MAINTAINER_MODE
+workbook	= $(top_srcdir_absolute)/../workbook
+mscripts	= $(top_srcdir_absolute)/../scripts
+endif
+
+## am/maintainer-dirs ends here
