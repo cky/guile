@@ -1,3 +1,7 @@
+2001-11-02  Mikael Djurfeldt  <mdj@linnaeus>
+
+	* unif.c (scm_ra2contig): Fixed memory overwrite bug.
+
 2001-11-02  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	Support for native Win32.  Thanks to Stefan Jahn!

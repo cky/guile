@@ -1472,7 +1472,7 @@ scm_ra2contig (SCM ra, int copy)
       SCM_ARRAY_DIMS (ret)[k].inc = inc;
       inc *= SCM_ARRAY_DIMS (ra)[k].ubnd - SCM_ARRAY_DIMS (ra)[k].lbnd + 1;
     }
-  SCM_ARRAY_V (ret) = scm_make_uve ((inc - 1), scm_array_prototype (ra));
+  SCM_ARRAY_V (ret) = scm_make_uve (inc, scm_array_prototype (ra));
   if (copy)
     scm_array_copy_x (ra, ret);
   return ret;
