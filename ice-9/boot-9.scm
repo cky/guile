@@ -3385,9 +3385,6 @@
 (define exit-hook (make-hook))
 
 
-(append! %load-path (list "."))
-
-
 
 ;;; {Deprecated stuff}
 ;;;
