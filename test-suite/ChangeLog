@@ -1,3 +1,11 @@
+2001-11-17  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* tests/syntax.test: Added some tests, updated some others with
+	respect to recent changes in eval.c.  Further, extracted test
+	cases for guile's extended set! functionality to srfi-17.test.
+
+	* tests/srfi-17.test:  New file.
+
 2001-11-04  Stefan Jahn  <stefan@lkcc.org>
 
 	* tests/ports.test: Run (close-port) before (delete-file) if

@@ -51,6 +51,34 @@
       exception:missing/extra-expr
       ())))
 
+(with-test-prefix "quote"
+  #t)
+
+(with-test-prefix "quasiquote"
+
+  (with-test-prefix "unquote"
+
+    (pass-if "repeated execution"
+      (let ((foo (let ((i 0)) (lambda () (set! i (+ i 1)) `(,i)))))
+	(and (equal? (foo) '(1)) (equal? (foo) '(2))))))
+
+  (with-test-prefix "unquote-splicing"
+
+    (pass-if-exception "extra arguments"
+      exception:missing/extra-expr
+      (quasiquote ((unquote-splicing (list 1 2) (list 3 4)))))))
+
+(with-test-prefix "begin"
+
+  (pass-if "legal (begin)"
+    (begin)
+    #t)
+
+  (expect-fail-exception "illegal (begin)"
+    exception:bad-body
+    (if #t (begin))
+    #t))
+
 (with-test-prefix "lambda"
 
   (with-test-prefix "bad formals"
@@ -62,10 +90,6 @@
     (pass-if-exception "(lambda . \"foo\")"
       exception:bad-formals
       (lambda . "foo"))
-
-    (pass-if-exception "(lambda ())"
-      exception:bad-formals
-      (lambda ()))
 
     (pass-if-exception "(lambda \"foo\")"
       exception:bad-formals
@@ -101,7 +125,13 @@
     ;; Fixed on 2001-3-3
     (pass-if-exception "(lambda (x x x) 1)"
       exception:duplicate-formals
-      (lambda (x x x) 1))))
+      (lambda (x x x) 1)))
+
+  (with-test-prefix "bad body"
+
+    (pass-if-exception "(lambda ())"
+      exception:bad-body
+      (lambda ()))))
 
 (with-test-prefix "let"
 
@@ -111,35 +141,25 @@
       exception:unbound-var
       (let ((x 1) (y x)) y)))
 
-  (with-test-prefix "bad body"
+  (with-test-prefix "bad bindings"
 
-    (pass-if-exception "(let ())"
-      exception:bad-body
-      (let ()))
-
-    (pass-if-exception "(let ((x 1)))"
-      exception:bad-body
-      (let ((x 1))))
-
-    ;; FIXME:  Wouldn't one rather expect a 'bad bindings' error?
-    ;; Hmm, the body is bad as well, isn't it?
     (pass-if-exception "(let)"
-      exception:bad-body
+      exception:bad-bindings
       (let))
 
-    ;; FIXME:  Wouldn't one rather expect a 'bad bindings' error?
-    ;; Hmm, the body is bad as well, isn't it?
     (pass-if-exception "(let 1)"
-      exception:bad-body
+      exception:bad-bindings
       (let 1))
 
-    ;; FIXME:  Wouldn't one rather expect a 'bad bindings' error?
-    ;; Hmm, the body is bad as well, isn't it?
     (pass-if-exception "(let (x))"
-      exception:bad-body
-      (let (x))))
+      exception:bad-bindings
+      (let (x)))
 
-  (with-test-prefix "bad bindings"
+    ;; FIXME:  Wouldn't one rather expect a 'bad bindings' error?
+    ;; (Even although the body is bad as well...)
+    (pass-if-exception "(let ((x)))"
+      exception:bad-body
+      (let ((x))))
 
     (pass-if-exception "(let (x) 1)"
       exception:bad-bindings
@@ -161,9 +181,31 @@
 
     (pass-if-exception "(let ((x 1) (x 2)) x)"
       exception:duplicate-bindings
-      (let ((x 1) (x 2)) x))))
+      (let ((x 1) (x 2)) x)))
+
+  (with-test-prefix "bad body"
+
+    (pass-if-exception "(let ())"
+      exception:bad-body
+      (let ()))
+
+    (pass-if-exception "(let ((x 1)))"
+      exception:bad-body
+      (let ((x 1))))))
 
 (with-test-prefix "named let"
+
+  (with-test-prefix "initializers"
+
+    (pass-if "evaluated in outer environment"
+      (let ((f -))
+	(eqv? (let f ((n (f 1))) n) -1))))
+
+  (with-test-prefix "bad bindings"
+
+    (pass-if-exception "(let x (y))"
+      exception:bad-bindings
+      (let x (y))))
 
   (with-test-prefix "bad body"
 
@@ -173,13 +215,7 @@
 
     (pass-if-exception "(let x ((y 1)))"
       exception:bad-body
-      (let x ((y 1))))
-
-    ;; FIXME:  Wouldn't one rather expect a 'bad bindings' error?
-    ;; Hmm, the body is bad as well, isn't it?
-    (pass-if-exception "(let x (y))"
-      exception:bad-body
-      (let x (y)))))
+      (let x ((y 1))))))
 
 (with-test-prefix "let*"
 
@@ -193,35 +229,19 @@
       (let* ((x 1) (x x))
 	(= x 1))))
 
-  (with-test-prefix "bad body"
+  (with-test-prefix "bad bindings"
 
-    (pass-if-exception "(let* ())"
-      exception:bad-body
-      (let* ()))
-
-    (pass-if-exception "(let* ((x 1)))"
-      exception:bad-body
-      (let* ((x 1))))
-
-    ;; FIXME:  Wouldn't one rather expect a 'bad bindings' error?
-    ;; Hmm, the body is bad as well, isn't it?
     (pass-if-exception "(let*)"
-      exception:bad-body
+      exception:bad-bindings
       (let*))
 
-    ;; FIXME:  Wouldn't one rather expect a 'bad bindings' error?
-    ;; Hmm, the body is bad as well, isn't it?
     (pass-if-exception "(let* 1)"
-      exception:bad-body
+      exception:bad-bindings
       (let* 1))
 
-    ;; FIXME:  Wouldn't one rather expect a 'bad bindings' error?
-    ;; Hmm, the body is bad as well, isn't it?
     (pass-if-exception "(let* (x))"
-      exception:bad-body
-      (let* (x))))
-
-  (with-test-prefix "bad bindings"
+      exception:bad-bindings
+      (let* (x)))
 
     (pass-if-exception "(let* (x) 1)"
       exception:bad-bindings
@@ -245,7 +265,17 @@
 
     (pass-if-exception "(let* ((1 2)) 3)"
       exception:bad-var
-      (let* ((1 2)) 3))))
+      (let* ((1 2)) 3)))
+
+  (with-test-prefix "bad body"
+
+    (pass-if-exception "(let* ())"
+      exception:bad-body
+      (let* ()))
+
+    (pass-if-exception "(let* ((x 1)))"
+      exception:bad-body
+      (let* ((x 1))))))
 
 (with-test-prefix "letrec"
 
@@ -256,35 +286,19 @@
       (let ((x 1))
 	(letrec ((x 1) (y x)) y))))
 
-  (with-test-prefix "bad body"
+  (with-test-prefix "bad bindings"
 
-    (pass-if-exception "(letrec ())"
-      exception:bad-body
-      (letrec ()))
-
-    (pass-if-exception "(letrec ((x 1)))"
-      exception:bad-body
-      (letrec ((x 1))))
-
-    ;; FIXME:  Wouldn't one rather expect a 'bad bindings' error?
-    ;; Hmm, the body is bad as well, isn't it?
     (pass-if-exception "(letrec)"
-      exception:bad-body
+      exception:bad-bindings
       (letrec))
 
-    ;; FIXME:  Wouldn't one rather expect a 'bad bindings' error?
-    ;; Hmm, the body is bad as well, isn't it?
     (pass-if-exception "(letrec 1)"
-      exception:bad-body
+      exception:bad-bindings
       (letrec 1))
 
-    ;; FIXME:  Wouldn't one rather expect a 'bad bindings' error?
-    ;; Hmm, the body is bad as well, isn't it?
     (pass-if-exception "(letrec (x))"
-      exception:bad-body
-      (letrec (x))))
-
-  (with-test-prefix "bad bindings"
+      exception:bad-bindings
+      (letrec (x)))
 
     (pass-if-exception "(letrec (x) 1)"
       exception:bad-bindings
@@ -314,7 +328,17 @@
 
     (pass-if-exception "(letrec ((x 1) (x 2)) x)"
       exception:duplicate-bindings
-      (letrec ((x 1) (x 2)) x))))
+      (letrec ((x 1) (x 2)) x)))
+
+  (with-test-prefix "bad body"
+
+    (pass-if-exception "(letrec ())"
+      exception:bad-body
+      (letrec ()))
+
+    (pass-if-exception "(letrec ((x 1)))"
+      exception:bad-body
+      (letrec ((x 1))))))
 
 (with-test-prefix "if"
 
@@ -445,6 +469,12 @@
 
 (with-test-prefix "define"
 
+  (with-test-prefix "currying"
+
+    (pass-if "(define ((foo)) #f)"
+      (define ((foo)) #t)
+      ((foo))))
+
   (with-test-prefix "missing or extra expressions"
 
     (pass-if-exception "(define)"
@@ -488,18 +518,6 @@
     (pass-if-exception "(set! #\space #f)"
       exception:bad-var
       (set! #\space #f))))
-
-(with-test-prefix "generalized set! (SRFI 17)"
-
-  (with-test-prefix "target is not procedure with setter"
-
-    (pass-if-exception "(set! (symbol->string 'x) 1)"
-      exception:wrong-type-arg
-      (set! (symbol->string 'x) 1))
-
-    (pass-if-exception "(set! '#f 1)"
-      exception:wrong-type-arg
-      (set! '#f 1))))
 
 (with-test-prefix "quote"
 
