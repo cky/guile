@@ -109,8 +109,12 @@ typedef struct scm_root_state
 
   SCM active_asyncs;            /* The thunks to be run at the next
                                    safe point */
+  SCM signal_asyncs;            /* The pre-queued cells for signal handlers.
+                                 */
   unsigned int block_asyncs;    /* Non-zero means that asyncs should 
                                    not be run. */
+  unsigned int pending_asyncs;  /* Non-zero means that asyncs might be pending.
+				 */
 } scm_root_state;
 
 #define scm_stack_base			(scm_root->stack_base)

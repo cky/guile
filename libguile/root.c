@@ -81,6 +81,7 @@ root_mark (SCM root)
   /* No need to gc mark def_loadp */
   scm_gc_mark (s->fluids);
   scm_gc_mark (s->active_asyncs);
+  scm_gc_mark (s->signal_asyncs);
   return SCM_ROOT_STATE (root) -> parent;
 }
 
@@ -131,7 +132,9 @@ scm_make_root (SCM parent)
     }
   
   root_state->active_asyncs = SCM_EOL;
+  root_state->signal_asyncs = SCM_EOL;
   root_state->block_asyncs = 0;
+  root_state->pending_asyncs = 1;
 
   SCM_REDEFER_INTS;
   SCM_NEWSMOB (root, scm_tc16_root, root_state);
