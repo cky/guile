@@ -1,3 +1,9 @@
+2000-10-09  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* numbers.c (big2str):  Avoid redundant copying.
+
+	(scm_bigprint):  Use SCM_STRING_LENGTH instead of SCM_LENGTH.
+
 2000-10-06  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* numbers.c (big2str), read.c (scm_grow_tok_buf), strports.c

@@ -2175,7 +2175,6 @@ big2str (SCM b, unsigned int radix)
     : (SCM_BITSPERDIG * i) + 2;
   scm_sizet k = 0;
   scm_sizet radct = 0;
-  scm_sizet ch;			/* jeh */
   SCM_BIGDIG radpow = 1, radmod = 0;
   SCM ss = scm_makstr ((long) j, 0);
   char *s = SCM_STRING_CHARS (ss), c;
@@ -2184,7 +2183,6 @@ big2str (SCM b, unsigned int radix)
       radpow *= radix;
       radct++;
     }
-  s[0] = SCM_BIGSIGN (b) ? '-' : '+';
   while ((i || radmod) && j)
     {
       if (k == 0)
@@ -2199,13 +2197,15 @@ big2str (SCM b, unsigned int radix)
       k--;
       s[--j] = c < 10 ? c + '0' : c + 'a' - 10;
     }
-  ch = s[0] == '-' ? 1 : 0;	/* jeh */
-  if (ch < j)
-    {				/* jeh */
-      for (i = j; j < SCM_LENGTH (ss); j++)
-	s[ch + j - i] = s[j];	/* jeh */
-      ss = scm_substring (ss, SCM_INUM0, 
-			  SCM_MAKINUM (ch + SCM_STRING_LENGTH (ss) - i));
+
+  if (SCM_BIGSIGN (b))
+    s[--j] = '-';
+
+  if (j > 0)
+    {
+      /* The pre-reserved string length was too large. */
+      unsigned long int length = SCM_STRING_LENGTH (ss);
+      ss = scm_substring (ss, SCM_MAKINUM (j), SCM_MAKINUM (length));
     }
 
   return scm_return_first (ss, t);
@@ -2270,7 +2270,7 @@ scm_bigprint (SCM exp, SCM port, scm_print_state *pstate)
 {
 #ifdef SCM_BIGDIG
   exp = big2str (exp, (unsigned int) 10);
-  scm_lfwrite (SCM_STRING_CHARS (exp), (scm_sizet) SCM_LENGTH (exp), port);
+  scm_lfwrite (SCM_STRING_CHARS (exp), (scm_sizet) SCM_STRING_LENGTH (exp), port);
 #else
   scm_ipruk ("bignum", exp, port);
 #endif
