@@ -1,3 +1,10 @@
+1999-09-07  Mikael Djurfeldt  <mdj@mdj-pc.nada.kth.se>
+
+	* eval.c (scm_map, scm_for_each): Converted to dispatch on generic
+	if args don't match.
+
+	* __scm.h (SCM_WTA_DISPATCH_n, SCM_GASSERTn): New macros.
+
 1999-09-06  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* numbers.c: Converted comparison operations to dispatch on
