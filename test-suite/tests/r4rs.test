@@ -110,23 +110,24 @@
   (list boolean? char? null? number? pair? procedure? string? symbol? vector?))
 (define type-examples
   (list
-   #t #f #\a '() 9739 '(test) record-error "test" "" 'test '#() '#(a b c) ))
-(define i 1)
+   #t #f #\a '() 9739 '(test) (lambda () #f) car "test" "" 'test
+   '#() '#(a b c)))
 (define type-matrix
   (map (lambda (x)
-	 (let ((t (map (lambda (f) (f x)) disjoint-type-functions)))
-	   t))
+         (let ((t (map (lambda (f) (f x)) disjoint-type-functions)))
+           t))
        type-examples))
-(for-each (lambda (predicate row)
-	    (let ((count (apply + (map (lambda (elt) (if elt 1 0))
-				       row))))
-	      (pass-if (call-with-output-string
-			(lambda (port)
-			  (display "predicate is disjoint: " port)
-			  (display predicate port)))
-		       (= count 1))))
-	  disjoint-type-functions
-	  type-matrix)
+(for-each (lambda (object row)
+            (let ((count (apply + (map (lambda (elt) (if elt 1 0))
+                                       row))))
+              (pass-if (call-with-output-string
+                        (lambda (port)
+                          (display "object recognized by only one predicate: "
+				   port)
+                          (display object port)))
+                       (= count 1))))
+          type-examples
+          type-matrix)
 
 (SECTION 4 1 2)
 (test '(quote a) 'quote (quote 'a))
