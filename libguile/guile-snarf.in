@@ -24,11 +24,7 @@
 #
 # Process INFILE using the C pre-processor and some other programs.
 # Write output to a file named OUTFILE or to the standard output when no
-# OUTFILE has been specified or when OUTFILE is "-".  When writing
-# to a file, ignore lines from the input matching the following grep(1)
-# regular expression:
-#
-#       ^#include ".*OUTFILE"
+# OUTFILE has been specified or when OUTFILE is "-".
 #
 # If there are errors during processing, delete OUTFILE and exit with
 # non-zero status.
@@ -110,16 +106,7 @@ if [ x"$CPP" = x ] ; then cpp="@CPP@" ; else cpp="$CPP" ; fi
 trap "rm -f $temp" 0 1 2 15
 
 if [ ! "$outfile" = "-" ]; then
-    self_blind_regexp='^#include ".*'`basename $outfile`'"'
-    clean_infile=$infile.clean.c        # temp file in same dir as infile
-                                        # so that #include "foo" works
-                                        # (e.g., see libguile/eval.c).
-                                        # use .c to satisfy cpp heuristics.
-
-    # clean input file
-    trap "rm -f $cleanfile" 0 1 2 15
-    grep -v "$self_blind_regexp" $infile > $clean_infile
-    modern_snarf "$@" $clean_infile > $outfile
+    modern_snarf "$@" $infile > $outfile
 else
     modern_snarf "$@" $infile
 fi

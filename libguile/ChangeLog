@@ -1,3 +1,16 @@
+2002-04-17  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* Makefile.am (EXTRA_DIST): Added cpp_err_symbols.c and
+	cpp_sig_symbols.c.
+
+2002-04-16  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* guile-snarf.in: Do not clean input file.  This would write to
+	the $(srcdir) during a VPATH build, which is not allowed.  It also
+	isn't needed since it only works when an output filename has been
+	specified and in that case we don't need to clean the input file
+	because the output file will already exist.
+
 2002-03-31  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* guile-snarf: Install the trap for removing $cleanfile only when
