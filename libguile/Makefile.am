@@ -54,20 +54,25 @@ libguile_la_SOURCES =							\
 DOT_X_FILES =								\
     cpp_err_symbols.c cpp_sig_symbols.c libpath.h alist.x arbiters.x	\
     async.x backtrace.x boolean.x chars.x continuations.x debug.x	\
-    dynl.x dynwind.x eq.x error.x eval.x evalext.x feature.x filesys.x	\
+    dynl.x dynwind.x eq.x error.x eval.x evalext.x feature.x		\
     fluids.x fports.x gc.x gsubr.x guardians.x hash.x hashtab.x		\
     hooks.x init.x ioext.x iselect.x keywords.x lang.x list.x load.x	\
     macros.x mallocs.x modules.x net_db.x numbers.x objects.x		\
     objprop.x options.x pairs.x ports.x posix.x print.x procprop.x	\
-    procs.x random.x ramap.x read.x regex-posix.x root.x scmsigs.x	\
+    procs.x random.x read.x regex-posix.x root.x scmsigs.x		\
     script.x simpos.x smob.x socket.x sort.x srcprop.x stackchk.x	\
     stacks.x stime.x strings.x strop.x strorder.x strports.x struct.x	\
-    symbols.x tag.x threads.x throw.x unif.x variable.x vectors.x	\
-    version.x vports.x weaks.x debug-malloc.x 
+    symbols.x tag.x throw.x variable.x vectors.x			\
+    version.x vports.x weaks.x
+
+EXTRA_DOT_X_FILES = debug-malloc.x filesys.x net_db.x posix.x ramap.x	\
+                    socket.x threads.x unif.x
+
+EXTRA_DOT_DOC_FILES = @EXTRA_DOT_DOC_FILES@
 
 DOT_DOC_FILES = $(DOT_X_FILES:.x=.doc)
 
-BUILT_SOURCES = $(DOT_X_FILES) $(DOT_DOC_FILES)
+BUILT_SOURCES = $(DOT_X_FILES) $(EXTRA_DOT_X_FILES) $(DOT_DOC_FILES)
 
 EXTRA_libguile_la_SOURCES = _scm.h		\
     alloca.c inet_aton.c memmove.c putenv.c strerror.c	\
@@ -171,7 +176,7 @@ SUFFIXES = .x .doc
 	PATH=.:${PATH} ./guile-doc-snarf $< $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< \
         || { rm $@; false; }
 
-guile-procedures.txt: $(DOT_DOC_FILES)
+guile-procedures.txt: $(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES)
 	cat *.doc > $@
 
 pkgdata_DATA = guile-procedures.txt
