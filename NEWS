@@ -13,6 +13,18 @@ libguile/sequences.c removed.
 
 * Changes to the stand-alone interpreter
 
+New procedures have been added to implement a "batch mode":
+
+Function: batch-mode?
+
+    Returns a boolean indicating whether the interpreter is in batch
+    mode.
+
+Function: set-batch-mode?! ARG
+
+    If ARG is true, switches the interpreter to batch mode.  The `#f'
+    case has not been implemented.
+
 * Changes to the procedure for linking libguile with your programs
 
 * Changes to Scheme functions and syntax
@@ -129,58 +141,68 @@ file descriptor.
 ** The following new procedures have been added (most use scsh
 interfaces):
 
-** close PORT/FD
-Similar to close-port, but also works on file descriptors.  A side
-effect of closing a file descriptor is that any ports using that file
-descriptor are moved to a different file descriptor and have
-their revealed counts set to zero.
+** procedure: close PORT/FD
+     Similar to close-port (*note close-port: Closing Ports.), but also
+     works on file descriptors.  A side effect of closing a file
+     descriptor is that any ports using that file descriptor are moved
+     to a different file descriptor and have their revealed counts set
+     to zero.
 
-The next five procedures perform a dup2 system call, if NEWFD (an
-integer) is supplied, otherwise a dup.  The file descriptor to be
-duplicated can be supplied as an integer or wrapped in a port.  The
+** procedure: port->fdes PORT
+     Returns the integer file descriptor underlying PORT.  As a side
+     effect the revealed count of PORT is incremented.
+
+** procedure: fdes->ports FDES
+     Returns a list of existing ports which have FDES as an underlying
+     file descriptor, without changing their revealed counts.
+
+** procedure: fdes->inport FDES
+     Returns an existing input port which has FDES as its underlying
+     file descriptor, if one exists, and increments its revealed count.
+     Otherwise, returns a new input port with a revealed count of 1.
+
+** procedure: fdes->outport FDES
+     Returns an existing output port which has FDES as its underlying
+     file descriptor, if one exists, and increments its revealed count.
+     Otherwise, returns a new output port with a revealed count of 1.
+
+   The next group of procedures perform a `dup2' system call, if NEWFD
+(an integer) is supplied, otherwise a `dup'.  The file descriptor to be
+duplicated can be supplied as an integer or contained in a port.  The
 type of value returned varies depending on which procedure is used.
 
-All procedures also have the side effect when performing dup2 that any
-ports using NEWFD are moved to a different file descriptor and have
+   All procedures also have the side effect when performing `dup2' that
+any ports using NEWFD are moved to a different file descriptor and have
 their revealed counts set to zero.
 
-** dup->fdes PORT/FD [NEWFD]
-Returns an integer file descriptor.
+** procedure: dup->fdes PORT/FD [NEWFD]
+     Returns an integer file descriptor.
 
-** dup->inport PORT/FD [NEWFD]
-Returns a new input port using the new file descriptor.
+** procedure: dup->inport PORT/FD [NEWFD]
+     Returns a new input port using the new file descriptor.
 
-** dup->outport PORT/FD [NEWFD]
-Returns a new output port using the new file descriptor.
+** procedure: dup->outport PORT/FD [NEWFD]
+     Returns a new output port using the new file descriptor.
 
-** dup PORT/FD [NEWFD]
-Returns a new port if PORT/FD is a port, with the same mode as the
-supplied port, otherwise returns an integer file descriptor.
+** procedure: dup PORT/FD [NEWFD]
+     Returns a new port if PORT/FD is a port, with the same mode as the
+     supplied port, otherwise returns an integer file descriptor.
 
-** dup->port PORT/FD MODE [NEWFD]
-Returns a new port using the new file descriptor.  MODE supplies a 
-mode string for the port (as for `open-file').
+** procedure: dup->port PORT/FD MODE [NEWFD]
+     Returns a new port using the new file descriptor.  MODE supplies a
+     mode string for the port (*note open-file: File Ports.).
 
-** port->fdes PORT
-Returns the integer file descriptor underlying PORT.  As a
-side effect the revealed count of PORT is incremented.
+** procedure: setenv NAME VALUE
+     Modifies the environment of the current process, which is also the
+     default environment inherited by child processes.
 
-** fdes->inport FDES
-Returns an existing input port which has FDES as its underlying file
-descriptor, if one exists, and increments its revealed count.
-Otherwise, returns a new input port with a revealed count of 1.
+     If VALUE is `#f', then NAME is removed from the environment.
+     Otherwise, the string NAME=VALUE is added to the environment,
+     replacing any existing string with name matching NAME.
 
-** fdes->outport FDES
-Returns an existing output port which has FDES as its underlying file
-descriptor, if one exists, and increments its revealed count.
-Otherwise, returns a new output port with a revealed count of 1.
+     The return value is unspecified.
 
-** setenv NAME VALUE
-If VALUE is `#f', removes NAME from the environment.  Otherwise 
-adds the string NAME=VALUE to the environment, replacing any previous
-value for NAME.
-
-** truncate-file OBJ SIZE
+** procedure: truncate-file OBJ SIZE
      Truncates the file referred to by OBJ to at most SIZE bytes.  OBJ
      can be a string containing a file name or an integer file
      descriptor or port open for output on the file.  The underlying
@@ -188,7 +210,7 @@ value for NAME.
 
      The return value is unspecified.
 
-** setvbuf PORT MODE [SIZE]
+** procedure: setvbuf PORT MODE [SIZE]
      Set the buffering mode for PORT.  MODE can be:
     `_IONBF'
           non-buffered
@@ -208,13 +230,13 @@ value for NAME.
      size.  Procedures e.g., *Note open-file: File Ports, which accept a
      mode string allow `0' to be added to request an unbuffered port.
 
-** fsync PORT/FD
+** procedure: fsync PORT/FD
      Copies any unwritten data for the specified output file descriptor
      to disk.  If PORT/FD is a port, its buffer is flushed before the
      underlying file descriptor is fsync'd.  The return value is
      unspecified.
 
-** open-fdes PATH FLAGS [MODES]
+** procedure: open-fdes PATH FLAGS [MODES]
      Similar to `open' but returns a file descriptor instead of a port.
 
 ** procedure: execle PATH ENV [ARG] ...
@@ -225,6 +247,9 @@ value for NAME.
      This procedure is currently implemented using the `execve' system
      call, but we call it `execle' because of its Scheme calling
      interface.
+
+** procedure: strerror ERRNO
+     Returns the Unix error message corresponding to ERRNO, an integer.
 
 ** procedure: primitive-exit [STATUS]
      Terminate the current process without unwinding the Scheme stack.
