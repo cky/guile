@@ -2809,7 +2809,7 @@
     (define (check module name int1 val1 int2 val2 var val)
       (scm-error 'misc-error
 		 #f
-		 "~A: ~A imported from ~A and ~A"
+		 "~A: `~A' imported from both ~A and ~A"
 		 (list (module-name module)
 		       name
 		       (module-name int1)
@@ -2818,7 +2818,7 @@
     
      (define (warn module name int1 val1 int2 val2 var val)
        (format #t
-	       "~A: ~A imported from ~A and ~A\n"
+	       "~A: `~A' imported from both ~A and ~A\n"
 	       (module-name module)
 	       name
 	       (module-name int1)
@@ -2840,7 +2840,7 @@
        (and (eq? int1 the-scm-module)
 	    (begin
 	      (format #t
-		      "WARNING: ~A: imported module ~A overrides core binding ~A\n"
+		      "WARNING: ~A: imported module ~A overrides core binding `~A'\n"
 		      (module-name module)
 		      (module-name int2)
 		      name)
