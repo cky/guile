@@ -494,18 +494,29 @@ taloop:
 	  ENTER_NESTED_DATA (pstate, exp, circref);
 	  scm_gen_puts (scm_regular_string, "#(", port);
 	common_vector_printer:
-	  for (i = 0; i + 1 < SCM_LENGTH (exp); ++i)
-	    {
-	      /* CHECK_INTS; */
-	      scm_iprin1 (SCM_VELTS (exp)[i], port, pstate);
-	      scm_gen_putc (' ', port);
-	    }
-	  if (i < SCM_LENGTH (exp))
-	    {
-	      /* CHECK_INTS; */
-	      scm_iprin1 (SCM_VELTS (exp)[i], port, pstate);
-	    }
-	  scm_gen_putc (')', port);
+	  {
+	    int last = SCM_LENGTH (exp) - 1;
+	    int cutp = 0;
+	    if (pstate->fancyp && SCM_LENGTH (exp) > pstate->length)
+	      {
+		last = pstate->length - 1;
+		cutp = 1;
+	      }
+	    for (i = 0; i < last; ++i)
+	      {
+		/* CHECK_INTS; */
+		scm_iprin1 (SCM_VELTS (exp)[i], port, pstate);
+		scm_gen_putc (' ', port);
+	      }
+	    if (i == last)
+	      {
+		/* CHECK_INTS; */
+		scm_iprin1 (SCM_VELTS (exp)[i], port, pstate);
+	      }
+	    if (cutp)
+	      scm_gen_puts (scm_regular_string, " ...", port);
+	    scm_gen_putc (')', port);
+	  }
 	  EXIT_NESTED_DATA (pstate);
 	  break;
 	case scm_tc7_bvect:
