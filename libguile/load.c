@@ -61,28 +61,6 @@
    Applied to the full name of the file.  */
 static SCM *scm_loc_load_hook;
 
-static void
-swap_port (void *data)
-{
-  SCM *save_port = data, tmp = scm_cur_loadp;
-  scm_cur_loadp = *save_port;
-  *save_port = tmp;
-}
-
-static SCM
-load (void *data)
-{
-  SCM port = SCM_PACK (data);
-  while (1)
-    {
-      SCM form = scm_read (port);
-      if (SCM_EOF_OBJECT_P (form))
-	break;
-      scm_primitive_eval_x (form);
-    }
-  return SCM_UNSPECIFIED;
-}
-
 SCM_DEFINE (scm_primitive_load, "primitive-load", 1, 0, 0, 
            (SCM filename),
 	    "Load the file named @var{filename} and evaluate its contents in\n"
@@ -104,14 +82,19 @@ SCM_DEFINE (scm_primitive_load, "primitive-load", 1, 0, 0,
     scm_call_1 (hook, filename);
 
   { /* scope */
-    SCM port, save_port;
-    port = scm_open_file (filename, scm_from_locale_string ("r"));
-    save_port = port;
-    scm_internal_dynamic_wind (swap_port,
-			       load,
-			       swap_port,
-			       (void *) SCM_UNPACK (port),
-			       &save_port);
+    SCM port = scm_open_file (filename, scm_from_locale_string ("r"));
+    scm_frame_begin (SCM_F_FRAME_REWINDABLE);
+    scm_i_frame_current_load_port (port);
+
+    while (1)
+      {
+	SCM form = scm_read (port);
+	if (SCM_EOF_OBJECT_P (form))
+	  break;
+	scm_primitive_eval_x (form);
+      }
+
+    scm_frame_end ();
     scm_close_port (port);
   }
   return SCM_UNSPECIFIED;
