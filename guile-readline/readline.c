@@ -129,7 +129,7 @@ static SCM before_read;
 static int
 current_input_getc (FILE *in)
 {
-  if (promptp && SCM_NIMP (before_read))
+  if (promptp && !SCM_FALSEP (before_read))
     {
       scm_apply (before_read, SCM_EOL, SCM_EOL);
       promptp = 0;
@@ -167,7 +167,7 @@ SCM_DEFINE (scm_readline, "%readline", 0, 4, 0,
 
   if (!SCM_UNBNDP (text))
     {
-      if (!(SCM_NIMP (text) && SCM_STRINGP (text)))
+      if (!SCM_STRINGP (text))
 	{
 	  --in_readline;
 	  scm_wrong_type_arg (s_scm_readline, SCM_ARG1, text);
@@ -175,8 +175,8 @@ SCM_DEFINE (scm_readline, "%readline", 0, 4, 0,
       SCM_STRING_COERCE_0TERMINATION_X (text);
     }
   
-  if (!((SCM_UNBNDP (inp) && SCM_NIMP (scm_cur_inp) && SCM_OPINFPORTP (inp))
-	|| (SCM_NIMP (inp) && SCM_OPINFPORTP (inp))))
+  if (!((SCM_UNBNDP (inp) && SCM_OPINFPORTP (scm_cur_inp))
+	|| SCM_OPINFPORTP (inp)))
     {
       --in_readline;
       scm_misc_error (s_scm_readline,
@@ -184,8 +184,8 @@ SCM_DEFINE (scm_readline, "%readline", 0, 4, 0,
 		      SCM_EOL);
     }
   
-  if (!((SCM_UNBNDP (outp) && SCM_NIMP (scm_cur_outp) && SCM_OPINFPORTP (outp))
-	|| (SCM_NIMP (outp) && SCM_OPOUTFPORTP (outp))))
+  if (!((SCM_UNBNDP (outp) && SCM_OPINFPORTP (scm_cur_outp))
+	|| SCM_OPOUTFPORTP (outp)))
     {
       --in_readline;
       scm_misc_error (s_scm_readline,
@@ -302,13 +302,13 @@ scm_readline_init_ports (SCM inp, SCM outp)
   if (SCM_UNBNDP (outp))
     outp = scm_cur_outp;
   
-  if (!(SCM_NIMP (inp) && SCM_OPINFPORTP (inp))) {
+  if (!SCM_OPINFPORTP (inp)) {
     scm_misc_error (0,
                     "Input port is not open or not a file port",
                     SCM_EOL);
   }
 
-  if (!(SCM_NIMP (outp) && SCM_OPOUTFPORTP (outp))) {
+  if (!SCM_OPOUTFPORTP (outp)) {
     scm_misc_error (0,
                     "Output port is not open or not a file port",
                     SCM_EOL);
@@ -400,7 +400,7 @@ completion_function (char *text, int continuep)
       if (SCM_FALSEP (res))
 	return NULL;
   
-      if (!(SCM_NIMP (res) && SCM_STRINGP (res)))
+      if (!SCM_STRINGP (res))
 	scm_misc_error (s_scm_readline,
 			"Completion function returned bogus value: %S",
 			SCM_LIST1 (res));

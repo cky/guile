@@ -1,5 +1,16 @@
 2000-11-24  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* readline.c (current_input_getc):  Use more explicit predicate
+	than SCM_NIMP.
+
+	(scm_readline, scm_readline_init_ports, completion_function):
+	Remove redundant SCM_N?IMP tests.
+
+	(scm_readline):  Fixed default input/output port parameter
+	handling.
+
+2000-11-24  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* readline.c (scm_readline, scm_add_history, completion_function,
 	scm_filename_completion_function):  Replace calls to
 	SCM_COERCE_SUBSTR with SCM_STRING_COERCE_0TERMINATION_X.
