@@ -343,6 +343,7 @@ scm_boot_guile (result, argc, argv, in, out, err, init_func, boot_cmd)
       scm_init_throw ();
       scm_init_variable ();
       scm_init_vectors ();
+      scm_init_version ();
       scm_init_weaks ();
       scm_init_vports ();
       scm_init_eval ();

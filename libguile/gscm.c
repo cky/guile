@@ -588,6 +588,7 @@ gscm_run_scm (argc, argv, in, out, err, initfn, initfile, initcmd)
   scm_init_throw ();
   scm_init_variable ();
   scm_init_vectors ();
+  scm_init_version ();
   scm_init_weaks ();
   scm_init_vports ();
   scm_init_eval ();

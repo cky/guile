@@ -1,7 +1,4 @@
-#ifndef LIBGUILEH
-#define LIBGUILEH
-
-/*	Copyright (C) 1995, 1996 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,107 +40,61 @@
  */
 
 
+#include "_scm.h"
+
 
 
-#include "__scm.h"
+/* Return a Scheme string containing Guile's major version number.  */
 
-#ifdef STDC_HEADERS
-# include <stdlib.h>
-# ifdef AMIGA
-#  include <stddef.h>
-# endif /* def AMIGA */
-# define scm_sizet size_t
+SCM_PROC(s_major_version, "major-version", 0, 0, 0, scm_major_version);
+#ifdef __STDC__
+SCM 
+scm_major_version (void)
 #else
-# ifdef _SIZE_T
-#  define scm_sizet size_t
-# else
-#  define scm_sizet unsigned int
-# endif /* def _SIZE_T */
-#endif /* def STDC_HEADERS */
-
-#include "smob.h"
-
-
-
-#include "alist.h"
-#include "append.h"
-#include "arbiters.h"
-#include "async.h"
-#include "boolean.h"
-#include "chars.h"
-#include "continuations.h"
-#ifdef DEBUG_EXTENSIONS
-#include "debug.h"
+SCM
+scm_major_version ()
 #endif
-#include "dynwind.h"
-#include "eq.h"
-#include "error.h"
-#include "eval.h"
-#include "extchrs.h"
-#include "fdsocket.h"
-#include "feature.h"
-#include "files.h"
-#include "filesys.h"
-#include "fports.h"
-#include "gc.h"
-#include "genio.h"
-#include "gsubr.h"
-#include "hash.h"
-#include "hashtab.h"
-#include "init.h"
-#include "ioext.h"
-#include "kw.h"
-#include "libguile.h"
-#include "list.h"
-#include "load.h"
-#include "mallocs.h"
-#include "markers.h"
-#include "marksweep.h"
-#include "mbstrings.h"
-#include "numbers.h"
-#include "objprop.h"
-#include "options.h"
-#include "pairs.h"
-#include "params.h"
-#include "ports.h"
-#include "posix.h"
-#include "print.h"
-#include "procprop.h"
-#include "procs.h"
-#include "ramap.h"
-#include "read.h"
-#include "root.h"
-#include "scmsigs.h"
-#include "sequences.h"
-#include "simpos.h"
-#include "socket.h"
-#include "srcprop.h"
-#include "stackchk.h"
-#include "stime.h"
-#include "strings.h"
-#include "strop.h"
-#include "strorder.h"
-#include "strports.h"
-#include "struct.h"
-#include "symbols.h"
-#include "tag.h"
-#include "tags.h"
-#include "throw.h"
-#include "unif.h"
-#include "variable.h"
-#include "vectors.h"
-#include "version.h"
-#include "vports.h"
-#include "weaks.h"
+{
+  return scm_makfrom0str (GUILE_MAJOR_VERSION);
+}
 
+/* Return a Scheme string containing Guile's minor version number.  */
+
+SCM_PROC(s_minor_version, "minor-version", 0, 0, 0, scm_minor_version);
+#ifdef __STDC__
+SCM 
+scm_minor_version (void)
+#else
+SCM
+scm_minor_version ()
+#endif
+{
+  return scm_makfrom0str (GUILE_MINOR_VERSION);
+}
+
+/* Return a Scheme string containing Guile's complete version.  */
+
+SCM_PROC(s_version, "version", 0, 0, 0, scm_version);
+#ifdef __STDC__
+SCM 
+scm_version (void)
+#else
+SCM
+scm_version ()
+#endif
+{
+  return scm_makfrom0str (GUILE_VERSION);
+}
 
 
 
 #ifdef __STDC__
-
-#else /* STDC */
-
-#endif /* STDC */
-
-
-#endif  /* LIBGUILEH */
+void
+scm_init_version (void)
+#else
+void
+scm_init_version ()
+#endif
+{
+#include "version.x"
+}

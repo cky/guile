@@ -1,7 +1,8 @@
-#ifndef LIBGUILEH
-#define LIBGUILEH
+/* classes: h_files */
 
-/*	Copyright (C) 1995, 1996 Free Software Foundation, Inc.
+#ifndef VERSIONH
+#define VERSIONH
+/*	Copyright (C) 1995,1996 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,107 +44,20 @@
  */
 
 
-
-
 #include "__scm.h"
-
-#ifdef STDC_HEADERS
-# include <stdlib.h>
-# ifdef AMIGA
-#  include <stddef.h>
-# endif /* def AMIGA */
-# define scm_sizet size_t
-#else
-# ifdef _SIZE_T
-#  define scm_sizet size_t
-# else
-#  define scm_sizet unsigned int
-# endif /* def _SIZE_T */
-#endif /* def STDC_HEADERS */
-
-#include "smob.h"
-
-
-
-#include "alist.h"
-#include "append.h"
-#include "arbiters.h"
-#include "async.h"
-#include "boolean.h"
-#include "chars.h"
-#include "continuations.h"
-#ifdef DEBUG_EXTENSIONS
-#include "debug.h"
-#endif
-#include "dynwind.h"
-#include "eq.h"
-#include "error.h"
-#include "eval.h"
-#include "extchrs.h"
-#include "fdsocket.h"
-#include "feature.h"
-#include "files.h"
-#include "filesys.h"
-#include "fports.h"
-#include "gc.h"
-#include "genio.h"
-#include "gsubr.h"
-#include "hash.h"
-#include "hashtab.h"
-#include "init.h"
-#include "ioext.h"
-#include "kw.h"
-#include "libguile.h"
-#include "list.h"
-#include "load.h"
-#include "mallocs.h"
-#include "markers.h"
-#include "marksweep.h"
-#include "mbstrings.h"
-#include "numbers.h"
-#include "objprop.h"
-#include "options.h"
-#include "pairs.h"
-#include "params.h"
-#include "ports.h"
-#include "posix.h"
-#include "print.h"
-#include "procprop.h"
-#include "procs.h"
-#include "ramap.h"
-#include "read.h"
-#include "root.h"
-#include "scmsigs.h"
-#include "sequences.h"
-#include "simpos.h"
-#include "socket.h"
-#include "srcprop.h"
-#include "stackchk.h"
-#include "stime.h"
-#include "strings.h"
-#include "strop.h"
-#include "strorder.h"
-#include "strports.h"
-#include "struct.h"
-#include "symbols.h"
-#include "tag.h"
-#include "tags.h"
-#include "throw.h"
-#include "unif.h"
-#include "variable.h"
-#include "vectors.h"
-#include "version.h"
-#include "vports.h"
-#include "weaks.h"
-
 
 
 
 #ifdef __STDC__
-
+extern SCM scm_major_version (void);
+extern SCM scm_minor_version (void);
+extern SCM scm_version (void);
+extern void scm_init_version (void);
 #else /* STDC */
-
+extern SCM scm_major_version ();
+extern SCM scm_minor_version ();
+extern SCM scm_version ();
+extern void scm_init_version ();
 #endif /* STDC */
 
-
-#endif  /* LIBGUILEH */
+#endif  /* VERSIONH */

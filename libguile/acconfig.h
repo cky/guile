@@ -22,3 +22,9 @@
 /* Define this if a callee's stack frame has a higher address than the
    caller's stack frame.  On most machines, this is not the case.  */
 #undef SCM_STACK_GROWS_UP
+
+/* Define these to indicate the current version of Guile.  These
+   values are supposed to be supplied by the configuration system.  */
+#undef GUILE_MAJOR_VERSION
+#undef GUILE_MINOR_VERSION
+#undef GUILE_VERSION
