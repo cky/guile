@@ -1,3 +1,10 @@
+2000-04-10  Gary Houston  <ghouston@arglist.com>
+
+	* popen.scm (open-process): after forking, close all ports except
+	the end of the pipe to the parent.  otherwise move->fdes and
+	the exec'd program and the exit handlers can interfere with file
+	descriptors still in use in parent ports.
+
 2000-04-09  Gary Houston  <ghouston@arglist.com>
 
 	* popen.scm (close-process-quietly): new procedure.  use it from
