@@ -1,5 +1,17 @@
 1999-05-09  Jim Blandy  <jimb@savonarola.red-bean.com>
 
+	* strop.c (scm_string_capitalize_x): Use the SCM object `s' in
+	error messages, not the uninitialized string `str'.  Love that
+	typechecking.
+
+	* strop.c (scm_substring_move_x): New function, which can handle
+	arbitrary overlapping substrings.
+	(substring-move-left!, substring-move-right!): These are
+	now just synonyms for substring-move!.
+	* strop.h (scm_substring_move_x): New prototype.
+	(scm_substring_move_left_x, scm_substring_move_right_x):
+	#define these as synonyms for scm_substring_move_x.
+
 	Fixes, cleanups, and new functions from Greg Harvey.
 
 	1999-05-03  Greg Harvey  <Greg.Harvey@thezone.net>
@@ -25,7 +37,7 @@
 
 	* strop.h: fixed prototypes.
 
-*	* strop.c (scm_substring_move_left_x, scm_substring_move_right_x): 
+	* strop.c (scm_substring_move_left_x, scm_substring_move_right_x): 
 	changed to have 5 required args, rather than 2 required, and 3 required
 	rest args. Also modified to allow str1 & str2 to overlap.
 	(scm_substring_fill_x): changed to 4 args, rather than 2 args and

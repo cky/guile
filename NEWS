@@ -478,26 +478,52 @@ Scheme->C 01nov91:
      parameters or modifiers)).
 
 
-** New module (ice-9 string-case), for upcasing, downcasing, and the like.
+** Changes to string-handling functions.
 
-(This code, and the documentation for it that appears here, was
-borrowed from SLIB, with minor adaptations for Guile.)
+These functions were added to support the (ice-9 format) module, above.
 
-This module exports seven functions:
+*** New function: string-upcase STRING
+*** New function: string-downcase STRING
 
- - Procedure: string-upcase STR
- - Procedure: string-downcase STR
- - Procedure: string-capitalize STR
-     The obvious string conversion routines.  These are non-destructive.
+These are non-destructive versions of the existing string-upcase! and
+string-downcase! functions.
 
- - Function: string-upcase! STR
- - Function: string-downcase! STR
- - Function: string-captialize! STR
-     The destructive versions of the functions above.
+*** New function: string-capitalize! STRING
+*** New function: string-capitalize STRING
 
- - Function: string-ci->symbol STR
-     Converts string STR to a symbol having the same case as if the
-     symbol had been `read'.
+These functions convert the first letter of each word in the string to
+upper case.  Thus:
+
+      (string-capitalize "howdy there")
+      => "Howdy There"
+
+As with the other functions, string-capitalize! modifies the string in
+place, while string-capitalize returns a modified copy of its argument.
+
+*** New function: string-ci->symbol STRING
+
+Return a symbol whose name is STRING, but having the same case as if
+the symbol had be read by `read'.
+
+Guile can be configured to be sensitive or insensitive to case
+differences in Scheme identifiers.  If Guile is case-insensitive, all
+symbols are converted to lower case on input.  The `string-ci->symbol'
+function returns a symbol whose name in STRING, transformed as Guile
+would if STRING were input.
+
+*** New function: substring-move! STRING1 START END STRING2 START
+
+Copy the substring of STRING1 from START (inclusive) to END
+(exclusive) to STRING2 at START.  STRING1 and STRING2 may be the same
+string, and the source and destination areas may overlap; in all
+cases, the function behaves as if all the characters were copied
+simultanously.
+
+*** Extended functions: substring-move-left! substring-move-right! 
+
+These functions now correctly copy arbitrarily overlapping substrings;
+they are both synonyms for substring-move!.
+
 
 ** New module (ice-9 getopt-long), with the function `getopt-long'.
 

@@ -2,6 +2,8 @@
 
 	* string-case.scm: Removed; functions moved to libguile/strop.c
 	(which could be dynamically linked in the future anyway).
+	* Makefile.am (ice9_sources): Don't list string-case.scm.
+	* Makefile.in: Regenerated.
 	* format.scm: Don't bother importing (ice-9 string-case).
 
 1999-05-02  Jim Blandy  <jimb@savonarola.red-bean.com>
