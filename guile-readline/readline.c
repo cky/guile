@@ -34,7 +34,11 @@
 #endif
 #include <readline/readline.h>
 #include <readline/history.h>
+#ifndef __MINGW32__
 #include <sys/time.h>
+#else
+#include <io.h>
+#endif
 #include <signal.h>
 
 #include "libguile/validate.h"
