@@ -18,6 +18,7 @@ gh_test_repl
 guile
 guile-doc-snarf
 guile-snarf
+guile-snarf.awk
 libpath.h
 libtool
 scmconfig.h
