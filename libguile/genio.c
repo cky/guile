@@ -69,10 +69,6 @@ scm_puts (s, port)
 {
   scm_sizet i = SCM_PTOBNUM (port);
   SCM_SYSCALL ((scm_ptobs[i].fputs) (s, port));
-#ifdef TRANSCRIPT_SUPPORT
-  if (scm_trans && (port == def_outp || port == cur_errp))
-    SCM_SYSCALL (fputs (s, scm_trans));
-#endif
 }
 
 void 
@@ -83,10 +79,6 @@ scm_lfwrite (ptr, size, port)
 {
   scm_sizet i = SCM_PTOBNUM (port);
   SCM_SYSCALL (scm_ptobs[i].fwrite (ptr, size, 1, port));
-#ifdef TRANSCRIPT_SUPPORT
-  if (scm_trans && (port == def_outp || port == cur_errp))
-    SCM_SYSCALL (fwrite (ptr, size, 1, scm_trans));
-#endif
 }
 
 
@@ -108,11 +100,10 @@ scm_getc (port)
   int c;
   scm_sizet i;
 
-  /* One char may be stored in the high bits of (car port) orre@nada.kth.se. */
   if (SCM_CRDYP (port))
     {
       c = SCM_CGETUN (port);
-      SCM_CLRDY (port);         /* Clear ungetted char */
+      SCM_TRY_CLRDY (port);         /* Clear ungetted char */
     }
   else
     {
@@ -158,8 +149,8 @@ scm_ungetc (c, port)
      int c;
      SCM port;
 {
-/*	SCM_ASSERT(!SCM_CRDYP(port), port, SCM_ARG2, "too many scm_ungetc");*/
   SCM_CUNGET (c, port);
+
   if (c == '\n')
     {
       /* What should col be in this case?
@@ -169,6 +160,23 @@ scm_ungetc (c, port)
     }
   else
     SCM_COL(port) -= 1;
+}
+
+
+void 
+scm_ungets (s, n, port)
+     char *s;
+     int n;
+     SCM port;
+{
+  /* This is simple minded and inefficient, but unreading strings is
+   * probably not a common operation, and remember that line and
+   * column numbers have to be handled...
+   *
+   * Please feel freee to write an optimized version!
+   */
+  while (n--)
+    scm_ungetc (s[n], port);
 }
 
 
