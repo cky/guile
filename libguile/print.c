@@ -545,6 +545,9 @@ taloop:
 				 port);
 	  scm_remember_upto_here_1 (exp);
 	  break;
+	case scm_tc7_variable:
+	  scm_i_variable_print (exp, port, pstate);
+	  break;
 	case scm_tc7_wvect:
 	  ENTER_NESTED_DATA (pstate, exp, circref);
 	  if (SCM_IS_WHVEC (exp))

@@ -333,7 +333,7 @@ typedef signed long scm_t_signed_bits;
 
 
 #define scm_tc7_symbol		5
-/* free                         7 */
+#define scm_tc7_variable        7
 
 /* couple */
 #define scm_tc7_vector		13

@@ -1431,6 +1431,9 @@ gc_mark_loop_first_time:
     case scm_tc7_symbol:
       ptr = SCM_PROP_SLOTS (ptr);
       goto_gc_mark_loop;
+    case scm_tc7_variable:
+      ptr = SCM_CELL_OBJECT_1 (ptr);
+      goto_gc_mark_loop;
     case scm_tcs_subrs:
       break;
     case scm_tc7_port:
