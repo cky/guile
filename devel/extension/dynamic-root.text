@@ -48,31 +48,39 @@ be installed?  Logically it belongs on the same side as the callback:
 i.e., if the callback raises an exception then the handler can catch
 it without crossing it the continuation barrier.  But what happens if
 the handler raises another exception?  This doesn't seem like an
-important concern, since the hander is under control of the same C
-code that is trying to protect itself.  It should be sufficient to
-warn in the documentation that such exceptions produce undefined
-behaviour and allow them to cross the continuation barrier.
+important concern, since the hander is under control of the code that
+is trying to protect itself.  It should be sufficient to warn in the
+documentation that such exceptions produce undefined behaviour and
+allow them to cross the continuation barrier.
 
 How should the callback procedure be passed to the interface and
 invoked?  Should it be like scm_internal_catch where it's passed as a
 C procedure (scm_t_catch_body) which is applied to user data (void *)?
 For a procedure designed to be used from C, this is the most
-convenient, since constructing closures in C is not very convenient.
-It also gives symmetry with scm_internal_catch.
+convenient, since constructing closures in C is difficult.  It also
+gives symmetry with scm_internal_catch.
 
-Hence the first four arguments to the C interface should be the same as for
-the old scm_internal_cwdr:
+On the other hand, the body procedure is expected to be a Scheme
+closure in most cases.  This suggests implementing two C procedures,
+the first taking four arguments:
 
 scm_t_catch_body body, void *body_data,
 scm_t_catch_handler handler, void *handler_data
 
-The return value from the interface should be the result of calling
+and the second taking three arguments:
+SCM body, scm_t_catch_handler handler, void *handler_data
+
+If there is also to be a Scheme interface, then it would be implemented
+with a third variant:
+SCM body, SCM handler
+
+The second and third variants would be implemented by calling the
+first, similar to the old scm_call_with_dynamic_root and its wrappers.
+
+The return value from all variants should be the result of calling
 the body, unless an exception occurred in which case it's the result
 of calling the handler.  So the return type is SCM, as for
 scm_internal_catch.
 
 Yet to be discussed: libguile usage and threads, error handling and
 reporting, convenience of use, Scheme-level interface.
-
-Proposal
-========
