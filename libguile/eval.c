@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996,1997,1998, 1999 Free Software Foundation, Inc.
+/*	Copyright (C) 1995-2000 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -364,10 +364,10 @@ scm_lookupcar (SCM vloc, SCM genv, int check)
          completely. */
     race:
       var = SCM_CAR (vloc);
-      if ((var & 7) == 1)
+      if (SCM_ITAG3 (var) == 1)
 	return SCM_GLOC_VAL_LOC (var);
 #ifdef MEMOIZE_LOCALS
-      if ((var & 127) == (127 & SCM_ILOC00))
+      if ((SCM_ASWORD (var) & 127) == (127 & SCM_ASWORD (SCM_ILOC00)))
 	return scm_ilookup (var, genv);
 #endif
       /* We can't cope with anything else than glocs and ilocs.  When
