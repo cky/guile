@@ -483,9 +483,9 @@ SCM_DEFINE (scm_string_capitalize_x, "string-capitalize!", 1, 0, 0,
 	    "destructively and return @var{str}.\n"
 	    "\n"
 	    "@lisp\n"
-	    "y                      @result{} "hello world"\n"
-	    "(string-capitalize! y) @result{} "Hello World"\n"
-	    "y                      @result{} "Hello World"\n"
+	    "y                      @result{} \"hello world\"\n"
+	    "(string-capitalize! y) @result{} \"Hello World\"\n"
+	    "y                      @result{} \"Hello World\"\n"
 	    "@end lisp")
 #define FUNC_NAME s_scm_string_capitalize_x
 {

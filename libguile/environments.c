@@ -1907,9 +1907,9 @@ SCM_DEFINE (scm_import_environment_set_imports_x, "import-environment-set-import
   for (l = imports; SCM_CONSP (l); l = SCM_CDR (l))
     {
       SCM obj = SCM_CAR (l);
-      SCM_ASSERT (SCM_ENVIRONMENT_P (obj), imports, SCM_ARG1, FUNC_NAME);
+      SCM_ASSERT (SCM_ENVIRONMENT_P (obj), imports, SCM_ARG2, FUNC_NAME);
     }
-  SCM_ASSERT (SCM_NULLP (l), imports, SCM_ARG1, FUNC_NAME);
+  SCM_ASSERT (SCM_NULLP (l), imports, SCM_ARG2, FUNC_NAME);
 
   for (l = body->import_observers; !SCM_NULLP (l); l = SCM_CDR (l))
     {

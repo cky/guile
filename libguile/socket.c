@@ -355,8 +355,8 @@ SCM_DEFINE (scm_inet_pton, "inet-pton", 2, 0, 0,
 	    "the result is an integer with normal host byte ordering.\n"
 	    "@var{family} can be @code{AF_INET} or @code{AF_INET6}.  E.g.,\n\n"
 	    "@lisp\n"
-	    "(inet-pton AF_INET "127.0.0.1") @result{} 2130706433\n"
-	    "(inet-pton AF_INET6 "::1") @result{} 1\n"
+	    "(inet-pton AF_INET \"127.0.0.1\") @result{} 2130706433\n"
+	    "(inet-pton AF_INET6 \"::1\") @result{} 1\n"
 	    "@end lisp")
 #define FUNC_NAME s_scm_inet_pton
 {
@@ -389,7 +389,7 @@ SCM_DEFINE (scm_inet_ntop, "inet-ntop", 2, 0, 0,
 	    "the input is an integer with normal host byte ordering.\n"
 	    "@var{family} can be @code{AF_INET} or @code{AF_INET6}.  E.g.,\n\n"
 	    "@lisp\n"
-	    "(inet-ntop AF_INET 2130706433) @result{} "127.0.0.1"\n"
+	    "(inet-ntop AF_INET 2130706433) @result{} \"127.0.0.1\"\n"
 	    "(inet-ntop AF_INET6 (- (expt 2 128) 1)) @result{}\n"
 	    "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff\n"
 	    "@end lisp")

@@ -265,7 +265,7 @@ SCM_DEFINE (scm_make_gloc, "make-gloc", 1, 1, 0,
     env = scm_top_level_env (SCM_TOP_LEVEL_LOOKUP_CLOSURE);
   else
     SCM_VALIDATE_NULLORCONS (2,env);
-  return scm_make_memoized (SCM_UNPACK (var) + scm_tc3_cons_gloc, env);
+  return scm_make_memoized (SCM_PACK (SCM_UNPACK (var) + scm_tc3_cons_gloc), env);
 }
 #undef FUNC_NAME
 
@@ -288,10 +288,10 @@ SCM_DEFINE (scm_make_iloc, "make-iloc", 3, 0, 0,
 {
   SCM_VALIDATE_INUM (1,frame);
   SCM_VALIDATE_INUM (2,binding);
-  return (SCM_ILOC00
-	  + SCM_IFRINC * SCM_INUM (frame)
-	  + (SCM_NFALSEP (cdrp) ? SCM_ICDR : 0)
-	  + SCM_IDINC * SCM_INUM (binding));
+  return SCM_PACK (SCM_UNPACK (SCM_ILOC00)
+                   + SCM_IFRINC * SCM_INUM (frame)
+                   + (SCM_NFALSEP (cdrp) ? SCM_ICDR : 0)
+                   + SCM_IDINC * SCM_INUM (binding));
 }
 #undef FUNC_NAME
 

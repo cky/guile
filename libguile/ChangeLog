@@ -1,3 +1,21 @@
+2001-05-28  Michael Livshin  <mlivshin@bigfoot.com>
+
+	* strop.c (s_scm_string_capitalize_x): fix docstring quoting.
+
+	* socket.c (s_scm_inet_pton): fix docstring quoting.
+	(s_scm_inet_ntop): ditto.
+
+	* num2integral.i.c (INTEGRAL2NUM): cast to fix a warning.
+
+	* hashtab.c (scm_internal_hash_fold): fix argument position in
+	SCM_ASSERT.
+
+	* environments.c (s_scm_import_environment_set_imports_x): fix
+	argument position in SCM_ASSERT.
+
+	* debug.c (s_scm_make_gloc): fix SCM packing/unpacking.
+	(s_scm_make_iloc): ditto.
+
 2001-05-26  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* __scm.h (SCM_DEBUG_TYPING_STRICTNESS):  Make 1 the default.

@@ -551,10 +551,10 @@ scm_internal_hash_fold (SCM (*fn) (), void *closure, SCM init, SCM table)
       while (!SCM_NULLP (ls))
 	{
 	  SCM_ASSERT (SCM_CONSP (ls),
-		      table, SCM_ARG1, s_scm_hash_fold);
+		      table, SCM_ARG3, s_scm_hash_fold);
 	  handle = SCM_CAR (ls);
 	  SCM_ASSERT (SCM_CONSP (handle),
-		      table, SCM_ARG1, s_scm_hash_fold);
+		      table, SCM_ARG3, s_scm_hash_fold);
 	  result = fn (closure, SCM_CAR (handle), SCM_CDR (handle), result);
 	  ls = SCM_CDR (ls);
 	}
