@@ -271,9 +271,9 @@ scm_duplicate_port (oldpt, modes)
     pt = scm_add_to_port_table (newpt);
     SCM_SETPTAB_ENTRY (newpt, pt);
     SCM_SETCAR (newpt, scm_tc16_fport | scm_mode_bits (SCM_ROCHARS (modes)));
+    SCM_SETSTREAM (newpt, (SCM)f);
     if (SCM_BUF0 & SCM_CAR (newpt))
       scm_setbuf0 (newpt);
-    SCM_SETSTREAM (newpt, (SCM)f);
     SCM_PTAB_ENTRY (newpt)->file_name = SCM_PTAB_ENTRY (oldpt)->file_name;
   }
   SCM_ALLOW_INTS;
