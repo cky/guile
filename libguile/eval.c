@@ -52,10 +52,13 @@
 /* SECTION: This code is compiled once.
  */
 
-#ifndef DEVAL
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
 
-/* We need this to get the definitions for HAVE_ALLOCA_H, etc.  */
-#include "libguile/scmconfig.h"
+#include "libguile/__scm.h"
+
+#ifndef DEVAL
 
 /* AIX requires this to be the first thing in the file.  The #pragma
    directive is indented so pre-ANSI compilers will ignore it, rather
@@ -2666,7 +2669,7 @@ dispatch:
       scm_misc_error (NULL, "Wrong type to apply: ~S", scm_list_1 (proc));
     case scm_tc7_vector:
     case scm_tc7_wvect:
-#ifdef HAVE_ARRAYS
+#ifdef SCM_HAVE_ARRAYS
     case scm_tc7_bvect:
     case scm_tc7_byvect:
     case scm_tc7_svect:
@@ -2675,7 +2678,7 @@ dispatch:
     case scm_tc7_fvect:
     case scm_tc7_dvect:
     case scm_tc7_cvect:
-#ifdef HAVE_LONG_LONGS
+#if SCM_SIZEOF_LONG_LONG != 0
     case scm_tc7_llvect:
 #endif
 #endif
