@@ -2253,22 +2253,23 @@ SCM_DEFINE (scm_string_contains, "string-contains", 2, 4, 0,
 				   5, start2, cstart2,
 				   6, end2, cend2);
   len2 = cend2 - cstart2;
-  while (cstart1 <= cend1 - len2 && cend1 >= len2)
-    {
-      i = cstart1;
-      j = cstart2;
-      while (i < cend1 && j < cend2 && cs1[i] == cs2[j])
-	{
-	  i++;
-	  j++;
-	}
-      if (j == cend2)
-	{
-	  scm_remember_upto_here_2 (s1, s2);
-	  return scm_from_size_t (cstart1);
-	}
-      cstart1++;
-    }
+  if (cend1 - cstart1 >= len2)
+    while (cstart1 <= cend1 - len2)
+      {
+	i = cstart1;
+	j = cstart2;
+	while (i < cend1 && j < cend2 && cs1[i] == cs2[j])
+	  {
+	    i++;
+	    j++;
+	  }
+	if (j == cend2)
+	  {
+	    scm_remember_upto_here_2 (s1, s2);
+	    return scm_from_size_t (cstart1);
+	  }
+	cstart1++;
+      }
 
   scm_remember_upto_here_2 (s1, s2);
   return SCM_BOOL_F;
@@ -2299,23 +2300,24 @@ SCM_DEFINE (scm_string_contains_ci, "string-contains-ci", 2, 4, 0,
 				   5, start2, cstart2,
 				   6, end2, cend2);
   len2 = cend2 - cstart2;
-  while (cstart1 <= cend1 - len2 && cend1 >= len2)
-    {
-      i = cstart1;
-      j = cstart2;
-      while (i < cend1 && j < cend2 &&
-	     scm_c_downcase (cs1[i]) == scm_c_downcase (cs2[j]))
-	{
-	  i++;
-	  j++;
-	}
-      if (j == cend2)
-	{
-	  scm_remember_upto_here_2 (s1, s2);
-	  return scm_from_size_t (cstart1);
-	}
-      cstart1++;
-    }
+  if (cend1 - cstart1 >= len2)
+    while (cstart1 <= cend1 - len2)
+      {
+	i = cstart1;
+	j = cstart2;
+	while (i < cend1 && j < cend2 &&
+	       scm_c_downcase (cs1[i]) == scm_c_downcase (cs2[j]))
+	  {
+	    i++;
+	    j++;
+	  }
+	if (j == cend2)
+	  {
+	    scm_remember_upto_here_2 (s1, s2);
+	    return scm_from_size_t (cstart1);
+	  }
+	cstart1++;
+      }
   
   scm_remember_upto_here_2 (s1, s2);
   return SCM_BOOL_F;
