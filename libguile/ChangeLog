@@ -1,5 +1,14 @@
 2000-12-04  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* chars.c (scm_char_eq_p):  Minor cleanup/optimization.
+
+	* gc.c (scm_gc_mark):  Don't use SCM_VELTS for CCLOs.
+
+	* procprop.c (scm_i_procedure_arity):  Separate handling of smobs
+	and CCLOs.
+
+2000-12-04  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* tags.h (scm_tc_free_cell, scm_tc16_big, scm_tc16_real,
 	scm_tc16_complex):  Eliminate hard-coded value of scm_tc7_smob.
 

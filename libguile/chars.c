@@ -66,9 +66,9 @@ SCM_DEFINE1 (scm_char_eq_p, "char=?", scm_tc7_rpsubr,
 	     "Return @code{#t} iff @var{x} is the same character as @var{y}, else @code{#f}.")
 #define FUNC_NAME s_scm_char_eq_p
 {
-  SCM_VALIDATE_CHAR (1,x);
-  SCM_VALIDATE_CHAR (2,y);
-  return SCM_BOOL(SCM_CHAR(x) == SCM_CHAR(y));
+  SCM_VALIDATE_CHAR (1, x);
+  SCM_VALIDATE_CHAR (2, y);
+  return SCM_BOOL (SCM_EQ_P (x, y));
 }
 #undef FUNC_NAME
 

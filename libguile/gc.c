@@ -1212,14 +1212,18 @@ gc_mark_nimp:
       goto gc_mark_loop;
 #ifdef CCLO
     case scm_tc7_cclo:
-      i = SCM_CCLO_LENGTH (ptr);
-      if (i == 0)
-	break;
-      while (--i > 0)
-	if (SCM_NIMP (SCM_VELTS (ptr)[i]))
-	  scm_gc_mark (SCM_VELTS (ptr)[i]);
-      ptr = SCM_VELTS (ptr)[0];
-      goto gc_mark_loop;
+      {
+	unsigned long int i = SCM_CCLO_LENGTH (ptr);
+	unsigned long int j;
+	for (j = 1; j != i; ++j)
+	  {
+	    SCM obj = SCM_CCLO_REF (ptr, j);
+	    if (!SCM_IMP (obj))
+	      scm_gc_mark (obj);
+	  }
+	ptr = SCM_CCLO_REF (ptr, 0);
+	goto gc_mark_loop;
+      }
 #endif
 #ifdef HAVE_ARRAYS
     case scm_tc7_bvect:

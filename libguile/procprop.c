@@ -98,26 +98,33 @@ scm_i_procedure_arity (SCM proc)
       r = 1;
       break;
     case scm_tc7_smob:
-      {
-	int type;
-	if (!SCM_SMOB_DESCRIPTOR (proc).apply)
-	  return SCM_BOOL_F;
-	type = SCM_SMOB_DESCRIPTOR (proc).gsubr_type;
-	goto gsubr_type;
-      case scm_tc7_cclo:
-	if (SCM_EQ_P (SCM_CCLO_SUBR (proc), scm_f_gsubr_apply))
+      if (SCM_SMOB_DESCRIPTOR (proc).apply)
 	{
-	  type = SCM_INUM (SCM_GSUBR_TYPE (proc));
-	gsubr_type:
+	  int type = SCM_SMOB_DESCRIPTOR (proc).gsubr_type;
 	  a += SCM_GSUBR_REQ (type);
 	  o = SCM_GSUBR_OPT (type);
 	  r = SCM_GSUBR_REST (type);
 	  break;
 	}
-	proc = SCM_CCLO_SUBR (proc);
-	a -= 1;
-	goto loop;
-      }
+      else
+	{
+	  return SCM_BOOL_F;
+	}
+    case scm_tc7_cclo:
+      if (SCM_EQ_P (SCM_CCLO_SUBR (proc), scm_f_gsubr_apply))
+	{
+	  int type = SCM_INUM (SCM_GSUBR_TYPE (proc));
+	  a += SCM_GSUBR_REQ (type);
+	  o = SCM_GSUBR_OPT (type);
+	  r = SCM_GSUBR_REST (type);
+	  break;
+	}
+      else
+	{
+	  proc = SCM_CCLO_SUBR (proc);
+	  a -= 1;
+	  goto loop;
+	}
     case scm_tc7_pws:
       proc = SCM_PROCEDURE (proc);
       goto loop;
