@@ -56,7 +56,9 @@
 
 SCM_DEFINE (scm_cons, "cons", 2, 0, 0,
            (SCM x, SCM y),
-"")
+            "Returns a newly allocated pair whose car is @var{x} and whose cdr is\n"
+            "@var{y}.  The pair is guaranteed to be different (in the sense of\n"
+            "@code{eqv?}) from every previously existing object.")
 #define FUNC_NAME s_scm_cons
 {
   register SCM z;
@@ -85,7 +87,7 @@ scm_cons2 (SCM w, SCM x, SCM y)
 
 SCM_DEFINE (scm_pair_p, "pair?", 1, 0, 0, 
             (SCM x),
-"")
+            "Returns @code{#t} if @var{x} is a pair; otherwise returns @code{#f}.")
 #define FUNC_NAME s_scm_pair_p
 {
   if (SCM_IMP (x))
@@ -96,7 +98,8 @@ SCM_DEFINE (scm_pair_p, "pair?", 1, 0, 0,
 
 SCM_DEFINE (scm_set_car_x, "set-car!", 2, 0, 0,
             (SCM pair, SCM value),
-"")
+            "Stores @var{value} in the car field of @var{pair}.  The value returned\n"
+            "by @code{set-car!} is unspecified.")
 #define FUNC_NAME s_scm_set_car_x
 {
   SCM_VALIDATE_CONS (1,pair);
@@ -107,7 +110,8 @@ SCM_DEFINE (scm_set_car_x, "set-car!", 2, 0, 0,
 
 SCM_DEFINE (scm_set_cdr_x, "set-cdr!", 2, 0, 0,
             (SCM pair, SCM value),
-"")
+            "Stores @var{value} in the cdr field of @var{pair}.  The value returned\n"
+            "by @code{set-cdr!} is unspecified.")
 #define FUNC_NAME s_scm_set_cdr_x
 {
   SCM_VALIDATE_CONS (1,pair);
