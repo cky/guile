@@ -181,10 +181,10 @@ SCM_DEFINE (scm_length, "length", 1, 0, 0,
 
 SCM_DEFINE (scm_append, "append", 0, 0, 1, 
             (SCM args),
-"A destructive version of @code{append} (@pxref{Pairs and Lists,,,r4rs,
-The Revised^4 Report on Scheme}).  The cdr field of each list's final
-pair is changed to point to the head of the next list, so no consing is
-performed.  Return a pointer to the mutated list.")
+	    "A destructive version of @code{append} (@pxref{Pairs and Lists,,,r4rs,\n"
+	    "The Revised^4 Report on Scheme}).  The cdr field of each list's final\n"
+	    "pair is changed to point to the head of the next list, so no consing is\n"
+	    "performed.  Return a pointer to the mutated list.")
 #define FUNC_NAME s_scm_append
 {
   SCM res = SCM_EOL;
