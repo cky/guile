@@ -228,7 +228,7 @@ reentry_barrier ()
 {
   int reentryp = 0;
 #ifdef USE_THREADS
-  /* We should rather use scm_t_mutexry_lock when it becomes available */
+  /* We should rather use scm_try_mutex when it becomes available */
   scm_lock_mutex (reentry_barrier_mutex);
 #endif
   if (in_readline)
