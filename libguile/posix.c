@@ -1122,7 +1122,7 @@ scm_mknod(path, type, perms, dev)
 #ifdef HAVE_MKNOD
   int val;
   char *p;
-  int ctype;
+  int ctype = 0;
 
   SCM_ASSERT (SCM_NIMP(path) && SCM_ROSTRINGP(path), path, SCM_ARG1, s_mknod);
   SCM_ASSERT (SCM_NIMP(type) && SCM_SYMBOLP (type), type, SCM_ARG2, s_mknod);

@@ -229,7 +229,7 @@ double*
 gh_scm2doubles (SCM obj)
 {
   int i, n;
-  double *m;
+  double *m = 0;
   SCM val;
   if (!SCM_NIMP (obj))
     scm_wrong_type_arg (0, 0, obj);
