@@ -132,6 +132,49 @@ SCM_API SCM scm_sloppy_member (SCM x, SCM lst);
 
 SCM_API SCM scm_read_and_eval_x (SCM port);
 
+#define scm_subr_entry scm_t_subr_entry
+
+#define SCM_SUBR_DOC(x) SCM_BOOL_F
+
+SCM_API SCM scm_make_subr (const char *name, int type, SCM (*fcn) ());
+SCM_API SCM scm_make_subr_with_generic (const char *name,
+					int type,
+					SCM (*fcn) (),
+					SCM *gf);
+SCM_API SCM scm_make_subr_opt (const char *name, 
+			       int type, 
+			       SCM (*fcn) (),
+			       int set);
+
+SCM_API SCM scm_call_catching_errors (SCM (*thunk)(), SCM (*err_filter)(),
+				      void * closure);
+
+SCM_API long scm_make_smob_type_mfpe (char *name, size_t size,
+				      SCM (*mark) (SCM),
+				      size_t (*free) (SCM),
+				      int (*print) (SCM, SCM,
+						    scm_print_state*),
+				      SCM (*equalp) (SCM, SCM));
+
+SCM_API void scm_set_smob_mfpe (long tc, 
+				SCM (*mark) (SCM),
+				size_t (*free) (SCM),
+				int (*print) (SCM, SCM, scm_print_state*),
+				SCM (*equalp) (SCM, SCM));
+
+SCM_API SCM scm_strprint_obj (SCM obj);
+SCM_API SCM scm_read_0str (char *expr);
+SCM_API SCM scm_eval_0str (const char *expr);
+
+SCM_API char *scm_i_object_chars (SCM);
+
+#define SCM_CHARS(x)   scm_i_object_chars(x)
+#define SCM_UCHARS(x)  ((unsigned char *)SCM_CHARS(x))
+
+SCM_API long scm_i_object_length (SCM);
+
+#define SCM_LENGTH(x) scm_i_object_length(x)
+
 void scm_i_init_deprecated (void);
 
 #endif
@@ -141,49 +184,6 @@ void scm_i_init_deprecated (void);
 #if 0 
 /* TODO */
 
-scm_mkbig
-scm_big2inum
-scm_adjbig
-scm_normbig
-
-scm_copybig
-scm_2ulong2big
-scm_dbl2big
-scm_big2dbl
-SCM_FIXNUM_BIT
-
-scm_subr_entry
-SCM_SUBR_DOC
-scm_make_subr_opt
-scm_make_subr
-
-scm_make_subr_with_generic
-
-scm_call_catching_errors
-scm_make_smob_type_mfpe
-scm_set_smob_mfpe
-
-scm_strprint_obj
-scm_read_0str
-scm_eval_0str
-SCM_CHARS
-SCM_UCHARS
-
-SCM_SETCHARS
-SCM_SLOPPY_SUBSTRP
-SCM_SUBSTR_STR
-SCM_SUBSTR_OFFSET
-
-SCM_LENGTH_MAX
-SCM_LENGTH
-SCM_SETLENGTH
-SCM_ROSTRINGP
-SCM_ROLENGTH
-
-SCM_ROCHARS
-SCM_ROUCHARS
-SCM_SUBSTRP
-SCM_COERCE_SUBSTR
 scm_strhash
 
 scm_sym2vcell

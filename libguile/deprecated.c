@@ -38,6 +38,8 @@
 #include "libguile/ports.h"
 #include "libguile/eq.h"
 #include "libguile/read.h"
+#include "libguile/strports.h"
+#include "libguile/smob.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -491,6 +493,166 @@ SCM_DEFINE (scm_read_and_eval_x, "read-and-eval!", 0, 1, 0,
   return scm_eval_x (form, scm_current_module ());
 }
 #undef FUNC_NAME
+
+SCM
+scm_make_subr_opt (const char *name, int type, SCM (*fcn) (), int set)
+{
+  scm_c_issue_deprecation_warning 
+    ("`scm_make_subr_opt' is deprecated.  Use `scm_c_make_subr' or "
+     "`scm_c_define_subr' instead.");
+
+  if (set)
+    return scm_c_define_subr (name, type, fcn);
+  else
+    return scm_c_make_subr (name, type, fcn);
+}
+
+SCM 
+scm_make_subr (const char *name, int type, SCM (*fcn) ())
+{
+  scm_c_issue_deprecation_warning 
+    ("`scm_make_subr' is deprecated.  Use `scm_c_define_subr' instead.");
+
+  return scm_c_define_subr (name, type, fcn);
+}
+
+SCM
+scm_make_subr_with_generic (const char *name, int type, SCM (*fcn) (), SCM *gf)
+{
+  scm_c_issue_deprecation_warning 
+    ("`scm_make_subr_with_generic' is deprecated.  Use "
+     "`scm_c_define_subr_with_generic' instead.");
+  
+  return scm_c_define_subr_with_generic (name, type, fcn, gf);
+}
+
+/* Call thunk(closure) underneath a top-level error handler.
+ * If an error occurs, pass the exitval through err_filter and return it.
+ * If no error occurs, return the value of thunk.
+ */
+
+#ifdef _UNICOS
+typedef int setjmp_type;
+#else
+typedef long setjmp_type;
+#endif
+
+struct cce_handler_data {
+  SCM (*err_filter) ();
+  void *closure;
+};
+
+static SCM
+invoke_err_filter (void *d, SCM tag, SCM args)
+{
+  struct cce_handler_data *data = (struct cce_handler_data *)d;
+  return data->err_filter (SCM_BOOL_F, data->closure);
+}
+
+SCM
+scm_call_catching_errors (SCM (*thunk)(), SCM (*err_filter)(), void *closure)
+{
+  scm_c_issue_deprecation_warning
+    ("'scm_call_catching_errors' is deprecated.  "
+     "Use 'scm_internal_catch' instead.");
+  
+  {
+    struct cce_handler_data data;
+    data.err_filter = err_filter;
+    data.closure = closure;
+    return scm_internal_catch (SCM_BOOL_T,
+			       (scm_t_catch_body)thunk, closure,
+			       (scm_t_catch_handler)invoke_err_filter, &data);
+  }
+}
+
+long
+scm_make_smob_type_mfpe (char *name, size_t size,
+                        SCM (*mark) (SCM),
+                        size_t (*free) (SCM),
+                        int (*print) (SCM, SCM, scm_print_state *),
+                        SCM (*equalp) (SCM, SCM))
+{
+  scm_c_issue_deprecation_warning
+    ("'scm_make_smob_type_mfpe' is deprecated.  "
+     "Use 'scm_make_smob_type' plus 'scm_set_smob_*' instead.");
+
+  {
+    long answer = scm_make_smob_type (name, size);
+    scm_set_smob_mfpe (answer, mark, free, print, equalp);
+    return answer;
+  }
+}
+
+void
+scm_set_smob_mfpe (long tc, 
+		   SCM (*mark) (SCM),
+		   size_t (*free) (SCM),
+		   int (*print) (SCM, SCM, scm_print_state *),
+		   SCM (*equalp) (SCM, SCM))
+{
+  scm_c_issue_deprecation_warning
+    ("'scm_set_smob_mfpe' is deprecated.  "
+     "Use 'scm_set_smob_mark' instead, for example.");
+
+  if (mark) scm_set_smob_mark (tc, mark);
+  if (free) scm_set_smob_free (tc, free);
+  if (print) scm_set_smob_print (tc, print);
+  if (equalp) scm_set_smob_equalp (tc, equalp);
+}
+
+SCM
+scm_read_0str (char *expr)
+{
+  scm_c_issue_deprecation_warning 
+    ("scm_read_0str is deprecated.  Use scm_c_read_string instead.");
+
+  return scm_c_read_string (expr);
+}
+
+SCM
+scm_eval_0str (const char *expr)
+{
+  scm_c_issue_deprecation_warning 
+    ("scm_eval_0str is deprecated.  Use scm_c_eval_string instead.");
+
+  return scm_c_eval_string (expr);
+}
+
+SCM
+scm_strprint_obj (SCM obj)
+{
+  scm_c_issue_deprecation_warning 
+    ("scm_strprint_obj is deprecated.  Use scm_object_to_string instead.");
+  return scm_object_to_string (obj, SCM_UNDEFINED);
+}
+
+char *
+scm_i_object_chars (SCM obj)
+{
+  scm_c_issue_deprecation_warning 
+    ("SCM_CHARS is deprecated.  Use SCM_STRING_CHARS or "
+     "SCM_SYMBOL_CHARS instead.");
+  if (SCM_STRINGP (obj))
+    return SCM_STRING_CHARS (obj);
+  if (SCM_SYMBOLP (obj))
+    return SCM_SYMBOL_CHARS (obj);
+  abort ();
+}
+
+long
+scm_i_object_length (SCM obj)
+{
+  scm_c_issue_deprecation_warning 
+    ("SCM_LENGTH is deprecated.  Use SCM_STRING_LENGTH instead, for example.");
+  if (SCM_STRINGP (obj))
+    return SCM_STRING_LENGTH (obj);
+  if (SCM_SYMBOLP (obj))
+    return SCM_SYMBOL_LENGTH (obj);
+  if (SCM_VECTORP (obj))
+    return SCM_VECTOR_LENGTH (obj);
+  abort ();
+}
 
 void
 scm_i_init_deprecated ()
