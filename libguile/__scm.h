@@ -440,6 +440,8 @@ do { \
    are implicitly volatile. */
 #ifdef __GNUC__
 #define SCM_FENCE asm /* volatile */ ("")
+#elif defined (__INTEL_COMPILER) && defined (__ia64)
+#define SCM_FENCE __memory_barrier()
 #else
 #define SCM_FENCE
 #endif
