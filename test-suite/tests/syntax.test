@@ -660,6 +660,18 @@
   (pass-if-exception "missing body expression"
     exception:missing-body-expr
     (eval '(let () (define x #t))
+          (interaction-environment)))
+
+  (pass-if "unmemoization"
+    (eval '(begin
+             (define (foo) 
+               (define (bar)
+                 'ok)
+               (bar))
+             (foo)
+             (equal?
+              (procedure-source foo)
+              '(lambda () (letrec ((bar (lambda () (quote ok)))) (bar)))))
           (interaction-environment))))
 
 (with-test-prefix "set!"

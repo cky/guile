@@ -1,3 +1,7 @@
+2004-01-23  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
+
+	* tests/syntax.test: Added test for unmemoizing internal defines.
+
 2004-01-21  Marius Vollmer  <mvo@zagadka.de>
 
 	* tests/srfi-26.test: New.
