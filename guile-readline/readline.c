@@ -18,6 +18,10 @@
  * Boston, MA 02111-1307 USA
  *
  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 
 #include "libguile/_scm.h"
@@ -43,19 +47,19 @@ scm_option scm_readline_opts[] = {
 
 extern void stifle_history (int max);
 
-SCM_PROC (s_readline_options, "readline-options-interface", 0, 1, 0, scm_readline_options);
-
-SCM
-scm_readline_options (setting)
-     SCM setting;
+GUILE_PROC (scm_readline_options, "readline-options-interface", 0, 1, 0, 
+            (SCM setting),
+"")
+#define FUNC_NAME s_scm_readline_options
 {
   SCM ans = scm_options (setting,
 			 scm_readline_opts,
 			 SCM_N_READLINE_OPTIONS,
-			 s_readline_options);
+			 FUNC_NAME);
   stifle_history (SCM_HISTORY_LENGTH);
   return ans;
 }
+#undef FUNC_NAME
 
 #ifndef HAVE_STRDUP
 static char *
@@ -137,12 +141,80 @@ redisplay ()
   /* promptp = 1; */
 }
 
-SCM_PROC (s_readline, "%readline", 0, 4, 0, scm_readline);
-
 static int in_readline = 0;
 #ifdef USE_THREADS
 static scm_mutex_t reentry_barrier_mutex;
 #endif
+
+static SCM internal_readline (SCM text);
+static SCM handle_error (void *data, SCM tag, SCM args);
+static void reentry_barrier ();
+
+
+GUILE_PROC (scm_readline, "%readline", 0, 4, 0, 
+            (SCM text, SCM inp, SCM outp, SCM read_hook),
+"")
+#define FUNC_NAME s_scm_readline
+{
+  SCM ans;
+  
+  reentry_barrier ();
+  
+  before_read = SCM_BOOL_F;
+
+  if (!SCM_UNBNDP (text))
+    {
+      if (!(SCM_NIMP (text) && SCM_STRINGP (text)))
+	{
+	  --in_readline;
+	  scm_wrong_type_arg (s_scm_readline, SCM_ARG1, text);
+	}
+      SCM_COERCE_SUBSTR (text);
+    }
+  
+  if (!((SCM_UNBNDP (inp) && SCM_NIMP (scm_cur_inp) && SCM_OPINFPORTP (inp))
+	|| SCM_NIMP (inp) && SCM_OPINFPORTP (inp)))
+    {
+      --in_readline;
+      scm_misc_error (s_scm_readline,
+		      "Input port is not open or not a file port",
+		      SCM_EOL);
+    }
+  
+  if (!((SCM_UNBNDP (outp) && SCM_NIMP (scm_cur_outp) && SCM_OPINFPORTP (outp))
+	|| (SCM_NIMP (outp) && SCM_OPOUTFPORTP (outp))))
+    {
+      --in_readline;
+      scm_misc_error (s_scm_readline,
+		      "Output port is not open or not a file port",
+		      SCM_EOL);
+    }
+
+  if (!(SCM_UNBNDP (read_hook) || SCM_FALSEP (read_hook)))
+    {
+      if (!(SCM_NFALSEP (scm_thunk_p (read_hook))))
+	{
+	  --in_readline;
+	  scm_wrong_type_arg (s_scm_readline, SCM_ARG4, read_hook);
+	}
+      before_read = read_hook;
+    }
+
+  scm_readline_init_ports (inp, outp);
+
+  ans = scm_internal_catch (SCM_BOOL_T,
+			    (scm_catch_body_t) internal_readline,
+			    (void *) text,
+			    handle_error, 0);
+
+  fclose (rl_instream);
+  fclose (rl_outstream);
+
+  --in_readline;
+  return ans;
+}
+#undef FUNC_NAME
+
 
 static void
 reentry_barrier ()
@@ -160,7 +232,7 @@ reentry_barrier ()
   scm_mutex_unlock (&reentry_barrier_mutex);
 #endif
   if (reentryp)
-    scm_misc_error (s_readline, "readline is not reentrant", SCM_EOL);
+    scm_misc_error (s_scm_readline, "readline is not reentrant", SCM_EOL);
 }
 
 static SCM
@@ -240,79 +312,19 @@ scm_readline_init_ports (SCM inp, SCM outp)
   }
 
   input_port = inp;
-  rl_instream = stream_from_fport (inp, "r", s_readline);
-  rl_outstream = stream_from_fport (outp, "w", s_readline);
+  rl_instream = stream_from_fport (inp, "r", s_scm_readline);
+  rl_outstream = stream_from_fport (outp, "w", s_scm_readline);
 }
 
-SCM
-scm_readline (SCM text, SCM inp, SCM outp, SCM read_hook)
-{
-  SCM ans;
-  
-  reentry_barrier ();
-  
-  before_read = SCM_BOOL_F;
 
-  if (!SCM_UNBNDP (text))
-    {
-      if (!(SCM_NIMP (text) && SCM_STRINGP (text)))
-	{
-	  --in_readline;
-	  scm_wrong_type_arg (s_readline, SCM_ARG1, text);
-	}
-      SCM_COERCE_SUBSTR (text);
-    }
-  
-  if (!((SCM_UNBNDP (inp) && SCM_NIMP (scm_cur_inp) && SCM_OPINFPORTP (inp))
-	|| SCM_NIMP (inp) && SCM_OPINFPORTP (inp)))
-    {
-      --in_readline;
-      scm_misc_error (s_readline,
-		      "Input port is not open or not a file port",
-		      SCM_EOL);
-    }
-  
-  if (!((SCM_UNBNDP (outp) && SCM_NIMP (scm_cur_outp) && SCM_OPINFPORTP (outp))
-	|| (SCM_NIMP (outp) && SCM_OPOUTFPORTP (outp))))
-    {
-      --in_readline;
-      scm_misc_error (s_readline,
-		      "Output port is not open or not a file port",
-		      SCM_EOL);
-    }
 
-  if (!(SCM_UNBNDP (read_hook) || SCM_FALSEP (read_hook)))
-    {
-      if (!(SCM_NFALSEP (scm_thunk_p (read_hook))))
-	{
-	  --in_readline;
-	  scm_wrong_type_arg (s_readline, SCM_ARG4, read_hook);
-	}
-      before_read = read_hook;
-    }
-
-  scm_readline_init_ports (inp, outp);
-
-  ans = scm_internal_catch (SCM_BOOL_T,
-			    (scm_catch_body_t) internal_readline,
-			    (void *) text,
-			    handle_error, 0);
-
-  fclose (rl_instream);
-  fclose (rl_outstream);
-
-  --in_readline;
-  return ans;
-}
-
-SCM_PROC (s_add_history, "add-history", 1, 0, 0, scm_add_history);
-
-SCM
-scm_add_history (SCM text)
+GUILE_PROC (scm_add_history, "add-history", 1, 0, 0, 
+            (SCM text),
+"")
+#define FUNC_NAME s_scm_add_history
 {
   char* s;
-  SCM_ASSERT ((SCM_NIMP(text) && SCM_STRINGP(text)), text, SCM_ARG1,
-	      s_add_history);
+  SCM_VALIDATE_STRING(1,text);
   SCM_COERCE_SUBSTR (text);
 
   s = SCM_CHARS (text);
@@ -320,47 +332,46 @@ scm_add_history (SCM text)
 
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
 
-SCM_PROC (s_read_history, "read-history", 1, 0, 0, scm_read_history);
-
-SCM
-scm_read_history (SCM file)
+GUILE_PROC (scm_read_history, "read-history", 1, 0, 0, 
+            (SCM file),
+"")
+#define FUNC_NAME s_scm_read_history
 {
-  SCM_ASSERT (SCM_NIMP (file) && SCM_STRINGP (file),
-	      file, SCM_ARG1, s_read_history);
-  return read_history (SCM_ROCHARS (file)) ? SCM_BOOL_F : SCM_BOOL_T;
+  SCM_VALIDATE_STRING(1,file);
+  return SCM_NEGATE_BOOL(read_history (SCM_ROCHARS (file)));
 }
+#undef FUNC_NAME
 
 
-SCM_PROC (s_write_history, "write-history", 1, 0, 0, scm_write_history);
-
-SCM
-scm_write_history (SCM file)
+GUILE_PROC (scm_write_history, "write-history", 1, 0, 0, 
+            (SCM file),
+"")
+#define FUNC_NAME s_scm_write_history
 {
-  SCM_ASSERT (SCM_NIMP (file) && SCM_STRINGP (file),
-	      file, SCM_ARG1, s_write_history);
-  return write_history (SCM_ROCHARS (file)) ? SCM_BOOL_F : SCM_BOOL_T;
+  SCM_VALIDATE_STRING(1,file);
+  return SCM_NEGATE_BOOL(write_history (SCM_ROCHARS (file)));
 }
+#undef FUNC_NAME
 
 
-SCM_PROC (s_filename_completion_function, "filename-completion-function", 2, 0, 0, scm_filename_completion_function);
-
-SCM
-scm_filename_completion_function (SCM text, SCM continuep)
+GUILE_PROC (scm_filename_completion_function, "filename-completion-function", 2, 0, 0, 
+            (SCM text, SCM continuep),
+"")
+#define FUNC_NAME s_scm_filename_completion_function
 {
   char *s;
   SCM ans;
-  SCM_ASSERT (SCM_NIMP (text) && SCM_STRINGP (text),
-	      text,
-	      SCM_ARG1,
-	      s_filename_completion_function);
+  SCM_VALIDATE_STRING(1,text);
   SCM_COERCE_SUBSTR (text);
   s = filename_completion_function (SCM_CHARS (text), SCM_NFALSEP (continuep));
   ans = scm_makfrom0str (s);
   free (s);
   return ans;
 }
+#undef FUNC_NAME
 
 /*
  * The following has been modified from code contributed by
@@ -387,7 +398,7 @@ completion_function (char *text, int continuep)
 	return NULL;
   
       if (!(SCM_NIMP (res) && SCM_STRINGP (res)))
-	scm_misc_error (s_readline,
+	scm_misc_error (s_scm_readline,
 			"Completion function returned bogus value: %S",
 			SCM_LIST1 (res));
       SCM_COERCE_SUBSTR (res);
