@@ -90,6 +90,7 @@ extern void scm_gc_sweep SCM_P ((void));
 extern char * scm_must_malloc SCM_P ((long len, char *what));
 extern char * scm_must_realloc SCM_P ((char *where, long olen, long len,
 				       char *what));
+extern void scm_done_malloc SCM_P ((long size));
 extern void scm_must_free SCM_P ((char *obj));
 extern void scm_remember SCM_P ((SCM * ptr));
 extern SCM scm_return_first SCM_P ((SCM elt, ...));
