@@ -1,6 +1,7 @@
 @page
 @node SLIB
 @chapter SLIB
+@cindex SLIB
 
 Before the SLIB facilities can be used, the following Scheme expression
 must be executed:
@@ -9,6 +10,7 @@ must be executed:
 (use-modules (ice-9 slib))
 @end smalllisp
 
+@cindex @code{require}
 @code{require} can then be used as described in
 @ref{Top, , SLIB, slib, The SLIB Manual}.
 
@@ -32,7 +34,7 @@ The following seems to work (e.g., with slib versions 2c7 and 2d2):
 
 @enumerate
 @item
-Unpack slib somewhere, e.g., /usr/local/share/slib.
+Unpack slib somewhere, e.g., @file{/usr/local/share/slib}.
 
 @item
 Create a symlink in the Guile site directory to slib, e.g.,:
@@ -52,7 +54,7 @@ guile> (quit)
 @end example
 
 The catalog data should now be in
-@code{/usr/local/share/guile/site/slibcat}.
+@file{/usr/local/share/guile/site/slibcat}.
 
 If instead you get an error such as:
 
@@ -61,7 +63,7 @@ Unbound variable: scheme-implementation-type
 @end example
 
 then a solution is to get a newer version of Guile,
-or to modify ice-9/slib.scm to use define-public for the
+or to modify @file{ice-9/slib.scm} to use @code{define-public} for the
 offending variables.
 
 @item
@@ -77,6 +79,7 @@ install-info slib.info /usr/local/info/dir
 
 @node JACAL
 @section JACAL
+@cindex JACAL
 
 @cindex Jaffer, Aubrey
 @cindex symbolic math
@@ -96,7 +99,7 @@ You can use Guile's interface to SLIB to invoke Jacal:
 @noindent
 For complete documentation on Jacal, please read the Jacal manual.  If
 it has been installed on line, you can look at @ref{Top, , Jacal, jacal,
-The SLIB Manual}.  Otherwise you can find it on the web at
+JACAL Symbolic Mathematics System}.  Otherwise you can find it on the web at
 @url{http://www-swiss.ai.mit.edu/~jaffer/JACAL.html}
 
 
