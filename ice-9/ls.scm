@@ -1,6 +1,6 @@
 ;;;; ls.scm --- functions for browsing modules
 ;;;;
-;;;; 	Copyright (C) 1995, 1996, 1997, 1999 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1995, 1996, 1997, 1999, 2001 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -43,7 +43,9 @@
 ;;;; 
 
 (define-module (ice-9 ls)
-  :use-module (ice-9 common-list))
+  :use-module (ice-9 common-list)
+  :export (local-definitions-in definitions-in ls lls
+	   recursive-local-define))
 
 ;;;;
 ;;;	local-definitions-in root name
@@ -76,7 +78,7 @@
 ;;;
 ;;;		Analogous to `ls', but with local definitions only.
 
-(define-public (local-definitions-in root names)
+(define (local-definitions-in root names)
   (let ((m (nested-ref root names))
 	(answer '()))
     (if (not (module? m))
@@ -84,7 +86,7 @@
 	(module-for-each (lambda (k v) (set! answer (cons k answer))) m))
     answer))
 
-(define-public (definitions-in root names)
+(define (definitions-in root names)
   (let ((m (nested-ref root names)))
     (if (not (module? m))
 	m
@@ -93,7 +95,7 @@
 		      (map (lambda (m2) (definitions-in m2 '()))
 			   (module-uses m)))))))
 
-(define-public (ls . various-refs)
+(define (ls . various-refs)
   (if (pair? various-refs)
        (if (cdr various-refs)
 	   (map (lambda (ref)
@@ -102,7 +104,7 @@
 	  (definitions-in (current-module) (car various-refs)))
       (definitions-in (current-module) '())))
 
-(define-public (lls . various-refs)
+(define (lls . various-refs)
   (if (pair? various-refs)
        (if (cdr various-refs)
 	   (map (lambda (ref)
@@ -111,7 +113,7 @@
 	  (local-definitions-in (current-module) (car various-refs)))
       (local-definitions-in (current-module) '())))
 
-(define-public (recursive-local-define name value)
+(define (recursive-local-define name value)
   (let ((parent (reverse! (cdr (reverse name)))))
     (and parent (make-modules-in (current-module) parent))
     (local-define name value)))

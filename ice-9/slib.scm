@@ -1,6 +1,6 @@
 ;;;; slib.scm --- definitions needed to get SLIB to work with Guile
 ;;;;
-;;;;	Copyright (C) 1997, 1998, 2000 Free Software Foundation, Inc.
+;;;;	Copyright (C) 1997, 1998, 2000, 2001 Free Software Foundation, Inc.
 ;;;;
 ;;;; This file is part of GUILE.
 ;;;; 
@@ -44,8 +44,18 @@
 ;;;; If you do not wish that, delete this exception notice.
 ;;;;
 (define-module (ice-9 slib)
+  :export (slib:load slib:load-source defmacro:load
+	   implementation-vicinity library-vicinity home-vicinity
+	   scheme-implementation-type scheme-implementation-version
+	   output-port-width output-port-height identity array-indexes
+	   make-random-state require slib:error slib:exit slib:warn slib:eval
+	   defmacro:eval logical:logand logical:logior logical:logxor
+	   logical:lognot logical:ash logical:logcount logical:integer-length
+	   logical:bit-extract logical:integer-expt logical:ipow-by-squaring
+	   slib:eval-load slib:tab slib:form-feed difftime offset-time
+	   software-type)
   :no-backtrace)
-  
+
 
 
 (define (eval-load <filename> evl)
@@ -86,71 +96,98 @@
 (define (defined? symbol)
   (module-defined? slib-module symbol))
 
-(define slib:features
-  (append '(source
-	    eval
-	    abort
-	    alist
-	    defmacro
-	    delay
-	    dynamic-wind
-	    full-continuation
-	    hash
-	    hash-table
-	    line-i/o
-	    logical
-	    multiarg/and-
-	    multiarg-apply
-	    promise
-	    rev2-procedures
-	    rev4-optional-procedures
-	    string-port
-	    with-file)
+;;; *FEATURES* should be set to a list of symbols describing features
+;;; of this implementation.  Suggestions for features are:
+(define *features*
+  (append
+      '(
+	source				;can load scheme source files
+					;(slib:load-source "filename")
+;	compiled			;can load compiled files
+					;(slib:load-compiled "filename")
 
-	  (if (defined? 'getenv)
-	      '(getenv)
-	      '())
+		       ;; Scheme report features
 
-	  (if (defined? 'current-time)
-	      '(current-time)
-	      '())
+;	rev5-report			;conforms to
+	eval				;R5RS two-argument eval
+;	values				;R5RS multiple values
+	dynamic-wind			;R5RS dynamic-wind
+;	macro				;R5RS high level macros
+	delay				;has DELAY and FORCE
+	multiarg-apply			;APPLY can take more than 2 args.
+;	rationalize
+	rev4-optional-procedures	;LIST-TAIL, STRING->LIST,
+					;LIST->STRING, STRING-COPY,
+					;STRING-FILL!, LIST->VECTOR,
+					;VECTOR->LIST, and VECTOR-FILL!
 
-	  (if (defined? 'system)
-	      '(system)
-	      '())
+;	rev4-report			;conforms to
 
-	  (if (defined? 'array?)
-	      '(array)
-	      '())
+;	ieee-p1178			;conforms to
 
-	  (if (defined? 'char-ready?)
-	      '(char-ready?)
-	      '())
+;	rev3-report			;conforms to
 
-	  (if (defined? 'array-for-each)
-	      '(array-for-each)
-	      '())
+	rev2-procedures			;SUBSTRING-MOVE-LEFT!,
+					;SUBSTRING-MOVE-RIGHT!,
+					;SUBSTRING-FILL!,
+					;STRING-NULL?, APPEND!, 1+,
+					;-1+, <?, <=?, =?, >?, >=?
+;	object-hash			;has OBJECT-HASH
 
-	  (if (and (string->number "0.0") (inexact? (string->number "0.0")))
-	      '(inexact)
-	      '())
+	multiarg/and-			;/ and - can take more than 2 args.
+	with-file			;has WITH-INPUT-FROM-FILE and
+					;WITH-OUTPUT-FROM-FILE
+;	transcript			;TRANSCRIPT-ON and TRANSCRIPT-OFF
+;	ieee-floating-point		;conforms to IEEE Standard 754-1985
+					;IEEE Standard for Binary
+					;Floating-Point Arithmetic.
+	full-continuation		;can return multiple times
 
-	  (if (rational? (string->number "1/19"))
-	      '(rational)
-	      '())
+			;; Other common features
 
-	  (if (real? (string->number "0.0"))
-	      '(real)
-	      ())
+;	srfi				;srfi-0, COND-EXPAND finds all srfi-*
+;	sicp				;runs code from Structure and
+					;Interpretation of Computer
+					;Programs by Abelson and Sussman.
+	defmacro			;has Common Lisp DEFMACRO
+;	record				;has user defined data structures
+	string-port			;has CALL-WITH-INPUT-STRING and
+					;CALL-WITH-OUTPUT-STRING
+;	sort
+;	pretty-print
+;	object->string
+;	format				;Common-lisp output formatting
+;	trace				;has macros: TRACE and UNTRACE
+;	compiler			;has (COMPILER)
+;	ed				;(ED) is editor
+	random
+	)
 
-	  (if (complex? (string->number "1+i"))
-	      '(complex)
-	      '())
+	(if (defined? 'getenv)
+	    '(getenv)
+	    '())
 
-	  (let ((n (string->number "9999999999999999999999999999999")))
-	    (if (and n (exact? n))
-		'(bignum)
-		'()))))
+	(if (defined? 'current-time)
+	    '(current-time)
+	    '())
+
+	(if (defined? 'system)
+	    '(system)
+	    '())
+
+	(if (defined? 'array?)
+	    '(array)
+	    '())
+
+	(if (defined? 'char-ready?)
+	    '(char-ready?)
+	    '())
+
+	(if (defined? 'array-for-each)
+	    '(array-for-each)
+	    '())
+
+	*features*))
 
 
 ;;; FIXME: Because uers want require to search the path, this uses
@@ -162,7 +199,7 @@
 ;;; changing catalog:get in slib/require.scm, and I don't expect
 ;;; Aubrey will integrate such a change.  So I'm just going to punt
 ;;; for the time being.
-(define-public (slib:load name)
+(define (slib:load name)
   (save-module-excursion
    (lambda ()
      (set-current-module slib-module)
@@ -189,23 +226,34 @@
 	(substring path 0 (- (string-length path) 17))
 	(error "Could not find slib/require.scm in " %load-path))))
 
-(define-public (implementation-vicinity)
+(define (implementation-vicinity)
   (string-append slib-parent-dir "/"))
-(define-public (library-vicinity)
+(define (library-vicinity)
   (string-append (implementation-vicinity) "slib/"))
-(define-public home-vicinity
+(define home-vicinity
   (let ((home-path (getenv "HOME")))
     (lambda () home-path)))
-(define-public (scheme-implementation-type) 'guile)
-(define-public (scheme-implementation-version) "")
+(define (scheme-implementation-type) 'guile)
+(define scheme-implementation-version version)
+;;; (scheme-implementation-home-page) should return a (string) URI
+;;; (Uniform Resource Identifier) for this scheme implementation's home
+;;; page; or false if there isn't one.
+(define (scheme-implementation-home-page)
+  "http://www.gnu.org/software/guile/guile.html")
 
 (define (output-port-width . arg) 80)
 (define (output-port-height . arg) 24)
 (define (identity x) x)
 
+;;; {array-for-each}
+(define (array-indexes ra)
+  (let ((ra0 (apply make-array '() (array-shape ra))))
+    (array-index-map! ra0 list)
+    ra0))
+
 ;;; {Random numbers}
 ;;;
-(define-public (make-random-state . args)
+(define (make-random-state . args)
   (let ((seed (if (null? args) *random-state* (car args))))
     (cond ((string? seed))
 	  ((number? seed) (set! seed (number->string seed)))
@@ -251,7 +299,7 @@ no other easy or unambiguous way of detecting such features."
 
 (slib:load (in-vicinity (library-vicinity) "require.scm"))
 
-(define-public require require:require)
+(define require require:require)
 
 ;; {Extensions to the require system so that the user can add new
 ;;  require modules easily.}

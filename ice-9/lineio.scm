@@ -45,7 +45,9 @@
 
 
 (define-module (ice-9 lineio)
-  :use-module (ice-9 readline))
+  :use-module (ice-9 readline)
+  :export (unread-string read-string lineio-port?
+	   make-line-buffering-input-port))
 
 
 ;;; {Line Buffering Input Ports}
@@ -77,15 +79,15 @@
 ;; 'unread-string and 'read-string properties, bound to hooks
 ;; implementing these functions.
 ;;
-(define-public (unread-string str line-buffering-input-port)
+(define (unread-string str line-buffering-input-port)
   ((object-property line-buffering-input-port 'unread-string) str))
 
 ;;
-(define-public (read-string line-buffering-input-port)
+(define (read-string line-buffering-input-port)
   ((object-property line-buffering-input-port 'read-string)))
 
 
-(define-public (lineio-port? port)
+(define (lineio-port? port)
   (not (not (object-property port 'read-string))))
 
 ;; make-line-buffering-input-port port
@@ -96,7 +98,7 @@
 ;; to read-char, read-string, and unread-string.
 ;;
 
-(define-public (make-line-buffering-input-port underlying-port)
+(define (make-line-buffering-input-port underlying-port)
   (let* (;; buffers - a list of strings put back by unread-string or cached
 	 ;; using read-line.
 	 ;;

@@ -69,9 +69,8 @@
 ;;; Author: Martin Grabmueller
 
 ;;; Code:
-(define-module (srfi srfi-16))
-
-(export-syntax case-lambda)
+(define-module (srfi srfi-16)
+  :export-syntax (case-lambda))
 
 (cond-expand-provide (current-module) '(srfi-16))
 

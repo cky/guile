@@ -1,6 +1,6 @@
 ;;;; calling.scm --- Calling Conventions
 ;;;;
-;;;; 	Copyright (C) 1995, 1996, 1997, 2000 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1995, 1996, 1997, 2000, 2001 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -42,7 +42,15 @@
 ;;;; If you do not wish that, delete this exception notice.
 ;;;; 
 
-(define-module (ice-9 calling))
+(define-module (ice-9 calling)
+  :export-syntax (with-excursion-function
+		  with-getter-and-setter
+		  with-getter
+		  with-delegating-getter-and-setter
+		  with-excursion-getter-and-setter
+		  with-configuration-getter-and-setter
+		  with-delegating-configuration-getter-and-setter
+		  let-with-configuration-getter-and-setter))
 
 ;;;;
 ;;;
@@ -62,7 +70,7 @@
 ;;;  entering and leaving the call to proc non-locally, such as using
 ;;;  call-with-current-continuation, error, or throw.
 ;;;
-(defmacro-public with-excursion-function (vars proc)
+(defmacro with-excursion-function (vars proc)
   `(,proc ,(excursion-function-syntax vars)))
 
 
@@ -107,7 +115,7 @@
 ;;;	;;   takes its arguments in a different order.
 ;;; 
 ;;;
-(defmacro-public with-getter-and-setter (vars proc)
+(defmacro with-getter-and-setter (vars proc)
   `(,proc ,@ (getter-and-setter-syntax vars)))
 
 ;;; with-getter vars proc
@@ -115,7 +123,7 @@
 ;;;   The procedure is called:
 ;;;		(proc getter)
 ;;;
-(defmacro-public with-getter (vars proc)
+(defmacro with-getter (vars proc)
   `(,proc ,(car (getter-and-setter-syntax vars))))
 
 
@@ -132,7 +140,7 @@
 ;;;   proc is a procedure that is called
 ;;;		(proc getter setter)
 ;;;
-(defmacro-public with-delegating-getter-and-setter (vars get-delegate set-delegate proc)
+(defmacro with-delegating-getter-and-setter (vars get-delegate set-delegate proc)
   `(,proc ,@ (delegating-getter-and-setter-syntax vars get-delegate set-delegate)))
 
 
@@ -146,7 +154,7 @@
 ;;;	with-getter-and-setter
 ;;;	with-excursion-function
 ;;;
-(defmacro-public with-excursion-getter-and-setter (vars proc)
+(defmacro with-excursion-getter-and-setter (vars proc)
   `(,proc  ,(excursion-function-syntax vars)
 	  ,@ (getter-and-setter-syntax vars)))
 
@@ -272,7 +280,7 @@
 ;;;   for the corresponding variable.  If omitted, the binding of <var>
 ;;;   is simply set using set!.
 ;;;
-(defmacro-public with-configuration-getter-and-setter (vars-etc proc)
+(defmacro with-configuration-getter-and-setter (vars-etc proc)
   `((lambda (simpler-get simpler-set body-proc)
       (with-delegating-getter-and-setter ()
 	simpler-get simpler-set body-proc))
@@ -295,7 +303,7 @@
 
        ,proc))
 
-(defmacro-public with-delegating-configuration-getter-and-setter (vars-etc delegate-get delegate-set proc)
+(defmacro with-delegating-configuration-getter-and-setter (vars-etc delegate-get delegate-set proc)
   `((lambda (simpler-get simpler-set body-proc)
       (with-delegating-getter-and-setter ()
 	simpler-get simpler-set body-proc))
@@ -337,10 +345,7 @@
 ;;;			...)
 ;;;		  (with-configuration-getter-and-setter ((<var1> v1-get v1-set) ...) proc))
 ;;;
-(defmacro-public let-with-configuration-getter-and-setter (vars-etc proc)
+(defmacro let-with-configuration-getter-and-setter (vars-etc proc)
   `(let ,(map (lambda (v) `(,(car v) ,(cadr v))) vars-etc)
      (with-configuration-getter-and-setter ,(map (lambda (v) `(,(car v) ,(caddr v) ,(cadddr v))) vars-etc)
 					   ,proc)))
-
-
-

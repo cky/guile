@@ -53,22 +53,26 @@
 ;;; Code:
 
 (define-module (ice-9 expect)
-  :use-module (ice-9 regex))
+  :use-module (ice-9 regex)
+  :export-syntax (expect expect-strings)
+  :export (expect-port expect-timeout expect-timeout-proc
+	   expect-eof-proc expect-char-proc expect-strings-compile-flags
+	   expect-strings-exec-flags expect-select expect-regexec))
 
 ;;; Expect: a macro for selecting actions based on what it reads from a port.
 ;;; The idea is from Don Libes' expect based on Tcl.
 ;;; This version by Gary Houston incorporating ideas from Aubrey Jaffer.
 
 
-(define-public expect-port #f)
-(define-public expect-timeout #f)
-(define-public expect-timeout-proc #f)
-(define-public expect-eof-proc #f)
-(define-public expect-char-proc #f)
+(define expect-port #f)
+(define expect-timeout #f)
+(define expect-timeout-proc #f)
+(define expect-eof-proc #f)
+(define expect-char-proc #f)
 
 ;;; expect: each test is a procedure which is applied to the accumulating
 ;;; string.
-(defmacro-public expect clauses
+(defmacro expect clauses
   (let ((s (gensym))
 	(c (gensym))
 	(port (gensym))
@@ -134,12 +138,12 @@
 			     (next-char)))))))))))
 
 
-(define-public expect-strings-compile-flags regexp/newline)
-(define-public expect-strings-exec-flags regexp/noteol)
+(define expect-strings-compile-flags regexp/newline)
+(define expect-strings-exec-flags regexp/noteol)
 
 ;;; the regexec front-end to expect:
 ;;; each test must evaluate to a regular expression.
-(defmacro-public expect-strings clauses
+(defmacro expect-strings clauses
   `(let ,@(let next-test ((tests (map car clauses))
 			  (exprs (map cdr clauses))
 			  (defs '())
@@ -162,7 +166,7 @@
 ;;; simplified select: returns #t if input is waiting or #f if timed out or
 ;;; select was interrupted by a signal.
 ;;; timeout is an absolute time in floating point seconds.
-(define-public (expect-select port timeout)
+(define (expect-select port timeout)
   (let* ((secs-usecs (gettimeofday))
 	 (relative (- timeout
 		      (car secs-usecs)
@@ -175,7 +179,7 @@
 ;;; match a string against a regexp, returning a list of strings (required
 ;;; by the => syntax) or #f.  called once each time a character is added
 ;;; to s (eof? will be #f), and once when eof is reached (with eof? #t).
-(define-public (expect-regexec rx s eof?)
+(define (expect-regexec rx s eof?)
   ;; if expect-strings-exec-flags contains regexp/noteol,
   ;; remove it for the eof test.
   (let* ((flags (if (and eof?

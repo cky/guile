@@ -82,7 +82,15 @@
 
 ;;; Code:
 
-(define-module (ice-9 optargs))
+(define-module (ice-9 optargs)
+  :export-syntax (let-optional
+		  let-optional*
+		  let-keywords
+		  let-keywords*
+		  define* lambda*
+		  define*-public
+		  defmacro*
+		  defmacro*-public))
 
 ;; let-optional rest-arg (binding ...) . body
 ;; let-optional* rest-arg (binding ...) . body
@@ -100,10 +108,10 @@
 ;; bound to whatever may have been left of rest-arg.
 ;;
 
-(defmacro-public let-optional (REST-ARG BINDINGS . BODY)
+(defmacro let-optional (REST-ARG BINDINGS . BODY)
   (let-optional-template REST-ARG BINDINGS BODY 'let))
 
-(defmacro-public let-optional* (REST-ARG BINDINGS . BODY)
+(defmacro let-optional* (REST-ARG BINDINGS . BODY)
   (let-optional-template REST-ARG BINDINGS BODY 'let*))
 
 
@@ -123,10 +131,10 @@
 ;;
 
 
-(defmacro-public let-keywords (REST-ARG ALLOW-OTHER-KEYS? BINDINGS . BODY)
+(defmacro let-keywords (REST-ARG ALLOW-OTHER-KEYS? BINDINGS . BODY)
   (let-keywords-template REST-ARG ALLOW-OTHER-KEYS? BINDINGS BODY 'let))
 
-(defmacro-public let-keywords* (REST-ARG ALLOW-OTHER-KEYS? BINDINGS . BODY)
+(defmacro let-keywords* (REST-ARG ALLOW-OTHER-KEYS? BINDINGS . BODY)
   (let-keywords-template REST-ARG ALLOW-OTHER-KEYS? BINDINGS BODY 'let*))
 
 
@@ -248,7 +256,7 @@
 ;; Lisp dialects.
 
 
-(defmacro-public lambda* (ARGLIST . BODY)
+(defmacro lambda* (ARGLIST . BODY)
   (parse-arglist
    ARGLIST
    (lambda (non-optional-args optionals keys aok? rest-arg)
@@ -387,10 +395,10 @@
 ;; Of course, define*[-public] also supports #:rest and #:allow-other-keys
 ;; in the same way as lambda*.
 
-(defmacro-public define* (ARGLIST . BODY)
+(defmacro define* (ARGLIST . BODY)
   (define*-guts 'define ARGLIST BODY))
 
-(defmacro-public define*-public (ARGLIST . BODY)
+(defmacro define*-public (ARGLIST . BODY)
   (define*-guts 'define-public ARGLIST BODY))
 
 ;; The guts of define* and define*-public.
@@ -421,10 +429,10 @@
 ;; semantics. Here is an example of a macro with an optional argument:
 ;;   (defmacro* transmorgify (a #:optional b)
 
-(defmacro-public defmacro* (NAME ARGLIST . BODY)
+(defmacro defmacro* (NAME ARGLIST . BODY)
   (defmacro*-guts 'define NAME ARGLIST BODY))
 
-(defmacro-public defmacro*-public (NAME ARGLIST . BODY)
+(defmacro defmacro*-public (NAME ARGLIST . BODY)
   (defmacro*-guts 'define-public NAME ARGLIST BODY))
 
 ;; The guts of defmacro* and defmacro*-public

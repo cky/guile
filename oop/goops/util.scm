@@ -42,13 +42,12 @@
 
 
 (define-module (oop goops util)
+  :export (any every filter
+	   mapappend find-duplicate top-level-env top-level-env?
+	   map* for-each* length* improper->proper)
   :no-backtrace
   )
 
-(export any every filter
-	mapappend find-duplicate top-level-env top-level-env?
-	map* for-each* length* improper->proper
- )
 
 ;;;
 ;;; {Utilities}

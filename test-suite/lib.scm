@@ -18,9 +18,8 @@
 
 (define-module (test-suite lib)
   :use-module (ice-9 stack-catch)
-  :use-module (ice-9 regex))
-
-(export
+  :use-module (ice-9 regex)
+  :export (
 
  ;; Exceptions which are commonly being tested for.
  exception:out-of-range exception:unbound-var
@@ -40,7 +39,7 @@
  make-log-reporter
  full-reporter
  user-reporter
- format-test-name)
+ format-test-name))
 
 
 ;;;; If you're using Emacs's Scheme mode:

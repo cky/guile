@@ -45,10 +45,9 @@
 
 (define-module (oop goops old-define-method)
   :use-module (oop goops)
+  :export (define-method)
   :no-backtrace
   )
-
-(export define-method)
 
 (define define-method
   (procedure->memoizing-macro

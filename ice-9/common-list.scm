@@ -75,7 +75,11 @@
 
 ;;; Code:
 
-(define-module (ice-9 common-list))
+(define-module (ice-9 common-list)
+  :export (adjoin union intersection set-difference reduce-init reduce
+	   some every notany notevery count-if find-if member-if remove-if
+	   remove-if-not delete-if! delete-if-not! butlast and? or?
+	   has-duplicates? pick pick-mappings uniq))
 
 ;;"comlist.scm" Implementation of COMMON LISP list functions for Scheme
 ; Copyright (C) 1991, 1993, 1995 Aubrey Jaffer.
@@ -96,11 +100,11 @@
 ;promotional, or sales literature without prior written consent in
 ;each case.
 
-(define-public (adjoin e l)
+(define (adjoin e l)
   "Return list L, possibly with element E added if it is not already in L."
   (if (memq e l) l (cons e l)))
 
-(define-public (union l1 l2)
+(define (union l1 l2)
   "Return a new list that is the union of L1 and L2.
 Elements that occur in both lists occur only once in
 the result list."
@@ -108,7 +112,7 @@ the result list."
 	((null? l2) l1)
 	(else (union (cdr l1) (adjoin (car l1) l2)))))
 
-(define-public (intersection l1 l2)
+(define (intersection l1 l2)
   "Return a new list that is the intersection of L1 and L2.
 Only elements that occur in both lists occur in the result list."
   (if (null? l2) l2
@@ -117,20 +121,20 @@ Only elements that occur in both lists occur in the result list."
 	      ((memv (car l1) l2) (loop (cdr l1) (cons (car l1) result)))
 	      (else (loop (cdr l1) result))))))
 
-(define-public (set-difference l1 l2)
+(define (set-difference l1 l2)
   "Return elements from list L1 that are not in list L2."
   (let loop ((l1 l1) (result '()))
     (cond ((null? l1) (reverse! result))
 	  ((memv (car l1) l2) (loop (cdr l1) result))
 	  (else (loop (cdr l1) (cons (car l1) result))))))
 
-(define-public (reduce-init p init l)
+(define (reduce-init p init l)
   "Same as `reduce' except it implicitly inserts INIT at the start of L."
   (if (null? l)
       init
       (reduce-init p (p init (car l)) (cdr l))))
 
-(define-public (reduce p l)
+(define (reduce p l)
   "Combine all the elements of sequence L using a binary operation P.
 The combination is left-associative.  For example, using +, one can
 add up all the elements.  `reduce' allows you to apply a function which
@@ -140,7 +144,7 @@ programmers usually refer to this as foldl."
 	((null? (cdr l)) (car l))
 	(else (reduce-init p (car l) (cdr l)))))
 
-(define-public (some pred l . rest)
+(define (some pred l . rest)
   "PRED is a boolean function of as many arguments as there are list
 arguments to `some', i.e., L plus any optional arguments.  PRED is
 applied to successive elements of the list arguments in order.  As soon
@@ -156,7 +160,7 @@ All the lists should have the same length."
 		     (or (apply pred (car l) (map car rest))
 			 (mapf (cdr l) (map cdr rest))))))))
 
-(define-public (every pred l . rest)
+(define (every pred l . rest)
   "Return #t iff every application of PRED to L, etc., returns #t.
 Analogous to `some' except it returns #t if every application of
 PRED is #t and #f otherwise."
@@ -169,39 +173,39 @@ PRED is #t and #f otherwise."
 		    (and (apply pred (car l) (map car rest))
 			 (mapf (cdr l) (map cdr rest))))))))
 
-(define-public (notany pred . ls)
+(define (notany pred . ls)
   "Return #t iff every application of PRED to L, etc., returns #f.
 Analogous to some but returns #t if no application of PRED returns a
 true value or #f as soon as any one does."
   (not (apply some pred ls)))
 
-(define-public (notevery pred . ls)
+(define (notevery pred . ls)
   "Return #t iff there is an application of PRED to L, etc., that returns #f.
 Analogous to some but returns #t as soon as an application of PRED returns #f,
 or #f otherwise."
   (not (apply every pred ls)))
 
-(define-public (count-if pred l)
+(define (count-if pred l)
   "Return the number of elements in L for which (PRED element) returns true."
   (let loop ((n 0) (l l))
     (cond ((null? l) n)
 	  ((pred (car l)) (loop (+ n 1) (cdr l)))
 	  (else (loop n (cdr l))))))
 
-(define-public (find-if pred l)
+(define (find-if pred l)
   "Search for the first element in L for which (PRED element) returns true.
 If found, return that element, otherwise return #f."
   (cond ((null? l) #f)
 	((pred (car l)) (car l))
 	(else (find-if pred (cdr l)))))
 
-(define-public (member-if pred l)
+(define (member-if pred l)
   "Return the first sublist of L for whose car PRED is true."
   (cond ((null? l) #f)
 	((pred (car l)) l)
 	(else (member-if pred (cdr l)))))
 
-(define-public (remove-if pred l)
+(define (remove-if pred l)
   "Remove all elements from L where (PRED element) is true.
 Return everything that's left."
   (let loop ((l l) (result '()))
@@ -209,7 +213,7 @@ Return everything that's left."
 	  ((pred (car l)) (loop (cdr l) result))
 	  (else (loop (cdr l) (cons (car l) result))))))
 
-(define-public (remove-if-not pred l)
+(define (remove-if-not pred l)
   "Remove all elements from L where (PRED element) is #f.
 Return everything that's left."
   (let loop ((l l) (result '()))
@@ -217,7 +221,7 @@ Return everything that's left."
 	  ((not (pred (car l))) (loop (cdr l) result))
 	  (else (loop (cdr l) (cons (car l) result))))))
 
-(define-public (delete-if! pred l)
+(define (delete-if! pred l)
   "Destructive version of `remove-if'."
   (let delete-if ((l l))
     (cond ((null? l) '())
@@ -226,7 +230,7 @@ Return everything that's left."
 	   (set-cdr! l (delete-if (cdr l)))
 	   l))))
 
-(define-public (delete-if-not! pred l)
+(define (delete-if-not! pred l)
   "Destructive version of `remove-if-not'."
   (let delete-if-not ((l l))
     (cond ((null? l) '())
@@ -235,7 +239,7 @@ Return everything that's left."
 	   (set-cdr! l (delete-if-not (cdr l)))
 	   l))))
 
-(define-public (butlast lst n)
+(define (butlast lst n)
   "Return all but the last N elements of LST."
   (letrec ((l (- (length lst) n))
 	   (bl (lambda (lst n)
@@ -247,25 +251,25 @@ Return everything that's left."
 		(error "negative argument to butlast" n)
 		l))))
 
-(define-public (and? . args)
+(define (and? . args)
   "Return #t iff all of ARGS are true."
   (cond ((null? args) #t)
 	((car args) (apply and? (cdr args)))
 	(else #f)))
 
-(define-public (or? . args)
+(define (or? . args)
   "Return #t iff any of ARGS is true."
   (cond ((null? args) #f)
 	((car args) #t)
 	(else (apply or? (cdr args)))))
 
-(define-public (has-duplicates? lst)
+(define (has-duplicates? lst)
   "Return #t iff 2 members of LST are equal?, else #f."
   (cond ((null? lst) #f)
 	((member (car lst) (cdr lst)) #t)
 	(else (has-duplicates? (cdr lst)))))
 
-(define-public (pick p l)
+(define (pick p l)
   "Apply P to each element of L, returning a list of elts
 for which P returns a non-#f value."
   (let loop ((s '())
@@ -275,7 +279,7 @@ for which P returns a non-#f value."
      ((p (car l))	(loop (cons (car l) s) (cdr l)))
      (else		(loop s (cdr l))))))
 
-(define-public (pick-mappings p l)
+(define (pick-mappings p l)
   "Apply P to each element of L, returning a list of the
 non-#f return values of P."
   (let loop ((s '())
@@ -285,7 +289,7 @@ non-#f return values of P."
      ((p (car l)) =>	(lambda (mapping) (loop (cons mapping s) (cdr l))))
      (else		(loop s (cdr l))))))
 
-(define-public (uniq l)
+(define (uniq l)
   "Return a list containing elements of L, with duplicates removed."
   (let loop ((acc '())
 	     (l l))

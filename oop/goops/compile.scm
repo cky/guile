@@ -44,11 +44,10 @@
 (define-module (oop goops compile)
   :use-module (oop goops)
   :use-module (oop goops util)
+  :export (compute-cmethod compute-entry-with-cmethod
+	   compile-method cmethod-code cmethod-environment)
   :no-backtrace
   )
-
-(export compute-cmethod compute-entry-with-cmethod
-	compile-method cmethod-code cmethod-environment)
 
 (define source-formals cadr)
 (define source-body cddr)

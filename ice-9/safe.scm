@@ -1,4 +1,4 @@
-;;;; 	Copyright (C) 2000 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2000, 2001 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -42,11 +42,12 @@
 
 ;;;; Safe subset of R5RS bindings
 
-(define-module (ice-9 safe))
+(define-module (ice-9 safe)
+  :export (safe-environment make-safe-module))
 
 (define safe-r5rs-interface (resolve-interface '(ice-9 safe-r5rs)))
 
-(define-public (safe-environment n)
+(define (safe-environment n)
   (if (not (= n 5))
       (scm-error 'misc-error 'safe-environment
 		 "~A is not a valid version"
@@ -54,5 +55,5 @@
 		 '()))
   safe-r5rs-interface)
 
-(define-public (make-safe-module)
+(define (make-safe-module)
   (make-module 1021 (list safe-r5rs-interface)))

@@ -44,6 +44,7 @@
 (define-module (ice-9 debugger)
   :use-module (ice-9 debug)
   :use-module (ice-9 format)
+  :export (debug)
   :no-backtrace
   )
 
@@ -54,7 +55,7 @@
 
 (define debugger-prompt "debug> ")
 
-(define-public (debug)
+(define (debug)
   (let ((stack (fluid-ref the-last-stack)))
     (if stack
 	(let ((state (make-state stack 0)))

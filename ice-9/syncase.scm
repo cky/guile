@@ -1,4 +1,4 @@
-;;;; 	Copyright (C) 1997, 2000 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1997, 2000, 2001 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -42,40 +42,50 @@
 
 
 (define-module (ice-9 syncase)
-  :use-module (ice-9 debug))
+  :use-module (ice-9 debug)
+  :export-syntax (sc-macro define-syntax eval-when fluid-let-syntax
+		  identifier-syntax let-syntax
+		  letrec-syntax syntax syntax-case  syntax-rules
+		  with-syntax
+		  include)
+  :export (sc-expand sc-expand3 install-global-transformer
+	   syntax-dispatch syntax-error bound-identifier=?
+	   datum->syntax-object free-identifier=?
+	   generate-temporaries identifier? syntax-object->datum
+	   void eval syncase))
 
 
 
-(define-public sc-macro
+(define sc-macro
   (procedure->memoizing-macro
     (lambda (exp env)
       (sc-expand exp))))
 
 ;;; Exported variables
 
-(define-public sc-expand #f)
-(define-public sc-expand3 #f)
-(define-public install-global-transformer #f)
-(define-public syntax-dispatch #f)
-(define-public syntax-error #f)
+(define sc-expand #f)
+(define sc-expand3 #f)
+(define install-global-transformer #f)
+(define syntax-dispatch #f)
+(define syntax-error #f)
 
-(define-public bound-identifier=? #f)
-(define-public datum->syntax-object #f)
-(define-public define-syntax sc-macro)
-(define-public eval-when sc-macro)
-(define-public fluid-let-syntax sc-macro)
-(define-public free-identifier=? #f)
-(define-public generate-temporaries #f)
-(define-public identifier? #f)
-(define-public identifier-syntax sc-macro)
-(define-public let-syntax sc-macro)
-(define-public letrec-syntax sc-macro)
-(define-public syntax sc-macro)
-(define-public syntax-case sc-macro)
-(define-public syntax-object->datum #f)
-(define-public syntax-rules sc-macro)
-(define-public with-syntax sc-macro)
-(define-public include sc-macro)
+(define bound-identifier=? #f)
+(define datum->syntax-object #f)
+(define define-syntax sc-macro)
+(define eval-when sc-macro)
+(define fluid-let-syntax sc-macro)
+(define free-identifier=? #f)
+(define generate-temporaries #f)
+(define identifier? #f)
+(define identifier-syntax sc-macro)
+(define let-syntax sc-macro)
+(define letrec-syntax sc-macro)
+(define syntax sc-macro)
+(define syntax-case sc-macro)
+(define syntax-object->datum #f)
+(define syntax-rules sc-macro)
+(define with-syntax sc-macro)
+(define include sc-macro)
 
 (define primitive-syntax '(quote lambda letrec if set! begin define or
 			      and let let* cond do quasiquote unquote
@@ -87,7 +97,7 @@
 
 ;;; Hooks needed by the syntax-case macro package
 
-(define-public (void) *unspecified*)
+(define (void) *unspecified*)
 
 (define andmap
   (lambda (f first . rest)
@@ -161,7 +171,7 @@
 
 (define internal-eval (nested-ref the-scm-module '(app modules guile eval)))
 
-(define-public (eval x environment)
+(define (eval x environment)
   (internal-eval (if (and (pair? x)
 			  (equal? (car x) "noexpand"))
 		     (cadr x)
@@ -175,4 +185,4 @@
 			    '*sc-expander*
 			    '(define))))
 
-(define-public syncase sc-expand)
+(define syncase sc-expand)

@@ -1,6 +1,6 @@
 ;;; installed-scm-file
 
-;;;; 	Copyright (C) 1995, 1996, 1998 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1995, 1996, 1998, 2001 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -43,7 +43,10 @@
 ;;;; 
 
 
-(define-module  (ice-9 hcons))
+(define-module  (ice-9 hcons)
+  :export (hashq-cons-hash hashq-cons-assoc hashq-cons-get-handle
+	   hashq-cons-create-handle! hashq-cons-ref hashq-cons-set! hashq-cons
+	   hashq-conser make-gc-buffer))
 
 
 ;;; {Eq? hash-consing}
@@ -54,12 +57,12 @@
 ;;; A hash conser does not contribute life to the pairs it returns.
 ;;;
 
-(define-public (hashq-cons-hash pair n)
+(define (hashq-cons-hash pair n)
   (modulo (logxor (hashq (car pair) 4194303)
 		  (hashq (cdr pair) 4194303))
 	  n))
 
-(define-public (hashq-cons-assoc key l)
+(define (hashq-cons-assoc key l)
   (and (not (null? l))
        (or (and (pair? l)		; If not a pair, use its cdr?
 		(pair? (car l))
@@ -69,22 +72,22 @@
 		(car l))
 	   (hashq-cons-assoc key (cdr l)))))
 
-(define-public (hashq-cons-get-handle table key)
+(define (hashq-cons-get-handle table key)
   (hashx-get-handle hashq-cons-hash hashq-cons-assoc table key #f))
 
-(define-public (hashq-cons-create-handle! table key init)
+(define (hashq-cons-create-handle! table key init)
   (hashx-create-handle! hashq-cons-hash hashq-cons-assoc table key init))
 
-(define-public (hashq-cons-ref table key)
+(define (hashq-cons-ref table key)
   (hashx-ref hashq-cons-hash hashq-cons-assoc table key #f))
 
-(define-public (hashq-cons-set! table key val)
+(define (hashq-cons-set! table key val)
   (hashx-set! hashq-cons-hash hashq-cons-assoc table key val))
 
-(define-public (hashq-cons table a d)
+(define (hashq-cons table a d)
   (car (hashq-cons-create-handle! table (cons a d) #f)))
 
-(define-public (hashq-conser hash-tab-or-size)
+(define (hashq-conser hash-tab-or-size)
   (let ((table (if (vector? hash-tab-or-size)
 		   hash-tab-or-size
 		   (make-doubly-weak-hash-table hash-tab-or-size))))
@@ -93,7 +96,7 @@
 
 
 
-(define-public (make-gc-buffer n)
+(define (make-gc-buffer n)
   (let ((ring (make-list n #f)))
     (append! ring ring)
     (lambda (next)

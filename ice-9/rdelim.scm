@@ -46,12 +46,12 @@
 ;;; This is the Scheme part of the module for delimited I/O.  It's
 ;;; similar to (scsh rdelim) but somewhat incompatible.
 
-(define-module (ice-9 rdelim))
+(define-module (ice-9 rdelim)
+  :export (read-line read-line! read-delimited read-delimited!
+	   %read-delimited! %read-line write-line)  ; C
+  )
 
 (%init-rdelim-builtins)
-
-(export read-line read-line! read-delimited read-delimited!)
-(export %read-delimited! %read-line write-line)  ; C
 
 (define (read-line! string . maybe-port)
   ;; corresponds to SCM_LINE_INCREMENTORS in libguile.

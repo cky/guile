@@ -42,8 +42,7 @@
 ;;; If you do not wish that, delete this exception notice.
 
 (define-module (srfi srfi-8)
-  :use-module (ice-9 receive))
-
-(re-export-syntax receive)
+  :use-module (ice-9 receive)
+  :re-export-syntax (receive))
 
 (cond-expand-provide (current-module) '(srfi-8))

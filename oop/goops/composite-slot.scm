@@ -51,9 +51,8 @@
 ;;;;
 
 (define-module (oop goops composite-slot)
-  :use-module (oop goops))
-
-(export <composite-class>)
+  :use-module (oop goops)
+  :export (<composite-class>))
 
 ;;;
 ;;; (define-class CLASS SUPERS

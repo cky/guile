@@ -42,24 +42,21 @@
 
 ;;;; R5RS bindings
 
-(define-module (ice-9 r5rs))
+(define-module (ice-9 r5rs)
+  :export (scheme-report-environment
+	   ;;transcript-on
+	   ;;transcript-off
+	   )
+  :re-export (interaction-environment
+
+	      call-with-input-file call-with-output-file
+	      with-input-from-file with-output-to-file
+	      open-input-file open-output-file
+	      close-input-port close-output-port
+
+	      load))  
 
 (module-use! %module-public-interface (resolve-interface '(ice-9 safe-r5rs)))
-
-(export scheme-report-environment
-	;;transcript-on
-	;;transcript-off
-	)
-
-(re-export interaction-environment
-
-	   call-with-input-file call-with-output-file
-	   with-input-from-file with-output-to-file
-	   open-input-file open-output-file
-	   close-input-port close-output-port
-
-	   load
-	   )
 
 (define scheme-report-interface %module-public-interface)
 

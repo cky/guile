@@ -42,7 +42,8 @@
 ;;; If you do not wish that, delete this exception notice.
 
 (define-module (srfi srfi-11)
-  :use-module (ice-9 syncase))
+  :use-module (ice-9 syncase)
+  :export-syntax (let-values let*-values))
 
 (cond-expand-provide (current-module) '(srfi-11))
 
@@ -256,6 +257,3 @@
 ;   (if (null? vars)
 ;       `(begin ,@body)
 ;       (let-values-helper vars body)))
-
-(export-syntax let-values
-               let*-values)

@@ -56,7 +56,12 @@
 
 ;;; Code:
 
-(define-module (ice-9 threads))
+(define-module (ice-9 threads)
+  :export-syntax (make-thread
+		  begin-thread
+		  with-mutex
+		  monitor)
+  :export (%thread-handler))
 
 
 
@@ -108,14 +113,5 @@
   `(with-mutex ,(make-mutex)
      (begin
        ,first ,@rest)))
-
-;; export
-
-(export %thread-handler)
-
-(export-syntax make-thread
-               begin-thread
-               with-mutex
-               monitor)
 
 ;;; threads.scm ends here

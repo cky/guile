@@ -1,4 +1,4 @@
-;;;; 	Copyright (C) 1997, 1999 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1997, 1999, 2001 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -42,7 +42,11 @@
 
 ;;;; POSIX regex support functions.
 
-(define-module (ice-9 regex))
+(define-module (ice-9 regex)
+  :export (match:count match:string match:prefix match:suffix
+	   regexp-match? regexp-quote match:start match:end match:substring
+	   string-match regexp-substitute fold-matches list-matches
+	   regexp-substitute/global))
 
 ;;; FIXME:
 ;;;   It is not clear what should happen if a `match' function
@@ -53,22 +57,22 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; These procedures are not defined in SCSH, but I found them useful.
 
-(define-public (match:count match)
+(define (match:count match)
   (- (vector-length match) 1))
 
-(define-public (match:string match)
+(define (match:string match)
   (vector-ref match 0))
 
-(define-public (match:prefix match)
+(define (match:prefix match)
   (substring (match:string match) 0 (match:start match 0)))
 
-(define-public (match:suffix match)
+(define (match:suffix match)
   (substring (match:string match) (match:end match 0)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; SCSH compatibility routines.
 
-(define-public (regexp-match? match)
+(define (regexp-match? match)
   (and (vector? match)
        (string? (vector-ref match 0))
        (let loop ((i 1))
@@ -79,7 +83,7 @@
 		(loop (+ 1 i)))
 	       (else #f)))))
 
-(define-public (regexp-quote regexp)
+(define (regexp-quote regexp)
   (call-with-output-string
    (lambda (p)
      (let loop ((i 0))
@@ -91,21 +95,21 @@
 	      (write-char (string-ref regexp i) p)
 	      (loop (1+ i))))))))
 
-(define-public (match:start match . args)
+(define (match:start match . args)
   (let* ((matchnum (if (pair? args)
 		       (+ 1 (car args))
 		       1))
 	 (start (car (vector-ref match matchnum))))
     (if (= start -1) #f start)))
 
-(define-public (match:end match . args)
+(define (match:end match . args)
   (let* ((matchnum (if (pair? args)
 		       (+ 1 (car args))
 		       1))
 	 (end (cdr (vector-ref match matchnum))))
     (if (= end -1) #f end)))
 
-(define-public (match:substring match . args)
+(define (match:substring match . args)
   (let* ((matchnum (if (pair? args)
 		       (car args)
 		       0))
@@ -113,12 +117,12 @@
 	 (end   (match:end match matchnum)))
     (and start end (substring (match:string match) start end))))
 
-(define-public (string-match pattern str . args)
+(define (string-match pattern str . args)
   (let ((rx (make-regexp pattern))
 	(start (if (pair? args) (car args) 0)))
     (regexp-exec rx str start)))
 
-(define-public (regexp-substitute port match . items)
+(define (regexp-substitute port match . items)
   ;; If `port' is #f, send output to a string.
   (if (not port)
       (call-with-output-string
@@ -153,7 +157,7 @@
 ;;; `b'.  Around or within `xxx', only the match covering all three
 ;;; x's counts, because the rest are not maximal.
 
-(define-public (fold-matches regexp string init proc . flags)
+(define (fold-matches regexp string init proc . flags)
   (let ((regexp (if (regexp? regexp) regexp (make-regexp regexp)))
 	(flags (if (null? flags) 0 flags)))
     (let loop ((start 0)
@@ -171,10 +175,10 @@
 	 (else
 	  (loop (match:end m) (proc m value) #t)))))))
 
-(define-public (list-matches regexp string . flags)
+(define (list-matches regexp string . flags)
   (reverse! (apply fold-matches regexp string '() cons flags)))
 
-(define-public (regexp-substitute/global port regexp string . items)
+(define (regexp-substitute/global port regexp string . items)
 
   ;; If `port' is #f, send output to a string.
   (if (not port)

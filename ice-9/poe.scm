@@ -1,6 +1,6 @@
 ;;; installed-scm-file
 
-;;;; 	Copyright (C) 1996 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1996, 2001 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -44,7 +44,8 @@
 
 
 (define-module  (ice-9 poe)
-  :use-module (ice-9 hcons))
+  :use-module (ice-9 hcons)
+  :export (pure-funcq perfect-funcq))
 
 
 
@@ -95,7 +96,7 @@
 
 
 
-(define-public (pure-funcq base-func)
+(define (pure-funcq base-func)
   (lambda args
     (let ((cached (hashx-get-handle funcq-hash funcq-assoc funcq-memo (cons base-func args))))
       (if cached
@@ -117,7 +118,7 @@
 ;;; funcq never does.
 ;;;
 
-(define-public (perfect-funcq size base-func)
+(define (perfect-funcq size base-func)
   (define funcq-memo (make-hash-table size))
 
   (lambda args

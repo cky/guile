@@ -41,9 +41,8 @@
 ;;;; whether to permit this exception to apply to your modifications.
 ;;;; If you do not wish that, delete this exception notice.
 ;;;; 
-(define-module (ice-9 pretty-print))
-
-(export pretty-print)
+(define-module (ice-9 pretty-print)
+  :export (pretty-print))
 
 ;; From SLIB.
 

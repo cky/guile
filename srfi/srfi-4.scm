@@ -49,9 +49,8 @@
 
 ;;; Author: Martin Grabmueller <mgrabmue@cs.tu-berlin.de>
 
-(define-module (srfi srfi-4))
-
-(export 
+(define-module (srfi srfi-4)
+  :export (
 ;;; Unsigned 8-bit vectors.
  u8vector? make-u8vector u8vector u8vector-length u8vector-ref
  u8vector-set! u8vector->list list->u8vector
@@ -91,7 +90,7 @@
 ;;; 64-bit floating point vectors.
  f64vector? make-f64vector f64vector f64vector-length f64vector-ref
  f64vector-set! f64vector->list list->f64vector
- )
+ ))
 
 
 ;; Make 'srfi-4 available as a feature identifiere to `cond-expand'.

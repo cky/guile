@@ -51,9 +51,8 @@
 ;;;;
 
 (define-module (oop goops active-slot)
-  :use-module (oop goops internal))
-
-(export <active-class>)
+  :use-module (oop goops internal)
+  :export (<active-class>))
 
 (define-class <active-class> (<class>))
 

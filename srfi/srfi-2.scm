@@ -42,8 +42,7 @@
 ;;;; If you do not wish that, delete this exception notice.
 
 (define-module (srfi srfi-2)
-  :use-module (ice-9 and-let-star))
-
-(re-export-syntax and-let*)
+  :use-module (ice-9 and-let-star)
+  :re-export-syntax (and-let*))
 
 (cond-expand-provide (current-module) '(srfi-2))

@@ -1,4 +1,4 @@
-;;;; 	Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -45,10 +45,9 @@
   :use-module (oop goops)
   :use-module (oop goops util)
   :use-module (oop goops compile)
+  :export (memoize-method!)
   :no-backtrace
   )
-
-(export memoize-method!)
 
 ;;;
 ;;; This file implements method memoization.  It will finally be

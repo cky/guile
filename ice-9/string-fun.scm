@@ -1,6 +1,6 @@
 ;;;; string-fun.scm --- string manipulation functions
 ;;;;
-;;;; 	Copyright (C) 1995, 1996, 1997, 1999 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1995, 1996, 1997, 1999, 2001 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -42,7 +42,15 @@
 ;;;; If you do not wish that, delete this exception notice.
 ;;;; 
 
-(define-module (ice-9 string-fun))
+(define-module (ice-9 string-fun)
+  :export (split-after-char split-before-char split-discarding-char
+	   split-after-char-last split-before-char-last
+	   split-discarding-char-last split-before-predicate
+	   split-after-predicate split-discarding-predicate
+	   separate-fields-discarding-char separate-fields-after-char
+	   separate-fields-before-char string-prefix-predicate string-prefix=?
+	   sans-surrounding-whitespace sans-trailing-whitespace
+	   sans-leading-whitespace sans-final-newline has-trailing-newline?))
 
 ;;;;
 ;;;
@@ -112,53 +120,53 @@
 ;;; complicated with these functions, consider using regular expressions.
 ;;;
 
-(define-public (split-after-char char str ret)
+(define (split-after-char char str ret)
   (let ((end (cond
 	      ((string-index str char) => 1+)
 	      (else (string-length str)))))
     (ret (substring str 0 end)
 	 (substring str end))))
 
-(define-public (split-before-char char str ret)
+(define (split-before-char char str ret)
   (let ((end (or (string-index str char)
 		 (string-length str))))
     (ret (substring str 0 end)
 	 (substring str end))))
 
-(define-public (split-discarding-char char str ret)
+(define (split-discarding-char char str ret)
   (let ((end (string-index str char)))
     (if (not end)
 	(ret str "")
 	(ret (substring str 0 end)
 	     (substring str (1+ end))))))
 
-(define-public (split-after-char-last char str ret)
+(define (split-after-char-last char str ret)
   (let ((end (cond
 	      ((string-rindex str char) => 1+)
 	      (else 0))))
     (ret (substring str 0 end)
 	 (substring str end))))
 
-(define-public (split-before-char-last char str ret)
+(define (split-before-char-last char str ret)
   (let ((end (or (string-rindex str char) 0)))
     (ret (substring str 0 end)
 	 (substring str end))))
 
-(define-public (split-discarding-char-last char str ret)
+(define (split-discarding-char-last char str ret)
   (let ((end (string-rindex str char)))
     (if (not end)
 	(ret str "")
 	(ret (substring str 0 end)
 	     (substring str (1+ end))))))
 
-(define-public (split-before-predicate pred str ret)
+(define (split-before-predicate pred str ret)
   (let loop ((n 0))
     (cond
      ((= n (string-length str))		(ret str ""))
      ((not (pred (string-ref str n)))	(loop (1+ n)))
      (else				(ret (substring str 0 n)
 					     (substring str n))))))
-(define-public (split-after-predicate pred str ret)
+(define (split-after-predicate pred str ret)
   (let loop ((n 0))
     (cond
      ((= n (string-length str))		(ret str ""))
@@ -166,7 +174,7 @@
      (else				(ret (substring str 0 (1+ n))
 					     (substring str (1+ n)))))))
 
-(define-public (split-discarding-predicate pred str ret)
+(define (split-discarding-predicate pred str ret)
   (let loop ((n 0))
     (cond
      ((= n (string-length str))		(ret str ""))
@@ -174,7 +182,7 @@
      (else				(ret (substring str 0 n)
 					     (substring str (1+ n)))))))
 
-(define-public (separate-fields-discarding-char ch str ret)
+(define (separate-fields-discarding-char ch str ret)
   (let loop ((fields '())
 	     (str str))
     (cond
@@ -183,7 +191,7 @@
 			   (substring str 0 w))))
      (else (apply ret str fields)))))
 
-(define-public (separate-fields-after-char ch str ret)
+(define (separate-fields-after-char ch str ret)
   (reverse
    (let loop ((fields '())
              (str str))
@@ -193,7 +201,7 @@
                            (substring str (+ 1 w)))))
       (else (apply ret str fields))))))
 
-(define-public (separate-fields-before-char ch str ret)
+(define (separate-fields-before-char ch str ret)
   (let loop ((fields '())
 	     (str str))
     (cond
@@ -214,11 +222,11 @@
 ;;; (define-public string-prefix=? (string-prefix-predicate string=?))
 ;;;
 
-(define-public ((string-prefix-predicate pred?) prefix str)
+(define ((string-prefix-predicate pred?) prefix str)
   (and (<= (string-length prefix) (string-length str))
        (pred? prefix (substring str 0 (string-length prefix)))))
 
-(define-public string-prefix=? (string-prefix-predicate string=?))
+(define string-prefix=? (string-prefix-predicate string=?))
 
 
 ;;; {String Fun: Strippers}
@@ -231,7 +239,7 @@
 ;;;			| final-newline
 ;;;
 
-(define-public (sans-surrounding-whitespace s)
+(define (sans-surrounding-whitespace s)
   (let ((st 0)
 	(end (string-length s)))
     (while (and (< st (string-length s))
@@ -244,7 +252,7 @@
 	""
 	(substring s st end))))
 
-(define-public (sans-trailing-whitespace s)
+(define (sans-trailing-whitespace s)
   (let ((st 0)
 	(end (string-length s)))
     (while (and (< 0 end)
@@ -254,7 +262,7 @@
 	""
 	(substring s st end))))
 
-(define-public (sans-leading-whitespace s)
+(define (sans-leading-whitespace s)
   (let ((st 0)
 	(end (string-length s)))
     (while (and (< st (string-length s))
@@ -264,7 +272,7 @@
 	""
 	(substring s st end))))
 
-(define-public (sans-final-newline str)
+(define (sans-final-newline str)
   (cond
    ((= 0 (string-length str))
     str)
@@ -277,7 +285,7 @@
 ;;; {String Fun: has-trailing-newline?}
 ;;;
 
-(define-public (has-trailing-newline? str)
+(define (has-trailing-newline? str)
   (and (< 0 (string-length str))
        (char=? #\nl (string-ref str (1- (string-length str))))))
 

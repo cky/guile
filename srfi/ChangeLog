@@ -1,3 +1,11 @@
+2001-10-21  Mikael Djurfeldt  <mdj@linnaeus>
+
+	* srfi-2.scm, srfi-4.scm, srfi-8.scm, srfi-9.scm, srfi-10.scm,
+	srfi-11.scm, srfi-14.scm, srfi-16.scm: Move module the system
+	directives `export', `export-syntax', `re-export' and
+	`re-export-syntax' into the `define-module' form.  This is the
+	recommended way of exporting bindings.
+
 2001-09-22  Mikael Djurfeldt  <mdj@linnaeus>
 
 	* srfi-19.scm (priv:split-real): Inserted missing call to

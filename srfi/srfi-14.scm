@@ -41,9 +41,8 @@
 ;;;; whether to permit this exception to apply to your modifications.
 ;;;; If you do not wish that, delete this exception notice.
 
-(define-module (srfi srfi-14))
-
-(export 
+(define-module (srfi srfi-14)
+  :export (
 ;;; General procedures
  char-set?
  char-set=
@@ -112,7 +111,7 @@
  char-set:ascii
  char-set:empty
  char-set:full
- )
+ ))
 
 (cond-expand-provide (current-module) '(srfi-14))
 

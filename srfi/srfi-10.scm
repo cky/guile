@@ -69,9 +69,8 @@
 ;;; Code:
 
 (define-module (srfi srfi-10)
-  #:use-module (ice-9 rdelim))
-
-(export define-reader-ctor)
+  :use-module (ice-9 rdelim)
+  :export (define-reader-ctor))
 
 (cond-expand-provide (current-module) '(srfi-10))
 

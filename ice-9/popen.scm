@@ -1,6 +1,6 @@
 ;; popen emulation, for non-stdio based ports.
 
-;;;; Copyright (C) 1998, 1999, 2000 Free Software Foundation, Inc.
+;;;; Copyright (C) 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -42,7 +42,9 @@
 ;;;; If you do not wish that, delete this exception notice.
 ;;;; 
 
-(define-module (ice-9 popen))
+(define-module (ice-9 popen)
+  :export (port/pid-table open-pipe close-pipe open-input-pipe
+	   open-output-pipe))
 
 ;;    (define-module (guile popen)
 ;;      :use-module (guile posix))
@@ -52,7 +54,7 @@
 (define pipe-guardian (make-guardian))
 
 ;; a weak hash-table to store the process ids.
-(define-public port/pid-table (make-weak-key-hash-table 31))
+(define port/pid-table (make-weak-key-hash-table 31))
 
 (define (ensure-fdes port mode)
   (or (false-if-exception (fileno port))
@@ -134,7 +136,7 @@
 		       (cdr p))
 		   pid))))))
 
-(define-public (open-pipe command mode)
+(define (open-pipe command mode)
   "Executes the shell command @var{command} (a string) in a subprocess.
 A pipe to the process is created and returned.  @var{modes} specifies
 whether an input or output pipe to the process is created: it should 
@@ -173,7 +175,7 @@ be the value of @code{OPEN_READ} or @code{OPEN_WRITE}."
 				(car port/pid) (cdr port/pid))))))
 	 (lambda args #f)))
 
-(define-public (close-pipe p)
+(define (close-pipe p)
   "Closes the pipe created by @code{open-pipe}, then waits for the process
 to terminate and returns its status value, @xref{Processes, waitpid}, for
 information on how to interpret this value."
@@ -194,10 +196,10 @@ information on how to interpret this value."
 
 (add-hook! after-gc-hook reap-pipes)
 
-(define-public (open-input-pipe command)
+(define (open-input-pipe command)
   "Equivalent to @code{open-pipe} with mode @code{OPEN_READ}"
   (open-pipe command OPEN_READ))
 
-(define-public (open-output-pipe command)
+(define (open-output-pipe command)
   "Equivalent to @code{open-pipe} with mode @code{OPEN_WRITE}"
   (open-pipe command OPEN_WRITE))

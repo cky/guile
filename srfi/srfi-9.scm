@@ -83,9 +83,8 @@
 
 ;;; Code:
 
-(define-module (srfi srfi-9))
-
-(export-syntax define-record-type)
+(define-module (srfi srfi-9)
+  :export-syntax (define-record-type))
 
 (cond-expand-provide (current-module) '(srfi-9))
 

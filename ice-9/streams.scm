@@ -46,15 +46,14 @@
 ;; (i.e. ripped off) Scheme48's `stream' package,
 ;; modulo stream-empty? -> stream-null? renaming.
 
-(define-module (ice-9 streams))
-
-(export make-stream
-        stream-car stream-cdr stream-null?
-        list->stream vector->stream port->stream
-        stream->list stream->reversed-list
-        stream->list&length stream->reversed-list&length
-        stream->vector
-        stream-fold stream-for-each stream-map)
+(define-module (ice-9 streams)
+  :export (make-stream
+	   stream-car stream-cdr stream-null?
+	   list->stream vector->stream port->stream
+	   stream->list stream->reversed-list
+	   stream->list&length stream->reversed-list&length
+	   stream->vector
+	   stream-fold stream-for-each stream-map))
 
 ;; Use:
 ;;

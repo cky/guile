@@ -51,6 +51,51 @@
 ;;;;
 
 (define-module (oop goops)
+  :export-syntax (define-class class
+		  define-generic define-accessor define-method
+		  method)
+  :export (goops-version is-a?
+           ensure-metaclass ensure-metaclass-with-supers
+	   make-class
+	   make-generic ensure-generic
+	   make-accessor ensure-accessor
+	   make-method add-method!
+	   object-eqv? object-equal?
+	   class-slot-ref class-slot-set! slot-unbound slot-missing 
+	   slot-definition-name  slot-definition-options
+	   slot-definition-allocation
+	   slot-definition-getter slot-definition-setter
+	   slot-definition-accessor
+	   slot-definition-init-value slot-definition-init-form
+	   slot-definition-init-thunk slot-definition-init-keyword 
+	   slot-init-function class-slot-definition
+	   method-source
+	   compute-cpl compute-std-cpl compute-get-n-set compute-slots
+	   compute-getter-method compute-setter-method
+	   allocate-instance initialize make-instance make
+	   no-next-method  no-applicable-method no-method
+	   change-class update-instance-for-different-class
+	   shallow-clone deep-clone
+	   class-redefinition
+	   apply-generic apply-method apply-methods
+	   compute-applicable-methods %compute-applicable-methods
+	   method-more-specific? sort-applicable-methods
+	   class-subclasses class-methods
+	   goops-error
+	   min-fixnum max-fixnum
+	   ;;; *fixme* Should go into goops.c
+	   instance?  slot-ref-using-class
+	   slot-set-using-class! slot-bound-using-class?
+	   slot-exists-using-class? slot-ref slot-set! slot-bound?
+	   class-name class-direct-supers class-direct-subclasses
+	   class-direct-methods class-direct-slots class-precedence-list
+	   class-slots class-environment
+	   generic-function-name
+	   generic-function-methods method-generic-function method-specializers
+	   primitive-generic-generic enable-primitive-generic!
+	   method-procedure accessor-method-slot-definition
+	   slot-exists? make find-method get-keyword)
+  :re-export (class-of)  ;; from (guile)
   :no-backtrace)
 
 ;; First initialize the builtin part of GOOPS
@@ -60,53 +105,6 @@
 (use-modules (oop goops util)
 	     (oop goops dispatch)
 	     (oop goops compile))
-
-(export			  ; Define the exported symbols of this file
-    goops-version is-a?
-    ensure-metaclass ensure-metaclass-with-supers
-    define-class   class make-class
-    define-generic make-generic ensure-generic
-    define-accessor make-accessor ensure-accessor
-    define-method make-method method add-method!
-    object-eqv? object-equal?
-    class-slot-ref class-slot-set! slot-unbound slot-missing 
-    slot-definition-name  slot-definition-options slot-definition-allocation
-    slot-definition-getter slot-definition-setter slot-definition-accessor
-    slot-definition-init-value slot-definition-init-form
-    slot-definition-init-thunk slot-definition-init-keyword 
-    slot-init-function class-slot-definition
-    method-source
-    compute-cpl compute-std-cpl compute-get-n-set compute-slots
-    compute-getter-method compute-setter-method
-    allocate-instance initialize make-instance make
-    no-next-method  no-applicable-method no-method
-    change-class update-instance-for-different-class
-    shallow-clone deep-clone
-    class-redefinition
-    apply-generic apply-method apply-methods
-    compute-applicable-methods %compute-applicable-methods
-    method-more-specific? sort-applicable-methods
-    class-subclasses class-methods
-    goops-error
-    min-fixnum max-fixnum
-)
-
-;;; *fixme* Should go into goops.c
-
-(export
-    instance?  slot-ref-using-class
-    slot-set-using-class! slot-bound-using-class?
-    slot-exists-using-class? slot-ref slot-set! slot-bound?
-    class-name class-direct-supers class-direct-subclasses
-    class-direct-methods class-direct-slots class-precedence-list
-    class-slots class-environment
-    generic-function-name
-    generic-function-methods method-generic-function method-specializers
-    primitive-generic-generic enable-primitive-generic!
-    method-procedure accessor-method-slot-definition
-    slot-exists? make find-method get-keyword)
-
-(re-export class-of)  ;; from (guile)
 
 
 (define min-fixnum (- (expt 2 29)))

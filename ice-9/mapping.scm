@@ -1,6 +1,6 @@
 ;;; installed-scm-file
 
-;;;; 	Copyright (C) 1996 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1996, 2001 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -45,46 +45,53 @@
 
 
 (define-module (ice-9 mapping)
-  :use-module (ice-9 poe))
+  :use-module (ice-9 poe)
+  :export (mapping-hooks-type make-mapping-hooks mapping-hooks?
+	   mapping-hooks-get-handle mapping-hooks-create-handle
+	   mapping-hooks-remove mapping-type make-mapping mapping?
+	   mapping-hooks mapping-data set-mapping-hooks! set-mapping-data!
+	   mapping-get-handle mapping-create-handle! mapping-remove!
+	   mapping-ref mapping-set!  hash-table-mapping-hooks
+	   make-hash-table-mapping hash-table-mapping))
 
-(define-public mapping-hooks-type (make-record-type 'mapping-hooks '(get-handle
-								     create-handle
-								     remove)))
+(define mapping-hooks-type (make-record-type 'mapping-hooks '(get-handle
+							      create-handle
+							      remove)))
 
 
-(define-public make-mapping-hooks (perfect-funcq 17 (record-constructor mapping-hooks-type)))
-(define-public mapping-hooks? (record-predicate mapping-hooks-type))
-(define-public mapping-hooks-get-handle (record-accessor mapping-hooks-type 'get-handle))
-(define-public mapping-hooks-create-handle (record-accessor mapping-hooks-type 'create-handle))
-(define-public mapping-hooks-remove (record-accessor mapping-hooks-type 'remove))
+(define make-mapping-hooks (perfect-funcq 17 (record-constructor mapping-hooks-type)))
+(define mapping-hooks? (record-predicate mapping-hooks-type))
+(define mapping-hooks-get-handle (record-accessor mapping-hooks-type 'get-handle))
+(define mapping-hooks-create-handle (record-accessor mapping-hooks-type 'create-handle))
+(define mapping-hooks-remove (record-accessor mapping-hooks-type 'remove))
 
-(define-public mapping-type (make-record-type 'mapping '(hooks data)))
-(define-public make-mapping (record-constructor mapping-type))
-(define-public mapping? (record-predicate mapping-type))
-(define-public mapping-hooks (record-accessor mapping-type 'hooks))
-(define-public mapping-data (record-accessor mapping-type 'data))
-(define-public set-mapping-hooks! (record-modifier mapping-type 'hooks))
-(define-public set-mapping-data! (record-modifier mapping-type 'data))
+(define mapping-type (make-record-type 'mapping '(hooks data)))
+(define make-mapping (record-constructor mapping-type))
+(define mapping? (record-predicate mapping-type))
+(define mapping-hooks (record-accessor mapping-type 'hooks))
+(define mapping-data (record-accessor mapping-type 'data))
+(define set-mapping-hooks! (record-modifier mapping-type 'hooks))
+(define set-mapping-data! (record-modifier mapping-type 'data))
 
-(define-public (mapping-get-handle map key)
+(define (mapping-get-handle map key)
   ((mapping-hooks-get-handle (mapping-hooks map)) map key))
-(define-public (mapping-create-handle! map key . opts)
+(define (mapping-create-handle! map key . opts)
   (apply (mapping-hooks-create-handle (mapping-hooks map)) map key opts))
-(define-public (mapping-remove! map key)
+(define (mapping-remove! map key)
   ((mapping-hooks-remove (mapping-hooks map)) map key))
 
-(define-public (mapping-ref map key . dflt)
+(define (mapping-ref map key . dflt)
   (cond
    ((mapping-get-handle map key)	=> cdr)
    (dflt				=> car)
    (else				#f)))
 
-(define-public (mapping-set! map key val)
+(define (mapping-set! map key val)
   (set-cdr! (mapping-create-handle! map key #f) val))
 
 
 
-(define-public hash-table-mapping-hooks
+(define hash-table-mapping-hooks
   (let ((wrap (lambda (proc) (lambda (1st . rest) (apply proc (mapping-data 1st) rest)))))
 
     (perfect-funcq 17
@@ -114,10 +121,10 @@
 					      (lambda (table key)
 						(hashx-get-handle hash-proc assoc-proc delete-proc table key)))))))))))
 
-(define-public (make-hash-table-mapping table hash-proc assoc-proc delete-proc)
+(define (make-hash-table-mapping table hash-proc assoc-proc delete-proc)
   (make-mapping (hash-table-mapping-hooks hash-proc assoc-proc delete-proc) table))
 
-(define-public (hash-table-mapping . options)
+(define (hash-table-mapping . options)
   (let* ((size (or (and options (number? (car options)) (car options))
 		   71))
 	 (hash-proc (or (kw-arg-ref options :hash-proc) hash))

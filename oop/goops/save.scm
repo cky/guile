@@ -46,14 +46,11 @@
 (define-module (oop goops save)
   :use-module (oop goops internal)
   :use-module (oop goops util)
-  )
-
-(re-export make-unbound)
-
-(export save-objects load-objects restore
-	enumerate! enumerate-component!
-	write-readably write-component write-component-procedure
-	literal? readable make-readable)
+  :re-export (make-unbound)
+  :export (save-objects load-objects restore
+	   enumerate! enumerate-component!
+	   write-readably write-component write-component-procedure
+	   literal? readable make-readable))
 
 ;;;
 ;;; save-objects ALIST PORT [EXCLUDED] [USES]

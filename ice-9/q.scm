@@ -81,7 +81,9 @@
 
 ;;; Code:
 
-(define-module (ice-9 q))
+(define-module (ice-9 q)
+  :export (sync-q! make-q q? q-empty? q-empty-check q-front q-rear
+	   q-remove! q-push! enq! q-pop! deq! q-length))
 
 ;;; sync-q!
 ;;;   The procedure
@@ -90,7 +92,7 @@
 ;;;
 ;;;   recomputes and resets the <last-pair> component of a queue.
 ;;;
-(define-public (sync-q! q)
+(define (sync-q! q)
   (set-cdr! q (if (pair? (car q)) (last-pair (car q))
 		  #f))
   q)
@@ -98,7 +100,7 @@
 ;;; make-q
 ;;;  return a new q.
 ;;;
-(define-public (make-q) (cons '() #f))
+(define (make-q) (cons '() #f))
 
 ;;; q? obj
 ;;;   Return true if obj is a Q.
@@ -106,7 +108,7 @@
 ;;;   or it is a pair P with (list? (car P))
 ;;;                      and (eq? (cdr P) (last-pair (car P))).
 ;;;
-(define-public (q? obj)
+(define (q? obj)
   (and (pair? obj)
        (if (pair? (car obj))
 	   (eq? (cdr obj) (last-pair (car obj)))
@@ -115,29 +117,29 @@
 
 ;;; q-empty? obj
 ;;;
-(define-public (q-empty? obj) (null? (car obj)))
+(define (q-empty? obj) (null? (car obj)))
 
 ;;; q-empty-check q
 ;;;  Throw a q-empty exception if Q is empty.
-(define-public (q-empty-check q) (if (q-empty? q) (throw 'q-empty q)))
+(define (q-empty-check q) (if (q-empty? q) (throw 'q-empty q)))
 
 ;;; q-front q
 ;;;  Return the first element of Q.
-(define-public (q-front q) (q-empty-check q) (caar q))
+(define (q-front q) (q-empty-check q) (caar q))
 
 ;;; q-rear q
 ;;;  Return the last element of Q.
-(define-public (q-rear q) (q-empty-check q) (cadr q))
+(define (q-rear q) (q-empty-check q) (cadr q))
 
 ;;; q-remove! q obj
 ;;;  Remove all occurences of obj from Q.
-(define-public (q-remove! q obj)
+(define (q-remove! q obj)
   (set-car! q (delq! obj (car q)))
   (sync-q! q))
 
 ;;; q-push! q obj
 ;;;  Add obj to the front of Q
-(define-public (q-push! q obj)
+(define (q-push! q obj)
   (let ((h (cons obj (car q))))
     (set-car! q h)
     (or (cdr q) (set-cdr! q h)))
@@ -145,7 +147,7 @@
 
 ;;; enq! q obj
 ;;;  Add obj to the rear of Q
-(define-public (enq! q obj)
+(define (enq! q obj)
   (let ((h (cons obj '())))
     (if (null? (car q))
 	(set-car! q h)
@@ -155,7 +157,7 @@
 
 ;;; q-pop! q
 ;;;  Take the front of Q and return it.
-(define-public (q-pop! q)
+(define (q-pop! q)
   (q-empty-check q)
   (let ((it (caar q))
 	(next (cdar q)))
@@ -166,11 +168,11 @@
 
 ;;; deq! q
 ;;;  Take the front of Q and return it.
-(define-public deq! q-pop!)
+(define deq! q-pop!)
 
 ;;; q-length q
 ;;;  Return the number of enqueued elements.
 ;;;
-(define-public (q-length q) (length (car q)))
+(define (q-length q) (length (car q)))
 
 ;;; q.scm ends here

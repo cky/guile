@@ -95,7 +95,11 @@
 
 ;;; Code:
 
-(define-module (ice-9 channel))
+(define-module (ice-9 channel)
+  :export (make-object-channel
+	   channel-open
+	   channel-print-value
+	   channel-print-token))
 
 ;;;
 ;;; Channel type
@@ -106,7 +110,7 @@
 
 (define make-channel (record-constructor channel-type))
 
-(define-public (make-object-channel printer)
+(define (make-object-channel printer)
   (make-channel (current-input-port)
 		(current-output-port)
 		printer
@@ -121,7 +125,7 @@
 ;;; Channel
 ;;;
 
-(define-public (channel-open ch)
+(define (channel-open ch)
   (let ((stdin (channel-stdin ch))
 	(stdout (channel-stdout ch))
 	(printer (channel-printer ch))
@@ -155,10 +159,10 @@
 		     (list key (apply format #f (cadr args) (caddr args))))
 	     (loop))))))))
 
-(define-public (channel-print-value ch val)
+(define (channel-print-value ch val)
   (format (channel-stdout ch) "value = ~S\n" val))
 
-(define-public (channel-print-token ch val)
+(define (channel-print-token ch val)
   (let* ((token (symbol-append (gensym "%%") '%%))
 	 (pair (cons token (object->string val))))
     (format (channel-stdout ch) "token = ~S\n" pair)

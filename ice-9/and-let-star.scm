@@ -42,7 +42,8 @@
 ;;;; whether to permit this exception to apply to your modifications.
 ;;;; If you do not wish that, delete this exception notice.
 
-(define-module (ice-9 and-let-star))
+(define-module (ice-9 and-let-star)
+  :export-syntax (and-let*))
 
 (defmacro and-let* (vars . body)
 
@@ -68,5 +69,3 @@
       (error "not a proper list" vars))))
 
   (expand vars body))
-
-(export-syntax and-let*)

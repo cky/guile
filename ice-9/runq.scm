@@ -72,7 +72,10 @@
 ;;; Code:
 
 (define-module (ice-9 runq)
-  :use-module (ice-9 q))
+  :use-module (ice-9 q)
+  :export (runq-control make-void-runq make-fair-runq
+	   make-exclusive-runq make-subordinate-runq-to strip-sequence
+	   fair-strip-subtask))
 
 ;;;;
 ;;; 	(runq-control q msg . args)
@@ -91,7 +94,7 @@
 ;;; 		'kill!				;; empty the queue
 ;;; 		else				;; throw 'not-understood
 ;;;
-(define-public (runq-control q msg . args)
+(define (runq-control q msg . args)
   (case msg
     ((add!)			(for-each (lambda (t) (enq! q t)) args) '*unspecified*)
     ((enqueue!)			(for-each (lambda (t) (enq! q t)) args) '*unspecified*)
@@ -109,7 +112,7 @@
 ;;; Make a runq that discards all messages except "length", for which
 ;;; it returns 0.
 ;;;
-(define-public (make-void-runq)
+(define (make-void-runq)
   (lambda opts
     (and opts
 	(apply-to-args opts
@@ -129,7 +132,7 @@
 ;;; 		to the end of the queue, meaning it will be the last to execute
 ;;; 		of all the remaining procedures.
 ;;;
-(define-public (make-fair-runq)
+(define (make-fair-runq)
   (letrec ((q (make-q))
 	   (self
 	    (lambda ctl
@@ -165,7 +168,7 @@
 ;;; 		of that (if the CDR is not nil).   This way, the rest of the thunks
 ;;; 		in the list that contained W have priority over the return value of W.
 ;;;
-(define-public (make-exclusive-runq)
+(define (make-exclusive-runq)
   (letrec ((q (make-q))
 	   (self
 	    (lambda ctl
@@ -197,7 +200,7 @@
 ;;; 		N is the length of the basic-inferior queue when the proxy
 ;;; 		strip is entered.  [Countless scheduling variations are possible.]
 ;;;
-(define-public (make-subordinate-runq-to superior-runq basic-runq)
+(define (make-subordinate-runq-to superior-runq basic-runq)
   (let ((runq-task (cons #f #f)))
     (set-car! runq-task
 	      (lambda ()
@@ -238,7 +241,7 @@
 ;;;
 ;;; 		Returns a new strip which is the concatenation of the argument strips.
 ;;;
-(define-public ((strip-sequence . strips))
+(define ((strip-sequence . strips))
   (let loop ((st (let ((a strips)) (set! strips #f) a)))
     (and (not (null? st))
 	 (let ((then ((car st))))
@@ -255,7 +258,7 @@
 ;;;
 ;;;
 ;;;
-(define-public (fair-strip-subtask . initial-strips)
+(define (fair-strip-subtask . initial-strips)
   (let ((st (make-fair-runq)))
     (apply st 'add! initial-strips)
     st))

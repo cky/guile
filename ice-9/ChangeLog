@@ -1,3 +1,20 @@
+2001-10-21  Mikael Djurfeldt  <mdj@linnaeus>
+
+	* slib.scm (array-indexes): New procedure.
+	(*features*): Extend.  (Probably some of these options should be
+	set elsewhere.)  (Thanks to Aubrey Jaffer.)
+
+	* and-let-star-compat.scm, and-let-star.scm, calling.scm,
+	  channel.scm, common-list.scm, debug.scm, debugger.scm,
+	  expect.scm, hcons.scm, lineio.scm, ls.scm, mapping.scm,
+	  null.scm, optargs.scm, poe.scm, popen.scm, pretty-print.scm,
+	  q.scm, r5rs.scm, rdelim.scm, regex.scm, runq.scm, safe-r5rs.scm,
+	  safe.scm, session.scm, slib.scm, streams.scm, string-fun.scm,
+	  syncase.scm, threads.scm: Move module the system directives
+	  `export', `export-syntax', `re-export' and `re-export-syntax'
+	  into the `define-module' form.  This is the recommended way of
+	  exporting bindings.
+
 2001-10-17  Mikael Djurfeldt  <mdj@linnaeus>
 
 	* boot-9.scm (process-define-module): New options: :export-syntax,

@@ -44,13 +44,16 @@
 (define-module (ice-9 session)
   :use-module (ice-9 documentation)
   :use-module (ice-9 regex)
-  :use-module (ice-9 rdelim))
+  :use-module (ice-9 rdelim)
+  :export (help apropos apropos-internal apropos-fold
+	   apropos-fold-accessible apropos-fold-exported apropos-fold-all
+	   source arity system-module))
 
 
 
 ;;; Documentation
 ;;;
-(define-public help
+(define help
   (procedure->syntax
     (lambda (exp env)
       "(help [NAME])
@@ -255,7 +258,7 @@ where OPTIONSET is one of debug, read, eval, print
 ;;; Author: Roland Orre <orre@nada.kth.se>
 ;;;
 
-(define-public (apropos rgx . options)
+(define (apropos rgx . options)
   "Search for bindings: apropos regexp {options= 'full 'shadow 'value}"
   (if (zero? (string-length rgx))
       "Empty string not allowed"
@@ -300,7 +303,7 @@ where OPTIONSET is one of debug, read, eval, print
 	      obarray)))
 	 modules))))
 
-(define-public (apropos-internal rgx)
+(define (apropos-internal rgx)
   "Return a list of accessible variable names."
   (apropos-fold (lambda (module name var data)
 		  (cons name data))
@@ -308,7 +311,7 @@ where OPTIONSET is one of debug, read, eval, print
 		rgx
 		(apropos-fold-accessible (current-module))))
 
-(define-public (apropos-fold proc init rgx folder)
+(define (apropos-fold proc init rgx folder)
   "Folds PROCEDURE over bindings matching third arg REGEXP.
 
 Result is
@@ -369,7 +372,7 @@ It is an image under the mapping EXTRACT."
 			    data)))
 	    ((null? modules) data))))))
 
-(define-public (apropos-fold-accessible module)
+(define (apropos-fold-accessible module)
   (make-fold-modules (lambda () (list module))
 		     module-uses
 		     identity))
@@ -388,18 +391,18 @@ It is an image under the mapping EXTRACT."
 	     '()
 	     (module-obarray m)))
 
-(define-public apropos-fold-exported
+(define apropos-fold-exported
   (make-fold-modules root-modules submodules module-public-interface))
 
-(define-public apropos-fold-all
+(define apropos-fold-all
   (make-fold-modules root-modules submodules identity))
 
-(define-public (source obj)
+(define (source obj)
   (cond ((procedure? obj) (procedure-source obj))
 	((macro? obj) (procedure-source (macro-transformer obj)))
 	(else #f)))
 
-(define-public (arity obj)
+(define (arity obj)
   (define (display-arg-list arg-list)
     (display #\`)
     (display (car arg-list))
@@ -480,7 +483,7 @@ It is an image under the mapping EXTRACT."
 	      (display #\'))))))))
   (display ".\n"))
 
-(define-public system-module
+(define system-module
   (procedure->syntax
    (lambda (exp env)
      (let* ((m (nested-ref the-root-module
