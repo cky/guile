@@ -1,3 +1,12 @@
+2001-03-07  Keisuke Nishida  <kxn30@po.cwru.edu>
+
+	* Makefile.am (*.x): Add dependency on snarf.h and guile-doc-snarf.in.
+	(*.doc): Add dependency on guile-snarf.awk.in.
+
+	* guile-snarf.awk.in: Neglect spaces at the end of
+	SCM_SNARF_DOCSTRING_END.  Skip lines "# NN ..." in the
+	middle of docstrings.  (To avoid the problem with gcc-2.96.)
+
 2001-03-06  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* coop-threads.c (scm_call_with_new_thread), load.c

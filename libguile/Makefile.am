@@ -175,9 +175,12 @@ SUFFIXES = .x .doc
 .c.x:
 	./guile-doc-snarf $< $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< > $@ \
 	|| { rm $@; false; }
-.x.doc: 
+.x.doc:
 	./guile-doc-snarf $(srcdir)/$*.c $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $(srcdir)/$*.c > /dev/null \
         || { rm $@; false; }
+
+*.x: snarf.h guile-doc-snarf.in
+*.doc: guile-snarf.awk.in
 
 error.x: cpp_err_symbols.c
 posix.x: cpp_sig_symbols.c

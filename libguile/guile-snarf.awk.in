@@ -98,6 +98,7 @@ BEGIN { FS="|";
 
 /SCM_SNARF_DOCSTRING_START/,/SCM_SNARF_DOCSTRING_END.*$/ { copy = $0; 
                       gsub(/.*SCM_SNARF_DOCSTRING_START/,"",copy); 
+		      sub(/^\#.*/,"", copy);
 		      sub(/^[ \t]*\"?/,"", copy);
 		      sub(/\"?[ \t]*SCM_SNARF_DOCSTRING_END.*$/,"", copy);
                       gsub(/\\n\\n\"?/,"\n",copy);
@@ -107,7 +108,7 @@ BEGIN { FS="|";
                       if (copy != "") { print copy > dot_doc_file }
                 }
 
-/SCM_SNARF_DOCSTRING_END[ \t]/ { print "@end deffn" >> dot_doc_file; }
+/SCM_SNARF_DOCSTRING_END[ \t]*/ { print "@end deffn" >> dot_doc_file; }
 
 /\*&\*&\*&\*SCM_ARG_BETTER_BE_IN_POSITION/ { copy = $0;
          sub(/.*\*&\*&\*&\*SCM_ARG_BETTER_BE_IN_POSITION\([ \t]*/,"",copy);
