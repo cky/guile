@@ -35,6 +35,7 @@
 #include "libguile/feature.h"
 #include "libguile/root.h"
 #include "libguile/vectors.h"
+#include "libguile/srfi-4.h"
 
 #include "libguile/validate.h"
 #include "libguile/ramap.h"
@@ -171,6 +172,8 @@ scm_ra_matchp (SCM ra0, SCM ras)
   int i, ndim = 1;
   int exact = 2			/* 4 */ ;	/* Don't care about values >2 (yet?) */
   if (SCM_IMP (ra0)) return 0;
+  if (scm_is_uniform_vector (ra0))
+    goto uniform_vector_0;
   switch (SCM_TYP7 (ra0))
     {
     default:
@@ -178,7 +181,6 @@ scm_ra_matchp (SCM ra0, SCM ras)
     case scm_tc7_vector:
     case scm_tc7_wvect:
     case scm_tc7_string:
-    case scm_tc7_byvect:
     case scm_tc7_bvect:
     case scm_tc7_uvect:
     case scm_tc7_ivect:
@@ -189,6 +191,7 @@ scm_ra_matchp (SCM ra0, SCM ras)
     case scm_tc7_fvect:
     case scm_tc7_dvect:
     case scm_tc7_cvect:
+    uniform_vector_0:
       s0->lbnd = 0;
       s0->inc = 1;
       s0->ubnd = scm_to_long (scm_uniform_vector_length (ra0)) - 1;
@@ -206,15 +209,15 @@ scm_ra_matchp (SCM ra0, SCM ras)
       ra1 = SCM_CAR (ras);
       if (SCM_IMP (ra1))
 	return 0;
-      switch SCM_TYP7
-	(ra1)
+      if (scm_is_uniform_vector (ra1))
+	goto uniform_vector_1;
+      switch (SCM_TYP7 (ra1))
 	{
 	default:
 	  return 0;
 	case scm_tc7_vector:
 	case scm_tc7_wvect:
 	case scm_tc7_string:
-	case scm_tc7_byvect:
 	case scm_tc7_bvect:
 	case scm_tc7_uvect:
 	case scm_tc7_ivect:
@@ -225,6 +228,7 @@ scm_ra_matchp (SCM ra0, SCM ras)
 	case scm_tc7_fvect:
 	case scm_tc7_dvect:
 	case scm_tc7_cvect:
+	uniform_vector_1:
 	  {
 	    unsigned long int length;
 
@@ -455,6 +459,14 @@ scm_array_fill_int (SCM ra, SCM fill, SCM ignore SCM_UNUSED)
   unsigned long base = SCM_ARRAY_BASE (ra);
 
   ra = SCM_ARRAY_V (ra);
+
+  if (scm_is_uniform_vector (ra))
+    {
+      for (i = base; n--; i += inc)
+	scm_uniform_vector_set_x (ra, scm_from_ulong (i), fill);
+      return 1;
+    }
+
   switch SCM_TYP7 (ra)
     {
     default:
@@ -474,15 +486,6 @@ scm_array_fill_int (SCM ra, SCM fill, SCM ignore SCM_UNUSED)
 	  data[i] = SCM_CHAR (fill);
 	scm_i_string_stop_writing ();
       }
-      break;
-    case scm_tc7_byvect:
-      if (SCM_CHARP (fill))
-	fill = SCM_I_MAKINUM ((signed char) SCM_CHAR (fill));
-      SCM_ASRTGO (SCM_I_INUMP (fill), badarg2);
-      SCM_ASSERT_RANGE (SCM_ARG2, fill,
-                        -128 <= SCM_I_INUM (fill) && SCM_I_INUM (fill) < 128);
-      for (i = base; n--; i += inc)
-	((char *) SCM_UVECTOR_BASE (ra))[i] = SCM_I_INUM (fill);
       break;
     case scm_tc7_bvect:
       { /* scope */
@@ -619,6 +622,9 @@ racp (SCM src, SCM dst)
   src = SCM_ARRAY_V (src);
   dst = SCM_ARRAY_V (dst);
 
+  if (scm_is_uniform_vector (src) || scm_is_uniform_vector (dst))
+    goto gencase;
+
   switch SCM_TYP7 (dst)
     {
     default:
@@ -641,13 +647,6 @@ racp (SCM src, SCM dst)
 	  dst_data[i_d] = src_data[i_s];
 	scm_i_string_stop_writing ();
       }
-      break;
-    case scm_tc7_byvect:
-      if (SCM_TYP7 (src) != scm_tc7_byvect)
-	goto gencase;
-      for (; n-- > 0; i_s += inc_s, i_d += inc_d)
-	((char *) SCM_UVECTOR_BASE (dst))[i_d]
-	  = ((char *) SCM_UVECTOR_BASE (src))[i_s];
       break;
     case scm_tc7_bvect:
       if (SCM_TYP7 (src) != scm_tc7_bvect)
@@ -1682,6 +1681,8 @@ SCM_DEFINE (scm_array_index_map_x, "array-index-map!", 2, 0, 0,
   unsigned long i;
   SCM_VALIDATE_NIM (1, ra);
   SCM_VALIDATE_PROC (2, proc);
+  if (scm_is_uniform_vector (ra))
+    goto uniform_vector;
   switch (SCM_TYP7(ra))
     {
     default:
@@ -1694,7 +1695,6 @@ SCM_DEFINE (scm_array_index_map_x, "array-index-map!", 2, 0, 0,
 	return SCM_UNSPECIFIED;
       }
     case scm_tc7_string:
-    case scm_tc7_byvect:
     case scm_tc7_bvect:
     case scm_tc7_uvect:
     case scm_tc7_ivect:
@@ -1705,6 +1705,7 @@ SCM_DEFINE (scm_array_index_map_x, "array-index-map!", 2, 0, 0,
     case scm_tc7_fvect:
     case scm_tc7_dvect:
     case scm_tc7_cvect:
+    uniform_vector:
       {
 	unsigned long int length = scm_to_ulong (scm_uniform_vector_length (ra));
 	for (i = 0; i < length; i++)
@@ -1782,11 +1783,14 @@ raeql_1 (SCM ra0, SCM as_equal, SCM ra1)
       inc1 = SCM_ARRAY_DIMS (ra1)->inc;
       ra1 = SCM_ARRAY_V (ra1);
     }
+  if (scm_is_uniform_vector (ra0))
+    goto uniform_vector;
   switch (SCM_TYP7 (ra0))
     {
     case scm_tc7_vector:
     case scm_tc7_wvect:
     default:
+    uniform_vector:
       for (; n--; i0 += inc0, i1 += inc1)
 	{
 	  if (scm_is_false (as_equal))
@@ -1802,15 +1806,6 @@ raeql_1 (SCM ra0, SCM as_equal, SCM ra1)
       {
 	const char *v0 = scm_i_string_chars (ra0) + i0;
 	const char *v1 = scm_i_string_chars (ra1) + i1;
-	for (; n--; v0 += inc0, v1 += inc1)
-	  if (*v0 != *v1)
-	    return 0;
-	return 1;
-      }
-    case scm_tc7_byvect:
-      {
-	char *v0 = ((char *) SCM_UVECTOR_BASE (ra0)) + i0;
-	char *v1 = ((char *) SCM_UVECTOR_BASE (ra1)) + i1;
 	for (; n--; v0 += inc0, v1 += inc1)
 	  if (*v0 != *v1)
 	    return 0;
@@ -1983,7 +1978,6 @@ scm_array_equal_p (SCM ra0, SCM ra1)
       goto callequal;
     case scm_tc7_bvect:
     case scm_tc7_string:
-    case scm_tc7_byvect:
     case scm_tc7_uvect:
     case scm_tc7_ivect:
     case scm_tc7_svect:
@@ -2003,7 +1997,6 @@ scm_array_equal_p (SCM ra0, SCM ra1)
       goto callequal;
     case scm_tc7_bvect:
     case scm_tc7_string:
-    case scm_tc7_byvect:
     case scm_tc7_uvect:
     case scm_tc7_ivect:
     case scm_tc7_svect:
