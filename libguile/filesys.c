@@ -988,6 +988,9 @@ retrieve_select_type (set, list)
 }
 
 
+/* {Checking for events}
+ */
+
 SCM_PROC (s_sys_select, "select", 3, 2, 0, scm_sys_select);
 
 SCM
@@ -1049,6 +1052,117 @@ scm_sys_select (reads, writes, excepts, secs, msecs)
   return SCM_BOOL_F;
 #endif
 }
+
+/* Check if FILE has characters waiting to be read.  */
+
+#ifdef __IBMC__
+# define MSDOS
+#endif
+#ifdef MSDOS
+# ifndef GO32
+#  include <io.h>
+#  include <conio.h>
+
+int 
+scm_input_waiting_p (f, caller)
+     FILE *f;
+     char *caller;
+{
+  if (feof (f))
+    return 1;
+  if (fileno (f) == fileno (stdin) && (isatty (fileno (stdin))))
+    return kbhit ();
+  return -1;
+}
+
+# endif
+#else
+# ifdef _DCC
+#  include <ioctl.h>
+# else
+#  ifndef AMIGA
+#   ifndef vms
+#    ifdef MWC
+#     include <sys/io.h>
+#    else
+#     ifndef THINK_C
+#      ifndef ARM_ULIB
+#       include <sys/ioctl.h>
+#      endif
+#     endif
+#    endif
+#   endif
+#  endif
+# endif
+
+int
+scm_input_waiting_p (f, caller)
+     FILE *f;
+     char *caller;
+{
+  /* Can we return an end-of-file character? */
+  if (feof (f))
+    return 1;
+
+  /* Do we have characters in the stdio buffer? */
+# ifdef FILE_CNT_FIELD
+  if (f->FILE_CNT_FIELD > 0)
+    return 1;
+# else
+#  ifdef FILE_CNT_GPTR
+  if (f->_gptr != f->_egptr)
+    return 1;
+# else
+#   ifdef FILE_CNT_READPTR
+  if (f->_IO_read_end != f->_IO_read_ptr)
+    return 1;
+#   else
+  Configure.in could not guess the name of the correct field in a FILE *.
+  This function needs to be ported to your system.
+  It should return zero iff no characters are waiting to be read.;
+#   endif
+#  endif
+# endif
+
+  /* Is the file prepared to deliver input? */
+# ifdef FIONREAD
+  {
+    long remir;
+    ioctl(fileno(f), FIONREAD, &remir);
+    return remir;
+  }
+# else
+#  ifdef HAVE_SELECT
+  {
+    struct timeval timeout;
+    SELECT_TYPE read_set;
+    SELECT_TYPE write_set;
+    SELECT_TYPE except_set;
+    int fno = fileno ((FILE *)f);
+
+    FD_ZERO (&read_set);
+    FD_ZERO (&write_set);
+    FD_ZERO (&except_set);
+
+    FD_SET (fno, &read_set);
+
+    timeout.tv_sec = 0;
+    timeout.tv_usec = 0;
+
+    SCM_DEFER_INTS;
+    if (select (SELECT_SET_SIZE,
+		&read_set, &write_set, &except_set, &timeout)
+	< 0)
+      scm_syserror (caller);
+    SCM_ALLOW_INTS;
+    return FD_ISSET (fno, &read_set);
+  }
+#  else    
+    return -1;
+#  endif
+# endif
+}
+#endif
 
 
 /* {Symbolic Links} 
