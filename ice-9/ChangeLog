@@ -1,3 +1,17 @@
+2001-06-02  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* Makefile.am (psyntax.pp): Make it dependent on psyntax.ss and
+	fix command so that it works.
+
+	* session.scm (apropos-fold, submodules, apropos): Be careful not
+	to access unbound variables.
+
+	* boot-9.scm (module-ensure-variable!): New.
+	(module-export!): Use it to ensure that there is a variable to
+	export.  Previously, we would always create a new variable, copy
+	the value over, and export the new variable.  This confused
+	syncase since it keys important properties on variables.
+
 2001-06-01  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* boot-9.scm (top-repl): Revert part of the 2001-05-19 change.

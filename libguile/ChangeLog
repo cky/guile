@@ -1,5 +1,9 @@
 2001-06-02  Marius Vollmer  <mvo@zagadka.ping.de>
 
+	* strports.c (scm_eval_string): Use scm_primitive_eval_x instead
+	of scm_eval_x to allow module changes between the forms in the
+	string.  Set/restore module using scm_c_call_with_current_module.
+
 	* mkstemp.c: New file, slightly modified from libiberties
 	mkstemps.c.
 
