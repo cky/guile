@@ -1,3 +1,9 @@
+2004-02-08  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* Makefile.am, goops/Makefile.am (TAGS_FILES): Use this variable
+	instead of ETAGS_ARGS so that TAGS can be built using separate
+	build directory.
+
 2004-01-12  Marius Vollmer  <mvo@zagadka.de>
 
 	* goops.scm (compute-get-n-set): Use '#:' in error message instead

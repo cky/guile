@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in.
 ##
-##  	Copyright (C) 2002 Free Software Foundation, Inc.
+##  	Copyright (C) 2002, 2004 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
@@ -29,6 +29,6 @@ ice9_debugger_sources = behaviour.scm breakpoints.scm command-loop.scm \
 
 subpkgdatadir = $(pkgdatadir)/$(GUILE_EFFECTIVE_VERSION)/ice-9/debugger
 subpkgdata_DATA = $(ice9_debugger_sources)
-ETAGS_ARGS = $(subpkgdata_DATA)
+TAGS_FILES = $(subpkgdata_DATA)
 
 EXTRA_DIST = $(ice9_debugger_sources)

@@ -1,3 +1,10 @@
+2004-02-08  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* debugger/breakpoints/Makefile.am (TAGS_FILES),
+	debugger/Makefile.am (TAGS_FILES), Makefile.am (TAGS_FILES): Use
+	this variable instead of ETAGS_ARGS so that TAGS can be built
+	using separate build directory.
+
 2004-01-20  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* boot-9.scm (error-catching-loop): Back out 2003-11-19 change to

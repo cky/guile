@@ -1,6 +1,6 @@
 ## Process this file with Automake to create Makefile.in
 ##
-##  	Copyright (C) 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
+##  	Copyright (C) 1998, 1999, 2000, 2001, 2004 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
@@ -51,7 +51,7 @@ SUFFIXES = .x
 	$(GUILE_SNARF) -o $@ $< $(snarfcppopts)
 
 EXTRA_DIST = $(ice9_DATA) LIBGUILEREADLINE-VERSION
-ETAGS_ARGS = $(ice9_DATA)
+TAGS_FILES = $(ice9_DATA)
 
 MKDEP = gcc -M -MG $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
 

@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in.
 ##
-##   Copyright (C) 2003 Free Software Foundation, Inc.
+##   Copyright (C) 2003, 2004 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
@@ -34,5 +34,5 @@ info_TEXINFOS = gds.texi
 
 TEXINFO_TEX = ../doc/ref/texinfo.tex
 
-ETAGS_ARGS = $(subpkgdata_DATA) $(lisp_LISP)
+TAGS_FILES = $(subpkgdata_DATA) $(lisp_LISP)
 EXTRA_DIST = $(subpkgdata_DATA) $(lisp_LISP)

@@ -1,3 +1,9 @@
+2004-02-08  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* Makefile.am (TAGS_FILES): Use this variable instead of
+	ETAGS_ARGS so that TAGS can be built using separate build
+	directory.
+
 2004-01-28  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* gds.el (gds-handle-client-input): Handle new `thread-status'

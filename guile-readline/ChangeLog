@@ -1,3 +1,9 @@
+2004-02-08  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* Makefile.am (TAGS_FILES): Use this variable instead of
+	ETAGS_ARGS so that TAGS can be built using separate build
+	directory.
+
 2003-05-04  Marius Vollmer  <mvo@zagadka.de>
 
 	* configure.in: When checking whether readline clears SA_RESTART,
