@@ -162,9 +162,9 @@ extern long scm_tc16_macro;
  * tag of 1.  This is called a "gloc".
  */
 
-#define SCM_GLOC_SYM(x) (SCM_CAR((x)-1L))
-#define SCM_GLOC_VAL(x) (SCM_CDR((x)-1L))
-#define SCM_GLOC_VAL_LOC(x) (SCM_CDRLOC((x)-1L))
+#define SCM_GLOC_SYM(x) (SCM_CAR (SCM_PACK (SCM_UNPACK (x) - 1L)))
+#define SCM_GLOC_VAL(x) (SCM_CDR (SCM_PACK (SCM_UNPACK (x) - 1L)))
+#define SCM_GLOC_VAL_LOC(x) (SCM_CDRLOC (SCM_PACK (SCM_UNPACK (x) - 1L)))
 
 
 
