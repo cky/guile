@@ -794,7 +794,6 @@ SCM_DEFINE (scm_getcwd, "getcwd", 0, 0, 0,
 #define FUNC_NAME s_scm_getcwd
 {
   char *rv;
-
   scm_sizet size = 100;
   char *wd;
   SCM result;
@@ -817,158 +816,252 @@ SCM_DEFINE (scm_getcwd, "getcwd", 0, 0, 0,
 
 
 
+#ifdef HAVE_SELECT
+
+/* check that element is a port or file descriptor.  if it's a port
+   and its buffer is ready for use, add it to the ports_ready list.
+   otherwise add its file descriptor to *set.  the type of list can be
+   determined from pos: SCM_ARG1 for reads, SCM_ARG2 for writes,
+   SCM_ARG3 for excepts.  */
 static int
-set_element (SELECT_TYPE *set, SCM element, int arg)
+set_element (SELECT_TYPE *set, SCM *ports_ready, SCM element, int pos)
 {
   int fd;
 
-  element = SCM_COERCE_OUTPORT (element);
-  if (SCM_OPFPORTP (element))
-    fd = SCM_FPORT_FDES (element);
-  else {
-    SCM_ASSERT (SCM_INUMP (element), element, arg, "select");
-    fd = SCM_INUM (element);
-  }
-  FD_SET (fd, set);
+  if (SCM_INUMP (element))
+    {
+      fd = SCM_INUM (element);
+    }
+  else
+    {
+      int use_buf = 0;
+
+      element = SCM_COERCE_OUTPORT (element);
+      SCM_ASSERT (SCM_OPFPORTP (element), element, pos, "select");
+      if (pos == SCM_ARG1)
+	{
+	  /* check whether port has buffered input.  */
+	  scm_port *pt = SCM_PTAB_ENTRY (element);
+      
+	  if (pt->read_pos < pt->read_end)
+	    use_buf = 1;
+	}
+      else if (pos == SCM_ARG2)
+	{
+	  /* check whether port's output buffer has room.  */
+	  scm_port *pt = SCM_PTAB_ENTRY (element);
+
+	  /* > 1 since writing the last byte in the buffer causes flush.  */
+	  if (pt->write_end - pt->write_pos > 1)
+	    use_buf = 1;
+	}
+      fd = use_buf ? -1 : SCM_FPORT_FDES (element);
+    }
+  if (fd == -1)
+    *ports_ready = scm_cons (element, *ports_ready);
+  else
+    FD_SET (fd, set);
   return fd;
 }
 
+/* check list_or_vec, a list or vector of ports or file descriptors,
+   adding each member to either the ports_ready list (if it's a port
+   with a usable buffer) or to *set.  the kind of list_or_vec can be
+   determined from pos: SCM_ARG1 for reads, SCM_ARG2 for writes,
+   SCM_ARG3 for excepts.  */
 static int
-fill_select_type (SELECT_TYPE *set, SCM list, int arg)
+fill_select_type (SELECT_TYPE *set, SCM *ports_ready, SCM list_or_vec, int pos)
 {
-  int max_fd = 0, fd;
-  if (SCM_VECTORP (list))
+  int max_fd = 0;
+
+  if (SCM_VECTORP (list_or_vec))
     {
-      int len = SCM_LENGTH (list);
-      SCM *ve = SCM_VELTS (list);
+      int i = SCM_LENGTH (list_or_vec);
+      SCM *ve = SCM_VELTS (list_or_vec);
       
-      while (len > 0)
+      while (--i >= 0)
 	{
-	  fd = set_element (set, ve[len - 1], arg);
+	  int fd = set_element (set, ports_ready, ve[i], pos);
+
 	  if (fd > max_fd)
 	    max_fd = fd;
-	  len--;
 	}
     }
   else
     {
-      while (list != SCM_EOL)
+      while (list_or_vec != SCM_EOL)
 	{
-	  fd = set_element (set, SCM_CAR (list), arg);
+	  int fd = set_element (set, ports_ready, SCM_CAR (list_or_vec), pos);
+
 	  if (fd > max_fd)
 	    max_fd = fd;
-	  list = SCM_CDR (list);
+	  list_or_vec = SCM_CDR (list_or_vec);
 	}
     }
 
   return max_fd;
 }
 
+/* if element (a file descriptor or port) appears in *set, cons it to
+   list.  return list.  */
 static SCM
 get_element (SELECT_TYPE *set, SCM element, SCM list)
 {
-  element = SCM_COERCE_OUTPORT (element);
-  if (SCM_OPFPORTP (element))
+  int fd;
+
+  if (SCM_INUMP (element))
     {
-      if (FD_ISSET (SCM_FPORT_FDES (element), set))
-	list = scm_cons (element, list);
+      fd = SCM_INUM (element);
     }
-  else if (SCM_INUMP (element))
+  else
     {
-      if (FD_ISSET (SCM_INUM (element), set))
-	list = scm_cons (element, list);
+      fd = SCM_FPORT_FDES (SCM_COERCE_OUTPORT (element));
     }
+  if (FD_ISSET (fd, set))
+    list = scm_cons (element, list);
   return list;
 }
 
+/* construct component of scm_select return value.
+   set: pointer to set of file descriptors found by select to be ready
+   ports_ready: ports ready due to buffering
+   list_or_vec: original list/vector handed to scm_select.
+   the return value is a list/vector of ready ports/file descriptors. 
+   works by finding the objects in list which correspond to members of
+   *set and appending them to ports_ready.  result is converted to a
+   vector if list_or_vec is a vector.  */
 static SCM 
-retrieve_select_type (SELECT_TYPE *set, SCM list)
+retrieve_select_type (SELECT_TYPE *set, SCM ports_ready, SCM list_or_vec)
 {
-  SCM answer_list = SCM_EOL;
+  SCM answer_list = ports_ready;
 
-  if (SCM_VECTORP (list))
+  if (SCM_VECTORP (list_or_vec))
     {
-      int len = SCM_LENGTH (list);
-      SCM *ve = SCM_VELTS (list);
+      int i = SCM_LENGTH (list_or_vec);
+      SCM *ve = SCM_VELTS (list_or_vec);
 
-      while (len > 0)
+      while (--i >= 0)
 	{
-	  answer_list = get_element (set, ve[len - 1], answer_list);
-	  len--;
+	  answer_list = get_element (set, ve[i], answer_list);
 	}
       return scm_vector (answer_list);
     }
   else
     {
-      /* list is a list.  */
-      while (list != SCM_EOL)
+      /* list_or_vec must be a list.  */
+      while (list_or_vec != SCM_EOL)
 	{
-	  answer_list = get_element (set, SCM_CAR (list), answer_list);
-	  list = SCM_CDR (list);
+	  answer_list = get_element (set, SCM_CAR (list_or_vec), answer_list);
+	  list_or_vec = SCM_CDR (list_or_vec);
 	}
       return answer_list;
     }
 }
 
-#ifdef HAVE_SELECT
 /* Static helper functions above refer to s_scm_select directly as s_select */
 SCM_DEFINE (scm_select, "select", 3, 2, 0, 
             (SCM reads, SCM writes, SCM excepts, SCM secs, SCM usecs),
-	    "@var{reads}, @var{writes} and @var{excepts} can be lists or vectors: it\n"
-	    "doesn't matter which, but the corresponding object returned will be\n"
-	    "of the same type.\n"
-	    "Each element is a port or file descriptor on which to wait for\n"
-	    "readability, writeability\n"
-	    "or exceptional conditions respectively.  @var{secs} and @var{usecs}\n"
-	    "optionally specify a timeout: @var{secs} can be specified alone, as\n"
-	    "either an integer or a real number, or both @var{secs} and @var{usecs}\n"
-	    "can be specified as integers, in which case @var{usecs} is an additional\n"
-	    "timeout expressed in microseconds.\n\n"
-	    "Buffered input or output data is (currently, but this may change)\n"
-	    "ignored: select uses the underlying file descriptor of a port\n"
-	    "(@code{char-ready?} will check input buffers, output buffers are\n"
-	    "problematic).\n\n"
-	    "The return value is a list of subsets of the input lists or vectors for\n"
-	    "which the requested condition has been met.\n\n"
-	    "It is not quite compatible with scsh's select: scsh checks port buffers,\n"
-	    "doesn't accept input lists or a microsecond timeout, returns multiple\n"
-	    "values instead of a list and has an additional select! interface.\n"
-	    "")
+	    "This procedure has a variety of uses: waiting for the ability\n"
+	    "to provide input, accept output, or the existance of\n"
+	    "exceptional conditions on a collection of ports or file\n"
+	    "descriptors, or waiting for a timeout to occur.\n"
+	    "It also returns if interrupted by a signal.\n\n"
+	    "@var{reads}, @var{writes} and @var{excepts} can be lists or\n"
+	    "vectors, with each member a port or a file descriptor.\n"
+	    "The value returned is a list of three corresponding\n"
+	    "lists or vectors containing only the members which meet the\n"
+	    "specified requirement.  The ability of port buffers to\n"
+	    "provide input or accept output is taken into account.\n"
+	    "Ordering of the input lists or vectors is not preserved.\n\n"
+	    "The optional arguments @var{secs} and @var{usecs} specify the\n"
+	    "timeout.  Either @var{secs} can be specified alone, as\n"
+	    "either an integer or a real number, or both @var{secs} and\n"
+	    "@var{usecs} can be specified as integers, in which case\n"
+	    "@var{usecs} is an additional timeout expressed in\n"
+	    "microseconds.  If @var{secs} is omitted or is @code{#f} then\n"
+	    "select will wait for as long as it takes for one of the other\n"
+	    "conditions to be satisfied.\n\n"
+	    "The scsh version of @code{select} differs as follows:\n"
+	    "Only vectors are accepted for the first three arguments.\n"
+	    "The @var{usecs} argument is not supported.\n"
+	    "Multiple values are returned instead of a list.\n"
+	    "Duplicates in the input vectors appear only once in output.\n"
+	    "An additional @code{select!} interface is provided.\n"
+	    )
 #define FUNC_NAME s_scm_select
 {
   struct timeval timeout;
-  struct timeval * time_p;
+  struct timeval * time_ptr;
   SELECT_TYPE read_set;
   SELECT_TYPE write_set;
   SELECT_TYPE except_set;
-  int max_fd, fd;
-  int sreturn;
+  int read_count;
+  int write_count;
+  int except_count;
+  /* these lists accumulate ports which are ready due to buffering.
+     their file descriptors don't need to be added to the select sets.  */
+  SCM read_ports_ready = SCM_EOL;
+  SCM write_ports_ready = SCM_EOL;
+  int max_fd;
 
-#define assert_set(x, arg) \
-  SCM_ASSERT (scm_ilength (x) >= 0 || (SCM_VECTORP (x)), \
-	      x, arg, FUNC_NAME)
-  assert_set (reads, SCM_ARG1);
-  assert_set (writes, SCM_ARG2);
-  assert_set (excepts, SCM_ARG3);
-#undef assert_set
+  if (SCM_VECTORP (reads))
+    {
+      read_count = SCM_LENGTH (reads);
+    }
+  else
+    {
+      read_count = scm_ilength (reads);
+      SCM_ASSERT (read_count >= 0, reads, SCM_ARG1, FUNC_NAME);
+    }
+  if (SCM_VECTORP (writes))
+    {
+      write_count = SCM_LENGTH (writes);
+    }
+  else
+    {
+      write_count = scm_ilength (writes);
+      SCM_ASSERT (write_count >= 0, writes, SCM_ARG2, FUNC_NAME);
+    }
+  if (SCM_VECTORP (excepts))
+    {
+      except_count = SCM_LENGTH (excepts);
+    }
+  else
+    {
+      except_count = scm_ilength (excepts);
+      SCM_ASSERT (except_count >= 0, excepts, SCM_ARG3, FUNC_NAME);
+    }
 
   FD_ZERO (&read_set);
   FD_ZERO (&write_set);
   FD_ZERO (&except_set);
 
-  max_fd = fill_select_type (&read_set, reads, SCM_ARG1);
-  fd = fill_select_type (&write_set, writes, SCM_ARG2);
-  if (fd > max_fd)
-    max_fd = fd;
-  fd = fill_select_type (&except_set, excepts, SCM_ARG3);
-  if (fd > max_fd)
-    max_fd = fd;
+  max_fd = fill_select_type (&read_set, &read_ports_ready, reads, SCM_ARG1);
+
+  {
+    int write_max = fill_select_type (&write_set, &write_ports_ready, 
+				      writes, SCM_ARG2);
+    int except_max = fill_select_type (&except_set, NULL,
+				       excepts, SCM_ARG3);
+
+    if (write_max > max_fd)
+      max_fd = write_max;
+    if (except_max > max_fd)
+      max_fd = except_max;
+  }
 
   if (SCM_UNBNDP (secs) || SCM_FALSEP (secs))
-    time_p = 0;
+    time_ptr = 0;
   else
     {
-      if (SCM_INUMP (secs))
+      /* if there's a port with a ready buffer, don't block, just
+	 check for ready file descriptors.  */
+      if (read_ports_ready != SCM_EOL || write_ports_ready != SCM_EOL)
+	{
+	  timeout.tv_sec = 0;
+	  timeout.tv_usec = 0;
+	}
+      else if (SCM_INUMP (secs))
 	{
 	  timeout.tv_sec = SCM_INUM (secs);
 	  if (SCM_UNBNDP (usecs))
@@ -990,21 +1083,26 @@ SCM_DEFINE (scm_select, "select", 3, 2, 0,
 	  timeout.tv_sec = (long) fl;
 	  timeout.tv_usec = (long) ((fl - timeout.tv_sec) * 1000000);
 	}
-      time_p = &timeout;
+      time_ptr = &timeout;
     }
 
+  {
 #ifdef GUILE_ISELECT
-  sreturn = scm_internal_select (max_fd + 1,
-				 &read_set, &write_set, &except_set, time_p);
+    int rv = scm_internal_select (max_fd + 1,
+				  &read_set, &write_set, &except_set,
+				  time_ptr);
 #else
-  sreturn = select (max_fd + 1,
-		    &read_set, &write_set, &except_set, time_p);
+    int rv = select (max_fd + 1,
+		     &read_set, &write_set, &except_set, time_ptr);
 #endif
-  if (sreturn < 0)
-    SCM_SYSERROR;
-  return scm_listify (retrieve_select_type (&read_set, reads),
-		      retrieve_select_type (&write_set, writes),
-		      retrieve_select_type (&except_set, excepts),
+    if (rv < 0)
+      SCM_SYSERROR;
+  }
+  return scm_listify (retrieve_select_type (&read_set, read_ports_ready,
+					    reads),
+		      retrieve_select_type (&write_set, write_ports_ready,
+					    writes),
+		      retrieve_select_type (&except_set, SCM_EOL, excepts),
 		      SCM_UNDEFINED);
 }
 #undef FUNC_NAME

@@ -1,3 +1,11 @@
+2000-01-29  Gary Houston  <ghouston@arglist.com>
+
+	* filesys.c (scm_select, retrieve_select_type, get_element,
+	fill_select_type, set_element): modified so that Scheme
+	"select" tests port buffers for the ability to provide input
+	or accept output.  Previously only the underlying file descriptors
+	were checked.  Rewrote the docstring.
+ 
 Thu Jan 27 10:14:25 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* vectors.c, symbols.c, strorder.c: Documentation cut and pasted

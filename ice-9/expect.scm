@@ -49,9 +49,7 @@
 			 #f)))
        (let next-char ()
 	 (if (and expect-timeout
-		  (or (>= (get-internal-real-time) ,timeout)
-		      (and (not (char-ready? ,port))
-			   (not (expect-select ,port ,timeout)))))
+		  (not (expect-select ,port ,timeout)))
 	     (if expect-timeout-proc
 		 (expect-timeout-proc ,s)
 		 #f)
@@ -61,8 +59,9 @@
 	       (if (not (eof-object? ,c))
 		   (set! ,s (string-append ,s (string ,c))))
 	       (cond
-		;; this expands to clauses where the car invokes the match proc and
-		;; the cdr is the return value from expect if the proc matched.
+		;; this expands to clauses where the car invokes the
+		;; match proc and the cdr is the return value from expect
+		;; if the proc matched.
 		,@(let next-expr ((tests (map car clauses))
 				  (exprs (map cdr clauses))
 				  (body '()))
@@ -124,7 +123,8 @@
 					,@(car exprs))
 				      body))))))))
 
-;;; simplified select: returns #t if input is waiting or #f if timed out.
+;;; simplified select: returns #t if input is waiting or #f if timed out or
+;;; select was interrupted by a signal.
 ;;; timeout is an absolute time in floating point seconds.
 (define-public (expect-select port timeout)
   (let* ((secs-usecs (gettimeofday))

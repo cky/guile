@@ -217,6 +217,10 @@ removed in a future version.
 
 * Changes to system call interfaces:
 
+** The "select" procedure now tests port buffers for the ability to
+provide input or accept output.  Previously only the underlying file
+descriptors were checked.
+
 ** If a facility is not available on the system when Guile is
 compiled, the corresponding primitive procedure will not be defined.
 Previously it would have been defined but would throw a system-error
