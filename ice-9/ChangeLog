@@ -1,4 +1,4 @@
-1999-06-09  Jim Blandy  <jimb@savonarola.red-bean.com>
+1999-06-09  Jim Blandy	<jimb@savonarola.red-bean.com>
 
 	* Makefile.am (ice9_sources): Add popen.scm to list.
 	* Makefile.in: Regenerated.
@@ -7,7 +7,7 @@
 
 	* expect.scm (expect-regexec): define 'eof-next?'.  I don't
 	know why it was missing.  also don't peek for end of lines
- 	unless expect-strings-exec-flags contains regexp/noteol.
+	unless expect-strings-exec-flags contains regexp/noteol.
 	(expect-strings-exec-flags): initialise to regexp/noteol.
 
 	Gary Houston's open-buffer port patches:
@@ -27,11 +27,11 @@
 	disadvantage of needing to get (and maybe block for) an extra character
 	from the port when it may not be needed.  hence:
 	(expect-strings-exec-flags): new variable/parameter, supplies
-	flags for regexp-exec.  if this includes regexp/noteol, then
+	flags for regexp-exec.	if this includes regexp/noteol, then
 	automatic regexp/noteol handling (requiring an extra peeked char) 
 	is enabled.  default is regexp/noteol.
-        (expect-strings-compile-flags): new variable/parameter, supplies
-	flags for make-regexp.  default is regexp/newline.
+	(expect-strings-compile-flags): new variable/parameter, supplies
+	flags for make-regexp.	default is regexp/newline.
 
 	1999-03-15  Gary Houston  <ghouston@easynet.co.uk>
 
@@ -70,14 +70,14 @@
 1999-06-04  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
        * boot-9.scm (iota):  replaced by a tail recursive version.
-       (reverse-iota):  removed.
+       (reverse-iota):	removed.
 
 1999-06-03  Mikael Djurfeldt  <mdj@mdj-pc.nada.kth.se>
 
 	* optargs.scm (lambda*): Bugfix: Replaced ARGLIST -->
 	non-optional-args.  (Thanks to David Lutterkort.)
 
-1999-05-09  Jim Blandy  <jimb@savonarola.red-bean.com>
+1999-05-09  Jim Blandy	<jimb@savonarola.red-bean.com>
 
 	* string-case.scm: Removed; functions moved to libguile/strop.c
 	(which could be dynamically linked in the future anyway).
@@ -85,7 +85,7 @@
 	* Makefile.in: Regenerated.
 	* format.scm: Don't bother importing (ice-9 string-case).
 
-1999-05-02  Jim Blandy  <jimb@savonarola.red-bean.com>
+1999-05-02  Jim Blandy	<jimb@savonarola.red-bean.com>
 
 	* boot-9.scm (provided?): New function.
 
@@ -107,7 +107,7 @@
 	(format:num->cardinal): Don't assume that an elseless if returns
 	'() when the condition is false.
  
-1999-04-17  Jim Blandy  <jimb@savonarola.red-bean.com>
+1999-04-17  Jim Blandy	<jimb@savonarola.red-bean.com>
 
 	* Makefile.in: Regenerated.
 
@@ -128,7 +128,7 @@
 
 1999-03-19  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
-	* boot-9.scm (try-load-module): New procedure.  Broken out from
+	* boot-9.scm (try-load-module): New procedure.	Broken out from
 	resolve-module.
 	(resolve-module): Bugfix: Make it possible for a module at a
 	deeper level (x y z) to depend on a module on a higher (x y).
@@ -195,7 +195,7 @@
 	Frames which can't be classified, e.g. application frames, are cut
 	away if they occur between system frames, but are left on the
 	stack if they occur between the last system frame and the first
-	user frame encountered.  (Note that the first user frame
+	user frame encountered.	 (Note that the first user frame
 	encountered is the last user code being evaluated!)
 
 	In some cases the system part of the call chain is introduced by
@@ -224,7 +224,7 @@
 
 	* optargs.scm (lambda*): Handle empty argument lists properly.
 
-1999-02-15  Jim Blandy  <jimb@savonarola.red-bean.com>
+1999-02-15  Jim Blandy	<jimb@savonarola.red-bean.com>
 
 	Fix from Russ McManus:
 	* getopt-long.scm (parse-option-spec): Store 'optional as the
@@ -232,7 +232,7 @@
 	(process-short-option): Grab a value for the option when it takes
 	either an optional or required value.
 
-1999-02-12  Jim Blandy  <jimb@savonarola.red-bean.com>
+1999-02-12  Jim Blandy	<jimb@savonarola.red-bean.com>
 
 	* getopt-long.scm: Remove debugging calls to `pk'.
 
@@ -248,9 +248,9 @@
 
 	* optargs.scm: New file. 
 	* Makefile.am (ice9_sources): Add optargs.scm here. Makefile.in
- 	not regenerated because I don't have the right version of Automake.
+	not regenerated because I don't have the right version of Automake.
 
-1999-02-06  Jim Blandy  <jimb@zwingli.cygnus.com>
+1999-02-06  Jim Blandy	<jimb@zwingli.cygnus.com>
 
 	* and-let*.scm: New file, from Michael Livshin.
 	* Makefile.am (ice9_sources): Add and-let* here.
@@ -262,7 +262,7 @@
 	the slib catalog: Doesn't anylonger assume that the feature tested
 	for isn't loaded.
 
-1998-12-14  Jim Blandy  <jimb@zwingli.cygnus.com>
+1998-12-14  Jim Blandy	<jimb@zwingli.cygnus.com>
 
 	* Makefile.in: Regenerated.
 
@@ -276,7 +276,7 @@
 
 	* Makefile.am: Removed setf.scm.
 
-	* setf.scm: Removed.  1. It was buggy.  2. It was unschemey.
+	* setf.scm: Removed.  1. It was buggy.	2. It was unschemey.
 	(These shortcomings were my fault.)
 
 1998-12-10  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
@@ -330,7 +330,7 @@
 1998-11-23  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
 	* boot-9.scm (beautify-user-module!): Beautify also if public
-	interface is set to the module itself.  In this way we can use
+	interface is set to the module itself.	In this way we can use
 	beautify-user-module! to beautify a module prepared for object
 	code.
 	(process-define-module): Special case: Try to load object code as
@@ -416,10 +416,10 @@ Fri Oct 30 15:15:37 1998  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 	* readline.scm (make-readline-port): Don't set prompt to "... " if
 	read line was empty.
 
-1998-10-19  Jim Blandy  <jimb@zwingli.cygnus.com>
+1998-10-19  Jim Blandy	<jimb@zwingli.cygnus.com>
 
 	* boot-9.scm, debug.scm, expect.scm, hcons.scm, lineio.scm,
- 	r4rs.scm, slib.scm, threads.scm: Update copyright years.
+	r4rs.scm, slib.scm, threads.scm: Update copyright years.
 
 	* getopt-gnu-style.scm, slib.scm: Add copyright notice.
 
@@ -437,9 +437,9 @@ Fri Oct 30 15:15:37 1998  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 	At this point, we *do* know we're about to enter a REPL.
 
 	We can't include Kent Dybvig's syntax-case macro expander in the
- 	core Guile distribution, because we don't have copyright
- 	assignments for this code.  We can certainly distribute them as a
- 	separate package, but Guile should be FSF code.
+	core Guile distribution, because we don't have copyright
+	assignments for this code.  We can certainly distribute them as a
+	separate package, but Guile should be FSF code.
 	* syncase.scm, psyntax.pp, psyntax.ss: Removed.
 	* Makefile.am (ice9_sources): Removed syncase.scm, psyntax.pp, and
 	psyntax.ss.
@@ -453,27 +453,27 @@ Fri Oct 30 15:15:37 1998  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 	* boot-9.scm: Added extended read syntax for byte vectors #y(...)
 	and short vectors #h(...).
 
-1998-10-14  Jim Blandy  <jimb@zwingli.cygnus.com>
+1998-10-14  Jim Blandy	<jimb@zwingli.cygnus.com>
 
 	* calling.scm (excursion-function-syntax): Use a sequence of
 	set!'s, not a single multi-variable set!; we removed support for
 	that syntax a long time ago.  (Thanks to Shuji Narazaki.)
 
-1998-10-12  Jim Blandy  <jimb@zwingli.cygnus.com>
+1998-10-12  Jim Blandy	<jimb@zwingli.cygnus.com>
 
 	* r4rs.scm (OPEN_READ, OPEN_WRITE, OPEN_BOTH): Don't bother
 	testing software-type here.  That's the least of our Windows
 	porting issues, and it's done wrong anyway.
 
-1998-10-09  Jim Blandy  <jimb@zwingli.cygnus.com>
+1998-10-09  Jim Blandy	<jimb@zwingli.cygnus.com>
 
 	* boot-9.scm (read-path-list-notation-warning): New function:
 	print a warning the first time we see `#/' notation.
 
 	* q.scm (sync-q!, q?, q-remove!, q-push!, enq!): Lots of bugs, and
- 	(eq?  #f '()) assumptions.  Make functions that aren't documented
- 	to return anything else return the queue itself.  (Bug report from
- 	Michael Livshin --- thanks!)
+	(eq?  #f '()) assumptions.  Make functions that aren't documented
+	to return anything else return the queue itself.  (Bug report from
+	Michael Livshin --- thanks!)
 
 1998-08-21  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
@@ -499,29 +499,29 @@ Fri Oct 30 15:15:37 1998  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 	1998-07-14 removed (ice-9 regex) from the use-list of the root
 	module and thereby destroyed dynamic linking.
 
-1998-07-29  Jim Blandy  <jimb@zwingli.cygnus.com>
+1998-07-29  Jim Blandy	<jimb@zwingli.cygnus.com>
 
 	* Makefile.in: Regenerated using the last public version of
 	automake, not the hacked Cygnus version.
 
-1998-07-28  Jim Blandy  <jimb@zwingli.cygnus.com>
+1998-07-28  Jim Blandy	<jimb@zwingli.cygnus.com>
 
 	* Makefile.in: Regenerated, after removing Totoro kludge.
 
-1998-07-28  Jim Blandy  <jimb@totoro.red-bean.com>
+1998-07-28  Jim Blandy	<jimb@totoro.red-bean.com>
 
 	* getopt-gnu-style.scm: New file.  (Thanks to Russ McManus.)
 
-1998-07-26  Jim Blandy  <jimb@zwingli.cygnus.com>
+1998-07-26  Jim Blandy	<jimb@zwingli.cygnus.com>
 
 	* Makefile.in Rebuilt, for config changes in parent dir.
 
 1998-07-21  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* readline.scm (make-readline-port): Set prompt string to "... "
-	after first read line.  (Thanks to Richard Polton.)
+	after first read line.	(Thanks to Richard Polton.)
 
-1998-07-19  Jim Blandy  <jimb@zwingli.cygnus.com>
+1998-07-19  Jim Blandy	<jimb@zwingli.cygnus.com>
 
 	* lineio.scm (make-line-buffering-input-port): Don't use
 	ungetc-char-ready?, since we don't provide that function any
@@ -530,13 +530,13 @@ Fri Oct 30 15:15:37 1998  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 	Archibald.)
 
 	* hcons.scm (hashq-cons-assoc): Don't assume the empty list is
-	false.  Return false when we cannot find a matching entry in the
+	false.	Return false when we cannot find a matching entry in the
 	list.  (Thanks to Andrew Archibald.)
 
 1998-07-16  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
 	* boot-9.scm (export, export-syntax): New special forms: Export
-	bindings from a module.  `(export name1 name2 ...)' can be used at
+	bindings from a module.	 `(export name1 name2 ...)' can be used at
 	the top of a module (after `define-module') to specify which names
 	should be exported.  It can be used as an alternative to
 	`define-public'.  `export-syntax' works equivalently to `export'
@@ -560,7 +560,7 @@ Fri Oct 30 15:15:37 1998  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* boot-9.scm (load-module): When loading files from within files
 	themselves being loaded: Use the directory path of the file being
-	loaded as root for relative filenames.  (After suggestion by
+	loaded as root for relative filenames.	(After suggestion by
 	Steven G. Johnson.)
 
 1998-06-15  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
@@ -610,7 +610,7 @@ Fri Oct 30 15:15:37 1998  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 	
 	* boot-9.scm (top-repl): Only enable readline if not using the
 	Emacs interface; Only use repl prompt when using the readline port
-	from repl-read.  (We don't want to see it when calling `read'.)
+	from repl-read.	 (We don't want to see it when calling `read'.)
 
 	* boot-9.scm (remove-hook!): Parenthesis bug.
 
@@ -632,7 +632,7 @@ Fri Oct 30 15:15:37 1998  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 	
 	* emacs.scm: Removed use of nonblocking.scm.
 
-	* gwish.scm, gtcl.scm: Removed.  tcltk.scm has made these
+	* gwish.scm, gtcl.scm: Removed.	 tcltk.scm has made these
 	obsolete.
 	
 1998-04-15  Mikael Djurfeldt  <mdj@nada.kth.se>
@@ -646,38 +646,38 @@ Fri Oct 30 15:15:37 1998  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 1998-03-28  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
-	* boot-9.scm (remove-hook!): New macro.  (Thanks to Maciej
+	* boot-9.scm (remove-hook!): New macro.	 (Thanks to Maciej
 	Stachowiak.)
 
 1998-01-30  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* threads.scm: Added simple error and signal handler.
-	(make-thread, begin-handler): Use this handler.  The most
+	(make-thread, begin-handler): Use this handler.	 The most
 	important effect of this is that signals get unmasked.
 	Previously, when a signal was thrown signals remained masked
 	(signals get masked when a signal is taken) which influenced other
 	threads.
 
-1998-01-01  Tim Pierce  <twp@skepsis.com>
+1998-01-01  Tim Pierce	<twp@skepsis.com>
 
 	A better fix to the SLIB identity problem -- thanks to Marius Vollmer.
 	* slib.scm (identity): Unmake public.
 	(slib:eval): Evaluate inside `slib-module'.
 
-1997-12-24  Tim Pierce  <twp@skepsis.com>
+1997-12-24  Tim Pierce	<twp@skepsis.com>
 
 	* boot-9.scm: Doc fix.
 
 	* slib.scm (identity): Made public.
 	(home-vicinity): New function (from SLIB/Template.scm).
 
-1997-12-13  Tim Pierce  <twp@skepsis.com>
+1997-12-13  Tim Pierce	<twp@skepsis.com>
 
 	* boot-9.scm (read-line): Rewritten to call %read-line for
-	improved speed.  Minor user-visible changes: the new functions are
+	improved speed.	 Minor user-visible changes: the new functions are
 	hardwired to treat the LFD character as signifying end-of-line, so
 	changing `scm-line-incrementors' will no longer affect the
-	behavior of read-line.  On platforms which do not represent
+	behavior of read-line.	On platforms which do not represent
 	end-of-line with a LFD character, read-line should behave more
 	like native line-processing facilities, but there is still a ways
 	to go here.
@@ -687,16 +687,16 @@ Sat Nov 29 01:24:46 1997  Mikael Djurfeldt  <mdj@kenneth>
 	* boot-9.scm (error-catching-loop, save-stack): `the-last-stack'
 	is now a fluid.
 
-1997-11-28  Tim Pierce  <twp@skepsis.com>
+1997-11-28  Tim Pierce	<twp@skepsis.com>
 
 	* boot-9.scm (find-and-link-dynamic-module): If a module directory
 	contains a .la file (a libtool support file), attempt to extract
-	the shared library name from that file.  If the .la file does not
-	exist, try to link against a .so file.  Libtool-generated compiled
+	the shared library name from that file.	 If the .la file does not
+	exist, try to link against a .so file.	Libtool-generated compiled
 	modules should load more cleanly in Guile now.
 	(try-using-libtool-name, try-using-sharlib-name): New functions.
 
-Sun Nov  9 06:10:59 1997  Gary Houston  <ghouston@actrix.gen.nz>
+Sun Nov	 9 06:10:59 1997  Gary Houston	<ghouston@actrix.gen.nz>
 
 	* boot-9.scm (set-batch-mode?!, batch-mode?): initialize more
 	usefully so they will work from a script.
@@ -708,10 +708,10 @@ Sun Nov  9 06:10:59 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
 Mon Oct 27 02:05:49 1997  Jim Blandy  <jimb@totoro.red-bean.com>
 
-	* boot-9.scm: Revert changes to this file from Oct 23.  It turns
- 	out to interact badly with the Emacs support and the Tcl/Tk
- 	support.  It's not a high enough priority at the moment to be
- 	worth fixing.  I'm leaving the other readline support in, though.
+	* boot-9.scm: Revert changes to this file from Oct 23.	It turns
+	out to interact badly with the Emacs support and the Tcl/Tk
+	support.  It's not a high enough priority at the moment to be
+	worth fixing.  I'm leaving the other readline support in, though.
 
 Sat Oct 25 14:23:22 1997  Jim Blandy  <jimb@totoro.red-bean.com>
 
@@ -738,13 +738,13 @@ Wed Oct 22 18:26:57 1997  Jim Blandy  <jimb@totoro.red-bean.com>
 	* calling.scm, common-list.scm, ls.scm, q.scm, runq.scm,
 	string-fun.scm: Added copyright notices; reformatted.
 
-Thu Oct  9 05:44:00 1997  Gary Houston  <ghouston@actrix.gen.nz>
+Thu Oct	 9 05:44:00 1997  Gary Houston	<ghouston@actrix.gen.nz>
 
 	* expect.scm: (expect-regexec): new procedure, use it in
 	expect-strings to fix the => syntax under the new regex system.
 	(top): include regex module in define-module statement.
 
-Wed Oct  8 03:16:01 1997  Gary Houston  <ghouston@actrix.gen.nz>
+Wed Oct	 8 03:16:01 1997  Gary Houston	<ghouston@actrix.gen.nz>
 
 	* (error-catching-loop): new local variable "interactive".  if
 	#f, abort terminates the process.
@@ -756,12 +756,12 @@ Wed Oct  8 03:16:01 1997  Gary Houston  <ghouston@actrix.gen.nz>
 	* boot-9.scm (inherit-print-state): If NEW-PORT contains a
 	print-state, throw it away.
 
-Fri Oct  3 12:00:00  Mikael Djurfeldt  <mdj@nada.kth.se>
+Fri Oct	 3 12:00:00  Mikael Djurfeldt  <mdj@nada.kth.se>
 
 	* boot-9.scm (struct-layout): Use `vtable-index-layout' instead of
 	`0'.
 
-Thu Oct  2 12:00:00  Mikael Djurfeldt  <mdj@nada.kth.se>
+Thu Oct	 2 12:00:00  Mikael Djurfeldt  <mdj@nada.kth.se>
 
 	* boot-9.scm (struct-printer, make-struct-printer,
 	set-struct-printer-in-vtable!, *struct-printer*): Removed.
@@ -771,7 +771,7 @@ Thu Oct  2 12:00:00  Mikael Djurfeldt  <mdj@nada.kth.se>
 	(record-type-name, record-type-fields): Decreased slot index by
 	one; Use `vtable-offset-user'.
 
-Thu Oct  2 12:00:00  Marius Vollmer  <mvo@zagadka.ping.de>
+Thu Oct	 2 12:00:00  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* boot-9.scm (inherit-print-state): New experimental function.
 
@@ -781,7 +781,7 @@ Tue Sep 30 13:12:48 1997  Jim Blandy  <jimb@totoro.red-bean.com>
 	* boot-9.scm: Split off modules into separate, autoloadable files.
 	This reduces startup time from 10.5s to 5.5s (user cpu).
 	* calling.scm, common-list.scm, ls.scm, q.scm, runq.scm,
- 	string-fun.scm: New files, containing stuff that used to be in
+	string-fun.scm: New files, containing stuff that used to be in
 	boot-9.scm.
 	* Makefile.am (ice9_sources): List new files here, for
 	distribution and installation.
@@ -798,7 +798,7 @@ Mon Sep 29 03:21:24 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 	the first attempt (NAME) rather than the second (NAME.scm).
 
 	* boot-9.scm: Bugfix: Hard-solder the print-option procedure into
- 	the make-options macro so that we needn't refer to a global
+	the make-options macro so that we needn't refer to a global
 	symbol.
 
 Sun Sep 28 21:40:24 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
@@ -831,9 +831,9 @@ Thu Sep 18 01:24:31 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 Tue Sep 16 22:09:50 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* boot-9.scm (keyword->symbol, display-usage-report): Changed
- 	length --> string-length.  (Thanks to Aleksandar Bakic.)
+	length --> string-length.  (Thanks to Aleksandar Bakic.)
 	(separate-fields-discarding-char, separate-fields-after-char,
- 	separate-fields-before-char): Bugfix from Maciej Stachowiak
+	separate-fields-before-char): Bugfix from Maciej Stachowiak
 	<mstachow@mit.edu>.  Thanks!
 	(try-module-linked): Try to find module among those already
 	registered.
@@ -863,14 +863,14 @@ Wed Sep 10 20:12:45 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 	expansion inside the slib module.
 
 	* psyntax.ss (build-let, build-named-let): New output
- 	constructors.
+	constructors.
 	(build-lexical-var): Seed gensym with symbolic name.
 	(self-evaluating?): Add keywords among self-evaluating types.
 	(let): New core form.
 	(if): Removed from core language.
 	(or, and, let, cond): Removed syntactic definitions.
 	(sc-expand3): New procedure: Expander which takes optional mode
- 	and eval-syntactic-expanders-when arguments.
+	and eval-syntactic-expanders-when arguments.
 
 	* syncase.scm (psyncomp): New procedure: Recompiles psyntax.pp.
 	Should be used inside the (ice-9 syncase) module with (use-syntax
@@ -880,7 +880,7 @@ Wed Sep 10 20:12:45 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 	variable `define' to the slib version if module (ice-9 slib) has
 	been loaded.
 	
-Fri Sep  5 05:47:36 1997  Mikael Djurfeldt  <mdj@faun.nada.kth.se>
+Fri Sep	 5 05:47:36 1997  Mikael Djurfeldt  <mdj@faun.nada.kth.se>
 
 	* syncase.scm (sc-interface, sc-expand): Removed hook setup.
 	(syncase): Publish syntax transformer to be used with
@@ -890,21 +890,21 @@ Fri Sep  5 05:47:36 1997  Mikael Djurfeldt  <mdj@faun.nada.kth.se>
 	* boot-9.scm (module-type): Added `transformer'.
 	(make-module): Modified initialization.
 	(module-transformer, set-module-transformer!): Selector and
- 	mutator for module-associated transformer.
+	mutator for module-associated transformer.
 	(set-current-module): Use module-transformer to set
- 	`scm:eval-transformer'.
+	`scm:eval-transformer'.
 	(module-use!): Previous change reverted.
 	(use-syntax): New function: Install a transformer in current
- 	module.
+	module.
 	(sc-interface, sc-expand): Removed! :)
 
-Fri Sep  5 03:09:09 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+Fri Sep	 5 03:09:09 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* emacs.scm (emacs-load): Added new parameter `module'.
 
 	* syncase.scm (putprop, getprop): Modified to use the object
- 	properties of the variable object corresponding to the symbol;
-  	This way we can ride on the mechanisms of the module system.
+	properties of the variable object corresponding to the symbol;
+	This way we can ride on the mechanisms of the module system.
 	Changed `builtin-variable' calls to `define-public' calls.
 	Setup the hooks sc-expand and sc-interface.
 
@@ -915,25 +915,25 @@ Fri Sep  5 03:09:09 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 	(module-use!): Set scm:eval-transformer to sc-expand when adding
 	the syncase interface.
 
-Thu Sep  4 14:57:04 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+Thu Sep	 4 14:57:04 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* syncase.scm (putprop): Temporary fix which publishes new syntax
 	globally (the old behaviour was complex and connected to the inner
 	workings of the current module system).
 
-Wed Sep  3 21:29:13 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+Wed Sep	 3 21:29:13 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* psyntax.ss: Updated.
 	psyntax.pp: Bugfix: Previous version had some leading "t":s cut
 	off!
 
-Tue Sep  2 00:26:42 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+Tue Sep	 2 00:26:42 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* boot-9.scm (gensym): Removed (replaced by primitive).
 	(obarray-gensym): Rewritten to use `gensym'.
 	(gentemp): Rewritten to use `gensym'.
 
-Mon Sep  1 20:08:32 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+Mon Sep	 1 20:08:32 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* gtcl.scm (make-tcl-binder): Rewritten to choose bindings
 	according to the following priorities:
@@ -945,8 +945,8 @@ Mon Sep  1 20:08:32 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 	(new-interpreter): New function.
 
 	* gwish.scm: Moved initialization code for the-interpreter to
- 	gtcl.scm; Moved name space cleaning code to gtcl.scm and rewrote
- 	it; Call `new-interpreter'; Don't :use-module (guile).
+	gtcl.scm; Moved name space cleaning code to gtcl.scm and rewrote
+	it; Call `new-interpreter'; Don't :use-module (guile).
 
 Thu Aug 28 23:48:53 1997  Jim Blandy  <jimb@totoro.red-bean.com>
 
@@ -980,7 +980,7 @@ Sun Aug 24 01:03:10 1997  Mikael Djurfeldt  <mdj@kenneth>
 	in stack-ref).
 
 	* emacs.scm (emacs-load): New arguments: interactivep: when
- 	non-false, send back results to Emacs; colnum: Column number;
+	non-false, send back results to Emacs; colnum: Column number;
 	Use modules (ice-9 debug) and (ice-9 session);
 	(no-stack, no-source): New simple-actions;
 	(result-to-emacs): New procedure. Sends data to Emacs via the
@@ -1001,21 +1001,21 @@ Wed Aug 20 13:21:11 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 Tue Aug 19 02:39:41 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* syncase.scm: Don't tamper with debug mode setting when enabling
-	macros.  Instead cut the stack with start-stack.
+	macros.	 Instead cut the stack with start-stack.
 	Load psyntax.pp with recording of positions turned off.
 
 	* psyntax.pp, psyntax.ss (quasiquote): Changed fx= --> =.
 
 	* syncase.scm: New file: Guile-adaption for syntax-case macros.
-  	* psyntax.pp, psyntax.ss: Syntax-case macros, portable version 2 by
- 	R. Kent Dybvig, Oscar Waddell, Bob Hieb and Carl Bruggeman
+	* psyntax.pp, psyntax.ss: Syntax-case macros, portable version 2 by
+	R. Kent Dybvig, Oscar Waddell, Bob Hieb and Carl Bruggeman
 
 Mon Aug 18 21:58:25 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* session.scm: New file: Session support.
 	(apropos): New procedure: List bindings given regexp.
 
-Sat Aug 16 18:44:24 1997  Gary Houston  <ghouston@actrix.gen.nz>
+Sat Aug 16 18:44:24 1997  Gary Houston	<ghouston@actrix.gen.nz>
 
 	* boot-9.scm: define tms accessors: clock, utime, stime, cutime,
 	cstime.
@@ -1027,31 +1027,31 @@ Thu Aug 14 19:55:37 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 	(linum) instead of (- linum 1).
 
 	* slib.scm (slib:load): Use load-from-path instead of
- 	primitive-load-path so that backtraces get narrowed properly at
- 	the top.
+	primitive-load-path so that backtraces get narrowed properly at
+	the top.
 
 	* boot-9.scm (top-repl): Save stack already in signal handler in
 	order to narrow it correctly.
 	(save-stack): Adjust narrowing tag for the top of load-stacks.
 
-Tue Jul 29 01:18:08 1997  Gary Houston  <ghouston@actrix.gen.nz>
+Tue Jul 29 01:18:08 1997  Gary Houston	<ghouston@actrix.gen.nz>
 
 	* boot-9.scm (move->fdes, dup->port): use dup->fdes, not primitive-dup.
 	(dup->fdes): deleted, now done in C.
 
-Sat Jul 26 08:00:42 1997  Gary Houston  <ghouston@actrix.gen.nz>
+Sat Jul 26 08:00:42 1997  Gary Houston	<ghouston@actrix.gen.nz>
 
 	* boot-9.scm (setenv): new procedure, scsh compatible.
 
 Sat Jul 26 21:30:10 1997  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* boot-9.scm (with-fluids): New macro to go with the
- 	builtin `with-fluids*'.
+	builtin `with-fluids*'.
 
 Thu Jul 24 04:28:11 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* slib.scm (install-require-module): In newer versions of slib
-	*catalog* is #f until the first access.  Therefore we call
+	*catalog* is #f until the first access.	 Therefore we call
 	require:provided? for a random feature if *catalog* is #f.
 
 Wed Jul 23 20:13:04 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
@@ -1059,7 +1059,7 @@ Wed Jul 23 20:13:04 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 	* boot-9.scm: If using emacs interface, enable backtraces
 	automatically.
 
-Mon Jul 21 06:45:45 1997  Gary Houston  <ghouston@actrix.gen.nz>
+Mon Jul 21 06:45:45 1997  Gary Houston	<ghouston@actrix.gen.nz>
 
 	* boot-9.scm (dup->port, dup->inport, dup->outport, dup->fdes,
 	dup, fdes->inport, fdes->outport, port->fdes): new procedures.
@@ -1078,7 +1078,7 @@ Fri Jul 11 00:13:43 1997  Jim Blandy  <jimb@floss.red-bean.com>
 Tue Jun 24 00:31:47 1997  Jim Blandy  <jimb@floss.red-bean.com>
 
 	* boot-9.scm, debug.scm, hcons.scm, lineio.scm, mapping.scm,
- 	poe.scm, slib.scm, tags.scm, threads.scm: Use normal list
+	poe.scm, slib.scm, tags.scm, threads.scm: Use normal list
 	notation, instead of #/ notation.
 
 	* expect.scm (expect-strings): Pass regexp/newline flag to
@@ -1096,7 +1096,7 @@ Mon Jun 23 16:13:38 1997  Jim Blandy  <jimb@floss.red-bean.com>
 	* boot-9.scm (make-list): Remove the definition of this function
 	from the (ice-9 common-list) module; make the `init' argument
 	optional in the	scm module's definition, to match the deleted
-	definition.  Harmony reigneth?  (Thanks to Bernard URBAN.)
+	definition.  Harmony reigneth?	(Thanks to Bernard URBAN.)
 
 Sun Jun 22 18:33:17 1997  Jim Blandy  <jimb@floss.red-bean.com>
 
@@ -1118,25 +1118,25 @@ Thu Jun 19 21:01:16 1997  Jim Blandy  <jimb@floss.red-bean.com>
 Fri Jun 13 00:32:04 1997  Jim Blandy  <jimb@floss.red-bean.com>
 
 	* boot-9.scm (struct-printer): Fix off-by-one error in range
-	check.  Correctly check for struct printer tag.
+	check.	Correctly check for struct printer tag.
 
 	* expect.scm: Turn this into a module, (ice-9 expect).
 	(expect-port, expect-timeout, expect-timeout-proc,
- 	expect-eof-proc, expect-char-proc, expect, expect-strings,
- 	expect-select): Make these public definitions.
+	expect-eof-proc, expect-char-proc, expect, expect-strings,
+	expect-select): Make these public definitions.
 	(expect-strings): Use make-regexp and regexp-exec, instead of
 	regcomp and regexec.  We've omitted the REG_NEWLINE flag; hope
 	that's okay.
 
 	* boot-9.scm (with-regexp-parts): Comment this out.  It has no
- 	users in the core, and relies on mildly hairy details of the old
- 	regexp interface.
+	users in the core, and relies on mildly hairy details of the old
+	regexp interface.
 
 	* test.scm: Re-enable tests asserting that '() is true, and not a
 	boolean.  This stuff has been true for a while.
 
 	* boot-9.scm (ipow-by-squaring, butlast): Fix uses of outdated
- 	function names.
+	function names.
 
 	* boot-9.scm (with-excursion-getter-and-setter, q-rear): Doc
 	fixes.
@@ -1146,27 +1146,27 @@ Wed Jun 11 00:31:40 1997  Jim Blandy  <jimb@floss.red-bean.com>
 	* Makefile.in: Regenerated after xtra_PLUGIN_guile_libs change in
 	../configure.in.
 
-Fri Jun  6 14:37:18 1997  Marius Vollmer  <mvo@zagadka.ping.de>
+Fri Jun	 6 14:37:18 1997  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* boot-9.scm (struct-printer): Bugfix: Check the layout of the
- 	vtable and not the one of the struct.
+	vtable and not the one of the struct.
 
-Wed Jun  4 23:27:16 1997  Marius Vollmer  <mvo@zagadka.ping.de>
+Wed Jun	 4 23:27:16 1997  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* boot-9.scm (struct-layout, %struct-printer-tag, struct-printer,
- 	make-struct-printer, set-struct-printer-in-vtable!): New bindings
- 	to support printing of structures.
-        (record-type-vtable, make-record-type): Add slot to hold printing
- 	function and initialize it with something appropriate.  Removed
- 	commented out printing code.
+	make-struct-printer, set-struct-printer-in-vtable!): New bindings
+	to support printing of structures.
+	(record-type-vtable, make-record-type): Add slot to hold printing
+	function and initialize it with something appropriate.	Removed
+	commented out printing code.
 	(record-type-name, record-type-fields): Adjusted slot offsets.
 	(%print-module): Reduce argument list to "mod" and "port".
 	
-Tue Jun  3 17:04:18 1997  Jim Blandy  <jimb@totoro.cyclic.com>
+Tue Jun	 3 17:04:18 1997  Jim Blandy  <jimb@totoro.cyclic.com>
 
 	* slib.scm (identity): New function, used by SLIB.
 
-Sat May 31 18:57:12 1997  Gary Houston  <ghouston@actrix.gen.nz>
+Sat May 31 18:57:12 1997  Gary Houston	<ghouston@actrix.gen.nz>
 
 	* boot-9.scm: signal-handler, alarm-thunk: removed.
 	don't define ticks-interrupt etc.
@@ -1183,7 +1183,7 @@ Fri May 30 18:08:10 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 Thu May 29 02:36:48 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
-	* regex.scm: Add a module declaration.  Use DEFINE-PUBLIC everywhere.
+	* regex.scm: Add a module declaration.	Use DEFINE-PUBLIC everywhere.
 	* boot-9.scm: If the `regex' feature is present, use the module
 	(ice-9 regex).
 
@@ -1196,16 +1196,16 @@ Tue May 27 22:48:14 1997  Tim Pierce  <twp@twp.tezcat.com>
 Mon May 26 17:24:48 1997  Jim Blandy  <jimb@totoro.cyclic.com>
 
 	* COPYING, boot-9.scm, debug.scm, emacs.scm, expect.scm, gtcl.scm,
- 	gwish.scm, hcons.scm, lineio.scm, mapping.scm, nonblocking.scm,
- 	oldprint.scm, poe.scm, r4rs.scm, source.scm, tags.scm, test.scm,
- 	threads.scm: New address for FSF.
+	gwish.scm, hcons.scm, lineio.scm, mapping.scm, nonblocking.scm,
+	oldprint.scm, poe.scm, r4rs.scm, source.scm, tags.scm, test.scm,
+	threads.scm: New address for FSF.
 
 Fri May 16 04:09:45 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* debug.scm: Update copyright years; this file has been worked on
- 	in 1997.
+	in 1997.
 
-Thu May 15 07:56:08 1997  Gary Houston  <ghouston@actrix.gen.nz>
+Thu May 15 07:56:08 1997  Gary Houston	<ghouston@actrix.gen.nz>
 
 	* expect.scm: use gettimeofday instead of get-internal-real-time
 	and use a floating point timeout when calling select.  Untested,
@@ -1225,7 +1225,7 @@ Tue May 13 16:40:06 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* Makefile.in: Regenerated, using automake-1.1p.
 
-Tue May 13 02:48:49 1997  Gary Houston  <ghouston@actrix.gen.nz>
+Tue May 13 02:48:49 1997  Gary Houston	<ghouston@actrix.gen.nz>
 
 	* boot-9.scm (error-catching-loop): don't read a line from
 	current input when quit is encountered, the previous change
@@ -1235,9 +1235,9 @@ Mon May 12 19:00:21 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* boot-9.scm (scm-style-repl): After reading an expression,
 	consume any trailing newline (perhaps preceded by whitespace), to
-	avoid screwing up GDB.  More detail in comments.
+	avoid screwing up GDB.	More detail in comments.
 
-Mon May  5 13:18:38 1997  Jim Blandy  <jimb@floss.cyclic.com>
+Mon May	 5 13:18:38 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* Makefile.am (ETAGS_ARGS): New variable, since we're not treating
 	the Scheme code like code yet.
@@ -1246,17 +1246,17 @@ Mon May  5 13:18:38 1997  Jim Blandy  <jimb@floss.cyclic.com>
 Wed Apr 30 15:25:15 1997  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* boot-9.scm (link-dynamic-module): Do not catch errors from
- 	dynamic-link and dynamic-call.  When the shared library exists it
- 	is now assumed to be suitable for a dynamic C module.
+	dynamic-link and dynamic-call.	When the shared library exists it
+	is now assumed to be suitable for a dynamic C module.
 	
 Fri Apr 25 21:21:35 1997  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* boot-9.scm (process-use-modules): New function to support the
- 	use-modules macro
+	use-modules macro
 	(use-modules): throw an error iff one of the requested modules
 	can't be found.
 	
-Tue Apr 29 06:54:46 1997  Gary Houston  <ghouston@actrix.gen.nz>
+Tue Apr 29 06:54:46 1997  Gary Houston	<ghouston@actrix.gen.nz>
 
 	* boot-9.scm: don't define timer-thunk or gc-thunk.
 
@@ -1284,47 +1284,47 @@ Sat Apr 19 08:03:50 1997  Jim Blandy  <jimb@floss.cyclic.com>
 	* boot-9.scm (eval-string, command-line, load-user-init): New
 	functions.
 
-Sat Apr 12 08:27:05 1997  Gary Houston  <ghouston@actrix.gen.nz>
+Sat Apr 12 08:27:05 1997  Gary Houston	<ghouston@actrix.gen.nz>
 
 	* boot-9.scm (log10): defined.
 
-Tue Apr  1 17:46:49 1997  Gary Houston  <ghouston@actrix.gen.nz>
+Tue Apr	 1 17:46:49 1997  Gary Houston	<ghouston@actrix.gen.nz>
 
 	* expect.scm (expect-select): correct the millisecond timeout
 	arithmetic (from Marko.Kohtala@ntc.nokia.com).
 	
-Mon Mar 31 03:23:19 1997  Gary Houston  <ghouston@actrix.gen.nz>
+Mon Mar 31 03:23:19 1997  Gary Houston	<ghouston@actrix.gen.nz>
 
 	* boot-9.scm (open-input-pipe, open-output-pipe): defined here
 	instead of in libguile.
 	(tm:sec etc.) new accessors for broken-down time.
 	(set-tm:sec etc.) new setters for broken-down time.
 
-Thu Mar 27 05:06:00 1997  Gary Houston  <ghouston@actrix.gen.nz>
+Thu Mar 27 05:06:00 1997  Gary Houston	<ghouston@actrix.gen.nz>
 
 	* boot-9.scm (netent:addrtype, servent:port): added missing
 	procedures.
 	(netent:net, servent:proto): repaired.
 	(utsname:sysname etc.): new accessors for uname.
 
-Tue Mar 25 03:04:03 1997  Gary Houston  <ghouston@actrix.gen.nz>
+Tue Mar 25 03:04:03 1997  Gary Houston	<ghouston@actrix.gen.nz>
 
 	* boot-9.scm (sockaddr:fam, sockaddr:path, sockaddr:addr,
 	sockaddr:port): new functions.
 
-Wed Mar 19 04:50:34 1997  Gary Houston  <ghouston@actrix.gen.nz>
+Wed Mar 19 04:50:34 1997  Gary Houston	<ghouston@actrix.gen.nz>
 
 	* boot-9.scm: define accessor procedures for the objects returned
 	by getpw, getgr, gethost, getnet, getproto, getserv (e.g.,
 	passwd:name, where the first component is the name of the C structure
- 	and the second is the unprefixed C member name.)
+	and the second is the unprefixed C member name.)
 
-Tue Mar 18 18:39:31 1997  Gary Houston  <ghouston@actrix.gen.nz>
+Tue Mar 18 18:39:31 1997  Gary Houston	<ghouston@actrix.gen.nz>
 
 	* boot-9.scm (setpwent, setgrent, sethostent, setnetent, setprotoent,
 	setservent): no longer take an argument, it was bogus.
 
-Thu Mar 13 00:13:41 1997  Gary Houston  <ghouston@actrix.gen.nz>
+Thu Mar 13 00:13:41 1997  Gary Houston	<ghouston@actrix.gen.nz>
 
 	* boot-9.scm (scm-error): deleted, reimplemented in C.
 
@@ -1333,7 +1333,7 @@ Mon Mar 10 15:48:31 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 	* boot-9.scm (process-define-module): Modified to handle both
 	keywords and symbols.
 
-Sat Mar  8 04:32:44 1997  Gary Houston  <ghouston@actrix.gen.nz>
+Sat Mar	 8 04:32:44 1997  Gary Houston	<ghouston@actrix.gen.nz>
 
 	* slib.scm: update read usage.
 
@@ -1345,31 +1345,31 @@ Sat Mar  8 04:32:44 1997  Gary Houston  <ghouston@actrix.gen.nz>
 	Adjust usage of primitive-load-path, read, which no longer take
 	case_i or read-sharp arguments.
 
-Sat Mar  8 00:07:54 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+Sat Mar	 8 00:07:54 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* boot-9.scm: Added loading of session support module.
 
 	* debug.scm: Removed `display-application'.  (Replaced by
- 	primitive procedure.)
+	primitive procedure.)
 
 	* boot-9.scm (beautify-user-module!): Don't add the root module
 	interface to the end of the use-list of the root module.
 
-Thu Mar  6 07:26:34 1997  Gary Houston  <ghouston@actrix.gen.nz>
+Thu Mar	 6 07:26:34 1997  Gary Houston	<ghouston@actrix.gen.nz>
 
 	* boot-9.scm: repl-quit, repl-abort: obsolete variables deleted.
 
-Wed Mar  5 20:30:24 1997  Gary Houston  <ghouston@actrix.gen.nz>
+Wed Mar	 5 20:30:24 1997  Gary Houston	<ghouston@actrix.gen.nz>
 
 	* boot-9.scm: check use-emacs-interface for emacs support.
 
-Sun Mar  2 19:47:14 1997  Gary Houston  <ghouston@actrix.gen.nz>
+Sun Mar	 2 19:47:14 1997  Gary Houston	<ghouston@actrix.gen.nz>
 
 	* boot-9.scm (scm-style-repl): call repl-report-start-timing if
 	read gets EOF.
 	* (exit): alias for quit.
 
-Sun Mar  2 05:25:11 1997  Gary Houston  <ghouston@actrix.gen.nz>
+Sun Mar	 2 05:25:11 1997  Gary Houston	<ghouston@actrix.gen.nz>
 
 	* boot-9.scm (error-catching-loop thunk): use a status variable to
 	return the quit args.
@@ -1379,7 +1379,7 @@ Sun Mar  2 05:25:11 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
 	(error-catching-loop thunk): discard trailing junk after a (quit).
 
-Sat Mar  1 15:24:39 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+Sat Mar	 1 15:24:39 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* boot-9.scm: Removed the old printer code.
 
@@ -1390,10 +1390,10 @@ Sat Mar  1 15:24:39 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 	Removed. These definitions are already present in r4rs.scm.
 
 	* debug.scm (trace-entry, trace-exit): Check that we're on a repl
- 	stack before printing traced frames; Re-enable trace flag at end
- 	of handlers.
+	stack before printing traced frames; Re-enable trace flag at end
+	of handlers.
 
-Sat Mar  1 00:10:38 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+Sat Mar	 1 00:10:38 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* debug.scm: Add hook for reset of trace level at abort.
 
@@ -1401,18 +1401,18 @@ Sat Mar  1 00:10:38 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 	(add-hooks!): New macro.
 	Change hooks to use these functions.
 
-	* debug.scm: *Warning* This feature is a bit premature.  I add
- 	it anyway because 1. it is very useful, and, 2. you can start
+	* debug.scm: *Warning* This feature is a bit premature.	 I add
+	it anyway because 1. it is very useful, and, 2. you can start
 	making it less premature by complaining to me and by modifying
 	the source! :-)
 	(trace): Given one or more procedure objects, trace each one.
-  	Given no arguments, show all traced procedures.
+	Given no arguments, show all traced procedures.
 	(untrace): Given one or more procedure objects, untrace each one.
-  	Given no arguments, untrace all traced procedures.  The tracing in
- 	Guile have an advantage to most other systems: We don't create new
- 	procedure objects, but mark the procedure objects themselves.
-  	This means that also anonymous and internal procedures can be
- 	traced.
+	Given no arguments, untrace all traced procedures.  The tracing in
+	Guile have an advantage to most other systems: We don't create new
+	procedure objects, but mark the procedure objects themselves.
+	This means that also anonymous and internal procedures can be
+	traced.
 
 	* boot-9.scm (error-catching-loop): Added handling of apply-frame
 	and exit-frame exceptions.
@@ -1420,44 +1420,44 @@ Sat Mar  1 00:10:38 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 	* boot-9.scm (assert-repl-prompt, the-prompt-string): Removed.
 	(set-repl-prompt!): Setter for repl prompt.
 	(scm-style-repl): If prompt is #f, don't prompt; if prompt is a
- 	string, display it; if prompt is a thunk, call it and display its
- 	result; otherwise display "> ".
-  	(Change suggested by Roland Orre <orre@nada.kth.se>.)
+	string, display it; if prompt is a thunk, call it and display its
+	result; otherwise display "> ".
+	(Change suggested by Roland Orre <orre@nada.kth.se>.)
 
 	* r4rs.scm (%load-verbosely): Reverted change to
- 	`module-defined?', since the module system isn't bootstrapped when
- 	we load r4rs.scm.  This is just a temporary fix to make the
+	`module-defined?', since the module system isn't bootstrapped when
+	we load r4rs.scm.  This is just a temporary fix to make the
 	repository version runnable.
 
 Thu Feb 27 23:25:47 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* boot-9.scm: Removed the enabling of debug evaluator and
- 	recording of source code positions.  This was placed there for our
- 	convenience, but it has already sneaked into the distribution
- 	once... so we'd better add this in our local copies instead when
- 	we need it.  (These options are normally enabled at the end of
+	recording of source code positions.  This was placed there for our
+	convenience, but it has already sneaked into the distribution
+	once... so we'd better add this in our local copies instead when
+	we need it.  (These options are normally enabled at the end of
 	boot-9.scm when loading the debug module.)
 
 Thu Feb 27 16:04:45 1997  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* boot-9.scm (module-defined?): New function.
 	(macroexpand-1, macroexpand): Use local-ref instead of defined?
- 	and eval.
+	and eval.
 	* r4rs.scm (%load-verbosely): Use "module-defined?" instead of
- 	"defined?".
+	"defined?".
 	* slib.scm (defined?): New function to take the place of the
- 	builtin "defined?".  It allways examines the slib module.
+	builtin "defined?".  It allways examines the slib module.
 
 Mon Feb 24 21:46:15 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* configure.in: Added AM_MAINTAINER_MODE
 
-Sat Feb 15 04:51:20 1997  Gary Houston  <ghouston@actrix.gen.nz>
+Sat Feb 15 04:51:20 1997  Gary Houston	<ghouston@actrix.gen.nz>
 
 	* boot-9.scm (read-sharp): define directly, don't go through a
 	%read-sharp layer.
 
-Tue Feb 11 08:45:48 1997  Gary Houston  <ghouston@actrix.gen.nz>
+Tue Feb 11 08:45:48 1997  Gary Houston	<ghouston@actrix.gen.nz>
 
 	* boot-9.scm (uniform-vector-set!): use uniform-array-set1!, not
 	uniform-vector-set1! which doesn't exist.
@@ -1467,7 +1467,7 @@ Mon Feb 10 03:01:48 1997  Mikael Djurfeldt  <mdj@kenneth>
 	* boot-9.scm (backtrace): Removed.  (A C version now exists in
 	backtrace.c.)
 
-Fri Jan 24 06:05:36 1997  Gary Houston  <ghouston@actrix.gen.nz>
+Fri Jan 24 06:05:36 1997  Gary Houston	<ghouston@actrix.gen.nz>
 
 	* boot-9.scm (read-line!, read-delimited!, read-delimited,
 	read-line): new	procedures, see libguile/ChangeLog.
@@ -1477,18 +1477,18 @@ Thu Jan 16 17:07:03 1997  Marius Vollmer  <mvo@zagadka.ping.de>
 	Added dynamic linking of modules. See libguile/DYNAMIC-LINKING.
 
 	* boot-9.scm (split-c-module-name, convert-c-registered-modules,
- 	init-dynamic-module, dynamic-maybe-call,
- 	find-and-link-dynamic-module, link-dynamic-module,
- 	try-module-dynamic-link, registered-modules): New definitions for
- 	dynamic linking of modules.
+	init-dynamic-module, dynamic-maybe-call,
+	find-and-link-dynamic-module, link-dynamic-module,
+	try-module-dynamic-link, registered-modules): New definitions for
+	dynamic linking of modules.
 	(resolve-module): Try to dynamically link the requested module
- 	after failing to load it as Scheme code.
+	after failing to load it as Scheme code.
 
-Wed Jan  8 05:50:14 1997  Gary Houston  <ghouston@actrix.gen.nz>
+Wed Jan	 8 05:50:14 1997  Gary Houston	<ghouston@actrix.gen.nz>
 
 	* boot-9.scm (getservbyport, getservbyname): remove stray %.
 
-Tue Jan  7 20:02:24 1997  Jim Blandy  <jimb@floss.cyclic.com>
+Tue Jan	 7 20:02:24 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* boot-9.scm (and=>): Rename THUNK argument to PROCEDURE, 'cos
 	that's what it is.
@@ -1497,13 +1497,13 @@ Tue Jan  7 20:02:24 1997  Jim Blandy  <jimb@floss.cyclic.com>
 	the case of an empty buffer list.  The old code assumed that '()
 	was false.
 
-Mon Jan  6 01:13:53 1997  Mikael Djurfeldt  <mdj@kenneth>
+Mon Jan	 6 01:13:53 1997  Mikael Djurfeldt  <mdj@kenneth>
 
 	* boot-9.scm (use-modules): New macro (from Marius Vollmer).
 	(use-modules <module name> ...) Put the the modules named by
- 	<module name> ... on the use list of the current module.
+	<module name> ... on the use list of the current module.
 
-Sun Jan  5 15:52:59 1997  Jim Blandy  <jimb@floss.cyclic.com>
+Sun Jan	 5 15:52:59 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* boot-9.scm (error-catching-loop): Remove message saying that
 	typing "$" will put you in the debugger.  This isn't implemented
@@ -1518,20 +1518,20 @@ Sun Dec 22 23:27:25 1996  Jim Blandy  <jimb@floss.cyclic.com>
 Tue Dec 17 20:36:45 1996  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* boot-9.scm (resolve-module): New optional parameter that
- 	controls whether autoloading is attempted or not. Default is #t.
+	controls whether autoloading is attempted or not. Default is #t.
 	(process-define-module): Don't autoload the defined module.
 	(try-module-autoload): Don't autoload the directory modules.
 
 	* boot-9.scm (process-define-module): Ensure that the-scm-module
- 	is last in the `uses' list to allow shadowing builtin
- 	bindings. All :use-module options are added in the order they
- 	appear in the arguments but before anything already on the list
- 	(such as the-scm-module).
+	is last in the `uses' list to allow shadowing builtin
+	bindings. All :use-module options are added in the order they
+	appear in the arguments but before anything already on the list
+	(such as the-scm-module).
 
-Wed Dec 11 21:06:05 1996  Gary Houston  <ghouston@actrix.gen.nz>
+Wed Dec 11 21:06:05 1996  Gary Houston	<ghouston@actrix.gen.nz>
 
 	* slib.scm (slib-parent-dir): throw error if #f returned from
- 	%search-load-path.
+	%search-load-path.
 
 Sat Nov 30 23:57:28 1996  Tom Tromey  <tromey@cygnus.com>
 
@@ -1542,8 +1542,8 @@ Sat Nov 30 23:57:28 1996  Tom Tromey  <tromey@cygnus.com>
 Wed Nov 27 14:16:14 1996  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* boot-9.scm (macroexpand-1, macroexpand), slib.scm
- 	(slib:features), r4rs.scm (%load-verbosely): "defined?" is now a
- 	function, use it accordingly.
+	(slib:features), r4rs.scm (%load-verbosely): "defined?" is now a
+	function, use it accordingly.
 	
 Thu Nov 21 11:12:10 1996  Jim Blandy  <jimb@floss.cyclic.com>
 
@@ -1563,7 +1563,7 @@ Wed Nov 20 14:45:27 1996  Jim Blandy  <jimb@totoro.cyclic.com>
 	* slib.scm (slib-parent-dir): Use string-length, not length.
 	(Thanks to Bernard Urban.)
 
-Sat Nov  2 20:00:42 1996  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+Sat Nov	 2 20:00:42 1996  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* boot-9.scm: The debugging evaluator and recording of positions
 	aren't enabled by default any longer (they are switched on in
@@ -1572,7 +1572,7 @@ Sat Nov  2 20:00:42 1996  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 	beginning of boot-9.scm to enable these.
 	
 	Call `provide' so that `records' are included among the
- 	`*features*'.
+	`*features*'.
 	
 	The scheme for saving the stack has been adjusted: save-stack is
 	now commonly available for saving the stack.  Calling `save-stack'
@@ -1641,12 +1641,12 @@ Mon Oct 28 17:56:29 1996  Jim Blandy  <jimb@floss.cyclic.com>
 	* r4rs.scm: New file.
 	* boot-9.scm: Load r4rs.scm, first thing.
 	(OPEN_READ, OPEN_WRITE, OPEN_BOTH, *null-device*, open-input-file,
- 	open-output-file, open-io-file, close-input-port,
- 	close-output-port, close-io-port, call-with-input-file,
- 	call-with-output-file, with-input-from-port, with-output-to-port,
- 	with-error-to-port, with-input-from-file, with-output-to-file,
- 	with-error-to-file, with-input-from-string, with-output-to-string,
- 	with-error-to-string, the-eof-object): Definitions moved to
+	open-output-file, open-io-file, close-input-port,
+	close-output-port, close-io-port, call-with-input-file,
+	call-with-output-file, with-input-from-port, with-output-to-port,
+	with-error-to-port, with-input-from-file, with-output-to-file,
+	with-error-to-file, with-input-from-string, with-output-to-string,
+	with-error-to-string, the-eof-object): Definitions moved to
 	r4rs.scm.  Not all of them are R4RS, but those that are use those
 	that are not.
 	(load, %load-verbosely, %load-announce): Moved, along with code to
@@ -1662,11 +1662,11 @@ Mon Oct 28 17:56:29 1996  Jim Blandy  <jimb@floss.cyclic.com>
 	=?, >?, and >=? deleted; they're defined that way by libguile now.
 
 	* boot-9.scm (load): Simplified; primitive-load does most of this
- 	work now.
-	(%load-announce-win): Removed; no longer used.  Set %load-hook to
- 	call %load-announce.
+	work now.
+	(%load-announce-win): Removed; no longer used.	Set %load-hook to
+	call %load-announce.
 
-Sun Oct 27 07:47:03 1996  Gary Houston  <ghouston@actrix.gen.nz>
+Sun Oct 27 07:47:03 1996  Gary Houston	<ghouston@actrix.gen.nz>
 
 	* boot-9.scm (stat:dev, stat:ino, stat:mode, stat:nlink, stat:uid,
 	stat:gid, stat:rdev, stat:size, stat:atime, stat:mtime,
@@ -1687,16 +1687,16 @@ Mon Oct 21 18:52:36 1996  Jim Blandy  <jimb@totoro.cyclic.com>
 Fri Oct 18 01:03:08 1996  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* boot-9.scm (handle-system-error): Added hooks before-error-hook,
- 	after-error-hook, before-backtrace-hook and after-backtrace-hook
- 	to the error handler.  E.g.: fancy emacs support could plug into
- 	these.
+	after-error-hook, before-backtrace-hook and after-backtrace-hook
+	to the error handler.  E.g.: fancy emacs support could plug into
+	these.
 	(save-stack): New function.  The stack is now made differently
- 	depending on the stack id.  (The motivation is to make a better
- 	choice regarding what stack frames to present to the user.)
+	depending on the stack id.  (The motivation is to make a better
+	choice regarding what stack frames to present to the user.)
 	(error-catching-loop): Stack handling code moved outside into
- 	save-stack.
+	save-stack.
 
-Thu Oct 17 20:33:08 1996  Gary Houston  <ghouston@actrix.gen.nz>
+Thu Oct 17 20:33:08 1996  Gary Houston	<ghouston@actrix.gen.nz>
 
 	* Makefile.in (scm_files): add expect.scm.
 
@@ -1716,7 +1716,7 @@ Tue Oct 15 17:07:20 1996  Jim Blandy  <jimb@floss.cyclic.com>
 	* boot-9.scm: Doc fixes.
 	(make-module): Rework for readability.
 	(make-root-module, make-scm-module): USES argument to make-module
- 	should be '(), not #f.
+	should be '(), not #f.
 
 	* boot-9.scm (try-load): %sys-load-path has been renamed to
 	primitive-load-path; adjust call here.
@@ -1724,15 +1724,15 @@ Tue Oct 15 17:07:20 1996  Jim Blandy  <jimb@floss.cyclic.com>
 Tue Oct 15 14:25:01 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
 
 	* boot-9.scm (signal-handler): Bugfix: Moved the recording of
- 	the stack to the correct place: when it is decided to generate an
+	the stack to the correct place: when it is decided to generate an
 	error-signal.
 
 Mon Oct 14 22:20:30 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
 
 	* boot-9.scm (error-catching-loop, signal-handler,
- 	handle-system-error): Backtracing now works for signals aswell;
- 	Backtracing mechanism can now identify the stack root created by
- 	start-stack so that the user isn't exposed to system stack frames.
+	handle-system-error): Backtracing now works for signals aswell;
+	Backtracing mechanism can now identify the stack root created by
+	start-stack so that the user isn't exposed to system stack frames.
 
 Mon Oct 14 06:05:42 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
 
@@ -1743,22 +1743,22 @@ Mon Oct 14 04:21:51 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
 	* debug.scm (make-enable, make-disable): Simplified.
 
 	* boot-9.scm: Renamed %%throw-handler-default -->
- 	throw-handler-default.
+	throw-handler-default.
 	((handle-system-error key . arg-list)): Changed the way errors are
 	reported.
 	((scm-style-repl)): Wrap up the call to eval in a start-stack
- 	acro.
+	acro.
 	((error-catching-loop thunk)): Introduce a lazy-catch into
- 	error-catching-loop so that the stack can be captured.
+	error-catching-loop so that the stack can be captured.
 
 Thu Oct 10 22:27:32 1996  Jim Blandy  <jimb@totoro.cyclic.com>
 
 	* mapping.scm (hash-table-mapping): Explicitly request that
- 	make-vector fill new vectors with '(); this will make it easier to
+	make-vector fill new vectors with '(); this will make it easier to
 	port Guile Scheme code to other Schemes.
 	* boot-9.scm (make-print-style, make-print-table): Same.
 
-Sun Oct  6 03:54:59 1996  Gary Houston  <ghouston@actrix.gen.nz>
+Sun Oct	 6 03:54:59 1996  Gary Houston	<ghouston@actrix.gen.nz>
 
 	* boot-9.scm (load): rewritten again.
 	Append "." to the default %load-path.
@@ -1771,7 +1771,7 @@ Sun Oct  6 03:54:59 1996  Gary Houston  <ghouston@actrix.gen.nz>
 	(try-module-autoload module-name): use file-exists? before 
 	file-is-directory?
 
-Sat Oct  5 18:54:03 1996  Mikael Djurfeldt  <mdj@kenneth>
+Sat Oct	 5 18:54:03 1996  Mikael Djurfeldt  <mdj@kenneth>
 
 	* boot-9.scm: Added conditional loading of threads.scm.
 
@@ -1783,7 +1783,7 @@ Sat Oct  5 18:54:03 1996  Mikael Djurfeldt  <mdj@kenneth>
 
 	* boot-9.scm: Name change %%bad-throw --> bad-throw.
 
-Wed Oct  2 23:38:44 1996  Jim Blandy  <jimb@totoro.cyclic.com>
+Wed Oct	 2 23:38:44 1996  Jim Blandy  <jimb@totoro.cyclic.com>
 
 	* boot-9.scm (make-record-type, record-constructor): Don't assume
 	the empty list is false when parsing the argument list.
@@ -1794,10 +1794,10 @@ Mon Sep 30 22:15:50 1996  Jim Blandy  <jimb@totoro.cyclic.com>
 
 	* boot-9.scm (load): Assume %load-path is always bound.
 
-Sat Sep 28 00:15:37 1996  Gary Houston  <ghouston@actrix.gen.nz>
+Sat Sep 28 00:15:37 1996  Gary Houston	<ghouston@actrix.gen.nz>
 
- 	* boot-9.scm (error): replace another throw with scm-error.  Throw
- 	to 'misc-error instead of 'error (no need to distinguish these.)
+	* boot-9.scm (error): replace another throw with scm-error.  Throw
+	to 'misc-error instead of 'error (no need to distinguish these.)
 	Don't set up 'error as a key.
 	Set up regex-error as a key, if regex is available.
 	(signal-handler): use scm-error, not throw.
@@ -1810,7 +1810,7 @@ Sat Sep 28 00:15:37 1996  Gary Houston  <ghouston@actrix.gen.nz>
 	(load): rewritten.  load tries to open the file directly and
 	with a .scm extension before searching the library directories
 	(should "." be added to %load-path?  then load could still open
- 	directly files starting with "/").
+	directly files starting with "/").
 	(try-module-autoload): use load, not load-with-path.
 	(%load-indent): deleted, -2 was causing errors.
 
@@ -1819,17 +1819,17 @@ Sat Sep 28 00:15:37 1996  Gary Houston  <ghouston@actrix.gen.nz>
 Fri Sep 27 16:23:51 1996  Jim Blandy  <jimb@totoro.cyclic.com>
 
 	* boot-9.scm (%%bad-throw): Delete definition. 1) It's very
- 	straightforward to provide the equivalent functionality using
- 	(catch #t ...), so there's no need for the extra complexity.  2)
- 	Outside the context of a read-eval-print loop (which Guile should
- 	not require) it's not clear we should do anything more complicated
- 	than print an error and exit; the user or REPL can establish
- 	something better if it wants.  3) In that case, it's much more
- 	robust to just do it in the C code.
+	straightforward to provide the equivalent functionality using
+	(catch #t ...), so there's no need for the extra complexity.  2)
+	Outside the context of a read-eval-print loop (which Guile should
+	not require) it's not clear we should do anything more complicated
+	than print an error and exit; the user or REPL can establish
+	something better if it wants.  3) In that case, it's much more
+	robust to just do it in the C code.
 
-Tue Sep 24 06:53:04 1996  Gary Houston  <ghouston@actrix.gen.nz>
+Tue Sep 24 06:53:04 1996  Gary Houston	<ghouston@actrix.gen.nz>
 
-	* boot-9.scm (%try-load): define using primitive-load.  Previously
+	* boot-9.scm (%try-load): define using primitive-load.	Previously
 	%try-load itself was the primitive.
 	(load-with-path): use scm-error instead of %load-announce-lossage.
 	Errors are thrown to 'misc-error instead of 'could-not-load.
@@ -1841,7 +1841,7 @@ Mon Sep 23 00:16:31 1996  Mikael Djurfeldt  <mdj@kenneth>
 	(make-record-type type-name fields): Temporarily remove support
 	for printing of records (not possible yet with C printer).
 
-Fri Sep 20 00:24:27 1996  Gary Houston  <ghouston@actrix.gen.nz>
+Fri Sep 20 00:24:27 1996  Gary Houston	<ghouston@actrix.gen.nz>
 
 	* boot-9.scm (file-exists?, file-is-directory): catch only
 	system-error, not every kind of error.
@@ -1851,7 +1851,7 @@ Thu Sep 19 16:02:46 1996  Jim Blandy  <jimb@totoro.cyclic.com>
 
 	* boot-9.scm: Formatting tweaks.
 
-Wed Sep 18 09:07:37 1996  Gary Houston  <ghouston@actrix.gen.nz>
+Wed Sep 18 09:07:37 1996  Gary Houston	<ghouston@actrix.gen.nz>
 
 	* boot-9.scm (%%handle-system-error key): remove the code for
 	SCM-style errors.  handle the case that an unexpected number
@@ -1865,20 +1865,20 @@ Wed Sep 18 09:07:37 1996  Gary Houston  <ghouston@actrix.gen.nz>
 	Create an error message instead of using numerical codes.
 	(%%bad-throw): call error instead of throw if key not found.
 
-Tue Sep 17 04:11:28 1996  Gary Houston  <ghouston@actrix.gen.nz>
+Tue Sep 17 04:11:28 1996  Gary Houston	<ghouston@actrix.gen.nz>
 
 	* boot-9.scm: initialize new error keys (see libguile/ChangeLog).
 	(%%handle-system-error key): check subr is not #f before printing.
 	Recognize %s (embed an argument using "display") and
 	%S (embed an argument using "write").
 
-Sun Sep 15 03:55:35 1996  Gary Houston  <ghouston@actrix.gen.nz>
+Sun Sep 15 03:55:35 1996  Gary Houston	<ghouston@actrix.gen.nz>
 
 	* boot-9.scm (%%handle-system-error key): set args and rest to
 	the empty list if they are #f.
 	Initialize out-of-range as an error key.
 
-Sat Sep 14 03:41:15 1996  Gary Houston  <ghouston@actrix.gen.nz>
+Sat Sep 14 03:41:15 1996  Gary Houston	<ghouston@actrix.gen.nz>
 
 	* PLUGIN/REQ: remove the "ice-9 lgh" line which causes a cycle.
 
@@ -1897,14 +1897,14 @@ Fri Sep 13 04:58:11 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
 	operates on vector, nested-ref operates on nested namespace,
 	local-ref operates on the local nested namespace.
 
-Sat Sep  7 06:44:47 1996  Gary Houston  <ghouston@actrix.gen.nz>
+Sat Sep	 7 06:44:47 1996  Gary Houston	<ghouston@actrix.gen.nz>
 
 	* boot-9.scm (%%handle-system-error): recognise errors thrown
 	by lgh-error (fill-message etc.)
 	(fill-message): check first whether args is null.
 	(fill-message): bug fix and check that args is a list.
 
-Thu Sep  5 11:33:41 1996  Jim Blandy  <jimb@floss.cyclic.com>
+Thu Sep	 5 11:33:41 1996  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* boot-9.scm: %load-path is initialized in C code now.
 	(implementation-vicinity, parse-path): Deleted, along with code to
@@ -1913,7 +1913,7 @@ Thu Sep  5 11:33:41 1996  Jim Blandy  <jimb@floss.cyclic.com>
 	* boot-9.scm (in-vicinity): If the vicinity doesn't end with a
 	"/", use one to separate it from the file.
 
-Thu Aug 29 23:05:11 1996  Thomas Morgan  <tmorgan@gnu.ai.mit.edu>
+Thu Aug 29 23:05:11 1996  Thomas Morgan	 <tmorgan@gnu.ai.mit.edu>
 
 	* boot-9.scm (%load-path): Add the site directory.
 	Add the directory named after the version number.
@@ -1941,14 +1941,14 @@ Thu Aug 29 21:48:47 1996  Jim Blandy  <jimb@floss.cyclic.com>
 Fri Aug 23 06:44:36 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
 
 	* boot-9.scm: Preliminary solution: optionally load the debug
-	module.  Changed "gls" to "guile1.0b3".
+	module.	 Changed "gls" to "guile1.0b3".
 
 	* debug.scm: New file: debug extensions.
 
 Wed Aug 21 13:06:56 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
 
 	* boot-9.scm (print-vector): Renamed weak-hash-table? -->
- 	weak-key-hash-table?.  (Again!)
+	weak-key-hash-table?.  (Again!)
 
 Tue Aug 20 07:31:39 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
 
@@ -1958,7 +1958,7 @@ Tue Aug 20 07:31:39 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
 	* poe.scm (funcq-memo): Renamed weak-hash-table -->
 	weak-key-hash-table.
 	
-Sat Aug  3 06:16:35 1996  Gary Houston  <ghouston@actrix.gen.nz>
+Sat Aug	 3 06:16:35 1996  Gary Houston	<ghouston@actrix.gen.nz>
 
 	* boot-9.scm (*null-device*): global constant from goonix.
 	(move->fdes): adjusted for boolean primitive-move->fdes.  return
@@ -1968,21 +1968,21 @@ Sat Aug  3 06:16:35 1996  Gary Houston  <ghouston@actrix.gen.nz>
 	(open-input-file, open-output-file, file-exists?, file-is-directory?):
 	modified for open-file change (does not return #f).
 
-Thu Aug  1 02:52:42 1996  Jim Blandy  <jimb@totoro.cyclic.com>
+Thu Aug	 1 02:52:42 1996  Jim Blandy  <jimb@totoro.cyclic.com>
 
 	* Makefile.in (dist-dir): New target for new dist system.
 	(manifest): Deleted.
 	* PLUGIN/this.configure (aux_files): Removed PLUGIN; it's a
 	directory, and needs special treatment in the dist-dir target.
 
-Thu Aug  1 09:00:21 1996  Gary Houston  <ghouston@actrix.gen.nz>
+Thu Aug	 1 09:00:21 1996  Gary Houston	<ghouston@actrix.gen.nz>
 
 	* boot-9.scm: remove the wrappers for '%' system primitives,
 	now that they throw errors directly.
 	remove make-simple-wrapper and similar functions.
 	protect a call to getenv which may now throw an exception.
 
-Wed Jul 31 23:44:42 1996  Gary Houston  <ghouston@actrix.gen.nz>
+Wed Jul 31 23:44:42 1996  Gary Houston	<ghouston@actrix.gen.nz>
 
 	* boot-9.scm (false-if-exception): new macro.
 
