@@ -176,7 +176,7 @@ typedef struct scm_ptobfuns
   int (*print) (SCM exp, SCM port, scm_print_state *pstate);
   SCM (*equalp) (SCM, SCM);
   void (*fflush) (SCM port);
-  void (*read_flush) (SCM port);
+  void (*read_flush) (SCM port, int offset);
   int (*fclose) (SCM port);
   int (*fill_buffer) (SCM port);
   off_t (*seek) (SCM port, off_t OFFSET, int WHENCE);
@@ -227,7 +227,8 @@ extern void scm_putc SCM_P ((int c, SCM port));
 extern void scm_puts SCM_P ((char *str_data, SCM port));
 extern void scm_lfwrite SCM_P ((char *ptr, scm_sizet size, SCM port));
 extern void scm_fflush SCM_P ((SCM port));
-extern int scm_fill_buffer (SCM port, scm_port *pt);
+extern void scm_read_flush (SCM port);
+extern int scm_fill_buffer (SCM port);
 extern int scm_getc SCM_P ((SCM port));
 extern void scm_ungetc SCM_P ((int c, SCM port));
 extern void scm_ungets SCM_P ((char *s, int n, SCM port));

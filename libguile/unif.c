@@ -1564,7 +1564,7 @@ loop:
 	    }
 	  else
 	    {
-	      int ch = scm_fill_buffer (port_or_fd, pt);
+	      int ch = scm_fill_buffer (port_or_fd);
 	      
 	      if (ch == EOF)
 		{
@@ -1704,7 +1704,7 @@ loop:
 
       ans = cend - offset;
       if (pt->rw_active == SCM_PORT_READ)
-	ptob->read_flush (port_or_fd);
+	scm_read_flush (port_or_fd);
 
       while (remaining > 0)
 	{

@@ -114,7 +114,7 @@ st_flush (SCM port)
 }
 
 static void
-st_read_flush (SCM port)
+st_read_flush (SCM port, int offset)
 {
   scm_port *pt = SCM_PTAB_ENTRY (port);
 

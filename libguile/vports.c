@@ -96,7 +96,7 @@ sfflush (SCM port)
 }
 
 static void
-sf_read_flush (SCM port)
+sf_read_flush (SCM port, int offset)
 {
 }
 

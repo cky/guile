@@ -1,5 +1,27 @@
 1999-07-04  Gary Houston  <ghouston@easynet.co.uk>
 
+	* unif.c (scm_uniform_array_write): likewise.
+	* ioext.c (scm_redirect_port): likewise.
+	* ports.c (scm_putc): call scm_read_flush.
+	(scm_puts): likewise.
+	(scm_lfwrite): likewise.
+	(scm_lseek): likewise.
+	(scm_ftruncate): likewise.
+
+	* ports.c (scm_fill_buffer): don't take pt argument.  change callers.
+	(read_flush_void_port): new proc, for void port ptob.
+
+	* vports.c (sf_read_flush): likewise.
+	* strports.c (st_read_flush): take offset arg.
+	* fports.c (local_read_flush): use offset, don't reset putback
+	buffer here.
+
+	* ports.h (scm_ptobfuns): let read_flush take an offset argument,
+	which is the number of chars from the putback buffer.
+
+	* ports.c (scm_read_flush): new procedure, resets the putback
+	buffer before calling the ptob routine.
+
 	* strports.c (scm_strprint_obj): bug fix: get pt from the port,
 	not from the parameter obj.  (Thanks to Eric Moore.)
 

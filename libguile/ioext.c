@@ -198,7 +198,7 @@ scm_do_read_line (SCM port, int *len_p)
 
 	/* Get more characters.  I think having fill_buffer return a
            character is not terribly graceful...  */
-	c = scm_fill_buffer (port, pt);
+	c = scm_fill_buffer (port);
 	if (c == EOF)
 	  {
 	    /* If we're missing a final newline in the file, return
@@ -360,7 +360,7 @@ scm_redirect_port (old, new)
       if (pt->rw_active == SCM_PORT_WRITE)
 	ptob->fflush (new);
       else if (pt->rw_active == SCM_PORT_READ)
-	ptob->read_flush (new);
+	scm_read_flush (new);
       ans = dup2 (oldfd, newfd);
       if (ans == -1)
 	scm_syserror (s_redirect_port);

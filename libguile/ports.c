@@ -629,9 +629,10 @@ scm_read_char (port)
 }
 
 int
-scm_fill_buffer (SCM port, scm_port *pt)
-     /* port and pt refer to the same port.  */
+scm_fill_buffer (SCM port)
 {
+  scm_port *pt = SCM_PTAB_ENTRY (port);
+
   if (pt->read_buf == pt->putback_buf)
     {
       /* finished reading put-back chars.  */
@@ -664,7 +665,7 @@ scm_getc (port)
     }
   else
     {
-      c = scm_fill_buffer (port, pt);
+      c = scm_fill_buffer (port);
     }
 
   if (pt->rw_random)
@@ -695,7 +696,7 @@ scm_putc (c, port)
   scm_ptobfuns *ptob = &scm_ptobs[SCM_PTOBNUM (port)];
 
   if (pt->rw_active == SCM_PORT_READ)
-    ptob->read_flush (port);
+    scm_read_flush (port);
 
   *(pt->write_pos++) = (char) c;
 
@@ -715,7 +716,8 @@ scm_puts (s, port)
   scm_ptobfuns *ptob = &scm_ptobs[SCM_PTOBNUM (port)];
 
   if (pt->rw_active == SCM_PORT_READ)
-    ptob->read_flush (port);
+    scm_read_flush (port);
+
   while (*s != 0)
     {
       *pt->write_pos++ = *s++;
@@ -741,7 +743,8 @@ scm_lfwrite (ptr, size, port)
   scm_ptobfuns *ptob = &scm_ptobs[SCM_PTOBNUM (port)];
 
   if (pt->rw_active == SCM_PORT_READ)
-    ptob->read_flush (port);
+    scm_read_flush (port);
+
   while (size > 0)
     {
       int space = pt->write_end - pt->write_pos;
@@ -770,6 +773,27 @@ scm_fflush (port)
 {
   scm_sizet i = SCM_PTOBNUM (port);
   (scm_ptobs[i].fflush) (port);
+}
+
+void
+scm_read_flush (port)
+     SCM port;
+{
+  int offset;
+  scm_port *pt = SCM_PTAB_ENTRY (port);
+
+  if (pt->read_buf == pt->putback_buf)
+    {
+      offset = pt->read_end - pt->read_pos;
+      pt->read_buf = pt->saved_read_buf;
+      pt->read_pos = pt->saved_read_pos;
+      pt->read_end = pt->saved_read_end;
+      pt->read_buf_size = pt->saved_read_buf_size;
+    }
+  else
+    offset = 0;
+
+  scm_ptobs[SCM_PTOBNUM (port)].read_flush (port, offset);
 }
 
 
@@ -956,7 +980,7 @@ scm_lseek (SCM object, SCM offset, SCM whence)
       else
 	{
 	  if (pt->rw_active == SCM_PORT_READ)
-	    ptob->read_flush (object);
+	    scm_read_flush (object);
 	  else if (pt->rw_active == SCM_PORT_WRITE)
 	    ptob->fflush (object);
 	  
@@ -994,7 +1018,7 @@ scm_ftruncate (SCM port, SCM length)
       length = scm_lseek (port, SCM_INUM0, SCM_MAKINUM (SEEK_CUR));
     }
   if (pt->rw_active == SCM_PORT_READ)
-    ptob->read_flush (port);
+    scm_read_flush (port);
   else if (pt->rw_active == SCM_PORT_WRITE)
     ptob->fflush (port);
 
@@ -1165,6 +1189,11 @@ flush_void_port (SCM port)
 {
 }
 
+static void
+read_flush_void_port (SCM port, int offset)
+{
+}
+
 static int
 close_void_port (SCM port)
 {
@@ -1187,7 +1216,7 @@ static struct scm_ptobfuns void_port_ptob =
   print_void_port,
   0,				/* equal? */
   flush_void_port,
-  flush_void_port,
+  read_flush_void_port,
   close_void_port,
   0,
   0,

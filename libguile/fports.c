@@ -505,23 +505,15 @@ local_fflush (SCM port)
   pt->rw_active = 0;
 }
 
-/* clear the read buffer and adjust the file position for unread bytes.
-   this is only called if the port has rw_random set.  */
+/* clear the read buffer and adjust the file position for unread bytes. */
 static void
-local_read_flush (SCM port)
+local_read_flush (SCM port, int offset)
 {
   struct scm_fport *fp = SCM_FSTREAM (port);
   scm_port *pt = SCM_PTAB_ENTRY (port);
-  int offset = pt->read_end - pt->read_pos;
+  
+  offset += pt->read_end - pt->read_pos;
 
-  if (pt->read_buf == pt->putback_buf)
-    {
-      pt->read_buf = pt->saved_read_buf;
-      pt->read_pos = pt->saved_read_pos;
-      pt->read_end = pt->saved_read_end;
-      pt->read_buf_size = pt->saved_read_buf_size;
-      offset += pt->read_end - pt->read_pos;
-    }
   if (offset > 0)
     {
       pt->read_pos = pt->read_end;
