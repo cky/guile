@@ -1,3 +1,28 @@
+2003-03-24  Rob Browning  <rlb@defaultvalue.org>
+
+	* tests/numbers.test: added tests (some simple) for various funcs.
+	("odd?"): added tests.
+	("even?"): added tests.
+	("nan?"): added tests.
+	("abs"): added tests.
+	("lcm"): added tests.
+	("number->string"): added tests.
+	("number?"): added tests.
+	("complex?"): added tests.
+	("real?"): added tests.
+	("rational?"): added tests.
+	("integer?"): added tests.
+	("inexact?"): added tests.
+	("="): added tests.
+	("zero?"): added tests.
+	("positive?"): added tests.
+	("negative?"): added tests.
+
+	* lib.scm (pass-if): allow really simple tests where the test code
+	is also the name like (pass-if (even? 2)).
+	(expect-fail): allow really simple tests where the test code is
+	also the test name like (expect-fail (even? 2)).
+
 2003-03-19  Marius Vollmer  <mvo@zagadka.de>
 
 	* tests/format.test ("format basic output"): Added test for "~F"
