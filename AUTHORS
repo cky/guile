@@ -19,12 +19,15 @@ In the subdirectory libguile, wrote:
     gsubr.c  ramap.c  unif.c
     gsubr.h  ramap.h  unif.h
 
-Gary Houston: changes to many files in libguile.
+Gary Houston: 
+In the subdirectory libguile, wrote:
+    rw.c
 In the subdirectory ice-9, wrote:
-    expect.scm networking.scm popen.scm posix.scm
+    expect.scm networking.scm popen.scm posix.scm rw.scm
 In the subdirectory doc, changes to:
     data-rep.texi   expect.texi     guile-tut.texi
     posix.texi      r5rs.texi       scheme-io.texi
+Many other changes throughout.
 
 Jim Blandy: Many changes throughout.
 In the subdirectory libguile, wrote:
