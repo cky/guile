@@ -80,38 +80,40 @@ scm_cons2 (w, x, y)
 }
 
 
-SCM_PROC(s_pair_p, "pair?", 1, 0, 0, scm_pair_p);
+SCM_PROC (s_pair_p, "pair?", 1, 0, 0, scm_pair_p);
 
 SCM
-scm_pair_p(x)
+scm_pair_p (x)
      SCM x;
 {
-	if SCM_IMP(x) return SCM_BOOL_F;
-	return SCM_CONSP(x) ? SCM_BOOL_T : SCM_BOOL_F;
+  if (SCM_IMP (x))
+    return SCM_BOOL_F;
+  return SCM_CONSP (x) ? SCM_BOOL_T : SCM_BOOL_F;
 }
 
-SCM_PROC(s_set_car_x, "set-car!", 2, 0, 0, scm_set_car_x);
+SCM_PROC (s_set_car_x, "set-car!", 2, 0, 0, scm_set_car_x);
 
 SCM
-scm_set_car_x(pair, value)
+scm_set_car_x (pair, value)
      SCM pair;
      SCM value;
 {
-	SCM_ASSERT(SCM_NIMP(pair) && SCM_CONSP(pair), pair, SCM_ARG1, s_set_car_x);
-	SCM_SETCAR (pair, value);
-	return value;
+  SCM_ASSERT (SCM_NIMP (pair) && SCM_CONSP (pair),
+	      pair, SCM_ARG1, s_set_car_x);
+  SCM_SETCAR (pair, value);
+  return value;
 }
 
-SCM_PROC(s_set_cdr_x, "set-cdr!", 2, 0, 0, scm_set_cdr_x);
+SCM_PROC (s_set_cdr_x, "set-cdr!", 2, 0, 0, scm_set_cdr_x);
 
 SCM
-scm_set_cdr_x(pair, value)
+scm_set_cdr_x (pair, value)
      SCM pair;
      SCM value;
 {
-	SCM_ASSERT(SCM_NIMP(pair) && SCM_CONSP(pair), pair, SCM_ARG1, s_set_cdr_x);
-	SCM_SETCDR (pair, value);
-	return value;
+  SCM_ASSERT (SCM_NIMP(pair) && SCM_CONSP (pair), pair, SCM_ARG1, s_set_cdr_x);
+  SCM_SETCDR (pair, value);
+  return value;
 }
 
 
@@ -157,7 +159,7 @@ static scm_iproc cxrs[] =
 void
 scm_init_pairs ()
 {
-  scm_init_iprocs(cxrs, scm_tc7_cxr);
+  scm_init_iprocs (cxrs, scm_tc7_cxr);
 #include "pairs.x"
 }
 
