@@ -1,3 +1,10 @@
+2001-06-19  Gary Houston  <ghouston@arglist.com>
+
+	* filter-doc-snarfage.c (process): added ungetc in
+	MULTILINE_COOKIE case since otherwise it fails when there's no
+	space between the '(' and the quote of the following string
+	(gcc 3.0).
+
 2001-06-14  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	Throughout: replace "scm_*_t" with "scm_t_*", except "scm_lisp_t".
