@@ -74,7 +74,7 @@
 #include <arpa/inet.h>
 #endif
 
-#if !defined (HAVE_H_ERRNO) && !defined (__MINGW32__)
+#if !defined (HAVE_H_ERRNO) && !defined (__MINGW32__) && !defined (__CYGWIN__)
 /* h_errno not found in netdb.h, maybe this will help.  */
 extern int h_errno;
 #endif
@@ -314,6 +314,7 @@ SCM_DEFINE (scm_getproto, "getproto", 0, 1, 0,
 #undef FUNC_NAME
 #endif
 
+#ifdef HAVE_GETSERVENT
 static SCM
 scm_return_entry (struct servent *entry)
 {
@@ -329,7 +330,6 @@ scm_return_entry (struct servent *entry)
   return ans;
 }
 
-#ifdef HAVE_GETSERVENT
 SCM_DEFINE (scm_getserv, "getserv", 0, 2, 0,
             (SCM name, SCM protocol),
 	    "@deffnx procedure getservbyname name protocol\n"
