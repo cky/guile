@@ -649,10 +649,52 @@ case "$with_threads" in
         [Define if using pthread multithreading.])
       with_threads="pthreads",
       with_threads="null")
-      if test $GCC = yes; then
-      AC_DEFINE(_THREAD_SAFE, 1,
-        [Use thread safe versions of GNU Libc functions.])
-      fi
+      
+    if test $GCC = yes; then
+    AC_DEFINE(_THREAD_SAFE, 1,
+      [Use thread safe versions of GNU Libc functions.])
+    fi
+    
+    AC_MSG_CHECKING(if pthread_mutexattr_settype is declared)
+    AC_CACHE_VAL(guile_cv_mutexattr_settype_declared,
+      [AC_TRY_COMPILE([#include <pthread.h>],
+    	  [int pthread_mutexattr_settype (int, int);],
+    	  guile_cv_mutexattr_settype_declared=no,
+    	  guile_cv_mutexattr_settype_declared=yes)])
+    AC_MSG_RESULT($guile_cv_mutexattr_settype_declared)
+    if test $guile_cv_mutexattr_settype_declared = yes; then
+      AC_DEFINE(SCM_MUTEXATTR_SETTYPE_DECLARED, 1,
+    	  [Define if pthread.h declares pthread_mutexattr_settype.])
+    fi
+    
+    AC_MSG_CHECKING(how to get a fast mutex)
+    AC_CACHE_VAL(guile_cv_have_mutex_fast,
+      [AC_TRY_COMPILE([#include <pthread.h>],
+    	  [int a = PTHREAD_MUTEX_ADAPTIVE_NP;],
+    	  guile_cv_have_mutex_fast=PTHREAD_MUTEX_ADAPTIVE_NP,
+    	  guile_cv_have_mutex_fast=none)])
+    AC_MSG_RESULT($guile_cv_have_mutex_fast)
+    if test ! $guile_cv_have_mutex_fast = none; then
+      AC_DEFINE_UNQUOTED(SCM_MUTEX_FAST, $guile_cv_have_mutex_fast,
+    	  [The mutex kind enum for fast mutexes.])
+    fi
+    
+    AC_MSG_CHECKING(how to get a recursive mutex)
+    AC_CACHE_VAL(guile_cv_have_mutex_recursive,
+      [AC_TRY_COMPILE([#include <pthread.h>],
+        [int a = PTHREAD_MUTEX_RECURSIVE_NP;],
+         guile_cv_have_mutex_recursive=PTHREAD_MUTEX_RECURSIVE_NP)
+      if test -z "$guile_cv_have_mutex_recursive"; then
+    	  AC_TRY_COMPILE([#include <pthread.h>],
+    	    [int a = PTHREAD_MUTEX_RECURSIVE;],
+    	    guile_cv_have_mutex_recursive=PTHREAD_MUTEX_RECURSIVE,
+    	    guile_cv_have_mutex_recursive=none)
+    	fi])
+    AC_MSG_RESULT($guile_cv_have_mutex_recursive)
+    if test ! $guile_cv_have_mutex_recursive = none; then
+      AC_DEFINE_UNQUOTED(SCM_MUTEX_RECURSIVE, $guile_cv_have_mutex_recursive,
+    	 [The mutex kind enum for recursive mutexes.])
+    fi
   ;;
 esac
 
