@@ -95,12 +95,15 @@
 
 /* {Unsupported Options}
  *
- * These must be defined.
+ * These must be defined as given here.
  */
 
 
 #define CCLO
-#define SICP
+
+/* Guile Scheme supports the #f/() distinction; Guile Lisp won't.  We
+   have horrible plans for their unification.  */
+#undef SICP
 
 
 

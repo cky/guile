@@ -80,27 +80,27 @@ typedef long SCM;
  *
  * Immediates -- meaning that the variable contains an entire Scheme object.
  *
- * Non-immediates -- meaning that the variable holds a (possibly tagged) pointer
- * into the cons pair heap.
+ * Non-immediates -- meaning that the variable holds a (possibly
+ * tagged) pointer into the cons pair heap.
  *
- * Non-objects are distinguished from other values by careful coding only (i.e.,
- * programmers must keep track of any SCM variables they create that don't contain
- * ordinary scheme values).
+ * Non-objects are distinguished from other values by careful coding
+ * only (i.e., programmers must keep track of any SCM variables they
+ * create that don't contain ordinary scheme values).
  *
- * All immediates and non-immediates must have a 0 in bit 0.  Only non-object
- * values can have a 1 in bit 0.   In some cases, bit 0 of a word in the heap
- * is used for the GC tag so during garbage collection, that bit might be 1
- * even in an immediate or non-immediate value.  In other cases, bit 0 of a word
- * in the heap is used to tag a pointer to a GLOC (VM global variable address)
- * or the header of a struct.   But whenever an SCM variable holds a normal Scheme
- * value, bit 0 is 0.
+ * All immediates and non-immediates must have a 0 in bit 0.  Only
+ * non-object values can have a 1 in bit 0.  In some cases, bit 0 of a
+ * word in the heap is used for the GC tag so during garbage
+ * collection, that bit might be 1 even in an immediate or
+ * non-immediate value.  In other cases, bit 0 of a word in the heap
+ * is used to tag a pointer to a GLOC (VM global variable address) or
+ * the header of a struct.  But whenever an SCM variable holds a
+ * normal Scheme value, bit 0 is 0.
  *
  * Immediates and non-immediates are distinguished by bits two and four.
  * Immediate values must have a 1 in at least one of those bits.  Does
  * this (or any other detail of tagging) seem arbitrary?  Try changing it!
  * (Not always impossible but it is fair to say that many details of tags
- * are mutually dependent).
- */
+ * are mutually dependent).  */
 
 #define SCM_IMP(x) 		(6 & (int)(x))
 #define SCM_NIMP(x) 		(!SCM_IMP(x))
@@ -464,7 +464,7 @@ enum scm_tags
 #define SCM_BOOL_T 		SCM_MAKIFLAG(17)
 #define SCM_UNDEFINED	 	SCM_MAKIFLAG(18)
 #define SCM_EOF_VAL 		SCM_MAKIFLAG(19)
-#define SCM_UNUSED_NIL_VALUE	SCM_MAKIFLAG(20)
+#define SCM_EOL			SCM_MAKIFLAG(20)
 #define SCM_UNSPECIFIED		SCM_MAKIFLAG(21)
 
 

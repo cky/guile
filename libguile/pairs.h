@@ -89,7 +89,6 @@ typedef SCM  huge *SCMPTR;
 #define SCM_PTR_LE(x, y) (!SCM_PTR_GT(x, y))
 #define SCM_PTR_GE(x, y) (!SCM_PTR_LT(x, y))
 
-#define SCM_EOL 		SCM_BOOL_F
 #define SCM_NULLP(x) 		(SCM_EOL == (x))
 #define SCM_NNULLP(x) 		(SCM_EOL != (x))
 
