@@ -23,7 +23,7 @@ can be found in the file "plans.text".
 ** Guile as an extension language library
 
 Guile's primary aim is to provide a good extension language which is
-easy to add to an application written in C on a UNIX machine.  This
+easy to add to an application written in C for the GNU system.  This
 means that it must export the features of a higher level language in a
 way that makes it easy not to break them from C code.
 
@@ -80,3 +80,13 @@ layer of Scheme code.
 
 Guile has support for writing modules in C or other compiled
 languages.
+
+** Guile as a basis for other languages
+
+Scheme is a very powerful language, which makes it possible
+to implement other languages by translating them into Scheme.
+
+By writing translators that convert various popular scripting
+languages into Scheme, we can enable users to choose their favorite
+languages for extending any program that provides extensibility using
+Guile.
