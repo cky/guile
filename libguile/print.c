@@ -262,7 +262,7 @@ grow_ref_stack (scm_print_state *pstate)
   unsigned long int old_size = SCM_VECTOR_LENGTH (pstate->ref_vect);
   SCM *old_elts = SCM_VELTS (pstate->ref_vect);
   unsigned long int new_size = 2 * pstate->ceiling;
-  SCM new_vect = scm_make_vector (new_size, SCM_UNDEFINED);
+  SCM new_vect = scm_make_vector (SCM_MAKINUM (new_size), SCM_UNDEFINED);
   SCM *new_elts = SCM_VELTS (new_vect);
   unsigned long int i;
 
