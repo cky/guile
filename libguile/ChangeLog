@@ -1,3 +1,11 @@
+2003-04-28  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* eval.c (scm_m_atdispatch): Removed until actually needed.  (This
+	macro was introduced in anticipation of GOOPS method compilation
+	code.)
+
+	* goops.c: Removed binding of @dispatch.
+
 2003-04-28  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* eval.c, goops.c (@dispatch, @slot-ref, @slot-set!): Move the

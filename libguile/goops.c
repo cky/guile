@@ -1619,9 +1619,6 @@ static SCM list_of_no_method;
 SCM_GLOBAL_SYMBOL (scm_sym_args, "args");
 
 
-SCM_SYNTAX (s_atdispatch, "@dispatch", scm_makmmacro, scm_m_atdispatch);
-
-
 SCM
 scm_make_method_cache (SCM gf)
 {

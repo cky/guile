@@ -1090,37 +1090,6 @@ scm_m_at_call_with_values (SCM xorig, SCM env SCM_UNUSED)
 }
 
 
-static const char* s_atdispatch = "@dispatch";
-SCM_SYMBOL (sym_atdispatch, s_atdispatch);
-
-/* @slot-dispatch is bound privately in the (oop goops) module from goops.c.
- * As soon as the module system allows us to more freely create bindings in
- * arbitrary modules during the startup phase, the code from goops.c should be
- * moved here.  */
-SCM
-scm_m_atdispatch (SCM xorig, SCM env)
-#define FUNC_NAME s_atdispatch
-{
-  SCM args, n, v, gf, x = SCM_CDR (xorig);
-  SCM_ASSYNT (scm_ilength (x) == 4, scm_s_expression, FUNC_NAME);
-  args = SCM_CAR (x);
-  if (!SCM_CONSP (args) && !SCM_SYMBOLP (args))
-    SCM_WRONG_TYPE_ARG (SCM_ARG1, args);
-  x = SCM_CDR (x);
-  n = SCM_XEVALCAR (x, env);
-  SCM_VALIDATE_INUM (SCM_ARG2, n);
-  SCM_ASSERT_RANGE (0, n, SCM_INUM (n) >= 1);
-  x = SCM_CDR (x);
-  v = SCM_XEVALCAR (x, env);
-  SCM_VALIDATE_VECTOR (SCM_ARG3, v);
-  x = SCM_CDR (x);
-  gf = SCM_XEVALCAR (x, env);
-  SCM_VALIDATE_PUREGENERIC (SCM_ARG4, gf);
-  return scm_list_5 (SCM_IM_DISPATCH, args, n, v, gf);
-}
-#undef FUNC_NAME
-
-
 SCM_SYNTAX (s_future, "future", scm_makmmacro, scm_m_future);
 SCM_GLOBAL_SYMBOL (scm_sym_future, s_future);
 
@@ -2484,33 +2453,13 @@ dispatch:
 	  RETURN (scm_i_make_future (scm_closure (SCM_CDR (x), env)));
 
 
-	case (SCM_ISYMNUM (SCM_IM_DISPATCH)):
-	  {
-	    /* If not done yet, evaluate the operand forms.  The result is a
-	     * list of arguments stored in arg1, which is used to perform the
-	     * function dispatch.  */
-	    SCM operand_forms = SCM_CADR (x);
-	    PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
-	    if (SCM_ILOCP (operand_forms))
-	      arg1 = *scm_ilookup (operand_forms, env);
-	    else if (SCM_VARIABLEP (operand_forms))
-	      arg1 = SCM_VARIABLE_REF (operand_forms);
-	    else if (!SCM_CONSP (operand_forms))
-	      arg1 = *scm_lookupcar (SCM_CDR (x), env, 1);
-	    else
-	      {
-		SCM tail = arg1 = scm_list_1 (EVALCAR (operand_forms, env));
-		operand_forms = SCM_CDR (operand_forms);
-		while (!SCM_NULLP (operand_forms))
-		  {
-		    SCM new_tail = scm_list_1 (EVALCAR (operand_forms, env));
-		    SCM_SETCDR (tail, new_tail);
-		    tail = new_tail;
-		    operand_forms = SCM_CDR (operand_forms);
-		  }
-	      }
-	  }
-
+	  /* PLACEHOLDER for case (SCM_ISYMNUM (SCM_IM_DISPATCH)): The
+	     following code (type_dispatch) is intended to be the tail
+	     of the case clause for the internal macro
+	     SCM_IM_DISPATCH.  Please don't remove it from this
+	     location without discussing it with Mikael
+	     <djurfeldt@nada.kth.se>  */
+	  
 	  /* The type dispatch code is duplicated below
 	   * (c.f. objects.c:scm_mcache_compute_cmethod) since that
 	   * cuts down execution time for type dispatch to 50%.  */
