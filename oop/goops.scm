@@ -741,6 +741,9 @@
 
 (define-method (equal? x y) #f)
 
+;;; These following two methods are for backward compatibility only.
+;;; They are not called by the Guile interpreter.
+;;;
 (define-method (object-eqv? x y)    #f)
 (define-method (object-equal? x y)  (eqv? x y))
 
