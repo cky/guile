@@ -1,3 +1,13 @@
+2002-05-06  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* srfi-13.c (scm_string_tokenize): Instead of using "isgraphic" as
+	the subtitute for char-set:graphic when then token-set hsa been
+	defaulted, grab the real char-set:graphic from (srfi srfi-14).
+
+	* srfi-14.h (SCM_CHARSET_GET): Cast IDX to unsigned char so that
+	it works for 8-bit characters.  Thanks to Matthias Koeppe!  No,
+	make that "Köppe".
+
 2002-04-24  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* srfi-13.c (s_scm_string_tokenize): Only take character sets as
