@@ -1,3 +1,9 @@
+1999-03-22  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+
+	* New libtool: 1.2f
+	* ltmain.sh, ltconfig, config.guess, config.sub: New versions.
+	* README: Mention new version number of libtool.
+
 1999-03-04  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	New automake: 1.4
