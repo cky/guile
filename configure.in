@@ -50,6 +50,12 @@ AC_ARG_ENABLE(guile-debug,
     AC_DEFINE(GUILE_DEBUG)
   fi)
 
+AC_ARG_ENABLE(debug-freelist,
+  [  --enable-debug-freelist    Include garbage collector freelist debugging code],
+  if test "$enable_debug_freelist" = y || test "$enable_debug_freelist" = yes; then
+    AC_DEFINE(DEBUG_FREELIST)
+  fi)
+
 AC_ARG_ENABLE(posix,
   [  --disable-posix         omit posix interfaces],,
   enable_posix=yes)
