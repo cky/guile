@@ -1,3 +1,9 @@
+2002-05-08  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* format.scm (format:fn-max): Increase to 400 so ~f and ~g can
+	print long real numbers with large positive and negative
+	exponents.
+
 2002-05-06  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* syncase.scm: Use (ice-9 threads) so that with-mutex is defined.
