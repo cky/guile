@@ -1,3 +1,9 @@
+1998-01-24  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* iselect.c: Now several threads can wait on the same file
+	descriptor.  The behaviour is compatible with OS select: All
+	threads waiting for the fd return with the same status.
+
 1998-01-23  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* coop-threads.c, threads.h (scm_spawn_thread): New function.
