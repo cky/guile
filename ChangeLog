@@ -1,5 +1,12 @@
 2001-07-08  Rob Browning  <rlb@defaultvalue.org>
 
+	* TODO: updated to include relevant itemized post-1.6-RELEASE
+	tasks that are distributable so we can check them off as they are
+	done, and delete 1.6.0 tasks.
+
+	* RELEASE: add a note that the RELEASE instructions are out of
+	date now that we're using branches.
+
 	* AUTHORS: add "many files throughout" for myself.
 
 2001-06-28  Thien-Thi Nguyen  <ttn@revel.glug.org>
