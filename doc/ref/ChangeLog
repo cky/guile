@@ -1,3 +1,20 @@
+2003-06-12  Kevin Ryde  <user42@zip.com.au>
+
+	* data-rep.texi (Remembering During Operations): New section.
+
+	* scheme-data.texi (Primitive Numerics): Add atan2, pow, asinh, acosh
+	and atanh to scheme<->C table.  Note asinh, acosh and atanh are C99,
+	and scm_asinh, scm_acosh and scm_atanh are equivalents.  Cross ref
+	glibc "Mathematics".  Reword this end part for clarity.
+
+	* scheme-memory.texi (Memory Blocks): Use {} around types for
+	@deftypefn, for correct name in indexes.
+	* scheme-utility.texi (C Hooks): Ditto.
+	* gh.texi (Scheme to C): Ditto.
+
+	* gh.texi (Scheme to C): In gh_scm2newstr, lenp is size_t* not int*.
+	This changed in guile 1.6, the docs weren't updated.
+
 2003-06-09  Marius Vollmer  <mvo@zagadka.de>
 
 	From Mike Gran <spikegran@earthlink.net>.  Thanks!
