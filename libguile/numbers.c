@@ -2798,7 +2798,8 @@ scm_max (SCM x, SCM y)
       return (sgn < 0) ? x : y;
     } else if (SCM_REALP (y)) {
       double z = xx;
-      return (z <= SCM_REAL_VALUE (y)) ? y : scm_make_real (z);
+      /* if y==NaN then ">" is false and we return NaN */
+      return (z > SCM_REAL_VALUE (y)) ? scm_make_real (z) : y;
     } else {
       SCM_WTA_DISPATCH_2 (g_max, x, y, SCM_ARGn, s_max);
     }
@@ -2812,7 +2813,11 @@ scm_max (SCM x, SCM y)
       scm_remember_upto_here_2 (x, y);
       return (cmp > 0) ? x : y;
     } else if (SCM_REALP (y)) {
-      int cmp = xmpz_cmp_d (SCM_I_BIG_MPZ (x), SCM_REAL_VALUE (y));
+      double yy = SCM_REAL_VALUE (y);
+      int cmp;
+      if (xisnan (yy))
+        return y;
+      cmp = xmpz_cmp_d (SCM_I_BIG_MPZ (x), yy);
       scm_remember_upto_here_1 (x);
       return (cmp > 0) ? x : y;
     } else {
@@ -2821,13 +2826,23 @@ scm_max (SCM x, SCM y)
   } else if (SCM_REALP (x)) {
     if (SCM_INUMP (y)) {
       double z = SCM_INUM (y);
+      /* if x==NaN then "<" is false and we return NaN */
       return (SCM_REAL_VALUE (x) < z) ? scm_make_real (z) : x;
     } else if (SCM_BIGP (y)) {
-      int cmp = xmpz_cmp_d (SCM_I_BIG_MPZ (y), SCM_REAL_VALUE (x));
+      double xx = SCM_REAL_VALUE (x);
+      int cmp;
+      if (xisnan (xx))
+        return x;
+      cmp = xmpz_cmp_d (SCM_I_BIG_MPZ (y), xx);
       scm_remember_upto_here_1 (y);
       return (cmp < 0) ? x : y;
     } else if (SCM_REALP (y)) {
-      return (SCM_REAL_VALUE (x) < SCM_REAL_VALUE (y)) ? y : x;
+      /* if x==NaN then our explicit check means we return NaN
+         if y==NaN then ">" is false and we return NaN
+         calling isnan is unavoidable, since it's the only way to know
+         which of x or y causes any compares to be false */
+      double xx = SCM_REAL_VALUE (x);
+      return (xisnan (xx) || xx > SCM_REAL_VALUE (y)) ? x : y;
     } else {
       SCM_WTA_DISPATCH_2 (g_max, x, y, SCM_ARGn, s_max);
     }
@@ -2864,6 +2879,7 @@ scm_min (SCM x, SCM y)
       return (sgn < 0) ? y : x;
     } else if (SCM_REALP (y)) {
       double z = xx;
+      /* if y==NaN then "<" is false and we return NaN */
       return (z < SCM_REAL_VALUE (y)) ? scm_make_real (z) : y;
     } else {
       SCM_WTA_DISPATCH_2 (g_min, x, y, SCM_ARGn, s_min);
@@ -2878,7 +2894,11 @@ scm_min (SCM x, SCM y)
       scm_remember_upto_here_2 (x, y);
       return (cmp > 0) ? y : x;
     } else if (SCM_REALP (y)) {
-      int cmp = xmpz_cmp_d (SCM_I_BIG_MPZ (x), SCM_REAL_VALUE (y));
+      double yy = SCM_REAL_VALUE (y);
+      int cmp;
+      if (xisnan (yy))
+        return y;
+      cmp = xmpz_cmp_d (SCM_I_BIG_MPZ (x), yy);
       scm_remember_upto_here_1 (x);
       return (cmp > 0) ? y : x;
     } else {
@@ -2887,13 +2907,23 @@ scm_min (SCM x, SCM y)
   } else if (SCM_REALP (x)) {
     if (SCM_INUMP (y)) {
       double z = SCM_INUM (y);
-      return (SCM_REAL_VALUE (x) <= z) ? x : scm_make_real (z);
+      /* if x==NaN then "<" is false and we return NaN */
+      return (z < SCM_REAL_VALUE (x)) ? scm_make_real (z) : x;
     } else if (SCM_BIGP (y)) {
-      int cmp = xmpz_cmp_d (SCM_I_BIG_MPZ (y), SCM_REAL_VALUE (x));
+      double xx = SCM_REAL_VALUE (x);
+      int cmp;
+      if (xisnan (xx))
+        return x;
+      cmp = xmpz_cmp_d (SCM_I_BIG_MPZ (y), xx);
       scm_remember_upto_here_1 (y);
       return (cmp < 0) ? y : x;
     } else if (SCM_REALP (y)) {
-      return (SCM_REAL_VALUE (x) < SCM_REAL_VALUE (y)) ? x : y;
+      /* if x==NaN then our explicit check means we return NaN
+         if y==NaN then "<" is false and we return NaN
+         calling isnan is unavoidable, since it's the only way to know
+         which of x or y causes any compares to be false */
+      double xx = SCM_REAL_VALUE (x);
+      return (xisnan (xx) || xx < SCM_REAL_VALUE (y)) ? x : y;
     } else {
       SCM_WTA_DISPATCH_2 (g_min, x, y, SCM_ARGn, s_min);
     }
