@@ -1,3 +1,17 @@
+2001-04-26  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	Changed two procedure names to match final SRFI document.  Thanks
+	to Rob Browning for spotting this.
+	
+	* srfi-13.scm (string-concatenate-reverse),
+	(string-concatenate-reverse/shared): Rename from
+	reverse-string-concatenate[/shared].
+
+	* srfi-13.c (scm_string_concatenate_reverse_shared): Renamed from
+	scm_reverse_string_concatenate_shared.
+	(scm_string_concatenate_reverse): Renamed from
+	scm_reverse_string_concatenate.
+
 2001-04-25  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* configure.in, autogen.sh: Removed.

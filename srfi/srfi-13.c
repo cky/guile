@@ -2297,7 +2297,7 @@ SCM_DEFINE (scm_string_concatenate, "string-concatenate", 1, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_reverse_string_concatenate, "reverse-string-concatenate", 1, 2, 0, 
+SCM_DEFINE (scm_string_concatenate_reverse, "string-concatenate-reverse", 1, 2, 0, 
             (SCM ls, SCM final_string, SCM end),
 	    "Without optional arguments, this procedure is equivalent to\n"
 	    "\n"
@@ -2307,10 +2307,12 @@ SCM_DEFINE (scm_reverse_string_concatenate, "reverse-string-concatenate", 1, 2, 
 	    "\n"
 	    "If the optional argument @var{final_string} is specified, it is\n"
 	    "consed onto the beginning to @var{ls} before performing the\n"
-	    "list-reverse and string-concatenate operations.\n"
+	    "list-reverse and string-concatenate operations.  If @var{end}\n"
+	    "is given, only the characters of @var{final_string} up to index\n"
+	    "@var{end} are used.\n"
 	    "\n"
 	    "Guaranteed to return a freshly allocated string.")
-#define FUNC_NAME s_scm_reverse_string_concatenate
+#define FUNC_NAME s_scm_string_concatenate_reverse
 {
   long strings;
   SCM tmp, result;
@@ -2394,14 +2396,14 @@ SCM_DEFINE (scm_string_concatenate_shared, "string-concatenate/shared", 1, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_reverse_string_concatenate_shared, "reverse-string-concatenate/shared", 1, 2, 0, 
+SCM_DEFINE (scm_string_concatenate_reverse_shared, "string-concatenate-reverse/shared", 1, 2, 0, 
             (SCM ls, SCM final_string, SCM end),
-	    "Like @code{reverse-string-concatenate}, but the result may\n"
+	    "Like @code{string-concatenate-reverse}, but the result may\n"
 	    "share memory with the the strings in the @var{ls} arguments.")
-#define FUNC_NAME s_scm_reverse_string_concatenate_shared
+#define FUNC_NAME s_scm_string_concatenate_reverse_shared
 {
   /* Just call the non-sharing version.  */
-  return scm_reverse_string_concatenate (ls, final_string, end);
+  return scm_string_concatenate_reverse (ls, final_string, end);
 }
 #undef FUNC_NAME
 

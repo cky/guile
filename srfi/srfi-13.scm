@@ -86,9 +86,9 @@
  ;; string-append                    <= in the core
  string-append/shared
  string-concatenate
- reverse-string-concatenate
+ string-concatenate-reverse
  string-concatenate/shared
- reverse-string-concatenate/shared
+ string-concatenate-reverse/shared
 
 ;;; Fold/Unfold/Map
  string-map string-map!
