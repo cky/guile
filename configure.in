@@ -622,7 +622,7 @@ AC_CONFIG_FILES([
   libguile/guile-func-name-check
   libguile/guile-snarf-docs
   libguile/guile-snarf-docs-texi
-  libguile/versiondat.h
+  libguile/version.h
   ice-9/Makefile
   oop/Makefile
   oop/goops/Makefile
