@@ -290,7 +290,7 @@ scm_gc_mark_dependencies (SCM p)
 	goto gc_mark_loop;
       }
 #endif
-#ifdef SCM_HAVE_ARRAYS
+#if SCM_HAVE_ARRAYS
     case scm_tc7_bvect:
     case scm_tc7_byvect:
     case scm_tc7_ivect:
