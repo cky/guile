@@ -51,15 +51,6 @@
 
 
 
-/* Generic macros to be used in user macro definitions.
- *
- * For example, the SCM_PROC macro could have been defined by the user:
- *
- *   #define SCM_PROC(RANAME, STR, REQ, OPT, VAR, CFN)  \
- *   SCM_NOTSNARF (static const char RANAME[]=STR) \
- *   SCM_SNARFING (scm_make_gsubr (RANAME, REQ, OPT, VAR, (SCM_FUNC_CAST_ARBITRARY_ARGS) CFN))
- */
-
 #if defined(__cplusplus) || defined(GUILE_CPLUSPLUS_SNARF)
 #define SCM_FUNC_CAST_ARBITRARY_ARGS SCM (*)(...)
 #else
@@ -73,6 +64,21 @@
 #  define SCM_NOTSNARF(X)
 #  define SCM_SNARFING(X) X
 #endif
+
+/* Generic macros to be used in user macro definitions.
+ *
+ * For example, in order to define a macro which creates ints and
+ * initializes them to the result of foo (), do:
+ *
+ *   #define SCM_FOO(NAME) \
+ *     SCM_INSITU (int NAME) \
+ *     SCM_INIT (NAME = foo ())
+ */
+
+#define SCM_INSITU(X) SCM_NOTSNARF(X)
+#define SCM_INIT(X) SCM_SNARFING(\
+%%% X \
+)
 
 #define SCM_DEFINE(FNAME, PRIMNAME, REQ, OPT, VAR, ARGLIST, DOCSTRING) \
 SCM_NOTSNARF(\
