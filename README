@@ -1,9 +1,14 @@
-This is a nightly snapshot of Guile, the GNU extension language
-library.  Please send bug reports to bug-guile@prep.ai.mit.edu.
+This is a nightly snapshot of Guile, a portable, embeddable Scheme
+implementation written in C.  Guile provides a machine independent
+execution platform that can be linked in as a library when building
+extensible programs.
 
-IMPORTANT FACTS ABOUT SNAPSHOTS:
+Please send bug reports to bug-guile@prep.ai.mit.edu.
 
-    Please keep in mind that these sources are strictly experimental;
+
+Important Facts About Snapshots ======================================
+
+    please keep in mind that these sources are strictly experimental;
     they will usually not be well-tested, and may not even compile on
     some systems.  They may contain interfaces which will change.
     They will usually not be of sufficient quality for use by people
@@ -23,14 +28,8 @@ alpha.gnu.ai.mit.edu, as /gnu/guile-snap.tar.gz.
 Via the web, that's:  ftp://alpha.gnu.ai.mit.edu/gnu/guile-snap.tar.gz
 For getit, that's:    alpha.gnu.ai.mit.edu:/gnu/guile-snap.tar.gz
 
-Guile is a portable, embeddable Scheme implementation written in C.
-Guile provides a machine independent execution platform that can be
-linked in as a library when building extensible programs.
 
-Guile is derived from SCM, by Aubrey Jaffer and others.  Tom Lord
-librarified SCM, yielding Guile.  He wrote Guile's operating system,
-Ice-9, connected Guile to Tcl/Tk and the `rx' regular expression
-matcher, and took care of a lot of miscellany.
+Contents Of This Distribution ========================================
 
 Interesting files include:
 - INSTALL, which contains instructions on building and installing Guile.
@@ -60,3 +59,34 @@ The mailing list `guile@cygnus.com' carries discussions, questions,
 and often answers, about Guile.  To subscribe, send mail to
 guile-request@cygnus.com.  Of course, please send bug reports (and
 fixes!) to bug-guile@prep.ai.mit.edu.
+
+
+Authors And Contributors =============================================
+
+George Carrette wrote SIOD, a stand-alone scheme interpreter.
+Although most of this code as been rewritten or replaced over time,
+the garbage collector from SIOD is still an important part of Guile.
+
+Aubrey Jaffer seriously tuned performance and added features.  He
+designed many hairy parts of the tag system and evaluator.
+
+Tom Lord librarified SCM, yielding Guile.  He wrote Guile's operating
+system, Ice-9, and connected Guile to Tcl/Tk and the `rx' regular
+expression matcher.
+
+Gary Houston wrote the Unix system call support, including the socket
+support.
+
+The `qt' threads library was written by David Keppel; contributors to
+it include: Weihaw Chuang, Richard O'Keefe, Laurent Perron, John
+Polstra, Shinji Suzuki, Assar Westerlund, and Uwe Reder.
+
+Anthony Green wrote the original version of `threads' the interface
+between Guile and qt.
+
+Mikael Djurfeldt designed and implemented:
+* the source-level debugger,
+* the GDB patches to support debugging mixed Scheme/C code
+* the original implementation of weak hash tables,
+* the dynamic root, and
+* rewrote the `threads' interface.
