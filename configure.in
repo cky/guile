@@ -51,7 +51,7 @@ AC_TYPE_GETGROUPS
 AC_TYPE_SIGNAL
 AC_TYPE_MODE_T
 
-AC_CHECK_LIB (rx, main)
+AC_CHECK_LIB(rx, main)
 
 # Checks for dynamic linking
 
