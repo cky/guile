@@ -2627,7 +2627,8 @@
 	     (set-module-transformer! (current-module)
 				      ,(car (last-pair spec))))
 	   `((set-module-transformer! (current-module) ,spec)))
-     (fluid-set! scm:eval-transformer (module-transformer (current-module))))
+     (begin-deprecated
+      (fluid-set! scm:eval-transformer (module-transformer (current-module)))))
     (else
      (error "use-syntax can only be used at the top level"))))
 
