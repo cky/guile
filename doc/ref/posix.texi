@@ -1123,7 +1123,7 @@ or @code{gmtime}.  @var{template} is a string which can include formatting
 specifications introduced by a @samp{%} character.  The formatting of
 month and day names is dependent on the current locale.  The value returned
 is the formatted string.
-@xref{Formatting Date and Time, , , libc, The GNU C Library Reference Manual}.
+@xref{Formatting Calendar Time, , , libc, The GNU C Library Reference Manual}.
 
 @lisp
 (strftime "%c" (localtime (current-time)))
