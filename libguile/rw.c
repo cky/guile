@@ -107,11 +107,13 @@ SCM_DEFINE (scm_read_string_x_partial, "read-string!/partial", 1, 3, 0,
   int fdes;
 
   {
-    long offset;
-    long last;
+    size_t offset;
+    size_t last;
 
-    SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, str, dest, 3, start, offset,
-				      4, end, last);
+    SCM_VALIDATE_STRING (1, str);
+    dest = SCM_I_STRING_CHARS (str);
+    scm_i_get_substring_spec (SCM_I_STRING_LENGTH (str),
+			      start, &offset, end, &last);
     dest += offset;
     read_len = last - offset;
   }
@@ -145,8 +147,13 @@ SCM_DEFINE (scm_read_string_x_partial, "read-string!/partial", 1, 3, 0,
 	    SCM_SYSERROR;
         }
       else if (chars_read == 0)
-	return SCM_BOOL_F;
+	{
+	  scm_remember_upto_here_1 (str);
+	  return SCM_BOOL_F;
+	}
     }
+
+  scm_remember_upto_here_1 (str);
   return scm_from_long (chars_read);
 }
 #undef FUNC_NAME
@@ -200,11 +207,13 @@ SCM_DEFINE (scm_write_string_partial, "write-string/partial", 1, 3, 0,
   int fdes;
 
   {
-    long offset;
-    long last;
+    size_t offset;
+    size_t last;
 
-    SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, str, src, 3, start, offset,
-				      4, end, last);
+    SCM_VALIDATE_STRING (1, str);
+    src = SCM_I_STRING_CHARS (str);
+    scm_i_get_substring_spec (SCM_I_STRING_LENGTH (str),
+			      start, &offset, end, &last);
     src += offset;
     write_len = last - offset;
   }
@@ -246,7 +255,8 @@ SCM_DEFINE (scm_write_string_partial, "write-string/partial", 1, 3, 0,
 	else
 	  SCM_SYSERROR;
       }
-    
+
+    scm_remember_upto_here_1 (str);
     return scm_from_long (rv);
   }
 }

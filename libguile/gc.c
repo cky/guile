@@ -642,7 +642,7 @@ scm_igc (const char *what)
  * the conservative gc we add the call to scm_remember_upto_here_1 _after_ the
  * call to 'some_function'.  Note that this would not be necessary if str was
  * used anyway after the call to 'some_function'.
- *   char *chars = SCM_STRING_CHARS (str);
+ *   char *chars = SCM_I_STRING_CHARS (str);
  *   some_function (chars);
  *   scm_remember_upto_here_1 (str);  // str will be alive up to this point.
  */

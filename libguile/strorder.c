@@ -43,18 +43,22 @@ SCM_DEFINE1 (scm_string_equal_p, "string=?", scm_tc7_rpsubr,
   SCM_VALIDATE_STRING (1, s1);
   SCM_VALIDATE_STRING (2, s2);
 
-  length = SCM_STRING_LENGTH (s2);
-  if (SCM_STRING_LENGTH (s1) == length)
+  length = SCM_I_STRING_LENGTH (s2);
+  if (SCM_I_STRING_LENGTH (s1) == length)
     {
-      unsigned char *c1 = SCM_STRING_UCHARS (s1) + length - 1;
-      unsigned char *c2 = SCM_STRING_UCHARS (s2) + length - 1;
+      unsigned char *c1 = SCM_I_STRING_UCHARS (s1) + length - 1;
+      unsigned char *c2 = SCM_I_STRING_UCHARS (s2) + length - 1;
       size_t i;
 
       /* comparing from back to front typically finds mismatches faster */
       for (i = 0; i != length; ++i, --c1, --c2)
 	if (*c1 != *c2)
-	  return SCM_BOOL_F;
+	  {
+	    scm_remember_upto_here_2 (s1, s2);
+	    return SCM_BOOL_F;
+	  }
 
+      scm_remember_upto_here_2 (s1, s2);
       return SCM_BOOL_T;
     }
   else
@@ -78,18 +82,22 @@ SCM_DEFINE1 (scm_string_ci_equal_p, "string-ci=?", scm_tc7_rpsubr,
   SCM_VALIDATE_STRING (1, s1);
   SCM_VALIDATE_STRING (2, s2);
 
-  length = SCM_STRING_LENGTH (s2);
-  if (SCM_STRING_LENGTH (s1) == length)
+  length = SCM_I_STRING_LENGTH (s2);
+  if (SCM_I_STRING_LENGTH (s1) == length)
     {
-      unsigned char *c1 = SCM_STRING_UCHARS (s1) + length - 1;
-      unsigned char *c2 = SCM_STRING_UCHARS (s2) + length - 1;
+      unsigned char *c1 = SCM_I_STRING_UCHARS (s1) + length - 1;
+      unsigned char *c2 = SCM_I_STRING_UCHARS (s2) + length - 1;
       size_t i;
 
       /* comparing from back to front typically finds mismatches faster */
       for (i = 0; i != length; ++i, --c1, --c2)
 	if (scm_c_upcase (*c1) != scm_c_upcase (*c2))
-	  return SCM_BOOL_F;
+	  {
+	    scm_remember_upto_here_2 (s1, s2);
+	    return SCM_BOOL_F;
+	  }
 
+      scm_remember_upto_here_2 (s1, s2);
       return SCM_BOOL_T;
     }
   else
@@ -108,16 +116,18 @@ string_less_p (SCM s1, SCM s2)
   size_t i, length1, length2, lengthm;
   unsigned char *c1, *c2;
 
-  length1 = SCM_STRING_LENGTH (s1);
-  length2 = SCM_STRING_LENGTH (s2);
+  length1 = SCM_I_STRING_LENGTH (s1);
+  length2 = SCM_I_STRING_LENGTH (s2);
   lengthm = min (length1, length2);
-  c1 = SCM_STRING_UCHARS (s1);
-  c2 = SCM_STRING_UCHARS (s2);
+  c1 = SCM_I_STRING_UCHARS (s1);
+  c2 = SCM_I_STRING_UCHARS (s2);
 
   for (i = 0; i != lengthm; ++i, ++c1, ++c2) {
     int c = *c1 - *c2;
-    if (c < 0) return SCM_BOOL_T;
-    if (c > 0) return SCM_BOOL_F;
+    if (c == 0)
+      continue;
+    scm_remember_upto_here_2 (s1, s2);
+    return scm_from_bool (c < 0);
   }
 
   return scm_from_bool (length1 < length2);
@@ -188,16 +198,18 @@ string_ci_less_p (SCM s1, SCM s2)
   size_t i, length1, length2, lengthm;
   unsigned char *c1, *c2;
 
-  length1 = SCM_STRING_LENGTH (s1);
-  length2 = SCM_STRING_LENGTH (s2);
+  length1 = SCM_I_STRING_LENGTH (s1);
+  length2 = SCM_I_STRING_LENGTH (s2);
   lengthm = min (length1, length2);
-  c1 = SCM_STRING_UCHARS (s1);
-  c2 = SCM_STRING_UCHARS (s2);
+  c1 = SCM_I_STRING_UCHARS (s1);
+  c2 = SCM_I_STRING_UCHARS (s2);
 
   for (i = 0; i != lengthm; ++i, ++c1, ++c2) {
     int c = scm_c_upcase (*c1) - scm_c_upcase (*c2);
-    if (c < 0) return SCM_BOOL_T;
-    if (c > 0) return SCM_BOOL_F;
+    if (c == 0)
+      continue;
+    scm_remember_upto_here_2 (s1, s2);
+    return scm_from_bool (c < 0);
   }
 
   return scm_from_bool (length1 < length2);

@@ -2338,7 +2338,7 @@ scm_i_print_fraction (SCM sexp, SCM port, scm_print_state *pstate SCM_UNUSED)
   SCM str;
   scm_i_fraction_reduce (sexp);
   str = scm_number_to_string (sexp, SCM_UNDEFINED);
-  scm_lfwrite (SCM_STRING_CHARS (str), SCM_STRING_LENGTH (str), port);
+  scm_lfwrite (SCM_I_STRING_CHARS (str), SCM_I_STRING_LENGTH (str), port);
   scm_remember_upto_here_1 (str);
   return !0;
 }
@@ -2967,10 +2967,11 @@ SCM_DEFINE (scm_string_to_number, "string->number", 1, 1, 0,
   else
     base = scm_to_unsigned_integer (radix, 2, INT_MAX);
 
-  answer = scm_i_mem2number (SCM_STRING_CHARS (string),
-			     SCM_STRING_LENGTH (string),
+  answer = scm_i_mem2number (SCM_I_STRING_CHARS (string),
+			     SCM_I_STRING_LENGTH (string),
 			     base);
-  return scm_return_first (answer, string);
+  scm_remember_upto_here_1 (string);
+  return answer;
 }
 #undef FUNC_NAME
 

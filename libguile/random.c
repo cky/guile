@@ -383,11 +383,15 @@ SCM_DEFINE (scm_seed_to_random_state, "seed->random-state", 1, 0, 0,
             "Return a new random state using @var{seed}.")
 #define FUNC_NAME s_scm_seed_to_random_state
 {
+  SCM res;
   if (SCM_NUMBERP (seed))
     seed = scm_number_to_string (seed, SCM_UNDEFINED);
   SCM_VALIDATE_STRING (1, seed);
-  return make_rstate (scm_c_make_rstate (SCM_STRING_CHARS (seed),
-					 SCM_STRING_LENGTH (seed)));
+  res = make_rstate (scm_c_make_rstate (SCM_I_STRING_CHARS (seed),
+					SCM_I_STRING_LENGTH (seed)));
+  scm_remember_upto_here_1 (seed);
+  return res;
+  
 }
 #undef FUNC_NAME
 

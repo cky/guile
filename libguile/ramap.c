@@ -469,7 +469,7 @@ scm_array_fill_int (SCM ra, SCM fill, SCM ignore SCM_UNUSED)
     case scm_tc7_string:
       SCM_ASRTGO (SCM_CHARP (fill), badarg2);
       for (i = base; n--; i += inc)
-	SCM_STRING_CHARS (ra)[i] = SCM_CHAR (fill);
+	SCM_I_STRING_CHARS (ra)[i] = SCM_CHAR (fill);
       break;
     case scm_tc7_byvect:
       if (SCM_CHARP (fill))
@@ -631,7 +631,7 @@ racp (SCM src, SCM dst)
       if (SCM_TYP7 (src) != scm_tc7_string)
 	goto gencase;
       for (; n-- > 0; i_s += inc_s, i_d += inc_d)
-	SCM_STRING_CHARS (dst)[i_d] = SCM_STRING_CHARS (src)[i_s];
+	SCM_I_STRING_CHARS (dst)[i_d] = SCM_I_STRING_CHARS (src)[i_s];
       break;
     case scm_tc7_byvect:
       if (SCM_TYP7 (src) != scm_tc7_byvect)
@@ -1791,8 +1791,8 @@ raeql_1 (SCM ra0, SCM as_equal, SCM ra1)
       return 1;
     case scm_tc7_string:
       {
-	char *v0 = SCM_STRING_CHARS (ra0) + i0;
-	char *v1 = SCM_STRING_CHARS (ra1) + i1;
+	char *v0 = SCM_I_STRING_CHARS (ra0) + i0;
+	char *v1 = SCM_I_STRING_CHARS (ra1) + i1;
 	for (; n--; v0 += inc0, v1 += inc1)
 	  if (*v0 != *v1)
 	    return 0;

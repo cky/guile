@@ -63,12 +63,12 @@ SCM_DEFINE (scm_make_struct_layout, "make-struct-layout", 1, 0, 0,
     size_t len;
     int x;
 
-    len = SCM_STRING_LENGTH (fields);
+    len = SCM_I_STRING_LENGTH (fields);
     if (len % 2 == 1)
       SCM_MISC_ERROR ("odd length field specification: ~S", 
 		      scm_list_1 (fields));
 
-    field_desc = SCM_STRING_CHARS (fields);
+    field_desc = SCM_I_STRING_CHARS (fields);
 
     for (x = 0; x < len; x += 2)
       {
@@ -122,7 +122,8 @@ SCM_DEFINE (scm_make_struct_layout, "make-struct-layout", 1, 0, 0,
       }
     new_sym = scm_mem2symbol (field_desc, len);
   }
-  return scm_return_first (new_sym, fields);
+  scm_remember_upto_here_1 (fields);
+  return new_sym;
 }
 #undef FUNC_NAME
 
@@ -231,17 +232,22 @@ SCM_DEFINE (scm_struct_vtable_p, "struct-vtable?", 1, 0, 0,
 {
   SCM layout;
   scm_t_bits * mem;
+  int tmp;
 
   if (!SCM_STRUCTP (x))
     return SCM_BOOL_F;
 
   layout = SCM_STRUCT_LAYOUT (x);
 
-  if (SCM_SYMBOL_LENGTH (layout) < SCM_STRING_LENGTH (required_vtable_fields))
+  if (SCM_SYMBOL_LENGTH (layout)
+      < SCM_I_STRING_LENGTH (required_vtable_fields))
     return SCM_BOOL_F;
 
-  if (strncmp (SCM_SYMBOL_CHARS (layout), SCM_STRING_CHARS (required_vtable_fields),
-	       SCM_STRING_LENGTH (required_vtable_fields)))
+  tmp = strncmp (SCM_SYMBOL_CHARS (layout),
+		 SCM_I_STRING_CHARS (required_vtable_fields),
+		 SCM_I_STRING_LENGTH (required_vtable_fields));
+  scm_remember_upto_here_1 (required_vtable_fields);
+  if (tmp)
     return SCM_BOOL_F;
 
   mem = SCM_STRUCT_DATA (x);

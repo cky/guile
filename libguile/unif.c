@@ -220,7 +220,7 @@ SCM_DEFINE (scm_uniform_vector_length, "uniform-vector-length", 1, 0, 0,
     case scm_tc7_wvect:
       return scm_from_size_t (SCM_VECTOR_LENGTH (v));
     case scm_tc7_string:
-      return scm_from_size_t (SCM_STRING_LENGTH (v));
+      return scm_from_size_t (SCM_I_STRING_LENGTH (v));
     case scm_tc7_bvect:
       return scm_from_size_t (SCM_BITVECTOR_LENGTH (v));
     case scm_tc7_byvect:
@@ -939,11 +939,11 @@ SCM_DEFINE (scm_enclose_array, "enclose-array", 1, 0, 1,
       SCM_ARRAY_DIMS (ra_inr)[k].lbnd = s[j].lbnd;
       SCM_ARRAY_DIMS (ra_inr)[k].ubnd = s[j].ubnd;
       SCM_ARRAY_DIMS (ra_inr)[k].inc = s[j].inc;
-      SCM_STRING_CHARS (axv)[j] = 1;
+      SCM_I_STRING_CHARS (axv)[j] = 1;
     }
   for (j = 0, k = 0; k < noutr; k++, j++)
     {
-      while (SCM_STRING_CHARS (axv)[j])
+      while (SCM_I_STRING_CHARS (axv)[j])
 	j++;
       SCM_ARRAY_DIMS (res)[k].lbnd = s[j].lbnd;
       SCM_ARRAY_DIMS (res)[k].ubnd = s[j].ubnd;
@@ -1109,7 +1109,7 @@ SCM_DEFINE (scm_uniform_vector_ref, "uniform-vector-ref", 2, 0, 0,
       else
 	return SCM_BOOL_F;
     case scm_tc7_string:
-      return SCM_MAKE_CHAR (SCM_STRING_UCHARS (v)[pos]);
+      return SCM_MAKE_CHAR (SCM_I_STRING_UCHARS (v)[pos]);
     case scm_tc7_byvect:
       return scm_from_schar (((char *) SCM_UVECTOR_BASE (v))[pos]);
   case scm_tc7_uvect:
@@ -1155,7 +1155,7 @@ scm_cvref (SCM v, unsigned long pos, SCM last)
       else
 	return SCM_BOOL_F;
     case scm_tc7_string:
-      return SCM_MAKE_CHAR (SCM_STRING_UCHARS (v)[pos]);
+      return SCM_MAKE_CHAR (SCM_I_STRING_UCHARS (v)[pos]);
     case scm_tc7_byvect:
       return scm_from_char (((char *) SCM_UVECTOR_BASE (v))[pos]);
     case scm_tc7_uvect:
@@ -1269,7 +1269,7 @@ SCM_DEFINE (scm_array_set_x, "array-set!", 2, 0, 1,
       break;
     case scm_tc7_string:
       SCM_ASRTGO (SCM_CHARP (obj), badobj);
-      SCM_STRING_UCHARS (v)[pos] = SCM_CHAR (obj);
+      SCM_I_STRING_UCHARS (v)[pos] = SCM_CHAR (obj);
       break;
     case scm_tc7_byvect:
       if (SCM_CHARP (obj))
@@ -1478,7 +1478,7 @@ loop:
       v = SCM_ARRAY_V (cra);
       goto loop;
     case scm_tc7_string:
-      base = SCM_STRING_CHARS (v);
+      base = SCM_I_STRING_CHARS (v);
       sz = sizeof (char);
       break;
     case scm_tc7_bvect:
@@ -1644,7 +1644,7 @@ loop:
       v = SCM_ARRAY_V (v);
       goto loop;
     case scm_tc7_string:
-      base = SCM_STRING_CHARS (v);
+      base = SCM_I_STRING_CHARS (v);
       sz = sizeof (char);
       break;
     case scm_tc7_bvect:
@@ -2321,16 +2321,16 @@ tail:
       break;
     case scm_tc7_string:
       if (n-- > 0)
-	scm_iprin1 (SCM_MAKE_CHAR (SCM_STRING_UCHARS (ra)[j]), port, pstate);
+	scm_iprin1 (SCM_MAKE_CHAR (SCM_I_STRING_UCHARS (ra)[j]), port, pstate);
       if (SCM_WRITINGP (pstate))
 	for (j += inc; n-- > 0; j += inc)
 	  {
 	    scm_putc (' ', port);
-	    scm_iprin1 (SCM_MAKE_CHAR (SCM_STRING_UCHARS (ra)[j]), port, pstate);
+	    scm_iprin1 (SCM_MAKE_CHAR (SCM_I_STRING_UCHARS (ra)[j]), port, pstate);
 	  }
       else
 	for (j += inc; n-- > 0; j += inc)
-	  scm_putc (SCM_STRING_CHARS (ra)[j], port);
+	  scm_putc (SCM_I_STRING_CHARS (ra)[j], port);
       break;
     case scm_tc7_byvect:
       if (n-- > 0)

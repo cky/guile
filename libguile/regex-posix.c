@@ -100,14 +100,14 @@ scm_regexp_error_msg (int regerrno, regex_t *rx)
 
   errmsg = scm_make_string (scm_from_int (80), SCM_UNDEFINED);
   SCM_DEFER_INTS;
-  l = regerror (regerrno, rx, SCM_STRING_CHARS (errmsg), 80);
+  l = regerror (regerrno, rx, SCM_I_STRING_CHARS (errmsg), 80);
   if (l > 80)
     {
       errmsg = scm_make_string (scm_from_int (l), SCM_UNDEFINED);
-      regerror (regerrno, rx, SCM_STRING_CHARS (errmsg), l);
+      regerror (regerrno, rx, SCM_I_STRING_CHARS (errmsg), l);
     }
   SCM_ALLOW_INTS;
-  return SCM_STRING_CHARS (errmsg);
+  return SCM_I_STRING_CHARS (errmsg);
 }
 
 SCM_DEFINE (scm_regexp_p, "regexp?", 1, 0, 0,
@@ -182,7 +182,7 @@ SCM_DEFINE (scm_make_regexp, "make-regexp", 1, 0, 1,
     }
 
   rx = scm_gc_malloc (sizeof(regex_t), "regex");
-  status = regcomp (rx, SCM_STRING_CHARS (pat),
+  status = regcomp (rx, SCM_I_STRING_CHARS (pat),
 		    /* Make sure they're not passing REG_NOSUB;
                        regexp-exec assumes we're getting match data.  */
 		    cflags & ~REG_NOSUB);
@@ -234,7 +234,7 @@ SCM_DEFINE (scm_regexp_exec, "regexp-exec", 2, 2, 0,
   if (SCM_UNBNDP (start))
     offset = 0;
   else
-    offset = scm_to_signed_integer (start, 0, SCM_STRING_LENGTH (str));
+    offset = scm_to_signed_integer (start, 0, SCM_I_STRING_LENGTH (str));
 
   if (SCM_UNBNDP (flags))
     flags = SCM_INUM0;
@@ -245,7 +245,7 @@ SCM_DEFINE (scm_regexp_exec, "regexp-exec", 2, 2, 0,
   nmatches = SCM_RGX(rx)->re_nsub + 1;
   SCM_DEFER_INTS;
   matches = scm_malloc (sizeof (regmatch_t) * nmatches);
-  status = regexec (SCM_RGX (rx), SCM_STRING_CHARS (str) + offset,
+  status = regexec (SCM_RGX (rx), SCM_I_STRING_CHARS (str) + offset,
 		    nmatches, matches,
 		    scm_to_int (flags));
   if (!status)

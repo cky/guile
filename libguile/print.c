@@ -487,9 +487,9 @@ scm_iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 	      size_t i;
 
 	      scm_putc ('"', port);
-	      for (i = 0; i < SCM_STRING_LENGTH (exp); ++i)
+	      for (i = 0; i < SCM_I_STRING_LENGTH (exp); ++i)
 		{
-		  unsigned char ch = SCM_STRING_CHARS (exp)[i];
+		  unsigned char ch = SCM_I_STRING_CHARS (exp)[i];
 		  if ((ch < 32 && ch != '\n') || (127 <= ch && ch < 148))
 		    {
 		      static char const hex[]="0123456789abcdef";
@@ -508,8 +508,9 @@ scm_iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 	      scm_putc ('"', port);
 	    }
 	  else
-	    scm_lfwrite (SCM_STRING_CHARS (exp), SCM_STRING_LENGTH (exp),
+	    scm_lfwrite (SCM_I_STRING_CHARS (exp), SCM_I_STRING_LENGTH (exp),
 			 port);
+	  scm_remember_upto_here_1 (exp);
 	  break;
 	case scm_tc7_symbol:
 	  if (SCM_SYMBOL_INTERNED_P (exp))
@@ -937,8 +938,8 @@ SCM_DEFINE (scm_simple_format, "simple-format", 2, 0, 1,
   SCM_VALIDATE_STRING (2, message);
   SCM_VALIDATE_REST_ARGUMENT (args);
 
-  start = SCM_STRING_CHARS (message);
-  end = start + SCM_STRING_LENGTH (message);
+  start = SCM_I_STRING_CHARS (message);
+  end = start + SCM_I_STRING_LENGTH (message);
   for (p = start; p != end; ++p)
     if (*p == '~')
       {

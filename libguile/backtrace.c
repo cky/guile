@@ -22,6 +22,7 @@
 
 #include <stdio.h>
 #include <ctype.h>
+#include <assert.h>
 
 #include "libguile/_scm.h"
 
@@ -398,18 +399,21 @@ display_frame_expr (char *hdr, SCM exp, char *tlr, int indentation, SCM sport, S
   while (indentation + n > SCM_BACKTRACE_WIDTH && i < n_print_params);
   ptob->truncate (sport, n);
   string = scm_strport_to_string (sport);
+  assert (scm_is_string (string));
+
   /* Remove control characters */
   for (i = 0; i < n; ++i)
-    if (iscntrl ((int) (unsigned char) SCM_STRING_CHARS (string)[i]))
-      SCM_STRING_CHARS (string)[i] = ' ';
+    if (iscntrl ((int) SCM_I_STRING_UCHARS (string)[i]))
+      SCM_I_STRING_UCHARS (string)[i] = ' ';
   /* Truncate */
   if (indentation + n > SCM_BACKTRACE_WIDTH)
     {
       n = SCM_BACKTRACE_WIDTH - indentation;
-      SCM_STRING_CHARS (string)[n - 1] = '$';
+      SCM_I_STRING_UCHARS (string)[n - 1] = '$';
     }
       
-  scm_lfwrite (SCM_STRING_CHARS (string), n, port);
+  scm_lfwrite (SCM_I_STRING_CHARS (string), n, port);
+  scm_remember_upto_here_1 (string);
 }
 
 static void

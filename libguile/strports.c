@@ -80,7 +80,7 @@ st_resize_port (scm_t_port *pt, off_t new_size)
 {
   SCM old_stream = SCM_PACK (pt->stream);
   SCM new_stream = scm_allocate_string (new_size);
-  unsigned long int old_size = SCM_STRING_LENGTH (old_stream);
+  unsigned long int old_size = SCM_I_STRING_LENGTH (old_stream);
   unsigned long int min_size = min (old_size, new_size);
   unsigned long int i;
 
@@ -89,12 +89,14 @@ st_resize_port (scm_t_port *pt, off_t new_size)
   pt->write_buf_size = new_size;
 
   for (i = 0; i != min_size; ++i)
-    SCM_STRING_CHARS (new_stream) [i] = SCM_STRING_CHARS (old_stream) [i];
+    SCM_I_STRING_CHARS (new_stream) [i] = SCM_I_STRING_CHARS (old_stream) [i];
+
+  scm_remember_upto_here_1 (old_stream);
 
   /* reset buffer. */
   {
     pt->stream = SCM_UNPACK (new_stream);
-    pt->read_buf = pt->write_buf = SCM_STRING_UCHARS (new_stream);
+    pt->read_buf = pt->write_buf = SCM_I_STRING_UCHARS (new_stream);
     pt->read_pos = pt->write_pos = pt->write_buf + index;
     pt->write_end = pt->write_buf + pt->write_buf_size;
     pt->read_end = pt->read_buf + pt->read_buf_size;
