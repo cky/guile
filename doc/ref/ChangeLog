@@ -1,3 +1,13 @@
+2002-03-29  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* posix.texi (Ports and File Descriptors), scheme-evaluation.texi
+	(Fly Evaluation): Remove vgone markers for close-all-ports-except,
+	eval2 and read-and-eval!.
+
+	* data-rep.texi (Describing a New Type), scheme-compound.texi
+	(Append/Reverse), scheme-procedures.texi (Internal Macros):
+	Trivial updates to sync with stable branch.
+
 2002-03-27  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* scheme-compound.texi (List Searching): Remove docs for

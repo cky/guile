@@ -344,7 +344,7 @@ if the last argument is not a proper list.
 @deffn {Scheme Procedure} append! . lists
 @deffnx {C Function} scm_append_x (lists)
 A destructive version of @code{append} (@pxref{Pairs and
-Lists,,,r5rs, The Revised^5 Report on Scheme}).  The cdr field
+lists,,,r5rs, The Revised^5 Report on Scheme}).  The cdr field
 of each list's final pair is changed to point to the head of
 the next list, so no consing is performed.  Return a pointer to
 the mutated list.
@@ -360,7 +360,7 @@ in reverse order.
 @c NJFIXME explain new_tail
 @deffn {Scheme Procedure} reverse! lst [new_tail]
 @deffnx {C Function} scm_reverse_x (lst, new_tail)
-A destructive version of @code{reverse} (@pxref{Pairs and Lists,,,r5rs,
+A destructive version of @code{reverse} (@pxref{Pairs and lists,,,r5rs,
 The Revised^5 Report on Scheme}).  The cdr of each cell in @var{lst} is
 modified to point to the previous list element.  Return a pointer to the
 head of the reversed list.

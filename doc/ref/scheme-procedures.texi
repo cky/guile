@@ -727,25 +727,26 @@ all implemented as mmacros.)
 
 @deffn {Scheme Procedure} procedure->syntax code
 @deffnx {C Function} scm_makacro (code)
-Return a @dfn{macro} which, when a symbol defined to this value
-appears as the first symbol in an expression, returns the
-result of applying @var{code} to the expression and the
-environment.
+Return a macro which, when a symbol defined to this value appears as the
+first symbol in an expression, returns the result of applying @var{code}
+to the expression and the environment.
 @end deffn
 
 @deffn {Scheme Procedure} procedure->macro code
 @deffnx {C Function} scm_makmacro (code)
-Return a @dfn{macro} which, when a symbol defined to this value
-appears as the first symbol in an expression, evaluates the
-result of applying @var{code} to the expression and the
-environment.  For example:
+Return a macro which, when a symbol defined to this value appears as the
+first symbol in an expression, evaluates the result of applying
+@var{code} to the expression and the environment.  For example:
 
 @lisp
 (define trace
   (procedure->macro
-   (lambda (x env) `(set! ,(cadr x) (tracef ,(cadr x) ',(cadr x))))))
+    (lambda (x env)
+      `(set! ,(cadr x) (tracef ,(cadr x) ',(cadr x))))))
 
-(trace @i{foo}) @equiv{} (set! @i{foo} (tracef @i{foo} '@i{foo})).
+(trace @i{foo})
+@equiv{}
+(set! @i{foo} (tracef @i{foo} '@i{foo})).
 @end lisp
 @end deffn
 

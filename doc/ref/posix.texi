@@ -396,8 +396,6 @@ the port was opened, since modes such as "append" which are
 used only during port creation are not retained.
 @end deffn
 
-@vgone{close-all-ports-except,1.6}
-
 @deffn {Scheme Procedure} port-for-each proc
 @deffnx {C Function} scm_port_for_each (proc)
 Apply @var{proc} to each port in the Guile port table

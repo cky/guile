@@ -46,7 +46,7 @@
 @c essay @sp 10
 @c essay @comment The title is printed in a large font.
 @c essay @title Data Representation in Guile
-@c essay @subtitle $Id: data-rep.texi,v 1.6 2002-03-12 21:08:57 ossau Exp $
+@c essay @subtitle $Id: data-rep.texi,v 1.7 2002-03-29 20:25:23 ossau Exp $
 @c essay @subtitle For use with Guile @value{VERSION}
 @c essay @author Jim Blandy
 @c essay @author Free Software Foundation
@@ -1410,8 +1410,8 @@ refers to.  The default smob mark function is to not mark any data.
 @xref{Garbage Collecting Smobs}, for more details.
 
 @item free
-Guile will apply this function to each instance of the new type it
-could not find any live pointers to.  The function should release all
+Guile will apply this function to each instance of the new type it could
+not find any live pointers to.  The function should release all
 resources held by the object and return the number of bytes released.
 This is analogous to the Java finalization method-- it is invoked at
 an unspecified time (when garbage collection occurs) after the object
