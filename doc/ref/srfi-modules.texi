@@ -949,7 +949,7 @@ Equivalent to
 (cons (cons @var{key} @var{datum}) @var{alist})
 @end lisp
 
-This procedure is used to coons a new pair onto an existing
+This procedure is used to cons a new pair onto an existing
 association list.
 @end deffn
 
