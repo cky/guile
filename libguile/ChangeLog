@@ -1,3 +1,14 @@
+2000-06-10  Michael Livshin  <mlivshin@bigfoot.com>
+
+	* guile-doc-snarf.in: don't pipe the CPP output right into sed --
+ 	write it to the temp file first and check the CPP return code.
+	(I introduced this bug earlier, and this probably caused people
+ 	with non-GNU C preprocessors to get empty *.x files and not to
+ 	have the build fail right away...).
+
+	* scmsigs.c (s_scm_sigaction): guard the SIGSYS case with an ifdef
+ 	-- at least my libc5-based Linux system doesn't define SIGSYS.
+
 2000-06-08  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* snarf.h, guile-snarf.awk.in, guile-snarf.in: Replaced snarf

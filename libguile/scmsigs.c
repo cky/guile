@@ -1,15 +1,15 @@
 /* Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2, or (at your option)
  * any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
@@ -165,7 +165,7 @@ sys_deliver_signals (void)
 #ifndef HAVE_SIGACTION
 	  signal (i, take_signal);
 #endif
-	  scm_apply (SCM_VELTS (*signal_handlers)[i], 
+	  scm_apply (SCM_VELTS (*signal_handlers)[i],
 		     scm_listify (SCM_MAKINUM (i), SCM_UNDEFINED),
 		     SCM_EOL);
 	}
@@ -174,7 +174,7 @@ sys_deliver_signals (void)
 }
 
 /* user interface for installation of signal handlers.  */
-SCM_DEFINE (scm_sigaction, "sigaction", 1, 2, 0, 
+SCM_DEFINE (scm_sigaction, "sigaction", 1, 2, 0,
            (SCM signum, SCM handler, SCM flags),
 	    "Install or report the signal handler for a specified signal.\n\n"
 	    "@var{signum} is the signal number, which can be specified using the value\n"
@@ -271,7 +271,7 @@ SCM_DEFINE (scm_sigaction, "sigaction", 1, 2, 0,
 	  scheme_handlers[csig] = SCM_BOOL_F;
 	}
 #endif
-    } 
+    }
   else
     {
       SCM_VALIDATE_NIM (2,handler);
@@ -286,7 +286,7 @@ SCM_DEFINE (scm_sigaction, "sigaction", 1, 2, 0,
 #endif
       scheme_handlers[csig] = handler;
     }
-  
+
   /* XXX - Silently ignore setting handlers for `program error signals'
      because they can't currently be handled by Scheme code.
   */
@@ -307,7 +307,9 @@ SCM_DEFINE (scm_sigaction, "sigaction", 1, 2, 0,
 #ifdef SIGEMT
     case SIGEMT:
 #endif
+#ifdef SIGSYS
     case SIGSYS:
+#endif
       query_only = 1;
     }
 
@@ -351,14 +353,14 @@ SCM_DEFINE (scm_sigaction, "sigaction", 1, 2, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_restore_signals, "restore-signals", 0, 0, 0, 
+SCM_DEFINE (scm_restore_signals, "restore-signals", 0, 0, 0,
             (void),
 	    "Return all signal handlers to the values they had before any call to\n"
 	    "@code{sigaction} was made.  The return value is unspecified.")
 #define FUNC_NAME s_scm_restore_signals
 {
   int i;
-  SCM *scheme_handlers = SCM_VELTS (*signal_handlers);  
+  SCM *scheme_handlers = SCM_VELTS (*signal_handlers);
 
   for (i = 0; i < NSIG; i++)
     {
@@ -384,7 +386,7 @@ SCM_DEFINE (scm_restore_signals, "restore-signals", 0, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_alarm, "alarm", 1, 0, 0, 
+SCM_DEFINE (scm_alarm, "alarm", 1, 0, 0,
            (SCM i),
 	    "Set a timer to raise a @code{SIGALRM} signal after the specified\n"
 	    "number of seconds (an integer).  It's advisable to install a signal\n"
@@ -404,7 +406,7 @@ SCM_DEFINE (scm_alarm, "alarm", 1, 0, 0,
 #undef FUNC_NAME
 
 #ifdef HAVE_PAUSE
-SCM_DEFINE (scm_pause, "pause", 0, 0, 0, 
+SCM_DEFINE (scm_pause, "pause", 0, 0, 0,
            (),
 	    "Pause the current process (thread?) until a signal arrives whose\n"
 	    "action is to either terminate the current process or invoke a\n"
@@ -417,7 +419,7 @@ SCM_DEFINE (scm_pause, "pause", 0, 0, 0,
 #undef FUNC_NAME
 #endif
 
-SCM_DEFINE (scm_sleep, "sleep", 1, 0, 0, 
+SCM_DEFINE (scm_sleep, "sleep", 1, 0, 0,
            (SCM i),
 	    "Wait for the given number of seconds (an integer) or until a signal\n"
 	    "arrives.  The return value is zero if the time elapses or the number\n"
@@ -436,7 +438,7 @@ SCM_DEFINE (scm_sleep, "sleep", 1, 0, 0,
 #undef FUNC_NAME
 
 #if defined(USE_THREADS) || defined(HAVE_USLEEP)
-SCM_DEFINE (scm_usleep, "usleep", 1, 0, 0, 
+SCM_DEFINE (scm_usleep, "usleep", 1, 0, 0,
            (SCM i),
 	    "Sleep for I microseconds.\n"
             "`usleep' is not available on all platforms.")
@@ -465,7 +467,7 @@ SCM_DEFINE (scm_usleep, "usleep", 1, 0, 0,
 #undef FUNC_NAME
 #endif /* GUILE_ISELECT || HAVE_USLEEP */
 
-SCM_DEFINE (scm_raise, "raise", 1, 0, 0, 
+SCM_DEFINE (scm_raise, "raise", 1, 0, 0,
            (SCM sig),
 	    "\n"
 	    "Sends a specified signal @var{sig} to the current process, where\n"
@@ -509,7 +511,7 @@ scm_init_scmsigs ()
 
 #ifdef HAVE_RESTARTABLE_SYSCALLS
       /* If HAVE_RESTARTABLE_SYSCALLS is defined, it's important that
-	 signals really are restartable.  don't rely on the same 
+	 signals really are restartable.  don't rely on the same
 	 run-time that configure got: reset the default for every signal.
       */
 #ifdef HAVE_SIGINTERRUPT
