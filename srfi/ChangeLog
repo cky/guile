@@ -1,7 +1,7 @@
 2005-01-24  Kevin Ryde  <user42@zip.com.au>
 
 	* srfi-1.c (scm_srfi1_member): Correction to pred call arg order, srfi
-	spec is (PRED X elem).
+	spec is (PRED X elem).  Update docstring from manual.
 
 	* srfi-1.scm (lset=): Allow no list arguments, per srfi spec example.
 

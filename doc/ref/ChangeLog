@@ -1,3 +1,10 @@
+2005-01-24  Kevin Ryde  <user42@zip.com.au>
+
+	* srfi-modules.texi (SRFI-1 Searching): In member, note `=' called arg
+	order.
+	(SRFI-1 Set Operations): Remove lset-adjoin!, doesn't exist in the
+	code or the srfi spec.
+
 2005-01-20  Kevin Ryde  <user42@zip.com.au>
 
 	* posix.texi (Ports and File Descriptors): In flock, for LOCK_NB note
