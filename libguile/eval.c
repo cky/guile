@@ -3980,8 +3980,6 @@ scm_eval_x (obj)
 		     (SCM_CDR (scm_top_level_lookup_closure_var)));
 }
 
-static const scm_smobfuns promsmob = {scm_markcdr, scm_free0, prinprom};
-
 
 /* At this point, scm_deval and scm_dapply are generated.
  */
@@ -4003,7 +4001,9 @@ scm_init_eval ()
 		 scm_eval_opts,
 		 SCM_N_EVAL_OPTIONS);
   
-  scm_tc16_promise = scm_newsmob (&promsmob);
+  scm_tc16_promise = scm_make_smob_type ("promise", 0);
+  scm_set_smob_mark (scm_tc16_promise, scm_markcdr);
+  scm_set_smob_print (scm_tc16_promise, prinprom);
 
   scm_sym_apply = scm_make_subr ("apply", scm_tc7_lsubr_2, scm_apply);
   scm_system_transformer = scm_sysintern ("scm:eval-transformer", SCM_UNDEFINED);
