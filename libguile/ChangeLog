@@ -1,3 +1,9 @@
+2000-08-23  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* gc.c (scm_gc_mark): Don't use GUILE_DEBUG flag to compile in
+	extra tests.  (GUILE_DEBUG is only supposed to make extra
+	debugging functions available.)
+
 2000-08-21  Michael Livshin  <mlivshin@bigfoot.com>
 
 	* gc.h (SCM_GC_CARD_N_CELLS): change to be a nice non-confusing
