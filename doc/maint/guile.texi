@@ -279,7 +279,7 @@ ignored.
 @end deffn
 
 display-application
-@c snarfed from backtrace.c:446
+@c snarfed from backtrace.c:425
 @deffn {Scheme Procedure} display-application frame [port [indent]]
 @deffnx {C Function} scm_display_application (frame, port, indent)
 Display a procedure application @var{frame} to the output port
@@ -288,7 +288,7 @@ output.
 @end deffn
 
 display-backtrace
-@c snarfed from backtrace.c:762
+@c snarfed from backtrace.c:741
 @deffn {Scheme Procedure} display-backtrace stack port [first [depth [highlights]]]
 @deffnx {C Function} scm_display_backtrace_with_highlights (stack, port, first, depth, highlights)
 Display a backtrace to the output port @var{port}. @var{stack}
@@ -302,7 +302,7 @@ the backtrace.
 @end deffn
 
 backtrace
-@c snarfed from backtrace.c:798
+@c snarfed from backtrace.c:777
 @deffn {Scheme Procedure} backtrace [highlights]
 @deffnx {C Function} scm_backtrace_with_highlights (highlights)
 Display a backtrace of the stack saved by the last error
@@ -568,19 +568,19 @@ Return @code{#t} iff deprecated features should be included in public interfaces
 @end deffn
 
 substring-move-left!
-@c snarfed from deprecated.c:69
+@c snarfed from deprecated.c:71
 @deffn {Scheme Procedure} substring-move-left!
 implemented by the C function "scm_substring_move_x"
 @end deffn
 
 substring-move-right!
-@c snarfed from deprecated.c:71
+@c snarfed from deprecated.c:73
 @deffn {Scheme Procedure} substring-move-right!
 implemented by the C function "scm_substring_move_x"
 @end deffn
 
 c-registered-modules
-@c snarfed from deprecated.c:174
+@c snarfed from deprecated.c:176
 @deffn {Scheme Procedure} c-registered-modules
 @deffnx {C Function} scm_registered_modules ()
 Return a list of the object code modules that have been imported into
@@ -591,7 +591,7 @@ has been passed to scm_register_module_xxx.
 @end deffn
 
 c-clear-registered-modules
-@c snarfed from deprecated.c:195
+@c snarfed from deprecated.c:197
 @deffn {Scheme Procedure} c-clear-registered-modules
 @deffnx {C Function} scm_clear_registered_modules ()
 Destroy the list of modules registered with the current Guile process.
@@ -602,7 +602,7 @@ only by module bookkeeping operations.
 @end deffn
 
 close-all-ports-except
-@c snarfed from deprecated.c:338
+@c snarfed from deprecated.c:340
 @deffn {Scheme Procedure} close-all-ports-except . ports
 @deffnx {C Function} scm_close_all_ports_except (ports)
 [DEPRECATED] Close all open file ports used by the interpreter
@@ -614,21 +614,21 @@ Use port-for-each instead.
 @end deffn
 
 variable-set-name-hint!
-@c snarfed from deprecated.c:355
+@c snarfed from deprecated.c:357
 @deffn {Scheme Procedure} variable-set-name-hint! var hint
 @deffnx {C Function} scm_variable_set_name_hint (var, hint)
 Do not use this function.
 @end deffn
 
 builtin-variable
-@c snarfed from deprecated.c:368
+@c snarfed from deprecated.c:370
 @deffn {Scheme Procedure} builtin-variable name
 @deffnx {C Function} scm_builtin_variable (name)
 Do not use this function.
 @end deffn
 
 sloppy-memq
-@c snarfed from deprecated.c:442
+@c snarfed from deprecated.c:444
 @deffn {Scheme Procedure} sloppy-memq x lst
 @deffnx {C Function} scm_sloppy_memq (x, lst)
 This procedure behaves like @code{memq}, but does no type or error checking.
@@ -637,7 +637,7 @@ not for high-level Scheme programs.
 @end deffn
 
 sloppy-memv
-@c snarfed from deprecated.c:462
+@c snarfed from deprecated.c:464
 @deffn {Scheme Procedure} sloppy-memv x lst
 @deffnx {C Function} scm_sloppy_memv (x, lst)
 This procedure behaves like @code{memv}, but does no type or error checking.
@@ -646,7 +646,7 @@ not for high-level Scheme programs.
 @end deffn
 
 sloppy-member
-@c snarfed from deprecated.c:482
+@c snarfed from deprecated.c:484
 @deffn {Scheme Procedure} sloppy-member x lst
 @deffnx {C Function} scm_sloppy_member (x, lst)
 This procedure behaves like @code{member}, but does no type or error checking.
@@ -655,7 +655,7 @@ not for high-level Scheme programs.
 @end deffn
 
 read-and-eval!
-@c snarfed from deprecated.c:504
+@c snarfed from deprecated.c:506
 @deffn {Scheme Procedure} read-and-eval! [port]
 @deffnx {C Function} scm_read_and_eval_x (port)
 Read a form from @var{port} (standard input by default), and evaluate it
@@ -665,7 +665,7 @@ signalled.
 @end deffn
 
 string->obarray-symbol
-@c snarfed from deprecated.c:794
+@c snarfed from deprecated.c:796
 @deffn {Scheme Procedure} string->obarray-symbol o s [softp]
 @deffnx {C Function} scm_string_to_obarray_symbol (o, s, softp)
 Intern a new symbol in @var{obarray}, a symbol table, with name
@@ -684,7 +684,7 @@ table; instead, simply return @code{#f}.
 @end deffn
 
 intern-symbol
-@c snarfed from deprecated.c:832
+@c snarfed from deprecated.c:834
 @deffn {Scheme Procedure} intern-symbol o s
 @deffnx {C Function} scm_intern_symbol (o, s)
 Add a new symbol to @var{obarray} with name @var{string}, bound to an
@@ -693,7 +693,7 @@ with this name is already present.
 @end deffn
 
 unintern-symbol
-@c snarfed from deprecated.c:874
+@c snarfed from deprecated.c:876
 @deffn {Scheme Procedure} unintern-symbol o s
 @deffnx {C Function} scm_unintern_symbol (o, s)
 Remove the symbol with name @var{string} from @var{obarray}.  This
@@ -702,7 +702,7 @@ otherwise.
 @end deffn
 
 symbol-binding
-@c snarfed from deprecated.c:919
+@c snarfed from deprecated.c:921
 @deffn {Scheme Procedure} symbol-binding o s
 @deffnx {C Function} scm_symbol_binding (o, s)
 Look up in @var{obarray} the symbol whose name is @var{string}, and
@@ -712,7 +712,7 @@ use the global symbol table.  If @var{string} is not interned in
 @end deffn
 
 symbol-bound?
-@c snarfed from deprecated.c:972
+@c snarfed from deprecated.c:974
 @deffn {Scheme Procedure} symbol-bound? o s
 @deffnx {C Function} scm_symbol_bound_p (o, s)
 Return @code{#t} if @var{obarray} contains a symbol with name
@@ -724,7 +724,7 @@ value.
 @end deffn
 
 symbol-set!
-@c snarfed from deprecated.c:999
+@c snarfed from deprecated.c:1001
 @deffn {Scheme Procedure} symbol-set! o s v
 @deffnx {C Function} scm_symbol_set_x (o, s, v)
 Find the symbol in @var{obarray} whose name is @var{string}, and rebind
@@ -733,7 +733,7 @@ in @var{obarray}.
 @end deffn
 
 gentemp
-@c snarfed from deprecated.c:1032
+@c snarfed from deprecated.c:1034
 @deffn {Scheme Procedure} gentemp [prefix [obarray]]
 @deffnx {C Function} scm_gentemp (prefix, obarray)
 Create a new symbol with a name unique in an obarray.
@@ -743,6 +743,21 @@ and a counter value.  The default prefix is @code{t}.  The
 Default is the system obarray where all normal symbols are
 interned.  The counter is increased by 1 at each
 call.  There is no provision for resetting the counter.
+@end deffn
+
+make-keyword-from-dash-symbol
+@c snarfed from discouraged.c:161
+@deffn {Scheme Procedure} make-keyword-from-dash-symbol symbol
+@deffnx {C Function} scm_make_keyword_from_dash_symbol (symbol)
+Make a keyword object from a @var{symbol} that starts with a dash.
+@end deffn
+
+keyword-dash-symbol
+@c snarfed from discouraged.c:183
+@deffn {Scheme Procedure} keyword-dash-symbol keyword
+@deffnx {C Function} scm_keyword_dash_symbol (keyword)
+Return the dash symbol for @var{keyword}.
+This is the inverse of @code{make-keyword-from-dash-symbol}.
 @end deffn
 
 dynamic-link
@@ -2603,27 +2618,26 @@ underlying file descriptor, without changing their revealed
 counts.
 @end deffn
 
-make-keyword-from-dash-symbol
-@c snarfed from keywords.c:52
-@deffn {Scheme Procedure} make-keyword-from-dash-symbol symbol
-@deffnx {C Function} scm_make_keyword_from_dash_symbol (symbol)
-Make a keyword object from a @var{symbol} that starts with a dash.
-@end deffn
-
 keyword?
-@c snarfed from keywords.c:91
+@c snarfed from keywords.c:51
 @deffn {Scheme Procedure} keyword? obj
 @deffnx {C Function} scm_keyword_p (obj)
 Return @code{#t} if the argument @var{obj} is a keyword, else
 @code{#f}.
 @end deffn
 
-keyword-dash-symbol
-@c snarfed from keywords.c:102
-@deffn {Scheme Procedure} keyword-dash-symbol keyword
-@deffnx {C Function} scm_keyword_dash_symbol (keyword)
-Return the dash symbol for @var{keyword}.
-This is the inverse of @code{make-keyword-from-dash-symbol}.
+symbol->keyword
+@c snarfed from keywords.c:60
+@deffn {Scheme Procedure} symbol->keyword symbol
+@deffnx {C Function} scm_symbol_to_keyword (symbol)
+Return the keyword with the same name as @var{symbol}.
+@end deffn
+
+keyword->symbol
+@c snarfed from keywords.c:81
+@deffn {Scheme Procedure} keyword->symbol keyword
+@deffnx {C Function} scm_keyword_to_symbol (keyword)
+Return the symbol with the same name as @var{keyword}.
 @end deffn
 
 list
@@ -4064,7 +4078,7 @@ documentation for @code{open-file} in @ref{File Ports}.
 @end deffn
 
 print-options-interface
-@c snarfed from print.c:83
+@c snarfed from print.c:87
 @deffn {Scheme Procedure} print-options-interface [setting]
 @deffnx {C Function} scm_print_options (setting)
 Option interface for the print options. Instead of using
@@ -4074,7 +4088,7 @@ and @code{print-options}.
 @end deffn
 
 simple-format
-@c snarfed from print.c:932
+@c snarfed from print.c:936
 @deffn {Scheme Procedure} simple-format destination message . args
 @deffnx {C Function} scm_simple_format (destination, message, args)
 Write @var{message} to @var{destination}, defaulting to
@@ -4091,7 +4105,7 @@ containing the formatted text. Does not add a trailing newline.
 @end deffn
 
 newline
-@c snarfed from print.c:1022
+@c snarfed from print.c:1026
 @deffn {Scheme Procedure} newline [port]
 @deffnx {C Function} scm_newline (port)
 Send a newline to @var{port}.
@@ -4099,14 +4113,14 @@ If @var{port} is omitted, send to the current output port.
 @end deffn
 
 write-char
-@c snarfed from print.c:1037
+@c snarfed from print.c:1041
 @deffn {Scheme Procedure} write-char chr [port]
 @deffnx {C Function} scm_write_char (chr, port)
 Send character @var{chr} to @var{port}.
 @end deffn
 
 port-with-print-state
-@c snarfed from print.c:1091
+@c snarfed from print.c:1095
 @deffn {Scheme Procedure} port-with-print-state port [pstate]
 @deffnx {C Function} scm_port_with_print_state (port, pstate)
 Create a new port which behaves like @var{port}, but with an
@@ -4116,7 +4130,7 @@ a print state, the old print state is reused.
 @end deffn
 
 get-print-state
-@c snarfed from print.c:1104
+@c snarfed from print.c:1108
 @deffn {Scheme Procedure} get-print-state port
 @deffnx {C Function} scm_get_print_state (port)
 Return the print state of the port @var{port}. If @var{port}
@@ -4402,7 +4416,7 @@ Any whitespace before the next token is discarded.
 @end deffn
 
 read-hash-extend
-@c snarfed from read.c:868
+@c snarfed from read.c:867
 @deffn {Scheme Procedure} read-hash-extend chr proc
 @deffnx {C Function} scm_read_hash_extend (chr, proc)
 Install the procedure @var{proc} for reading expressions
