@@ -62,6 +62,14 @@ also be executable as scripts.  At this time, these scripts are available:
 
 See README there for more info.
 
+These scripts can be invoked from the shell with the new program
+"guile-tools", which keeps track of installation directory for you.
+For example:
+
+     $ guile-tools display-commentary srfi/*.scm
+
+guile-tools is copied to the standard $bindir on "make install".
+
 ** New module (ice-9 stack-catch):
 
 stack-catch is like catch, but saves the current state of the stack in
