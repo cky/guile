@@ -75,7 +75,7 @@ scm_t_rng scm_the_rng;
 #define M_PI 3.14159265359
 #endif
 
-#ifdef SCM_HAVE_T_INT64
+#if SCM_HAVE_T_INT64
 
 unsigned long
 scm_i_uniform32 (scm_t_i_rstate *state)
