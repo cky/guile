@@ -30,6 +30,8 @@ rm -f examples/example.gdbinit
 ln -s $workbook/build/dist-files/.gdbinit examples/example.gdbinit
 ######################################################################
 
+# Make sure this matches the ACLOCAL invokation in Makefile.am
+
 ./guile-aclocal.sh
 
 ######################################################################
