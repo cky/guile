@@ -1,5 +1,8 @@
 1998-04-12  Mikael Djurfeldt  <mdj@kenneth>
 
+	* socket.c: Check for HAVE_UNIX_DOMAIN_SOCKETS instead of
+	UNIX_DOMAIN_SOCKETS.  (Thanks to Lauri Alanko.)
+
 	* gc.c (scm_gc_sweep): Count cells correctly.  (Thanks to Ben
 	Caradoc-Davies.)
 

@@ -57,7 +57,7 @@
 #endif
 #include <sys/types.h>
 #include <sys/socket.h>
-#ifdef UNIX_DOMAIN_SOCKETS
+#ifdef HAVE_UNIX_DOMAIN_SOCKETS
 #include <sys/un.h>
 #endif
 #include <netinet/in.h>
@@ -355,7 +355,7 @@ scm_fill_sockaddr (fam, address, args, which_arg, proc, size)
 	*size = sizeof (struct sockaddr_in);
 	return (struct sockaddr *) soka;
       }
-#ifdef UNIX_DOMAIN_SOCKETS
+#ifdef HAVE_UNIX_DOMAIN_SOCKETS
     case AF_UNIX:
       {
 	struct sockaddr_un *soka;
@@ -458,7 +458,7 @@ scm_addr_vector (address, proc)
   short int fam = address->sa_family;
   SCM result;
   SCM *ve;
-#ifdef UNIX_DOMAIN_SOCKETS
+#ifdef HAVE_UNIX_DOMAIN_SOCKETS
   if (fam == AF_UNIX)
     {
       struct sockaddr_un *nad = (struct sockaddr_un *) address;
@@ -496,7 +496,7 @@ static void
 scm_init_addr_buffer ()
 {
   scm_addr_buffer_size =
-#ifdef UNIX_DOMAIN_SOCKETS
+#ifdef HAVE_UNIX_DOMAIN_SOCKETS
   (int) sizeof (struct sockaddr_un)
 #else
   0
