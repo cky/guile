@@ -1,3 +1,7 @@
+2004-03-20  Kevin Ryde  <user42@zip.com.au>
+
+	* posix.c (scm_gethostname): Preserve errno across free() call.
+
 2004-03-18  Han-Wen Nienhuys   <hanwen@xs4all.nl>
 
 	* gc-card.c (sweep_card): use SCM_GC_SET_CELL_WORD for setting
