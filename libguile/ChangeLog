@@ -1,3 +1,22 @@
+2004-01-06  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* ports.c (swap_ports, scm_with_current_foo_port): Do not allocate
+	swap_data on stack, use a 'malloc obj'.
+
+	* fluids.h, fluids.c (scm_make_initial_fluids, scm_copy_fluids,
+	scm_swap_fluids, scm_swap_fluids_reverse): Renamed to
+	scm_i_... since they are internal.  Changed all uses.
+
+	* dynwind.c (frame_print): Removed, use the default printer.
+	(WINDER_F_MARK, WINDER_MARK_P, winder_mark): New.
+	(scm_on_unwind_with_scm, scm_on_rewind_with_scm): New. Use above
+	to protect SCM values.
+	
+	* dynwind.h (SCM_F_WIND_EXPLICITELY,
+	SCM_F_WIND_EXPLICITLY): It's "explicitly" not "explicitely", damn.
+	Changed all uses.
+	(scm_on_unwind_with_scm, scm_on_rewind_with_scm): New.
+	
 2004-01-05  Marius Vollmer  <mvo@zagadka.de>
 
 	* ports.h, ports.c (scm_with_current_input_port,
