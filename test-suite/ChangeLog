@@ -1,5 +1,9 @@
 2001-03-03  Marius Vollmer  <mvo@zagadka.ping.de>
 
+	* tests/syntax.test ("duplicate formals"): New category, move
+	appropriate tests here.  Expect them to pass.
+	("empty parentheses"): Expect to pass, bug has been fixed.
+	
 	* tests/alist.test: Use "'()" instead of "()" in all places
 	where the empty list is meant.
 
@@ -19,6 +23,7 @@
 	related to evaluation and application to tests/eval.test.
 
 	* tests/exceptions.test:  Added some test cases that check guile's
+	
 	exception handling.
 
 2001-03-01  Dirk Herrmann  <D.Herrmann@tu-bs.de>
