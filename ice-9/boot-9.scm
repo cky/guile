@@ -2916,7 +2916,7 @@
 	 (isatty? (current-input-port)))
     (begin
       (define-module (guile) :use-module (ice-9 readline))
-      (define-module (user) :use-module (ice-9 readline))))
+      (define-module (guile-repl) :use-module (ice-9 readline))))
 
 
 ;;; {Load debug extension code into user module if debug extensions present.}
@@ -2925,7 +2925,7 @@
 ;;;
 
 (if (memq 'debug-extensions *features*)
-    (define-module (user) :use-module (ice-9 debug)))
+    (define-module (guile-repl) :use-module (ice-9 debug)))
 
 
 ;;; {Load session support into user module if present.}
@@ -2934,7 +2934,7 @@
 ;;;
 
 (if (%search-load-path "ice-9/session.scm")
-    (define-module (user) :use-module (ice-9 session)))
+    (define-module (guile-repl) :use-module (ice-9 session)))
 
 ;;; {Load thread code into user module if threads are present.}
 ;;;
@@ -2942,7 +2942,7 @@
 ;;;
 
 (if (memq 'threads *features*)
-    (define-module (user) :use-module (ice-9 threads)))
+    (define-module (guile-repl) :use-module (ice-9 threads)))
 
 
 ;;; {Load emacs interface support if emacs option is given.}
@@ -2955,13 +2955,13 @@
     (begin
       (if (memq 'debug-extensions *features*)
 	  (debug-enable 'backtrace))
-      (define-module (user) :use-module (ice-9 emacs))))
+      (define-module (guile-repl) :use-module (ice-9 emacs))))
 
 
 ;;; {Load regexp code if regexp primitives are available.}
 
 (if (memq 'regex *features*)
-    (define-module (user) :use-module (ice-9 regex)))
+    (define-module (guile-repl) :use-module (ice-9 regex)))
 
 
 (define-module (guile))
@@ -2992,4 +2992,4 @@
 
 
 
-(define-module (user))
+(define-module (guile-repl))
