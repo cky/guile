@@ -7,7 +7,7 @@ Generic instructions for configuring and compiling GNU distributions
 are included below.  Here is an illustration of commands that might be
 used to build Guile.  The voluminous output of the commands is not shown.
 
-	% tar xvf guile-snap.tar.gz	# unpack the sources
+	% tar xvfz guile-snap.tar.gz	# unpack the sources
 	% cd guile-snap
 	% ./configure
 	% make
