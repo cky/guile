@@ -77,7 +77,6 @@ extern SCM scm_string_ref (SCM str, SCM k);
 extern SCM scm_string_set_x (SCM str, SCM k, SCM chr);
 extern SCM scm_substring (SCM str, SCM start, SCM end);
 extern SCM scm_string_append (SCM args);
-extern SCM scm_make_shared_substring (SCM str, SCM frm, SCM to);
 extern void scm_init_strings (void);
 
 
@@ -87,6 +86,7 @@ extern void scm_init_strings (void);
 #define SCM_SLOPPY_STRINGP(x) (SCM_STRINGP(x))
 #define SCM_NSTRINGP(x) (!SCM_STRINGP(x))
 #define SCM_NRWSTRINGP(x) (! SCM_RWSTRINGP (x))
+extern SCM scm_make_shared_substring (SCM str, SCM frm, SCM to);
 
 #endif  /* SCM_DEBUG_DEPRECATED == 0 */
 
