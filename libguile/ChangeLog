@@ -1,3 +1,8 @@
+2002-03-31  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* guile-snarf: Install the trap for removing $cleanfile only when
+	the value of $cleanfile is actually known.
+
 2002-04-10  Rob Browning  <rlb@defaultvalue.org>
 
 	* .cvsignore: add versiondat.h and *.c.clean.c.
