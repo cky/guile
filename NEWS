@@ -18,14 +18,14 @@ equivalent to "--with-threads=null".  This means that the thread API
 is always present, although you might not be able to create new
 threads.
 
-When "coop" threading is not supported on your platform, you will get
-the "null" threads instead.
-
 The "coop-pthread" (or shorter: "copt") thread implementation will use
 portable POSIX threads but will restrict them so that only one thread
 can execute 'in Guile' at any one time.  This option will give you the
-same basic behavior as the "coop" option, but hopefully in a more
+same basic behavior as the old "coop" option, but hopefully in a more
 portable way.
+
+The default is now "coop-pthread", unless your platform doesn't have
+pthreads, in which case "null" threads are used.
 
 ** Guile now includes its own version of libltdl.
 
@@ -209,6 +209,15 @@ chapter in the reference manual.
 There is no replacement for undefine.
 
 * Changes to the C interface
+
+** The function scm_call_with_new_thread has a new prototype.
+
+Instead of taking a list with the thunk and handler, these two
+arguments are now passed directly:
+
+    SCM scm_call_with_new_thread (SCM thunk, SCM handler);
+
+This is an incompatible change.
 
 ** The value 'scm_mask_ints' is no longer writable.
 
