@@ -5,19 +5,22 @@
 The chapters in this part of the manual explain how to use Guile as a
 powerful application extension language.
 
-The following chapter, ``GH: A Portable C to Scheme Interface,'' shows
-how to call Guile from your application's C code, and how to add new
-Scheme level procedures to Guile whose behaviour is specified by
-application specific code written in C.  The Guile interface functions
-documented in this chapter make up a high level, portable interface
-which (we hope) will also someday work with other Scheme interpreters,
-allowing you to write C code which will work with any of several Scheme
-systems.
+An important change for the 1.6.x series of Guile releases is that the
+GH interface is now deprecated.  For the reasoning behind this decision,
+see @xref{GH deprecation}.  The GH interface will continue to be
+supported for the 1.6.x and 1.8.x release series, but will be dropped
+thereafter, so developers are encouraged to switch progressively to the
+scm interface.  The last chapter in this part of the manual (@pxref{GH})
+documents both how to use GH and how to switch from GH to scm.
 
-The portable interface is rich enough to support simple use of Guile as
-an application extension language, but is limited by its own portability
-where a deeper integration is desired between Guile and your
-application's code.  The subsequent chapters therefore present aspects
-of libguile that allow you to use more of Guile's C level features, and
-to extend your application in more complex ways than is possible with
-the portable interface.
+The documentation of the scm interface is currently a bit confused, but
+the situation should improve rapidly once the 1.6.0 release is out.  The
+plan is to refocus the bulk of Part II, currently ``Guile Scheme'', as
+the ``Guile API Reference'' so that it covers both Scheme and C
+interfaces.  (This makes sense because almost all of Guile's primitive
+procedures on the Scheme level --- e.g. @code{memq} --- are also
+available as C level primitives in the scm interface ---
+e.g. @code{scm_memq}.)  There will then remain a certain amount of
+Scheme-specific (such as the ``Basic Ideas'' chapter) and C-specific
+documentation (such as SMOB usage and interaction with the garbage
+collector) to collect into corresponding chapters.

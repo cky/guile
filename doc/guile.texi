@@ -80,7 +80,7 @@ by the Free Software Foundation.
 @sp 10
 @comment The title is printed in a large font.
 @title Guile Reference Manual
-@subtitle $Id: guile.texi,v 1.10 2001-05-23 17:24:49 mgrabmue Exp $
+@subtitle $Id: guile.texi,v 1.11 2001-06-20 22:08:19 ossau Exp $
 @subtitle For use with Guile @value{VERSION}
 @include AUTHORS
 
@@ -187,11 +187,11 @@ Part IV: Guile Scripting
 Part V: Extending Applications Using Guile
 
 * Libguile Intro::              Using Guile as an extension language.
-* GH::                          GH: a portable C to Scheme interface.
 * Data Representation::         Data representation in Guile.
 * Scheme Primitives::           Writing Scheme primitives in C.
 * I/O Extensions::              Using and extending ports in C.
 * Handling Errors::             How to handle errors in C code.
+* GH::                          The deprecated GH interface.
 
 Appendices
 
@@ -273,9 +273,9 @@ Indices
 @end iftex
 
 @include extend.texi
-@include gh.texi
 @include data-rep.texi
 @include scm.texi
+@include gh.texi
 
 @c Appendices
 @iftex

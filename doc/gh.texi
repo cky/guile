@@ -5,40 +5,17 @@
 @cindex gh
 @cindex gh - reference manual
 
-The Guile interpreter is based on Aubrey Jaffer's @emph{SCM} interpreter
-(@pxref{Overview, SCM: a portable Scheme interpreter, Overview, scm,
-SCM: a portable Scheme interpreter}) with some modifications to make it
-suitable as an embedded interpreter, and further modifications as Guile
-evolves.
-@cindex SCM interpreter
-@cindex Jaffer, Aubrey
+This chapter shows how to use the GH interface to call Guile from your
+application's C code, and to add new Scheme level procedures to Guile
+whose behaviour is specified by application specific code written in C.
 
-Part of the modification has been to provide a restricted interface to
-limit access to the SCM internals; this is called the @code{gh_}
-interface, or @emph{libguile} interface.
-@cindex gh_ interface
-@cindex libguile interface
-
-If you are @emph{programming with Guile}, you should only use the C
-subroutines described in this manual, which all begin with
-@code{gh_}.
-
-If instead you are @emph{extending Guile}, you have the entire SCM
-source to play with.  This manual will not help you at all, but you can
-consult Aubrey Jaffer's SCM manual (@pxref{Internals, SCM: a portable
-Scheme interpreter, Internals, scm, SCM: a portable Scheme
-interpreter}).
-@cindex Guile - extending
-@cindex extending Guile
-@cindex SCM internals
-
-If you are @emph{adding a module to Guile}, I recommend that you stick
-to the @code{gh_} interface: this interface is guaranteed to not
-change drastically, while the SCM internals might change as Guile is
-developed.
-
+Note, however, that the GH interface is now deprecated, and developers
+are encouraged to switch to using the scm interface instead.  Therefore,
+for each GH feature, this chapter should also document how to achieve
+the same result using the scm interface.
 
 @menu
+* GH deprecation::              Why the GH interface is now deprecated.
 * gh preliminaries::            
 * Data types and constants defined by gh::  
 * Starting and controlling the interpreter::  
@@ -52,6 +29,57 @@ developed.
 * Calling Scheme procedures from C::  
 * Mixing gh and scm APIs::      
 @end menu
+
+
+@node GH deprecation
+@section Why the GH Interface is Now Deprecated
+
+Historically, the GH interface was the product of a practical problem
+and a neat idea.  The practical problem was that the interface of the
+@code{scm_} functions with which Guile itself was written (inherited
+from Aubrey Jaffer's SCM) was so closely tied to the (rather arcane)
+details of the internal data representation that it was extremely
+difficult to write a Guile extension using these functions.  The neat
+idea was to define a high level language extension interface in such a
+way that other extension language projects, not just Guile, would be
+able to provide an implementation of that interface; then applications
+using this interface could be compiled with whichever of the various
+available implementations they chose.  So the GH interface was created,
+and advertised both as the recommended interface for application
+developers wishing to use Guile, and as a portable high level interface
+that could theoretically be implemented by other extension language
+projects.
+
+Time passed, and various things changed.  Crucially, an enormous number
+of improvements were made to the @code{scm_} interface that Guile itself
+uses in its implementation, with the result that it is now both easy and
+comfortable to write a Guile extension with this interface.  At the same
+time, the contents of the GH interface were somewhat neglected by the
+core Guile developers, such that some key operations --- such as smob
+creation and management --- are simply not possible using GH alone.
+Finally, the idea of multiple implementations of the GH interface did
+not really crystallize (apart, I believe, from a short lived
+implementation by the MzScheme project).
+
+Where portability is concerned, the @code{scm_} interface is now already
+portable in the sense that other projects could provide an alternative
+implementation of the @code{scm_} header file.  For the majority of
+@code{scm_} functions, all that is needed is a definition of the
+@code{SCM} type, and then those functions are automatically portable by
+virtue of the fact that their signatures refer only to this @code{SCM}
+type.
+
+For all these reasons, the Guile developers have decided to deprecate
+the GH interface --- which means that support for GH will be completely
+removed after the next few releases --- and to focus only on the
+@code{scm_} interface, with additions to ensure that it is as easy to
+use in all respects as GH was.
+
+It remains an open question whether deeper kinds of interface
+portability would be useful for extension language-based applications,
+and it may still be an interesting project to attempt to define a
+corresponding GH-like interface, but the Guile developers no longer plan
+to try to do this as part of the core Guile project.
 
 
 @node gh preliminaries
