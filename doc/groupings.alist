@@ -1,0 +1,31 @@
+;; groupings.alist					 -*-scheme-*-
+;; This file describes interface element groupings.
+;; See (scripts scan-api) commentary for more info.
+
+(
+
+ (C+scheme
+  (description "in both groups `scheme' and `C'") ; should be empty!
+  (grok () (lambda (x)
+             (and (in-group? x 'Scheme)
+                  (in-group? x 'C)))))
+
+ (libguile-internal
+  (description "begins with scm_i_")
+  (grok () (lambda (x)
+             (name-prefix? x "scm_i_"))))
+
+ (math
+  (description "math functions")
+  (members $abs $acos $acosh $asin $asinh $atan $atan2 $atanh $cos $cosh
+           $exp $expt $log $sin $sinh $sqrt $tan $tanh))
+
+ (favorite
+  (description "my favorite procs")
+  (grok () (lambda (x)
+             (and (in-group? x 'math) (in-group? x 'Scheme)))))
+
+ ;; Add new grouping descriptions here.
+ )
+
+;; groupings.alist ends here
