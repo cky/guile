@@ -5,11 +5,16 @@ stand for, please refer to the SRFI homepage at
 
   http://srfi.schemers.org
 
-The following SRFIs are supported (as of 2001-05-22 -- 'martin):
+The following SRFIs are supported (as of 2001-06-06 -- 'martin):
 
 SRFI-0: cond-expand
 
   Supported by default, no module needs to get used.
+
+SRFI-1: List Library
+
+  A full toolbox of list processing procedures.  (use-modules (srfi
+  srfi-1)) will make them available for use.
 
 SRFI-2: and-let*
 
