@@ -1,3 +1,8 @@
+2001-06-02  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* configure.in: Check for mkstemp via AC_REPLACE_FUNCS.  Thanks to
+	I. N. Golubev!
+
 2001-06-01  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* configure.in: Generate examples/box-dynamic/Makefile.
