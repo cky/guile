@@ -1,3 +1,13 @@
+Tue Mar  4 19:50:07 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* filesys.c (scm_stat): stat now takes fport arguments too as
+	documented in the manual.
+
+Mon Mar  3 07:11:33 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* debug.c (scm_single_step): Bugfix: Call continuation with
+	scm_call_continuation instead of throwing to it.
+
 Mon Mar  3 09:07:56 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* ports.c (scm_char_ready_p): bug fix: in SCM_PROC char-ready's

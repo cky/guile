@@ -361,28 +361,29 @@ scm_stat2scm (stat_temp)
 SCM_PROC (s_stat, "stat", 1, 0, 0, scm_stat);
 
 SCM 
-scm_stat (fd_or_path)
-     SCM fd_or_path;
+scm_stat (file)
+     SCM file;
 {
   int rv = 1;
   struct stat stat_temp;
 
-  if (SCM_INUMP (fd_or_path))
-    {
-      rv = SCM_INUM (fd_or_path);
-      SCM_SYSCALL (rv = fstat (rv, &stat_temp));
-    }
+  if (SCM_INUMP (file))
+    SCM_SYSCALL (rv = fstat (SCM_INUM (file), &stat_temp));
   else
     {
-      SCM_ASSERT (SCM_NIMP (fd_or_path), fd_or_path, SCM_ARG1, s_stat);
-      SCM_ASSERT (SCM_ROSTRINGP (fd_or_path), fd_or_path, SCM_ARG1, s_stat);
-      if (SCM_ROSTRINGP (fd_or_path))
+      SCM_ASSERT (SCM_NIMP (file), file, SCM_ARG1, s_stat);
+      if (SCM_FPORTP (file))
+	SCM_SYSCALL (rv = fstat (fileno ((FILE *) SCM_STREAM (file)),
+				 &stat_temp));
+      else
 	{
-	  if (SCM_SUBSTRP (fd_or_path))
-	    fd_or_path = scm_makfromstr (SCM_ROCHARS (fd_or_path), SCM_ROLENGTH (fd_or_path), 0);
-	  SCM_SYSCALL (rv = stat (SCM_CHARS (fd_or_path), &stat_temp));
+	  SCM_ASSERT (SCM_ROSTRINGP (file), file, SCM_ARG1, s_stat);
+	  if (SCM_SUBSTRP (file))
+	    file = scm_makfromstr (SCM_ROCHARS (file),
+				   SCM_ROLENGTH (file),
+				   0);
+	  SCM_SYSCALL (rv = stat (SCM_CHARS (file), &stat_temp));
 	}
-
     }
   if (rv != 0)
     {
@@ -390,7 +391,7 @@ scm_stat (fd_or_path)
 
       scm_syserror_msg (s_stat, "%s: %S",
 			scm_listify (scm_makfrom0str (strerror (errno)),
-				     fd_or_path,
+				     file,
 				     SCM_UNDEFINED),
 			en);
     }
