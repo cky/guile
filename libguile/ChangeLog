@@ -1,3 +1,16 @@
+2000-09-07  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* environments.c (obarray_enter, obarray_retrieve,
+	obarray_remove):  Make sure the hash value is a valid obarray
+	index.
+
+	(obarray_enter, obarray_remove):  Documentation improved.
+
+	(obarray_replace):  Added.
+
+	(leaf_environment_define, leaf_environment_undefine):  Cleaned up
+	and optimized.
+
 2000-09-05  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
 
 	* symbols.c (scm_gensym): Check that argument is a symbol, not a

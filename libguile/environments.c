@@ -515,12 +515,13 @@ print_observer (SCM type, SCM port, scm_print_state *pstate)
 
 
 /*
- * Copy symbol to obarray.  The symbol must not already exist in obarray.
+ * Enter symbol into obarray.  The symbol must not already exist in obarray.
+ * The freshly generated (symbol . data) cell is returned.
  */
 static SCM
 obarray_enter (SCM obarray, SCM symbol, SCM data)
 {
-  scm_sizet hash = SCM_SYMBOL_HASH (symbol);
+  scm_sizet hash = SCM_SYMBOL_HASH (symbol) % SCM_LENGTH (obarray);
   SCM entry = scm_cons (symbol, data);
   SCM slot = scm_cons (entry, SCM_VELTS (obarray)[hash]);
   SCM_VELTS (obarray)[hash] = slot;
@@ -530,12 +531,41 @@ obarray_enter (SCM obarray, SCM symbol, SCM data)
 
 
 /*
+ * Enter symbol into obarray.  An existing entry for symbol is replaced.  If
+ * an entry existed, the old (symbol . data) cell is returned, #f otherwise.
+ */
+static SCM
+obarray_replace (SCM obarray, SCM symbol, SCM data)
+{
+  scm_sizet hash = SCM_SYMBOL_HASH (symbol) % SCM_LENGTH (obarray);
+  SCM new_entry = scm_cons (symbol, data);
+  SCM lsym;
+  SCM slot;
+
+  for (lsym = SCM_VELTS (obarray)[hash]; !SCM_NULLP (lsym); lsym = SCM_CDR (lsym))
+    {
+      SCM old_entry = SCM_CAR (lsym);
+      if (SCM_CAR (old_entry) == symbol)
+	{
+	  SCM_SETCAR (lsym, new_entry);
+	  return old_entry;
+	}
+    }
+
+  slot = scm_cons (new_entry, SCM_VELTS (obarray)[hash]);
+  SCM_VELTS (obarray)[hash] = slot;
+
+  return SCM_BOOL_F;
+}
+
+
+/*
  * Look up symbol in obarray
  */
 static SCM
 obarray_retrieve (SCM obarray, SCM sym)
 {
-  scm_sizet hash = SCM_SYMBOL_HASH (sym);
+  scm_sizet hash = SCM_SYMBOL_HASH (sym) % SCM_LENGTH (obarray);
   SCM lsym;
 
   for (lsym = SCM_VELTS (obarray)[hash]; !SCM_NULLP (lsym); lsym = SCM_CDR (lsym))
@@ -550,12 +580,13 @@ obarray_retrieve (SCM obarray, SCM sym)
 
 
 /*
- * remove entry from obarray
+ * Remove entry from obarray.  If the symbol was found and removed, the old
+ * (symbol . data) cell is returned, #f otherwise.
  */
 static SCM
 obarray_remove (SCM obarray, SCM sym)
 {
-  scm_sizet hash = SCM_SYMBOL_HASH (sym);
+  scm_sizet hash = SCM_SYMBOL_HASH (sym) % SCM_LENGTH (obarray);
   SCM lsym;
   SCM *lsymp;
 
@@ -885,13 +916,8 @@ leaf_environment_define (SCM env, SCM sym, SCM val)
 #define FUNC_NAME "leaf_environment_define"
 {
   SCM obarray = LEAF_ENVIRONMENT (env)->obarray;
-  SCM old_binding = obarray_retrieve (obarray, sym);
-  SCM new_binding;
 
-  if (!SCM_UNBNDP (old_binding))
-    obarray_remove (obarray, sym);
-
-  new_binding = obarray_enter (obarray, sym, val);
+  obarray_replace (obarray, sym, val);
   core_environments_broadcast (env);
 
   return SCM_ENVIRONMENT_SUCCESS;
@@ -904,13 +930,10 @@ leaf_environment_undefine (SCM env, SCM sym)
 #define FUNC_NAME "leaf_environment_undefine"
 {
   SCM obarray = LEAF_ENVIRONMENT (env)->obarray;
-  SCM binding = obarray_retrieve (obarray, sym);
+  SCM removed = obarray_remove (obarray, sym);
   
-  if (!SCM_UNBNDP (binding))
-    {
-      obarray_remove (obarray, sym);
-      core_environments_broadcast (env);
-    }
+  if (!SCM_FALSEP (removed))
+    core_environments_broadcast (env);
 
   return SCM_ENVIRONMENT_SUCCESS;
 }
