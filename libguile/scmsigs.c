@@ -333,7 +333,7 @@ SCM_DEFINE (scm_sigaction_for_thread, "sigaction", 1, 3, 0,
 	  || SCM_NUM2LONG (2, handler) == (long) SIG_IGN)
 	{
 #ifdef HAVE_SIGACTION
-	  action.sa_handler = (SIGRETTYPE (*) (int)) scm_to_int (handler);
+	  action.sa_handler = (SIGRETTYPE (*) (int)) scm_to_long (handler);
 #else
 	  chandler = (SIGRETTYPE (*) (int)) scm_to_int (handler);
 #endif
