@@ -253,8 +253,12 @@ themselves be @code{SCM_UNDEFINED}, or @code{scm_list_n} will
 terminate at that point.
 @end deffn
 
+@c  C Function scm_cons_star(arg1,rest) used to be documented here,
+@c  but it's not really a useful interface, since it expects the
+@c  caller to have already consed up all but the first argument
+@c  already.
+@c
 @deffn {Scheme Procedure} cons* arg1 arg2 @dots{}
-@deffnx {C Function} scm_cons_star (arg1, rest)
 Like @code{list}, but the last arg provides the tail of the
 constructed list, returning @code{(cons @var{arg1} (cons
 @var{arg2} (cons @dots{} @var{argn})))}.  Requires at least one
