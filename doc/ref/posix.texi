@@ -397,7 +397,8 @@ used only during port creation are not retained.
 @end deffn
 
 @deffn {Scheme Procedure} port-for-each proc
-@deffnx {C Function} scm_port_for_each (proc)
+@deffnx {C Function} scm_port_for_each (SCM proc)
+@deffnx {C Function} scm_c_port_for_each (void (*proc)(void *, SCM), void *data)
 Apply @var{proc} to each port in the Guile port table
 (FIXME: what is the Guile port table?)
 in turn.  The return value is unspecified.  More specifically,
@@ -405,6 +406,11 @@ in turn.  The return value is unspecified.  More specifically,
 system at the time @code{port-for-each} is invoked.  Changes to the
 port table while @code{port-for-each} is running have no effect as far
 as @code{port-for-each} is concerned.
+
+The C function @code{scm_port_for_each} takes a Scheme procedure
+encoded as a @code{SCM} value, while @code{scm_c_port_for_each} takes
+a pointer to a C function and passes along a arbitrary @var{data}
+cookie.
 @end deffn
 
 @deffn {Scheme Procedure} setvbuf port mode [size]
