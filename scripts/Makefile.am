@@ -36,7 +36,9 @@ scripts_sources =		\
 	use2dot                 \
 	snarf-check-and-output-texi \
 	summarize-guile-TODO	\
-	scan-api
+	scan-api		\
+	api-diff		\
+	read-rfc822
 
 subpkgdatadir = $(pkgdatadir)/$(VERSION)/scripts
 subpkgdata_SCRIPTS = $(scripts_sources)
