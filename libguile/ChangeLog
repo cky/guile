@@ -1,3 +1,8 @@
+2004-05-02  Kevin Ryde  <user42@zip.com.au>
+
+	* filesys.c (_POSIX_C_SOURCE): Define to 199506L to get readdir_r (in
+	particular on HP-UX).  Reported by Andreas Vögele.
+
 2004-05-01  Kevin Ryde  <user42@zip.com.au>
 
 	* continuations.c (scm_dynthrow): Use >= instead of SCM_PTR_GE which
