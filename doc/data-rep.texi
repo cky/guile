@@ -10,7 +10,7 @@
 @c essay @dircategory The Algorithmic Language Scheme
 @c essay @direntry
 @c essay * data-rep: (data-rep).  Data Representation in Guile --- how to use
-                         Guile objects in your C code.
+@c essay                 Guile objects in your C code.
 @c essay @end direntry
 
 @c essay @setchapternewpage off
@@ -46,7 +46,7 @@
 @c essay @sp 10
 @c essay @comment The title is printed in a large font.
 @c essay @title Data Representation in Guile
-@c essay @subtitle $Id: data-rep.texi,v 1.25 2001-05-30 20:32:05 mgrabmue Exp $
+@c essay @subtitle $Id: data-rep.texi,v 1.26 2001-06-08 22:35:30 ossau Exp $
 @c essay @subtitle For use with Guile @value{VERSION}
 @c essay @author Jim Blandy
 @c essay @author Free Software Foundation
