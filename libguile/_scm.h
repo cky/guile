@@ -90,13 +90,11 @@
    when installing signal handlers.
    */
 
-/* However, don't assume SA_RESTART works with pthreads... */
-#ifdef USE_COPT_THREADS
-#undef HAVE_RESTARTABLE_SYSCALLS
-#endif
-
 #ifdef HAVE_RESTARTABLE_SYSCALLS
+#ifndef USE_COPT_THREADS /* However, don't assume SA_RESTART 
+			    works with pthreads... */
 #define SCM_SYSCALL(line) line
+#endif
 #endif
 
 #ifndef SCM_SYSCALL
