@@ -131,24 +131,24 @@ The @code{SCM} representation of the Scheme object @code{#t}.
 The @code{SCM} representation of the Scheme object @code{#f}.
 @end deftypevr
 
-@deftypefn {C Macro} int scm_is_true (SCM obj)
+@deftypefn {C Function} int scm_is_true (SCM obj)
 Return @code{0} if @var{obj} is @code{#f}, else return @code{1}.
 @end deftypefn
 
-@deftypefn {C Macro} int scm_is_false (SCM obj)
+@deftypefn {C Function} int scm_is_false (SCM obj)
 Return @code{1} if @var{obj} is @code{#f}, else return @code{0}.
 @end deftypefn
 
-@deftypefn {C Macro} scm_is_bool (SCM obj)
+@deftypefn {C Function} int scm_is_bool (SCM obj)
 Return @code{1} if @var{obj} is either @code{#t} or @code{#f}, else
 return @code{0}.
 @end deftypefn
 
-@deftypefn {C Macro} SCM scm_from_bool (int val)
+@deftypefn {C Function} SCM scm_from_bool (int val)
 Return @code{#f} if @var{val} is @code{0}, else return @code{#t}.
 @end deftypefn
 
-@deftypefn {C Macro} int scm_to_bool (SCM val)
+@deftypefn {C Function} int scm_to_bool (SCM val)
 Return @code{1} if @var{val} is @code{SCM_BOOL_T}, return @code{0}
 when @var{val} is @code{SCM_BOOL_F}, else signal a `wrong type' error.
 
