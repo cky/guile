@@ -945,10 +945,6 @@ of lists of same.
 They are of questionable utility and they pollute the global
 namespace.
 
-** New macro: SCM_BITS_LENGTH.
-
-The bit size of an SCM.
-
 ** Deprecated typedef: scm_sizet
 
 It is of questionable utility now that Guile requires ANSI C, and is
@@ -970,16 +966,15 @@ bignums directly, and should deal with numbers in general (which can
 be bignums).
 
 ** New functions: scm_short2num, scm_ushort2num, scm_int2num,
-   scm_uint2num, scm_bits2num, scm_ubits2num, scm_size2num,
-   scm_ptrdiff2num, scm_num2short, scm_num2ushort, scm_num2int,
-   scm_num2uint, scm_num2bits, scm_num2ubits, scm_num2ptrdiff,
+   scm_uint2num, scm_size2num, scm_ptrdiff2num, scm_num2short,
+   scm_num2ushort, scm_num2int, scm_num2uint, scm_num2ptrdiff,
    scm_num2size.
 
 These are conversion functions between the various ANSI C integral
 types and Scheme numbers.
 
 ** New number validation macros:
-   SCM_NUM2{SIZE,PTRDIFF,SHORT,USHORT,BITS,UBITS,INT,UINT}[_DEF]
+   SCM_NUM2{SIZE,PTRDIFF,SHORT,USHORT,INT,UINT}[_DEF]
 
 See above.
 

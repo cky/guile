@@ -167,10 +167,5 @@
 /* Define if the compiler supports long longs.  */
 #undef HAVE_LONG_LONGS
 
-/* SCM will actually be represented by this type. */
-#undef SCM_BITS_T
-#undef SCM_UBITS_T
-#undef SCM_SIZEOF_BITS_T
-
 /* defined to signed long if doesn't exist: */
 #undef ptrdiff_t

@@ -179,20 +179,8 @@ fi
 
 AC_CHECK_SIZEOF(void *)
 
-if test "$ac_cv_sizeof_long" -eq "$ac_cv_sizeof_void_p"; then
-  AC_DEFINE(SCM_BITS_T, long)
-  AC_DEFINE(SCM_UBITS_T, unsigned long)
-  AC_DEFINE(SCM_SIZEOF_BITS_T, SIZEOF_LONG)
-elif test \( "$scm_cv_long_longs" = yes \) -a \( "$ac_cv_sizeof_long_long" -eq "$ac_cv_sizeof_void_p" \); then
-  AC_DEFINE(SCM_BITS_T, long long)
-  AC_DEFINE(SCM_UBITS_T, unsigned long long)
-  AC_DEFINE(SCM_SIZEOF_BITS_T, SIZEOF_LONG_LONG)
-elif test "$ac_cv_sizeof_int" -eq "$ac_cv_sizeof_void_p"; then
-  AC_DEFINE(SCM_BITS_T, int)
-  AC_DEFINE(SCM_UBITS_T, unsigned int)
-  AC_DEFINE(SCM_SIZEOF_BITS_T, SIZEOF_INT)
-else
-  AC_MSG_ERROR(cannot find an integral type capable of storing a pointer: "$ac_cv_sizeof_void_p" bytes)
+if test "$ac_cv_sizeof_long" -ne "$ac_cv_sizeof_void_p"; then
+  AC_MSG_ERROR(sizes of long and void* are not identical)
 fi
 
 AC_HEADER_STDC
