@@ -112,8 +112,8 @@ This is an implementation of SRFI-31 which provides a special form
 ** The modules (srfi srfi-13) and (srfi srfi-14) have been merged with
    the core, making their functionality always available.
 
-The modules are still available, tho, and you use them together with a
-renaming import, for example.
+The modules are still available, tho, and you could use them together
+with a renaming import, for example.
 
 ** Guile now includes its own version of libltdl.
 
@@ -159,11 +159,17 @@ be used with '-e'.  For example, you can now write a script like
 
 * Changes to Scheme functions and syntax
 
-** There is now support for copy-on-write substrings and
-   mutation-sharing substrings.
+** There is now support for copy-on-write substrings, mutation-sharing
+   substrings and read-only strings.
 
-Two new procedures are related to this: substring/shared and
-substring/copy.  See the manual for more information.
+Three new procedures are related to this: substring/shared,
+substring/copy, and substring/read-only.  See the manual for more
+information.
+
+** String literals are now read-only.
+
+Use string-copy or similar to make a copy if you really want to modify
+such a string.
 
 ** New syntax '@' and '@@':
 
