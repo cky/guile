@@ -1,8 +1,8 @@
 /* classes: h_files */
 
-#ifndef TAGSH
-#define TAGSH
-/* Copyright (C) 1995, 96, 97, 98, 99, 2000 Free Software Foundation, Inc.
+#ifndef SCM_TAGS_H
+#define SCM_TAGS_H
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -271,10 +271,7 @@ typedef long scm_bits_t;
  * stored in the SCM_CAR of a non-immediate object have a 1 in bit 1:
  */
 
-#define SCM_SLOPPY_CONSP(x)  ((1 & SCM_CELL_TYPE (x)) == 0)
-#define SCM_SLOPPY_NCONSP(x) (!SCM_SLOPPY_CONSP(x))
-
-#define SCM_CONSP(x)  (!SCM_IMP (x) && SCM_SLOPPY_CONSP (x))
+#define SCM_CONSP(x)  (!SCM_IMP (x) && ((1 & SCM_CELL_TYPE (x)) == 0))
 #define SCM_NCONSP(x) (!SCM_CONSP (x))
 
 
@@ -283,7 +280,7 @@ typedef long scm_bits_t;
  */
 #define SCM_ECONSP(x) \
   (!SCM_IMP (x) \
-   && (SCM_SLOPPY_CONSP (x) \
+   && (SCM_CONSP (x) \
        || (SCM_TYP3 (x) == 1 \
 	   && (SCM_STRUCT_VTABLE_DATA (x)[scm_vtable_index_vcell] != 0))))
 #define SCM_NECONSP(x) (!SCM_ECONSP (x))
@@ -542,6 +539,9 @@ extern char *scm_isymnames[];   /* defined in print.c */
 
 #if (SCM_DEBUG_DEPRECATED == 0)
 
+#define SCM_SLOPPY_CONSP(x)  ((1 & SCM_CELL_TYPE (x)) == 0)
+#define SCM_SLOPPY_NCONSP(x) (!SCM_SLOPPY_CONSP(x))
+
 #define scm_tc7_ssymbol		scm_tc7_symbol
 #define scm_tc7_msymbol		scm_tc7_symbol
 #define scm_tcs_symbols         scm_tc7_symbol
@@ -553,7 +553,7 @@ extern char *scm_isymnames[];   /* defined in print.c */
 
 #endif  /* SCM_DEBUG_DEPRECATED == 0 */
 
-#endif  /* TAGSH */
+#endif  /* SCM_TAGS_H */
 
 /*
   Local Variables:

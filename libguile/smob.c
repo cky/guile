@@ -88,9 +88,11 @@ scm_mark0 (SCM ptr)
 }
 
 SCM 
+/* Dirk::FIXME: The name markcdr is misleading, since the term cdr should only
+   be used for real pairs. */
 scm_markcdr (SCM ptr)
 {
-  return SCM_CDR (ptr);
+  return SCM_CELL_OBJECT_1 (ptr);
 }
 
 /* {Free}

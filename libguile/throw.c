@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995, 1996, 1997, 1998, 2000 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -71,8 +71,10 @@ static scm_bits_t tc16_jmpbuffer;
 #define SCM_JMPBUFP(OBJ)	SCM_TYP16_PREDICATE (tc16_jmpbuffer, OBJ)
 
 #define JBACTIVE(OBJ)		(SCM_CELL_WORD_0 (OBJ) & (1L << 16L))
-#define ACTIVATEJB(OBJ)		(SCM_SETOR_CAR (OBJ, (1L << 16L)))
-#define DEACTIVATEJB(OBJ)	(SCM_SETAND_CAR (OBJ, ~(1L << 16L)))
+#define ACTIVATEJB(x)	\
+  (SCM_SET_CELL_WORD_0 ((x), (SCM_CELL_WORD_0 (x) | (1L << 16L))))
+#define DEACTIVATEJB(x) \
+  (SCM_SET_CELL_WORD_0 ((x), (SCM_CELL_WORD_0 (x) & ~(1L << 16L))))
 
 #define JBJMPBUF(OBJ)           ((jmp_buf *) SCM_CELL_WORD_1 (OBJ))
 #define SETJBJMPBUF(x,v)        (SCM_SET_CELL_WORD_1 ((x), (v)))

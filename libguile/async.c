@@ -1,4 +1,4 @@
-/* Copyright (C) 1995, 96, 97, 98, 2000 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -130,7 +130,7 @@ scm_asyncs_pending ()
 {
   SCM pos;
   pos = scm_asyncs;
-  while (pos != SCM_EOL)
+  while (!SCM_NULLP (pos))
     {
       SCM a = SCM_CAR (pos);
       if (ASYNC_GOT_IT (a))
@@ -300,14 +300,8 @@ SCM_DEFINE (scm_system_async, "system-async", 1, 0, 0,
 	    "add it to the system's list of active async objects.")
 #define FUNC_NAME s_scm_system_async
 {
-  SCM it;
-  SCM list;
-
-  it = scm_async (thunk);
-  SCM_NEWCELL (list);
-  SCM_SETCAR (list, it);
-  SCM_SETCDR (list, scm_asyncs);
-  scm_asyncs = list;
+  SCM it = scm_async (thunk);
+  scm_asyncs = scm_cons (it, scm_asyncs);
   return it;
 }
 #undef FUNC_NAME

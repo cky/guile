@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996,1997,1998, 2000 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -136,7 +136,7 @@ SCM_DEFINE1 (scm_equal_p, "equal?", scm_tc7_rpsubr,
     return SCM_BOOL_F;
   if (SCM_IMP (y))
     return SCM_BOOL_F;
-  if (SCM_SLOPPY_CONSP (x) && SCM_SLOPPY_CONSP (y))
+  if (SCM_CONSP (x) && SCM_CONSP (y))
     {
       if (SCM_FALSEP (scm_equal_p (SCM_CAR (x), SCM_CAR (y))))
 	return SCM_BOOL_F;

@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996, 2000 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -72,6 +72,7 @@ SCM_DEFINE (scm_primitive_make_property, "primitive-make-property", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+
 SCM_DEFINE (scm_primitive_property_ref, "primitive-property-ref", 2, 0, 0,
 	    (SCM prop, SCM obj),
 	    "Return the property @var{prop} of @var{obj}.  When no value\n"
@@ -83,28 +84,31 @@ SCM_DEFINE (scm_primitive_property_ref, "primitive-property-ref", 2, 0, 0,
 	    "default value of @var{prop}.")
 #define FUNC_NAME s_scm_primitive_property_ref
 {
-  SCM h, assoc;
+  SCM h;
 
   SCM_VALIDATE_CONS (SCM_ARG1, prop);
 
   h = scm_hashq_get_handle (scm_properties_whash, obj);
-  assoc = (SCM_NIMP (h) ? scm_assq (prop, SCM_CDR (h)) : SCM_BOOL_F);
-  if (SCM_NIMP (assoc))
-    return SCM_CDR (assoc);
+  if (!SCM_FALSEP (h))
+    {
+      SCM assoc = scm_assq (prop, SCM_CDR (h));
+      if (!SCM_FALSEP (assoc))
+	return SCM_CDR (assoc);
+    }
 
   if (SCM_FALSEP (SCM_CAR (prop)))
     return SCM_BOOL_F;
   else
     {
-      SCM val = scm_apply (SCM_CAR (prop),
-			   SCM_LIST2 (prop, obj), SCM_EOL);
-      if (SCM_IMP (h))
+      SCM val = scm_apply (SCM_CAR (prop), SCM_LIST2 (prop, obj), SCM_EOL);
+      if (SCM_FALSEP (h))
 	h = scm_hashq_create_handle_x (scm_properties_whash, obj, SCM_EOL);
       SCM_SETCDR (h, scm_acons (prop, val, SCM_CDR (h)));
       return val;
     }
 }
 #undef FUNC_NAME
+
 
 SCM_DEFINE (scm_primitive_property_set_x, "primitive-property-set!", 3, 0, 0,
 	    (SCM prop, SCM obj, SCM val),
@@ -126,6 +130,7 @@ SCM_DEFINE (scm_primitive_property_set_x, "primitive-property-set!", 3, 0, 0,
 }
 #undef FUNC_NAME
 
+
 SCM_DEFINE (scm_primitive_property_del_x, "primitive-property-del!", 2, 0, 0,
 	    (SCM prop, SCM obj),
 	    "Remove any value associated with @var{prop} and @var{obj}.")
@@ -134,11 +139,12 @@ SCM_DEFINE (scm_primitive_property_del_x, "primitive-property-del!", 2, 0, 0,
   SCM h;
   SCM_VALIDATE_CONS (SCM_ARG1, prop);
   h = scm_hashq_get_handle (scm_properties_whash, obj);
-  if (SCM_NIMP (h))
+  if (!SCM_FALSEP (h))
     SCM_SETCDR (h, scm_assq_remove_x (SCM_CDR (h), prop));
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
+
 
 void
 scm_init_properties ()

@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996,1998, 2000 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -88,17 +88,22 @@ SCM_DEFINE (scm_weak_vector, "weak-vector", 0, 0, 1,
 #define FUNC_NAME s_scm_weak_vector
 {
   SCM res;
-  register SCM *data;
+  SCM *data;
   long i;
 
+  /* Dirk:FIXME:: In case of multiple threads, the list might get corrupted
+     while the vector is being created. */
   i = scm_ilength (l);
   SCM_ASSERT (i >= 0, l, SCM_ARG1, FUNC_NAME);
   res = scm_make_weak_vector (SCM_MAKINUM (i), SCM_UNSPECIFIED);
   data = SCM_VELTS (res);
-  for (;
-       i && SCM_CONSP (l);
-       --i, l = SCM_CDR (l))
-    *data++ = SCM_CAR (l);
+
+  while (!SCM_NULLP (l))
+    {
+      *data++ = SCM_CAR (l);
+      l = SCM_CDR (l);
+    }
+
   return res;
 }
 #undef FUNC_NAME

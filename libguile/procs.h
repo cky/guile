@@ -1,8 +1,8 @@
 /* classes: h_files */
 
-#ifndef PROCSH
-#define PROCSH
-/*	Copyright (C) 1995, 1996, 1998, 1999, 2000 Free Software Foundation, Inc.
+#ifndef SCM_PROCS_H
+#define SCM_PROCS_H
+/* Copyright (C) 1995,1996,1998,1999,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -97,8 +97,8 @@ typedef struct
 #define SCM_SETPROCPROPS(x, p) SCM_SETCDR (SCM_CLOSCAR (x), p)
 #define SCM_SETCODE(x, e) (SCM_SET_CELL_WORD_0 (x, SCM_UNPACK (scm_cons ((e), SCM_EOL)) \
                            + scm_tc3_closure))
-#define SCM_ENV(x) SCM_CDR(x)
-#define SCM_SETENV(x, e) SCM_SETCDR (x, e)
+#define SCM_ENV(x) SCM_CELL_OBJECT_1 (x)
+#define SCM_SETENV(x, e) SCM_SET_CELL_OBJECT_1 ((x), (e))
 #define SCM_TOP_LEVEL(ENV)  (SCM_NULLP (ENV) || (SCM_EQ_P (scm_procedure_p (SCM_CAR (ENV)), SCM_BOOL_T)))
 
 /* Procedure-with-setter
@@ -194,7 +194,7 @@ extern SCM scm_make_cclo (SCM proc, SCM len);
 
 #endif  /* SCM_DEBUG_DEPRECATED == 0 */
 
-#endif  /* PROCSH */
+#endif  /* SCM_PROCS_H */
 
 /*
   Local Variables:

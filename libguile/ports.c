@@ -663,7 +663,7 @@ SCM_DEFINE (scm_close_port, "close-port", 1, 0, 0,
   else
     rv = 0;
   scm_remove_from_port_table (port);
-  SCM_SETAND_CAR (port, ~SCM_OPN);
+  SCM_CLR_PORT_OPEN_FLAG (port);
   return SCM_NEGATE_BOOL (rv < 0);
 }
 #undef FUNC_NAME

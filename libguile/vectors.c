@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995, 1996, 1998, 1999, 2000 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -178,13 +178,20 @@ SCM_DEFINE (scm_vector, "vector", 0, 0, 1,
 #define FUNC_NAME s_scm_vector
 {
   SCM res;
-  register SCM *data;
-  int i;
-  SCM_VALIDATE_LIST_COPYLEN (1,l,i);
+  SCM *data;
+  long i;
+
+  /* Dirk:FIXME:: In case of multiple threads, the list might get corrupted
+     while the vector is being created. */
+  SCM_VALIDATE_LIST_COPYLEN (1, l, i);
   res = scm_c_make_vector (i, SCM_UNSPECIFIED);
   data = SCM_VELTS (res);
-  for(; i && SCM_NIMP(l); --i, l = SCM_CDR (l))
-    *data++ = SCM_CAR (l);
+  while (!SCM_NULLP (l)) 
+    {
+      *data++ = SCM_CAR (l);
+      l = SCM_CDR (l);
+    }
+
   return res;
 }
 #undef FUNC_NAME

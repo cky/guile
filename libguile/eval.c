@@ -1,4 +1,4 @@
-/* Copyright (C) 1995, 96, 97, 98, 99, 2000, 2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -150,7 +150,7 @@ char *alloca ();
 			     ? *scm_lookupcar (x, env, 1) \
 			     : SCM_CEVAL (SCM_CAR (x), env))
 
-#define EVALCAR(x, env) (SCM_NCELLP (SCM_CAR (x)) \
+#define EVALCAR(x, env) (!SCM_CELLP (SCM_CAR (x)) \
 			? (SCM_IMP (SCM_CAR (x)) \
 			   ? SCM_EVALIM (SCM_CAR (x), env) \
 			   : SCM_GLOC_VAL (SCM_CAR (x))) \
@@ -790,11 +790,11 @@ scm_m_quasiquote (SCM xorig, SCM env)
 
 
 static SCM 
-iqq (SCM form,SCM env,int depth)
+iqq (SCM form, SCM env, int depth)
 {
   SCM tmp;
   int edepth = depth;
-  if (SCM_IMP(form))
+  if (SCM_IMP (form))
     return form;
   if (SCM_VECTORP (form))
     {
@@ -805,7 +805,7 @@ iqq (SCM form,SCM env,int depth)
 	tmp = scm_cons (data[i], tmp);
       return scm_vector (iqq (tmp, env, depth));
     }
-  if (SCM_NCONSP(form)) 
+  if (!SCM_CONSP (form)) 
     return form;
   tmp = SCM_CAR (form);
   if (SCM_EQ_P (scm_sym_quasiquote, tmp))
@@ -824,7 +824,7 @@ iqq (SCM form,SCM env,int depth)
 	return evalcar (form, env);
       return scm_cons2 (tmp, iqq (SCM_CAR (form), env, depth), SCM_EOL);
     }
-  if (SCM_NIMP (tmp) && (SCM_EQ_P (scm_sym_uq_splicing, SCM_CAR (tmp))))
+  if (SCM_CONSP (tmp) && (SCM_EQ_P (scm_sym_uq_splicing, SCM_CAR (tmp))))
     {
       tmp = SCM_CDR (tmp);
       if (0 == --edepth)
@@ -876,10 +876,11 @@ scm_m_define (SCM x, SCM env)
 	      /* Only the first definition determines the name. */
 	      && SCM_FALSEP (scm_procedure_property (arg1, scm_sym_name)))
 	    scm_set_procedure_property_x (arg1, scm_sym_name, proc);
-	  else if (SCM_TYP16 (arg1) == scm_tc16_macro
-		   && !SCM_EQ_P (SCM_CDR (arg1), arg1))
+	  else if (SCM_MACROP (arg1)
+		   /* Dirk::FIXME: Does the following test make sense? */
+		   && !SCM_EQ_P (SCM_MACRO_CODE (arg1), arg1))
 	    {
-	      arg1 = SCM_CDR (arg1);
+	      arg1 = SCM_MACRO_CODE (arg1);
 	      goto proc;
 	    }
 	}
@@ -1144,19 +1145,17 @@ scm_m_at_call_with_values (SCM xorig, SCM env)
 SCM
 scm_m_expand_body (SCM xorig, SCM env)
 {
-  SCM form, x = SCM_CDR (xorig), defs = SCM_EOL;
+  SCM x = SCM_CDR (xorig), defs = SCM_EOL;
   char *what = SCM_ISYMCHARS (SCM_CAR (xorig)) + 2;
 
   while (SCM_NIMP (x))
     {
-      form = SCM_CAR (x);
-      if (SCM_IMP (form) || SCM_NCONSP (form))
-	break;
-      if (SCM_IMP (SCM_CAR (form)))
+      SCM form = SCM_CAR (x);
+      if (!SCM_CONSP (form))
 	break;
       if (!SCM_SYMBOLP (SCM_CAR (form)))
 	break;
- 
+
       form = scm_macroexp (scm_cons_source (form,
 					    SCM_CAR (form),
 					    SCM_CDR (form)),
@@ -1165,9 +1164,9 @@ scm_m_expand_body (SCM xorig, SCM env)
       if (SCM_EQ_P (SCM_IM_DEFINE, SCM_CAR (form)))
 	{
 	  defs = scm_cons (SCM_CDR (form), defs);
-	  x = SCM_CDR(x);
+	  x = SCM_CDR (x);
 	}
-      else if (SCM_NIMP(defs))
+      else if (!SCM_IMP (defs))
 	{
 	  break;
 	}
@@ -1177,7 +1176,7 @@ scm_m_expand_body (SCM xorig, SCM env)
 	}
       else
 	{
-	  x = scm_cons (form, SCM_CDR(x));
+	  x = scm_cons (form, SCM_CDR (x));
 	  break;
 	}
     }
@@ -1229,13 +1228,11 @@ scm_macroexp (SCM x, SCM env)
   /* Only handle memoizing macros.  `Acros' and `macros' are really
      special forms and should not be evaluated here. */
 
-  if (SCM_IMP (proc)
-      || scm_tc16_macro != SCM_TYP16 (proc)
-      || (SCM_CELL_WORD_0 (proc) >> 16) != 2)
+  if (!SCM_MACROP (proc) || SCM_MACRO_TYPE (proc) != 2)
     return x;
 
   unmemocar (x, env);
-  res = scm_apply (SCM_CDR (proc), x, scm_cons (env, scm_listofnull));
+  res = scm_apply (SCM_MACRO_CODE (proc), x, scm_cons (env, scm_listofnull));
   
   if (scm_ilength (res) <= 0)
     res = scm_cons2 (SCM_IM_BEGIN, res, SCM_EOL);
@@ -1510,7 +1507,7 @@ SCM
 scm_eval_args (SCM l, SCM env, SCM proc)
 {
   SCM results = SCM_EOL, *lloc = &results, res;
-  while (SCM_NIMP (l))
+  while (!SCM_IMP (l))
     {
 #ifdef SCM_CAUTIOUS
       if (SCM_CONSP (l))
@@ -1538,7 +1535,7 @@ scm_eval_args (SCM l, SCM env, SCM proc)
       l = SCM_CDR (l);
     }
 #ifdef SCM_CAUTIOUS
-  if (SCM_NNULLP (l))
+  if (!SCM_NULLP (l))
     {
     wrongnumargs:
       scm_wrong_num_args (proc);
@@ -1733,7 +1730,7 @@ SCM
 scm_deval_args (SCM l, SCM env, SCM proc, SCM *lloc)
 {
   SCM *results = lloc, res;
-  while (SCM_NIMP (l))
+  while (!SCM_IMP (l))
     {
 #ifdef SCM_CAUTIOUS
       if (SCM_CONSP (l))
@@ -1761,7 +1758,7 @@ scm_deval_args (SCM l, SCM env, SCM proc, SCM *lloc)
       l = SCM_CDR (l);
     }
 #ifdef SCM_CAUTIOUS
-  if (SCM_NNULLP (l))
+  if (!SCM_NULLP (l))
     {
     wrongnumargs:
       scm_wrong_num_args (proc);
@@ -1943,11 +1940,11 @@ dispatch:
     begin:
       /* If we are on toplevel with a lookup closure, we need to sync
          with the current module. */
-      if (SCM_CONSP(env) && !SCM_CONSP(SCM_CAR(env)))
+      if (SCM_CONSP (env) && !SCM_CONSP (SCM_CAR (env)))
 	{
 	  t.arg1 = x;
 	  UPDATE_TOPLEVEL_ENV (env);
-	  while (SCM_NNULLP (t.arg1 = SCM_CDR (t.arg1)))
+	  while (!SCM_NULLP (t.arg1 = SCM_CDR (t.arg1)))
 	    {
 	      EVALCAR (x, env);
 	      x = t.arg1;
@@ -1964,7 +1961,7 @@ dispatch:
       x = SCM_CDR (x);
     nontoplevel_begin:
       t.arg1 = x;
-      while (SCM_NNULLP (t.arg1 = SCM_CDR (t.arg1)))
+      while (!SCM_NULLP (t.arg1 = SCM_CDR (t.arg1)))
 	{
 	  if (SCM_IMP (SCM_CAR (x)))
 	    {
@@ -1974,7 +1971,7 @@ dispatch:
 		  goto nontoplevel_begin;
 		}
 	      else
-		SCM_EVALIM2 (SCM_CAR(x));
+		SCM_EVALIM2 (SCM_CAR (x));
 	    }
 	  else
 	    SCM_CEVAL (SCM_CAR (x), env);
@@ -1982,7 +1979,7 @@ dispatch:
 	}
       
     carloop:			/* scm_eval car of last form in list */
-      if (SCM_NCELLP (SCM_CAR (x)))
+      if (!SCM_CELLP (SCM_CAR (x)))
 	{
 	  x = SCM_CAR (x);
 	  RETURN (SCM_IMP (x) ? SCM_EVALIM (x, env) : SCM_GLOC_VAL (x))
@@ -2026,18 +2023,18 @@ dispatch:
 
 
     case SCM_BIT8(SCM_IM_COND):
-      while (SCM_NIMP (x = SCM_CDR (x)))
+      while (!SCM_IMP (x = SCM_CDR (x)))
 	{
 	  proc = SCM_CAR (x);
 	  t.arg1 = EVALCAR (proc, env);
 	  if (SCM_NFALSEP (t.arg1))
 	    {
 	      x = SCM_CDR (proc);
-	      if SCM_NULLP (x)
+	      if (SCM_NULLP (x))
 		{
 		  RETURN (t.arg1)
 		}
-	      if (! SCM_EQ_P (scm_sym_arrow, SCM_CAR (x)))
+	      if (!SCM_EQ_P (scm_sym_arrow, SCM_CAR (x)))
 		{
 		  PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
 		  goto begin;
@@ -2147,10 +2144,10 @@ dispatch:
     case SCM_BIT8(SCM_IM_OR):
       x = SCM_CDR (x);
       t.arg1 = x;
-      while (SCM_NNULLP (t.arg1 = SCM_CDR (t.arg1)))
+      while (!SCM_NULLP (t.arg1 = SCM_CDR (t.arg1)))
 	{
 	  x = EVALCAR (x, env);
-	  if (SCM_NFALSEP (x))
+	  if (!SCM_FALSEP (x))
 	    {
 	      RETURN (x);
 	    }
@@ -2576,7 +2573,7 @@ dispatch:
 	      unmemocar (x, env);
 	      goto badfun;
 	    }
-	  if (scm_tc16_macro == SCM_TYP16 (proc))
+	  if (SCM_MACROP (proc))
 	    {
 	      unmemocar (x, env);
 
@@ -2586,19 +2583,19 @@ dispatch:
 		 application frames can be deleted from the backtrace. */
 	      SCM_SET_MACROEXP (debug);
 #endif
-	      t.arg1 = SCM_APPLY (SCM_CDR (proc), x,
+	      t.arg1 = SCM_APPLY (SCM_MACRO_CODE (proc), x,
 				  scm_cons (env, scm_listofnull));
 
 #ifdef DEVAL
 	      SCM_CLEAR_MACROEXP (debug);
 #endif
-	      switch (SCM_CELL_WORD_0 (proc) >> 16)
+	      switch (SCM_MACRO_TYPE (proc))
 		{
 		case 2:
 		  if (scm_ilength (t.arg1) <= 0)
 		    t.arg1 = scm_cons2 (SCM_IM_BEGIN, t.arg1, SCM_EOL);
 #ifdef DEVAL
-		  if (!SCM_CLOSUREP (SCM_CDR (proc)))
+		  if (!SCM_CLOSUREP (SCM_MACRO_CODE (proc)))
 		    {
 		      SCM_DEFER_INTS;
 		      SCM_SETCAR (x, SCM_CAR (t.arg1));
@@ -2626,7 +2623,7 @@ dispatch:
 	}
       else
 	proc = SCM_CEVAL (SCM_CAR (x), env);
-      SCM_ASRTGO (SCM_NIMP (proc), badfun);
+      SCM_ASRTGO (!SCM_IMP (proc), badfun);
 #ifndef SCM_RECKLESS
 #ifdef SCM_CAUTIOUS
     checkargs:
@@ -2635,19 +2632,19 @@ dispatch:
 	{
 	  arg2 = SCM_CAR (SCM_CODE (proc));
 	  t.arg1 = SCM_CDR (x);
-	  while (SCM_NIMP (arg2))
+	  while (!SCM_IMP (arg2))
 	    {
-	      if (SCM_NCONSP (arg2))
+	      if (!SCM_CONSP (arg2))
 		goto evapply;
 	      if (SCM_IMP (t.arg1))
 		goto umwrongnumargs;
 	      arg2 = SCM_CDR (arg2);
 	      t.arg1 = SCM_CDR (t.arg1);
 	    }
-	  if (SCM_NNULLP (t.arg1))
+	  if (!SCM_NULLP (t.arg1))
 	    goto umwrongnumargs;
 	}
-      else if (scm_tc16_macro == SCM_TYP16 (proc))
+      else if (SCM_MACROP (proc))
 	goto handle_a_macro;
 #endif
     }
@@ -3778,7 +3775,7 @@ promise_print (SCM exp, SCM port, scm_print_state *pstate)
   int writingp = SCM_WRITINGP (pstate);
   scm_puts ("#<promise ", port);
   SCM_SET_WRITINGP (pstate, 1);
-  scm_iprin1 (SCM_CDR (exp), port, pstate);
+  scm_iprin1 (SCM_CELL_WORD_1 (exp), port, pstate);
   SCM_SET_WRITINGP (pstate, writingp);
   scm_putc ('>', port);
   return !0;

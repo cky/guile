@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995, 1996, 1998, 1999, 2000 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -60,21 +60,24 @@ scm_c_make_hash_table (unsigned long k)
   return scm_c_make_vector (k, SCM_EOL);
 }
 
+
 SCM
 scm_hash_fn_get_handle (SCM table,SCM obj,unsigned int (*hash_fn)(),SCM (*assoc_fn)(),void * closure)
+#define FUNC_NAME "scm_hash_fn_get_handle"
 {
   unsigned int k;
   SCM h;
 
-  SCM_ASSERT (SCM_VECTORP (table), table, SCM_ARG1, "hash_fn_get_handle");
+  SCM_VALIDATE_VECTOR (1, table);
   if (SCM_VECTOR_LENGTH (table) == 0)
-    return SCM_EOL;
+    return SCM_BOOL_F;
   k = hash_fn (obj, SCM_VECTOR_LENGTH (table), closure);
   if (k >= SCM_VECTOR_LENGTH (table))
     scm_out_of_range ("hash_fn_get_handle", scm_ulong2num (k));
   h = assoc_fn (obj, SCM_VELTS (table)[k], closure);
   return h;
 }
+#undef FUNC_NAME
 
 
 SCM
@@ -116,13 +119,11 @@ SCM
 scm_hash_fn_ref (SCM table,SCM obj,SCM dflt,unsigned int (*hash_fn)(),
                  SCM (*assoc_fn)(),void * closure)
 {
-  SCM it;
-
-  it = scm_hash_fn_get_handle (table, obj, hash_fn, assoc_fn, closure);
-  if (SCM_IMP (it))
-    return dflt;
-  else
+  SCM it = scm_hash_fn_get_handle (table, obj, hash_fn, assoc_fn, closure);
+  if (SCM_CONSP (it))
     return SCM_CDR (it);
+  else
+    return dflt;
 }
 
 
@@ -165,16 +166,14 @@ scm_hash_fn_remove_x (SCM table,SCM obj,unsigned int (*hash_fn)(),SCM (*assoc_fn
 
 
 SCM_DEFINE (scm_hashq_get_handle, "hashq-get-handle", 2, 0, 0,
-            (SCM table, SCM obj),
-	    "This procedure is similar to its @code{-ref} cousin, but returns a\n"
-	    "@dfn{handle} from the hash table rather than the value associated with\n"
-	    "@var{key}.  By convention, a handle in a hash table is the pair which\n"
-	    "associates a key with a value.  Where @code{hashq-ref table key} returns\n"
-	    "only a @code{value}, @code{hashq-get-handle table key} returns the pair\n"
-	    "@code{(key . value)}.")
+            (SCM table, SCM key),
+	    "This procedure returns the @code{(key . value)} pair from the\n"
+	    "hash table @var{table}.  If @var{table} does not hold an\n"
+	    "associated value for @var{key}, @code{#f} is returned.\n"
+	    "Uses @code{eq?} for equality testing.")
 #define FUNC_NAME s_scm_hashq_get_handle
 {
-  return scm_hash_fn_get_handle (table, obj, scm_ihashq, scm_sloppy_assq, 0);
+  return scm_hash_fn_get_handle (table, key, scm_ihashq, scm_sloppy_assq, 0);
 }
 #undef FUNC_NAME
 
@@ -233,16 +232,14 @@ SCM_DEFINE (scm_hashq_remove_x, "hashq-remove!", 2, 0, 0,
 
 
 SCM_DEFINE (scm_hashv_get_handle, "hashv-get-handle", 2, 0, 0,
-            (SCM table, SCM obj),
-	    "This procedure is similar to its @code{-ref} cousin, but returns a\n"
-	    "@dfn{handle} from the hash table rather than the value associated with\n"
-	    "@var{key}.  By convention, a handle in a hash table is the pair which\n"
-	    "associates a key with a value.  Where @code{hashv-ref table key} returns\n"
-	    "only a @code{value}, @code{hashv-get-handle table key} returns the pair\n"
-	    "@code{(key . value)}.")
+            (SCM table, SCM key),
+	    "This procedure returns the @code{(key . value)} pair from the\n"
+	    "hash table @var{table}.  If @var{table} does not hold an\n"
+	    "associated value for @var{key}, @code{#f} is returned.\n"
+	    "Uses @code{eqv?} for equality testing.")
 #define FUNC_NAME s_scm_hashv_get_handle
 {
-  return scm_hash_fn_get_handle (table, obj, scm_ihashv, scm_sloppy_assv, 0);
+  return scm_hash_fn_get_handle (table, key, scm_ihashv, scm_sloppy_assv, 0);
 }
 #undef FUNC_NAME
 
@@ -299,16 +296,14 @@ SCM_DEFINE (scm_hashv_remove_x, "hashv-remove!", 2, 0, 0,
 
 
 SCM_DEFINE (scm_hash_get_handle, "hash-get-handle", 2, 0, 0,
-            (SCM table, SCM obj),
-	    "This procedure is similar to its @code{-ref} cousin, but returns a\n"
-	    "@dfn{handle} from the hash table rather than the value associated with\n"
-	    "@var{key}.  By convention, a handle in a hash table is the pair which\n"
-	    "associates a key with a value.  Where @code{hash-ref table key} returns\n"
-	    "only a @code{value}, @code{hash-get-handle table key} returns the pair\n"
-	    "@code{(key . value)}.")
+            (SCM table, SCM key),
+	    "This procedure returns the @code{(key . value)} pair from the\n"
+	    "hash table @var{table}.  If @var{table} does not hold an\n"
+	    "associated value for @var{key}, @code{#f} is returned.\n"
+	    "Uses @code{equal?} for equality testing.")
 #define FUNC_NAME s_scm_hash_get_handle
 {
-  return scm_hash_fn_get_handle (table, obj, scm_ihash, scm_sloppy_assoc, 0);
+  return scm_hash_fn_get_handle (table, key, scm_ihash, scm_sloppy_assoc, 0);
 }
 #undef FUNC_NAME
 
@@ -543,7 +538,7 @@ scm_internal_hash_fold (SCM (*fn) (), void *closure, SCM init, SCM table)
   for (i = 0; i < n; ++i)
     {
       SCM ls = SCM_VELTS (table)[i], handle;
-      while (SCM_NNULLP (ls))
+      while (!SCM_NULLP (ls))
 	{
 	  SCM_ASSERT (SCM_CONSP (ls),
 		      table, SCM_ARG1, s_scm_hash_fold);

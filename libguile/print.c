@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995-1999, 2000, 2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995-1999,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -254,8 +254,8 @@ scm_free_print_state (SCM print_state)
   pstate->revealed = 0;
   SCM_NEWCELL (handle);
   SCM_DEFER_INTS;
-  SCM_SETCAR (handle, print_state);
-  SCM_SETCDR (handle, SCM_CDR (print_state_pool));
+  SCM_SET_CELL_WORD_0 (handle, print_state);
+  SCM_SET_CELL_WORD_1 (handle, SCM_CDR (print_state_pool));
   SCM_SETCDR (print_state_pool, handle);
   SCM_ALLOW_INTS;
 }
@@ -419,7 +419,7 @@ taloop:
 						exp, port, pstate)))
 	  {
 	    SCM name, code, env;
-	    if (SCM_TYP16 (exp) == scm_tc16_macro)
+	    if (SCM_MACROP (exp))
 	      {
 		/* Printing a macro. */
 	      prinmacro:
@@ -806,10 +806,11 @@ scm_ipruk (char *hdr, SCM ptr, SCM port)
   scm_putc ('>', port);
 }
 
-/* Print a list.
+
+/* Print a list.  The list may be either a list of ordinary data, or it may be
+   a list that represents code.  Lists that represent code may contain gloc
+   cells.
  */
-
-
 void 
 scm_iprlist (char *hdr,SCM exp,int tlr,SCM port,scm_print_state *pstate)
 {
@@ -837,13 +838,10 @@ scm_iprlist (char *hdr,SCM exp,int tlr,SCM port,scm_print_state *pstate)
   
   /* No cdr cycles intrinsic to this list */
   scm_iprin1 (SCM_CAR (exp), port, pstate);
-  exp = SCM_CDR (exp);
-  for (; SCM_NIMP (exp); exp = SCM_CDR (exp))
+  for (exp = SCM_CDR (exp); SCM_ECONSP (exp); exp = SCM_CDR (exp))
     {
       register int i;
 
-      if (SCM_NECONSP (exp))
-	break;
       for (i = floor; i >= 0; --i)
 	if (SCM_EQ_P (pstate->ref_stack[i], exp))
 	  goto circref;
@@ -852,7 +850,7 @@ scm_iprlist (char *hdr,SCM exp,int tlr,SCM port,scm_print_state *pstate)
       /* CHECK_INTS; */
       scm_iprin1 (SCM_CAR (exp), port, pstate);
     }
-  if (SCM_NNULLP (exp))
+  if (!SCM_NULLP (exp))
     {
       scm_puts (" . ", port);
       scm_iprin1 (exp, port, pstate);
@@ -869,12 +867,10 @@ fancy_printing:
     
     scm_iprin1 (SCM_CAR (exp), port, pstate);
     exp = SCM_CDR (exp); --n;
-    for (; SCM_NIMP (exp); exp = SCM_CDR (exp))
+    for (; SCM_ECONSP (exp); exp = SCM_CDR (exp))
       {
 	register unsigned long i;
 
-	if (SCM_NECONSP (exp))
-	  break;
 	for (i = 0; i < pstate->top; ++i)
 	  if (SCM_EQ_P (pstate->ref_stack[i], exp))
 	    goto fancy_circref;

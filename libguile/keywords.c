@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998, 1999, 2000 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -112,7 +112,7 @@ SCM_DEFINE (scm_keyword_p, "keyword?", 1, 0, 0,
 	    "Returns @code{#t} if the argument @var{obj} is a keyword, else @code{#f}.")
 #define FUNC_NAME s_scm_keyword_p
 {
-  return SCM_BOOL(SCM_KEYWORDP (obj));
+  return SCM_BOOL (SCM_KEYWORDP (obj));
 }
 #undef FUNC_NAME
 
@@ -123,8 +123,8 @@ SCM_DEFINE (scm_keyword_dash_symbol, "keyword-dash-symbol", 1, 0, 0,
 	    "This is the inverse of @code{make-keyword-from-dash-symbol}.")
 #define FUNC_NAME s_scm_keyword_dash_symbol
 {
-  SCM_VALIDATE_KEYWORD (1,keyword);
-  return SCM_CDR (keyword);
+  SCM_VALIDATE_KEYWORD (1, keyword);
+  return SCM_KEYWORDSYM (keyword);
 }
 #undef FUNC_NAME
 

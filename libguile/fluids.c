@@ -1,4 +1,4 @@
-/*	Copyright (C) 1996, 1997, 2000 Free Software Foundation, Inc.
+/* Copyright (C) 1996,1997,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -183,7 +183,7 @@ SCM_DEFINE (scm_fluid_set_x, "fluid-set!", 2, 0, 0,
 void
 scm_swap_fluids (SCM fluids, SCM vals)
 {
-  while (SCM_NIMP (fluids))
+  while (!SCM_NULLP (fluids))
     {
       SCM fl = SCM_CAR (fluids);
       SCM old_val = scm_fluid_ref (fl);
@@ -200,7 +200,7 @@ same fluid appears multiple times in the fluids list. */
 void
 scm_swap_fluids_reverse (SCM fluids, SCM vals)
 {
-  if (SCM_NIMP (fluids))
+  if (!SCM_NULLP (fluids))
     {
       SCM fl, old_val;
 

@@ -1,4 +1,4 @@
-/* Copyright (C) 1995, 96, 97, 98, 99, 2000, 2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1183,8 +1183,8 @@ gc_mark_loop_first_time:
       ptr = SCM_CDR (ptr);
       goto gc_mark_loop;
     case scm_tc7_pws:
-      RECURSE (SCM_CELL_OBJECT_2 (ptr));
-      ptr = SCM_CDR (ptr);
+      RECURSE (SCM_SETTER (ptr));
+      ptr = SCM_PROCEDURE (ptr);
       goto gc_mark_loop;
     case scm_tcs_cons_gloc:
       {
@@ -1241,13 +1241,13 @@ gc_mark_loop_first_time:
       }
       break;
     case scm_tcs_closures:
-      if (SCM_IMP (SCM_CDR (ptr)))
+      if (SCM_IMP (SCM_ENV (ptr)))
 	{
 	  ptr = SCM_CLOSCAR (ptr);
 	  goto gc_mark_nimp;
 	}
       RECURSE (SCM_CLOSCAR (ptr));
-      ptr = SCM_CDR (ptr);
+      ptr = SCM_ENV (ptr);
       goto gc_mark_nimp;
     case scm_tc7_vector:
       i = SCM_VECTOR_LENGTH (ptr);
@@ -1541,8 +1541,8 @@ gc_sweep_freelist_finish (scm_freelist_t *freelist)
   if (!SCM_NULLP (freelist->cells))
     {
       SCM c = freelist->cells;
-      SCM_SETCAR (c, SCM_CDR (c));
-      SCM_SETCDR (c, SCM_EOL);
+      SCM_SET_CELL_WORD_0 (c, SCM_FREE_CELL_CDR (c));
+      SCM_SET_CELL_WORD_1 (c, SCM_EOL);
       freelist->collected +=
 	freelist->span * (freelist->cluster_size - freelist->left_to_collect);
     }
@@ -1733,7 +1733,7 @@ scm_gc_sweep ()
 		  SCM_SETSTREAM (scmptr, 0);
 		  scm_remove_from_port_table (scmptr);
 		  scm_gc_ports_collected++;
-		  SCM_SETAND_CAR (scmptr, ~SCM_OPN);
+		  SCM_CLR_PORT_OPEN_FLAG (scmptr);
 		}
 	      break;
 	    case scm_tc7_smob:
@@ -1770,7 +1770,7 @@ scm_gc_sweep ()
 
 	  if (!--left_to_collect)
 	    {
-	      SCM_SETCAR (scmptr, nfreelist);
+	      SCM_SET_CELL_WORD_0 (scmptr, nfreelist);
 	      *freelist->clustertail = scmptr;
 	      freelist->clustertail = SCM_CDRLOC (scmptr);
 
@@ -2130,7 +2130,7 @@ init_heap_seg (SCM_CELLPTR seg_org, scm_sizet size, scm_freelist_t *freelist)
               }
 
 	    SCM_SET_CELL_TYPE (scmptr, scm_tc_free_cell);
-	    SCM_SETCDR (scmptr, PTR2SCM (nxt));
+	    SCM_SET_FREE_CELL_CDR (scmptr, PTR2SCM (nxt));
 
             ptr = nxt;
 	  }
@@ -2463,7 +2463,7 @@ scm_unprotect_object (SCM obj)
 
   handle = scm_hashq_get_handle (scm_protects, obj);
 
-  if (SCM_IMP (handle))
+  if (SCM_FALSEP (handle))
     {
       fprintf (stderr, "scm_unprotect_object called on unprotected object\n");
       abort ();

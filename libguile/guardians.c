@@ -1,4 +1,4 @@
-/*	Copyright (C) 1998, 1999, 2000 Free Software Foundation, Inc.
+/* Copyright (C) 1998,1999,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -89,8 +89,8 @@ typedef struct tconc_t
 #define TCONC_IN(tc, obj, pair) \
 do { \
   SCM_SETCAR ((tc).tail, obj); \
-  SCM_SETCAR (pair, SCM_BOOL_F); \
-  SCM_SETCDR (pair, SCM_EOL); \
+  SCM_SET_CELL_WORD_0 (pair, SCM_BOOL_F); \
+  SCM_SET_CELL_WORD_1 (pair, SCM_EOL); \
   SCM_SETCDR ((tc).tail, pair); \
   (tc).tail = pair; \
 } while (0)
@@ -258,7 +258,7 @@ scm_guard (SCM guardian, SCM obj, int throw_p)
 
       if (GREEDY_P (g))
         {
-          if (SCM_NFALSEP (scm_hashq_get_handle
+          if (!SCM_FALSEP (scm_hashq_get_handle
                            (greedily_guarded_whash, obj)))
             {
               SCM_ALLOW_INTS;

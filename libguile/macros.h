@@ -1,8 +1,8 @@
 /* classes: h_files */
 
-#ifndef MACROSH
-#define MACROSH
-/*	Copyright (C) 1998, 2000 Free Software Foundation, Inc.
+#ifndef SCM_MACROS_H
+#define SCM_MACROS_H
+/* Copyright (C) 1998,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,6 +51,10 @@
 #define SCM_ASSYNT(_cond, _msg, _subr) \
   if (!(_cond)) scm_misc_error (_subr, _msg, SCM_EOL);
 
+#define SCM_MACROP(x) SCM_TYP16_PREDICATE (scm_tc16_macro, (x))
+#define SCM_MACRO_TYPE(m) (SCM_CELL_WORD_0 (m) >> 16)
+#define SCM_MACRO_CODE(m) SCM_CELL_OBJECT_1 (m)
+
 extern scm_bits_t scm_tc16_macro;
 
 extern SCM scm_makacro (SCM code);
@@ -65,7 +69,7 @@ extern SCM scm_make_synt (const char *name,
                           SCM (*fcn) ());
 extern void scm_init_macros (void);
 
-#endif /* MACROSH */
+#endif /* SCM_MACROS_H */
 
 /*
   Local Variables:

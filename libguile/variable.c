@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995, 1996, 1997, 1998, 2000 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -59,17 +59,16 @@ static int
 variable_print (SCM exp, SCM port, scm_print_state *pstate)
 {
   scm_puts ("#<variable ", port);
-  scm_intprint(SCM_UNPACK (exp), 16, port);
+  scm_intprint (SCM_UNPACK (exp), 16, port);
   {
-    SCM val_cell;
-    val_cell = SCM_CDR(exp);
-    if (!SCM_UNBNDP (SCM_CAR (val_cell)))
+    SCM vcell = SCM_VARVCELL (exp);
+    if (!SCM_UNBNDP (SCM_CAR (vcell)))
       {
 	scm_puts (" name: ", port);
-	scm_iprin1 (SCM_CAR (val_cell), port, pstate);
+	scm_iprin1 (SCM_CAR (vcell), port, pstate);
       }
     scm_puts (" binding: ", port);
-    scm_iprin1 (SCM_CDR (val_cell), port, pstate);
+    scm_iprin1 (SCM_CDR (vcell), port, pstate);
   }
   scm_putc('>', port);
   return 1;
@@ -78,7 +77,7 @@ variable_print (SCM exp, SCM port, scm_print_state *pstate)
 static SCM
 variable_equalp (SCM var1, SCM var2)
 {
-  return scm_equal_p (SCM_CDR (var1), SCM_CDR (var2));
+  return scm_equal_p (SCM_VARVCELL (var1), SCM_VARVCELL (var2));
 }
 
 
@@ -100,17 +99,13 @@ SCM_DEFINE (scm_make_variable, "make-variable", 1, 1, 0,
             "variable may exist, so @var{name-hint} is just that---a hint.\n")
 #define FUNC_NAME s_scm_make_variable
 {
-  SCM val_cell;
+  SCM vcell;
   
   if (SCM_UNBNDP (name_hint))
     name_hint = anonymous_variable_sym;
 
-  SCM_NEWCELL(val_cell);
-  SCM_DEFER_INTS;
-  SCM_SETCAR (val_cell, name_hint);
-  SCM_SETCDR (val_cell, init);
-  SCM_ALLOW_INTS;
-  return make_vcell_variable (val_cell);
+  vcell = scm_cons (name_hint, init);
+  return make_vcell_variable (vcell);
 }
 #undef FUNC_NAME
 
@@ -129,11 +124,7 @@ SCM_DEFINE (scm_make_undefined_variable, "make-undefined-variable", 0, 1, 0,
   if (SCM_UNBNDP (name_hint))
     name_hint = anonymous_variable_sym;
 
-  SCM_NEWCELL (vcell);
-  SCM_DEFER_INTS;
-  SCM_SETCAR (vcell, name_hint);
-  SCM_SETCDR (vcell, SCM_UNDEFINED);
-  SCM_ALLOW_INTS;
+  vcell = scm_cons (name_hint, SCM_UNDEFINED);
   return make_vcell_variable (vcell);
 }
 #undef FUNC_NAME
@@ -158,7 +149,7 @@ SCM_DEFINE (scm_variable_ref, "variable-ref", 1, 0, 0,
 #define FUNC_NAME s_scm_variable_ref
 {
   SCM_VALIDATE_VARIABLE (1, var);
-  return SCM_CDR (SCM_CDR (var));
+  return SCM_CDR (SCM_VARVCELL (var));
 }
 #undef FUNC_NAME
 
@@ -171,8 +162,8 @@ SCM_DEFINE (scm_variable_set_x, "variable-set!", 2, 0, 0,
 	    "value. Return an unspecified value.\n")
 #define FUNC_NAME s_scm_variable_set_x
 {
-  SCM_VALIDATE_VARIABLE (1,var);
-  SCM_SETCDR (SCM_CDR (var), val);
+  SCM_VALIDATE_VARIABLE (1, var);
+  SCM_SETCDR (SCM_VARVCELL (var), val);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -213,8 +204,8 @@ SCM_DEFINE (scm_variable_bound_p, "variable-bound?", 1, 0, 0,
             "Throws an error if @var{var} is not a variable object.\n")
 #define FUNC_NAME s_scm_variable_bound_p
 {
-  SCM_VALIDATE_VARIABLE (1,var);
-  return SCM_NEGATE_BOOL(SCM_UNBNDP (SCM_CDR (SCM_VARVCELL (var))));
+  SCM_VALIDATE_VARIABLE (1, var);
+  return SCM_BOOL (!SCM_UNBNDP (SCM_CDR (SCM_VARVCELL (var))));
 }
 #undef FUNC_NAME
 

@@ -1,8 +1,8 @@
 /* classes: h_files */
 
-#ifndef VARIABLEH
-#define VARIABLEH
-/*	Copyright (C) 1995,1996, 2000 Free Software Foundation, Inc.
+#ifndef SCM_VARIABLE_H
+#define SCM_VARIABLE_H
+/* Copyright (C) 1995,1996,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -55,7 +55,7 @@
  */
 extern scm_bits_t scm_tc16_variable;
 
-#define SCM_VARVCELL(V) 	SCM_CDR(V)
+#define SCM_VARVCELL(V) 	SCM_CELL_OBJECT_1 (V)
 #define SCM_VARIABLEP(X)   	(!SCM_IMP (X) && SCM_CELL_TYPE (X) == scm_tc16_variable)
 #define SCM_UDVARIABLEP(X) 	(SCM_VARIABLEP(X) && SCM_UNBNDP (SCM_CDR (SCM_VARVCELL (X))))
 #define SCM_DEFVARIABLEP(X) 	(SCM_VARIABLEP(X) && !SCM_UNBNDP (SCM_CDR (SCM_VARVCELL (X))))
@@ -71,7 +71,7 @@ extern SCM scm_builtin_variable (SCM name);
 extern SCM scm_variable_bound_p (SCM var);
 extern void scm_init_variable (void);
 
-#endif  /* VARIABLEH */
+#endif  /* SCM_VARIABLE_H */
 
 /*
   Local Variables:

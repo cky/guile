@@ -1,8 +1,8 @@
 /* classes: h_files */
 
-#ifndef EVALH
-#define EVALH
-/*	Copyright (C) 1995, 1996 ,1998, 1999, 2000 Free Software Foundation, Inc.
+#ifndef SCM_EVAL_H
+#define SCM_EVAL_H
+/* Copyright (C) 1995,1996,1998,1999,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -180,8 +180,6 @@ extern SCM scm_sym_args;
 
 extern SCM scm_f_apply;
 
-extern scm_bits_t scm_tc16_macro;
-
 /* A resolved global variable reference in the CAR position
  * of a list is stored (in code only) as a pointer to a pair with a 
  * tag of 1.  This is called a "gloc".
@@ -259,7 +257,7 @@ extern SCM scm_eval_x (SCM exp, SCM module);
 
 extern void scm_init_eval (void);
 
-#endif  /* EVALH */
+#endif  /* SCM_EVAL_H */
 
 /*
   Local Variables:

@@ -504,11 +504,10 @@ SCM_REGISTER_PROC (s_reverse_lookup, "reverse-lookup", 2, 0, 0, scm_reverse_look
 SCM
 scm_reverse_lookup (SCM env, SCM data)
 {
-  SCM names, values;
-  while (SCM_NIMP (env) && SCM_SLOPPY_CONSP (SCM_CAR (env)))
+  while (SCM_CONSP (env) && SCM_CONSP (SCM_CAR (env)))
     {
-      names = SCM_CAAR (env);
-      values = SCM_CDAR (env);
+      SCM names = SCM_CAAR (env);
+      SCM values = SCM_CDAR (env);
       while (SCM_CONSP (names))
 	{
 	  if (SCM_EQ_P (SCM_CAR (values), data))
@@ -516,7 +515,7 @@ scm_reverse_lookup (SCM env, SCM data)
 	  names = SCM_CDR (names);
 	  values = SCM_CDR (values);
 	}
-      if (! SCM_NULLP (names) && SCM_EQ_P (values, data))
+      if (!SCM_NULLP (names) && SCM_EQ_P (values, data))
 	return names;
       env = SCM_CDR (env);
     }
