@@ -338,7 +338,7 @@ SCM_API int scm_i_print_fraction (SCM sexp, SCM port, scm_print_state *pstate);
 SCM_API SCM scm_sys_check_number_conversions (void);
 #endif
 
-/* conversion functions */
+/* conversion functions for integers */
 
 SCM_API int scm_is_integer (SCM val);
 SCM_API int scm_is_signed_integer (SCM val,
@@ -384,75 +384,133 @@ SCM_API SCM          scm_from_uint64 (scm_t_uint64 x);
 
 #endif
 
-#define scm_to_schar(x) \
-  ((signed char)scm_to_signed_integer ((x), SCHAR_MIN, SCHAR_MAX))
-#define scm_to_uchar(x) \
-  ((unsigned char)scm_to_unsigned_integer ((x), 0, UCHAR_MAX))
+/* The conversion functions for other types are aliased to the
+   appropriate ones from above.  We pick the right one based on the
+   size of the type.
+
+   Not each and every possibility is covered by the code below, and
+   while it is trivial to complete the tests, it might be better to
+   just test for the 'sane' possibilities.  When one of the tests
+   below fails, chances are good that some silent assumption somewhere
+   else will also fail.
+*/
+
+#if SCM_SIZEOF_CHAR == 1
+#define scm_to_schar   scm_to_int8
+#define scm_from_schar scm_from_int8
+#define scm_to_uchar   scm_to_uint8
+#define scm_from_uchar scm_from_uint8
 #if CHAR_MIN == 0
-#define scm_to_char scm_to_uchar
+#define scm_to_char    scm_to_uint8
+#define scm_from_char  scm_from_uint8
 #else
-#define scm_to_char scm_to_schar
+#define scm_to_char    scm_to_int8
+#define scm_from_char  scm_from_int8
 #endif
-
-#define scm_to_short(x) \
-  ((short)scm_to_signed_integer ((x), SHRT_MIN, SHRT_MAX))
-#define scm_to_ushort(x) \
-  ((unsigned short)scm_to_unsigned_integer ((x), 0, SHRT_MAX))
-
-#define scm_to_int(x) \
-  ((int)scm_to_signed_integer ((x), INT_MIN, INT_MAX))
-#define scm_to_uint(x) \
-  ((unsigned int)scm_to_unsigned_integer ((x), 0, UINT_MAX))
-
-#define scm_to_long(x) \
-  ((long)scm_to_signed_integer ((x), LONG_MIN, LONG_MAX))
-#define scm_to_ulong(x) \
-  ((unsigned long)scm_to_unsigned_integer ((x), 0, ULONG_MAX))
-
-#define scm_to_ssize_t(x) \
-  ((ssize_t)scm_to_signed_integer ((x), SCM_I_SSIZE_MIN, SCM_I_SSIZE_MAX))
-#define scm_to_size_t(x) \
-  ((unsigned long)scm_to_unsigned_integer ((x), 0, SCM_I_SIZE_MAX))
-
-#if SCM_SIZEOF_LONG_LONG != 0
-#define scm_to_long_long(x) \
-  ((long long)scm_to_signed_integer ((x), SCM_I_LLONG_MIN, SCM_I_LLONG_MAX))
-#define scm_to_ulong_long(x) \
-  ((unsigned long long)scm_to_unsigned_integer ((x), 0, SCM_I_ULLONG_MAX))
-#endif
-
-#define scm_to_intmax(x) \
-  ((scm_t_intmax)scm_to_signed_integer ((x),SCM_T_INTMAX_MIN,SCM_T_INTMAX_MAX))
-#define scm_to_uintmax(x) \
-  ((scm_t_uintmax)scm_to_unsigned_integer ((x), 0, SCM_T_UINTMAX_MAX))
-
-#define scm_from_schar(x) scm_from_signed_integer ((signed char)(x))
-#define scm_from_uchar(x) scm_from_unsigned_integer ((unsigned char)(x))
-#if CHAR_MIN == 0
-#define scm_from_char scm_from_uchar
 #else
-#define scm_from_char scm_from_schar
+#error sizeof(char) is not 1.
 #endif
 
-#define scm_from_short(x)  scm_from_signed_integer ((short)(x))
-#define scm_from_ushort(x) scm_from_unsigned_integer ((unsigned short)(x))
-
-#define scm_from_int(x)  scm_from_signed_integer ((int)(x))
-#define scm_from_uint(x) scm_from_unsigned_integer ((unsigned int)(x))
-
-#define scm_from_long(x)  scm_from_signed_integer ((long)(x))
-#define scm_from_ulong(x) scm_from_unsigned_integer ((unsigned long)(x))
-
-#define scm_from_ssize_t(x) scm_from_signed_integer ((ssize_t)(x))
-#define scm_from_size_t(x)  scm_from_unsigned_integer ((size_t)(x))
-
-#if SCM_SIZEOF_LONG_LONG != 0
-#define scm_from_long_long(x)  scm_from_signed_integer ((long long)(x))
-#define scm_from_ulong_long(x) scm_from_unsigned_integer ((unsigned long long)(x))
+#if SCM_SIZEOF_SHORT == 1
+#define scm_to_short    scm_to_int8
+#define scm_from_short  scm_from_int8
+#define scm_to_ushort   scm_to_uint8
+#define scm_from_ushort scm_from_uint8
+#else
+#if SCM_SIZEOF_SHORT == 2
+#define scm_to_short    scm_to_int16
+#define scm_from_short  scm_from_int16
+#define scm_to_ushort   scm_to_uint16
+#define scm_from_ushort scm_from_uint16
+#else
+#if SCM_SIZEOF_SHORT == 4
+#define scm_to_short    scm_to_int32
+#define scm_from_short  scm_from_int32
+#define scm_to_ushort   scm_to_uint32
+#define scm_from_ushort scm_from_uint32
+#else
+#error sizeof(short) is not 1, 2, or 4.
+#endif
+#endif
 #endif
 
-#define scm_from_intmax(x)  scm_from_signed_integer ((scm_t_intmax)(x))
-#define scm_from_uintmax(x) scm_from_unsigned_integer ((scm_t_uintmax)(x))
+#if SCM_SIZEOF_INT == 4
+#define scm_to_int    scm_to_int32
+#define scm_from_int  scm_from_int32
+#define scm_to_uint   scm_to_uint32
+#define scm_from_uint scm_from_uint32
+#else
+#if SCM_SIZEOF_INT == 8
+#define scm_to_int    scm_to_int64
+#define scm_from_int  scm_from_int64
+#define scm_to_uint   scm_to_uint64
+#define scm_from_uint scm_from_uint64
+#else
+#error sizeof(int) is not 4 or 8.
+#endif
+#endif
+
+#if SCM_SIZEOF_LONG == 4
+#define scm_to_long    scm_to_int32
+#define scm_from_long  scm_from_int32
+#define scm_to_ulong   scm_to_uint32
+#define scm_from_ulong scm_from_uint32
+#else
+#if SCM_SIZEOF_LONG == 8
+#define scm_to_long    scm_to_int64
+#define scm_from_long  scm_from_int64
+#define scm_to_ulong   scm_to_uint64
+#define scm_from_ulong scm_from_uint64
+#else
+#error sizeof(long) is not 4 or 8.
+#endif
+#endif
+
+#if SCM_SIZEOF_INTMAX == 4
+#define scm_to_intmax    scm_to_int32
+#define scm_from_intmax  scm_from_int32
+#define scm_to_uintmax   scm_to_uint32
+#define scm_from_uintmax scm_from_uint32
+#else
+#if SCM_SIZEOF_INTMAX == 8
+#define scm_to_intmax    scm_to_int64
+#define scm_from_intmax  scm_from_int64
+#define scm_to_uintmax   scm_to_uint64
+#define scm_from_uintmax scm_from_uint64
+#else
+#error sizeof(scm_t_intmax_t) is not 4 or 8.
+#endif
+#endif
+
+#if SCM_SIZEOF_LONG_LONG == 0
+#else
+#if SCM_SIZEOF_LONG_LONG == 8
+#define scm_to_long_long    scm_to_int64
+#define scm_from_long_long  scm_from_int64
+#define scm_to_ulong_long   scm_to_uint64
+#define scm_from_ulong_long scm_from_uint64
+#else
+#error sizeof(long long) is not 8.
+#endif
+#endif
+
+#if SCM_SIZEOF_SIZE_T == 4
+#define scm_to_ssize_t    scm_to_int32
+#define scm_from_ssize_t  scm_from_int32
+#define scm_to_size_t     scm_to_uint32
+#define scm_from_size_t   scm_from_uint32
+#else
+#if SCM_SIZEOF_SIZE_T == 8
+#define scm_to_ssize_t    scm_to_int64
+#define scm_from_ssize_t  scm_from_int64
+#define scm_to_size_t     scm_to_uint64
+#define scm_from_size_t   scm_from_uint64
+#else
+#error sizeof(size_t) is not 4 or 8.
+#endif
+#endif
+
+/* conversion functions for reals */
 
 SCM_API int scm_is_real (SCM val);
 SCM_API double scm_to_double (SCM val);
