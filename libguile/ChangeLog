@@ -2,6 +2,12 @@ Wed Oct  9 19:39:29 1996  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* async.c (scm_take_signal): Doc fixes.
 
+Mon Oct  7 22:30:34 1996  Jim Blandy  <jimb@totoro.cyclic.com>
+
+	* numbers.c (scm_divbigint): When the remainder is zero, we don't
+	want to subtract it from the modulus; we just want to leave it
+	alone.
+
 Mon Oct  7 00:14:17 1996  Mikael Djurfeldt  <mdj@kenneth>
 
 	* init.c (scm_boot_guile_1): Bugfix: i --> base in argument to
