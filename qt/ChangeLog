@@ -1,3 +1,8 @@
+1998-07-28  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* time/Makefile.in, md/Makefile.in, Makefile.in: Regenerated,
+	after removing Totoro kludge.
+
 1998-07-26  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	Use libtool, and the thread configuration mechanism.

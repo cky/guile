@@ -1,3 +1,9 @@
+1998-07-28  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	Remove Totoro kludge.
+	* Makefile.in, scmconfig.h.in: Regenerated.
+	* init.c, readline.c: Don't check if TOTORO is #defined.
+
 1998-07-26  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	* Makefile.am: Adjust for new thread configuration system.

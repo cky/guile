@@ -1,4 +1,17 @@
+1998-07-29  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* configure.in, qthreads.m4: Display a message about how the
+ 	threads configuration went.
+	* aclocal.m4, configure: Regenerated.
+	
 1998-07-28  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	Remove the TOTORO kludge.  We're not doing snapshots any more, so
+	totoro is completely uninvolved.  (Poor Totoro!)
+	* configure.in: Remove code to check the hostname and #define
+	TOTORO.
+	* acconfig.h: Remove comments for TOTORO symbol.
+	* configure, Makefile.in: Regenerated.
 
 	* qthreads.m4 (QTHREADS_CONFIGURE): We *can* use AC_REQUIRE here
 	to get AC_PROG_LN_S.
