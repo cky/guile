@@ -48,27 +48,27 @@
 
 
 
-typedef SCM (*scm_catch_body_t) SCM_P ((void *data));
-typedef SCM (*scm_catch_handler_t) SCM_P ((void *data,
-					   SCM tag, SCM throw_args));
+typedef SCM (*scm_catch_body_t) (void *data);
+typedef SCM (*scm_catch_handler_t) (void *data,
+                                    SCM tag, SCM throw_args);
 
-extern SCM scm_internal_catch SCM_P ((SCM tag,
-				      scm_catch_body_t body,
-				      void *body_data,
-				      scm_catch_handler_t handler,
-				      void *handler_data));
+extern SCM scm_internal_catch (SCM tag,
+                               scm_catch_body_t body,
+                               void *body_data,
+                               scm_catch_handler_t handler,
+                               void *handler_data);
 
-extern SCM scm_internal_lazy_catch SCM_P ((SCM tag,
-					   scm_catch_body_t body,
-					   void *body_data,
-					   scm_catch_handler_t handler,
-					   void *handler_data));
+extern SCM scm_internal_lazy_catch (SCM tag,
+                                    scm_catch_body_t body,
+                                    void *body_data,
+                                    scm_catch_handler_t handler,
+                                    void *handler_data);
 
-extern SCM scm_internal_stack_catch SCM_P ((SCM tag,
-					    scm_catch_body_t body,
-					    void *body_data,
-					    scm_catch_handler_t handler,
-					    void *handler_data));
+extern SCM scm_internal_stack_catch (SCM tag,
+                                     scm_catch_body_t body,
+                                     void *body_data,
+                                     scm_catch_handler_t handler,
+                                     void *handler_data);
 
 /* The first argument to scm_body_thunk should be a pointer to one of
    these.  See the implementation of catch in throw.c.  */
@@ -84,20 +84,20 @@ struct scm_body_thunk_data
   SCM body_proc;
 };
 
-extern SCM scm_body_thunk SCM_P ((void *));
+extern SCM scm_body_thunk (void *);
 
 
-extern SCM scm_handle_by_proc SCM_P ((void *, SCM, SCM));
-extern SCM scm_handle_by_proc_catching_all SCM_P ((void *, SCM, SCM));
-extern SCM scm_handle_by_message SCM_P ((void *, SCM, SCM));
-extern SCM scm_handle_by_message_noexit SCM_P ((void *, SCM, SCM));
-extern SCM scm_handle_by_throw SCM_P ((void *, SCM, SCM));
-extern int scm_exit_status SCM_P ((SCM args));
+extern SCM scm_handle_by_proc (void *, SCM, SCM);
+extern SCM scm_handle_by_proc_catching_all (void *, SCM, SCM);
+extern SCM scm_handle_by_message (void *, SCM, SCM);
+extern SCM scm_handle_by_message_noexit (void *, SCM, SCM);
+extern SCM scm_handle_by_throw (void *, SCM, SCM);
+extern int scm_exit_status (SCM args);
 
-extern SCM scm_catch SCM_P ((SCM tag, SCM thunk, SCM handler));
-extern SCM scm_lazy_catch SCM_P ((SCM tag, SCM thunk, SCM handler));
-extern SCM scm_ithrow SCM_P ((SCM key, SCM args, int noreturn));
+extern SCM scm_catch (SCM tag, SCM thunk, SCM handler);
+extern SCM scm_lazy_catch (SCM tag, SCM thunk, SCM handler);
+extern SCM scm_ithrow (SCM key, SCM args, int noreturn);
 
-extern SCM scm_throw SCM_P ((SCM key, SCM args));
-extern void scm_init_throw SCM_P ((void));
+extern SCM scm_throw (SCM key, SCM args);
+extern void scm_init_throw (void);
 #endif  /* THROWH */

@@ -48,14 +48,14 @@
 
 
 
-extern SCM scm_mkstrport SCM_P ((SCM pos, SCM str, long modes, const char * caller));
+extern SCM scm_mkstrport (SCM pos, SCM str, long modes, const char * caller);
 extern SCM scm_strport_to_string (SCM port);
-extern SCM scm_call_with_output_string SCM_P ((SCM proc));
-extern SCM scm_strprint_obj SCM_P ((SCM obj));
-extern SCM scm_call_with_input_string SCM_P ((SCM str, SCM proc));
-extern SCM scm_read_0str SCM_P ((char *expr));
-extern SCM scm_eval_0str SCM_P ((const char *expr));
-extern SCM scm_eval_string SCM_P ((SCM string));
-extern void scm_init_strports SCM_P ((void));
+extern SCM scm_call_with_output_string (SCM proc);
+extern SCM scm_strprint_obj (SCM obj);
+extern SCM scm_call_with_input_string (SCM str, SCM proc);
+extern SCM scm_read_0str (char *expr);
+extern SCM scm_eval_0str (const char *expr);
+extern SCM scm_eval_string (SCM string);
+extern void scm_init_strports (void);
 
 #endif  /* STRPORTSH */

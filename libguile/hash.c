@@ -64,8 +64,8 @@ scm_hasher(SCM obj, unsigned long n, scm_sizet d)
   case 2: case 6:		/* SCM_INUMP(obj) */
     return SCM_INUM(obj) % n;
   case 4:
-    if SCM_ICHRP(obj)
-      return (unsigned)(scm_downcase(SCM_ICHR(obj))) % n;
+    if SCM_CHARP(obj)
+      return (unsigned)(scm_downcase(SCM_CHAR(obj))) % n;
     switch ((int) obj) {
 #ifndef SICP
     case (int) SCM_EOL: d = 256; break;
@@ -166,8 +166,8 @@ SCM_DEFINE (scm_hashq, "hashq", 2, 0, 0,
 unsigned int
 scm_ihashv (SCM obj, unsigned int n)
 {
-  if (SCM_ICHRP(obj))
-    return ((unsigned int)(scm_downcase(SCM_ICHR(obj)))) % n; /* downcase!?!! */
+  if (SCM_CHARP(obj))
+    return ((unsigned int)(scm_downcase(SCM_CHAR(obj)))) % n; /* downcase!?!! */
 
   if (SCM_NUMP(obj))
     return (unsigned int) scm_hasher(obj, n, 10);

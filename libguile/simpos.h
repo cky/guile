@@ -47,9 +47,9 @@
 
 
 
-extern SCM scm_system SCM_P ((SCM cmd));
-extern SCM scm_getenv SCM_P ((SCM nam));
-extern SCM scm_primitive_exit SCM_P ((SCM status));
-extern void scm_init_simpos SCM_P ((void));
+extern SCM scm_system (SCM cmd);
+extern SCM scm_getenv (SCM nam);
+extern SCM scm_primitive_exit (SCM status);
+extern void scm_init_simpos (void);
 
 #endif  /* SIMPOSH */

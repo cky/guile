@@ -120,7 +120,7 @@ SCM_DEFINE (scm_read_delimited_x, "%read-delimited!", 3, 3, 0,
 	      if (SCM_FALSEP (gobble))
 		scm_ungetc (c, port);
 
-	      return scm_cons (SCM_MAKICHR (c),
+	      return scm_cons (SCM_MAKE_CHAR (c),
 			       scm_long2num (j - cstart));
 	    }
 	}
@@ -257,7 +257,7 @@ SCM_DEFINE (scm_read_line, "%read-line", 0, 1, 0,
     {
       if (s[slen-1] == '\n')
 	{
-	  term = SCM_MAKICHR ('\n');
+	  term = SCM_MAKE_CHAR ('\n');
 	  s[slen-1] = '\0';
 	  line = scm_take_str (s, slen-1);
 	  scm_done_malloc (-1);

@@ -51,19 +51,19 @@
 
 
 
-extern SCM scm_gethost SCM_P ((SCM name));
-extern SCM scm_inet_aton SCM_P ((SCM address));
-extern SCM scm_inet_ntoa SCM_P ((SCM inetid));
-extern SCM scm_inet_netof SCM_P ((SCM address));
-extern SCM scm_lnaof SCM_P ((SCM address));
-extern SCM scm_inet_makeaddr SCM_P ((SCM net, SCM lna));
-extern SCM scm_getnet SCM_P ((SCM name));
-extern SCM scm_getproto SCM_P ((SCM name));
-extern SCM scm_getserv SCM_P ((SCM name, SCM proto));
-extern SCM scm_sethost SCM_P ((SCM arg));
-extern SCM scm_setnet SCM_P ((SCM arg));
-extern SCM scm_setproto SCM_P ((SCM arg));
-extern SCM scm_setserv SCM_P ((SCM arg));
-extern void scm_init_net_db SCM_P ((void));
+extern SCM scm_gethost (SCM name);
+extern SCM scm_inet_aton (SCM address);
+extern SCM scm_inet_ntoa (SCM inetid);
+extern SCM scm_inet_netof (SCM address);
+extern SCM scm_lnaof (SCM address);
+extern SCM scm_inet_makeaddr (SCM net, SCM lna);
+extern SCM scm_getnet (SCM name);
+extern SCM scm_getproto (SCM name);
+extern SCM scm_getserv (SCM name, SCM proto);
+extern SCM scm_sethost (SCM arg);
+extern SCM scm_setnet (SCM arg);
+extern SCM scm_setproto (SCM arg);
+extern SCM scm_setserv (SCM arg);
+extern void scm_init_net_db (void);
 
 #endif  /* NETDBH */

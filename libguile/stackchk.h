@@ -84,9 +84,9 @@ extern int scm_stack_checking_enabled_p;
 
 
 
-extern void scm_report_stack_overflow SCM_P ((void));
-extern long scm_stack_size SCM_P ((SCM_STACKITEM *start));
-extern void scm_stack_report SCM_P ((void));
-extern void scm_init_stackchk SCM_P ((void));
+extern void scm_report_stack_overflow (void);
+extern long scm_stack_size (SCM_STACKITEM *start);
+extern void scm_stack_report (void);
+extern void scm_init_stackchk (void);
 
 #endif  /* STACKCHKH */

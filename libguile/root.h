@@ -157,16 +157,16 @@ extern struct scm_root_state *scm_root;
 
 
 
-extern SCM scm_make_root SCM_P ((SCM parent));
-extern SCM scm_internal_cwdr SCM_P ((scm_catch_body_t body,
-				     void *body_data,
-				     scm_catch_handler_t handler,
-				     void *handler_data,
-				     SCM_STACKITEM *stack_start));
-extern SCM scm_call_with_dynamic_root SCM_P ((SCM thunk, SCM handler));
-extern SCM scm_dynamic_root SCM_P ((void));
-extern SCM scm_apply_with_dynamic_root SCM_P ((SCM proc, SCM a1, SCM args, SCM handler));
-extern SCM scm_call_catching_errors SCM_P ((SCM (*thunk)(), SCM (*err_filter)(), void * closure));
-extern void scm_init_root SCM_P ((void));
+extern SCM scm_make_root (SCM parent);
+extern SCM scm_internal_cwdr (scm_catch_body_t body,
+                              void *body_data,
+                              scm_catch_handler_t handler,
+                              void *handler_data,
+                              SCM_STACKITEM *stack_start);
+extern SCM scm_call_with_dynamic_root (SCM thunk, SCM handler);
+extern SCM scm_dynamic_root (void);
+extern SCM scm_apply_with_dynamic_root (SCM proc, SCM a1, SCM args, SCM handler);
+extern SCM scm_call_catching_errors (SCM (*thunk)(), SCM (*err_filter)(), void * closure);
+extern void scm_init_root (void);
 
 #endif  /* ROOTH */

@@ -169,31 +169,31 @@ extern int scm_subr_table_room;
 
 extern void scm_mark_subr_table (void);
 extern void scm_free_subr_entry (SCM subr);
-extern SCM scm_make_subr SCM_P ((const char *name, int type, SCM (*fcn) ()));
+extern SCM scm_make_subr (const char *name, int type, SCM (*fcn) ());
 extern SCM scm_make_subr_with_generic (const char *name,
 				       int type,
 				       SCM (*fcn) (),
 				       SCM *gf);
-extern SCM scm_make_subr_opt SCM_P ((const char *name, 
-				     int type, 
-				     SCM (*fcn) (),
-				     int set));
-extern SCM scm_makcclo SCM_P ((SCM proc, long len));
-extern SCM scm_procedure_p SCM_P ((SCM obj));
-extern SCM scm_closure_p SCM_P ((SCM obj));
-extern SCM scm_thunk_p SCM_P ((SCM obj));
+extern SCM scm_make_subr_opt (const char *name, 
+                              int type, 
+                              SCM (*fcn) (),
+                              int set);
+extern SCM scm_makcclo (SCM proc, long len);
+extern SCM scm_procedure_p (SCM obj);
+extern SCM scm_closure_p (SCM obj);
+extern SCM scm_thunk_p (SCM obj);
 extern int scm_subr_p (SCM obj);
-extern SCM scm_procedure_documentation SCM_P ((SCM proc));
-extern SCM scm_procedure_with_setter_p SCM_P ((SCM obj));
-extern SCM scm_make_procedure_with_setter SCM_P ((SCM procedure, SCM setter));
-extern SCM scm_procedure SCM_P ((SCM proc));
-extern SCM scm_setter SCM_P ((SCM proc));
-extern void scm_init_iprocs SCM_P ((const scm_iproc *subra, int type));
+extern SCM scm_procedure_documentation (SCM proc);
+extern SCM scm_procedure_with_setter_p (SCM obj);
+extern SCM scm_make_procedure_with_setter (SCM procedure, SCM setter);
+extern SCM scm_procedure (SCM proc);
+extern SCM scm_setter (SCM proc);
+extern void scm_init_iprocs (const scm_iproc *subra, int type);
 extern void scm_init_subr_table (void);
-extern void scm_init_procs SCM_P ((void));
+extern void scm_init_procs (void);
 
 #ifdef GUILE_DEBUG
-extern SCM scm_make_cclo SCM_P ((SCM proc, SCM len));
+extern SCM scm_make_cclo (SCM proc, SCM len);
 #endif /*GUILE_DEBUG*/
 
 

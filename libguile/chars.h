@@ -49,9 +49,13 @@
 
 /* Immediate Characters
  */
-#define SCM_ICHRP(x)	(SCM_ITAG8(x) == scm_tc8_char)
-#define SCM_ICHR(x)	((unsigned int)SCM_ITAG8_DATA(x))
-#define SCM_MAKICHR(x)	SCM_MAKE_ITAG8(x, scm_tc8_char)
+#define SCM_CHARP(x) (SCM_ITAG8(x) == scm_tc8_char)
+#define SCM_CHAR(x) ((unsigned int)SCM_ITAG8_DATA(x))
+#define SCM_MAKE_CHAR(x) SCM_MAKE_ITAG8(x, scm_tc8_char)
+
+#define SCM_ICHRP(x) SCM_CHARP(x) /* deprecated */
+#define SCM_ICHR(x) SCM_CHAR(x) /* deprecated */
+#define SCM_MAKICHR(x) SCM_MAKE_CHAR(x) /* deprecated */
 
 
 
@@ -61,30 +65,30 @@ extern const char scm_charnums[];
 
 
 
-extern SCM scm_char_p SCM_P ((SCM x));
-extern SCM scm_char_eq_p SCM_P ((SCM x, SCM y));
-extern SCM scm_char_less_p SCM_P ((SCM x, SCM y));
-extern SCM scm_char_leq_p SCM_P ((SCM x, SCM y));
-extern SCM scm_char_gr_p SCM_P ((SCM x, SCM y));
-extern SCM scm_char_geq_p SCM_P ((SCM x, SCM y));
-extern SCM scm_char_ci_eq_p SCM_P ((SCM x, SCM y));
-extern SCM scm_char_ci_less_p SCM_P ((SCM x, SCM y));
-extern SCM scm_char_ci_leq_p SCM_P ((SCM x, SCM y));
-extern SCM scm_char_ci_gr_p SCM_P ((SCM x, SCM y));
-extern SCM scm_char_ci_geq_p SCM_P ((SCM x, SCM y));
-extern SCM scm_char_alphabetic_p SCM_P ((SCM chr));
-extern SCM scm_char_numeric_p SCM_P ((SCM chr));
-extern SCM scm_char_whitespace_p SCM_P ((SCM chr));
-extern SCM scm_char_upper_case_p SCM_P ((SCM chr));
-extern SCM scm_char_lower_case_p SCM_P ((SCM chr));
-extern SCM scm_char_is_both_p SCM_P ((SCM chr));
-extern SCM scm_char_to_integer SCM_P ((SCM chr));
-extern SCM scm_integer_to_char SCM_P ((SCM n));
-extern SCM scm_char_upcase SCM_P ((SCM chr));
-extern SCM scm_char_downcase SCM_P ((SCM chr));
-extern void scm_tables_prehistory SCM_P ((void));
-extern int scm_upcase SCM_P ((unsigned int c));
-extern int scm_downcase SCM_P ((unsigned int c));
-extern void scm_init_chars SCM_P ((void));
+extern SCM scm_char_p (SCM x);
+extern SCM scm_char_eq_p (SCM x, SCM y);
+extern SCM scm_char_less_p (SCM x, SCM y);
+extern SCM scm_char_leq_p (SCM x, SCM y);
+extern SCM scm_char_gr_p (SCM x, SCM y);
+extern SCM scm_char_geq_p (SCM x, SCM y);
+extern SCM scm_char_ci_eq_p (SCM x, SCM y);
+extern SCM scm_char_ci_less_p (SCM x, SCM y);
+extern SCM scm_char_ci_leq_p (SCM x, SCM y);
+extern SCM scm_char_ci_gr_p (SCM x, SCM y);
+extern SCM scm_char_ci_geq_p (SCM x, SCM y);
+extern SCM scm_char_alphabetic_p (SCM chr);
+extern SCM scm_char_numeric_p (SCM chr);
+extern SCM scm_char_whitespace_p (SCM chr);
+extern SCM scm_char_upper_case_p (SCM chr);
+extern SCM scm_char_lower_case_p (SCM chr);
+extern SCM scm_char_is_both_p (SCM chr);
+extern SCM scm_char_to_integer (SCM chr);
+extern SCM scm_integer_to_char (SCM n);
+extern SCM scm_char_upcase (SCM chr);
+extern SCM scm_char_downcase (SCM chr);
+extern void scm_tables_prehistory (void);
+extern int scm_upcase (unsigned int c);
+extern int scm_downcase (unsigned int c);
+extern void scm_init_chars (void);
 
 #endif  /* SCM_CHARSH */

@@ -301,11 +301,11 @@ taloop:
       scm_intprint (SCM_INUM (exp), 10, port);
       break;
     case 4:
-      if (SCM_ICHRP (exp))
+      if (SCM_CHARP (exp))
 	{
 	  register long i;
 
-	  i = SCM_ICHR (exp);
+	  i = SCM_CHAR (exp);
 	  if (SCM_WRITINGP (pstate))
 	    {
 	      scm_puts ("#\\", port);
@@ -1021,10 +1021,10 @@ SCM_DEFINE (scm_write_char, "write-char", 1, 1, 0,
   if (SCM_UNBNDP (port))
     port = scm_cur_outp;
 
-  SCM_VALIDATE_ICHR (1,chr);
+  SCM_VALIDATE_CHAR (1,chr);
   SCM_VALIDATE_OPORT_VALUE (2,port);
 
-  scm_putc ((int) SCM_ICHR (chr), SCM_COERCE_OUTPORT (port));
+  scm_putc ((int) SCM_CHAR (chr), SCM_COERCE_OUTPORT (port));
 #ifdef HAVE_PIPE
 # ifdef EPIPE
   if (EPIPE == errno)

@@ -102,27 +102,27 @@ extern SCM scm_print_state_vtable;
 
 extern SCM scm_tc16_port_with_ps;
 
-extern SCM scm_print_options SCM_P ((SCM setting));
-SCM scm_make_print_state SCM_P ((void));
-void scm_free_print_state SCM_P ((SCM print_state));
-extern void scm_intprint SCM_P ((long n, int radix, SCM port));
-extern void scm_ipruk SCM_P ((char *hdr, SCM ptr, SCM port));
-extern void scm_iprlist SCM_P ((char *hdr, SCM exp, int tlr, SCM port, scm_print_state *pstate));
-extern void scm_prin1 SCM_P ((SCM exp, SCM port, int writingp));
-extern void scm_iprin1 SCM_P ((SCM exp, SCM port, scm_print_state *pstate));
-extern SCM scm_write SCM_P ((SCM obj, SCM port));
-extern SCM scm_display SCM_P ((SCM obj, SCM port));
-extern SCM scm_simple_format SCM_P ((SCM port, SCM message, SCM args));
-extern SCM scm_newline SCM_P ((SCM port));
-extern SCM scm_write_char SCM_P ((SCM chr, SCM port));
-extern SCM scm_printer_apply SCM_P ((SCM proc, SCM exp, SCM port,
-				     scm_print_state *));
+extern SCM scm_print_options (SCM setting);
+SCM scm_make_print_state (void);
+void scm_free_print_state (SCM print_state);
+extern void scm_intprint (long n, int radix, SCM port);
+extern void scm_ipruk (char *hdr, SCM ptr, SCM port);
+extern void scm_iprlist (char *hdr, SCM exp, int tlr, SCM port, scm_print_state *pstate);
+extern void scm_prin1 (SCM exp, SCM port, int writingp);
+extern void scm_iprin1 (SCM exp, SCM port, scm_print_state *pstate);
+extern SCM scm_write (SCM obj, SCM port);
+extern SCM scm_display (SCM obj, SCM port);
+extern SCM scm_simple_format (SCM port, SCM message, SCM args);
+extern SCM scm_newline (SCM port);
+extern SCM scm_write_char (SCM chr, SCM port);
+extern SCM scm_printer_apply (SCM proc, SCM exp, SCM port,
+                              scm_print_state *);
 extern SCM scm_port_with_print_state (SCM port, SCM pstate);
 extern SCM scm_get_print_state (SCM port);
-extern int scm_valid_oport_value_p SCM_P ((SCM val));
-extern void scm_init_print SCM_P ((void));
+extern int scm_valid_oport_value_p (SCM val);
+extern void scm_init_print (void);
 
 #ifdef GUILE_DEBUG
-extern SCM scm_current_pstate SCM_P ((void));
+extern SCM scm_current_pstate (void);
 #endif 
 #endif  /* PRINTH */

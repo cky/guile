@@ -61,15 +61,15 @@
 
 
 
-extern SCM scm_make_weak_vector SCM_P ((SCM k, SCM fill));
-extern SCM scm_weak_vector SCM_P ((SCM l));
-extern SCM scm_weak_vector_p SCM_P ((SCM x));
-extern SCM scm_make_weak_key_hash_table SCM_P ((SCM k));
-extern SCM scm_make_weak_value_hash_table SCM_P ((SCM k));
-extern SCM scm_make_doubly_weak_hash_table SCM_P ((SCM k));
-extern SCM scm_weak_key_hash_table_p SCM_P ((SCM x));
-extern SCM scm_weak_value_hash_table_p SCM_P ((SCM x));
-extern SCM scm_doubly_weak_hash_table_p SCM_P ((SCM x));
-extern void scm_init_weaks SCM_P ((void));
+extern SCM scm_make_weak_vector (SCM k, SCM fill);
+extern SCM scm_weak_vector (SCM l);
+extern SCM scm_weak_vector_p (SCM x);
+extern SCM scm_make_weak_key_hash_table (SCM k);
+extern SCM scm_make_weak_value_hash_table (SCM k);
+extern SCM scm_make_doubly_weak_hash_table (SCM k);
+extern SCM scm_weak_key_hash_table_p (SCM x);
+extern SCM scm_weak_value_hash_table_p (SCM x);
+extern SCM scm_doubly_weak_hash_table_p (SCM x);
+extern void scm_init_weaks (void);
 
 #endif  /* WEAKSH */

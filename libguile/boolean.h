@@ -68,8 +68,8 @@
 
 
 
-extern SCM scm_not SCM_P ((SCM x));
-extern SCM scm_boolean_p SCM_P ((SCM obj));
-extern void scm_init_boolean SCM_P ((void));
+extern SCM scm_not (SCM x);
+extern SCM scm_boolean_p (SCM obj);
+extern void scm_init_boolean (void);
 
 #endif  /* BOOLEANH */

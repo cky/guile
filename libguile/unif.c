@@ -161,12 +161,12 @@ scm_make_uve (long k, SCM prot)
       i = sizeof (long) * ((k + SCM_LONG_BIT - 1) / SCM_LONG_BIT);
       type = scm_tc7_bvect;
     }
-  else if (SCM_ICHRP (prot) && (prot == SCM_MAKICHR ('\0')))
+  else if (SCM_CHARP (prot) && (prot == SCM_MAKE_CHAR ('\0')))
     {
       i = sizeof (char) * k;
       type = scm_tc7_byvect;
     }    
-  else if (SCM_ICHRP (prot))
+  else if (SCM_CHARP (prot))
     {
       i = sizeof (char) * k;
       type = scm_tc7_string;
@@ -295,9 +295,9 @@ loop:
     case scm_tc7_bvect:
       return nprot || SCM_BOOL(SCM_BOOL_T==prot);
     case scm_tc7_string:
-      return nprot || SCM_BOOL(SCM_ICHRP(prot) && (prot != SCM_MAKICHR('\0')));
+      return nprot || SCM_BOOL(SCM_CHARP(prot) && (prot != SCM_MAKE_CHAR('\0')));
     case scm_tc7_byvect:
-      return nprot || SCM_BOOL(prot == SCM_MAKICHR('\0'));
+      return nprot || SCM_BOOL(prot == SCM_MAKE_CHAR('\0'));
     case scm_tc7_uvect:
       return nprot || SCM_BOOL(SCM_INUMP(prot) && SCM_INUM(prot)>0);
     case scm_tc7_ivect:
@@ -923,7 +923,7 @@ SCM_DEFINE (scm_enclose_array, "enclose-array", 0, 0, 1,
       break;
     }
   noutr = ndim - ninr;
-  axv = scm_make_string (SCM_MAKINUM (ndim), SCM_MAKICHR (0));
+  axv = scm_make_string (SCM_MAKINUM (ndim), SCM_MAKE_CHAR (0));
   SCM_ASSERT (0 <= noutr && 0 <= ninr, scm_makfrom0str (FUNC_NAME),
 	      SCM_WNA, NULL);
   res = scm_make_ra (noutr);
@@ -1101,7 +1101,7 @@ SCM_DEFINE (scm_uniform_vector_ref, "uniform-vector-ref", 2, 0, 0,
       else
 	return SCM_BOOL_F;
     case scm_tc7_string:
-      return SCM_MAKICHR (SCM_UCHARS (v)[pos]);
+      return SCM_MAKE_CHAR (SCM_UCHARS (v)[pos]);
     case scm_tc7_byvect:
       return SCM_MAKINUM (((char *)SCM_CHARS (v))[pos]);
 # ifdef SCM_INUMS_ONLY
@@ -1156,7 +1156,7 @@ scm_cvref (SCM v, scm_sizet pos, SCM last)
       else
 	return SCM_BOOL_F;
     case scm_tc7_string:
-      return SCM_MAKICHR (SCM_UCHARS (v)[pos]);
+      return SCM_MAKE_CHAR (SCM_UCHARS (v)[pos]);
     case scm_tc7_byvect:
       return SCM_MAKINUM (((char *)SCM_CHARS (v))[pos]);
 # ifdef SCM_INUMS_ONLY
@@ -1277,12 +1277,12 @@ SCM_DEFINE (scm_array_set_x, "array-set!", 2, 0, 1,
       badobj:SCM_WTA (2,obj);
       break;
     case scm_tc7_string:
-      SCM_ASRTGO (SCM_ICHRP (obj), badobj);
-      SCM_UCHARS (v)[pos] = SCM_ICHR (obj);
+      SCM_ASRTGO (SCM_CHARP (obj), badobj);
+      SCM_UCHARS (v)[pos] = SCM_CHAR (obj);
       break;
     case scm_tc7_byvect:
-      if (SCM_ICHRP (obj))
-	obj = SCM_MAKINUM ((char) SCM_ICHR (obj));
+      if (SCM_CHARP (obj))
+	obj = SCM_MAKINUM ((char) SCM_CHAR (obj));
       SCM_ASRTGO (SCM_INUMP (obj), badobj);
       ((char *)SCM_CHARS (v))[pos] = SCM_INUM (obj);
       break;
@@ -2289,12 +2289,12 @@ tail:
       break;
     case scm_tc7_string:
       if (n-- > 0)
-	scm_iprin1 (SCM_MAKICHR (SCM_UCHARS (ra)[j]), port, pstate);
+	scm_iprin1 (SCM_MAKE_CHAR (SCM_UCHARS (ra)[j]), port, pstate);
       if (SCM_WRITINGP (pstate))
 	for (j += inc; n-- > 0; j += inc)
 	  {
 	    scm_putc (' ', port);
-	    scm_iprin1 (SCM_MAKICHR (SCM_UCHARS (ra)[j]), port, pstate);
+	    scm_iprin1 (SCM_MAKE_CHAR (SCM_UCHARS (ra)[j]), port, pstate);
 	  }
       else
 	for (j += inc; n-- > 0; j += inc)
@@ -2524,9 +2524,9 @@ loop:
     case scm_tc7_bvect:
       return SCM_BOOL_T;
     case scm_tc7_string:
-      return SCM_MAKICHR ('a');
+      return SCM_MAKE_CHAR ('a');
     case scm_tc7_byvect:
-      return SCM_MAKICHR ('\0');
+      return SCM_MAKE_CHAR ('\0');
     case scm_tc7_uvect:
       return SCM_MAKINUM (1L);
     case scm_tc7_ivect:

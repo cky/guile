@@ -73,7 +73,7 @@ sf_flush (SCM port)
   if (pt->write_pos > pt->write_buf)
     {
       /* write the byte. */
-      scm_apply (SCM_VELTS (stream)[0], SCM_MAKICHR (*pt->write_buf),
+      scm_apply (SCM_VELTS (stream)[0], SCM_MAKE_CHAR (*pt->write_buf),
 		 scm_listofnull);
       pt->write_pos = pt->write_buf;
   
@@ -111,11 +111,11 @@ sf_fill_input (SCM port)
   ans = scm_apply (SCM_VELTS (p)[3], SCM_EOL, SCM_EOL); /* get char.  */
   if (SCM_FALSEP (ans) || SCM_EOF_OBJECT_P (ans))
     return EOF;
-  SCM_ASSERT (SCM_ICHRP (ans), ans, SCM_ARG1, "sf_fill_input");
+  SCM_ASSERT (SCM_CHARP (ans), ans, SCM_ARG1, "sf_fill_input");
   {
     scm_port *pt = SCM_PTAB_ENTRY (port);    
 
-    *pt->read_buf = SCM_ICHR (ans);
+    *pt->read_buf = SCM_CHAR (ans);
     pt->read_pos = pt->read_buf;
     pt->read_end = pt->read_buf + 1;
     return *pt->read_buf;

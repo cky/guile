@@ -762,7 +762,7 @@ SCM_DEFINE (scm_read_char, "read-char", 0, 1, 0,
   c = scm_getc (port);
   if (EOF == c)
     return SCM_EOF_VAL;
-  return SCM_MAKICHR (c);
+  return SCM_MAKE_CHAR (c);
 }
 #undef FUNC_NAME
 
@@ -996,7 +996,7 @@ SCM_DEFINE (scm_peek_char, "peek-char", 0, 1, 0,
   if (EOF == c)
     return SCM_EOF_VAL;
   scm_ungetc (c, port);
-  return SCM_MAKICHR (c);
+  return SCM_MAKE_CHAR (c);
 }
 #undef FUNC_NAME
 
@@ -1010,13 +1010,13 @@ SCM_DEFINE (scm_unread_char, "unread-char", 2, 0, 0,
 {
   int c;
 
-  SCM_VALIDATE_ICHR (1,cobj);
+  SCM_VALIDATE_CHAR (1,cobj);
   if (SCM_UNBNDP (port))
     port = scm_cur_inp;
   else
     SCM_VALIDATE_OPINPORT (2,port);
 
-  c = SCM_ICHR (cobj);
+  c = SCM_CHAR (cobj);
 
   scm_ungetc (c, port);
   return cobj;

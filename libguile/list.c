@@ -180,10 +180,20 @@ SCM_DEFINE (scm_length, "length", 1, 0, 0,
 
 SCM_DEFINE (scm_append, "append", 0, 0, 1, 
             (SCM args),
-	    "A destructive version of @code{append} (@pxref{Pairs and Lists,,,r4rs,\n"
-	    "The Revised^4 Report on Scheme}).  The cdr field of each list's final\n"
-	    "pair is changed to point to the head of the next list, so no consing is\n"
-	    "performed.  Return a pointer to the mutated list.")
+            "Returns a list consisting of the elements of the first LIST\n"
+            "followed by the elements of the other LISTs.\n"
+            "\n"
+            "  (append '(x) '(y))          =>  (x y)\n"
+            "  (append '(a) '(b c d))      =>  (a b c d)\n"
+            "  (append '(a (b)) '((c)))    =>  (a (b) (c))\n"
+            "\n"
+            "The resulting list is always newly allocated, except that it shares\n"
+            "structure with the last LIST argument.  The last argument may\n"
+            "actually be any object; an improper list results if the last\n"
+            "argument is not a proper list.\n"
+
+            "  (append '(a b) '(c . d))    =>  (a b c . d)\n"
+            "  (append '() 'a)             =>  a\n")
 #define FUNC_NAME s_scm_append
 {
   SCM res = SCM_EOL;
@@ -214,7 +224,10 @@ SCM_DEFINE (scm_append, "append", 0, 0, 1,
 
 SCM_DEFINE (scm_append_x, "append!", 0, 0, 1, 
             (SCM args),
-            "")
+	    "A destructive version of @code{append} (@pxref{Pairs and Lists,,,r4rs,\n"
+	    "The Revised^4 Report on Scheme}).  The cdr field of each list's final\n"
+	    "pair is changed to point to the head of the next list, so no consing is\n"
+	    "performed.  Return a pointer to the mutated list.")
 #define FUNC_NAME s_scm_append_x
 {
   SCM arg;

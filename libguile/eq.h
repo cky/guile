@@ -47,9 +47,9 @@
 
 
 
-extern SCM scm_eq_p SCM_P ((SCM x, SCM y));
-extern SCM scm_eqv_p SCM_P ((SCM x, SCM y));
-extern SCM scm_equal_p SCM_P ((SCM x, SCM y));
-extern void scm_init_eq SCM_P ((void));
+extern SCM scm_eq_p (SCM x, SCM y);
+extern SCM scm_eqv_p (SCM x, SCM y);
+extern SCM scm_equal_p (SCM x, SCM y);
+extern void scm_init_eq (void);
 
 #endif  /* EQH */

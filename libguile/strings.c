@@ -60,15 +60,13 @@ SCM_DEFINE (scm_string_p, "string?", 1, 0, 0,
 	    "Returns #t iff OBJ is a string, else returns #f.")
 #define FUNC_NAME s_scm_string_p
 {
-  if (SCM_IMP (obj))
-    return SCM_BOOL_F;
   return SCM_BOOL(SCM_STRINGP (obj));
 }
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_read_only_string_p, "read-only-string?", 1, 0, 0, 
            (SCM x),
-	    "Return true of OBJ can be read as a string,\n\n"
+	    "Return true if OBJ can be read as a string,\n\n"
 	    "This illustrates the difference between @code{string?} and\n"
 	    "@code{read-only-string?}:\n\n"
 	    "@example\n"
@@ -79,8 +77,6 @@ SCM_DEFINE (scm_read_only_string_p, "read-only-string?", 1, 0, 0,
 	    "@end example")
 #define FUNC_NAME s_scm_read_only_string_p
 {
-  if (SCM_IMP (x))
-    return SCM_BOOL_F;
   return SCM_BOOL(SCM_ROSTRINGP (x));
 }
 #undef FUNC_NAME
@@ -108,8 +104,8 @@ SCM_DEFINE (scm_string, "string", 0, 0, 1,
       {
 	SCM elt = SCM_CAR (chrs);
 
-	SCM_VALIDATE_ICHR (SCM_ARGn, elt);
-	*data++ = SCM_ICHR (elt);
+	SCM_VALIDATE_CHAR (SCM_ARGn, elt);
+	*data++ = SCM_CHAR (elt);
 	chrs = SCM_CDR (chrs);
       }
   }
@@ -227,10 +223,10 @@ SCM_DEFINE (scm_make_string, "make-string", 1, 1, 0,
   res = scm_makstr (i, 0);
   if (!SCM_UNBNDP (chr))
     {
-      SCM_VALIDATE_ICHR (2,chr);
+      SCM_VALIDATE_CHAR (2,chr);
       {
 	unsigned char *dst = SCM_UCHARS (res);
-	char c = SCM_ICHR (chr);
+	char c = SCM_CHAR (chr);
 	
 	memset (dst, c, i);
       }
@@ -260,7 +256,7 @@ SCM_DEFINE (scm_string_ref, "string-ref", 2, 0, 0,
   SCM_VALIDATE_ROSTRING (1, str);
   SCM_VALIDATE_INUM_COPY (2, k, idx);
   SCM_ASSERT_RANGE (2, k, idx >= 0 && idx < SCM_ROLENGTH (str));
-  return SCM_MAKICHR (SCM_ROUCHARS (str)[idx]);
+  return SCM_MAKE_CHAR (SCM_ROUCHARS (str)[idx]);
 }
 #undef FUNC_NAME
 
@@ -272,8 +268,8 @@ SCM_DEFINE (scm_string_set_x, "string-set!", 3, 0, 0,
 {
   SCM_VALIDATE_RWSTRING (1,str);
   SCM_VALIDATE_INUM_RANGE (2,k,0,SCM_LENGTH(str));
-  SCM_VALIDATE_ICHR (3,chr);
-  SCM_UCHARS (str)[SCM_INUM (k)] = SCM_ICHR (chr);
+  SCM_VALIDATE_CHAR (3,chr);
+  SCM_UCHARS (str)[SCM_INUM (k)] = SCM_CHAR (chr);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME

@@ -66,19 +66,19 @@ extern unsigned int scm_mask_ints;
 extern SCM scm_gc_async;
 
 
-extern int scm_asyncs_pending SCM_P ((void));
-extern void scm_async_click SCM_P ((void));
-extern void scm_switch SCM_P ((void));
-extern SCM scm_async SCM_P ((SCM thunk));
-extern SCM scm_system_async SCM_P ((SCM thunk));
-extern SCM scm_async_mark SCM_P ((SCM a));
-extern SCM scm_system_async_mark SCM_P ((SCM a));
-extern SCM scm_run_asyncs SCM_P ((SCM list_of_a));
-extern SCM scm_noop SCM_P ((SCM args));
-extern SCM scm_set_tick_rate SCM_P ((SCM n));
-extern SCM scm_set_switch_rate SCM_P ((SCM n));
-extern SCM scm_unmask_signals SCM_P ((void));
-extern SCM scm_mask_signals SCM_P ((void));
-extern void scm_init_async SCM_P ((void));
+extern int scm_asyncs_pending (void);
+extern void scm_async_click (void);
+extern void scm_switch (void);
+extern SCM scm_async (SCM thunk);
+extern SCM scm_system_async (SCM thunk);
+extern SCM scm_async_mark (SCM a);
+extern SCM scm_system_async_mark (SCM a);
+extern SCM scm_run_asyncs (SCM list_of_a);
+extern SCM scm_noop (SCM args);
+extern SCM scm_set_tick_rate (SCM n);
+extern SCM scm_set_switch_rate (SCM n);
+extern SCM scm_unmask_signals (void);
+extern SCM scm_mask_signals (void);
+extern void scm_init_async (void);
 
 #endif  /* ASYNCH */

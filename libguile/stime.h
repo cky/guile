@@ -47,17 +47,17 @@
 #include "libguile/__scm.h"
 
 
-extern SCM scm_get_internal_real_time SCM_P ((void));
-extern SCM scm_get_internal_run_time SCM_P ((void));
-extern SCM scm_current_time SCM_P ((void));
+extern SCM scm_get_internal_real_time (void);
+extern SCM scm_get_internal_run_time (void);
+extern SCM scm_current_time (void);
 extern SCM scm_gettimeofday (void);
 extern SCM scm_localtime (SCM time, SCM zone);
 extern SCM scm_gmtime (SCM time);
 extern SCM scm_mktime (SCM sbd_time, SCM zone);
 extern SCM scm_tzset (void);
 extern SCM scm_times (void);
-extern SCM scm_strftime SCM_P ((SCM format, SCM stime));
-extern SCM scm_strptime SCM_P ((SCM format, SCM string));
-extern void scm_init_stime SCM_P ((void));
+extern SCM scm_strftime (SCM format, SCM stime);
+extern SCM scm_strptime (SCM format, SCM string);
+extern void scm_init_stime (void);
 
 #endif  /* STIMEH */

@@ -90,20 +90,20 @@ SCM_FLUID_NUM, not the fluid itself. */
 #define SCM_FAST_FLUID_REF(n) (SCM_VELTS(scm_root->fluids)[n])
 #define SCM_FAST_FLUID_SET_X(n, val) (SCM_VELTS(scm_root->fluids)[n] = val)
 
-SCM scm_make_fluid SCM_P ((void));
-SCM scm_fluid_p SCM_P ((SCM fl));
-SCM scm_fluid_ref SCM_P ((SCM fluid));
-SCM scm_fluid_set_x SCM_P ((SCM fluid, SCM value));
+SCM scm_make_fluid (void);
+SCM scm_fluid_p (SCM fl);
+SCM scm_fluid_ref (SCM fluid);
+SCM scm_fluid_set_x (SCM fluid, SCM value);
 
-SCM scm_internal_with_fluids SCM_P ((SCM fluids, SCM vals,
-				     SCM (*cproc)(void *), void *cdata));
-SCM scm_with_fluids SCM_P ((SCM fluids, SCM vals, SCM thunk));
+SCM scm_internal_with_fluids (SCM fluids, SCM vals,
+                              SCM (*cproc)(void *), void *cdata);
+SCM scm_with_fluids (SCM fluids, SCM vals, SCM thunk);
 
-SCM scm_make_initial_fluids SCM_P ((void));
-void scm_copy_fluids SCM_P ((scm_root_state *));
-void scm_swap_fluids SCM_P ((SCM fluids, SCM vals));
-void scm_swap_fluids_reverse SCM_P ((SCM fluids, SCM vals));
+SCM scm_make_initial_fluids (void);
+void scm_copy_fluids (scm_root_state *);
+void scm_swap_fluids (SCM fluids, SCM vals);
+void scm_swap_fluids_reverse (SCM fluids, SCM vals);
 
-void scm_init_fluids SCM_P ((void));
+void scm_init_fluids (void);
 
 #endif /* !FLUIDSH */

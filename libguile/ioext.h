@@ -48,18 +48,18 @@
 
 
 
-extern SCM scm_read_delimited_x SCM_P ((SCM delims, SCM buf, SCM gobble, SCM port, SCM offset, SCM length));
+extern SCM scm_read_delimited_x (SCM delims, SCM buf, SCM gobble, SCM port, SCM offset, SCM length);
 extern SCM scm_read_line (SCM port);
-extern SCM scm_write_line SCM_P ((SCM obj, SCM port));
-extern SCM scm_ftell SCM_P ((SCM object));
-extern SCM scm_fseek SCM_P ((SCM object, SCM offset, SCM whence));
-extern SCM scm_redirect_port SCM_P ((SCM into_pt, SCM from_pt));
+extern SCM scm_write_line (SCM obj, SCM port);
+extern SCM scm_ftell (SCM object);
+extern SCM scm_fseek (SCM object, SCM offset, SCM whence);
+extern SCM scm_redirect_port (SCM into_pt, SCM from_pt);
 extern SCM scm_dup_to_fdes (SCM fd_or_port, SCM newfd);
-extern SCM scm_fileno SCM_P ((SCM port));
-extern SCM scm_isatty_p SCM_P ((SCM port));
-extern SCM scm_fdopen SCM_P ((SCM fdes, SCM modes));
-extern SCM scm_primitive_move_to_fdes SCM_P ((SCM port, SCM fd));
-extern SCM scm_fdes_to_ports SCM_P ((SCM fd));
-extern void scm_init_ioext SCM_P ((void));
+extern SCM scm_fileno (SCM port);
+extern SCM scm_isatty_p (SCM port);
+extern SCM scm_fdopen (SCM fdes, SCM modes);
+extern SCM scm_primitive_move_to_fdes (SCM port, SCM fd);
+extern SCM scm_fdes_to_ports (SCM fd);
+extern void scm_init_ioext (void);
 
 #endif  /* IOEXTH */

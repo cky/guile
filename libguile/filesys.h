@@ -57,35 +57,35 @@ extern long scm_tc16_dir;
 #define SCM_OPDIRP(x) (SCM_NIMP(x) && (SCM_CAR(x)==(scm_tc16_dir | SCM_OPN)))
 
 
-extern SCM scm_chown SCM_P ((SCM object, SCM owner, SCM group));
-extern SCM scm_chmod SCM_P ((SCM object, SCM mode));
-extern SCM scm_umask SCM_P ((SCM mode));
+extern SCM scm_chown (SCM object, SCM owner, SCM group);
+extern SCM scm_chmod (SCM object, SCM mode);
+extern SCM scm_umask (SCM mode);
 extern SCM scm_open_fdes (SCM path, SCM flags, SCM mode);
 extern SCM scm_open (SCM path, SCM flags, SCM mode);
 extern SCM scm_close (SCM fd_or_port);
-extern SCM scm_stat SCM_P ((SCM object));
-extern SCM scm_link SCM_P ((SCM oldpath, SCM newpath));
-extern SCM scm_rename SCM_P ((SCM oldname, SCM newname));
-extern SCM scm_delete_file SCM_P ((SCM str));
-extern SCM scm_mkdir SCM_P ((SCM path, SCM mode));
-extern SCM scm_rmdir SCM_P ((SCM path));
+extern SCM scm_stat (SCM object);
+extern SCM scm_link (SCM oldpath, SCM newpath);
+extern SCM scm_rename (SCM oldname, SCM newname);
+extern SCM scm_delete_file (SCM str);
+extern SCM scm_mkdir (SCM path, SCM mode);
+extern SCM scm_rmdir (SCM path);
 extern SCM scm_directory_stream_p (SCM obj);
-extern SCM scm_opendir SCM_P ((SCM dirname));
-extern SCM scm_readdir SCM_P ((SCM port));
-extern SCM scm_rewinddir SCM_P ((SCM port));
-extern SCM scm_closedir SCM_P ((SCM port));
-extern SCM scm_chdir SCM_P ((SCM str));
-extern SCM scm_getcwd SCM_P ((void));
-extern SCM scm_select SCM_P ((SCM reads, SCM writes, SCM excepts, SCM secs, SCM msecs));
+extern SCM scm_opendir (SCM dirname);
+extern SCM scm_readdir (SCM port);
+extern SCM scm_rewinddir (SCM port);
+extern SCM scm_closedir (SCM port);
+extern SCM scm_chdir (SCM str);
+extern SCM scm_getcwd (void);
+extern SCM scm_select (SCM reads, SCM writes, SCM excepts, SCM secs, SCM msecs);
 extern SCM scm_fcntl (SCM object, SCM cmd, SCM value);
 extern SCM scm_fsync (SCM object);
-extern SCM scm_symlink SCM_P ((SCM oldpath, SCM newpath));
-extern SCM scm_readlink SCM_P ((SCM path));
-extern SCM scm_lstat SCM_P ((SCM str));
-extern SCM scm_copy_file SCM_P ((SCM oldfile, SCM newfile));
-extern SCM scm_dirname SCM_P ((SCM filename));
-extern SCM scm_basename SCM_P ((SCM filename, SCM suffix));
+extern SCM scm_symlink (SCM oldpath, SCM newpath);
+extern SCM scm_readlink (SCM path);
+extern SCM scm_lstat (SCM str);
+extern SCM scm_copy_file (SCM oldfile, SCM newfile);
+extern SCM scm_dirname (SCM filename);
+extern SCM scm_basename (SCM filename, SCM suffix);
 
-extern void scm_init_filesys SCM_P ((void));
+extern void scm_init_filesys (void);
 
 #endif  /* FILESYSH */

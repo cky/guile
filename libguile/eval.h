@@ -60,7 +60,7 @@ extern int scm_eval_stack;
 
 extern scm_option scm_evaluator_trap_table[];
 
-extern SCM scm_eval_options_interface SCM_P ((SCM setting));
+extern SCM scm_eval_options_interface (SCM setting);
 
 #define SCM_TRAPS_P	       scm_evaluator_trap_table[0].val
 #define SCM_ENTER_FRAME_P      scm_evaluator_trap_table[1].val
@@ -168,34 +168,34 @@ extern long scm_tc16_macro;
 
 
 
-extern SCM * scm_ilookup SCM_P ((SCM iloc, SCM env));
-extern SCM * scm_lookupcar SCM_P ((SCM vloc, SCM genv, int check));
-extern SCM scm_unmemocar SCM_P ((SCM form, SCM env));
-extern SCM scm_unmemocopy SCM_P ((SCM form, SCM env));
-extern SCM scm_eval_car SCM_P ((SCM pair, SCM env));
+extern SCM * scm_ilookup (SCM iloc, SCM env);
+extern SCM * scm_lookupcar (SCM vloc, SCM genv, int check);
+extern SCM scm_unmemocar (SCM form, SCM env);
+extern SCM scm_unmemocopy (SCM form, SCM env);
+extern SCM scm_eval_car (SCM pair, SCM env);
 extern SCM scm_eval_body (SCM code, SCM env);
-extern SCM scm_eval_args SCM_P ((SCM i, SCM env, SCM proc));
-extern SCM scm_deval_args SCM_P ((SCM l, SCM env, SCM proc, SCM *lloc));
-extern SCM scm_m_quote SCM_P ((SCM xorig, SCM env));
-extern SCM scm_m_begin SCM_P ((SCM xorig, SCM env));
-extern SCM scm_m_if SCM_P ((SCM xorig, SCM env));
-extern SCM scm_m_set_x SCM_P ((SCM xorig, SCM env));
-extern SCM scm_m_vref SCM_P ((SCM xorig, SCM env));
-extern SCM scm_m_vset SCM_P ((SCM xorig, SCM env));
-extern SCM scm_m_and SCM_P ((SCM xorig, SCM env));
-extern SCM scm_m_or SCM_P ((SCM xorig, SCM env));
-extern SCM scm_m_case SCM_P ((SCM xorig, SCM env));
-extern SCM scm_m_cond SCM_P ((SCM xorig, SCM env));
-extern SCM scm_m_lambda SCM_P ((SCM xorig, SCM env));
-extern SCM scm_m_letstar SCM_P ((SCM xorig, SCM env));
-extern SCM scm_m_do SCM_P ((SCM xorig, SCM env));
-extern SCM scm_m_quasiquote SCM_P ((SCM xorig, SCM env));
-extern SCM scm_m_delay SCM_P ((SCM xorig, SCM env));
-extern SCM scm_m_define SCM_P ((SCM x, SCM env));
-extern SCM scm_m_letrec SCM_P ((SCM xorig, SCM env));
-extern SCM scm_m_let SCM_P ((SCM xorig, SCM env));
-extern SCM scm_m_apply SCM_P ((SCM xorig, SCM env));
-extern SCM scm_m_cont SCM_P ((SCM xorig, SCM env));
+extern SCM scm_eval_args (SCM i, SCM env, SCM proc);
+extern SCM scm_deval_args (SCM l, SCM env, SCM proc, SCM *lloc);
+extern SCM scm_m_quote (SCM xorig, SCM env);
+extern SCM scm_m_begin (SCM xorig, SCM env);
+extern SCM scm_m_if (SCM xorig, SCM env);
+extern SCM scm_m_set_x (SCM xorig, SCM env);
+extern SCM scm_m_vref (SCM xorig, SCM env);
+extern SCM scm_m_vset (SCM xorig, SCM env);
+extern SCM scm_m_and (SCM xorig, SCM env);
+extern SCM scm_m_or (SCM xorig, SCM env);
+extern SCM scm_m_case (SCM xorig, SCM env);
+extern SCM scm_m_cond (SCM xorig, SCM env);
+extern SCM scm_m_lambda (SCM xorig, SCM env);
+extern SCM scm_m_letstar (SCM xorig, SCM env);
+extern SCM scm_m_do (SCM xorig, SCM env);
+extern SCM scm_m_quasiquote (SCM xorig, SCM env);
+extern SCM scm_m_delay (SCM xorig, SCM env);
+extern SCM scm_m_define (SCM x, SCM env);
+extern SCM scm_m_letrec (SCM xorig, SCM env);
+extern SCM scm_m_let (SCM xorig, SCM env);
+extern SCM scm_m_apply (SCM xorig, SCM env);
+extern SCM scm_m_cont (SCM xorig, SCM env);
 extern SCM scm_m_nil_cond (SCM xorig, SCM env);
 extern SCM scm_m_nil_ify (SCM xorig, SCM env);
 extern SCM scm_m_t_ify (SCM xorig, SCM env);
@@ -204,26 +204,26 @@ extern SCM scm_m_0_ify (SCM xorig, SCM env);
 extern SCM scm_m_1_ify (SCM xorig, SCM env);
 extern SCM scm_m_atfop (SCM xorig, SCM env);
 extern SCM scm_m_atbind (SCM xorig, SCM env);
-extern int scm_badargsp SCM_P ((SCM formals, SCM args));
-extern SCM scm_ceval SCM_P ((SCM x, SCM env));
-extern SCM scm_deval SCM_P ((SCM x, SCM env));
-extern SCM scm_nconc2last SCM_P ((SCM lst));
-extern SCM scm_apply SCM_P ((SCM proc, SCM arg1, SCM args));
-extern SCM scm_dapply SCM_P ((SCM proc, SCM arg1, SCM args));
-extern SCM scm_m_expand_body SCM_P ((SCM xorig, SCM env));
-extern SCM scm_macroexp SCM_P ((SCM x, SCM env));
-extern SCM scm_map SCM_P ((SCM proc, SCM arg1, SCM args));
-extern SCM scm_for_each SCM_P ((SCM proc, SCM arg1, SCM args));
-extern SCM scm_closure SCM_P ((SCM code, SCM env));
-extern SCM scm_makprom SCM_P ((SCM code));
-extern SCM scm_force SCM_P ((SCM x));
-extern SCM scm_promise_p SCM_P ((SCM x));
+extern int scm_badargsp (SCM formals, SCM args);
+extern SCM scm_ceval (SCM x, SCM env);
+extern SCM scm_deval (SCM x, SCM env);
+extern SCM scm_nconc2last (SCM lst);
+extern SCM scm_apply (SCM proc, SCM arg1, SCM args);
+extern SCM scm_dapply (SCM proc, SCM arg1, SCM args);
+extern SCM scm_m_expand_body (SCM xorig, SCM env);
+extern SCM scm_macroexp (SCM x, SCM env);
+extern SCM scm_map (SCM proc, SCM arg1, SCM args);
+extern SCM scm_for_each (SCM proc, SCM arg1, SCM args);
+extern SCM scm_closure (SCM code, SCM env);
+extern SCM scm_makprom (SCM code);
+extern SCM scm_force (SCM x);
+extern SCM scm_promise_p (SCM x);
 extern SCM scm_cons_source (SCM xorig, SCM x, SCM y);
-extern SCM scm_copy_tree SCM_P ((SCM obj));
-extern SCM scm_eval_3 SCM_P ((SCM obj, int copyp, SCM env));
-extern SCM scm_eval2 SCM_P ((SCM obj, SCM env_thunk));
-extern SCM scm_eval SCM_P ((SCM obj));
-extern SCM scm_eval_x SCM_P ((SCM obj));
-extern void scm_init_eval SCM_P ((void));
+extern SCM scm_copy_tree (SCM obj);
+extern SCM scm_eval_3 (SCM obj, int copyp, SCM env);
+extern SCM scm_eval2 (SCM obj, SCM env_thunk);
+extern SCM scm_eval (SCM obj);
+extern SCM scm_eval_x (SCM obj);
+extern void scm_init_eval (void);
 
 #endif  /* EVALH */

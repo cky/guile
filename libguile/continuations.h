@@ -70,9 +70,9 @@ typedef struct
 
 
 
-extern SCM scm_make_cont SCM_P ((SCM * answer));
-extern void scm_dynthrow SCM_P ((SCM *a));
-extern SCM scm_call_continuation SCM_P ((SCM cont, SCM val));
-extern void scm_init_continuations SCM_P ((void));
+extern SCM scm_make_cont (SCM * answer);
+extern void scm_dynthrow (SCM *a);
+extern SCM scm_call_continuation (SCM cont, SCM val);
+extern void scm_init_continuations (void);
 
 #endif  /* CONTINUATIONSH */

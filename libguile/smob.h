@@ -53,20 +53,20 @@ typedef struct scm_smob_descriptor
 {
   char *name;
   scm_sizet size;
-  SCM (*mark) SCM_P ((SCM));
-  scm_sizet (*free) SCM_P ((SCM));
-  int (*print) SCM_P ((SCM exp, SCM port, scm_print_state *pstate));
-  SCM (*equalp) SCM_P ((SCM, SCM));
+  SCM (*mark) (SCM);
+  scm_sizet (*free) (SCM);
+  int (*print) (SCM exp, SCM port, scm_print_state *pstate);
+  SCM (*equalp) (SCM, SCM);
 } scm_smob_descriptor;
 
 /* scm_smobfuns is the argument type for the obsolete function scm_newsmob */
 
 typedef struct scm_smobfuns
 {
-  SCM (*mark) SCM_P ((SCM));
-  scm_sizet (*free) SCM_P ((SCM));
-  int (*print) SCM_P ((SCM exp, SCM port, scm_print_state *pstate));
-  SCM (*equalp) SCM_P ((SCM, SCM));
+  SCM (*mark) (SCM);
+  scm_sizet (*free) (SCM);
+  int (*print) (SCM exp, SCM port, scm_print_state *pstate);
+  SCM (*equalp) (SCM, SCM);
 } scm_smobfuns;
 
 
@@ -97,9 +97,9 @@ extern scm_smob_descriptor *scm_smobs;
 
 
 
-extern SCM scm_mark0 SCM_P ((SCM ptr));
-extern SCM scm_markcdr SCM_P ((SCM ptr));
-extern scm_sizet scm_free0 SCM_P ((SCM ptr));
+extern SCM scm_mark0 (SCM ptr);
+extern SCM scm_markcdr (SCM ptr);
+extern scm_sizet scm_free0 (SCM ptr);
 extern scm_sizet scm_smob_free (SCM obj);
 extern int scm_smob_print (SCM exp, SCM port, scm_print_state *pstate);
 

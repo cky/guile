@@ -234,6 +234,6 @@ extern SCM scm_make_subclass_object (SCM c, SCM layout);
 
 extern SCM scm_i_make_class_object (SCM metaclass, SCM layout_string,
 				    unsigned long flags);
-extern void scm_init_objects SCM_P ((void));
+extern void scm_init_objects (void);
 
 #endif /* OBJECTSH */

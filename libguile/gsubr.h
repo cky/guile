@@ -59,15 +59,15 @@
 
 extern SCM scm_f_gsubr_apply;
 
-extern SCM scm_make_gsubr SCM_P ((const char *name, int req, int opt, int rst,
-				  SCM (*fcn)()));
-extern SCM scm_make_gsubr_with_generic SCM_P ((const char *name,
-					       int req,
-					       int opt,
-					       int rst,
-					       SCM (*fcn)(),
-					       SCM *gf));
-extern SCM scm_gsubr_apply SCM_P ((SCM args));
-extern void scm_init_gsubr SCM_P ((void));
+extern SCM scm_make_gsubr (const char *name, int req, int opt, int rst,
+                           SCM (*fcn)());
+extern SCM scm_make_gsubr_with_generic (const char *name,
+                                        int req,
+                                        int opt,
+                                        int rst,
+                                        SCM (*fcn)(),
+                                        SCM *gf);
+extern SCM scm_gsubr_apply (SCM args);
+extern void scm_init_gsubr (void);
 
 #endif  /* GSUBRH */

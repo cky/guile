@@ -94,7 +94,7 @@ scm_class_of (SCM x)
       return scm_class_integer;
 
     case scm_tc3_imm24:
-      if (SCM_ICHRP (x))
+      if (SCM_CHARP (x))
 	return scm_class_char;
       else
 	{

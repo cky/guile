@@ -125,13 +125,13 @@ extern SCM scm_sym_breakpoint;
 
 
 
-extern SCM scm_srcprops_to_plist SCM_P ((SCM obj));
-extern SCM scm_make_srcprops SCM_P ((int line, int col, SCM fname, SCM copy, SCM plist));
-extern SCM scm_source_property SCM_P ((SCM obj, SCM key));
-extern SCM scm_set_source_property_x SCM_P ((SCM obj, SCM key, SCM datum));
-extern SCM scm_source_properties SCM_P ((SCM obj));
-extern SCM scm_set_source_properties_x SCM_P ((SCM obj, SCM props));
-extern void scm_finish_srcprop SCM_P ((void));
-extern void scm_init_srcprop SCM_P ((void));
+extern SCM scm_srcprops_to_plist (SCM obj);
+extern SCM scm_make_srcprops (int line, int col, SCM fname, SCM copy, SCM plist);
+extern SCM scm_source_property (SCM obj, SCM key);
+extern SCM scm_set_source_property_x (SCM obj, SCM key, SCM datum);
+extern SCM scm_source_properties (SCM obj);
+extern SCM scm_set_source_properties_x (SCM obj, SCM props);
+extern void scm_finish_srcprop (void);
+extern void scm_init_srcprop (void);
 
 #endif /* SRCPROPH */

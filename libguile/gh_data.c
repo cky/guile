@@ -82,7 +82,7 @@ gh_double2scm (double x)
 SCM 
 gh_char2scm (char c)
 {
- return SCM_MAKICHR (c);
+ return SCM_MAKE_CHAR (c);
 }
 SCM 
 gh_str2scm (const char *s, int len)
@@ -254,7 +254,7 @@ gh_scm2double (SCM obj)
 char 
 gh_scm2char (SCM obj)
 {
-  return SCM_ICHR (obj);
+  return SCM_CHAR (obj);
 }
 
 /* Convert a vector, weak vector, string, substring or uniform vector

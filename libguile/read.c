@@ -371,17 +371,17 @@ tryagain_no_flush_ws:
 	  c = scm_getc (port);
 	  j = scm_read_token (c, tok_buf, port, 0);
 	  if (j == 1)
-	    return SCM_MAKICHR (c);
+	    return SCM_MAKE_CHAR (c);
 	  if (c >= '0' && c < '8')
 	    {
 	      p = scm_istr2int (SCM_CHARS (*tok_buf), (long) j, 8);
 	      if (SCM_NFALSEP (p))
-		return SCM_MAKICHR (SCM_INUM (p));
+		return SCM_MAKE_CHAR (SCM_INUM (p));
 	    }
 	  for (c = 0; c < scm_n_charnames; c++)
 	    if (scm_charnames[c]
 		&& (scm_casei_streq (scm_charnames[c], SCM_CHARS (*tok_buf))))
-	      return SCM_MAKICHR (scm_charnums[c]);
+	      return SCM_MAKE_CHAR (scm_charnums[c]);
 	  scm_wta (SCM_UNDEFINED, "unknown # object: #\\", SCM_CHARS (*tok_buf));
 
 	  /* #:SYMBOL is a syntax for keywords supported in all contexts.  */
@@ -402,7 +402,7 @@ tryagain_no_flush_ws:
 		SCM got;
 
 		got = scm_apply (sharp,
-				 SCM_MAKICHR (c),
+				 SCM_MAKE_CHAR (c),
 				 scm_acons (port, SCM_EOL, SCM_EOL));
 		if (SCM_UNSPECIFIED == got)
 		  goto unkshrp;
@@ -415,7 +415,7 @@ tryagain_no_flush_ws:
 	  }
 	unkshrp:
 	  scm_misc_error (s_scm_read, "Unknown # object: ~S",
-			  scm_listify (SCM_MAKICHR (c), SCM_UNDEFINED));
+			  scm_listify (SCM_MAKE_CHAR (c), SCM_UNDEFINED));
 	}
 
     case '"':
@@ -709,7 +709,7 @@ SCM_DEFINE (scm_read_hash_extend, "read-hash-extend", 2, 0, 0,
   SCM this;
   SCM prev;
 
-  SCM_VALIDATE_ICHR (1,chr);
+  SCM_VALIDATE_CHAR (1,chr);
   SCM_ASSERT (SCM_FALSEP (proc) || SCM_NIMP(proc), proc, SCM_ARG2,
 	      FUNC_NAME);
 
@@ -768,7 +768,7 @@ scm_get_hash_procedure (int c)
       if (SCM_NULLP (rest))
 	return SCM_BOOL_F;
   
-      if (SCM_ICHR (SCM_CAAR (rest)) == c)
+      if (SCM_CHAR (SCM_CAAR (rest)) == c)
 	return SCM_CDAR (rest);
      
       rest = SCM_CDR (rest);

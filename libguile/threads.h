@@ -66,15 +66,15 @@ extern long scm_tc16_condvar;
 #define SCM_CONDVAR_DATA(obj) ((void *) SCM_CDR (obj))
 
 /* Initialize implementation specific details of the threads support */
-void scm_threads_init SCM_P ((SCM_STACKITEM *));
-void scm_threads_mark_stacks SCM_P ((void));
-void scm_init_threads SCM_P ((SCM_STACKITEM *));
+void scm_threads_init (SCM_STACKITEM *);
+void scm_threads_mark_stacks (void);
+void scm_init_threads (SCM_STACKITEM *);
 
 /* */
-SCM scm_threads_make_mutex SCM_P ((void));
-SCM scm_threads_lock_mutex SCM_P ((SCM));
-SCM scm_threads_unlock_mutex SCM_P ((SCM));
-SCM scm_threads_monitor SCM_P ((void));
+SCM scm_threads_make_mutex (void);
+SCM scm_threads_lock_mutex (SCM);
+SCM scm_threads_unlock_mutex (SCM);
+SCM scm_threads_monitor (void);
 
 SCM scm_spawn_thread (scm_catch_body_t body, void *body_data,
 		      scm_catch_handler_t handler, void *handler_data);

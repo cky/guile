@@ -57,7 +57,7 @@ SCM_DEFINE (scm_char_p, "char?", 1, 0, 0,
 	    "Return #t iff X is a character, else #f.")
 #define FUNC_NAME s_scm_char_p
 {
-  return SCM_BOOL(SCM_ICHRP(x));
+  return SCM_BOOL(SCM_CHARP(x));
 }
 #undef FUNC_NAME
 
@@ -66,9 +66,9 @@ SCM_DEFINE1 (scm_char_eq_p, "char=?", scm_tc7_rpsubr,
 	     "Return #t iff X is the same character as Y, else #f.")
 #define FUNC_NAME s_scm_char_eq_p
 {
-  SCM_VALIDATE_ICHR (1,x);
-  SCM_VALIDATE_ICHR (2,y);
-  return SCM_BOOL(SCM_ICHR(x) == SCM_ICHR(y));
+  SCM_VALIDATE_CHAR (1,x);
+  SCM_VALIDATE_CHAR (2,y);
+  return SCM_BOOL(SCM_CHAR(x) == SCM_CHAR(y));
 }
 #undef FUNC_NAME
 
@@ -78,9 +78,9 @@ SCM_DEFINE1 (scm_char_less_p, "char<?", scm_tc7_rpsubr,
 	     "Return #t iff X is less than Y in the Ascii sequence, else #f.")
 #define FUNC_NAME s_scm_char_less_p
 {
-  SCM_VALIDATE_ICHR (1,x);
-  SCM_VALIDATE_ICHR (2,y);
-  return SCM_BOOL(SCM_ICHR(x) < SCM_ICHR(y));
+  SCM_VALIDATE_CHAR (1,x);
+  SCM_VALIDATE_CHAR (2,y);
+  return SCM_BOOL(SCM_CHAR(x) < SCM_CHAR(y));
 }
 #undef FUNC_NAME
 
@@ -89,9 +89,9 @@ SCM_DEFINE1 (scm_char_leq_p, "char<=?", scm_tc7_rpsubr,
 	     "Return #t iff X is less than or equal to Y in the Ascii sequence, else #f.")
 #define FUNC_NAME s_scm_char_leq_p
 {
-  SCM_VALIDATE_ICHR (1,x);
-  SCM_VALIDATE_ICHR (2,y);
-  return SCM_BOOL(SCM_ICHR(x) <= SCM_ICHR(y));
+  SCM_VALIDATE_CHAR (1,x);
+  SCM_VALIDATE_CHAR (2,y);
+  return SCM_BOOL(SCM_CHAR(x) <= SCM_CHAR(y));
 }
 #undef FUNC_NAME
 
@@ -100,9 +100,9 @@ SCM_DEFINE1 (scm_char_gr_p, "char>?", scm_tc7_rpsubr,
 	     "Return #t iff X is greater than Y in the Ascii sequence, else #f.")
 #define FUNC_NAME s_scm_char_gr_p
 {
-  SCM_VALIDATE_ICHR (1,x);
-  SCM_VALIDATE_ICHR (2,y);
-  return SCM_BOOL(SCM_ICHR(x) > SCM_ICHR(y));
+  SCM_VALIDATE_CHAR (1,x);
+  SCM_VALIDATE_CHAR (2,y);
+  return SCM_BOOL(SCM_CHAR(x) > SCM_CHAR(y));
 }
 #undef FUNC_NAME
 
@@ -111,9 +111,9 @@ SCM_DEFINE1 (scm_char_geq_p, "char>=?", scm_tc7_rpsubr,
 	     "Return #t iff X is greater than or equal to Y in the Ascii sequence, else #f.")
 #define FUNC_NAME s_scm_char_geq_p
 {
-  SCM_VALIDATE_ICHR (1,x);
-  SCM_VALIDATE_ICHR (2,y);
-  return SCM_BOOL(SCM_ICHR(x) >= SCM_ICHR(y));
+  SCM_VALIDATE_CHAR (1,x);
+  SCM_VALIDATE_CHAR (2,y);
+  return SCM_BOOL(SCM_CHAR(x) >= SCM_CHAR(y));
 }
 #undef FUNC_NAME
 
@@ -122,9 +122,9 @@ SCM_DEFINE1 (scm_char_ci_eq_p, "char-ci=?", scm_tc7_rpsubr,
 	     "Return #t iff X is the same character as Y ignoring case, else #f.")
 #define FUNC_NAME s_scm_char_ci_eq_p
 {
-  SCM_VALIDATE_ICHR (1,x);
-  SCM_VALIDATE_ICHR (2,y);
-  return SCM_BOOL(scm_upcase(SCM_ICHR(x))==scm_upcase(SCM_ICHR(y)));
+  SCM_VALIDATE_CHAR (1,x);
+  SCM_VALIDATE_CHAR (2,y);
+  return SCM_BOOL(scm_upcase(SCM_CHAR(x))==scm_upcase(SCM_CHAR(y)));
 }
 #undef FUNC_NAME
 
@@ -133,9 +133,9 @@ SCM_DEFINE1 (scm_char_ci_less_p, "char-ci<?", scm_tc7_rpsubr,
 	     "Return #t iff X is less than Y in the Ascii sequence ignoring case, else #f.")
 #define FUNC_NAME s_scm_char_ci_less_p
 {
-  SCM_VALIDATE_ICHR (1,x);
-  SCM_VALIDATE_ICHR (2,y);
-  return SCM_BOOL((scm_upcase(SCM_ICHR(x))) < scm_upcase(SCM_ICHR(y)));
+  SCM_VALIDATE_CHAR (1,x);
+  SCM_VALIDATE_CHAR (2,y);
+  return SCM_BOOL((scm_upcase(SCM_CHAR(x))) < scm_upcase(SCM_CHAR(y)));
 }
 #undef FUNC_NAME
 
@@ -144,9 +144,9 @@ SCM_DEFINE1 (scm_char_ci_leq_p, "char-ci<=?", scm_tc7_rpsubr,
 	     "Return #t iff X is less than or equal to Y in the Ascii sequence ignoring case, else #f.")
 #define FUNC_NAME s_scm_char_ci_leq_p
 {
-  SCM_VALIDATE_ICHR (1,x);
-  SCM_VALIDATE_ICHR (2,y);
-  return SCM_BOOL(scm_upcase(SCM_ICHR(x)) <= scm_upcase(SCM_ICHR(y)));
+  SCM_VALIDATE_CHAR (1,x);
+  SCM_VALIDATE_CHAR (2,y);
+  return SCM_BOOL(scm_upcase(SCM_CHAR(x)) <= scm_upcase(SCM_CHAR(y)));
 }
 #undef FUNC_NAME
 
@@ -155,9 +155,9 @@ SCM_DEFINE1 (scm_char_ci_gr_p, "char-ci>?", scm_tc7_rpsubr,
 	     "Return #t iff X is greater than Y in the Ascii sequence ignoring case, else #f.")
 #define FUNC_NAME s_scm_char_ci_gr_p
 {
-  SCM_VALIDATE_ICHR (1,x);
-  SCM_VALIDATE_ICHR (2,y);
-  return SCM_BOOL(scm_upcase(SCM_ICHR(x)) > scm_upcase(SCM_ICHR(y)));
+  SCM_VALIDATE_CHAR (1,x);
+  SCM_VALIDATE_CHAR (2,y);
+  return SCM_BOOL(scm_upcase(SCM_CHAR(x)) > scm_upcase(SCM_CHAR(y)));
 }
 #undef FUNC_NAME
 
@@ -166,9 +166,9 @@ SCM_DEFINE1 (scm_char_ci_geq_p, "char-ci>=?", scm_tc7_rpsubr,
 	     "Return #t iff X is greater than or equal to Y in the Ascii sequence ignoring case, else #f.")
 #define FUNC_NAME s_scm_char_ci_geq_p
 {
-  SCM_VALIDATE_ICHR (1,x);
-  SCM_VALIDATE_ICHR (2,y);
-  return SCM_BOOL(scm_upcase(SCM_ICHR(x)) >= scm_upcase(SCM_ICHR(y)));
+  SCM_VALIDATE_CHAR (1,x);
+  SCM_VALIDATE_CHAR (2,y);
+  return SCM_BOOL(scm_upcase(SCM_CHAR(x)) >= scm_upcase(SCM_CHAR(y)));
 }
 #undef FUNC_NAME
 
@@ -179,8 +179,8 @@ SCM_DEFINE (scm_char_alphabetic_p, "char-alphabetic?", 1, 0, 0,
 	    "Alphabetic means the same thing as the isalpha C library function.")
 #define FUNC_NAME s_scm_char_alphabetic_p
 {
-  SCM_VALIDATE_ICHR (1,chr);
-  return SCM_BOOL(isascii(SCM_ICHR(chr)) && isalpha(SCM_ICHR(chr)));
+  SCM_VALIDATE_CHAR (1,chr);
+  return SCM_BOOL(isascii(SCM_CHAR(chr)) && isalpha(SCM_CHAR(chr)));
 }
 #undef FUNC_NAME
 
@@ -190,8 +190,8 @@ SCM_DEFINE (scm_char_numeric_p, "char-numeric?", 1, 0, 0,
 	    "Numeric means the same thing as the isdigit C library function.")
 #define FUNC_NAME s_scm_char_numeric_p
 {
-  SCM_VALIDATE_ICHR (1,chr);
-  return SCM_BOOL(isascii(SCM_ICHR(chr)) && isdigit(SCM_ICHR(chr)));
+  SCM_VALIDATE_CHAR (1,chr);
+  return SCM_BOOL(isascii(SCM_CHAR(chr)) && isdigit(SCM_CHAR(chr)));
 }
 #undef FUNC_NAME
 
@@ -201,8 +201,8 @@ SCM_DEFINE (scm_char_whitespace_p, "char-whitespace?", 1, 0, 0,
 	    "Whitespace means the same thing as the isspace C library function.")
 #define FUNC_NAME s_scm_char_whitespace_p
 {
-  SCM_VALIDATE_ICHR (1,chr);
-  return SCM_BOOL(isascii(SCM_ICHR(chr)) && isspace(SCM_ICHR(chr)));
+  SCM_VALIDATE_CHAR (1,chr);
+  return SCM_BOOL(isascii(SCM_CHAR(chr)) && isspace(SCM_CHAR(chr)));
 }
 #undef FUNC_NAME
 
@@ -214,8 +214,8 @@ SCM_DEFINE (scm_char_upper_case_p, "char-upper-case?", 1, 0, 0,
 	    "Uppercase means the same thing as the isupper C library function.")
 #define FUNC_NAME s_scm_char_upper_case_p
 {
-  SCM_VALIDATE_ICHR (1,chr);
-  return SCM_BOOL(isascii(SCM_ICHR(chr)) && isupper(SCM_ICHR(chr)));
+  SCM_VALIDATE_CHAR (1,chr);
+  return SCM_BOOL(isascii(SCM_CHAR(chr)) && isupper(SCM_CHAR(chr)));
 }
 #undef FUNC_NAME
 
@@ -226,8 +226,8 @@ SCM_DEFINE (scm_char_lower_case_p, "char-lower-case?", 1, 0, 0,
 	    "Lowercase means the same thing as the islower C library function.")
 #define FUNC_NAME s_scm_char_lower_case_p
 {
-  SCM_VALIDATE_ICHR (1,chr);
-  return SCM_BOOL(isascii(SCM_ICHR(chr)) && islower(SCM_ICHR(chr)));
+  SCM_VALIDATE_CHAR (1,chr);
+  return SCM_BOOL(isascii(SCM_CHAR(chr)) && islower(SCM_CHAR(chr)));
 }
 #undef FUNC_NAME
 
@@ -240,8 +240,8 @@ SCM_DEFINE (scm_char_is_both_p, "char-is-both?", 1, 0, 0,
 	    "C library functions.")
 #define FUNC_NAME s_scm_char_is_both_p
 {
-  SCM_VALIDATE_ICHR (1,chr);
-  return SCM_BOOL(isascii(SCM_ICHR(chr)) && (isupper(SCM_ICHR(chr)) || islower(SCM_ICHR(chr))));
+  SCM_VALIDATE_CHAR (1,chr);
+  return SCM_BOOL(isascii(SCM_CHAR(chr)) && (isupper(SCM_CHAR(chr)) || islower(SCM_CHAR(chr))));
 }
 #undef FUNC_NAME
 
@@ -253,8 +253,8 @@ SCM_DEFINE (scm_char_to_integer, "char->integer", 1, 0, 0,
 	    "Return the number corresponding to ordinal position of CHR in the Ascii sequence.")
 #define FUNC_NAME s_scm_char_to_integer
 {
-  SCM_VALIDATE_ICHR (1,chr);
-  return scm_ulong2num((unsigned long)SCM_ICHR(chr));
+  SCM_VALIDATE_CHAR (1,chr);
+  return scm_ulong2num((unsigned long)SCM_CHAR(chr));
 }
 #undef FUNC_NAME
 
@@ -266,7 +266,7 @@ SCM_DEFINE (scm_integer_to_char, "integer->char", 1, 0, 0,
 #define FUNC_NAME s_scm_integer_to_char
 {
   SCM_VALIDATE_INUM_RANGE (1, n, 0, 256);
-  return SCM_MAKICHR (SCM_INUM (n));
+  return SCM_MAKE_CHAR (SCM_INUM (n));
 }
 #undef FUNC_NAME
 
@@ -276,8 +276,8 @@ SCM_DEFINE (scm_char_upcase, "char-upcase", 1, 0, 0,
 	    "Return the uppercase character version of CHR.")
 #define FUNC_NAME s_scm_char_upcase
 {
-  SCM_VALIDATE_ICHR (1,chr);
-  return SCM_MAKICHR(scm_upcase(SCM_ICHR(chr)));
+  SCM_VALIDATE_CHAR (1,chr);
+  return SCM_MAKE_CHAR(scm_upcase(SCM_CHAR(chr)));
 }
 #undef FUNC_NAME
 
@@ -287,8 +287,8 @@ SCM_DEFINE (scm_char_downcase, "char-downcase", 1, 0, 0,
 	    "Return the lowercase character version of CHR.")
 #define FUNC_NAME s_scm_char_downcase
 {
-  SCM_VALIDATE_ICHR (1,chr);
-  return SCM_MAKICHR(scm_downcase(SCM_ICHR(chr)));
+  SCM_VALIDATE_CHAR (1,chr);
+  return SCM_MAKE_CHAR(scm_downcase(SCM_CHAR(chr)));
 }
 #undef FUNC_NAME
 

@@ -52,16 +52,16 @@
 
 extern long scm_tc16_macro;
 
-extern SCM scm_makacro SCM_P ((SCM code));
-extern SCM scm_makmacro SCM_P ((SCM code));
-extern SCM scm_makmmacro SCM_P ((SCM code));
-extern SCM scm_macro_p SCM_P ((SCM obj));
-extern SCM scm_macro_type SCM_P ((SCM m));
-extern SCM scm_macro_name SCM_P ((SCM m));
-extern SCM scm_macro_transformer SCM_P ((SCM m));
-extern SCM scm_make_synt SCM_P ((const char *name,
-				 SCM (*macroizer) (SCM),
-				 SCM (*fcn) ()));
-extern void scm_init_macros SCM_P ((void));
+extern SCM scm_makacro (SCM code);
+extern SCM scm_makmacro (SCM code);
+extern SCM scm_makmmacro (SCM code);
+extern SCM scm_macro_p (SCM obj);
+extern SCM scm_macro_type (SCM m);
+extern SCM scm_macro_name (SCM m);
+extern SCM scm_macro_transformer (SCM m);
+extern SCM scm_make_synt (const char *name,
+                          SCM (*macroizer) (SCM),
+                          SCM (*fcn) ());
+extern void scm_init_macros (void);
 
 #endif /* MACROSH */

@@ -66,6 +66,6 @@ extern SCM scm_nil_cdr (SCM x);
 extern SCM scm_null (SCM x);
 extern SCM scm_m_while (SCM exp, SCM env);
 extern SCM scm_nil_eq (SCM x, SCM y);
-extern void scm_init_lang SCM_P ((void));
+extern void scm_init_lang (void);
 
 #endif  /* PAIRSH */

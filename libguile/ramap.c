@@ -439,13 +439,13 @@ scm_array_fill_int (SCM ra, SCM fill, SCM ignore)
 	SCM_VELTS (ra)[i] = fill;
       break;
     case scm_tc7_string:
-      SCM_ASRTGO (SCM_ICHRP (fill), badarg2);
+      SCM_ASRTGO (SCM_CHARP (fill), badarg2);
       for (i = base; n--; i += inc)
-	SCM_CHARS (ra)[i] = SCM_ICHR (fill);
+	SCM_CHARS (ra)[i] = SCM_CHAR (fill);
       break;
     case scm_tc7_byvect:
-      if (SCM_ICHRP (fill))
-	fill = SCM_MAKINUM ((char) SCM_ICHR (fill));
+      if (SCM_CHARP (fill))
+	fill = SCM_MAKINUM ((char) SCM_CHAR (fill));
       SCM_ASRTGO (SCM_INUMP (fill)
 		  && -128 <= SCM_INUM (fill) && SCM_INUM (fill) < 128,
 		  badarg2);

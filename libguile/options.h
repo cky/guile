@@ -64,8 +64,8 @@ typedef struct scm_option
 #define SCM_OPTION_SCM     2
 
 
-extern SCM scm_options SCM_P ((SCM new_mode, scm_option options[], int n, const char *s));
-extern void scm_init_opts SCM_P ((SCM (*func) (SCM), scm_option options[], int n));
-extern void scm_init_options SCM_P ((void));
+extern SCM scm_options (SCM new_mode, scm_option options[], int n, const char *s);
+extern void scm_init_opts (SCM (*func) (SCM), scm_option options[], int n);
+extern void scm_init_options (void);
 
 #endif /* OPTIONSH */

@@ -115,26 +115,26 @@ extern SCM scm_stack_type;
 
 
 
-SCM scm_stack_p SCM_P ((SCM obj));
-SCM scm_make_stack SCM_P ((SCM args));
-SCM scm_stack_id SCM_P ((SCM stack));
-SCM scm_stack_ref SCM_P ((SCM stack, SCM i));
-SCM scm_stack_length SCM_P ((SCM stack));
+SCM scm_stack_p (SCM obj);
+SCM scm_make_stack (SCM args);
+SCM scm_stack_id (SCM stack);
+SCM scm_stack_ref (SCM stack, SCM i);
+SCM scm_stack_length (SCM stack);
 
-SCM scm_frame_p SCM_P ((SCM obj));
-SCM scm_last_stack_frame SCM_P ((SCM obj));
-SCM scm_frame_number SCM_P ((SCM frame));
-SCM scm_frame_source SCM_P ((SCM frame));
-SCM scm_frame_procedure SCM_P ((SCM frame));
-SCM scm_frame_arguments SCM_P ((SCM frame));
-SCM scm_frame_previous SCM_P ((SCM frame));
-SCM scm_frame_next SCM_P ((SCM frame));
-SCM scm_frame_real_p SCM_P ((SCM frame));
-SCM scm_frame_procedure_p SCM_P ((SCM frame));
-SCM scm_frame_evaluating_args_p SCM_P ((SCM frame));
-SCM scm_frame_overflow_p SCM_P ((SCM frame));
+SCM scm_frame_p (SCM obj);
+SCM scm_last_stack_frame (SCM obj);
+SCM scm_frame_number (SCM frame);
+SCM scm_frame_source (SCM frame);
+SCM scm_frame_procedure (SCM frame);
+SCM scm_frame_arguments (SCM frame);
+SCM scm_frame_previous (SCM frame);
+SCM scm_frame_next (SCM frame);
+SCM scm_frame_real_p (SCM frame);
+SCM scm_frame_procedure_p (SCM frame);
+SCM scm_frame_evaluating_args_p (SCM frame);
+SCM scm_frame_overflow_p (SCM frame);
 
 
-void scm_init_stacks SCM_P ((void));
+void scm_init_stacks (void);
 
 #endif /* STACKSH */

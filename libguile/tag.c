@@ -101,7 +101,7 @@ SCM_DEFINE (scm_tag, "tag", 1, 0, 0,
       return SCM_CDR (scm_utag_immediate_integer) ;
 
     case scm_tc3_imm24:
-      if (SCM_ICHRP (x))
+      if (SCM_CHARP (x))
 	return SCM_CDR (scm_utag_immediate_char) ;
       else
 	{

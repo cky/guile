@@ -103,13 +103,13 @@ SCM_DEFINE (scm_make_struct_layout, "make-struct-layout", 1, 0, 0,
 	  case 's':
 	    break;
 	  default:
-	    SCM_ASSERT (0, SCM_MAKICHR (field_desc[x]) , "unrecognized field type", FUNC_NAME);
+	    SCM_ASSERT (0, SCM_MAKE_CHAR (field_desc[x]) , "unrecognized field type", FUNC_NAME);
 	  }
 
 	switch (field_desc[x + 1])
 	  {
 	  case 'w':
-	    SCM_ASSERT (field_desc[x] != 's', SCM_MAKICHR (field_desc[x + 1]),
+	    SCM_ASSERT (field_desc[x] != 's', SCM_MAKE_CHAR (field_desc[x + 1]),
 			"self fields not writable", FUNC_NAME);
 	      
 	  case 'r':
@@ -118,15 +118,15 @@ SCM_DEFINE (scm_make_struct_layout, "make-struct-layout", 1, 0, 0,
 	  case 'R':
 	  case 'W':
 	  case 'O':
-	    SCM_ASSERT (field_desc[x] != 's', SCM_MAKICHR (field_desc[x + 1]),
+	    SCM_ASSERT (field_desc[x] != 's', SCM_MAKE_CHAR (field_desc[x + 1]),
 			"self fields not allowed in tail array",
                         FUNC_NAME);
-	    SCM_ASSERT (x == len - 2, SCM_MAKICHR (field_desc[x + 1]),
+	    SCM_ASSERT (x == len - 2, SCM_MAKE_CHAR (field_desc[x + 1]),
 			"tail array field must be last field in layout",
                         FUNC_NAME);
 	    break;
 	  default:
-	    SCM_ASSERT (0, SCM_MAKICHR (field_desc[x]) , "unrecognized ref specification", FUNC_NAME);
+	    SCM_ASSERT (0, SCM_MAKE_CHAR (field_desc[x]) , "unrecognized ref specification", FUNC_NAME);
 	  }
 #if 0
 	if (field_desc[x] == 'd')
@@ -581,7 +581,7 @@ SCM_DEFINE (scm_struct_ref, "struct-ref", 2, 0, 0,
 
 
     default:
-      SCM_ASSERT (0, SCM_MAKICHR (field_type), "unrecognized field type", FUNC_NAME);
+      SCM_ASSERT (0, SCM_MAKE_CHAR (field_type), "unrecognized field type", FUNC_NAME);
       break;
     }
 
@@ -651,11 +651,11 @@ SCM_DEFINE (scm_struct_set_x, "struct-set!", 3, 0, 0,
       break;
 
     case 's':
-      SCM_ASSERT (0, SCM_MAKICHR (field_type), "self fields immutable", FUNC_NAME);
+      SCM_ASSERT (0, SCM_MAKE_CHAR (field_type), "self fields immutable", FUNC_NAME);
       break;
 
     default:
-      SCM_ASSERT (0, SCM_MAKICHR (field_type), "unrecognized field type", FUNC_NAME);
+      SCM_ASSERT (0, SCM_MAKE_CHAR (field_type), "unrecognized field type", FUNC_NAME);
       break;
     }
 

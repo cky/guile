@@ -62,13 +62,13 @@ extern int scm_tc16_variable;
 
 
 
-extern SCM scm_make_variable SCM_P ((SCM init, SCM name_hint));
-extern SCM scm_make_undefined_variable SCM_P ((SCM name_hint));
-extern SCM scm_variable_p SCM_P ((SCM obj));
-extern SCM scm_variable_ref SCM_P ((SCM var));
-extern SCM scm_variable_set_x SCM_P ((SCM var, SCM val));
-extern SCM scm_builtin_variable SCM_P ((SCM name));
-extern SCM scm_variable_bound_p SCM_P ((SCM var));
-extern void scm_init_variable SCM_P ((void));
+extern SCM scm_make_variable (SCM init, SCM name_hint);
+extern SCM scm_make_undefined_variable (SCM name_hint);
+extern SCM scm_variable_p (SCM obj);
+extern SCM scm_variable_ref (SCM var);
+extern SCM scm_variable_set_x (SCM var, SCM val);
+extern SCM scm_builtin_variable (SCM name);
+extern SCM scm_variable_bound_p (SCM var);
+extern void scm_init_variable (void);
 
 #endif  /* VARIABLEH */

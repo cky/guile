@@ -462,7 +462,7 @@ SCM scm_sym_trace;
 
 
 
-static void  bodycheck SCM_P ((SCM xorig, SCM *bodyloc, const char *what));
+static void  bodycheck (SCM xorig, SCM *bodyloc, const char *what);
 
 static void 
 bodycheck (SCM xorig, SCM *bodyloc, const char *what)

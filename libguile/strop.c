@@ -61,7 +61,7 @@ scm_i_index (SCM *str, SCM chr, int direction, SCM sub_start,
   int ch;
 
   SCM_ASSERT (SCM_ROSTRINGP (*str), *str, SCM_ARG1, why);
-  SCM_ASSERT (SCM_ICHRP (chr), chr, SCM_ARG2, why);
+  SCM_ASSERT (SCM_CHARP (chr), chr, SCM_ARG2, why);
 
   if (sub_start == SCM_BOOL_F)
     sub_start = SCM_MAKINUM (0);
@@ -84,7 +84,7 @@ scm_i_index (SCM *str, SCM chr, int direction, SCM sub_start,
   if (direction > 0)
     {
       p = (unsigned char *)SCM_ROCHARS (*str) + lower;
-      ch = SCM_ICHR (chr);
+      ch = SCM_CHAR (chr);
 
       for (x = SCM_INUM (sub_start); x < upper; ++x, ++p)
 	if (*p == ch)
@@ -93,7 +93,7 @@ scm_i_index (SCM *str, SCM chr, int direction, SCM sub_start,
   else
     {
       p = upper - 1 + (unsigned char *)SCM_ROCHARS (*str);
-      ch = SCM_ICHR (chr);
+      ch = SCM_CHAR (chr);
       for (x = upper - 1; x >= lower; --x, --p)
 	if (*p == ch)
 	  return x;
@@ -284,7 +284,7 @@ SCM_DEFINE (scm_substring_fill_x, "substring-fill!", 4, 0, 0,
   SCM_VALIDATE_STRING (1,str);
   SCM_VALIDATE_INUM_COPY (2,start,i);
   SCM_VALIDATE_INUM_COPY (3,end,e);
-  SCM_VALIDATE_ICHR_COPY (4,fill,c);
+  SCM_VALIDATE_CHAR_COPY (4,fill,c);
   SCM_ASSERT_RANGE (2,start,i <= SCM_LENGTH (str) && i >= 0);
   SCM_ASSERT_RANGE (3,end,e <= SCM_LENGTH (str) && e >= 0);
   while (i<e) SCM_CHARS (str)[i++] = c;
@@ -327,7 +327,7 @@ SCM_DEFINE (scm_string_to_list, "string->list", 1, 0, 0,
   unsigned char *src;
   SCM_VALIDATE_ROSTRING (1,str);
   src = SCM_ROUCHARS (str);
-  for (i = SCM_ROLENGTH (str)-1;i >= 0;i--) res = scm_cons ((SCM)SCM_MAKICHR (src[i]), res);
+  for (i = SCM_ROLENGTH (str)-1;i >= 0;i--) res = scm_cons ((SCM)SCM_MAKE_CHAR (src[i]), res);
   return res;
 }
 #undef FUNC_NAME
@@ -354,7 +354,7 @@ SCM_DEFINE (scm_string_fill_x, "string-fill!", 2, 0, 0,
   register char *dst, c;
   register long k;
   SCM_VALIDATE_STRING_COPY (1,str,dst);
-  SCM_VALIDATE_ICHR_COPY (2,chr,c);
+  SCM_VALIDATE_CHAR_COPY (2,chr,c);
   for (k = SCM_LENGTH (str)-1;k >= 0;k--) dst[k] = c;
   return SCM_UNSPECIFIED;
 }
@@ -453,7 +453,7 @@ SCM_DEFINE (scm_string_capitalize_x, "string-capitalize!", 1, 0, 0,
   len = SCM_LENGTH(str);
   sz = SCM_CHARS(str);
   for(i=0; i<len;  i++) {
-    if(SCM_NFALSEP(scm_char_alphabetic_p(SCM_MAKICHR(sz[i])))) {
+    if(SCM_NFALSEP(scm_char_alphabetic_p(SCM_MAKE_CHAR(sz[i])))) {
       if(!in_word) {
         sz[i] = scm_upcase(sz[i]);
         in_word = 1;
