@@ -1,3 +1,8 @@
+2001-05-05  Thien-Thi Nguyen  <ttn@revel.glug.org>
+
+	* regex-posix.c (scm_regexp_exec): Expand docstring to briefly
+	describe `regexp/notbol' and `regexp/noteol' execution flags.
+
 2001-05-05  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* objects.c, objects.h (scm_valid_object_procedure_p): New.
@@ -49,7 +54,7 @@
 
 	* init.c: Include "deprecation.h".
 	(scm_init_guile_1): Call scm_init_deprecation.
-	
+
 2001-05-01  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* gh.h (gh_init_guile, gh_make_string, gh_string_length,
@@ -151,7 +156,7 @@
 
 	* modules.h (scm_module_index_transformer, SCM_MODULE_TRANSFORMER,
 	scm_current_module_transformer, scm_module_transformer): New.
-	
+
 	* gh_data.c: Removed FIXME comment about gh_lookup returning
 	SCM_UNDEFINED.  That's the right thing to do.
 
@@ -161,7 +166,7 @@
 	scm_current_module_transformer instead of scm_system_transformer.
 	* init.c (start_stack): Move initialization of
 	scm_system_transformer to the deprecated section.
-	
+
 2001-04-22  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* throw.c (scm_throw): Correct docstring.
@@ -184,7 +189,7 @@
 	inet-pton and inet-ntop.
 	(scm_fill_sockaddr): use VALIDATE_INET6 and ipv6_num_to_net.
 	(scm_addr_vector): use ipv6_net_to_num.
-	
+
 2001-04-21  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* eq.c (scm_equal_p), ramap.c (scm_init_ramap):  Don't compute the
@@ -258,7 +263,7 @@
 
 	* debug.c (scm_procedure_source), eval.c (scm_badformalsp,
 	SCM_CEVAL, SCM_APPLY), goops.c (get_slot_value, set_slot_value),
-	procprop.c (scm_i_procedure_arity), sort.c (closureless):  Use 
+	procprop.c (scm_i_procedure_arity), sort.c (closureless):  Use
 	SCM_CLOSURE_FORMALS.
 
 	* eval.c (scm_badformalsp, SCM_CEVAL), procprop.c
@@ -309,7 +314,7 @@
 2001-04-17  Gary Houston  <ghouston@arglist.com>
 
 	* some initial support for IPv6:
-	
+
 	* socket.c (scm_fill_sockaddr): improve the argument validation.
 	don't allocate memory until all args are checked.  instead of
 	unconditional memset of soka, try setting sin_len to 0 if
@@ -371,9 +376,9 @@
 
 	* debug-malloc.c (grow, scm_debug_malloc_prehistory): Use memset
 	instead of bzero.
-	
+
 	* coop.c, iselect.c (FD_ZERO_N): Unconditionally use memset.
-	(MISSING_BZERO_DECL): Remove the declaration. 
+	(MISSING_BZERO_DECL): Remove the declaration.
 
 	Thanks to NIIBE Yutaka.
 
@@ -422,7 +427,7 @@
 2001-04-03  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	The following changes make the documentation more consistent.
-	
+
 	* rdelim.c (scm_write_line), posix.c (scm_utime), ports.c
 	(scm_seek), net_db.c (scm_inet_aton, scm_inet_ntoa),
 	(scm_inet_netof, scm_lnaof, scm_inet_makeaddr), ioext.c
@@ -465,7 +470,7 @@
 	(scm_dynamic_unlink, scm_dynamic_call, scm_dynamic_args_call):
 	Made parameter names match documentation by renaming parameters
 	and/or fixing docstrings.
-	
+
 	* numbers.c (scm_ash): Corrected Texinfo markup.
 
 	* strop.c (scm_string_index, scm_string_rindex),
@@ -510,8 +515,8 @@
 	(scm_stat, scm_directory_stream_p, scm_getcwd, scm_readlink):
 	Docstring correction: `Returns' -> `Return'
 
-	* gc.c (scm_set_debug_cell_accesses_x): 
-	(s_scm_gc_set_debug_check_freelist_x): 
+	* gc.c (scm_set_debug_cell_accesses_x):
+	(s_scm_gc_set_debug_check_freelist_x):
 	* fluids.c (scm_fluid_p): Added texinfo markup.
 
 	* error.c (scm_strerror): Made docstring more precise.
@@ -707,7 +712,7 @@
 	* values.c (values_vtable, scm_values_vtable): Added "scm_" prefix
 	so that it can be exported.
 	(scm_call_with_values): Removed.
-	
+
 	* tags.h (SCM_IM_CALL_WITH_VALUES): New isym.
 	* eval.c: Include "libguile/values.h"
 	(scm_m_at_call_with_values, scm_sym_at_call_with_values):
@@ -718,7 +723,7 @@
 
 	* eval.c (scm_primitive_eval_x, scm_primitive_eval): Fix syntax
 	errors with last change.
-	
+
 2001-03-25  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* eval.c (scm_primitive_eval_x, scm_primitive_eval, scm_i_eval_x,
@@ -856,7 +861,7 @@
 	(scm_num2ulong_long): New.
 	(ULONG_LONG_MAX): Define if not already defined.
 	* numbers.h: (scm_num2ulong_long): New prototype.
-	
+
 2001-03-15  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* validate.h (SCM_VALIDATE_OPOUTSTRPORT): New macro.
@@ -865,7 +870,7 @@
 	(SCM_OPOUTSTRPORTP): New predicate macros.
 	(scm_open_input_string, scm_open_output_string),
 	(scm_get_output_string): New prototypes.
-	
+
 	* strports.c (scm_open_input_string, scm_open_output_string),
 	(scm_get_output_string): New procedures (SRFI-6 compliant).
 	Made scm_tc16_strport non-static.
@@ -959,7 +964,7 @@
 	posix.c, print.c, putenv.c, scmsigs.c, script.c, simpos.c, smob.c,
 	socket.c, srcprop.c, stime.c, strop.c, unif.c, vports.c: Added
 	#include <errno.h> in these 20 out of 100 files.
-	
+
 2001-03-10  Gary Houston  <ghouston@arglist.com>
 
 	* socket.c: add a definition of SUN_LEN (from glibc) for when it's
@@ -989,7 +994,7 @@
 	regex-posix.c, root.c, scmsigs.c, simpos.c, socket.c, srcprop.c,
 	stackchk.c, stacks.c, strings.c, strop.c, strorder.c, struct.c,
 	symbols.c, tag.c, threads.c, variable.c, vectors.c, weaks.c:
-	Remove #include <stdio.h>	
+	Remove #include <stdio.h>
 	* gc.c, gdbint.c, root.c, sort.c, unif.c: Add #include <string.h>.
 
 	* procs.c (scm_make_subr_opt): Init symcell to avoid warning.
@@ -1037,7 +1042,7 @@
 	function.
 
 	* coop-threads.c: Fixed change of 2001-03-06.
-	
+
 	* validate.h: Code formatting.
 
 2001-03-07  Keisuke Nishida  <kxn30@po.cwru.edu>
@@ -1083,7 +1088,7 @@
 	* socket.c (scm_fill_sockaddr): don't allow buffer overflows when
 	taking an unexpectedly large filename for an AF_UNIX socket from
 	bind/connect/sendto (thanks to Martin Grabmueller).
-	
+
 	* socket.c (scm_sock_fd_to_port, SCM_SOCK_FD_TO_PORT): removed the
 	former and adjusted the latter.
 	(scm_socket, scm_socketpair): cosmetic changes.
@@ -1257,7 +1262,7 @@
 	module around the call to DEFVAR, scm_eval takes care of that.
 	(scm_init_goops): Make scm_module_goops and
 	scm_goops_lookup_closure permanent objects.
-	
+
 	* eval.c (scm_ceval, scm_deval): When evaluating expressions on
 	top level, create a fresh top-level environment for each
 	expression instead of mutating the exisint frame.  This is
@@ -1337,7 +1342,7 @@
 	scm_random_hollow_sphere_x, scm_random_normal_vector_x,
 	scm_random_exp), dynwind.c
 	(scm_dynamic_wind): Removed unnecessary "" from docstrings.
-	
+
 	* goops.c (scm_sys_initialize_object, scm_instance_p,
 	scm_class_name, scm_class_precedence_list, scm_class_slots,
 	scm_class_environment, scm_generic_function_name,
@@ -1420,7 +1425,7 @@
 
 	Fix evaluator so that top-level expressions are correctly
 	evaluated with respect to the module system.
-	
+
 	* modules.h. modules.c (scm_current_module_lookup_closure): New
 	function.
 
@@ -1435,7 +1440,7 @@
 	(scm_primitve_eval_x, scm_primitive_eval): New functions.
 	(scm_eval_x, scm_eval): Reimplement in terms of
 	scm_primitive_eval_x and scm_primitive_eval, respectively.
-	
+
 2001-02-09  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* macros.c (scm_macro_name, scm_macro_transformer): Use
@@ -1463,7 +1468,7 @@
 	and C names.
 	(scm_select_module, scm_set_current_module): Likewise.  Changed
 	all uses.
-	
+
 	* ports.c (scm_port_for_each): Make a snapshot of the port table
 	before iterating over it.  The table might change while the user
 	code is running.  With the snapshot, the user can depend on the
@@ -1795,7 +1800,7 @@
 2001-01-11  Michael Livshin  <mlivshin@bigfoot.com>
 
 	from Matthias Köppe:
-	
+
 	* objects.h (SCM_SET_ENTITY_SETTER): new macro.  SCM_ENTITY_SETTER
 	casts its result, so doesn't yield an lvalue per ANSI C.
 
