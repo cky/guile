@@ -1667,7 +1667,8 @@
 	(set-module-name! interface (module-name module))
 	(set-module-kind! interface 'interface)
 	(set-module-public-interface! module interface)))
-  (if (not (memq the-scm-module (module-uses module)))
+  (if (and (not (memq the-scm-module (module-uses module)))
+	   (not (eq? module the-root-module)))
       (set-module-uses! module (append (module-uses module) (list the-scm-module)))))
 
 (define (make-modules-in module name)
