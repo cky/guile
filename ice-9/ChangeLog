@@ -1,3 +1,8 @@
+1999-07-19  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	* boot-9.scm (read-delimited!): Put the terminator in the correct
+	position.
+
 1999-06-29  Mikael Djurfeldt  <mdj@mdj-pc.nada.kth.se>
 
 	* readline.scm: Bugfix: Avoid getting the continued-lines prompt
