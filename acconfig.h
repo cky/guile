@@ -90,21 +90,17 @@
 /* Define if the operating system supplies bzero without declaring it. */
 #undef MISSING_BZERO_DECL
 
+/* Define if the operating system supplies strptime without declaring it. */
+#undef MISSING_STRPTIME_DECL
+
 /* Define if the operating system supplies sleep without declaring it. */
 #undef MISSING_SLEEP_DECL
 
 /* Define if the operating system supplies usleep without declaring it. */
 #undef MISSING_USLEEP_DECL
 
-/* Define if the operating system supplies strptime without declaring it. */
-#undef MISSING_STRPTIME_DECL
-
-/* Define if usleep doesn't return a value. */
+/* Define if the system headers declare usleep to return void.  */
 #undef USLEEP_RETURNS_VOID
-
-/* Define to be the type of the argument to usleep.  */
-#undef USLEEP_ARG_TYPE
 
 /* Define if your readline library has the rl_getc_function variable.  */
 #undef HAVE_RL_GETC_FUNCTION
-

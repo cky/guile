@@ -133,8 +133,8 @@ GUILE_FUNC_DECLARED(bzero, string.h)
 GUILE_FUNC_DECLARED(sleep, unistd.h)
 GUILE_FUNC_DECLARED(usleep, unistd.h)
 
-### On some systems usleep has no return value.  Of course, we
-### shouldn't be doing anything like this at all...
+### On some systems usleep has no return value.  If it does have one,
+### we'd like to return it; otherwise, we'll fake it.
 AC_CACHE_CHECK([return type of usleep], guile_cv_func_usleep_return_type,
   [AC_EGREP_HEADER(changequote(<, >)<void[ ][ ]*usleep>changequote([, ]),
                    /usr/include/unistd.h,
@@ -143,22 +143,6 @@ AC_CACHE_CHECK([return type of usleep], guile_cv_func_usleep_return_type,
 case "$guile_cv_func_usleep_return_type" in
   "void" )
     AC_DEFINE(USLEEP_RETURNS_VOID)
-  ;;
-esac
-
-### To make things even worse, its argument type varies, which we also
-### have to know.  Ahh, complicity...
-AC_CACHE_CHECK([type of usleep argument], guile_cv_func_usleep_arg_type,
-  [AC_EGREP_HEADER(changequote(<, >)<usleep[ 	]*([ 	]*unsigned[ 	]*long[ 	]*)>changequote([, ]),
-                   /usr/include/unistd.h,
-                   [guile_cv_func_usleep_arg_type=ulong],
-                   [guile_cv_func_usleep_arg_type=uint])])
-case "$guile_cv_func_usleep_arg_type" in
-  "ulong" ) 
-    AC_DEFINE(USLEEP_ARG_TYPE, unsigned long)
-  ;;
-  "uint" )
-    AC_DEFINE(USLEEP_ARG_TYPE, unsigned)
   ;;
 esac
 
