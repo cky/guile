@@ -360,7 +360,6 @@ scm_load_startup_files ()
     }
 }
 
-#ifdef GUILE_NEW_GC_SCHEME
 /* Get an integer from an environment variable.  */
 static int
 scm_i_getenv_int (const char *var, int def)
@@ -374,7 +373,6 @@ scm_i_getenv_int (const char *var, int def)
     return def;
   return res;
 }
-#endif /* GUILE_DEBUG */
 
 
 /* The main init code.  */
@@ -481,15 +479,11 @@ scm_boot_guile_1 (SCM_STACKITEM *base, struct main_func_closure *closure)
 #ifdef GUILE_DEBUG_MALLOC
       scm_debug_malloc_prehistory ();
 #endif
-#if defined (GUILE_NEW_GC_SCHEME)
       scm_init_storage (scm_i_getenv_int ("GUILE_INIT_SEGMENT_SIZE_1", 0),
 			scm_i_getenv_int ("GUILE_MIN_YIELD_1", 0),
 			scm_i_getenv_int ("GUILE_INIT_SEGMENT_SIZE_2", 0),
 			scm_i_getenv_int ("GUILE_MIN_YIELD_2", 0),
 			scm_i_getenv_int ("GUILE_MAX_SEGMENT_SIZE", 0));
-#else
-      scm_init_storage (0, 0);
-#endif
       scm_weaks_prehistory ();	/* Must come after scm_init_storage */
       scm_init_subr_table ();
       scm_init_root ();

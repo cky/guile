@@ -95,6 +95,7 @@ scm_hash_fn_create_handle_x (SCM table,SCM obj,SCM init,unsigned int (*hash_fn)(
   it = assoc_fn (obj, SCM_VELTS (table)[k], closure);
   if (SCM_NIMP (it))
     {
+      SCM_REALLOW_INTS;
       return it;
     }
   {

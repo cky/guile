@@ -63,9 +63,6 @@
 /* Old async mechanism */
 /* #define GUILE_OLD_ASYNC_CLICK */
 
-/* New scheme for garbage collection */
-#define GUILE_NEW_GC_SCHEME
-
 /* #define GUILE_DEBUG_FREELIST */
 
 /* If the compile FLAG `SCM_CAUTIOUS' is #defined then the number of
@@ -89,11 +86,9 @@
  */
 #define BIGNUMS
 
-/* GC should relinquish empty cons-pair arenas. 
- */
-#ifndef GUILE_NEW_GC_SCHEME
-#define GC_FREE_SEGMENTS
-#endif
+/* GC should relinquish empty cons-pair arenas. */
+/* cmm:FIXME look at this after done mangling the GC */
+/* #define GC_FREE_SEGMENTS */
 
 /* Provide a scheme-accessible count-down timer that
  * generates a pseudo-interrupt.

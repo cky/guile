@@ -85,36 +85,52 @@ typedef scm_cell * SCM_CELLPTR;
 /* Low level cell data accessing macros:
  */
 
-#define SCM_VALIDATE_CELL(x) \
-    (SCM_DEBUG_CELL_ACCESSES ? (!scm_cellp (x) ? abort () : 1) : 1)
+#define SCM_VALIDATE_CELL(x) (!scm_cellp (x) ? abort () : 1)
 
+#if (SCM_DEBUG_CELL_ACCESSES == 0)
+#define SCM_CELL_WORD(x, n) (((scm_bits_t *) SCM2PTR (x)) [n])
+#else
 #define SCM_CELL_WORD(x, n) \
     ((SCM_VALIDATE_CELL (x)), \
      (((scm_bits_t *) SCM2PTR (x)) [n]))
+#endif
+
 #define SCM_CELL_WORD_0(x) SCM_CELL_WORD (x, 0)
 #define SCM_CELL_WORD_1(x) SCM_CELL_WORD (x, 1)
 #define SCM_CELL_WORD_2(x) SCM_CELL_WORD (x, 2)
 #define SCM_CELL_WORD_3(x) SCM_CELL_WORD (x, 3)
 
+#if (SCM_DEBUG_CELL_ACCESSES == 0)
+#define SCM_CELL_OBJECT(x, n) SCM_PACK (((scm_bits_t *) SCM2PTR (x)) [n])
+#else
 #define SCM_CELL_OBJECT(x, n) \
     ((SCM_VALIDATE_CELL (x)), \
      (SCM_PACK (((scm_bits_t *) SCM2PTR (x)) [n])))
+#endif
 #define SCM_CELL_OBJECT_0(x) SCM_CELL_OBJECT (x, 0)
 #define SCM_CELL_OBJECT_1(x) SCM_CELL_OBJECT (x, 1)
 #define SCM_CELL_OBJECT_2(x) SCM_CELL_OBJECT (x, 2)
 #define SCM_CELL_OBJECT_3(x) SCM_CELL_OBJECT (x, 3)
 
+#if (SCM_DEBUG_CELL_ACCESSES == 0)
+#define SCM_SET_CELL_WORD(x, n, v) ((((scm_bits_t *) SCM2PTR (x)) [n]) = (scm_bits_t) (v))
+#else
 #define SCM_SET_CELL_WORD(x, n, v) \
     ((SCM_VALIDATE_CELL (x)), \
      ((((scm_bits_t *) SCM2PTR (x)) [n]) = (scm_bits_t) (v)))
+#endif
 #define SCM_SET_CELL_WORD_0(x, v) SCM_SET_CELL_WORD (x, 0, v)
 #define SCM_SET_CELL_WORD_1(x, v) SCM_SET_CELL_WORD (x, 1, v)
 #define SCM_SET_CELL_WORD_2(x, v) SCM_SET_CELL_WORD (x, 2, v)
 #define SCM_SET_CELL_WORD_3(x, v) SCM_SET_CELL_WORD (x, 3, v)
 
+#if (SCM_DEBUG_CELL_ACCESSES == 0)
+#define SCM_SET_CELL_OBJECT(x, n, v) ((((scm_bits_t *) SCM2PTR (x)) [n]) = SCM_UNPACK (v))
+#else
 #define SCM_SET_CELL_OBJECT(x, n, v) \
     ((SCM_VALIDATE_CELL (x)), \
      ((((scm_bits_t *) SCM2PTR (x)) [n]) = SCM_UNPACK (v)))
+#endif
 #define SCM_SET_CELL_OBJECT_0(x, v) SCM_SET_CELL_OBJECT (x, 0, v)
 #define SCM_SET_CELL_OBJECT_1(x, v) SCM_SET_CELL_OBJECT (x, 1, v)
 #define SCM_SET_CELL_OBJECT_2(x, v) SCM_SET_CELL_OBJECT (x, 2, v)
@@ -170,7 +186,6 @@ typedef scm_cell * SCM_CELLPTR;
 #define SCM_NEWCELL(_into) do { _into = scm_debug_newcell (); } while (0)
 #define SCM_NEWCELL2(_into) do { _into = scm_debug_newcell2 (); } while (0)
 #else
-#ifdef GUILE_NEW_GC_SCHEME
 /* When we introduce POSIX threads support, every thread will have
    a freelist of its own.  Then it won't any longer be necessary to
    initialize cells with scm_tc16_allocated.  */
@@ -198,32 +213,6 @@ typedef scm_cell * SCM_CELLPTR;
                SCM_SET_CELL_TYPE (_into, scm_tc16_allocated); \
             } \
         } while(0)
-#else /* GUILE_NEW_GC_SCHEME */
-#define SCM_NEWCELL(_into) \
-        do { \
-          if (SCM_IMP (scm_freelist.cells)) \
-             _into = scm_gc_for_newcell (&scm_freelist); \
-          else \
-            { \
-               _into = scm_freelist.cells; \
-               scm_freelist.cells = SCM_CDR (scm_freelist.cells); \
-               SCM_SET_CELL_TYPE (_into, scm_tc16_allocated); \
-               ++scm_cells_allocated; \
-            } \
-        } while(0)
-#define SCM_NEWCELL2(_into) \
-        do { \
-          if (SCM_IMP (scm_freelist2.cells)) \
-             _into = scm_gc_for_newcell (&scm_freelist2); \
-          else \
-            { \
-               _into = scm_freelist2.cells; \
-               scm_freelist2.cells = SCM_CDR (scm_freelist2.cells); \
-               SCM_SET_CELL_TYPE (_into, scm_tc16_allocated); \
-               scm_cells_allocated += 2; \
-            } \
-        } while(0)
-#endif /* GUILE_NEW_GC_SCHEME */
 #endif
 
 
@@ -246,19 +235,12 @@ extern int scm_gc_heap_lock;
 
 extern scm_sizet scm_max_segment_size;
 extern SCM_CELLPTR scm_heap_org;
-#ifdef GUILE_NEW_GC_SCHEME
 extern SCM scm_freelist;
 extern struct scm_freelist_t scm_master_freelist;
 extern SCM scm_freelist2;
 extern struct scm_freelist_t scm_master_freelist2;
-#else
-extern struct scm_freelist_t scm_freelist;
-extern struct scm_freelist_t scm_freelist2;
-#endif
 extern unsigned long scm_gc_cells_collected;
-#ifdef GUILE_NEW_GC_SCHEME
 extern unsigned long scm_gc_yield;
-#endif
 extern unsigned long scm_gc_malloc_collected;
 extern unsigned long scm_gc_ports_collected;
 extern unsigned long scm_cells_allocated;
@@ -292,13 +274,9 @@ extern void scm_gc_start (const char *what);
 extern void scm_gc_end (void);
 extern SCM scm_gc (void);
 extern void scm_gc_for_alloc (struct scm_freelist_t *freelist);
-#ifdef GUILE_NEW_GC_SCHEME
 extern SCM scm_gc_for_newcell (struct scm_freelist_t *master, SCM *freelist);
 #if 0
 extern void scm_alloc_cluster (struct scm_freelist_t *master);
-#endif
-#else
-extern SCM scm_gc_for_newcell (struct scm_freelist_t *freelist);
 #endif
 extern void scm_igc (const char *what);
 extern void scm_gc_mark (SCM p);
@@ -317,14 +295,9 @@ extern int scm_return_first_int (int x, ...);
 extern SCM scm_permanent_object (SCM obj);
 extern SCM scm_protect_object (SCM obj);
 extern SCM scm_unprotect_object (SCM obj);
-#ifdef GUILE_NEW_GC_SCHEME
 extern int scm_init_storage (scm_sizet init_heap_size, int trig,
                              scm_sizet init_heap2_size, int trig2,
 			     scm_sizet max_segment_size);
-#else
-extern int scm_init_storage (scm_sizet init_heap_size,
-                             scm_sizet init_heap2_size);
-#endif
 extern void scm_init_gc (void);
 #endif  /* GCH */
 
