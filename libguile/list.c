@@ -485,6 +485,8 @@ SCM_DEFINE (scm_list_copy, "list-copy", 1, 0, 0,
   SCM * fill_here;
   SCM from_here;
 
+  SCM_VALIDATE_LIST (1, lst);
+
   newlst = SCM_EOL;
   fill_here = &newlst;
   from_here = lst;

@@ -1,3 +1,7 @@
+2001-02-12  Keisuke Nishida  <kxn30@po.cwru.edu>
+
+	* list.c (scm_list_copy): Validate the first argument.
+
 2001-02-11  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	Fix evaluator so that top-level expressions are correctly
