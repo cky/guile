@@ -5,4 +5,4 @@
   exit 1
 }
 
-autoreconf -i
+autoreconf -i --force
