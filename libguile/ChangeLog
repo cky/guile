@@ -1,3 +1,7 @@
+1999-09-06  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* Makefile.am (ETAGS_ARGS): Added support for GPROC and GPROC1.
+
 1999-09-06  James Blandy  <jimb@mule.m17n.org>
 
 	* guile-snarf.c: Deleted.  Snarfing should respect CPP
