@@ -1,3 +1,7 @@
+2005-03-01  Kevin Ryde  <user42@zip.com.au>
+
+	* libguile-concepts.texi (Control Flow): Cross reference Tail Calls.
+
 2005-02-17  Kevin Ryde  <user42@zip.com.au>
 
 	* api-data.texi (Reals and Rationals): Use tex for sqrt2 and pi.
