@@ -1,3 +1,23 @@
+1998-07-12  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+
+	* stime.c: Removed declaration of strptime.  (It should be
+	declared by the system headers.  If it turns out that some systems
+	don't, we'll handle that then.)  (Thanks to Greg Troxel.)
+
+	* stime.h: Renamed TIMEH --> STIMEH
+
+	* backtrace.c (scm_display_error, scm_display_backtrace): In order
+	to increase portability, don't use structure assignment.
+	(Thanks to Nicolas Neuss.)
+
+	* iselect.c: Use LONG_MAX instead of ULONG_MAX for increased
+	portability.
+	(finalize_fd_sets): Added empty statement after last case label.
+	(Thanks to Nicolas Neuss.)
+
+	* gc.c (scm_igc): Changed //-comment into /*-comment.  (Thanks to
+	Nicolas Neuss.)
+
 Sat Jul 11 22:08:21 1998  Mikael Djurfeldt  <mdj@totoro.red-bean.com>
 
 	* init.c, readline.c: OK, I won't have these readline.x bug

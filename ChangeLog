@@ -1,3 +1,8 @@
+1998-07-12  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+
+	* configure.in: Changed variable HOSTNAME --> PROG_HOSTNAME in
+	totoro kludge.
+
 Sat Jul 11 21:54:29 1998  Mikael Djurfeldt  <mdj@totoro.red-bean.com>
 
 	* acconfig.h, configure.in: Define TOTORO if configuring on
