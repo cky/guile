@@ -1,3 +1,14 @@
+Fri Oct 25 01:56:30 1996  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* read.c (scm_lreadr): Recognize SCSH-style block comments; text
+	between `#!' and `!#' is ignored.
+	(skip_scsh_block_comment): New function.
+
+	* feature.c (scm_set_program_arguments): New argument, FIRST.
+	* feature.h: Update prototype.
+	* init.c (scm_boot_guile_1): Pass new argument to
+	scm_set_program_arguments.
+
 Tue Oct 22 20:54:42 1996  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* init.c (scm_start_stack): Don't initialize scm_progargs here.

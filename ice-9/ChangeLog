@@ -1,3 +1,9 @@
+Fri Oct 25 03:34:47 1996  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* boot-9.scm (%read-sharp): Don't recognize the `#!' syntax here;
+	that's now taken care of in libguile, and in a way compatible with
+	SCSH (which this isn't).
+
 Mon Oct 21 18:52:36 1996  Jim Blandy  <jimb@totoro.cyclic.com>
 
 	* boot-9.scm: Formatting tweaks.

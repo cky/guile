@@ -8,6 +8,69 @@ Guile 1.0b3
 
 Changes since Thursday, September 5:
 
+
+* Guile now distinguishes between #f and the empty list.
+
+This is for compatibility with the IEEE standard, the (possibly)
+upcoming Revised^5 Report on Scheme, and many extant Scheme
+implementations.
+
+Guile used to have #f and '() denote the same object, to make Scheme's
+type system more compatible with Emacs Lisp's.  However, the change
+caused too much trouble for Scheme programmers, and we found another
+way to reconcile Emacs Lisp with Scheme that didn't require this.
+
+
+* You can now use Guile as a shell script interpreter.
+
+To paraphrase the SCSH manual:
+
+    When Unix tries to execute an executable file whose first two
+    characters are the `#!', it treats the file not as machine code to
+    be directly executed by the native processor, but as source code
+    to be executed by some interpreter.  The interpreter to use is
+    specified immediately after the #! sequence on the first line of
+    the source file.  The kernel reads in the name of the interpreter,
+    and executes that instead.  It passes the interpreter the source
+    filename as its first argument, with the original arguments
+    following.  Consult the Unix man page for the `exec' system call
+    for more information.
+
+Guile now recognizes a '-s' command line switch, whose argument is the
+name of a file of Scheme code to load.  It also treats the two
+characters `#!' as the start of a comment, terminated by `!#'.  Thus,
+to make a file of Scheme code directly executable by Unix, insert the
+following two lines at the top of the file:
+
+#!/usr/local/bin/guile -s
+!#
+
+Guile treats the argument of the `-s' command-line switch as the name
+of a file of Scheme code to load, and treats the sequence `#!' as the
+start of a block comment, terminated by `!#'.
+
+For example, here's a version of 'echo' written in Scheme:
+
+#!/usr/local/bin/guile -s
+!#
+(let loop ((args (cdr (program-arguments))))
+  (if (pair? args)
+      (begin
+	(display (car args))
+	(if (pair? (cdr args))
+	    (display " "))
+	(loop (cdr args)))))
+(newline)
+
+Why does `#!' start a block comment terminated by `!#', instead of the
+end of the line?  That is the notation SCSH uses, and although we
+don't yet support the other SCSH features that motivate that choice,
+we would like to be backward-compatible with any existing Guile
+scripts once we do.
+
+Note that some very old Unix systems don't support the `#!' syntax.
+
+
 * You can now run Guile without installing it.
 
 Previous versions of the interactive Guile interpreter (`guile')
