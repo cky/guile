@@ -41,13 +41,7 @@ dnl   friends really ought not to be even mentioned in the top-level
 dnl   configure script, but here they are.
 
 AC_DEFUN([QTHREADS_CONFIGURE],[
-
-  # For some reason, AC_REQUIRE doesn't seem to work with the aclocal
-  # program.  So we'll just do this runtime check.
-  if test "${LN_S}" = ""; then
-    f=''
-    AC_MSG_ERROR(The QTHREADS${f}_CONFIGURE macro requires A${f}C_PROG_LN_S)
-  fi
+  AC_REQUIRE([AC_PROG_LN_S])
 
   # How can we refer to the qt source directory from within the qt build
   # directory?  For headers, we can rely on the fact that the qt src

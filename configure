@@ -4539,13 +4539,7 @@ case "${with_threads}" in
     ## the THREAD_PACKAGE variable if qthreads don't configure
     ## correctly.
     
-
-  # For some reason, AC_REQUIRE doesn't seem to work with the aclocal
-  # program.  So we'll just do this runtime check.
-  if test "${LN_S}" = ""; then
-    f=''
-    { echo "configure: error: The QTHREADS${f}_CONFIGURE macro requires A${f}C_PROG_LN_S" 1>&2; exit 1; }
-  fi
+  
 
   # How can we refer to the qt source directory from within the qt build
   # directory?  For headers, we can rely on the fact that the qt src
@@ -4664,7 +4658,7 @@ do
 # Extract the first word of "$ac_prog", so it can be a program name with args.
 set dummy $ac_prog; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
-echo "configure:4668: checking for $ac_word" >&5
+echo "configure:4662: checking for $ac_word" >&5
 if eval "test \"`echo '$''{'ac_cv_prog_AWK'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
