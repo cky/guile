@@ -343,4 +343,72 @@ Thomas Wawrzinek sez:
 > a wrong usage error or something?
 
 
+bug 13 -- incorrect error reporting after stack overflow
+reported-by: Panagiotis Vossos <jacbre@internet.gr> / 2002-02-19
+fixed: not-yet
+
+Panagiotis Vossos sez:
+
+I have guile 1.5.4 installed and I discovered something strange.
+
+guile> (define (foo n) (+ n (foo n)))
+guile> (foo 10)
+ERROR: Stack overflow
+ABORT: (stack-overflow)
+guile> thisisabug
+<unnamed port>: In expression thisisabug:
+<unnamed port>: Unbound variable: thisisabug
+ABORT: (unbound-variable)
+guile> (foo 10)
+<unnamed port>: In expression thisisabug:
+<unnamed port>: Stack overflow
+ABORT: (stack-overflow)
+
+The last message shows the previous unbound variable 'thisisabug'.
+'foo' is just an example, this seems to happen for every function that
+causes overflow.  It's not serious, but it sure looks misleading..
+
+Neil Jerram sez:
+
+It's something to do with the way that debug info frames cope with
+stack overflow.
+
+
+bug 14 -- strange gc loop caused by trap misuse
+reported-by: Neil Jerram <neil@ossau.uklinux.net> / 2002-02-03
+fixed: not-yet
+
+Neil Jerram sez:
+
+Using the current unstable CVS Guile...
+
+Running under gdb, type in the following:
+
+(gdb) run -q
+Starting program: /usr/local/bin/guile -q
+guile> (trap-set! enter-frame-handler (lambda () 1))
+(exit-frame-handler #f apply-frame-handler #f enter-frame-handler #<procedure #f ()> traps)
+guile> (trap-enable 'enter-frame)
+
+There is no response.  Wait a few seconds, and then C-c to send an
+interrupt.  You'll find that the call stack shows a huge number of
+recursive calls to scm_gc_mark (about 4000 per second waited on my
+box).  (If you don't see scm_gc_mark immediately, you may have
+interrupted too quickly: let it run for another second and then C-c
+again.)
+
+Here's as much of an explanation as I can offer...  The intended
+effect of the two `trap' lines above is that the evaluator calls the
+specified procedure every time it enters a new evaluation frame or is
+about to perform an application.  However, the procedure above doesn't
+accept the right number of arguments, so the attempt to call it gives
+rise to a wrong-num-args error, which (I presume) jumps us out of that
+level of the evaluator and is caught by the usual REPL machinery in
+boot-9.scm.
+
+Then, the next time that we need to GC, we hit this scm_gc_mark loop.
+My guess is that something about the trap+error scenario has left data
+or the stack in a state which exposes a bug in the GC.
+
+
 [BUGS ends here]
