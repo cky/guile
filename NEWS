@@ -17,6 +17,39 @@ libguile/sequences.c removed.
 
 * Changes to Scheme functions and syntax
 
+** Some magic has been added to the printer to better handle user
+written printing routines (like record printers, closure printers).
+
+The problem is that these user written routines must have access to
+the current `prine-state' to be able to handle fancy things like
+detection of circular references.  These print-states have to be
+passed to the builtin printing routines (display, write, etc) to
+properly continue the print chain.
+
+We didn't want to change all existing print code so that it
+explicitely passes thru a print state in addition to a port.  Instead,
+we extented the possible values that the builtin printing routines
+accept as a `port'.  In addition to a normal port, they now also take
+a pair of a normal port and a print-state.  Printing will go to the
+port and the print-state will be used to control the detection of
+circular references, etc.  If the builtin function does not care for a
+print-state, it is simply ignored.
+
+User written callbacks are now called with such a pair as their
+`port', but because every function now accepts this pair as a PORT
+argument, you don't have to worry about that.  In fact, it is probably
+safest to not check for these pairs.
+
+However, it is sometimes necessary to continue a print chain on a
+different port, for example to get a intermediate string
+representation of the printed value, mangle that string somehow, and
+then to finally print the mangled string.  Use the new function
+
+    inherit-print-state OLD-PORT NEW-PORT
+
+for this.  It constructs a new `port' that prints to NEW-PORT but
+inherits the print-state of OLD-PORT.
+
 ** struct-vtable-offset renamed to vtable-offset-user
 
 ** New constants: vtable-index-layout, vtable-index-vtable, vtable-index-printer
