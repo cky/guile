@@ -30,7 +30,7 @@ rm -f examples/example.gdbinit
 ln -s $workbook/build/dist-files/.gdbinit examples/example.gdbinit
 
 # TODO: This should be moved to dist-guile
-mscripts=$workbook/../scripts
+mscripts=../guile-scripts
 rm -f BUGS
 $mscripts/render-bugs > BUGS
 
@@ -67,6 +67,7 @@ automake --add-missing
 # Make sure that libltdl uses the same autoconf version as the rest.
 #
 echo "libltdl..."
+(cd libltdl && aclocal)
 (cd libltdl && autoconf)
 (cd libltdl && automake --gnu --add-missing)
 

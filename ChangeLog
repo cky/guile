@@ -1,3 +1,9 @@
+2002-06-30  Gary Houston  <ghouston@arglist.com>
+
+	* autogen.sh: Changed the path to the scripts directory.
+	In libltdl, run aclocal before autoconf and automake: this
+	eliminated various warnings after upgrading to newer automake.
+
 2002-05-22  Marius Vollmer  <mvo@zagadka.ping.de>
 
         From John W. Eaton <jwe@bevo.che.wisc.edu>
