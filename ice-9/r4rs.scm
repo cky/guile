@@ -28,6 +28,8 @@
 (set-procedure-property! apply 'name 'apply)
 (define (call-with-current-continuation proc)
   (@call-with-current-continuation proc))
+(define (call-with-values producer consumer)
+  (@call-with-values producer consumer))
 
 
 ;;;; Basic Port Code
