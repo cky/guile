@@ -95,6 +95,7 @@ extern unsigned long * __libc_ia64_register_backing_store_base;
 #define SCM_DEFAULT_INIT_MALLOC_LIMIT 200*1024
 #define SCM_DEFAULT_MALLOC_MINYIELD 40
 
+/* #define DEBUGINFO */
 
 static int scm_i_minyield_malloc;
 
@@ -207,11 +208,12 @@ scm_gc_register_collectable_memory (void *mem, size_t size, const char *what)
 
       yield = (prev_alloced - scm_mallocated) / (float) prev_alloced;
       scm_gc_malloc_yield_percentage = (int) (100  * yield);
-      /*
+
+#ifdef DEBUGINFO
       fprintf (stderr,  "prev %lud , now %lud, yield %4.2lf, want %d",
 	       prev_alloced, scm_mallocated, 100.0*yield, scm_i_minyield_malloc);
-      */
-
+#endif
+      
       if (yield < scm_i_minyield_malloc /  100.0)
 	{
 	  /*
@@ -224,12 +226,10 @@ scm_gc_register_collectable_memory (void *mem, size_t size, const char *what)
 	   */
 	  scm_mtrigger = (scm_mallocated * 110) / (100 - scm_i_minyield_malloc);
 	  
-	  /*
+#ifdef DEBUGINFO
 	  fprintf (stderr, "Mtrigger sweep: ineffective. New trigger %d\n", scm_mtrigger);
-	  */
+#endif
 	}
-
-
     }
   
 #ifdef GUILE_DEBUG_MALLOC
