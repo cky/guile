@@ -161,7 +161,9 @@ scm_class_of (SCM x)
 	  }
 	case scm_tcs_cons_gloc:
 	  /* must be a struct */
-	  if (SCM_OBJ_CLASS_FLAGS (x) & SCM_CLASSF_GOOPS)
+	  if (SCM_OBJ_CLASS_FLAGS (x) & SCM_CLASSF_GOOPS_VALID)
+	    return SCM_CLASS_OF (x);
+	  else if (SCM_OBJ_CLASS_FLAGS (x) & SCM_CLASSF_GOOPS)
 	    {
 	      /* Goops object */
 	      if (SCM_OBJ_CLASS_REDEF (x) != SCM_BOOL_F)
