@@ -18,17 +18,188 @@
 @node begin
 @section Evaluating a Sequence of Expressions
 
+@c FIXME::martin: Review me!
+
+@c FIXME::martin: Maybe add examples?
+
+@cindex begin
+@cindex sequencing
+@cindex expression sequencing
+
+@code{begin} is used for grouping several expression together so that
+they syntactically are treated as if they were one expression.  This is
+particularly important when syntactic expressions are used which only
+allow one expression, but the programmer wants to use more than one
+expression in that place.  As an example, consider the conditional
+expression below:
+
+@lisp
+(if (> x 0)
+    (begin (display "greater") (newline)))
+@end lisp
+
+If the two calls to @code{display} and @code{newline} were not embedded
+in a @code{begin}--statement, the call to @code{newline} would get
+misinterpreted as the else--branch of the @code{if}--expression.
+
+@deffn syntax begin expr1 expr2 @dots{}
+The expression(s) are evaluated in left--to--right order and the value
+of the last expression is returned as the value of the
+@code{begin}--expression.  This expression type is used when the
+expressions before the last one are evaluated for their side effects.
+@end deffn
 
 @node if cond case
 @section Simple Conditional Evaluation
+
+@c FIXME::martin: Review me!
+
+@c FIXME::martin: Maybe add examples?
+
+@cindex conditional evaluation
+@cindex if
+@cindex case
+@cindex cond
+
+Guile provides three syntactic constructs for conditional evaluation.
+@code{if} is the normal if--then--else expression (with an optional else
+branch), @code{cond} is a conditional expression with multiple branches
+and @code{case} branches if an expression has one of a set of constant
+values.
+
+@deffn syntax if test consequent [alternate]
+All arguments may be arbitrary expressions.  First, @var{test} is
+evaluated.  If it returns a true value, the expression @var{consequent}
+is evaluated and @var{alternate} is ignoret.  If @var{test} evaluates to
+@code{#f}, @var{alternate} is evaluated instead.  The value of the
+evaluated branch (@var{consequent} or @var{alternate}) is returned as
+the value of the @code{if} expression.
+
+When @var{alternate} is omitted and the @var{test} evaluates to
+@code{#f}, the value of the expression is not specified.
+@end deffn
+
+@deffn syntax cond clause1 clause2 @dots{}
+Each @code{cond}-clause must look like this:
+
+@lisp
+(@var{test} @var{expression} @dots{})
+@end lisp
+
+where @var{test} and @var{expression} are arbitrary expression, or like
+this
+
+@lisp
+(@var{test} => @var{expression}
+@end lisp
+
+where @var{expression} must evaluate to a procedure.
+
+The @var{test}s of the clauses are evaluated in order and as soon as one
+of them evaluates to a true values, the corresponding @var{expression}s
+are evaluated in order and the last value is returned as the value of
+the @code{cond}--expression.  For the @code{=>} clause type,
+@var{expression} is evaluated and the resulting procedure is applied to
+the value of @var{test}.  The result of this procedure application is
+then the result of the @code{cond}--expression.
+
+The @var{test} of the last @var{clause} may be the keyword @code{else}.
+Then, if none of the preceding @var{test}s is true, the @var{expression}s following the @code{else} are evaluated to produce the result of the @code{cond}--expression.
+@end deffn
+
+@deffn syntax case key clause1 clause2 @dots{}
+@var{key} may be any expression, the @var{clause}s must have the form
+
+@lisp
+((@var{datum1} @dots{}) @var{expr1} @var{expr2} @dots{})
+@end lisp
+
+and the last @var{clause} may have the form
+
+@lisp
+(else @var{expr1} @var{expr2} @dots{})
+@end lisp
+
+All @var{datum}s must be distinct.  First, @var{key} is evaluated.  The
+the result of this evaluation is compared against all @var{datum}s using
+@code{eqv?}.  When this comparison succeeds, the epression(s) following
+the @var{datum} are evaluated from left to right, returning the value of
+the last expression as the result of the @code{case} expression.
+
+If the @var{key} matches no @var{datum} and there is an
+@code{else}--clause, the expressions following the @code{else} are
+evaluated.  If there is no such clause, the result of the expression is
+unspecified.
+@end deffn
 
 
 @node and or
 @section Conditional Evaluation of a Sequence of Expressions
 
+@c FIXME::martin: Review me!
+
+@c FIXME::martin: Maybe add examples?
+
+@code{and} and @code{or} evaluate all their arguments, similar to
+@code{begin}, but evaluation stops as soon as one of the expressions
+evaluates to false or true, respectively.
+
+@deffn syntax and expr @dots{}
+Evaluate the @var{expr}s from left to right and stop evaluation as soon
+as one expression evaluates to @code{#f}; the remaining expressions are
+not evaluated.  The value of the last evaluated expression is returned.
+If no expression evaluates to @code{#f}, the value of the last
+expression is returned.
+
+If used without expressions, @code{#t} is returned.
+@end deffn
+
+@deffn syntax or expr @dots{}
+Evaluate the @var{expr}s from left to right and stop evaluation as soon
+as one expression evaluates to a true value (that is, a value different
+from @code{#f}); the remaining expressions are not evaluated.  The value
+of the last evaluated expression is returned.  If all expressions
+evaluate to @code{#f}, @code{#f} is returned.
+
+If used without expressions, @code{#f} is returned.
+@end deffn
+
 
 @node while do
 @section Iteration mechanisms
+
+@c FIXME::martin: Review me!
+
+@c FIXME::martin: Maybe add examples?
+
+@cindex iteration
+@cindex looping
+
+Scheme has only few iteration mechanisms, mainly because iteration in
+Scheme programs is normally expressed using recursion.  Nevertheless,
+R5RS defines a construct for programming loops, calling @code{do}.  In
+addition, Guile has an explicit looping syntax called @code{while}.
+
+@deffn syntax do ((variable1 init1 step1) @dots{}) (test expr @dots{}) command @dots{}
+The @var{init} expressions are evaluated and the @var{variables} are
+bound to their values. Then looping starts with testing the @var{test}
+expression.  If @var{test} evaluates to a true value, the @var{expr}
+following the @var{test} are evaluated and the value of the last
+@var{expr} is returned as the value of the @code{do} expression.  If
+@var{test} evaluates to false, the @var{command}s are evaluated in
+order, the @var{step}s are evaluated and stored into the @var{variables}
+and the next iteration starts.
+
+Any of the @var{step} expressions may be omitted, so that the
+corresponding variable is not changed during looping.
+@end deffn
+
+@deffn syntax while cond body @dots{}
+Evaluate all expressions in @var{body} in order, as long as @var{cond}
+evaluates to a true value.  The @var{cond} expression is tested before
+every iteration, so that the body is not evaluated at all if @var{cond}
+is @code{#f} right from the start.
+@end deffn
 
 
 @node Continuations
@@ -42,8 +213,27 @@
 @node Multiple Values
 @section Returning and Accepting Multiple Values
 
+@c FIXME::martin: Review me!
+@cindex multiple values
+@cindex receive
+
+Scheme allows a procedure to return more than one value to its caller.
+This is quite different to other languages which only allow
+single--value returns.  Returning multiple values is different from
+returning a list (or pair or vector) of values to the caller, because
+conceptionally not @emph{one} compound object is returned, but several
+distinct values.
+
+The primitive procedures for handling multiple values are @code{values}
+and @code{call-with-values}.  @code{values} is used for returning
+multiple values from a procedure.  This is done by placing a call to
+@code{values} with zero or more arguments in tail position in a
+procedure body.  @code{call-with-values} combines a procedure returning
+multiple values with a procedure which accepts these values as
+parameters.
+
 @rnindex values
-@deffn primitive values . args
+@deffn primitive values expr @dots{}
 Delivers all of its arguments to its continuation.  Except for
 continuations created by the @code{call-with-values} procedure,
 all continuations take exactly one value.  The effect of
@@ -68,6 +258,23 @@ of the call to @code{call-with-values}.
 @example
 (call-with-values * -)                             ==>  -1
 @end example
+@end deffn
+
+In addition to the fundamental procedures described above, Guile has a
+module which exports a syntax called @code{receive}, which is much more
+convenient.  If you want to use it in your programs, you have to load
+the module @code{(ice-9 receive)} with the statement
+
+@lisp
+(use-modules (ice-9 receive))
+@end lisp
+
+@deffn {library syntax} receive formals expr body @dots{}
+Evaluate the expression @var{expr}, and bind the result values (zero or
+more) to the formal arguments in the formal argument list @var{formals}.
+@var{formals} must have the same syntax like the formal argument list
+used in @code{lambda} (@pxref{Lambda}).  After binding the variables,
+the expressions in @var{body} @dots{} are evaluated in order.
 @end deffn
 
 

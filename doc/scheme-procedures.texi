@@ -81,6 +81,248 @@ order when the procedure is invoked.
 @node Optional Arguments
 @section Optional Arguments
 
+@c FIXME::martin: Review me!
+
+Scheme procedures, as defined in R5RS, can wither handle a fixed number
+of actual arguments, or a fixed number of actual arguments followed by
+arbitrarily many additional arguments.  Writing procedures of variable
+arity can be useful, but unfortunately, the syntactic means for handling
+argument lists of varying length is a bit inconvenient.  It is possible
+to give names to the fixed number of argument, but the remaining
+(optional) arguments can be only referenced as a list of values
+(@pxref{Lambda}).
+
+Guile comes with the module @code{(ice-9 optargs)}, which makes using
+optional arguments much more convenient.  In addition, this module
+provides syntax for handling keywords in argument lists
+(@pxref{Keywords}).
+
+Before using any of the procedures or macros defined in this section,
+you have to load the module @code{(ice-9 optargs)} with the statement:
+
+@lisp
+(use-modules (ice-9 optargs))
+@end lisp
+
+@menu
+* let-optional Reference::      Locally binding optional arguments.
+* let-keywords Reference::      Locally binding keywords arguments.
+* lambda* Reference::           Creating advanced argument handling procedures.
+* define* Reference::           Defining procedures and macros.
+@end menu
+
+
+@node let-optional Reference
+@subsection let-optional Reference
+
+@c FIXME::martin: Review me!
+
+The syntax @code{let-optional} and @code{let-optional*} are for
+destructuring rest argument lists and giving names to the various list
+elements.  @code{let-optional} binds all variables simultaneously, while
+@code{let-optional*} binds them sequentially, consistent with @code{let}
+and @code{let*} (REFFIXME).
+
+@deffn {libary syntax} let-optional rest-arg (binding @dots{}) expr @dots{}
+@deffnx {library syntax} let-optional* rest-arg (binding @dots{}) expr @dots{}
+These two macros give you an optional argument interface that is very
+@dfn{Schemey} and introduces no fancy syntax. They are compatible with
+the scsh macros of the same name, but are slightly extended. Each of
+@var{binding} may be of one of the forms @var{var} or @code{(@var{var}
+@var{default-value})}. @var{rest-arg} should be the rest-argument of the
+procedures these are used from.  The items in @var{rest-arg} are
+sequentially bound to the variable names are given. When @var{rest-arg}
+runs out, the remaining vars are bound either to the default values or
+left unbound if no default value was specified. @var{rest-arg} remains
+bound to whatever may have been left of @var{rest-arg}.
+
+After binding the variables, the expressions @var{expr} @dots{} are
+evaluated in order.
+@end deffn
+
+
+@node let-keywords Reference
+@subsection let-keywords Reference
+
+@c FIXME::martin: Review me!
+
+@code{let-keywords} and @code{let-keywords*} are used for extracting
+values from argument lists which use keywords instead of argument
+position for binding local variables to argument values.
+
+@code{let-keywords} binds all variables simultaneously, while
+@code{let-keywords*} binds them sequentially, consistent with @code{let}
+and @code{let*} (REFFIXME).
+
+@deffn {library syntax} let-keywords rest-arg allow-other-keys? (binding @dots{})  expr @dots{}
+@deffnx {library syntax} let-keywords rest-arg allow-other-keys? (binding @dots{})  expr @dots{}
+These macros pick out keyword arguments from @var{rest-arg}, but do not
+modify it.  This is consistent at least with Common Lisp, which
+duplicates keyword arguments in the rest argument. More explanation of what
+keyword arguments in a lambda list look like can be found below in
+the documentation for @code{lambda*}
+ (@pxref{lambda* Reference}).  @var{binding}s can have the same form as
+for @code{let-optional}. If @var{allow-other-keys?} is false, an error
+will be thrown if anything that looks like a keyword argument but does
+not match a known keyword parameter will result in an error.
+
+After binding the variables, the expressions @var{expr} @dots{} are
+evaluated in order.
+@end deffn
+
+
+@node lambda* Reference
+@subsection lambda* Reference
+
+@c FIXME::martin: Review me!
+
+When using optional and keyword argument lists, using @code{lambda} for
+creating procedures and using @code{let-optional} or @code{let-keywords}
+is a bit lengthy.  Therefore, @code{lambda*} is provided, which combines
+the features of those macros into a single convenient syntax.
+
+For quick reference, here is the syntax of the formal argument list for
+@code{lambda*} (brackets are used to indicate grouping only):
+
+@example
+ext-param-list ::= [identifier]* [#:optional [ext-var-decl]+]?
+  [#:key [ext-var-decl]+ [#:allow-other-keys]?]? 
+  [[#:rest identifier]|[. identifier]]?
+
+ext-var-decl ::= identifier | ( identifier expression )  
+@end example
+
+The characters `*', `+' and `?' are not to be taken literally; they mean
+respectively, zero or more occurences, one or more occurences, and one
+or zero occurences.
+
+@deffn {library syntax} lambda* formals body
+@code{lambda*} creates a procedure that takes optional arguments. These
+are specified by putting them inside brackets at the end of the
+paramater list, but before any dotted rest argument. For example,
+
+@lisp
+(lambda* (a b #:optional c d . e) '())
+@end lisp
+
+creates a procedure with fixed arguments @var{a} and @var{b}, optional
+arguments @var{c} and @var{d}, and rest argument @var{e}. If the
+optional arguments are omitted in a call, the variables for them are
+unbound in the procedure. This can be checked with the @code{bound?}
+macro (documented below).
+
+@code{lambda*} can also take keyword arguments. For example, a procedure
+defined like this:
+
+@lisp
+(lambda* (#:key xyzzy larch) '())
+@end lisp
+
+can be called with any of the argument lists @code{(#:xyzzy 11)}
+@code{(#:larch 13)} @code{(#:larch 42 #:xyzzy 19)} @code{()}. Whichever
+arguments are given as keywords are bound to values.
+
+Optional and keyword arguments can also be given default values
+which they take on when they are not present in a call, by giving a
+two-item list in place of an optional argument, for example in:
+
+@lisp
+(lambda* (foo #:optional (bar 42) #:key (baz 73))
+     (list foo bar baz)) 
+@end lisp
+
+@var{foo} is a fixed argument, @var{bar} is an optional argument with
+default value 42, and baz is a keyword argument with default value 73.
+Default value expressions are not evaluated unless they are needed and
+until the procedure is called.
+
+@code{lambda*} also supports two more special parameter list keywords.
+
+@code{lambda*}-defined procedures now throw an error by default if a
+keyword other than one of those specified is found in the actual
+passed arguments. However, specifying @code{#:allow-other-keys}
+immediately after the keyword argument declarations restores the
+previous behavior of ignoring unknown keywords.  @code{lambda*} also now
+guarantees that if the same keyword is passed more than once, the
+last one passed is the one that takes effect. For example,
+
+@lisp
+((lambda* (#:key (heads 0) (tails 0)) (display (list heads tails)))
+    #:heads 37 #:tails 42 #:heads 99)
+@end lisp
+
+would result in (99 47) being displayed.
+
+@code{#:rest} is also now provided as a synonym for the dotted syntax
+rest argument. The argument lists @code{(a . b)} and @code{(a #:rest b)}
+are equivalent in all respects to @code{lambda*}. This is provided for
+more similarity to DSSSL, MIT-Scheme and Kawa among others, as well as
+for refugees from other Lisp dialects.
+@end deffn
+
+@deffn {library syntax} bound? variable
+Check if a variable is bound in the current environment.
+
+The procedure @code{defined?} doesn't quite cut it as it stands, since
+it only checks bindings in the top-level environment, not those in local
+scope only.
+@end deffn
+
+
+@node define* Reference
+@subsection define* Reference
+
+@c FIXME::martin: Review me!
+
+Just like @code{define} has a shorthand notation for defining procedures
+(@pxref{Lambda Alternatives}), @code{define*} is provided as an
+abbreviation of the combination of @code{define} and @code{lambda*}.
+
+@code{define*-public} is the @code{lambda*} version of
+@code{define-public}; @code{defmacro*} and @code{defmacro*-public} exist
+for defining macros with the improved argument list handling
+possibilities.  The @code{-public} versions not only define the
+procedures/macros, but also export them from the current module.
+
+@deffn {library syntax} define* formals body
+@deffnx {library syntax} define*-public formals body
+@code{define*} and @code{define*-public} support optional arguments with
+a similar syntax to @code{lambda*}. They also support arbitrary-depth
+currying, just like Guile's define. Some examples:
+
+@lisp
+(define* (x y #:optional a (z 3) #:key w . u)
+   (display (list y z u)))
+@end lisp
+defines a procedure @code{x} with a fixed argument @var{y}, an optional
+agument @var{a}, another optional argument @var{z} with default value 3,
+a keyword argument @var{w}, and a rest argument @var{u}.
+
+@lisp
+(define-public* ((foo #:optional bar) #:optional baz) '())
+@end lisp
+
+This illustrates currying. A procedure @code{foo} is defined, which,
+when called with an optional argument @var{bar}, returns a procedure
+that takes an optional argument @var{baz}.
+
+Of course, @code{define*[-public]} also supports @code{#:rest} and
+@code{#:allow-other-keys} in the same way as @code{lambda*}.
+@end deffn
+
+@deffn {library syntax} defmacro* name formals body
+@deffnx {library syntax} defmacro*-public name formals body
+These are just like @code{defmacro} and @code{defmacro-public} except that they
+take @code{lambda*}-style extended paramter lists, where @code{#:optional},
+@code{#:key}, @code{#:allow-other-keys} and @code{#:rest} are allowed with the usual
+semantics. Here is an example of a macro with an optional argument:
+
+@lisp
+(defmacro* transmorgify (a #:optional b)
+    (a 1))
+@end lisp
+@end deffn
+
 
 @node Procedure Properties
 @section Procedure Properties and Metainformation

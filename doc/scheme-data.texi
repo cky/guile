@@ -1356,12 +1356,12 @@ called with string containing unusal characters.
 @node String Syntax
 @subsection String Read Syntax
 
-The read syntax for strings is an arbitrarily long sequence of characters
-enclosed in double quotes (@code{"}). @footnote{Actually, the current
-implementation restricts strings to a length of 2^24 characters.}  If
-you want to insert a double quote character into a string literal, it
-must be prefixed with a backslash @code{\} character (called an
-@emph{escape character}).
+The read syntax for strings is an arbitrarily long sequence of
+characters enclosed in double quotes (@code{"}). @footnote{Actually, the
+current implementation restricts strings to a length of 2^24
+characters.}  If you want to insert a double quote character into a
+string literal, it must be prefixed with a backslash @code{\} character
+(called an @emph{escape character}).
 
 The following are examples of string literals:
 

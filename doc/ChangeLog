@@ -1,5 +1,20 @@
 2001-04-17  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
+	* scheme-control.texi (Multiple Values): Documented concept of
+	multiple values, added docs for `receive'.
+	(begin): Documented `begin'.
+	(if cond case): Documented `if', `cond' and `case'.
+	(and or): Documented `and' and `or'.
+	(while do): Documented `do' and `while'.
+
+	* scheme-procedures.texi (Optional Arguments): Split the node,
+	added introductory text, added menu for subsections.
+	(let-optional Reference, let-keywords Reference),
+	(lambda* Reference, define* Reference): Added syntax documentation
+	for all exported procedures from (ice-9 optargs).
+
+2001-04-17  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
 	* scheme-utility.texi (General Conversion): New node, added
 	`object->string'.
 	(Equality): Added definition and explanation of `sameness'.
