@@ -355,11 +355,11 @@ distclean-depend:
 maintainer-clean-depend:
 	rm -rf .deps
 
-.deps/%.P: $(srcdir)/%.c
+.deps/%.P: $(srcdir)/%@EXT@
 	@echo "Computing dependencies for $<..."
 	@o='o';				\
-	test -n "$o" && o='$$o';	\
-	$(MKDEP) $< | sed "s/^\(.*\)\.o:/\1.$$o \1.l$$o:/" > $@
+ONLYC	test -n "$o" && o='$$o';	\
+	$(@MKDEP@) $< | sed "s/^\(.*\)\.o:/\1.$$o \1.l$$o:/" > $@
 info:
 dvi:
 check: all
