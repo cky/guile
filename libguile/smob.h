@@ -44,6 +44,7 @@
  * If you do not wish that, delete this exception notice.  */
 
 #include "libguile/__scm.h"
+#include "libguile/print.h"
 
 
 typedef struct scm_smobfuns
