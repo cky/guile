@@ -806,13 +806,13 @@ scm_putc (char c, SCM port)
 }
 
 void 
-scm_puts (char *s, SCM port)
+scm_puts (const char *s, SCM port)
 {
   scm_lfwrite (s, strlen (s), port);
 }
 
 void 
-scm_lfwrite (char *ptr, scm_sizet size, SCM port)
+scm_lfwrite (const char *ptr, scm_sizet size, SCM port)
 {
   scm_port *pt = SCM_PTAB_ENTRY (port);
   scm_ptob_descriptor *ptob = &scm_ptobs[SCM_PTOBNUM (port)];
@@ -932,7 +932,7 @@ scm_ungetc (int c, SCM port)
 
 
 void 
-scm_ungets (char *s, int n, SCM port)
+scm_ungets (const char *s, int n, SCM port)
 {
   /* This is simple minded and inefficient, but unreading strings is
    * probably not a common operation, and remember that line and

@@ -389,7 +389,7 @@ as the @var{lib} argument to the following functions.")
 	      flags &= ~DYNL_GLOBAL;
 	  }
 	else
-	  scm_misc_error (FUNC_NAME, "unknown keyword argument: %s",
+	  scm_misc_error (FUNC_NAME, "unknown keyword argument: ~A",
 			  scm_cons (kw, SCM_EOL));
       }
 

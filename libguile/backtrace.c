@@ -109,10 +109,6 @@ display_header (SCM source, SCM port)
 void
 scm_display_error_message (SCM message, SCM args, SCM port)
 {
-  int writingp;
-  char *start;
-  char *p;
-  
   if (SCM_IMP (message) || !SCM_ROSTRINGP (message) || SCM_IMP (args)
       || !scm_list_p (args))
     {
@@ -121,29 +117,8 @@ scm_display_error_message (SCM message, SCM args, SCM port)
       return;
     }
 
-  SCM_COERCE_SUBSTR (message);
-  start = SCM_ROCHARS (message);
-  for (p = start; *p != '\0'; ++p)
-    if (*p == '%')
-      {
-	if (SCM_IMP (args) || SCM_NCONSP (args))
-	  continue;
-	
-	++p;
-	if (*p == 's')
-	  writingp = 0;
-	else if (*p == 'S')
-	  writingp = 1;
-	else
-	  continue;
-
-	scm_lfwrite (start, p - start - 1, port);
-	scm_prin1 (SCM_CAR (args), port, writingp);
-	args = SCM_CDR (args);
-	start = p + 1;
-      }
-  scm_lfwrite (start, p - start, port);
-  scm_putc ('\n', port);
+  scm_simple_format(port,message,args);
+  scm_newline(port);
 }
 
 static void

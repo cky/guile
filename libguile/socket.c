@@ -591,7 +591,7 @@ scm_addr_vector (struct sockaddr *address,const char *proc)
       ve[2] = scm_ulong2num ((unsigned long) ntohs (nad->sin_port));
     }
   else
-    scm_misc_error (proc, "Unrecognised address family: %s",
+    scm_misc_error (proc, "Unrecognised address family: ~A",
 		    scm_listify (SCM_MAKINUM (fam), SCM_UNDEFINED));
 
   return result;

@@ -346,10 +346,10 @@ scm_lookupcar (SCM vloc, SCM genv, int check)
       if (check)
 	{
 	  if (SCM_NULLP (env))
-	    scm_error (scm_unbound_variable_key, NULL, "Unbound variable: %S",
+	    scm_error (scm_unbound_variable_key, NULL, "Unbound variable: ~S",
 		       scm_cons (var, SCM_EOL), SCM_BOOL_F);
 	  else
-	    scm_misc_error (NULL, "Damaged environment: %S",
+	    scm_misc_error (NULL, "Damaged environment: ~S",
 			    scm_cons (var, SCM_EOL));
 	}
       else
@@ -569,7 +569,7 @@ scm_m_vref (SCM xorig, SCM env)
     {
       /* scm_everr (SCM_UNDEFINED, env,..., "global variable reference") */
       scm_misc_error (NULL,
-		      "Bad variable: %S",
+		      "Bad variable: ~S",
 		      scm_listify (SCM_CAR (SCM_CDR (x)), SCM_UNDEFINED));
     }
   SCM_ASSYNT (SCM_NIMP(x) && DEFSCM_VARIABLEP (SCM_CAR (x)),
@@ -2455,7 +2455,7 @@ dispatch:
     badfun:
       /* scm_everr (x, env,...) */
       scm_misc_error (NULL,
-		      "Wrong type to apply: %S",
+		      "Wrong type to apply: ~S",
 		      scm_listify (proc, SCM_UNDEFINED));
     case scm_tc7_vector:
     case scm_tc7_wvect:

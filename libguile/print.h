@@ -112,6 +112,7 @@ extern void scm_prin1 SCM_P ((SCM exp, SCM port, int writingp));
 extern void scm_iprin1 SCM_P ((SCM exp, SCM port, scm_print_state *pstate));
 extern SCM scm_write SCM_P ((SCM obj, SCM port));
 extern SCM scm_display SCM_P ((SCM obj, SCM port));
+extern SCM scm_simple_format SCM_P ((SCM port, SCM message, SCM args));
 extern SCM scm_newline SCM_P ((SCM port));
 extern SCM scm_write_char SCM_P ((SCM chr, SCM port));
 extern SCM scm_printer_apply SCM_P ((SCM proc, SCM exp, SCM port,

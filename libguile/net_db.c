@@ -360,7 +360,7 @@ given.")
       entry = getnetbyaddr (netnum, AF_INET);
     }
   if (!entry)
-    scm_syserror_msg (FUNC_NAME, "no such network %s",
+    scm_syserror_msg (FUNC_NAME, "no such network ~A",
 		      scm_listify (name, SCM_UNDEFINED), errno);
   ve[0] = scm_makfromstr (entry->n_name, (scm_sizet) strlen (entry->n_name), 0);
   ve[1] = scm_makfromstrs (-1, entry->n_aliases);
@@ -412,7 +412,7 @@ argument.  @code{getproto} will accept either type, behaving like
       entry = getprotobynumber (protonum);
     }
   if (!entry)
-    SCM_SYSERROR_MSG ("no such protocol %s",
+    SCM_SYSERROR_MSG ("no such protocol ~A",
 		      scm_listify (name, SCM_UNDEFINED), errno);
   ve[0] = scm_makfromstr (entry->p_name, (scm_sizet) strlen (entry->p_name), 0);
   ve[1] = scm_makfromstrs (-1, entry->p_aliases);
@@ -479,7 +479,7 @@ as its first argument; if given no arguments, it behaves like
       entry = getservbyport (htons (SCM_INUM (name)), SCM_ROCHARS (proto));
     }
   if (!entry)
-    SCM_SYSERROR_MSG("no such service %s", 
+    SCM_SYSERROR_MSG("no such service ~A", 
                      scm_listify (name, SCM_UNDEFINED), errno);
   return scm_return_entry (entry);
 }

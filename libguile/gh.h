@@ -103,7 +103,7 @@ SCM gh_ulong2scm(unsigned long x);
 SCM gh_long2scm(long x);
 SCM gh_double2scm(double x);
 SCM gh_char2scm(char c);
-SCM gh_str2scm(char *s, int len);
+SCM gh_str2scm(const char *s, int len);
 SCM gh_str02scm(const char *s);
 void gh_set_substr(char *src, SCM dst, int start, int len);
 SCM gh_symbol2scm(const char *symbol_str);

@@ -58,6 +58,7 @@
 #include "alist.h"
 #include "struct.h"
 #include "objects.h"
+#include "strports.h"
 
 #include "scm_validate.h"
 #include "print.h"
@@ -933,6 +934,69 @@ scm_display (SCM obj, SCM port)
 #endif
   return SCM_UNSPECIFIED;
 }
+
+
+SCM_DEFINE (scm_simple_format, "simple-format", 2, 0, 1,
+            (SCM destination, SCM message, SCM args),
+"Write MESSAGE to DESTINATION, defaulting to `current-output-port'.
+MESSAGE can contain ~A (was %s) and ~S (was %S) escapes.  When printed,
+the escapes are replaced with corresponding members of ARGS:
+~A formats using `display' and ~S formats using `write'.
+If DESTINATION is #t, then use the `current-output-port',
+if DESTINATION is #f, then return a string containing the formatted text.
+Does not add a trailing newline.")
+#define FUNC_NAME s_scm_simple_format
+{
+  SCM answer = SCM_UNSPECIFIED;
+  int fReturnString = 0;
+  int writingp;
+  char *start;
+  char *p;
+
+  if (SCM_BOOL_T == destination) {
+    destination = scm_cur_outp;
+  } else if (SCM_BOOL_F == destination) {
+    fReturnString = 1;
+    destination = scm_mkstrport (SCM_INUM0, 
+                          scm_make_string (SCM_INUM0, SCM_UNDEFINED),
+                          SCM_OPN | SCM_WRTNG,
+                          FUNC_NAME);
+  } else {
+    SCM_VALIDATE_OPORT_VALUE (1,destination);
+  }
+  SCM_VALIDATE_STRING(2,message);
+  SCM_VALIDATE_LIST(3,args);
+
+  SCM_COERCE_SUBSTR (message);
+  start = SCM_ROCHARS (message);
+  for (p = start; *p != '\0'; ++p)
+    if (*p == '~')
+      {
+	if (SCM_IMP (args) || SCM_NCONSP (args))
+	  continue;
+	
+	++p;
+	if (*p == 'A')
+	  writingp = 0;
+	else if (*p == 'S')
+	  writingp = 1;
+	else
+	  continue;
+
+	scm_lfwrite (start, p - start - 1, destination);
+	scm_prin1 (SCM_CAR (args), destination, writingp);
+	args = SCM_CDR (args);
+	start = p + 1;
+      }
+  scm_lfwrite (start, p - start, destination);
+
+  if (fReturnString)
+    answer = scm_strport_to_string (destination);
+
+  return answer;
+}
+#undef FUNC_NAME
+
 
 SCM_DEFINE (scm_newline, "newline", 0, 1, 0, 
            (SCM port),

@@ -442,8 +442,8 @@ the list of search paths, an error is signalled.")
 		      && SCM_ROCHARS (filename)[0] == '/');
       scm_misc_error (FUNC_NAME,
 		      (absolute
-		       ? "Unable to load file %S"
-		       : "Unable to find file %S in load path"),
+		       ? "Unable to load file ~S"
+		       : "Unable to find file ~S in load path"),
 		      scm_listify (filename, SCM_UNDEFINED));
     }
 

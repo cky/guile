@@ -91,10 +91,10 @@ SCM_DEFINE (scm_error_scm, "scm-error", 5, 0, 0,
            (SCM key, SCM subr, SCM message, SCM args, SCM rest),
 "Raise an error with key @var{key}.  @var{subr} can be a string naming
 the procedure associated with the error, or @code{#f}.  @var{message}
-is the error message string, possibly containing @code{%S} and @code{%s}
+is the error message string, possibly containing @code{~S} and @code{~A}
 escapes.  When an error is reported, these are replaced by formating the
-corresponding members of @var{args}: @code{%s} formats using @code{display}
-and @code{%S} formats using @code{write}.  @var{data} is a
+corresponding members of @var{args}: @code{~A} (was @code{%s}) formats using @code{display}
+and @code(~S) (was @code{%S}) formats using @code{write}.  @var{data} is a
 list or @code{#f} depending on @var{key}: if @var{key} is
 @code{system-error} then it should be a list
 containing the Unix @code{errno} value;  If @var{key} is @code{signal} then
@@ -130,7 +130,7 @@ scm_syserror (const char *subr)
 {
   scm_error (scm_system_error_key,
 	     subr,
-	     "%s",
+	     "~A",
 	     scm_cons (scm_makfrom0str (strerror (errno)), SCM_EOL),
 	     scm_cons (SCM_MAKINUM (errno), SCM_EOL));
 }
@@ -154,7 +154,7 @@ scm_sysmissing (const char *subr)
 #ifdef ENOSYS
   scm_error (scm_system_error_key,
 	     subr,
-	     "%s",
+	     "~A",
 	     scm_cons (scm_makfrom0str (strerror (ENOSYS)), SCM_EOL),
 	     scm_cons (SCM_MAKINUM (ENOSYS), SCM_EOL));
 #else
@@ -183,7 +183,7 @@ scm_out_of_range (const char *subr, SCM bad_value)
 {
   scm_error (scm_out_of_range_key,
 	     subr,
-	     "Argument out of range: %S",
+	     "Argument out of range: ~S",
 	     scm_cons (bad_value, SCM_EOL),
 	     SCM_BOOL_F);
 }
@@ -193,7 +193,7 @@ scm_out_of_range_pos (const char *subr, SCM bad_value, SCM pos)
 {
   scm_error (scm_out_of_range_key,
 	     subr,
-	     "Argument %S out of range: %S",
+	     "Argument ~S out of range: ~S",
 	     scm_listify (pos, bad_value, SCM_UNDEFINED),
 	     SCM_BOOL_F);
 }
@@ -205,7 +205,7 @@ scm_wrong_num_args (SCM proc)
 {
   scm_error (scm_args_number_key,
 	     NULL,
-	     "Wrong number of arguments to %s",
+	     "Wrong number of arguments to ~A",
 	     scm_cons (proc, SCM_EOL),
 	     SCM_BOOL_F);
 }
@@ -216,8 +216,8 @@ scm_wrong_type_arg (const char *subr, int pos, SCM bad_value)
 {
   scm_error (scm_arg_type_key,
 	     subr,
-	     (pos == 0) ? "Wrong type argument: %S"
-	     : "Wrong type argument in position %s: %S",
+	     (pos == 0) ? "Wrong type argument: ~S"
+	     : "Wrong type argument in position ~A: ~S",
 	     (pos == 0) ? scm_cons (bad_value, SCM_EOL)
 	     : scm_cons (SCM_MAKINUM (pos), scm_cons (bad_value, SCM_EOL)),
 	     SCM_BOOL_F);
