@@ -80,4 +80,11 @@
 
   (pass-if-exception "does not accept a symbol prefix"
     exception:wrong-type-arg
-    (gensym 'foo)))
+    (gensym 'foo))
+
+  (pass-if "accepts long prefices"
+    (symbol? (gensym (make-string 4000 #\!))))
+
+  (pass-if "accepts embedded NULs"
+    (> (string-length (symbol->string (gensym "foo\0bar\0braz\0foo\0bar\0braz\0foo\0bar\0braz\0foo\0bar\0braz\0foo\0bar\0braz\0foo\0bar\0braz\0"))) 6)))
+
