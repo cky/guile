@@ -394,6 +394,11 @@
 				     (display ">" p)))
 			       type-name
 			       (copy-tree fields))))
+      ;; Temporary solution: Associate a name to the record type descriptor
+      ;; so that the object system can create a wrapper class for it.
+      (set-struct-vtable-name! struct (if (symbol? type-name)
+					  type-name
+					  (string->symbol type-name)))
       struct)))
 
 (define (record-type-name obj)
