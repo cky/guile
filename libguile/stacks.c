@@ -124,7 +124,8 @@
  * is read from a continuation.
  */
 static scm_t_bits
-stack_depth (scm_t_debug_frame *dframe, long offset, SCM *id, int *maxp)
+stack_depth (scm_t_debug_frame *dframe, scm_t_ptrdiff offset,
+	     SCM *id, int *maxp)
 {
   long n;
   long max_depth = SCM_BACKTRACE_MAXDEPTH;
@@ -134,11 +135,12 @@ stack_depth (scm_t_debug_frame *dframe, long offset, SCM *id, int *maxp)
     {
       if (SCM_EVALFRAMEP (*dframe))
 	{
-	  scm_t_debug_info * info = RELOC_INFO (dframe->info, offset);
-	  n += (info - dframe->vect) / 2 + 1;
+	  scm_t_debug_info *info = RELOC_INFO (dframe->info, offset);
+	  scm_t_debug_info *vect = RELOC_INFO (dframe->vect, offset);
+	  n += (info - vect) / 2 + 1;
 	  /* Data in the apply part of an eval info frame comes from previous
 	     stack frame if the scm_t_debug_info vector is overflowed. */
-	  if ((((info - dframe->vect) & 1) == 0)
+	  if ((((info - vect) & 1) == 0)
 	      && SCM_OVERFLOWP (*dframe)
 	      && !SCM_UNBNDP (info[1].a.proc))
 	    ++n;
@@ -147,7 +149,7 @@ stack_depth (scm_t_debug_frame *dframe, long offset, SCM *id, int *maxp)
 	++n;
     }
   if (dframe && SCM_VOIDFRAMEP (*dframe))
-    *id = dframe->vect[0].id;
+    *id = RELOC_INFO(dframe->vect, offset)[0].id;
   else if (dframe)
     *maxp = 1;
   return n;
@@ -156,13 +158,15 @@ stack_depth (scm_t_debug_frame *dframe, long offset, SCM *id, int *maxp)
 /* Read debug info from DFRAME into IFRAME.
  */
 static void
-read_frame (scm_t_debug_frame *dframe, long offset, scm_t_info_frame *iframe)
+read_frame (scm_t_debug_frame *dframe, scm_t_ptrdiff offset,
+	    scm_t_info_frame *iframe)
 {
   scm_t_bits flags = SCM_UNPACK (SCM_INUM0); /* UGh. */
   if (SCM_EVALFRAMEP (*dframe))
     {
-      scm_t_debug_info * info = RELOC_INFO (dframe->info, offset);
-      if ((info - dframe->vect) & 1)
+      scm_t_debug_info *info = RELOC_INFO (dframe->info, offset);
+      scm_t_debug_info *vect = RELOC_INFO (dframe->vect, offset);
+      if ((info - vect) & 1)
 	{
 	  /* Debug.vect ends with apply info. */
 	  --info;
@@ -179,9 +183,10 @@ read_frame (scm_t_debug_frame *dframe, long offset, scm_t_info_frame *iframe)
     }
   else
     {
+      scm_t_debug_info *vect = RELOC_INFO (dframe->vect, offset);
       flags |= SCM_FRAMEF_PROC;
-      iframe->proc = dframe->vect[0].a.proc;
-      iframe->args = dframe->vect[0].a.args;
+      iframe->proc = vect[0].a.proc;
+      iframe->args = vect[0].a.args;
     }
   iframe->flags = flags;
 }
@@ -223,10 +228,11 @@ do { \
  */
 
 static scm_t_bits
-read_frames (scm_t_debug_frame *dframe, long offset, long n, scm_t_info_frame *iframes)
+read_frames (scm_t_debug_frame *dframe, scm_t_ptrdiff offset,
+	     long n, scm_t_info_frame *iframes)
 {
   scm_t_info_frame *iframe = iframes;
-  scm_t_debug_info *info;
+  scm_t_debug_info *info, *vect;
   static SCM applybody = SCM_UNDEFINED;
   
   /* The value of applybody has to be setup after r4rs.scm has executed. */
@@ -248,7 +254,8 @@ read_frames (scm_t_debug_frame *dframe, long offset, long n, scm_t_info_frame *i
 	      --iframe;
 	    }
 	  info =  RELOC_INFO (dframe->info, offset);
-	  if ((info - dframe->vect) & 1)
+	  vect =  RELOC_INFO (dframe->vect, offset);
+	  if ((info - vect) & 1)
 	    --info;
 	  /* Data in the apply part of an eval info frame comes from
 	     previous stack frame if the scm_t_debug_info vector is
@@ -265,7 +272,7 @@ read_frames (scm_t_debug_frame *dframe, long offset, long n, scm_t_info_frame *i
 	    iframe->flags |= SCM_FRAMEF_OVERFLOW;
 	  info -= 2;
 	  NEXT_FRAME (iframe, n, quit);
-	  while (info >= dframe->vect)
+	  while (info >= vect)
 	    {
 	      if (!SCM_UNBNDP (info[1].a.proc))
 		{
@@ -435,12 +442,9 @@ SCM_DEFINE (scm_make_stack, "make-stack", 1, 0, 1,
     }
   else if (SCM_CONTINUATIONP (obj))
     {
-      offset = ((SCM_STACKITEM *) ((char *) SCM_CONTREGS (obj) + sizeof (scm_t_contregs))
-		- SCM_BASE (obj));
-#if SCM_STACK_GROWS_UP
-      offset += SCM_CONTINUATION_LENGTH (obj);
-#endif
-      dframe = RELOC_FRAME (SCM_DFRAME (obj), offset);
+      scm_t_contregs *cont = SCM_CONTREGS (obj);
+      offset = cont->offset;
+      dframe = RELOC_FRAME (cont->dframe, offset);
     }
   else
     {
@@ -463,7 +467,7 @@ SCM_DEFINE (scm_make_stack, "make-stack", 1, 0, 1,
   SCM_STACK (stack) -> frames = iframe;
 
   /* Translate the current chain of stack frames into debugging information. */
-  n = read_frames (RELOC_FRAME (dframe, offset), offset, n, iframe);
+  n = read_frames (dframe, offset, n, iframe);
   SCM_STACK (stack) -> length = n;
 
   /* Narrow the stack according to the arguments given to scm_make_stack. */
@@ -519,12 +523,9 @@ SCM_DEFINE (scm_stack_id, "stack-id", 1, 0, 0,
     }
   else if (SCM_CONTINUATIONP (stack))
     {
-      offset = ((SCM_STACKITEM *) ((char *) SCM_CONTREGS (stack) + sizeof (scm_t_contregs))
-		- SCM_BASE (stack));
-#if SCM_STACK_GROWS_UP
-      offset += SCM_CONTINUATION_LENGTH (stack);
-#endif
-      dframe = RELOC_FRAME (SCM_DFRAME (stack), offset);
+      scm_t_contregs *cont = SCM_CONTREGS (stack);
+      offset = cont->offset;
+      dframe = RELOC_FRAME (cont->dframe, offset);
     }
   else if (SCM_STACKP (stack))
     {
@@ -538,7 +539,7 @@ SCM_DEFINE (scm_stack_id, "stack-id", 1, 0, 0,
   while (dframe && !SCM_VOIDFRAMEP (*dframe))
     dframe = RELOC_FRAME (dframe->prev, offset);
   if (dframe && SCM_VOIDFRAMEP (*dframe))
-    return dframe->vect[0].id;
+    return RELOC_INFO (dframe->vect, offset)[0].id;
   return SCM_BOOL_F;
 }
 #undef FUNC_NAME
@@ -595,12 +596,9 @@ SCM_DEFINE (scm_last_stack_frame, "last-stack-frame", 1, 0, 0,
     }
   else if (SCM_CONTINUATIONP (obj))
     {
-      offset = ((SCM_STACKITEM *) ((char *) SCM_CONTREGS (obj) + sizeof (scm_t_contregs))
-		- SCM_BASE (obj));
-#if SCM_STACK_GROWS_UP
-      offset += SCM_CONTINUATION_LENGTH (obj);
-#endif
-      dframe = RELOC_FRAME (SCM_DFRAME (obj), offset);
+      scm_t_contregs *cont = SCM_CONTREGS (obj);
+      offset = cont->offset;
+      dframe = RELOC_FRAME (cont->dframe, offset);
     }
   else
     {
