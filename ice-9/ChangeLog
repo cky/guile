@@ -1,3 +1,17 @@
+2001-07-13  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* safe-r5rs.scm: Use `re-export' instead of `export' for
+	re-exported core bindings.  Do not re-export `numerator',
+	`denominator' and `rationalize' since Guile does not have them.
+	Continue to use `export' for `null-environment'.
+
+	* null.scm: Use `re-export' instead of `export' for re-exported
+	core bindings.  Do not export `unquote' and `unquote-splicing'
+	since there aren't definitions for them.
+
+	* boot-9.scm (compile-interface-spec): Bug fix: the keyword
+	argument is "renamer" not "rename".
+
 2001-07-09  Rob Browning  <rlb@defaultvalue.org>
 
 	* boot-9.scm: Fixed the sense of the error message when read-eval?

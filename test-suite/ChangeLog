@@ -1,3 +1,7 @@
+2001-07-13  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* tests/import.test: New file.
+
 2001-06-30  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* tests/goops.test:  Started with some real tests.

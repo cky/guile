@@ -1,3 +1,8 @@
+2001-07-13  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* srfi-2.scm (and-let*): Use `re-export-syntax' instead of
+	`export-syntax'.
+
 2001-07-11  Gary Houston  <ghouston@arglist.com>
 
 	* srfi-14.c (s_scm_char_set_eq): bug fix: (char-set=) should
