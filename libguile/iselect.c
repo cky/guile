@@ -311,14 +311,14 @@ finalize_fd_sets (coop_t *t)
 	{
 	  ((ulongptr) t->writefds)[i] &= ((ulongptr) &rwritefds)[i];
 	  ((ulongptr) &gwritefds)[i] &= ~s;
-	  n_ones += SCM_NLONGBITS (&((ulongptr) t->readfds)[i]);
+	  n_ones += SCM_NLONGBITS (&((ulongptr) t->writefds)[i]);
 	}
     cont_write:
       if (t->exceptfds != NULL && (s = ((ulongptr) t->exceptfds)[i]) != 0)
 	{
 	  ((ulongptr) t->exceptfds)[i] &= ((ulongptr) &rexceptfds)[i];
 	  ((ulongptr) &gexceptfds)[i] &= ~s;
-	  n_ones += SCM_NLONGBITS (&((ulongptr) t->readfds)[i]);
+	  n_ones += SCM_NLONGBITS (&((ulongptr) t->exceptfds)[i]);
 	}
     cont_except:
     }

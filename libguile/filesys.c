@@ -820,21 +820,29 @@ scm_getcwd ()
 
 
 
+SCM_PROC (s_select, "select", 3, 2, 0, scm_select);
 
-static void
-set_element (SELECT_TYPE *set, SCM element)
+
+static int
+set_element (SELECT_TYPE *set, SCM element, int arg)
 {
+  int fd;
   element = SCM_COERCE_OUTPORT (element);
   if (SCM_NIMP (element) && SCM_TYP16 (element) == scm_tc16_fport
       && SCM_OPPORTP (element))
-    FD_SET (fileno ((FILE *) SCM_STREAM (element)), set);
-  else if (SCM_INUMP (element))
-    FD_SET (SCM_INUM (element), set);
+    fd = fileno ((FILE *) SCM_STREAM (element));
+  else {
+    SCM_ASSERT (SCM_INUMP (element), element, arg, s_select);
+    fd = SCM_INUM (element);
+  }
+  FD_SET (fd, set);
+  return fd;
 }
 
-static void
-fill_select_type (SELECT_TYPE *set, SCM list)
+static int
+fill_select_type (SELECT_TYPE *set, SCM list, int arg)
 {
+  int max_fd = 0, fd;
   if (SCM_NIMP (list) && SCM_VECTORP (list))
     {
       int len = SCM_LENGTH (list);
@@ -842,7 +850,9 @@ fill_select_type (SELECT_TYPE *set, SCM list)
       
       while (len > 0)
 	{
-	  set_element (set, ve[len - 1]);
+	  fd = set_element (set, ve[len - 1], arg);
+	  if (fd > max_fd)
+	    max_fd = fd;
 	  len--;
 	}
     }
@@ -850,10 +860,14 @@ fill_select_type (SELECT_TYPE *set, SCM list)
     {
       while (list != SCM_EOL)
 	{
-	  set_element (set, SCM_CAR (list));
+	  fd = set_element (set, SCM_CAR (list), arg);
+	  if (fd > max_fd)
+	    max_fd = fd;
 	  list = SCM_CDR (list);
 	}
     }
+
+  return max_fd;
 }
 
 static SCM
@@ -905,8 +919,6 @@ retrieve_select_type (SELECT_TYPE *set, SCM list)
 }
 
 
-SCM_PROC (s_select, "select", 3, 2, 0, scm_select);
-
 SCM
 scm_select (reads, writes, excepts, secs, usecs)
      SCM reads;
@@ -921,6 +933,7 @@ scm_select (reads, writes, excepts, secs, usecs)
   SELECT_TYPE read_set;
   SELECT_TYPE write_set;
   SELECT_TYPE except_set;
+  int max_fd, fd;
   int sreturn;
 
 #define assert_set(x, arg) \
@@ -935,9 +948,13 @@ scm_select (reads, writes, excepts, secs, usecs)
   FD_ZERO (&write_set);
   FD_ZERO (&except_set);
 
-  fill_select_type (&read_set, reads);
-  fill_select_type (&write_set, writes);
-  fill_select_type (&except_set, excepts);
+  max_fd = fill_select_type (&read_set, reads, SCM_ARG1);
+  fd = fill_select_type (&write_set, writes, SCM_ARG2);
+  if (fd > max_fd)
+    max_fd = fd;
+  fd = fill_select_type (&except_set, excepts, SCM_ARG3);
+  if (fd > max_fd)
+    max_fd = fd;
 
   if (SCM_UNBNDP (secs) || SCM_FALSEP (secs))
     time_p = 0;
@@ -969,17 +986,17 @@ scm_select (reads, writes, excepts, secs, usecs)
       time_p = &timeout;
     }
 
-  SCM_DEFER_INTS;
 #ifdef GUILE_ISELECT
-  sreturn = scm_internal_select (SELECT_SET_SIZE,
+  sreturn = scm_internal_select (max_fd + 1,
 				 &read_set, &write_set, &except_set, time_p);
 #else
-  sreturn = select (SELECT_SET_SIZE,
+  SCM_DEFER_INTS;
+  sreturn = select (max_fd + 1,
 		    &read_set, &write_set, &except_set, time_p);
+  SCM_ALLOW_INTS;
 #endif
   if (sreturn < 0)
     scm_syserror (s_select);
-  SCM_ALLOW_INTS;
   return scm_listify (retrieve_select_type (&read_set, reads),
 		      retrieve_select_type (&write_set, writes),
 		      retrieve_select_type (&except_set, excepts),

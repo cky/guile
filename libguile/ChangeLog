@@ -1,3 +1,25 @@
+1997-12-08  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* filesys.c (set_element): Return file descriptor.
+	(fill_select_type): Return the highest file descriptor.
+	(scm_select): Tell select about the highest file descriptor.  On
+	some systems the SELECT_SET_SIZE can be as much as 128 bytes.
+	Therefore the extra overhead for calculating the maximum fd seems
+	to be more than compensated.  Is this correct?  In any case,
+	scm_internal_select will be much faster with this info.
+	(scm_select, fill_select_type, set_element): Don't accept any kind
+	of object in the file descriptor list or vector.
+
+1997-12-07  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* iselect.c (finalize_fd_sets): Bugfix.
+
+1997-12-06  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* filesys.c (scm_select): Don't use SCM_DEFER_INTS/SCM_ALLOW_INTS
+	when using scm_internal_select (since we might switch to another
+	thread).
+
 Sun Dec  7 01:43:56 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* simpos.c (scm_system): always define: use sysmissing if not
