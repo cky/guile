@@ -1,8 +1,8 @@
 /* classes: h_files */
 
-#ifndef STACKSH
-#define STACKSH
-/*	Copyright (C) 1995,1996, 2000 Free Software Foundation
+#ifndef SCM_STACKS_H
+#define SCM_STACKS_H
+/* Copyright (C) 1995,1996,2000,2001 Free Software Foundation
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -84,10 +84,11 @@ extern SCM scm_t_stackype;
 #define SCM_STACKP(obj) (SCM_STRUCTP (obj) && SCM_EQ_P (SCM_STRUCT_VTABLE (obj), scm_t_stackype))
 #define SCM_STACK_LENGTH(stack) (SCM_STACK (stack) -> length)
 
-#define SCM_FRAMEP(obj) (SCM_CONSP (obj) \
-			 && SCM_STACKP (SCM_CAR (obj)) \
-			 && SCM_INUMP (SCM_CDR (obj))) \
-
+#define SCM_FRAMEP(obj) \
+  (SCM_CONSP (obj) && SCM_STACKP (SCM_CAR (obj)) \
+   && SCM_INUMP (SCM_CDR (obj)) && SCM_INUM (SCM_CDR (obj)) >= 0 \
+   && ((unsigned long int) SCM_INUM (SCM_CDR (obj)) \
+       < SCM_STACK_LENGTH (SCM_CAR (obj))))
 
 #define SCM_FRAME_REF(frame, slot) \
 (SCM_STACK (SCM_CAR (frame)) -> frames[SCM_INUM (SCM_CDR (frame))].slot) \
@@ -142,7 +143,7 @@ SCM scm_frame_overflow_p (SCM frame);
 
 void scm_init_stacks (void);
 
-#endif /* STACKSH */
+#endif /* SCM_STACKS_H */
 
 /*
   Local Variables:

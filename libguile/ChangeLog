@@ -1,3 +1,31 @@
+2001-06-25  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* debug.h (SCM_DEBUGOBJ_FRAME):  Deliver result as a
+	scm_t_debug_frame*.
+
+	* debug.h (DEBUGH, SCM_DEBUG_H), stacks.h (STACKSH, SCM_STACKSH):
+	Rename <foo>H to SCM_<foo>_H.
+
+	* stacks.c (NEXT_FRAME, narrow_stack):  Prefer explicit type check
+	over SCM_N?IMP, !SCM_<pred> over SCM_N<pred>.
+
+	(narrow_stack):  Make i unsigned.  Don't use side-effecting
+	operations in conditions.
+
+	(narrow_stack, scm_make_stack, scm_stack_id,
+	scm_last_stack_frame):  Get rid of redundant SCM_N?IMP checks.
+
+	(scm_make_stack, scm_stack_id, scm_last_stack_frame):  Clean up
+	type dispatch.  No need to cast result of SCM_DEBUGOBJ_FRAME any
+	more.
+
+	(scm_stack_ref, scm_frame_previous, scm_frame_next):  Fix
+	signedness.
+
+	(scm_last_stack_frame):  Remove bogus `;´.
+
+	* stacks.h (SCM_FRAMEP):  Fix type check.
+
 2001-06-25  Michael Livshin  <mlivshin@bigfoot.com>
 
 	* Makefile.am (MAINTAINERCLEANFILES): be sure to remove

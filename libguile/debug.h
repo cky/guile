@@ -1,8 +1,8 @@
 /* classes: h_files */
 
-#ifndef DEBUGH
-#define DEBUGH
-/*	Copyright (C) 1995,1996,1998, 1999, 2000 Free Software Foundation
+#ifndef SCM_DEBUG_H
+#define SCM_DEBUG_H
+/* Copyright (C) 1995,1996,1998,1999,2000,2001 Free Software Foundation
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -172,8 +172,10 @@ extern scm_t_debug_frame *scm_last_debug_frame;
 
 extern scm_t_bits scm_tc16_debugobj;
 
-#define SCM_DEBUGOBJP(x)              SCM_TYP16_PREDICATE (scm_tc16_debugobj, x)
-#define SCM_DEBUGOBJ_FRAME(x)         SCM_CELL_WORD_1 (x)
+#define SCM_DEBUGOBJP(x) \
+  SCM_TYP16_PREDICATE (scm_tc16_debugobj, x)
+#define SCM_DEBUGOBJ_FRAME(x) \
+  ((scm_t_debug_frame *) SCM_CELL_WORD_1 (x))
 #define SCM_SET_DEBUGOBJ_FRAME(x, f)  SCM_SET_CELL_WORD_1 (x, f)
 
 /* {Memoized Source}
@@ -217,7 +219,7 @@ extern SCM scm_proc_to_mem (SCM obj);
 extern SCM scm_debug_hang (SCM obj);
 #endif /*GUILE_DEBUG*/
 
-#endif /* DEBUGH */
+#endif /* SCM_DEBUG_H */
 
 /*
   Local Variables:

@@ -1,5 +1,5 @@
 /* Representation of stack frame debug information
- * Copyright (C) 1996,1997, 2000 Free Software Foundation
+ * Copyright (C) 1996,1997,2000,2001 Free Software Foundation
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -230,7 +230,7 @@ get_applybody ()
 
 #define NEXT_FRAME(iframe, n, quit) \
 do { \
-  if (SCM_NIMP (iframe->source) \
+  if (SCM_MEMOIZEDP (iframe->source) \
       && SCM_EQ_P (SCM_MEMOIZED_EXP (iframe->source), applybody)) \
     { \
       iframe->source = SCM_BOOL_F; \
@@ -280,7 +280,8 @@ read_frames (scm_t_debug_frame *dframe,long offset,long n,scm_t_info_frame *ifra
 	  if ((info - dframe->vect) & 1)
 	    --info;
 	  /* Data in the apply part of an eval info frame comes from
-	     previous stack frame if the scm_t_debug_info vector is overflowed. */
+	     previous stack frame if the scm_t_debug_info vector is
+	     overflowed. */
 	  else if (SCM_OVERFLOWP (*dframe)
 		   && !SCM_UNBNDP (info[1].a.proc))
 	    {
@@ -348,28 +349,33 @@ static void
 narrow_stack (SCM stack,long inner,SCM inner_key,long outer,SCM outer_key)
 {
   scm_t_stack *s = SCM_STACK (stack);
-  long i;
+  unsigned long int i;
   long n = s->length;
   
   /* Cut inner part. */
   if (SCM_EQ_P (inner_key, SCM_BOOL_T))
-    /* Cut all frames up to user module code */
     {
+      /* Cut all frames up to user module code */
       for (i = 0; inner; ++i, --inner)
 	{
 	  SCM m = s->frames[i].source;
-	  if (   SCM_MEMOIZEDP (m)
-	      && SCM_NIMP (SCM_MEMOIZED_ENV (m))
+	  if (SCM_MEMOIZEDP (m)
+	      && !SCM_IMP (SCM_MEMOIZED_ENV (m))
 	      && SCM_FALSEP (scm_system_module_env_p (SCM_MEMOIZED_ENV (m))))
 	    {
 	      /* Back up in order to include any non-source frames */
-	      while (i > 0
-		     && !((m = s->frames[i - 1].source, SCM_MEMOIZEDP (m))
-			  || (SCM_NIMP (m = s->frames[i - 1].proc)
-			      && SCM_NFALSEP (scm_procedure_p (m))
-			      && SCM_NFALSEP (scm_procedure_property
-					      (m, scm_sym_system_procedure)))))
+	      while (i > 0)
 		{
+		  m = s->frames[i - 1].source;
+		  if (SCM_MEMOIZEDP (m))
+		    break;
+
+		  m = s->frames[i - 1].proc;
+		  if (!SCM_FALSEP (scm_procedure_p (m))
+		      && !SCM_FALSEP (scm_procedure_property
+				      (m, scm_sym_system_procedure)))
+		    break;
+
 		  --i;
 		  ++inner;
 		}
@@ -423,7 +429,7 @@ SCM_DEFINE (scm_make_stack, "make-stack", 1, 0, 1,
 {
   long n, size;
   int maxp;
-  scm_t_debug_frame *dframe = scm_last_debug_frame;
+  scm_t_debug_frame *dframe;
   scm_t_info_frame *iframe;
   long offset = 0;
   SCM stack, id;
@@ -431,27 +437,27 @@ SCM_DEFINE (scm_make_stack, "make-stack", 1, 0, 1,
 
   /* Extract a pointer to the innermost frame of whatever object
      scm_make_stack was given.  */
-  /* just use dframe == scm_last_debug_frame 
-     (from initialization of dframe, above) if obj is #t */
-  if (!SCM_EQ_P (obj, SCM_BOOL_T))
+  if (SCM_EQ_P (obj, SCM_BOOL_T))
     {
-      SCM_ASSERT (SCM_NIMP (obj), obj, SCM_ARG1, FUNC_NAME);
-      if (SCM_DEBUGOBJP (obj))
-	dframe = (scm_t_debug_frame *) SCM_DEBUGOBJ_FRAME (obj);
-      else if (SCM_CONTINUATIONP (obj))
-	{
-	  offset = ((SCM_STACKITEM *) ((char *) SCM_CONTREGS (obj) + sizeof (scm_t_contregs))
-		    - SCM_BASE (obj));
+      dframe = scm_last_debug_frame;
+    }
+  else if (SCM_DEBUGOBJP (obj))
+    {
+      dframe = SCM_DEBUGOBJ_FRAME (obj);
+    }
+  else if (SCM_CONTINUATIONP (obj))
+    {
+      offset = ((SCM_STACKITEM *) ((char *) SCM_CONTREGS (obj) + sizeof (scm_t_contregs))
+		- SCM_BASE (obj));
 #ifndef STACK_GROWS_UP
-	  offset += SCM_CONTINUATION_LENGTH (obj);
+      offset += SCM_CONTINUATION_LENGTH (obj);
 #endif
-	  dframe = RELOC_FRAME (SCM_DFRAME (obj), offset);
-	}
-      else
-	{
-	  SCM_WRONG_TYPE_ARG (SCM_ARG1, obj);
-	  /* not reached */
-	}
+      dframe = RELOC_FRAME (SCM_DFRAME (obj), offset);
+    }
+  else
+    {
+      SCM_WRONG_TYPE_ARG (SCM_ARG1, obj);
+      /* not reached */
     }
 
   /* Count number of frames.  Also get stack id tag and check whether
@@ -480,7 +486,7 @@ SCM_DEFINE (scm_make_stack, "make-stack", 1, 0, 1,
       args = SCM_CDR (args);
       if (SCM_NULLP (args)) 
 	{
-	outer_cut = SCM_INUM0;
+	  outer_cut = SCM_INUM0;
 	} 
       else
 	{
@@ -516,26 +522,31 @@ SCM_DEFINE (scm_stack_id, "stack-id", 1, 0, 0,
   scm_t_debug_frame *dframe;
   long offset = 0;
   if (SCM_EQ_P (stack, SCM_BOOL_T))
-    dframe = scm_last_debug_frame;
+    {
+      dframe = scm_last_debug_frame;
+    }
+  else if (SCM_DEBUGOBJP (stack))
+    {
+      dframe = SCM_DEBUGOBJ_FRAME (stack);
+    }
+  else if (SCM_CONTINUATIONP (stack))
+    {
+      offset = ((SCM_STACKITEM *) ((char *) SCM_CONTREGS (stack) + sizeof (scm_t_contregs))
+		- SCM_BASE (stack));
+#ifndef STACK_GROWS_UP
+      offset += SCM_CONTINUATION_LENGTH (stack);
+#endif
+      dframe = RELOC_FRAME (SCM_DFRAME (stack), offset);
+    }
+  else if (SCM_STACKP (stack))
+    {
+      return SCM_STACK (stack) -> id;
+    }
   else
     {
-      SCM_VALIDATE_NIM (1,stack);
-      if (SCM_DEBUGOBJP (stack))
-	dframe = (scm_t_debug_frame *) SCM_DEBUGOBJ_FRAME (stack);
-      else if (SCM_CONTINUATIONP (stack))
-	{
-	  offset = ((SCM_STACKITEM *) ((char *) SCM_CONTREGS (stack) + sizeof (scm_t_contregs))
-		    - SCM_BASE (stack));
-#ifndef STACK_GROWS_UP
-	  offset += SCM_CONTINUATION_LENGTH (stack);
-#endif
-	  dframe = RELOC_FRAME (SCM_DFRAME (stack), offset);
-	}
-      else if (SCM_STACKP (stack))
-	return SCM_STACK (stack) -> id;
-      else
-	SCM_WRONG_TYPE_ARG (1, stack);
+      SCM_WRONG_TYPE_ARG (1, stack);
     }
+
   while (dframe && !SCM_VOIDFRAMEP (*dframe))
     dframe = RELOC_FRAME (dframe->prev, offset);
   if (dframe && SCM_VOIDFRAMEP (*dframe))
@@ -545,16 +556,18 @@ SCM_DEFINE (scm_stack_id, "stack-id", 1, 0, 0,
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_stack_ref, "stack-ref", 2, 0, 0,
-            (SCM stack, SCM i),
-	    "Return the @var{i}'th frame from @var{stack}.")
+            (SCM stack, SCM index),
+	    "Return the @var{index}'th frame from @var{stack}.")
 #define FUNC_NAME s_scm_stack_ref
 {
-  SCM_VALIDATE_STACK (1,stack);
-  SCM_VALIDATE_INUM (2,i);
-  SCM_ASSERT_RANGE (1,i,
-                    SCM_INUM (i) >= 0 && 
-                    SCM_INUM (i) < SCM_STACK_LENGTH (stack));
-  return scm_cons (stack, i);
+  unsigned long int c_index;
+
+  SCM_VALIDATE_STACK (1, stack);
+  SCM_VALIDATE_INUM (2, index);
+  SCM_ASSERT_RANGE (1, index, SCM_INUM (index) >= 0);
+  c_index = SCM_INUM (index);
+  SCM_ASSERT_RANGE (1, index, c_index < SCM_STACK_LENGTH (stack));
+  return scm_cons (stack, index);
 }
 #undef FUNC_NAME
 
@@ -591,9 +604,10 @@ SCM_DEFINE (scm_last_stack_frame, "last-stack-frame", 1, 0, 0,
   long offset = 0;
   SCM stack;
   
-  SCM_VALIDATE_NIM (1,obj);
   if (SCM_DEBUGOBJP (obj))
-    dframe = (scm_t_debug_frame *) SCM_DEBUGOBJ_FRAME (obj);
+    {
+      dframe = SCM_DEBUGOBJ_FRAME (obj);
+    }
   else if (SCM_CONTINUATIONP (obj))
     {
       offset = ((SCM_STACKITEM *) ((char *) SCM_CONTREGS (obj) + sizeof (scm_t_contregs))
@@ -619,7 +633,7 @@ SCM_DEFINE (scm_last_stack_frame, "last-stack-frame", 1, 0, 0,
   read_frame (dframe, offset,
 	      (scm_t_info_frame *) &SCM_STACK (stack) -> frames[0]);
   
-  return scm_cons (stack, SCM_INUM0);;
+  return scm_cons (stack, SCM_INUM0);
 }
 #undef FUNC_NAME
 
@@ -672,8 +686,8 @@ SCM_DEFINE (scm_frame_previous, "frame-previous", 1, 0, 0,
 	    "@var{frame} is the first frame in its stack.")
 #define FUNC_NAME s_scm_frame_previous
 {
-  long n;
-  SCM_VALIDATE_FRAME (1,frame);
+  unsigned long int n;
+  SCM_VALIDATE_FRAME (1, frame);
   n = SCM_INUM (SCM_CDR (frame)) + 1;
   if (n >= SCM_STACK_LENGTH (SCM_CAR (frame)))
     return SCM_BOOL_F;
@@ -688,13 +702,13 @@ SCM_DEFINE (scm_frame_next, "frame-next", 1, 0, 0,
 	    "@var{frame} is the last frame in its stack.")
 #define FUNC_NAME s_scm_frame_next
 {
-  long n;
-  SCM_VALIDATE_FRAME (1,frame);
-  n = SCM_INUM (SCM_CDR (frame)) - 1;
-  if (n < 0)
+  unsigned long int n;
+  SCM_VALIDATE_FRAME (1, frame);
+  n = SCM_INUM (SCM_CDR (frame));
+  if (n == 0)
     return SCM_BOOL_F;
   else
-    return scm_cons (SCM_CAR (frame), SCM_MAKINUM (n));
+    return scm_cons (SCM_CAR (frame), SCM_MAKINUM (n - 1));
 }
 #undef FUNC_NAME
 
