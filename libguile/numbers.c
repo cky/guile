@@ -1438,7 +1438,14 @@ SCM_DEFINE (scm_integer_length, "integer-length", 1, 0, 0,
     };
     return SCM_MAKINUM (c - 4 + l);
   } else if (SCM_BIGP (n)) {
+    /* mpz_sizeinbase looks at the absolute value of negatives, whereas we
+       want a ones-complement.  If n is ...111100..00 then mpz_sizeinbase is
+       1 too big, so check for that and adjust.  */
     size_t size = mpz_sizeinbase (SCM_I_BIG_MPZ (n), 2);
+    if (mpz_sgn (SCM_I_BIG_MPZ (n)) < 0
+        && mpz_scan0 (SCM_I_BIG_MPZ (n),  /* no 0 bits above the lowest 1 */
+                      mpz_scan1 (SCM_I_BIG_MPZ (n), 0)) == ULONG_MAX)
+      size--;
     scm_remember_upto_here_1 (n);
     return SCM_MAKINUM (size);
   } else {
