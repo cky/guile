@@ -51,6 +51,7 @@ PACKAGE = @PACKAGE@
 
 AUTOMAKE_OPTIONS = foreign
 
+AWK=@AWK@
 INCLUDES = -I.. -I$(srcdir)/..
 
 lib_PROGRAMS = libguile.la

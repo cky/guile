@@ -2,6 +2,7 @@
 
 AUTOMAKE_OPTIONS = foreign
 
+AWK=@AWK@
 ## Check for headers in $(srcdir)/.., so that #include
 ## <libguile/MUMBLE.h> will find MUMBLE.h in this dir when we're
 ## building.

@@ -1,5 +1,7 @@
 Mon Jan 13 03:47:04 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
+	* Makefile.am: add AWK=@AWK@ (?)
+
 	* Makefile.am (EXTRA_DIST): add errnos_cnvt.awk, errnos.default,
 	errnos_get.c.
 	Add a rule to generate errnos.c from errnos.
