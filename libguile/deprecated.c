@@ -1181,7 +1181,7 @@ SCM_SYMBOL_CHARS (SCM sym)
   scm_c_issue_deprecation_warning
     ("SCM_SYMBOL_CHARS is deprecated.  Use scm_symbol_to_string.");
 
-  return scm_i_symbol_chars (sym);
+  return (char *)scm_i_symbol_chars (sym);
 }
 
 size_t
@@ -1189,7 +1189,7 @@ SCM_SYMBOL_LENGTH (SCM sym)
 {
   scm_c_issue_deprecation_warning
     ("SCM_SYMBOL_LENGTH is deprecated.  Use scm_symbol_to_string.");
-  return scm_c_symbol_length (sym);
+  return scm_i_symbol_length (sym);
 }
 
 void
