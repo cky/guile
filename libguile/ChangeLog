@@ -1,3 +1,8 @@
+Wed Jan  5 11:24:53 2000  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* *.[ch]: Whitespace changes -- added space after SCM_VALIDATE_*
+ 	macros and SCM_DEFINE macros to match GNU coding standards.
+
 Wed Jan  5 11:04:24 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* *.[ch]: Replace GUILE_PROC w/ SCM_DEFINE.
