@@ -1,3 +1,9 @@
+2004-07-05  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* scheme-data.texi (Booleans): Added reference entries for
+	scm_is_true, scm_is_false, scm_is_bool, scm_from_bool, and
+	scm_to_bool.
+
 2004-06-28  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* Makefile.am: Removed home-grown code for HTML generation.
