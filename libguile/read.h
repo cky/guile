@@ -66,9 +66,18 @@
 
 #define SCM_WHITE_SPACES  SCM_SINGLE_SPACES: case '\t'
 
+#ifdef READER_EXTENSIONS
+extern scm_option scm_read_opts[];
+
+#define RECORD_POSITIONS scm_read_opts[0].val
+#define COPY_SOURCE      scm_read_opts[1].val
+#define N_READ_OPTIONS 2
+#endif
+
 
 
 #ifdef __STDC__
+extern SCM scm_read_options (SCM new_values);
 extern SCM scm_read (SCM port, SCM casep, SCM sharp);
 extern char * scm_grow_tok_buf (SCM * tok_buf);
 extern int scm_flush_ws (SCM port, char *eoferr);
@@ -79,6 +88,7 @@ extern SCM scm_lreadparen (SCM * tok_buf, SCM port, char *name, int case_i, SCM 
 extern void scm_init_read (void);
 
 #else /* STDC */
+extern SCM scm_read_options ();
 extern SCM scm_read ();
 extern char * scm_grow_tok_buf ();
 extern int scm_flush_ws ();
