@@ -1,0 +1,76 @@
+* Intro / Index (last modified: $Date: 2001-11-14 20:47:40 $)
+
+This working document explains the design of the libguile API,
+specifically the interface to the C programming language.
+Note that this is NOT an API reference manual.
+
+- Motivation
+- History
+- Decisions
+  - gh_ removal
+  - malloc policy
+  - [add here]
+
+
+* Motivation
+
+The file goals.text says:
+
+	Guile's primary aim is to provide a good extension language
+	which is easy to add to an application written in C for the GNU
+	system.  This means that it must export the features of a higher
+	level language in a way that makes it easy not to break them
+	from C code.
+
+Although it may no longer be a "primary aim", creating a stable API is
+important anyway since without something defined, people will take libguile
+and use it in ad-hoc ways that may cause them trouble later.
+
+
+* History
+
+The initial (in ttn's memory, which only goes back to guile-1.3.4) stab at an
+API was known as the "gh_ interface", which provided "high-level" abstraction
+to libguile w/ the premise of supporting multiple implementations at some
+future date.  In practice this approach resulted in many gh_* objects being
+very slight wrappers for the underlying scm_* objects, so eventually this
+maintenance burden outweighed the (as yet unrealized) hope for alternate
+implementations, and the gh_ interface was deprecated starting in guile-1.5.x.
+
+Starting w/ guile-1.7.x, in concurrence w/ an effort to make libguile
+available to usloth windows platforms, the naked library was once again
+dressed w/ the "SCM_API interface".
+
+
+* Decisions
+
+** gh_ removal
+
+At some point, we need to remove gh_ entirely: guile-X.Y.Z.
+
+** malloc policy
+
+Here's a proposal by ela:
+
+  I would like to propose the follow gh_() equivalents:
+
+  gh_scm2newstr()    ->  scm_string2str() in string.[ch]
+  gh_symbol2newstr() ->  scm_symbol2str() in symbol.[ch]
+
+  Both taking the (SCM obj, char *context) and allocating memory via
+  scm_must_malloc().  Thus the user can safely free the returned strings
+  with scm_must_free().  The latter feature would be an improvement to the
+  previous gh_() interface functions, for which the user was told to free()
+  them directly.  This caused problems when libguile.so used libc malloc()
+  and the calling application used its own standard free(), which might not
+  be libc free().
+
+It seems to address the general question of: How should client programs use
+malloc with respect to libguile?  Some specific questions:
+
+ * Do you like the names of the functions? Maybe they should be named
+   scm_c_*() instead of scm_*().
+ * Do they make sense?
+ * Should we provide something like scm_c_free() for pointers returned by
+   these kind of functions?
+
