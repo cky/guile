@@ -70,6 +70,8 @@ extern long scm_mtrigger;
 
 
 
+extern SCM scm_object_addr SCM_P ((SCM obj));
+extern SCM scm_unhash_name SCM_P ((SCM name));
 extern SCM scm_gc_stats SCM_P ((void));
 extern void scm_gc_start SCM_P ((char *what));
 extern void scm_gc_end SCM_P ((void));
