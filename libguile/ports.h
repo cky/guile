@@ -152,16 +152,16 @@ extern int scm_port_table_size; /* Number of ports in scm_port_table.  */
 #define SCM_BUFLINE     (64L<<16) /* Is it line-buffered? */
 
 #define SCM_PORTP(x) (SCM_NIMP(x) && (SCM_TYP7(x)==scm_tc7_port))
-#define SCM_OPPORTP(x) (SCM_NIMP(x) && (((0x7f | SCM_OPN) & SCM_UNPACK_CAR(x))==(scm_tc7_port | SCM_OPN)))
-#define SCM_OPINPORTP(x) (SCM_NIMP(x) && (((0x7f | SCM_OPN | SCM_RDNG) & SCM_UNPACK_CAR(x))==(scm_tc7_port | SCM_OPN | SCM_RDNG)))
-#define SCM_OPOUTPORTP(x) (SCM_NIMP(x) && (((0x7f | SCM_OPN | SCM_WRTNG) & SCM_UNPACK_CAR(x))==(scm_tc7_port | SCM_OPN | SCM_WRTNG)))
+#define SCM_OPPORTP(x) (SCM_NIMP(x) && (((0x7f | SCM_OPN) & SCM_CELL_WORD_0(x))==(scm_tc7_port | SCM_OPN)))
+#define SCM_OPINPORTP(x) (SCM_NIMP(x) && (((0x7f | SCM_OPN | SCM_RDNG) & SCM_CELL_WORD_0(x))==(scm_tc7_port | SCM_OPN | SCM_RDNG)))
+#define SCM_OPOUTPORTP(x) (SCM_NIMP(x) && (((0x7f | SCM_OPN | SCM_WRTNG) & SCM_CELL_WORD_0(x))==(scm_tc7_port | SCM_OPN | SCM_WRTNG)))
 #define SCM_INPUT_PORT_P(x) \
   (SCM_NIMP(x) \
-   && (((0x7f | SCM_RDNG) & SCM_UNPACK_CAR(x)) == (scm_tc7_port | SCM_RDNG)))
+   && (((0x7f | SCM_RDNG) & SCM_CELL_WORD_0(x)) == (scm_tc7_port | SCM_RDNG)))
 #define SCM_OUTPUT_PORT_P(x) \
   (SCM_NIMP(x) \
-   && (((0x7f | SCM_WRTNG) & SCM_UNPACK_CAR(x))==(scm_tc7_port | SCM_WRTNG)))
-#define SCM_OPENP(x) (SCM_NIMP(x) && (SCM_OPN & SCM_UNPACK_CAR (x)))
+   && (((0x7f | SCM_WRTNG) & SCM_CELL_WORD_0(x))==(scm_tc7_port | SCM_WRTNG)))
+#define SCM_OPENP(x) (SCM_NIMP(x) && (SCM_OPN & SCM_CELL_WORD_0 (x)))
 #define SCM_CLOSEDP(x) (!SCM_OPENP(x))
 
 #define SCM_PTAB_ENTRY(x)         ((scm_port *) SCM_CELL_WORD_1 (x))

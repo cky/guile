@@ -77,9 +77,9 @@ typedef struct scm_array_dim
 
 extern long scm_tc16_array;
 #define SCM_ARRAYP(a) 		(SCM_NIMP(a) && (scm_tc16_array == SCM_TYP16(a)))
-#define SCM_ARRAY_NDIM(x) 	((scm_sizet)(SCM_UNPACK_CAR(x)>>17))
+#define SCM_ARRAY_NDIM(x) 	((scm_sizet) (SCM_CELL_WORD_0 (x) >> 17))
 #define SCM_ARRAY_CONTIGUOUS 	0x10000
-#define SCM_ARRAY_CONTP(x) 	(SCM_ARRAY_CONTIGUOUS & (int)(SCM_UNPACK_CAR(x)))
+#define SCM_ARRAY_CONTP(x) 	(SCM_ARRAY_CONTIGUOUS & (SCM_CELL_WORD_0 (x)))
 
 #define SCM_ARRAY_V(a) 	  (((scm_array *) SCM_CELL_WORD_1 (a))->v)
 #define SCM_ARRAY_BASE(a) (((scm_array *) SCM_CELL_WORD_1 (a))->base)

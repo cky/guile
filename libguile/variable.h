@@ -56,7 +56,7 @@
 extern int scm_tc16_variable;
 
 #define SCM_VARVCELL(V) 	SCM_CDR(V)
-#define SCM_VARIABLEP(X)   	(SCM_NIMP(X) && (scm_tc16_variable == SCM_UNPACK_CAR(X)))
+#define SCM_VARIABLEP(X)   	(!SCM_IMP (X) && SCM_CELL_TYPE (X) == scm_tc16_variable)
 #define SCM_UDVARIABLEP(X) 	(SCM_VARIABLEP(X) && SCM_UNBNDP (SCM_CDR (SCM_VARVCELL (X))))
 #define SCM_DEFVARIABLEP(X) 	(SCM_VARIABLEP(X) && !SCM_UNBNDP (SCM_CDR (SCM_VARVCELL (X))))
 

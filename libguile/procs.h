@@ -83,7 +83,7 @@ typedef struct
  */
 
 #define SCM_CLOSUREP(x) (SCM_NIMP(x) && (SCM_TYP3 (x) == scm_tc3_closure))
-#define SCM_CLOSCAR(x) SCM_PACK (SCM_UNPACK_CAR (x) - scm_tc3_closure)
+#define SCM_CLOSCAR(x) SCM_PACK (SCM_CELL_WORD_0 (x) - scm_tc3_closure)
 #define SCM_CODE(x) SCM_CAR (SCM_CLOSCAR (x))
 #define SCM_PROCPROPS(x) SCM_CDR (SCM_CLOSCAR (x))
 #define SCM_SETPROCPROPS(x, p) SCM_SETCDR (SCM_CLOSCAR (x), p)

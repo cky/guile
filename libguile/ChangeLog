@@ -1,3 +1,12 @@
+2000-05-24  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* fports.c (fport_write), ports.c (scm_markstream, scm_port_mode,
+	scm_print_port_mode), ports.h (SCM_OPPORTP, SCM_OPINPORTP,
+	SCM_OPOUTPORTP, SCM_INPUT_PORT_P, SCM_OUTPUT_PORT_P, SCM_OPENP),
+	procs.h (SCM_CLOSCAR), unif.h (SCM_ARRAY_NDIM, SCM_ARRAY_CONTP),
+	variable.h (SCM_VARIABLEP):  Replace SCM_UNPACK_CAR
+	appropriately.
+
 2000-05-23  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* gc.c (free_list_length), hash.c (scm_hasher), macros.c
