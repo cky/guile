@@ -119,11 +119,11 @@ typedef unsigned long ulong_long;
 
 
 /* What did the configure script discover about the outside world?  */
-#include <libguile/scmconfig.h>
+#include "libguile/scmconfig.h"
 
 
 /* Write prototype declarations like this:
-     int foo PROTO(int a, int b);
+     int foo PROTO ((int a, int b));
    At definitions, use K&R style declarations, but make sure there's a
    declarative prototype (as above) in scope.  This will give you
    argument type checking, when available, and be harmless otherwise.  */
@@ -166,7 +166,23 @@ typedef unsigned long ulong_long;
 #endif /* def HAVE_LIMITS_H */
 
 
-#include <libguile/tags.h>
+#ifdef STDC_HEADERS
+# include <stdlib.h>
+# ifdef AMIGA
+#  include <stddef.h>
+# endif /* def AMIGA */
+# define scm_sizet size_t
+#else
+# ifdef _SIZE_T
+#  define scm_sizet size_t
+# else
+#  define scm_sizet unsigned int
+# endif /* def _SIZE_T */
+#endif /* def STDC_HEADERS */
+
+
+
+#include "libguile/tags.h"
 
 
 #ifdef vms
