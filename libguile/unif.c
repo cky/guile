@@ -1285,7 +1285,8 @@ SCM_DEFINE (scm_array_set_x, "array-set!", 2, 0, 1,
 	= scm_num2long (obj, SCM_ARG2, FUNC_NAME);
       break;
     case scm_tc7_svect:
-      ((short *) SCM_UVECTOR_BASE (v))[pos] = scm_to_short (obj);
+      ((short *) SCM_UVECTOR_BASE (v))[pos]
+	= scm_num2short (obj, SCM_ARG2, FUNC_NAME);
       break;
 #if SCM_SIZEOF_LONG_LONG != 0
     case scm_tc7_llvect:
