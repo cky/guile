@@ -48,16 +48,6 @@
 
 /* data conversion C->scheme */
 
-#if (SCM_DEBUG_DEPRECATED == 0)
-
-SCM 
-gh_int2scmb (int x)		/* this is being phased out */
-{
-  return SCM_BOOL(x);
-}
-
-#endif  /* SCM_DEBUG_DEPRECATED == 0 */
-
 SCM 
 gh_bool2scm (int x)
 {
