@@ -268,7 +268,7 @@ scm_eval_closure_lookup (SCM eclo, SCM sym, SCM definep)
 
 SCM_DEFINE (scm_standard_eval_closure, "standard-eval-closure", 1, 0, 0,
 	    (SCM module),
-	    "")
+	    "Return an eval closure for the module @var{module}.")
 #define FUNC_NAME s_scm_standard_eval_closure
 {
   SCM_RETURN_NEWSMOB (scm_tc16_eval_closure, SCM_UNPACK (module));
