@@ -1,5 +1,7 @@
 Tue Sep 10 14:01:46 1996  Jim Blandy  <jimb@floss.cyclic.com>
 
+	* fd.h.in, tags.h: Trivial cleanups. 
+
 	* marksweep.c, marksweep.h: Deleted; marksweep.c was empty, and
 	marksweep.h just declared functions from gc.c.
 	* gc.h, libguile.h: Don't #include "marksweep.h".

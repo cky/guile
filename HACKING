@@ -23,6 +23,13 @@ If you're using Emacs, the pcl-cvs interface to CVS has features to
 make this easier; it checks the ChangeLog, and generates good default
 CVS log entries from that.
 
+- There's no need to keep a change log for documentation files.  This
+is because documentation is not susceptible to bugs that are hard to
+fix.  Documentation does not consist of parts that must interact in a
+precisely engineered fashion; to correct an error, you need not know
+the history of the erroneous passage.  (This is copied from the GNU
+coding standards.)
+
 - If you add or remove files, don't forget to update the 'dist-dir'
 target in the relevant Makefile.in files, so the snapshot and
 distribution processes will work.

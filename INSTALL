@@ -1,6 +1,4 @@
-Building libguile.a and guile
-
-    To build Guile on unix, there are two basic steps:
+To build Guile on unix, there are two basic steps:
 
 	1. Configure the package by running the configure script.
 	2. Build the package by running make.
@@ -9,17 +7,44 @@ Generic instructions for configuring and compiling GNU distributions
 are included below.  Here is an illustration of commands that might be
 used to build Guile.  The voluminous output of the commands is not shown.
 
-	% tar xvf guile-1.0b1		# unpack the sources
-	% mkdir guile-1.0b1-build	# create the build dir
-	% ../guile-1.0b0/configure --prefix=$INST_ROOT
-	% make install
+	% tar xvf guile-1.0b3.tar.gz	# unpack the sources
+	% cd guile-1.0b3
+	% ./configure
+	% make
 
-The installed results are an executable called "guile1.0", a library
-called "libguile1.0", and some header files.
+The `configure' script examines your system, and adapts Guile to
+compile and run on it.
 
-If you run "guile", you'll get a "guile> " prompt to which you can
-type Scheme forms.
+The `make' command builds several things:
+- An executable file `guile/guile', which is an interactive shell for
+  talking with the Guile Scheme interpreter.
+- An object library `guile/libguile.a', containing the Guile Scheme
+  interpreter, ready to be linked into your programs.
+- An object library `gtcltk-lib/libgtcltk.a', containing a simple
+  interface between Guile and Tcl/Tk.  This is only built if the
+  configure script notices that you have the appropriate version of
+  Tcl/Tk installed on your system already.  If it is installed, `make'
+  will automatically include Tcl/Tk and the interface in the guile
+  shell.  If the interface were documented, we'd include a pointer to
+  it here.
 
+To install Guile, type `make install'.  This installs the executable
+and libraries mentioned above, as well as Guile's header files and
+Scheme libraries.
+
+If you want to run Guile without installing it, set the environment
+variable `SCHEME_LOAD_PATH' to a colon-separated list of directories,
+including the directory containing this INSTALL file.  For example, if
+you unpacked Guile so that the full filename of this file is
+`/home/jimb/guile-1.0b3/INSTALL', then you might say
+
+	export SCHEME_LOAD_PATH=/home/jimb/my-scheme:/home/jimb/guile-1.0b3
+
+if you're using Bash or any other Bourne shell variant, or
+
+	setenv SCHEME_LOAD_PATH /home/jimb/my-scheme:/home/jimb/guile-1.0b3
+
+if you're using CSH or one of its variants.
 
 
       Generic Instructions for Building Auto-Configured Packages
