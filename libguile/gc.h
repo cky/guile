@@ -86,7 +86,8 @@ typedef scm_cell * SCM_CELLPTR;
  */
 
 #define SCM_VALIDATE_CELL(x) \
-        (SCM_DEBUG_CELL_ACCESSES ? (!scm_cellp (x) ? (abort (), 0) : 1) : 1)
+        ((void) \
+	 (SCM_DEBUG_CELL_ACCESSES ? (!scm_cellp (x) ? (abort (), 0) : 1) : 1))
 
 #define SCM_CELL_WORD(x, n) \
     ((SCM_VALIDATE_CELL (x)), \
