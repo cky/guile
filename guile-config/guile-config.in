@@ -144,9 +144,22 @@
 
 ;;;; The "compile" subcommand
 
-(define (build-compile) #f)
-(define (help-compile) #f)
-(define (usage-compile) #f)
+(define (build-compile args)
+  (if (> (length args) 0)
+      (error
+       (string-append program-name
+		      " compile: no arguments expected")))
+  (display-line "-I" (get-build-info 'includedir)))
+
+(define (help-compile)
+  (let ((dle display-line-error))
+    (dle "Usage: " program-name " compile")
+    (dle "Print C compiler flags for compiling code that uses Guile.")
+    (dle "This includes any `-I' flags needed to find Guile's header files.")))
+
+(define (usage-compile)
+  (display-line-error
+   "  " program-name " compile     - print C compiler flags to compile with"))
 
 
 ;;;; The "info" subcommand
