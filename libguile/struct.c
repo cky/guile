@@ -240,7 +240,7 @@ scm_struct_init (SCM handle, SCM layout, scm_t_bits * mem, int tail_elts, SCM in
 
 SCM_DEFINE (scm_struct_p, "struct?", 1, 0, 0, 
             (SCM x),
-	    "Return @code{#t} iff @var{obj} is a structure object, else\n"
+	    "Return @code{#t} iff @var{x} is a structure object, else\n"
 	    "@code{#f}.")
 #define FUNC_NAME s_scm_struct_p
 {
@@ -250,7 +250,7 @@ SCM_DEFINE (scm_struct_p, "struct?", 1, 0, 0,
 
 SCM_DEFINE (scm_struct_vtable_p, "struct-vtable?", 1, 0, 0, 
             (SCM x),
-	    "Return @code{#t} iff obj is a vtable structure.")
+	    "Return @code{#t} iff @var{x} is a vtable structure.")
 #define FUNC_NAME s_scm_struct_vtable_p
 {
   SCM layout;

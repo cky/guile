@@ -1,3 +1,7 @@
+2001-11-05  Stefan Jahn  <stefan@lkcc.org>
+
+	* struct.c (s_scm_struct_vtable_p): Corrected docstring.
+
 2001-11-04  Stefan Jahn  <stefan@lkcc.org>
 
 	* Makefile.am (libguile_la_LIBADD): Added $(THREAD_LIBS_LOCAL)
