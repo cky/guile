@@ -511,6 +511,7 @@ obarray_enter (SCM obarray, SCM symbol, SCM data)
   SCM entry = scm_cons (symbol, data);
   SCM slot = scm_cons (entry, SCM_HASHTABLE_BUCKET (obarray, hash));
   SCM_SET_HASHTABLE_BUCKET  (obarray, hash, slot);
+  SCM_HASHTABLE_INCREMENT (obarray);
   if (SCM_HASHTABLE_N_ITEMS (obarray) > SCM_HASHTABLE_UPPER (obarray))
     scm_i_rehash (obarray, scm_i_hash_symbol, 0, "obarray_enter");
 
@@ -544,6 +545,7 @@ obarray_replace (SCM obarray, SCM symbol, SCM data)
 
   slot = scm_cons (new_entry, SCM_HASHTABLE_BUCKET (obarray, hash));
   SCM_SET_HASHTABLE_BUCKET (obarray, hash, slot);
+  SCM_HASHTABLE_INCREMENT (obarray);
   if (SCM_HASHTABLE_N_ITEMS (obarray) > SCM_HASHTABLE_UPPER (obarray))
     scm_i_rehash (obarray, scm_i_hash_symbol, 0, "obarray_replace");
 
