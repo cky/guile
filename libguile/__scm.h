@@ -284,11 +284,34 @@ extern unsigned int scm_async_clock;
 #endif
 
 
+/* Anthony Green writes:
+   When the compiler sees...
+	   DEFER_INTS;
+	   [critical code here]
+	   ALLOW_INTS;
+   ...it doesn't actually promise to keep the critical code within the
+   boundries of the DEFER/ALLOW_INTS instructions. It may very well
+   schedule it outside of the magic defined in those macros.
+
+   However, GCC's volatile asm feature forms a barrier over which code is
+   never moved. So if you add...
+	   asm volatile ("");
+   ...to each of the DEFER_INTS and ALLOW_INTS macros, the critical code
+   will always remain in place.  */
+#ifdef __GNUC__
+#define SCM_FENCE asm volatile ("")
+#else
+#define SCM_FENCE
+#endif
+
 #define SCM_DEFER_INTS \
 { \
+  SCM_FENCE; \
   SCM_CHECK_NOT_DISABLED; \
   SCM_THREAD_DEFER; \
+  SCM_FENCE; \
   scm_ints_disabled = 1; \
+  SCM_FENCE; \
 } \
 
 
@@ -301,10 +324,13 @@ extern unsigned int scm_async_clock;
 
 #define SCM_ALLOW_INTS \
 { \
+  SCM_FENCE; \
   SCM_CHECK_NOT_ENABLED; \
-  SCM_THREAD_ALLOW; \
   scm_ints_disabled = 0; \
+  SCM_FENCE; \
+  SCM_THREAD_ALLOW; \
   SCM_ASYNC_TICK; \
+  SCM_FENCE; \
 } \
 
 
