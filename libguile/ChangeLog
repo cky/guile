@@ -1,3 +1,11 @@
+2001-12-16  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* stacks.c, stacks.h (scm_t_stackype): Renamed to scm_stack_type
+	everywhere.
+
+	* continuations.c (scm_make_continuation): Do not retain the
+	throw_value when the continuation is invoked.
+
 2001-12-08  Stefan Jahn  <stefan@lkcc.org>
 
 	* strings.c (scm_c_string2str): New function.  Converts a

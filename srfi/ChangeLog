@@ -1,3 +1,7 @@
+2001-12-16  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* srfi-11.scm (let-values): Use `gensym' instead of `gentemp'.
+
 2001-11-30  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* Makefile.am (ETAGS_ARGS): Added.
