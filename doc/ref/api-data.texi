@@ -2517,36 +2517,41 @@ y                    @result{} "foo"
 
 @deffn {Scheme Procedure} string-any char_pred s [start [end]]
 @deffnx {C Function} scm_string_any (char_pred, s, start, end)
-Check if the predicate @var{pred} is true for any character in
-the string @var{s}.
+Check if @var{char_pred} is true for any character in string @var{s}.
 
-Calls to @var{pred} are made from left to right across @var{s}.
-When it returns true (ie.@: non-@code{#f}), that return value
-is the return from @code{string-any}.
+@var{char_pred} can be a character to check for any equal to that, or
+a character set (@pxref{Character Sets}) to check for any in that set,
+or a predicate procedure to call.
 
-The SRFI-13 specification requires that the call to @var{pred}
-on the last character of @var{s} (assuming that point is
-reached) be a tail call, but currently in Guile this is not the
-case.
+For a procedure, calls @code{(@var{char_pred} c)} are made
+successively on the characters from @var{start} to @var{end}.  If
+@var{char_pred} returns true (ie.@: non-@code{#f}), @code{string-any}
+stops and that return value is the return from @code{string-any}.  The
+call on the last character (ie.@: at @math{@var{end}-1}), if that
+point is reached, is a tail call.
+
+If there are no characters in @var{s} (ie.@: @var{start} equals
+@var{end}) then the return is @code{#f}.
 @end deffn
 
 @deffn {Scheme Procedure} string-every char_pred s [start [end]]
 @deffnx {C Function} scm_string_every (char_pred, s, start, end)
-Check if the predicate @var{pred} is true for every character
-in the string @var{s}.
+Check if @var{char_pred} is true for every character in string
+@var{s}.
 
-Calls to @var{pred} are made from left to right across @var{s}.
-If the predicate is true for every character then the return
-value from the last @var{pred} call is the return from
-@code{string-every}.
+@var{char_pred} can be a character to check for every character equal
+to that, or a character set (@pxref{Character Sets}) to check for
+every character being in that set, or a predicate procedure to call.
+
+For a procedure, calls @code{(@var{char_pred} c)} are made
+successively on the characters from @var{start} to @var{end}.  If
+@var{char_pred} returns @code{#f}, @code{string-every} stops and
+returns @code{#f}.  The call on the last character (ie.@: at
+@math{@var{end}-1}), if that point is reached, is a tail call and the
+return from that call is the return from @code{string-every}.
 
 If there are no characters in @var{s} (ie.@: @var{start} equals
 @var{end}) then the return is @code{#t}.
-
-The SRFI-13 specification requires that the call to @var{pred}
-on the last character of @var{s} (assuming that point is
-reached) be a tail call, but currently in Guile this is not the
-case.
 @end deffn
 
 @node String Constructors
