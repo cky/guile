@@ -1,3 +1,9 @@
+2002-10-21  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* async.c, goops.h, modules.h, validate.h (SCM_MAKE_VALIDATE_MSG):
+	New.  Use it instead of SCM_MAKE_VALIDATE in lots of places to
+	gove better error messages.  Thanks to Bill Schottstaedt!
+
 2002-10-19  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* evalext.h, evalext.c (scm_definedp, scm_defined_p):  Renamed
