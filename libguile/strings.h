@@ -83,6 +83,7 @@ SCM_API SCM scm_string_length (SCM str);
 SCM_API SCM scm_string_ref (SCM str, SCM k);
 SCM_API SCM scm_string_set_x (SCM str, SCM k, SCM chr);
 SCM_API SCM scm_substring (SCM str, SCM start, SCM end);
+SCM_API SCM scm_substring_read_only (SCM str, SCM start, SCM end);
 SCM_API SCM scm_substring_shared (SCM str, SCM start, SCM end);
 SCM_API SCM scm_substring_copy (SCM str, SCM start, SCM end);
 SCM_API SCM scm_string_append (SCM args);
@@ -92,6 +93,7 @@ SCM_API size_t scm_c_string_length (SCM str);
 SCM_API SCM scm_c_string_ref (SCM str, size_t pos);
 SCM_API void scm_c_string_set_x (SCM str, size_t pos, SCM chr);
 SCM_API SCM scm_c_substring (SCM str, size_t start, size_t end);
+SCM_API SCM scm_c_substring_read_only (SCM str, size_t start, size_t end);
 SCM_API SCM scm_c_substring_shared (SCM str, size_t start, size_t end);
 SCM_API SCM scm_c_substring_copy (SCM str, size_t start, size_t end);
 
@@ -110,6 +112,7 @@ SCM_API SCM scm_makfromstrs (int argc, char **argv);
 
 SCM_API SCM scm_i_make_string (size_t len, char **datap);
 SCM_API SCM scm_i_substring (SCM str, size_t start, size_t end);
+SCM_API SCM scm_i_substring_read_only (SCM str, size_t start, size_t end);
 SCM_API SCM scm_i_substring_shared (SCM str, size_t start, size_t end);
 SCM_API SCM scm_i_substring_copy (SCM str, size_t start, size_t end);
 SCM_API size_t scm_i_string_length (SCM str);

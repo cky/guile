@@ -152,6 +152,12 @@ SCM_MUTEX (stringbuf_write_mutex);
 
 #define IS_STRING(str)        (SCM_NIMP(str) && SCM_TYP7(str) == STRING_TAG)
 
+/* Read-only strings.
+ */
+
+#define RO_STRING_TAG         (scm_tc7_string + 0x200)
+#define IS_RO_STRING(str)     (SCM_CELL_TYPE(str)==RO_STRING_TAG)
+
 /* Mutation-sharing substrings
  */
 
@@ -212,6 +218,20 @@ scm_i_substring (SCM str, size_t start, size_t end)
 }
 
 SCM
+scm_i_substring_read_only (SCM str, size_t start, size_t end)
+{
+  SCM buf;
+  size_t str_start;
+  get_str_buf_start (&str, &buf, &str_start);
+  scm_i_plugin_mutex_lock (&stringbuf_write_mutex);
+  SET_STRINGBUF_SHARED (buf);
+  scm_i_plugin_mutex_unlock (&stringbuf_write_mutex);
+  return scm_double_cell (RO_STRING_TAG, SCM_UNPACK(buf),
+			  (scm_t_bits)str_start + start,
+			  (scm_t_bits) end - start);
+}
+
+SCM
 scm_i_substring_copy (SCM str, size_t start, size_t end)
 {
   size_t len = end - start;
@@ -249,6 +269,13 @@ scm_c_substring (SCM str, size_t start, size_t end)
 {
   validate_substring_args (str, start, end);
   return scm_i_substring (str, start, end);
+}
+
+SCM
+scm_c_substring_read_only (SCM str, size_t start, size_t end)
+{
+  validate_substring_args (str, start, end);
+  return scm_i_substring_read_only (str, start, end);
 }
 
 SCM
@@ -298,11 +325,15 @@ scm_i_string_chars (SCM str)
 }
 
 char *
-scm_i_string_writable_chars (SCM str)
+scm_i_string_writable_chars (SCM orig_str)
 {
-  SCM buf;
+  SCM buf, str = orig_str;
   size_t start;
+
   get_str_buf_start (&str, &buf, &start);
+  if (IS_RO_STRING (str))
+    scm_misc_error (NULL, "string is read-only: ~s", scm_list_1 (orig_str));
+
   scm_i_plugin_mutex_lock (&stringbuf_write_mutex);
   if (STRINGBUF_SHARED (buf))
     {
@@ -661,6 +692,32 @@ SCM_DEFINE (scm_substring, "substring", 2, 1, 0,
   else
     to = scm_to_unsigned_integer (end, from, len);
   return scm_i_substring (str, from, to);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_substring_read_only, "substring/read-only", 2, 1, 0,
+	    (SCM str, SCM start, SCM end),
+	    "Return a newly allocated string formed from the characters\n"
+            "of @var{str} beginning with index @var{start} (inclusive) and\n"
+	    "ending with index @var{end} (exclusive).\n"
+            "@var{str} must be a string, @var{start} and @var{end} must be\n"
+	    "exact integers satisfying:\n"
+	    "\n"
+            "0 <= @var{start} <= @var{end} <= (string-length @var{str}).\n"
+	    "\n"
+	    "The returned string is read-only.\n")
+#define FUNC_NAME s_scm_substring_read_only
+{
+  size_t len, from, to;
+
+  SCM_VALIDATE_STRING (1, str);
+  len = scm_i_string_length (str);
+  from = scm_to_unsigned_integer (start, 0, len);
+  if (SCM_UNBNDP (end))
+    to = len;
+  else
+    to = scm_to_unsigned_integer (end, from, len);
+  return scm_i_substring_read_only (str, from, to);
 }
 #undef FUNC_NAME
 
