@@ -1,3 +1,9 @@
+2002-01-08  Gary Houston  <ghouston@arglist.com>
+
+	* Makefile.am: attempt to use guile from $(top_builddir)/libguile
+	when building autoconf-macros.texi.  There are still problems with
+	modules and running makeinfo when builddir != srcdir.
+
 2002-01-08  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* data-rep.texi, gh.texi, guile.texi, intro.texi,
