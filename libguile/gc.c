@@ -46,6 +46,7 @@
 #include "struct.h"
 #include "genio.h"
 #include "weaks.h"
+#include "guardians.h"
 #include "smob.h"
 #include "unif.h"
 #include "async.h"
@@ -457,6 +458,8 @@ scm_igc (what)
   ++scm_gc_heap_lock;
   scm_n_weak = 0;
 
+  scm_guardian_gc_init ();
+
   /* unprotect any struct types with no instances */
 #if 0
   {
@@ -552,6 +555,8 @@ scm_igc (what)
 #endif
   
   scm_mark_weak_vector_spines ();
+
+  scm_guardian_zombify ();
 
   scm_gc_sweep ();
 
@@ -741,7 +746,7 @@ gc_mark_nimp:
 	{
 	  SCM_SYSCALL (scm_weak_vectors =
 		       (SCM *) realloc ((char *) scm_weak_vectors,
-					sizeof (SCM *) * (scm_weak_size *= 2)));
+					sizeof (SCM) * (scm_weak_size *= 2)));
 	  if (scm_weak_vectors == NULL)
 	    {
 	      scm_puts ("weak vector table", scm_cur_errp);
@@ -1880,7 +1885,7 @@ scm_init_storage (scm_sizet init_heap_size)
     scm_expmem = 1;
   scm_heap_org = CELL_UP (scm_heap_table[0].bounds[0]);
   /* scm_hplims[0] can change. do not remove scm_heap_org */
-  if (!(scm_weak_vectors = (SCM *) malloc ((scm_weak_size = 32) * sizeof(SCM *))))
+  if (!(scm_weak_vectors = (SCM *) malloc ((scm_weak_size = 32) * sizeof(SCM))))
     return 1;
 
   /* Initialise the list of ports.  */
