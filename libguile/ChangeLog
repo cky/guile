@@ -1,3 +1,8 @@
+2002-06-18  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* print.c (scm_simple_format): Print missing part of format before
+	~% control.  Thanks to Daniel Skarda!
+
 2002-06-01  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* mkstemp.c: Added exception notice to license statement.
