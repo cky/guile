@@ -63,6 +63,9 @@
 #ifdef DEBUG_EXTENSIONS
 #include "debug.h"
 #endif
+#ifdef GUILE_DEBUG_MALLOC
+#include "debug-malloc.h"
+#endif
 #include "dynl.h"
 #include "dynwind.h"
 #include "eq.h"
@@ -474,6 +477,9 @@ scm_boot_guile_1 (SCM_STACKITEM *base, struct main_func_closure *closure)
       scm_ports_prehistory ();
       scm_smob_prehistory ();
       scm_tables_prehistory ();
+#ifdef GUILE_DEBUG_MALLOC
+      scm_debug_malloc_prehistory ();
+#endif
 #if defined (GUILE_NEW_GC_SCHEME)
       scm_init_storage (scm_i_getenv_int ("GUILE_INIT_SEGMENT_SIZE_1", 0),
 			scm_i_getenv_int ("GUILE_MIN_YIELD_1", 0),
@@ -497,6 +503,9 @@ scm_boot_guile_1 (SCM_STACKITEM *base, struct main_func_closure *closure)
       scm_init_boolean ();
       scm_init_chars ();
       scm_init_continuations ();
+#ifdef GUILE_DEBUG_MALLOC
+      scm_init_debug_malloc ();
+#endif
       scm_init_dynwind ();
       scm_init_eq ();
       scm_init_error ();
