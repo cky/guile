@@ -89,16 +89,14 @@ scm_vector(l)
 SCM_PROC(s_vector_ref, "vector-ref", 2, 0, 0, scm_vector_ref);
 
 SCM
-scm_vector_ref(v, k)
-     SCM v;
-     SCM k;
+scm_vector_ref (SCM v, SCM k)
 {
-  SCM_ASSERT(SCM_NIMP(v) && SCM_VECTORP(v), v, SCM_ARG1, s_vector_ref);
-  SCM_ASSERT(SCM_INUMP(k), k, SCM_ARG2, s_vector_ref);
-  SCM_ASSERT((SCM_INUM(k) < SCM_LENGTH(v)) && (SCM_INUM(k) >= 0), k, SCM_OUTOFRANGE, s_vector_ref);
-  return SCM_VELTS(v)[((long) SCM_INUM(k))];
+  SCM_ASSERT (SCM_NIMP (v) && SCM_VECTORP (v), v, SCM_ARG1, s_vector_ref);
+  SCM_ASSERT (SCM_INUMP (k), k, SCM_ARG2, s_vector_ref);
+  SCM_ASSERT (SCM_INUM (k) < SCM_LENGTH (v) && SCM_INUM (k) >= 0,
+              k, SCM_OUTOFRANGE, s_vector_ref);
+  return SCM_VELTS (v)[(long) SCM_INUM (k)];
 }
-
 
 SCM_PROC(s_vector_set_x, "vector-set!", 3, 0, 0, scm_vector_set_x);
 
