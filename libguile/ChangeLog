@@ -1,5 +1,19 @@
 Tue Sep 10 14:01:46 1996  Jim Blandy  <jimb@floss.cyclic.com>
 
+	* files.c (scm_sys_delete_file): Moved to filesys.c.
+	File is now empty; deleted.
+	* files.h: Deleted.
+	* filesys.c: scm_sys_delete_file is now here.  Remove
+	#if's; they seem to rely on remnants of an old portability
+	regimen.  If the problems come up again, solve them properly,
+	using autoconf.  Specifically: Don't test M_SYSV, and #define
+	remove to be unlink if it's #defined; don't use remove just
+	because HAVE_STDC_HEADERS is #defined.
+	* filesys.h: Add declarations for scm_sys_delete_file.
+	* Makefile.in (libobjs, inner_h_files, c_files, gen_c_files): Omit
+	files.o, files.h, files.c, and files.x.
+	* init.c: Don't #include "files.h", and don't call scm_init_files.
+
 	Use SCM_P instead of PROTO; the latter intrudes on the user's
 	namespace.
 	* params.h: Deleted; definition of SCM_P moved to...
