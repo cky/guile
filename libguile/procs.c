@@ -128,6 +128,22 @@ scm_procedure_p (obj)
   return SCM_BOOL_F;
 }
 
+SCM_PROC(s_closure_p, "closure?", 1, 0, 0, scm_closure_p);
+
+SCM 
+scm_closure_p (obj)
+     SCM obj;
+{
+  if (SCM_NIMP (obj))
+    switch (SCM_TYP7 (obj))
+      {
+      case scm_tcs_closures:
+	return SCM_BOOL_T;
+      default: ;
+      }
+  return SCM_BOOL_F;
+}
+
 #ifdef __STDC__
 SCM 
 scm_thunk_p (SCM obj)
