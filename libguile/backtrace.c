@@ -484,8 +484,9 @@ scm_backtrace ()
 	  && !SCM_BACKTRACE_P)
 	{
 	  scm_gen_puts (scm_regular_string,
-			"Type \"(debug-enable 'backtrace)\" if you would like a backtrace
-automatically if an error occurs in the future.\n",
+			"Type \"(debug-enable 'backtrace)\" if you would like "
+			"a backtrace\n"
+			"automatically if an error occurs in the future.\n",
 			scm_cur_outp);
 	  SCM_SETCDR (scm_has_shown_backtrace_hint_p_var, SCM_BOOL_T);
 	}
