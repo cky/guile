@@ -1,3 +1,8 @@
+2003-03-12  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* goops.scm (merge-generics): Make sure not to merge a gf with
+	itself.  That would be the cause of a real binding collision.
+
 2003-03-11  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* goops/util.scm (filter): Removed.  (Now supplied by core.)

@@ -857,7 +857,8 @@
 			       (val2 <generic>)
 			       (var <top>)
 			       (val <boolean>))
-  (make-variable (make-extended-generic (list val2 val1) name)))
+  (and (not (eq? val1 val2))
+       (make-variable (make-extended-generic (list val2 val1) name))))
 
 (define-method (merge-generics (module <module>)
 			       (name <symbol>)
@@ -867,13 +868,15 @@
 			       (val2 <generic>)
 			       (var <top>)
 			       (gf <extended-generic>))
-  (slot-set! gf
-	     'extends
-	     (cons val2 (delq! val2 (slot-ref gf 'extends))))
-  (slot-set! val2
-	     'extended-by
-	     (cons gf (delq! gf (slot-ref val2 'extended-by))))
-  var)
+  (and (not (memq val2 (slot-ref gf 'extends)))
+       (begin
+	 (slot-set! gf
+		    'extends
+		    (cons val2 (delq! val2 (slot-ref gf 'extends))))
+	 (slot-set! val2
+		    'extended-by
+		    (cons gf (delq! gf (slot-ref val2 'extended-by))))
+	 var)))
 
 (module-define! duplicate-handlers 'merge-generics merge-generics)
 
