@@ -58,6 +58,9 @@ exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
 ;; Currently, there are two convenience predicates that operate on `x':
 ;;   (in-group? x GROUP)
 ;;   (name-prefix? x PREFIX)
+;;
+;; TODO: Move symbol->string to hash-fold to make sorting more efficient.
+;;       Allow for concurrent Scheme/C membership.
 
 ;;; Code:
 
