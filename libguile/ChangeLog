@@ -1,3 +1,8 @@
+1998-04-02  Mikael Djurfeldt  <mdj@nada.kth.se>
+
+	* script.c (scm_compile_shell_switches): Allow NULL argv if argc
+	is zero.  (Thanks to Dirk Herrmann.)
+
 1998-03-30  Mikael Djurfeldt  <mdj@nada.kth.se>
 
 	* ports.c (scm_add_to_port_table): First line is now line 0

@@ -461,10 +461,11 @@ scm_compile_shell_switches (int argc, char **argv)
   int interactive = 1;		/* Should we go interactive when done? */
   int use_emacs_interface = 0;
   int i;
-  char *argv0 = argv[0];
+  char *argv0 = 0;
 
   if (argc > 0)
     {
+      argv0 = argv[0];
       scm_usage_name = strrchr (argv[0], '/');
       if (! scm_usage_name)
 	scm_usage_name = argv[0];
