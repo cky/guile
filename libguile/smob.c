@@ -116,7 +116,7 @@ scm_smob_print (SCM exp, SCM port, scm_print_state *pstate)
   scm_puts ("#<", port);
   scm_puts (SCM_SMOBNAME (n) ? SCM_SMOBNAME (n) : "smob", port);
   scm_putc (' ', port);
-  scm_intprint (SCM_ASWORD (scm_smobs[n].size ? SCM_CDR (exp) : exp), 16, port);
+  scm_intprint (SCM_BITS (scm_smobs[n].size ? SCM_CDR (exp) : exp), 16, port);
   scm_putc ('>', port);
   return 1;
 }

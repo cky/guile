@@ -70,7 +70,7 @@ static int scm_tc16_jmpbuffer;
 
 #define SCM_JMPBUFP(OBJ) (SCM_NIMP(OBJ) && (SCM_TYP16(OBJ) == scm_tc16_jmpbuffer))
 
-#define JBACTIVE(OBJ) (SCM_CARW (OBJ) & (1L << 16L))
+#define JBACTIVE(OBJ) (SCM_CARBITS (OBJ) & (1L << 16L))
 #define ACTIVATEJB(OBJ)  (SCM_SETOR_CAR (OBJ, (1L << 16L)))
 #define DEACTIVATEJB(OBJ)  (SCM_SETAND_CAR (OBJ, ~(1L << 16L)))
 
@@ -96,7 +96,7 @@ printjb (SCM exp, SCM port, scm_print_state *pstate)
 {
   scm_puts ("#<jmpbuffer ", port);
   scm_puts (JBACTIVE(exp) ? "(active) " : "(inactive) ", port);
-  scm_intprint(SCM_ASWORD ( JBJMPBUF(exp) ), 16, port);
+  scm_intprint(SCM_BITS ( JBJMPBUF(exp) ), 16, port);
 
   scm_putc ('>', port);
   return 1 ;
@@ -276,7 +276,7 @@ make_lazy_catch (struct lazy_catch *c)
 }
 
 #define SCM_LAZY_CATCH_P(obj) \
-  (SCM_NIMP (obj) && (SCM_CARW (obj) == tc16_lazy_catch))
+  (SCM_NIMP (obj) && (SCM_CARBITS (obj) == tc16_lazy_catch))
 
 
 /* Exactly like scm_internal_catch, except:

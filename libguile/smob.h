@@ -87,7 +87,7 @@ do { \
 
 #define SCM_SMOB_DATA(x) SCM_CDR (x)
 #define SCM_SET_SMOB_DATA(x, data) SCM_SETCDR (x, data)
-#define SCM_TC2SMOBNUM(x) (0x0ff & (SCM_ASWORD(x) >> 8))
+#define SCM_TC2SMOBNUM(x) (0x0ff & (SCM_BITS(x) >> 8))
 #define SCM_SMOBNUM(x) (SCM_TC2SMOBNUM (SCM_CAR (x)))
 /* SCM_SMOBNAME can be 0 if name is missing */
 #define SCM_SMOBNAME(smobnum) scm_smobs[smobnum].name

@@ -124,9 +124,9 @@ scm_fport_buffer_add (SCM port, int read_size, int write_size)
 
   pt->write_end = pt->write_buf + pt->write_buf_size;
   if (read_size > 0 || write_size > 0)
-    SCM_SETCAR (port, SCM_CARW (port) & ~SCM_BUF0);
+    SCM_SETCAR (port, SCM_CARBITS (port) & ~SCM_BUF0);
   else
-    SCM_SETCAR (port, (SCM_CARW (port) | SCM_BUF0));
+    SCM_SETCAR (port, (SCM_CARBITS (port) | SCM_BUF0));
 }
 
 SCM_DEFINE (scm_setvbuf, "setvbuf", 2, 1, 0, 
@@ -180,12 +180,12 @@ SCM_DEFINE (scm_setvbuf, "setvbuf", 2, 1, 0,
 
   if (cmode == _IOLBF)
     {
-      SCM_SETCAR (port, SCM_CARW (port) | SCM_BUFLINE);
+      SCM_SETCAR (port, SCM_CARBITS (port) | SCM_BUFLINE);
       cmode = _IOFBF;
     }
   else
     {
-      SCM_SETCAR (port, SCM_CARW (port) ^ SCM_BUFLINE);
+      SCM_SETCAR (port, SCM_CARBITS (port) ^ SCM_BUFLINE);
     }
 
   if (SCM_UNBNDP (size))
@@ -456,7 +456,7 @@ prinfport (SCM exp,SCM port,scm_print_state *pstate)
     {
       scm_puts (SCM_PTOBNAME (SCM_PTOBNUM (exp)), port);
       scm_putc (' ', port);
-      scm_intprint (SCM_ASWORD (SCM_CDR (exp)), 16, port);
+      scm_intprint (SCM_BITS (SCM_CDR (exp)), 16, port);
     }
   scm_putc ('>', port);
   return 1;
@@ -610,7 +610,7 @@ fport_write (SCM port, const void *data, size_t size)
 	}
 
       /* handle line buffering.  */
-      if ((SCM_CARW (port) & SCM_BUFLINE) && memchr (data, '\n', size))
+      if ((SCM_CARBITS (port) & SCM_BUFLINE) && memchr (data, '\n', size))
 	fport_flush (port);
     }
 }

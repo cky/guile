@@ -50,12 +50,12 @@
 #include "libguile/__scm.h"
 
 
-#define SCM_FREEP(x) (SCM_NIMP(x) && SCM_CARW (x)==scm_tc_free_cell)
+#define SCM_FREEP(x) (SCM_NIMP(x) && SCM_CARBITS (x)==scm_tc_free_cell)
 #define SCM_NFREEP(x) (!SCM_FREEP(x))
 
 /* 1. This shouldn't be used on immediates.
    2. It thinks that subrs are always unmarked (harmless). */
-#define SCM_MARKEDP(x) ((SCM_CARW (x) & 5) == 5 \
+#define SCM_MARKEDP(x) ((SCM_CARBITS (x) & 5) == 5 \
 			? SCM_GC8MARKP(x) \
 			: SCM_GCMARKP(x))
 #define SCM_NMARKEDP(x) (!SCM_MARKEDP(x))

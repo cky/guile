@@ -68,9 +68,9 @@
  * graph would be too costly.
  */
 #define SCM_CLASS_FLAGS(class)\
-        SCM_ASWORD (SCM_STRUCT_DATA (class)[scm_struct_i_flags])
+        SCM_BITS (SCM_STRUCT_DATA (class)[scm_struct_i_flags])
 #define SCM_OBJ_CLASS_FLAGS(obj)\
-	SCM_ASWORD (SCM_STRUCT_VTABLE_DATA (obj)[scm_struct_i_flags])
+	SCM_BITS (SCM_STRUCT_VTABLE_DATA (obj)[scm_struct_i_flags])
 #define SCM_SET_CLASS_FLAGS(c, f) (SCM_CLASS_FLAGS (c) |= (f))
 #define SCM_CLEAR_CLASS_FLAGS(c, f) (SCM_CLASS_FLAGS (c) &= ~(f))
 #define SCM_CLASSF_MASK SCM_STRUCTF_MASK
@@ -98,7 +98,7 @@
 #define SCM_SET_CLASS_DESTRUCTOR(c, d) SCM_SET_VTABLE_DESTRUCTOR (c, d)
 #define SCM_SET_CLASS_INSTANCE_SIZE(c, s) \
 (SCM_STRUCT_DATA (c)[scm_struct_i_size] \
- = SCM_ASSCM ((SCM_ASWORD (SCM_STRUCT_DATA (c)[scm_struct_i_size])\
+ = SCM_SCM ((SCM_BITS (SCM_STRUCT_DATA (c)[scm_struct_i_size])\
                & SCM_STRUCTF_MASK)\
               | s))
 

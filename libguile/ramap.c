@@ -1305,7 +1305,7 @@ ramap_cxr (SCM ra0,SCM proc,SCM ras)
 	  case scm_tc7_uvect:
 	  case scm_tc7_ivect:
 	    for (; n-- > 0; i0 += inc0, i1 += inc1)
-	      dst[i0] = SCM_DSUBRF (proc) (SCM_ASWORD (SCM_VELTS (ra1)[i1]));
+	      dst[i0] = SCM_DSUBRF (proc) (SCM_BITS (SCM_VELTS (ra1)[i1]));
 	    break;
 	  }
 	break;
@@ -1325,7 +1325,7 @@ ramap_cxr (SCM ra0,SCM proc,SCM ras)
 	  case scm_tc7_uvect:
 	  case scm_tc7_ivect:
 	    for (; n-- > 0; i0 += inc0, i1 += inc1)
-	      dst[i0] = SCM_DSUBRF (proc) (SCM_ASWORD (SCM_VELTS (ra1)[i1]));
+	      dst[i0] = SCM_DSUBRF (proc) (SCM_BITS (SCM_VELTS (ra1)[i1]));
 	    break;
 	  }
 	break;

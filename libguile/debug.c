@@ -275,7 +275,7 @@ SCM_DEFINE (scm_gloc_p, "gloc?", 1, 0, 0,
 #define FUNC_NAME s_scm_gloc_p
 {
   return SCM_BOOL((SCM_MEMOIZEDP (obj)
-                   && (SCM_ASWORD(SCM_MEMOIZED_EXP (obj)) & 7) == 1));
+                   && (SCM_BITS(SCM_MEMOIZED_EXP (obj)) & 7) == 1));
 }
 #undef FUNC_NAME
 

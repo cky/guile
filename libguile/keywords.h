@@ -52,7 +52,7 @@
 
 
 extern int scm_tc16_keyword;
-#define SCM_KEYWORDP(X)		(SCM_NIMP(X) && (SCM_CARW (X) == scm_tc16_keyword))
+#define SCM_KEYWORDP(X)		(SCM_NIMP(X) && (SCM_CARBITS (X) == scm_tc16_keyword))
 #define SCM_KEYWORDSYM(X)	(SCM_CDR(X))
 
 

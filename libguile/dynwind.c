@@ -145,7 +145,7 @@ typedef struct guardsmem {
 #define SCM_BEFORE_GUARD(obj) (SCM_GUARDSMEM (obj)->before)
 #define SCM_AFTER_GUARD(obj) (SCM_GUARDSMEM (obj)->after)
 #define SCM_GUARD_DATA(obj) (SCM_GUARDSMEM (obj)->data)
-#define SCM_GUARDSP(obj) (SCM_NIMP(obj) && (SCM_CARW (obj) == tc16_guards))
+#define SCM_GUARDSP(obj) (SCM_NIMP(obj) && (SCM_CARBITS (obj) == tc16_guards))
 
 static long tc16_guards;
 
@@ -160,7 +160,7 @@ static int
 printguards (SCM exp, SCM port, scm_print_state *pstate)
 {
   scm_puts ("#<guards ", port);
-  scm_intprint (SCM_ASWORD (SCM_CDR (exp)), 16, port);
+  scm_intprint (SCM_BITS (SCM_CDR (exp)), 16, port);
   scm_putc ('>', port);
   return 1;
 }

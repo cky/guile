@@ -207,7 +207,7 @@ st_seek (SCM port, off_t offset, int whence)
   
       if (target >= pt->write_buf_size)
 	{
-	  if (!(SCM_CARW (port) & SCM_WRTNG))
+	  if (!(SCM_CARBITS (port) & SCM_WRTNG))
 	    {
 	      if (target > pt->write_buf_size)
 		{

@@ -668,7 +668,7 @@ gc_mark_nimp:
       {
 	SCM vcell;
 	vcell = SCM_CAR (ptr) - 1L;
-	switch (SCM_ASWORD (SCM_CDR (vcell)))
+	switch (SCM_BITS (SCM_CDR (vcell)))
 	  {
 	  default:
 	    scm_gc_mark (vcell);
@@ -692,7 +692,7 @@ gc_mark_nimp:
                  that it removes the mark */
 	      mem = (SCM *)SCM_GCCDR (ptr);
 	      
-	      if (SCM_ASWORD (vtable_data[scm_struct_i_flags]) & SCM_STRUCTF_ENTITY)
+	      if (SCM_BITS (vtable_data[scm_struct_i_flags]) & SCM_STRUCTF_ENTITY)
 		{
 		  scm_gc_mark (mem[scm_struct_i_procedure]);
 		  scm_gc_mark (mem[scm_struct_i_setter]);
@@ -1140,7 +1140,7 @@ scm_gc_sweep ()
 		SCM vcell;
 		vcell = SCM_CAR (scmptr) - 1L;
 
-		if ((SCM_CDR (vcell) == 0) || (SCM_ASWORD (SCM_CDR (vcell)) == 1))
+		if ((SCM_CDR (vcell) == 0) || (SCM_BITS (SCM_CDR (vcell)) == 1))
 		  {
 		    scm_struct_free_t free
 		      = (scm_struct_free_t) ((SCM*) vcell)[scm_struct_i_free];
@@ -1292,7 +1292,7 @@ scm_gc_sweep ()
 		case scm_tc16_flo:
 		  if SCM_GC8MARKP (scmptr)
 		    goto c8mrkcontinue;
-		  switch ((int) (SCM_CARW (scmptr) >> 16))
+		  switch ((int) (SCM_CARBITS (scmptr) >> 16))
 		    {
 		    case (SCM_IMAG_PART | SCM_REAL_PART) >> 16:
 		      m += sizeof (double);
@@ -1784,7 +1784,7 @@ SCM_DEFINE (scm_unhash_name, "unhash-name", 1, 0, 0,
 	      --incar;
 	      if (   ((name == SCM_BOOL_T) || (SCM_CAR (incar) == name))
 		  && (SCM_CDR (incar) != 0)
-		  && (SCM_ASWORD (SCM_CDR (incar)) != 1))
+		  && (SCM_BITS (SCM_CDR (incar)) != 1))
 		{
 		  p->car = name;
 		}

@@ -64,7 +64,7 @@
 /* SCM_BOOL_NOT returns the other boolean.  
  * The order of ^s here is important for Borland C++ (!?!?!)
  */
-#define SCM_BOOL_NOT(x)  SCM_ASSCM(SCM_ASWORD(x) ^ (SCM_ASWORD (SCM_BOOL_T) ^ SCM_ASWORD (SCM_BOOL_F)))
+#define SCM_BOOL_NOT(x)  SCM_SCM(SCM_BITS(x) ^ (SCM_BITS (SCM_BOOL_T) ^ SCM_BITS (SCM_BOOL_F)))
 
 
 

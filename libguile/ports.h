@@ -154,12 +154,12 @@ extern int scm_port_table_size; /* Number of ports in scm_port_table.  */
 #define SCM_BUFLINE     (64L<<16) /* Is it line-buffered? */
 
 #define SCM_PORTP(x) (SCM_NIMP(x) && (SCM_TYP7(x)==scm_tc7_port))
-#define SCM_OPPORTP(x) (SCM_NIMP(x) && (((0x7f | SCM_OPN) & SCM_CARW(x))==(scm_tc7_port | SCM_OPN)))
-#define SCM_OPINPORTP(x) (SCM_NIMP(x) && (((0x7f | SCM_OPN | SCM_RDNG) & SCM_CARW(x))==(scm_tc7_port | SCM_OPN | SCM_RDNG)))
-#define SCM_OPOUTPORTP(x) (SCM_NIMP(x) && (((0x7f | SCM_OPN | SCM_WRTNG) & SCM_CARW(x))==(scm_tc7_port | SCM_OPN | SCM_WRTNG)))
-#define SCM_INPORTP(x) (SCM_NIMP(x) && (((0x7f | SCM_RDNG) & SCM_CARW(x))==(scm_tc7_port | SCM_RDNG)))
-#define SCM_OUTPORTP(x) (SCM_NIMP(x) && (((0x7f | SCM_WRTNG) & SCM_CARW(x))==(scm_tc7_port | SCM_WRTNG)))
-#define SCM_OPENP(x) (SCM_NIMP(x) && (SCM_OPN & SCM_CARW (x)))
+#define SCM_OPPORTP(x) (SCM_NIMP(x) && (((0x7f | SCM_OPN) & SCM_CARBITS(x))==(scm_tc7_port | SCM_OPN)))
+#define SCM_OPINPORTP(x) (SCM_NIMP(x) && (((0x7f | SCM_OPN | SCM_RDNG) & SCM_CARBITS(x))==(scm_tc7_port | SCM_OPN | SCM_RDNG)))
+#define SCM_OPOUTPORTP(x) (SCM_NIMP(x) && (((0x7f | SCM_OPN | SCM_WRTNG) & SCM_CARBITS(x))==(scm_tc7_port | SCM_OPN | SCM_WRTNG)))
+#define SCM_INPORTP(x) (SCM_NIMP(x) && (((0x7f | SCM_RDNG) & SCM_CARBITS(x))==(scm_tc7_port | SCM_RDNG)))
+#define SCM_OUTPORTP(x) (SCM_NIMP(x) && (((0x7f | SCM_WRTNG) & SCM_CARBITS(x))==(scm_tc7_port | SCM_WRTNG)))
+#define SCM_OPENP(x) (SCM_NIMP(x) && (SCM_OPN & SCM_CARBITS (x)))
 #define SCM_CLOSEDP(x) (!SCM_OPENP(x))
 #define SCM_PTAB_ENTRY(x) ((scm_port *) SCM_CDR(x))
 #define SCM_SETPTAB_ENTRY(x,ent) SCM_SETCDR ((x), (SCM)(ent))
@@ -199,7 +199,7 @@ typedef struct scm_ptob_descriptor
 
 } scm_ptob_descriptor;
 
-#define SCM_TC2PTOBNUM(x) (0x0ff & (SCM_ASWORD(x) >> 8))
+#define SCM_TC2PTOBNUM(x) (0x0ff & (SCM_BITS(x) >> 8))
 #define SCM_PTOBNUM(x) (SCM_TC2PTOBNUM (SCM_CAR (x)))
 /* SCM_PTOBNAME can be 0 if name is missing */
 #define SCM_PTOBNAME(ptobnum) scm_ptobs[ptobnum].name
