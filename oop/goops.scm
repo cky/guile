@@ -531,21 +531,8 @@
   (slot-set! gf 'methods (compute-new-list-of-methods gf m))
   (let ((specializers (slot-ref m 'specializers)))
     (slot-set! gf 'n-specialized
-	       (let ((n-specialized (slot-ref gf 'n-specialized)))
-		 ;; The magnitude indicates # specializers.
-		 ;; A negative value indicates that at least one
-		 ;; method has rest arguments. (Ugly but effective
-		 ;; space optimization saving one slot in GF objects.)
-		 (cond ((negative? n-specialized)
-			(- (max (+ 1 (length* specializers))
-				(abs n-specialized))))
-		       ((list? specializers)
-			(max (length specializers)
-			     n-specialized))
-		       (else
-			(- (+ 1 (max (length* specializers)
-				     n-specialized)))))
-		 )))
+	       (max (length* specializers)
+		    (slot-ref gf 'n-specialized))))
   (%invalidate-method-cache! gf)
   (add-method-in-classes! m)
   *unspecified*)
