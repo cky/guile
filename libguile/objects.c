@@ -278,7 +278,7 @@ scm_mcache_lookup_cmethod (SCM cache, SCM args)
 	do
 	  {
 	    /* More arguments than specifiers => CLASS != ENV */
-	    if (! SCM_EQ_P (scm_class_of (SCM_CAR (ls)), SCM_CAR (z)))
+	    if (! scm_is_eq (scm_class_of (SCM_CAR (ls)), SCM_CAR (z)))
 	      goto next_method;
 	    ls = SCM_CDR (ls);
 	    z = SCM_CDR (z);
@@ -452,7 +452,7 @@ SCM_DEFINE (scm_make_class_object, "make-class-object", 2, 0, 0,
   unsigned long flags = 0;
   SCM_VALIDATE_STRUCT (1, metaclass);
   SCM_VALIDATE_STRING (2, layout);
-  if (SCM_EQ_P (metaclass, scm_metaclass_operator))
+  if (scm_is_eq (metaclass, scm_metaclass_operator))
     flags = SCM_CLASSF_OPERATOR;
   return scm_i_make_class_object (metaclass, layout, flags);
 }

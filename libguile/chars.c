@@ -42,7 +42,7 @@ SCM_DEFINE1 (scm_char_eq_p, "char=?", scm_tc7_rpsubr,
 {
   SCM_VALIDATE_CHAR (1, x);
   SCM_VALIDATE_CHAR (2, y);
-  return scm_from_bool (SCM_EQ_P (x, y));
+  return scm_from_bool (scm_is_eq (x, y));
 }
 #undef FUNC_NAME
 

@@ -271,7 +271,7 @@ static SCM
 scm_module_full_name (SCM name)
 {
   init_module_stuff ();
-  if (SCM_EQ_P (SCM_CAR (name), scm_sym_app))
+  if (scm_is_eq (SCM_CAR (name), scm_sym_app))
     return name;
   else
     return scm_append (scm_list_2 (module_prefix, name));
@@ -320,7 +320,7 @@ maybe_close_port (void *data, SCM port)
   while (!SCM_NULLP (except))
     {
       SCM p = SCM_COERCE_OUTPORT (SCM_CAR (except));
-      if (SCM_EQ_P (p, port))
+      if (scm_is_eq (p, port))
 	return;
       except = SCM_CDR (except);
     }
@@ -447,7 +447,7 @@ SCM_DEFINE (scm_sloppy_memq, "sloppy-memq", 2, 0, 0,
 
   for(;  SCM_CONSP (lst);  lst = SCM_CDR(lst))
     {
-      if (SCM_EQ_P (SCM_CAR (lst), x))
+      if (scm_is_eq (SCM_CAR (lst), x))
 	return lst;
     }
   return lst;
@@ -691,7 +691,7 @@ scm_sym2ovcell_soft (SCM sym, SCM obarray)
        lsym = SCM_CDR (lsym))
     {
       z = SCM_CAR (lsym);
-      if (SCM_EQ_P (SCM_CAR (z), sym))
+      if (scm_is_eq (SCM_CAR (z), sym))
 	{
 	  SCM_REALLOW_INTS;
 	  return z;
@@ -766,7 +766,7 @@ scm_intern_obarray_soft (const char *name,size_t len,SCM obarray,unsigned int so
     {
       SCM a = SCM_CAR (lsym);
       SCM z = SCM_CAR (a);
-      if (SCM_EQ_P (z, symbol))
+      if (scm_is_eq (z, symbol))
 	return a;
     }
   
@@ -838,7 +838,7 @@ SCM_DEFINE (scm_string_to_obarray_symbol, "string->obarray-symbol", 2, 1, 0,
       /* nothing interesting to do here. */
       return scm_string_to_symbol (s);
     }
-  else if (SCM_EQ_P (o, SCM_BOOL_T))
+  else if (scm_is_eq (o, SCM_BOOL_T))
     o = SCM_BOOL_F;
     
   vcell = scm_intern_obarray_soft (SCM_STRING_CHARS(s),
@@ -879,7 +879,7 @@ SCM_DEFINE (scm_intern_symbol, "intern-symbol", 2, 0, 0,
 	 lsym = SCM_CDR (lsym))
       {
 	sym = SCM_CAR (lsym);
-	if (SCM_EQ_P (SCM_CAR (sym), s))
+	if (scm_is_eq (SCM_CAR (sym), s))
 	  {
 	    SCM_REALLOW_INTS;
 	    return SCM_UNSPECIFIED;
@@ -921,7 +921,7 @@ SCM_DEFINE (scm_unintern_symbol, "unintern-symbol", 2, 0, 0,
 	 lsym_follow = lsym, lsym = SCM_CDR (lsym))
       {
 	sym = SCM_CAR (lsym);
-	if (SCM_EQ_P (SCM_CAR (sym), s))
+	if (scm_is_eq (SCM_CAR (sym), s))
 	  {
 	    /* Found the symbol to unintern. */
 	    if (scm_is_false (lsym_follow))

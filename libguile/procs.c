@@ -249,7 +249,7 @@ SCM_DEFINE (scm_procedure_documentation, "procedure-documentation", 1, 0, 0,
 #define FUNC_NAME s_scm_procedure_documentation
 {
   SCM code;
-  SCM_ASSERT (SCM_EQ_P (scm_procedure_p (proc), SCM_BOOL_T),
+  SCM_ASSERT (scm_is_true (scm_procedure_p (proc)),
 	      proc, SCM_ARG1, FUNC_NAME);
   switch (SCM_TYP7 (proc))
     {

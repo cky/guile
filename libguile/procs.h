@@ -77,7 +77,7 @@ typedef struct
                            + scm_tc3_closure))
 #define SCM_ENV(x) SCM_CELL_OBJECT_1 (x)
 #define SCM_SETENV(x, e) SCM_SET_CELL_OBJECT_1 ((x), (e))
-#define SCM_TOP_LEVEL(ENV)  (SCM_NULLP (ENV) || (SCM_EQ_P (scm_procedure_p (SCM_CAR (ENV)), SCM_BOOL_T)))
+#define SCM_TOP_LEVEL(ENV)  (SCM_NULLP (ENV) || (scm_is_true (scm_procedure_p (SCM_CAR (ENV)))))
 
 /* Procedure-with-setter
 

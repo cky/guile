@@ -49,7 +49,7 @@ srfi1_ilength (SCM sx)
     /* For every two steps the hare takes, the tortoise takes one.  */
     tortoise = SCM_CDR(tortoise);
   }
-  while (! SCM_EQ_P (hare, tortoise));
+  while (! scm_is_eq (hare, tortoise));
 
   /* If the tortoise ever catches the hare, then the list must contain
      a cycle.  */
@@ -222,7 +222,7 @@ SCM_DEFINE (scm_srfi1_delete, "delete", 2, 1, 0,
         {
           /* delete this element, so copy from keeplst (inclusive) to lst
              (exclusive) onto ret */
-          while (! SCM_EQ_P (keeplst, lst))
+          while (! scm_is_eq (keeplst, lst))
             {
               SCM c = scm_cons (SCM_CAR (keeplst), SCM_EOL);
               *p = c;
@@ -360,13 +360,13 @@ SCM_DEFINE (scm_srfi1_delete_duplicates, "delete-duplicates", 1, 1, 0,
           item = SCM_CAR (lst);
 
           /* loop searching ret upto lst */
-          for (l = ret; ! SCM_EQ_P (l, lst); l = SCM_CDR (l))
+          for (l = ret; ! scm_is_eq (l, lst); l = SCM_CDR (l))
             {
               if (scm_is_true (equal_p (pred, SCM_CAR (l), item)))
                 {
                   /* duplicate, don't want this element, so copy keeplst
                      (inclusive) to lst (exclusive) onto ret */
-                  while (! SCM_EQ_P (keeplst, lst))
+                  while (! scm_is_eq (keeplst, lst))
                     {
                       SCM c = scm_cons (SCM_CAR (keeplst), SCM_EOL);
                       *p = c;
@@ -450,7 +450,7 @@ SCM_DEFINE (scm_srfi1_delete_duplicates_x, "delete-duplicates!", 1, 1, 0,
               if (scm_is_true (equal_p (pred, SCM_CAR (l), item)))
                 break;  /* equal, forget this element */
 
-              if (SCM_EQ_P (l, endret))
+              if (scm_is_eq (l, endret))
                 {
                   /* not equal to any, so append this pair */
                   SCM_SETCDR (endret, lst);

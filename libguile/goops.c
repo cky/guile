@@ -335,7 +335,7 @@ scm_i_get_keyword (SCM key, SCM l, long len, SCM default_value, const char *subr
 
       if (!SCM_KEYWORDP (obj))
 	scm_misc_error (subr, "bad keyword: ~S", scm_list_1 (obj));
-      else if (SCM_EQ_P (obj, key))
+      else if (scm_is_eq (obj, key))
 	return SCM_CADR (l);
       else
 	l = SCM_CDDR (l);
@@ -1212,7 +1212,7 @@ test_slot_existence (SCM class SCM_UNUSED, SCM obj, SCM slot_name)
   register SCM l;
 
   for (l = SCM_ACCESSORS_OF (obj); !SCM_NULLP (l); l = SCM_CDR (l))
-    if (SCM_EQ_P (SCM_CAAR (l), slot_name))
+    if (scm_is_eq (SCM_CAAR (l), slot_name))
       return SCM_BOOL_T;
 
   return SCM_BOOL_F;

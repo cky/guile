@@ -202,7 +202,7 @@ get_applybody ()
 #define NEXT_FRAME(iframe, n, quit) \
 do { \
   if (SCM_MEMOIZEDP (iframe->source) \
-      && SCM_EQ_P (SCM_MEMOIZED_EXP (iframe->source), applybody)) \
+      && scm_is_eq (SCM_MEMOIZED_EXP (iframe->source), applybody)) \
     { \
       iframe->source = SCM_BOOL_F; \
       if (scm_is_false (iframe->proc)) \
@@ -281,7 +281,7 @@ read_frames (scm_t_debug_frame *dframe, long offset, long n, scm_t_info_frame *i
 	      NEXT_FRAME (iframe, n, quit);
 	    }
 	}
-      else if (SCM_EQ_P (iframe->proc, scm_f_gsubr_apply))
+      else if (scm_is_eq (iframe->proc, scm_f_gsubr_apply))
 	/* Skip gsubr apply frames. */
 	continue;
       else
@@ -324,7 +324,7 @@ narrow_stack (SCM stack, long inner, SCM inner_key, long outer, SCM outer_key)
   long n = s->length;
   
   /* Cut inner part. */
-  if (SCM_EQ_P (inner_key, SCM_BOOL_T))
+  if (scm_is_eq (inner_key, SCM_BOOL_T))
     {
       /* Cut all frames up to user module code */
       for (i = 0; inner; ++i, --inner)
@@ -358,7 +358,7 @@ narrow_stack (SCM stack, long inner, SCM inner_key, long outer, SCM outer_key)
     /* Use standard cutting procedure. */
     {
       for (i = 0; inner; --inner)
-	if (SCM_EQ_P (s->frames[i++].proc, inner_key))
+	if (scm_is_eq (s->frames[i++].proc, inner_key))
 	  break;
     }
   s->frames = &s->frames[i];
@@ -366,7 +366,7 @@ narrow_stack (SCM stack, long inner, SCM inner_key, long outer, SCM outer_key)
 
   /* Cut outer part. */
   for (; n && outer; --outer)
-    if (SCM_EQ_P (s->frames[--n].proc, outer_key))
+    if (scm_is_eq (s->frames[--n].proc, outer_key))
       break;
 
   s->length = n;
@@ -425,7 +425,7 @@ SCM_DEFINE (scm_make_stack, "make-stack", 1, 0, 1,
 
   /* Extract a pointer to the innermost frame of whatever object
      scm_make_stack was given.  */
-  if (SCM_EQ_P (obj, SCM_BOOL_T))
+  if (scm_is_eq (obj, SCM_BOOL_T))
     {
       dframe = scm_last_debug_frame;
     }
@@ -509,7 +509,7 @@ SCM_DEFINE (scm_stack_id, "stack-id", 1, 0, 0,
 {
   scm_t_debug_frame *dframe;
   long offset = 0;
-  if (SCM_EQ_P (stack, SCM_BOOL_T))
+  if (scm_is_eq (stack, SCM_BOOL_T))
     {
       dframe = scm_last_debug_frame;
     }

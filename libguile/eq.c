@@ -47,7 +47,7 @@ SCM_DEFINE1 (scm_eq_p, "eq?", scm_tc7_rpsubr,
 	     "@code{eqv?}.")
 #define FUNC_NAME s_scm_eq_p
 {
-  return scm_from_bool (SCM_EQ_P (x, y));
+  return scm_from_bool (scm_is_eq (x, y));
 }
 #undef FUNC_NAME
 
@@ -71,7 +71,7 @@ SCM_PRIMITIVE_GENERIC_1 (scm_eqv_p, "eqv?", scm_tc7_rpsubr,
 	     "and inexact numbers.")
 #define FUNC_NAME s_scm_eqv_p
 {
-  if (SCM_EQ_P (x, y))
+  if (scm_is_eq (x, y))
     return SCM_BOOL_T;
   if (SCM_IMP (x))
     return SCM_BOOL_F;
@@ -141,7 +141,7 @@ SCM_PRIMITIVE_GENERIC_1 (scm_equal_p, "equal?", scm_tc7_rpsubr,
   SCM_CHECK_STACK;
  tailrecurse:
   SCM_TICK;
-  if (SCM_EQ_P (x, y))
+  if (scm_is_eq (x, y))
     return SCM_BOOL_T;
   if (SCM_IMP (x))
     return SCM_BOOL_F;

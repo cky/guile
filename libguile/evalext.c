@@ -56,12 +56,12 @@ SCM_DEFINE (scm_defined_p, "defined?", 1, 1, 0,
 	    {
 	      if (!SCM_CONSP (b))
 		{
-		  if (SCM_EQ_P (b, sym))
+		  if (scm_is_eq (b, sym))
 		    return SCM_BOOL_T;
 		  else
 		    break;
 		}
-	      if (SCM_EQ_P (SCM_CAR (b), sym))
+	      if (scm_is_eq (SCM_CAR (b), sym))
 		return SCM_BOOL_T;
 	    }
 	}

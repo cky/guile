@@ -117,7 +117,7 @@ SCM_API scm_t_mutex scm_i_port_table_mutex;
 
 
 
-#define SCM_EOF_OBJECT_P(x) (SCM_EQ_P ((x), SCM_EOF_VAL))
+#define SCM_EOF_OBJECT_P(x) (scm_is_eq ((x), SCM_EOF_VAL))
 
 /* PORT FLAGS
  * A set of flags characterizes a port.

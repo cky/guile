@@ -388,7 +388,7 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
 	    SCM got;
 
 	    got = scm_call_2 (sharp, SCM_MAKE_CHAR (c), port);
-	    if (SCM_EQ_P (got, SCM_UNSPECIFIED))
+	    if (scm_is_eq (got, SCM_UNSPECIFIED))
 	      goto handle_sharp;
 	    if (SCM_RECORD_POSITIONS_P)
 	      return *copy = recsexpr (got, line, column,
@@ -489,7 +489,7 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
 		SCM got;
 
 		got = scm_call_2 (sharp, SCM_MAKE_CHAR (c), port);
-		if (SCM_EQ_P (got, SCM_UNSPECIFIED))
+		if (scm_is_eq (got, SCM_UNSPECIFIED))
 		  goto unkshrp;
 		if (SCM_RECORD_POSITIONS_P)
 		  return *copy = recsexpr (got, line, column,
@@ -610,7 +610,7 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
       goto tok;
 
     case ':':
-      if (SCM_EQ_P (SCM_PACK (SCM_KEYWORD_STYLE), scm_keyword_prefix))
+      if (scm_is_eq (SCM_PACK (SCM_KEYWORD_STYLE), scm_keyword_prefix))
 	{
 	  j = scm_read_token ('-', tok_buf, port, 0);
 	  p = scm_mem2symbol (SCM_STRING_CHARS (*tok_buf), j);
@@ -742,7 +742,7 @@ scm_i_lreadparen (SCM *tok_buf, SCM port, char *name, SCM *copy, char term_char)
   if (term_char == c)
     return SCM_EOL;
   scm_ungetc (c, port);
-  if (SCM_EQ_P (scm_sym_dot, (tmp = scm_lreadr (tok_buf, port, copy))))
+  if (scm_is_eq (scm_sym_dot, (tmp = scm_lreadr (tok_buf, port, copy))))
     {
       ans = scm_lreadr (tok_buf, port, copy);
     closeit:
@@ -754,7 +754,7 @@ scm_i_lreadparen (SCM *tok_buf, SCM port, char *name, SCM *copy, char term_char)
   while (term_char != (c = scm_flush_ws (port, name)))
     {
       scm_ungetc (c, port);
-      if (SCM_EQ_P (scm_sym_dot, (tmp = scm_lreadr (tok_buf, port, copy))))
+      if (scm_is_eq (scm_sym_dot, (tmp = scm_lreadr (tok_buf, port, copy))))
 	{
 	  SCM_SETCDR (tl, scm_lreadr (tok_buf, port, copy));
 	  goto closeit;
@@ -783,7 +783,7 @@ scm_lreadrecparen (SCM *tok_buf, SCM port, char *name, SCM *copy)
   if (')' == c)
     return SCM_EOL;
   scm_ungetc (c, port);
-  if (SCM_EQ_P (scm_sym_dot, (tmp = scm_lreadr (tok_buf, port, copy))))
+  if (scm_is_eq (scm_sym_dot, (tmp = scm_lreadr (tok_buf, port, copy))))
     {
       ans = scm_lreadr (tok_buf, port, copy);
       if (')' != (c = scm_flush_ws (port, name)))
@@ -802,7 +802,7 @@ scm_lreadrecparen (SCM *tok_buf, SCM port, char *name, SCM *copy)
       SCM new_tail;
 
       scm_ungetc (c, port);
-      if (SCM_EQ_P (scm_sym_dot, (tmp = scm_lreadr (tok_buf, port, copy))))
+      if (scm_is_eq (scm_sym_dot, (tmp = scm_lreadr (tok_buf, port, copy))))
 	{
 	  SCM_SETCDR (tl, tmp = scm_lreadr (tok_buf, port, copy));
 	  if (SCM_COPY_SOURCE_P)
@@ -859,7 +859,7 @@ SCM_DEFINE (scm_read_hash_extend, "read-hash-extend", 2, 0, 0,
 
   SCM_VALIDATE_CHAR (1, chr);
   SCM_ASSERT (scm_is_false (proc)
-	      || SCM_EQ_P (scm_procedure_p (proc), SCM_BOOL_T),
+	      || scm_is_eq (scm_procedure_p (proc), SCM_BOOL_T),
 	      proc, SCM_ARG2, FUNC_NAME);
 
   /* Check if chr is already in the alist.  */
@@ -877,7 +877,7 @@ SCM_DEFINE (scm_read_hash_extend, "read-hash-extend", 2, 0, 0,
 	    }
 	  break;
 	}
-      if (SCM_EQ_P (chr, SCM_CAAR (this)))
+      if (scm_is_eq (chr, SCM_CAAR (this)))
 	{
 	  /* already in the alist.  */
 	  if (scm_is_false (proc))

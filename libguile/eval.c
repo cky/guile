@@ -479,11 +479,11 @@ lookup_symbol (const SCM symbol, const SCM env)
 	       SCM_CONSP (symbol_idx);
 	       symbol_idx = SCM_CDR (symbol_idx), ++symbol_nr)
 	    {
-	      if (SCM_EQ_P (SCM_CAR (symbol_idx), symbol))
+	      if (scm_is_eq (SCM_CAR (symbol_idx), symbol))
 		/* found the symbol, therefore return the iloc */
 		return SCM_MAKE_ILOC (frame_nr, symbol_nr, 0);
 	    }
-	  if (SCM_EQ_P (symbol_idx, symbol))
+	  if (scm_is_eq (symbol_idx, symbol))
 	    /* found the symbol as the last element of the current frame */
 	    return SCM_MAKE_ILOC (frame_nr, symbol_nr, 1);
 	}
@@ -709,7 +709,7 @@ is_system_macro_p (const SCM syntactic_keyword, const SCM form, const SCM env)
       if (SCM_BUILTIN_MACRO_P (value))
         {
           const SCM macro_name = scm_macro_name (value);
-          return SCM_EQ_P (macro_name, syntactic_keyword);
+          return scm_is_eq (macro_name, syntactic_keyword);
         }
     }
 
@@ -980,14 +980,14 @@ scm_m_case (SCM expr, SCM env)
         }
       else
         {
-          ASSERT_SYNTAX_2 (SCM_EQ_P (labels, scm_sym_else) && else_literal_p,
+          ASSERT_SYNTAX_2 (scm_is_eq (labels, scm_sym_else) && else_literal_p,
                            s_bad_case_labels, labels, expr);
           ASSERT_SYNTAX_2 (SCM_NULLP (SCM_CDR (clauses)),
                            s_misplaced_else_clause, clause, expr);
         }
 
       /* build the new clause */
-      if (SCM_EQ_P (labels, scm_sym_else))
+      if (scm_is_eq (labels, scm_sym_else))
         SCM_SETCAR (clause, SCM_IM_ELSE);
 
       clauses = SCM_CDR (clauses);
@@ -1021,7 +1021,7 @@ unmemoize_case (const SCM expr, const SCM env)
       const SCM exprs = SCM_CDR (clause);
 
       const SCM um_exprs = unmemoize_exprs (exprs, env);
-      const SCM um_labels = (SCM_EQ_P (labels, SCM_IM_ELSE))
+      const SCM um_labels = (scm_is_eq (labels, SCM_IM_ELSE))
         ? scm_sym_else
         : scm_i_finite_list_copy (labels);
       const SCM um_clause = scm_cons (um_labels, um_exprs);
@@ -1062,7 +1062,7 @@ scm_m_cond (SCM expr, SCM env)
       ASSERT_SYNTAX_2 (length >= 1, s_bad_cond_clause, clause, expr);
 
       test = SCM_CAR (clause);
-      if (SCM_EQ_P (test, scm_sym_else) && else_literal_p)
+      if (scm_is_eq (test, scm_sym_else) && else_literal_p)
 	{
 	  const int last_clause_p = SCM_NULLP (SCM_CDR (clause_idx));
           ASSERT_SYNTAX_2 (length >= 2,
@@ -1072,7 +1072,7 @@ scm_m_cond (SCM expr, SCM env)
           SCM_SETCAR (clause, SCM_IM_ELSE);
 	}
       else if (length >= 2
-               && SCM_EQ_P (SCM_CADR (clause), scm_sym_arrow)
+               && scm_is_eq (SCM_CADR (clause), scm_sym_arrow)
                && arrow_literal_p)
         {
           ASSERT_SYNTAX_2 (length > 2, s_missing_recipient, clause, expr);
@@ -1102,12 +1102,13 @@ unmemoize_cond (const SCM expr, const SCM env)
       SCM um_sequence;
       SCM um_clause;
 
-      if (SCM_EQ_P (test, SCM_IM_ELSE))
+      if (scm_is_eq (test, SCM_IM_ELSE))
         um_test = scm_sym_else;
       else
         um_test = unmemoize_expression (test, env);
 
-      if (!SCM_NULLP (sequence) && SCM_EQ_P (SCM_CAR (sequence), SCM_IM_ARROW))
+      if (!SCM_NULLP (sequence) && scm_is_eq (SCM_CAR (sequence),
+					      SCM_IM_ARROW))
         {
           const SCM target = SCM_CADR (sequence);
           const SCM um_target = unmemoize_expression (target, env);
@@ -1361,7 +1362,7 @@ unmemoize_do (const SCM expr, const SCM env)
       const SCM name = SCM_CAR (um_names);
       const SCM init = SCM_CAR (um_inits);
       SCM step = SCM_CAR (um_steps);
-      step = SCM_EQ_P (step, name) ? SCM_EOL : scm_list_1 (step);
+      step = scm_is_eq (step, name) ? SCM_EOL : scm_list_1 (step);
 
       um_bindings = scm_cons (scm_cons2 (name, init, step), um_bindings);
 
@@ -1423,10 +1424,10 @@ c_improper_memq (SCM obj, SCM list)
 {
   for (; SCM_CONSP (list); list = SCM_CDR (list))
     {
-      if (SCM_EQ_P (SCM_CAR (list), obj))
+      if (scm_is_eq (SCM_CAR (list), obj))
         return 1;
     }
-  return SCM_EQ_P (list, obj);
+  return scm_is_eq (list, obj);
 }
 
 SCM
@@ -1839,13 +1840,13 @@ iqq (SCM form, SCM env, unsigned long int depth)
   if (SCM_CONSP (form))
     {
       const SCM tmp = SCM_CAR (form);
-      if (SCM_EQ_P (tmp, scm_sym_quasiquote))
+      if (scm_is_eq (tmp, scm_sym_quasiquote))
 	{
 	  const SCM args = SCM_CDR (form);
 	  ASSERT_SYNTAX (scm_ilength (args) == 1, s_expression, form);
 	  return scm_list_2 (tmp, iqq (SCM_CAR (args), env, depth + 1));
 	}
-      else if (SCM_EQ_P (tmp, scm_sym_unquote))
+      else if (scm_is_eq (tmp, scm_sym_unquote))
 	{
 	  const SCM args = SCM_CDR (form);
 	  ASSERT_SYNTAX (scm_ilength (args) == 1, s_expression, form);
@@ -1855,7 +1856,7 @@ iqq (SCM form, SCM env, unsigned long int depth)
 	    return scm_list_2 (tmp, iqq (SCM_CAR (args), env, depth - 1));
 	}
       else if (SCM_CONSP (tmp)
-	       && SCM_EQ_P (SCM_CAR (tmp), scm_sym_uq_splicing))
+	       && scm_is_eq (SCM_CAR (tmp), scm_sym_uq_splicing))
 	{
 	  const SCM args = SCM_CDR (tmp);
 	  ASSERT_SYNTAX (scm_ilength (args) == 1, s_expression, form);
@@ -2134,7 +2135,7 @@ scm_m_generalized_set_x (SCM expr, SCM env)
 	 variable and we memoize to (set! <atom> ...).
       */
       exp_target = macroexp (target, env);
-      if (SCM_EQ_P (SCM_CAR (exp_target), SCM_IM_BEGIN)
+      if (scm_is_eq (SCM_CAR (exp_target), SCM_IM_BEGIN)
 	  && !SCM_NULLP (SCM_CDR (exp_target))
 	  && SCM_NULLP (SCM_CDDR (exp_target)))
 	{
@@ -2592,7 +2593,7 @@ static SCM deval (SCM x, SCM env);
 
 
 #define SCM_EVALIM2(x) \
-  ((SCM_EQ_P ((x), SCM_EOL) \
+  ((scm_is_eq ((x), SCM_EOL) \
     ? syntax_error (s_empty_combination, (x), SCM_UNDEFINED), 0 \
     : 0), \
    (x))
@@ -2776,9 +2777,9 @@ scm_lookupcar1 (SCM vloc, SCM genv, int check)
 	{
 	  if (!SCM_CONSP (fl))
 	    {
-	      if (SCM_EQ_P (fl, var))
+	      if (scm_is_eq (fl, var))
 	      {
-		if (! SCM_EQ_P (SCM_CAR (vloc), var))
+		if (!scm_is_eq (SCM_CAR (vloc), var))
 		  goto race;
 		SCM_SET_CELL_WORD_0 (vloc, SCM_UNPACK (iloc) + SCM_ICDR);
 		return SCM_CDRLOC (*al);
@@ -2787,14 +2788,14 @@ scm_lookupcar1 (SCM vloc, SCM genv, int check)
 		break;
 	    }
 	  al = SCM_CDRLOC (*al);
-	  if (SCM_EQ_P (SCM_CAR (fl), var))
+	  if (scm_is_eq (SCM_CAR (fl), var))
 	    {
 	      if (SCM_UNBNDP (SCM_CAR (*al)))
 		{
 		  env = SCM_EOL;
 		  goto errout;
 		}
-	      if (!SCM_EQ_P (SCM_CAR (vloc), var))
+	      if (!scm_is_eq (SCM_CAR (vloc), var))
 		goto race;
 	      SCM_SETCAR (vloc, iloc);
 	      return SCM_CARLOC (*al);
@@ -2837,7 +2838,7 @@ scm_lookupcar1 (SCM vloc, SCM genv, int check)
 	  }
       }
 
-    if (!SCM_EQ_P (SCM_CAR (vloc), var))
+    if (!scm_is_eq (SCM_CAR (vloc), var))
       {
 	/* Some other thread has changed the very cell we are working
 	   on.  In effect, it must have done our job or messed it up
@@ -3137,7 +3138,7 @@ deval_args (SCM l, SCM env, SCM proc, SCM *lloc)
 
 
 #define SCM_VALIDATE_NON_EMPTY_COMBINATION(x) \
-  ASSERT_SYNTAX (!SCM_EQ_P ((x), SCM_EOL), s_empty_combination, x)
+  ASSERT_SYNTAX (!scm_is_eq ((x), SCM_EOL), s_empty_combination, x)
 
 
 /* This is the evaluator.  Like any real monster, it has three heads:
@@ -3360,7 +3361,7 @@ dispatch:
               {
                 const SCM clause = SCM_CAR (x);
                 SCM labels = SCM_CAR (clause);
-                if (SCM_EQ_P (labels, SCM_IM_ELSE))
+                if (scm_is_eq (labels, SCM_IM_ELSE))
                   {
                     x = SCM_CDR (clause);
                     PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
@@ -3369,7 +3370,7 @@ dispatch:
                 while (!SCM_NULLP (labels))
                   {
                     const SCM label = SCM_CAR (labels);
-                    if (SCM_EQ_P (label, key)
+                    if (scm_is_eq (label, key)
                         || scm_is_true (scm_eqv_p (label, key)))
                       {
                         x = SCM_CDR (clause);
@@ -3389,7 +3390,7 @@ dispatch:
           while (!SCM_NULLP (x))
             {
               const SCM clause = SCM_CAR (x);
-              if (SCM_EQ_P (SCM_CAR (clause), SCM_IM_ELSE))
+              if (scm_is_eq (SCM_CAR (clause), SCM_IM_ELSE))
                 {
                   x = SCM_CDR (clause);
                   PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
@@ -3403,7 +3404,7 @@ dispatch:
                       x = SCM_CDR (clause);
                       if (SCM_NULLP (x))
                         RETURN (arg1);
-                      else if (!SCM_EQ_P (SCM_CAR (x), SCM_IM_ARROW))
+                      else if (!scm_is_eq (SCM_CAR (x), SCM_IM_ARROW))
                         {
                           PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
                           goto begin;
@@ -3800,7 +3801,7 @@ dispatch:
 		    {
 		      /* More arguments than specifiers => CLASS != ENV */
 		      SCM class_of_arg = scm_class_of (SCM_CAR (args));
-		      if (!SCM_EQ_P (class_of_arg, SCM_CAR (z)))
+		      if (!scm_is_eq (class_of_arg, SCM_CAR (z)))
 			goto next_method;
 		      args = SCM_CDR (args);
 		      z = SCM_CDR (z);
@@ -3858,7 +3859,7 @@ dispatch:
 		if (!(scm_is_false (test_result)
 		      || SCM_NULL_OR_NIL_P (test_result)))
 		  {
-		    if (SCM_EQ_P (SCM_CAR (x), SCM_UNSPECIFIED))
+		    if (scm_is_eq (SCM_CAR (x), SCM_UNSPECIFIED))
 		      RETURN (test_result);
 		    PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
 		    goto carloop;
@@ -3979,8 +3980,8 @@ dispatch:
 		  if (!SCM_CONSP (arg1))
 		    arg1 = scm_list_2 (SCM_IM_BEGIN, arg1);
 
-                  assert (!SCM_EQ_P (x, SCM_CAR (arg1))
-                          && !SCM_EQ_P (x, SCM_CDR (arg1)));
+                  assert (!scm_is_eq (x, SCM_CAR (arg1))
+                          && !scm_is_eq (x, SCM_CDR (arg1)));
 
 #ifdef DEVAL
 		  if (!SCM_CLOSUREP (SCM_MACRO_CODE (proc)))
@@ -5711,7 +5712,7 @@ copy_tree (
         {
           tortoise_delay = 1;
           tortoise = tortoise->trace;
-          ASSERT_SYNTAX (!SCM_EQ_P (hare->obj, tortoise->obj),
+          ASSERT_SYNTAX (!scm_is_eq (hare->obj, tortoise->obj),
                          s_bad_expression, hare->obj);
         }
       else
@@ -5775,7 +5776,7 @@ copy_tree (
                   rabbit = SCM_CDR (rabbit);
 
                   turtle = SCM_CDR (turtle);
-                  ASSERT_SYNTAX (!SCM_EQ_P (rabbit, turtle),
+                  ASSERT_SYNTAX (!scm_is_eq (rabbit, turtle),
                                  s_bad_expression, rabbit);
                 }
             }

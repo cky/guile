@@ -495,7 +495,7 @@ scm_array_fill_int (SCM ra, SCM fill, SCM ignore SCM_UNUSED)
 		if ((base + n) % SCM_LONG_BIT) /* trailing partial word */
 		  ve[i] &= (~0L << ((base + n) % SCM_LONG_BIT));
 	      }
-	    else if (SCM_EQ_P (fill, SCM_BOOL_T))
+	    else if (scm_is_eq (fill, SCM_BOOL_T))
 	      {
 		if (base % SCM_LONG_BIT)
 		  ve[i++] |= ~0L << (base % SCM_LONG_BIT);
@@ -512,7 +512,7 @@ scm_array_fill_int (SCM ra, SCM fill, SCM ignore SCM_UNUSED)
 	    if (scm_is_false (fill))
 	      for (i = base; n--; i += inc)
 		ve[i / SCM_LONG_BIT] &= ~(1L << (i % SCM_LONG_BIT));
-	    else if (SCM_EQ_P (fill, SCM_BOOL_T))
+	    else if (scm_is_eq (fill, SCM_BOOL_T))
 	      for (i = base; n--; i += inc)
 		ve[i / SCM_LONG_BIT] |= (1L << (i % SCM_LONG_BIT));
 	    else
@@ -1521,7 +1521,7 @@ SCM_DEFINE (scm_array_map_x, "array-map!", 2, 0, 1,
 	  goto gencase;
 	scm_array_fill_x (ra0, SCM_BOOL_T);
 	for (p = ra_rpsubrs; p->name; p++)
-	  if (SCM_EQ_P (proc, p->sproc))
+	  if (scm_is_eq (proc, p->sproc))
 	    {
 	      while (!SCM_NULLP (lra) && !SCM_NULLP (SCM_CDR (lra)))
 		{
@@ -1558,22 +1558,22 @@ SCM_DEFINE (scm_array_map_x, "array-map!", 2, 0, 1,
 	  /* Check to see if order might matter.
 	     This might be an argument for a separate
 	     SERIAL-ARRAY-MAP! */
-	  if (SCM_EQ_P (v0, ra1) 
-	      || (SCM_ARRAYP (ra1) && SCM_EQ_P (v0, SCM_ARRAY_V (ra1))))
-	    if (!SCM_EQ_P (ra0, ra1) 
+	  if (scm_is_eq (v0, ra1) 
+	      || (SCM_ARRAYP (ra1) && scm_is_eq (v0, SCM_ARRAY_V (ra1))))
+	    if (!scm_is_eq (ra0, ra1) 
 		|| (SCM_ARRAYP(ra0) && !SCM_ARRAY_CONTP(ra0)))
 	      goto gencase;
 	  for (tail = SCM_CDR (lra); !SCM_NULLP (tail); tail = SCM_CDR (tail))
 	    {
 	      ra1 = SCM_CAR (tail);
-	      if (SCM_EQ_P (v0, ra1) 
-		  || (SCM_ARRAYP (ra1) && SCM_EQ_P (v0, SCM_ARRAY_V (ra1))))
+	      if (scm_is_eq (v0, ra1) 
+		  || (SCM_ARRAYP (ra1) && scm_is_eq (v0, SCM_ARRAY_V (ra1))))
 		goto gencase;
 	    }
 	  for (p = ra_asubrs; p->name; p++)
-	    if (SCM_EQ_P (proc, p->sproc))
+	    if (scm_is_eq (proc, p->sproc))
 	      {
-		if (!SCM_EQ_P (ra0, SCM_CAR (lra)))
+		if (!scm_is_eq (ra0, SCM_CAR (lra)))
 		  scm_ramapc (scm_array_identity, SCM_UNDEFINED, ra0, scm_cons (SCM_CAR (lra), SCM_EOL), FUNC_NAME);
 		lra = SCM_CDR (lra);
 		while (1)
@@ -1932,7 +1932,7 @@ raeql (SCM ra0, SCM as_equal, SCM ra1)
 	  vlen *= s0[k].ubnd - s1[k].lbnd + 1;
 	}
     }
-  if (unroll && bas0 == bas1 && SCM_EQ_P (v0, v1))
+  if (unroll && bas0 == bas1 && scm_is_eq (v0, v1))
     return 1;
   return scm_ramapc (raeql_1, as_equal, ra0, scm_cons (ra1, SCM_EOL), "");
 }

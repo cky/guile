@@ -178,7 +178,7 @@ change_option_setting (SCM args, scm_t_option options[], unsigned int n, const c
 
       for (i = 0; i != n && !found; ++i)
 	{
-	  if (SCM_EQ_P (name, SCM_PACK (options[i].name)))
+	  if (scm_is_eq (name, SCM_PACK (options[i].name)))
 	    {
 	      switch (options[i].type)
 		{

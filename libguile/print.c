@@ -112,7 +112,7 @@ do { \
 do { \
   register unsigned long i; \
   for (i = 0; i < pstate->top; ++i) \
-    if (SCM_EQ_P (pstate->ref_stack[i], (obj))) \
+    if (scm_is_eq (pstate->ref_stack[i], (obj))) \
       goto label; \
   if (pstate->fancyp) \
     { \
@@ -244,15 +244,15 @@ print_circref (SCM port, scm_print_state *pstate, SCM ref)
       while (i > 0)
 	{
 	  if (!SCM_CONSP (pstate->ref_stack[i - 1])
-	      || !SCM_EQ_P (SCM_CDR (pstate->ref_stack[i - 1]), 
-			    pstate->ref_stack[i]))
+	      || !scm_is_eq (SCM_CDR (pstate->ref_stack[i - 1]), 
+			     pstate->ref_stack[i]))
 	    break;
 	  --i;
 	}
       self = i;
     }
   for (i = pstate->top - 1; 1; --i)
-    if (SCM_EQ_P (pstate->ref_stack[i], ref))
+    if (scm_is_eq (pstate->ref_stack[i], ref))
       break;
   scm_putc ('#', port);
   scm_intprint (i - self, 10, port);
@@ -598,7 +598,7 @@ scm_iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 	case scm_tc7_cclo:
 	  {
 	    SCM proc = SCM_CCLO_SUBR (exp);
-	    if (SCM_EQ_P (proc, scm_f_gsubr_apply))
+	    if (scm_is_eq (proc, scm_f_gsubr_apply))
 	      {
 		/* Print gsubrs as primitives */
 		SCM name = scm_procedure_name (exp);
@@ -760,7 +760,7 @@ scm_iprlist (char *hdr, SCM exp, int tlr, SCM port, scm_print_state *pstate)
   tortoise = exp;
   while (SCM_CONSP (hare))
     {
-      if (SCM_EQ_P (hare, tortoise))
+      if (scm_is_eq (hare, tortoise))
 	goto fancy_printing;
       hare = SCM_CDR (hare);
       if (!SCM_CONSP (hare))
@@ -776,7 +776,7 @@ scm_iprlist (char *hdr, SCM exp, int tlr, SCM port, scm_print_state *pstate)
       register long i;
 
       for (i = floor; i >= 0; --i)
-	if (SCM_EQ_P (pstate->ref_stack[i], exp))
+	if (scm_is_eq (pstate->ref_stack[i], exp))
 	  goto circref;
       PUSH_REF (pstate, exp);
       scm_putc (' ', port);
@@ -805,7 +805,7 @@ fancy_printing:
 	register unsigned long i;
 
 	for (i = 0; i < pstate->top; ++i)
-	  if (SCM_EQ_P (pstate->ref_stack[i], exp))
+	  if (scm_is_eq (pstate->ref_stack[i], exp))
 	    goto fancy_circref;
 	if (pstate->fancyp)
 	  {
@@ -916,7 +916,7 @@ SCM_DEFINE (scm_simple_format, "simple-format", 2, 0, 1,
   char *end;
   char *p;
 
-  if (SCM_EQ_P (destination, SCM_BOOL_T))
+  if (scm_is_eq (destination, SCM_BOOL_T))
     {
       destination = port = scm_cur_outp;
     }
@@ -981,7 +981,7 @@ SCM_DEFINE (scm_simple_format, "simple-format", 2, 0, 1,
       }
 
   scm_lfwrite (start, p - start, port);
-  if (!SCM_EQ_P (args, SCM_EOL))
+  if (!scm_is_eq (args, SCM_EOL))
     SCM_MISC_ERROR ("FORMAT: ~A superfluous arguments",
 		    scm_list_1 (scm_length (args)));
 

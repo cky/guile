@@ -202,11 +202,11 @@ SCM_DEFINE (scm_source_property, "source-property", 2, 0, 0,
   p = scm_hashq_ref (scm_source_whash, obj, SCM_EOL);
   if (!SRCPROPSP (p))
     goto plist;
-  if      (SCM_EQ_P (scm_sym_breakpoint, key)) p = scm_from_bool (SRCPROPBRK (p));
-  else if (SCM_EQ_P (scm_sym_line,       key)) p = scm_from_int (SRCPROPLINE (p));
-  else if (SCM_EQ_P (scm_sym_column,     key)) p = scm_from_int (SRCPROPCOL (p));
-  else if (SCM_EQ_P (scm_sym_filename,   key)) p = SRCPROPFNAME (p);
-  else if (SCM_EQ_P (scm_sym_copy,       key)) p = SRCPROPCOPY (p);
+  if      (scm_is_eq (scm_sym_breakpoint, key)) p = scm_from_bool (SRCPROPBRK (p));
+  else if (scm_is_eq (scm_sym_line,       key)) p = scm_from_int (SRCPROPLINE (p));
+  else if (scm_is_eq (scm_sym_column,     key)) p = scm_from_int (SRCPROPCOL (p));
+  else if (scm_is_eq (scm_sym_filename,   key)) p = SRCPROPFNAME (p);
+  else if (scm_is_eq (scm_sym_copy,       key)) p = SRCPROPCOPY (p);
   else
     {
       p = SRCPROPPLIST (p);
@@ -239,7 +239,7 @@ SCM_DEFINE (scm_set_source_property_x, "set-source-property!", 3, 0, 0,
       h = scm_whash_create_handle (scm_source_whash, obj);
       p = SCM_EOL;
     }
-  if (SCM_EQ_P (scm_sym_breakpoint, key))
+  if (scm_is_eq (scm_sym_breakpoint, key))
     {
       if (SRCPROPSP (p))
 	{
@@ -258,7 +258,7 @@ SCM_DEFINE (scm_set_source_property_x, "set-source-property!", 3, 0, 0,
 	    SETSRCPROPBRK (sp);
 	}
     }
-  else if (SCM_EQ_P (scm_sym_line, key))
+  else if (scm_is_eq (scm_sym_line, key))
     {
       if (SRCPROPSP (p))
 	SETSRCPROPLINE (p, scm_to_int (datum));
@@ -267,7 +267,7 @@ SCM_DEFINE (scm_set_source_property_x, "set-source-property!", 3, 0, 0,
 		      scm_make_srcprops (scm_to_int (datum), 0,
 					 SCM_UNDEFINED, SCM_UNDEFINED, p));
     }
-  else if (SCM_EQ_P (scm_sym_column, key))
+  else if (scm_is_eq (scm_sym_column, key))
     {
       if (SRCPROPSP (p))
 	SETSRCPROPCOL (p, scm_to_int (datum));
@@ -276,14 +276,14 @@ SCM_DEFINE (scm_set_source_property_x, "set-source-property!", 3, 0, 0,
 		      scm_make_srcprops (0, scm_to_int (datum),
 					 SCM_UNDEFINED, SCM_UNDEFINED, p));
     }
-  else if (SCM_EQ_P (scm_sym_filename, key))
+  else if (scm_is_eq (scm_sym_filename, key))
     {
       if (SRCPROPSP (p))
 	SRCPROPFNAME (p) = datum;
       else
 	SCM_WHASHSET (scm_source_whash, h, scm_make_srcprops (0, 0, datum, SCM_UNDEFINED, p));
     }
-  else if (SCM_EQ_P (scm_sym_copy, key))
+  else if (scm_is_eq (scm_sym_copy, key))
     {
       if (SRCPROPSP (p))
 	SRCPROPCOPY (p) = datum;

@@ -93,11 +93,11 @@ SCM_DEFINE (scm_primitive_load, "primitive-load", 1, 0, 0,
 {
   SCM hook = *scm_loc_load_hook;
   SCM_VALIDATE_STRING (1, filename);
-  if (scm_is_true (hook) && !SCM_EQ_P (scm_procedure_p (hook), SCM_BOOL_T))
+  if (scm_is_true (hook) && scm_is_false (scm_procedure_p (hook)))
     SCM_MISC_ERROR ("value of %load-hook is neither a procedure nor #f",
 		    SCM_EOL);
 
-  if (! scm_is_false (hook))
+  if (!scm_is_false (hook))
     scm_call_1 (hook, filename);
 
   { /* scope */

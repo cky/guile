@@ -33,7 +33,7 @@
 # define SCM_VALIDATE_PAIR(cell, expr) (expr)
 #endif
 
-#define SCM_NULLP(x)		(SCM_EQ_P ((x), SCM_EOL))
+#define SCM_NULLP(x)		(scm_is_eq ((x), SCM_EOL))
 #define SCM_NNULLP(x)		(!SCM_NULLP (x))
 
 #define SCM_CAR(x)		(SCM_VALIDATE_PAIR (x, SCM_CELL_OBJECT_0 (x)))

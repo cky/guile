@@ -68,9 +68,9 @@ remqueue (SCM q, SCM c)
   SCM p, prev = q;
   for (p = SCM_CDR (q); !SCM_NULLP (p); p = SCM_CDR (p))
     {
-      if (SCM_EQ_P (p, c))
+      if (scm_is_eq (p, c))
 	{
-	  if (SCM_EQ_P (c, SCM_CAR (q)))
+	  if (scm_is_eq (c, SCM_CAR (q)))
 	    SCM_SETCAR (q, SCM_CDR (c));
 	  SCM_SETCDR (prev, SCM_CDR (c));
 	  return;
@@ -457,7 +457,7 @@ SCM_DEFINE (scm_join_thread, "join-thread", 1, 0, 0,
   SCM res;
 
   SCM_VALIDATE_THREAD (1, thread);
-  if (SCM_EQ_P (cur_thread, thread))
+  if (scm_is_eq (cur_thread, thread))
     SCM_MISC_ERROR ("can not join the current thread", SCM_EOL);
 
   t = SCM_THREAD_DATA (thread);

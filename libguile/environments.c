@@ -203,7 +203,7 @@ SCM_DEFINE (scm_environment_fold, "environment-fold", 3, 0, 0,
 #define FUNC_NAME s_scm_environment_fold
 {
   SCM_ASSERT (SCM_ENVIRONMENT_P (env), env, SCM_ARG1, FUNC_NAME);
-  SCM_ASSERT (SCM_EQ_P (scm_procedure_p (proc), SCM_BOOL_T), 
+  SCM_ASSERT (scm_is_true (scm_procedure_p (proc)), 
 	      proc, SCM_ARG2, FUNC_NAME);
 
   return SCM_ENVIRONMENT_FOLD (env, environment_default_folder, proc, init);
@@ -244,9 +244,9 @@ SCM_DEFINE (scm_environment_define, "environment-define", 3, 0, 0,
 
   status = SCM_ENVIRONMENT_DEFINE (env, sym, val);
 
-  if (SCM_EQ_P (status, SCM_ENVIRONMENT_SUCCESS))
+  if (scm_is_eq (status, SCM_ENVIRONMENT_SUCCESS))
     return SCM_UNSPECIFIED;
-  else if (SCM_EQ_P (status, SCM_ENVIRONMENT_BINDING_IMMUTABLE))
+  else if (scm_is_eq (status, SCM_ENVIRONMENT_BINDING_IMMUTABLE))
     scm_error_environment_immutable_binding (FUNC_NAME, env, sym);
   else
     abort();
@@ -270,9 +270,9 @@ SCM_DEFINE (scm_environment_undefine, "environment-undefine", 2, 0, 0,
 
   status = SCM_ENVIRONMENT_UNDEFINE (env, sym);
 
-  if (SCM_EQ_P (status, SCM_ENVIRONMENT_SUCCESS))
+  if (scm_is_eq (status, SCM_ENVIRONMENT_SUCCESS))
     return SCM_UNSPECIFIED;
-  else if (SCM_EQ_P (status, SCM_ENVIRONMENT_BINDING_IMMUTABLE))
+  else if (scm_is_eq (status, SCM_ENVIRONMENT_BINDING_IMMUTABLE))
     scm_error_environment_immutable_binding (FUNC_NAME, env, sym);
   else
     abort();
@@ -298,11 +298,11 @@ SCM_DEFINE (scm_environment_set_x, "environment-set!", 3, 0, 0,
 
   status = SCM_ENVIRONMENT_SET (env, sym, val);
 
-  if (SCM_EQ_P (status, SCM_ENVIRONMENT_SUCCESS))
+  if (scm_is_eq (status, SCM_ENVIRONMENT_SUCCESS))
     return SCM_UNSPECIFIED;
   else if (SCM_UNBNDP (status))
     scm_error_environment_unbound (FUNC_NAME, env, sym);
-  else if (SCM_EQ_P (status, SCM_ENVIRONMENT_LOCATION_IMMUTABLE))
+  else if (scm_is_eq (status, SCM_ENVIRONMENT_LOCATION_IMMUTABLE))
     scm_error_environment_immutable_binding (FUNC_NAME, env, sym);
   else
     abort();
@@ -337,7 +337,7 @@ SCM_DEFINE (scm_environment_cell, "environment-cell", 3, 0, 0,
     return location;
   else if (SCM_UNBNDP (location))
     scm_error_environment_unbound (FUNC_NAME, env, sym);
-  else if (SCM_EQ_P (location, SCM_ENVIRONMENT_LOCATION_IMMUTABLE))
+  else if (scm_is_eq (location, SCM_ENVIRONMENT_LOCATION_IMMUTABLE))
     scm_error_environment_immutable_location (FUNC_NAME, env, sym);
   else /* no cell */
     return location;
@@ -535,7 +535,7 @@ obarray_replace (SCM obarray, SCM symbol, SCM data)
        lsym = SCM_CDR (lsym))
     {
       SCM old_entry = SCM_CAR (lsym);
-      if (SCM_EQ_P (SCM_CAR (old_entry), symbol))
+      if (scm_is_eq (SCM_CAR (old_entry), symbol))
 	{
 	  SCM_SETCAR (lsym, new_entry);
 	  return old_entry;
@@ -565,7 +565,7 @@ obarray_retrieve (SCM obarray, SCM sym)
        lsym = SCM_CDR (lsym))
     {
       SCM entry = SCM_CAR (lsym);
-      if (SCM_EQ_P (SCM_CAR (entry), sym))
+      if (scm_is_eq (SCM_CAR (entry), sym))
 	return entry;
     }
 
@@ -682,7 +682,7 @@ core_environments_unobserve (SCM env, SCM observer)
 	    ? SCM_CDAR (l)
 	    : SCM_CAR (l);
 
-	  if (SCM_EQ_P (first, observer))
+	  if (scm_is_eq (first, observer))
 	    {
 	      /* Remove the first observer */
 	      handling_weaks
@@ -700,7 +700,7 @@ core_environments_unobserve (SCM env, SCM observer)
 		  ? SCM_CDAR (l)
 		  : SCM_CAR (l);
 
-		if (SCM_EQ_P (next, observer))
+		if (scm_is_eq (next, observer))
 		  {
 		    SCM_SETCDR (l, SCM_CDR (rest));
 		    return;
@@ -1124,10 +1124,10 @@ eval_environment_lookup (SCM env, SCM sym, int for_write)
 	    return location;
 
 	  mutability = CACHED_MUTABILITY (entry);
-	  if (SCM_EQ_P (mutability, MUTABLE))
+	  if (scm_is_eq (mutability, MUTABLE))
 	    return location;
 
-	  if (SCM_EQ_P (mutability, UNKNOWN))
+	  if (scm_is_eq (mutability, UNKNOWN))
 	    {
 	      SCM source_env = CACHED_SOURCE_ENVIRONMENT (entry);
 	      SCM location = SCM_ENVIRONMENT_CELL (source_env, sym, 1);
@@ -1179,7 +1179,7 @@ eval_environment_lookup (SCM env, SCM sym, int for_write)
 		  obarray_enter (obarray, sym, entry);
 		  return location;
 		}
-	      else if (SCM_EQ_P (location, SCM_ENVIRONMENT_LOCATION_NO_CELL))
+	      else if (scm_is_eq (location, SCM_ENVIRONMENT_LOCATION_NO_CELL))
 		{
 		  obarray_enter (obarray, sym, source_env);
 		  return source_env;
@@ -1281,7 +1281,7 @@ eval_environment_set_x (SCM env, SCM sym, SCM val)
     {
       return SCM_ENVIRONMENT_SET (location, sym, val);
     }
-  else if (SCM_EQ_P (location, IMMUTABLE))
+  else if (scm_is_eq (location, IMMUTABLE))
     {
       return SCM_ENVIRONMENT_LOCATION_IMMUTABLE;
     }
@@ -1303,7 +1303,7 @@ eval_environment_cell (SCM env, SCM sym, int for_write)
     return location;
   else if (SCM_ENVIRONMENT_P (location))
     return SCM_ENVIRONMENT_LOCATION_NO_CELL;
-  else if (SCM_EQ_P (location, IMMUTABLE))
+  else if (scm_is_eq (location, IMMUTABLE))
     return SCM_ENVIRONMENT_LOCATION_IMMUTABLE;
   else
     return SCM_UNDEFINED;
@@ -1629,7 +1629,7 @@ import_environment_folder (SCM extended_data, SCM symbol, SCM value, SCM tail)
   scm_environment_folder proc = (scm_environment_folder) proc_as_ul;
   SCM data = SCM_CDDDR (extended_data);
 
-  if (SCM_CONSP (owner) && SCM_EQ_P (SCM_CAR (owner), imported_env))
+  if (SCM_CONSP (owner) && scm_is_eq (SCM_CAR (owner), imported_env))
     owner = import_environment_conflict (import_env, symbol, owner);
 
   if (SCM_ENVIRONMENT_P (owner))
@@ -2005,7 +2005,7 @@ export_environment_set_x (SCM env, SCM sym, SCM val)
     }
   else
     {
-      if (SCM_EQ_P (SCM_CADR (entry), symbol_mutable_location))
+      if (scm_is_eq (SCM_CADR (entry), symbol_mutable_location))
 	return SCM_ENVIRONMENT_SET (body->private, sym, val);
       else
 	return SCM_ENVIRONMENT_LOCATION_IMMUTABLE;
@@ -2027,7 +2027,7 @@ export_environment_cell (SCM env, SCM sym, int for_write)
     }
   else
     {
-      if (!for_write || SCM_EQ_P (SCM_CADR (entry), symbol_mutable_location))
+      if (!for_write || scm_is_eq (SCM_CADR (entry), symbol_mutable_location))
 	return SCM_ENVIRONMENT_CELL (body->private, sym, for_write);
       else
 	return SCM_ENVIRONMENT_LOCATION_IMMUTABLE;
@@ -2260,9 +2260,9 @@ export_environment_parse_signature (SCM signature, const char* caller)
 	  for (l2 = SCM_CDR (entry); SCM_CONSP (l2); l2 = SCM_CDR (l2))
 	    {
 	      SCM attribute = SCM_CAR (l2);
-	      if (SCM_EQ_P (attribute, symbol_immutable_location))
+	      if (scm_is_eq (attribute, symbol_immutable_location))
 		immutable = 1;
-	      else if (SCM_EQ_P (attribute, symbol_mutable_location))
+	      else if (scm_is_eq (attribute, symbol_mutable_location))
 		mutable = 1;
 	      else
 		SCM_ASSERT (0, entry, SCM_ARGn, caller);

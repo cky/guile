@@ -57,7 +57,7 @@ typedef struct t_tconc
   SCM tail;
 } t_tconc;
 
-#define TCONC_EMPTYP(tc) (SCM_EQ_P ((tc).head, (tc).tail))
+#define TCONC_EMPTYP(tc) (scm_is_eq ((tc).head, (tc).tail))
 
 #define TCONC_IN(tc, obj, pair) \
 do { \
@@ -417,7 +417,7 @@ mark_dependencies_in_tconc (t_tconc *tc)
   /* scan the list for unmarked objects, and mark their
      dependencies */
   for (pair = tc->head, prev_ptr = &tc->head;
-       ! SCM_EQ_P (pair, tc->tail);
+       !scm_is_eq (pair, tc->tail);
        pair = next_pair)
     {
       SCM obj = SCM_CAR (pair);
@@ -466,7 +466,7 @@ mark_and_zombify (t_guardian *g)
   SCM *prev_ptr = &g->live.head;
   SCM pair = g->live.head;
 
-  while (! SCM_EQ_P (pair, tconc_tail))
+  while (!scm_is_eq (pair, tconc_tail))
     {
       SCM next_pair = SCM_CDR (pair);
 

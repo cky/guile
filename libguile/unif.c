@@ -152,7 +152,7 @@ SCM
 scm_make_uve (long k, SCM prot)
 #define FUNC_NAME "scm_make_uve"
 {
-  if (SCM_EQ_P (prot, SCM_BOOL_T))
+  if (scm_is_eq (prot, SCM_BOOL_T))
     {
       if (k > 0)
 	{
@@ -271,13 +271,13 @@ SCM_DEFINE (scm_array_p, "array?", 1, 1, 0,
       switch (SCM_TYP7 (v))
  	{
  	case scm_tc7_bvect:
- 	  protp = (SCM_EQ_P (prot, SCM_BOOL_T));
+ 	  protp = (scm_is_eq (prot, SCM_BOOL_T));
           break;
  	case scm_tc7_string:
  	  protp = SCM_CHARP(prot) && (SCM_CHAR (prot) != '\0');
           break;
  	case scm_tc7_byvect:
- 	  protp = SCM_EQ_P (prot, SCM_MAKE_CHAR ('\0'));
+ 	  protp = scm_is_eq (prot, SCM_MAKE_CHAR ('\0'));
           break;
  	case scm_tc7_uvect:
  	  protp = SCM_I_INUMP(prot) && SCM_I_INUM(prot)>0;
@@ -1169,14 +1169,14 @@ scm_cvref (SCM v, unsigned long pos, SCM last)
       return scm_from_long_long (((long long *) SCM_CELL_WORD_1 (v))[pos]);
 #endif
     case scm_tc7_fvect:
-      if (SCM_REALP (last) && !SCM_EQ_P (last, scm_flo0))
+      if (SCM_REALP (last) && !scm_is_eq (last, scm_flo0))
 	{
 	  SCM_REAL_VALUE (last) = ((float *) SCM_CELL_WORD_1 (v))[pos];
 	  return last;
 	}
       return scm_make_real (((float *) SCM_CELL_WORD_1 (v))[pos]);
     case scm_tc7_dvect:
-      if (SCM_REALP (last) && !SCM_EQ_P (last, scm_flo0))
+      if (SCM_REALP (last) && !scm_is_eq (last, scm_flo0))
 	{
 	  SCM_REAL_VALUE (last) = ((double *) SCM_CELL_WORD_1 (v))[pos];
 	  return last;
@@ -1262,7 +1262,7 @@ SCM_DEFINE (scm_array_set_x, "array-set!", 2, 0, 1,
     case scm_tc7_bvect:
       if (scm_is_false (obj))
 	SCM_BITVEC_CLR(v, pos);
-      else if (SCM_EQ_P (obj, SCM_BOOL_T))
+      else if (scm_is_eq (obj, SCM_BOOL_T))
 	SCM_BITVEC_SET(v, pos);
       else
 	badobj:SCM_WRONG_TYPE_ARG (2, obj);
@@ -1595,7 +1595,7 @@ loop:
   if (SCM_TYP7 (v) == scm_tc7_bvect)
     ans *= SCM_LONG_BIT;
 
-  if (!SCM_EQ_P (v, ra) && !SCM_EQ_P (cra, ra))
+  if (!scm_is_eq (v, ra) && !scm_is_eq (cra, ra))
     scm_array_copy_x (cra, ra);
 
   return scm_from_long (ans);
@@ -1891,7 +1891,7 @@ SCM_DEFINE (scm_bit_set_star_x, "bit-set*!", 3, 0, 0,
 	      scm_out_of_range (FUNC_NAME, scm_from_long (k));
 	    SCM_BITVEC_CLR(v, k);
 	  }
-      else if (SCM_EQ_P (obj, SCM_BOOL_T))
+      else if (scm_is_eq (obj, SCM_BOOL_T))
 	for (i = SCM_UVECTOR_LENGTH (kv); i;)
 	  {
 	    k = SCM_UNPACK (SCM_VELTS (kv)[--i]);
@@ -1907,7 +1907,7 @@ SCM_DEFINE (scm_bit_set_star_x, "bit-set*!", 3, 0, 0,
       if (scm_is_false (obj))
 	for (k = (SCM_BITVECTOR_LENGTH (v) + SCM_LONG_BIT - 1) / SCM_LONG_BIT; k--;)
 	  SCM_BITVECTOR_BASE (v) [k] &= ~SCM_BITVECTOR_BASE (kv) [k];
-      else if (SCM_EQ_P (obj, SCM_BOOL_T))
+      else if (scm_is_eq (obj, SCM_BOOL_T))
 	for (k = (SCM_BITVECTOR_LENGTH (v) + SCM_LONG_BIT - 1) / SCM_LONG_BIT; k--;)
 	  SCM_BITVECTOR_BASE (v) [k] |= SCM_BITVECTOR_BASE (kv) [k];
       else
@@ -1962,7 +1962,7 @@ SCM_DEFINE (scm_bit_count_star, "bit-count*", 3, 0, 0,
 	    if (!SCM_BITVEC_REF(v, k))
 	      count++;
 	  }
-      else if (SCM_EQ_P (obj, SCM_BOOL_T))
+      else if (scm_is_eq (obj, SCM_BOOL_T))
 	for (i = SCM_UVECTOR_LENGTH (kv); i;)
 	  {
 	    k = SCM_UNPACK (SCM_VELTS (kv)[--i]);
@@ -1979,7 +1979,7 @@ SCM_DEFINE (scm_bit_count_star, "bit-count*", 3, 0, 0,
       if (0 == SCM_BITVECTOR_LENGTH (v))
 	return SCM_INUM0;
       SCM_ASRTGO (scm_is_bool (obj), badarg3);
-      fObj = SCM_EQ_P (obj, SCM_BOOL_T);
+      fObj = scm_is_eq (obj, SCM_BOOL_T);
       i = (SCM_BITVECTOR_LENGTH (v) - 1) / SCM_LONG_BIT;
       k = SCM_UNPACK (SCM_VELTS (kv)[i]) & (fObj ? SCM_UNPACK (SCM_VELTS (v)[i]) : ~ SCM_UNPACK (SCM_VELTS (v)[i]));
       k <<= SCM_LONG_BIT - 1 - ((SCM_BITVECTOR_LENGTH (v) - 1) % SCM_LONG_BIT);
@@ -2465,7 +2465,7 @@ tail:
 	  }
       }
     case scm_tc7_bvect:
-      if (SCM_EQ_P (exp, v))
+      if (scm_is_eq (exp, v))
 	{			/* a uve, not an scm_array */
 	  register long i, j, w;
 	  scm_putc ('*', port);

@@ -428,12 +428,12 @@ scm_reverse_lookup (SCM env, SCM data)
       SCM values = SCM_CDAR (env);
       while (SCM_CONSP (names))
 	{
-	  if (SCM_EQ_P (SCM_CAR (values), data))
+	  if (scm_is_eq (SCM_CAR (values), data))
 	    return SCM_CAR (names);
 	  names = SCM_CDR (names);
 	  values = SCM_CDR (values);
 	}
-      if (!SCM_NULLP (names) && SCM_EQ_P (values, data))
+      if (!SCM_NULLP (names) && scm_is_eq (values, data))
 	return names;
       env = SCM_CDR (env);
     }

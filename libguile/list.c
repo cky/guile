@@ -181,7 +181,7 @@ scm_ilength(SCM sx)
     /* For every two steps the hare takes, the tortoise takes one.  */
     tortoise = SCM_CDR(tortoise);
   }
-  while (! SCM_EQ_P (hare, tortoise));
+  while (!scm_is_eq (hare, tortoise));
 
   /* If the tortoise ever catches the hare, then the list must contain
      a cycle.  */
@@ -307,7 +307,7 @@ SCM_DEFINE (scm_last_pair, "last-pair", 1, 0, 0,
     hare = ahead;
     tortoise = SCM_CDR(tortoise);
   }
-  while (! SCM_EQ_P (hare, tortoise));
+  while (!scm_is_eq (hare, tortoise));
   SCM_MISC_ERROR ("Circular structure in position 1: ~S", scm_list_1 (lst));
 }
 #undef FUNC_NAME
@@ -336,7 +336,7 @@ SCM_DEFINE (scm_reverse, "reverse", 1, 0, 0,
       hare = SCM_CDR (hare);
       tortoise = SCM_CDR (tortoise);
     }
-  while (! SCM_EQ_P (hare, tortoise));
+  while (!scm_is_eq (hare, tortoise));
   SCM_MISC_ERROR ("Circular structure in position 1: ~S", scm_list_1 (lst));
 }
 #undef FUNC_NAME
@@ -567,7 +567,7 @@ scm_c_memq (SCM obj, SCM list)
 {
   for (; !SCM_NULL_OR_NIL_P (list); list = SCM_CDR (list))
     {
-      if (SCM_EQ_P (SCM_CAR (list), obj))
+      if (scm_is_eq (SCM_CAR (list), obj))
 	return list;
     }
   return SCM_BOOL_F;
@@ -653,7 +653,7 @@ SCM_DEFINE (scm_delq_x, "delq!", 2, 0, 0,
        SCM_CONSP (walk);
        walk = SCM_CDR (walk))
     {
-      if (SCM_EQ_P (SCM_CAR (walk), item))
+      if (scm_is_eq (SCM_CAR (walk), item))
 	*prev = SCM_CDR (walk);
       else
 	prev = SCM_CDRLOC (walk);
@@ -770,7 +770,7 @@ SCM_DEFINE (scm_delq1_x, "delq1!", 2, 0, 0,
        SCM_CONSP (walk);
        walk = SCM_CDR (walk))
     {
-      if (SCM_EQ_P (SCM_CAR (walk), item))
+      if (scm_is_eq (SCM_CAR (walk), item))
 	{
 	  *prev = SCM_CDR (walk);
 	  break;

@@ -271,7 +271,7 @@ void
 scm_i_dowinds (SCM to, long delta, void (*turn_func) (void *), void *data)
 {
  tail:
-  if (SCM_EQ_P (to, scm_dynwinds))
+  if (scm_is_eq (to, scm_dynwinds))
     {
       if (turn_func)
 	turn_func (data);

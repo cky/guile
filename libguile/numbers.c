@@ -331,9 +331,9 @@ scm_make_ratio (SCM numerator, SCM denominator)
    */
   if (SCM_I_INUMP (denominator))
     {
-      if (SCM_EQ_P (denominator, SCM_INUM0))
+      if (scm_is_eq (denominator, SCM_INUM0))
 	scm_num_overflow ("make-ratio");
-      if (SCM_EQ_P (denominator, SCM_I_MAKINUM(1)))
+      if (scm_is_eq (denominator, SCM_I_MAKINUM(1)))
 	return numerator;
     }
   else 
@@ -358,7 +358,7 @@ scm_make_ratio (SCM numerator, SCM denominator)
   if (SCM_I_INUMP (numerator))
     {
       long  x = SCM_I_INUM (numerator);
-      if (SCM_EQ_P (numerator, SCM_INUM0))
+      if (scm_is_eq (numerator, SCM_INUM0))
 	return SCM_INUM0;
       if (SCM_I_INUMP (denominator))
 	{
@@ -391,7 +391,7 @@ scm_make_ratio (SCM numerator, SCM denominator)
 	}
       else
 	{
-	  if (SCM_EQ_P (numerator, denominator))
+	  if (scm_is_eq (numerator, denominator))
 	    return SCM_I_MAKINUM(1);
 	  if (mpz_divisible_p (SCM_I_BIG_MPZ (numerator),
 			       SCM_I_BIG_MPZ (denominator)))
@@ -413,7 +413,7 @@ static void scm_i_fraction_reduce (SCM z)
     {
       SCM divisor;
       divisor = scm_gcd (SCM_FRACTION_NUMERATOR (z), SCM_FRACTION_DENOMINATOR (z));
-      if (!(SCM_EQ_P (divisor, SCM_I_MAKINUM(1))))
+      if (!(scm_is_eq (divisor, SCM_I_MAKINUM(1))))
 	{
 	  /* is this safe? */
 	  SCM_FRACTION_SET_NUMERATOR (z, scm_divide (SCM_FRACTION_NUMERATOR (z), divisor));
@@ -1090,7 +1090,7 @@ scm_lcm (SCM n1, SCM n2)
       if (SCM_I_INUMP (n2))
         {
           SCM d = scm_gcd (n1, n2);
-          if (SCM_EQ_P (d, SCM_INUM0))
+          if (scm_is_eq (d, SCM_INUM0))
             return d;
           else
             return scm_abs (scm_product (n1, scm_quotient (n2, d)));
@@ -1580,7 +1580,7 @@ SCM_DEFINE (scm_modulo_expt, "modulo-expt", 3, 0, 0,
   mpz_init (k_tmp);
   mpz_init (m_tmp);
     
-  if (SCM_EQ_P (m, SCM_INUM0))
+  if (scm_is_eq (m, SCM_INUM0))
     {
       report_overflow = 1;
       goto cleanup;
@@ -1667,9 +1667,9 @@ SCM_DEFINE (scm_integer_expt, "integer-expt", 2, 0, 0,
   SCM acc = SCM_I_MAKINUM (1L);
 
   /* 0^0 == 1 according to R5RS */
-  if (SCM_EQ_P (n, SCM_INUM0) || SCM_EQ_P (n, acc))
+  if (scm_is_eq (n, SCM_INUM0) || scm_is_eq (n, acc))
     return scm_is_false (scm_zero_p(k)) ? n : acc;
-  else if (SCM_EQ_P (n, SCM_I_MAKINUM (-1L)))
+  else if (scm_is_eq (n, SCM_I_MAKINUM (-1L)))
     return scm_is_false (scm_even_p (k)) ? n : acc;
 
   if (SCM_I_INUMP (k))
@@ -2690,7 +2690,7 @@ mem2ureal (const char* mem, size_t len, unsigned int *p_idx,
   /* When returning an inexact zero, make sure it is represented as a
      floating point value so that we can change its sign. 
   */
-  if (SCM_EQ_P (result, SCM_I_MAKINUM(0)) && *p_exactness == INEXACT)
+  if (scm_is_eq (result, SCM_I_MAKINUM(0)) && *p_exactness == INEXACT)
     result = scm_make_real (0.0);
 
   return result;
@@ -3492,7 +3492,7 @@ SCM
 scm_zero_p (SCM z)
 {
   if (SCM_I_INUMP (z))
-    return scm_from_bool (SCM_EQ_P (z, SCM_INUM0));
+    return scm_from_bool (scm_is_eq (z, SCM_INUM0));
   else if (SCM_BIGP (z))
     return SCM_BOOL_F;
   else if (SCM_REALP (z))

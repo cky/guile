@@ -502,7 +502,7 @@ SCM_DEFINE (scm_catch, "catch", 3, 0, 0,
 {
   struct scm_body_thunk_data c;
 
-  SCM_ASSERT (SCM_SYMBOLP (key) || SCM_EQ_P (key, SCM_BOOL_T),
+  SCM_ASSERT (SCM_SYMBOLP (key) || scm_is_eq (key, SCM_BOOL_T),
 	      key, SCM_ARG1, FUNC_NAME);
 
   c.tag = key;
@@ -530,7 +530,7 @@ SCM_DEFINE (scm_lazy_catch, "lazy-catch", 3, 0, 0,
 {
   struct scm_body_thunk_data c;
 
-  SCM_ASSERT (SCM_SYMBOLP (key) || SCM_EQ_P (key, SCM_BOOL_T),
+  SCM_ASSERT (SCM_SYMBOLP (key) || scm_is_eq (key, SCM_BOOL_T),
 	      key, SCM_ARG1, FUNC_NAME);
 
   c.tag = key;
@@ -584,7 +584,7 @@ scm_ithrow (SCM key, SCM args, int noreturn SCM_UNUSED)
 	{
 	  SCM this_key = SCM_CAR (dynpair);
 
-	  if (SCM_EQ_P (this_key, SCM_BOOL_T) || SCM_EQ_P (this_key, key))
+	  if (scm_is_eq (this_key, SCM_BOOL_T) || scm_is_eq (this_key, key))
 	    break;
 	}
     }
@@ -605,7 +605,7 @@ scm_ithrow (SCM key, SCM args, int noreturn SCM_UNUSED)
   jmpbuf = SCM_CDR (dynpair);
   
   for (wind_goal = scm_dynwinds;
-       !SCM_EQ_P (SCM_CDAR (wind_goal), jmpbuf);
+       !scm_is_eq (SCM_CDAR (wind_goal), jmpbuf);
        wind_goal = SCM_CDR (wind_goal))
     ;
 

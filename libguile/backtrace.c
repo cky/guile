@@ -228,7 +228,7 @@ display_error_body (struct display_error_args *a)
       if (!SCM_MEMOIZEDP (source) && scm_is_true (prev_frame))
 	source = SCM_FRAME_SOURCE (prev_frame);
       if (!SCM_SYMBOLP (pname) && !SCM_STRINGP (pname) && SCM_FRAME_PROC_P (current_frame)
-	  && SCM_EQ_P (scm_procedure_p (SCM_FRAME_PROC (current_frame)), SCM_BOOL_T))
+	  && scm_is_true (scm_procedure_p (SCM_FRAME_PROC (current_frame))))
 	pname = scm_procedure_name (SCM_FRAME_PROC (current_frame));
     }
   if (SCM_SYMBOLP (pname) || SCM_STRINGP (pname) || SCM_MEMOIZEDP (source))
@@ -490,7 +490,7 @@ display_backtrace_file (frame, last_file, port, pstate)
 
   display_backtrace_get_file_line (frame, &file, &line);
 
-  if (SCM_EQ_P (file, *last_file))
+  if (scm_is_eq (file, *last_file))
     return;
 
   *last_file = file;
@@ -517,7 +517,7 @@ display_backtrace_file_and_line (SCM frame, SCM port, scm_print_state *pstate)
 
   display_backtrace_get_file_line (frame, &file, &line);
 
-  if (SCM_EQ_P (SCM_PACK (SCM_SHOW_FILE_NAME), sym_base))
+  if (scm_is_eq (SCM_PACK (SCM_SHOW_FILE_NAME), sym_base))
     {
       if (scm_is_false (file))
 	{
@@ -718,7 +718,7 @@ display_backtrace_body (struct display_backtrace_args *a)
   last_file = SCM_UNDEFINED;
   for (i = 0; i < n; ++i)
     {
-      if (!SCM_EQ_P (SCM_PACK (SCM_SHOW_FILE_NAME), sym_base))
+      if (!scm_is_eq (SCM_PACK (SCM_SHOW_FILE_NAME), sym_base))
 	display_backtrace_file (frame, &last_file, a->port, pstate);
 
       display_frame (frame, nfield, indentation, sport, a->port, pstate);

@@ -146,7 +146,7 @@ scm_delq_spine_x (SCM cell, SCM list)
 {
   SCM s = list, prev = SCM_BOOL_F;
   
-  while (!SCM_EQ_P (cell, s))
+  while (!scm_is_eq (cell, s))
     {
       if (SCM_NULLP (s))
 	return list;
@@ -192,7 +192,7 @@ really_install_handler (void *data)
 
   /* Make sure it is queued for the right thread. */
   old_thread = SCM_VECTOR_REF (signal_handler_threads, signum);
-  if (!SCM_EQ_P (thread, old_thread))
+  if (!scm_is_eq (thread, old_thread))
     {
       scm_root_state *r;
       if (scm_is_true (old_thread))

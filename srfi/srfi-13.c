@@ -236,13 +236,13 @@ SCM_DEFINE (scm_string_join, "string-join", 1, 2, 0,
   /* Validate the grammar symbol and remember the grammar.  */
   if (SCM_UNBNDP (grammar))
     gram = GRAM_INFIX;
-  else if (SCM_EQ_P (grammar, scm_sym_infix))
+  else if (scm_is_eq (grammar, scm_sym_infix))
     gram = GRAM_INFIX;
-  else if (SCM_EQ_P (grammar, scm_sym_strict_infix))
+  else if (scm_is_eq (grammar, scm_sym_strict_infix))
     gram = GRAM_STRICT_INFIX;
-  else if (SCM_EQ_P (grammar, scm_sym_suffix))
+  else if (scm_is_eq (grammar, scm_sym_suffix))
     gram = GRAM_SUFFIX;
-  else if (SCM_EQ_P (grammar, scm_sym_prefix))
+  else if (scm_is_eq (grammar, scm_sym_prefix))
     gram = GRAM_PREFIX;
   else
     SCM_WRONG_TYPE_ARG (3, grammar);

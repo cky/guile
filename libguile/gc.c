@@ -185,7 +185,7 @@ SCM_DEFINE (scm_set_debug_cell_accesses_x, "set-debug-cell-accesses!", 1, 0, 0,
     {
       scm_debug_cell_accesses_p = 0;
     }
-  else if (SCM_EQ_P (flag, SCM_BOOL_T))
+  else if (scm_is_eq (flag, SCM_BOOL_T))
     {
       scm_debug_cells_gc_interval = 0;
       scm_debug_cell_accesses_p = 1;
@@ -746,7 +746,7 @@ scm_gc_unprotect_object (SCM obj)
   else
     {
       SCM count = scm_difference (SCM_CDR (handle), scm_from_int (1));
-      if (SCM_EQ_P (count, scm_from_int (0)))
+      if (scm_is_eq (count, scm_from_int (0)))
 	scm_hashq_remove_x (scm_protects, obj);
       else
 	SCM_SETCDR (handle, count);
@@ -793,7 +793,7 @@ scm_gc_unregister_root (SCM *p)
   else
     {
       SCM count = scm_difference (SCM_CDR (handle), scm_from_int (1));
-      if (SCM_EQ_P (count, scm_from_int (0)))
+      if (scm_is_eq (count, scm_from_int (0)))
 	scm_hashv_remove_x (scm_gc_registered_roots, key);
       else
 	SCM_SETCDR (handle, count);
