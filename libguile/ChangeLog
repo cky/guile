@@ -1,3 +1,19 @@
+2000-03-15  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* __scm.h (GUILE_NEW_GC_SCHEME): Define this if you want to test a
+	new way of allocating heap.  It makes Guile fast, but still
+	contains bugs.
+
+	* gc.c, gc.h, pairs.h, init.c: Implementation of a new way of
+	allocating heap.  The basic idea is to trigger GC every Nth
+	allocated cell and grow heap when free list runs out.  The scheme
+	has been extended so that GC isn't triggered until all remaining
+	cells are used.  The implementation is also prepared for
+	development in the direction of POSIX threads.
+
+	* gc.c (SCM_EXPHEAP): In order to grow by a factor of 1.5,
+	SCM_EXPHEAP should return half of the heap size.
+
 2000-03-14  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	The following change to init.c is only enabled if Guile was
