@@ -1,5 +1,9 @@
 Wed Jun 11 00:34:01 1997  Jim Blandy  <jimb@floss.red-bean.com>
 
+	* configure.in: Remove space between AC_CHECK_LIB and opening
+	paren in check for Rx.
+	* configure: Regenerated.
+
 	* configure.in: Remove all mention of xtra_PLUGIN_guile_libs.
 	It's never used.
 	* configure, Makefile.in: Regenerated.
