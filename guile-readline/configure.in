@@ -18,7 +18,7 @@ if test $ac_cv_lib_readline_main = no; then
   AC_MSG_WARN([libreadline was not found on your system.])
 fi
 
-AC_CHECK_FUNCS(rl_clear_signals rl_cleanup_after_signal rl_pre_input_hook)
+AC_CHECK_FUNCS(siginterrupt rl_clear_signals rl_cleanup_after_signal rl_pre_input_hook)
 
 
 AC_MSG_CHECKING(if readline clears SA_RESTART flag for SIGWINCH)
