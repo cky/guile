@@ -2,6 +2,8 @@
 
 	* readline.c (current_input_getc): Don't pass int values through
 	SCM variables.
+	(match_paren): Bugfix: First arg to select is not number of
+	descriptors but the number of the highest descriptor + 1.
 
 Thu Mar  9 08:00:26 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
