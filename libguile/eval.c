@@ -3836,6 +3836,8 @@ restore_environment (void *data)
 {
   SCM pair = SCM_PACK (data);
   SCM old_module = SCM_CDR (pair);
+  SCM new_module = scm_selected_module ();
+  SCM_SETCAR (pair, new_module);
   scm_select_module (old_module);
 }
 

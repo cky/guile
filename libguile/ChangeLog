@@ -1,5 +1,11 @@
 2000-12-21  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* eval.c (restore_environment):  Make sure that changes to the
+	current environment will take effect when re-entering the dynamic
+	scope.
+
+2000-12-21  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* goops.h (SCM_PUREGENERICP):  Include the SCM_STRUCTP test.
 
 	* goops.c (scm_sys_invalidate_method_cache_x, scm_m_atdispatch,
