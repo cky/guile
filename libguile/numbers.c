@@ -878,8 +878,9 @@ scm_modulo (SCM x, SCM y)
 	    scm_num_overflow (s_modulo);
 	  else
 	    {
-	      /* FIXME: I think this may be a bug on some arches -- results
-		 of % with negative second arg are undefined... */
+	      /* C99 specifies that "%" is the remainder corresponding to a
+                 quotient rounded towards zero, and that's also traditional
+                 for machine division, so z here should be well defined.  */
 	      long z = xx % yy;
 	      long result;
 
