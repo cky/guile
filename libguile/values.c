@@ -77,10 +77,10 @@ print_values (SCM obj, SCM pwps)
 SCM_DEFINE (scm_values, "values", 0, 0, 1,
 	    (SCM args),
 	    "Delivers all of its arguments to its continuation.  Except for\n"
-	    "continuations created by the `call-with-values' procedure, all\n"
-	    "continuations take exactly one value.  The effect of passing no\n"
-	    "value or more than one value to continuations that were not\n"
-	    "created by call-with-values is unspecified.")
+	    "continuations created by the @code{call-with-values} procedure,\n"
+	    "all continuations take exactly one value.  The effect of\n"
+	    "passing no value or more than one value to continuations that\n"
+	    "were not created by @code{call-with-values} is unspecified.")
 #define FUNC_NAME s_scm_values
 {
   long n;
@@ -105,7 +105,7 @@ SCM_DEFINE (scm_call_with_values, "call-with-values", 2, 0, 0,
 	    "continuation that, when passed some values, calls the\n"
 	    "@var{consumer} procedure with those values as arguments.  The\n"
 	    "continuation for the call to @var{consumer} is the continuation\n"
-	    "of the call to call-with-values.\n\n"
+	    "of the call to @code{call-with-values}.\n\n"
 	    "@example\n"
 	    "(call-with-values (lambda () (values 4 5))\n"
 	    "                  (lambda (a b) b))\n"
