@@ -581,6 +581,13 @@ scm_rmdir (path)
 
 long scm_tc16_dir;
 
+SCM_PROC (s_directory_p, "directory?", 1, 0, 0, scm_directory_p);
+SCM
+scm_directory_p (SCM obj)
+{
+  return SCM_NIMP (obj) && SCM_DIRP (obj) ? SCM_BOOL_T : SCM_BOOL_F;
+}
+
 SCM_PROC (s_opendir, "opendir", 1, 0, 0, scm_opendir);
 
 SCM 

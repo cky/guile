@@ -46,6 +46,11 @@ Return a new port with the associated print state PRINT-STATE.
 Return the print state associated with this port if it exists,
 otherwise return #f.
 
+*** New function: directory? OBJECT
+
+Returns a boolean indicating whether OBJECT is a directory port as
+returned by `opendir'.
+
 * Changes to the scm_ interface
 
 ** The internal representation of subr's has changed

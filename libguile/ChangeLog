@@ -1,3 +1,10 @@
+1999-09-11  Gary Houston  <ghouston@easynet.co.uk>
+
+	* filesys.c (scm_directory_p): new procedure "directory?"  Returns
+	a boolean indicating whether its argument is a directory
+	port as returned by opendir (thanks to Dirk Herrmann for the
+	suggestion.)
+
 1999-09-11  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* backtrace.c (display_frame_expr): Don't print a newline.
