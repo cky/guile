@@ -1470,6 +1470,26 @@ If @code{system} is called without arguments, return a boolean
 indicating whether the command processor is available.
 @end deffn
 
+@deffn {Scheme Procedure} system* . args
+@deffnx {C Function} scm_system_star (args)
+Execute the command indicated by @var{args}.  The first element must
+be a string indicating the command to be executed, and the remaining
+items must be strings representing each of the arguments to that
+command.
+
+This function returns the exit status of the command as provided by
+@code{waitpid}.  This value can be handled with @code{status:exit-val}
+and the related functions.
+
+@code{system*} is similar to @code{system}, but accepts only one
+string per-argument, and performs no shell interpretation.  The
+command is executed using fork and execlp.  Accordingly this function
+may be safer than @code{system} in situations where shell
+interpretation is not required.
+
+Example: (system* "echo" "foo" "bar")
+@end deffn
+
 @deffn {Scheme Procedure} primitive-exit [status]
 @deffnx {C Function} scm_primitive_exit (status)
 Terminate the current process without unwinding the Scheme stack.
