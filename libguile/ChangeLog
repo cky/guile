@@ -1,3 +1,10 @@
+1998-01-02  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* eval.c (macro-eval!): Removed.  This function was a design bug.
+	It allowed memoized code to leak out to the scheme level.  Most
+	things that you could do with `macro-eval!' can be done with
+	`local-eval'.
+
 1997-12-20  Tim Pierce  <twp@skepsis.com>
 
 	* fports.c (scm_pipob): Use scm_generic_fgets for line i/o, since

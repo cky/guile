@@ -3292,17 +3292,6 @@ scm_eval_x (obj)
 	       scm_top_level_env (SCM_CDR (scm_top_level_lookup_closure_var)));
 }
 
-SCM_PROC (s_macro_eval_x, "macro-eval!", 2, 0, 0, scm_macro_eval_x);
-
-SCM
-scm_macro_eval_x (exp, env)
-     SCM exp;
-     SCM env;
-{
-  return scm_eval_3 (exp, 0, env);
-}
-
-
 SCM_PROC (s_definedp, "defined?", 1, 0, 0, scm_definedp);
 
 SCM 
