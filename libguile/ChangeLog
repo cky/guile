@@ -1,3 +1,12 @@
+2003-11-17  Marius Vollmer  <mvo@zagadka.de>
+
+	* eval.c (scm_m_generalized_set_x): Macroexpand the target when it
+	is a list.  This allows (@ ...) to work with set!.
+
+	* script.c (scm_compile_shell_switches): Use scm_c_read_string for
+	the "-e" option instead of scm_str2symbol.  This allows things
+	like (@ ...) to be specified for the entry point.
+
 2003-11-16  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* eval.c (scm_m_letstar): Create memoized code in place to
@@ -47,6 +56,9 @@
 	'begin.  Use canonicalize_define to expand definitions.
 
 2003-11-13  Marius Vollmer  <mvo@zagadka.de>
+
+	* read.c (scm_lreadr): detect EOF after backslash, and interpret
+	\xNN hexadecimal sequences.  From Paul Jarc, thanks!
 
 	* snarf.h (SCM_SMOB, SCM_GLOBAL_SMOB, SCM_SMOB_MARK,
 	SCM_GLOBAL_SMOB_MARK, SCM_SMOB_FREE, SCM_GLOBAL_SMOB_FREE,
