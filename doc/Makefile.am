@@ -38,6 +38,8 @@ dist-hook:
 	  cp $(srcdir)/example-smob/$$f $(distdir)/example-smob/; \
         done
 
+EXTRA_DIST = groupings.alist guile-api.alist
+
 # pending the papers from Robert Merkel
 # EXTRA_DIST = guile.1
 
