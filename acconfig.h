@@ -148,3 +148,6 @@
 
 /* Define if your readline library has the rl_getc_function variable.  */
 #undef HAVE_RL_GETC_FUNCTION
+
+/* Define if the compiler supports long longs.  */
+#undef HAVE_LONG_LONGS
