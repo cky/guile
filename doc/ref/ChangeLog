@@ -1,3 +1,14 @@
+2002-01-02  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* guile.texi (Part II): Add "Autoconf Support"; include
+	autoconf.texi.
+
+	* Makefile.am (guile_TEXINFOS): Add autoconf.texi and
+	autoconf-macros.texi.
+	(autoconf.texi, autoconf-macros.texi): New rules.
+
+	* autoconf.texi: New file.
+
 2001-12-22  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* scheme-compound.texi (Alist Example): Changed "Bismarck" to
