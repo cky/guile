@@ -66,13 +66,12 @@ extern int system();
 #ifdef HAVE_SYSTEM
 SCM_DEFINE (scm_system, "system", 0, 1, 0, 
            (SCM cmd),
-"Executes @var{cmd} using the operating system's "command processor".
-Under Unix this is usually the default shell @code{sh}.  The value
-returned is @var{cmd}'s exit status as returned by @code{waitpid}, which
-can be interpreted using the functions above.
-
-If @code{system} is called without arguments, it returns a boolean
-indicating whether the command processor is available.")
+	    "Executes @var{cmd} using the operating system's \"command processor\".\n"
+	    "Under Unix this is usually the default shell @code{sh}.  The value\n"
+	    "returned is @var{cmd}'s exit status as returned by @code{waitpid}, which\n"
+	    "can be interpreted using the functions above.\n\n"
+	    "If @code{system} is called without arguments, it returns a boolean\n"
+	    "indicating whether the command processor is available.")
 #define FUNC_NAME s_scm_system
 {
   int rv;
@@ -99,10 +98,10 @@ indicating whether the command processor is available.")
 extern char *getenv();
 SCM_DEFINE (scm_getenv, "getenv", 1, 0, 0, 
             (SCM nam),
-"Looks up the string @var{name} in the current environment.  The return
-value is @code{#f} unless a string of the form @code{NAME=VALUE} is
-found, in which case the string @code{VALUE} is
-returned.")
+	    "Looks up the string @var{name} in the current environment.  The return\n"
+	    "value is @code{#f} unless a string of the form @code{NAME=VALUE} is\n"
+	    "found, in which case the string @code{VALUE} is\n"
+	    "returned.")
 #define FUNC_NAME s_scm_getenv
 {
   char *val;
@@ -116,9 +115,9 @@ returned.")
 /* simple exit, without unwinding the scheme stack or flushing ports.  */
 SCM_DEFINE (scm_primitive_exit, "primitive-exit", 0, 1, 0, 
             (SCM status),
-"Terminate the current process without unwinding the Scheme stack.
-This is would typically be useful after a fork.  The exit status
-is @var{status} if supplied, otherwise zero.")
+	    "Terminate the current process without unwinding the Scheme stack.\n"
+	    "This is would typically be useful after a fork.  The exit status\n"
+	    "is @var{status} if supplied, otherwise zero.")
 #define FUNC_NAME s_scm_primitive_exit
 {
   int cstatus = 0;

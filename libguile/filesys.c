@@ -124,18 +124,17 @@
 
 SCM_DEFINE (scm_chown, "chown", 3, 0, 0, 
             (SCM object, SCM owner, SCM group),
-"Change the ownership and group of the file referred to by @var{obj} to
-the integer userid values @var{owner} and @var{group}.  @var{obj} can be
-a string containing a file name or a port or integer file descriptor
-which is open on the file (in which case fchown is used as the underlying
-system call).  The return value
-is unspecified.
-
-If @var{obj} is a symbolic link, either the
-ownership of the link or the ownership of the referenced file will be
-changed depending on the operating system (lchown is
-unsupported at present).  If @var{owner} or @var{group} is specified
-as @code{-1}, then that ID is not changed.")
+	    "Change the ownership and group of the file referred to by @var{obj} to\n"
+	    "the integer userid values @var{owner} and @var{group}.  @var{obj} can be\n"
+	    "a string containing a file name or a port or integer file descriptor\n"
+	    "which is open on the file (in which case fchown is used as the underlying\n"
+	    "system call).  The return value\n"
+	    "is unspecified.\n\n"
+	    "If @var{obj} is a symbolic link, either the\n"
+	    "ownership of the link or the ownership of the referenced file will be\n"
+	    "changed depending on the operating system (lchown is\n"
+	    "unsupported at present).  If @var{owner} or @var{group} is specified\n"
+	    "as @code{-1}, then that ID is not changed.")
 #define FUNC_NAME s_scm_chown
 {
   int rv;
@@ -169,13 +168,13 @@ as @code{-1}, then that ID is not changed.")
 
 SCM_DEFINE (scm_chmod, "chmod", 2, 0, 0,
             (SCM object, SCM mode),
-"Changes the permissions of the file referred to by @var{obj}.
-@var{obj} can be a string containing a file name or a port or integer file
-descriptor which is open on a file (in which case @code{fchmod} is used
-as the underlying system call).
-@var{mode} specifies
-the new permissions as a decimal number, e.g., @code{(chmod "foo" #o755)}.
-The return value is unspecified.")
+	    "Changes the permissions of the file referred to by @var{obj}.\n"
+	    "@var{obj} can be a string containing a file name or a port or integer file\n"
+	    "descriptor which is open on a file (in which case @code{fchmod} is used\n"
+	    "as the underlying system call).\n"
+	    "@var{mode} specifies\n"
+	    "the new permissions as a decimal number, e.g., @code{(chmod \"foo\" #o755)}.\n"
+	    "The return value is unspecified.")
 #define FUNC_NAME s_scm_chmod
 {
   int rv;
@@ -206,11 +205,10 @@ The return value is unspecified.")
 
 SCM_DEFINE (scm_umask, "umask", 0, 1, 0, 
             (SCM mode),
-"If @var{mode} is omitted, retuns a decimal number representing the current
-file creation mask.  Otherwise the file creation mask is set to
-@var{mode} and the previous value is returned.
-
-E.g., @code{(umask #o022)} sets the mask to octal 22, decimal 18.")
+	    "If @var{mode} is omitted, retuns a decimal number representing the current\n"
+	    "file creation mask.  Otherwise the file creation mask is set to\n"
+	    "@var{mode} and the previous value is returned.\n\n"
+	    "E.g., @code{(umask #o022)} sets the mask to octal 22, decimal 18.")
 #define FUNC_NAME s_scm_umask
 {
   mode_t mask;
@@ -232,8 +230,8 @@ E.g., @code{(umask #o022)} sets the mask to octal 22, decimal 18.")
 
 SCM_DEFINE (scm_open_fdes, "open-fdes", 2, 1, 0, 
             (SCM path, SCM flags, SCM mode),
-"Similar to @code{open} but returns a file descriptor instead of a
-port.")
+	    "Similar to @code{open} but returns a file descriptor instead of a\n"
+	    "port.")
 #define FUNC_NAME s_scm_open_fdes
 {
   int fd;
@@ -253,33 +251,30 @@ port.")
 
 SCM_DEFINE (scm_open, "open", 2, 1, 0, 
             (SCM path, SCM flags, SCM mode),
-"Open the file named by @var{path} for reading and/or writing.
-@var{flags} is an integer specifying how the file should be opened.
-@var{mode} is an integer specifying the permission bits of the file, if
-it needs to be created, before the umask is applied.  The default is 666
-(Unix itself has no default).
-
-@var{flags} can be constructed by combining variables using @code{logior}.
-Basic flags are:
-
-@defvar O_RDONLY
-Open the file read-only.
-@end defvar
-@defvar O_WRONLY
-Open the file write-only. 
-@end defvar
-@defvar O_RDWR
-Open the file read/write.
-@end defvar
-@defvar O_APPEND
-Append to the file instead of truncating.
-@end defvar
-@defvar O_CREAT
-Create the file if it does not already exist.
-@end defvar
-
-See the Unix documentation of the @code{open} system call
-for additional flags.")
+	    "Open the file named by @var{path} for reading and/or writing.\n"
+	    "@var{flags} is an integer specifying how the file should be opened.\n"
+	    "@var{mode} is an integer specifying the permission bits of the file, if\n"
+	    "it needs to be created, before the umask is applied.  The default is 666\n"
+	    "(Unix itself has no default).\n\n"
+	    "@var{flags} can be constructed by combining variables using @code{logior}.\n"
+	    "Basic flags are:\n\n"
+	    "@defvar O_RDONLY\n"
+	    "Open the file read-only.\n"
+	    "@end defvar\n"
+	    "@defvar O_WRONLY\n"
+	    "Open the file write-only. \n"
+	    "@end defvar\n"
+	    "@defvar O_RDWR\n"
+	    "Open the file read/write.\n"
+	    "@end defvar\n"
+	    "@defvar O_APPEND\n"
+	    "Append to the file instead of truncating.\n"
+	    "@end defvar\n"
+	    "@defvar O_CREAT\n"
+	    "Create the file if it does not already exist.\n"
+	    "@end defvar\n\n"
+	    "See the Unix documentation of the @code{open} system call\n"
+	    "for additional flags.")
 #define FUNC_NAME s_scm_open
 {
   SCM newpt;
@@ -313,11 +308,11 @@ for additional flags.")
 
 SCM_DEFINE (scm_close, "close", 1, 0, 0, 
             (SCM fd_or_port),
-"Similar to close-port (@pxref{Generic Port Operations, close-port}),
-but also works on file descriptors.  A side
-effect of closing a file descriptor is that any ports using that file
-descriptor are moved to a different file descriptor and have
-their revealed counts set to zero.")
+	    "Similar to close-port (@pxref{Generic Port Operations, close-port}),\n"
+	    "but also works on file descriptors.  A side\n"
+	    "effect of closing a file descriptor is that any ports using that file\n"
+	    "descriptor are moved to a different file descriptor and have\n"
+	    "their revealed counts set to zero.")
 #define FUNC_NAME s_scm_close
 {
   int rv;
@@ -446,60 +441,56 @@ scm_stat2scm (struct stat *stat_temp)
 
 SCM_DEFINE (scm_stat, "stat", 1, 0, 0, 
             (SCM object),
-"Returns an object containing various information
-about the file determined by @var{obj}.
-@var{obj} can be a string containing a file name or a port or integer file
-descriptor which is open on a file (in which case @code{fstat} is used
-as the underlying system call).
-
-The object returned by @code{stat} can be passed as a single parameter
-to the following procedures, all of which return integers:
-
-@table @code
-@item stat:dev
-The device containing the file.
-@item stat:ino
-The file serial number, which distinguishes this file from all other
-files on the same device.
-@item stat:mode
-The mode of the file.  This includes file type information
-and the file permission bits.  See @code{stat:type} and @code{stat:perms}
-below.
-@item stat:nlink
-The number of hard links to the file.
-@item stat:uid
-The user ID of the file's owner.
-@item stat:gid
-The group ID of the file.
-@item stat:rdev
-Device ID; this entry is defined only for character or block
-special files.
-@item stat:size
-The size of a regular file in bytes.
-@item stat:atime
-The last access time for the file.
-@item stat:mtime
-The last modification time for the file.
-@item stat:ctime
-The last modification time for the attributes of the file.
-@item stat:blksize
-The optimal block size for reading or writing the file, in bytes.
-@item stat:blocks
-The amount of disk space that the file occupies measured in units of
-512 byte blocks.
-@end table
-
-In addition, the following procedures return the information
-from stat:mode in a more convenient form:
-
-@table @code
-@item stat:type
-A symbol representing the type of file.  Possible values are
-regular, directory, symlink, block-special, char-special,
-fifo, socket and unknown
-@item stat:perms
-An integer representing the access permission bits.
-@end table")
+	    "Returns an object containing various information\n"
+	    "about the file determined by @var{obj}.\n"
+	    "@var{obj} can be a string containing a file name or a port or integer file\n"
+	    "descriptor which is open on a file (in which case @code{fstat} is used\n"
+	    "as the underlying system call).\n\n"
+	    "The object returned by @code{stat} can be passed as a single parameter\n"
+	    "to the following procedures, all of which return integers:\n\n"
+	    "@table @code\n"
+	    "@item stat:dev\n"
+	    "The device containing the file.\n"
+	    "@item stat:ino\n"
+	    "The file serial number, which distinguishes this file from all other\n"
+	    "files on the same device.\n"
+	    "@item stat:mode\n"
+	    "The mode of the file.  This includes file type information\n"
+	    "and the file permission bits.  See @code{stat:type} and @code{stat:perms}\n"
+	    "below.\n"
+	    "@item stat:nlink\n"
+	    "The number of hard links to the file.\n"
+	    "@item stat:uid\n"
+	    "The user ID of the file's owner.\n"
+	    "@item stat:gid\n"
+	    "The group ID of the file.\n"
+	    "@item stat:rdev\n"
+	    "Device ID; this entry is defined only for character or block\n"
+	    "special files.\n"
+	    "@item stat:size\n"
+	    "The size of a regular file in bytes.\n"
+	    "@item stat:atime\n"
+	    "The last access time for the file.\n"
+	    "@item stat:mtime\n"
+	    "The last modification time for the file.\n"
+	    "@item stat:ctime\n"
+	    "The last modification time for the attributes of the file.\n"
+	    "@item stat:blksize\n"
+	    "The optimal block size for reading or writing the file, in bytes.\n"
+	    "@item stat:blocks\n"
+	    "The amount of disk space that the file occupies measured in units of\n"
+	    "512 byte blocks.\n"
+	    "@end table\n\n"
+	    "In addition, the following procedures return the information\n"
+	    "from stat:mode in a more convenient form:\n\n"
+	    "@table @code\n"
+	    "@item stat:type\n"
+	    "A symbol representing the type of file.  Possible values are\n"
+	    "regular, directory, symlink, block-special, char-special,\n"
+	    "fifo, socket and unknown\n"
+	    "@item stat:perms\n"
+	    "An integer representing the access permission bits.\n"
+	    "@end table")
 #define FUNC_NAME s_scm_stat
 {
   int rv;
@@ -543,9 +534,9 @@ An integer representing the access permission bits.
 
 SCM_DEFINE (scm_link, "link", 2, 0, 0,
             (SCM oldpath, SCM newpath),
-"Creates a new name @var{path-to} in the file system for the file
-named by @var{path-from}.  If @var{path-from} is a symbolic link, the
-link may or may not be followed depending on the system.")
+	    "Creates a new name @var{path-to} in the file system for the file\n"
+	    "named by @var{path-from}.  If @var{path-from} is a symbolic link, the\n"
+	    "link may or may not be followed depending on the system.")
 #define FUNC_NAME s_scm_link
 {
   int val;
@@ -569,8 +560,8 @@ link may or may not be followed depending on the system.")
 
 SCM_DEFINE (scm_rename, "rename-file", 2, 0, 0,
             (SCM oldname, SCM newname),
-"Renames the file specified by @var{path-from} to @var{path-to}.
-The return value is unspecified.")
+	    "Renames the file specified by @var{path-from} to @var{path-to}.\n"
+	    "The return value is unspecified.")
 #define FUNC_NAME s_scm_rename
 {
   int rv;
@@ -599,7 +590,7 @@ The return value is unspecified.")
 
 SCM_DEFINE (scm_delete_file, "delete-file", 1, 0, 0, 
            (SCM str),
-"Deletes (or \"unlinks\") the file specified by @var{path}.")
+	    "Deletes (or \"unlinks\") the file specified by @var{path}.")
 #define FUNC_NAME s_scm_delete_file
 {
   int ans;
@@ -615,10 +606,10 @@ SCM_DEFINE (scm_delete_file, "delete-file", 1, 0, 0,
 #ifdef HAVE_MKDIR
 SCM_DEFINE (scm_mkdir, "mkdir", 1, 1, 0,
             (SCM path, SCM mode),
-"Create a new directory named by @var{path}.  If @var{mode} is omitted
-then the permissions of the directory file are set using the current
-umask.  Otherwise they are set to the decimal value specified with
-@var{mode}.  The return value is unspecified.")
+	    "Create a new directory named by @var{path}.  If @var{mode} is omitted\n"
+	    "then the permissions of the directory file are set using the current\n"
+	    "umask.  Otherwise they are set to the decimal value specified with\n"
+	    "@var{mode}.  The return value is unspecified.")
 #define FUNC_NAME s_scm_mkdir
 {
   int rv;
@@ -646,8 +637,8 @@ umask.  Otherwise they are set to the decimal value specified with
 #ifdef HAVE_RMDIR
 SCM_DEFINE (scm_rmdir, "rmdir", 1, 0, 0, 
             (SCM path),
-"Remove the existing directory named by @var{path}.  The directory must
-be empty for this to succeed.  The return value is unspecified.")
+	    "Remove the existing directory named by @var{path}.  The directory must\n"
+	    "be empty for this to succeed.  The return value is unspecified.")
 #define FUNC_NAME s_scm_rmdir
 {
   int val;
@@ -670,8 +661,8 @@ long scm_tc16_dir;
 
 SCM_DEFINE (scm_directory_stream_p, "directory-stream?", 1, 0, 0, 
             (SCM obj),
-"Returns a boolean indicating whether @var{object} is a directory stream
-as returned by @code{opendir}.")
+	    "Returns a boolean indicating whether @var{object} is a directory stream\n"
+	    "as returned by @code{opendir}.")
 #define FUNC_NAME s_scm_directory_stream_p
 {
   return SCM_BOOL(SCM_DIRP (obj));
@@ -680,8 +671,8 @@ as returned by @code{opendir}.")
 
 SCM_DEFINE (scm_opendir, "opendir", 1, 0, 0, 
             (SCM dirname),
-"Open the directory specified by @var{path} and return a directory
-stream.")
+	    "Open the directory specified by @var{path} and return a directory\n"
+	    "stream.")
 #define FUNC_NAME s_scm_opendir
 {
   DIR *ds;
@@ -697,9 +688,9 @@ stream.")
 
 SCM_DEFINE (scm_readdir, "readdir", 1, 0, 0, 
             (SCM port),
-"Return (as a string) the next directory entry from the directory stream
-@var{stream}.  If there is no remaining entry to be read then the
-end of file object is returned.")
+	    "Return (as a string) the next directory entry from the directory stream\n"
+	    "@var{stream}.  If there is no remaining entry to be read then the\n"
+	    "end of file object is returned.")
 #define FUNC_NAME s_scm_readdir
 {
   struct dirent *rdent;
@@ -717,8 +708,8 @@ end of file object is returned.")
 
 SCM_DEFINE (scm_rewinddir, "rewinddir", 1, 0, 0, 
             (SCM port),
-"Reset the directory port @var{stream} so that the next call to
-@code{readdir} will return the first directory entry.")
+	    "Reset the directory port @var{stream} so that the next call to\n"
+	    "@code{readdir} will return the first directory entry.")
 #define FUNC_NAME s_scm_rewinddir
 {
   SCM_VALIDATE_OPDIR (1,port);
@@ -731,8 +722,8 @@ SCM_DEFINE (scm_rewinddir, "rewinddir", 1, 0, 0,
 
 SCM_DEFINE (scm_closedir, "closedir", 1, 0, 0, 
             (SCM port),
-"Close the directory stream @var{stream}.
-The return value is unspecified.")
+	    "Close the directory stream @var{stream}.\n"
+	    "The return value is unspecified.")
 #define FUNC_NAME s_scm_closedir
 {
   int sts;
@@ -781,8 +772,8 @@ scm_dir_free (SCM p)
 
 SCM_DEFINE (scm_chdir, "chdir", 1, 0, 0, 
             (SCM str),
-"Change the current working directory to @var{path}.
-The return value is unspecified.")
+	    "Change the current working directory to @var{path}.\n"
+	    "The return value is unspecified.")
 #define FUNC_NAME s_scm_chdir
 {
   int ans;
@@ -799,7 +790,7 @@ The return value is unspecified.")
 #ifdef HAVE_GETCWD
 SCM_DEFINE (scm_getcwd, "getcwd", 0, 0, 0,
             (),
-"Returns the name of the current working directory.")
+	    "Returns the name of the current working directory.")
 #define FUNC_NAME s_scm_getcwd
 {
   char *rv;
@@ -922,29 +913,26 @@ retrieve_select_type (SELECT_TYPE *set, SCM list)
 /* Static helper functions above refer to s_scm_select directly as s_select */
 SCM_DEFINE (scm_select, "select", 3, 2, 0, 
             (SCM reads, SCM writes, SCM excepts, SCM secs, SCM usecs),
-"@var{reads}, @var{writes} and @var{excepts} can be lists or vectors: it
-doesn't matter which, but the corresponding object returned will be
-of the same type.
-Each element is a port or file descriptor on which to wait for
-readability, writeability
-or exceptional conditions respectively.  @var{secs} and @var{usecs}
-optionally specify a timeout: @var{secs} can be specified alone, as
-either an integer or a real number, or both @var{secs} and @var{usecs}
-can be specified as integers, in which case @var{usecs} is an additional
-timeout expressed in microseconds.
-
-Buffered input or output data is (currently, but this may change)
-ignored: select uses the underlying file descriptor of a port
-(@code{char-ready?} will check input buffers, output buffers are
-problematic).
-
-The return value is a list of subsets of the input lists or vectors for
-which the requested condition has been met.
-
-It is not quite compatible with scsh's select: scsh checks port buffers,
-doesn't accept input lists or a microsecond timeout, returns multiple
-values instead of a list and has an additional select! interface.
-")
+	    "@var{reads}, @var{writes} and @var{excepts} can be lists or vectors: it\n"
+	    "doesn't matter which, but the corresponding object returned will be\n"
+	    "of the same type.\n"
+	    "Each element is a port or file descriptor on which to wait for\n"
+	    "readability, writeability\n"
+	    "or exceptional conditions respectively.  @var{secs} and @var{usecs}\n"
+	    "optionally specify a timeout: @var{secs} can be specified alone, as\n"
+	    "either an integer or a real number, or both @var{secs} and @var{usecs}\n"
+	    "can be specified as integers, in which case @var{usecs} is an additional\n"
+	    "timeout expressed in microseconds.\n\n"
+	    "Buffered input or output data is (currently, but this may change)\n"
+	    "ignored: select uses the underlying file descriptor of a port\n"
+	    "(@code{char-ready?} will check input buffers, output buffers are\n"
+	    "problematic).\n\n"
+	    "The return value is a list of subsets of the input lists or vectors for\n"
+	    "which the requested condition has been met.\n\n"
+	    "It is not quite compatible with scsh's select: scsh checks port buffers,\n"
+	    "doesn't accept input lists or a microsecond timeout, returns multiple\n"
+	    "values instead of a list and has an additional select! interface.\n"
+	    "")
 #define FUNC_NAME s_scm_select
 {
   struct timeval timeout;
@@ -1025,29 +1013,27 @@ values instead of a list and has an additional select! interface.
 
 SCM_DEFINE (scm_fcntl, "fcntl", 2, 0, 1,
             (SCM object, SCM cmd, SCM value),
-"Apply @var{command} to the specified file descriptor or the underlying
-file descriptor of the specified port.  @var{value} is an optional
-integer argument.
-
-Values for @var{command} are:
-
-@table @code
-@item F_DUPFD
-Duplicate a file descriptor
-@item F_GETFD
-Get flags associated with the file descriptor.
-@item F_SETFD
-Set flags associated with the file descriptor to @var{value}.
-@item F_GETFL
-Get flags associated with the open file.
-@item F_SETFL
-Set flags associated with the open file to @var{value}
-@item F_GETOWN
-Get the process ID of a socket's owner, for @code{SIGIO} signals.
-@item F_SETOWN
-Set the process that owns a socket to @var{value}, for @code{SIGIO} signals.
-@item FD_CLOEXEC
-The value used to indicate the "close on exec" flag with @code{F_GETFL} or
+	    "Apply @var{command} to the specified file descriptor or the underlying\n"
+	    "file descriptor of the specified port.  @var{value} is an optional\n"
+	    "integer argument.\n\n"
+	    "Values for @var{command} are:\n\n"
+	    "@table @code\n"
+	    "@item F_DUPFD\n"
+	    "Duplicate a file descriptor\n"
+	    "@item F_GETFD\n"
+	    "Get flags associated with the file descriptor.\n"
+	    "@item F_SETFD\n"
+	    "Set flags associated with the file descriptor to @var{value}.\n"
+	    "@item F_GETFL\n"
+	    "Get flags associated with the open file.\n"
+	    "@item F_SETFL\n"
+	    "Set flags associated with the open file to @var{value}\n"
+	    "@item F_GETOWN\n"
+	    "Get the process ID of a socket's owner, for @code{SIGIO} signals.\n"
+	    "@item F_SETOWN\n"
+	    "Set the process that owns a socket to @var{value}, for @code{SIGIO} signals.\n"
+	    "@item FD_CLOEXEC\n"
+	    "The value used to indicate the "close on exec" flag with @code{F_GETFL} or
 @code{F_SETFL}.
 @end table")
 #define FUNC_NAME s_scm_fcntl
@@ -1082,10 +1068,10 @@ The value used to indicate the "close on exec" flag with @code{F_GETFL} or
 
 SCM_DEFINE (scm_fsync, "fsync", 1, 0, 0, 
             (SCM object),
-"Copies any unwritten data for the specified output file descriptor to disk.
-If @var{port/fd} is a port, its buffer is flushed before the underlying
-file descriptor is fsync'd.
-The return value is unspecified.")
+	    "Copies any unwritten data for the specified output file descriptor to disk.\n"
+	    "If @var{port/fd} is a port, its buffer is flushed before the underlying\n"
+	    "file descriptor is fsync'd.\n"
+	    "The return value is unspecified.")
 #define FUNC_NAME s_scm_fsync
 {
   int fdes;
@@ -1111,8 +1097,8 @@ The return value is unspecified.")
 #ifdef HAVE_SYMLINK
 SCM_DEFINE (scm_symlink, "symlink", 2, 0, 0,
             (SCM oldpath, SCM newpath),
-"Create a symbolic link named @var{path-to} with the value (i.e., pointing to)
-@var{path-from}.  The return value is unspecified.")
+	    "Create a symbolic link named @var{path-to} with the value (i.e., pointing to)\n"
+	    "@var{path-from}.  The return value is unspecified.")
 #define FUNC_NAME s_scm_symlink
 {
   int val;
@@ -1132,9 +1118,9 @@ SCM_DEFINE (scm_symlink, "symlink", 2, 0, 0,
 #ifdef HAVE_READLINK
 SCM_DEFINE (scm_readlink, "readlink", 1, 0, 0, 
             (SCM path),
-"Returns the value of the symbolic link named by
-@var{path} (a string), i.e., the
-file that the link points to.")
+	    "Returns the value of the symbolic link named by\n"
+	    "@var{path} (a string), i.e., the\n"
+	    "file that the link points to.")
 #define FUNC_NAME s_scm_readlink
 {
   int rv;
@@ -1162,9 +1148,9 @@ file that the link points to.")
 #ifdef HAVE_LSTAT
 SCM_DEFINE (scm_lstat, "lstat", 1, 0, 0, 
             (SCM str),
-"Similar to @code{stat}, but does not follow symbolic links, i.e.,
-it will return information about a symbolic link itself, not the 
-file it points to.  @var{path} must be a string.")
+	    "Similar to @code{stat}, but does not follow symbolic links, i.e.,\n"
+	    "it will return information about a symbolic link itself, not the \n"
+	    "file it points to.  @var{path} must be a string.")
 #define FUNC_NAME s_scm_lstat
 {
   int rv;
@@ -1189,8 +1175,8 @@ file it points to.  @var{path} must be a string.")
 
 SCM_DEFINE (scm_copy_file, "copy-file", 2, 0, 0,
             (SCM oldfile, SCM newfile),
-"Copy the file specified by @var{path-from} to @var{path-to}.
-The return value is unspecified.")
+	    "Copy the file specified by @var{path-from} to @var{path-to}.\n"
+	    "The return value is unspecified.")
 #define FUNC_NAME s_scm_copy_file
 {
   int oldfd, newfd;
@@ -1237,7 +1223,7 @@ SCM scm_dot_string;
 
 SCM_DEFINE (scm_dirname, "dirname", 1, 0, 0, 
             (SCM filename),
-"")
+	    "")
 #define FUNC_NAME s_scm_dirname
 {
   char *s;
@@ -1263,7 +1249,7 @@ SCM_DEFINE (scm_dirname, "dirname", 1, 0, 0,
 
 SCM_DEFINE (scm_basename, "basename", 1, 1, 0, 
             (SCM filename, SCM suffix),
-"")
+	    "")
 #define FUNC_NAME s_scm_basename
 {
   char *f, *s = 0;

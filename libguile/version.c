@@ -76,16 +76,15 @@ SCM_DEFINE (scm_minor_version, "minor-version", 0, 0, 0,
 
 SCM_DEFINE (scm_version, "version", 0, 0, 0, 
            (),
-"@deffnx primitive major-version
-@deffnx primitive minor-version
-Return a string describing Guile's version number, or its major or minor
-version numbers, respectively.
-
-@example
-(version) @result{} "1.3a"
-(major-version) @result{} "1"
-(minor-version) @result{} "3a"
-@end example")
+	    "@deffnx primitive major-version\n"
+	    "@deffnx primitive minor-version\n"
+	    "Return a string describing Guile's version number, or its major or minor\n"
+	    "version numbers, respectively.\n\n"
+	    "@example\n"
+	    "(version) @result{} \"1.3a\"\n"
+	    "(major-version) @result{} \"1\"\n"
+	    "(minor-version) @result{} \"3a\"\n"
+	    "@end example")
 #define FUNC_NAME s_scm_version
 {
   return scm_makfrom0str (GUILE_VERSION);
