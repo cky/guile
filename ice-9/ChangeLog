@@ -1,3 +1,14 @@
+2001-01-26  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	This patch fixes a problem reported by Martin Grabmueller about
+	the impossibility to access readline's run-time options.
+
+	* boot-9.scm (define-option-interface):  New macro.  Allows to
+	conveniently define a group of option interface functions.
+
+	(readline-options readline-enable readline-disable,
+	readline-set!):  Moved to guile-readline/readline.scm.
+
 2001-01-24  Gary Houston  <ghouston@arglist.com>
 
 	* boot-9.scm: don't import (ice-9 rdelim) here.  it's done

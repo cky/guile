@@ -21,10 +21,14 @@
 ;;;; Extensions based upon code by
 ;;;; Andrew Archibald <aarchiba@undergrad.math.uwaterloo.ca>.
 
+
+
 (define-module (ice-9 readline)
   :use-module (ice-9 session)
   :use-module (ice-9 regex)
   :no-backtrace)
+
+
 
 ;;; Dynamically link the glue code for accessing the readline library,
 ;;; but only when it isn't already present.
@@ -39,8 +43,29 @@
 	       '()
 	       '()))
 
+
+
+;;; Run-time options
+
+(export
+ readline-options
+ readline-enable
+ readline-disable)
+(export-syntax
+ readline-set!)
+
+(define-option-interface
+  (readline-options-interface
+   (readline-options readline-enable readline-disable)
+   (readline-set!)))
+
+
+
 ;;; MDJ 980513 <djurfeldt@nada.kth.se>:
 ;;; There should probably be low-level support instead of this code.
+
+;;; Dirk:FIXME:: If the-readline-port, input-port or output-port are closed,
+;;; guile will enter an endless loop or crash.
 
 (define prompt "")
 (define prompt2 "")

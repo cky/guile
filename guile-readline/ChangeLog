@@ -1,3 +1,15 @@
+2001-01-26  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	This patch fixes a problem reported by Martin Grabmueller about
+	the impossibility to access readline's run-time options.
+
+	* readline.scm:  Added a comment about guile's behaviour if one of
+	the ports used by readline are closed.
+
+	(readline-options readline-enable readline-disable,
+	readline-set!):  These are now defined here instead of in
+	boot-9.scm.
+
 2001-01-25  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* readline.scm (set-readline-input-port!,
