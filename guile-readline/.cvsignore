@@ -1,8 +1,9 @@
 *.la
 *.lo
+*.x
 .deps
 .libs
 Makefile
 config.log
 config.status
-qt.h
+libtool
