@@ -154,7 +154,7 @@ can be used for similar functionality.
 ** New module (ice-9 rw)
 
 This is a subset of the (scsh rw) module from guile-scsh.  Currently
-it defines two single procedures:
+it defines two procedures:
 
 *** New function: read-string!/partial str [port_or_fdes [start [end]]]
 
@@ -1039,7 +1039,7 @@ Made more compliant with the naming policy by adding a _t at the end.
 ** Deprecated functions: scm_mkbig, scm_big2num, scm_adjbig,
    scm_normbig, scm_copybig, scm_2ulong2big, scm_dbl2big, scm_big2dbl
 
-With the exception of the misterious scm_2ulong2big, they are still
+With the exception of the mysterious scm_2ulong2big, they are still
 available under new names (scm_i_mkbig etc).  These functions are not
 intended to be used in user code.  You should avoid dealing with
 bignums directly, and should deal with numbers in general (which can
