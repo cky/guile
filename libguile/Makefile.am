@@ -65,7 +65,7 @@ BUILT_SOURCES = \
 EXTRA_libguile_la_SOURCES = _scm.h		\
     alloca.c inet_aton.c memmove.c putenv.c strerror.c	\
     threads.c regex-posix.c iselect.c \
-    filesys.c posix.c netdb.c socket.c
+    filesys.c posix.c net_db.c socket.c
 
 ## This is kind of nasty... there are ".c" files that we don't want to
 ## compile, since they are #included in threads.c.  So instead we list
