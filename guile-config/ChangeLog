@@ -1,5 +1,8 @@
 1998-10-05  Jim Blandy  <jimb@zwingli.cygnus.com>
 
+	* guile-config.in (build-compile, help-compile, usage-compile):
+	New functions to implement new subcommand.
+
 	* guile-config.in: Redo the help system, so that each subcommand
 	defines its own usage text, as well as its help text.
 
