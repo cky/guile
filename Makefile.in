@@ -37,15 +37,15 @@ INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 transform = @program_transform_name@
-VERSION = @VERSION@
+MAINT = @MAINT@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 PACKAGE = @PACKAGE@
-MAINT = @MAINT@
 existingdirs = @existingdirs@
+VERSION = @VERSION@
 
-SUBDIRS = @existingdirs@ doc newdoc
+SUBDIRS = @existingdirs@ newdoc
 
-guile_dirs = @existingdirs@ doc newdoc
+guile_dirs = @existingdirs@ newdoc
 
 aclocaldir = $(datadir)/aclocal
 aclocal_DATA = guile.m4 threads.m4
