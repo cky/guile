@@ -26,6 +26,7 @@ scripts_sources =		\
 	PROGRAM			\
 	display-commentary	\
 	doc-snarf		\
+	frisk			\
 	generate-autoload	\
 	punify			\
 	read-scheme-source	\
@@ -37,6 +38,21 @@ subpkgdata_SCRIPTS = $(scripts_sources)
 
 EXTRA_DIST = $(scripts_sources)
 
+list:
+	@echo $(scripts_sources)
+
 overview:
-	@GUILE_LOAD_PATH=`(cd .. ; pwd)` \
-	./display-commentary $(scripts_sources)
+	@echo '----------------------------'
+	@echo Overview
+	@echo I. Commentaries
+	@echo II. Module Interfaces
+	@echo '----------------------------'
+	@echo I. Commentaries
+	@echo '----------------------------'
+	@GUILE_LOAD_PATH=`(cd $(srcdir)/.. ; pwd)` \
+	$(srcdir)/display-commentary $(scripts_sources)
+	@echo '----------------------------'
+	@echo II. Module Interfaces
+	@echo '----------------------------'
+	@GUILE_LOAD_PATH=`(cd $(srcdir)/.. ; pwd)` \
+	$(srcdir)/frisk $(scripts_sources)
