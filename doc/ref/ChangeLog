@@ -1,3 +1,8 @@
+2003-06-22  Kevin Ryde  <user42@zip.com.au>
+
+	* data-rep.texi (Remembering During Operations): Refer to all "Guile
+	library functions" as provoking gc.
+
 2003-06-19  Kevin Ryde  <user42@zip.com.au>
 
 	* scheme-io.texi (File Ports): Describe call-with-input-file and
