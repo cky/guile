@@ -1090,10 +1090,13 @@ scm_m_at_call_with_values (SCM xorig, SCM env SCM_UNUSED)
 }
 
 
-SCM_SYNTAX (s_atdispatch, "@dispatch", scm_makmmacro, scm_m_atdispatch);
-
+static const char* s_atdispatch = "@dispatch";
 SCM_SYMBOL (sym_atdispatch, s_atdispatch);
 
+/* @slot-dispatch is bound privately in the (oop goops) module from goops.c.
+ * As soon as the module system allows us to more freely create bindings in
+ * arbitrary modules during the startup phase, the code from goops.c should be
+ * moved here.  */
 SCM
 scm_m_atdispatch (SCM xorig, SCM env)
 #define FUNC_NAME s_atdispatch
@@ -1152,8 +1155,12 @@ scm_m_generalized_set_x (SCM xorig, SCM env SCM_UNUSED)
 }
 
 
-SCM_SYNTAX (s_atslot_ref, "@slot-ref", scm_makmmacro, scm_m_atslot_ref);
+static const char* s_atslot_ref = "@slot-ref";
 
+/* @slot-ref is bound privately in the (oop goops) module from goops.c.  As
+ * soon as the module system allows us to more freely create bindings in
+ * arbitrary modules during the startup phase, the code from goops.c should be
+ * moved here.  */
 SCM
 scm_m_atslot_ref (SCM xorig, SCM env SCM_UNUSED)
 #define FUNC_NAME s_atslot_ref
@@ -1166,8 +1173,12 @@ scm_m_atslot_ref (SCM xorig, SCM env SCM_UNUSED)
 #undef FUNC_NAME
 
 
-SCM_SYNTAX (s_atslot_set_x, "@slot-set!", scm_makmmacro, scm_m_atslot_set_x);
+static const char* s_atslot_set_x = "@slot-set!";
 
+/* @slot-set! is bound privately in the (oop goops) module from goops.c.  As
+ * soon as the module system allows us to more freely create bindings in
+ * arbitrary modules during the startup phase, the code from goops.c should be
+ * moved here.  */
 SCM
 scm_m_atslot_set_x (SCM xorig, SCM env SCM_UNUSED)
 #define FUNC_NAME s_atslot_set_x

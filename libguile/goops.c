@@ -1,4 +1,4 @@
-/* Copyright (C) 1998,1999,2000,2001, 2002, 2003 Free Software Foundation, Inc.
+/* Copyright (C) 1998,1999,2000,2001,2002,2003 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -1102,6 +1102,10 @@ SCM_DEFINE (scm_sys_fast_slot_set_x, "%fast-slot-set!", 3, 0, 0,
 #undef FUNC_NAME
 
 
+SCM_SYNTAX (s_atslot_ref, "@slot-ref", scm_makmmacro, scm_m_atslot_ref);
+SCM_SYNTAX (s_atslot_set_x, "@slot-set!", scm_makmmacro, scm_m_atslot_set_x);
+
+
 /** Utilities **/
 
 /* In the future, this function will return the effective slot
@@ -1613,6 +1617,10 @@ SCM_SYMBOL (sym_no_method, "no-method");
 static SCM list_of_no_method;
 
 SCM_GLOBAL_SYMBOL (scm_sym_args, "args");
+
+
+SCM_SYNTAX (s_atdispatch, "@dispatch", scm_makmmacro, scm_m_atdispatch);
+
 
 SCM
 scm_make_method_cache (SCM gf)

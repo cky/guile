@@ -1,3 +1,10 @@
+2003-04-28  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* eval.c, goops.c (@dispatch, @slot-ref, @slot-set!): Move the
+	instructions that bind the macros on the scheme level back to
+	goops.c in order to make sure again that the bindings go into the
+	(oop goops) module and are not visible from the outside.
+
 2003-04-27  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* eval.c: Non functional change: Separated R5RS and non-R5RS
