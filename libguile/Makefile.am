@@ -32,7 +32,8 @@ ETAGS_ARGS = --regex='/SCM_\(GLOBAL_\)?\(G?PROC\|G?PROC1\|SYMBOL\|VCELL\|CONST_L
    --regex='/[ \t]*SCM_[G]?DEFINE1?[ \t]*(\([^,]*\),[^,]*/\1/'
 
 lib_LTLIBRARIES = libguile.la
-bin_PROGRAMS = guile guile_filter_doc_snarfage
+bin_PROGRAMS = guile
+noinst_PROGRAMS = guile_filter_doc_snarfage
 
 guile_SOURCES = guile.c
 guile_LDADD = libguile.la
@@ -140,7 +141,9 @@ modinclude_HEADERS = __scm.h alist.h arbiters.h async.h backtrace.h boolean.h \
 ## and not a header -- headers are included in the distribution.
 modinclude_DATA = scmconfig.h
 
-bin_SCRIPTS = guile-snarf guile-doc-snarf guile-snarf-docs \
+# We can re-enable install for some of these if/when they are documented
+# and people feel like maintaining them.  For now, this is not the case.
+noinst_SCRIPTS = guile-snarf guile-doc-snarf guile-snarf-docs \
     guile-func-name-check
 
 EXTRA_DIST = ChangeLog-gh ChangeLog-scm ChangeLog-threads		\
