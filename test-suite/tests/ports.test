@@ -131,6 +131,11 @@
      (read-char iport)
      (pass-if "file: in tell 1"
 	      (= (seek iport 0 SEEK_CUR) 1))
+     (unread-char #\z iport)
+     (pass-if "file: in tell 0 after unread"
+	      (= (seek iport 0 SEEK_CUR) 0))
+     (pass-if "file: unread char still there"
+	      (char=? (read-char iport) #\z))
      (seek iport 7 SEEK_SET)
      (pass-if "file: in last char"
 	      (char=? (read-char iport) #\x))

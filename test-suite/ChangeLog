@@ -1,3 +1,8 @@
+1999-10-20  Gary Houston  <ghouston@freewire.co.uk>
+
+	* tests/ports.test: in seek/tell test on input port, also test
+	that ftell doesn't discard unread chars.
+
 1999-10-18  Gary Houston  <ghouston@freewire.co.uk>
 
 	* tests/ports.test: add seek/tell tests for unidirectional ports.
