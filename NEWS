@@ -46,7 +46,31 @@ of SCSH's regular expression functions.  They are:
 if an error occurs.
 
 ** A new procedure `sigaction' can be used to install signal handlers
-(documentation to be provided).
+
+(sigaction signum [action] [flags])
+
+signum is the signal number, which can be specified using the value
+of SIGINT etc.
+
+If action is omitted, sigaction returns a pair: the CAR is the current
+signal hander, which will be either an integer with the value SIG_DFL
+(default action) or SIG_IGN (ignore), or the Scheme procedure which
+handles the signal, or #f if a non-Scheme procedure handles the
+signal.  The CDR contains the current sigaction flags for the handler.
+
+If action is provided, it is installed as the new handler for signum.
+action can be a Scheme procedure taking one argument, or the value of
+SIG_DFL (default action) or SIG_IGN (ignore), or #f to restore
+whatever signal handler was installed before sigaction was first used.
+Flags can optionally be specified for the new handler (SA_RESTART is
+always used if the system provides it, so need not be specified.)  The
+return value is a pair with information about the old handler as
+described above.
+
+This interface does not provide access to the "signal blocking"
+facility.  Maybe this is not needed, since the thread support may
+provide solutions to the problem of consistent access to data
+structures.
 
 
 Changes in Guile 1.1 (Fri May 16 1997):
