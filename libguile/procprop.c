@@ -72,7 +72,8 @@ SCM
 scm_procedure_properties (proc)
      SCM proc;
 {
-  SCM_ASSERT (scm_procedure_p (proc), proc, SCM_ARG1, s_procedure_properties);
+  SCM_ASSERT (SCM_NFALSEP (scm_procedure_p (proc)),
+	      proc, SCM_ARG1, s_procedure_properties);
   if (!(SCM_NIMP (proc) && SCM_CLOSUREP (proc)))
     proc = scm_stand_in_scm_proc(proc);
   return SCM_PROCPROPS (proc);
@@ -102,7 +103,8 @@ scm_procedure_property (p, k)
   SCM assoc;
   if (!(SCM_NIMP (p) && SCM_CLOSUREP (p)))
     p = scm_stand_in_scm_proc(p);
-  SCM_ASSERT (scm_procedure_p (p), p, SCM_ARG1, s_procedure_property);
+  SCM_ASSERT (SCM_NFALSEP (scm_procedure_p (p)),
+	      p, SCM_ARG1, s_procedure_property);
   assoc = scm_sloppy_assq (k, SCM_PROCPROPS (p));
   return (SCM_NIMP (assoc) ? SCM_CDR (assoc) : SCM_BOOL_F);
 }
