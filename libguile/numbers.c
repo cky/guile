@@ -1309,7 +1309,7 @@ SCM_DEFINE1 (scm_logior, "logior", scm_tc7_asubr,
 	    mpz_ior (SCM_I_BIG_MPZ (result_z), nn1_z, SCM_I_BIG_MPZ (n2));
 	    scm_remember_upto_here_1 (n2);
 	    mpz_clear (nn1_z);
-	    return result_z;
+	    return scm_i_normbig (result_z);
 	  }
 	}
       else
@@ -1330,7 +1330,7 @@ SCM_DEFINE1 (scm_logior, "logior", scm_tc7_asubr,
 		   SCM_I_BIG_MPZ (n1),
 		   SCM_I_BIG_MPZ (n2));
 	  scm_remember_upto_here_2 (n1, n2);
-	  return result_z;
+	  return scm_i_normbig (result_z);
 	}
       else
 	SCM_WRONG_TYPE_ARG (SCM_ARG2, n2);
