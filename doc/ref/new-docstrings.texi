@@ -1,5 +1,13 @@
 @c module-for-docstring (guile)
 
+@c This one crops up here constantly although it is already
+@c in api-data.texi.  Have to investigate somewhen.
+
+@deffn {Scheme Procedure} inf? x
+@deffnx {C Function} scm_inf_p (x)
+Return @code{#t} if @var{x} is either @samp{+inf.0}
+or @samp{-inf.0}, @code{#f} otherwise.
+@end deffn
 
 
 
