@@ -507,7 +507,7 @@ scm_m_body (op, xorig, what)
 }
 
 SCM_SYNTAX(s_quote,"quote", scm_makmmacro, scm_m_quote);
-SCM_GLOBAL_SYMBOL(scm_i_quote,s_quote);
+SCM_GLOBAL_SYMBOL(scm_i_quote, s_quote);
 
 SCM 
 scm_m_quote (xorig, env)
@@ -3309,7 +3309,7 @@ scm_nconc2last (lst)
   return lst;
 }
 
-SCM_SYMBOL (scm_sym_args, "args");
+SCM_GLOBAL_SYMBOL (scm_sym_args, "args");
 
 #endif /* !DEVAL */
 
