@@ -31,7 +31,7 @@ INCLUDES = -I.. -I$(srcdir)/..
 srfiincludedir = $(pkgincludedir)/srfi
 
 # These headers are visible as <guile/srfi/mumble.h>
-srfiinclude_HEADERS = srfi-4.h srfi-13.h srfi-14.h
+srfiinclude_HEADERS = srfi-1.h srfi-4.h srfi-13.h srfi-14.h
 
 lib_LTLIBRARIES = libguile-srfi-srfi-1.la \
 		  libguile-srfi-srfi-4.la \
