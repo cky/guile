@@ -1,4 +1,5 @@
-/* Copyright (C) 1998,1999,2000,2001,2002,2003 Free Software Foundation, Inc.
+/* Copyright (C) 1998,1999,2000,2001,2002,2003,2004
+ * Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -297,9 +298,13 @@ compute_getters_n_setters (SCM slots)
 	{
 	  init = scm_get_keyword (k_init_value, options, 0);
 	  if (init)
-	    init = scm_closure (scm_list_2 (SCM_EOL,
-					    scm_list_2 (scm_sym_quote, init)),
-				SCM_EOL);
+            {
+              init = scm_i_eval_x (scm_list_3 (scm_sym_lambda,
+                                               SCM_EOL,
+                                               scm_list_2 (scm_sym_quote,
+                                                           init)),
+                                   SCM_EOL);
+            }
 	  else
 	    init = scm_get_keyword (k_init_thunk, options, SCM_BOOL_F);
 	}
@@ -2256,6 +2261,10 @@ create_standard_classes (void)
 					      k_init_keyword,
 					      k_slot_definition));
   SCM mutex_slot = scm_list_1 (scm_str2symbol ("make-mutex"));
+  SCM mutex_closure = scm_i_eval_x (scm_list_3 (scm_sym_lambda,
+                                                SCM_EOL,
+                                                mutex_slot),
+                                    SCM_EOL);
   SCM gf_slots = scm_list_5 (scm_str2symbol ("methods"),
 			     scm_list_3 (scm_str2symbol ("n-specialized"),
 					 k_init_value,
@@ -2265,9 +2274,7 @@ create_standard_classes (void)
 					 SCM_BOOL_F),
 			     scm_list_3 (scm_str2symbol ("cache-mutex"),
 					 k_init_thunk,
-					 scm_closure (scm_list_2 (SCM_EOL,
-								  mutex_slot),
-						      SCM_EOL)),
+                                         mutex_closure),
 			     scm_list_3 (scm_str2symbol ("extended-by"),
 					 k_init_value,
 					 SCM_EOL));
@@ -2672,12 +2679,19 @@ scm_add_slot (SCM class, char *slot_name, SCM slot_class,
     SCM get = scm_c_make_subr ("goops:get", scm_tc7_subr_1, getter);
     SCM set = scm_c_make_subr ("goops:set", scm_tc7_subr_2,
 			       setter ? setter : default_setter);
-    SCM getm = scm_closure (scm_list_2 (scm_list_1 (sym_o),
-					scm_list_2 (get, sym_o)),
-			    SCM_EOL);
-    SCM setm = scm_closure (scm_list_2 (scm_list_2 (sym_o, sym_x),
-					scm_list_3 (set, sym_o, sym_x)),
-			    SCM_EOL);
+
+    /* Dirk:FIXME:: The following two expressions make use of the fact that
+     * the memoizer will accept a subr-object in the place of a function.
+     * This is not guaranteed to stay this way.  */
+    SCM getm = scm_i_eval_x (scm_list_3 (scm_sym_lambda,
+                                         scm_list_1 (sym_o),
+                                         scm_list_2 (get, sym_o)),
+                             SCM_EOL);
+    SCM setm = scm_i_eval_x (scm_list_3 (scm_sym_lambda,
+                                         scm_list_2 (sym_o, sym_x),
+                                         scm_list_3 (set, sym_o, sym_x)),
+                             SCM_EOL);
+
     {
       SCM name = scm_str2symbol (slot_name);
       SCM aname = scm_str2symbol (accessor_name);
