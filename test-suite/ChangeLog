@@ -1,3 +1,9 @@
+2001-05-09  Thien-Thi Nguyen  <ttn@revel.glug.org>
+
+	* tests/eval.test: ("evaluator" "memoization"): New test
+	prefix block.
+	("transparency"): New "evaluator memoization" test.
+
 2001-05-08  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* tests/srfi-13.test: Added module access kludge, and uncommented
@@ -35,7 +41,7 @@
 
 	* guile-test: use #!/bogus-path/..., not #!/home/dirk/... in the
 	first line.
-	
+
 2001-03-12  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* tests/syntax.test:  Added a test for let* bindings and
@@ -62,7 +68,7 @@
 	* tests/syntax.test ("duplicate formals"): New category, move
 	appropriate tests here.  Expect them to pass.
 	("empty parentheses"): Expect to pass, bug has been fixed.
-	
+
 	* tests/alist.test: Use "'()" instead of "()" in all places
 	where the empty list is meant.
 
@@ -154,7 +160,7 @@
 	* tests/hooks.test (catch-error-returning-true, pass-if-not,
 	catch-error-returning-false), tests/weaks.test
 	(catch-error-returning-true, pass-if-not,
-	catch-error-returning-false):  Removed.  The macro pass-if-not was 
+	catch-error-returning-false):  Removed.  The macro pass-if-not was
 	not used.  The macro catch-error-returning-false is unnecessary
 	since exceptions are caught by the test-suite anyway.  The
 	functionality of catch-error-returning-true is provided by the new
