@@ -485,7 +485,7 @@ SCM_DEFINE (scm_sorted_p, "sorted?", 2, 0, 0,
       j = len - 1;
       while (j > 0)
 	{
-	  if ((*cmp) (less, &SCM_CAR(rest), &item))
+	  if ((*cmp) (less, SCM_CARLOC(rest), &item))
 	    return SCM_BOOL_F;
 	  else
 	    {
@@ -555,7 +555,7 @@ SCM_DEFINE (scm_merge, "merge", 3, 0, 0,
     {
       SCM_VALIDATE_NONEMPTYLIST_COPYLEN (1,alist,alen);
       SCM_VALIDATE_NONEMPTYLIST_COPYLEN (2,blist,blen);
-      if ((*cmp) (less, &SCM_CAR (blist), &SCM_CAR (alist)))
+      if ((*cmp) (less, SCM_CARLOC (blist), SCM_CARLOC (alist)))
 	{
 	  build = scm_cons (SCM_CAR (blist), SCM_EOL);
 	  blist = SCM_CDR (blist);
@@ -570,7 +570,7 @@ SCM_DEFINE (scm_merge, "merge", 3, 0, 0,
       last = build;
       while ((alen > 0) && (blen > 0))
 	{
-	  if ((*cmp) (less, &SCM_CAR (blist), &SCM_CAR (alist)))
+	  if ((*cmp) (less, SCM_CARLOC (blist), SCM_CARLOC (alist)))
 	    {
 	      SCM_SETCDR (last, scm_cons (SCM_CAR (blist), SCM_EOL));
 	      blist = SCM_CDR (blist);
@@ -607,7 +607,7 @@ scm_merge_list_x (SCM alist, SCM blist,
     return alist;
   else
     {
-      if ((*cmp) (less, &SCM_CAR (blist), &SCM_CAR (alist)))
+      if ((*cmp) (less, SCM_CARLOC (blist), SCM_CARLOC (alist)))
 	{
 	  build = blist;
 	  blist = SCM_CDR (blist);
@@ -622,7 +622,7 @@ scm_merge_list_x (SCM alist, SCM blist,
       last = build;
       while ((alen > 0) && (blen > 0))
 	{
-	  if ((*cmp) (less, &SCM_CAR (blist), &SCM_CAR (alist)))
+	  if ((*cmp) (less, SCM_CARLOC (blist), SCM_CARLOC (alist)))
 	    {
 	      SCM_SETCDR (last, blist);
 	      blist = SCM_CDR (blist);
@@ -698,8 +698,8 @@ scm_merge_list_step (SCM * seq,
       SCM_SETCDR (rest, SCM_EOL);
       if ((*cmp) (less, &y, &x))
 	{
-	  SCM_CAR (p) = y;
-	  SCM_CAR (rest) = x;
+	  SCM_SETCAR (p, y);
+	  SCM_SETCAR (rest, x);
 	}
       return p;
     }

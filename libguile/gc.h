@@ -134,8 +134,8 @@ typedef scm_cell * SCM_CELLPTR;
   (SCM_SETCDR ((x), SCM_PACK (SCM_UNPACK (SCM_CDR (x)) | (y))))
 
 #define SCM_CELL_WORD_LOC(x, n) (&SCM_CELL_WORD (x, n))
-#define SCM_CARLOC(x) (&SCM_PACK (((scm_bits_t *) SCM2PTR (x)) [0]))
-#define SCM_CDRLOC(x) (&SCM_PACK (((scm_bits_t *) SCM2PTR (x)) [1]))
+#define SCM_CARLOC(x) ((SCM *) (&(((scm_bits_t *) SCM2PTR (x)) [0])))
+#define SCM_CDRLOC(x) ((SCM *) (&(((scm_bits_t *) SCM2PTR (x)) [1])))
 
 
 /* SCM_PTR_LT and friends define how to compare two SCM_CELLPTRs (which may
