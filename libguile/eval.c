@@ -2290,8 +2290,7 @@ dispatch:
 	SCM variable = SCM_CAR (x);
 	if (SCM_ILOCP (variable))
 	  location = scm_ilookup (variable, env);
-	else
-	if (SCM_VARIABLEP (variable))
+	else if (SCM_VARIABLEP (variable))
 	  location = SCM_VARIABLE_LOC (variable);
 	else /* (SCM_SYMBOLP (variable)) is known to be true */
 	  location = scm_lookupcar (x, env, 1);
@@ -2754,6 +2753,7 @@ dispatch:
 		  SCM_ALLOW_INTS;
 		  PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
 		  goto loop;
+#if SCM_ENABLE_DEPRECATED == 1
 		case 1:
 		  x = arg1;
 		  if (SCM_NIMP (x))
@@ -2763,6 +2763,7 @@ dispatch:
 		    }
 		  else
 		    RETURN (arg1);
+#endif
 		case 0:
 		  RETURN (arg1);
 		}

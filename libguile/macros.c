@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001,2002 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -72,8 +72,10 @@ macro_print (SCM macro, SCM port, scm_print_state *pstate)
 
       if (SCM_MACRO_TYPE (macro) == 0)
 	scm_puts ("syntax", port);
-      else if (SCM_MACRO_TYPE (macro) == 1)
+#if SCM_ENABLE_DEPRECATED == 1
+      if (SCM_MACRO_TYPE (macro) == 1)
 	scm_puts ("macro", port);
+#endif
       if (SCM_MACRO_TYPE (macro) == 2)
 	scm_puts ("macro!", port);
       scm_putc (' ', port);
@@ -110,6 +112,8 @@ SCM_DEFINE (scm_makacro, "procedure->syntax", 1, 0, 0,
 #undef FUNC_NAME
 
 
+#if SCM_ENABLE_DEPRECATED == 1
+
 SCM_DEFINE (scm_makmacro, "procedure->macro", 1, 0, 0, 
            (SCM code),
 	    "Return a @dfn{macro} which, when a symbol defined to this value\n"
@@ -125,10 +129,17 @@ SCM_DEFINE (scm_makmacro, "procedure->macro", 1, 0, 0,
 	    "@end lisp")
 #define FUNC_NAME s_scm_makmacro
 {
+  scm_c_issue_deprecation_warning
+    ("The function procedure->macro is deprecated, and so are"
+     " non-memoizing macros in general.  Use memoizing macros"
+     " or r5rs macros instead.");
+
   SCM_VALIDATE_PROC (1,code);
   SCM_RETURN_NEWSMOB (scm_tc16_macro | (1L << 16), SCM_UNPACK (code));
 }
 #undef FUNC_NAME
+
+#endif
 
 
 SCM_DEFINE (scm_makmmacro, "procedure->memoizing-macro", 1, 0, 0, 
@@ -161,7 +172,9 @@ SCM_DEFINE (scm_macro_p, "macro?", 1, 0, 0,
 
 
 SCM_SYMBOL (scm_sym_syntax, "syntax");
+#if SCM_ENABLE_DEPRECATED == 1
 SCM_SYMBOL (scm_sym_macro, "macro");
+#endif
 SCM_SYMBOL (scm_sym_mmacro, "macro!");
 
 SCM_DEFINE (scm_macro_type, "macro-type", 1, 0, 0, 
@@ -178,7 +191,9 @@ SCM_DEFINE (scm_macro_type, "macro-type", 1, 0, 0,
   switch (SCM_MACRO_TYPE (m))
     {
     case 0: return scm_sym_syntax;
+#if SCM_ENABLE_DEPRECATED == 1
     case 1: return scm_sym_macro;
+#endif
     case 2: return scm_sym_mmacro;
     default: scm_wrong_type_arg (FUNC_NAME, 1, m);
     }

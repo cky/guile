@@ -1,3 +1,13 @@
+2002-07-15  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* eval.c (SCM_CEVAL), macros.c (macro_print, scm_makmacro,
+	scm_sym_macro, scm_macro_type), macros.h (scm_makmacro):
+	Deprecated the special kind of built-in dynamic syntax transformer
+	that was inaccurately named "macro".  Note:  The built-in syntax
+	transformers that are named "mmacro" or "memoizing-macro" still
+	exist, and it is these which come much closer to what one would
+	call a macro.
+
 2002-07-13  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* eval.c (unmemocopy): Fix for
