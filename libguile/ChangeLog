@@ -1,3 +1,12 @@
+Sat Jun 28 03:45:25 1997  Tim Pierce  <twp@twp.tezcat.com>
+
+	* regex-posix.c (scm_make_regexp): Make `flags' a variable-length
+	argument and logior its components together, so the user doesn't
+	have to do this explicitly.  Also, if regexp/basic is supplied, then
+	turn off REG_EXTENDED.
+	(scm_init_regex_posix): New regexp/basic symbol.
+	(REG_BASIC): #define this if it is not already present.
+
 Fri Jun 27 20:36:35 1997  Tim Pierce  <twpierce@bio-5.bsd.uchicago.edu>
 
 	* Makefile.am (libguile_la_LIBADD): Include @ALLOCA@.

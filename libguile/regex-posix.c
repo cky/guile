@@ -70,6 +70,11 @@
 
 #include "regex-posix.h"
 
+/* This is defined by some regex libraries and omitted by others. */
+#ifndef REG_BASIC
+#define REG_BASIC 0
+#endif
+
 long scm_tc16_regex_t;
 
 static size_t
@@ -141,28 +146,38 @@ scm_regexp_p (x)
   return (SCM_NIMP (x) && SCM_RGXP (x) ? SCM_BOOL_T : SCM_BOOL_F);
 }
 
-SCM_PROC (s_make_regexp, "make-regexp", 1, 1, 0, scm_make_regexp);
+SCM_PROC (s_make_regexp, "make-regexp", 1, 0, 1, scm_make_regexp);
 
 SCM
 scm_make_regexp (SCM pat, SCM flags)
 {
-  SCM result;
+  SCM result, flag;
   regex_t *rx;
-  int status;
+  int status, cflags;
 
   SCM_ASSERT (SCM_NIMP(pat) && SCM_ROSTRINGP(pat), pat, SCM_ARG1, 
 	      s_make_regexp);
   SCM_COERCE_SUBSTR (pat);
-  if (SCM_UNBNDP (flags))
-    flags = SCM_MAKINUM (REG_EXTENDED);
-  SCM_ASSERT (SCM_INUMP (flags), flags, SCM_ARG2, s_make_regexp);
 
+  /* Examine list of regexp flags.  If REG_BASIC is supplied, then
+     turn off REG_EXTENDED flag (on by default). */
+  cflags = REG_EXTENDED;
+  flag = flags;
+  while (SCM_NNULLP (flag))
+    {
+      if (SCM_INUM (SCM_CAR (flag)) == REG_BASIC)
+	cflags &= ~REG_EXTENDED;
+      else
+	cflags |= SCM_INUM (SCM_CAR (flag));
+      flag = SCM_CDR (flag);
+    }
+	  
   SCM_DEFER_INTS;
   rx = (regex_t *) scm_must_malloc (sizeof (regex_t), s_make_regexp);
   status = regcomp (rx, SCM_ROCHARS (pat),
 		    /* Make sure they're not passing REG_NOSUB;
                        regexp-exec assumes we're getting match data.  */
-		    (SCM_INUM (flags) & ~REG_NOSUB));
+		    cflags & ~REG_NOSUB);
   if (status != 0)
     {
       SCM_ALLOW_INTS;
@@ -248,6 +263,7 @@ scm_init_regex_posix ()
   scm_tc16_regex_t = scm_newsmob (&regex_t_smob);
 
   /* Compilation flags.  */
+  scm_sysintern ("regexp/basic", scm_long2num (REG_BASIC));
   scm_sysintern ("regexp/extended", scm_long2num (REG_EXTENDED));
   scm_sysintern ("regexp/icase", scm_long2num (REG_ICASE));
   scm_sysintern ("regexp/newline", scm_long2num (REG_NEWLINE));
