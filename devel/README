@@ -2,9 +2,13 @@ Directories:
 
 policy		Guile policy documents
 
-build		information related to the build/installation process
+build		Build/installation process
 
-translation	information related to language traslation
+translation	Language traslation
+
+vm		Virtual machines
+
+vm/ior		Mikael's ideas on a new type of Scheme interpreter
 
 Files:
 
