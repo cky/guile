@@ -3,19 +3,17 @@ Installation
 
 1. Install the latest Guile from CVS.
 
-2. Install slib.
-
-3. Install Guile VM:
+2. Install Guile VM:
 
   % configure
   % make install
   % ln -s module/{system,language} /usr/local/share/guile/site/
 
-4. Add the following lines to your ~/.guile:
+3. Add the following lines to your ~/.guile:
 
   (cond ((string=? (car (command-line)) "guile-vm")
 	 (use-modules (system repl repl))
-	 (start-repl 'gscheme)
+	 (start-repl 'scheme)
 	 (quit)))
 
 Example Session

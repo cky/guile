@@ -88,8 +88,8 @@
 					;CALL-WITH-OUTPUT-STRING
 ;	transcript			;TRANSCRIPT-ON and TRANSCRIPT-OFF
 	char-ready?
-	macro				;has R4RS high level macros
-	macro-by-example
+;	macro				;has R4RS high level macros
+;	macro-by-example
 	defmacro			;has Common Lisp DEFMACRO
 	eval				;R5RS two-argument eval
 	record				;has user defined data structures
@@ -126,7 +126,7 @@
 	logical
 	promise
 	string-case
-	syntax-case
+;	syntax-case
 	))
 
 ;; time
@@ -223,7 +223,7 @@
 ;;; by compiling "foo.scm" if this implementation can compile files.
 ;;; See feature 'COMPILED.
 
-(define slib:load-compiled load)
+(define slib:load-compiled load-compiled)
 
 ;;; At this point SLIB:LOAD must be able to load SLIB files.
 
