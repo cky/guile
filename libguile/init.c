@@ -96,6 +96,7 @@
 #include "procprop.h"
 #include "procs.h"
 #include "ramap.h"
+#include "random.h"
 #include "read.h"
 #include "readline.h"
 #include "scmsigs.h"
@@ -103,6 +104,7 @@
 #include "simpos.h"
 #include "smob.h"
 #include "socket.h"
+#include "sort.h"
 #include "srcprop.h"
 #include "stackchk.h"
 #include "stacks.h"
@@ -465,6 +467,7 @@ scm_boot_guile_1 (base, closure)
       scm_init_procprop ();
       scm_init_scmsigs ();
       scm_init_socket ();
+      scm_init_sort ();
 #ifdef DEBUG_EXTENSIONS
       scm_init_srcprop ();
 #endif
@@ -495,6 +498,7 @@ scm_boot_guile_1 (base, closure)
       scm_init_debug ();	/* Requires macro smobs */
 #endif
       scm_init_ramap ();
+      scm_init_random ();
       scm_init_unif ();
       scm_init_simpos ();
       scm_init_load_path ();
