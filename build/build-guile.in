@@ -15,12 +15,12 @@
   (set-program-name! (car args))
   (let ((args (cdr args)))
     (cond
-     ((zero? (length args)) (show-usage))
-     ((string=? (car args) "--help") (show-usage))
-     ((string=? (car args) "--version") (show-version))
-     ((string=? (car args) "link") (build-link (cdr args)))
-     ((string=? (car args) "main") (build-main (cdr args)))
-     (else (show-usage)))))
+     ((null? args) (show-help '()))
+     ((assoc (car args) command-table)
+      => (lambda (row)
+	   ((cadr row) (cdr args))))
+     (else
+      (show-help '())))))
 
 (define program-name #f)
 (define program-version "@-GUILE_VERSION-@")
@@ -35,15 +35,26 @@
 	  => (lambda (match) (match:substring match 1)))
 	 (else path))))
 
-(define (show-usage)
-  (let ((dl display-line))
+(define (show-help args)
+  (cond
+   ((null? args) (show-help-overview))
+   ((assoc (car args) command-table)
+    => (lambda (row) ((caddr row))))
+   (else
+    (show-help-overview))))
+
+(define (show-help-overview)
+  (let ((dl display-line-error))
     (dl "Usage: ")
     (dl "  " program-name " link        - print libraries to link with")
-    (dl "  " program-name " main        - generate initialization code")
+    ;; Not yet implemented.
+    ;; (dl "  " program-name " main        - generate initialization code")
+    (dl "  " program-name " info [VAR]  - print Guile build directories")
     (dl "  " program-name " --help      - show usage info (this message)")
+    (dl "  " program-name " --help SUBCOMMAND - show help for SUBCOMMAND")
     (dl "  " program-name " --version   - show running version")))
 
-(define (show-version)
+(define (show-version args)
   (display-line program-name " - Guile version " program-version))
 
 
@@ -90,6 +101,15 @@
     (display-separated flags)
     (newline)))
 
+(define (help-link)
+  (let ((dle display-line-error))
+    (dle "Usage: " program-name " link")
+    (dle "Print linker flags for building the `guile' executable.")
+    (dle "Print the linker command-line flags necessary to link against the")
+    (dle "Guile library, and any other libraries it requires.")))
+
+
+
 (define (get-build-info name)
   (let ((val (assq name %guile-build-info)))
     (or val (error "get-build-info: no such build info: " name))
@@ -98,15 +118,54 @@
 
 ;;;; The "main" subcommand
 
+;;; We haven't implemented this yet, because we don't have the
+;;; mechanisms in place to discover the installed static link
+;;; libraries.  When we do implement this, remember to fix the message
+;;; in show-help-overview.
 (define (build-main args)
-  (display-line-port (current-error-port)
-		     program-name ": `main' subcommand not yet implemented"))
+  (display-line-error program-name ": `main' subcommand not yet implemented"))
+
+(define (help-main)
+  (let ((dle display-line-error))
+    (dle "Usage: " program-name " main")
+    (dle "This subcommand is not yet implemented.")))
+
+
+;;;; The "info" subcommand
+
+(define (build-info args)
+  (cond
+   ((null? args) (show-all-vars))
+   ((null? (cdr args)) (show-var (car args)))
+   (else
+    (display-line-error "Usage: " program-name " info [VAR]"))))
+
+(define (show-all-vars)
+  (for-each (lambda (binding)
+	      (display-line (car binding) " = " (cdr binding)))
+	    %guile-build-info))
+
+(define (show-var var)
+  (display (get-build-info (string->symbol var)))
+  (newline))
+
+(define (help-info)
+  (let ((dle display-line-error))
+    (dle "Usage: " program-name " info [VAR]")
+    (dle "Display the value of the Makefile variable VAR used when Guile")
+    (dle "was built.  If VAR is omitted, display all Makefile variables.")
+    (dle "Use this command to find out where Guile was installed,")
+    (dle "where it will look for Scheme code at run-time, and so on.")))
+
 
 
 ;;;; trivial utilities
 
 (define (display-line . args)
   (apply display-line-port (current-output-port) args))
+
+(define (display-line-error . args)
+  (apply display-line-port (current-error-port) args))
 
 (define (display-line-port port . args)
   (for-each (lambda (arg) (display arg port))
@@ -120,6 +179,21 @@
 	  (else (display (car args))
 		(display " ")
 		(loop (cdr args))))))
+
+
+;;;; the command table
+
+;;; We define this down here, so Guile builds the list after all the
+;;; functions have been defined.
+(define command-table
+  (list
+   (list "--version" show-version show-help-overview)
+   (list "--help" show-help show-help-overview)
+   (list "link" build-link help-link)
+   (list "main" build-main help-main)
+   (list "info" build-info help-info)))
+
+
 
 
 ;;; Local Variables:
