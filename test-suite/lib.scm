@@ -424,6 +424,17 @@
 
 ;;;; Detecting whether errors occur
 
+;;; (signals-error? KEY BODY ...)
+;;; Evaluate the expressions BODY ... .  If any errors occur, return #t;
+;;; otherwise, return #f.
+;;;
+;;; KEY indicates the sort of errors to look for; it can be a symbol,
+;;; indicating that only errors with that name should be caught, or
+;;; #t, meaning that any kind of error should be caught.
+(defmacro signals-error? key-and-body
+  `(signals-error?* ,(car key-and-body)
+		    (lambda () ,@(cdr key-and-body))))
+
 ;;; (signals-error?* KEY THUNK)
 ;;; Apply THUNK, catching errors.  If any errors occur, return #t;
 ;;; otherwise, return #f.
@@ -436,6 +447,4 @@
 	 (lambda () (thunk) #f)
 	 (lambda args #t)))
 
-(defmacro signals-error? key-and-body
-  `(signals-error?* ,(car key-and-body)
-		    (lambda () ,@(cdr key-and-body))))
+
