@@ -91,6 +91,7 @@ also be executable as scripts.  At this time, these scripts are available:
      doc-snarf
      generate-autoload
      punify
+     read-scheme-source
      use2dot
 
 See README there for more info.
@@ -309,7 +310,7 @@ Example:
 $ guile --use-srfi=8,13
 guile> (receive (x z) (values 1 2) (+ 1 2))
 3
-guile> (string-pad "bla" 20)       
+guile> (string-pad "bla" 20)
 "                 bla"
 
 
@@ -1057,6 +1058,7 @@ This is useful when debugging your .guile init file or scripts.
 
 Usage: (help NAME) gives documentation about objects named NAME (a symbol)
        (help REGEXP) ditto for objects with names matching REGEXP (a string)
+       (help 'NAME) gives documentation for NAME, even if it is not an object
        (help ,EXPR) gives documentation for object returned by EXPR
        (help (my module)) gives module commentary for `(my module)'
        (help) gives this text
