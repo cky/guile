@@ -1,6 +1,6 @@
 ;;; srfi-17.scm --- Generalized set!
 
-;; Copyright (C) 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002, 2003 Free Software Foundation, Inc.
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -68,13 +68,13 @@
 ;;; Code:
 
 (define-module (srfi srfi-17)
-  :export (getter-with-setter
-	   setter
-	   ;; redefined standard procedures
-	   car cdr caar cadr cdar cddr caaar caadr cadar caddr cdaar
-	   cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr
-	   caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr
-	   cdddar cddddr string-ref vector-ref))
+  :export (getter-with-setter)
+  :replace (;; redefined standard procedures
+	    setter
+	    car cdr caar cadr cdar cddr caaar caadr cadar caddr cdaar
+	    cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr
+	    caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr
+	    cdddar cddddr string-ref vector-ref))
 
 (cond-expand-provide (current-module) '(srfi-17))
 

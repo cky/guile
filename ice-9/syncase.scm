@@ -54,7 +54,8 @@
 	   syntax-dispatch syntax-error bound-identifier=?
 	   datum->syntax-object free-identifier=?
 	   generate-temporaries identifier? syntax-object->datum
-	   void eval syncase))
+	   void syncase)
+  :replace (eval))
 
 
 

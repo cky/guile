@@ -1072,7 +1072,33 @@
 	(set-module-observers! module (delq1! id (module-observers module)))))
   *unspecified*)
 
+(define module-defer-observers #f)
+(define module-defer-observers-mutex (make-mutex))
+(define module-defer-observers-table (make-hash-table))
+
 (define (module-modified m)
+  (if module-defer-observers
+      (hash-set! module-defer-observers-table m #t)
+      (module-call-observers m)))
+
+;;; This function can be used to delay calls to observers so that they
+;;; can be called once only in the face of massive updating of modules.
+;;;
+(define (call-with-deferred-observers thunk)
+  (dynamic-wind
+      (lambda ()
+	(lock-mutex module-defer-observers-mutex)
+	(set! module-defer-observers #t))
+      thunk
+      (lambda ()
+	(set! module-defer-observers #f)
+	(hash-for-each (lambda (m dummy)
+			 (module-call-observers m))
+		       module-defer-observers-table)
+	(hash-clear! module-defer-observers-table)
+	(unlock-mutex module-defer-observers-mutex))))
+
+(define (module-call-observers m)
   (for-each (lambda (proc) (proc m)) (module-observers m))
   (hash-fold (lambda (id proc res) (proc m)) #f (module-weak-observers m)))
 
@@ -1267,18 +1293,21 @@
 ;; If no variable was already there, then create a new and uninitialzied
 ;; variable.
 ;;
+;; This function is used in modules.c.
+;;
 (define (module-make-local-var! m v)
   (or (let ((b (module-obarray-ref (module-obarray m) v)))
 	(and (variable? b)
 	     (begin
+	       ;; Mark as modified since this function is called when
+	       ;; the standard eval closure defines a binding
 	       (module-modified m)
 	       b)))
       (and (module-binder m)
 	   ((module-binder m) m v #t))
       (begin
 	(let ((answer (make-undefined-variable)))
-	  (module-obarray-set! (module-obarray m) v answer)
-	  (module-modified m)
+	  (module-add! m v answer)
 	  answer))))
 
 ;; module-ensure-local-variable! module symbol
@@ -1731,10 +1760,10 @@
 	  (set-module-name! custom-i name)
 	  ;; XXX - should use a lazy binder so that changes to the
 	  ;; used module are picked up automatically.
-          (for-each (lambda (bspec)
-                      (let* ((direct? (symbol? bspec))
-                             (orig (if direct? bspec (car bspec)))
-                             (seen (if direct? bspec (cdr bspec)))
+	  (for-each (lambda (bspec)
+		      (let* ((direct? (symbol? bspec))
+			     (orig (if direct? bspec (car bspec)))
+			     (seen (if direct? bspec (cdr bspec)))
 			     (var (or (module-local-variable public-i orig)
 				      (module-local-variable module orig)
 				      (error
@@ -1747,7 +1776,7 @@
 			    (module-add! custom-i
 					 (renamer seen)
 					 var))))
-                    selection)
+		    selection)
 	  ;; Check that we are not hiding bindings which don't exist
 	  (for-each (lambda (binding)
 		      (if (not (module-local-variable public-i binding))
@@ -1778,11 +1807,12 @@
 	       (re-exports '())
 	       (replacements '()))
       (if (null? kws)
-	  (begin
-	    (module-use-interfaces! module (reverse reversed-interfaces))
-	    (module-export! module exports)
-	    (module-replace! module replacements)
-	    (module-re-export! module re-exports))
+	  (call-with-deferred-observers
+	   (lambda ()
+	     (module-use-interfaces! module (reverse reversed-interfaces))
+	     (module-export! module exports)
+	     (module-replace! module replacements)
+	     (module-re-export! module re-exports)))
 	  (case (car kws)
 	    ((#:use-module #:use-syntax)
 	     (or (pair? (cdr kws))
@@ -2639,11 +2669,13 @@
 ;; to change scm_c_use_module as well.
 
 (define (process-use-modules module-interface-args)
-  (module-use-interfaces! (current-module)
-			  (map (lambda (mif-args)
-				 (or (apply resolve-interface mif-args)
-				     (error "no such module" mif-args)))
-			       module-interface-args)))
+  (let ((interfaces (map (lambda (mif-args)
+			   (or (apply resolve-interface mif-args)
+			       (error "no such module" mif-args)))
+			 module-interface-args)))
+    (call-with-deferred-observers
+     (lambda ()
+       (module-use-interfaces! (current-module) interfaces)))))
 
 (defmacro use-modules modules
   `(eval-case
@@ -2703,7 +2735,7 @@
    (#t
     (let ((name (defined-name (car args))))
       `(begin
-	 (eval-case ((load-toplevel) (export ,name)))
+	 (eval-case ((load-toplevel) (export-syntax ,name)))
 	 (defmacro ,@args))))))
 
 ;; Export a local variable
@@ -2743,14 +2775,18 @@
 (defmacro export names
   `(eval-case
     ((load-toplevel)
-     (module-export! (current-module) ',names))
+     (call-with-deferred-observers
+      (lambda ()
+	(module-export! (current-module) ',names))))
     (else
      (error "export can only be used at the top level"))))
 
 (defmacro re-export names
   `(eval-case
     ((load-toplevel)
-     (module-re-export! (current-module) ',names))
+     (call-with-deferred-observers
+      (lambda ()
+	(module-re-export! (current-module) ',names))))
     (else
      (error "re-export can only be used at the top level"))))
 

@@ -1,3 +1,9 @@
+2003-03-12  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* srfi-13.scm: Mark replacements.
+
+	* srfi-17.scm: Mark replacements.
+
 2003-03-11  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* srfi-1.scm (iota, map, for-each, map-in-order, list-index,

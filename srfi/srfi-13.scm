@@ -1,6 +1,6 @@
 ;;; srfi-13.scm --- String Library
 
-;; 	Copyright (C) 2001, 2002 Free Software Foundation, Inc.
+;; 	Copyright (C) 2001, 2002, 2003 Free Software Foundation, Inc.
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -47,9 +47,8 @@
 
 ;;; Code:
 
-(define-module (srfi srfi-13))
-
-(export
+(define-module (srfi srfi-13)
+  :export (
 ;;; Predicates
  ;; string? string-null?       <= in the core
  string-any string-every
@@ -59,14 +58,14 @@
  string-tabulate
 
 ;;; List/string conversion
- string->list
+ ;; string->list	       extended
  ;; list->string               <= in the core
  reverse-list->string
  string-join
 
 ;;; Selection
  ;; string-length string-ref   <= in the core
- string-copy
+ ;; string-copy		       extended
  substring/shared
  string-copy!
  string-take string-take-right
@@ -77,7 +76,7 @@
 
 ;;; Modification
  ;; string-set!                <= in the core
- string-fill!
+ ;; string-fill!		extended
 
 ;;; Comparison
  string-compare string-compare-ci
@@ -100,15 +99,16 @@
  string-suffix-ci?
 
 ;;; Searching
- string-index string-index-right
+ ;; string-index			extended
+ string-index-right
  string-skip string-skip-right
  string-count
  string-contains string-contains-ci
 
 ;;; Alphabetic case mapping
 
- string-upcase string-upcase!
- string-downcase string-downcase!
+ ;; string-upcase string-upcase!	extended
+ ;; string-downcase string-downcase!	extended
  string-titlecase string-titlecase!
 
 ;;; Reverse/Append
@@ -140,6 +140,10 @@
  string-filter
  string-delete
  )
+  :replace (string->list string-copy string-fill!
+	    string-upcase! string-upcase string-downcase! string-downcase
+	    string-index)
+  )
 
 (cond-expand-provide (current-module) '(srfi-13))
 

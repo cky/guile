@@ -1,5 +1,19 @@
 2003-03-12  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
+	* boot-9.scm (module-make-local-var!): Use module-add!.
+	(module-primitive-add!): New function.
+	(resolve-interface): Use
+	(call-with-deferred-observers, module-call-observers): New
+	functions.
+	(module-defer-observers, module-defer-observers-mute,
+	module-defer-observers-table): New variables.
+	(process-define-module, process-use-modules, export, re-export):
+	Use call-with-deferred-observers.
+
+	* syncase.scm (eval): Mark as replacement.
+
+	* boot-9.scm (defmacro-public): Use export-syntax instead of export.
+
 	* slib.scm (*features*): Set the core variable instead of defining
 	a local version.
 	(provide, provided?): Mark as replacements.
