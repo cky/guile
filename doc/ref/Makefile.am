@@ -44,7 +44,6 @@ guile_TEXINFOS = preface.texi			\
 		 api-options.texi		\
 		 api-translation.texi		\
 		 api-debug.texi			\
-		 api-deprecated.texi		\
 		 scheme-reading.texi		\
 		 scheme-indices.texi		\
 		 slib.texi			\
