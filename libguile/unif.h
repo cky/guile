@@ -23,6 +23,7 @@
 
 
 #include "libguile/__scm.h"
+#include "libguile/print.h"
 
 
 
@@ -95,21 +96,30 @@ SCM_API int scm_is_typed_array (SCM obj, SCM type);
 
 SCM_API SCM scm_i_read_array (SCM port, int c);
 
-typedef struct {
+struct scm_t_array_handle;
+
+typedef SCM (*scm_i_t_array_ref) (struct scm_t_array_handle *, ssize_t);
+typedef void (*scm_i_t_array_set) (struct scm_t_array_handle *, ssize_t, SCM);
+
+typedef struct scm_t_array_handle {
   SCM array;
   size_t base;
   scm_t_array_dim *dims;
   scm_t_array_dim dim0;
+  scm_i_t_array_ref ref;
+  scm_i_t_array_set set;
+  const void *elements;
+  void *writable_elements;
 } scm_t_array_handle;
 
 SCM_API void scm_array_get_handle (SCM array, scm_t_array_handle *h);
 SCM_API size_t scm_array_handle_rank (scm_t_array_handle *h);
 SCM_API scm_t_array_dim *scm_array_handle_dims (scm_t_array_handle *h);
-SCM_API SCM scm_array_handle_ref (scm_t_array_handle *h, ssize_t pos);
-SCM_API void scm_array_handle_set (scm_t_array_handle *h, ssize_t pos, SCM val);
 SCM_API const SCM *scm_array_handle_elements (scm_t_array_handle *h);
 SCM_API SCM *scm_array_handle_writable_elements (scm_t_array_handle *h);
 SCM_API void scm_array_handle_release (scm_t_array_handle *h);
+
+/* See inline.h for scm_array_handle_ref and scm_array_handle_set */
 
 
 /** Bit vectors */

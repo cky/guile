@@ -34,12 +34,15 @@
 #include "libguile/pairs.h"
 #include "libguile/gc.h"
 #include "libguile/threads.h"
+#include "libguile/unif.h"
 
 
 SCM_API SCM scm_cell (scm_t_bits car, scm_t_bits cdr);
 SCM_API SCM scm_double_cell (scm_t_bits car, scm_t_bits cbr,
 			     scm_t_bits ccr, scm_t_bits cdr);
 
+SCM_API SCM scm_array_handle_ref (scm_t_array_handle *h, ssize_t pos);
+SCM_API void scm_array_handle_set (scm_t_array_handle *h, ssize_t pos, SCM val);
 
 
 #if defined SCM_C_INLINE || defined SCM_INLINE_C_INCLUDING_INLINE_H
@@ -246,7 +249,35 @@ scm_double_cell (scm_t_bits car, scm_t_bits cbr,
   return z;
 }
 
+#if defined SCM_C_INLINE && ! defined SCM_INLINE_C_INCLUDING_INLINE_H
+/* definitely inlining */
+#ifdef __GNUC__
+extern
+#else
+static
+#endif
+SCM_C_INLINE
+#endif
+SCM
+scm_array_handle_ref (scm_t_array_handle *h, ssize_t p)
+{
+  return h->ref (h, p);
+}
 
+#if defined SCM_C_INLINE && ! defined SCM_INLINE_C_INCLUDING_INLINE_H
+/* definitely inlining */
+#ifdef __GNUC__
+extern
+#else
+static
+#endif
+SCM_C_INLINE
+#endif
+void
+scm_array_handle_set (scm_t_array_handle *h, ssize_t p, SCM v)
+{
+  h->set (h, p, v);
+}
 
 #endif
 #endif
