@@ -116,6 +116,14 @@ scm_error_scm (key, subr, message, args, rest)
   /* not reached.  */
 }
 
+SCM_PROC (s_strerror, "strerror", 1, 0, 0, scm_strerror);
+SCM
+scm_strerror (SCM err)
+{
+  SCM_ASSERT (SCM_INUMP (err), err, SCM_ARG1, s_strerror);
+  return scm_makfrom0str (strerror (SCM_INUM (err)));
+}
+
 SCM_SYMBOL (scm_system_error_key, "system-error");
 void
 scm_syserror (subr)
