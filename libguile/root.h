@@ -100,9 +100,6 @@ typedef struct scm_root_state
   SCM cur_inp;
   SCM cur_outp;
   SCM cur_errp;
-  SCM def_inp;
-  SCM def_outp;
-  SCM def_errp;
   SCM cur_loadp;
 
   SCM fluids;

@@ -1,3 +1,13 @@
+2002-04-20  Gary Houston  <ghouston@arglist.com>
+
+	* removal of unused fields in root state (thanks to Christopher
+	Cramer for pointing out the disuse.)
+	* root.h (scm_root_state): removed def_inp, def_outp, def_errp.
+	* root.c (root_mark): don't mark them.
+	(scm_make_root): don't set them to #f.
+	* init.c (scm_init_standard_ports): don't initialise with the
+	default ports.
+
 2002-04-17  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* Makefile.am (EXTRA_DIST): Added cpp_err_symbols.c and

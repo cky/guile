@@ -311,20 +311,17 @@ scm_init_standard_ports ()
      buffered input on stdin can reset \ex{(current-input-port)} to
      block buffering for higher performance.  */
 
-  scm_def_inp
+  scm_cur_inp
     = scm_standard_stream_to_port (0, 
 				   isatty (0) ? "r0" : "r",
 				   "standard input");
-  scm_def_outp = scm_standard_stream_to_port (1,
+  scm_cur_outp = scm_standard_stream_to_port (1,
 					      isatty (1) ? "w0" : "w",
 					      "standard output");
-  scm_def_errp = scm_standard_stream_to_port (2,
+  scm_cur_errp = scm_standard_stream_to_port (2,
 					      isatty (2) ? "w0" : "w",
 					      "standard error");
 
-  scm_cur_inp = scm_def_inp;
-  scm_cur_outp = scm_def_outp;
-  scm_cur_errp = scm_def_errp;
   scm_cur_loadp = SCM_BOOL_F;
 }
 
