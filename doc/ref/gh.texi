@@ -433,7 +433,7 @@ longs, unsigned longs, floats or doubles at memory location @var{dptr}.
 These routines convert the Scheme object to the given C type.
 @end deftypefun
 
-@deftypefun char *gh_scm2newstr (SCM @var{str}, int *@var{lenp})
+@deftypefun char *gh_scm2newstr (SCM @var{str}, size_t *@var{lenp})
 Given a Scheme string @var{str}, return a pointer to a new copy of its
 contents, followed by a null byte.  If @var{lenp} is non-null, set
 @code{*@var{lenp}} to the string's length.
