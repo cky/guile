@@ -1,0 +1,65 @@
+;;;; guardians.test --- test suite for Guile Guardians     -*- scheme -*-
+;;;; Jim Blandy <jimb@red-bean.com> --- July 1999
+;;;;
+;;;; 	Copyright (C) 1999 Free Software Foundation, Inc.
+;;;; 
+;;;; This program is free software; you can redistribute it and/or modify
+;;;; it under the terms of the GNU General Public License as published by
+;;;; the Free Software Foundation; either version 2, or (at your option)
+;;;; any later version.
+;;;; 
+;;;; This program is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;;;; GNU General Public License for more details.
+;;;; 
+;;;; You should have received a copy of the GNU General Public License
+;;;; along with this software; see the file COPYING.  If not, write to
+;;;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+;;;; Boston, MA 02111-1307 USA
+
+;;; These tests make some questionable assumptions.
+;;; - They assume that a GC will find all dead objects, so they
+;;;   will become flaky if we have a generational GC.
+;;; - They assume that objects won't be saved by the guardian until
+;;;   they explicitly invoke GC --- in other words, they assume that GC
+;;;   won't happen too often.
+
+(gc)
+
+(define g1 (make-guardian))
+(define not-g1-garbage (list 'not-g1-garbage))
+(g1 not-g1-garbage)
+(g1 (list 'g1-garbage))
+(pass-if "g1-garbage not collected yet" (equal? (g1) #f))
+(gc)
+(pass-if "g1-garbage saved" (equal? (g1) '(g1-garbage)))
+
+;;; Who guards the guardian?
+(gc)
+(define g2 (make-guardian))
+(g2 (list 'g2-garbage))
+(define g3 (make-guardian))
+(g3 (list 'g3-garbage))
+(g3 g2)
+(pass-if "g2-garbage not collected yet" (equal? (g2) #f))
+(pass-if "g3-garbage not collected yet" (equal? (g3) #f))
+(set! g2 #f)
+(gc)
+(let ((seen-g3-garbage #f)
+      (seen-g2 #f)
+      (seen-something-else #f))
+  (let loop ()
+    (let ((saved (g3)))
+      (if saved
+	  (begin
+	    (cond
+	     ((equal? saved '(g3-garbage)) (set! seen-g3-garbage #t))
+	     ((procedure? saved) (set! seen-g2 saved))
+	     (else (set! seen-something-else #t)))
+	    (loop)))))
+  (pass-if "g3-garbage saved" seen-g3-garbage)
+  (pass-if "g2-saved" seen-g2)
+  (pass-if "nothing else saved" (not seen-something-else))
+  (pass-if "g2-garbage saved" (and (procedure? seen-g2)
+				   (equal? (seen-g2) '(g2-garbage)))))
