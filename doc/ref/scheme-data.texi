@@ -1055,7 +1055,13 @@ Naturally, these C functions expect and return @code{double} arguments.
 @node Bitwise Operations
 @subsection Bitwise Operations
 
-@deffn {Scheme Procedure} logand n1 n2
+For the following bitwise functions, negative numbers are treated as
+infinite precision twos-complements.  For instance @math{-6} is bits
+@math{@dots{}111010}, with infinitely many ones on the left.  It can
+be seen that adding 6 (binary 110) to such a bit pattern gives all
+zeros.
+
+@deffn {Scheme Procedure} logand n1 n2 @dots{}
 Return the bitwise @sc{and} of the integer arguments.
 
 @lisp
@@ -1065,7 +1071,7 @@ Return the bitwise @sc{and} of the integer arguments.
 @end lisp
 @end deffn
 
-@deffn {Scheme Procedure} logior n1 n2
+@deffn {Scheme Procedure} logior n1 n2 @dots{}
 Return the bitwise @sc{or} of the integer arguments.
 
 @lisp
@@ -1075,9 +1081,10 @@ Return the bitwise @sc{or} of the integer arguments.
 @end lisp
 @end deffn
 
-@deffn {Scheme Procedure} logxor n1 n2
+@deffn {Scheme Procedure} logxor n1 n2 @dots{}
 Return the bitwise @sc{xor} of the integer arguments.  A bit is
 set in the result if it is set in an odd number of arguments.
+
 @lisp
 (logxor) @result{} 0
 (logxor 7) @result{} 7
@@ -1124,20 +1131,24 @@ argument, ie.@: each 0 bit is changed to 1 and each 1 bit to 0.
 
 @deffn {Scheme Procedure} ash n cnt
 @deffnx {C Function} scm_ash (n, cnt)
-The function @code{ash} performs an arithmetic shift left by @var{cnt}
-bits (or shift right, if @var{cnt} is negative).  `Arithmetic'
-means that the function does not guarantee to keep the bit
-structure of @var{n}, but rather guarantees that the result
-will always be rounded towards minus infinity.  Therefore, the
-results of @code{ash} and a corresponding bitwise shift will differ if
-@var{n} is negative.
+Return @var{n} shifted left by @var{cnt} bits, or shifted right if
+@var{cnt} is negative.  This is an ``arithmetic'' shift.
 
-Formally, the function returns an integer equivalent to
-@code{(inexact->exact (floor (* @var{n} (expt 2 @var{cnt}))))}.
+This is effectively a multiplication by @m{2^{cnt}, 2^@var{cnt}}, and
+when @var{cnt} is negative it's a division, rounded towards negative
+infinity.  (Note that this is not the same rounding as @code{quotient}
+does.)
+
+With @var{n} viewed as an infinite precision twos complement,
+@code{ash} means a left shift introducing zero bits, or a right shift
+dropping bits.
 
 @lisp
 (number->string (ash #b1 3) 2)     @result{} "1000"
 (number->string (ash #b1010 -1) 2) @result{} "101"
+
+;; -23 is bits ...11101001, -6 is bits ...111010
+(ash -23 -2) @result{} -6
 @end lisp
 @end deffn
 
@@ -1162,13 +1173,17 @@ representation are counted.  If 0, 0 is returned.
 @deffnx {C Function} scm_integer_length (n)
 Return the number of bits necessary to represent @var{n}.
 
+For positive @var{n} this is how many bits to the most significant one
+bit.  For negative @var{n} it's how many bits to the most significant
+zero bit in twos complement form.
+
 @lisp
-(integer-length #b10101010)
-   @result{} 8
-(integer-length 0)
-   @result{} 0
-(integer-length #b1111)
-   @result{} 4
+(integer-length #b10101010) @result{} 8
+(integer-length #b1111)     @result{} 4
+(integer-length 0)          @result{} 0
+(integer-length -1)         @result{} 0
+(integer-length -256)       @result{} 8
+(integer-length -257)       @result{} 9
 @end lisp
 @end deffn
 
