@@ -1,3 +1,10 @@
+2001-04-21  Gary Houston  <ghouston@arglist.com>
+
+	* socket.c (FLIP_NET_HOST_128): new macro.
+	(scm_fill_sockaddr): use new macro.
+	(scm_addr_vector): completed IPv6 address support.  added const
+	to the address parameter.
+
 2001-04-20  Gary Houston  <ghouston@arglist.com>
 
 	* socket.c (scm_fill_sockaddr): call htons for sin6_port.
@@ -5,7 +12,7 @@
 	is defined.
 	(scm_addr_vector): use a switch instead of multiple if statements.
 	Add support for IPv6 (incomplete) .
-	MAX_ADDR_SIZE: increase to size of struct sockaddr_in if needed.
+	MAX_ADDR_SIZE: increase to size of struct sockaddr_in6 if needed.
 
 2001-04-20  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 

@@ -366,6 +366,24 @@ SCM_DEFINE (scm_setsockopt, "setsockopt", 4, 0, 0,
 }
 #undef FUNC_NAME
 
+/* flip a 128 bit IPv6 address between host and network order.  */
+#ifdef WORDS_BIGENDIAN
+#define FLIP_NET_HOST_128(addr)
+#else
+#define FLIP_NET_HOST_128(addr)\
+{\
+  int i;\
+  \
+  for (i = 0; i < 8; i++)\
+    {\
+      char c = (addr)[i];\
+      \
+      (addr)[i] = (addr)[15 - i];\
+      (addr)[15 - i] = c;\
+    }\
+}
+#endif
+
 SCM_DEFINE (scm_shutdown, "shutdown", 2, 0, 0,
           (SCM sock, SCM how),
 	    "Sockets can be closed simply by using @code{close-port}. The\n"
@@ -484,21 +502,10 @@ scm_fill_sockaddr (int fam, SCM address, SCM *args, int which_arg,
 	  }
 	else
 	  {
-	    scm_sizet i;
-
 	    memset (soka->sin6_addr.s6_addr, 0, 16);
 	    memcpy (soka->sin6_addr.s6_addr, SCM_BDIGITS (address), 
 		    SCM_NUMDIGS (address) * (SCM_BITSPERDIG / 8));
-#ifndef WORDS_BIGENDIAN
-	    /* flip to network order.  */
-	    for (i = 0; i < 8; i++)
-	      {
-		char c = soka->sin6_addr.s6_addr[i];
-		
-		soka->sin6_addr.s6_addr[i] = soka->sin6_addr.s6_addr[15 - i];
-		soka->sin6_addr.s6_addr[15 - i] = c;
-	      }
-#endif
+	    FLIP_NET_HOST_128 (soka->sin6_addr.s6_addr);
 	  }
 	soka->sin6_port = htons (port);
 	soka->sin6_flowinfo = flowinfo;
@@ -662,7 +669,7 @@ SCM_DEFINE (scm_listen, "listen", 2, 0, 0,
 
 /* Put the components of a sockaddr into a new SCM vector.  */
 static SCM
-scm_addr_vector (struct sockaddr *address, const char *proc)
+scm_addr_vector (const struct sockaddr *address, const char *proc)
 {
   short int fam = address->sa_family;
   SCM result;
@@ -672,7 +679,7 @@ scm_addr_vector (struct sockaddr *address, const char *proc)
     {
     case AF_INET:
       {
-	struct sockaddr_in *nad = (struct sockaddr_in *) address;
+	const struct sockaddr_in *nad = (struct sockaddr_in *) address;
 
 	result = scm_c_make_vector (3, SCM_UNSPECIFIED);
 	ve = SCM_VELTS (result);
@@ -684,13 +691,44 @@ scm_addr_vector (struct sockaddr *address, const char *proc)
 #ifdef AF_INET6
     case AF_INET6:
       {
-	struct sockaddr_in6 *nad = (struct sockaddr_in6 *) address;
+	const struct sockaddr_in6 *nad = (struct sockaddr_in6 *) address;
+	int big_digits = 128 / SCM_BITSPERDIG;
+	int bytes_per_dig = SCM_BITSPERDIG / 8;
+	char addr[16];
+	char *ptr = addr;
+	SCM scm_addr;
+
+	memcpy (addr, nad->sin6_addr.s6_addr, 16);
+	/* get rid of leading zeros.  */ 
+	while (big_digits > 0)
+	  {
+	    long test = 0;
+
+	    memcpy (&test, ptr, bytes_per_dig);
+	    if (test != 0)
+	      break;
+	    ptr += bytes_per_dig;
+	    big_digits--;
+	  }
+	FLIP_NET_HOST_128 (addr);
+	if (big_digits * bytes_per_dig <= sizeof (unsigned long))
+	  {
+	    /* this is just so that we use INUM where possible.  */
+	    unsigned long l_addr;
+
+	    memcpy (&l_addr, addr, sizeof (unsigned long));
+	    scm_addr = scm_ulong2num (l_addr);
+	  }
+	else
+	  {
+	    scm_addr = scm_mkbig (big_digits, 0);
+	    memcpy (SCM_BDIGITS (scm_addr), addr, big_digits * bytes_per_dig);
+	  }
 
 	result = scm_c_make_vector (5, SCM_UNSPECIFIED);
 	ve = SCM_VELTS (result);
 	ve[0] = scm_ulong2num ((unsigned long) fam);
-	/* FIXME */
-	ve[1] = SCM_INUM0;
+	ve[1] = scm_addr;
 	ve[2] = scm_ulong2num ((unsigned long) ntohs (nad->sin6_port));
 	ve[3] = scm_ulong2num ((unsigned long) nad->sin6_flowinfo);
 #ifdef HAVE_SIN6_SCOPE_ID
@@ -704,7 +742,7 @@ scm_addr_vector (struct sockaddr *address, const char *proc)
 #ifdef HAVE_UNIX_DOMAIN_SOCKETS
     case AF_UNIX:
       {
-	struct sockaddr_un *nad = (struct sockaddr_un *) address;
+	const struct sockaddr_un *nad = (struct sockaddr_un *) address;
 
 	result = scm_c_make_vector (2, SCM_UNSPECIFIED);
 	ve = SCM_VELTS (result);
