@@ -355,6 +355,16 @@ their revealed counts set to zero.
 
 ** serial-array-map renamed to serial-array-map!
 
+** catch doesn't take #f as first argument any longer
+
+Previously, it was possible to pass #f instead of a key to `catch'.
+That would cause `catch' to pass a jump buffer object to the procedure
+passed as second argument.  The procedure could then use this jump
+buffer objekt as an argument to throw.
+
+This mechanism has been removed since its utility doesn't motivate the
+extra complexity it introduces.
+
 * Changes to the gh_ interface
 
 ** Function: void gh_write (SCM x)
@@ -453,6 +463,12 @@ strings.
 ** All genio functions changed names and interfaces; new functions are
 scm_putc, scm_puts, scm_lfwrite, scm_getc, scm_ungetc, and
 scm_do_read_line.
+
+** scm_catch_body_t: Backward incompatible change!
+
+Body functions to scm_internal_catch and friends do not any longer
+take a second argument.  This is because it is no longer possible to
+pass a #f arg to catch.
 
 
 Changes in Guile 1.2 (released Tuesday, June 24 1997):
