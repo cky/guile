@@ -1,3 +1,8 @@
+2003-10-09  Kevin Ryde  <user42@zip.com.au>
+
+	* numbers.c (scm_inexact_to_exact): Don't depend on what double->long
+	cast gives for values bigger than a long, or for nan or inf.
+
 2003-10-08  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* smob.h (scm_make_smob_type): Made the declaration match the

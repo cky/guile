@@ -1,5 +1,7 @@
 2003-10-09  Kevin Ryde  <user42@zip.com.au>
 
+	* tests/numbers.test (inexact->exact): New tests.
+
 	* tests/poe.test: New file.
 	* Makefile.am: Add it.
 
