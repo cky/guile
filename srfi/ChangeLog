@@ -1,3 +1,8 @@
+2005-01-10  Marius Vollmer  <mvo@zagadka.de>
+
+	* srfi-1.c (check_args): Bugfix to change from 2005-01-02: ARGV is
+	the vector to check, not ARGS.
+
 2005-01-02  Marius Vollmer  <mvo@zagadka.de>
 
 	* srfi-1.c: Use new vector elements API or simple vector API, as
