@@ -310,7 +310,6 @@ static char s_formals[] = "bad formals";
 
 SCM scm_i_dot, scm_i_quote, scm_i_quasiquote, scm_i_lambda, scm_i_let,
   scm_i_arrow, scm_i_else, scm_i_unquote, scm_i_uq_splicing, scm_i_apply;
-SCM scm_i_name;
 SCM scm_i_define, scm_i_and, scm_i_begin, scm_i_case, scm_i_cond,
   scm_i_do, scm_i_if, scm_i_let, scm_i_letrec, scm_i_letstar,
   scm_i_or, scm_i_set, scm_i_atapply, scm_i_atcall_cc;
@@ -742,7 +741,7 @@ scm_m_define (x, env)
     {
       x = evalcar (x, env);
 #ifdef DEBUG_EXTENSIONS
-      if (SCM_REC_PROCNAMES_P && SCM_NIMP (x) && SCM_CLOSUREP (x))
+      if (SCM_REC_PROCNAMES_P)
 	scm_set_procedure_property_x (x, scm_i_name, proc);
 #endif
       arg1 = scm_sym2vcell (proc, env_top_level (env), SCM_BOOL_T);
@@ -2922,8 +2921,6 @@ scm_init_eval ()
 				   scm_makmmacro, scm_m_cont);
 
   scm_make_synt ("defined?", scm_makmmacro, scm_definedp);
-  scm_i_name = SCM_CAR (scm_sysintern ("name", SCM_UNDEFINED));
-  scm_permanent_object (scm_i_name);
 
 #ifdef DEBUG_EXTENSIONS
   scm_i_enter_frame = SCM_CAR (scm_sysintern ("enter-frame", SCM_UNDEFINED));
