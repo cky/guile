@@ -166,6 +166,7 @@
 #else
 #define SCM_HEAP_SIZE (scm_freelist.heap_size + scm_freelist2.heap_size)
 #endif
+#define SCM_MAX(A, B) ((A) > (B) ? (A) : (B))
 
 
 
@@ -191,7 +192,7 @@ typedef struct scm_freelist_t {
   int grow_heap_p;
   /* minimum number of objects allocated before GC is triggered
    */
-  int gc_trigger;
+  long gc_trigger;
   /* defines gc_trigger as percent of heap size
    * 0 => constant trigger
    */
@@ -200,11 +201,13 @@ typedef struct scm_freelist_t {
   /* number of cells per object on this list */
   int span;
   /* number of collected cells during last GC */
-  int collected;
+  long collected;
+  /* number of collected cells during penultimate GC */
+  long collected_1;
   /* total number of cells in heap segments
    * belonging to this list.
    */
-  int heap_size;
+  long heap_size;
 } scm_freelist_t;
 
 #ifdef GUILE_NEW_GC_SCHEME
@@ -805,11 +808,8 @@ adjust_gc_trigger (scm_freelist_t *freelist)
   if (freelist->gc_trigger_fraction)
     {
       /* Pick largest of last two yields. */
-      int yield = (scm_gc_yield_1 > scm_gc_yield
-		   ? scm_gc_yield_1
-		   : scm_gc_yield);
       int delta = ((SCM_HEAP_SIZE * freelist->gc_trigger_fraction / 100)
-		   - yield);
+		   - SCM_MAX (scm_gc_yield_1, scm_gc_yield));
 #ifdef DEBUGINFO
       fprintf (stderr, " after GC = %d, delta = %d\n",
 	       scm_cells_allocated,
@@ -1545,12 +1545,14 @@ gc_sweep_freelist_start (scm_freelist_t *freelist)
   freelist->clusters_allocated = 0;
   freelist->clusters = SCM_EOL;
   freelist->clustertail = &freelist->clusters;
+  freelist->collected_1 = freelist->collected;
   freelist->collected = 0;
 }
 
 static void
 gc_sweep_freelist_finish (scm_freelist_t *freelist)
 {
+  int collected;
   *freelist->clustertail = freelist->cells;
   if (SCM_NNULLP (freelist->cells))
     {
@@ -1569,7 +1571,8 @@ gc_sweep_freelist_finish (scm_freelist_t *freelist)
    * heap on the list which is currently doing most work, which is
    * just what we want.
    */
-  freelist->grow_heap_p = (freelist->collected < freelist->gc_trigger);
+  collected = SCM_MAX (freelist->collected_1, freelist->collected);
+  freelist->grow_heap_p = (collected < freelist->gc_trigger);
 }
 #endif
 
@@ -2335,18 +2338,31 @@ alloc_some_heap (scm_freelist_t *freelist)
    */
 #ifdef GUILE_NEW_GC_SCHEME
   {
-    /* Assure that the new segment is predicted to be large enough for
-     * the new trigger.
+    /* Assure that the new segment is predicted to be large enough.
+     *
+     * New yield should at least equal GC fraction of new heap size, i.e.
+     *
+     *   y + dh > f * (h + dh)
+     *
+     *    y : yield
+     *    f : GC trigger fraction
+     *    h : heap size
+     *   dh : size of new heap segment
+     *
+     * This gives dh > (f * h - y) / (1 - f)
      */
-    int slack = freelist->gc_trigger - freelist->collected;
-    int min_cells = 100 * slack / (99 - freelist->gc_trigger_fraction);
+    int f = freelist->gc_trigger_fraction;
+    long h = SCM_HEAP_SIZE;
+    long min_cells = (f * h - 100 * (long) scm_gc_yield) / (99 - f);
     len =  SCM_EXPHEAP (freelist->heap_size);
 #ifdef DEBUGINFO
     fprintf (stderr, "(%d < %d)", len, min_cells);
 #endif
     if (len < min_cells)
-      len = min_cells + 1;
+      len = min_cells + freelist->cluster_size;
     len *= sizeof (scm_cell);
+    /* force new sampling */
+    freelist->collected = LONG_MAX;
   }
 
   if (len > scm_max_segment_size)
@@ -2379,7 +2395,7 @@ alloc_some_heap (scm_freelist_t *freelist)
     while ((len >= SCM_MIN_HEAP_SEG_SIZE)
 	   && (len >= smallest))
       {
-        scm_sizet rounded_len = round_to_cluster_size(freelist, len);
+        scm_sizet rounded_len = round_to_cluster_size (freelist, len);
 	SCM_SYSCALL (ptr = (SCM_CELLPTR) malloc (rounded_len));
 	if (ptr)
 	  {
@@ -2591,6 +2607,7 @@ init_freelist (scm_freelist_t *freelist,
     }
   freelist->span = span;
   freelist->collected = 0;
+  freelist->collected_1 = 0;
   freelist->heap_size = 0;
 }
 
