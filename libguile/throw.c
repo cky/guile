@@ -252,12 +252,13 @@ scm_ithrow (key, args, noreturn)
 
       /* Search the wind list for an appropriate catch.
 	 "Waiter, please bring us the wind list." */
-      for (winds = scm_dynwinds;
-	   SCM_NIMP (winds) && SCM_CONSP (winds);
-	   winds = SCM_CDR (winds))
+      for (winds = scm_dynwinds; SCM_NIMP (winds); winds = SCM_CDR (winds))
 	{
+	  if (! SCM_CONSP (winds))
+	    abort ();
+
 	  dynpair = SCM_CAR (winds);
-	  if (SCM_NIMP (winds) && SCM_CONSP (winds))
+	  if (SCM_NIMP (dynpair) && SCM_CONSP (dynpair))
 	    {
 	      SCM this_key = SCM_CAR (dynpair);
 
@@ -267,8 +268,11 @@ scm_ithrow (key, args, noreturn)
 	}
 
       /* If we didn't find anything, print a message and exit Guile.  */
-      if (SCM_IMP (winds) || SCM_NCONSP (winds))
+      if (winds == SCM_EOL)
 	uncaught_throw (key, args);
+
+      if (SCM_IMP (winds) || SCM_NCONSP (winds))
+	abort ();
       
       if (dynpair != SCM_BOOL_F)
 	jmpbuf = SCM_CDR (dynpair);
