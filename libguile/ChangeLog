@@ -1,3 +1,9 @@
+2000-06-03  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* Makefile.am: Added LIBS line to libpath which accidentally
+	disappeared in the change of 2000-06-01.
+	(Thanks to Dale	P. Smith.)
+
 2000-06-03  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* scmsigs.c (scm_segfault): Removed.  (Was probably added by
