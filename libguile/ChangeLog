@@ -1,3 +1,8 @@
+2001-11-21  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* Makefile.am (install-exec-hook): Prepend $(DESTDIR) to filename.
+	Thanks to Eric Gillespie, Jr!
+	
 2001-11-21  Stefan Jahn  <stefan@lkcc.org>
 
 	* win32-socket.c (getservent, setservent, endservent, 
