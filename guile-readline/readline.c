@@ -503,8 +503,6 @@ match_paren (int x, int k)
   return 0;
 }
 
-#endif /* HAVE_RL_GETC_FUNCTION */
-
 #if defined (HAVE_RL_PRE_INPUT_HOOK) && defined (GUILE_SIGWINCH_SA_RESTART_CLEARED)
 /* Readline disables SA_RESTART on SIGWINCH.
  * This code turns it back on.
@@ -524,6 +522,8 @@ sigwinch_enable_restart (void)
   return 0;
 }
 #endif
+
+#endif /* HAVE_RL_GETC_FUNCTION */
 
 void
 scm_init_readline ()
