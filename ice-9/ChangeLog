@@ -1,3 +1,9 @@
+1998-12-14  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* boot-9.scm (process-define-module): Reverted the change of
+	1998-11-23 which caused loading of object code if :use-module was
+	applied to the module itself.
+
 1998-12-11  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
 	* Makefile.am: Removed setf.scm.

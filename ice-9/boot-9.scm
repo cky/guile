@@ -1966,29 +1966,23 @@
 		   (error "unrecognized defmodule argument" kws))
 	       (let* ((used-name (cadr kws))
 		      (used-module (resolve-module used-name)))
-		 (if (eq? used-module module)
+		 (if (not (module-ref used-module
+				      '%module-public-interface
+				      #f))
 		     (begin
-		       (or (try-module-linked used-name)
-			   (try-module-dynamic-link used-name))
-		       (loop (cddr kws) reversed-interfaces))
-		     (begin
-		       (if (not (module-ref used-module
-					    '%module-public-interface
-					    #f))
-			   (begin
-			     ((if %autoloader-developer-mode warn error)
-			      "no code for module" (module-name used-module))
-			     (beautify-user-module! used-module)))
-		       (let ((interface (module-public-interface used-module)))
-			 (if (not interface)
-			     (error "missing interface for use-module"
-				    used-module))
-			 (if (eq? keyword 'use-syntax)
-			     (internal-use-syntax
-			      (module-ref interface (car (last-pair used-name))
-					  #f)))
-			 (loop (cddr kws)
-			       (cons interface reversed-interfaces)))))))
+		       ((if %autoloader-developer-mode warn error)
+			"no code for module" (module-name used-module))
+		       (beautify-user-module! used-module)))
+		 (let ((interface (module-public-interface used-module)))
+		   (if (not interface)
+		       (error "missing interface for use-module"
+			      used-module))
+		   (if (eq? keyword 'use-syntax)
+		       (internal-use-syntax
+			(module-ref interface (car (last-pair used-name))
+				    #f)))
+		   (loop (cddr kws)
+			 (cons interface reversed-interfaces)))))
 	      ((autoload)
 	       (if (not (and (pair? (cdr kws)) (pair? (cddr kws))))
 		   (error "unrecognized defmodule argument" kws))
