@@ -261,45 +261,41 @@ filltime (struct tm *bd_time, int zoff, char *zname)
   return result;
 }
 
-static char *
+static char tzvar[3] = "TZ";
+extern char ** environ;
+
+static char **
 setzone (SCM zone, int pos, char *subr)
 {
-  char *oldtz = 0;
+  char **oldenv = 0;
 
   if (!SCM_UNBNDP (zone))
     {
+      static char *tmpenv[2];
       char *buf;
 
-      /* if zone was supplied, set the environment variable TZ temporarily.  */
+      /* if zone was supplied, set the environment temporarily.  */
       SCM_ASSERT (SCM_NIMP (zone) && SCM_ROSTRINGP (zone), zone, pos, subr);
       SCM_COERCE_SUBSTR (zone);
-      buf = malloc (SCM_LENGTH (zone) + 4);
-      if (buf == 0)
-	scm_memory_error (subr);
-      oldtz = getenv ("TZ");
-      if (oldtz != NULL)
-	oldtz = oldtz - 3;
-      sprintf (buf, "TZ=%s", SCM_ROCHARS (zone));
-      if (putenv (buf) < 0)
-	scm_syserror (subr);
+      buf = scm_must_malloc (SCM_LENGTH (zone) + sizeof (tzvar) + 1,
+			     subr);
+      sprintf (buf, "%s=%s", tzvar, SCM_ROCHARS (zone));
+      oldenv = environ;
+      tmpenv[0] = buf;
+      tmpenv[1] = 0;
+      environ = tmpenv;
       tzset();
     }
-  return oldtz;
+  return oldenv;
 }
 
 static void
-restorezone (SCM zone, char *oldzone)
+restorezone (SCM zone, char **oldenv, char *subr)
 {
   if (!SCM_UNBNDP (zone))
     {
-      int rv;
-
-      if (oldzone)
-	rv = putenv (oldzone);
-      else
-	rv = putenv ("TZ");
-      if (rv < 0)
-	scm_syserror ("restorezone");
+      scm_must_free (environ[0]);
+      environ = oldenv;
       tzset();
     }
 }
@@ -314,38 +310,39 @@ scm_localtime (SCM time, SCM zone)
   SCM result;
   int zoff;
   char *zname = 0;
-  char *oldtz;
+  char **oldenv;
   int err;
 
   itime = scm_num2long (time, (char *) SCM_ARG1, s_localtime);
   SCM_DEFER_INTS;
-  oldtz = setzone (zone, SCM_ARG2, s_localtime);
+  oldenv = setzone (zone, SCM_ARG2, s_localtime);
   ltptr = localtime (&itime);
   err = errno;
-  /* copied in case localtime and gmtime share a buffer.  */
-  if (ltptr)
-    lt = *ltptr;
-  utc = gmtime (&itime);
-  if (utc == NULL)
-    err = errno;
   if (ltptr)
     {
+      char *ptr;
+
+      /* copy zone name before calling gmtime or tzset.  */
 #ifdef HAVE_TM_ZONE
-      zname = lt.tm_zone;
+      ptr = ltptr->tm_zone;
 #else
 # ifdef HAVE_TZNAME
-      /* must be copied before calling tzset again.  */
-      char *ptr = tzname[ (lt.tm_isdst == 1) ? 1 : 0 ];
-
-      zname = scm_must_malloc (strlen (ptr) + 1, s_localtime);
-      strcpy (zname, ptr);
+      ptr = tzname[ (ltptr->tm_isdst == 1) ? 1 : 0 ];
 # else
       scm_misc_error (s_localtime, "Not fully implemented on this platform",
 		      SCM_EOL);
 # endif
 #endif
+      zname = scm_must_malloc (strlen (ptr) + 1, s_localtime);
+      strcpy (zname, ptr);
     }
-  restorezone (zone, oldtz);
+  /* the struct is copied in case localtime and gmtime share a buffer.  */
+  if (ltptr)
+    lt = *ltptr;
+  utc = gmtime (&itime);
+  if (utc == NULL)
+    err = errno;
+  restorezone (zone, oldenv, s_localtime);
   /* delayed until zone has been restored.  */
   errno = err;
   if (utc == NULL || ltptr == NULL)
@@ -365,6 +362,7 @@ scm_localtime (SCM time, SCM zone)
   
   result = filltime (&lt, zoff, zname);
   SCM_ALLOW_INTS;
+  scm_must_free (zname);
   return result;
 }
 
@@ -422,7 +420,7 @@ scm_mktime (SCM sbd_time, SCM zone)
   SCM result;
   int zoff;
   char *zname = 0;
-  char *oldtz = 0;
+  char **oldenv;
   int err;
 
   SCM_ASSERT (SCM_NIMP (sbd_time) && SCM_VECTORP (sbd_time), sbd_time,
@@ -430,33 +428,35 @@ scm_mktime (SCM sbd_time, SCM zone)
   bdtime2c (sbd_time, &lt, SCM_ARG1, s_mktime);
 
   SCM_DEFER_INTS;
-  oldtz = setzone (zone, SCM_ARG2, s_mktime);
+  oldenv = setzone (zone, SCM_ARG2, s_mktime);
   itime = mktime (&lt);
   err = errno;
 
-  /* timezone offset in seconds west of UTC.  */
+  if (itime != -1)
+    {
+      char *ptr;
+
+      /* copy zone name before calling gmtime or tzset.  */
+#ifdef HAVE_TM_ZONE
+      ptr = lt.tm_zone;
+#else
+# ifdef HAVE_TZNAME
+      ptr = tzname[ (lt.tm_isdst == 1) ? 1 : 0 ];
+# else
+      scm_misc_error (s_mktime, "Not fully implemented on this platform",
+		      SCM_EOL);
+# endif
+#endif
+      zname = scm_must_malloc (strlen (ptr) + 1, s_mktime);
+      strcpy (zname, ptr);
+    }
+
+  /* get timezone offset in seconds west of UTC.  */
   utc = gmtime (&itime);
   if (utc == NULL)
     err = errno;
 
-  if (itime != -1)
-    {
-#ifdef HAVE_TM_ZONE
-      zname = lt.tm_zone;
-#else
-# ifdef HAVE_TZNAME
-      /* must be copied before calling tzset again.  */
-      char *ptr = tzname[ (lt.tm_isdst == 1) ? 1 : 0 ];
-
-      zname = scm_must_malloc (strlen (ptr) + 1, s_mktime);
-      strcpy (zname, ptr);
-# else
-      scm_misc_error (s_localtime, "Not fully implemented on this platform",
-		      SCM_EOL);
-# endif
-#endif
-    }
-  restorezone (zone, oldtz);
+  restorezone (zone, oldenv, s_mktime);
   /* delayed until zone has been restored.  */
   errno = err;
   if (utc == NULL || itime == -1)
@@ -476,6 +476,7 @@ scm_mktime (SCM sbd_time, SCM zone)
   result = scm_cons (scm_long2num ((long) itime),
 		     filltime (&lt, zoff, zname));
   SCM_ALLOW_INTS;
+  scm_must_free (zname);
   return result;
 }
 
@@ -500,6 +501,7 @@ scm_strftime (format, stime)
   int size = 50;
   char *fmt;
   int len;
+  SCM result;
 
   SCM_ASSERT (SCM_NIMP (format) && SCM_ROSTRINGP (format), format, SCM_ARG1,
 	      s_strftime);
@@ -516,7 +518,9 @@ scm_strftime (format, stime)
       size *= 2;
       tbuf = scm_must_malloc (size, s_strftime);
     }
-  return scm_makfromstr (tbuf, len, 0);
+  result = scm_makfromstr (tbuf, len, 0);
+  scm_must_free (tbuf);
+  return result;
 }
 
 SCM_PROC (s_strptime, "strptime", 2, 0, 0, scm_strptime);

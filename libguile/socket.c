@@ -425,6 +425,7 @@ scm_bind (sock, fam, address, args)
   rv = bind (fd, soka, size);
   if (rv == -1)
     scm_syserror (s_bind);
+  scm_must_free ((char *) soka);
   return SCM_UNSPECIFIED;
 }
 

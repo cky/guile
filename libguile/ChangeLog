@@ -1,3 +1,13 @@
+Sun Jan  4 02:23:36 1998  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* socket.c (scm_bind): free soka after use.
+
+Sat Jan  3 20:55:07 1998  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* stime.c (tzvar): new variable.
+	(setzone, restorezone, scm_localtime, scm_mktime, scm_strftime):
+	avoid memory leaks when allocating.
+
 1998-01-03  Jim Blandy  <jimb@totoro.red-bean.com>
 
 	* iselect.h: Some systems require <sys/types.h> to get the FD_SET
