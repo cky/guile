@@ -1,3 +1,7 @@
+1999-09-15  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* backtrace.c: #include <unistd.h> if present.
+
 1999-09-14  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	* Makefile.am (.c.x): Don't create a subshell just to delete the

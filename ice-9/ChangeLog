@@ -1,3 +1,8 @@
+1999-09-15  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* debugger.scm ("evaluate"): Replaced `write-line' with calls to
+	`write' and `newline' since write-line doesn't write but displays.
+
 1999-09-12  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* debugger.scm ("evaluate"): Newline after no env announcement.
