@@ -9,10 +9,10 @@ Please send bug reports to bug-guile@prep.ai.mit.edu.
 About This Distribution ==============================================
 
 The latest official Guile release is available via anonymous FTP from
-prep.ai.mit.edu, as /pub/gnu/guile-core-1.1.tar.gz.
+prep.ai.mit.edu, as /pub/gnu/guile-1.1.tar.gz.
 
-Via the web, that's:  ftp://prep.ai.mit.edu/pub/gnu/guile-core-1.1.tar.gz
-For getit, that's:    prep.ai.mit.edu:/pub/gnu/guile-core-1.1.tar.gz
+Via the web, that's:  ftp://prep.ai.mit.edu/pub/gnu/guile-1.1.tar.gz
+For getit, that's:    prep.ai.mit.edu:/pub/gnu/guile-1.1.tar.gz
 
 The mailing list `guile@cygnus.com' carries discussions, questions,
 and often answers, about Guile.  To subscribe, send mail to
