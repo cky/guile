@@ -519,7 +519,7 @@
 
 
 
-;;; {and-map, or-map, and map-in-order}
+;;; {and-map and or-map}
 ;;;
 ;;; (and-map fn lst) is like (and (fn (car lst)) (fn (cadr lst)) (fn...) ...)
 ;;; (or-map fn lst) is like (or (fn (car lst)) (fn (cadr lst)) (fn...) ...)
@@ -551,37 +551,6 @@
     (or result
 	(and (not (null? l))
 	     (loop (f (car l)) (cdr l))))))
-
-;; map-in-order
-;;
-;; Like map, but guaranteed to process the list in order.
-;;
-(define (map-in-order fn l)
-  (if (null? l)
-      '()
-      (cons (fn (car l))
-	    (map-in-order fn (cdr l)))))
-
-
-;;; {Hooks}
-(define (run-hooks hook)
-  (for-each (lambda (thunk) (thunk)) hook))
-
-(define add-hook!
-  (procedure->macro
-    (lambda (exp env)
-      `(let ((thunk ,(caddr exp)))
-	 (if (not (memq thunk ,(cadr exp)))
-	     (set! ,(cadr exp)
-		   (cons thunk ,(cadr exp))))))))
-
-(define remove-hook!
-  (procedure->macro
-    (lambda (exp env)
-      `(let ((thunk ,(caddr exp)))
-	 (if (memq thunk ,(cadr exp))
-	     (set! ,(cadr exp)
-		   (delq! thunk ,(cadr exp))))))))
 
 
 ;;; {Files}
@@ -1881,20 +1850,22 @@
 (define (resolve-module name . maybe-autoload)
   (let ((full-name (append '(app modules) name)))
     (let ((already (local-ref full-name)))
-    (or already
-	(begin
-	  (if (or (null? maybe-autoload) (car maybe-autoload))
-	      (or (try-module-linked name)
-		  (try-module-autoload name)
-		  (try-module-dynamic-link name)))
-	  (make-modules-in (current-module) full-name))))))
+      (or already
+	  (begin
+	    (if (or (null? maybe-autoload) (car maybe-autoload))
+		(or (try-module-linked name)
+		    (try-module-autoload name)
+		    (try-module-dynamic-link name)))
+	    (make-modules-in (current-module) full-name))))))
 	    
 (define (beautify-user-module! module)
-  (if (not (module-public-interface module))
-      (let ((interface (make-module 31)))
-	(set-module-name! interface (module-name module))
-	(set-module-kind! interface 'interface)
-	(set-module-public-interface! module interface)))
+  (let ((interface (module-public-interface module)))
+    (if (or (not interface)
+	    (eq? interface module))
+	(let ((interface (make-module 31)))
+	  (set-module-name! interface (module-name module))
+	  (set-module-kind! interface 'interface)
+	  (set-module-public-interface! module interface))))
   (if (and (not (memq the-scm-module (module-uses module)))
 	   (not (eq? module the-root-module)))
       (set-module-uses! module (append (module-uses module) (list the-scm-module)))))
@@ -1905,7 +1876,8 @@
   (if (null? name)
       module
       (cond
-       ((module-ref module (car name) #f) => (lambda (m) (make-modules-in m (cdr name))))
+       ((module-ref module (car name) #f)
+	=> (lambda (m) (make-modules-in m (cdr name))))
        (else	(let ((m (make-module 31)))
 		  (set-module-kind! m 'directory)
 		  (set-module-name! m (car name))
@@ -1946,19 +1918,29 @@
 		   (error "unrecognized defmodule argument" kws))
 	       (let* ((used-name (cadr kws))
 		      (used-module (resolve-module used-name)))
-		 (if (not (module-ref used-module '%module-public-interface #f))
+		 (if (eq? used-module module)
 		     (begin
-		       ((if %autoloader-developer-mode warn error)
-			"no code for module" (module-name used-module))
-		       (beautify-user-module! used-module)))
-		 (let ((interface (module-public-interface used-module)))
-		   (if (not interface)
-		       (error "missing interface for use-module" used-module))
-		   (if (eq? keyword 'use-syntax)
-		       (internal-use-syntax
-			(module-ref interface (car (last-pair used-name))
-				    #f)))
-		   (loop (cddr kws) (cons interface reversed-interfaces)))))
+		       (or (try-module-linked used-name)
+			   (try-module-dynamic-link used-name))
+		       (loop (cddr kws) reversed-interfaces))
+		     (begin
+		       (if (not (module-ref used-module
+					    '%module-public-interface
+					    #f))
+			   (begin
+			     ((if %autoloader-developer-mode warn error)
+			      "no code for module" (module-name used-module))
+			     (beautify-user-module! used-module)))
+		       (let ((interface (module-public-interface used-module)))
+			 (if (not interface)
+			     (error "missing interface for use-module"
+				    used-module))
+			 (if (eq? keyword 'use-syntax)
+			     (internal-use-syntax
+			      (module-ref interface (car (last-pair used-name))
+					  #f)))
+			 (loop (cddr kws)
+			       (cons interface reversed-interfaces)))))))
 	      (else	
 	       (error "unrecognized defmodule argument" kws))))))
     module))
@@ -2076,18 +2058,26 @@
     (c-clear-registered-modules)
     res))
 
-(define registered-modules (convert-c-registered-modules #f))
-    
+(define registered-modules '())
+
+(define (register-modules dynobj)
+  (set! registered-modules
+	(append! (convert-c-registered-modules dynobj)
+		 registered-modules)))
+
 (define (init-dynamic-module modname)
+  ;; Register any linked modules which has been registered on the C level
+  (register-modules #f)
   (or-map (lambda (modinfo)
 	    (if (equal? (car modinfo) modname)
+		(set! registered-modules (delq! modinfo registered-modules))
 		(let ((mod (resolve-module modname #f)))
 		  (save-module-excursion
 		   (lambda ()
 		     (set-current-module mod)
+		     (set-module-public-interface! mod mod)
 		     (dynamic-call (cadr modinfo) (caddr modinfo))
-		     (set-module-public-interface! mod mod)))
-		  (set! registered-modules (delq! modinfo registered-modules))
+		     ))
 		  #t)
 		#f))
 	  registered-modules))
@@ -2170,11 +2160,11 @@
   (in-vicinity libdir (string-append libname ".so")))
 
 (define (link-dynamic-module filename initname)
+  ;; Register any linked modules which has been registered on the C level
+  (register-modules #f)
   (let ((dynobj (dynamic-link filename)))
     (dynamic-call initname dynobj)
-    (set! registered-modules 
-	  (append! (convert-c-registered-modules dynobj)
-		   registered-modules))))
+    (register-modules dynobj)))
 
 (define (try-module-linked module-name)
   (init-dynamic-module module-name))
@@ -2429,7 +2419,7 @@
     (else
      (apply default-lazy-handler key args))))
 
-(define abort-hook '())
+(define abort-hook (make-hook))
 
 ;; these definitions are used if running a script.
 ;; otherwise redefined in error-catching-loop.
@@ -2542,10 +2532,10 @@
 			 (apply make-stack #t save-stack id narrowing))))))
 	 (set! stack-saved? #t))))
 
-(define before-error-hook '())
-(define after-error-hook '())
-(define before-backtrace-hook '())
-(define after-backtrace-hook '())
+(define before-error-hook (make-hook))
+(define after-error-hook (make-hook))
+(define before-backtrace-hook (make-hook))
+(define after-backtrace-hook (make-hook))
 
 (define has-shown-debugger-hint? #f)
 
@@ -2593,8 +2583,8 @@
 (define (gc-run-time)
   (cdr (assq 'gc-time-taken (gc-stats))))
 
-(define before-read-hook '())
-(define after-read-hook '())
+(define before-read-hook (make-hook))
+(define after-read-hook (make-hook))
 
 ;;; The default repl-reader function.  We may override this if we've
 ;;; the readline library.
@@ -3015,7 +3005,7 @@
 
 ;;; This hook is run at the very end of an interactive session.
 ;;;
-(define exit-hook '())
+(define exit-hook (make-hook))
 
 ;;; Load readline code into root module if readline primitives are available.
 ;;;
