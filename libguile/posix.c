@@ -168,13 +168,18 @@ SCM_SYMBOL (sym_write_pipe, "write pipe");
 
 SCM_DEFINE (scm_pipe, "pipe", 0, 0, 0,
             (),
-	    "Creates a pipe which can be used for communication.  The return value\n"
-	    "is a pair in which the CAR contains an input port and the CDR an\n"
-	    "output port.  Data written to the output port can be read from the\n"
-	    "input port.  Note that both ports are buffered so it may be necessary\n"
-	    "to flush the output port before data will actually be sent across the pipe.\n"
-	    "Alternatively a buffer can be added to the port using @code{setvbuf}\n"
-	    "(see below).")
+	    "Returns a newly created pipe: a pair of ports which are linked\n"
+	    "together on the local machine.  The CAR is the input port and\n"
+	    "the CDR is the output port.  Data written (and flushed) to the\n"
+	    "output port can be read from the input port.\n"
+	    "Pipes are commonly used for communication with a newly\n"
+	    "forked child process. @code{setvbuf} can be used to remove the\n"
+	    "buffer from the output port: then data written will be\n"
+	    "available at the input port even if the output port is not\n"
+	    "flushed.  Note that the output port is likely\n"
+	    "to block if too much data is written without reading from\n"
+	    "the input port."
+	    )
 #define FUNC_NAME s_scm_pipe
 {
   int fd[2], rv;

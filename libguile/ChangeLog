@@ -1,5 +1,7 @@
 2000-01-29  Gary Houston  <ghouston@arglist.com>
 
+	* posix.c (scm_pipe): rewrote the docstring.
+
 	* filesys.c (scm_select, retrieve_select_type, get_element,
 	fill_select_type, set_element): modified so that Scheme
 	"select" tests port buffers for the ability to provide input

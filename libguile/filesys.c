@@ -1050,18 +1050,19 @@ SCM_DEFINE (scm_select, "select", 3, 2, 0,
       max_fd = except_max;
   }
 
-  if (SCM_UNBNDP (secs) || SCM_FALSEP (secs))
+  /* if there's a port with a ready buffer, don't block, just
+     check for ready file descriptors.  */
+  if (read_ports_ready != SCM_EOL || write_ports_ready != SCM_EOL)
+    {
+      timeout.tv_sec = 0;
+      timeout.tv_usec = 0;
+      time_ptr = &timeout;
+    }
+  else if (SCM_UNBNDP (secs) || SCM_FALSEP (secs))
     time_ptr = 0;
   else
     {
-      /* if there's a port with a ready buffer, don't block, just
-	 check for ready file descriptors.  */
-      if (read_ports_ready != SCM_EOL || write_ports_ready != SCM_EOL)
-	{
-	  timeout.tv_sec = 0;
-	  timeout.tv_usec = 0;
-	}
-      else if (SCM_INUMP (secs))
+      if (SCM_INUMP (secs))
 	{
 	  timeout.tv_sec = SCM_INUM (secs);
 	  if (SCM_UNBNDP (usecs))
