@@ -67,17 +67,17 @@
  * certain class or its subclasses when traversal of the inheritance
  * graph would be too costly.
  */
-#define SCM_CLASS_FLAGS(class) (SCM_STRUCT_DATA (class)[scm_struct_i_tag])
+#define SCM_CLASS_FLAGS(class) (SCM_STRUCT_DATA (class)[scm_struct_i_flags])
 #define SCM_OBJ_CLASS_FLAGS(obj)\
-(SCM_STRUCT_VTABLE_DATA (obj)[scm_struct_i_tag])
+(SCM_STRUCT_VTABLE_DATA (obj)[scm_struct_i_flags])
 #define SCM_SET_CLASS_FLAGS(c, f) (SCM_CLASS_FLAGS (c) |= (f))
 #define SCM_CLEAR_CLASS_FLAGS(c, f) (SCM_CLASS_FLAGS (c) &= ~(f))
 #define SCM_CLASSF_MASK (0xFF << 24)
 
-/* Operator classes need to be identified in the evaluator. */
-#define SCM_CLASSF_OPERATOR	(1L << 30)
-/* Entities also have SCM_CLASSF_OPERATOR set in their vtable. */
-#define SCM_CLASSF_ENTITY	(1L << 29)
+#define SCM_CLASSF_ENTITY	SCM_STRUCTF_ENTITY
+/* Operator classes need to be identified in the evaluator.
+   (Entities also have SCM_CLASSF_OPERATOR set in their vtable.) */
+#define SCM_CLASSF_OPERATOR	(1L << 29)
 
 #define SCM_I_OPERATORP(obj)\
 ((SCM_OBJ_CLASS_FLAGS (obj) & SCM_CLASSF_OPERATOR) != 0)
@@ -92,11 +92,10 @@
 
 #define SCM_I_ENTITYP(obj)\
 ((SCM_OBJ_CLASS_FLAGS (obj) & SCM_CLASSF_ENTITY) != 0)
-#define SCM_ENTITY(obj) ((scm_entity*) SCM_STRUCT_DATA (obj))
-#define SCM_ENTITY_PROC_0(obj) (SCM_ENTITY (obj)->proc0)
-#define SCM_ENTITY_PROC_1(obj) (SCM_ENTITY (obj)->proc1)
-#define SCM_ENTITY_PROC_2(obj) (SCM_ENTITY (obj)->proc2)
-#define SCM_ENTITY_PROC_3(obj) (SCM_ENTITY (obj)->proc3)
+#define SCM_ENTITY_PROC_0(obj) (SCM_STRUCT_DATA (obj)[scm_struct_i_proc + 0])
+#define SCM_ENTITY_PROC_1(obj) (SCM_STRUCT_DATA (obj)[scm_struct_i_proc + 1])
+#define SCM_ENTITY_PROC_2(obj) (SCM_STRUCT_DATA (obj)[scm_struct_i_proc + 2])
+#define SCM_ENTITY_PROC_3(obj) (SCM_STRUCT_DATA (obj)[scm_struct_i_proc + 3])
 
 /* {Operator classes}
  *
@@ -158,13 +157,7 @@ struct scm_metaclass_operator {
  *
  * An example of an entity class is the class of generic methods.
  */
-#define SCM_ENTITY_LAYOUT "popopopo"
-typedef struct scm_entity {
-  SCM proc0;
-  SCM proc1;
-  SCM proc2;
-  SCM proc3;
-} scm_entity;
+#define SCM_ENTITY_LAYOUT ""
 
 extern SCM scm_metaclass_standard;
 extern SCM scm_metaclass_operator;
