@@ -2130,7 +2130,20 @@ evapply:
 	RETURN (t.arg1)
 #endif /* BUILTIN_RPASUBR */
       case scm_tc7_rpsubr:
+#ifdef BUILTIN_RPASUBR
+	if (SCM_FALSEP (SCM_SUBRF (proc) (t.arg1, arg2)))
+	  RETURN (SCM_BOOL_F)
+	t.arg1 = SCM_CDR (SCM_CDR (debug.info->a.args));
+	do {
+	  if (SCM_FALSEP (SCM_SUBRF (proc) (arg2, SCM_CAR (t.arg1))))
+	    RETURN (SCM_BOOL_F)
+	  arg2 = SCM_CAR (t.arg1);
+	  t.arg1 = SCM_CDR (t.arg1);
+	} while (SCM_NIMP (t.arg1));
+	RETURN (SCM_BOOL_T)
+#else /* BUILTIN_RPASUBR */
 	RETURN (SCM_APPLY (proc, t.arg1, scm_acons (arg2, SCM_CDR (SCM_CDR (debug.info->a.args)), SCM_EOL)))
+#endif /* BUILTIN_RPASUBR */
       case scm_tc7_lsubr_2:
 	RETURN (SCM_SUBRF (proc) (t.arg1, arg2, SCM_CDR (SCM_CDR (debug.info->a.args))))
       case scm_tc7_lsubr:
@@ -2160,7 +2173,20 @@ evapply:
 	RETURN (t.arg1)
 #endif /* BUILTIN_RPASUBR */
       case scm_tc7_rpsubr:
+#ifdef BUILTIN_RPASUBR
+	if (SCM_FALSEP (SCM_SUBRF (proc) (t.arg1, arg2)))
+	  RETURN (SCM_BOOL_F)
+	do {
+	  t.arg1 = EVALCAR (x, env);
+	  if (SCM_FALSEP (SCM_SUBRF (proc) (arg2, t.arg1)))
+	    RETURN (SCM_BOOL_F)
+	  arg2 = t.arg1;
+	  x = SCM_CDR (x);
+	} while (SCM_NIMP (x));
+	RETURN (SCM_BOOL_T)
+#else /* BUILTIN_RPASUBR */
 	RETURN (SCM_APPLY (proc, t.arg1, scm_acons (arg2, scm_eval_args (x, env), SCM_EOL)));
+#endif /* BUILTIN_RPASUBR */
       case scm_tc7_lsubr_2:
 	RETURN (SCM_SUBRF (proc) (t.arg1, arg2, scm_eval_args (x, env)));
       case scm_tc7_lsubr:
