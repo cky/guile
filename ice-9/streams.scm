@@ -157,25 +157,42 @@ If STREAM has infinite length this procedure will not terminate."
 
 (define (stream-fold f init stream . rest)
   (if (null? rest) ;fast path
-      (let loop ((stream stream) (r init))
-        (if (stream-null? stream)
-            r
-            (loop (stream-cdr stream) (f (stream-car stream) r))))
-      (let loop ((streams (cons stream rest)) (r init))
-        (if (or-map stream-null? streams)
-            r
-            (loop (map stream-cdr streams)
-                  (apply f (let recur ((cars (map stream-car streams)))
-                             (if (null? cars)
-                                 (list r)
-                                 (cons (car cars)
-                                       (recur (cdr cars)))))))))))
+      (stream-fold-one f init stream)
+      (stream-fold-many f init (cons stream rest))))
+
+(define (stream-fold-one f r stream)
+  (if (stream-null? stream)
+      r
+      (stream-fold-one f (f (stream-car stream) r) (stream-cdr stream))))
+
+(define (stream-fold-many f r streams)
+  (if (or-map stream-null? streams)
+      r
+      (stream-fold-many f
+                        (apply f (let recur ((cars
+                                              (map stream-car streams)))
+                                   (if (null? cars)
+                                       (list r)
+                                       (cons (car cars)
+                                             (recur (cdr cars))))))
+                        (map stream-cdr streams))))
 
 (define (stream-for-each f stream . rest)
-  (apply stream-fold
-         (lambda (elt _) (f elt))
-         #f
-         stream rest))
+  (if (null? rest) ;fast path
+      (stream-for-each-one f stream)
+      (stream-for-each-many f (cons stream rest))))
+
+(define (stream-for-each-one f stream)
+  (if (not (stream-null? stream))
+      (begin
+        (f (stream-car stream))
+        (stream-for-each-one f (stream-cdr stream)))))
+
+(define (stream-for-each-may f streams)
+  (if (not (or-map stream-null? streams))
+      (begin
+        (apply f (map stream-car streams))
+        (stream-for-each-one f (map stream-cdr streams)))))
 
 (define (stream-map f stream . rest)
   "Returns a newly allocated stream, each element being the result of

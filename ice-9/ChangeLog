@@ -1,3 +1,8 @@
+2000-04-03  Michael Livshin  <mlivshin@bigfoot.com>
+
+	* streams.scm (stream-fold, stream-for-each): don't use named let, 
+	because it prevents the gc from junking the stream argument.
+
 Thu Mar  9 08:05:08 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* slib.scm: Back-out change to software-type -- renamed
