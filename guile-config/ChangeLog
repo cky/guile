@@ -1,3 +1,7 @@
+2005-02-10  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* guile-config.in (build-link): Replaced -lguile-ltdl with -lltdl.
+
 2004-10-08  Han-Wen Nienhuys  <hanwen@xs4all.nl>
 
 	* guile-config.in: remove display-separated.
