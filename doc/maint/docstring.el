@@ -50,10 +50,18 @@
 ;; The approaches are as follows.
 ;;
 ;; 1. Comparison of MANUAL-DOC, SOURCE-DOC and TRACK-DOC, to produce a
-;; summary output buffer in which keystrokes are defined to bring up
-;; detailed comparisons.
+;;    summary output buffer in which keystrokes are defined to bring up
+;;    detailed comparisons.
 ;;
 ;; 2. Comparison of MANUAL-DOC, SOURCE-DOC and TRACK-DOC using Ediff.
+;;
+;; Here is a brief list of commands available (via "M-x COMMAND"):
+;;
+;;    docstring-process-current-buffer
+;;    docstring-process-current-region BEG END
+;;    docstring-process-module MODULE
+;;    docstring-ediff-this-line
+;;    docstring-show-source
 
 ;;; Code:
 
