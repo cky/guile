@@ -1129,8 +1129,8 @@ SCM_DEFINE (scm_uniform_vector_ref, "uniform-vector-ref", 2, 0, 0,
     case scm_tc7_dvect:
       return scm_from_double (((double *) SCM_CELL_WORD_1 (v))[pos]);
     case scm_tc7_cvect:
-      return scm_make_complex (((double *) SCM_CELL_WORD_1 (v))[2 * pos],
-			       ((double *) SCM_CELL_WORD_1 (v))[2 * pos + 1]);
+      return scm_c_make_rectangular (((double *) SCM_CELL_WORD_1(v))[2*pos],
+				     ((double *) SCM_CELL_WORD_1(v))[2*pos+1]);
     case scm_tc7_vector:
     case scm_tc7_wvect:
       return SCM_VELTS (v)[pos];
@@ -1189,8 +1189,8 @@ scm_cvref (SCM v, unsigned long pos, SCM last)
 	  SCM_COMPLEX_IMAG (last) = ((double *) SCM_CELL_WORD_1 (v))[2 * pos + 1];
 	  return last;
 	}
-      return scm_make_complex (((double *) SCM_CELL_WORD_1 (v))[2 * pos],
-			       ((double *) SCM_CELL_WORD_1 (v))[2 * pos + 1]);
+      return scm_c_make_rectangular (((double *) SCM_CELL_WORD_1(v))[2*pos],
+				     ((double *) SCM_CELL_WORD_1(v))[2*pos+1]);
     case scm_tc7_vector:
     case scm_tc7_wvect:
       return SCM_VELTS (v)[pos];
@@ -2161,7 +2161,8 @@ SCM_DEFINE (scm_array_to_list, "array->list", 1, 0, 0,
       {
 	double (*data)[2] = (double (*)[2]) SCM_VELTS (v);
 	for (k = SCM_UVECTOR_LENGTH (v) - 1; k >= 0; k--)
-	  res = scm_cons (scm_make_complex (data[k][0], data[k][1]), res);
+	  res = scm_cons (scm_c_make_rectangular (data[k][0], data[k][1]),
+			  res);
 	return res;
       }
     }
@@ -2409,7 +2410,8 @@ tail:
     case scm_tc7_cvect:
       if (n-- > 0)
 	{
-	  SCM cz = scm_make_complex (0.0, 1.0), z = scm_from_double (1.0/3.0);
+	  SCM cz = scm_c_make_rectangular (0.0, 1.0);
+	  SCM z = scm_from_double (1.0/3.0);
 	  SCM_REAL_VALUE (z) =
 	    SCM_COMPLEX_REAL (cz) = ((double *) SCM_VELTS (ra))[2 * j];
 	  SCM_COMPLEX_IMAG (cz) = ((double *) SCM_VELTS (ra))[2 * j + 1];
@@ -2568,7 +2570,7 @@ loop:
     case scm_tc7_dvect:
       return exactly_one_third;
     case scm_tc7_cvect:
-      return scm_make_complex (0.0, 1.0);
+      return scm_c_make_rectangular (0.0, 1.0);
     }
 }
 #undef FUNC_NAME

@@ -1369,8 +1369,8 @@ ramap_rp (SCM ra0, SCM proc, SCM ras)
       }
     case scm_tc7_cvect:
       {
-	SCM a1 = scm_make_complex (1.0, 1.0);
-	SCM a2 = scm_make_complex (1.0, 1.0);
+	SCM a1 = scm_c_make_rectangular (1.0, 1.0);
+	SCM a2 = scm_c_make_rectangular (1.0, 1.0);
 	for (; n-- > 0; i0 += inc0, i1 += inc1, i2 += inc2)
 	  if (SCM_BITVEC_REF (ra0, i0))
 	    {
