@@ -140,35 +140,45 @@
        (string-append program-name
 		      " link: arguments to subcommand not yet implemented")))
 
-  (let* ((flags
-	  (let loop ((libs
-		      ;; Get the string of linker flags we used to build
-		      ;; Guile, and break it up into a list.
-		      (separate-fields-discarding-char #\space
-						       (get-build-info 'LIBS)
-						       list)))
-
-	    (cond
-	     ((null? libs) '())
-
-	     ;; Turn any "FOO/libBAR.a" elements into "-lBAR".
-	     ((match-lib (car libs))
-	      => (lambda (bar)
-		   (cons (string-append "-l" bar)
-			 (loop (cdr libs)))))
-
-	     ;; Remove any empty strings that may have seeped in there.
-	     ((string=? (car libs) "") (loop (cdr libs)))
-	    
-	     (else (cons (car libs) (loop (cdr libs)))))))
-
-	 ;; Include libguile itself in the list, along with the
-	 ;; directory it was installed in.
-	 (flags (cons (string-append "-L" (get-build-info 'libdir))
-		      (cons "-lguile" flags))))
-
+  (let ((libdir (get-build-info 'libdir))
+        (other-flags
+         (let loop ((libs
+                     ;; Get the string of linker flags we used to build
+                     ;; Guile, and break it up into a list.
+                     (separate-fields-discarding-char #\space
+                                                      (get-build-info 'LIBS)
+                                                      list)))
+            
+           (cond
+            ((null? libs) '())
+            
+            ;; Turn any "FOO/libBAR.a" elements into "-lBAR".
+            ((match-lib (car libs))
+             => (lambda (bar)
+                  (cons (string-append "-l" bar)
+                        (loop (cdr libs)))))
+            
+            ;; Remove any empty strings that may have seeped in there.
+            ((string=? (car libs) "") (loop (cdr libs)))
+            
+            (else (cons (car libs) (loop (cdr libs))))))))
+    
+    ;; Include libguile itself in the list, along with the directory
+    ;; it was installed in, but do *not* add /usr/lib since that may
+    ;; prevent other programs from specifying non-/usr/lib versions
+    ;; via their foo-config scripts.  If *any* app puts -L/usr/lib in
+    ;; the output of its foo-config script then it may prevent the use
+    ;; a non-/usr/lib install of anything that also has a /usr/lib
+    ;; install. For now we hard-code /usr/lib, but later maybe we can
+    ;; do something more dynamic (i.e. what do we need.
+    
     ;; Display the flags, separated by spaces.
-    (display-separated flags)
+    (if (or (string=? libdir "/usr/lib")
+            (string=? libdir "/usr/lib/"))
+        (display-separated (cons "-lguile" other-flags))
+        (display-separated (cons
+                            (string-append "-L" (get-build-info 'libdir))
+                            (cons "-lguile" other-flags))))
     (newline)))
 
 (define (help-link)
@@ -191,7 +201,12 @@
       (error
        (string-append program-name
 		      " compile: no arguments expected")))
-  (display-line "-I" (get-build-info 'includedir)))
+
+  ;; See gcc manual wrt fixincludes.  Search for "Use of
+  ;; `-I/usr/include' may cause trouble."  For now we hard-code this.
+  ;; Later maybe we can do something more dynamic.
+  (if (not (string=? (get-build-info 'includedir) "/usr/include"))
+      (display-line "-I" (get-build-info 'includedir))))
 
 (define (help-compile)
   (let ((dle display-line-error))
@@ -258,12 +273,12 @@
   (newline port))
 
 (define (display-separated args)
-  (let loop ((args args))
-    (cond ((null? args))
-	  ((null? (cdr args)) (display (car args)))
-	  (else (display (car args))
-		(display " ")
-		(loop (cdr args))))))
+  (if (not (null? args))
+      (begin
+        (display (car args))
+        (for-each
+         (lambda (arg) (display " ") (display arg))
+         (cdr args)))))
 
 
 ;;;; the command table
