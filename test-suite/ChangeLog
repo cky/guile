@@ -1,3 +1,8 @@
+2005-01-12  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/srfi-39.test (current-input-port, current-output-port,
+	current-error-port): New tests.
+
 2005-01-10  Marius Vollmer  <mvo@zagadka.de>
 
 	* tests/unif.test (exception:wrong-num-indices): New, use it for
