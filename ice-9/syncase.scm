@@ -21,28 +21,44 @@
 
 
 
+(define-public sc-macro
+  (procedure->memoizing-macro
+    (lambda (exp env)
+      (sc-expand exp))))
+
 ;;; Exported variables
 
+(define-public sc-expand #f)
+(define-public sc-expand3 #f)
 (define-public install-global-transformer #f)
 (define-public syntax-dispatch #f)
 (define-public syntax-error #f)
 
 (define-public bound-identifier=? #f)
 (define-public datum->syntax-object #f)
-(define-public define-syntax #f)
-(define-public fluid-let-syntax #f)
+(define-public define-syntax sc-macro)
+(define-public eval-when sc-macro)
+(define-public fluid-let-syntax sc-macro)
 (define-public free-identifier=? #f)
 (define-public generate-temporaries #f)
 (define-public identifier? #f)
-(define-public identifier-syntax #f)
-(define-public let-syntax #f)
-(define-public letrec-syntax #f)
-(define-public syntax #f)
-(define-public syntax-case #f)
+(define-public identifier-syntax sc-macro)
+(define-public let-syntax sc-macro)
+(define-public letrec-syntax sc-macro)
+(define-public syntax sc-macro)
+(define-public syntax-case sc-macro)
 (define-public syntax-object->datum #f)
-(define-public syntax-rules #f)
-(define-public with-syntax #f)
+(define-public syntax-rules sc-macro)
+(define-public with-syntax sc-macro)
+(define-public include sc-macro)
 
+(define primitive-syntax '(quote lambda letrec if set! begin define or
+			      and let let* cond do quasiquote unquote
+			      unquote-splicing case))
+
+(for-each (lambda (symbol)
+	    (set-symbol-property! symbol 'primitive-syntax #t))
+	  primitive-syntax)
 
 ;;; Hooks needed by the syntax-case macro package
 
@@ -74,17 +90,29 @@
 			  (list why what)
 			  '())))
 
+(define the-syncase-module (current-module))
+
 (define (putprop symbol key binding)
   (let* ((m (current-module))
 	 (v (or (module-variable m symbol)
 		(module-make-local-var! m symbol))))
+    (if (assq 'primitive-syntax (symbol-pref symbol))
+	(if (eq? (current-module) the-syncase-module)
+	    (set-object-property! (module-variable the-root-module symbol)
+				  key
+				  binding))
+	(variable-set! v sc-macro))
     (set-object-property! v key binding)))
 
 (define (getprop symbol key)
   (let* ((m (current-module))
 	 (v (module-variable m symbol)))
-    (and v (object-property v key))))
+    (and v (or (object-property v key)
+	       (let ((root-v (module-local-variable the-root-module symbol)))
+		 (and (equal? root-v v)
+		      (object-property root-v key)))))))
 
+(define generated-symbols (make-weak-key-hash-table 1019))
 
 ;;; Compatibility
 
@@ -109,6 +137,21 @@
 	    (apply consumer (access-values result))
 	    (consumer result))))))
 
+;;; Utilities
+
+(define (psyncomp)
+  (system "mv -f psyntax.pp psyntax.pp~")
+  (let ((in (open-input-file "psyntax.ss"))
+	(out (open-output-file "psyntax.pp")))
+    (let loop ((x (read in)))
+      (if (eof-object? x)
+	  (begin
+	    (close-port out)
+	    (close-port in))
+	  (begin
+	    (write (sc-expand3 x 'c '(compile load eval)) out)
+	    (newline out)
+	    (loop (read in)))))))
 
 ;;; Load the preprocessed code
 
@@ -129,10 +172,19 @@
 ;;; The following line is necessary only if we start making changes
 ;; (load-from-path "ice-9/psyntax.ss")
 
+(define internal-eval (nested-ref the-scm-module '(app modules guile eval)))
 
-;;; Setup some hooks for the module system and the evaluator
+(define-public (eval x)
+  (internal-eval (if (and (pair? x)
+			  (string=? (car x) "noexpand"))
+		     (cadr x)
+		     (sc-expand x))))
 
-(variable-set! (builtin-variable 'sc-interface)
-	       (module-public-interface (current-module)))
-(variable-set! (builtin-variable 'sc-expand) sc-expand)
-(variable-set! (builtin-variable 'scm:eval-transformer) #f)
+;;; Hack to make syncase macros work in the slib module
+(let ((m (nested-ref the-root-module '(app modules ice-9 slib))))
+  (if m
+      (set-object-property! (module-local-variable m 'define)
+			    '*sc-expander*
+			    '(define))))
+
+(define-public syncase sc-expand)

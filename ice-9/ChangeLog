@@ -1,3 +1,48 @@
+Wed Sep 10 20:12:45 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+*	* boot-9.scm (primitive-macro?): New procedure.
+
+	* slib.scm: Added hack which transfers syntactic information from
+	the builtin variable `define' to the slib version if module (ice-9
+	syncase) has been loaded.  This is necessary to get correct
+	expansion inside the slib module.
+
+	* psyntax.ss (build-let, build-named-let): New output
+ 	constructors.
+	(build-lexical-var): Seed gensym with symbolic name.
+	(self-evaluating?): Add keywords among self-evaluating types.
+	(let): New core form.
+	(if): Removed from core language.
+	(or, and, let, cond): Removed syntactic definitions.
+	(sc-expand3): New procedure: Expander which takes optional mode
+ 	and eval-syntactic-expanders-when arguments.
+
+	* syncase.scm (psyncomp): New procedure: Recompiles psyntax.pp.
+	Should be used inside the (ice-9 syncase) module with (use-syntax
+	syncase) and with the current directory containing the psyntax.ss
+	source.
+	Added hack to transfer syntactic information from the builtin
+	variable `define' to the slib version if module (ice-9 slib) has
+	been loaded.
+	
+Fri Sep  5 05:47:36 1997  Mikael Djurfeldt  <mdj@faun.nada.kth.se>
+
+	* syncase.scm (sc-interface, sc-expand): Removed hook setup.
+	(syncase): Publish syntax transformer to be used with
+	`use-syntax'.
+	(sc-macro): Use this as the value when publishing macros.
+
+	* boot-9.scm (module-type): Added `transformer'.
+	(make-module): Modified initialization.
+	(module-transformer, set-module-transformer!): Selector and
+ 	mutator for module-associated transformer.
+	(set-current-module): Use module-transformer to set
+ 	`scm:eval-transformer'.
+	(module-use!): Previous change reverted.
+*	(use-syntax): New function: Install a transformer in current
+ 	module.
+	(sc-interface, sc-expand): Removed! :)
+
 Fri Sep  5 03:09:09 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* emacs.scm (emacs-load): Added new parameter `module'.

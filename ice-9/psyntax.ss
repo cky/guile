@@ -379,6 +379,18 @@
         (car exps)
         `(begin ,@exps))))
 
+(define build-let
+  (lambda (src vars val-exps body-exp)
+    (if (null? vars)
+	body-exp
+	`(let ,(map list vars val-exps) ,body-exp))))
+
+(define build-named-let
+  (lambda (src vars val-exps body-exp)
+    (if (null? vars)
+	body-exp
+	`(let ,(car vars) ,(map list (cdr vars) val-exps) ,body-exp))))
+
 (define build-letrec
   (lambda (src vars val-exps body-exp)
     (if (null? vars)
@@ -387,13 +399,13 @@
 
 (define-syntax build-lexical-var
   (syntax-rules ()
-    ((_ src id) (gensym))))
+    ((_ src id) (gensym id generated-symbols))))
 
 (define-syntax self-evaluating?
   (syntax-rules ()
     ((_ e)
      (let ((x e))
-       (or (boolean? x) (number? x) (string? x) (char? x) (null? x))))))
+       (or (boolean? x) (number? x) (string? x) (char? x) (null? x) (keyword? x))))))
 )
 
 (define-structure (syntax-object expression wrap))
@@ -1593,6 +1605,37 @@
             (lambda (vars body) (build-lambda s vars body)))))))
 
 
+(global-extend 'core 'let
+  (let ()
+    (define (chi-let e r w s constructor ids vals exps)
+      (if (not (valid-bound-ids? ids))
+	  (syntax-error e "duplicate bound variable in")
+	  (let ((labels (gen-labels ids))
+		(new-vars (map gen-var ids)))
+	    (let ((nw (make-binding-wrap ids labels w))
+		  (nr (extend-var-env labels new-vars r)))
+	      (constructor s
+			   new-vars
+			   (map (lambda (x) (chi x r w)) vals)
+			   (chi-body exps (source-wrap e nw s) nr nw))))))
+    (lambda (e r w s)
+      (syntax-case e ()
+	((_ ((id val) ...) e1 e2 ...)
+	 (chi-let e r w s
+		  build-let
+		  (syntax (id ...))
+		  (syntax (val ...))
+		  (syntax (e1 e2 ...))))
+	((_ f ((id val) ...) e1 e2 ...)
+	 (id? (syntax f))
+	 (chi-let e r w s
+		  build-named-let
+		  (syntax (f id ...))
+		  (syntax (val ...))
+		  (syntax (e1 e2 ...))))
+	(_ (syntax-error (source-wrap e w s)))))))
+
+
 (global-extend 'core 'letrec
   (lambda (e r w s)
     (syntax-case e ()
@@ -1609,21 +1652,6 @@
                    (map (lambda (x) (chi x r w)) (syntax (val ...)))
                    (chi-body (syntax (e1 e2 ...)) (source-wrap e w s) r w)))))))
       (_ (syntax-error (source-wrap e w s))))))
-
-(global-extend 'core 'if
-   (lambda (e r w s)
-      (syntax-case e ()
-         ((_ test then)
-          (build-conditional s
-             (chi (syntax test) r w)
-             (chi (syntax then) r w)
-             (chi-void)))
-         ((_ test then else)
-          (build-conditional s
-             (chi (syntax test) r w)
-             (chi (syntax then) r w)
-             (chi (syntax else) r w)))
-         (_ (syntax-error (source-wrap e w s))))))
 
 
 (global-extend 'core 'set!
@@ -1799,6 +1827,19 @@
       (if (and (pair? x) (equal? (car x) noexpand))
           (cadr x)
           (chi-top x null-env top-wrap m esew)))))
+
+(set! sc-expand3
+  (let ((m 'e) (esew '(eval)))
+    (lambda (x . rest)
+      (if (and (pair? x) (equal? (car x) noexpand))
+          (cadr x)
+          (chi-top x
+		   null-env
+		   top-wrap
+		   (if (null? rest) m (car rest))
+		   (if (or (null? rest) (null? (cdr rest)))
+		       esew
+		       (cadr rest)))))))
 
 (set! identifier?
   (lambda (x)
@@ -1984,32 +2025,6 @@
                   ((dummy . pattern) (syntax template))
                   ...)))))))
 
-(define-syntax or
-   (lambda (x)
-      (syntax-case x ()
-         ((_) (syntax #f))
-         ((_ e) (syntax e))
-         ((_ e1 e2 e3 ...)
-          (syntax (let ((t e1)) (if t t (or e2 e3 ...))))))))
-
-(define-syntax and
-   (lambda (x)
-      (syntax-case x ()
-         ((_ e1 e2 e3 ...) (syntax (if e1 (and e2 e3 ...) #f)))
-         ((_ e) (syntax e))
-         ((_) (syntax #t)))))
-
-(define-syntax let
-   (lambda (x)
-      (syntax-case x ()
-         ((_ ((x v) ...) e1 e2 ...)
-          (andmap identifier? (syntax (x ...)))
-          (syntax ((lambda (x ...) e1 e2 ...) v ...)))
-         ((_ f ((x v) ...) e1 e2 ...)
-          (andmap identifier? (syntax (f x ...)))
-          (syntax ((letrec ((f (lambda (x ...) e1 e2 ...))) f)
-                    v ...))))))
-
 (define-syntax let*
   (lambda (x)
     (syntax-case x ()
@@ -2021,25 +2036,6 @@
              (with-syntax ((body (f (cdr bindings)))
                            (binding (car bindings)))
                (syntax (let (binding) body)))))))))
-
-(define-syntax cond
-  (lambda (x)
-    (syntax-case x ()
-      ((_ m1 m2 ...)
-       (let f ((clause (syntax m1)) (clauses (syntax (m2 ...))))
-         (if (null? clauses)
-             (syntax-case clause (else =>)
-               ((else e1 e2 ...) (syntax (begin e1 e2 ...)))
-               ((e0) (syntax (let ((t e0)) (if t t))))
-               ((e0 => e1) (syntax (let ((t e0)) (if t (e1 t)))))
-               ((e0 e1 e2 ...) (syntax (if e0 (begin e1 e2 ...))))
-               (_ (syntax-error x)))
-             (with-syntax ((rest (f (car clauses) (cdr clauses))))
-               (syntax-case clause (else =>)
-                 ((e0) (syntax (let ((t e0)) (if t t rest))))
-                 ((e0 => e1) (syntax (let ((t e0)) (if t (e1 t) rest))))
-                 ((e0 e1 e2 ...) (syntax (if e0 (begin e1 e2 ...) rest)))
-                 (_ (syntax-error x))))))))))
 
 (define-syntax do
    (lambda (orig-x)
@@ -2136,16 +2132,16 @@
       (syntax-case x ()
          ((_ e)
           (error 'unquote
-                 "expression ,~s not valid outside of quasiquote"
-                 (syntax-object->datum (syntax e)))))))
+		 "expression ,~s not valid outside of quasiquote"
+		 (syntax-object->datum (syntax e)))))))
 
 (define-syntax unquote-splicing
    (lambda (x)
       (syntax-case x ()
          ((_ e)
           (error 'unquote-splicing
-                 "expression ,@~s not valid outside of quasiquote"
-                 (syntax-object->datum (syntax e)))))))
+		 "expression ,@~s not valid outside of quasiquote"
+		 (syntax-object->datum (syntax e)))))))
 
 (define-syntax case
   (lambda (x)

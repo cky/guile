@@ -173,6 +173,12 @@
 	 `(define-public ,@(cdr exp))
 	 `(%system-define ,@(cdr exp))))))
 
+;;; Hack to make syncase macros work in the slib module
+(if (nested-ref the-root-module '(app modules ice-9 syncase))
+    (set-object-property! (module-local-variable (current-module) 'define)
+			  '*sc-expander*
+			  '(define)))
+
 (define (software-type) 'UNIX)
 
 (slib:load (in-vicinity (library-vicinity) "require.scm"))

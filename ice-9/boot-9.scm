@@ -1258,7 +1258,8 @@
 ;; bindings that would otherwise not be found locally in the module.
 ;;
 (define module-type
-  (make-record-type 'module '(obarray uses binder eval-closure name kind)
+  (make-record-type 'module
+		    '(obarray uses binder eval-closure transformer name kind)
 		    %print-module))
 
 ;; make-module &opt size uses binder
@@ -1291,7 +1292,7 @@
 	     "Lazy-binder expected to be a procedure or #f." binder))
 
 	(let ((module (module-constructor (make-vector size '())
-					  uses binder #f #f #f)))
+					  uses binder #f #f #f #f)))
 
 	  ;; We can't pass this as an argument to module-constructor,
 	  ;; because we need it to close over a pointer to the module
@@ -1313,6 +1314,8 @@
 (define set-module-binder! (record-modifier module-type 'binder))
 (define module-eval-closure (record-accessor module-type 'eval-closure))
 (define set-module-eval-closure! (record-modifier module-type 'eval-closure))
+(define module-transformer (record-accessor module-type 'transformer))
+(define set-module-transformer! (record-modifier module-type 'transformer))
 (define module-name (record-accessor module-type 'name))
 (define set-module-name! (record-modifier module-type 'name))
 (define module-kind (record-accessor module-type 'kind))
@@ -1622,27 +1625,21 @@
 ;; 
 (define the-module #f)
 
-;; Syntax case macro support
+;; scm:eval-transformer
 ;;
-(define sc-interface #f)
-(define sc-expand #f)
+(define scm:eval-transformer #f)
 
 ;; set-current-module module
 ;;
 ;; set the current module as viewed by the normalizer.
 ;;
 (define (set-current-module m)
-  (let ((from-sc-module? (and the-module
-			      (memq sc-interface (module-uses the-module))))
-	(to-sc-module? (and m
-			    (memq sc-interface (module-uses m)))))
-    (set! the-module m)
-    (if from-sc-module? (set! scm:eval-transformer #f))
-    (if m
-	(begin
-	  (set! *top-level-lookup-closure* (module-eval-closure the-module))
-	  (if to-sc-module? (set! scm:eval-transformer sc-expand)))
-	(set! *top-level-lookup-closure* #f))))
+  (set! the-module m)
+  (if m
+      (begin
+	(set! *top-level-lookup-closure* (module-eval-closure the-module))
+	(set! scm:eval-transformer (module-transformer the-module)))
+      (set! *top-level-lookup-closure* #f)))
 
 
 ;; current-module
@@ -1726,10 +1723,7 @@
 ;; 
 (define (module-use! module interface)
   (set-module-uses! module
-		    (cons interface (delq! interface (module-uses module))))
-  (if (and (eq? interface sc-interface)
-	   (eq? module (current-module)))
-      (set! scm:eval-transformer sc-expand)))
+		    (cons interface (delq! interface (module-uses module)))))
 
 
 ;;; {Recursive Namespaces}
@@ -2128,6 +2122,12 @@
 ;;; {Macros}
 ;;;
 
+(define (primitive-macro? m)
+  (and (macro? m)
+       (not (macro-transformer m))))
+
+;;; {Defmacros}
+;;;
 (define macro-table (make-weak-key-hash-table 523))
 (define xformer-table (make-weak-key-hash-table 523))
 
@@ -2564,6 +2564,10 @@
 
 (defmacro use-modules modules
   `(process-use-modules ',modules))
+
+(define (use-syntax transformer)
+  (set-module-transformer! (current-module) transformer)
+  (set! scm:eval-transformer transformer))
 
 (define define-private define)
 
