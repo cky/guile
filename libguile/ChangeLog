@@ -1,5 +1,21 @@
 2003-04-21  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* __scm.h (SCM_DEBUG_DEBUGGER_SUPPORT): New compile-time option.
+
+	* gc.card.c (scm_gc_marked_p): Fixed compiler warning when
+	compiling with SCM_DEBUG==1 by moving definition behind prototype.
+
+	* gc.card.c (scm_dbg_t_list_cell, scm_dbg_t_double_cell,
+	scm_dbg_gc_marked_p, scm_dbg_gc_get_card, scm_dbg_gc_get_bvec,
+	scm_t_list_cell_struct, scm_t_list_cell, scm_t_double_cell,
+	scm_gc_marked_p, scm_gc_get_card, scm_gc_get_bvec): Fixed
+	functions such that they check if the object is a non-immediate.
+	Further, renamed identifiers to use the scm_dbg_ prefix and made
+	their inclusion into the lib dependent of the
+	SCM_DEBUG_DEBUGGER_SUPPORT compile time option.
+
+2003-04-21  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* __scm.h: Fixed comment about the SCM_DEBUG_TYPING_STRICTNESS
 	debug option.
 

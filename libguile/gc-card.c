@@ -325,51 +325,52 @@ scm_i_init_card_freelist (scm_t_cell *  card, SCM *free_list,
 }
 
 
-#if (SCM_DEBUG_CELL_ACCESSES == 1)
-int
-scm_gc_marked_p (SCM obj)
-{
-  return SCM_GC_MARK_P(obj);
-}
-#endif
+#if (SCM_DEBUG_DEBUGGER_SUPPORT == 1)
 
-#if 0
-/*
-  These functions are meant to be called from GDB as a debug aid.
-
-  I've left them as a convenience for future generations. --hwn.
- */
-
-
-int scm_gc_marked_p (SCM obj);
-scm_t_cell * scm_gc_get_card (SCM obj);
-long * scm_gc_get_bvec (SCM obj);
-
-typedef struct scm_t_list_cell_struct {
+typedef struct scm_dbg_t_list_cell {
   scm_t_bits car;  
-  struct scm_t_list_cell_struct * cdr;
-} scm_t_list_cell;
+  struct scm_dbg_t_list_cell * cdr;
+} scm_dbg_t_list_cell;
 
 
-typedef struct scm_t_double_cell
-{
+typedef struct scm_dbg_t_double_cell {
   scm_t_bits word_0;
   scm_t_bits word_1;
   scm_t_bits word_2;
   scm_t_bits word_3;
-} scm_t_double_cell;
+} scm_dbg_t_double_cell;
 
 
+int scm_dbg_gc_marked_p (SCM obj);
+scm_t_cell * scm_dbg_gc_get_card (SCM obj);
+long * scm_dbg_gc_get_bvec (SCM obj);
+
+
+int
+scm_dbg_gc_marked_p (SCM obj)
+{
+  if (!SCM_IMP (obj))
+    return SCM_GC_MARK_P(obj);
+  else
+    return 0;
+}
 
 scm_t_cell *
-scm_gc_get_card (SCM obj)
+scm_dbg_gc_get_card (SCM obj)
 {
-  return SCM_GC_CELL_CARD(obj);
+  if (!SCM_IMP (obj))
+    return SCM_GC_CELL_CARD(obj);
+  else
+    return NULL;
 }
 
 long *
-scm_gc_get_bvec (SCM obj)
+scm_dbg_gc_get_bvec (SCM obj)
 {
-  return SCM_GC_CARD_BVEC(SCM_GC_CELL_CARD(obj));
+  if (!SCM_IMP (obj))
+    return SCM_GC_CARD_BVEC (SCM_GC_CELL_CARD (obj));
+  else
+    return NULL;
 }
+
 #endif

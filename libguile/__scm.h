@@ -256,6 +256,21 @@
 #define SCM_DEBUG_TYPING_STRICTNESS 1
 #endif
 
+/* If SCM_DEBUG_DEBUGGER_SUPPORT is set to 1, guile will provide a set of
+ * special functions that support debugging with a debugger like gdb.  The
+ * behaviour of guile is not changed by this macro, only the set of functions
+ * that are available will differ.  All functions that are introduced this way
+ * have the prefix 'scm_dbg_'.  This allows to easily determine the set of
+ * support functions, given that your debugger provides automatic name
+ * completion.  Note that these functions are intended to be used during
+ * interactive debugging sessions only.  They are not considered part of
+ * guile's official API.  They may change or disappear without notice or
+ * deprecation phase.
+ */
+#ifndef SCM_DEBUG_DEBUGGER_SUPPORT
+#define SCM_DEBUG_DEBUGGER_SUPPORT SCM_DEBUG
+#endif
+
 
 
 /* {Feature Options}
