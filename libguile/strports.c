@@ -254,12 +254,20 @@ SCM
 scm_eval_0str (expr)
      char *expr;
 {
-  SCM port = scm_mkstrport (SCM_MAKINUM (0),
-			    scm_makfrom0str (expr),
-			    SCM_OPN | SCM_RDNG,
+  return scm_eval_string (scm_makfrom0str (expr));
+}
+
+
+SCM_PROC (s_eval_string, "eval-string", 1, 0, 0, scm_eval_string);
+
+SCM
+scm_eval_string (string)
+     SCM string;
+{
+  SCM port = scm_mkstrport (SCM_MAKINUM (0), string, SCM_OPN | SCM_RDNG,
 			    "scm_eval_0str");
   SCM form;
-  SCM ans = SCM_EOL;
+  SCM ans = SCM_UNSPECIFIED;
 
   /* Read expressions from that port; ignore the values.  */
   while ((form = scm_read (port)) != SCM_EOF_VAL)
@@ -268,6 +276,7 @@ scm_eval_0str (expr)
   scm_close_port (port);
   return ans;
 }
+
 
 
 static int noop0 SCM_P ((SCM stream));

@@ -56,6 +56,7 @@ extern SCM scm_strprint_obj SCM_P ((SCM obj));
 extern SCM scm_call_with_input_string SCM_P ((SCM str, SCM proc));
 extern SCM scm_read_0str SCM_P ((char *expr));
 extern SCM scm_eval_0str SCM_P ((char *expr));
+extern SCM scm_eval_string SCM_P ((SCM string));
 extern void scm_init_strports SCM_P ((void));
 
 #endif  /* STRPORTSH */
