@@ -1,3 +1,10 @@
+2005-02-15  Kevin Ryde  <user42@zip.com.au>
+
+	* posix.texi (File System): In tmpnam, clarify security and use of
+	O_EXCL.  In mkstemp!, in fact posix doesn't specify permissions.
+
+	* scheme-ideas.texi (Tail Calls): New section.
+
 2005-02-12  Kevin Ryde  <user42@zip.com.au>
 
 	* api-data.texi (String Selection): In string-pad and
