@@ -1,6 +1,11 @@
 2002-11-16  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* boot-9.scm (define-private, export-syntax, export-syntax):
+	Fixed my previous fix (blush).
+
+2002-11-16  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* boot-9.scm (define-private, export-syntax, export-syntax):
 	Changed definitions to form 'real' macro definitions.
 
 2002-11-07  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
