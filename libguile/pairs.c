@@ -101,7 +101,7 @@ scm_set_car_x (pair, value)
   SCM_ASSERT (SCM_NIMP (pair) && SCM_CONSP (pair),
 	      pair, SCM_ARG1, s_set_car_x);
   SCM_SETCAR (pair, value);
-  return value;
+  return SCM_UNSPECIFIED;
 }
 
 SCM_PROC (s_set_cdr_x, "set-cdr!", 2, 0, 0, scm_set_cdr_x);
@@ -113,7 +113,7 @@ scm_set_cdr_x (pair, value)
 {
   SCM_ASSERT (SCM_NIMP(pair) && SCM_CONSP (pair), pair, SCM_ARG1, s_set_cdr_x);
   SCM_SETCDR (pair, value);
-  return value;
+  return SCM_UNSPECIFIED;
 }
 
 
