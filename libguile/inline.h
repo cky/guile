@@ -50,6 +50,11 @@
 */
 
 
+#if (SCM_DEBUG_CELL_ACCESSES == 1)
+#include <stdio.h>
+
+#endif
+
 #include "libguile/pairs.h"
 #include "libguile/gc.h"
 
@@ -94,20 +99,31 @@ scm_cell (scm_t_bits car, scm_t_bits cdr)
 
 #if (SCM_DEBUG_CELL_ACCESSES == 1)
     if (scm_debug_cell_accesses_p)
-    {
-      if (SCM_GC_MARK_P (z))
-	{
-	  fprintf(stderr, "scm_cell tried to allocate a marked cell.\n");
-	  abort();
-	}
-      else if (SCM_GC_CELL_TYPE(z) != scm_tc_free_cell)
-	{
-	  fprintf(stderr, "cell from freelist is not a free cell.\n");
-	  abort();
-	}
+      {
+	if (SCM_GC_MARK_P (z))
+	  {
+	    fprintf(stderr, "scm_cell tried to allocate a marked cell.\n");
+	    abort();
+	  }
+	else if (SCM_GC_CELL_TYPE(z) != scm_tc_free_cell)
+	  {
+	    fprintf(stderr, "cell from freelist is not a free cell.\n");
+	    abort();
+	  }
+      }
+
+    /*
+      Always set mark. Otherwise cells that are alloced before
+      scm_debug_cell_accesses_p is toggled seem invalid.
+    */
+    SCM_SET_GC_MARK (z);
+
+    /*
+      TODO: figure out if this use of mark bits is valid with
+      threading. What if another thread is doing GC at this point
+      ... ?
+     */
       
-      SCM_SET_GC_MARK (z);
-    }
 #endif
 
   

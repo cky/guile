@@ -251,6 +251,7 @@ typedef unsigned long scm_t_c_bvec_long;
 SCM_API int scm_debug_cell_accesses_p;
 SCM_API int scm_expensive_debug_cell_accesses_p;
 SCM_API int scm_debug_cells_gc_interval ;
+void scm_i_expensive_validation_check (SCM cell);
 #endif
 
 SCM_API int scm_block_gc;

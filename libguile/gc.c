@@ -239,7 +239,7 @@ SCM_DEFINE (scm_set_debug_cell_accesses_x, "set-debug-cell-accesses!", 1, 0, 0,
   /*
     do nothing
    */
-
+  fprintf (stderr, "\nWARNING: GUILE was not compiled with SCM_DEBUG_CELL_ACCESSES");
   scm_remember_upto_here (flag);
   return SCM_UNSPECIFIED;
 }

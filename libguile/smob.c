@@ -473,10 +473,15 @@ static int
 free_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
   char buf[100];
-
   sprintf (buf, "#<freed cell %p; GC missed a reference>",
 	   (void *) SCM_UNPACK (exp));
   scm_puts (buf, port);
+  
+#if (SCM_DEBUG_CELL_ACCESSES == 1)
+  if (scm_debug_cell_accesses_p)
+    abort();
+#endif
+  
 
   return 1;
 }

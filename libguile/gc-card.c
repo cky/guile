@@ -327,6 +327,13 @@ scm_i_init_card_freelist (scm_t_cell *  card, SCM *free_list,
 }
 
 
+#if (SCM_DEBUG_CELL_ACCESSES == 1)
+int
+scm_gc_marked_p (SCM obj)
+{
+  return SCM_GC_MARK_P(obj);
+}
+#endif
 
 #if 0
 /*
@@ -355,11 +362,6 @@ typedef struct scm_t_double_cell
 } scm_t_double_cell;
 
 
-int
-scm_gc_marked_p (SCM obj)
-{
-  return SCM_GC_MARK_P(obj);
-}
 
 scm_t_cell *
 scm_gc_get_card (SCM obj)

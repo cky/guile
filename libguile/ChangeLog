@@ -1,3 +1,9 @@
+2002-09-08  Han-Wen Nienhuys  <hanwen@cs.uu.nl>
+
+	* inline.h: include stdio.h
+
+	* smob.c (free_print): abort if scm_debug_cell_accesses_p is set
+
 2002-09-05  Han-Wen Nienhuys  <hanwen@cs.uu.nl>
 
 	* gc-segment.c (scm_i_make_initial_segment): check user settings
@@ -5,15 +11,14 @@
 
 	* gc-malloc.c (scm_gc_init_malloc): check user settings for
 	sanity.
-	(scm_gc_register_collectable_memory): prevent overflow of memory
-	counts.
 
 	* gc-freelist.c (scm_init_freelist): check user settings for sanity. 
 
 	* struct.h: change scm_structs_to_free to scm_i_structs_to_free
 
 	* gc-malloc.c (scm_gc_register_collectable_memory): use floats;
-	these won't ever wrap around with high memory usage.
+	these won't ever wrap around with high memory usage. Thanks to
+	Sven Hartrumpf for finding this.
 
 	* gc-freelist.c: include <stdio.h>
 
