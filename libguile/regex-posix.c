@@ -85,10 +85,10 @@
 #define REG_BASIC 0
 #endif
 
-long scm_tc16_regex_t;
+long scm_tc16_regex;
 
 static scm_sizet
-scm_free_regex_t (obj)
+free_regex (obj)
      SCM obj;
 {
   regfree (SCM_RGX (obj));
@@ -96,23 +96,6 @@ scm_free_regex_t (obj)
   return sizeof(regex_t);
 }
 
-static int
-scm_print_regex_t (obj, port, pstate)
-     SCM obj;
-     SCM port;
-     scm_print_state *pstate;
-{
-  regex_t *r;
-  r = SCM_RGX (obj);
-  scm_puts ("#<rgx ", port);
-  scm_intprint (obj, 16, port);
-  scm_puts (">", port);
-  return 1;
-}
-
-
-static scm_smobfuns regex_t_smob =
-{ 0, scm_free_regex_t, scm_print_regex_t, 0 };
 
 
 SCM_SYMBOL (scm_regexp_error_key, "regular-expression-syntax");
@@ -182,7 +165,6 @@ scm_make_regexp (SCM pat, SCM flags)
       flag = SCM_CDR (flag);
     }
 	  
-  SCM_DEFER_INTS;
   rx = (regex_t *) scm_must_malloc (sizeof (regex_t), s_make_regexp);
   status = regcomp (rx, SCM_ROCHARS (pat),
 		    /* Make sure they're not passing REG_NOSUB;
@@ -190,7 +172,6 @@ scm_make_regexp (SCM pat, SCM flags)
 		    cflags & ~REG_NOSUB);
   if (status != 0)
     {
-      SCM_ALLOW_INTS;
       scm_error (scm_regexp_error_key,
 		 s_make_regexp,
 		 scm_regexp_error_msg (status, rx),
@@ -198,10 +179,7 @@ scm_make_regexp (SCM pat, SCM flags)
 		 SCM_BOOL_F);
       /* never returns */
     }
-  SCM_NEWCELL (result);
-  SCM_SETCAR (result, scm_tc16_regex_t);
-  SCM_SETCDR (result, rx);
-  SCM_ALLOW_INTS;
+  SCM_NEWSMOB (result, scm_tc16_regex, rx);
   return result;
 }
 
@@ -274,7 +252,8 @@ scm_regexp_exec (SCM rx, SCM str, SCM start, SCM flags)
 void
 scm_init_regex_posix ()
 {
-  scm_tc16_regex_t = scm_newsmob (&regex_t_smob);
+  scm_tc16_regex = scm_make_smob_type ("regexp", sizeof (regex_t));
+  scm_set_smob_free (scm_tc16_regex, free_regex);
 
   /* Compilation flags.  */
   scm_sysintern ("regexp/basic", scm_long2num (REG_BASIC));
