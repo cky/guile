@@ -50,8 +50,6 @@
 #include "libguile/stime.h"
 #include "libguile/stackchk.h"
 #include "libguile/struct.h"
-#include "libguile/weaks.h"
-#include "libguile/guardians.h"
 #include "libguile/smob.h"
 #include "libguile/unif.h"
 #include "libguile/async.h"
@@ -59,6 +57,7 @@
 #include "libguile/root.h"
 #include "libguile/strings.h"
 #include "libguile/vectors.h"
+#include "libguile/weaks.h"
 
 #include "libguile/validate.h"
 #include "libguile/gc.h"
@@ -305,8 +304,6 @@ typedef struct scm_heap_seg_data_t
 
 
 
-
-static void scm_mark_weak_vector_spines (void);
 static scm_sizet init_heap_seg (SCM_CELLPTR, scm_sizet, scm_freelist_t *);
 static void alloc_some_heap (scm_freelist_t *);
 
@@ -918,11 +915,20 @@ scm_gc_for_newcell (scm_freelist_t *freelist)
 
 #endif /* GUILE_NEW_GC_SCHEME */
 
+SCM scm_after_gc_hook;
+
+scm_c_hook_t scm_before_gc_c_hook;
+scm_c_hook_t scm_before_mark_c_hook;
+scm_c_hook_t scm_before_sweep_c_hook;
+scm_c_hook_t scm_after_sweep_c_hook;
+scm_c_hook_t scm_after_gc_c_hook;
+
 void
 scm_igc (const char *what)
 {
   int j;
 
+  scm_c_hook_run (&scm_before_gc_c_hook, 0);
 #ifdef DEBUGINFO
   fprintf (stderr,
 	   SCM_NULLP (scm_freelist)
@@ -958,10 +964,6 @@ scm_igc (const char *what)
     abort ();
 
   ++scm_gc_heap_lock;
-
-  scm_weak_vectors = SCM_EOL;
-
-  scm_guardian_gc_init ();
 
   /* unprotect any struct types with no instances */
 #if 0
@@ -999,6 +1001,8 @@ scm_igc (const char *what)
 	++x;
       }
   }
+
+  scm_c_hook_run (&scm_before_mark_c_hook, 0);
 
 #ifndef USE_THREADS
 
@@ -1062,11 +1066,11 @@ scm_igc (const char *what)
   scm_gc_mark (scm_root->handle);
 #endif
 
-  scm_mark_weak_vector_spines ();
-
-  scm_guardian_zombify ();
+  scm_c_hook_run (&scm_before_sweep_c_hook, 0);
 
   scm_gc_sweep ();
+
+  scm_c_hook_run (&scm_after_sweep_c_hook, 0);
 
   --scm_gc_heap_lock;
   scm_gc_end ();
@@ -1074,6 +1078,7 @@ scm_igc (const char *what)
 #ifdef USE_THREADS
   SCM_THREAD_CRITICAL_SECTION_END;
 #endif
+  scm_c_hook_run (&scm_after_gc_c_hook, 0);
 }
 
 
@@ -1517,42 +1522,6 @@ scm_cellp (SCM value)
 }
 
 
-static void
-scm_mark_weak_vector_spines ()
-{
-  SCM w;
-
-  for (w = scm_weak_vectors; !SCM_NULLP (w); w = SCM_WVECT_GC_CHAIN (w))
-    {
-      if (SCM_IS_WHVEC_ANY (w))
-	{
-	  SCM *ptr;
-	  SCM obj;
-	  int j;
-	  int n;
-
-	  obj = w;
-	  ptr = SCM_VELTS (w);
-	  n = SCM_LENGTH (w);
-	  for (j = 0; j < n; ++j)
-	    {
-	      SCM alist;
-
-	      alist = ptr[j];
-	      while (   SCM_CONSP (alist)
-		     && !SCM_GCMARKP (alist)
-		     && SCM_CONSP  (SCM_CAR (alist)))
-		{
-		  SCM_SETGCMARK (alist);
-		  SCM_SETGCMARK (SCM_CAR (alist));
-		  alist = SCM_GCCDR (alist);
-		}
-	    }
-	}
-    }
-}
-
-
 #ifdef GUILE_NEW_GC_SCHEME
 static void
 gc_sweep_freelist_start (scm_freelist_t *freelist)
@@ -1921,63 +1890,6 @@ scm_gc_sweep ()
   scm_freelist2 = SCM_EOL;
 #endif
 
-  /* Scan weak vectors. */
-  {
-    SCM *ptr, w;
-    for (w = scm_weak_vectors; !SCM_NULLP (w); w = SCM_WVECT_GC_CHAIN (w))
-      {
-	if (!SCM_IS_WHVEC_ANY (w))
-	  {
-	    register long j, n;
-
-	    ptr = SCM_VELTS (w);
-	    n = SCM_LENGTH (w);
-	    for (j = 0; j < n; ++j)
-	      if (SCM_FREEP (ptr[j]))
-		ptr[j] = SCM_BOOL_F;
-	  }
-	else /* if (SCM_IS_WHVEC_ANY (scm_weak_vectors[i])) */
-	  {
-	    SCM obj = w;
-	    register long n = SCM_LENGTH (w);
-	    register long j;
-
-	    ptr = SCM_VELTS (w);
-
-	    for (j = 0; j < n; ++j)
-	      {
-		SCM * fixup;
-		SCM alist;
-		int weak_keys;
-		int weak_values;
-
-		weak_keys = SCM_IS_WHVEC (obj) || SCM_IS_WHVEC_B (obj);
-		weak_values = SCM_IS_WHVEC_V (obj) || SCM_IS_WHVEC_B (obj);
-
-		fixup = ptr + j;
-		alist = *fixup;
-
-		while (   SCM_CONSP (alist)
-		       && SCM_CONSP (SCM_CAR (alist)))
-		  {
-		    SCM key;
-		    SCM value;
-
-		    key = SCM_CAAR (alist);
-		    value = SCM_CDAR (alist);
-		    if (   (weak_keys && SCM_FREEP (key))
-			|| (weak_values && SCM_FREEP (value)))
-		      {
-			*fixup = SCM_CDR (alist);
-		      }
-		    else
-		      fixup = SCM_CDRLOC (alist);
-		    alist = SCM_CDR (alist);
-		  }
-	      }
-	  }
-      }
-  }
   scm_cells_allocated = (SCM_HEAP_SIZE - scm_gc_cells_collected);
 #ifdef GUILE_NEW_GC_SCHEME
   scm_gc_yield -= scm_cells_allocated;
@@ -2691,10 +2603,14 @@ scm_init_storage (scm_sizet init_heap_size_1, scm_sizet init_heap_size_2)
     return 1;
 #endif
 
+  /* scm_hplims[0] can change. do not remove scm_heap_org */
   scm_heap_org = CELL_UP (scm_heap_table[0].bounds[0], 1);
 
-  /* scm_hplims[0] can change. do not remove scm_heap_org */
-  scm_weak_vectors = SCM_EOL;
+  scm_c_hook_init (&scm_before_gc_c_hook, 0, SCM_C_HOOK_NORMAL);
+  scm_c_hook_init (&scm_before_mark_c_hook, 0, SCM_C_HOOK_NORMAL);
+  scm_c_hook_init (&scm_before_sweep_c_hook, 0, SCM_C_HOOK_NORMAL);
+  scm_c_hook_init (&scm_after_sweep_c_hook, 0, SCM_C_HOOK_NORMAL);
+  scm_c_hook_init (&scm_after_gc_c_hook, 0, SCM_C_HOOK_NORMAL);
 
   /* Initialise the list of ports.  */
   scm_port_table = (scm_port **)
@@ -2735,6 +2651,7 @@ scm_init_storage (scm_sizet init_heap_size_1, scm_sizet init_heap_size_2)
 void
 scm_init_gc ()
 {
+  scm_after_gc_hook = scm_create_hook ("after-gc-hook", 0);
 #include "libguile/gc.x"
 }
 
