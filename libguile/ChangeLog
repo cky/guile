@@ -1,3 +1,8 @@
+2001-08-07  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* Makefile.am (EXTRA_DIST): Distribute ChangeLog-1996-1999 and
+	ChangeLog-2000.  Thanks to Daniel Skarda!
+
 2001-08-07  Michael Livshin  <mlivshin@bigfoot.com>
 
 	* guile-snarf-docs-texi.in: don't call the tokenizer here, we now

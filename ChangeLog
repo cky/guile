@@ -1,3 +1,10 @@
+2001-08-07  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* Makefile.am (EXTRA_DIST, SUBDIRS): Move test-suite from
+	EXTRA_DIST to SUBDIRS.
+
+	* configure.in: Added "test-suite/Makefile".
+
 2001-08-01  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* configure.in: Added `--disable-linuxthreads' option and do not
