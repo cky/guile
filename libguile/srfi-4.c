@@ -389,6 +389,15 @@ uvec_elements (int type, SCM uvec, scm_t_array_handle *handle,
   return uvec_writable_elements (type, uvec, handle, lenp, incp);
 }
 
+static int
+uvec_type (scm_t_array_handle *h)
+{
+  SCM v = h->array;
+  if (SCM_ARRAYP (v))
+    v = SCM_ARRAY_V (v);
+  return SCM_UVEC_TYPE (v);
+}
+
 static SCM
 uvec_to_list (int type, SCM uvec)
 {
@@ -399,6 +408,8 @@ uvec_to_list (int type, SCM uvec)
   SCM res = SCM_EOL;
 
   elts = uvec_elements (type, uvec, &handle, &len, &inc);
+  if (type < 0)
+    type = uvec_type (&handle);
   for (i = len*inc; i > 0;)
     {
       i -= inc;
@@ -429,6 +440,8 @@ uvec_ref (int type, SCM uvec, SCM idx)
   SCM res;
 
   elts = uvec_elements (type, uvec, &handle, &len, &inc);
+  if (type < 0)
+    type = uvec_type (&handle);
   i = scm_to_unsigned_integer (idx, 0, len-1);
   res = uvec_fast_ref (type, elts, i*inc);
   scm_array_handle_release (&handle);
@@ -444,6 +457,8 @@ uvec_set_x (int type, SCM uvec, SCM idx, SCM val)
   void *elts;
 
   elts = uvec_writable_elements (type, uvec, &handle, &len, &inc);
+  if (type < 0)
+    type = uvec_type (&handle);
   i = scm_to_unsigned_integer (idx, 0, len-1);
   uvec_fast_set_x (type, elts, i*inc, val);
   scm_array_handle_release (&handle);
@@ -561,11 +576,13 @@ scm_c_uniform_vector_ref (SCM v, size_t idx)
   size_t len;
   ssize_t inc;
   SCM res;
+  int type;
 
   elts = uvec_elements (-1, v, &handle, &len, &inc);
+  type = uvec_type (&handle);
   if (idx >= len)
     scm_out_of_range (NULL, scm_from_size_t (idx));
-  res = uvec_fast_ref (SCM_UVEC_TYPE (v), elts, idx*inc);
+  res = uvec_fast_ref (type, elts, idx*inc);
   scm_array_handle_release (&handle);
   return res;
 }
@@ -600,11 +617,13 @@ scm_c_uniform_vector_set_x (SCM v, size_t idx, SCM val)
   void *elts;
   size_t len;
   ssize_t inc;
+  int type;
 
   elts = uvec_writable_elements (-1, v, &handle, &len, &inc);
+  type = uvec_type (&handle);
   if (idx >= len)
     scm_out_of_range (NULL, scm_from_size_t (idx));
-  uvec_fast_set_x (SCM_UVEC_TYPE (v), elts, idx*inc, val);
+  uvec_fast_set_x (type, elts, idx*inc, val);
   scm_array_handle_release (&handle);
 }
 
