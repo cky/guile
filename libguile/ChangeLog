@@ -1,5 +1,15 @@
 2004-10-22  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
+	* numbers.h, numbers.c (SCM_T_INTBUFLEN): Increased to cover
+	scm_t_intmax values.
+	(scm_uint2str): New, for scm_t_uintmax.
+	(scm_iint2str): Argument type changed to scm_t_intmax,
+	reimplemented in terms of scm_uint2str.
+	
+	* print.c, print.h (scm_uintprint): New, for printing
+	scm_t_uintmax values.
+	(scm_intprint): Argument type changed to scm_t_intmax.
+	
 	* sort.c (quicksort, scm_merge, scm_merge_list_x,
 	scm_merge_list_step, scm_merge_vector_step): Inserted SCM_TICKs at
 	strategic places so that the loops can be interrupted.
