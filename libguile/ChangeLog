@@ -1,5 +1,14 @@
 2000-03-13  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
+	* Makefile.am (libguile_la_SOURCES): Moved iselect.c here from
+	EXTRA_libguile_la_SOURCES.
+
+	* iselect.h: Always declare scm_internal_select.
+
+	* iselect.c (scm_internal_select): Added SCM_ASYNC_TICK at the
+	end.  Also let scm_internal_select be a real function also when
+	not using threads.
+
 	* __scm.h (SCM_TICK): Oops! Forgot to put SCM_ASYNC_TICK here...
 
 2000-03-13  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
