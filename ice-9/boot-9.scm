@@ -2191,7 +2191,7 @@
       (and next (loop next))))
   (loop (lambda () #t)))
 
-(define the-last-stack #f)
+;;(define the-last-stack #f) Defined by scm_init_backtrace ()
 (define stack-saved? #f)
 
 (define (save-stack . narrowing)
@@ -2240,22 +2240,23 @@
 (define (quit . args)
   (apply throw 'quit args))
 
-(define has-shown-backtrace-hint? #f)
+;;(define has-shown-backtrace-hint? #f) Defined by scm_init_backtrace ()
 
-(define (backtrace)
-  (if the-last-stack
-      (begin
-	(newline)
-	(display-backtrace the-last-stack (current-output-port))
-	(newline)
-	(if (and (not has-shown-backtrace-hint?)
-		 (not (memq 'backtrace (debug-options-interface))))
-	    (begin
-	      (display
-"Type \"(debug-enable 'backtrace)\" if you would like a backtrace
-automatically if an error occurs in the future.\n")
-	      (set! has-shown-backtrace-hint? #t))))
-      (display "No backtrace available.\n")))
+;; Replaced by C code:
+;;(define (backtrace)
+;;  (if the-last-stack
+;;      (begin
+;;	(newline)
+;;	(display-backtrace the-last-stack (current-output-port))
+;;	(newline)
+;;	(if (and (not has-shown-backtrace-hint?)
+;;		 (not (memq 'backtrace (debug-options-interface))))
+;;	    (begin
+;;	      (display
+;;"Type \"(debug-enable 'backtrace)\" if you would like a backtrace
+;;automatically if an error occurs in the future.\n")
+;;	      (set! has-shown-backtrace-hint? #t))))
+;;      (display "No backtrace available.\n")))
 
 (define (error-catching-repl r e p)
   (error-catching-loop (lambda () (p (e (r))))))
