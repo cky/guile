@@ -412,7 +412,7 @@ from the arguments @var{initargs}.
 @end deffn
 
 @deffn {Scheme Procedure} slot-exists? obj slot_name
-@deffnx {C Function} scm_slots_exists_p (obj, slot_name)
+@deffnx {C Function} scm_slot_exists_p (obj, slot_name)
 Return @code{#t} if @var{obj} has a slot named @var{slot_name}.
 @end deffn
 
@@ -688,4 +688,14 @@ implemented by the C function "scm_single_thread_p"
 @deffnx {C Function} scm_object_address (obj)
 Return an integer that for the lifetime of @var{obj} is uniquely
 returned by this function for @var{obj}
+@end deffn
+
+@deffn {Scheme Procedure} nan
+@deffnx {C Function} scm_nan ()
+Return NaN.
+@end deffn
+
+@deffn {Scheme Procedure} inf
+@deffnx {C Function} scm_inf ()
+Return Inf.
 @end deffn

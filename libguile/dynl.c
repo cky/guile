@@ -284,15 +284,22 @@ SCM_DEFINE (scm_dynamic_func, "dynamic-func", 2, 0, 0,
 
 SCM_DEFINE (scm_dynamic_call, "dynamic-call", 2, 0, 0, 
             (SCM func, SCM dobj),
-	    "Call the C function indicated by @var{func} and @var{dobj}.\n"
-	    "The function is passed no arguments and its return value is\n"
-	    "ignored.  When @var{function} is something returned by\n"
-	    "@code{dynamic-func}, call that function and ignore @var{dobj}.\n"
-	    "When @var{func} is a string , look it up in @var{dynobj}; this\n"
-	    "is equivalent to\n"
-	    "@smallexample\n"
-	    "(dynamic-call (dynamic-func @var{func} @var{dobj} #f))\n"
-	    "@end smallexample\n\n")
+	    "Call a C function in a dynamic object.  Two styles of\n"
+	    "invocation are supported:\n\n"
+	    "@itemize @bullet\n"
+	    "@item @var{func} can be a function handle returned by\n"
+	    "@code{dynamic-func}.  In this case @var{dobj} is\n"
+	    "ignored\n"
+	    "@item @var{func} can be a string with the name of the\n"
+	    "function to call, with @var{dobj} the handle of the\n"
+	    "dynamic object in which to find the function.\n"
+	    "This is equivalent to\n"
+	    "@smallexample\n\n"
+	    "(dynamic-call (dynamic-func @var{func} @var{dobj}) #f)\n"
+	    "@end smallexample\n"
+	    "@end itemize\n\n"
+	    "In either case, the function is passed no arguments\n"
+	    "and its return value is ignored.")
 #define FUNC_NAME s_scm_dynamic_call
 {
   void (*fptr) ();

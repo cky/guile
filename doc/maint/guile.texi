@@ -493,18 +493,25 @@ needed or not and will add it when necessary.
 dynamic-call
 @deffn {Scheme Procedure} dynamic-call func dobj
 @deffnx {C Function} scm_dynamic_call (func, dobj)
-Call the C function indicated by @var{func} and @var{dobj}.
-The function is passed no arguments and its return value is
-ignored.  When @var{function} is something returned by
-@code{dynamic-func}, call that function and ignore @var{dobj}.
-When @var{func} is a string , look it up in @var{dynobj}; this
-is equivalent to
-@smallexample
-(dynamic-call (dynamic-func @var{func} @var{dobj} #f))
-@end smallexample
+Call a C function in a dynamic object.  Two styles of
+invocation are supported:
 
-Interrupts are deferred while the C function is executing (with
-@code{SCM_DEFER_INTS}/@code{SCM_ALLOW_INTS}).
+@itemize @bullet
+@item @var{func} can be a function handle returned by
+@code{dynamic-func}.  In this case @var{dobj} is
+ignored
+@item @var{func} can be a string with the name of the
+function to call, with @var{dobj} the handle of the
+dynamic object in which to find the function.
+This is equivalent to
+@smallexample
+
+(dynamic-call (dynamic-func @var{func} @var{dobj}) #f)
+@end smallexample
+@end itemize
+
+In either case, the function is passed no arguments
+and its return value is ignored.
 @end deffn
 
 dynamic-args-call
