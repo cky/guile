@@ -1,3 +1,11 @@
+2003-10-22  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* eval.c (s_defun): New static identifier.
+
+	(scm_m_nil_cond, scm_m_atfop, scm_m_undefine): Add comments.  Use
+	ASSERT_SYNTAX to signal syntax errors.  Avoid unnecessary consing
+	when creating the memoized code.
+
 2003-10-19  Kevin Ryde  <user42@zip.com.au>
 
 	* numbers.c (scm_ash): Revise docstring as per recent update to manual.

@@ -1704,60 +1704,81 @@ scm_m_atslot_set_x (SCM expr, SCM env SCM_UNUSED)
 
 #if SCM_ENABLE_ELISP
 
+static const char s_defun[] = "Symbol's function definition is void";
+
 SCM_SYNTAX (s_nil_cond, "nil-cond", scm_i_makbimacro, scm_m_nil_cond);
 
+/* nil-cond expressions have the form
+ *   (nil-cond COND VAL COND VAL ... ELSEVAL)  */
 SCM
-scm_m_nil_cond (SCM xorig, SCM env SCM_UNUSED)
+scm_m_nil_cond (SCM expr, SCM env SCM_UNUSED)
 {
-  long len = scm_ilength (SCM_CDR (xorig));
-  SCM_ASSYNT (len >= 1 && (len & 1) == 1, s_expression, "nil-cond");
-  return scm_cons (SCM_IM_NIL_COND, SCM_CDR (xorig));
+  const long length = scm_ilength (SCM_CDR (expr));
+  ASSERT_SYNTAX (length >= 0, s_bad_expression, expr);
+  ASSERT_SYNTAX (length >= 1 && (length % 2) == 1, s_expression, expr);
+
+  SCM_SETCAR (expr, SCM_IM_NIL_COND);
+  return expr;
 }
 
 
 SCM_SYNTAX (s_atfop, "@fop", scm_i_makbimacro, scm_m_atfop);
 
+/* The @fop-macro handles procedure and macro applications for elisp.  The
+ * input expression must have the form
+ *    (@fop <var> (transformer-macro <expr> ...))
+ * where <var> must be a symbol.  The expression is transformed into the
+ * memoized form of either
+ *    (apply <un-aliased var> (transformer-macro <expr> ...))
+ * if the value of var (across all aliasing) is not a macro, or
+ *    (<un-aliased var> <expr> ...)
+ * if var is a macro. */
 SCM
-scm_m_atfop (SCM xorig, SCM env SCM_UNUSED)
+scm_m_atfop (SCM expr, SCM env SCM_UNUSED)
 {
-  SCM x = SCM_CDR (xorig), var;
-  SCM_ASSYNT (scm_ilength (x) >= 1, s_expression, "@fop");
-  var = scm_symbol_fref (SCM_CAR (x));
-  /* Passing the symbol name as the `subr' arg here isn't really
-     right, but without it it can be very difficult to work out from
-     the error message which function definition was missing.  In any
-     case, we shouldn't really use SCM_ASSYNT here at all, but instead
-     something equivalent to (signal void-function (list SYM)) in
-     Elisp. */
-  SCM_ASSYNT (SCM_VARIABLEP (var),
-	      "Symbol's function definition is void",
-	      SCM_SYMBOL_CHARS (SCM_CAR (x)));
-  /* Support `defalias'. */
-  while (SCM_SYMBOLP (SCM_VARIABLE_REF (var)))
+  SCM location;
+  SCM symbol;
+
+  const SCM cdr_expr = SCM_CDR (expr);
+  ASSERT_SYNTAX (scm_ilength (cdr_expr) >= 0, s_bad_expression, expr);
+  ASSERT_SYNTAX (scm_ilength (cdr_expr) >= 1, s_missing_expression, expr);
+
+  symbol = SCM_CAR (cdr_expr);
+  ASSERT_SYNTAX_2 (SCM_SYMBOLP (symbol), s_bad_variable, symbol, expr);
+
+  location = scm_symbol_fref (symbol);
+  ASSERT_SYNTAX_2 (SCM_VARIABLEP (location), s_defun, symbol, expr);
+
+  /* The elisp function `defalias' allows to define aliases for symbols.  To
+   * look up such definitions, the chain of symbol definitions has to be
+   * followed up to the terminal symbol.  */
+  while (SCM_SYMBOLP (SCM_VARIABLE_REF (location)))
     {
-      var = scm_symbol_fref (SCM_VARIABLE_REF (var));
-      SCM_ASSYNT (SCM_VARIABLEP (var),
-		  "Symbol's function definition is void",
-		  SCM_SYMBOL_CHARS (SCM_CAR (x)));
+      const SCM alias = SCM_VARIABLE_REF (location);
+      location = scm_symbol_fref (alias);
+      ASSERT_SYNTAX_2 (SCM_VARIABLEP (location), s_defun, symbol, expr);
     }
-  /* Use `var' here rather than `SCM_VARIABLE_REF (var)' because the
-     former allows for automatically picking up redefinitions of the
-     corresponding symbol. */
-  SCM_SETCAR (x, var);
-  /* If the variable contains a procedure, leave the
-     `transformer-macro' in place so that the procedure's arguments
-     get properly transformed, and change the initial @fop to
-     SCM_IM_APPLY. */
-  if (!SCM_MACROP (SCM_VARIABLE_REF (var)))
+
+  /* Memoize the value location belonging to the terminal symbol.  */
+  SCM_SETCAR (cdr_expr, location);
+
+  if (!SCM_MACROP (SCM_VARIABLE_REF (location)))
     {
-      SCM_SETCAR (xorig, SCM_IM_APPLY);
-      return xorig;
+      /* Since the location does not contain a macro, the form is a procedure
+       * application.  Replace `@fop' by `@apply' and transform the expression
+       * including the `transformer-macro'.  */
+      SCM_SETCAR (expr, SCM_IM_APPLY);
+      return expr;
     }
-  /* Otherwise (the variable contains a macro), the arguments should
-     not be transformed, so cut the `transformer-macro' out and return
-     the resulting expression starting with the variable. */
-  SCM_SETCDR (x, SCM_CDADR (x));
-  return x;
+  else
+    {
+      /* Since the location contains a macro, the arguments should not be
+       * transformed, so the `transformer-macro' is cut out.  The resulting
+       * expression starts with the memoized variable, that is at the cdr of
+       * the input expression.  */
+      SCM_SETCDR (cdr_expr, SCM_CDADR (cdr_expr));
+      return cdr_expr;
+    }
 }
 
 #endif /* SCM_ENABLE_ELISP */
@@ -1771,24 +1792,24 @@ scm_m_atfop (SCM xorig, SCM env SCM_UNUSED)
 SCM_SYNTAX (s_undefine, "undefine", scm_makacro, scm_m_undefine);
 
 SCM
-scm_m_undefine (SCM x, SCM env)
+scm_m_undefine (SCM expr, SCM env)
 {
-  SCM arg1 = x;
-  x = SCM_CDR (x);
-  SCM_ASSYNT (SCM_TOP_LEVEL (env), "bad placement ", s_undefine);
-  SCM_ASSYNT (SCM_CONSP (x) && SCM_NULLP (SCM_CDR (x)),
-	      s_expression, s_undefine);
-  x = SCM_CAR (x);
-  SCM_ASSYNT (SCM_SYMBOLP (x), s_variable, s_undefine);
-  arg1 = scm_sym2var (x, scm_env_top_level (env), SCM_BOOL_F);
-  SCM_ASSYNT (!SCM_FALSEP (arg1) && !SCM_UNBNDP (SCM_VARIABLE_REF (arg1)),
-	      "variable already unbound ", s_undefine);
-  SCM_VARIABLE_SET (arg1, SCM_UNDEFINED);
-#ifdef SICP
-  return x;
-#else
+  SCM variable;
+  SCM location;
+
+  const SCM cdr_expr = SCM_CDR (expr);
+  ASSERT_SYNTAX (SCM_TOP_LEVEL (env), "Bad undefine placement in", expr);
+  ASSERT_SYNTAX (scm_ilength (cdr_expr) >= 0, s_bad_expression, expr);
+  ASSERT_SYNTAX (scm_ilength (cdr_expr) == 1, s_expression, expr);
+
+  variable = SCM_CAR (cdr_expr);
+  ASSERT_SYNTAX_2 (SCM_SYMBOLP (variable), s_bad_variable, variable, expr);
+  location = scm_sym2var (variable, scm_env_top_level (env), SCM_BOOL_F);
+  ASSERT_SYNTAX_2 (!SCM_FALSEP (location)
+                   && !SCM_UNBNDP (SCM_VARIABLE_REF (location)),
+                   "variable already unbound ", variable, expr);
+  SCM_VARIABLE_SET (location, SCM_UNDEFINED);
   return SCM_UNSPECIFIED;
-#endif
 }
 
 #endif
