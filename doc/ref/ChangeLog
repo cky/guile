@@ -3,6 +3,8 @@
 	* posix.texi (User Information): Note cuserid gone from POSIX.
 	Prompted by Roland Besserer.
 
+	* srfi-modules.texi (SRFI-39): New section.
+
 2005-01-10  Kevin Ryde  <user42@zip.com.au>
 
 	* srfi-modules.texi: Various index entries.
