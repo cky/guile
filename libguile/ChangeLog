@@ -1,3 +1,8 @@
+2003-05-12  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* deprecated.h (SCM_GC8MARKP, SCM_SETGC8MARK, SCM_CLRGC8MARK):
+	Use current names in definitions.
+
 2003-05-10  Kevin Ryde  <user42@zip.com.au>
 
 	* numbers.c (scm_num_eq_p, scm_less_p): Don't pass NaN to mpz_cmp_d.
