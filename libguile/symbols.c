@@ -116,6 +116,7 @@ scm_mem2symbol (const char *name, scm_sizet len)
 	    return sym;
 	  }
       next_symbol:
+	;
       }
   }
 
