@@ -1,3 +1,8 @@
+2002-04-26  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* Makefile.am (EXTRA_DIST): Added qthreads.m4.
+	* qthreads.m4: Moved here from top directory.
+
 2002-03-12  Rob Browning  <rlb@defaultvalue.org>
 
 	* guile-config.in (build-link): don't output -L/usr/lib.
