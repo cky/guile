@@ -58,6 +58,7 @@
 #include "libguile/root.h"
 #include "libguile/strings.h"
 #include "libguile/vectors.h"
+#include "libguile/modules.h"
 
 #include "libguile/strports.h"
 
@@ -387,17 +388,19 @@ scm_eval_0str (const char *expr)
 SCM_DEFINE (scm_eval_string, "eval-string", 1, 0, 0, 
             (SCM string),
 	    "Evaluate @var{string} as the text representation of a Scheme form\n"
-	    "or forms, and return whatever value they produce.")
+	    "or forms, and return whatever value they produce."
+	    "Evaluation takes place in (interaction-environment).")
 #define FUNC_NAME s_scm_eval_string
 {
   SCM port = scm_mkstrport (SCM_INUM0, string, SCM_OPN | SCM_RDNG,
 			    "scm_eval_0str");
   SCM form;
   SCM ans = SCM_UNSPECIFIED;
+  SCM module = scm_interaction_environment ();
 
   /* Read expressions from that port; ignore the values.  */
   while (!SCM_EOF_OBJECT_P (form = scm_read (port)))
-    ans = scm_eval_x (form);
+    ans = scm_eval_x (form, module);
 
   /* Don't close the port here; if we re-enter this function via a
      continuation, then the next time we enter it, we'll get an error.
