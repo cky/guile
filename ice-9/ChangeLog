@@ -1,7 +1,14 @@
+2001-05-15  Thien-Thi Nguyen  <ttn@revel.glug.org>
+
+	* boot-9.scm (resolve-interface): Signal error now also if
+	used module's public interface is not available.
+	No longer call `beautify-user-module!'.
+	Signal error now also if selected binding not found.
+
 2001-05-10  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	Merge from mvo-vcell-clenaup-1-branch.
-	
+
 	* session.scm (apropos): Do not use `builtin-bindings', always use
 	the module obarray.
 	(apropos-fold): Likewise.
@@ -10,7 +17,7 @@
 	the magical undefined value.
 	(let-o-k-template): Use `#f' instead of the undefined value as
 	the default default for bindings.
-	
+
 	* boot-9.scm (module-make-local-var!): Do not pass name hint to
 	make-undefined-variable, use `variable-set-name-hint!' instead.
 	(root-module-closure): Removed.
