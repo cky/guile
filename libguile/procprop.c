@@ -134,6 +134,12 @@ scm_i_procedure_arity (SCM proc)
   return scm_list_3 (scm_from_int (a), scm_from_int (o), scm_from_bool(r));
 }
 
+/* XXX - instead of using a stand-in value for everything except
+   closures, we should find other ways to store the procedure
+   properties for those other kinds of procedures.  For example, subrs
+   have their own property slot, which is unused at present.
+*/
+
 static SCM
 scm_stand_in_scm_proc(SCM proc)
 {
