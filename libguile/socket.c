@@ -66,6 +66,52 @@
 
 
 
+SCM_PROC (s_htons, "htons", 1, 0, 0, scm_htons);
+SCM
+scm_htons (SCM in)
+{
+  unsigned short c_in;
+
+  SCM_ASSERT (SCM_INUMP (in), in, SCM_ARG1, s_htons);
+  c_in = SCM_INUM (in);
+  if (c_in != SCM_INUM (in))
+    scm_out_of_range (s_htons, in);
+
+  return SCM_MAKINUM (htons (c_in));
+}
+
+SCM_PROC (s_ntohs, "ntohs", 1, 0, 0, scm_ntohs);
+SCM
+scm_ntohs (SCM in)
+{
+  unsigned short c_in;
+
+  SCM_ASSERT (SCM_INUMP (in), in, SCM_ARG1, s_ntohs);
+  c_in = SCM_INUM (in);
+  if (c_in != SCM_INUM (in))
+    scm_out_of_range (s_ntohs, in);
+
+  return SCM_MAKINUM (ntohs (c_in));
+}
+
+SCM_PROC (s_htonl, "htonl", 1, 0, 0, scm_htonl);
+SCM
+scm_htonl (SCM in)
+{
+  unsigned long c_in = scm_num2ulong (in, (char *) SCM_ARG1, s_htonl);
+
+  return scm_ulong2num (htonl (c_in));
+}
+
+SCM_PROC (s_ntohl, "ntohl", 1, 0, 0, scm_ntohl);
+SCM
+scm_ntohl (SCM in)
+{
+  unsigned long c_in = scm_num2ulong (in, (char *) SCM_ARG1, s_ntohl);
+
+  return scm_ulong2num (ntohl (c_in));
+}
+
 SCM_SYMBOL (sym_socket, "socket");
 static SCM scm_sock_fd_to_port SCM_P ((int fd, const char *proc));
 

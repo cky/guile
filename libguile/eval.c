@@ -2539,7 +2539,7 @@ dispatch:
     case scm_tc7_fvect:
     case scm_tc7_dvect:
     case scm_tc7_cvect:
-#ifdef LONGLONGS
+#ifdef HAVE_LONG_LONGS
     case scm_tc7_llvect:
 #endif
     case scm_tc7_string:

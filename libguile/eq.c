@@ -127,7 +127,7 @@ scm_equal_p (x, y)
 	case scm_tc7_bvect: case scm_tc7_uvect: case scm_tc7_ivect:
 	case scm_tc7_fvect:	case scm_tc7_cvect: case scm_tc7_dvect:
 	case scm_tc7_svect:
-#ifdef LONGLONGS
+#ifdef HAVE_LONG_LONGS
 	case scm_tc7_llvect:
 #endif
 	case scm_tc7_byvect:

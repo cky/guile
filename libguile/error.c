@@ -78,9 +78,11 @@ scm_error (key, subr, message, args, rest)
   scm_ithrow (key, arg_list, 1);
   
   /* No return, but just in case: */
+  {
+    const char msg[] = "guile:scm_error:scm_ithrow returned!\n";
 
-  write (2, "unhandled system error\n",
-	 sizeof ("unhandled system error\n") - 1);
+    write (2, msg, (sizeof msg) - 1);
+  }
   exit (1);
 }
 
@@ -127,9 +129,8 @@ scm_syserror (subr)
   scm_error (scm_system_error_key,
 	     subr,
 	     "%s",
-	     scm_listify (scm_makfrom0str (strerror (errno)),
-			  SCM_UNDEFINED),
-	     scm_listify (SCM_MAKINUM (errno), SCM_UNDEFINED));
+	     scm_cons (scm_makfrom0str (strerror (errno)), SCM_EOL),
+	     scm_cons (SCM_MAKINUM (errno), SCM_EOL));
 }
 
 void
@@ -143,7 +144,7 @@ scm_syserror_msg (subr, message, args, eno)
 	     subr,
 	     message,
 	     args,
-	     scm_listify (SCM_MAKINUM (eno), SCM_UNDEFINED));
+	     scm_cons (SCM_MAKINUM (eno), SCM_EOL));
 }
 
 void
@@ -154,14 +155,14 @@ scm_sysmissing (subr)
   scm_error (scm_system_error_key,
 	     subr,
 	     "%s",
-	     scm_listify (scm_makfrom0str (strerror (ENOSYS)), SCM_UNDEFINED),
-	     scm_listify (SCM_MAKINUM (ENOSYS), SCM_UNDEFINED));
+	     scm_cons (scm_makfrom0str (strerror (ENOSYS)), SCM_EOL),
+	     scm_cons (SCM_MAKINUM (ENOSYS), SCM_EOL));
 #else
   scm_error (scm_system_error_key,
 	     subr,
 	     "Missing function",
 	     SCM_BOOL_F,
-	     scm_listify (SCM_MAKINUM (0), SCM_UNDEFINED));
+	     scm_cons (SCM_MAKINUM (0), SCM_EOL));
 #endif
 }
 
@@ -186,7 +187,7 @@ scm_out_of_range (subr, bad_value)
   scm_error (scm_out_of_range_key,
 	     subr,
 	     "Argument out of range: %S",
-	     scm_listify (bad_value, SCM_UNDEFINED),
+	     scm_cons (bad_value, SCM_EOL),
 	     SCM_BOOL_F);
 }
 
@@ -198,7 +199,7 @@ scm_wrong_num_args (proc)
   scm_error (scm_args_number_key,
 	     NULL,
 	     "Wrong number of arguments to %s",
-	     scm_listify (proc, SCM_UNDEFINED),
+	     scm_cons (proc, SCM_EOL),
 	     SCM_BOOL_F);
 }
 
@@ -213,8 +214,8 @@ scm_wrong_type_arg (subr, pos, bad_value)
 	     subr,
 	     (pos == 0) ? "Wrong type argument: %S"
 	     : "Wrong type argument in position %s: %S",
-	     (pos == 0) ? scm_listify (bad_value, SCM_UNDEFINED)
-	     : scm_listify (SCM_MAKINUM (pos), bad_value, SCM_UNDEFINED),
+	     (pos == 0) ? scm_cons (bad_value, SCM_EOL)
+	     : scm_cons (SCM_MAKINUM (pos), scm_cons (bad_value, SCM_EOL)),
 	     SCM_BOOL_F);
 }
 
@@ -290,9 +291,6 @@ scm_wta (arg, pos, s_subr)
     }
   return SCM_UNSPECIFIED;
 }
-
-/*  obsolete interface: scm_everr (exp, env, arg, pos, s_subr)
-    was equivalent to scm_wta (arg, pos, s_subr)  */
 
 void
 scm_init_error ()

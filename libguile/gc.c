@@ -754,7 +754,7 @@ gc_mark_nimp:
     case scm_tc7_dvect:
     case scm_tc7_cvect:
     case scm_tc7_svect:
-#ifdef LONGLONGS
+#ifdef HAVE_LONG_LONGS
     case scm_tc7_llvect:
 #endif
 
@@ -1189,7 +1189,7 @@ scm_gc_sweep ()
 		goto c8mrkcontinue;
 	      m += SCM_HUGE_LENGTH (scmptr) * sizeof (short);
 	      goto freechars;
-#ifdef LONGLONGS
+#ifdef HAVE_LONG_LONGS
 	    case scm_tc7_llvect:
 	      if SCM_GC8MARKP (scmptr)
 		goto c8mrkcontinue;

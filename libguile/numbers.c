@@ -972,7 +972,7 @@ scm_long2big (n)
   return ans;
 }
 
-#ifdef LONGLONGS
+#ifdef HAVE_LONG_LONGS
 
 SCM
 scm_long_long2big (n)
@@ -1720,34 +1720,34 @@ iflo2str (flt, str)
 }
 #endif /* SCM_FLOATS */
 
-
+/* convert a long to a string (unterminated).  returns the number of
+   characters in the result.  */
 scm_sizet
 scm_iint2str (num, rad, p)
      long num;
-     int rad;
-     char *p;
+     int rad;  /* output base.  */
+     char *p;  /* destination: worst case (base 2) is SCM_INTBUFLEN. */
 {
-  scm_sizet j;
-  register int i = 1, d;
-  register long n = num;
-  if (n < 0)
-    {
-      n = -n;
-      i++;
-    }
+  scm_sizet j = 1;
+  scm_sizet i;
+  unsigned long n = (num < 0) ? -num : num;
+
   for (n /= rad; n > 0; n /= rad)
-    i++;
-  j = i;
-  n = num;
-  if (n < 0)
+    j++;
+
+  i = j;
+  if (num < 0)
     {
-      n = -n;
       *p++ = '-';
-      i--;
+      j++;
+      n = -num;
     }
+  else
+    n = num;
   while (i--)
     {
-      d = n % rad;
+      int d = n % rad;
+
       n /= rad;
       p[i] = d + ((d < 10) ? '0' : 'a' - 10);
     }
@@ -4584,7 +4584,7 @@ scm_long2num (sl)
 }
 
 
-#ifdef LONGLONGS
+#ifdef HAVE_LONG_LONGS
 
 SCM
 scm_long_long2num (sl)
@@ -4635,51 +4635,64 @@ scm_num2long (num, pos, s_caller)
      const char *s_caller;
 {
   long res;
+
   if (SCM_INUMP (num))
     {
       res = SCM_INUM (num);
       return res;
     }
-  SCM_ASRTGO (SCM_NIMP (num), errout);
+  SCM_ASRTGO (SCM_NIMP (num), wrong_type_arg);
 #ifdef SCM_FLOATS
   if (SCM_REALP (num))
     {
-      double u = SCM_REALPART (num);
+      volatile double u = SCM_REALPART (num);
+
       res = u;
-      if ((double) res == u)
-	{
-	  return res;
-	}
+      if (res != u)
+	goto out_of_range;
+      return res;
     }
 #endif
 #ifdef SCM_BIGDIG
   if (SCM_BIGP (num))
     {
-      long oldres;
+      unsigned long oldres = 0;
       scm_sizet l;
-      res = 0;
-      oldres = 0;
+      /* can't use res directly in case num is -2^31.  */
+      unsigned long pos_res = 0;
+
       for (l = SCM_NUMDIGS (num); l--;)
 	{
-	  res = SCM_BIGUP (res) + SCM_BDIGITS (num)[l];
-	  if (res < oldres)
-	    goto errout;
-	  oldres = res;
+	  pos_res = SCM_BIGUP (pos_res) + SCM_BDIGITS (num)[l];
+	  /* check for overflow.  */
+	  if (pos_res < oldres) 
+	    goto out_of_range;
+	  oldres = pos_res;
 	}
       if (SCM_TYP16 (num) == scm_tc16_bigpos)
-	return res;
+	{
+	  res = pos_res;
+	  if (res < 0)
+	    goto out_of_range;
+	}
       else
-	return -res;
+	{
+	  res = -pos_res;
+	  if (res > 0)
+	    goto out_of_range;
+	}
+      return res;
     }
 #endif
- errout:
-  scm_wta (num, pos, s_caller);
-  return SCM_UNSPECIFIED;
+ wrong_type_arg:
+  scm_wrong_type_arg (s_caller, (int) pos, num);
+ out_of_range:
+  scm_out_of_range (s_caller, num);
 }
 
 
 
-#ifdef LONGLONGS
+#ifdef HAVE_LONG_LONGS
 
 long_long
 scm_num2long_long (num, pos, s_caller)
@@ -4688,38 +4701,60 @@ scm_num2long_long (num, pos, s_caller)
      const char *s_caller;
 {
   long_long res;
+
   if (SCM_INUMP (num))
     {
-      res = SCM_INUM ((long_long) num);
+      res = SCM_INUM (num);
       return res;
     }
-  SCM_ASRTGO (SCM_NIMP (num), errout);
+  SCM_ASRTGO (SCM_NIMP (num), wrong_type_arg);
 #ifdef SCM_FLOATS
   if (SCM_REALP (num))
     {
       double u = SCM_REALPART (num);
-      if (((SCM_MOST_NEGATIVE_FIXNUM * 4) <= u)
-	  && (u <= (SCM_MOST_POSITIVE_FIXNUM * 4 + 3)))
-	{
-	  res = u;
-	  return res;
-	}
+
+      res = u;
+      if ((res < 0 && u > 0) || (res > 0 && u < 0)) /* check for overflow. */
+	goto out_of_range;
+
+      return res;
     }
 #endif
 #ifdef SCM_BIGDIG
   if (SCM_BIGP (num))
     {
-      scm_sizet l = SCM_NUMDIGS (num);
-      SCM_ASRTGO (SCM_DIGSPERLONGLONG >= l, errout);
-      res = 0;
-      for (; l--;)
-	res = SCM_LONGLONGBIGUP (res) + SCM_BDIGITS (num)[l];
+      unsigned long long oldres = 0;
+      scm_sizet l;
+      /* can't use res directly in case num is -2^63.  */
+      unsigned long long pos_res = 0;
+
+      for (l = SCM_NUMDIGS (num); l--;)
+	{
+	  pos_res = SCM_LONGLONGBIGUP (pos_res) + SCM_BDIGITS (num)[l];
+	  /* check for overflow.  */
+	  if (pos_res < oldres) 
+	    goto out_of_range;
+	  oldres = pos_res;
+	}
+      if (SCM_TYP16 (num) == scm_tc16_bigpos)
+	{
+	  res = pos_res;
+	  if (res < 0)
+	    goto out_of_range;
+	}
+      else
+	{
+	  res = -pos_res;
+	  if (res > 0)
+	    goto out_of_range;
+	}
       return res;
     }
 #endif
- errout:
-  scm_wta (num, pos, s_caller);
-  return SCM_UNSPECIFIED;
+ wrong_type_arg:
+  scm_wrong_type_arg (s_caller, (int) pos, num);
+ out_of_range:
+  scm_out_of_range (s_caller, num);
 }
 #endif
 
@@ -4732,43 +4767,47 @@ scm_num2ulong (num, pos, s_caller)
      const char *s_caller;
 {
   unsigned long res;
+
   if (SCM_INUMP (num))
     {
-      res = SCM_INUM ((unsigned long) num);
+      if (SCM_INUM (num) < 0)
+	goto out_of_range;
+      res = SCM_INUM (num);
       return res;
     }
-  SCM_ASRTGO (SCM_NIMP (num), errout);
+  SCM_ASRTGO (SCM_NIMP (num), wrong_type_arg);
 #ifdef SCM_FLOATS
   if (SCM_REALP (num))
     {
       double u = SCM_REALPART (num);
-      if ((0 <= u) && (u <= (unsigned long) ~0L))
-	{
-	  res = u;
-	  return res;
-	}
+
+      res = u;
+      if (res != u)
+	goto out_of_range;
+      return res;
     }
 #endif
 #ifdef SCM_BIGDIG
   if (SCM_BIGP (num))
     {
-      unsigned long oldres;
+      unsigned long oldres = 0;
       scm_sizet l;
+
       res = 0;
-      oldres = 0;
       for (l = SCM_NUMDIGS (num); l--;)
 	{
 	  res = SCM_BIGUP (res) + SCM_BDIGITS (num)[l];
 	  if (res < oldres)
-	    goto errout;
+	    goto out_of_range;
 	  oldres = res;
 	}
       return res;
     }
 #endif
- errout:
-  scm_wta (num, pos, s_caller);
-  return SCM_UNSPECIFIED;
+ wrong_type_arg:
+  scm_wrong_type_arg (s_caller, (int) pos, num);
+ out_of_range:
+  scm_out_of_range (s_caller, num);
 }
 
 

@@ -1,3 +1,60 @@
+1999-11-18  Gary Houston  <ghouston@freewire.co.uk>
+
+	* socket.c (scm_htons, scm_ntohs, scm_htonl, scm_ntohl): new
+	functions for network data conversion.
+
+	* numbers.c (scm_num2long, scm_num2longlong):
+	throw out-of-range instead of wrong-type-arg if appropriate.
+	(scm_iint2str): handle -2^31 correctly.
+	(scm_num2long): handle -2^31 bignum correctly.
+	(scm_num2long_long): rewrite the bigdig case: basically copied 
+	from scm_num2long.
+	numbers.h: (SCM_BITSPERLONGLONG): deleted.
+
+	* unif.c (rapr1): use sprintf instead of intprint for unsigned
+	longs: intprint can't cope with large values.
+
+	* numbers.c (scm_num2ulong): check more consistently that the
+	input is not negative.  if it is, throw out-of-range instead of 
+	wrong-type-arg.
+
+	* ramap.c (scm_array_fill_int): don't limit fill to INUM for 
+	uvect, ivect or llvect.
+	Check that fill doesn't overflow short uniform array.
+
+	* __scm.h: add another long to the definition of long_long and
+	ulong_long.
+
+	* unif.c (scm_raprin1): use 'l' instead of "long_long" in the
+	print representation of llvect.  read can't handle more than
+	one character.
+	(scm_dimensions_to_uniform_array): make "fill" an optional argument
+	instead of a rest argument.
+
+	* tags.h (scm_tc7_llvect): wasn't defined anywhere, so use the free
+	tag 29 for now.
+
+	* __scm.h: don't mention LONGLONGS.
+
+	* unif.c, numbers.c, eq.c, gc.c, print.c, eval.c, ramap.c:
+	replace LONGLONGS with HAVE_LONG_LONGS as set by configure.
+
+1999-11-17  Gary Houston  <ghouston@freewire.co.uk>
+
+	* net_db.c (scm_inet_aton): throw errors using the misc-error key
+	instead of system-error.  inet_aton doesn't set errno.
+	system-error isn't right in gethost either, since it's throwing
+	the value of h_errno instead of errno. so:
+	(scm_host_not_found_key, scm_try_again_key,
+	scm_no_recovery_key, scm_no_data_key): new error keys.
+	(scm_resolv_error): new procedure, use the new keys.
+	(scm_gethost): call scm_resolv_error not scm_syserror_msg.
+
+1999-11-16  Gary Houston  <ghouston@freewire.co.uk>
+
+	* error.c: (various): use scm_cons instead of scm_listify
+	to build short lists.
+
 1999-11-03  Gary Houston  <ghouston@freewire.co.uk>
 
 	* socket.c (scm_fill_sockaddr): zero the address structure before

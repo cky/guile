@@ -165,7 +165,7 @@ scm_ra_matchp (ra0, ras)
       case scm_tc7_uvect:
       case scm_tc7_ivect:
       case scm_tc7_svect:
-#ifdef LONGLONGS
+#ifdef HAVE_LONG_LONGS
       case scm_tc7_llvect:
 #endif
       case scm_tc7_fvect:
@@ -202,7 +202,7 @@ scm_ra_matchp (ra0, ras)
 	    case scm_tc7_uvect:
 	    case scm_tc7_ivect:
 	    case scm_tc7_svect:
-#ifdef LONGLONGS
+#ifdef HAVE_LONG_LONGS
 	    case scm_tc7_llvect:
 #endif
 	    case scm_tc7_fvect:
@@ -255,15 +255,16 @@ scm_ra_matchp (ra0, ras)
   return exact;
 }
 
-static char s_ra_mismatch[] = "array shape mismatch";
-
+/* array mapper: apply cproc to each dimension of the given arrays. */
 int 
 scm_ramapc (cproc, data, ra0, lra, what)
-     int (*cproc) ();
-     SCM data;
-     SCM ra0;
-     SCM lra;
-     const char *what;
+     int (*cproc) ();   /* procedure to call on normalised arrays:
+			   cproc (dest, source list) or
+			   cproc (dest, data, source list).  */
+     SCM data;          /* data to give to cproc or unbound.  */
+     SCM ra0;           /* destination array. */
+     SCM lra;           /* list of source arrays. */
+     const char *what;  /* caller, for error reporting. */
 {
   SCM inds, z;
   SCM vra0, ra1, vra1;
@@ -274,7 +275,7 @@ scm_ramapc (cproc, data, ra0, lra, what)
     {
     default:
     case 0:
-      scm_wta (ra0, s_ra_mismatch, what);
+      scm_wta (ra0, "array shape mismatch", what);
     case 2:
     case 3:
     case 4:			/* Try unrolling arrays */
@@ -416,148 +417,165 @@ scm_array_fill_x (ra, fill)
   return SCM_UNSPECIFIED;
 }
 
-
+/* to be used as cproc in scm_ramapc to fill an array dimension with
+   "fill". */
 int 
 scm_array_fill_int (ra, fill, ignore)
      SCM ra;
      SCM fill;
      SCM ignore;
 {
-  scm_sizet i, n = SCM_ARRAY_DIMS (ra)->ubnd - SCM_ARRAY_DIMS (ra)->lbnd + 1;
+  scm_sizet i;
+  scm_sizet n = SCM_ARRAY_DIMS (ra)->ubnd - SCM_ARRAY_DIMS (ra)->lbnd + 1;
   long inc = SCM_ARRAY_DIMS (ra)->inc;
   scm_sizet base = SCM_ARRAY_BASE (ra);
+
   ra = SCM_ARRAY_V (ra);
-  switch SCM_TYP7
-    (ra)
+  switch SCM_TYP7 (ra)
+    {
+    default:
+      for (i = base; n--; i += inc)
+	scm_array_set_x (ra, fill, SCM_MAKINUM (i));
+      break;
+    case scm_tc7_vector:
+    case scm_tc7_wvect:
+      for (i = base; n--; i += inc)
+	SCM_VELTS (ra)[i] = fill;
+      break;
+    case scm_tc7_string:
+      SCM_ASRTGO (SCM_ICHRP (fill), badarg2);
+      for (i = base; n--; i += inc)
+	SCM_CHARS (ra)[i] = SCM_ICHR (fill);
+      break;
+    case scm_tc7_byvect:
+      if (SCM_ICHRP (fill))
+	fill = SCM_MAKINUM ((char) SCM_ICHR (fill));
+      SCM_ASRTGO (SCM_INUMP (fill)
+		  && -128 <= SCM_INUM (fill) && SCM_INUM (fill) < 128,
+		  badarg2);
+      for (i = base; n--; i += inc)
+	SCM_CHARS (ra)[i] = SCM_INUM (fill);
+      break;
+    case scm_tc7_bvect:
       {
-      default:
-	for (i = base; n--; i += inc)
-	  scm_array_set_x (ra, fill, SCM_MAKINUM (i));
-	break;
-      case scm_tc7_vector:
-      case scm_tc7_wvect:
-	for (i = base; n--; i += inc)
-	  SCM_VELTS (ra)[i] = fill;
-	break;
-      case scm_tc7_string:
-	SCM_ASRTGO (SCM_ICHRP (fill), badarg2);
-	for (i = base; n--; i += inc)
-	  SCM_CHARS (ra)[i] = SCM_ICHR (fill);
-	break;
-      case scm_tc7_byvect:
-	if (SCM_ICHRP (fill))
-	  fill = SCM_MAKINUM ((char) SCM_ICHR (fill));
-	SCM_ASRTGO (SCM_INUMP (fill)
-		    && -128 <= SCM_INUM (fill) && SCM_INUM (fill) < 128,
-		    badarg2);
-	for (i = base; n--; i += inc)
-	  SCM_CHARS (ra)[i] = SCM_INUM (fill);
-	break;
-      case scm_tc7_bvect:
-	{
-	  long *ve = (long *) SCM_VELTS (ra);
-	  if (1 == inc && (n >= SCM_LONG_BIT || n == SCM_LENGTH (ra)))
-	    {
-	      i = base / SCM_LONG_BIT;
-	      if (SCM_BOOL_F == fill)
-		{
-		  if (base % SCM_LONG_BIT) /* leading partial word */
-		    ve[i++] &= ~(~0L << (base % SCM_LONG_BIT));
-		  for (; i < (base + n) / SCM_LONG_BIT; i++)
-		    ve[i] = 0L;
-		  if ((base + n) % SCM_LONG_BIT) /* trailing partial word */
-		    ve[i] &= (~0L << ((base + n) % SCM_LONG_BIT));
-		}
-	      else if (SCM_BOOL_T == fill)
-		{
-		  if (base % SCM_LONG_BIT)
-		    ve[i++] |= ~0L << (base % SCM_LONG_BIT);
-		  for (; i < (base + n) / SCM_LONG_BIT; i++)
-		    ve[i] = ~0L;
-		  if ((base + n) % SCM_LONG_BIT)
-		    ve[i] |= ~(~0L << ((base + n) % SCM_LONG_BIT));
-		}
-	      else
+	long *ve = (long *) SCM_VELTS (ra);
+	if (1 == inc && (n >= SCM_LONG_BIT || n == SCM_LENGTH (ra)))
+	  {
+	    i = base / SCM_LONG_BIT;
+	    if (SCM_BOOL_F == fill)
+	      {
+		if (base % SCM_LONG_BIT) /* leading partial word */
+		  ve[i++] &= ~(~0L << (base % SCM_LONG_BIT));
+		for (; i < (base + n) / SCM_LONG_BIT; i++)
+		  ve[i] = 0L;
+		if ((base + n) % SCM_LONG_BIT) /* trailing partial word */
+		  ve[i] &= (~0L << ((base + n) % SCM_LONG_BIT));
+	      }
+	    else if (SCM_BOOL_T == fill)
+	      {
+		if (base % SCM_LONG_BIT)
+		  ve[i++] |= ~0L << (base % SCM_LONG_BIT);
+		for (; i < (base + n) / SCM_LONG_BIT; i++)
+		  ve[i] = ~0L;
+		if ((base + n) % SCM_LONG_BIT)
+		  ve[i] |= ~(~0L << ((base + n) % SCM_LONG_BIT));
+	      }
+	    else
 	      badarg2:scm_wta (fill, (char *) SCM_ARG2, s_array_fill_x);
-	    }
-	  else
-	    {
-	      if (SCM_BOOL_F == fill)
-		for (i = base; n--; i += inc)
-		  ve[i / SCM_LONG_BIT] &= ~(1L << (i % SCM_LONG_BIT));
-	      else if (SCM_BOOL_T == fill)
-		for (i = base; n--; i += inc)
-		  ve[i / SCM_LONG_BIT] |= (1L << (i % SCM_LONG_BIT));
-	      else
-		goto badarg2;
-	    }
-	  break;
-	}
-      case scm_tc7_uvect:
-	SCM_ASRTGO (0 <= SCM_INUM (fill), badarg2);
-      case scm_tc7_ivect:
-	SCM_ASRTGO (SCM_INUMP (fill), badarg2);
-	{
-	  long f = SCM_INUM (fill), *ve = (long *) SCM_VELTS (ra);
-	  for (i = base; n--; i += inc)
-	    ve[i] = f;
-	  break;
-	}
-      case scm_tc7_svect:
-	SCM_ASRTGO (SCM_INUMP (fill), badarg2);
-	{
-	  short f = SCM_INUM (fill), *ve = (short *) SCM_VELTS (ra);
-	  for (i = base; n--; i += inc)
-	    ve[i] = f;
-	  break;
-	}
-#ifdef LONGLONGS
-      case scm_tc7_llvect:
-	SCM_ASRTGO (SCM_INUMP (fill), badarg2);
-	{
-	  long long f = SCM_INUM (fill), *ve = (long long *) SCM_VELTS (ra);
-	  for (i = base; n--; i += inc)
-	    ve[i] = f;
-	  break;
-	}
+	  }
+	else
+	  {
+	    if (SCM_BOOL_F == fill)
+	      for (i = base; n--; i += inc)
+		ve[i / SCM_LONG_BIT] &= ~(1L << (i % SCM_LONG_BIT));
+	    else if (SCM_BOOL_T == fill)
+	      for (i = base; n--; i += inc)
+		ve[i / SCM_LONG_BIT] |= (1L << (i % SCM_LONG_BIT));
+	    else
+	      goto badarg2;
+	  }
+	break;
+      }
+    case scm_tc7_uvect:
+      {
+	unsigned long f = scm_num2ulong (fill, (char *) SCM_ARG2, 
+					 s_array_fill_x);
+	unsigned long *ve = (long *) SCM_VELTS (ra);
+
+	for (i = base; n--; i += inc)
+	  ve[i] = f;
+	break;
+      }
+    case scm_tc7_ivect:
+      {
+	long f = scm_num2long (fill, (char *) SCM_ARG2, s_array_fill_x);
+	long *ve = (long *) SCM_VELTS (ra);
+
+	for (i = base; n--; i += inc)
+	  ve[i] = f;
+	break;
+      }
+    case scm_tc7_svect:
+      SCM_ASRTGO (SCM_INUMP (fill), badarg2);
+      {
+	short f = SCM_INUM (fill);
+	short *ve = (short *) SCM_VELTS (ra);
+
+	if (f != SCM_INUM (fill))
+	  scm_out_of_range (s_array_fill_x, fill);
+	for (i = base; n--; i += inc)
+	  ve[i] = f;
+	break;
+      }
+#ifdef HAVE_LONG_LONGS
+    case scm_tc7_llvect:
+      {
+	long long f = scm_num2long_long (fill, (char *) SCM_ARG2, 
+					 s_array_fill_x);
+	long long *ve = (long long *) SCM_VELTS (ra);
+
+	for (i = base; n--; i += inc)
+	  ve[i] = f;
+	break;
+      }
 #endif
 #ifdef SCM_FLOATS
 #ifdef SCM_SINGLES
-      case scm_tc7_fvect:
-	{
-	  float f, *ve = (float *) SCM_VELTS (ra);
-	  SCM_ASRTGO (SCM_NIMP (fill) && SCM_REALP (fill), badarg2);
-	  f = SCM_REALPART (fill);
-	  for (i = base; n--; i += inc)
-	    ve[i] = f;
-	  break;
-	}
-#endif /* SCM_SINGLES */
-      case scm_tc7_dvect:
-	{
-	  double f, *ve = (double *) SCM_VELTS (ra);
-	  SCM_ASRTGO (SCM_NIMP (fill) && SCM_REALP (fill), badarg2);
-	  f = SCM_REALPART (fill);
-	  for (i = base; n--; i += inc)
-	    ve[i] = f;
-	  break;
-	}
-      case scm_tc7_cvect:
-	{
-	  double fr, fi;
-	  double (*ve)[2] = (double (*)[2]) SCM_VELTS (ra);
-	  SCM_ASRTGO (SCM_NIMP (fill) && SCM_INEXP (fill), badarg2);
-	  fr = SCM_REALPART (fill);
-	  fi = (SCM_CPLXP (fill) ? SCM_IMAG (fill) : 0.0);
-	  for (i = base; n--; i += inc)
-	    {
-	      ve[i][0] = fr;
-	      ve[i][1] = fi;
-	    }
-	  break;
-	}
-#endif /* SCM_FLOATS */
+    case scm_tc7_fvect:
+      {
+	float f, *ve = (float *) SCM_VELTS (ra);
+	SCM_ASRTGO (SCM_NIMP (fill) && SCM_REALP (fill), badarg2);
+	f = SCM_REALPART (fill);
+	for (i = base; n--; i += inc)
+	  ve[i] = f;
+	break;
       }
+#endif /* SCM_SINGLES */
+    case scm_tc7_dvect:
+      {
+	double f, *ve = (double *) SCM_VELTS (ra);
+	SCM_ASRTGO (SCM_NIMP (fill) && SCM_REALP (fill), badarg2);
+	f = SCM_REALPART (fill);
+	for (i = base; n--; i += inc)
+	  ve[i] = f;
+	break;
+      }
+    case scm_tc7_cvect:
+      {
+	double fr, fi;
+	double (*ve)[2] = (double (*)[2]) SCM_VELTS (ra);
+	SCM_ASRTGO (SCM_NIMP (fill) && SCM_INEXP (fill), badarg2);
+	fr = SCM_REALPART (fill);
+	fi = (SCM_CPLXP (fill) ? SCM_IMAG (fill) : 0.0);
+	for (i = base; n--; i += inc)
+	  {
+	    ve[i][0] = fr;
+	    ve[i][1] = fi;
+	  }
+	break;
+      }
+#endif /* SCM_FLOATS */
+    }
   return 1;
 }
 
@@ -1830,7 +1848,7 @@ scm_array_index_map_x (ra, proc)
     case scm_tc7_uvect:
     case scm_tc7_ivect:
     case scm_tc7_svect:
-#ifdef LONGLONGS
+#ifdef HAVE_LONG_LONGS
     case scm_tc7_llvect:
 #endif
     case scm_tc7_fvect:
@@ -1963,7 +1981,7 @@ raeql_1 (ra0, as_equal, ra1)
 	      return 0;
 	  return 1;
 	}
-#ifdef LONGLONGS
+#ifdef HAVE_LONG_LONGS
       case scm_tc7_llvect:
 	{
 	  long long *v0 = (long long *) SCM_VELTS (ra0) + i0;

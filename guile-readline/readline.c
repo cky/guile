@@ -494,6 +494,8 @@ scm_init_readline ()
   rl_redisplay_function = redisplay;
   rl_completion_entry_function = (Function*) completion_function;
   rl_basic_word_break_characters = "\t\n\"'`;()";
+  rl_readline_name = "Guile";
+
 #ifdef USE_THREADS
   scm_mutex_init (&reentry_barrier_mutex);
 #endif

@@ -1,3 +1,13 @@
+1999-11-18  Gary Houston  <ghouston@freewire.co.uk>
+
+	* boot-9.scm (read-hash-extend to set up arrays): add 'l' for
+	long_long uniform vectors.
+
+1999-11-17  Gary Houston  <ghouston@freewire.co.uk>
+
+	* networking.scm (sethostent, setnetent, setprotoent, setservent):
+	take an optional argument STAYOPEN.  default is #f.
+
 1999-10-05  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	* Makefile.in: Deleted from CVS repository.  Run the autogen.sh

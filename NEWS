@@ -107,6 +107,39 @@ although to actually avoid resetting the buffers and discard unread
 chars requires further hacking that depends on the characteristics
 of the ptob.
 
+* Changes to the networking interfaces:
+
+** New functions: htons, ntohs, htonl, ntohl: for converting short and
+long integers between network and host format.  For now, it's not
+particularly convenient to do this kind of thing, but consider:
+
+(define write-network-long
+  (lambda (value port)
+    (let ((v (make-uniform-vector 1 1 0)))
+      (uniform-vector-set! v 0 (htonl value))
+      (uniform-vector-write v port))))
+
+(define read-network-long
+  (lambda (port)
+    (let ((v (make-uniform-vector 1 1 0)))
+      (uniform-vector-read! v port)
+      (ntohl (uniform-vector-ref v 0)))))
+
+** If inet-aton fails, it now throws an error with key 'misc-error
+instead of 'system-error, since errno is not relevant.
+
+** Certain gethostbyname/gethostbyaddr failures now throw errors with
+specific keys instead of 'system-error.  The latter is inappropriate
+since errno will not have been set.  The keys are:
+'dns-host-not-found, 'dns-try-again, 'dns-no-recovery and
+'dns-no-data.
+
+** sethostent, setnetent, setprotoent, setservent: now take an
+optional argument STAYOPEN, which specifies whether the database
+remains open after a database entry is accessed randomly (e.g., using
+gethostbyname for the hosts database.)  The default is #f.  Previously
+#t was always used.
+
 
 Changes since Guile 1.3.2:
 

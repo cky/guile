@@ -1,3 +1,7 @@
+1999-11-17  Gary Houston  <ghouston@freewire.co.uk>
+
+	* configure.in: check for hstrerror.
+
 1999-10-05  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	* autogen.sh: Don't call autoreconf at all; it's not reliable.

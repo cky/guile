@@ -68,7 +68,7 @@
  * double		dvect
  * complex double	cvect
  * short		svect
- * long_long		llvect
+ * long long		llvect
  */
 
 long scm_tc16_array;
@@ -122,7 +122,7 @@ scm_vector_set_length_x (vect, len)
     case scm_tc7_svect:
       sz = sizeof (short);
       break;
-#ifdef LONGLONGS
+#ifdef HAVE_LONG_LONGS
     case scm_tc7_llvect:
       sz = sizeof (long_long);
       break;
@@ -233,7 +233,7 @@ scm_make_uve (k, prot)
 	  i = sizeof (short) * k;
 	  type = scm_tc7_svect;
 	}
-#ifdef LONGLONGS
+#ifdef HAVE_LONG_LONGS
       else if (s == 'l')
 	{
 	  i = sizeof (long_long) * k;
@@ -250,7 +250,8 @@ scm_make_uve (k, prot)
   if (SCM_IMP (prot) || !SCM_INEXP (prot))
 #endif
     /* Huge non-unif vectors are NOT supported. */
-    return scm_make_vector (SCM_MAKINUM (k), SCM_UNDEFINED);	/* no special scm_vector */
+    /* no special scm_vector */
+    return scm_make_vector (SCM_MAKINUM (k), SCM_UNDEFINED);
 #ifdef SCM_FLOATS
 #ifdef SCM_SINGLES
   else if (SCM_SINGP (prot))
@@ -274,11 +275,7 @@ scm_make_uve (k, prot)
 
   SCM_NEWCELL (v);
   SCM_DEFER_INTS;
-  {
-    char *m;
-    m = scm_must_malloc ((i ? i : 1L), "vector");
-    SCM_SETCHARS (v, (char *) m);
-  }
+  SCM_SETCHARS (v, (char *) scm_must_malloc (i ? i : 1, "vector"));
   SCM_SETLENGTH (v, (k < SCM_LENGTH_MAX ? k : SCM_LENGTH_MAX), type);
   SCM_ALLOW_INTS;
   return v;
@@ -307,7 +304,7 @@ scm_uniform_vector_length (v)
     case scm_tc7_vector:
     case scm_tc7_wvect:
     case scm_tc7_svect:
-#ifdef LONGLONGS
+#ifdef HAVE_LONG_LONGS
     case scm_tc7_llvect:
 #endif
       return SCM_MAKINUM (SCM_LENGTH (v));
@@ -355,7 +352,7 @@ loop:
 		  && SCM_SYMBOLP (prot)
 		  && (1 == SCM_LENGTH (prot))
 		  && ('s' == SCM_CHARS (prot)[0])));
-#ifdef LONGLONGS
+#ifdef HAVE_LONG_LONGS
     case scm_tc7_llvect:
       return (   nprot
 	      || (SCM_NIMP (prot)
@@ -403,7 +400,7 @@ scm_array_rank (ra)
     case scm_tc7_fvect:
     case scm_tc7_cvect:
     case scm_tc7_dvect:
-#ifdef LONGLONGS
+#ifdef HAVE_LONG_LONGS
     case scm_tc7_llvect:
 #endif
     case scm_tc7_svect:
@@ -442,7 +439,7 @@ scm_array_dimensions (ra)
     case scm_tc7_cvect:
     case scm_tc7_dvect:
     case scm_tc7_svect:
-#ifdef LONGLONGS
+#ifdef HAVE_LONG_LONGS
     case scm_tc7_llvect:
 #endif
       return scm_cons (SCM_MAKINUM (SCM_LENGTH (ra)), SCM_EOL);
@@ -556,7 +553,7 @@ scm_shap2ra (args, what)
   return ra;
 }
 
-SCM_PROC(s_dimensions_to_uniform_array, "dimensions->uniform-array", 2, 0, 1, scm_dimensions_to_uniform_array);
+SCM_PROC(s_dimensions_to_uniform_array, "dimensions->uniform-array", 2, 1, 0, scm_dimensions_to_uniform_array);
 
 SCM 
 scm_dimensions_to_uniform_array (dims, prot, fill)
@@ -572,15 +569,10 @@ scm_dimensions_to_uniform_array (dims, prot, fill)
     {
       if (SCM_INUM (dims) < SCM_LENGTH_MAX)
 	{
-	  SCM answer;
-	  answer = scm_make_uve (SCM_INUM (dims), prot);
-	  if (SCM_NNULLP (fill))
-	    {
-	      SCM_ASSERT (1 == scm_ilength (fill),
-			  scm_makfrom0str (s_dimensions_to_uniform_array),
-			  SCM_WNA, NULL);
-	      scm_array_fill_x (answer, SCM_CAR (fill));
-	    }
+	  SCM answer = scm_make_uve (SCM_INUM (dims), prot);
+
+	  if (!SCM_UNBNDP (fill))
+	    scm_array_fill_x (answer, fill);
 	  else if (SCM_NIMP (prot) && SCM_SYMBOLP (prot))
 	    scm_array_fill_x (answer, SCM_MAKINUM (0));
 	  else
@@ -633,12 +625,9 @@ scm_dimensions_to_uniform_array (dims, prot, fill)
       SCM_ARRAY_V (ra) = scm_make_uve (rlen, prot);
       *((long *) SCM_VELTS (SCM_ARRAY_V (ra))) = rlen;
     }
-  if (SCM_NNULLP (fill))
+  if (!SCM_UNBNDP (fill))
     {
-      SCM_ASSERT (1 == scm_ilength (fill),
-		  scm_makfrom0str (s_dimensions_to_uniform_array), SCM_WNA,
-		  NULL);
-      scm_array_fill_x (ra, SCM_CAR (fill));
+      scm_array_fill_x (ra, fill);
     }
   else if (SCM_NIMP (prot) && SCM_SYMBOLP (prot))
     scm_array_fill_x (ra, SCM_MAKINUM (0));
@@ -815,7 +804,7 @@ scm_transpose_array (args)
     case scm_tc7_dvect:
     case scm_tc7_cvect:
     case scm_tc7_svect:
-#ifdef LONGLONGS
+#ifdef HAVE_LONG_LONGS
     case scm_tc7_llvect:
 #endif
       SCM_ASSERT (SCM_NIMP (args) && SCM_NULLP (SCM_CDR (args)),
@@ -917,7 +906,7 @@ scm_enclose_array (axes)
     case scm_tc7_vector:
     case scm_tc7_wvect:
     case scm_tc7_svect:
-#ifdef LONGLONGS
+#ifdef HAVE_LONG_LONGS
     case scm_tc7_llvect:
 #endif
       s->lbnd = 0;
@@ -1035,7 +1024,7 @@ tail:
     case scm_tc7_dvect:
     case scm_tc7_cvect:
     case scm_tc7_svect:
-#ifdef LONGLONGS
+#ifdef HAVE_LONG_LONGS
     case scm_tc7_llvect:
 #endif
     case scm_tc7_vector:
@@ -1129,7 +1118,7 @@ scm_uniform_vector_ref (v, args)
 
     case scm_tc7_svect:
       return SCM_MAKINUM (((short *) SCM_CDR (v))[pos]);
-#ifdef LONGLONGS
+#ifdef HAVE_LONG_LONGS
     case scm_tc7_llvect:
       return scm_long_long2num (((long_long *) SCM_CDR (v))[pos]);
 #endif
@@ -1160,8 +1149,7 @@ scm_cvref (v, pos, last)
      scm_sizet pos;
      SCM last;
 {
-  switch SCM_TYP7
-    (v)
+  switch SCM_TYP7 (v)
     {
     default:
       scm_wta (v, (char *) SCM_ARG1, "PROGRAMMING ERROR: scm_cvref");
@@ -1186,7 +1174,7 @@ scm_cvref (v, pos, last)
 # endif    
     case scm_tc7_svect:
       return SCM_MAKINUM (((short *) SCM_CDR (v))[pos]);
-#ifdef LONGLONGS
+#ifdef HAVE_LONG_LONGS
     case scm_tc7_llvect:
       return scm_long_long2num (((long_long *) SCM_CDR (v))[pos]);
 #endif
@@ -1319,7 +1307,7 @@ scm_array_set_x (v, obj, args)
       SCM_ASRTGO (SCM_INUMP (obj), badobj);
       ((short *) SCM_CDR (v))[pos] = SCM_INUM (obj);
       break;
-#ifdef LONGLONGS
+#ifdef HAVE_LONG_LONGS
     case scm_tc7_llvect:
       ((long_long *) SCM_CDR (v))[pos] = scm_num2long_long (obj, (char *)SCM_ARG2, s_array_set_x);
       break;
@@ -1349,18 +1337,19 @@ scm_array_set_x (v, obj, args)
   return SCM_UNSPECIFIED;
 }
 
+/* extract an array from "ra" (regularised?), which may be an smob type.
+   returns #f on failure.  */
 SCM_PROC(s_array_contents, "array-contents", 1, 1, 0, scm_array_contents);
 
 SCM 
 scm_array_contents (ra, strict)
      SCM ra;
-     SCM strict;
+     SCM strict;  /* more checks if not SCM_UNDEFINED.  */
 {
   SCM sra;
   if (SCM_IMP (ra))
     return SCM_BOOL_F;
-  switch SCM_TYP7
-    (ra)
+  switch SCM_TYP7 (ra)
     {
     default:
       return SCM_BOOL_F;
@@ -1375,7 +1364,7 @@ scm_array_contents (ra, strict)
     case scm_tc7_dvect:
     case scm_tc7_cvect:
     case scm_tc7_svect:
-#ifdef LONGLONGS
+#ifdef HAVE_LONG_LONGS
     case scm_tc7_llvect:
 #endif
       return ra;
@@ -1500,7 +1489,7 @@ loop:
     case scm_tc7_svect:
       sz = sizeof (short);
       break;
-#ifdef LONGLONGS
+#ifdef HAVE_LONG_LONGS
     case scm_tc7_llvect:
       sz = sizeof (long_long);
       break;
@@ -1650,7 +1639,7 @@ loop:
     case scm_tc7_svect:
       sz = sizeof (short);
       break;
-#ifdef LONGLONGS
+#ifdef HAVE_LONG_LONGS
     case scm_tc7_llvect:
       sz = sizeof (long_long);
       break;
@@ -1725,8 +1714,7 @@ scm_bit_count (item, seq)
   long i;
   register unsigned long cnt = 0, w;
   SCM_ASSERT (SCM_NIMP (seq), seq, SCM_ARG2, s_bit_count);
-  switch SCM_TYP7
-    (seq)
+  switch SCM_TYP7 (seq)
     {
     default:
       scm_wta (seq, (char *) SCM_ARG2, s_bit_count);
@@ -1768,8 +1756,7 @@ scm_bit_position (item, v, k)
 	  k, SCM_OUTOFRANGE, s_bit_position);
   if (pos == SCM_LENGTH (v))
     return SCM_BOOL_F;
-  switch SCM_TYP7
-    (v)
+  switch SCM_TYP7 (v)
     {
     default:
       scm_wta (v, (char *) SCM_ARG2, s_bit_position);
@@ -1832,14 +1819,12 @@ scm_bit_set_star_x (v, kv, obj)
   register long i, k, vlen;
   SCM_ASRTGO (SCM_NIMP (v), badarg1);
   SCM_ASRTGO (SCM_NIMP (kv), badarg2);
-  switch SCM_TYP7
-    (kv)
+  switch SCM_TYP7 (kv)
     {
     default:
     badarg2:scm_wta (kv, (char *) SCM_ARG2, s_bit_set_star_x);
     case scm_tc7_uvect:
-      switch SCM_TYP7
-	(v)
+      switch SCM_TYP7 (v)
 	{
 	default:
 	badarg1:scm_wta (v, (char *) SCM_ARG1, s_bit_set_star_x);
@@ -1891,8 +1876,7 @@ scm_bit_count_star (v, kv, obj)
   register unsigned long k;
   SCM_ASRTGO (SCM_NIMP (v), badarg1);
   SCM_ASRTGO (SCM_NIMP (kv), badarg2);
-  switch SCM_TYP7
-    (kv)
+  switch SCM_TYP7 (kv)
     {
     default:
     badarg2:scm_wta (kv, (char *) SCM_ARG2, s_bit_count_star);
@@ -2099,7 +2083,7 @@ scm_array_to_list (v)
 	res = scm_cons(SCM_MAKINUM (data[k]), res);
       return res;
     }
-#ifdef LONGLONGS
+#ifdef HAVE_LONG_LONGS
     case scm_tc7_llvect: {
       long_long *data;
       data = (long_long *)SCM_VELTS(v);
@@ -2243,8 +2227,7 @@ rapr1 (ra, j, k, port, pstate)
   long n = SCM_LENGTH (ra);
   int enclosed = 0;
 tail:
-  switch SCM_TYP7
-    (ra)
+  switch SCM_TYP7 (ra)
     {
     case scm_tc7_smob:
       if (enclosed++)
@@ -2290,6 +2273,7 @@ tail:
       ra = SCM_ARRAY_V (ra);
       goto tail;
     default:
+      /* scm_tc7_bvect and scm_tc7_llvect only?  */
       if (n-- > 0)
 	scm_iprin1 (scm_uniform_vector_ref (ra, SCM_MAKINUM (j)), port, pstate);
       for (j += inc; n-- > 0; j += inc)
@@ -2322,6 +2306,22 @@ tail:
       break;
 
     case scm_tc7_uvect:
+      {
+	char str[11];
+
+	if (n-- > 0)
+	  {
+	    /* intprint can't handle >= 2^31.  */
+	    sprintf (str, "%lu", (unsigned long) SCM_VELTS (ra)[j]);
+	    scm_puts (str, port);
+	  }
+	for (j += inc; n-- > 0; j += inc)
+	  {
+	    scm_putc (' ', port);
+	    sprintf (str, "%lu", (unsigned long) SCM_VELTS (ra)[j]);
+	    scm_puts (str, port);
+	  }
+      }
     case scm_tc7_ivect:
       if (n-- > 0)
 	scm_intprint (SCM_VELTS (ra)[j], 10, port);
@@ -2405,8 +2405,7 @@ scm_raprin1 (exp, port, pstate)
   scm_sizet base = 0;
   scm_putc ('#', port);
 tail:
-  switch SCM_TYP7
-    (v)
+  switch SCM_TYP7 (v)
     {
     case scm_tc7_smob:
       {
@@ -2471,9 +2470,9 @@ tail:
     case scm_tc7_svect:
       scm_putc ('h', port);
       break;
-#ifdef LONGLONGS
+#ifdef HAVE_LONG_LONGS
     case scm_tc7_llvect:
-      scm_puts ("long_long", port);
+      scm_putc ('l', port);
       break;
 #endif
 #ifdef SCM_FLOATS
@@ -2531,7 +2530,7 @@ loop:
       return SCM_MAKINUM (-1L);
     case scm_tc7_svect:
       return SCM_CDR (scm_intern ("s", 1));
-#ifdef LONGLONGS
+#ifdef HAVE_LONG_LONGS
     case scm_tc7_llvect:
       return SCM_CDR (scm_intern ("l", 1));
 #endif

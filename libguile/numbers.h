@@ -167,7 +167,6 @@
 
 # define SCM_BIGRAD (1L << SCM_BITSPERDIG)
 # define SCM_DIGSPERLONG ((scm_sizet)((sizeof(long)*SCM_CHAR_BIT+SCM_BITSPERDIG-1)/SCM_BITSPERDIG))
-# define SCM_DIGSPERLONGLONG ((scm_sizet)((sizeof(long long)*SCM_CHAR_BIT+SCM_BITSPERDIG-1)/SCM_BITSPERDIG))
 # define SCM_BIGUP(x) ((unsigned long)(x) << SCM_BITSPERDIG)
 # define SCM_LONGLONGBIGUP(x) ((ulong_long)(x) << SCM_BITSPERDIG)
 # define SCM_BIGDN(x) ((x) >> SCM_BITSPERDIG)

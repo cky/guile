@@ -219,7 +219,7 @@ dnl AC_CHECK_FUNCS...
 dnl restore confdefs.h
 
 dnl cp confdefs.h confdefs.h.bak
-dnl for func in gethostent sethostent endhostent getnetent setnetent endnetent getprotoent setprotoent endprotoent getservent setservent endservent getnetbyaddr getnetbyname inet_lnaof inet_makeaddr inet_netof ; do
+dnl for func in gethostent sethostent endhostent getnetent setnetent endnetent getprotoent setprotoent endprotoent getservent setservent endservent getnetbyaddr getnetbyname inet_lnaof inet_makeaddr inet_netof hstrerror; do
 dnl cp confdefs.h.bak confdefs.h
 dnl cat >> confdefs.h << EOF 
 dnl #ifdef __CYGWIN32__
@@ -234,7 +234,8 @@ AC_CHECK_FUNCS(sethostent   gethostent   endhostent   dnl
                setnetent    getnetent    endnetent    dnl
                setprotoent  getprotoent  endprotoent  dnl
                setservent   getservent   endservent   dnl
-               getnetbyaddr getnetbyname inet_lnaof inet_makeaddr inet_netof)
+               getnetbyaddr getnetbyname dnl
+	       inet_lnaof inet_makeaddr inet_netof hstrerror)
 
 dnl </GNU-WIN32 hacks>
 

@@ -89,7 +89,7 @@ scm_inet_aton (address)
   if (SCM_SUBSTRP (address))
     address = scm_makfromstr (SCM_ROCHARS (address), SCM_ROLENGTH (address), 0);
   if (inet_aton (SCM_ROCHARS (address), &soka) == 0)
-    scm_syserror (s_inet_aton);
+    scm_misc_error (s_inet_aton, "bad address", SCM_EOL);
   return scm_ulong2num (ntohl (soka.s_addr));
 }
 
@@ -154,9 +154,55 @@ scm_inet_makeaddr (net, lna)
 }
 #endif
 
+SCM_SYMBOL (scm_host_not_found_key, "host-not-found");
+SCM_SYMBOL (scm_try_again_key, "try-again");
+SCM_SYMBOL (scm_no_recovery_key, "no-recovery");
+SCM_SYMBOL (scm_no_data_key, "no-data");
 
-/* !!! Doesn't take address format.
- * Assumes hostent stream isn't reused.
+static void scm_resolv_error (const char *subr, SCM bad_value)
+{
+  if (h_errno == NETDB_INTERNAL)
+    {
+      /* errno supposedly contains a useful value.  */
+      scm_syserror (subr);
+    }
+  else
+    {
+      SCM key;
+      const char *errmsg;
+
+      switch (h_errno)
+	{
+	case HOST_NOT_FOUND:
+	  key = scm_host_not_found_key;
+	  errmsg = "Unknown host"; 
+	  break;
+	case TRY_AGAIN:	
+	  key = scm_try_again_key;
+	  errmsg = "Host name lookup failure";
+	  break;
+	case NO_RECOVERY:
+	  key = scm_no_recovery_key;
+	  errmsg = "Unknown server error"; 
+	  break;
+	case NO_DATA:
+	  key = scm_no_data_key;
+	  errmsg = "No address associated with name";
+	  break;
+	default:
+	  scm_misc_error (subr, "Unknown resolver error", SCM_EOL);
+	  errmsg = NULL;
+	}
+
+#ifdef HAVE_HSTRERROR
+      errmsg = hstrerror (h_errno);
+#endif
+      scm_error (key, subr, errmsg, scm_cons (bad_value, SCM_EOL), SCM_EOL);
+    }
+}
+
+/* Should take an extra arg for address format (will be needed for IPv6).
+   Should use reentrant facilities if available.
  */
 
 SCM_PROC (s_gethost, "gethost", 0, 1, 0, scm_gethost);
@@ -201,21 +247,10 @@ scm_gethost (name)
       entry = gethostbyaddr ((char *) &inad, sizeof (inad), AF_INET);
     }
   if (!entry)
-    {
-      char *errmsg;
-      SCM args;
-      args = scm_listify (name, SCM_UNDEFINED);
-      switch (h_errno)
-	{
-	case HOST_NOT_FOUND: errmsg = "host %s not found"; break;
-	case TRY_AGAIN:	     errmsg = "nameserver failure (try later)"; break;
-	case NO_RECOVERY:    errmsg = "non-recoverable error"; break;
-	case NO_DATA:        errmsg = "no address associated with %s"; break;
-	default:	     errmsg = "undefined error"; break;
-	}
-      scm_syserror_msg (s_gethost, errmsg, args, h_errno);
-    }
-  ve[0] = scm_makfromstr (entry->h_name, (scm_sizet) strlen (entry->h_name), 0);
+    scm_resolv_error (s_gethost, name);
+  
+  ve[0] = scm_makfromstr (entry->h_name, 
+			  (scm_sizet) strlen (entry->h_name), 0);
   ve[1] = scm_makfromstrs (-1, entry->h_aliases);
   ve[2] = SCM_MAKINUM (entry->h_addrtype + 0L);
   ve[3] = SCM_MAKINUM (entry->h_length + 0L);
