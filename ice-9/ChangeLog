@@ -1,3 +1,18 @@
+Mon Sep  1 20:08:32 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* gtcl.scm (make-tcl-binder): Rewritten to choose bindings
+	according to the following priorities:
+	1. tcl bindings which are present in override-scheme-list
+	2. bindings from the-scm-module
+	3. tcl bindings
+	This way the gtcl module can occur first in the use-list without
+	disabling the scheme interpreter.
+	(new-interpreter): New function.
+
+	* gwish.scm: Moved initialization code for the-interpreter to
+ 	gtcl.scm; Moved name space cleaning code to gtcl.scm and rewrote
+ 	it; Call `new-interpreter'; Don't :use-module (guile).
+
 Wed Aug 27 11:35:09 1997  Jim Blandy  <jimb@totoro.red-bean.com>
 
 	* Makefile.in: Regenerated, so it uses "tar", not "gtar".
