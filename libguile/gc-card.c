@@ -166,7 +166,7 @@ scm_i_sweep_card (scm_t_cell *  p, SCM *free_list, scm_t_heap_segment*seg)
 		       "compiled closure");
 	  break;
 #endif
-#ifdef SCM_HAVE_ARRAYS
+#if SCM_HAVE_ARRAYS
 	case scm_tc7_bvect:
 	  {
 	    unsigned long int length = SCM_BITVECTOR_LENGTH (scmptr);
