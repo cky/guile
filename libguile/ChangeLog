@@ -1,3 +1,9 @@
+Thu Jan 27 09:59:38 2000  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* strop.c (scm_i_index): Obfuscated commented-out SCM_DEFINE by
+	adding "x" prefix to the line so that guile-func-name-check
+	doesn't complain unnecessarily.
+
 Wed Jan 26 17:33:52 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* throw.c: Factor out an #ifdef/#else/#endif choice more finely
