@@ -1,3 +1,11 @@
+Sat Mar  8 00:07:54 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* debug.scm: Removed `display-application'.  (Replaced by
+ 	primitive procedure.)
+
+	* boot-9.scm (beautify-user-module!): Don't add the root module
+	interface to the end of the use-list of the root module.
+
 Wed Mar  5 20:30:24 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* boot-9.scm: check use-emacs-interface for emacs support.
