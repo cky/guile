@@ -431,8 +431,9 @@ scm_procedure_name (proc)
 	     SCM_ARG1,
 	     s_procedure_name);
   switch (SCM_TYP7 (proc)) {
-  case scm_tcs_closures:
-  case scm_tc7_cclo:
+  case scm_tcs_subrs:
+    return SCM_SNAME (proc);
+  default:
     {
       SCM name = scm_procedure_property (proc, scm_i_name);
 #if 0
@@ -445,10 +446,6 @@ scm_procedure_name (proc)
 	name = scm_procedure_property (proc, scm_i_inner_name);
       return name;
     }
-  case scm_tcs_subrs:
-    return SCM_SNAME (proc);
-  default:
-    return SCM_BOOL_F;
   }
 }
 
