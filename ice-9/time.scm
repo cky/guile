@@ -36,7 +36,7 @@
             (get tms:stime tms-start tms-end)
             (get tms:cutime tms-start tms-end)
             (get tms:cstime tms-start tms-end)
-            (get id gc-start gc-end))
+            (get identity gc-start gc-end))
     result))
 
 (define-macro (time exp)
