@@ -1,3 +1,8 @@
+2000-04-13  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* unif.c, unif.h (shared-array-root, shared-array-offset,
+	shared-array-increments): New primitives.
+
 2000-04-12  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* gc.c (scm_gc_sweep):  Simplify the computation of freed memory
