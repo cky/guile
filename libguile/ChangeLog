@@ -1,3 +1,11 @@
+2002-12-28  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* read.h (scm_lreadparen), read.c (scm_lreadr, scm_read_token,
+	scm_lreadparen): Support reading vectors with Elisp syntax if
+	SCM_ELISP_READ_EXTENSIONS is defined.  (SCM_ELISP_READ_EXTENSIONS
+	is not currently defined, and there isn't even a configure switch
+	to enable it yet.)
+
 2002-12-26  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* Makefile.am (c-tokenize.o): Refer to source via $< so that vpath

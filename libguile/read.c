@@ -339,11 +339,16 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
     case '(':
       return SCM_RECORD_POSITIONS_P
 	? scm_lreadrecparen (tok_buf, port, s_list, copy)
-	: scm_lreadparen (tok_buf, port, s_list, copy);
+	: scm_lreadparen (tok_buf, port, s_list, copy SCM_ELISP_CLOSE);
     case ')':
       scm_input_error (FUNC_NAME, port,"unexpected \")\"", SCM_EOL);
       goto tryagain;
     
+#ifdef SCM_ELISP_READ_EXTENSIONS
+    case '[':
+      p = scm_lreadparen (tok_buf, port, "vector", copy, ']');
+      return SCM_NULLP (p) ? scm_nullvect : scm_vector (p);
+#endif
     case '\'':
       p = scm_sym_quote;
       goto recquote;
@@ -403,7 +408,7 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
       switch (c)
 	{
 	case '(':
-	  p = scm_lreadparen (tok_buf, port, "vector", copy);
+	  p = scm_lreadparen (tok_buf, port, "vector", copy SCM_ELISP_CLOSE);
 	  return SCM_NULLP (p) ? scm_nullvect : scm_vector (p);
 
 	case 't':
@@ -629,6 +634,10 @@ scm_read_token (int ic, SCM *tok_buf, SCM port, int weird)
 	{
 	case '(':
 	case ')':
+#ifdef SCM_ELISP_READ_EXTENSIONS
+	case '[':
+	case ']':
+#endif
 	case '"':
 	case ';':
 	case SCM_WHITE_SPACES:
@@ -686,7 +695,13 @@ _Pragma ("opt");		/* # pragma _CRI opt */
 #endif
 
 SCM 
-scm_lreadparen (SCM *tok_buf, SCM port, char *name, SCM *copy)
+scm_lreadparen (SCM *tok_buf, SCM port, char *name, SCM *copy
+#ifdef SCM_ELISP_READ_EXTENSIONS
+		, char term_char
+#else
+#define term_char ')'
+#endif
+		)
 #define FUNC_NAME "scm_lreadparen"
 {
   SCM tmp;
@@ -695,19 +710,19 @@ scm_lreadparen (SCM *tok_buf, SCM port, char *name, SCM *copy)
   int c;
 
   c = scm_flush_ws (port, name);
-  if (')' == c)
+  if (term_char == c)
     return SCM_EOL;
   scm_ungetc (c, port);
   if (SCM_EQ_P (scm_sym_dot, (tmp = scm_lreadr (tok_buf, port, copy))))
     {
       ans = scm_lreadr (tok_buf, port, copy);
     closeit:
-      if (')' != (c = scm_flush_ws (port, name)))
+      if (term_char != (c = scm_flush_ws (port, name)))
 	scm_input_error (FUNC_NAME, port, "missing close paren", SCM_EOL);
       return ans;
     }
   ans = tl = scm_cons (tmp, SCM_EOL);
-  while (')' != (c = scm_flush_ws (port, name)))
+  while (term_char != (c = scm_flush_ws (port, name)))
     {
       scm_ungetc (c, port);
       if (SCM_EQ_P (scm_sym_dot, (tmp = scm_lreadr (tok_buf, port, copy))))
@@ -721,6 +736,9 @@ scm_lreadparen (SCM *tok_buf, SCM port, char *name, SCM *copy)
   return ans;
 }
 #undef FUNC_NAME
+#ifndef SCM_ELISP_READ_EXTENSIONS
+#undef term_char
+#endif
 
 
 SCM 
