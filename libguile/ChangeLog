@@ -1,3 +1,9 @@
+2001-05-07  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* ramap.c (raeql_1): Do not call scm_uniform_vector_length on
+	arrays.  The length of array is already determined differently and
+	scm_uniform_vector_length does not work on arrays.
+
 2001-05-06  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* snarf.h (SCM_FUNC_CAST_ARBITRARY_ARGS): Use "SCM (*)()" for C++
