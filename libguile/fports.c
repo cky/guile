@@ -616,7 +616,7 @@ fport_flush (SCM port)
 {
   scm_port *pt = SCM_PTAB_ENTRY (port);
   struct scm_fport *fp = SCM_FSTREAM (port);
-  char *ptr = pt->write_buf;
+  unsigned char *ptr = pt->write_buf;
   int init_size = pt->write_pos - pt->write_buf;
   int remaining = init_size;
 
