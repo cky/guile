@@ -1650,12 +1650,13 @@
 
 ;; (define-special-value '(app modules new-ws) (lambda () (make-scm-module)))
 
-(define (resolve-module name)
+(define (resolve-module name . maybe-autoload)
   (let ((full-name (append '(app modules) name)))
     (let ((already (local-ref full-name)))
     (or already
 	(begin
-	  (try-module-autoload name)
+	  (if (or (null? maybe-autoload) (car maybe-autoload))
+	      (try-module-autoload name))
 	  (make-modules-in (current-module) full-name))))))
 	    
 (define (beautify-user-module! module)
@@ -1687,30 +1688,32 @@
 
 (define (process-define-module args)
   (let*  ((module-id (car args))
-	  (module (resolve-module module-id))
+	  (module (resolve-module module-id #f))
 	  (kws (cdr args)))
     (beautify-user-module! module)
-    (let loop ((kws kws))
-      (and (not (null? kws))
-	   (case (car kws)
-	     ((:use-module)
-	      (if (not (pair? (cdr kws)))
-		  (error "unrecognized defmodule argument" kws))
-	      (let* ((used-name (cadr kws))
-		     (used-module (resolve-module used-name)))
-		(if (not (module-ref used-module '%module-public-interface #f))
-		    (begin
-		      ((if %autoloader-developer-mode warn error) "no code for module" used-module)
-		      (beautify-user-module! used-module)))
-		(let ((interface (module-ref used-module '%module-public-interface #f)))
-		  (if (not interface)
-		      (error "missing interface for use-module" used-module))
-		  (set-module-uses! module
-				    (append! (delq! interface (module-uses module))
-					     (list interface)))))
-	      (loop (cddr kws)))
-
-	     (else	(error "unrecognized defmodule argument" kws)))))
+    (let loop ((kws kws)
+	       (reversed-interfaces '()))
+      (if (null? kws)
+	  (for-each (lambda (interface)
+		      (module-use! module interface))
+		    reversed-interfaces)
+	  (case (car kws)
+	    ((:use-module)
+	     (if (not (pair? (cdr kws)))
+		 (error "unrecognized defmodule argument" kws))
+	     (let* ((used-name (cadr kws))
+		    (used-module (resolve-module used-name)))
+	       (if (not (module-ref used-module '%module-public-interface #f))
+		   (begin
+		     ((if %autoloader-developer-mode warn error)
+		      "no code for module" (module-name used-module))
+		     (beautify-user-module! used-module)))
+	       (let ((interface (module-public-interface used-module)))
+		 (if (not interface)
+		     (error "missing interface for use-module" used-module))
+		 (loop (cddr kws) (cons interface reversed-interfaces)))))
+	    (else	
+	     (error "unrecognized defmodule argument" kws)))))
     module))
 
 ;;; {Autoloading modules}
@@ -1724,7 +1727,7 @@
 	 (name (car reverse-name))
 	 (dir-hint-module-name (reverse (cdr reverse-name)))
 	 (dir-hint (apply symbol-append (map (lambda (elt) (symbol-append elt "/")) dir-hint-module-name))))
-    (resolve-module dir-hint-module-name)
+    (resolve-module dir-hint-module-name #f)
     (and (not (autoload-done-or-in-progress? dir-hint name))
 	 (let ((didit #f))
 	   (dynamic-wind
