@@ -1,3 +1,10 @@
+2001-06-27  Michael Livshin  <mlivshin@bigfoot.com>
+
+	* Makefile.am (c-tokenize.c): add rule to generate it.
+	(EXTRA_DIST): add c-tokenize.lex, so it gets distributed.
+
+	filter-doc-snarfage.c: remove.
+
 2001-06-26  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* ports.c (scm_output_port_p): Use result of SCM_COERCE_OUTPORT.
