@@ -1,3 +1,8 @@
+2004-08-09  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/slib.test: New file.
+	* Makefile.am (SCM_TESTS): Add it.
+
 2004-08-06  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/unif.test (array-set!): Exercise byte array range checks.

@@ -1,3 +1,10 @@
+2004-08-09  Kevin Ryde  <user42@zip.com.au>
+
+	* api-io.texi (File Ports): In open-file, describe the "b" binary flag.
+
+	* slib.texi (SLIB): Add notes on delete-file, provided? and open-file
+	overridden by ice-9 slib module.
+
 2004-08-05  Kevin Ryde  <user42@zip.com.au>
 
 	* api-scheduling.texi (Arbiters): Tweak wording for clarity, note any
