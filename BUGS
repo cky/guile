@@ -14,6 +14,9 @@ DATE is formatted YYYY-MM-DD, or "not-yet".  Line numbering is zero-origin;
 line 0 is empty (newline always follows newpage (recognizable w/ "\f\n")).
 The suggested regexps can be used in a line-oriented parser.
 
+You can use "fixed: no-need (EXPLANATION)" if the bug doesn't need to be
+fixed.  EXPLANATION might be "not a bug", "user error", etc.
+
 
 bug 0 -- no BUGS file
 reported-by: ttn / 2001-09-25
@@ -235,7 +238,7 @@ Bill Gribble sez:
 
 bug 11 -- (ice-9 optargs) #:rest arg polluted by keys/values
 reported-by: ttn / 2001-11-09
-fixed: not-yet
+fixed: no-need (behavior consistent w/ Common Lisp, user error)
 
 ttn sez:
 > the following code displays
@@ -264,6 +267,17 @@ ttn sez:
 >   (blah #:j 'JAY #:k 'KAY)
 >   (blah #:j 'JAY #:k 'KAY 1)
 >   (blah #:j 'JAY #:k 'KAY '(1 2 3))
+
+mvo sez:
+> In Common Lisp, there are no non-key rest-args when you have keyword
+> parameters.  After the required and optional arguments, there must
+> follow an even number of additional arguments, and every two of them
+> are treated as a keyword/value pair.
+>
+> I think it makes sense the way CL specifies this.  Anything beyond
+> this would lead to confusion.  If you want to go beyond what (ice-9
+> optargs) offers, yo are probably best off writing your own argument
+> parser.
 
 
 [BUGS ends here]
