@@ -1,7 +1,12 @@
+Thu Jan 23 07:06:15 1997  Mark Galassi  <rosalia@papageno.lanl.gov>
+
+	* newdoc/tutorial/guile-tut.texi: started checking in the Guile
+	tutorial rewrite, but have not merged much into it yet.
+
 Tue Jan 21 17:28:40 1997  Mark Galassi  <rosalia@sarastro.lanl.gov>
 
 	* newdoc/ref/guile-ref.texi: started checking in parts of the
-	manual re-write.
+	reference manual re-write.
 
 Sat Jan 11 14:40:17 1997  Marius Vollmer  <mvo@zagadka.ping.de>
 
