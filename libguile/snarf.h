@@ -56,181 +56,123 @@
  * For example, the SCM_PROC macro could have been defined by the user:
  *
  *   #define SCM_PROC(RANAME, STR, REQ, OPT, VAR, CFN)  \
- *   SCM_INSITU (static const char RANAME[]=STR) \
- *   SCM_INIT   (scm_make_gsubr (RANAME, REQ, OPT, VAR, (SCM (*)(...)) CFN))
+ *   SCM_NOTSNARF (static const char RANAME[]=STR) \
+ *   SCM_SNARFING (scm_make_gsubr (RANAME, REQ, OPT, VAR, (SCM_FUNC_CAST_ARBITRARY_ARGS) CFN))
  */
 
-#ifndef SCM_MAGIC_SNARFER
-#  define SCM_INSITU(X) X
-#  define SCM_INIT(X)
+#if defined(__cplusplus) || defined(GUILE_CPLUSPLUS_SNARF)
+#define SCM_FUNC_CAST_ARBITRARY_ARGS SCM (*)(...)
 #else
-#  define SCM_INSITU(X)
-#  define SCM_INIT(X) \
-%%%	X \
-
+#define SCM_FUNC_CAST_ARBITRARY_ARGS SCM (*)()
 #endif
 
 #ifndef SCM_MAGIC_SNARFER
+#  define SCM_NOTSNARF(X) X
+#  define SCM_SNARFING(X)
+#else
+#  define SCM_NOTSNARF(X)
+#  define SCM_SNARFING(X) X
+#endif
 
 #define SCM_DEFINE(FNAME, PRIMNAME, REQ, OPT, VAR, ARGLIST, DOCSTRING) \
+SCM_NOTSNARF(\
 static const char s_ ## FNAME [] = PRIMNAME; \
-SCM FNAME ARGLIST
+SCM FNAME ARGLIST\
+)\
+SCM_SNARFING(\
+%%% scm_make_gsubr (s_ ## FNAME, REQ, OPT, VAR, (SCM_FUNC_CAST_ARBITRARY_ARGS) FNAME); \
+$$$P PRIMNAME #ARGLIST | REQ | OPT | VAR | __FILE__:__LINE__ | @@@ DOCSTRING @!!! \
+)
+
 #define SCM_DEFINE1(FNAME, PRIMNAME, TYPE, ARGLIST, DOCSTRING) \
+SCM_NOTSNARF(\
 static const char s_ ## FNAME [] = PRIMNAME; \
-SCM FNAME ARGLIST
+SCM FNAME ARGLIST\
+)SCM_SNARFING(\
+%%% scm_make_subr (s_ ## FNAME, TYPE, FNAME); \
+$$$1 PRIMNAME #ARGLIST | 2 | 0 | 0 | __FILE__:__LINE__ | @@@ DOCSTRING @!!! \
+)
 
 #define SCM_PROC(RANAME, STR, REQ, OPT, VAR, CFN)  \
-	static const char RANAME[]=STR
+SCM_NOTSNARF(static const char RANAME[]=STR) \
+SCM_SNARFING(\
+%%% scm_make_gsubr (RANAME, REQ, OPT, VAR, (SCM_FUNC_CAST_ARBITRARY_ARGS) CFN) \
+)
 
 #define SCM_REGISTER_PROC(RANAME, STR, REQ, OPT, VAR, CFN)  \
-	static const char RANAME[]=STR
+SCM_NOTSNARF(\
+static const char RANAME[]=STR \
+)SCM_SNARFING(\
+%%% scm_make_gsubr (RANAME, REQ, OPT, VAR, (SCM_FUNC_CAST_ARBITRARY_ARGS) CFN); \
+$$$R STR | REQ | OPT | VAR | __FILE__:__LINE__ | @@@ CFN @!!! \
+)
 
 #define SCM_GPROC(RANAME, STR, REQ, OPT, VAR, CFN, GF)  \
-	static const char RANAME[]=STR; \
-	static SCM GF = 0
+SCM_NOTSNARF(\
+static const char RANAME[]=STR;\
+static SCM GF = 0 \
+)SCM_SNARFING(\
+%%% scm_make_gsubr_with_generic (RANAME, REQ, OPT, VAR, (SCM_FUNC_CAST_ARBITRARY_ARGS) CFN, &GF) \
+)
 
-#define SCM_PROC1(RANAME, STR, TYPE, CFN)  \
-	static const char RANAME[]=STR
+#define SCM_PROC1(RANAME, STR, TYPE, CFN) \
+SCM_NOTSNARF(static const char RANAME[]=STR) \
+SCM_SNARFING(\
+%%% scm_make_subr(RANAME, TYPE, (SCM (*)(...))CFN) \
+)
+
 
 #define SCM_GPROC1(RANAME, STR, TYPE, CFN, GF) \
-	static const char RANAME[]=STR; \
-	static SCM GF = 0
-#else
-#if defined(__cplusplus) || defined(GUILE_CPLUSPLUS_SNARF)
-/* for C++ snarfing */
+SCM_NOTSNARF(\
+static const char RANAME[]=STR; \
+static SCM GF = 0 \
+)SCM_SNARFING(\
+%%%	scm_make_subr_with_generic(RANAME, TYPE, (SCM_FUNC_CAST_ARBITRARY_ARGS) CFN, &GF) \
+)
 
-#undef SCM_ASSERT
-#define SCM_ASSERT(_cond, _arg, _pos, _subr) *&*&*&*SCM_ARG_BETTER_BE_IN_POSITION(_arg,_pos,__LINE__)
-
-#define SCM_DEFINE(FNAME, PRIMNAME, REQ, OPT, VAR, ARGLIST, DOCSTRING) \
-%%%     scm_make_gsubr (s_ ## FNAME, REQ, OPT, VAR, (SCM (*)(...)) FNAME); \
-$$$P PRIMNAME #ARGLIST | REQ | OPT | VAR | __FILE__:__LINE__ | @@@ DOCSTRING @!!!
-
-#define SCM_DEFINE1(FNAME, PRIMNAME, TYPE, ARGLIST, DOCSTRING) \
-%%%     scm_make_subr (s_ ## FNAME, TYPE, FNAME); \
-$$$1 PRIMNAME #ARGLIST | 2 | 0 | 0 | __FILE__:__LINE__ | @@@ DOCSTRING @!!!
-
-#define SCM_PROC(RANAME, STR, REQ, OPT, VAR, CFN)  \
-%%%	scm_make_gsubr (RANAME, REQ, OPT, VAR, (SCM (*)(...)) CFN)
-
-#define SCM_REGISTER_PROC(RANAME, STR, REQ, OPT, VAR, CFN)  \
-%%%	scm_make_gsubr (RANAME, REQ, OPT, VAR, (SCM (*)(...)) CFN); \
-$$$R STR | REQ | OPT | VAR | __FILE__:__LINE__ | @@@ CFN @!!!
-
-#define SCM_GPROC(RANAME, STR, REQ, OPT, VAR, CFN, GF)  \
-%%%	scm_make_gsubr_with_generic (RANAME, REQ, OPT, VAR, (SCM (*)(...))CFN, &GF)
-
-#define SCM_PROC1(RANAME, STR, TYPE, CFN)  \
-%%%	scm_make_subr(RANAME, TYPE, (SCM (*)(...))CFN)
-
-#define SCM_GPROC1(RANAME, STR, TYPE, CFN, GF)  \
-%%%	scm_make_subr_with_generic(RANAME, TYPE, (SCM (*)(...))CFN, &GF)
-
-#else
-/* for ANSI C snarfing, not C++ */
-
-#undef SCM_ASSERT
-#define SCM_ASSERT(_cond, _arg, _pos, _subr) *&*&*&*SCM_ARG_BETTER_BE_IN_POSITION(_arg,_pos,__LINE__)
-
-#define SCM_DEFINE(FNAME, PRIMNAME, REQ, OPT, VAR, ARGLIST, DOCSTRING) \
-%%%     scm_make_gsubr (s_ ## FNAME, REQ, OPT, VAR, (SCM (*)()) FNAME); \
-$$$P PRIMNAME #ARGLIST | REQ | OPT | VAR | __FILE__:__LINE__ | @@@ DOCSTRING @!!!
-
-#define SCM_DEFINE1(FNAME, PRIMNAME, TYPE, ARGLIST, DOCSTRING) \
-%%%     scm_make_subr (s_ ## FNAME, TYPE, FNAME); \
-$$$1 PRIMNAME #ARGLIST | 2 | 0 | 0 | __FILE__:__LINE__ | @@@ DOCSTRING @!!!
-
-#define SCM_PROC(RANAME, STR, REQ, OPT, VAR, CFN)  \
-%%%	scm_make_gsubr (RANAME, REQ, OPT, VAR, (SCM (*)()) CFN)
-
-#define SCM_REGISTER_PROC(RANAME, STR, REQ, OPT, VAR, CFN)  \
-%%%	scm_make_gsubr (RANAME, REQ, OPT, VAR, (SCM (*)()) CFN); \
-$$$R STR | REQ | OPT | VAR | __FILE__:__LINE__ | @@@ CFN @!!!
-
-#define SCM_GPROC(RANAME, STR, REQ, OPT, VAR, CFN, GF)  \
-%%%	scm_make_gsubr_with_generic (RANAME, REQ, OPT, VAR, (SCM (*)()) CFN, &GF)
-
-#define SCM_PROC1(RANAME, STR, TYPE, CFN)  \
-%%%	scm_make_subr(RANAME, TYPE, CFN)
-
-#define SCM_GPROC1(RANAME, STR, TYPE, CFN, GF)  \
-%%%	scm_make_subr_with_generic(RANAME, TYPE, CFN, &GF)
-
-#endif
-#endif
-
-#ifndef SCM_MAGIC_SNARFER
 #define SCM_SYNTAX(RANAME, STR, TYPE, CFN)  \
-	static const char RANAME[]=STR
-#else
-#define SCM_SYNTAX(RANAME, STR, TYPE, CFN)  \
-%%%	scm_make_synt (RANAME, TYPE, CFN)
-#endif
+SCM_NOTSNARF(static const char RANAME[]=STR)\
+SCM_SNARFING(%%% scm_make_synt (RANAME, TYPE, CFN))
 
-#ifndef SCM_MAGIC_SNARFER
 #define SCM_SYMBOL(c_name, scheme_name) \
-	static SCM c_name = SCM_BOOL_F
-#else
-#define SCM_SYMBOL(C_NAME, SCHEME_NAME) \
-%%%	C_NAME = scm_permanent_object (SCM_CAR (scm_intern0 (SCHEME_NAME)))
-#endif
+SCM_NOTSNARF(static SCM c_name = SCM_BOOL_F) \
+SCM_SNARFING(%%% c_name = scm_permanent_object (SCM_CAR (scm_intern0 (scheme_name))))
 
-#ifndef SCM_MAGIC_SNARFER
 #define SCM_GLOBAL_SYMBOL(c_name, scheme_name) \
-	SCM c_name = SCM_BOOL_F
-#else
-#define SCM_GLOBAL_SYMBOL(C_NAME, SCHEME_NAME) \
-%%%	C_NAME = scm_permanent_object (SCM_CAR (scm_intern0 (SCHEME_NAME)))
-#endif
+SCM_NOTSNARF(SCM c_name = SCM_BOOL_F) \
+SCM_SNARFING(%%% c_name = scm_permanent_object (SCM_CAR (scm_intern0 (scheme_name))))
 
-#ifndef SCM_MAGIC_SNARFER
 #define SCM_KEYWORD(c_name, scheme_name) \
-	static SCM c_name = SCM_BOOL_F
-#else
-#define SCM_KEYWORD(C_NAME, SCHEME_NAME) \
-%%%	C_NAME = scm_permanent_object (scm_c_make_keyword (SCHEME_NAME))
-#endif
+SCM_NOTSNARF(static SCM c_name = SCM_BOOL_F) \
+SCM_SNARFING(%%% c_name = scm_permanent_object (scm_c_make_keyword (scheme_name)))
 
-#ifndef SCM_MAGIC_SNARFER
 #define SCM_GLOBAL_KEYWORD(c_name, scheme_name) \
-	SCM c_name = SCM_BOOL_F
-#else
-#define SCM_GLOBAL_KEYWORD(C_NAME, SCHEME_NAME) \
-%%%	C_NAME = scm_permanent_object (scm_c_make_keyword (SCHEME_NAME))
-#endif
+SCM_NOTSNARF(SCM c_name = SCM_BOOL_F) \
+SCM_SNARFING(%%% c_name = scm_permanent_object (scm_c_make_keyword (scheme_name)))
 
-#ifndef SCM_MAGIC_SNARFER
 #define SCM_VCELL(c_name, scheme_name) \
-	static SCM c_name = SCM_BOOL_F
-#else
-#define SCM_VCELL(C_NAME, SCHEME_NAME) \
-%%%	C_NAME = scm_permanent_object (scm_intern0 (SCHEME_NAME)); SCM_SETCDR (C_NAME, SCM_BOOL_F)
-#endif
+SCM_NOTSNARF(static SCM c_name = SCM_BOOL_F) \
+SCM_SNARFING(%%% c_name = scm_permanent_object (scm_intern0 (scheme_name)); SCM_SETCDR (c_name, SCM_BOOL_F))
 
-#ifndef SCM_MAGIC_SNARFER
 #define SCM_GLOBAL_VCELL(c_name, scheme_name) \
-	SCM c_name = SCM_BOOL_F
-#else
-#define SCM_GLOBAL_VCELL(C_NAME, SCHEME_NAME) \
-%%%	C_NAME = scm_permanent_object (scm_intern0 (SCHEME_NAME)); SCM_SETCDR (C_NAME, SCM_BOOL_F)
-#endif
+SCM_NOTSNARF(SCM c_name = SCM_BOOL_F) \
+SCM_SNARFING(%%% c_name = scm_permanent_object (scm_intern0 (scheme_name)); SCM_SETCDR (c_name, SCM_BOOL_F))
 
-#ifndef SCM_MAGIC_SNARFER
 #define SCM_VCELL_INIT(c_name, scheme_name, init_val) \
-	static SCM c_name = SCM_BOOL_F
-#else
-#define SCM_VCELL_INIT(C_NAME, SCHEME_NAME, init_val) \
-%%%	C_NAME = scm_permanent_object (scm_intern0 (SCHEME_NAME)); SCM_SETCDR (C_NAME, init_val)
-#endif
+SCM_NOTSNARF(static SCM c_name = SCM_BOOL_F) \
+SCM_SNARFING(%%% c_name = scm_permanent_object (scm_intern0 (scheme_name)); SCM_SETCDR (c_name, init_val))
 
-#ifndef SCM_MAGIC_SNARFER
 #define SCM_GLOBAL_VCELL_INIT(c_name, scheme_name, init_val) \
-	SCM c_name = SCM_BOOL_F
-#else
-#define SCM_GLOBAL_VCELL_INIT(C_NAME, SCHEME_NAME, init_val) \
-%%%	C_NAME = scm_permanent_object (scm_intern0 (SCHEME_NAME)); SCM_SETCDR (C_NAME, init_val)
-#endif
+SCM_NOTSNARF(SCM c_name = SCM_BOOL_F) \
+SCM_SNARFING(%%% c_name = scm_permanent_object (scm_intern0 (scheme_name)); SCM_SETCDR (c_name, init_val))
 
-#define SCM_CONST_LONG(C_NAME, SCHEME_NAME,VALUE) SCM_VCELL_INIT(C_NAME, SCHEME_NAME, scm_long2num(VALUE))
+#define SCM_CONST_LONG(c_name, scheme_name,value) \
+SCM_VCELL_INIT(c_name, scheme_name, scm_long2num(value))
+
+#ifdef SCM_MAGIC_SNARFER
+#undef SCM_ASSERT
+#define SCM_ASSERT(_cond, _arg, _pos, _subr) *&*&*&*SCM_ARG_BETTER_BE_IN_POSITION(_arg,_pos,__LINE__)
+#endif /* SCM_MAGIC_SNARFER */
 
 #endif /* LIBGUILE_SNARF_H */
+
