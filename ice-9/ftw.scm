@@ -1,6 +1,6 @@
 ;;;; ftw.scm --- filesystem tree walk
 
-;;;; 	Copyright (C) 2002 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2002, 2003 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -197,7 +197,9 @@
     (let loop ((new (readdir dir-stream))
                (acc '()))
       (if (eof-object? new)
-          acc
+	  (begin
+	    (closedir dir-stream)
+	    acc)
           (loop (readdir dir-stream)
                 (if (or (string=? "."  new)             ;;; ignore
                         (string=? ".." new))            ;;; ignore
