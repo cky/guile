@@ -94,6 +94,15 @@ Scheme under the functions' Scheme names.  Please don't do this:
 Entries like this make it harder to search the ChangeLogs, because you
 can never tell which name the entry will refer to.
 
+Changes like adding this line are special:
+
+    SCM_PROC (s_serial_map, "serial-map", 2, 0, 1, scm_map);
+
+Since the change here is about the name itself --- we're adding a new
+alias for scm_map that guarantees the order in which we process list
+elements, but we're not changing scm_map at all --- it's appropriate
+to use the Scheme name in the log entry.
+
 - There's no need to keep a change log for documentation files.  This
 is because documentation is not susceptible to bugs that are hard to
 fix.  Documentation does not consist of parts that must interact in a
