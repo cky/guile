@@ -1,0 +1,114 @@
+#!/bin/sh
+# aside from this initial boilerplate, this is actually -*- scheme -*- code
+main='(module-ref (resolve-module '\''(scripts annotate-api-groupings)) '\'main')'
+exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
+!#
+;;; annotate-api-groupings --- Add grouping annotations to API elements
+
+;; 	Copyright (C) 2002 Free Software Foundation, Inc.
+;;
+;; This program is free software; you can redistribute it and/or
+;; modify it under the terms of the GNU General Public License as
+;; published by the Free Software Foundation; either version 2, or
+;; (at your option) any later version.
+;;
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;; General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with this software; see the file COPYING.  If not, write to
+;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+;; Boston, MA 02111-1307 USA
+
+;;; Author: Thien-Thi Nguyen <ttn@gnu.org>
+
+;;; Commentary:
+
+;; Usage: annotate-api-groupings GUILE-API GROUPINGS
+;;
+;; This progrsm reads GUILE-API and GROUPINGS files, and writes to stdout
+;; each element in the API annotated with the groupings. [[format still in
+;; development -- subject to change after feedback.]]
+;;
+;; TODO: Finish commentary.
+;;       Finalize format.
+;;       Perhaps push back on input format since "Scheme" or "C"
+;;         parents can be also treated as (a priori) groupings.
+
+;;; Code:
+
+(define-module (scripts annotate-api-groupings)
+  :autoload (ice-9 regex) (string-match)
+  :export (annotate-api-groupings))
+
+(define THIS-MODULE (current-module))
+
+(define (in-group? x group)
+  (memq group (assq-ref x 'groups)))
+
+(define (name-prefix? x prefix)
+  (let ((s (symbol->string (car x))))
+    (string-match (string-append "^" prefix) s)))
+
+(define (add-group-name! x name)
+  (let ((g (assq 'groups (cdr x))))
+    (set-cdr! g (cons name (cdr g)))))
+
+(define (make-grok-hook name form)
+  (let ((predicate? (eval form THIS-MODULE)))
+    (lambda (x)
+      (and (predicate? x)
+           (add-group-name! x name)))))
+
+(define (make-members-hook name members)
+  (lambda (x)
+    (and (memq (car x) members)
+         (add-group-name! x name))))
+
+(define (process-groupings groupings all)
+  (let ((hook (make-hook 1)))
+    (for-each (lambda (gdef)
+                (let ((name (car gdef))
+                      (members (assq-ref gdef 'members))
+                      (grok (assq-ref gdef 'grok)))
+                  (format #t ";;; grouping: ~A ~A (~A)\n"
+                          name
+                          (assq-ref gdef 'description)
+                          (if grok 'grok 'members))
+                  (or members grok
+                      (error "bad grouping, must have `members' or `grok'"))
+                  (add-hook! hook
+                             (if grok
+                                 (make-grok-hook name (cadr grok))
+                                 (make-members-hook name members)))))
+              groupings)
+    (for-each (lambda (x)
+                (run-hook hook x))
+              all))
+  all)
+
+(define (annotate-api-groupings . args)
+  (let* ((alist (read (open-file (car args) "r")))
+         (meta (assq 'meta alist))
+         (all (let* ((tag! (lambda (x tag)
+                             (set-cdr! x (list `(groups ,tag)
+                                               `(scan-data ,@(cdr x))))))
+                     (inv! (lambda (lang)
+                             (for-each (lambda (x) (tag! x lang))
+                                       (assq-ref alist lang))
+                             (assq-ref alist lang))))
+                (append (inv! 'scheme)
+                        (inv! 'C))))
+         (groupings (read (open-file (cadr args) "r")))
+         (new-all (process-groupings groupings all)))
+    ;; TODO
+    (for-each (lambda (x)
+                (format #t "~S\n" x))
+              new-all))
+  #t)
+
+(define main annotate-api-groupings)
+
+;;; annotate-api-groupings ends here
