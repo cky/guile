@@ -232,7 +232,7 @@ check_config (void)
 #endif
 #endif
 
-#ifdef SCM_STACK_GROWS_UP
+#if SCM_STACK_GROWS_UP
   if (((SCM_STACKITEM *) & j - stack_start_ptr) < 0)
     fixconfig (remsg, "SCM_STACK_GROWS_UP", 1);
 #else
@@ -556,7 +556,7 @@ scm_init_guile_1 (SCM_STACKITEM *base)
   scm_init_debug ();	/* Requires macro smobs */
 #endif
   scm_init_random ();
-#ifdef SCM_HAVE_ARRAYS
+#if SCM_HAVE_ARRAYS
   scm_init_ramap ();
   scm_init_unif ();
 #endif
@@ -566,7 +566,7 @@ scm_init_guile_1 (SCM_STACKITEM *base)
 #ifdef DYNAMIC_LINKING
   scm_init_dynamic_linking ();
 #endif
-#ifdef SCM_ENABLE_ELISP
+#if SCM_ENABLE_ELISP
   scm_init_lang ();
 #endif /* SCM_ENABLE_ELISP */
   scm_init_script ();
