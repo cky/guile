@@ -2,15 +2,25 @@ Needed before release
 
 * Add facilities for debugging Scheme programs.
 
-Mikael Djurfeldt <mdj@nada.kth.se> is working on this.
+Mikael Djurfeldt <mdj@nada.kth.se> is working on this.  The low-level
+functions are available, but need a user interface.  He has also
+written extensisons to GDB to allow it to print lispy values in lispy
+notation when debugging Guile's C code.
 
 * Merge in the Cygnus threads package.
 
-Anthony Green <green@cygnus.com> is working on this,
-but he lacks time, so perhaps he could use help.
+This is done, but needs debugging.
+
+* Documentation.
+
+They should be complete and accurate.  They should also have more
+general explanation (right now they're strictly reference), but
+perhaps that will have to wait until after the first release.
 
 
 Desired later on
+
+* Good interface to Tk
 
 * Add a convenient facility for running a pipeline of processes
 with redirections.  Gary Houston <ghouston@actrix.gen.nz>
