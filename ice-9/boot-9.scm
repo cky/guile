@@ -1608,52 +1608,61 @@
 	     (eq? (car (last-pair use-list)) the-scm-module))
 	(set-module-uses! module (reverse (cdr (reverse use-list)))))))
 
-;; Return a module interface made from SPEC.
-;; SPEC can be a list of symbols, in which case it names a module
-;; whose public interface is found and returned.
+;; Return a module that is a interface to the module designated by
+;; NAME.
 ;;
-;; SPEC can also be of the form:
-;;  (MODULE-NAME [:select SELECTION] [:rename RENAMER])
-;; in which case a partial interface is newly created and returned.
-;; MODULE-NAME is a list of symbols, as above; SELECTION is a list of
-;; binding-specs to be imported; and RENAMER is a procedure that takes a
-;; symbol and returns its new name.  A binding-spec is either a symbol or a
-;; pair of symbols (ORIG . SEEN), where ORIG is the name in the used module
-;; and SEEN is the name in the using module.  Note that SEEN is also passed
-;; through RENAMER.
+;; `resolve-interface' takes two keyword arguments:
 ;;
-;; The `:select' and `:rename' clauses are optional.  If both are omitted, the
-;; returned interface has no bindings.  If the `:select' clause is omitted,
-;; RENAMER operates on the used module's public interface.
+;;   #:select SELECTION
 ;;
-;; Signal "no code for module" error if module name is not resolvable or its
-;; public interface is not available.  Signal "no binding" error if selected
-;; binding does not exist in the used module.
+;; SELECTION is a list of binding-specs to be imported; A binding-spec
+;; is either a symbol or a pair of symbols (ORIG . SEEN), where ORIG
+;; is the name in the used module and SEEN is the name in the using
+;; module.  Note that SEEN is also passed through RENAMER, below.  The
+;; default is to select all bindings.  If you specify no selection but
+;; a renamer, only the bindings that already exists in the used module
+;; are made available in the interface.  Bindings that are added later
+;; are not picked up.
 ;;
-(define (resolve-interface spec)
-  (let* ((simple? (not (pair? (car spec))))
-         (name (if simple? spec (car spec)))
+;;   #:renamer RENAMER
+;;
+;; RENAMER is a procedure that takes a symbol and returns its new
+;; name.  The default is to not perform any renaming.
+;;
+;; Signal "no code for module" error if module name is not resolvable
+;; or its public interface is not available.  Signal "no binding"
+;; error if selected binding does not exist in the used module.
+;;
+(define (resolve-interface name . args)
+
+  (define (get-keyword-arg args kw def)
+    (cond ((memq kw args)
+	   => (lambda (kw-arg)
+		(if (null? (cdr kw-arg))
+		    (error "keyword without value: " kw))
+		(cadr kw-arg)))
+	  (else
+	   def)))
+
+  (let* ((select (get-keyword-arg args #:select #f))
+	 (renamer (get-keyword-arg args #:renamer identity))
          (module (resolve-module name))
          (public-i (and module (module-public-interface module))))
     (and (or (not module) (not public-i))
          (error "no code for module" name))
-    (if simple?
+    (if (and (not select) (eq? renamer identity))
         public-i
-        (let ((selection (cond ((memq ':select spec) => cadr)
-                               (else (module-map (lambda (sym var) sym)
-                                                 public-i))))
-              (rename (cond ((memq ':rename spec)
-                             => (lambda (x)
-                                  ;; fixme:ttn -- move to macroexpansion time
-                                  (eval (cadr x) (current-module))))
-                            (else identity)))
+        (let ((selection (or select (module-map (lambda (sym var) sym)
+						public-i)))
               (custom-i (make-module 31)))
           (set-module-kind! custom-i 'interface)
+	  ;; XXX - should use a lazy binder so that changes to the
+	  ;; used module are picked up automatically.
           (for-each (lambda (bspec)
                       (let* ((direct? (symbol? bspec))
                              (orig (if direct? bspec (car bspec)))
                              (seen (if direct? bspec (cdr bspec))))
-                        (module-add! custom-i (rename seen)
+                        (module-add! custom-i (renamer seen)
                                      (or (module-local-variable module orig)
                                          (error
                                           ;; fixme: format manually for now
@@ -1683,52 +1692,47 @@
 			(module-use! module interface))
 		      (reverse reversed-interfaces))
 	    (module-export! module exports))
-	  (let ((keyword (if (keyword? (car kws))
-			     (keyword->symbol (car kws))
-			     (and (symbol? (car kws))
-				  (let ((s (symbol->string (car kws))))
-				    (and (eq? (string-ref s 0) #\:)
-					 (string->symbol (substring s 1))))))))
-	    (case keyword
-	      ((use-module use-syntax)
-	       (or (pair? (cdr kws))
-		   (unrecognized kws))
-               (let* ((spec (cadr kws))
-                      (interface (resolve-interface spec)))
-                 (and (eq? keyword 'use-syntax)
-                      (or (symbol? (car spec))
-                          (error "invalid module name for use-syntax"
-                                 spec))
-                      (set-module-transformer!
-                       module
-                       (module-ref interface (car (last-pair spec))
-                                   #f)))
-                 (loop (cddr kws)
-                       (cons interface reversed-interfaces)
-                       exports)))
-	      ((autoload)
-	       (or (and (pair? (cdr kws)) (pair? (cddr kws)))
-                   (unrecognized kws))
-	       (loop (cdddr kws)
-		     (cons (make-autoload-interface module
-						    (cadr kws)
-						    (caddr kws))
-			   reversed-interfaces)
-		     exports))
-	      ((no-backtrace)
-	       (set-system-module! module #t)
-	       (loop (cdr kws) reversed-interfaces exports))
-	      ((pure)
-	       (purify-module! module)
-	       (loop (cdr kws) reversed-interfaces exports))
-	      ((export)
-	       (or (pair? (cdr kws))
-                   (unrecognized kws))
+	  (case (car kws)
+	    ((#:use-module #:use-syntax)
+	     (or (pair? (cdr kws))
+		 (unrecognized kws))
+	     (let* ((interface-args (cadr kws))
+		    (interface (apply resolve-interface interface-args)))
+	       (and (eq? (car kws) 'use-syntax)
+		    (or (symbol? (car spec))
+			(error "invalid module name for use-syntax"
+			       spec))
+		    (set-module-transformer!
+		     module
+		     (module-ref interface (car 
+					    (last-pair (car interface-args)))
+				 #f)))
 	       (loop (cddr kws)
-		     reversed-interfaces
-		     (append (cadr kws) exports)))
-	      (else
-               (unrecognized kws))))))
+		     (cons interface reversed-interfaces)
+		     exports)))
+	    ((#:autoload)
+	     (or (and (pair? (cdr kws)) (pair? (cddr kws)))
+		 (unrecognized kws))
+	     (loop (cdddr kws)
+		   (cons (make-autoload-interface module
+						  (cadr kws)
+						  (caddr kws))
+			 reversed-interfaces)
+		   exports))
+	    ((#:no-backtrace)
+	     (set-system-module! module #t)
+	     (loop (cdr kws) reversed-interfaces exports))
+	    ((#:pure)
+	     (purify-module! module)
+	     (loop (cdr kws) reversed-interfaces exports))
+	    ((#:export)
+	     (or (pair? (cdr kws))
+		 (unrecognized kws))
+	     (loop (cddr kws)
+		   reversed-interfaces
+		   (append (cadr kws) exports)))
+	    (else
+	     (unrecognized kws)))))
     module))
 
 ;;; {Autoload}
@@ -2595,29 +2599,97 @@
 ;;; {Module System Macros}
 ;;;
 
+;; Return a list of expressions that evaluate to the appropriate
+;; arguments for resolve-interface according to SPEC.
+
+(define (compile-interface-spec spec)
+  (define (make-keyarg sym key quote?)
+    (cond ((or (memq sym spec)
+	       (memq key spec))
+	   => (lambda (rest)
+		(if quote?
+		    (list key (list 'quote (cadr rest)))
+		    (list key (cadr rest)))))
+	  (else
+	   '())))
+  (define (map-apply func list)
+    (map (lambda (args) (apply func args)) list))
+  (define keys 
+    ;; sym     key      quote?
+    '((:select #:select #t)
+      (:rename #:rename #f)))
+  (if (not (pair? (car spec)))
+      `(',spec)
+      `(',(car spec)
+	,@(apply append (map-apply make-keyarg keys)))))
+
+(define (keyword-like-symbol->keyword sym)
+  (symbol->keyword (string->symbol (substring (symbol->string sym) 1))))
+
+(define (compile-define-module-args args)
+  ;; Just quote everything except #:use-module and #:use-syntax.  We
+  ;; need to know about all arguments regardless since we want to turn
+  ;; symbols that look like keywords into real keywords, and the
+  ;; keyword args in a define-module form are not regular
+  ;; (i.e. no-backtrace doesn't take a value).
+  (let loop ((compiled-args `((quote ,(car args))))
+	     (args (cdr args)))
+    (cond ((null? args)
+	   (reverse! compiled-args))
+	  ;; symbol in keyword position
+	  ((symbol? (car args))
+	   (loop compiled-args
+		 (cons (keyword-like-symbol->keyword (car args)) (cdr args))))
+	  ((memq (car args) '(#:no-backtrace #:pure))
+	   (loop (cons (car args) compiled-args)
+		 (cdr args)))
+	  ((null? (cdr args))
+	   (error "keyword without value:" (car args)))
+	  ((memq (car args) '(#:use-module #:use-syntax))
+	   (loop (cons* `(list ,@(compile-interface-spec (cadr args)))
+			(car args)
+			compiled-args)
+		 (cddr args)))
+	  ((eq? (car args) #:autoload)
+	   (loop (cons* `(quote ,(caddr args))
+			`(quote ,(cadr args))
+			(car args)
+			compiled-args)
+		 (cdddr args)))
+	  (else
+	   (loop (cons* `(quote ,(cadr args))
+			(car args)
+			compiled-args)
+		 (cddr args))))))
+
 (defmacro define-module args
   `(eval-case
     ((load-toplevel)
-     (let ((m (process-define-module ',args)))
+     (let ((m (process-define-module 
+	       (list ,@(compile-define-module-args args)))))
        (set-current-module m)
        m))
     (else
      (error "define-module can only be used at the top level"))))
 
-;; the guts of the use-modules macro.  add the interfaces of the named
-;; modules to the use-list of the current module, in order
-(define (process-use-modules module-interface-specs)
-  (for-each (lambda (mif-spec)
-	      (let ((mod-iface (resolve-interface mif-spec)))
+;; The guts of the use-modules macro.  Add the interfaces of the named
+;; modules to the use-list of the current module, in order.
+
+(define (process-use-modules module-interface-args)
+  (for-each (lambda (mif-args)
+	      (let ((mod-iface (apply resolve-interface mif-args)))
 		(or mod-iface
 		    (error "no such module" mif-spec))
 		(module-use! (current-module) mod-iface)))
-            module-interface-specs))
+	    module-interface-args))
 
 (defmacro use-modules modules
   `(eval-case
     ((load-toplevel)
-     (process-use-modules ',modules))
+     (process-use-modules
+      (list ,@(map (lambda (m)
+		     `(list ,@(compile-interface-spec m)))
+		   modules))))
     (else
      (error "use-modules can only be used at the top level"))))
 
@@ -2625,7 +2697,8 @@
   `(eval-case
     ((load-toplevel)
      ,@(if (pair? spec)
-	   `((process-use-modules ',(list spec))
+	   `((process-use-modules (list
+				   (list ,@(compile-interface-spec spec))))
 	     (set-module-transformer! (current-module)
 				      ,(car (last-pair spec))))
 	   `((set-module-transformer! (current-module) ,spec)))
