@@ -1,3 +1,8 @@
+2003-04-23  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* tests/guardians.test: Added some more elaborate and
+	sophisticated tests for the guardian functionality.
+
 2003-04-21  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* tests/sort.test: Added.  Both tests in that file did fail (one

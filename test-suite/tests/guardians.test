@@ -25,15 +25,18 @@
 ;;;   they explicitly invoke GC --- in other words, they assume that GC
 ;;;   won't happen too often.
 
-(gc)
+(use-modules (ice-9 documentation))
 
-(define g1 (make-guardian))
-(define not-g1-garbage (list 'not-g1-garbage))
-(g1 not-g1-garbage)
-(g1 (list 'g1-garbage))
-(pass-if "g1-garbage not collected yet" (equal? (g1) #f))
+
+;;;
+;;; miscellaneous
+;;;
+
+(define (documented? object)
+  (not (not (object-documentation object))))
+
+
 (gc)
-(pass-if "g1-garbage saved" (equal? (g1) '(g1-garbage)))
 
 ;;; Who guards the guardian?
 (gc)
@@ -63,3 +66,188 @@
   (pass-if "nothing else saved" (not seen-something-else))
   (pass-if "g2-garbage saved" (and (procedure? seen-g2)
 				   (equal? (seen-g2) '(g2-garbage)))))
+
+(with-test-prefix "standard guardian functionality"
+
+  (with-test-prefix "make-guardian"
+
+    (pass-if "documented?"
+      (documented? make-guardian))
+
+    (pass-if "returns procedure"
+      (procedure? (make-guardian)))
+
+    (pass-if "returns new procedure each time"
+      (not (equal? (make-guardian) (make-guardian)))))
+
+  (with-test-prefix "empty guardian"
+
+    (pass-if "returns #f"
+      (eq? ((make-guardian)) #f))
+
+    (pass-if "returns always #f"
+      (let ((g (make-guardian)))
+	(and (eq? (g) #f)
+	     (begin (gc) (eq? (g) #f))
+	     (begin (gc) (eq? (g) #f))))))
+
+  (with-test-prefix "guarding independent objects"
+
+    (pass-if "guarding immediate"
+      (let ((g (make-guardian)))
+	(g #f)
+	(and (eq? (g) #f)
+	     (begin (gc) (eq? (g) #f))
+	     (begin (gc) (eq? (g) #f)))))
+
+    (pass-if "guarding non-immediate"
+      (let ((g (make-guardian)))
+	(gc)
+	(g (cons #f #f))
+	(if (not (eq? (g) #f))
+	    (throw 'unresolved)
+	    (begin
+	      (gc)
+	      (if (not (equal? (g) (cons #f #f)))
+		  (throw 'unresolved)
+		  (eq? (g) #f))))))
+
+    (pass-if "guarding two non-immediates"
+      (let ((g (make-guardian)))
+	(gc)
+	(g (cons #f #f))
+	(g (cons #t #t))
+	(if (not (eq? (g) #f))
+	    (throw 'unresolved)
+	    (begin
+	      (gc)
+	      (let ((l (list (g) (g))))
+		(if (not (or (equal? l (list (cons #f #f) (cons #t #t)))
+			     (equal? l (list (cons #t #t) (cons #f #f)))))
+		    (throw 'unresolved)
+		    (eq? (g) #f)))))))
+
+    (pass-if "re-guarding non-immediates"
+      (let ((g (make-guardian)))
+	(gc)
+	(g (cons #f #f))
+	(if (not (eq? (g) #f))
+	    (throw 'unresolved)
+	    (begin
+	      (gc)
+	      (let ((p (g)))
+		(if (not (equal? p (cons #f #f)))
+		    (throw 'unresolved)
+		    (begin
+		      (g p)
+		      (set! p #f)
+		      (gc)
+		      (if (not (equal? (g) (cons #f #f)))
+			  (throw 'unresolved)
+			  (eq? (g) #f)))))))))
+
+    (pass-if "guarding living non-immediate"
+      (let ((g (make-guardian))
+	    (p (cons #f #f)))
+	(g p)
+	(if (not (eq? (g) #f))
+	    (throw 'fail)
+	    (begin
+	      (gc)
+	      (not (eq? (g) p)))))))
+
+  (with-test-prefix "guarding weakly referenced objects"
+
+    (pass-if "guarded weak vector element gets returned from guardian"
+      (let ((g (make-guardian))
+	    (v (weak-vector #f)))
+	(gc)
+	(let ((p (cons #f #f)))
+	  (g p)
+	  (vector-set! v 0 p))
+	(if (not (eq? (g) #f))
+	    (throw 'unresolved)
+	    (begin
+	      (gc)
+	      (if (not (equal? (g) (cons #f #f)))
+		  (throw 'unresolved)
+		  (eq? (g) #f))))))
+
+    (pass-if "guarded element of weak vector gets removed from weak vector"
+      ;; How should this be handled?  Should weak objects be removed from
+      ;; their containers before they become zombies?  Let's take a look at
+      ;; the possible scenarios:  a) Weak objects that are also guarded are
+      ;; not removed from their containers as long as they are guarded.
+      ;; However, they still can become zombies.  The consequence is, that the
+      ;; object can be retrieved from its container, thus being alive, while
+      ;; on the other hand it can at the same time be retrieved from a
+      ;; guardian.  This is unfortunate, since when retrieving an object from
+      ;; a guardian one would not expect any other reference to the object.
+      ;; b) Weak objects are removed from their containers if they are not
+      ;; referenced any more or if the only references are from guardians.
+      ;; That means that it is guaranteed that there are no other references
+      ;; to an object that is retrieved from a guardian.  However, this means
+      ;; that there is no chance to update containers like weak hash tables
+      ;; using the information that one of their contained objects will be
+      ;; removed.  It may be however, that this is not necessary anyway.
+      (let ((g (make-guardian))
+	    (v (weak-vector #f)))
+	(gc)
+	(let ((p (cons #f #f)))
+	  (g p)
+	  (vector-set! v 0 p))
+	(if (not (equal? (vector-ref v 0) (cons #f #f)))
+	    (throw 'unresolved)
+	    (begin
+	      (gc)
+	      (if (equal? (vector-ref v 0) (cons #f #f))
+		  (throw 'unresolved)
+		  #t))))))
+
+  (with-test-prefix "guarding weak containers"
+
+    (pass-if "element of guarded weak vector gets collected"
+      (let ((g (make-guardian))
+	    (v (weak-vector (cons #f #f))))
+	(g v)
+	(gc)
+	(if (equal? (vector-ref v 0) (cons #f #f))
+	    (throw 'unresolved)
+	    #t))))
+
+  (with-test-prefix "guarding guardians"
+    #t))
+
+(with-test-prefix "guile guardian functionality"
+
+  (with-test-prefix "guarding dependent objects"
+
+    (pass-if "guarding vector and element"
+      (let ((g (make-guardian)))
+	(gc)
+	(let ((p (cons #f #f)))
+	  (g p)
+	  (g (vector p)))
+	(if (not (eq? (g) #f))
+	    (throw 'unresolved)
+	    (begin
+	      (gc)
+	      (if (not (equal? (g) (vector (cons #f #f))))
+		  (throw 'unresolved)
+		  (if (not (eq? (g) #f))
+		      (throw 'unresolved)
+		      (begin
+			(gc)
+			(if (not (equal? (g) (cons #f #f)))
+			    (throw 'unresolved)
+			    (eq? (g) #f)))))))))
+
+    )
+
+  (with-test-prefix "guarding objects more than once"
+    #t)
+
+  (with-test-prefix "guarding cyclic dependencies"
+    #t)
+
+  )
