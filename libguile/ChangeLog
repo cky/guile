@@ -1,3 +1,55 @@
+1998-10-29  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+
+	This change adds the ability to use `unread-char' multiple times
+	without interspersed reads and adds the new procedure
+	`unread-string'.  The change is optimized for the common case of
+	unreading a single character.  This is also the reason behind the
+	choice to store characters in the port itself: in most cases no
+	extra malloc is required.
+
+	The amount of code in some macros in ports.h has been increased to
+	the extent that they would fit better as C functions, but, since
+	this code belongs to the port representation, such functions
+	should be placed in ports.c which would cause calls back and forth
+	between ports.c and genio.c.  That is not good for performance.
+	Also, keeping them as macros allows the compiler to do some
+	optimizations which are needed to make the current interface
+	(SCM_CRDYP, SCM_CGETUN, SCM_TRY_CLRDY) efficient.
+
+	One benchmark (Guile startup time) indicates an increase of
+	loading speed of 1%.  Another (reading (using `read') boot-9.scm
+	10 times) shows no change in performance.
+
+	(Caveat: Since Gary is redesigning I/O anyway, no big efforts were
+	made to find a beautiful solution.)
+	
+	* ports.h (SCM_CLRDY, SCM_CUNGET, SCM_CGETUN): Rewritten.
+	(SCM_TRY_CLRDY): New macro: Only clear the first unread
+	character. (SCM_CLRDY clears all.)
+	(SCM_N_READY_CHARS): New macro: Returns number of unread
+	characters in a port.  Returns wrong answer if SCM_CRDYP is false.
+	(struct scm_port_table): New fields: `entry' contains port table
+	index, `cp' points to last unread char, `cbuf' is the buffer for
+	unread chars, `cbufend' points after end of the character buffer.
+
+	* ports.h, ports.c (scm_unread_string): New procedure.
+	(scm_grow_port_cbuf): New function.
+
+	* ports.c (scm_add_to_port_table, scm_remove_from_port_table):
+	Handle new fields.
+	(scm_generic_fgets), fports.c (local_fgets): Use a loop
+	to read unread characters.  Use SCM_TRY_CLRDY instead of
+	SCM_CLRDY.
+	
+	* ioext.c (scm_ftell): Use SCM_N_READY_CHARS to correct position.
+
+	* genio.c (scm_getc): Use SCM_TRY_CLRDY instead of SCM_CLRDY.
+
+	* genio.c, genio.h (scm_ungets): New function.
+
+	* genio.c (scm_puts): Removed mysterious TRANSCRIPT_SUPPORT code
+	sections.
+
 1998-10-28  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* threads.h (scm_thread_sleep, scm_thread_usleep): Fixed
