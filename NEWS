@@ -6,6 +6,13 @@ Please send Guile bug reports to bug-guile@gnu.org.
 
 Changes since the stable branch:
 
+* Changes to the distribution
+
+** Guile now includes its own version of libltdl.
+
+We now use a modified version of libltdl that allows us to make
+improvements to it without having to rely on libtool releases.
+
 * Changes to the standalone interpreter
 
 ** New command line option `--no-debug'.
