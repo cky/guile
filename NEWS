@@ -128,12 +128,12 @@ underlying implementation for records, which in turn are used to
 implement modules, so all of these object now print differently and in
 a more informative way.
 
-The Scheme printer will examine the builtin variable
-*struct-printer* whenever it needs to print a structure object.  When
-this variable is not `#f' it is deemed to be a procedure and will be
-applied to the structure object and the output port.  When
-*struct-printer* is `#f' or the procedure return `#f' the structure
-object will be printed in the boring #<struct 80458270> form.
+The Scheme printer will examine the builtin variable *struct-printer*
+whenever it needs to print a structure object.  When this variable is
+not `#f' it is deemed to be a procedure and will be applied to the
+structure object and the output port.  When *struct-printer* is `#f'
+or the procedure return `#f' the structure object will be printed in
+the boring #<struct 80458270> form.
 
 This hook is used by some routines in ice-9/boot-9.scm to implement
 type specific printing routines.  Please read the comments there about
@@ -169,6 +169,12 @@ of SCSH's regular expression functions.  They are:
 * Changes to the gh_ interface
 
 * Changes to the scm_ interface
+
+** The new function scm_handle_by_message_noexit is just like the
+existing scm_handle_by_message function, except that it doesn't call
+exit to terminate the process.  Instead, it prints a message and just
+returns #f.  This might be a more appropriate catch-all handler for
+new dynamic roots and threads.
 
 * Changes to system call interfaces:
 
