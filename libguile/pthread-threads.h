@@ -70,11 +70,7 @@
 #define scm_i_plugin_thread_yield	sched_yield
 
 /* Size is checked in scm_init_pthread_threads */
-#ifdef SCM_DEBUG_THREADS
 #define SCM_MUTEX_MAXSIZE (9 * sizeof (long))
-#else
-#define SCM_MUTEX_MAXSIZE (6 * sizeof (long))
-#endif
 typedef struct { char _[SCM_MUTEX_MAXSIZE]; } scm_t_mutex;
 #define scm_t_mutexattr			pthread_mutexattr_t
 
@@ -100,15 +96,7 @@ int scm_i_plugin_mutex_unlock (scm_t_mutex *);
   pthread_mutex_trylock ((pthread_mutex_t *) (m))
 
 /* Size is checked in scm_init_pthread_threads */
-#ifdef SCM_DEBUG_THREADS
 #define SCM_REC_MUTEX_MAXSIZE (SCM_MUTEX_MAXSIZE + 3 * sizeof (long))
-#else
-#ifdef SCM_MUTEX_RECURSIVE
-#define SCM_REC_MUTEX_MAXSIZE SCM_MUTEX_MAXSIZE
-#else
-#define SCM_REC_MUTEX_MAXSIZE (SCM_MUTEX_MAXSIZE + 2 * sizeof (long))
-#endif
-#endif
 typedef struct { char _[SCM_REC_MUTEX_MAXSIZE]; } scm_t_rec_mutex;
 
 extern scm_t_mutexattr scm_i_plugin_rec_mutex;
@@ -159,6 +147,10 @@ int scm_i_plugin_cond_timedwait (scm_t_cond *,
 #define scm_i_plugin_getspecific	pthread_getspecific 
 
 #define scm_i_plugin_select		select
+
+#ifdef SCM_DEBUG_THREADS
+void scm_i_assert_heap_locked (void);
+#endif
 
 void scm_init_pthread_threads (void);
 

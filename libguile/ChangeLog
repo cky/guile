@@ -1,3 +1,13 @@
+2002-12-18  Mikael Djurfeldt  <mdj@kvast.blakulla.net>
+
+	* threads.c (really_launch): Detach before unlocking
+	thread_admin_mutex in order not to risk being joined.
+	(scm_i_thread_put_to_sleep, scm_i_thread_wake_up): Keep
+	thread_admin_mutex locked during GC.
+
+	* pthread-threads.c, pthread-threads.h: Improvements to debugging
+	functions.
+
 2002-12-16  Mikael Djurfeldt  <mdj@kvast.blakulla.net>
 
 	* pthread-threads.c, pthread-threads.h (SCM_DEBUG_THREADS): Added

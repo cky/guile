@@ -346,9 +346,9 @@ really_launch (SCM_STACKITEM *base, launch_data *data)
   all_threads = scm_delq_x (thread, all_threads);
   t->exited = 1;
   thread_count--;
-  scm_i_plugin_mutex_unlock (&thread_admin_mutex);
-
+  /* detach before unlocking in order to not become joined when detached */
   scm_thread_detach (t->thread);
+  scm_i_plugin_mutex_unlock (&thread_admin_mutex);
 }
 
 static void *
@@ -1262,14 +1262,13 @@ scm_i_thread_put_to_sleep ()
 	    scm_i_plugin_mutex_lock (&t->heap_mutex);
 	  }
       scm_i_thread_go_to_sleep = 0;
-      scm_i_plugin_mutex_unlock (&thread_admin_mutex);
     }
 }
 
 void
 scm_i_thread_invalidate_freelists ()
 {
-  /* Don't need to lock thread_admin_mutex here since we are sinle threaded */
+  /* Don't need to lock thread_admin_mutex here since we are single threaded */
   SCM threads = all_threads;
   for (; !SCM_NULLP (threads); threads = SCM_CDR (threads))
     if (SCM_CAR (threads) != cur_thread)
@@ -1285,8 +1284,6 @@ scm_i_thread_wake_up ()
   if (threads_initialized_p && !--gc_section_count)
     {
       SCM threads;
-      /* Need to lock since woken threads can die and be deleted from list */
-      scm_i_plugin_mutex_lock (&thread_admin_mutex);
       threads = all_threads;
       scm_i_plugin_cond_broadcast (&wake_up_cond);
       for (; !SCM_NULLP (threads); threads = SCM_CDR (threads))
