@@ -714,7 +714,8 @@ SCM_DEFINE1 (scm_logand, "logand", scm_tc7_asubr,
 	     "Example:\n"
 	     "@lisp\n"
 	     "(number->string (logand #b1100 #b1010) 2)\n"
-	     "   @result{} \"1000\"")
+	     "   @result{} \"1000\"\n"
+	     "@end lisp")
 #define FUNC_NAME s_scm_logand
 {
   long int nn1;

@@ -1,3 +1,7 @@
+2000-08-12  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* numbers.c (s_scm_logand): Docstring fix - "@end lisp" inserted.
+
 2000-08-11  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* macros.c: Remove surplus newlines from end of docstrings.
