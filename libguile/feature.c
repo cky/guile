@@ -48,6 +48,7 @@
 #include "_scm.h"
 
 #include "eval.h"
+#include "ports.h"
 #include "procprop.h"
 #include "smob.h"
 

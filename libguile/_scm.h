@@ -72,7 +72,6 @@
 #include "boolean.h"		/* Everyone wonders about the truth.  */
 #include "strings.h"		/* Everyone loves string.  */
 #include "root.h"		/* Everyone uses these objects.  */
-#include "ports.h"		/* Everyone does I/O.  */
 #include "async.h"		/* Everyone allows/disallows ints.  */
 #ifdef USE_THREADS
 #include "threads.h"		/* The cooperative thread package does

@@ -48,6 +48,7 @@
 #include "_scm.h"
 
 #include "objects.h"
+#include "ports.h"
 
 #ifdef HAVE_MALLOC_H
 #include <malloc.h>

@@ -69,6 +69,7 @@ maybe_drag_in_eprintf ()
 #include "dynl.h"
 #include "smob.h"
 #include "keywords.h"
+#include "ports.h"
 
 #include "validate.h"
 

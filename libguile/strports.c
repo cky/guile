@@ -53,6 +53,7 @@
 
 #include "unif.h"
 #include "eval.h"
+#include "ports.h"
 #include "read.h"
 #include "vectors.h"
 

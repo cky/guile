@@ -63,6 +63,7 @@
 #include "feature.h"
 #include "dynwind.h"
 #include "modules.h"
+#include "ports.h"
 
 #include "validate.h"
 #include "debug.h"

@@ -1,5 +1,15 @@
 2000-03-17  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* _scm.h:  Don't include ports.h everywhere...
+
+	* arbiters.c backtrace.c debug.c dynl.c dynwind.c eval.c feature.c
+	fluids.c gc.c gdbint.c guardians.c hash.c keywords.c mallocs.c
+	numbers.c objects.c print.c read.c root.c smob.c srcprop.c
+	stackchk.c strports.c struct.c throw.c variable.c:  ... only
+	include it here.
+
+2000-03-17  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* _scm.h:  Don't include vectors.h everywhere...
 
 	* eq.c eval.c filesys.c gc.c gsubr.c guardians.c hash.c hashtab.c

@@ -50,6 +50,7 @@
 #include "fluids.h"
 #include "alist.h"
 #include "eval.h"
+#include "ports.h"
 
 #define INITIAL_FLUIDS 10
 #include "validate.h"

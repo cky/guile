@@ -49,6 +49,7 @@
 #include "_scm.h"
 #include "unif.h"
 #include "feature.h"
+#include "ports.h"
 #include "smob.h"
 #include "vectors.h"
 

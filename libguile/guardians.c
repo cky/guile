@@ -58,6 +58,7 @@
 #include <assert.h>
 
 #include "_scm.h"
+#include "ports.h"
 #include "print.h"
 #include "smob.h"
 #include "vectors.h"

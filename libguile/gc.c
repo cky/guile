@@ -53,6 +53,7 @@
 #include "smob.h"
 #include "unif.h"
 #include "async.h"
+#include "ports.h"
 #include "vectors.h"
 
 #include "validate.h"

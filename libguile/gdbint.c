@@ -60,6 +60,7 @@
 #include "eval.h"
 #include "chars.h"
 #include "modules.h"
+#include "ports.h"
 
 #include "gdbint.h"
 

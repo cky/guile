@@ -57,6 +57,7 @@
 #include "alist.h"
 #include "struct.h"
 #include "objects.h"
+#include "ports.h"
 #include "strports.h"
 #include "vectors.h"
 

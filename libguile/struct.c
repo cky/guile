@@ -51,6 +51,7 @@
 #include "alist.h"
 #include "weaks.h"
 #include "hashtab.h"
+#include "ports.h"
 
 #include "validate.h"
 #include "struct.h"

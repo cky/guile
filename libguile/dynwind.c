@@ -49,6 +49,7 @@
 #include "eval.h"
 #include "alist.h"
 #include "fluids.h"
+#include "ports.h"
 #include "smob.h"
 
 #include "dynwind.h"

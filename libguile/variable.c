@@ -47,6 +47,7 @@
 #include <stdio.h>
 #include "_scm.h"
 #include "eq.h"
+#include "ports.h"
 #include "smob.h"
 
 #include "validate.h"
