@@ -46,6 +46,7 @@
 
 #include "libguile/__scm.h"
 
+#include "libguile/options.h"
 
 
 /* SCM_LINE_INCREMENTORS are the characters which cause the line count to
