@@ -1,3 +1,9 @@
+1998-11-26  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+
+	* boot-9.scm (run-hooks, add-hook!, remove-hook!): Added temporary
+	code for backward compatibility until people have had time to
+	adapt to the new hooks.
+
 1998-11-23  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
 	* boot-9.scm (beautify-user-module!): Beautify also if public
