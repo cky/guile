@@ -1,3 +1,7 @@
+2002-09-14  Rob Browning  <rlb@defaultvalue.org>
+
+	* .cvsignore: new file.
+
 2002-07-26  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* Makefile.am (SCM_BENCHMARKS): List the real benchmarks, not foo
