@@ -97,7 +97,6 @@ char *scm_isymnames[] =
   "()",
   "#<unspecified>",
   "#@dispatch",
-  "#@hash-dispatch",
   "#@slot-ref",
   "#@slot-set!",
 
