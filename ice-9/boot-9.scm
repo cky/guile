@@ -359,9 +359,8 @@
 ;; It should print OBJECT to PORT.
 
 (define (inherit-print-state old-port new-port)
-  (if (pair? old-port)
-      (cons (if (pair? new-port) (car new-port) new-port)
-	    (cdr old-port))
+  (if (get-print-state old-port)
+      (port-with-print-state new-port (get-print-state old-port))
       new-port))
 
 ;; 0: type-name, 1: fields
@@ -563,52 +562,6 @@
     (or result
 	(and (not (null? l))
 	     (loop (f (car l)) (cdr l))))))
-
-
-;;; {Hooks}
-;;;
-;;; Warning: Hooks are now first class objects and add-hook! and remove-hook!
-;;; procedures.  This interface is only provided for backward compatibility
-;;; and will be removed.
-;;;
-(if (not (defined? 'new-add-hook!))
-    (begin
-      (define new-add-hook! add-hook!)
-      (define new-remove-hook! remove-hook!)))
-
-(define (run-hooks hook)
-  (if (and (pair? hook) (eq? (car hook) 'hook))
-      (run-hook hook)
-      (for-each (lambda (thunk) (thunk)) hook)))
-
-(define *suppress-old-style-hook-warning* #f)
-
-(define add-hook!
-  (procedure->memoizing-macro
-    (lambda (exp env)
-      (let ((hook (local-eval (cadr exp) env)))
-	(if (and (pair? hook) (eq? (car hook) 'hook))
-	    `(new-add-hook! ,@(cdr exp))
-	    (begin
-	      (or *suppress-old-style-hook-warning*
-		  (display "Warning: Old style hooks\n" (current-error-port)))
-	      `(let ((thunk ,(caddr exp)))
-		 (if (not (memq thunk ,(cadr exp)))
-		     (set! ,(cadr exp)
-			   (cons thunk ,(cadr exp)))))))))))
-
-(define remove-hook!
-  (procedure->memoizing-macro
-    (lambda (exp env)
-      (let ((hook (local-eval (cadr exp) env)))
-	(if (and (pair? hook) (eq? (car hook) 'hook))
-	    `(new-remove-hook! ,@(cdr exp))
-	    (begin
-	      (or *suppress-old-style-hook-warning*
-		  (display "Warning: Old style hooks\n" (current-error-port)))
-	      `(let ((thunk ,(caddr exp)))
-		     (set! ,(cadr exp)
-			   (delq! thunk ,(cadr exp))))))))))
 
 
 ;;; {Files}
