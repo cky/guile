@@ -234,7 +234,7 @@ scm_gen_puts (rep, str_data, port)
       {
 	xwchar_t * wstr_data;
 
-	wstr_data = (xwchar_t *)wstr_data;
+	wstr_data = (xwchar_t *) str_data;
 	switch (SCM_PORT_REPRESENTATION (port))
 	  {
 	  case scm_regular_port:
@@ -351,7 +351,7 @@ scm_gen_write (rep, str_data, nitems, port)
       {
 	xwchar_t * wstr_data;
 
-	wstr_data = (xwchar_t *)wstr_data;
+	wstr_data = (xwchar_t *) str_data;
 	switch (SCM_PORT_REPRESENTATION (port))
 	  {
 	  case scm_regular_port:
@@ -464,7 +464,6 @@ scm_gen_getc (port)
       {
 	int x;
 	unsigned char buf[256];
-	int c;
 
 	SCM_ASSERT (XMB_CUR_MAX < sizeof (buf), SCM_BOOL_F,
 		"huge translation", "scm_gen_puts");
