@@ -176,7 +176,7 @@ unsigned long gh_vector_length (SCM v);
 unsigned long gh_uniform_vector_length (SCM v);
 SCM gh_uniform_vector_ref (SCM v, SCM ilist);
 #define gh_list_to_vector(ls) scm_vector(ls)
-#define gh_vector_to_list(v) scm_vector_to_list(ls)
+#define gh_vector_to_list(v) scm_vector_to_list(v)
 
 SCM gh_lookup (char *sname);
 SCM gh_module_lookup (SCM vector, char *sname);
