@@ -378,7 +378,6 @@ scm_throw (key, args)
 }
 
 
-static char s_throw[];
 SCM
 scm_ithrow (key, args, noreturn)
      SCM key;
