@@ -1,4 +1,4 @@
-/* Debugging extensions for Guile
+ /* Debugging extensions for Guile
  * Copyright (C) 1995, 1996, 1997, 1998 Free Software Foundation
  *
  * This program is free software; you can redistribute it and/or modify
@@ -133,9 +133,8 @@ scm_with_traps (SCM thunk)
 }
 
 
-static SCM scm_i_source, scm_i_more;
-static SCM scm_i_proc, scm_i_args, scm_i_eval_args;
-static SCM scm_i_procname;
+static SCM scm_sym_source, scm_sym_dots;
+static SCM scm_sym_procname;
 
 /* {Memoized Source}
  */
@@ -429,12 +428,12 @@ scm_procedure_name (proc)
     return SCM_SNAME (proc);
   default:
     {
-      SCM name = scm_procedure_property (proc, scm_i_name);
+      SCM name = scm_procedure_property (proc, scm_sym_name);
 #if 0
-      /* Source property scm_i_procname not implemented yet... */
-      SCM name = scm_source_property (SCM_CAR (SCM_CDR (SCM_CODE (proc))), scm_i_procname);
+      /* Source property scm_sym_procname not implemented yet... */
+      SCM name = scm_source_property (SCM_CAR (SCM_CDR (SCM_CODE (proc))), scm_sym_procname);
       if (SCM_FALSEP (name))
-	name = scm_procedure_property (proc, scm_i_name);
+	name = scm_procedure_property (proc, scm_sym_name);
 #endif
       if (SCM_FALSEP (name) && SCM_CLOSUREP (proc))
 	name = scm_reverse_lookup (SCM_ENV (proc), proc);
@@ -454,11 +453,11 @@ scm_procedure_source (proc)
   case scm_tcs_closures:
     {
       SCM src;
-      src = scm_source_property (SCM_CDR (SCM_CODE (proc)), scm_i_copy);
+      src = scm_source_property (SCM_CDR (SCM_CODE (proc)), scm_sym_copy);
       if (src != SCM_BOOL_F)
-	return scm_cons2 (scm_i_lambda, SCM_CAR (SCM_CODE (proc)), src);
+	return scm_cons2 (scm_sym_lambda, SCM_CAR (SCM_CODE (proc)), src);
       src = SCM_CODE (proc);
-      return scm_cons (scm_i_lambda,
+      return scm_cons (scm_sym_lambda,
 		       scm_unmemocopy (src,
 				       SCM_EXTEND_ENV (SCM_CAR (src),
 							   SCM_EOL,
@@ -471,7 +470,7 @@ scm_procedure_source (proc)
 #endif
     /* It would indeed be a nice thing if we supplied source even for
        built in procedures! */
-    return scm_procedure_property (proc, scm_i_source);
+    return scm_procedure_property (proc, scm_sym_source);
   default:
     scm_wta (proc, (char *) SCM_ARG1, s_procedure_source);
     return 0;
@@ -660,12 +659,9 @@ scm_init_debug ()
   scm_tc16_debugobj = scm_make_smob_type_mfpe ("debug-object", 0,
                                               NULL, NULL, prindebugobj, NULL);
 
-  scm_i_procname = SCM_CAR (scm_sysintern ("procname", SCM_UNDEFINED));
-  scm_i_more = SCM_CAR (scm_sysintern ("...", SCM_UNDEFINED));
-  scm_i_source = SCM_CAR (scm_sysintern ("source", SCM_UNDEFINED));
-  scm_i_proc = SCM_CAR (scm_sysintern ("proc", SCM_UNDEFINED));
-  scm_i_args = SCM_CAR (scm_sysintern ("args", SCM_UNDEFINED));
-  scm_i_eval_args = SCM_CAR (scm_sysintern ("eval-args", SCM_UNDEFINED));
+  scm_sym_procname = SCM_CAR (scm_sysintern ("procname", SCM_UNDEFINED));
+  scm_sym_dots = SCM_CAR (scm_sysintern ("...", SCM_UNDEFINED));
+  scm_sym_source = SCM_CAR (scm_sysintern ("source", SCM_UNDEFINED));
 
 #ifdef GUILE_DEBUG
   scm_sysintern ("SCM_IM_AND", SCM_IM_AND);
