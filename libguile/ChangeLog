@@ -1,3 +1,13 @@
+2001-07-22  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* tags.h: Include inttypes.h when we have it.
+
+2001-07-13  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* tags.h (SCM_UNBOUND): Make it the 34th isym/iflag, the 33th slot
+	is taken by the new SCM_IM_CALL_WITH_VALUES.
+	* print.c (scm_isymnames): Update table accordingly.
+	
 2001-07-22  Gary Houston  <ghouston@arglist.com>
 
 	* regex-posix.c (s_scm_regexp_exec): use scm_long2num not
