@@ -1,3 +1,9 @@
+2003-09-18  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* numbers.c (scm_make_complex), gc-card.c (scm_i_sweep_card): Use
+	sizeof (scm_t_complex) to determine the memory size of the
+	malloc'd area for complex numbers.
+
 2003-09-17  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* numbers.c (scm_bigequal): Fixed.

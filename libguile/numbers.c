@@ -2510,7 +2510,7 @@ scm_make_complex (double x, double y)
   else
     {
       SCM z;
-      SCM_NEWSMOB (z, scm_tc16_complex, scm_gc_malloc (2*sizeof (double),
+      SCM_NEWSMOB (z, scm_tc16_complex, scm_gc_malloc (sizeof (scm_t_complex),
 						       "complex"));
       SCM_COMPLEX_REAL (z) = x;
       SCM_COMPLEX_IMAG (z) = y;

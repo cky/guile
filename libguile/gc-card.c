@@ -21,6 +21,7 @@
 
 #include "libguile/_scm.h"
 #include "libguile/eval.h"
+#include "libguile/numbers.h"
 #include "libguile/stime.h"
 #include "libguile/stackchk.h"
 #include "libguile/struct.h"
@@ -238,7 +239,7 @@ scm_i_sweep_card (scm_t_cell *  p, SCM *free_list, scm_t_heap_segment*seg)
               /* nothing else to do here since the mpz is in a double cell */
               break;
 	    case scm_tc16_complex:
-	      scm_gc_free (SCM_COMPLEX_MEM (scmptr), 2*sizeof (double),
+	      scm_gc_free (SCM_COMPLEX_MEM (scmptr), sizeof (scm_t_complex),
 			   "complex");
 	      break;
 	    default:
