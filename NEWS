@@ -482,10 +482,6 @@ compare their values.  This is no longer done.  Variables are now only
 You can now use an empty `begin' form.  It will yield #<unspecified>
 when evaluated and simply be ignored in a definition context.
 
-** Removed: substring-move-left!, substring-move-right!
-
-Use `substring-move!' instead.
-
 ** Deprecated: procedure->macro
 
 Change your code to use either procedure->memoizing-macro or, probably better,
