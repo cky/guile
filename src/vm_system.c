@@ -281,9 +281,10 @@ VM_DEFINE_INSTRUCTION (call, "call", 1, -1, 1)
 {
   SCM x;
   nargs = FETCH ();
-  x = sp[-nargs];
 
  vm_call:
+  x = sp[-nargs];
+
   /*
    * Subprogram call
    */
@@ -412,7 +413,23 @@ VM_DEFINE_INSTRUCTION (tail_call, "tail-call", 1, -1, 1)
 
 VM_DEFINE_INSTRUCTION (apply, "apply", 1, -1, 1)
 {
-  
+  int len;
+  SCM ls;
+  POP (ls);
+
+  nargs = FETCH ();
+  if (nargs < 2)
+    goto vm_error_wrong_num_args;
+
+  len = scm_ilength (ls);
+  if (len < 0)
+    goto vm_error_wrong_type_arg;
+
+  for (; !SCM_NULLP (ls); ls = SCM_CDR (ls))
+    PUSH (SCM_CAR (ls));
+
+  nargs += len - 2;
+  goto vm_call;
 }
 
 VM_DEFINE_INSTRUCTION (call_cc, "call/cc", 1, 1, 1)
