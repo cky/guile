@@ -6,8 +6,6 @@ Please send Guile bug reports to bug-guile@prep.ai.mit.edu.
 
 Changes in Guile 1.2:
 
-[[trim out any sections we don't need]]
-
 * Changes to the distribution
 
 ** Nightly snapshots are now available from ftp.red-bean.com.
@@ -28,11 +26,22 @@ source directory.  See the `INSTALL' file for examples.
 
 * Changes to the procedure for linking libguile with your programs
 
-** Like Guile 1.0, Guile 1.2 will now use the Rx regular expression
-library, if it is installed on your system.  When you are linking
-libguile into your own programs, this means you will have to link
-against -lguile, -lqt (if you configured Guile with thread support),
-and -lrx.  
+** The standard Guile load path for Scheme code now includes
+$(datadir)/guile (usually /usr/local/share/guile).  This means that
+you can install your own Scheme files there, and Guile will find them.
+(Previous versions of Guile only checked a directory whose name
+contained the Guile version number, so you had to re-install or move
+your Scheme sources each time you installed a fresh version of Guile.)
+
+The load path also includes $(datadir)/guile/site; we recommend
+putting individual Scheme files there.  If you want to install a
+package with multiple source files, create a directory for them under
+$(datadir)/guile.
+
+** Guile 1.2 will now use the Rx regular expression library, if it is
+installed on your system.  When you are linking libguile into your own
+programs, this means you will have to link against -lguile, -lqt (if
+you configured Guile with thread support), and -lrx.
 
 If you are using autoconf to generate configuration scripts for your
 application, the following lines should suffice to add the appropriate
@@ -42,6 +51,10 @@ libraries to your link command:
 AC_CHECK_LIB(rx, main)
 AC_CHECK_LIB(qt, main)
 AC_CHECK_LIB(guile, scm_shell)
+
+The Guile 1.2 distribution does not contain sources for the Rx
+library, as Guile 1.0 did.  If you want to use Rx, you'll need to
+retrieve it from a GNU FTP site and install it separately.
 
 * Changes to Scheme functions and syntax
 
@@ -161,38 +174,265 @@ symbols.)
 functions for matching regular expressions, based on the Rx library.
 In Guile 1.1, the Guile/Rx interface was removed to simplify the
 distribution, and thus Guile had no regular expression support.  Guile
-1.2 now adds back the most commonly used functions, and supports all
-of SCSH's regular expression functions.  They are:
+1.2 again supports the most commonly used functions, and supports all
+of SCSH's regular expression functions.
 
-*** [[get stuff from Tim's documentation]]
-*** [[mention the regexp/mumble flags]]
+If your system does not include a POSIX regular expression library,
+and you have not linked Guile with a third-party regexp library such as
+Rx, these functions will not be available.  You can tell whether your
+Guile installation includes regular expression support by checking
+whether the `*features*' list includes the `regex' symbol.
 
-** Guile now provides information on how it was built, via the new
-global variable, %guile-build-info.  This variable records the values
-of the standard GNU makefile directory variables as an assocation
-list, mapping variable names (symbols) onto directory paths (strings).
-For example, to find out where the Guile link libraries were
-installed, you can say:
+*** regexp functions
 
-guile -c "(display (assq-ref %guile-build-info 'libdir)) (newline)"
+By default, Guile supports POSIX extended regular expressions.  That
+means that the characters `(', `)', `+' and `?' are special, and must
+be escaped if you wish to match the literal characters.
 
+This regular expression interface was modeled after that implemented
+by SCSH, the Scheme Shell.  It is intended to be upwardly compatible
+with SCSH regular expressions.
 
-* Changes to the gh_ interface
+**** Function: string-match PATTERN STR [START]
+     Compile the string PATTERN into a regular expression and compare
+     it with STR.  The optional numeric argument START specifies the
+     position of STR at which to begin matching.
 
-* Changes to the scm_ interface
+     `string-match' returns a "match structure" which describes what,
+     if anything, was matched by the regular expression.  *Note Match
+     Structures::.  If STR does not match PATTERN at all,
+     `string-match' returns `#f'.
 
-** The new function scm_handle_by_message_noexit is just like the
-existing scm_handle_by_message function, except that it doesn't call
-exit to terminate the process.  Instead, it prints a message and just
-returns #f.  This might be a more appropriate catch-all handler for
-new dynamic roots and threads.
+   Each time `string-match' is called, it must compile its PATTERN
+argument into a regular expression structure.  This operation is
+expensive, which makes `string-match' inefficient if the same regular
+expression is used several times (for example, in a loop).  For better
+performance, you can compile a regular expression in advance and then
+match strings against the compiled regexp.
 
-* Changes to system call interfaces:
+**** Function: make-regexp STR [FLAGS]
+     Compile the regular expression described by STR, and return the
+     compiled regexp structure.  If STR does not describe a legal
+     regular expression, `make-regexp' throws a
+     `regular-expression-syntax' error.
 
-** The value returned by `raise' is now unspecified.  It throws an exception
+     FLAGS may be the bitwise-or of one or more of the following:
+
+**** Constant: regexp/extended
+     Use POSIX Extended Regular Expression syntax when interpreting
+     STR.  If not set, POSIX Basic Regular Expression syntax is used.
+     If the FLAGS argument is omitted, we assume regexp/extended.
+
+**** Constant: regexp/icase
+     Do not differentiate case.  Subsequent searches using the
+     returned regular expression will be case insensitive.
+
+**** Constant: regexp/newline
+     Match-any-character operators don't match a newline.
+
+     A non-matching list ([^...]) not containing a newline matches a
+     newline.
+
+     Match-beginning-of-line operator (^) matches the empty string
+     immediately after a newline, regardless of whether the FLAGS
+     passed to regexp-exec contain regexp/notbol.
+
+     Match-end-of-line operator ($) matches the empty string
+     immediately before a newline, regardless of whether the FLAGS
+     passed to regexp-exec contain regexp/noteol.
+
+**** Function: regexp-exec REGEXP STR [START [FLAGS]]
+     Match the compiled regular expression REGEXP against `str'.  If
+     the optional integer START argument is provided, begin matching
+     from that position in the string.  Return a match structure
+     describing the results of the match, or `#f' if no match could be
+     found.
+
+     FLAGS may be the bitwise-or of one or more of the following:
+
+**** Constant: regexp/notbol
+     The match-beginning-of-line operator always fails to match (but
+     see the compilation flag regexp/newline above) This flag may be
+     used when different portions of a string are passed to
+     regexp-exec and the beginning of the string should not be
+     interpreted as the beginning of the line.
+
+**** Constant: regexp/noteol
+     The match-end-of-line operator always fails to match (but see the
+     compilation flag regexp/newline above)
+
+**** Function: regexp? OBJ
+     Return `#t' if OBJ is a compiled regular expression, or `#f'
+     otherwise.
+
+   Regular expressions are commonly used to find patterns in one string
+and replace them with the contents of another string.
+
+**** Function: regexp-substitute PORT MATCH [ITEM...]
+     Write to the output port PORT selected contents of the match
+     structure MATCH.  Each ITEM specifies what should be written, and
+     may be one of the following arguments:
+
+        * A string.  String arguments are written out verbatim.
+
+        * An integer.  The submatch with that number is written.
+
+        * The symbol `pre'.  The portion of the matched string preceding
+          the regexp match is written.
+
+        * The symbol `post'.  The portion of the matched string
+          following the regexp match is written.
+
+     PORT may be `#f', in which case nothing is written; instead,
+     `regexp-substitute' constructs a string from the specified ITEMs
+     and returns that.
+
+**** Function: regexp-substitute/global PORT REGEXP TARGET [ITEM...]
+     Similar to `regexp-substitute', but can be used to perform global
+     substitutions on STR.  Instead of taking a match structure as an
+     argument, `regexp-substitute/global' takes two string arguments: a
+     REGEXP string describing a regular expression, and a TARGET string
+     which should be matched against this regular expression.
+
+     Each ITEM behaves as in REGEXP-SUBSTITUTE, with the following
+     exceptions:
+
+        * A function may be supplied.  When this function is called, it
+          will be passed one argument: a match structure for a given
+          regular expression match.  It should return a string to be
+          written out to PORT.
+
+        * The `post' symbol causes `regexp-substitute/global' to recurse
+          on the unmatched portion of STR.  This *must* be supplied in
+          order to perform global search-and-replace on STR; if it is
+          not present among the ITEMs, then `regexp-substitute/global'
+          will return after processing a single match.
+
+*** Match Structures
+
+   A "match structure" is the object returned by `string-match' and
+`regexp-exec'.  It describes which portion of a string, if any, matched
+the given regular expression.  Match structures include: a reference to
+the string that was checked for matches; the starting and ending
+positions of the regexp match; and, if the regexp included any
+parenthesized subexpressions, the starting and ending positions of each
+submatch.
+
+   In each of the regexp match functions described below, the `match'
+argument must be a match structure returned by a previous call to
+`string-match' or `regexp-exec'.  Most of these functions return some
+information about the original target string that was matched against a
+regular expression; we will call that string TARGET for easy reference.
+
+**** Function: regexp-match? OBJ
+     Return `#t' if OBJ is a match structure returned by a previous
+     call to `regexp-exec', or `#f' otherwise.
+
+**** Function: match:substring MATCH [N]
+     Return the portion of TARGET matched by subexpression number N.
+     Submatch 0 (the default) represents the entire regexp match.  If
+     the regular expression as a whole matched, but the subexpression
+     number N did not match, return `#f'.
+
+**** Function: match:start MATCH [N]
+     Return the starting position of submatch number N.
+
+**** Function: match:end MATCH [N]
+     Return the ending position of submatch number N.
+
+**** Function: match:prefix MATCH
+     Return the unmatched portion of TARGET preceding the regexp match.
+
+**** Function: match:suffix MATCH
+     Return the unmatched portion of TARGET following the regexp match.
+
+**** Function: match:count MATCH
+     Return the number of parenthesized subexpressions from MATCH.
+     Note that the entire regular expression match itself counts as a
+     subexpression, and failed submatches are included in the count.
+
+**** Function: match:string MATCH
+     Return the original TARGET string.
+
+*** Backslash Escapes
+
+   Sometimes you will want a regexp to match characters like `*' or `$'
+exactly.  For example, to check whether a particular string represents
+a menu entry from an Info node, it would be useful to match it against
+a regexp like `^* [^:]*::'.  However, this won't work; because the
+asterisk is a metacharacter, it won't match the `*' at the beginning of
+the string.  In this case, we want to make the first asterisk un-magic.
+
+   You can do this by preceding the metacharacter with a backslash
+character `\'.  (This is also called "quoting" the metacharacter, and
+is known as a "backslash escape".)  When Guile sees a backslash in a
+regular expression, it considers the following glyph to be an ordinary
+character, no matter what special meaning it would ordinarily have.
+Therefore, we can make the above example work by changing the regexp to
+`^\* [^:]*::'.  The `\*' sequence tells the regular expression engine
+to match only a single asterisk in the target string.
+
+   Since the backslash is itself a metacharacter, you may force a
+regexp to match a backslash in the target string by preceding the
+backslash with itself.  For example, to find variable references in a
+TeX program, you might want to find occurrences of the string `\let\'
+followed by any number of alphabetic characters.  The regular expression
+`\\let\\[A-Za-z]*' would do this: the double backslashes in the regexp
+each match a single backslash in the target string.
+
+**** Function: regexp-quote STR
+     Quote each special character found in STR with a backslash, and
+     return the resulting string.
+
+   *Very important:* Using backslash escapes in Guile source code (as
+in Emacs Lisp or C) can be tricky, because the backslash character has
+special meaning for the Guile reader.  For example, if Guile encounters
+the character sequence `\n' in the middle of a string while processing
+Scheme code, it replaces those characters with a newline character.
+Similarly, the character sequence `\t' is replaced by a horizontal tab.
+Several of these "escape sequences" are processed by the Guile reader
+before your code is executed.  Unrecognized escape sequences are
+ignored: if the characters `\*' appear in a string, they will be
+translated to the single character `*'.
+
+   This translation is obviously undesirable for regular expressions,
+since we want to be able to include backslashes in a string in order to
+escape regexp metacharacters.  Therefore, to make sure that a backslash
+is preserved in a string in your Guile program, you must use *two*
+consecutive backslashes:
+
+     (define Info-menu-entry-pattern (make-regexp "^\\* [^:]*"))
+
+   The string in this example is preprocessed by the Guile reader before
+any code is executed.  The resulting argument to `make-regexp' is the
+string `^\* [^:]*', which is what we really want.
+
+   This also means that in order to write a regular expression that
+matches a single backslash character, the regular expression string in
+the source code must include *four* backslashes.  Each consecutive pair
+of backslashes gets translated by the Guile reader to a single
+backslash, and the resulting double-backslash is interpreted by the
+regexp engine as matching a single backslash character.  Hence:
+
+     (define tex-variable-pattern (make-regexp "\\\\let\\\\=[A-Za-z]*"))
+
+   The reason for the unwieldiness of this syntax is historical.  Both
+regular expression pattern matchers and Unix string processing systems
+have traditionally used backslashes with the special meanings described
+above.  The POSIX regular expression specification and ANSI C standard
+both require these semantics.  Attempting to abandon either convention
+would cause other kinds of compatibility problems, possibly more severe
+ones.  Therefore, without extending the Scheme reader to support
+strings with different quoting conventions (an ungainly and confusing
+extension when implemented in other languages), we must adhere to this
+cumbersome escape syntax.
+
+** Changes to system call interfaces:
+
+*** The value returned by `raise' is now unspecified.  It throws an exception
 if an error occurs.
 
-** A new procedure `sigaction' can be used to install signal handlers
+*** A new procedure `sigaction' can be used to install signal handlers
 
 (sigaction signum [action] [flags])
 
@@ -219,8 +459,26 @@ facility.  Maybe this is not needed, since the thread support may
 provide solutions to the problem of consistent access to data
 structures.
 
-** A new procedure `flush-all-ports' is equivalent to running
+*** A new procedure `flush-all-ports' is equivalent to running
 `force-output' on every port open for output.
+
+** Guile now provides information on how it was built, via the new
+global variable, %guile-build-info.  This variable records the values
+of the standard GNU makefile directory variables as an assocation
+list, mapping variable names (symbols) onto directory paths (strings).
+For example, to find out where the Guile link libraries were
+installed, you can say:
+
+guile -c "(display (assq-ref %guile-build-info 'libdir)) (newline)"
+
+
+* Changes to the scm_ interface
+
+** The new function scm_handle_by_message_noexit is just like the
+existing scm_handle_by_message function, except that it doesn't call
+exit to terminate the process.  Instead, it prints a message and just
+returns #f.  This might be a more appropriate catch-all handler for
+new dynamic roots and threads.
 
 
 Changes in Guile 1.1 (Fri May 16 1997):
