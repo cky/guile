@@ -214,6 +214,12 @@ extern int scm_block_gc;
 extern int scm_gc_heap_lock;
 
 
+extern int scm_default_init_heap_size_1;
+extern int scm_default_min_yield_1;
+extern int scm_default_init_heap_size_2;
+extern int scm_default_min_yield_2;
+extern int scm_default_max_segment_size;
+
 extern scm_sizet scm_max_segment_size;
 extern SCM_CELLPTR scm_heap_org;
 extern SCM scm_freelist;

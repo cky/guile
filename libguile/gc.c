@@ -124,18 +124,18 @@
  * large heaps, especially if code behaviour is varying its
  * maximum consumption between different freelists.
  */
-#define SCM_INIT_HEAP_SIZE_1 (45000L * sizeof (scm_cell))
+int scm_default_init_heap_size_1 = (45000L * sizeof (scm_cell));
+int scm_default_min_yield_1 = 40;
 #define SCM_CLUSTER_SIZE_1 2000L
-#define SCM_MIN_YIELD_1 40
 
-#define SCM_INIT_HEAP_SIZE_2 (2500L * 2 * sizeof (scm_cell))
-#define SCM_CLUSTER_SIZE_2 1000L
+int scm_default_init_heap_size_2 = (2500L * 2 * sizeof (scm_cell));
 /* The following value may seem large, but note that if we get to GC at
  * all, this means that we have a numerically intensive application
  */
-#define SCM_MIN_YIELD_2 40
+int scm_default_min_yield_2 = 40;
+#define SCM_CLUSTER_SIZE_2 1000L
 
-#define SCM_MAX_SEGMENT_SIZE 2097000L /* a little less (adm) than 2 Mb */
+int scm_default_max_segment_size = 2097000L;/* a little less (adm) than 2 Mb */
 
 #define SCM_MIN_HEAP_SEG_SIZE (2048L * sizeof (scm_cell))
 #ifdef _QC
@@ -2265,9 +2265,9 @@ scm_init_storage (scm_sizet init_heap_size_1, int gc_trigger_1,
   scm_sizet j;
 
   if (!init_heap_size_1)
-    init_heap_size_1 = SCM_INIT_HEAP_SIZE_1;
+    init_heap_size_1 = scm_default_init_heap_size_1;
   if (!init_heap_size_2)
-    init_heap_size_2 = SCM_INIT_HEAP_SIZE_2;
+    init_heap_size_2 = scm_default_init_heap_size_2;
 
   j = SCM_NUM_PROTECTS;
   while (j)
@@ -2278,12 +2278,12 @@ scm_init_storage (scm_sizet init_heap_size_1, int gc_trigger_1,
   scm_freelist2 = SCM_EOL;
   init_freelist (&scm_master_freelist,
 		 1, SCM_CLUSTER_SIZE_1,
-		 gc_trigger_1 ? gc_trigger_1 : SCM_MIN_YIELD_1);
+		 gc_trigger_1 ? gc_trigger_1 : scm_default_min_yield_1);
   init_freelist (&scm_master_freelist2,
 		 2, SCM_CLUSTER_SIZE_2,
-		 gc_trigger_2 ? gc_trigger_2 : SCM_MIN_YIELD_2);
+		 gc_trigger_2 ? gc_trigger_2 : scm_default_min_yield_2);
   scm_max_segment_size
-    = max_segment_size ? max_segment_size : SCM_MAX_SEGMENT_SIZE;
+    = max_segment_size ? max_segment_size : scm_default_max_segment_size;
 
   scm_expmem = 0;
 
