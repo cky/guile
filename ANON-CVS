@@ -1,0 +1,81 @@
+Anonymous CVS access to Guile ========================================
+
+We make the current Guile sources available via anonymous CVS.  Please
+keep in mind that these sources are strictly experimental; they will
+usually not be well-tested, and may not even compile on some systems.
+They may contain interfaces which will change.  They will usually not
+be of sufficient quality for use by people not comfortable hacking the
+innards of Guile.  Caveat!
+
+However, we're providing them anyway for several reasons.  We'd like
+to encourage people to get involved in developing Guile.  People
+willing to use the bleeding edge of development can get earlier access
+to new, experimental features.  Patches submitted relative to recent
+sources will be easier for us to evaluate and install, since the
+patch's original sources will be closer to what we're working with.
+And it allows us to start testing features earlier.
+
+Nightly FTP snapshots are no longer available.  It is more difficult
+than you might think to make them reliably.
+
+To check out a CVS working directory:
+
+1) Install CVS version 1.9 or later on your system.
+2) Log into the CVS server:
+     $ cvs -d :pserver:anoncvs@egcs.cygnus.com:/egcs/carton/cvsfiles login
+   Use the password `anoncvs'.
+3) Check out a module:
+     $ cvs -z 9 -d :pserver:anoncvs@egcs.cygnus.com:/egcs/carton/cvsfiles checkout guile-core
+   This should create a new directory `guile-core' in your current
+   directory, and populate it with the current Guile sources.
+
+Once you have a working directory, you can bring it up to date easily
+and efficiently:
+
+1) Go to the top directory of the source tree.  That is, your current
+   directory should be the one containing `configure.in', `README',
+   and so on.
+2) Do the update:
+     $ cvs update
+
+This will incorporate any changes the developers have made to Guile
+since your last update into your source tree.
+
+The EGCS Project is kindly lending us space, time, and bandwidth on
+their CVS server.  Thanks, folks!
+
+
+Questions ============================================================
+
+(I don't know if they'll be "frequently asked" or not yet!)
+
+- It takes forever to do an update; what can I do to speed it up?
+
+  CVS tries to be smart about what it sends; it will transmit and
+  install only those files that have changed, and will sometimes
+  transmit and apply patches instead, to save transmission time.
+
+  It is also possible to have CVS compress transmitted data, using zlib.
+  Put the following line in your ~/.cvsrc file:
+
+  cvs -z 9
+
+  See the CVS documentation for more details.
+
+
+- What happens if I've changed files in my working directory, and then
+  I do an update?
+
+  If you have made local changes to your sources, the `cvs update'
+  command will not overwrite them; instead, CVS will try to merge its
+  changes with your changes, as if you had applied a patch.  Rejects are
+  marked in the sources.
+
+- Why does the build process try to run autoconf, aclocal, or automake?
+
+  It shouldn't; if it does, that's a bug, I think.  Those are the
+  tools we use to generate `configure', `aclocal.m4', and the
+  `Makefile.in' files from their respective sources.  Ideally, you
+  shouldn't need to have them installed, if you don't want to change
+  those sources.  If you do, see the section in `README' called
+  `Hacking It Yourself'.
