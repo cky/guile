@@ -304,7 +304,7 @@ scm_local_eval (exp, env)
 {
   if (SCM_UNBNDP (env))
   {
-    SCM_ASSERT (SCM_NIMP (exp) && SCM_MEMOIZEDP (exp));
+    SCM_ASSERT (SCM_NIMP (exp) && SCM_MEMOIZEDP (exp), exp, SCM_ARG1, s_local_eval);
     return scm_eval_3 (SCM_MEMOIZED_EXP (exp), 0, SCM_MEMOIZED_ENV (exp));
   }
   return scm_eval_3 (exp, 1, env);
