@@ -331,7 +331,7 @@ static SCM
 scm_stat2scm (stat_temp)
      struct stat *stat_temp;
 {
-  SCM ans = scm_make_vector (SCM_MAKINUM (15), SCM_UNSPECIFIED, SCM_BOOL_F);
+  SCM ans = scm_make_vector (SCM_MAKINUM (15), SCM_UNSPECIFIED);
   SCM *ve = SCM_VELTS (ans);
   
   ve[0] = scm_ulong2num ((unsigned long) stat_temp->st_dev);

@@ -165,7 +165,7 @@ SCM
 scm_gethost (name)
      SCM name;
 {
-  SCM ans = scm_make_vector (SCM_MAKINUM (5), SCM_UNSPECIFIED, SCM_BOOL_F);
+  SCM ans = scm_make_vector (SCM_MAKINUM (5), SCM_UNSPECIFIED);
   SCM *ve = SCM_VELTS (ans);
   SCM lst = SCM_EOL;
   struct hostent *entry;
@@ -260,7 +260,7 @@ scm_getnet (name)
   SCM *ve;
   struct netent *entry;
 
-  ans = scm_make_vector (SCM_MAKINUM (4), SCM_UNSPECIFIED, SCM_BOOL_F);
+  ans = scm_make_vector (SCM_MAKINUM (4), SCM_UNSPECIFIED);
   ve = SCM_VELTS (ans);
   if (SCM_UNBNDP (name))
     {
@@ -312,7 +312,7 @@ scm_getproto (name)
   SCM *ve;
   struct protoent *entry;
 
-  ans = scm_make_vector (SCM_MAKINUM (3), SCM_UNSPECIFIED, SCM_BOOL_F);
+  ans = scm_make_vector (SCM_MAKINUM (3), SCM_UNSPECIFIED);
   ve = SCM_VELTS (ans);
   if (SCM_UNBNDP (name))
     {
@@ -361,7 +361,7 @@ scm_return_entry (entry)
   SCM ans;
   SCM *ve;
 
-  ans = scm_make_vector (SCM_MAKINUM (4), SCM_UNSPECIFIED, SCM_BOOL_F);
+  ans = scm_make_vector (SCM_MAKINUM (4), SCM_UNSPECIFIED);
   ve = SCM_VELTS (ans);
   ve[0] = scm_makfromstr (entry->s_name, (scm_sizet) strlen (entry->s_name), 0);
   ve[1] = scm_makfromstrs (-1, entry->s_aliases);

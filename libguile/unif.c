@@ -242,7 +242,7 @@ scm_make_uve (k, prot)
 #endif
       else
 	{
-	  return scm_make_vector (SCM_MAKINUM (k), SCM_UNDEFINED, SCM_UNDEFINED);
+	  return scm_make_vector (SCM_MAKINUM (k), SCM_UNDEFINED);
 	}
     }
   else
@@ -250,7 +250,7 @@ scm_make_uve (k, prot)
   if (SCM_IMP (prot) || !SCM_INEXP (prot))
 #endif
     /* Huge non-unif vectors are NOT supported. */
-    return scm_make_vector (SCM_MAKINUM (k), SCM_UNDEFINED, SCM_UNDEFINED);	/* no special scm_vector */
+    return scm_make_vector (SCM_MAKINUM (k), SCM_UNDEFINED);	/* no special scm_vector */
 #ifdef SCM_FLOATS
 #ifdef SCM_SINGLES
   else if (SCM_SINGP (prot))

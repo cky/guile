@@ -234,7 +234,7 @@ scm_getgroups()
     SCM_SETCHARS(grps, groups);	/* set up grps as a GC protect */
     SCM_SETLENGTH(grps, 0L + ngroups * sizeof(GETGROUPS_T), scm_tc7_string);
     SCM_ALLOW_INTS;
-    ans = scm_make_vector(SCM_MAKINUM(ngroups), SCM_UNDEFINED, SCM_BOOL_F);
+    ans = scm_make_vector (SCM_MAKINUM(ngroups), SCM_UNDEFINED);
     while (--ngroups >= 0) SCM_VELTS(ans)[ngroups] = SCM_MAKINUM(groups[ngroups]);
     SCM_SETCHARS(grps, groups);	/* to make sure grps stays around. */
     return ans;
@@ -253,7 +253,7 @@ scm_getpwuid (user)
   struct passwd *entry;
   SCM *ve;
 
-  result = scm_make_vector (SCM_MAKINUM (7), SCM_UNSPECIFIED, SCM_BOOL_F);
+  result = scm_make_vector (SCM_MAKINUM (7), SCM_UNSPECIFIED);
   ve = SCM_VELTS (result);
   if (SCM_UNBNDP (user) || SCM_FALSEP (user))
     {
@@ -326,7 +326,7 @@ scm_getgrgid (name)
   SCM result;
   struct group *entry;
   SCM *ve;
-  result = scm_make_vector (SCM_MAKINUM (4), SCM_UNSPECIFIED, SCM_BOOL_F);
+  result = scm_make_vector (SCM_MAKINUM (4), SCM_UNSPECIFIED);
   ve = SCM_VELTS (result);
   SCM_DEFER_INTS;
   if (SCM_UNBNDP (name) || (name == SCM_BOOL_F))
@@ -873,7 +873,7 @@ scm_uname ()
 {
 #ifdef HAVE_UNAME
   struct utsname buf;
-  SCM ans = scm_make_vector(SCM_MAKINUM(5), SCM_UNSPECIFIED, SCM_BOOL_F);
+  SCM ans = scm_make_vector (SCM_MAKINUM(5), SCM_UNSPECIFIED);
   SCM *ve = SCM_VELTS (ans);
   SCM_DEFER_INTS;
   if (uname (&buf) < 0)

@@ -795,7 +795,7 @@ SCM
 scm_builtin_bindings ()
 {
   int length = SCM_LENGTH (scm_symhash);
-  SCM obarray = scm_make_vector (SCM_MAKINUM (length), SCM_EOL, SCM_UNDEFINED);
+  SCM obarray = scm_make_vector (SCM_MAKINUM (length), SCM_EOL);
   copy_and_prune_obarray (scm_symhash, obarray);
   return obarray;
 }

@@ -405,7 +405,6 @@ scm_init_scmsigs ()
   signal_handlers =
     SCM_CDRLOC (scm_sysintern ("signal-handlers",
 			       scm_make_vector (SCM_MAKINUM (NSIG),
-						SCM_BOOL_F,
 						SCM_BOOL_F)));
   thunk = scm_make_gsubr ("%deliver-signals", 0, 0, 0,
 			  sys_deliver_signals);

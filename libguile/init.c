@@ -159,8 +159,7 @@ start_stack (base)
   /* Create the look-aside stack for variables that are shared between
    * captured continuations.
    */
-  scm_continuation_stack = scm_make_vector (SCM_MAKINUM (512),
-					    SCM_UNDEFINED, SCM_UNDEFINED);
+  scm_continuation_stack = scm_make_vector (SCM_MAKINUM (512), SCM_UNDEFINED);
   /* The continuation stack is further initialized by restart_stack. */
 
   /* The remainder of stack initialization is factored out to another

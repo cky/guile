@@ -352,10 +352,7 @@ gh_symbol2newstr (SCM sym, int *lenp)
 SCM
 gh_make_vector (SCM len, SCM fill)
 {
-  /* scm_make_vector() takes a third boolean argument which should be
-     set to SCM_BOOL_T when you are dealing with multi-dimensional
-     arrays; gh_make_vector() does not do multi-dimensional arrays */
-  return scm_make_vector(len, fill, SCM_BOOL_F);
+  return scm_make_vector (len, fill);
 }
 
 /* set the given element of the given vector to the given value */

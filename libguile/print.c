@@ -180,7 +180,6 @@ make_print_state ()
 				     SCM_EOL);
   scm_print_state *pstate = SCM_PRINT_STATE (print_state);
   pstate->ref_vect = scm_make_vector (SCM_MAKINUM (PSTATE_SIZE),
-				      SCM_UNDEFINED,
 				      SCM_UNDEFINED);
   pstate->ref_stack = SCM_VELTS (pstate->ref_vect);
   pstate->ceiling = SCM_LENGTH (pstate->ref_vect);

@@ -137,7 +137,7 @@ void
 scm_init_kw ()
 {
   scm_tc16_kw = scm_newsmob (&kw_smob);
-  scm_kw_obarray = scm_make_vector (SCM_MAKINUM (256), SCM_EOL, SCM_UNDEFINED);
+  scm_kw_obarray = scm_make_vector (SCM_MAKINUM (256), SCM_EOL);
 #include "kw.x"
 }
 
