@@ -1,5 +1,11 @@
 2003-11-13  Marius Vollmer  <mvo@zagadka.de>
 
+	* snarf.h (SCM_SMOB, SCM_GLOBAL_SMOB, SCM_SMOB_MARK,
+	SCM_GLOBAL_SMOB_MARK, SCM_SMOB_FREE, SCM_GLOBAL_SMOB_FREE,
+	SCM_SMOB_PRINT, SCM_GLOBAL_SMOB_PRINT, SCM_SMOB_EQUALP,
+	SCM_GLOBAL_SMOB_EQUALP, SCM_SMOB_APPLY, SCM_GLOBAL_SMOB_APPLY):
+	New macros from Paul Jarc.  Thanks!
+
 	* gc_os_dep.c (scm_get_stack_base): Provide a definition that
 	return NULL when the machine type is unknown.  Previously,
 	gc_os_dep.c would refuse to compile.
