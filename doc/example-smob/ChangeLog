@@ -1,5 +1,7 @@
 1998-10-19  Jim Blandy  <jimb@zwingli.cygnus.com>
 
+	* image-type.c, myguile.c: Terminate copyright comments.
+
 	* COPYING: New file.
 	* image-type.c myguile.c: Add copyright notice.
 

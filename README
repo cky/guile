@@ -52,6 +52,9 @@ qt: 	A cooperative threads package from the University of Washington,
         copyright; see `qt/README' for more details.
 doc:	Some preliminary documentation for Guile.  The real Guile
 	manual is incomplete, and is currently being revised.
+doc/example-smob: Sample code, discussed in the preliminary
+	documentation above, for a program that extends Guile with a
+	new data type, and functions that operate on it.
 
 
 Anonymous CVS Access and FTP snapshots ===============================
