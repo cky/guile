@@ -1,3 +1,7 @@
+2003-04-05  Marius Vollmer  <mvo@zagadka.de>
+
+        * Changed license terms to the plain LGPL thru-out.
+
 2003-03-24  Rob Browning  <rlb@defaultvalue.org>
 
 	* tests/numbers.test: added tests (some simple) for various funcs.
