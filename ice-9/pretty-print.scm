@@ -42,6 +42,7 @@
 ;;;; If you do not wish that, delete this exception notice.
 ;;;; 
 (define-module (ice-9 pretty-print)
+  :use-module (ice-9 optargs)
   :export (pretty-print))
 
 ;; From SLIB.
@@ -53,7 +54,7 @@
 
 (define genwrite:newline-str (make-string 1 #\newline))
 
-(define (generic-write obj display? width output)
+(define (generic-write obj display? width per-line-prefix output)
 
   (define (read-macro? l)
     (define (length1? l) (and (pair? l) (null? (cdr l))))
@@ -137,14 +138,16 @@
     (define (indent to col)
       (and col
            (if (< to col)
-             (and (out genwrite:newline-str col) (spaces to 0))
+             (and (out genwrite:newline-str col)
+		  (out per-line-prefix 0)
+		  (spaces to 0))
              (spaces (- to col) col))))
 
     (define (pr obj col extra pp-pair)
       (if (or (pair? obj) (vector? obj)) ; may have to split on multiple lines
         (let ((result '())
               (left (min (+ (- (- width col) extra) 1) max-expr-width)))
-          (generic-write obj display? #f
+          (generic-write obj display? #f ""
             (lambda (str)
               (set! result (cons str result))
               (set! left (- left (string-length str)))
@@ -287,6 +290,7 @@
 
     (pr obj col 0 pp-expr))
 
+  (out per-line-prefix 0)
   (if width
     (out genwrite:newline-str (pp obj 0))
     (wr obj 0))
@@ -312,9 +316,29 @@
 
   (rev-string-append l 0))
 
-;"pp.scm" Pretty-Print
-(define (pretty-print obj . opt)
-  (let ((port (if (pair? opt) (car opt) (current-output-port))))
-    (generic-write obj #f 79
-		   (lambda (s) (display s port) #t))))
+(define (pretty-print obj . opts)
+  "Pretty-print OBJ on PORT, which is a keyword argument defaulting to
+the current output port.  Formatting can be controlled by a number of
+keyword arguments: Each line in the output is preceded by the string
+PER-LINE-PREFIX, which is empty by default.  The output lines will be
+at most WIDTH characters wide; the default is 79.  If DISPLAY? is
+true, display rather than write representation will be used.
 
+Instead of with a keyword argument, you can also specify the output
+port directly after OBJ, like (pretty-print OBJ PORT)."
+  (if (pair? opts)
+      (if (keyword? (car opts))
+	  (apply pretty-print-with-keys obj opts)
+	  (apply pretty-print-with-keys obj #:port (car opts) (cdr opts)))
+      (pretty-print-with-keys obj)))
+
+(define* (pretty-print-with-keys obj
+				 #:key 
+				 (port (current-output-port))
+				 (width 79)
+				 (display? #f)
+				 (per-line-prefix ""))
+  (generic-write obj display?
+		 (- width (string-length per-line-prefix))
+		 per-line-prefix
+		 (lambda (s) (display s port) #t)))
