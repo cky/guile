@@ -100,6 +100,7 @@ char *alloca ();
 #include "libguile/root.h"
 #include "libguile/vectors.h"
 #include "libguile/fluids.h"
+#include "libguile/values.h"
 
 #include "libguile/validate.h"
 #include "libguile/eval.h"
@@ -1129,6 +1130,17 @@ scm_m_atbind (SCM xorig, SCM env)
   return scm_cons (SCM_IM_BIND, SCM_CDR (xorig));
 }
 
+SCM_SYNTAX (s_at_call_with_values, "@call-with-values", scm_makmmacro, scm_m_at_call_with_values);
+SCM_GLOBAL_SYMBOL(scm_sym_at_call_with_values, s_at_call_with_values);
+
+SCM
+scm_m_at_call_with_values (SCM xorig, SCM env)
+{
+  SCM_ASSYNT (scm_ilength (SCM_CDR (xorig)) == 2,
+	      scm_s_expression, s_at_call_with_values);
+  return scm_cons (SCM_IM_CALL_WITH_VALUES, SCM_CDR (xorig));
+}
+
 SCM
 scm_m_expand_body (SCM xorig, SCM env)
 {
@@ -1415,6 +1427,9 @@ unmemocopy (SCM x, SCM env)
 	case (SCM_ISYMNUM (SCM_IM_DELAY)):
 	  ls = z = scm_cons (scm_sym_delay, SCM_UNSPECIFIED);
 	  x = SCM_CDR (x);
+	  goto loop;
+	case (SCM_ISYMNUM (SCM_IM_CALL_WITH_VALUES)):
+	  ls = z = scm_cons (scm_sym_at_call_with_values, SCM_UNSPECIFIED);
 	  goto loop;
 	default:
 	  /* appease the Sun compiler god: */ ;
@@ -2198,6 +2213,10 @@ dispatch:
 	      PREP_APPLY (proc, SCM_EOL);
 	      t.arg1 = SCM_CDR (SCM_CDR (x));
 	      t.arg1 = EVALCAR (t.arg1, env);
+	    apply_closure:
+	      /* Go here to tail-call a closure.  PROC is the closure
+	         and T.ARG1 is the list of arguments.  Do not forget to
+	         call PREP_APPLY. */
 #ifdef DEVAL
 	      debug.info->a.args = t.arg1;
 #endif
@@ -2453,8 +2472,27 @@ dispatch:
 	      arg2 = SCM_CDR (arg2);
 	    }
 
-	  RETURN (proc)
+	  RETURN (proc);
 	  
+	case (SCM_ISYMNUM (SCM_IM_CALL_WITH_VALUES)):
+	  {
+	    proc = SCM_CDR (x);
+	    x = EVALCAR (proc, env);
+	    proc = SCM_CDR (proc);
+	    proc = EVALCAR (proc, env);
+	    t.arg1 = SCM_APPLY (x, SCM_EOL, SCM_EOL);
+	    if (SCM_VALUESP (t.arg1))
+	      t.arg1 = scm_struct_ref (t.arg1, SCM_INUM0);
+	    else
+	      t.arg1 = scm_cons (t.arg1, SCM_EOL);
+	    if (SCM_CLOSUREP (proc))
+	      {
+		PREP_APPLY (proc, t.arg1);
+		goto apply_closure;
+	      }
+	    return SCM_APPLY (proc, t.arg1, SCM_EOL);
+	  }
+
 	default:
 	  goto badfun;
 	}
@@ -3846,7 +3884,7 @@ SCM_DEFINE (scm_copy_tree, "copy-tree", 1, 0, 0,
      evaluates EXP in environment ENV.  ENV is a lexical environment
      structure as used by the actual tree code evaluator.  When ENV is
      a top-level environment, then changes to the current module are
-     tracked by modifying ENV so that it continues to be in sync with
+     tracked by updating ENV so that it continues to be in sync with
      the current module.
 
    - scm_primitive_eval (exp)
@@ -3858,7 +3896,7 @@ SCM_DEFINE (scm_copy_tree, "copy-tree", 1, 0, 0,
 
    - scm_eval (exp, mod)
 
-     evaluates EXP while MOD is the current module.  Thius is done by
+     evaluates EXP while MOD is the current module.  This is done by
      setting the current module to MOD, invoking scm_primitive_eval on
      EXP, and then restoring the current module to the value it had
      previously.  That is, while EXP is evaluated, changes to the
@@ -3876,33 +3914,26 @@ SCM_DEFINE (scm_copy_tree, "copy-tree", 1, 0, 0,
 
 SCM scm_system_transformer;
 
-/* XXX - scm_i_eval is meant to be useable for evaluation in
-   non-toplevel environments, for example when used by the debugger.
-   Can the system transform deal with this? */
-
 SCM 
 scm_i_eval_x (SCM exp, SCM env)
 {
-  SCM transformer = scm_fluid_ref (SCM_CDR (scm_system_transformer));
-  if (SCM_NIMP (transformer))
-    exp = scm_apply (transformer, exp, scm_listofnull);
   return SCM_XEVAL (exp, env);
 }
 
 SCM 
 scm_i_eval (SCM exp, SCM env)
 {
-  SCM transformer = scm_fluid_ref (SCM_CDR (scm_system_transformer));
-  if (SCM_NIMP (transformer))
-    exp = scm_apply (transformer, exp, scm_listofnull);
-  exp = scm_copy_tree (exp);
   return SCM_XEVAL (exp, env);
 }
 
 SCM
 scm_primitive_eval_x (SCM exp)
 {
-  SCM env = scm_top_level_env (scm_current_module_lookup_closure ());
+  SCM env;
+  SCM transformer = scm_fluid_ref (SCM_CDR (scm_system_transformer));
+  if (SCM_NIMP (transformer))
+    exp = scm_apply (transformer, exp, scm_listofnull);
+  env = scm_top_level_env (scm_current_module_lookup_closure ());
   return scm_i_eval_x (exp, env);
 }
 
@@ -3912,7 +3943,11 @@ SCM_DEFINE (scm_primitive_eval, "primitive-eval", 1, 0, 0,
 	    "the current module.")
 #define FUNC_NAME s_scm_primitive_eval
 {
-  SCM env = scm_top_level_env (scm_current_module_lookup_closure ());
+  SCM env;
+  SCM transformer = scm_fluid_ref (SCM_CDR (scm_system_transformer));
+  if (SCM_NIMP (transformer))
+    exp = scm_apply (transformer, exp, scm_listofnull);
+  env = scm_top_level_env (scm_current_module_lookup_closure ());
   return scm_i_eval (exp, env);
 }
 #undef FUNC_NAME
