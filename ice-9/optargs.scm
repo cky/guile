@@ -1,6 +1,6 @@
 ;;;; optargs.scm -- support for optional arguments
 ;;;;
-;;;; 	Copyright (C) 1997, 1998, 1999, 2001, 2002 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1997, 1998, 1999, 2001, 2002, 2004 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -125,7 +125,7 @@
 
 (define (let-optional-template REST-ARG BINDINGS BODY let-type)
     (if (null? BINDINGS)
-	`(begin ,@BODY)
+	`(let () ,@BODY)
 	(let-o-k-template REST-ARG BINDINGS BODY let-type
 			  (lambda (optional)
 			    `(,(car optional)
@@ -140,7 +140,7 @@
 
 (define (let-keywords-template REST-ARG ALLOW-OTHER-KEYS? BINDINGS BODY let-type)
     (if (null? BINDINGS)
-	`(begin ,@BODY)
+	`(let () ,@BODY)
 	(let* ((kb-list-gensym (gensym "kb:G"))
 	       (bindfilter (lambda (key)
 			     `(,(car key)
