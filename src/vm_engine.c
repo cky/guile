@@ -123,40 +123,47 @@ vm_run (SCM vm, SCM program, SCM args)
   /* Errors */
   {
   vm_error_unbound:
-    err_msg  = scm_makfrom0str ("Unbound variable: ~A");
+    err_msg  = scm_makfrom0str ("VM: Unbound variable: ~A");
     goto vm_error;
 
   vm_error_wrong_type_arg:
-    err_msg  = scm_makfrom0str ("Wrong type argument");
+    err_msg  = scm_makfrom0str ("VM: Wrong type argument");
     err_args = SCM_EOL;
     goto vm_error;
 
   vm_error_wrong_num_args:
-    err_msg  = scm_makfrom0str ("Wrong number of arguments");
+    err_msg  = scm_makfrom0str ("VM: Wrong number of arguments");
     err_args = SCM_EOL;
     goto vm_error;
 
   vm_error_wrong_type_apply:
-    err_msg  = scm_makfrom0str ("Wrong type to apply: ~S");
+    err_msg  = scm_makfrom0str ("VM: Wrong type to apply: ~S");
     err_args = SCM_LIST1 (program);
     goto vm_error;
 
-#if VM_CHECK_IP
-  vm_error_invalid_address:
-    err_msg  = scm_makfrom0str ("Invalid program address");
-    err_args = SCM_EOL;
-    goto vm_error;
-#endif
-
   vm_error_stack_overflow:
-    err_msg  = scm_makfrom0str ("Stack overflow");
+    err_msg  = scm_makfrom0str ("VM: Stack overflow");
     err_args = SCM_EOL;
     goto vm_error;
 
   vm_error_stack_underflow:
-    err_msg  = scm_makfrom0str ("Stack underflow");
+    err_msg  = scm_makfrom0str ("VM: Stack underflow");
     err_args = SCM_EOL;
     goto vm_error;
+
+#if VM_CHECK_IP
+  vm_error_invalid_address:
+    err_msg  = scm_makfrom0str ("VM: Invalid program address");
+    err_args = SCM_EOL;
+    goto vm_error;
+#endif
+
+#if VM_CHECK_EXTERNAL
+  vm_error_external:
+    err_msg  = scm_makfrom0str ("VM: Invalid external access");
+    err_args = SCM_EOL;
+    goto vm_error;
+#endif
 
   vm_error:
     SYNC_ALL ();

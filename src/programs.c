@@ -59,7 +59,6 @@ scm_c_make_program (void *addr, size_t size, SCM holder)
   p->nrest    = 0;
   p->nlocs    = 0;
   p->nexts    = 0;
-  p->meta     = SCM_EOL;
   p->objs     = zero_vector;
   p->external = SCM_EOL;
   p->holder   = holder;
@@ -77,17 +76,9 @@ scm_c_make_program (void *addr, size_t size, SCM holder)
 SCM
 scm_c_make_closure (SCM program, SCM external)
 {
-  struct scm_program *p;
-  struct scm_program *q = SCM_PROGRAM_DATA (program);
-  SCM prog = scm_c_make_program (q->base, q->size, program);
-  p = SCM_PROGRAM_DATA (prog);
-  p->nargs    = q->nargs;
-  p->nrest    = q->nrest;
-  p->nlocs    = q->nlocs;
-  p->nexts    = q->nexts;
-  p->meta     = q->meta;
-  p->objs     = q->objs;
-  p->external = external;
+  SCM prog = scm_c_make_program (0, 0, program);
+  *SCM_PROGRAM_DATA (prog) = *SCM_PROGRAM_DATA (program);
+  SCM_PROGRAM_EXTERNAL (prog) = external;
   return prog;
 }
 
@@ -95,7 +86,6 @@ static SCM
 program_mark (SCM obj)
 {
   struct scm_program *p = SCM_PROGRAM_DATA (obj);
-  scm_gc_mark (p->meta);
   scm_gc_mark (p->objs);
   scm_gc_mark (p->external);
   return p->holder;

@@ -45,8 +45,9 @@
  * Options
  */
 
-#define VM_USE_HOOKS	1	/* Various hooks */
-#define VM_USE_CLOCK	1	/* Bogoclock */
+#define VM_USE_HOOKS		1	/* Various hooks */
+#define VM_USE_CLOCK		1	/* Bogoclock */
+#define VM_CHECK_EXTERNAL	1	/* Check external link */
 
 
 /*
@@ -147,6 +148,19 @@
 
 
 /*
+ * Error check
+ */
+
+#undef CHECK_EXTERNAL
+#if VM_CHECK_EXTERNAL
+#define CHECK_EXTERNAL(e) \
+  do { if (!SCM_CONSP (e)) goto vm_error_external; } while (0)
+#else
+#define CHECK_EXTERNAL(e)
+#endif
+
+
+/*
  * Hooks
  */
 
@@ -154,23 +168,23 @@
 #if VM_USE_HOOKS
 #define RUN_HOOK(h)				\
 {						\
-  if (!SCM_FALSEP (h))				\
+  if (!SCM_FALSEP (vp->hooks[h]))		\
     {						\
       SYNC_BEFORE_GC ();			\
-      scm_c_run_hook (h, hook_args);		\
+      scm_c_run_hook (vp->hooks[h], hook_args);	\
     }						\
 }
 #else
 #define RUN_HOOK(h)
 #endif
 
-#define BOOT_HOOK()	RUN_HOOK (vp->hooks[SCM_VM_BOOT_HOOK])
-#define HALT_HOOK()	RUN_HOOK (vp->hooks[SCM_VM_HALT_HOOK])
-#define NEXT_HOOK()	RUN_HOOK (vp->hooks[SCM_VM_NEXT_HOOK])
-#define ENTER_HOOK()	RUN_HOOK (vp->hooks[SCM_VM_ENTER_HOOK])
-#define APPLY_HOOK()	RUN_HOOK (vp->hooks[SCM_VM_APPLY_HOOK])
-#define EXIT_HOOK()	RUN_HOOK (vp->hooks[SCM_VM_EXIT_HOOK])
-#define RETURN_HOOK()	RUN_HOOK (vp->hooks[SCM_VM_RETURN_HOOK])
+#define BOOT_HOOK()	RUN_HOOK (SCM_VM_BOOT_HOOK)
+#define HALT_HOOK()	RUN_HOOK (SCM_VM_HALT_HOOK)
+#define NEXT_HOOK()	RUN_HOOK (SCM_VM_NEXT_HOOK)
+#define ENTER_HOOK()	RUN_HOOK (SCM_VM_ENTER_HOOK)
+#define APPLY_HOOK()	RUN_HOOK (SCM_VM_APPLY_HOOK)
+#define EXIT_HOOK()	RUN_HOOK (SCM_VM_EXIT_HOOK)
+#define RETURN_HOOK()	RUN_HOOK (SCM_VM_RETURN_HOOK)
 
 
 /*
@@ -253,18 +267,7 @@ do {						\
 
 
 /*
- * Function support
- */
-
-#define ARGS1(a1)	SCM a1 = sp[0];
-#define ARGS2(a1,a2)	SCM a1 = sp[-1], a2 = sp[0]; sp--;
-#define ARGS3(a1,a2,a3)	SCM a1 = sp[-2], a2 = sp[-1], a3 = sp[0]; sp -= 2;
-
-#define RETURN(x)	do { *sp = x; NEXT; } while (0)
-
-
-/*
- * Frame allocation
+ * Stack frame
  */
 
 #define INIT_ARGS()				\
@@ -307,6 +310,8 @@ do {						\
   external = bp->external;			\
   for (i = 0; i < bp->nexts; i++)		\
     CONS (external, SCM_UNDEFINED, external);	\
+						\
+  /* Set frame data */				\
   p[0] = external;				\
   p[1] = dl;					\
   p[2] = ra;					\
@@ -319,6 +324,17 @@ do {						\
   ip = SCM_VM_BYTE_ADDRESS (p[2]);		\
   fp = SCM_VM_STACK_ADDRESS (p[1]);		\
 }
+
+
+/*
+ * Function support
+ */
+
+#define ARGS1(a1)	SCM a1 = sp[0];
+#define ARGS2(a1,a2)	SCM a1 = sp[-1], a2 = sp[0]; sp--;
+#define ARGS3(a1,a2,a3)	SCM a1 = sp[-2], a2 = sp[-1], a3 = sp[0]; sp -= 2;
+
+#define RETURN(x)	do { *sp = x; NEXT; } while (0)
 
 /*
   Local Variables:

@@ -248,7 +248,11 @@ VM_DEFINE_INSTRUCTION (external_set, "external-set", 1, 1, 0)
   unsigned int i;
   SCM e = external;
   for (i = FETCH (); i; i--)
-    e = SCM_CDR (e);
+    {
+      CHECK_EXTERNAL(e);
+      e = SCM_CDR (e);
+    }
+  CHECK_EXTERNAL(e);
   SCM_SETCAR (e, *sp);
   DROP ();
   NEXT;

@@ -58,7 +58,6 @@ struct scm_program {
   unsigned char nlocs;		/* the number of local variables */
   unsigned char nexts;		/* the number of external variables */
   scm_byte_t *base;		/* program base address */
-  SCM meta;			/* meta information */
   SCM objs;			/* constant objects */
   SCM external;			/* external environment */
   SCM holder;			/* the owner of bytecode */
