@@ -339,7 +339,7 @@ SCM_DEFINE (scm_assq_remove_x, "assq-remove!", 2, 0, 0,
 
   handle = scm_sloppy_assq (key, alist);
   if (SCM_CONSP (handle))
-    alist = scm_delq_x (handle, alist);
+    alist = scm_delq1_x (handle, alist);
 
   return alist;
 }
@@ -355,7 +355,7 @@ SCM_DEFINE (scm_assv_remove_x, "assv-remove!", 2, 0, 0,
 
   handle = scm_sloppy_assv (key, alist);
   if (SCM_CONSP (handle))
-    alist = scm_delq_x (handle, alist);
+    alist = scm_delq1_x (handle, alist);
 
   return alist;
 }
@@ -371,7 +371,7 @@ SCM_DEFINE (scm_assoc_remove_x, "assoc-remove!", 2, 0, 0,
 
   handle = scm_sloppy_assoc (key, alist);
   if (SCM_CONSP (handle))
-    alist = scm_delq_x (handle, alist);
+    alist = scm_delq1_x (handle, alist);
 
   return alist;
 }
