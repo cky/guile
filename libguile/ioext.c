@@ -69,7 +69,7 @@ scm_sys_ftell (port)
     scm_syserror (s_sys_ftell);
   if (pos > 0 && SCM_CRDYP (port))
     pos--;
-  return SCM_MAKINUM (pos);
+  return scm_long2num (pos);
 }
 
 
@@ -83,13 +83,16 @@ scm_sys_fseek (port, offset, whence)
      SCM whence;
 {
   int rv;
+  long loff;
+
   SCM_ASSERT (SCM_NIMP (port) && SCM_OPFPORTP (port), port, SCM_ARG1, s_sys_fseek);
-  SCM_ASSERT (SCM_INUMP (offset), offset, SCM_ARG2, s_sys_fseek);
+  loff = scm_num2long (offset, (char *)SCM_ARG2, s_sys_fseek);
   SCM_ASSERT (SCM_INUMP (whence) && (SCM_INUM (whence) < 3) && (SCM_INUM (whence) >= 0),
 	  whence, SCM_ARG3, s_sys_fseek);
+  
   SCM_CLRDY (port);			/* Clear ungetted char */
   /* Values of whence are interned in scm_init_ioext.  */
-  rv = fseek ((FILE *)SCM_STREAM (port), SCM_INUM (offset), SCM_INUM (whence));
+  rv = fseek ((FILE *)SCM_STREAM (port), loff, SCM_INUM (whence));
   if (rv != 0)
     scm_syserror (s_sys_fseek);
   return SCM_UNSPECIFIED;
