@@ -128,7 +128,7 @@ static mpz_t z_negative_one;
 
 static const char s_bignum[] = "bignum";
 
-SCM_C_INLINE SCM
+SCM_C_INLINE_KEYWORD SCM
 scm_i_mkbig ()
 {
   /* Return a newly created bignum. */
@@ -137,7 +137,7 @@ scm_i_mkbig ()
   return z;
 }
 
-SCM_C_INLINE static SCM
+SCM_C_INLINE_KEYWORD static SCM
 scm_i_clonebig (SCM src_big, int same_sign_p)
 {
   /* Copy src_big's value, negate it if same_sign_p is false, and return. */
@@ -148,7 +148,7 @@ scm_i_clonebig (SCM src_big, int same_sign_p)
   return z;
 }
 
-SCM_C_INLINE int
+SCM_C_INLINE_KEYWORD int
 scm_i_bigcmp (SCM x, SCM y)
 {
   /* Return neg if x < y, pos if x > y, and 0 if x == y */
@@ -158,7 +158,7 @@ scm_i_bigcmp (SCM x, SCM y)
   return result;
 }
 
-SCM_C_INLINE SCM
+SCM_C_INLINE_KEYWORD SCM
 scm_i_dbl2big (double d)
 {
   /* results are only defined if d is an integer */
@@ -167,7 +167,7 @@ scm_i_dbl2big (double d)
   return z;
 }
 
-SCM_C_INLINE double
+SCM_C_INLINE_KEYWORD double
 scm_i_big2dbl (SCM b)
 {
   double result = mpz_get_d (SCM_I_BIG_MPZ (b));
@@ -175,7 +175,7 @@ scm_i_big2dbl (SCM b)
   return result;
 }
 
-SCM_C_INLINE SCM
+SCM_C_INLINE_KEYWORD SCM
 scm_i_normbig (SCM b)
 {
   /* convert a big back to a fixnum if it'll fit */

@@ -609,6 +609,17 @@ SCM_API SCM scm_apply_generic (SCM gf, SCM args);
 #endif /* def vms */
 #endif /* ndef SCM_EXIT_FAILURE */
 
+/* Define SCM_C_INLINE_KEYWORD so that it can be used as a replacement
+   for the "inline" keyword, expanding to nothing when "inline" is not
+   available.
+*/
+
+#ifdef SCM_C_INLINE
+#define SCM_C_INLINE_KEYWORD SCM_C_INLINE
+#else
+#define SCM_C_INLINE_KEYWORD
+#endif
+
 #endif  /* SCM___SCM_H */
 
 /*
