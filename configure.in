@@ -139,16 +139,14 @@ fi
 if test "$ac_cv_header_regex_h" = yes ||
    test "$ac_cv_header_rxposix_h" = yes ||
    test "$ac_cv_header_rx_rxposix_h" = yes; then
-  ac_cv_func_regcomp=
-  AC_CHECK_FUNC(regcomp, [LIBOBJS="regex-posix.o $LIBOBJS"])
-  if test "$ac_cv_func_regcomp" != yes; then
-    AC_CHECK_LIB(rx, main)
-    ac_cv_func_regcomp=
-    AC_CHECK_FUNC(regcomp, [LIBOBJS="regex-posix.o $LIBOBJS"])
-  fi
+  GUILE_NAMED_CHECK_FUNC(regcomp, norx, [LIBOBJS="regex-posix.o $LIBOBJS"],
+  [AC_CHECK_LIB(rx, main)
+   GUILE_NAMED_CHECK_FUNC(regcomp, rx, [LIBOBJS="regex-posix.o $LIBOBJS"])]
+  )
   dnl The following should not be necessary, but for some reason
   dnl autoheader misses it if we don't include it!
-  if test "$ac_cv_func_regcomp" = yes; then
+  if test "$ac_cv_func_regcomp_norx" = yes ||
+     test "$ac_cv_func_regcomp_rx" = yes; then
     AC_DEFINE(HAVE_REGCOMP)
   fi
 fi
