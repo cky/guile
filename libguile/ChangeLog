@@ -1,3 +1,14 @@
+2003-11-18  Rob Browning  <rlb@defaultvalue.org>
+
+	* gen-scmconfig.c (main): remove public definition of
+	SCM_SIZEOF___INT64 and SCM_SIZEOF_UNSIGNED___INT64 and add
+	direct typedef of long_long and ulong_long inside deprecated block
+	when appropriate.
+
+	* deprecated.h: move long_long and ulong_long definitions to
+	gen-scmconfig.c so that we don't need to add SCM_SIZEOF___INT64
+	and SCM_SIZEOF_UNSIGNED___INT64 to the public namespace.
+
 2003-11-17  Marius Vollmer  <mvo@zagadka.de>
 
 	* hash.c (scm_string_hash): New hashing algorithm that takes the
