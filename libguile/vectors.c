@@ -268,10 +268,10 @@ SCM_DEFINE (scm_make_vector, "make-vector", 1, 1, 0,
   SCM_NEWCELL(v);
   SCM_DEFER_INTS;
   SCM_SETCHARS(v, scm_must_malloc(i?(long)(i*sizeof(SCM)):1L, FUNC_NAME));
-  SCM_SETLENGTH(v, i, scm_tc7_vector);
   velts = SCM_VELTS(v);
-  j = 0;
-  while(--i >= j) (velts)[i] = fill;
+  for (j = 0; j < i; ++j)
+    velts[j] = fill;
+  SCM_SETLENGTH(v, i, scm_tc7_vector);
   SCM_ALLOW_INTS;
   return v;
 }

@@ -1,5 +1,10 @@
 2000-07-26  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* vectors.c (scm_make_vector):  Fix the initialization order of
+	the vector such that the type cell is initialized last.
+
+2000-07-26  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* struct.[ch] (scm_struct_init):  Made static.  Fixed not to rely
 	on the struct cell to be fully initialized.
 
