@@ -75,8 +75,8 @@
 #define SPEC_OF(x)  SCM_SLOT (x, scm_si_specializers)
 
 #define DEFVAR(v,val) \
-{ scm_i_eval (SCM_LIST3 (scm_sym_define_public, (v), (val)), \
-	      scm_top_level_env (scm_goops_lookup_closure)); }
+{ scm_eval (SCM_LIST3 (scm_sym_define_public, (v), (val)), \
+	      scm_module_goops); }
 /* Temporary hack until we get the new module system */
 /*fixme* Should optimize by keeping track of the variable object itself */
 #define GETVAR(v) (SCM_CDDR (scm_apply (scm_goops_lookup_closure, \
@@ -2326,15 +2326,7 @@ make_class_from_template (char *template, char *type_name, SCM supers)
       && SCM_FALSEP (scm_apply (scm_goops_lookup_closure,
 				SCM_LIST2 (name, SCM_BOOL_F),
 				SCM_EOL)))
-    {
-      /* Make sure we add the binding in the GOOPS module.
-       * This kludge is needed until DEFVAR ceases to use `define-public'
-       * or `define-public' ceases to use `current-module'.
-       */
-      SCM old_module = scm_set_current_module (scm_module_goops);
-      DEFVAR (name, class);
-      scm_set_current_module (old_module);
-    }
+    DEFVAR (name, class);
   return class;
 }
 
@@ -2594,8 +2586,7 @@ SCM_SYMBOL (sym_internal_add_method_x, "internal-add-method!");
 void
 scm_add_method (SCM gf, SCM m)
 {
-  scm_i_eval (SCM_LIST3 (sym_internal_add_method_x, gf, m),
-	      scm_top_level_env (scm_goops_lookup_closure));
+  scm_eval (SCM_LIST3 (sym_internal_add_method_x, gf, m), scm_module_goops);
 }
 
 #ifdef GUILE_DEBUG
@@ -2644,6 +2635,11 @@ scm_init_goops (void)
   old_module = scm_set_current_module (scm_module_goops);
   
   scm_goops_lookup_closure = scm_module_lookup_closure (scm_module_goops);
+
+  /* Not really necessary right now, but who knows... 
+   */
+  scm_permanent_object (scm_module_goops);
+  scm_permanent_object (scm_goops_lookup_closure);
 
   scm_components = scm_permanent_object (scm_make_weak_key_hash_table
 					 (SCM_MAKINUM (37)));
