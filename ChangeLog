@@ -1,3 +1,7 @@
+1999-10-02  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* acconfig.h (HAVE_POSIX, HAVE_NETWORKING): Add comments.
+
 Mon Sep 27 16:28:33 1999  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* configure.in:  Added --enable-debug-freelist option.
