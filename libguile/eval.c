@@ -879,7 +879,17 @@ macroexp (SCM x, SCM env)
   
   if (scm_ilength (res) <= 0)
     res = scm_list_2 (SCM_IM_BEGIN, res);
-      
+
+  /* njrev: Several queries here: (1) I don't see how it can be
+     correct that the SCM_SETCAR 2 lines below this comment needs
+     protection, but the SCM_SETCAR 6 lines above does not, so
+     something here is probably wrong.  (2) macroexp() is now only
+     used in one place - scm_m_generalized_set_x - whereas all other
+     macro expansion happens through expand_user_macros.  Therefore
+     (2.1) perhaps macroexp() could be eliminated completely now?
+     (2.2) Does expand_user_macros need any critical section
+     protection? */
+
   SCM_CRITICAL_SECTION_START;
   SCM_SETCAR (x, SCM_CAR (res));
   SCM_SETCDR (x, SCM_CDR (res));
@@ -3092,6 +3102,9 @@ SCM_DEFINE (scm_eval_options_interface, "eval-options-interface", 0, 1, 0,
 		     scm_eval_opts,
 		     SCM_N_EVAL_OPTIONS,
 		     FUNC_NAME);
+  /* njrev: There are several ways that scm_options can signal an
+     error: scm_cons, scm_malloc_obj, scm_misc_error; so should use a
+     critical section frame here. */
   scm_eval_stack = SCM_EVAL_STACK * sizeof (void *);
   SCM_CRITICAL_SECTION_END;
   return ans;
@@ -3110,6 +3123,7 @@ SCM_DEFINE (scm_evaluator_traps, "evaluator-traps-interface", 0, 1, 0,
 		     scm_evaluator_trap_table,
 		     SCM_N_EVALUATOR_TRAPS,
 		     FUNC_NAME);
+  /* njrev: same again. */
   SCM_RESET_DEBUG_MODE;
   SCM_CRITICAL_SECTION_END;
   return ans;
