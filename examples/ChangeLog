@@ -1,3 +1,10 @@
+2002-11-17  Mikael Djurfeldt  <mdj@linnaeus>
+
+	* README: Added description of compat.
+
+	* compat/acconfig.h, compat/acinclude.m4, compat.h, configure.in:
+	New files.
+
 2001-07-24  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	All examples are now built and tested on `make installcheck'

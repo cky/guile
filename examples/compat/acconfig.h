@@ -1,0 +1,1 @@
+#undef HAVE_SCM_T_BITS
