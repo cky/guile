@@ -1,5 +1,10 @@
 2000-04-25  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* eval.c (undef_object):  Made into a local static variable
+	(suggested by Jost Boekemeier).
+
+2000-04-25  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* pairs.c (cxrs, scm_init_pairs):  Simplify initialization of
 	c[ad]+r functions.
 

@@ -253,11 +253,6 @@ scm_ilookup (SCM iloc, SCM env)
 
 #endif /* USE_THREADS */
 
-/* scm_lookupcar returns a pointer to this when a variable could not
-   be found and it should not throw an error.  Never assign to this. 
-*/
-static SCM undef_object = SCM_UNDEFINED;
-
 SCM_SYMBOL (scm_unbound_variable_key, "unbound-variable");
 
 #ifdef USE_THREADS
@@ -356,8 +351,11 @@ scm_lookupcar (SCM vloc, SCM genv, int check)
 	    scm_misc_error (NULL, "Damaged environment: ~S",
 			    scm_cons (var, SCM_EOL));
 	}
-      else
+      else {
+	/* A variable could not be found, but we shall not throw an error. */
+	static SCM undef_object = SCM_UNDEFINED;
 	return &undef_object;
+      }
     }
 #endif
 #ifdef USE_THREADS
