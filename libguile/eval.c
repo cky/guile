@@ -3864,11 +3864,11 @@ scm_for_each (SCM proc, SCM arg1, SCM args)
 SCM 
 scm_closure (SCM code, SCM env)
 {
-  register SCM z;
-
-  SCM_NEWCELL (z);
-  SCM_SETCODE (z, code);
-  SCM_SETENV (z, env);
+  SCM z;
+  SCM closcar = scm_cons (code, SCM_EOL);
+  z = scm_alloc_cell (SCM_UNPACK (closcar) + scm_tc3_closure,
+		      (scm_t_bits) env);
+  scm_remember_upto_here (closcar);
   return z;
 }
 
@@ -3939,9 +3939,7 @@ SCM_DEFINE (scm_cons_source, "cons-source", 3, 0, 0,
 #define FUNC_NAME s_scm_cons_source
 {
   SCM p, z;
-  SCM_NEWCELL (z);
-  SCM_SET_CELL_OBJECT_0 (z, x);
-  SCM_SET_CELL_OBJECT_1 (z, y);
+  z = scm_cons (x, y);
   /* Copy source properties possibly associated with xorig. */
   p = scm_whash_lookup (scm_source_whash, xorig);
   if (!SCM_IMP (p))

@@ -72,9 +72,7 @@ typedef struct scm_smob_descriptor
 
 #define SCM_NEWSMOB(z, tc, data) \
 do { \
-  SCM_NEWCELL (z); \
-  SCM_SET_CELL_WORD_1 ((z), (data)); \
-  SCM_SET_CELL_TYPE ((z), (tc)); \
+  z = scm_alloc_cell ((tc), (scm_t_bits) (data)); \
 } while (0)
 
 #define SCM_RETURN_NEWSMOB(tc, data) \
@@ -85,10 +83,8 @@ do { \
 
 #define SCM_NEWSMOB2(z, tc, data1, data2) \
 do { \
-  SCM_NEWCELL2 (z); \
-  SCM_SET_CELL_WORD_1 ((z), (data1)); \
-  SCM_SET_CELL_WORD_2 ((z), (data2)); \
-  SCM_SET_CELL_TYPE ((z), (tc)); \
+  z = scm_alloc_double_cell ((tc), (scm_t_bits)(data1), \
+                             (scm_t_bits)(data2), 0); \
 } while (0)
 
 #define SCM_RETURN_NEWSMOB2(tc, data1, data2) \
@@ -99,11 +95,8 @@ do { \
 
 #define SCM_NEWSMOB3(z, tc, data1, data2, data3) \
 do { \
-  SCM_NEWCELL2 (z); \
-  SCM_SET_CELL_WORD_1 ((z), (data1)); \
-  SCM_SET_CELL_WORD_2 ((z), (data2)); \
-  SCM_SET_CELL_WORD_3 ((z), (data3)); \
-  SCM_SET_CELL_TYPE ((z), (tc)); \
+  z = scm_alloc_double_cell ((tc), (scm_t_bits)(data1), \
+                             (scm_t_bits)(data2), (scm_t_bits)(data3)); \
 } while (0)
 
 #define SCM_RETURN_NEWSMOB3(tc, data1, data2, data3) \

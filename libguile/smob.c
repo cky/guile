@@ -456,23 +456,10 @@ scm_make_smob (scm_t_bits tc)
 {
   long n = SCM_TC2SMOBNUM (tc);
   size_t size = scm_smobs[n].size;
-  SCM z;
-  SCM_NEWCELL (z);
-  if (size != 0)
-    {
-#if 0
-      if (scm_smobs[n].mark != 0)
-	{
-	  fprintf
-	    (stderr,
-	     "forbidden operation for smobs with GC data, use SCM_NEWSMOB\n");
-	  abort ();
-	}
-#endif
-      SCM_SET_SMOB_DATA (z, scm_must_malloc (size, SCM_SMOBNAME (n)));
-    }
-  SCM_SET_CELL_TYPE (z, tc);
-  return z;
+  scm_t_bits data = (size > 0
+		     ? (scm_t_bits) scm_must_malloc (size, SCM_SMOBNAME (n))
+		     : 0);
+  return scm_alloc_cell (tc, data);
 }
 
 

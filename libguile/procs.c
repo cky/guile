@@ -86,16 +86,12 @@ scm_c_make_subr (const char *name, long type, SCM (*fcn) ())
       scm_subr_table_room = new_size;
     }
 
-  SCM_NEWCELL (z);
-
   entry = scm_subr_table_size;
+  z = scm_alloc_cell ((entry << 8) + type, (scm_t_bits) fcn);
   scm_subr_table[entry].handle = z;
   scm_subr_table[entry].name = scm_str2symbol (name);
   scm_subr_table[entry].generic = 0;
   scm_subr_table[entry].properties = SCM_EOL;
-  
-  SCM_SET_SUBRF (z, fcn);
-  SCM_SET_CELL_TYPE (z, (entry << 8) + type);
   scm_subr_table_size++;
   
   return z;
@@ -165,12 +161,8 @@ scm_makcclo (SCM proc, size_t len)
   for (i = 0; i < len; ++i)
     base [i] = SCM_UNPACK (SCM_UNSPECIFIED);
 
-  SCM_NEWCELL (s);
-  SCM_DEFER_INTS;
-  SCM_SET_CCLO_BASE (s, base);
-  SCM_SET_CCLO_LENGTH (s, len);
+  s = scm_alloc_cell (SCM_MAKE_CCLO_TAG (len), (scm_t_bits) base);
   SCM_SET_CCLO_SUBR (s, proc);
-  SCM_ALLOW_INTS;
   return s;
 }
 
@@ -327,16 +319,11 @@ SCM_DEFINE (scm_make_procedure_with_setter, "make-procedure-with-setter", 2, 0, 
 	    "with the associated setter @var{setter}.")
 #define FUNC_NAME s_scm_make_procedure_with_setter
 {
-  SCM z;
   SCM_VALIDATE_PROC (1, procedure);
   SCM_VALIDATE_PROC (2, setter);
-  SCM_NEWCELL2 (z);
-  SCM_ENTER_A_SECTION;
-  SCM_SET_CELL_OBJECT_1 (z, procedure);
-  SCM_SET_CELL_OBJECT_2 (z, setter);
-  SCM_SET_CELL_TYPE (z, scm_tc7_pws);
-  SCM_EXIT_A_SECTION;
-  return z;
+  return scm_alloc_double_cell (scm_tc7_pws,
+				SCM_UNPACK (procedure),
+				SCM_UNPACK (setter), 0);
 }
 #undef FUNC_NAME
 

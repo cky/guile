@@ -132,9 +132,7 @@ scm_take_str (char *s, size_t len)
 
   SCM_ASSERT_RANGE (2, scm_ulong2num (len), len <= SCM_STRING_MAX_LENGTH);
 
-  SCM_NEWCELL (answer);
-  SCM_SET_STRING_CHARS (answer, s);
-  SCM_SET_STRING_LENGTH (answer, len);
+  answer = scm_alloc_cell (SCM_MAKE_STRING_TAG (len), (scm_t_bits) s);
   scm_done_malloc (len + 1);
 
   return answer;
@@ -196,9 +194,7 @@ scm_allocate_string (size_t len)
   mem = (char *) scm_must_malloc (len + 1, FUNC_NAME);
   mem[len] = 0;
 
-  SCM_NEWCELL (s);
-  SCM_SET_STRING_CHARS (s, mem);
-  SCM_SET_STRING_LENGTH (s, len);
+  s = scm_alloc_cell (SCM_MAKE_STRING_TAG (len), (scm_t_bits) mem);
 
   return s;
 }

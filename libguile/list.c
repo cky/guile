@@ -60,9 +60,7 @@
 
 #define SCM_I_CONS(cell,x,y)			\
 do {						\
-  SCM_NEWCELL (cell);				\
-  SCM_SET_CELL_OBJECT_1 (cell, y);		\
-  SCM_SET_CELL_OBJECT_0 (cell, x);		\
+  cell = scm_alloc_cell ((scm_t_bits)x, (scm_t_bits)y);			\
 } while (0)
 
 SCM

@@ -69,11 +69,7 @@ SCM_DEFINE (scm_nil_cons, "nil-cons", 2, 0, 0,
 	    "a LISP nil.")
 #define FUNC_NAME s_scm_nil_cons
 {
-  register SCM z;
-  SCM_NEWCELL (z);
-  SCM_SETCAR (z, x);
-  SCM_SETCDR (z, SCM_NIL2EOL (y, y));
-  return z;
+  return scm_cons (x, SCM_NIL2EOL (y, y));
 }
 #undef FUNC_NAME
 

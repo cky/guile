@@ -539,13 +539,7 @@ SCM_DEFINE (scm_debug_object_p, "debug-object?", 1, 0, 0,
 SCM
 scm_make_debugobj (scm_t_debug_frame *frame)
 {
-  register SCM z;
-  SCM_NEWCELL (z);
-  SCM_ENTER_A_SECTION;
-  SCM_SET_DEBUGOBJ_FRAME (z, frame);
-  SCM_SET_CELL_TYPE (z, scm_tc16_debugobj);
-  SCM_EXIT_A_SECTION;
-  return z;
+  return scm_alloc_cell (scm_tc16_debugobj, (scm_t_bits) frame);
 }
 
 

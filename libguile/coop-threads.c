@@ -257,9 +257,8 @@ scm_call_with_new_thread (SCM argl)
     /* Allocate thread locals. */
     root = scm_make_root (scm_root->handle);
     /* Make thread. */
-    SCM_NEWCELL (thread);
+    thread = scm_alloc_cell (scm_tc16_thread, 0);
     SCM_DEFER_INTS;
-    SCM_SETCAR (thread, scm_tc16_thread);
     argl = scm_cons (thread, argl);
     /* Note that we couldn't pass a pointer to argl as data since the
        argl variable may not exist in memory when the thread starts.  */
@@ -345,9 +344,8 @@ scm_spawn_thread (scm_t_catch_body body, void *body_data,
   /* Allocate thread locals. */
   root = scm_make_root (scm_root->handle);
   /* Make thread. */
-  SCM_NEWCELL (thread);
+  thread = scm_alloc_cell (scm_tc16_thread, 0);
   SCM_DEFER_INTS;
-  SCM_SETCAR (thread, scm_tc16_thread);
 
   data->u.thread = thread;
   data->body = body;

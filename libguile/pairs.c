@@ -80,11 +80,7 @@ SCM_DEFINE (scm_cons, "cons", 2, 0, 0,
 	    "sense of @code{eq?}) from every previously existing object.")
 #define FUNC_NAME s_scm_cons
 {
-  SCM z;
-  SCM_NEWCELL (z);
-  SCM_SET_CELL_OBJECT_0 (z, x);
-  SCM_SET_CELL_OBJECT_1 (z, y);
-  return z;
+  return scm_alloc_cell (SCM_UNPACK (x), SCM_UNPACK (y));
 }
 #undef FUNC_NAME
 
@@ -92,18 +88,7 @@ SCM_DEFINE (scm_cons, "cons", 2, 0, 0,
 SCM 
 scm_cons2 (SCM w, SCM x, SCM y)
 {
-  SCM z1;
-  SCM z2;
-
-  SCM_NEWCELL (z1);
-  SCM_SET_CELL_OBJECT_0 (z1, x);
-  SCM_SET_CELL_OBJECT_1 (z1, y);
-
-  SCM_NEWCELL (z2);
-  SCM_SET_CELL_OBJECT_0 (z2, w);
-  SCM_SET_CELL_OBJECT_1 (z2, z1);
-
-  return z2;
+  return scm_cons (w, scm_cons (x, y));
 }
 
 

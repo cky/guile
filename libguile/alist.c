@@ -58,18 +58,9 @@ SCM_DEFINE (scm_acons, "acons", 3, 0, 0,
 	    "function is @emph{not} destructive; @var{alist} is not modified.")
 #define FUNC_NAME s_scm_acons
 {
-  SCM pair;
-  SCM head;
-
-  SCM_NEWCELL (pair);
-  SCM_SET_CELL_OBJECT_0 (pair, key);
-  SCM_SET_CELL_OBJECT_1 (pair, value);
-
-  SCM_NEWCELL (head);
-  SCM_SET_CELL_OBJECT_0 (head, pair);
-  SCM_SET_CELL_OBJECT_1 (head, alist);
-
-  return head;
+  return scm_alloc_cell (SCM_UNPACK (scm_alloc_cell (SCM_UNPACK (key),
+						     SCM_UNPACK (value))),
+			 SCM_UNPACK (alist));
 }
 #undef FUNC_NAME
 

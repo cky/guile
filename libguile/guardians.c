@@ -248,8 +248,6 @@ scm_guard (SCM guardian, SCM obj, int throw_p)
     {
       SCM z;
 
-      SCM_NEWCELL (z);
-      
       /* This critical section barrier will be replaced by a mutex. */
       SCM_DEFER_INTS;
 
@@ -272,6 +270,7 @@ scm_guard (SCM guardian, SCM obj, int throw_p)
                                        obj, guardian);
         }
 
+      z = scm_cons (SCM_BOOL_F, SCM_BOOL_F);
       TCONC_IN (g->live, obj, z);
 
       SCM_ALLOW_INTS;

@@ -71,10 +71,6 @@ allocate_weak_vector (scm_t_bits type, SCM size, SCM fill, const char* caller)
       SCM_ASSERT_RANGE (1, size, SCM_INUM (size) >= 0);
       c_size = SCM_INUM (size);
 
-      SCM_NEWCELL2 (v);
-      SCM_SET_WVECT_GC_CHAIN (v, SCM_EOL);
-      SCM_SET_WVECT_TYPE (v, type);
-
       if (c_size > 0)
 	{
 	  scm_t_bits *base;
@@ -87,14 +83,20 @@ allocate_weak_vector (scm_t_bits type, SCM size, SCM fill, const char* caller)
 	  base = scm_must_malloc (c_size * sizeof (scm_t_bits), FUNC_NAME);
 	  for (j = 0; j != c_size; ++j)
 	    base[j] = SCM_UNPACK (fill);
-	  SCM_SET_VECTOR_BASE (v, base);
-	  SCM_SET_VECTOR_LENGTH (v, c_size, scm_tc7_wvect);
+	  v = scm_alloc_double_cell (SCM_MAKE_VECTOR_TAG (c_size,
+							  scm_tc7_wvect),
+				     (scm_t_bits) base,
+				     type,
+				     SCM_UNPACK (SCM_EOL));
 	  scm_remember_upto_here_1 (fill);
 	}
       else
 	{
-	  SCM_SET_VECTOR_BASE (v, NULL);
-	  SCM_SET_VECTOR_LENGTH (v, 0, scm_tc7_wvect);
+	  v = scm_alloc_double_cell (SCM_MAKE_VECTOR_TAG (0,
+							  scm_tc7_wvect),
+				     (scm_t_bits) NULL,
+				     type,
+				     SCM_UNPACK (SCM_EOL));
 	}
 
       return v;

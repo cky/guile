@@ -428,7 +428,7 @@ scm_fdes_to_port (int fdes, char *mode, SCM name)
       SCM_MISC_ERROR ("requested file mode not available on fdes", SCM_EOL);
     }
 
-  SCM_NEWCELL (port);
+  port = scm_alloc_cell (scm_tc16_fport, 0);
   SCM_DEFER_INTS;
   pt = scm_add_to_port_table (port);
   SCM_SETPTAB_ENTRY (port, pt);

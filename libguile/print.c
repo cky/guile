@@ -249,10 +249,8 @@ scm_free_print_state (SCM print_state)
    */
   pstate->fancyp = 0;
   pstate->revealed = 0;
-  SCM_NEWCELL (handle);
   SCM_DEFER_INTS;
-  SCM_SET_CELL_WORD_0 (handle, print_state);
-  SCM_SET_CELL_WORD_1 (handle, print_state_pool);
+  handle = scm_cons (print_state, print_state_pool);
   print_state_pool = handle;
   SCM_ALLOW_INTS;
 }

@@ -119,13 +119,7 @@ scm_error_environment_immutable_location (const char *func, SCM env, SCM symbol)
 SCM
 scm_make_environment (void *type)
 {
-  SCM env;
-
-  SCM_NEWCELL (env);
-  SCM_SET_CELL_WORD_1 (env, type);
-  SCM_SET_CELL_TYPE (env, scm_tc16_environment);
-
-  return env;
+  return scm_alloc_cell (scm_tc16_environment, (scm_t_bits) type);
 }
 
 
@@ -669,11 +663,10 @@ core_environments_observe (SCM env, scm_environment_observer proc, SCM data, int
 {
   SCM observer;
 
-  SCM_NEWCELL2 (observer);
-  SCM_SET_CELL_OBJECT_1 (observer, env);
-  SCM_SET_CELL_OBJECT_2 (observer, data);
-  SCM_SET_CELL_WORD_3 (observer, proc);
-  SCM_SET_CELL_TYPE (observer, scm_tc16_observer);
+  observer = scm_alloc_double_cell (scm_tc16_observer,
+				    SCM_UNPACK (env),
+				    SCM_UNPACK (data),
+				    (scm_t_bits) proc);
 
   if (!weak_p)
     {

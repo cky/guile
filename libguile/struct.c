@@ -450,7 +450,6 @@ SCM_DEFINE (scm_make_struct, "make-struct", 2, 0, 1,
   layout = SCM_PACK (SCM_STRUCT_DATA (vtable) [scm_vtable_index_layout]);
   basic_size = SCM_SYMBOL_LENGTH (layout) / 2;
   tail_elts = SCM_INUM (tail_array_size);
-  SCM_NEWCELL2 (handle);
   SCM_DEFER_INTS;
   if (SCM_STRUCT_DATA (vtable)[scm_struct_i_flags] & SCM_STRUCTF_ENTITY)
     {
@@ -464,11 +463,10 @@ SCM_DEFINE (scm_make_struct, "make-struct", 2, 0, 1,
     data = scm_alloc_struct (basic_size + tail_elts,
 			     scm_struct_n_extra_words,
 			     "make-struct");
-  SCM_SET_CELL_WORD_1 (handle, data);
-  SCM_SET_STRUCT_GC_CHAIN (handle, 0);
+  handle = scm_alloc_double_cell ((((scm_t_bits) SCM_STRUCT_DATA (vtable))
+				   + scm_tc3_struct),
+				  (scm_t_bits) data, 0, 0);
   scm_struct_init (handle, layout, data, tail_elts, init);
-  SCM_SET_CELL_WORD_0 (handle,
-		       (scm_t_bits) SCM_STRUCT_DATA (vtable) + scm_tc3_struct);
   SCM_ALLOW_INTS;
   return handle;
 }
@@ -540,16 +538,14 @@ SCM_DEFINE (scm_make_vtable_vtable, "make-vtable-vtable", 2, 0, 1,
   layout = scm_make_struct_layout (fields);
   basic_size = SCM_SYMBOL_LENGTH (layout) / 2;
   tail_elts = SCM_INUM (tail_array_size);
-  SCM_NEWCELL2 (handle);
   SCM_DEFER_INTS;
   data = scm_alloc_struct (basic_size + tail_elts,
 			   scm_struct_n_extra_words,
 			   "make-vtable-vtable");
-  SCM_SET_CELL_WORD_1 (handle, data);
-  SCM_SET_STRUCT_GC_CHAIN (handle, 0);
+  handle = scm_alloc_double_cell ((scm_t_bits) data + scm_tc3_struct,
+				  (scm_t_bits) data, 0, 0);
   data [scm_vtable_index_layout] = SCM_UNPACK (layout);
   scm_struct_init (handle, layout, data, tail_elts, scm_cons (layout, init));
-  SCM_SET_CELL_WORD_0 (handle, (scm_t_bits) data + scm_tc3_struct);
   SCM_ALLOW_INTS;
   return handle;
 }

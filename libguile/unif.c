@@ -165,19 +165,16 @@ scm_make_uve (long k, SCM prot)
 
   if (SCM_EQ_P (prot, SCM_BOOL_T))
     {
-      SCM_NEWCELL (v);
       if (k > 0)
 	{
-	  SCM_ASSERT_RANGE (1, scm_long2num (k), k <= SCM_BITVECTOR_MAX_LENGTH);
+	  SCM_ASSERT_RANGE (1,
+			    scm_long2num (k), k <= SCM_BITVECTOR_MAX_LENGTH);
 	  i = sizeof (long) * ((k + SCM_LONG_BIT - 1) / SCM_LONG_BIT);
-	  SCM_SET_BITVECTOR_BASE (v, (char *) scm_must_malloc (i, "vector"));
-	  SCM_SET_BITVECTOR_LENGTH (v, k);
+	  v = scm_alloc_cell (SCM_MAKE_BITVECTOR_TAG (k), 
+			      (scm_t_bits) scm_must_malloc (i, "vector"));
 	}
       else
-	{
-	  SCM_SET_BITVECTOR_BASE (v, 0);
-	  SCM_SET_BITVECTOR_LENGTH (v, 0);
-	}
+	v = scm_alloc_cell (SCM_MAKE_BITVECTOR_TAG (0), 0);
       return v;
     }
   else if (SCM_CHARP (prot) && (SCM_CHAR (prot) == '\0'))
@@ -242,12 +239,8 @@ scm_make_uve (long k, SCM prot)
 
   SCM_ASSERT_RANGE (1, scm_long2num (k), k <= SCM_UVECTOR_MAX_LENGTH);
 
-  SCM_NEWCELL (v);
-  SCM_DEFER_INTS;
-  SCM_SET_UVECTOR_BASE (v, (char *) scm_must_malloc (i ? i : 1, "vector"));
-  SCM_SET_UVECTOR_LENGTH (v, k, type);
-  SCM_ALLOW_INTS;
-  return v;
+  return scm_alloc_cell (SCM_MAKE_UVECTOR_TAG (k, type),
+			 (scm_t_bits) scm_must_malloc (i ? i : 1, "vector"));
 }
 #undef FUNC_NAME
 
@@ -525,7 +518,6 @@ SCM
 scm_make_ra (int ndim)
 {
   SCM ra;
-  SCM_NEWCELL (ra);
   SCM_DEFER_INTS;
   SCM_NEWSMOB(ra, ((scm_t_bits) ndim << 17) + scm_tc16_array,
               scm_must_malloc ((sizeof (scm_t_array) +

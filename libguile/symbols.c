@@ -125,11 +125,11 @@ scm_mem2symbol (const char *name, size_t len)
     SCM cell;
     SCM slot;
 
-    SCM_NEWCELL2 (symbol);
-    SCM_SET_SYMBOL_CHARS (symbol, scm_must_strndup (name, len));
-    SCM_SET_SYMBOL_HASH (symbol, raw_hash);
-    SCM_SET_PROP_SLOTS (symbol, scm_cons (SCM_BOOL_F, SCM_EOL));
-    SCM_SET_SYMBOL_LENGTH (symbol, (long) len);
+    symbol = scm_alloc_double_cell (SCM_MAKE_SYMBOL_TAG (len),
+				    (scm_t_bits) scm_must_strndup (name, len),
+				    raw_hash,
+				    SCM_UNPACK (scm_cons (SCM_BOOL_F,
+							  SCM_EOL)));
 
     slot = SCM_VELTS (symbols) [hash];
     cell = scm_cons (symbol, SCM_UNDEFINED);

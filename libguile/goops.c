@@ -1301,20 +1301,15 @@ static void clear_method_cache (SCM);
 static SCM
 wrap_init (SCM class, SCM *m, long n)
 {
-  SCM z;
   long i;
   
   /* Set all slots to unbound */
   for (i = 0; i < n; i++)
     m[i] = SCM_GOOPS_UNBOUND;
 
-  SCM_NEWCELL2 (z);
-  SCM_SET_STRUCT_GC_CHAIN (z, 0);
-  SCM_SET_CELL_WORD_1 (z, m);
-  SCM_SET_CELL_WORD_0 (z, (scm_t_bits) SCM_STRUCT_DATA (class)
-		          | scm_tc3_struct);
-
-  return z;
+  return scm_alloc_double_cell ((((scm_t_bits) SCM_STRUCT_DATA (class))
+				 | scm_tc3_struct),
+				(scm_t_bits) m, 0, 0);
 }
 
 SCM_DEFINE (scm_sys_allocate_instance, "%allocate-instance", 2, 0, 0,
@@ -2589,12 +2584,9 @@ scm_add_slot (SCM class, char *slot_name, SCM slot_class,
 SCM
 scm_wrap_object (SCM class, void *data)
 {
-  SCM z;
-  SCM_NEWCELL2 (z);
-  SCM_SETCDR (z, SCM_PACK ((scm_t_bits) data));
-  SCM_SET_STRUCT_GC_CHAIN (z, 0);
-  SCM_SETCAR (z, SCM_UNPACK (SCM_CDR (class)) | scm_tc3_struct);
-  return z;
+  return scm_alloc_double_cell (SCM_UNPACK (SCM_CDR (class)) | scm_tc3_struct,
+				(scm_t_bits) data,
+				0, 0);
 }
 
 SCM scm_components;
