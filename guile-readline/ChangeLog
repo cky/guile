@@ -1,3 +1,18 @@
+2002-02-24  Rob Browning  <rlb@defaultvalue.org>
+
+	* configure.in: source ./LIBGUILEREADLINE-VERSION for version info
+	and then AC_SUBST the resulting variables:
+	LIBGUILEREADLINE_INTERFACE_CURRENT,
+	LIBGUILEREADLINE_INTERFACE_REVISION,
+	LIBGUILEREADLINE_INTERFACE_AGE, and
+	LIBGUILEREADLINE_INTERFACE.
+
+	* Makefile.am (libguilereadline_la_LDFLAGS): use
+	@LIBGUILEREADLINE_INTERFACE@ for version information.
+
+	* LIBGUILEREADLINE-VERSION: new file containing shared lib
+	versioning information.
+
 2002-02-12  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* Makefile.am (AUTOMAKE_OPTIONS): Replace "gnu" with "foreign".

@@ -1,3 +1,9 @@
+2002-02-24  Rob Browning  <rlb@defaultvalue.org>
+
+	* .cvsignore: add autoconf-macros.texi.
+
+	* Makefile.am (CLEANFILES): add autoconf-macros.texi.
+
 2002-02-19  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* scheme-memory.texi (Memory Blocks): New section.
