@@ -56,7 +56,7 @@
  * Indexes into this table are used when generating type
  * tags for smobjects (if you know a tag you can get an index and conversely).
  */
-scm_sizet scm_numsmob;
+int scm_numsmob;
 scm_smobfuns *scm_smobs;
 
 
