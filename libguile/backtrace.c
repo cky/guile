@@ -195,6 +195,8 @@ display_error_body (struct display_error_args *a)
   SCM current_frame = SCM_BOOL_F;
   SCM source = SCM_BOOL_F;
   SCM pname = SCM_BOOL_F;
+  SCM prev_frame = SCM_BOOL_F;
+
   if (SCM_DEBUGGINGP
       && SCM_NIMP (a->stack)
       && SCM_STACKP (a->stack)
@@ -202,8 +204,10 @@ display_error_body (struct display_error_args *a)
     {
       current_frame = scm_stack_ref (a->stack, SCM_INUM0);
       source = SCM_FRAME_SOURCE (current_frame);
-      if (!(SCM_NIMP (source) && SCM_MEMOIZEDP (source)))
-	source = SCM_FRAME_SOURCE (SCM_FRAME_PREV (current_frame));
+      prev_frame = SCM_FRAME_PREV (current_frame);
+      if (!(SCM_NIMP (source) && SCM_MEMOIZEDP (source))
+	  && prev_frame != SCM_BOOL_F)
+	source = SCM_FRAME_SOURCE (prev_frame);
       if (SCM_FRAME_PROC_P (current_frame)
 	  && scm_procedure_p (SCM_FRAME_PROC (current_frame)) == SCM_BOOL_T)
 	pname = scm_procedure_name (SCM_FRAME_PROC (current_frame));
