@@ -95,3 +95,9 @@
 
 /* Define if usleep doesn't return a value. */
 #undef USLEEP_RETURNS_VOID
+
+/* Define if configuring on totoro.red-bean.com.
+   This variable is used in a workaround which forces totoro to include
+   readline support regardless.  This kludge should obviously be
+   removed as fast as possible. */
+#undef TOTORO
