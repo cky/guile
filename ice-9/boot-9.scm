@@ -1,6 +1,6 @@
 ;;; installed-scm-file
 
-;;;; Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004
+;;;; Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005
 ;;;; Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
@@ -2754,6 +2754,16 @@
 ;; `while' even when recursing.  `while-helper' is an easy way to keep the
 ;; `key' binding away from the cond and body code.
 ;;
+;; FIXME: This is supposed to have an `unquote' on the `do' the same used
+;; for lambda and not, so as to protect against any user rebinding of that
+;; symbol, but unfortunately an unquote breaks with ice-9 syncase, eg.
+;;
+;;     (use-modules (ice-9 syncase))
+;;     (while #f)
+;;     => ERROR: invalid syntax ()
+;;
+;; This is probably a bug in syncase.
+;;
 (define-macro (while cond . body)
   (define (while-helper proc)
     (do ((key (make-symbol "while-key")))
@@ -2763,7 +2773,7 @@
 			(lambda () (throw key #f))))
 		(lambda (key arg) arg)))))
   `(,while-helper (,lambda (break continue)
-		    (,do ()
+		    (do ()
 			((,not ,cond))
 		      ,@body)
 		    #t)))
