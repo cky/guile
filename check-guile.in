@@ -11,9 +11,8 @@
 
 set -e
 
-# this script runs in the top-level build-dir.
 top_builddir=@top_builddir_absolute@
-top_srcdir=@top_srcdir@
+top_srcdir=@top_srcdir_absolute@
 
 TEST_SUITE_DIR=${top_srcdir}/test-suite
 
