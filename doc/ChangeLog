@@ -1,3 +1,7 @@
+1998-10-16  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* Makefile.in: Regenerated, after change to qthreads.m4.
+
 1998-10-15  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	* stamp-vti: Regenerated.

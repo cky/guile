@@ -1,3 +1,10 @@
+1998-10-16  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* qthreads.m4 (QTHREADS_CONFIGURE): On NetBSD, pass through a flag
+ 	to the Makefile which explicitly tells it to pass assembly files
+ 	through the preprocessor.
+	* aclocal.m4, configure, Makefile.in: Regenerated.
+
 1998-10-14  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	* configure.in: Define SCM_SINGLES whenever a float can fit in a
