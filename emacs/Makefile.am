@@ -25,7 +25,14 @@ subpkgdatadir = $(pkgdatadir)/${GUILE_EFFECTIVE_VERSION}/emacs
 subpkgdata_DATA = gds-client.scm gds-server.scm
 
 lisp_LISP = gds.el
+
+# Suppress byte compilation for now, but only because I haven't tested
+# it yet, so have no idea whether a byte compiled version would work.
 ELCFILES = 
+
+info_TEXINFOS = gds.texi
+
+TEXINFO_TEX = ../doc/ref/texinfo.tex
 
 ETAGS_ARGS = $(subpkgdata_DATA) $(lisp_LISP)
 EXTRA_DIST = $(subpkgdata_DATA) $(lisp_LISP)

@@ -1,3 +1,9 @@
+2003-12-06  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* gds.texi: New.
+
+	* Makefile.am (info_TEXINFOS): Added.
+
 2003-11-27  Neil Jerram  <neil@ossau.uklinux.net>
 
 	Initial support for setting source breakpoints...
