@@ -1,4 +1,4 @@
-@c $Id: intro.texi,v 1.4 2001-03-25 00:31:10 mvo Exp $
+@c $Id: intro.texi,v 1.5 2001-03-30 16:37:51 ossau Exp $
 
 @page
 @node What is Guile?
@@ -736,7 +736,7 @@ write a Scheme file with this contents
 (dynamic-call "init_bessel" (dynamic-link "libguile-bessel"))
 @end smallexample
 
-The file should of course be saved in the right place for autolading,
+The file should of course be saved in the right place for autoloading,
 for example as @file{/usr/local/share/guile/math/bessel.scm}.
 
 @page

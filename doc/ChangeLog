@@ -1,3 +1,7 @@
+2001-03-30  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* intro.texi (Modules and Extensions): Fix typo.
+
 2001-03-27  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* scheme-data.texi (Strings): Reorganized the whole `Strings'
