@@ -1,5 +1,10 @@
 1998-10-14  Jim Blandy  <jimb@zwingli.cygnus.com>
 
+	* stime.c (scm_get_internal_real_time): Do the arithmetic using
+ 	SCM numbers, so we won't have rollover problems; the range of a
+ 	signed long in milliseconds is about 25 days.  (Thanks to Karl
+ 	Hegbloom.)
+
 	Don't redefine sleep and usleep.
 	* coop.c (sleep, usleep): Remove declarations; we don't use or
 	redefine these any more.
