@@ -1,3 +1,8 @@
+2004-07-05  Kevin Ryde  <user42@zip.com.au>
+
+	* slib.scm (system): Correction to redefinition, now guile is stricter
+	about when a define binding comes into existance.
+
 2004-05-29  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
 
 	* boot-9.scm: Reordered definitions such that macro definitions
