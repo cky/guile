@@ -131,6 +131,7 @@ extern "C" {
 #ifdef USE_THREADS
 #include "libguile/threads.h"
 #endif
+#include "libguile/inline.h"
 
 #ifdef __cplusplus
 }
