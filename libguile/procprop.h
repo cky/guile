@@ -48,7 +48,7 @@
 
 
 
-
+extern SCM scm_i_name;
 
 
 
