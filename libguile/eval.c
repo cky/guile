@@ -712,8 +712,6 @@ scm_m_letstar (SCM xorig, SCM env)
       arg1 = SCM_CAR (proc);
       SCM_ASSYNT (2 == scm_ilength (arg1), xorig, scm_s_bindings, s_letstar);
       SCM_ASSYNT (SCM_SYMBOLP (SCM_CAR (arg1)), xorig, scm_s_variable, s_letstar);
-      if (scm_c_improper_memq (SCM_CAR (arg1), vars))
-	scm_misc_error (s_letstar, scm_s_duplicate_bindings, SCM_EOL);
       *varloc = scm_cons2 (SCM_CAR (arg1), SCM_CAR (SCM_CDR (arg1)), SCM_EOL);
       varloc = SCM_CDRLOC (SCM_CDR (*varloc));
       proc = SCM_CDR (proc);

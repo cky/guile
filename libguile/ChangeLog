@@ -1,3 +1,9 @@
+2001-03-05  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
+
+	* eval.c (scm_m_letstar): Removed check for duplicate bindings.
+	Duplicate bindings are OK in a let* since a let* is semantically
+	equivalent to a nested set of let:s.
+
 2001-03-05  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* print.c (scm_print_options): Fixed texinfo in docstring.
