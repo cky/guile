@@ -1,3 +1,9 @@
+Mon May 12 19:00:21 1997  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* boot-9.scm (scm-style-repl): After reading an expression,
+	consume any trailing newline (perhaps preceded by whitespace), to
+	avoid screwing up GDB.  More detail in comments.
+
 Mon May  5 13:18:38 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* Makefile.am (ETAGS_ARGS): New variable, since we're not treating
