@@ -59,6 +59,7 @@ NUM2INTEGRAL (SCM num, unsigned long int pos, const char *s_caller)
         return (ITYPE) n;
       else
         {
+#if SIZEOF_SCM_T_BITS > SIZEOF_ITYPE
           /* an inum can be out of range, so check */
           if (UNSIGNED) /* n is known to be >= 0 */
             {
@@ -67,6 +68,7 @@ NUM2INTEGRAL (SCM num, unsigned long int pos, const char *s_caller)
             }
           else if (((ITYPE) n) != n)
             scm_out_of_range (s_caller, num);
+#endif
           return (ITYPE) n;
         }
     }

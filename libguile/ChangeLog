@@ -1,5 +1,9 @@
 2003-05-22  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
+	* num2integral.i.c (NUM2INTEGRAL): Avoid warning about conditional
+	always being false by inserting preprocessor conditional.  (Thanks
+	to Bruce Korb.)
+
 	* __scm.h (SCM_STACK_PTR): New macro. (Cast argument through
 	(void *) in order to avoid an aliasing warning; thanks to Bruce
 	Korb.)
