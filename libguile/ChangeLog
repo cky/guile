@@ -1,3 +1,9 @@
+2004-09-08  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* eq.c (real_eqv): Pretend that all NaNs are equal.
+
+	* numbers.c (scm_integer_expt): Do not accept inexact integers.
+
 2004-09-07  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* srfi-13.c (scm_string_trim_right, scm_string_xcopy_x): Correctly
