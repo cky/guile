@@ -1,3 +1,7 @@
+2000-12-10  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
+
+	* threads.h (SCM_MUTEXP): Typo: removed extra parenthesis.
+
 2000-12-08  Keisuke Nishida  <kxn30@po.cwru.edu>
 
 	* tags.h (SCM_TYP16_PREDICATE): New macro.
