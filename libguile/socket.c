@@ -500,9 +500,11 @@ scm_fill_sockaddr (int fam, SCM address, SCM *args, int which_arg,
 	      }
 #endif
 	  }
-	soka->sin6_port = port;
+	soka->sin6_port = htons (port);
 	soka->sin6_flowinfo = flowinfo;
+#ifdef HAVE_SIN6_SCOPE_ID
 	soka->sin6_scope_id = scope_id;
+#endif
 	*size = sizeof (struct sockaddr_in6);
 	return (struct sockaddr *) soka;
       }
@@ -666,33 +668,56 @@ scm_addr_vector (struct sockaddr *address, const char *proc)
   SCM result;
   SCM *ve;
 
-#ifdef HAVE_UNIX_DOMAIN_SOCKETS
-  if (fam == AF_UNIX)
+  switch (fam)
     {
-      struct sockaddr_un *nad = (struct sockaddr_un *) address;
+    case AF_INET:
+      {
+	struct sockaddr_in *nad = (struct sockaddr_in *) address;
 
-      result = scm_c_make_vector (2, SCM_UNSPECIFIED);
-      ve = SCM_VELTS (result);
-      ve[0] = scm_ulong2num ((unsigned long) fam);
-      ve[1] = scm_makfromstr (nad->sun_path,
-			      (scm_sizet) strlen (nad->sun_path), 0);
-    }
-  else 
+	result = scm_c_make_vector (3, SCM_UNSPECIFIED);
+	ve = SCM_VELTS (result);
+	ve[0] = scm_ulong2num ((unsigned long) fam);
+	ve[1] = scm_ulong2num (ntohl (nad->sin_addr.s_addr));
+	ve[2] = scm_ulong2num ((unsigned long) ntohs (nad->sin_port));
+      }
+      break;
+#ifdef AF_INET6
+    case AF_INET6:
+      {
+	struct sockaddr_in6 *nad = (struct sockaddr_in6 *) address;
+
+	result = scm_c_make_vector (5, SCM_UNSPECIFIED);
+	ve = SCM_VELTS (result);
+	ve[0] = scm_ulong2num ((unsigned long) fam);
+	/* FIXME */
+	ve[1] = SCM_INUM0;
+	ve[2] = scm_ulong2num ((unsigned long) ntohs (nad->sin6_port));
+	ve[3] = scm_ulong2num ((unsigned long) nad->sin6_flowinfo);
+#ifdef HAVE_SIN6_SCOPE_ID
+	ve[4] = scm_ulong2num ((unsigned long) nad->sin6_scope_id);
+#else
+	ve[4] = SCM_INUM0;
 #endif
-  if (fam == AF_INET)
-    {
-      struct sockaddr_in *nad = (struct sockaddr_in *) address;
+      }
+      break;
+#endif
+#ifdef HAVE_UNIX_DOMAIN_SOCKETS
+    case AF_UNIX:
+      {
+	struct sockaddr_un *nad = (struct sockaddr_un *) address;
 
-      result = scm_c_make_vector (3, SCM_UNSPECIFIED);
-      ve = SCM_VELTS (result);
-      ve[0] = scm_ulong2num ((unsigned long) fam);
-      ve[1] = scm_ulong2num (ntohl (nad->sin_addr.s_addr));
-      ve[2] = scm_ulong2num ((unsigned long) ntohs (nad->sin_port));
+	result = scm_c_make_vector (2, SCM_UNSPECIFIED);
+	ve = SCM_VELTS (result);
+	ve[0] = scm_ulong2num ((unsigned long) fam);
+	ve[1] = scm_makfromstr (nad->sun_path,
+				(scm_sizet) strlen (nad->sun_path), 0);
+      }
+      break;
+#endif
+    default:
+      scm_misc_error (proc, "Unrecognised address family: ~A",
+		      SCM_LIST1 (SCM_MAKINUM (fam)));
     }
-  else
-    scm_misc_error (proc, "Unrecognised address family: ~A",
-		    SCM_LIST1 (SCM_MAKINUM (fam)));
-
   return result;
 }
 
@@ -706,7 +731,14 @@ scm_addr_vector (struct sockaddr *address, const char *proc)
 #define MAX_SIZE_UN 0
 #endif
 
-#define MAX_ADDR_SIZE max (sizeof (struct sockaddr_in), MAX_SIZE_UN)
+#if defined (AF_INET6)
+#define MAX_SIZE_IN6 sizeof (struct sockaddr_in6)
+#else
+#define MAX_SIZE_IN6 0
+#endif
+
+#define MAX_ADDR_SIZE max (max (sizeof (struct sockaddr_in), MAX_SIZE_IN6),\
+                           MAX_SIZE_UN)
 
 SCM_DEFINE (scm_accept, "accept", 1, 0, 0, 
             (SCM sock),

@@ -1,3 +1,12 @@
+2001-04-20  Gary Houston  <ghouston@arglist.com>
+
+	* socket.c (scm_fill_sockaddr): call htons for sin6_port.
+	Don't assign sin6_scope_id in structure unless HAVE_SIN6_SCOPE_ID
+	is defined.
+	(scm_addr_vector): use a switch instead of multiple if statements.
+	Add support for IPv6 (incomplete) .
+	MAX_ADDR_SIZE: increase to size of struct sockaddr_in if needed.
+
 2001-04-20  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* struct.c (scm_free_structs):  Only pairs may be accessed with
