@@ -19,19 +19,44 @@
 @node Ports
 @section Ports
 
-[Concept of the port abstraction.]
-
 Sequential input/output in Scheme is represented by operations on a
-@dfn{port}.  Characters can be read from an input port and
-written to an output port.  This chapter explains the operations
-that Guile provides for working with ports.
+@dfn{port}.  This chapter explains the operations that Guile provides
+for working with ports.
+
+Ports are created by opening, for instance @code{open-file} for a file
+(@pxref{File Ports}).  Characters can be read from an input port and
+written to an output port, or both on an input/output port.  A port
+can be closed (@pxref{Closing}) when no longer required, after which
+any attempt to read or write is an error.
 
 The formal definition of a port is very generic: an input port is
-simply ``an object which can deliver characters on command,'' and
-an output port is ``an object which can accept characters.''
-Because this definition is so loose, it is easy to write functions
-that simulate ports in software.  @dfn{Soft ports} and @dfn{string
-ports} are two interesting and powerful examples of this technique.
+simply ``an object which can deliver characters on demand,'' and an
+output port is ``an object which can accept characters.''  Because
+this definition is so loose, it is easy to write functions that
+simulate ports in software.  @dfn{Soft ports} and @dfn{string ports}
+are two interesting and powerful examples of this technique.
+(@pxref{Soft Ports}, and @ref{String Ports}.)
+
+Ports are garbage collected in the usual way (@pxref{Memory
+Management}), and will be closed at that time if not already closed.
+In this case any errors occuring in the close will not be reported.
+Usually a program will want to explicitly close so as to be sure all
+its operations have been successful.  Of course if a program has
+abandoned something due to an error or other condition then closing
+problems are probably not of interest.
+
+It is strongly recommended that file ports be closed explicitly when
+no longer required.  Most systems have limits on how many files can be
+open, both on a per-process and a system-wide basis.  A program that
+uses many files should take care not to hit those limits.  The same
+applies to similar system resources such as pipes and sockets.
+
+Note that automatic garbage collection is triggered only by memory
+consumption, not by file or other resource usage, so a program cannot
+rely on that to keep it away from system limits.  An explicit call to
+@code{gc} can of course be relied on to pick up unreferenced ports.
+If program flow makes it hard to be certain when to close then this
+may be an acceptable way to control resource usage.
 
 @rnindex input-port?
 @deffn {Scheme Procedure} input-port? x
@@ -622,6 +647,10 @@ so that they use the supplied @var{port} for input or output.
 The following procedures are used to open file ports.
 See also @ref{Ports and File Descriptors, open}, for an interface
 to the Unix @code{open} system call.
+
+Most systems have limits on how many files can be open, so it's
+strongly recommended that file ports be closed explicitly when no
+longer required (@pxref{Ports}).
 
 @deffn {Scheme Procedure} open-file filename mode
 @deffnx {C Function} scm_open_file (filename, mode)
