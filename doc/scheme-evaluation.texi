@@ -36,13 +36,83 @@ loading and evaluating Scheme code at run time.
 @node Comments
 @subsection Comments
 
+@c FIXME::martin: Review me!
+
+Comments in Scheme source files are written by starting them with a
+semicolon character (@code{;}).  The comment then reaches up to the end
+of the line.  Comments can begin at any column, and the may be inserted
+on the same line as Scheme code.
+
+@lisp
+; Comment
+;; Comment too
+(define x 1)        ; Comment after expression
+(let ((y 1))
+  ;; Display something.
+  (display y)
+;;; Comment at left margin.
+  (display (+ y 1)))
+@end lisp
+
+It is common to use a single semicolon for comments following
+expressions on a line, to use two semicolons for comments which are
+indented like code, and three semicolons for comments which start at
+column 0, even if they are inside an indented code block.  This
+convention is used when indenting code in Emacs' Scheme mode.
+
 
 @node Block Comments
 @subsection Block Comments
 
+@c FIXME::martin: Review me!
+
+@cindex multiline comments
+In addition to the standard line comments defined by R5RS, Guile has
+another comment type for multiline comments, called @dfn{block
+comments}.  This type of comment begins with the character sequence
+@code{#!} and ends with the characters @code{!#}, which must appear on a
+line of their own.  These comments are compatible with the block
+comments in the Scheme Shell @file{scsh} (REFFIXME).  The characters
+@code{#!} were chosen because they are the magic characters used in
+shell scripts for indicating that the name of the program for executing
+the script follows on the same line.
+
+Thus a Guile script often starts like this.
+
+@lisp
+#! /usr/local/bin/guile -s
+!#
+@end lisp
+
+More details on Guile scripting can be found in the scripting section
+(REFFIXME).
+
 
 @node Case Sensitivity
 @subsection Case Sensitivity
+
+@c FIXME::martin: Review me!
+
+Scheme as defined in R5RS is not case sensitive when reading symbols.
+Guile, on the contrary is case sensitive by default, so the identifiers
+
+@lisp
+guile-whuzzy
+Guile-Whuzzy
+@end lisp
+
+are the same in R5RS Scheme, but are different in Guile.
+
+It is possible to turn off case sensitivity in Guile by setting the
+reader option @code{case-insensitive}.  More on reader options can be
+found at (REFFIXME).
+
+@lisp
+(read-enable 'case-insensitive)
+@end lisp
+
+Note that this is seldom a problem, because Scheme programmers tend not
+to use uppercase letters in their identifiers anyway.
 
 
 @node Keyword Syntax

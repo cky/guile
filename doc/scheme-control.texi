@@ -245,13 +245,59 @@ times.
 @end lisp
 @end deffn
 
+
 @node Continuations
 @section Continuations
 
+@c FIXME::martin: Review me!
+
+@cindex call/cc
+The possibility to explicitly capture continuation and the use of
+@code{call-with-current-continuation} (also often called @code{call/cc}
+for shortness) is maybe the most powerful control structure known.  All
+other control structures like loops or coroutines can be emulated using
+continuation.
+
+@c FIXME::martin: Is this too much of understatement, maybe confusing?
+@c   I'm not sure.
+The implementation of continuations in Guile is not as efficient as one
+might except, because it is constrained by the fact that Guile is
+required to be cooperative to programs written in other languages, such
+as C which do not know about continuations.  So continuations should be
+used when there is no other possibility to get the needed effect.  If
+you find yourself using @code{call/cc} for escape procedures and your
+program is running to slow, you might want to use exceptions (REFFIXME)
+instead.
+
 @rnindex call-with-current-continuation
-@c FIXME::martin: Document me!
-@deffn primitive call-with-current-continuation
+@deffn primitive call-with-current-continuation proc
+Capture the current continuation and call @var{proc} with the captured
+continuation as the single argument.  This continuation can then be
+called with arbitrarily many arguments.  Such a call will work like a
+goto to the invocation location of
+@code{call-with-current-continuation}, passing the arguments in a way
+that they are returned by the call to
+@code{call-with-current-continuation}.  Since it is legal to store the
+captured continuation in a variable or to pass it to other procedures,
+it is possible that a procedure returns more than once, even if it is
+called only one time.  This can be confusing at times.
 @end deffn
+
+@c FIXME::martin: Better example needed.
+@lisp
+(define kont #f)
+(call-with-current-continuation
+  (lambda (k)
+     (set! kont k)
+     1))
+@result{}
+1
+
+(kont 2)
+@result{}
+2
+@end lisp
+
 
 @node Multiple Values
 @section Returning and Accepting Multiple Values
@@ -327,8 +373,8 @@ the expressions in @var{body} @dots{} are evaluated in order.
 @cindex exception handling
 
 It is traditional in Scheme to implement exception systems using
-@code{call-with-current-continuation}.  Guile does not do this, for
-performance reasons.  The implementation of
+@code{call-with-current-continuation} (@pxref{Continuations}).  Guile
+does not do this, for performance reasons.  The implementation of
 @code{call-with-current-continuation} is a stack copying implementation.
 This allows it to interact well with ordinary C code.  Unfortunately, a
 stack-copying implementation can be slow -- creating a new continuation
