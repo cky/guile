@@ -63,6 +63,14 @@ equal_trampoline (SCM proc, SCM arg1, SCM arg2)
 }
 
 
+/* scm_append and scm_append_x don't modify their list argument (only the
+   lists within that list in the case of scm_append_x), hence making them
+   suitable for direct use for concatentate.  */
+
+SCM_REGISTER_PROC (s_srfi1_concatenate,   "concatenate",  1, 0, 0, scm_append);
+SCM_REGISTER_PROC (s_srfi1_concatenate_x, "concatenate!", 1, 0, 0, scm_append_x);
+
+
 SCM_DEFINE (scm_srfi1_delete, "delete", 2, 1, 0,
             (SCM x, SCM lst, SCM pred),
 	    "Return a list containing the elements of @var{lst} but with\n"

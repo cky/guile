@@ -427,32 +427,6 @@
 	      #f
 	      (lp (cdr hare) (cdr tortoise) (+ l 2)))))))))
 
-(define (concatenate l-o-l)
-  (let lp ((l l-o-l) (acc '()))
-    (if (null? l)
-      (reverse! acc)
-      (let lp0 ((ll (car l)) (acc acc))
-	(if (null? ll)
-	  (lp (cdr l) acc)
-	  (lp0 (cdr ll) (cons (car ll) acc)))))))
-
-(define (concatenate! l-o-l)
-  (let lp0 ((l-o-l l-o-l))
-    (cond
-      ((null? l-o-l)
-       '())
-      ((null? (car l-o-l))
-       (lp0 (cdr l-o-l)))
-      (else
-       (let ((result (car l-o-l)) (tail (last-pair (car l-o-l))))
-	 (let lp ((l (cdr l-o-l)) (ntail tail))
-	   (if (null? l)
-	     result
-	     (begin
-	       (set-cdr! ntail (car l))
-	       (lp (cdr l) (last-pair ntail))))))))))
-
-
 (define (append-reverse rev-head tail)
   (let lp ((l rev-head) (acc tail))
     (if (null? l)
