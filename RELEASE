@@ -1,0 +1,30 @@
+This is a checklist for making Guile releases.
+Please don't put it in the distribution.
+
+1) Verify that Guile builds and runs in your working directory.  I
+   hope that we'll eventually have a test suite to make this more
+   concrete, but for the moment, just make sure things seem sane.
+2) Make sure NEWS and the docs are up to date:
+   a) Scan the ChangeLogs for user-visible changes, marked with an asterisk
+      at the left margin.
+   b) Update NEWS and the Texinfo documentation as appropriate.
+   c) Remove the user-visible markers from the log entries once they're
+      documented.
+3) Update the version numbers in GUILE-VERSION, README, 
+4) Commit all changes to the CVS repository.
+5) Verify that the disty works, too:
+   a) Make a disty, using 'make dist'.
+   b) Unpack it somewhere else.
+   c) Remove automake and autoconf from your path, or turn off their
+      execute bits, or something.
+   d) Configure, make, and install.
+   e) Test the installed version; don't forget to unset SCHEME_LOAD_PATH.
+   f) If you made any fixes, commit them, and start from the top of 5).
+6) Tag the entire source tree with a tag of the form "release_N_M".
+7) Copy the tar file over to the GNU machines, and ask the appropriate
+   person to put it on prep.  At the time of this writing, Daniel Hagerty
+   <hag@ai.mit.edu> has usually been generous enough to help with that.
+8) Send an announcement message to gnu-announce@prep.ai.mit.edu.  If I
+   remember correctly, the moderator will delay it until the tar file
+   appears on prep.
+   a) Remember to give credit, but take responsibility.
