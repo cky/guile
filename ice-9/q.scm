@@ -1,7 +1,5 @@
-;;; {Queues}
-
-(define-module (ice-9 q))
-
+;;;; q.scm --- Queues
+;;;;
 ;;;; 	Copyright (C) 1995 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
@@ -19,6 +17,8 @@
 ;;;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
 ;;;; Boston, MA 02111-1307 USA
 ;;;; 
+
+(define-module (ice-9 q))
 
 ;;;;
 ;;; Q: Based on the interface to 
