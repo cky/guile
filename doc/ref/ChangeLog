@@ -1,3 +1,7 @@
+2003-06-07  Kevin Ryde  <user42@zip.com.au>
+
+	* scheme-data.texi (Arithmetic): Cross reference glibc floor and ceil.
+
 2003-06-05  Kevin Ryde  <user42@zip.com.au>
 
 	* posix.texi (File System): stat:rdev and stat:blocks can return #f,
