@@ -257,6 +257,16 @@ scm_async_click ()
     scm_switch ();
 }
 
+void
+scm_switch ()
+{
+#if 0 /* Thread switching code should probably reside here, but the
+         async switching code doesn't seem to work, so it's put in the
+         SCM_DEFER_INTS macro instead. /mdj */
+  SCM_THREAD_SWITCHING_CODE;
+#endif
+}
+
 #else
 
 void
@@ -267,20 +277,9 @@ scm_async_click ()
       scm_run_asyncs (scm_asyncs);
     while (scm_asyncs_pending_p);
 }
+
 #endif
 
-
-
-
-#if 0 /* Thread switching code should probably reside here, but the
-         async switching code doesn't seem to work, so it's put in the
-         SCM_DEFER_INTS macro instead. /mdj */
-void
-scm_switch ()
-{
-  SCM_THREAD_SWITCHING_CODE;
-}
-#endif
 
 
 
