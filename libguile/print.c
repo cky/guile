@@ -137,7 +137,7 @@ scm_print_options (setting)
 
 #define ENTER_NESTED_DATA(pstate, obj, label) \
 { \
-  register int i; \
+  register unsigned long i; \
   for (i = 0; i < pstate->top; ++i) \
     if (pstate->ref_stack[i] == (obj)) \
       goto label; \
@@ -300,7 +300,6 @@ scm_iprin1 (exp, port, pstate)
      SCM port;
      scm_print_state *pstate;
 {
-  register long i;
 taloop:
   switch (7 & (int) exp)
     {
@@ -311,6 +310,8 @@ taloop:
     case 4:
       if (SCM_ICHRP (exp))
 	{
+	  register long i;
+
 	  i = SCM_ICHR (exp);
 	  if (SCM_WRITINGP (pstate))
 	    {
@@ -326,7 +327,7 @@ taloop:
 	    scm_putc (i, port);
 	}
       else if (SCM_IFLAGP (exp)
-	       && (SCM_ISYMNUM (exp) < (sizeof scm_isymnames / sizeof (char *))))
+	       && ((size_t) SCM_ISYMNUM (exp) < (sizeof scm_isymnames / sizeof (char *))))
 	  scm_puts (SCM_ISYMCHARS (exp), port);
       else if (SCM_ILOCP (exp))
 	{
@@ -446,6 +447,8 @@ taloop:
 	case scm_tc7_string:
 	  if (SCM_WRITINGP (pstate))
 	    {
+	      scm_sizet i;
+
 	      scm_putc ('"', port);
 	      for (i = 0; i < SCM_ROLENGTH (exp); ++i)
 		switch (SCM_ROCHARS (exp)[i])
@@ -555,6 +558,7 @@ taloop:
 	  scm_puts ("#(", port);
 	common_vector_printer:
 	  {
+	    register long i;
 	    int last = SCM_LENGTH (exp) - 1;
 	    int cutp = 0;
 	    if (pstate->fancyp && SCM_LENGTH (exp) > pstate->length)
@@ -612,28 +616,33 @@ taloop:
 	  scm_putc ('>', port);
 	  break;
 	case scm_tc7_port:
-	  i = SCM_PTOBNUM (exp);
-	  if (i < scm_numptob
-	      && scm_ptobs[i].print
-	      && (scm_ptobs[i].print) (exp, port, pstate))
-	    break;
-	  goto punk;
-	case scm_tc7_smob:
-	  ENTER_NESTED_DATA (pstate, exp, circref);
-	  i = SCM_SMOBNUM (exp);
-	  if (i < scm_numsmob && scm_smobs[i].print
-	      && (scm_smobs[i].print) (exp, port, pstate))
-	    {
-	      EXIT_NESTED_DATA (pstate);
+	  {
+	    register long i = SCM_PTOBNUM (exp);
+	    if (i < scm_numptob
+		&& scm_ptobs[i].print
+		&& (scm_ptobs[i].print) (exp, port, pstate))
 	      break;
-	    }
-	  EXIT_NESTED_DATA (pstate);
-	  /* Macros have their print field set to NULL.  They are
-	     handled at the same place as closures in order to achieve
-	     non-redundancy.  Placing the condition here won't slow
-	     down printing of other smobs. */
-	  if (SCM_TYP16 (exp) == scm_tc16_macro)
-	    goto macros;
+	    goto punk;
+	  }
+	case scm_tc7_smob:
+	  {
+	    register long i;
+	    ENTER_NESTED_DATA (pstate, exp, circref);
+	    i = SCM_SMOBNUM (exp);
+	    if (i < scm_numsmob && scm_smobs[i].print
+		&& (scm_smobs[i].print) (exp, port, pstate))
+	      {
+		EXIT_NESTED_DATA (pstate);
+		break;
+	      }
+	    EXIT_NESTED_DATA (pstate);
+	    /* Macros have their print field set to NULL.  They are
+	       handled at the same place as closures in order to achieve
+	       non-redundancy.  Placing the condition here won't slow
+	       down printing of other smobs. */
+	    if (SCM_TYP16 (exp) == scm_tc16_macro)
+	      goto macros;
+	  }
 	default:
 	punk:
 	  scm_ipruk ("type", exp, port);
@@ -749,7 +758,6 @@ scm_iprlist (hdr, exp, tlr, port, pstate)
      SCM port;
      scm_print_state *pstate;
 {
-  register int i;
   register SCM hare, tortoise;
   int floor = pstate->top - 2;
   scm_puts (hdr, port);
@@ -777,6 +785,8 @@ scm_iprlist (hdr, exp, tlr, port, pstate)
   exp = SCM_CDR (exp);
   for (; SCM_NIMP (exp); exp = SCM_CDR (exp))
     {
+      register int i;
+
       if (SCM_NECONSP (exp))
 	break;
       for (i = floor; i >= 0; --i)
@@ -806,6 +816,8 @@ fancy_printing:
     exp = SCM_CDR (exp); --n;
     for (; SCM_NIMP (exp); exp = SCM_CDR (exp))
       {
+	register unsigned long i;
+
 	if (SCM_NECONSP (exp))
 	  break;
 	for (i = 0; i < pstate->top; ++i)
