@@ -1070,10 +1070,10 @@ scm_cond_wait (scm_t_cond *c, scm_t_mutex *m)
 }
 
 int
-scm_cond_timedwait (scm_t_cond *c, scm_t_mutex *m)
+scm_cond_timedwait (scm_t_cond *c, scm_t_mutex *m, const struct timespec *wt)
 {
   scm_thread *t = scm_i_leave_guile ();
-  int res = scm_i_plugin_cond_timedwait (c, m);
+  int res = scm_i_plugin_cond_timedwait (c, m, wt);
   scm_i_enter_guile (t);
   return res;
 }
