@@ -1,3 +1,9 @@
+2003-05-06  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* eval.c, eval.h, evalext.c, evalext.h (scm_m_undefine): Moved
+	from evalext to eval.  This will allow to make some of the
+	definitions in eval.c static.
+
 2003-05-06  Kevin Ryde  <user42@zip.com.au>
 
 	* numbers.c (scm_difference): In inum - bignum, handle negative inum.

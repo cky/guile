@@ -20,9 +20,8 @@
 
 #include "libguile/_scm.h"
 #include "libguile/eval.h"
-#include "libguile/macros.h"
-#include "libguile/modules.h"
 #include "libguile/fluids.h"
+#include "libguile/modules.h"
 
 #include "libguile/validate.h"
 #include "libguile/evalext.h"
@@ -77,34 +76,9 @@ SCM_DEFINE (scm_defined_p, "defined?", 1, 1, 0,
 }
 #undef FUNC_NAME
 
-#if (SCM_ENABLE_DEPRECATED == 1)
-
-SCM_SYNTAX (s_undefine, "undefine", scm_makacro, scm_m_undefine);
-
-SCM
-scm_m_undefine (SCM x, SCM env)
-{
-  SCM arg1 = x;
-  x = SCM_CDR (x);
-  SCM_ASSYNT (SCM_TOP_LEVEL (env), "bad placement ", s_undefine);
-  SCM_ASSYNT (SCM_CONSP (x) && SCM_NULLP (SCM_CDR (x)),
-	      scm_s_expression, s_undefine);
-  x = SCM_CAR (x);
-  SCM_ASSYNT (SCM_SYMBOLP (x), scm_s_variable, s_undefine);
-  arg1 = scm_sym2var (x, scm_env_top_level (env), SCM_BOOL_F);
-  SCM_ASSYNT (!SCM_FALSEP (arg1) && !SCM_UNBNDP (SCM_VARIABLE_REF (arg1)),
-	      "variable already unbound ", s_undefine);
-  SCM_VARIABLE_SET (arg1, SCM_UNDEFINED);
-#ifdef SICP
-  return x;
-#else
-  return SCM_UNSPECIFIED;
-#endif
-}
-
-#endif
 
 SCM_REGISTER_PROC (s_map_in_order, "map-in-order", 2, 0, 1, scm_map);
+
 
 SCM_DEFINE (scm_self_evaluating_p, "self-evaluating?", 1, 0, 0,
 	    (SCM obj),

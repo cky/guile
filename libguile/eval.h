@@ -241,6 +241,14 @@ SCM_API SCM scm_eval_x (SCM exp, SCM module);
 
 SCM_API void scm_init_eval (void);
 
+
+#if (SCM_ENABLE_DEPRECATED == 1)
+
+SCM_API SCM scm_m_undefine (SCM x, SCM env);
+
+#endif
+
+
 #endif  /* SCM_EVAL_H */
 
 /*

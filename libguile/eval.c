@@ -1221,6 +1221,37 @@ scm_m_atfop (SCM xorig, SCM env SCM_UNUSED)
 #endif /* SCM_ENABLE_ELISP */
 
 
+/* Start of the memoizers for deprecated macros.  */
+
+
+#if (SCM_ENABLE_DEPRECATED == 1)
+
+SCM_SYNTAX (s_undefine, "undefine", scm_makacro, scm_m_undefine);
+
+SCM
+scm_m_undefine (SCM x, SCM env)
+{
+  SCM arg1 = x;
+  x = SCM_CDR (x);
+  SCM_ASSYNT (SCM_TOP_LEVEL (env), "bad placement ", s_undefine);
+  SCM_ASSYNT (SCM_CONSP (x) && SCM_NULLP (SCM_CDR (x)),
+	      scm_s_expression, s_undefine);
+  x = SCM_CAR (x);
+  SCM_ASSYNT (SCM_SYMBOLP (x), scm_s_variable, s_undefine);
+  arg1 = scm_sym2var (x, scm_env_top_level (env), SCM_BOOL_F);
+  SCM_ASSYNT (!SCM_FALSEP (arg1) && !SCM_UNBNDP (SCM_VARIABLE_REF (arg1)),
+	      "variable already unbound ", s_undefine);
+  SCM_VARIABLE_SET (arg1, SCM_UNDEFINED);
+#ifdef SICP
+  return x;
+#else
+  return SCM_UNSPECIFIED;
+#endif
+}
+
+#endif
+
+
 SCM
 scm_m_expand_body (SCM xorig, SCM env)
 {
