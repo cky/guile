@@ -350,7 +350,7 @@ scm_lreadr (SCM *tok_buf,SCM port,SCM *copy)
 
 	    got = scm_call_2 (sharp, SCM_MAKE_CHAR (c), port);
 	    if (SCM_EQ_P (got, SCM_UNSPECIFIED))
-	      goto unkshrp;
+	      goto handle_sharp;
 	    if (SCM_RECORD_POSITIONS_P)
 	      return *copy = recsexpr (got, line, column,
 				       SCM_FILENAME (port));
@@ -358,6 +358,7 @@ scm_lreadr (SCM *tok_buf,SCM port,SCM *copy)
 	      return got;
 	  }
       }
+    handle_sharp:
       switch (c)
 	{
 	case '(':

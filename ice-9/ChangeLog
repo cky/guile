@@ -1,3 +1,10 @@
+2001-10-14  Mikael Djurfeldt  <mdj@linnaeus>
+
+	* arrays.scm (read:uniform-vector): Return *unspecified* instead
+	of raising an exception if hash extend character isn't followed by
+	the array list. (This prevents parsing of uniform vectors from
+	interfering with parsing of numbers.)
+
 2001-10-08  Mikael Djurfeldt  <mdj@linnaeus>
 
 	* emacs.scm (%%load-port, %%emacs-load, %%emacs-eval-request,

@@ -79,5 +79,4 @@
 
 (define (read:uniform-vector proto port)
   (if (eq? #\( (peek-char port))
-      (list->uniform-array 1 proto (read port))
-      (error "read:uniform-vector list not found")))
+      (list->uniform-array 1 proto (read port))))

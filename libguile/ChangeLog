@@ -1,3 +1,10 @@
+2001-10-14  Mikael Djurfeldt  <mdj@linnaeus>
+
+	* read.c (scm_lreadr): When user-defined hash procedure returns
+	SCM_UNSPECIFIED: Fall back to standard handling instead of raising
+	an exception.  (This prevents parsing of uniform vectors from
+	interfering with parsing of numbers.)
+
 2001-10-13  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* numbers.c: Set NO_PREPRO_MAGIC when defining our version of
