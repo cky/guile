@@ -451,6 +451,22 @@ literal_p (const SCM symbol, const SCM env)
     return 0;
 }
 
+
+/* Return true if the expression is self-quoting in the memoized code.  Thus,
+ * some other objects (like e. g. vectors) are reported as self-quoting, which
+ * according to R5RS would need to be quoted.  */
+static int
+is_self_quoting_p (const SCM expr)
+{
+  if (SCM_CONSP (expr))
+    return 0;
+  else if (SCM_SYMBOLP (expr))
+    return 0;
+  else if (SCM_NULLP (expr))
+    return 0;
+  else return 1;
+}
+
 
 
 /* Lookup a given local variable in an environment.  The local variable is
@@ -1697,16 +1713,8 @@ scm_m_quote (SCM expr, SCM env SCM_UNUSED)
   ASSERT_SYNTAX (scm_ilength (cdr_expr) >= 0, s_bad_expression, expr);
   ASSERT_SYNTAX (scm_ilength (cdr_expr) == 1, s_expression, expr);
   quotee = SCM_CAR (cdr_expr);
-  if (SCM_IMP (quotee) && !SCM_NULLP (quotee))
+  if (is_self_quoting_p (quotee))
     return quotee;
-  else if (SCM_VECTORP (quotee))
-    return quotee;
-#if 0
-  /* The following optimization would be possible if all variable references
-   * were resolved during memoization:  */
-  else if (SCM_SYMBOLP (quotee))
-    return quotee;
-#endif
   SCM_SETCAR (expr, SCM_IM_QUOTE);
   return expr;
 }
@@ -5373,7 +5381,7 @@ copy_tree (
        * that in contrast to the typical hare-and-tortoise pattern, the step
        * of the tortoise happens before the hare takes its steps.  This is, in
        * principle, no problem, except for the start of the algorithm: Then,
-       * it has to be made sure that the hare actually gets its advantage by
+       * it has to be made sure that the hare actually gets its advantage of
        * two steps.  */
       if (tortoise_delay == 0)
         {

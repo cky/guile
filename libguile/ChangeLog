@@ -1,3 +1,11 @@
+2004-03-24  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
+
+	* eval.c (is_self_quoting_p): New static function.
+
+	(scm_m_quote): Use is_self_quoting_p.
+
+	(copy_tree): Corrected typo in comment.
+
 2004-03-28  Han-Wen Nienhuys   <hanwen@xs4all.nl>
 
 	* eval.c (s_scm_copy_tree): idem.
