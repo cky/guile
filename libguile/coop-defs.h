@@ -197,7 +197,7 @@ typedef int coop_k;
 
 typedef coop_k scm_key_t;
 
-extern int coop_key_create (coop_k *keyp, void (*destructor) (void *value));
+extern int coop_key_create (coop_k *keyp, void (*destruktor) (void *value));
 extern int coop_setspecific (coop_k key, const void *value);
 extern void *coop_getspecific (coop_k key);
 extern int coop_key_delete (coop_k);
