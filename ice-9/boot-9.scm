@@ -3330,8 +3330,8 @@
 		 signals old-handlers))))))
 
 (defmacro false-if-exception (expr)
-  `(,catch #t (,lambda () ,expr)
-	   (,lambda args #f)))
+  `(catch #t (lambda () ,expr)
+	  (lambda args #f)))
 
 ;;; This hook is run at the very end of an interactive session.
 ;;;
