@@ -247,7 +247,7 @@ SCM_DEFINE (scm_add_hook_x, "add-hook!", 2, 1, 0,
   SCM arity, rest;
   int n_args;
   SCM_VALIDATE_HOOK (1,hook);
-  SCM_ASSERT (SCM_NFALSEP (arity = scm_i_procedure_arity (proc)),
+  SCM_ASSERT (!SCM_FALSEP (arity = scm_i_procedure_arity (proc)),
 	      proc, SCM_ARG2, FUNC_NAME);
   n_args = SCM_HOOK_ARITY (hook);
   if (SCM_INUM (SCM_CAR (arity)) > n_args
