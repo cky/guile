@@ -219,7 +219,7 @@ SCM_DEFINE (scm_instruction_name_p, "instruction-name?", 1, 0, 0,
 #define FUNC_NAME s_scm_instruction_name_p
 {
   SCM_VALIDATE_SYMBOL (1, name);
-  return SCM_BOOL (find_instruction_by_name (SCM_CHARS (name)));
+  return SCM_BOOL (find_instruction_by_name (SCM_SYMBOL_CHARS (name)));
 }
 #undef FUNC_NAME
 
@@ -231,7 +231,7 @@ SCM_DEFINE (scm_symbol_to_instruction, "symbol->instruction", 1, 0, 0,
   struct scm_instruction *p;
   SCM_VALIDATE_SYMBOL (1, name);
 
-  p = find_instruction_by_name (SCM_CHARS (name));
+  p = find_instruction_by_name (SCM_SYMBOL_CHARS (name));
   if (!p)
     SCM_MISC_ERROR ("No such instruction: ~S", SCM_LIST1 (name));
 
@@ -472,7 +472,7 @@ SCM_DEFINE (scm_make_bytecode, "make-bytecode", 1, 0, 0,
 
       /* Process instruction */
       if (!SCM_SYMBOLP (old[i])
-	  || !(p = find_instruction_by_name (SCM_CHARS (old[i]))))
+	  || !(p = find_instruction_by_name (SCM_SYMBOL_CHARS (old[i]))))
 	SCM_MISC_ERROR ("Invalid instruction: ~S", SCM_LIST1 (old[i]));
       new[i] = SCM_ADDR_TO_CODE (p->addr);
 
