@@ -74,6 +74,7 @@ exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
   :use-module (scripts read-text-outline)
   :use-module (ice-9 getopt-long)
   :autoload (srfi srfi-13) (string-tokenize) ; string library
+  :autoload (srfi srfi-14) (char-set) ; string library
   :autoload (ice-9 common-list) (remove-if-not)
   :export (summarize-guile-TODO))
 
@@ -85,7 +86,7 @@ exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
          => (lambda (who)
               (put x 'who
                    (map string->symbol
-                        (string-tokenize who #\:))))))
+                        (string-tokenize who (char-set #\:)))))))
   (cond ((get x 'pct-done)
          => (lambda (pct-done)
               (put x 'pct-done (string->number pct-done)))))
