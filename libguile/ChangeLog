@@ -42,6 +42,14 @@
 	(st_truncate): rewritten.
 	(top of file): added a few notes. 
 
+1999-07-10  Jim Blandy  <jimb@savonarola.red-bean.com>
+	
+	Patch from Greg Badros:
+	* snarf.h (SCM_PROC, SCM_PROC1): Use __cplusplus or
+	GUILE_CPLUSPLUS_SNARF macros to force adding a cast to the last
+	(function pointer) argument to scm_make_gsubr and scm_make_subr
+	calls.  This avoids warnings in C++ programs using guile-snarf.
+
 1999-07-06  Gary Houston  <ghouston@easynet.co.uk>
 	
 	* strports.c (st_grow_port): set pt->read_pos.  set

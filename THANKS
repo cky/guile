@@ -5,7 +5,8 @@ Gary Houston contributed a new, more efficient implementation of I/O ports,
 Michael Livshin implemented Dybvig's Guardians.
 Russ McManus contributed a command-line argument parser (ice-9 getopt-long).
 Ken Raeburn made Guile use `const' in some appropriate places.
-Greg Harvey made readline highlight matching parenthesis.
+Greg Harvey made sure I didn't lose any patches, and made readline
+    highlight matching parenthesis.
 
 Bug reports and fixes from:
 
@@ -13,6 +14,7 @@ Bug reports and fixes from:
      Etienne Bernard
         Brad Bowman
         Karl Eichwalder
+        Mark Elbrecht
          Jay Glascoe
 	 Ian Grant
         Eric Hanchrow
