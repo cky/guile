@@ -1,9 +1,9 @@
 1998-11-10  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
-	* backtrace.c (get_applybody): Help function which lookups the
-	first body form of the apply closure.
-	(display_error_body): Prevent the source of the first form of the
-	apply closure from being printed in error messages.
+	* stack.c (get_applybody): Help function which lookups the first
+	body form of the apply closure.
+	(read_frames): Prevent the source of the first form of the apply
+	closure from being recorded.  This would only be confusing.
 
 	* debug.h (SCM_SET_MACROEXP, SCM_CLEAR_MACROEXP, SCM_MACROEXPP):
 	Replaces SCM_MACROFRAME, SCM_MACROFRAMEP.

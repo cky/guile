@@ -220,18 +220,43 @@ read_frame (dframe, offset, iframe)
   iframe->flags = flags;
 }
 
-/* Fill the scm_info_frame vector IFRAME with data from N stack frames
- * starting with the first stack frame represented by debug frame
- * DFRAME.
- */
+SCM_SYMBOL (scm_sym_apply, "apply");
+
+/* Look up the first body form of the apply closure.  We'll use this
+   below to prevent it from being displayed.
+*/
+static SCM
+get_applybody ()
+{
+  SCM proc = SCM_CDR (scm_sym2vcell (scm_sym_apply, SCM_BOOL_F, SCM_BOOL_F));
+  if (SCM_NIMP (proc) && SCM_CLOSUREP (proc))
+    return SCM_CADR (SCM_CODE (proc));
+  else
+    return SCM_UNDEFINED;
+}
 
 #define NEXT_FRAME(iframe, n, quit) \
 { \
+  if (SCM_NIMP (iframe->source) \
+      && SCM_MEMOIZED_EXP (iframe->source) == applybody) \
+    { \
+      iframe->source = SCM_BOOL_F; \
+      if (SCM_FALSEP (iframe->proc)) \
+	{ \
+	  --iframe; \
+	  ++n; \
+	} \
+    } \
   ++iframe; \
   if (--n == 0) \
     goto quit; \
 } \
 
+
+/* Fill the scm_info_frame vector IFRAME with data from N stack frames
+ * starting with the first stack frame represented by debug frame
+ * DFRAME.
+ */
 
 static int read_frames SCM_P ((scm_debug_frame *dframe, long offset, int nframes, scm_info_frame *iframes));
 static int
@@ -244,7 +269,11 @@ read_frames (dframe, offset, n, iframes)
   int size;
   scm_info_frame *iframe = iframes;
   scm_debug_info *info;
+  static SCM applybody = SCM_UNDEFINED;
   
+  /* The value of applybody has to be setup after r4rs.scm has executed. */
+  if (SCM_UNBNDP (applybody))
+    applybody = get_applybody ();
   for (;
        dframe && !SCM_VOIDFRAMEP (*dframe) && n > 0;
        dframe = RELOC_FRAME (dframe->prev, offset))
