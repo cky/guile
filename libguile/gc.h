@@ -280,9 +280,6 @@ typedef unsigned long scm_c_bvec_limb_t;
 #endif
 
 
-#define SCM_FREEP(x) (SCM_FREE_CELL_P (x))
-#define SCM_NFREEP(x) (!SCM_FREEP (x))
-
 #define SCM_MARKEDP    SCM_GCMARKP
 #define SCM_NMARKEDP(x) (!SCM_MARKEDP (x))
 
@@ -371,6 +368,16 @@ extern int scm_init_storage (scm_sizet init_heap_size, int trig,
 			     scm_sizet max_segment_size);
 extern void *scm_get_stack_base (void);
 extern void scm_init_gc (void);
+
+
+
+#if (SCM_DEBUG_DEPRECATED == 0)
+
+#define SCM_FREEP(x) (SCM_FREE_CELL_P (x))
+#define SCM_NFREEP(x) (!SCM_FREE_CELL_P (x))
+
+#endif  /* SCM_DEBUG_DEPRECATED == 0 */
+
 #endif  /* GCH */
 
 /*

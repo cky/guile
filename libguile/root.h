@@ -115,9 +115,6 @@ typedef struct scm_root_state
 
   SCM fluids;
 
-  SCM system_transformer;	    /* No longer used (but kept for binary compatibility) */
-  SCM top_level_lookup_closure_var; /* No longer used (but kept for binary compatibility) */
-
   SCM handle;			/* The root object for this root state */
   SCM parent;			/* The parent root object */
 } scm_root_state;

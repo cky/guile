@@ -279,9 +279,9 @@ SCM_DEFINE (scm_open_file, "open-file", 2, 0, 0,
   SCM_VALIDATE_ROSTRING (1,filename);
   SCM_VALIDATE_ROSTRING (2,modes);
   if (SCM_SUBSTRP (filename))
-    filename = scm_makfromstr (SCM_ROCHARS (filename), SCM_ROLENGTH (filename), 0);
+    filename = scm_makfromstr (SCM_ROCHARS (filename), SCM_STRING_LENGTH (filename), 0);
   if (SCM_SUBSTRP (modes))
-    modes = scm_makfromstr (SCM_ROCHARS (modes), SCM_ROLENGTH (modes), 0);
+    modes = scm_makfromstr (SCM_ROCHARS (modes), SCM_STRING_LENGTH (modes), 0);
 
   file = SCM_ROCHARS (filename);
   mode = SCM_ROCHARS (modes);

@@ -477,7 +477,7 @@ taloop:
 	      scm_sizet i;
 
 	      scm_putc ('"', port);
-	      for (i = 0; i < SCM_ROLENGTH (exp); ++i)
+	      for (i = 0; i < SCM_STRING_LENGTH (exp); ++i)
 		switch (SCM_ROCHARS (exp)[i])
 		  {
 		  case '"':
@@ -490,7 +490,7 @@ taloop:
 	      break;
 	    }
 	  else
-	    scm_lfwrite (SCM_ROCHARS (exp), (scm_sizet) SCM_ROLENGTH (exp),
+	    scm_lfwrite (SCM_ROCHARS (exp), (scm_sizet) SCM_STRING_LENGTH (exp),
 			 port);
 	  break;
 	case scm_tc7_symbol:

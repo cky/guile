@@ -241,7 +241,7 @@ SCM_DEFINE (scm_string_length, "string-length", 1, 0, 0,
 	    "Returns the number of characters in STRING")
 #define FUNC_NAME s_scm_string_length
 {
-  SCM_VALIDATE_STRINGORSUBSTR (1, string);
+  SCM_VALIDATE_STRING (1, string);
   return SCM_MAKINUM (SCM_STRING_LENGTH (string));
 }
 #undef FUNC_NAME
@@ -254,9 +254,9 @@ SCM_DEFINE (scm_string_ref, "string-ref", 2, 0, 0,
 {
   int idx;
 
-  SCM_VALIDATE_STRINGORSUBSTR (1, str);
+  SCM_VALIDATE_STRING (1, str);
   SCM_VALIDATE_INUM_COPY (2, k, idx);
-  SCM_ASSERT_RANGE (2, k, idx >= 0 && idx < SCM_ROLENGTH (str));
+  SCM_ASSERT_RANGE (2, k, idx >= 0 && idx < SCM_STRING_LENGTH (str));
   return SCM_MAKE_CHAR (SCM_ROUCHARS (str)[idx]);
 }
 #undef FUNC_NAME
@@ -288,14 +288,14 @@ SCM_DEFINE (scm_substring, "substring", 2, 1, 0,
   long int from;
   long int to;
 
-  SCM_VALIDATE_STRINGORSUBSTR (1, str);
+  SCM_VALIDATE_STRING (1, str);
   SCM_VALIDATE_INUM (2, start);
-  SCM_VALIDATE_INUM_DEF (3, end, SCM_ROLENGTH (str));
+  SCM_VALIDATE_INUM_DEF (3, end, SCM_STRING_LENGTH (str));
 
   from = SCM_INUM (start);
-  SCM_ASSERT_RANGE (2, start, 0 <= from && from <= SCM_ROLENGTH (str));
+  SCM_ASSERT_RANGE (2, start, 0 <= from && from <= SCM_STRING_LENGTH (str));
   to = SCM_INUM (end);
-  SCM_ASSERT_RANGE (3, end, from <= to && to <= SCM_ROLENGTH (str));
+  SCM_ASSERT_RANGE (3, end, from <= to && to <= SCM_STRING_LENGTH (str));
 
   return scm_makfromstr (&SCM_ROCHARS (str)[from], (scm_sizet) (to - from), 0);
 }
@@ -316,14 +316,14 @@ SCM_DEFINE (scm_string_append, "string-append", 0, 0, 1,
   SCM_VALIDATE_REST_ARGUMENT (args);
   for (l = args; !SCM_NULLP (l); l = SCM_CDR (l)) {
     s = SCM_CAR (l);
-    SCM_VALIDATE_STRINGORSUBSTR (SCM_ARGn,s);
-    i += SCM_ROLENGTH (s);
+    SCM_VALIDATE_STRING (SCM_ARGn,s);
+    i += SCM_STRING_LENGTH (s);
   }
   res = scm_makstr (i, 0);
   data = SCM_STRING_UCHARS (res);
   for (l = args;SCM_NIMP (l);l = SCM_CDR (l)) {
     s = SCM_CAR (l);
-    for (i = 0;i<SCM_ROLENGTH (s);i++) *data++ = SCM_ROUCHARS (s)[i];
+    for (i = 0;i<SCM_STRING_LENGTH (s);i++) *data++ = SCM_ROUCHARS (s)[i];
   }
   return res;
 }

@@ -370,7 +370,7 @@ scm_lookupcar (SCM vloc, SCM genv, int check)
       if (SCM_ITAG3 (var) == scm_tc3_cons_gloc)
 	return SCM_GLOC_VAL_LOC (var);
 #ifdef MEMOIZE_LOCALS
-      if ((SCM_UNPACK (var) & 127) == (127 & SCM_UNPACK (SCM_ILOC00)))
+      if (SCM_ITAG7 (var) == SCM_ITAG7 (SCM_ILOC00))
 	return scm_ilookup (var, genv);
 #endif
       /* We can't cope with anything else than glocs and ilocs.  When

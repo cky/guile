@@ -1,4 +1,4 @@
-/* $Id: validate.h,v 1.17 2000-10-09 16:27:24 dirk Exp $ */
+/* $Id: validate.h,v 1.18 2000-10-25 11:01:03 dirk Exp $ */
 /*	Copyright (C) 1999, 2000 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -143,12 +143,6 @@
   } while (0)
 
 #define SCM_VALIDATE_STRING(pos, str) SCM_MAKE_VALIDATE (pos, str, STRINGP)
-
-#define SCM_VALIDATE_STRINGORSUBSTR(pos, str) \
-  do { \
-    SCM_ASSERT (SCM_STRINGP (str) || SCM_SUBSTRP (str), \
-                str, pos, FUNC_NAME); \
-  } while (0)
 
 #define SCM_VALIDATE_STRING_COPY(pos, str, cvar) \
   do { \
@@ -415,6 +409,14 @@
   do { \
     SCM_ASSERT (SCM_VECTORP (v) && len == SCM_VECTOR_LENGTH (v), v, pos, FUNC_NAME); \
   } while (0)
+
+
+
+#if (SCM_DEBUG_DEPRECATED == 0)
+
+#define SCM_VALIDATE_STRINGORSUBSTR SCM_VALIDATE_STRING
+
+#endif  /* SCM_DEBUG_DEPRECATED == 0 */
 
 #endif
 

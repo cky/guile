@@ -1639,7 +1639,7 @@ scm_gc_sweep ()
 	    case scm_tc7_fvect:
 	    case scm_tc7_dvect:
 	    case scm_tc7_cvect:
-	      m += SCM_HUGE_LENGTH (scmptr) * scm_uniform_element_size (scmptr);
+	      m += SCM_UVECTOR_LENGTH (scmptr) * scm_uniform_element_size (scmptr);
 	      scm_must_free (SCM_UVECTOR_BASE (scmptr));
 	      break;
 #endif

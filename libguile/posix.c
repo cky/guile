@@ -266,7 +266,7 @@ SCM_DEFINE (scm_getpwuid, "getpw", 0, 1, 0,
     {
       SCM_VALIDATE_ROSTRING (1,user);
       if (SCM_SUBSTRP (user))
-	user = scm_makfromstr (SCM_ROCHARS (user), SCM_ROLENGTH (user), 0);
+	user = scm_makfromstr (SCM_ROCHARS (user), SCM_STRING_LENGTH (user), 0);
       entry = getpwnam (SCM_ROCHARS (user));
     }
   if (!entry)

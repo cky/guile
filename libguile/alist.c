@@ -207,6 +207,18 @@ SCM_DEFINE (scm_assoc, "assoc", 2, 0, 0,
 
 
 
+/* Dirk:API2.0:: We should not return #f if the key was not found.  In the
+ * current solution we can not distinguish between finding a (key . #f) pair
+ * and not finding the key at all.
+ *
+ * Possible alternative solutions:
+ * 1) Remove assq-ref from the API:  assq is sufficient.
+ * 2) Signal an error (what error type?) if the key is not found.
+ * 3) provide an additional 'default' parameter.
+ * 3.1) The default parameter is mandatory.
+ * 3.2) The default parameter is optional, but if no default is given and
+ *      the key is not found, signal an error (what error type?).
+ */
 SCM_DEFINE (scm_assq_ref, "assq-ref", 2, 0, 0,
             (SCM alist, SCM key),
 	    "@deffnx primitive assv-ref alist key\n"

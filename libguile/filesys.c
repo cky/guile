@@ -547,11 +547,11 @@ SCM_DEFINE (scm_link, "link", 2, 0, 0,
   SCM_VALIDATE_ROSTRING (1,oldpath);
   if (SCM_SUBSTRP (oldpath))
     oldpath = scm_makfromstr (SCM_ROCHARS (oldpath),
-			      SCM_ROLENGTH (oldpath), 0);
+			      SCM_STRING_LENGTH (oldpath), 0);
   SCM_VALIDATE_ROSTRING (2,newpath);
   if (SCM_SUBSTRP (newpath))
     newpath = scm_makfromstr (SCM_ROCHARS (newpath),
-			      SCM_ROLENGTH (newpath), 0);
+			      SCM_STRING_LENGTH (newpath), 0);
   SCM_SYSCALL (val = link (SCM_ROCHARS (oldpath), SCM_ROCHARS (newpath)));
   if (val != 0)
     SCM_SYSERROR;
@@ -1289,10 +1289,10 @@ SCM_DEFINE (scm_copy_file, "copy-file", 2, 0, 0,
 
   SCM_VALIDATE_ROSTRING (1,oldfile);
   if (SCM_SUBSTRP (oldfile))
-    oldfile = scm_makfromstr (SCM_ROCHARS (oldfile), SCM_ROLENGTH (oldfile), 0);
+    oldfile = scm_makfromstr (SCM_ROCHARS (oldfile), SCM_STRING_LENGTH (oldfile), 0);
   SCM_VALIDATE_ROSTRING (2,newfile);
   if (SCM_SUBSTRP (newfile))
-    newfile = scm_makfromstr (SCM_ROCHARS (newfile), SCM_ROLENGTH (newfile), 0);
+    newfile = scm_makfromstr (SCM_ROCHARS (newfile), SCM_STRING_LENGTH (newfile), 0);
   if (stat (SCM_ROCHARS (oldfile), &oldstat) == -1)
     SCM_SYSERROR;
   oldfd = open (SCM_ROCHARS (oldfile), O_RDONLY);
@@ -1345,12 +1345,12 @@ SCM_DEFINE (scm_dirname, "dirname", 1, 0, 0,
   if (i < 0)
     {
       if (len > 0 && s[0] == '/')
-	return scm_make_shared_substring (filename, SCM_INUM0, SCM_MAKINUM (1));
+	return scm_substring (filename, SCM_INUM0, SCM_MAKINUM (1));
       else
 	return scm_dot_string;
     }
   else
-    return scm_make_shared_substring (filename, SCM_INUM0, SCM_MAKINUM (i + 1));
+    return scm_substring (filename, SCM_INUM0, SCM_MAKINUM (i + 1));
 }
 #undef FUNC_NAME
 
@@ -1384,14 +1384,12 @@ SCM_DEFINE (scm_basename, "basename", 1, 1, 0,
   if (i == end)
     {
       if (len > 0 && f[0] == '/')
-	return scm_make_shared_substring (filename, SCM_INUM0, SCM_MAKINUM (1));
+	return scm_substring (filename, SCM_INUM0, SCM_MAKINUM (1));
       else
 	return scm_dot_string;
     }
   else
-    return scm_make_shared_substring (filename,
-				      SCM_MAKINUM (i + 1),
-				      SCM_MAKINUM (end + 1));
+    return scm_substring (filename, SCM_MAKINUM (i + 1), SCM_MAKINUM (end + 1));
 }
 #undef FUNC_NAME
 

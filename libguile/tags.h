@@ -316,6 +316,7 @@ typedef long scm_bits_t;
  */
 
 
+#define SCM_ITAG7(x) 		(127 & SCM_UNPACK (x))
 #define SCM_TYP7(x) 		(0x7f &        SCM_CELL_TYPE (x))
 #define SCM_TYP7S(x) 		((0x7f & ~2) & SCM_CELL_TYPE (x))
 

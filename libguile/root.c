@@ -142,8 +142,6 @@ scm_make_root (SCM parent)
 	= root_state->def_errp
 	= root_state->cur_loadp
 	= root_state->fluids
-	= root_state->system_transformer
-	= root_state->top_level_lookup_closure_var
 	= root_state->handle
 	= root_state->parent
 	= SCM_BOOL_F;

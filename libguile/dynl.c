@@ -127,7 +127,7 @@ scm_coerce_rostring (SCM rostr,const char *subr,int argn)
 {
   SCM_ASSERT (SCM_ROSTRINGP (rostr), rostr, argn, subr);
   if (SCM_SUBSTRP (rostr))
-    rostr = scm_makfromstr (SCM_ROCHARS (rostr), SCM_ROLENGTH (rostr), 0);
+    rostr = scm_makfromstr (SCM_ROCHARS (rostr), SCM_STRING_LENGTH (rostr), 0);
   return rostr;
 }
 

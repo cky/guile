@@ -833,8 +833,8 @@ SCM_DEFINE (scm_gensym, "gensym", 0, 1, 0,
     }
   else
     {
-      SCM_VALIDATE_STRINGORSUBSTR (1, prefix);
-      len = SCM_ROLENGTH (prefix);
+      SCM_VALIDATE_STRING (1, prefix);
+      len = SCM_STRING_LENGTH (prefix);
       if (len > MAX_PREFIX_LENGTH)
 	name = SCM_MUST_MALLOC (MAX_PREFIX_LENGTH + SCM_INTBUFLEN);
       strncpy (name, SCM_ROCHARS (prefix), len);
@@ -871,8 +871,8 @@ SCM_DEFINE (scm_gentemp, "gentemp", 0, 2, 0,
     }
   else
     {
-      SCM_VALIDATE_STRINGORSUBSTR (1, prefix);
-      len = SCM_ROLENGTH (prefix);
+      SCM_VALIDATE_STRING (1, prefix);
+      len = SCM_STRING_LENGTH (prefix);
       if (len > MAX_PREFIX_LENGTH)
 	name = SCM_MUST_MALLOC (MAX_PREFIX_LENGTH + SCM_INTBUFLEN);
       strncpy (name, SCM_ROCHARS (prefix), len);

@@ -9,11 +9,6 @@ for."
 
 * Deprecate `read-only-string?'.
 
-Before releasing the next version of libguile which is not binary compatible
-with the one released with 1.4:
-- remove struct members system_transformer and top_level_lookup_closure_var
-  from struct scm_root_state in root.h.
-
 After signal handling and threading have been fixed:
 - remove the code corresponding to GUILE_OLD_ASYNC_CLICK and the corresponding
   GUILE_OLD_ASYNC_CLICK macro.
@@ -50,7 +45,8 @@ In release 1.6:
 - remove deprecated macros: SCM_OUTOFRANGE, SCM_NALLOC, SCM_HUP_SIGNAL, 
   SCM_INT_SIGNAL, SCM_FPE_SIGNAL, SCM_BUS_SIGNAL, SCM_SEGV_SIGNAL, 
   SCM_ALRM_SIGNAL, SCM_GC_SIGNAL, SCM_TICK_SIGNAL, SCM_SIG_ORD, 
-  SCM_ORD_SIG, SCM_NUM_SIGS, SCM_SLOPPY_STRINGP
+  SCM_ORD_SIG, SCM_NUM_SIGS, SCM_SLOPPY_STRINGP, SCM_VALIDATE_STRINGORSUBSTR,
+  SCM_FREEP, SCM_NFREEP
 - remove function scm_call_catching_errors
   (replaced by catch functions from throw.[ch])
 - remove support for "#&" reader syntax in (ice-9 optargs).

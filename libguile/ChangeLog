@@ -1,3 +1,53 @@
+2000-10-25  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* alist.c (scm_assq_ref):  Add a suggestion about how to deal with
+	this function when the API gets reviewed.
+
+	* async.c (SET_ASYNC_GOT_IT):  Use SCM_TYP16 instead of doing bit
+	operations directly.
+
+	* dynl.c (scm_coerce_rostring), filesys.c (scm_link,
+	scm_copy_file), fports (scm_open_file), hash.c (scm_hasher),
+	posix.c (scm_getpwuid), print.c (scm_iprin1), simpos.c
+	(scm_system), strings.c (scm_string_ref, scm_substring,
+	scm_string_append), strop.c (scm_string_copy), struct.c
+	(scm_make_struct_layout), symbols.c (scm_gensym, scm_gentemp),
+	symbols.h (SCM_COERCE_SUBSTR):  Use SCM_STRING_LENGTH instead of   
+	SCM_ROLENGTH if the object is known to be a string or substring.
+
+	* eval.c (scm_lookupcar):  Use SCM_ITAG7 instead of doing bit
+	operations directly.
+
+	* filesys.c (scm_dirname, scm_basename):  Don't create shared
+	substrings as these are going to disappear from guile.
+
+	* gc.c (scm_gc_sweep):  Use SCM_UVECTOR_LENGTH instead of
+	SCM_HUGE_LENGTH.  (The SCM_HUGE_LENGTH mechanism does not work
+	correctly anyway.)
+
+	* gc.h (SCM_FREEP, SCM_NFREEP):  Deprecated.
+
+	* read.c (scm_flush_ws):  Don't compare SCM values directly.
+
+	* root.c (scm_make_root), root.h (scm_root_state):  Removed
+	system_transformer and top_level_lookup_closure_var from struct.
+	(Since eval is now R5RS, binary compatibility is not granted
+	anyway.)
+
+	* simpos.c (scm_system):  Fix condition.
+
+	* strings.c (scm_string_length, scm_string_ref, scm_substring,
+	scm_string_append), strop.c (scm_string_copy), struct.c
+	(scm_make_struct_layout, scm_make_vtable_vtable), symbols.c
+	(scm_gensym, scm_gentemp):  Replace SCM_VALIDATE_STRINGORSUBSTR
+	with SCM_VALIDATE_STRING, since they do the same thing.
+
+	* strings.h (scm_make_shared_substring):  Deprecated.
+
+	* tags.h (SCM_ITAG7):  Added.
+
+	* validated.h (SCM_VALIDATE_STRINGORSUBSTR):  Deprecated.
+
 2000-10-20  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* init.c (scm_init_guile_1, invoke_main_func): Call

@@ -81,13 +81,13 @@ SCM_DEFINE (scm_make_struct_layout, "make-struct-layout", 1, 0, 0,
 #define FUNC_NAME s_scm_make_struct_layout
 {
   SCM new_sym;
-  SCM_VALIDATE_STRINGORSUBSTR (1, fields);
+  SCM_VALIDATE_STRING (1, fields);
   { /* scope */
     char * field_desc;
     int len;
     int x;
 
-    len = SCM_ROLENGTH (fields);
+    len = SCM_STRING_LENGTH (fields);
     field_desc = SCM_ROCHARS (fields);
     SCM_ASSERT (!(len & 1), fields, "odd length field specification", FUNC_NAME);
 
@@ -524,7 +524,7 @@ SCM_DEFINE (scm_make_vtable_vtable, "make-vtable-vtable", 2, 0, 1,
   scm_bits_t * data;
   SCM handle;
 
-  SCM_VALIDATE_STRINGORSUBSTR (1, user_fields);
+  SCM_VALIDATE_STRING (1, user_fields);
   SCM_VALIDATE_INUM (2, tail_array_size);
   SCM_VALIDATE_REST_ARGUMENT (init);
 

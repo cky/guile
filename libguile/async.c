@@ -121,7 +121,7 @@ static long tc16_async;
 #define VALIDATE_ASYNC(pos,a) SCM_MAKE_VALIDATE(pos, a, ASYNCP)
 
 #define ASYNC_GOT_IT(X)        (SCM_CELL_WORD_0 (X) >> 16)
-#define SET_ASYNC_GOT_IT(X, V) (SCM_SET_CELL_WORD_0 (X, (SCM_CELL_WORD_0 (X) & ((1 << 16) - 1)) | ((V) << 16)))
+#define SET_ASYNC_GOT_IT(X, V) (SCM_SET_CELL_WORD_0 ((X), SCM_TYP16 (X) | ((V) << 16)))
 #define ASYNC_THUNK(X)         SCM_CELL_OBJECT_1 (X)
 
 

@@ -342,8 +342,8 @@ SCM_DEFINE (scm_string_copy, "string-copy", 1, 0, 0,
 	    "Returns a newly allocated copy of the given @var{string}. (r5rs)")
 #define FUNC_NAME s_scm_string_copy
 {
-  SCM_VALIDATE_STRINGORSUBSTR (1,str);
-  return scm_makfromstr (SCM_ROCHARS (str), (scm_sizet)SCM_ROLENGTH (str), 0);
+  SCM_VALIDATE_STRING (1, str);
+  return scm_makfromstr (SCM_ROCHARS (str), SCM_STRING_LENGTH (str), 0);
 }
 #undef FUNC_NAME
 

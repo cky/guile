@@ -85,8 +85,8 @@ SCM_DEFINE (scm_system, "system", 0, 1, 0,
   SCM_VALIDATE_ROSTRING (1,cmd);
   SCM_DEFER_INTS;
   errno = 0;
-  if (SCM_ROSTRINGP (cmd))
-    cmd = scm_makfromstr (SCM_ROCHARS (cmd), SCM_ROLENGTH (cmd), 0);
+  if (SCM_SUBSTRP (cmd))
+    cmd = scm_makfromstr (SCM_ROCHARS (cmd), SCM_STRING_LENGTH (cmd), 0);
   rv = system(SCM_ROCHARS(cmd));
   if (rv == -1 || (rv == 127 && errno != 0))
     SCM_SYSERROR;
