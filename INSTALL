@@ -58,73 +58,99 @@ If you run the configure script with no arguments, it should examine
 your system and set things up appropriately.  However, there are a few
 switches specific to Guile you may find useful in some circumstances.
 
---enable-maintainer-mode --- If you have automake, autoconf, and
-libtool installed on your system, this switch causes configure to
-generate Makefiles which know how to automatically regenerate
-configure scripts, makefiles, and headers, when they are out of date. 
-The README file says which versions of those tools you will need.
 
---with-threads --- Build a Guile executable and library that supports
-cooperative threading.  If you use this switch, Guile will also build
-and install the QuickThreads non-preemptive threading library,
-libqthreads, which you will need to link into your programs after
-libguile.  When you use `guile-config', you will pick up all
-neccessary linker flags automatically.
+--enable-maintainer-mode
 
-Cooperative threads are not yet thoroughly tested; once they are, they
-will be enabled by default.  The interaction with blocking I/O is
-pretty ad hoc at the moment.  In our experience, bugs in the thread
-support do not affect you if you don't actually use threads.
+  If you have automake, autoconf, and libtool installed on your
+  system, this switch causes configure to generate Makefiles which
+  know how to automatically regenerate configure scripts, makefiles,
+  and headers, when they are out of date.  The README file says which
+  versions of those tools you will need.
 
---with-modules --- Guile can dynamically load `plugin modules' during
-runtime, using facilities provided by libtool.  Not all platforms
-support this, however.  On these platforms, you can statically link
-the plugin modules into libguile when Guile itself is build.  XXX -
-how does one specify the modules?
 
---disable-shared --- Do not build shared libraries.  Normally, Guile
-will build shared libraries if your system supports them.  Guile
-always builds static libraries.
+--with-threads  ---  Build with thread support
 
---enable-debug-freelist --- Enable freelist debugging.
+  Build a Guile executable and library that supports cooperative
+  threading.  If you use this switch, Guile will also build and
+  install the QuickThreads non-preemptive threading library,
+  libqthreads, which you will need to link into your programs after
+  libguile.  When you use `guile-config', you will pick up all
+  neccessary linker flags automatically.
 
-This enables a debugging version of SCM_NEWCELL(), and also registers
-an extra primitive, the setter `gc-set-debug-check-freelist!'.
+  Cooperative threads are not yet thoroughly tested; once they are,
+  they will be enabled by default.  The interaction with blocking I/O
+  is pretty ad hoc at the moment.  In our experience, bugs in the
+  thread support do not affect you if you don't actually use threads.
 
-Configure with the --enable-debug-freelist option to enable
-the gc-set-debug-check-freelist! primitive, and then use:
 
-(gc-set-debug-check-freelist! #t)  # turn on checking of the freelist
-(gc-set-debug-check-freelist! #f)  # turn off checking
+--with-modules  ---  Specify statically linked `modules'
 
-Checking of the freelist forces a traversal of the freelist and
-a garbage collection before each allocation of a cell.  This can
-slow down the interpreter dramatically, so the setter should be used to
-turn on this extra processing only when necessary.
+  Guile can dynamically load `plugin modules' during runtime, using
+  facilities provided by libtool.  Not all platforms support this,
+  however.  On these platforms, you can statically link the plugin
+  modules into libguile when Guile itself is build.  XXX - how does
+  one specify the modules?
 
---enable-debug-malloc --- Enable malloc debugging.
 
-Include code for debugging of calls to scm_must_malloc/realloc/free.
+--enable-deprecated=LEVEL  ---  Control the inclusion of deprecated features.
 
-Checks that
+  You can select between different behaviours via the LEVEL argument:
+  a value of "no" will omit all deprecated features and you will get
+  "undefined reference", "variable unbound" or similar errors when you
+  try to use them.  All other values will include all deprecated
+  features.  The LEVEL argument is used as the default value for the
+  environment variable GUILE_WARN_DEPRECATED.  See the README for
+  documentation about this.
 
-1. objects freed by scm_must_free has been mallocated by scm_must_malloc
-2. objects reallocated by scm_must_realloc has been allocated by
-   scm_must_malloc
-3. reallocated objects are reallocated with the same what string
 
-But, most importantly, it records the number of allocated objects of
-each kind.  This is useful when searching for memory leaks.
+--disable-shared  ---  Do not build shared libraries.
 
-A Guile compiled with this option provides the primitive
-`malloc-stats' which returns an alist with pairs of kind and the
-number of objects of that kind.
+  Normally, Guile will build shared libraries if your system supports
+  them.  Guile always builds static libraries.
 
---enable-guile-debug --- Include internal debugging functions
---disable-arrays     --- omit array and uniform array support
---disable-posix      --- omit posix interfaces
---disable-networking --- omit networking interfaces
---disable-regex      --- omit regular expression interfaces
+
+--enable-debug-freelist  ---  Enable freelist debugging.
+
+  This enables a debugging version of SCM_NEWCELL(), and also
+  registers an extra primitive, the setter
+  `gc-set-debug-check-freelist!'.
+
+  Configure with the --enable-debug-freelist option to enable the
+  gc-set-debug-check-freelist! primitive, and then use:
+
+  (gc-set-debug-check-freelist! #t)  # turn on checking of the freelist
+  (gc-set-debug-check-freelist! #f)  # turn off checking
+
+  Checking of the freelist forces a traversal of the freelist and a
+  garbage collection before each allocation of a cell.  This can slow
+  down the interpreter dramatically, so the setter should be used to
+  turn on this extra processing only when necessary.
+
+
+--enable-debug-malloc  ---  Enable malloc debugging.
+
+  Include code for debugging of calls to scm_must_malloc/realloc/free.
+
+  Checks that
+
+  1. objects freed by scm_must_free has been mallocated by scm_must_malloc
+  2. objects reallocated by scm_must_realloc has been allocated by
+     scm_must_malloc
+  3. reallocated objects are reallocated with the same what string
+
+  But, most importantly, it records the number of allocated objects of
+  each kind.  This is useful when searching for memory leaks.
+
+  A Guile compiled with this option provides the primitive
+  `malloc-stats' which returns an alist with pairs of kind and the
+  number of objects of that kind.
+
+
+--enable-guile-debug  ---  Include internal debugging functions
+--disable-arrays      ---  omit array and uniform array support
+--disable-posix       ---  omit posix interfaces
+--disable-networking  ---  omit networking interfaces
+--disable-regex       ---  omit regular expression interfaces
 
 
 Using Guile Without Installing It =========================================
