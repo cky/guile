@@ -1,3 +1,8 @@
+2003-03-27  Rob Browning  <rlb@defaultvalue.org>
+
+	* scheme-io.texi (Reading): clarify character ordering in port for
+	unread-string.
+
 2003-03-07  Rob Browning  <rlb@defaultvalue.org>
 
 	* guile.texi: change MANUAL_EDITION to MANUAL-EDITION so we don't
