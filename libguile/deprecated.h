@@ -300,6 +300,11 @@ SCM_API SCM scm_gentemp (SCM prefix, SCM obarray);
 
 #define SCM_VALIDATE_OPDIR(pos, port) SCM_MAKE_VALIDATE (pos, port, OPDIRP)
 
+/* Deprecated because we can not safely cast a SCM* to a scm_t_bits*
+ */
+
+#define SCM_CELL_WORD_LOC(x, n)   ((scm_t_bits*)SCM_CELL_OBJECT_LOC((x),(n)))
+
 void scm_i_init_deprecated (void);
 
 #endif
