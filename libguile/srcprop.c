@@ -306,7 +306,7 @@ SCM_DEFINE (scm_set_source_property_x, "set-source-property!", 3, 0, 0,
       else
 	SCM_WHASHSET (scm_source_whash, h, scm_make_srcprops (0, 0, datum, SCM_UNDEFINED, p));
     }
-  else if (SCM_EQ_P (scm_sym_filename, key))
+  else if (SCM_EQ_P (scm_sym_copy, key))
     {
       if (SRCPROPSP (p))
 	SRCPROPCOPY (p) = datum;

@@ -1,3 +1,8 @@
+2001-01-25  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* srcprop.c (scm_set_source_property_x):  Fix to handle
+	(set-source-property! <obj> 'copy <datum>) correctly.
+
 2001-01-24  Gary Houston  <ghouston@arglist.com>
 
 	* filesys.c (scm_link): docstring fix.
