@@ -557,7 +557,7 @@ SCM_DEFINE (scm_port_revealed, "port-revealed", 1, 0, 0,
 #define FUNC_NAME s_scm_port_revealed
 {
   port = SCM_COERCE_OUTPORT (port);
-  SCM_VALIDATE_PORT (1,port);
+  SCM_VALIDATE_OPENPORT (1,port);
   return SCM_MAKINUM (scm_revealed_count (port));
 }
 #undef FUNC_NAME
@@ -570,7 +570,7 @@ SCM_DEFINE (scm_set_port_revealed_x, "set-port-revealed!", 2, 0, 0,
 #define FUNC_NAME s_scm_set_port_revealed_x
 {
   port = SCM_COERCE_OUTPORT (port);
-  SCM_VALIDATE_PORT (1,port);
+  SCM_VALIDATE_OPENPORT (1,port);
   SCM_VALIDATE_INUM (2,rcount);
   SCM_REVEALED (port) = SCM_INUM (rcount);
   return SCM_UNSPECIFIED;

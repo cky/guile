@@ -1,3 +1,8 @@
+2001-05-10  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* ports.c (scm_port_revealed, scm_set_port_revealed_x): Only
+	accept open ports.  Thanks to Quetzalcoatl Bradley!
+
 2001-05-09  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* procs.c: Increased `scm_subr_table_room' to 800 because Guile now
