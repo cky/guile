@@ -80,10 +80,10 @@
 (define (@inexact? x)	`((@ Core::inexact?) ,x))
 
 (define (@= x y)	`(@@ ee? ,x ,y))
-(define (@< x y)	`(@@ lt? ,x ,y))
-(define (@> x y)	`(@@ gt? ,x ,y))
-(define (@<= x y)	`(@@ le? ,x ,y))
-(define (@>= x y)	`(@@ ge? ,x ,y))
+;(define (@< x y)	`(@@ lt? ,x ,y))
+;(define (@> x y)	`(@@ gt? ,x ,y))
+;(define (@<= x y)	`(@@ le? ,x ,y))
+;(define (@>= x y)	`(@@ ge? ,x ,y))
 
 (define @+
   (match-lambda*
