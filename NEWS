@@ -64,6 +64,10 @@ Macro: with-fluids ((FLUID VALUE) ...) FORM ...
 
 list-length, list-append, list-append!, list-reverse, list-reverse!
 
+** array-map renamed to array-map!
+
+** serial-array-map renamed to serial-array-map!
+
 * Changes to system call interfaces:
 
 ** close-port, close-input-port and close-output-port now return a
@@ -251,6 +255,8 @@ scm_list_reverse, scm_list_reverse_x
 
 These can be used for pretty list creation from C.  The idea is taken
 from Erick Gallesio's STk.
+
+** scm_array_map renamed to scm_array_map_x
 
 
 Changes in Guile 1.2 (released Tuesday, June 24 1997):
