@@ -224,8 +224,8 @@ scm_sys_pipe ()
   ptw = scm_add_to_port_table (p_wt);
   SCM_SETPTAB_ENTRY (p_rd, ptr);
   SCM_SETPTAB_ENTRY (p_wt, ptw);
-  SCM_CAR (p_rd) = scm_tc16_fport | scm_mode_bits ("r");
-  SCM_CAR (p_wt) = scm_tc16_fport | scm_mode_bits ("w");
+  SCM_SETCAR (p_rd, scm_tc16_fport | scm_mode_bits ("r"));
+  SCM_SETCAR (p_wt, scm_tc16_fport | scm_mode_bits ("w"));
   SCM_SETSTREAM (p_rd, (SCM)f_rd);
   SCM_SETSTREAM (p_wt, (SCM)f_wt);
 
@@ -875,8 +875,8 @@ scm_open_pipe (pipestr, modes)
     scm_syserror (s_open_pipe);
   pt = scm_add_to_port_table (z);
   SCM_SETPTAB_ENTRY (z, pt);
-  SCM_CAR (z) = scm_tc16_pipe | SCM_OPN 
-    | (strchr (SCM_ROCHARS (modes), 'r') ? SCM_RDNG : SCM_WRTNG);
+  SCM_SETCAR (z, scm_tc16_pipe | SCM_OPN 
+    | (strchr (SCM_ROCHARS (modes), 'r') ? SCM_RDNG : SCM_WRTNG));
   SCM_SETSTREAM (z, (SCM)f);
   SCM_ALLOW_INTS;
   return z;

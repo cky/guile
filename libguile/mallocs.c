@@ -88,8 +88,8 @@ scm_malloc_obj (n)
       SCM_ALLOW_INTS;
       return SCM_BOOL_F;
     }
-  SCM_CDR (answer) = mem;
-  SCM_CAR (answer) = scm_tc16_malloc;
+  SCM_SETCDR (answer, mem);
+  SCM_SETCAR (answer, scm_tc16_malloc);
   SCM_ALLOW_INTS;
   return answer;
 }

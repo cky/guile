@@ -939,7 +939,7 @@ scm_addbig(x, nx, xsgn, bigy, sgny)
     } while (++i < nx);
     if (num && nx==ny) {
       num = 1; i = 0;
-      SCM_CAR(z) ^= 0x0100;
+      SCM_SETCAR (z, SCM_CAR (z) ^ 0x0100);
       do {
 	num += (SCM_BIGRAD-1) - zds[i];
 	zds[i++] = SCM_BIGLO(num);
@@ -1819,18 +1819,18 @@ scm_makdbl (x, y)
     if ((-FLTMAX < x) && (x < FLTMAX) && (fx==x))
 #  endif
       {
-	SCM_CAR(z) = scm_tc_flo;
+	SCM_SETCAR (z, scm_tc_flo);
 	SCM_FLO(z) = x;
 	SCM_ALLOW_INTS;
 	return z;
       }
 # endif/* def SCM_SINGLES */
-    SCM_CDR(z) = (SCM)scm_must_malloc(1L*sizeof(double), "real");
-    SCM_CAR(z) = scm_tc_dblr;
+    SCM_SETCDR (z, (SCM)scm_must_malloc(1L*sizeof(double), "real"));
+    SCM_SETCAR (z, scm_tc_dblr);
   }
   else {
-    SCM_CDR(z) = (SCM)scm_must_malloc(2L*sizeof(double), "complex");
-    SCM_CAR(z) = scm_tc_dblc;
+    SCM_SETCDR (z, (SCM)scm_must_malloc(2L*sizeof(double), "complex"));
+    SCM_SETCAR (z, scm_tc_dblc);
     SCM_IMAG(z) = y;
   }
   SCM_REAL(z) = x;
@@ -3686,12 +3686,12 @@ scm_init_numbers ()
 #ifdef SCM_FLOATS
   SCM_NEWCELL(scm_flo0);
 # ifdef SCM_SINGLES
-  SCM_CAR(scm_flo0) = scm_tc_flo;
+  SCM_SETCAR (scm_flo0, scm_tc_flo);
   SCM_FLO(scm_flo0) = 0.0;
 # else
-  SCM_CDR(scm_flo0) = (SCM)scm_must_malloc(1L*sizeof(double), "real");
+  SCM_SETCDR (scm_flo0, (SCM)scm_must_malloc(1L*sizeof(double), "real"));
   SCM_REAL(scm_flo0) = 0.0;
-  SCM_CAR(scm_flo0) = scm_tc_dblr;
+  SCM_SETCAR (scm_flo0, scm_tc_dblr);
 # endif
 # ifdef DBL_DIG
   scm_dblprec = (DBL_DIG > 20) ? 20 : DBL_DIG;

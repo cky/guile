@@ -197,7 +197,7 @@
 #define SCM_BIGSIGN(x) (0x0100 & (int)SCM_CAR(x))
 #define SCM_BDIGITS(x) ((SCM_BIGDIG *)(SCM_CDR(x)))
 #define SCM_NUMDIGS(x) ((scm_sizet)(SCM_CAR(x)>>16))
-#define SCM_SETNUMDIGS(x, v, t) SCM_CAR(x) = (((v)+0L)<<16)+(t)
+#define SCM_SETNUMDIGS(x, v, t) SCM_SETCAR(x, (((v)+0L)<<16)+(t))
 
 
 #ifdef SCM_FLOATS

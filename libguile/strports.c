@@ -84,7 +84,7 @@ stputc (c, p)
     scm_vector_set_length_x (SCM_CDR (p), SCM_MAKINUM (ind + (ind >> 1)));
   SCM_ALLOW_INTS;
   SCM_CHARS (SCM_CDR (p))[ind] = c;
-  SCM_CAR (p) = SCM_MAKINUM (ind + 1);
+  SCM_SETCAR (p, SCM_MAKINUM (ind + 1));
   return c;
 }
 
@@ -108,7 +108,7 @@ stwrite (str, siz, num, p)
   dst = &(SCM_CHARS (SCM_CDR (p))[ind]);
   while (len--)
     dst[len] = str[len];
-  SCM_CAR (p) = SCM_MAKINUM (ind + siz * num);
+  SCM_SETCAR (p, SCM_MAKINUM (ind + siz * num));
   return num;
 }
 
@@ -134,7 +134,7 @@ stgetc (p)
   scm_sizet ind = SCM_INUM (SCM_CAR (p));
   if (ind >= SCM_ROLENGTH (SCM_CDR (p)))
     return EOF;
-  SCM_CAR (p) = SCM_MAKINUM (ind + 1);
+  SCM_SETCAR (p, SCM_MAKINUM (ind + 1));
   return SCM_ROUCHARS (SCM_CDR (p))[ind];
 }
 
@@ -156,7 +156,7 @@ scm_mkstrport (pos, str, modes, caller)
   SCM_NEWCELL (z);
   SCM_DEFER_INTS;
   pt = scm_add_to_port_table (z);
-  SCM_CAR (z) = scm_tc16_strport | modes;
+  SCM_SETCAR (z, scm_tc16_strport | modes);
   SCM_SETPTAB_ENTRY (z, pt);
   SCM_SETSTREAM (z, stream);
   SCM_ALLOW_INTS;

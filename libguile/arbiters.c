@@ -84,8 +84,8 @@ scm_make_arbiter (name)
 {
   register SCM z;
   SCM_NEWCELL (z);
-  SCM_CDR (z) = name;
-  SCM_CAR (z) = scm_tc16_arbiter;
+  SCM_SETCDR (z, name);
+  SCM_SETCAR (z, scm_tc16_arbiter);
   return z;
 }
 
@@ -101,7 +101,7 @@ scm_try_arbiter (arb)
     arb = SCM_BOOL_F;
   else
     {
-      SCM_CAR (arb) = scm_tc16_arbiter | (1L << 16);
+      SCM_SETCAR (arb, scm_tc16_arbiter | (1L << 16));
       arb = SCM_BOOL_T;
     }
   SCM_ALLOW_INTS;
@@ -118,7 +118,7 @@ scm_release_arbiter (arb)
   SCM_ASSERT ((SCM_TYP16 (arb) == scm_tc16_arbiter), arb, SCM_ARG1, s_release_arbiter);
   if (!(SCM_CAR (arb) & (1L << 16)))
     return SCM_BOOL_F;
-  SCM_CAR (arb) = scm_tc16_arbiter;
+  SCM_SETCAR (arb, scm_tc16_arbiter);
   return SCM_BOOL_T;
 }
 

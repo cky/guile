@@ -184,7 +184,7 @@ scm_make_soft_port (pv, modes)
   SCM_NEWCELL (z);
   SCM_DEFER_INTS;
   pt = scm_add_to_port_table (z);
-  SCM_CAR (z) = scm_tc16_sfport | scm_mode_bits (SCM_CHARS (modes));
+  SCM_SETCAR (z, scm_tc16_sfport | scm_mode_bits (SCM_CHARS (modes)));
   SCM_SETPTAB_ENTRY (z, pt);
   SCM_SETSTREAM (z, pv);
   SCM_ALLOW_INTS;

@@ -58,12 +58,12 @@ scm_acons (w, x, y)
 {
   register SCM z;
   SCM_NEWCELL (z);
-  SCM_CAR (z) = w;
-  SCM_CDR (z) = x;
+  SCM_SETCAR (z, w);
+  SCM_SETCDR (z, x);
   x = z;
   SCM_NEWCELL (z);
-  SCM_CAR (z) = x;
-  SCM_CDR (z) = y;
+  SCM_SETCAR (z, x);
+  SCM_SETCDR (z, y);
   return z;
 }
 

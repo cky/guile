@@ -67,9 +67,9 @@ scm_make_subr_opt (name, type, fcn, set)
     tmp = 0;
   SCM_NEWCELL (z);
   SCM_SUBRF (z) = fcn;
-  SCM_CAR (z) = tmp + type;
+  SCM_SETCAR (z, tmp + type);
   if (set)
-    SCM_CDR (symcell) = z;
+    SCM_SETCDR (symcell, z);
   return z;
 }
 

@@ -88,7 +88,7 @@ scm_set_procedure_properties_x (proc, new_val)
   if (!(SCM_NIMP (proc) && SCM_CLOSUREP (proc)))
     proc = scm_stand_in_scm_proc(proc);
   SCM_ASSERT (SCM_NIMP (proc) && SCM_CLOSUREP (proc), proc, SCM_ARG1, s_set_procedure_properties_x);
-  SCM_PROCPROPS (proc) = new_val;
+  SCM_SETPROCPROPS (proc, new_val);
   return SCM_UNSPECIFIED;
 }
 
@@ -123,7 +123,7 @@ scm_set_procedure_property_x (p, k, v)
   if (SCM_NIMP (assoc))
     SCM_SETCDR (assoc, v);
   else
-    SCM_PROCPROPS (p) = scm_acons (k, v, SCM_PROCPROPS (p));
+    SCM_SETPROCPROPS (p, scm_acons (k, v, SCM_PROCPROPS (p)));
   return SCM_UNSPECIFIED;
 }
 

@@ -213,12 +213,15 @@ recsexpr (obj, line, column, filename)
 	    copy = scm_cons (recsexpr (SCM_CAR (obj), line, column, filename),
 			     SCM_UNDEFINED);
 	    while (SCM_NIMP (tmp = SCM_CDR (tmp)) && SCM_CONSP (tmp))
-	      copy = (SCM_CDR (copy) = scm_cons (recsexpr (SCM_CAR (tmp),
-							   line,
-							   column,
-							   filename),
-						 SCM_UNDEFINED));
-	    SCM_CDR (copy) = tmp;
+	      {
+		SCM_SETCDR (copy, scm_cons (recsexpr (SCM_CAR (tmp),
+						      line,
+						      column,
+						      filename),
+					    SCM_UNDEFINED));
+		copy = SCM_CDR (copy);
+	      }
+	    SCM_SETCDR (copy, tmp);
 	  }
 	else
 	  {
@@ -641,10 +644,11 @@ scm_lreadparen (tok_buf, port, name, case_i, sharp, copy)
       scm_gen_ungetc (c, port);
       if (scm_i_dot == (tmp = scm_lreadr (tok_buf, port, case_i, sharp, copy)))
 	{
-	  SCM_CDR (tl) = scm_lreadr (tok_buf, port, case_i, sharp, copy);
+	  SCM_SETCDR (tl, scm_lreadr (tok_buf, port, case_i, sharp, copy));
 	  goto closeit;
 	}
-      tl = (SCM_CDR (tl) = scm_cons (tmp, SCM_EOL));
+      SCM_SETCDR (tl, scm_cons (tmp, SCM_EOL));
+      tl = SCM_CDR (tl);
     }
   return ans;
 }

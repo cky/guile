@@ -171,11 +171,11 @@ scm_make_memoized (exp, env)
   register SCM z, ans;
   SCM_DEFER_INTS;
   SCM_NEWCELL (z);
-  SCM_CAR (z) = exp;
-  SCM_CDR (z) = env;
+  SCM_SETCAR (z, exp);
+  SCM_SETCDR (z, env);
   SCM_NEWCELL (ans);
-  SCM_CAR (ans) = scm_tc16_memoized;
-  SCM_CDR (ans) = z;
+  SCM_SETCAR (ans, scm_tc16_memoized);
+  SCM_SETCDR (ans, z);
   SCM_ALLOW_INTS;
   return ans;
 }
@@ -378,8 +378,8 @@ scm_make_debugobj (frame)
   register SCM z;
   SCM_DEFER_INTS;
   SCM_NEWCELL (z);
-  SCM_CAR (z) = scm_tc16_debugobj;
-  SCM_DEBUGOBJ_FRAME (z) = (SCM) frame;
+  SCM_SETCAR (z, scm_tc16_debugobj);
+  SCM_SET_DEBUGOBJ_FRAME (z, (SCM) frame);
   SCM_ALLOW_INTS;
   return z;
 }

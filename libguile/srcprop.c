@@ -157,12 +157,12 @@ scm_make_srcprops (line, col, filename, copy, plist)
       srcprops_freelist = (scm_srcprops *) &ptr[1];
     }
   SCM_NEWCELL (ans);
-  SCM_CAR (ans) = scm_tc16_srcprops;
+  SCM_SETCAR (ans, scm_tc16_srcprops);
   ptr->pos = SRCPROPMAKPOS (line, col);
   ptr->fname = filename;
   ptr->copy = copy;
   ptr->plist = plist;
-  SCM_CDR (ans) = (SCM) ptr;
+  SCM_SETCDR (ans, (SCM) ptr);
   SCM_ALLOW_INTS;
   return ans;
 }

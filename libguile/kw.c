@@ -101,11 +101,11 @@ scm_make_keyword_from_dash_symbol (symbol)
     {
       SCM kw;
       SCM_NEWCELL(kw);
-      SCM_CAR(kw) = (SCM)scm_tc16_kw;
-      SCM_CDR(kw) = symbol;
+      SCM_SETCAR (kw, (SCM)scm_tc16_kw);
+      SCM_SETCDR (kw, symbol);
       scm_intern_symbol (scm_kw_obarray, symbol);
       vcell = scm_sym2ovcell_soft (symbol, scm_kw_obarray);
-      SCM_CDR (vcell) = kw;
+      SCM_SETCDR (vcell, kw);
     }
   SCM_ALLOW_INTS;
   return SCM_CDR (vcell);

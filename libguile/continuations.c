@@ -69,7 +69,7 @@ scm_make_cont (answer)
   *answer = cont;
   SCM_DEFER_INTS;
   SCM_SETJMPBUF (cont, scm_must_malloc ((long) sizeof (scm_contregs), s_cont));
-  SCM_CAR (cont) = scm_tc7_contin;
+  SCM_SETCAR (cont, scm_tc7_contin);
   SCM_DYNENV (cont) = scm_dynwinds;
   SCM_THROW_VALUE = SCM_EOL;
   SCM_BASE (cont) = SCM_BASE (rootcont);

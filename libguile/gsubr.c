@@ -99,10 +99,10 @@ scm_make_gsubr(name, req, opt, rst, fcn)
 	tmp = 0;
       SCM_NEWCELL(z);
       SCM_SUBRF(z) = fcn;
-      SCM_CAR(z) = tmp + scm_tc7_subr_0;
+      SCM_SETCAR (z, tmp + scm_tc7_subr_0);
       GSUBR_PROC(cclo) = z;
       GSUBR_TYPE(cclo) = SCM_MAKINUM(GSUBR_MAKTYPE(req, opt, rst));
-      SCM_CDR(symcell) = cclo;
+      SCM_SETCDR (symcell, cclo);
 #ifdef DEBUG_EXTENSIONS
       if (SCM_REC_PROCNAMES_P)
 	scm_set_procedure_property_x (cclo, scm_i_name, SCM_CAR (symcell));

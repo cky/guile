@@ -113,8 +113,8 @@ make_vcell_variable (vcell)
   SCM answer;
   SCM_NEWCELL(answer);
   SCM_REDEFER_INTS;
-  SCM_CAR(answer) = scm_tc16_variable;
-  SCM_CDR(answer) = vcell;
+  SCM_SETCAR (answer, scm_tc16_variable);
+  SCM_SETCDR (answer, vcell);
   SCM_REALLOW_INTS;
   return answer;
 }
@@ -133,8 +133,8 @@ scm_make_variable (init, name_hint)
 
   SCM_NEWCELL(val_cell);
   SCM_DEFER_INTS;
-  SCM_CAR(val_cell) = name_hint;
-  SCM_CDR(val_cell) = init;
+  SCM_SETCAR (val_cell, name_hint);
+  SCM_SETCDR (val_cell, init);
   SCM_ALLOW_INTS;
   return make_vcell_variable (val_cell);
 }
@@ -153,8 +153,8 @@ scm_make_undefined_variable (name_hint)
 
   SCM_NEWCELL (vcell);
   SCM_DEFER_INTS;
-  SCM_CAR (vcell) = name_hint;
-  SCM_CDR (vcell) = SCM_UNDEFINED;
+  SCM_SETCAR (vcell, name_hint);
+  SCM_SETCDR (vcell, SCM_UNDEFINED);
   SCM_ALLOW_INTS;
   return make_vcell_variable (vcell);
 }
@@ -192,7 +192,7 @@ scm_variable_set_x (var, val)
      SCM val;
 {
   SCM_ASSERT (SCM_NIMP(var) && SCM_VARIABLEP (var), var, SCM_ARG1, s_variable_set_x);
-  SCM_CDR (SCM_CDR (var)) = val;
+  SCM_SETCDR (SCM_CDR (var), val);
   return SCM_UNSPECIFIED;
 }
 
@@ -217,7 +217,7 @@ scm_builtin_variable (name)
   SCM_DEFER_INTS;
   if (   SCM_IMP (SCM_CDR (var_slot))
       || (SCM_VARVCELL (var_slot) != vcell))
-    SCM_CDR (var_slot) = make_vcell_variable (vcell);
+    SCM_SETCDR (var_slot, make_vcell_variable (vcell));
   SCM_ALLOW_INTS;
 
   return SCM_CDR (var_slot);

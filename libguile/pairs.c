@@ -56,8 +56,8 @@ scm_cons (x, y)
 {
   register SCM z;
   SCM_NEWCELL (z);
-  SCM_CAR (z) = x;
-  SCM_CDR (z) = y;
+  SCM_SETCAR (z, x);
+  SCM_SETCDR (z, y);
   return z;
 }
 
@@ -70,12 +70,12 @@ scm_cons2 (w, x, y)
 {
   register SCM z;
   SCM_NEWCELL (z);
-  SCM_CAR (z) = x;
-  SCM_CDR (z) = y;
+  SCM_SETCAR (z, x);
+  SCM_SETCDR (z, y);
   x = z;
   SCM_NEWCELL (z);
-  SCM_CAR (z) = w;
-  SCM_CDR (z) = x;
+  SCM_SETCAR (z, w);
+  SCM_SETCDR (z, x);
   return z;
 }
 
@@ -98,7 +98,7 @@ scm_set_car_x(pair, value)
      SCM value;
 {
 	SCM_ASSERT(SCM_NIMP(pair) && SCM_CONSP(pair), pair, SCM_ARG1, s_set_car_x);
-	SCM_CAR(pair) = value;
+	SCM_SETCAR (pair, value);
 	return value;
 }
 
@@ -110,7 +110,7 @@ scm_set_cdr_x(pair, value)
      SCM value;
 {
 	SCM_ASSERT(SCM_NIMP(pair) && SCM_CONSP(pair), pair, SCM_ARG1, s_set_cdr_x);
-	SCM_CDR(pair) = value;
+	SCM_SETCDR (pair, value);
 	return value;
 }
 

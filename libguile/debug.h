@@ -166,6 +166,7 @@ extern long scm_tc16_debugobj;
 
 #define SCM_DEBUGOBJP(x) (scm_tc16_debugobj == SCM_TYP16 (x))
 #define SCM_DEBUGOBJ_FRAME(x) SCM_CDR (x)
+#define SCM_SET_DEBUGOBJ_FRAME(x, f) SCM_SETCDR (x, f)
 
 /* {Memoized Source}
  */

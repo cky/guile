@@ -719,7 +719,7 @@ scm_sys_opendir (dirname)
   SCM_SYSCALL (ds = opendir (SCM_CHARS (dirname)));
   if (ds == NULL)
     scm_syserror (s_sys_opendir);
-  SCM_CAR (dir) = scm_tc16_dir | SCM_OPN;
+  SCM_SETCAR (dir, scm_tc16_dir | SCM_OPN);
   SCM_SETCDR (dir, ds);
   SCM_ALLOW_INTS;
   return dir;
@@ -777,7 +777,7 @@ scm_sys_closedir (port)
   SCM_SYSCALL (sts = closedir ((DIR *) SCM_CDR (port)));
   if (sts != 0)
     scm_syserror (s_sys_closedir);
-  SCM_CAR (port) = scm_tc16_dir;
+  SCM_SETCAR (port, scm_tc16_dir);
   SCM_ALLOW_INTS;
   return SCM_UNSPECIFIED;
 }
