@@ -1,3 +1,8 @@
+2002-02-08  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* gsubr.c (create_gsubr): On "too many args" error,
+	also display arg count and name.  Thanks to Bill Schottstaedt.
+
 2002-02-05  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* Makefile.am: Include $(top_srcdir)/pre-inst-guile.am.
