@@ -4102,7 +4102,8 @@ scm_difference (SCM x, SCM y)
               return scm_i_long2big (xx);
           }
         else if (SCM_BIGP (x))
-          /* FIXME: do we really need to normalize here? */
+          /* Must scm_i_normbig here because -SCM_MOST_NEGATIVE_FIXNUM is a
+             bignum, but negating that gives a fixnum.  */
           return scm_i_normbig (scm_i_clonebig (x, 0));
         else if (SCM_REALP (x))
           return scm_from_double (-SCM_REAL_VALUE (x));
