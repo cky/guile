@@ -1,3 +1,16 @@
+2002-02-03  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* symbols.h (SCM_SET_SYMBOL_HASH): Removed.
+	(SCM_SYMBOL_INTERNED_P): New.
+	* symbols.c (scm_symbol_hash): Use scm_ulong2num instead of
+	SCM_MAKINUM since hash values can well be bignums.
+	(scm_mem2symbol): Only use hash values below SCM_T_BITS_MAX/2.
+	This signals a interned symbol.
+	(scm_mem2uninterned_symbol, scm_symbol_interned_p,
+	scm_make_symbol): New.
+	
+	* print.c (scm_iprin1): Print uninterned symbols unreadably.
+
 2002-02-02  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* __scm.h (HAVE_UINTPTR_T): Only define if UINTPTR_T attributes
@@ -6,7 +19,7 @@
 2002-01-31  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* symbols.c (scm_gensym): Use " g" as default prefix, not "g".
-	This might help to make unintented clashes less likely.
+	This might help to make unintended clashes less likely.
 	(scm_string_to_symbol): Protect the string until the symbols is
 	created.
 
