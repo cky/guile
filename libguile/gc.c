@@ -408,6 +408,7 @@ static scm_mark_space_t *mark_space_head;
 
 static scm_c_bvec_limb_t *
 get_bvec ()
+#define FUNC_NAME "get_bvec"
 {
   scm_c_bvec_limb_t *res;
 
@@ -415,7 +416,7 @@ get_bvec ()
     {
       SCM_SYSCALL (current_mark_space = (scm_mark_space_t *) malloc (sizeof (scm_mark_space_t)));
       if (!current_mark_space)
-        scm_wta (SCM_UNDEFINED, "could not grow", "heap");
+        SCM_MISC_ERROR ("could not grow heap", SCM_EOL);
 
       current_mark_space->bvec_space = NULL;
       current_mark_space->next = NULL;
@@ -431,7 +432,7 @@ get_bvec ()
       SCM_SYSCALL (current_mark_space->bvec_space =
                    (scm_c_bvec_limb_t *) calloc (BVEC_GROW_SIZE_IN_BYTES, 1));
       if (!(current_mark_space->bvec_space))
-        scm_wta (SCM_UNDEFINED, "could not grow", "heap");
+        SCM_MISC_ERROR ("could not grow heap", SCM_EOL);
 
       current_mark_space_offset = 0;
 
@@ -450,6 +451,8 @@ get_bvec ()
 
   return res;
 }
+#undef FUNC_NAME
+
 
 static void
 clear_mark_space ()
@@ -1143,7 +1146,7 @@ gc_mark_loop_first_time:
 #if (defined (GUILE_DEBUG_FREELIST))
 
   if (SCM_GC_IN_CARD_HEADERP (SCM2PTR (ptr)))
-    scm_wta (ptr, "rogue pointer in heap", NULL);
+    SCM_MISC_ERROR ("rogue pointer in heap", SCM_EOL);
 
 #endif
 

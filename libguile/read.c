@@ -255,6 +255,7 @@ recsexpr (SCM obj,int line,int column,SCM filename)
 
 static void
 skip_scsh_block_comment (SCM port)
+#define FUNC_NAME "skip_scsh_block_comment"
 {
   /* Is this portable?  Dear God, spare me from the non-eight-bit
      characters.  But is it tasteful?  */
@@ -265,8 +266,7 @@ skip_scsh_block_comment (SCM port)
       int c = scm_getc (port);
 
       if (c == EOF)
-	scm_wta (SCM_UNDEFINED,
-		 "unterminated `#! ... !#' comment", "read");
+	SCM_MISC_ERROR ("unterminated `#! ... !#' comment", SCM_EOL);
       history = ((history << 8) | (c & 0xff)) & 0xffffffff;
 
       /* Were the last four characters read "\n!#\n"?  */
@@ -274,6 +274,8 @@ skip_scsh_block_comment (SCM port)
 	return;
     }
 }
+#undef FUNC_NAME
+
 
 static SCM scm_get_hash_procedure(int c);
 
@@ -281,6 +283,7 @@ static char s_list[]="list";
 
 SCM 
 scm_lreadr (SCM *tok_buf,SCM port,SCM *copy)
+#define FUNC_NAME "scm_lreadr"
 {
   int c;
   scm_sizet j;
@@ -299,7 +302,7 @@ tryagain_no_flush_ws:
 	     ? scm_lreadrecparen (tok_buf, port, s_list, copy)
 	     : scm_lreadparen (tok_buf, port, s_list, copy);
     case ')':
-      scm_wta (SCM_UNDEFINED, "unexpected \")\"", "read");
+      SCM_MISC_ERROR ("unexpected \")\"", SCM_EOL);
       goto tryagain;
     
     case '\'':
@@ -402,7 +405,7 @@ tryagain_no_flush_ws:
 	    if (scm_charnames[c]
 		&& (scm_casei_streq (scm_charnames[c], SCM_STRING_CHARS (*tok_buf))))
 	      return SCM_MAKE_CHAR (scm_charnums[c]);
-	  scm_wta (SCM_UNDEFINED, "unknown # object: #\\", SCM_STRING_CHARS (*tok_buf));
+	  SCM_MISC_ERROR ("unknown # object", SCM_EOL);
 
 	  /* #:SYMBOL is a syntax for keywords supported in all contexts.  */
 	case ':':
@@ -504,7 +507,7 @@ tryagain_no_flush_ws:
 	      c = SCM_STRING_CHARS (*tok_buf)[1];
 	      goto callshrp;
 	    }
-	  scm_wta (SCM_UNDEFINED, "unknown # object", SCM_STRING_CHARS (*tok_buf));
+	  SCM_MISC_ERROR ("unknown # object", SCM_EOL);
 	}
       goto tok;
 
@@ -524,6 +527,8 @@ tryagain_no_flush_ws:
       return scm_mem2symbol (SCM_STRING_CHARS (*tok_buf), j);
     }
 }
+#undef FUNC_NAME
+
 
 #ifdef _UNICOS
 _Pragma ("noopt");		/* # pragma _CRI noopt */
@@ -617,6 +622,7 @@ _Pragma ("opt");		/* # pragma _CRI opt */
 
 SCM 
 scm_lreadparen (SCM *tok_buf, SCM port, char *name, SCM *copy)
+#define FUNC_NAME "scm_lreadparen"
 {
   SCM tmp;
   SCM tl;
@@ -632,7 +638,7 @@ scm_lreadparen (SCM *tok_buf, SCM port, char *name, SCM *copy)
       ans = scm_lreadr (tok_buf, port, copy);
     closeit:
       if (')' != (c = scm_flush_ws (port, name)))
-	scm_wta (SCM_UNDEFINED, "missing close paren", "");
+	SCM_MISC_ERROR ("missing close paren", SCM_EOL);
       return ans;
     }
   ans = tl = scm_cons (tmp, SCM_EOL);
@@ -649,10 +655,12 @@ scm_lreadparen (SCM *tok_buf, SCM port, char *name, SCM *copy)
     }
   return ans;
 }
+#undef FUNC_NAME
 
 
 SCM 
 scm_lreadrecparen (SCM *tok_buf, SCM port, char *name, SCM *copy)
+#define FUNC_NAME "scm_lreadrecparen"
 {
   register int c;
   register SCM tmp;
@@ -670,7 +678,7 @@ scm_lreadrecparen (SCM *tok_buf, SCM port, char *name, SCM *copy)
     {
       ans = scm_lreadr (tok_buf, port, copy);
       if (')' != (c = scm_flush_ws (port, name)))
-	scm_wta (SCM_UNDEFINED, "missing close paren", "");
+	SCM_MISC_ERROR ("missing close paren", SCM_EOL);
       return ans;
     }
   /* Build the head of the list structure. */
@@ -694,7 +702,7 @@ scm_lreadrecparen (SCM *tok_buf, SCM port, char *name, SCM *copy)
 				       : tmp,
 				       SCM_EOL));
 	  if (')' != (c = scm_flush_ws (port, name)))
-	    scm_wta (SCM_UNDEFINED, "missing close paren", "");
+	    SCM_MISC_ERROR ("missing close paren", SCM_EOL);
 	  goto exit;
 	}
 
@@ -721,6 +729,7 @@ exit:
 				       SCM_EOL));
   return ans;
 }
+#undef FUNC_NAME
 
 
 

@@ -681,13 +681,13 @@ scm_m_lambda (SCM xorig, SCM env)
       if (!SCM_SYMBOLP (SCM_CAR (proc)))
 	goto badforms;
       else if (scm_c_improper_memq (SCM_CAR(proc), SCM_CDR(proc)))
-	scm_wta (xorig, scm_s_duplicate_formals, s_lambda);
+	scm_misc_error (s_lambda, scm_s_duplicate_formals, SCM_EOL);
       proc = SCM_CDR (proc);
     }
   if (SCM_NNULLP (proc))
     {
     badforms:
-      scm_wta (xorig, scm_s_formals, s_lambda);
+      scm_misc_error (s_lambda, scm_s_formals, SCM_EOL);
     }
 
  memlambda:
@@ -713,7 +713,7 @@ scm_m_letstar (SCM xorig, SCM env)
       SCM_ASSYNT (2 == scm_ilength (arg1), xorig, scm_s_bindings, s_letstar);
       SCM_ASSYNT (SCM_SYMBOLP (SCM_CAR (arg1)), xorig, scm_s_variable, s_letstar);
       if (scm_c_improper_memq (SCM_CAR (arg1), vars))
-	scm_wta (xorig, scm_s_duplicate_bindings, s_letstar);
+	scm_misc_error (s_letstar, scm_s_duplicate_bindings, SCM_EOL);
       *varloc = scm_cons2 (SCM_CAR (arg1), SCM_CAR (SCM_CDR (arg1)), SCM_EOL);
       varloc = SCM_CDRLOC (SCM_CDR (*varloc));
       proc = SCM_CDR (proc);
@@ -920,7 +920,7 @@ scm_m_letrec1 (SCM op, SCM imm, SCM xorig, SCM env)
       SCM_ASSYNT (2 == scm_ilength (arg1), xorig, scm_s_bindings, what);
       SCM_ASSYNT (SCM_SYMBOLP (SCM_CAR (arg1)), xorig, scm_s_variable, what);
       if (scm_c_improper_memq (SCM_CAR (arg1), vars))
-	scm_wta (xorig, scm_s_duplicate_bindings, what);
+	scm_misc_error (what, scm_s_duplicate_bindings, SCM_EOL);
       vars = scm_cons (SCM_CAR (arg1), vars);
       *initloc = scm_cons (SCM_CAR (SCM_CDR (arg1)), SCM_EOL);
       initloc = SCM_CDRLOC (*initloc);
@@ -982,7 +982,7 @@ scm_m_let (SCM xorig, SCM env)
     }
 
   if (!SCM_SYMBOLP (proc))
-    scm_wta (xorig, scm_s_bindings, s_let);	/* bad let */
+    scm_misc_error (s_let, scm_s_bindings, SCM_EOL);	/* bad let */
   name = proc;			/* named let, build equiv letrec */
   x = SCM_CDR (x);
   SCM_ASSYNT (scm_ilength (x) >= 2, xorig, scm_s_body, s_let);
@@ -3559,7 +3559,7 @@ tail:
       scm_wrong_num_args (proc);
     default:
     badproc:
-      scm_wta (proc, (char *) SCM_ARG1, "apply");
+      scm_wrong_type_arg ("apply", SCM_ARG1, proc);
       RETURN (arg1);
     }
 #ifdef DEVAL

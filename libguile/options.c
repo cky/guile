@@ -190,7 +190,8 @@ scm_options (SCM arg, scm_option options[], int n, const char *s)
 		}
 #ifndef SCM_RECKLESS
 	  scm_must_free ((char *) flags);
-	  scm_wta (SCM_CAR (new_mode), "Unknown mode flag", s);
+	  scm_misc_error (s, "Unknown mode flag: ~S", 
+			  SCM_LIST1 (SCM_CAR (new_mode)));
 #endif
 	cont:
 	  new_mode = SCM_CDR (new_mode);

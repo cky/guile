@@ -1,3 +1,16 @@
+2001-03-04  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* continuations.c (continuation_apply), eval.c (scm_m_lambda,
+	scm_m_letstar, scm_m_letrec1, scm_m_let, SCM_APPLY), eval.h
+	(SCM_EVALIM2), evalext.c (scm_m_generalized_set_x), gc.c
+	(get_bvec, MARK), goops.c (scm_primitive_generic_generic),
+	options.c (scm_options), ports.c (scm_remove_from_port_table),
+	ramap.c (scm_ramapc), read.c (skip_scsh_block_comment, scm_lreadr,
+	scm_lreadparen, scm_lreadrecparen), script.c (script_get_octal,
+	script_get_backslash, script_read_arg), unif.c (scm_cvref):  Don't
+	call function scm_wta, call scm_misc_error or scm_wrong_type_arg
+	instead.
+
 2001-03-04  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
 
 	* goops.c (scm_sys_pre_expand_closure_x): New procedure.

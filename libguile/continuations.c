@@ -59,6 +59,7 @@
 #include "libguile/debug.h"
 #endif
 
+#include "libguile/validate.h"
 #include "libguile/continuations.h"
 
 
@@ -219,8 +220,10 @@ scm_dynthrow (SCM cont, SCM val)
   copy_stack_and_call (continuation, val, dst);
 }
 
+
+static SCM
+continuation_apply (SCM cont, SCM args)
 #define FUNC_NAME "continuation_apply"
-static SCM continuation_apply (SCM cont, SCM args)
 {
   scm_contregs *continuation = SCM_CONTREGS (cont);
   scm_contregs *rootcont = SCM_CONTREGS (scm_rootcont);
@@ -229,7 +232,8 @@ static SCM continuation_apply (SCM cont, SCM args)
       /* this base comparison isn't needed */
       || continuation->base != rootcont->base)
     {
-      scm_wta (cont, "continuation from wrong top level", FUNC_NAME);
+      SCM_MISC_ERROR ("continuation from wrong top level: ~S", 
+		      SCM_LIST1 (cont));
     }
   
   scm_dowinds (continuation->dynenv,
@@ -240,6 +244,7 @@ static SCM continuation_apply (SCM cont, SCM args)
   return SCM_UNSPECIFIED; /* not reached */
 }
 #undef FUNC_NAME
+
 
 void
 scm_init_continuations ()

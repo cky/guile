@@ -1644,7 +1644,7 @@ SCM_DEFINE (scm_primitive_generic_generic, "primitive-generic-generic", 1, 0, 0,
       if (gf)
 	return gf;
     }
-  return scm_wta (subr, (char *) SCM_ARG1, FUNC_NAME);
+  SCM_WRONG_TYPE_ARG (SCM_ARG1, subr);
 }
 #undef FUNC_NAME
 

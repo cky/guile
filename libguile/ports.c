@@ -468,12 +468,13 @@ scm_add_to_port_table (SCM port)
 
 void
 scm_remove_from_port_table (SCM port)
+#define FUNC_NAME "scm_remove_from_port_table"
 {
   scm_port *p = SCM_PTAB_ENTRY (port);
   int i = p->entry;
 
   if (i >= scm_port_table_size)
-    scm_wta (port, "Port not in table", "scm_remove_from_port_table");
+    SCM_MISC_ERROR ("Port not in table: ~S", SCM_LIST1 (port));
   if (p->putback_buf)
     free (p->putback_buf);
   free (p);
@@ -487,6 +488,8 @@ scm_remove_from_port_table (SCM port)
   SCM_SETPTAB_ENTRY (port, 0);
   scm_port_table_size--;
 }
+#undef FUNC_NAME
+
 
 #ifdef GUILE_DEBUG
 /* Functions for debugging.  */

@@ -1156,11 +1156,12 @@ SCM_DEFINE (scm_uniform_vector_ref, "uniform-vector-ref", 2, 0, 0,
 
 SCM 
 scm_cvref (SCM v, scm_sizet pos, SCM last)
+#define FUNC_NAME "scm_cvref"
 {
   switch SCM_TYP7 (v)
     {
     default:
-      scm_wta (v, (char *) SCM_ARG1, "PROGRAMMING ERROR: scm_cvref");
+      SCM_WRONG_TYPE_ARG (SCM_ARG1, v);
     case scm_tc7_bvect:
       if (SCM_BITVEC_REF(v,pos))
 	return SCM_BOOL_T;
@@ -1222,6 +1223,8 @@ scm_cvref (SCM v, scm_sizet pos, SCM last)
       }
     }
 }
+#undef FUNC_NAME
+
 
 SCM_REGISTER_PROC(s_uniform_array_set1_x, "uniform-array-set1!", 3, 0, 0, scm_array_set_x);
 

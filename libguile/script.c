@@ -51,6 +51,7 @@
 #include "libguile/load.h"
 #include "libguile/version.h"
 
+#include "libguile/validate.h"
 #include "libguile/script.h"
 
 #ifdef HAVE_STRING_H
@@ -168,6 +169,7 @@ scm_find_executable (const char *name)
 /* Read a \nnn-style escape.  We've just read the backslash.  */
 static int
 script_get_octal (FILE *f)
+#define FUNC_NAME "script_get_octal"
 {
   int i;
   int value = 0;
@@ -178,16 +180,17 @@ script_get_octal (FILE *f)
       if ('0' <= c && c <= '7')
 	value = (value * 8) + (c - '0');
       else
-	scm_wta (SCM_UNDEFINED,
-		 "malformed script: bad octal backslash escape",
-		 "script argument parser");
+	SCM_MISC_ERROR ("malformed script: bad octal backslash escape",
+			SCM_EOL);
     }
   return value;
 }
+#undef FUNC_NAME
 
 
 static int
 script_get_backslash (FILE *f)
+#define FUNC_NAME "script_get_backslash"
 {
   int c = getc (f);
 
@@ -211,24 +214,22 @@ script_get_backslash (FILE *f)
     case '4': case '5': case '6': case '7':
       ungetc (c, f);
       return script_get_octal (f);
-	    
+
     case EOF:
-      scm_wta (SCM_UNDEFINED,
-	       "malformed script: backslash followed by EOF",
-	       "script argument parser");
+      SCM_MISC_ERROR ("malformed script: backslash followed by EOF", SCM_EOL);
       return 0; /* not reached? */
 
     default:
-      scm_wta (SCM_UNDEFINED,
-	       "malformed script: bad backslash sequence",
-	       "script argument parser");
+      SCM_MISC_ERROR ("malformed script: bad backslash sequence", SCM_EOL);
       return 0; /* not reached? */
     }
 }
+#undef FUNC_NAME
 
 
 static char *
 script_read_arg (FILE *f)
+#define FUNC_NAME "script_read_arg"
 {
   int size = 7;
   char *buf = malloc (size + 1);
@@ -275,13 +276,12 @@ script_read_arg (FILE *f)
 
 	case '\t':
 	  free (buf);
-	  scm_wta (SCM_UNDEFINED,
-		   "malformed script: TAB in meta-arguments",
-		   "argument parser");
+	  SCM_MISC_ERROR ("malformed script: TAB in meta-arguments", SCM_EOL);
 	  return 0; /* not reached? */
 	}
     }
 }
+#undef FUNC_NAME
 
 
 static int
