@@ -1,3 +1,10 @@
+2005-01-24  Kevin Ryde  <user42@zip.com.au>
+
+	* posix.c (scm_setlocale): Force errno=EINVAL for an error, since
+	POSIX and C99 don't document errno being set.  Reported by Bruno
+	Haible.
+	(scm_flock): Update docstring from manual.
+
 2005-01-20  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* environments.c (obarray_enter, obarray_replace): Call
