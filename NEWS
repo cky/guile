@@ -87,9 +87,9 @@ Example:
 
 * Changes to Scheme functions and syntax
 
-** The semantics of guardians has changed.
+** The semantics of guardians have changed.
 
-The changes are for the most part compatible.  An important criteria
+The changes are for the most part compatible.  An important criterion
 was to keep the typical usage of guardians as simple as before, but to 
 make the semantics safer and (as a result) more useful.
 
