@@ -54,10 +54,11 @@ extern SCM scm_sym_arity;
 
 
 
-extern SCM scm_procedure_properties SCM_P ((SCM proc));
-extern SCM scm_set_procedure_properties_x SCM_P ((SCM proc, SCM new_val));
-extern SCM scm_procedure_property SCM_P ((SCM p, SCM k));
-extern SCM scm_set_procedure_property_x SCM_P ((SCM p, SCM k, SCM v));
-extern void scm_init_procprop SCM_P ((void));
+extern SCM scm_i_procedure_arity (SCM proc);
+extern SCM scm_procedure_properties (SCM proc);
+extern SCM scm_set_procedure_properties_x (SCM proc, SCM new_val);
+extern SCM scm_procedure_property (SCM p, SCM k);
+extern SCM scm_set_procedure_property_x (SCM p, SCM k, SCM v);
+extern void scm_init_procprop (void);
 
 #endif  /* PROCPROPH */
