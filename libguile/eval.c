@@ -2348,18 +2348,19 @@ dispatch:
 
 
       /* new syntactic forms go here. */
-    case SCM_BIT8(SCM_MAKISYM (0)):
+    case SCM_BIT8 (SCM_MAKISYM (0)):
       proc = SCM_CAR (x);
       SCM_ASRTGO (SCM_ISYMP (proc), badfun);
       switch (SCM_ISYMNUM (proc))
 	{
+
+
 	case (SCM_ISYMNUM (SCM_IM_APPLY)):
 	  proc = SCM_CDR (x);
 	  proc = EVALCAR (proc, env);
-	  SCM_ASRTGO (SCM_NIMP (proc), badfun);
+	  SCM_ASRTGO (!SCM_IMP (proc), badfun);
 	  if (SCM_CLOSUREP (proc))
 	    {
-	      SCM argl, tl;
 	      PREP_APPLY (proc, SCM_EOL);
 	      t.arg1 = SCM_CDDR (x);
 	      t.arg1 = EVALCAR (t.arg1, env);
@@ -2367,36 +2368,44 @@ dispatch:
 	      /* Go here to tail-call a closure.  PROC is the closure
 	         and T.ARG1 is the list of arguments.  Do not forget to
 	         call PREP_APPLY. */
+	      {
+		SCM formals = SCM_CLOSURE_FORMALS (proc);
 #ifdef DEVAL
-	      debug.info->a.args = t.arg1;
+		debug.info->a.args = t.arg1;
 #endif
 #ifndef SCM_RECKLESS
-	      if (scm_badargsp (SCM_CLOSURE_FORMALS (proc), t.arg1))
-		goto wrongnumargs;
+		if (scm_badargsp (formals, t.arg1))
+		  goto wrongnumargs;
 #endif
-	      ENTER_APPLY;
-	      /* Copy argument list */
-	      if (SCM_IMP (t.arg1))
-		argl = t.arg1;
-	      else
-		{
-		  argl = tl = scm_cons (SCM_CAR (t.arg1), SCM_UNSPECIFIED);
-		  while (SCM_NIMP (t.arg1 = SCM_CDR (t.arg1))
-			 && SCM_CONSP (t.arg1))
-		    {
-		      SCM_SETCDR (tl, scm_cons (SCM_CAR (t.arg1),
-						SCM_UNSPECIFIED));
-		      tl = SCM_CDR (tl);
-		    }
-		  SCM_SETCDR (tl, t.arg1);
-		}
+		ENTER_APPLY;
+		/* Copy argument list */
+		if (SCM_NULL_OR_NIL_P (t.arg1))
+		  env = EXTEND_ENV (formals, SCM_EOL, SCM_ENV (proc));
+		else
+		  {
+		    SCM args = scm_list_1 (SCM_CAR (t.arg1));
+		    SCM tail = args;
+		    t.arg1 = SCM_CDR (t.arg1);
+		    while (!SCM_NULL_OR_NIL_P (t.arg1))
+		      {
+			SCM new_tail = scm_list_1 (SCM_CAR (t.arg1));
+			SCM_SETCDR (tail, new_tail);
+			tail = new_tail;
+			t.arg1 = SCM_CDR (t.arg1);
+		      }
+		    env = EXTEND_ENV (formals, args, SCM_ENV (proc));
+		  }
 	      
-	      env = EXTEND_ENV (SCM_CLOSURE_FORMALS (proc), argl, SCM_ENV (proc));
-	      x = SCM_CLOSURE_BODY (proc);
-	      goto nontoplevel_begin;
+		x = SCM_CLOSURE_BODY (proc);
+		goto nontoplevel_begin;
+	      }
 	    }
-	  proc = scm_f_apply;
-	  goto evapply;
+	  else
+	    {
+	      proc = scm_f_apply;
+	      goto evapply;
+	    }
+
 
 	case (SCM_ISYMNUM (SCM_IM_CONT)):
 	  {

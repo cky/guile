@@ -1,3 +1,10 @@
+2002-03-02  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* eval.c (SCM_CEVAL): Cleaned up the handling of 'apply'.  Removed
+	side-effecting operations from conditions and macro calls.
+	Replaced SCM_N?IMP by a more explicit predicate in some places.
+	Minimized the scope of some variables.
+
 2002-03-02  Stefan Jahn  <stefan@lkcc.org>
 
 	* convert.i.c: Fixed int <-> long conversions which would have
