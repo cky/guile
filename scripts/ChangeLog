@@ -1,3 +1,9 @@
+2001-07-14  Thien-Thi Nguyen  <ttn@revel.glug.org>
+
+	* PROGRAM, display-commentary, doc-snarf, generate-autoload,
+	punify, read-scheme-source, snarf-check-and-output-texi, use2dot:
+	Re-add authorship info.
+
 2001-07-12  Michael Livshin  <mlivshin@bigfoot.com>
 
 	* snarf-check-and-output-texi (do-argpos): complain to the stderr,
