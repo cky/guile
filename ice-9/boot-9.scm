@@ -1,6 +1,7 @@
 ;;; installed-scm-file
 
-;;;; Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002, 2003, 2004 Free Software Foundation, Inc.
+;;;; Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004
+;;;; Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -16,6 +17,7 @@
 ;;;; License along with this library; if not, write to the Free Software
 ;;;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 ;;;;
+
 
 
 ;;; Commentary:
@@ -30,58 +32,151 @@
 ;;; Code:
 
 
-;;; {Deprecation}
-;;;
 
-;; We don't have macros here, but we do want to define
-;; `begin-deprecated' early.
-
-(define begin-deprecated
-  (procedure->memoizing-macro
-   (lambda (exp env)
-     (if (include-deprecated-features)
-	 `(begin ,@(cdr exp))
-	 `#f))))
-
-
 ;;; {Features}
-;;
+;;;
 
 (define (provide sym)
   (if (not (memq sym *features*))
       (set! *features* (cons sym *features*))))
 
-;;; Return #t iff FEATURE is available to this Guile interpreter.
-;;; In SLIB, provided? also checks to see if the module is available.
-;;; We should do that too, but don't.
+;; Return #t iff FEATURE is available to this Guile interpreter.  In SLIB,
+;; provided? also checks to see if the module is available.  We should do that
+;; too, but don't.
+
 (define (provided? feature)
   (and (memq feature *features*) #t))
 
-(begin-deprecated
- (define (feature? sym)
-   (issue-deprecation-warning
-    "`feature?' is deprecated.  Use `provided?' instead.")
-   (provided? sym)))
+;; let format alias simple-format until the more complete version is loaded
 
-;;; let format alias simple-format until the more complete version is loaded
 (define format simple-format)
 
 
+
+;;; {EVAL-CASE}
+;;;
+
+;; (eval-case ((situation*) forms)* (else forms)?)
+;;
+;; Evaluate certain code based on the situation that eval-case is used
+;; in.  The only defined situation right now is `load-toplevel' which
+;; triggers for code evaluated at the top-level, for example from the
+;; REPL or when loading a file.
+
+(define eval-case
+  (procedure->memoizing-macro
+   (lambda (exp env)
+     (define (toplevel-env? env)
+       (or (not (pair? env)) (not (pair? (car env)))))
+     (define (syntax)
+       (error "syntax error in eval-case"))
+     (let loop ((clauses (cdr exp)))
+       (cond
+	((null? clauses)
+	 #f)
+	((not (list? (car clauses)))
+	 (syntax))
+	((eq? 'else (caar clauses))
+	 (or (null? (cdr clauses))
+	     (syntax))
+	 (cons 'begin (cdar clauses)))
+	((not (list? (caar clauses)))
+	 (syntax))
+	((and (toplevel-env? env)
+	      (memq 'load-toplevel (caar clauses)))
+	 (cons 'begin (cdar clauses)))
+	(else
+	 (loop (cdr clauses))))))))
+
+
+
+;;; {Defmacros}
+;;;
+;;; Depends on: features, eval-case
+;;;
+
+(define macro-table (make-weak-key-hash-table 61))
+(define xformer-table (make-weak-key-hash-table 61))
+
+(define (defmacro? m)  (hashq-ref macro-table m))
+(define (assert-defmacro?! m) (hashq-set! macro-table m #t))
+(define (defmacro-transformer m) (hashq-ref xformer-table m))
+(define (set-defmacro-transformer! m t) (hashq-set! xformer-table m t))
+
+(define defmacro:transformer
+  (lambda (f)
+    (let* ((xform (lambda (exp env)
+		    (copy-tree (apply f (cdr exp)))))
+	   (a (procedure->memoizing-macro xform)))
+      (assert-defmacro?! a)
+      (set-defmacro-transformer! a f)
+      a)))
+
+
+(define defmacro
+  (let ((defmacro-transformer
+	  (lambda (name parms . body)
+	    (let ((transformer `(lambda ,parms ,@body)))
+	      `(eval-case
+		((load-toplevel)
+		 (define ,name (defmacro:transformer ,transformer)))
+		(else
+		 (error "defmacro can only be used at the top level")))))))
+    (defmacro:transformer defmacro-transformer)))
+
+(define defmacro:syntax-transformer
+  (lambda (f)
+    (procedure->syntax
+	      (lambda (exp env)
+		(copy-tree (apply f (cdr exp)))))))
+
+
+;; XXX - should the definition of the car really be looked up in the
+;; current module?
+
+(define (macroexpand-1 e)
+  (cond
+   ((pair? e) (let* ((a (car e))
+		     (val (and (symbol? a) (local-ref (list a)))))
+		(if (defmacro? val)
+		    (apply (defmacro-transformer val) (cdr e))
+		    e)))
+   (#t e)))
+
+(define (macroexpand e)
+  (cond
+   ((pair? e) (let* ((a (car e))
+		     (val (and (symbol? a) (local-ref (list a)))))
+		(if (defmacro? val)
+		    (macroexpand (apply (defmacro-transformer val) (cdr e)))
+		    e)))
+   (#t e)))
+
+(provide 'defmacro)
+
+
+
+;;; {Deprecation}
+;;;
+;;; Depends on: defmacro
+;;;
+
+(defmacro begin-deprecated forms
+  (if (include-deprecated-features)
+      (cons begin forms)
+      #f))
+
+
+
 ;;; {R4RS compliance}
+;;;
 
 (primitive-load-path "ice-9/r4rs.scm")
 
 
-;;; {Deprecated stuff}
-
-(begin-deprecated
- (primitive-load-path "ice-9/deprecated.scm"))
-
-
 
 ;;; {Simple Debugging Tools}
-;;
-
+;;;
 
 ;; peek takes any number of arguments, writes them to the
 ;; current ouput port, and returns the last argument.
@@ -111,6 +206,7 @@
       (car (last-pair stuff)))))
 
 
+
 ;;; {Trivial Functions}
 ;;;
 
@@ -134,6 +230,24 @@
 
 (define (apply-to-args args fn) (apply fn args))
 
+(defmacro false-if-exception (expr)
+  `(catch #t (lambda () ,expr)
+	  (lambda args #f)))
+
+
+
+;;; {General Properties}
+;;;
+
+;; This is a more modern interface to properties.  It will replace all
+;; other property-like things eventually.
+
+(define (make-object-property)
+  (let ((prop (primitive-make-property #f)))
+    (make-procedure-with-setter
+     (lambda (obj) (primitive-property-ref prop obj))
+     (lambda (obj val) (primitive-property-set! prop obj val)))))
+
 
 
 ;;; {Symbol Properties}
@@ -154,18 +268,6 @@
     (if pair
 	(symbol-pset! sym (delq! pair (symbol-pref sym))))))
 
-;;; {General Properties}
-;;;
-
-;; This is a more modern interface to properties.  It will replace all
-;; other property-like things eventually.
-
-(define (make-object-property)
-  (let ((prop (primitive-make-property #f)))
-    (make-procedure-with-setter
-     (lambda (obj) (primitive-property-ref prop obj))
-     (lambda (obj val) (primitive-property-set! prop obj val)))))
-
 
 
 ;;; {Arrays}
@@ -175,6 +277,7 @@
     (primitive-load-path "ice-9/arrays.scm"))
 
 
+
 ;;; {Keywords}
 ;;;
 
@@ -192,13 +295,15 @@
 
 
 ;;; {Structs}
+;;;
 
 (define (struct-layout s)
   (struct-ref (struct-vtable s) vtable-index-layout))
 
 
 
-;;; Environments
+;;; {Environments}
+;;;
 
 (define the-environment
   (procedure->syntax
@@ -212,6 +317,7 @@
     (and closure (procedure-property closure 'module))))
 
 
+
 ;;; {Records}
 ;;;
 
@@ -328,12 +434,14 @@
 (provide 'record)
 
 
+
 ;;; {Booleans}
 ;;;
 
 (define (->bool x) (not (not x)))
 
 
+
 ;;; {Symbols}
 ;;;
 
@@ -347,6 +455,7 @@
   (string->symbol (apply string args)))
 
 
+
 ;;; {Lists}
 ;;;
 
@@ -367,6 +476,7 @@
 	(loop (cons init answer) (- n 1)))))
 
 
+
 ;;; {and-map and or-map}
 ;;;
 ;;; (and-map fn lst) is like (and (fn (car lst)) (fn (cadr lst)) (fn...) ...)
@@ -444,6 +554,7 @@
       #f))
 
 
+
 ;;; {Error Handling}
 ;;;
 
@@ -582,6 +693,7 @@
   (putenv name))
 
 
+
 ;;; {Load Paths}
 ;;;
 
@@ -602,10 +714,13 @@
 		   file)))
 
 
+
 ;;; {Help for scm_shell}
+;;;
 ;;; The argument-processing code used by Guile-based shells generates
 ;;; Scheme code based on the argument list.  This page contains help
 ;;; functions for the code it generates.
+;;;
 
 (define (command-line) (program-arguments))
 
@@ -626,7 +741,9 @@
 	(primitive-load init-file))))
 
 
+
 ;;; {Loading by paths}
+;;;
 
 ;;; Load a Scheme source file named NAME, searching for it in the
 ;;; directories listed in %load-path, and applying each of the file
@@ -637,6 +754,7 @@
 
 
 
+
 ;;; {Transcendental Functions}
 ;;;
 ;;; Derived from "Transcen.scm", Complex trancendental functions for SCM.
@@ -742,7 +860,6 @@
 
 ;;; {Reader Extensions}
 ;;;
-
 ;;; Reader code for various "#c" forms.
 ;;;
 
@@ -759,6 +876,7 @@
                          "#. read expansion found and read-eval? is #f."))))
 
 
+
 ;;; {Command Line Options}
 ;;;
 
@@ -1015,7 +1133,10 @@
 ;;;
 
 
+
 ;;; {Printing Modules}
+;;;
+
 ;; This is how modules are printed.  You can re-define it.
 ;; (Redefining is actually more complicated than simply redefining
 ;; %print-module because that would only change the binding and not
@@ -1042,7 +1163,8 @@
 ;; is a (CLOSURE module symbol) which, as a last resort, can provide
 ;; bindings that would otherwise not be found locally in the module.
 ;;
-;; NOTE: If you change here, you also need to change libguile/modules.h.
+;; NOTE: If you change anything here, you also need to change
+;; libguile/modules.h.
 ;;
 (define module-type
   (make-record-type 'module
@@ -1135,6 +1257,7 @@
       (set-procedure-property! closure 'module module))))
 
 
+
 ;;; {Observer protocol}
 ;;;
 
@@ -1187,6 +1310,7 @@
   (hash-fold (lambda (id proc res) (proc m)) #f (module-weak-observers m)))
 
 
+
 ;;; {Module Searching in General}
 ;;;
 ;;; We sometimes want to look for properties of a symbol
@@ -1366,10 +1490,9 @@
 
 
 
+
 ;;; {Adding Variables to Modules}
 ;;;
-;;;
-
 
 ;; module-make-local-var! module symbol
 ;;
@@ -1470,6 +1593,7 @@
 
 
 
+
 ;;; {Module-based Loading}
 ;;;
 
@@ -1502,8 +1626,10 @@
 
 
 
+
 ;;; {MODULE-REF -- exported}
-;;
+;;;
+
 ;; Returns the value of a variable called NAME in MODULE or any of its
 ;; used modules.  If there is no such variable, then if the optional third
 ;; argument DEFAULT is present, it is returned; otherwise an error is signaled.
@@ -1598,8 +1724,8 @@
     (module-modified module)))
 
 
+
 ;;; {Recursive Namespaces}
-;;;
 ;;;
 ;;; A hierarchical namespace emerges if we consider some module to be
 ;;; root, and variables bound to modules as nested namespaces.
@@ -1670,6 +1796,7 @@
 
 
 
+
 ;;; {The (app) module}
 ;;;
 ;;; The root of conventionally named objects not directly in the top level.
@@ -1971,7 +2098,10 @@
 ;; module.
 (define module-defined-hook (make-hook 1))
 
+
+
 ;;; {Autoload}
+;;;
 
 (define (make-autoload-interface module name bindings)
   (let ((b (lambda (a sym definep)
@@ -1990,7 +2120,9 @@
 (define load-compiled #f)
 
 
+
 ;;; {Autoloading modules}
+;;;
 
 (define autoloads-in-progress '())
 
@@ -2026,7 +2158,9 @@
 	   didit))))
 
 
-;;; Dynamic linking of modules
+
+;;; {Dynamic linking of modules}
+;;;
 
 (define autoloads-done '((guile . guile)))
 
@@ -2055,115 +2189,10 @@
 	(set! autoloads-done (delete! n autoloads-done))
 	(set! autoloads-in-progress (delete! n autoloads-in-progress)))))
 
-
-
-
-;; {EVAL-CASE}
-;;
-;; (eval-case ((situation*) forms)* (else forms)?)
-;;
-;; Evaluate certain code based on the situation that eval-case is used
-;; in.  The only defined situation right now is `load-toplevel' which
-;; triggers for code evaluated at the top-level, for example from the
-;; REPL or when loading a file.
-
-(define eval-case
-  (procedure->memoizing-macro
-   (lambda (exp env)
-     (define (toplevel-env? env)
-       (or (not (pair? env)) (not (pair? (car env)))))
-     (define (syntax)
-       (error "syntax error in eval-case"))
-     (let loop ((clauses (cdr exp)))
-       (cond
-	((null? clauses)
-	 #f)
-	((not (list? (car clauses)))
-	 (syntax))
-	((eq? 'else (caar clauses))
-	 (or (null? (cdr clauses))
-	     (syntax))
-	 (cons 'begin (cdar clauses)))
-	((not (list? (caar clauses)))
-	 (syntax))
-	((and (toplevel-env? env)
-	      (memq 'load-toplevel (caar clauses)))
-	 (cons 'begin (cdar clauses)))
-	(else
-	 (loop (cdr clauses))))))))
-
-
-;;; {Macros}
-;;;
-
-(define (primitive-macro? m)
-  (and (macro? m)
-       (not (macro-transformer m))))
-
-;;; {Defmacros}
-;;;
-(define macro-table (make-weak-key-hash-table 61))
-(define xformer-table (make-weak-key-hash-table 61))
-
-(define (defmacro? m)  (hashq-ref macro-table m))
-(define (assert-defmacro?! m) (hashq-set! macro-table m #t))
-(define (defmacro-transformer m) (hashq-ref xformer-table m))
-(define (set-defmacro-transformer! m t) (hashq-set! xformer-table m t))
-
-(define defmacro:transformer
-  (lambda (f)
-    (let* ((xform (lambda (exp env)
-		    (copy-tree (apply f (cdr exp)))))
-	   (a (procedure->memoizing-macro xform)))
-      (assert-defmacro?! a)
-      (set-defmacro-transformer! a f)
-      a)))
-
-
-(define defmacro
-  (let ((defmacro-transformer
-	  (lambda (name parms . body)
-	    (let ((transformer `(lambda ,parms ,@body)))
-	      `(eval-case
-		((load-toplevel)
-		 (define ,name (defmacro:transformer ,transformer)))
-		(else
-		 (error "defmacro can only be used at the top level")))))))
-    (defmacro:transformer defmacro-transformer)))
-
-(define defmacro:syntax-transformer
-  (lambda (f)
-    (procedure->syntax
-	      (lambda (exp env)
-		(copy-tree (apply f (cdr exp)))))))
-
-
-;; XXX - should the definition of the car really be looked up in the
-;; current module?
-
-(define (macroexpand-1 e)
-  (cond
-   ((pair? e) (let* ((a (car e))
-		     (val (and (symbol? a) (local-ref (list a)))))
-		(if (defmacro? val)
-		    (apply (defmacro-transformer val) (cdr e))
-		    e)))
-   (#t e)))
-
-(define (macroexpand e)
-  (cond
-   ((pair? e) (let* ((a (car e))
-		     (val (and (symbol? a) (local-ref (list a)))))
-		(if (defmacro? val)
-		    (macroexpand (apply (defmacro-transformer val) (cdr e)))
-		    e)))
-   (#t e)))
-
-(provide 'defmacro)
-
 
 
 ;;; {Run-time options}
+;;;
 
 (define define-option-interface
   (let* ((option-name car)
@@ -2598,7 +2627,9 @@
 
 
 
+
 ;;; {IOTA functions: generating lists of numbers}
+;;;
 
 (define (iota n)
   (let loop ((count (1- n)) (result '()))
@@ -2606,17 +2637,22 @@
         (loop (1- count) (cons count result)))))
 
 
+
 ;;; {collect}
 ;;;
 ;;; Similar to `begin' but returns a list of the results of all constituent
 ;;; forms instead of the result of the last form.
 ;;; (The definition relies on the current left-to-right
 ;;;  order of evaluation of operands in applications.)
+;;;
 
 (defmacro collect forms
   (cons 'list forms))
 
+
+
 ;;; {with-fluids}
+;;;
 
 ;; with-fluids is a convenience wrapper for the builtin procedure
 ;; `with-fluids*'.  The syntax is just like `let':
@@ -2642,6 +2678,10 @@
 ;; coaxing
 ;;
 
+(define (primitive-macro? m)
+  (and (macro? m)
+       (not (macro-transformer m))))
+
 (defmacro define-macro (first . rest)
   (let ((name (if (symbol? first) first (car first)))
 	(transformer
@@ -2666,6 +2706,8 @@
        (define ,name (defmacro:syntax-transformer ,transformer)))
       (else
        (error "define-syntax-macro can only be used at the top level")))))
+
+
 
 ;;; {While}
 ;;;
@@ -2694,6 +2736,7 @@
 
 
 
+
 ;;; {Module System Macros}
 ;;;
 
@@ -2934,6 +2977,7 @@
     var))
 
 
+
 ;;; {Parameters}
 ;;;
 
@@ -2952,6 +2996,7 @@
 	(make fluid converter)))))
 
 
+
 ;;; {Handling of duplicate imported bindings}
 ;;;
 
@@ -3141,6 +3186,7 @@
 ;;;   guile r5rs srfi-0
 ;;;
 ;;; Remember to update the features list when adding more SRFIs.
+;;;
 
 (define %cond-expand-features
   ;; Adjust the above comment when changing this.
@@ -3239,6 +3285,7 @@
 
 
 ;;; {Load emacs interface support if emacs option is given.}
+;;;
 
 (define (named-module-use! user usee)
   (module-use! (resolve-module user) (resolve-interface usee)))
@@ -3330,10 +3377,6 @@
 				  (cdr old-handler))))
 		 signals old-handlers))))))
 
-(defmacro false-if-exception (expr)
-  `(catch #t (lambda () ,expr)
-	  (lambda args #f)))
-
 ;;; This hook is run at the very end of an interactive session.
 ;;;
 (define exit-hook (make-hook))
@@ -3341,8 +3384,24 @@
 
 (append! %load-path (list "."))
 
-;; Place the user in the guile-user module.
-;;
+
+
+;;; {Deprecated stuff}
+;;;
+
+(begin-deprecated
+ (define (feature? sym)
+   (issue-deprecation-warning
+    "`feature?' is deprecated.  Use `provided?' instead.")
+   (provided? sym)))
+
+(begin-deprecated
+ (primitive-load-path "ice-9/deprecated.scm"))
+
+
+
+;;; Place the user in the guile-user module.
+;;;
 
 (define-module (guile-user))
 
