@@ -53,7 +53,7 @@
  */
 #define SCM_CHARP(x) (SCM_ITAG8(x) == scm_tc8_char)
 #define SCM_CHAR(x) ((unsigned int)SCM_ITAG8_DATA(x))
-#define SCM_MAKE_CHAR(x) SCM_MAKE_ITAG8(x, scm_tc8_char)
+#define SCM_MAKE_CHAR(x) SCM_MAKE_ITAG8((intptr_t) x, scm_tc8_char)
 
 
 
