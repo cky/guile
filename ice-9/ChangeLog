@@ -1,5 +1,37 @@
 Mon Oct 28 17:56:29 1996  Jim Blandy  <jimb@floss.cyclic.com>
 
+	* Makefile.in (scm_files): Add r4rs.scm and test.scm to this list,
+	so they'll get distributed.
+
+	Get Guile to be a little less chatty by default.  The new user
+	should see as little clutter as possible.
+	* r4rs.scm (%load-verbosely): Make this #f by default.
+	* boot-9.scm (scm-repl-verbose): Make this #f by default.
+	(scm-style-repl): Don't run 'pk' on the value passed to quit.
+
+	* r4rs.scm: New file.
+	* boot-9.scm: Load r4rs.scm, first thing.
+	(OPEN_READ, OPEN_WRITE, OPEN_BOTH, *null-device*, open-input-file,
+ 	open-output-file, open-io-file, close-input-port,
+ 	close-output-port, close-io-port, call-with-input-file,
+ 	call-with-output-file, with-input-from-port, with-output-to-port,
+ 	with-error-to-port, with-input-from-file, with-output-to-file,
+ 	with-error-to-file, with-input-from-string, with-output-to-string,
+ 	with-error-to-string, the-eof-object): Definitions moved to
+	r4rs.scm.  Not all of them are R4RS, but those that are use those
+	that are not.
+	(load, %load-verbosely, %load-announce): Moved, along with code to
+	set %load-hook, to r4rs.scm.
+
+	* test.scm: New file.
+
+	* boot-9.scm (integer?): Definition deleted, in favor of the one
+	present in libguile (which used to be called int?).  I have no
+	idea why integer? didn't just call int? to begin with.
+
+	* boot-9.scm (<, <=, =, >, >=): Definitions in terms of <?, <=?,
+	=?, >?, and >=? deleted; they're defined that way by libguile now.
+
 	* boot-9.scm (load): Simplified; primitive-load does most of this
  	work now.
 	(%load-announce-win): Removed; no longer used.  Set %load-hook to
