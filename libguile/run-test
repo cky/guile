@@ -1,0 +1,4 @@
+#!/bin/sh -
+# Run the guile-test script using the guile binary from this directory
+cd ../test-suite
+../libguile/guile -e main -s guile-test "$@"

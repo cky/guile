@@ -1,0 +1,2 @@
+#!/bin/sh -
+grep '^[ 	]*""' *.c | awk -F: '{ print $1 }' | uniq -c
