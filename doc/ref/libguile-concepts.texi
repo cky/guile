@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -8,12 +8,12 @@
 @node General Libguile Concepts
 @section General concepts for using libguile
 
-When you want to embed the Guile Scheme interpreter into your program,
-you need to link it against the @file{libguile} library (@pxref{Linking
-Programs With Guile}).  Once you have done this, your C code has access
-to a number of data types and functions that can be used to invoke the
-interpreter, or make new functions that you have written in C available
-to be called from Scheme code, among other things.
+When you want to embed the Guile Scheme interpreter into your program or
+library, you need to link it against the @file{libguile} library
+(@pxref{Linking Programs With Guile}).  Once you have done this, your C
+code has access to a number of data types and functions that can be used
+to invoke the interpreter, or make new functions that you have written
+in C available to be called from Scheme code, among other things.
 
 Scheme is different from C in a number of significant ways, and Guile
 tries to make the advantages of Scheme available to C as well.  Thus, in
@@ -26,10 +26,16 @@ You need to understand how libguile offers them to C programs in order
 to use the rest of libguile.  Also, the more general control flow of
 Scheme caused by continuations needs to be dealt with.
 
+Running asynchronous signal handlers and multi-threading is known to C
+code already, but there are of course a few additional rules when using
+them together with libguile.
+
 @menu
 * Dynamic Types::               Dynamic Types.
 * Garbage Collection::          Garbage Collection.
 * Control Flow::                Control Flow.
+* Asynchronous Signals::        Asynchronous Signals
+* Multi-Threading::             Multi-Threading
 @end menu
 
 @node Dynamic Types
@@ -377,3 +383,204 @@ corresponding @code{scm_internal_dynamic_wind} function, but it might
 prefer to use the @dfn{frames} concept that is more natural for C code,
 (@pxref{Frames}).
 
+@node Asynchronous Signals
+@subsection Asynchronous Signals
+
+You can not call libguile functions from handlers for POSIX signals, but
+you can register Scheme handlers for POSIX signals such as
+@code{SIGINT}.  These handlers do not run during the actual signal
+delivery.  Instead, they are run when the program (more precisely, the
+thread that the handler has been registered for) reaches the next
+@emph{safe point}.
+
+The libguile functions themselves have many such safe points.
+Consequently, you must be prepared for arbitrary actions anytime you
+call a libguile function.  For example, even @code{scm_cons} can contain
+a safe point and when a signal handler is pending for your thread,
+calling @code{scm_cons} will run this handler and anything might happen,
+including a non-local exit although @code{scm_cons} would not ordinarily
+do such a thing on its own.
+
+If you do not want to allow the running of asynchronous signal handlers,
+you can block them temporarily with @code{scm_frame_block_asyncs}, for
+example.  See @xref{System asyncs}.
+
+Since signal handling in Guile relies on safe points, you need to make
+sure that your functions do offer enough of them.  Normally, calling
+libguile functions in the normal course of action is all that is needed.
+But when a thread might spent a long time in a code section that calls
+no libguile function, it is good to include explicit safe points.  This
+can allow the user to interrupt your code with @key{C-c}, for example.
+
+You can do this with the macro @code{SCM_TICK}.  This macro is
+syntactically a statement.  That is, you could use it like this:
+
+@example
+while (1)
+  @{
+    SCM_TICK;
+    do_some_work ();
+  @}
+@end example
+
+Frequent execution of a safe point is even more important in multi
+threaded programs, @xref{Multi-Threading}.
+
+@node Multi-Threading
+@subsection Multi-Threading
+
+Guile can be used in multi-threaded programs just as well as in
+single-threaded ones.
+
+Each thread that wants to use functions from libguile must put itself
+into @emph{guile mode} and must then follow a few rules.  If it doesn't
+want to honor these rules in certain situations, a thread can
+temporarily leave guile mode (but can no longer use libguile functions
+during that time, of course).
+
+Threads enter guile mode by calling @code{scm_with_guile},
+@code{scm_boot_guile}, or @code{scm_init_guile}.  As explained in the
+reference documentation for these functions, Guile will then learn about
+the stack bounds of the thread and can protect the @code{SCM} values
+that are stored in local variables.  When a thread puts itself into
+guile mode for the first time, it gets a Scheme representation and is
+listed by @code{all-threads}, for example.
+
+While in guile mode, a thread promises to reach a safe point reasonably
+frequently (@pxref{Asynchronous Signals}).  In addition to running
+signal handlers, these points are also potential rendezvous points of
+all guile mode threads where Guile can orchestrate global things like
+garbage collection.  Consequently, when a thread in guile mode blocks
+and does no longer frequent safe points, it might cause all other guile
+mode threads to block as well.  To prevent this from happening, a guile
+mode thread should either only block in libguile functions (who know how
+to do it right), or should temporarily leave guile mode with
+@code{scm_without_guile} or
+@code{scm_leave_guile}/@code{scm_enter_guile}.
+
+For some common blocking operations, Guile provides convenience
+functions.  For example, if you want to lock a pthread mutex while in
+guile mode, you might want to use @code{scm_pthread_mutex_lock} which is
+just like @code{pthread_mutex_lock} except that it leaves guile mode
+while blocking.
+
+
+All libguile functions are (intended to be) robust in the face of
+multiple threads using them concurrently.  This means that there is no
+risk of the internal data structures of libguile becoming corrupted in
+such a way that the process crashes.
+
+A program might still produce non-sensical results, though.  Taking
+hashtables as an example, Guile guarantees that you can use them from
+multiple threads concurrently and a hashtable will always remain a valid
+hashtable and Guile will not crash when you access it.  It does not
+guarantee, however, that inserting into it concurrently from two threads
+will give useful results: only one insertion might actually happen, none
+might happen, or the table might in general be modified in a totally
+arbitrary manner.  (It will still be a valid hashtable, but not the one
+that you might have expected.)  Guile might also signal an error when it
+detects a harmful race condition.
+
+Thus, you need to put in additional synchronizations when multiple
+threads want to use a single hashtable, or any other mutable Scheme
+object.
+
+When writing C code for use with libguile, you should try to make it
+robust as well.  An example that converts a list into a vector will help
+to illustrate.  Here is a correct version:
+
+@example
+SCM
+my_list_to_vector (SCM list)
+@{
+  SCM vector = scm_make_vector (scm_length (list), SCM_UNDEFINED);
+  size_t len, i;
+
+  len = SCM_SIMPLE_VECTOR_LENGTH (vector);
+  i = 0;
+  while (i < len && scm_is_pair (list))
+    @{
+      SCM_SIMPLE_VECTOR_SET (vector, i, SCM_CAR (list));
+      list = SCM_CDR (list);
+      i++;
+    @}
+
+  return vector;
+@}
+@end example
+
+The first thing to note is that storing into a @code{SCM} location
+concurrently from multiple threads is guaranteed to be robust: you don't
+know which value wins but it will in any case be a valid @code{SCM}
+value.
+
+But there is no guarantee that the list referenced by @var{list} is not
+modified in another thread while the loop iterates over it.  Thus, while
+copying its elements into the vector, the list might get longer or
+shorter.  For this reason, the loop must check both that it doesn't
+overrun the vector (@code{SCM_SIMPLE_VECTOR_SET} does no range-checking)
+and that it doesn't overrung the list (@code{SCM_CAR} and @code{SCM_CDR}
+likewise do no type checking).
+
+It is safe to use @code{SCM_CAR} and @code{SCM_CDR} on the local
+variable @var{list} once it is known that the variable contains a pair.
+The contents of the pair might change spontaneously, but it will always
+stay a valid pair (and a local variable will of course not spontaneously
+point to a different Scheme object).
+
+Likewise, a simple vector such as the one returned by
+@code{scm_make_vector} is guaranteed to always stay the same length so
+that it is safe to only use SCM_SIMPLE_VECTOR_LENGTH once and store the
+result.  (In the example, @var{vector} is safe anyway since it is a
+fresh object that no other thread can possibly know about until it is
+returned from @code{my_list_to_vector}.)
+
+Of course the behavior of @code{my_list_to_vector} is suboptimal when
+@var{list} does indeed gets asynchronously lengthened or shortened in
+another thread.  But it is robust: it will always return a valid vector.
+That vector might be shorter than expected, or its last elements might
+be unspecified, but it is a valid vector and if a program wants to rule
+out these cases, it must avoid modifying the list asynchronously.
+
+Here is another version that is also correct:
+
+@example
+SCM
+my_pedantic_list_to_vector (SCM list)
+@{
+  SCM vector = scm_make_vector (scm_length (list), SCM_UNDEFINED);
+  size_t len, i;
+
+  len = SCM_SIMPLE_VECTOR_LENGTH (vector);
+  i = 0;
+  while (i < len)
+    @{
+      SCM_SIMPLE_VECTOR_SET (vector, i, scm_car (list));
+      list = scm_cdr (list);
+      i++;
+    @}
+
+  return vector;
+@}
+@end example
+
+This version uses the type-checking and thread-robust functions
+@code{scm_car} and @code{scm_cdr} instead of the faster, but less robust
+macros @code{SCM_CAR} and @code{SCM_CDR}.  When the list is shortened
+(that is, when @var{list} holds a non-pair), @code{scm_car} will throw
+an error.  This might be preferable to just returning a half-initialized
+vector.
+
+The API for accessing vectors and arrays of various kinds from C takes a
+slightly different approach to thread-robustness.  In order to get at
+the raw memory that stores the elements of an array, you need to
+@emph{reserve} that array as long as you need the raw memory.  During
+the time an array is reserved, its elements can still spontaneously
+change their values, but the memory itself and other things like the
+size of the array are guaranteed to stay fixed.  Any operation that
+would change these parameters of an array that is currently reserved
+will signal an error.  In order to avoid these errors, a program should
+of course put suitable synchronization mechanisms in place.  As you can
+see, Guile itself is again only concerned about robustness, not about
+correctness: without proper synchronization, your program will likely
+not be correct, but the worst consequence is an error message.

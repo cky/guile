@@ -372,10 +372,9 @@ location resumed is expecting multiple values (@pxref{Multiple
 Values}) then they should be passed as multiple arguments, for
 instance @code{(@var{cont} @var{x} @var{y} @var{z})}.
 
-@var{cont} may only be used from the dynamic root in which it was
-created (@pxref{Dynamic Roots}), and in a multi-threaded program only
-from the thread in which it was created, since each thread is a
-separate dynamic root.
+@var{cont} may only be used from the same side of a continuation
+barrier as it was created (@pxref{Continuation Barriers}), and in a
+multi-threaded program only from the thread in which it was created.
 
 The call to @var{proc} is not part of the continuation captured, it runs
 only when the continuation is created.  Often a program will want to

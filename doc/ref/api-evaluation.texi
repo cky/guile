@@ -326,13 +326,15 @@ this procedure directly, use the procedures @code{read-enable},
 
 @rnindex eval
 @c ARGFIXME environment/environment specifier
-@deffn {Scheme Procedure} eval exp module
-@deffnx {C Function} scm_eval (exp, module)
+@deffn {Scheme Procedure} eval exp module_or_state
+@deffnx {C Function} scm_eval (exp, module_or_state)
 Evaluate @var{exp}, a list representing a Scheme expression,
 in the top-level environment specified by @var{module}.
 While @var{exp} is evaluated (using @code{primitive-eval}),
 @var{module} is made the current module.  The current module
 is reset to its previous value when @var{eval} returns.
+XXX - dynamic states.
+Example: (eval '(+ 1 2) (interaction-environment))
 @end deffn
 
 @rnindex interaction-environment

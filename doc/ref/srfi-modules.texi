@@ -2356,22 +2356,23 @@ scope and the result from that @var{thunk} is the return from
 @code{with-parameters*}.
 
 This function is a Guile-specific addition to the SRFI, it's similar
-to the core @code{with-fluids*} (@pxref{Fluids}).
+to the core @code{with-fluids*} (@pxref{Fluids and Dynamic States}).
 @end defun
 
 
 @sp 1
-Parameter objects are implemented using fluids (@pxref{Fluids}), so
-each dynamic root has it's own parameter locations.  That includes the
-separate locations when outside any @code{parameterize} form.  When a
-parameter is created it gets a separate initial location in each
-dynamic root, all initialized to the given @var{init} value.
+Parameter objects are implemented using fluids (@pxref{Fluids and
+Dynamic States}), so each dynamic state has it's own parameter
+locations.  That includes the separate locations when outside any
+@code{parameterize} form.  When a parameter is created it gets a
+separate initial location in each dynamic state, all initialized to
+the given @var{init} value.
 
-As alluded to above, because each thread is a separate dynamic root,
-each thread has it's own locations behind parameter objects, and
-changes in one thread are not visible to any other.  When a new
-dynamic root or thread is created, the values of parameters in the
-originating context are copied, into new locations.
+As alluded to above, because each thread usually has a separate
+dynamic state, each thread has it's own locations behind parameter
+objects, and changes in one thread are not visible to any other.  When
+a new dynamic state or thread is created, the values of parameters in
+the originating context are copied, into new locations.
 
 SRFI-39 doesn't specify the interaction between parameter objects and
 threads, so the threading behaviour described here should be regarded
