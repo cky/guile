@@ -45,7 +45,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "uname.h"
+#include "win32-uname.h"
 
 /*
  * Get name and information about current kernel.
