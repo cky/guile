@@ -598,6 +598,27 @@ starting the week.
 
 * Changes to the C interface
 
+** Many of the old macros for doing type conversions between C and
+   Scheme have been deprecated and replaced with functions (or macros
+   that behave like functions).
+
+This was done to ...
+
+These are the deprecated macros and their replacements:
+
+  SCM_EQ_P         ->  scm_is_eq
+  SCM_FALSEP       ->  scm_is_false
+  SCM_NFALSEP      ->  scm_is_true
+  SCM_BOOL         ->  scm_from_bool
+  SCM_NEGATE_BOOL  ->  scm_from_bool (! ...)
+  SCM_BOOLP        ->  scm_is_bool
+  SCM_BOOL_NOT     ->  scm_not
+
+  SCM_INUMP        ->  scm_is_integer or similar
+  SCM_NINUMP       ->  !scm_is_integer or similar
+  SCM_MAKINUM      ->  scm_from_int or similar
+  SCM_INUM         ->  scm_to_int or similar
+
 ** SCM_CELL_WORD_LOC has been deprecated.
 
 Use the new macro SCM_CELL_OBJECT_LOC instead, which return a pointer
