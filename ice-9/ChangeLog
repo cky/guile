@@ -1,3 +1,8 @@
+2000-04-09  Gary Houston  <ghouston@arglist.com>
+
+	* popen.scm (close-process-quietly): new procedure.  use it from
+	reap-pipes to avoid errors or hanging during background cleanup.
+
 2000-04-04  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* format.scm (format:obj->str): Handle circular references.  Also,
