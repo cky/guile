@@ -608,6 +608,17 @@ a quick example of how to prevent a potential memory leak:
 
 For full documentation, see the node "Frames" in the manual.
 
+** New way to block and unblock asyncs
+
+In addition to scm_c_call_with_blocked_asyncs you can now also use
+scm_with_blocked_asyncs in a 'frame' (see above).  Likewise for
+scm_c_call_with_unblocked_asyncs and scm_with_unblocked_asyncs.
+
+** New way to temporarily set the current input, output or error ports
+
+C code can now use scm_with_current_<foo>_port in a 'frame' (see
+above).  <foo> is one of "input", "output" or "error".
+
 ** New types scm_t_intmax and scm_t_uintmax.
 
 On platforms that have them, these types are identical to intmax_t and

@@ -1,3 +1,11 @@
+2004-01-05  Marius Vollmer  <mvo@zagadka.de>
+
+	* ports.h, ports.c (scm_with_current_input_port,
+	scm_with_current_output_port, scm_with_current_error_port): New.
+
+	* async.h, async.c (scm_with_blocked_asyncs,
+	scm_with_unblocked_asyncs): New.
+
 2004-01-03  Marius Vollmer  <mvo@zagadka.de>
 
 	* dynwind.h, scm_dynwind.c (scm_t_frame_flags, scm_t_wind_flags,

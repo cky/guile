@@ -1,3 +1,9 @@
+2004-01-05  Marius Vollmer  <mvo@zagadka.de>
+
+	* scheme-scheduling.texi: Document scm_with_[un]blocked_asyncs.
+
+	* scheme-io.texi: Document scm_with_current_<foo>_port.
+
 2004-01-03  Marius Vollmer  <mvo@zagadka.de>
 
 	* scheme-control.texi: Document the frames stuff and other random
