@@ -1,3 +1,10 @@
+2003-09-27  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* guile-tut.texi (Using Guile to program in Scheme): Fix result of
+	`(reverse ls)', and change `squaring function' example to use `(*
+	n n)' instead of `(expt n n)'.  Thanks to Jack Pavlovsky for
+	pointing these out.
+
 2003-05-27  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* guile-tut.texi: Fix example, where a vector constant is used
