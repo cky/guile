@@ -3,7 +3,10 @@ implementation written in C.  Guile provides a machine independent
 execution platform that can be linked in as a library when building
 extensible programs.
 
+Please send bug reports to bug-guile@prep.ai.mit.edu.
+
 About Snapshots ======================================================
+
 
 Each night, we make the current Guile sources available via anonymous
 FTP.  Please keep in mind that these sources are strictly
@@ -26,8 +29,9 @@ anonymous FTP from ftp.red-bean.com, as /pub/guile/guile-core-snap.tar.gz.
 Via the web, that's:  ftp://ftp.red-bean.com/pub/guile/guile-core-snap.tar.gz
 For getit, that's:    ftp.red-bean.com:/pub/guile/guile-core-snap.tar.gz
 
+The development FTP site is mirrored nightly in Europe at
+ftp://ftp.aec.at/pub/guile.
 
-Please send bug reports to bug-guile@prep.ai.mit.edu.
 
 About This Distribution ==============================================
 
@@ -48,7 +52,6 @@ ice-9, ice-9/*.scm --- run-time support for Guile: the module
 	system, read-eval-print loop, some R4RS code and other
 	infrastructure.  Usually installed in
 	/usr/local/share/guile/<version>.
-
 
 Interesting files include:
 - INSTALL, which contains instructions on building and installing Guile.
