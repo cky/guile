@@ -23,10 +23,10 @@ patch's original sources will be closer to what we're working with.
 And it allows us to start testing features earlier.
 
 Nightly snapshots of the Guile development sources are available via
-anonymous FTP from ftp.cyclic.com, as /pub/guile/guile-snap.tar.gz.
+anonymous FTP from ftp.red-bean.com, as /pub/guile/guile-snap.tar.gz.
 
-Via the web, that's:  ftp://ftp.cyclic.com/pub/guile/guile-snap.tar.gz
-For getit, that's:    ftp.cyclic.com:/pub/guile/guile-snap.tar.gz
+Via the web, that's:  ftp://ftp.red-bean.com/pub/guile/guile-snap.tar.gz
+For getit, that's:    ftp.red-bean.com:/pub/guile/guile-snap.tar.gz
 
 
 The latest official Guile release is available via anonymous FTP from
