@@ -168,7 +168,7 @@ exec ${GUILE-guile} -c "(apply $main (cdr (command-line)))" "$@"
                             (if (> opt 0)
                               (format #t "]"))
                             (if (> var 0)
-                              (format #t "~A. ~A" (if (< var all) " " "")
+                              (format #t " . ~A"
                                       (car (last-pair *args*)))))))))))))))
       (format #t "\n~A\n" *function-name*)
       (format #t "@c snarfed from ~A:~A\n" *file* *line*)
@@ -263,7 +263,8 @@ exec ${GUILE-guile} -c "(apply $main (cdr (command-line)))" "$@"
         (when idx
           (unless (= (+ idx 1) pos)
             (display (format #f "~A:~A: wrong position for argument ~A: ~A (should be ~A)\n"
-                             *file* line name pos (+ idx 1)))))))
+                             *file* line name pos (+ idx 1))
+                     (current-error-port))))))
      (x #f)))
 
   (define do-command
