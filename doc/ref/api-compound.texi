@@ -1768,7 +1768,7 @@ Return @code{1} if the @var{obj} is an array and @code{0} if not.
 @deftypefn {C Function} int scm_is_typed_array (SCM obj, SCM type)
 Return @code{0} if the @var{obj} is an array of type @var{type}, and
 @code{1} if not.
-@end deffn
+@end deftypefn
 
 @deffn {Scheme Procedure} make-array fill bound @dots{}
 @deffnx {C Function} scm_make_array (fill, bounds)
