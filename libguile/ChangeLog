@@ -1,3 +1,9 @@
+2000-04-10  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* hash.c (scm_hasher):  Use symbolic names for the tc3 constants.
+	Unpack SCM value to use it as a switch parameter.  Don't cast SCM
+	values to int values.
+
 2000-04-10  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* coop.c (mother): Handled EINTR (the wait has been interrupted by

@@ -59,29 +59,33 @@ extern double floor();
 #endif
 
 
+/* Dirk:FIXME:: why downcase for characters? (2x: scm_hasher, scm_ihashv) */
+/* Dirk:FIXME:: scm_hasher could be made static. */
+
+
 unsigned long
 scm_hasher(SCM obj, unsigned long n, scm_sizet d)
 {
-  switch (7 & (int) obj) {
-  case 2: 
-  case 6:
+  switch (SCM_ITAG3 (obj)) {
+  case scm_tc3_int_1: 
+  case scm_tc3_int_2:
     return SCM_INUM(obj) % n;   /* SCM_INUMP(obj) */
-  case 4:
-    if SCM_CHARP(obj)
+  case scm_tc3_imm24:
+    if (SCM_CHARP(obj))
       return (unsigned)(scm_downcase(SCM_CHAR(obj))) % n;
-    switch ((int) obj) {
+    switch (SCM_UNPACK (obj)) {
 #ifndef SICP
-    case (int) SCM_EOL: 
+    case SCM_EOL: 
       d = 256; 
       break;
 #endif
-    case (int) SCM_BOOL_T: 
+    case SCM_BOOL_T: 
       d = 257; 
       break;
-    case (int) SCM_BOOL_F: 
+    case SCM_BOOL_F: 
       d = 258; 
       break;
-    case (int) SCM_EOF_VAL: 
+    case SCM_EOF_VAL: 
       d = 259; 
       break;
     default: 
@@ -90,7 +94,7 @@ scm_hasher(SCM obj, unsigned long n, scm_sizet d)
     return d % n;
   default: 
     return 263 % n;	/* perhaps should be error */
-  case 0:
+  case scm_tc3_cons:
     switch SCM_TYP7(obj) {
     default: 
       return 263 % n;
