@@ -525,26 +525,20 @@ scm_delq_x (item, lst)
      SCM item;
      SCM lst;
 {
-  SCM start;
+  SCM walk;
+  SCM *prev;
 
-  if (SCM_IMP (lst) || SCM_NCONSP (lst))
-    return lst;
-
-  if (SCM_CAR (lst) == item)
-    return SCM_CDR (lst);
-
-  start = lst;
-
-  while (SCM_NIMP (SCM_CDR (lst)) && SCM_CONSP (SCM_CDR (lst)))
+  for (prev = &lst, walk = lst;
+       SCM_NIMP (walk) && SCM_CONSP (walk);
+       walk = SCM_CDR (walk))
     {
-      if (SCM_CAR (SCM_CDR (lst)) == item)
-	{
-	  SCM_SETCDR (lst, SCM_CDR (SCM_CDR (lst)));
-	  return start;
-	}
-      lst = SCM_CDR (lst);
+      if (SCM_CAR (walk) == item)
+	*prev = SCM_CDR (walk);
+      else
+	prev = SCM_CDRLOC (walk);
     }
-  return start;
+    
+  return lst;
 }
 
 
@@ -554,26 +548,20 @@ scm_delv_x (item, lst)
      SCM item;
      SCM lst;
 {
-  SCM start;
+  SCM walk;
+  SCM *prev;
 
-  if (SCM_IMP (lst) || SCM_NCONSP (lst))
-    return lst;
-
-  if (SCM_BOOL_F != scm_eqv_p (SCM_CAR (lst), item))
-    return SCM_CDR (lst);
-
-  start = lst;
-
-  while (SCM_NIMP (SCM_CDR (lst)) && SCM_CONSP (SCM_CDR (lst)))
+  for (prev = &lst, walk = lst;
+       SCM_NIMP (walk) && SCM_CONSP (walk);
+       walk = SCM_CDR (walk))
     {
-      if (SCM_BOOL_F != scm_eqv_p (SCM_CAR (SCM_CDR (lst)), item))
-	{
-	  SCM_SETCDR (lst, SCM_CDR (SCM_CDR (lst)));
-	  return start;
-	}
-      lst = SCM_CDR (lst);
+      if (SCM_BOOL_F != scm_eqv_p (SCM_CAR (walk), item))
+	*prev = SCM_CDR (walk);
+      else
+	prev = SCM_CDRLOC (walk);
     }
-  return start;
+    
+  return lst;
 }
 
 
@@ -584,26 +572,20 @@ scm_delete_x (item, lst)
      SCM item;
      SCM lst;
 {
-  SCM start;
+  SCM walk;
+  SCM *prev;
 
-  if (SCM_IMP (lst) || SCM_NCONSP (lst))
-    return lst;
-
-  if (SCM_BOOL_F != scm_equal_p (SCM_CAR (lst), item))
-    return SCM_CDR (lst);
-
-  start = lst;
-
-  while (SCM_NIMP (SCM_CDR (lst)) && SCM_CONSP (SCM_CDR (lst)))
+  for (prev = &lst, walk = lst;
+       SCM_NIMP (walk) && SCM_CONSP (walk);
+       walk = SCM_CDR (walk))
     {
-      if (SCM_BOOL_F != scm_equal_p (SCM_CAR (SCM_CDR (lst)), item))
-	{
-	  SCM_SETCDR (lst, SCM_CDR (SCM_CDR (lst)));
-	  return start;
-	}
-      lst = SCM_CDR (lst);
+      if (SCM_BOOL_F != scm_equal_p (SCM_CAR (walk), item))
+	*prev = SCM_CDR (walk);
+      else
+	prev = SCM_CDRLOC (walk);
     }
-  return start;
+
+  return lst;
 }
 
 
