@@ -84,9 +84,13 @@
 
   (define (procedure-call name args)
     (let ((restp (memq '&rest args))
-	  (args (delq '&rest (delq '&optional args))))
+	  (args (map (lambda (a) `(let ((_t ,a))
+				    (if (guile-tokenp _t)
+				      (cadr _t)
+				      (list 'quote _t))))
+		     (delq '&rest (delq '&optional args)))))
       (if restp
-	`(list* ',name ,@args)
+	`(list 'apply ',name ,@args)
 	`(list ',name ,@args))))
 
   (let ((name (procedure-name proc))

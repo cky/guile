@@ -23,8 +23,6 @@
 ;;; Low level interface
 ;;;
 
-(defvar guile-token "<guile>")
-
 (defvar gulie-emacs-file
   (catch 'return
     (mapc (lambda (dir)
@@ -45,6 +43,10 @@
 (put 'guile-error 'error-conditions '(guile-error error))
 (put 'guile-error 'error-message "Guile error")
 
+(defvar guile-token-tag "<guile>")
+
+(defun guile-tokenp (x) (and (consp x) (eq (car x) guile-token-tag)))
+
 (defun guile:eval (string adapter)
   (let ((output (guile-process-require adapter (concat "eval " string "\n")
 				       "channel> ")))
@@ -58,7 +60,7 @@
 	(car (read-from-string (substring output (match-end 0)))))
        ;; token
        ((match-beginning 3)
-	(cons guile-token
+	(cons guile-token-tag
 	      (car (read-from-string (substring output (match-end 0))))))
        ;; exception
        ((match-beginning 4)
@@ -88,10 +90,12 @@
 (defun guile-lisp-convert (x)
   (cond
    ((or (eq x true) (eq x false)) x)
+   ((null x) "'()")
    ((stringp x) (prin1-to-string x))
+   ((guile-tokenp x) (cadr x))
    ((consp x)
-    (if (eq (car x) guile-token)
-	(cadr x)
+    (if (null (cdr x))
+	(list (guile-lisp-convert (car x)))
       (cons (guile-lisp-convert (car x)) (guile-lisp-convert (cdr x)))))
    (t x)))
 
