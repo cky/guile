@@ -1,3 +1,59 @@
+2002-10-04  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* scmsigs.h (scm_sigaction_for_thread): New prototype.
+	* scmsigs.c (got_signal): Removed.
+	(signal_handler_cells, signal_handler_threads): New.
+	(take_signal): Queue the cell of the signal for the specified
+	thread.  Reset the signal handler on systems that don't have
+	sigaction.
+	(sys_deliver_signals): Removed.
+	(close_1): New.
+	(scm_sigaction_for_thread): Renamed from scm_sigaction and
+	extended to also set the thread of a signal and allocate a cell
+	for it.  Keep the Scheme name "sigaction".  Check that signum is
+	within range.  Also, use SCM_VECTOR_REF instead of SCM_VELTS.
+	(scm_sigaction): Implement in terms of scm_sigaction_for_thread.
+	(scm_init_scmsigs): Allocate signal_handler_cells and
+	signal_handler_threads vectors.
+
+	* async.c: Removed GUILE_OLD_ASYNC_CLICK code.  Reorganized so
+	that system asnycs and user asyncs are separated.  Reimplemented
+	system asyncs to work per-thread.
+
+	* gc.c (scm_init_gc): Do not use scm_system_async.
+
+	* async.h (scm_asyncs_pending, scm_set_tick_rate,
+	scm_set_switch_rate, scm_system_async_mark_from_signal_handler):
+	Removed prototypes.
+	(scm_i_queue_async_cell): New.
+	
+	* __scm.h (scm_asyncs_pending_p): Removed.
+	(SCM_ASYNC_CLICK): Check scm_active_asyncs instead of
+	scm_asyncs_pending_p.
+
+	* async.h (scm_system_async_mark_for_thread): New prototype.
+
+	* __scm.h: Removed GUILE_OLD_ASYNC_CLICK code.
+
+	* root.h (scm_root_state): Added new "active_asyncs" slot.
+	* root.c (scm_make_root): Initialize it to SCM_EOL.
+
+	* coop-defs.h (coop_t): Added new "handle" slot.
+	* coop-threads.c (all_threads, scm_current_thread,
+	scm_all_threads, scm_i_thread_root): New.
+	(scm_threads_init): Add main thread to all_threads.
+	(scheme_launch_thread): Remove thread from all_threads when it
+	terminates.
+	(scm_call_with_new_thread): Initialize handle slot of coop_t
+	structure and add new thread to all_threads.
+	(scm_spawn_thread): Likewise.
+
+	* threads.h (scm_current_thread, scm_all_threads): New prototypes.
+	* threads.c (scm_current_thread, scm_all_threads): Register as
+	primitives.
+
+	* dynl.c: Use scm_lt_ prefix for libltdl functions.
+
 2002-09-29  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* script.c (scm_compile_shell_switches): Fix bad spelling of
