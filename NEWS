@@ -687,6 +687,12 @@ conventions.
 These functions occupy the names that scm_round_number and
 scm_truncate_number should have.
 
+** The functions scm_c_string2str and scm_c_substring2str have been
+   deprecated.
+
+Use scm_to_locale_stringbuf or similar instead, maybe together with
+scm_substring.
+
 ** SCM_CELL_WORD_LOC has been deprecated.
 
 Use the new macro SCM_CELL_OBJECT_LOC instead, which return a pointer
@@ -729,7 +735,8 @@ prevent a potential memory leak:
     scm_frame_unwind_handler (free, mem, SCM_F_WIND_EXPLICITELY);
 
     /* MEM would leak if BAR throws an error.
-       SCM_FRAME_UNWIND_HANDLER frees it nevertheless.  */
+       SCM_FRAME_UNWIND_HANDLER frees it nevertheless.  
+     */
 
     bar ();
   
@@ -741,6 +748,12 @@ prevent a potential memory leak:
   }
 
 For full documentation, see the node "Frames" in the manual.
+
+** New function scm_frame_free
+
+This function calls 'free' on a given pointer when a frame is left.
+Thus the call to scm_frame_unwind_handler above could be replaced with
+simply scm_frame_free (mem).
 
 ** New way to block and unblock asyncs
 
@@ -1225,7 +1238,8 @@ SCM_VALIDATE_RWSTRING, DIGITS, scm_small_istr2int, scm_istr2int,
 scm_istr2flo, scm_istring2number, scm_istr2int, scm_istr2flo,
 scm_istring2number, scm_vtable_index_vcell, scm_si_vcell, SCM_ECONSP,
 SCM_NECONSP, SCM_GLOC_VAR, SCM_GLOC_VAL, SCM_GLOC_SET_VAL,
-SCM_GLOC_VAL_LOC, scm_make_gloc, scm_gloc_p, scm_tc16_variable
+SCM_GLOC_VAL_LOC, scm_make_gloc, scm_gloc_p, scm_tc16_variable,
+SCM_CHARS, SCM_LENGTH, SCM_SET_STRING_CHARS, SCM_SET_STRING_LENGTH.
 
 ** Deprecated definitions for debugging: scm_debug_mode, SCM_DEBUGGINGP
 

@@ -1,3 +1,9 @@
+2004-08-12  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* srfi-13.c (MY_VALIDATE_SUBSTRING_SPEC_COPY,
+	MY_VALIDATE_STRING_COPY): Modernized clones of the deprecated
+	validation macros.  Replaced every use.
+
 2004-08-05  Kevin Ryde  <user42@zip.com.au>
 
 	* srfi-13.c (scm_string_any, scm_string_every): Enhance docstrings as
