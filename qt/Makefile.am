@@ -13,11 +13,11 @@ libqt_a_LIBADD = qtmds.o qtmdc.o
 
 qtmds.o: @qtmds_s@ 
 ## FIXME use of -c with -o not portable.
-	$(COMPILE) -o qtmds.o @qtmds_s@
+	$(COMPILE) -o qtmds.o -c @qtmds_s@
 
 qtmdc.o: @qtmdc_c@ @qtmd_h@
 ## FIXME use of -c with -o not portable.
-	$(COMPILE) -o qtmdc.o @qtmdc_c@
+	$(COMPILE) -o qtmdc.o -c @qtmdc_c@
 
 EXTRA_DIST = CHANGES README.MISC README.PORT b.h meas.c stp.c stp.h \
 PLUGIN/OPT Makefile.base config
