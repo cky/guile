@@ -20,6 +20,10 @@
   :use-module (ice-9 documentation))
 
 
+(define exception:bad-expression
+  (cons 'syntax-error "Bad expression"))
+
+
 ;;;
 ;;; miscellaneous
 ;;;
@@ -29,17 +33,36 @@
 
 
 ;;;
+;;; memoization
+;;;
+
+(with-test-prefix "memoization"
+
+  (with-test-prefix "copy-tree"
+
+    (pass-if "(#t . #(#t))"
+      (let* ((foo (cons #t (vector #t)))
+             (bar (copy-tree foo)))
+        (vector-set! (cdr foo) 0 #f)
+        (equal? bar '(#t . #(#t)))))
+
+    (pass-if-exception "circular lists in forms"
+      exception:bad-expression
+      (let ((foo (list #f)))
+        (set-cdr! foo foo)
+        (copy-tree foo))))
+
+  (pass-if "transparency"
+    (let ((x '(begin 1)))
+      (eval x (current-module))
+      (equal? '(begin 1) x))))
+
+
+;;;
 ;;; eval
 ;;;
 
 (with-test-prefix "evaluator"
-
-  (with-test-prefix "memoization"
-
-    (pass-if "transparency"
-      (let ((x '(begin 1)))
-        (eval x (current-module))
-        (equal? '(begin 1) x))))
 
   (with-test-prefix "symbol lookup"
 

@@ -453,66 +453,6 @@ literal_p (const SCM symbol, const SCM env)
 
 
 
-/* The evaluator contains a plethora of EVAL symbols.
- * This is an attempt at explanation.
- *
- * The following macros should be used in code which is read twice
- * (where the choice of evaluator is hard soldered):
- *
- *   SCM_CEVAL is the symbol used within one evaluator to call itself.
- *   Originally, it is defined to scm_ceval, but is redefined to
- *   scm_deval during the second pass.
- *  
- *   SCM_EVALIM is used when it is known that the expression is an
- *   immediate.  (This macro never calls an evaluator.)
- *  
- *   EVALCAR evaluates the car of an expression.
- *  
- * The following macros should be used in code which is read once
- * (where the choice of evaluator is dynamic):
- *
- *   SCM_XEVAL takes care of immediates without calling an evaluator.  It
- *   then calls scm_ceval *or* scm_deval, depending on the debugging
- *   mode.
- *  
- *   SCM_XEVALCAR corresponds to EVALCAR, but uses scm_ceval *or* scm_deval
- *   depending on the debugging mode.
- *
- * The main motivation for keeping this plethora is efficiency
- * together with maintainability (=> locality of code).
- */
-
-#define SCM_CEVAL scm_ceval
-
-#define SCM_EVALIM2(x) \
-  ((SCM_EQ_P ((x), SCM_EOL) \
-    ? syntax_error (s_empty_combination, (x), SCM_UNDEFINED), 0 \
-    : 0), \
-   (x))
-
-#define SCM_EVALIM(x, env) (SCM_ILOCP (x) \
-                            ? *scm_ilookup ((x), env) \
-			    : SCM_EVALIM2(x))
-
-#define SCM_XEVAL(x, env) (SCM_IMP (x) \
-			   ? SCM_EVALIM2(x) \
-			   : (*scm_ceval_ptr) ((x), (env)))
-
-#define SCM_XEVALCAR(x, env) (SCM_IMP (SCM_CAR (x)) \
-			      ? SCM_EVALIM (SCM_CAR (x), env) \
-			      : (SCM_SYMBOLP (SCM_CAR (x)) \
-			         ? *scm_lookupcar (x, env, 1) \
-			         : (*scm_ceval_ptr) (SCM_CAR (x), env)))
-
-#define EVALCAR(x, env) (SCM_IMP (SCM_CAR (x)) \
-			 ? SCM_EVALIM (SCM_CAR (x), env) \
-			 : (SCM_SYMBOLP (SCM_CAR (x)) \
-			    ? *scm_lookupcar (x, env, 1) \
-			    : SCM_CEVAL (SCM_CAR (x), env)))
-
-SCM_REC_MUTEX (source_mutex);
-
-
 /* Lookup a given local variable in an environment.  The local variable is
  * given as an iloc, that is a triple <frame, binding, last?>, where frame
  * indicates the relative number of the environment frame (counting upwards
@@ -733,13 +673,6 @@ scm_lookupcar (SCM vloc, SCM genv, int check)
   if (loc == NULL)
     abort ();
   return loc;
-}
-
-
-SCM
-scm_eval_car (SCM pair, SCM env)
-{
-  return SCM_XEVALCAR (pair, env);
 }
 
 
@@ -2517,6 +2450,74 @@ scm_badargsp (SCM formals, SCM args)
 }
 
 
+
+/* The evaluator contains a plethora of EVAL symbols.
+ * This is an attempt at explanation.
+ *
+ * The following macros should be used in code which is read twice
+ * (where the choice of evaluator is hard soldered):
+ *
+ *   SCM_CEVAL is the symbol used within one evaluator to call itself.
+ *   Originally, it is defined to scm_ceval, but is redefined to
+ *   scm_deval during the second pass.
+ *  
+ *   SCM_EVALIM is used when it is known that the expression is an
+ *   immediate.  (This macro never calls an evaluator.)
+ *  
+ *   EVALCAR evaluates the car of an expression.
+ *  
+ * The following macros should be used in code which is read once
+ * (where the choice of evaluator is dynamic):
+ *
+ *   SCM_XEVAL takes care of immediates without calling an evaluator.  It
+ *   then calls scm_ceval *or* scm_deval, depending on the debugging
+ *   mode.
+ *  
+ *   SCM_XEVALCAR corresponds to EVALCAR, but uses scm_ceval *or* scm_deval
+ *   depending on the debugging mode.
+ *
+ * The main motivation for keeping this plethora is efficiency
+ * together with maintainability (=> locality of code).
+ */
+
+#define SCM_CEVAL scm_ceval
+
+#define SCM_EVALIM2(x) \
+  ((SCM_EQ_P ((x), SCM_EOL) \
+    ? syntax_error (s_empty_combination, (x), SCM_UNDEFINED), 0 \
+    : 0), \
+   (x))
+
+#define SCM_EVALIM(x, env) (SCM_ILOCP (x) \
+                            ? *scm_ilookup ((x), env) \
+			    : SCM_EVALIM2(x))
+
+#define SCM_XEVAL(x, env) (SCM_IMP (x) \
+			   ? SCM_EVALIM2(x) \
+			   : (*scm_ceval_ptr) ((x), (env)))
+
+#define SCM_XEVALCAR(x, env) (SCM_IMP (SCM_CAR (x)) \
+			      ? SCM_EVALIM (SCM_CAR (x), env) \
+			      : (SCM_SYMBOLP (SCM_CAR (x)) \
+			         ? *scm_lookupcar (x, env, 1) \
+			         : (*scm_ceval_ptr) (SCM_CAR (x), env)))
+
+#define EVALCAR(x, env) (SCM_IMP (SCM_CAR (x)) \
+			 ? SCM_EVALIM (SCM_CAR (x), env) \
+			 : (SCM_SYMBOLP (SCM_CAR (x)) \
+			    ? *scm_lookupcar (x, env, 1) \
+			    : SCM_CEVAL (SCM_CAR (x), env)))
+
+SCM_REC_MUTEX (source_mutex);
+
+
+SCM
+scm_eval_car (SCM pair, SCM env)
+{
+  return SCM_XEVALCAR (pair, env);
+}
+
+
 SCM 
 scm_eval_args (SCM l, SCM env, SCM proc)
 {
@@ -5321,6 +5322,143 @@ SCM_DEFINE (scm_cons_source, "cons-source", 3, 0, 0,
 #undef FUNC_NAME
 
 
+/* The function scm_copy_tree is used to copy an expression tree to allow the
+ * memoizer to modify the expression during memoization.  scm_copy_tree
+ * creates deep copies of pairs and vectors, but not of any other data types,
+ * since only pairs and vectors will be parsed by the memoizer.
+ *
+ * To avoid infinite recursion due to cyclic structures, the hare-and-tortoise
+ * pattern is used to detect cycles.  In fact, the pattern is used in two
+ * dimensions, vertical (indicated in the code by the variable names 'hare'
+ * and 'tortoise') and horizontal ('rabbit' and 'turtle').  In both
+ * dimensions, the hare/rabbit will take two steps when the tortoise/turtle
+ * takes one.
+ *
+ * The vertical dimension corresponds to recursive calls to function
+ * copy_tree: This happens when descending into vector elements, into cars of
+ * lists and into the cdr of an improper list.  In this dimension, the
+ * tortoise follows the hare by using the processor stack: Every stack frame
+ * will hold an instance of struct t_trace.  These instances are connected in
+ * a way that represents the trace of the hare, which thus can be followed by
+ * the tortoise.  The tortoise will always point to struct t_trace instances
+ * relating to SCM objects that have already been copied.  Thus, a cycle is
+ * detected if the tortoise and the hare point to the same object,
+ *
+ * The horizontal dimension is within one execution of copy_tree, when the
+ * function cdr's along the pairs of a list.  This is the standard
+ * hare-and-tortoise implementation, found several times in guile.  */
+
+struct t_trace {
+  struct t_trace *trace;  // These pointers form a trace along the stack.
+  SCM obj;                // The object handled at the respective stack frame.
+};
+
+static SCM
+copy_tree (
+  struct t_trace *const hare,
+  struct t_trace *tortoise,
+  unsigned int tortoise_delay )
+{
+  if (!SCM_CONSP (hare->obj) && !SCM_VECTORP (hare->obj))
+    {
+      return hare->obj;
+    }
+  else
+    {
+      /* Prepare the trace along the stack.  */
+      struct t_trace new_hare;
+      hare->trace = &new_hare;
+
+      /* The tortoise will make its step after the delay has elapsed.  Note
+       * that in contrast to the typical hare-and-tortoise pattern, the step
+       * of the tortoise happens before the hare takes its steps.  This is, in
+       * principle, no problem, except for the start of the algorithm: Then,
+       * it has to be made sure that the hare actually gets its advantage by
+       * two steps.  */
+      if (tortoise_delay == 0)
+        {
+          tortoise_delay = 1;
+          tortoise = tortoise->trace;
+          ASSERT_SYNTAX (!SCM_EQ_P (hare->obj, tortoise->obj),
+                         s_bad_expression, hare->obj);
+        }
+      else
+        {
+          --tortoise_delay;
+        }
+
+      if (SCM_VECTORP (hare->obj))
+        {
+          const unsigned long int length = SCM_VECTOR_LENGTH (hare->obj);
+          const SCM new_vector = scm_c_make_vector (length, SCM_UNSPECIFIED);
+
+          /* Each vector element is copied by recursing into copy_tree, having
+           * the tortoise follow the hare into the depths of the stack.  */
+          unsigned long int i;
+          for (i = 0; i < length; ++i)
+            {
+              SCM new_element;
+              new_hare.obj = SCM_VECTOR_REF (hare->obj, i);
+              new_element = copy_tree (&new_hare, tortoise, tortoise_delay);
+              SCM_VECTOR_SET (new_vector, i, new_element);
+            }
+
+          return new_vector;
+        }
+      else // SCM_CONSP (hare->obj)
+        {
+          SCM result;
+          SCM tail;
+
+          SCM rabbit = hare->obj;
+          SCM turtle = hare->obj;
+
+          SCM copy;
+
+          /* The first pair of the list is treated specially, in order to
+           * preserve a potential source code position.  */
+          result = tail = scm_cons_source (rabbit, SCM_EOL, SCM_EOL);
+          new_hare.obj = SCM_CAR (rabbit);
+          copy = copy_tree (&new_hare, tortoise, tortoise_delay);
+          SCM_SETCAR (tail, copy);
+
+          /* The remaining pairs of the list are copied by, horizontally,
+           * having the turtle follow the rabbit, and, vertically, having the
+           * tortoise follow the hare into the depths of the stack.  */
+          rabbit = SCM_CDR (rabbit);
+          while (SCM_CONSP (rabbit))
+            {
+              new_hare.obj = SCM_CAR (rabbit);
+              copy = copy_tree (&new_hare, tortoise, tortoise_delay);
+              SCM_SETCDR (tail, scm_cons (copy, SCM_UNDEFINED));
+              tail = SCM_CDR (tail);
+
+              rabbit = SCM_CDR (rabbit);
+              if (SCM_CONSP (rabbit))
+                {
+                  new_hare.obj = SCM_CAR (rabbit);
+                  copy = copy_tree (&new_hare, tortoise, tortoise_delay);
+                  SCM_SETCDR (tail, scm_cons (copy, SCM_UNDEFINED));
+                  tail = SCM_CDR (tail);
+                  rabbit = SCM_CDR (rabbit);
+
+                  turtle = SCM_CDR (turtle);
+                  ASSERT_SYNTAX (!SCM_EQ_P (rabbit, turtle),
+                                 s_bad_expression, rabbit);
+                }
+            }
+
+          /* We have to recurse into copy_tree again for the last cdr, in
+           * order to handle the situation that it holds a vector.  */
+          new_hare.obj = rabbit;
+          copy = copy_tree (&new_hare, tortoise, tortoise_delay);
+          SCM_SETCDR (tail, copy);
+
+          return result;
+        }
+    }
+}
+
 SCM_DEFINE (scm_copy_tree, "copy-tree", 1, 0, 0, 
             (SCM obj),
 	    "Recursively copy the data tree that is bound to @var{obj}, and return a\n"
@@ -5330,30 +5468,17 @@ SCM_DEFINE (scm_copy_tree, "copy-tree", 1, 0, 0,
 	    "any other object.")
 #define FUNC_NAME s_scm_copy_tree
 {
-  SCM ans, tl;
-  if (SCM_IMP (obj)) 
-    return obj;
-  if (SCM_VECTORP (obj))
-    {
-      unsigned long i = SCM_VECTOR_LENGTH (obj);
-      ans = scm_c_make_vector (i, SCM_UNSPECIFIED);
-      while (i--)
-	SCM_VECTOR_SET (ans, i, scm_copy_tree (SCM_VELTS (obj)[i]));
-      return ans;
-    }
-  if (!SCM_CONSP (obj))
-    return obj;
-  ans = tl = scm_cons_source (obj,
-			      scm_copy_tree (SCM_CAR (obj)),
-			      SCM_UNSPECIFIED);
-  for (obj = SCM_CDR (obj); SCM_CONSP (obj); obj = SCM_CDR (obj))
-    {
-      SCM_SETCDR (tl, scm_cons (scm_copy_tree (SCM_CAR (obj)),
-				SCM_UNSPECIFIED));
-      tl = SCM_CDR (tl);
-    }
-  SCM_SETCDR (tl, obj);
-  return ans;
+  /* Prepare the trace along the stack.  */
+  struct t_trace trace;
+  trace.obj = obj;
+
+  /* In function copy_tree, if the tortoise makes its step, it will do this
+   * before the hare has the chance to move.  Thus, we have to make sure that
+   * the very first step of the tortoise will not happen after the hare has
+   * really made two steps.  This is achieved by passing '2' as the initial
+   * delay for the tortoise.  NOTE: Since cycles are unlikely, giving the hare
+   * a bigger advantage may improve performance slightly.  */
+  return copy_tree (&trace, &trace, 2);
 }
 #undef FUNC_NAME
 

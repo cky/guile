@@ -1,4 +1,17 @@
-2003-04-24  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
+2004-03-24  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
+
+	* eval.c: Separated some definitions relevant for execution from
+	the memoization part of the file.
+
+	(copy_tree): New static function
+
+	(scm_copy_tree): Rewritten to fix two kinds or bugs: First, cyclic
+	structures are detected now and will lead to an exception instead
+	of forcing guile to run in an endless loop, using up all the
+	system's memory.  Second, arrays in the cdr of an improper list
+	are now copied.  See the new test cases in eval.test.
+
+2004-03-24  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
 
 	* posix.c (scm_gethostname): Make sure len is initialised before
 	it is used.  Restructured to (hopefully) represent possible
