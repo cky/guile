@@ -1,3 +1,8 @@
+2003-04-07  Rob Browning  <rlb@defaultvalue.org>
+
+	* configure.in: handle pre-inst-guile-env and add
+	test-suite/standalone/Makefile.
+
 2003-04-06  Marius Vollmer  <mvo@zagadka.de>
 
 	* configure.in: Check for mpz_import, which is required but only

@@ -3926,6 +3926,7 @@ SCM_DEFINE (scm_inexact_to_exact, "inexact->exact", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+/* if you need to change this, change test-num2integral.c as well */
 #if SCM_SIZEOF_LONG_LONG != 0
 # ifndef LLONG_MAX
 #  define ULLONG_MAX ((unsigned long long) (-1))
