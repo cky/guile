@@ -18,7 +18,7 @@
 ;;;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
 ;;;; Boston, MA 02111-1307 USA
 
-(use-modules (srfi srfi-13))
+(use-modules (srfi srfi-13) (srfi srfi-14))
 
 ;;; This kludge is needed, because SRFI-13 redefines some bindings in
 ;;; the core.
@@ -95,6 +95,7 @@
     (string=? (string-tabulate
 	       (lambda (idx) (integer->char (+ idx 32))) 10) " !\"#$%&'()")))
 
+;; Get the procedure from the library.
 (define string->list (module-peek '(srfi srfi-13) 'string->list))
 
 (with-test-prefix "string->list"
@@ -200,6 +201,7 @@
      (string=? "foo|delim|bar|delim|" (string-join '("foo" "bar") "|delim|"
 						   'suffix))))
 
+;; Get the procedure from the library.
 (define string-copy (module-peek '(srfi srfi-13) 'string-copy))
 
 (with-test-prefix "string-copy"
@@ -333,3 +335,255 @@
   (pass-if "freestyle 2"
     (string=? "532!" (string-pad-right (number->string 532) 4 #\!))))
 
+(with-test-prefix "string-trim"
+
+  (pass-if "empty string"
+    (string=? "" (string-trim "")))
+
+  (pass-if "no char/pred"
+    (string=? "foo " (string-trim " \tfoo ")))
+
+  (pass-if "start index, pred"
+    (string=? "foo " (string-trim " \tfoo " char-whitespace? 1)))
+
+  (pass-if "start and end index, pred"
+    (string=? "f" (string-trim " \tfoo " char-whitespace? 1 3)))
+
+  (pass-if "start index, char"
+    (string=? "\tfoo " (string-trim " \tfoo " #\space 1)))
+
+  (pass-if "start and end index, char"
+    (string=? "\tf" (string-trim " \tfoo " #\space 1 3)))
+
+  (pass-if "start index, charset"
+    (string=? "foo " (string-trim " \tfoo " char-set:whitespace 1)))
+
+  (pass-if "start and end index, charset"
+    (string=? "f" (string-trim " \tfoo " char-set:whitespace 1 3))))
+
+(with-test-prefix "string-trim-right"
+
+  (pass-if "empty string"
+    (string=? "" (string-trim-right "")))
+
+  (pass-if "no char/pred"
+    (string=? " \tfoo" (string-trim-right " \tfoo ")))
+
+  (pass-if "start index, pred"
+    (string=? "\tfoo" (string-trim-right " \tfoo " char-whitespace? 1)))
+
+  (pass-if "start and end index, pred"
+    (string=? "\tf" (string-trim-right " \tfoo " char-whitespace? 1 3)))
+
+  (pass-if "start index, char"
+    (string=? "\tfoo" (string-trim-right " \tfoo " #\space 1)))
+
+  (pass-if "start and end index, char"
+    (string=? "\tf" (string-trim-right " \tfoo " #\space 1 3)))
+
+  (pass-if "start index, charset"
+    (string=? "\tfoo" (string-trim-right " \tfoo " char-set:whitespace 1)))
+
+  (pass-if "start and end index, charset"
+    (string=? "\tf" (string-trim-right " \tfoo " char-set:whitespace 1 3))))
+
+(with-test-prefix "string-trim-both"
+
+  (pass-if "empty string"
+    (string=? "" (string-trim-both "")))
+
+  (pass-if "no char/pred"
+    (string=? "foo" (string-trim-both " \tfoo ")))
+
+  (pass-if "start index, pred"
+    (string=? "foo" (string-trim-both " \tfoo " char-whitespace? 1)))
+
+  (pass-if "start and end index, pred"
+    (string=? "f" (string-trim-both " \tfoo " char-whitespace? 1 3)))
+
+  (pass-if "start index, char"
+    (string=? "\tfoo" (string-trim-both " \tfoo " #\space 1)))
+
+  (pass-if "start and end index, char"
+    (string=? "\tf" (string-trim-both " \tfoo " #\space 1 3)))
+
+  (pass-if "start index, charset"
+    (string=? "foo" (string-trim-both " \tfoo " char-set:whitespace 1)))
+
+  (pass-if "start and end index, charset"
+    (string=? "f" (string-trim-both " \tfoo " char-set:whitespace 1 3))))
+
+;; Get the procedure from the library.
+(define string-fill! (module-peek '(srfi srfi-13) 'string-fill!))
+
+(define s0 (make-string 200 #\!))
+(define s1 (make-string 0 #\!))
+
+(with-test-prefix "string-fill!"
+
+  (pass-if "empty string, no indices"
+    (string-fill! s1 #\*)
+    (= (string-length s1) 0))
+
+  (pass-if "empty string, start index"
+    (string-fill! s1 #\* 0)
+    (= (string-length s1) 0))
+
+  (pass-if "empty string, start and end index"
+    (string-fill! s1 #\* 0 0)
+    (= (string-length s1) 0))
+
+  (pass-if "no indices"
+    (string-fill! s0 #\*)
+    (char=? (string-ref s0 0) #\*))
+
+  (pass-if "start index"
+    (string-fill! s0 #\+ 10)
+    (char=? (string-ref s0 11) #\+))
+
+  (pass-if "start and end index"
+    (string-fill! s0 #\| 12 20)
+    (char=? (string-ref s0 13) #\|)))
+
+(with-test-prefix "string-replace"
+
+  (pass-if "empty string(s), no indices"
+    (string=? "" (string-replace "" "")))
+
+  (pass-if "empty string(s), 1 index"
+    (string=? "" (string-replace "" "" 0)))
+
+  (pass-if "empty string(s), 2 indices"
+    (string=? "" (string-replace "" "" 0 0)))
+
+  (pass-if "empty string(s), 3 indices"
+    (string=? "" (string-replace "" "" 0 0 0)))
+
+  (pass-if "empty string(s), 4 indices"
+    (string=? "" (string-replace "" "" 0 0 0 0)))
+
+  (pass-if "no indices"
+    (string=? "uu" (string-replace "foo bar" "uu")))
+
+  (pass-if "one index"
+    (string=? "fuu" (string-replace "foo bar" "uu" 1)))
+
+  (pass-if "two indices"
+    (string=? "fuuar" (string-replace "foo bar" "uu" 1 5)))
+
+  (pass-if "three indices"
+    (string=? "fuar" (string-replace "foo bar" "uu" 1 5 1)))
+
+  (pass-if "four indices"
+    (string=? "fuar" (string-replace "foo bar" "uu" 1 5 1 2))))
+
+(with-test-prefix "string-tokenize"
+
+  (pass-if "empty string, no char/pred"
+    (zero? (length (string-tokenize ""))))
+
+  (pass-if "empty string, char"
+    (zero? (length (string-tokenize "" #\.))))
+
+  (pass-if "empty string, charset"
+    (zero? (length (string-tokenize "" char-set:punctuation))))
+
+  (pass-if "no char/pred"
+    (equal? '("foo" "bar" "!a") (string-tokenize "foo\tbar !a")))
+
+  (pass-if "char"
+    (equal? '("foo:bar" "!a") (string-tokenize "foo:bar.!a" #\.)))
+
+  (pass-if "charset"
+    (equal? '("foo" "bar" "a") (string-tokenize "foo:bar.!a"
+						char-set:punctuation)))
+
+  (pass-if "char, start index"
+    (equal? '("oo:bar" "!a") (string-tokenize "foo:bar.!a" #\. 1)))
+
+  (pass-if "charset, start index"
+    (equal? '("oo" "bar" "a") (string-tokenize "foo:bar.!a"
+						char-set:punctuation 1)))
+
+  (pass-if "char, start and end index"
+    (equal? '("oo:bar" "!") (string-tokenize "foo:bar.!a" #\. 1 9)))
+
+  (pass-if "charset, start and end index"
+    (equal? '("oo" "bar") (string-tokenize "foo:bar.!a"
+						char-set:punctuation 1 9))))
+
+(with-test-prefix "string-filter"
+
+  (pass-if "empty string, char"
+    (string=? "" (string-filter "" #\.)))
+
+  (pass-if "empty string, charset"
+    (string=? "" (string-filter "" char-set:punctuation)))
+
+  (pass-if "empty string, pred"
+    (string=? "" (string-filter "" char-alphabetic?)))
+
+  (pass-if "char"
+    (string=? "..." (string-filter ".foo.bar." #\.)))
+
+  (pass-if "charset"
+    (string=? "..." (string-filter ".foo.bar." char-set:punctuation)))
+
+  (pass-if "pred"
+    (string=? "foobar" (string-filter ".foo.bar." char-alphabetic?)))
+
+  (pass-if "char, start index"
+    (string=? ".." (string-filter ".foo.bar." #\. 2)))
+
+  (pass-if "charset, start index"
+    (string=? ".." (string-filter ".foo.bar." char-set:punctuation 2)))
+
+  (pass-if "pred, start index"
+    (string=? "oobar" (string-filter ".foo.bar." char-alphabetic? 2)))
+
+  (pass-if "char, start and end index"
+    (string=? "" (string-filter ".foo.bar." #\. 2 4)))
+
+  (pass-if "charset, start and end index"
+    (string=? "" (string-filter ".foo.bar." char-set:punctuation 2 4)))
+
+  (pass-if "pred, start and end index"
+    (string=? "oo" (string-filter ".foo.bar." char-alphabetic? 2 4))))
+
+(with-test-prefix "string-delete"
+
+  (pass-if "empty string, char"
+    (string=? "" (string-delete "" #\.)))
+
+  (pass-if "empty string, charset"
+    (string=? "" (string-delete "" char-set:punctuation)))
+
+  (pass-if "empty string, pred"
+    (string=? "" (string-delete "" char-alphabetic?)))
+
+  (pass-if "char"
+    (string=? "foobar" (string-delete ".foo.bar." #\.)))
+
+  (pass-if "charset"
+    (string=? "foobar" (string-delete ".foo.bar." char-set:punctuation)))
+
+  (pass-if "pred"
+    (string=? "..." (string-delete ".foo.bar." char-alphabetic?)))
+
+  (pass-if "char, start index"
+    (string=? "oobar" (string-delete ".foo.bar." #\. 2)))
+
+  (pass-if "charset, start index"
+    (string=? "oobar" (string-delete ".foo.bar." char-set:punctuation 2)))
+
+  (pass-if "pred, start index"
+    (string=? ".." (string-delete ".foo.bar." char-alphabetic? 2)))
+
+  (pass-if "char, start and end index"
+    (string=? "oo" (string-delete ".foo.bar." #\. 2 4)))
+
+  (pass-if "charset, start and end index"
+    (string=? "oo" (string-delete ".foo.bar." char-set:punctuation 2 4)))
+
+  (pass-if "pred, start and end index"
+    (string=? "" (string-delete ".foo.bar." char-alphabetic? 2 4))))

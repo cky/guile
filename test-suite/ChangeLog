@@ -1,3 +1,11 @@
+2001-05-10  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* tests/srfi-10.test: New file.
+
+	* tests/srfi-9.test: New file.
+
+	* tests/srfi-13.test: Added some more tests.
+
 2001-05-09  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
 	* tests/eval.test: ("evaluator" "memoization"): New test
