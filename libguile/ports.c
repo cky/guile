@@ -868,7 +868,7 @@ scm_ungetc (c, port)
     {
       if (pt->putback_buf == NULL)
 	{
-	  pt->putback_buf = (char *) malloc (pt->putback_buf_size);
+	  pt->putback_buf = (char *) malloc (SCM_INITIAL_PUTBACK_BUF_SIZE);
 	  if (pt->putback_buf == NULL)
 	    scm_memory_error ("scm_ungetc");
 	  pt->putback_buf_size = SCM_INITIAL_PUTBACK_BUF_SIZE;
