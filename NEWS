@@ -35,28 +35,6 @@ in backtraces.
 
 * Changes to Scheme functions and syntax
 
-** New module: (ice-9 setf)
-Implements generalized references a la Common LISP.
-
-*** New syntax: setf! PLACE VALUE
-Puts VALUE in location specified by PLACE.  setf! is more general than
-set! in the sense that PLACE can be a form (GETTER EXP1 EXP2 ...).  The
-setf! expression will be transformed into (SETTER EXP1 EXP2 ... VALUE)
-where SETTER is a procedure or macro which has previously been
-associated with GETTER.
-
-Example:
-
- (setf! (car x) 4) <=> (set-car! x 4)
-
-*** New syntax: setter GETTER
-The name of the SETTER of GETTER.  The way to associate a SETTER with
-a GETTER is: (setf! (setter GETTER) SETTER)
-
-Example:
-
-  (setf! (setter car) set-car!)
-
 ** The range of logand, logior, logxor, logtest, and logbit? have changed.
 
 These functions now operate on numbers in the range of a C unsigned

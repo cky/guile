@@ -1,3 +1,10 @@
+1998-12-11  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+
+	* Makefile.am: Removed setf.scm.
+
+	* setf.scm: Removed.  1. It was buggy.  2. It was unschemey.
+	(These shortcomings were my fault.)
+
 1998-12-07  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
 	* Makefile.am: Added setf.scm.
