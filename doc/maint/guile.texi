@@ -2170,25 +2170,28 @@ table into an a-list of key-value pairs.
 @c snarfed from hooks.c:216
 @deffn primitive make-hook-with-name name [n_args]
 Create a named hook with the name @var{name} for storing
-procedures of arity @var{n_args}.
+procedures of arity @var{n_args}.  @var{n_args} defaults to
+zero.
 @end deffn
 
 make-hook
 @c snarfed from hooks.c:230
 @deffn primitive make-hook [n_args]
-Create a hook for storing procedure of arity @var{n_args}.
+Create a hook for storing procedure of arity
+@var{n_args}.  @var{n_args} defaults to zero.
 @end deffn
 
 hook?
 @c snarfed from hooks.c:240
 @deffn primitive hook? x
-Return @code{#t} if @var{x} is a hook.
+Return @code{#t} if @var{x} is a hook, @code{#f} otherwise.
 @end deffn
 
 hook-empty?
 @c snarfed from hooks.c:250
 @deffn primitive hook-empty? hook
-Return @code{#t} if @var{hook} is an empty hook.
+Return @code{#t} if @var{hook} is an empty hook, @code{#f}
+otherwise.
 @end deffn
 
 add-hook!
@@ -2215,7 +2218,8 @@ Remove all procedures from the hook @var{hook}.
 @c snarfed from hooks.c:315
 @deffn primitive run-hook hook . args
 Apply all procedures from the hook @var{hook} to the arguments
-@var{args}.
+@var{args}.  The order of the procedure application is first to
+last.
 @end deffn
 
 hook->list

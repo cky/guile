@@ -13,10 +13,8 @@
 
 @node Equality
 @section Equality
-@r5index eq?
-@r5index eqv?
-@r5index equal?
 
+@rnindex eq?
 @c docstring begin (texi-doc-string "guile" "eq?")
 @deffn primitive eq? x y
 Return @code{#t} iff @var{x} references the same object as @var{y}.
@@ -25,6 +23,7 @@ capable of discerning distinctions finer than those detectable by
 @code{eqv?}.
 @end deffn
 
+@rnindex eqv?
 @c docstring begin (texi-doc-string "guile" "eqv?")
 @deffn primitive eqv? x y
 The @code{eqv?} procedure defines a useful equivalence relation on objects.
@@ -34,6 +33,7 @@ interpretation, but works for comparing immediate integers, characters,
 and inexact numbers.
 @end deffn
 
+@rnindex equal?
 @c docstring begin (texi-doc-string "guile" "equal?")
 @deffn primitive equal? x y
 Return @code{#t} iff @var{x} and @var{y} are recursively @code{eqv?} equivalent.

@@ -63,8 +63,6 @@ sections of this manual that cover them.
 
 @node Booleans
 @section Booleans
-@r5index not
-@r5index boolean?
 
 The two boolean values are @code{#t} for true and @code{#f} for false.
 
@@ -122,6 +120,7 @@ number 0 (like in C and C++), and not the same as the ``empty list''
 
 The @code{not} procedure returns the boolean inverse of its argument:
 
+@rnindex not
 @c docstring begin (texi-doc-string "guile" "not")
 @deffn primitive not x
 Return @code{#t} iff @var{x} is @code{#f}, else return @code{#f}.
@@ -130,6 +129,7 @@ Return @code{#t} iff @var{x} is @code{#f}, else return @code{#f}.
 The @code{boolean?} procedure is a predicate that returns @code{#t} if
 its argument is one of the boolean values, otherwise @code{#f}.
 
+@rnindex boolean?
 @c docstring begin (texi-doc-string "guile" "boolean?")
 @deffn primitive boolean? obj
 Return @code{#t} iff @var{obj} is either @code{#t} or @code{#f}.
@@ -169,7 +169,7 @@ in Scheme, which is particularly clear and accessible: see
 
 @node Numerical Tower
 @subsection Scheme's Numerical ``Tower''
-@r5index number?
+@rnindex number?
 
 Scheme's numerical ``tower'' consists of the following categories of
 numbers:
@@ -232,7 +232,7 @@ in detail.
 
 @node Integers
 @subsection Integers
-@r5index integer?
+@rnindex integer?
 
 Integers are whole numbers, that is numbers with no fractional part,
 such as 2, 83 and -3789.
@@ -291,8 +291,8 @@ Return @code{#t} if @var{x} is an integer number, @code{#f} else.
 
 @node Reals and Rationals
 @subsection Real and Rational Numbers
-@r5index real?
-@r5index rational?
+@rnindex real?
+@rnindex rational?
 
 Mathematically, the real numbers are the set of numbers that describe
 all possible points along a continuous, infinite, one-dimensional line.
@@ -355,7 +355,7 @@ precision.
 
 @node Complex Numbers
 @subsection Complex Numbers
-@r5index complex?
+@rnindex complex?
 
 Complex numbers are the set of numbers that describe all possible points
 in a two-dimensional space.  The two coordinates of a particular point
@@ -392,10 +392,10 @@ rational or integer number.
 
 @node Exactness
 @subsection Exact and Inexact Numbers
-@r5index exact?
-@r5index inexact?
-@r5index exact->inexact
-@r5index inexact->exact
+@rnindex exact?
+@rnindex inexact?
+@rnindex exact->inexact
+@rnindex inexact->exact
 
 R5RS requires that a calculation involving inexact numbers always
 produces an inexact result.  To meet this requirement, Guile
@@ -497,13 +497,13 @@ multiplying by 10^N.
 
 @node Integer Operations
 @subsection Operations on Integer Values
-@r5index odd?
-@r5index even?
-@r5index quotient
-@r5index remainder
-@r5index modulo
-@r5index gcd
-@r5index lcm
+@rnindex odd?
+@rnindex even?
+@rnindex quotient
+@rnindex remainder
+@rnindex modulo
+@rnindex gcd
+@rnindex lcm
 
 @c docstring begin (texi-doc-string "guile" "odd?")
 @deffn primitive odd? n
@@ -555,9 +555,9 @@ If called without arguments, 1 is returned.
 
 @node Comparison
 @subsection Comparison Predicates
-@r5index zero?
-@r5index positive?
-@r5index negative?
+@rnindex zero?
+@rnindex positive?
+@rnindex negative?
 
 @c begin (texi-doc-string "guile" "=")
 @deffn primitive =
@@ -609,8 +609,8 @@ zero.
 
 @node Conversion
 @subsection Converting Numbers To and From Strings
-@r5index number->string
-@r5index string->number
+@rnindex number->string
+@rnindex string->number
 
 @c docstring begin (texi-doc-string "guile" "number->string")
 @deffn primitive number->string n [radix]
@@ -634,12 +634,12 @@ syntactically valid notation for a number, then
 
 @node Complex
 @subsection Complex Number Operations
-@r5index make-rectangular
-@r5index make-polar
-@r5index real-part
-@r5index imag-part
-@r5index magnitude
-@r5index angle
+@rnindex make-rectangular
+@rnindex make-polar
+@rnindex real-part
+@rnindex imag-part
+@rnindex magnitude
+@rnindex angle
 
 @c docstring begin (texi-doc-string "guile" "make-rectangular")
 @deffn primitive make-rectangular real imaginary
@@ -676,17 +676,17 @@ Return the angle of the complex number @var{z}.
 
 @node Arithmetic
 @subsection Arithmetic Functions
-@r5index max
-@r5index min
-@r5index +
-@r5index *
-@r5index -
-@r5index /
-@r5index abs
-@r5index floor
-@r5index ceiling
-@r5index truncate
-@r5index round
+@rnindex max
+@rnindex min
+@rnindex +
+@rnindex *
+@rnindex -
+@rnindex /
+@rnindex abs
+@rnindex floor
+@rnindex ceiling
+@rnindex truncate
+@rnindex round
 
 @c begin (texi-doc-string "guile" "+")
 @deffn primitive + z1 @dots{}
@@ -749,16 +749,16 @@ Round the number @var{x} towards infinity.
 
 @node Scientific
 @subsection Scientific Functions
-@r5index exp
-@r5index log
-@r5index sin
-@r5index cos
-@r5index tan
-@r5index asin
-@r5index acos
-@r5index atan
-@r5index sqrt
-@r5index expt
+@rnindex exp
+@rnindex log
+@rnindex sin
+@rnindex cos
+@rnindex tan
+@rnindex asin
+@rnindex acos
+@rnindex atan
+@rnindex sqrt
+@rnindex expt
 
 The following procedures accept any kind of number as arguments,
 including complex numbers.
@@ -1173,21 +1173,21 @@ Return a new random state using @var{seed}.
 
 @node Characters
 @section Characters
-@r5index char?
-@r5index char=?
-@r5index char<?
-@r5index char>?
-@r5index char<=?
-@r5index char>=?
-@r5index char-alphabetic?
-@r5index char-numeric?
-@r5index char-whitespace?
-@r5index char-upper-case?
-@r5index char-lower-case?
-@r5index char->integer
-@r5index integer->char
-@r5index char-upcase
-@r5index char-downcase
+@rnindex char?
+@rnindex char=?
+@rnindex char<?
+@rnindex char>?
+@rnindex char<=?
+@rnindex char>=?
+@rnindex char-alphabetic?
+@rnindex char-numeric?
+@rnindex char-whitespace?
+@rnindex char-upper-case?
+@rnindex char-lower-case?
+@rnindex char->integer
+@rnindex integer->char
+@rnindex char-upcase
+@rnindex char-downcase
 
 
 Most of the characters in the ASCII character set may be referred to by
@@ -1382,26 +1382,19 @@ Strings are fixed--length sequences of characters.  They can be created
 by calling constructor procedures, but they can also literally get
 entered at the REPL or in Scheme source files.
 
-The read syntax for strings is an arbitrarily long sequence of characters
-enclosed in double quotes (@code{"}). @footnote{Actually, the current
-implementation restricts strings to a length of 2&24 characters.}  If
-you want to insert a double quote character into a string literal, it
-must be prefixed with a backslash @code{\} character (called an
-@emph{escape character}).
-
-The following are examples of string literals:
-
-@lisp
-"foo"
-"bar plonk"
-"Hello World"
-"\"Hi\", he said."
-@end lisp
-
 Guile provides a rich set of string processing procedures, because text
 handling is very important when Guile is used as a scripting language.
 
+Strings always carry the information about how many characters they are
+composed of with them, so there is no special end--of--string character,
+like in C.  That means that Scheme strings can contain any character,
+even the NUL character @code{'\0'}.  But note: Since most operating
+system calls dealing with strings (such as for file operations) expect
+strings to be zero--terminated, they might do unexpected things when
+called with string containing unusal characters.
+
 @menu
+* String Syntax::               Read syntax for strings.
 * String Predicates::           Testing strings for certain properties.
 * String Constructors::         Creating new string objects.
 * List/String Conversion::      Converting from/to lists of characters.
@@ -1416,13 +1409,34 @@ handling is very important when Guile is used as a scripting language.
 * Read Only Strings::           Treating certain non-strings as strings.
 @end menu
 
+@node String Syntax
+@subsection String Read Syntax
+
+The read syntax for strings is an arbitrarily long sequence of characters
+enclosed in double quotes (@code{"}). @footnote{Actually, the current
+implementation restricts strings to a length of 2^24 characters.}  If
+you want to insert a double quote character into a string literal, it
+must be prefixed with a backslash @code{\} character (called an
+@emph{escape character}).
+
+The following are examples of string literals:
+
+@lisp
+"foo"
+"bar plonk"
+"Hello World"
+"\"Hi\", he said."
+@end lisp
+
+@c FIXME::martin: What about escape sequences like \r, \n etc.?
+
 @node String Predicates
 @subsection String Predicates
 
 The following procedures can be used to check whether a given string
 fulfills some specified property.
 
-@r5index string?
+@rnindex string?
 @c docstring begin (texi-doc-string "guile" "string?")
 @deffn primitive string? obj
 Return @code{#t} iff @var{obj} is a string, else returns
@@ -1448,8 +1462,8 @@ initializing them with some specified character data.
 
 @c FIXME::martin: list->string belongs into `List/String Conversion'
 
-@r5index string
-@r5index list->string
+@rnindex string
+@rnindex list->string
 @c docstring begin (texi-doc-string "guile" "string")
 @c docstring begin (texi-doc-string "guile" "list->string")
 @deffn primitive string . chrs
@@ -1458,7 +1472,7 @@ Return a newly allocated string composed of the arguments,
 @var{chrs}.
 @end deffn
 
-@r5index make-string
+@rnindex make-string
 @c docstring begin (texi-doc-string "guile" "make-string")
 @deffn primitive make-string k [chr]
 Return a newly allocated string of
@@ -1475,7 +1489,7 @@ into a list representation by using the procedure @code{string->list},
 work with the resulting list, and then convert it back into a string.
 These procedures are useful for similar tasks.
 
-@r5index string->list
+@rnindex string->list
 @c docstring begin (texi-doc-string "guile" "string->list")
 @deffn primitive string->list str
 Return a newly allocated list of the characters that make up
@@ -1491,26 +1505,26 @@ Portions of strings can be extracted by these procedures.
 @code{string-ref} delivers individual characters whereas
 @code{substring} can be used to extract substrings from longer strings.
 
-@r5index string-length
+@rnindex string-length
 @c docstring begin (texi-doc-string "guile" "string-length")
 @deffn primitive string-length string
 Return the number of characters in @var{string}.
 @end deffn
 
-@r5index string-ref
+@rnindex string-ref
 @c docstring begin (texi-doc-string "guile" "string-ref")
 @deffn primitive string-ref str k
 Return character @var{k} of @var{str} using zero-origin
 indexing. @var{k} must be a valid index of @var{str}.
 @end deffn
 
-@r5index string-copy
+@rnindex string-copy
 @c docstring begin (texi-doc-string "guile" "string-copy")
 @deffn primitive string-copy str
 Return a newly allocated copy of the given @var{string}.
 @end deffn
 
-@r5index substring
+@rnindex substring
 @c docstring begin (texi-doc-string "guile" "substring")
 @deffn primitive substring str start [end]
 Return a newly allocated string formed from the characters
@@ -1529,7 +1543,7 @@ These procedures are for modifying strings in--place.  That means, that
 not a new string is the result of a string operation, but that the
 actual memory representation of a string is modified.
 
-@r5index string-set!
+@rnindex string-set!
 @c docstring begin (texi-doc-string "guile" "string-set!")
 @deffn primitive string-set! str k chr
 Store @var{chr} in element @var{k} of @var{str} and return
@@ -1537,7 +1551,7 @@ an unspecified value. @var{k} must be a valid index of
 @var{str}.
 @end deffn
 
-@r5index string-fill!
+@rnindex string-fill!
 @c docstring begin (texi-doc-string "guile" "string-fill!")
 @deffn primitive string-fill! str chr
 Store @var{char} in every element of the given @var{string} and
@@ -1642,7 +1656,7 @@ return @code{#t} on success and @code{#f} on failure.  The predicates
 ending in @code{-ci} ignore the character case when comparing strings.
 
 
-@r5index string=?
+@rnindex string=?
 @c docstring begin (texi-doc-string "guile" "string=?")
 @deffn primitive string=? s1 s2
 Lexicographic equality predicate; return @code{#t} if the two
@@ -1654,35 +1668,35 @@ letters as though they were the same character, but
 characters.
 @end deffn
 
-@r5index string<?
+@rnindex string<?
 @c docstring begin (texi-doc-string "guile" "string<?")
 @deffn primitive string<? s1 s2
 Lexicographic ordering predicate; return @code{#t} if @var{s1}
 is lexicographically less than @var{s2}.
 @end deffn
 
-@r5index string<=?
+@rnindex string<=?
 @c docstring begin (texi-doc-string "guile" "string<=?")
 @deffn primitive string<=? s1 s2
 Lexicographic ordering predicate; return @code{#t} if @var{s1}
 is lexicographically less than or equal to @var{s2}.
 @end deffn
 
-@r5index string>?
+@rnindex string>?
 @c docstring begin (texi-doc-string "guile" "string>?")
 @deffn primitive string>? s1 s2
 Lexicographic ordering predicate; return @code{#t} if @var{s1}
 is lexicographically greater than @var{s2}.
 @end deffn
 
-@r5index string>=?
+@rnindex string>=?
 @c docstring begin (texi-doc-string "guile" "string>=?")
 @deffn primitive string>=? s1 s2
 Lexicographic ordering predicate; return @code{#t} if @var{s1}
 is lexicographically greater than or equal to @var{s2}.
 @end deffn
 
-@r5index string-ci=?
+@rnindex string-ci=?
 @c docstring begin (texi-doc-string "guile" "string-ci=?")
 @deffn primitive string-ci=? s1 s2
 Case-insensitive string equality predicate; return @code{#t} if
@@ -1691,7 +1705,7 @@ characters match (ignoring case) at each position; otherwise
 return @code{#f}.
 @end deffn
 
-@r5index string-ci<
+@rnindex string-ci<
 @c docstring begin (texi-doc-string "guile" "string-ci<?")
 @deffn primitive string-ci<? s1 s2
 Case insensitive lexicographic ordering predicate; return
@@ -1699,7 +1713,7 @@ Case insensitive lexicographic ordering predicate; return
 regardless of case.
 @end deffn
 
-@r5index string<=?
+@rnindex string<=?
 @c docstring begin (texi-doc-string "guile" "string-ci<=?")
 @deffn primitive string-ci<=? s1 s2
 Case insensitive lexicographic ordering predicate; return
@@ -1707,7 +1721,7 @@ Case insensitive lexicographic ordering predicate; return
 to @var{s2} regardless of case.
 @end deffn
 
-@r5index string-ci>?
+@rnindex string-ci>?
 @c docstring begin (texi-doc-string "guile" "string-ci>?")
 @deffn primitive string-ci>? s1 s2
 Case insensitive lexicographic ordering predicate; return
@@ -1715,7 +1729,7 @@ Case insensitive lexicographic ordering predicate; return
 @var{s2} regardless of case.
 @end deffn
 
-@r5index string-ci>=?
+@rnindex string-ci>=?
 @c docstring begin (texi-doc-string "guile" "string-ci>=?")
 @deffn primitive string-ci>=? s1 s2
 Case insensitive lexicographic ordering predicate; return
@@ -1832,7 +1846,7 @@ y                      @result{} "Hello World"
 The procedure @code{string-append} appends several strings together to
 form a longer result string.
 
-@r5index string-append
+@rnindex string-append
 @c docstring begin (texi-doc-string "guile" "string-append")
 @deffn primitive string-append . args
 Return a newly allocated string whose characters form the
@@ -2436,9 +2450,6 @@ Test whether obj is a compiled regular expression.
 
 @node Symbols and Variables
 @section Symbols and Variables
-@r5index symbol?
-@r5index symbol->string
-@r5index string->symbol
 
 
 Guile symbol tables are hash tables.  Each hash table, also called an
@@ -2500,6 +2511,7 @@ new entries should not be added for symbols not already present in the
 table; instead, simply return @code{#f}.
 @end deffn
 
+@rnindex string->symbol
 @c docstring begin (texi-doc-string "guile" "string->symbol")
 @deffn primitive string->symbol string
 Return the symbol whose name is @var{string}. This procedure
@@ -2522,6 +2534,7 @@ standard case is lower case:
 @end lisp
 @end deffn
 
+@rnindex symbol->string
 @c docstring begin (texi-doc-string "guile" "symbol->string")
 @deffn primitive symbol->string s
 Return the name of @var{symbol} as a string.  If the symbol was
@@ -2603,6 +2616,7 @@ it to @var{value}.  An error is signalled if @var{string} is not present
 in @var{obarray}.
 @end deffn
 
+@rnindex symbol?
 @c docstring begin (texi-doc-string "guile" "symbol?")
 @deffn primitive symbol? obj
 Return @code{#t} if @var{obj} is a symbol, otherwise return
@@ -2679,10 +2693,10 @@ syntax extension to permit keywords to begin with @code{:} as well as
 @code{#:}.
 
 @menu
-* Why Use Keywords?::           
-* Coding With Keywords::        
-* Keyword Read Syntax::         
-* Keyword Primitives::          
+* Why Use Keywords?::           Motivation for keyword usage.
+* Coding With Keywords::        How to use keywords.
+* Keyword Read Syntax::         Read syntax for keywords.
+* Keyword Primitives::          Procedures for dealing with keywords.
 @end menu
 
 @node Why Use Keywords?
@@ -2884,7 +2898,53 @@ This is the inverse of @code{make-keyword-from-dash-symbol}.
 
 @node Pairs
 @section Pairs
-@r5index cons
+
+@c FIXME::martin: Review me!
+
+Pairs are used to combine two Scheme objects into one compound object.
+Hence the name: A pair stores a pair of objects.
+
+The data type @emph{pair} is extremely important in Scheme, just like in
+any other Lisp dialect.  The reason is that pairs are not only used to
+make two values available as one object, but that pairs are used for
+constructing lists of values.  Because lists are so important in Scheme,
+they are described in a section of their own (@pxref{Lists}).
+
+Pairs can literally get entered in source code or at the REPL, in the
+so-called @dfn{dotted list} syntax.  This syntax consists of an opening
+parentheses, the first element of the pair, a dot, the second element
+and a closing parentheses.  The following example shows how a pair
+consisting of the two numbers 1 and 2, and a pair containing the symbols
+@code{foo} and @code{bar} can be entered.  It is very important to write
+the whitespace before and after the dot, because otherwise the Scheme
+parser whould not be able to figure out where to split the tokens.
+
+@lisp
+(1 . 2)
+(foo . bar)
+@end lisp
+
+But beware, if you want to try out these examples, you have to
+@dfn{quote} the expressions.  More information about quotation is
+available in the section (REFFIXME).  The correct way to try these
+examples is as follows.
+
+@lisp
+'(1 . 2)
+@result{}
+(1 . 2)
+'(foo . bar)
+@result{}
+(foo . bar)
+@end lisp
+
+A new pair is made by calling the procedure @code{cons} with two
+arguments.  Then the argument values are stored into a newly allocated
+pair, and the pair is returned.  The name @code{cons} stands for
+@emph{construct}.  Use the procedure @code{pair?} to test whether a
+given Scheme object is a pair or not.
+
+@rnindex cons
 @c docstring begin (texi-doc-string "guile" "cons")
 @deffn primitive cons x y
 Return a newly allocated pair whose car is @var{x} and whose
@@ -2892,15 +2952,23 @@ cdr is @var{y}.  The pair is guaranteed to be different (in the
 sense of @code{eq?}) from every previously existing object.
 @end deffn
 
-@r5index pair?
+@rnindex pair?
 @c docstring begin (texi-doc-string "guile" "pair?")
 @deffn primitive pair? x
 Return @code{#t} if @var{x} is a pair; otherwise return
 @code{#f}.
 @end deffn
 
-@r5index car
-@r5index cdr
+The two parts of a pair are traditionally called @emph{car} and
+@emph{cdr}.  They can be retrieved with procedures of the same name
+(@code{car} and @code{cdr}), and can be modified with the procedures
+@code{set-car!} and @code{set-cdr!}.  Since a very common operation in
+Scheme programs is to access the car of a pair, or the car of the cdr of
+a pair, etc., the procedures called @code{caar}, @code{cadr} and so on
+are also predefined.
+
+@rnindex car
+@rnindex cdr
 @deffn primitive car pair
 @deffnx primitive cdr pair
 Return the car or the cdr of @var{pair}, respectively.
@@ -2918,14 +2986,14 @@ for example @code{caddr} could be defined by
 @end lisp
 @end deffn
 
-@r5index set-car!
+@rnindex set-car!
 @c docstring begin (texi-doc-string "guile" "set-car!")
 @deffn primitive set-car! pair value
 Stores @var{value} in the car field of @var{pair}.  The value returned
 by @code{set-car!} is unspecified.
 @end deffn
 
-@r5index set-cdr!
+@rnindex set-cdr!
 @c docstring begin (texi-doc-string "guile" "set-cdr!")
 @deffn primitive set-cdr! pair value
 Stores @var{value} in the cdr field of @var{pair}.  The value returned
@@ -2936,16 +3004,113 @@ by @code{set-cdr!} is unspecified.
 @node Lists
 @section Lists
 
+A very important datatype in Scheme---as well as in all other Lisp
+dialects---is the data type @dfn{list}.@footnote{Strictly speaking,
+Scheme does not have a real datatype @emph{list}.  Lists are made up of
+chained @emph{pairs}, and only exist by definition --- A list is a chain
+of pairs which looks like a list.}
 
-@r5index list
+This is the short definition of what a list is:
+
+@itemize @bullet
+@item Either the empty list @code{()},
+@item or a pair which has a list in its cdr.
+@end itemize
+
+@c FIXME::martin: Describe the pair chaining in more detail.
+
+@c FIXME::martin: What is a proper, what an improper list?
+@c What is a circular list?
+
+@c FIXME::martin: Maybe steal some graphics from the Elisp reference 
+@c manual?
+
+@menu
+* List Syntax::                 Writing literal lists.
+* List Predicates::             Testing lists.
+* List Constructors::           Creating new lists.
+* List Selection::              Selecting from lists, getting their length.
+* Append/Reverse::              Appending and reversing lists.
+* List Modifification::         Modifying list structure.
+* List Searching::              Searching for list elements
+* List Mapping::                Applying procedures to lists.
+@end menu
+
+@node List Syntax
+@subsection List Read Syntax
+
+The syntax for lists is an opening parentheses, then all the elements of
+the list (separated by whitespace) and finally a closing
+parentheses.@footnote{Note that there is no separation character between
+the list elements, like a comma or a semicolon.}.
+
+@lisp
+(1 2 3)            ; @r{a list of the numbers 1, 2 and 3}
+("foo" bar 3.1415) ; @r{a string, a symbol and a real number}
+()                 ; @r{the empty list}
+@end lisp
+
+The last example needs a bit more explanation.  A list with no elements,
+called the @dfn{empty list}, is special in some ways.  It is used for
+terminating lists by storing it into the cdr of the last pair that makes
+up a list.  An example will clear that up:
+
+@lisp
+(car '(1))
+@result{}
+1
+(cdr '(1))
+@result{}
+()
+@end lisp
+
+This example also shows that lists have to be quoted (REFFIXME) when
+written, because they would otherwise be mistakingly taken as procedure
+applications (REFFIXME).
+
+
+@node List Predicates
+@subsection List Predicates
+
+Often it is useful to test whether a given Scheme object is a list or
+not.  List--processing procedures could use this information to test
+whether their input is valid, or they could do different things
+depending on the datatype of their arguments.
+
+@rnindex list?
+@c docstring begin (texi-doc-string "guile" "list?")
+@deffn primitive list? x
+Return @code{#t} iff @var{x} is a proper list, else @code{#f}.
+@end deffn
+
+The predicate @code{null?} is often used in list--processing code to
+tell whether a given list has run out of elements.  That is, a loop
+somehow deals with the elements of a list until the list satisfies
+@code{null?}.  Then, teh algorithm terminates.
+
+@rnindex null?
+@c docstring begin (texi-doc-string "guile" "null?")
+@deffn primitive null? x
+Return @code{#t} iff @var{x} is the empty list, else @code{#f}.
+@end deffn
+
+@node List Constructors
+@subsection List Constructors
+
+This section describes the procedures for constructing new lists.
+@code{list} simply returns a list where the elements are the arguments,
+@code{cons*} is similar, but the last argument is stored in the cdr of
+the last pair of the list.
+
+@rnindex list
 @c docstring begin (texi-doc-string "guile" "list")
-@deffn primitive list . objs
+@deffn primitive list arg1 @dots{}
 Return a list containing @var{objs}, the arguments to
 @code{list}.
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "cons*")
-@deffn primitive cons* arg . rest
+@deffn primitive cons* arg1 arg2 @dots{}
 Like @code{list}, but the last arg provides the tail of the
 constructed list, returning @code{(cons @var{arg1} (cons
 @var{arg2} (cons @dots{} @var{argn})))}.  Requires at least one
@@ -2954,25 +3119,74 @@ result.  This function is called @code{list*} in some other
 Schemes and in Common LISP.
 @end deffn
 
-@r5index list?
-@c docstring begin (texi-doc-string "guile" "list?")
-@deffn primitive list? x
-Return @code{#t} iff @var{x} is a proper list, else @code{#f}.
+@c docstring begin (texi-doc-string "guile" "list-copy")
+@deffn primitive list-copy lst
+Return a (newly-created) copy of @var{lst}.
 @end deffn
 
-@r5index null?
-@c docstring begin (texi-doc-string "guile" "null?")
-@deffn primitive null? x
-Return @code{#t} iff @var{x} is the empty list, else @code{#f}.
-@end deffn
+Note that @code{list-copy} only makes a copy of the pairs which make up
+the spine of the lists.  The list elements are not copied, which means
+that modifying the elements of the new list also modyfies the elements
+of the old list.  On the other hand, applying procedures like
+@code{set-cdr!} or @code{delv!} to the new list will not alter the old
+list.  If you also need to copy the list elements (making a deep copy),
+use the procedure @code{copy-tree} (REFFIXME).
 
-@r5index length
+@node List Selection
+@subsection List Selection
+
+These procedures are used to get some information about a list, or to
+retrieve one or more elements of a list.
+
+@rnindex length
 @c docstring begin (texi-doc-string "guile" "length")
 @deffn primitive length lst
 Return the number of elements in list @var{lst}.
 @end deffn
 
-@r5index append
+@c docstring begin (texi-doc-string "guile" "last-pair")
+@deffn primitive last-pair lst
+Return a pointer to the last pair in @var{lst}, signalling an error if
+@var{lst} is circular.
+@end deffn
+
+@rnindex list-ref
+@c docstring begin (texi-doc-string "guile" "list-ref")
+@deffn primitive list-ref list k
+Return the @var{k}th element from @var{list}.
+@end deffn
+
+@rnindex list-tail
+@c docstring begin (texi-doc-string "guile" "list-tail")
+@c docstring begin (texi-doc-string "guile" "list-cdr-ref")
+@deffn primitive list-tail lst k
+@deffnx primitive list-cdr-ref lst k
+Return the "tail" of @var{lst} beginning with its @var{k}th element.
+The first element of the list is considered to be element 0.
+
+@code{list-tail} and @code{list-cdr-ref} are identical.  It may help to
+think of @code{list-cdr-ref} as accessing the @var{k}th cdr of the list,
+or returning the results of cdring @var{k} times down @var{lst}.
+@end deffn
+
+@c docstring begin (texi-doc-string "guile" "list-head")
+@deffn primitive list-head lst k
+Copy the first @var{k} elements from @var{lst} into a new list, and
+return it.
+@end deffn
+
+@node Append/Reverse
+@subsection Append and Reverse
+
+@code{append} and @code{append!} are used to concatenate two or more
+lists in order to form a new list.  @code{reverse} and @code{reverse!}
+return lists with the same elements as their arguments, but in reverse
+order.  The procedure variants with an @code{!} directly modify the
+pairs which form the list, whereas the other procedures create new
+pairs.  This is why you should be careful when using the side--effecting
+variants.
+
+@rnindex append
 @c docstring begin (texi-doc-string "guile" "append")
 @deffn primitive append . args
 Return a list consisting of the elements the lists passed as
@@ -3001,13 +3215,7 @@ the next list, so no consing is performed.  Return a pointer to
 the mutated list.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "last-pair")
-@deffn primitive last-pair lst
-Return a pointer to the last pair in @var{lst}, signalling an error if
-@var{lst} is circular.
-@end deffn
-
-@r5index reverse
+@rnindex reverse
 @c docstring begin (texi-doc-string "guile" "reverse")
 @deffn primitive reverse lst
 Return a new list that contains the elements of @var{lst} but
@@ -3030,77 +3238,21 @@ of the modified list is not lost, it is wise to save the return value of
 @code{reverse!}
 @end deffn
 
-@r5index list-ref
-@c docstring begin (texi-doc-string "guile" "list-ref")
-@deffn primitive list-ref list k
-Return the @var{k}th element from @var{list}.
-@end deffn
+@node List Modifification
+@subsection List Modification
+
+The following procedures modify existing list.  @code{list-set!}  and
+@code{list-cdr-set!} change which elements a list contains, the various
+deletion procedures @code{delq}, @code{delv} etc.
 
 @c docstring begin (texi-doc-string "guile" "list-set!")
 @deffn primitive list-set! list k val
 Set the @var{k}th element of @var{list} to @var{val}.
 @end deffn
 
-@r5index list-tail
-@c docstring begin (texi-doc-string "guile" "list-tail")
-@c docstring begin (texi-doc-string "guile" "list-cdr-ref")
-@deffn primitive list-tail lst k
-@deffnx primitive list-cdr-ref lst k
-Return the "tail" of @var{lst} beginning with its @var{k}th element.
-The first element of the list is considered to be element 0.
-
-@code{list-tail} and @code{list-cdr-ref} are identical.  It may help to
-think of @code{list-cdr-ref} as accessing the @var{k}th cdr of the list,
-or returning the results of cdring @var{k} times down @var{lst}.
-@end deffn
-
 @c docstring begin (texi-doc-string "guile" "list-cdr-set!")
 @deffn primitive list-cdr-set! list k val
 Set the @var{k}th cdr of @var{list} to @var{val}.
-@end deffn
-
-@c docstring begin (texi-doc-string "guile" "list-head")
-@deffn primitive list-head lst k
-Copy the first @var{k} elements from @var{lst} into a new list, and
-return it.
-@end deffn
-
-@c docstring begin (texi-doc-string "guile" "list-copy")
-@deffn primitive list-copy lst
-Return a (newly-created) copy of @var{lst}.
-@end deffn
-
-@r5index memq
-@c docstring begin (texi-doc-string "guile" "memq")
-@deffn primitive memq x lst
-Return the first sublist of @var{lst} whose car is @code{eq?}
-to @var{x} where the sublists of @var{lst} are the non-empty
-lists returned by @code{(list-tail @var{lst} @var{k})} for
-@var{k} less than the length of @var{lst}.  If @var{x} does not
-occur in @var{lst}, then @code{#f} (not the empty list) is
-returned.
-@end deffn
-
-@r5index memv
-@c docstring begin (texi-doc-string "guile" "memv")
-@deffn primitive memv x lst
-Return the first sublist of @var{lst} whose car is @code{eqv?}
-to @var{x} where the sublists of @var{lst} are the non-empty
-lists returned by @code{(list-tail @var{lst} @var{k})} for
-@var{k} less than the length of @var{lst}.  If @var{x} does not
-occur in @var{lst}, then @code{#f} (not the empty list) is
-returned.
-@end deffn
-
-@r5index member
-@c docstring begin (texi-doc-string "guile" "member")
-@deffn primitive member x lst
-Return the first sublist of @var{lst} whose car is
-@code{equal?} to @var{x} where the sublists of @var{lst} are
-the non-empty lists returned by @code{(list-tail @var{lst}
-@var{k})} for @var{k} less than the length of @var{lst}.  If
-@var{x} does not occur in @var{lst}, then @code{#f} (not the
-empty list) is returned.
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "delq")
@@ -3162,6 +3314,48 @@ Like @code{delete!}, but only deletes the first occurrence of
 @code{equal?}.  See also @code{delq1!} and @code{delv1!}.
 @end deffn
 
+@node List Searching
+@subsection List Searching
+
+The following procedures search lists for particular elements.  They use
+different comparison predicates for comparing list elements with the
+object to be seached.  When they fail, they return @code{#f}, otherwise
+they return the sublist whose car is equal to the search object, where
+equality depends on the equality predicate used.
+
+@rnindex memq
+@c docstring begin (texi-doc-string "guile" "memq")
+@deffn primitive memq x lst
+Return the first sublist of @var{lst} whose car is @code{eq?}
+to @var{x} where the sublists of @var{lst} are the non-empty
+lists returned by @code{(list-tail @var{lst} @var{k})} for
+@var{k} less than the length of @var{lst}.  If @var{x} does not
+occur in @var{lst}, then @code{#f} (not the empty list) is
+returned.
+@end deffn
+
+@rnindex memv
+@c docstring begin (texi-doc-string "guile" "memv")
+@deffn primitive memv x lst
+Return the first sublist of @var{lst} whose car is @code{eqv?}
+to @var{x} where the sublists of @var{lst} are the non-empty
+lists returned by @code{(list-tail @var{lst} @var{k})} for
+@var{k} less than the length of @var{lst}.  If @var{x} does not
+occur in @var{lst}, then @code{#f} (not the empty list) is
+returned.
+@end deffn
+
+@rnindex member
+@c docstring begin (texi-doc-string "guile" "member")
+@deffn primitive member x lst
+Return the first sublist of @var{lst} whose car is
+@code{equal?} to @var{x} where the sublists of @var{lst} are
+the non-empty lists returned by @code{(list-tail @var{lst}
+@var{k})} for @var{k} less than the length of @var{lst}.  If
+@var{x} does not occur in @var{lst}, then @code{#f} (not the
+empty list) is returned.
+@end deffn
+
 [FIXME: is there any reason to have the `sloppy' functions available at
 high level at all?  Maybe these docs should be relegated to a "Guile
 Internals" node or something. -twp]
@@ -3187,16 +3381,36 @@ Its use is recommended only in writing Guile internals,
 not for high-level Scheme programs.
 @end deffn
 
-@r5index map
+@node List Mapping
+@subsection List Mapping
+
+List processing is very convenient in Scheme because the process of
+iterating over the elements of a list can be highly abstracted.  The
+procedures in this section are the most basic iterating procedures for
+lists.  They take a procedure and one or more lists as arguments, and
+apply the procedure to each element of the list.  They differ in what
+the result of the invocation is.
+
+@rnindex map
 @c begin (texi-doc-string "guile" "map")
 @c docstring begin (texi-doc-string "guile" "map-in-order")
-@deffn primitive map proc arg1 . args
-@deffnx primitive map-in-order proc arg1 . args
+@deffn primitive map proc arg1 arg2 @dots{}
+@deffnx primitive map-in-order proc arg1 arg2 @dots{}
+Apply @var{proc} to each element of the list @var{arg1} (if only two
+arguments are given), or to the corresponding elements of the argument
+lists (if more than two arguments are given).  The result(s) of the
+procedure applications are saved and returned in a list.  For
+@code{map}, the order of procedure applications is not specified,
+@code{map-in-order} applies the procedure from left to right to the list
+elements.
 @end deffn
 
-@r5index for-each
+@rnindex for-each
 @c begin (texi-doc-string "guile" "for-each")
-@deffn primitive for-each proc arg1 . args
+@deffn primitive for-each proc arg1 arg2 @dots{}
+Like @code{map}, but the procedure is always applied from left to right,
+and the result(s) of the procedure applications are thrown away.  The
+return value is not specified.
 @end deffn
 
 
@@ -4350,9 +4564,9 @@ association list.
 
 @node Retrieving Alist Entries
 @subsubsection Retrieving Alist Entries
-@r5index assq
-@r5index assv
-@r5index assoc
+@rnindex assq
+@rnindex assv
+@rnindex assoc
 
 @code{assq}, @code{assv} and @code{assoc} take an alist and a key as
 arguments and return the entry for that key if an entry exists, or
@@ -4807,7 +5021,12 @@ table into an a-list of key-value pairs.
 @node Vectors
 @section Vectors
 
+@c FIXME::martin: Review me!
+
 @c FIXME::martin: This node should come before the non-standard data types.
+
+@c FIXME::martin: Should the subsections of this section be nodes
+@c of their own, or are the resulting nodes too short, then?
 
 Vectors are sequences of Scheme objects.  Unlike lists, the length of a
 vector, once the vector is created, cannot be changed.  The advantage of
@@ -4837,7 +5056,7 @@ number in hexidecimal notation.
 
 @subsection Vector Predicates
 
-@r5index vector?
+@rnindex vector?
 @c docstring begin (texi-doc-string "guile" "vector?")
 @deffn primitive vector? obj
 Return @code{#t} if @var{obj} is a vector, otherwise return
@@ -4846,7 +5065,7 @@ Return @code{#t} if @var{obj} is a vector, otherwise return
 
 @subsection Vector Constructors
 
-@r5index make-vector
+@rnindex make-vector
 @c docstring begin (texi-doc-string "guile" "make-vector")
 @deffn primitive make-vector k [fill]
 Return a newly allocated vector of @var{k} elements.  If a
@@ -4855,8 +5074,8 @@ second argument is given, then each element is initialized to
 unspecified.
 @end deffn
 
-@r5index vector
-@r5index list->vector
+@rnindex vector
+@rnindex list->vector
 @c docstring begin (texi-doc-string "guile" "vector")
 @c docstring begin (texi-doc-string "guile" "list->vector")
 @deffn primitive vector . l
@@ -4868,7 +5087,7 @@ given arguments.  Analogous to @code{list}.
 @end lisp
 @end deffn
 
-@r5index vector->list
+@rnindex vector->list
 @c docstring begin (texi-doc-string "guile" "vector->list")
 @deffn primitive vector->list v
 Return a newly allocated list of the objects contained in the
@@ -4888,7 +5107,7 @@ According to R5RS, using any of these procedures on literally entered
 vectors is an error, because these vectors are considered to be
 constant, although Guile currently does not detect this error.
 
-@r5index vector-set!
+@rnindex vector-set!
 @deffn primitive vector-set! vector k obj
 @var{k} must be a valid index of @var{vector}.
 @code{Vector-set!} stores @var{obj} in element @var{k} of @var{vector}.
@@ -4901,7 +5120,7 @@ The value returned by @samp{vector-set!} is unspecified.
 @end lisp
 @end deffn
 
-@r5index vector-fill!
+@rnindex vector-fill!
 @c docstring begin (texi-doc-string "guile" "vector-fill!")
 @deffn primitive vector-fill! v fill
 Store @var{fill} in every element of @var{vector}.  The value
@@ -4923,12 +5142,12 @@ Vector version of @code{substring-move-right!}.
 These procedures return information about a given vector, such as the
 size or what elements are contained in the vector.
 
-@r5index vector-length
+@rnindex vector-length
 @deffn primitive vector-length vector
 Returns the number of elements in @var{vector} as an exact integer.
 @end deffn
 
-@r5index vector-ref
+@rnindex vector-ref
 @deffn primitive vector-ref vector k
 @var{k} must be a valid index of @var{vector}.
 @samp{Vector-ref} returns the contents of element @var{k} of
@@ -4946,25 +5165,115 @@ Returns the number of elements in @var{vector} as an exact integer.
 @node Hooks
 @section Hooks
 
+@c FIXME::martin: Review me!
+
+A hook is basically a list of procedures to be called at well defined
+points in time.  Hooks are used internally for several debugging
+facilities, but they can be used in user code, too.
+
+Hooks are created with @code{make-hook}, then procedures can be added to
+a hook with @code{add-hook!} or removed with @code{remove-hook!} or
+@code{reset-hook!}.  The procedures stored in a hook can be invoked with
+@code{run-hook}.
+
+@menu
+* Hook Examples::               Hook usage by example.
+* Hook Reference::              Reference of all hook procedures.
+@end menu
+
+@node Hook Examples
+@subsection Hook Examples
+
+Hook usage is shown by some examples in this section.  First, we will
+define a hook of arity 2---that is, the procedures stored in the hook
+will have to accept two arguments.
+
+@lisp
+(define hook (make-hook 2))
+hook
+@result{} #<hook 2 40286c90>
+@end lisp
+
+Now we are ready to add some procedures to the newly created hook with
+@code{add-hook!}.  In the following example, two procedures are added,
+which print different messages and do different things with their
+arguments.  When the procedures have been added, we can invoke them
+using @code{run-hook}.
+
+@lisp
+(add-hook! hook (lambda (x y) 
+                    (display "Foo: ") 
+                    (display (+ x y)) 
+                    (newline)))
+(add-hook! hook (lambda (x y) 
+                    (display "Bar: ") 
+                    (display (* x y)) 
+                    (newline)))
+(run-hook hook 3 4)
+Bar: 12
+Foo: 7
+@end lisp
+
+Note that the procedures are called in reverse order than they were
+added.  This can be changed by providing the optional third argument
+on the second call to @code{add-hook!}.
+
+@lisp
+(add-hook! hook (lambda (x y) 
+                    (display "Foo: ") 
+                    (display (+ x y)) 
+                    (newline)))
+(add-hook! hook (lambda (x y) 
+                    (display "Bar: ") 
+                    (display (* x y)) 
+                    (newline)) 
+                    #t)   ; <- Change here!
+(run-hook hook 3 4)
+Foo: 7
+Bar: 12
+@end lisp
+
+@node Hook Reference
+@subsection Hook Reference
+
+When a hook is created with @code{make-hook}, you can supply the arity
+of the procedures which can be added to the hook.  The arity defaults to
+zero.  All procedures of a hook must have the same arity, and when the
+procedures are invoked using @code{run-hook}, the number of arguments
+must match the arity of the procedures.
+
+The order in which procedures are added to a hook matters.  If the third
+parameter to @var{add-hook!} is omitted or is equal to @code{#f}, the
+procedure is added in front of the procedures which might already be on
+that hook, otherwise the procedure is added at the end.  The procedures
+are always called from first to last when they are invoked via
+@code{run-hook}.
+
+When calling @code{hook->list}, the procedures in the resulting list are
+in the same order as they would have been called by @code{run-hook}.
+
 @c docstring begin (texi-doc-string "guile" "make-hook-with-name")
 @deffn primitive make-hook-with-name name [n_args]
 Create a named hook with the name @var{name} for storing
-procedures of arity @var{n_args}.
+procedures of arity @var{n_args}.  @var{n_args} defaults to
+zero.
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "make-hook")
 @deffn primitive make-hook [n_args]
-Create a hook for storing procedure of arity @var{n_args}.
+Create a hook for storing procedure of arity
+@var{n_args}.  @var{n_args} defaults to zero.
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "hook?")
 @deffn primitive hook? x
-Return @code{#t} if @var{x} is a hook.
+Return @code{#t} if @var{x} is a hook, @code{#f} otherwise.
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "hook-empty?")
 @deffn primitive hook-empty? hook
-Return @code{#t} if @var{hook} is an empty hook.
+Return @code{#t} if @var{hook} is an empty hook, @code{#f}
+otherwise.
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "add-hook!")
@@ -4987,7 +5296,8 @@ Remove all procedures from the hook @var{hook}.
 @c docstring begin (texi-doc-string "guile" "run-hook")
 @deffn primitive run-hook hook . args
 Apply all procedures from the hook @var{hook} to the arguments
-@var{args}.
+@var{args}.  The order of the procedure application is first to
+last.
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "hook->list")

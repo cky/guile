@@ -34,7 +34,7 @@
 @node Continuations
 @section Continuations
 
-@r5index call-with-current-continuation
+@rnindex call-with-current-continuation
 @c FIXME::martin: Document me!
 @deffn primitive call-with-current-continuation
 @end deffn
@@ -42,7 +42,7 @@
 @node Multiple Values
 @section Returning and Accepting Multiple Values
 
-@r5index values
+@rnindex values
 @deffn primitive values . args
 Delivers all of its arguments to its continuation.  Except for
 continuations created by the @code{call-with-values} procedure,
@@ -51,7 +51,7 @@ passing no value or more than one value to continuations that
 were not created by @code{call-with-values} is unspecified.
 @end deffn
 
-@r5index call-with-values
+@rnindex call-with-values
 @deffn primitive call-with-values producer consumer
 Calls its @var{producer} argument with no values and a
 continuation that, when passed some values, calls the
@@ -176,7 +176,7 @@ if an exception occurs then @code{#f} is returned instead.
 [FIXME: this is pasted in from Tom Lord's original guile.texi and should
 be reviewed]
 
-@r5index dynamic-wind
+@rnindex dynamic-wind
 @c docstring begin (texi-doc-string "guile" "dynamic-wind")
 @deffn primitive dynamic-wind in_guard thunk out_guard
 All three arguments must be 0-argument procedures.

@@ -1,3 +1,29 @@
+2001-04-09  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* scheme-data.texi (Pairs): New data type and procedure
+	description.
+	(Lists): Added new subsections for grouping the list procedures.
+	(Hooks): Added new nodes for hook subsections.
+	(String Syntax): New node, factoring out read syntax.
+	(Strings): Some blurb about allowed characters, zero-termination
+	etc.
+	(Keywords): Added menu descriptions.
+
+2001-04-08  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* scheme-indices.texi (R5RS Index): Print index `rn', not `r5'.
+
+	* guile.texi: The index formerly known as `r5' is now called `rn'.
+
+	* scheme-utility.texi, scheme-procedures.texi, scheme-io.texi,
+	scheme-evaluation.texi, scheme-control.texi, scheme-data.texi:
+	Changed all @r5index entries to @rnindex.
+
+2001-04-06  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* scheme-data.texi (Hooks): Added hook description and
+	constraints.
+
 2001-04-06  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
 	* scheme-scheduling.texi (Higher level thread
