@@ -22,6 +22,10 @@
 
 
 
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
 #include "libguile/_scm.h"
 #ifdef HAVE_RL_GETC_FUNCTION
 #include "libguile.h"
