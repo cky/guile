@@ -61,9 +61,16 @@
 
 void scm_error_pair_access (SCM non_pair)
 {
+  static unsigned int running = 0;
   SCM message = scm_makfrom0str ("Non-pair accessed with SCM_C[AD]R: `~S´\n");
-  scm_simple_format (scm_current_error_port (), message, SCM_LIST1 (non_pair));
-  abort ();
+
+  if (!running)
+    {
+      running = 1;
+      scm_simple_format (scm_current_error_port (),
+			 message, SCM_LIST1 (non_pair));
+      abort ();
+    }
 }
 
 #endif

@@ -1,5 +1,25 @@
 2001-06-08  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* keywords.c (keyword_print):  Don't use SCM_C[AD]R to access
+	keywords.  Fix gc protection.
+
+	* objects.c (scm_mcache_lookup_cmethod):  Don't use side effecting
+	operations in macro calls.
+
+	* pairs.c (scm_error_pair_access):  Avoid recursion.
+
+	Thanks to Matthias Koeppe for reporting the bugs that correspond
+	to the following set of patches.
+
+	* unif.c (scm_bit_set_star_x, scm_bit_invert_x), vectors.h
+	(SCM_BITVEC_REF, SCM_BITVEC_SET, SCM_BITVEC_CLR): Obtain the
+	bitvector base address using SCM_BITVECTOR_BASE.
+
+	* unif.h (SCM_BITVECTOR_BASE):  Return the base address as an
+	unsigned long*.
+
+2001-06-08  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* goops.c (SCM_CLASS_REDEF):  Removed.
 
 	* vectors.h (VECTORSH, SCM_VECTORS_H): Renamed <foo>H to

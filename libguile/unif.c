@@ -1924,10 +1924,10 @@ SCM_DEFINE (scm_bit_set_star_x, "bit-set*!", 3, 0, 0,
       SCM_ASSERT (SCM_BITVECTOR_LENGTH (v) == SCM_BITVECTOR_LENGTH (kv), v, SCM_ARG1, FUNC_NAME);
       if (SCM_FALSEP (obj))
 	for (k = (SCM_BITVECTOR_LENGTH (v) + SCM_LONG_BIT - 1) / SCM_LONG_BIT; k--;)
-	  SCM_UNPACK (SCM_VELTS (v)[k]) &= ~ SCM_UNPACK(SCM_VELTS (kv)[k]);
+	  SCM_BITVECTOR_BASE (v) [k] &= ~SCM_BITVECTOR_BASE (kv) [k];
       else if (SCM_EQ_P (obj, SCM_BOOL_T))
 	for (k = (SCM_BITVECTOR_LENGTH (v) + SCM_LONG_BIT - 1) / SCM_LONG_BIT; k--;)
-	  SCM_UNPACK (SCM_VELTS (v)[k]) |= SCM_UNPACK (SCM_VELTS (kv)[k]);
+	  SCM_BITVECTOR_BASE (v) [k] |= SCM_BITVECTOR_BASE (kv) [k];
       else
 	goto badarg3;
       break;
@@ -2016,7 +2016,7 @@ SCM_DEFINE (scm_bit_invert_x, "bit-invert!", 1, 0, 0,
 
   k = SCM_BITVECTOR_LENGTH (v);
   for (k = (k + SCM_LONG_BIT - 1) / SCM_LONG_BIT; k--;)
-    SCM_UNPACK (SCM_VELTS (v)[k]) = ~SCM_UNPACK (SCM_VELTS (v)[k]);
+    SCM_BITVECTOR_BASE (v) [k] = ~SCM_BITVECTOR_BASE (v) [k];
 
   return SCM_UNSPECIFIED;
 }

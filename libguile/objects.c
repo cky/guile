@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995, 1996, 1999, 2000 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1999,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -268,7 +268,8 @@ scm_mcache_lookup_cmethod (SCM cache, SCM args)
       /* Compute a hash value */
       long hashset = SCM_INUM (methods);
       long j = n;
-      mask = SCM_INUM (SCM_CAR (z = SCM_CDDR (z)));
+      z = SCM_CDDR (z);
+      mask = SCM_INUM (SCM_CAR (z));
       methods = SCM_CADR (z);
       i = 0;
       ls = args;
