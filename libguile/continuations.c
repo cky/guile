@@ -42,9 +42,10 @@
 
 
 
+#include "libguile/_scm.h"
+
 #include <string.h>
 
-#include "libguile/_scm.h"
 #include "libguile/root.h"
 #include "libguile/stackchk.h"
 #include "libguile/smob.h"
