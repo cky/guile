@@ -237,7 +237,7 @@ SCM_DEFINE (scm_textdomain, "textdomain", 0, 1, 0,
 SCM_DEFINE (scm_bindtextdomain, "bindtextdomain", 1, 1, 0,
 	    (SCM domainname, SCM directory),
 	    "If optional parameter @var{directory} is supplied, "
-	    "set message catalogs to directory @{directory}.  "
+	    "set message catalogs to directory @var{directory}.  "
 	    "Return the directory bound to @var{domainname}.")
 #define FUNC_NAME s_scm_bindtextdomain
 {
@@ -276,7 +276,7 @@ SCM_DEFINE (scm_bindtextdomain, "bindtextdomain", 1, 1, 0,
 SCM_DEFINE (scm_bind_textdomain_codeset, "bind-textdomain-codeset", 1, 1, 0,
 	    (SCM domainname, SCM encoding),
 	    "If optional parameter @var{encoding} is supplied, "
-	    "set encoding for message catalogs of @{domainname}.  "
+	    "set encoding for message catalogs of @var{domainname}.  "
 	    "Return the encoding of @var{domainname}.")
 #define FUNC_NAME s_scm_bind_textdomain_codeset
 {
