@@ -1,5 +1,16 @@
 2001-02-28  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* reader.test, exceptions.test:  Moved the reader related test
+	cases from exceptions.test to reader.test.
+
+	* reader.test (exception:eof, exception:unexpected-rparen):  New
+	constants.
+
+	* exceptions.test (read-string, x:eof, x:unexpected-rparen):
+	Removed.
+
+2001-02-28  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* lib.scm (signals-error?, signals-error?*):  Removed.
 
 2001-02-28  Dirk Herrmann  <D.Herrmann@tu-bs.de>

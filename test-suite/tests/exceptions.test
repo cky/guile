@@ -60,9 +60,6 @@
 
 (use-modules (test-suite lib) (ice-9 regex) (ice-9 common-list))
 
-(define (read-string s)
-  (with-input-from-string s (lambda () (read))))
-
 (defmacro expect-exception (name-snippet expression)
   `(pass-if (with-output-to-string
               (lambda ()
@@ -97,8 +94,6 @@
 (define x:missing/extra-expr "[Mm]issing or extra expression")
 (define x:wrong-num-args "[Ww]rong number of arguments")
 (define x:wrong-type-arg "[Ww]rong type argument")
-(define x:eof "[Ee]nd of file")
-(define x:unexpected-rparen "[Uu]nexpected \")\"")
 
 ;; This is to encourage people to write tests.
 
@@ -116,13 +111,6 @@
 ;; Tests
 
 (with-test-prefix "syntax"
-  (with-test-prefix "reading"
-    (goad x:eof (read-string "("))
-    (goad x:unexpected-rparen (read-string ")"))
-    (goad x:eof (read-string "#("))
-    (goad x:unexpected-rparen (read-string ")"))
-    ;; Add more (syntax reading) exceptions here.
-    )
   (with-test-prefix "lambda"
 
     (goad x:bad-formals (lambda (x 1) 2))

@@ -1,6 +1,11 @@
 ;;;; reader.test --- test the Guile parser -*- scheme -*-
 ;;;; Jim Blandy <jimb@red-bean.com> --- September 1999
 
+(define exception:eof
+  (cons 'misc-error "^end of file"))
+(define exception:unexpected-rparen
+  (cons 'misc-error "^unexpected \")\""))
+
 (define (read-string s)
   (with-input-from-string s (lambda () (read))))
 
@@ -20,3 +25,17 @@
 (pass-if-exception "radix passed to number->string can't be one either"
   exception:out-of-range
   (number->string 10 1))
+
+(with-test-prefix "mismatching parentheses"
+  (pass-if-exception "opening parenthesis"
+    exception:eof
+    (read-string "("))
+  (pass-if-exception "closing parenthesis following mismatched opening"
+    exception:unexpected-rparen
+    (read-string ")"))
+  (pass-if-exception "opening vector parenthesis"
+    exception:eof
+    (read-string "#("))
+  (pass-if-exception "closing parenthesis following mismatched vector opening"
+     exception:unexpected-rparen
+     (read-string ")")))
