@@ -1,5 +1,14 @@
 2000-03-21  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
+	* init.c (scm_boot_guile_1): Renamed GUILE_GC_TRIGGER_1 -->
+	GUILE_MIN_YIELD_1, GUILE_GC_TRIGGER_2 --> GUILE_MIN_YIELD_2.
+	GUILE_MIN_YIELD_X now take *positive* fractions of heap size.
+
+	* gc.c, gc.h (SCM_MIN_YIELD_1, SCM_MIN_YIELD_2,
+	min_yield_fraction, min_yield, adjust_min_yield): Renamed from
+	SCM_GC_TRIGGER_1, SCM_GC_TRIGGER_2, gc_trigger_fraction,
+	gc_trigger, adjust_gc_trigger.
+
 	* gc.c (alloc_some_heap): Further improvement of minimal heap size
 	prediction.
 	(SCM_MAX): New macro.
@@ -8,6 +17,9 @@
 	(gc_sweep_freelist_finish): Trigger based on two last values of
 	freelist->collected to avoid unnecessary allocation due to
 	temporary peaks.
+	(SCM_INIT_HEAP_SIZE_1, SCM_GC_TRIGGER_1, SCM_GC_TRIGGER_2):
+	Adjusted to 45000 cells, 40% and 40%.  Gives quick startup
+	without extra heap allocation.
 
 2000-03-20  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
