@@ -569,6 +569,13 @@ scm_uniform_vector_release (SCM uvec)
   */
 }
 
+void
+scm_frame_uniform_vector_release (SCM uvec)
+{
+  scm_frame_unwind_handler_with_scm (scm_uniform_vector_release, uvec,
+				     SCM_F_WIND_EXPLICITLY);
+}
+
 size_t
 scm_uniform_vector_element_size (SCM uvec)
 {

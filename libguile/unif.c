@@ -48,6 +48,7 @@
 #include "libguile/vectors.h"
 #include "libguile/list.h"
 #include "libguile/deprecation.h"
+#include "libguile/dynwind.h"
 
 #include "libguile/validate.h"
 #include "libguile/unif.h"
@@ -1738,18 +1739,19 @@ SCM_DEFINE (scm_bit_set_star_x, "bit-set*!", 3, 0, 0,
   else if (scm_is_true (scm_u32vector_p (kv)))
     {
       size_t vlen = SCM_BITVECTOR_LENGTH (v);
-      size_t ulen = scm_c_uniform_vector_length (kv);
-      size_t i;
-      scm_t_uint32 k;
+      size_t ulen, i;
+      scm_t_uint32 k, *indices;
+
+      scm_frame_begin (0);
+
+      ulen = scm_c_uniform_vector_length (kv);
+      indices = scm_u32vector_elements (kv);
+      scm_frame_uniform_vector_release (kv);
 
       if (scm_to_bool (obj) == 0)
 	for (i = 0; i < ulen; i++)
 	  {
-	    /* XXX - poof, there goes the uniform vector efficiency
-	       advantage.
-	     */
-	    k = scm_to_uint32 (scm_uniform_vector_ref (kv,
-						       scm_from_size_t (i)));
+	    k = indices[i];
 	    if (k >= vlen)
 	      scm_out_of_range (FUNC_NAME, scm_from_uint32 (k));
 	    SCM_BITVEC_CLR(v, k);
@@ -1757,12 +1759,13 @@ SCM_DEFINE (scm_bit_set_star_x, "bit-set*!", 3, 0, 0,
       else
 	for (i = 0; i < ulen; i++)
 	  {
-	    k = scm_to_uint32 (scm_uniform_vector_ref (kv,
-						       scm_from_size_t (i)));
+	    k = indices[i];
 	    if (k >= vlen)
 	      scm_out_of_range (FUNC_NAME, scm_from_uint32 (k));
 	    SCM_BITVEC_SET(v, k);
 	  }
+
+      scm_frame_end ();
     }
   else
     scm_wrong_type_arg_msg (NULL, 0, kv, "bitvector or u32vector");
@@ -1829,30 +1832,35 @@ SCM_DEFINE (scm_bit_count_star, "bit-count*", 3, 0, 0,
   else if (scm_is_true (scm_u32vector_p (kv)))
     {
       size_t vlen = SCM_BITVECTOR_LENGTH (v);
-      size_t ulen = scm_c_uniform_vector_length (kv);
-      size_t i;
-      scm_t_uint32 k;
+      size_t ulen, i;
+      scm_t_uint32 k, *indices;
+
+      scm_frame_begin (0);
+
+      ulen = scm_c_uniform_vector_length (kv);
+      indices = scm_u32vector_elements (kv);
+      scm_frame_uniform_vector_release (kv);
 
       if (scm_to_bool (obj) == 0)
 	for (i = 0; i < ulen; i++)
 	  {
-	    k = scm_to_uint32 (scm_uniform_vector_ref (kv,
-						       scm_from_size_t (i)));
+	    k = indices[i];
 	    if (k >= vlen)
-	      scm_out_of_range (FUNC_NAME, scm_from_long (k));
+	      scm_out_of_range (FUNC_NAME, scm_from_uint32 (k));
 	    if (!SCM_BITVEC_REF(v, k))
 	      count++;
 	  }
       else
 	for (i = 0; i < ulen; i++)
 	  {
-	    k = scm_to_uint32 (scm_uniform_vector_ref (kv,
-						       scm_from_size_t (i)));
+	    k = indices[i];
 	    if (k >= vlen)
-	      scm_out_of_range (FUNC_NAME, scm_from_long (k));
+	      scm_out_of_range (FUNC_NAME, scm_from_uint32 (k));
 	    if (SCM_BITVEC_REF (v, k))
 	      count++;
 	  }
+
+      scm_frame_end ();
     }
   else
     scm_wrong_type_arg_msg (NULL, 0, kv, "bitvector or u32vector");

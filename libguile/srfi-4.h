@@ -38,6 +38,7 @@ SCM_API size_t scm_c_uniform_vector_size (SCM v);
 SCM_API void *scm_uniform_vector_elements (SCM uvec);
 SCM_API size_t scm_uniform_vector_element_size (SCM uvec);
 SCM_API void scm_uniform_vector_release (SCM uvec);
+SCM_API void scm_frame_uniform_vector_release (SCM uvec);
 
 /* Specific procedures.
  */
