@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996,1997,1998 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996,1997,1998, 1999 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -52,8 +52,6 @@
  * Provide `gsubrs' -- subrs taking a prescribed number of required, optional,
  * and rest arguments.
  */
-
-#include "gsubr.h"
 
 /* #define GSUBR_TEST */
 

@@ -1,5 +1,5 @@
 /* GDB interface for Guile
- * Copyright (C) 1996, 1997 Free Software Foundation
+ * Copyright (C) 1996, 1997, 1999 Free Software Foundation
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -62,9 +62,6 @@
  * 2. Catch errors
  * 3. Prevent print from causing segmentation fault when given broken pairs
  */
-
-#include <stdio.h>
-#include "_scm.h"
 
 #define GDB_TYPE SCM
 
