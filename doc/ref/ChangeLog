@@ -1,3 +1,15 @@
+2003-05-04  Kevin Ryde  <user42@zip.com.au>
+
+	* scheme-data.texi (Integer Operations): Describe how quotient,
+	remainder and modulo round their results.
+
+	* srfi-modules.texi (SRFI-1 Length Append etc): Add count.
+	(SRFI-1 Fold and Map): In reduce, fix typo "... variant of fold", add
+	"f" to fold call shown.  In reduce-right, use @code on "reduce".
+
+	* data-rep.texi, gh.texi: Add spaces after some @defun names.
+	* posix.texi (Processes): Fix typo "hhhh".
+
 2003-05-01  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* posix.texi: Add index entries for many variables and functions,
