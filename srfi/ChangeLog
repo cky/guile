@@ -1,3 +1,10 @@
+2004-08-02  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* srfi-4.c: Replaced scm_num2* and scm_*2num with scm_to_* and
+	scm_from_*, respectively.
+	(print_int64, print_uint64): Rewritten by just calling scm_iprin1
+	on a SCM.
+
 2004-08-02  Kevin Ryde  <user42@zip.com.au>
 
 	* srfi-13.c (scm_string_every): Correction to initial "res" value,
