@@ -13,22 +13,21 @@ set -e
 
 # this script runs in the top-level build-dir.
 top_builddir=`pwd`
-
 top_srcdir=@top_srcdir@
 
-TEST_SUITE_DIR=$top_builddir/test-suite
+TEST_SUITE_DIR=${top_srcdir}/test-suite
 
 if [ x"$1" = x-i ] ; then
     guile=$2
     guile_opts=
     shift
     shift
-    GUILE_LOAD_PATH=$TEST_SUITE_DIR
 else
     guile=${top_srcdir}/pre-inst-guile
     guile_opts="${top_builddir}"
-    GUILE_LOAD_PATH=${top_builddir}:$TEST_SUITE_DIR
 fi
+
+GUILE_LOAD_PATH=$TEST_SUITE_DIR
 export GUILE_LOAD_PATH
 
 if [ -f "$guile" -a -x "$guile" ] ; then
