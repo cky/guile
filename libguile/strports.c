@@ -279,12 +279,14 @@ scm_mkstrport (SCM pos, SCM str, long modes, const char *caller)
     scm_out_of_range (caller, pos);
   if (!((modes & SCM_WRTNG) || (modes & SCM_RDNG)))
     scm_misc_error ("scm_mkstrport", "port must read or write", SCM_EOL);
-  z = scm_cell (scm_tc16_strport, 0);
+
   SCM_DEFER_INTS;
   pt = scm_new_port_table_entry ();
-  SCM_SET_CELL_TYPE (z, scm_tc16_strport | modes);
+  z = scm_cell (scm_tc16_strport | modes,  0);
+
   SCM_SETPTAB_ENTRY (z, pt);
   pt->port = z;
+
   
   SCM_SETSTREAM (z, SCM_UNPACK (str));
   pt->write_buf = pt->read_buf = SCM_STRING_UCHARS (str);

@@ -457,6 +457,7 @@ scm_new_port_table_entry (void)
 #define FUNC_NAME "scm_new_port_table_entry"
 {
   scm_t_port *entry = (scm_t_port *) scm_gc_malloc (sizeof (scm_t_port), "port");
+  memset (entry, 0x0, sizeof (scm_t_port));
 
   if (scm_port_table_size == scm_port_table_room)
     {
@@ -471,15 +472,10 @@ scm_new_port_table_entry (void)
 
   entry->port = SCM_EOL;
   entry->entry = scm_port_table_size;
-  entry->revealed = 0;
-  entry->stream = 0;
+
   entry->file_name = SCM_BOOL_F;
-  entry->line_number = 0;
-  entry->column_number = 0;
-  entry->putback_buf = 0;
-  entry->putback_buf_size = 0;
   entry->rw_active = SCM_PORT_NEITHER;
-  entry->rw_random = 0;
+
 
   scm_port_table[scm_port_table_size] = entry;
   scm_port_table_size++;
