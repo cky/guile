@@ -55,7 +55,7 @@
 
 #include "gsubr.h"
 
-#define GSUBR_TEST 1
+/* #define GSUBR_TEST */
 
 SCM scm_i_name;
 SCM scm_i_inner_name;
