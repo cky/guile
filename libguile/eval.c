@@ -1913,12 +1913,12 @@ dispatch:
 	  t.arg1 = x;
 	  while (SCM_NNULLP (t.arg1 = SCM_CDR (t.arg1)))
 	    {
-	      SCM_SETCAR (env, scm_current_module_lookup_closure ());
+	      env = scm_top_level_env (scm_current_module_lookup_closure ());
 	      SIDEVAL (SCM_CAR(x), env);
 	      x = t.arg1;
 	    }
 	  /* once more, for the last form */
-	  SCM_SETCAR (env, scm_current_module_lookup_closure ());
+	  env = scm_top_level_env (scm_current_module_lookup_closure ());
 	}
       else
 	{
