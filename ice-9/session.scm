@@ -63,14 +63,21 @@ You don't seem to have regular expressions installed.\n"))
   (let ((entries (apropos-fold (lambda (module name object data)
 				 (cons (list module
 					     name
-					     (object-documentation object))
+					     (object-documentation object)
+					     (cond ((closure? object)
+						    "a procedure")
+						   ((procedure? object)
+						    "a primitive procedure")
+						   (else
+						    "an object")))
 				       data))
 			       '()
 			       regexp
 			       apropos-fold-exported))
 	(module car)
 	(name cadr)
-	(doc caddr))
+	(doc caddr)
+	(type cadddr))
     (if (null? entries)
 	;; no matches
 	(begin
@@ -80,32 +87,55 @@ You don't seem to have regular expressions installed.\n"))
 			     "named `~A'\n"
 			     "matching regexp \"~A\"\n")
 			 term))
-	(let ((first? #t))
-	  (if (or-map doc entries)
-	      ;; entries with documentation
-	      (for-each (lambda (entry)
-			  ;; *fixme*: Use `describe' when we have GOOPS?
-			  (if (doc entry)
-			      (begin
-				(if first?
-				    (set! first? #f)
-				    (newline))
-				(simple-format #t "~S: ~S\n~A\n"
-					       (module-name (module entry))
-					       (name entry)
-					       (doc entry)))))
-			entries))
-	  (if (or-map (lambda (x) (not (doc x))) entries)
-	      ;; entries without documentation
+	(let ((first? #t)
+	      (undocumented-entries '())
+	      (documented-entries '())
+	      (documentations '()))
+
+	  (for-each (lambda (entry)
+		      (let ((entry-summary (simple-format #f
+							  "~S: ~S\n"
+							  (module-name (module entry))
+							  (name entry))))
+			(if (doc entry)
+			    (begin
+			      (set! documented-entries
+				    (cons entry-summary documented-entries))
+			      ;; *fixme*: Use `describe' when we have GOOPS?
+			      (set! documentations
+				    (cons (simple-format #f
+							 "`~S' is ~A in the ~S module.\n\n~A\n"
+							 (name entry)
+							 (type entry)
+							 (module-name (module entry))
+							 (doc entry))
+					  documentations)))
+			    (set! undocumented-entries
+				  (cons entry-summary undocumented-entries)))))
+		    entries)
+
+	  (if (and (not (null? documented-entries))
+		   (or (> (length documented-entries) 1)
+		       (not (null? undocumented-entries))))
 	      (begin
-		(if (not first?)
-		    (display "\nNo documentation found for:\n"))
-		(for-each (lambda (entry)
-			    (if (not (doc entry))
-				(simple-format #t "~S: ~S\n"
-					       (module-name (module entry))
-					       (name entry))))
-			  entries)))))))
+		(display "Documentation found for:\n")
+		(for-each (lambda (entry) (display entry)) documented-entries)
+		(set! first? #f)))
+
+	  (for-each (lambda (entry)
+		      (if first?
+			  (set! first? #f)
+			  (newline))
+		      (display entry))
+		    documentations)
+
+	  (if (not (null? undocumented-entries))
+	      (begin
+		(if first?
+		    (set! first? #f)
+		    (newline))
+		(display "No documentation found for:\n")
+		(for-each (lambda (entry) (display entry)) undocumented-entries)))))))
 
 (define (help-usage)
   (display "Usage: (help NAME) gives documentation about objects named NAME (a symbol)

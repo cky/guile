@@ -38,28 +38,24 @@
 	  documentation-files))
 
 (define entry-delimiter "\f")
-(define entry-start 2)
 
 (define (find-documentation-in-file name file)
   (and (file-exists? file)
        (let ((port (open-input-file file))
 	     (name (symbol->string name)))
-	 (let* ((len (string-length name))
-		(min-size (+ entry-start len))
-		(end (+ entry-start len)))
+	 (let ((len (string-length name)))
 	   (read-delimited entry-delimiter port) ;skip to first entry
 	   (let loop ((entry (read-delimited entry-delimiter port)))
 	     (cond ((eof-object? entry) #f)
 		   ;; match?
 		   ((and ;; large enough?
-		         (>= (string-length entry) min-size)
+		         (>= (string-length entry) len)
 			 ;; matching name?
-			 (string=? (substring entry entry-start end)
-				   name)
+			 (string=? (substring entry 0 len) name)
 			 ;; terminated?
-			 (memq (string-ref entry end) '(#\space #\))))
-		    ;; cut away starting and ending newline
-		    (substring entry 1 (- (string-length entry) 1)))
+			 (memq (string-ref entry len) '(#\newline)))
+		    ;; cut away name tag and extra surrounding newlines
+		    (substring entry (+ len 2) (- (string-length entry) 2)))
 		   (else (loop (read-delimited entry-delimiter port)))))))))
 
 ;; helper until the procedure documentation property is cleaned up

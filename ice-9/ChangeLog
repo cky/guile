@@ -1,3 +1,15 @@
+2000-09-29  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* documentation.scm (find-documentation-in-file): Modified
+	according to changed format of guile-procedures.txt caused by my
+	snarfing/makeinfo changes in libguile.
+
+	* session.scm (help-doc): Improvements to (help) output: (i) a
+	friendlier Emacs-style introduction line; (ii) where the help arg
+	matches multiple documented entries, print an initial list of the
+	entries for which documentation is found, before printing the
+	actual documentation entries themselves.
+
 2000-09-20  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* boot-9.scm: Removed comment.  (Thanks to Brad Knotwell.)
