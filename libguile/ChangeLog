@@ -1,3 +1,35 @@
+Thu Sep  5 11:38:07 1996  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* load.c (scm_sys_try_load): Correct spelling.
+
+	* feature.c (scm_loc_features): Make this static.
+
+	* Makefile.in (libpath.h): Omit trailing slash from path.  We
+	shouldn't require it of users, so why put it here?
+
+	Move code to initialize and search %load-path from ice-9 to C
+	code, so we can use the load-path to find the ice-9 boot code;
+	this makes it easier to run Guile without installing it.  See
+	corresponding changes in guile/Makefile.in.
+	* feature.c: Move stuff concerned with the load path to load.c.
+	(scm_compiled_library_path): Deleted.
+	Don't #include libpath.h here.
+	* feature.h: Don't mention scm_compiled_library_path.
+	* load.c: #include "libpath.h" here, as well as <sys/types.h>,
+	<sys/stat.h>, and <unistd.h> (if present).
+	(R_OK): #define if the system hasn't deigned to.
+	(scm_loc_load_path): New variable.
+	(scm_init_load_path, scm_sys_search_load_path,
+	scm_sys_try_load_path): New functions.
+	(scm_init_load): Initialize scm_loc_load_path to point to the
+	value cell of the Scheme %load-path variable.
+	* load.h: Add declarations for scm_sys_search_load_path,
+ 	scm_sys_try_load_path.
+	* init.c: Call scm_init_load_path.
+	* Makefile.in (feature.o, load.o): Dependencies updated.
+
+	* load.c, load.h: Rewrite using PROTO macro.
+	
 Thu Sep  5 01:54:33 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
 
 	* gc.c (scm_cellp): New function: C predicate to determine if an
@@ -19,6 +51,10 @@ Thu Sep  5 01:54:33 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
 	* Makefile.in: Added gdb_interface.h, gdbint.[hc].
 	Added -I.. to INCLUDE_CFLAGS (otherwise the include files won't be
 	found if object files and source are kept separate).
+
+Wed Sep  4 14:35:02 1996  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* feature.h, feature.c: Use PROTO macro, instead of #if __STDC__.
 
 Wed Sep  4 01:30:47 1996  Jim Blandy  <jimb@totoro.cyclic.com>
 

@@ -1,3 +1,12 @@
+Thu Sep  5 11:33:41 1996  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* boot-9.scm: %load-path is initialized in C code now.
+	(implementation-vicinity, parse-path): Deleted, along with code to
+	initialize %load-path.
+
+	* boot-9.scm (in-vicinity): If the vicinity doesn't end with a
+	"/", use one to separate it from the file.
+
 Thu Aug 29 23:05:11 1996  Thomas Morgan  <tmorgan@gnu.ai.mit.edu>
 
 	* boot-9.scm (%load-path): Add the site directory.
