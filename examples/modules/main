@@ -22,7 +22,7 @@
   ;; Module 1 is imported completely, too, but the procedure names are
   ;; prefixed with the module name.
   ;;
-  :use-module ((module-1) :rename (symbol-prefix-proc 'module-1:))
+  :use-module ((module-1) :renamer (symbol-prefix-proc 'module-1:))
 
   ;; From module 2, only the procedure `braz' is imported, so that the
   ;; procedures `foo' and `bar' also exported by that module don't
