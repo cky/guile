@@ -85,7 +85,8 @@
           (display tag p)
           (display ": " p)
           (display args p)
-          (newline p)))))
+          (newline p)))
+    #f))
 
 ; --- MACROS -------------------------------------------------------
 
