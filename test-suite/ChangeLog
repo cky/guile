@@ -1,3 +1,9 @@
+2000-03-31  Gary Houston  <ghouston@arglist.com>
+
+	* tests/ports.test (non-blocking-I/O): a couple more details:
+	a) combine the O_NONBLOCK flag with the default flags instead
+	of replacing them.  b) check EWOULDBLOCK as well as EAGAIN.
+
 2000-03-22  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	* lib.scm: Doc fixes.
