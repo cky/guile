@@ -45,6 +45,7 @@
 #include "chars.h"
 
 #include "markers.h"
+#include "filesys.h"
 #include "fports.h"
 #include "strports.h"
 #include "vports.h"
@@ -134,66 +135,6 @@ scm_fflush (port)
 
 
 
-
-#ifdef __IBMC__
-# define MSDOS
-#endif
-#ifdef MSDOS
-# ifndef GO32
-#  include <io.h>
-#  include <conio.h>
-
-static int  input_waiting SCM_P ((FILE *f));
-
-static int 
-input_waiting (f)
-     FILE *f;
-{
-  if (feof (f))
-    return 1;
-  if (fileno (f) == fileno (stdin) && (isatty (fileno (stdin))))
-    return kbhit ();
-  return -1;
-}
-# endif
-#else
-# ifdef _DCC
-#  include <ioctl.h>
-# else
-#  ifndef AMIGA
-#   ifndef vms
-#    ifdef MWC
-#     include <sys/io.h>
-#    else
-#     ifndef THINK_C
-#      ifndef ARM_ULIB
-#       include <sys/ioctl.h>
-#      endif
-#     endif
-#    endif
-#   endif
-#  endif
-# endif
-
-
-
-static int input_waiting SCM_P ((FILE *f));
-
-static int
-input_waiting(f)
-     FILE *f;
-{
-# ifdef FIONREAD
-  long remir;
-  if (feof(f)) return 1;
-  ioctl(fileno(f), FIONREAD, &remir);
-  return remir;
-# else
-  return -1;
-# endif
-}
-#endif
-
 SCM_PROC(s_char_ready_p, "char-ready?", 1, 0, 0, scm_char_ready_p);
 
 SCM 
@@ -206,7 +147,9 @@ scm_char_ready_p (port)
     SCM_ASSERT (SCM_NIMP (port) && SCM_OPINPORTP (port), port, SCM_ARG1, s_char_ready_p);
   if (SCM_CRDYP (port) || !SCM_FPORTP (port))
     return SCM_BOOL_T;
-  return input_waiting ((FILE *)SCM_STREAM (port)) ? SCM_BOOL_T : SCM_BOOL_F;
+  return (scm_input_waiting_p ((FILE *) SCM_STREAM (port), s_char_ready_p)
+	  ? SCM_BOOL_T
+	  : SCM_BOOL_F);
 }
 
 
