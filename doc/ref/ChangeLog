@@ -1,3 +1,8 @@
+2001-10-05  Thien-Thi Nguyen  <ttn@glug.org>
+
+	* scheme-io.texi (Writing): Add entry for `display'.
+	Include in R5RS Index.  Thanks to Alex Schroeder for suggestion.
+
 2001-09-26  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* srfi-modules.texi (SRFI-13): Tyop fix.
@@ -9,7 +14,7 @@
 
 	Thanks to Alex Schroeder for pointing out the typos and sending
 	suggestions.
-	
+
 2001-09-25  Thien-Thi Nguyen  <ttn@glug.org>
 
 	* scheme-procedures.texi (Syntax Rules): Add `cindex' directive.
