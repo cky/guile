@@ -1,4 +1,4 @@
-;;;; 	Copyright (C) 1997, 2000, 2001 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1997, 2000, 2001, 2002 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -44,7 +44,8 @@
 (define-module (ice-9 syncase)
   :use-module (ice-9 debug)
   :use-module (ice-9 threads)
-  :export-syntax (sc-macro define-syntax eval-when fluid-let-syntax
+  :export-syntax (sc-macro define-syntax define-syntax-public 
+                  eval-when fluid-let-syntax
 		  identifier-syntax let-syntax
 		  letrec-syntax syntax syntax-case  syntax-rules
 		  with-syntax
@@ -99,8 +100,8 @@
 (define include sc-macro)
 
 (define primitive-syntax '(quote lambda letrec if set! begin define or
-			      and let let* cond do quasiquote unquote
-			      unquote-splicing case))
+			   and let let* cond do quasiquote unquote
+			   unquote-splicing case))
 
 (for-each (lambda (symbol)
 	    (set-symbol-property! symbol 'primitive-syntax #t))
@@ -237,3 +238,12 @@
 			    '(define))))
 
 (define syncase sc-expand)
+
+(set-module-transformer! the-syncase-module syncase)
+
+(define-syntax define-syntax-public
+  (syntax-rules ()
+    ((_ name rules ...)
+     (begin
+       ;(eval-case ((load-toplevel) (export-syntax name)))
+       (define-syntax name rules ...)))))
