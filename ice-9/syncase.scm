@@ -149,6 +149,29 @@
 
 (define generated-symbols (make-weak-key-hash-table 1019))
 
+;; We define our own gensym here because the Guile built-in one will
+;; eventually produce uninterned and unreadable symbols (as needed for
+;; safe macro expansions) and will the be inappropriate for dumping to
+;; pssyntax.pp.
+;;
+;; syncase is supposed to only require that gensym produce unique
+;; readable symbols, and they only need be unique with respect to
+;; multiple calls to gensym, not globally unique.
+;;
+(define gensym
+  (let ((counter 0))
+    (lambda (. rest)
+      (let ((val (number->string counter)))
+        (set! counter (+ counter 1))
+        (cond
+         ((null? rest)
+          (string->symbol (string-append "syntmp-" val)))
+         ((null? (cdr rest))
+          (string->symbol (string-append "syntmp-" (car rest) "-" val)))
+         (else
+          (error
+           "syncase's gensym called with the wrong number of arguments")))))))
+
 ;;; Load the preprocessed code
 
 (let ((old-debug #f)
