@@ -1,3 +1,20 @@
+Wed Jan 26 10:02:11 2000  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* tag.c:  Added doc for `tag', but mark as deprecated since Mikael 
+	suggests removing tag.c altogether (and using a new `class-of'
+	instead).
+
+	* strings.c:  Added documentation from Gregg A. Reynolds.  Edited
+	a bit by me to use FOO instead of @var{foo} and to have the
+	summary come before preconditions on input.  Also dropped trailing 
+	(rnrs) note.
+
+	* gsubr.c: Do not use SCM_DEFINE for `gsubr-apply'. Register the
+ 	function with scm_make_subr_opt w/ last arg of 0 so it is not
+ 	visible at the Scheme level. Mikael says that this is the right
+ 	thing because the first arg to the proc is the guts of a compiled
+ 	closure and shouldn't be exposed to the Scheme level.
+
 Tue Jan 25 17:15:47 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* sort.c: typo in comment fixed.
