@@ -130,7 +130,7 @@ typedef unsigned long ulong_long;
 #ifdef __STDC__
 #  define SCM_P(x) x
 #else
-#  define SCM_P(x) (x)
+#  define SCM_P(x) ()
 #endif
 
 
