@@ -1,3 +1,9 @@
+2005-01-15  Kevin Ryde  <user42@zip.com.au>
+
+	* numbers.c (scm_logtest, scm_logbit_p, scm_integer_expt): Update
+	docstrings from manual.
+	* random.c (scm_random_solid_sphere_x): Update docstring from manual.
+
 2005-01-14  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* random.c: Don't check for definedness of SCM_HAVE_T_INT64, check
