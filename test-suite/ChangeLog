@@ -1,3 +1,30 @@
+2001-01-26  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	The following patch was sent by Thien-Thi Nguyen and a little bit
+	modified by me.
+
+	* guile-test:  Usage and installation comments improved.  Added
+	support for --test-suite and --debug command line options.
+
+	(default-test-suite):  Added to allow for simplified
+	configurability.  No need to load the paths file any more.
+
+	(enable-debug-mode):  New function.  Will be called when the
+	--debug command line option is given.
+
+	(test-root):  Removed.  The test directory has to be fully given.
+	This allows for arbitrarily named test directories.
+
+	(test-file-name, enumerate-tets):  Take the test directory as a
+	paramter instead of using the global variable 'test-root'.
+
+	(main):  Handle the new command line options.  Return an exit code
+	depending on whether all tests came out as expected.
+
+	* README:  Updated.
+
+	* paths.scm:  Removed.
+
 2001-01-24  Gary Houston  <ghouston@arglist.com>
 
 	* tests/ports.test: include (ice-9 rdelim) module.

@@ -5,13 +5,8 @@ To run these tests, you will need a version of Guile more recent than
 15 Feb 1999 --- the tests use the (ice-9 and-let*) and (ice-9
 getopt-long) modules, which were added to Guile around then.
 
-To run the test suite, you'll need to:
-- edit the path to the guile interpreter in `guile-test', and 
-- edit the paths in `paths.scm', so `guile-test' can find the test
-  scripts.
-
-Once that's done, you can just run the `guile-test' script.  That
-script has usage instructions in the comments at the top.
+For information about how to run the test suite, read the usage
+instructions in the comments at the top of the guile-test script.
 
 You can reference the file `lib.scm' from your own code as the module
 (test-suite lib); it also has comments at the top and before each

@@ -1,3 +1,13 @@
+2001-01-26  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	The following patch was sent by Thien-Thi Nguyen.
+
+	* check-guile.in:  New file.
+
+	* Makefile.am:  Add TESTS rule.
+
+	* configure.in:  Add support for "make check".
+
 2000-11-21  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* acconfig.h:  Removed bogus #ifndef.  Thanks to Lars J. Aas.

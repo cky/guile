@@ -25,5 +25,7 @@ include_HEADERS = libguile.h
 
 EXTRA_DIST = qthreads.m4 HACKING GUILE-VERSION ANON-CVS SNAPSHOTS
 
+TESTS = check-guile
+
 # The rule will cd to $(top_srcdir).
 ACLOCAL = ./guile-aclocal.sh
