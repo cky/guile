@@ -1,3 +1,8 @@
+2001-12-22  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* scheme-compound.texi (Alist Example): Changed "Bismarck" to
+	"Pierre".  Thanks to Ron Peterson!
+
 2001-12-22  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* program.texi (Programming Overview): Chapter renamed from
