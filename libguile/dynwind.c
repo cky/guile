@@ -45,6 +45,8 @@
 #include "eval.h"
 #include "alist.h"
 #include "fluids.h"
+#include "genio.h"
+#include "smob.h"
 
 #include "dynwind.h"
 
@@ -81,6 +83,73 @@ scm_dynamic_wind (thunk1, thunk2, thunk3)
   return ans;
 }
 
+/* The implementation of a C-callable dynamic-wind,
+ * scm_internal_dynamic_wind, requires packaging of C pointers in a
+ * smob.  Objects of this type are pushed onto the dynwind chain.
+ */
+
+typedef struct guardsmem {
+  scm_guard_t before;
+  scm_guard_t after;
+  void *data;
+} guardsmem;
+
+#define SCM_GUARDSMEM(obj) ((guardsmem *) SCM_CDR (obj))
+#define SCM_BEFORE_GUARD(obj) (SCM_GUARDSMEM (obj)->before)
+#define SCM_AFTER_GUARD(obj) (SCM_GUARDSMEM (obj)->after)
+#define SCM_GUARD_DATA(obj) (SCM_GUARDSMEM (obj)->data)
+#define SCM_GUARDSP(obj) (SCM_CAR (obj) == tc16_guards)
+
+static long tc16_guards;
+
+static scm_sizet
+freeguards (SCM guards)
+{
+  scm_must_free ((char *) SCM_CDR (guards));
+  return sizeof (guardsmem);
+}
+
+static int
+printguards (SCM exp, SCM port, scm_print_state *pstate)
+{
+  scm_puts ("#<guards ", port);
+  scm_intprint (SCM_CDR (exp), 16, port);
+  scm_putc ('>', port);
+  return 1;
+}
+
+static scm_smobfuns guardsmob = {
+  scm_mark0,
+  freeguards,
+  printguards,
+  0
+};
+
+SCM
+scm_internal_dynamic_wind (scm_guard_t before,
+			   scm_inner_t inner,
+			   scm_guard_t after,
+			   void *inner_data,
+			   void *guard_data)
+{
+  SCM guards, ans;
+  guardsmem *g;
+  before (guard_data);
+  SCM_NEWCELL (guards);
+  SCM_DEFER_INTS;
+  g = (guardsmem *) scm_must_malloc (sizeof (*g), "guards");
+  g->before = before;
+  g->after = after;
+  g->data = guard_data;
+  SCM_SETCDR (guards, g);
+  SCM_SETCAR (guards, tc16_guards);
+  SCM_ALLOW_INTS;
+  scm_dynwinds = scm_acons (guards, SCM_BOOL_F, scm_dynwinds);
+  ans = inner (inner_data);
+  scm_dynwinds = SCM_CDR (scm_dynwinds);
+  after (guard_data);
+  return ans;
+}
 
 #ifdef GUILE_DEBUG
 SCM_PROC (s_wind_chain, "wind-chain", 0, 0, 0, scm_wind_chain);
@@ -122,6 +191,8 @@ scm_dowinds (to, delta)
 	    {
 	      if (SCM_NIMP (wind_key) && SCM_CONSP (wind_key))
 		scm_swap_fluids (wind_key, SCM_CDR (wind_elt));
+	      else if (SCM_NIMP (wind_key) && SCM_GUARDSP (wind_key))
+		SCM_BEFORE_GUARD (wind_key) (SCM_GUARD_DATA (wind_key));
 	      else
 		scm_apply (wind_key, SCM_EOL, SCM_EOL);
 	    }
@@ -152,6 +223,8 @@ scm_dowinds (to, delta)
 	    {
 	      if (SCM_NIMP (wind_key) && SCM_CONSP (wind_key))
 		scm_swap_fluids_reverse (wind_key, from);
+	      else if (SCM_NIMP (wind_key) && SCM_GUARDSP (wind_key))
+		SCM_AFTER_GUARD (wind_key) (SCM_GUARD_DATA (wind_key));
 	      else
 		scm_apply (from, SCM_EOL, SCM_EOL);
 	    }
@@ -166,5 +239,6 @@ scm_dowinds (to, delta)
 void
 scm_init_dynwind ()
 {
+  tc16_guards = scm_newsmob (&guardsmob);
 #include "dynwind.x"
 }
