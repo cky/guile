@@ -1,5 +1,9 @@
 2000-03-21  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* struct.h (SCM_STRUCT_DATA):  Don't cast SCM values to pointers.
+
+2000-03-21  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* symbols.h, symbols.c (scm_strhash):  Declare the string
 	parameter as constant, since it is not modified.
 
