@@ -277,8 +277,8 @@ SCM_API SCM scm_gentemp (SCM prefix, SCM obarray);
 
 #define SCM_VALIDATE_NUMBER_COPY(pos, z, cvar)	\
   do {						\
-    if (SCM_INUMP (z))				\
-      cvar = (double) SCM_INUM (z);		\
+    if (SCM_I_INUMP (z))				\
+      cvar = (double) SCM_I_INUM (z);		\
     else if (SCM_REALP (z))			\
       cvar = SCM_REAL_VALUE (z);		\
     else if (SCM_BIGP (z))			\
@@ -323,31 +323,33 @@ SCM_API SCM scm_gentemp (SCM prefix, SCM obarray);
 					   ^ (SCM_UNPACK (SCM_BOOL_T) \
 					      ^ SCM_UNPACK (SCM_BOOL_F))))
 
-SCM_API SCM SCM_MAKINUM (scm_t_signed_bits val);
-
 /* Users shouldn't know about INUMs.
  */
+
+SCM_API SCM SCM_MAKINUM (scm_t_signed_bits val);
+SCM_API int SCM_INUMP (SCM obj);
+SCM_API scm_t_signed_bits SCM_INUM (SCM obj);
 
 #define SCM_VALIDATE_INUM(pos, k) SCM_MAKE_VALIDATE_MSG (pos, k, INUMP, "exact integer")
 
 #define SCM_VALIDATE_INUM_COPY(pos, k, cvar) \
   do { \
-    SCM_ASSERT (SCM_INUMP (k), k, pos, FUNC_NAME); \
-    cvar = SCM_INUM (k); \
+    SCM_ASSERT (SCM_I_INUMP (k), k, pos, FUNC_NAME); \
+    cvar = SCM_I_INUM (k); \
   } while (0)
 
 #define SCM_VALIDATE_BIGINT(pos, k) SCM_MAKE_VALIDATE_MSG (pos, k, BIGP, "bignum")
 
 #define SCM_VALIDATE_INUM_MIN(pos, k, min) \
   do { \
-    SCM_ASSERT (SCM_INUMP(k), k, pos, FUNC_NAME); \
-    SCM_ASSERT_RANGE (pos, k, (SCM_INUM (k) >= min)); \
+    SCM_ASSERT (SCM_I_INUMP(k), k, pos, FUNC_NAME); \
+    SCM_ASSERT_RANGE (pos, k, (SCM_I_INUM (k) >= min)); \
   } while (0)
 
 #define SCM_VALIDATE_INUM_MIN_COPY(pos, k, min, cvar) \
   do { \
-    SCM_ASSERT (SCM_INUMP (k), k, pos, FUNC_NAME); \
-    SCM_ASSERT_RANGE (pos, k, (SCM_INUM (k) >= min)); \
+    SCM_ASSERT (SCM_I_INUMP (k), k, pos, FUNC_NAME); \
+    SCM_ASSERT_RANGE (pos, k, (SCM_I_INUM (k) >= min)); \
     cvar = SCM_INUM (k); \
   } while (0)
 
@@ -355,8 +357,8 @@ SCM_API SCM SCM_MAKINUM (scm_t_signed_bits val);
   do { \
     if (SCM_UNBNDP (k)) \
       k = SCM_I_MAKINUM (default); \
-    SCM_ASSERT (SCM_INUMP (k), k, pos, FUNC_NAME); \
-    SCM_ASSERT_RANGE (pos, k, (SCM_INUM (k) >= min)); \
+    SCM_ASSERT (SCM_I_INUMP (k), k, pos, FUNC_NAME); \
+    SCM_ASSERT_RANGE (pos, k, (SCM_I_INUM (k) >= min)); \
     cvar = SCM_INUM (k); \
   } while (0)
 
@@ -364,7 +366,7 @@ SCM_API SCM SCM_MAKINUM (scm_t_signed_bits val);
   do { \
     if (SCM_UNBNDP (k)) \
       k = SCM_I_MAKINUM (default); \
-    else SCM_ASSERT (SCM_INUMP (k), k, pos, FUNC_NAME); \
+    else SCM_ASSERT (SCM_I_INUMP (k), k, pos, FUNC_NAME); \
   } while (0)
 
 #define SCM_VALIDATE_INUM_DEF_COPY(pos, k, default, cvar) \
@@ -376,17 +378,17 @@ SCM_API SCM SCM_MAKINUM (scm_t_signed_bits val);
       } \
     else \
       { \
-        SCM_ASSERT (SCM_INUMP (k), k, pos, FUNC_NAME); \
+        SCM_ASSERT (SCM_I_INUMP (k), k, pos, FUNC_NAME); \
         cvar = SCM_INUM (k); \
       } \
   } while (0)
 
 /* [low, high) */
 #define SCM_VALIDATE_INUM_RANGE(pos, k, low, high) \
-  do { SCM_ASSERT(SCM_INUMP(k), k, pos, FUNC_NAME); \
+  do { SCM_ASSERT(SCM_I_INUMP(k), k, pos, FUNC_NAME); \
        SCM_ASSERT_RANGE(pos, k, \
-                        (SCM_INUM (k) >= low && \
-                         SCM_INUM (k) < high)); \
+                        (SCM_I_INUM (k) >= low && \
+                         SCM_I_INUM (k) < high)); \
      } while (0)
 
 #define SCM_VALIDATE_INUM_RANGE_COPY(pos, k, low, high, cvar) \

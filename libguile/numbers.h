@@ -66,11 +66,11 @@
 #endif /* (-1 == (((-1) << 2) + 2) >> 2) */
 
 
-#define SCM_INUMP(x)	(2 & SCM_UNPACK (x))
-#define SCM_NINUMP(x) 	(!SCM_INUMP (x))
+#define SCM_I_INUMP(x)	(2 & SCM_UNPACK (x))
+#define SCM_I_NINUMP(x) (!SCM_I_INUMP (x))
 #define SCM_I_MAKINUM(x) \
   (SCM_PACK ((((scm_t_signed_bits) (x)) << 2) + scm_tc2_int))
-#define SCM_INUM(x)     (SCM_SRS ((scm_t_signed_bits) SCM_UNPACK (x), 2))
+#define SCM_I_INUM(x)   (SCM_SRS ((scm_t_signed_bits) SCM_UNPACK (x), 2))
 
 /* SCM_FIXABLE is true if its long argument can be encoded in an SCM_INUM. */
 #define SCM_POSFIXABLE(n) ((n) <= SCM_MOST_POSITIVE_FIXNUM)
@@ -145,7 +145,7 @@
 #define SCM_I_BIG_MPZ(x) (*((mpz_t *) (SCM_CELL_OBJECT_LOC((x),1))))
 #define SCM_BIGP(x) (!SCM_IMP (x) && SCM_TYP16 (x) == scm_tc16_big)
 
-#define SCM_NUMBERP(x) (SCM_INUMP(x) || SCM_NUMP(x))
+#define SCM_NUMBERP(x) (SCM_I_INUMP(x) || SCM_NUMP(x))
 #define SCM_NUMP(x) (!SCM_IMP(x) \
   && (((0xfcff & SCM_CELL_TYPE (x)) == scm_tc7_number) \
       || ((0xfbff & SCM_CELL_TYPE (x)) == scm_tc7_number)))

@@ -1110,7 +1110,23 @@ SCM_MAKINUM (scm_t_signed_bits val)
 {
   scm_c_issue_deprecation_warning
     ("SCM_MAKINUM is deprecated.  Use scm_from_int or similar instead.");
-  return scm_from_int (val);
+  return SCM_I_MAKINUM (val);
+}
+
+int
+SCM_INUMP (SCM obj)
+{
+  scm_c_issue_deprecation_warning
+    ("SCM_INUMP is deprecated.  Use scm_is_integer or similar instead.");
+  return SCM_I_INUMP (obj);
+}
+
+scm_t_signed_bits
+SCM_INUM (SCM obj)
+{
+  scm_c_issue_deprecation_warning
+    ("SCM_INUM is deprecated.  Use scm_to_int or similar instead.");
+  return scm_to_intmax (obj);
 }
 
 void
