@@ -791,8 +791,8 @@
 		   (lambda args #f))))
     (append (parse-path lp)
 	    (list ""
-		  (in-vicinity (implementation-vicinity) "gls/guile/")
-		  (in-vicinity (implementation-vicinity) "gls/")
+		  (in-vicinity (implementation-vicinity) "guile1.0b3/guile/")
+		  (in-vicinity (implementation-vicinity) "guile1.0b3/")
 		  (in-vicinity (implementation-vicinity) "slib/")))))
 
 ;;; {try-load}
@@ -3565,5 +3565,11 @@
 
 
 
-(define-module (guile))
+;;; {Load debug extension code if debug extensions present.}
+;;;
+;;; *fixme* This is a temporary solution.
+;;;
 
+(if (memq 'debug-extensions *features*)
+    (define-module (guile) :use-module (ice-9 debug))
+    (define-module (guile)))
