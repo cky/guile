@@ -6,6 +6,9 @@ Fri Aug 30 16:01:30 1996  Jim Blandy  <jimb@floss.cyclic.com>
 	(install, uninstall): Put the header files in a special
 	subdirectory, not in the main search path.
 
+	* Makefile.in (ALL_CFLAGS): Provide the proper value for
+	LIBRARY_PATH --- use $(pkgdatadir) instead of $(libdir). 
+
 	* Makefile.in (IMPLPATH): Deleted; never used.
 	
 	* Makefile.in (TCL_SRC_DIR, TK_SRC_DIR): Deleted; we don't depend
