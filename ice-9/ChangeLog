@@ -1,3 +1,8 @@
+2000-11-07  Gary Houston  <ghouston@arglist.com>
+
+	* popen.scm (open-output-pipe): added docstrings for open-input-pipe
+	and open-output-pipe.
+
 2000-11-06  Gary Houston  <ghouston@arglist.com>
 
 	* popen.scm (open-process): bug fix: don't use

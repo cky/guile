@@ -152,5 +152,10 @@ information on how to interpret this value."
 
 (add-hook! after-gc-hook reap-pipes)
 
-(define-public (open-input-pipe command) (open-pipe command OPEN_READ))
-(define-public (open-output-pipe command) (open-pipe command OPEN_WRITE))
+(define-public (open-input-pipe command)
+  "Equivalent to @code{open-pipe} with mode @code{OPEN_READ}"
+  (open-pipe command OPEN_READ))
+
+(define-public (open-output-pipe command)
+  "Equivalent to @code{open-pipe} with mode @code{OPEN_WRITE}"
+  (open-pipe command OPEN_WRITE))
