@@ -532,7 +532,7 @@ scm_hashx_remove_x (hash, assoc, delete, table, obj)
 static const char s_hash_fold[];
 
 SCM
-scm_internal_hash_fold (SCM table, SCM (*fn) (), void *closure, SCM init)
+scm_internal_hash_fold (SCM (*fn) (), void *closure, SCM init, SCM table)
 {
   int i, n = SCM_LENGTH (table);
   SCM result = init;
@@ -562,13 +562,13 @@ fold_proc (void *proc, SCM key, SCM data, SCM value)
 SCM_PROC (s_hash_fold, "hash-fold", 3, 0, 0, scm_hash_fold);
 
 SCM
-scm_hash_fold (SCM table, SCM proc, SCM init)
+scm_hash_fold (SCM proc, SCM init, SCM table)
 {
   SCM_ASSERT (SCM_NIMP (table) && SCM_VECTORP (table),
 	      table, SCM_ARG1, s_hash_fold);
   SCM_ASSERT (SCM_NIMP (proc) && SCM_NFALSEP (scm_procedure_p (proc)),
 	      proc, SCM_ARG2, s_hash_fold);
-  return scm_internal_hash_fold (table, fold_proc, (void *) proc, init);
+  return scm_internal_hash_fold (fold_proc, (void *) proc, init, table);
 }
 
 

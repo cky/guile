@@ -58,7 +58,7 @@ extern SCM scm_hash_fn_create_handle_x SCM_P ((SCM table, SCM obj, SCM init, uns
 extern SCM scm_hash_fn_ref SCM_P ((SCM table, SCM obj, SCM dflt, unsigned int (*hash_fn) (), SCM (*assoc_fn) (), void * closure));
 extern SCM scm_hash_fn_set_x SCM_P ((SCM table, SCM obj, SCM val, unsigned int (*hash_fn) (), SCM (*assoc_fn) (), void * closure));
 extern SCM scm_hash_fn_remove_x SCM_P ((SCM table, SCM obj, unsigned int (*hash_fn) (), SCM (*assoc_fn) (), SCM (*delete_fn) (), void * closure));
-extern SCM scm_internal_hash_fold SCM_P ((SCM table, SCM (*fn) (), void *closure, SCM init));
+extern SCM scm_internal_hash_fold SCM_P ((SCM (*fn) (), void *closure, SCM init, SCM table));
 
 extern SCM scm_hashq_get_handle SCM_P ((SCM table, SCM obj));
 extern SCM scm_hashq_create_handle_x SCM_P ((SCM table, SCM obj, SCM init));
@@ -80,7 +80,7 @@ extern SCM scm_hashx_create_handle_x SCM_P ((SCM hash, SCM assoc, SCM table, SCM
 extern SCM scm_hashx_ref SCM_P ((SCM hash, SCM assoc, SCM table, SCM obj, SCM dflt));
 extern SCM scm_hashx_set_x SCM_P ((SCM hash, SCM assoc, SCM table, SCM obj, SCM val));
 extern SCM scm_hashx_remove_x SCM_P ((SCM hash, SCM assoc, SCM del, SCM table, SCM obj));
-extern SCM scm_hash_fold SCM_P ((SCM hash, SCM proc, SCM init));
+extern SCM scm_hash_fold SCM_P ((SCM proc, SCM init, SCM hash));
 extern void scm_init_hashtab SCM_P ((void));
 
 #endif  /* HASHTABH */
