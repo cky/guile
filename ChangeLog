@@ -1,3 +1,8 @@
+2002-07-09  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* autogen.sh: Patch libltdl/ltdl.c to avoid a nasty bug in
+	libtool-1.4.2.
+
 2002-07-07  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* autogen.sh: Do not copy INSTALL from workbook since it is not
