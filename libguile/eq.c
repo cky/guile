@@ -41,6 +41,7 @@
 
 #include <stdio.h>
 #include "_scm.h"
+#include "ramap.h"
 #include "stackchk.h"
 #include "strorder.h"
 #include "smob.h"
