@@ -88,7 +88,7 @@ SCM scm_make_print_state SCM_P ((void));
 void scm_free_print_state SCM_P ((SCM print_state));
 extern void scm_intprint SCM_P ((long n, int radix, SCM port));
 extern void scm_ipruk SCM_P ((char *hdr, SCM ptr, SCM port));
-extern void scm_iprlist SCM_P ((char *hdr, SCM exp, char tlr, SCM port, scm_print_state *pstate));
+extern void scm_iprlist SCM_P ((char *hdr, SCM exp, int tlr, SCM port, scm_print_state *pstate));
 extern void scm_prin1 SCM_P ((SCM exp, SCM port, int writingp));
 extern void scm_iprin1 SCM_P ((SCM exp, SCM port, scm_print_state *pstate));
 extern SCM scm_write SCM_P ((SCM obj, SCM port));

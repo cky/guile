@@ -174,8 +174,7 @@ scm_vector_set_length_x (vect, len)
 
 
 SCM 
-scm_makflo (x)
-     float x;
+scm_makflo (float x)
 {
   SCM z;
   if (x == 0.0)

@@ -650,7 +650,7 @@ void
 scm_iprlist (hdr, exp, tlr, port, pstate)
      char *hdr;
      SCM exp;
-     char tlr;
+     int tlr;
      SCM port;
      scm_print_state *pstate;
 {

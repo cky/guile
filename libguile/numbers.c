@@ -998,11 +998,16 @@ scm_mulbig(x, nx, y, ny, sgn)
 }
 
 
+/* Sun's compiler complains about the fact that this function has an
+   ANSI prototype in numbers.h, but a K&R declaration here, and the
+   two specify different promotions for the third argument.  I'm going
+   to turn this into an ANSI declaration, and see if anyone complains
+   about it not being K&R.  */
+
 unsigned int
-scm_divbigdig(ds, h, div)
-     SCM_BIGDIG *ds;
-     scm_sizet h;
-     SCM_BIGDIG div;
+scm_divbigdig(SCM_BIGDIG *ds,
+	      scm_sizet h,
+	      SCM_BIGDIG div)
 {
   register unsigned long t2 = 0;
   while(h--) {
