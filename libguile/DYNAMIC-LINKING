@@ -165,24 +165,8 @@ Here is my plan with indications of progress.
 * I have received Guile libffi glue code from Anthony Green but I have
   yet to try it out.
 
-I have no ideas how to support the development of packages for Guile
-that can be dynamically linked into a running application.  Maybe
-automake can be used to automate most of the issues.
+* There is now some code at
 
-One nice thing is, however, that developers and users of Guile
-packages have already installed Guile. So we might able to use Scheme
-to describe and handle the build process. I would like that much more
-than the arcane shell based implementations of autoconf, automake,
-etc.
+    http//www-nt.e-technik.uni-dortmund.de/m_mvo/guile-ffi-970501.tar.gz
 
-One more random thought about packages: I think it would be an
-advantage if the configuration informations are not contained in a
-bunch of files (like the PLUGIN stuff, or like tclConfig.sh) that have
-to be found and analyzed, but rather can be accessed via a small
-program that can be assumed to be in the PATH. That program (probably
-a shell script, but not necessarily) can be queried about several
-interesting things like prefix and exec_prefix of libguile or told to
-do some tasks like installing a new module (and constructing a new
-guile executable if that is necessary). It might even be used for such
-generic things as uninstalling Guile (or downloading, configuring,
-building and installing the latest version of Guile...)
+  but it doesn't address G-Wrap.
