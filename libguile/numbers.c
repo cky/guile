@@ -533,8 +533,8 @@ Example:
 	return SCM_MAKINUM (-1);
       return n1;
     }
-  SCM_VALIDATE_INUM_COPY (1,n1,i1);
-  SCM_VALIDATE_INUM_COPY (2,n2,i2);
+  SCM_VALIDATE_ULONG_COPY (1,n1,i1);
+  SCM_VALIDATE_ULONG_COPY (2,n2,i2);
   return SCM_LOGOP_RETURN (i1 & i2);
 }
 #undef FUNC_NAME
@@ -558,8 +558,8 @@ Example:
 	return SCM_INUM0;
       return n1;
     }
-  SCM_VALIDATE_INUM_COPY (1,n1,i1);
-  SCM_VALIDATE_INUM_COPY (2,n2,i2);
+  SCM_VALIDATE_ULONG_COPY (1,n1,i1);
+  SCM_VALIDATE_ULONG_COPY (2,n2,i2);
   return SCM_LOGOP_RETURN (i1 | i2);
 }
 #undef FUNC_NAME
@@ -583,8 +583,8 @@ Example:
 	return SCM_INUM0;
       return n1;
     }
-  SCM_VALIDATE_INUM_COPY (1,n1,i1);
-  SCM_VALIDATE_INUM_COPY (2,n2,i2);
+  SCM_VALIDATE_ULONG_COPY (1,n1,i1);
+  SCM_VALIDATE_ULONG_COPY (2,n2,i2);
   return SCM_LOGOP_RETURN (i1 ^ i2);
 }
 #undef FUNC_NAME
@@ -600,15 +600,15 @@ SCM_DEFINE (scm_logtest, "logtest", 2, 0, 0,
 #define FUNC_NAME s_scm_logtest
 {
   int i1, i2;
-  SCM_VALIDATE_INUM_COPY (1,n1,i1);
-  SCM_VALIDATE_INUM_COPY (2,n2,i2);
+  SCM_VALIDATE_ULONG_COPY (1,n1,i1);
+  SCM_VALIDATE_ULONG_COPY (2,n2,i2);
   return SCM_BOOL(i1 & i2);
 }
 #undef FUNC_NAME
 
 
 SCM_DEFINE (scm_logbit_p, "logbit?", 2, 0, 0,
-            (SCM n1, SCM n2),
+            (SCM index, SCM j),
 "@example
 (logbit? index j) @equiv{} (logtest (integer-expt 2 index) j)
 
@@ -621,8 +621,8 @@ SCM_DEFINE (scm_logbit_p, "logbit?", 2, 0, 0,
 #define FUNC_NAME s_scm_logbit_p
 {
   int i1, i2;
-  SCM_VALIDATE_INUM_MIN_COPY (1,n1,0,i1);
-  SCM_VALIDATE_INUM_COPY (2,n2,i2);
+  SCM_VALIDATE_INUM_MIN_COPY (1,index,0,i1);
+  SCM_VALIDATE_ULONG_COPY (2,j,i2);
   return SCM_BOOL((1 << i1) & i2);
 }
 #undef FUNC_NAME
@@ -647,7 +647,7 @@ Example:
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_integer_expt, "integer-expt", 2, 0, 0,
-            (SCM z1, SCM z2),
+            (SCM n, SCM k),
 "Returns @var{n} raised to the non-negative integer exponent @var{k}.
 
 Example:
@@ -662,26 +662,26 @@ Example:
   SCM acc = SCM_MAKINUM (1L);
   int i2;
 #ifdef SCM_BIGDIG
-  if (SCM_INUM0 == z1 || acc == z1)
-    return z1;
-  else if (SCM_MAKINUM (-1L) == z1)
-    return SCM_BOOL_F == scm_even_p (z2) ? z1 : acc;
+  if (SCM_INUM0 == n || acc == n)
+    return n;
+  else if (SCM_MAKINUM (-1L) == n)
+    return SCM_BOOL_F == scm_even_p (k) ? n : acc;
 #endif
-  SCM_VALIDATE_INUM_COPY (2,z2,i2);
+  SCM_VALIDATE_ULONG_COPY (2,k,i2);
   if (i2 < 0)
     {
       i2 = -i2;
-      z1 = scm_divide (z1, SCM_UNDEFINED);
+      n = scm_divide (n, SCM_UNDEFINED);
     }
   while (1)
     {
       if (0 == i2)
 	return acc;
       if (1 == i2)
-	return scm_product (acc, z1);
+	return scm_product (acc, n);
       if (i2 & 1)
-	acc = scm_product (acc, z1);
-      z1 = scm_product (z1, z1);
+	acc = scm_product (acc, n);
+      n = scm_product (n, n);
       i2 >>= 1;
     }
 }

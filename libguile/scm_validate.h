@@ -1,4 +1,4 @@
-/* $Id: scm_validate.h,v 1.18 2000-01-14 17:35:13 gjb Exp $ */
+/* $Id: scm_validate.h,v 1.19 2000-01-17 19:44:01 gjb Exp $ */
 /*	Copyright (C) 1999 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
@@ -137,6 +137,12 @@
 #define SCM_VALIDATE_INUM_COPY(pos,k,cvar) \
   do { SCM_ASSERT(SCM_INUMP(k), k, pos, FUNC_NAME); \
        cvar = SCM_INUM(k); } while (0)
+
+#define SCM_VALIDATE_ULONG_COPY(pos,k,cvar) \
+  do { cvar = SCM_NUM2ULONG(pos,k); } while (0)
+
+#define SCM_VALIDATE_LONG_COPY(pos,k,cvar) \
+  do { cvar = SCM_NUM2LONG(pos,k); } while (0)
 
 #define SCM_VALIDATE_BIGINT(pos,k) SCM_MAKE_VALIDATE(pos,k,BIGP)
 
