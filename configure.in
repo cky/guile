@@ -464,7 +464,6 @@ if test "${THREAD_PACKAGE}" != "" ; then
   ## Bring in scm_internal_select, if appropriate.
   if test $ac_cv_func_gettimeofday = yes &&
      test $ac_cv_func_select = yes; then
-    LIBOBJS="$LIBOBJS iselect.o"
     AC_DEFINE(GUILE_ISELECT, 1)
   fi
 fi
