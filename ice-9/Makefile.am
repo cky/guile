@@ -4,7 +4,7 @@ AUTOMAKE_OPTIONS = foreign
 
 subpkgdatadir = $(pkgdatadir)/$(VERSION)/ice-9
 subpkgdata_DATA = boot-9.scm debug.scm expect.scm hcons.scm lineio.scm \
-mapping.scm poe.scm slib.scm tags.scm threads.scm r4rs.scm
+mapping.scm poe.scm regex.scm slib.scm tags.scm threads.scm r4rs.scm
 ETAGS_ARGS = $(subpkgdata_DATA)
 
 ## test.scm is not currently installed.
