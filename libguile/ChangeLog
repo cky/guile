@@ -1,3 +1,13 @@
+Tue Oct 15 05:34:10 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
+
+	* print.c (make_print_state, grow_print_state), print.h: Modified
+ 	the print state representation: Don't use a tail array for
+ 	recording of circular references.  Resizing of the print state
+ 	structure invalidates the print state pointer.  To avoid passing
+ 	around an indirect print state reference to all printing
+ 	functions, we instead let the print state reference a resizable
+	vector.
+
 Mon Oct 14 19:08:33 1996  Jim Blandy  <jimb@floss.cyclic.com>
 
 	Allocate data for structures on an eight-byte boundary, as
