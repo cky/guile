@@ -1,3 +1,8 @@
+Mon Apr 21 05:00:32 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* ioext.c (scm_setfileno): add missing third argument to
+	scm_misc_error call.
+
 Sun Apr 20 15:09:31 1997  Jim Blandy  <jimb@totoro.cyclic.com>
 
 	* eq.c (scm_equal_p): Correctly compare strings of different

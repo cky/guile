@@ -413,7 +413,7 @@ scm_setfileno (fs, fd)
 #ifdef SET_FILE_FD_FIELD
   SET_FILE_FD_FIELD(fs, fd);
 #else
-  scm_misc_error ("scm_setfileno", "Not fully implemented");
+  scm_misc_error ("scm_setfileno", "Not fully implemented", SCM_EOL);
 #endif
 }
 
