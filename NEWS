@@ -10,7 +10,45 @@ Changes since Guile 1.4:
 
 * Changes to the stand-alone interpreter
 
+** It's now possible to create modules with controlled environments
+
+Example:
+
+(define m (make-module 1021 (list (resolve-interface '(ice-9 safe-r5rs)))))
+;;; m will now be a module containing only a safe subset of R5RS
+(eval-in-module '(+ 1 2) m) --> 3
+(eval-in-module 'load m) --> ERROR: Unbound variable: load
+
 * Changes to Scheme functions and syntax
+
+** New define-module option: pure
+
+Tells the module system not to include any bindings from the root
+module.
+
+Example:
+
+(define-module (totally-empty-module)
+  :pure)
+
+** New define-module option: export NAME1 ...
+
+Export names NAME1 ...
+
+This option is required if you want to be able to export bindings from
+a module which doesn't import one of `define-public' or `export'.
+
+Example:
+
+(define-module (foo)
+  :pure
+  :use-module (ice-9 r5rs)
+  :export (bar))
+
+;;; Note that we're pure R5RS below this point!
+
+(define (bar)
+  ...)
 
 * Changes to the gh_ interface
 

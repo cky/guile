@@ -1,3 +1,12 @@
+2000-06-21  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* boot-9.scm (purify-module!, module-export!): New procedures.
+	(export): Rewritten using `module-export!'.
+	(process-define-module): New define-module options: pure, export.
+	See NEWS.
+
+	* null.scm, r5rs.scm, safe-r5rs.scm, safe.scm: New modules.
+
 2000-06-20  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* session.scm (make-fold-modules): Detect circular references in
