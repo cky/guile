@@ -67,9 +67,9 @@ fixed: not-yet
 
 currently:
 > (let name ((var init) ...) body ...)
-> 
+>
 > to
-> 
+>
 > (letrec ((name (lambda (var ...) body ...)))
 >   (name init ...))
 
@@ -89,7 +89,7 @@ fixed: 2001-10-14 (1.5.x, 1.7.x)
 Keith Wright sez:
 > Before getting into philosophy, I want to mention that while poking
 > around and rethinking I found the following Bug.
-> 
+>
 >     guile> (version)
 >     "1.5.2"
 >     guile> #E3
@@ -98,9 +98,9 @@ Keith Wright sez:
 >     ERROR: read:uniform-vector list not found
 >     ABORT: (misc-error)
 >     guile> 3
-> 
-> This violates both R5RS 7.1 ``Case is insignificant'' and 
-> 
+>
+> This violates both R5RS 7.1 ``Case is insignificant'' and
+>
 > > From: guile-1.5.2/doc/ref/guile.info-3 Line 568
 > >
 > >     The codes for indicating exactness (which can, incidentally, be
@@ -124,19 +124,19 @@ fixed: 2001-10-14 (1.5.x, 1.7.x) (see bug 5)
 
 Keith Wright sez:
 > The saga continues...
-> 
+>
 > > >     The codes for indicating exactness (which can, incidentally, be
 > > >  applied to all numerical values) are:
 > > >
 > > >   * `#e', `#E' -- the number is exact
-> 
+>
 >   guile> #E3  ==>  3
 >   guile> #E3.0
 >   ERROR: In procedure scm_lreadr:
 >   ERROR: unknown # object
-> 
+>
 > Better change the reference manual s/, incidentally,/'t/.
-> 
+>
 > (That's a joke son.  The Scheme language requires #e in front
 > of any number to at least do nothing successfully.)
 
@@ -153,7 +153,7 @@ fixed: not-yet
 Keith Wright sez:
 > I got guile-1.5.4 and installed it on one machine with no problem.
 > On another I did ./configure;make as before and it died with:
-> 
+>
 > > ...
 > > on.doc vports.doc weaks.doc        symbols-deprecated.doc regex-posix.doc ramap.doc unif.doc filesys.doc posix.doc net_db.doc socket.doc | ./guile-snarf-docs-texi > guile.texi \
 > > || { rm guile.texi; false; }
@@ -163,9 +163,48 @@ Keith Wright sez:
 > > make[1]: *** [guile-procedures.txt] Error 1
 > > make[1]: Leaving directory `/home/kwright/build/guile-1.5.4/libguile'
 > > make: *** [all-recursive] Error 1
-> 
+>
 > I get the impression that it is supposed to build without 'makeinfo',
 > if this is not so it should be mentioned in the README or INSTALL.
+
+
+bug 9 -- sibling threads not infinite looping
+reported-by: giraud@tif.inria.fr / 2001-09-24
+fixed: not-yet
+
+Manuel Giraud sez:
+> I've configure guile-1.5.4 '--with-threads' and '--with-modules' on a
+> "classical" Linux box and used this code that crash silently :
+>
+> (use-modules (ice-9 threads))
+>
+> (begin-thread
+>  (let loop ()
+>    (display "a")
+>    (newline)
+>    (loop)))
+>
+> (begin-thread
+>  (let loop ()
+>    (display "b")
+>    (newline)
+>    (loop)))
+
+mdj sez:
++ 2001-10-06  Mikael Djurfeldt  <mdj@linnaeus>
++
++ 	These changes fixes a race condition in the Guile coop - pthread
++ 	compatibility code.
++
++ 	* coop.c (mother_awake_p): New variable.
++ 	(coop_create): Set mother_awake_p before creating or signalling
++ 	mother; wait until mother is going to sleep before returning.
++ 	(mother): Reset mother_awake_p before going to sleep.
++
+
+ttn sez:
+crash still occurs w/ "guile -s bug.scm" (cvs checkout on 2001/11/06).
+however, "guile -l bug.scm" works as expected.
 
 
 [BUGS ends here]
