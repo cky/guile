@@ -269,7 +269,7 @@ scm_call_with_new_thread (SCM argl)
        argl variable may not exist in memory when the thread starts.  */
     t = coop_create (scheme_launch_thread, (void *) argl);
     t->data = SCM_ROOT_STATE (root);
-    SCM_SET_CELL_WORD_1 (thread, t);
+    SCM_SET_CELL_WORD_1 (thread, (scm_bits_t) t);
     scm_thread_count++;
     /* Note that the following statement also could cause coop_yield.*/
     SCM_ALLOW_INTS;
@@ -360,7 +360,7 @@ scm_spawn_thread (scm_catch_body_t body, void *body_data,
   t = coop_create (c_launch_thread, (void *) data);
   
   t->data = SCM_ROOT_STATE (root);
-  SCM_SET_CELL_WORD_1 (thread, t);
+  SCM_SET_CELL_WORD_1 (thread, (scm_bits_t) t);
   scm_thread_count++;
   /* Note that the following statement also could cause coop_yield.*/
   SCM_ALLOW_INTS;
@@ -408,7 +408,7 @@ scm_make_mutex (void)
   SCM m;
   coop_m *data = (coop_m *) scm_must_malloc (sizeof (coop_m), "mutex");
 
-  SCM_NEWSMOB (m, scm_tc16_mutex, data);
+  SCM_NEWSMOB (m, scm_tc16_mutex, (scm_bits_t) data);
   coop_mutex_init (data);
   return m;
 }
@@ -439,7 +439,7 @@ scm_make_condition_variable (void)
 {
   SCM c;
   coop_c *data = (coop_c *) scm_must_malloc (sizeof (coop_c), "condvar");
-  SCM_NEWSMOB (c, scm_tc16_condvar, data);
+  SCM_NEWSMOB (c, scm_tc16_condvar, (scm_bits_t) data);
   coop_condition_variable_init (SCM_CONDVAR_DATA (c));
   return c;
 }
