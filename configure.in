@@ -692,6 +692,15 @@ AC_CHECK_FUNCS(sethostent   gethostent   endhostent   dnl
 	       inet_lnaof inet_makeaddr inet_netof hstrerror dnl
 	       inet_pton inet_ntop)
 
+# struct sockaddr field sin_len is only present on BSD systems.
+# On 4.4BSD apparently a #define SIN_LEN exists, but on other BSD systems
+# (eg. FreeBSD 4.9) it doesn't and we must use this configure check
+AC_CHECK_MEMBERS([struct sockaddr.sin_len],,,
+[#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+#include <netinet/in.h>])
+
 AC_MSG_CHECKING(for __libc_stack_end)
 AC_CACHE_VAL(guile_cv_have_libc_stack_end,
 [AC_TRY_LINK([#include <stdio.h>
@@ -766,6 +775,13 @@ if test $guile_cv_have_sin6_scope_id = yes; then
   AC_DEFINE(HAVE_SIN6_SCOPE_ID, 1,
     [Define this if your IPv6 has sin6_scope_id in sockaddr_in6 struct.])
 fi
+
+# struct sockaddr_in6 field sin_len is only present on BSD systems
+AC_CHECK_MEMBERS([struct sockaddr_in6.sin6_len],,,
+[#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+#include <netinet/in.h>])
 
 AC_MSG_CHECKING(whether localtime caches TZ)
 AC_CACHE_VAL(guile_cv_localtime_cache,
