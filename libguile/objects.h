@@ -173,8 +173,8 @@ struct scm_metaclass_operator {
 #define SCM_CLASSF_PURE_GENERIC (0x010 << 20)
 #define SCM_CLASSF_GOOPS_VALID  (0x080 << 20)
 #define SCM_CLASSF_GOOPS        (0x100 << 20)
-#define scm_si_redefined         6
-#define scm_si_hashsets          7
+#define scm_si_redefined         5
+#define scm_si_hashsets          6
 #define SCM_CLASS_OF(x)         SCM_STRUCT_VTABLE (x)
 #define SCM_OBJ_CLASS_REDEF(x)  (SCM_PACK (SCM_STRUCT_VTABLE_DATA (x) [scm_si_redefined]))
 
