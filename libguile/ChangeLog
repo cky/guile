@@ -1,3 +1,10 @@
+2002-02-14  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* gc.h, gc.c (scm_must_malloc, scm_must_realloc, scm_must_strdup,
+	scm_must_strndup, scm_done_malloc, scm_done_free, scm_must_free):
+	Reimplemented using the new scm_gc_malloc, etc., functions and
+	deprecated.
+
 2002-02-11  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* Makefile.am (bin_PROGRAMS): Move `guile_filter_doc_snarfage'
