@@ -46,9 +46,9 @@
 
 
 
-/* The coop-pthreads implementation.  We provide implement threads,
-   mutices and condition variables using the pthread ones, but only
-   one thread can ever be active inside Guile at any one time.
+/* The coop-pthreads implementation.  We use pthreads for the basic
+   multi threading stuff, but rig it so that only one thread is ever
+   active inside Guile.
 */
 
 #include <pthread.h>
@@ -61,25 +61,25 @@
 #define SCM_CRITICAL_SECTION_START 
 #define SCM_CRITICAL_SECTION_END 
 
-#define SCM_THREAD_SWITCH_COUNT       50
+#define SCM_I_THREAD_SWITCH_COUNT       50
 
 #define SCM_THREAD_SWITCHING_CODE \
 do { \
-  scm_switch_counter--; \
-  if (scm_switch_counter == 0) \
+  scm_i_switch_counter--; \
+  if (scm_i_switch_counter == 0) \
     { \
-      scm_switch_counter = SCM_THREAD_SWITCH_COUNT; \
+      scm_i_switch_counter = SCM_I_THREAD_SWITCH_COUNT; \
       scm_yield(); \
     } \
 } while (0)
 
-SCM_API int scm_switch_counter;
+SCM_API int scm_i_switch_counter;
 
-#define SCM_THREAD_LOCAL_DATA          (scm_copt_thread_data ())
-#define SCM_SET_THREAD_LOCAL_DATA(ptr) (scm_copt_set_thread_data (ptr))
+#define SCM_THREAD_LOCAL_DATA          (scm_i_copt_thread_data)
+#define SCM_SET_THREAD_LOCAL_DATA(ptr) (scm_i_copt_set_thread_data (ptr))
 
-SCM_API void *scm_copt_thread_data (void);
-SCM_API void scm_copt_set_thread_data (void *);
+SCM_API void *scm_i_copt_thread_data;
+SCM_API void scm_i_copt_set_thread_data (void *data);
 
 #endif  /* SCM_COOP_PTHREAD_H */
 
