@@ -2127,15 +2127,19 @@ scm_permanent_object (SCM obj)
 }
 
 
-/* Protect OBJ from the garbage collector.  OBJ will not be freed,
-   even if all other references are dropped, until someone applies
-   scm_unprotect_object to it.  This function returns OBJ.
+/* Protect OBJ from the garbage collector.  OBJ will not be freed, even if all
+   other references are dropped, until the object is unprotected by calling
+   scm_unprotect_object (OBJ).  Calls to scm_protect/unprotect_object nest,
+   i. e. it is possible to protect the same object several times, but it is
+   necessary to unprotect the object the same number of times to actually get
+   the object unprotected.  It is an error to unprotect an object more often
+   than it has been protected before.  The function scm_protect_object returns
+   OBJ.
+*/
 
-   Calls to scm_protect_object nest.  For every object OBJ, there is a
-   counter which scm_protect_object(OBJ) increments and
-   scm_unprotect_object(OBJ) decrements, if it is greater than zero.  If
-   an object's counter is greater than zero, the garbage collector
-   will not free it. */
+/* Implementation note:  For every object X, there is a counter which
+   scm_protect_object(X) increments and scm_unprotect_object(X) decrements.
+*/
 
 SCM
 scm_protect_object (SCM obj)
