@@ -450,16 +450,17 @@
 	 (user-time\interpreter
 	  (benchmark-user-time\interpreter before after gc-time))
 	 (benchmark-core-time\interpreter 
-	  (benchmark-core-time\interpreter iterations before after gc-time)))
+	  (benchmark-core-time\interpreter iterations before after gc-time))
+	 (i/ (lambda (a b) (exact->inexact (/ a b)))))
     (write (list name iterations
-		 'total (/ total-time time-base)
-		 'user (/ user-time time-base)
-		 'system (/ system-time time-base)
-		 'frame (/ frame-time time-base)
-		 'benchmark (/ benchmark-time time-base)
-		 'user/interp (/ user-time\interpreter time-base)
-		 'bench/interp (/ benchmark-core-time\interpreter time-base)
-		 'gc (/ gc-time time-base))
+		 'total (i/ total-time time-base)
+		 'user (i/ user-time time-base)
+		 'system (i/ system-time time-base)
+		 'frame (i/ frame-time time-base)
+		 'benchmark (i/ benchmark-time time-base)
+		 'user/interp (i/ user-time\interpreter time-base)
+		 'bench/interp (i/ benchmark-core-time\interpreter time-base)
+		 'gc (i/ gc-time time-base))
 	   port)
     (newline port)))
 
@@ -482,12 +483,13 @@
 	 (user-time (benchmark-user-time before after))
 	 (benchmark-time (benchmark-core-time iterations before after))
 	 (benchmark-core-time\interpreter
-	  (benchmark-core-time\interpreter iterations before after gc-time)))
+	  (benchmark-core-time\interpreter iterations before after gc-time))
+	 (i/ (lambda (a b) (exact->inexact (/ a b)))))
     (write (list name iterations 
-		 'user (/ user-time time-base)
-		 'benchmark (/ benchmark-time time-base)
-		 'bench/interp (/ benchmark-core-time\interpreter time-base)
-		 'gc (/ gc-time time-base))
+		 'user (i/ user-time time-base)
+		 'benchmark (i/ benchmark-time time-base)
+		 'bench/interp (i/ benchmark-core-time\interpreter time-base)
+		 'gc (i/ gc-time time-base))
 	   port)
     (newline port)))
 
