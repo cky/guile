@@ -553,22 +553,8 @@
 	'()
 	(append! (apply f (map1 car l)) (lp (map1 cdr l)))))))
 
-(define (map! f list1 . rest)
-  (if (null? rest)
-    (let lp ((l list1))
-      (if (null? l)
-	'()
-	(begin
-	  (set-car! l (f (car l)))
-	  (set-cdr! l (lp (cdr l)))
-	  l)))
-    (let lp ((l (cons list1 rest)) (res list1))
-      (if (any1 null? l)
-	'()
-	(begin
-	  (set-car! res (apply f (map1 car l)))
-	  (set-cdr! res (lp (map1 cdr l) (cdr res)))
-	  res)))))
+;; OPTIMIZE-ME: Re-use cons cells of list1
+(define map! map)
 
 (define (pair-for-each f clist1 . rest)
   (if (null? rest)
