@@ -1,3 +1,10 @@
+2000-03-25  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* tags.h (SCM_POINTERS_MUNGED):  Removed.
+
+	* gc.c (scm_gc_sweep, init_heap_seg):  Removed use of
+	SCM_POINTERS_MUNGED, thus fixing some illegal casts to SCM.
+
 2000-03-24  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* pairs.h (SCM_CELL_OBJECT, SCM_CELL_OBJECT_[0-3],

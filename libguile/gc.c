@@ -1587,12 +1587,6 @@ void
 scm_gc_sweep ()
 {
   register SCM_CELLPTR ptr;
-#ifdef SCM_POINTERS_MUNGED
-  register SCM scmptr;
-#else
-#undef scmptr
-#define scmptr (SCM)ptr
-#endif
   register SCM nfreelist;
   register scm_freelist_t *freelist;
   register long m;
@@ -1638,9 +1632,8 @@ scm_gc_sweep ()
       seg_size = CELL_DN (scm_heap_table[i].bounds[1], span) - ptr;
       for (j = seg_size + span; j -= span; ptr += span)
 	{
-#ifdef SCM_POINTERS_MUNGED
-	  scmptr = PTR2SCM (ptr);
-#endif
+	  SCM scmptr = PTR2SCM (ptr);
+
 	  switch SCM_TYP7 (scmptr)
 	    {
 	    case scm_tcs_cons_gloc:
@@ -2161,12 +2154,6 @@ static scm_sizet
 init_heap_seg (SCM_CELLPTR seg_org, scm_sizet size, scm_freelist_t *freelist)
 {
   register SCM_CELLPTR ptr;
-#ifdef SCM_POINTERS_MUNGED
-  register SCM scmptr;
-#else
-#undef scmptr
-#define scmptr ptr
-#endif
   SCM_CELLPTR seg_end;
   int new_seg_index;
   int n_new_cells;
@@ -2246,9 +2233,8 @@ init_heap_seg (SCM_CELLPTR seg_org, scm_sizet size, scm_freelist_t *freelist)
 
 	while (ptr < seg_end)
 	  {
-#ifdef SCM_POINTERS_MUNGED
-	    scmptr = PTR2SCM (ptr);
-#endif
+	    SCM scmptr = PTR2SCM (ptr);
+
 	    SCM_SETCAR (scmptr, scm_tc_free_cell);
 	    SCM_SETCDR (scmptr, PTR2SCM (ptr + span));
 	    ptr += span;
@@ -2270,9 +2256,8 @@ init_heap_seg (SCM_CELLPTR seg_org, scm_sizet size, scm_freelist_t *freelist)
    */
   while (ptr < seg_end)
     {
-#ifdef SCM_POINTERS_MUNGED
-      scmptr = PTR2SCM (ptr);
-#endif
+      SCM scmptr = PTR2SCM (ptr);
+
       SCM_SETCAR (scmptr, (SCM) scm_tc_free_cell);
       SCM_SETCDR (scmptr, PTR2SCM (ptr + span));
       ptr += span;
@@ -2294,9 +2279,6 @@ init_heap_seg (SCM_CELLPTR seg_org, scm_sizet size, scm_freelist_t *freelist)
   fprintf (stderr, "H");
 #endif
   return size;
-#ifdef scmptr
-#undef scmptr
-#endif
 }
 
 #ifndef GUILE_NEW_GC_SCHEME

@@ -87,7 +87,6 @@ typedef void * SCM;
 #ifdef _UNICOS
 # define SCM2PTR(x) ((void *) (SCM_UNPACK (x) >> 3))
 # define PTR2SCM(x) (SCM_PACK (((scm_bits_t) (x)) << 3))
-# define SCM_POINTERS_MUNGED
 #else
 # define SCM2PTR(x) ((void *) (SCM_UNPACK (x)))
 # define PTR2SCM(x) (SCM_PACK ((scm_bits_t) (x)))
