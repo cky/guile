@@ -1,4 +1,4 @@
-;;;; 	Copyright (C) 2000, 2001 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2000, 2001, 2004 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -23,7 +23,7 @@
 
 (define (use-value-history x)
   (module-use! (current-module)
-	       (resolve-module '(value-history))))
+	       (resolve-interface '(value-history))))
 
 (define save-value-history
   (let ((count 0)
@@ -34,6 +34,7 @@
 		 (s (string->symbol (simple-format #f "$~A" c))))
 	    (simple-format #t "~A = " s)
 	    (module-define! history s v)
+	    (module-export! history (list s))
 	    (set! count c))))))
 
 (add-hook! before-eval-hook use-value-history)
