@@ -1,3 +1,20 @@
+Fri Sep  5 03:09:09 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* emacs.scm (emacs-load): Added new parameter `module'.
+
+	* syncase.scm (putprop, getprop): Modified to use the object
+ 	properties of the variable object corresponding to the symbol;
+  	This way we can ride on the mechanisms of the module system.
+	Changed `builtin-variable' calls to `define-public' calls.
+	Setup the hooks sc-expand and sc-interface.
+
+	* boot-9.scm (sc-interface, sc-expand): New builtin variables.
+	(set-current-module): Switch to and from sc-expand as
+	scm:eval-transformer when going into and out of modules using
+	syncase macros.
+	(module-use!): Set scm:eval-transformer to sc-expand when adding
+	the syncase interface.
+
 Thu Sep  4 14:57:04 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* syncase.scm (putprop): Temporary fix which publishes new syntax

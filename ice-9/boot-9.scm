@@ -1622,15 +1622,27 @@
 ;; 
 (define the-module #f)
 
+;; Syntax case macro support
+;;
+(define sc-interface #f)
+(define sc-expand #f)
+
 ;; set-current-module module
 ;;
 ;; set the current module as viewed by the normalizer.
 ;;
 (define (set-current-module m)
-  (set! the-module m)
-  (if m
-      (set! *top-level-lookup-closure* (module-eval-closure the-module))
-      (set! *top-level-lookup-closure* #f)))
+  (let ((from-sc-module? (and the-module
+			      (memq sc-interface (module-uses the-module))))
+	(to-sc-module? (and m
+			    (memq sc-interface (module-uses m)))))
+    (set! the-module m)
+    (if from-sc-module? (set! scm:eval-transformer #f))
+    (if m
+	(begin
+	  (set! *top-level-lookup-closure* (module-eval-closure the-module))
+	  (if to-sc-module? (set! scm:eval-transformer sc-expand)))
+	(set! *top-level-lookup-closure* #f))))
 
 
 ;; current-module
@@ -1714,7 +1726,10 @@
 ;; 
 (define (module-use! module interface)
   (set-module-uses! module
-		    (cons interface (delq! interface (module-uses module)))))
+		    (cons interface (delq! interface (module-uses module))))
+  (if (and (eq? interface sc-interface)
+	   (eq? module (current-module)))
+      (set! scm:eval-transformer sc-expand)))
 
 
 ;;; {Recursive Namespaces}

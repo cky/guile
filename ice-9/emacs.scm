@@ -126,7 +126,7 @@
 	   (read-char port) ; Read final newline
 	   #t)))
 
-(define (emacs-load filename linum colnum interactivep)
+(define (emacs-load filename linum colnum module interactivep)
   (set-port-filename! %%load-port filename)
   (set-port-line! %%load-port linum)
   (set-port-column! %%load-port colnum)
