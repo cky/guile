@@ -35,6 +35,7 @@
 #include "libguile/strings.h"
 #include "libguile/vectors.h"
 #include "libguile/lang.h"
+#include "libguile/strop.h"
 
 #include "libguile/validate.h"
 #include "libguile/posix.h"
@@ -1138,12 +1139,20 @@ SCM_DEFINE (scm_mkstemp, "mkstemp!", 1, 0, 0,
   char *c_tmpl;
   int rv;
   
-  SCM_VALIDATE_STRING (SCM_ARG1, tmpl);
-  c_tmpl = scm_i_string_writable_chars (tmpl);
+  scm_frame_begin (0);
+
+  c_tmpl = scm_to_locale_string (tmpl);
+  scm_frame_free (c_tmpl);
+
   SCM_SYSCALL (rv = mkstemp (c_tmpl));
-  scm_i_string_stop_writing ();
   if (rv == -1)
     SCM_SYSERROR;
+
+  scm_substring_move_x (scm_from_locale_string (c_tmpl),
+			SCM_INUM0, scm_string_length (tmpl),
+			tmpl, SCM_INUM0);
+
+  scm_frame_end ();
   return scm_fdes_to_port (rv, "w+", tmpl);
 }
 #undef FUNC_NAME
