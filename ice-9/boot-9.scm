@@ -936,20 +936,33 @@
 ;;; Reader code for various "#c" forms.
 ;;;
 
-(define (parse-path-symbol s)
-  (define (separate-fields-discarding-char ch str ret)
-    (let loop ((fields '())
-	       (str str))
-      (cond
-       ((string-rindex str ch)
-	=> (lambda (pos) (loop (cons (make-shared-substring str (+ 1 pos)) fields)
-			       (make-shared-substring str 0 pos))))
-       (else (ret (cons str fields))))))
-  (separate-fields-discarding-char #\/
-				   s
-				   (lambda (fields)
-				     (map string->symbol fields))))
-	 
+;;; Parse the portion of a #/ list that comes after the first slash.
+(define (read-path-list-notation slash port)
+  (letrec 
+      
+      ;; Is C a delimiter?
+      ((delimiter? (lambda (c) (or (eof-object? c)
+				   (char-whitespace? c)
+				   (string-index "()\";" c))))
+
+       ;; Read and return one component of a path list.
+       (read-component
+	(lambda ()
+	  (let loop ((reversed-chars '()))
+	    (let ((c (peek-char port)))
+	      (if (or (delimiter? c)
+		      (char=? c #\/))
+		  (string->symbol (list->string (reverse reversed-chars)))
+		  (loop (cons (read-char port) reversed-chars))))))))
+
+    ;; Read and return a path list.
+    (let loop ((reversed-path (list (read-component))))
+      (let ((c (peek-char port)))
+	(if (and (char? c) (char=? c #\/))
+	    (begin
+	      (read-char port)
+	      (loop (cons (read-component) reversed-path)))
+	    (reverse reversed-path))))))
 
 (read-hash-extend #\' (lambda (c port)
 			(read port)))
@@ -973,15 +986,7 @@
 
 ;; pushed to the beginning of the alist since it's used more than the
 ;; others at present.
-(read-hash-extend #\/ 
-		  (lambda (c port)
-		    (let ((look (peek-char port)))
-		      (if (or (eof-object? look)
-			      (and (char? look)
-				   (or (char-whitespace? look)
-				       (string-index ")" look))))
-			  '()
-			  (parse-path-symbol (read port))))))
+(read-hash-extend #\/ read-path-list-notation)
 
 (define (read:array digit port)
   (define chr0 (char->integer #\0))
