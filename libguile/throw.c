@@ -642,7 +642,7 @@ scm_ithrow (key, args, noreturn)
      SCM args;
      int noreturn;
 {
-  SCM jmpbuf;
+  SCM jmpbuf = SCM_UNDEFINED;
   SCM wind_goal;
 
   SCM dynpair = SCM_UNDEFINED;

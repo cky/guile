@@ -112,4 +112,7 @@ extern SCM scm_printer_apply SCM_P ((SCM proc, SCM exp, SCM port,
 extern int scm_valid_oport_value_p SCM_P ((SCM val));
 extern void scm_init_print SCM_P ((void));
 
+#ifdef GUILE_DEBUG
+extern SCM scm_current_pstate SCM_P ((void));
+#endif 
 #endif  /* PRINTH */

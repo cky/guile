@@ -100,5 +100,9 @@ extern SCM scm_thunk_p SCM_P ((SCM obj));
 extern void scm_init_iprocs SCM_P ((scm_iproc *subra, int type));
 extern void scm_init_procs SCM_P ((void));
 
+#ifdef GUILE_DEBUG
+extern SCM scm_make_cclo SCM_P ((SCM proc, SCM len));
+#endif /*GUILE_DEBUG*/
+
 
 #endif  /* PROCSH */

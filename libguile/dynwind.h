@@ -59,4 +59,8 @@ extern SCM scm_internal_dynamic_wind SCM_P ((scm_guard_t before,
 extern void scm_dowinds SCM_P ((SCM to, long delta));
 extern void scm_init_dynwind SCM_P ((void));
 
+#ifdef GUILE_DEBUG
+extern SCM scm_wind_chain SCM_P ((void));
+#endif /*GUILE_DEBUG*/
+
 #endif  /* DYNWINDH */

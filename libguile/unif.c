@@ -1252,7 +1252,7 @@ scm_array_set_x (v, obj, args)
      SCM obj;
      SCM args;
 {
-  long pos;
+  long pos = 0;
   SCM_ASRTGO (SCM_NIMP (v), badarg1);
   if (SCM_ARRAYP (v))
     {
@@ -1358,7 +1358,7 @@ scm_array_contents (ra, strict)
 {
   SCM sra;
   if (SCM_IMP (ra))
- return SCM_BOOL_F;
+    return SCM_BOOL_F;
   switch SCM_TYP7
     (ra)
     {
@@ -1388,8 +1388,8 @@ scm_array_contents (ra, strict)
 	  len *= SCM_ARRAY_DIMS (ra)[k].ubnd - SCM_ARRAY_DIMS (ra)[k].lbnd + 1;
 	if (!SCM_UNBNDP (strict))
 	  {
-	    if SCM_ARRAY_BASE
-	      (ra) return SCM_BOOL_F;
+	    if (SCM_ARRAY_BASE (ra))
+	      return SCM_BOOL_F;
 	    if (ndim && (1 != SCM_ARRAY_DIMS (ra)[ndim - 1].inc))
 	      return SCM_BOOL_F;
 	    if (scm_tc7_bvect == SCM_TYP7 (SCM_ARRAY_V (ra)))

@@ -194,4 +194,9 @@ extern SCM scm_void_port SCM_P ((char * mode_str));
 extern SCM scm_sys_make_void_port SCM_P ((SCM mode));
 extern void scm_init_ports SCM_P ((void));
 
+#ifdef GUILE_DEBUG
+extern SCM scm_pt_size SCM_P ((void));
+extern SCM scm_pt_member SCM_P ((SCM member));
+#endif GUILE_DEBUG
+
 #endif  /* PORTSH */

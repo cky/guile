@@ -195,4 +195,15 @@ extern SCM scm_unmemoize SCM_P ((SCM memoized));
 extern SCM scm_make_debugobj SCM_P ((scm_debug_frame* debug));
 extern void scm_init_debug SCM_P ((void));
 
+#ifdef GUILE_DEBUG
+extern SCM scm_make_gloc SCM_P ((SCM var, SCM env));
+extern SCM scm_gloc_p SCM_P ((SCM obj));
+extern SCM scm_make_iloc SCM_P ((SCM frame, SCM binding, SCM cdrp));
+extern SCM scm_iloc_p SCM_P ((SCM obj));
+extern SCM scm_memcons SCM_P ((SCM car, SCM cdr, SCM env));
+extern SCM scm_mem_to_proc SCM_P ((SCM obj));
+extern SCM scm_proc_to_mem SCM_P ((SCM obj));
+extern SCM scm_debug_hang SCM_P ((SCM obj));
+#endif /*GUILE_DEBUG*/
+
 #endif /* DEBUGH */

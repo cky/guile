@@ -424,7 +424,7 @@ scm_struct_ref (handle, pos)
   int p;
   int n_fields;
   unsigned char * fields_desc;
-  unsigned char field_type;
+  unsigned char field_type = 0;
   
 
   SCM_ASSERT (SCM_NIMP (handle) && SCM_STRUCTP (handle), handle,
@@ -505,7 +505,7 @@ scm_struct_set_x (handle, pos, val)
   int p;
   int n_fields;
   unsigned char * fields_desc;
-  unsigned char field_type;
+  unsigned char field_type = 0;
   
 
 
