@@ -1,3 +1,8 @@
+2004-08-05  Kevin Ryde  <user42@zip.com.au>
+
+	* srfi-13.c (scm_string_any, scm_string_every): Enhance docstrings as
+	per doc/ref/srfi-modules.texi.
+
 2004-08-02  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* srfi-4.c: Replaced scm_num2* and scm_*2num with scm_to_* and
