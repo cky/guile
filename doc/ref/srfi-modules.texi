@@ -943,14 +943,15 @@ predicate.  (@pxref{Association Lists})
 @end deffn
 
 @deffn {Scheme Procedure} alist-cons key datum alist
-Equivalent to
+Cons a new association @var{key} and @var{datum} onto @var{alist} and
+return the result.  This is equivalent to
 
 @lisp
 (cons (cons @var{key} @var{datum}) @var{alist})
 @end lisp
 
-This procedure is used to cons a new pair onto an existing
-association list.
+@code{acons} (@pxref{Adding or Setting Alist Entries}) in the Guile
+core does the same thing.
 @end deffn
 
 @deffn {Scheme Procedure} alist-copy alist
