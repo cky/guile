@@ -148,7 +148,7 @@ SCM_API int scm_rec_mutex_lock (scm_t_rec_mutex *m);
 SCM_API int scm_cond_wait (scm_t_cond *c, scm_t_mutex *m);
 SCM_API int scm_cond_timedwait (scm_t_cond *c,
 				scm_t_mutex *m,
-				const struct timespec *t);
+				const scm_t_timespec *t);
 #define scm_cond_signal		scm_i_plugin_cond_signal 
 #define scm_cond_broadcast	scm_i_plugin_cond_broadcast 
 
@@ -248,7 +248,7 @@ SCM_API SCM scm_thread_exited_p (SCM thread);
 
 SCM_API scm_root_state *scm_i_thread_root (SCM thread);
 
-#ifdef USE_PTHREAD_THREADS
+#ifdef SCM_USE_PTHREAD_THREADS
 #include "libguile/pthread-threads.h"
 #else
 #include "libguile/null-threads.h"
@@ -264,16 +264,6 @@ extern scm_t_key scm_i_thread_key;
 #define SCM_SET_THREAD_LOCAL_DATA(x) scm_i_set_thread_data(x)
 extern scm_t_key scm_i_root_state_key;
 SCM_API void scm_i_set_thread_data (void *);
-
-#ifndef HAVE_STRUCT_TIMESPEC
-/* POSIX.4 structure for a time value.  This is like a `struct timeval' but
-   has nanoseconds instead of microseconds.  */
-struct timespec
-{
-  long int tv_sec;		/* Seconds.  */
-  long int tv_nsec;		/* Nanoseconds.  */
-};
-#endif
 
 #endif  /* SCM_THREADS_H */
 
