@@ -147,12 +147,7 @@ SCM
 scm_make_memoized (SCM exp, SCM env)
 {
   /* *fixme* Check that env is a valid environment. */
-  register SCM z, ans;
-  SCM_CRITICAL_SECTION_START;
-  SCM_NEWSMOB (z, SCM_UNPACK (exp), SCM_UNPACK (env));
-  SCM_NEWSMOB (ans, scm_tc16_memoized, SCM_UNPACK (z));
-  SCM_CRITICAL_SECTION_END;
-  return ans;
+  SCM_RETURN_NEWSMOB (scm_tc16_memoized, scm_cons (exp, env));
 }
 
 #ifdef GUILE_DEBUG
