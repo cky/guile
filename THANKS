@@ -1,27 +1,6 @@
 The Guile core distribution:
-- Marcus Daniels contributed changes to make Guile work under Windows NT
-  (using the cygwin32 DLL).
-- Bernard Urban, for his work on the Hobbit Scheme->C compiler
-- Tim Pierce, for faster line-oriented I/O (%read-line and friends)
 
 Bug reports and fixes from:
 
-    Lauri Alanko, Andrew Archibald, Greg Badros, Aleksandar Bakic, Per
-    Bothner, Jost Boekemeier, Ben Caradoc-Davies, Marcus Daniels, Doug
-    Evans, Fred Fish, Jesse N. Glick, Eric Hanchrow, Greg Harvey, Karl
-    M. Hegbloom, Dirk Herrmann, Gary Houston, Charbel Jacquin, Bill
-    Janssen, Steven G. Johnson, Roland Kaufmann, Shiro Kawai, Christopher
-    Lee, Michael N. Livshin, Christian Lynbech, Roland McGrath, Clark
-    McGrew, Russ McManus, Harald Meland, Perry Metzger, Thomas Morgan,
-    Shuji Narazaki, Nicolas Neuss, Thien-Thi Nguyen, Robert Pluim, Richard
-    Polton, Chet Ramey, Jim Ravan, John Redford, Daniel Risacher, Ole
-    Myren Röhne, Julian Satchell, Jorgen "forcer" Schaefer, Larry
-    Schwimmer, Radey Shouman, Miroslav Silovic, Maciej Stachowiak, Harvey
-    J. Stein, Eiichi Takamori, David Tillman, John Tobey, Greg Troxel,
-    Bernard Urban.
-
 Also, thanks to:
 - Pat Eyler, for his continuing work on the Guile web pages
-- Oliver Frommel, for setting up the European mirror of the
-  Guile development FTP server
-- MORIOKA Tomohiko, for setting up the Japan mirror site
