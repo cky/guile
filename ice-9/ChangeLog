@@ -1,3 +1,8 @@
+2001-04-06  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* boot-9.scm (warn-autoload-deprecation): Close parenthesis in
+	"You just tried to autoload ..." message.
+
 2001-04-05  Keisuke Nishida  <kxn30@po.cwru.edu>
 
 	* Makefile.am (ice9_sources): Add history.scm.

@@ -1819,7 +1819,7 @@
    ";;; Write a Scheme file instead that uses `dynamic-link' directly.\n"
    (current-error-port))
   (format (current-error-port)
-	  ";;; (You just tried to autoload module ~S.\n" modname))
+	  ";;; (You just tried to autoload module ~S.)\n" modname))
 
 (define (init-dynamic-module modname)
   ;; Register any linked modules which has been registered on the C level
