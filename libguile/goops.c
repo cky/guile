@@ -2479,7 +2479,7 @@ make_struct_class (void *closure, SCM key, SCM data, SCM prev)
   if (SCM_NFALSEP (SCM_STRUCT_TABLE_NAME (data)))
     SCM_SET_STRUCT_TABLE_CLASS (data,
 				scm_make_extended_class
-				(SCM_ROCHARS (SCM_STRUCT_TABLE_NAME (data))));
+				(SCM_SYMBOL_CHARS (SCM_STRUCT_TABLE_NAME (data))));
   return SCM_UNSPECIFIED;
 }
 

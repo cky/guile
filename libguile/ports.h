@@ -169,6 +169,7 @@ extern int scm_port_table_size; /* Number of ports in scm_port_table.  */
 #define SCM_STREAM(x)             (SCM_PTAB_ENTRY(x)->stream)
 #define SCM_SETSTREAM(x,s)        (SCM_PTAB_ENTRY(x)->stream = (scm_bits_t) (s))
 #define SCM_FILENAME(x)           (SCM_PTAB_ENTRY(x)->file_name)
+#define SCM_SET_FILENAME(x, n)    (SCM_PTAB_ENTRY(x)->file_name = (n))
 #define SCM_LINUM(x)              (SCM_PTAB_ENTRY(x)->line_number)
 #define SCM_COL(x)                (SCM_PTAB_ENTRY(x)->column_number)
 #define SCM_REVEALED(x)           (SCM_PTAB_ENTRY(x)->revealed)

@@ -1319,7 +1319,7 @@ gc_mark_nimp:
       if (!(i < scm_numptob))
 	goto def;
       if (SCM_PTAB_ENTRY(ptr))
-	scm_gc_mark (SCM_PTAB_ENTRY(ptr)->file_name);
+	scm_gc_mark (SCM_FILENAME (ptr));
       if (scm_ptobs[i].mark)
 	{
 	  ptr = (scm_ptobs[i].mark) (ptr);
@@ -2272,7 +2272,9 @@ SCM_DEFINE (scm_unhash_name, "unhash-name", 1, 0, 0,
 
 void
 scm_remember (SCM *ptr)
-{ /* empty */ }
+{
+  /* empty */ 
+}
 
 
 /*

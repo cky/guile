@@ -1271,7 +1271,7 @@ SCM_DEFINE (scm_port_filename, "port-filename", 1, 0, 0,
 {
   port = SCM_COERCE_OUTPORT (port);
   SCM_VALIDATE_OPENPORT (1,port);
-  return SCM_PTAB_ENTRY (port)->file_name;
+  return SCM_FILENAME (port);
 }
 #undef FUNC_NAME
 
@@ -1286,7 +1286,8 @@ SCM_DEFINE (scm_set_port_filename_x, "set-port-filename!", 2, 0, 0,
   port = SCM_COERCE_OUTPORT (port);
   SCM_VALIDATE_OPENPORT (1,port);
   /* We allow the user to set the filename to whatever he likes.  */
-  return SCM_PTAB_ENTRY (port)->file_name = filename;
+  SCM_SET_FILENAME (port, filename);
+  return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
 

@@ -75,8 +75,6 @@ extern int scm_symhash_dim;
 #define SCM_SYMBOL_HASH(X)	    (SCM_CELL_WORD_2 (X))
 #define SCM_SET_SYMBOL_HASH(X, v)   (SCM_SET_CELL_WORD_2 ((X), (v)))
 
-#define SCM_ROSTRINGP(x) (SCM_NIMP(x) && ((SCM_TYP7S(x)==scm_tc7_string) \
-			  || (SCM_TYP7(x) == scm_tc7_symbol)))
 #define SCM_ROCHARS(x) ((SCM_TYP7 (x) == scm_tc7_substring) \
 			? (SCM_INUM (SCM_CADR (x)) + SCM_STRING_CHARS (SCM_CDDR (x))) \
 			: ((SCM_TYP7 (x) == scm_tc7_string) \
@@ -133,6 +131,8 @@ extern void scm_init_symbols (void);
 #define SCM_SUBSTR_STR(x) (SCM_CDDR (x))
 #define SCM_SUBSTR_OFFSET(x) (SCM_CADR (x))
 #define SCM_LENGTH(x) (((unsigned long) SCM_CELL_WORD_0 (x)) >> 8)
+#define SCM_ROSTRINGP(x) (SCM_NIMP(x) && ((SCM_TYP7S(x)==scm_tc7_string) \
+			  || (SCM_TYP7(x) == scm_tc7_symbol)))
 #define SCM_ROLENGTH(x) SCM_LENGTH (x)
 #define SCM_SUBSTRP(x) (SCM_NIMP (x) && (SCM_TYP7 (x) == scm_tc7_substring))
 #define SCM_COERCE_SUBSTR(x) SCM_STRING_COERCE_0TERMINATION_X (x)

@@ -113,18 +113,16 @@ gh_set_substr (char *src, SCM dst, int start, int len)
   unsigned long dst_len;
   unsigned long effective_length;
 
-  SCM_ASSERT (SCM_STRINGP (dst), dst, SCM_ARG3,
-	      "gh_set_substr");
+  SCM_ASSERT (SCM_STRINGP (dst), dst, SCM_ARG3, "gh_set_substr");
 
   dst_ptr = SCM_STRING_CHARS (dst);
   dst_len = SCM_STRING_LENGTH (dst);
   SCM_ASSERT (len >= 0 && (unsigned) len <= dst_len,
 	      dst, SCM_ARG4, "gh_set_substr");
   
-  scm_protect_object (dst);
   effective_length = ((unsigned) len < dst_len) ? len : dst_len;
   memmove (dst_ptr + start, src, effective_length);
-  scm_unprotect_object (dst);
+  scm_remember (&dst);
 }
 
 /* Return the symbol named SYMBOL_STR.  */
@@ -539,19 +537,17 @@ gh_scm2newstr (SCM str, int *lenp)
 
   SCM_ASSERT (SCM_STRINGP (str), str, SCM_ARG3, "gh_scm2newstr");
 
-  /* protect str from GC while we copy off its data */
-  scm_protect_object (str);
-
   len = SCM_STRING_LENGTH (str);
 
   ret_str = (char *) scm_must_malloc ((len + 1) * sizeof (char),
 				      "gh_scm2newstr");
   /* so we copy tmp_str to ret_str, which is what we will allocate */
   memcpy (ret_str, SCM_ROCHARS (str), len);	/* test ROCHARS here -twp */
+  /* from now on we don't mind if str gets GC collected. */
+  scm_remember (&str);
   /* now make sure we null-terminate it */
   ret_str[len] = '\0';
 
-  scm_unprotect_object (str);
 
   if (lenp != NULL)
     {
@@ -575,12 +571,11 @@ gh_get_substr (SCM src, char *dst, int start, int len)
   int src_len, effective_length;
   SCM_ASSERT (SCM_STRINGP (src), src, SCM_ARG3, "gh_get_substr");
 
-  scm_protect_object (src);
   src_len = SCM_STRING_LENGTH (src);
   effective_length = (len < src_len) ? len : src_len;
   memcpy (dst + start, SCM_ROCHARS (src), effective_length * sizeof (char));
   /* FIXME: must signal an error if len > src_len */
-  scm_unprotect_object (src);
+  scm_remember (&src);
 }
 
 
@@ -597,22 +592,18 @@ gh_symbol2newstr (SCM sym, int *lenp)
   char *ret_str;
   int len;
 
-  SCM_ASSERT (SCM_SYMBOLP (sym), sym, SCM_ARG3,
-	      "gh_scm2newsymbol");
-
-  /* protect str from GC while we copy off its data */
-  scm_protect_object (sym);
+  SCM_ASSERT (SCM_SYMBOLP (sym), sym, SCM_ARG3, "gh_scm2newsymbol");
 
   len = SCM_SYMBOL_LENGTH (sym);
 
   ret_str = (char *) scm_must_malloc ((len + 1) * sizeof (char),
 				      "gh_symbol2newstr");
-  /* so we copy tmp_str to ret_str, which is what we will allocate */
+  /* so we copy sym to ret_str, which is what we will allocate */
   memcpy (ret_str, SCM_SYMBOL_CHARS (sym), len);
+  /* from now on we don't mind if sym gets GC collected. */
+  scm_remember (&sym);
   /* now make sure we null-terminate it */
   ret_str[len] = '\0';
-
-  scm_unprotect_object (sym);
 
   if (lenp != NULL)
     {

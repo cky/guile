@@ -77,7 +77,7 @@ static void
 scm_fport_buffer_add (SCM port, int read_size, int write_size)
 {
   struct scm_fport *fp = SCM_FSTREAM (port);
-   scm_port *pt = SCM_PTAB_ENTRY (port);
+  scm_port *pt = SCM_PTAB_ENTRY (port);
   char *s_scm_fport_buffer_add = "scm_fport_buffer_add";
 
   if (read_size == -1 || write_size == -1)
@@ -377,7 +377,7 @@ scm_fdes_to_port (int fdes, char *mode, SCM name)
     else
       scm_fport_buffer_add (port, -1, -1);
   }
-  SCM_PTAB_ENTRY (port)->file_name = name;
+  SCM_SET_FILENAME (port, name);
   SCM_ALLOW_INTS;
   return port;
 }
@@ -429,11 +429,11 @@ prinfport (SCM exp,SCM port,scm_print_state *pstate)
   if (SCM_OPFPORTP (exp))
     {
       int fdes;
-      SCM name = SCM_PTAB_ENTRY (exp)->file_name;
-      scm_puts (SCM_ROSTRINGP (name)
-		? SCM_ROCHARS (name)
-		: SCM_PTOBNAME (SCM_PTOBNUM (exp)),
-		port);
+      SCM name = SCM_FILENAME (exp);
+      if (SCM_STRINGP (name) || SCM_SYMBOLP (name))
+	scm_display (name, port);
+      else
+	scm_puts (SCM_PTOBNAME (SCM_PTOBNUM (exp)), port);
       scm_putc (' ', port);
       fdes = (SCM_FSTREAM (exp))->fdes;
       

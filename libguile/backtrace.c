@@ -110,15 +110,15 @@ display_header (SCM source, SCM port)
 void
 scm_display_error_message (SCM message, SCM args, SCM port)
 {
-  if (SCM_ROSTRINGP (message) && SCM_NFALSEP (scm_list_p (args)))
+  if (SCM_STRINGP (message) && !SCM_FALSEP (scm_list_p (args)))
     {
       scm_simple_format (port, message, args);
       scm_newline (port);
     }
   else
     {
-      scm_prin1 (message, port, 0);
-      scm_putc ('\n', port);
+      scm_display (message, port);
+      scm_newline (port);
     }
 }
 
@@ -131,7 +131,7 @@ display_expression (SCM frame,SCM pname,SCM source,SCM port)
   pstate->fancyp = 1;
   pstate->level = 2;
   pstate->length = 3;
-  if (SCM_ROSTRINGP (pname))
+  if (SCM_SYMBOLP (pname) || SCM_STRINGP (pname))
     {
       if (SCM_FRAMEP (frame)
 	  && SCM_FRAME_EVAL_ARGS_P (frame))
@@ -170,8 +170,8 @@ display_error_body (struct display_error_args *a)
 {
   SCM current_frame = SCM_BOOL_F;
   SCM source = SCM_BOOL_F;
-  SCM pname = SCM_BOOL_F;
   SCM prev_frame = SCM_BOOL_F;
+  SCM pname = a->subr;
 
   if (SCM_DEBUGGINGP
       && SCM_STACKP (a->stack)
@@ -182,13 +182,11 @@ display_error_body (struct display_error_args *a)
       prev_frame = SCM_FRAME_PREV (current_frame);
       if (!SCM_MEMOIZEDP (source) && !SCM_FALSEP (prev_frame))
 	source = SCM_FRAME_SOURCE (prev_frame);
-      if (SCM_FRAME_PROC_P (current_frame)
+      if (!SCM_SYMBOLP (pname) && !SCM_STRINGP (pname) && SCM_FRAME_PROC_P (current_frame)
 	  && SCM_EQ_P (scm_procedure_p (SCM_FRAME_PROC (current_frame)), SCM_BOOL_T))
 	pname = scm_procedure_name (SCM_FRAME_PROC (current_frame));
     }
-  if (!SCM_ROSTRINGP (pname))
-    pname = a->subr;
-  if (SCM_ROSTRINGP (pname) || SCM_MEMOIZEDP (source))
+  if (SCM_SYMBOLP (pname) || SCM_STRINGP (pname) || SCM_MEMOIZEDP (source))
     {
       display_header (source, a->port);
       display_expression (current_frame, pname, source, a->port);

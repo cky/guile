@@ -439,10 +439,15 @@ taloop:
 		env = SCM_ENV (exp);
 		scm_puts ("#<procedure", port);
 	      }
-	    if (SCM_ROSTRINGP (name))
+	    if (SCM_SYMBOLP (name))
 	      {
 		scm_putc (' ', port);
-		scm_puts (SCM_ROCHARS (name), port);
+		scm_lfwrite (SCM_SYMBOL_CHARS (name), SCM_SYMBOL_LENGTH (name), port);
+	      }
+	    else if (SCM_STRINGP (name))
+	      {
+		scm_putc (' ', port);
+		scm_lfwrite (SCM_ROCHARS (name), SCM_STRING_LENGTH (name), port);
 	      }
 	    if (!SCM_UNBNDP (code))
 	      {
@@ -505,7 +510,6 @@ taloop:
 
 	      len = SCM_SYMBOL_LENGTH (exp);
 	      str = SCM_SYMBOL_CHARS (exp);
-	      scm_remember (&exp);
 	      pos = 0;
 	      weird = 0;
 	      maybe_weird = 0;
@@ -568,6 +572,7 @@ taloop:
 		  }
 	      if (pos < end)
 		scm_lfwrite (str + pos, end - pos, port);
+	      scm_remember (&exp);
 	      if (weird)
 		scm_lfwrite ("}#", 2, port);
 	      break;
@@ -664,7 +669,7 @@ taloop:
 	    if (SCM_NFALSEP (name))
 	      {
 		scm_putc (' ', port);
-		scm_puts (SCM_ROCHARS (name), port);
+		scm_display (name, port);
 	      }
 	  }
 	  scm_putc ('>', port);
@@ -972,6 +977,7 @@ SCM_DEFINE (scm_simple_format, "simple-format", 2, 0, 1,
   int fReturnString = 0;
   int writingp;
   char *start;
+  char *end;
   char *p;
 
   if (SCM_EQ_P (destination, SCM_BOOL_T))
@@ -995,13 +1001,16 @@ SCM_DEFINE (scm_simple_format, "simple-format", 2, 0, 1,
   SCM_VALIDATE_REST_ARGUMENT (args);
 
   start = SCM_ROCHARS (message);
-  for (p = start; *p != '\0'; ++p)
+  end = start + SCM_STRING_LENGTH (message);
+  for (p = start; p != end; ++p)
     if (*p == '~')
       {
-	if (SCM_IMP (args) || SCM_NCONSP (args))
+	if (!SCM_CONSP (args))
 	  continue;
 	
-	++p;
+	if (++p == end)
+	  continue;
+	
 	if (*p == 'A' || *p == 'a')
 	  writingp = 0;
 	else if (*p == 'S' || *p == 's')
