@@ -1,3 +1,13 @@
+2005-01-10  Marius Vollmer  <mvo@zagadka.de>
+
+	* unif.c (scm_array_rank, scm_array_dimensions,
+	scm_shared_array_offset, scm_shared_array_increments,
+	scm_array_ref, scm_array_set_x): Use scm_t_array_handle operations
+	to simplify code and make it more general.
+	(scm_shared_array_root): Work with all kinds of arrays, including
+	naked vectors.
+	(indices_to_pos): New.
+	
 2005-01-10  Kevin Ryde  <user42@zip.com.au>
 
 	* posix.c (scm_mkstemp): Update docstring from manual.
