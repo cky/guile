@@ -25,6 +25,7 @@
 
 	* src/vm_scheme.c (cons): Bug fixed.
 	* src/vm_system.c (br_if_null): Set ac = SCM_BOOL_T if null.
+	(br_if_not_null): Set ac = SCM_BOOL_F if not null.
 
 2000-09-11  Keisuke Nishida  <kxn30@po.cwru.edu>
 
