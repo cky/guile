@@ -33,6 +33,7 @@ In release 1.5:
 - remove deprecated types, functions and macros from numbers.h:  scm_dblproc,
   SCM_UNEGFIXABLE, SCM_FLOBUFLEN, SCM_INEXP, SCM_CPLXP, SCM_REAL, SCM_IMAG,
   SCM_REALPART, scm_makdbl, SCM_SINGP, SCM_NUM2DBL, SCM_NO_BIGDIG
+- remove deprecated macro from tags.h: SCM_DOUBLE_CELLP
 
 In release 1.6:
 - remove deprecated variables:

@@ -65,6 +65,7 @@
 #include "libguile/vectors.h"
 #include "libguile/weaks.h"
 #include "libguile/hashtab.h"
+#include "libguile/tags.h"
 
 #include "libguile/validate.h"
 #include "libguile/gc.h"
@@ -251,6 +252,8 @@ int scm_default_max_segment_size = 2097000L;/* a little less (adm) than 2 Mb */
 #  define CELL_DN(p, span) (SCM_CELLPTR)(~(sizeof(scm_cell)*(span)-1L) & (long)(p))
 # endif				/* UNICOS */
 #endif				/* PROT386 */
+
+#define DOUBLECELL_ALIGNED_P(x)  (((2 * sizeof (scm_cell) - 1) & SCM_UNPACK (x)) == 0)
 
 #define ALIGNMENT_SLACK(freelist) (SCM_GC_CARD_SIZE - 1)
 #define CLUSTER_SIZE_IN_BYTES(freelist) \
@@ -1461,7 +1464,7 @@ scm_mark_locations (SCM_STACKITEM x[], scm_sizet n)
                     break;
 
 		  if (scm_heap_table[seg_id].span == 1
-		      || SCM_DOUBLE_CELLP (obj))
+		      || DOUBLECELL_ALIGNED_P (obj))
                     scm_gc_mark (obj);
                   
 		  break;
@@ -1495,7 +1498,7 @@ scm_cellp (SCM value)
 
     if (SCM_PTR_LE (scm_heap_table[i].bounds[0], ptr)
 	&& SCM_PTR_GT (scm_heap_table[i].bounds[1], ptr)
-	&& (scm_heap_table[i].span == 1 || SCM_DOUBLE_CELLP (value))
+	&& (scm_heap_table[i].span == 1 || DOUBLECELL_ALIGNED_P (value))
         && !SCM_GC_IN_CARD_HEADERP (ptr)
         )
       return 1;

@@ -1,3 +1,10 @@
+2001-02-03  Michael Livshin  <mlivshin@bigfoot.com>
+
+	* gc.c (DOUBLECELL_ALIGNED_P): new macro, a better-named analog of
+	the deprecated SCM_DOUBLE_CELLP.
+
+	* tags.h (SCM_DOUBLE_CELLP): deprecated.
+
 2001-02-02  Keisuke Nishida  <kxn30@po.cwru.edu>
 
 	* dump.c, dump.h: New files.

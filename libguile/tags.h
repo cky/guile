@@ -293,7 +293,9 @@ typedef long scm_bits_t;
 #define SCM_CELLP(x) 	(((sizeof (scm_cell) - 1) & SCM_UNPACK (x)) == 0)
 #define SCM_NCELLP(x) 	(!SCM_CELLP (x))
 
+#if (SCM_DEBUG_DEPRECATED == 0)
 #define SCM_DOUBLE_CELLP(x)  (((2 * sizeof (scm_cell) - 1) & SCM_UNPACK (x)) == 0)
+#endif /* SCM_DEBUG_DEPRECATED == 0 */
 
 /* See numbers.h for macros relating to immediate integers.
  */
