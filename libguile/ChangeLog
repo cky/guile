@@ -1,3 +1,17 @@
+Mon Jun 16 17:20:55 1997  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* dynl.c (scm_dynamic_call, scm_dynamic_args_call): Wrap dynamic
+ 	function call in SCM_DEFER_INTS/SCM_ALLOW_INTS.
+	(scm_dynamic_link, scm_dynamic_unlink, scm_dynamic_func): Always
+ 	call the sysdep functions with deferred ints.
+	* dynl.c, dynl-dl.c, dynl-dld.c, dynl-shl.c (sysdep_dynl_link,
+ 	sysdep_dynl_unlink, sysdep_dynl_func): Expect to be called with
+ 	deferred interrupts and insert SCM_ALLOW_INTS before throwing an
+ 	error.
+
+	* dynl.c (scm_dynamic_unlink, scm_dynamic_call): Return
+ 	SCM_UNSPECIFIED.
+
 Sat Jun 14 19:00:58 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* scmsigs.c (sys_deliver_signals): add a comment about a probable bug.
