@@ -323,10 +323,10 @@ typedef long SCM;
  */
 #define SCM_GCMARKP(x) 		(1 & (int)SCM_CDR(x))
 #define SCM_GC8MARKP(x) 	(0x80 & (int)SCM_CAR(x))
-#define SCM_SETGCMARK(x) 	(SCM_CDR(x) |= 1)
-#define SCM_CLRGCMARK(x) 	(SCM_CDR(x) &= ~1L)
-#define SCM_SETGC8MARK(x) 	(SCM_CAR(x) |= 0x80)
-#define SCM_CLRGC8MARK(x) 	(SCM_CAR(x) &= ~0x80L)
+#define SCM_SETGCMARK(x) 	SCM_SETOR_CDR (x,1)
+#define SCM_CLRGCMARK(x) 	SCM_SETAND_CDR (x, ~1L)
+#define SCM_SETGC8MARK(x) 	SCM_SETOR_CAR (x, 0x80)
+#define SCM_CLRGC8MARK(x) 	SCM_SETAND_CAR (x, ~0x80L)
 
 
 

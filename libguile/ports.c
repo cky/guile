@@ -444,7 +444,7 @@ scm_close_port (port)
   if (scm_ptobs[i].fclose)
     SCM_SYSCALL ((scm_ptobs[i].fclose) (SCM_STREAM (port)));
   scm_remove_from_port_table (port);
-  SCM_CAR (port) &= ~SCM_OPN;
+  SCM_SETAND_CAR (port, ~SCM_OPN);
   SCM_ALLOW_INTS;
   return SCM_UNSPECIFIED;
 }
@@ -877,7 +877,7 @@ scm_void_port (mode_str)
   SCM_DEFER_INTS;
   mode_bits = scm_mode_bits (mode_str);
   pt = scm_add_to_port_table (answer);
-  SCM_CAR (answer) = scm_tc16_void_port | mode_bits;
+  SCM_SETCAR (answer, scm_tc16_void_port | mode_bits);
   SCM_SETPTAB_ENTRY (answer, pt);
   SCM_SETSTREAM (answer, SCM_BOOL_F);
   SCM_ALLOW_INTS;

@@ -62,8 +62,8 @@ static int scm_tc16_jmpbuffer;
 
 #define SCM_JMPBUFP(O) (SCM_TYP16(O) == scm_tc16_jmpbuffer)
 #define JBACTIVE(O) (SCM_CAR (O) & (1L << 16L))
-#define ACTIVATEJB(O)  (SCM_CAR (O) |= (1L << 16L))
-#define DEACTIVATEJB(O)  (SCM_CAR (O) &= ~(1L << 16L))
+#define ACTIVATEJB(O)  (SCM_SETOR_CAR (O, (1L << 16L)))
+#define DEACTIVATEJB(O)  (SCM_SETAND_CAR (O, ~(1L << 16L)))
 
 #ifndef DEBUG_EXTENSIONS
 #define JBJMPBUF(O) ((jmp_buf*)SCM_CDR (O) )
@@ -71,7 +71,7 @@ static int scm_tc16_jmpbuffer;
 #else
 #define SCM_JBDFRAME(O) ((scm_debug_frame*)SCM_CAR (SCM_CDR (O)) )
 #define JBJMPBUF(O) ((jmp_buf*)SCM_CDR (SCM_CDR (O)) )
-#define SCM_SETJBDFRAME(O,X) SCM_CAR(SCM_CDR (O)) = (SCM)(X)
+#define SCM_SETJBDFRAME(O,X) SCM_SETCAR (SCM_CDR (O), (SCM)(X))
 #define SETJBJMPBUF(O,X) SCM_SETCDR(SCM_CDR (O), X)
 
 static scm_sizet freejb SCM_P ((SCM jbsmob));
@@ -122,7 +122,7 @@ make_jmpbuf ()
     char *mem = scm_must_malloc (sizeof (scm_cell), "jb");
     SCM_SETCDR (answer, (SCM) mem);
 #endif
-    SCM_CAR(answer) = scm_tc16_jmpbuffer;
+    SCM_SETCAR (answer, scm_tc16_jmpbuffer);
     SETJBJMPBUF(answer, (jmp_buf *)0);
     DEACTIVATEJB(answer);
   }

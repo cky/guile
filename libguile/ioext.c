@@ -116,14 +116,15 @@ scm_sys_freopen (filename, modes, port)
       SCM p;
       p = port;
       port = SCM_MAKINUM (errno);
-      SCM_CAR (p) &= ~SCM_OPN;
+      SCM_SETAND_CAR (p, ~SCM_OPN);
       scm_remove_from_port_table (p);
     }
   else
     {
-      SCM_CAR (port) = scm_tc16_fport | scm_mode_bits (SCM_CHARS (modes));
+      SCM_SETCAR (port, scm_tc16_fport | scm_mode_bits (SCM_CHARS (modes)));
       SCM_SETSTREAM (port, (SCM)f);
-      if (SCM_BUF0 & (SCM_CAR (port) = scm_tc16_fport | scm_mode_bits (SCM_CHARS (modes))))
+      SCM_SETCAR (port, scm_tc16_fport | scm_mode_bits (SCM_CHARS (modes)));
+      if (SCM_BUF0 & SCM_CAR (port))
 	scm_setbuf0 (port);
     }
   SCM_ALLOW_INTS;
@@ -163,7 +164,8 @@ scm_sys_duplicate_port (oldpt, modes)
     struct scm_port_table * pt;
     pt = scm_add_to_port_table (newpt);
     SCM_SETPTAB_ENTRY (newpt, pt);
-    if (SCM_BUF0 & (SCM_CAR (newpt) = scm_tc16_fport | scm_mode_bits (SCM_CHARS (modes))))
+    SCM_SETCAR (newpt, scm_tc16_fport | scm_mode_bits (SCM_CHARS (modes)));
+    if (SCM_BUF0 & SCM_CAR (newpt))
       scm_setbuf0 (newpt);
     SCM_SETSTREAM (newpt, (SCM)f);
     SCM_PTAB_ENTRY (newpt)->file_name = SCM_PTAB_ENTRY (oldpt)->file_name;
@@ -249,8 +251,8 @@ scm_sys_fdopen (fdes, modes)
     scm_syserror (s_sys_fdopen);
   pt = scm_add_to_port_table (port);
   SCM_SETPTAB_ENTRY (port, pt);
-  if (SCM_BUF0 & (SCM_CAR (port) = scm_tc16_fport
-		  | scm_mode_bits (SCM_CHARS (modes))))
+  SCM_SETCAR (port, scm_tc16_fport | scm_mode_bits (SCM_CHARS (modes)));
+  if (SCM_BUF0 & SCM_CAR (port))
     scm_setbuf0 (port);
   SCM_SETSTREAM (port, (SCM)f);
   SCM_ALLOW_INTS;

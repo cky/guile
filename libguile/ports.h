@@ -122,9 +122,9 @@ extern int scm_port_table_size; /* Number of ports in scm_port_table.  */
 #define SCM_SETREVEALED(x,s) (SCM_PTAB_ENTRY(x)->revealed = s)
 #define SCM_PORT_REPRESENTATION(x) SCM_PTAB_ENTRY(x)->representation
 #define SCM_SET_PORT_REPRESENTATION(x,s) (SCM_PTAB_ENTRY(x)->representation = s)
-#define SCM_CRDYP(port) (SCM_CAR(port) & SCM_CRDY)
-#define SCM_CLRDY(port) {SCM_CAR(port) &= SCM_CUC;}
-#define SCM_SETRDY(port) {SCM_CAR(port) |= SCM_CRDY;}
+#define SCM_CRDYP(port) (SCM_CAR (port) & SCM_CRDY)
+#define SCM_CLRDY(port) {SCM_SETAND_CAR (port, SCM_CUC);}
+#define SCM_SETRDY(port) {SCM_SETOR_CAR (port, SCM_CRDY);}
 #define SCM_CUNGET(c,port) {SCM_PTAB_ENTRY(port)->unchr = c; SCM_SETRDY(port);}
 #define SCM_CGETUN(port) (SCM_PTAB_ENTRY(port)->unchr)
 

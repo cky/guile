@@ -182,7 +182,7 @@ scm_makflo (x)
     return scm_flo0;
   SCM_NEWCELL (z);
   SCM_DEFER_INTS;
-  SCM_CAR (z) = scm_tc_flo;
+  SCM_SETCAR (z, scm_tc_flo);
   SCM_FLO (z) = x;
   SCM_ALLOW_INTS;
   return z;
@@ -501,7 +501,7 @@ scm_make_ra (ndim)
   SCM_DEFER_INTS;
   SCM_SETCDR (ra, scm_must_malloc ((long) (sizeof (scm_array) + ndim * sizeof (scm_array_dim)),
 			       "array"));
-  SCM_CAR (ra) = ((long) ndim << 17) + scm_tc16_array;
+  SCM_SETCAR (ra, ((long) ndim << 17) + scm_tc16_array);
   SCM_ARRAY_V (ra) = scm_nullvect;
   SCM_ALLOW_INTS;
   return ra;
@@ -583,7 +583,7 @@ scm_dimensions_to_uniform_array (dims, prot, fill)
   SCM_ASSERT (SCM_NULLP (dims) || (SCM_NIMP (dims) && SCM_CONSP (dims)),
 	  dims, SCM_ARG1, s_dimensions_to_uniform_array);
   ra = scm_shap2ra (dims, s_dimensions_to_uniform_array);
-  SCM_CAR (ra) |= SCM_ARRAY_CONTIGUOUS;
+  SCM_SETOR_CAR (ra, SCM_ARRAY_CONTIGUOUS);
   s = SCM_ARRAY_DIMS (ra);
   k = SCM_ARRAY_NDIM (ra);
   while (k--)
@@ -653,14 +653,14 @@ scm_ra_set_contp (ra)
 	{
 	  if (inc != SCM_ARRAY_DIMS (ra)[k].inc)
 	    {
-	      SCM_CAR (ra) &= ~SCM_ARRAY_CONTIGUOUS;
+	      SCM_SETAND_CAR (ra, ~SCM_ARRAY_CONTIGUOUS);
 	      return;
 	    }
 	  inc *= (SCM_ARRAY_DIMS (ra)[k].ubnd 
 		  - SCM_ARRAY_DIMS (ra)[k].lbnd + 1);
 	}
     }
-  SCM_CAR (ra) |= SCM_ARRAY_CONTIGUOUS;
+  SCM_SETOR_CAR (ra, SCM_ARRAY_CONTIGUOUS);
 }
 
 
@@ -736,7 +736,7 @@ scm_make_shared_array (oldra, mapfunc, dims)
     {
       if (s[k].ubnd > s[k].lbnd)
 	{
-	  SCM_CAR (indptr) = SCM_MAKINUM (SCM_INUM (SCM_CAR (indptr)) + 1);
+	  SCM_SETCAR (indptr, SCM_MAKINUM (SCM_INUM (SCM_CAR (indptr)) + 1));
 	  imap = scm_apply (mapfunc, scm_reverse (inds), SCM_EOL);
 	  if (SCM_ARRAYP (oldra))
 

@@ -100,8 +100,8 @@ typedef struct scm_srcprops_chunk
 #define SRCPROPFNAME(p) ((scm_srcprops *) SCM_CDR (p))->fname
 #define SRCPROPCOPY(p) ((scm_srcprops *) SCM_CDR (p))->copy
 #define SRCPROPPLIST(p) ((scm_srcprops *) SCM_CDR (p))->plist
-#define SETSRCPROPBRK(p) (SCM_CAR (p) = SCM_CAR (p) | (1L << 16))
-#define CLEARSRCPROPBRK(p) (SCM_CAR (p) = SCM_CAR (p) & ~(1L << 16))
+#define SETSRCPROPBRK(p) (SCM_SETOR_CAR (p, (1L << 16)))
+#define CLEARSRCPROPBRK(p) SCM_SETAND_CAR (p, ~(1L << 16))
 #define SRCPROPMAKPOS(l,c) (((l) << 12) + (c))
 #define SETSRCPROPPOS(p,l,c) (SRCPROPPOS (p) = SRCPROPMAKPOS (l, c))
 #define SETSRCPROPLINE(p,l) SETSRCPROPPOS (p, l, SRCPROPCOL (p))

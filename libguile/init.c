@@ -145,13 +145,13 @@ scm_start_stack (base, in, out, err)
     {
       SCM_NEWCELL (scm_def_inp);
       pt = scm_add_to_port_table (scm_def_inp);
-      SCM_CAR (scm_def_inp) = (scm_tc16_fport | SCM_OPN | SCM_RDNG);
+      SCM_SETCAR (scm_def_inp, (scm_tc16_fport | SCM_OPN | SCM_RDNG));
       SCM_SETPTAB_ENTRY (scm_def_inp, pt);
       SCM_SETSTREAM (scm_def_inp, (SCM)in);
       if (isatty (fileno (in)))
 	{
 	  scm_setbuf0 (scm_def_inp); /* turn off stdin buffering */
-	  SCM_CAR (scm_def_inp) |= SCM_BUF0;
+	  SCM_SETOR_CAR (scm_def_inp, SCM_BUF0);
 	}
       scm_set_port_revealed_x (scm_def_inp, SCM_MAKINUM (1));
     }
@@ -164,7 +164,7 @@ scm_start_stack (base, in, out, err)
     {
       SCM_NEWCELL (scm_def_outp);
       pt = scm_add_to_port_table (scm_def_outp);
-      SCM_CAR (scm_def_outp) = (scm_tc16_fport | SCM_OPN | SCM_WRTNG);
+      SCM_SETCAR (scm_def_outp, (scm_tc16_fport | SCM_OPN | SCM_WRTNG));
       SCM_SETPTAB_ENTRY (scm_def_outp, pt);
       SCM_SETSTREAM (scm_def_outp, (SCM)out);
       scm_set_port_revealed_x (scm_def_outp, SCM_MAKINUM (1));
@@ -178,7 +178,7 @@ scm_start_stack (base, in, out, err)
     {
       SCM_NEWCELL (scm_def_errp);
       pt = scm_add_to_port_table (scm_def_errp);
-      SCM_CAR (scm_def_errp) = (scm_tc16_fport | SCM_OPN | SCM_WRTNG);
+      SCM_SETCAR (scm_def_errp, (scm_tc16_fport | SCM_OPN | SCM_WRTNG));
       SCM_SETPTAB_ENTRY (scm_def_errp, pt);
       SCM_SETSTREAM (scm_def_errp, (SCM)err);
       scm_set_port_revealed_x (scm_def_errp, SCM_MAKINUM (1));
@@ -199,7 +199,7 @@ scm_start_stack (base, in, out, err)
    */
   SCM_NEWCELL (scm_rootcont);
   SCM_SETJMPBUF (scm_rootcont, scm_must_malloc ((long) sizeof (scm_contregs), "continuation"));
-  SCM_CAR (scm_rootcont) = scm_tc7_contin;
+  SCM_SETCAR (scm_rootcont, scm_tc7_contin);
   SCM_SEQ (scm_rootcont) = 0;
   /* The root continuation if further initialized by scm_restart_stack. */
 
