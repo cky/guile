@@ -1,3 +1,8 @@
+2001-03-04  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* eval.c (scm_s_duplicate_bindings): New error message.
+	(scm_m_letrec1, scm_m_letstar): Check for duplicate bindings.
+
 2001-03-03  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* eval.h (SCM_EVALIM2): New macro.  Use it when a
