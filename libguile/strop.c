@@ -181,83 +181,11 @@ SCM_DEFINE (scm_string_rindex, "string-rindex", 2, 2, 0,
 }
 #undef FUNC_NAME
 
-
-SCM_REGISTER_PROC(s_substring_move_left_x, "substring-move-left!", 5, 0, 0, scm_substring_move_x);
-SCM_REGISTER_PROC(s_substring_move_right_x, "substring-move-right!", 5, 0, 0, scm_substring_move_x);
-
-/*
-@defun substring-move-left! str1 start1 end1 str2 start2
-@end defun
-@deftypefn {C Function} SCM scm_substring_move_left_x (SCM @var{str1}, SCM @var{start1}, SCM @var{end1}, SCM @var{str2}, SCM @var{start2})
-[@strong{Note:} this is only valid if you've applied the strop patch].
-
-Moves a substring of @var{str1}, from @var{start1} to @var{end1}
-(@var{end1} is exclusive), into @var{str2}, starting at
-@var{start2}. Allows overlapping strings.
-
-@lisp
-(define x (make-string 10 #\a))
-(define y "bcd")
-(substring-move-left! x 2 5 y 0)
-y
-@result{} "aaa"
-
-x
-@result{} "aaaaaaaaaa"
-
-(define y "bcdefg")
-(substring-move-left! x 2 5 y 0)
-y
-@result{} "aaaefg"
-
-(define y "abcdefg")
-(substring-move-left! y 2 5 y 3)
-y
-@result{} "abccccg"
-@end lisp
-*/
-
-/*
-@defun substring-move-right! str1 start1 end1 str2 start2
-@end defun
-@deftypefn {C Function} SCM scm_substring_move_right_x (SCM @var{str1}, SCM @var{start1}, SCM @var{end1}, SCM @var{str2}, SCM @var{start2})
-[@strong{Note:} this is only valid if you've applied the strop patch, if
-it hasn't made it into the guile tree].
-
-Does much the same thing as @code{substring-move-left!}, except it
-starts moving at the end of the sequence, rather than the beginning.
-@lisp
-(define y "abcdefg")
-(substring-move-right! y 2 5 y 0)
-y
-@result{} "ededefg"
-
-(define y "abcdefg")
-(substring-move-right! y 2 5 y 3)
-y
-@result{} "abccdeg"
-@end lisp
-*/
-
 SCM_DEFINE (scm_substring_move_x, "substring-move!", 5, 0, 0,
            (SCM str1, SCM start1, SCM end1, SCM str2, SCM start2),
-	    "@deffnx primitive substring-move-left! str1 start1 end1 str2 start2\n"
-	    "@deffnx primitive substring-move-right! str1 start1 end1 str2 start2\n"
 	    "Copy the substring of @var{str1} bounded by @var{start1} and @var{end1}\n"
 	    "into @var{str2} beginning at position @var{start2}.\n"
-	    "@code{substring-move-right!} begins copying from the rightmost character\n"
-	    "and moves left, and @code{substring-move-left!} copies from the leftmost\n"
-	    "character moving right.\n\n"
-	    "It is useful to have two functions that copy in different directions so\n"
-	    "that substrings can be copied back and forth within a single string.  If\n"
-	    "you wish to copy text from the left-hand side of a string to the\n"
-	    "right-hand side of the same string, and the source and destination\n"
-	    "overlap, you must be careful to copy the rightmost characters of the\n"
-	    "text first, to avoid clobbering your data.  Hence, when @var{str1} and\n"
-	    "@var{str2} are the same string, you should use\n"
-	    "@code{substring-move-right!} when moving text from left to right, and\n"
-	    "@code{substring-move-left!}  otherwise.  If @code{str1} and @samp{str2}\n"
-	    "are different strings, it does not matter which function you use.")
+	    "@var{str1} and @var{str2} can be the same string.")
 #define FUNC_NAME s_scm_substring_move_x
 {
   long s1, s2, e, len;

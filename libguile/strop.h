@@ -69,9 +69,6 @@ SCM_API SCM scm_string_capitalize (SCM v);
 SCM_API SCM scm_string_split (SCM str, SCM chr);
 SCM_API SCM scm_string_ci_to_symbol (SCM v);
 
-#define scm_substring_move_left_x scm_substring_move_x
-#define scm_substring_move_right_x scm_substring_move_x
-
 #endif  /* SCM_STROP_H */
 
 /*
