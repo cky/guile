@@ -1,3 +1,8 @@
+2003-04-26  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scheme-control.texi (Handling Errors): Remove scm_sysmissing,
+	long since gone from libguile.  (Thanks to Kevin Ryde.)
+
 2003-04-05  Marius Vollmer  <mvo@zagadka.de>
 
 	* preface.texi: Reflect change to LGPL.

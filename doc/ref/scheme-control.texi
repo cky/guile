@@ -943,8 +943,7 @@ Likewise a NULL message is converted to #f.
 The following procedures invoke scm_error with various error keys and
 arguments.  The first three call scm_error with the system-error key
 and automatically supply errno in the "rest" argument:  scm_syserror
-generates messages using strerror,  scm_sysmissing is used when
-facilities are not available.  Care should be taken that the errno
+generates messages using strerror.  Care should be taken that the errno
 value is not reset (e.g. due to an interrupt).
 
 @itemize @bullet
@@ -952,8 +951,6 @@ value is not reset (e.g. due to an interrupt).
 void scm_syserror (char *subr);
 @item
 void scm_syserror_msg (char *subr, char *message, SCM args);
-@item
-void scm_sysmissing (char *subr);
 @item
 void scm_num_overflow (char *subr);
 @item
