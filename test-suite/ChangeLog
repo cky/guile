@@ -1,3 +1,9 @@
+2003-05-30  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* lib.scm: Documented the short form for pass-if and expect-fail.
+
+	(pass-if, expect-fail): Simplified.
+
 2003-05-30  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/numbers.test (max, min): Add tests involving NaNs.

@@ -124,6 +124,20 @@
 ;;;;
 ;;;; In that case, the test name is the list ("simple addition").
 ;;;;
+;;;; In the case of simple tests the expression that is tested would often
+;;;; suffice as a test name by itself.  Therefore, the convenience macros
+;;;; pass-if and expect-fail provide a shorthand notation that allows to omit
+;;;; a test name in such cases.
+;;;;
+;;;; * (pass-if expression) is a short form for
+;;;;   (run-test 'expression #t (lambda () expression))
+;;;; * (expect-fail expression) is a short form for
+;;;;   (run-test 'expression #f (lambda () expression))
+;;;;
+;;;; For example:
+;;;;
+;;;;    (pass-if (= 2 (+ 1 1)))
+;;;;
 ;;;; The WITH-TEST-PREFIX syntax and WITH-TEST-PREFIX* procedure establish
 ;;;; a prefix for the names of all tests whose results are reported
 ;;;; within their dynamic scope.  For example:
@@ -277,9 +291,7 @@
   (if (and (null? rest) (pair? name))
       ;; presume this is a simple test, i.e. (pass-if (even? 2))
       ;; where the body should also be the name.
-      `(run-test ,(with-output-to-string (lambda () (display name)))
-                 #t
-                 (lambda () ,name))
+      `(run-test ',name #t (lambda () ,name))
       `(run-test ,name #t (lambda () ,@rest))))
 
 ;;; A short form for tests that are expected to fail, taken from Greg.
@@ -287,9 +299,7 @@
   (if (and (null? rest) (pair? name))
       ;; presume this is a simple test, i.e. (expect-fail (even? 2))
       ;; where the body should also be the name.
-      `(run-test ,(with-output-to-string (lambda () (display name)))
-                 #f
-                 (lambda () ,name))
+      `(run-test ',name #f (lambda () ,name))
       `(run-test ,name #f (lambda () ,@rest))))
 
 ;;; A helper function to implement the macros that test for exceptions.
