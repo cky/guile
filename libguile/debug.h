@@ -63,43 +63,49 @@
 /* {Options}
  */
 
+/* scm_debug_opts and scm_evaluator_trap_table are defined in eval.c.
+ */
+
 extern scm_option scm_debug_opts[];
 
-#define RECORD_PROCNAMES scm_debug_opts[0].val
-#define DEBUG_EVAL	 scm_debug_opts[1].val
-#define BREAKPOINTS      scm_debug_opts[2].val
-#define TRACE		 scm_debug_opts[3].val
-#define BACKTRACE        scm_debug_opts[4].val
-#define BACKTRACE_DEPTH	 scm_debug_opts[5].val
-#define FRAMES		 scm_debug_opts[6].val
-#define CHEAPTRAPS       scm_debug_opts[7].val
-#define N_DEBUG_OPTIONS 8
+#define SCM_CHEAPTRAPS_P	scm_debug_opts[0].val
+#define SCM_BREAKPOINTS_P	scm_debug_opts[1].val
+#define SCM_TRACE_P		scm_debug_opts[2].val
+#define SCM_REC_PROCNAMES_P	scm_debug_opts[3].val
+#define SCM_BACKWARDS_P		scm_debug_opts[4].val
+#define SCM_N_FRAMES		scm_debug_opts[5].val
+#define SCM_BACKTRACE_DEPTH	scm_debug_opts[6].val
+#define SCM_BACKTRACE_P		scm_debug_opts[7].val
+#define SCM_DEVAL_P		scm_debug_opts[8].val
+#define SCM_STACK_LIMIT		scm_debug_opts[9].val
+#define SCM_N_DEBUG_OPTIONS 10
 
 extern scm_option scm_evaluator_trap_table[];
 
-#define ENTER_FRAME      scm_evaluator_trap_table[0].val
-#define APPLY_FRAME      scm_evaluator_trap_table[1].val
-#define EXIT_FRAME       scm_evaluator_trap_table[2].val
-#define N_EVALUATOR_TRAPS 3
+#define SCM_ENTER_FRAME_P      scm_evaluator_trap_table[0].val
+#define SCM_APPLY_FRAME_P      scm_evaluator_trap_table[1].val
+#define SCM_EXIT_FRAME_P       scm_evaluator_trap_table[2].val
+#define SCM_N_EVALUATOR_TRAPS 3
 
 #ifdef __STDC__
 extern SCM (*scm_ceval_ptr) (SCM exp, SCM env);
 #else
 extern SCM (*scm_ceval_ptr) ();
 #endif
-extern int debug_mode, check_entry, check_apply, check_exit;
+extern int scm_debug_mode;
+extern int scm_check_entry_p, scm_check_apply_p, scm_check_exit_p;
 
-#define CHECK_ENTRY      check_entry
-#define CHECK_APPLY	 check_apply
-#define CHECK_EXIT       check_exit
+#define CHECK_ENTRY      scm_check_entry_p
+#define CHECK_APPLY	 scm_check_apply_p
+#define CHECK_EXIT       scm_check_exit_p
 
-#define RESET_DEBUG_MODE \
+#define SCM_RESET_DEBUG_MODE \
 {\
-  if (ENTER_FRAME || BREAKPOINTS) CHECK_ENTRY = 1;\
-  if (APPLY_FRAME || TRACE) CHECK_APPLY = 1;\
-  if (EXIT_FRAME || TRACE) CHECK_EXIT = 1;\
-  debug_mode = DEBUG_EVAL || BACKTRACE || CHECK_ENTRY || CHECK_APPLY || CHECK_EXIT;\
-  scm_ceval_ptr = debug_mode ? scm_deval : scm_ceval;\
+  if (SCM_ENTER_FRAME_P || SCM_BREAKPOINTS_P) CHECK_ENTRY = 1;\
+  if (SCM_APPLY_FRAME_P || SCM_TRACE_P) CHECK_APPLY = 1;\
+  if (SCM_EXIT_FRAME_P || SCM_TRACE_P) CHECK_EXIT = 1;\
+  scm_debug_mode = SCM_DEVAL_P || SCM_BACKTRACE_P || CHECK_ENTRY || CHECK_APPLY || CHECK_EXIT;\
+  scm_ceval_ptr = scm_debug_mode ? scm_deval : scm_ceval;\
 }
 
 
@@ -123,28 +129,28 @@ typedef struct scm_debug_frame
 
 extern scm_debug_frame *last_debug_info_frame;
 
-#define TAILREC     (1L << 10)
-#define TRACEDFRAME (1L << 9)
-#define APPLYFRAME  (1L << 8)
-#define ARGSREADY   (1L << 7)
-#define DOVERFLOW   (1L << 6)
-#define MAXFRAMESIZE 63 /* also used as a mask for the size field */
+#define SCM_TAILREC     (1L << 10)
+#define SCM_TRACED_FRAME (1L << 9)
+#define SCM_APPLYFRAME  (1L << 8)
+#define SCM_ARGS_READY   (1L << 7)
+#define SCM_DOVERFLOW   (1L << 6)
+#define SCM_MAX_FRAME_SIZE 63 /* also used as a mask for the size field */
 
-#define EVALFRAMEP(x) (((x).status & APPLYFRAME) == 0)
-#define APPLYFRAMEP(x) (((x).status & APPLYFRAME) != 0)
-#define OVERFLOWP(x) (((x).status & DOVERFLOW) != 0)
-#define ARGSREADYP(x) (((x).status & ARGSREADY) != 0)
-#define TRACEDFRAMEP(x) (((x).status & TRACEDFRAME) != 0)
-#define TAILRECP(x) (((x).status & TAILREC) != 0)
-#define SETOVERFLOW(x) ((x).status |= DOVERFLOW)
-#define SETARGSREADY(x) ((x).status |= ARGSREADY)
-#define CLEARARGSREADY(x) ((x).status &= ~ARGSREADY)
-#define SETTRACEDFRAME(x) ((x).status |= TRACEDFRAME)
-#define CLEARTRACEDFRAME(x) ((x).status &= ~TRACEDFRAME)
-#define SETTAILREC(x) ((x).status |= TAILREC)
+#define SCM_EVALFRAMEP(x) (((x).status & SCM_APPLYFRAME) == 0)
+#define SCM_APPLYFRAMEP(x) (((x).status & SCM_APPLYFRAME) != 0)
+#define SCM_OVERFLOWP(x) (((x).status & SCM_DOVERFLOW) != 0)
+#define SCM_ARGS_READY_P(x) (((x).status & SCM_ARGS_READY) != 0)
+#define SCM_TRACED_FRAME_P(x) (((x).status & SCM_TRACED_FRAME) != 0)
+#define SCM_TAILRECP(x) (((x).status & SCM_TAILREC) != 0)
+#define SCM_SET_OVERFLOW(x) ((x).status |= SCM_DOVERFLOW)
+#define SCM_SET_ARGSREADY(x) ((x).status |= SCM_ARGS_READY)
+#define SCM_CLEAR_ARGSREADY(x) ((x).status &= ~SCM_ARGS_READY)
+#define SCM_SET_TRACED_FRAME(x) ((x).status |= SCM_TRACED_FRAME)
+#define SCM_CLEAR_TRACED_FRAME(x) ((x).status &= ~SCM_TRACED_FRAME)
+#define SCM_SET_TAILREC(x) ((x).status |= SCM_TAILREC)
 
-#define DEBUGGINGP debug_mode
-#define DSIDEVAL(x, env) if NIMP(x) scm_deval((x), (env))
+#define SCM_DEBUGGINGP scm_debug_mode
+#define SCM_DSIDEVAL(x, env) if NIMP(x) scm_deval((x), (env))
 
 /* {Memoized Source}
  */

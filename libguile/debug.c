@@ -27,53 +27,53 @@
 /* {Run time control of the debugging evaluator}
  */
 
-SCM_PROC (s_debug_options, "debug-options", 0, 1, 0, scm_debug_options);
+SCM_PROC (s_debug_options, "debug-options-interface", 0, 1, 0, scm_debug_options);
 #ifdef __STDC__
 SCM
-scm_debug_options (SCM new_values)
+scm_debug_options (SCM setting)
 #else
 SCM
-scm_debug_options (new_values)
-     SCM new_values;
+scm_debug_options (setting)
+     SCM setting;
 #endif
 {
   SCM ans;
   SCM_DEFER_INTS;
-  ans = scm_change_options (new_values,
-			    scm_debug_opts,
-			    N_DEBUG_OPTIONS,
-			    s_debug_options);
+  ans = scm_options (setting,
+		     scm_debug_opts,
+		     SCM_N_DEBUG_OPTIONS,
+		     s_debug_options);
 #ifndef SCM_RECKLESS
-  if (!(1 <= FRAMES && FRAMES <= MAXFRAMESIZE))
+  if (!(1 <= SCM_N_FRAMES && SCM_N_FRAMES <= SCM_MAX_FRAME_SIZE))
     {
-      scm_change_options (ans, scm_debug_opts, N_DEBUG_OPTIONS, s_debug_options);
+      scm_options (ans, scm_debug_opts, SCM_N_DEBUG_OPTIONS, s_debug_options);
       /* *fixme* Should SCM_ALLOW_INTS be called here? */
-      scm_wta (new_values, (char *) SCM_OUTOFRANGE, "frames");
+      scm_wta (setting, (char *) SCM_OUTOFRANGE, "frames");
     }
 #endif
-  RESET_DEBUG_MODE;
-  scm_debug_eframe_size = 2 * FRAMES;
+  SCM_RESET_DEBUG_MODE;
+  scm_debug_eframe_size = 2 * SCM_N_FRAMES;
   SCM_ALLOW_INTS
   return ans;
 }
 
-SCM_PROC (s_evaluator_traps, "evaluator-traps", 0, 1, 0, scm_evaluator_traps);
+SCM_PROC (s_evaluator_traps, "evaluator-traps-interface", 0, 1, 0, scm_evaluator_traps);
 #ifdef __STDC__
 SCM
-scm_evaluator_traps (SCM new_values)
+scm_evaluator_traps (SCM setting)
 #else
 SCM
-scm_evaluator_traps (new_values)
-     SCM new_values;
+scm_evaluator_traps (setting)
+     SCM setting;
 #endif
 {
   SCM ans;
   SCM_DEFER_INTS;
-  ans = scm_change_options (new_values,
-			    scm_evaluator_trap_table,
-			    N_EVALUATOR_TRAPS,
-			    s_evaluator_traps);
-  RESET_DEBUG_MODE;
+  ans = scm_options (setting,
+		     scm_evaluator_trap_table,
+		     SCM_N_EVALUATOR_TRAPS,
+		     s_evaluator_traps);
+  SCM_RESET_DEBUG_MODE;
   SCM_ALLOW_INTS
   return ans;
 }
@@ -89,8 +89,8 @@ scm_single_step (val)
 #endif
 {
   SCM_DEFER_INTS;
-  ENTER_FRAME = EXIT_FRAME = 1;
-  RESET_DEBUG_MODE;
+  SCM_ENTER_FRAME_P = SCM_EXIT_FRAME_P = 1;
+  SCM_RESET_DEBUG_MODE;
   SCM_ALLOW_INTS;
   scm_throw (cont, val);
   return SCM_BOOL_F; /* never returns */
@@ -403,9 +403,9 @@ _scm_stack_frame_to_plist (frame, offset)
 {
   int size;
   scm_debug_info *info;
-  if (EVALFRAMEP (*frame))
+  if (SCM_EVALFRAMEP (*frame))
     {
-      size = frame->status & MAXFRAMESIZE;
+      size = frame->status & SCM_MAX_FRAME_SIZE;
       info = (scm_debug_info *) (*((SCM_STACKITEM **) &frame->vect[size]) + offset);
       if ((info - frame->vect) & 1)
 	{
@@ -419,7 +419,7 @@ _scm_stack_frame_to_plist (frame, offset)
 			   info[1].a.proc,
 			   scm_acons (scm_i_args,
 				      info[1].a.args,
-				      ARGSREADYP (*frame)
+				      SCM_ARGS_READY_P (*frame)
 				      ? SCM_EOL
 				      : scm_acons (scm_i_eval_args,
 						   SCM_BOOL_T,
@@ -484,7 +484,7 @@ scm_expr_stack (obj)
 {
   SCM frs = SCM_EOL, vfrs, p;
   int size;
-  int max_vfrs = BACKTRACE_DEPTH;
+  int max_vfrs = SCM_BACKTRACE_DEPTH;
   scm_debug_info *info;
   scm_debug_frame *frame;
   long offset = 0;
@@ -509,16 +509,16 @@ scm_expr_stack (obj)
     {
       frame = (scm_debug_frame *) ((SCM_STACKITEM *) frame + offset);
       p = _scm_stack_frame_to_plist (frame, offset);
-      if (EVALFRAMEP (*frame))
+      if (SCM_EVALFRAMEP (*frame))
 	{
-	  size = frame->status & MAXFRAMESIZE;
+	  size = frame->status & SCM_MAX_FRAME_SIZE;
 	  info = (scm_debug_info *) (*((SCM_STACKITEM **) &frame->vect[size]) + offset);
 	  vfrs = SCM_EOL;
 	  if ((info - frame->vect) & 1)
 	    --info;
 	  /* Data in the apply part of an eval info frame comes from
 	     previous stack frame if the scm_debug_info vector is overflowed. */
-	  else if (OVERFLOWP (*frame)
+	  else if (SCM_OVERFLOWP (*frame)
 		   && !SCM_UNBNDP (info[1].a.proc))
 	    {
 	      vfrs = scm_cons (p, SCM_EOL);
@@ -530,7 +530,7 @@ scm_expr_stack (obj)
 	  info -= 2;
 	  vfrs = scm_cons (p, vfrs);
 	  --max_vfrs;
-	  if (OVERFLOWP (*frame))
+	  if (SCM_OVERFLOWP (*frame))
 	    vfrs = scm_cons (scm_i_more, vfrs);
 	  while (info >= frame->vect)
 	    {
@@ -628,7 +628,7 @@ scm_lookup_cstr (str, len, env)
 void
 scm_init_debug ()
 {
-  scm_init_opts (scm_debug_options, scm_debug_opts, N_DEBUG_OPTIONS);
+  scm_init_opts (scm_debug_options, scm_debug_opts, SCM_N_DEBUG_OPTIONS);
 
   scm_tc16_memoized = scm_newsmob (&memoizedsmob);
   scm_tc16_debugobj = scm_newsmob (&debugobjsmob);
