@@ -96,7 +96,7 @@
 (export
     instance?  slot-ref-using-class
     slot-set-using-class! slot-bound-using-class?
-    slot-exists-using-class? slot-ref slot-set! slot-bound? class-of
+    slot-exists-using-class? slot-ref slot-set! slot-bound?
     class-name class-direct-supers class-direct-subclasses
     class-direct-methods class-direct-slots class-precedence-list
     class-slots class-environment
@@ -105,6 +105,8 @@
     primitive-generic-generic enable-primitive-generic!
     method-procedure accessor-method-slot-definition
     slot-exists? make find-method get-keyword)
+
+(re-export class-of)  ;; from (guile)
 
 
 (define min-fixnum (- (expt 2 29)))
