@@ -1,5 +1,5 @@
 Guile NEWS --- history of user-visible changes.  -*- text -*-
-Copyright (C) 1996, 1997, 1998 Free Software Foundation, Inc.
+Copyright (C) 1996, 1997, 1998, 1999 Free Software Foundation, Inc.
 See the end for copying conditions.
 
 Please send Guile bug reports to bug-guile@gnu.org.
@@ -932,6 +932,13 @@ forms instead of the result of the last body form.  In contrast to
 ** New functions: read-history FILENAME, write-history FILENAME
 Read/write command line history from/to file.  Returns #t on success
 and #f if an error occured.
+
+** `ls' and `lls' in module (ice-9 ls) now handle no arguments.
+
+These procedures return a list of definitions available in the specified
+argument, a relative module reference.  In the case of no argument,
+`(current-module)' is now consulted for definitions to return, instead
+of simply returning #f, the former behavior.
 
 * Changes to the gh_ interface
 
