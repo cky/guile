@@ -48,6 +48,7 @@
 
 extern void scm_add_feature SCM_P((char* str));
 extern SCM scm_program_arguments  SCM_P((void));
+extern void scm_set_program_arguments SCM_P ((int argc, char **argv));
 extern void scm_init_feature SCM_P((void));
 
 #endif  /* FEATUREH */

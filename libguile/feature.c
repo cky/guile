@@ -62,12 +62,22 @@ scm_add_feature(str)
 
 
 
-
 SCM_PROC(s_program_arguments, "program-arguments", 0, 0, 0, scm_program_arguments);
+
 SCM 
 scm_program_arguments ()
 {
   return scm_progargs;
+}
+
+/* Set the value returned by program-arguments, given a normal
+   argc/argv array.  */
+void
+scm_set_program_arguments (argc, argv)
+     int argc;
+     char **argv;
+{
+  scm_progargs = scm_makfromstrs (argc, argv);
 }
 
 
