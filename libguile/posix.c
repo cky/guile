@@ -1133,9 +1133,14 @@ SCM_DEFINE (scm_mkstemp, "mkstemp!", 1, 0, 0,
 	    (SCM tmpl),
 	    "Create a new unique file in the file system and returns a new\n"
 	    "buffered port open for reading and writing to the file.\n"
+	    "\n"
 	    "@var{tmpl} is a string specifying where the file should be\n"
-	    "created: it must end with @code{XXXXXX} and will be changed in\n"
-	    "place to return the name of the temporary file.")
+	    "created: it must end with @samp{XXXXXX} and will be changed in\n"
+	    "place to return the name of the temporary file.\n"
+	    "\n"
+	    "The file is created with mode @code{0600}, which means read and\n"
+	    "write for the owner only.  @code{chmod} can be used to change\n"
+	    "this.")
 #define FUNC_NAME s_scm_mkstemp
 {
   char *c_tmpl;
