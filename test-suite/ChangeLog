@@ -1,3 +1,8 @@
+2004-09-01  Han-Wen Nienhuys <hanwen@cs.uu.nl>, Kevin Ryde <user42@zip.com.au>
+
+	* tests/gc.test: Exercise record in weak-values hash table, exposing a
+	problem in 1.6.4 gc, but believed fixed by other changes in the head.
+
 2004-08-27  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* tests/srfi-13.test (module-peek): Removed, this kluge is no
