@@ -54,7 +54,7 @@ exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
 ;;
 ;;
 ;; Usage from a Scheme program:
-;;   (summrize-guile-TODO . args)       ; uses first arg only
+;;   (summarize-guile-TODO . args)      ; uses first arg only
 ;;
 ;;
 ;; Bugs: (1) Markers are scanned in sequence: D R X N%.  This means "XD"
@@ -155,31 +155,37 @@ exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
           (loop (cdr sub) (remove-if-not (car sub) items))))))
 
 (define (make-display-item show-who? show-parent?)
-  (lambda (item)
-    (format #t "status: ~A~A~A~A~A~A\nitem  : ~A\n"
-            (get item 'status)
-            (if (get item 'design?) "D" "")
-            (if (get item 'review?) "R" "")
-            (if (get item 'extblock?) "X" "")
-            (cond ((get item 'pct-done)
-                   => (lambda (pct-done)
-                        (format #f " ~A%" pct-done)))
-                  (else ""))
-            (cond ((get item 'who)
-                   => (lambda (who)
-                        (if show-who?
-                            (format #f " ~A" who)
-                            "")))
-                  (else ""))
-            item)
-    (and show-parent?
-         (let loop ((parent (get item 'parent)) (indent 2))
-           (and parent
-                (begin
-                  (format #t "under : ~A~A\n"
-                          (make-string indent #\space)
-                          parent)
-                  (loop (get parent 'parent) (+ 2 indent))))))))
+  (let ((show-who
+         (if show-who?
+             (lambda (item)
+               (cond ((get item 'who)
+                      => (lambda (who) (format #f " ~A" who)))
+                     (else "")))
+             (lambda (item) "")))
+        (show-parents
+         (if show-parent?
+             (lambda (item)
+               (let loop ((parent (get item 'parent)) (indent 2))
+                 (and parent
+                      (begin
+                        (format #t "under : ~A~A\n"
+                                (make-string indent #\space)
+                                parent)
+                        (loop (get parent 'parent) (+ 2 indent))))))
+             (lambda (item) #t))))
+    (lambda (item)
+      (format #t "status: ~A~A~A~A~A~A\nitem  : ~A\n"
+              (get item 'status)
+              (if (get item 'design?) "D" "")
+              (if (get item 'review?) "R" "")
+              (if (get item 'extblock?) "X" "")
+              (cond ((get item 'pct-done)
+                     => (lambda (pct-done)
+                          (format #f " ~A%" pct-done)))
+                    (else ""))
+              (show-who item)
+              item)
+      (show-parents item))))
 
 (define (display-items p items)
   (let ((display-item (make-display-item (option-ref p 'who #f)
