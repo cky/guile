@@ -1,6 +1,7 @@
 2003-06-07  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/srfi-6.test: New file.
+	* Makefile.am (SCM_TESTS): Add it.
 
 2003-06-05  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
