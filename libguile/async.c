@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996,1997,1998 Free Software Foundation, Inc.
+/* Copyright (C) 1995, 96, 97, 98, 2000 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -282,11 +282,7 @@ SCM_DEFINE (scm_async, "async", 1, 0, 0,
 "")
 #define FUNC_NAME s_scm_async
 {
-  struct scm_async * async
-    = (struct scm_async *) scm_must_malloc (sizeof (*async), FUNC_NAME);
-  async->got_it = 0;
-  async->thunk = thunk;
-  SCM_RETURN_NEWSMOB (scm_tc16_async, async);
+  SCM_RETURN_NEWSMOB2 (scm_tc16_async, 0, thunk);
 }
 #undef FUNC_NAME
 
@@ -299,7 +295,9 @@ SCM_DEFINE (scm_system_async, "system-async", 1, 0, 0,
   SCM list;
 
   it = scm_async (thunk);
-  SCM_NEWSMOB (list, it, scm_asyncs);
+  SCM_NEWCELL (list);
+  SCM_SETCAR (list, it);
+  SCM_SETCDR (list, scm_asyncs);
   scm_asyncs = list;
   return it;
 }
@@ -467,7 +465,7 @@ void
 scm_init_async ()
 {
   SCM a_thunk;
-  scm_tc16_async = scm_make_smob_type_mfpe ("async", sizeof (struct scm_async),
+  scm_tc16_async = scm_make_smob_type_mfpe ("async", 0,
                                            mark_async, NULL, NULL, NULL);
   scm_gc_vcell = scm_sysintern ("gc-thunk", SCM_BOOL_F);
   a_thunk = scm_make_gsubr ("%gc-thunk", 0, 0, 0, scm_sys_gc_async_thunk);

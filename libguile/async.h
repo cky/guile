@@ -2,7 +2,7 @@
 
 #ifndef ASYNCH
 #define ASYNCH
-/*	Copyright (C) 1995,1996,1997,1998 Free Software Foundation, Inc.
+/* Copyright (C) 1995, 96, 97, 98, 2000 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -52,11 +52,11 @@
 
 
 #define SCM_ASYNCP(X) 	(SCM_NIMP(X) && (scm_tc16_async == SCM_GCTYP16 (X)))
-#define SCM_ASYNC(X) 	((struct scm_async *)SCM_CDR (X))
+#define SCM_ASYNC(X) 	((struct scm_async *) &SCM_CDR (X))
 
 struct scm_async
 {
-  int got_it;			/* needs to be delivered? */
+  scm_bits_t got_it;		/* needs to be delivered? */
   SCM thunk;			/* the handler. */
 };
 
