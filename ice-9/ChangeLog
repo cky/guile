@@ -1,6 +1,6 @@
 Tue Aug 19 02:39:41 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
-	* psyntax.pp, psyntax.ss (quoaiquote): Changed fx= --> =.
+	* psyntax.pp, psyntax.ss (quasiquote): Changed fx= --> =.
 
 *	* syncase.scm: New file: Guile-adaption for syntax-case macros.
   	psyntax.pp, psyntax.ss: Syntax-case macros, portable version 2 by
