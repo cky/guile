@@ -1,3 +1,11 @@
+1998-10-16  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* md/i386.s: Remove nested comment starter, to quiet warnings.
+
+	* Makefile.am (.s.lo): Supply our own rule here, which passes
+	qthread_asflags through.  See today's change to ../qthreads.m4.
+	* Makefile.in, qt/Makefile.in, time/Makefile.in: Regenerated.
+
 1998-10-03  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	* Makefile.in: Regenerated with a patched automake, to get

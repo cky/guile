@@ -2,7 +2,7 @@
 
 	* qthreads.m4 (QTHREADS_CONFIGURE): On NetBSD, pass through a flag
  	to the Makefile which explicitly tells it to pass assembly files
- 	through the preprocessor.
+ 	through the preprocessor.  (Thanks to Perry Metzger.)
 	* aclocal.m4, configure, Makefile.in: Regenerated.
 
 1998-10-14  Jim Blandy  <jimb@zwingli.cygnus.com>
