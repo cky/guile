@@ -79,6 +79,7 @@
 #include "libguile/fports.h"
 #include "libguile/gc.h"
 #include "libguile/gdbint.h"
+#include "libguile/goops.h"
 #include "libguile/gsubr.h"
 #include "libguile/hash.h"
 #include "libguile/hashtab.h"
@@ -585,6 +586,9 @@ scm_init_guile_1 (SCM_STACKITEM *base)
   scm_init_dynamic_linking ();
   scm_init_lang ();
   scm_init_script ();
+  
+  scm_init_oop_goops_goopscore_module ();
+  
   scm_initialized_p = 1;
 
   scm_block_gc = 0;		/* permit the gc to run */
