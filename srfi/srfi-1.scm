@@ -43,7 +43,7 @@
  ;; cons*				<= in the core
  ;; make-list				<= in the core
  list-tabulate
- ;; list-copy				<= in the core
+ list-copy
  circular-list
  ;; iota				; Extended.
 
@@ -207,14 +207,14 @@
  ;; set-car!				<= in the core
  ;; set-cdr!				<= in the core
  )
-  :re-export (cons list cons* make-list list-copy pair? null?
+  :re-export (cons list cons* make-list pair? null?
 	      car cdr caar cadr cdar cddr
 	      caaar caadr cadar caddr cdaar cdadr cddar cdddr
 	      caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr
 	      cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr
 	      list-ref last-pair length append append! reverse reverse!
 	      filter filter! memq memv assq assv set-car! set-cdr!)
-  :replace (iota map for-each map-in-order list-index member
+  :replace (iota map for-each map-in-order list-copy list-index member
 	    delete delete! assoc)
   )
 

@@ -382,6 +382,39 @@ SCM_DEFINE (scm_srfi1_length_plus, "length+", 1, 0, 0,
 #undef FUNC_NAME
 
 
+/* This routine differs from the core list-copy in allowing improper lists.
+   Maybe the core could allow them similarly.  */
+
+SCM_DEFINE (scm_srfi1_list_copy, "list-copy", 1, 0, 0, 
+            (SCM lst),
+	    "Return a copy of the given list @var{lst}.\n"
+	    "\n"
+	    "@var{lst} can be a proper or improper list.  And if @var{lst}\n"
+	    "is not a pair then it's treated as the final tail of an\n"
+	    "improper list and simply returned.")
+#define FUNC_NAME s_scm_srfi1_list_copy
+{
+  SCM newlst;
+  SCM * fill_here;
+  SCM from_here;
+
+  newlst = lst;
+  fill_here = &newlst;
+  from_here = lst;
+
+  while (SCM_CONSP (from_here))
+    {
+      SCM c;
+      c = scm_cons (SCM_CAR (from_here), SCM_CDR (from_here));
+      *fill_here = c;
+      fill_here = SCM_CDRLOC (c);
+      from_here = SCM_CDR (from_here);
+    }
+  return newlst;
+}
+#undef FUNC_NAME
+
+
 /* Typechecking for multi-argument MAP and FOR-EACH.
 
    Verify that each element of the vector ARGV, except for the first,
