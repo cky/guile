@@ -339,6 +339,13 @@ work on the top level.  The forms `define-public' and
 behave just like `define' and `defmacro', respectively, when they are
 used in a lexical environment.
 
+Also, `export' will no longer silently re-export bindings imported
+from a used module.  It will emit a `deprecation' warning and will
+cease to perform any re-export in the next version.  If you actually
+want to re-export bindings, use the new `re-export' in place of
+`export'.  The new `re-export' will not make copies of variables when
+rexporting them, as `export' did wrongly.
+
 ** The semantics of guardians have changed.
 
 The changes are for the most part compatible.  An important criterion
