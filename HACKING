@@ -77,6 +77,8 @@ or diff -u).  Don't include a patch for ChangeLog; such patches don't
 apply cleanly, since we've probably changed the top of ChangeLog too.
 Instead, provide the unaltered text at the top of your patch.
 
+- For proper credit, also make sure you update the AUTHORS file.
+
 Please don't include patches for generated files like configure,
 aclocal.m4, or any Makefile.in.  Such patches are often large, and
 we're just going to regenerate those files anyway.
@@ -283,7 +285,7 @@ and I'll take care of the administrivia.  Put the contributions aside
 until we have the necessary papers.
 
 Once you accept a contribution, be sure to keep the files AUTHORS and
-THANKS uptodate.
+THANKS uptodate.  Feel free to remove authorship info from source files.
 
 - When you make substantial changes to a file, add the current year to
 the list of years in the copyright notice at the top of the file.
