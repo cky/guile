@@ -1,3 +1,9 @@
+2005-04-04  Kevin Ryde  <user42@zip.com.au>
+
+	* srfi-1.c, srfi-1.h (scm_srfi1_concatenate, scm_srfi1_concatenate_x):
+	Add code to check argument is a list, scm_append and scm_append_x
+	don't do that on their "rest" list (in a normal build).
+
 2005-04-02  Kevin Ryde  <user42@zip.com.au>
 
 	* srfi-1.c (scm_srfi1_count): Use scm_list_copy to make arg list,
