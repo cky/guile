@@ -116,7 +116,7 @@
 	 (lambda ()
 	   (let loop ((c (read-char port)))
 	     (cond ((eq? c the-eof-object)
-		    (error "End of file while recieving Emacs data"))
+		    (error "End of file while receiving Emacs data"))
 		   ((memq c whitespace-chars) (loop (read-char port)))
 		   ((eq? c #\;) (flush-line port) (loop (read-char port)))
 		   (else (unread-char c port))))

@@ -1,3 +1,7 @@
+2000-12-07  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* emacs.scm (flush-whitespace): Fix spelling typo ("recieving").
+
 2000-11-28  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* boot-9.scm (read-delimited), lineio.scm
