@@ -2837,6 +2837,14 @@
 
 
 
+;;; {Load emacs interface support if emacs option is given.}
+
+(define (load-emacs-interface)
+  (if (memq 'debug-extensions *features*)
+      (debug-enable 'backtrace))
+  (define-module (guile-user) :use-module (ice-9 emacs)))
+
+
 ;;; {I/O functions for Tcl channels (disabled)}
 
 ;; (define in-ch (get-standard-channel TCL_STDIN))
@@ -2875,6 +2883,12 @@
 ;; this is just (scm-style-repl) with a wrapper to install and remove 
 ;; signal handlers.
 (define (top-repl) 
+
+  ;; Load emacs interface support if emacs option is given.
+  (if (and (module-defined? the-root-module 'use-emacs-interface)
+	   use-emacs-interface)
+      (load-emacs-interface))
+
   (let ((old-handlers #f)
 	(signals `((,SIGINT . "User interrupt")
 		   (,SIGFPE . "Arithmetic error")
@@ -2976,19 +2990,6 @@
 
 (if (memq 'threads *features*)
     (define-module (guile-user) :use-module (ice-9 threads)))
-
-
-;;; {Load emacs interface support if emacs option is given.}
-;;;
-;;; *fixme* This is a temporary solution.
-;;;
-
-(if (and (module-defined? the-root-module 'use-emacs-interface)
-	 use-emacs-interface)
-    (begin
-      (if (memq 'debug-extensions *features*)
-	  (debug-enable 'backtrace))
-      (define-module (guile-user) :use-module (ice-9 emacs))))
 
 
 ;;; {Load regexp code if regexp primitives are available.}
