@@ -195,7 +195,7 @@ AC_SUBST(INCLTDL)
 AC_SUBST(LIBLTDL)
 AC_SUBST(DLPREOPEN)
 
-AC_CHECK_FUNCS(ctermid ftime fchown getcwd geteuid gettimeofday lstat mkdir mknod nice readlink rename rmdir select setegid seteuid setlocale setpgid setsid sigaction siginterrupt strftime strptime symlink sync tcgetpgrp tcsetpgrp times uname waitpid bzero strdup system usleep atexit on_exit)
+AC_CHECK_FUNCS(ctermid ftime fchown getcwd geteuid gettimeofday lstat mkdir mknod nice readlink rename rmdir select setegid seteuid setlocale setpgid setsid sigaction siginterrupt strftime strptime symlink sync tcgetpgrp tcsetpgrp times uname waitpid strdup system usleep atexit on_exit)
 
 AC_CHECK_HEADERS(crypt.h sys/resource.h sys/file.h)
 AC_CHECK_FUNCS(chroot flock getlogin cuserid getpriority setpriority getpass sethostname gethostname)
@@ -219,7 +219,6 @@ AC_DEFUN(GUILE_FUNC_DECLARED, [
 ])
 
 GUILE_FUNC_DECLARED(strptime, time.h)
-GUILE_FUNC_DECLARED(bzero, string.h)
 GUILE_FUNC_DECLARED(sleep, unistd.h)
 GUILE_FUNC_DECLARED(usleep, unistd.h)
 

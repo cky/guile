@@ -1,3 +1,9 @@
+2001-04-11  Keisuke Nishida  <kxn30@po.cwru.edu>
+
+	* configure.in (AC_CHECK_FUNCS): Don't check bzero.
+	(GUILE_FUNC_DECLARED): Removed checking of bzero.
+	Thanks to NIIBE Yutaka.
+
 2001-04-10  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
 
 	* Undeprecated scm_init_oop_goopscore_module.

@@ -57,10 +57,6 @@
 
 #include "libguile/coop-threads.h"
 
-#ifdef MISSING_BZERO_DECL
-extern void bzero (void *, size_t);
-#endif
-
 
 
 /* COOP queue macros */
@@ -92,11 +88,7 @@ extern void bzero (void *, size_t);
 #error Could not determine suitable definition for SCM_NLONGBITS
 #endif
 
-#ifdef HAVE_BZERO
-#define FD_ZERO_N(pos, n) bzero ((pos), (n))
-#else
 #define FD_ZERO_N(pos, n) memset ((void *) (pos), 0, (n))
-#endif
 
 typedef unsigned long *ulongptr;
 

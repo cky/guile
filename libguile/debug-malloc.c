@@ -116,10 +116,6 @@ static hash_entry_t *malloc_object = 0;
     }								\
   while (0)
 
-#ifdef MISSING_BZERO_DECL
-extern void bzero (void *, size_t);
-#endif
-
 static void
 grow (hash_entry_t **table, int *size)
 {
@@ -132,7 +128,7 @@ grow (hash_entry_t **table, int *size)
  again:
   TABLE (new) = realloc (TABLE (new),
 			 sizeof (hash_entry_t) * (SIZE (new) + N_SEEK));
-  bzero (TABLE (new), sizeof (hash_entry_t) * (SIZE (new) + N_SEEK));
+  memset (TABLE (new), 0, sizeof (hash_entry_t) * (SIZE (new) + N_SEEK));
   for (i = 0; i < oldsize; ++i)
     if (oldtable[i].key)
       {
@@ -249,10 +245,10 @@ scm_debug_malloc_prehistory ()
 {
   malloc_type = malloc (sizeof (hash_entry_t)
 			* (malloc_type_size + N_SEEK));
-  bzero (malloc_type, sizeof (hash_entry_t) * (malloc_type_size + N_SEEK));
+  memset (malloc_type, 0, sizeof (hash_entry_t) * (malloc_type_size + N_SEEK));
   malloc_object = malloc (sizeof (hash_entry_t)
 			  * (malloc_object_size + N_SEEK));
-  bzero (malloc_object, sizeof (hash_entry_t) * (malloc_object_size + N_SEEK));
+  memset (malloc_object, 0, sizeof (hash_entry_t) * (malloc_object_size + N_SEEK));
 }
 
 void
