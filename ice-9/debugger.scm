@@ -54,9 +54,8 @@
 (define (read-and-dispatch-command state port)
   (if (using-readline?)
       (set-readline-prompt! debugger-prompt)
-      (begin
-	(display debugger-prompt)
-	(force-output)))
+      (display debugger-prompt))
+  (force-output)			;This should not be necessary...
   (let ((token (read-token port)))
     (cond ((eof-object? token)
 	   (throw 'exit-debugger))
@@ -529,19 +528,39 @@ frames that were created more recently.  N defaults to one."
       (write-state-short state)
       state)))
 
+(define (eval-handler key . args)
+  (apply display-error
+	 (make-stack #t eval-handler)
+	 (current-output-port)
+	 args)
+  (throw 'continue))
+
 (define-command "evaluate" '(object)
   "Evaluate an expression.
 The expression must appear on the same line as the command,
 however it may be continued over multiple lines."
   (lambda (state expression)
-    (let ((value (eval expression)))
-      (display ";value: ")
-      (write value))
-    state))
+    (let ((source (frame-source (stack-ref (state-stack state)
+					   (state-index state)))))
+      (if (not source)
+	  (display "No environment for this frame.")
+	  (catch 'continue
+		 (lambda ()
+		   (lazy-catch #t
+			       (lambda ()
+				 (let* ((env (memoized-environment source))
+					(value (local-eval expression env)))
+				   (display ";value: ")
+				   (write-line value)))
+			       eval-handler))
+		 (lambda args args)))
+      state)))
 
 (define-command "backtrace" '('optional exact-integer)
   "Print backtrace of all stack frames, or innermost COUNT frames.
-With a negative argument, print outermost -COUNT frames."
+With a negative argument, print outermost -COUNT frames.
+If the number of frames aren't explicitly given, the debug option
+`depth' determines the maximum number of frames printed."
   (lambda (state n-frames)
     (let ((stack (state-stack state)))
       ;; Kludge around lack of call-with-values.
@@ -552,12 +571,13 @@ With a negative argument, print outermost -COUNT frames."
 	       ;;(write-state-short* stack index))
 	       ;;
 	       ;; Use builtin backtrace instead:
-	       (display-backtrace stack
-				  (current-output-port)
-				  (if (memq 'backwards (debug-options))
-				      start
-				      (- end 1))
-				  (- end start))
+	       (let ((start (if (memq 'backwards (debug-options))
+				start
+				(- end 1)))
+		     (port (current-output-port)))
+		 (if n-frames
+		     (display-backtrace stack port start (abs n-frames))
+		     (display-backtrace stack port start)))
 	       )))
 	(let ((end (stack-length stack)))
 	  (cond ((or (not n-frames) (>= (abs n-frames) end))
@@ -650,7 +670,9 @@ With a negative argument, print outermost -COUNT frames."
 	(write-char #\]))))
 
 ;;; Use builtin function instead:
-(set! write-frame-short/application display-application)
+(set! write-frame-short/application
+      (lambda (frame)
+	(display-application frame (current-output-port) 12)))
 
 (define (write-frame-short/expression frame)
   (write (let* ((source (frame-source frame))
@@ -680,6 +702,12 @@ With a negative argument, print outermost -COUNT frames."
 (define (write-frame-long/application frame)
   (display "This frame is an application.")
   (newline)
+  (if (frame-source frame)
+      (begin
+	(display "The corresponding expression is:")
+	(newline)
+	(display-source frame)
+	(newline)))
   (display "The procedure being applied is: ")
   (write (let ((procedure (frame-procedure frame)))
 	   (or (and (procedure? procedure)
@@ -694,17 +722,20 @@ With a negative argument, print outermost -COUNT frames."
 	(write (frame-arguments frame))))
   (newline))
 
-(define (write-frame-long/expression frame)
-  (display "This frame is an evaluation.")
-  (newline)
-  (display "The expression being evaluated is:")
-  (newline)
+(define (display-source frame)
   (display "  ")
   (write (let* ((source (frame-source frame))
 		(copy (source-property source 'copy)))
 	   (if (pair? copy)
 	       copy
-	       (unmemoize source))))
+	       (unmemoize source)))))
+
+(define (write-frame-long/expression frame)
+  (display "This frame is an evaluation.")
+  (newline)
+  (display "The expression being evaluated is:")
+  (newline)
+  (display-source frame)
   (newline))
 
 (define (write-frame-args-long frame)
