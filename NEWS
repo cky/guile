@@ -15,6 +15,7 @@ guile-doc-snarf script (that uses guile-doc-snarf.awk).
 Also, many SCM_VALIDATE_* macros are defined to ease the redundancy and
 improve the readability of argument checking.
 
+I replaced (nearly?) all K&R prototypes for functions with ANSI C equivalents.
 
 * Changes to the distribution
 
