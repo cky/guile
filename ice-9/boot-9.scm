@@ -3179,7 +3179,7 @@
 ;;;
 ;;; Currently, the following feature identifiers are supported:
 ;;;
-;;;   guile r5rs srfi-0 srfi-6 srfi-13 srfi-14
+;;;   guile r5rs srfi-0 srfi-4 srfi-6 srfi-13 srfi-14
 ;;;
 ;;; Remember to update the features list when adding more SRFIs.
 ;;;
@@ -3189,6 +3189,7 @@
   '(guile
     r5rs
     srfi-0   ;; cond-expand itself
+    srfi-4   ;; homogenous numeric vectors
     srfi-6   ;; open-input-string etc, in the guile core
     srfi-13  ;; string library
     srfi-14  ;; character sets
