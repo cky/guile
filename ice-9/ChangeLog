@@ -1,3 +1,7 @@
+2001-03-09  Keisuke Nishida  <kxn30@po.cwru.edu>
+
+	* match.scm: Don't export defstruct.  Use (unquote defstruct) instead.
+
 2001-03-09  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
 
 	* Makefile.am (psyntax.pp): Added rule for producing psyntax.pp.
