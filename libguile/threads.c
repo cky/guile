@@ -168,34 +168,34 @@ scm_wait_condition_variable (SCM c, SCM m)
 
 #if (SCM_ENABLE_DEPRECATED == 1)
 
-SCM_API int
+int
 scm_mutex_init (scm_t_mutex *m)
 {
   scm_gc_protect_object (m->m = scm_make_mutex ());
   return 0;
 }
 
-SCM_API int
+int
 scm_mutex_lock (scm_t_mutex *m)
 {
   scm_lock_mutex (m->m);
   return 0;
 }
 
-SCM_API int
+int
 scm_mutex_trylock (scm_t_mutex *m)
 {
   return SCM_FALSEP (scm_try_mutex (m->m))? EBUSY : 0;
 }
 
-SCM_API int
+int
 scm_mutex_unlock (scm_t_mutex *m)
 {
   scm_unlock_mutex (m->m);
   return 0;
 }
 
-SCM_API int
+int
 scm_mutex_destroy (scm_t_mutex *m)
 {
   scm_gc_unprotect_object (m->m);
@@ -209,14 +209,14 @@ scm_cond_init (scm_t_cond *c, int *cattr)
   return 0;
 }
 
-SCM_API int
+int
 scm_cond_wait (scm_t_cond *c, scm_t_mutex *m)
 {
   scm_wait_condition_variable (c->c, m->m);
   return 0;
 }
 
-SCM_API int
+int
 scm_cond_timedwait (scm_t_cond *c, scm_t_mutex *m,
 		    const struct timespec *t)
 {
@@ -225,21 +225,21 @@ scm_cond_timedwait (scm_t_cond *c, scm_t_mutex *m,
 			  scm_long2num (t->tv_nsec/1000))));
 }
 
-SCM_API int
+int
 scm_cond_signal (scm_t_cond *c)
 {
   scm_signal_condition_variable (c->c);
   return 0;
 }
 
-SCM_API int
+int
 scm_cond_broadcast (scm_t_cond *c)
 {
   scm_broadcast_condition_variable (c->c);
   return 0;
 }
 
-SCM_API int
+int
 scm_cond_destroy (scm_t_cond *c)
 {
   scm_gc_unprotect_object (c->c);
