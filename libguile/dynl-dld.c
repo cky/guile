@@ -72,7 +72,10 @@ sysdep_dynl_link (fname, subr)
 
     status = dld_link (fname);
     if (status)
+      {
+	SCM_ALLOW_INTS;
 	scm_misc_error (subr, dld_strerror (status), SCM_EOL);
+      }
     return fname;
 }
 
@@ -83,11 +86,12 @@ sysdep_dynl_unlink (handle, subr)
 {
     int status;
 
-    SCM_DEFER_INTS;
     status = dld_unlink_by_file ((char *)fname, 1);
-    SCM_ALLOW_INTS;
     if (status)
+      {
+	SCM_ALLOW_INTS;
 	scm_misc_error (s_dynamic_unlink, dld_strerror (status), SCM_EOL);
+      }
 }
 
 static void *
@@ -98,15 +102,14 @@ sysdep_dynl_func (symb, handle, subr)
 {
     void *func;
 
-    SCM_DEFER_INTS;
     func = (void *) dld_get_func (func);
     if (func == 0)
 	scm_misc_error (subr, dld_strerror (dld_errno), SCM_EOL);
     if (!dld_function_executable_p (func)) {
 	listundefs ();
+	SCM_ALLOW_INTS;
 	scm_misc_error (subr, "unresolved symbols remain", SCM_EOL);
     }
-    SCM_ALLOW_INTS;
     return func;
 }
 

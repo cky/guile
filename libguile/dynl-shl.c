@@ -61,7 +61,10 @@ sysdep_dynl_link (fname, subr)
                     BIND_TOGETHER ||
                     BIND_VERBOSE || DYNAMIC_PATH, 0L);
     if (NULL==shl)
+      {
+	SCM_ALLOW_INTS;
 	scm_misc_error (subr, "dynamic linking failed", SCM_EOL);
+      }
     return shl;
 }
 
@@ -70,13 +73,11 @@ sysdep_dynl_unlink (handle, subr)
      void *handle;
      char *subr;
 {
-    int status;
-
-    SCM_DEFER_INTS;
-    status = shl_unload ((shl_t) handle);
-    SCM_ALLOW_INTS;
-    if (status)
-	scm_misc_error (subr, "dynamic unlinking failed", SCM_EOL);
+  if (shl_unload ((shl_t) handle))
+    {
+      SCM_ALLOW_INTS;
+      scm_misc_error (subr, "dynamic unlinking failed", SCM_EOL);
+    }
 }
 
 static void *
@@ -87,13 +88,15 @@ sysdep_dynl_func (symb, handle, subr)
 {
     int status, i;
     struct shl_symbol *sym;
-    SCM_DEFER_INTS;
+
     status = shl_getsymbols((shl_t) handle, TYPE_PROCEDURE,
              EXPORT_SYMBOLS, malloc, &sym);
-    SCM_ALLOW_INTS;
+
     for (i=0; i<status; ++i) {
       if (strcmp(symb, sym[i].name) == 0) return sym[i].value;
     }
+
+    SCM_ALLOW_INTS;
     scm_misc_error (subr, "undefined function",
 		    scm_cons (scm_makfrom0str (symb), SCM_EOL));
 }

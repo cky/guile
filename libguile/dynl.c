@@ -219,7 +219,12 @@ scm_clear_registered_modules ()
 
 /* Dispatch to the system dependent files
  *
- * They define these static functions:
+ * They define some static functions.  These functions are called with
+ * deferred interrupts.  When they want to throw errors, they are
+ * expected to insert a SCM_ALLOW_INTS before doing the throw.  It
+ * might work to throw an error while interrupts are deferred (because
+ * they will be unconditionally allowed the next time a SCM_ALLOW_INTS
+ * is executed, SCM_DEFER_INTS and SCM_ALLOW_INTS do not nest).
  */
 
 static void sysdep_dynl_init SCM_P ((void));
@@ -248,7 +253,8 @@ static void
 no_dynl_error (subr)
      char *subr;
 {
-    scm_misc_error (subr, "dynamic linking not available", SCM_EOL);
+  SCM_ALLOW_INTS;
+  scm_misc_error (subr, "dynamic linking not available", SCM_EOL);
 }
     
 static void *
@@ -376,9 +382,11 @@ scm_dynamic_unlink (dobj)
      SCM dobj;
 {
     struct dynl_obj *d = get_dynl_obj (dobj, s_dynamic_unlink, SCM_ARG1);
+    SCM_DEFER_INTS;
     sysdep_dynl_unlink (d->handle, s_dynamic_unlink);
     d->handle = NULL;
-    return SCM_BOOL_T;
+    SCM_ALLOW_INTS;
+    return SCM_UNSPECIFIED;
 }
 
 SCM_PROC (s_dynamic_func, "dynamic-func", 2, 0, 0, scm_dynamic_func);
@@ -392,7 +400,10 @@ scm_dynamic_func (SCM symb, SCM dobj)
     symb = scm_coerce_rostring (symb, s_dynamic_func, SCM_ARG1);
     d = get_dynl_obj (dobj, s_dynamic_func, SCM_ARG2);
 
+    SCM_DEFER_INTS;
     func = sysdep_dynl_func (SCM_CHARS (symb), d->handle, s_dynamic_func);
+    SCM_ALLOW_INTS;
+
     return scm_ulong2num ((unsigned long)func);
 }
 
@@ -406,8 +417,10 @@ scm_dynamic_call (SCM func, SCM dobj)
     if (SCM_NIMP (func) && SCM_ROSTRINGP (func))
 	func = scm_dynamic_func (func, dobj);
     fptr = (void (*)()) scm_num2ulong (func, (char *)SCM_ARG1, s_dynamic_call);
+    SCM_DEFER_INTS;
     fptr ();
-    return SCM_BOOL_T;
+    SCM_ALLOW_INTS;
+    return SCM_UNSPECIFIED;
 }
 
 SCM_PROC (s_dynamic_args_call, "dynamic-args-call", 3, 0, 0, scm_dynamic_args_call);
@@ -425,12 +438,13 @@ scm_dynamic_args_call (func, dobj, args)
 
     fptr = (int (*)(int, char **)) scm_num2ulong (func, (char *)SCM_ARG1,
 						   s_dynamic_args_call);
+    SCM_DEFER_INTS;
     argv = scm_make_argv_from_stringlist (args, &argc, s_dynamic_args_call,
 					  SCM_ARG3);
-
     result = (*fptr) (argc, argv);
-
     scm_must_free_argv (argv);
+    SCM_ALLOW_INTS;
+
     return SCM_MAKINUM(0L+result);
 }
 

@@ -60,7 +60,10 @@ sysdep_dynl_link (fname, subr)
 {
     void *handle = dlopen (fname, DLOPEN_MODE);
     if (NULL == handle)
+      {
+	SCM_ALLOW_INTS;
 	scm_misc_error (subr, (char *)dlerror (), SCM_EOL);
+      }
     return handle;
 }
 
@@ -69,13 +72,11 @@ sysdep_dynl_unlink (handle, subr)
      void *handle;
      char *subr;
 {
-    int status;
-
-    SCM_DEFER_INTS;
-    status = dlclose (handle);
-    SCM_ALLOW_INTS;
-    if(status)
+    if (dlclose (handle))
+      {
+	SCM_ALLOW_INTS;
 	scm_misc_error (subr, (char *)dlerror (), SCM_EOL);
+      }
 }
    
 static void *
@@ -87,13 +88,13 @@ sysdep_dynl_func (symb, handle, subr)
     void *fptr;
     char *err;
 
-    SCM_DEFER_INTS;
     fptr = dlsym (handle, symb);
     err = (char *)dlerror ();
-    SCM_ALLOW_INTS;
-
     if (!fptr)
+      {
+	SCM_ALLOW_INTS;
 	scm_misc_error (subr, err? err : "symbol has NULL address", SCM_EOL);
+      }
     return fptr;
 }
 
