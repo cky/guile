@@ -1,5 +1,17 @@
 2000-12-07  Keisuke Nishida  <kxn30@po.cwru.edu>
 
+	* smob.h (scm_smob_apply_0, scm_smob_apply_1, scm_smob_apply_2,
+	scm_smob_apply_3): Removed declarations.
+	(scm_set_smob_apply): Takes unsigned integers.
+	(scm_make_smob_type_mfpe, scm_set_smob_mfpe): Deprecated.
+	* smob.c (scm_smob_apply_0_000, scm_smob_apply_1_010,
+	scm_smob_apply_2_020): Removed.
+	(scm_set_smob_apply): Takes unsigned integers + some optimization.
+	(Thanks to Dirk Herrmann)
+	(scm_make_smob_type_mfpe, scm_set_smob_mfpe): Deprecated.
+
+2000-12-07  Keisuke Nishida  <kxn30@po.cwru.edu>
+
 	* smob.h (SCM_SMOB_APPLICABLE_P, SCM_SMOB_APPLY_0,
 	SCM_SMOB_APPLY_1, SCM_SMOB_APPLY_2, SCM_SMOB_APPLY_3): New macros.
 	* eval.c (SCM_CEVAL, SCM_APPLY): Use macros above.

@@ -135,12 +135,6 @@ scm_smob_print (SCM exp, SCM port, scm_print_state *pstate)
   SCM_SMOB_DESCRIPTOR (SMOB).apply (SMOB, A1, A2, A3)
 
 static SCM
-scm_smob_apply_0_000 (SCM smob)
-{
-  return SCM_SMOB_APPLY0 (smob);
-}
-
-static SCM
 scm_smob_apply_0_010 (SCM smob)
 {
   return SCM_SMOB_APPLY1 (smob, SCM_UNDEFINED);
@@ -183,12 +177,6 @@ scm_smob_apply_0_error (SCM smob)
 }
 
 static SCM
-scm_smob_apply_1_010 (SCM smob, SCM a1)
-{
-  return SCM_SMOB_APPLY1 (smob, a1);
-}
-
-static SCM
 scm_smob_apply_1_020 (SCM smob, SCM a1)
 {
   return SCM_SMOB_APPLY2 (smob, a1, SCM_UNDEFINED);
@@ -225,12 +213,6 @@ scm_smob_apply_1_error (SCM smob, SCM a1)
 }
 
 static SCM
-scm_smob_apply_2_020 (SCM smob, SCM a1, SCM a2)
-{
-  return SCM_SMOB_APPLY2 (smob, a1, a2);
-}
-
-static SCM
 scm_smob_apply_2_030 (SCM smob, SCM a1, SCM a2)
 {
   return SCM_SMOB_APPLY3 (smob, a1, a2, SCM_UNDEFINED);
@@ -240,7 +222,7 @@ static SCM
 scm_smob_apply_2_001 (SCM smob, SCM a1, SCM a2)
 {
   return SCM_SMOB_APPLY1 (smob, SCM_LIST2 (a1, a2));
-    }
+}
 
 static SCM
 scm_smob_apply_2_011 (SCM smob, SCM a1, SCM a2)
@@ -333,18 +315,6 @@ scm_make_smob_type (char *name, scm_sizet size)
   return scm_tc7_smob + (scm_numsmob - 1) * 256;
 }
 
-long
-scm_make_smob_type_mfpe (char *name, scm_sizet size,
-                        SCM (*mark) (SCM),
-                        scm_sizet (*free) (SCM),
-                        int (*print) (SCM, SCM, scm_print_state *),
-                        SCM (*equalp) (SCM, SCM))
-{
-  long answer = scm_make_smob_type (name, size);
-  scm_set_smob_mfpe (answer, mark, free, print, equalp);
-  return answer;
-}
-
 void
 scm_set_smob_mark (long tc, SCM (*mark) (SCM))
 {
@@ -370,7 +340,8 @@ scm_set_smob_equalp (long tc, SCM (*equalp) (SCM, SCM))
 }
 
 void
-scm_set_smob_apply (long tc, SCM (*apply) (), int req, int opt, int rst)
+scm_set_smob_apply (long tc, SCM (*apply) (),
+		    unsigned int req, unsigned int opt, unsigned int rst)
 {
   SCM (*apply_0) (SCM);
   SCM (*apply_1) (SCM, SCM);
@@ -378,8 +349,7 @@ scm_set_smob_apply (long tc, SCM (*apply) (), int req, int opt, int rst)
   SCM (*apply_3) (SCM, SCM, SCM, SCM);
   int type = SCM_GSUBR_MAKTYPE (req, opt, rst);
 
-  if (!(req >= 0 && opt >= 0 && (rst == 0 || rst == 1)
-	&& req + opt + rst <= 3))
+  if (rst > 1 || req + opt + rst > 3)
     {
       puts ("Unsupported smob application type");
       abort ();
@@ -388,7 +358,7 @@ scm_set_smob_apply (long tc, SCM (*apply) (), int req, int opt, int rst)
   switch (type)
     {
     case SCM_GSUBR_MAKTYPE (0, 0, 0):
-      apply_0 = scm_smob_apply_0_000; break;
+      apply_0 = apply; break;
     case SCM_GSUBR_MAKTYPE (0, 1, 0):
       apply_0 = scm_smob_apply_0_010; break;
     case SCM_GSUBR_MAKTYPE (0, 2, 0):
@@ -409,7 +379,7 @@ scm_set_smob_apply (long tc, SCM (*apply) (), int req, int opt, int rst)
     {
     case SCM_GSUBR_MAKTYPE (1, 0, 0):
     case SCM_GSUBR_MAKTYPE (0, 1, 0):
-      apply_1 = scm_smob_apply_1_010; break;
+      apply_1 = apply; break;
     case SCM_GSUBR_MAKTYPE (1, 1, 0):
     case SCM_GSUBR_MAKTYPE (0, 2, 0):
       apply_1 = scm_smob_apply_1_020; break;
@@ -433,7 +403,7 @@ scm_set_smob_apply (long tc, SCM (*apply) (), int req, int opt, int rst)
     case SCM_GSUBR_MAKTYPE (2, 0, 0):
     case SCM_GSUBR_MAKTYPE (1, 1, 0):
     case SCM_GSUBR_MAKTYPE (0, 2, 0):
-      apply_2 = scm_smob_apply_2_020; break;
+      apply_2 = apply; break;
     case SCM_GSUBR_MAKTYPE (2, 1, 0):
     case SCM_GSUBR_MAKTYPE (1, 2, 0):
     case SCM_GSUBR_MAKTYPE (0, 3, 0):
@@ -479,20 +449,6 @@ scm_set_smob_apply (long tc, SCM (*apply) (), int req, int opt, int rst)
   scm_smobs[SCM_TC2SMOBNUM (tc)].gsubr_type = type;
 }
 
-void
-scm_set_smob_mfpe (long tc, 
-		   SCM (*mark) (SCM),
-		   scm_sizet (*free) (SCM),
-		   int (*print) (SCM, SCM, scm_print_state *),
-		   SCM (*equalp) (SCM, SCM))
-{
-  if (mark) scm_set_smob_mark (tc, mark);
-  if (free) scm_set_smob_free (tc, free);
-  if (print) scm_set_smob_print (tc, print);
-  if (equalp) scm_set_smob_equalp (tc, equalp);
-}
-
-
 SCM
 scm_make_smob (long tc)
 {
@@ -513,6 +469,39 @@ scm_make_smob (long tc)
   SCM_SET_CELL_TYPE (z, tc);
   return z;
 }
+
+
+/* {Deprecated stuff}
+ */
+
+#if (SCM_DEBUG_DEPRECATED == 0)
+
+long
+scm_make_smob_type_mfpe (char *name, scm_sizet size,
+                        SCM (*mark) (SCM),
+                        scm_sizet (*free) (SCM),
+                        int (*print) (SCM, SCM, scm_print_state *),
+                        SCM (*equalp) (SCM, SCM))
+{
+  long answer = scm_make_smob_type (name, size);
+  scm_set_smob_mfpe (answer, mark, free, print, equalp);
+  return answer;
+}
+
+void
+scm_set_smob_mfpe (long tc, 
+		   SCM (*mark) (SCM),
+		   scm_sizet (*free) (SCM),
+		   int (*print) (SCM, SCM, scm_print_state *),
+		   SCM (*equalp) (SCM, SCM))
+{
+  if (mark) scm_set_smob_mark (tc, mark);
+  if (free) scm_set_smob_free (tc, free);
+  if (print) scm_set_smob_print (tc, print);
+  if (equalp) scm_set_smob_equalp (tc, equalp);
+}
+
+#endif  /* SCM_DEBUG_DEPRECATED == 0 */
 
 
 /* {Initialization for i/o types, float, bignum, the type of free cells}

@@ -136,11 +136,6 @@ extern scm_sizet scm_free0 (SCM ptr);
 extern scm_sizet scm_smob_free (SCM obj);
 extern int scm_smob_print (SCM exp, SCM port, scm_print_state *pstate);
 
-extern SCM scm_smob_apply_0 (SCM smob);
-extern SCM scm_smob_apply_1 (SCM smob, SCM a1);
-extern SCM scm_smob_apply_2 (SCM smob, SCM a1, SCM a2);
-extern SCM scm_smob_apply_3 (SCM smob, SCM a1, SCM a2, SCM rest);
-
 /* The following set of functions is the standard way to create new
  * SMOB types.
  *
@@ -157,14 +152,19 @@ extern void scm_set_smob_print (long tc, int (*print) (SCM,
 						       SCM,
 						       scm_print_state*));
 extern void scm_set_smob_equalp (long tc, SCM (*equalp) (SCM, SCM));
-extern void scm_set_smob_apply (long tc, SCM (*apply) (), int req, int opt, int rst);
+extern void scm_set_smob_apply (long tc, SCM (*apply) (),
+				unsigned int req,
+				unsigned int opt,
+				unsigned int rst);
 
+/* Function for creating smobs */
 
-/* Functions for registering multiple handler functions simultaneously.
- *
- * (There is a discussion among the developers whether or not these
- *  should be deprecated in the future.)
- */
+extern SCM scm_make_smob (long tc);
+extern void scm_smob_prehistory (void);
+
+
+
+#if (SCM_DEBUG_DEPRECATED == 0)
 
 extern long scm_make_smob_type_mfpe (char *name, scm_sizet size,
                                     SCM (*mark) (SCM),
@@ -178,12 +178,7 @@ extern void scm_set_smob_mfpe (long tc,
 			       int (*print) (SCM, SCM, scm_print_state*),
 			       SCM (*equalp) (SCM, SCM));
 
-/* Function for creating smobs */
-
-extern SCM scm_make_smob (long tc);
-extern void scm_smob_prehistory (void);
-
-
+#endif  /* SCM_DEBUG_DEPRECATED == 0 */
 
 #endif  /* SMOBH */
 
