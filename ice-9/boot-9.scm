@@ -607,7 +607,9 @@
   (throw key subr message args rest))
 
 ;; bad-throw is the hook that is called upon a throw to a an unhandled
-;; key.  If the key has a default handler (a throw-handler-default property),
+;; key (unless the throw has four arguments, in which case
+;; it's usually interpreted as an error throw.)
+;; If the key has a default handler (a throw-handler-default property),
 ;; it is applied to the throw.
 ;;
 (define (bad-throw key . args)
@@ -677,40 +679,6 @@
 			    (list n))
 			(list n)))))))
 
-;; The default handler for built-in error types when thrown by their
-;; symbolic names.
-(define (handle-system-error key . arg-list)
-  (let ((cep (current-error-port)))
-    (cond ((not (= (length arg-list) 4))
-	   (display "ERROR: bad error throw: " cep)
-	   (write arg-list cep)
-	   (newline cep))
-	  (else
-	   (if (and (memq 'backtrace (debug-options))
-		    (stack? the-last-stack))
-	       (begin
-		 (newline cep)
-		 (display-backtrace the-last-stack cep)
-		 (newline cep)))
-	   (apply display-error the-last-stack cep arg-list)))
-    (force-output cep)
-    (throw 'abort key)))
-
-;; associate error symbols with handle-system-error.
-(let ((keys '(error-signal system-error numerical-overflow
-			   out-of-range wrong-type-arg
-			   wrong-number-of-args
-			   memory-allocation-error stack-overflow
-			   misc-error)))
-  (if (memq 'regex *features*)
-      (set! keys (cons 'regex-error keys)))
-  (let loop ((keys keys))
-    (cond ((not (null? keys))
-	   (set-symbol-property! (car keys)
-				 'throw-handler-default
-				 handle-system-error)
-	   (loop (cdr keys))))))
-
 
 ;;; {Non-polymorphic versions of POSIX functions}
 
@@ -778,13 +746,6 @@
 ;;; {try-load}
 ;;;
 
-;(define (try-load-with-path file-name path)
-;  (or-map (lambda (d)
-;	    (let ((f (in-vicinity d file-name)))
-;	      (and (not (file-is-directory? f))
-;		   (primitive-load f #t read-sharp))))
-;	  path))
-
 (define (try-load name)
   (primitive-load-path name #t read-sharp))
 
@@ -814,26 +775,6 @@
 	  (display file)
 	  (newline)
 	  (force-output)))))
-
-;(define (load-with-path name path)
-;  (define (do-load)
-;    (%load-announce name)
-;    (if (not (or-map (lambda (d)
-;		       (if (%load (in-vicinity d name))
-;			   (begin
-;			     (%load-announce-win (in-vicinity d name))
-;			     #t)
-;			   #f))
-;		     path))
-;	(scm-error 'misc-error #f "Could not load %S from %S"
-;		   (list name path) #f)))
-
-;  (let ((indent %load-indent))
-;    (dynamic-wind
-;     (lambda () (set! %load-indent (modulo (+ indent 2) 16)))
-;     do-load
-;     (lambda () (set! %load-indent indent))))
-;  #t)
 
 (define (load name)
   (let* ((full-path-supplied (eq? (string-ref name 0) #\/))
@@ -1663,14 +1604,8 @@
 (define basic-try-load try-load)
 (define basic-load load)
 
-;;(define (try-load-module-with-path . args)
-;;  (save-module-excursion (lambda () (apply basic-try-load-with-path args))))
-
 (define (try-load-module . args)
   (save-module-excursion (lambda () (apply basic-try-load args))))
-
-;;(define (load-module-with-path . args)
-;;  (save-module-excursion (lambda () (apply basic-load-with-path args))))
 
 (define (load-module . args)
   (save-module-excursion (lambda () (apply basic-load args))))
@@ -2099,11 +2034,25 @@
 		    (display  "ABORT: "  (current-error-port))
 		    (write args (current-error-port))
 		    (newline (current-error-port))))
-		      
+
 		 (else
 		  ;; This is the other cons-leak closure...
 		  (lambda ()
-		    (apply bad-throw key args))))))))
+		    (cond ((= (length args) 4)
+			   ;; anything with 4 args is interpreted as an
+			   ;; error throw.
+			   (let ((cep (current-error-port)))
+			     (if (and (memq 'backtrace (debug-options))
+				      (stack? the-last-stack))
+				 (begin
+				   (newline cep)
+				   (display-backtrace the-last-stack cep)
+				   (newline cep)))
+			     (apply display-error the-last-stack cep args)
+			     (force-output cep)
+			   (throw 'abort key)))
+			  (else
+			   (apply bad-throw key args))))))))))
       (and next (loop next))))
   (loop (lambda () #t)))
 
@@ -2309,9 +2258,7 @@
 
 
 
-;;(define try-load-with-path try-load-module-with-path)
 (define try-load try-load-module)
-;;(define load-with-path load-module-with-path)
 (define load load-module)
 
 
