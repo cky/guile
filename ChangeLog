@@ -1,3 +1,9 @@
+1998-10-09  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* configure.in: Call AC_C_INLINE, so we can use inline happily in
+	libguile. 
+	* configure: Regenerated.
+
 1998-10-07  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	* configure.in: Don't forget to #define HAVE_RL_GETC_FUNCTION if
