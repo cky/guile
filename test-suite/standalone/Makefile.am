@@ -21,6 +21,9 @@ CLEANFILES = *.x
 
 .DELETE_ON_ERROR:
 
+check_SCRIPTS += test-system-cmds
+TESTS += test-system-cmds
+
 # test-num2integral
 test_num2integral_SOURCES = test-num2integral.c
 test_num2integral_CFLAGS = ${test_cflags}
