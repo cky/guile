@@ -1,15 +1,15 @@
-/*	Copyright (C) 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
- * 
+/*	Copyright (C) 1997, 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2, or (at your option)
  * any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
@@ -37,7 +37,7 @@
  *
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
- * If you do not wish that, delete this exception notice.  
+ * If you do not wish that, delete this exception notice.
  */
 
 /* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
@@ -133,7 +133,7 @@ scm_regexp_error_msg (int regerrno, regex_t *rx)
   return SCM_STRING_CHARS (errmsg);
 }
 
-SCM_DEFINE (scm_regexp_p, "regexp?", 1, 0, 0, 
+SCM_DEFINE (scm_regexp_p, "regexp?", 1, 0, 0,
             (SCM obj),
 	    "Return @code{#t} if @var{obj} is a compiled regular expression,\n"
 	    "or @code{#f} otherwise.")
@@ -143,7 +143,7 @@ SCM_DEFINE (scm_regexp_p, "regexp?", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_make_regexp, "make-regexp", 1, 0, 1, 
+SCM_DEFINE (scm_make_regexp, "make-regexp", 1, 0, 1,
             (SCM pat, SCM flags),
 	    "Compile the regular expression described by @var{pat}, and\n"
 	    "return the compiled regexp structure.  If @var{pat} does not\n"
@@ -204,7 +204,7 @@ SCM_DEFINE (scm_make_regexp, "make-regexp", 1, 0, 1,
 	cflags |= SCM_INUM (SCM_CAR (flag));
       flag = SCM_CDR (flag);
     }
-	  
+
   rx = SCM_MUST_MALLOC_TYPE (regex_t);
   status = regcomp (rx, SCM_STRING_CHARS (pat),
 		    /* Make sure they're not passing REG_NOSUB;
@@ -223,13 +223,27 @@ SCM_DEFINE (scm_make_regexp, "make-regexp", 1, 0, 1,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_regexp_exec, "regexp-exec", 2, 2, 0, 
+SCM_DEFINE (scm_regexp_exec, "regexp-exec", 2, 2, 0,
             (SCM rx, SCM str, SCM start, SCM flags),
 	    "Match the compiled regular expression @var{rx} against\n"
 	    "@code{str}.  If the optional integer @var{start} argument is\n"
 	    "provided, begin matching from that position in the string.\n"
 	    "Return a match structure describing the results of the match,\n"
-	    "or @code{#f} if no match could be found.")
+	    "or @code{#f} if no match could be found.\n"
+            "\n"
+            "The @var{flags} arguments change the matching behavior.\n"
+            "The following flags may be supplied:\n"
+	    "\n"
+	    "@table @code\n"
+	    "@item regexp/notbol\n"
+            "Operator @samp{^} always fails (unless @code{regexp/newline}\n"
+            "is used).  Use this when the beginning of the string should\n"
+            "not be considered the beginning of a line.\n"
+	    "@item regexp/noteol\n"
+            "Operator @samp{$} always fails (unless @code{regexp/newline}\n"
+            "is used).  Use this when the end of the string should not be\n"
+            "considered the end of a line.\n"
+            "@end table")
 #define FUNC_NAME s_scm_regexp_exec
 {
   int status, nmatches, offset;
