@@ -1,3 +1,9 @@
+2001-03-03  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
+
+	* stack-catch.scm: New file.
+
+	* Makefile.am (ice9_sources): Added stack-catch.scm.
+
 2001-03-03  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* boot-9.scm, rdelim.scm: Use "'()" instead of "()" in all places
