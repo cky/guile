@@ -1701,7 +1701,7 @@ SCM_DEFINE (scm_integer_expt, "integer-expt", 2, 0, 0,
   else if (SCM_REALP (k))
     {
       double r = SCM_REAL_VALUE (k);
-      if (floor (r) != r)
+      if (floor (r) != r || xisinf (r))
         SCM_WRONG_TYPE_ARG (2, k);
       if ((r > SCM_MOST_POSITIVE_FIXNUM) || (r < SCM_MOST_NEGATIVE_FIXNUM))
         {
@@ -3095,6 +3095,8 @@ SCM_DEFINE (scm_integer_p, "integer?", 1, 0, 0,
   if (SCM_COMPLEXP (x))
     return SCM_BOOL_F;
   r = SCM_REAL_VALUE (x);
+  if (xisinf (r))
+    return SCM_BOOL_F;
   if (r == floor (r))
     return SCM_BOOL_T;
   return SCM_BOOL_F;
