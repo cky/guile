@@ -2072,6 +2072,24 @@
 ;;; inexact->exact
 ;;;
 
+(with-test-prefix "inexact->exact"
+  
+  (pass-if-exception exception:numerical-overflow "+inf"
+    (inexact->exact +.inf))
+  
+  (pass-if-exception exception:numerical-overflow "-inf"
+    (inexact->exact -.inf))
+  
+  (pass-if-exception exception:numerical-overflow "nan"
+    (inexact->exact +.nan))
+  
+  (with-test-prefix "2.0**i to exact and back"
+    (do ((i 0   (1+ i))
+	 (n 1.0 (* 2.0 n)))
+	((> i 100))
+      (pass-if (list i n)
+	(= n (inexact->exact (exact->inexact n)))))))
+
 ;;;
 ;;; integer-length
 ;;;
