@@ -1506,6 +1506,21 @@ scm_badargsp (SCM formals, SCM args)
 }
 #endif
 
+static int 
+scm_badformalsp (SCM closure, int n)
+{
+  SCM formals = SCM_CAR (SCM_CODE (closure));
+  while (SCM_NIMP (formals))
+    {
+      if (SCM_NCONSP (formals)) 
+        return 0;
+      if (n == 0) 
+        return 1;
+      --n;
+      formals = SCM_CDR (formals);
+    }
+  return n;
+}
 
 
 SCM 
@@ -2642,7 +2657,10 @@ evapply:
 #ifdef DEVAL
 	debug.info->a.proc = proc;
 #endif
-	goto evap0;
+	if (!SCM_CLOSUREP (proc))
+	  goto evap0;
+	if (scm_badformalsp (proc, 0))
+	  goto umwrongnumargs;
       case scm_tcs_closures:
 	x = SCM_CODE (proc);
 	env = EXTEND_ENV (SCM_CAR (x), SCM_EOL, SCM_ENV (proc));
@@ -2788,7 +2806,10 @@ evapply:
 #ifdef DEVAL
 	  debug.info->a.proc = proc;
 #endif
-	  goto evap1;
+	  if (!SCM_CLOSUREP (proc))
+	    goto evap1;
+	  if (scm_badformalsp (proc, 1))
+	    goto umwrongnumargs;
 	case scm_tcs_closures:
 	  /* clos1: */
 	  x = SCM_CODE (proc);
@@ -2910,12 +2931,6 @@ evapply:
 		proc = SCM_CCLO_SUBR(proc);
 		goto evap3; */
 #endif
-	case scm_tc7_pws:
-	  proc = SCM_PROCEDURE (proc);
-#ifdef DEVAL
-	  debug.info->a.proc = proc;
-#endif
-	  goto evap2;
 	case scm_tcs_cons_gloc:
 	  if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
 	    {
@@ -2959,6 +2974,15 @@ evapply:
 	  goto wrongnumargs;
 	default:
 	  goto badfun;
+	case scm_tc7_pws:
+	  proc = SCM_PROCEDURE (proc);
+#ifdef DEVAL
+	  debug.info->a.proc = proc;
+#endif
+	  if (!SCM_CLOSUREP (proc))
+	    goto evap2;
+	  if (scm_badformalsp (proc, 2))
+	    goto umwrongnumargs;
 	case scm_tcs_closures:
 	  /* clos2: */
 #ifdef DEVAL
@@ -3035,7 +3059,10 @@ evapply:
       case scm_tc7_pws:
 	proc = SCM_PROCEDURE (proc);
 	debug.info->a.proc = proc;
-	goto evap3;
+	if (!SCM_CLOSUREP (proc))
+	  goto evap3;
+	if (scm_badargsp (SCM_CAR (SCM_CODE (proc)), debug.info->a.args))
+	  goto umwrongnumargs;
       case scm_tcs_closures:
 	SCM_SET_ARGSREADY (debug);
 	env = EXTEND_ENV (SCM_CAR (SCM_CODE (proc)),
@@ -3090,7 +3117,17 @@ evapply:
 #endif
       case scm_tc7_pws:
 	proc = SCM_PROCEDURE (proc);
-	goto evap3;
+	if (!SCM_CLOSUREP (proc))
+	  goto evap3;
+	{
+	  SCM formals = SCM_CAR (SCM_CODE (proc));
+	  if (SCM_NULLP (formals)
+	      || (SCM_CONSP (formals)
+		  && (SCM_NULLP (SCM_CDR (formals))
+		      || (SCM_CONSP (SCM_CDR (formals))
+			  && scm_badargsp (SCM_CDDR (formals), x)))))
+	    goto umwrongnumargs;
+	}
       case scm_tcs_closures:
 #ifdef DEVAL
 	SCM_SET_ARGSREADY (debug);
