@@ -1,3 +1,12 @@
+2004-10-18  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* format.scm (format:obj->str): Simplified considerably by using
+	object->string or display instead of implementing our own printer.
+	Handle format:read-proof here.  Unreadable objects are recognized
+	by their "#<" prefix instead of by being unknown to the custom
+	printer (which would treat keywords as unprintable, for example).
+	(format:iobj->str): Removed.
+	
 2004-10-04  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* boot-9.scm (symbol->keyword, keyword->symbol): Removed, they are
