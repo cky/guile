@@ -68,12 +68,12 @@ typedef long SCM;
  * to scm_vector elts, functions, &c are not munged.
  */
 #ifdef _UNICOS
-# define SCM2PTR(x) ((int)(x) >> 3)
-# define PTR2SCM(x) (((SCM)(x)) << 3)
+# define SCM2PTR(x) ((int) (x) >> 3)
+# define PTR2SCM(x) (((SCM) (x)) << 3)
 # define SCM_POINTERS_MUNGED
 #else
 # define SCM2PTR(x) (x)
-# define PTR2SCM(x) ((SCM)(x))
+# define PTR2SCM(x) ((SCM) (x))
 #endif /* def _UNICOS */
 
 
@@ -106,8 +106,8 @@ typedef long SCM;
  * (Not always impossible but it is fair to say that many details of tags
  * are mutually dependent).  */
 
-#define SCM_IMP(x) 		(6 & (SCM)(x))
-#define SCM_NIMP(x) 		(!SCM_IMP(x))
+#define SCM_IMP(x) 		(6 & (SCM) (x))
+#define SCM_NIMP(x) 		(!SCM_IMP (x))
 
 /* Here is a summary of tagging in SCM values as they might occur in
  * SCM variables or in the heap.
@@ -264,30 +264,35 @@ typedef long SCM;
  * stored in the SCM_CAR of a non-immediate object have a 1 in bit 1:
  */
 
-#define SCM_NCONSP(x) (SCM_IMP(x) || (1 & SCM_CAR(x)))
-#define SCM_CONSP(x) (SCM_NIMP(x) && !(1 & SCM_CAR(x)))
+#define SCM_SLOPPY_NCONSP(x) (1 & SCM_CAR (x))
+#define SCM_SLOPPY_CONSP(x)  (!(1 & SCM_CAR (x)))
+
+#define SCM_NCONSP(x) (SCM_IMP (x)  || (1 & SCM_CAR (x)))
+#define SCM_CONSP(x)  (SCM_NIMP (x) && !(1 & SCM_CAR (x)))
 
 
 /* SCM_ECONSP should be used instead of SCM_CONSP at places where GLOCS
  * can be expected to occur.
  */
-#define SCM_ECONSP(x) (SCM_CONSP (x) \
-		       || SCM_NIMP(x) && ((SCM_TYP3(x) == 1 \
-                           && SCM_CDR (SCM_CAR (x) - 1) != 0)))
-#define SCM_NECONSP(x) (SCM_NCONSP(x) \
-			&& (SCM_TYP3(x) != 1 \
-			    || (SCM_NIMP(x) && SCM_CDR (SCM_CAR (x) - 1) == 0)))
+#define SCM_ECONSP(x) (SCM_NIMP (x) \
+		       && (SCM_SLOPPY_CONSP (x) \
+			   || (SCM_TYP3 (x) == 1 \
+			       && SCM_CDR (SCM_CAR (x) - 1) != 0)))
+#define SCM_NECONSP(x) (SCM_IMP (x) \
+			|| (SCM_SLOPPY_NCONSP (x) \
+			    && (SCM_TYP3 (x) != 1 \
+				|| SCM_CDR (SCM_CAR (x) - 1) == 0)))
 
 
 
-#define SCM_CELLP(x) 	(!SCM_NCELLP(x))
-#define SCM_NCELLP(x) 	((sizeof(scm_cell)-1) & (SCM)(x))
+#define SCM_CELLP(x) 	(!SCM_NCELLP (x))
+#define SCM_NCELLP(x) 	((sizeof (scm_cell) - 1) & (SCM) (x))
 
 /* See numbers.h for macros relating to immediate integers.
  */
 
-#define SCM_ITAG3(x) 		(7 & (SCM)x)
-#define SCM_TYP3(x) 		(7 & SCM_CAR(x))
+#define SCM_ITAG3(x) 		(7 & (SCM) x)
+#define SCM_TYP3(x) 		(7 & SCM_CAR (x))
 #define scm_tc3_cons		0
 #define scm_tc3_cons_gloc	1
 #define scm_tc3_int_1		2
@@ -303,21 +308,21 @@ typedef long SCM;
  */
 
 
-#define SCM_TYP7(x) 		(SCM_CAR(x) & 0x7f)
-#define SCM_TYP7S(x) 		(SCM_CAR(x) & (0x7f & ~2))
+#define SCM_TYP7(x) 		(SCM_CAR (x) & 0x7f)
+#define SCM_TYP7S(x) 		(SCM_CAR (x) & (0x7f & ~2))
 
 
-#define SCM_TYP16(x) 		(0xffff & SCM_CAR(x))
-#define SCM_TYP16S(x) 		(0xfeff & SCM_CAR(x))
-#define SCM_GCTYP16(x) 		(0xff7f & SCM_CAR(x))
+#define SCM_TYP16(x) 		(0xffff & SCM_CAR (x))
+#define SCM_TYP16S(x) 		(0xfeff & SCM_CAR (x))
+#define SCM_GCTYP16(x) 		(0xff7f & SCM_CAR (x))
 
 
 
 /* Testing and Changing GC Marks in Various Standard Positions
  */
-#define SCM_GCMARKP(x) 		(1 & SCM_CDR(x))
-#define SCM_GC8MARKP(x) 	(0x80 & SCM_CAR(x))
-#define SCM_SETGCMARK(x) 	SCM_SETOR_CDR (x,1)
+#define SCM_GCMARKP(x) 		(1 & SCM_CDR (x))
+#define SCM_GC8MARKP(x) 	(0x80 & SCM_CAR (x))
+#define SCM_SETGCMARK(x) 	SCM_SETOR_CDR (x, 1)
 #define SCM_CLRGCMARK(x) 	SCM_SETAND_CDR (x, ~1L)
 #define SCM_SETGC8MARK(x) 	SCM_SETOR_CAR (x, 0x80)
 #define SCM_CLRGC8MARK(x) 	SCM_SETAND_CAR (x, ~0x80L)
@@ -376,10 +381,10 @@ typedef long SCM;
  */
 #define scm_tc7_port		125
 
-#define scm_tc16_fport 		(scm_tc7_port + 0*256L)
+#define scm_tc16_fport 		(scm_tc7_port + 0 * 256L)
 /* scm_tc16_pipe was here.  */
-#define scm_tc16_strport	(scm_tc7_port + 2*256L)
-#define scm_tc16_sfport 	(scm_tc7_port + 3*256L)
+#define scm_tc16_strport	(scm_tc7_port + 2 * 256L)
+#define scm_tc16_sfport 	(scm_tc7_port + 3 * 256L)
 
 
 /* There are 256 smob subtypes.  Here are the first four.
@@ -404,10 +409,10 @@ typedef long SCM;
 
 /* Some option bits begeinning at bit 16 of scm_tc16_flo:
  */
-#define SCM_REAL_PART		(1L<<16)
-#define SCM_IMAG_PART		(2L<<16)
-#define scm_tc_dblr		(scm_tc16_flo|SCM_REAL_PART)
-#define scm_tc_dblc		(scm_tc16_flo|SCM_REAL_PART|SCM_IMAG_PART)
+#define SCM_REAL_PART		(1L << 16)
+#define SCM_IMAG_PART		(2L << 16)
+#define scm_tc_dblr		(scm_tc16_flo | SCM_REAL_PART)
+#define scm_tc_dblc		(scm_tc16_flo | SCM_REAL_PART | SCM_IMAG_PART)
 
 
 /* Smob types 2 and 3:
@@ -432,9 +437,9 @@ enum scm_tags
   scm_tc8_iloc = 0xfc
 };
 
-#define SCM_ITAG8(X)		((SCM)(X) & 0xff)
-#define SCM_MAKE_ITAG8(X, TAG)	(((X)<<8) + TAG)
-#define SCM_ITAG8_DATA(X)	((X)>>8)
+#define SCM_ITAG8(X)		((SCM) (X) & 0xff)
+#define SCM_MAKE_ITAG8(X, TAG)	(((X) << 8) + TAG)
+#define SCM_ITAG8_DATA(X)	((X) >> 8)
 
 
 
@@ -442,15 +447,15 @@ enum scm_tags
  */
 
 /* SCM_ISYMP tests for ISPCSYM and ISYM */
-#define SCM_ISYMP(n) 		((0x187 & (SCM)(n))==4)
+#define SCM_ISYMP(n) 		((0x187 & (SCM) (n)) == 4)
 
 /* SCM_IFLAGP tests for ISPCSYM, ISYM and IFLAG */
-#define SCM_IFLAGP(n) 		((0x87 & (SCM)(n))==4)
-#define SCM_ISYMNUM(n) 		((SCM)((n)>>9))
-#define SCM_ISYMCHARS(n) 	(scm_isymnames[SCM_ISYMNUM(n)])
-#define SCM_MAKSPCSYM(n) 	(((n)<<9)+((n)<<3)+4L)
-#define SCM_MAKISYM(n) 		(((n)<<9)+0x74L)
-#define SCM_MAKIFLAG(n) 	(((n)<<9)+0x174L)
+#define SCM_IFLAGP(n) 		((0x87 & (SCM) (n)) == 4)
+#define SCM_ISYMNUM(n) 		((SCM) ((n) >> 9))
+#define SCM_ISYMCHARS(n) 	(scm_isymnames[SCM_ISYMNUM (n)])
+#define SCM_MAKSPCSYM(n) 	(((n) << 9) + ((n) << 3) + 4L)
+#define SCM_MAKISYM(n) 		(((n) << 9) + 0x74L)
+#define SCM_MAKIFLAG(n) 	(((n) << 9) + 0x174L)
 
 extern char *scm_isymnames[];   /* defined in print.c */
 
@@ -462,43 +467,43 @@ extern char *scm_isymnames[];   /* defined in print.c */
  *
  */
 
-#define SCM_IM_AND		SCM_MAKSPCSYM(0)
-#define SCM_IM_BEGIN		SCM_MAKSPCSYM(1)
-#define SCM_IM_CASE		SCM_MAKSPCSYM(2)
-#define SCM_IM_COND		SCM_MAKSPCSYM(3)
-#define SCM_IM_DO		SCM_MAKSPCSYM(4)
-#define SCM_IM_IF		SCM_MAKSPCSYM(5)
-#define SCM_IM_LAMBDA		SCM_MAKSPCSYM(6)
-#define SCM_IM_LET		SCM_MAKSPCSYM(7)
-#define SCM_IM_LETSTAR		SCM_MAKSPCSYM(8)
-#define SCM_IM_LETREC		SCM_MAKSPCSYM(9)
-#define SCM_IM_OR		SCM_MAKSPCSYM(10)
-#define SCM_IM_QUOTE		SCM_MAKSPCSYM(11)
-#define SCM_IM_SET_X		SCM_MAKSPCSYM(12)
-#define SCM_IM_DEFINE		SCM_MAKSPCSYM(13)
-#define SCM_IM_APPLY		SCM_MAKISYM(14)
-#define SCM_IM_CONT		SCM_MAKISYM(15)
-#define SCM_BOOL_F		SCM_MAKIFLAG(16)
-#define SCM_BOOL_T 		SCM_MAKIFLAG(17)
-#define SCM_UNDEFINED	 	SCM_MAKIFLAG(18)
-#define SCM_EOF_VAL 		SCM_MAKIFLAG(19)
-#define SCM_EOL			SCM_MAKIFLAG(20)
-#define SCM_UNSPECIFIED		SCM_MAKIFLAG(21)
-#define SCM_IM_DISPATCH		SCM_MAKISYM(22)
-#define SCM_IM_SLOT_REF		SCM_MAKISYM(23)
-#define SCM_IM_SLOT_SET_X	SCM_MAKISYM(24)
+#define SCM_IM_AND		SCM_MAKSPCSYM (0)
+#define SCM_IM_BEGIN		SCM_MAKSPCSYM (1)
+#define SCM_IM_CASE		SCM_MAKSPCSYM (2)
+#define SCM_IM_COND		SCM_MAKSPCSYM (3)
+#define SCM_IM_DO		SCM_MAKSPCSYM (4)
+#define SCM_IM_IF		SCM_MAKSPCSYM (5)
+#define SCM_IM_LAMBDA		SCM_MAKSPCSYM (6)
+#define SCM_IM_LET		SCM_MAKSPCSYM (7)
+#define SCM_IM_LETSTAR		SCM_MAKSPCSYM (8)
+#define SCM_IM_LETREC		SCM_MAKSPCSYM (9)
+#define SCM_IM_OR		SCM_MAKSPCSYM (10)
+#define SCM_IM_QUOTE		SCM_MAKSPCSYM (11)
+#define SCM_IM_SET_X		SCM_MAKSPCSYM (12)
+#define SCM_IM_DEFINE		SCM_MAKSPCSYM (13)
+#define SCM_IM_APPLY		SCM_MAKISYM (14)
+#define SCM_IM_CONT		SCM_MAKISYM (15)
+#define SCM_BOOL_F		SCM_MAKIFLAG (16)
+#define SCM_BOOL_T 		SCM_MAKIFLAG (17)
+#define SCM_UNDEFINED	 	SCM_MAKIFLAG (18)
+#define SCM_EOF_VAL 		SCM_MAKIFLAG (19)
+#define SCM_EOL			SCM_MAKIFLAG (20)
+#define SCM_UNSPECIFIED		SCM_MAKIFLAG (21)
+#define SCM_IM_DISPATCH		SCM_MAKISYM (22)
+#define SCM_IM_SLOT_REF		SCM_MAKISYM (23)
+#define SCM_IM_SLOT_SET_X	SCM_MAKISYM (24)
 
 /* Multi-language support */
 
-#define SCM_IM_NIL_COND		SCM_MAKISYM(25)
-#define SCM_IM_NIL_IFY		SCM_MAKISYM(26)
-#define SCM_IM_T_IFY		SCM_MAKISYM(27)
-#define SCM_IM_0_COND		SCM_MAKISYM(28)
-#define SCM_IM_0_IFY		SCM_MAKISYM(29)
-#define SCM_IM_1_IFY		SCM_MAKISYM(30)
-#define SCM_IM_BIND		SCM_MAKISYM(31)
+#define SCM_IM_NIL_COND		SCM_MAKISYM (25)
+#define SCM_IM_NIL_IFY		SCM_MAKISYM (26)
+#define SCM_IM_T_IFY		SCM_MAKISYM (27)
+#define SCM_IM_0_COND		SCM_MAKISYM (28)
+#define SCM_IM_0_IFY		SCM_MAKISYM (29)
+#define SCM_IM_1_IFY		SCM_MAKISYM (30)
+#define SCM_IM_BIND		SCM_MAKISYM (31)
 
-#define SCM_IM_DELAY		SCM_MAKISYM(32)
+#define SCM_IM_DELAY		SCM_MAKISYM (32)
 
 /* When a variable is unbound this is marked by the SCM_UNDEFINED
  * value.  The following is an unbound value which can be handled on
@@ -509,9 +514,9 @@ extern char *scm_isymnames[];   /* defined in print.c */
  * used instead.  It is not ideal to let this kind of unique and
  * strange values loose on the Scheme level.
  */
-#define SCM_UNBOUND		SCM_MAKIFLAG(33)
+#define SCM_UNBOUND		SCM_MAKIFLAG (33)
 
-#define SCM_UNBNDP(x) 	(SCM_UNDEFINED==(x))
+#define SCM_UNBNDP(x) 	(SCM_UNDEFINED == (x))
 
 
 
