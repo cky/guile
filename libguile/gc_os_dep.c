@@ -62,20 +62,6 @@ typedef int GC_bool;
 #   define VOLATILE
 #endif
 
-#if 0 /* currently unused (as of 2001-07-12) */
-
-/* Single argument version, robust against whole program analysis. */
-static void
-GC_noop1(x)
-word x;
-{
-    static VOLATILE word sink;
-
-    sink = x;
-}
-
-#endif
-
 /* Machine dependent parameters.  Some tuning parameters can be found	*/
 /* near the top of gc_private.h.					*/
 
@@ -1773,6 +1759,16 @@ void *scm_get_stack_base()
  	}
 	return(result);
     }
+
+    /* Single argument version, robust against whole program analysis. */
+    static void
+    GC_noop1(x)
+    word x;
+    {
+      static VOLATILE word sink;
+      sink = x;
+    }
+
 # endif
 
 #ifdef LINUX_STACKBOTTOM
