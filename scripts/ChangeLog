@@ -2,6 +2,10 @@
 
 	* PROGRAM: Update copyright; nfc.
 
+	* read-text-outline: New script.
+
+	* Makefile.am (scripts_sources): Add "read-text-outline".
+
 2002-03-12  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* snarf-check-and-output-texi (snarf-check-and-output-texi): If
