@@ -1,3 +1,15 @@
+Wed Sep  4 01:30:47 1996  Jim Blandy  <jimb@totoro.cyclic.com>
+
+	* configure.in: Don't substitute the values of TCL_SRC_DIR and
+	TK_SRC_DIR; they're not relevant any more.
+
+	* Makefile.in (CC): Don't list -Wall here; it's a GCC-specific flag.
+	* configure.in: Instead, put it in CFLAGS here, iff we're using GCC.
+
+Tue Sep  3 19:53:00 1996  Jim Blandy  <jimb@totoro.cyclic.com>
+
+	* posix.c: Doc fixes.
+
 Wed Sep  4 00:55:49 1996  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* PLUGIN/guile.config (xtra_cflags): Include .. in the header
