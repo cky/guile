@@ -541,7 +541,7 @@ scm_read_char (port)
 {
   int c;
   if (SCM_UNBNDP (port))
- port = scm_cur_inp;
+    port = scm_cur_inp;
   else
     SCM_ASSERT (SCM_NIMP (port) && SCM_OPINPORTP (port), port, SCM_ARG1, s_read_char);
   c = scm_gen_getc (port);
