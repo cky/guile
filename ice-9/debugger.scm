@@ -17,8 +17,12 @@
 ;;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
 ;;; Boston, MA 02111-1307 USA
 
-(define-module (ice-9 debugger)
-  :use-module (ice-9 readline))
+(define-module (ice-9 debugger))
+
+(if (memq 'readline *features*)
+    (define-module (ice-9 debugger)
+      :use-module (ice-9 readline)))
+
 
 (define-public (debug)
   (let ((stack (fluid-ref the-last-stack)))
