@@ -1,3 +1,34 @@
+1998-07-23  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	Simplify smob and port marking; set the mark bit in the generic
+	marking code, and make marker routines only responsible for
+	turning up outgoing pointers.
+	* gc.c (scm_gc_mark): Set the mark bit on ports and smobs here,
+	before calling the marking function.  Don't call the marking
+	function if it's zero.
+	* markers.c (scm_mark0): Just return #f.  This function isn't
+	necessary at all now, but it's harmless to call it.  We'll leave
+	it in so other folks' code doesn't croak at link time.
+	(scm_markcdr): Don't call SCM_SETGC8MARK.
+	* async.c (mark_async): Don't call SCM_SETGC8MARK.
+	* dynl.c (mark_dynl_obj): Same.
+	* root.c (mark_root): Same.
+	* srcprop.c (marksrcprops): Same.
+	* unif.c (markra): Same.
+	* variable.c (scm_markvar): Same.
+	* ports.c (scm_markstream): Same.
+	(void_port_ptob): Specify zero for our marking function.
+	* debug.c (debugobjsmob): Same.
+	* dynwind.c (guardsmob): Same.
+	* filesys.c (dir_smob): Same.
+	* fluids.c (fluid_smob): Same.
+	* fports.c (scm_fptob, scm_pipob): Same.
+	* mallocs.c (mallocsmob): Same.
+	* regex-posix.c (regex_t_smob): Same.
+	* smob.c (freecell, flob, bigob): Same.
+	* threads.c (thread_smob, mutex_smob, condvar_smob): Same.
+	* throw.c (jbsmob, lazy_catch_funs): Same.
+
 1998-07-17  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
 	* eval.c (scm_copy_tree): Reverted last change: `eval' uses

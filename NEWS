@@ -394,6 +394,30 @@ and C.
 
 * Changes to the scm_ interface
 
+** The semantics of smob marking have changed slightly.
+
+The smob marking function (the `mark' member of the scm_smobfuns
+structure) is no longer responsible for setting the mark bit on the
+smob.  The generic smob handling code in the garbage collector will
+set this bit.  The mark function need only ensure that any other
+objects the smob refers to get marked.
+
+Note that this change means that the smob's GC8MARK bit is typically
+already set upon entry to the mark function.  Thus, marking functions
+which look like this:
+
+	{
+	  if (SCM_GC8MARKP (ptr))
+	    return SCM_BOOL_F;
+          SCM_SETGC8MARK (ptr);
+	  ... mark objects to which the smob refers ...
+	}
+
+are now incorrect, since they will return early, and fail to mark any
+other objects the smob refers to.  Some code in the Guile library used
+to work this way.
+
+
 ** Function: int scm_internal_select (int fds,
 				      SELECT_TYPE *rfds,
 				      SELECT_TYPE *wfds,
