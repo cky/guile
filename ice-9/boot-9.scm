@@ -292,7 +292,7 @@
 
 (define (keyword->symbol kw)
   (let ((sym (keyword-dash-symbol kw)))
-    (string->symbol (substring sym 1 (length sym)))))
+    (string->symbol (substring sym 1 (string-length sym)))))
 
 (define (kw-arg-ref args kw)
   (let ((rem (member kw args)))
@@ -1152,9 +1152,9 @@
 				(map (lambda (x) (display (keyword-symbol x)) (display " "))
 				     opts-proper)))
 			    arg-name))
-		(middle-part (if (and (< (length left-part) 30)
-				      (< (length help) 40))
-				 (make-string (- 30 (length left-part)) #\ )
+		(middle-part (if (and (< (string-length left-part) 30)
+				      (< (string-length help) 40))
+				 (make-string (- 30 (string-length left-part)) #\ )
 				 "\n\t")))
 	   (display left-part)
 	   (display middle-part)
@@ -3761,14 +3761,14 @@
 (define (split-before-predicate pred str ret)
   (let loop ((n 0))
     (cond
-     ((= n (length str))		(ret str ""))
+     ((= n (string-length str))		(ret str ""))
      ((not (pred (string-ref str n)))	(loop (1+ n)))
      (else				(ret (make-shared-substring str 0 n)
 					     (make-shared-substring str n))))))
 (define (split-after-predicate pred str ret)
   (let loop ((n 0))
     (cond
-     ((= n (length str))		(ret str ""))
+     ((= n (string-length str))		(ret str ""))
      ((not (pred (string-ref str n)))	(loop (1+ n)))
      (else				(ret (make-shared-substring str 0 (1+ n))
 					     (make-shared-substring str (1+ n)))))))
@@ -3776,7 +3776,7 @@
 (define (split-discarding-predicate pred str ret)
   (let loop ((n 0))
     (cond
-     ((= n (length str))		(ret str ""))
+     ((= n (string-length str))		(ret str ""))
      ((not (pred (string-ref str n)))	(loop (1+ n)))
      (else				(ret (make-shared-substring str 0 n)
 					     (make-shared-substring str (1+ n)))))))
@@ -3814,15 +3814,15 @@
 ;;; Very simple:
 ;;;
 ;;; (define-public ((string-prefix-predicate pred?) prefix str)
-;;;  (and (<= (length prefix) (length str))
-;;;	  (pred? prefix (make-shared-substring str 0 (length prefix)))))
+;;;  (and (<= (string-length prefix) (string-length str))
+;;;	  (pred? prefix (make-shared-substring str 0 (string-length prefix)))))
 ;;;
 ;;; (define-public string-prefix=? (string-prefix-predicate string=?))
 ;;;
 
 (define-public ((string-prefix-predicate pred?) prefix str)
-  (and (<= (length prefix) (length str))
-       (pred? prefix (make-shared-substring str 0 (length prefix)))))
+  (and (<= (string-length prefix) (string-length str))
+       (pred? prefix (make-shared-substring str 0 (string-length prefix)))))
 
 (define-public string-prefix=? (string-prefix-predicate string=?))
 
