@@ -112,6 +112,7 @@ distclean:
 	rm -f config.log
 	rm -f config.status
 	rm -f Makefile
+	rm -f doc/Makefile
 	for dir in ${subdirs}; do \
 		cd $$dir; \
 		${MAKE} distclean; \
