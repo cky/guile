@@ -1670,17 +1670,6 @@
 
 ;;; some global functions not found in SLIB
 
-;; string-index finds the index of the first occurence of the character `c'
-;; in the string `s'; it returns #f if there is no such character in `s'.
-
-(define (string-index s c)
-  (let ((slen-1 (- (string-length s) 1)))
-    (let loop ((i 0))
-      (cond
-       ((char=? c (string-ref s i)) i)
-       ((= i slen-1) #f)
-       (else (loop (+ i 1)))))))
-
 (define (string-capitalize-first str)	; "hello" -> "Hello"
   (let ((cap-str (string-copy str))	; "hELLO" -> "Hello"
 	(non-first-alpha #f)		; "*hello" -> "*Hello"
@@ -1694,12 +1683,6 @@
 		(begin
 		  (set! non-first-alpha #t)
 		  (string-set! cap-str i (char-upcase c)))))))))
-
-(define (list-head l k)
-  (if (= k 0)
-      '()
-      (cons (car l) (list-head (cdr l) (- k 1)))))
-
 
 ;; Aborts the program when a formatting error occures. This is a null
 ;; argument closure to jump to the interpreters toplevel continuation.
