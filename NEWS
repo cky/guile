@@ -111,6 +111,9 @@ at the top of the script.
 ** Attempting to get the value of an unbound variable now produces
 an exception with a key of 'unbound-variable instead of 'misc-error.
 
+** The initial default output port is now unbuffered if it's using a
+tty device.  Previously in this situation it was line-buffered.
+
 * Changes to Scheme functions and syntax
 
 ** New procedure: simple-format PORT MESSAGE ARG1 ...
