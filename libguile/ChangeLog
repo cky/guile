@@ -1,3 +1,19 @@
+1998-10-15  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	Warning fixes from Greg Harvey:
+	* unif.c (scm_array_set_x): initializer for pos
+	* throw.c (scm_ithrow): added initializer for jmpbuf (SCM_UNDEFINED)
+	* struct.c (scm_struct_ref, scm_struct_set_x): Added
+	initializers for field_type, since EGCS so desparately wants to
+	play dumb
+	* debug.h (scm_make_gloc, scm_gloc_p, scm_make_iloc, scm_memcons,
+	scm_mem_to_proc, scm_proc_to_mem, scm_debug_hang): Added prototypes
+	when GUILE_DEBUG is defined.
+	* dynwind.h (scm_wind_chain): Same.
+	* ports.h (scm_pt_size, scm_pt_member): Same.
+	* print.h (scm_current_pstate): Same.
+	* procs.h (scm_make_cclo): Same.
+
 1998-10-14  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	Handle short and long long uniform arrays properly.  (Thanks to
