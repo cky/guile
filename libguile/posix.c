@@ -1166,8 +1166,9 @@ SCM_DEFINE (scm_putenv, "putenv", 1, 0, 0,
     {
 #ifdef HAVE_UNSETENV
       /* No '=' in argument means we should remove the variable from
-	 the environment.  Not all putenvs understand this.  To be
-	 safe, we do it explicitely using unsetenv. */
+	 the environment.  Not all putenvs understand this (for instance
+	 FreeBSD 4.8 doesn't).  To be safe, we do it explicitely using
+	 unsetenv. */
       unsetenv (SCM_STRING_CHARS (str));
 #else
       /* On e.g. Win32 hosts putenv() called with 'name=' removes the
