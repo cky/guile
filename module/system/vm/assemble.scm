@@ -30,7 +30,7 @@
   :export (assemble))
 
 (define (assemble glil env . opts)
-  (optimizing-dump (codegen (preprocess glil #f) #t)))
+  (codegen (preprocess glil #f) #t))
 
 
 ;;;
@@ -147,24 +147,29 @@
        ;;
        ;; main
        (for-each generate-code body)
-       (let ((bytes (apply string-append (stack-finalize (reverse! stack))))
+       (let ((bytes (stack->bytes stack))
 	     (objs (map car (reverse! object-alist))))
-	 (make-bytespec nargs nrest nlocs nexts bytes objs))))))
+	 (if toplevel
+	     (make-bootcode nlocs nexts bytes)
+	     (make-bytespec nargs nrest nlocs nexts bytes objs)))))))
 
-(define (stack-finalize stack)
-  (let loop ((list '()) (stack stack) (addr 0))
+(define (stack->bytes stack)
+  (let loop ((result '()) (stack (reverse! stack)) (addr 0))
     (if (null? stack)
-	(reverse! list)
+	(apply string-append (reverse! result))
 	(let* ((orig (car stack))
 	       (addr (+ addr (length orig)))
 	       (code (if (and (pair? (cdr orig)) (procedure? (cadr orig)))
 			 `(,(car orig) ,((cadr orig) addr))
 			 orig)))
-	  (loop (cons (code->bytes code) list) (cdr stack) addr)))))
+	  (loop (cons (code->bytes code) result) (cdr stack) addr)))))
 
-;; Optimization
+
+;;;
+;;; Bytecode optimization
+;;;
 
-(define *optimize-table*
+(define *optimization-table*
   '((not       (not       . not-not)
 	       (eq?       . not-eq?)
 	       (null?     . not-null?)
@@ -185,53 +190,48 @@
 	       (not-null? . br-if-null))))
 
 (define (optimizing-push code stack)
-  (let ((alist (assq-ref *optimize-table* (car code))))
+  (let ((alist (assq-ref *optimization-table* (car code))))
     (cond ((and alist (pair? stack) (assq-ref alist (caar stack))) =>
 	   (lambda (inst) (cons (cons inst (cdr code)) (cdr stack))))
 	  (else (cons (code-pack code) stack)))))
 
 
 ;;;
-;;; Stage3: Dump optimization
+;;; Object dump
 ;;;
 
-(define (optimizing-dump bytespec)
-  ;; no optimization yet
-  (bytespec-bytes bytespec))
+;; NOTE: undumpped in vm_load.c.
 
 (define (dump-object! x push-code!)
   (let dump! ((x x))
     (cond
      ((object->code x) => push-code!)
      ((bytespec? x)
-      (let ((nargs (bytespec-nargs x))
-	    (nrest (bytespec-nrest x))
-	    (nlocs (bytespec-nlocs x))
-	    (nexts (bytespec-nexts x))
-	    (bytes (bytespec-bytes x))
-	    (objs  (bytespec-objs x)))
-	;; dump parameters
-	(cond ((and (< nargs 4) (< nlocs 8) (< nexts 4))
-	       ;; 8-bit representation
-	       (let ((x (+ (* nargs 64) (* nrest 32) (* nlocs 4) nexts)))
-		 (push-code! `(make-int8 ,x))))
-	      ((and (< nargs 16) (< nlocs 128) (< nexts 16))
-	       ;; 16-bit representation
-	       (let ((x (+ (* nargs 4096) (* nrest 2048) (* nlocs 16) nexts)))
-		 (push-code! `(make-int16 ,(quotient x 256) ,(modulo x 256)))))
-	      (else
-	       ;; Other cases
-	       (push-code! (object->code nargs))
-	       (push-code! (object->code nrest))
-	       (push-code! (object->code nlocs))
-	       (push-code! (object->code nexts))
-	       (push-code! (object->code #f))))
-	;; dump object table
-	(cond ((not (null? objs))
-	       (for-each dump! objs)
-	       (push-code! `(vector ,(length objs)))))
-	;; dump bytecode
-	(push-code! `(load-program ,bytes))))
+      (match x
+	(($ bytespec nargs nrest nlocs nexts bytes objs)
+	 ;; dump parameters
+	 (cond
+	  ((and (< nargs 4) (< nlocs 8) (< nexts 4))
+	   ;; 8-bit representation
+	   (let ((x (+ (* nargs 64) (* nrest 32) (* nlocs 4) nexts)))
+	     (push-code! `(make-int8 ,x))))
+	  ((and (< nargs 16) (< nlocs 128) (< nexts 16))
+	   ;; 16-bit representation
+	   (let ((x (+ (* nargs 4096) (* nrest 2048) (* nlocs 16) nexts)))
+	     (push-code! `(make-int16 ,(quotient x 256) ,(modulo x 256)))))
+	  (else
+	   ;; Other cases
+	   (push-code! (object->code nargs))
+	   (push-code! (object->code nrest))
+	   (push-code! (object->code nlocs))
+	   (push-code! (object->code nexts))
+	   (push-code! (object->code #f))))
+	 ;; dump object table
+	 (cond ((not (null? objs))
+		(for-each dump! objs)
+		(push-code! `(vector ,(length objs)))))
+	 ;; dump bytecode
+	 (push-code! `(load-program ,bytes)))))
      ((vlink? x)
       ;; (push-code! `(local-ref ,(object-index (vlink-module x))))
       (dump! (vlink-name x))
@@ -264,10 +264,3 @@
       (push-code! `(vector ,(vector-length x))))
      (else
       (error "Cannot dump:" x)))))
-
-;;;(define (dump-table-object! obj+index)
-;;;  (let dump! ((x (car obj+index)))
-;;;    (cond
-;;;     (else
-;;;      (for-each push-code! (dump-object! x)))))
-;;;  (push-code! `(local-set ,(cdr obj+index))))

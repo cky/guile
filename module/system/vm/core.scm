@@ -21,14 +21,60 @@
 
 (define-module (system vm core))
 
+;;;
+;;; Core procedures
+;;;
+
 (dynamic-call "scm_init_vm" (dynamic-link "libguilevm.so"))
-
-(export vms:cons vms:time vms:clock)
-
-(define (vms:time stat) (vector-ref stat 0))
-(define (vms:clock stat) (vector-ref stat 1))
 
 (module-export! (current-module)
 		(delq! '%module-public-interface
 		       (hash-fold (lambda (k v d) (cons k d)) '()
 				  (module-obarray (current-module)))))
+
+;;;
+;;; Bootcode interface
+;;;
+
+(export make-bootcode bootcode? bootcode-version
+	bootcode-nlocs bootcode-nexts bootcode-bytecode)
+
+(define *bootcode-cookie* (string-append "\0GBC-" (vm-version)))
+
+(define (make-bootcode nlocs nexts bytes)
+  (string-append *bootcode-cookie*
+		 (integer->bytes nlocs)
+		 (integer->bytes nexts)
+		 bytes))
+
+(define (bootcode? x)
+  (and (string? x)
+       (> (string-length x) 10)
+       (string=? (substring x 1 4) "GBC")))
+
+(define (bootcode-version x)
+  (substring x 5 8))
+
+(define (bootcode-nlocs x)
+  (bytes->integer x 8))
+
+(define (bootcode-nexts x)
+  (bytes->integer x 9))
+
+(define (bootcode-bytecode x)
+  (substring x 10))
+
+(define (integer->bytes n)
+  (string (integer->char n)))
+
+(define (bytes->integer bytes start)
+  (char->integer (string-ref bytes start)))
+
+;;;
+;;; Statistics interface
+;;;
+
+(export vms:time vms:clock)
+
+(define (vms:time stat) (vector-ref stat 0))
+(define (vms:clock stat) (vector-ref stat 1))

@@ -119,18 +119,12 @@ static int
 program_print (SCM obj, SCM port, scm_print_state *pstate)
 {
   SCM name = scm_object_property (obj, scm_sym_name);
+  scm_puts ("#<program ", port);
   if (SCM_FALSEP (name))
-    {
-      scm_puts ("#<program 0x", port);
-      scm_intprint ((long) SCM_PROGRAM_BASE (obj), 16, port);
-      scm_putc ('>', port);
-    }
+    scm_intprint ((long) SCM_PROGRAM_BASE (obj), 16, port);
   else
-    {
-      scm_puts ("#<program ", port);
-      scm_display (name, port);
-      scm_putc ('>', port);
-    }
+    scm_display (name, port);
+  scm_putc ('>', port);
   return 1;
 }
 

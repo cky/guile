@@ -27,18 +27,28 @@
   :use-module (ice-9 format)
   :use-module (ice-9 receive)
   :use-module (ice-9 and-let-star)
-  :export (disassemble-program disassemble-bytecode))
+  :export (disassemble-bootcode disassemble-program))
+
+(define (disassemble-bootcode bytes . opts)
+  (if (not (bootcode? bytes)) (error "Invalid bootcode"))
+  (format #t "Disassembly of bootcode:\n\n")
+  (format #t "Compiled for Guile VM ~A\n\n" (bootcode-version bytes))
+  (format #t "nlocs = ~A  nexts = ~A\n\n"
+	  (bootcode-nlocs bytes) (bootcode-nexts bytes))
+  (disassemble-bytecode (bootcode-bytecode bytes) #f))
 
 (define (disassemble-program prog . opts)
   (let* ((arity (program-arity prog))
 	 (nargs (car arity))
 	 (nrest (cadr arity))
 	 (nlocs (caddr arity))
+	 (nexts (cadddr arity))
 	 (bytes (program-bytecode prog))
 	 (objs  (program-objects prog)))
     ;; Disassemble this bytecode
     (format #t "Disassembly of ~A:\n\n" prog)
-    (format #t "args = ~A  rest = ~A  locals = ~A\n\n" nargs nrest nlocs)
+    (format #t "nargs = ~A  nrest = ~A  nlocs = ~A nexts ~A\n\n"
+	    nargs nrest nlocs nexts)
     (format #t "Bytecode:\n\n")
     (disassemble-bytecode bytes objs)
     (if (> (vector-length objs) 0)
@@ -51,7 +61,7 @@
 		  (apply disassemble-program x opts))))
      (vector->list objs))))
 
-(define (disassemble-bytecode bytes . opt)
+(define (disassemble-bytecode bytes objs)
   (let ((decode (make-byte-decoder bytes))
 	(rest '()))
     (do ((addr+code (decode) (decode)))
@@ -64,12 +74,11 @@
 	     (print-info addr (format #f "load-program #~A" sym) #f)))
 	  (else
 	   (let ((info (list->info code))
-		 (extra (original-value addr code
-					(if (null? opt) #f (car opt)))))
+		 (extra (original-value addr code objs)))
 	     (print-info addr info extra))))))
     (for-each (lambda (sym+bytes)
 		(format #t "Bytecode #~A:\n\n" (car sym+bytes))
-		(disassemble-bytecode (cdr sym+bytes)))
+		(disassemble-bytecode (cdr sym+bytes) #f))
 	      (reverse! rest))))
 
 (define (disassemble-objects objs)

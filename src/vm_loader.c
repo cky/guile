@@ -124,6 +124,7 @@ VM_DEFINE_INSTRUCTION (load_program, "load-program", -1, 0, 1)
     }
 
   /* init parameters */
+  /* NOTE: format defined in system/vm/assemble.scm */
   if (SCM_INUMP (x))
     {
       int i = SCM_INUM (x);

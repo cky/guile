@@ -203,6 +203,7 @@ SCM_SYMBOL (sym_vm_error, "vm-error");
 static scm_byte_t *
 vm_fetch_length (scm_byte_t *ip, size_t *lenp)
 {
+  /* NOTE: format defined in system/vm/conv.scm */
   *lenp = *ip++;
   if (*lenp < 254)
     return ip;
@@ -566,18 +567,30 @@ SCM_DEFINE (scm_vm_fetch_stack, "vm-fetch-stack", 1, 0, 0,
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_vm_load, "vm-load", 2, 0, 0,
-	    (SCM vm, SCM bytes),
+	    (SCM vm, SCM bootcode),
 	    "")
 #define FUNC_NAME s_scm_vm_load
 {
   SCM prog;
+  int len;
+  char *base;
 
   SCM_VALIDATE_VM (1, vm);
-  SCM_VALIDATE_STRING (2, bytes);
+  SCM_VALIDATE_STRING (2, bootcode);
 
-  prog = scm_c_make_program (SCM_STRING_CHARS (bytes),
-			     SCM_STRING_LENGTH (bytes),
-			     bytes);
+  base = SCM_STRING_CHARS (bootcode);
+  len  = SCM_STRING_LENGTH (bootcode);
+
+  /* Check bootcode */
+  if (strncmp (base, "\0GBC", 4) != 0)
+    SCM_MISC_ERROR ("Invalid bootcode: ~S", SCM_LIST1 (bootcode));
+
+  /* Create program */
+  prog  = scm_c_make_program (base + 10, len - 10, bootcode);
+  SCM_PROGRAM_NLOCS (prog) = base[8];
+  SCM_PROGRAM_NEXTS (prog) = base[9];
+
+  /* Load it */
   return scm_vm_apply (vm, prog, SCM_EOL);
 }
 #undef FUNC_NAME
