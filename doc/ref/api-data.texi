@@ -1493,9 +1493,11 @@ argument, ie.@: each 0 bit is changed to 1 and each 1 bit to 0.
 
 @deffn {Scheme Procedure} logtest j k
 @deffnx {C Function} scm_logtest (j, k)
-@lisp
-(logtest j k) @equiv{} (not (zero? (logand j k)))
+Test whether @var{j} and @var{k} have any 1 bits in common.  This is
+equivalent to @code{(not (zero? (logand j k)))}, but without actually
+calculating the @code{logand}, just testing for non-zero.
 
+@lisp
 (logtest #b0100 #b1011) @result{} #f
 (logtest #b0100 #b0111) @result{} #t
 @end lisp
@@ -1503,9 +1505,10 @@ argument, ie.@: each 0 bit is changed to 1 and each 1 bit to 0.
 
 @deffn {Scheme Procedure} logbit? index j
 @deffnx {C Function} scm_logbit_p (index, j)
-@lisp
-(logbit? index j) @equiv{} (logtest (integer-expt 2 index) j)
+Test whether bit number @var{index} in @var{j} is set.  @var{index}
+starts from 0 for the least significant bit.
 
+@lisp
 (logbit? 0 #b1101) @result{} #t
 (logbit? 1 #b1101) @result{} #f
 (logbit? 2 #b1101) @result{} #t
@@ -1539,10 +1542,10 @@ dropping bits.
 
 @deffn {Scheme Procedure} logcount n
 @deffnx {C Function} scm_logcount (n)
-Return the number of bits in integer @var{n}.  If integer is
+Return the number of bits in integer @var{n}.  If @var{n} is
 positive, the 1-bits in its binary representation are counted.
 If negative, the 0-bits in its two's-complement binary
-representation are counted.  If 0, 0 is returned.
+representation are counted.  If zero, 0 is returned.
 
 @lisp
 (logcount #b10101010)
@@ -1574,14 +1577,18 @@ zero bit in twos complement form.
 
 @deffn {Scheme Procedure} integer-expt n k
 @deffnx {C Function} scm_integer_expt (n, k)
-Return @var{n} raised to the exact integer exponent
-@var{k}.
+Return @var{n} raised to the power @var{k}.  @var{k} must be an exact
+integer, @var{n} can be any number.
+
+Negative @var{k} is supported, and results in @m{1/n^|k|, 1/n^abs(k)}
+in the usual way.  @math{@var{n}^0} is 1, as usual, and that includes
+@math{0^0} is 1.
 
 @lisp
-(integer-expt 2 5)
-   @result{} 32
-(integer-expt -3 3)
-   @result{} -27
+(integer-expt 2 5)   @result{} 32
+(integer-expt -3 3)  @result{} -27
+(integer-expt 5 -3)  @result{} 1/125
+(integer-expt 0 0)   @result{} 1
 @end lisp
 @end deffn
 
