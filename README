@@ -216,10 +216,13 @@ Then, you may configure guile for cross building, eg:
 
     ./configure --host=i686-pc-cygwin --disable-shared
 
-Two special options for cross building are available:
+A C compiler for the build system is required.  The default is
+"PATH=/usr/bin:$PATH cc".  If that doesn't suit it can be specified
+with the CC_FOR_BUILD variable in the usual way, for instance
 
---with-cc-for-build      --- native C compiler, to be used during build
-                             defaults to: `PATH=/usr/bin:$PATH cc'
+    ./configure --host=m68k-unknown-linux-gnu CC_FOR_BUILD=/my/local/gcc
+
+A further special option for cross building is available:
 
 --with-guile-for-build   --- native Guile executable, to be used during build
                              defaults to: `guile', assuming you just
