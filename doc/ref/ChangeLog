@@ -1,5 +1,9 @@
 2001-08-30  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* guile.texi (Top): Group all index nodes together so that
+	`Info-index' works more effectively in Info.  Thanks to Eric
+	Hanchrow for the report and fix.
+
 	* scheme-data.texi (Random, String Syntax, String Modification,
 	Regular Expressions), scheme-ideas.texi (Definition),
 	scheme-modules.texi (Dynamic Linking and Compiled Code Modules),
