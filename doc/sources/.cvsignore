@@ -1,4 +1,5 @@
 Makefile
+Makefile.in
 stamp-vti
 *.log
 *.dvi
