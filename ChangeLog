@@ -1,0 +1,25 @@
+Thu Aug  1 02:31:53 1996  Jim Blandy  <jimb@totoro.cyclic.com>
+
+	* GUILE-VERSION: Updated to 1.0b3.
+
+	Rehashed distribution system, in preparation for nightly
+	snapshots.  Other changes in subdirectories.
+	* Makefile.in (dist): Rewritten --- the old target was out of
+ 	date, dependent on files that we don't have, and relied on GNU
+ 	tar.  The new target is simpler.
+	(VERSION, srcdir, dist_dirs): New variables.
+	(DISTFILES): Renamed from localfiles.  Added GUILE-VERSION and
+	TODO.
+	(localtreats): Variable removed.  We don't have this file.
+	(info): cd to doc and make info there; don't make info in every
+	${subdir}; those Makefiles don't know what to do.
+	(distname, distdir, treats, announcefile): Variables removed.
+	(manifest-file): Target removed.
+	(dist-dir): New target, responsible for distributable files in
+	this directory.
+	(GZIP, GZIP_EXT, TAR_VERBOSE, DIST_NAME): New variables,
+	controlling the 'dist' target.
+	* configure.in: Substitute GUILE-VERSION into the top-level
+	Makefile.  Build doc/Makefile from doc/Makefile.in.
+
+	* doc/Makefile.in: New file.

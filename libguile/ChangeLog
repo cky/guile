@@ -1,3 +1,13 @@
+Thu Aug  1 02:58:39 1996  Jim Blandy  <jimb@totoro.cyclic.com>
+
+	* Makefile.in (dist-dir): New target, implementing a new dist system.
+	(installed_h_files): Put in alphabetical order.
+	Remove duplicate entries for markers.h and unif.h.
+	(c_files): Remove duplicate entries for markers.c.
+	(ancillary): Renamed from anillery; all uses changed.  Remove
+ 	PLUGIN; it's a directory, and needs special treatment in dist-dir.
+  	Remove all the ../doc/* files; doc/Makefile.in handles that.
+
 Wed Jun 12 00:28:31 1996  Tom Lord  <lord@beehive>
 
 	* struct.c (scm_init_struct): new file.

@@ -1,3 +1,10 @@
+Thu Aug  1 02:52:42 1996  Jim Blandy  <jimb@totoro.cyclic.com>
+
+	* Makefile.in (dist-dir): New target for new dist system.
+	(manifest): Deleted.
+	* PLUGIN/this.configure (aux_files): Removed PLUGIN; it's a
+	directory, and needs special treatment in the dist-dir target.
+
 Fri Apr 19 13:53:08 1996  Tom Lord  <lord@beehive>
 
 	* The more things change...
