@@ -256,7 +256,6 @@ scm_open (SCM path, SCM flags, SCM mode)
 
   fd = SCM_INUM (scm_open_fdes (path, flags, mode));
   iflags = scm_num2long (flags, (char *) SCM_ARG2, s_open_fdes);
-  SCM_NEWCELL (newpt);
   if (iflags & O_RDWR)
     port_mode = "r+";
   else {
@@ -272,17 +271,7 @@ scm_open (SCM path, SCM flags, SCM mode)
       SCM_SYSCALL (close (fd));
       scm_syserror (s_open);
     }
-  {
-    struct scm_port_table * pt;
-
-    pt = scm_add_to_port_table (newpt);
-    SCM_SETPTAB_ENTRY (newpt, pt);
-    SCM_SETCAR (newpt, scm_tc16_fport | scm_mode_bits (port_mode));
-    /* if (SCM_BUF0 & SCM_CAR (newpt))
-       scm_setbuf0 (newpt); */
-    SCM_SETSTREAM (newpt, (SCM)f);
-    SCM_PTAB_ENTRY (newpt)->file_name = path;
-  }
+  newpt = scm_stdio_to_port (f, port_mode, path);
   SCM_ALLOW_INTS;
 
   return newpt;
@@ -827,8 +816,7 @@ set_element (SELECT_TYPE *set, SCM element, int arg)
 {
   int fd;
   element = SCM_COERCE_OUTPORT (element);
-  if (SCM_NIMP (element) && SCM_TYP16 (element) == scm_tc16_fport
-      && SCM_OPPORTP (element))
+  if (SCM_FPORTP (element) && SCM_OPPORTP (element))
     fd = fileno ((FILE *) SCM_STREAM (element));
   else {
     SCM_ASSERT (SCM_INUMP (element), element, arg, s_select);
@@ -873,9 +861,7 @@ static SCM
 get_element (SELECT_TYPE *set, SCM element, SCM list)
 {
   element = SCM_COERCE_OUTPORT (element);
-  if (SCM_NIMP (element)
-      && (scm_tc16_fport == SCM_TYP16 (element))
-      && SCM_OPPORTP (element))
+  if (SCM_FPORTP (element) && SCM_OPPORTP (element))
     {
       if (FD_ISSET (fileno ((FILE *)SCM_STREAM (element)), set))
 	list = scm_cons (element, list);
