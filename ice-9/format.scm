@@ -332,8 +332,8 @@
 					      (next-arg) #f params)
 		       (anychar-dispatch))
 		      ((#\S)			; Slashified -- for parsers
-		       (set! format:read-proof (memq modifier
-						     '(colon colon-at)))
+		       (set! format:read-proof
+			     (memq modifier '(colon colon-at)))
 		       (format:out-obj-padded (memq modifier '(at colon-at))
 					      (next-arg) #t params)
 		       (anychar-dispatch))
@@ -807,132 +807,23 @@
 	    (set! format:pos recursive-pos-save)
 	    arg-pos)))				; return the position in the arg. list
 
-       ;; format:obj->str returns a R4RS representation as a string of an arbitrary
-       ;; scheme object.
-       ;; First parameter is the object, second parameter is a boolean if the
-       ;; representation should be slashified as `write' does.
-       ;; It uses format:char->str which converts a character into
-       ;; a slashified string as `write' does and which is implementation dependent.
-       ;; It uses format:iobj->str to print out internal objects as
-       ;; quoted strings so that the output can always be processed by (read)
+       ;; when format:read-proof is true, format:obj->str will wrap
+       ;; result strings starting with "#<" in an extra pair of double
+       ;; quotes.
+       
+       (format:read-proof #f)
+
+       ;; format:obj->str returns a R4RS representation as a string of
+       ;; an arbitrary scheme object.
 
        (format:obj->str
 	(lambda (obj slashify)
-	  (define (obj->str obj slashify visited)
-	    (if (memq obj (cdr visited))
-		(let ((n (- (list-index (cdr visited) (cdr obj)))))
-		  (string-append "#" (number->string n) "#"))
-		(cond
-		 ((string? obj)
-		  (if slashify
-		      (let ((obj-len (string-length obj)))
-			(string-append
-			 "\""
-			 (let loop ((i 0) (j 0)) ; taken from Marc Feeley's pp.scm
-			   (if (= j obj-len)
-			       (string-append (substring obj i j) "\"")
-			       (let ((c (string-ref obj j)))
-				 (if (or (char=? c #\\)
-					 (char=? c #\"))
-				     (string-append (substring obj i j) "\\"
-						    (loop j (+ j 1)))
-				     (loop i (+ j 1))))))))
-		      obj))
-		 
-		 ((boolean? obj) (if obj "#t" "#f"))
-		 
-		 ((number? obj) (number->string obj))
-
-		 ((symbol? obj) 
-		  (if format:symbol-case-conv
-		      (format:symbol-case-conv (symbol->string obj))
-		      (symbol->string obj)))
-		 
-		 ((char? obj)
-		  (if slashify
-		      (format:char->str obj)
-		      (string obj)))
-		 
-		 ((null? obj) "()")
-
-		 ((input-port? obj)
-		  (format:iobj->str obj))
-		 
-		 ((output-port? obj)
-		  (format:iobj->str obj))
-		 
-		 ((pair? obj)
-		  (string-append "("
-				 (let loop ((obj-list obj)
-					    (visited visited)
-					    (offset 0)
-					    (prefix ""))
-				   (cond ((null? (cdr obj-list))
-					  (string-append
-					   prefix
-					   (obj->str (car obj-list)
-						     #t
-						     (cons (car obj-list) visited))))
-					 ((memq (cdr obj-list) visited)
-					  (string-append
-					   prefix
-					   (obj->str (car obj-list)
-						     #t
-						     (cons (car obj-list) visited))
-					   " . #"
-					   (number->string
-					    (- offset
-					       (list-index visited (cdr obj-list))))
-					   "#"))
-					 ((pair? (cdr obj-list))
-					  (loop (cdr obj-list)
-						(cons (cdr obj-list) visited)
-						(+ 1 offset)
-						(string-append
-						 prefix
-						 (obj->str (car obj-list)
-							   #t
-							   (cons (car obj-list) visited))
-						 " ")))
-					 (else
-					  (string-append
-					   prefix
-					   (obj->str (car obj-list)
-						     #t
-						     (cons (car obj-list) visited))
-					   " . "
-					   (obj->str (cdr obj-list)
-						     #t
-						     (cons (cdr obj-list) visited))))))
-				 ")"))
-
-		 ((vector? obj)
-		  (string-append "#" (obj->str (vector->list obj) #t visited)))
-
-		 (else				; only objects with an #<...> 
-		  (format:iobj->str obj)))))	; representation should fall in here
-	  (obj->str obj slashify (list obj))))
-
-       ;; format:iobj->str reveals the implementation dependent representation of 
-       ;; #<...> objects with the use of display and call-with-output-string.
-       ;; If format:read-proof is set to #t the resulting string is additionally 
-       ;; set into string quotes.
-
-       (format:read-proof #f)
-
-       (format:iobj->str
-	(lambda (iobj)
-	  (if (or format:read-proof
-		  format:iobj-case-conv)
-	      (string-append 
-	       (if format:read-proof "\"" "")
-	       (if format:iobj-case-conv
-		   (format:iobj-case-conv
-		    (call-with-output-string (lambda (p) (display iobj p))))
-		   (call-with-output-string (lambda (p) (display iobj p))))
-	       (if format:read-proof "\"" ""))
-	      (call-with-output-string (lambda (p) (display iobj p))))))
-
+	  (let ((res (if slashify
+			 (object->string obj)
+			 (with-output-to-string (lambda () (display obj))))))
+	    (if (and format:read-proof (string-prefix? "#<" res))
+		(object->string res)
+		res))))
 
        ;; format:char->str converts a character into a slashified string as
        ;; done by `write'. The procedure is dependent on the integer
