@@ -331,18 +331,16 @@ SCM_DEFINE (scm_assq_remove_x, "assq-remove!", 2, 0, 0,
             (SCM alist, SCM key),
 	    "@deffnx primitive assv-remove! alist key\n"
 	    "@deffnx primitive assoc-remove! alist key\n"
-	    "Delete all entries in @var{alist} associated with @var{key}, and return\n"
+	    "Delete the first entry in @var{alist} associated with @var{key}, and return\n"
 	    "the resulting alist.")
 #define FUNC_NAME s_scm_assq_remove_x
 {
   SCM handle;
 
   handle = scm_sloppy_assq (key, alist);
-  while (SCM_CONSP (handle))
-    {
-      alist = scm_delq_x (handle, alist);
-      handle = scm_sloppy_assq (key, alist);
-    }
+  if (SCM_CONSP (handle))
+    alist = scm_delq_x (handle, alist);
+
   return alist;
 }
 #undef FUNC_NAME
@@ -356,11 +354,9 @@ SCM_DEFINE (scm_assv_remove_x, "assv-remove!", 2, 0, 0,
   SCM handle;
 
   handle = scm_sloppy_assv (key, alist);
-  while (SCM_CONSP (handle))
-    {
-      alist = scm_delq_x (handle, alist);
-      handle = scm_sloppy_assv (key, alist);
-    }
+  if (SCM_CONSP (handle))
+    alist = scm_delq_x (handle, alist);
+
   return alist;
 }
 #undef FUNC_NAME
@@ -374,11 +370,9 @@ SCM_DEFINE (scm_assoc_remove_x, "assoc-remove!", 2, 0, 0,
   SCM handle;
 
   handle = scm_sloppy_assoc (key, alist);
-  while (SCM_CONSP (handle))
-    {
-      alist = scm_delq_x (handle, alist);
-      handle = scm_sloppy_assoc (key, alist);
-    }
+  if (SCM_CONSP (handle))
+    alist = scm_delq_x (handle, alist);
+
   return alist;
 }
 #undef FUNC_NAME
