@@ -1,3 +1,7 @@
+2001-03-29  Keisuke Nishida  <kxn30@po.cwru.edu>
+
+	* goops/goopscore.scm: New file.
+
 2001-03-09  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
 
 	* goops.scm (define-method): Only accept new syntax.
