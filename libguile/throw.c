@@ -233,7 +233,7 @@ scm_internal_catch (tag, body, body_data, handler, handler_data)
   else
     {
       ACTIVATEJB (jmpbuf);
-      answer = body (body_data, jmpbuf);
+      answer = body (body_data);
       SCM_REDEFER_INTS;
       DEACTIVATEJB (jmpbuf);
       scm_dynwinds = SCM_CDR (scm_dynwinds);
@@ -305,10 +305,7 @@ make_lazy_catch (struct lazy_catch *c)
 
 /* Exactly like scm_internal_catch, except:
    - It does not unwind the stack (this is the major difference).
-   - If handler returns, its value is returned from the throw.
-   - BODY always receives #f as its JMPBUF argument (since there's no
-     jmpbuf associated with a lazy catch, because we don't unwind the
-     stack.)  */
+   - If handler returns, its value is returned from the throw.  */
 SCM
 scm_internal_lazy_catch (tag, body, body_data, handler, handler_data)
      SCM tag;
@@ -328,7 +325,7 @@ scm_internal_lazy_catch (tag, body, body_data, handler, handler_data)
   scm_dynwinds = scm_acons (tag, lazy_catch, scm_dynwinds);
   SCM_REALLOW_INTS;
 
-  answer = (*body) (body_data, SCM_BOOL_F);
+  answer = (*body) (body_data);
 
   SCM_REDEFER_INTS;
   scm_dynwinds = SCM_CDR (scm_dynwinds);
@@ -360,7 +357,7 @@ struct cwss_data
 };
 
 static SCM
-cwss_body (void *data, SCM jmpbuf)
+cwss_body (void *data)
 {
   struct cwss_data *d = data;
   return scm_internal_lazy_catch (d->tag, d->body, d->data, ss_handler, NULL);
@@ -385,26 +382,19 @@ scm_internal_stack_catch (SCM tag,
 /* body and handler functions for use with any of the above catch variants */
 
 /* This is a body function you can pass to scm_internal_catch if you
-   want the body to be like Scheme's `catch' --- a thunk, or a
-   function of one argument if the tag is #f.
+   want the body to be like Scheme's `catch' --- a thunk.
 
    BODY_DATA is a pointer to a scm_body_thunk_data structure, which
    contains the Scheme procedure to invoke as the body, and the tag
-   we're catching.  If the tag is #f, then we pass JMPBUF (created by
-   scm_internal_catch) to the body procedure; otherwise, the body gets
-   no arguments.  */
+   we're catching.  */
 
 SCM
-scm_body_thunk (body_data, jmpbuf)
+scm_body_thunk (body_data)
      void *body_data;
-     SCM jmpbuf;
 {
   struct scm_body_thunk_data *c = (struct scm_body_thunk_data *) body_data;
 
-  if (c->tag == SCM_BOOL_F)
-    return scm_apply (c->body_proc, scm_cons (jmpbuf, SCM_EOL), SCM_EOL);
-  else
-    return scm_apply (c->body_proc, SCM_EOL, SCM_EOL);
+  return scm_apply (c->body_proc, SCM_EOL, SCM_EOL);
 }
 
 
@@ -439,9 +429,8 @@ struct hbpca_data {
 };
 
 static SCM
-hbpca_body (body_data, jmpbuf)
+hbpca_body (body_data)
      void *body_data;
-     SCM jmpbuf;
 {
   struct hbpca_data *data = (struct hbpca_data *)body_data;
   return scm_apply (data->proc, data->args, SCM_EOL);
@@ -571,10 +560,10 @@ scm_catch (tag, thunk, handler)
 {
   struct scm_body_thunk_data c;
 
-  SCM_ASSERT ((tag == SCM_BOOL_F)
-	      || (SCM_NIMP(tag) && SCM_SYMBOLP(tag))
-	      || (tag == SCM_BOOL_T),
-	      tag, SCM_ARG1, s_catch);
+  SCM_ASSERT ((SCM_NIMP(tag) && SCM_SYMBOLP(tag)) || tag == SCM_BOOL_T,
+	      tag,
+	      SCM_ARG1,
+	      s_catch);
 
   c.tag = tag;
   c.body_proc = thunk;
@@ -627,6 +616,7 @@ scm_throw (key, args)
      SCM key;
      SCM args;
 {
+  SCM_ASSERT (SCM_NIMP (key) && SCM_SYMBOLP (key), key, SCM_ARG1, s_throw);
   /* May return if handled by lazy catch. */
   return scm_ithrow (key, args, 1);
 }
@@ -641,75 +631,53 @@ scm_ithrow (key, args, noreturn)
   SCM jmpbuf;
   SCM wind_goal;
 
-  if (SCM_NIMP (key) && SCM_JMPBUFP (key))
+  SCM dynpair = SCM_UNDEFINED;
+  SCM winds;
+
+  /* Search the wind list for an appropriate catch.
+     "Waiter, please bring us the wind list." */
+  for (winds = scm_dynwinds; SCM_NIMP (winds); winds = SCM_CDR (winds))
     {
-      jmpbuf = key;
-      if (noreturn)
+      if (! SCM_CONSP (winds))
+	abort ();
+
+      dynpair = SCM_CAR (winds);
+      if (SCM_NIMP (dynpair) && SCM_CONSP (dynpair))
 	{
-	  SCM_ASSERT (JBACTIVE (jmpbuf), jmpbuf,
-		  "throw to dynamically inactive catch",
-		  s_throw);
+	  SCM this_key = SCM_CAR (dynpair);
+
+	  if (this_key == SCM_BOOL_T || this_key == key)
+	    break;
 	}
-      else if (!JBACTIVE (jmpbuf))
-	return SCM_UNSPECIFIED;
     }
-  else
-    {
-      SCM dynpair = SCM_UNDEFINED;
-      SCM winds;
 
-      if (noreturn)
-	{
-	  SCM_ASSERT (SCM_NIMP (key) && SCM_SYMBOLP (key), key, SCM_ARG1,
-		      s_throw);
-	}
-      else if (!(SCM_NIMP (key) && SCM_SYMBOLP (key)))
-	return SCM_UNSPECIFIED;
-
-      /* Search the wind list for an appropriate catch.
-	 "Waiter, please bring us the wind list." */
-      for (winds = scm_dynwinds; SCM_NIMP (winds); winds = SCM_CDR (winds))
-	{
-	  if (! SCM_CONSP (winds))
-	    abort ();
-
-	  dynpair = SCM_CAR (winds);
-	  if (SCM_NIMP (dynpair) && SCM_CONSP (dynpair))
-	    {
-	      SCM this_key = SCM_CAR (dynpair);
-
-	      if (this_key == SCM_BOOL_T || this_key == key)
-		break;
-	    }
-	}
-
-      /* If we didn't find anything, abort.  scm_boot_guile should
+  /* If we didn't find anything, abort.  scm_boot_guile should
          have established a catch-all, but obviously things are
          thoroughly screwed up.  */
-      if (winds == SCM_EOL)
-	abort ();
+  if (winds == SCM_EOL)
+    abort ();
 
       /* If the wind list is malformed, bail.  */
-      if (SCM_IMP (winds) || SCM_NCONSP (winds))
-	abort ();
+  if (SCM_IMP (winds) || SCM_NCONSP (winds))
+    abort ();
       
-      if (dynpair != SCM_BOOL_F)
-	jmpbuf = SCM_CDR (dynpair);
+  if (dynpair != SCM_BOOL_F)
+    jmpbuf = SCM_CDR (dynpair);
+  else
+    {
+      if (!noreturn)
+	return SCM_UNSPECIFIED;
       else
 	{
-	  if (!noreturn)
-	    return SCM_UNSPECIFIED;
-	  else
-	    {
-	      scm_exitval = scm_cons (key, args);
-	      scm_dowinds (SCM_EOL, scm_ilength (scm_dynwinds));
+	  scm_exitval = scm_cons (key, args);
+	  scm_dowinds (SCM_EOL, scm_ilength (scm_dynwinds));
 #ifdef DEBUG_EXTENSIONS
-	      scm_last_debug_frame = SCM_DFRAME (scm_rootcont);
+	  scm_last_debug_frame = SCM_DFRAME (scm_rootcont);
 #endif
-	      longjmp (SCM_JMPBUF (scm_rootcont), 1);
-	    }
+	  longjmp (SCM_JMPBUF (scm_rootcont), 1);
 	}
     }
+
   for (wind_goal = scm_dynwinds;
        SCM_CDAR (wind_goal) != jmpbuf;
        wind_goal = SCM_CDR (wind_goal))

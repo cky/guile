@@ -48,7 +48,7 @@
 
 
 
-typedef SCM (*scm_catch_body_t) SCM_P ((void *data, SCM jmpbuf));
+typedef SCM (*scm_catch_body_t) SCM_P ((void *data));
 typedef SCM (*scm_catch_handler_t) SCM_P ((void *data,
 					   SCM tag, SCM throw_args));
 
@@ -84,7 +84,7 @@ struct scm_body_thunk_data
   SCM body_proc;
 };
 
-extern SCM scm_body_thunk SCM_P ((void *, SCM));
+extern SCM scm_body_thunk SCM_P ((void *));
 
 
 extern SCM scm_handle_by_proc SCM_P ((void *, SCM, SCM));

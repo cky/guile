@@ -1,3 +1,20 @@
+1998-02-02  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* throw.h: Removed jmpbuf arg in scm_catch_body_t.
+
+	* backtrace.c (display_error_body, display_backtrace_body),
+	coop-threads.c (scheme_body_bootstrip, c_body_bootstrip),
+	gh_eval.c (eval_str_wrapper, eval_file_wrapper), init.c
+	(invoke_main_func), root.c (cwdr_body), throw.c (cwss_body,
+	scm_body_thunk, hbpca_body): Removed the second jmpbuf arg on body
+	functions.
+
+	* throw.c (scm_internal_catch, scm_internal_lazy_catch): Bodies
+	don't receive the jmpbuf arg anylonger.
+	(scm_catch): Don't accept a #f tag.
+	(scm_throw): Check that key is a symbol.
+	(scm_ithrow): Don't take a jmpbuf as key.  Don't check key arg.
+
 Fri Jan 30 22:28:07 1998  Mikael Djurfeldt  <mdj@kenneth>
 
 	* async.c (async_pending): Removed declaration.
