@@ -73,7 +73,7 @@
 
 (define (save-dumpcode dump file)
   (call-with-output-file file
-    (lambda (out) (uniform-vector-write bytes out))))
+    (lambda (out) (uniform-vector-write dump out))))
 
 (define (integer->bytes n)
   (string (integer->char n)))
