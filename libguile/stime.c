@@ -19,6 +19,7 @@
 
 
 #define _GNU_SOURCE  /* ask glibc for everything, in particular strptime */
+#define _POSIX_C_SOURCE 199506L  /* for gmtime_r prototype */
 
 #if HAVE_CONFIG_H
 #  include <config.h>
