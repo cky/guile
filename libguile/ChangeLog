@@ -1,3 +1,11 @@
+Thu May  8 14:38:01 1997  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* dynl-shl.c: Completely replaced with new code from Bernard
+ 	URBAN.
+
+	* script.c (scm_ice_9_already_loaded): New variable.
+	(scm_compile_shell_switches): Use it.
+
 Mon May  5 20:35:08 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* filesys.c (scm_input_waiting_p): add missing third argument to
