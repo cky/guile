@@ -184,14 +184,10 @@ SCM_DEFINE (scm_make_soft_port, "make-soft-port", 2, 0, 0,
   SCM_NEWCELL (z);
   SCM_DEFER_INTS;
   pt = scm_add_to_port_table (z);
+  scm_port_non_buffer (pt);
   SCM_SETCAR (z, scm_tc16_sfport | scm_mode_bits (SCM_ROCHARS (modes)));
   SCM_SETPTAB_ENTRY (z, pt);
   SCM_SETSTREAM (z, pv);
-  pt->read_pos = pt->read_buf = pt->read_end = &pt->shortbuf;
-  pt->write_buf = pt->write_pos = &pt->shortbuf;
-  pt->read_buf_size = pt->write_buf_size = 1;
-  pt->write_end = pt->write_buf + pt->write_buf_size;
-  pt->rw_random = 0;
   SCM_ALLOW_INTS;
   return z;
 }

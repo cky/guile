@@ -253,6 +253,7 @@ extern void scm_remove_from_port_table (SCM port);
 extern void scm_grow_port_cbuf (SCM port, size_t requested);
 extern SCM scm_pt_size (void);
 extern SCM scm_pt_member (SCM member);
+extern void scm_port_non_buffer (scm_port *pt);
 extern int scm_revealed_count (SCM port);
 extern SCM scm_port_revealed (SCM port);
 extern SCM scm_set_port_revealed_x (SCM port, SCM rcount);

@@ -102,9 +102,15 @@ scm_markstream (SCM ptr)
  * type constructor, and optional fields set by setters.
  */
 
-static void flush_void_port (SCM port);
-static void end_input_void_port (SCM port, int offset);
-static void write_void_port (SCM port, const void *data, size_t size);
+static void
+flush_port_default (SCM port)
+{
+}
+
+static void
+end_input_default (SCM port, int offset)
+{
+}
 
 long 
 scm_make_port_type (char *name,
@@ -130,9 +136,9 @@ scm_make_port_type (char *name,
       scm_ptobs[scm_numptob].close = 0;
 
       scm_ptobs[scm_numptob].write = write;
-      scm_ptobs[scm_numptob].flush = flush_void_port;
+      scm_ptobs[scm_numptob].flush = flush_port_default;
 
-      scm_ptobs[scm_numptob].end_input = end_input_void_port;
+      scm_ptobs[scm_numptob].end_input = end_input_default;
       scm_ptobs[scm_numptob].fill_input = fill_input;
       scm_ptobs[scm_numptob].input_waiting = 0;
 
@@ -484,6 +490,14 @@ SCM_DEFINE (scm_pt_member, "pt-member", 1, 0, 0,
 #undef FUNC_NAME
 #endif
 
+void
+scm_port_non_buffer (scm_port *pt)
+{
+  pt->read_pos = pt->read_buf = pt->read_end = &pt->shortbuf;
+  pt->write_buf = pt->write_pos = &pt->shortbuf;
+  pt->read_buf_size = pt->write_buf_size = 1;
+  pt->write_end = pt->write_buf + pt->write_buf_size;
+}
 
 
 /* Revealed counts --- an oddity inherited from SCSH.  */
@@ -1302,14 +1316,9 @@ scm_ports_prehistory ()
 
 long scm_tc16_void_port = 0;
 
-static void
-flush_void_port (SCM port)
+static int fill_input_void_port (SCM port)
 {
-}
-
-static void
-end_input_void_port (SCM port, int offset)
-{
+  return EOF;
 }
 
 static void
@@ -1328,6 +1337,7 @@ scm_void_port (char *mode_str)
   SCM_DEFER_INTS;
   mode_bits = scm_mode_bits (mode_str);
   pt = scm_add_to_port_table (answer);
+  scm_port_non_buffer (pt);
   SCM_SETPTAB_ENTRY (answer, pt);
   SCM_SETSTREAM (answer, 0);
   SCM_SETCAR (answer, scm_tc16_void_port | mode_bits);
@@ -1335,11 +1345,11 @@ scm_void_port (char *mode_str)
   return answer;
 }
 
-
 SCM_DEFINE (scm_sys_make_void_port, "%make-void-port", 1, 0, 0,
             (SCM mode),
-	    "Create and return a new void port.  The @var{mode} argument describes\n"
-	    "the input/output modes for this port; for a description, see the\n"
+	    "Create and return a new void port.  A void port acts like\n"
+	    "/dev/null.  The @var{mode} argument\n"
+	    "specifies the input/output modes for this port: see the\n"
 	    "documentation for @code{open-file} in @ref{File Ports}.")
 #define FUNC_NAME s_scm_sys_make_void_port
 {
@@ -1360,6 +1370,7 @@ scm_init_ports ()
   scm_sysintern ("SEEK_CUR", SCM_MAKINUM (SEEK_CUR));
   scm_sysintern ("SEEK_END", SCM_MAKINUM (SEEK_END));
 
-  scm_tc16_void_port = scm_make_port_type ("void", 0, write_void_port);
+  scm_tc16_void_port = scm_make_port_type ("void", fill_input_void_port, 
+					   write_void_port);
 #include "ports.x"
 }

@@ -279,8 +279,8 @@ stream_handler (void *data, SCM tag, SCM throw_args)
    - set the revealed count for FILE's file descriptor to 1, so
    that fdes won't be closed when the port object is GC'd.
    - catch exceptions: allow Guile to be able to start up even
-   if it has been handed bogus stdin/stdout/stderr.  In this case
-   try to open a new stream on /dev/null.  */
+   if it has been handed bogus stdin/stdout/stderr.  replace the
+   bad ports with void ports.  */
 static SCM
 scm_standard_stream_to_port (int fdes, char *mode, char *name)
 {
@@ -293,23 +293,7 @@ scm_standard_stream_to_port (int fdes, char *mode, char *name)
   port = scm_internal_catch (SCM_BOOL_T, stream_body, &body_data, 
 			     stream_handler, NULL);
   if (SCM_FALSEP (port))
-    {
-      /* FIXME: /dev/null portability.  there's also *null-device* in
-	 r4rs.scm.  */
-      int null_fdes = open ("/dev/null",
-			    (mode[0] == 'r') ? O_RDONLY : O_WRONLY);
-      
-      body_data.fdes = null_fdes;
-      port = (null_fdes == -1) ? SCM_BOOL_F
-	: scm_internal_catch (SCM_BOOL_T, stream_body, &body_data, 
-			      stream_handler, NULL);
-      /* if the standard fdes was not allocated, reset the revealed count
-	 on the grounds that the user doesn't know what it is. */
-      if (SCM_NFALSEP (port) && null_fdes != fdes)
-	SCM_REVEALED (port) = 0;
-      /* if port is still #f, we'll just leave it like that and
-	 an error will be raised on the first attempt to use it.  */
-    }      
+    port = scm_void_port (mode);
   return port;
 }
 
