@@ -1,3 +1,11 @@
+2001-11-19  Rob Browning  <rlb@defaultvalue.org>
+
+	* configure.in: switch to AC_LIBLTDL_INSTALLABLE so we'll use the
+	system libltdl when it's available.  Aside from the normal reasons
+	to prefer installed shared libs, this means other apps that link
+	with libguile and also use libltdl will be more likely to work
+	right.
+
 2001-11-15  Thien-Thi Nguyen  <ttn@glug.org>
 
 	* guile-tools.in: Handle command "list" specially: list scripts dir.
