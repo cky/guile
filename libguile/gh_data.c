@@ -80,10 +80,10 @@ gh_set_substr (char *src, SCM dst, long start, size_t len)
   char *dst_ptr;
   size_t dst_len;
 
-  SCM_ASSERT (SCM_STRINGP (dst), dst, SCM_ARG3, "gh_set_substr");
+  SCM_ASSERT (SCM_I_STRINGP (dst), dst, SCM_ARG3, "gh_set_substr");
 
-  dst_ptr = SCM_STRING_CHARS (dst);
-  dst_len = SCM_STRING_LENGTH (dst);
+  dst_ptr = SCM_I_STRING_CHARS (dst);
+  dst_len = SCM_I_STRING_LENGTH (dst);
   SCM_ASSERT (start + len <= dst_len, dst, SCM_ARG4, "gh_set_substr");
   
   memmove (dst_ptr + start, src, len);
@@ -259,12 +259,12 @@ gh_scm2chars (SCM obj, char *m)
       break;
 #endif
     case scm_tc7_string:
-      n = SCM_STRING_LENGTH (obj);
+      n = SCM_I_STRING_LENGTH (obj);
       if (m == 0)
 	m = (char *) malloc (n * sizeof (char));
       if (m == NULL)
 	return NULL;
-      memcpy (m, SCM_VELTS (obj), n * sizeof (char));
+      memcpy (m, SCM_I_STRING_CHARS (obj), n * sizeof (char));
       break;
     default:
       scm_wrong_type_arg (0, 0, obj);
@@ -518,29 +518,16 @@ char *
 gh_scm2newstr (SCM str, size_t *lenp)
 {
   char *ret_str;
-  size_t len;
 
-  SCM_ASSERT (SCM_STRINGP (str), str, SCM_ARG3, "gh_scm2newstr");
+  /* We can't use scm_to_locale_stringn directly since it does not
+     guarantee null-termination when lenp is non-NULL.
+   */
 
-  len = SCM_STRING_LENGTH (str);
-
-  ret_str = (char *) malloc ((len + 1) * sizeof (char));
-  if (ret_str == NULL)
-    return NULL;
-  /* so we copy tmp_str to ret_str, which is what we will allocate */
-  memcpy (ret_str, SCM_STRING_CHARS (str), len);
-  scm_remember_upto_here_1 (str);
-  /* now make sure we null-terminate it */
-  ret_str[len] = '\0';
-
-  if (lenp != NULL)
-    {
-      *lenp = len;
-    }
-
+  ret_str = scm_to_locale_string (str);
+  if (lenp)
+    *lenp = SCM_I_STRING_LENGTH (str);
   return ret_str;
 }
-
 
 /* Copy LEN characters at START from the Scheme string SRC to memory
    at DST.  START is an index into SRC; zero means the beginning of
@@ -553,11 +540,11 @@ void
 gh_get_substr (SCM src, char *dst, long start, size_t len)
 {
   size_t src_len, effective_length;
-  SCM_ASSERT (SCM_STRINGP (src), src, SCM_ARG3, "gh_get_substr");
+  SCM_ASSERT (SCM_I_STRINGP (src), src, SCM_ARG3, "gh_get_substr");
 
-  src_len = SCM_STRING_LENGTH (src);
+  src_len = SCM_I_STRING_LENGTH (src);
   effective_length = (len < src_len) ? len : src_len;
-  memcpy (dst + start, SCM_STRING_CHARS (src), effective_length * sizeof (char));
+  memcpy (dst + start, SCM_I_STRING_CHARS (src), effective_length * sizeof (char));
   /* FIXME: must signal an error if len > src_len */
   scm_remember_upto_here_1 (src);
 }
