@@ -28,10 +28,11 @@ ice9_sources =								   \
 	format.scm getopt-long.scm hcons.scm lineio.scm ls.scm mapping.scm \
 	match.scm networking.scm null.scm optargs.scm poe.scm popen.scm	   \
 	posix.scm psyntax.pp psyntax.ss q.scm r4rs.scm r5rs.scm		   \
-	rdelim.scm receive.scm regex.scm runq.scm rw.scm  \
+	rdelim.scm receive.scm regex.scm runq.scm rw.scm		   \
 	safe-r5rs.scm safe.scm session.scm slib.scm stack-catch.scm	   \
-	streams.scm string-fun.scm syncase.scm tags.scm threads.scm        \
-	buffered-input.scm time.scm history.scm channel.scm
+	streams.scm string-fun.scm syncase.scm tags.scm threads.scm	   \
+	buffered-input.scm time.scm history.scm channel.scm		   \
+        pretty-print.scm
 
 subpkgdatadir = $(pkgdatadir)/$(VERSION)/ice-9
 subpkgdata_DATA = $(ice9_sources)

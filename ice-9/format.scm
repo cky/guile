@@ -11,7 +11,9 @@
 ;
 ; Version 3.0
 
-(define-module (ice-9 format))
+(define-module (ice-9 format)
+  :autoload (ice-9 pretty-print) (pretty-print))
+
 (export format
 	format:symbol-case-conv
 	format:iobj-case-conv
@@ -445,7 +447,6 @@
 	       (format:tabulate modifier params)
 	       (anychar-dispatch))
 	      ((#\Y)			; Pretty-print
-	       (require 'pretty-print)
 	       (pretty-print (next-arg) format:port)
 	       (set! format:output-col 0)
 	       (anychar-dispatch))
