@@ -1,3 +1,8 @@
+2002-09-16  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* scheme-data.texi (Symbol Props): It's "set-symbol-property!",
+	not "set-symbol-property".  Thanks to Pieter Pareit!
+
 2002-09-15  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* scheme-data.texi: Tell them to use 'provided?' instead of
