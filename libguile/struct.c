@@ -56,7 +56,6 @@
 
 static SCM required_vtable_fields = SCM_BOOL_F;
 static int struct_num = 0;
-static SCM struct_printer_var;
 
 
 SCM_PROC (s_struct_make_layout, "make-struct-layout", 1, 0, 0, scm_make_struct_layout);
@@ -357,7 +356,7 @@ scm_make_struct (vtable, tail_array_size, init)
   SCM_ASSERT (SCM_INUMP (tail_array_size), tail_array_size, SCM_ARG2,
 	      s_make_struct);
 
-  layout = SCM_STRUCT_DATA (vtable)[scm_struct_i_layout];
+  layout = SCM_STRUCT_DATA (vtable)[scm_vtable_index_layout];
   basic_size = SCM_LENGTH (layout) / 2;
   tail_elts = SCM_INUM (tail_array_size);
   SCM_NEWCELL (handle);
@@ -604,12 +603,14 @@ scm_print_struct (exp, port, pstate)
      SCM port;
      scm_print_state *pstate;
 {
-  SCM prt = SCM_CDR (struct_printer_var);
-  if (SCM_FALSEP(prt) ||
-      SCM_FALSEP(scm_printer_apply (prt, exp, port, pstate)))
+  if (SCM_NFALSEP (scm_procedure_p (SCM_STRUCT_PRINTER (exp))))
+    scm_printer_apply (SCM_STRUCT_PRINTER (exp), exp, port, pstate);
+  else
     {
       scm_gen_write (scm_regular_string, "#<struct ", sizeof ("#<struct ") - 1,
 		     port);
+      scm_intprint (SCM_STRUCT_VTABLE (exp), 16, port);
+      scm_gen_putc (':', port);
       scm_intprint (exp, 16, port);
       scm_gen_putc ('>', port);
     }
@@ -618,9 +619,11 @@ scm_print_struct (exp, port, pstate)
 void
 scm_init_struct ()
 {
-  required_vtable_fields = SCM_CAR (scm_intern_obarray ("pruosr", sizeof ("pruosr") - 1, SCM_BOOL_F));
+  required_vtable_fields = SCM_CAR (scm_intern_obarray ("pruosrpw", sizeof ("pruosrpw") - 1, SCM_BOOL_F));
   scm_permanent_object (required_vtable_fields);
-  scm_sysintern ("struct-vtable-offset", SCM_MAKINUM (scm_struct_i_vtable_offset));
-  struct_printer_var = scm_sysintern("*struct-printer*", SCM_BOOL_F);
+  scm_sysintern ("vtable-index-layout", SCM_MAKINUM (scm_vtable_index_layout));
+  scm_sysintern ("vtable-index-vtable", SCM_MAKINUM (scm_vtable_index_vtable));
+  scm_sysintern ("vtable-index-printer", SCM_MAKINUM (scm_vtable_index_printer));
+  scm_sysintern ("vtable-offset-user", SCM_MAKINUM (scm_vtable_offset_user));
 #include "struct.x"
 }

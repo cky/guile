@@ -56,9 +56,9 @@ extern scm_option scm_print_opts[];
 
 /* State information passed around during printing.
  */
-#define SCM_PRINT_STATE_P(obj) (SCM_NIMP(obj) && SCM_STRUCTP(obj) && \
-				SCM_STRUCT_VTABLE(obj) == \
-				   scm_print_state_vtable)
+#define SCM_PRINT_STATE_P(obj) (SCM_STRUCTP(obj) \
+				&& (SCM_STRUCT_VTABLE(obj) \
+				    == scm_print_state_vtable))
 #define SCM_PRINT_STATE(obj) ((scm_print_state *) SCM_STRUCT_DATA (obj))
 
 #define RESET_PRINT_STATE(pstate) \
@@ -70,8 +70,9 @@ extern scm_option scm_print_opts[];
 #define SCM_WRITINGP(pstate) ((pstate)->writingp)
 #define SCM_SET_WRITINGP(pstate, x) { (pstate)->writingp = (x); }
 
-#define SCM_COERCE_OPORT(p) ((SCM_NIMP(p) && SCM_PRINT_STATE_P(SCM_CDR (p)))? \
-                             SCM_CAR(p) : p)
+#define SCM_COERCE_OPORT(p) ((SCM_NIMP (p) && SCM_PRINT_STATE_P (SCM_CDR (p))) \
+			     ? SCM_CAR (p) \
+			     : p)
 
 #define SCM_PRINT_STATE_LAYOUT "sruwuwuwuwuwpwuwuwuruopr"
 typedef struct scm_print_state {

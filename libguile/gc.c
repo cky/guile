@@ -628,7 +628,7 @@ gc_mark_nimp:
 	      register int x;
 
 	      vtable_data = (SCM *)vcell;
-	      layout = vtable_data[scm_struct_i_layout];
+	      layout = vtable_data[scm_vtable_index_layout];
 	      len = SCM_LENGTH (layout);
 	      fields_desc = SCM_CHARS (layout);
 	      /* We're using SCM_GCCDR here like STRUCT_DATA, except
@@ -652,7 +652,7 @@ gc_mark_nimp:
 	      if (!SCM_CDR (vcell))
 		{
 		  SCM_SETGCMARK (vcell);
-		  ptr = vtable_data[scm_struct_i_vtable];
+		  ptr = vtable_data[scm_vtable_index_vtable];
 		  goto gc_mark_loop;
 		}
 	    }

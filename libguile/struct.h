@@ -53,20 +53,22 @@
 #define scm_struct_n_extra_words 3
 
 /* These are how the initial words of a vtable are allocated. */
-#define scm_struct_i_ptr -3	/* start of block (see alloc_struct) */
-#define scm_struct_i_n_words -2	/* How many words allocated to this struct? */
-#define scm_struct_i_tag -1	/* A unique tag for this type.. */
-#define scm_struct_i_layout 0	/* A symbol describing the physical arrangement of this type. */
-#define scm_struct_i_vcell 1	/* An opaque word, managed by the garbage collector.  */
-#define scm_struct_i_vtable 2	/* A pointer to the handle for this vtable. */
-#define scm_struct_i_vtable_offset 3 /* Where do user fields start? */
+#define scm_struct_i_ptr	-3 /* start of block (see alloc_struct) */
+#define scm_struct_i_n_words	-2 /* How many words allocated to this struct? */
+#define scm_struct_i_tag	-1 /* A unique tag for this type.. */
+#define scm_vtable_index_layout  0 /* A symbol describing the physical arrangement of this type. */
+#define scm_vtable_index_vcell   1 /* An opaque word, managed by the garbage collector.  */
+#define scm_vtable_index_vtable  2 /* A pointer to the handle for this vtable. */
+#define scm_vtable_index_printer 3 /* A printer for this struct type. */
+#define scm_vtable_offset_user   4 /* Where do user fields start? */
 
 
 #define SCM_STRUCTP(X)  		(SCM_TYP3(X) == scm_tc3_cons_gloc)
 #define SCM_STRUCT_DATA(X) 		((SCM*)(SCM_CDR(X)))
 #define SCM_STRUCT_VTABLE_DATA(X) 	((SCM *)(SCM_CAR(X) - 1))
-#define SCM_STRUCT_LAYOUT(X) 		(SCM_STRUCT_VTABLE_DATA(X)[scm_struct_i_layout])
-#define SCM_STRUCT_VTABLE(X) 		(SCM_STRUCT_VTABLE_DATA(X)[scm_struct_i_vtable])
+#define SCM_STRUCT_LAYOUT(X) 		(SCM_STRUCT_VTABLE_DATA(X)[scm_vtable_index_layout])
+#define SCM_STRUCT_VTABLE(X) 		(SCM_STRUCT_VTABLE_DATA(X)[scm_vtable_index_vtable])
+#define SCM_STRUCT_PRINTER(X) 		(SCM_STRUCT_VTABLE_DATA(X)[scm_vtable_index_printer])
 /* Efficiency is important in the following macro, since it's used in GC */
 #define SCM_LAYOUT_TAILP(X)		(((X) & 32) == 0) /* R, W or O */
 

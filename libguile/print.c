@@ -205,6 +205,29 @@ scm_make_print_state ()
   return answer ? answer : make_print_state ();
 }
 
+static char s_print_state_printer[] = "print-state-printer";
+static SCM
+print_state_printer (obj, port)
+     SCM obj;
+     SCM port;
+{
+  /* This function can be made visible by means of struct-ref, so
+     we need to make sure that it gets what it wants. */
+  SCM_ASSERT (SCM_NIMP (obj) && SCM_PRINT_STATE_P (obj),
+	      obj,
+	      SCM_ARG1,
+	      s_print_state_printer);
+  SCM_ASSERT (scm_valid_oport_value_p (port),
+	      port,
+	      SCM_ARG2,
+	      s_print_state_printer);
+  port = SCM_COERCE_OPORT (port);
+  scm_gen_puts (scm_regular_string, "#<print-state ", port);
+  scm_intprint (obj, 16, port);
+  scm_gen_putc ('>', port);
+  return SCM_UNSPECIFIED;
+}
+
 void
 scm_free_print_state (print_state)
      SCM print_state;
@@ -836,10 +859,13 @@ circref:
 int
 scm_valid_oport_value_p	(SCM val)
 {
-  return SCM_NIMP (val) && 
-    (SCM_OPOUTPORTP (val) || (SCM_CONSP (val) && SCM_NIMP (SCM_CAR (val)) && 
-			    SCM_OPOUTPORTP (SCM_CAR (val)) && 
-			    SCM_PRINT_STATE_P (SCM_CDR (val))));
+  return (SCM_NIMP (val)
+	  && (SCM_OPOUTPORTP (val)
+	      || (SCM_CONSP (val)
+		  && SCM_NIMP (SCM_CAR (val))
+		  && SCM_OPOUTPORTP (SCM_CAR (val))
+		  && SCM_NIMP (SCM_CDR (val))
+		  && SCM_PRINT_STATE_P (SCM_CDR (val)))));
 }
 
 SCM_PROC(s_write, "write", 1, 1, 0, scm_write);
@@ -958,14 +984,18 @@ scm_printer_apply (proc, exp, port, pstate)
 void
 scm_init_print ()
 {
-  SCM vtable, type;
-
+  SCM vtable, layout, printer, type;
+  
   scm_init_opts (scm_print_options, scm_print_opts, SCM_N_PRINT_OPTIONS);
-  vtable = scm_make_vtable_vtable (scm_make_struct_layout (scm_nullstr), SCM_INUM0, SCM_EOL);
-  type = scm_make_struct (vtable,
-			  SCM_INUM0,
-			  scm_cons (scm_make_struct_layout (scm_makfrom0str (SCM_PRINT_STATE_LAYOUT)),
-				    SCM_EOL));
+  vtable = scm_make_vtable_vtable (scm_make_struct_layout (scm_nullstr),
+				   SCM_INUM0,
+				   SCM_EOL);
+  layout = scm_make_struct_layout (scm_makfrom0str (SCM_PRINT_STATE_LAYOUT));
+  printer = scm_make_subr_opt (s_print_state_printer,
+			       scm_tc7_subr_2,
+			       (SCM (*) ()) print_state_printer,
+			       0 /* Don't bind the name. */);
+  type = scm_make_struct (vtable, SCM_INUM0, SCM_LIST2 (layout, printer));
   print_state_pool = scm_permanent_object (scm_cons (type, SCM_EOL));
 
   scm_print_state_vtable = type;

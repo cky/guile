@@ -1,4 +1,31 @@
-Thu Oct  2 19:33:38 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+1997-10-03  Mikael Djurfeldt  <mdj@nada.kth.se>
+
+	* print.h (SCM_PRINT_STATE_P): Removed SCM_NIMP test.  (NIMP
+	macros should by convention not test for NIMPness.)
+	(SCM_COERCE_OPORT): Adjust indentation.
+
+	* print.c (scm_valid_oport_value_p): Adjusted indentation; Added
+	SCM_NIMP test before SCM_PRINT_STATE_P.
+
+	* struct.c, struct.h, gc.c: Renamed:
+	scm_struct_i_layout	   --> scm_vtable_index_layout
+	scm_struct_i_vcell	   --> scm_vtable_index_vcell
+	scm_struct_i_vtable	   --> scm_vtable_index_vtable
+	scm_struct_i_printer	   --> scm_vtable_index_printer
+	scm_struct_i_vtable_offset --> scm_vtable_offset_user
+	
+	* struct.c (scm_print_struct): Use new printer slot; Default
+	printing: Also output hex code of vtable so that type identity
+	will be indicated as well.
+	(scm_init_struct): Updated required_vtable_fields to "pruosrpw";
+	Removed struct_printer_var; Removed struct-vtable-offset;
+	(vtable-index-layout, vtable-index-vtable, vtable-index-printer,
+	vtable-offset-user): New constants.
+
+	* struct.h (scm_struct_i_vtable_offset): Bumped from 3 to 4.
+	(scm_struct_i_printer, SCM_STRUCT_PRINTER): New slot in vtables.
+  	If this slot contains a procedure, use that to print structures of
+ 	the type represented by this vtable.
 
 	* print.c (scm_iprin1): Don't print arguments of macro
  	transformers.  (They are always: exp env.); Bugfix: Unmemoize
