@@ -33,7 +33,7 @@ else
 fi
 
 # documentation searching ignores GUILE_LOAD_PATH.
-if [ ! -e guile-procedures.txt ]; then
+if [ ! -f guile-procedures.txt ] ; then
    ln -s libguile/guile-procedures.txt .
 fi
 
