@@ -1669,14 +1669,14 @@ arrays.
 @subsubsection Array Syntax
 
 An array is displayed as @code{#} followed by its rank, followed by a
-tag that describes the underlying vector, optionally followed by the
-lower bounds, and finally followed by the cells, organized into
-dimensions using parentheses.
+tag that describes the underlying vector, optionally followed by
+information about its shape, and finally followed by the cells,
+organized into dimensions using parentheses.
 
 In more words, the array tag is of the form
 
 @example
-  #<rank><vectag><@@lower><@@lower>...
+  #<rank><vectag><@@lower><:len><@@lower><:len>...
 @end example
 
 where @code{<rank>} is a positive integer in decimal giving the rank of
@@ -1689,13 +1689,21 @@ The @code{<vectag>} part is the tag for a uniform numeric vector, like
 @code{u8}, @code{s16}, etc, @code{b} for bitvectors, or @code{a} for
 strings.  It is empty for ordinary vectors.
 
-The @code{<@@lower>} part is a @samp{@@} sign followed by an integer in
-decimal giving the lower bound of a dimension.  There is one
+The @code{<@@lower>} part is a @samp{@@} character followed by a signed
+integer in decimal giving the lower bound of a dimension.  There is one
 @code{<@@lower>} for each dimension.  When all lower bounds are zero,
 all @code{<@@lower>} parts are omitted.
 
+The @code{<:len>} part is a @sampe{:} character followed by an unsigned
+integer in decimal giving the length of a dimension.  Like for the lower
+bounds, there is one @code{<:len>} for ech dimension, and the
+@code{<:len>} part always follows the @code{<@@lower>} part for a
+dimension.  Lengths are only then printed when they can't be deduced
+from the nested lists of elements of the array literal, which can happen
+when at least one length is zero.
+
 As a special case, an array of rank 0 is printed as
-@code{#0<vectag>(<scalar>)}, where @code{<scalar>} is result of
+@code{#0<vectag>(<scalar>)}, where @code{<scalar>} is the result of
 printing the single element of the array.
 
 Thus, 
@@ -1717,6 +1725,14 @@ is a uniform u8 array of rank 1.
 
 @item #2u32@@2@@3((1 2) (2 3))
 is a uniform u8 array of rank 2 with index ranges 2..3 and 3..4.
+
+@item #2()
+is a two-dimensional array with index ranges 0..-1 and 0..-1, i.e. both
+dimensions have length zero.
+
+@item #2:0:2()
+is a two-dimensional array with index ranges 0..-1 and 0..1, i.e. the
+first dimension has length zero, but the second has length 2.
 
 @item #0(12)
 is a rank-zero array with contents 12.
