@@ -1,5 +1,8 @@
 2005-03-13  Kevin Ryde  <user42@zip.com.au>
 
+	* srfi-1.scm (lset-union): Call `=' procedure with args in the order
+	specified by the SRFI.
+
 	* srfi-60.scm, srfi-60.c, srfi-60.h: New files.
 	* Makefile.am: Add them.
 
