@@ -40,7 +40,7 @@
  * If you do not wish that, delete this exception notice.  */
 
 
-/* $Id: coop.c,v 1.13 1998-10-12 21:08:36 jimb Exp $ */
+/* $Id: coop.c,v 1.14 1998-10-13 23:17:09 jimb Exp $ */
 
 /* Cooperative thread library, based on QuickThreads */
 
@@ -50,20 +50,6 @@
 
 #include <qt.h>
 #include "eval.h"
-
-/* Provide declarations for these, if the system does not.  */
-
-#if defined(MISSING_SLEEP_DECL)
-extern unsigned int sleep (unsigned int);
-#endif
-
-#if defined(MISSING_USLEEP_DECL)
-#ifdef USLEEP_RETURNS_VOID
-extern void usleep (USLEEP_ARG_TYPE);
-#else
-extern int usleep (USLEEP_ARG_TYPE);
-#endif
-#endif
 
 /* #define COOP_STKSIZE (0x10000) */
 #define COOP_STKSIZE (scm_eval_stack)
@@ -649,16 +635,8 @@ coop_yieldhelp (sp, old, blockq)
 /* Replacement for the system's sleep() function. Does the right thing
    for the process - but not for the system (it busy-waits) */
 
-#ifdef __STDC__
 void *
 coop_sleephelp (qt_t *sp, void *old, void *blockq)
-#else
-void *
-coop_sleephelp (sp, old, bolckq)
-     qt_t *sp;
-     void *old;
-     void *blockq;
-#endif
 {
   ((coop_t *)old)->sp = sp;
   /* old is already on the sleep queue - so there's no need to
@@ -668,29 +646,23 @@ coop_sleephelp (sp, old, bolckq)
 
 #ifdef GUILE_ISELECT
 
-#ifdef USLEEP_RETURNS_VOID
-void
-#else
-int
-#endif
-usleep (USLEEP_ARG_TYPE usec)
+unsigned long 
+scm_thread_usleep (unsigned long usec)
 {
   struct timeval timeout;
   timeout.tv_sec = 0;
   timeout.tv_usec = usec;
   scm_internal_select (0, NULL, NULL, NULL, &timeout);
-#ifndef USLEEP_RETURNS_VOID
   return 0;  /* Maybe we should calculate actual time slept,
 		but this is faster... :) */
-#endif
 }
 
-unsigned
-sleep (unsigned sec)
+unsigned long
+scm_thread_sleep (unsigned long sec)
 {
   time_t now = time (NULL);
   struct timeval timeout;
-  int slept;
+  unsigned long slept;
   timeout.tv_sec = sec;
   timeout.tv_usec = 0;
   scm_internal_select (0, NULL, NULL, NULL, &timeout);
@@ -700,14 +672,8 @@ sleep (unsigned sec)
 
 #else /* GUILE_ISELECT */
 
-#ifdef __STDC__
-unsigned
-sleep (unsigned s)
-#else
-unsigned
-sleep (s)
-     unsigned s;
-#endif
+unsigned long
+scm_thread_sleep (unsigned long s)
 {
   coop_t *newthread, *old;
   time_t now = time (NULL);
@@ -728,6 +694,16 @@ sleep (s)
   QT_BLOCK (coop_sleephelp, old, NULL, newthread->sp);
 
   return s;
+}
+
+unsigned long 
+scm_thread_usleep (unsigned long usec)
+{
+  /* We're so cheap.  */
+  scm_thread_sleep (usec / 1000000);
+  struct timeval timeout;
+  return 0;  /* Maybe we should calculate actual time slept,
+		but this is faster... :) */
 }
 
 #endif /* GUILE_ISELECT */
