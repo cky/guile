@@ -1,3 +1,11 @@
+2001-04-24  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* Makefile.am (guile_TEXINFOS): Added srfi-13-14.texi.
+
+	* srfi-13-14.texi: New file documenting SRFI-13/14.
+
+	* guile.texi (Top): Added the SRFI-13/14 menu entry and @include.
+
 2001-04-22  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* posix.texi (Network Sockets and Communication): Automatic

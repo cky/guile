@@ -140,7 +140,7 @@ by the Free Software Foundation.
 @sp 10
 @comment The title is printed in a large font.
 @title Guile Reference Manual
-@subtitle $Id: guile.texi,v 1.4 2001-04-22 14:56:52 ossau Exp $
+@subtitle $Id: guile.texi,v 1.5 2001-04-24 19:41:48 mgrabmue Exp $
 @subtitle For use with Guile @value{VERSION}
 @author Mark Galassi
 @author Cygnus Solution and Los Alamos National Laboratory
@@ -241,6 +241,7 @@ Part III: Guile Modules
 
 * SLIB::                        Using the SLIB Scheme library.
 * POSIX::                       POSIX system calls and networking.
+* SRFI-13/14::                  String library and character set library.
 * Expect::			Controlling interactive programs with Guile.
 * The Scheme shell (scsh)::
 	The SCSH compatibility module has been made an
@@ -321,6 +322,7 @@ Indices
 
 @include slib.texi
 @include posix.texi
+@include srfi-13-14.texi
 @include expect.texi
 @include scsh.texi
 @include tcltk.texi
