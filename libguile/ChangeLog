@@ -1,7 +1,17 @@
+Mon May  5 20:35:08 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* filesys.c (scm_input_waiting_p): add missing third argument to
+	scm_misc_error.
+
+	* stime.c (scm_localtime): copy the result of localtime before
+	calling gmtime in case they share a buffer.
+	(scm_localtime, scm_mktime): throw an error if neither HAVE_TM_ZONE
+	nor HAVE_TZNAME.
+
 Fri May  2 19:07:11 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* eq.c (scm_equal_p): use SCM_TYP7SD (y) not SCM_TYP7SD (x).
-
+	
 Thu May  1 17:01:45 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* Makefile.am (check-local): New target, which causes 'make check'

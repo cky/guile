@@ -283,7 +283,7 @@ SCM
 scm_localtime (SCM time, SCM zone)
 {
   timet itime;
-  struct tm *lt, *utc;
+  struct tm *ltptr, lt, *utc;
   SCM result;
   int zoff;
   char *zname = 0;
@@ -293,44 +293,50 @@ scm_localtime (SCM time, SCM zone)
   itime = scm_num2long (time, (char *) SCM_ARG1, s_localtime);
   SCM_DEFER_INTS;
   oldtz = setzone (zone, SCM_ARG2, s_localtime);
-  lt = localtime (&itime);
+  ltptr = localtime (&itime);
   err = errno;
+  /* copied in case localtime and gmtime share a buffer.  */
+  if (ltptr)
+    lt = *ltptr;
   utc = gmtime (&itime);
   if (utc == NULL)
     err = errno;
-  if (lt)
+  if (ltptr)
     {
 #ifdef HAVE_TM_ZONE
-      zname = lt->tm_zone;
+      zname = lt.tm_zone;
 #else
 # ifdef HAVE_TZNAME
       /* must be copied before calling tzset again.  */
-      char *ptr = tzname[ (lt->tm_isdst == 1) ? 1 : 0 ];
+      char *ptr = tzname[ (lt.tm_isdst == 1) ? 1 : 0 ];
 
       zname = scm_must_malloc (strlen (ptr) + 1, s_localtime);
       strcpy (zname, ptr);
-#endif
+# else
+      scm_misc_error (s_localtime, "Not fully implemented on this platform",
+		      SCM_EOF);
+# endif
 #endif
     }
   restorezone (zone, oldtz);
   /* delayed until zone has been restored.  */
   errno = err;
-  if (utc == NULL || lt == NULL)
+  if (utc == NULL || ltptr == NULL)
     scm_syserror (s_localtime);
 
   /* calculate timezone offset in seconds west of UTC.  */
-  zoff = (utc->tm_hour - lt->tm_hour) * 3600 + (utc->tm_min - lt->tm_min) * 60
-    + utc->tm_sec - lt->tm_sec;
-  if (utc->tm_year < lt->tm_year)
+  zoff = (utc->tm_hour - lt.tm_hour) * 3600 + (utc->tm_min - lt.tm_min) * 60
+    + utc->tm_sec - lt.tm_sec;
+  if (utc->tm_year < lt.tm_year)
     zoff -= 24 * 60 * 60;
-  else if (utc->tm_year > lt->tm_year)
+  else if (utc->tm_year > lt.tm_year)
     zoff += 24 * 60 * 60;
-  else if (utc->tm_yday < lt->tm_yday)
+  else if (utc->tm_yday < lt.tm_yday)
     zoff -= 24 * 60 * 60;
-  else if (utc->tm_yday > lt->tm_yday)
+  else if (utc->tm_yday > lt.tm_yday)
     zoff += 24 * 60 * 60;
   
-  result = filltime (lt, zoff, zname);
+  result = filltime (&lt, zoff, zname);
   SCM_ALLOW_INTS;
   return result;
 }
@@ -417,7 +423,10 @@ scm_mktime (SCM sbd_time, SCM zone)
 
       zname = scm_must_malloc (strlen (ptr) + 1, s_mktime);
       strcpy (zname, ptr);
-#endif
+# else
+      scm_misc_error (s_localtime, "Not fully implemented on this platform",
+		      SCM_EOF);
+# endif
 #endif
     }
   restorezone (zone, oldtz);

@@ -921,7 +921,8 @@ scm_input_waiting_p (f, caller)
     return remir;
   }
 #  else    
-  scm_misc_error ("char-ready?", "Not fully implemented");
+  scm_misc_error ("char-ready?", "Not fully implemented on this platform",
+		  SCM_EOL);
 #  endif
 # endif
 }
