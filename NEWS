@@ -776,6 +776,32 @@ Note that the "5d" is dropped.  Now it is like so:
 This enables single-char options to have adjoining arguments as long as their
 constituent characters are not potential single-char options.
 
+** (ice-9 session) procedure `arity' now works with (ice-9 optargs) `lambda*'
+
+The `lambda*' and derivative forms in (ice-9 optargs) now set a procedure
+property `arglist', which can be retrieved by `arity'.  The result is that
+`arity' can give more detailed information than before:
+
+Before:
+
+	guile> (use-modules (ice-9 optargs))
+	guile> (define* (foo #:optional a b c) a)
+	guile> (arity foo)
+	0 or more arguments in `lambda*:G0'.
+
+After:
+
+        guile> (arity foo)
+        3 optional arguments: `a', `b' and `c'.
+        guile> (define* (bar a b #:key c d #:allow-other-keys) a)
+        guile> (arity bar)
+        2 required arguments: `a' and `b', 2 keyword arguments: `c'
+        and `d', other keywords allowed.
+        guile> (define* (baz a b #:optional c #:rest r) a)
+        guile> (arity baz)
+        2 required arguments: `a' and `b', 1 optional argument: `c',
+        the rest in `r'.
+
 * Changes to the C interface
 
 ** Types have been renamed from scm_*_t to scm_t_*.
