@@ -1,4 +1,4 @@
-/* Copyright (C) 1998,1999,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1998,1999,2000,2001, 2002 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1478,7 +1478,7 @@ static scm_t_bits **hell;
 static long n_hell = 1;		/* one place for the evil one himself */
 static long hell_size = 4;
 #ifdef USE_THREADS
-static scm_t_mutex hell_mutex;
+static SCM hell_mutex;
 #endif
 
 static long
@@ -1496,7 +1496,7 @@ go_to_hell (void *o)
 {
   SCM obj = SCM_PACK ((scm_t_bits) o);
 #ifdef USE_THREADS
-  scm_mutex_lock (&hell_mutex);
+  scm_lock_mutex (hell_mutex);
 #endif
   if (n_hell == hell_size)
     {
@@ -1506,7 +1506,7 @@ go_to_hell (void *o)
     }
   hell[n_hell++] = SCM_STRUCT_DATA (obj);
 #ifdef USE_THREADS
-  scm_mutex_unlock (&hell_mutex);
+  scm_unlock_mutex (hell_mutex);
 #endif
 }
 
@@ -1514,11 +1514,11 @@ static void
 go_to_heaven (void *o)
 {
 #ifdef USE_THREADS
-  scm_mutex_lock (&hell_mutex);
+  scm_lock_mutex (hell_mutex);
 #endif
   hell[burnin (SCM_PACK ((scm_t_bits) o))] = hell[--n_hell];
 #ifdef USE_THREADS
-  scm_mutex_unlock (&hell_mutex);
+  scm_unlock_mutex (hell_mutex);
 #endif
 }
 
@@ -2696,7 +2696,7 @@ scm_init_goops_builtins (void)
 
   hell = scm_malloc (hell_size);
 #ifdef USE_THREADS
-  scm_mutex_init (&hell_mutex);
+  hell_mutex = scm_permanent_object (scm_make_mutex ());
 #endif
 
   create_basic_classes ();
