@@ -3,7 +3,7 @@
 #ifndef SCM___SCM_H
 #define SCM___SCM_H
 
-/* Copyright (C) 1995,1996,1998,1999,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001,2002 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -98,11 +98,6 @@
 /* #define GUILE_OLD_ASYNC_CLICK */
 
 /* #define GUILE_DEBUG_FREELIST */
-
-/* If the compile FLAG `SCM_CAUTIOUS' is #defined then the number of
- * arguments is always checked for application of closures.
- */
-#define SCM_CAUTIOUS
 
 /* All the number support there is.
  */

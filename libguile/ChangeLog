@@ -1,15 +1,23 @@
+2002-07-01  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* __scm.h (SCM_CAUTIOUS), eval.c (scm_eval_args, deval_args,
+	SCM_CEVAL):  Removed compile time option SCM_CAUTIOUS to clean up
+	the code.  Full number of arguments checking of closures is
+	mandatory now.  However, the option to disable the checking has
+	most probably not been used anyway.
+
 2002-06-30  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
-	* backtrace.c (SCM_ASSERT), debug.c (scm_debug_options), eval.c
-	(scm_lookupcar, scm_lookupcar1, scm_badargsp, SCM_CEVAL,
-	SCM_APPLY, scm_map, scm_for_each), feature.c (scm_init_feature),
-	gsubr.c (scm_gsubr_apply), numbers.c (scm_logand, scm_logior,
-	scm_logxor, scm_i_dbl2big), srcprop.c (scm_source_properties,
-	scm_set_source_properties_x, scm_source_property):  Removed
-	compile time option SCM_RECKLESS to clean up the code.  Full
-	number of arguments checking of closures is mandatory now.
-	However, the option to disable the checking has most probably not
-	been used anyway.
+	* __scm.h (SCM_RECKLESS), backtrace.c (SCM_ASSERT), debug.c
+	(scm_debug_options), eval.c (scm_lookupcar, scm_lookupcar1,
+	scm_badargsp, SCM_CEVAL, SCM_APPLY, scm_map, scm_for_each),
+	feature.c (scm_init_feature), gsubr.c (scm_gsubr_apply), numbers.c
+	(scm_logand, scm_logior, scm_logxor, scm_i_dbl2big), srcprop.c
+	(scm_source_properties, scm_set_source_properties_x,
+	scm_source_property):  Removed compile time option SCM_RECKLESS to
+	clean up the code.  Full number of arguments checking of closures
+	is mandatory now.  However, the option to disable the checking has
+	most probably not been used anyway.
 
 	* srcprop.c (scm_source_properties, scm_set_source_properties_x,
 	scm_source_property): Use !SCM_CONSP instead of SCM_NCONSP.

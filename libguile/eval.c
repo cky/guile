@@ -1582,10 +1582,8 @@ scm_eval_args (SCM l, SCM env, SCM proc)
       lloc = SCM_CDRLOC (*lloc);
       l = SCM_CDR (l);
     }
-#ifdef SCM_CAUTIOUS
   if (!SCM_NULLP (l))
     scm_wrong_num_args (proc);
-#endif
   return results;
 }
 
@@ -1790,10 +1788,8 @@ deval_args (SCM l, SCM env, SCM proc, SCM *lloc)
       lloc = SCM_CDRLOC (*lloc);
       l = SCM_CDR (l);
     }
-#ifdef SCM_CAUTIOUS
   if (!SCM_NULLP (l))
     scm_wrong_num_args (proc);
-#endif
   return *results;
 }
 
@@ -2689,10 +2685,7 @@ dispatch:
     case SCM_BIT8(SCM_ILOC00):
       proc = *scm_ilookup (SCM_CAR (x), env);
       SCM_ASRTGO (SCM_NIMP (proc), badfun);
-#ifdef SCM_CAUTIOUS
       goto checkargs;
-#endif
-      break;
 
     case scm_tcs_cons_nimcar:
       if (SCM_SYMBOLP (SCM_CAR (x)))
@@ -2776,9 +2769,8 @@ dispatch:
       else
 	proc = SCM_CEVAL (SCM_CAR (x), env);
       SCM_ASRTGO (!SCM_IMP (proc), badfun);
-#ifdef SCM_CAUTIOUS
+
     checkargs:
-#endif
       if (SCM_CLOSUREP (proc))
 	{
 	  SCM formals = SCM_CLOSURE_FORMALS (proc);
@@ -2883,14 +2875,10 @@ evapply: /* inputs: x, proc */
 
   /* must handle macros by here */
   x = SCM_CDR (x);
-#ifdef SCM_CAUTIOUS
   if (SCM_CONSP (x))
     arg1 = EVALCAR (x, env);
   else
     scm_wrong_num_args (proc);
-#else
-  arg1 = EVALCAR (x, env);
-#endif
 #ifdef DEVAL
   debug.info->a.args = scm_list_1 (arg1);
 #endif
@@ -3018,14 +3006,11 @@ evapply: /* inputs: x, proc */
 	    goto badfun;
 	  }
       }
-#ifdef SCM_CAUTIOUS
     if (SCM_CONSP (x))
       arg2 = EVALCAR (x, env);
     else
       scm_wrong_num_args (proc);
-#else
-    arg2 = EVALCAR (x, env);
-#endif
+
     {				/* have two or more arguments */
 #ifdef DEVAL
       debug.info->a.args = scm_list_2 (arg1, arg2);
@@ -3134,10 +3119,8 @@ evapply: /* inputs: x, proc */
 	    goto nontoplevel_begin;
 	  }
       }
-#ifdef SCM_CAUTIOUS
       if (!SCM_CONSP (x))
 	scm_wrong_num_args (proc);
-#endif
 #ifdef DEVAL
       debug.info->a.args = scm_cons2 (arg1, arg2,
 				      deval_args (x, env, proc,
