@@ -1,3 +1,8 @@
+2000-10-10  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* syncase.scm (eval):  string=? requires a string argument.
+	Thanks to Dale P. Smith for the patch.
+
 2000-10-15  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* optargs.scm: Fix typos in commentary for bound? and lambda*.

@@ -155,7 +155,7 @@
 
 (define-public (eval x environment)
   (internal-eval (if (and (pair? x)
-			  (string=? (car x) "noexpand"))
+			  (equal? (car x) "noexpand"))
 		     (cadr x)
 		     (sc-expand x))
 		 environment))
