@@ -466,10 +466,10 @@ SCM_DEFINE_INSTRUCTION (call, "%call", INST_INUM)
 	scm_wrong_num_args (ac);
 
       /* Reinstate the continuation */
+      VM_RETURN_HOOK ();
       SCM_VM_REINSTATE_CONT (vmp, ac);
       LOAD ();
       POP (ac); /* return value */
-      VM_RETURN_HOOK ();
       NEXT;
     }
 
@@ -519,6 +519,7 @@ SCM_DEFINE_INSTRUCTION (tail_call, "%tail-call", INST_INUM)
 	  /* FIXME: Must remove the last frame.
 	     FIXME: We need to move arguments before that. */
 	  SCM *last_fp = fp;
+	  VM_RETURN_HOOK ();
 	  VM_NEW_FRAME (fp, ac,
 			SCM_VM_FRAME_DYNAMIC_LINK (last_fp),
 			SCM_VM_FRAME_STACK_POINTER (last_fp),
