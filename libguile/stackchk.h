@@ -65,10 +65,10 @@
 #ifdef STACK_CHECKING
 # ifdef SCM_STACK_GROWS_UP
 #  define SCM_STACK_OVERFLOW_P(s)\
-   (s - SCM_BASE (scm_rootcont) > SCM_STACK_LIMIT * sizeof (SCM_STACKITEM))
+   (s > ((SCM_STACKITEM *) SCM_BASE (scm_rootcont) + SCM_STACK_LIMIT))
 # else
 #  define SCM_STACK_OVERFLOW_P(s)\
-   (SCM_BASE (scm_rootcont) - s > SCM_STACK_LIMIT * sizeof (SCM_STACKITEM))
+   (s < ((SCM_STACKITEM *) SCM_BASE (scm_rootcont) - SCM_STACK_LIMIT))
 # endif
 # define SCM_CHECK_STACK\
     {\
