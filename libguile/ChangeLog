@@ -1,3 +1,11 @@
+Tue Sep  2 18:14:30 1997  Jim Blandy  <jimb@totoro.red-bean.com>
+
+	* gh_predicates.c (gh_boolean_p, gh_symbol_p, gh_char_p,
+ 	gh_vector_p, gh_pair_p, gh_number_p, gh_string_p, gh_procedure_p,
+ 	gh_list_p, gh_inexact_p, gh_exact_p, gh_eq_p, gh_eqv_p,
+ 	gh_equal_p): Use SCM_NFALSEP, instead of testing against
+	SCM_BOOL_T.  Any non-false value is true.
+
 Tue Sep  2 00:27:07 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* symbols.h (scm_builtin_bindings, scm_builtin_weak_bindings,
@@ -16,6 +24,10 @@ Sat Aug 30 18:56:19 1997  Gary Houston  <ghouston@actrix.gen.nz>
 	* unif.c (scm_shap2ra): tighten the checking of the array dimension
 	specifier, since (2) or (2 . 3) would cause SEGV.
 	(scm_transpose_array): more argument checking fixes.
+
+Thu Aug 28 23:48:53 1997  Jim Blandy  <jimb@totoro.red-bean.com>
+
+	* Makefile.in: Regenerated.
 
 Wed Aug 27 17:44:44 1997  Jim Blandy  <jimb@totoro.red-bean.com>
 
