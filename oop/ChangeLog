@@ -1,3 +1,8 @@
+2003-03-19  Mikael Djurfeldt  <mdj@kvast.blakulla.net>
+
+	* goops.scm (process-class-pre-define-accessor): Temporary kludge
+	to fix a problem introduced by my previous change.
+
 2003-03-17  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* goops.scm (process-class-pre-define-generic,

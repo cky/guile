@@ -198,11 +198,16 @@
 
 (define (process-class-pre-define-accessor name)
   (let ((var (module-variable (current-module) name)))
-    (if (not (and var
-		  (variable-bound? var)
-		  (or (is-a? (variable-ref var) <accessor>)
-		      (is-a? (variable-ref var) <extended-generic-with-setter>))))
-	(process-define-accessor name))))
+    (cond ((or (not var)
+	       (not (variable-bound? var)))
+	   (process-define-accessor name))
+	  ((or (is-a? (variable-ref var) <accessor>)
+	       (is-a? (variable-ref var) <extended-generic-with-setter>)))
+	  ((is-a? (variable-ref var) <generic>)
+	   ;;*fixme* don't mutate an imported object!
+	   (variable-set! var (ensure-accessor (variable-ref var) name)))
+	  (else
+	   (process-define-accessor name)))))
 
 ;;; This code should be implemented in C.
 ;;;
