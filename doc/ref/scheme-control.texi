@@ -474,7 +474,7 @@ represented by the continuation.
 
 A continuation is like a dynamic label, capturing at run-time a point
 in program execution, including all the nested calls that have lead to
-it, or rather the code that will execute when those calls return.
+it (or rather the code that will execute when those calls return).
 
 Continuations are created with the following functions.
 
@@ -561,10 +561,10 @@ a function returning more times than it was called.  It may help
 instead to think of it being stealthily re-entered and then program
 flow going on as normal.
 
-The functions @code{dynamic-wind} (@pxref{Dynamic Wind}) can be used to
-ensure setup and cleanup code is run when a program locus is resumed or
-abandoned through the continuation mechanism.  C code can use
-@dfn{frames} (@pxref{Frames}).
+@code{dynamic-wind} (@pxref{Dynamic Wind}) can be used to ensure setup
+and cleanup code is run when a program locus is resumed or abandoned
+through the continuation mechanism.  C code can use @dfn{frames}
+(@pxref{Frames}).
 
 @sp 1
 Continuations are a powerful mechanism, and can be used to implement
