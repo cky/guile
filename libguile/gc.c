@@ -258,6 +258,32 @@ which_seg (SCM cell)
 }
 
 
+#ifdef GUILE_NEW_GC_SCHEME
+static void
+map_free_list (scm_freelist_t *master, SCM freelist)
+{
+  int last_seg = -1, count = 0;
+  SCM f;
+  
+  for (f = freelist; SCM_NIMP (f); f = SCM_CDR (f))
+    {
+      int this_seg = which_seg (f);
+
+      if (this_seg != last_seg)
+	{
+	  if (last_seg != -1)
+	    fprintf (stderr, "  %5d %d-cells in segment %d\n",
+		     count, master->span, last_seg);
+	  last_seg = this_seg;
+	  count = 0;
+	}
+      count++;
+    }
+  if (last_seg != -1)
+    fprintf (stderr, "  %5d %d-cells in segment %d\n",
+	     count, master->span, last_seg);
+}
+#else
 static void
 map_free_list (scm_freelist_t *freelistp)
 {
@@ -282,6 +308,7 @@ map_free_list (scm_freelist_t *freelistp)
     fprintf (stderr, "  %5d %d-cells in segment %d\n",
 	     count, freelistp->span, last_seg);
 }
+#endif
 
 SCM_DEFINE (scm_map_free_list, "map-free-list", 0, 0, 0, 
             (),
@@ -291,8 +318,8 @@ SCM_DEFINE (scm_map_free_list, "map-free-list", 0, 0, 0,
 {
   fprintf (stderr, "%d segments total\n", scm_n_heap_segs);
 #ifdef GUILE_NEW_GC_SCHEME
-  map_free_list (&scm_master_freelist);
-  map_free_list (&scm_master_freelist2);
+  map_free_list (&scm_master_freelist, scm_freelist);
+  map_free_list (&scm_master_freelist2, scm_freelist2);
 #else
   map_free_list (&scm_freelist);
   map_free_list (&scm_freelist2);
@@ -310,6 +337,23 @@ static unsigned long scm_newcell2_count;
 
 /* Search freelist for anything that isn't marked as a free cell.
    Abort if we find something.  */
+#ifdef GUILE_NEW_GC_SCHEME
+static void
+scm_check_freelist (SCM freelist)
+{
+  SCM f;
+  int i = 0;
+
+  for (f = freelist; SCM_NIMP (f); f = SCM_CDR (f), i++)
+    if (SCM_CAR (f) != (SCM) scm_tc_free_cell)
+      {
+	fprintf (stderr, "Bad cell in freelist on newcell %lu: %d'th elt\n",
+		 scm_newcell_count, i);
+	fflush (stderr);
+	abort ();
+      }
+}
+#else
 static void
 scm_check_freelist (scm_freelist_t *freelistp)
 {
@@ -325,6 +369,7 @@ scm_check_freelist (scm_freelist_t *freelistp)
 	abort ();
       }
 }
+#endif
 
 static int scm_debug_check_freelist = 0;
 
@@ -351,7 +396,7 @@ scm_debug_newcell (void)
   scm_newcell_count++;
   if (scm_debug_check_freelist)
     {
-      scm_check_freelist (&scm_master_freelist);
+      scm_check_freelist (scm_freelist);
       scm_gc();
     }
 
@@ -377,7 +422,7 @@ scm_debug_newcell2 (void)
   scm_newcell2_count++;
   if (scm_debug_check_freelist)
     {
-      scm_check_freelist (&scm_master_freelist2);
+      scm_check_freelist (scm_freelist2);
       scm_gc ();
     }
 
@@ -1515,7 +1560,7 @@ scm_gc_sweep ()
 	      SCM_SETCDR (scmptr, nfreelist);
 	      nfreelist = scmptr;
 	    }
-
+	  
 	  continue;
 	c8mrkcontinue:
 	  SCM_CLRGC8MARK (scmptr);
@@ -1558,43 +1603,39 @@ scm_gc_sweep ()
       scm_cells_allocated += hp_freelist->heap_size - hp_freelist->collected;
 
 #ifdef GUILE_DEBUG_FREELIST
+#ifdef GUILE_NEW_GC_SCHEME
+      scm_check_freelist (hp_freelist == &scm_master_freelist
+			  ? scm_freelist
+			  : scm_freelist2);
+#else
       scm_check_freelist (hp_freelist);
+#endif
       scm_map_free_list ();
 #endif
     }
-
+  
 #ifdef GUILE_NEW_GC_SCHEME
   for (i = 0; i < scm_n_heap_segs; i++)
-    {
-      scm_freelist_t *hp_freelist = scm_heap_table[i].freelistp;
-      if (hp_freelist->gc_trigger - hp_freelist->n_objects > 1)
-	{
-	  SCM c = hp_freelist->cells;
-	  SCM_SETCAR (c, SCM_CDR (c));
-	  SCM_SETCDR (c, SCM_EOL);
-	  *hp_freelist->clustertail = c;
-	  hp_freelist->n_objects = hp_freelist->gc_trigger;
-	}
-      else
-	*hp_freelist->clustertail = SCM_EOL;
-#if 0
-      fprintf (stderr, "%d:%d: ",
-	       i, scm_ilength (hp_freelist->clusters));
+    if (scm_heap_table[i].freelistp->clustertail != NULL)
       {
-	SCM ls, c = hp_freelist->clusters;
-	int n;
-	while (SCM_NNULLP (c))
+	scm_freelist_t *hp_freelist = scm_heap_table[i].freelistp;
+	if (hp_freelist->gc_trigger - hp_freelist->n_objects > 1)
 	  {
-	    ls = SCM_CAR (c);
-	    for (n = 0; SCM_NNULLP (ls); ls = SCM_CDR (ls))
-	      ++n;
-	    fprintf (stderr, "%d ", n);
-	    c = SCM_CDR (c);
+	    SCM c = hp_freelist->cells;
+	    hp_freelist->n_objects = hp_freelist->gc_trigger;
+	    SCM_SETCAR (c, SCM_CDR (c));
+	    SCM_SETCDR (c, SCM_EOL);
+	    *hp_freelist->clustertail = c;
 	  }
-	fprintf (stderr, "\n");
+	else
+	  *hp_freelist->clustertail = SCM_EOL;
+	hp_freelist->clustertail = NULL;
       }
-#endif
-    }
+
+  /* When we move to POSIX threads private freelists should probably
+     be GC-protected instead. */
+  scm_freelist = SCM_EOL;
+  scm_freelist2 = SCM_EOL;
 #endif
   
   /* Scan weak vectors. */
