@@ -55,6 +55,19 @@
 @macro vnew{VERSION}
 @end macro
 
+@c  @m{T,N} is $T$ in tex or @math{N} otherwise.  This is an easy way to give
+@c  different forms for math in tex and info.
+@iftex
+@macro m {T,N}
+@tex$\T\$@end tex
+@end macro
+@end iftex
+@ifnottex
+@macro m {T,N}
+@math{\N\}
+@end macro
+@end ifnottex
+
 @c @iftex
 @c @cropmarks
 @c @end iftex
@@ -101,7 +114,7 @@ by the Free Software Foundation.
 @comment The title is printed in a large font.
 @title Guile Reference Manual
 @subtitle Edition @value{MANUAL-EDITION}, for use with Guile @value{VERSION}
-@subtitle $Id: guile.texi,v 1.20 2003-03-08 04:28:55 rlb Exp $
+@subtitle $Id: guile.texi,v 1.21 2003-05-10 03:58:37 kryde Exp $
 
 @c AUTHORS
 
