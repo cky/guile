@@ -1,3 +1,9 @@
+2001-05-02  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* srfi-14.c, srfi-13.c: Added @bullet to various @itemize lists.
+
+	* srfi-10.scm: Typo fix.
+
 2001-05-02  Rob Browning  <rlb@cs.utexas.edu>
 
 	* srfi-11.scm (let-values): fix (a b c . d) case.  Thanks Martin.

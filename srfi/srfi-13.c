@@ -743,7 +743,7 @@ SCM_DEFINE (scm_string_trim_both, "string-trim-both", 1, 3, 0,
 	    "Trim @var{s} by skipping over all characters on both sides of\n"
 	    "the string that satisfy the parameter @var{char_pred}:\n"
 	    "\n"
-	    "@itemize\n"
+	    "@itemize @bullet\n"
 	    "@item\n"
 	    "if it is the character @var{ch}, characters equal to @var{ch}\n"
 	    "are trimmed,\n"
@@ -1614,7 +1614,7 @@ SCM_DEFINE (scm_string_indexS, "string-index", 2, 2, 0,
 	    "Search through the string @var{s} from left to right, returning\n"
 	    "the index of the first occurence of a character which\n"
 	    "\n"
-	    "@itemize\n"
+	    "@itemize @bullet\n"
 	    "@item\n"
 	    "equals @var{char_pred}, if it is character,\n"
 	    "\n"
@@ -2527,7 +2527,7 @@ SCM_DEFINE (scm_string_fold_right, "string-fold-right", 3, 2, 0,
 
 SCM_DEFINE (scm_string_unfold, "string-unfold", 4, 2, 0,
 	    (SCM p, SCM f, SCM g, SCM seed, SCM base, SCM make_final),
-	    "@itemize\n"
+	    "@itemize @bullet\n"
 	    "@item @var{g} is used to generate a series of @emph{seed}\n"
 	    "values from the initial @var{seed}: @var{seed}, (@var{g}\n"
 	    "@var{seed}), (@var{g}^2 @var{seed}), (@var{g}^3 @var{seed}),\n"
@@ -2589,7 +2589,7 @@ SCM_DEFINE (scm_string_unfold, "string-unfold", 4, 2, 0,
 
 SCM_DEFINE (scm_string_unfold_right, "string-unfold-right", 4, 2, 0,
 	    (SCM p, SCM f, SCM g, SCM seed, SCM base, SCM make_final),
-	    "@itemize\n"
+	    "@itemize @bullet\n"
 	    "@item @var{g} is used to generate a series of @emph{seed}\n"
 	    "values from the initial @var{seed}: @var{seed}, (@var{g}\n"
 	    "@var{seed}), (@var{g}^2 @var{seed}), (@var{g}^3 @var{seed}),\n"

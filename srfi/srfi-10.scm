@@ -37,7 +37,7 @@
 ;;; (define f '#,(file "/etc/passwd"))
 ;;; (read-line f)
 ;;; =>
-;;; :root:x:0:0:root:/root:/bin/bash"
+;;; "root:x:0:0:root:/root:/bin/bash"
 ;;;
 ;;; Please note the quote before the #,(file ...) expression.  This is
 ;;; necessary because ports are not self-evaluating in Guile.

@@ -305,7 +305,7 @@ SCM_DEFINE (scm_char_set_fold, "char-set-fold", 3, 0, 0,
 SCM_DEFINE (scm_char_set_unfold, "char-set-unfold", 4, 1, 0,
 	    (SCM p, SCM f, SCM g, SCM seed, SCM base_cs),
 	    "This is a fundamental constructor for character sets.\n"
-	    "@itemize\n"
+	    "@itemize @bullet\n"
 	    "@item @var{g} is used to generate a series of ``seed'' values \n"
 	    "from the initial seed: @var{seed}, (@var{g} @var{seed}),\n"
 	    "(@var{g}^2 @var{seed}), (@var{g}^3 @var{seed}), @dots{}\n"
@@ -349,7 +349,7 @@ SCM_DEFINE (scm_char_set_unfold, "char-set-unfold", 4, 1, 0,
 SCM_DEFINE (scm_char_set_unfold_x, "char-set-unfold!", 5, 0, 0,
 	    (SCM p, SCM f, SCM g, SCM seed, SCM base_cs),
 	    "This is a fundamental constructor for character sets.\n"
-	    "@itemize\n"
+	    "@itemize @bullet\n"
 	    "@item @var{g} is used to generate a series of ``seed'' values\n"
 	    "from the initial seed: @var{seed}, (@var{g} @var{seed}), \n"
 	    "(@var{g}^2 @var{seed}), (@var{g}^3 @var{seed}), @dots{}\n"
