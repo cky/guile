@@ -130,24 +130,20 @@
  *
  * An example of an operator class is the class <tk-command>.
  */
-#define SCM_METACLASS_STANDARD_LAYOUT "pwpw"
+#define SCM_METACLASS_STANDARD_LAYOUT ""
 struct scm_metaclass_standard {
   SCM layout;
   SCM vcell;
   SCM vtable;
   SCM print;
-  SCM direct_supers;
-  SCM direct_slots;
 };
 
-#define SCM_METACLASS_OPERATOR_LAYOUT "pwpwpopopopo"
+#define SCM_METACLASS_OPERATOR_LAYOUT "popopopo"
 struct scm_metaclass_operator {
   SCM layout;
   SCM vcell;
   SCM vtable;
   SCM print;
-  SCM direct_supers;
-  SCM direct_slots;
   SCM proc0;
   SCM proc1;
   SCM proc2;
@@ -173,6 +169,7 @@ typedef struct scm_entity {
 extern SCM scm_metaclass_standard;
 extern SCM scm_metaclass_operator;
 
+extern SCM scm_entity_p (SCM obj);
 extern SCM scm_set_object_procedure_x (SCM obj, SCM procs);
 extern SCM scm_make_class_object (SCM metaclass, SCM layout);
 extern SCM scm_make_subclass_object (SCM class, SCM layout);
