@@ -257,7 +257,7 @@ SCM_API SCM scm_current_load_port (void);
 SCM_API SCM scm_set_current_input_port (SCM port);
 SCM_API SCM scm_set_current_output_port (SCM port);
 SCM_API SCM scm_set_current_error_port (SCM port);
-SCM_API scm_t_port * scm_add_to_port_table (SCM port);
+SCM_API scm_t_port * scm_new_port_table_entry (void);
 SCM_API void scm_remove_from_port_table (SCM port);
 SCM_API void scm_grow_port_cbuf (SCM port, size_t requested);
 SCM_API SCM scm_pt_size (void);

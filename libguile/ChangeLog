@@ -1,4 +1,12 @@
-2002-08-04  Han-Wen  <hanwen@cs.uu.nl>
+
+2002-08-04  Han-Wen Nienhuys  <hanwen@cs.uu.nl>
+	
+	* ports.c (scm_new_port_table_entry): change function from
+	scm_add_to_port_table. This prevents cells with null-pointers from
+	being exposed to GC.
+
+	* vports.c (s_scm_make_soft_port) strports.c (scm_mkstrport),
+	fports.c (scm_fdes_to_port): Use scm_new_port_table_entry().
 
 	* gc.c (s_scm_gc_stats): add cell-yield and malloc-yield statistic
 	to gc-stats.

@@ -451,13 +451,12 @@ scm_t_port **scm_port_table;
 long scm_port_table_size = 0;	/* Number of ports in scm_port_table.  */
 long scm_port_table_room = 20;	/* Size of the array.  */
 
-/* Add a port to the table.  */
 
 scm_t_port *
-scm_add_to_port_table (SCM port)
-#define FUNC_NAME "scm_add_to_port_table"
+scm_new_port_table_entry (void)
+#define FUNC_NAME "scm_new_port_table_entry"
 {
-  scm_t_port *entry;
+  scm_t_port *entry = (scm_t_port *) scm_gc_malloc (sizeof (scm_t_port), "port");
 
   if (scm_port_table_size == scm_port_table_room)
     {
@@ -469,9 +468,8 @@ scm_add_to_port_table (SCM port)
       scm_port_table = (scm_t_port **) newt;
       scm_port_table_room *= 2;
     }
-  entry = (scm_t_port *) scm_gc_malloc (sizeof (scm_t_port), "port");
 
-  entry->port = port;
+  entry->port = SCM_EOL;
   entry->entry = scm_port_table_size;
   entry->revealed = 0;
   entry->stream = 0;
@@ -491,7 +489,6 @@ scm_add_to_port_table (SCM port)
 #undef FUNC_NAME
 
 /* Remove a port from the table and destroy it.  */
-
 void
 scm_remove_from_port_table (SCM port)
 #define FUNC_NAME "scm_remove_from_port_table"
@@ -1527,20 +1524,22 @@ write_void_port (SCM port SCM_UNUSED,
 SCM
 scm_void_port (char *mode_str)
 {
-  int mode_bits;
-  SCM answer;
-  scm_t_port * pt;
-
-  answer = scm_cell (scm_tc16_void_port, 0);
   SCM_DEFER_INTS;
-  mode_bits = scm_mode_bits (mode_str);
-  pt = scm_add_to_port_table (answer);
-  scm_port_non_buffer (pt);
-  SCM_SETPTAB_ENTRY (answer, pt);
-  SCM_SETSTREAM (answer, 0);
-  SCM_SET_CELL_TYPE (answer, scm_tc16_void_port | mode_bits);
-  SCM_ALLOW_INTS;
-  return answer;
+  {
+    int mode_bits = scm_mode_bits (mode_str);
+    scm_t_port * pt = scm_new_port_table_entry ();
+    SCM answer;
+    
+    scm_port_non_buffer (pt);
+    answer = scm_cell (scm_tc16_void_port, 0);
+    SCM_SETPTAB_ENTRY (answer, pt);
+    pt->port = answer;
+  
+    SCM_SETSTREAM (answer, 0);
+    SCM_SET_CELL_TYPE (answer, scm_tc16_void_port | mode_bits);
+    SCM_ALLOW_INTS;
+    return answer;
+  }
 }
 
 SCM_DEFINE (scm_sys_make_void_port, "%make-void-port", 1, 0, 0,
