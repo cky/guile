@@ -1,5 +1,22 @@
 2000-10-09  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* filesys.c (fill_select_type, retrieve_select_type, scm_select),
+	gh_data.c (gh_set_substr, gh_scm2chars, gh_scm2shorts,
+	gh_scm2longs, gh_scm2floats, gh_scm2doubles, gh_symbol2newstr),
+	stime.c (bdtime2c), symbols.c (scm_sym2vcell, scm_sym2ovcell_soft,
+	scm_intern_obarray_soft, scm_symbol_to_string, scm_intern_symbol,
+	scm_unintern_symbol, copy_and_prune_obarray, scm_builtin_bindings,
+	scm_builtin_weak_bindings), validate.h (SCM_VALIDATE_VECTOR_LEN):
+	Replace SCM_LENGTH with the appropriate SCM_<type>_LENGTH macro.
+
+	* filesys.c (scm_dirname, scm_basename), gh_data.c (gh_scm2newstr,
+	gh_get_substr), posix.c (scm_putenv), regex-posix.c
+	(scm_regexp_exec), stime.c (setzone), symbols.c
+	(scm_string_to_symbol):  Don't accept symbols as input parameters
+	any more.
+
+2000-10-09  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* continuations.c (scm_make_cont, copy_stack_and_call,
 	scm_dynthrow), environments.c (obarray_enter, obarray_replace,
 	obarray_retrieve, obarray_remove, obarray_remove_all,

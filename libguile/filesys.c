@@ -879,7 +879,7 @@ fill_select_type (SELECT_TYPE *set, SCM *ports_ready, SCM list_or_vec, int pos)
 
   if (SCM_VECTORP (list_or_vec))
     {
-      int i = SCM_LENGTH (list_or_vec);
+      int i = SCM_VECTOR_LENGTH (list_or_vec);
       SCM *ve = SCM_VELTS (list_or_vec);
       
       while (--i >= 0)
@@ -940,7 +940,7 @@ retrieve_select_type (SELECT_TYPE *set, SCM ports_ready, SCM list_or_vec)
 
   if (SCM_VECTORP (list_or_vec))
     {
-      int i = SCM_LENGTH (list_or_vec);
+      int i = SCM_VECTOR_LENGTH (list_or_vec);
       SCM *ve = SCM_VELTS (list_or_vec);
 
       while (--i >= 0)
@@ -1009,7 +1009,7 @@ SCM_DEFINE (scm_select, "select", 3, 2, 0,
 
   if (SCM_VECTORP (reads))
     {
-      read_count = SCM_LENGTH (reads);
+      read_count = SCM_VECTOR_LENGTH (reads);
     }
   else
     {
@@ -1018,7 +1018,7 @@ SCM_DEFINE (scm_select, "select", 3, 2, 0,
     }
   if (SCM_VECTORP (writes))
     {
-      write_count = SCM_LENGTH (writes);
+      write_count = SCM_VECTOR_LENGTH (writes);
     }
   else
     {
@@ -1027,7 +1027,7 @@ SCM_DEFINE (scm_select, "select", 3, 2, 0,
     }
   if (SCM_VECTORP (excepts))
     {
-      except_count = SCM_LENGTH (excepts);
+      except_count = SCM_VECTOR_LENGTH (excepts);
     }
   else
     {
@@ -1330,10 +1330,14 @@ SCM_DEFINE (scm_dirname, "dirname", 1, 0, 0,
 #define FUNC_NAME s_scm_dirname
 {
   char *s;
-  int i, len;
-  SCM_VALIDATE_ROSTRING (1,filename);
+  long int i;
+  unsigned long int len;
+
+  SCM_VALIDATE_STRING (1,filename);
+
   s = SCM_ROCHARS (filename);
-  len = SCM_LENGTH (filename);
+  len = SCM_STRING_LENGTH (filename);
+
   i = len - 1;
   while (i >= 0 && s[i] == '/') --i;
   while (i >= 0 && s[i] != '/') --i;
@@ -1357,21 +1361,19 @@ SCM_DEFINE (scm_basename, "basename", 1, 1, 0,
 {
   char *f, *s = 0;
   int i, j, len, end;
-  SCM_VALIDATE_ROSTRING (1,filename);
-  SCM_ASSERT (SCM_UNBNDP (suffix)
-	      || (SCM_ROSTRINGP (suffix)),
-	      suffix,
-	      SCM_ARG2,
-	      FUNC_NAME);
+
+  SCM_VALIDATE_STRING (1,filename);
   f = SCM_ROCHARS (filename);
+  len = SCM_STRING_LENGTH (filename);
+
   if (SCM_UNBNDP (suffix))
     j = -1;
   else
     {
+      SCM_VALIDATE_STRING (2, suffix);
       s = SCM_ROCHARS (suffix);
-      j = SCM_LENGTH (suffix) - 1;
+      j = SCM_STRING_LENGTH (suffix) - 1;
     }
-  len = SCM_LENGTH (filename);
   i = len - 1;
   while (i >= 0 && f[i] == '/') --i;
   end = i;

@@ -232,9 +232,9 @@ SCM_DEFINE (scm_regexp_exec, "regexp-exec", 2, 2, 0,
   SCM mvec = SCM_BOOL_F;
 
   SCM_VALIDATE_RGXP (1,rx);
-  SCM_VALIDATE_ROSTRING (2,str);
+  SCM_VALIDATE_STRING (2,str);
   SCM_VALIDATE_INUM_DEF_COPY (3,start,0,offset);
-  SCM_ASSERT_RANGE (3,start,offset >= 0 && (unsigned) offset <= SCM_LENGTH (str));
+  SCM_ASSERT_RANGE (3,start, offset >= 0 && offset <= SCM_STRING_LENGTH (str));
   if (SCM_UNBNDP (flags))
     flags = SCM_INUM0;
   SCM_VALIDATE_INUM (4,flags);

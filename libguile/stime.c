@@ -306,10 +306,9 @@ setzone (SCM zone, int pos, const char *subr)
       static char *tmpenv[2];
       char *buf;
 
-      SCM_ASSERT (SCM_ROSTRINGP (zone), zone, pos, subr);
+      SCM_ASSERT (SCM_STRINGP (zone), zone, pos, subr);
       SCM_COERCE_SUBSTR (zone);
-      buf = scm_must_malloc (SCM_LENGTH (zone) + sizeof (tzvar) + 1,
-			     subr);
+      buf = scm_must_malloc (SCM_STRING_LENGTH (zone) + sizeof (tzvar) + 1, subr);
       sprintf (buf, "%s=%s", tzvar, SCM_ROCHARS (zone));
       oldenv = environ;
       tmpenv[0] = buf;
@@ -437,7 +436,7 @@ bdtime2c (SCM sbd_time, struct tm *lt, int pos, const char *subr)
   int i;
 
   SCM_ASSERT (SCM_VECTORP (sbd_time)
-	      && SCM_LENGTH (sbd_time) == 11,
+	      && SCM_VECTOR_LENGTH (sbd_time) == 11,
 	      sbd_time, pos, subr);
   velts = SCM_VELTS (sbd_time);
   for (i = 0; i < 10; i++)

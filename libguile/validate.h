@@ -1,4 +1,4 @@
-/* $Id: validate.h,v 1.16 2000-09-26 21:53:49 dirk Exp $ */
+/* $Id: validate.h,v 1.17 2000-10-09 16:27:24 dirk Exp $ */
 /*	Copyright (C) 1999, 2000 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -413,7 +413,7 @@
 
 #define SCM_VALIDATE_VECTOR_LEN(pos, v, len) \
   do { \
-    SCM_ASSERT (SCM_VECTORP (v) && len == SCM_LENGTH (v), v, pos, FUNC_NAME); \
+    SCM_ASSERT (SCM_VECTORP (v) && len == SCM_VECTOR_LENGTH (v), v, pos, FUNC_NAME); \
   } while (0)
 
 #endif

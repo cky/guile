@@ -1134,13 +1134,13 @@ SCM_DEFINE (scm_putenv, "putenv", 1, 0, 0,
   int rv;
   char *ptr;
 
-  SCM_VALIDATE_ROSTRING (1,str);
+  SCM_VALIDATE_STRING (1, str);
   /* must make a new copy to be left in the environment, safe from gc.  */
-  ptr = malloc (SCM_LENGTH (str) + 1);
+  ptr = malloc (SCM_STRING_LENGTH (str) + 1);
   if (ptr == NULL)
     SCM_MEMORY_ERROR;
-  strncpy (ptr, SCM_ROCHARS (str), SCM_LENGTH (str));
-  ptr[SCM_LENGTH(str)] = 0;
+  strncpy (ptr, SCM_ROCHARS (str), SCM_STRING_LENGTH (str));
+  ptr[SCM_STRING_LENGTH (str)] = 0;
   rv = putenv (ptr);
   if (rv < 0)
     SCM_SYSERROR;

@@ -117,7 +117,7 @@ gh_set_substr (char *src, SCM dst, int start, int len)
 	      "gh_set_substr");
 
   dst_ptr = SCM_STRING_CHARS (dst);
-  dst_len = SCM_LENGTH (dst);
+  dst_len = SCM_STRING_LENGTH (dst);
   SCM_ASSERT (len >= 0 && (unsigned) len <= dst_len,
 	      dst, SCM_ARG4, "gh_set_substr");
   
@@ -277,7 +277,7 @@ gh_scm2chars (SCM obj, char *m)
     {
     case scm_tc7_vector:
     case scm_tc7_wvect:
-      n = SCM_LENGTH (obj);
+      n = SCM_VECTOR_LENGTH (obj);
       for (i = 0; i < n; ++i)
 	{
 	  val = SCM_VELTS (obj)[i];
@@ -325,7 +325,7 @@ gh_scm2shorts (SCM obj, short *m)
     {
     case scm_tc7_vector:
     case scm_tc7_wvect:
-      n = SCM_LENGTH (obj);
+      n = SCM_VECTOR_LENGTH (obj);
       for (i = 0; i < n; ++i)
 	{
 	  val = SCM_VELTS (obj)[i];
@@ -345,7 +345,7 @@ gh_scm2shorts (SCM obj, short *m)
       break;
 #ifdef HAVE_ARRAYS
     case scm_tc7_svect:
-      n = SCM_LENGTH (obj);
+      n = SCM_UVECTOR_LENGTH (obj);
       if (m == 0)
 	m = (short *) malloc (n * sizeof (short));
       memcpy (m, SCM_VELTS (obj), n * sizeof (short));
@@ -370,7 +370,7 @@ gh_scm2longs (SCM obj, long *m)
     {
     case scm_tc7_vector:
     case scm_tc7_wvect:
-      n = SCM_LENGTH (obj);
+      n = SCM_VECTOR_LENGTH (obj);
       for (i = 0; i < n; ++i)
 	{
 	  val = SCM_VELTS (obj)[i];
@@ -388,7 +388,7 @@ gh_scm2longs (SCM obj, long *m)
 #ifdef HAVE_ARRAYS
     case scm_tc7_ivect:
     case scm_tc7_uvect:
-      n = SCM_LENGTH (obj);
+      n = SCM_UVECTOR_LENGTH (obj);
       if (m == 0)
 	m = (long *) malloc (n * sizeof (long));
       memcpy (m, SCM_VELTS (obj), n * sizeof (long));
@@ -413,7 +413,7 @@ gh_scm2floats (SCM obj, float *m)
     {
     case scm_tc7_vector:
     case scm_tc7_wvect:
-      n = SCM_LENGTH (obj);
+      n = SCM_VECTOR_LENGTH (obj);
       for (i = 0; i < n; ++i)
 	{
 	  val = SCM_VELTS (obj)[i];
@@ -436,14 +436,14 @@ gh_scm2floats (SCM obj, float *m)
       break;
 #ifdef HAVE_ARRAYS
     case scm_tc7_fvect:
-      n = SCM_LENGTH (obj);
+      n = SCM_UVECTOR_LENGTH (obj);
       if (m == 0)
 	m = (float *) malloc (n * sizeof (float));
       memcpy (m, (float *) SCM_VELTS (obj), n * sizeof (float));
       break;
 
     case scm_tc7_dvect:
-      n = SCM_LENGTH (obj);
+      n = SCM_UVECTOR_LENGTH (obj);
       if (m == 0)
 	m = (float*) malloc (n * sizeof (float));
       for (i = 0; i < n; ++i)
@@ -469,7 +469,7 @@ gh_scm2doubles (SCM obj, double *m)
     {
     case scm_tc7_vector:
     case scm_tc7_wvect:
-      n = SCM_LENGTH (obj);
+      n = SCM_VECTOR_LENGTH (obj);
       for (i = 0; i < n; ++i)
 	{
 	  val = SCM_VELTS (obj)[i];
@@ -492,7 +492,7 @@ gh_scm2doubles (SCM obj, double *m)
       break;
 #ifdef HAVE_ARRAYS
     case scm_tc7_fvect:
-      n = SCM_LENGTH (obj);
+      n = SCM_UVECTOR_LENGTH (obj);
       if (m == 0)
 	m = (double *) malloc (n * sizeof (double));
       for (i = 0; i < n; ++i)
@@ -500,7 +500,7 @@ gh_scm2doubles (SCM obj, double *m)
       break;
 
     case scm_tc7_dvect:
-      n = SCM_LENGTH (obj);
+      n = SCM_UVECTOR_LENGTH (obj);
       if (m == 0)
 	m = (double*) malloc (n * sizeof (double));
       memcpy (m, SCM_VELTS (obj), n * sizeof (double));
@@ -532,13 +532,12 @@ gh_scm2newstr (SCM str, int *lenp)
   char *ret_str;
   int len;
 
-  SCM_ASSERT (SCM_ROSTRINGP (str), str, SCM_ARG3,
-	      "gh_scm2newstr");
+  SCM_ASSERT (SCM_STRINGP (str), str, SCM_ARG3, "gh_scm2newstr");
 
   /* protect str from GC while we copy off its data */
   scm_protect_object (str);
 
-  len = SCM_LENGTH (str);
+  len = SCM_STRING_LENGTH (str);
 
   ret_str = (char *) scm_must_malloc ((len + 1) * sizeof (char),
 				      "gh_scm2newstr");
@@ -569,11 +568,10 @@ void
 gh_get_substr (SCM src, char *dst, int start, int len)
 {
   int src_len, effective_length;
-  SCM_ASSERT (SCM_ROSTRINGP (src), src, SCM_ARG3,
-	      "gh_get_substr");
+  SCM_ASSERT (SCM_STRINGP (src), src, SCM_ARG3, "gh_get_substr");
 
   scm_protect_object (src);
-  src_len = SCM_LENGTH (src);
+  src_len = SCM_STRING_LENGTH (src);
   effective_length = (len < src_len) ? len : src_len;
   memcpy (dst + start, SCM_ROCHARS (src), effective_length * sizeof (char));
   /* FIXME: must signal an error if len > src_len */
@@ -600,7 +598,7 @@ gh_symbol2newstr (SCM sym, int *lenp)
   /* protect str from GC while we copy off its data */
   scm_protect_object (sym);
 
-  len = SCM_LENGTH (sym);
+  len = SCM_SYMBOL_LENGTH (sym);
 
   ret_str = (char *) scm_must_malloc ((len + 1) * sizeof (char),
 				      "gh_symbol2newstr");

@@ -144,7 +144,7 @@ scm_sym2vcell (SCM sym, SCM thunk, SCM definep)
       SCM * lsymp;
       SCM z;
       scm_sizet hash
-	= scm_string_hash (SCM_SYMBOL_UCHARS (sym), SCM_LENGTH (sym)) % scm_symhash_dim;
+	= scm_string_hash (SCM_SYMBOL_UCHARS (sym), SCM_SYMBOL_LENGTH (sym)) % scm_symhash_dim;
 
       SCM_DEFER_INTS;
       for (lsym = SCM_VELTS (scm_symhash)[hash]; SCM_NIMP (lsym); lsym = SCM_CDR (lsym))
@@ -189,7 +189,7 @@ scm_sym2ovcell_soft (SCM sym, SCM obarray)
 {
   SCM lsym, z;
   scm_sizet hash 
-    = scm_string_hash (SCM_SYMBOL_UCHARS (sym), SCM_LENGTH (sym)) % SCM_LENGTH (obarray);
+    = scm_string_hash (SCM_SYMBOL_UCHARS (sym), SCM_SYMBOL_LENGTH (sym)) % SCM_VECTOR_LENGTH (obarray);
   SCM_REDEFER_INTS;
   for (lsym = SCM_VELTS (obarray)[hash];
        SCM_NIMP (lsym);
@@ -256,7 +256,7 @@ scm_intern_obarray_soft (const char *name,scm_sizet len,SCM obarray,unsigned int
       goto uninterned_symbol;
     }
 
-  hash = raw_hash % SCM_LENGTH (obarray);
+  hash = raw_hash % SCM_VECTOR_LENGTH (obarray);
 
  retry_new_obarray:
   for (lsym = SCM_VELTS (obarray)[hash]; SCM_NIMP (lsym); lsym = SCM_CDR (lsym))
@@ -265,7 +265,7 @@ scm_intern_obarray_soft (const char *name,scm_sizet len,SCM obarray,unsigned int
       SCM a = SCM_CAR (lsym);
       SCM z = SCM_CAR (a);
       unsigned char *tmp = SCM_SYMBOL_UCHARS (z);
-      if (SCM_LENGTH (z) != len)
+      if (SCM_SYMBOL_LENGTH (z) != len)
 	goto trynext;
       for (i = len; i--;)
 	if (((unsigned char *) name)[i] != tmp[i])
@@ -460,7 +460,7 @@ SCM_DEFINE (scm_symbol_to_string, "symbol->string", 1, 0, 0,
 #define FUNC_NAME s_scm_symbol_to_string
 {
   SCM_VALIDATE_SYMBOL (1, s);
-  return scm_makfromstr (SCM_SYMBOL_CHARS (s), SCM_LENGTH (s), 0);
+  return scm_makfromstr (SCM_SYMBOL_CHARS (s), SCM_SYMBOL_LENGTH (s), 0);
 }
 #undef FUNC_NAME
 
@@ -497,8 +497,8 @@ SCM_DEFINE (scm_string_to_symbol, "string->symbol", 1, 0, 0,
   SCM vcell;
   SCM answer;
 
-  SCM_VALIDATE_ROSTRING (1,s);
-  vcell = scm_intern(SCM_ROCHARS(s), (scm_sizet)SCM_LENGTH(s));
+  SCM_VALIDATE_STRING (1,s);
+  vcell = scm_intern (SCM_ROCHARS (s), SCM_STRING_LENGTH (s));
   answer = SCM_CAR (vcell);
   return answer;
 }
@@ -557,7 +557,7 @@ SCM_DEFINE (scm_intern_symbol, "intern-symbol", 2, 0, 0,
   if (SCM_FALSEP (o))
     o = scm_symhash;
   SCM_VALIDATE_VECTOR (1,o);
-  hval = scm_string_hash (SCM_SYMBOL_UCHARS (s), SCM_LENGTH (s)) % SCM_LENGTH (o);
+  hval = scm_string_hash (SCM_SYMBOL_UCHARS (s), SCM_SYMBOL_LENGTH (s)) % SCM_VECTOR_LENGTH (o);
   /* If the symbol is already interned, simply return. */
   SCM_REDEFER_INTS;
   {
@@ -594,7 +594,7 @@ SCM_DEFINE (scm_unintern_symbol, "unintern-symbol", 2, 0, 0,
   if (SCM_FALSEP (o))
     o = scm_symhash;
   SCM_VALIDATE_VECTOR (1,o);
-  hval = scm_string_hash (SCM_SYMBOL_UCHARS (s), SCM_LENGTH (s)) % SCM_LENGTH (o);
+  hval = scm_string_hash (SCM_SYMBOL_UCHARS (s), SCM_SYMBOL_LENGTH (s)) % SCM_VECTOR_LENGTH (o);
   SCM_DEFER_INTS;
   {
     SCM lsym_follow;
@@ -764,7 +764,7 @@ static void
 copy_and_prune_obarray (SCM from, SCM to)
 {
   int i;
-  int length = SCM_LENGTH (from);
+  int length = SCM_VECTOR_LENGTH (from);
   for (i = 0; i < length; ++i)
     {
       SCM head = SCM_VELTS (from)[i]; /* GC protection */
@@ -791,7 +791,7 @@ SCM_DEFINE (scm_builtin_bindings, "builtin-bindings", 0, 0, 0,
 	    "unbound symbols.")
 #define FUNC_NAME s_scm_builtin_bindings
 {
-  int length = SCM_LENGTH (scm_symhash);
+  int length = SCM_VECTOR_LENGTH (scm_symhash);
   SCM obarray = scm_make_vector (SCM_MAKINUM (length), SCM_EOL);
   copy_and_prune_obarray (scm_symhash, obarray);
   return obarray;
@@ -804,7 +804,7 @@ SCM_DEFINE (scm_builtin_weak_bindings, "builtin-weak-bindings", 0, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_builtin_weak_bindings
 {
-  int length = SCM_LENGTH (scm_weak_symhash);
+  int length = SCM_VECTOR_LENGTH (scm_weak_symhash);
   SCM obarray = scm_make_doubly_weak_hash_table (SCM_MAKINUM (length));
   copy_and_prune_obarray (scm_weak_symhash, obarray);
   return obarray;
