@@ -1,3 +1,8 @@
+2003-05-19  Kevin Ryde  <user42@zip.com.au>
+
+	* README (Cross building Guile): Remove --with-cc-for-build in favour
+	of CC_FOR_BUILD.
+
 2003-05-16  Kevin Ryde  <user42@zip.com.au>
 
 	* configure.in (--with-cc-for-build): Remove this option, CC_FOR_BUILD
