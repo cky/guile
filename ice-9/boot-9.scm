@@ -1,6 +1,6 @@
 ;;; installed-scm-file
 
-;;;; Copyright (C) 1995, 1996, 1997, 1998, 1999 Free Software Foundation, Inc.
+;;;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -1106,11 +1106,7 @@
 	  ;; We can't pass this as an argument to module-constructor,
 	  ;; because we need it to close over a pointer to the module
 	  ;; itself.
-	  (set-module-eval-closure! module
-				  (lambda (symbol define?)
-				    (if define?
-					(module-make-local-var! module symbol)
-					(module-variable module symbol))))
+	  (set-module-eval-closure! module (standard-eval-closure module))
 
 	  module))))
 
@@ -1311,6 +1307,9 @@
 ;; like module-local-variable, except search the uses in the 
 ;; case V is not found in M.
 ;;
+;; NOTE: This function is superseded with C code (see modules.c)
+;;;      when using the standard eval closure.
+;;
 (define (module-variable m v)
   (module-search module-local-variable m v))
 
@@ -1464,17 +1463,17 @@
 ;; bindings from the symhash table).
 ;;
 
-(define (make-scm-module)
-  (make-module 1019 '()
-	       (lambda (m s define?)
-		 (let ((bi (and (symbol-interned? #f s)
-				(builtin-variable s))))
-		   (and bi
-			(variable-bound? bi)
-			(begin
-			  (module-add! m s bi)
-			  bi))))))
+(define (scm-module-closure m s define?)
+  (let ((bi (and (symbol-interned? #f s)
+		 (builtin-variable s))))
+    (and bi
+	 (variable-bound? bi)
+	 (begin
+	   (module-add! m s bi)
+	   bi))))
 
+(define (make-scm-module)
+  (make-module 1019 '() scm-module-closure))
 
 
 
