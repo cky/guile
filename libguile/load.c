@@ -148,7 +148,7 @@ static SCM *scm_loc_load_extensions;
    environment variable (i.e. a colon-separated list of strings), and
    prepend the elements to TAIL.  */
 SCM
-scm_parse_path (char *path, SCM tail)
+scm_internal_parse_path (char *path, SCM tail)
 {
   if (path && path[0] != '\0')
     {
@@ -168,6 +168,23 @@ scm_parse_path (char *path, SCM tail)
     }
 
   return tail;
+}
+
+
+SCM_PROC (s_parse_path, "parse-path", 1, 1, 0, scm_parse_path);
+
+SCM
+scm_parse_path (SCM path, SCM tail)
+{
+  SCM_ASSERT (SCM_FALSEP (path) || (SCM_NIMP (path) && SCM_ROSTRINGP (path)),
+	      path,
+	      SCM_ARG1,
+	      s_parse_path);
+  if (SCM_UNBNDP (tail))
+    tail = SCM_EOL;
+  return (SCM_FALSEP (path)
+	  ? tail
+	  : scm_internal_parse_path (SCM_ROCHARS (path), tail));
 }
 
 
@@ -194,39 +211,41 @@ scm_init_load_path ()
 	fprintf (stderr, "guile: warning: SCHEME_LOAD_PATH variable will be"
 		 " removed by Guile 1.4;\n"
 		 "                use GUILE_LOAD_PATH instead\n");
-	path = scm_parse_path (p, path);
+	path = scm_internal_parse_path (p, path);
       }
   }
 
-  path = scm_parse_path (getenv ("GUILE_LOAD_PATH"), path);
+  path = scm_internal_parse_path (getenv ("GUILE_LOAD_PATH"), path);
 
   *scm_loc_load_path = path;
 }
 
+SCM scm_listofnullstr;
 
-/* Search %load-path for a directory containing a file named FILENAME.
+/* Search PATH for a directory containing a file named FILENAME.
    The file must be readable, and not a directory.
    If we find one, return its full filename; otherwise, return #f.
    If FILENAME is absolute, return it unchanged.  */
-SCM_PROC(s_sys_search_load_path, "%search-load-path", 1, 0, 0, scm_sys_search_load_path);
+SCM_PROC(s_search_path, "search-path", 2, 1, 0, scm_search_path);
 SCM 
-scm_sys_search_load_path (filename)
+scm_search_path (path, filename, extensions)
+     SCM path;
      SCM filename;
+     SCM extensions;
 {
-  SCM path = *scm_loc_load_path;
-  SCM exts = *scm_loc_load_extensions;
   char *buf;
   int filename_len;
   int max_path_len;
   int max_ext_len;
 
+  SCM_ASSERT (scm_ilength (path) >= 0, path, SCM_ARG1, s_search_path);
   SCM_ASSERT (SCM_NIMP (filename) && SCM_ROSTRINGP (filename), filename,
-	      SCM_ARG1, s_sys_search_load_path);
-  SCM_ASSERT (scm_ilength (path) >= 0, path, "load path is not a proper list",
-	      s_sys_search_load_path);
-  SCM_ASSERT (scm_ilength (exts) >= 0, exts,
-	      "load extension list is not a proper list",
-	      s_sys_search_load_path);
+	      SCM_ARG2, s_search_path);
+  if (SCM_UNBNDP (extensions))
+    extensions = scm_listofnullstr;
+  else
+    SCM_ASSERT (scm_ilength (extensions) >= 0, extensions,
+		SCM_ARG3, s_search_path);
   filename_len = SCM_ROLENGTH (filename);
 
   /* If FILENAME is absolute, return it unchanged.  */
@@ -243,8 +262,8 @@ scm_sys_search_load_path (filename)
       {
 	SCM elt = SCM_CAR (walk);
 	SCM_ASSERT (SCM_NIMP (elt) && SCM_ROSTRINGP (elt), elt,
-		    "load path is not a list of strings",
-		    s_sys_search_load_path);
+		    "path is not a list of strings",
+		    s_search_path);
 	if (SCM_LENGTH (elt) > max_path_len)
 	  max_path_len = SCM_LENGTH (elt);
       }
@@ -256,12 +275,12 @@ scm_sys_search_load_path (filename)
     SCM walk;
 
     max_ext_len = 0;
-    for (walk = exts; SCM_NIMP (walk); walk = SCM_CDR (walk))
+    for (walk = extensions; SCM_NIMP (walk); walk = SCM_CDR (walk))
       {
 	SCM elt = SCM_CAR (walk);
 	SCM_ASSERT (SCM_NIMP (elt) && SCM_ROSTRINGP (elt), elt,
-		    "load extension list is not a list of strings",
-		    s_sys_search_load_path);
+		    "extension list is not a list of strings",
+		    s_search_path);
 	if (SCM_LENGTH (elt) > max_ext_len)
 	  max_ext_len = SCM_LENGTH (elt);
       }
@@ -270,19 +289,17 @@ scm_sys_search_load_path (filename)
   SCM_DEFER_INTS;
 
   buf = scm_must_malloc (max_path_len + 1 + filename_len + max_ext_len + 1,
-			 s_sys_search_load_path);
+			 s_search_path);
 
   /* Try every path element.  At this point, we know it's a proper
      list of strings.  */
   for (; SCM_NIMP (path); path = SCM_CDR (path))
     {
-      SCM path_elt = SCM_CAR (path);
+      SCM path_elt = SCM_CAR (path), exts;
 
       /* Try every extension.  At this point, we know it's a proper
          list of strings.  */
-      for (exts = *scm_loc_load_extensions;
-	   SCM_NIMP (exts);
-	   exts = SCM_CDR (exts))
+      for (exts = extensions; SCM_NIMP (exts); exts = SCM_CDR (exts))
 	{
 	  SCM ext_elt = SCM_CAR (exts);
 	  int i;
@@ -317,6 +334,30 @@ scm_sys_search_load_path (filename)
   scm_must_free (buf);
   SCM_ALLOW_INTS;
   return SCM_BOOL_F;
+}
+
+
+/* Search %load-path for a directory containing a file named FILENAME.
+   The file must be readable, and not a directory.
+   If we find one, return its full filename; otherwise, return #f.
+   If FILENAME is absolute, return it unchanged.  */
+SCM_PROC(s_sys_search_load_path, "%search-load-path", 1, 0, 0, scm_sys_search_load_path);
+SCM 
+scm_sys_search_load_path (filename)
+     SCM filename;
+{
+  SCM path = *scm_loc_load_path;
+  SCM exts = *scm_loc_load_extensions;
+  SCM_ASSERT (SCM_NIMP (filename) && SCM_ROSTRINGP (filename), filename,
+	      SCM_ARG1, s_sys_search_load_path);
+  SCM_ASSERT (scm_ilength (path) >= 0, path, "load path is not a proper list",
+	      s_sys_search_load_path);
+  SCM_ASSERT (scm_ilength (exts) >= 0, exts,
+	      "load extension list is not a proper list",
+	      s_sys_search_load_path);
+  return scm_search_path (path,
+			  filename,
+			  exts);
 }
 
 
@@ -388,13 +429,14 @@ init_build_info ()
 void
 scm_init_load ()
 {
-  scm_loc_load_path = SCM_CDRLOC(scm_sysintern("%load-path", SCM_EOL));
+  scm_listofnullstr = scm_permanent_object (SCM_LIST1 (scm_nullstr));
+  scm_loc_load_path = SCM_CDRLOC (scm_sysintern ("%load-path", SCM_EOL));
   scm_loc_load_extensions
-    = SCM_CDRLOC(scm_sysintern("%load-extensions",
-			       scm_listify (scm_makfrom0str (""),
-					    scm_makfrom0str (".scm"),
-					    SCM_UNDEFINED)));
-  scm_loc_load_hook = SCM_CDRLOC(scm_sysintern("%load-hook", SCM_BOOL_F));
+    = SCM_CDRLOC (scm_sysintern ("%load-extensions",
+				 scm_listify (scm_makfrom0str (""),
+					      scm_makfrom0str (".scm"),
+					      SCM_UNDEFINED)));
+  scm_loc_load_hook = SCM_CDRLOC (scm_sysintern ("%load-hook", SCM_BOOL_F));
 
   init_build_info ();
 
