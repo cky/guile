@@ -55,17 +55,17 @@
 
 
 /* smob tags for the thread datatypes */
-extern long scm_tc16_thread;
-extern long scm_tc16_mutex;
-extern long scm_tc16_condvar;
+extern scm_bits_t scm_tc16_thread;
+extern scm_bits_t scm_tc16_mutex;
+extern scm_bits_t scm_tc16_condvar;
 
-#define SCM_THREADP(x) (!SCM_IMP (x) && (SCM_TYP16 (x) == scm_tc16_thread))
-#define SCM_THREAD_DATA(x) ((void *) SCM_CELL_WORD_1 (x))
+#define SCM_THREADP(x)      SCM_TYP16_PREDICATE (scm_tc16_thread, x)
+#define SCM_THREAD_DATA(x)  ((void *) SCM_CELL_WORD_1 (x))
 
-#define SCM_MUTEXP(x) (!SCM_IMP (x) && (SCM_TYP16 (x) == scm_tc16_mutex))
-#define SCM_MUTEX_DATA(x) ((void *) SCM_CELL_WORD_1 (x))
+#define SCM_MUTEXP(x)       SCM_TYP16_PREDICATE (scm_tc16_mutex, x))
+#define SCM_MUTEX_DATA(x)   ((void *) SCM_CELL_WORD_1 (x))
 
-#define SCM_CONDVARP(x) (!SCM_IMP (x) && (SCM_TYP16 (x) == scm_tc16_condvar))
+#define SCM_CONDVARP(x)     SCM_TYP16_PREDICATE (scm_tc16_condvar, x)
 #define SCM_CONDVAR_DATA(x) ((void *) SCM_CELL_WORD_1 (x))
 
 /* Initialize implementation specific details of the threads support */

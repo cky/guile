@@ -85,7 +85,7 @@ struct scm_environment_funcs {
 #define SCM_ENVIRONMENT_LOCATION_IMMUTABLE SCM_MAKINUM (1)
 #define SCM_ENVIRONMENT_LOCATION_NO_CELL SCM_BOOL_F
 
-extern long scm_tc16_environment;
+extern scm_bits_t scm_tc16_environment;
 
 #define SCM_ENVIRONMENT_P(x) \
   (!SCM_IMP (x) && SCM_CELL_TYPE (x) == scm_tc16_environment)
@@ -110,7 +110,7 @@ extern long scm_tc16_environment;
 #define SCM_ENVIRONMENT_UNOBSERVE(env, token) \
   ((*(SCM_ENVIRONMENT_FUNCS (env)->unobserve)) (env, token))
 
-extern long scm_tc16_observer;
+extern scm_bits_t scm_tc16_observer;
 
 #define SCM_OBSERVER_P(x) \
   (!SCM_IMP (x) && (SCM_CELL_TYPE (x) == scm_tc16_observer))

@@ -60,7 +60,7 @@
 
 SCM scm_sys_protects[SCM_NUM_PROTECTS];
 
-long scm_tc16_root;
+scm_bits_t scm_tc16_root;
 
 #ifndef USE_THREADS
 struct scm_root_state *scm_root;
@@ -69,7 +69,7 @@ struct scm_root_state *scm_root;
 
 
 static SCM
-mark_root (SCM root)
+root_mark (SCM root)
 {
   scm_root_state *s = SCM_ROOT_STATE (root);
 
@@ -92,7 +92,7 @@ mark_root (SCM root)
 
 
 static int
-print_root (SCM exp,SCM port,scm_print_state *pstate)
+root_print (SCM exp, SCM port, scm_print_state *pstate)
 {
   scm_puts ("#<root ", port);
   scm_intprint(SCM_SEQ (SCM_ROOT_STATE (exp) -> rootcont), 16, port);
@@ -428,8 +428,8 @@ void
 scm_init_root ()
 {
   scm_tc16_root = scm_make_smob_type ("root", sizeof (struct scm_root_state));
-  scm_set_smob_mark (scm_tc16_root, mark_root);
-  scm_set_smob_print (scm_tc16_root, print_root);
+  scm_set_smob_mark (scm_tc16_root, root_mark);
+  scm_set_smob_print (scm_tc16_root, root_print);
 
 #ifndef SCM_MAGIC_SNARFER
 #include "libguile/root.x"

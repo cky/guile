@@ -93,7 +93,7 @@ do { \
 } while (0)
 
 
-static long tc16_guardian;
+static scm_bits_t tc16_guardian;
 
 typedef struct guardian_t
 {

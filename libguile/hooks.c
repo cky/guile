@@ -148,7 +148,7 @@ scm_c_hook_run (scm_c_hook_t *hook, void *data)
  * programs.
  */
 
-long scm_tc16_hook;
+scm_bits_t scm_tc16_hook;
 
 
 static SCM
@@ -172,7 +172,7 @@ make_hook (SCM n_args, const char *subr)
 
 
 static int
-print_hook (SCM hook, SCM port, scm_print_state *pstate)
+hook_print (SCM hook, SCM port, scm_print_state *pstate)
 {
   SCM ls, name;
   scm_puts ("#<hook ", port);
@@ -352,8 +352,7 @@ scm_init_hooks ()
 {
   scm_tc16_hook = scm_make_smob_type ("hook", 0);
   scm_set_smob_mark (scm_tc16_hook, scm_markcdr);
-  scm_set_smob_print (scm_tc16_hook, print_hook);
-
+  scm_set_smob_print (scm_tc16_hook, hook_print);
 #ifndef SCM_MAGIC_SNARFER
 #include "libguile/hooks.x"
 #endif

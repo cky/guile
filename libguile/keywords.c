@@ -55,15 +55,15 @@
 #include "libguile/keywords.h"
 
 
+scm_bits_t scm_tc16_keyword;
+
 static int
-prin_keyword (SCM exp,SCM port,scm_print_state *pstate)
+keyword_print (SCM exp, SCM port, scm_print_state *pstate)
 {
   scm_puts ("#:", port);
   scm_puts(1 + SCM_SYMBOL_CHARS (SCM_CDR (exp)), port);
   return 1;
 }
-
-int scm_tc16_keyword;
 
 
 SCM_DEFINE (scm_make_keyword_from_dash_symbol, "make-keyword-from-dash-symbol", 1, 0, 0, 
@@ -130,8 +130,9 @@ SCM_DEFINE (scm_keyword_dash_symbol, "keyword-dash-symbol", 1, 0, 0,
 void
 scm_init_keywords ()
 {
-  scm_tc16_keyword = scm_make_smob_type_mfpe ("keyword", 0,
-                                             scm_markcdr, NULL, prin_keyword, NULL);
+  scm_tc16_keyword = scm_make_smob_type ("keyword", 0);
+  scm_set_smob_mark (scm_tc16_keyword, scm_markcdr);
+  scm_set_smob_print (scm_tc16_keyword, keyword_print);
 
   scm_keyword_obarray = scm_make_vector (SCM_MAKINUM (256), SCM_EOL);
 #ifndef SCM_MAGIC_SNARFER

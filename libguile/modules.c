@@ -241,7 +241,7 @@ module_variable (SCM module, SCM sym)
   }
 }
 
-SCM scm_eval_closure_tag;
+scm_bits_t scm_tc16_eval_closure;
 
 /* NOTE: This function may be called by a smob application
    or from another C function directly. */
@@ -262,7 +262,7 @@ SCM_DEFINE (scm_standard_eval_closure, "standard-eval-closure", 1, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_standard_eval_closure
 {
-  SCM_RETURN_NEWSMOB (scm_eval_closure_tag, SCM_UNPACK (module));
+  SCM_RETURN_NEWSMOB (scm_tc16_eval_closure, SCM_UNPACK (module));
 }
 #undef FUNC_NAME
 
@@ -274,9 +274,9 @@ scm_init_modules ()
 #endif
   module_make_local_var_x = scm_sysintern ("module-make-local-var!",
 					   SCM_UNDEFINED);
-  scm_eval_closure_tag = scm_make_smob_type ("eval-closure", 0);
-  scm_set_smob_mark (scm_eval_closure_tag, scm_markcdr);
-  scm_set_smob_apply (scm_eval_closure_tag, scm_eval_closure_lookup, 2, 0, 0);
+  scm_tc16_eval_closure = scm_make_smob_type ("eval-closure", 0);
+  scm_set_smob_mark (scm_tc16_eval_closure, scm_markcdr);
+  scm_set_smob_apply (scm_tc16_eval_closure, scm_eval_closure_lookup, 2, 0, 0);
 }
 
 void

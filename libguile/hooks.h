@@ -96,12 +96,12 @@ extern void *scm_c_hook_run (scm_c_hook_t *hook, void *data);
  * Scheme level hooks
  */
 
-#define SCM_HOOKP(x) (!SCM_IMP (x) && (SCM_TYP16 (x) == scm_tc16_hook))
-#define SCM_HOOK_ARITY(hook) (SCM_CELL_WORD_0 (hook) >> 16)
-#define SCM_HOOK_PROCEDURES(hook) SCM_CELL_OBJECT_1 (hook)
-#define SCM_SET_HOOK_PROCEDURES(hook, procs) SCM_SET_CELL_OBJECT_1 ((hook), (procs))
+extern scm_bits_t scm_tc16_hook;
 
-extern long scm_tc16_hook;
+#define SCM_HOOKP(x)			SCM_TYP16_PREDICATE (scm_tc16_hook, x)
+#define SCM_HOOK_ARITY(hook)		(SCM_CELL_WORD_0 (hook) >> 16)
+#define SCM_HOOK_PROCEDURES(hook)	SCM_CELL_OBJECT_1 (hook)
+#define SCM_SET_HOOK_PROCEDURES(hook, procs) SCM_SET_CELL_OBJECT_1 ((hook), (procs))
 
 extern SCM scm_make_hook (SCM n_args);
 extern SCM scm_create_hook (const char* name, int n_args);

@@ -86,7 +86,7 @@
  * long long		llvect
  */
 
-long scm_tc16_array;
+scm_bits_t scm_tc16_array;
 
 /* return the size of an element in a uniform array or 0 if type not
    found.  */
@@ -2540,14 +2540,14 @@ loop:
 
 
 static SCM
-markra (SCM ptr)
+array_mark (SCM ptr)
 {
   return SCM_ARRAY_V (ptr);
 }
 
 
 static scm_sizet
-freera (SCM ptr)
+array_free (SCM ptr)
 {
   scm_must_free (SCM_ARRAY_MEM (ptr));
   return sizeof (scm_array) + SCM_ARRAY_NDIM (ptr) * sizeof (scm_array_dim);
@@ -2556,11 +2556,11 @@ freera (SCM ptr)
 void
 scm_init_unif ()
 {
-  scm_tc16_array = scm_make_smob_type_mfpe ("array", 0,
-					    markra,
-					    freera,
-					    scm_raprin1,
-					    scm_array_equal_p);
+  scm_tc16_array = scm_make_smob_type ("array", 0);
+  scm_set_smob_mark (scm_tc16_array, array_mark);
+  scm_set_smob_free (scm_tc16_array, array_free);
+  scm_set_smob_print (scm_tc16_array, scm_raprin1);
+  scm_set_smob_equalp (scm_tc16_array, scm_array_equal_p);
   scm_add_feature ("array");
 #ifndef SCM_MAGIC_SNARFER
 #include "libguile/unif.x"

@@ -144,11 +144,10 @@ static SCM scm_sym_procname;
 /* {Memoized Source}
  */
 
-long scm_tc16_memoized;
-
+scm_bits_t scm_tc16_memoized;
 
 static int
-prinmemoized (SCM obj,SCM port,scm_print_state *pstate)
+memoized_print (SCM obj, SCM port, scm_print_state *pstate)
 {
   int writingp = SCM_WRITINGP (pstate);
   scm_puts ("#<memoized ", port);
@@ -553,10 +552,10 @@ scm_m_start_stack (SCM exp, SCM env)
  * The debugging evaluator throws these on frame traps.
  */
 
-long scm_tc16_debugobj;
+scm_bits_t scm_tc16_debugobj;
 
 static int
-prindebugobj (SCM obj,SCM port,scm_print_state *pstate)
+debugobj_print (SCM obj, SCM port, scm_print_state *pstate)
 {
   scm_puts ("#<debug-object ", port);
   scm_intprint ((int) SCM_DEBUGOBJ_FRAME (obj), 16, port);
@@ -609,11 +608,12 @@ scm_init_debug ()
 {
   scm_init_opts (scm_debug_options, scm_debug_opts, SCM_N_DEBUG_OPTIONS);
 
-  scm_tc16_memoized = scm_make_smob_type_mfpe ("memoized", 0,
-                                              scm_markcdr, NULL, prinmemoized, NULL);
+  scm_tc16_memoized = scm_make_smob_type ("memoized", 0);
+  scm_set_smob_mark (scm_tc16_memoized, scm_markcdr);
+  scm_set_smob_print (scm_tc16_memoized, memoized_print);
 
-  scm_tc16_debugobj = scm_make_smob_type_mfpe ("debug-object", 0,
-                                              NULL, NULL, prindebugobj, NULL);
+  scm_tc16_debugobj = scm_make_smob_type ("debug-object", 0);
+  scm_set_smob_print (scm_tc16_debugobj, debugobj_print);
 
   scm_sym_procname = SCM_CAR (scm_sysintern ("procname", SCM_UNDEFINED));
   scm_sym_dots = SCM_CAR (scm_sysintern ("...", SCM_UNDEFINED));

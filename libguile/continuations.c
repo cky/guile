@@ -66,7 +66,8 @@
 
 scm_bits_t scm_tc16_continuation;
 
-static SCM continuation_mark (SCM obj)
+static SCM
+continuation_mark (SCM obj)
 {
   scm_contregs *continuation = SCM_CONTREGS (obj);
 
@@ -75,7 +76,8 @@ static SCM continuation_mark (SCM obj)
   return continuation->dynenv;
 }
 
-static scm_sizet continuation_free (SCM obj)
+static scm_sizet
+continuation_free (SCM obj)
 {
   scm_contregs *continuation = SCM_CONTREGS (obj);
   /* stack array size is 1 if num_stack_items is 0 (rootcont).  */
@@ -89,7 +91,8 @@ static scm_sizet continuation_free (SCM obj)
   return bytes_free;
 }
 
-static int continuation_print (SCM obj, SCM port, scm_print_state *state)
+static int
+continuation_print (SCM obj, SCM port, scm_print_state *state)
 {
   scm_contregs *continuation = SCM_CONTREGS (obj);
 
@@ -243,7 +246,6 @@ scm_init_continuations ()
   scm_set_smob_free (scm_tc16_continuation, continuation_free);
   scm_set_smob_print (scm_tc16_continuation, continuation_print);
   scm_set_smob_apply (scm_tc16_continuation, continuation_apply, 0, 0, 1);
-  
 #ifndef SCM_MAGIC_SNARFER
 #include "libguile/continuations.x"
 #endif

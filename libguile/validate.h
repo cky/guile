@@ -1,4 +1,4 @@
-/* $Id: validate.h,v 1.20 2000-11-22 09:16:06 dirk Exp $ */
+/* $Id: validate.h,v 1.21 2000-12-08 17:32:56 kei Exp $ */
 /*	Copyright (C) 1999, 2000 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -283,7 +283,7 @@
 
 #define SCM_VALIDATE_SMOB(pos, obj, type) \
   do { \
-    SCM_ASSERT ((SCM_NIMP (obj) && SCM_TYP16 (obj) == scm_tc16_ ## type), \
+    SCM_ASSERT (SCM_TYP16_PREDICATE (scm_tc16_ ## type, obj), \
                 obj, pos, FUNC_NAME); \
   } while (0)
 

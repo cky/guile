@@ -508,38 +508,41 @@ scm_set_smob_mfpe (long tc,
  */
 
 static int
-freeprint (SCM exp,
-	   SCM port,
-	   scm_print_state *pstate)
+free_print (SCM exp, SCM port, scm_print_state *pstate)
 {
   char buf[100];
 
-  sprintf (buf, "#<freed cell %p; GC missed a reference>", (void *) SCM_UNPACK (exp));
+  sprintf (buf, "#<freed cell %p; GC missed a reference>",
+	   (void *) SCM_UNPACK (exp));
   scm_puts (buf, port);
 
   return 1;
 }
 
-
 void
 scm_smob_prehistory ()
 {
+  scm_bits_t tc;
+
   scm_numsmob = 0;
   scm_smobs = ((scm_smob_descriptor *)
 	       malloc (7 * sizeof (scm_smob_descriptor)));
 
   /* WARNING: These scm_make_smob_type calls must be done in this order */
-  scm_make_smob_type_mfpe ("free", 0,
-                          NULL, NULL, freeprint, NULL);
+  tc = scm_make_smob_type ("free", 0);
+  scm_set_smob_print (tc, free_print);
 
-  scm_make_smob_type_mfpe ("big", 0,     /* freed in gc */
-                          NULL, NULL, scm_bigprint, scm_bigequal);
+  tc = scm_make_smob_type ("big", 0);		/* freed in gc */
+  scm_set_smob_print (tc, scm_bigprint);
+  scm_set_smob_equalp (tc, scm_bigequal);
 
-  scm_make_smob_type_mfpe ("real", 0,    /* freed in gc */
-			   NULL, NULL, scm_print_real, scm_real_equalp);
+  tc = scm_make_smob_type ("real", 0);	/* freed in gc */
+  scm_set_smob_print (tc, scm_print_real);
+  scm_set_smob_equalp (tc, scm_real_equalp);
 
-  scm_make_smob_type_mfpe ("complex", 0,    /* freed in gc */
-			   NULL, NULL, scm_print_complex, scm_complex_equalp);
+  tc = scm_make_smob_type ("complex", 0);	/* freed in gc */
+  scm_set_smob_print (tc, scm_print_complex);
+  scm_set_smob_equalp (tc, scm_complex_equalp);
 }
 
 /*

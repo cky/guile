@@ -82,9 +82,9 @@ extern SCM scm_sys_protects[];
 
 
 
-extern long scm_tc16_root;
+extern scm_bits_t scm_tc16_root;
 
-#define SCM_ROOTP(obj) (SCM_NIMP(obj) && (scm_tc16_root == SCM_TYP16 (obj)))
+#define SCM_ROOTP(obj)       SCM_TYP16_PREDICATE (scm_tc16_root, obj)
 #define SCM_ROOT_STATE(root) ((scm_root_state *) SCM_CELL_WORD_1 (root))
 
 typedef struct scm_root_state

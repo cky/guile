@@ -427,7 +427,7 @@ fport_input_waiting (SCM port)
 
 
 static int 
-prinfport (SCM exp,SCM port,scm_print_state *pstate)
+fport_print (SCM exp, SCM port, scm_print_state *pstate)
 {
   scm_puts ("#<", port);
   scm_print_port_mode (exp, port);    
@@ -733,7 +733,7 @@ scm_make_fptob ()
 {
   long tc = scm_make_port_type ("file", fport_fill_input, fport_write);
   scm_set_port_free            (tc, fport_free);
-  scm_set_port_print           (tc, prinfport);
+  scm_set_port_print           (tc, fport_print);
   scm_set_port_flush           (tc, fport_flush);
   scm_set_port_end_input       (tc, fport_end_input);
   scm_set_port_close           (tc, fport_close);

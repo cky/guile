@@ -164,21 +164,20 @@ extern scm_debug_frame *scm_last_debug_frame;
 /* {Debug Objects}
  */
 
-extern long scm_tc16_debugobj;
+extern scm_bits_t scm_tc16_debugobj;
 
-#define SCM_DEBUGOBJP(x)              (SCM_NIMP (x) \
-                                       && (SCM_TYP16 (x) == scm_tc16_debugobj))
-#define SCM_DEBUGOBJ_FRAME(x)         (SCM_CELL_WORD_1 (x))
-#define SCM_SET_DEBUGOBJ_FRAME(x, f)  (SCM_SET_CELL_WORD_1 (x, f))
+#define SCM_DEBUGOBJP(x)              SCM_TYP16_PREDICATE (scm_tc16_debugobj, x)
+#define SCM_DEBUGOBJ_FRAME(x)         SCM_CELL_WORD_1 (x)
+#define SCM_SET_DEBUGOBJ_FRAME(x, f)  SCM_SET_CELL_WORD_1 (x, f)
 
 /* {Memoized Source}
  */
 
-extern long scm_tc16_memoized;
+extern scm_bits_t scm_tc16_memoized;
 
-#define SCM_MEMOIZEDP(x) (SCM_NIMP(x) && (scm_tc16_memoized == SCM_TYP16 (x)))
-#define SCM_MEMOIZED_EXP(x) SCM_CAR (SCM_CDR (x))
-#define SCM_MEMOIZED_ENV(x) SCM_CDR (SCM_CDR (x))
+#define SCM_MEMOIZEDP(x)	SCM_TYP16_PREDICATE (scm_tc16_memoized, x)
+#define SCM_MEMOIZED_EXP(x)	SCM_CAR (SCM_CELL_OBJECT_1 (x))
+#define SCM_MEMOIZED_ENV(x)	SCM_CDR (SCM_CELL_OBJECT_1 (x))
 
 
 

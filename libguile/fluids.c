@@ -56,7 +56,7 @@
 #include "libguile/validate.h"
 
 static volatile int n_fluids;
-long scm_tc16_fluid;
+scm_bits_t scm_tc16_fluid;
 
 SCM
 scm_make_initial_fluids ()
@@ -96,7 +96,7 @@ scm_copy_fluids (scm_root_state *root_state)
 }
 
 static int
-print_fluid (SCM exp, SCM port, scm_print_state *pstate)
+fluid_print (SCM exp, SCM port, scm_print_state *pstate)
 {
   scm_puts ("#<fluid ", port);
   scm_intprint ((int) SCM_FLUID_NUM (exp), 10, port);
@@ -258,8 +258,8 @@ scm_internal_with_fluids (SCM fluids, SCM values, SCM (*cproc) (), void *cdata)
 void
 scm_init_fluids ()
 {
-  scm_tc16_fluid = scm_make_smob_type_mfpe ("fluid", 0,
-                                           NULL, NULL, print_fluid, NULL);
+  scm_tc16_fluid = scm_make_smob_type ("fluid", 0);
+  scm_set_smob_print (scm_tc16_fluid, fluid_print);
 #ifndef SCM_MAGIC_SNARFER
 #include "libguile/fluids.x"
 #endif

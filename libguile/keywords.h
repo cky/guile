@@ -51,7 +51,8 @@
 
 
 
-extern int scm_tc16_keyword;
+extern scm_bits_t scm_tc16_keyword;
+
 #define SCM_KEYWORDP(X)		(!SCM_IMP (X) && (SCM_CELL_TYPE (X) == scm_tc16_keyword))
 #define SCM_KEYWORDSYM(X)	(SCM_CELL_OBJECT_1 (X))
 

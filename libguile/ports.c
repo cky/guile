@@ -1384,7 +1384,7 @@ scm_ports_prehistory ()
 
 /* Void ports.   */
 
-long scm_tc16_void_port = 0;
+scm_bits_t scm_tc16_void_port = 0;
 
 static int fill_input_void_port (SCM port)
 {

@@ -73,9 +73,9 @@ do { \
 #define SCM_WRITINGP(pstate) ((pstate)->writingp)
 #define SCM_SET_WRITINGP(pstate, x) { (pstate)->writingp = (x); }
 
-#define SCM_PORT_WITH_PS_P(p) (SCM_NIMP(p) && (SCM_TYP16 (p) == scm_tc16_port_with_ps))
+#define SCM_PORT_WITH_PS_P(p)    SCM_TYP16_PREDICATE (scm_tc16_port_with_ps, p)
 #define SCM_PORT_WITH_PS_PORT(p) SCM_CADR (p)
-#define SCM_PORT_WITH_PS_PS(p) SCM_CDDR (p)
+#define SCM_PORT_WITH_PS_PS(p)   SCM_CDDR (p)
 
 #define SCM_COERCE_OUTPORT(p) (SCM_NIMP (p) && SCM_PORT_WITH_PS_P (p) \
 			       ? SCM_PORT_WITH_PS_PORT (p) \
@@ -101,7 +101,7 @@ typedef struct scm_print_state {
 extern SCM scm_print_state_vtable;
 
 /* ? scm or long?  print.h and print.c disagree */
-extern long scm_tc16_port_with_ps;
+extern scm_bits_t scm_tc16_port_with_ps;
 
 extern SCM scm_print_options (SCM setting);
 SCM scm_make_print_state (void);

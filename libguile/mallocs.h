@@ -46,7 +46,7 @@
 #include "libguile/__scm.h"
 
 
-extern int scm_tc16_malloc;
+extern scm_bits_t scm_tc16_malloc;
 
 #define SCM_MALLOCP(X)  (SCM_TYP16 (X) == scm_tc16_malloc)
 #define SCM_MALLOCDATA(obj) ((char *) SCM_CELL_WORD_1 (obj))

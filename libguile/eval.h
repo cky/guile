@@ -172,7 +172,7 @@ extern SCM scm_sym_args;
 
 extern SCM scm_f_apply;
 
-extern long scm_tc16_macro;
+extern scm_bits_t scm_tc16_macro;
 
 /* A resolved global variable reference in the CAR position
  * of a list is stored (in code only) as a pointer to a pair with a 

@@ -1,3 +1,145 @@
+2000-12-08  Keisuke Nishida  <kxn30@po.cwru.edu>
+
+	* tags.h (SCM_TYP16_PREDICATE): New macro.
+	* arbiters.c (scm_tc16_arbiter): Typed as scm_bits_t.
+	(arbiter_print): Renamed from prinarb.
+	(scm_init_arbiters): Don't use scm_make_smob_type_mfpe.
+	* async.c (tc16_async): Typed as scm_bits_t.
+	(SCM_ASYNCP): Use SCM_TYP16_PREDICATE.
+	(async_mark): Renamed from mark_async.
+	(scm_init_async): Updated.
+	* continuations.h (SCM_CONTINUATIONP): Use SCM_TYP16_PREDICATE.
+	* debug.c (scm_tc16_memoized, scm_tc16_debugobj): Typed as scm_bits_t.
+	(memoized_print): Renamed from prinmemoized.
+	(debugobj_print): Renamed from prindebugobj.
+	(scm_init_debug): Don't use scm_make_smob_type_mfpe.
+	* debug.h (scm_tc16_memoized, scm_tc16_debugobj): Typed as scm_bits_t.
+	(SCM_DEBUGOBJP, SCM_MEMOIZEDP): Use SCM_TYP16_PREDICATE.
+	* dynl.c (scm_tc16_dynamic_obj): Typed as scm_bits_t.
+	(dynl_obj_mark): Renamed from mark_dynl_obj.
+	(dynl_obj_print): Renamed from print_dynl_obj.
+	(scm_dynamic_object_p): Use SCM_TYP16_PREDICATE.
+	(scm_init_dynamic_linking): Updated.
+	* dynwind.c (SCM_GUARDSP): Use SCM_TYP16_PREDICATE.
+	(tc16_guards): Typed as scm_bits_t.
+	(guards_print): Renamed from printguards.
+	(scm_init_dynwind): Don't use scm_make_smob_type_mfpe.
+	* environments.c (scm_tc16_environment, scm_tc16_observer):
+	Typed as scm_bits_t.
+	(environment_mark, environment_free, environment_print,
+	observer_mark, observer_print, leaf_environment_mark,
+	leaf_environment_free, leaf_environment_print,
+	eval_environment_mark, eval_environment_free,
+	eval_environment_print, import_environment_mark,
+	import_environment_free, import_environment_print,
+	export_environment_mark, export_environment_free,
+	export_environment_print): Renamed from mark_environment,
+	free_environment, print_environment, mark_observer,
+	print_observer, mark_leaf_environment, free_leaf_environment,
+	print_leaf_environment, mark_eval_environment,
+	free_eval_environment, print_eval_environment,
+	mark_import_environment, free_import_environment,
+	print_import_environment, mark_export_environment,
+	free_export_environment, and print_export_environment, respectively.
+	(free_observer): Removed.
+	(leaf_environment_funcs, eval_environment_funcs,
+	import_environment_funcs, export_environment_funcs,
+	scm_environments_prehistory): Updated.
+	* environments.h (scm_tc16_environment, scm_tc16_observer):
+	Typed as scm_bits_t.
+	* eval.c (scm_tc16_promise): Typed as scm_bits_t.
+	(promise_print): Renamed from prinprom.
+	(scm_promise_p): Use SCM_TYP16_PREDICATE.
+	(scm_init_eval): Updated.
+	* eval.h (scm_tc16_promise): Typed as scm_bits_t.
+	* filesys.c (scm_tc16_dir): Typed as scm_bits_t.
+	(scm_init_filesys): Don't use scm_make_smob_type_mfpe.
+	* filesys.h (scm_tc16_dir): Typed as scm_bits_t.
+	* fluids.c (scm_tc16_fluid): Typed as scm_bits_t.
+	(fluid_print): Renamed from print_fluid.
+	(scm_init_fluids): Don't use scm_make_smob_type_mfpe.
+	* fluids.h (scm_tc16_fluid): Typed as scm_bits_t.
+	* fports.c (fport_print): Renamed from prinfport.
+	(scm_make_fptob): Updated.
+	* guardians.c (tc16_guardian): Typed as scm_bits_t.
+	* hooks.c (scm_tc16_hook): Typed as scm_bits_t.
+	(hook_print): Renamed from print_hook.
+	(scm_init_hooks): Updated.
+	* hooks.h (scm_tc16_hook): Typed as scm_bits_t.
+	(SCM_HOOKP): Use SCM_TYP16_PREDICATE.
+	* keywords.c (scm_tc16_keyword): Typed as scm_bits_t.
+	(keyword_print): Renamed from prin_keyword.
+	(scm_init_keywords): Don't use scm_make_smob_type_mfpe.
+	* keywords.h (scm_tc16_keyword): Typed as scm_bits_t.
+	* macros.c (scm_tc16_macro): Typed as scm_bits_t.
+	(scm_macro_p, scm_macro_type): Use SCM_TYP16_PREDICATE.
+	(scm_init_macros): Don't use scm_make_smob_type_mfpe.
+	* macros.h (scm_tc16_macro): Typed as scm_bits_t.
+	* mallocs.c (scm_tc16_malloc): Typed as scm_bits_t.
+	(malloc_free): Renamed from fmalloc.
+	(malloc_print): Renamed from prinmalloc.
+	(scm_init_mallocs): Don't use scm_make_smob_type_mfpe.
+	* mallocs.h (scm_tc16_malloc): Typed as scm_bits_t.
+	* modules.h (SCM_EVAL_CLOSURE_P): Use SCM_TYP16_PREDICATE.
+	(scm_tc16_eval_closure): Renamed from scm_eval_closure_tag.
+	(scm_standard_eval_closure, scm_init_modules): Updated.
+	* ports.c (scm_tc16_void_port): Typed as scm_bits_t.
+	* print.c (scm_tc16_port_with_ps): Typed as scm_bits_t.
+	(port_with_ps_print): Renamed from print_port_with_ps.
+	(scm_init_print): Updated.
+	* print.h (scm_tc16_port_with_ps): Typed as scm_bits_t.
+	(SCM_PORT_WITH_PS_P): Use SCM_TYP16_PREDICATE.
+	* random.c (scm_tc16_rstate): Typed as scm_bits_t.
+	(rstate_free): Renamed from free_rstate.
+	(scm_init_random): Don't use scm_make_smob_type_mfpe.
+	* random.h (scm_tc16_rstate): Typed as scm_bits_t.
+	(SCM_RSTATEP): Use SCM_TYP16_PREDICATE.
+	* regex-posix.c (scm_tc16_regex): Typed as scm_bits_t.
+	(regex_free): Renamed from free_regex.
+	(scm_init_regex_posix): Don't use scm_make_smob_type_mfpe.
+	* regex-posix.h (scm_tc16_regex): Typed as scm_bits_t.
+	* root.c (scm_tc16_root): Typed as scm_bits_t.
+	(root_mark): Renamed from mark_root.
+	(root_print): Renamed from print_root.
+	(scm_init_root): Updated.
+	* root.h (scm_tc16_root): Typed as scm_bits_t.
+	(SCM_ROOTP): Use SCM_TYP16_PREDICATE.
+	* smob.c (free_print): Renamed from freeprint.
+	(scm_smob_prehistory): Don't use scm_make_smob_type_mfpe.
+	* smob.h (SCM_SMOB_PREDICATE): Use SCM_TYP16_PREDICATE.
+	* srcprop.c (scm_tc16_srcprops): Typed as scm_bits_t.
+	(srcprops_mark): Renamed from marksrcprops.
+	(srcprops_free): Renamed from freesrcprops.
+	(srcprops_print): Renamed from prinsrcprops.
+	(scm_init_srcprop): Don't use scm_make_smob_type_mfpe.
+	* srcprop.h (scm_tc16_srcprops): Typed as scm_bits_t.
+	(SRCPROPSP): Use SCM_TYP16_PREDICATE.
+	* threads.c (scm_tc16_thread, scm_tc16_mutex, scm_tc16_condvar):
+	Typed as scm_bits_t.
+	* threads.h (scm_tc16_thread, scm_tc16_mutex, scm_tc16_condvar):
+	Typed as scm_bits_t.
+	(SCM_THREADP, SCM_MUTEXP, SCM_CONDVARP): Use SCM_TYP16_PREDICATE.
+	* throw.c (tc16_jmpbuffer): Renamed from scm_tc16_jmpbuffer.
+	(make_jmpbuf): Updated.
+	(tc16_lazy_catch): Typed as scm_bits_t.
+	(SCM_JMPBUFP, SCM_LAZY_CATCH_P): Use SCM_TYP16_PREDICATE.
+	(jmpbuffer_print): Renamed from printjb.
+	(lazy_catch_print): Renamed from print_lazy_catch.
+	(scm_init_throw): Don't use scm_make_smob_type_mfpe.
+	* unif.c (scm_tc16_array): Typed as scm_bits_t.
+	(array_mark): Renamed from markra.
+	(array_free): Renamed from freera.
+	(scm_init_unif): Don't use scm_make_smob_type_mfpe.
+	* unif.h (scm_tc16_array): Typed as scm_bits_t.
+	(SCM_ARRAYP): Use SCM_TYP16_PREDICATE.
+	* validate.h (SCM_VALIDATE_SMOB): Use SCM_TYP16_PREDICATE.
+	* variable.c (scm_tc16_variable): Typed as scm_bits_t.
+	(variable_print): Renamed from prin_var.
+	(variable_equalp): Renamed from var_equal.
+	(scm_markvar): Removed.
+	(scm_init_variable): Don't use scm_make_smob_type_mfpe.
+	* variable.h (scm_tc16_variable): Typed as scm_bits_t.
+
 2000-12-08  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* feature.c (scm_add_feature), gh_data.c (gh_symbol2scm), goops.c

@@ -54,9 +54,10 @@
 #include "libguile/validate.h"
 #include "libguile/variable.h"
 
+scm_bits_t scm_tc16_variable;
 
 static int
-prin_var (SCM exp,SCM port,scm_print_state *pstate)
+variable_print (SCM exp, SCM port, scm_print_state *pstate)
 {
   scm_puts ("#<variable ", port);
   scm_intprint(SCM_UNPACK (exp), 16, port);
@@ -75,20 +76,11 @@ prin_var (SCM exp,SCM port,scm_print_state *pstate)
   return 1;
 }
 
-
-static SCM 
-scm_markvar (SCM ptr)
-{
-  return SCM_CDR (ptr);
-}
-
 static SCM
-var_equal (SCM var1, SCM var2)
+variable_equalp (SCM var1, SCM var2)
 {
   return scm_equal_p (SCM_CDR (var1), SCM_CDR (var2));
 }
-
-int scm_tc16_variable;
 
 
 static SCM anonymous_variable_sym;
@@ -232,8 +224,11 @@ SCM_DEFINE (scm_variable_bound_p, "variable-bound?", 1, 0, 0,
 void
 scm_init_variable ()
 {
-  scm_tc16_variable = scm_make_smob_type_mfpe ("variable", 0,
-                                              scm_markvar, NULL, prin_var, var_equal);
+  scm_tc16_variable = scm_make_smob_type ("variable", 0);
+  scm_set_smob_mark (scm_tc16_variable, scm_markcdr);
+  scm_set_smob_print (scm_tc16_variable, variable_print);
+  scm_set_smob_equalp (scm_tc16_variable, variable_equalp);
+
   anonymous_variable_sym = SCM_CAR (scm_sysintern ("anonymous-variable", SCM_UNDEFINED));
 #ifndef SCM_MAGIC_SNARFER
 #include "libguile/variable.x"

@@ -323,6 +323,8 @@ typedef long scm_bits_t;
 #define SCM_TYP16(x) 		(0xffff & SCM_CELL_TYPE (x))
 #define SCM_TYP16S(x) 		(0xfeff & SCM_CELL_TYPE (x))
 
+#define SCM_TYP16_PREDICATE(tag,x) (SCM_NIMP (x) && SCM_TYP16 (x) == (tag))
+
 
 
 #define scm_tc7_symbol		5

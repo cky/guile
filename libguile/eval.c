@@ -3656,7 +3656,7 @@ scm_closure (SCM code, SCM env)
 }
 
 
-long scm_tc16_promise;
+scm_bits_t scm_tc16_promise;
 
 SCM 
 scm_makprom (SCM code)
@@ -3667,7 +3667,7 @@ scm_makprom (SCM code)
 
 
 static int 
-prinprom (SCM exp,SCM port,scm_print_state *pstate)
+promise_print (SCM exp, SCM port, scm_print_state *pstate)
 {
   int writingp = SCM_WRITINGP (pstate);
   scm_puts ("#<promise ", port);
@@ -3708,7 +3708,7 @@ SCM_DEFINE (scm_promise_p, "promise?", 1, 0, 0,
 	    "(@pxref{Delayed evaluation,,,r4rs.info,The Revised^4 Report on Scheme}).")
 #define FUNC_NAME s_scm_promise_p
 {
-  return SCM_BOOL (SCM_SMOB_PREDICATE (scm_tc16_promise, x));
+  return SCM_BOOL (SCM_TYP16_PREDICATE (scm_tc16_promise, x));
 }
 #undef FUNC_NAME
 
@@ -3875,7 +3875,7 @@ scm_init_eval ()
   
   scm_tc16_promise = scm_make_smob_type ("promise", 0);
   scm_set_smob_mark (scm_tc16_promise, scm_markcdr);
-  scm_set_smob_print (scm_tc16_promise, prinprom);
+  scm_set_smob_print (scm_tc16_promise, promise_print);
 
   scm_f_apply = scm_make_subr ("apply", scm_tc7_lsubr_2, scm_apply);
   scm_system_transformer = scm_sysintern ("scm:eval-transformer",

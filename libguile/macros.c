@@ -51,7 +51,7 @@
 #include "libguile/validate.h"
 #include "libguile/macros.h"
 
-long scm_tc16_macro;
+scm_bits_t scm_tc16_macro;
 
 SCM_DEFINE (scm_makacro, "procedure->syntax", 1, 0, 0,
             (SCM code),
@@ -116,7 +116,7 @@ SCM_DEFINE (scm_macro_p, "macro?", 1, 0, 0,
 	    "syntax transformer.")
 #define FUNC_NAME s_scm_macro_p
 {
-  return SCM_BOOL(SCM_NIMP (obj) && SCM_TYP16 (obj) == scm_tc16_macro);
+  return SCM_BOOL (SCM_TYP16_PREDICATE (scm_tc16_macro, obj));
 }
 #undef FUNC_NAME
 
@@ -133,7 +133,7 @@ SCM_DEFINE (scm_macro_type, "macro-type", 1, 0, 0,
 	    "@code{#f} is returned.")
 #define FUNC_NAME s_scm_macro_type
 {
-  if (!(SCM_NIMP (m) && SCM_TYP16 (m) == scm_tc16_macro))
+  if (!SCM_TYP16_PREDICATE (scm_tc16_macro, m))
     return SCM_BOOL_F;
   switch (SCM_CELL_WORD_0 (m) >> 16)
     {
@@ -179,8 +179,8 @@ scm_make_synt (const char *name, SCM (*macroizer) (), SCM (*fcn)() )
 void
 scm_init_macros ()
 {
-  scm_tc16_macro = scm_make_smob_type_mfpe ("macro", 0,
-                                           scm_markcdr, NULL, NULL, NULL);
+  scm_tc16_macro = scm_make_smob_type ("macro", 0);
+  scm_set_smob_mark (scm_tc16_macro, scm_markcdr);
 #ifndef SCM_MAGIC_SNARFER
 #include "libguile/macros.x"
 #endif

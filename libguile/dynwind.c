@@ -135,15 +135,15 @@ SCM_DEFINE (scm_dynamic_wind, "dynamic-wind", 3, 0, 0,
  * smob.  Objects of this type are pushed onto the dynwind chain.
  */
 
-#define SCM_GUARDSP(obj) SCM_SMOB_PREDICATE (tc16_guards, obj)
+#define SCM_GUARDSP(obj) SCM_TYP16_PREDICATE (tc16_guards, obj)
 #define SCM_BEFORE_GUARD(obj) ((scm_guard_t) SCM_CELL_WORD (obj, 1))
 #define SCM_AFTER_GUARD(obj) ((scm_guard_t) SCM_CELL_WORD (obj, 2))
 #define SCM_GUARD_DATA(obj) ((void *) SCM_CELL_WORD (obj, 3))
 
-static long tc16_guards;
+static scm_bits_t tc16_guards;
 
 static int
-printguards (SCM exp, SCM port, scm_print_state *pstate)
+guards_print (SCM exp, SCM port, scm_print_state *pstate)
 {
   scm_puts ("#<guards ", port);
   scm_intprint (SCM_UNPACK (SCM_CDR (exp)), 16, port);
@@ -271,8 +271,8 @@ scm_dowinds (SCM to, long delta)
 void
 scm_init_dynwind ()
 {
-  tc16_guards = scm_make_smob_type_mfpe ("guards", 0,
-                                         NULL, scm_free0, printguards, NULL);
+  tc16_guards = scm_make_smob_type ("guards", 0);
+  scm_set_smob_print (tc16_guards, guards_print);
 #ifndef SCM_MAGIC_SNARFER
 #include "libguile/dynwind.x"
 #endif

@@ -66,13 +66,13 @@
 
 
 /* the jump buffer data structure */
-static int scm_tc16_jmpbuffer;
+static scm_bits_t tc16_jmpbuffer;
 
-#define SCM_JMPBUFP(OBJ) (SCM_NIMP(OBJ) && (SCM_TYP16(OBJ) == scm_tc16_jmpbuffer))
+#define SCM_JMPBUFP(OBJ)	SCM_TYP16_PREDICATE (tc16_jmpbuffer, OBJ)
 
-#define JBACTIVE(OBJ) (SCM_CELL_WORD_0 (OBJ) & (1L << 16L))
-#define ACTIVATEJB(OBJ)  (SCM_SETOR_CAR (OBJ, (1L << 16L)))
-#define DEACTIVATEJB(OBJ)  (SCM_SETAND_CAR (OBJ, ~(1L << 16L)))
+#define JBACTIVE(OBJ)		(SCM_CELL_WORD_0 (OBJ) & (1L << 16L))
+#define ACTIVATEJB(OBJ)		(SCM_SETOR_CAR (OBJ, (1L << 16L)))
+#define DEACTIVATEJB(OBJ)	(SCM_SETAND_CAR (OBJ, ~(1L << 16L)))
 
 #define JBJMPBUF(OBJ)           ((jmp_buf *) SCM_CELL_WORD_1 (OBJ))
 #define SETJBJMPBUF(x,v)        (SCM_SET_CELL_WORD_1 ((x), (v)))
@@ -82,16 +82,14 @@ static int scm_tc16_jmpbuffer;
 #endif
 
 static int
-printjb (SCM exp, SCM port, scm_print_state *pstate)
+jmpbuffer_print (SCM exp, SCM port, scm_print_state *pstate)
 {
   scm_puts ("#<jmpbuffer ", port);
   scm_puts (JBACTIVE(exp) ? "(active) " : "(inactive) ", port);
   scm_intprint((long) JBJMPBUF (exp), 16, port);
-
   scm_putc ('>', port);
   return 1 ;
 }
-
 
 static SCM
 make_jmpbuf (void)
@@ -100,9 +98,9 @@ make_jmpbuf (void)
   SCM_REDEFER_INTS;
   {
 #ifdef DEBUG_EXTENSIONS
-    SCM_NEWSMOB2 (answer, scm_tc16_jmpbuffer, 0, 0);
+    SCM_NEWSMOB2 (answer, tc16_jmpbuffer, 0, 0);
 #else
-    SCM_NEWSMOB (answer, scm_tc16_jmpbuffer, 0);
+    SCM_NEWSMOB (answer, tc16_jmpbuffer, 0);
 #endif
     SETJBJMPBUF(answer, (jmp_buf *)0);
     DEACTIVATEJB(answer);
@@ -218,7 +216,7 @@ scm_internal_catch (SCM tag, scm_catch_body_t body, void *body_data, scm_catch_h
 /* scm_internal_lazy_catch (the guts of lazy catching) */
 
 /* The smob tag for lazy_catch smobs.  */
-static long tc16_lazy_catch;
+static scm_bits_t tc16_lazy_catch;
 
 /* This is the structure we put on the wind list for a lazy catch.  It
    stores the handler function to call, and the data pointer to pass
@@ -238,7 +236,7 @@ struct lazy_catch {
    appear in normal data structures, only in the wind list.  However,
    it might be nice for debugging someday... */
 static int
-print_lazy_catch (SCM closure, SCM port, scm_print_state *pstate)
+lazy_catch_print (SCM closure, SCM port, scm_print_state *pstate)
 {
   struct lazy_catch *c = (struct lazy_catch *) SCM_CELL_WORD_1 (closure);
   char buf[200];
@@ -260,7 +258,7 @@ make_lazy_catch (struct lazy_catch *c)
   SCM_RETURN_NEWSMOB (tc16_lazy_catch, c);
 }
 
-#define SCM_LAZY_CATCH_P(obj) (SCM_SMOB_PREDICATE (tc16_lazy_catch, obj))
+#define SCM_LAZY_CATCH_P(obj) (SCM_TYP16_PREDICATE (tc16_lazy_catch, obj))
 
 
 /* Exactly like scm_internal_catch, except:
@@ -694,18 +692,12 @@ scm_ithrow (SCM key, SCM args, int noreturn)
 void
 scm_init_throw ()
 {
-  scm_tc16_jmpbuffer = scm_make_smob_type_mfpe ("jmpbuffer",
-						0,
-						NULL, /* mark */
-						NULL,
-						printjb,
-						NULL);
+  tc16_jmpbuffer = scm_make_smob_type ("jmpbuffer", 0);
+  scm_set_smob_print (tc16_jmpbuffer, jmpbuffer_print);
 
-  tc16_lazy_catch = scm_make_smob_type_mfpe ("lazy-catch", 0,
-					     NULL,
-					     NULL,
-					     print_lazy_catch,
-					     NULL);
+  tc16_lazy_catch = scm_make_smob_type ("lazy-catch", 0);
+  scm_set_smob_print (tc16_lazy_catch, lazy_catch_print);
+
 #ifndef SCM_MAGIC_SNARFER
 #include "libguile/throw.x"
 #endif

@@ -50,7 +50,7 @@
 
 #define SCM_ASSYNT(_cond, _arg, _pos, _subr) if(!(_cond))scm_wta(_arg, (char *)_pos, _subr);
 
-extern long scm_tc16_macro;
+extern scm_bits_t scm_tc16_macro;
 
 extern SCM scm_makacro (SCM code);
 extern SCM scm_makmacro (SCM code);

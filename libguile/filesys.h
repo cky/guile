@@ -52,7 +52,7 @@
 
 
 
-extern long scm_tc16_dir;
+extern scm_bits_t scm_tc16_dir;
 #define SCM_DIRP(x) (!SCM_IMP (x) && (SCM_TYP16 (x) == scm_tc16_dir))
 #define SCM_OPDIRP(x) (!SCM_IMP (x) && (SCM_CELL_WORD_0 (x) == (scm_tc16_dir | SCM_OPN)))
 

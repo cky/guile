@@ -92,10 +92,10 @@
 #define REG_BASIC 0
 #endif
 
-long scm_tc16_regex;
+scm_bits_t scm_tc16_regex;
 
 static scm_sizet
-free_regex (SCM obj)
+regex_free (SCM obj)
 {
   regfree (SCM_RGX (obj));
   free (SCM_RGX (obj));
@@ -280,8 +280,8 @@ SCM_DEFINE (scm_regexp_exec, "regexp-exec", 2, 2, 0,
 void
 scm_init_regex_posix ()
 {
-  scm_tc16_regex = scm_make_smob_type_mfpe ("regexp", sizeof (regex_t),
-                                            NULL, free_regex, NULL, NULL);
+  scm_tc16_regex = scm_make_smob_type ("regexp", sizeof (regex_t));
+  scm_set_smob_free (scm_tc16_regex, regex_free);
 
   /* Compilation flags.  */
   scm_sysintern ("regexp/basic", scm_long2num (REG_BASIC));

@@ -53,7 +53,7 @@
 
 /* Variables 
  */
-extern int scm_tc16_variable;
+extern scm_bits_t scm_tc16_variable;
 
 #define SCM_VARVCELL(V) 	SCM_CDR(V)
 #define SCM_VARIABLEP(X)   	(!SCM_IMP (X) && SCM_CELL_TYPE (X) == scm_tc16_variable)

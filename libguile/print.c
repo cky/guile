@@ -1079,12 +1079,12 @@ SCM_DEFINE (scm_write_char, "write-char", 1, 1, 0,
  * escaped to Scheme and thus has to be freed by the GC.
  */
 
-long scm_tc16_port_with_ps;
+scm_bits_t scm_tc16_port_with_ps;
 
 /* Print exactly as the port itself would */
 
 static int
-print_port_with_ps (SCM obj, SCM port, scm_print_state *pstate)
+port_with_ps_print (SCM obj, SCM port, scm_print_state *pstate)
 {
   obj = SCM_PORT_WITH_PS_PORT (obj);
   return scm_ptobs[SCM_PTOBNUM (obj)].print (obj, port, pstate);
@@ -1146,7 +1146,7 @@ scm_init_print ()
   /* Don't want to bind a wrapper class in GOOPS, so pass 0 as arg1. */
   scm_tc16_port_with_ps = scm_make_smob_type (0, 0);
   scm_set_smob_mark (scm_tc16_port_with_ps, scm_markcdr);
-  scm_set_smob_print (scm_tc16_port_with_ps, print_port_with_ps);
+  scm_set_smob_print (scm_tc16_port_with_ps, port_with_ps_print);
   
 #ifndef SCM_MAGIC_SNARFER
 #include "libguile/print.x"

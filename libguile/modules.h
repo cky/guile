@@ -73,13 +73,14 @@
 #define SCM_MODULE_EVAL_CLOSURE(module) \
   SCM_PACK (SCM_STRUCT_DATA (module)[scm_module_index_eval_closure])
 
-#define SCM_EVAL_CLOSURE_P(OBJ)	SCM_SMOB_PREDICATE (scm_eval_closure_tag, OBJ)
+extern scm_bits_t scm_tc16_eval_closure;
+
+#define SCM_EVAL_CLOSURE_P(x)	SCM_TYP16_PREDICATE (scm_tc16_eval_closure, x)
 
 
 
 extern SCM scm_module_system_booted_p;
 extern SCM scm_module_tag;
-extern SCM scm_eval_closure_tag;
 
 extern SCM scm_the_root_module (void);
 extern SCM scm_selected_module (void);

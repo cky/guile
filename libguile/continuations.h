@@ -74,8 +74,7 @@ typedef struct
   SCM_STACKITEM stack[1];    /* copied stack of size num_stack_items.  */ 
 } scm_contregs;
 
-#define SCM_CONTINUATIONP(x)\
-   (SCM_NIMP (x) && (SCM_TYP16 (x) == scm_tc16_continuation))
+#define SCM_CONTINUATIONP(x)	SCM_TYP16_PREDICATE (scm_tc16_continuation, x)
 
 #define SCM_CONTREGS(x)		((scm_contregs *) SCM_CELL_WORD_1 (x))
 

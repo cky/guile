@@ -110,15 +110,14 @@ static unsigned int scm_desired_switch_rate = 0;
 int scm_asyncs_pending_p = 0;
 #endif
 
-static long tc16_async;
+static scm_bits_t tc16_async;
 
 
 
 /* cmm: this has SCM_ prefix because SCM_MAKE_VALIDATE expects it.
    this is ugly.  */
-#define SCM_ASYNCP(X) (SCM_NIMP(X) && (tc16_async == SCM_TYP16 (X)))
-
-#define VALIDATE_ASYNC(pos,a) SCM_MAKE_VALIDATE(pos, a, ASYNCP)
+#define SCM_ASYNCP(X)		SCM_TYP16_PREDICATE (tc16_async, X)
+#define VALIDATE_ASYNC(pos,a)	SCM_MAKE_VALIDATE(pos, a, ASYNCP)
 
 #define ASYNC_GOT_IT(X)        (SCM_CELL_WORD_0 (X) >> 16)
 #define SET_ASYNC_GOT_IT(X, V) (SCM_SET_CELL_WORD_0 ((X), SCM_TYP16 (X) | ((V) << 16)))
@@ -280,7 +279,7 @@ scm_async_click ()
 
 
 static SCM
-mark_async (SCM obj)
+async_mark (SCM obj)
 {
   return ASYNC_THUNK (obj);
 }
@@ -460,7 +459,7 @@ scm_init_async ()
 {
   scm_asyncs = SCM_EOL;
   tc16_async = scm_make_smob_type ("async", 0);
-  scm_set_smob_mark (tc16_async, mark_async);
+  scm_set_smob_mark (tc16_async, async_mark);
 
 #ifndef SCM_MAGIC_SNARFER
 #include "libguile/async.x"

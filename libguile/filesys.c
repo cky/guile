@@ -676,7 +676,7 @@ SCM_DEFINE (scm_rmdir, "rmdir", 1, 0, 0,
 /* {Examining Directories}
  */
 
-long scm_tc16_dir;
+scm_bits_t scm_tc16_dir;
 
 SCM_DEFINE (scm_directory_stream_p, "directory-stream?", 1, 0, 0, 
             (SCM obj),
@@ -1414,8 +1414,9 @@ SCM_DEFINE (scm_basename, "basename", 1, 1, 0,
 void
 scm_init_filesys ()
 {
-  scm_tc16_dir = scm_make_smob_type_mfpe ("directory", 0,
-                                         NULL, scm_dir_free,scm_dir_print, NULL);
+  scm_tc16_dir = scm_make_smob_type ("directory", 0);
+  scm_set_smob_free (scm_tc16_dir, scm_dir_free);
+  scm_set_smob_print (scm_tc16_dir, scm_dir_print);
 
   scm_dot_string = scm_permanent_object (scm_makfrom0str ("."));
   

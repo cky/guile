@@ -38,11 +38,11 @@
 
 
 
-
+scm_bits_t scm_tc16_malloc;
 
 
 static scm_sizet
-fmalloc(SCM ptr)
+malloc_free (SCM ptr)
 {
   if (SCM_MALLOCDATA (ptr))
     free (SCM_MALLOCDATA (ptr));
@@ -51,7 +51,7 @@ fmalloc(SCM ptr)
 
 
 static int
-prinmalloc (SCM exp,SCM port,scm_print_state *pstate)
+malloc_print (SCM exp, SCM port, scm_print_state *pstate)
 {
   scm_puts("#<malloc ", port);
   scm_intprint (SCM_CELL_WORD_1 (exp), 16, port);
@@ -60,10 +60,6 @@ prinmalloc (SCM exp,SCM port,scm_print_state *pstate)
 }
 
 
-int scm_tc16_malloc;
-
-
-
 SCM
 scm_malloc_obj (scm_sizet n)
 {
@@ -78,12 +74,12 @@ scm_malloc_obj (scm_sizet n)
 
 
 
-
 void 
 scm_init_mallocs ()
 {
-  scm_tc16_malloc = scm_make_smob_type_mfpe ("malloc", 0,
-                                            NULL, fmalloc, prinmalloc, NULL);
+  scm_tc16_malloc = scm_make_smob_type ("malloc", 0);
+  scm_set_smob_free (scm_tc16_malloc, malloc_free);
+  scm_set_smob_print (scm_tc16_malloc, malloc_print);
 }
 
 /*

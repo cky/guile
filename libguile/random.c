@@ -329,7 +329,7 @@ scm_c_random_bignum (scm_rstate *state, SCM m)
  * Scheme level representation of random states.
  */
  
-long scm_tc16_rstate;
+scm_bits_t scm_tc16_rstate;
 
 static SCM
 make_rstate (scm_rstate *state)
@@ -338,7 +338,7 @@ make_rstate (scm_rstate *state)
 }
 
 static scm_sizet
-free_rstate (SCM rstate)
+rstate_free (SCM rstate)
 {
   free (SCM_RSTATE (rstate));
   return scm_the_rng.rstate_size;
@@ -577,8 +577,8 @@ scm_init_random ()
   };
   scm_the_rng = rng;
   
-  scm_tc16_rstate = scm_make_smob_type_mfpe ("random-state", 0,
-                                            NULL, free_rstate, NULL, NULL);
+  scm_tc16_rstate = scm_make_smob_type ("random-state", 0);
+  scm_set_smob_free (scm_tc16_rstate, rstate_free);
 
   for (m = 1; m <= 0x100; m <<= 1)
     for (i = m >> 1; i < m; ++i)

@@ -321,7 +321,7 @@ sysdep_dynl_func (const char *symbol,
 
 #endif
 
-int scm_tc16_dynamic_obj;
+scm_bits_t scm_tc16_dynamic_obj;
 
 #define DYNL_FILENAME(x)        (SCM_CELL_OBJECT_1 (x))
 #define DYNL_HANDLE(x)          ((void *) SCM_CELL_WORD_2 (x))
@@ -329,13 +329,14 @@ int scm_tc16_dynamic_obj;
 
 
 static SCM
-mark_dynl_obj (SCM ptr)
+dynl_obj_mark (SCM ptr)
 {
   return DYNL_FILENAME (ptr);
 }
 
+
 static int
-print_dynl_obj (SCM exp,SCM port,scm_print_state *pstate)
+dynl_obj_print (SCM exp, SCM port, scm_print_state *pstate)
 {
   scm_puts ("#<dynamic-object ", port);
   scm_iprin1 (DYNL_FILENAME (exp), port, pstate);
@@ -369,7 +370,7 @@ SCM_DEFINE (scm_dynamic_object_p, "dynamic-object?", 1, 0, 0,
 	    "otherwise.")
 #define FUNC_NAME s_scm_dynamic_object_p
 {
-  return SCM_BOOL (SCM_SMOB_PREDICATE (scm_tc16_dynamic_obj, obj));
+  return SCM_BOOL (SCM_TYP16_PREDICATE (scm_tc16_dynamic_obj, obj));
 }
 #undef FUNC_NAME
 
@@ -513,8 +514,8 @@ void
 scm_init_dynamic_linking ()
 {
   scm_tc16_dynamic_obj = scm_make_smob_type ("dynamic-object", 0);
-  scm_set_smob_mark (scm_tc16_dynamic_obj, mark_dynl_obj);
-  scm_set_smob_print (scm_tc16_dynamic_obj, print_dynl_obj);
+  scm_set_smob_mark (scm_tc16_dynamic_obj, dynl_obj_mark);
+  scm_set_smob_print (scm_tc16_dynamic_obj, dynl_obj_print);
   sysdep_dynl_init ();
 #ifndef SCM_MAGIC_SNARFER
 #include "libguile/dynl.x"

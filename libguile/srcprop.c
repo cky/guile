@@ -82,13 +82,13 @@ SCM scm_sym_line;
 SCM scm_sym_column;
 SCM scm_sym_breakpoint;
 
-long scm_tc16_srcprops;
+scm_bits_t scm_tc16_srcprops;
 static scm_srcprops_chunk *srcprops_chunklist = 0;
 static scm_srcprops *srcprops_freelist = 0;
 
 
 static SCM
-marksrcprops (SCM obj)
+srcprops_mark (SCM obj)
 {
   scm_gc_mark (SRCPROPFNAME (obj));
   scm_gc_mark (SRCPROPCOPY (obj));
@@ -97,7 +97,7 @@ marksrcprops (SCM obj)
 
 
 static scm_sizet
-freesrcprops (SCM obj)
+srcprops_free (SCM obj)
 {
   *((scm_srcprops **) SCM_CELL_WORD_1 (obj)) = srcprops_freelist;
   srcprops_freelist = (scm_srcprops *) SCM_CELL_WORD_1 (obj);
@@ -106,7 +106,7 @@ freesrcprops (SCM obj)
 
 
 static int
-prinsrcprops (SCM obj,SCM port,scm_print_state *pstate)
+srcprops_print (SCM obj, SCM port, scm_print_state *pstate)
 {
   int writingp = SCM_WRITINGP (pstate);
   scm_puts ("#<srcprops ", port);
@@ -323,8 +323,11 @@ SCM_DEFINE (scm_set_source_property_x, "set-source-property!", 3, 0, 0,
 void
 scm_init_srcprop ()
 {
-  scm_tc16_srcprops = scm_make_smob_type_mfpe ("srcprops", 0,
-                                         marksrcprops, freesrcprops, prinsrcprops, NULL);
+  scm_tc16_srcprops = scm_make_smob_type ("srcprops", 0);
+  scm_set_smob_mark (scm_tc16_srcprops, srcprops_mark);
+  scm_set_smob_free (scm_tc16_srcprops, srcprops_free);
+  scm_set_smob_print (scm_tc16_srcprops, srcprops_print);
+
   scm_source_whash = scm_make_weak_key_hash_table (SCM_MAKINUM (2047));
 
   scm_sym_filename = SCM_CAR (scm_sysintern ("filename", SCM_UNDEFINED));

@@ -60,7 +60,7 @@
  * SCM_DEFER_INTS). 
  */
 
-static long scm_tc16_arbiter;
+static scm_bits_t scm_tc16_arbiter;
 
 
 #define SCM_ARB_LOCKED(arb)  ((SCM_CELL_WORD_0 (arb)) & (1L << 16))
@@ -68,7 +68,7 @@ static long scm_tc16_arbiter;
 #define SCM_UNLOCK_ARB(arb)  (SCM_SET_CELL_WORD_0 ((arb), scm_tc16_arbiter));
 
 static int 
-prinarb (SCM exp, SCM port, scm_print_state *pstate)
+arbiter_print (SCM exp, SCM port, scm_print_state *pstate)
 {
   scm_puts ("#<arbiter ", port);
   if (SCM_ARB_LOCKED (exp))
@@ -126,8 +126,9 @@ SCM_DEFINE (scm_release_arbiter, "release-arbiter", 1, 0, 0,
 void
 scm_init_arbiters ()
 {
-  scm_tc16_arbiter = scm_make_smob_type_mfpe ("arbiter", 0,
-                                              scm_markcdr, NULL, prinarb, NULL);
+  scm_tc16_arbiter = scm_make_smob_type ("arbiter", 0);
+  scm_set_smob_mark (scm_tc16_arbiter, scm_markcdr);
+  scm_set_smob_print (scm_tc16_arbiter, arbiter_print);
 #ifndef SCM_MAGIC_SNARFER
 #include "libguile/arbiters.x"
 #endif
