@@ -120,7 +120,7 @@ SCM_DEFINE (scm_class_of, "class-of", 1, 0, 0,
 	  return scm_class_symbol;
 	case scm_tc7_vector:
 	case scm_tc7_wvect:
-#ifdef HAVE_ARRAYS
+#ifdef SCM_HAVE_ARRAYS
 	case scm_tc7_bvect:
 	case scm_tc7_byvect:
 	case scm_tc7_svect:
