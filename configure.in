@@ -61,6 +61,8 @@ AC_CHECK_FUNC(connect)
 if test $ac_cv_func_connect = no; then
     AC_CHECK_LIB(socket, connect)
 fi
+AC_CHECK_LIB(termcap, tgoto)
+AC_CHECK_LIB(readline, readline)
 
 # Checks for dynamic linking
 
