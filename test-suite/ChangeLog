@@ -1,3 +1,23 @@
+2003-10-07  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* lib.scm (exception:missing-expression): New.
+
+	* tests/dynamic-scope.test, tests/eval.test,
+	tests/r5rs_pitfall.test, tests/srfi-17.test, tests/syncase.test:
+	Wrap tests in module (test-suite test-<file-name without .test>),
+	following a practice that was used on a couple of files already.
+
+	* tests/dynamic-scope.test (exception:duplicate-binding,
+	exception:bad-binding): New.
+
+	* tests/dynamic-scope.test, tests/srfi-17.test, tests/syntax.test:
+	Execute syntactically wrong tests using eval.  With the upcoming
+	new memoizer this is necessary in order to postpone the syntax
+	check to the actual evaluation of the syntactically wrong form.
+
+	* tests/syntax.test: Added some test cases and modified one test
+	case.
+
 2003-10-02  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/ports.test (call-with-output-string): Test proc closing port.

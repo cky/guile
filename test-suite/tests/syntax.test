@@ -40,6 +40,20 @@
 
 (with-test-prefix "expressions"
 
+  (with-test-prefix "Bad argument list"
+
+    (pass-if-exception "improper argument list of length 1"
+      exception:wrong-num-args
+      (eval '(let ((foo (lambda (x y) #t)))
+	       (foo . 1))
+	    (interaction-environment)))
+
+    (pass-if-exception "improper argument list of length 2"
+      exception:wrong-num-args
+      (eval '(let ((foo (lambda (x y) #t)))
+	       (foo 1 . 2))
+	    (interaction-environment))))
+
   (with-test-prefix "missing or extra expression"
 
     ;; R5RS says:
@@ -51,7 +65,8 @@
     ;; Fixed on 2001-3-3
     (pass-if-exception "empty parentheses \"()\""
       exception:missing/extra-expr
-      ())))
+      (eval '()
+	    (interaction-environment)))))
 
 (with-test-prefix "quote"
   #t)
@@ -87,15 +102,18 @@
 
     (pass-if-exception "(lambda)"
       exception:bad-formals
-      (lambda))
+      (eval '(lambda)
+	    (interaction-environment)))
 
     (pass-if-exception "(lambda . \"foo\")"
       exception:bad-formals
-      (lambda . "foo"))
+      (eval '(lambda . "foo")
+	    (interaction-environment)))
 
     (pass-if-exception "(lambda \"foo\")"
       exception:bad-formals
-      (lambda "foo"))
+      (eval '(lambda "foo")
+	    (interaction-environment)))
 
     (pass-if-exception "(lambda \"foo\" #f)"
       exception:bad-formals
@@ -104,37 +122,44 @@
 
     (pass-if-exception "(lambda (x 1) 2)"
       exception:bad-formals
-      (lambda (x 1) 2))
+      (eval '(lambda (x 1) 2)
+	    (interaction-environment)))
 
     (pass-if-exception "(lambda (1 x) 2)"
       exception:bad-formals
-      (lambda (1 x) 2))
+      (eval '(lambda (1 x) 2)
+	    (interaction-environment)))
 
     (pass-if-exception "(lambda (x \"a\") 2)"
       exception:bad-formals
-      (lambda (x "a") 2))
+      (eval '(lambda (x "a") 2)
+	    (interaction-environment)))
 
     (pass-if-exception "(lambda (\"a\" x) 2)"
       exception:bad-formals
-      (lambda ("a" x) 2)))
+      (eval '(lambda ("a" x) 2)
+	    (interaction-environment))))
 
   (with-test-prefix "duplicate formals"
 
     ;; Fixed on 2001-3-3
     (pass-if-exception "(lambda (x x) 1)"
       exception:duplicate-formals
-      (lambda (x x) 1))
+      (eval '(lambda (x x) 1)
+	    (interaction-environment)))
 
     ;; Fixed on 2001-3-3
     (pass-if-exception "(lambda (x x x) 1)"
       exception:duplicate-formals
-      (lambda (x x x) 1)))
+      (eval '(lambda (x x x) 1)
+	    (interaction-environment))))
 
   (with-test-prefix "bad body"
 
     (pass-if-exception "(lambda ())"
       exception:bad-body
-      (lambda ()))))
+      (eval '(lambda ())
+	    (interaction-environment)))))
 
 (with-test-prefix "let"
 
@@ -148,33 +173,40 @@
 
     (pass-if-exception "(let)"
       exception:bad-bindings
-      (let))
+      (eval '(let)
+	    (interaction-environment)))
 
     (pass-if-exception "(let 1)"
       exception:bad-bindings
-      (let 1))
+      (eval '(let 1)
+	    (interaction-environment)))
 
     (pass-if-exception "(let (x))"
       exception:bad-bindings
-      (let (x)))
+      (eval '(let (x))
+	    (interaction-environment)))
 
     ;; FIXME:  Wouldn't one rather expect a 'bad bindings' error?
     ;; (Even although the body is bad as well...)
     (pass-if-exception "(let ((x)))"
       exception:bad-body
-      (let ((x))))
+      (eval '(let ((x)))
+	    (interaction-environment)))
 
     (pass-if-exception "(let (x) 1)"
       exception:bad-bindings
-      (let (x) 1))
+      (eval '(let (x) 1)
+	    (interaction-environment)))
 
     (pass-if-exception "(let ((x)) 3)"
       exception:bad-bindings
-      (let ((x)) 3))
+      (eval '(let ((x)) 3)
+	    (interaction-environment)))
 
     (pass-if-exception "(let ((x 1) y) x)"
       exception:bad-bindings
-      (let ((x 1) y) x))
+      (eval '(let ((x 1) y) x)
+	    (interaction-environment)))
 
     (pass-if-exception "(let ((1 2)) 3)"
       exception:bad-var
@@ -185,17 +217,20 @@
 
     (pass-if-exception "(let ((x 1) (x 2)) x)"
       exception:duplicate-bindings
-      (let ((x 1) (x 2)) x)))
+      (eval '(let ((x 1) (x 2)) x)
+	    (interaction-environment))))
 
   (with-test-prefix "bad body"
 
     (pass-if-exception "(let ())"
       exception:bad-body
-      (let ()))
+      (eval '(let ())
+	    (interaction-environment)))
 
     (pass-if-exception "(let ((x 1)))"
       exception:bad-body
-      (let ((x 1))))))
+      (eval '(let ((x 1)))
+	    (interaction-environment)))))
 
 (with-test-prefix "named let"
 
@@ -209,17 +244,20 @@
 
     (pass-if-exception "(let x (y))"
       exception:bad-bindings
-      (let x (y))))
+      (eval '(let x (y))
+	    (interaction-environment))))
 
   (with-test-prefix "bad body"
 
     (pass-if-exception "(let x ())"
       exception:bad-body
-      (let x ()))
+      (eval '(let x ())
+	    (interaction-environment)))
 
     (pass-if-exception "(let x ((y 1)))"
       exception:bad-body
-      (let x ((y 1))))))
+      (eval '(let x ((y 1)))
+	    (interaction-environment)))))
 
 (with-test-prefix "let*"
 
@@ -237,27 +275,33 @@
 
     (pass-if-exception "(let*)"
       exception:bad-bindings
-      (let*))
+      (eval '(let*)
+	    (interaction-environment)))
 
     (pass-if-exception "(let* 1)"
       exception:bad-bindings
-      (let* 1))
+      (eval '(let* 1)
+	    (interaction-environment)))
 
     (pass-if-exception "(let* (x))"
       exception:bad-bindings
-      (let* (x)))
+      (eval '(let* (x))
+	    (interaction-environment)))
 
     (pass-if-exception "(let* (x) 1)"
       exception:bad-bindings
-      (let* (x) 1))
+      (eval '(let* (x) 1)
+	    (interaction-environment)))
 
     (pass-if-exception "(let* ((x)) 3)"
       exception:bad-bindings
-      (let* ((x)) 3))
+      (eval '(let* ((x)) 3)
+	    (interaction-environment)))
 
     (pass-if-exception "(let* ((x 1) y) x)"
       exception:bad-bindings
-      (let* ((x 1) y) x))
+      (eval '(let* ((x 1) y) x)
+	    (interaction-environment)))
 
     (pass-if-exception "(let* x ())"
       exception:bad-bindings
@@ -278,11 +322,13 @@
 
     (pass-if-exception "(let* ())"
       exception:bad-body
-      (let* ()))
+      (eval '(let* ())
+	    (interaction-environment)))
 
     (pass-if-exception "(let* ((x 1)))"
       exception:bad-body
-      (let* ((x 1))))))
+      (eval '(let* ((x 1)))
+	    (interaction-environment)))))
 
 (with-test-prefix "letrec"
 
@@ -297,27 +343,33 @@
 
     (pass-if-exception "(letrec)"
       exception:bad-bindings
-      (letrec))
+      (eval '(letrec)
+	    (interaction-environment)))
 
     (pass-if-exception "(letrec 1)"
       exception:bad-bindings
-      (letrec 1))
+      (eval '(letrec 1)
+	    (interaction-environment)))
 
     (pass-if-exception "(letrec (x))"
       exception:bad-bindings
-      (letrec (x)))
+      (eval '(letrec (x))
+	    (interaction-environment)))
 
     (pass-if-exception "(letrec (x) 1)"
       exception:bad-bindings
-      (letrec (x) 1))
+      (eval '(letrec (x) 1)
+	    (interaction-environment)))
 
     (pass-if-exception "(letrec ((x)) 3)"
       exception:bad-bindings
-      (letrec ((x)) 3))
+      (eval '(letrec ((x)) 3)
+	    (interaction-environment)))
 
     (pass-if-exception "(letrec ((x 1) y) x)"
       exception:bad-bindings
-      (letrec ((x 1) y) x))
+      (eval '(letrec ((x 1) y) x)
+	    (interaction-environment)))
 
     (pass-if-exception "(letrec x ())"
       exception:bad-bindings
@@ -338,17 +390,20 @@
 
     (pass-if-exception "(letrec ((x 1) (x 2)) x)"
       exception:duplicate-bindings
-      (letrec ((x 1) (x 2)) x)))
+      (eval '(letrec ((x 1) (x 2)) x)
+	    (interaction-environment))))
 
   (with-test-prefix "bad body"
 
     (pass-if-exception "(letrec ())"
       exception:bad-body
-      (letrec ()))
+      (eval '(letrec ())
+	    (interaction-environment)))
 
     (pass-if-exception "(letrec ((x 1)))"
       exception:bad-body
-      (letrec ((x 1))))))
+      (eval '(letrec ((x 1)))
+	    (interaction-environment)))))
 
 (with-test-prefix "if"
 
@@ -370,41 +425,56 @@
 
     (pass-if-exception "(cond)"
       exception:bad/missing-clauses
-      (cond))
+      (eval '(cond)
+	    (interaction-environment)))
 
     (pass-if-exception "(cond #t)"
       exception:bad/missing-clauses
-      (cond #t))
+      (eval '(cond #t)
+	    (interaction-environment)))
 
     (pass-if-exception "(cond 1)"
       exception:bad/missing-clauses
-      (cond 1))
+      (eval '(cond 1)
+	    (interaction-environment)))
 
     (pass-if-exception "(cond 1 2)"
       exception:bad/missing-clauses
-      (cond 1 2))
+      (eval '(cond 1 2)
+	    (interaction-environment)))
 
     (pass-if-exception "(cond 1 2 3)"
       exception:bad/missing-clauses
-      (cond 1 2 3))
+      (eval '(cond 1 2 3)
+	    (interaction-environment)))
 
     (pass-if-exception "(cond 1 2 3 4)"
       exception:bad/missing-clauses
-      (cond 1 2 3 4))
+      (eval '(cond 1 2 3 4)
+	    (interaction-environment)))
 
     (pass-if-exception "(cond ())"
       exception:bad/missing-clauses
-      (cond ()))
+      (eval '(cond ())
+	    (interaction-environment)))
 
     (pass-if-exception "(cond () 1)"
       exception:bad/missing-clauses
-      (cond () 1))
+      (eval '(cond () 1)
+	    (interaction-environment)))
 
     (pass-if-exception "(cond (1) 1)"
       exception:bad/missing-clauses
-      (cond (1) 1))))
+      (eval '(cond (1) 1)
+	    (interaction-environment)))))
 
 (with-test-prefix "cond =>"
+
+  (with-test-prefix "cond is hygienic"
+
+    (expect-fail "bound '=> is handled correctly"
+      (false-if-exception
+       (eq? (let ((=> #f)) (cond (#t => 'ok))) 'ok))))
 
   (with-test-prefix "else is handled correctly"
 
@@ -416,11 +486,11 @@
       (let* ((=> 'foo))
 	(eq? (cond (else => identity)) identity))))
 
-  (with-test-prefix "bad formals"
+  (with-test-prefix "wrong number of arguments"
 
-    (pass-if-exception "=> (lambda (x 1) 2)"
-      exception:bad-formals
-      (cond (1 => (lambda (x 1) 2))))))
+    (pass-if-exception "=> (lambda (x y) #t)"
+      exception:wrong-num-args
+      (cond (1 => (lambda (x y) #t))))))
 
 (with-test-prefix "case"
 
@@ -428,35 +498,43 @@
 
     (pass-if-exception "(case)"
       exception:bad/missing-clauses
-      (case))
+      (eval '(case)
+	    (interaction-environment)))
 
     (pass-if-exception "(case . \"foo\")"
       exception:bad/missing-clauses
-      (case . "foo"))
+      (eval '(case . "foo")
+	    (interaction-environment)))
 
     (pass-if-exception "(case 1)"
       exception:bad/missing-clauses
-      (case 1))
+      (eval '(case 1)
+	    (interaction-environment)))
 
     (pass-if-exception "(case 1 . \"foo\")"
       exception:bad/missing-clauses
-      (case 1 . "foo"))
+      (eval '(case 1 . "foo")
+	    (interaction-environment)))
 
     (pass-if-exception "(case 1 \"foo\")"
       exception:bad/missing-clauses
-      (case 1 "foo"))
+      (eval '(case 1 "foo")
+	    (interaction-environment)))
 
     (pass-if-exception "(case 1 ())"
       exception:bad/missing-clauses
-      (case 1 ()))
+      (eval '(case 1 ())
+	    (interaction-environment)))
 
     (pass-if-exception "(case 1 (\"foo\"))"
       exception:bad/missing-clauses
-      (case 1 ("foo")))
+      (eval '(case 1 ("foo"))
+	    (interaction-environment)))
 
     (pass-if-exception "(case 1 (\"foo\" \"bar\"))"
       exception:bad/missing-clauses
-      (case 1 ("foo" "bar")))
+      (eval '(case 1 ("foo" "bar"))
+	    (interaction-environment)))
 
     ;; According to R5RS, the following one is syntactically correct.
     ;; (pass-if-exception "(case 1 (() \"bar\"))"
@@ -465,19 +543,23 @@
 
     (pass-if-exception "(case 1 ((2) \"bar\") . \"foo\")"
       exception:bad/missing-clauses
-      (case 1 ((2) "bar") . "foo"))
+      (eval '(case 1 ((2) "bar") . "foo")
+	    (interaction-environment)))
 
-    (pass-if-exception "(case 1 (else #f) ((1) #t))"
+    (pass-if-exception "(case 1 ((2) \"bar\") (else))"
       exception:bad/missing-clauses
-      (case 1 ((2) "bar") (else)))
+      (eval '(case 1 ((2) "bar") (else))
+	    (interaction-environment)))
 
     (pass-if-exception "(case 1 (else #f) . \"foo\")"
       exception:bad/missing-clauses
-      (case 1 (else #f) . "foo"))
+      (eval '(case 1 (else #f) . "foo")
+	    (interaction-environment)))
 
     (pass-if-exception "(case 1 (else #f) ((1) #t))"
       exception:bad/missing-clauses
-      (case 1 (else #f) ((1) #t)))))
+      (eval '(case 1 (else #f) ((1) #t))
+	    (interaction-environment)))))
 
 (with-test-prefix "define"
 
@@ -491,7 +573,8 @@
 
     (pass-if-exception "(define)"
       exception:missing/extra-expr
-      (define))))
+      (eval '(define)
+	    (interaction-environment)))))
 
 (with-test-prefix "set!"
 
@@ -558,10 +641,6 @@
   (define (unreachable)
     (error "unreachable code has been reached!"))
   
-  ;; an environment with no bindings at all
-  (define empty-environment
-    (make-module 1))
-  
   ;; Return a new procedure COND which when called (COND) will return #t the
   ;; first N times, then #f, then any further call is an error.  N=0 is
   ;; allowed, in which case #f is returned by the first call.
@@ -578,7 +657,7 @@
   
 
   (pass-if-exception "too few args" exception:wrong-num-args
-    (while))
+    (eval '(while) (interaction-environment)))
   
   (with-test-prefix "empty body"
     (do ((n 0 (1+ n)))
@@ -594,7 +673,11 @@
     #t)
   
   (with-test-prefix "in empty environment"
-    
+
+    ;; an environment with no bindings at all
+    (define empty-environment
+      (make-module 1))
+      
     (pass-if "empty body"
       (eval `(,while #f)
 	    empty-environment)

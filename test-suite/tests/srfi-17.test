@@ -17,7 +17,10 @@
 ;;;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
 ;;;; Boston, MA 02111-1307 USA
 
-(use-modules (srfi srfi-17))
+(define-module (test-suite test-srfi-17)
+  :use-module (test-suite lib)
+  :use-module (srfi srfi-17))
+
 
 (with-test-prefix "set!"
 
@@ -29,4 +32,4 @@
 
     (pass-if-exception "(set! '#f 1)"
       exception:wrong-type-arg
-      (set! '#f 1))))
+      (eval '(set! '#f 1) (interaction-environment)))))

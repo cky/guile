@@ -22,6 +22,7 @@
   :export (
 
  ;; Exceptions which are commonly being tested for.
+ exception:missing-expression
  exception:out-of-range exception:unbound-var
  exception:wrong-num-args exception:wrong-type-arg
 
@@ -32,14 +33,14 @@
 
  ;; Naming groups of tests in a regular fashion.
  with-test-prefix with-test-prefix* current-test-prefix
+ format-test-name
 
  ;; Reporting results in various ways.
  register-reporter unregister-reporter reporter-registered?
  make-count-reporter print-counts
  make-log-reporter
  full-reporter
- user-reporter
- format-test-name))
+ user-reporter))
 
 
 ;;;; If you're using Emacs's Scheme mode:
@@ -232,6 +233,8 @@
 ;;;;
 
 ;;; Define some exceptions which are commonly being tested for.
+(define exception:missing-expression
+  (cons 'misc-error "^missing or extra expression"))
 (define exception:out-of-range
   (cons 'out-of-range "^Argument .*out of range"))
 (define exception:unbound-var

@@ -18,7 +18,14 @@
 ;;;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
 ;;;; Boston, MA 02111-1307 USA
 
-(use-modules (test-suite lib))
+(define-module (test-suite test-dynamic-scope)
+  :use-module (test-suite lib))
+
+
+(define exception:duplicate-binding
+  (cons 'misc-error "^duplicate bindings"))
+(define exception:bad-binding
+  (cons 'misc-error "^bad bindings"))
 
 (define global-a 0)
 (define (fetch-global-a) global-a)
@@ -35,20 +42,24 @@
       (= global-a 0)))
 
   (pass-if-exception "duplicate @binds"
-    (cons 'misc-error "^duplicate bindings")
-    (@bind ((a 1) (a 2)) (+ a a)))
+    exception:duplicate-binding
+    (eval '(@bind ((a 1) (a 2)) (+ a a))
+	  (interaction-environment)))
 
   (pass-if-exception "@bind missing expression"
-    (cons 'misc-error "^missing or extra expression")
-    (@bind ((global-a 1))))
+    exception:missing-expression
+    (eval '(@bind ((global-a 1)))
+	  (interaction-environment)))
 
   (pass-if-exception "@bind bad bindings"
-    (cons 'misc-error "^bad bindings")
-    (@bind (a) #f))
+    exception:bad-binding
+    (eval '(@bind (a) #f)
+	  (interaction-environment)))
 
   (pass-if-exception "@bind bad bindings"
-    (cons 'misc-error "^bad bindings")
-    (@bind ((a)) #f))
+    exception:bad-binding
+    (eval '(@bind ((a)) #f)
+	  (interaction-environment)))
 
   (pass-if "@bind and dynamic-wind"
     (letrec ((co-routine #f)

@@ -5,9 +5,9 @@
 ;; http://sisc.sourceforge.net/r5rs_pitfal.scm and the 'should-be'
 ;; macro has been modified to fit into our test suite machinery.
 ;;
-;; Tests 1.1 and 2.1 fail, but we expect that.
+;; Test 1.1 fails, but we expect that.
 
-(define-module (r5rs-pitfall-test)
+(define-module (test-suite test-r5rs-pitfall)
   :use-syntax (ice-9 syncase)
   :use-module (test-suite lib))
 

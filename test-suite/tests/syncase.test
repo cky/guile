@@ -20,18 +20,17 @@
 ;; These tests are in a module so that the syntax transformer does not
 ;; affect code outside of this file.
 ;;
-(define-module (syncase-test))
-
-(use-modules (test-suite lib))
+(define-module (test-suite test-syncase)
+  :use-module (test-suite lib))
 
 (pass-if "(ice-9 syncase) loads"
-	 (false-if-exception
-	  (begin (eval '(use-syntax (ice-9 syncase)) (current-module))
-		 #t)))
+  (false-if-exception
+   (begin (eval '(use-syntax (ice-9 syncase)) (current-module))
+          #t)))
 
 (define-syntax plus
   (syntax-rules ()
     ((plus x ...) (+ x ...))))
 
 (pass-if "basic syncase macro"
-	 (= (plus 1 2 3) (+ 1 2 3)))
+  (= (plus 1 2 3) (+ 1 2 3)))
