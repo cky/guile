@@ -28,7 +28,7 @@ progname=`echo "$0" | sed 's%^.*/%%'`
 # Constants.
 PROGRAM=ltmain.sh
 PACKAGE=libtool
-VERSION=0.9e
+VERSION=0.9g
 
 default_mode=NONE
 help="Try \`$progname --help' for more information."
@@ -143,7 +143,7 @@ if test -z "$show_help"; then
   if test "$mode" = NONE; then
     case "$nonopt" in
     *cc)
-      if echo " $@ " | egrep "[ 	]-c[ 	]" > /dev/null 2>&1; then
+      if echo " $@ " | egrep -e "[ 	]-c[ 	]" > /dev/null 2>&1; then
         mode=compile
       else
         mode=link
@@ -229,9 +229,14 @@ if test -z "$show_help"; then
       exit 1
     fi
 
-    # Delete any old library objects.
-    $run $rm $obj $libobj
-    trap "$run $rm $obj $libobj; exit 1" 1 2 15
+    # Delete any leftover library objects.
+    if test "$build_old_libs" = yes; then
+      $run $rm $obj $libobj
+      trap "$run $rm $obj $libobj; exit 1" 1 2 15
+    else
+      $run $rm $libobj
+      trap "$run $rm $libobj; exit 1" 1 2 15
+    fi
 
     # Only build a PIC object if we are building libtool libraries.
     if test "$build_libtool_libs" = yes; then
@@ -239,7 +244,7 @@ if test -z "$show_help"; then
       $show "$base_compile$pic_flag -DPIC $srcfile"
       if eval "$run $base_compile$pic_flag -DPIC $srcfile"; then :
       else
-	$run $rm $obj
+	test -n "$obj" && $run $rm $obj
 	exit 1
       fi
 
@@ -255,16 +260,18 @@ if test -z "$show_help"; then
       $run $mv $obj $libobj || exit 1
     fi
 
-    # Compile the position-dependent object.
-    $show "$base_compile $srcfile"
-    if eval "$run $base_compile $srcfile"; then :
-    else
-      $run $rm $obj $libobj
-      exit 1
+    # Only build a position-dependent object if we build old libraries.
+    if test "$build_old_libs" = yes; then
+      $show "$base_compile $srcfile"
+      if eval "$run $base_compile $srcfile"; then :
+      else
+        $run $rm $obj $libobj
+        exit 1
+      fi
     fi
 
-    # Create an invalid object file if no PIC, so that we don't accidentally
-    # link it.
+    # Create an invalid libtool object if no PIC, so that we don't accidentally
+    # link it into a program.
     if test "$build_libtool_libs" != yes; then
       $show "echo timestamp > $libobj"
       eval "$run echo timestamp > $libobj" || exit $?
@@ -279,6 +286,7 @@ if test -z "$show_help"; then
     # Go through the arguments, transforming them on the way.
     cc="$nonopt"
     args="$cc"
+    allow_undefined=no
     compile_command="$cc"
     finalize_command="$cc"
     compile_shlibpath=
@@ -292,12 +300,11 @@ if test -z "$show_help"; then
     link_static=
     ltlibs=
     objs=
-    output=
     prev=
     prevarg=
+    perm_rpath=
     temp_rpath=
     vinfo=
-    whole_archive=no
 
     # We need to know -static, to get the right output filenames.
     case " $@ " in
@@ -326,6 +333,8 @@ if test -z "$show_help"; then
       prevarg="$arg"
 
       case "$arg" in
+      -allow-undefined) allow_undefined=yes ;;
+
       -export-dynamic)
 	export_dynamic=yes
 	compile_command="$compile_command $export_dynamic_flag"
@@ -347,8 +356,6 @@ if test -z "$show_help"; then
 	;;
 
       -l*) deplibs="$deplibs $arg" ;;
-
-      -no-whole-archive) whole_archive=no ;;
 
       -o) prev=output ;;
 
@@ -374,8 +381,6 @@ if test -z "$show_help"; then
 	continue
 	;;
 
-      -whole-archive) whole_archive=yes ;;
-
       -*) cc="$cc $arg" ;; # Some other compiler flag.
 
       *.o)
@@ -389,36 +394,8 @@ if test -z "$show_help"; then
 	dir=`echo "$arg" | sed 's%/[^/]*$%/%'`
 	test "$dir" = "$arg" && dir=
 
-	# If -whole-archive was specified, we need to link all the members.
-	if test "$whole_archive" = yes; then
-	  if test -f $arg; then :
-	  else
-	    echo "$progname: \`$arg' does not exist" 1>&2
-	    echo "$help" 1>&2
-	    exit 1
-	  fi
-
-	  # Get the names of the members of the archive.
-	  members=`$AR t $arg 2>/dev/null`
-	  for m in $members; do
-	    case "$m" in
-	    *.lo) libobjs="$libobjs $dir$m" ;;
-	    *.o)
-	      if test "$build_libtool_libs" = yes; then
-		objs="$objs $dir$m"
-	      else
-		libobjs="$libobjs $dir$m"
-	      fi
-	      ;;
-	    esac
-	  done
-	elif test -f "$dir$objdir/$file"; then
-	  # .libs/libfoo.a exists, so this is an archive of libobjects.
-	  libobjs="$libobjs $arg"
-	else
-	  # Standard archive.
-	  objs="$objs $arg"
-	fi
+	# Standard archive.
+	objs="$objs $arg"
 	;;
 
       *.lo)
@@ -499,7 +476,14 @@ if test -z "$show_help"; then
 	      compile_command="$compile_command $hardcode_libdir_flag"
 	      finalize_command="$finalize_command $hardcode_libdir_flag"
 	    fi
+	  elif test "$hardcode_runpath_var" = yes; then
+	    # Do the same for the permanent run path.
+	    case "$perm_rpath " in
+	    "* $libdir *") ;;
+	    *) perm_rpath="$perm_rpath $libdir" ;;
+	    esac
 	  fi
+
 
 	  case "$hardcode_action" in
 	  immediate)
@@ -557,7 +541,11 @@ if test -z "$show_help"; then
 	  fi
         else
           # Transform directly to old archives if we don't build new libraries.
-	  test -z "$old_library" || linklib="$old_library"
+          if test -n "$pic_flag" && test -z "$old_library"; then
+            echo "$progname: cannot find static library for \`$arg'" 1>&2
+	    exit 1
+	  fi
+	  test -n "$old_library" && linklib="$old_library"
           compile_command="$compile_command $dir/$linklib"
 	  finalize_command="$finalize_command $dir/$linklib"
         fi
@@ -599,20 +587,6 @@ if test -z "$show_help"; then
     */*)
       echo "$progname: output file \`$output' must have no directory components" 1>&2
       exit 1
-      ;;
-
-    *.a)
-      # Old archive.
-      libname=`echo "$output" | sed 's/\.a$//'`
-      build_old_libs=yes
-
-      if test -n "$install_libdir"; then
-        echo "$progname: warning: \`-rpath' is ignored while linking old-style libraries" 1>&2
-      fi
-
-      if test -n "$vinfo"; then
-	echo "$progname: warning: \`-version-info' is ignored while linking old-style libraries" 1>&2
-      fi
       ;;
 
     *.la)
@@ -742,6 +716,17 @@ if test -z "$show_help"; then
 	$run $mkdir $objdir || exit $?
       fi
 
+      # Check to see if the archive will have undefined symbols.
+      if test "$allow_undefined" = yes; then
+	if "$allow_undefined_flag" = unsupported; then
+	  echo "$progname: warning: undefined symbols not allowed in $host shared libraries" 1>&2
+	  build_libtool_libs=no
+	fi
+      else
+	# Clear the flag.
+	allow_undefined_flag=
+      fi
+
       if test "$build_libtool_libs" = yes; then
 	# Get the real and link names of the library.
 	library_names=`eval echo \"$library_names_spec\"`
@@ -825,9 +810,7 @@ if test -z "$show_help"; then
       # Delete the old objects.
       $run $rm $obj $libobj
 
-      # Create the old-style object (skipping any convenience libraries).
-      # FIXME: skipping them is simplistic.  We should determine which members
-      # are actually needed to resolve symbols.
+      # Create the old-style object.
       reload_objs="$objs"`echo "$libobjs " | sed 's/[^ 	]*\.a //g; s/\.lo /.o /g; s/ $//g'`
 
       output="$obj"
@@ -876,6 +859,7 @@ if test -z "$show_help"; then
       if test -n "$libobjs"; then
 	# Transform all the library objects into standard objects.
 	compile_command=`echo "$compile_command " | sed 's/\.lo /.o /g; s/ $//'`
+	finalize_command=`echo "$finalize_command " | sed 's/\.lo /.o /g; s/ $//'`
       fi
 
       if test -z "$link_against_libtool_libs" || test "$build_libtool_libs" != yes; then
@@ -925,16 +909,27 @@ if test -z "$show_help"; then
 	    ;;
 	  esac
 	done
+	temp_rpath="$rpath"
       fi
 
       # Delete the old output file.
       $run $rm $output
 
       if test -n "$compile_shlibpath"; then
-	compile_command="$shlibpath_var=$compile_shlibpath\$$shlibpath_var $compile_command"
+	compile_command="$shlibpath_var=\"$compile_shlibpath\$$shlibpath_var\" $compile_command"
       fi
       if test -n "$finalize_shlibpath"; then
-	finalize_command="$shlibpath_var=$finalize_shlibpath\$$shlibpath_var $finalize_command"
+	finalize_command="$shlibpath_var=\"$finalize_shlibpath\$$shlibpath_var\" $finalize_command"
+      fi
+
+      if test -n "$perm_rpath"; then
+	# We should set the runpath_var.
+	rpath=
+	for dir in $perm_rpath; do
+	  rpath="$rpath$dir:"
+	done
+	compile_command="$runpath_var=\"$rpath\$$runpath_var\" $compile_command"
+	finalize_command="$runpath_var=\"$rpath\$$runpath_var\" $finalize_command"
       fi
 
       case "$hardcode_action" in
@@ -971,8 +966,8 @@ if test -z "$show_help"; then
 # This environment variable determines our operation mode.
 if test "\$libtool_install_magic" = "$magic"; then
   # install mode needs the following variables:
-  link_against_libtool_libs="$link_against_libtool_libs"
-  finalize_command="$finalize_command"
+  link_against_libtool_libs='$link_against_libtool_libs'
+  finalize_command='$finalize_command'
 else
   # Find the directory that this script lives in.
   thisdir=\`echo \$0 | sed 's%/[^/]*$%%'\`
@@ -1000,11 +995,11 @@ else
 EOF
 
 	# Export our shlibpath_var if we have one.
-	if test -n "$shlibpath_var" && test -n "$rpath"; then
+	if test -n "$shlibpath_var" && test -n "$temp_rpath"; then
 	  cat >> $output <<EOF
 
     # Add our own library path to $shlibpath_var
-    $shlibpath_var="$rpath\$$shlibpath_var"
+    $shlibpath_var="$temp_rpath\$$shlibpath_var"
     export $shlibpath_var
 EOF
 	fi
@@ -1036,9 +1031,7 @@ EOF
       # Now set the variables for building old libraries.
       oldlib="$objdir/$libname.a"
 
-      # Transform .lo files to .o (skipping convenience libraries).
-      # FIXME: skipping them is simplistic.  We should determine which members
-      # are actually needed to resolve symbols.
+      # Transform .lo files to .o files.
       oldobjs="$objs"`echo "$libobjs " | sed 's/[^ 	]*\.a //g; s/\.lo /.o /g; s/ $//g'`
 
       if test -d "$objdir"; then
@@ -1058,38 +1051,6 @@ EOF
 	eval "$run $cmd" || exit $?
       done
       IFS="$save_ifs"
-
-      case "$output" in
-      *.a)
-	# Just move into place if there were any non-libtool objects.
-	if test -n "$objs"; then
-	  $show "$mv $oldlib $output"
-	  $run $mv $oldlib $output
-
-	elif test -z "$pic_flag" || test "$build_libtool_libs" != yes; then
-	  # Just symlink if libtool objects are the same.
-	  $show "$rm $output"
-	  $run $rm $output
-	  $show "$ln_s $oldlib $output"
-	  $run $ln_s $oldlib $output
-
-	else
-	  # Create an archive of libtool objects.
-	  oldlib="$output"
-	  oldobjs="$libobjs"
-
-	  # Do each command in the archive commands.
-	  cmds=`eval echo \"$old_archive_cmds\"`
-	  IFS="${IFS= 	}"; save_ifs="$IFS"; IFS=';'
-	  for cmd in $cmds; do
-	    IFS="$save_ifs"
-	    $show "$cmd"
-	    eval "$run $cmd" || exit $?
-	  done
-	  IFS="$save_ifs"
-	fi
-	;;
-      esac
     fi
 
     # Now create the libtool archive.
@@ -1106,14 +1067,14 @@ EOF
 # $output - a libtool library file
 # Generated by $PROGRAM - GNU $PACKAGE $VERSION
 
+# The name that we can dlopen(3).
+dlname='$dlname'
+
 # Names of this library.
 library_names='$library_names'
 
 # The name of the static archive.
 old_library='$old_library'
-
-# The name that we can dlopen(3).
-dlname='$dlname'
 
 # Version information for $libname.
 current=$current
@@ -1124,6 +1085,11 @@ revision=$revision
 libdir='$install_libdir'
 EOF
       fi
+
+      # Do a symbolic link so that the libtool archive can be found in
+      # LD_LIBRARY_PATH before the program is installed.
+      $show "$ln_s ../$output $objdir/$output"
+      $run $ln_s ../$output $objdir/$output || $run $cp_p ../$output $objdir/$output || exit 1
       ;;
     esac
     exit 0
@@ -1457,11 +1423,18 @@ EOF
       ltlibs="$ltlibs $lib"
     done
 
+    if test -z "$ltlibs"; then
+      echo "$progname: you must specify at least one LTLIBRARY" 1>&2
+      echo "$help" 1>&2
+      exit 1
+    fi
+
     # Now check to make sure each one is a valid libtool library.
     status=0
     for lib in $ltlibs; do
       dlname=
       libdir=
+      library_names=
 
       # Check to see that this really is a libtool archive.
       if egrep "^# Generated by $PROGRAM" $arg >/dev/null 2>&1; then :
@@ -1482,6 +1455,9 @@ EOF
         status=1
       elif test -n "$dlname"; then
 	echo "$libdir/$dlname"
+      elif test -z "$library_names"; then
+        echo "$progname: \`$arg' is not a shared library" 1>&2
+        status=1
       else
         echo "$progname: \`$arg' was not linked with \`-export-dynamic'" 1>&2
         status=1
@@ -1631,7 +1607,7 @@ EOF
 
 dlname)
   cat <<EOF
-Usage: $progname [OPTION]... --mode=dlname LTLIBRARY [LTLIBRARY]...
+Usage: $progname [OPTION]... --mode=dlname LTLIBRARY...
 
 Print filenames to use to \`dlopen' libtool libraries.
 
@@ -1681,16 +1657,15 @@ a program from several object files.
 
 The following components of LINK-COMMAND are treated specially:
 
-  -export-dynamic   allow the output file to be loaded with dlopen(3)
+  -allow-undefined  allow a libtool library to reference undefined symbols
+  -export-dynamic   allow symbols from OUTPUT-FILE to be resolved with dlsym(3)
   -LLIBDIR          search LIBDIR for required installed libraries
   -lNAME            OUTPUT-FILE requires the installed library libNAME
-  -no-whole-archive turn off \`-whole-archive'
   -o OUTPUT-FILE    create OUTPUT-FILE from the specified objects
   -rpath LIBDIR     the created library will eventually be installed in LIBDIR
   -static           do not do any dynamic linking or shared library creation
   -version-info CURRENT[:REVISION[:AGE]]
 		    specify library version info [each variable defaults to 0]
-  -whole-archive    use all members from subsequent \`.a' files
 
 All other options (arguments beginning with \`-') are ignored.
 
@@ -1702,8 +1677,7 @@ If the OUTPUT-FILE ends in \`.la', then a libtool library is created, only
 library objects (\`.lo' files) may be specified, and \`-rpath' is required.
 
 If OUTPUT-FILE ends in \`.a', then a standard library is created using \`ar'
-and \`ranlib'.  If only libtool objects are specified, then the output file
-may be used in the creation of other libtool archives.
+and \`ranlib'.
 
 If OUTPUT-FILE ends in \`.lo' or \`.o', then a reloadable object file is
 created, otherwise an executable program is created.
