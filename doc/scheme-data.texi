@@ -51,11 +51,11 @@ sections of this manual that cover them.
 * Keywords::                    Self-quoting, customizable display keywords.
 * Pairs::                       Scheme's basic building block.
 * Lists::                       Special list functions supported by Guile.
+* Vectors::                     One-dimensional arrays of Scheme objects.
 * Records::                     
 * Structures::                  
 * Arrays::                      Arrays of values.
 * Association Lists and Hash Tables::  Dictionary data types.
-* Vectors::                     One-dimensional arrays of Scheme objects.
 * Hooks::                       User-customizable event lists.
 * Other Data Types::            Data types that are documented elsewhere.
 @end menu
@@ -681,8 +681,9 @@ parameters.
 
 @c begin (texi-doc-string "guile" "-")
 @deffn primitive - z1 z2 @dots{}
-If called without arguments, 0 is returned. Otherwise the sum of all but
-the first argument are subtracted from the first argument.
+If called with one argument @var{z1}, -@var{z1} is returned. Otherwise
+the sum of all but the first argument are subtracted from the first
+argument.
 @end deffn
 
 @c begin (texi-doc-string "guile" "*")
@@ -693,7 +694,8 @@ returned.
 
 @c begin (texi-doc-string "guile" "/")
 @deffn primitive / z1 z2 @dots{}
-Divide the first argument by the product of the remaining arguments.
+Divide the first argument by the product of the remaining arguments.  If
+called with one argument @var{z1}, 1/@var{z1} is returned.
 @end deffn
 
 @c begin (texi-doc-string "guile" "abs")
@@ -734,66 +736,66 @@ Round the number @var{x} towards infinity.
 
 @node Scientific
 @subsection Scientific Functions
-@rnindex exp
-@rnindex log
-@rnindex sin
-@rnindex cos
-@rnindex tan
-@rnindex asin
-@rnindex acos
-@rnindex atan
-@rnindex sqrt
-@rnindex expt
 
 The following procedures accept any kind of number as arguments,
 including complex numbers.
 
+@rnindex sqrt
 @c begin (texi-doc-string "guile" "sqrt")
 @deffn procedure sqrt z
 Return the square root of @var{z}.
 @end deffn
 
+@rnindex expt
 @c begin (texi-doc-string "guile" "expt")
 @deffn procedure expt z1 z2
 Return @var{z1} raised to the power of @var{z2}.
 @end deffn
 
+@rnindex sin
 @c begin (texi-doc-string "guile" "sin")
 @deffn procedure sin z
 Return the sine of @var{z}.
 @end deffn
 
+@rnindex cos
 @c begin (texi-doc-string "guile" "cos")
 @deffn procedure cos z
 Return the cosine of @var{z}.
 @end deffn
 
+@rnindex tan
 @c begin (texi-doc-string "guile" "tan")
 @deffn procedure tan z
 Return the tangent of @var{z}.
 @end deffn
 
+@rnindex asin
 @c begin (texi-doc-string "guile" "asin")
 @deffn procedure asin z
 Return the arcsine of @var{z}.
 @end deffn
 
+@rnindex acos
 @c begin (texi-doc-string "guile" "acos")
 @deffn procedure acos z
 Return the arccosine of @var{z}.
 @end deffn
 
+@rnindex atan
 @c begin (texi-doc-string "guile" "atan")
 @deffn procedure atan z
 Return the arctangent of @var{z}.
 @end deffn
 
+@rnindex exp
 @c begin (texi-doc-string "guile" "exp")
 @deffn procedure exp z
 Return e to the power of @var{z}, where e is the base of natural
 logarithms (2.71828@dots{}).
 @end deffn
 
+@rnindex log
 @c begin (texi-doc-string "guile" "log")
 @deffn procedure log z
 Return the natural logarithm of @var{z}.
@@ -1197,19 +1199,19 @@ Several characters have more than one name:
 
 @itemize @bullet
 @item
-#\space, #\sp
+@code{#\space}, @code{#\sp}
 @item
-#\newline, #\nl
+@code{#\newline}, @code{#\nl}
 @item
-#\tab, #\ht
+@code{#\tab}, @code{#\ht}
 @item
-#\backspace, #\bs
+@code{#\backspace}, @code{#\bs}
 @item
-#\return, #\cr
+@code{#\return}, @code{#\cr}
 @item
-#\page, #\np
+@code{#\page}, @code{#\np}
 @item
-#\null, #\nul
+@code{#\null}, @code{#\nul}
 @end itemize
 
 @rnindex char?
@@ -1555,16 +1557,6 @@ text first, to avoid clobbering your data.  Hence, when @var{str1} and
 @code{substring-move-right!} when moving text from left to right, and
 @code{substring-move-left!}  otherwise.  If @code{str1} and @samp{str2}
 are different strings, it does not matter which function you use.
-@end deffn
-
-@deffn primitive substring-move-left! str1 start1 end1 str2 start2
-@end deffn
-@deftypefn {C Function} SCM scm_substring_move_left_x (SCM @var{str1}, SCM @var{start1}, SCM @var{end1}, SCM @var{str2}, SCM @var{start2})
-[@strong{Note:} this is only valid if you've applied the strop patch].
-
-Moves a substring of @var{str1}, from @var{start1} to @var{end1}
-(@var{end1} is exclusive), into @var{str2}, starting at
-@var{start2}. Allows overlapping strings.
 
 @example
 (define x (make-string 10 #\a))
@@ -1585,18 +1577,7 @@ y
 (substring-move-left! y 2 5 y 3)
 y
 @result{} "abccccg"
-@end example
-@end deftypefn
 
-@deffn substring-move-right! str1 start1 end1 str2 start2
-@end deffn
-@deftypefn {C Function} SCM scm_substring_move_right_x (SCM @var{str1}, SCM @var{start1}, SCM @var{end1}, SCM @var{str2}, SCM @var{start2})
-[@strong{Note:} this is only valid if you've applied the strop patch, if
-it hasn't made it into the guile tree].
-
-Does much the same thing as @code{substring-move-left!}, except it
-starts moving at the end of the sequence, rather than the beginning.
-@example
 (define y "abcdefg")
 (substring-move-right! y 2 5 y 0)
 y
@@ -1607,7 +1588,7 @@ y
 y
 @result{} "abccdeg"
 @end example
-@end deftypefn
+@end deffn
 
 
 @node String Comparison
@@ -1797,16 +1778,16 @@ The procedure @code{string-append} appends several strings together to
 form a longer result string.
 
 @rnindex string-append
-@deffn primitive string-append . args
+@deffn primitive string-append  string1 @dots{}
 Return a newly allocated string whose characters form the
-concatenation of the given strings, @var{args}.
+concatenation of the given strings.
 @end deffn
 
 
 @node String Miscellanea
 @subsection String Miscellanea
 
-This section contains several remaining string procedures.
+This section contains all remaining string procedures.
 
 @deffn primitive string-ci->symbol str
 Return the symbol whose name is @var{str}.  @var{str} is
@@ -2598,7 +2579,8 @@ syntax extension to permit keywords to begin with @code{:} as well as
 * Why Use Keywords?::           Motivation for keyword usage.
 * Coding With Keywords::        How to use keywords.
 * Keyword Read Syntax::         Read syntax for keywords.
-* Keyword Primitives::          Procedures for dealing with keywords.
+* Keyword Procedures::          Procedures for dealing with keywords.
+* Keyword Primitives::          The underlying primitive procedures.
 @end menu
 
 @node Why Use Keywords?
@@ -2764,6 +2746,23 @@ ERROR: Unbound variable: :type
 ABORT: (unbound-variable)
 @end smalllisp
 
+@node Keyword Procedures
+@subsection Keyword Procedures
+
+@c FIXME::martin: Review me!
+
+The following procedures can be used for converting symbols to keywords
+and back.
+
+@deffn procedure symbol->keyword sym
+Return a keyword with the same characters as in @var{sym}.
+@end deffn
+
+@deffn procedure keyword->symbol kw
+Return a symbol with the same characters as in @var{kw}.
+@end deffn
+
+
 @node Keyword Primitives
 @subsection Keyword Primitives
 
@@ -2793,7 +2792,6 @@ Return @code{#t} if the argument @var{obj} is a keyword, else
 Return the dash symbol for @var{keyword}.
 This is the inverse of @code{make-keyword-from-dash-symbol}.
 @end deffn
-
 
 @node Pairs
 @section Pairs
@@ -3292,6 +3290,144 @@ elements.
 Like @code{map}, but the procedure is always applied from left to right,
 and the result(s) of the procedure applications are thrown away.  The
 return value is not specified.
+@end deffn
+
+
+@node Vectors
+@section Vectors
+
+@c FIXME::martin: Review me!
+
+@c FIXME::martin: Should the subsections of this section be nodes
+@c of their own, or are the resulting nodes too short, then?
+
+Vectors are sequences of Scheme objects.  Unlike lists, the length of a
+vector, once the vector is created, cannot be changed.  The advantage of
+vectors over lists is that the time required to access one element of a
+vector is constant, whereas lists have an access time linear to the
+index of the accessed element in the list.
+
+Note that the vectors documented in this section can contain any kind of
+Scheme object, it is even possible to have different types of objects in
+the same vector.
+
+@subsection Vector Read Syntax
+
+Vectors can literally be entered in source code, just like strings,
+characters or some of the other data types.  The read syntax for vectors
+is as follows: A sharp sign (@code{#}), followed by an opening
+parentheses, all elements of the vector in their respective read syntax,
+and finally a closing parentheses.  The following are examples of the
+read syntax for vectors; where the first vector only contains numbers
+and the second three different object types: a string, a symbol and a
+number in hexidecimal notation.
+
+@lisp
+#(1 2 3)
+#("Hello" foo #xdeadbeef)
+@end lisp
+
+@subsection Vector Predicates
+
+@rnindex vector?
+@deffn primitive vector? obj
+Return @code{#t} if @var{obj} is a vector, otherwise return
+@code{#f}.
+@end deffn
+
+@subsection Vector Constructors
+
+@rnindex make-vector
+@deffn primitive make-vector k [fill]
+Return a newly allocated vector of @var{k} elements.  If a
+second argument is given, then each element is initialized to
+@var{fill}.  Otherwise the initial contents of each element is
+unspecified.
+@end deffn
+
+@rnindex vector
+@rnindex list->vector
+@deffn primitive vector . l
+@deffnx primitive list->vector l
+Return a newly allocated vector whose elements contain the
+given arguments.  Analogous to @code{list}.
+
+@lisp
+(vector 'a 'b 'c) @result{} #(a b c)
+@end lisp
+@end deffn
+
+@rnindex vector->list
+@deffn primitive vector->list v
+Return a newly allocated list of the objects contained in the
+elements of @var{vector}.
+
+@lisp
+(vector->list '#(dah dah didah)) @result{}  (dah dah didah)
+(list->vector '(dididit dah)) @result{}  #(dididit dah)
+@end lisp
+@end deffn
+
+@subsection Vector Modification
+
+A vector created by any of the vector constructor procedures
+(@pxref{Vectors}) documented above can be modified using the
+following procedures.
+
+According to R5RS, using any of these procedures on literally entered
+vectors is an error, because these vectors are considered to be
+constant, although Guile currently does not detect this error.
+
+@rnindex vector-set!
+@deffn primitive vector-set! vector k obj
+@var{k} must be a valid index of @var{vector}.
+@code{Vector-set!} stores @var{obj} in element @var{k} of @var{vector}.
+The value returned by @samp{vector-set!} is unspecified.
+@lisp
+(let ((vec (vector 0 '(2 2 2 2) "Anna")))
+  (vector-set! vec 1 '("Sue" "Sue"))
+  vec) @result{}  #(0 ("Sue" "Sue") "Anna")
+(vector-set! '#(0 1 2) 1 "doe") @result{} @emph{error} ; constant vector
+@end lisp
+@end deffn
+
+@rnindex vector-fill!
+@deffn primitive vector-fill! v fill
+Store @var{fill} in every element of @var{vector}.  The value
+returned by @code{vector-fill!} is unspecified.
+@end deffn
+
+@deffn primitive vector-move-left! vec1 start1 end1 vec2 start2
+Vector version of @code{substring-move-left!}.
+@end deffn
+
+@deffn primitive vector-move-right! vec1 start1 end1 vec2 start2
+Vector version of @code{substring-move-right!}.
+@end deffn
+
+@subsection Vector Selection
+
+These procedures return information about a given vector, such as the
+size or what elements are contained in the vector.
+
+@rnindex vector-length
+@deffn primitive vector-length vector
+Returns the number of elements in @var{vector} as an exact integer.
+@end deffn
+
+@rnindex vector-ref
+@deffn primitive vector-ref vector k
+@var{k} must be a valid index of @var{vector}.
+@samp{Vector-ref} returns the contents of element @var{k} of
+@var{vector}.
+@lisp
+(vector-ref '#(1 1 2 3 5 8 13 21) 5) @result{} 8
+(vector-ref '#(1 1 2 3 5 8 13 21)
+    (let ((i (round (* 2 (acos -1)))))
+      (if (inexact? i)
+        (inexact->exact i)
+           i))) @result{} 13
+@end lisp
 @end deffn
 
 
@@ -4817,145 +4953,6 @@ For example, @code{(hash-fold acons () tab)} will convert a hash
 table into an a-list of key-value pairs.
 @end deffn
 
-
-@node Vectors
-@section Vectors
-
-@c FIXME::martin: Review me!
-
-@c FIXME::martin: This node should come before the non-standard data types.
-
-@c FIXME::martin: Should the subsections of this section be nodes
-@c of their own, or are the resulting nodes too short, then?
-
-Vectors are sequences of Scheme objects.  Unlike lists, the length of a
-vector, once the vector is created, cannot be changed.  The advantage of
-vectors over lists is that the time required to access one element of a
-vector is constant, whereas lists have an access time linear to the
-index of the accessed element in the list.
-
-Note that the vectors documented in this section can contain any kind of
-Scheme object, it is even possible to have different types of objects in
-the same vector.
-
-@subsection Vector Read Syntax
-
-Vectors can literally be entered in source code, just like strings,
-characters or some of the other data types.  The read syntax for vectors
-is as follows: A sharp sign (@code{#}), followed by an opening
-parentheses, all elements of the vector in their respective read syntax,
-and finally a closing parentheses.  The following are examples of the
-read syntax for vectors; where the first vector only contains numbers
-and the second three different object types: a string, a symbol and a
-number in hexidecimal notation.
-
-@lisp
-#(1 2 3)
-#("Hello" foo #xdeadbeef)
-@end lisp
-
-@subsection Vector Predicates
-
-@rnindex vector?
-@deffn primitive vector? obj
-Return @code{#t} if @var{obj} is a vector, otherwise return
-@code{#f}.
-@end deffn
-
-@subsection Vector Constructors
-
-@rnindex make-vector
-@deffn primitive make-vector k [fill]
-Return a newly allocated vector of @var{k} elements.  If a
-second argument is given, then each element is initialized to
-@var{fill}.  Otherwise the initial contents of each element is
-unspecified.
-@end deffn
-
-@rnindex vector
-@rnindex list->vector
-@deffn primitive vector . l
-@deffnx primitive list->vector l
-Return a newly allocated vector whose elements contain the
-given arguments.  Analogous to @code{list}.
-
-@lisp
-(vector 'a 'b 'c) @result{} #(a b c)
-@end lisp
-@end deffn
-
-@rnindex vector->list
-@deffn primitive vector->list v
-Return a newly allocated list of the objects contained in the
-elements of @var{vector}.
-
-@lisp
-(vector->list '#(dah dah didah)) @result{}  (dah dah didah)
-(list->vector '(dididit dah)) @result{}  #(dididit dah)
-@end lisp
-@end deffn
-
-@subsection Vector Modification
-
-A vector created by any of the vector constructor procedures
-(@pxref{Vectors}) documented above can be modified using the
-following procedures.
-
-According to R5RS, using any of these procedures on literally entered
-vectors is an error, because these vectors are considered to be
-constant, although Guile currently does not detect this error.
-
-@rnindex vector-set!
-@deffn primitive vector-set! vector k obj
-@var{k} must be a valid index of @var{vector}.
-@code{Vector-set!} stores @var{obj} in element @var{k} of @var{vector}.
-The value returned by @samp{vector-set!} is unspecified.
-@lisp
-(let ((vec (vector 0 '(2 2 2 2) "Anna")))
-  (vector-set! vec 1 '("Sue" "Sue"))
-  vec) @result{}  #(0 ("Sue" "Sue") "Anna")
-(vector-set! '#(0 1 2) 1 "doe") @result{} @emph{error} ; constant vector
-@end lisp
-@end deffn
-
-@rnindex vector-fill!
-@deffn primitive vector-fill! v fill
-Store @var{fill} in every element of @var{vector}.  The value
-returned by @code{vector-fill!} is unspecified.
-@end deffn
-
-@deffn primitive vector-move-left! vec1 start1 end1 vec2 start2
-Vector version of @code{substring-move-left!}.
-@end deffn
-
-@deffn primitive vector-move-right! vec1 start1 end1 vec2 start2
-Vector version of @code{substring-move-right!}.
-@end deffn
-
-@subsection Vector Selection
-
-These procedures return information about a given vector, such as the
-size or what elements are contained in the vector.
-
-@rnindex vector-length
-@deffn primitive vector-length vector
-Returns the number of elements in @var{vector} as an exact integer.
-@end deffn
-
-@rnindex vector-ref
-@deffn primitive vector-ref vector k
-@var{k} must be a valid index of @var{vector}.
-@samp{Vector-ref} returns the contents of element @var{k} of
-@var{vector}.
-@lisp
-(vector-ref '#(1 1 2 3 5 8 13 21) 5) @result{} 8
-(vector-ref '#(1 1 2 3 5 8 13 21)
-    (let ((i (round (* 2 (acos -1)))))
-      (if (inexact? i)
-        (inexact->exact i)
-           i))) @result{} 13
-@end lisp
-@end deffn
 
 @node Hooks
 @section Hooks

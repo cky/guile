@@ -1,3 +1,28 @@
+2001-05-30  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* General: A lot of typo, texinfo markup and layout corrections.
+
+	* scheme-data.texi (Arithmetic): Clarified docs for - and /.
+	(String Modification): Removed docs for C functions
+	(scm_substring_move_right_x etc.)
+	(Keyword Procedures): New section documenting the keyword
+	procedures from boot-9.scm.
+	(Vectors): Moved the section before the non-standard data types.
+
+	* data-rep.texi (Defining New Types (Smobs)): Adapted description
+	of smobs and proocedure creation to new terminology.
+	(Describing a New Type): Removed mentioning of
+	scm_make_smob_type_mfpe from smob function list and added
+	deprecation notice for this function.
+	(Creating Instances): Added description and macro docs for smobs
+	with 2 or 3 data cells.
+	(Garbage Collecting Smobs): Removed old docs for SCM_GCTYP16.
+	(Garbage Collecting Simple Smobs): Added some clarification about
+	usage and usefulness.
+	(Non-immediate Datatypes): Changed R4RS reference to R5RS.
+	(Vector Data): Document type-specific accessors.
+
+
 2001-05-23  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* guile.texi: Commented out menu entry and inclusion of Tcl/Tk

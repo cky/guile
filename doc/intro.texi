@@ -1,4 +1,4 @@
-@c $Id: intro.texi,v 1.10 2001-05-23 17:24:49 mgrabmue Exp $
+@c $Id: intro.texi,v 1.11 2001-05-30 20:32:05 mgrabmue Exp $
 
 @page
 @node What is Guile?
@@ -49,7 +49,6 @@ Tcl and Perl by translating them to Scheme code.  This means that users
 can program applications which use Guile in the language of their
 choice, rather than having the tastes of the application's author
 imposed on them.
-
 
 @page
 @node Whirlwind Tour

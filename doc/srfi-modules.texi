@@ -72,6 +72,7 @@ support for a specified feature.  The syntactic form @code{cond-expand},
 which implements this means, has the following syntax.
 
 @example
+@group
 <cond-expand>
   --> (cond-expand <cond-expand-clause>+)
     | (cond-expand <cond-expand-clause>* (else <command-or-definition>))
@@ -84,6 +85,7 @@ which implements this means, has the following syntax.
     | (not <feature-requirement>)
 <feature-identifier>
   --> <a symbol which is the name or alias of a SRFI>
+@end group
 @end example
 
 When evaluated, this form checks all clauses in order, until it finds
@@ -218,6 +220,7 @@ the risk of variable capture.
 The syntax of a record type definition is:
 
 @example
+@group
 <record type definition>
   -> (define-record-type <type name>
        (<constructor name> <field tag> ...)
@@ -227,6 +230,7 @@ The syntax of a record type definition is:
              -> (<field tag> <accessor name> <modifier name>)
 <field tag>  -> <identifier>
 <... name>   -> <identifier>
+@end group
 @end example
 
 Usage example:
@@ -1375,6 +1379,7 @@ The syntax of the @code{case-lambda} form is defined in the following
 EBNF grammar.
 
 @example
+@group
 <case-lambda>
    --> (case-lambda <case-lambda-clause>)
 <case-lambda-clause>
@@ -1383,6 +1388,7 @@ EBNF grammar.
    --> (<identifier>*)
      | (<identifier>* . <identifier>)
      | <identifier>
+@end group
 @end example
 
 The value returned by a @code{case-lambda} form is a procedure which
