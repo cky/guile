@@ -195,8 +195,8 @@ SCM_DEFINE (scm_hashq_ref, "hashq-ref", 2, 1, 0,
             (SCM table, SCM obj, SCM dflt),
 	    "Look up @var{key} in the hash table @var{table}, and return the\n"
 	    "value (if any) associated with it.  If @var{key} is not found,\n"
-	    "return @var{default} (or @code{#f} if no @var{default} argument is\n"
-	    "supplied).  Uses `eq?' for equality testing.")
+	    "return @var{default} (or @code{#f} if no @var{default} argument\n"
+	    "is supplied).  Uses @code{eq?} for equality testing.")
 #define FUNC_NAME s_scm_hashq_ref
 {
   if (SCM_UNBNDP (dflt))
@@ -209,8 +209,8 @@ SCM_DEFINE (scm_hashq_ref, "hashq-ref", 2, 1, 0,
 
 SCM_DEFINE (scm_hashq_set_x, "hashq-set!", 3, 0, 0,
             (SCM table, SCM obj, SCM val),
-	    "Find the entry in @var{table} associated with @var{key}, and store\n"
-	    "@var{value} there. Uses `eq?' for equality testing.")
+	    "Find the entry in @var{table} associated with @var{key}, and\n"
+	    "store @var{value} there. Uses @code{eq?} for equality testing.")
 #define FUNC_NAME s_scm_hashq_set_x
 {
   return scm_hash_fn_set_x (table, obj, val, scm_ihashq, scm_sloppy_assq, 0);
@@ -221,8 +221,8 @@ SCM_DEFINE (scm_hashq_set_x, "hashq-set!", 3, 0, 0,
 
 SCM_DEFINE (scm_hashq_remove_x, "hashq-remove!", 2, 0, 0,
             (SCM table, SCM obj),
-	    "Remove @var{key} (and any value associated with it) from @var{table}.\n"
-            "Uses `eq?' for equality tests.")
+	    "Remove @var{key} (and any value associated with it) from\n"
+	    "@var{table}.  Uses @code{eq?} for equality tests.")
 #define FUNC_NAME s_scm_hashq_remove_x
 {
   return scm_hash_fn_remove_x (table, obj, scm_ihashq, scm_sloppy_assq, scm_delq_x, 0);
@@ -263,8 +263,8 @@ SCM_DEFINE (scm_hashv_ref, "hashv-ref", 2, 1, 0,
             (SCM table, SCM obj, SCM dflt),
 	    "Look up @var{key} in the hash table @var{table}, and return the\n"
 	    "value (if any) associated with it.  If @var{key} is not found,\n"
-	    "return @var{default} (or @code{#f} if no @var{default} argument is\n"
-	    "supplied).  Uses `eqv?' for equality testing.")
+	    "return @var{default} (or @code{#f} if no @var{default} argument\n"
+	    "is supplied).  Uses @code{eqv?} for equality testing.")
 #define FUNC_NAME s_scm_hashv_ref
 {
   if (SCM_UNBNDP (dflt))
@@ -277,8 +277,8 @@ SCM_DEFINE (scm_hashv_ref, "hashv-ref", 2, 1, 0,
 
 SCM_DEFINE (scm_hashv_set_x, "hashv-set!", 3, 0, 0,
             (SCM table, SCM obj, SCM val),
-	    "Find the entry in @var{table} associated with @var{key}, and store\n"
-	    "@var{value} there. Uses `eqv?' for equality testing.")
+	    "Find the entry in @var{table} associated with @var{key}, and\n"
+	    "store @var{value} there. Uses @code{eqv?} for equality testing.")
 #define FUNC_NAME s_scm_hashv_set_x
 {
   return scm_hash_fn_set_x (table, obj, val, scm_ihashv, scm_sloppy_assv, 0);
@@ -288,8 +288,8 @@ SCM_DEFINE (scm_hashv_set_x, "hashv-set!", 3, 0, 0,
 
 SCM_DEFINE (scm_hashv_remove_x, "hashv-remove!", 2, 0, 0,
             (SCM table, SCM obj),
-	    "Remove @var{key} (and any value associated with it) from @var{table}.\n"
-            "Uses `eqv?' for equality tests.")
+	    "Remove @var{key} (and any value associated with it) from\n"
+	    "@var{table}.  Uses @code{eqv?} for equality tests.")
 #define FUNC_NAME s_scm_hashv_remove_x
 {
   return scm_hash_fn_remove_x (table, obj, scm_ihashv, scm_sloppy_assv, scm_delv_x, 0);
@@ -329,8 +329,8 @@ SCM_DEFINE (scm_hash_ref, "hash-ref", 2, 1, 0,
             (SCM table, SCM obj, SCM dflt),
 	    "Look up @var{key} in the hash table @var{table}, and return the\n"
 	    "value (if any) associated with it.  If @var{key} is not found,\n"
-	    "return @var{default} (or @code{#f} if no @var{default} argument is\n"
-	    "supplied).  Uses `equal?' for equality testing.")
+	    "return @var{default} (or @code{#f} if no @var{default} argument\n"
+	    "is supplied).  Uses @code{equal?} for equality testing.")
 #define FUNC_NAME s_scm_hash_ref
 {
   if (SCM_UNBNDP (dflt))
@@ -343,8 +343,9 @@ SCM_DEFINE (scm_hash_ref, "hash-ref", 2, 1, 0,
 
 SCM_DEFINE (scm_hash_set_x, "hash-set!", 3, 0, 0,
             (SCM table, SCM obj, SCM val),
-	    "Find the entry in @var{table} associated with @var{key}, and store\n"
-	    "@var{value} there. Uses `equal?' for equality testing.")
+	    "Find the entry in @var{table} associated with @var{key}, and\n"
+	    "store @var{value} there. Uses @code{equal?} for equality\n"
+	    "testing.")
 #define FUNC_NAME s_scm_hash_set_x
 {
   return scm_hash_fn_set_x (table, obj, val, scm_ihash, scm_sloppy_assoc, 0);
@@ -355,8 +356,8 @@ SCM_DEFINE (scm_hash_set_x, "hash-set!", 3, 0, 0,
 
 SCM_DEFINE (scm_hash_remove_x, "hash-remove!", 2, 0, 0,
             (SCM table, SCM obj),
-	    "Remove @var{key} (and any value associated with it) from @var{table}.\n"
-            "Uses `equal?' for equality tests.")
+	    "Remove @var{key} (and any value associated with it) from\n"
+	    "@var{table}.  Uses @code{equal?} for equality tests.")
 #define FUNC_NAME s_scm_hash_remove_x
 {
   return scm_hash_fn_remove_x (table, obj, scm_ihash, scm_sloppy_assoc, scm_delete_x, 0);

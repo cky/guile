@@ -621,9 +621,9 @@ SCM_DEFINE (scm_symbol_binding, "symbol-binding", 2, 0, 0,
 
 
 SCM_DEFINE (scm_symbol_interned_p, "symbol-interned?", 2, 0, 0,
-           (SCM o, SCM s),
-	    "Return @var{#t} if @var{obarray} contains a symbol with name\n"
-	    "@var{string}, and @var{#f} otherwise.")
+	    (SCM o, SCM s),
+	    "Return @code{#t} if @var{obarray} contains a symbol with name\n"
+	    "@var{string}, and @code{#f} otherwise.")
 #define FUNC_NAME s_scm_symbol_interned_p
 {
   SCM vcell;
@@ -640,12 +640,13 @@ SCM_DEFINE (scm_symbol_interned_p, "symbol-interned?", 2, 0, 0,
 
 
 SCM_DEFINE (scm_symbol_bound_p, "symbol-bound?", 2, 0, 0,
-           (SCM o, SCM s),
-	    "Return @var{#t} if @var{obarray} contains a symbol with name\n"
+	    (SCM o, SCM s),
+	    "Return @code{#t} if @var{obarray} contains a symbol with name\n"
 	    "@var{string} bound to a defined value.  This differs from\n"
-	    "@var{symbol-interned?} in that the mere mention of a symbol usually causes\n"
-	    "it to be interned; @code{symbol-bound?} determines whether a symbol has\n"
-	    "been given any meaningful value.")
+	    "@var{symbol-interned?} in that the mere mention of a symbol\n"
+	    "usually causes it to be interned; @code{symbol-bound?}\n"
+	    "determines whether a symbol has been given any meaningful\n"
+	    "value.")
 #define FUNC_NAME s_scm_symbol_bound_p
 {
   SCM vcell;

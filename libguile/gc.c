@@ -515,8 +515,9 @@ map_free_list (scm_freelist_t *master, SCM freelist)
 
 SCM_DEFINE (scm_map_free_list, "map-free-list", 0, 0, 0,
             (),
-            "Print debugging information about the free-list.\n"
-            "`map-free-list' is only included in --enable-guile-debug builds of Guile.")
+	    "Print debugging information about the free-list.\n"
+	    "@code{map-free-list} is only included in\n"
+	    "@code{--enable-guile-debug} builds of Guile.")
 #define FUNC_NAME s_scm_map_free_list
 {
   int i;
@@ -595,8 +596,9 @@ free_list_lengths (char *title, scm_freelist_t *master, SCM freelist)
 
 SCM_DEFINE (scm_free_list_length, "free-list-length", 0, 0, 0,
             (),
-            "Print debugging information about the free-list.\n"
-            "`free-list-length' is only included in --enable-guile-debug builds of Guile.")
+	    "Print debugging information about the free-list.\n"
+	    "@code{free-list-length} is only included in\n"
+	    "@code{--enable-guile-debug} builds of Guile.")
 #define FUNC_NAME s_scm_free_list_length
 {
   free_list_lengths ("1-cells", &scm_master_freelist, scm_freelist);

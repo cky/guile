@@ -1,3 +1,25 @@
+2001-03-16  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* list.c (scm_list, scm_cons_star, scm_null_p, scm_list_p),
+	(scm_length, scm_append, scm_reverse, scm_list_ref),
+	(scm_memq, scm_memv, scm_member, scm_delv_x, scm_delete_x),
+	(scm_delq, scm_delv, scm_delete, scm_delq1_x, scm_delv1_x),
+	(scm_delete1_x), gc.c (scm_map_free_list),
+	(scm_free_list_length), hash.c (scm_hashq, scm_hashv),
+	(scm_hash), hashtab.c (scm_hashq_ref, scm_hashq_set_x),
+	(scm_hashq_remove_x, scm_hashv_ref, scm_hashv_set_x),
+	(scm_hashv_remove_x, scm_hash_ref, scm_hash_set_x),
+	(scm_hash_remove_x), ports.c (scm_pt_size, scm_pt_member), print.c
+	(scm_current_pstate), scmsigs.c (scm_usleep), goops.c
+	(scm_get_keyword, scm_sys_compute_slots): Added texinfo markup.
+
+	* weaks.c (scm_weak_vector_p, scm_weak_key_hash_table_p),
+	(scm_weak_value_hash_table_p, scm_doubly_weak_hash_table_p),
+	rdelim.c (scm_read_delimited_x), strop.c (scm_string_index),
+	symbols.c (scm_symbol_interned_p), numbers.c
+	(scm_string_to_number), ports.c (scm_port_p): Corrected texinfo
+	markup.
+
 2001-03-16  Keisuke Nishida  <kxn30@po.cwru.edu>
 
 	* snarf.h (SCM_CONST_LONG): Deprecated.

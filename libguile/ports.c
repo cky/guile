@@ -498,8 +498,8 @@ scm_remove_from_port_table (SCM port)
 
 SCM_DEFINE (scm_pt_size, "pt-size", 0, 0, 0,
             (),
-	    "Returns the number of ports in the port table.\n"
-            "`pt-size' is only included in GUILE_DEBUG builds.")
+	    "Returns the number of ports in the port table.  @code{pt-size}\n"
+	    "is only included in @code{--enable-guile-debug} builds.")
 #define FUNC_NAME s_scm_pt_size
 {
   return SCM_MAKINUM (scm_port_table_size);
@@ -508,8 +508,9 @@ SCM_DEFINE (scm_pt_size, "pt-size", 0, 0, 0,
 
 SCM_DEFINE (scm_pt_member, "pt-member", 1, 0, 0,
             (SCM index),
-	    "Returns the port at INDEX in the port table.\n"
-            "`pt-member' is only included in GUILE_DEBUG builds.")
+	    "Returns the port at @var{index} in the port table.\n"
+	    "@code{pt-member} is only included in\n"
+	    "@code{--enable-guile-debug} builds.")
 #define FUNC_NAME s_scm_pt_member
 {
   int i;
@@ -811,8 +812,9 @@ SCM_DEFINE (scm_output_port_p, "output-port?", 1, 0, 0,
 
 SCM_DEFINE (scm_port_p, "port?", 1, 0, 0,
 	    (SCM x),
-            "Returns a boolean indicating whether @var{x} is a port.\n"
-	    "Equivalent to @code{(or (input-port? X) (output-port? X))}.")
+	    "Returns a boolean indicating whether @var{x} is a port.\n"
+	    "Equivalent to @code{(or (input-port? @var{x}) (output-port?\n"
+	    "@var{x}))}.")
 #define FUNC_NAME s_scm_port_p
 {
   return SCM_BOOL (SCM_PORTP (x));

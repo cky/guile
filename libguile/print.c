@@ -194,8 +194,9 @@ static SCM print_state_pool;
 
 SCM_DEFINE (scm_current_pstate, "current-pstate", 0, 0, 0, 
            (),
-            "Return the current-pstate--the `cadr' of the print_state_pool.\n"
-            "`current-pstate' is only included in GUILE_DEBUG builds.")
+	    "Return the current-pstate -- the cadr of the\n"
+	    "@code{print_state_pool}.  @code{current-pstate} is only\n"
+	    "included in @code{--enable-guile-debug} builds.")
 #define FUNC_NAME s_scm_current_pstate
 {
   if (SCM_NNULLP (SCM_CDR (print_state_pool)))

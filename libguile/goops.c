@@ -285,9 +285,9 @@ maplist (SCM ls)
 
 SCM_DEFINE (scm_sys_compute_slots, "%compute-slots", 1, 0, 0,
 	    (SCM class),
-	    "Return a list consisting of the names of all slots belonging\n"
-	    "to class CLASS, i. e. the slots of CLASS and of all of its\n"
-	    "superclasses.") 
+	    "Return a list consisting of the names of all slots belonging to\n"
+	    "class @var{class}, i. e. the slots of @var{class} and of all of\n"
+	    "its superclasses.") 
 #define FUNC_NAME s_scm_sys_compute_slots
 {
   SCM_VALIDATE_CLASS (1, class);
@@ -367,11 +367,12 @@ scm_i_get_keyword (SCM key, SCM l, int len, SCM default_value, const char *subr)
 
 SCM_DEFINE (scm_get_keyword, "get-keyword", 3, 0, 0,
 	    (SCM key, SCM l, SCM default_value),
-	    "Determine an associated value for the keyword KEY from the\n"
-	    "list L.  The list L has to consist of an even number of\n"
-	    "elements, where, starting with the first, every second element\n"
-	    "is a keyword, followed by its associated value.  If L does not\n"
-	    "hold a value for KEY, the value DEFAULT_VALUE is returned.")
+	    "Determine an associated value for the keyword @var{key} from\n"
+	    "the list @var{l}.  The list @var{l} has to consist of an even\n"
+	    "number of elements, where, starting with the first, every\n"
+	    "second element is a keyword, followed by its associated value.\n"
+	    "If @var{l} does not hold a value for @var{key}, the value\n"
+	    "@var{default_value} is returned.")
 #define FUNC_NAME s_scm_get_keyword
 {
   int len;

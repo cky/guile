@@ -441,8 +441,8 @@ SCM_DEFINE (scm_sleep, "sleep", 1, 0, 0,
 #if defined(USE_THREADS) || defined(HAVE_USLEEP)
 SCM_DEFINE (scm_usleep, "usleep", 1, 0, 0,
            (SCM i),
-	    "Sleep for I microseconds.\n"
-            "`usleep' is not available on all platforms.")
+	    "Sleep for I microseconds.  @code{usleep} is not available on\n"
+	    "all platforms.")
 #define FUNC_NAME s_scm_usleep
 {
   SCM_VALIDATE_INUM_MIN (1,i,0);

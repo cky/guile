@@ -2865,12 +2865,12 @@ SCM_DEFINE (scm_string_to_number, "string->number", 1, 1, 0,
             (SCM string, SCM radix),
 	    "Returns a number of the maximally precise representation\n"
 	    "expressed by the given @var{string}. @var{radix} must be an\n"
-	    "exact integer, either 2, 8, 10, or 16. If supplied, @var{RADIX}\n"
-	    "is a default radix that may be overridden by an explicit\n"
-	    "radix prefix in @var{string} (e.g. \"#o177\"). If @var{radix}\n"
-	    "is not supplied, then the default radix is 10. If string is\n"
-	    "not a syntactically valid notation for a number, then\n"
-	    "@code{string->number} returns @code{#f}.  (r5rs)") 
+	    "exact integer, either 2, 8, 10, or 16. If supplied, @var{radix}\n"
+	    "is a default radix that may be overridden by an explicit radix\n"
+	    "prefix in @var{string} (e.g. \"#o177\"). If @var{radix} is not\n"
+	    "supplied, then the default radix is 10. If string is not a\n"
+	    "syntactically valid notation for a number, then\n"
+	    "@code{string->number} returns @code{#f}.") 
 #define FUNC_NAME s_scm_string_to_number
 {
   SCM answer;

@@ -80,7 +80,8 @@ scm_listify (SCM elt, ...)
 
 SCM_DEFINE (scm_list, "list", 0, 0, 1, 
            (SCM objs),
-            "Return a list containing OBJS, the arguments to `list'.")
+	    "Return a list containing @var{objs}, the arguments to\n"
+	    "@code{list}.")
 #define FUNC_NAME s_scm_list
 {
   return objs;
@@ -96,11 +97,12 @@ SCM_REGISTER_PROC (s_list_star, "list*", 1, 0, 1, scm_cons_star);
 
 SCM_DEFINE (scm_cons_star, "cons*", 1, 0, 1, 
             (SCM arg, SCM rest),
-	    "Like `list', but the last arg provides the tail of the constructed list,\n"
-	    "returning (cons ARG1 (cons ARG2 (cons ... ARGn))).\n"
-	    "Requires at least one argument.  If given one argument, that argument\n"
-	    "is returned as result.\n"
-	    "This function is called `list*' in some other Schemes and in Common LISP.")
+	    "Like @code{list}, but the last arg provides the tail of the\n"
+	    "constructed list, returning @code{(cons @var{arg1} (cons\n"
+	    "@var{arg2} (cons @dots{} @var{argn}))).  Requires at least one\n"
+	    "argument.  If given one argument, that argument is returned as\n"
+	    "result.  This function is called @code{list*} in some other\n"
+	    "Schemes and in Common LISP.")
 #define FUNC_NAME s_scm_cons_star
 {
   SCM_VALIDATE_REST_ARGUMENT (rest);
@@ -124,7 +126,7 @@ SCM_DEFINE (scm_cons_star, "cons*", 1, 0, 1,
 
 SCM_DEFINE (scm_null_p, "null?", 1, 0, 0, 
            (SCM x),
-            "Return #t iff X is the empty list, else #f.")
+	    "Return @code{#t} iff @var{x} is the empty list, else @code{#f}.")
 #define FUNC_NAME s_scm_null_p
 {
   return SCM_BOOL (SCM_NULLP (x));
@@ -134,7 +136,7 @@ SCM_DEFINE (scm_null_p, "null?", 1, 0, 0,
 
 SCM_DEFINE (scm_list_p, "list?", 1, 0, 0, 
            (SCM x),
-            "Return #t iff X is a proper list, else #f.")
+	    "Return @code{#t} iff @var{x} is a proper list, else @code{#f}.")
 #define FUNC_NAME s_scm_list_p
 {
   return SCM_BOOL (scm_ilength (x) >= 0);
@@ -175,7 +177,7 @@ scm_ilength(SCM sx)
 
 SCM_DEFINE (scm_length, "length", 1, 0, 0, 
            (SCM lst),
-            "Return the number of elements in list LST.")
+	    "Return the number of elements in list @var{lst}.")
 #define FUNC_NAME s_scm_length
 {
   int i;
@@ -190,20 +192,20 @@ SCM_DEFINE (scm_length, "length", 1, 0, 0,
 
 SCM_DEFINE (scm_append, "append", 0, 0, 1, 
             (SCM args),
-            "Returns a list consisting of the elements of the first LIST\n"
-	    "followed by the elements of the other LISTs.\n\n"
+	    "Return a list consisting of the elements the lists passed as\n"
+	    "arguments.\n"
 	    "@example\n"
-	    "  (append '(x) '(y))          =>  (x y)\n"
-	    "  (append '(a) '(b c d))      =>  (a b c d)\n"
-	    "  (append '(a (b)) '((c)))    =>  (a (b) (c))\n"
-	    "@end example\n\n"
-	    "The resulting list is always newly allocated, except that it shares\n"
-	    "structure with the last LIST argument.  The last argument may\n"
-	    "actually be any object; an improper list results if the last\n"
-	    "argument is not a proper list.\n\n"
+	    "(append '(x) '(y))          @result{}  (x y)\n"
+	    "(append '(a) '(b c d))      @result{}  (a b c d)\n"
+	    "(append '(a (b)) '((c)))    @result{}  (a (b) (c))\n"
+	    "@end example\n"
+	    "The resulting list is always newly allocated, except that it\n"
+	    "shares structure with the last list argument.  The last\n"
+	    "argument may actually be any object; an improper list results\n"
+	    "if the last argument is not a proper list.\n"
 	    "@example\n"
-	    "  (append '(a b) '(c . d))    =>  (a b c . d)\n"
-	    "  (append '() 'a)             =>  a\n"
+	    "(append '(a b) '(c . d))    @result{}  (a b c . d)\n"
+	    "(append '() 'a)             @result{}  a\n"
 	    "@end example")
 #define FUNC_NAME s_scm_append
 {
@@ -292,7 +294,8 @@ SCM_DEFINE (scm_last_pair, "last-pair", 1, 0, 0,
 
 SCM_DEFINE (scm_reverse, "reverse", 1, 0, 0,
             (SCM lst),
-	    "Return a new list that contains the elements of LST but in reverse order.")
+	    "Return a new list that contains the elements of @var{lst} but\n"
+	    "in reverse order.")
 #define FUNC_NAME s_scm_reverse
 {
   SCM result = SCM_EOL;
@@ -352,7 +355,7 @@ SCM_DEFINE (scm_reverse_x, "reverse!", 1, 1, 0,
 
 SCM_DEFINE (scm_list_ref, "list-ref", 2, 0, 0,
 	    (SCM list, SCM k),
-	    "Return the Kth element from LIST.")
+	    "Return the @var{k}th element from @var{list}.")
 #define FUNC_NAME s_scm_list_ref
 {
   SCM lst = list;
@@ -580,11 +583,12 @@ scm_c_memq (SCM obj, SCM list)
 
 SCM_DEFINE (scm_memq, "memq", 2, 0, 0,
            (SCM x, SCM lst),
-            "Return the first sublist of LST whose car is `eq?' to X\n"
-            "where the sublists of LST are the non-empty lists returned\n"
-            "by `(list-tail LST K)' for K less than the length of LST.  If\n"
-            "X does not occur in LST, then `#f' (not the empty list) is\n"
-            "returned.")
+	    "Return the first sublist of @var{lst} whose car is @code{eq?}\n"
+	    "to @var{x} where the sublists of @var{lst} are the non-empty\n"
+	    "lists returned by @code{(list-tail @var{lst} @var{k})} for\n"
+	    "@var{k} less than the length of @var{lst}.  If @var{x} does not\n"
+	    "occur in @var{lst}, then @code{#f} (not the empty list) is\n"
+	    "returned.")
 #define FUNC_NAME s_scm_memq
 {
   SCM_VALIDATE_LIST (2, lst);
@@ -596,11 +600,12 @@ SCM_DEFINE (scm_memq, "memq", 2, 0, 0,
 
 SCM_DEFINE (scm_memv, "memv", 2, 0, 0,
            (SCM x, SCM lst),
-            "Return the first sublist of LST whose car is `eqv?' to X\n"
-            "where the sublists of LST are the non-empty lists returned\n"
-            "by `(list-tail LST K)' for K less than the length of LST.  If\n"
-            "X does not occur in LST, then `#f' (not the empty list) is\n"
-            "returned.")
+	    "Return the first sublist of @var{lst} whose car is @code{eqv?}\n"
+	    "to @var{x} where the sublists of @var{lst} are the non-empty\n"
+	    "lists returned by @code{(list-tail @var{lst} @var{k})} for\n"
+	    "@var{k} less than the length of @var{lst}.  If @var{x} does not\n"
+	    "occur in @var{lst}, then @code{#f} (not the empty list) is\n"
+	    "returned.")
 #define FUNC_NAME s_scm_memv
 {
   SCM_VALIDATE_LIST (2, lst);
@@ -616,11 +621,12 @@ SCM_DEFINE (scm_memv, "memv", 2, 0, 0,
 
 SCM_DEFINE (scm_member, "member", 2, 0, 0,
            (SCM x, SCM lst),
-            "Return the first sublist of LST whose car is `equal?' to X\n"
-            "where the sublists of LST are the non-empty lists returned\n"
-            "by `(list-tail LST K)' for K less than the length of LST.  If\n"
-            "X does not occur in LST, then `#f' (not the empty list) is\n"
-            "returned.")
+	    "Return the first sublist of @var{lst} whose car is\n"
+	    "@code{equal?} to @var{x} where the sublists of @var{lst} are\n"
+	    "the non-empty lists returned by @code{(list-tail @var{lst}\n"
+	    "@var{k})} for @var{k} less than the length of @var{lst}.  If\n"
+	    "@var{x} does not occur in @var{lst}, then @code{#f} (not the\n"
+	    "empty list) is returned.")
 #define FUNC_NAME s_scm_member
 {
   SCM_VALIDATE_LIST (2, lst);
@@ -668,8 +674,9 @@ SCM_DEFINE (scm_delq_x, "delq!", 2, 0, 0,
 
 
 SCM_DEFINE (scm_delv_x, "delv!", 2, 0, 0,
-           (SCM item, SCM lst),
-	    "Destructively remove all elements from LST that are `eqv?' to ITEM.")
+	    (SCM item, SCM lst),
+	    "Destructively remove all elements from @var{lst} that are\n"
+	    "@code{eqv?} to @var{item}.")
 #define FUNC_NAME s_scm_delv_x
 {
   SCM walk;
@@ -692,8 +699,9 @@ SCM_DEFINE (scm_delv_x, "delv!", 2, 0, 0,
 
 
 SCM_DEFINE (scm_delete_x, "delete!", 2, 0, 0,
-           (SCM item, SCM lst),
-	    "Destructively remove all elements from LST that are `equal?' to ITEM.")
+	    (SCM item, SCM lst),
+	    "Destructively remove all elements from @var{lst} that are\n"
+	    "@code{equal?} to @var{item}.")
 #define FUNC_NAME s_scm_delete_x
 {
   SCM walk;
@@ -719,10 +727,10 @@ SCM_DEFINE (scm_delete_x, "delete!", 2, 0, 0,
 
 SCM_DEFINE (scm_delq, "delq", 2, 0, 0,
             (SCM item, SCM lst),
-	    "Return a newly-created copy of @var{lst} with elements `eq?' to @var{item} removed.\n"
-            "This procedure mirrors @code{memq}:\n"
-	    "@code{delq} compares elements of @var{lst} against @var{item} with\n"
-	    "@code{eq?}.")
+	    "Return a newly-created copy of @var{lst} with elements\n"
+	    "@code{eq?} to @var{item} removed.  This procedure mirrors\n"
+	    "@code{memq}: @code{delq} compares elements of @var{lst} against\n"
+	    "@var{item} with @code{eq?}.")
 #define FUNC_NAME s_scm_delq
 {
   SCM copy = scm_list_copy (lst);
@@ -732,10 +740,10 @@ SCM_DEFINE (scm_delq, "delq", 2, 0, 0,
 
 SCM_DEFINE (scm_delv, "delv", 2, 0, 0,
             (SCM item, SCM lst),
-	    "Return a newly-created copy of @var{lst} with elements `eqv?' to @var{item} removed.\n"
-            "This procedure mirrors @code{memv}:\n"
-	    "@code{delv} compares elements of @var{lst} against @var{item} with\n"
-	    "@code{eqv?}.")
+	    "Return a newly-created copy of @var{lst} with elements\n"
+	    "@code{eqv?}  to @var{item} removed.  This procedure mirrors\n"
+	    "@code{memv}: @code{delv} compares elements of @var{lst} against\n"
+	    "@var{item} with @code{eqv?}.")
 #define FUNC_NAME s_scm_delv
 {
   SCM copy = scm_list_copy (lst);
@@ -745,10 +753,10 @@ SCM_DEFINE (scm_delv, "delv", 2, 0, 0,
 
 SCM_DEFINE (scm_delete, "delete", 2, 0, 0,
             (SCM item, SCM lst),
-	    "Return a newly-created copy of @var{lst} with elements `equal?' to @var{item} removed.\n"
-            "This procedure mirrors @code{member}:\n"
-	    "@code{delete} compares elements of @var{lst} against @var{item} with\n"
-	    "@code{equal?}.")
+	    "Return a newly-created copy of @var{lst} with elements\n"
+	    "@code{equal?}  to @var{item} removed.  This procedure mirrors\n"
+	    "@code{member}: @code{delete} compares elements of @var{lst}\n"
+	    "against @var{item} with @code{equal?}.")
 #define FUNC_NAME s_scm_delete
 {
   SCM copy = scm_list_copy (lst);
@@ -759,8 +767,9 @@ SCM_DEFINE (scm_delete, "delete", 2, 0, 0,
 
 SCM_DEFINE (scm_delq1_x, "delq1!", 2, 0, 0,
            (SCM item, SCM lst),
-	    "Like `delq!', but only deletes the first occurrence of ITEM from LST.\n"
-            "Tests for equality using `eq?'.  See also `delv1!' and `delete1!'.")
+	    "Like @code{delq!}, but only deletes the first occurrence of\n"
+	    "@var{item} from @var{lst}.  Tests for equality using\n"
+	    "@code{eq?}.  See also @code{delv1!} and @code{delete1!}.")
 #define FUNC_NAME s_scm_delq1_x
 {
   SCM walk;
@@ -786,8 +795,9 @@ SCM_DEFINE (scm_delq1_x, "delq1!", 2, 0, 0,
 
 SCM_DEFINE (scm_delv1_x, "delv1!", 2, 0, 0,
             (SCM item, SCM lst),
-	    "Like `delv!', but only deletes the first occurrence of ITEM from LST.\n"
-            "Tests for equality using `eqv?'.  See also `delq1!' and `delete1!'.")
+	    "Like @code{delv!}, but only deletes the first occurrence of\n"
+	    "@var{item} from @var{lst}.  Tests for equality using\n"
+	    "@code{eqv?}.  See also @code{delq1!} and @code{delete1!}.")
 #define FUNC_NAME s_scm_delv1_x
 {
   SCM walk;
@@ -813,8 +823,9 @@ SCM_DEFINE (scm_delv1_x, "delv1!", 2, 0, 0,
 
 SCM_DEFINE (scm_delete1_x, "delete1!", 2, 0, 0,
             (SCM item, SCM lst),
-	    "Like `delete!', but only deletes the first occurrence of ITEM from LST.\n"
-            "Tests for equality using `equal?'.  See also `delq1!' and `delv1!'.")
+	    "Like @code{delete!}, but only deletes the first occurrence of\n"
+	    "@var{item} from @var{lst}.  Tests for equality using\n"
+	    "@code{equal?}.  See also @code{delq1!} and @code{delv1!}.")
 #define FUNC_NAME s_scm_delete1_x
 {
   SCM walk;

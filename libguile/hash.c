@@ -190,15 +190,16 @@ scm_ihashq (SCM obj, unsigned int n)
 
 SCM_DEFINE (scm_hashq, "hashq", 2, 0, 0,
            (SCM key, SCM size),
-	    "Determine a hash value for KEY that is suitable for lookups in\n"
-	    "a hashtable of size SIZE, where eq? is used as the equality\n"
-	    "predicate.  The function returns an integer in the range 0 to\n"
-	    "SIZE - 1.  NOTE that `hashq' may use internal addresses.\n"
-	    "Thus two calls to hashq where the keys are eq? are not\n"
-	    "guaranteed to deliver the same value if the key object gets\n"
-	    "garbage collected in between.  This can happen, for example\n"
-	    "with symbols:  (hashq 'foo n) (gc) (hashq 'foo n) may produce two\n" 
-	    "different values, since 'foo will be garbage collected.")
+	    "Determine a hash value for @var{key} that is suitable for\n"
+	    "lookups in a hashtable of size @var{size}, where @code{eq?} is\n"
+	    "used as the equality predicate.  The function returns an\n"
+	    "integer in the range 0 to @var{size} - 1.  Note that\n"
+	    "@code{hashq} may use internal addresses.  Thus two calls to\n"
+	    "hashq where the keys are @code{eq?} are not guaranteed to\n"
+	    "deliver the same value if the key object gets garbage collected\n"
+	    "in between.  This can happen, for example with symbols:\n"
+	    "@code{(hashq 'foo n) (gc) (hashq 'foo n)} may produce two\n"
+	    "different values, since @code{foo} will be garbage collected.")
 #define FUNC_NAME s_scm_hashq
 {
   SCM_VALIDATE_INUM_MIN (2, size, 0);
@@ -225,15 +226,16 @@ scm_ihashv (SCM obj, unsigned int n)
 
 SCM_DEFINE (scm_hashv, "hashv", 2, 0, 0,
            (SCM key, SCM size),
-	    "Determine a hash value for KEY that is suitable for lookups in\n"
-	    "a hashtable of size SIZE, where eqv? is used as the equality\n"
-	    "predicate.  The function returns an integer in the range 0 to\n"
-	    "SIZE - 1.  NOTE that (hashv key) may use internal addresses.\n"
-	    "Thus two calls to hashv where the keys are eqv? are not\n"
-	    "guaranteed to deliver the same value if the key object gets\n"
-	    "garbage collected in between.  This can happen, for example\n"
-	    "with symbols:  (hashv 'foo n) (gc) (hashv 'foo n) may produce two\n" 
-	    "different values, since 'foo will be garbage collected.")
+	    "Determine a hash value for @var{key} that is suitable for\n"
+	    "lookups in a hashtable of size @var{size}, where @code{eqv?} is\n"
+	    "used as the equality predicate.  The function returns an\n"
+	    "integer in the range 0 to @var{size} - 1.  Note that\n"
+	    "@code{(hashv key)} may use internal addresses.  Thus two calls\n"
+	    "to hashv where the keys are @code{eqv?} are not guaranteed to\n"
+	    "deliver the same value if the key object gets garbage collected\n"
+	    "in between.  This can happen, for example with symbols:\n"
+	    "@code{(hashv 'foo n) (gc) (hashv 'foo n)} may produce two\n"
+	    "different values, since @code{foo} will be garbage collected.")
 #define FUNC_NAME s_scm_hashv
 {
   SCM_VALIDATE_INUM_MIN (2, size, 0);
@@ -253,10 +255,10 @@ scm_ihash (SCM obj, unsigned int n)
 
 SCM_DEFINE (scm_hash, "hash", 2, 0, 0,
            (SCM key, SCM size),
-	    "Determine a hash value for KEY that is suitable for lookups in\n"
-	    "a hashtable of size SIZE, where equal? is used as the equality\n"
-	    "predicate.  The function returns an integer in the range 0 to\n"
-	    "SIZE - 1.")
+	    "Determine a hash value for @var{key} that is suitable for\n"
+	    "lookups in a hashtable of size @var{size}, where @code{equal?}\n"
+	    "is used as the equality predicate.  The function returns an\n"
+	    "integer in the range 0 to @var{size} - 1.")
 #define FUNC_NAME s_scm_hash
 {
   SCM_VALIDATE_INUM_MIN (2, size, 0);

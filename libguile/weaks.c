@@ -106,8 +106,8 @@ SCM_DEFINE (scm_weak_vector, "weak-vector", 0, 0, 1,
 
 SCM_DEFINE (scm_weak_vector_p, "weak-vector?", 1, 0, 0, 
            (SCM x),
-	    "Return @var{#t} if @var{obj} is a weak vector. Note that all weak\n"
-	    "hashes are also weak vectors.")
+	    "Return @code{#t} if @var{obj} is a weak vector. Note that all\n"
+	    "weak hashes are also weak vectors.")
 #define FUNC_NAME s_scm_weak_vector_p
 {
   return SCM_BOOL(SCM_WVECTP (x) && !SCM_IS_WHVEC (x));
@@ -179,9 +179,9 @@ SCM_DEFINE (scm_weak_key_hash_table_p, "weak-key-hash-table?", 1, 0, 0,
            (SCM x),
 	    "@deffnx primitive weak-value-hash-table? obj\n"
 	    "@deffnx primitive doubly-weak-hash-table? obj\n"
-	    "Return @var{#t} if @var{obj} is the specified weak hash table. Note\n"
-	    "that a doubly weak hash table is neither a weak key nor a weak value\n"
-	    "hash table.")
+	    "Return @code{#t} if @var{obj} is the specified weak hash\n"
+	    "table. Note that a doubly weak hash table is neither a weak key\n"
+	    "nor a weak value hash table.")
 #define FUNC_NAME s_scm_weak_key_hash_table_p
 {
   return SCM_BOOL(SCM_WVECTP (x) && SCM_IS_WHVEC(x));
@@ -191,7 +191,7 @@ SCM_DEFINE (scm_weak_key_hash_table_p, "weak-key-hash-table?", 1, 0, 0,
 
 SCM_DEFINE (scm_weak_value_hash_table_p, "weak-value-hash-table?", 1, 0, 0, 
             (SCM x),
-	    "Return @var{#t} if @var{x} is a weak value hash table.")
+	    "Return @code{#t} if @var{x} is a weak value hash table.")
 #define FUNC_NAME s_scm_weak_value_hash_table_p
 {
   return SCM_BOOL(SCM_WVECTP (x) && SCM_IS_WHVEC_V(x));
@@ -201,7 +201,7 @@ SCM_DEFINE (scm_weak_value_hash_table_p, "weak-value-hash-table?", 1, 0, 0,
 
 SCM_DEFINE (scm_doubly_weak_hash_table_p, "doubly-weak-hash-table?", 1, 0, 0, 
             (SCM x),
-	    "Return @var{#t} if @var{x} is a doubly weak hash table.")
+	    "Return @code{#t} if @var{x} is a doubly weak hash table.")
 #define FUNC_NAME s_scm_doubly_weak_hash_table_p
 {
   return SCM_BOOL(SCM_WVECTP (x) && SCM_IS_WHVEC_B (x));

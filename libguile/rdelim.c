@@ -62,18 +62,20 @@
 SCM_DEFINE (scm_read_delimited_x, "%read-delimited!", 3, 3, 0,
             (SCM delims, SCM str, SCM gobble, SCM port, SCM start, SCM end),
 	    "Read characters from @var{port} into @var{str} until one of the\n"
-	    "characters in the @var{delims} string is encountered.  If @var{gobble}\n"
-	    "is true, discard the delimiter character; otherwise, leave it\n"
-	    "in the input stream for the next read.\n"
-	    "If @var{port} is not specified, use the value of\n"
-	    "@code{(current-input-port)}.  If @var{start} or @var{end} are specified,\n"
-	    "store data only into the substring of @var{str} bounded by @var{start}\n"
-	    "and @var{end} (which default to the beginning and end of the string,\n"
-	    "respectively).\n\n"
-	    "Return a pair consisting of the delimiter that terminated the string and\n"
-	    "the number of characters read.  If reading stopped at the end of file,\n"
-	    "the delimiter returned is the @var{eof-object}; if the string was filled\n"
-	    "without encountering a delimiter, this value is @var{#f}.")
+	    "characters in the @var{delims} string is encountered.  If\n"
+	    "@var{gobble} is true, discard the delimiter character;\n"
+	    "otherwise, leave it in the input stream for the next read.  If\n"
+	    "@var{port} is not specified, use the value of\n"
+	    "@code{(current-input-port)}.  If @var{start} or @var{end} are\n"
+	    "specified, store data only into the substring of @var{str}\n"
+	    "bounded by @var{start} and @var{end} (which default to the\n"
+	    "beginning and end of the string, respectively).\n"
+	    "\n"
+	    " Return a pair consisting of the delimiter that terminated the\n"
+	    "string and the number of characters read.  If reading stopped\n"
+	    "at the end of file, the delimiter returned is the\n"
+	    "@var{eof-object}; if the string was filled without encountering\n"
+	    "a delimiter, this value is @code{#f}.")
 #define FUNC_NAME s_scm_read_delimited_x
 {
   long j;
