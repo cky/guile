@@ -1,3 +1,8 @@
+2003-06-19  Kevin Ryde  <user42@zip.com.au>
+
+	* README (Guile Documentation): Update to manuals now available,
+	remove notes about the reference manual being in progress.
+
 2003-06-14  Stefan Jahn  <stefan@lkcc.org>
 
 	* configure.in: Checking for __int64 as possible candidate for
