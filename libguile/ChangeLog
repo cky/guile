@@ -1,5 +1,12 @@
 2003-11-02  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* eval.c (canonicalize_define): New static helper function.
+
+	(memoize_define, canonicalize_define): Extract handling of
+	function currying to canonicalize_define.
+
+2003-11-02  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* eval.c (scm_trampoline_0, scm_trampoline_1, scm_trampoline_2):
 	Make sure that error checking in debug mode is not worse than in
 	standard mode.

@@ -87,6 +87,10 @@ char *alloca ();
 
 
 
+static SCM canonicalize_define (SCM expr);
+
+
+
 /* {Syntax Errors}
  *
  * This section defines the message strings for the syntax errors that can be
@@ -857,8 +861,8 @@ scm_m_cond (SCM expr, SCM env)
 }
 
 
-SCM_SYNTAX(s_define, "define", scm_i_makbimacro, scm_m_define);
-SCM_GLOBAL_SYMBOL(scm_sym_define, s_define);
+SCM_SYNTAX (s_define, "define", scm_i_makbimacro, scm_m_define);
+SCM_GLOBAL_SYMBOL (scm_sym_define, s_define);
 
 /* Guile provides an extension to R5RS' define syntax to represent function
  * currying in a compact way.  With this extension, it is allowed to write
@@ -879,14 +883,13 @@ SCM_GLOBAL_SYMBOL(scm_sym_define, s_define);
  */
 /* Dirk:FIXME:: We should provide an implementation for 'define' in the R5RS
  * module that does not implement this extension.  */
-SCM
-scm_m_define (SCM expr, SCM env)
+static SCM
+canonicalize_define (const SCM expr)
 {
   SCM body;
   SCM variable;
 
   const SCM cdr_expr = SCM_CDR (expr);
-  ASSERT_SYNTAX (scm_ilength (cdr_expr) >= 0, s_bad_expression, expr);
   ASSERT_SYNTAX (scm_ilength (cdr_expr) >= 2, s_missing_expression, expr);
 
   body = SCM_CDR (cdr_expr);
@@ -910,9 +913,28 @@ scm_m_define (SCM expr, SCM env)
   ASSERT_SYNTAX_2 (SCM_SYMBOLP (variable), s_bad_variable, variable, expr);
   ASSERT_SYNTAX (scm_ilength (body) == 1, s_expression, expr);
 
+  SCM_SETCAR (cdr_expr, variable);
+  SCM_SETCDR (cdr_expr, body);
+  return expr;
+}
+
+SCM
+scm_m_define (SCM expr, SCM env)
+{
+  SCM canonical_definition;
+  SCM cdr_canonical_definition;
+  SCM body;
+
+  ASSERT_SYNTAX (scm_ilength (expr) >= 0, s_bad_expression, expr);
+
+  canonical_definition = canonicalize_define (expr);
+  cdr_canonical_definition = SCM_CDR (canonical_definition);
+  body = SCM_CDR (cdr_canonical_definition);
+
   if (SCM_TOP_LEVEL (env))
     {
       SCM var;
+      const SCM variable = SCM_CAR (cdr_canonical_definition);
       const SCM value = scm_eval_car (body, env);
       if (SCM_REC_PROCNAMES_P)
 	{
@@ -930,10 +952,8 @@ scm_m_define (SCM expr, SCM env)
     }
   else
     {
-      SCM_SETCAR (expr, SCM_IM_DEFINE);
-      SCM_SETCAR (cdr_expr, variable);
-      SCM_SETCDR (cdr_expr, body);
-      return expr;
+      SCM_SETCAR (canonical_definition, SCM_IM_DEFINE);
+      return canonical_definition;
     }
 }
 
