@@ -864,33 +864,69 @@ procedures return (@pxref{Multiple Values}).
 @section SRFI-2 - and-let*
 @cindex SRFI-2
 
-@c FIXME::martin: Review me!
-
-@findex and-let*
-The syntactic form @code{and-let*} combines the conditional evaluation
-form @code{and} with the binding form @var{let*}.  Each argument
-expression will be evaluated sequentially, bound to a variable (if a
-variable name is given), but only as long as no expression returns
-the false value @code{#f}.
-
-Use @code{(use-modules (srfi srfi-2)} to access this syntax form.
-
-A short example will demonstrate how it works.  In the first expression,
-@var{x} will get bound to 1, but the next expression (@code{#f}) is
-false, so evaluation of the form is stopped, and @code{#f} is returned.
-In the next expression, @var{x} is bound to 1, @var{y} is bound to
-@code{#t} and since no expression in the binding section was false, the
-body of the @code{and-let*} expression is evaluated, which in this case
-returns the value of @var{x}.
+@noindent
+The following syntax can be obtained with
 
 @lisp
-(and-let* ((x 1) (y #f)) 42)
-@result{}
-#f
-(and-let* ((x 1) (y #t)) x)
-@result{}
-1
+(use-modules (srfi srfi-2))
 @end lisp
+
+@deffn {library syntax} and-let* (clause @dots{}) body @dots{}
+A combination of @code{and} and @code{let*}.
+
+Each @var{clause} is evaluated in turn, and if @code{#f} is obtained
+then evaluation stops and @code{#f} is returned.  If all are
+non-@code{#f} then @var{body} is evaluated and the last form gives the
+return value.  Each @var{clause} should be one of the following,
+
+@table @code
+@item (symbol expr)
+Evaluate @var{expr}, check for @code{#f}, and bind it to @var{symbol}.
+Like @code{let*}, that binding is available to subsequent clauses.
+@item (expr)
+Evaluate @var{expr} and check for @code{#f}.
+@item symbol
+Get the value bound to @var{symbol} and check for @code{#f}.
+@end table
+
+Notice that @code{(expr)} has an ``extra'' pair of parentheses, for
+instance @code{((eq? x y))}.  One way to remember this is to imagine
+the @code{symbol} in @code{(symbol expr)} is omitted.
+
+@code{and-let*} is good for calculations where a @code{#f} value means
+termination, but where a non-@code{#f} value is going to be needed in
+subsequent expressions.
+
+The following illustrates this, it returns text between brackets
+@samp{[...]} in a string, or @code{#f} if there are no such brackets
+(ie.@: either @code{string-index} gives @code{#f}).
+
+@example
+(define (extract-brackets str)
+  (and-let* ((start (string-index str #\[))
+             (end   (string-index str #\] start)))
+    (substring str (1+ start) end)))
+@end example
+
+The following shows plain variables and expressions tested too.
+@code{diagnostic-levels} is taken to be an alist associating a
+diagnostic type with a level.  @code{str} is printed only if the type
+is known and its level is high enough.
+
+@example
+(define (show-diagnostic type str)
+  (and-let* (want-diagnostics
+             (level (assq-ref diagnostic-levels type))
+             ((>= level current-diagnostic-level)))
+    (display str)))
+@end example
+
+The advantage of @code{and-let*} is that an extended sequence of
+expressions and tests doesn't require lots of nesting as would arise
+from separate @code{and} and @code{let*}, or from @code{cond} with
+@code{=>}.
+
+@end deffn
 
 
 @node SRFI-4
