@@ -1,3 +1,4 @@
+SUBDIRS = standalone
 
 SCM_TESTS = tests/alist.test			\
 	    tests/bit-operations.test		\
