@@ -121,23 +121,11 @@ scm_cell (scm_t_bits car, scm_t_bits cdr)
   
   /* Initialize the type slot last so that the cell is ignored by the
      GC until it is completely initialized.  This is only relevant
-     when the GC can actually run during this code, which it can't for
-     cooperating threads, but it might be important when we get true
-     preemptive threads.
+     when the GC can actually run during this code, which it can't
+     since the GC only runs when all other threads are stopped.
   */
   SCM_GC_SET_CELL_WORD (z, 1, cdr);
   SCM_GC_SET_CELL_WORD (z, 0, car);
-
-#if 0 /*fixme* Hmm... let's consider this later. */
-#if !defined(SCM_USE_COOP_THREADS) && !defined(SCM_USE_NULL_THREADS) && !defined(SCM_USE_COPT_THREADS)
-  /* When we are using preemtive threads, we might need to make
-     sure that the initial values for the slots are protected until
-     the cell is completely initialized.
-  */
-#error review me
-  scm_remember_upto_here_1 (SCM_PACK (cdr));
-#endif
-#endif
 
 #if (SCM_DEBUG_CELL_ACCESSES == 1)
   if (scm_expensive_debug_cell_accesses_p )
@@ -180,26 +168,13 @@ scm_double_cell (scm_t_bits car, scm_t_bits cbr,
 
   /* Initialize the type slot last so that the cell is ignored by the
      GC until it is completely initialized.  This is only relevant
-     when the GC can actually run during this code, which it can't for
-     cooperating threads, but it might be important when we get true
-     preemptive threads.
+     when the GC can actually run during this code, which it can't
+     since the GC only runs when all other threads are stopped.
   */
   SCM_GC_SET_CELL_WORD (z, 1, cbr);
   SCM_GC_SET_CELL_WORD (z, 2, ccr);
   SCM_GC_SET_CELL_WORD (z, 3, cdr);
   SCM_GC_SET_CELL_WORD (z, 0, car);
-
-#if 0 /*fixme* Hmm... let's consider this later. */
-#if !defined(SCM_USE_COOP_THREADS) && !defined(SCM_USE_NULL_THREADS) && !defined(SCM_USE_COPT_THREADS)
-  /* When we are using non-cooperating threads, we might need to make
-     sure that the initial values for the slots are protected until
-     the cell is completely initialized.
-  */
-#error review me
-  scm_remember_upto_here_3 (SCM_PACK (cbr), SCM_PACK (ccr), SCM_PACK (cdr));
-#endif
-#endif
-
 
 #if (SCM_DEBUG_CELL_ACCESSES == 1)
   if (scm_debug_cell_accesses_p)
