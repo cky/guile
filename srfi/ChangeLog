@@ -4,7 +4,9 @@
 	return #t instead of giving wrong-number-of-arguments . take a
 	single "rest" argument.  use memcmp instead of a loop to compare
 	the values.
-	srfi-14.h: update the declaration.
+	(s_scm_char_set_leq): similarly, (char-set<=) should return #t.
+	take a single "rest" argument.
+	srfi-14.h: update the declarations.
 
 2001-07-09  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 

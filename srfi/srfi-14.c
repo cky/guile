@@ -123,14 +123,14 @@ SCM_DEFINE (scm_char_set_eq, "char-set=", 0, 0, 1,
 
   while (!SCM_NULLP (char_sets))
     {
-      SCM csn = SCM_CAR (char_sets);
-      long *csn_data;
+      SCM csi = SCM_CAR (char_sets);
+      long *csi_data;
 
-      SCM_VALIDATE_SMOB (argnum++, csn, charset);
-      csn_data = (long *) SCM_SMOB_DATA (csn);
+      SCM_VALIDATE_SMOB (argnum++, csi, charset);
+      csi_data = (long *) SCM_SMOB_DATA (csi);
       if (cs1_data == NULL)
-	cs1_data = csn_data;
-      else if (memcmp (cs1_data, csn_data, SCM_CHARSET_SIZE) != 0)
+	cs1_data = csi_data;
+      else if (memcmp (cs1_data, csi_data, SCM_CHARSET_SIZE) != 0)
 	return SCM_BOOL_F;
       char_sets = SCM_CDR (char_sets);
     }
@@ -139,34 +139,36 @@ SCM_DEFINE (scm_char_set_eq, "char-set=", 0, 0, 1,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_char_set_leq, "char-set<=", 1, 0, 1,
-	    (SCM cs1, SCM csr),
+SCM_DEFINE (scm_char_set_leq, "char-set<=", 0, 0, 1,
+	    (SCM char_sets),
 	    "Return @code{#t} if every character set @var{cs}i is a subset\n"
 	    "of character set @var{cs}i+1.")
 #define FUNC_NAME s_scm_char_set_leq
 {
-  int argnum = 2;
+  int argnum = 1;
+  long *prev_data = NULL;
 
-  SCM_VALIDATE_SMOB (1, cs1, charset);
-  SCM_VALIDATE_REST_ARGUMENT (csr);
+  SCM_VALIDATE_REST_ARGUMENT (char_sets);
 
-  while (!SCM_NULLP (csr))
+  while (!SCM_NULLP (char_sets))
     {
-      long * p1, * p2;
-      SCM cs2 = SCM_CAR (csr);
-      int k;
+      SCM csi = SCM_CAR (char_sets);
+      long *csi_data;
 
-      SCM_VALIDATE_SMOB (argnum++, cs2, charset);
-      p1 = (long *) SCM_SMOB_DATA (cs1);
-      p2 = (long *) SCM_SMOB_DATA (cs2);
-      for (k = 0; k < SCM_CHARSET_SIZE / sizeof (long); k++)
+      SCM_VALIDATE_SMOB (argnum++, csi, charset);
+      csi_data = (long *) SCM_SMOB_DATA (csi);
+      if (prev_data)
 	{
-	  if ((p1[k] & p2[k]) != p1[k])
-	    return SCM_BOOL_F;
+	  int k;
+	  
+	  for (k = 0; k < SCM_CHARSET_SIZE / sizeof (long); k++)
+	    {
+	      if ((prev_data[k] & csi_data[k]) != prev_data[k])
+		return SCM_BOOL_F;
+	    }
 	}
-
-      csr = SCM_CDR (csr);
-      cs1 = cs2;
+      prev_data = csi_data;
+      char_sets = SCM_CDR (char_sets);
     }
   return SCM_BOOL_T;
 }
