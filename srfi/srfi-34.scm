@@ -31,6 +31,8 @@
 	    raise)
   #:export-syntax (guard))
 
+(cond-expand-provide (current-module) '(srfi-34))
+
 (define throw-key 'srfi-34)
 
 (define (with-exception-handler handler thunk)
