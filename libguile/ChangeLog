@@ -1,3 +1,33 @@
+2003-04-04  Rob Browning  <rlb@defaultvalue.org>
+
+	* socket.c (FLIPCPY_NET_HOST_128): new macro.
+	(ipv6_net_to_num, ipv6_num_to_net, bignum_in_ipv6_range_p):
+	rewrite to handle GMP bignums.
+
+
+	* random.c (scm_c_random_bignum): rewrite to handle GMP bignums.
+
+	* ports.c (scm_getc): minor tweak.
+
+	* numbers.h: remove SCM_BIGDIG conditionals, reorganize, and
+	rewrite to handle GMP bignums.
+
+	* numbers.c: rewrite *many* functions to handle GMP bignums.
+
+	* num2integral.i.c (NUM2INTEGRAL, INTEGRAL2NUM, INTEGRAL2BIG):
+	handle GMP bignums.
+
+	* num2float.i.c (NUM2FLOAT): handle GMP bignums.
+
+	* init.c (check_config): remove SCM_BIGDIG conditionals.
+	(scm_init_guile_1): test to make sure mpz_t fits in a double_cell.
+
+	* gc-card.c ("sweep_card"): handle new mpz_t bignums.
+
+	* eval.c: remove SCM_BIGDIG conditionals.
+
+	* eq.c (s_scm_eqv_p): scm_i_bigcomp -> scm_i_bigcmp.
+
 2003-03-26  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* init.c (scm_init_guile_1): Call scm_i_init_deprecated.

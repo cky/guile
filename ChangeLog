@@ -1,3 +1,7 @@
+2003-04-04  Rob Browning  <rlb@defaultvalue.org>
+
+	* configure.in: add GMP test (require GMP).
+
 2003-03-26  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* libguile.h: Include "libguile/deprecated.h".
