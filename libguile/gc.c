@@ -282,12 +282,6 @@ typedef struct scm_heap_seg_data_t
 
   /* number of cells per object in this segment */
   int span;
-
-  /* If SEG_DATA->valid is non-zero, the conservative marking
-     functions will apply SEG_DATA->valid to the purported pointer and
-     SEG_DATA, and mark the object iff the function returns non-zero.
-     At the moment, I don't think anyone uses this.  */
-  int (*valid) ();
 } scm_heap_seg_data_t;
 
 
@@ -1266,12 +1260,9 @@ scm_mark_locations (SCM_STACKITEM x[], scm_sizet n)
 			  break;
 		      }
 		  }
-		if (!scm_heap_table[seg_id].valid
-		    || scm_heap_table[seg_id].valid (ptr,
-						     &scm_heap_table[seg_id]))
-                  if (scm_heap_table[seg_id].span == 1
-		      || SCM_DOUBLE_CELLP (* (SCM *) &x[m]))
-                    scm_gc_mark (* (SCM *) &x[m]);
+		if (scm_heap_table[seg_id].span == 1
+		    || SCM_DOUBLE_CELLP (* (SCM *) &x[m]))
+		  scm_gc_mark (* (SCM *) &x[m]);
 		break;
 	      }
 
@@ -1303,7 +1294,6 @@ scm_cellp (SCM value)
 
     if (SCM_PTR_LE (scm_heap_table[i].bounds[0], ptr) 
 	&& SCM_PTR_GT (scm_heap_table[i].bounds[1], ptr)
-	&& (!scm_heap_table[i].valid || scm_heap_table[i].valid (ptr, &scm_heap_table[i]))
 	&& (scm_heap_table[i].span == 1 || SCM_DOUBLE_CELLP (value))) {
       return 1;
     } else {
@@ -1887,7 +1877,6 @@ init_heap_seg (SCM_CELLPTR seg_org, scm_sizet size, scm_freelist_t *freelist)
 
   ++scm_n_heap_segs;
 
-  scm_heap_table[new_seg_index].valid = 0;
   scm_heap_table[new_seg_index].span = span;
   scm_heap_table[new_seg_index].freelist = freelist;
   scm_heap_table[new_seg_index].bounds[0] = ptr;

@@ -1,3 +1,15 @@
+2000-05-25  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* filesys.h (SCM_OPDIRP), fluids (SCM_FLUIDP, SCM_FLUID_NUM),
+	fports.h (SCM_OPFPORTP, SCM_OPINFPORTP, SCM_OPOUTFPORTP), hooks.h
+	(SCM_HOOK_ARITY), keywords.h (SCM_KEYWORDP, SCM_KEYWORDSYM),
+	numbers.h (SCM_NUMP, SCM_BIGSIGN, SCM_BDIGITS, SCM_NUMDIGS): 
+	Replace SCM_UNPACK_CAR appropriately.  Don't access cells via
+	SCM_{SET}?C[AD]R unless they are known to be cons cells.
+
+	* gc.c (scm_heap_seg_data_t, scm_mark_locations, scm_cellp,
+	init_heap_seg):  Remove unused struct member variable 'valid'.
+
 2000-05-24  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* fports.c (fport_write), ports.c (scm_markstream, scm_port_mode,

@@ -52,8 +52,8 @@
 
 
 extern int scm_tc16_keyword;
-#define SCM_KEYWORDP(X)		(SCM_NIMP(X) && (SCM_UNPACK_CAR (X) == scm_tc16_keyword))
-#define SCM_KEYWORDSYM(X)	(SCM_CDR(X))
+#define SCM_KEYWORDP(X)		(!SCM_IMP (X) && (SCM_CELL_TYPE (X) == scm_tc16_keyword))
+#define SCM_KEYWORDSYM(X)	(SCM_CELL_OBJECT_1 (X))
 
 
 

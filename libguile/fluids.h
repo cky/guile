@@ -75,8 +75,8 @@
 
 extern long scm_tc16_fluid;
 
-#define SCM_FLUIDP(x)    (SCM_NIMP(x) && (SCM_UNPACK_CAR (x) == scm_tc16_fluid))
-#define SCM_FLUID_NUM(x) SCM_UNPACK (SCM_CDR(x))
+#define SCM_FLUIDP(x)    (!SCM_IMP (x) && (SCM_CELL_TYPE (x) == scm_tc16_fluid))
+#define SCM_FLUID_NUM(x) (SCM_CELL_WORD_1 (x))
 
 /* The fastest way to acces/modify the value of a fluid.  These macros
 do no error checking at all.  You should only use them when you know
