@@ -49,7 +49,7 @@
 
 
 (define (documented? object)
-  (object-documentation object))
+  (not (not (object-documentation object))))
 
 (define (folder sym val res)
   (cons (cons sym val) res))

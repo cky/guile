@@ -154,8 +154,9 @@
 	   (let ((x (make-hook 1)))
 	     (add-hook! x proc1)
 	     (add-hook! x proc2)
-	     (and (memq proc1 (hook->list x) )
-		  (memq proc2 (hook->list x)))))
+	     (and (memq proc1 (hook->list x))
+		  (memq proc2 (hook->list x))
+		  #t)))
   (pass-if "reset-hook!"
 	   (let ((x (make-hook 1)))
 	     (add-hook! x proc1)
@@ -165,7 +166,8 @@
   (with-test-prefix "reset-hook!"
 		    (pass-if "empty hook"
 			     (let ((x (make-hook 1)))
-			       (reset-hook! x)))
+			       (reset-hook! x)
+			       #t))
 		    (pass-if "bad hook"
 			     (catch-error-returning-true
 			      #t

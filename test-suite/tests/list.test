@@ -47,6 +47,9 @@
 ;;; miscellaneous
 ;;;
 
+(define (documented? object)
+  (not (not (object-documentation object))))
+
 ;;
 ;; This unique tag is reserved for the unroll and diff-unrolled functions.
 ;;
@@ -161,9 +164,8 @@
 
 (with-test-prefix "append!"
 
-  ;; Is documentation available?
-
-  (pass-if "documented?" (object-documentation append!))
+  (pass-if "documented?"
+    (documented? append!))
 
   ;; Is the handling of empty lists as arguments correct?
 
@@ -453,9 +455,8 @@
 
 (with-test-prefix "list-ref"
 
-  ;; Is documentation available?
-
-  (pass-if "documented?" (object-documentation list-ref))
+  (pass-if "documented?"
+    (documented? list-ref))
 
   (with-test-prefix "argument error"
     
@@ -519,9 +520,8 @@
 
 (with-test-prefix "list-set!"
 
-  ;; Is documentation available?
-
-  (pass-if "documented?" (object-documentation list-set!))
+  (pass-if "documented?"
+    (documented? list-set!))
 
   (with-test-prefix "argument error"
     
@@ -594,9 +594,8 @@
 
 (with-test-prefix "list-cdr-set!"
 
-  ;; Is documentation available?
-
-  (pass-if "documented?" (object-documentation list-cdr-set!))
+  (pass-if "documented?"
+    (documented? list-cdr-set!))
 
   (with-test-prefix "argument error"
     

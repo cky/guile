@@ -48,7 +48,7 @@
 ;;;
 
 (define (documented? object)
-  (object-documentation object))
+  (not (not (object-documentation object))))
 
 (define fixnum-bit 30)
 (define fixnum-min most-negative-fixnum)

@@ -22,14 +22,14 @@
 			 (or arg (and (procedure? foo)
 				      (foo 99))))))
 	   (define bar (foo #f))
-	   (foo #f)))
+	   (= (foo #f) 99)))
 
 (pass-if "Internal defines 2"
 	 (letrec ((foo 77)
 		  (bar #f)
 		  (retfoo (lambda () foo)))
 	   (define baz (retfoo))
-	   (retfoo)))
+	   (= (retfoo) 77)))
 
 ;; Test that evaluation of closure bodies works as it should
 

@@ -59,7 +59,7 @@
 	     (else (set! seen-something-else #t)))
 	    (loop)))))
   (pass-if "g3-garbage saved" seen-g3-garbage)
-  (pass-if "g2-saved" seen-g2)
+  (pass-if "g2-saved" (procedure? seen-g2))
   (pass-if "nothing else saved" (not seen-something-else))
   (pass-if "g2-garbage saved" (and (procedure? seen-g2)
 				   (equal? (seen-g2) '(g2-garbage)))))

@@ -184,7 +184,8 @@
 	      (gc)
 	      (and (hashq-ref x test-key)
 		   (hashq-ref y test-key)
-		   (hashq-ref z test-key))))
+		   (hashq-ref z test-key)
+		   #t)))
    (pass-if "weak-key dies"
 	    (begin
 	      (hashq-set! x "this" "is")
@@ -199,7 +200,8 @@
 		   (not (hashq-ref x "of"))
 		   (not (hashq-ref x "emergency"))
 		   (not (hashq-ref x "key")))
-	       (hashq-ref x test-key))))
+	       (hashq-ref x test-key)
+	       #t)))
 
    (pass-if "weak-value dies"
 	    (begin
@@ -214,7 +216,8 @@
 		       (not (hashq-ref y "of"))
 		       (not (hashq-ref y "emergency"))
 		       (not (hashq-ref y "value")))
-		   (hashq-ref y test-key))))
+		   (hashq-ref y test-key)
+		   #t)))
    (pass-if "doubly-weak dies"
 	    (begin
 	      (hashq-set! z "this" "is")
@@ -228,4 +231,5 @@
 		       (not (hashq-ref z "of"))
 		       (not (hashq-ref z "emergency"))
 		       (not (hashq-ref z "all")))
-		   (hashq-ref z test-key))))))
+		   (hashq-ref z test-key)
+		   #t)))))

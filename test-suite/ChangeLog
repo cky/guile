@@ -1,5 +1,19 @@
 2001-02-27  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* lib.scm (pass-if):  Tests shall return a boolean value.
+
+	* tests/bit-operations.test (documented?), tests/common-list.test
+	(documented?), tests/environments.test (documented?),
+	tests/eval.test (documented?), tests/gc.test (documented?),
+	tests/numbers.test (documented?), tests/guardians.test,
+	tests/hooks.test, tests/interp.test, tests/weaks.test:  Make sure
+	that tests return a boolean value.
+
+	* tests/list.test (documented?):  New function, replace all checks
+	for documentation with calls to this function.
+
+2001-02-27  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* lib.scm (data-file):  Remove from export list.
 
 2001-02-22  Thien-Thi Nguyen  <ttn@revel.glug.org>
