@@ -1,8 +1,8 @@
 /* classes: h_files */
 
-#ifndef SOCKETH
-#define SOCKETH
-/*	Copyright (C) 1995, 1996, 1997, 2000 Free Software Foundation, Inc.
+#ifndef SCM_SOCKETH
+#define SCM_SOCKETH
+/*	Copyright (C) 1995, 1996, 1997, 2000, 2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -52,6 +52,14 @@ extern SCM scm_htons (SCM in);
 extern SCM scm_ntohs (SCM in);
 extern SCM scm_htonl (SCM in);
 extern SCM scm_ntohl (SCM in);
+extern SCM scm_gethost (SCM name);
+extern SCM scm_inet_aton (SCM address);
+extern SCM scm_inet_ntoa (SCM inetid);
+extern SCM scm_inet_netof (SCM address);
+extern SCM scm_lnaof (SCM address);
+extern SCM scm_inet_makeaddr (SCM net, SCM lna);
+extern SCM scm_inet_pton (SCM family, SCM address);
+extern SCM scm_inet_ntop (SCM family, SCM address);
 extern SCM scm_socket (SCM family, SCM style, SCM proto);
 extern SCM scm_socketpair (SCM family, SCM style, SCM proto);
 extern SCM scm_getsockopt (SCM sfd, SCM level, SCM optname);
@@ -69,7 +77,7 @@ extern SCM scm_recvfrom (SCM sockfd, SCM buff_or_size, SCM flags, SCM offset, SC
 extern SCM scm_sendto (SCM sockfd, SCM message, SCM fam, SCM address, SCM args_and_flags);
 extern void scm_init_socket (void);
 
-#endif  /* SOCKETH */
+#endif  /* SCM_SOCKETH */
 
 /*
   Local Variables:

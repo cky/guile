@@ -1,3 +1,20 @@
+2001-04-22  Gary Houston  <ghouston@arglist.com>
+
+	* net_db.c: remove bogus "close" declaration.
+	(inet_aton declaration, scm_inet_aton, scm_inet_ntoa,
+	scm_inet_netof, scm_lnaof, scm_inet_makeaddr, INADDR_ANY etc.):
+	moved to socket.c.
+	* net_db.h: declarations moved too.
+
+	* socket.c (scm_htonl, scm_ntohl): use uint32_t instead of unsigned
+	long.
+	(ipv6_net_to_num, ipv6_num_to_net): new static procedures.
+	(VALIDATE_INET6): new macro.
+	(scm_inet_pton, scm_inet_ntop): new procedures, implementing
+	inet-pton and inet-ntop.
+	(scm_fill_sockaddr): use VALIDATE_INET6 and ipv6_num_to_net.
+	(scm_addr_vector): use ipv6_net_to_num.
+	
 2001-04-21  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* eq.c (scm_equal_p), ramap.c (scm_init_ramap):  Don't compute the

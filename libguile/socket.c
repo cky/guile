@@ -119,11 +119,12 @@ SCM_DEFINE (scm_ntohs, "ntohs", 1, 0, 0,
 SCM_DEFINE (scm_htonl, "htonl", 1, 0, 0, 
             (SCM in),
 	    "Return a new integer from @var{value} by converting from host\n"
-	    "to network order. @var{value} must be within the range of a C\n"
-	    "unsigned long integer.")
+	    "to network order. @var{value} must be within the range of a\n"
+	    "32 bit unsigned integer.")
 #define FUNC_NAME s_scm_htonl
 {
-  unsigned long c_in = SCM_NUM2ULONG (1, in);
+  uint32_t c_in = SCM_NUM2ULONG (1, in);
+
   return scm_ulong2num (htonl (c_in));
 }
 #undef FUNC_NAME
@@ -132,13 +133,277 @@ SCM_DEFINE (scm_ntohl, "ntohl", 1, 0, 0,
             (SCM in),
 	    "Return a new integer from @var{value} by converting from\n"
 	    "network to host order. @var{value} must be within the range of\n"
-	    "a C unsigned long integer.")
+	    "a 32 bit unsigned integer.")
 #define FUNC_NAME s_scm_ntohl
 {
-  unsigned long c_in = SCM_NUM2ULONG (1, in);
+  uint32_t c_in = SCM_NUM2ULONG (1, in);
+
   return scm_ulong2num (ntohl (c_in));
 }
 #undef FUNC_NAME
+
+#ifndef HAVE_INET_ATON
+/* for our definition in inet_aton.c, not usually needed.  */
+extern int inet_aton ();
+#endif
+
+SCM_DEFINE (scm_inet_aton, "inet-aton", 1, 0, 0, 
+            (SCM address),
+	    "Converts a string containing an Internet host address in the\n"
+	    "traditional dotted decimal notation into an integer.\n"
+	    "@lisp\n"
+	    "(inet-aton \"127.0.0.1\") @result{} 2130706433\n"
+	    "@end lisp")
+#define FUNC_NAME s_scm_inet_aton
+{
+  struct in_addr soka;
+
+  SCM_VALIDATE_STRING (1, address);
+  SCM_STRING_COERCE_0TERMINATION_X (address);
+  if (inet_aton (SCM_STRING_CHARS (address), &soka) == 0)
+    SCM_MISC_ERROR ("bad address", SCM_EOL);
+  return scm_ulong2num (ntohl (soka.s_addr));
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_inet_ntoa, "inet-ntoa", 1, 0, 0, 
+            (SCM inetid),
+	    "Converts an integer Internet host address into a string with\n"
+	    "the traditional dotted decimal representation.\n"
+	    "@lisp\n"
+	    "(inet-ntoa 2130706433) @result{} \"127.0.0.1\"\n"
+	    "@end lisp")
+#define FUNC_NAME s_scm_inet_ntoa
+{
+  struct in_addr addr;
+  char *s;
+  SCM answer;
+  addr.s_addr = htonl (SCM_NUM2ULONG (1, inetid));
+  s = inet_ntoa (addr);
+  answer = scm_makfromstr (s, strlen (s), 0);
+  return answer;
+}
+#undef FUNC_NAME
+
+#ifdef HAVE_INET_NETOF
+SCM_DEFINE (scm_inet_netof, "inet-netof", 1, 0, 0, 
+            (SCM address),
+	    "Return the network number part of the given integer Internet\n"
+	    "address.\n"
+	    "@lisp\n"
+	    "(inet-netof 2130706433) @result{} 127\n"
+	    "@end lisp")
+#define FUNC_NAME s_scm_inet_netof
+{
+  struct in_addr addr;
+  addr.s_addr = htonl (SCM_NUM2ULONG (1, address));
+  return scm_ulong2num ((unsigned long) inet_netof (addr));
+}
+#undef FUNC_NAME
+#endif
+
+#ifdef HAVE_INET_LNAOF
+SCM_DEFINE (scm_lnaof, "inet-lnaof", 1, 0, 0, 
+            (SCM address),
+	    "Return the local-address-with-network part of the given\n"
+	    "Internet address.\n"
+	    "@lisp\n"
+	    "(inet-lnaof 2130706433) @result{} 1\n"
+	    "@end lisp")
+#define FUNC_NAME s_scm_lnaof
+{
+  struct in_addr addr;
+  addr.s_addr = htonl (SCM_NUM2ULONG (1, address));
+  return scm_ulong2num ((unsigned long) inet_lnaof (addr));
+}
+#undef FUNC_NAME
+#endif
+
+#ifdef HAVE_INET_MAKEADDR
+SCM_DEFINE (scm_inet_makeaddr, "inet-makeaddr", 2, 0, 0,
+            (SCM net, SCM lna),
+	    "Makes an Internet host address by combining the network number\n"
+	    "@var{net} with the local-address-within-network number\n"
+	    "@var{lna}.\n"
+	    "@lisp\n"
+	    "(inet-makeaddr 127 1) @result{} 2130706433\n"
+	    "@end lisp")
+#define FUNC_NAME s_scm_inet_makeaddr
+{
+  struct in_addr addr;
+  unsigned long netnum;
+  unsigned long lnanum;
+
+  netnum = SCM_NUM2ULONG (1, net);
+  lnanum = SCM_NUM2ULONG (2, lna);
+  addr = inet_makeaddr (netnum, lnanum);
+  return scm_ulong2num (ntohl (addr.s_addr));
+}
+#undef FUNC_NAME
+#endif
+
+/* flip a 128 bit IPv6 address between host and network order.  */
+#ifdef WORDS_BIGENDIAN
+#define FLIP_NET_HOST_128(addr)
+#else
+#define FLIP_NET_HOST_128(addr)\
+{\
+  int i;\
+  \
+  for (i = 0; i < 8; i++)\
+    {\
+      char c = (addr)[i];\
+      \
+      (addr)[i] = (addr)[15 - i];\
+      (addr)[15 - i] = c;\
+    }\
+}
+#endif
+
+/* convert a 128 bit IPv6 address in network order to a host ordered
+   SCM integer.  */
+static SCM ipv6_net_to_num (const char *src)
+{
+  int big_digits = 128 / SCM_BITSPERDIG;
+  const int bytes_per_dig = SCM_BITSPERDIG / 8;
+  char addr[16];
+  char *ptr = addr;
+  SCM result;
+
+  memcpy (addr, src, 16);
+  /* get rid of leading zeros.  */ 
+  while (big_digits > 0)
+    {
+      long test = 0;
+
+      memcpy (&test, ptr, bytes_per_dig);
+      if (test != 0)
+	break;
+      ptr += bytes_per_dig;
+      big_digits--;
+    }
+  FLIP_NET_HOST_128 (addr);
+  if (big_digits * bytes_per_dig <= sizeof (unsigned long))
+    {
+      /* this is just so that we use INUM where possible.  */
+      unsigned long l_addr;
+
+      memcpy (&l_addr, addr, sizeof (unsigned long));
+      result = scm_ulong2num (l_addr);
+    }
+  else
+    {
+      result = scm_mkbig (big_digits, 0);
+      memcpy (SCM_BDIGITS (result), addr, big_digits * bytes_per_dig);
+    }
+  return result;
+}  
+
+/* convert a host ordered SCM integer to a 128 bit IPv6 address in
+   network order.  */
+static void ipv6_num_to_net (SCM src, char *dst)
+{
+  if (SCM_INUMP (src))
+    {
+      uint32_t addr = htonl (SCM_INUM (src));
+
+      memset (dst, 0, 12);
+      memcpy (dst + 12, &addr, 4);
+    }
+  else
+    {
+      memset (dst, 0, 16);
+      memcpy (dst, SCM_BDIGITS (src),
+	      SCM_NUMDIGS (src) * (SCM_BITSPERDIG / 8));
+      FLIP_NET_HOST_128 (dst);
+    }
+}
+
+/* check that an SCM variable contains an IPv6 integer address.  */
+#define VALIDATE_INET6(which_arg, address)\
+   if (SCM_INUMP (address))\
+      SCM_ASSERT_RANGE (which_arg, address, SCM_INUM (address) >= 0);\
+   else\
+   {\
+      SCM_VALIDATE_BIGINT (which_arg, address);\
+      SCM_ASSERT_RANGE (which_arg, address,\
+	                !SCM_BIGSIGN (address)\
+			&& (SCM_BITSPERDIG\
+			    * SCM_NUMDIGS (address) <= 128));\
+   }
+
+#ifdef HAVE_INET_PTON
+SCM_DEFINE (scm_inet_pton, "inet-pton", 2, 0, 0,
+            (SCM family, SCM address),
+	    "Convert a printable string network address into\n"
+	    "an integer.  Note that unlike the C version of this function,\n"
+	    "the result is an integer with normal host byte ordering.\n"
+	    "@var{family} can be @code{AF_INET} or @code{AF_INET6}.  e.g.,\n"
+	    "@lisp\n"
+	    "(inet-pton AF_INET "127.0.0.1") @result{} 2130706433\n"
+	    "(inet-pton AF_INET6 "::1") @result{} 1\n"
+	    "@end lisp")
+#define FUNC_NAME s_scm_inet_pton
+{
+  int af;
+  char *src;
+  char dst[16];
+  int rv;
+
+  SCM_VALIDATE_INUM_COPY (1, family, af);
+  SCM_ASSERT_RANGE (1, family, af == AF_INET || af == AF_INET6);
+  SCM_VALIDATE_STRING_COPY (2, address, src);
+  rv = inet_pton (af, src, dst);
+  if (rv == -1)
+    SCM_SYSERROR;
+  else if (rv == 0)
+    SCM_MISC_ERROR ("Bad address", SCM_EOL);
+  if (af == AF_INET)
+    return scm_ulong2num (ntohl (*(uint32_t *) dst));
+  else
+    return ipv6_net_to_num ((char *) dst);
+}
+#undef FUNC_NAME
+#endif
+
+#ifdef HAVE_INET_NTOP
+SCM_DEFINE (scm_inet_ntop, "inet-ntop", 2, 0, 0,
+            (SCM family, SCM address),
+	    "Convert an integer network address into a printable string.\n"
+	    "Note that unlike the C version of this function,\n"
+	    "the input is an integer with normal host byte ordering.\n"
+	    "@var{family} can be @code{AF_INET} or @code{AF_INET6}.  e.g.,\n"
+	    "@lisp\n"
+	    "(inet-ntop AF_INET 2130706433) @result{} "127.0.0.1"\n"
+	    "(inet-ntop AF_INET6 (- (expt 2 128) 1)) @result{}\n"
+	    "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff\n"
+	    "@end lisp")
+#define FUNC_NAME s_scm_inet_ntop
+{
+  int af;
+#ifdef INET6_ADDRSTRLEN
+  char dst[INET6_ADDRSTRLEN];
+#else
+  char dst[46];
+#endif
+  char addr6[16];
+
+  SCM_VALIDATE_INUM_COPY (1, family, af);
+  SCM_ASSERT_RANGE (1, family, af == AF_INET || af == AF_INET6);
+  if (af == AF_INET)
+    *(uint32_t *) addr6 = htonl (SCM_NUM2ULONG (2, address));
+  else
+    {
+      VALIDATE_INET6 (2, address);
+      ipv6_num_to_net (address, addr6);
+    }
+  if (inet_ntop (af, &addr6, dst, sizeof dst) == NULL)
+    SCM_SYSERROR;
+  return scm_makfrom0str (dst);
+}
+#undef FUNC_NAME
+#endif
 
 SCM_SYMBOL (sym_socket, "socket");
 
@@ -366,24 +631,6 @@ SCM_DEFINE (scm_setsockopt, "setsockopt", 4, 0, 0,
 }
 #undef FUNC_NAME
 
-/* flip a 128 bit IPv6 address between host and network order.  */
-#ifdef WORDS_BIGENDIAN
-#define FLIP_NET_HOST_128(addr)
-#else
-#define FLIP_NET_HOST_128(addr)\
-{\
-  int i;\
-  \
-  for (i = 0; i < 8; i++)\
-    {\
-      char c = (addr)[i];\
-      \
-      (addr)[i] = (addr)[15 - i];\
-      (addr)[15 - i] = c;\
-    }\
-}
-#endif
-
 SCM_DEFINE (scm_shutdown, "shutdown", 2, 0, 0,
           (SCM sock, SCM how),
 	    "Sockets can be closed simply by using @code{close-port}. The\n"
@@ -462,16 +709,7 @@ scm_fill_sockaddr (int fam, SCM address, SCM *args, int which_arg,
 	unsigned long flowinfo = 0;
 	unsigned long scope_id = 0;
 
-	if (SCM_INUMP (address))
-	  SCM_ASSERT_RANGE (which_arg, address, SCM_INUM (address) >= 0);
-	else
-	  {
-	    SCM_VALIDATE_BIGINT (which_arg, address);
-	    SCM_ASSERT_RANGE (which_arg, address,
-			      !SCM_BIGSIGN (address)
-			      && (SCM_BITSPERDIG
-				  * SCM_NUMDIGS (address) <= 128));
-	  }
+	VALIDATE_INET6 (which_arg, address);
 	SCM_VALIDATE_CONS (which_arg + 1, *args);
 	SCM_VALIDATE_INUM_COPY (which_arg + 1, SCM_CAR (*args), port);
 	*args = SCM_CDR (*args);
@@ -493,20 +731,7 @@ scm_fill_sockaddr (int fam, SCM address, SCM *args, int which_arg,
 	soka->sin6_len = sizeof (struct sockaddr_in6);
 #endif
 	soka->sin6_family = AF_INET6;
-	if (SCM_INUMP (address))
-	  {
-	    uint32_t addr = htonl (SCM_INUM (address));
-
-	    memset (soka->sin6_addr.s6_addr, 0, 12);
-	    memcpy (soka->sin6_addr.s6_addr + 12, &addr, 4);
-	  }
-	else
-	  {
-	    memset (soka->sin6_addr.s6_addr, 0, 16);
-	    memcpy (soka->sin6_addr.s6_addr, SCM_BDIGITS (address), 
-		    SCM_NUMDIGS (address) * (SCM_BITSPERDIG / 8));
-	    FLIP_NET_HOST_128 (soka->sin6_addr.s6_addr);
-	  }
+	ipv6_num_to_net (address, soka->sin6_addr.s6_addr);
 	soka->sin6_port = htons (port);
 	soka->sin6_flowinfo = flowinfo;
 #ifdef HAVE_SIN6_SCOPE_ID
@@ -692,43 +917,11 @@ scm_addr_vector (const struct sockaddr *address, const char *proc)
     case AF_INET6:
       {
 	const struct sockaddr_in6 *nad = (struct sockaddr_in6 *) address;
-	int big_digits = 128 / SCM_BITSPERDIG;
-	int bytes_per_dig = SCM_BITSPERDIG / 8;
-	char addr[16];
-	char *ptr = addr;
-	SCM scm_addr;
-
-	memcpy (addr, nad->sin6_addr.s6_addr, 16);
-	/* get rid of leading zeros.  */ 
-	while (big_digits > 0)
-	  {
-	    long test = 0;
-
-	    memcpy (&test, ptr, bytes_per_dig);
-	    if (test != 0)
-	      break;
-	    ptr += bytes_per_dig;
-	    big_digits--;
-	  }
-	FLIP_NET_HOST_128 (addr);
-	if (big_digits * bytes_per_dig <= sizeof (unsigned long))
-	  {
-	    /* this is just so that we use INUM where possible.  */
-	    unsigned long l_addr;
-
-	    memcpy (&l_addr, addr, sizeof (unsigned long));
-	    scm_addr = scm_ulong2num (l_addr);
-	  }
-	else
-	  {
-	    scm_addr = scm_mkbig (big_digits, 0);
-	    memcpy (SCM_BDIGITS (scm_addr), addr, big_digits * bytes_per_dig);
-	  }
 
 	result = scm_c_make_vector (5, SCM_UNSPECIFIED);
 	ve = SCM_VELTS (result);
 	ve[0] = scm_ulong2num ((unsigned long) fam);
-	ve[1] = scm_addr;
+	ve[1] = ipv6_net_to_num (nad->sin6_addr.s6_addr);
 	ve[2] = scm_ulong2num ((unsigned long) ntohs (nad->sin6_port));
 	ve[3] = scm_ulong2num ((unsigned long) nad->sin6_flowinfo);
 #ifdef HAVE_SIN6_SCOPE_ID
@@ -1073,6 +1266,20 @@ scm_init_socket ()
 #endif
 #ifdef PF_INET6
   scm_sysintern ("PF_INET6", SCM_MAKINUM (PF_INET6));
+#endif
+
+  /* standard addresses.  */
+#ifdef INADDR_ANY
+  scm_sysintern ("INADDR_ANY", scm_ulong2num (INADDR_ANY));
+#endif
+#ifdef INADDR_BROADCAST
+  scm_sysintern ("INADDR_BROADCAST", scm_ulong2num (INADDR_BROADCAST));
+#endif
+#ifdef INADDR_NONE
+  scm_sysintern ("INADDR_NONE", scm_ulong2num (INADDR_NONE));
+#endif
+#ifdef INADDR_LOOPBACK
+  scm_sysintern ("INADDR_LOOPBACK", scm_ulong2num (INADDR_LOOPBACK));
 #endif
 
   /* socket types.  */

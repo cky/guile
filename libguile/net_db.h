@@ -1,8 +1,8 @@
 /* classes: h_files */
 
-#ifndef NETDBH
-#define NETDBH
-/*	Copyright (C) 1995, 2000 Free Software Foundation, Inc.
+#ifndef SCM_NETDBH
+#define SCM_NETDBH
+/*	Copyright (C) 1995, 2000, 2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,12 +51,6 @@
 
 
 
-extern SCM scm_gethost (SCM name);
-extern SCM scm_inet_aton (SCM address);
-extern SCM scm_inet_ntoa (SCM inetid);
-extern SCM scm_inet_netof (SCM address);
-extern SCM scm_lnaof (SCM address);
-extern SCM scm_inet_makeaddr (SCM net, SCM lna);
 extern SCM scm_getnet (SCM name);
 extern SCM scm_getproto (SCM name);
 extern SCM scm_getserv (SCM name, SCM proto);
@@ -66,7 +60,7 @@ extern SCM scm_setproto (SCM arg);
 extern SCM scm_setserv (SCM arg);
 extern void scm_init_net_db (void);
 
-#endif  /* NETDBH */
+#endif  /* SCM_NETDBH */
 
 /*
   Local Variables:

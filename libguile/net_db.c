@@ -71,122 +71,12 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-
-
-#ifndef STDC_HEADERS
-int close ();
-#endif /* STDC_HEADERS */
-
-#ifndef HAVE_INET_ATON
-/* for our definition in inet_aton.c, not usually needed.  */
-extern int inet_aton ();
-#endif
-
 #ifndef HAVE_H_ERRNO
 /* h_errno not found in netdb.h, maybe this will help.  */
 extern int h_errno;
 #endif
 
-SCM_DEFINE (scm_inet_aton, "inet-aton", 1, 0, 0, 
-            (SCM address),
-	    "Converts a string containing an Internet host address in the\n"
-	    "traditional dotted decimal notation into an integer.\n"
-	    "@lisp\n"
-	    "(inet-aton \"127.0.0.1\") @result{} 2130706433\n"
-	    "@end lisp")
-#define FUNC_NAME s_scm_inet_aton
-{
-  struct in_addr soka;
-
-  SCM_VALIDATE_STRING (1, address);
-  SCM_STRING_COERCE_0TERMINATION_X (address);
-  if (inet_aton (SCM_STRING_CHARS (address), &soka) == 0)
-    SCM_MISC_ERROR ("bad address", SCM_EOL);
-  return scm_ulong2num (ntohl (soka.s_addr));
-}
-#undef FUNC_NAME
-
-
-SCM_DEFINE (scm_inet_ntoa, "inet-ntoa", 1, 0, 0, 
-            (SCM inetid),
-	    "Converts an integer Internet host address into a string with\n"
-	    "the traditional dotted decimal representation.\n"
-	    "@lisp\n"
-	    "(inet-ntoa 2130706433) @result{} \"127.0.0.1\"\n"
-	    "@end lisp")
-#define FUNC_NAME s_scm_inet_ntoa
-{
-  struct in_addr addr;
-  char *s;
-  SCM answer;
-  addr.s_addr = htonl (SCM_NUM2ULONG (1, inetid));
-  s = inet_ntoa (addr);
-  answer = scm_makfromstr (s, strlen (s), 0);
-  return answer;
-}
-#undef FUNC_NAME
-
-#ifdef HAVE_INET_NETOF
-SCM_DEFINE (scm_inet_netof, "inet-netof", 1, 0, 0, 
-            (SCM address),
-	    "Return the network number part of the given integer Internet\n"
-	    "address.\n"
-	    "@lisp\n"
-	    "(inet-netof 2130706433) @result{} 127\n"
-	    "@end lisp")
-#define FUNC_NAME s_scm_inet_netof
-{
-  struct in_addr addr;
-  addr.s_addr = htonl (SCM_NUM2ULONG (1, address));
-  return scm_ulong2num ((unsigned long) inet_netof (addr));
-}
-#undef FUNC_NAME
-#endif
-
-#ifdef HAVE_INET_LNAOF
-SCM_DEFINE (scm_lnaof, "inet-lnaof", 1, 0, 0, 
-            (SCM address),
-	    "Return the local-address-with-network part of the given\n"
-	    "Internet address.\n"
-	    "@lisp\n"
-	    "(inet-lnaof 2130706433) @result{} 1\n"
-	    "@end lisp")
-#define FUNC_NAME s_scm_lnaof
-{
-  struct in_addr addr;
-  addr.s_addr = htonl (SCM_NUM2ULONG (1, address));
-  return scm_ulong2num ((unsigned long) inet_lnaof (addr));
-}
-#undef FUNC_NAME
-#endif
-
-#ifdef HAVE_INET_MAKEADDR
-SCM_DEFINE (scm_inet_makeaddr, "inet-makeaddr", 2, 0, 0,
-            (SCM net, SCM lna),
-	    "Makes an Internet host address by combining the network number\n"
-	    "@var{net} with the local-address-within-network number\n"
-	    "@var{lna}.\n"
-	    "@lisp\n"
-	    "(inet-makeaddr 127 1) @result{} 2130706433\n"
-	    "@end lisp")
-#define FUNC_NAME s_scm_inet_makeaddr
-{
-  struct in_addr addr;
-  unsigned long netnum;
-  unsigned long lnanum;
-
-#if 0 /* GJB:FIXME:: */
-  SCM_VALIDATE_INUM_COPY (1,net,netnum);
-  SCM_VALIDATE_INUM_COPY (2,lna,lnanum);
-#else
-  netnum = SCM_NUM2ULONG (1, net);
-  lnanum = SCM_NUM2ULONG (2, lna);
-#endif
-  addr = inet_makeaddr (netnum, lnanum);
-  return scm_ulong2num (ntohl (addr.s_addr));
-}
-#undef FUNC_NAME
-#endif
+
 
 SCM_SYMBOL (scm_host_not_found_key, "host-not-found");
 SCM_SYMBOL (scm_try_again_key, "try-again");
@@ -554,19 +444,6 @@ SCM_DEFINE (scm_setserv, "setserv", 0, 1, 0,
 void 
 scm_init_net_db ()
 {
-#ifdef INADDR_ANY
-  scm_sysintern ("INADDR_ANY", scm_ulong2num (INADDR_ANY));
-#endif
-#ifdef INADDR_BROADCAST
-  scm_sysintern ("INADDR_BROADCAST", scm_ulong2num (INADDR_BROADCAST));
-#endif
-#ifdef INADDR_NONE
-  scm_sysintern ("INADDR_NONE", scm_ulong2num (INADDR_NONE));
-#endif
-#ifdef INADDR_LOOPBACK
-  scm_sysintern ("INADDR_LOOPBACK", scm_ulong2num (INADDR_LOOPBACK));
-#endif
-
   scm_add_feature ("net-db");
 #ifndef SCM_MAGIC_SNARFER
 #include "libguile/net_db.x"
