@@ -57,6 +57,13 @@
 
 (with-test-prefix "evaluator"
 
+  (with-test-prefix "memoization"
+
+    (pass-if "transparency"
+      (let ((x '(begin 1)))
+        (eval x (current-module))
+        (equal? '(begin 1) x))))
+
   (with-test-prefix "symbol lookup"
 
     (with-test-prefix "top level"
@@ -169,3 +176,5 @@
 	exception:out-of-range
 	(map + '(1 2) '(3)))
     )))
+
+;;; eval.test ends here
