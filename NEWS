@@ -55,6 +55,13 @@ Example:
 
 * Changes to the scm_ interface
 
+** New function: scm_done_free (long size)
+
+This function is the inverse of scm_done_malloc.  Use it to report the
+amount of smob memory you free.  The previous method, which involved
+calling scm_done_malloc with negative argument, was somewhat
+unintuitive (and is still available, of course).
+
 ** New global variable scm_gc_running_p introduced.
 
 Use this variable to find out if garbage collection is being executed.  Up to

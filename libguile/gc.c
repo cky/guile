@@ -107,7 +107,7 @@ scm_assert_cell_valid (SCM cell)
     {
       scm_debug_cell_accesses_p = 0;  /* disable to avoid recursion */
 
-      if (!scm_cellp (cell)) 
+      if (!scm_cellp (cell))
 	{
 	  fprintf (stderr, "scm_assert_cell_valid: Not a cell object: %lx\n", SCM_UNPACK (cell));
 	  abort ();
@@ -1034,7 +1034,7 @@ gc_mark_nimp:
 	 * to a heap cell.  If it is a struct, the cell word #0 of ptr is a
 	 * pointer to a struct vtable data region. The fact that these are
 	 * accessed in the same way restricts the possibilites to change the
-	 * data layout of structs or heap cells. 
+	 * data layout of structs or heap cells.
 	 */
 	scm_bits_t word0 = SCM_CELL_WORD_0 (ptr) - scm_tc3_cons_gloc;
 	scm_bits_t * vtable_data = (scm_bits_t *) word0; /* access as struct */
@@ -1369,7 +1369,7 @@ scm_cellp (SCM value)
       }
     }
 
-    if (SCM_PTR_LE (scm_heap_table[i].bounds[0], ptr) 
+    if (SCM_PTR_LE (scm_heap_table[i].bounds[0], ptr)
 	&& SCM_PTR_GT (scm_heap_table[i].bounds[1], ptr)
 	&& (scm_heap_table[i].span == 1 || SCM_DOUBLE_CELLP (value))) {
       return 1;
@@ -1475,7 +1475,7 @@ scm_gc_sweep ()
 		      vtable_data [scm_vtable_index_vcell] = 0;
 		    goto cmrkcontinue;
 		  }
-		else 
+		else
 		  {
 		    if (vtable_data [scm_vtable_index_vcell] == 0
 			|| vtable_data [scm_vtable_index_vcell] == 1)
@@ -1733,12 +1733,12 @@ scm_gc_sweep ()
 
 /* {Front end to malloc}
  *
- * scm_must_malloc, scm_must_realloc, scm_must_free, scm_done_malloc
+ * scm_must_malloc, scm_must_realloc, scm_must_free, scm_done_malloc,
+ * scm_done_free
  *
  * These functions provide services comperable to malloc, realloc, and
  * free.  They are for allocating malloced parts of scheme objects.
- * The primary purpose of the front end is to impose calls to gc.
- */
+ * The primary purpose of the front end is to impose calls to gc.  */
 
 
 /* scm_must_malloc
@@ -1864,7 +1864,13 @@ scm_must_free (void *obj)
  * reason).  When a new object of this smob is created you call
  * scm_done_malloc with the size of the object.  When your smob free
  * function is called, be sure to include this size in the return
- * value. */
+ * value.
+ *
+ * If you can't actually free the memory in the smob free function,
+ * for whatever reason (like reference counting), you still can (and
+ * should) report the amount of memory freed when you actually free it.
+ * Do it by calling scm_done_malloc with the _negated_ size.  Clever,
+ * eh?  Or even better, call scm_done_free. */
 
 void
 scm_done_malloc (long size)
@@ -1882,6 +1888,12 @@ scm_done_malloc (long size)
 	    scm_mtrigger += scm_mtrigger / 2;
 	}
     }
+}
+
+void
+scm_done_free (long size)
+{
+  scm_mallocated -= size;
 }
 
 
@@ -2045,7 +2057,7 @@ alloc_some_heap (scm_freelist_t *freelist, policy_on_error error_policy)
   SCM_CELLPTR ptr;
   long len;
 
-  if (scm_gc_heap_lock) 
+  if (scm_gc_heap_lock)
     {
       /* Critical code sections (such as the garbage collector) aren't
        * supposed to add heap segments.
@@ -2054,7 +2066,7 @@ alloc_some_heap (scm_freelist_t *freelist, policy_on_error error_policy)
       abort ();
     }
 
-  if (scm_n_heap_segs == heap_segment_table_size) 
+  if (scm_n_heap_segs == heap_segment_table_size)
     {
       /* We have to expand the heap segment table to have room for the new
        * segment.  Do not yet increment scm_n_heap_segs -- that is done by
@@ -2254,15 +2266,15 @@ SCM
 scm_protect_object (SCM obj)
 {
   SCM handle;
-  
+
   /* This critical section barrier will be replaced by a mutex. */
   SCM_REDEFER_INTS;
-  
+
   handle = scm_hashq_create_handle_x (scm_protects, obj, SCM_MAKINUM (0));
   SCM_SETCDR (handle, SCM_MAKINUM (SCM_INUM (SCM_CDR (handle)) + 1));
-  
+
   SCM_REALLOW_INTS;
-  
+
   return obj;
 }
 
@@ -2275,12 +2287,12 @@ SCM
 scm_unprotect_object (SCM obj)
 {
   SCM handle;
-  
+
   /* This critical section barrier will be replaced by a mutex. */
   SCM_REDEFER_INTS;
-  
+
   handle = scm_hashq_get_handle (scm_protects, obj);
-  
+
   if (SCM_IMP (handle))
     {
       fprintf (stderr, "scm_unprotect_object called on unprotected object\n");

@@ -1,3 +1,10 @@
+2000-07-15  Michael Livshin  <mlivshin@bigfoot.com>
+
+	* gc.c (scm_done_free): new.
+	expanded comments about scm_done_malloc.
+
+	* gc.h: added prototype for scm_done_free
+
 2000-07-13  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* gc.h (scm_take_stdin):  Removed.

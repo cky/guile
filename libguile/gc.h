@@ -284,6 +284,7 @@ extern void * scm_must_realloc (void *where,
 				scm_sizet olen, scm_sizet len,
 				const char *what);
 extern void scm_done_malloc (long size);
+extern void scm_done_free (long size);
 extern void scm_must_free (void *obj);
 extern void scm_remember (SCM * ptr);
 extern SCM scm_return_first (SCM elt, ...);
