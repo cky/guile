@@ -1,7 +1,7 @@
 #ifndef SCM_LIBGUILE_H
 #define SCM_LIBGUILE_H
 
-/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2002 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2002, 2003 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -65,6 +65,7 @@ extern "C" {
 #include "libguile/filesys.h"
 #include "libguile/fluids.h"
 #include "libguile/fports.h"
+#include "libguile/futures.h"
 #include "libguile/gc.h"
 #include "libguile/gdbint.h"
 #include "libguile/goops.h"

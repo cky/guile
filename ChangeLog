@@ -1,3 +1,7 @@
+2003-01-23  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* libguile.h: #include "futures.h"
+
 2002-12-16  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* configure.in: Test if pthread.h declares
