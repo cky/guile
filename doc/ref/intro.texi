@@ -1,4 +1,4 @@
-@c $Id: intro.texi,v 1.5 2001-12-07 17:08:19 ossau Exp $
+@c $Id: intro.texi,v 1.6 2002-01-06 07:45:06 ttn Exp $
 
 
 @page
@@ -434,7 +434,7 @@ of Guile.  If you can, you should use @code{scm_boot_guile} instead.
 
 Note that @code{scm_init_guile} does not inform Guile about the command
 line arguments that should be returned by the Scheme function
-@code{comamnd-line}.  You can use @code{scm_set_program_arguments} to do
+@code{command-line}.  You can use @code{scm_set_program_arguments} to do
 this.
 @end deftypefun
 
@@ -595,7 +595,7 @@ Scheme programmer.  Writing a new version of @code{guile} is
 inconvenient in this case and it would in fact make the life of the
 users of your new features needlessly hard.
 
-@c [[ the following is probably a bit longwinded ]]
+@c [[ the following is probably a bit long-winded ]]
 
 For example, suppose that there is a program @code{guile-db} that is a
 version of Guile with additional features for accessing a database.
@@ -605,7 +605,7 @@ Now suppose that there is also a program @code{guile-gtk} that extends
 Guile with access to the popular Gtk+ toolkit for graphical user
 interfaces.  People who want to write GUIs in Scheme would have to use
 @code{guile-gtk}.  Now, what happens when you want to write a Scheme
-application that uses a GUI to let the user accessa a database?  You
+application that uses a GUI to let the user access a database?  You
 would have to write a @emph{third} program that incorporates both the
 database stuff and the GUI stuff.  This might not be easy (because
 @code{guile-gtk} might be a quite obscure program, say) and taking this
@@ -620,7 +620,7 @@ possible.
 
 You write the new primitive procedures and data types in the normal
 fashion, and link them into a shared library instead of into a
-standalone program.  The shared library can then be loaded dynamically
+stand-alone program.  The shared library can then be loaded dynamically
 by Guile.
 
 @menu
@@ -701,7 +701,7 @@ modules, you can group related code together and manage the
 composition of complete programs from largely independent parts.
 
 (Although the module system implementation is in flux, feel free to use it
-anyway.  Guile will provide reasonable backwards compatability.)
+anyway.  Guile will provide reasonable backwards compatibility.)
 
 Details on the module system beyond this introductory material can be found in
 @xref{Modules}.
@@ -765,7 +765,7 @@ distribute them more easily.  Also, explicitly defining the procedures
 and variables which are exported from a module adds documentation to the
 source and specifies the interface a module provides.
 
-In Guile, you can create new modules and switch to exisiting modules in
+In Guile, you can create new modules and switch to existing modules in
 order to add bindings to them using the syntactic form
 @code{define-module}.
 
@@ -862,8 +862,8 @@ Here is the information you will need to get and install Guile and extra
 packages and documentation you might need or find interesting.
 
 @menu
-* The Basic Guile Package::      
-* Packages not shipped with Guile::  
+* The Basic Guile Package::
+* Packages not shipped with Guile::
 @end menu
 
 
@@ -966,7 +966,7 @@ Any problems with the installation should be reported to
 
 Whenever you have found a bug in Guile you are encouraged to report it
 to the Guile developers, so they can fix it.  They may also be able to
-suggest workarounds when it is not possible for you to apply the bugfix
+suggest workarounds when it is not possible for you to apply the bug-fix
 or install a new version of Guile yourself.
 
 Before sending in bug reports, please check with the following list that
@@ -974,7 +974,7 @@ you really have found a bug.
 
 @itemize @bullet
 @item
-Whenever documentation and actual behaviour differ, you have certainly
+Whenever documentation and actual behavior differ, you have certainly
 found a bug, either in the documentation or in the program.
 
 @item
@@ -1014,7 +1014,7 @@ You can get the version number by invoking the command
 $ guile --version
 Guile 1.4.1
 Copyright (c) 1995, 1996, 1997, 2000 Free Software Foundation
-Guile may be distributed under the terms of the GNU General Public Licence;
+Guile may be distributed under the terms of the GNU General Public License;
 certain other uses are permitted as well.  For details, see the file
 `COPYING', which is included in the Guile distribution.
 There is no warranty, to the extent permitted by law.
