@@ -1,3 +1,26 @@
+Sun Sep 15 03:58:29 1996  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* debug.c, unif.c: use scm_out_of_range instead of
+	wta for range errors (ASSERT still needs work).
+
+	* error.c, error.h (scm_out_of_range): new procedure.
+
+	* error.c, error.h (scm_out_of_range_key): new key.
+
+	* posix.c (scm_sync): #else was missing.
+
+	* error.c, error.h: append _key to names scm_num_overflow and
+ 	scm_system_error.
+
+	* __scm.h (SCM_SYSMISSING, SCM_NUM_OVERFLOW): use SCM_BOOL_F instead
+	of consing an empty list.
+	(SCM_SYSERROR etc.): move into error.c, make them procedures instead
+	of macros, saves code and string space.
+	error.c, fports.c, numbers.c, posix.c, ioext.c, filesys.c, socket.c,
+	fdsocket.c, simpos.c: change names of SCM_SYSERROR etc., to
+	lower case.  Rename scm_syserror_m to scm_syserror_msg.
+	error.h: prototypes for new procedures.
+
 Sat Sep 14 03:35:41 1996  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* numbers.c: use SCM_NUM_OVERFLOW instead of scm_wta or ASSERT.

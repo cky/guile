@@ -70,7 +70,7 @@ scm_sys_ftell (port)
   SCM_ASSERT (SCM_NIMP (port) && SCM_OPFPORTP (port), port, SCM_ARG1, s_sys_ftell);
   SCM_SYSCALL (pos = ftell ((FILE *)SCM_STREAM (port)));
   if (pos < 0)
-    SCM_SYSERROR (s_sys_ftell);
+    scm_syserror (s_sys_ftell);
   if (pos > 0 && SCM_CRDYP (port))
     pos--;
   return SCM_MAKINUM (pos);
@@ -99,7 +99,7 @@ scm_sys_fseek (port, offset, whence)
   /* Values of whence are interned in scm_init_ioext.  */
   rv = fseek ((FILE *)SCM_STREAM (port), SCM_INUM (offset), SCM_INUM (whence));
   if (rv != 0)
-    SCM_SYSERROR (s_sys_fseek);
+    scm_syserror (s_sys_fseek);
   return SCM_UNSPECIFIED;
 }
 
@@ -165,15 +165,15 @@ scm_sys_duplicate_port (oldpt, modes)
   SCM_DEFER_INTS;
   oldfd = fileno ((FILE *)SCM_STREAM (oldpt));
   if (oldfd == -1)
-    SCM_SYSERROR (s_sys_duplicate_port);
+    scm_syserror (s_sys_duplicate_port);
   SCM_SYSCALL (newfd = dup (oldfd));
   if (newfd == -1)
-    SCM_SYSERROR (s_sys_duplicate_port);
+    scm_syserror (s_sys_duplicate_port);
   f = fdopen (newfd, SCM_CHARS (modes));
   if (!f)
     {
       SCM_SYSCALL (close (newfd));
-      SCM_SYSERROR (s_sys_duplicate_port);
+      scm_syserror (s_sys_duplicate_port);
     }
   {
     struct scm_port_table * pt;
@@ -207,13 +207,13 @@ scm_sys_redirect_port (into_pt, from_pt)
   SCM_ASSERT (SCM_NIMP (from_pt) && SCM_OPPORTP (from_pt), from_pt, SCM_ARG2, s_sys_redirect_port);
   oldfd = fileno ((FILE *)SCM_STREAM (into_pt));
   if (oldfd == -1)
-    SCM_SYSERROR (s_sys_redirect_port);
+    scm_syserror (s_sys_redirect_port);
   newfd = fileno ((FILE *)SCM_STREAM (from_pt));
   if (newfd == -1)
-    SCM_SYSERROR (s_sys_redirect_port);
+    scm_syserror (s_sys_redirect_port);
   SCM_SYSCALL (ans = dup2 (oldfd, newfd));
   if (ans == -1)
-    SCM_SYSERROR (s_sys_redirect_port);
+    scm_syserror (s_sys_redirect_port);
   SCM_ALLOW_INTS;
   return SCM_UNSPECIFIED;
 }
@@ -232,7 +232,7 @@ scm_sys_fileno (port)
   SCM_ASSERT (SCM_NIMP (port) && SCM_OPFPORTP (port), port, SCM_ARG1, s_sys_fileno);
   fd = fileno ((FILE *)SCM_STREAM (port));
   if (fd == -1)
-    SCM_SYSERROR (s_sys_fileno);
+    scm_syserror (s_sys_fileno);
   return SCM_MAKINUM (fd);
 }
 
@@ -250,7 +250,7 @@ scm_sys_isatty_p (port)
   SCM_ASSERT (SCM_NIMP (port) && SCM_OPFPORTP (port), port, SCM_ARG1, s_sys_isatty);
   rv = fileno ((FILE *)SCM_STREAM (port));
   if (rv == -1)
-    SCM_SYSERROR (s_sys_isatty);
+    scm_syserror (s_sys_isatty);
   rv = isatty (rv);
   return  rv ? SCM_BOOL_T : SCM_BOOL_F;
 }
@@ -278,7 +278,7 @@ scm_sys_fdopen (fdes, modes)
   SCM_DEFER_INTS;
   f = fdopen (SCM_INUM (fdes), SCM_CHARS (modes));
   if (f == NULL)
-    SCM_SYSERROR (s_sys_fdopen);
+    scm_syserror (s_sys_fdopen);
   pt = scm_add_to_port_table (port);
   SCM_SETPTAB_ENTRY (port, pt);
   if (SCM_BUF0 & (SCM_CAR (port) = scm_tc16_fport
@@ -326,7 +326,7 @@ scm_sys_primitive_move_to_fdes (port, fd)
   scm_evict_ports (new_fd);
   rv = dup2 (old_fd, new_fd);
   if (rv == -1)
-    SCM_SYSERROR (s_sys_primitive_move_to_fdes);
+    scm_syserror (s_sys_primitive_move_to_fdes);
   scm_setfileno (stream, new_fd);
   SCM_SYSCALL (close (old_fd));  
   SCM_ALLOW_INTS;

@@ -166,7 +166,7 @@ scm_abs(x)
 #ifdef SCM_BIGDIG
     return scm_long2big(x);
 #else
-  SCM_NUM_OVERFLOW (s_abs);
+  scm_num_overflow (s_abs);
 #endif
   return SCM_MAKINUM(x);
 }
@@ -229,7 +229,7 @@ scm_quotient(x, y)
   SCM_ASSERT(SCM_INUMP(y), y, SCM_ARG2, s_quotient);
 #endif
   if ((z = SCM_INUM(y))==0)
-    ov: SCM_NUM_OVERFLOW (s_quotient);
+    ov: scm_num_overflow (s_quotient);
   z = SCM_INUM(x)/z;
 #ifdef BADIVSGNS
   {
@@ -249,7 +249,7 @@ scm_quotient(x, y)
 #ifdef SCM_BIGDIG
     return scm_long2big(z);
 #else
-  SCM_NUM_OVERFLOW (s_quotient);
+  scm_num_overflow (s_quotient);
 #endif
   return SCM_MAKINUM(z);
 }
@@ -289,7 +289,7 @@ scm_remainder(x, y)
   SCM_ASSERT(SCM_INUMP(y), y, SCM_ARG2, s_remainder);
 #endif
   if (!(z = SCM_INUM(y)))
-    ov: SCM_NUM_OVERFLOW (s_remainder);
+    ov: scm_num_overflow (s_remainder);
 #if (__TURBOC__==1)
   if (z < 0) z = -z;
 #endif
@@ -339,7 +339,7 @@ scm_modulo(x, y)
   SCM_ASSERT(SCM_INUMP(y), y, SCM_ARG2, s_modulo);
 #endif
   if (!(yy = SCM_INUM(y)))
-    ov: SCM_NUM_OVERFLOW (s_modulo);
+    ov: scm_num_overflow (s_modulo);
 #if (__TURBOC__==1)
   z = SCM_INUM(x);
   z = ((yy<0) ? -z : z)%yy;
@@ -410,7 +410,7 @@ scm_gcd(x, y)
 #ifdef SCM_BIGDIG
     return scm_long2big(u);
 #else
-  SCM_NUM_OVERFLOW (s_gcd);
+  scm_num_overflow (s_gcd);
 #endif
   return SCM_MAKINUM(u);
 }
@@ -676,7 +676,7 @@ scm_ash(n, cnt)
   if (cnt < 0) return SCM_MAKINUM(SCM_SRS(res, -cnt));
   res = SCM_MAKINUM(res<<cnt);
   if (SCM_INUM(res)>>cnt != SCM_INUM(n)) 
-    SCM_NUM_OVERFLOW (s_ash);
+    scm_num_overflow (s_ash);
   return res;
 #endif
 }
@@ -1676,7 +1676,7 @@ scm_istr2int(str, len, radix)
 	t2 = SCM_BIGDN(t2);
       }
       if (blen > j)
-	SCM_NUM_OVERFLOW ("bignum");
+	scm_num_overflow ("bignum");
       if (t2) {blen++; goto moretodo;}
       break;
     default:
@@ -2810,7 +2810,7 @@ scm_sum(x, y)
 # ifdef SCM_FLOATS
   return scm_makdbl((double)x, 0.0);
 # else
-  SCM_NUM_OVERFLOW (s_sum);
+  scm_num_overflow (s_sum);
   return SCM_UNSPECIFIED;
 # endif
 #endif
@@ -2953,7 +2953,7 @@ scm_difference(x, y)
 # ifdef SCM_FLOATS
   return scm_makdbl((double)x, 0.0);
 # else
-  SCM_NUM_OVERFLOW (s_difference);
+  scm_num_overflow (s_difference);
   return SCM_UNSPECIFIED;
 # endif
 #endif
@@ -3107,7 +3107,7 @@ scm_product(x, y)
 # ifdef SCM_FLOATS
     return scm_makdbl(((double)i)*((double)j), 0.0);
 # else
-    SCM_NUM_OVERFLOW (s_product);
+    scm_num_overflow (s_product);
 # endif
 #endif
     return y;
@@ -3187,7 +3187,7 @@ scm_divide(x, y)
         z = SCM_INUM(y);
 #ifndef RECKLESS
 	if (!z)
-	  SCM_NUM_OVERFLOW (s_divide);
+	  scm_num_overflow (s_divide);
 #endif
 	if (1==z) return x;
         if (z < 0) z = -z;
@@ -3328,7 +3328,7 @@ scm_divide(x, y)
 #ifdef SCM_FLOATS
   ov: return scm_makdbl(((double)SCM_INUM(x))/((double)SCM_INUM(y)), 0.0);
 #else
-  ov: SCM_NUM_OVERFLOW (s_divide);
+  ov: scm_num_overflow (s_divide);
     return SCM_UNSPECIFIED;
 #endif
   }
@@ -3775,7 +3775,7 @@ scm_dbl2big(d)
   }
 #ifndef RECKLESS
   if (u != 0)
-    SCM_NUM_OVERFLOW ("dbl2big");
+    scm_num_overflow ("dbl2big");
 #endif
   return ans;
 }

@@ -83,8 +83,7 @@ scm_debug_options (setting)
   if (!(1 <= SCM_N_FRAMES && SCM_N_FRAMES <= SCM_MAX_FRAME_SIZE))
     {
       scm_options (ans, scm_debug_opts, SCM_N_DEBUG_OPTIONS, s_debug_options);
-      /* *fixme* Should SCM_ALLOW_INTS be called here? */
-      scm_wta (setting, (char *) SCM_OUTOFRANGE, "frames");
+      scm_out_of_range (s_debug_options, setting);
     }
 #endif
   SCM_RESET_DEBUG_MODE;

@@ -47,13 +47,22 @@
 
 
 extern int scm_ints_disabled;
-extern SCM scm_system_error;
-extern SCM scm_num_overflow;
+
+extern SCM scm_system_error_key;
+extern SCM scm_num_overflow_key;
+extern SCM scm_out_of_range_key;
 
 
 
-extern void scm_error SCM_P ((SCM key, char *subr, char *message, SCM args, SCM rest));
-extern void (*scm_error_callback) SCM_P ((SCM key, char *subr, char *message, SCM args, SCM rest));
+extern void scm_error SCM_P ((SCM key, char *subr, char *message,
+			      SCM args, SCM rest));
+extern void (*scm_error_callback) SCM_P ((SCM key, char *subr,
+					  char *message, SCM args, SCM rest));
+extern void scm_syserror SCM_P ((char *subr));
+extern void scm_syserror_msg SCM_P ((char *subr, char *message, SCM args));
+extern void scm_sysmissing SCM_P ((char *subr));
+extern void scm_num_overflow SCM_P ((char *subr));
+extern void scm_out_of_range SCM_P ((char *subr, SCM bad_value));
 
 #ifdef __STDC__
 extern int scm_handle_it (int i);

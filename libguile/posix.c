@@ -206,13 +206,13 @@ scm_sys_pipe ()
   SCM_NEWCELL (p_wt);
   rv = pipe (fd);
   if (rv)
-    SCM_SYSERROR (s_sys_pipe);
+    scm_syserror (s_sys_pipe);
   f_rd = fdopen (fd[0], "r");
   if (!f_rd)
     {
       SCM_SYSCALL (close (fd[0]));
       SCM_SYSCALL (close (fd[1]));
-      SCM_SYSERROR (s_sys_pipe);
+      scm_syserror (s_sys_pipe);
     }
   f_wt = fdopen (fd[1], "w");
   if (!f_wt)
@@ -222,7 +222,7 @@ scm_sys_pipe ()
       fclose (f_rd);
       SCM_SYSCALL (close (fd[1]));
       errno = en;
-      SCM_SYSERROR (s_sys_pipe);
+      scm_syserror (s_sys_pipe);
     }
   ptr = scm_add_to_port_table (p_rd);
   ptw = scm_add_to_port_table (p_wt);
@@ -251,7 +251,7 @@ scm_sys_getgroups()
   SCM grps, ans;
   int ngroups = getgroups (0, NULL);
   if (!ngroups)
-    SCM_SYSERROR (s_sys_getgroups);
+    scm_syserror (s_sys_getgroups);
   SCM_NEWCELL(grps);
   SCM_DEFER_INTS;
   {
@@ -264,7 +264,7 @@ scm_sys_getgroups()
     if (val < 0)
       {
 	scm_must_free((char *)groups);
-	SCM_SYSERROR (s_sys_getgroups);
+	scm_syserror (s_sys_getgroups);
       }
     SCM_SETCHARS(grps, groups);	/* set up grps as a GC protect */
     SCM_SETLENGTH(grps, 0L + ngroups * sizeof(GETGROUPS_T), scm_tc7_string);
@@ -313,7 +313,7 @@ scm_sys_getpwuid (user)
       entry = getpwnam (SCM_ROCHARS (user));
     }
   if (!entry)
-    SCM_SYSERROR (s_sys_getpwuid);
+    scm_syserror (s_sys_getpwuid);
 
   ve[0] = scm_makfrom0str (entry->pw_name);
   ve[1] = scm_makfrom0str (entry->pw_passwd);
@@ -382,7 +382,7 @@ scm_sys_getgrgid (name)
       SCM_SYSCALL (entry = getgrnam (SCM_CHARS (name)));
     }
   if (!entry)
-    SCM_SYSERROR (s_sys_getgrgid);
+    scm_syserror (s_sys_getgrgid);
 
   ve[0] = scm_makfrom0str (entry->gr_name);
   ve[1] = scm_makfrom0str (entry->gr_passwd);
@@ -428,7 +428,7 @@ scm_sys_kill (pid, sig)
   SCM_ASSERT (SCM_INUMP (sig), sig, SCM_ARG2, s_sys_kill);
   /* Signal values are interned in scm_init_posix().  */
   if (kill ((int) SCM_INUM (pid), (int) SCM_INUM (sig)) != 0)
-    SCM_SYSERROR (s_sys_kill);
+    scm_syserror (s_sys_kill);
   return SCM_UNSPECIFIED;
 }
 
@@ -460,10 +460,10 @@ scm_sys_waitpid (pid, options)
     }
   SCM_SYSCALL (i = waitpid (SCM_INUM (pid), &status, ioptions));
   if (i == -1)
-    SCM_SYSERROR (s_sys_waitpid);
+    scm_syserror (s_sys_waitpid);
   return scm_cons (SCM_MAKINUM (0L + i), SCM_MAKINUM (0L + status));
 #else
-  SCM_SYSMISSING (s_sys_waitpid);
+  scm_sysmissing (s_sys_waitpid);
   /* not reached.  */
   return SCM_BOOL_F;
 #endif
@@ -560,7 +560,7 @@ scm_sys_setuid (id)
 {
   SCM_ASSERT (SCM_INUMP (id), id, SCM_ARG1, s_sys_setuid);
   if (setuid (SCM_INUM (id)) != 0)
-    SCM_SYSERROR (s_sys_setuid);
+    scm_syserror (s_sys_setuid);
   return SCM_UNSPECIFIED;
 }
 
@@ -576,7 +576,7 @@ scm_sys_setgid (id)
 {
   SCM_ASSERT (SCM_INUMP (id), id, SCM_ARG1, s_sys_setgid);
   if (setgid (SCM_INUM (id)) != 0)
-    SCM_SYSERROR (s_sys_setgid);
+    scm_syserror (s_sys_setgid);
   return SCM_UNSPECIFIED;
 }
 
@@ -599,7 +599,7 @@ scm_sys_seteuid (id)
   rv = setuid (SCM_INUM (id));
 #endif
   if (rv != 0)
-    SCM_SYSERROR (s_sys_seteuid);
+    scm_syserror (s_sys_seteuid);
   return SCM_UNSPECIFIED;
 }
 
@@ -622,7 +622,7 @@ scm_sys_setegid (id)
   rv = setgid (SCM_INUM (id));
 #endif
   if (rv != 0)
-    SCM_SYSERROR (s_sys_setegid);
+    scm_syserror (s_sys_setegid);
   return SCM_UNSPECIFIED;
     
 }
@@ -646,10 +646,10 @@ scm_setpgid (pid, pgid)
   SCM_ASSERT (SCM_INUMP (pgid), pgid, SCM_ARG2, s_sys_setpgid);
   /* FIXME(?): may be known as setpgrp.  */
   if (setpgid (SCM_INUM (pid), SCM_INUM (pgid)) != 0)
-    SCM_SYSERROR (s_sys_setpgid);
+    scm_syserror (s_sys_setpgid);
   return SCM_UNSPECIFIED;
 #else
-  SCM_SYSMISSING (s_sys_setpgid);
+  scm_sysmissing (s_sys_setpgid);
   /* not reached.  */
   return SCM_BOOL_F;
 #endif
@@ -662,10 +662,10 @@ scm_setsid ()
 #ifdef HAVE_SETSID
   pid_t sid = setsid ();
   if (sid == -1)
-    SCM_SYSERROR (s_sys_setsid);
+    scm_syserror (s_sys_setsid);
   return SCM_UNSPECIFIED;
 #else
-  SCM_SYSMISSING (s_sys_setsid);
+  scm_sysmissing (s_sys_setsid);
   /* not reached.  */
   return SCM_BOOL_F;
 #endif
@@ -688,10 +688,10 @@ scm_ttyname (port)
     return SCM_BOOL_F;
   fd = fileno ((FILE *)SCM_STREAM (port));
   if (fd == -1)
-    SCM_SYSERROR (s_ttyname);
+    scm_syserror (s_ttyname);
   SCM_SYSCALL (ans = ttyname (fd));
   if (!ans)
-    SCM_SYSERROR (s_ttyname);
+    scm_syserror (s_ttyname);
   /* ans could be overwritten by another call to ttyname */
   return (scm_makfrom0str (ans));
 }
@@ -704,10 +704,10 @@ scm_ctermid ()
 #ifdef HAVE_CTERMID
   char *result = ctermid (NULL);
   if (*result == '\0')
-    SCM_SYSERROR (s_sys_ctermid);
+    scm_syserror (s_sys_ctermid);
   return scm_makfrom0str (result);
 #else
-  SCM_SYSMISSING (s_sys_ctermid);
+  scm_sysmissing (s_sys_ctermid);
   /* not reached.  */
   return SCM_BOOL_F;
 #endif
@@ -724,10 +724,10 @@ scm_tcgetpgrp (port)
   SCM_ASSERT (SCM_NIMP (port) && SCM_OPFPORTP (port), port, SCM_ARG1, s_sys_tcgetpgrp);
   fd = fileno ((FILE *)SCM_STREAM (port));
   if (fd == -1 || (pgid = tcgetpgrp (fd)) == -1)
-    SCM_SYSERROR (s_sys_tcgetpgrp);
+    scm_syserror (s_sys_tcgetpgrp);
   return SCM_MAKINUM (pgid);
 #else
-  SCM_SYSMISSING (s_sys_tcgetpgrp);
+  scm_sysmissing (s_sys_tcgetpgrp);
   /* not reached.  */
   return SCM_BOOL_F;
 #endif
@@ -744,10 +744,10 @@ scm_tcsetpgrp (port, pgid)
   SCM_ASSERT (SCM_INUMP (pgid), pgid, SCM_ARG2, s_sys_tcsetpgrp);
   fd = fileno ((FILE *)SCM_STREAM (port));
   if (fd == -1 || tcsetpgrp (fd, SCM_INUM (pgid)) == -1)
-    SCM_SYSERROR (s_sys_tcsetpgrp);
+    scm_syserror (s_sys_tcsetpgrp);
   return SCM_UNSPECIFIED;
 #else
-  SCM_SYSMISSING (s_sys_tcsetpgrp);
+  scm_sysmissing (s_sys_tcsetpgrp);
   /* not reached.  */
   return SCM_BOOL_F;
 #endif
@@ -807,7 +807,7 @@ scm_sys_execl (args)
   args = SCM_CDR (args);
   execargv = scm_convert_exec_args (args);
   execv (SCM_ROCHARS (filename), execargv);
-  SCM_SYSERROR (s_sys_execl);
+  scm_syserror (s_sys_execl);
   /* not reached.  */
   return SCM_BOOL_F;
 }
@@ -830,7 +830,7 @@ scm_sys_execlp (args)
   args = SCM_CDR (args);
   execargv = scm_convert_exec_args (args);
   execvp (SCM_ROCHARS (filename), execargv);
-  SCM_SYSERROR (s_sys_execlp);
+  scm_syserror (s_sys_execlp);
   /* not reached.  */
   return SCM_BOOL_F;
 }
@@ -848,7 +848,7 @@ scm_sys_fork()
   int pid;
   pid = fork ();
   if (pid == -1)
-    SCM_SYSERROR (s_sys_fork);
+    scm_syserror (s_sys_fork);
   return SCM_MAKINUM (0L+pid);
 }
 
@@ -879,7 +879,7 @@ scm_sys_uname ()
 */
   return ans;
 #else
-  SCM_SYSMISSING (s_sys_uname);
+  scm_sysmissing (s_sys_uname);
   /* not reached.  */
   return SCM_BOOL_F;
 #endif
@@ -970,7 +970,7 @@ scm_open_pipe (pipestr, modes)
   SCM_SYSCALL (f = popen (SCM_ROCHARS (pipestr), SCM_ROCHARS (modes)));
   scm_unignore_signals ();
   if (!f)
-    SCM_SYSERROR (s_open_pipe);
+    scm_syserror (s_open_pipe);
   pt = scm_add_to_port_table (z);
   SCM_SETPTAB_ENTRY (z, pt);
   SCM_CAR (z) = scm_tc16_pipe | SCM_OPN 
@@ -1037,7 +1037,7 @@ scm_sys_utime (pathname, actime, modtime)
 
   SCM_SYSCALL (rv = utime (SCM_CHARS (pathname), &utm_tmp));
   if (rv != 0)
-    SCM_SYSERROR (s_sys_utime);
+    scm_syserror (s_sys_utime);
   return SCM_UNSPECIFIED;
 }
 
@@ -1088,7 +1088,7 @@ scm_sys_putenv (str)
   SCM_ASSERT (SCM_NIMP (str) && SCM_STRINGP (str), str, SCM_ARG1, s_sys_putenv);
   return putenv (SCM_CHARS (str)) ? SCM_MAKINUM (errno) : SCM_BOOL_T;
 #else
-  SCM_SYSMISSING (s_sys_putenv);
+  scm_sysmissing (s_sys_putenv);
   /* not reached.  */
   return SCM_BOOL_F;
 #endif
@@ -1243,10 +1243,10 @@ scm_setlocale (category, locale)
 
   rv = setlocale (SCM_INUM (category), clocale);
   if (rv == NULL)
-    SCM_SYSERROR (s_setlocale);
+    scm_syserror (s_setlocale);
   return scm_makfrom0str (rv);
 #else
-  SCM_SYSMISSING (s_setlocale);
+  scm_sysmissing (s_setlocale);
   /* not reached.  */
   return SCM_BOOL_F;
 #endif
@@ -1351,7 +1351,7 @@ scm_sys_strptime (format, string)
   SCM_ALLOW_INTS;
 
   if (rest == NULL)
-    SCM_SYSERROR (s_sys_strptime);
+    scm_syserror (s_sys_strptime);
 
   stime = scm_make_vector (SCM_MAKINUM (9), scm_long2num (0), SCM_UNDEFINED);
 
@@ -1370,7 +1370,7 @@ scm_sys_strptime (format, string)
 
   return scm_cons (stime, scm_makfrom0str (rest));
 #else
-  SCM_SYSMISSING (s_sys_strptime);
+  scm_sysmissing (s_sys_strptime);
   /* not reached.  */
   return SCM_BOOL_F;
 #endif
@@ -1395,10 +1395,10 @@ scm_sys_mknod(path, mode, dev)
   SCM_ASSERT(SCM_INUMP(dev), dev, SCM_ARG3, s_sys_mknod);
   SCM_SYSCALL(val = mknod(SCM_CHARS(path), SCM_INUM(mode), SCM_INUM(dev)));
   if (val != 0)
-    SCM_SYSERROR (s_sys_mknod);
+    scm_syserror (s_sys_mknod);
   return SCM_UNSPECIFIED;
 #else
-  SCM_SYSMISSING (s_sys_mknod);
+  scm_sysmissing (s_sys_mknod);
   /* not reached.  */
   return SCM_BOOL_F;
 #endif
@@ -1418,10 +1418,10 @@ scm_sys_nice(incr)
 #ifdef HAVE_NICE
   SCM_ASSERT(SCM_INUMP(incr), incr, SCM_ARG1, s_sys_nice);
   if (nice(SCM_INUM(incr)) != 0)
-    SCM_SYSERROR (s_sys_nice);
+    scm_syserror (s_sys_nice);
   return SCM_UNSPECIFIED;
 #else
-  SCM_SYSMISSING (s_sys_nice);
+  scm_sysmissing (s_sys_nice);
   /* not reached.  */
   return SCM_BOOL_F;
 #endif
@@ -1439,9 +1439,10 @@ scm_sync()
 {
 #ifdef HAVE_SYNC
   sync();
-#endif
-  SCM_SYSMISSING (s_sync);
+#else
+  scm_sysmissing (s_sync);
   /* not reached.  */
+#endif
   return SCM_BOOL_F;
 }
 

@@ -315,45 +315,6 @@ extern unsigned int scm_async_clock;
 #define lgh_error(_key, _subr, _message, _args, _rest) \
 	scm_error (_key, _subr, _message, _args, _rest)
 
-#define SCM_SYSERROR(_subr) \
-     lgh_error (scm_system_error, \
-		_subr, \
-		"%S", \
-		scm_listify (scm_makfrom0str (strerror (errno)), \
-			     SCM_UNDEFINED), \
-		scm_listify (SCM_MAKINUM (errno), SCM_UNDEFINED));
-
-#define SCM_SYSERROR_M(_subr, _message, _args) \
-     lgh_error (scm_system_error, \
-		_subr, \
-		_message, \
-		_args, \
-		scm_listify (SCM_MAKINUM (errno), SCM_UNDEFINED));
-
-#ifdef ENOSYS
-# define SCM_SYSMISSING(_subr) \
-     lgh_error (scm_system_error, \
-		_subr, \
-		"%S", \
-		scm_listify (scm_makfrom0str (strerror (ENOSYS)), \
-			     SCM_UNDEFINED), \
-		scm_listify (SCM_MAKINUM (ENOSYS), SCM_UNDEFINED));
-#else
-# define SCM_SYSMISSING(_subr) \
-     lgh_error (scm_system_error, \
-		_subr, \
-		"missing function", \
-		scm_listify (SCM_UNDEFINED), \
-		scm_listify (SCM_MAKINUM (0), SCM_UNDEFINED));
-#endif
-
-#define SCM_NUM_OVERFLOW(_subr) \
-     lgh_error (scm_num_overflow, \
-		_subr, \
-		"numerical overflow", \
-		scm_listify (SCM_UNDEFINED), \
-		scm_listify (SCM_UNDEFINED));
-		
 #define SCM_ARGn 		0
 #define SCM_ARG1 		1
 #define SCM_ARG2 		2

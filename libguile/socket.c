@@ -87,7 +87,7 @@ scm_sys_inet_aton (address)
   if (SCM_SUBSTRP (address))
     address = scm_makfromstr (SCM_ROCHARS (address), SCM_ROLENGTH (address), 0);
   if (inet_aton (SCM_ROCHARS (address), &soka) == 0)
-    SCM_SYSERROR (s_sys_inet_aton);
+    scm_syserror (s_sys_inet_aton);
   return scm_ulong2num (ntohl (soka.s_addr));
 }
 
@@ -208,7 +208,7 @@ scm_sys_gethost (name)
     }
   SCM_ALLOW_INTS;
   if (!entry)
-    SCM_SYSERROR (s_sys_gethost);
+    scm_syserror (s_sys_gethost);
   ve[0] = scm_makfromstr (entry->h_name, (scm_sizet) strlen (entry->h_name), 0);
   ve[1] = scm_makfromstrs (-1, entry->h_aliases);
   ve[2] = SCM_MAKINUM (entry->h_addrtype + 0L);
@@ -264,7 +264,7 @@ scm_sys_getnet (name)
     }
   SCM_ALLOW_INTS;
   if (!entry)
-    SCM_SYSERROR (s_sys_getnet);
+    scm_syserror (s_sys_getnet);
   ve[0] = scm_makfromstr (entry->n_name, (scm_sizet) strlen (entry->n_name), 0);
   ve[1] = scm_makfromstrs (-1, entry->n_aliases);
   ve[2] = SCM_MAKINUM (entry->n_addrtype + 0L);
@@ -307,7 +307,7 @@ scm_sys_getproto (name)
     }
   SCM_ALLOW_INTS;
   if (!entry)
-    SCM_SYSERROR (s_sys_getproto);
+    scm_syserror (s_sys_getproto);
   ve[0] = scm_makfromstr (entry->p_name, (scm_sizet) strlen (entry->p_name), 0);
   ve[1] = scm_makfromstrs (-1, entry->p_aliases);
   ve[2] = SCM_MAKINUM (entry->p_proto + 0L);
@@ -353,7 +353,7 @@ scm_sys_getserv (name, proto)
       SCM_DEFER_INTS;
       entry = getservent ();
       if (!entry)
-	SCM_SYSERROR (s_sys_getserv);
+	scm_syserror (s_sys_getserv);
       return scm_return_entry (entry);
     }
   SCM_ASSERT (SCM_NIMP (proto) && SCM_STRINGP (proto), proto, SCM_ARG2, s_sys_getserv);
@@ -369,7 +369,7 @@ scm_sys_getserv (name, proto)
       entry = getservbyport (SCM_INUM (name), SCM_CHARS (proto));
     }
   if (!entry)
-    SCM_SYSERROR (s_sys_getserv);
+    scm_syserror (s_sys_getserv);
   return scm_return_entry (entry);
 }
 

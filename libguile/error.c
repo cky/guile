@@ -166,13 +166,13 @@ scm_everr (exp, env, arg, pos, s_subr)
     args = scm_listify (desc, sym, arg, SCM_UNDEFINED);
   }
   
-  /* (throw (quote system-error) <desc> <proc-name> arg)
+  /* (throw (quote scm_system-error_key) <desc> <proc-name> arg)
    *
    * <desc> is a string or an integer (see %%system-errors).
    * <proc-name> is a symbol or #f in some annoying cases (e.g. cddr).
    */
   
-  scm_ithrow (scm_system_error, args, 1);
+  scm_ithrow (scm_system_error_key, args, 1);
   
   /* No return, but just in case: */
 
@@ -224,9 +224,78 @@ scm_error (key, subr, message, args, rest)
 
 /* error keys: defined here, initialized below, prototyped in error.h,
    associated with handler procedures in boot-9.scm.  */
-SCM scm_system_error;
-SCM scm_num_overflow;
+SCM scm_system_error_key;
+SCM scm_num_overflow_key;
+SCM scm_out_of_range_key;
 
+/* various convenient interfaces to lgh_error.  */
+void
+scm_syserror (subr)
+     char *subr;
+{
+  lgh_error (scm_system_error_key,
+	     subr,
+	     "%S",
+	     scm_listify (scm_makfrom0str (strerror (errno)),
+			  SCM_UNDEFINED),
+	     scm_listify (SCM_MAKINUM (errno), SCM_UNDEFINED));
+}
+
+void
+scm_syserror_msg (subr, message, args)
+     char *subr;
+     char *message;
+     SCM args;
+{
+  lgh_error (scm_system_error_key,
+	     subr,
+	     message,
+	     args,
+	     scm_listify (SCM_MAKINUM (errno), SCM_UNDEFINED));
+}
+
+void
+scm_sysmissing (subr)
+     char *subr;
+{
+#ifdef ENOSYS
+  lgh_error (scm_system_error_key,
+	     subr,
+	     "%S",
+	     scm_listify (scm_makfrom0str (strerror (ENOSYS)), SCM_UNDEFINED),
+	     scm_listify (SCM_MAKINUM (ENOSYS), SCM_UNDEFINED));
+#else
+  lgh_error (scm_system_error_key,
+	     subr,
+	     "Missing function",
+	     SCM_BOOL_F,
+	     scm_listify (SCM_MAKINUM (0), SCM_UNDEFINED));
+#endif
+}
+
+void
+scm_num_overflow (subr)
+  char *subr;
+{
+  lgh_error (scm_num_overflow_key,
+	     subr,
+	     "Numerical overflow",
+	     SCM_BOOL_F,
+	     SCM_BOOL_F);
+}
+
+void
+scm_out_of_range (subr, bad_value)
+     char *subr;
+     SCM bad_value;
+{
+  lgh_error (scm_out_of_range_key,
+	     subr,
+	     "Argument out of range: %S",
+	     scm_listify (bad_value, SCM_UNDEFINED),
+	     SCM_BOOL_F);
+}
+  
 #ifdef __STDC__
 void
 scm_init_error (void)
@@ -235,10 +304,12 @@ void
 scm_init_error ()
 #endif
 {
-  scm_system_error
+  scm_system_error_key
     = scm_permanent_object (SCM_CAR (scm_intern0 ("system-error")));
-  scm_num_overflow
+  scm_num_overflow_key
     = scm_permanent_object (SCM_CAR (scm_intern0 ("numerical-overflow")));
+  scm_out_of_range_key
+    = scm_permanent_object (SCM_CAR (scm_intern0 ("out-of-range")));
 #include "error.x"
 }
 

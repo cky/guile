@@ -1128,7 +1128,7 @@ scm_uniform_vector_ref (v, args)
       if (SCM_NULLP (args))
  return v;
     badarg:scm_wta (v, (char *) SCM_ARG1, s_uniform_vector_ref);
-    outrng:scm_wta (SCM_MAKINUM (pos), (char *) SCM_OUTOFRANGE, s_uniform_vector_ref);
+    outrng:scm_out_of_range (s_uniform_vector_ref, SCM_MAKINUM (pos));
     wna:scm_wta (SCM_UNDEFINED, (char *) SCM_WNA, s_uniform_vector_ref);
     case scm_tc7_smob:
       {				/* enclosed */
@@ -1321,7 +1321,7 @@ scm_array_set_x (v, obj, args)
     {
     default:
     badarg1:scm_wta (v, (char *) SCM_ARG1, s_array_set_x);
-    outrng:scm_wta (SCM_MAKINUM (pos), (char *) SCM_OUTOFRANGE, s_array_set_x);
+    outrng:scm_out_of_range (s_array_set_x, SCM_MAKINUM (pos));
     wna:scm_wta (SCM_UNDEFINED, (char *) SCM_WNA, s_array_set_x);
     case scm_tc7_smob:		/* enclosed */
       goto badarg1;
