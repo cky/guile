@@ -212,7 +212,11 @@ VM_DEFINE_INSTRUCTION (external_ref, "external-ref", 1, 0, 1)
   unsigned int i;
   SCM e = external;
   for (i = FETCH (); i; i--)
-    e = SCM_CDR (e);
+    {
+      CHECK_EXTERNAL(e);
+      e = SCM_CDR (e);
+    }
+  CHECK_EXTERNAL(e);
   PUSH (SCM_CAR (e));
   NEXT;
 }
