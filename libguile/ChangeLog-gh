@@ -1,3 +1,9 @@
+The gh implementation (gh_data.c, gh.h, etc.) used to live in a
+separate directory called gh.  In April 1997, that dir was merged with
+libguile; this is the ChangeLog from the old directory.
+
+Please put new entries in the ordinary ChangeLog.
+
 Thu Apr 10 16:14:43 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 	Let the test programs build even when we're not using threads.
