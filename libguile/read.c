@@ -399,6 +399,13 @@ tryagain_no_flush_ws:
 	      return SCM_MAKICHR (scm_charnums[c]);
 	  scm_wta (SCM_UNDEFINED, "unknown # object: #\\", SCM_CHARS (*tok_buf));
 
+	  /* #:SYMBOL is a syntax for keywords supported in all contexts.  */
+	case ':':
+	  j = scm_read_token ('-', tok_buf, port, 0);
+	  p = scm_intern (SCM_CHARS (*tok_buf), j);
+	  if (SCM_PORT_REPRESENTATION (port) != scm_regular_port)
+	    scm_set_symbol_multi_byte_x (SCM_CAR (p), SCM_BOOL_T);
+	  return scm_make_keyword_from_dash_symbol (SCM_CAR (p));
 
 	default:
 	callshrp:

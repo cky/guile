@@ -68,7 +68,7 @@ prin_kw (exp, port, pstate)
      SCM port;
      scm_print_state *pstate;
 {
-  scm_gen_puts (scm_regular_string, ":", port);
+  scm_gen_puts (scm_regular_string, "#:", port);
   scm_gen_puts((SCM_MB_STRINGP(SCM_CDR (exp))
 		? scm_mb_string
 		: scm_regular_string),
