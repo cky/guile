@@ -17,6 +17,11 @@ CONVENTIONS: ChangeLog format. (Reverse chronological order.)
 
 Sun Mar  9 15:45:14 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
+	* Some day when more important stuff (module system, threads, Tk
+	interface etc) has been completed, we should split up SCM's
+	ChangeLog among us, and go through all changes since the birth of
+	Guile.  We might find many nice bug fixes and improvements...
+
 	* libguile/gc.c (scm_gc_sweep): The probability of collecting a
 	free cell should be very low (only occurring when a signal has
 	interrupted allocation).  Nevertheless, the GC immediately exits
