@@ -2074,14 +2074,14 @@
 
 (with-test-prefix "inexact->exact"
   
-  (pass-if-exception exception:numerical-overflow "+inf"
-    (inexact->exact +.inf))
+  (pass-if-exception "+inf" exception:numerical-overflow
+    (inexact->exact +inf.0))
   
-  (pass-if-exception exception:numerical-overflow "-inf"
-    (inexact->exact -.inf))
+  (pass-if-exception "-inf" exception:numerical-overflow
+    (inexact->exact -inf.0))
   
-  (pass-if-exception exception:numerical-overflow "nan"
-    (inexact->exact +.nan))
+  (pass-if-exception "nan" exception:numerical-overflow
+    (inexact->exact +nan.0))
   
   (with-test-prefix "2.0**i to exact and back"
     (do ((i 0   (1+ i))
