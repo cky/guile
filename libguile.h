@@ -127,6 +127,7 @@ extern "C" {
 #include "libguile/values.h"
 #include "libguile/variable.h"
 #include "libguile/vectors.h"
+#include "libguile/srfi-4.h"
 #include "libguile/version.h"
 #include "libguile/vports.h"
 #include "libguile/weaks.h"
