@@ -91,12 +91,14 @@
 (set! repl-input-port (make-emacs-load-port (current-input-port)))
 (set-current-input-port repl-input-port)
 
+(define (result-to-emacs exp)
+  (sending-result)
+  (write exp emacs-output-port)
+  (end-of-text)
+  (force-output emacs-output-port))
+
 (define (emacs-eval-request form)
-  (let ((port (current-output-port)))
-    (sending-result port)
-    (write (eval form) port)
-    (end-of-text port)
-    (force-output port)))
+  (result-to-emacs (eval form)))
 
 (define load-acknowledge (make-emacs-command #\l))
 
@@ -123,7 +125,7 @@
 	   (read-char port) ; Read final newline
 	   #t)))
 
-(define (emacs-load filename linum)
+(define (emacs-load filename linum interactivep)
   (set-port-filename! %%load-port filename)
   (set-port-line! %%load-port linum)
   (set-port-column! %%load-port 0)
@@ -131,9 +133,11 @@
 	      (lambda ()
 		(let loop ((endp (flush-whitespace %%load-port)))
 		  (if (not endp)
-		      (begin
-			(start-stack read-and-eval!
-				     (read-and-eval! %%load-port))
+		      (let ((result
+			     (start-stack read-and-eval!
+					  (read-and-eval! %%load-port))))
+			(if interactivep
+			    (result-to-emacs result))
 			(loop (flush-whitespace %%load-port)))
 		      (begin
 			(load-acknowledge))))

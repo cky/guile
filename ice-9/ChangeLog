@@ -1,3 +1,8 @@
+Thu Aug 21 11:30:08 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* emacs.scm (emacs-load): New argument: interactivep: when
+	non-false, send back results to Emacs.
+
 Wed Aug 20 13:21:11 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* emacs.scm (emacs-load): Adjust stack narrowing.
