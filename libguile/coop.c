@@ -40,7 +40,7 @@
  * If you do not wish that, delete this exception notice.  */
 
 
-/* $Id: coop.c,v 1.33 2002-11-03 22:05:10 mvo Exp $ */
+/* $Id: coop.c,v 1.34 2002-11-04 15:43:00 mvo Exp $ */
 
 /* Cooperative thread library, based on QuickThreads */
 
@@ -221,40 +221,6 @@ coop_init ()
   on_exit (coop_finish, 0);
 #endif
 #endif
-}
-
-/* Return the next runnable thread. If no threads are currently runnable,
-   and there are sleeping threads - wait until one wakes up. Otherwise,
-   return NULL. */
-
-coop_t *
-coop_next_runnable_thread()
-{
-  int sleepers;
-  coop_t *t;
-  time_t now;
-
-  do {
-    sleepers = 0;
-    now = time(NULL);
-
-    /* Check the sleeping queue */
-    while ((t = coop_qget(&coop_global_sleepq)) != NULL)
-      {
-	sleepers++;
-	if (t->wakeup_time <= now)
-	  coop_qput(&coop_global_runq, t);
-	else
-	  coop_qput(&coop_tmp_queue, t);
-      }
-    while ((t = coop_qget(&coop_tmp_queue)) != NULL)
-      coop_qput(&coop_global_sleepq, t);
-    
-    t = coop_qget (&coop_global_runq);
-
-  } while ((t == NULL) && (sleepers > 0));
-
-  return t;
 }
 
 void
