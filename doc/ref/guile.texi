@@ -94,7 +94,7 @@ by the Free Software Foundation.
 @sp 10
 @comment The title is printed in a large font.
 @title Guile Reference Manual
-@subtitle $Id: guile.texi,v 1.12 2002-01-08 08:29:00 ttn Exp $
+@subtitle $Id: guile.texi,v 1.13 2002-03-08 21:23:36 ttn Exp $
 @subtitle For use with Guile @value{VERSION}
 
 @c AUTHORS
@@ -203,7 +203,7 @@ Preface
 Part I: Introduction to Guile
 
 * What is Guile?::              And what does it do?
-* Whirlwind Tour::              An introductory whirlwind tour.      
+* Whirlwind Tour::              An introductory whirlwind tour.
 * Obtaining and Installing Guile::
 * Reporting Bugs::              Reporting bugs in Guile or this manual.
 
@@ -221,6 +221,7 @@ Part II: Programming with Guile
 * GH::                          The deprecated GH interface.
 * Debugger User Interface::
 * Autoconf Support::            Guile-specific configure.in macros.
+* Miscellaneous Tools::         Snarfing, linting, etc.
 * Further Reading::             Where to find out more about Scheme programming.
 
 Part III: Guile API Reference
@@ -302,6 +303,7 @@ options available.
 @include gh.texi
 @include debugging.texi
 @include autoconf.texi
+@include tools.texi
 @include scheme-reading.texi
 
 @page
