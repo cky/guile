@@ -675,61 +675,25 @@
 			    (list n))
 			(list n)))))))
 
-(define display-error-message
-  (lambda (message args port)
-    (if (or (not (list? args))
-	    (null? args))
-	(display message port)
-	(let ((len (string-length message)))
-	  (cond ((< len 2)
-		 (display message port))
-		((string=? (substring message 0 2)
-			   "%s")
-		 (display (car args) port)
-		 (display-error-message (substring message 2 len)
-					(cdr args)
-					port))
-		((string=? (substring message 0 2)
-			   "%S")
-		 (write (car args) port)
-		 (display-error-message (substring message 2 len)
-					(cdr args)
-					port))
-		(else
-		 (display (substring message 0 1)
-			  port)
-		 (display-error-message (substring message 1 len)
-					args
-					port)))))))
-
 ;; The default handler for built-in error types when thrown by their
 ;; symbolic names.
-(define (%%handle-system-error key . arg-list)
+(define (handle-system-error key . arg-list)
   (let ((cep (current-error-port)))
     (cond ((not (= (length arg-list) 4))
 	   (display "ERROR: bad error throw: " cep)
-	   (write arg-list cep))
+	   (write arg-list cep)
+	   (newline cep))
 	  (else
-	   (let ((subr (car arg-list))
-		 (message (cadr arg-list))
-		 (args (or (caddr arg-list)
-			   '()))
-		 (rest (or (cadddr arg-list)
-			   '())))
-	     (display "ERROR: " cep)
-	     (cond (subr
-		    (display subr cep)
-		    (display ": " cep)))
-	     (cond ((list? args)
-		    (display-error-message message args cep))
-		   (else
-		    (display message cep)
-		    (display " (bad message args)" cep))))))
-    (newline cep)
+	   (if (memq 'backtrace (debug-options))
+	       (begin
+		 (newline cep)
+		 (display-backtrace the-last-stack cep)
+		 (newline cep)))
+	   (apply display-error the-last-stack cep arg-list)))
     (force-output cep)
     (throw 'abort key)))
 
-;; associate error symbols with %%handle-system-error.
+;; associate error symbols with handle-system-error.
 (let ((keys '(error-signal system-error numerical-overflow
 			   out-of-range wrong-type-arg
 			   wrong-number-of-args
@@ -741,7 +705,7 @@
     (cond ((not (null? keys))
 	   (set-symbol-property! (car keys)
 				 'throw-handler-default
-				 %%handle-system-error)
+				 handle-system-error)
 	   (loop (cdr keys))))))
 
 
@@ -2093,50 +2057,61 @@
 
 (define the-prompt-string "guile> ")
 
+(define the-last-stack #f)
+
 (define (error-catching-loop thunk)
   (define (loop first)
     (let ((next 
 	   (catch #t
-		  
+	     (lambda ()
+	       (lazy-catch #t
+                 (lambda ()
+		   (dynamic-wind
+		    (lambda () (unmask-signals))
+		    (lambda ()
+		      (first)
+				   
+		      ;; This line is needed because mark doesn't do closures quite right.
+		      ;; Unreferenced locals should be collected.
+		      ;;
+		      (set! first #f)
+		      (let loop ((v (thunk)))
+			(loop (thunk)))
+		      #f)
+		    (lambda () (mask-signals))))
+
+		 (lambda (key . args)
+		   (let ((options (debug-options)))
+		     (if (and (or (memq 'deval options)
+				  (memq 'backtrace options))
+			      (not (memq key '(quit switch-repl abort))))
+			 (set! the-last-stack (make-stack #f 6 1)))
+		     (apply throw key args)))))
+	       
+	     (lambda (key . args)
+	       (case key
+		 ((quit)
+		  (force-output)
+		  (pk 'quit args)
+		  #f)
+
+		 ((switch-repl)
+		  (apply throw 'switch-repl args))
+
+		 ((abort)
+		  ;; This is one of the closures that require
+		  ;; (set! first #f) above
+		  ;;
 		  (lambda ()
-		    (dynamic-wind
-		     (lambda () (unmask-signals))
-		     (lambda ()
-		       (first)
-
-		       ;; This line is needed because mark doesn't do closures quite right.
-		       ;; Unreferenced locals should be collected.
-		       ;;
-		       (set! first #f)
-		       (let loop ((v (thunk)))
-			 (loop (thunk)))
-		       #f)
-		     (lambda () (mask-signals))))
-
-		  (lambda (key . args)
-		    (case key
-		      ((quit)
-		       (force-output)
-		       (pk 'quit args)
-		       #f)
-
-		      ((switch-repl)
-		       (apply throw 'switch-repl args))
-
-		      ((abort)
-		       ;; This is one of the closures that require
-		       ;; (set! first #f) above
-		       ;;
-		       (lambda ()
-			 (force-output)
-			 (display  "ABORT: "  (current-error-port))
-			 (write args (current-error-port))
-			 (newline (current-error-port))))
+		    (force-output)
+		    (display  "ABORT: "  (current-error-port))
+		    (write args (current-error-port))
+		    (newline (current-error-port))))
 		      
-		      (else
-		       ;; This is the other cons-leak closure...
-		       (lambda ()
-			 (apply bad-throw key args))))))))
+		 (else
+		  ;; This is the other cons-leak closure...
+		  (lambda ()
+		    (apply bad-throw key args))))))))
       (and next (loop next))))
   (loop (lambda () #t)))
 
@@ -2186,7 +2161,7 @@
 
 	   (-eval (lambda (sourc)
 		    (repl-report-start-timing)
-		    (eval sourc)))
+		    (start-stack (eval sourc))))
 
 	   (-print (lambda (result)
 		     (if (not scm-repl-silent)
