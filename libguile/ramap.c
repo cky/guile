@@ -957,14 +957,7 @@ SCM_DEFINE (scm_array_map_x, "array-map!", 2, 0, 1,
     case scm_tc7_asubr:
       if (scm_is_null (lra))
 	{
-	  SCM prot, fill = SCM_SUBRF (proc) (SCM_UNDEFINED, SCM_UNDEFINED);
-	  if (SCM_I_INUMP(fill))
-	    {
-	      prot = scm_array_prototype (ra0);
-	      if (SCM_INEXACTP (prot))
-		fill = scm_from_double ((double) SCM_I_INUM (fill));
-	    }
-
+	  SCM fill = SCM_SUBRF (proc) (SCM_UNDEFINED, SCM_UNDEFINED);
 	  scm_array_fill_x (ra0, fill);
 	}
       else
