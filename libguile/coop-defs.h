@@ -149,7 +149,6 @@ typedef struct coop_c {
 typedef coop_c scm_cond_t;
 
 extern int coop_condition_variable_init (coop_c*);
-extern int coop_condition_variable_wait (coop_c*);
 extern int coop_condition_variable_wait_mutex (coop_c*, coop_m*);
 extern int coop_condition_variable_signal (coop_c*);
 extern int coop_condition_variable_destroy (coop_c*);

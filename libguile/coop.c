@@ -40,7 +40,7 @@
  * If you do not wish that, delete this exception notice.  */
 
 
-/* $Id: coop.c,v 1.11 1998-10-03 13:33:52 jimb Exp $ */
+/* $Id: coop.c,v 1.12 1998-10-04 12:10:11 jimb Exp $ */
 
 /* Cooperative thread library, based on QuickThreads */
 
@@ -385,10 +385,10 @@ coop_condition_variable_init (c)
 }
 
 #ifdef __STDC__
-int 
+static int 
 coop_condition_variable_wait (coop_c *c)
 #else
-int 
+static int 
 coop_condition_variable_wait (c)
      coop_c *c;
 #endif
