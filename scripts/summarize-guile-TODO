@@ -197,7 +197,7 @@ exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
                                     (value #t))
                           (todo (single-char #\t))
                           (done (single-char #\d))
-                          (review (single-char #\d))
+                          (review (single-char #\r))
                           ;; Add options here.
                           ))))
     (display-items p (select-items p (read-TODO (car (option-ref p '() #f))))))
