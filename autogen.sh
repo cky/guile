@@ -37,12 +37,7 @@ $mscripts/render-bugs > BUGS
 ######################################################################
 ### update infrastructure
 
-autoreconf -i
-
-# XXX - Do it twice since the required files do not seem to be generated in
-#       the right order.
-
-autoreconf -i
+autoreconf -i --force
 
 echo "guile-readline..."
 (cd guile-readline && ./autogen.sh)
