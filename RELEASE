@@ -4,6 +4,7 @@ it in the distribution.
 
 In release 1.2:
 - note that #/ syntax is going to go away.
+- fix all uses of #/ in the dist.
 
 In release 1.3:
 - make #/ generate a warning.

@@ -99,8 +99,12 @@ Automake 1.1p --- a system for automatically generating Makefiles that
 	conform to the (rather Byzantine) GNU coding standards.  The
 	nice thing is that it takes care of hairy targets like 'make
 	dist' and 'make distclean', and automatically generates
-	Makefile dependencies.  Available in
+	Makefile dependencies.  Automake is available in
 	"ftp://ftp.cygnus.com/pub/tromey".
+
+	Before using automake, you may need to copy `threads.m4' and
+	`guile.m4' from the top directory of the Guile core disty to
+	`/usr/local/share/aclocal.
 
 libtool 0.9d --- a system for managing the zillion hairy options needed
 	on various systems to produce shared libraries.  Available in
