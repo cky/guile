@@ -109,6 +109,15 @@ Example:
 
 * Changes to Scheme functions and syntax
 
+** `port-for-each' makes an additional guarantee.
+
+From the docstring: @var{proc} is applied exactly once to every port
+that exists in the system at the time @var{port-for-each} is invoked.
+Changes to the port table while @var{port-for-each} is running have no
+effect as far as @var{port-for-each} is concerned.
+
+This guarantee is important to make (ice-9 popen) work reliable.
+
 ** The semantics of guardians have changed.
 
 The changes are for the most part compatible.  An important criterion
