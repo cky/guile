@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995, 1996, 1998, 1999 Free Software Foundation, Inc.
+/*	Copyright (C) 1995, 1996, 1998, 1999, 2000 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -135,26 +135,12 @@ SCM_DEFINE (scm_dynamic_wind, "dynamic-wind", 3, 0, 0,
  * smob.  Objects of this type are pushed onto the dynwind chain.
  */
 
-typedef struct guardsmem {
-  scm_guard_t before;
-  scm_guard_t after;
-  void *data;
-} guardsmem;
-
-#define SCM_GUARDSMEM(obj) ((guardsmem *) SCM_CDR (obj))
-#define SCM_BEFORE_GUARD(obj) (SCM_GUARDSMEM (obj)->before)
-#define SCM_AFTER_GUARD(obj) (SCM_GUARDSMEM (obj)->after)
-#define SCM_GUARD_DATA(obj) (SCM_GUARDSMEM (obj)->data)
-#define SCM_GUARDSP(obj) (SCM_NIMP(obj) && (SCM_UNPACK_CAR (obj) == tc16_guards))
+#define SCM_GUARDSP(obj) SCM_SMOB_PREDICATE (tc16_guards, obj)
+#define SCM_BEFORE_GUARD(obj) ((scm_guard_t) SCM_CELL_WORD (obj, 1))
+#define SCM_AFTER_GUARD(obj) ((scm_guard_t) SCM_CELL_WORD (obj, 2))
+#define SCM_GUARD_DATA(obj) ((void *) SCM_CELL_WORD (obj, 3))
 
 static long tc16_guards;
-
-static scm_sizet
-freeguards (SCM guards)
-{
-  scm_must_free ((char *) SCM_CDR (guards));
-  return sizeof (guardsmem);
-}
 
 static int
 printguards (SCM exp, SCM port, scm_print_state *pstate)
@@ -173,13 +159,8 @@ scm_internal_dynamic_wind (scm_guard_t before,
 			   void *guard_data)
 {
   SCM guards, ans;
-  guardsmem *g;
   before (guard_data);
-  g = (guardsmem *) scm_must_malloc (sizeof (*g), "guards");
-  g->before = before;
-  g->after = after;
-  g->data = guard_data;
-  SCM_NEWSMOB (guards, tc16_guards, g);
+  SCM_NEWSMOB3 (guards, tc16_guards, before, after, guard_data);
   scm_dynwinds = scm_acons (guards, SCM_BOOL_F, scm_dynwinds);
   ans = inner (inner_data);
   scm_dynwinds = SCM_CDR (scm_dynwinds);
@@ -288,7 +269,7 @@ scm_dowinds (SCM to, long delta)
 void
 scm_init_dynwind ()
 {
-  tc16_guards = scm_make_smob_type_mfpe ("guards", sizeof (struct guardsmem),
-                                        NULL, freeguards, printguards, NULL);
+  tc16_guards = scm_make_smob_type_mfpe ("guards", 0,
+                                         NULL, scm_free0, printguards, NULL);
 #include "dynwind.x"
 }
