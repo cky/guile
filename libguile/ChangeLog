@@ -1,3 +1,11 @@
+Sun Jun 22 15:46:35 1997  Jim Blandy  <jimb@floss.red-bean.com>
+
+	* scmconfig.h.in: Regenerated.  (Needed after June 3 change to
+	../configure.in.)
+
+	* gdb_interface.h (GDB_INTERFACE): Remove semicolon and trailing
+	backslash from definition; this should be used like: GDB_INTERFACE;
+
 Sun Jun 22 04:00:32 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* ioext.c (scm_duplicate_port): bug fix: don't try to make the

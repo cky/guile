@@ -1,3 +1,11 @@
+Sun Jun 22 15:43:07 1997  Jim Blandy  <jimb@floss.red-bean.com>
+
+	* aclocal.m4: Regenerated, using the libtool 0.9h m4 macros.
+
+	* Makefile.am (EXTRA_DIST): Include acconfig.h in the
+	distribution.
+	* Makefile.in: Regenerated.
+
 Sat Jun 21 00:14:07 1997  Jim Blandy  <jimb@floss.red-bean.com>
 
 	* ltmain.sh (line 1191): Don't forget 'test' in if statement.
