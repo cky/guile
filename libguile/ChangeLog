@@ -3,6 +3,12 @@
 	* filesys.c (_POSIX_C_SOURCE): Define to 199506L to get readdir_r (in
 	particular on HP-UX).  Reported by Andreas Vögele.
 
+	* list.c (varargs.h): Remove, leave just stdarg.h which is all the
+	code has support for.  Fixes building with AIX cc, which is ansi but
+	doesn't define __STDC__.  Reported by Keith Crane.
+	(var_start): Remove macro, this variation no longer required.
+	(scm_list_n): Use va_start directly.
+
 2004-05-01  Kevin Ryde  <user42@zip.com.au>
 
 	* continuations.c (scm_dynthrow): Use >= instead of SCM_PTR_GE which
