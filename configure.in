@@ -77,6 +77,11 @@ else
 AC_CHECK_FUNCS(shl_load)
 if test "$ac_cv_func_shl_load" = "yes"; then
   AC_DEFINE(DYNAMIC_LINKING)
+else
+AC_CHECK_FUNCS(dlopen)
+if test "$ac_cv_func_dlopen" = "yes"; then
+  AC_DEFINE(DYNAMIC_LINKING)
+fi
 fi
 fi
 fi
