@@ -804,27 +804,27 @@
 
    (pass-if-exception
     "Proper exception with 0 modulus"
-    (cons 'numerical-overflow "")
+    exception:numerical-overflow
     (modulo-expt 17 23 0))
 
    (pass-if-exception
     "Proper exception when result not invertible"
-    (cons 'numerical-overflow "")
+    exception:numerical-overflow
     (modulo-expt 10 -1 48))
 
    (pass-if-exception
     "Proper exception with wrong type argument"
-    (cons 'wrong-type-arg "")
+    exception:wrong-type-arg
     (modulo-expt "Sam" 23 10))
 
    (pass-if-exception
     "Proper exception with wrong type argument"
-    (cons 'wrong-type-arg "")
+    exception:wrong-type-arg
     (modulo-expt 17 9.9 10))
    
     (pass-if-exception
     "Proper exception with wrong type argument"
-    (cons 'wrong-type-arg "")
+    exception:wrong-type-arg
     (modulo-expt 17 23 'Ethel)))
 
 ;;;
