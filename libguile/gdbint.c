@@ -102,7 +102,8 @@
 { \
   gdb_output = str; \
   gdb_output_length = strlen (str); \
-}
+} \
+
 
 /* {Gdb interface}
  */
@@ -120,8 +121,49 @@ int gdb_output_length;
 int scm_print_carefully_p;
 
 static SCM gdb_input_port;
+static int port_mark_p, stream_mark_p, string_mark_p;
+
+static SCM tok_buf;
+static int tok_buf_mark_p;
+
 static SCM gdb_output_port;
 static int old_ints, old_gc;
+
+#ifdef __STDC__
+static void
+unmark_port (SCM port)
+#else
+static void
+unmark_port (port)
+     SCM port;
+#endif
+{
+  SCM stream, string;
+  port_mark_p = SCM_GC8MARKP (port);
+  SCM_CLRGC8MARK (port);
+  stream = SCM_STREAM (port);
+  stream_mark_p = SCM_GCMARKP (stream);
+  SCM_CLRGCMARK (stream);
+  string = SCM_CDR (stream);
+  string_mark_p = SCM_GC8MARKP (string);
+  SCM_CLRGC8MARK (string);
+}
+
+#ifdef __STDC__
+static void
+remark_port (SCM port)
+#else
+static void
+remark_port (port)
+     SCM port;
+#endif
+{
+  SCM stream = SCM_STREAM (port);
+  SCM string = SCM_CDR (stream);
+  if (string_mark_p) SCM_SETGC8MARK (string);
+  if (stream_mark_p) SCM_SETGCMARK (stream);
+  if (port_mark_p) SCM_SETGC8MARK (port);
+}
 
 #ifdef __STDC__
 int
@@ -177,25 +219,33 @@ gdb_read (str)
 	  }
     }
   SCM_BEGIN_FOREIGN_BLOCK;
+  unmark_port (gdb_input_port);
   /* Replace string in input port and reset stream */
   ans = SCM_CDR (SCM_STREAM (gdb_input_port));
   SCM_SETCHARS (ans, str);
   SCM_SETLENGTH (ans, strlen (str), scm_tc7_string);
   SCM_SETCAR (SCM_STREAM (gdb_input_port), SCM_INUM0);
   /* Read one object */
-  ans = scm_read (gdb_input_port, SCM_UNDEFINED, SCM_UNDEFINED);
+  tok_buf_mark_p = SCM_GC8MARKP (tok_buf);
+  SCM_CLRGC8MARK (tok_buf);
+  ans = scm_lreadr (&tok_buf, gdb_input_port, 0, SCM_BOOL_F);
   if (SCM_GC_P)
     {
-      if (!SCM_IMP (ans))
+      if (SCM_NIMP (ans))
 	{
 	  SEND_STRING ("Non-immediate created during gc.  Memory may be trashed.");
 	  status = -1;
 	  goto exit;
 	}
     }
+  gdb_result = ans;
   /* Protect answer from future GC */
-  gdb_result = scm_permanent_object (ans);;
+  if (SCM_NIMP (ans))
+    scm_permanent_object (ans);
 exit:
+  if (tok_buf_mark_p)
+    SCM_SETGC8MARK (tok_buf);
+  remark_port (gdb_input_port);
   SCM_END_FOREIGN_BLOCK;
   return status;
 }
@@ -295,4 +345,6 @@ scm_init_gdbint ()
 			SCM_OPN | SCM_RDNG,
 			s);
   gdb_input_port = scm_permanent_object (port);
+
+  tok_buf = scm_permanent_object (scm_makstr (30L, 0));
 }
