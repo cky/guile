@@ -1,3 +1,12 @@
+Fri Apr 11 14:12:13 1997  Jim Blandy  <jimb@floss.cyclic.com>
+
+*	* filesys.c (scm_fcntl): New function from Roland McGrath.
+	(scm_init_filesys): New symbols for use with fcntl.
+	* filesys.h: Added prototype.
+
+	* eval.c (SCM_APPLY): Set debug apply frame argument list correctly
+ 	when PROC is receiving no arguments.
+
 Thu Apr 10 15:10:07 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* eval.c: Doc fixes.
