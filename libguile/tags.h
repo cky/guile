@@ -428,7 +428,7 @@ typedef long SCM;
 enum scm_tags
 {
   scm_tc8_char = 0xf4,
-  scm_tc8_iloc = 0xfc,
+  scm_tc8_iloc = 0xfc
 };
 
 #define SCM_ITAG8(X)		((int)(X) & 0xff)
