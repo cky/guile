@@ -1,12 +1,10 @@
-#!/usr/bin/awk -f
 # Written by Greg J. Badros, <gjb@cs.washington.edu>
 # 12-Dec-1999
 
 BEGIN { FS="|"; 
-        filename = ARGV[1]; ARGV[1] = ""; 
-        dot_x_file = filename; dot_doc_file = filename;
-	sub(/\..*$/,".x",dot_x_file);
-	sub(/\..*$/,".doc",dot_doc_file); 
+        dot_doc_file = ARGV[1]; ARGV[1] = "";
+        ARGC = 0;
+        std_err = "/dev/stderr";
         # be sure to put something in the files to help make out
         print "";
         printf "" > dot_doc_file;
@@ -51,7 +49,7 @@ BEGIN { FS="|";
 		 # now args is an array of the arguments
 		 # args[1] is the formal name of the first argument, etc.
 		 if (numargs != numactuals && !registering) 
-		   { print location ":*** `" copy "' is improperly registered as having " numactuals " arguments" > /dev/stderr; }
+		   { print location ":*** `" copy "' is improperly registered as having " numactuals " arguments" > std_err; }
 		 print "\n" copy (registering?")":"") > dot_doc_file ; }
 
 /@@@/,/@!!!.*$/ { copy = $0; 

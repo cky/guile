@@ -12,14 +12,15 @@ filename=`basename $fullfilename`
 #  because the makefile redirects output to the .x file
 #  which creates the file before the inclusion occurs)
 # --12/12/99 gjb
-dot_x=${filename%.*}.x
-touch --date=01/01/70 $dot_x
+no_ext=`echo $filename | /bin/sed 's/\.[^.]*$//g'`
+dot_doc=${no_ext}.doc
 
 temp="/tmp/snarf.$$"
 trap "rm -f $temp" 0 1 2 15
 
-## Let the user override the preprocessor autoconf found.
+## Let the user override the preprocessor & awk autoconf found.
 test -n "${CPP+set}" || CPP="@CPP@"
+test -n "${AWK+set}" || AWK="@AWK@"
 
 ## Must run guile-func-name-check on the unpreprocessed source
 guile-func-name-check "$fullfilename"
@@ -27,4 +28,4 @@ guile-func-name-check "$fullfilename"
 ## We must use a temporary file here, instead of a pipe, because we
 ## need to know if CPP exits with a non-zero status.
 ${CPP} -DSCM_MAGIC_SNARFER "$@" > ${temp} || exit $?
-< ${temp} awk -f `dirname $0`/guile-snarf.awk "$filename"
+< ${temp} ${AWK} -f `dirname $0`/guile-snarf.awk `basename ${dot_doc}`
