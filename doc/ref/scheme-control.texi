@@ -197,10 +197,40 @@ corresponding variable is not changed during looping.
 @end deffn
 
 @deffn syntax while cond body @dots{}
-Evaluate all expressions in @var{body} in order, as long as @var{cond}
-evaluates to a true value.  The @var{cond} expression is tested before
-every iteration, so that the body is not evaluated at all if @var{cond}
-is @code{#f} right from the start.
+Run a loop executing the @var{body} forms while @var{cond} is true.
+@var{cond} is tested at the start of each iteration, so if it's
+@code{#f} the first time then @var{body} is not executed at all.  The
+return value is unspecified.
+
+Within @code{while}, two extra bindings are provided, they can be used
+from both @var{cond} and @var{body}.
+
+@deffn {Scheme Procedure} break
+Break out of the @code{while} form.
+@end deffn
+
+@deffn {Scheme Procedure} continue
+Abandon the current iteration, go back to the start and test
+@var{cond} again, etc.
+@end deffn
+
+Each @code{while} form gets its own @code{break} and @code{continue}
+procedures, operating on that @code{while}.  This means when loops are
+nested the outer @code{break} can be used to escape all the way out.
+For example,
+
+@example
+(while (test1)
+  (let ((outer-break break))
+    (while (test2)
+      (if (something)
+        (outer-break #f))
+      ...)))
+@end example
+
+Note that each @code{break} and @code{continue} procedure can only be
+used within the dynamic extent of its @code{while}.  Outside the
+@code{while} their behaviour is unspecified.
 @end deffn
 
 @cindex named let
