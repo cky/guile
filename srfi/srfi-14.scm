@@ -64,7 +64,7 @@
  char-set-copy
  char-set
  list->char-set list->char-set!
- string->char-set string-char-set!
+ string->char-set string->char-set!
  char-set-filter char-set-filter!
  ucs-range->char-set ucs-range->char-set!
  ->char-set

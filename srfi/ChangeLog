@@ -1,3 +1,12 @@
+2001-07-16  Gary Houston  <ghouston@arglist.com>
+
+	* srfi-14.scm: export string->char-set!, not string-char-set!.
+
+	* srfi-14.c (scm_char_set_ref, scm_char_set_cursor_next,
+	scm_end_of_char_set_p): reject negative	cursor values.
+	(scm_list_to_char_set, scm_list_to_char_set_x): when reporting
+	type error in list component, omit the position (was always 1).
+
 2001-07-16  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	(scm_char_set_map): Bug-fix: char-set-map was modifying the
@@ -11,7 +20,7 @@
 	more values.
 
 2001-07-15  Gary Houston  <ghouston@arglist.com>
-
+	
 	* srfi-14.c (scm_char_set_hash): recognise 0 instead of #f in the
 	opt arg to give default bound, as in final spec.  don't allow
 	negative bounds.

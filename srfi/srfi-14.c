@@ -241,7 +241,7 @@ SCM_DEFINE (scm_char_set_ref, "char-set-ref", 2, 0, 0,
   int ccursor;
 
   SCM_VALIDATE_SMOB (1, cs, charset);
-  SCM_VALIDATE_INUM_COPY (2, cursor, ccursor);
+  SCM_VALIDATE_INUM_MIN_COPY (2, cursor, 0, ccursor);
 
   if (ccursor >= SCM_CHARSET_SIZE || !SCM_CHARSET_GET (cs, ccursor))
     SCM_MISC_ERROR ("invalid character set cursor: ~A", scm_list_1 (cursor));
@@ -260,7 +260,7 @@ SCM_DEFINE (scm_char_set_cursor_next, "char-set-cursor-next", 2, 0, 0,
   int ccursor;
 
   SCM_VALIDATE_SMOB (1, cs, charset);
-  SCM_VALIDATE_INUM_COPY (2, cursor, ccursor);
+  SCM_VALIDATE_INUM_MIN_COPY (2, cursor, 0, ccursor);
 
   if (ccursor >= SCM_CHARSET_SIZE || !SCM_CHARSET_GET (cs, ccursor))
     SCM_MISC_ERROR ("invalid character set cursor: ~A", scm_list_1 (cursor));
@@ -282,7 +282,7 @@ SCM_DEFINE (scm_end_of_char_set_p, "end-of-char-set?", 1, 0, 0,
 {
   int ccursor;
 
-  SCM_VALIDATE_INUM_COPY (1, cursor, ccursor);
+  SCM_VALIDATE_INUM_MIN_COPY (1, cursor, 0, ccursor);
   return SCM_BOOL (ccursor >= SCM_CHARSET_SIZE);
 }
 #undef FUNC_NAME
@@ -507,7 +507,7 @@ SCM_DEFINE (scm_list_to_char_set, "list->char-set", 1, 1, 0,
       SCM chr = SCM_CAR (list);
       int c;
 
-      SCM_VALIDATE_CHAR_COPY (1, chr, c);
+      SCM_VALIDATE_CHAR_COPY (0, chr, c);
       list = SCM_CDR (list);
 
       p[c / sizeof (long)] |= 1 << (c % sizeof (long));
@@ -534,7 +534,7 @@ SCM_DEFINE (scm_list_to_char_set_x, "list->char-set!", 2, 0, 0,
       SCM chr = SCM_CAR (list);
       int c;
 
-      SCM_VALIDATE_CHAR_COPY (1, chr, c);
+      SCM_VALIDATE_CHAR_COPY (0, chr, c);
       list = SCM_CDR (list);
 
       p[c / sizeof (long)] |= 1 << (c % sizeof (long));
