@@ -69,6 +69,7 @@
 extern SCM scm_list_head SCM_P ((SCM lst, SCM k));
 extern SCM scm_listify SCM_P ((SCM elt, ...));
 extern SCM scm_list SCM_P ((SCM objs));
+extern SCM scm_list_star SCM_P ((SCM arg, SCM objs));
 extern SCM scm_null_p SCM_P ((SCM x));
 extern SCM scm_list_p SCM_P ((SCM x));
 extern long scm_ilength SCM_P ((SCM sx));
