@@ -437,31 +437,22 @@ scm_i_print_isym (SCM isym, SCM port)
 
 /* The function lookup_symbol is used during memoization: Lookup the symbol in
  * the environment.  If there is no binding for the symbol, SCM_UNDEFINED is
- * returned.  If the symbol is a syntactic keyword, the macro object to which
- * the symbol is bound is returned.  If the symbol is a global variable, the
- * variable object to which the symbol is bound is returned.  Finally, if the
- * symbol is a local variable the corresponding iloc object is returned.  */
+ * returned.  If the symbol is a global variable, the variable object to which
+ * the symbol is bound is returned.  Finally, if the symbol is a local
+ * variable the corresponding iloc object is returned.  */
 
 /* A helper function for lookup_symbol: Try to find the symbol in the top
  * level environment frame.  The function returns SCM_UNDEFINED if the symbol
- * is unbound, it returns a macro object if the symbol is a syntactic keyword
- * and it returns a variable object if the symbol is a global variable.  */
+ * is unbound and it returns a variable object if the symbol is a global
+ * variable.  */
 static SCM
 lookup_global_symbol (const SCM symbol, const SCM top_level)
 {
   const SCM variable = scm_sym2var (symbol, top_level, SCM_BOOL_F);
   if (SCM_FALSEP (variable))
-    {
-      return SCM_UNDEFINED;
-    }
+    return SCM_UNDEFINED;
   else
-    {
-      const SCM value = SCM_VARIABLE_REF (variable);
-      if (SCM_MACROP (value))
-	return value;
-      else
-	return variable;
-    }
+    return variable;
 }
 
 static SCM
@@ -512,8 +503,10 @@ lookup_symbol (const SCM symbol, const SCM env)
 static int
 literal_p (const SCM symbol, const SCM env)
 {
-  const SCM value = lookup_symbol (symbol, env);
-  if (SCM_UNBNDP (value) || SCM_MACROP (value))
+  const SCM variable = lookup_symbol (symbol, env);
+  if (SCM_UNBNDP (variable))
+    return 1;
+  if (SCM_VARIABLEP (variable) && SCM_MACROP (SCM_VARIABLE_REF (variable)))
     return 1;
   else
     return 0;
@@ -556,25 +549,29 @@ m_body (SCM op, SCM exprs)
 }
 
 
-/* The function m_expand_body memoizes a proper list of expressions
- * forming a body.  This function takes care of dealing with internal
- * defines and transforming them into an equivalent letrec expression.
- * The list of expressions is rewritten in place.  */ 
+/* The function m_expand_body memoizes a proper list of expressions forming a
+ * body.  This function takes care of dealing with internal defines and
+ * transforming them into an equivalent letrec expression.  The list of
+ * expressions is rewritten in place.  */ 
 
-/* This is a helper function for m_expand_body.  It helps to figure out whether
- * an expression denotes a syntactic keyword.  */ 
+/* This is a helper function for m_expand_body.  If the argument expression is
+ * a symbol that denotes a syntactic keyword, the corresponding macro object
+ * is returned, in all other cases the function returns SCM_UNDEFINED.  */ 
 static SCM
 try_macro_lookup (const SCM expr, const SCM env)
 {
   if (SCM_SYMBOLP (expr))
     {
-      const SCM value = lookup_symbol (expr, env);
-      return value;
+      const SCM variable = lookup_symbol (expr, env);
+      if (SCM_VARIABLEP (variable))
+        {
+          const SCM value = SCM_VARIABLE_REF (variable);
+          if (SCM_MACROP (value))
+            return value;
+        }
     }
-  else
-    {
-      return SCM_UNDEFINED;
-    }
+
+  return SCM_UNDEFINED;
 }
 
 /* This is a helper function for m_expand_body.  It expands user macros,
