@@ -1,4 +1,17 @@
-2003-01-15  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+2003-01-16  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* psyntax.ss (build-data): Don't quote self-evaluating expressions
+	in output.  (We normally *would* like also these expressions to be
+	quoted, but until Guile's native macros and syncase cooperates
+	better, it is less destructive not to quote.)
+	(self-evaluating?): Removed null? (In Guile, the empty list is not
+	self-evaluating).
+	(sc-chi): Export chi as sc-chi.
+	(external-macro): New syntax type.
+
+	* psyntax.pp: Regenerated.
+
+	* compile-psyntax.scm: Set expansion-eval-closure.
 
 	* boot-9.scm (use-syntax): Return *unspecified*.
 
@@ -10,7 +23,8 @@
 	identifier-syntax let-syntax letrec-syntax syntax syntax-case
 	syntax-rules with-syntax include): Removed definitions (these are
 	created from within psyntax.pp).
-
+	Enable expansion of Guile macros during a syntax-case
+	transformation.
 
 2003-01-10  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 

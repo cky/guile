@@ -1,6 +1,6 @@
 ;;;; -*-scheme-*-
 ;;;;
-;;;; 	Copyright (C) 2001 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2001, 2003 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -418,9 +418,10 @@
     ((_ src name) name)
     ((_ src level name) name)))
 
-(define-syntax build-data
-  (syntax-rules ()
-    ((_ src exp) `',exp)))
+(define (build-data src exp)
+  (if (self-evaluating? exp)
+      exp
+      (list 'quote exp)))
 
 (define build-sequence
   (lambda (src exps)
@@ -454,7 +455,7 @@
   (syntax-rules ()
     ((_ e)
      (let ((x e))
-       (or (boolean? x) (number? x) (string? x) (char? x) (null? x) (keyword? x))))))
+       (or (boolean? x) (number? x) (string? x) (char? x) (keyword? x))))))
 )
 
 (define-structure (syntax-object expression wrap))
@@ -504,6 +505,7 @@
 
 ;;; <binding> ::= (macro . <procedure>)           macros
 ;;;               (core . <procedure>)            core forms
+;;;               (external-macro . <procedure>)  external-macro
 ;;;               (begin)                         begin
 ;;;               (define)                        define
 ;;;               (define-syntax)                 define-syntax
@@ -918,6 +920,7 @@
 ;;;    type                   value         explanation
 ;;;    -------------------------------------------------------------------
 ;;;    core                   procedure     core form (including singleton)
+;;;    external-macro         procedure     external macro
 ;;;    lexical                name          lexical variable reference
 ;;;    global                 name          global variable reference
 ;;;    begin                  none          begin keyword
@@ -971,7 +974,7 @@
                  ((macro)
                   (syntax-type (chi-macro (binding-value b) e r w rib)
                     r empty-wrap s rib))
-                 ((core) (values type (binding-value b) e w s))
+                 ((core external-macro) (values type (binding-value b) e w s))
                  ((local-syntax)
                   (values 'local-syntax-form (binding-value b) e w s))
                  ((begin) (values 'begin-form #f e w s))
@@ -1077,15 +1080,20 @@
                       (chi-install-global n (chi e r w))))
                 (chi-void)))))
           ((define-form)
-           (let ((n (id-var-name value w)))
-             (case (binding-type (lookup n r))
+           (let* ((n (id-var-name value w))
+		  (type (binding-type (lookup n r))))
+             (case type
                ((global)
                 (eval-if-c&e m
                   (build-global-definition s n (chi e r w))))
                ((displaced-lexical)
                 (syntax-error (wrap value w) "identifier out of context"))
-               (else (syntax-error (wrap value w)
-                       "cannot define keyword at top level")))))
+               (else
+		(if (eq? type 'external-macro)
+		    (eval-if-c&e m
+				 (build-global-definition s n (chi e r w)))
+		    (syntax-error (wrap value w)
+				  "cannot define keyword at top level"))))))
           (else (eval-if-c&e m (chi-expr type value e r w s))))))))
 
 (define chi
@@ -1100,7 +1108,7 @@
     (case type
       ((lexical)
        (build-lexical-reference 'value s value))
-      ((core) (value e r w s))
+      ((core external-macro) (value e r w s))
       ((lexical-call)
        (chi-application
          (build-lexical-reference 'fun (source-annotation (car e)) value)
@@ -1351,7 +1359,7 @@
     (let ((p (local-eval-hook expanded)))
       (if (procedure? p)
           p
-          (syntax-error p "nonprocedure transfomer")))))
+          (syntax-error p "nonprocedure transformer")))))
 
 (define chi-void
   (lambda ()
@@ -2055,6 +2063,8 @@
        (match* (unannotate (syntax-object-expression e))
          p (syntax-object-wrap e) '()))
       (else (match* (unannotate e) p empty-wrap '())))))
+
+(set! sc-chi chi)
 ))
 )
 

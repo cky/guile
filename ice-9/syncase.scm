@@ -75,6 +75,7 @@
 
 (define sc-expand #f)
 (define sc-expand3 #f)
+(define sc-chi #f)
 (define install-global-transformer #f)
 (define syntax-dispatch #f)
 (define syntax-error #f)
@@ -130,21 +131,47 @@
 (fluid-set! expansion-eval-closure the-syncase-eval-closure)
 
 (define (putprop symbol key binding)
-  (let* ((v ((fluid-ref expansion-eval-closure) symbol #t)))
-    (if (symbol-property symbol 'primitive-syntax)
-	(if (eq? (fluid-ref expansion-eval-closure) the-syncase-eval-closure)
-	    (set-object-property! (module-variable the-root-module symbol)
-				  key
-				  binding))
+  (let* ((eval-closure (fluid-ref expansion-eval-closure))
+	 ;; Why not simply do (eval-closure symbol #t)?
+	 ;; Answer: That would overwrite imported bindings
+	 (v (or (eval-closure symbol #f) ;lookup
+		(eval-closure symbol #t) ;create it locally
+		)))
+    ;; Don't destroy Guile macros corresponding to
+    ;; primitive syntax when syncase boots.
+    (if (not (and (symbol-property symbol 'primitive-syntax)
+		  (eq? eval-closure the-syncase-eval-closure)))
 	(variable-set! v sc-macro))
+    ;; Properties are tied to variable objects
     (set-object-property! v key binding)))
 
 (define (getprop symbol key)
   (let* ((v ((fluid-ref expansion-eval-closure) symbol #f)))
-    (and v (or (object-property v key)
-	       (let ((root-v (module-local-variable the-root-module symbol)))
-		 (and (equal? root-v v)
-		      (object-property root-v key)))))))
+    (and v
+	 (or (object-property v key)
+	     (and (variable-bound? v)
+		  (macro? (variable-ref v))
+		  (macro-transformer (variable-ref v)) ;non-primitive
+		  guile-macro)))))
+
+(define guile-macro
+  (cons 'external-macro
+	(lambda (e r w s)
+	  (if (symbol? e)
+	      ;; pass the expression through
+	      e
+	      (let* ((eval-closure (fluid-ref expansion-eval-closure))
+		     (m (variable-ref (eval-closure (car e) #f))))
+		(if (eq? (macro-type m) 'syntax)
+		    ;; pass the expression through
+		    e
+		    ;; perform Guile macro transform
+		    (let ((e ((macro-transformer m)
+			      e
+			      (append r (list eval-closure)))))
+		      (if (null? r)
+			  (sc-expand e)
+			  (sc-chi e r w)))))))))
 
 (define generated-symbols (make-weak-key-hash-table 1019))
 

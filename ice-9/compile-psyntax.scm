@@ -12,14 +12,16 @@
 
 (let ((in (open-input-file source))
       (out (open-output-file (string-append target ".tmp"))))
-  (let loop ((x (read in)))
-    (if (eof-object? x)
-	(begin
-	  (close-port out)
-	  (close-port in))
-	(begin
-	  (write (sc-expand3 x 'c '(compile load eval)) out)
-	  (newline out)
-	  (loop (read in))))))
+  (with-fluids ((expansion-eval-closure
+		 (module-eval-closure (current-module))))
+    (let loop ((x (read in)))
+      (if (eof-object? x)
+	  (begin
+	    (close-port out)
+	    (close-port in))
+	  (begin
+	    (write (sc-expand3 x 'c '(compile load eval)) out)
+	    (newline out)
+	    (loop (read in)))))))
 
 (system (format #f "mv -f ~s.tmp ~s" target target))
