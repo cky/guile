@@ -1,3 +1,11 @@
+Sat Aug  3 01:27:14 1996  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* fdsocket.c: getsockopt, setsockopt: use HAVE_STRUCT_LINGER.
+
+	* scmconfig.h.in: add HAVE_STRUCT_LINGER.
+
+	* configure.in: check for struct linger, set HAVE_STRUCT_LINGER.
+
 Thu Aug  1 02:58:39 1996  Jim Blandy  <jimb@totoro.cyclic.com>
 
 	* filesys.c, posix.c: #include <sys/types.h> before <sys/stat.h>.

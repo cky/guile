@@ -49,9 +49,17 @@ AC_TRY_RUN(main () { exit (sizeof(float) != sizeof(long)); },
 	   AC_DEFINE(SCM_SINGLES),,AC_DEFINE(SCM_SINGLES)
 	   AC_MSG_WARN(Guessing that sizeof(long) == sizeof(float) -- see scmconfig.h.in))
 
-
-
-
+AC_MSG_CHECKING(for struct linger)
+AC_CACHE_VAL(scm_cv_struct_linger,
+	AC_TRY_COMPILE([#include <sys/socket.h>],
+			[struct linger lgr;  lgr.l_linger = 100],
+			scm_cv_struct_linger="yes",
+			scm_cv_struct_linger="no"))
+AC_MSG_RESULT($scm_cv_struct_linger)
+if test $scm_cv_struct_linger = yes; then
+	AC_DEFINE(HAVE_STRUCT_LINGER)
+fi
+	
 #--------------------------------------------------------------------
 #
 # How can you violate a stdio abstraction by setting a stream's fd?

@@ -157,3 +157,5 @@
 
 #undef SCM_STACK_GROWS_UP
 
+/* Define if you have struct linger.  */
+#undef HAVE_STRUCT_LINGER

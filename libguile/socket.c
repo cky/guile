@@ -34,7 +34,7 @@ scm_sys_inet_aton (address)
 #endif
 {
   struct in_addr soka;
-  int rv;
+
   SCM_ASSERT (SCM_NIMP (address) && SCM_ROSTRINGP (address), address, SCM_ARG1, s_sys_inet_aton);
   if (SCM_SUBSTRP (address))
     address = scm_makfromstr (SCM_ROCHARS (address), SCM_ROLENGTH (address), 0);
