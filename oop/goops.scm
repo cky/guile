@@ -27,12 +27,15 @@
 ;;;;
 
 (define-module (oop goops)
-  :use-module (oop goops goopscore)
-  :use-module (oop goops util)
-  :use-module (oop goops dispatch)
-  :use-module (oop goops compile)
-  :no-backtrace
-  )
+  :no-backtrace)
+
+;; First initialize the builtin part of GOOPS
+(%init-goops-builtins)
+
+;; Then load the rest of GOOPS
+(use-modules (oop goops util)
+	     (oop goops dispatch)
+	     (oop goops compile)
 
 (export			  ; Define the exported symbols of this file
     goops-version is-a?
