@@ -115,6 +115,7 @@ libpath.h: Makefile
 	@echo '	{ "pkglibdir",	   "$(libdir)/@PACKAGE@" }, \' >> libpath.tmp
 	@echo '	{ "pkgincludedir", "$(includedir)/@PACKAGE@" }, \' \
 		>> libpath.tmp
+	@echo '	{ "LIBS",	   "@THREAD_LIBS@" }, \' >> libpath.tmp
 	@echo '}' >> libpath.tmp
 	@mv libpath.tmp libpath.h
 
