@@ -221,10 +221,11 @@ scm_search_path (path, filename, extensions)
      SCM filename;
      SCM extensions;
 {
-  char *buf;
+  char *buf, *endp;
   int filename_len;
   size_t max_path_len;
   size_t max_ext_len;
+  SCM result = SCM_BOOL_F;
 
   SCM_ASSERT (scm_ilength (path) >= 0, path, SCM_ARG1, s_search_path);
   SCM_ASSERT (SCM_NIMP (filename) && SCM_ROSTRINGP (filename), filename,
@@ -252,8 +253,8 @@ scm_search_path (path, filename, extensions)
 	SCM_ASSERT (SCM_NIMP (elt) && SCM_ROSTRINGP (elt), elt,
 		    "path is not a list of strings",
 		    s_search_path);
-	if (SCM_LENGTH (elt) > max_path_len)
-	  max_path_len = SCM_LENGTH (elt);
+	if (SCM_ROLENGTH (elt) > max_path_len)
+	  max_path_len = SCM_ROLENGTH (elt);
       }
   }
 
@@ -269,10 +270,21 @@ scm_search_path (path, filename, extensions)
 	SCM_ASSERT (SCM_NIMP (elt) && SCM_ROSTRINGP (elt), elt,
 		    "extension list is not a list of strings",
 		    s_search_path);
-	if (SCM_LENGTH (elt) > max_ext_len)
-	  max_ext_len = SCM_LENGTH (elt);
+	if (SCM_ROLENGTH (elt) > max_ext_len)
+	  max_ext_len = SCM_ROLENGTH (elt);
       }
   }
+
+  /* Remove the same extension that FILENAME already has.  */
+  for (endp = SCM_ROCHARS (filename) + filename_len - 1;
+       endp > SCM_ROCHARS (filename) && *endp != '/'; endp--)
+    if (*endp == '.')
+      {
+	extensions = scm_delete (scm_makfromstr (endp, SCM_ROCHARS (filename)
+						 + filename_len - endp, 0),
+				 extensions);
+	break;
+      }
 
   SCM_DEFER_INTS;
 
@@ -283,45 +295,43 @@ scm_search_path (path, filename, extensions)
      list of strings.  */
   for (; SCM_NIMP (path); path = SCM_CDR (path))
     {
-      SCM path_elt = SCM_CAR (path), exts;
+      int len;
+      SCM dir = SCM_CAR (path), exts;
+
+      /* Concatenate the path name and the filename. */
+      len = SCM_ROLENGTH (dir);
+      memcpy (buf, SCM_ROCHARS (dir), len);
+      if (len >= 1 && buf[len - 1] != '/')
+	buf[len++] = '/';
+      memcpy (buf + len, SCM_ROCHARS (filename), filename_len);
+      endp = buf + len + filename_len;
 
       /* Try every extension.  At this point, we know it's a proper
          list of strings.  */
       for (exts = extensions; SCM_NIMP (exts); exts = SCM_CDR (exts))
 	{
-	  SCM ext_elt = SCM_CAR (exts);
-	  int i;
+	  SCM ext = SCM_CAR (exts);
+	  struct stat mode;
 
-	  /* Concatenate the path name, the filename, and the extension. */
-	  i = SCM_ROLENGTH (path_elt);
-	  memcpy (buf, SCM_ROCHARS (path_elt), i);
-	  if (i >= 1 && buf[i - 1] != '/')
-	    buf[i++] = '/';
-	  memcpy (buf + i, SCM_ROCHARS (filename), filename_len);
-	  i += filename_len;
-	  memcpy (buf + i, SCM_ROCHARS (ext_elt), SCM_LENGTH (ext_elt));
-	  i += SCM_LENGTH (ext_elt);
-	  buf[i] = '\0';
+	  /* Concatenate the extension. */
+	  len = SCM_ROLENGTH (ext);
+	  memcpy (endp, SCM_ROCHARS (ext), len);
+	  *(endp + len) = '\0';
 
-	  {
-	    struct stat mode;
-
-	    if (stat (buf, &mode) >= 0
-		&& ! (mode.st_mode & S_IFDIR)
-		&& access (buf, R_OK) == 0)
-	      {
-		SCM result = scm_makfromstr (buf, i, 0);
-		scm_must_free (buf);
-		SCM_ALLOW_INTS;
-		return result;
-	      }
-	  }
+	  if (stat (buf, &mode) == 0
+	      && ! (mode.st_mode & S_IFDIR)
+	      && access (buf, R_OK) == 0)
+	    {
+	      result = scm_makfromstr (buf, endp + len - buf, 0);
+	      goto end;
+	    }
 	}
     }
-  
+
+ end:
   scm_must_free (buf);
   SCM_ALLOW_INTS;
-  return SCM_BOOL_F;
+  return result;
 }
 
 
@@ -363,7 +373,7 @@ scm_primitive_load_path (filename)
 
   if (SCM_FALSEP (full_filename))
     {
-      int absolute = (SCM_LENGTH (filename) >= 1
+      int absolute = (SCM_ROLENGTH (filename) >= 1
 		      && SCM_ROCHARS (filename)[0] == '/');
       scm_misc_error (s_primitive_load_path,
 		      (absolute
@@ -421,8 +431,8 @@ scm_init_load ()
   scm_loc_load_path = SCM_CDRLOC (scm_sysintern ("%load-path", SCM_EOL));
   scm_loc_load_extensions
     = SCM_CDRLOC (scm_sysintern ("%load-extensions",
-				 scm_listify (scm_makfrom0str (""),
-					      scm_makfrom0str (".scm"),
+				 scm_listify (scm_makfrom0str (".scm"),
+					      scm_makfrom0str (""),
 					      SCM_UNDEFINED)));
   scm_loc_load_hook = SCM_CDRLOC (scm_sysintern ("%load-hook", SCM_BOOL_F));
 
