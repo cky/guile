@@ -1,3 +1,9 @@
+2004-12-14  Kevin Ryde  <user42@zip.com.au>
+
+	* boot-9.scm: (string-any, string-every): Use a scheme wrapper around
+	the C code so for the final call to the predicate procedure is a tail
+	call, per SRFI-13 spec.
+
 2004-12-01  mvo  <mvo@zagadka.de>
 
 	* boot-9.scm (app, %app): Renamed former to the latter.

@@ -1,3 +1,9 @@
+2004-12-14  Kevin Ryde  <user42@zip.com.au>
+
+	* srfi-13.c (string-any, string-every): Use a scheme wrapper around
+	the C code so for the final call to the predicate procedure is a tail
+	call, per SRFI-13 spec.
+
 2004-12-10  Kevin Ryde  <user42@zip.com.au>
 
 	* eq.c (scm_eq_p, scm_eqv_p, scm_equal_p): Update docstrings from
