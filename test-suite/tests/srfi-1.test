@@ -754,6 +754,114 @@
   (pass-if (equal? '(1 2 3 4 . 5) (list-copy '(1 2 3 4 . 5)))))
 
 ;;
+;; lset=
+;;
+
+(with-test-prefix "lset="
+
+  ;; prior to guile 1.6.8 at least one list arg was (incorrectly) required
+  (pass-if "no args"
+    (eq? #t (lset= eq?)))
+
+  (with-test-prefix "one arg"
+
+    (pass-if "()"
+      (eq? #t (lset= eqv? '())))
+
+    (pass-if "(1)"
+      (eq? #t (lset= eqv? '(1))))
+
+    (pass-if "(1 2)"
+      (eq? #t (lset= eqv? '(1 2)))))
+
+  (with-test-prefix "two args"
+
+    (pass-if "() ()"
+      (eq? #t (lset= eqv? '() '())))
+
+    (pass-if "(1) (1)"
+      (eq? #t (lset= eqv? '(1) '(1))))
+
+    (pass-if "(1) (2)"
+      (eq? #f (lset= eqv? '(1) '(2))))
+
+    (pass-if "(1) (1 2)"
+      (eq? #f (lset= eqv? '(1) '(1 2))))
+
+    (pass-if "(1 2) (2 1)"
+      (eq? #t (lset= eqv? '(1 2) '(2 1))))
+
+    (pass-if "called arg order"
+      (let ((good #t))
+	(lset= (lambda (x y)
+		 (if (not (= x (1- y)))
+		     (set! good #f))
+		 #t)
+	       '(1 1) '(2 2))
+	good)))
+
+  (with-test-prefix "three args"
+
+    (pass-if "() () ()"
+      (eq? #t (lset= eqv? '() '() '())))
+
+    (pass-if "(1) (1) (1)"
+      (eq? #t (lset= eqv? '(1) '(1) '(1))))
+
+    (pass-if "(1) (1) (2)"
+      (eq? #f (lset= eqv? '(1) '(1) '(2))))
+
+    (pass-if "(1) (1) (1 2)"
+      (eq? #f (lset= eqv? '(1) '(1) '(1 2))))
+
+    (pass-if "(1 2 3) (3 2 1) (1 3 2)"
+      (eq? #t (lset= eqv? '(1 2 3) '(3 2 1) '(1 3 2))))
+
+    (pass-if "called arg order"
+      (let ((good #t))
+	(lset= (lambda (x y)
+		 (if (not (= x (1- y)))
+		     (set! good #f))
+		 #t)
+	       '(1 1) '(2 2) '(3 3))
+	good))))
+
+;;
+;; member
+;;
+
+(with-test-prefix "member"
+
+  (pass-if-exception "no args" exception:wrong-num-args
+    (member))
+
+  (pass-if-exception "one arg" exception:wrong-num-args
+    (member 1))
+
+  (pass-if "1 (1 2 3)"
+    (let ((lst '(1 2 3)))
+      (eq? lst (member 1 lst))))
+
+  (pass-if "2 (1 2 3)"
+    (let ((lst '(1 2 3)))
+      (eq? (cdr lst) (member 2 lst))))
+
+  (pass-if "3 (1 2 3)"
+    (let ((lst '(1 2 3)))
+      (eq? (cddr lst) (member 3 lst))))
+
+  (pass-if "4 (1 2 3)"
+    (let ((lst '(1 2 3)))
+      (eq? #f (member 4 lst))))
+
+  (pass-if "called arg order"
+    (let ((good #f))
+      (member 1 '(2) (lambda (x y)
+		       (set! good (and (eqv? 1 x)
+				       (eqv? 2 y)))))
+      good)))
+
+;;
 ;; take
 ;;
 
