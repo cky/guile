@@ -140,17 +140,17 @@ SCM (*scm_memoize_method) (SCM, SCM);
  */
 
 #define SCM_CEVAL scm_ceval
-#define SIDEVAL(x, env) if (SCM_NIMP(x)) SCM_CEVAL((x), (env))
+#define SIDEVAL(x, env) if (SCM_NIMP (x)) SCM_CEVAL((x), (env))
 
-#define EVALCELLCAR(x, env) (SCM_SYMBOLP (SCM_CAR(x)) \
-			     ? *scm_lookupcar(x, env, 1) \
-			     : SCM_CEVAL(SCM_CAR(x), env))
+#define EVALCELLCAR(x, env) (SCM_SYMBOLP (SCM_CAR (x)) \
+			     ? *scm_lookupcar (x, env, 1) \
+			     : SCM_CEVAL (SCM_CAR (x), env))
 
-#define EVALCAR(x, env) (SCM_NCELLP(SCM_CAR(x))\
-			? (SCM_IMP(SCM_CAR(x)) \
-			   ? SCM_EVALIM(SCM_CAR(x), env) \
-			   : SCM_GLOC_VAL(SCM_CAR(x))) \
-			: EVALCELLCAR(x, env))
+#define EVALCAR(x, env) (SCM_NCELLP (SCM_CAR (x)) \
+			? (SCM_IMP (SCM_CAR (x)) \
+			   ? SCM_EVALIM (SCM_CAR (x), env) \
+			   : SCM_GLOC_VAL (SCM_CAR (x))) \
+			: EVALCELLCAR (x, env))
 
 #define EXTEND_ENV SCM_EXTEND_ENV
 
@@ -2337,12 +2337,7 @@ dispatch:
 	case (SCM_ISYMNUM (SCM_IM_SLOT_REF)):
 	  x = SCM_CDR (x);
 	  t.arg1 = EVALCAR (x, env);
-	  proc = SCM_STRUCT_DATA (t.arg1)[SCM_INUM (SCM_CADR (x))];
-	  if (proc == SCM_UNBOUND)
-	    scm_misc_error (NULL,
-			    "Unbound slot in object %S",
-			    SCM_LIST1 (t.arg1));
-	  RETURN (proc)
+	  RETURN (SCM_STRUCT_DATA (t.arg1)[SCM_INUM (SCM_CADR (x))])
 	  
 	case (SCM_ISYMNUM (SCM_IM_SLOT_SET_X)):
 	  x = SCM_CDR (x);
