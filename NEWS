@@ -77,7 +77,7 @@ the last imported binding of a certain name), write:
 If you want the old behavior without changing your module headers, put
 the line:
 
-  (default-module-duplicates-handler 'last)
+  (default-duplicate-binding-handler 'last)
 
 in your .guile init file.
 
@@ -97,6 +97,9 @@ Currently available duplicates handlers are:
   warn-override-core issue a warning for imports which override core bindings
   first		     select the first encountered binding (override)
   last		     select the last encountered binding (override)
+
+These two are provided by the (oop goops) module:
+  
   merge-generics     merge generic functions with a common name
 		     into an <extended-generic>
   merge-accessors    merge accessors with a common name
