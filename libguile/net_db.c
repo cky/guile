@@ -78,7 +78,13 @@ int close ();
 #endif /* STDC_HEADERS */
 
 #ifndef HAVE_INET_ATON
+/* for our definition in inet_aton.c, not usually needed.  */
 extern int inet_aton ();
+#endif
+
+#ifndef HAVE_H_ERRNO
+/* h_errno not found in netdb.h, maybe this will help.  */
+extern int h_errno;
 #endif
 
 SCM_DEFINE (scm_inet_aton, "inet-aton", 1, 0, 0, 

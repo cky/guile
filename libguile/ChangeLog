@@ -1,3 +1,8 @@
+2001-03-18  Gary Houston  <ghouston@arglist.com>
+
+	* net_db.c: declare h_errno if configure didn't define HAVE_H_ERRNO.
+	normally it would be found in netdb.h.
+
 2001-03-17  Gary Houston  <ghouston@arglist.com>
 
 	* sort.c (scm_sort): move sortvec variable to avoid a compiler
