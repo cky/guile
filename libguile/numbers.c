@@ -4074,7 +4074,8 @@ SCM_DEFINE (scm_inexact_to_exact, "inexact->exact", 1, 0, 0,
 #endif
 #ifndef PTRDIFF_MIN
 #define PTRDIFF_MIN \
- ((scm_t_ptrdiff) ((scm_t_ptrdiff) 1 << (sizeof (scm_t_ptrdiff) * 8 - 1)))
+ ((scm_t_ptrdiff) ((scm_t_ptrdiff) 1 \
+  << ((sizeof (scm_t_ptrdiff) * SCM_CHAR_BIT) - 1)))
 #endif
 #ifndef PTRDIFF_MAX
 #define PTRDIFF_MAX (~ PTRDIFF_MIN)
