@@ -1,3 +1,16 @@
+2002-09-05  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* syncase.scm: Set the module transformer of the-syncase-module so
+	that we can use define-syntax.
+	(define-syntax-public): New and exported.
+
+2002-09-04  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* syncase.scm (expansion-eval-closure, env->eval-closure): New.
+	(sc-macro): Set the expansion-eval-closure expanding the form.
+	(putprop, getprop): Use the expansion-eval-closure to find
+	variables instead of the current module.
+
 2002-07-08  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* slib.scm (make-exchanger): Added.  Thanks to Clinton Ebadi!
