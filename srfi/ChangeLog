@@ -1,3 +1,8 @@
+2002-01-21  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* srfi-1.scm (count1, take-while): Rewrite to be tail-recursive.
+	Thanks to Panagiotis Vossos.
+
 2002-01-20  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* srfi-1.scm (map1): Rewrite to be tail-recursive.
