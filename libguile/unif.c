@@ -178,7 +178,7 @@ scm_i_get_old_prototype (SCM uvec)
   else if (scm_is_vector (uvec))
     return SCM_EOL;
   else
-    return SCM_UNSPECIFIED;
+    scm_misc_error (NULL, "~a has no prototype", scm_list_1 (uvec));
 }
 
 #endif
@@ -561,9 +561,9 @@ SCM_DEFINE (scm_make_shared_array, "make-shared-array", 2, 0, 1,
       if (s[k].ubnd < s[k].lbnd)
 	{
 	  if (1 == SCM_ARRAY_NDIM (ra))
-	    ra = scm_make_uve (0L, scm_array_prototype (ra));
+	    ra = scm_make_uve (0L, scm_array_creator (ra));
 	  else
-	    SCM_ARRAY_V (ra) = scm_make_uve (0L, scm_array_prototype (ra));
+	    SCM_ARRAY_V (ra) = scm_make_uve (0L, scm_array_creator (ra));
 	  return ra;
 	}
     }
@@ -621,7 +621,7 @@ SCM_DEFINE (scm_make_shared_array, "make-shared-array", 2, 0, 1,
       if (1 == s->inc && 0 == s->lbnd && length == 1 + s->ubnd)
 	return v;
       if (s->ubnd < s->lbnd)
-	return scm_make_uve (0L, scm_array_prototype (ra));
+	return scm_make_uve (0L, scm_array_creator (ra));
     }
   scm_ra_set_contp (ra);
   return ra;
@@ -1114,7 +1114,7 @@ scm_ra2contig (SCM ra, int copy)
       SCM_ARRAY_DIMS (ret)[k].inc = inc;
       inc *= SCM_ARRAY_DIMS (ra)[k].ubnd - SCM_ARRAY_DIMS (ra)[k].lbnd + 1;
     }
-  SCM_ARRAY_V (ret) = scm_make_uve (inc, scm_array_prototype (ra));
+  SCM_ARRAY_V (ret) = scm_make_uve (inc, scm_array_creator (ra));
   if (copy)
     scm_array_copy_x (ra, ret);
   return ret;
@@ -1123,7 +1123,7 @@ scm_ra2contig (SCM ra, int copy)
 
 
 SCM_DEFINE (scm_uniform_array_read_x, "uniform-array-read!", 1, 3, 0,
-           (SCM ra, SCM port_or_fd, SCM start, SCM end),
+           (SCM ura, SCM port_or_fd, SCM start, SCM end),
 	    "@deffnx {Scheme Procedure} uniform-vector-read! uve [port-or-fdes] [start] [end]\n"
 	    "Attempt to read all elements of @var{ura}, in lexicographic order, as\n"
 	    "binary objects from @var{port-or-fdes}.\n"
@@ -1139,157 +1139,47 @@ SCM_DEFINE (scm_uniform_array_read_x, "uniform-array-read!", 1, 3, 0,
 	    "returned by @code{(current-input-port)}.")
 #define FUNC_NAME s_scm_uniform_array_read_x
 {
-  SCM cra = SCM_UNDEFINED, v = ra;
-  long sz, ans;
-  long cstart = 0;
-  long cend;
-  long offset = 0;
-  size_t vlen;
-  char *base;
-
   if (SCM_UNBNDP (port_or_fd))
     port_or_fd = scm_cur_inp;
-  else
-    SCM_ASSERT (scm_is_integer (port_or_fd)
-		|| (SCM_OPINPORTP (port_or_fd)),
-		port_or_fd, SCM_ARG2, FUNC_NAME);
-  vlen = (SCM_ARRAYP (v) ?
-	  0 : scm_c_generalized_vector_length (v));
 
-  scm_frame_begin (0);
-
-loop:
-  if (scm_is_uniform_vector (v))
+  if (scm_is_uniform_vector (ura))
     {
-      base = scm_uniform_vector_elements (v);
-      sz = scm_uniform_vector_element_size (v);
-      scm_frame_uniform_vector_release (v);
+      return scm_uniform_vector_read_x (ura, port_or_fd, start, end);
     }
-  else if (scm_is_bitvector (v))
+  else if (SCM_ARRAYP (ura))
     {
-      base = (char *) scm_bitvector_elements (v);
-      scm_frame_bitvector_release (v);
-      vlen = (vlen + 31) / 32;
-      cstart /= 32;
-      sz = sizeof (scm_t_uint32);
-    }
-  else if (scm_is_string (v))
-    {
-      base = NULL;  /* writing to strings is special, see below. */
-      sz = sizeof (char);
-    }
-  else if (SCM_ARRAYP (v))
-    {
-      cra = scm_ra2contig (ra, 0);
-      cstart += SCM_ARRAY_BASE (cra);
+      size_t base, vlen, cstart, cend;
+      SCM cra, ans;
+      
+      cra = scm_ra2contig (ura, 0);
+      base = SCM_ARRAY_BASE (cra);
       vlen = SCM_ARRAY_DIMS (cra)->inc *
 	(SCM_ARRAY_DIMS (cra)->ubnd - SCM_ARRAY_DIMS (cra)->lbnd + 1);
-      v = SCM_ARRAY_V (cra);
-      goto loop;
+
+      cstart = 0;
+      cend = vlen;
+      if (!SCM_UNBNDP (start))
+	{
+	  cstart = scm_to_unsigned_integer (start, 0, vlen);
+	  if (!SCM_UNBNDP (end))
+	    cend = scm_to_unsigned_integer (end, cstart, vlen);
+	}
+
+      ans = scm_uniform_vector_read_x (SCM_ARRAY_V (cra), port_or_fd,
+				       scm_from_size_t (base + cstart),
+				       scm_from_size_t (base + cend));
+
+      if (!scm_is_eq (cra, ura))
+	scm_array_copy_x (cra, ura);
+      return ans;
     }
   else
-    scm_wrong_type_arg_msg (NULL, 0, v, "array");
-  
-  cend = vlen;
-  if (!SCM_UNBNDP (start))
-    {
-      offset = 
-	SCM_NUM2LONG (3, start);
-
-      if (offset < 0 || offset >= cend)
-	scm_out_of_range (FUNC_NAME, start);
-
-      if (!SCM_UNBNDP (end))
-	{
-	  long tend =
-	    SCM_NUM2LONG (4, end);
-      
-	  if (tend <= offset || tend > cend)
-	    scm_out_of_range (FUNC_NAME, end);
-	  cend = tend;
-	}
-    }
-
-  if (SCM_NIMP (port_or_fd))
-    {
-      scm_t_port *pt = SCM_PTAB_ENTRY (port_or_fd);
-      int remaining = (cend - offset) * sz;
-      size_t off = (cstart + offset) * sz;
-
-      if (pt->rw_active == SCM_PORT_WRITE)
-	scm_flush (port_or_fd);
-
-      ans = cend - offset;
-      while (remaining > 0)
-	{
-	  if (pt->read_pos < pt->read_end)
-	    {
-	      int to_copy = min (pt->read_end - pt->read_pos,
-				 remaining);
-
-	      if (base == NULL)
-		{
-		  /* strings */
-		  char *b = scm_i_string_writable_chars (v);
-		  memcpy (b + off, pt->read_pos, to_copy);
-		  scm_i_string_stop_writing ();
-		}
-	      else
-		memcpy (base + off, pt->read_pos, to_copy);
-	      pt->read_pos += to_copy;
-	      remaining -= to_copy;
-	      off += to_copy;
-	    }
-	  else
-	    {
-	      if (scm_fill_input (port_or_fd) == EOF)
-		{
-		  if (remaining % sz != 0)
-		    {
-		      SCM_MISC_ERROR ("unexpected EOF", SCM_EOL);
-		    }
-		  ans -= remaining / sz;
-		  break;
-		}
-	    }
-	}
-      
-      if (pt->rw_random)
-	pt->rw_active = SCM_PORT_READ;
-    }
-  else /* file descriptor.  */
-    {
-      if (base == NULL)
-	{
-	  /* strings */
-	  char *b = scm_i_string_writable_chars (v);
-	  SCM_SYSCALL (ans = read (scm_to_int (port_or_fd),
-				   b + (cstart + offset) * sz,
-				   (sz * (cend - offset))));
-	  scm_i_string_stop_writing ();
-	}
-      else
-	SCM_SYSCALL (ans = read (scm_to_int (port_or_fd),
-				 base + (cstart + offset) * sz,
-				 (sz * (cend - offset))));
-      if (ans == -1)
-	SCM_SYSERROR;
-    }
-  if (scm_is_bitvector (v))
-    ans *= 32;
-
-  if (!scm_is_eq (v, ra) && !scm_is_eq (cra, ra))
-    scm_array_copy_x (cra, ra);
-
-  scm_frame_end ();
-
-  return scm_from_long (ans);
+    scm_wrong_type_arg_msg (NULL, 0, ura, "array");
 }
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_uniform_array_write, "uniform-array-write", 1, 3, 0,
-           (SCM v, SCM port_or_fd, SCM start, SCM end),
-	    "@deffnx {Scheme Procedure} uniform-vector-write uve [port-or-fdes] [start] [end]\n"
+           (SCM ura, SCM port_or_fd, SCM start, SCM end),
 	    "Writes all elements of @var{ura} as binary objects to\n"
 	    "@var{port-or-fdes}.\n\n"
 	    "The optional arguments @var{start}\n"
@@ -1301,100 +1191,40 @@ SCM_DEFINE (scm_uniform_array_write, "uniform-array-write", 1, 3, 0,
 	    "@code{(current-output-port)}.")
 #define FUNC_NAME s_scm_uniform_array_write
 {
-  long sz, ans;
-  long offset = 0;
-  long cstart = 0;
-  long cend;
-  const char *base;
-  size_t vlen;
-
-  port_or_fd = SCM_COERCE_OUTPORT (port_or_fd);
-
   if (SCM_UNBNDP (port_or_fd))
     port_or_fd = scm_cur_outp;
-  else
-    SCM_ASSERT (scm_is_integer (port_or_fd)
-		|| (SCM_OPOUTPORTP (port_or_fd)),
-		port_or_fd, SCM_ARG2, FUNC_NAME);
-  vlen = (SCM_ARRAYP(v)
-	  ? 0
-	  : scm_c_generalized_vector_length (v));
 
-  scm_frame_begin (0);
-
-loop:
-  if (scm_is_uniform_vector (v))
+  if (scm_is_uniform_vector (ura))
     {
-      base = scm_uniform_vector_elements (v);
-      sz = scm_uniform_vector_element_size (v);
-      scm_frame_uniform_vector_release (v);
+      return scm_uniform_vector_write (ura, port_or_fd, start, end);
     }
-  else if (scm_is_bitvector (v))
+  else if (SCM_ARRAYP (ura))
     {
-      base = (char *) scm_bitvector_elements (v);
-      scm_frame_bitvector_release (v);
-      vlen = (vlen + 31) / 32;
-      cstart /= 32;
-      sz = sizeof (scm_t_uint32);
-    }
-  else if (scm_is_string (v))
-    {
-      base = scm_i_string_chars (v);
-      sz = sizeof (char);
-    }
-  else if (SCM_ARRAYP (v))
-    {
-      v = scm_ra2contig (v, 1);
-      cstart = SCM_ARRAY_BASE (v);
-      vlen = (SCM_ARRAY_DIMS (v)->inc
-	      * (SCM_ARRAY_DIMS (v)->ubnd - SCM_ARRAY_DIMS (v)->lbnd + 1));
-      v = SCM_ARRAY_V (v);
-      goto loop;
-    }
-  else
-    scm_wrong_type_arg_msg (NULL, 0, v, "array");
-  
-  cend = vlen;
-  if (!SCM_UNBNDP (start))
-    {
-      offset = 
-	SCM_NUM2LONG (3, start);
-
-      if (offset < 0 || offset >= cend)
-	scm_out_of_range (FUNC_NAME, start);
-
-      if (!SCM_UNBNDP (end))
-	{
-	  long tend = 
-	    SCM_NUM2LONG (4, end);
+      size_t base, vlen, cstart, cend;
+      SCM cra, ans;
       
-	  if (tend <= offset || tend > cend)
-	    scm_out_of_range (FUNC_NAME, end);
-	  cend = tend;
+      cra = scm_ra2contig (ura, 1);
+      base = SCM_ARRAY_BASE (cra);
+      vlen = SCM_ARRAY_DIMS (cra)->inc *
+	(SCM_ARRAY_DIMS (cra)->ubnd - SCM_ARRAY_DIMS (cra)->lbnd + 1);
+
+      cstart = 0;
+      cend = vlen;
+      if (!SCM_UNBNDP (start))
+	{
+	  cstart = scm_to_unsigned_integer (start, 0, vlen);
+	  if (!SCM_UNBNDP (end))
+	    cend = scm_to_unsigned_integer (end, cstart, vlen);
 	}
+
+      ans = scm_uniform_vector_write (SCM_ARRAY_V (cra), port_or_fd,
+				      scm_from_size_t (base + cstart),
+				      scm_from_size_t (base + cend));
+
+      return ans;
     }
-
-  if (SCM_NIMP (port_or_fd))
-    {
-      const char *source = base + (cstart + offset) * sz;
-
-      ans = cend - offset;
-      scm_lfwrite (source, ans * sz, port_or_fd);
-    }
-  else /* file descriptor.  */
-    {
-      SCM_SYSCALL (ans = write (scm_to_int (port_or_fd),
-				base + (cstart + offset) * sz,
-				(sz * (cend - offset))));
-      if (ans == -1)
-	SCM_SYSERROR;
-    }
-  if (scm_is_bitvector (v))
-    ans *= 32;
-
-  scm_frame_end ();
-
-  return scm_from_long (ans);
+  else
+    scm_wrong_type_arg_msg (NULL, 0, ura, "array");
 }
 #undef FUNC_NAME
 
