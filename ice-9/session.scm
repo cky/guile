@@ -18,8 +18,8 @@
 
 
 (define-module (ice-9 session)
-  :use-module (ice-9 doc)
-  :no-backtrace)
+  :use-module (ice-9 documentation)
+  )
 
 
 
@@ -32,37 +32,77 @@
 Prints useful information.  Try `(help)'."
       (if (not (= (length exp) 2))
 	  (help-usage)
-	  (let* ((sym (cadr exp))
-		 (obj (catch #t
-			     (lambda ()
-			       (local-eval sym env))
-			     (lambda args
-			       #f))))
-	    (cond ;; *fixme*: when we have GOOPS
-	          ;;((or obj (not sym)) (describe obj))
-	          ((and (or obj (not sym))
-			(cond ((procedure? obj)
-			       (display (proc-documentation obj))
-			       (newline)
-			       #t)
-			      ((and (macro? obj) (macro-transformer obj))
-			       (display (proc-documentation (macro-transformer obj)))
-			       (newline))
-			      (else #f))))
-		  ((symbol? sym)
-		   (documentation sym))
+	  (let ((name (cadr exp)))
+	    (cond ((symbol? name)
+		   (help-doc name
+			     (string-append "^"
+					    (symbol->string name)
+					    "$")))
+		  ((string? name)
+		   (help-doc name name))
 		  (else
-		   (display "No documentation for `")
-		   (display sym)
-		   (display "'\n")))
+		   (help-usage)))
 	    *unspecified*)))))
 
+(define (help-doc term regexp)
+  (let ((entries (apropos-fold (lambda (module name object data)
+				 (cons (list module
+					     name
+					     (object-documentation object))
+				       data))
+			       '()
+			       regexp
+			       apropos-fold-exported))
+	(module car)
+	(name cadr)
+	(doc caddr))
+    (if (null? entries)
+	;; no matches
+	(begin
+	  (display "Did not find any object ")
+	  (simple-format #t
+			 (if (symbol? term)
+			     "named `~A'\n"
+			     "matching regexp \"~A\"\n")
+			 term))
+	(let ((first? #t))
+	  (if (or-map doc entries)
+	      ;; entries with documentation
+	      (for-each (lambda (entry)
+			  ;; *fixme*: Use `describe' when we have GOOPS?
+			  (if (doc entry)
+			      (begin
+				(if first?
+				    (set! first? #f)
+				    (newline))
+				(simple-format #t "~S: ~S\n~A\n"
+					       (module-name (module entry))
+					       (name entry)
+					       (doc entry)))))
+			entries))
+	  (if (or-map (lambda (x) (not (doc x))) entries)
+	      ;; entries without documentation
+	      (begin
+		(if (not first?)
+		    (display "\nNo documentation found for:\n"))
+		(for-each (lambda (entry)
+			    (if (not (doc entry))
+				(simple-format #t "~S: ~S\n"
+					       (module-name (module entry))
+					       (name entry))))
+			  entries)))))))
+
 (define (help-usage)
-  (display "Usage: (help NAME) gives documentation about NAME
+  (display "Usage: (help NAME) gives documentation about objects named NAME (a symbol)
+       (help REGEXP) ditto for objects with names matching REGEXP (a string)
        (help) gives this text
+
+`help' searches among bindings exported from loaded modules, while
+`apropos' searches among bindings visible from the \"current\" module.
 
 Examples: (help help)
           (help cons)
+          (help \"output-string\")
 
 Other useful sources of helpful information:
 
@@ -151,35 +191,94 @@ where OPTIONSET is one of debug, read, eval, print
 
 (define-public (apropos-internal rgx)
   "Return a list of accessible variable names."
-  (letrec ((match (make-regexp rgx))
-	   (recorded (make-vector 61 '()))
-	   (obarray-names
-	    (lambda (obarray names)
-	      (hash-fold (lambda (name var vars)
-			   (if (and (regexp-exec match name)
-				    (not (hashq-get-handle recorded name)))
-			       (begin
-				 (hashq-set! recorded name #t)
-				 (cons name vars))
-			       vars))
-			 names
-			 obarray))))
-    (do ((modules (cons (current-module) (module-uses (current-module)))
-		  (cdr modules))
-	 (names '()
-		(if (or (eq? (car modules) the-scm-module)
-			(eq? (car modules) the-root-module))
-		    (obarray-names (builtin-weak-bindings)
-				   (obarray-names (builtin-bindings)
-						  names))
-		    (obarray-names (module-obarray (car modules))
-				   names))))
-	((null? modules) names))))
+  (apropos-fold (lambda (module name var data)
+		  (cons name data))
+		'()
+		rgx
+		(apropos-fold-accessible (current-module))))
 
-(define-public (name obj)
-  (cond ((procedure? obj) (procedure-name obj))
-	((macro? obj) (macro-name obj))
-	(else #f)))
+(define-public (apropos-fold proc init rgx folder)
+  "Folds PROCEDURE over bindings matching third arg REGEXP.
+
+Result is
+
+  (PROCEDURE MODULE1 NAME1 VALUE1
+    (PROCEDURE MODULE2 NAME2 VALUE2
+      ...
+      (PROCEDURE MODULEn NAMEn VALUEn INIT)))
+
+where INIT is the second arg to `apropos-fold'.
+
+Fourth arg FOLDER is one of
+
+  (apropos-fold-accessible MODULE) ;fold over bindings accessible in MODULE
+  apropos-fold-exported		   ;fold over all exported bindings
+  apropos-fold-all		   ;fold over all bindings"
+  (let ((match (make-regexp rgx))
+	(recorded (make-vector 61 '())))
+    (let ((fold-module
+	   (lambda (module data)
+	     (let* ((obarray-filter
+		     (lambda (name val data)
+		       (if (and (regexp-exec match name)
+				(not (hashq-get-handle recorded name)))
+			   (begin
+			     (hashq-set! recorded name #t)
+			     (proc module name val data))
+			   data)))
+		    (module-filter
+		     (lambda (name var data)
+		       (obarray-filter name (variable-ref var) data))))
+	       (cond ((or (eq? module the-scm-module)
+			  (eq? module the-root-module))
+		      (hash-fold obarray-filter
+				 (hash-fold obarray-filter
+					    data
+					    (builtin-bindings))
+				 (builtin-weak-bindings)))
+		     (module (hash-fold module-filter
+					data
+					(module-obarray module)))
+		     (else data))))))
+      (folder fold-module init))))
+
+(define (make-fold-modules init-thunk traverse extract)
+  "Return procedure capable of traversing a forest of modules.
+The forest traversed is the image of the forest generated by root
+modules returned by INIT-THUNK and the generator TRAVERSE.
+It is an image under the mapping EXTRACT."
+  (lambda (fold-module init)
+    (let rec ((data init)
+	      (modules (init-thunk)))
+      (do ((modules modules (cdr modules))
+	   (data data (rec (fold-module (extract (car modules)) data)
+			   (traverse (car modules)))))
+	  ((null? modules) data)))))
+
+(define-public (apropos-fold-accessible module)
+  (make-fold-modules (lambda () (list module))
+		     module-uses
+		     (lambda (x) x)))
+
+(define (root-modules)
+  (cons the-root-module
+	(submodules (nested-ref the-root-module '(app modules)))))
+
+(define (submodules m)
+  (hash-fold (lambda (name var data)
+	       (let ((obj (variable-ref var)))
+		 (if (and (module? obj)
+			  (eq? (module-kind obj) 'directory))
+		     (cons obj data)
+		     data)))
+	     '()
+	     (module-obarray m)))
+
+(define-public apropos-fold-exported
+  (make-fold-modules root-modules submodules module-public-interface))
+
+(define-public apropos-fold-all
+  (make-fold-modules root-modules submodules (lambda (x) x)))
 
 (define-public (source obj)
   (cond ((procedure? obj) (procedure-source obj))
