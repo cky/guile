@@ -88,7 +88,9 @@
 (define (debug-if-flag-set)
   (if *debug-flag*
       (begin
-	(for-each display (reverse! *debug-entry-messages*))
+	(for-each (lambda (msg)
+		    (display msg (debugger-output-port)))
+		  (reverse! *debug-entry-messages*))
 	(set! *debug-entry-messages* '())
 	(debug-stack (make-stack *cont*) #:continuable))))
 
@@ -99,15 +101,16 @@
 (add-hook! after-exit-frame-hook
 	   (lambda ()
 	     (if *trace-retval*
-		 (begin
-		   (let indent ((td *trace-depths*))
-		     (cond ((null? td))
-			   (else (display "|  ")
-				 (indent (cdr td)))))
-		   (display "|  ")
-		   (write *retval*)
-		   (newline)
-		   (set! *trace-retval* #f)))
+		 (with-output-to-port (debugger-output-port)
+		   (lambda ()
+		     (let indent ((td *trace-depths*))
+		       (cond ((null? td))
+			     (else (display "|  ")
+				   (indent (cdr td)))))
+		     (display "|  ")
+		     (write *retval*)
+		     (newline)
+		     (set! *trace-retval* #f))))
 	     (debug-if-flag-set)))
 
 (define (frame-depth frame)
@@ -250,15 +253,17 @@
 		       (else (loop (+ frame-number 1)))))))
 	(if push-current-depth
 	    (set! *trace-depths* (cons *depth* *trace-depths*)))
-	(let indent ((td *trace-depths*))
-	  (cond ((null? td))
-		(else
-		 (display "|  ")
-		 (indent (cdr td)))))
-	((if *expr*
-	     write-frame-short/expression
-	     write-frame-short/application) *frame*)
-	(newline)
+	(with-output-to-port (debugger-output-port)
+	  (lambda ()
+	    (let indent ((td *trace-depths*))
+	      (cond ((null? td))
+		    (else
+		     (display "|  ")
+		     (indent (cdr td)))))
+	    ((if *expr*
+		 write-frame-short/expression
+		 write-frame-short/application) *frame*)
+	    (newline)))
 	(if push-current-depth
 	    (at-exit (lambda ()
 		       (set! *trace-depths* (cdr *trace-depths*))

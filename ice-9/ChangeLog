@@ -1,3 +1,22 @@
+2003-09-25  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* debugger/ui-client.scm, debugger/ui-server.scm: New (work in
+	progress on new debugging front end).
+
+2003-09-24  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* debugger.scm (default-default-lazy-handler, debug-on-error):
+	New.
+
+	* debugger/behaviour.scm (debug-if-flag-set): Display debug entry
+	messages through (debugger-output-port).
+	(after-exit-frame-hook): Trace through (debugger-output-port).
+	(trace-here): Trace through (debugger-output-port).
+
+	* debugger/commands.scm (evaluate): If supplied expression is a
+	string, read from it before evaluating.
+	(evaluate): Change output format to "EXPR => VALUE".
+
 2003-09-19  Kevin Ryde  <user42@zip.com.au>
 
 	* popen.scm (open-process): Correction to previous fdes closing

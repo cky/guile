@@ -19,6 +19,7 @@
 (define-module (ice-9 debugger)
   #:use-module (ice-9 debugger command-loop)
   #:use-module (ice-9 debugger state)
+  #:use-module (ice-9 debugger ui-client)
   #:use-module (ice-9 debugger utils)
   #:use-module (ice-9 format)
   #:export (debug-stack
@@ -27,7 +28,8 @@
 	    debugger-error
 	    debugger-quit
 	    debugger-input-port
-	    debugger-output-port)
+	    debugger-output-port
+	    debug-on-error)
   #:no-backtrace)
 
 ;;; The old (ice-9 debugger) has been factored into its constituent
@@ -119,7 +121,9 @@ Indicates that the debugger should display an introductory message.
 			(display "There is 1 frame on the stack.\n\n")
 			(format #t "There are ~A frames on the stack.\n\n" ssize))))
 	      (write-state-short state)
-	      (debugger-command-loop state))))))))
+	      (if (ui-connected?)
+		  (ui-command-loop state)
+		  (debugger-command-loop state)))))))))
 
 (define (debug)
   "Invoke the Guile debugger to explore the context of the last error."
@@ -151,5 +155,21 @@ Indicates that the debugger should display an introductory message.
     (make-procedure-with-setter
      (lambda () output-port)
      (lambda (port) (set! output-port port)))))
+
+;;; {Debug on Error}
+
+(define default-default-lazy-handler default-lazy-handler)
+
+(define (debug-on-error syms)
+  "Enable or disable debug on error."
+  (set! default-lazy-handler
+	(if syms
+	    (lambda (key . args)
+	      (or (memq key syms)
+		  (debug-stack (make-stack #t lazy-handler-dispatch)
+			       #:with-introduction
+			       #:continuable))
+	      (apply default-default-lazy-handler key args))
+	    default-default-lazy-handler)))
 
 ;;; (ice-9 debugger) ends here.

@@ -84,9 +84,22 @@ however it may be continued over multiple lines."
 	       (lambda ()
 		 (lazy-catch #t
 			     (lambda ()
-			       (let* ((env (memoized-environment source))
-				      (value (local-eval expression env)))
-				 (display ";value: ")
+			       (let* ((expr
+				       ;; We assume that no one will
+				       ;; really want to evaluate a
+				       ;; string (since it is
+				       ;; self-evaluating); so if we
+				       ;; have a string here, read the
+				       ;; expression to evaluate from
+				       ;; it.
+				       (if (string? expression)
+					   (with-input-from-string expression
+								   read)
+					   expression))
+				      (env (memoized-environment source))
+				      (value (local-eval expr env)))
+				 (write expr)
+				 (display " => ")
 				 (write value)
 				 (newline)))
 			     eval-handler))
