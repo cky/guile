@@ -276,12 +276,14 @@ do {						\
 
 #define NEW_FRAME()				\
 {						\
-  sp[1] = SCM_VM_MAKE_BYTE_ADDRESS (ip);	\
-  sp[2] = SCM_VM_MAKE_STACK_ADDRESS (fp);	\
+  SCM ra = SCM_VM_MAKE_BYTE_ADDRESS (ip);	\
+  SCM dl = SCM_VM_MAKE_STACK_ADDRESS (fp);	\
   ip = bp->base;				\
   fp = sp - bp->nargs + 1;			\
-  sp = sp + 2;					\
+  sp = sp + bp->nlocs + 2;			\
   CHECK_OVERFLOW ();				\
+  sp[0]  = dl;					\
+  sp[-1] = ra;					\
 }
 
 #define FREE_FRAME()				\

@@ -301,11 +301,9 @@ Generate compiled code.
   -O    Enable optimization
   -D    Add debug information"
   (let ((x (apply repl-compile repl form opts)))
-    (cond ((null? opts)
-	   (disassemble-bootcode x))
-	  ((memq :c opts)
-	   (pprint-glil x))
-	  (else (puts x)))))
+    (cond ((or (memq :e opts) (memq :t opts)) (puts x))
+	  ((memq :c opts) (pprint-glil x))
+	  (else (disassemble-bootcode x)))))
 
 (define (compile-file repl file . opts)
   "compile-file [options] FILE
