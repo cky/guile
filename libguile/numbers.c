@@ -3852,8 +3852,15 @@ SCM_DEFINE (scm_make_polar, "make-polar", 2, 0, 0,
 #define FUNC_NAME s_scm_make_polar
 {
   struct dpair xy;
+  double s, c;
   scm_two_doubles (x, y, FUNC_NAME, &xy);
-  return scm_make_complex (xy.x * cos (xy.y), xy.x * sin (xy.y));
+#if HAVE_SINCOS
+  sincos (xy.y, &s, &c);
+#else
+  s = sin (xy.y);
+  c = cos (xy.y);
+#endif
+  return scm_make_complex (xy.x * c, xy.x * s);
 }
 #undef FUNC_NAME
 
@@ -3925,9 +3932,7 @@ scm_magnitude (SCM z)
   } else if (SCM_REALP (z)) {
     return scm_make_real (fabs (SCM_REAL_VALUE (z)));
   } else if (SCM_COMPLEXP (z)) {
-    double r = SCM_COMPLEX_REAL (z);
-    double i = SCM_COMPLEX_IMAG (z);
-    return scm_make_real (sqrt (i * i + r * r));
+    return scm_make_real (hypot (SCM_COMPLEX_REAL (z), SCM_COMPLEX_IMAG (z)));
   } else {
     SCM_WTA_DISPATCH_1 (g_magnitude, z, SCM_ARG1, s_magnitude);
   }
