@@ -353,6 +353,42 @@
 # define SCM_CHAR_CODE_LIMIT 256L
 #endif
 
+#define SCM_I_UTYPE_MAX(type)      ((type)-1)
+#define SCM_I_TYPE_MAX(type,umax)  ((type)((umax)/2))
+#define SCM_I_TYPE_MIN(type,umax)  (-((type)((umax)/2))-1)
+
+#define SCM_T_UINT8_MAX   SCM_I_UTYPE_MAX(scm_t_uint8)
+#define SCM_T_INT8_MIN    SCM_I_TYPE_MIN(scm_t_int8,SCM_T_UINT8_MAX)
+#define SCM_T_INT8_MAX    SCM_I_TYPE_MAX(scm_t_int8,SCM_T_UINT8_MAX)
+
+#define SCM_T_UINT16_MAX  SCM_I_UTYPE_MAX(scm_t_uint16)
+#define SCM_T_INT16_MIN   SCM_I_TYPE_MIN(scm_t_int16,SCM_T_UINT16_MAX)
+#define SCM_T_INT16_MAX   SCM_I_TYPE_MAX(scm_t_int16,SCM_T_UINT16_MAX)
+
+#define SCM_T_UINT32_MAX  SCM_I_UTYPE_MAX(scm_t_uint32)
+#define SCM_T_INT32_MIN   SCM_I_TYPE_MIN(scm_t_int32,SCM_T_UINT32_MAX)
+#define SCM_T_INT32_MAX   SCM_I_TYPE_MAX(scm_t_int32,SCM_T_UINT32_MAX)
+
+#if SCM_HAVE_T_INT64
+#define SCM_T_UINT64_MAX  SCM_I_UTYPE_MAX(scm_t_uint64)
+#define SCM_T_INT64_MIN   SCM_I_TYPE_MIN(scm_t_int64,SCM_T_UINT64_MAX)
+#define SCM_T_INT64_MAX   SCM_I_TYPE_MAX(scm_t_int64,SCM_T_UINT64_MAX)
+#endif
+
+#if SCM_SIZEOF_LONG_LONG
+#define SCM_I_ULLONG_MAX  SCM_I_UTYPE_MAX(unsigned long long)
+#define SCM_I_LLONG_MIN   SCM_I_TYPE_MIN(long long,SCM_I_ULLONG_MAX)
+#define SCM_I_LLONG_MAX   SCM_I_TYPE_MAX(long long,SCM_I_ULLONG_MAX)
+#endif
+
+#define SCM_T_UINTMAX_MAX SCM_I_UTYPE_MAX(scm_t_uintmax)
+#define SCM_T_INTMAX_MIN  SCM_I_TYPE_MIN(scm_t_intmax,SCM_T_UINTMAX_MAX)
+#define SCM_T_INTMAX_MAX  SCM_I_TYPE_MAX(scm_t_intmax,SCM_T_UINTMAX_MAX)
+
+#define SCM_I_SIZE_MAX    SCM_I_UTYPE_MAX(size_t)
+#define SCM_I_SSIZE_MIN   SCM_I_TYPE_MIN(ssize_t,SCM_I_SIZE_MAX)
+#define SCM_I_SSIZE_MAX   SCM_I_TYPE_MAX(ssize_t,SCM_I_SIZE_MAX)
+
 
 
 #include "libguile/tags.h"

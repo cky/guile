@@ -277,19 +277,6 @@ main (int argc, char *argv[])
   pf ("#define SCM_SIZEOF_LONG_LONG %d\n", SIZEOF_LONG_LONG);
   pf ("#define SCM_SIZEOF_UNSIGNED_LONG_LONG %d\n", SIZEOF_UNSIGNED_LONG_LONG);
 
-  if (SIZEOF_LONG_LONG != 0)
-    {
-      pf ("\n");
-      pf ("/* The limits of long long are not readily available without\n");
-      pf ("   defining _GNU_SOURCE (which we can't do in a header) or\n");
-      pf ("   being on a C99 system (which we can't rely on yet).  Thus,\n");
-      pf ("   we define the limits on our own, assuming twos-complement.\n");
-      pf ("*/\n");
-      pf ("#define SCM_I_LLONG_MAX   ((long long) (SCM_I_ULLONG_MAX >> 1))\n");
-      pf ("#define SCM_I_LLONG_MIN   (~SCM_I_LLONG_MAX)\n");
-      pf ("#define SCM_I_ULLONG_MAX  ((unsigned long long) (-1))\n");
-    }
-
   pf("\n");
   pf("/* handling for the deprecated long_long and ulong_long types */\n");  
   pf("/* If anything suitable is available, it'll be defined here.  */\n");  
@@ -316,16 +303,6 @@ main (int argc, char *argv[])
   pf ("typedef %s scm_t_intmax;\n", SCM_I_GSC_T_INTMAX);
   pf ("typedef %s scm_t_uintmax;\n", SCM_I_GSC_T_UINTMAX);
 
-  pf ("#define SCM_T_INT8_MIN   %s_MIN\n", SCM_I_GSC_T_INT8_LIMITS);
-  pf ("#define SCM_T_INT8_MAX   %s_MAX\n", SCM_I_GSC_T_INT8_LIMITS);
-  pf ("#define SCM_T_UINT8_MAX  %s_MAX\n", SCM_I_GSC_T_UINT8_LIMITS);
-  pf ("#define SCM_T_INT16_MIN  %s_MIN\n", SCM_I_GSC_T_INT16_LIMITS);
-  pf ("#define SCM_T_INT16_MAX  %s_MAX\n", SCM_I_GSC_T_INT16_LIMITS);
-  pf ("#define SCM_T_UINT16_MAX %s_MAX\n", SCM_I_GSC_T_UINT16_LIMITS);
-  pf ("#define SCM_T_INT32_MIN  %s_MIN\n", SCM_I_GSC_T_INT32_LIMITS);
-  pf ("#define SCM_T_INT32_MAX  %s_MAX\n", SCM_I_GSC_T_INT32_LIMITS);
-  pf ("#define SCM_T_UINT32_MAX %s_MAX\n", SCM_I_GSC_T_UINT32_LIMITS);
-
   pf ("\n");
   pf ("/* 64-bit integer -- if available SCM_HAVE_T_INT64 will be 1 and\n"
       "   scm_t_int64 will be a suitable type, otherwise SCM_HAVE_T_INT64\n"
@@ -334,8 +311,6 @@ main (int argc, char *argv[])
   {
     pf ("#define SCM_HAVE_T_INT64 1 /* 0 or 1 */\n");
     pf ("typedef %s scm_t_int64;\n", SCM_I_GSC_T_INT64);
-    pf ("#define SCM_T_INT64_MIN   %s_MIN\n", SCM_I_GSC_T_INT64_LIMITS);
-    pf ("#define SCM_T_INT64_MAX   %s_MAX\n", SCM_I_GSC_T_INT64_LIMITS);
   }
   else
     pf ("#define SCM_HAVE_T_INT64 0 /* 0 or 1 */\n");
@@ -348,14 +323,9 @@ main (int argc, char *argv[])
   {
     pf ("#define SCM_HAVE_T_UINT64 1 /* 0 or 1 */\n");
     pf ("typedef %s scm_t_uint64;\n", SCM_I_GSC_T_UINT64);
-    pf ("#define SCM_T_UINT64_MAX %s_MAX\n", SCM_I_GSC_T_UINT64_LIMITS);
   }
   else
     pf ("#define SCM_HAVE_T_UINT64 0 /* 0 or 1 */\n");
-
-  pf ("#define SCM_T_INTMAX_MIN  %s_MIN\n", SCM_I_GSC_T_INTMAX_LIMITS);
-  pf ("#define SCM_T_INTMAX_MAX  %s_MAX\n", SCM_I_GSC_T_INTMAX_LIMITS);
-  pf ("#define SCM_T_UINTMAX_MAX %s_MAX\n", SCM_I_GSC_T_UINTMAX_LIMITS);
 
   pf ("\n");
   pf ("/* scm_t_ptrdiff_t and size, always defined -- defined to long if\n"
