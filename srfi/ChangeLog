@@ -1,3 +1,8 @@
+2002-01-20  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* srfi-1.scm (map1): Rewrite to be tail-recursive.
+	Thanks to Panagiotis Vossos for the bug report.
+
 2001-12-16  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* srfi-11.scm (let-values): Use `gensym' instead of `gentemp'.
