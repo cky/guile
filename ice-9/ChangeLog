@@ -1,3 +1,8 @@
+1997-12-24  Tim Pierce  <twp@skepsis.com>
+
+	* slib.scm (identity): Made public.
+	(home-vicinity): New function (from SLIB/Template.scm).
+
 1997-12-13  Tim Pierce  <twp@skepsis.com>
 
 *	* boot-9.scm (read-line): Rewritten to call %read-line for

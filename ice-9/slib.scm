@@ -148,13 +148,19 @@
   (string-append slib-parent-dir "/"))
 (define (library-vicinity)
   (string-append (implementation-vicinity) "slib/"))
+(define home-vicinity
+  (let ((home-path (getenv "HOME")))
+    (lambda () home-path)))
 (define (scheme-implementation-type) 'guile)
 (define (scheme-implementation-version) "")
 
 (define (output-port-width . arg) 80)
 (define (output-port-height . arg) 24)
 
-(define (identity x) x)
+;; `require' will not work unless identity is exported.  It's not clear
+;; why this is so, but doesn't seem worth deep investigation until
+;; the module system settles down.
+(define-public (identity x) x)
 
 ;;; {Time}
 ;;;
