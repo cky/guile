@@ -1,5 +1,34 @@
 2000-07-13  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* gc.h (scm_take_stdin):  Removed.
+
+	* gc.h (SCM_VALIDATE_CELL):  Delegate cell checks to function
+	scm_assert_cell_valid to allow extensions to the checking
+	functionality without need to recompile everything.
+
+	* gc.[ch] (scm_assert_cell_valid, scm_set_debug_cell_accesses_x):
+	Added as conditionally compiled functions for the case that
+	SCM_DEBUG_CELL_ACCESSES is enabled.
+
+	* gc.c (debug_cells_p):  Added to indicate whether compile-time
+	included cell access debugging is run-time enabled.
+
+	* gc.[ch] (scm_gc_running_p):  Added to indicate that scm_igc is
+	being executed.  Intended to be used instead of scm_gc_heap_lock
+	at most places.
+
+	* error.c (scm_error), gdbint.c (SCM_GC_P):  Use scm_gc_running_p
+	instead of scm_gc_heap_lock.
+
+	* gc.c (scm_igc):  Set scm_gc_running_p to true while running.
+
+	* gc.c (scm_mark_locations):  Don't mark free cells.
+
+	* weaks.c (scm_scan_weak_vectors):  Use SCM_FREE_CELL_P instead of
+	SCM_FREEP.
+
+2000-07-13  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* gc.c (scm_mark_locations):  Minimized some variable scopes and
 	simplified the code a bit.
 

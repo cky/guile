@@ -85,11 +85,10 @@ typedef scm_cell * SCM_CELLPTR;
 /* Low level cell data accessing macros:
  */
 
-#if SCM_DEBUG_CELL_ACCESSES == 1
-#define SCM_VALIDATE_CELL(cell, expr) \
-  (!scm_cellp (cell) ? abort (), 0 : (expr))
+#if (SCM_DEBUG_CELL_ACCESSES == 1)
+#  define SCM_VALIDATE_CELL(cell, expr) (scm_assert_cell_valid (cell), (expr))
 #else
-#define SCM_VALIDATE_CELL(cell, expr) expr
+#  define SCM_VALIDATE_CELL(cell, expr) expr
 #endif
 
 #define SCM_CELL_WORD(x, n) \
@@ -213,9 +212,9 @@ typedef scm_cell * SCM_CELLPTR;
 
 extern struct scm_heap_seg_data_t *scm_heap_table;
 extern int scm_n_heap_segs;
-extern int scm_take_stdin;
 extern int scm_block_gc;
 extern int scm_gc_heap_lock;
+extern unsigned int scm_gc_running_p;
 
 
 extern int scm_default_init_heap_size_1;
@@ -245,6 +244,12 @@ extern scm_c_hook_t scm_before_mark_c_hook;
 extern scm_c_hook_t scm_before_sweep_c_hook;
 extern scm_c_hook_t scm_after_sweep_c_hook;
 extern scm_c_hook_t scm_after_gc_c_hook;
+
+#if (SCM_DEBUG_CELL_ACCESSES == 1)
+extern void scm_assert_cell_valid (SCM);
+extern unsigned int scm_debug_cell_accesses_p;
+extern SCM scm_set_debug_cell_accesses_x (SCM flag);
+#endif
 
 #if defined (GUILE_DEBUG) || defined (GUILE_DEBUG_FREELIST)
 extern SCM scm_map_free_list (void);

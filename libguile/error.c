@@ -74,7 +74,7 @@ void
 scm_error (SCM key, const char *subr, const char *message, SCM args, SCM rest)
 {
   SCM arg_list;
-  if (scm_gc_heap_lock)
+  if (scm_gc_running_p)
     {
       /* The error occured during GC --- abort */
       fprintf (stderr, "Error in %s during GC: %s\n",

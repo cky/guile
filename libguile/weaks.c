@@ -264,7 +264,7 @@ scm_scan_weak_vectors (void *dummy1, void *dummy2, void *dummy3)
 	  ptr = SCM_VELTS (w);
 	  n = SCM_LENGTH (w);
 	  for (j = 0; j < n; ++j)
-	    if (SCM_FREEP (ptr[j]))
+	    if (SCM_FREE_CELL_P (ptr[j]))
 	      ptr[j] = SCM_BOOL_F;
 	}
       else /* if (SCM_IS_WHVEC_ANY (scm_weak_vectors[i])) */
@@ -296,8 +296,8 @@ scm_scan_weak_vectors (void *dummy1, void *dummy2, void *dummy3)
 
 		  key = SCM_CAAR (alist);
 		  value = SCM_CDAR (alist);
-		  if (   (weak_keys && SCM_FREEP (key))
-			 || (weak_values && SCM_FREEP (value)))
+		  if (   (weak_keys && SCM_FREE_CELL_P (key))
+			 || (weak_values && SCM_FREE_CELL_P (value)))
 		    {
 		      *fixup = SCM_CDR (alist);
 		    }

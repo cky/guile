@@ -85,6 +85,78 @@
 #endif
 
 
+
+unsigned int scm_gc_running_p = 0;
+
+
+
+#if (SCM_DEBUG_CELL_ACCESSES == 1)
+
+unsigned int scm_debug_cell_accesses_p = 0;
+
+
+/* Assert that the given object is a valid reference to a valid cell.  This
+ * test involves to determine whether the object is a cell pointer, whether
+ * this pointer actually points into a heap segment and whether the cell
+ * pointed to is not a free cell.
+ */
+void
+scm_assert_cell_valid (SCM cell)
+{
+  if (scm_debug_cell_accesses_p)
+    {
+      scm_debug_cell_accesses_p = 0;  /* disable to avoid recursion */
+
+      if (!scm_cellp (cell)) 
+	{
+	  fprintf (stderr, "scm_assert_cell_valid: Not a cell object: %lx\n", SCM_UNPACK (cell));
+	  abort ();
+	}
+      else if (!scm_gc_running_p)
+	{
+	  /* Dirk::FIXME:: During garbage collection there occur references to
+	     free cells.  This is allright during conservative marking, but
+	     should not happen otherwise (I think).  The case of free cells
+	     accessed during conservative marking is handled in function
+	     scm_mark_locations.  However, there still occur accesses to free
+	     cells during gc.  I don't understand why this happens.  If it is
+	     a bug and gets fixed, the following test should also work while
+	     gc is running.
+	   */
+	  if (SCM_FREE_CELL_P (cell))
+	    {
+	      fprintf (stderr, "scm_assert_cell_valid: Accessing free cell: %lx\n", SCM_UNPACK (cell));
+	      abort ();
+	    }
+	}
+      scm_debug_cell_accesses_p = 1;  /* re-enable */
+    }
+}
+
+
+SCM_DEFINE (scm_set_debug_cell_accesses_x, "set-debug-cell-accesses!", 1, 0, 0,
+	    (SCM flag),
+	    "If FLAG is #f, cell access checking is disabled.\n"
+	    "If FLAG is #t, cell access checking is enabled.\n"
+	    "This procedure only exists because the compile-time flag\n"
+	    "SCM_DEBUG_CELL_ACCESSES was set to 1.\n")
+#define FUNC_NAME s_scm_set_debug_cell_accesses_x
+{
+  if (SCM_FALSEP (flag)) {
+    scm_debug_cell_accesses_p = 0;
+  } else if (SCM_EQ_P (flag, SCM_BOOL_T)) {
+    scm_debug_cell_accesses_p = 1;
+  } else {
+    SCM_WRONG_TYPE_ARG (1, flag);
+  }
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+
+#endif  /* SCM_DEBUG_CELL_ACCESSES == 1 */
+
+
+
 /* {heap tuning parameters}
  *
  * These are parameters for controlling memory allocation.  The heap
@@ -776,6 +848,7 @@ scm_igc (const char *what)
 {
   int j;
 
+  ++scm_gc_running_p;
   scm_c_hook_run (&scm_before_gc_c_hook, 0);
 #ifdef DEBUGINFO
   fprintf (stderr,
@@ -795,6 +868,7 @@ scm_igc (const char *what)
   if (!scm_stack_base || scm_block_gc)
     {
       scm_gc_end ();
+      --scm_gc_running_p;
       return;
     }
 
@@ -894,6 +968,7 @@ scm_igc (const char *what)
   SCM_THREAD_CRITICAL_SECTION_END;
 #endif
   scm_c_hook_run (&scm_after_gc_c_hook, 0);
+  --scm_gc_running_p;
 }
 
 
@@ -1261,7 +1336,10 @@ scm_mark_locations (SCM_STACKITEM x[], scm_sizet n)
 		    }
 		  if (scm_heap_table[seg_id].span == 1
 		      || SCM_DOUBLE_CELLP (obj))
-		    scm_gc_mark (obj);
+		    {
+		      if (!SCM_FREE_CELL_P (obj))
+			scm_gc_mark (obj);
+		    }
 		  break;
 		}
 	    }

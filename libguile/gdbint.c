@@ -83,9 +83,9 @@
 
 
 /* Be carefull when this macro is true.
-   scm_gc_heap_lock is set during gc.
+   scm_gc_running_p is set during gc.
  */
-#define SCM_GC_P (scm_gc_heap_lock)
+#define SCM_GC_P (scm_gc_running_p)
 
 /* Macros that encapsulate blocks of code which can be called by the
  * debugger.
