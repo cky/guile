@@ -18,7 +18,7 @@
 @ifinfo
 Data Representation in Guile
 
-Copyright (C) 1998, 1999 Free Software Foundation
+Copyright (C) 1998, 1999, 2000 Free Software Foundation
 
 Permission is granted to make and distribute verbatim copies of
 this manual provided the copyright notice and this permission notice
@@ -46,7 +46,7 @@ by the Free Software Foundation.
 @sp 10
 @comment The title is printed in a large font.
 @title Data Representation in Guile
-@subtitle $Id: data-rep.texi,v 1.8 1999-12-07 22:43:01 ghouston Exp $
+@subtitle $Id: data-rep.texi,v 1.9 2000-02-28 20:58:59 jimb Exp $
 @subtitle For use with Guile @value{VERSION}
 @author Jim Blandy
 @author Free Software Foundation
@@ -84,12 +84,13 @@ by Free Software Foundation.
 This essay is meant to provide the background necessary to read and
 write C code that manipulates Scheme values in a way that conforms to
 libguile's interface.  If you would like to write or maintain a
-Guile-based application, this is the first information you need.
+Guile-based application in C or C++, this is the first information you
+need.
 
-In order to make sense of Guile's SCM_ functions, or read libguile's
-source code, it's essential to have a good grasp of how Guile actually
-represents Scheme values.  Otherwise, a lot of the code, and the
-conventions it follows, won't make very much sense.
+In order to make sense of Guile's @code{SCM_} functions, or read
+libguile's source code, it's essential to have a good grasp of how Guile
+actually represents Scheme values.  Otherwise, a lot of the code, and
+the conventions it follows, won't make very much sense.
 
 We assume you know both C and Scheme, but we do not assume you are
 familiar with Guile's C interface.
@@ -640,7 +641,7 @@ Return the value of @code{x} as a C character.  If @var{x} is not a
 Scheme character, the result is undefined.
 @end deftypefn
 
-@deftypefn Macro SCM SCM_MAKICHR (SCM @var{c})
+@deftypefn Macro SCM SCM_MAKICHR (int @var{c})
 Given a C character @var{c}, return its representation as a Scheme
 character value.
 @end deftypefn
