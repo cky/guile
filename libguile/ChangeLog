@@ -1,3 +1,14 @@
+2003-05-20  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* deprecated.h, deprecated.c (scm_makstr, scm_makfromstr,
+	scm_variable_set_name_hint, scm_builtin_variable,
+	scm_internal_with_fluids, scm_make_gsubr,
+	scm_make_gsubr_with_generic, scm_create_hook, SCM_LIST0,
+	SCM_LIST1, SCM_LIST2, SCM_LIST3, SCM_LIST4, SCM_LIST5, SCM_LIST6,
+	SCM_LIST7, SCM_LIST8, SCM_LIST9, scm_listify, scm_sloppy_memq,
+	scm_sloppy_memv, scm_sloppy_member, scm_read_and_eval_x): Re-added
+	from release_1_6 branch.
+
 2003-05-19  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* eval.c (scm_m_do, unmemocopy, SCM_CEVAL):  Reversed order of
