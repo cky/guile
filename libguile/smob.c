@@ -44,7 +44,6 @@
 #include "_scm.h"
 
 #include "objects.h"
-#include "genio.h"
 
 #ifdef HAVE_MALLOC_H
 #include <malloc.h>
@@ -114,7 +113,7 @@ scm_smob_print (SCM exp, SCM port, scm_print_state *pstate)
 {
   int n = SCM_SMOBNUM (exp);
   scm_puts ("#<", port);
-  scm_puts (SCM_SMOBNAME (n), port);
+  scm_puts (SCM_SMOBNAME (n) ? SCM_SMOBNAME (n) : "smob", port);
   scm_putc (' ', port);
   scm_intprint (scm_smobs[n].size ? SCM_CDR (exp) : exp, 16, port);
   scm_putc ('>', port);
