@@ -1,346 +1,161 @@
 /* this file is #include'd (x times) by convert.c */
 
-/* Convert a vector, weak vector, (if possible string, substring), list
-   or uniform vector into an C array.  If the result array in argument 2 
-   is NULL, malloc() a new one.  If out of memory, return NULL.  */
-#define FUNC_NAME SCM2CTYPES_FN
+/* You need to define the following macros before including this
+   template.  They are undefined at the end of this file to give a
+   clean slate for the next inclusion.
+
+   - CTYPE
+
+   The type of an element of the C array, for example 'char'.
+
+   - FROM_CTYPE
+
+   The function that converts a CTYPE to a SCM, for example
+   scm_from_char.
+
+   - UVEC_TAG
+
+   The tag of a suitable uniform vector that can hold the CTYPE, for
+   example 's8'.
+
+   - UVEC_CTYPE
+
+   The C type of an element of the uniform vector, for example
+   scm_t_int8.
+
+   - SCM2CTYPES
+
+   The name of the 'SCM-to-C' function, for example scm_c_scm2chars.
+
+   - CTYPES2SCM
+
+   The name of the 'C-to-SCM' function, for example, scm_c_chars2scm.
+
+   - CTYPES2UVECT
+
+   The name of the 'C-to-uniform-vector' function, for example
+   scm_c_chars2byvect.  It will create a uniform vector of kind
+   UVEC_TAG.
+
+   - CTYPES2UVECT_2
+
+   The name of a second 'C-to-uniform-vector' function.  Leave
+   undefined if you want only one such function.
+
+   - CTYPE_2
+   - UVEC_TAG_2
+   - UVEC_CTYPE_2
+
+   The tag and C type of the second kind of uniform vector, for use
+   with the function described above.
+
+*/
+
+/* The first level does not expand macros in the arguments. */
+#define paste(a1,a2,a3)   a1##a2##a3
+#define stringify(a)      #a
+
+/* But the second level does. */
+#define F(pre,T,suf)   paste(pre,T,suf)
+#define S(T)           stringify(T)
+
+/* Convert a vector, list or uniform vector into a C array.  If the
+   result array in argument 2 is NULL, malloc() a new one.
+*/
+
 CTYPE *
 SCM2CTYPES (SCM obj, CTYPE *data)
 {
-  long i, n;
-  SCM val;
+  size_t len, i;
+  UVEC_CTYPE *uvec_elements;
 
-  SCM_ASSERT (SCM_NIMP (obj) || scm_is_true (scm_list_p (obj)), 
-	      obj, SCM_ARG1, FUNC_NAME);
+  obj = F(scm_any_to_,UVEC_TAG,vector) (obj);
+  len = scm_c_uniform_vector_length (obj);
+  uvec_elements = F(scm_,UVEC_TAG,vector_elements) (obj);
 
-  /* list conversion */
-  if (scm_is_true (scm_list_p (obj)))
-    {
-      /* traverse the given list and validate the range of each member */
-      SCM list = obj;
-      for (n = 0; scm_is_true (scm_pair_p (list)); list = SCM_CDR (list), n++)
-	{
-	  val = SCM_CAR (list);
-#if SIZEOF_CTYPE && SIZEOF_CTYPE < SIZEOF_SCM_T_BITS
-	  /* check integer ranges */
-          if (SCM_I_INUMP (val))
-            {
-              scm_t_signed_bits v = SCM_I_INUM (val);
-	      CTYPE c = (CTYPE) v;
-	      SCM_ASSERT_RANGE (SCM_ARG1, val, v != (scm_t_signed_bits) c);
-            }
-	  /* check big number ranges */
-	  else if (SCM_BIGP (val))
-	    {
-              scm_t_signed_bits v = scm_to_long (val);
-	      CTYPE c = (CTYPE) v;
-	      SCM_ASSERT_RANGE (SCM_ARG1, val, v != (scm_t_signed_bits) c);
-	    }
-	  else
-	  /* check float types */
-#elif defined (FLOATTYPE)
-	  /* real values, big numbers and immediate values are valid 
-	     for float conversions */
-	  if (!SCM_REALP (val) && !SCM_BIGP (val) && !SCM_I_INUMP (val))
-#else
-	  if (!SCM_BIGP (val) && !SCM_I_INUMP (val))
-#endif /* FLOATTYPE */
-	    SCM_WRONG_TYPE_ARG (SCM_ARG1, val);
-        }
+  if (data == NULL)
+    data = scm_malloc (len * sizeof (CTYPE));
+  for (i = 0; i < len; i++)
+    data[i] = uvec_elements[i];
 
-      /* allocate new memory if necessary */
-      if (data == NULL)
-	if ((data = (CTYPE *) malloc (n * sizeof (CTYPE))) == NULL)
-	  return NULL;
-
-      /* traverse the list once more and convert each member */
-      list = obj;
-      for (i = 0; scm_is_true (scm_pair_p (list)); list = SCM_CDR (list), i++)
-	{
-          val = SCM_CAR (list);
-	  if (SCM_I_INUMP (val))
-            data[i] = (CTYPE) SCM_I_INUM (val);
-          else if (SCM_BIGP (val))
-	    data[i] = (CTYPE) scm_to_long (val);
-#if defined (FLOATTYPE)
-          else
-            data[i] = (CTYPE) SCM_REAL_VALUE (val);
-#endif
-	}
-      return data;
-    }
-
-  /* uniform vectors */
-#ifdef UVEC_PREDICATE
-  if (scm_is_true (UVEC_PREDICATE (obj)))
-    {
-      n = scm_c_uniform_vector_length (obj);
-      ARRAYCTYPE *elts = (ARRAYCTYPE *)scm_uniform_vector_elements (obj);
-
-      /* allocate new memory if necessary */
-      if (data == NULL)
-	if ((data = (CTYPE *) malloc (n * sizeof (CTYPE))) == NULL)
-	  return NULL;
-
-#if SIZEOF_CTYPE != SIZEOF_ARRAYTYPE
-      /* copy array element by element */
-      for (i = 0; i < n; i++)
-	data[i] = (CTYPE) elts[i];
-#else
-      /* copy whole array */
-      memcpy (data, (CTYPE *) elts, n * sizeof (CTYPE));
-#endif
-      scm_uniform_vector_release (obj);
-      return data;
-    }
-#endif
-      
-  /* other conversions */
-  switch (SCM_TYP7 (obj))
-    {
-      /* vectors and weak vectors */
-    case scm_tc7_vector:
-    case scm_tc7_wvect:
-      n = SCM_VECTOR_LENGTH (obj);
-      /* traverse the given vector and validate each member */
-      for (i = 0; i < n; i++)
-        {
-          val = SCM_VELTS (obj)[i];
-#if SIZEOF_CTYPE && SIZEOF_CTYPE < SIZEOF_SCM_T_BITS
-	  /* check integer ranges */
-          if (SCM_I_INUMP (val))
-            {
-              scm_t_signed_bits v = SCM_I_INUM (val);
-	      CTYPE c = (CTYPE) v;
-	      SCM_ASSERT_RANGE (SCM_ARG1, val, v != (scm_t_signed_bits) c);
-            }
-	  /* check big number ranges */
-	  else if (SCM_BIGP (val))
-	    {
-              scm_t_signed_bits v = scm_to_long (val);
-	      CTYPE c = (CTYPE) v;
-	      SCM_ASSERT_RANGE (SCM_ARG1, val, v != (scm_t_signed_bits) c);
-	    }
-          else
-	  /* check float types */
-#elif defined (FLOATTYPE)
-	  /* real values, big numbers and immediate values are valid 
-	     for float conversions */
-	  if (!SCM_REALP (val) && !SCM_BIGP (val) && !SCM_I_INUMP (val))
-#else
-	  if (!SCM_BIGP (val) && !SCM_I_INUMP (val))
-#endif /* FLOATTYPE */
-	    SCM_WRONG_TYPE_ARG (SCM_ARG1, val);
-        }
-
-      /* allocate new memory if necessary */
-      if (data == NULL)
-	if ((data = (CTYPE *) malloc (n * sizeof (CTYPE))) == NULL)
-	  return NULL;
-
-      /* traverse the vector once more and convert each member */
-      for (i = 0; i < n; i++)
-	{
-          val = SCM_VELTS (obj)[i];
-	  if (SCM_I_INUMP (val))
-            data[i] = (CTYPE) SCM_I_INUM (val);
-          else if (SCM_BIGP (val))
-	    data[i] = (CTYPE) scm_to_long (val);
-#if defined (FLOATTYPE)
-          else
-            data[i] = (CTYPE) SCM_REAL_VALUE (val);
-#endif
-	}
-      break;
-#ifdef ARRAYTPE
-#if SCM_HAVE_ARRAYS
-      /* array conversions (uniform vectors) */
-    case ARRAYTYPE:
-#ifdef ARRAYTYPE_OPTIONAL
-    case ARRAYTYPE_OPTIONAL:
-#endif
-      n = SCM_UVECTOR_LENGTH (obj);
-
-      /* allocate new memory if necessary */
-      if (data == NULL)
-	if ((data = (CTYPE *) malloc (n * sizeof (CTYPE))) == NULL)
-	  return NULL;
-
-#ifdef FLOATTYPE_OPTIONAL
-      /* float <-> double conversions */
-      if (SCM_TYP7 (obj) == ARRAYTYPE_OPTIONAL)
-	{
-	  for (i = 0; i < n; i++)
-	    data[i] = ((FLOATTYPE_OPTIONAL *) SCM_UVECTOR_BASE (obj))[i];
-	}
-      else
-#endif
-#if SIZEOF_CTYPE != SIZEOF_ARRAYTYPE
-      /* copy array element by element */
-      for (i = 0; i < n; i++)
-	data[i] = (CTYPE) ((ARRAYCTYPE *) SCM_UVECTOR_BASE (obj))[i];
-#else
-      /* copy whole array */
-      memcpy (data, (CTYPE *) SCM_UVECTOR_BASE (obj), n * sizeof (CTYPE));
-#endif
-      break;
-#endif /* SCM_HAVE_ARRAYS */
-#endif
-
-#if SIZEOF_CTYPE == 1
-    case scm_tc7_string:
-      n = scm_i_string_length (obj);
-      if (data == NULL)
-        if ((data = (CTYPE *) malloc (n * sizeof (CTYPE))) == NULL)
-	  return NULL;
-      memcpy (data, scm_i_string_chars (obj), n * sizeof (CTYPE));
-      break;
-#endif
-
-    default:
-      SCM_WRONG_TYPE_ARG (SCM_ARG1, obj);
-    }
+  scm_uniform_vector_release (obj);
   return data;
 }
-#undef FUNC_NAME
-
-
-#if SCM_HAVE_ARRAYS
-
-/* Converts a C array into a uniform vector, returns SCM_UNDEFINED if out
-   of memory. */
-#define FUNC_NAME CTYPES2UVECT_FN
-SCM
-CTYPES2UVECT (const CTYPE *data, long n)
-{
-#if SIZEOF_CTYPE != SIZEOF_UVECTTYPE
-  UVECTCTYPE *v;
-  long i;
-#else
-  char *v;
-#endif
-
-  SCM_ASSERT_RANGE (SCM_ARG2, scm_from_long (n),
-		    n > 0 && n <= SCM_UVECTOR_MAX_LENGTH);
-#if SIZEOF_CTYPE != SIZEOF_UVECTTYPE
-  v = scm_gc_malloc (n * SIZEOF_UVECTTYPE, "uvect");
-  for (i = 0; i < n; i++)
-    v[i] = (UVECTCTYPE) data[i];
-#else
-  v = scm_gc_malloc (n * sizeof (CTYPE), "uvect");
-  memcpy (v, data, n * sizeof (CTYPE));
-#endif
-
-#ifdef UVEC_CREATOR
-  return UVEC_CREATOR (v, n);
-#else
-  return scm_cell (SCM_MAKE_UVECTOR_TAG (n, UVECTTYPE), (scm_t_bits) v);
-#endif
-}
-#undef FUNC_NAME
-
-#if defined(UVECTTYPE_OPTIONAL) || defined(UVEC_CREATOR_OPTIONAL)
-#define FUNC_NAME CTYPES2UVECT_FN_OPTIONAL
-SCM
-CTYPES2UVECT_OPTIONAL (const unsigned CTYPE *data, long n)
-{
-#if SIZEOF_CTYPE != SIZEOF_UVECTTYPE
-  unsigned UVECTCTYPE *v;
-  long i;
-#else
-  char *v;
-#endif
-
-  SCM_ASSERT_RANGE (SCM_ARG2, scm_from_long (n), 
-		    n > 0 && n <= SCM_UVECTOR_MAX_LENGTH);
-#if SIZEOF_CTYPE != SIZEOF_UVECTTYPE
-  v = scm_gc_malloc (n * SIZEOF_UVECTTYPE, "uvect");
-  for (i = 0; i < n; i++)
-    v[i] = (unsigned UVECTCTYPE) data[i];
-#else
-  v = scm_gc_malloc (n * sizeof (CTYPE), "uvect");
-  memcpy (v, data, n * sizeof (CTYPE));
-#endif
-#ifdef UVEC_CREATOR_OPTIONAL
-  return UVEC_CREATOR_OPTIONAL (v, n);
-#else
-  return scm_cell (SCM_MAKE_UVECTOR_TAG (n, UVECTTYPE_OPTIONAL), 
-		   (scm_t_bits) v);
-#endif
-}
-#undef FUNC_NAME
-#endif /* UVECTTYPE_OPTIONAL || UVEC_CREATOR_OPTIONAL */
-
-#endif /* SCM_HAVE_ARRAYS */
-
 
 /* Converts a C array into a vector. */
-#define FUNC_NAME CTYPES2SCM_FN
+
 SCM
 CTYPES2SCM (const CTYPE *data, long n)
 {
   long i;
   SCM v;
   
-  SCM_ASSERT_RANGE (SCM_ARG2, scm_from_long (n), 
-		    n > 0 && n <= SCM_VECTOR_MAX_LENGTH);
   v = scm_c_make_vector (n, SCM_UNSPECIFIED);
 
   for (i = 0; i < n; i++)
-#ifdef FLOATTYPE
-    SCM_VECTOR_SET (v, i, scm_from_double ((double) data[i]));
-#else
-    SCM_VECTOR_SET (v, i, scm_from_signed_integer (data[i]));
-#endif
+    SCM_VECTOR_SET (v, i, FROM_CTYPE (data[i]));
+
   return v;
 }
-#undef FUNC_NAME
 
-/* cleanup of conditionals */
-#undef SCM2CTYPES
-#undef SCM2CTYPES_FN
-#undef CTYPES2SCM
-#undef CTYPES2SCM_FN
+/* Converts a C array into a uniform vector. */
+
+SCM
+CTYPES2UVECT (const CTYPE *data, long n)
+{
+  long i;
+  SCM uvec;
+  UVEC_CTYPE *uvec_elements;
+  
+  uvec = F(scm_make_,UVEC_TAG,vector) (scm_from_long (n), SCM_UNDEFINED);
+  uvec_elements = F(scm_,UVEC_TAG,vector_elements) (uvec);
+
+  for (i = 0; i < n; i++)
+    uvec_elements[i] = data[i];
+
+  scm_uniform_vector_release (uvec);
+  return uvec;
+}
+
+#ifdef CTYPE2UVECT_2
+
+SCM
+CTYPES2UVECT_2 (const CTYPE_2 *data, long n)
+{
+  long i;
+  SCM uvec;
+  UVEC_CTYPE_2 *uvec_elements;
+  
+  uvec = F(scm_make_,UVEC_TAG_2,vector) (scm_from_long (n), SCM_UNDEFINED);
+  uvec_elements = F(scm_,UVEC_TAG_2,vector_elements) (obj);
+
+  for (i = 0; i < n; i++)
+    v[i] = data[i];
+
+  scm_uniform_vector_release (uvec);
+  return uvec;
+}
+
+#endif
+
+#undef paste
+#undef stringify
+#undef F
+#undef S
+
 #undef CTYPE
+#undef FROM_CTYPE
+#undef UVEC_TAG
+#undef UVEC_CTYPE
+#undef SCM2CTYPES
+#undef CTYPES2SCM
 #undef CTYPES2UVECT
-#undef CTYPES2UVECT_FN
-#undef UVECTTYPE
-#ifdef UVECTTYPE_OPTIONAL
-#undef CTYPES2UVECT_OPTIONAL
-#undef CTYPES2UVECT_FN_OPTIONAL
-#undef UVECTTYPE_OPTIONAL
+#ifdef CTYPES2UVECT_2
+#undef CTYPES2UVECT_2
+#undef CTYPE_2
+#undef UVEC_TAG_2
+#undef UVEC_CTYPE_2
 #endif
-#undef SIZEOF_CTYPE
-#undef SIZEOF_UVECTTYPE
-#undef SIZEOF_ARRAYTYPE
-#ifdef ARRAYTYPE
-#undef ARRAYTYPE
-#endif
-#ifdef ARRAYTYPE_OPTIONAL
-#undef ARRAYTYPE_OPTIONAL
-#endif
-#ifdef FLOATTYPE
-#undef FLOATTYPE
-#endif
-#ifdef FLOATTYPE_OPTIONAL
-#undef FLOATTYPE_OPTIONAL
-#endif
-#ifdef UVECTCTYPE
-#undef UVECTCTYPE
-#endif
-#ifdef ARRAYCTYPE
-#undef ARRAYCTYPE
-#endif
-#ifdef UVEC_PREDICATE
-#undef UVEC_PREDICATE
-#endif
-#ifdef UVEC_CREATOR
-#undef UVEC_CREATOR
-#endif
-#ifdef UVEC_CREATOR_OPTIONAL
-#undef UVEC_CREATOR_OPTIONAL
-#endif
-
 
 /*
   Local Variables:
