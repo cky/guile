@@ -3734,7 +3734,8 @@
 ;;; *fixme* This is a temporary solution.
 ;;;
 
-(if use-emacs-interface
+(if (and (module-defined? the-root-module 'use-emacs-interface)
+	 use-emacs-interface)
     (define-module (guile) :use-module (ice-9 emacs)))
 
 
