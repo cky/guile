@@ -1,3 +1,15 @@
+2003-04-05  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	The intended side-effect of the following change is to make the
+	prompt appear properly when debugging or running Guile in an Emacs
+	buffer.  (The readline library has some prompt magic which we were
+	expected to do ourselves when we were bold enough to provide our
+	own redisplay function---but we don't need to do that.)
+	
+	* readline.c (redisplay): Removed. (It didn't do anything other
+	than calling rl_redisplay.)
+	(scm_init_readline): Don't inititalize rl_redisplay_function.
+
 2003-03-19  Rob Browning  <rlb@defaultvalue.org>
 
 	* readline.c: add HAVE_CONFIG_H test guarding #include config.h.
