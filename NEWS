@@ -638,6 +638,17 @@ There is a huge number of these functions, for numbers, strings,
 symbols, vectors, etc.  They are documented in the reference manual in
 the API section together with the types that they apply to.
 
+** New functions for dealing with complex numbers in C have been added.
+
+The new functions are scm_c_make_rectangular, scm_c_make_polar,
+scm_c_real_part, scm_c_imag_part, scm_c_magnitude and scm_c_angle.
+They work like scm_make_rectangular etc but take or return doubles
+directly.
+
+** The function scm_make_complex has been discouraged.
+
+Use scm_c_make_rectangular instead.
+
 ** The INUM macros have been deprecated.
 
 A lot of code uses these macros to do general integer conversions,

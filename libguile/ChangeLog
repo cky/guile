@@ -2,7 +2,16 @@
 
 	* numbers.h. numbers.c (scm_make_ratio): Renamed to
 	scm_i_make_ratio and made static, replaced uses with scm_divide.
-
+	(scm_complex_p): New, export as "complex?" to Scheme.
+	(scm_number_p): Export as "number?" to Scheme.
+	(scm_is_complex, scm_is_number): New.
+	(scm_c_make_rectangular, scm_c_make_polar): New.
+	(scm_make_rectangular, scm_make_polar): Use above.
+	(scm_c_real_part, scm_c_imag_part, scm_c_magnitude, scm_c_angle):
+	New.
+	(scm_make_complex): Discouraged by moving to discouraged.h and
+	discouraged.c.  Replaced all uses with scm_c_make_rectangular.
+	
 	* discouraged.h, discouraged.c, numbers.c, numbers.h
 	(scm_is_rational): New.
 	(scm_i_short2big, scm_i_int2big, scm_i_uint2big, scm_i_size2big,
