@@ -94,7 +94,7 @@
 #define TEST_CHANGE_CLASS(obj, class)				       \
 	{							       \
 	  class = SCM_CLASS_OF (obj);				       \
-          if (SCM_OBJ_CLASS_REDEF (obj) != SCM_BOOL_F)		       \
+          if (!SCM_FALSEP (SCM_OBJ_CLASS_REDEF (obj)))		       \
 	    {							       \
 	      scm_change_object_class (obj, class, SCM_OBJ_CLASS_REDEF (obj));\
 	      class = SCM_CLASS_OF (obj);			       \
@@ -426,7 +426,7 @@ SCM_DEFINE (scm_sys_initialize_object, "%initialize-object", 2, 0, 0,
 	{
 	  /* set slot to its :init-form if it exists */
 	  tmp = SCM_CADAR (get_n_set);
-	  if (tmp != SCM_BOOL_F)
+	  if (!SCM_FALSEP (tmp))
 	    {
 	      slot_value = get_slot_value (class, obj, SCM_CAR (get_n_set));
 	      if (SCM_GOOPS_UNBOUNDP (slot_value))
