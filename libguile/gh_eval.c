@@ -63,7 +63,7 @@ gh_eval_file (char *fname)
 }
 
 static SCM
-eval_str_wrapper (void *data, SCM jmpbuf)
+eval_str_wrapper (void *data)
 {
 /*   gh_eval_t real_eval_proc = (gh_eval_t) (* ((gh_eval_t *) data)); */
 
@@ -97,7 +97,7 @@ gh_eval_str_with_stack_saving_handler (char *scheme_code)
 }
 
 static SCM
-eval_file_wrapper (void *data, SCM jmpbuf)
+eval_file_wrapper (void *data)
 {
 /*   gh_eval_t real_eval_proc = (gh_eval_t) (* ((gh_eval_t *) data)); */
 

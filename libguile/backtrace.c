@@ -186,7 +186,7 @@ struct display_error_args {
 };
 
 static SCM
-display_error_body (struct display_error_args *a, SCM jmpbuf)
+display_error_body (struct display_error_args *a)
 {
   SCM current_frame = SCM_BOOL_F;
   SCM source = SCM_BOOL_F;
@@ -413,7 +413,7 @@ struct display_backtrace_args {
 SCM_PROC(s_display_backtrace, "display-backtrace", 2, 2, 0, scm_display_backtrace);
 
 static SCM
-display_backtrace_body (struct display_backtrace_args *a, SCM jmpbuf)
+display_backtrace_body (struct display_backtrace_args *a)
 {
   int n_frames, beg, end, n, i, j;
   int nfield, indent_p, indentation;

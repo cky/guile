@@ -225,7 +225,7 @@ typedef struct scheme_launch_data {
 extern SCM scm_apply (SCM, SCM, SCM);
 
 static SCM
-scheme_body_bootstrip (scheme_launch_data* data, SCM jmpbuf)
+scheme_body_bootstrip (scheme_launch_data* data)
 {
   /* First save the new root continuation */
   data->rootcont = scm_root->rootcont;
@@ -346,11 +346,11 @@ typedef struct c_launch_data {
 } c_launch_data;
 
 static SCM
-c_body_bootstrip (c_launch_data* data, SCM jmpbuf)
+c_body_bootstrip (c_launch_data* data)
 {
   /* First save the new root continuation */
   data->u.rootcont = scm_root->rootcont;
-  return (data->body) (data->body_data, jmpbuf);
+  return (data->body) (data->body_data);
 }
 
 static SCM

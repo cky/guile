@@ -220,7 +220,7 @@ struct cwdr_handler_data {
    With a little thought, we could replace this with scm_body_thunk,
    but I don't want to mess with that at the moment.  */
 static SCM
-cwdr_body (void *data, SCM jmpbuf)
+cwdr_body (void *data)
 {
   struct cwdr_body_data *c = (struct cwdr_body_data *) data;
 

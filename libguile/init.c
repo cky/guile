@@ -294,7 +294,7 @@ struct main_func_closure
 
 static void scm_boot_guile_1 SCM_P ((SCM_STACKITEM *base, 
 				     struct main_func_closure *closure));
-static SCM invoke_main_func SCM_P ((void *body_data, SCM jmpbuf));
+static SCM invoke_main_func SCM_P ((void *body_data));
 
 
 /* Fire up the Guile Scheme interpreter.
@@ -501,9 +501,8 @@ scm_boot_guile_1 (base, closure)
 
 
 static SCM
-invoke_main_func (body_data, jmpbuf)
+invoke_main_func (body_data)
      void *body_data;
-     SCM jmpbuf;
 {
   struct main_func_closure *closure = (struct main_func_closure *) body_data;
 
