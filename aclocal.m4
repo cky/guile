@@ -257,7 +257,7 @@ AC_DEFUN([QTHREADS_CONFIGURE],[
       qtmdc_c=md/null.c
       qtdmdb_s=md/sparc_b.s 
       ;;
-    alpha-*-*)
+    alpha*-*-*)
       port_name=alpha
       qtmd_h=md/axp.h
       qtmds_s=md/axp.s
