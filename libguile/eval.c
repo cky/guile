@@ -1491,7 +1491,7 @@ unmemocopy (SCM x, SCM env)
 	  x = SCM_CDR (x);
 	  goto loop;
 	case (SCM_ISYMNUM (SCM_IM_FUTURE)):
-	  ls = z = scm_cons (scm_sym_delay, SCM_UNSPECIFIED);
+	  ls = z = scm_cons (scm_sym_future, SCM_UNSPECIFIED);
 	  x = SCM_CDR (x);
 	  goto loop;
 	case (SCM_ISYMNUM (SCM_IM_CALL_WITH_VALUES)):
