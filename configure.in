@@ -112,7 +112,7 @@ AC_ARG_ENABLE(htmldoc,
 AM_CONDITIONAL(HTMLDOC, test x$htmldoc_enabled = xyes)
 
 AC_ARG_ENABLE(deprecated,
-  [  --disable-deprecated    omit deprecated features [no]])
+  [  --disable-deprecated    omit deprecated features])
 
 AH_TEMPLATE([SCM_ENABLE_DEPRECATED],
   [Define this to 1 if you want to include deprecated features.])
