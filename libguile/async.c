@@ -104,8 +104,6 @@ static long scm_tc16_async;
 
 
 
-static int asyncs_pending SCM_P ((void));
-
 int
 scm_asyncs_pending ()
 {
