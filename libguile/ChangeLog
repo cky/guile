@@ -1,5 +1,13 @@
 2005-01-11  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
+	* eval.c, debug.h (SCM_WARN_DEPRECATED): New debug option.
+	* deprecation.c (scm_issue_deprecation_warning,
+	scm_c_issue_deprecation_warning_fmt): Use it.
+	(mode): Removed.
+	(print_summary): New.
+	(scm_init_deprecation): Initialize SCM_WARN_DEPRECATED instead of
+	mode.
+	
 	Deprecated SCM_ARRAY* macros.
 	
 	* unif.h, unif.c, ramap.c, vectors.c, srfi-4.c, srfi-4.i.c
