@@ -173,6 +173,19 @@ scm_i_copy_rstate (scm_i_rstate *state)
  * Random number library functions
  */
 
+scm_rstate *
+scm_i_make_rstate (char *seed, int n)
+{
+  scm_rstate *state = malloc (scm_the_rng.rstate_size);
+  if (state == 0)
+    scm_wta (SCM_MAKINUM (scm_the_rng.rstate_size),
+	     (char *) SCM_NALLOC,
+	     "rstate");
+  state->reserved0 = 0;
+  scm_the_rng.init_rstate (state, seed, n);
+  return state;
+}
+
 inline double
 scm_i_uniform01 (scm_rstate *state)
 {
@@ -335,7 +348,7 @@ static scm_smobfuns rstate_smob = { 0, free_rstate, print_rstate, 0};
  * Scheme level interface.
  */
 
-SCM_GLOBAL_VCELL_INIT (scm_var_random_state, "*random-state*", scm_make_random_state (scm_makfrom0str ("URL:http://stat.fsu.edu/~geo/diehard.html")));
+SCM_GLOBAL_VCELL_INIT (scm_var_random_state, "*random-state*", scm_seed_to_random_state (scm_makfrom0str ("URL:http://stat.fsu.edu/~geo/diehard.html")));
 
 SCM_PROC (s_random, "random", 1, 1, 0, scm_random);
 
@@ -360,39 +373,33 @@ scm_random (SCM n, SCM state)
   return scm_i_random_bignum (n, SCM_RSTATE (state));
 }
 
-SCM_PROC (s_make_random_state, "make-random-state", 0, 1, 0, scm_make_random_state);
+SCM_PROC (s_copy_random_state, "copy-random-state", 0, 1, 0, scm_copy_random_state);
 
 SCM
-scm_make_random_state (SCM state)
+scm_copy_random_state (SCM state)
 {
   if (SCM_UNBNDP (state))
-    {
-      state = SCM_CDR (scm_var_random_state);
-      goto copy_state;
-    }
-  else if (SCM_NUMBERP (state))
-    {
-      state = scm_number_to_string (state, SCM_UNDEFINED);
-      goto seed;
-    }
-  else if (SCM_NIMP (state) && SCM_STRINGP (state))
-    seed:
-    {
-      scm_rstate *nstate = malloc (scm_the_rng.rstate_size);
-      if (nstate == 0)
-	scm_wta (SCM_MAKINUM (scm_the_rng.rstate_size),
-		 (char *) SCM_NALLOC,
-		 "rstate");
-      nstate->reserved0 = 0;
-      scm_the_rng.init_rstate (nstate, SCM_ROCHARS (state), SCM_LENGTH (state));
-      return make_rstate (nstate);
-    }
- copy_state:
+    state = SCM_CDR (scm_var_random_state);
   SCM_ASSERT (SCM_NIMP (state) && SCM_RSTATEP (state),
 	      state,
 	      SCM_ARG1,
-	      s_make_random_state);
+	      s_copy_random_state);
   return make_rstate (scm_the_rng.copy_rstate (SCM_RSTATE (state)));
+}
+
+SCM_PROC (s_seed_to_random_state, "seed->random-state", 1, 0, 0, scm_seed_to_random_state);
+
+SCM
+scm_seed_to_random_state (SCM seed)
+{
+  if (SCM_NUMBERP (seed))
+    seed = scm_number_to_string (seed, SCM_UNDEFINED);
+  SCM_ASSERT (SCM_NIMP (seed) && SCM_STRINGP (seed),
+	      seed,
+	      SCM_ARG1,
+	      s_seed_to_random_state);
+  return make_rstate (scm_i_make_rstate (SCM_ROCHARS (seed),
+					 SCM_LENGTH (seed)));
 }
 
 SCM_PROC (s_random_uniform, "random:uniform", 0, 1, 0, scm_random_uniform);
