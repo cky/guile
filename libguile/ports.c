@@ -218,7 +218,19 @@ scm_set_port_input_waiting (long tc, int (*input_waiting) (SCM))
 
 SCM_DEFINE (scm_char_ready_p, "char-ready?", 0, 1, 0, 
            (SCM port),
-	    "")
+            "Returns @code{#t} if a character is ready on input @var{port} and\n"
+            "returns @code{#f} otherwise.  If @code{char-ready?} returns @code{#t}\n"
+            "then the next @code{read-char} operation on @var{port} is\n"
+            "guaranteed not to hang.  If @var{port} is a file port at end of\n"
+            "file then @code{char-ready?} returns @code{#t}.\n"
+            "@footnote{@code{char-ready?} exists to make it possible for a\n"
+            "program to accept characters from interactive ports without getting\n"
+            "stuck waiting for input.  Any input editors associated with such ports\n"
+            "must make sure that characters whose existence has been asserted by\n"
+            "@code{char-ready?} cannot be rubbed out.  If @code{char-ready?} were to\n"
+            "return @code{#f} at end of file, a port at end of file would be\n"
+            "indistinguishable from an interactive port that has no ready\n"
+            "characters.}")
 #define FUNC_NAME s_scm_char_ready_p
 {
   scm_port *pt;
@@ -288,7 +300,9 @@ SCM_DEFINE (scm_drain_input, "drain-input", 1, 0, 0,
 
 SCM_DEFINE (scm_current_input_port, "current-input-port", 0, 0, 0,
            (),
-	    "")
+	    "Returns the current input port.  This is the default port used by many\n"
+            "input procedures.  Initially, @code{current-input-port} returns the\n"
+            "value of @code{???}.")
 #define FUNC_NAME s_scm_current_input_port
 {
   return scm_cur_inp;
@@ -297,7 +311,9 @@ SCM_DEFINE (scm_current_input_port, "current-input-port", 0, 0, 0,
 
 SCM_DEFINE (scm_current_output_port, "current-output-port", 0, 0, 0,
            (),
-	    "")
+            "Returns the current output port.  This is the default port used by many\n"
+            "output procedures.  Initially, @code{current-output-port} returns the\n"
+            "value of @code{???}.")
 #define FUNC_NAME s_scm_current_output_port
 {
   return scm_cur_outp;
@@ -646,7 +662,9 @@ SCM_DEFINE (scm_close_all_ports_except, "close-all-ports-except", 0, 0, 1,
 
 SCM_DEFINE (scm_input_port_p, "input-port?", 1, 0, 0,
            (SCM x),
-	    "")
+            "Returns @code{#t} if @var{x} is an input port, otherwise returns\n"
+            "@code{#f}.  Any object satisfying this predicate also satisfies\n"
+            "@code{port?}.")
 #define FUNC_NAME s_scm_input_port_p
 {
   if (SCM_IMP (x))
@@ -657,7 +675,9 @@ SCM_DEFINE (scm_input_port_p, "input-port?", 1, 0, 0,
 
 SCM_DEFINE (scm_output_port_p, "output-port?", 1, 0, 0,
            (SCM x),
-	    "")
+            "Returns @code{#t} if @var{x} is an output port, otherwise returns\n"
+            "@code{#f}.  Any object satisfying this predicate also satisfies\n"
+            "@code{port?}.")
 #define FUNC_NAME s_scm_output_port_p
 {
   if (SCM_IMP (x))
@@ -680,7 +700,8 @@ SCM_DEFINE (scm_port_closed_p, "port-closed?", 1, 0, 0,
 
 SCM_DEFINE (scm_eof_object_p, "eof-object?", 1, 0, 0,
            (SCM x),
-	    "")
+            "Returns @code{#t} if @var{x} is an end-of-file object; otherwise\n"
+            "returns @code{#f}.")
 #define FUNC_NAME s_scm_eof_object_p
 {
   return SCM_BOOL(SCM_EOF_OBJECT_P (x));
@@ -728,7 +749,9 @@ SCM_DEFINE (scm_flush_all_ports, "flush-all-ports", 0, 0, 0,
 
 SCM_DEFINE (scm_read_char, "read-char", 0, 1, 0,
            (SCM port),
-	    "")
+            "Returns the next character available from @var{port}, updating\n"
+            "@var{port} to point to the following character.  If no more\n"
+            "characters are available, an end-of-file object is returned.")
 #define FUNC_NAME s_scm_read_char
 {
   int c;
@@ -950,7 +973,17 @@ scm_ungets (const char *s, int n, SCM port)
 
 SCM_DEFINE (scm_peek_char, "peek-char", 0, 1, 0,
            (SCM port),
-	    "")
+            "Returns the next character available from @var{port},\n"
+            "@emph{without} updating @var{port} to point to the following\n"
+            "character.  If no more characters are available, an end-of-file object\n"
+            "is returned.@footnote{The value returned by a call to @code{peek-char}\n"
+            "is the same as the value that would have been returned by a call to\n"
+            "@code{read-char} on the same port.  The only difference is that the very\n"
+            "next call to @code{read-char} or @code{peek-char} on that\n"
+            "@var{port} will return the value returned by the preceding call to\n"
+            "@code{peek-char}.  In particular, a call to @code{peek-char} on an\n"
+            "interactive port will hang waiting for input whenever a call to\n"
+            "@code{read-char} would have hung.}")
 #define FUNC_NAME s_scm_peek_char
 {
   int c;
