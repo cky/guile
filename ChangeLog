@@ -1,5 +1,10 @@
 Thu Aug  1 02:31:53 1996  Jim Blandy  <jimb@totoro.cyclic.com>
 
+	* doc/Makefile.in: Added pattern targets for creating DVI and
+	PostScript files.
+	(%.ps, %.dvi, %.txt): New targets.
+	(DVIPS, TEXI2DVI): New variables.
+
 	* GUILE-VERSION: Updated to 1.0b3.
 
 	Rehashed distribution system, in preparation for nightly

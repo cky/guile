@@ -1,0 +1,10 @@
+This is beta release 1.0b3 of Guile, the GNU extension language library.
+
+Guile is a portable, embaddable Scheme implementation written in C.
+Guile provides a machine independent execution platform that can be
+linked in as a library when building extensible programs.
+
+Guile is derived from SCM, by Aubrey Jaffer and others.  Tom Lord
+librarified SCM, yeilding Guile.  He wrote Guile's operating system,
+Ice-9, connected Guile to Tcl/Tk and the `rx' regular expression
+matcher, and took care of a lot of miscellany.
