@@ -1,5 +1,19 @@
 /* this file is #include'd (many times) by numbers.c */
 
+#ifndef UNSIGNED_ITYPE
+#ifdef UNSIGNED
+#define UNSIGNED_ITYPE ITYPE
+#else
+#define UNSIGNED_ITYPE unsigned ITYPE
+#endif
+#endif
+
+#define UNSIGNED_ITYPE_MAX (~((UNSIGNED_ITYPE)0))
+
+#ifndef SIZEOF_ITYPE
+#define SIZEOF_ITYPE (2*SIZEOF_SCM_T_BITS)
+#endif
+
 ITYPE
 NUM2INTEGRAL (SCM num, unsigned long int pos, const char *s_caller)
 {
@@ -19,11 +33,7 @@ NUM2INTEGRAL (SCM num, unsigned long int pos, const char *s_caller)
         return (ITYPE) n;
       else
         { /* an inum can be out of range, so check */
-          if (n > (scm_t_signed_bits)MAX_VALUE
-#ifndef UNSIGNED
-              || n < (scm_t_signed_bits)MIN_VALUE
-#endif
-              )
+	  if (((ITYPE)n) != n)
             scm_out_of_range (s_caller, num);
           else
             return (ITYPE) n;
@@ -31,8 +41,9 @@ NUM2INTEGRAL (SCM num, unsigned long int pos, const char *s_caller)
     }
   else if (SCM_BIGP (num))
     { /* bignum */
-    
-      ITYPE res = 0;
+#if SIZEOF_ITYPE >= SIZEOF_SCM_T_BITS
+      
+      UNSIGNED_ITYPE pos_res = 0;
       size_t l;
 
 #ifdef UNSIGNED
@@ -42,22 +53,17 @@ NUM2INTEGRAL (SCM num, unsigned long int pos, const char *s_caller)
 
       for (l = SCM_NUMDIGS (num); l--;)
         {
-          ITYPE new = SCM_I_BIGUP (ITYPE, res) + SCM_BDIGITS (num)[l];
-          if (new < res
-#ifndef UNSIGNED
-              && !(new == MIN_VALUE && l == 0)
-#endif
-              )
+	  if (pos_res > SCM_BIGDN (UNSIGNED_ITYPE_MAX))
             scm_out_of_range (s_caller, num);
-          res = new;
+	  pos_res = SCM_I_BIGUP (ITYPE, pos_res) + SCM_BDIGITS (num)[l];
         }
     
 #ifdef UNSIGNED
-      return res;
+      return pos_res;
 #else
       if (SCM_BIGSIGN (num))
         {
-          res = -res;
+          ITYPE res = -((ITYPE)pos_res);
           if (res <= 0)
             return res;
           else
@@ -65,12 +71,18 @@ NUM2INTEGRAL (SCM num, unsigned long int pos, const char *s_caller)
         }
       else
         {
+	  ITYPE res = (ITYPE)pos_res;
           if (res >= 0)
             return res;
           else
             scm_out_of_range (s_caller, num);
         }
 #endif
+      
+#else /* SIZEOF_ITYPE >= SIZEOF_SCM_T_BITS */
+            scm_out_of_range (s_caller, num);
+#endif
+      
     }
   else
     scm_wrong_type_arg (s_caller, pos, num);
@@ -79,42 +91,21 @@ NUM2INTEGRAL (SCM num, unsigned long int pos, const char *s_caller)
 SCM
 INTEGRAL2NUM (ITYPE n)
 {
-  /* Determine at compile time whether we need to porferm the FIXABLE
-     test or not.  This is not done to get more optimal code out of
-     the compiler (it can figure this out on its already), but to
-     avoid a spurious warning. 
+  /* If we know the size of the type, determine at compile time
+     whether we need to perform the FIXABLE test or not.  This is not
+     done to get more optimal code out of the compiler (it can figure
+     this out on its own already), but to avoid a spurious warning.
+     If we don't know the size, assume that the test must be done.
   */
 
-#ifdef NEED_CHECK
-#undef NEED_CHECK
-#endif
-
-#ifdef NO_PREPRO_MAGIC
-#define NEED_CHECK
-#else
-#ifdef UNSIGNED
-#if MAX_VALUE>SCM_MOST_POSITIVE_FIXNUM
-#define NEED_CHECK
-#endif
-#else
-#if MIN_VALUE<SCM_MOST_NEGATIVE_FIXNUM || MAX_VALUE>SCM_MOST_POSITIVE_FIXNUM
-#define NEED_CHECK
-#endif
-#endif
-#endif
-
+#if SIZEOF_ITYPE >= SIZEOF_SCM_T_BITS
 #ifndef UNSIGNED
-#ifdef NEED_CHECK
   if (SCM_FIXABLE (n))
-#endif
 #else
-#ifdef NEED_CHECK
   if (SCM_POSFIXABLE (n))
 #endif
 #endif
     return SCM_MAKINUM ((scm_t_signed_bits) n);
-
-#undef NEED_CHECK
 
 #ifdef SCM_BIGDIG
   return INTEGRAL2BIG (n);
@@ -142,10 +133,17 @@ INTEGRAL2BIG (ITYPE n)
 #endif
 
 #ifndef UNSIGNED
-  if (n == MIN_VALUE)
-    /* special case */
-    n_digits =
-      (sizeof (ITYPE) + sizeof (SCM_BIGDIG) - 1) / sizeof (SCM_BIGDIG);
+  /* If n is still negative here, it must be the minimum value of the
+     type (assuming twos-complement, but we are tied to that anyway).
+     If this is the case, we can not count the number of digits by
+     right-shifting n until it is zero.
+  */
+  if (n < 0)
+    {
+      /* special case */
+      n_digits = 
+	(sizeof (ITYPE) + sizeof (SCM_BIGDIG) - 1) / sizeof (SCM_BIGDIG);
+    }
   else
 #endif
     {
@@ -175,11 +173,13 @@ INTEGRAL2BIG (ITYPE n)
 #undef INTEGRAL2NUM
 #undef INTEGRAL2BIG
 #undef NUM2INTEGRAL
+#ifdef UNSIGNED
 #undef UNSIGNED
+#endif
 #undef ITYPE
-#undef MIN_VALUE
-#undef MAX_VALUE
-#undef NO_PREPRO_MAGIC
+#undef SIZEOF_ITYPE
+#undef UNSIGNED_ITYPE
+#undef UNSIGNED_ITYPE_MAX
 
 /*
   Local Variables:

@@ -4258,12 +4258,47 @@ scm_i_big2dbl (SCM b)
 # endif
 #endif
 
+/* Parameters for creating integer conversion routines.
+
+   Define the following preprocessor macros before including
+   "libguile/num2integral.i.c":
+
+   NUM2INTEGRAL - the name of the function for converting from a
+                  Scheme object to the integral type.  This function
+                  will be defined when including "num2integral.i.c".
+
+   INTEGRAL2NUM - the name of the function for converting from the
+                  integral type to a Scheme object.  This function
+                  will be defined.
+
+   INTEGRAL2BIG - the name of an internal function that createas a
+                  bignum from the integral type.  This function will
+                  be defined.  The name should start with "scm_i_".
+
+   ITYPE        - the name of the integral type.
+
+   UNSIGNED     - Define this when ITYPE is an unsigned type.  Do not
+                  define it otherwise.
+
+   UNSIGNED_ITYPE
+                - the name of the the unsigned variant of the
+                  integral type.  If you don't define this, it defaults
+                  to "unsigned ITYPE" for signed types and simply "ITYPE"
+                  for unsigned ones.
+
+   SIZEOF_ITYPE - an expression giving the size of the integral type in
+                  bytes.  This expression must be computable by the
+                  preprocessor.  If you don't know a value for this,
+                  don't define it.  The purpose of this parameter is
+                  mainly to suppress some warnings.  The generated
+                  code will work correctly without it.
+*/
+
 #define NUM2INTEGRAL scm_num2short
 #define INTEGRAL2NUM scm_short2num
 #define INTEGRAL2BIG scm_i_short2big
 #define ITYPE short
-#define MIN_VALUE SHRT_MIN
-#define MAX_VALUE SHRT_MAX
+#define SIZEOF_ITYPE SIZEOF_SHORT
 #include "libguile/num2integral.i.c"
 
 #define NUM2INTEGRAL scm_num2ushort
@@ -4271,15 +4306,14 @@ scm_i_big2dbl (SCM b)
 #define INTEGRAL2BIG scm_i_ushort2big
 #define UNSIGNED
 #define ITYPE unsigned short
-#define MAX_VALUE USHRT_MAX
+#define SIZEOF_ITYPE SIZEOF_SHORT
 #include "libguile/num2integral.i.c"
 
 #define NUM2INTEGRAL scm_num2int
 #define INTEGRAL2NUM scm_int2num
 #define INTEGRAL2BIG scm_i_int2big
 #define ITYPE int
-#define MIN_VALUE INT_MIN
-#define MAX_VALUE INT_MAX
+#define SIZEOF_ITYPE SIZEOF_INT
 #include "libguile/num2integral.i.c"
 
 #define NUM2INTEGRAL scm_num2uint
@@ -4287,15 +4321,14 @@ scm_i_big2dbl (SCM b)
 #define INTEGRAL2BIG scm_i_uint2big
 #define UNSIGNED
 #define ITYPE unsigned int
-#define MAX_VALUE UINT_MAX
+#define SIZEOF_ITYPE SIZEOF_INT
 #include "libguile/num2integral.i.c"
 
 #define NUM2INTEGRAL scm_num2long
 #define INTEGRAL2NUM scm_long2num
 #define INTEGRAL2BIG scm_i_long2big
 #define ITYPE long
-#define MIN_VALUE LONG_MIN
-#define MAX_VALUE LONG_MAX
+#define SIZEOF_ITYPE SIZEOF_LONG
 #include "libguile/num2integral.i.c"
 
 #define NUM2INTEGRAL scm_num2ulong
@@ -4303,40 +4336,23 @@ scm_i_big2dbl (SCM b)
 #define INTEGRAL2BIG scm_i_ulong2big
 #define UNSIGNED
 #define ITYPE unsigned long
-#define MAX_VALUE ULONG_MAX
+#define SIZEOF_ITYPE SIZEOF_LONG
 #include "libguile/num2integral.i.c"
-
-#ifndef PTRDIFF_MIN
-/* the below is not really guaranteed to work (I think), but probably does: */
-#define PTRDIFF_MIN ((ptrdiff_t) ((ptrdiff_t)1 << (sizeof (ptrdiff_t)*8 - 1)))
-/* this prevents num2integral.c.i from using PTRDIFF_MIN in
-   preprocessor expressions. */
-#define NO_PREPRO_MAGIC
-#endif
-
-#ifndef PTRDIFF_MAX
-#define PTRDIFF_MAX (~ PTRDIFF_MIN)
-#endif
 
 #define NUM2INTEGRAL scm_num2ptrdiff
 #define INTEGRAL2NUM scm_ptrdiff2num
 #define INTEGRAL2BIG scm_i_ptrdiff2big
 #define ITYPE ptrdiff_t
-#define MIN_VALUE PTRDIFF_MIN
-#define MAX_VALUE PTRDIFF_MAX
+#define UNSIGNED_ITYPE size_t
+#define SIZEOF_ITYPE SIZEOF_PTRDIFF_T
 #include "libguile/num2integral.i.c"
-
-#ifndef SIZE_MAX
-#define SIZE_MAX ((size_t) (-1))
-#define NO_PREPRO_MAGIC
-#endif
 
 #define NUM2INTEGRAL scm_num2size
 #define INTEGRAL2NUM scm_size2num
 #define INTEGRAL2BIG scm_i_size2big
 #define UNSIGNED
 #define ITYPE size_t
-#define MAX_VALUE SIZE_MAX
+#define SIZEOF_ITYPE SIZEOF_SIZE_T
 #include "libguile/num2integral.i.c"
 
 #ifdef HAVE_LONG_LONGS
@@ -4349,9 +4365,7 @@ scm_i_big2dbl (SCM b)
 #define INTEGRAL2NUM scm_long_long2num
 #define INTEGRAL2BIG scm_i_long_long2big
 #define ITYPE long long
-#define MIN_VALUE LLONG_MIN
-#define MAX_VALUE LLONG_MAX
-#define NO_PREPRO_MAGIC
+#define SIZEOF_ITYPE SIZEOF_LONG_LONG
 #include "libguile/num2integral.i.c"
 
 #define NUM2INTEGRAL scm_num2ulong_long
@@ -4359,8 +4373,7 @@ scm_i_big2dbl (SCM b)
 #define INTEGRAL2BIG scm_i_ulong_long2big
 #define UNSIGNED
 #define ITYPE unsigned long long
-#define MAX_VALUE ULLONG_MAX
-#define NO_PREPRO_MAGIC
+#define SIZEOF_ITYPE SIZEOF_LONG_LONG
 #include "libguile/num2integral.i.c"
 
 #endif /* HAVE_LONG_LONGS */
