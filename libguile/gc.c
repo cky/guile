@@ -114,19 +114,6 @@ unsigned int scm_debug_cell_accesses_p = 1;
 static unsigned int debug_cells_gc_interval = 0;
 
 
-/* If an allocated cell is detected during garbage collection, this means that
- * some code has just obtained the object but was preempted before the
- * initialization of the object was completed.  This meanst that some entries
- * of the allocated cell may already contain SCM objects.  Therefore,
- * allocated cells are scanned conservatively.  */
-static SCM
-allocated_mark (SCM allocated)
-{
-  scm_gc_mark_cell_conservatively (allocated);
-  return SCM_BOOL_F;
-}
-
-
 /* Assert that the given object is a valid reference to a valid cell.  This
  * test involves to determine whether the object is a cell pointer, whether
  * this pointer actually points into a heap segment and whether the cell
@@ -1419,23 +1406,6 @@ gc_mark_loop_first_time:
 	  /* We have detected a free cell.  This can happen if non-object data
 	   * on the C stack points into guile's heap and is scanned during
 	   * conservative marking.  */
-#if (SCM_DEBUG_CELL_ACCESSES == 0)
-	  /* If cell debugging is disabled, there is a second situation in
-	   * which a free cell can be encountered, namely if with preemptive
-	   * threading one thread has just obtained a fresh cell and was
-	   * preempted before the cell initialization was completed.  In this
-	   * case, some entries of the cell may already contain objects.
-	   * Thus, if cell debugging is disabled, free cells are scanned
-	   * conservatively.  */
-	  scm_gc_mark_cell_conservatively (ptr);
-#else /* SCM_DEBUG_CELL_ACCESSES == 1 */
-	  /* With cell debugging enabled, a freshly obtained but not fully
-	   * initialized cell is guaranteed to be of type scm_tc16_allocated.
-	   * Thus, no conservative scanning for free cells is necessary, but
-	   * instead cells of type scm_tc16_allocated have to be scanned
-	   * conservatively.  This is done in the mark function of the
-	   * scm_tc16_allocated smob type.  */
-#endif
 	  break;
 	case scm_tc16_big:
 	case scm_tc16_real:
@@ -1484,9 +1454,8 @@ gc_mark_loop_first_time:
  * heap segment.  If this is the case, the number of the heap segment is
  * returned.  Otherwise, -1 is returned.  Binary search is used in order to
  * determine the heap segment that contains the cell.*/
-/* FIXME:  To be used within scm_gc_mark_cell_conservatively,
- * scm_mark_locations and scm_cellp this function should be an inline
- * function.  */
+/* FIXME:  To be used within scm_mark_locations and scm_cellp this function
+ * should be an inline function.  */
 static long int
 heap_segment (SCM obj)
 {
@@ -1545,27 +1514,6 @@ heap_segment (SCM obj)
 	  else
 	    return i;
 	}
-    }
-}
-
-
-/* Mark the entries of a cell conservatively.  The given cell is known to be
- * on the heap.  Still we have to determine its heap segment in order to
- * figure out whether it is a single or a double cell.  Then, each of the cell
- * elements itself is checked and potentially marked. */
-void
-scm_gc_mark_cell_conservatively (SCM cell)
-{
-  unsigned long int cell_segment = heap_segment (cell);
-  unsigned int span = scm_heap_table[cell_segment].span;
-  unsigned int i;
-
-  for (i = 1; i != span * 2; ++i)
-    {
-      SCM obj = SCM_CELL_OBJECT (cell, i);
-      long int obj_segment = heap_segment (obj);
-      if (obj_segment >= 0)
-	scm_gc_mark (obj);
     }
 }
 
@@ -2737,7 +2685,6 @@ scm_init_storage ()
 
 #if (SCM_DEBUG_CELL_ACCESSES == 1)
   scm_tc16_allocated = scm_make_smob_type ("allocated cell", 0);
-  scm_set_smob_mark (scm_tc16_allocated, allocated_mark);
 #endif  /* SCM_DEBUG_CELL_ACCESSES == 1 */
 
   j = SCM_NUM_PROTECTS;
