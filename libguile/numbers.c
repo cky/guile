@@ -3053,34 +3053,55 @@ scm_less_p (SCM x, SCM y)
 }
 
 
-SCM_DEFINE1 (scm_gr_p, ">", scm_tc7_rpsubr,
-             (SCM x, SCM y),
-	     "Return #t if the list of parameters is monotonically\n"
-	     "increasing.")
+SCM_GPROC1 (s_scm_gr_p, ">", scm_tc7_rpsubr, scm_gr_p, g_gr_p);
+/* "Return #t if the list of parameters is monotonically\n"
+ *  "increasing."
+ */
 #define FUNC_NAME s_scm_gr_p
+SCM
+scm_gr_p (SCM x, SCM y)
 {
-  return scm_less_p (y, x);
+  if (!SCM_NUMBERP (x))
+    SCM_WTA_DISPATCH_2 (g_gr_p, x, y, SCM_ARG1, FUNC_NAME);
+  else if (!SCM_NUMBERP (y))
+    SCM_WTA_DISPATCH_2 (g_gr_p, x, y, SCM_ARG2, FUNC_NAME);
+  else
+    return scm_less_p (y, x);
 }
 #undef FUNC_NAME
 
 
-SCM_DEFINE1 (scm_leq_p, "<=", scm_tc7_rpsubr,
-             (SCM x, SCM y),
-	     "Return #t if the list of parameters is monotonically\n"
-	     "non-decreasing.")
+SCM_GPROC1 (s_scm_leq_p, "<=", scm_tc7_rpsubr, scm_leq_p, g_leq_p);
+/* "Return #t if the list of parameters is monotonically\n"
+ * "non-decreasing."
+ */
 #define FUNC_NAME s_scm_leq_p
+SCM
+scm_leq_p (SCM x, SCM y)
 {
-  return SCM_BOOL_NOT (scm_less_p (y, x));
+  if (!SCM_NUMBERP (x))
+    SCM_WTA_DISPATCH_2 (g_leq_p, x, y, SCM_ARG1, FUNC_NAME);
+  else if (!SCM_NUMBERP (y))
+    SCM_WTA_DISPATCH_2 (g_leq_p, x, y, SCM_ARG2, FUNC_NAME);
+  else
+    return SCM_BOOL_NOT (scm_less_p (y, x));
 }
 #undef FUNC_NAME
 
 
-SCM_DEFINE1 (scm_geq_p, ">=", scm_tc7_rpsubr,
-             (SCM x, SCM y),
-	     "Return #t if the list of parameters is monotonically\n"
-	     "non-increasing.")
+SCM_GPROC1 (s_scm_geq_p, ">=", scm_tc7_rpsubr, scm_geq_p, g_geq_p);
+/* "Return #t if the list of parameters is monotonically\n"
+ * "non-increasing."
+ */
 #define FUNC_NAME s_scm_geq_p
+SCM
+scm_geq_p (SCM x, SCM y)
 {
+  if (!SCM_NUMBERP (x))
+    SCM_WTA_DISPATCH_2 (g_geq_p, x, y, SCM_ARG1, FUNC_NAME);
+  else if (!SCM_NUMBERP (y))
+    SCM_WTA_DISPATCH_2 (g_geq_p, x, y, SCM_ARG2, FUNC_NAME);
+  else
   return SCM_BOOL_NOT (scm_less_p (x, y));
 }
 #undef FUNC_NAME
