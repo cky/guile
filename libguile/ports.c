@@ -697,15 +697,32 @@ SCM_DEFINE (scm_port_for_each, "port-for-each", 1, 0, 0,
 #define FUNC_NAME s_scm_port_for_each
 {
   int i;
+  SCM ports;
+
   SCM_VALIDATE_PROC (1, proc);
 
   /* when pre-emptive multithreading is supported, access to the port
      table will need to be controlled by a mutex.  */
+
+  /* Even without pre-emptive multithreading, running arbitrary code
+     while scanning the port table is unsafe because the port table
+     can change arbitrarily (from a GC, for example).  So we build a
+     list in advance while blocking the GC. -mvo */
+
   SCM_DEFER_INTS;
+  scm_block_gc++;
+  ports = SCM_EOL;
   for (i = 0; i < scm_port_table_size; i++)
+    ports = scm_cons (scm_port_table[i]->port, ports);
+  scm_block_gc--;
+  SCM_ALLOW_INTS;
+
+  while (ports != SCM_EOL)
     {
-      scm_apply (proc, scm_cons (scm_port_table[i]->port, SCM_EOL), SCM_EOL);
+      scm_apply (proc, scm_cons (SCM_CAR (ports), SCM_EOL), SCM_EOL);
+      ports = SCM_CDR (ports);
     }
+
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
