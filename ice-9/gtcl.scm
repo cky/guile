@@ -26,6 +26,8 @@
 
 (define-module (ice-9 gtcl) :use-module (ice-9 debug))
 
+(read-set! keywords 'prefix)
+
 (define-public TCL_VERSION "7.4")
 (define-public TCL_MAJOR_VERSION 7)
 (define-public TCL_MINOR_VERSION 4)
