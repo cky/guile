@@ -93,33 +93,24 @@ typedef struct guardian_t
 {
   tconc_t live;
   tconc_t zombies;
+  struct guardian_t *next;
 } guardian_t;
 
 #define GUARDIAN(x) ((guardian_t *) SCM_CDR (x))
 #define GUARDIAN_LIVE(x) (GUARDIAN (x)->live)
 #define GUARDIAN_ZOMBIES(x) (GUARDIAN (x)->zombies)
+#define GUARDIAN_NEXT(x) (GUARDIAN (x)->next)
 
-static SCM *guardians = NULL;
-static scm_sizet guardians_size = 0;
-static scm_sizet n_guardians;
+static guardian_t *first_live_guardian = NULL;
+static guardian_t **current_link_field = NULL;
 
 static SCM
 g_mark (SCM ptr)
 {
-  if (n_guardians >= guardians_size)
-    {
-      SCM_SYSCALL (guardians =
-		   (SCM *) realloc((char *) guardians,
-				   sizeof (SCM) * (guardians_size *= 2)));
-      if (!guardians)
-	{
-	  scm_puts ("active guardian table", scm_cur_errp);
-	  scm_puts ("\nFATAL ERROR DURING CRITICAL SCM_CODE SECTION\n",
-		    scm_cur_errp);
-	  exit (SCM_EXIT_FAILURE);
-	}
-    }
-  guardians[n_guardians++] = ptr;
+  *current_link_field = GUARDIAN (ptr);
+  current_link_field = &GUARDIAN_NEXT (ptr);
+  GUARDIAN_NEXT (ptr) = NULL;
+
   /* Can't mark zombies here since they can refer to objects which are
      living dead, thereby preventing them to join the zombies. */
   return SCM_BOOL_F;
@@ -195,23 +186,23 @@ scm_make_guardian ()
 void
 scm_guardian_gc_init()
 {
-  n_guardians = 0;
+  current_link_field = &first_live_guardian;
+  first_live_guardian = NULL;
 }
 
 void
 scm_guardian_zombify ()
 {
-  int i;
-  for (i = 0; i < n_guardians; ++i)
+  guardian_t *g;
+  for (g = first_live_guardian; g; g = g->next)
     {
-      SCM g = guardians[i];
       /* Loop through the live list and
 	 1. move unmarked objects to the zombies tconc
 	 2. mark the live tconc.
       */
-      SCM tconc_tail = GUARDIAN_LIVE (g).tail;
+      SCM tconc_tail = g->live.tail;
       SCM prev_pair = SCM_BOOL_F;
-      SCM pair = GUARDIAN_LIVE (g).head;
+      SCM pair = g->live.head;
       while (pair != tconc_tail)
 	{
 	  SCM next_pair = SCM_CDR (pair);
@@ -222,13 +213,13 @@ scm_guardian_zombify ()
 
 	      /* out of the live list! */
 	      if (SCM_FALSEP (prev_pair))
-		GUARDIAN_LIVE (g).head = next_pair;
+		g->live.head = next_pair;
 	      else
                 /* mark previous pair */
 		SCM_SETCDR (prev_pair, next_pair | 1);
 
 	      /* to the zombie list! */
-	      TCONC_IN (GUARDIAN_ZOMBIES (g), SCM_CAR (pair), pair);
+	      TCONC_IN (g->zombies, SCM_CAR (pair), pair);
 	    }
 	  else
 	    {
@@ -246,7 +237,7 @@ scm_guardian_zombify ()
       /* mark live list tail */
       SCM_SETOR_CDR (tconc_tail, 1);
       
-      scm_gc_mark (GUARDIAN_ZOMBIES (g).head);
+      scm_gc_mark (g->zombies.head);
     }
 }
 
@@ -287,11 +278,6 @@ void
 scm_init_guardian()
 {
   scm_tc16_guardian = scm_newsmob (&g_smob);
-  if (!(guardians = (SCM *) malloc ((guardians_size = 32) * sizeof (SCM))))
-    {
-      fprintf (stderr, "trouble!\n");
-      exit (SCM_EXIT_FAILURE);
-    }
   guard1 = scm_make_subr_opt ("guardian", scm_tc7_subr_2o, guard, 0);
 
 #include "guardians.x"
