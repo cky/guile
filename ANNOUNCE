@@ -1,0 +1,61 @@
+We are pleased to announce the release of Guile 1.7.1.  This is a
+'technology preview' for the upcoming Guile 1.8.
+
+This version is guaranteed to contain serious bugs, and the publically
+visible interface will almost certainly change before 1.8 is released.
+The 1.7 releases might be termed "selected snapshots".
+
+We are releasing it anyway to start testing the new features, and to
+get feedback about how difficult or tedious it is to switch from Guile
+1.6 to this series.
+
+Ideally, you should be able to just link your program with Guile 1.7.1
+instead of with Guile 1.6.x.  You will get many warnings about
+deprecated features, but your program should nevertheless run
+correctly.  If you find that this is not the case (which is quite
+likely) please do not change your program yet.  Instead, report the
+problem to <bug-guile@gnu.org>.
+
+The shared library major versions have been bumped compared to the 1.6
+series, but they will not be bumped on binary incompatible changes
+within the 1.7 series.
+
+
+The NEWS file is quite long.  Here are the most spectacular entries in
+a condensed form:
+
+  Changes since the 1.6.x series:
+
+  - Guile is now licensed with the GNU Lesser General Public License.
+
+  - The manual is now licensed with the GNU Free Documentation License.
+
+  - We now use GNU MP for bignums.
+
+  - We now use native POSIX threads for real concurrent threads.
+
+  - There is now support for copy-on-write substrings and
+    mutation-sharing substrings.
+
+  - We now have exact rationals, such as 1/3.
+
+  - A new family of functions for converting between C values and
+    Scheme values has been added that is future-proof and thread-safe.
+
+  - The INUM macros like SCM_MAKINUM have been deprecated.
+
+  - The macros SCM_STRINGP, SCM_STRING_CHARS, SCM_STRING_LENGTH,
+    SCM_SYMBOL_CHARS, and SCM_SYMBOL_LENGTH have been deprecated.
+
+  - There is a new way to deal with non-local exits and re-entries in
+    C code, which is nicer than scm_internal_dynamic_wind.
+
+  - There are new malloc-like functions that work better than
+    scm_must_malloc, etc.
+
+and most importantly
+
+  - call-with-current-continuation is now also available under the name
+    call/cc.
+
+See NEWS and the manual for more details.
