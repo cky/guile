@@ -1,3 +1,12 @@
+2004-02-18  Kevin Ryde  <user42@zip.com.au>
+
+	* scheme-evaluation.texi (Expression Syntax): Fill section with
+	function calling etc, and quote and quasiquote.
+
+	* srfi-modules.texi (SRFI-9): Revise for detail and clarity.  Don't
+	use ":foo" for example type name, since that depends on the keyword
+	reading option.
+
 2004-02-15  Mikael Djurfeldt  <mdj@chunk.mit.edu>
 
 	* scheme-compound.texi (Hash Table Reference): Wrote a new entry
