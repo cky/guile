@@ -710,7 +710,7 @@
     (let lp ((a alist))
       (if (null? a)
 	'()
-	(if (k= (caar a) key)
+	(if (k= key (caar a))
 	  (lp (cdr a))
 	  (cons (car a) (lp (cdr a))))))))
 
