@@ -1,3 +1,8 @@
+2005-02-28  Marius Vollmer  <mvo@zagadka.de>
+
+	* autogen.sh: Add '--verbose' option to autoreconf invocation.
+	Thanks to Bruno Haible.
+
 2005-01-02  Marius Vollmer  <mvo@zagadka.de>
 
 	* configure.in (SCM_I_GSC_HAVE_ARRAYS): Removed '--disable-arrays'
