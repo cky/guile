@@ -905,35 +905,23 @@
   (pass-if "empty string, no char/pred"
     (zero? (length (string-tokenize ""))))
 
-  (pass-if "empty string, char"
-    (zero? (length (string-tokenize "" #\.))))
-
   (pass-if "empty string, charset"
     (zero? (length (string-tokenize "" char-set:punctuation))))
 
   (pass-if "no char/pred"
     (equal? '("foo" "bar" "!a") (string-tokenize "foo\tbar !a")))
 
-  (pass-if "char"
-    (equal? '("foo:bar" "!a") (string-tokenize "foo:bar.!a" #\.)))
-
   (pass-if "charset"
-    (equal? '("foo" "bar" "a") (string-tokenize "foo:bar.!a"
-						char-set:punctuation)))
-
-  (pass-if "char, start index"
-    (equal? '("oo:bar" "!a") (string-tokenize "foo:bar.!a" #\. 1)))
+    (equal? '("foo" "bar" "!a") (string-tokenize "foo\tbar !a"
+						char-set:graphic)))
 
   (pass-if "charset, start index"
-    (equal? '("oo" "bar" "a") (string-tokenize "foo:bar.!a"
-						char-set:punctuation 1)))
-
-  (pass-if "char, start and end index"
-    (equal? '("oo:bar" "!") (string-tokenize "foo:bar.!a" #\. 1 9)))
+    (equal? '("oo" "bar" "!a") (string-tokenize "foo\tbar !a"
+						char-set:graphic 1)))
 
   (pass-if "charset, start and end index"
-    (equal? '("oo" "bar") (string-tokenize "foo:bar.!a"
-						char-set:punctuation 1 9))))
+    (equal? '("oo" "bar" "!") (string-tokenize "foo\tbar !a"
+					       char-set:graphic 1 9))))
 
 (with-test-prefix "string-filter"
 
