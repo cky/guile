@@ -293,16 +293,21 @@ maplist (SCM ls)
   return orig;
 }
 
-SCM_PROC (s_sys_compute_slots, "%compute-slots", 1, 0, 0, scm_sys_compute_slots);
 
-SCM
-scm_sys_compute_slots (SCM class)
+SCM_DEFINE (scm_sys_compute_slots, "%compute-slots", 1, 0, 0,
+	    (SCM class),
+	    "Return a list consisting of the names of all slots belonging\n"
+	    "to class CLASS, i. e. the slots of CLASS and of all of its\n"
+	    "superclasses.") 
+#define FUNC_NAME s_scm_sys_compute_slots
 {
-  SCM_ASSERT (SCM_NIMP (class) && CLASSP (class),
-	      class, SCM_ARG1, s_sys_compute_slots);
+  SCM_ASSERT (CLASSP (class), class, SCM_ARG1, FUNC_NAME);
+
   return build_slots_list (SCM_SLOT (class, scm_si_direct_slots),
 			   SCM_SLOT (class, scm_si_cpl));
 }
+#undef FUNC_NAME
+
 
 /******************************************************************************
  *
@@ -354,36 +359,44 @@ compute_getters_n_setters (SCM slots)
 SCM
 scm_i_get_keyword (SCM key, SCM l, int len, SCM default_value, const char *subr)
 {
-  int i;
-  for (i = 0; i < len; i += 2)
+  unsigned int i;
+
+  for (i = 0; i != len; i += 2)
     {
-      if (!(SCM_NIMP (SCM_CAR (l)) && SCM_KEYWORDP (SCM_CAR (l))))
-	scm_misc_error (subr,
-			"bad keyword: ~S",
-			SCM_LIST1 (SCM_CAR (l)));
-      if (SCM_CAR (l) == key)
+      SCM obj = SCM_CAR (l);
+
+      if (!SCM_KEYWORDP (obj))
+	scm_misc_error (subr, "bad keyword: ~S", SCM_LIST1 (obj));
+      else if (SCM_EQ_P (obj, key))
 	return SCM_CADR (l);
-      l = SCM_CDDR (l);
+      else
+	l = SCM_CDDR (l);
     }
+
   return default_value;
 }
 
-SCM_PROC (s_get_keyword, "get-keyword", 3, 0, 0, scm_get_keyword);
 
-SCM
-scm_get_keyword (SCM key, SCM l, SCM default_value)
+SCM_DEFINE (scm_get_keyword, "get-keyword", 3, 0, 0,
+	    (SCM key, SCM l, SCM default_value),
+	    "Determine an associated value for the keyword KEY from the\n"
+	    "list L.  The list L has to consist of an even number of\n"
+	    "elements, where, starting with the first, every second element\n"
+	    "is a keyword, followed by its associated value.  If L does not\n"
+	    "hold a value for KEY, the value DEFAULT_VALUE is returned.")
+#define FUNC_NAME s_scm_get_keyword
 {
   int len;
-  SCM_ASSERT (SCM_NIMP (key) && SCM_KEYWORDP (key),
-	      key,
-	      "Bad keyword: ~S",
-	      s_get_keyword);
+
+  SCM_ASSERT (SCM_KEYWORDP (key), key, SCM_ARG1, FUNC_NAME);
   len = scm_ilength (l);
-  SCM_ASSERT (len >= 0 && (len & 1) == 0, l,
-	      "Bad keyword-value list: ~S",
-	      s_get_keyword);
-  return scm_i_get_keyword (key, l, len, default_value, s_get_keyword);
+  if (len < 0 || len % 1 == 1)
+    scm_misc_error (FUNC_NAME, "Bad keyword-value list: ~S", SCM_LIST1 (l));
+
+  return scm_i_get_keyword (key, l, len, default_value, FUNC_NAME);
 }
+#undef FUNC_NAME
+
 
 SCM_PROC (s_sys_initialize_object, "%initialize-object", 2, 0, 0, scm_sys_initialize_object);
 
@@ -1052,7 +1065,7 @@ get_slot_value (SCM class, SCM obj, SCM slotdef)
   /* Two cases here:
    *	- access is an integer (the offset of this slot in the slots vector)
    *	- otherwise (car access) is the getter function to apply
-	   */
+   */
   if (SCM_INUMP (access))
     return SCM_SLOT (obj, SCM_INUM (access));
   else
@@ -1137,39 +1150,38 @@ test_slot_existence (SCM class, SCM obj, SCM slot_name)
 
 		/* ======================================== */
 
-SCM_PROC (s_slot_ref_using_class, "slot-ref-using-class", 3, 0, 0, scm_slot_ref_using_class);
-
-SCM
-scm_slot_ref_using_class (SCM class, SCM obj, SCM slot_name)
+SCM_DEFINE (scm_slot_ref_using_class, "slot-ref-using-class", 3, 0, 0,
+	    (SCM class, SCM obj, SCM slot_name),
+	    "")
+#define FUNC_NAME s_scm_slot_ref_using_class
 {
   SCM res;
 
-  SCM_ASSERT (SCM_NIMP (class) && CLASSP (class),
-	      class, SCM_ARG1, s_slot_ref_using_class);
-  SCM_ASSERT (SCM_NIMP (obj) && SCM_INSTANCEP (obj),
-	      obj, SCM_ARG1, s_slot_ref_using_class);
-  SCM_ASSERT (SCM_NIMP (slot_name) && SCM_SYMBOLP (slot_name),
-	      obj, SCM_ARG3, s_slot_ref_using_class);
+  SCM_ASSERT (CLASSP (class), class, SCM_ARG1, FUNC_NAME);
+  SCM_ASSERT (SCM_INSTANCEP (obj), obj, SCM_ARG1, FUNC_NAME);
+  SCM_ASSERT (SCM_SYMBOLP (slot_name), obj, SCM_ARG3, FUNC_NAME);
 
   res = get_slot_value_using_name (class, obj, slot_name);
   if (SCM_GOOPS_UNBOUNDP (res))
     return CALL_GF3 ("slot-unbound", class, obj, slot_name);
   return res;
 }
- 
-SCM_PROC (s_slot_set_using_class_x, "slot-set-using-class!", 4, 0, 0, scm_slot_set_using_class_x);
+#undef FUNC_NAME
 
-SCM
-scm_slot_set_using_class_x (SCM class, SCM obj, SCM slot_name, SCM value)
+
+SCM_DEFINE (scm_slot_set_using_class_x, "slot-set-using-class!", 4, 0, 0,
+	    (SCM class, SCM obj, SCM slot_name, SCM value),
+	    "")
+#define FUNC_NAME s_scm_slot_set_using_class_x
 {
-  SCM_ASSERT (SCM_NIMP (class) && CLASSP (class),
-	      class, SCM_ARG1, s_slot_set_using_class_x);
-  SCM_ASSERT (SCM_NIMP (obj) && SCM_INSTANCEP (obj),
-	      obj, SCM_ARG2, s_slot_set_using_class_x);
-  SCM_ASSERT (SCM_NIMP (slot_name) && SCM_SYMBOLP (slot_name),
-	      obj, SCM_ARG3, s_slot_set_using_class_x);
+  SCM_ASSERT (CLASSP (class), class, SCM_ARG1, FUNC_NAME);
+  SCM_ASSERT (SCM_INSTANCEP (obj), obj, SCM_ARG2, FUNC_NAME);
+  SCM_ASSERT (SCM_SYMBOLP (slot_name), obj, SCM_ARG3, FUNC_NAME);
+
   return set_slot_value_using_name (class, obj, slot_name, value);
 }
+#undef FUNC_NAME
+
 
 SCM_PROC (s_slot_bound_using_class_p, "slot-bound-using-class?", 3, 0, 0, scm_slot_bound_using_class_p);
 
@@ -2711,3 +2723,9 @@ scm_init_oop_goops_goopscore_module ()
 {
   scm_register_module_xxx ("oop goops goopscore", (void *) scm_init_goops);
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

@@ -1,3 +1,11 @@
+2000-12-01  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* goops.c (scm_sys_compute_slots, scm_i_get_keyword,
+	scm_get_keyword, scm_slot_ref_using_class,
+	scm_slot_set_using_class_x):  Update the code to match guile's
+	current style (e. g. using SCM_DEFINE, adding comments, removing
+	unnecessary SCM_NIMP tests etc.).
+
 2000-11-30  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	Thanks to Julian Satchell for the bug report:
