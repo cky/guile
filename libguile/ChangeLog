@@ -1,5 +1,14 @@
 2000-03-14  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
+	The following change to init.c is only enabled if Guile was
+	configured with --enable-guile-debug.
+	
+	* init.c (scm_i_getenv_int): New function.
+	(scm_boot_guile_1): Use the environment variables
+	GUILE_INIT_HEAP_SIZE, GUILE_INIT_HEAP_SIZE2 to select heap size if
+	they exist.  (This may be replaced by a Scheme level mechanism in
+	the future.)
+
 	* objprop.c (s_scm_set_object_property_x): Use scm_assq instead of
 	scm_assoc.  (Thanks to Dirk Herrmann.)
 
