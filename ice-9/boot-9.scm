@@ -680,7 +680,7 @@
 (define (sqrt z)
   (if (real? z)
       (if (negative? z) (make-rectangular 0 ($sqrt (- z)))
-	  ($sqrt z))
+          ($sqrt z))
       (make-polar ($sqrt (magnitude z)) (/ (angle z) 2))))
 
 (define expt
