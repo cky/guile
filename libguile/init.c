@@ -459,7 +459,7 @@ scm_boot_guile_1 (SCM_STACKITEM *base, struct main_func_closure *closure)
       scm_ports_prehistory ();
       scm_smob_prehistory ();
       scm_tables_prehistory ();
-      scm_init_storage (0, 0);
+      scm_init_storage (0, 8192);
       scm_init_subr_table ();
       scm_init_root ();
 #ifdef USE_THREADS
