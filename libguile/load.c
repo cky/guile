@@ -97,14 +97,7 @@ load (void *data)
       SCM form = scm_read (port);
       if (SCM_EOF_OBJECT_P (form))
 	break;
-      /* Ugh!  We need to re-check the environment for every form.
-       * We should change this in the new module system.
-       */
-      scm_i_eval_x (form,
-		    scm_module_system_booted_p
-		    ? (scm_top_level_env
-		       (SCM_MODULE_EVAL_CLOSURE (scm_current_module ())))
-		    : SCM_EOL);
+      scm_primitive_eval_x (form);
     }
   return SCM_UNSPECIFIED;
 }
