@@ -1,3 +1,7 @@
+1999-04-08  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* boot-9.scm: Provide 'values.
+
 1999-03-21  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
 	* boot-9.scm (process-define-module, use-syntax): Bugfix:
