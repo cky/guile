@@ -47,6 +47,7 @@
 #include "libguile/validate.h"
 #include "libguile/unif.h"
 #include "libguile/ramap.h"
+#include "libguile/print.h"
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
