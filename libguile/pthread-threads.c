@@ -147,16 +147,16 @@ int
 scm_i_plugin_cond_wait (scm_t_cond *c, scm_t_mutex *mx)
 {
   mutex *m = (mutex *) mx;
-  return pthread_cond_wait ((pthread_cond_t *) c, m->mutex);
+  return pthread_cond_wait ((pthread_cond_t *) c, &m->mutex);
 }
 
 int
-scm_i_plugin_cond_wait (scm_t_cond *c,
+scm_i_plugin_cond_timedwait (scm_t_cond *c,
 			scm_t_mutex *mx,
 			const struct timespec *t)
 {
   mutex *m = (mutex *) mx;
-  return pthread_cond_timedwait ((pthread_cond_t *) c, m->mutex, t);
+  return pthread_cond_timedwait ((pthread_cond_t *) c, &m->mutex, t);
 }
 
 #endif
