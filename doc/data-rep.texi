@@ -7,7 +7,7 @@
 
 @include version.texi
 
-@dircategory Scheme Programming
+@dircategory The Algorithmic Language Scheme
 @direntry
 * data-rep: (data-rep).  Data Representation in Guile --- how to use
                          Guile objects in your C code.
@@ -46,7 +46,7 @@ by the Free Software Foundation.
 @sp 10
 @comment The title is printed in a large font.
 @title Data Representation in Guile
-@subtitle $Id: data-rep.texi,v 1.7 1999-07-07 09:40:28 mdj Exp $
+@subtitle $Id: data-rep.texi,v 1.8 1999-12-07 22:43:01 ghouston Exp $
 @subtitle For use with Guile @value{VERSION}
 @author Jim Blandy
 @author Free Software Foundation
