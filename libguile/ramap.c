@@ -1,4 +1,4 @@
-/* Copyright (C) 1996,1998,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1996,1998,2000,2001,2004 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -564,8 +564,7 @@ scm_array_fill_int (SCM ra, SCM fill, SCM ignore SCM_UNUSED)
     case scm_tc7_fvect:
       { /* scope */
 	float f, *ve = (float *) SCM_VELTS (ra);
-	SCM_ASRTGO (SCM_REALP (fill), badarg2);
-	f = SCM_REAL_VALUE (fill);
+        f = (float) scm_num2dbl (fill, FUNC_NAME);
 	for (i = base; n--; i += inc)
 	  ve[i] = f;
 	break;
@@ -573,8 +572,7 @@ scm_array_fill_int (SCM ra, SCM fill, SCM ignore SCM_UNUSED)
     case scm_tc7_dvect:
       { /* scope */
 	double f, *ve = (double *) SCM_VELTS (ra);
-	SCM_ASRTGO (SCM_REALP (fill), badarg2);
-	f = SCM_REAL_VALUE (fill);
+        f = scm_num2dbl (fill, FUNC_NAME);
 	for (i = base; n--; i += inc)
 	  ve[i] = f;
 	break;
