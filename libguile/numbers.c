@@ -544,16 +544,16 @@ SCM_DEFINE (scm_even_p, "even?", 1, 0, 0,
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_inf_p, "inf?", 1, 0, 0, 
-            (SCM n),
-	    "Return @code{#t} if @var{n} is infinite, @code{#f}\n"
-	    "otherwise.")
+            (SCM x),
+	    "Return @code{#t} if @var{x} is either @samp{+inf.0}\n"
+	    "or @samp{-inf.0}, @code{#f} otherwise.")
 #define FUNC_NAME s_scm_inf_p
 {
-  if (SCM_REALP (n))
-    return scm_from_bool (xisinf (SCM_REAL_VALUE (n)));
-  else if (SCM_COMPLEXP (n))
-    return scm_from_bool (xisinf (SCM_COMPLEX_REAL (n))
-		     || xisinf (SCM_COMPLEX_IMAG (n)));
+  if (SCM_REALP (x))
+    return scm_from_bool (xisinf (SCM_REAL_VALUE (x)));
+  else if (SCM_COMPLEXP (x))
+    return scm_from_bool (xisinf (SCM_COMPLEX_REAL (x))
+			  || xisinf (SCM_COMPLEX_IMAG (x)));
   else
     return SCM_BOOL_F;
 }
