@@ -57,7 +57,6 @@ Sat Dec 18 15:22:10 1999  Greg J. Badros  <gjb@cs.washington.edu>
 	argument name was the explicit argument in the old function call.
 	These were just missed in my first pass of changes.
 
->>>>>>> 1.715
 1999-12-18  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* guile-doc-snarf.in (filename): Strip path to source dir before
