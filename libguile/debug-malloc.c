@@ -226,9 +226,11 @@ scm_malloc_reregister (void *old, void *new, const char *newwhat)
 
 SCM_DEFINE (scm_malloc_stats, "malloc-stats", 0, 0, 0,
 	    (),
-	    "Return an alist ((WHAT . N) ...) describing number of malloced objects.\n"
-	    "WHAT is the second argument to scm_must_malloc, N is the number of objects\n"
-	    "of that type currently allocated.")
+	    "Return an alist ((@var{what} . @var{n}) ...) describing number\n"
+	    "of malloced objects.\n"
+	    "@var{what} is the second argument to @code{scm_must_malloc},\n"
+	    "@var{n} is the number of objects of that type currently\n"
+	    "allocated.")
 #define FUNC_NAME s_scm_malloc_stats
 {
   SCM res = SCM_EOL;
