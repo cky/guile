@@ -1618,25 +1618,23 @@ unmemocopy (SCM x, SCM env)
     case SCM_BIT7 (SCM_IM_SET_X):
       ls = z = scm_cons (scm_sym_set_x, SCM_UNSPECIFIED);
       break;
-    case SCM_BIT7 (SCM_IM_DEFINE):
-      {
-	SCM n;
-	x = SCM_CDR (x);
-	n = SCM_CAR (x);
-	z = scm_cons (n, SCM_UNSPECIFIED);
-	ls = scm_cons (scm_sym_define, z);
-	if (!SCM_NULLP (env))
-	  env = scm_cons (scm_cons (scm_cons (n, SCM_CAAR (env)),
-				    SCM_CDAR (env)),
-			  SCM_CDR (env));
-	break;
-      }
     case SCM_BIT7 (SCM_MAKISYM (0)):
       z = SCM_CAR (x);
-      if (!SCM_ISYMP (z))
-	goto unmemo;
       switch (SCM_ISYMNUM (z))
 	{
+        case (SCM_ISYMNUM (SCM_IM_DEFINE)):
+          {
+            SCM n;
+            x = SCM_CDR (x);
+            n = SCM_CAR (x);
+            z = scm_cons (n, SCM_UNSPECIFIED);
+            ls = scm_cons (scm_sym_define, z);
+            if (!SCM_NULLP (env))
+              env = scm_cons (scm_cons (scm_cons (n, SCM_CAAR (env)),
+                                        SCM_CDAR (env)),
+                              SCM_CDR (env));
+            break;
+          }
 	case (SCM_ISYMNUM (SCM_IM_APPLY)):
 	  ls = z = scm_cons (scm_sym_atapply, SCM_UNSPECIFIED);
 	  goto loop;
@@ -1657,7 +1655,6 @@ unmemocopy (SCM x, SCM env)
 	default:
 	  /* appease the Sun compiler god: */ ;
 	}
-    unmemo:
     default:
       ls = z = unmemocar (scm_cons (unmemocopy (SCM_CAR (x), env),
 				    SCM_UNSPECIFIED),
@@ -2441,18 +2438,21 @@ dispatch:
       RETURN (SCM_UNSPECIFIED);
 
 
-    case SCM_BIT7 (SCM_IM_DEFINE):	/* only for internal defines */
-      scm_misc_error (NULL, "Bad define placement", SCM_EOL);
-
-
       /* new syntactic forms go here. */
     case SCM_BIT7 (SCM_MAKISYM (0)):
       proc = SCM_CAR (x);
-      if (!SCM_ISYMP (proc))
-        goto evapply;
-
       switch (SCM_ISYMNUM (proc))
 	{
+
+
+        case (SCM_ISYMNUM (SCM_IM_DEFINE)):
+          /* Top level defines are handled directly by the memoizer and thus
+           * will never generate memoized code with SCM_IM_DEFINE.  Internal
+           * defines which occur at valid positions will be transformed into
+           * letrec expressions.  Thus, whenever the executor detects
+           * SCM_IM_DEFINE, this must come from an internal definition at an
+           * illegal position.  */ 
+          scm_misc_error (NULL, "Bad define placement", SCM_EOL);
 
 
 	case (SCM_ISYMNUM (SCM_IM_APPLY)):

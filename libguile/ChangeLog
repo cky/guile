@@ -1,3 +1,24 @@
+2003-09-14  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* tags.h: Reduced the number of short instructions from 14 to 13.
+	The typecode of the former 14th short instruction is now used to
+	represent long instructions.  Changed some comments to reflect
+	this fact.
+
+	(SCM_MAKISYM): ISYMs get a new tc7 code, namely the one that was
+	previously used by SCM_IM_DEFINE.
+
+	(SCM_IM_DEFINE): Turned into a long instruction.
+
+	* eval.c (unmemocopy, SCM_CEVAL): Treat SCM_IM_DEFINE as a long
+	instruction.
+
+	* eval.c (SCM_CEVAL): Since characters and iflags have now a tc7
+	code that is separate from all instructions, one level of dispatch
+	for long instructions can be eliminated.
+
+	* print.c (scm_isymnames): Removed some commented code.
+
 2003-09-12  Marius Vollmer  <mvo@zagadka.de>
 
 	* __scm.h (SCM_FENCE): Use __memory_barrier with the Intel

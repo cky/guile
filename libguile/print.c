@@ -66,10 +66,6 @@ char *scm_isymnames[] =
   "#@quote",
   "#@set!",
   "#@define",
-#if 0
-  "#@literal-variable-ref",
-  "#@literal-variable-set!",
-#endif
   "#@apply",
   "#@call-with-current-continuation",
 

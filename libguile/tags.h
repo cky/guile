@@ -309,18 +309,17 @@ typedef unsigned long scm_t_bits;
  * subdivision is of interest are the ones with tc3==100.
  *
  * tc7, tc8, tc9 (for objects with tc3==100):
- *   xx-0000-100:  \  evaluator byte codes ('short instructions').  The byte
+ *   00-0000-100:  \  evaluator byte codes ('short instructions').  The byte
  *       ...        } code interpreter can dispatch on them in one step based
- *   xx-1101-100:  /  on their tc7 value.
- *   00-1110-100:  evaluator byte codes ('long instructions').  The byte code
- *                 interpreter needs to dispatch on them in three steps:
- *                 The first dispatch is based on the tc7-code.  The second
- *                 dispatch checks for tc9==00-1110-100.  The third dispatch
- *                 is based on the actual byte code that is extracted from the
- *                 upper bits.
+ *   00-1100-100:  /  on their tc7 value.
+ *   00-1101-100:  evaluator byte codes ('long instructions').  The byte code
+ *                 interpreter needs to dispatch on them in two steps: The
+ *                 first dispatch is based on the tc7-code.  The second
+ *                 dispatch is based on the actual byte code that is extracted
+ *                 from the upper bits.
  *   x1-1110-100:  characters with x as their least significant bit
  *   10-1110-100:  various constants ('flags')
- *   xx-1111-100:  evaluator byte codes ('ilocs')
+ *   x1-1111-100:  evaluator byte codes ('ilocs')
  *
  *
  * Summary of type codes on the heap
@@ -515,17 +514,23 @@ enum scm_tags
 #define SCM_ISYMNUM(n) 		(SCM_UNPACK (n) >> 9)
 #define SCM_ISYMCHARS(n) 	(scm_isymnames[SCM_ISYMNUM (n)])
 #define SCM_MAKSPCSYM(n) 	SCM_PACK (((n) << 9) + ((n) << 3) + 4L)
-#define SCM_MAKISYM(n) 		SCM_PACK (((n) << 9) + 0x74L)
+#define SCM_MAKISYM(n) 		SCM_PACK (((n) << 9) + 0x6cL)
 #define SCM_MAKIFLAG(n) 	SCM_PACK (((n) << 9) + 0x174L)
 
 SCM_API char *scm_isymnames[];   /* defined in print.c */
 
 /* This table must agree with the declarations
- * in repl.c: {Names of immediate symbols}.
+ * in print.c: {Names of immediate symbols}.
  *
  * These are used only in eval but their values
  * have to be allocated here.
  */
+
+/* Evaluator bytecodes (short instructions): These are uniquely identified by
+ * their tc7 value.  This makes it possible for the evaluator to dispatch on
+ * them in one step.  However, the type system allows for at most 13 short
+ * instructions.  Consequently, the most frequent instructions are chosen to
+ * be represented as short instructions.  */
 
 #define SCM_IM_AND		SCM_MAKSPCSYM (0)
 #define SCM_IM_BEGIN		SCM_MAKSPCSYM (1)
@@ -540,7 +545,17 @@ SCM_API char *scm_isymnames[];   /* defined in print.c */
 #define SCM_IM_OR		SCM_MAKSPCSYM (10)
 #define SCM_IM_QUOTE		SCM_MAKSPCSYM (11)
 #define SCM_IM_SET_X		SCM_MAKSPCSYM (12)
-#define SCM_IM_DEFINE           SCM_MAKSPCSYM (13)
+
+/* Evaluator bytecodes (long instructions): All these share a common tc7
+ * value.  Thus, the evaluator needs to dispatch on them in two steps.  */
+
+/* Evaluator bytecode for (define ...) statements.  We make it a long
+ * instruction since the executor will see this bytecode only for a very
+ * limited number of times, namely once for every top-level and internal
+ * definition: Top-level definitions are only executed once and internal
+ * definitions are converted to letrec expressions.  */
+#define SCM_IM_DEFINE           SCM_MAKISYM (13)
+
 #define SCM_IM_APPLY		SCM_MAKISYM (14)
 #define SCM_IM_CONT		SCM_MAKISYM (15)
 #define SCM_BOOL_F		SCM_MAKIFLAG (16)
