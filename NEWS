@@ -63,23 +63,32 @@ debugging evaluator gives better error messages.
 
 ** Checking for duplicate bindings in module system
 
-The module system now checks for duplicate imported bindings.
+The module system now can check for name conflicts among imported
+bindings.
 
 The behavior can be controlled by specifying one or more duplicates
-handlers.  For example, to get back the old behavior (which was to use
-the last imported binding of a certain name), write:
+handlers.  For example, to make Guile return an error for every name
+collision, write:
 
 (define-module (foo)
   :use-module (bar)
   :use-module (baz)
-  :duplicates last)
+  :duplicates check)
 
-If you want the old behavior without changing your module headers, put
-the line:
+The new default behavior of the module system when a name collision
+has been detected is to
+
+ 1. Give priority to bindings marked as a replacement.
+ 2. Issue a warning.
+ 3. Give priority to the last encountered binding (this corresponds to
+     the old behavior).
+
+If you want the old behavior back without replacements or warnings you
+can add the line:
 
   (default-duplicate-binding-handler 'last)
 
-in your .guile init file.
+to your .guile init file.
 
 The syntax for the :duplicates option is:
 
@@ -95,6 +104,7 @@ Currently available duplicates handlers are:
   warn		     issue a warning for bindings with a common name
   replace	     replace bindings which have an imported replacement
   warn-override-core issue a warning for imports which override core bindings
+		     and accept the override
   first		     select the first encountered binding (override)
   last		     select the last encountered binding (override)
 
@@ -106,7 +116,12 @@ These two are provided by the (oop goops) module:
 
 The default duplicates handler is:
 
-  (replace warn-override-core check)
+  (replace warn last)
+
+A recommended handler (which is likely to correspond to future Guile
+behavior) can be installed with:
+
+  (default-duplicate-binding-handler '(replace warn-override-core check))
 
 ** New define-module option: :replace
 

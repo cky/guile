@@ -153,18 +153,6 @@
 
 
 
-;;; {Integer Math}
-;;;
-
-(define (ipow-by-squaring x k acc proc)
-  (cond ((zero? k) acc)
-	((= 1 k) (proc acc x))
-	(else (ipow-by-squaring (proc x x)
-				(quotient k 2)
-				(if (even? k) acc (proc acc x))
-				proc))))
-
-
 ;;; {Symbol Properties}
 ;;;
 
@@ -2916,7 +2904,7 @@
   (make-mutable-parameter #f))
 
 (define default-duplicate-binding-handler
-  (make-mutable-parameter '(replace warn-override-core check)
+  (make-mutable-parameter '(replace warn last)
 			  (lambda (handler-names)
 			    (default-duplicate-binding-procedures
 			      (lookup-duplicates-handlers handler-names))

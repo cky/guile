@@ -1,5 +1,9 @@
 2003-03-12  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
+	* boot-9.scm (ipow-by-squaring): Removed.
+	(default-duplicate-binding-handler): Set default to
+	'(replace warn last)
+
 	* boot-9.scm (module-make-local-var!): Use module-add!.
 	(module-primitive-add!): New function.
 	(resolve-interface): Use
