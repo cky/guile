@@ -969,6 +969,7 @@ SCM_DEFINE (scm_simple_format, "simple-format", 2, 0, 1,
 	    start = p + 1;
 	    continue;
 	  case '%':
+	    scm_lfwrite (start, p - start - 1, destination);
 	    scm_newline (destination);
 	    start = p + 1;
 	    continue;
