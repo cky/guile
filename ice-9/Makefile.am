@@ -43,5 +43,5 @@ EXTRA_DIST = $(ice9_sources) test.scm compile-psyntax.scm
 
 if MAINTAINER_MODE
 psyntax.pp: psyntax.ss
-	GUILE_LOAD_PATH=$(srcdir)/..:.. ../libguile/guile -s compile-psyntax.scm $(srcdir)/psyntax.ss $(srcdir)/psyntax.pp
+	GUILE_LOAD_PATH=$(srcdir)/..:.. ../libguile/guile -s $(srcdir)/compile-psyntax.scm $(srcdir)/psyntax.ss $(srcdir)/psyntax.pp
 endif

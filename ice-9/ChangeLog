@@ -1,3 +1,8 @@
+2001-09-18  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* Makefile.am (psyntax.pp): Reference compile-psyntax.scm in
+	$(srcdir) in order to support separate build trees.
+
 2001-09-08  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
 	* optargs.scm (lambda*): Record the broken-down argument list in
