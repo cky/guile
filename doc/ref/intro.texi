@@ -54,7 +54,8 @@ imposed on them.
 @chapter A Whirlwind Tour
 
 This chapter presents a quick tour of all the ways that Guile can be
-used.
+used.  There are additional examples in the @file{examples/}
+directory in the Guile source distribution.
 
 @menu
 * Running Guile Interactively::
