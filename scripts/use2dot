@@ -1,0 +1,166 @@
+#!/bin/sh
+# aside from this initial boilerplate, this is actually -*- scheme -*- code
+main='(module-ref (resolve-module '\''(scripts use2dot)) '\'main')'
+exec ${GUILE-guile} -c "(apply $main (cdr (command-line)))" "$@"
+!#
+;;; use2dot --- Display module dependencies as a DOT specification
+
+;; 	Copyright (C) 2001 Free Software Foundation, Inc.
+;;
+;; This program is free software; you can redistribute it and/or
+;; modify it under the terms of the GNU General Public License as
+;; published by the Free Software Foundation; either version 2, or
+;; (at your option) any later version.
+;;
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;; General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with this software; see the file COPYING.  If not, write to
+;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+;; Boston, MA 02111-1307 USA
+
+;;; Commentary:
+
+;; Usage: use2dot [OPTIONS] [FILE ...]
+;; Display to stdout a DOT specification that describes module dependencies
+;; in FILEs.
+;;
+;; A top-level `use-modules' form or a `:use-module' `define-module'-component
+;; results in a "solid" style edge.
+;;
+;; An `:autoload' `define-module'-component results in a "dotted" style edge
+;; with label "N" indicating that N names are responsible for triggering the
+;; autoload.
+;;
+;; A top-level `load' or `primitive-load' form results in a a "bold" style
+;; edge to a node named with either the file name if the `load' argument is a
+;; string, or "[computed in FILE]" otherwise.
+;;
+;; Options:
+;; --default-module MOD  -- Set MOD as the default module (for top-level
+;;                          `use-modules' forms that do not follow some
+;;                          `define-module' form in a file).  MOD should be
+;;                          be a list or `#f', in which case such top-level
+;;                          `use-modules' forms are effectively ignored.
+;;                          Default value: `(guile)'.
+;;
+;; TODO
+;; - add `--load-synonyms' option
+;; - add `--ignore-module' option
+;; - handle arbitrary command-line key/value configuration
+;;
+;; Author: Thien-Thi Nguyen based on PERL script by Keisuke Nishida
+
+;;; Code:
+
+(define-module (scripts use2dot)
+  :use-module (ice-9 regex))
+
+(define (string-append/separator separator strings)
+  ;; from (ttn stringutils) -- todo: use srfi-13
+  ;;   "Append w/ SEPARATOR a list of STRINGS.
+  ;; SEPARATOR can be a character or a string."
+  (let ((rev (reverse strings))
+        (sep (if (char? separator)
+                 (make-string 1 separator)
+                 separator)))
+    (apply string-append
+           (let loop ((s (cdr rev))
+                      (acc (list (car rev))))
+             (if (null? s)
+                 acc
+                 (loop (cdr s)
+                       (cons (car s)
+                             (cons sep acc))))))))
+
+(define (mapconcat proc ls sep)
+  ;; from (ttn stringutils) -- todo: use srfi-13
+  ;; "Map PROC over LS, concatening resulting strings with separator SEP."
+  (string-append/separator sep (map proc ls)))
+
+(define default-module '(guile))
+
+(define (q s)                           ; quote
+  (format #f "~S" s))
+
+(define (vv pair)                       ; var=val
+  (format #f "~A=~A" (car pair) (cdr pair)))
+
+(define (spew module use . etc)
+  (and module
+       (let ((etc-spec (if (null? etc)
+                           ""
+                           (format #f " [~A]" (mapconcat vv etc ",")))))
+         (format #t "  \"~A\" -> \"~A\"~A;\n" module use etc-spec))))
+
+(define (header)
+  (format #t "digraph use2dot {")
+  (for-each (lambda (s) (format #t "  ~A;\n" s))
+            (map vv `((label . ,(q "Guile Module Dependencies"))
+                      ;(rankdir . LR)
+                      ;(size . ,(q "7.5,10"))
+                      (ratio . fill)
+                      ;(nodesep . ,(q "0.05"))
+                      ))))
+
+(define (grok filename)
+  (let* ((p (open-file filename "r"))
+         (next (lambda () (read p)))
+         (curmod #f))
+    (let loop ((form (next)))
+      (cond ((eof-object? form))
+            ((not (list? form)) (loop (next)))
+            (else (case (car form)
+                    ((define-module)
+                     (let ((module (cadr form)))
+                       (set! curmod module)
+                       (let loop ((ls form))
+                         (or (null? ls)
+                             (case (car ls)
+                               ((:use-module)
+                                (spew module (cadr ls))
+                                (loop (cddr ls)))
+                               ((:autoload)
+                                (spew module (cadr ls)
+                                      '(style . dotted)
+                                      '(fontsize . 5)
+                                      (let ((len (length (caddr ls))))
+                                        `(label . ,(q (number->string len)))))
+                                (loop (cdddr ls)))
+                               (else (loop (cdr ls))))))))
+                    ((use-modules)
+                     (for-each (lambda (use)
+                                 (spew (or curmod default-module) use))
+                               (cdr form)))
+                    ((load primitive-load)
+                     (spew (or curmod default-module)
+                           (let ((file (cadr form)))
+                             (if (string? file)
+                                 file
+                                 (format #f "[computed in ~A]" filename)))
+                           '(style . bold))))
+                  (loop (next)))))))
+
+(define (body files)
+  (for-each grok files))
+
+(define (footer)
+  (format #t "}"))
+
+(define (use2dot . args)
+  (header)
+  (let* ((override (cond ((member "--default-module" args) => cadr)
+                         (else #f)))
+         (files (if override (cddr args) args)))
+    (and override
+         (set! default-module
+               (with-input-from-string override (lambda () (read)))))
+    (body files))
+  (footer))
+
+(define main use2dot)
+
+;;; use2dot ends here

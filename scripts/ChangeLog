@@ -1,0 +1,5 @@
+2001-04-29  Thien-Thi Nguyen  <ttn@revel.glug.org>
+
+	* Makefile.am, PROGRAM, README, display-commentary,
+	doc-snarf, generate-autoload, punify, use2dot: New file
+
