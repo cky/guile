@@ -1,5 +1,14 @@
 2001-02-05  Keisuke Nishida  <kxn30@po.cwru.edu>
 
+	* dump.c (scm_store_cell_object, scm_restore_cell_object): Removed.
+	(scm_dump_cell_update): Removed.
+	(scm_dump_update): Renamed from scm_dump_object_update.
+	(scm_restore_string, scm_restore_bytes, scm_restore_word): Takes
+	a pointer instead of returning a value.
+	* keywords.c (keyword_undump): Updated.
+
+2001-02-05  Keisuke Nishida  <kxn30@po.cwru.edu>
+
 	* dump.c, dump.h: Modified a lot.
 	(SCM_DUMP_COOKIE): Version 0.1
 	(scm_dump_mark): Removed.

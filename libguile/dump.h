@@ -49,13 +49,11 @@ extern void scm_store_string (const char *addr, scm_sizet size, SCM dstate);
 extern void scm_store_bytes (const void *addr, scm_sizet size, SCM dstate);
 extern void scm_store_word (const scm_bits_t word, SCM dstate);
 extern void scm_store_object (SCM obj, SCM dstate);
-extern void scm_store_cell_object (SCM cell, int n, SCM dstate);
 
-extern const char *scm_restore_string (scm_sizet *sizep, SCM dstate);
-extern const void *scm_restore_bytes (scm_sizet size, SCM dstate);
-extern scm_bits_t scm_restore_word (SCM dstate);
+extern void scm_restore_string (const char **pp, scm_sizet *sizep, SCM dstate);
+extern void scm_restore_bytes (const void **pp, scm_sizet size, SCM dstate);
+extern void scm_restore_word (scm_bits_t *wordp, SCM dstate);
 extern void scm_restore_object (SCM *objp, SCM dstate);
-extern void scm_restore_cell_object (SCM cell, int n, SCM dstate);
 
 extern SCM scm_binary_write (SCM obj, SCM port);
 extern SCM scm_binary_read (SCM port);

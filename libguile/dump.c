@@ -75,17 +75,10 @@ struct scm_dump_header {
 					/* or immediate value */
 };
 
-struct scm_dump_object_update {
+struct scm_dump_update {
   scm_bits_t id;			/* object identifier */
   scm_bits_t *addr;			/* object address */
-  struct scm_dump_object_update *next;	/* next update */
-};
-
-struct scm_dump_cell_update {
-  scm_bits_t id;			/* object identifier */
-  SCM cell;				/* cell */
-  int n;				/* 0-3 */
-  struct scm_dump_cell_update *next;	/* next update */
+  struct scm_dump_update *next;		/* next update */
 };
 
 
@@ -96,41 +89,33 @@ struct scm_dump_cell_update {
 static scm_bits_t scm_tc16_dstate;
 
 struct scm_dstate {
-  /* Memory image */
   int mmapped;
   scm_sizet image_size;
   int image_index;
-  char *image_base;
-
-  /* Object table */
+  char *image_base;			/* Memory image */
   int table_index;
-  SCM table;
-
-  /* Update schedule */
-  struct scm_dump_object_update *object_updates;
-  struct scm_dump_cell_update *cell_updates;
+  SCM table;				/* Object table */
+  struct scm_dump_update *updates;	/* Update schedule */
 };
 
 #define SCM_DSTATE_DATA(d)	    ((struct scm_dstate *) SCM_SMOB_DATA (d))
 #define SCM_DSTATE_TABLE(d)	    (SCM_DSTATE_DATA (d)->table)
 #define SCM_DSTATE_TABLE_REF(d,i)   (SCM_VELTS (SCM_DSTATE_TABLE (d))[i])
 #define SCM_DSTATE_TABLE_SET(d,i,x) (SCM_VELTS (SCM_DSTATE_TABLE (d))[i] = (x))
-#define SCM_DSTATE_OBJECT_UPDATES(d)(SCM_DSTATE_DATA (d)->object_updates)
-#define SCM_DSTATE_CELL_UPDATES(d)  (SCM_DSTATE_DATA (d)->cell_updates)
+#define SCM_DSTATE_UPDATES(d)	    (SCM_DSTATE_DATA (d)->updates)
 
 static SCM
 make_dstate ()
 #define FUNC_NAME "make_dstate"
 {
   struct scm_dstate *p = SCM_MUST_MALLOC (sizeof (struct scm_dstate));
-  p->mmapped        = 0;
-  p->image_size     = SCM_DUMP_IMAGE_SIZE;
-  p->image_index    = 0;
-  p->image_base     = SCM_MUST_MALLOC (p->image_size);
-  p->table_index    = 0;
-  p->table          = SCM_BOOL_F;
-  p->object_updates = 0;
-  p->cell_updates   = 0;
+  p->mmapped     = 0;
+  p->image_size  = SCM_DUMP_IMAGE_SIZE;
+  p->image_index = 0;
+  p->image_base  = SCM_MUST_MALLOC (p->image_size);
+  p->table_index = 0;
+  p->table       = SCM_BOOL_F;
+  p->updates     = 0;
   SCM_RETURN_NEWSMOB (scm_tc16_dstate, p);
 }
 #undef FUNC_NAME
@@ -152,14 +137,13 @@ make_dstate_by_mmap (int fd)
   if (addr == MAP_FAILED)
     SCM_SYSERROR;
 
-  p->mmapped        = 1;
-  p->image_size     = st.st_size;
-  p->image_index    = 0;
-  p->image_base     = addr;
-  p->table_index    = 0;
-  p->table          = SCM_BOOL_F;
-  p->object_updates = 0;
-  p->cell_updates   = 0;
+  p->mmapped     = 1;
+  p->image_size  = st.st_size;
+  p->image_index = 0;
+  p->image_base  = addr;
+  p->table_index = 0;
+  p->table       = SCM_BOOL_F;
+  p->updates     = 0;
   SCM_RETURN_NEWSMOB (scm_tc16_dstate, p);
 }
 #undef FUNC_NAME
@@ -193,19 +177,12 @@ dstate_free (SCM obj)
     }
 
   /* Free update schedules */
-  while (p->object_updates)
+  while (p->updates)
     {
-      struct scm_dump_object_update *next = p->object_updates->next;
-      scm_must_free (p->object_updates);
-      size += sizeof (struct scm_dump_object_update);
-      p->object_updates = next;
-    }
-  while (p->cell_updates)
-    {
-      struct scm_dump_cell_update *next = p->cell_updates->next;
-      scm_must_free (p->cell_updates);
-      size += sizeof (struct scm_dump_cell_update);
-      p->cell_updates = next;
+      struct scm_dump_update *next = p->updates->next;
+      scm_must_free (p->updates);
+      size += sizeof (struct scm_dump_update);
+      p->updates = next;
     }
 
   scm_must_free (p);
@@ -309,98 +286,69 @@ scm_store_object (SCM obj, SCM dstate)
     {
       /* OBJ is not stored yet.  Do it later */
       struct scm_dstate *p = SCM_DSTATE_DATA (dstate);
-      struct scm_dump_object_update *update =
-	scm_must_malloc (sizeof (struct scm_dump_object_update),
+      struct scm_dump_update *update =
+	scm_must_malloc (sizeof (struct scm_dump_update),
 			 "scm_store_object");
       update->id   = SCM_UNPACK (obj);
       update->addr = (scm_bits_t *) p->image_index;
-      update->next = p->object_updates;
-      p->object_updates = update;
+      update->next = p->updates;
+      p->updates = update;
     }
   scm_store_word (id, dstate);
-}
-
-void
-scm_store_cell_object (SCM cell, int n, SCM dstate)
-{
-  scm_store_object (SCM_CELL_OBJECT (cell, n), dstate);
 }
 
 /* restore functions */
 
 static void
-scm_restore_pad (SCM dstate)
+scm_restore_pad (struct scm_dstate *p)
 {
-  struct scm_dstate *p = SCM_DSTATE_DATA (dstate);
   while (p->image_index % sizeof (scm_bits_t) != 0)
     p->image_index++;
 }
 
-const char *
-scm_restore_string (scm_sizet *sizep, SCM dstate)
+void
+scm_restore_string (const char **pp, scm_sizet *sizep, SCM dstate)
 {
   struct scm_dstate *p = SCM_DSTATE_DATA (dstate);
-  const char *addr = p->image_base + p->image_index;
-  *sizep = strlen (addr);
+  *pp = p->image_base + p->image_index;
+  *sizep = strlen (*pp);
   p->image_index += *sizep + 1;
-  scm_restore_pad (dstate);
-  return addr;
+  scm_restore_pad (p);
 }
 
-const void *
-scm_restore_bytes (scm_sizet size, SCM dstate)
+void
+scm_restore_bytes (const void **pp, scm_sizet size, SCM dstate)
 {
   struct scm_dstate *p = SCM_DSTATE_DATA (dstate);
-  const void *addr = p->image_base + p->image_index;
+  *pp = p->image_base + p->image_index;
   p->image_index += size;
-  scm_restore_pad (dstate);
-  return addr;
+  scm_restore_pad (p);
 }
 
-scm_bits_t
-scm_restore_word (SCM dstate)
+void
+scm_restore_word (scm_bits_t *wordp, SCM dstate)
 {
   struct scm_dstate *p = SCM_DSTATE_DATA (dstate);
-  scm_bits_t word = *(scm_bits_t *) (p->image_base + p->image_index);
+  *wordp = *(scm_bits_t *) (p->image_base + p->image_index);
   p->image_index += sizeof (scm_bits_t);
-  return word;
 }
 
 void
 scm_restore_object (SCM *objp, SCM dstate)
 {
-  scm_bits_t id = scm_restore_word (dstate);
+  scm_bits_t id;
+  scm_restore_word (&id, dstate);
   *objp = scm_indicator_object (id, dstate);
 
   if (SCM_UNBNDP (*objp))
     {
-      struct scm_dump_object_update *update =
-	scm_must_malloc (sizeof (struct scm_dump_object_update),
+      struct scm_dump_update *update =
+	scm_must_malloc (sizeof (struct scm_dump_update),
 			 "scm_restore_object");
       update->id   = id;
       update->addr = (scm_bits_t *) objp;
-      update->next = SCM_DSTATE_OBJECT_UPDATES (dstate);
-      SCM_DSTATE_OBJECT_UPDATES (dstate) = update;
-    }
-}
-
-void
-scm_restore_cell_object (SCM cell, int n, SCM dstate)
-{
-  scm_bits_t id = scm_restore_word (dstate);
-  SCM obj = scm_indicator_object (id, dstate);
-  SCM_SET_CELL_OBJECT (cell, n, obj);
-
-  if (SCM_UNBNDP (obj))
-    {
-      struct scm_dump_cell_update *update =
-	scm_must_malloc (sizeof (struct scm_dump_cell_update),
-			 "scm_restore_cell_object");
-      update->id   = id;
-      update->cell = cell;
-      update->n    = n;
-      update->next = SCM_DSTATE_CELL_UPDATES (dstate);
-      SCM_DSTATE_CELL_UPDATES (dstate) = update;
+      update->next = SCM_DSTATE_UPDATES (dstate);
+      SCM_DSTATE_UPDATES (dstate) = update;
     }
 }
 
@@ -427,8 +375,8 @@ scm_dump (SCM obj, SCM dstate)
       scm_store_word (scm_tc3_cons, dstate);
       /* Store cdr first in order to avoid a possible deep recursion
        * with a long list */
-      scm_store_cell_object (obj, 1, dstate);
-      scm_store_cell_object (obj, 0, dstate);
+      scm_store_object (SCM_CDR (obj), dstate);
+      scm_store_object (SCM_CAR (obj), dstate);
       goto next_dump;
     }
   switch (SCM_TYP7 (obj))
@@ -478,10 +426,10 @@ scm_dump (SCM obj, SCM dstate)
     }
 
  next_dump:
-  while (p->object_updates)
+  while (p->updates)
     {
-      struct scm_dump_object_update *update = p->object_updates;
-      p->object_updates = update->next;
+      struct scm_dump_update *update = p->updates;
+      p->updates = update->next;
       scm_dump (SCM_PACK (update->id), dstate);
       *(scm_bits_t *) (p->image_base + (int) update->addr) =
 	scm_object_indicator (SCM_PACK (update->id), dstate);
@@ -493,15 +441,17 @@ static void
 scm_undump (SCM dstate)
 {
   struct scm_dstate *p = SCM_DSTATE_DATA (dstate);
-  scm_bits_t tc = scm_restore_word (dstate);
+  scm_bits_t tc;
   SCM obj;
+
+  scm_restore_word (&tc, dstate);
 
   if (SCM_ITAG3 (SCM_PACK (tc)) == scm_tc3_cons)
     {
       SCM_NEWCELL (obj);
       /* cdr was stored first */
-      scm_restore_cell_object (obj, 1, dstate);
-      scm_restore_cell_object (obj, 0, dstate);
+      scm_restore_object ((SCM *) &SCM_CDR (obj), dstate);
+      scm_restore_object ((SCM *) &SCM_CAR (obj), dstate);
       goto store_object;
     }
 
@@ -510,22 +460,25 @@ scm_undump (SCM dstate)
     case scm_tc7_symbol:
       {
 	int len;
-	const char *mem = scm_restore_string (&len, dstate);
+	const char *mem;
+	scm_restore_string (&mem, &len, dstate);
 	obj = scm_mem2symbol (mem, len);
 	goto store_object;
       }
     case scm_tc7_string:
       {
 	int len;
-	const char *mem = scm_restore_string (&len, dstate);
+	const char *mem;
+	scm_restore_string (&mem, &len, dstate);
 	obj = scm_makfromstr (mem, len, 0);
 	goto store_object;
       }
     case scm_tc7_vector:
       {
 	int i;
-	int len = scm_restore_word (dstate);
+	scm_bits_t len;
 	SCM *base;
+	scm_restore_word (&len, dstate);
 	obj = scm_c_make_vector (len, SCM_BOOL_F);
 	base = SCM_VELTS (obj);
 	for (i = 0; i < len; i++)
@@ -638,21 +591,11 @@ SCM_DEFINE (scm_binary_read, "binary-read", 0, 1, 0,
     scm_undump (dstate);
 
   /* Update references */
-  while (p->object_updates)
+  while (p->updates)
     {
-      struct scm_dump_object_update *update = p->object_updates;
-      p->object_updates = update->next;
+      struct scm_dump_update *update = p->updates;
+      p->updates = update->next;
       *(update->addr) = SCM_UNPACK (scm_indicator_object (update->id, dstate));
-      scm_must_free (update);
-    }
-  /* Link objects */
-  while (p->cell_updates)
-    {
-      struct scm_dump_cell_update *update = p->cell_updates;
-      p->cell_updates = update->next;
-      SCM_SET_CELL_OBJECT (update->cell,
-			   update->n,
-			   scm_indicator_object (update->id, dstate));
       scm_must_free (update);
     }
 
