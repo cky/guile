@@ -87,7 +87,7 @@ with_traps_after (void *data)
 static SCM
 with_traps_inner (void *data)
 {
-  SCM thunk = SCM_PACK (data);
+  SCM thunk = SCM_PACK ((scm_t_bits) data);
   return scm_call_0 (thunk);
 }
 

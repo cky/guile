@@ -151,7 +151,7 @@ typedef unsigned long scm_t_c_bvec_long;
   (((scm_t_bits *) SCM2PTR (x)) [n] = (scm_t_bits) (v))
 #define SCM_GC_SET_CELL_OBJECT(x, n, v) \
  (((scm_t_bits *) SCM2PTR (x)) [n] = SCM_UNPACK (v))
-#define SCM_GC_CELL_TYPE(x) SCM_GC_CELL_WORD (x, 0)
+#define SCM_GC_CELL_TYPE(x) SCM_GC_CELL_OBJECT (x, 0) /* ugh - only used once. */
 
 
 /* Except for the garbage collector, no part of guile should ever run over a

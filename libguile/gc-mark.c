@@ -166,7 +166,7 @@ scm_gc_mark_dependencies (SCM p)
 {
   register long i;
   register SCM ptr;
-  scm_t_bits cell_type;
+  SCM cell_type;
 
   ptr = p;
  scm_mark_dependencies_again:

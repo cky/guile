@@ -106,8 +106,21 @@ typedef unsigned long scm_t_bits;
  * type checking while still resulting in very efficient code.
  */
     typedef struct scm_unused_struct * SCM;
-#   define SCM_UNPACK(x) ((scm_t_bits) (x))
+
+/*
+  The 0?: constructions makes sure that the code is never executed,
+  and that there is no performance hit.  However, the alternative is
+  compiled, and does generate a warning when used with the wrong
+  pointer type.
+ */
+#   define SCM_UNPACK(x) ((scm_t_bits) (0? (*(SCM*)0=(x)): x))
+
+/*
+  There is no typechecking on SCM_PACK, since all kinds of types
+  (unsigned long, void*) go in SCM_PACK
+ */
 #   define SCM_PACK(x) ((SCM) (x))
+
 #else
 /* This should be used as a fall back solution for machines on which casting
  * to a pointer may lead to loss of bit information, e. g. in the three least
@@ -115,7 +128,7 @@ typedef unsigned long scm_t_bits;
  */
     typedef scm_t_bits SCM;
 #   define SCM_UNPACK(x) (x)
-#   define SCM_PACK(x) ((scm_t_bits) (x))
+#   define SCM_PACK(x) ((SCM) (x))
 #endif
 
 

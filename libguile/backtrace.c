@@ -521,7 +521,7 @@ display_backtrace_file_and_line (SCM frame, SCM port, scm_print_state *pstate)
 
   display_backtrace_get_file_line (frame, &file, &line);
 
-  if (SCM_EQ_P (SCM_SHOW_FILE_NAME, sym_base))
+  if (SCM_EQ_P (SCM_PACK (SCM_SHOW_FILE_NAME), sym_base))
     {
       if (SCM_FALSEP (file))
 	{
@@ -572,7 +572,7 @@ display_frame (SCM frame, int nfield, int indentation, SCM sport, SCM port, scm_
     }
 
   /* display file name and line number */
-  if (!SCM_FALSEP (SCM_SHOW_FILE_NAME))
+  if (!SCM_FALSEP (SCM_PACK (SCM_SHOW_FILE_NAME)))
     display_backtrace_file_and_line (frame, port, pstate);
 
   /* Check size of frame number. */
@@ -722,7 +722,7 @@ display_backtrace_body (struct display_backtrace_args *a)
   last_file = SCM_UNDEFINED;
   for (i = 0; i < n; ++i)
     {
-      if (!SCM_EQ_P (SCM_SHOW_FILE_NAME, sym_base))
+      if (!SCM_EQ_P (SCM_PACK (SCM_SHOW_FILE_NAME), sym_base))
 	display_backtrace_file (frame, &last_file, a->port, pstate);
 
       display_frame (frame, nfield, indentation, sport, a->port, pstate);
