@@ -8,6 +8,7 @@
 
 	* guile-config.in (build-link): Include a -L option in the output
 	from `guile-config link', indicating where libguile was installed.
+	(Thanks to Greg Troxel.)
 
 1998-10-03  Jim Blandy  <jimb@zwingli.cygnus.com>
 

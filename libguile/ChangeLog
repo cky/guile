@@ -1,3 +1,21 @@
+1998-10-06  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* libguile.h: Mark these as C declarations, for compilation by C++
+	compilers.
+
+	* snarf.h (SCM_PROC, SCM_PROC1): Remove very odd code in #ifdef
+ 	__cplusplus clause.  I seriously doubt this ever worked the way
+ 	the author seems to have intended.
+
+1998-10-05  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	Utterly needless cleanups to hopelessly messy code.
+	* ports.c: Doc fixes.
+	(scm_fflush): Moved to ...
+	* genio.c (scm_fflush): ... here, amongst all the other port
+	method invocation functions.
+	* genio.h, ports.h: The prototype moves too.
+
 1998-10-04  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	* backtrace.c (display_error_body): The current frame does not
