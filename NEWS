@@ -834,6 +834,11 @@ Use scm_is_keyword and scm_keyword_to_symbol instead, but note that
 the latter returns the true name of the keyword, not the 'dash name',
 as SCM_KEYWORDSYM used to do.
 
+** A new way to access arrays in a thread-safe and efficient way has
+   been added.
+
+See the manual, node "Accessing Arrays From C".
+
 ** The old uniform vector and bitvector implementations have been
    unceremoniously removed.
 
@@ -862,6 +867,18 @@ SCM_VECTOR_LENGTH, SCM_VECTOR_REF, SCM_VECTOR_SET, SCM_WRITABLE_VELTS.
 The following macros have been removed: SCM_VECTOR_BASE,
 SCM_SET_VECTOR_BASE, SCM_MAKE_VECTOR_TAG, SCM_SET_VECTOR_LENGTH,
 SCM_VELTS_AS_STACKITEMS, SCM_SETVELTS, SCM_GC_WRITABLE_VELTS.
+
+** Some C functions related to arrays have been deprecated.
+
+Migrate according to the following table:
+
+    scm_make_uve        -> scm_make_typed_aray, scm_make_u8vector etc.
+    scm_make_ra         -> scm_make_array
+    scm_shap2ra         -> scm_make_array
+    scm_cvref           -> scm_c_generalized_vector_ref
+    scm_ra_set_contp    -> do not use
+    scm_aind            -> scm_array_handle_pos
+    scm_raprin1         -> scm_display or scm_write
 
 ** SCM_CELL_WORD_LOC has been deprecated.
 

@@ -1,3 +1,23 @@
+2005-01-11  Marius Vollmer  <mvo@zagadka.de>
+
+	* ramap.c: Replace uses of scm_make_ra with scm_i_make_ra.
+	(GVREF, GVSET): New abbreviations.  Use them everywhere instead of
+	scm_c_generalized_vector_ref and scm_cvref, and
+	scm_c_generalized_vector_set_x, respectively.
+	(RVREF, IVDEP, BINARY_ELTS_CODE, BINARY_PAIR_ELTS_CODE,
+	UNARY_ELTS_CODE, UNARY_PAIR_ELTS_CODE): Removed since unused.
+
+	* unif.h, unif.c (indices_to_pos, scm_array_handle_pos): Renamed
+	former to latter and made public.  Changed all uses.
+	(scm_i_make_ra): Made public, changed tag param to enclosed flag.
+	(scm_make_ra): Deprecated, changed all uses to scm_i_make_ra.
+	(scm_i_shap2ra): New internal version of scm_shap2ra.
+	(scm_shap2ra): Deprecated, changed all uses to scm_i_shap2ra.
+	(scm_i_ra_set_contp): New internal version of scm_ra_set_contp.
+	(scm_ra_set_contp): Deprecated, changed all uses to
+	scm_i_ra_set_contp.
+	(scm_cvref, scm_aind, scm_raprin1): Deprecated.
+	
 2005-01-10  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* eval.c (scm_eval): Added example to docstring.  Thanks to Issac
