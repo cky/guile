@@ -606,8 +606,8 @@ scm_igc (const char *what)
   /*
     See above.
    */
-  scm_c_hook_run (&scm_after_gc_c_hook, 0);
   --scm_gc_running_p;
+  scm_c_hook_run (&scm_after_gc_c_hook, 0);
   scm_rec_mutex_unlock (&scm_i_sweep_mutex);
 
   /*
