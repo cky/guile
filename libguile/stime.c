@@ -62,6 +62,10 @@
 #  include <sys/types.h>
 # endif
 
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif
+
 # ifdef TIME_WITH_SYS_TIME
 #  include <sys/time.h>
 #  include <time.h>
@@ -560,7 +564,7 @@ SCM_DEFINE (scm_strftime, "strftime", 2, 0, 0,
 
   char *tbuf;
   int size = 50;
-  char *fmt;
+  char *fmt, *myfmt;
   int len;
   SCM result;
 
@@ -570,6 +574,16 @@ SCM_DEFINE (scm_strftime, "strftime", 2, 0, 0,
   SCM_COERCE_SUBSTR (format);
   fmt = SCM_ROCHARS (format);
   len = SCM_ROLENGTH (format);
+
+  /* Ugly hack: strftime can return 0 if its buffer is too small,
+     but some valid time strings (e.g. "%p") can sometimes produce
+     a zero-byte output string!  Workaround is to prepend a junk
+     character to the format string, so that valid returns are always
+     nonzero. */
+  myfmt = SCM_MUST_MALLOC (len+2);
+  *myfmt = 'x';
+  strncpy(myfmt+1, fmt, len);
+  myfmt[len+1] = 0;
 
   tbuf = SCM_MUST_MALLOC (size);
   {
@@ -603,7 +617,10 @@ SCM_DEFINE (scm_strftime, "strftime", 2, 0, 0,
     tzset ();
 #endif
 
-    while ((len = strftime (tbuf, size, fmt, &t)) == size)
+    /* POSIX says strftime returns 0 on buffer overrun, but old
+       systems (i.e. libc 4 on GNU/Linux) might return `size' in that
+       case. */
+    while ((len = strftime (tbuf, size, myfmt, &t)) == 0 || len == size)
       {
 	scm_must_free (tbuf);
 	size *= 2;
@@ -619,8 +636,9 @@ SCM_DEFINE (scm_strftime, "strftime", 2, 0, 0,
 #endif
     }
 
-  result = scm_makfromstr (tbuf, len, 0);
+  result = scm_makfromstr (tbuf+1, len-1, 0);
   scm_must_free (tbuf);
+  scm_must_free(myfmt);
   return result;
 }
 #undef FUNC_NAME
