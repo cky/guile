@@ -67,11 +67,71 @@ Returns the "effective" version number.  This is just the normal full
 version string without the final micro-version number.  See "Changes
 to the distribution" above.
 
-** Mutexes are now recursive.
+** Futures
 
-Locking a mutex that you have already locked will now succeed.  Every
-call to lock-mutex must be matched with a call to unlock-mutex.  Only
-the last call to unlock-mutex will actually unlock the mutex.
+Futures is a way of providing an alternative evaluation policy, very
+similar in principle to "promises".  Like promises, futures allow the
+main process to continue instantly, but while promises postpone
+evaluation ("lazy" evaluation) until the value is requested, futures
+immediately starts evaluation in a parallel thread.
+
+Futures are good when you want to express that "I'll need the value of
+this computation sometime soon" and want to allow processing to go on
+in the background until that time arrives.
+
+** New syntax: future FORM
+
+Begin evaluation of FORM in a parallel thread and return the future
+immediately.  (Akin to 'delay'.)
+
+** New procedure: future-ref FUTURE
+
+Return the computed value of the future.  Wait if the computation is
+not finished.  (Akin to 'force'.)
+
+** New syntax: parallel FORM ...
+
+Compute the results of FORM ... in parallel (in a separate thread for
+each form) and return them as multiple values.
+
+** New syntax: letpar ((VAR EXP) ...) BODYFORM ...
+
+Like 'let' but evaluates the binding expressions EXP ... in parallel.
+
+** New functions: par-map, par-for-each PROC ARGLIST ...
+
+Like 'map' and 'for-each' but evaluate the procedure PROC in a
+separate thread for each (set of) argument(s).  All applications are
+guaranteed to be completed before the procedure returns.
+
+** New functions: n-par-map, n-par-for-each N PROC ARGLIST ...
+
+Like 'par-map' and 'par-for-each' but evaluate the procedure PROC in N
+threads.  This is useful when PROC uses large amounts of resources
+and/or the argument list(s) is/are long so that one thread per (set
+of) argument(s) would consume too much system resources.  On a
+dual-CPU system, N = 4 would often be a good choice.
+
+** Fair mutexes and condition variables
+
+Fair mutexes and condition variables have been added.  The fairness
+means that scheduling is arranged to give as equal time shares as
+possible and that threads are awakened in a first-in-first-out
+manner.  This is not guaranteed with standard mutexes and condition
+variables.
+
+In addition, fair mutexes are recursive.  Locking a fair mutex that
+you have already locked will succeed.  Every call to lock-mutex must
+be matched with a call to unlock-mutex.  Only the last call to
+unlock-mutex will actually unlock the mutex.
+
+A fair condition variable must be used together with a fair mutex,
+just as a standard condition variable must be used together with a
+standard mutex.
+
+** New functions: make-fair-mutex, make-fair-condition-variable'
+
+Make a new fair mutex and a new fair condition variable respectively.
 
 ** New function 'try-mutex'.
 
