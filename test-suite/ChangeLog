@@ -1,5 +1,18 @@
 2001-02-22  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
+	* tests/exceptions.test (syntax lambda): Renamed from (lambda).
+	(syntax lambda cond-arrow-proc): Renamed from (lambda cond-arrow-proc).
+	(syntax reading): New section.
+	(syntax let*): New section.
+	(syntax letrec): New section.
+	(syntax set!): New section.
+	(syntax misc): New section.
+	(bindings unbound): New section.
+	(bindings immutable-modification): New section.
+	(bindings let): New section.
+	(bindings let*): New section.
+	(bindings letrec): New section.
+
 	* tests/exceptions.test: New file.
 
 2001-02-08  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
