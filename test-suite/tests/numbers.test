@@ -2069,3 +2069,17 @@
       (pass-if n
 	(= i (logcount n))))))
 
+;;;
+;;; lognot
+;;;
+
+(with-test-prefix "lognot"
+  (pass-if (= -1 (lognot 0)))
+  (pass-if (= 0  (lognot -1)))
+  (pass-if (= -2 (lognot 1)))
+  (pass-if (= 1  (lognot -2)))
+  
+  (pass-if (= #x-100000000000000000000000000000000
+	      (lognot #xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)))
+  (pass-if (= #xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+	      (lognot #x-100000000000000000000000000000000))))
