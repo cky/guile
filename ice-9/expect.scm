@@ -19,20 +19,22 @@
 ;;;; 
 
 
+(define-module (ice-9 expect))
+
 ;;; Expect: a macro for selecting actions based on what it reads from a port.
 ;;; The idea is from Don Libes' expect based on Tcl.
 ;;; This version by Gary Houston incorporating ideas from Aubrey Jaffer.
 
 
-(define expect-port #f)
-(define expect-timeout #f)
-(define expect-timeout-proc #f)
-(define expect-eof-proc #f)
-(define expect-char-proc #f)
+(define-public expect-port #f)
+(define-public expect-timeout #f)
+(define-public expect-timeout-proc #f)
+(define-public expect-eof-proc #f)
+(define-public expect-char-proc #f)
 
 ;;; expect: each test is a procedure which is applied to the accumulating
 ;;; string.
-(defmacro expect clauses
+(defmacro-public expect clauses
   (let ((s (gentemp))
 	(c (gentemp))
 	(port (gentemp))
@@ -66,8 +68,8 @@
 		      (set! ,s (string-append ,s (string ,c)))
 		      (cond
 		       ,@(let next-expr ((tests (map car clauses))
-					   (exprs (map cdr clauses))
-					   (body ()))
+					 (exprs (map cdr clauses))
+					 (body ()))
 			   (cond
 			    ((null? tests)
 			     (reverse body))
@@ -96,7 +98,7 @@
 
 ;;; the regexec front-end to expect:
 ;;; each test must evaluate to a regular expression.
-(defmacro expect-strings clauses
+(defmacro-public expect-strings clauses
   `(let ,@(let next-test ((tests (map car clauses))
 			  (exprs (map cdr clauses))
 			  (defs ())
@@ -107,17 +109,17 @@
 		   (let ((rxname (gentemp)))
 		     (next-test (cdr tests)
 				(cdr exprs)
-				(cons `(,rxname (regcomp ,(car tests)
-							 REG_NEWLINE))
+				;; should maybe use REG_NEWLINE below?
+				(cons `(,rxname (make-regexp ,(car tests)))
 				      defs)
 				(cons `((lambda (s)
-					  (regexec ,rxname s ""))
+					  (regexp-exec ,rxname s))
 					,@(car exprs))
 				      body))))))))
 
 ;;; simplified select: returns #t if input is waiting or #f if timed out.
 ;;; timeout is an absolute time in floating point seconds.
-(define (expect-select port timeout)
+(define-public (expect-select port timeout)
   (let* ((secs-usecs (gettimeofday))
 	 (relative (- timeout 
 		      (car secs-usecs)
