@@ -1,5 +1,9 @@
 /* this file is #include'd (many times) by numbers.c */
 
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
 #ifndef UNSIGNED_ITYPE
 #ifdef UNSIGNED
 #define UNSIGNED_ITYPE ITYPE
