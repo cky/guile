@@ -353,7 +353,7 @@
 (define (print-vector obj port depth length style table)
   (if (= 0 length)
       (cond
-       ((weak-hash-table? obj)		(display "#wh(" port))
+       ((weak-key-hash-table? obj)	(display "#wh(" port))
        ((weak-value-hash-table? obj)	(display "#whv(" port))
        ((doubly-weak-hash-table? obj)	(display "#whd(" port))
        (else		  		(display "#(" port))))
