@@ -1,3 +1,9 @@
+2003-10-02  Kevin Ryde  <user42@zip.com.au>
+
+	* scheme-io.texi (String Ports): In call-with-output-string, note proc
+	should not close the port.  In get-output-string, note string must be
+	gotten before closing the port.
+
 2003-09-21  Kevin Ryde  <user42@zip.com.au>
 
 	* posix.texi (File System): In access?, reword a bit, clarify real
