@@ -78,8 +78,5 @@
 /* Define if using any sort of threads.  */
 #undef USE_THREADS
 
-/* Name of this package.  */
-#undef PACKAGE
-
 /* Define if you want support for dynamic linking. */
 #undef DYNAMIC_LINKING

@@ -1,5 +1,9 @@
 Sat Mar 15 00:06:08 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
+	* acconfig.h: Removed PACKAGE.
+
+	* scmconfig.h.in: Regenerated.
+
 	* snarf.h: g++ says it's non-portable not to specify the first
  	argument in a varargs declaration.  I introduced the first
  	argument by using preprocessor conditionals.
