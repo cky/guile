@@ -114,18 +114,20 @@
 SCM_SYMBOL (scm_yes_sym, "yes");
 SCM_SYMBOL (scm_no_sym, "no");
 
+static SCM protected_objects;
 
 SCM
-scm_options (new_mode, options, n, s)
-     SCM new_mode;
+scm_options (arg, options, n, s)
+     SCM arg;
      scm_option options[];
      int n;
      char *s;
 {
-  int i, docp = (!SCM_UNBNDP (new_mode)
-		 && !SCM_NULLP (new_mode)
-		 && (SCM_IMP (new_mode) || SCM_NCONSP (new_mode)));
-  SCM ans = SCM_EOL, ls;
+  int i, docp = (!SCM_UNBNDP (arg)
+		 && !SCM_NULLP (arg)
+		 && (SCM_IMP (arg) || SCM_NCONSP (arg)));
+  /* Let `arg' GC protect the arguments */
+  SCM new_mode = arg, ans = SCM_EOL, ls;
   for (i = 0; i < n; ++i)
     {
       ls = docp ? scm_cons ((SCM) options[i].doc, SCM_EOL) : ans;
@@ -195,7 +197,15 @@ scm_options (new_mode, options, n, s)
 	cont:
 	  new_mode = SCM_CDR (new_mode);
 	}
-      for (i = 0; i < n; ++i) options[i].val = flags[i];
+      for (i = 0; i < n; ++i)
+	{
+	  if (options[i].type == SCM_OPTION_SCM)
+	    SCM_SETCDR (protected_objects,
+			scm_cons (flags[i],
+				  scm_delq1_x (options[i].val,
+					       SCM_CDR (protected_objects))));
+	  options[i].val = flags[i];
+	}
       scm_must_free ((char *) flags);
     }
   return ans;
@@ -215,6 +225,9 @@ scm_init_opts (func, options, n)
       options[i].name =	(char *) SCM_CAR (scm_sysintern0 (options[i].name));
       options[i].doc = (char *) scm_permanent_object (scm_take0str
 						      (options[i].doc));
+      if (options[i].type == SCM_OPTION_SCM)
+	SCM_SETCDR (protected_objects,
+		    scm_cons (options[i].val, SCM_CDR (protected_objects)));
     }
   func (SCM_UNDEFINED);
 }
@@ -223,5 +236,6 @@ scm_init_opts (func, options, n)
 void
 scm_init_options ()
 {
+  protected_objects = scm_permanent_object (scm_cons (SCM_UNDEFINED, SCM_EOL));
 #include "options.x"
 }
