@@ -1,3 +1,8 @@
+2004-08-14  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/srfi-13.test (string-any, string-every): Exercise char and
+	charset predicate cases.
+
 2004-08-10  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* standalone/test-conversion.c (test_locale_strings): New.
