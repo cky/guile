@@ -104,10 +104,10 @@
 
 
 
-/* Random options (net yet supported or in final form). */
+/* Random options (not yet supported or in final form). */
 
-#undef SCM_STACK_LIMIT 20000
-#undef NO_CEVAL_STACK_CHECK
+#define STACK_CHECKING
+#undef NO_CEVAL_STACK_CHECKING
 #undef LONGLONGS
 
 /* Some auto-generated .h files contain unused prototypes
@@ -334,7 +334,7 @@ extern unsigned int scm_async_clock;
 #define SCM_OVSCM_FLOW 		9
 #define SCM_OUTOFRANGE 		10
 #define SCM_NALLOC 		11
-#define SCM_STACK_SCM_OVSCM_FLOW	12
+#define SCM_STACK_OVFLOW	12
 #define SCM_EXIT 		13
 
 
