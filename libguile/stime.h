@@ -24,9 +24,23 @@
 
 #include "libguile/__scm.h"
 
+#include <unistd.h>  /* for sysconf */
+
 
 
-/* This should be figured out by autoconf.  */
+/* This should be figured out by autoconf.
+
+   sysconf(_SC_CLK_TCK) is best, since it's the actual running kernel, not
+   some compile-time CLK_TCK.  On glibc 2.3.2 CLK_TCK (when defined) is in
+   fact sysconf(_SC_CLK_TCK) anyway.
+
+   CLK_TCK is obsolete in POSIX.  In glibc 2.3.2 it's defined by default,
+   but if you define _GNU_SOURCE or _POSIX_C_SOURCE to get other features
+   then it goes away.  */
+
+#if ! defined(SCM_TIME_UNITS_PER_SECOND) && defined(_SC_CLK_TCK)
+#  define SCM_TIME_UNITS_PER_SECOND ((int) sysconf (_SC_CLK_TCK))
+#endif
 #if ! defined(SCM_TIME_UNITS_PER_SECOND) && defined(CLK_TCK)
 #  define SCM_TIME_UNITS_PER_SECOND ((int) CLK_TCK)
 #endif
