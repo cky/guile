@@ -38,7 +38,7 @@ libguile:
 	for you to link with your programs, and the executable you can run.
 ice-9:  Guile's module system, initialization code, and other infrastructure.
 
-qt: 	A cooperative threads package from Washington University,
+qt: 	A cooperative threads package from the University of Washington,
 	which Guile can use.  If you configure Guile with the
         --with-threads flag, you will need to link against the -lqt
         library, found in this directory.  Qt is under a separate

@@ -1,3 +1,8 @@
+1998-09-26  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* eval.c (scm_force): Assert that x is SCM_NIMP to fix segv when
+	(force 9) is tried.  (Thanks to Karl M. Hegbloom.) 
+
 1998-09-06  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	* print.c (scm_iprin1): Rather than having one i, and using it in
