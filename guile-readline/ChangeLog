@@ -1,3 +1,8 @@
+2002-04-16  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* Makefile.am (dist-hook): Make sure $(distdir)/Makefile.in is
+	writable before modifying it.
+
 2002-04-10  Rob Browning  <rlb@defaultvalue.org>
 
 	* configure.in: add definitions to AC_DEFINE calls for new

@@ -1,3 +1,8 @@
+2002-04-16  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* Makefile.am (dist-hook): Simplified to not use "cd"; now it
+	works for relative pathnames in $(distdir).
+
 2002-04-10  Rob Browning  <rlb@defaultvalue.org>
 
 	* .cvsignore: add version-tutorial.texi, version.texi, and
