@@ -43,6 +43,10 @@
 #ifndef __GH_H
 #define __GH_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdio.h>
 
 #include <libguile.h>
@@ -226,5 +230,8 @@ void gh_newline (void);
 
 /* void  gh_assert(int cond, char *msg, SCM obj); */
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __GH_H */

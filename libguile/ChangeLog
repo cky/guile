@@ -1,3 +1,9 @@
+1997-11-26  Anthony Green  <green@hoser.cygnus.com>
+
+	* gh_data.c (gh_set_substr): Strings can be longer than 256 bytes.
+
+	* gh.h: Safely wrap prototypes for c++ usage.
+
 1997-11-25  Mark Galassi  <rosalia@cygnus.com>
 
 	* gh_test_repl.c (main_prog): changed invocation of gh_repl() to
