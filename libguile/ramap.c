@@ -152,8 +152,7 @@ scm_ra_matchp (ra0, ras)
   scm_sizet bas0 = 0;
   int i, ndim = 1;
   int exact = 2			/* 4 */ ;	/* Don't care about values >2 (yet?) */
-  if SCM_IMP
-    (ra0) return 0;
+  if (SCM_IMP (ra0)) return 0;
   switch (SCM_TYP7 (ra0))
       {
       default:
@@ -188,8 +187,8 @@ scm_ra_matchp (ra0, ras)
     (ras)
       {
 	ra1 = SCM_CAR (ras);
-	if SCM_IMP
-	  (ra1) return 0;
+	if (SCM_IMP (ra1))
+          return 0;
 	switch SCM_TYP7
 	  (ra1)
 	    {
@@ -283,8 +282,7 @@ scm_ramapc (cproc, data, ra0, lra, what)
       if (kmax < 0)
 	goto gencase;
       vra0 = scm_array_contents (ra0, SCM_UNDEFINED);
-      if SCM_IMP
-	(vra0) goto gencase;
+      if (SCM_IMP (vra0)) goto gencase;
       if (!SCM_ARRAYP (vra0))
 	{
 	  vra1 = scm_make_ra (1);
@@ -324,8 +322,7 @@ scm_ramapc (cproc, data, ra0, lra, what)
     case 1:
     gencase:			/* Have to loop over all dimensions. */
       vra0 = scm_make_ra (1);
-      if SCM_ARRAYP
-	(ra0)
+      if (SCM_ARRAYP (ra0))
 	  {
 	    kmax = SCM_ARRAY_NDIM (ra0) - 1;
 	    if (kmax < 0)
@@ -361,8 +358,7 @@ scm_ramapc (cproc, data, ra0, lra, what)
 	  vra1 = scm_make_ra (1);
 	  SCM_ARRAY_DIMS (vra1)->lbnd = SCM_ARRAY_DIMS (vra0)->lbnd;
 	  SCM_ARRAY_DIMS (vra1)->ubnd = SCM_ARRAY_DIMS (vra0)->ubnd;
-	  if SCM_ARRAYP
-	    (ra1)
+	  if (SCM_ARRAYP (ra1))
 	      {
 		if (kmax >= 0)
 		  SCM_ARRAY_DIMS (vra1)->inc = SCM_ARRAY_DIMS (ra1)[kmax].inc;
@@ -804,18 +800,15 @@ scm_ra_eqp (ra0, ras)
       {
 	SCM e1 = SCM_UNDEFINED, e2 = SCM_UNDEFINED;
 	for (; n-- > 0; i0 += inc0, i1 += inc1, i2 += inc2)
-	  if BVE_REF
-	    (ra0, i0)
-	      if SCM_FALSEP
-		(scm_eq_p (RVREF (ra1, i1, e1), RVREF (ra2, i2, e2)))
+            if (BVE_REF (ra0, i0))
+	      if (SCM_FALSEP(scm_eq_p (RVREF (ra1, i1, e1), RVREF (ra2, i2, e2))))
 		  BVE_CLR (ra0, i0);
 	break;
       }
     case scm_tc7_uvect:
     case scm_tc7_ivect:
       for (; n-- > 0; i0 += inc0, i1 += inc1, i2 += inc2)
-	if BVE_REF
-	  (ra0, i0)
+          if (BVE_REF (ra0, i0))
 	    if (SCM_VELTS (ra1)[i1] != SCM_VELTS (ra2)[i2])
 	      BVE_CLR (ra0, i0);
       break;
@@ -823,23 +816,20 @@ scm_ra_eqp (ra0, ras)
 #ifdef SCM_SINGLES
     case scm_tc7_fvect:
       for (; n-- > 0; i0 += inc0, i1 += inc1, i2 += inc2)
-	if BVE_REF
-	  (ra0, i0)
+          if (BVE_REF (ra0, i0))
 	    if (((float *) SCM_VELTS (ra1))[i1] != ((float *) SCM_VELTS (ra2))[i2])
 	      BVE_CLR (ra0, i0);
       break;
 #endif /*SCM_SINGLES*/
     case scm_tc7_dvect:
       for (; n-- > 0; i0 += inc0, i1 += inc1, i2 += inc2)
-	if BVE_REF
-	  (ra0, i0)
+          if (BVE_REF (ra0, i0))
 	    if (((double *) SCM_VELTS (ra1))[i1] != ((double *) SCM_VELTS (ra2))[i2])
 	      BVE_CLR (ra0, i0);
       break;
     case scm_tc7_cvect:
       for (; n-- > 0; i0 += inc0, i1 += inc1, i2 += inc2)
-	if BVE_REF
-	  (ra0, i0)
+          if (BVE_REF (ra0, i0))
 	    if (((double *) SCM_VELTS (ra1))[2 * i1] != ((double *) SCM_VELTS (ra2))[2 * i2] ||
 		((double *) SCM_VELTS (ra1))[2 * i1 + 1] != ((double *) SCM_VELTS (ra2))[2 * i2 + 1])
 	      BVE_CLR (ra0, i0);
@@ -874,8 +864,7 @@ ra_compare (ra0, ra1, ra2, opt)
       {
 	SCM e1 = SCM_UNDEFINED, e2 = SCM_UNDEFINED;
 	for (; n-- > 0; i0 += inc0, i1 += inc1, i2 += inc2)
-	  if BVE_REF
-	    (ra0, i0)
+            if (BVE_REF (ra0, i0))
 	      if (opt ?
 		  SCM_NFALSEP (scm_less_p (RVREF (ra1, i1, e1), RVREF (ra2, i2, e2))) :
 		  SCM_FALSEP (scm_less_p (RVREF (ra1, i1, e1), RVREF (ra2, i2, e2))))
@@ -886,8 +875,7 @@ ra_compare (ra0, ra1, ra2, opt)
     case scm_tc7_ivect:
       for (; n-- > 0; i0 += inc0, i1 += inc1, i2 += inc2)
 	{
-	  if BVE_REF
-	    (ra0, i0)
+            if (BVE_REF (ra0, i0))
 	      if (opt ?
 		  SCM_VELTS (ra1)[i1] < SCM_VELTS (ra2)[i2] :
 		  SCM_VELTS (ra1)[i1] >= SCM_VELTS (ra2)[i2])
@@ -898,8 +886,7 @@ ra_compare (ra0, ra1, ra2, opt)
 #ifdef SCM_SINGLES
     case scm_tc7_fvect:
       for (; n-- > 0; i0 += inc0, i1 += inc1, i2 += inc2)
-	if BVE_REF
-	  (ra0, i0)
+          if (BVE_REF(ra0, i0))
 	    if (opt ?
 		((float *) SCM_VELTS (ra1))[i1] < ((float *) SCM_VELTS (ra2))[i2] :
 		((float *) SCM_VELTS (ra1))[i1] >= ((float *) SCM_VELTS (ra2))[i2])
@@ -908,8 +895,7 @@ ra_compare (ra0, ra1, ra2, opt)
 #endif /*SCM_SINGLES*/
     case scm_tc7_dvect:
       for (; n-- > 0; i0 += inc0, i1 += inc1, i2 += inc2)
-	if BVE_REF
-	  (ra0, i0)
+          if (BVE_REF (ra0, i0))
 	    if (opt ?
 		((double *) SCM_VELTS (ra1))[i1] < ((double *) SCM_VELTS (ra2))[i2] :
 		((double *) SCM_VELTS (ra1))[i1] >= ((double *) SCM_VELTS (ra2))[i2])
@@ -968,8 +954,7 @@ scm_ra_sum (ra0, ras)
   scm_sizet i0 = SCM_ARRAY_BASE (ra0);
   long inc0 = SCM_ARRAY_DIMS (ra0)->inc;
   ra0 = SCM_ARRAY_V (ra0);
-  if SCM_NNULLP
-    (ras)
+  if (SCM_NNULLP(ras))
       {
 	SCM ra1 = SCM_CAR (ras);
 	scm_sizet i1 = SCM_ARRAY_BASE (ra1);
@@ -1046,11 +1031,9 @@ scm_ra_difference (ra0, ras)
   scm_sizet i0 = SCM_ARRAY_BASE (ra0);
   long inc0 = SCM_ARRAY_DIMS (ra0)->inc;
   ra0 = SCM_ARRAY_V (ra0);
-  if SCM_NULLP
-    (ras)
+  if (SCM_NULLP (ras))
       {
-	switch SCM_TYP7
-	  (ra0)
+	switch (SCM_TYP7 (ra0))
 	    {
 	    default:
 	      {
@@ -1155,8 +1138,7 @@ scm_ra_product (ra0, ras)
   scm_sizet i0 = SCM_ARRAY_BASE (ra0);
   long inc0 = SCM_ARRAY_DIMS (ra0)->inc;
   ra0 = SCM_ARRAY_V (ra0);
-  if SCM_NNULLP
-    (ras)
+  if (SCM_NNULLP (ras))
       {
 	SCM ra1 = SCM_CAR (ras);
 	scm_sizet i1 = SCM_ARRAY_BASE (ra1);
@@ -1234,11 +1216,9 @@ scm_ra_divide (ra0, ras)
   scm_sizet i0 = SCM_ARRAY_BASE (ra0);
   long inc0 = SCM_ARRAY_DIMS (ra0)->inc;
   ra0 = SCM_ARRAY_V (ra0);
-  if SCM_NULLP
-    (ras)
+  if (SCM_NULLP (ras))
       {
-	switch SCM_TYP7
-	  (ra0)
+	switch (SCM_TYP7 (ra0))
 	    {
 	    default:
 	      {
@@ -1361,8 +1341,7 @@ ramap (ra0, proc, ras)
   long n = SCM_ARRAY_DIMS (ra0)->ubnd;
   long base = SCM_ARRAY_BASE (ra0) - i * inc;
   ra0 = SCM_ARRAY_V (ra0);
-  if SCM_NULLP
-    (ras)
+  if (SCM_NULLP (ras))
       for (; i <= n; i++)
 	scm_array_set_x (ra0, scm_apply (proc, SCM_EOL, SCM_EOL), SCM_MAKINUM (i * inc + base));
   else
@@ -1373,8 +1352,7 @@ ramap (ra0, proc, ras)
       long inc1 = SCM_ARRAY_DIMS (ra1)->inc;
       ra1 = SCM_ARRAY_V (ra1);
       ras = SCM_CDR (ras);
-      if SCM_NULLP
-	(ras)
+      if (SCM_NULLP(ras))
 	  ras = scm_nullvect;
       else
 	{
@@ -1409,8 +1387,7 @@ ramap_cxr (ra0, proc, ras)
   long n = SCM_ARRAY_DIMS (ra0)->ubnd - SCM_ARRAY_DIMS (ra1)->lbnd + 1;
   ra0 = SCM_ARRAY_V (ra0);
   ra1 = SCM_ARRAY_V (ra1);
-  switch SCM_TYP7
-    (ra0)
+  switch (SCM_TYP7 (ra0))
       {
       default:
       gencase:
@@ -1422,8 +1399,7 @@ ramap_cxr (ra0, proc, ras)
       case scm_tc7_fvect:
 	{
 	  float *dst = (float *) SCM_VELTS (ra0);
-	  switch SCM_TYP7
-	    (ra1)
+	  switch (SCM_TYP7 (ra1))
 	      {
 	      default:
 		goto gencase;
@@ -1443,8 +1419,7 @@ ramap_cxr (ra0, proc, ras)
       case scm_tc7_dvect:
 	{
 	  double *dst = (double *) SCM_VELTS (ra0);
-	  switch SCM_TYP7
-	    (ra1)
+	  switch (SCM_TYP7 (ra1))
 	      {
 	      default:
 		goto gencase;
@@ -1489,21 +1464,17 @@ ramap_rp (ra0, proc, ras)
     {
     default:
       for (; n-- > 0; i0 += inc0, i1 += inc1, i2 += inc2)
-	if BVE_REF
-	  (ra0, i0)
-	    if SCM_FALSEP
-	      (SCM_SUBRF (proc) (RVREF (ra1, i1, e1), RVREF (ra2, i2, e2)))
+          if (BVE_REF  (ra0, i0))
+            if (SCM_FALSEP (SCM_SUBRF (proc) (RVREF (ra1, i1, e1), RVREF (ra2, i2, e2))))
 		BVE_CLR (ra0, i0);
       break;
     case scm_tc7_uvect:
     case scm_tc7_ivect:
       for (; n-- > 0; i0 += inc0, i1 += inc1, i2 += inc2)
-	if BVE_REF
-	  (ra0, i0)
+          if (BVE_REF (ra0, i0))
 	    {
-	      if SCM_FALSEP
-		(SCM_SUBRF (proc) (SCM_MAKINUM (SCM_VELTS (ra1)[i1]),
-			       SCM_MAKINUM (SCM_VELTS (ra2)[i2])))
+	      if (SCM_FALSEP (SCM_SUBRF (proc) (SCM_MAKINUM (SCM_VELTS (ra1)[i1]),
+                                                SCM_MAKINUM (SCM_VELTS (ra2)[i2]))))
 		  BVE_CLR (ra0, i0);
 	    }
       break;
@@ -1513,13 +1484,11 @@ ramap_rp (ra0, proc, ras)
       {
 	SCM a1 = scm_makflo (1.0), a2 = scm_makflo (1.0);
 	for (; n-- > 0; i0 += inc0, i1 += inc1, i2 += inc2)
-	  if BVE_REF
-	    (ra0, i0)
+            if (BVE_REF (ra0, i0))
 	      {
 		SCM_FLO (a1) = ((float *) SCM_VELTS (ra1))[i1];
 		SCM_FLO (a2) = ((float *) SCM_VELTS (ra2))[i2];
-		if SCM_FALSEP
-		  (SCM_SUBRF (proc) (a1, a2))
+		if (SCM_FALSEP (SCM_SUBRF (proc) (a1, a2)))
 		    BVE_CLR (ra0, i0);
 	      }
 	break;
@@ -1529,13 +1498,11 @@ ramap_rp (ra0, proc, ras)
       {
 	SCM a1 = scm_makdbl (1.0 / 3.0, 0.0), a2 = scm_makdbl (1.0 / 3.0, 0.0);
 	for (; n-- > 0; i0 += inc0, i1 += inc1, i2 += inc2)
-	  if BVE_REF
-	    (ra0, i0)
+            if (BVE_REF (ra0, i0))
 	      {
 		SCM_REAL (a1) = ((double *) SCM_VELTS (ra1))[i1];
 		SCM_REAL (a2) = ((double *) SCM_VELTS (ra2))[i2];
-		if SCM_FALSEP
-		  (SCM_SUBRF (proc) (a1, a2))
+		if (SCM_FALSEP (SCM_SUBRF (proc) (a1, a2)))
 		    BVE_CLR (ra0, i0);
 	      }
 	break;
@@ -1544,15 +1511,13 @@ ramap_rp (ra0, proc, ras)
       {
 	SCM a1 = scm_makdbl (1.0, 1.0), a2 = scm_makdbl (1.0, 1.0);
 	for (; n-- > 0; i0 += inc0, i1 += inc1, i2 += inc2)
-	  if BVE_REF
-	    (ra0, i0)
+            if (BVE_REF (ra0, i0))
 	      {
 		SCM_REAL (a1) = ((double *) SCM_VELTS (ra1))[2 * i1];
 		SCM_IMAG (a1) = ((double *) SCM_VELTS (ra1))[2 * i1 + 1];
 		SCM_REAL (a2) = ((double *) SCM_VELTS (ra2))[2 * i2];
 		SCM_IMAG (a2) = ((double *) SCM_VELTS (ra2))[2 * i2 + 1];
-		if SCM_FALSEP
-		  (SCM_SUBRF (proc) (a1, a2))
+		if (SCM_FALSEP (SCM_SUBRF (proc) (a1, a2)))
 		    BVE_CLR (ra0, i0);
 	      }
 	break;
@@ -1606,8 +1571,7 @@ ramap_2o (ra0, proc, ras)
   ra0 = SCM_ARRAY_V (ra0);
   ra1 = SCM_ARRAY_V (ra1);
   ras = SCM_CDR (ras);
-  if SCM_NULLP
-    (ras)
+  if (SCM_NULLP (ras))
       {
 	if (scm_tc7_vector == SCM_TYP7 (ra0)
 	    || scm_tc7_wvect == SCM_TYP7 (ra0))
@@ -1656,8 +1620,7 @@ ramap_a (ra0, proc, ras)
   scm_sizet i0 = SCM_ARRAY_BASE (ra0);
   long inc0 = SCM_ARRAY_DIMS (ra0)->inc;
   ra0 = SCM_ARRAY_V (ra0);
-  if SCM_NULLP
-    (ras)
+  if (SCM_NULLP (ras))
       for (; n-- > 0; i0 += inc0)
 	scm_array_set_x (ra0, SCM_SUBRF (proc) (RVREF (ra0, i0, e0), SCM_UNDEFINED), SCM_MAKINUM (i0));
   else
@@ -1727,12 +1690,10 @@ scm_array_map_x (ra0, proc, lra)
 	  return SCM_UNSPECIFIED;
 	}
       case scm_tc7_asubr:
-	if SCM_NULLP
-	  (lra)
+          if (SCM_NULLP (lra))
 	    {
 	      SCM prot, fill = SCM_SUBRF (proc) (SCM_UNDEFINED, SCM_UNDEFINED);
-	      if SCM_INUMP
-		(fill)
+	      if (SCM_INUMP(fill))
 		  {
 		    prot = scm_array_prototype (ra0);
 		    if (SCM_NIMP (prot) && SCM_INEXP (prot))
@@ -1774,8 +1735,7 @@ scm_array_map_x (ra0, proc, lra)
 		}
 	    scm_ramapc (ramap_2o, proc, ra0, lra, s_array_map_x);
 	    lra = SCM_CDR (lra);
-	    if SCM_NIMP
-	      (lra)
+              if (SCM_NIMP (lra))
 		for (lra = SCM_CDR (lra); SCM_NIMP (lra); lra = SCM_CDR (lra))
 		  scm_ramapc (ramap_a, proc, ra0, lra, s_array_map_x);
 	  }
@@ -1797,8 +1757,7 @@ rafe (ra0, proc, ras)
   long inc0 = SCM_ARRAY_DIMS (ra0)->inc;
   long n = SCM_ARRAY_DIMS (ra0)->ubnd;
   ra0 = SCM_ARRAY_V (ra0);
-  if SCM_NULLP
-    (ras)
+  if (SCM_NULLP (ras))
       for (; i <= n; i++, i0 += inc0)
 	scm_apply (proc, scm_cvref (ra0, i0, SCM_UNDEFINED), scm_listofnull);
   else
@@ -1809,8 +1768,7 @@ rafe (ra0, proc, ras)
       long inc1 = SCM_ARRAY_DIMS (ra1)->inc;
       ra1 = SCM_ARRAY_V (ra1);
       ras = SCM_CDR (ras);
-      if SCM_NULLP
-	(ras)
+      if (SCM_NULLP(ras))
 	  ras = scm_nullvect;
       else
 	{
@@ -1942,38 +1900,32 @@ raeql_1 (ra0, as_equal, ra1)
   long inc0 = 1, inc1 = 1;
   scm_sizet n = SCM_LENGTH (ra0);
   ra1 = SCM_CAR (ra1);
-  if SCM_ARRAYP
-    (ra0)
+  if (SCM_ARRAYP(ra0))
       {
 	n = SCM_ARRAY_DIMS (ra0)->ubnd - SCM_ARRAY_DIMS (ra0)->lbnd + 1;
 	i0 = SCM_ARRAY_BASE (ra0);
 	inc0 = SCM_ARRAY_DIMS (ra0)->inc;
 	ra0 = SCM_ARRAY_V (ra0);
       }
-  if SCM_ARRAYP
-    (ra1)
+  if (SCM_ARRAYP (ra1))
       {
 	i1 = SCM_ARRAY_BASE (ra1);
 	inc1 = SCM_ARRAY_DIMS (ra1)->inc;
 	ra1 = SCM_ARRAY_V (ra1);
       }
-  switch SCM_TYP7
-    (ra0)
+  switch (SCM_TYP7 (ra0))
       {
       case scm_tc7_vector:
       case scm_tc7_wvect:
       default:
 	for (; n--; i0 += inc0, i1 += inc1)
 	  {
-	    if SCM_FALSEP
-	      (as_equal)
+	    if (SCM_FALSEP (as_equal))
 		{
-		  if SCM_FALSEP
-		    (scm_array_equal_p (RVREF (ra0, i0, e0), RVREF (ra1, i1, e1)))
+                if (SCM_FALSEP (scm_array_equal_p (RVREF (ra0, i0, e0), RVREF (ra1, i1, e1))))
 		      return 0;
 		}
-	    else if SCM_FALSEP
-	      (scm_equal_p (RVREF (ra0, i0, e0), RVREF (ra1, i1, e1)))
+	    else if (SCM_FALSEP (scm_equal_p (RVREF (ra0, i0, e0), RVREF (ra1, i1, e1))))
 		return 0;
 	  }
 	return 1;
@@ -2075,8 +2027,7 @@ raeql (ra0, as_equal, ra1)
   scm_array_dim *s0 = &dim0, *s1 = &dim1;
   scm_sizet bas0 = 0, bas1 = 0;
   int k, unroll = 1, vlen = 1, ndim = 1;
-  if SCM_ARRAYP
-    (ra0)
+  if (SCM_ARRAYP (ra0))
       {
 	ndim = SCM_ARRAY_NDIM (ra0);
 	s0 = SCM_ARRAY_DIMS (ra0);
@@ -2090,8 +2041,7 @@ raeql (ra0, as_equal, ra1)
       s0->ubnd = SCM_LENGTH (v0) - 1;
       unroll = 0;
     }
-  if SCM_ARRAYP
-    (ra1)
+  if (SCM_ARRAYP (ra1))
       {
 	if (ndim != SCM_ARRAY_NDIM (ra1))
 	  return 0;
@@ -2144,8 +2094,7 @@ scm_array_equal_p (ra0, ra1)
 {
   if (SCM_IMP (ra0) || SCM_IMP (ra1))
   callequal:return scm_equal_p (ra0, ra1);
-  switch SCM_TYP7
-    (ra0)
+  switch (SCM_TYP7(ra0))
       {
       default:
 	goto callequal;
@@ -2164,8 +2113,7 @@ scm_array_equal_p (ra0, ra1)
 	if (!SCM_ARRAYP (ra0))
 	  goto callequal;
       }
-  switch SCM_TYP7
-    (ra1)
+  switch (SCM_TYP7 (ra1))
       {
       default:
 	goto callequal;

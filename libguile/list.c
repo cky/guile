@@ -149,12 +149,12 @@ scm_ilength(sx)
   register SCM hare = sx;
 
   do {
-    if SCM_IMP(hare) return SCM_NULLP(hare) ? i : -1;
-    if SCM_NCONSP(hare) return -1;
+    if (SCM_IMP(hare)) return SCM_NULLP(hare) ? i : -1;
+    if (SCM_NCONSP(hare)) return -1;
     hare = SCM_CDR(hare);
     i++;
-    if SCM_IMP(hare) return SCM_NULLP(hare) ? i : -1;
-    if SCM_NCONSP(hare) return -1;
+    if (SCM_IMP(hare)) return SCM_NULLP(hare) ? i : -1;
+    if (SCM_NCONSP(hare)) return -1;
     hare = SCM_CDR(hare);
     i++;
     /* For every two steps the hare takes, the tortoise takes one.  */
@@ -189,7 +189,7 @@ scm_append(args)
 {
   SCM res = SCM_EOL;
   SCM *lloc = &res, arg;
-  if SCM_IMP(args) {
+  if (SCM_IMP(args)) {
     SCM_ASSERT(SCM_NULLP(args), args, SCM_ARGn, s_append);
     return res;
   }
@@ -197,7 +197,7 @@ scm_append(args)
   while (1) {
     arg = SCM_CAR(args);
     args = SCM_CDR(args);
-    if SCM_IMP(args) {
+    if (SCM_IMP(args)) {
       *lloc = arg;
       SCM_ASSERT(SCM_NULLP(args), args, SCM_ARGn, s_append);
       return res;
@@ -220,11 +220,11 @@ scm_append_x(args)
 {
   SCM arg;
  tail:
-  if SCM_NULLP(args) return SCM_EOL;
+  if (SCM_NULLP(args)) return SCM_EOL;
   arg = SCM_CAR(args);
   args = SCM_CDR(args);
-  if SCM_NULLP(args) return arg;
-  if SCM_NULLP(arg) goto tail;
+  if (SCM_NULLP(args)) return arg;
+  if (SCM_NULLP(arg)) goto tail;
   SCM_ASSERT(SCM_NIMP(arg) && SCM_CONSP(arg), arg, SCM_ARG1, s_append_x);
   SCM_SETCDR (scm_last_pair (arg), scm_append_x (args));
   return arg;

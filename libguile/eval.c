@@ -135,7 +135,7 @@ void (*scm_memoize_method) (SCM, SCM);
  */
 
 #define SCM_CEVAL scm_ceval
-#define SIDEVAL(x, env) if SCM_NIMP(x) SCM_CEVAL((x), (env))
+#define SIDEVAL(x, env) if (SCM_NIMP(x)) SCM_CEVAL((x), (env))
 
 #define EVALCELLCAR(x, env) (SCM_SYMBOLP (SCM_CAR(x)) \
 			     ? *scm_lookupcar(x, env) \
@@ -677,8 +677,7 @@ scm_m_lambda (xorig, env)
 	goto badforms;
       proc = SCM_CDR (proc);
     }
-  if SCM_NNULLP
-    (proc)
+  if (SCM_NNULLP (proc))
   badforms:scm_wta (xorig, scm_s_formals, "lambda");
 memlambda:
   bodycheck (xorig, SCM_CDRLOC (x), "lambda");
@@ -699,7 +698,7 @@ scm_m_letstar (xorig, env)
   SCM_ASSYNT (len >= 2, xorig, scm_s_body, s_letstar);
   proc = SCM_CAR (x);
   SCM_ASSYNT (scm_ilength (proc) >= 0, xorig, scm_s_bindings, s_letstar);
-  while SCM_NIMP (proc)
+  while (SCM_NIMP (proc))
     {
       arg1 = SCM_CAR (proc);
       SCM_ASSYNT (2 == scm_ilength (arg1), xorig, scm_s_bindings, s_letstar);
@@ -743,8 +742,7 @@ scm_m_do (xorig, env)
   SCM_ASSYNT (len >= 2, xorig, scm_s_test, "do");
   proc = SCM_CAR (x);
   SCM_ASSYNT (scm_ilength (proc) >= 0, xorig, scm_s_bindings, "do");
-  while SCM_NIMP
-    (proc)
+  while (SCM_NIMP(proc))
     {
       arg1 = SCM_CAR (proc);
       len = scm_ilength (arg1);
@@ -799,8 +797,8 @@ iqq (form, env, depth)
 {
   SCM tmp;
   int edepth = depth;
-  if SCM_IMP
-    (form) return form;
+  if (SCM_IMP(form))
+    return form;
   if (SCM_VECTORP (form))
     {
       long i = SCM_LENGTH (form);
@@ -810,8 +808,8 @@ iqq (form, env, depth)
 	tmp = scm_cons (data[i], tmp);
       return scm_vector (iqq (tmp, env, depth));
     }
-  if SCM_NCONSP
-    (form) return form;
+  if (SCM_NCONSP(form)) 
+    return form;
   tmp = SCM_CAR (form);
   if (scm_i_quasiquote == tmp)
     {
@@ -934,8 +932,8 @@ scm_m_letrec (xorig, env)
 
   ASRTSYNTAX (scm_ilength (x) >= 2, scm_s_body);
   proc = SCM_CAR (x);
-  if SCM_NULLP
-    (proc) return scm_m_letstar (xorig, env);	/* null binding, let* faster */
+  if (SCM_NULLP(proc)) 
+    return scm_m_letstar (xorig, env);	/* null binding, let* faster */
   ASRTSYNTAX (scm_ilength (proc) >= 1, scm_s_bindings);
   do
     {
@@ -947,8 +945,7 @@ scm_m_letrec (xorig, env)
       *initloc = scm_cons (SCM_CAR (SCM_CDR (arg1)), SCM_EOL);
       initloc = SCM_CDRLOC (*initloc);
     }
-  while SCM_NIMP
-  (proc = SCM_CDR (proc));
+  while (SCM_NIMP (proc = SCM_CDR (proc)));
   cdrx = scm_cons2 (vars, inits, SCM_CDR (x));
   bodycheck (xorig, SCM_CDRLOC (SCM_CDR (cdrx)), what);
   return scm_cons (SCM_IM_LETREC, cdrx);
@@ -983,8 +980,7 @@ scm_m_let (xorig, env)
   SCM_ASSYNT (scm_ilength (x) >= 2, xorig, scm_s_body, s_let);
   proc = SCM_CAR (x);		/* bindings scm_list */
   SCM_ASSYNT (scm_ilength (proc) >= 0, xorig, scm_s_bindings, s_let);
-  while SCM_NIMP
-    (proc)
+  while (SCM_NIMP (proc))
     {				/* vars and inits both in order */
       arg1 = SCM_CAR (proc);
       SCM_ASSYNT (2 == scm_ilength (arg1), xorig, scm_s_bindings, s_let);
@@ -1108,7 +1104,7 @@ unmemocopy (x, env)
 	    e = SCM_CDR (e);
 	    s = SCM_CDR (s);
 	  }
-	while SCM_NIMP (v);
+	while (SCM_NIMP (v));
 	z = scm_cons (z, SCM_UNSPECIFIED);
 	SCM_SETCDR (ls, z);
 	if (SCM_CAR (ls) == scm_i_do)
@@ -1154,7 +1150,7 @@ unmemocopy (x, env)
 	    env = EXTEND_ENV (SCM_CAR (b), SCM_BOOL_F, env);
 	    b = SCM_CDR (SCM_CDR (b));
 	  }
-	while SCM_NIMP (b);
+	while (SCM_NIMP (b));
 	SCM_SETCDR (z, SCM_EOL);
       letstar:
 	ls = scm_cons (scm_i_letstar, z = scm_cons (y, SCM_UNSPECIFIED));
@@ -1189,7 +1185,7 @@ unmemocopy (x, env)
       z = SCM_CAR (x);
       if (!SCM_ISYMP (z))
 	goto unmemo;
-      switch SCM_ISYMNUM (z)
+      switch (SCM_ISYMNUM (z))
 	{
 	case (SCM_ISYMNUM (SCM_IM_APPLY)):
 	  ls = z = scm_cons (scm_i_atapply, SCM_UNSPECIFIED);
@@ -1243,13 +1239,12 @@ scm_badargsp (formals, args)
      SCM formals;
      SCM args;
 {
-  while SCM_NIMP
-    (formals)
+  while (SCM_NIMP (formals))
     {
-      if SCM_NCONSP
-	(formals) return 0;
-      if SCM_IMP
-	(args) return 1;
+      if (SCM_NCONSP (formals)) 
+        return 0;
+      if (SCM_IMP(args)) 
+        return 1;
       formals = SCM_CDR (formals);
       args = SCM_CDR (args);
     }
@@ -2938,8 +2933,7 @@ tail:
 	      RETURN (scm_makdbl (SCM_DSUBRF (proc) (SCM_REALPART (arg1)), 0.0));
 	    }
 #ifdef SCM_BIGDIG
-	  if SCM_BIGP
-	    (arg1)
+	  if (SCM_BIGP(arg1))
 	      RETURN (scm_makdbl (SCM_DSUBRF (proc) (scm_big2dbl (arg1)), 0.0))
 #endif
 	floerr:
@@ -3331,8 +3325,8 @@ scm_copy_tree (obj)
      SCM obj;
 {
   SCM ans, tl;
-  if SCM_IMP
-    (obj) return obj;
+  if (SCM_IMP(obj)) 
+    return obj;
   if (SCM_VECTORP (obj))
     {
       scm_sizet i = SCM_LENGTH (obj);
@@ -3341,7 +3335,7 @@ scm_copy_tree (obj)
 	SCM_VELTS (ans)[i] = scm_copy_tree (SCM_VELTS (obj)[i]);
       return ans;
     }
-  if SCM_NCONSP (obj)
+  if (SCM_NCONSP (obj))
     return obj;
 /*  return scm_cons(scm_copy_tree(SCM_CAR(obj)), scm_copy_tree(SCM_CDR(obj))); */
   ans = tl = scm_cons (scm_copy_tree (SCM_CAR (obj)), SCM_UNSPECIFIED);

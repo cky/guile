@@ -54,7 +54,7 @@ SCM
 scm_vector_p(x)
      SCM x;
 {
-  if SCM_IMP(x) return SCM_BOOL_F;
+  if (SCM_IMP(x)) return SCM_BOOL_F;
   return SCM_VECTORP(x) ? SCM_BOOL_T : SCM_BOOL_F;
 }
 

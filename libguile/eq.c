@@ -70,13 +70,13 @@ scm_eqv_p (x, y)
      SCM y;
 {
   if (x==y) return SCM_BOOL_T;
-  if SCM_IMP(x) return SCM_BOOL_F;
-  if SCM_IMP(y) return SCM_BOOL_F;
+  if (SCM_IMP(x)) return SCM_BOOL_F;
+  if (SCM_IMP(y)) return SCM_BOOL_F;
   /* this ensures that types and scm_length are the same. */
   if (SCM_CAR(x) != SCM_CAR(y)) return SCM_BOOL_F;
-  if SCM_NUMP(x) {
+  if (SCM_NUMP(x)) {
 # ifdef SCM_BIGDIG
-    if SCM_BIGP(x) return (0==scm_bigcomp(x, y)) ? SCM_BOOL_T : SCM_BOOL_F;
+    if (SCM_BIGP(x)) return (0==scm_bigcomp(x, y)) ? SCM_BOOL_T : SCM_BOOL_F;
 # endif
 #ifdef SCM_FLOATS
     if (SCM_REALPART(x) != SCM_REALPART(y)) return SCM_BOOL_F;
