@@ -19,6 +19,7 @@
 ##   to the Free Software Foundation, Inc., 59 Temple Place, Suite
 ##   330, Boston, MA 02111-1307 USA
 
+
 SUBDIRS = ice-9 oop qt libltdl libguile guile-config guile-readline \
 	  scripts srfi doc
 
@@ -26,7 +27,10 @@ bin_SCRIPTS = guile-tools
 
 include_HEADERS = libguile.h
 
-EXTRA_DIST = qthreads.m4 HACKING GUILE-VERSION ANON-CVS SNAPSHOTS
+# automake sometimes forgets to distribute acconfig.h,
+# apparently depending on the phase of the moon.
+EXTRA_DIST = qthreads.m4 HACKING GUILE-VERSION ANON-CVS SNAPSHOTS \
+	     test-suite $(ACLOCAL) acconfig.h
 
 TESTS = check-guile
 

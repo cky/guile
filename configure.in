@@ -608,7 +608,8 @@ AC_OUTPUT([Makefile
 	   libguile/guile-snarf
 	   libguile/guile-doc-snarf
 	   libguile/guile-func-name-check
-	   libguile/guile-snarf.awk
+	   libguile/guile-snarf-docs
+	   libguile/guile-snarf-docs-texi
 	   libguile/versiondat.h
 	   ice-9/Makefile
 	   oop/Makefile
@@ -623,7 +624,7 @@ AC_OUTPUT([Makefile
 	   doc/Makefile
            check-guile
 	   guile-tools],
-	  [chmod +x libguile/guile-snarf libguile/guile-doc-snarf libguile/guile-func-name-check check-guile guile-tools])
+	  [chmod +x libguile/guile-snarf libguile/guile-doc-snarf libguile/guile-func-name-check libguile/guile-snarf-docs libguile/guile-snarf-docs-texi check-guile guile-tools])
 
 dnl Local Variables:
 dnl comment-start: "dnl "

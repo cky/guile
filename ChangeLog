@@ -1,3 +1,10 @@
+2001-05-31  Michael Livshin  <mlivshin@bigfoot.com>
+
+	* configure.in: generate guile-snarf-docs & guile-snarf-docs-texi.
+	don't generate guile-snarf.awk.
+
+	* Makefile.am (EXTRA_DIST): add test-suite.
+
 2001-05-28  Michael Livshin  <mlivshin@bigfoot.com>
 
 	* check-guile.in: fix to be runnable when srcdir!=builddir.
