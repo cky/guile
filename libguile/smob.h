@@ -2,7 +2,7 @@
 
 #ifndef SMOBH
 #define SMOBH
-/*	Copyright (C) 1995, 1996, 1998, 1999 Free Software Foundation, Inc.
+/*	Copyright (C) 1995, 1996, 1998, 1999, 2000 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -84,6 +84,35 @@ do { \
        return __SCM_smob_answer; \
   } while (0)
 
+#define SCM_NEWSMOB2(z, tc, data1, data2) \
+do { \
+  SCM_NEWCELL2 (z); \
+  SCM_SET_CELL_WORD (z, 1, data1); \
+  SCM_SET_CELL_WORD (z, 2, data2); \
+  SCM_SETCAR (z, tc); \
+} while (0)
+
+#define SCM_RETURN_NEWSMOB2(tc, data1, data2) \
+  do { SCM __SCM_smob_answer; \
+       SCM_NEWSMOB2 (__SCM_smob_answer, tc, data1, data2); \
+       return __SCM_smob_answer; \
+  } while (0)
+
+#define SCM_NEWSMOB3(z, tc, data1, data2, data3) \
+do { \
+  SCM_NEWCELL2 (z); \
+  SCM_SET_CELL_WORD (z, 1, data1); \
+  SCM_SET_CELL_WORD (z, 2, data2); \
+  SCM_SET_CELL_WORD (z, 3, data3); \
+  SCM_SETCAR (z, tc); \
+} while (0)
+
+#define SCM_RETURN_NEWSMOB3(tc, data1, data2, data3) \
+  do { SCM __SCM_smob_answer; \
+       SCM_NEWSMOB3 (__SCM_smob_answer, tc, data1, data2, data3); \
+       return __SCM_smob_answer; \
+  } while (0)
+
 
 #define SCM_SMOB_DATA(x) SCM_CDR (x)
 #define SCM_SET_SMOB_DATA(x, data) SCM_SETCDR (x, data)
@@ -91,6 +120,8 @@ do { \
 #define SCM_SMOBNUM(x) (SCM_TC2SMOBNUM (SCM_CAR (x)))
 /* SCM_SMOBNAME can be 0 if name is missing */
 #define SCM_SMOBNAME(smobnum) scm_smobs[smobnum].name
+#define SCM_SMOB_PREDICATE(tag, obj) \
+ (SCM_NIMP (obj) && SCM_TYP16 (obj) == (tag))
 
 extern int scm_numsmob;
 extern scm_smob_descriptor *scm_smobs;
