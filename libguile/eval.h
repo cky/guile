@@ -137,9 +137,9 @@ extern SCM scm_eval_options_interface (SCM setting);
 #if SCM_DEBUG_DEPRECATED == 0
 
 extern SCM scm_top_level_lookup_closure_var;
+extern SCM scm_system_transformer;
 #endif
 
-extern SCM scm_system_transformer;
 
 
 extern const char scm_s_expression[];

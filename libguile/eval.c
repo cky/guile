@@ -3909,8 +3909,6 @@ SCM_DEFINE (scm_copy_tree, "copy-tree", 1, 0, 0,
 
 */
 
-SCM scm_system_transformer;
-
 SCM 
 scm_i_eval_x (SCM exp, SCM env)
 {
@@ -3927,7 +3925,7 @@ SCM
 scm_primitive_eval_x (SCM exp)
 {
   SCM env;
-  SCM transformer = scm_fluid_ref (SCM_CDR (scm_system_transformer));
+  SCM transformer = scm_current_module_transformer ();
   if (SCM_NIMP (transformer))
     exp = scm_apply (transformer, exp, scm_listofnull);
   env = scm_top_level_env (scm_current_module_lookup_closure ());
@@ -3941,7 +3939,7 @@ SCM_DEFINE (scm_primitive_eval, "primitive-eval", 1, 0, 0,
 #define FUNC_NAME s_scm_primitive_eval
 {
   SCM env;
-  SCM transformer = scm_fluid_ref (SCM_CDR (scm_system_transformer));
+  SCM transformer = scm_current_module_transformer ();
   if (SCM_NIMP (transformer))
     exp = scm_apply (transformer, exp, scm_listofnull);
   env = scm_top_level_env (scm_current_module_lookup_closure ());
@@ -4027,6 +4025,7 @@ SCM_DEFINE (scm_eval, "eval", 2, 0, 0,
  */
 
 SCM scm_top_level_lookup_closure_var;
+SCM scm_system_transformer;
 
 /* Avoid using this functionality altogether (except for implementing
  * libguile, where you can use scm_i_eval or scm_i_eval_x).
@@ -4084,8 +4083,6 @@ scm_init_eval ()
   scm_set_smob_print (scm_tc16_promise, promise_print);
 
   scm_f_apply = scm_make_subr ("apply", scm_tc7_lsubr_2, scm_apply);
-  scm_system_transformer = scm_sysintern ("scm:eval-transformer",
-					  scm_make_fluid ());
 
   scm_lisp_nil = scm_sysintern ("nil", SCM_UNDEFINED);
   SCM_SETCDR (scm_lisp_nil, SCM_CAR (scm_lisp_nil));
@@ -4100,6 +4097,8 @@ scm_init_eval ()
 #if SCM_DEBUG_DEPRECATED == 0
   scm_top_level_lookup_closure_var =
     scm_sysintern ("*top-level-lookup-closure*", scm_make_fluid ());
+  scm_system_transformer =
+    scm_sysintern ("scm:eval-transformer", scm_make_fluid ());
 #endif
 
 #ifndef SCM_MAGIC_SNARFER
