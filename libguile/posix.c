@@ -438,20 +438,31 @@ SCM
 scm_status_exit_val (status)
      SCM status;
 {
+  int lstatus;
+
   SCM_ASSERT (SCM_INUMP (status), status, SCM_ARG1,s_status_exit_val);
-  if (WIFEXITED (SCM_INUM (status)))
-    return (SCM_MAKINUM (WEXITSTATUS (SCM_INUM (status))));
+
+  /* On Ultrix, the WIF... macros assume their argument is an lvalue;
+     go figure.  SCM_INUM does not yield an lvalue.  */
+  lstatus = SCM_INUM (status);
+  if (WIFEXITED (lstatus))
+    return (SCM_MAKINUM (WEXITSTATUS (lstatus)));
   else
     return SCM_BOOL_F;
 }
+
 SCM_PROC (s_status_term_sig, "status:term-sig", 1, 0, 0, scm_status_term_sig);
 SCM
 scm_status_term_sig (status)
      SCM status;
 {
+  int lstatus;
+
   SCM_ASSERT (SCM_INUMP (status), status, SCM_ARG1,s_status_term_sig);
-  if (WIFSIGNALED (SCM_INUM (status)))
-    return SCM_MAKINUM (WTERMSIG (SCM_INUM (status)));
+
+  lstatus = SCM_INUM (status);
+  if (WIFSIGNALED (lstatus))
+    return SCM_MAKINUM (WTERMSIG (lstatus));
   else
     return SCM_BOOL_F;
 }
@@ -461,9 +472,13 @@ SCM
 scm_status_stop_sig (status)
      SCM status;
 {
+  int lstatus;
+
   SCM_ASSERT (SCM_INUMP (status), status, SCM_ARG1,s_status_stop_sig);
-  if (WIFSTOPPED (SCM_INUM (status)))
-    return SCM_MAKINUM (WSTOPSIG (SCM_INUM (status)));
+
+  lstatus = SCM_INUM (status);
+  if (WIFSTOPPED (lstatus))
+    return SCM_MAKINUM (WSTOPSIG (lstatus));
   else
     return SCM_BOOL_F;
 }
