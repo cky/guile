@@ -1,3 +1,16 @@
+1998-11-22  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+
+	* modules.c, modules.h: New files: C interface to modules.  (This
+	is necessary in order to interface the object system to Guile
+	properly.  The guts of these modules will be replaced by the new
+	module system in the future.)
+	
+	* init.c: Added #include "modules.h"
+	(scm_boot_guile_1): Call scm_init_modules.
+	(invoke_main_func): Call scm_post_boot_init_modules.
+
+	* Makefile.am: Added modules.c, modules.x, modules.h.
+
 1998-11-22  Mikael Djurfeldt  <mdj@kenneth>
 
 	* procs.c: #include "objects.h"

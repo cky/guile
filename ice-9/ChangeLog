@@ -1,3 +1,9 @@
+1998-11-22  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+
+	* boot-9.scm: Added warnings about bindings used in
+	libguile/modules.c: the-module, set-current-module,
+	make-modules-in, module-eval-closure.
+
 1998-11-21  Mikael Djurfeldt  <mdj@kenneth>
 
 	* boot-9.scm (the-environment): New special form: Returns an
