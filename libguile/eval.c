@@ -3343,7 +3343,8 @@ SCM
 scm_force (x)
      SCM x;
 {
-  SCM_ASSERT ((SCM_TYP16 (x) == scm_tc16_promise), x, SCM_ARG1, s_force);
+  SCM_ASSERT (SCM_NIMP(x) && SCM_TYP16 (x) == scm_tc16_promise,
+	      x, SCM_ARG1, s_force);
   if (!((1L << 16) & SCM_CAR (x)))
     {
       SCM ans = scm_apply (SCM_CDR (x), SCM_EOL, SCM_EOL);
