@@ -1,3 +1,8 @@
+2004-04-22  Kevin Ryde  <user42@zip.com.au>
+
+	* standalone/test-round.c: New file, exercising scm_round.
+	* standalone/Makefile.am: Add it.
+
 2004-04-15  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/numbers.test (max, min): Exercise some inum/frac, frac/inum,
