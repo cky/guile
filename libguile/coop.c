@@ -40,7 +40,7 @@
  * If you do not wish that, delete this exception notice.  */
 
 
-/* $Id: coop.c,v 1.14 1998-10-13 23:17:09 jimb Exp $ */
+/* $Id: coop.c,v 1.15 1998-11-19 08:15:22 mdj Exp $ */
 
 /* Cooperative thread library, based on QuickThreads */
 
@@ -333,6 +333,8 @@ coop_mutex_unlock (m)
 
       old = coop_global_curr;
       coop_global_curr = newthread;
+      /* The new thread came into m->waiting through a lock operation.
+	 It now owns this mutex. */
       m->owner = coop_global_curr;
       QT_BLOCK (coop_yieldhelp, old, &coop_global_runq, newthread->sp);
     }
@@ -371,31 +373,6 @@ coop_condition_variable_init (c)
 }
 
 #ifdef __STDC__
-static int 
-coop_condition_variable_wait (coop_c *c)
-#else
-static int 
-coop_condition_variable_wait (c)
-     coop_c *c;
-#endif
-{
-  coop_t *old, *newthread;
-
-#ifdef GUILE_ISELECT
-  newthread = coop_wait_for_runnable_thread();
-  if (newthread == coop_global_curr)
-    coop_abort ();
-#else
-  newthread = coop_next_runnable_thread();
-#endif
-  old = coop_global_curr;
-  coop_global_curr = newthread;
-  QT_BLOCK (coop_yieldhelp, old, &(c->waiting), newthread->sp);
-  return 0;
-}
-
-
-#ifdef __STDC__
 int 
 coop_condition_variable_wait_mutex (coop_c *c, coop_m *m)
 #else
@@ -405,8 +382,30 @@ coop_condition_variable_wait_mutex (c, m)
      coop_m *m;
 #endif
 {
-  coop_mutex_unlock (m);
-  coop_condition_variable_wait (c);
+  coop_t *old, *newthread;
+
+  /* coop_mutex_unlock (m); */
+  newthread = coop_qget (&(m->waiting));
+  if (newthread != NULL)
+    {
+      m->owner = newthread;
+    }
+  else
+    {
+      m->owner = NULL;
+#ifdef GUILE_ISELECT
+      newthread = coop_wait_for_runnable_thread();
+      if (newthread == coop_global_curr)
+	coop_abort ();
+#else
+      newthread = coop_next_runnable_thread();
+#endif
+    }
+  coop_global_curr->top = &old;
+  old = coop_global_curr;
+  coop_global_curr = newthread;
+  QT_BLOCK (coop_yieldhelp, old, &(c->waiting), newthread->sp);
+
   coop_mutex_lock (m);
   return 0;
 }

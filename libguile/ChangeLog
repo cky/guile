@@ -1,3 +1,17 @@
+1998-11-19  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* readline.c (scm_init_readline): Set
+	rl_basic_word_break_characters.  (Thanks to Ian Grant.)
+
+	* coop.c (coop_condition_variable_wait): Removed
+	(coop_condition_variable_wait_mutex): Folded logic of
+	coop_mutex_unlock into coop_condition_variable_wait_mutex to
+	prevent condvar signal lossage.  Previously, another thread could
+	start to run after unlocking the mutex but before putting the
+	current thread on the wait queue.  If that thread then would
+	signal the first, the signal would be lost.  (Thanks to Christian
+	Lynbech.)
+
 1998-11-17  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* eval.c (SCM_CEVAL): Added missing case for cclo.  (Thanks to
