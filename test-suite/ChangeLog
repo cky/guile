@@ -1,3 +1,7 @@
+2003-08-22  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/numbers.test (-): Exercise bignum - inum.
+
 2003-08-17  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/syntax.test (while): Exercise break and continue from
