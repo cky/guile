@@ -1,5 +1,12 @@
 2002-11-16  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* syncase.scm (define-syntax, eval-when, fluid-let-syntax,
+	identifier-syntax, let-syntax, letrec-syntax, syntax, syntax-case,
+	syntax-rules, with-syntax, include):  Changed definitions to form
+	'real' macro definitions.
+
+2002-11-16  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* boot-9.scm (define-private, export-syntax, export-syntax):
 	Fixed my previous fix (blush).
 

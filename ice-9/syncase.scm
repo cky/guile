@@ -83,21 +83,22 @@
 
 (define bound-identifier=? #f)
 (define datum->syntax-object #f)
-(define define-syntax sc-macro)
-(define eval-when sc-macro)
-(define fluid-let-syntax sc-macro)
 (define free-identifier=? #f)
 (define generate-temporaries #f)
 (define identifier? #f)
-(define identifier-syntax sc-macro)
-(define let-syntax sc-macro)
-(define letrec-syntax sc-macro)
-(define syntax sc-macro)
-(define syntax-case sc-macro)
 (define syntax-object->datum #f)
-(define syntax-rules sc-macro)
-(define with-syntax sc-macro)
-(define include sc-macro)
+
+(defmacro define-syntax args `(sc-macro ,@args))
+(defmacro eval-when args `(sc-macro ,@args))
+(defmacro fluid-let-syntax args `(sc-macro ,@args))
+(defmacro identifier-syntax args `(sc-macro ,@args))
+(defmacro let-syntax args `(sc-macro ,@args))
+(defmacro letrec-syntax args `(sc-macro ,@args))
+(defmacro syntax args `(sc-macro ,@args))
+(defmacro syntax-case args `(sc-macro ,@args))
+(defmacro syntax-rules args `(sc-macro ,@args))
+(defmacro with-syntax args `(sc-macro ,@args))
+(defmacro include args `(sc-macro ,@args))
 
 (define primitive-syntax '(quote lambda letrec if set! begin define or
 			   and let let* cond do quasiquote unquote
