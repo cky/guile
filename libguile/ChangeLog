@@ -1,3 +1,7 @@
+2001-03-13  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* ports.c (scm_port_mode): Changed `mode' array size to 4.
+
 2001-03-12  Keisuke Nishida  <kxn30@po.cwru.edu>
 
 	* strports.c (scm_object_to_string): New procedure.

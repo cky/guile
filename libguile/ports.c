@@ -609,7 +609,7 @@ SCM_DEFINE (scm_port_mode, "port-mode", 1, 0, 0,
 	    "port creation are not retained.")
 #define FUNC_NAME s_scm_port_mode
 {
-  char modes[3];
+  char modes[4];
   modes[0] = '\0';
 
   port = SCM_COERCE_OUTPORT (port);
