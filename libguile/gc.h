@@ -50,6 +50,13 @@
 #define SCM_FREEP(x) (SCM_CAR(x)==scm_tc_free_cell)
 #define SCM_NFREEP(x) (!SCM_FREEP(x))
 
+/* 1. This shouldn't be used on immediates.
+   2. It thinks that subrs are always unmarked (harmless). */
+#define SCM_MARKEDP(x) ((SCM_CAR(x) & 5) == 5 \
+			? SCM_GC8MARKP(x) \
+			: SCM_GCMARKP(x))
+#define SCM_NMARKEDP(x) (!SCM_MARKEDP(x))
+
 extern struct scm_heap_seg_data *scm_heap_table;
 extern int scm_n_heap_segs;
 extern int scm_take_stdin;
