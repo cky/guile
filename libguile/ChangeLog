@@ -1,3 +1,50 @@
+Tue Oct  1 00:00:10 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
+
+	* feature.c (scm_init_feature): Added threads feature (needs to be
+ 	initialized here, since features doesn't exist when
+ 	scm_init_threads is called).
+
+	* libguile.h: Added #include "libguile/../threads/threads.h".
+	(This is a kludge to get thread support working.  This should be
+	fixed.)
+
+	* configure.in, acconfig.h: Added flags for thread support.
+
+	* scmsigs.c: Define `signal' to be `pthread_signal' if using
+ 	mit-pthreads.
+
+	* gc.c (scm_igc): Added SCM_THREAD_CRITICAL_SECTION_START and
+ 	SCM_THREAD_CRITICAL_SECTION_END.  Moved marking of root data to
+	root.c:mark_root.
+
+	* _scm.h: Added conditional #include "threads.h"
+
+	* __scm.h (SCM_ASYNC_TICK): Added call to macro
+ 	SCM_THREADS_SWITCHING_CODE.
+
+	* init.c (scm_start_stack): Call `scm_make_root' to dynamically
+ 	allocate the basic dynamic root object.
+	(scm_boot_guile): Added call to scm_init_root.
+
+*	* root.c, root.h: Added root smob.
+	(cwdr, scm_call_with_new_root, scm_dynamic_root, scm_app_wdr): New
+ 	functions: Implements dynamic roots mostly according to spec in
+ 	SCM manual.  Main difference is that the second argument is a
+	throw handler rather than an error "thunk".
+
+	* root.h: Added declaration of scm_init_root.
+
+	* root.c: Added #include "genio.h", #include "smob.h", #include
+ 	"pairs.h", #include "throw.h", #include "dynwind.h", #include
+ 	"eval.h"
+	(scm_init_root): Added #include "root.x".
+
+	* throw.c: Added #include "stackchk.h"
+	(scm_catch): Changed SCM_DEFER_INTS --> SCM_REDEFER_INTS and
+ 	SCM_ALLOW_INTS --> SCM_REALLOW_INTS.  This is so that scm_catch
+ 	can be used in scm_call_with_new_root; Added reenabling of stack
+ 	checking when catching a throw.
+
 Sat Sep 28 02:07:43 1996  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* strings.c, strings.h: (scm_makfrom0str, scm_makefrom0str_opt:
