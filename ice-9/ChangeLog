@@ -7,7 +7,7 @@
 
 	* boot-9.scm (file-exists?): Use stat rather than access?, so as to
 	follow the effective UID/GID not the real ID.  file-exists? is
-	normally be used as a prelude to opening or some other operation, and
+	normally used as a prelude to opening or some other operation, and
 	it's the effective ID which will apply there.  Emacs file-exists-p
 	uses stat, presumably for the the same reason.
 
