@@ -66,7 +66,6 @@
  */
 #define SCM_BEGIN_FOREIGN_BLOCK \
 do { \
-  old_gc = scm_block_gc; scm_block_gc = 1; \
   scm_print_carefully_p = 1; \
 } while (0)
 
@@ -74,7 +73,6 @@ do { \
 #define SCM_END_FOREIGN_BLOCK \
 do { \
   scm_print_carefully_p = 0; \
-  scm_block_gc = old_gc; \
 } while (0)
 
 
@@ -109,7 +107,6 @@ static SCM tok_buf;
 static int tok_buf_mark_p;
 
 static SCM gdb_output_port;
-static int old_gc;
 
 
 static void
