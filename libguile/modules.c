@@ -44,6 +44,8 @@
 
 
 
+#include <stdarg.h>
+
 #include "libguile/_scm.h"
 
 #include "libguile/eval.h"
@@ -54,24 +56,13 @@
 #include "libguile/struct.h"
 #include "libguile/variable.h"
 #include "libguile/fluids.h"
+#include "libguile/deprecation.h"
 
 #include "libguile/modules.h"
 
 int scm_module_system_booted_p = 0;
 
 SCM scm_module_tag;
-
-static SCM the_root_module_var;
-static SCM root_module_lookup_closure;
-
-SCM
-scm_the_root_module ()
-{
-  if (scm_module_system_booted_p)
-    return SCM_VARIABLE_REF (the_root_module_var);
-  else
-    return SCM_BOOL_F;
-}
 
 static SCM the_module;
 
@@ -126,76 +117,47 @@ SCM_DEFINE (scm_interaction_environment, "interaction-environment", 0, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_SYMBOL (scm_sym_app, "app");
-SCM_SYMBOL (scm_sym_modules, "modules");
-static SCM module_prefix;
+SCM
+scm_c_call_with_current_module (SCM module,
+				SCM (*func)(void *), void *data)
+{
+  return scm_c_with_fluid (the_module, module, func, data);
+}
 
 static SCM
-scm_module_full_name (SCM name)
+convert_module_name (const char *name)
 {
-  if (SCM_EQ_P (SCM_CAR (name), scm_sym_app))
-    return name;
-  else
-    return scm_append (SCM_LIST2 (module_prefix, name));
+  SCM list = SCM_EOL;
+  SCM *tail = &list;
+
+  const char *ptr;
+  while (*name)
+    {
+      while (*name == ' ')
+	name++;
+      ptr = name;
+      while (*ptr && *ptr != ' ')
+	ptr++;
+      if (ptr > name)
+	{
+	  *tail = scm_cons (scm_mem2symbol (name, ptr-name), SCM_EOL);
+	  tail = SCM_CDRLOC (*tail);
+	}
+      name = ptr;
+    }
+
+  return list;
 }
 
-static SCM make_modules_in_var;
-static SCM beautify_user_module_x_var;
-
-SCM
-scm_make_module (SCM name)
-{
-  return scm_apply (SCM_VARIABLE_REF (make_modules_in_var),
-		    SCM_LIST2 (scm_the_root_module (),
-			       scm_module_full_name (name)),
-		    SCM_EOL);
-}
-
-SCM
-scm_ensure_user_module (SCM module)
-{
-  scm_apply (SCM_VARIABLE_REF (beautify_user_module_x_var),
-	     SCM_LIST1 (module), SCM_EOL);
-  return SCM_UNSPECIFIED;
-}
-
-SCM
-scm_module_lookup_closure (SCM module)
-{
-  if (module == SCM_BOOL_F)
-    return SCM_BOOL_F;
-  else
-    return SCM_MODULE_EVAL_CLOSURE (module);
-}
-
-SCM
-scm_current_module_lookup_closure ()
-{
-  if (scm_module_system_booted_p)
-    return scm_module_lookup_closure (scm_current_module ());
-  else
-    return SCM_BOOL_F;
-}
-
-SCM
-scm_module_transformer (SCM module)
-{
-  if (module == SCM_BOOL_F)
-    return SCM_BOOL_F;
-  else
-    return SCM_MODULE_TRANSFORMER (module);
-}
-
-SCM
-scm_current_module_transformer ()
-{
-  if (scm_module_system_booted_p)
-    return scm_module_transformer (scm_current_module ());
-  else
-    return SCM_BOOL_F;
-}
-
+static SCM process_define_module_var;
+static SCM process_use_modules_var;
 static SCM resolve_module_var;
+
+SCM
+scm_c_resolve_module (const char *name)
+{
+  return scm_resolve_module (convert_module_name (name));
+}
 
 SCM
 scm_resolve_module (SCM name)
@@ -204,13 +166,47 @@ scm_resolve_module (SCM name)
 		    SCM_LIST1 (name), SCM_EOL);
 }
 
-static SCM try_module_autoload_var;
-
 SCM
-scm_load_scheme_module (SCM name)
+scm_c_define_module (const char *name,
+		     void (*init)(void *), void *data)
 {
-  return scm_apply (SCM_VARIABLE_REF (try_module_autoload_var),
-		    SCM_LIST1 (name), SCM_EOL);
+  SCM module = scm_apply (SCM_VARIABLE_REF (process_define_module_var),
+			  SCM_LIST1 (SCM_LIST1 (convert_module_name (name))),
+			  SCM_EOL);
+  if (init)
+    scm_c_call_with_current_module (module, (SCM (*)(void*))init, data);
+  return module;
+}
+
+void
+scm_c_use_module (const char *name)
+{
+  scm_apply (SCM_VARIABLE_REF (process_use_modules_var),
+	     SCM_LIST1 (SCM_LIST1 (convert_module_name (name))),
+	     SCM_EOL);
+}
+
+static SCM module_export_x_var;
+
+void
+scm_c_export (const char *name, ...)
+{
+  va_list ap;
+  SCM names = scm_cons (scm_str2symbol (name), SCM_EOL);
+  SCM *tail = SCM_CDRLOC (names);
+  va_start (ap, name);
+  while (1)
+    {
+      const char *n = va_arg (ap, const char *);
+      if (n == NULL)
+	break;
+      *tail = scm_cons (scm_str2symbol (n), SCM_EOL);
+      tail = SCM_CDRLOC (*tail);
+    }
+  scm_apply (SCM_VARIABLE_REF (module_export_x_var),
+	     SCM_LIST2 (scm_current_module (),
+			names),
+	     SCM_EOL);
 }
 
 /* Environments */
@@ -239,18 +235,29 @@ scm_env_top_level (SCM env)
 
 SCM_SYMBOL (sym_module, "module");
 
+static SCM the_root_module_var;
+
+static SCM
+the_root_module ()
+{
+  if (scm_module_system_booted_p)
+    return SCM_VARIABLE_REF (the_root_module_var);
+  else
+    return SCM_BOOL_F;
+}
+
 SCM
 scm_lookup_closure_module (SCM proc)
 {
   if (SCM_FALSEP (proc))
-    return scm_the_root_module ();
+    return the_root_module ();
   else if (SCM_EVAL_CLOSURE_P (proc))
     return SCM_PACK (SCM_SMOB_DATA (proc));
   else
     {
       SCM mod = scm_procedure_property (proc, sym_module);
       if (mod == SCM_BOOL_F)
-	mod = scm_the_root_module ();
+	mod = the_root_module ();
       return mod;
     }
 }
@@ -259,21 +266,6 @@ SCM
 scm_env_module (SCM env)
 {
   return scm_lookup_closure_module (scm_env_top_level (env));
-}
-
-
-SCM_SYMBOL (scm_sym_system_module, "system-module");
-
-SCM
-scm_system_module_env_p (SCM env)
-{
-  SCM proc = scm_env_top_level (env);
-  if (SCM_FALSEP (proc))
-    proc = root_module_lookup_closure;
-  return ((SCM_NFALSEP (scm_procedure_property (proc,
-						scm_sym_system_module)))
-	  ? SCM_BOOL_T
-	  : SCM_BOOL_F);
 }
 
 /*
@@ -362,6 +354,42 @@ SCM_DEFINE (scm_standard_interface_eval_closure,
 		      SCM_UNPACK (module));
 }
 #undef FUNC_NAME
+
+SCM
+scm_module_lookup_closure (SCM module)
+{
+  if (module == SCM_BOOL_F)
+    return SCM_BOOL_F;
+  else
+    return SCM_MODULE_EVAL_CLOSURE (module);
+}
+
+SCM
+scm_current_module_lookup_closure ()
+{
+  if (scm_module_system_booted_p)
+    return scm_module_lookup_closure (scm_current_module ());
+  else
+    return SCM_BOOL_F;
+}
+
+SCM
+scm_module_transformer (SCM module)
+{
+  if (module == SCM_BOOL_F)
+    return SCM_BOOL_F;
+  else
+    return SCM_MODULE_TRANSFORMER (module);
+}
+
+SCM
+scm_current_module_transformer ()
+{
+  if (scm_module_system_booted_p)
+    return scm_module_transformer (scm_current_module ());
+  else
+    return SCM_BOOL_F;
+}
 
 /* scm_sym2var
  *
@@ -552,6 +580,32 @@ SCM_DEFINE (scm_get_pre_modules_obarray, "%get-pre-modules-obarray", 0, 0, 0,
 }
 #undef FUNC_NAME
 
+#if SCM_DEBUG_DEPRECATED == 0
+
+static SCM root_module_lookup_closure;
+SCM_SYMBOL (scm_sym_app, "app");
+SCM_SYMBOL (scm_sym_modules, "modules");
+static SCM module_prefix;
+static SCM make_modules_in_var;
+static SCM beautify_user_module_x_var;
+static SCM try_module_autoload_var;
+
+#endif
+
+SCM_SYMBOL (scm_sym_system_module, "system-module");
+
+SCM
+scm_system_module_env_p (SCM env)
+{
+  SCM proc = scm_env_top_level (env);
+  if (SCM_FALSEP (proc))
+    return SCM_BOOL_T;
+  return ((SCM_NFALSEP (scm_procedure_property (proc,
+						scm_sym_system_module)))
+	  ? SCM_BOOL_T
+	  : SCM_BOOL_F);
+}
+
 void
 scm_modules_prehistory ()
 {
@@ -581,16 +635,82 @@ scm_post_boot_init_modules ()
 
   SCM module_type = SCM_VARIABLE_REF (scm_c_lookup ("module-type"));
   scm_module_tag = (SCM_CELL_WORD_1 (module_type) + scm_tc3_cons_gloc);
+
+  resolve_module_var = PERM (scm_c_lookup ("resolve-module"));
+  process_define_module_var = PERM (scm_c_lookup ("process-define-module"));
+  process_use_modules_var = PERM (scm_c_lookup ("process-use-modules"));
+  module_export_x_var = PERM (scm_c_lookup ("module-export!"));
+  the_root_module_var = PERM (scm_c_lookup ("the-root-module"));
+
+#if SCM_DEBUG_DEPRECATED == 0
+
   module_prefix = PERM (SCM_LIST2 (scm_sym_app, scm_sym_modules));
   make_modules_in_var = PERM (scm_c_lookup ("make-modules-in"));
-  beautify_user_module_x_var = PERM (scm_c_lookup ("beautify-user-module!"));
-  the_root_module_var = PERM (scm_c_lookup ("the-root-module"));
   root_module_lookup_closure =
     PERM (scm_module_lookup_closure (SCM_VARIABLE_REF (the_root_module_var)));
-  resolve_module_var = PERM (scm_c_lookup ("resolve-module"));
+  beautify_user_module_x_var = PERM (scm_c_lookup ("beautify-user-module!"));
   try_module_autoload_var = PERM (scm_c_lookup ("try-module-autoload"));
+
+#endif
+
   scm_module_system_booted_p = 1;
 }
+
+#if SCM_DEBUG_DEPRECATED == 0
+
+SCM
+scm_the_root_module ()
+{
+  scm_c_issue_deprecation_warning ("`scm_the_root_module' is deprecated. "
+				   "Use `scm_c_resolve_module (\"guile\") "
+				   "instead.");
+
+  return the_root_module ();
+}
+
+static SCM
+scm_module_full_name (SCM name)
+{
+  if (SCM_EQ_P (SCM_CAR (name), scm_sym_app))
+    return name;
+  else
+    return scm_append (SCM_LIST2 (module_prefix, name));
+}
+
+SCM
+scm_make_module (SCM name)
+{
+  scm_c_issue_deprecation_warning ("`scm_make_module' is deprecated. "
+				   "Use `scm_c_define_module instead.");
+
+  return scm_apply (SCM_VARIABLE_REF (make_modules_in_var),
+		    SCM_LIST2 (scm_the_root_module (),
+			       scm_module_full_name (name)),
+		    SCM_EOL);
+}
+
+SCM
+scm_ensure_user_module (SCM module)
+{
+  scm_c_issue_deprecation_warning ("`scm_ensure_user_module' is deprecated. "
+				   "Use `scm_c_define_module instead.");
+
+  scm_apply (SCM_VARIABLE_REF (beautify_user_module_x_var),
+	     SCM_LIST1 (module), SCM_EOL);
+  return SCM_UNSPECIFIED;
+}
+
+SCM
+scm_load_scheme_module (SCM name)
+{
+  scm_c_issue_deprecation_warning ("`scm_load_scheme_module' is deprecated. "
+				   "Use `scm_c_resolve_module instead.");
+
+  return scm_apply (SCM_VARIABLE_REF (try_module_autoload_var),
+		    SCM_LIST1 (name), SCM_EOL);
+}
+
+#endif
 
 /*
   Local Variables:
