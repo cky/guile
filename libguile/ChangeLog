@@ -1,3 +1,8 @@
+2004-05-01  Kevin Ryde  <user42@zip.com.au>
+
+	* continuations.c (scm_dynthrow): Use >= instead of SCM_PTR_GE which
+	is now gone.  Reported by Andreas Vögele.
+
 2004-04-28  Kevin Ryde  <user42@zip.com.au>
 
 	* backtrace.c (display_frame_expr), numbers.c (XDIGIT2UINT,
