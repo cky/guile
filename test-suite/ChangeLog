@@ -1,3 +1,8 @@
+1999-08-04  Gary Houston  <ghouston@easynet.co.uk>
+
+	* tests/ports.test: tests for buffered and unbuffered input/output
+	fports with seeking.
+
 1999-08-01  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	* tests/r4rs.test (SECTION 3 4): Each element of type-matrix
