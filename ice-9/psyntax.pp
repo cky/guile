@@ -1,6 +1,6 @@
 ;;; psyntax.pp
 ;;; automatically generated from psyntax.ss
-;;; Mon Aug 18 13:18:06 EST 1997
+;;; Mon Aug 18 20:35:13 EST 1997
 ;;; see copyright notice in psyntax.ss
 
 ((lambda ()
