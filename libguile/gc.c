@@ -1904,7 +1904,9 @@ scm_init_storage (scm_sizet init_heap_size)
   if (!scm_port_table)
     return 1;
 
+#ifdef HAVE_ATEXIT
   atexit (cleanup);
+#endif
 
   scm_undefineds = scm_cons (SCM_UNDEFINED, SCM_EOL);
   SCM_SETCDR (scm_undefineds, scm_undefineds);
