@@ -50,18 +50,39 @@
 
 
 
+/* struct allocated for each buffered FPORT.  */
+struct scm_fport {
+  int fdes;			/* file descriptor.  */
+
+  /* if fdes supports random access (i.e., can change position using lseek)
+     then read/write ports reset the write position to account for buffered
+     chars whenever switching from reading to writing.  it wouldn't need to
+     be done if fdes is in append mode, but that can be changed at any time
+     and it would be more work to check for it.  */
+  int random;			/* whether fdes supports random-access.  */
+};
+
+#define SCM_FSTREAM(x) ((struct scm_fport *) SCM_STREAM (x))
+#define SCM_FPORT_FDES(x) (SCM_FSTREAM (x)->fdes)
+
+#define SCM_FPORTP(x) (SCM_TYP16S(x)==scm_tc7_port)
+#define SCM_OPFPORTP(x) (((0xfeff | SCM_OPN) & SCM_CAR(x))==(scm_tc7_port | SCM_OPN))
+#define SCM_OPINFPORTP(x) (((0xfeff | SCM_OPN | SCM_RDNG) & SCM_CAR(x))==(scm_tc7_port | SCM_OPN | SCM_RDNG))
+#define SCM_OPOUTFPORTP(x) (((0xfeff | SCM_OPN | SCM_WRTNG) & SCM_CAR(x))==(scm_tc7_port | SCM_OPN | SCM_WRTNG))
+
+/* test whether fdes supports random access.  */
+#define SCM_FDES_RANDOM_P(fdes) ((lseek (fdes, 0, SEEK_CUR) == -1) ? 0 : 1)
+
 extern scm_ptobfuns scm_fptob;
-extern scm_ptobfuns scm_pipob;
 
 
 extern SCM scm_setbuf0 (SCM port);
 extern SCM scm_setvbuf (SCM port, SCM mode, SCM size);
-extern SCM scm_freopen SCM_P ((SCM filename, SCM modes, SCM port));
 extern void scm_setfileno (FILE *fs, int fd);
 extern void scm_evict_ports (int fd);
 extern SCM scm_open_file (SCM filename, SCM modes);
-extern SCM scm_stdio_to_port (FILE *file, char *mode, SCM name);
-extern SCM scm_standard_stream_to_port (FILE *file, char *mode, char *name);
+extern SCM scm_fdes_to_port (int fdes, char *mode, SCM name);
+extern char *scm_fport_drain_input (SCM port, int *count_return);
 extern void scm_init_fports SCM_P ((void));
 
 #endif  /* FPORTSH */
