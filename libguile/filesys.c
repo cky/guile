@@ -689,6 +689,24 @@ scm_sys_rename (oldname, newname)
 }
 
 
+SCM_PROC(s_sys_delete_file, "delete-file", 1, 0, 0, scm_sys_delete_file);
+#ifdef __STDC__
+SCM 
+scm_sys_delete_file (SCM str)
+#else
+SCM 
+scm_sys_delete_file (str)
+     SCM str;
+#endif
+{
+  int ans;
+  SCM_ASSERT (SCM_NIMP (str) && SCM_STRINGP (str), str, SCM_ARG1, s_sys_delete_file);
+  SCM_SYSCALL (ans = unlink (SCM_CHARS (str)));
+  if (ans != 0)
+    SCM_SYSERROR (s_sys_delete_file);
+  return SCM_UNSPECIFIED;
+}
+
 
 SCM_PROC (s_sys_mkdir, "mkdir", 1, 1, 0, scm_sys_mkdir);
 #ifdef __STDC__

@@ -60,7 +60,6 @@
 #include "eval.h"
 #include "fdsocket.h"
 #include "feature.h"
-#include "files.h"
 #include "filesys.h"
 #include "fports.h"
 #include "gc.h"
@@ -367,7 +366,6 @@ scm_boot_guile (result, argc, argv, in, out, err, init_func, boot_cmd)
       scm_init_error ();
       scm_init_fdsocket ();
       scm_init_fports ();
-      scm_init_files ();
       scm_init_filesys ();
       scm_init_gc ();
       scm_init_gdbint ();

@@ -93,7 +93,6 @@ libobjs=	alist.o \
 		extchrs.o \
 		fdsocket.o \
 		feature.o \
-		files.o \
 		filesys.o \
 		fports.o \
 		gc.o \
@@ -170,7 +169,6 @@ inner_h_files= __scm.h \
 		extchrs.h \
 		fdsocket.h \
 		feature.h \
-		files.h \
 		filesys.h \
 		fports.h \
 		gc.h \
@@ -244,7 +242,6 @@ c_files=	alist.c \
 		extchrs.c \
 		fdsocket.c \
 		feature.c \
-		files.c \
 		filesys.c \
 		fports.c \
 		gc.c \
@@ -314,7 +311,6 @@ gen_c_files=	alist.x \
 		extchrs.x \
 		fdsocket.x \
 		feature.x \
-		files.x \
 		filesys.x \
 		fports.x \
 		gc.x \
@@ -559,10 +555,6 @@ feature.o: feature.c _scm.h __scm.h scmconfig.h \
  tags.h error.h __scm.h pairs.h list.h gc.h \
  marksweep.h gsubr.h procs.h numbers.h symbols.h boolean.h \
  strings.h vectors.h root.h ports.h async.h feature.h feature.x
-files.o: files.c _scm.h __scm.h scmconfig.h \
- tags.h error.h __scm.h pairs.h list.h gc.h \
- marksweep.h gsubr.h procs.h numbers.h symbols.h boolean.h \
- strings.h vectors.h root.h ports.h async.h files.h files.x
 filesys.o: filesys.c _scm.h __scm.h scmconfig.h \
  tags.h error.h __scm.h pairs.h list.h gc.h \
  marksweep.h gsubr.h procs.h numbers.h symbols.h boolean.h \
@@ -612,7 +604,7 @@ init.o: init.c _scm.h __scm.h scmconfig.h \
  marksweep.h gsubr.h procs.h numbers.h symbols.h boolean.h \
  strings.h vectors.h root.h ports.h async.h alist.h append.h \
  arbiters.h chars.h continuations.h debug.h options.h \
- dynwind.h eq.h eval.h fdsocket.h feature.h files.h filesys.h fports.h \
+ dynwind.h eq.h eval.h fdsocket.h feature.h filesys.h fports.h \
  ports.h gdbint.h hash.h hashtab.h ioext.h kw.h load.h \
  mallocs.h mbstrings.h symbols.h objprop.h options.h \
  posix.h print.h procprop.h ramap.h read.h scmsigs.h sequences.h \
