@@ -195,6 +195,10 @@ be used with '-e'.  For example, you can now write a script like
 
 * Changes to Scheme functions and syntax
 
+** New function hashx-remove!
+
+This function completes the set of 'hashx' functions.
+
 ** The concept of dynamic roots has been factored into continuation
    barriers and dynamic states.
 
@@ -706,6 +710,14 @@ Use symbol->keyword and keyword->symbol instead.
 
 
 * Changes to the C interface
+
+** The functions scm_hash_fn_remove_x and scm_hashx_remove_x no longer
+   take a 'delete' function argument.
+
+This argument makes no sense since the delete function is used to
+remove a pair from an alist, and this must not be configurable.
+
+This is an incompatible change.
 
 ** A new family of functions for converting between C values and
    Scheme values has been added.
