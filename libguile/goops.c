@@ -1970,7 +1970,7 @@ SCM_KEYWORD (k_gf,		"generic-function");
 
 SCM_DEFINE (scm_make, "make",  0, 0, 1,
 	    (SCM args),
-	    "Make a new object.  @var{args} mist contain the class and\n"
+	    "Make a new object.  @var{args} must contain the class and\n"
 	    "all necessary initialization information.")
 #define FUNC_NAME s_scm_make
 {

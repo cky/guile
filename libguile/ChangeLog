@@ -1,3 +1,12 @@
+2001-02-24  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* numbers.c (scm_two_doubles, scm_sys_expt, scm_sys_atan2,
+	scm_make_polar): Rename arguments `z1' and `z2' to `x' and `y',
+	since use of `z' suggests that the arguments may be complex.
+
+	* goops.c (scm_make), numbers.c (scm_sys_expt): Fix docstring
+	typos.
+
 2001-02-23  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* dump.c (scm_binary_write, scm_binary_read), eval.c
@@ -40,7 +49,6 @@
 	* guile-doc-snarf.in, guile-func-name-check.in: Added copyright
 	notice and license.
 
->>>>>>> 1.1281
 2001-02-17  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* variable.c (scm_make_variable, scm_make_undefined_variable)

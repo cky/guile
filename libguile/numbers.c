@@ -3947,60 +3947,60 @@ struct dpair
   double x, y;
 };
 
-static void scm_two_doubles (SCM z1,
-			     SCM z2,
+static void scm_two_doubles (SCM x,
+			     SCM y,
 			     const char *sstring,
 			     struct dpair * xy);
 
 static void
-scm_two_doubles (SCM z1, SCM z2, const char *sstring, struct dpair *xy)
+scm_two_doubles (SCM x, SCM y, const char *sstring, struct dpair *xy)
 {
-  if (SCM_INUMP (z1)) {
-    xy->x = SCM_INUM (z1);
-  } else if (SCM_BIGP (z1)) {
-    xy->x = scm_big2dbl (z1);
-  } else if (SCM_REALP (z1)) {
-    xy->x = SCM_REAL_VALUE (z1);
+  if (SCM_INUMP (x)) {
+    xy->x = SCM_INUM (x);
+  } else if (SCM_BIGP (x)) {
+    xy->x = scm_big2dbl (x);
+  } else if (SCM_REALP (x)) {
+    xy->x = SCM_REAL_VALUE (x);
   } else {
-    scm_wrong_type_arg (sstring, SCM_ARG1, z1);
+    scm_wrong_type_arg (sstring, SCM_ARG1, x);
   }
 
-  if (SCM_INUMP (z2)) {
-    xy->y = SCM_INUM (z2);
-  } else if (SCM_BIGP (z2)) {
-    xy->y = scm_big2dbl (z2);
-  } else if (SCM_REALP (z2)) {
-    xy->y = SCM_REAL_VALUE (z2);
+  if (SCM_INUMP (y)) {
+    xy->y = SCM_INUM (y);
+  } else if (SCM_BIGP (y)) {
+    xy->y = scm_big2dbl (y);
+  } else if (SCM_REALP (y)) {
+    xy->y = SCM_REAL_VALUE (y);
   } else {
-    scm_wrong_type_arg (sstring, SCM_ARG2, z2);
+    scm_wrong_type_arg (sstring, SCM_ARG2, y);
   }
 }
 
 
 SCM_DEFINE (scm_sys_expt, "$expt", 2, 0, 0,
-            (SCM z1, SCM z2),
-	    "Return @var{z1} raised to the power or @var{z2}. This\n"
+            (SCM x, SCM y),
+	    "Return @var{x} raised to the power of @var{y}. This\n"
 	    "procedure does not accept complex arguments.") 
 #define FUNC_NAME s_scm_sys_expt
 {
   struct dpair xy;
-  scm_two_doubles (z1, z2, FUNC_NAME, &xy);
+  scm_two_doubles (x, y, FUNC_NAME, &xy);
   return scm_make_real (pow (xy.x, xy.y));
 }
 #undef FUNC_NAME
 
 
 SCM_DEFINE (scm_sys_atan2, "$atan2", 2, 0, 0,
-            (SCM z1, SCM z2),
-	    "Return the arc tangent of the two arguments @var{z1} and\n"
-	    "@var{z2}. This is similar to calculating the arc tangent of\n"
-	    "@var{z1} / @var{z2}, except that the signs of both arguments\n"
+            (SCM x, SCM y),
+	    "Return the arc tangent of the two arguments @var{x} and\n"
+	    "@var{y}. This is similar to calculating the arc tangent of\n"
+	    "@var{x} / @var{y}, except that the signs of both arguments\n"
 	    "are used to determine the quadrant of the result. This\n"
 	    "procedure does not accept complex arguments.")
 #define FUNC_NAME s_scm_sys_atan2
 {
   struct dpair xy;
-  scm_two_doubles (z1, z2, FUNC_NAME, &xy);
+  scm_two_doubles (x, y, FUNC_NAME, &xy);
   return scm_make_real (atan2 (xy.x, xy.y));
 }
 #undef FUNC_NAME
@@ -4021,12 +4021,12 @@ SCM_DEFINE (scm_make_rectangular, "make-rectangular", 2, 0, 0,
 
 
 SCM_DEFINE (scm_make_polar, "make-polar", 2, 0, 0,
-            (SCM z1, SCM z2),
-	    "Return the complex number Z1 * e^(i * Z2).")
+            (SCM x, SCM y),
+	    "Return the complex number X * e^(i * Y).")
 #define FUNC_NAME s_scm_make_polar
 {
   struct dpair xy;
-  scm_two_doubles (z1, z2, FUNC_NAME, &xy);
+  scm_two_doubles (x, y, FUNC_NAME, &xy);
   return scm_make_complex (xy.x * cos (xy.y), xy.x * sin (xy.y));
 }
 #undef FUNC_NAME
