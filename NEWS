@@ -485,8 +485,11 @@ When you want the old behavior, use 'round' explicitely:
 This function finds a simple fraction that is close to a given real
 number.  For example (and compare with inexact->exact above):
 
-    (rationalize 1.234 0.0005)
+    (rationalize (inexact->exact 1.234) 1/2000)
     => 58/47
+
+Note that, as required by R5RS, rationalize returns only then an exact
+result when both its arguments are exact.
 
 ** 'odd?' and 'even?' work also for inexact integers.
 

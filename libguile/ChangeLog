@@ -1,5 +1,9 @@
 2003-11-19  Marius Vollmer  <mvo@zagadka.de>
 
+	* numbers.c (scm_make_ratio): Rewritten to have a simpler
+	structure.  Previously, not all cases with a negative denominator
+	were covered.
+
 	* numbers.c (mem2decimal_from_point): use scm_divide instead of
 	scm_divide2real when forming the fractional part.  This allows
 	"#e1.2" to yield 6/5.
