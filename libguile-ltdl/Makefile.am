@@ -41,4 +41,4 @@ lib_LTLIBRARIES = libguile-ltdl.la
 libguile_ltdl_la_SOURCES = guile-ltdl.c
 #libguile_ltdl_la_DEPENDENCIES = 
 libguile_ltdl_la_LIBADD = ${LIBADD_DL}
-libguile_ltdl_la_LDFLAGS = -version-info 1:0:0 -export-dynamic -no-undefined
+libguile_ltdl_la_LDFLAGS = -version-info 2:0:0 -export-dynamic -no-undefined
