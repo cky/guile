@@ -48,6 +48,7 @@
 /* Smob type code for homogeneous numeric vectors.  */
 int scm_tc16_uvec = 0;
 
+#define SCM_IS_UVEC(obj) SCM_SMOB_PREDICATE (scm_tc16_uvec, (obj))
 
 /* Accessor macros for the three components of a homogeneous numeric
    vector:
@@ -233,8 +234,14 @@ uvec_free (SCM uvec)
 static SCM_C_INLINE int
 is_uvec (int type, SCM obj)
 {
-  return (SCM_SMOB_PREDICATE (scm_tc16_uvec, obj)
-	  && SCM_UVEC_TYPE (obj) == type);
+  if (SCM_IS_UVEC (obj))
+    return SCM_UVEC_TYPE (obj) == type;
+  if (SCM_ARRAYP (obj) && SCM_ARRAY_NDIM (obj) == 1)
+    {
+      SCM v = SCM_ARRAY_V (obj);
+      return SCM_IS_UVEC (v) && SCM_UVEC_TYPE (v) == type;
+    }
+  return 0;
 }
 
 static SCM_C_INLINE SCM
@@ -273,7 +280,7 @@ alloc_uvec (int type, size_t len)
 */
 
 static SCM_C_INLINE SCM
-uvec_fast_ref (int type, void *base, size_t c_idx)
+uvec_fast_ref (int type, const void *base, size_t c_idx)
 {
   if (type == SCM_UVEC_U8)
     return scm_from_uint8 (((scm_t_uint8*)base)[c_idx]);
@@ -359,52 +366,87 @@ make_uvec (int type, SCM len, SCM fill)
   return uvec;
 }
 
+static SCM_C_INLINE void *
+uvec_writable_elements (int type, SCM uvec, scm_t_array_handle *handle,
+			size_t *lenp, ssize_t *incp)
+{
+  if (type >= 0)
+    {
+      SCM v = uvec;
+      if (SCM_ARRAYP (v))
+	v = SCM_ARRAY_V (v);
+      uvec_assert (type, v);
+    }
+
+  return scm_uniform_vector_writable_elements (uvec, handle, lenp, incp);
+}
+
+static SCM_C_INLINE const void *
+uvec_elements (int type, SCM uvec, scm_t_array_handle *handle,
+	       size_t *lenp, ssize_t *incp)
+{
+  return uvec_writable_elements (type, uvec, handle, lenp, incp);
+}
+
+static SCM
+uvec_to_list (int type, SCM uvec)
+{
+  scm_t_array_handle handle;
+  size_t len;
+  ssize_t i, inc;
+  const void *elts;
+  SCM res = SCM_EOL;
+
+  elts = uvec_elements (type, uvec, &handle, &len, &inc);
+  for (i = len*inc; i > 0;)
+    {
+      i -= inc;
+      res = scm_cons (uvec_fast_ref (type, elts, i), res);
+    }
+  scm_array_handle_release (&handle);
+  return res;
+}
+
 static SCM_C_INLINE SCM
 uvec_length (int type, SCM uvec)
 {
-  uvec_assert (type, uvec);
-  return scm_from_size_t (SCM_UVEC_LENGTH (uvec));
+  scm_t_array_handle handle;
+  size_t len;
+  ssize_t inc;
+  uvec_elements (type, uvec, &handle, &len, &inc);
+  scm_array_handle_release (&handle);
+  return scm_from_size_t (len);
 }
 
 static SCM_C_INLINE SCM
 uvec_ref (int type, SCM uvec, SCM idx)
 {
-  size_t c_idx;
+  scm_t_array_handle handle;
+  size_t i, len;
+  ssize_t inc;
+  const void *elts;
   SCM res;
 
-  uvec_assert (type, uvec);
-  c_idx = scm_to_unsigned_integer (idx, 0, SCM_UVEC_LENGTH (uvec)-1);
-  res = uvec_fast_ref (type, SCM_UVEC_BASE(uvec), c_idx);
-  scm_remember_upto_here_1 (uvec);
+  elts = uvec_elements (type, uvec, &handle, &len, &inc);
+  i = scm_to_unsigned_integer (idx, 0, len-1);
+  res = uvec_fast_ref (type, elts, i*inc);
+  scm_array_handle_release (&handle);
   return res;
 }
 
 static SCM_C_INLINE SCM
 uvec_set_x (int type, SCM uvec, SCM idx, SCM val)
 {
-  size_t c_idx;
+  scm_t_array_handle handle;
+  size_t i, len;
+  ssize_t inc;
+  void *elts;
 
-  uvec_assert (type, uvec);
-  c_idx = scm_to_unsigned_integer (idx, 0, SCM_UVEC_LENGTH (uvec)-1);
-  uvec_fast_set_x (type, SCM_UVEC_BASE(uvec), c_idx, val);
-  scm_remember_upto_here_1 (uvec);
+  elts = uvec_writable_elements (type, uvec, &handle, &len, &inc);
+  i = scm_to_unsigned_integer (idx, 0, len-1);
+  uvec_fast_set_x (type, elts, i*inc, val);
+  scm_array_handle_release (&handle);
   return SCM_UNSPECIFIED;
-}
-
-static SCM_C_INLINE SCM
-uvec_to_list (int type, SCM uvec)
-{
-  size_t c_idx;
-  void *base;
-  SCM res = SCM_EOL;
-
-  uvec_assert (type, uvec);
-  c_idx = SCM_UVEC_LENGTH (uvec);
-  base = SCM_UVEC_BASE (uvec);
-  while (c_idx-- > 0)
-    res = scm_cons (uvec_fast_ref (type, base, c_idx), res);
-  scm_remember_upto_here_1 (uvec);
-  return res;
 }
 
 static SCM_C_INLINE SCM
@@ -470,16 +512,35 @@ scm_i_generalized_vector_type (SCM v)
 int
 scm_is_uniform_vector (SCM obj)
 {
-  return SCM_SMOB_PREDICATE (scm_tc16_uvec, obj);
+  if (SCM_IS_UVEC (obj))
+    return 1;
+  if (SCM_ARRAYP (obj) && SCM_ARRAY_NDIM (obj) == 1)
+    {
+      SCM v = SCM_ARRAY_V (obj);
+      return SCM_IS_UVEC (v);
+    }
+  return 0;
 }
 
 size_t
-scm_c_uniform_vector_length (SCM v)
+scm_c_uniform_vector_length (SCM uvec)
 {
-  if (scm_is_uniform_vector (v))
-    return SCM_UVEC_LENGTH (v);
+  /* scm_generalized_vector_get_handle will ultimately call us to get
+     the length of uniform vectors, so we can't use uvec_elements for
+     naked vectors.
+  */
+
+  if (SCM_IS_UVEC (uvec))
+    return SCM_UVEC_LENGTH (uvec);
   else
-    scm_wrong_type_arg_msg (NULL, 0, v, "uniform vector");
+    {
+      scm_t_array_handle handle;
+      size_t len;
+      ssize_t inc;
+      uvec_elements (-1, uvec, &handle, &len, &inc);
+      scm_array_handle_release (&handle);
+      return len;
+    }
 }
 
 SCM_DEFINE (scm_uniform_vector_p, "uniform-vector?", 1, 0, 0,
@@ -491,40 +552,59 @@ SCM_DEFINE (scm_uniform_vector_p, "uniform-vector?", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+SCM
+scm_c_uniform_vector_ref (SCM v, size_t idx)
+{
+  scm_t_array_handle handle;
+  const void *elts;
+  size_t len;
+  ssize_t inc;
+  SCM res;
+
+  elts = uvec_elements (-1, v, &handle, &len, &inc);
+  if (idx >= len)
+    scm_out_of_range (NULL, scm_from_size_t (idx));
+  res = uvec_fast_ref (SCM_UVEC_TYPE (v), elts, idx*inc);
+  scm_array_handle_release (&handle);
+  return res;
+}
+
 SCM_DEFINE (scm_uniform_vector_ref, "uniform-vector-ref", 2, 0, 0,
 	    (SCM v, SCM idx),
 	    "Return the element at index @var{idx} of the\n"
 	    "homogenous numeric vector @var{v}.")
 #define FUNC_NAME s_scm_uniform_vector_ref
 {
+#if SCM_ENABLE_DEPRECATED
   /* Support old argument convention.
    */
   if (scm_is_pair (idx))
     {
+      scm_c_issue_deprecation_warning
+	("Using a list as the index to uniform-vector-ref is deprecated.");
       if (!scm_is_null (SCM_CDR (idx)))
 	scm_wrong_num_args (NULL);
       idx = SCM_CAR (idx);
     }
+#endif
 
-  if (scm_is_uniform_vector (v))
-    return uvec_ref (SCM_UVEC_TYPE (v), v, idx);
-  else
-    scm_wrong_type_arg_msg (NULL, 0, v, "uniform vector");
+  return scm_c_uniform_vector_ref (v, scm_to_size_t (idx));
 }
 #undef FUNC_NAME
 
-SCM
-scm_c_uniform_vector_ref (SCM v, size_t idx)
+void
+scm_c_uniform_vector_set_x (SCM v, size_t idx, SCM val)
 {
-  if (scm_is_uniform_vector (v))
-    {
-      if (idx < SCM_UVEC_LENGTH (v))
-	return uvec_fast_ref (SCM_UVEC_TYPE (v), SCM_UVEC_BASE (v), idx);
-      else
-	scm_out_of_range (NULL, scm_from_size_t (idx));
-    }
-  else
-    scm_wrong_type_arg_msg (NULL, 0, v, "uniform vector");
+  scm_t_array_handle handle;
+  void *elts;
+  size_t len;
+  ssize_t inc;
+
+  elts = uvec_writable_elements (-1, v, &handle, &len, &inc);
+  if (idx >= len)
+    scm_out_of_range (NULL, scm_from_size_t (idx));
+  uvec_fast_set_x (SCM_UVEC_TYPE (v), elts, idx*inc, val);
+  scm_array_handle_release (&handle);
 }
 
 SCM_DEFINE (scm_uniform_vector_set_x, "uniform-vector-set!", 3, 0, 0,
@@ -533,45 +613,30 @@ SCM_DEFINE (scm_uniform_vector_set_x, "uniform-vector-set!", 3, 0, 0,
 	    "homogenous numeric vector @var{v} to @var{val}.")
 #define FUNC_NAME s_scm_uniform_vector_set_x
 {
+#if SCM_ENABLE_DEPRECATED
   /* Support old argument convention.
    */
   if (scm_is_pair (idx))
     {
+      scm_c_issue_deprecation_warning
+	("Using a list as the index to uniform-vector-set! is deprecated.");
       if (!scm_is_null (SCM_CDR (idx)))
 	scm_wrong_num_args (NULL);
       idx = SCM_CAR (idx);
     }
+#endif
 
-  if (scm_is_uniform_vector (v))
-    return uvec_set_x (SCM_UVEC_TYPE (v), v, idx, val);
-  else
-    scm_wrong_type_arg_msg (NULL, 0, v, "uniform vector");
+  scm_c_uniform_vector_set_x (v, scm_to_size_t (idx), val);
+  return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
-
-void
-scm_c_uniform_vector_set_x (SCM v, size_t idx, SCM val)
-{
-  if (scm_is_uniform_vector (v))
-    {
-      if (idx < SCM_UVEC_LENGTH (v))
-	uvec_fast_set_x (SCM_UVEC_TYPE (v), SCM_UVEC_BASE (v), idx, val);
-      else
-	scm_out_of_range (NULL, scm_from_size_t (idx));
-    }
-  else
-    scm_wrong_type_arg_msg (NULL, 0, v, "uniform vector");
-}
 
 SCM_DEFINE (scm_uniform_vector_to_list, "uniform-vector->list", 1, 0, 0,
             (SCM uvec),
 	    "Convert the homogeneous numeric vector @var{uvec} to a list.")
 #define FUNC_NAME s_scm_uniform_vector_to_list
 {
-  if (scm_is_uniform_vector (uvec))
-    return uvec_to_list (SCM_UVEC_TYPE (uvec), uvec);
-  else
-    scm_wrong_type_arg_msg (NULL, 0, uvec, "uniform vector");
+  return uvec_to_list (-1, uvec);
 }
 #undef FUNC_NAME
 
@@ -591,7 +656,7 @@ scm_array_handle_uniform_element_size (scm_t_array_handle *h)
 size_t
 scm_uniform_element_size (SCM obj)
 {
-  if (scm_is_uniform_vector (obj))
+  if (SCM_IS_UVEC (obj))
     return uvec_sizes[SCM_UVEC_TYPE(obj)];
   else
     return 0;
@@ -609,7 +674,7 @@ scm_array_handle_uniform_writable_elements (scm_t_array_handle *h)
   SCM vec = h->array;
   if (SCM_ARRAYP (vec))
     vec = SCM_ARRAY_V (vec);
-  if (scm_is_uniform_vector (vec))
+  if (SCM_IS_UVEC (vec))
     {
       size_t size = uvec_sizes[SCM_UVEC_TYPE(vec)];
       char *elts = SCM_UVEC_BASE (vec);
@@ -646,7 +711,7 @@ SCM_DEFINE (scm_uniform_vector_length, "uniform-vector-length", 1, 0, 0,
 	    "Return the number of elements in the uniform vector @var{v}.")
 #define FUNC_NAME s_scm_uniform_vector_length
 {
-  return scm_from_size_t (scm_c_uniform_vector_length (v));
+  return uvec_length (-1, v);
 }
 #undef FUNC_NAME
 
