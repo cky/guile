@@ -266,22 +266,4 @@
 
 (read-enable 'positions)
 
-; (define g (make-guardian))
-; (read-hash-extend #\g
-; 		  (lambda (c port)
-; 		    (let ((x (read port))
-; 			  (l (list 3)))
-; 		      (set-source-property! x 'test l)
-; 		      (g l)
-; 		      x)))
-; (add-hook! after-gc-hook
-; 	   (lambda ()
-; 	     (let loop ((obj (g)))
-; 	       (if obj
-; 		   (begin
-; 		     (display "Guardian: ")
-; 		     (write obj)
-; 		     (newline)
-; 		     (loop (g)))))))
-
 ;;; (ice-9 debugger breakpoints source) ends here.
