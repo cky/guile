@@ -1,41 +1,122 @@
-Guile VM Specification					-*- outline -*-
-======================
-Updated: $Date: 2000/08/22 15:54:19 $
+\input texinfo  @c -*-texinfo-*-
+@c %**start of header
+@setfilename guile-vm.info
+@settitle Guile VM Specification
+@footnotestyle end
+@setchapternewpage odd
+@c %**end of header
 
-* Introduction
+@set EDITION 0.3
+@set VERSION 0.3
+@set UPDATED 2000-08-22
+
+@ifinfo
+@dircategory Scheme Programming
+@direntry
+* Guile VM: (guile-vm).         Guile Virtual Machine.
+@end direntry
+
+This file documents Guile VM.
+
+Copyright @copyright{} 2000 Keisuke Nishida
+
+Permission is granted to make and distribute verbatim copies of this
+manual provided the copyright notice and this permission notice are
+preserved on all copies.
+
+@ignore
+Permission is granted to process this file through TeX and print the
+results, provided the printed document carries a copying permission
+notice identical to this one except for the removal of this paragraph
+(this paragraph not being relevant to the printed manual).
+
+@end ignore
+Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided that the
+entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+
+Permission is granted to copy and distribute translations of this manual
+into another language, under the above conditions for modified versions,
+except that this permission notice may be stated in a translation
+approved by the Free Software Foundation.
+@end ifinfo
+
+@titlepage
+@title Guile VM Specification
+@subtitle for Guile VM @value{VERSION}
+@author Keisuke Nishida
+
+@page
+@vskip 0pt plus 1filll
+Edition @value{EDITION} @*
+Updated for Guile VM @value{VERSION} @*
+@value{UPDATED} @*
+
+Copyright @copyright{} 2000 Keisuke Nishida
+
+Permission is granted to make and distribute verbatim copies of this
+manual provided the copyright notice and this permission notice are
+preserved on all copies.
+
+Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided that the
+entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+
+Permission is granted to copy and distribute translations of this manual
+into another language, under the above conditions for modified versions,
+except that this permission notice may be stated in a translation
+approved by the Free Software Foundation.
+@end titlepage
+
+@contents
+
+@c *********************************************************************
+@node Top, Introduction, (dir), (dir)
+@top Guile VM Specification
+
+This document corresponds to Guile VM @value{VERSION}.
+
+@menu
+@end menu
+
+@c *********************************************************************
+@node Introduction, Getting Started, Top, Top
+@chapter What is Guile VM?
 
 A Guile VM has a set of registers and its own stack memory.  Guile may
 have more than one VM's.  Each VM may execute at most one program at a
 time.  Guile VM is a CISC system so designed as to execute Scheme and
 other languages efficiently.
 
-** Registers
+@unnumberdsubsec Registers
 
   pc - Program counter    ;; ip (instruction poiner) is better?
   sp - Stack pointer
   bp - Base pointer
   ac - Accumulator
 
-** Engine
+@unnumberdsubsec Engine
 
 A VM may have one of three engines: reckless, regular, or debugging.
 Reckless engine is fastest but dangerous.  Regular engine is normally
 fail-safe and reasonably fast.  Debugging engine is safest and
 functional but very slow.
 
-** Memory
+@unnumberdsubsec Memory
 
 Stack is the only memory that each VM owns.  The other memory is shared
 memory that is shared among every VM and other part of Guile.
 
-** Program
+@unnumberdsubsec Program
 
 A VM program consists of a bytecode that is executed and an environment
 in which execution is done.  Each program is allocated in the shared
 memory and may be executed by any VM.  A program may call other programs
 within a VM.
 
-** Instruction
+@unnumberdsubsec Instruction
 
 Guile VM has dozens of system instructions and (possibly) hundreds of
 functional instructions.  Some Scheme procedures such as cons and car
@@ -48,7 +129,8 @@ Most instructions deal with the accumulator (ac).  The VM stores all
 results from functions in ac, instead of pushing them into the stack.
 I'm not sure whether this is a good thing or not.
 
-* Variable Management
+@node Variable Management
+@chapter Variable Management
 
 A program may have access to local variables, external variables, and
 top-level variables.
@@ -106,11 +188,11 @@ variables and its own chain.
     local                    external
     chain|     |              chain
        | +-----+     .--------, |
-       `-|block|--+->|fragment|-'
+       `-|block|--+->|external|-'
         /+-----+  |  `--------'\,
        `-|block|--'             |
         /+-----+     .--------, |
-       `-|block|---->|fragment|-'
+       `-|block|---->|external|-'
          +-----+     `--------'
          |     |
 
@@ -163,7 +245,7 @@ Guile VM has five addressing modes:
   o Local position
   o External position
   o Top-level location
-  o Immediate object
+  o Constant object
 
 Real address points to the address in the real program and is only used
 with the program counter (pc).
@@ -175,7 +257,7 @@ addresses, and the real address may vary during execution.
 Top-level location is represented as a Guile's vcell.  This location is
 determined at loading time, so the use of this address is efficient.
 
-Immediate object is not an address but gives an instruction an Scheme
+Constant object is not an address but gives an instruction an Scheme
 object directly.
 
 [ We'll also need dynamic scope addressing to support Emacs Lisp? ]
@@ -400,3 +482,23 @@ letter `%'.
 - le2
 - ge2
 - num-eq2
+
+@c *********************************************************************
+@node Concept Index, Command Index, Related Information, Top
+@unnumbered Concept Index
+@printindex cp
+
+@node Command Index, Variable Index, Concept Index, Top
+@unnumbered Command Index
+@printindex fn
+
+@node Variable Index,  , Command Index, Top
+@unnumbered Variable Index
+@printindex vr
+
+@bye
+
+@c Local Variables:
+@c mode:outline-minor
+@c outline-regexp:"@\\(ch\\|sec\\|subs\\)"
+@c End:

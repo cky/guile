@@ -54,8 +54,8 @@
 	    (format #t ";;; Compiled from ~A\n\n" file)
 	    (display "(use-modules (vm vm))\n\n")
 	    (display "(let ((vm (make-vm)))\n")
-	    (display "  (define (vm-exec code)\n")
-	    (display "    (vm-run vm (make-program (make-bytecode code) #f)))\n")
+	    (display "(define (vm-exec code)")
+	    (display "(vm-run vm (make-program (make-bytecode code) #f)))\n")
 	    (do ((input (read) (read)))
 		((eof-object? input))
 	      (display "(vm-exec ")
@@ -242,7 +242,8 @@
   '(caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr
 	 caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr
 	 cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr
-	 map for-each))
+	 ;;map for-each
+	 ))
 
 (define (parse-caar args env) (parse `(car (car ,@args)) env))
 (define (parse-cadr args env) (parse `(car (cdr ,@args)) env))
@@ -275,32 +276,32 @@
 (define (parse-cdddar args env) (parse `(cdr (cdr (cdr (car ,@args)))) env))
 (define (parse-cddddr args env) (parse `(cdr (cdr (cdr (cdr ,@args)))) env))
 
-(define (parse-map args env)
-  (check-nargs args >= 2)
-  (case (length args)
-    ((2)
-     (let ((proc (car args)) (list (cadr args)))
-       (parse `(let ((list ,list) (result '()))
-		 (until (null? list)
-		   (local-set! result (cons (,proc (car list)) result))
-		   (local-set! list (cdr list)))
-		 (reverse! result))
-	      env)))
-    (else
-     (error "Not implemented yet"))))
-
-(define (parse-for-each args env)
-  (check-nargs args >= 2)
-  (case (length args)
-    ((2)
-     (let ((proc (car args)) (list (cadr args)))
-       (parse `(let ((list ,list))
-		 (until (null? list)
-		   (,proc (car list))
-		   (local-set! list (cdr list))))
-	      env)))
-    (else
-     (error "Not implemented yet"))))
+;(define (parse-map args env)
+;  (check-nargs args >= 2)
+;  (case (length args)
+;    ((2)
+;     (let ((proc (car args)) (list (cadr args)))
+;	(parse `(let ((list ,list) (result '()))
+;		  (until (null? list)
+;		    (local-set! result (cons (,proc (car list)) result))
+;		    (local-set! list (cdr list)))
+;		  (reverse! result))
+;	       env)))
+;    (else
+;     (error "Not implemented yet"))))
+;
+;(define (parse-for-each args env)
+;  (check-nargs args >= 2)
+;  (case (length args)
+;    ((2)
+;     (let ((proc (car args)) (list (cadr args)))
+;	(parse `(let ((list ,list))
+;		  (until (null? list)
+;		    (,proc (car list))
+;		    (local-set! list (cdr list))))
+;	       env)))
+;    (else
+;     (error "Not implemented yet"))))
 
 (define *procedure-alist*
   (map (lambda (name)

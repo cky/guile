@@ -1,2 +1,2 @@
-EXTRA_DIST = vm-spec.txt
+texi_TEXINFOS = guile-vm.texi
 MAINTAINERCLEANFILES = Makefile.in
