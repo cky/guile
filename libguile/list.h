@@ -103,7 +103,6 @@ extern void scm_init_list (void);
 
 #if (SCM_DEBUG_DEPRECATED == 0)
 
-#define scm_list_star scm_cons_star
 extern SCM scm_sloppy_memq (SCM x, SCM lst);
 extern SCM scm_sloppy_memv (SCM x, SCM lst);
 extern SCM scm_sloppy_member (SCM x, SCM lst);
