@@ -1,5 +1,8 @@
 2001-11-19  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
+	* README: Use less forking for indexing command.
+	Update index.
+
 	* update-changelog.el:
 	When run as a batch program, invoke `(ucl-update "ChangeLog")'
 	instead of `(ucl-update-all)'.
