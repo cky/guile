@@ -16,4 +16,4 @@ flex -t libguile/c-tokenize.lex > libguile/c-tokenize.c
 ( echo "guile-readline..."; cd guile-readline; ./autogen.sh )
 
 echo "Now run configure and make."
-echo "You must pass the `--enable-maintainer-mode' option to configure."
+echo "You must pass the \`--enable-maintainer-mode' option to configure."
