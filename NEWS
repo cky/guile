@@ -61,6 +61,9 @@ debugging evaluator gives better error messages.
 
 * Changes to Scheme functions and syntax
 
+** 'call-with-current-continuation' is now also available under the name
+   'call/cc'.
+
 ** Checking for duplicate bindings in module system
 
 The module system now can check for name conflicts among imported
