@@ -1719,9 +1719,12 @@ For example, using the symbol @code{f64} for @var{type} will create an
 array that uses a @code{f64vector} for storing its elements, and
 @code{a} will use a string.
 
-Ordinary arrays (signified by a @var{type} of @code{#t}) are filled
-with @var{fill}.  Other types of arrays are only then filled with
-@var{fill} when @var{fill} is non-@nicode{#f}.
+When @var{fill} is not the special @emph{unspecified} value, the new
+array is filled with @var{fill}.  Otherwise, the initial contents of
+the array is unspecified.  The special @emph{unspecified} value is
+stored in the variable @code{*unspecified*} so that for example
+@code{(make-typed-array 'u32 *unspecified* 4)} creates a uninitialized
+@code{u32} vector of length 4.
 
 Each @var{bound} may be a positive non-zero integer @var{N}, in which
 case the index for that dimension can range from 0 through @var{N-1}; or
