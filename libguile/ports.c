@@ -825,15 +825,7 @@ scm_ungetc (int c, SCM port)
 	{
 	  int count = pt->read_end - pt->read_pos;
 
-#ifdef HAVE_MEMMOVE
 	  memmove (pt->read_buf + 1, pt->read_pos, count);
-#else
-#ifdef HAVE_BCOPY
-	  bcopy (pt->read_pos, pt->read_buf + 1, count);
-#else
-#error Need memmove.  Please send a bug report to bug-guile@gnu.org.
-#endif
-#endif
 	  pt->read_end = pt->read_buf + 1 + count;
 	}
 

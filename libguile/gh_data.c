@@ -115,15 +115,7 @@ gh_set_substr (char *src, SCM dst, int start, int len)
   
   scm_protect_object (dst);
   effective_length = ((unsigned) len < dst_len) ? len : dst_len;
-#ifdef HAVE_MEMMOVE
   memmove (dst_ptr + start, src, effective_length);
-#else
-#ifdef HAVE_BCOPY
-  bcopy (src, dst_ptr + start, effective_length);
-#else
-#error Need memmove.  Please send a bug report to bug-guile@gnu.org.
-#endif
-#endif
   scm_unprotect_object (dst);
 }
 
