@@ -64,16 +64,16 @@
  * SCM_INUMP (SCM_CAR (x)) can give wrong answers.
  */
 
-#define SCM_INUMP(x)	(2 & (int)(x))
-#define SCM_NINUMP(x) 	(!SCM_INUMP(x))
+#define SCM_INUMP(x)	(2 & SCM_UNPACK (x))
+#define SCM_NINUMP(x) 	(!SCM_INUMP (x))
 
 #ifdef __TURBOC__
 /* shifts of more than one are done by a library call, single shifts are
  * performed in registers
  */
-# define SCM_MAKINUM(x) ((SCM) (((SCM_UNPACK(x)<<1)<<1)+2L))
+# define SCM_MAKINUM(x) (SCM_PACK (((SCM_UNPACK (x) << 1) << 1) + 2L))
 #else
-# define SCM_MAKINUM(x) ((SCM)((SCM_UNPACK(x)<<2)+2L))
+# define SCM_MAKINUM(x) (SCM_PACK ((SCM_UNPACK (x) << 2) + 2L))
 #endif /* def __TURBOC__ */
 
 
@@ -98,7 +98,7 @@
 
 /* A name for 0.
  */
-#define SCM_INUM0 ((SCM) 2)
+#define SCM_INUM0 (SCM_PACK (2))
 
 
 /* SCM_MAXEXP is the maximum double precision expontent
@@ -185,8 +185,8 @@
 #define SCM_CPLXP(x) SCM_COMPLEXP(x) /* Deprecated */
 
 #define SCM_REAL_VALUE(x) (((scm_double_t *) SCM2PTR (x))->real)
-#define SCM_COMPLEX_REAL(x) (((scm_complex_t *) SCM_CDR (x))->real)
-#define SCM_COMPLEX_IMAG(x) (((scm_complex_t *) SCM_CDR (x))->imag)
+#define SCM_COMPLEX_REAL(x) (((scm_complex_t *) SCM2PTR (SCM_CDR (x)))->real)
+#define SCM_COMPLEX_IMAG(x) (((scm_complex_t *) SCM2PTR (SCM_CDR (x)))->imag)
 #define SCM_REAL(x) \
  (SCM_SLOPPY_REALP (x) \
   ? SCM_REAL_VALUE (x) \
@@ -239,7 +239,7 @@
 # define SCM_NO_BIGDIG
 #endif /* ndef SCM_BIGDIG */
 
-#define SCM_NUMBERP(x) (SCM_INUMP(x) || (SCM_NIMP(x) && SCM_NUMP(x)))
+#define SCM_NUMBERP(x) (SCM_INUMP(x) || SCM_NUMP(x))
 #ifdef SCM_BIGDIG
 #define SCM_NUM2DBL(x) (SCM_INUMP (x) \
 			? (double) SCM_INUM (x) \
@@ -252,12 +252,12 @@
 			: SCM_REALPART (x))
 #endif
 #define SCM_NUMP(x) \
-  (SCM_NIMP(x) && (0xfcff & (int) SCM_CAR(x)) == scm_tc7_smob)
+  (SCM_NIMP(x) && (0xfcff & SCM_UNPACK (SCM_CAR(x))) == scm_tc7_smob)
 #define SCM_BIGP(x) SCM_SMOB_PREDICATE (scm_tc16_big, x)
 #define SCM_BIGSIGNFLAG 0x10000L
 #define SCM_BIGSIZEFIELD 17
 #define SCM_BIGSIGN(x) (SCM_UNPACK_CAR (x) & SCM_BIGSIGNFLAG)
-#define SCM_BDIGITS(x) ((SCM_BIGDIG *) (SCM_CDR (x)))
+#define SCM_BDIGITS(x) ((SCM_BIGDIG *) SCM2PTR (SCM_CDR (x)))
 #define SCM_NUMDIGS(x) ((scm_sizet) (SCM_UNPACK_CAR (x) >> SCM_BIGSIZEFIELD))
 #define SCM_SETNUMDIGS(x, v, sign) \
   SCM_SETCAR (x, \
