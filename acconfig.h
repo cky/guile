@@ -167,3 +167,5 @@
 /* Define if the compiler supports long longs.  */
 #undef HAVE_LONG_LONGS
 
+/* Define if the compiler supports inline functions.  */
+#undef HAVE_INLINE
