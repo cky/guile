@@ -48,11 +48,13 @@
 
 
 
+extern SCM scm_the_root_module (void);
 extern SCM scm_selected_module (void);
 extern SCM scm_select_module (SCM module);
 extern SCM scm_make_module (SCM name);
 extern SCM scm_ensure_user_module (SCM name);
 extern SCM scm_module_lookup_closure (SCM module);
+extern SCM scm_resolve_module (SCM name);
 extern SCM scm_load_scheme_module (SCM name);
 extern void scm_init_modules (void);
 extern void scm_post_boot_init_modules (void);

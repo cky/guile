@@ -114,6 +114,14 @@ scm_module_lookup_closure (SCM module)
 		    SCM_EOL);
 }
 
+static SCM resolve_module;
+
+SCM
+scm_resolve_module (SCM name)
+{
+  return scm_apply (SCM_CDR (resolve_module), SCM_LIST1 (name), SCM_EOL);
+}
+
 static SCM try_module_autoload;
 
 SCM
@@ -139,5 +147,6 @@ scm_post_boot_init_modules ()
   make_modules_in = scm_intern0 ("make-modules-in");
   beautify_user_module_x = scm_intern0 ("beautify-user-module!");
   module_eval_closure = scm_intern0 ("module-eval-closure");
+  resolve_module = scm_intern0 ("resolve-module");
   try_module_autoload = scm_intern0 ("try-module-autoload");
 }
