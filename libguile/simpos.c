@@ -64,8 +64,9 @@ SCM_DEFINE (scm_system, "system", 0, 1, 0,
 	    "indicating whether the command processor is available.")
 #define FUNC_NAME s_scm_system
 {
-  int rv;
-
+  int rv, eno;
+  char *c_cmd;
+  
   if (SCM_UNBNDP (cmd))
     {
       rv = system (NULL);
@@ -73,7 +74,9 @@ SCM_DEFINE (scm_system, "system", 0, 1, 0,
     }  
   SCM_VALIDATE_STRING (1, cmd);
   errno = 0;
-  rv = system (SCM_STRING_CHARS (cmd));
+  c_cmd = scm_to_locale_string (cmd);
+  rv = system (c_cmd);
+  eno = errno; free (c_cmd); errno = eno;
   if (rv == -1 || (rv == 127 && errno != 0))
     SCM_SYSERROR;
   return scm_from_int (rv);
