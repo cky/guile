@@ -1,4 +1,3 @@
-/* $Id: validate.h,v 1.34 2001-06-26 10:59:34 dirk Exp $ */
 /* Copyright (C) 1999,2000,2001 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -197,6 +196,26 @@
   do { \
     SCM_ASSERT (SCM_INUMP (k), k, pos, FUNC_NAME); \
     cvar = SCM_INUM (k); \
+  } while (0)
+
+#define SCM_VALIDATE_USHORT_COPY(pos, k, cvar) \
+  do { \
+    cvar = SCM_NUM2USHORT (pos, k); \
+  } while (0)
+
+#define SCM_VALIDATE_SHORT_COPY(pos, k, cvar) \
+  do { \
+    cvar = SCM_NUM2SHORT (pos, k); \
+  } while (0)
+
+#define SCM_VALIDATE_UINT_COPY(pos, k, cvar) \
+  do { \
+    cvar = SCM_NUM2UINT (pos, k); \
+  } while (0)
+
+#define SCM_VALIDATE_INT_COPY(pos, k, cvar) \
+  do { \
+    cvar = SCM_NUM2INT (pos, k); \
   } while (0)
 
 #define SCM_VALIDATE_ULONG_COPY(pos, k, cvar) \
