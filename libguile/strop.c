@@ -48,7 +48,7 @@ xSCM_DEFINE (scm_i_index, "i-index", 2, 2, 0,
 */
 /* implements index if direction > 0 otherwise rindex.  */
 static long
-scm_i_index (SCM *str, SCM chr, int direction, SCM sub_start,
+scm_i_index (SCM str, SCM chr, int direction, SCM sub_start,
 	     SCM sub_end, const char *why)
 {
   unsigned char * p;
@@ -57,38 +57,42 @@ scm_i_index (SCM *str, SCM chr, int direction, SCM sub_start,
   long upper;
   int ch;
 
-  SCM_ASSERT (SCM_STRINGP (*str), *str, SCM_ARG1, why);
+  SCM_ASSERT (SCM_I_STRINGP (str), str, SCM_ARG1, why);
   SCM_ASSERT (SCM_CHARP (chr), chr, SCM_ARG2, why);
 
   if (scm_is_false (sub_start))
     lower = 0;
   else
-    lower = scm_to_signed_integer (sub_start, 0, SCM_STRING_LENGTH(*str));
+    lower = scm_to_signed_integer (sub_start, 0, SCM_I_STRING_LENGTH(str));
 
   if (scm_is_false (sub_end))
-    upper = SCM_STRING_LENGTH (*str);
+    upper = SCM_I_STRING_LENGTH (str);
   else
-    upper = scm_to_signed_integer (sub_end, lower, SCM_STRING_LENGTH(*str));
+    upper = scm_to_signed_integer (sub_end, lower, SCM_I_STRING_LENGTH(str));
+
+  x = -1;
 
   if (direction > 0)
     {
-      p = SCM_STRING_UCHARS (*str) + lower;
+      p = SCM_I_STRING_UCHARS (str) + lower;
       ch = SCM_CHAR (chr);
 
       for (x = lower; x < upper; ++x, ++p)
 	if (*p == ch)
-	  return x;
+	  goto found_it;
     }
   else
     {
-      p = upper - 1 + SCM_STRING_UCHARS (*str);
+      p = upper - 1 + SCM_I_STRING_UCHARS (str);
       ch = SCM_CHAR (chr);
       for (x = upper - 1; x >= lower; --x, --p)
 	if (*p == ch)
-	  return x;
+	  goto found_it;
     }
 
-  return -1;
+ found_it:
+  scm_remember_upto_here_1 (str);
+  return x;
 }
 
 SCM_DEFINE (scm_string_index, "string-index", 2, 2, 0,
@@ -115,7 +119,7 @@ SCM_DEFINE (scm_string_index, "string-index", 2, 2, 0,
     frm = SCM_BOOL_F;
   if (SCM_UNBNDP (to))
     to = SCM_BOOL_F;
-  pos = scm_i_index (&str, chr, 1, frm, to, FUNC_NAME);
+  pos = scm_i_index (str, chr, 1, frm, to, FUNC_NAME);
   return (pos < 0
 	  ? SCM_BOOL_F
 	  : scm_from_long (pos));
@@ -145,7 +149,7 @@ SCM_DEFINE (scm_string_rindex, "string-rindex", 2, 2, 0,
     frm = SCM_BOOL_F;
   if (SCM_UNBNDP (to))
     to = SCM_BOOL_F;
-  pos = scm_i_index (&str, chr, -1, frm, to, FUNC_NAME);
+  pos = scm_i_index (str, chr, -1, frm, to, FUNC_NAME);
   return (pos < 0
 	  ? SCM_BOOL_F
 	  : scm_from_long (pos));
