@@ -1,3 +1,9 @@
+2001-08-01  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* configure.in: Added `--disable-linuxthreads' option and do not
+	define GUILE_PTHREAD_COMPAT nor link with -lpthread when it is
+	given.  Thanks to Cris Cramer!
+
 2001-07-23  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* Makefile.am (SUBDIRS): Build libguile before ice-9.

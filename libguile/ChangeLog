@@ -1,3 +1,11 @@
+2001-08-01  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* chars.c (scm_char_alphabetic_p, scm_char_numeric_p,
+	scm_char_whitespace_p, scm_char_upper_case_p,
+	scm_char_lower_case_p, scm_char_is_both_p): Do not require
+	characters to fulfill isascii in addition to the primary
+	predicate.
+
 2001-07-30  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* numbers.c (DIGITS, scm_small_istr2int, scm_istr2int,
