@@ -69,6 +69,7 @@ automatically (@pxref{Invoking Guile}).
 @node SRFI-0
 @section SRFI-0 - cond-expand
 @cindex SRFI-0
+@findex cond-expand
 
 @c FIXME::martin: Review me!
 
@@ -1082,6 +1083,7 @@ procedures easier.  It is documented in @xref{Multiple Values}.
 @node SRFI-9
 @section SRFI-9 - define-record-type
 @cindex SRFI-9
+@findex define-record-type
 
 This is the SRFI way for defining record types.  The Guile
 implementation is a layer above Guile's normal record construction
