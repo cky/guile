@@ -1,3 +1,12 @@
+2000-09-29  Keisuke Nishida  <kxn30@po.cwru.edu>
+
+	* src/Makefile.am: Don't use guile-snarf to generate instruction
+	table.  Create *.i by using grep.
+	* src/vm_expand.h: Replaced from vm-snarf.h.
+	* src/vm.c, src/vm.h, src/vm_engine.c: Include *.i.
+	* src/vm_system.c, src/vm_scheme.c, src/vm_number.c: Don't include
+	"vm-snarf.h".
+
 2000-09-27  Keisuke Nishida  <kxn30@po.cwru.edu>
 
 	* src/vm.c, src/vm.h, src/vm_engine.c, src/vm_engine.h,
