@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2003, 2004 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2003, 2004, 2005 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -560,6 +560,7 @@ SCM_DEFINE (scm_mktime, "mktime", 1, 1, 0,
   /* get timezone offset in seconds west of UTC.  */
   /* POSIX says gmtime sets errno, but C99 doesn't say that.
      Give a sensible default value in case gmtime doesn't set it.  */
+  errno = EINVAL;
   utc = gmtime (&itime);
   if (utc == NULL)
     err = errno;
