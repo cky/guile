@@ -95,6 +95,9 @@ extern SCM scm_list_copy SCM_P ((SCM lst));
 extern SCM scm_delq SCM_P ((SCM item, SCM lst));
 extern SCM scm_delv SCM_P ((SCM item, SCM lst));
 extern SCM scm_delete SCM_P ((SCM item, SCM lst));
+extern SCM scm_delq1_x SCM_P ((SCM item, SCM lst));
+extern SCM scm_delv1_x SCM_P ((SCM item, SCM lst));
+extern SCM scm_delete1_x SCM_P ((SCM item, SCM lst));
 extern void scm_init_list SCM_P ((void));
 
 #endif  /* LISTH */
