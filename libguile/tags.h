@@ -417,32 +417,27 @@ typedef void * SCM;
 /* scm_tc_free_cell is also the 0th smob type.  We place this
  * in free cells to tell the conservative marker not to trace it.
  */
-#define scm_tc_free_cell	127
+#define scm_tc_free_cell	0x007f
 
-/* The 1st smob type:
+/* Smob type 1 (note the dependency on the predicate SCM_NUMP)
  */
-#define scm_tc16_flo		0x017f
-#define scm_tc_flo		0x017fL
-
-/* Some option bits begeinning at bit 16 of scm_tc16_flo:
- */
-#define SCM_REAL_PART		(1L << 16)
-#define SCM_IMAG_PART		(2L << 16)
-#define scm_tc_dblr		(scm_tc16_flo | SCM_REAL_PART)
-#define scm_tc_dblc		(scm_tc16_flo | SCM_REAL_PART | SCM_IMAG_PART)
-
+#define scm_tc16_big		0x017f
 
 /* Smob types 2 and 3:
  */
-#define scm_tc16_bigpos		0x027f
-#define scm_tc16_bigneg		0x037f
+#define scm_tc16_real           0x027f
+#define scm_tc16_complex        0x037f
 
-/* Smob type 4: this is allocated, but not initialized cells;
+/* The following four macros are now deprecated: */
+#define scm_tc16_flo		scm_tc16_real
+#define scm_tc_flo		0x017fL
+#define scm_tc_dblr		scm_tc16_real
+#define scm_tc_dblc		scm_tc16_complex
+
+/* Smob type 4 allocated, but not initialized cells;
    this is required to prevent the gc from hosing your cells if
    you have to allocate while creating the cell*/
-
-#define scm_tc16_allocated      0x047f
-
+#define scm_tc16_allocated	0x047f
 
 
 /* {Immediate Values}
@@ -582,7 +577,5 @@ extern char *scm_isymnames[];   /* defined in print.c */
  case scm_tc7_subr_2o:case scm_tc7_lsubr_2:case scm_tc7_lsubr
 
 #define scm_tcs_symbols scm_tc7_ssymbol:case scm_tc7_msymbol
-
-#define scm_tcs_bignums scm_tc16_bigpos:case scm_tc16_bigneg
 
 #endif  /* TAGSH */
