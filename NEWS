@@ -147,6 +147,24 @@ an exception with a key of 'unbound-variable instead of 'misc-error.
 ** The initial default output port is now unbuffered if it's using a
 tty device.  Previously in this situation it was line-buffered.
 
+** gc-thunk is deprecated
+
+gc-thunk will be removed in next release of Guile.  It has been
+replaced by after-gc-hook.
+
+** New hook: after-gc-hook
+
+after-gc-hook takes over the role of gc-thunk.  This hook is run at
+the first SCM_TICK after a GC.  (Thus, the code is run at the same
+point during evaluation as signal handlers.)
+
+Note that this hook should be used only for diagnostic and debugging
+purposes.  It is not certain that it will continue to be well-defined
+when this hook is run in the future.
+
+C programmers: Note the new C level hooks scm_before_gc_c_hook,
+scm_before_sweep_c_hook, scm_after_gc_c_hook.
+
 * Changes to Scheme functions and syntax
 
 ** close-input-port and close-output-port are now R5RS
@@ -344,6 +362,56 @@ Use scm_mutex_init and scm_cond_init instead.
      whether non-`NULL' values are associated with that key in the
      currently executing threads, nor call the destructor function
      associated with the key.
+
+** New function: scm_c_hook_init (scm_c_hook_t *HOOK, void *HOOK_DATA, scm_c_hook_type_t TYPE)
+
+Initialize a C level hook HOOK with associated HOOK_DATA and type
+TYPE.  (See scm_c_hook_run ().)
+
+** New function: scm_c_hook_add (scm_c_hook_t *HOOK, scm_c_hook_function_t FUNC, void *FUNC_DATA, int APPENDP)
+
+Add hook function FUNC with associated FUNC_DATA to HOOK.  If APPENDP
+is true, add it last, otherwise first.  The same FUNC can be added
+multiple times if FUNC_DATA differ and vice versa.
+
+** New function: scm_c_hook_remove (scm_c_hook_t *HOOK, scm_c_hook_function_t FUNC, void *FUNC_DATA)
+
+Remove hook function FUNC with associated FUNC_DATA from HOOK.  A
+function is only removed if both FUNC and FUNC_DATA matches.
+
+** New function: void *scm_c_hook_run (scm_c_hook_t *HOOK, void *DATA)
+
+Run hook HOOK passing DATA to the hook functions.
+
+If TYPE is SCM_C_HOOK_NORMAL, all hook functions are run.  The value
+returned is undefined.
+
+If TYPE is SCM_C_HOOK_OR, hook functions are run until a function
+returns a non-NULL value.  This value is returned as the result of
+scm_c_hook_run.  If all functions return NULL, NULL is returned.
+
+If TYPE is SCM_C_HOOK_AND, hook functions are run until a function
+returns a NULL value, and NULL is returned.  If all functions returns
+a non-NULL value, the last value is returned.
+
+** New C level GC hooks
+
+Five new C level hooks has been added to the garbage collector.
+
+  scm_before_gc_c_hook
+  scm_after_gc_c_hook
+
+are run before locking and after unlocking the heap.  The system is
+thus in a mode where evaluation can take place.  (Except that
+scm_before_gc_c_hook must not allocate new cells.)
+
+  scm_before_mark_c_hook
+  scm_before_sweep_c_hook
+  scm_after_sweep_c_hook
+
+are run when the heap is locked.  These are intended for extension of
+the GC in a modular fashion.  Examples are the weaks and guardians
+modules.
 
 * Changes to system call interfaces:
 

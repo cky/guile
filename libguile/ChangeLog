@@ -1,4 +1,54 @@
-2000-04-21  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+2000-04-22  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	Better modularization of GC extensions through new C level GC
+	hooks:
+	
+	* weaks.c (scm_weaks_prehistory): New function: Add
+	scm_weak_vector_gc_init to scm_before_mark_c_hook; Add
+	scm_mark_weak_vector_spines to scm_before_sweep_c_hook.
+	(scm_scan_weak_vectors): New function; added to
+	scm_after_sweep_c_hook.
+
+	* weaks.h (scm_weak_vectors, scm_weaks_prehistory): Added
+	declarations.
+
+	* guardians.h (scm_guardian_gc_init, scm_guardian_zombify): Are
+	now static.
+
+	* guardians.c (scm_guardian_gc_init): Turned into a hook function
+	and added to scm_before_mark_c_hook.
+	(scm_guardian_zombify): Turned into a hook function and added to
+	scm_before_sweep_c_hook.
+
+	* async.c (scm_sys_gc_async_thunk): Run after-gc-hook.
+	Added #include "libguile/gc.h".
+
+	* gc.h: Added #include "libguile/hooks.h".
+
+	* gc.c: Removed #include "libguile/guardians.h".
+	(scm_before_gc_c_hook, scm_before_mark_c_hook,
+	scm_before_sweep_c_hook, scm_after_sweep_c_hook,
+	scm_after_gc_c_hook): New C level hooks.
+	(scm_after_gc_hook): New Scheme level hook.
+	(scm_gc_sweep): Moved scanning of weak vectors to weaks.c.
+	(scm_igc): Moved initialization of scm_weak_vectors and the call
+	to scm_guardian_gc_init to respective module.
+	(scm_mark_weak_vector_spines): Moved to weaks.c;
+	Call to scm_guardian_zombify moved to guardians.c;
+	Run scm_before_gc_c_hook, scm_before_sweep_c_hook,
+	scm_after_gc_c_hook at appropriate places.
+	(scm_init_gc): Initialize scm_after_gc_hook.
+
+	* hooks.c, hooks.h (scm_make_hook_with_name): Removed deprecated
+	function.
+
+	* init.c (scm_boot_guile_1): Added `scm_init_hooks'.
+
+	* Makefile.am: Added hooks.c, hooks.h, hooks.x.
+
+	* feature.c, feature.h: Broke out hook code into separate files.
+
+	* hooks.c, hooks.h: New files.
 
 	* *.*: Change includes so that they always use the "prefixes"
 	libguile/, qt/, guile-readline/, or libltdl/.
