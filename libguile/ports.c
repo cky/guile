@@ -43,12 +43,10 @@
 
 #include <stdio.h>
 #include "_scm.h"
-#include "genio.h"
+#include "objects.h"
+#include "smob.h"
 #include "chars.h"
 
-#include "fports.h"
-#include "strports.h"
-#include "vports.h"
 #include "keywords.h"
 
 #include "ports.h"
@@ -74,7 +72,7 @@
  * Indexes into this table are used when generating type
  * tags for smobjects (if you know a tag you can get an index and conversely).
  */
-scm_ptobfuns *scm_ptobs;
+scm_ptob_descriptor *scm_ptobs;
 int scm_numptob;
 
 /* GC marker for a port with stream of SCM type.  */
@@ -90,34 +88,124 @@ scm_markstream (ptr)
     return SCM_BOOL_F;
 }
 
+/*
+ * This is how different port types currently use ptob fields.
+ *
+ * fports: free, flush, read_flush, close,
+ *         fill_buffer, seek, truncate, input_waiting_p
+ *
+ * strports: mark, flush, read_flush,
+ *           fill_buffer, seek, truncate
+ *
+ * softports: mark, flush, read_flush, close,
+ *            fill_buffer
+ *
+ * voidports: (default values)
+ *
+ * We choose to use an interface similar to the smob interface with
+ * fill_buffer and write_flush as standard fields, passed to the port
+ * type constructor, and optional fields set by setters.
+ */
+
+static void flush_void_port (SCM port);
+static void read_flush_void_port (SCM port, int offset);
 
 long 
-scm_newptob (ptob)
-     scm_ptobfuns *ptob;
+scm_make_port_type (char *name,
+		    int (*fill_buffer) (SCM port),
+		    void (*write_flush) (SCM port))
 {
   char *tmp;
   if (255 <= scm_numptob)
     goto ptoberr;
-  tmp = (char *) realloc ((char *) scm_ptobs, (1 + scm_numptob) * sizeof (scm_ptobfuns));
+  SCM_DEFER_INTS;
+  SCM_SYSCALL (tmp = (char *) realloc ((char *) scm_ptobs,
+				       (1 + scm_numptob)
+				       * sizeof (scm_ptob_descriptor)));
   if (tmp)
     {
-      scm_ptobs = (scm_ptobfuns *) tmp;
-      scm_ptobs[scm_numptob].mark = ptob->mark;
-      scm_ptobs[scm_numptob].free = ptob->free;
-      scm_ptobs[scm_numptob].print = ptob->print;
-      scm_ptobs[scm_numptob].equalp = ptob->equalp;
-      scm_ptobs[scm_numptob].fflush = ptob->fflush;
-      scm_ptobs[scm_numptob].read_flush = ptob->read_flush;
-      scm_ptobs[scm_numptob].fclose = ptob->fclose;
-      scm_ptobs[scm_numptob].fill_buffer = ptob->fill_buffer;
-      scm_ptobs[scm_numptob].seek = ptob->seek;
-      scm_ptobs[scm_numptob].ftruncate = ptob->ftruncate;
-      scm_ptobs[scm_numptob].input_waiting_p = ptob->input_waiting_p;
+      scm_ptobs = (scm_ptob_descriptor *) tmp;
+      scm_ptobs[scm_numptob].name = name;
+      scm_ptobs[scm_numptob].mark = 0;
+      scm_ptobs[scm_numptob].free = scm_free0;
+      scm_ptobs[scm_numptob].print = scm_port_print;
+      scm_ptobs[scm_numptob].equalp = 0;
+      scm_ptobs[scm_numptob].fflush = (write_flush
+				       ? write_flush
+				       : flush_void_port);
+      scm_ptobs[scm_numptob].read_flush = read_flush_void_port;
+      scm_ptobs[scm_numptob].fclose = 0;
+      scm_ptobs[scm_numptob].fill_buffer = fill_buffer;
+      scm_ptobs[scm_numptob].seek = 0;
+      scm_ptobs[scm_numptob].ftruncate = 0;
+      scm_ptobs[scm_numptob].input_waiting_p = 0;
       scm_numptob++;
     }
+  SCM_ALLOW_INTS;
   if (!tmp)
-  ptoberr:scm_wta (SCM_MAKINUM ((long) scm_numptob), (char *) SCM_NALLOC, "newptob");
+  ptoberr:scm_wta (SCM_MAKINUM ((long) scm_numptob),
+		   (char *) SCM_NALLOC, "scm_make_port_type");
+  /* Make a class object if Goops is present */
+  if (scm_port_class)
+    scm_make_port_classes (scm_numptob - 1, SCM_PTOBNAME (scm_numptob - 1));
   return scm_tc7_port + (scm_numptob - 1) * 256;
+}
+
+void
+scm_set_ptob_mark (long tc, SCM (*mark) (SCM))
+{
+  scm_ptobs[SCM_TC2PTOBNUM (tc)].mark = mark;
+}
+
+void
+scm_set_ptob_free (long tc, scm_sizet (*free) (SCM))
+{
+  scm_ptobs[SCM_TC2PTOBNUM (tc)].free = free;
+}
+
+void
+scm_set_ptob_print (long tc, int (*print) (SCM exp, SCM port,
+					   scm_print_state *pstate))
+{
+  scm_ptobs[SCM_TC2PTOBNUM (tc)].print = print;
+}
+
+void
+scm_set_ptob_equalp (long tc, SCM (*equalp) (SCM, SCM))
+{
+  scm_ptobs[SCM_TC2PTOBNUM (tc)].equalp = equalp;
+}
+
+void
+scm_set_ptob_flush_input (long tc, void (*flush_input) (SCM port, int offset))
+{
+  scm_ptobs[SCM_TC2PTOBNUM (tc)].read_flush = flush_input;
+}
+
+void
+scm_set_ptob_close (long tc, int (*close) (SCM))
+{
+  scm_ptobs[SCM_TC2PTOBNUM (tc)].fclose = close;
+}
+
+void
+scm_set_ptob_seek (long tc, off_t (*seek) (SCM port,
+					   off_t OFFSET,
+					   int WHENCE))
+{
+  scm_ptobs[SCM_TC2PTOBNUM (tc)].seek = seek;
+}
+
+void
+scm_set_ptob_truncate (long tc, void (*truncate) (SCM port, off_t length))
+{
+  scm_ptobs[SCM_TC2PTOBNUM (tc)].ftruncate = truncate;
+}
+
+void
+scm_set_ptob_input_waiting_p (long tc, int (*waitingp) (SCM))
+{
+  scm_ptobs[SCM_TC2PTOBNUM (tc)].input_waiting_p = waitingp;
 }
 
 
@@ -145,7 +233,7 @@ scm_char_ready_p (port)
     return SCM_BOOL_T;
   else
     {
-      scm_ptobfuns *ptob = &scm_ptobs[SCM_PTOBNUM (port)];
+      scm_ptob_descriptor *ptob = &scm_ptobs[SCM_PTOBNUM (port)];
       
       if (ptob->input_waiting_p)
 	return (ptob->input_waiting_p (port)) ? SCM_BOOL_T : SCM_BOOL_F;
@@ -674,7 +762,7 @@ scm_putc (c, port)
      SCM port;
 {
   scm_port *pt = SCM_PTAB_ENTRY (port);  
-  scm_ptobfuns *ptob = &scm_ptobs[SCM_PTOBNUM (port)];
+  scm_ptob_descriptor *ptob = &scm_ptobs[SCM_PTOBNUM (port)];
 
   if (pt->rw_active == SCM_PORT_READ)
     scm_read_flush (port);
@@ -694,7 +782,7 @@ scm_puts (s, port)
      SCM port;
 {
   scm_port *pt = SCM_PTAB_ENTRY (port);
-  scm_ptobfuns *ptob = &scm_ptobs[SCM_PTOBNUM (port)];
+  scm_ptob_descriptor *ptob = &scm_ptobs[SCM_PTOBNUM (port)];
 
   if (pt->rw_active == SCM_PORT_READ)
     scm_read_flush (port);
@@ -721,7 +809,7 @@ scm_lfwrite (ptr, size, port)
      SCM port;
 {
   scm_port *pt = SCM_PTAB_ENTRY (port);
-  scm_ptobfuns *ptob = &scm_ptobs[SCM_PTOBNUM (port)];
+  scm_ptob_descriptor *ptob = &scm_ptobs[SCM_PTOBNUM (port)];
 
   if (pt->rw_active == SCM_PORT_READ)
     scm_read_flush (port);
@@ -953,7 +1041,7 @@ scm_lseek (SCM object, SCM offset, SCM whence)
   if (SCM_NIMP (object) && SCM_OPPORTP (object))
     {
       scm_port *pt = SCM_PTAB_ENTRY (object);
-      scm_ptobfuns *ptob = scm_ptobs + SCM_PTOBNUM (object);
+      scm_ptob_descriptor *ptob = scm_ptobs + SCM_PTOBNUM (object);
 
       if (!ptob->seek)
 	scm_misc_error (s_lseek, "port is not seekable",
@@ -1008,7 +1096,7 @@ scm_truncate_file (SCM object, SCM length)
   else if (SCM_NIMP (object) && SCM_OPOUTPORTP (object))
     {
       scm_port *pt = SCM_PTAB_ENTRY (object);
-      scm_ptobfuns *ptob = scm_ptobs + SCM_PTOBNUM (object);
+      scm_ptob_descriptor *ptob = scm_ptobs + SCM_PTOBNUM (object);
       
       if (!ptob->ftruncate)
 	scm_misc_error (s_truncate_file, "port is not truncatable", SCM_EOL);
@@ -1126,69 +1214,60 @@ scm_set_port_filename_x (port, filename)
 extern char * ttyname();
 #endif
 
-
-void 
-scm_prinport (exp, port, type)
-     SCM exp;
-     SCM port;
-     char *type;
+void
+scm_print_port_mode (SCM exp, SCM port)
 {
-  scm_puts ("#<", port);
-  if (SCM_CLOSEDP (exp))
-    scm_puts ("closed: ", port);
-  else
-    {
-      if (SCM_RDNG & SCM_CAR (exp))
-	scm_puts ("input: ", port);
-      if (SCM_WRTNG & SCM_CAR (exp))
-	scm_puts ("output: ", port);
-    }
-  scm_puts (type, port);
-  scm_putc (' ', port);
-  if (SCM_OPFPORTP (exp))
-    {
-      int fdes = (SCM_FSTREAM (exp))->fdes;
-
-      if (isatty (fdes))
-	scm_puts (ttyname (fdes), port);
-      else
-	scm_intprint (fdes, 10, port);
-    }
-  else
-    {
-      scm_intprint (SCM_CDR (exp), 16, port);
-    }
-  scm_putc ('>', port);
+  scm_puts (SCM_CLOSEDP (exp)
+	    ? "closed: "
+	    : (SCM_RDNG & SCM_CAR (exp)
+	       ? (SCM_WRTNG & SCM_CAR (exp)
+		  ? "input-output: "
+		  : "input: ")
+	       : (SCM_WRTNG & SCM_CAR (exp)
+		  ? "output: "
+		  : "bogus: ")),
+	    port);
 }
 
+int
+scm_port_print (SCM exp, SCM port, scm_print_state *pstate)
+{
+  char *type = SCM_PTOBNAME (SCM_PTOBNUM (exp));
+  if (!type)
+    type = "port";
+  scm_puts ("#<", port);
+  scm_print_port_mode (exp, port);
+  scm_puts (type, port);
+  scm_putc (' ', port);
+  scm_intprint (SCM_CDR (exp), 16, port);
+  scm_putc ('>', port);
+  return 1;
+}
+
+extern void scm_make_fptob ();
+extern void scm_make_stptob ();
+extern void scm_make_sfptob ();
 
 void
 scm_ports_prehistory ()
 {
   scm_numptob = 0;
-  scm_ptobs = (scm_ptobfuns *) malloc (sizeof (scm_ptobfuns));
+  scm_ptobs = (scm_ptob_descriptor *) malloc (sizeof (scm_ptob_descriptor));
   
   /* WARNING: These scm_newptob calls must be done in this order.
    * They must agree with the port declarations in tags.h.
    */
-  /* scm_tc16_fport = */ scm_newptob (&scm_fptob);
-  /* scm_tc16_pipe was here */ scm_newptob (&scm_fptob); /* dummy.  */
-  /* scm_tc16_strport = */ scm_newptob (&scm_stptob);
-  /* scm_tc16_sfport = */ scm_newptob (&scm_sfptob);
+  /* scm_tc16_fport = */ scm_make_fptob ();
+  /* scm_tc16_pipe was here */ scm_make_fptob (); /* dummy.  */
+  /* scm_tc16_strport = */ scm_make_stptob ();
+  /* scm_tc16_sfport = */ scm_make_sfptob ();
 }
 
 
 
 /* Void ports.   */
 
-int scm_tc16_void_port = 0;
-
-static int
-print_void_port (SCM exp, SCM port, scm_print_state *pstate)
-{
-  scm_prinport (exp, port, "void");
-  return 1;
-}
+long scm_tc16_void_port = 0;
 
 static void
 flush_void_port (SCM port)
@@ -1199,36 +1278,6 @@ static void
 read_flush_void_port (SCM port, int offset)
 {
 }
-
-static int
-close_void_port (SCM port)
-{
-  return 0;			/* this is ignored by scm_close_port. */
-}
-
-
-
-static int 
-noop0 (SCM stream)
-{
-  return 0;
-}
-
-
-static struct scm_ptobfuns void_port_ptob =
-{
-  0, 
-  noop0,
-  print_void_port,
-  0,				/* equal? */
-  flush_void_port,
-  read_flush_void_port,
-  close_void_port,
-  0,
-  0,
-  0,
-  0,
-};
 
 SCM
 scm_void_port (mode_str)
@@ -1274,6 +1323,6 @@ scm_init_ports ()
   scm_sysintern ("SEEK_CUR", SCM_MAKINUM (SEEK_CUR));
   scm_sysintern ("SEEK_END", SCM_MAKINUM (SEEK_END));
 
-  scm_tc16_void_port = scm_newptob (&void_port_ptob);
+  scm_tc16_void_port = scm_make_port_type ("void", 0, 0);
 #include "ports.x"
 }
