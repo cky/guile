@@ -1,9 +1,14 @@
 Tue Jun 24 00:29:07 1997  Jim Blandy  <jimb@floss.red-bean.com>
 
-*	* regex-posix.c (scm_make_regexp, scm_regexp_exec): Add optional
+	* regex-posix.c (scm_init_regex_posix): Delete the regexp/nosub
+	flag; I don't think we support it.
+
+	* regex-posix.c (scm_make_regexp, scm_regexp_exec): Add optional
 	FLAGS arguments.
 	(scm_init_regex_posix): Define constants for the REG_mumble flags;
 	name them according to the SCSH convention: regexp/mumble.
+
+
 	* regex-posix.h (scm_make_regexp, scm_regexp_exec): Update prototypes.
 
 Mon Jun 23 18:44:49 1997  Jim Blandy  <jimb@floss.red-bean.com>
@@ -110,7 +115,7 @@ Fri Jun 20 10:03:41 1997  Tim Pierce  <twpierce@bio-5.bsd.uchicago.edu>
 
 Tue Jun 17 13:49:56 1997  Tim Pierce  <twpierce@bio-5.bsd.uchicago.edu>
 
-*	* load.c (scm_init_load_path): Append $(datadir)/guile to
+	* load.c (scm_init_load_path): Append $(datadir)/guile to
 	%load-path, so modules do not have to be installed in Guile's
 	current version directory.
 
