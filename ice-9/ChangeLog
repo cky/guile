@@ -1,3 +1,13 @@
+2004-08-09  Marius Vollmer  <mvo@zagadka.de>
+
+	From Matthias Koeppe.  Thanks!
+	
+	* pretty-print.scm (generic-write): In the local procedure `wr', use
+	object->string to print all data (except for the reader macros),
+	rather than implementing an own printer.  The user-visible
+	difference is that procedures and control characters like #\tab
+        are now printed in the same way as by `write'.
+
 2004-08-09  Kevin Ryde  <user42@zip.com.au>
 
 	* slib.scm (*features*): Remove array and array-for-each, core
