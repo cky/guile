@@ -1,3 +1,8 @@
+1999-09-25  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	* tests/reader.test: Check that number->string checks its radix
+	properly.
+	
 1999-09-20  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	* tests/ports.test: Check that our input functions cope when

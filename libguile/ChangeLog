@@ -1,5 +1,9 @@
 1999-09-25  Jim Blandy  <jimb@savonarola.red-bean.com>
 
+	* root.c (scm_make_root): Initialize all the fields of the new
+	root.  GC could happen any time, you know.  (Thanks to Greg
+	Harvey.)
+
 	* numbers.c (scm_number_to_string): Signal an error if radix is
 	less than two.  (Thanks to Jorgen Schaefer.)
 
