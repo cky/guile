@@ -494,7 +494,7 @@ scm_m_body (SCM op, SCM xorig, const char *what)
     return xorig;
 
   /* Retain possible doc string. */
-  if (SCM_IMP (SCM_CAR(xorig)) || SCM_NCONSP (SCM_CAR (xorig)))
+  if (!SCM_CONSP (SCM_CAR (xorig)))
     {
       if (SCM_NNULLP (SCM_CDR(xorig)))
 	return scm_cons (SCM_CAR (xorig),
@@ -1241,7 +1241,7 @@ scm_macroexp (SCM x, SCM env)
      eventually execute the code for real. */
 
  macro_tail:
-  if (SCM_IMP (SCM_CAR (x)) || !SCM_SYMBOLP (SCM_CAR (x)))
+  if (!SCM_SYMBOLP (SCM_CAR (x)))
     return x;
 
 #ifdef USE_THREADS
@@ -1473,7 +1473,7 @@ unmemocopy (SCM x, SCM env)
 loop:
   while (SCM_CELLP (x = SCM_CDR (x)) && SCM_ECONSP (x))
     {
-      if (SCM_IMP (SCM_CAR (x)) && SCM_ISYMP (SCM_CAR (x)))
+      if (SCM_ISYMP (SCM_CAR (x)))
 	/* skip body markers */
 	continue;
       SCM_SETCDR (z, unmemocar (scm_cons (unmemocopy (SCM_CAR (x), env),
@@ -1528,9 +1528,7 @@ scm_eval_args (SCM l, SCM env, SCM proc)
   while (SCM_NIMP (l))
     {
 #ifdef SCM_CAUTIOUS
-      if (SCM_IMP (l))
-	goto wrongnumargs;
-      else if (SCM_CONSP (l))
+      if (SCM_CONSP (l))
 	{
 	  if (SCM_IMP (SCM_CAR (l)))
 	    res = SCM_EVALIM (SCM_CAR (l), env);
@@ -1750,9 +1748,7 @@ scm_deval_args (SCM l, SCM env, SCM proc, SCM *lloc)
   while (SCM_NIMP (l))
     {
 #ifdef SCM_CAUTIOUS
-      if (SCM_IMP (l))
-	goto wrongnumargs;
-      else if (SCM_CONSP (l))
+      if (SCM_CONSP (l))
 	{
 	  if (SCM_IMP (SCM_CAR (l)))
 	    res = SCM_EVALIM (SCM_CAR (l), env);

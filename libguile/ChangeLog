@@ -1,5 +1,15 @@
 2000-05-05  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* eval.c (scm_m_body, scm_macroexp, unmemocopy, scm_eval_args,
+	scm_deval_args):  Eliminated redundant SCM_IMP tests.
+
+	* hashtab.c (scm_ihashx, scm_sloppy_assx, scm_delx_x), weaks.c
+	(scm_make_weak_key_hash_table, scm_make_weak_value_hash_table,
+	scm_make_doubly_weak_hash_table):  Fixed critical sections.
+	Thanks to Keisuke Nishida.
+
+2000-05-05  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* numbers.c (scm_logand, scm_logior, scm_logxor, scm_logtest):
 	Fixed some goto-related initialization bugs (introduced by me).
 
