@@ -123,10 +123,6 @@ char *alloca ();
  *   Originally, it is defined to scm_ceval, but is redefined to
  *   scm_deval during the second pass.
  *  
- *   SIDEVAL corresponds to SCM_CEVAL, but is used in situations where
- *   only side effects of expressions matter.  All immediates are
- *   ignored.
- *  
  *   SCM_EVALIM is used when it is known that the expression is an
  *   immediate.  (This macro never calls an evaluator.)
  *  
@@ -150,8 +146,6 @@ char *alloca ();
  */
 
 #define SCM_CEVAL scm_ceval
-#define SIDEVAL(x, env) if (SCM_NIMP (x)) SCM_CEVAL((x), (env))
-
 #define EVALCELLCAR(x, env) (SCM_SYMBOLP (SCM_CAR (x)) \
 			     ? *scm_lookupcar (x, env, 1) \
 			     : SCM_CEVAL (SCM_CAR (x), env))
@@ -1890,7 +1884,7 @@ scm_deval (SCM x, SCM env)
 SCM 
 SCM_CEVAL (SCM x, SCM env)
 {
-  SCM proc, arg1, arg2, orig_sym;
+  SCM proc, arg1, arg2;
 #ifdef DEVAL
   scm_t_debug_frame debug;
   scm_t_debug_info *debug_info_end;
@@ -2009,15 +2003,11 @@ dispatch:
       goto carloop;
 
     case SCM_BIT8 (SCM_IM_BEGIN):
-      if (SCM_NULLP (SCM_CDR (x)))
+      x = SCM_CDR (x);
+      if (SCM_NULLP (x))
 	RETURN (SCM_UNSPECIFIED);
 
-    /* (currently unused)
-    cdrxnoap: */
       PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
-    /* (currently unused)
-    cdrxbegin: */
-      x = SCM_CDR (x);
 
     begin:
       /* If we are on toplevel with a lookup closure, we need to sync
@@ -2036,9 +2026,6 @@ dispatch:
       else
 	goto nontoplevel_begin;
 
-    nontoplevel_cdrxnoap:
-      PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
-      x = SCM_CDR (x);
     nontoplevel_begin:
       while (!SCM_NULLP (SCM_CDR (x)))
 	{
@@ -2254,8 +2241,9 @@ dispatch:
 	while (!SCM_NULLP (init_forms));
 	env = EXTEND_ENV (SCM_CAR (x), init_values, env);
       }
-      x = SCM_CDR (x);
-      goto nontoplevel_cdrxnoap;
+      x = SCM_CDDR (x);
+      PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
+      goto nontoplevel_begin;
 
 
     case SCM_BIT8 (SCM_IM_LETREC):
@@ -2273,7 +2261,9 @@ dispatch:
 	while (!SCM_NULLP (init_forms));
 	SCM_SETCDR (SCM_CAR (env), init_values);
       }
-      goto nontoplevel_cdrxnoap;
+      x = SCM_CDR (x);
+      PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
+      goto nontoplevel_begin;
 
 
     case SCM_BIT8 (SCM_IM_LETSTAR):
@@ -2294,7 +2284,9 @@ dispatch:
 	    while (!SCM_NULLP (bindings));
 	  }
       }
-      goto nontoplevel_cdrxnoap;
+      x = SCM_CDR (x);
+      PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
+      goto nontoplevel_begin;
 
 
     case SCM_BIT8 (SCM_IM_OR):
@@ -2324,12 +2316,13 @@ dispatch:
       {
 	SCM *location;
 	SCM variable = SCM_CAR (x);
+#ifdef MEMOIZE_LOCALS
+	if (SCM_ILOCP (variable))
+	  location = scm_ilookup (variable, env);
+	else
+#endif
 	if (SCM_VARIABLEP (variable))
 	  location = SCM_VARIABLE_LOC (variable);
-#ifdef MEMOIZE_LOCALS
-	else if (SCM_ILOCP (variable))
-	  location = scm_ilookup (variable, env);
-#endif
 	else /* (SCM_SYMBOLP (variable)) is known to be true */
 	  location = scm_lookupcar (x, env, 1);
 	x = SCM_CDR (x);
@@ -2407,22 +2400,26 @@ dispatch:
 	    int first;
 	    SCM val = scm_make_continuation (&first);
 
-	    if (first)
-	      arg1 = val;
-	    else
+	    if (!first)
 	      RETURN (val);
+	    else
+	      {
+		arg1 = val;
+		proc = SCM_CDR (x);
+		proc = scm_eval_car (proc, env);
+		SCM_ASRTGO (SCM_NIMP (proc), badfun);
+		PREP_APPLY (proc, scm_list_1 (arg1));
+		ENTER_APPLY;
+		if (SCM_CLOSUREP(proc) && scm_badformalsp (proc, 1))
+		  goto umwrongnumargs;
+		goto evap1;
+	      }
 	  }
-	  proc = SCM_CDR (x);
-	  proc = scm_eval_car (proc, env);
-	  SCM_ASRTGO (SCM_NIMP (proc), badfun);
-	  PREP_APPLY (proc, scm_list_1 (arg1));
-	  ENTER_APPLY;
-	  if (SCM_CLOSUREP(proc) && scm_badformalsp (proc, 1))
-	    goto umwrongnumargs;
-	  goto evap1;
+
 
 	case (SCM_ISYMNUM (SCM_IM_DELAY)):
 	  RETURN (scm_makprom (scm_closure (SCM_CDR (x), env)));
+
 
 	case (SCM_ISYMNUM (SCM_IM_DISPATCH)):
 	  {
@@ -2732,9 +2729,9 @@ dispatch:
 #endif /* ifdef MEMOIZE_LOCALS */
 
     case scm_tcs_cons_nimcar:
-      orig_sym = SCM_CAR (x);
-      if (SCM_SYMBOLP (orig_sym))
+      if (SCM_SYMBOLP (SCM_CAR (x)))
 	{
+	  SCM orig_sym = SCM_CAR (x);
 #ifdef USE_THREADS
 	  {
 	    SCM *location = scm_lookupcar1 (x, env, 1);
@@ -2759,7 +2756,7 @@ dispatch:
 	    {
 	      SCM_SETCAR (x, orig_sym);  /* Undo memoizing effect of
 					    lookupcar */
-	    handle_a_macro:
+	    handle_a_macro: /* inputs: x, env, proc */
 #ifdef DEVAL
 	      /* Set a flag during macro expansion so that macro
 		 application frames can be deleted from the backtrace. */
@@ -2812,18 +2809,18 @@ dispatch:
 #endif
       if (SCM_CLOSUREP (proc))
 	{
-	  arg2 = SCM_CLOSURE_FORMALS (proc);
-	  arg1 = SCM_CDR (x);
-	  while (!SCM_NULLP (arg2))
+	  SCM formals = SCM_CLOSURE_FORMALS (proc);
+	  SCM args = SCM_CDR (x);
+	  while (!SCM_NULLP (formals))
 	    {
-	      if (!SCM_CONSP (arg2))
+	      if (!SCM_CONSP (formals))
 		goto evapply;
-	      if (SCM_IMP (arg1))
+	      if (SCM_IMP (args))
 		goto umwrongnumargs;
-	      arg2 = SCM_CDR (arg2);
-	      arg1 = SCM_CDR (arg1);
+	      formals = SCM_CDR (formals);
+	      args = SCM_CDR (args);
 	    }
-	  if (!SCM_NULLP (arg1))
+	  if (!SCM_NULLP (args))
 	    goto umwrongnumargs;
 	}
       else if (SCM_MACROP (proc))
@@ -2832,7 +2829,7 @@ dispatch:
     }
 
 
-evapply:
+evapply: /* inputs: x, proc */
   PREP_APPLY (proc, SCM_EOL);
   if (SCM_NULLP (SCM_CDR (x))) {
     ENTER_APPLY;
@@ -3358,7 +3355,7 @@ exit:
 	  {
 	    int first;
 	    SCM val = scm_make_continuation (&first);
-	    
+
 	    if (first)
 	      arg1 = val;
 	    else

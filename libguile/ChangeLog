@@ -1,3 +1,13 @@
+2002-03-20  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* eval.c (SIDEVAL): Removed.
+
+	(SCM_CEVAL): Minimized scope of variable orig_sym.  Eliminated
+	goto-labels cdrxnoap, cdrxbegin and nontoplevel_cdrxnoap.  Changed
+	argument checking order for set! to locals, variables and symbols.
+	Improvements to control structure.  Removed some uses of arg1 and
+	arg2 as temporary variables.
+
 2002-03-15  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* guile-snarf.in: Remove "--compat=1.4" support.
