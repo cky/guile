@@ -1,3 +1,16 @@
+1998-07-12  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+
+	* vectors.c, vectors.h (scm_make_vector): Removed third argument.
+	This change makes scm_make_vector R5RS compatible.  We cannot keep
+	the third argument since people want to be able to deduce the form
+	of the C function call only by looking at R5RS.  (At the same time
+	we have removed some unnecessary complexity!)
+
+	* eval.c, filesys.c, fluids.c, gc.c, gh_data.c, init.c, kw.c,
+	net_db.c, posix.c, print.c, regex-posix.c, scmsigs.c, socket.c,
+	stime.c, symbols.c, unif.c, vectors.c, weaks.c: Removed third
+	argument in call to scm_make_vector.
+	
 1998-07-02  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* numbers.h (SCM_NUM2DBL): New macro.  Complements SCM_NUMBERP.
