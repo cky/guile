@@ -1,3 +1,8 @@
+Fri Jul  4 23:42:17 1997  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* coop-threads.c (scm_wait_condition_variable): Lock mutex again
+ 	after waiting.
+
 Thu Jul  3 16:31:24 1997  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* root.c (cwdr_outer_body): Bugfix: Pass `c' instead of `&c' to
