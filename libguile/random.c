@@ -248,7 +248,6 @@ SCM
 scm_c_random_bignum (scm_t_rstate *state, SCM m)
 {
   SCM result = scm_i_mkbig ();
-  int finished = 0;
   const size_t m_bits = mpz_sizeinbase (SCM_I_BIG_MPZ (m), 2);
   /* how many bits would only partially fill the last unsigned long? */
   const size_t end_bits = m_bits % (sizeof (unsigned long) * 8);
@@ -266,11 +265,10 @@ scm_c_random_bignum (scm_t_rstate *state, SCM m)
   /* FIXME: what about chance that bignums end up with zeroes at the
      front? -- do we need to normalize? */
 
-  while (!finished)
+  do
     {
       unsigned long *current_chunk = random_chunks + (num_chunks - 1);
       unsigned long chunks_left = num_chunks;
-      int cmp;
 
       mpz_set_ui (SCM_I_BIG_MPZ (result), 0);
       
@@ -299,10 +297,9 @@ scm_c_random_bignum (scm_t_rstate *state, SCM m)
                   0,
                   0,
                   random_chunks);
-      cmp = mpz_cmp (SCM_I_BIG_MPZ (m), SCM_I_BIG_MPZ (result));
-      if (cmp >= 0)
-        finished = 1;
-    }
+      /* if result >= m, regenerate it (it is important to regenerate
+	 all bits in order not to get a distorted distribution) */
+    } while (mpz_cmp (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (m)) >= 0);
   scm_gc_free (random_chunks,
                num_chunks * sizeof (unsigned long),
                "random bignum chunks");
