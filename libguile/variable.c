@@ -58,7 +58,7 @@ scm_i_variable_print (SCM exp, SCM port, scm_print_state *pstate)
 {
   scm_puts ("#<variable ", port);
   scm_intprint (SCM_UNPACK (exp), 16, port);
-  scm_puts (" binding: ", port);
+  scm_puts (" value: ", port);
   scm_iprin1 (SCM_VARIABLE_REF (exp), port, pstate);
   scm_putc('>', port);
 }
