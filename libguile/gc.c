@@ -1644,15 +1644,18 @@ scm_gc_sweep ()
 	    case scm_tcs_cons_gloc:
 	      if (SCM_GCMARKP (scmptr))
 		{
-		  if (SCM_CDR (SCM_CAR (scmptr) - 1) == (SCM)1)
-		    SCM_SETCDR (SCM_CAR (scmptr) - 1, (SCM) 0);
+		  if (SCM_CDR ((SCM) SCM_STRUCT_VTABLE_DATA (scmptr))
+		      == (SCM) 1)
+		    SCM_SETCDR ((SCM) SCM_STRUCT_VTABLE_DATA (scmptr),
+				(SCM) 0);
 		  goto cmrkcontinue;
 		}
 	      {
 		SCM vcell;
-		vcell = SCM_CAR (scmptr) - 1L;
+		vcell = (SCM) SCM_STRUCT_VTABLE_DATA (scmptr);
 
-		if ((SCM_CDR (vcell) == 0) || (SCM_UNPACK (SCM_CDR (vcell)) == 1))
+		if ((SCM_CDR (vcell) == (SCM) 0)
+		    || (SCM_CDR (vcell)) == (SCM) 1)
 		  {
 		    scm_struct_free_t free
 		      = (scm_struct_free_t) ((SCM*) vcell)[scm_struct_i_free];
