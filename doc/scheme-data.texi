@@ -1436,6 +1436,27 @@ the given string @var{str}. @code{string->list} and
 concerned.
 @end deffn
 
+@deffn primitive string-split str chr
+Split the string @var{str} into the a list of the substrings delimited
+by appearances of the character @var{chr}.  Note that an empty substring
+between separator characters will result in an empty string in the
+result list.
+@lisp
+(string-split "root:x:0:0:root:/root:/bin/bash" #\:)
+@result{}
+("root" "x" "0" "0" "root" "/root" "/bin/bash")
+
+(string-split "::" #\:)
+@result{}
+("" "" "")
+
+(string-split "" #\:)
+@result{}
+("")
+@end lisp
+@end deffn
+
+
 @node String Selection
 @subsection String Selection
 

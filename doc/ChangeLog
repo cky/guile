@@ -1,3 +1,11 @@
+2001-05-04  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* scheme-io.texi (Block Reading and Writing): Moved the
+	documentation for read-string!/partial from the node `Reading'.
+
+	* scheme-data.texi (List/String Conversion): Added docstring for
+	`string-split'.
+
 2001-05-02  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* srfi-13-14.texi: Added @bullet to various @itemize lists.

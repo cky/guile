@@ -141,41 +141,6 @@ Set the current column or line number of @var{port}, using the
 current input port if none is specified.
 @end deffn
 
-@deffn primitive read-string!/partial str [port_or_fdes [start [end]]]
-Read characters from an fport or file descriptor into a
-string @var{str}.  This procedure is scsh-compatible
-and can efficiently read large strings.  It will:
-
-@itemize
-@item
-attempt to fill the entire string, unless the @var{start}
-and/or @var{end} arguments are supplied.  i.e., @var{start}
-defaults to 0 and @var{end} defaults to
-@code{(string-length str)}
-@item
-use the current input port if @var{port_or_fdes} is not
-supplied.
-@item
-read any characters that are currently available,
-without waiting for the rest (short reads are possible).
-
-@item
-wait for as long as it needs to for the first character to
-become available, unless the port is in non-blocking mode
-@item
-return @code{#f} if end-of-file is encountered before reading
-any characters, otherwise return the number of characters
-read.
-@item
-return 0 if the port is in non-blocking mode and no characters
-are immediately available.
-@item
-return 0 if the request is for 0 bytes, with no
-end-of-file check
-@end itemize
-@end deffn
-
-
 @node Writing
 @section Writing
 
@@ -442,7 +407,39 @@ It currently contains a single procedure which helps implement
 the @code{(scsh rw)} module in guile-scsh.
 
 @deffn primitive read-string!/partial str [port_or_fdes] [start] [end]
+Read characters from an fport or file descriptor into a
+string @var{str}.  This procedure is scsh-compatible
+and can efficiently read large strings.  It will:
+
+@itemize
+@item
+attempt to fill the entire string, unless the @var{start}
+and/or @var{end} arguments are supplied.  i.e., @var{start}
+defaults to 0 and @var{end} defaults to
+@code{(string-length str)}
+@item
+use the current input port if @var{port_or_fdes} is not
+supplied.
+@item
+read any characters that are currently available,
+without waiting for the rest (short reads are possible).
+
+@item
+wait for as long as it needs to for the first character to
+become available, unless the port is in non-blocking mode
+@item
+return @code{#f} if end-of-file is encountered before reading
+any characters, otherwise return the number of characters
+read.
+@item
+return 0 if the port is in non-blocking mode and no characters
+are immediately available.
+@item
+return 0 if the request is for 0 bytes, with no
+end-of-file check
+@end itemize
 @end deffn
+
 
 @node Default Ports
 @section Default Ports for Input, Output and Errors
