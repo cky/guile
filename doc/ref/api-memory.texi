@@ -121,6 +121,9 @@ in place of @code{realloc} when appropriate, @code{scm_gc_calloc} and
 @code{scm_calloc}, to be used in place of @code{calloc} when
 appropriate.
 
+There function @code{scm_frame_free} can be useful when memory should
+be freed when a frame is left, @xref{Frames}.
+
 For really specialized needs, take at look at
 @code{scm_gc_register_collectable_memory} and
 @code{scm_gc_unregister_collectable_memory}.
@@ -135,7 +138,7 @@ memory when it deems it appropriate.
 The memory is allocated by the libc @code{malloc} function and can be
 freed with @code{free}.  There is no @code{scm_free} function to go
 with @code{scm_malloc} to make it easier to pass memory back and forth
-between different modules.
+between different modules.  
 
 The function @code{scm_calloc} is similar to @code{scm_malloc}, but
 initializes the block of memory to zero as well.
@@ -200,6 +203,12 @@ is done since it should normally be easy to provide this parameter
 (for memory that is associated with GC controlled objects) and this
 frees us from tracking this value in the GC itself, which will keep
 the memory management overhead very low.
+@end deftypefn
+
+@deftypefn {C Function} void scm_frame_free (void *mem)
+Equivalent to @code{scm_frame_unwind_handler (free, @var{mem},
+SCM_F_WIND_EXPLICITLY)}.  That is, the memory block at @var{mem} will
+be freed when the current frame is left.
 @end deftypefn
 
 @deffn {Scheme Procedure} malloc-stats
