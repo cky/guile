@@ -1,5 +1,9 @@
 2001-02-28  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* lib.scm (signals-error?, signals-error?*):  Removed.
+
+2001-02-28  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* lib.scm:  Added comment about new convenience functions/macros
 	to test for exceptions.
 
