@@ -1,5 +1,9 @@
 2001-02-15  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* README: Explain retirement of `data-rep.texi'.
+
+	* Makefile.am (info_TEXINFOS, data_rep_TEXINFOS): Removed.
+
 	* data-rep.texi: Replace this copy of data-rep.texi with a notice
 	indicating that it has been retired.  The master copy of
 	data-rep.texi is at guile-doc/ref/data-rep.texi.

@@ -1,15 +1,18 @@
 This directory contains documentation on the Guile core.
 
 At the moment, we don't have a full manual on Guile; that's at the
-head of our task list.
-
-The file `data-rep.texi' is an essay on how to write C code that uses
-Guile values.  If you're interested in writing a application which is
-extensible via Guile, this is a good place to start.  Make builds the
-`info' manual by default, designed to be read on-line; if you want to
-print it out, go to the `doc' subdirectory of the tree you're building
-in, and run `make data-rep.ps'.
+head of our task list.  You can see a snapshot of the new Guile
+reference manual by checking out the `guile-doc' CVS module.
 
 The file `oldfmt.c' contains a function which can be used by
 application writers to support both old-style and new-style error
 format strings.
+
+The file `data-rep.texi', which used to be in this directory, is now
+integrated into the Guile reference manual: the integrated version of
+this essay is the `Data Representation' chapter.  (This chapter is an
+essay on how to write C code that uses Guile values.  If you're
+interested in writing a application which is extensible via Guile,
+this is a good place to start.)  To update the Texinfo source for this
+essay - for example, when the smob interface changes - please update
+the file `guile-doc/ref/data-rep.texi' in the guile-doc module.
