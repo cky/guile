@@ -1,3 +1,16 @@
+Thu Nov 21 11:12:10 1996  Jim Blandy  <jimb@floss.cyclic.com>
+
+	It's an "eval closure", not an "eval thunk."  A thunk is a
+	function of no arguments.
+	* boot-9.scm (module-type): Rename module field.
+	(make-module, eval-in-module, make-root-module,
+	set-current-module): Uses changed. 
+	(module-eval-closure, set-module-eval-closure!,
+	root-module-closure): Renamed from module-eval-thunk,
+	set-module-eval-thunk!, root-module-thunk.
+	(set-current-module): Change uses of *top-level-lookup-thunk* to
+	*top-level-eval-closure*.
+
 Wed Nov 20 14:45:27 1996  Jim Blandy  <jimb@totoro.cyclic.com>
 
 	* slib.scm (slib-parent-dir): Use string-length, not length.
