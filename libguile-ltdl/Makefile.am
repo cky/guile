@@ -28,14 +28,14 @@ DEFS = @DEFS@
 ## Check for headers in $(srcdir)/.., so that #include
 ## <libguile/MUMBLE.h> will find MUMBLE.h in this dir when we're
 ## building.
-INCLUDES = -I.. -I$(srcdir)/..
+INCLUDES = -I. -I$(srcdir) -I.. -I$(srcdir)/..
 
 ETAGS_ARGS = --regex='/SCM_\(GLOBAL_\)?\(G?PROC\|G?PROC1\|SYMBOL\|VCELL\|CONST_LONG\).*\"\([^\"]\)*\"/\3/' \
    --regex='/[ \t]*SCM_[G]?DEFINE1?[ \t]*(\([^,]*\),[^,]*/\1/'
 
 # We don't install this header since no one should be using the lib directly.
 EXTRA_HEADERS = guile-ltdl.h raw-ltdl.h
-EXTRA_DIST = raw-ltdl.c
+EXTRA_DIST = raw-ltdl.c $(EXTRA_HEADERS)
 
 lib_LTLIBRARIES = libguile-ltdl.la
 libguile_ltdl_la_SOURCES = guile-ltdl.c
