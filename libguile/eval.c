@@ -1672,7 +1672,9 @@ scm_option scm_evaluator_trap_table[] = {
 
 SCM_DEFINE (scm_eval_options_interface, "eval-options-interface", 0, 1, 0, 
             (SCM setting),
-	    "")
+	    "Option interface for the evaluation options. Instead of using\n"
+	    "this procedure directly, use the procedures @code{eval-enable},\n"
+	    "@code{eval-disable}, @code{eval-set!} and @var{eval-options}.")
 #define FUNC_NAME s_scm_eval_options_interface
 {
   SCM ans;
@@ -1689,7 +1691,7 @@ SCM_DEFINE (scm_eval_options_interface, "eval-options-interface", 0, 1, 0,
 
 SCM_DEFINE (scm_evaluator_traps, "evaluator-traps-interface", 0, 1, 0, 
             (SCM setting),
-	    "")
+	    "Option interface for the evaluator trap options.")
 #define FUNC_NAME s_scm_evaluator_traps
 {
   SCM ans;
@@ -3180,8 +3182,14 @@ ret:
    they're referring to, send me a patch to this comment.  */
 
 SCM_DEFINE (scm_nconc2last, "apply:nconc2last", 1, 0, 0, 
-           (SCM lst),
-	    "")
+	    (SCM lst),
+	    "Given a list (@var{arg1} @dots{} @var{args}), this function\n"
+	    "conses the @var{arg1} @dots{} arguments onto the front of\n"
+	    "@var{args}, and returns the resulting list. Note that\n"
+	    "@var{args} is a list; thus, the argument to this function is\n"
+	    "a list whose last element is a list.\n"
+	    "Note: Rather than do new consing, @code{apply:nconc2last}\n"
+	    "destroys its argument, so use with care.")
 #define FUNC_NAME s_scm_nconc2last
 {
   SCM *lloc;
