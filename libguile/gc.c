@@ -114,16 +114,22 @@
  * work around a oscillation that caused almost constant GC.]
  */
 
-#define SCM_INIT_HEAP_SIZE_1 (50000L * sizeof (scm_cell))
+/*
+ * Heap size 45000 and 40% min yield gives quick startup and no extra
+ * heap allocation.  Having higher values on min yield may lead to
+ * large heaps, especially if code behaviour is varying its
+ * maximum consumption between different freelists.
+ */
+#define SCM_INIT_HEAP_SIZE_1 (45000L * sizeof (scm_cell))
 #define SCM_CLUSTER_SIZE_1 2000L
-#define SCM_GC_TRIGGER_1 -45
+#define SCM_MIN_YIELD_1 40
 
 #define SCM_INIT_HEAP_SIZE_2 (2500L * 2 * sizeof (scm_cell))
 #define SCM_CLUSTER_SIZE_2 1000L
 /* The following value may seem large, but note that if we get to GC at
  * all, this means that we have a numerically intensive application
  */
-#define SCM_GC_TRIGGER_2 -45
+#define SCM_MIN_YIELD_2 40
 
 #define SCM_MAX_SEGMENT_SIZE 2097000L /* a little less (adm) than 2 Mb */
 
@@ -181,22 +187,22 @@ typedef struct scm_freelist_t {
   unsigned int left_to_collect;
   /* number of clusters which have been allocated */
   unsigned int clusters_allocated;
-  /* a list of freelists, each of size gc_trigger,
-     except the last one which may be shorter */
+  /* a list of freelists, each of size cluster_size,
+   * except the last one which may be shorter
+   */
   SCM clusters;
   SCM *clustertail;
   /* this is the number of objects in each cluster, including the spine cell */
   int cluster_size;
-  /* set to grow the heap when we run out of clusters
+  /* indicates that we should grow heap instead of GC:ing
    */
   int grow_heap_p;
-  /* minimum number of objects allocated before GC is triggered
+  /* minimum yield on this list in order not to grow the heap
    */
-  long gc_trigger;
-  /* defines gc_trigger as percent of heap size
-   * 0 => constant trigger
+  long min_yield;
+  /* defines min_yield as percent of total heap size
    */
-  int gc_trigger_fraction;
+  int min_yield_fraction;
 #endif
   /* number of cells per object on this list */
   int span;
@@ -789,12 +795,12 @@ SCM_DEFINE (scm_gc, "gc", 0, 0, 0,
 #ifdef GUILE_NEW_GC_SCHEME
 
 static void
-adjust_gc_trigger (scm_freelist_t *freelist)
+adjust_min_yield (scm_freelist_t *freelist)
 {
-  /* GC trigger is adjusted upwards so that next predicted total yield
+  /* min yield is adjusted upwards so that next predicted total yield
    * (allocated cells actually freed by GC) becomes
-   * `gc_trigger_fraction' of total heap size.  Note, however, that
-   * the absolute value of gc_trigger will correspond to `collected'
+   * `min_yield_fraction' of total heap size.  Note, however, that
+   * the absolute value of min_yield will correspond to `collected'
    * on one master (the one which currently is triggering GC).
    *
    * The reason why we look at total yield instead of cells collected
@@ -805,18 +811,18 @@ adjust_gc_trigger (scm_freelist_t *freelist)
    * (We might consider computing a better prediction, for example
    *  by computing an average over multiple GC:s.)
    */
-  if (freelist->gc_trigger_fraction)
+  if (freelist->min_yield_fraction)
     {
       /* Pick largest of last two yields. */
-      int delta = ((SCM_HEAP_SIZE * freelist->gc_trigger_fraction / 100)
-		   - SCM_MAX (scm_gc_yield_1, scm_gc_yield));
+      int delta = ((SCM_HEAP_SIZE * freelist->min_yield_fraction / 100)
+		   - (long) SCM_MAX (scm_gc_yield_1, scm_gc_yield));
 #ifdef DEBUGINFO
       fprintf (stderr, " after GC = %d, delta = %d\n",
 	       scm_cells_allocated,
 	       delta);
 #endif
       if (delta > 0)
-	freelist->gc_trigger += delta;
+	freelist->min_yield += delta;
     }
 }
 
@@ -847,7 +853,7 @@ scm_gc_for_newcell (scm_freelist_t *master, SCM *freelist)
 		       + master_cells_allocated (&scm_master_freelist2));
 #endif
 	      scm_igc ("cells");
-	      adjust_gc_trigger (master);
+	      adjust_min_yield (master);
 	    }
 	}
       cell = SCM_CAR (master->clusters);
@@ -1564,15 +1570,15 @@ gc_sweep_freelist_finish (scm_freelist_t *freelist)
     }
   scm_gc_cells_collected += freelist->collected;
 
-  /* Although freelist->gc_trigger is used to test freelist->collected
+  /* Although freelist->min_yield is used to test freelist->collected
    * (which is the local GC yield for freelist), it is adjusted so
-   * that *total* yield is freelist->gc_trigger_fraction of total heap
+   * that *total* yield is freelist->min_yield_fraction of total heap
    * size.  This means that a too low yield is compensated by more
    * heap on the list which is currently doing most work, which is
    * just what we want.
    */
   collected = SCM_MAX (freelist->collected_1, freelist->collected);
-  freelist->grow_heap_p = (collected < freelist->gc_trigger);
+  freelist->grow_heap_p = (collected < freelist->min_yield);
 }
 #endif
 
@@ -2345,13 +2351,13 @@ alloc_some_heap (scm_freelist_t *freelist)
      *   y + dh > f * (h + dh)
      *
      *    y : yield
-     *    f : GC trigger fraction
+     *    f : min yield fraction
      *    h : heap size
      *   dh : size of new heap segment
      *
      * This gives dh > (f * h - y) / (1 - f)
      */
-    int f = freelist->gc_trigger_fraction;
+    int f = freelist->min_yield_fraction;
     long h = SCM_HEAP_SIZE;
     long min_cells = (f * h - 100 * (long) scm_gc_yield) / (99 - f);
     len =  SCM_EXPHEAP (freelist->heap_size);
@@ -2577,10 +2583,10 @@ make_initial_segment (scm_sizet init_heap_size, scm_freelist_t *freelist)
     scm_expmem = 1;
 
 #ifdef GUILE_NEW_GC_SCHEME
-  if (freelist->gc_trigger_fraction)
-    freelist->gc_trigger = (freelist->heap_size * freelist->gc_trigger_fraction
+  if (freelist->min_yield_fraction)
+    freelist->min_yield = (freelist->heap_size * freelist->min_yield_fraction
 			    / 100);
-  freelist->grow_heap_p = (freelist->heap_size < freelist->gc_trigger);
+  freelist->grow_heap_p = (freelist->heap_size < freelist->min_yield);
 #endif
 
   return 0;
@@ -2592,19 +2598,14 @@ static void
 init_freelist (scm_freelist_t *freelist,
 	       int span,
 	       int cluster_size,
-	       int gc_trigger)
+	       int min_yield)
 {
   freelist->clusters = SCM_EOL;
   freelist->cluster_size = cluster_size + 1;
   freelist->left_to_collect = 0;
   freelist->clusters_allocated = 0;
-  if (gc_trigger < 0)
-    freelist->gc_trigger_fraction = - gc_trigger;
-  else
-    {
-      freelist->gc_trigger = gc_trigger;
-      freelist->gc_trigger_fraction = 0;
-    }
+  freelist->min_yield = 0;
+  freelist->min_yield_fraction = min_yield;
   freelist->span = span;
   freelist->collected = 0;
   freelist->collected_1 = 0;
@@ -2637,10 +2638,10 @@ scm_init_storage (scm_sizet init_heap_size_1, scm_sizet init_heap_size_2)
   scm_freelist2 = SCM_EOL;
   init_freelist (&scm_master_freelist,
 		 1, SCM_CLUSTER_SIZE_1,
-		 gc_trigger_1 ? gc_trigger_1 : SCM_GC_TRIGGER_1);
+		 gc_trigger_1 ? gc_trigger_1 : SCM_MIN_YIELD_1);
   init_freelist (&scm_master_freelist2,
 		 2, SCM_CLUSTER_SIZE_2,
-		 gc_trigger_2 ? gc_trigger_2 : SCM_GC_TRIGGER_2);
+		 gc_trigger_2 ? gc_trigger_2 : SCM_MIN_YIELD_2);
   scm_max_segment_size
     = max_segment_size ? max_segment_size : SCM_MAX_SEGMENT_SIZE;
 #else
