@@ -71,7 +71,7 @@ GCC 2.7.2.3 in a Red Hat 5.0 i386 Linux machine.  Furthermore, each
 developer should pursue any additional warnings noted by on their
 compiler.  This means that people using more stringent compilers will
 have more work to do, and assures that everyone won't switch to the
-most lenient compiler they can find.
+most lenient compiler they can find.  :)
 
 - When you make a user-visible change (i.e. one that should be
 documented, and appear in NEWS, put an asterisk in column zero of the
