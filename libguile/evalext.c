@@ -166,7 +166,7 @@ SCM_DEFINE (scm_self_evaluating_p, "self-evaluating?", 1, 0, 0,
 	case scm_tcs_closures:
 	case scm_tc7_vector:
 	case scm_tc7_wvect:
-#ifdef HAVE_ARRAYS
+#ifdef SCM_HAVE_ARRAYS
 	case scm_tc7_bvect:
 	case scm_tc7_byvect:
 	case scm_tc7_svect:
@@ -175,7 +175,7 @@ SCM_DEFINE (scm_self_evaluating_p, "self-evaluating?", 1, 0, 0,
 	case scm_tc7_fvect:
 	case scm_tc7_dvect:
 	case scm_tc7_cvect:
-#ifdef HAVE_LONG_LONGS
+#if SCM_SIZEOF_LONG_LONG != 0
 	case scm_tc7_llvect:
 #endif
 #endif
