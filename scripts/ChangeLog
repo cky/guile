@@ -3,6 +3,15 @@
 	* scan-api (scan-api): Fix bug: No longer omit `C' and `Scheme' in
 	groups in the presence of the grouper.
 
+	* api-diff: Use modules (ice-9 format), (ice-9 getopt-long).
+	Autoload module (srfi srfi-13).
+	No longer export `diff-alists'.
+
+	(diff, diff-alists, display-list): Remove.
+	(put, get, read-api-alist-file, hang-by-the-roots, diff?,
+	diff+note!, group-diff): New procs.
+	(api-diff): Rewrite.
+
 2002-05-10  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* scan-api (add-props): New proc.
