@@ -62,7 +62,9 @@ static int
 keyword_print (SCM exp, SCM port, scm_print_state *pstate)
 {
   scm_puts ("#:", port);
-  scm_puts(1 + SCM_SYMBOL_CHARS (SCM_CDR (exp)), port);
+  scm_print_symbol_name (1 + SCM_SYMBOL_CHARS (SCM_CDR (exp)),
+			 SCM_SYMBOL_LENGTH (SCM_CDR (exp)),
+			 port);
   return 1;
 }
 
