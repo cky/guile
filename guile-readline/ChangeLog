@@ -1,3 +1,8 @@
+2000-06-12  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* readline.scm (apropos-completion-function): Don't define and
+	install if the 'regex feature is missing.
+
 2000-06-06  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* readline.c: Always provide scm_init_readline, also if readline
