@@ -27,17 +27,21 @@ NUM2INTEGRAL (SCM num, unsigned long int pos, const char *s_caller)
         scm_out_of_range (s_caller, num);
 #endif
     
-      if (sizeof (ITYPE) >= sizeof (scm_t_signed_bits))
-        /* can't fit anything too big for this type in an inum
-           anyway */
-        return (ITYPE) n;
-      else
-        { /* an inum can be out of range, so check */
-	  if (((ITYPE)n) != n)
-            scm_out_of_range (s_caller, num);
-          else
-            return (ITYPE) n;
-        }
+#if SIZEOF_ITYPE >= SIZEOF_SCM_T_BITS
+      /* the target type is large enough to hold any possible inum */
+      return (ITYPE) n;
+#else
+      /* an inum can be out of range, so check */
+#ifdef UNSIGNED
+      /* n is known to be >= 0 */
+      if ((scm_t_bits) n > UNSIGNED_ITYPE_MAX)
+	scm_out_of_range (s_caller, num);
+#else
+      if (((ITYPE)n) != n)
+	scm_out_of_range (s_caller, num);
+#endif
+      return (ITYPE) n;
+#endif /* SIZEOF_ITYPE >= SIZEOF_SCM_T_BITS */
     }
   else if (SCM_BIGP (num))
     { /* bignum */
@@ -78,9 +82,9 @@ NUM2INTEGRAL (SCM num, unsigned long int pos, const char *s_caller)
             scm_out_of_range (s_caller, num);
         }
 #endif
-      
+
 #else /* SIZEOF_ITYPE >= SIZEOF_SCM_T_BITS */
-            scm_out_of_range (s_caller, num);
+      scm_out_of_range (s_caller, num);
 #endif
       
     }
