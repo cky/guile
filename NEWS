@@ -22,6 +22,21 @@ Example:
 
 * Changes to Scheme functions and syntax
 
+** New function `make-object-property'
+
+This function returns a new `procedure with setter' P that can be used
+to attach a property to objects.  When calling P as
+
+   (set! (P obj) val)
+
+where `obj' is any kind of object, it attaches `val' to `obj' in such
+a way that it can be retrieved by calling P as
+
+    (P obj)
+
+This function will replace procedure properties, symbol properties and
+source properties eventually.
+
 ** Module (ice-9 optargs) now uses keywords instead of `#&'.
 
 Instead of #&optional, #&key, etc you should now use #:optional,
@@ -88,6 +103,19 @@ Guile.
 * Changes to the gh_ interface
 
 * Changes to the scm_ interface
+
+** New function: scm_init_guile ()
+
+In contrast to scm_boot_guile, scm_init_guile will return normally
+after initializing Guile.  It is not available on all systems, tho.
+
+** New functions: scm_primitive_make_property
+                  scm_primitive_property_ref
+                  scm_primitive_property_set_x
+                  scm_primitive_property_del_x
+
+These functions implement a new way to deal with object properties.
+See libguile/properties.c for their documentation.
 
 ** New function: scm_done_free (long size)
 
