@@ -1,3 +1,7 @@
+1998-07-15  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+
+	* boot-9.scm: Renamed module `(guile-repl)' --> `(guile-user)'.
+
 1998-07-14  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* boot-9.scm: Let the user start in module `(guile-repl)' instead
