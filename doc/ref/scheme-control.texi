@@ -299,18 +299,67 @@ Scheme programs is normally expressed using recursion.  Nevertheless,
 R5RS defines a construct for programming loops, calling @code{do}.  In
 addition, Guile has an explicit looping syntax called @code{while}.
 
-@deffn syntax do ((variable1 init1 step1) @dots{}) (test expr @dots{}) command @dots{}
-The @var{init} expressions are evaluated and the @var{variables} are
-bound to their values. Then looping starts with testing the @var{test}
-expression.  If @var{test} evaluates to a true value, the @var{expr}
-following the @var{test} are evaluated and the value of the last
-@var{expr} is returned as the value of the @code{do} expression.  If
-@var{test} evaluates to false, the @var{command}s are evaluated in
-order, the @var{step}s are evaluated and stored into the @var{variables}
-and the next iteration starts.
+@deffn syntax do ((variable init [step]) @dots{}) (test [expr @dots{}]) body @dots{}
+Bind @var{variable}s and evaluate @var{body} until @var{test} is true.
+The return value is the last @var{expr} after @var{test}, if given.  A
+simple example will illustrate the basic form,
 
-Any of the @var{step} expressions may be omitted, so that the
-corresponding variable is not changed during looping.
+@example
+(do ((i 1 (1+ i)))
+    ((> i 4))
+  (display i))
+@print{} 1234
+@end example
+
+@noindent
+Or with two variables and a final return value,
+
+@example
+(do ((i 1 (1+ i))
+     (p 3 (* 3 p)))
+    ((> i 4)
+     p)
+  (format #t "3**~s is ~s\n" i p))
+@print{}
+3**1 is 3
+3**2 is 9
+3**3 is 27
+3**4 is 81
+@result{}
+789
+@end example
+
+The @var{variable} bindings are established like a @code{let}, in that
+the expressions are all evaluated and then all bindings made.  When
+iterating, the optional @var{step} expressions are evaluated with the
+previous bindings in scope, then new bindings all made.
+
+The @var{test} expression is a termination condition.  Looping stops
+when the @var{test} is true.  It's evaluated before running the
+@var{body} each time, so if it's true the first time then @var{body}
+is not run at all.
+
+The optional @var{expr}s after the @var{test} are evaluated at the end
+of looping, with the final @var{variable} bindings available.  The
+last @var{expr} gives the return value, or if there are no @var{expr}s
+the return value is unspecified.
+
+Each iteration establishes bindings to fresh locations for the
+@var{variable}s, like a new @code{let} for each iteration.  This is
+done for @var{variable}s without @var{step} expressions too.  The
+following illustrates this, showing how a new @code{i} is captured by
+the @code{lambda} in each iteration (@pxref{About Closure,, The
+Concept of Closure}).
+
+@example
+(define lst '())
+(do ((i 1 (1+ i)))
+    ((> i 4))
+  (set! lst (cons (lambda () i) lst)))
+(map (lambda (proc) (proc)) lst)
+@result{}
+(4 3 2 1)
+@end example
 @end deffn
 
 @deffn syntax while cond body @dots{}
