@@ -1,3 +1,9 @@
+2001-07-18  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* and-let-star.scm, debug.scm, debugger.scm, history.scm,
+	lineio.scm, null.scm, optargs.scm, r4rs.scm, r5rs.scm,
+	receive.scm, safe-r5rs.scm, streams.scm: Updated copyright notice.
+
 2001-07-17  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* r5rs.scm: Use `re-export' instead of `export' for re-exported

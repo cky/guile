@@ -1,7 +1,7 @@
 ;;;; r4rs.scm --- definitions needed for libguile to be R4RS compliant
 ;;;; Jim Blandy <jimb@cyclic.com> --- October 1996
 
-;;;; 	Copyright (C) 1996, 1997, 1998, 2000 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1996, 1997, 1998, 2000, 2001 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
