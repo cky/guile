@@ -178,6 +178,17 @@
 (define (output-port-height . arg) 24)
 (define (identity x) x)
 
+;;; {Random numbers}
+;;;
+(define-public (make-random-state . args)
+  (let ((seed (if (null? args) *random-state* (car args))))
+    (cond ((string? seed))
+	  ((number? seed) (set! seed (number->string seed)))
+	  (else (let ()
+		  (require 'object->string)
+		  (set! seed (object->limited-string seed 50)))))
+    (seed->random-state seed)))
+
 ;;; {Time}
 ;;;
 
