@@ -1,3 +1,8 @@
+2005-02-11  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/fractions.test (ash): Remove tests of ash on fractions, not
+	supported after scm_ash rewrite.
+
 2005-02-04  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/srfi-1.test (list=): New tests.
