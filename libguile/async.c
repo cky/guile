@@ -106,8 +106,8 @@ static long scm_tc16_async;
 
 static int asyncs_pending SCM_P ((void));
 
-static int
-asyncs_pending ()
+int
+scm_asyncs_pending ()
 {
   SCM pos;
   pos = scm_asyncs;
@@ -238,7 +238,7 @@ scm_async_click ()
   scm_run_asyncs (scm_asyncs);
 
   SCM_DEFER_INTS;
-  if (asyncs_pending ())
+  if (scm_asyncs_pending ())
     {
       SCM_ALLOW_INTS_ONLY;
       goto tail;

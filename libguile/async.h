@@ -63,6 +63,7 @@ extern unsigned int scm_mask_ints;
 extern SCM scm_gc_async;
 
 
+extern int scm_asyncs_pending SCM_P ((void));
 extern void scm_async_click SCM_P ((void));
 extern void scm_switch SCM_P ((void));
 extern SCM scm_async SCM_P ((SCM thunk));
