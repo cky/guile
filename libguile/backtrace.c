@@ -232,7 +232,7 @@ struct display_error_handler_data {
    Note that it is very important that this handler *doesn't* try to
    print more than the error tag, since the error very probably is
    caused by an erroneous print call-back routine.  If we would
-   tru to print all objects, we would enter an infinite loop. */
+   try to print all objects, we would enter an infinite loop. */
 static SCM
 display_error_handler (struct display_error_handler_data *data,
 		       SCM tag, SCM args)
