@@ -602,12 +602,6 @@ Convenient syntax for partial application (@pxref{SRFI-26})
 @item (ice-9 slib)
 This module contains hooks for using Aubrey Jaffer's portable Scheme
 library SLIB from Guile (@pxref{SLIB}).
-
-@c FIXME::martin: This module is not in the distribution.  Remove it
-@c from here?
-@item (ice-9 jacal)
-This module contains hooks for using Aubrey Jaffer's symbolic math
-package Jacal from Guile (@pxref{JACAL}).
 @end table
 
 
