@@ -17,8 +17,11 @@
 ;;;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 ;;;; 
 ;;;; Contributed by Daniel Risacher <risacher@worldnet.att.net>.
+;;;; Extensions based upon code by
+;;;; Andrew Archibald <aarchiba@undergrad.math.uwaterloo.ca>.
 
-(define-module (ice-9 readline))
+(define-module (ice-9 readline)
+  :use-module (ice-9 session))
 
 (define prompt "")
 
@@ -36,7 +39,9 @@
 		    #\nl))
 		 ((= string-index -1)
 		  (begin
-		    (set! read-string (readline prompt))
+		    (set! read-string (readline (if (string? prompt)
+						    prompt
+						    (prompt))))
 		    (set! string-index 0)
 		    (if (not (eof-object? read-string))
 			(begin
@@ -66,7 +71,21 @@
 (define-public (set-readline-prompt! p)
   (set! prompt p))
 
-   
+(define-public apropos-completion-function
+  (let ((completions '()))
+    (lambda (text cont?)
+      (if (not cont?)
+	  (set! completions
+		(map symbol->string
+		     (apropos-internal (string-append "^" text)))))
+      (if (null? completions)
+	  #f
+	  (let ((retval (car completions)))
+	    (begin (set! completions (cdr completions))
+		   retval))))))
+
+(set! *readline-completion-function* apropos-completion-function)
+
 ;(define myport (make-readline-port))
 ;(define (doit)
 ;  (set-current-input-port myport))

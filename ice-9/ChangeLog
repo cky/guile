@@ -1,3 +1,10 @@
+1998-05-11  Mikael Djurfeldt  <mdj@kenneth>
+
+	* boot-9.scm: Load readline module if readline is present.
+
+	* readline.scm (apropos-completion-function): New procedure:
+	Symbolic completion.  (Thanks to Andrew Archibald!)
+
 1998-04-22  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* boot-9.scm (process-define-module): Added keyword use-syntax.

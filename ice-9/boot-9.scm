@@ -2885,6 +2885,12 @@
 (if (%search-load-path "ice-9/session.scm")
     (define-module (guile) :use-module (ice-9 session)))
 
+;;; {Use readline if present.}
+;;;
+
+(if (memq 'readline *features*)
+    (define-module (guile) :use-module (ice-9 readline)))
+
 
 ;;; {Load thread code if threads are present.}
 ;;;
