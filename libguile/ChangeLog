@@ -1,4 +1,24 @@
+2004-08-03  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* discouraged.h, discouraged.c, numbers.c, numbers.h
+	(scm_is_rational): New.
+	(scm_i_short2big, scm_i_int2big, scm_i_uint2big, scm_i_size2big,
+	scm_i_ptrdiff2big, scm_i_long_long2big, scm_i_ulong_long2big):
+	Removed prototypes.
+	(scm_make_real, scm_num2dbl, scm_float2num, scm_double2num):
+	Discouraged by moving to discouraged.h and discouraged.c.
+	Replaced all uses with scm_from_double.
+	(scm_num2float, scm_num2double): Discouraged by moving prototype
+	to discouraged.h and rewriting in terms of scm_to_double.
+	Replaced all uses with scm_to_double.
+	(scm_to_double): Do not implement in terms of scm_num2dbl, use
+	explicit code.
+	(scm_from_double): Do not implement in terms of scm_make_real, use
+	explicit code.
+	
 2004-08-02  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* init.c (scm_init_guile_1): Call scm_i_init_discouraged.
 
 	* gen-scmconfig.h.in (SCM_I_GSC_ENABLE_DISCOURAGED): New.
 	* gen-scmconfig.c (SCM_ENABLE_DISCOURAGED): Emit based on above.

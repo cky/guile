@@ -1,3 +1,11 @@
+2004-08-03  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* standalone/test-num2integral.c: Only perform the tests when the
+	disabled features are enabled.
+
+	* standalone/test-conversion.c (test_to_double, test_from_double):
+	New tests.
+
 2004-08-02  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/srfi-13.test (string-every): Check empty string case.
