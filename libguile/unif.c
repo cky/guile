@@ -1230,6 +1230,8 @@ scm_cvref (v, pos, last)
 SCM_PROC(s_uniform_array_set1_x, "uniform-array-set1!", 3, 0, 0, scm_array_set_x);
 SCM_PROC(s_array_set_x, "array-set!", 2, 0, 1, scm_array_set_x);
 
+/* Note that args may be a list or an immediate object, depending which
+   PROC is used (and it's called from C too).  */
 SCM 
 scm_array_set_x (v, obj, args)
      SCM v;
@@ -1247,13 +1249,14 @@ scm_array_set_x (v, obj, args)
     {
       if (SCM_NIMP (args))
 	{
-	  SCM_ASSERT (SCM_CONSP (args) && SCM_INUMP (SCM_CAR (args)), args, SCM_ARG2, s_array_set_x);
-	  pos = SCM_INUM (SCM_CAR (args));
+	  SCM_ASSERT (SCM_CONSP(args) && SCM_INUMP (SCM_CAR (args)), args,
+		 SCM_ARG3, s_array_set_x);
 	  SCM_ASRTGO (SCM_NULLP (SCM_CDR (args)), wna);
+	  pos = SCM_INUM (SCM_CAR (args));
 	}
       else
 	{
-	  SCM_ASSERT (SCM_INUMP (args), args, SCM_ARG2, s_array_set_x);
+	  SCM_ASSERT (SCM_INUMP (args), args, SCM_ARG3, s_array_set_x);
 	  pos = SCM_INUM (args);
 	}
       SCM_ASRTGO (pos >= 0 && pos < SCM_LENGTH (v), outrng);
@@ -1273,38 +1276,38 @@ scm_array_set_x (v, obj, args)
       else if (SCM_BOOL_T == obj)
 	SCM_VELTS (v)[pos / SCM_LONG_BIT] |= (1L << (pos % SCM_LONG_BIT));
       else
-      badarg3:scm_wta (obj, (char *) SCM_ARG3, s_array_set_x);
+      badobj:scm_wta (obj, (char *) SCM_ARG2, s_array_set_x);
       break;
     case scm_tc7_string:
-      SCM_ASRTGO (SCM_ICHRP (obj), badarg3);
+      SCM_ASRTGO (SCM_ICHRP (obj), badobj);
       SCM_CHARS (v)[pos] = SCM_ICHR (obj);
       break;
     case scm_tc7_byvect:
       if (SCM_ICHRP (obj))
 	obj = SCM_MAKINUM (SCM_ICHR (obj));
-      SCM_ASRTGO (SCM_INUMP (obj), badarg3);
+      SCM_ASRTGO (SCM_INUMP (obj), badobj);
       ((char *)SCM_CHARS (v))[pos] = SCM_INUM (obj);
       break;
 # ifdef SCM_INUMS_ONLY
     case scm_tc7_uvect:
-      SCM_ASRTGO (SCM_INUM (obj) >= 0, badarg3);
+      SCM_ASRTGO (SCM_INUM (obj) >= 0, badobj);
     case scm_tc7_ivect:
-    SCM_ASRTGO(SCM_INUMP(obj), badarg3); SCM_VELTS(v)[pos] = SCM_INUM(obj); break;
+    SCM_ASRTGO(SCM_INUMP(obj), badobj); SCM_VELTS(v)[pos] = SCM_INUM(obj); break;
 # else
   case scm_tc7_uvect:
-    SCM_VELTS(v)[pos] = scm_num2ulong(obj, (char *)SCM_ARG3, s_array_set_x); break;
+    SCM_VELTS(v)[pos] = scm_num2ulong(obj, (char *)SCM_ARG2, s_array_set_x); break;
   case scm_tc7_ivect:
-    SCM_VELTS(v)[pos] = num2long(obj, (char *)SCM_ARG3, s_array_set_x); break;
+    SCM_VELTS(v)[pos] = num2long(obj, (char *)SCM_ARG2, s_array_set_x); break;
 # endif
       break;
 
     case scm_tc7_svect:
-      SCM_ASRTGO (SCM_INUMP (obj), badarg3);
+      SCM_ASRTGO (SCM_INUMP (obj), badobj);
       ((short *) SCM_CDR (v))[pos] = SCM_INUM (obj);
       break;
 #ifdef LONGLONGS
     case scm_tc7_llvect:
-      ((long_long *) SCM_CDR (v))[pos] = scm_num2long_long (obj, (char *)SCM_ARG3, s_array_set_x);
+      ((long_long *) SCM_CDR (v))[pos] = scm_num2long_long (obj, (char *)SCM_ARG2, s_array_set_x);
       break;
 #endif
 
@@ -1312,16 +1315,16 @@ scm_array_set_x (v, obj, args)
 #ifdef SCM_FLOATS
 #ifdef SCM_SINGLES
     case scm_tc7_fvect:
-      SCM_ASRTGO (SCM_NIMP (obj) && SCM_REALP (obj), badarg3);
+      SCM_ASRTGO (SCM_NIMP (obj) && SCM_REALP (obj), badobj);
       ((float *) SCM_CDR (v))[pos] = SCM_REALPART (obj);
       break;
 #endif
     case scm_tc7_dvect:
-      SCM_ASRTGO (SCM_NIMP (obj) && SCM_REALP (obj), badarg3);
+      SCM_ASRTGO (SCM_NIMP (obj) && SCM_REALP (obj), badobj);
       ((double *) SCM_CDR (v))[pos] = SCM_REALPART (obj);
       break;
     case scm_tc7_cvect:
-      SCM_ASRTGO (SCM_NIMP (obj) && SCM_INEXP (obj), badarg3);
+      SCM_ASRTGO (SCM_NIMP (obj) && SCM_INEXP (obj), badobj);
       ((double *) SCM_CDR (v))[2 * pos] = SCM_REALPART (obj);
       ((double *) SCM_CDR (v))[2 * pos + 1] = SCM_CPLXP (obj) ? SCM_IMAG (obj) : 0.0;
       break;
@@ -2116,7 +2119,7 @@ scm_list_to_uniform_array (ndim, prot, lst)
   while (k--)
     {
       n = scm_ilength (row);
-      SCM_ASSERT (n >= 0, lst, SCM_ARG2, s_list_to_uniform_array);
+      SCM_ASSERT (n >= 0, lst, SCM_ARG3, s_list_to_uniform_array);
       shp = scm_cons (SCM_MAKINUM (n), shp);
       if (SCM_NIMP (row))
 	row = SCM_CAR (row);

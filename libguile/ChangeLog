@@ -1,3 +1,7 @@
+Thu Feb 13 21:44:07 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* unif.c (scm_array_set_x): minor change to argument error checking.
+
 Mon Feb 10 00:08:08 1997  Mikael Djurfeldt  <mdj@kenneth>
 
 	* symbols.c (scm_sysintern0): New function.  Contains the core of
