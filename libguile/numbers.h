@@ -43,8 +43,6 @@
 # endif
 #endif /* SCM_HAVE_NAN_H */
 
-#include <gmp.h>
-
 
 
 /* Immediate Numbers, also known as fixnums
