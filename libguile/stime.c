@@ -69,13 +69,13 @@
 #  endif
 # endif
 
-# ifdef HAVE_SYS_TIMES_H
-#  include <sys/times.h>
-# else
-#  ifdef HAVE_SYS_TIMEB_H
-#   include <sys/timeb.h>
-#  endif
-# endif
+#ifdef HAVE_SYS_TIMES_H
+# include <sys/times.h>
+#endif
+
+#ifdef HAVE_SYS_TIMEB_H
+# include <sys/timeb.h>
+#endif
 
 #ifndef tzname /* For SGI.  */
 extern char *tzname[]; /* RS6000 and others reject char **tzname.  */
@@ -104,12 +104,6 @@ char *strptime ();
 #  define CLKTCK 60
 # endif
 #endif
-
-
-# ifdef HAVE_FTIME
-#   include <sys/timeb.h>
-# endif
-
 
 #ifdef __STDC__
 # define timet time_t

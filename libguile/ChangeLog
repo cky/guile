@@ -1,5 +1,13 @@
 Mon Apr 21 05:00:32 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
+	* eq.c (scm_equal_p): use "SCM_TYP7SD", not "SCM (TYP7SD".
+
+	* stime.c: include both <sys/times.h> and <sys/timeb.h> if the
+	system has them.  Hope this is safe.  Previously
+	sys/timeb.h was included if HAVE_FTIME was defined or if
+	HAVE_SYS_TIMEB_H was defined but HAVE_SYS_TIMES_H was not,
+	but IRIX iris 5.3 apparently has ftime but not sys/timeb.h.
+
 	* ioext.c (scm_setfileno): add missing third argument to
 	scm_misc_error call.
 
