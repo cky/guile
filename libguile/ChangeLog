@@ -1,3 +1,19 @@
+2001-10-06  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* tags.h (SCM_T_BITS_MAX, SCM_T_SIGNED_BITS_MAX,
+	SCM_T_SIGNED_BITS_MIN): New.
+	* numbers.h (SCM_MOST_POSITIVE_FIXNUM, SCM_MOST_NEGATIVE_FIXNUM):
+	Use them to make these macros computable by the preprocessor.
+
+	* num2integral.i.c (INTEGRAL2NUM): Let the preprocessor test
+	whether the integral type fits in a fixnum, not the compiler.
+	This removes a spurious compiler warning.  Also, honor the
+	NO_PREPRO_MAGIC flag to suppress any preprocessor tests.  This is
+	needed for `long long's.
+
+	* numbers.c: Define NO_PREPRO_MAGOC when including
+	num2integral.c.i for `long long' and `signed long long'.
+
 2001-10-06  Mikael Djurfeldt  <mdj@linnaeus>
 
 	These changes fixes a race condition in the Guile coop - pthread
