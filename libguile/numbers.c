@@ -3162,8 +3162,6 @@ scm_less_p (SCM x, SCM y)
       else if (SCM_BIGP (y))
 	{
 	  int cmp;
-	  if (xisnan (SCM_REAL_VALUE (x)))
-	    return SCM_BOOL_F;
 	  cmp = xmpz_cmp_d (SCM_I_BIG_MPZ (y), scm_i_fraction2double (x));
 	  scm_remember_upto_here_1 (y);
 	  return SCM_BOOL (cmp > 0);
