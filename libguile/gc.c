@@ -1793,6 +1793,8 @@ scm_gc_sweep ()
 	      m += SCM_SYMBOL_LENGTH (scmptr) + 1;
 	      scm_must_free (SCM_SYMBOL_CHARS (scmptr));
 	      break;
+            case scm_tc7_variable:
+              break;
 	    case scm_tcs_subrs:
               /* the various "subrs" (primitives) are never freed */
 	      continue;
