@@ -1,3 +1,7 @@
+Sat May 17 13:49:28 1997  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* config.sub: Get newer version, that recognizes the i686.
+
 Fri May 16 17:26:10 1997  Jim Blandy  <jimb@totoro.cyclic.com>
 
 	* README: Changed Mikael's threads work attribution in order
