@@ -1417,8 +1417,12 @@ SCM_DEFINE1 (scm_logxor, "logxor", scm_tc7_asubr,
 
 SCM_DEFINE (scm_logtest, "logtest", 2, 0, 0,
             (SCM j, SCM k),
+	    "Test whether @var{j} and @var{k} have any 1 bits in common.\n"
+	    "This is equivalent to @code{(not (zero? (logand j k)))}, but\n"
+	    "without actually calculating the @code{logand}, just testing\n"
+	    "for non-zero.\n"
+	    "\n"
 	    "@lisp\n"
-	    "(logtest j k) @equiv{} (not (zero? (logand j k)))\n\n"
 	    "(logtest #b0100 #b1011) @result{} #f\n"
 	    "(logtest #b0100 #b0111) @result{} #t\n"
 	    "@end lisp")
@@ -1485,8 +1489,10 @@ SCM_DEFINE (scm_logtest, "logtest", 2, 0, 0,
 
 SCM_DEFINE (scm_logbit_p, "logbit?", 2, 0, 0,
             (SCM index, SCM j),
+	    "Test whether bit number @var{index} in @var{j} is set.\n"
+	    "@var{index} starts from 0 for the least significant bit.\n"
+	    "\n"
 	    "@lisp\n"
-	    "(logbit? index j) @equiv{} (logtest (integer-expt 2 index) j)\n\n"
 	    "(logbit? 0 #b1101) @result{} #t\n"
 	    "(logbit? 1 #b1101) @result{} #f\n"
 	    "(logbit? 2 #b1101) @result{} #t\n"
@@ -1668,14 +1674,18 @@ SCM_DEFINE (scm_modulo_expt, "modulo-expt", 3, 0, 0,
 
 SCM_DEFINE (scm_integer_expt, "integer-expt", 2, 0, 0,
             (SCM n, SCM k),
-	    "Return @var{n} raised to the exact integer exponent\n"
-	    "@var{k}.\n"
+	    "Return @var{n} raised to the power @var{k}.  @var{k} must be an\n"
+	    "exact integer, @var{n} can be any number.\n"
+	    "\n"
+	    "Negative @var{k} is supported, and results in @math{1/n^abs(k)}\n"
+	    "in the usual way.  @math{@var{n}^0} is 1, as usual, and that\n"
+	    "includes @math{0^0} is 1.\n"
 	    "\n"
 	    "@lisp\n"
-	    "(integer-expt 2 5)\n"
-	    "   @result{} 32\n"
-	    "(integer-expt -3 3)\n"
-	    "   @result{} -27\n"
+	    "(integer-expt 2 5)   @result{} 32\n"
+	    "(integer-expt -3 3)  @result{} -27\n"
+	    "(integer-expt 5 -3)  @result{} 1/125\n"
+	    "(integer-expt 0 0)   @result{} 1\n"
 	    "@end lisp")
 #define FUNC_NAME s_scm_integer_expt
 {
