@@ -65,6 +65,10 @@ that user-visible changes are reflected in NEWS.
 
 - add DLL support [ela]		<-- set by ttn (my bad)
 
+- write emacs/patch.el [ttn]
+  + outgoing
+  - incoming
+
 + sync srfi-modules.texi [ttn]
 
 - For GOOPS: [ttn]
