@@ -163,6 +163,7 @@ install-exec-hook:
 ## Perhaps we can deal with them normally once the merge seems to be
 ## working.
 noinst_HEADERS = num2integral.i.c num2float.i.c convert.i.c	\
+                 conv-integer.i.c conv-uinteger.i.c		\
                  win32-uname.h win32-dirent.h win32-socket.h	\
 	         private-gc.h
 
