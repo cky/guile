@@ -1,3 +1,18 @@
+Fri Dec 17 12:09:11 1999  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* tags.h (SCM_ECONSP, SCM_NECONSP): Fix these macros to have the
+	SCM_NIMP test integrated into an || clause that I'd missed before
+	and was causing a segfault in the regression tests.
+
+	* symbols.h (SCM_ROUCHARS): Make cast be to (unsigned char *), not 
+	(char *);  fixes a problem reported by the regression test
+	ports.test.
+
+	* ports.c: Fixed a couple of arg/number mismatches in
+	SCM_VALIDATE_ macros.
+
+	Now passes the (not-comprehensive) guile-modules test-suite again!
+
 Thu Dec 16 12:41:22 1999  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* coop-threads.c: Remove K&R function headers.

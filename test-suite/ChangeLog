@@ -1,3 +1,11 @@
+Fri Dec 17 12:14:10 1999  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* tests/c-api.test: Refine the list of files that are checked in
+	the seek-offset-test.  Was just using files that end in "c", but
+	that caught the new ".doc" files, too, so make sure that files end 
+	in ".c" before requiring that they include unistd.h if they
+	reference SEEK_(SET|CUR|END).
+
 1999-10-24  Gary Houston  <ghouston@freewire.co.uk>
 
 	* tests/ports.test ("string ports"): test seeking/unreading from
