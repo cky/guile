@@ -394,17 +394,21 @@ Use @var{module} when loading the currently defined module, and install
 it as the syntax transformer.
 
 @item #:autoload @var{module} @var{symbol}
+@cindex autoload
 Load @var{module} whenever @var{symbol} is accessed.
 
 @item #:export @var{list}
+@cindex export
 Export all identifiers in @var{list}, which must be a list of symbols.
 This is equivalent to @code{(export @var{list})} in the module body.
 
 @item #:no-backtrace
+@cindex no backtrace
 Tell Guile not to record information for procedure backtraces when
 executing the procedures in this module.
 
 @item #:pure
+@cindex pure module
 Create a @dfn{pure} module, that is a module which does not contain any
 of the standard procedure bindings except for the syntax forms.  This is
 useful if you want to create @dfn{safe} modules, that is modules which
