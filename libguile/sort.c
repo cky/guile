@@ -373,17 +373,7 @@ closureless (SCM code, const void *a, const void *b)
 				   scm_cons (*(SCM *) b, SCM_EOL)),
 			 SCM_ENV (code));
   /* Evaluate the closure body */
-  code = SCM_CDR (SCM_CODE (code));
-  while (SCM_IMP (SCM_CAR (code)) && SCM_ISYMP (SCM_CAR (code)))
-    code = scm_m_expand_body (code, env);
-  next = code;
-  while (SCM_NNULLP (next = SCM_CDR (next)))
-    {
-      if (SCM_NIMP (SCM_CAR (code)))
-	SCM_XEVAL (SCM_CAR (code), env);
-      code = next;
-    }
-  return SCM_NFALSEP (SCM_XEVALCAR (code, env));
+  return SCM_NFALSEP (scm_eval_body (SCM_CDR (SCM_CODE (code)), env));
 }				/* closureless */
 
 static int 
