@@ -1,3 +1,9 @@
+1999-06-14  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	* fports.c (local_seek): Signal an error if the seek fails.
+	* ports.c (scm_lseek): Don't check return value of port's seek
+	function; it's its job to signal an error if there's a problem.
+
 1999-06-12  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	* strports.c (scm_call_with_output_string): Don't include the
