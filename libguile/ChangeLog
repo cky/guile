@@ -1,3 +1,8 @@
+2002-10-19  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* async.h, async.c (scm_system_async):  Fixed deprecation to work
+	correctly when deprecated features are excluded.
+
 2002-10-16  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* async.c (scm_system_async_mark_for_thread): Validate thread

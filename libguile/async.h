@@ -58,7 +58,6 @@
 SCM_API void scm_async_click (void);
 SCM_API void scm_switch (void);
 SCM_API SCM scm_async (SCM thunk);
-SCM_API SCM scm_system_async (SCM thunk);
 SCM_API SCM scm_async_mark (SCM a);
 SCM_API SCM scm_system_async_mark (SCM a);
 SCM_API SCM scm_system_async_mark_for_thread (SCM a, SCM thread);
@@ -73,6 +72,7 @@ SCM_API void scm_init_async (void);
 
 #if (SCM_ENABLE_DEPRECATED == 1)
 
+SCM_API SCM scm_system_async (SCM thunk);
 SCM_API SCM scm_unmask_signals (void);
 SCM_API SCM scm_mask_signals (void);
 

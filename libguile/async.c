@@ -186,10 +186,12 @@ scm_async_click ()
     }
 }
 
+#if (SCM_ENABLE_DEPRECATED == 1)
+
 SCM_DEFINE (scm_system_async, "system-async", 1, 0, 0,
             (SCM thunk),
 	    "This function is deprecated.  You can use @var{thunk} directly\n"
-            "instead of explicitely creating a asnc object.\n")
+            "instead of explicitely creating an async object.\n")
 #define FUNC_NAME s_scm_system_async
 {
   scm_c_issue_deprecation_warning 
@@ -198,6 +200,8 @@ SCM_DEFINE (scm_system_async, "system-async", 1, 0, 0,
   return thunk;
 }
 #undef FUNC_NAME
+
+#endif /* SCM_ENABLE_DEPRECATED == 1 */
 
 void
 scm_i_queue_async_cell (SCM c, scm_root_state *root)
@@ -269,7 +273,7 @@ SCM_DEFINE (scm_noop, "noop", 0, 0, 1,
 
 
 
-#if (SCM_DEBUG_DEPRECATED == 0)
+#if (SCM_ENABLE_DEPRECATED == 1)
 
 SCM_DEFINE (scm_unmask_signals, "unmask-signals", 0, 0, 0,
 	    (),
@@ -303,7 +307,7 @@ SCM_DEFINE (scm_mask_signals, "mask-signals", 0, 0, 0,
 }
 #undef FUNC_NAME
 
-#endif /* SCM_DEBUG_DEPRECATED == 0 */
+#endif /* SCM_ENABLE_DEPRECATED == 1 */
 
 static void
 increase_block (void *unused)
