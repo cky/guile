@@ -76,25 +76,6 @@ int scm_tc16_uvec = 0;
 static const int uvec_sizes[10] = {1, 1, 2, 2, 4, 4, 8, 8, 4, 8};
 
 
-#if SCM_HAVE_T_INT64
-
-// Print 64 bit integers.  This should go away once we have a public
-// scm_print_integer or similar that can print a scm_t_intmax.
-
-static void
-print_int64 (scm_t_int64 num, SCM port, scm_print_state *pstate)
-{
-  scm_iprin1 (scm_from_int64 (num), port, pstate);
-}
-
-static void
-print_uint64 (scm_t_uint64 num, SCM port, scm_print_state *pstate)
-{
-  scm_iprin1 (scm_from_uint64 (num), port, pstate);
-}
-
-#endif /* SCM_HAVE_T_UINT64 */
-
 /* ================================================================ */
 /* SMOB procedures.                                                 */
 /* ================================================================ */
@@ -152,15 +133,15 @@ uvec_print (SCM uvec, SCM port, scm_print_state *pstate)
     if (i != 0) scm_puts (" ", port);
     switch (SCM_UVEC_TYPE (uvec))
     {
-      case SCM_UVEC_U8: scm_intprint (*np.u8, 10, port); np.u8++; break;
+      case SCM_UVEC_U8: scm_uintprint (*np.u8, 10, port); np.u8++; break;
       case SCM_UVEC_S8: scm_intprint (*np.s8, 10, port); np.s8++; break;
-      case SCM_UVEC_U16: scm_intprint (*np.u16, 10, port); np.u16++; break;
+      case SCM_UVEC_U16: scm_uintprint (*np.u16, 10, port); np.u16++; break;
       case SCM_UVEC_S16: scm_intprint (*np.s16, 10, port); np.s16++; break;
-      case SCM_UVEC_U32: scm_intprint (*np.u32, 10, port); np.u32++; break;
+      case SCM_UVEC_U32: scm_uintprint (*np.u32, 10, port); np.u32++; break;
       case SCM_UVEC_S32: scm_intprint (*np.s32, 10, port); np.s32++; break;
 #if SCM_HAVE_T_INT64
-      case SCM_UVEC_U64: print_uint64 (*np.u64, port, pstate); np.u64++; break;
-      case SCM_UVEC_S64: print_int64 (*np.s64, port, pstate); np.s64++; break;
+      case SCM_UVEC_U64: scm_uintprint (*np.u64, 10, port); np.u64++; break;
+      case SCM_UVEC_S64: scm_intprint (*np.s64, 10, port); np.s64++; break;
 #endif
       case SCM_UVEC_F32:
 	scm_iprin1 (scm_from_double (*np.f32), port, pstate);
