@@ -1,3 +1,16 @@
+1999-03-19  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+
+	* modules.c: #include "procprop.h"
+	(scm_system_module_env_p): Assume root environment is no lookup
+	closure is found.
+
+	* debug.c, eval.c, evalext.c, stacks.c: #include "modules.h".
+
+	* modules.c, modules.h, eval.c, eval.h (scm_env_top_level,
+	scm_top_level_env, scm_system_module_env_p): Moved to modules.c.
+
+	* eval.c, eval.h (scm_top_level_lookup_closure): Removed.
+
 1999-03-18  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
 	* error.c (scm_wta): Pass SCM_LIST1 (arg) instead of SCM_EOL to
