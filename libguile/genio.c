@@ -183,11 +183,18 @@ scm_do_read_line (port, len)
   i = SCM_PTOBNUM (port);
   SCM_SYSCALL (s = (scm_ptobs[i].fgets) (port, len));
 
+  /* We should never get an empty string.  Every line has a newline at
+     the end, except for the last one.  If the last line has no
+     newline and is empty, then that's just an ordinary EOF, and we
+     should have s == NULL.  But this seems obscure to me, so we check
+     this here, to protect ourselves from odd port implementations.  */
+  if (s && *len <= 0)
+    abort ();
+
   /* If we're not at EOF, and there was a newline at the end of the
      string, increment the line counter.  */
-  if (s && *len > 0 && s[*len - 1] == '\n')
+  if (s && s[*len - 1] == '\n')
     SCM_INCLINE(port);
 
   return s;
 }
-
