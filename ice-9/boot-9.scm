@@ -54,7 +54,7 @@
     (lambda ()
       (newline)
       (display ";;; WARNING ")
-      (print stuff)
+      (display stuff)
       (newline)
       (car (last-pair stuff)))))
 
@@ -288,7 +288,9 @@
 
 
 ;;; {Print}
-;;;
+;;; MDJ 960919 <djurfeldt@nada.kth.se>: This code will probably be
+;;; removed before the first release of Guile.  Later releases may
+;;; contain more fancy printing code.
 
 (define (print obj . args)
   (let ((default-args (list (current-output-port) 0 0 default-print-style #f)))
@@ -395,10 +397,12 @@
 			       type-name
 			       (copy-tree fields))))
       ;; !!! leaks printer functions
-      (if printer-fn
-	  (extend-print-style! default-print-style
-			       (logior utag_struct_base (ash (struct-vtable-tag struct) 8))
-			       printer-fn))
+      ;; MDJ 960919 <djurfeldt@nada.kth.se>: *fixme* need to make it
+      ;; possible to print records nicely.
+      ;(if printer-fn
+;	  (extend-print-style! default-print-style
+;			       (logior utag_struct_base (ash (struct-vtable-tag struct) 8))
+;			       printer-fn))
       struct)))
 
 (define (record-type-name obj)
@@ -2081,6 +2085,7 @@
   (define (loop first)
     (let ((next 
 	   (catch #t
+		  
 		  (lambda ()
 		    (dynamic-wind
 		     (lambda () (unmask-signals))
@@ -2098,22 +2103,25 @@
 
 		  (lambda (key . args)
 		    (case key
-		      ((quit)				(force-output)
-							(pk 'quit args)
-							#f)
+		      ((quit)
+		       (force-output)
+		       (pk 'quit args)
+		       #f)
 
-		      ((abort)				;; This is one of the closures that require (set! first #f)
-		       					;; above
-		       					;;
-		       					(lambda ()
-								(force-output)
-								(display  "ABORT: "  (current-error-port))
-								(write args (current-error-port))
-								(newline (current-error-port))))
-
-		      (else				;; This is the other cons-leak closure...
-		       					(lambda ()
-							  (apply %%bad-throw  key args))))))))
+		      ((abort)
+		       ;; This is one of the closures that require
+		       ;; (set! first #f) above
+		       ;;
+		       (lambda ()
+			 (force-output)
+			 (display  "ABORT: "  (current-error-port))
+			 (write args (current-error-port))
+			 (newline (current-error-port))))
+		      
+		      (else
+		       ;; This is the other cons-leak closure...
+		       (lambda ()
+			 (apply %%bad-throw key args))))))))
       (and next (loop next))))
   (loop (lambda () #t)))
 
@@ -2168,7 +2176,7 @@
 	   (-print (lambda (result)
 		     (if (not scm-repl-silent)
 			 (begin
-			   (print result)
+			   (write result)
 			   (newline)
 			   (if scm-repl-verbose
 			       (repl-report))
