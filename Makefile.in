@@ -22,8 +22,9 @@ srcdir=@srcdir@
 subdirs=@existingdirs@
 dist_dirs=${subdirs} doc
 
-DISTFILES =	ANNOUNCE \
-		BUILDING \
+DISTFILES =	README \
+		ANNOUNCE \
+		INSTALL \
 		COPYING \
 		GUILE-VERSION \
 		TODO \
