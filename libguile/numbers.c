@@ -39,7 +39,6 @@
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
 
-
 
 
 #include <math.h>
@@ -2343,31 +2342,29 @@ mem2uinteger (const char* mem, size_t len, unsigned int *p_idx,
 /* R5RS, section 7.1.1, lexical structure of numbers: <decimal 10>.  Only
  * covers the parts of the rules that start at a potential point.  The value
  * of the digits up to the point have been parsed by the caller and are given
- * in variable prepoint.  The content of *p_exactness indicates, whether a
- * hash has already been seen in the digits before the point.
+ * in variable result.  The content of *p_exactness indicates, whether a hash
+ * has already been seen in the digits before the point.
  */
 
 /* In non ASCII-style encodings the following macro might not work. */
 #define DIGIT2UINT(d) ((d) - '0')
 
 static SCM
-mem2decimal_from_point (SCM prepoint, const char* mem, size_t len, 
+mem2decimal_from_point (SCM result, const char* mem, size_t len, 
 			unsigned int *p_idx, enum t_exactness *p_exactness)
 {
   unsigned int idx = *p_idx;
   enum t_exactness x = *p_exactness;
-  SCM big_shift = SCM_MAKINUM (1);
-  SCM big_add = SCM_MAKINUM (0);
-  SCM result;
 
   if (idx == len)
-    return prepoint;
+    return result;
 
   if (mem[idx] == '.')
     {
       scm_t_bits shift = 1;
       scm_t_bits add = 0;
       unsigned int digit_value;
+      SCM big_shift = SCM_MAKINUM (1);
 
       idx++;
       while (idx != len)
@@ -2392,9 +2389,9 @@ mem2decimal_from_point (SCM prepoint, const char* mem, size_t len,
 	  if (SCM_MOST_POSITIVE_FIXNUM / 10 < shift)
 	    {
 	      big_shift = scm_product (big_shift, SCM_MAKINUM (shift));
-	      big_add = scm_product (big_add, SCM_MAKINUM (shift));
+	      result = scm_product (result, SCM_MAKINUM (shift));
 	      if (add > 0)
-		big_add = scm_sum (big_add, SCM_MAKINUM (add));
+		result = scm_sum (result, SCM_MAKINUM (add));
 	      
 	      shift = 10;
 	      add = digit_value;
@@ -2409,16 +2406,15 @@ mem2decimal_from_point (SCM prepoint, const char* mem, size_t len,
       if (add > 0)
 	{
 	  big_shift = scm_product (big_shift, SCM_MAKINUM (shift));
-	  big_add = scm_product (big_add, SCM_MAKINUM (shift));
-	  big_add = scm_sum (big_add, SCM_MAKINUM (add));
+	  result = scm_product (result, SCM_MAKINUM (shift));
+	  result = scm_sum (result, SCM_MAKINUM (add));
 	}
+
+      result = scm_divide (result, big_shift);
 
       /* We've seen a decimal point, thus the value is implicitly inexact. */
       x = INEXACT;
     }
-
-  big_add = scm_divide (big_add, big_shift);
-  result = scm_sum (prepoint, big_add);
 
   if (idx != len)
     {

@@ -1,3 +1,8 @@
+2001-10-09  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* numbers.c (mem2decimal_from_point):  Cleaned up the parsing a
+	little bit - should even be somewhat more accurate now.
+
 2001-10-08  Rob Browning  <rlb@defaultvalue.org>
 
 	* gc.c: support ia64 register backing store.
