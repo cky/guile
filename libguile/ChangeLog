@@ -1,3 +1,21 @@
+1998-10-12  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* simpos.c (scm_software_type): Procedure deleted.  This isn't the
+	right way to handle system variation.  Autoconf's approach is the
+	way and the light.
+	* simpos.h (scm_software_type): Declaration deleted.
+
+	* script.c (scm_find_executable): Don't test if unix is #defined
+	here; first, NetBSD doesn't #define it, and second, it's the wrong
+	way to go about these things.
+	(dld_find_executable): Delete this MSDOS support code.  This isn't
+	the way we want to support this; it needs to be rethunk at a
+	larger scale.
+
+	* genio.c (scm_do_read_line): Don't just politely check that the
+	line was either non-empty or EOF.  Abort if it's empty and not
+	EOF.
+
 1998-10-11  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	* scmconfig.h.in: Regenerated.
