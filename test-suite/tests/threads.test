@@ -20,35 +20,35 @@
 (use-modules (ice-9 threads)
 	     (test-suite lib))
 
+(if (provided? 'threads)
+    (with-test-prefix "parallel"
+      (pass-if "no forms"
+	(call-with-values
+	    (lambda ()
+	      (parallel))
+	  (lambda ()
+	    #t)))
 
-(with-test-prefix "parallel"
-  (pass-if "no forms"
-    (call-with-values
-	(lambda ()
-	  (parallel))
-      (lambda ()
-	#t)))
-  
-  (pass-if "1"
-    (call-with-values
-	(lambda ()
-	  (parallel 1))
-      (lambda (x)
-	(equal? x 1))))
-  
-  (pass-if "1 2"
-    (call-with-values
-	(lambda ()
-	  (parallel 1 2))
-      (lambda (x y)
-	(and (equal? x 1)
-	     (equal? y 2)))))
-  
-  (pass-if "1 2 3"
-    (call-with-values
-	(lambda ()
-	  (parallel 1 2 3))
-      (lambda (x y z)
-	(and (equal? x 1)
-	     (equal? y 2)
-	     (equal? z 3))))))
+      (pass-if "1"
+	(call-with-values
+	    (lambda ()
+	      (parallel 1))
+	  (lambda (x)
+	    (equal? x 1))))
+
+      (pass-if "1 2"
+	(call-with-values
+	    (lambda ()
+	      (parallel 1 2))
+	  (lambda (x y)
+	    (and (equal? x 1)
+		 (equal? y 2)))))
+
+      (pass-if "1 2 3"
+	(call-with-values
+	    (lambda ()
+	      (parallel 1 2 3))
+	  (lambda (x y z)
+	    (and (equal? x 1)
+		 (equal? y 2)
+		 (equal? z 3)))))))
