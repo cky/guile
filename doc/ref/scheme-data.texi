@@ -3197,6 +3197,12 @@ retrieved using the @code{keyword-dash-symbol} procedure.
 @deffn {Scheme Procedure} make-keyword-from-dash-symbol symbol
 @deffnx {C Function} scm_make_keyword_from_dash_symbol (symbol)
 Make a keyword object from a @var{symbol} that starts with a dash.
+For example,
+
+@example
+(make-keyword-from-dash-symbol '-foo)
+@result{} #:foo
+@end example
 @end deffn
 
 @deffn {Scheme Procedure} keyword? obj
@@ -3209,7 +3215,25 @@ Return @code{#t} if the argument @var{obj} is a keyword, else
 @deffnx {C Function} scm_keyword_dash_symbol (keyword)
 Return the dash symbol for @var{keyword}.
 This is the inverse of @code{make-keyword-from-dash-symbol}.
+For example,
+
+@example
+(keyword-dash-symbol #:foo)
+@result{} -foo
+@end example
 @end deffn
+
+@deftypefn {C Function} SCM scm_c_make_keyword (char *@var{str})
+Make a keyword object from a string.  For example,
+
+@example
+scm_c_make_keyword ("foo")
+@result{} #:foo
+@end example
+@c
+@c  FIXME: What can be said about the string argument?  Currently it's
+@c  not used after creation, but should that be documented?
+@end deftypefn
 
 
 @node Other Types
