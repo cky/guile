@@ -105,9 +105,9 @@ libguile_la_SOURCES = alist.c arbiters.c async.c backtrace.c boolean.c	\
     print.c procprop.c procs.c properties.c random.c rdelim.c read.c	\
     root.c rw.c scmsigs.c script.c simpos.c smob.c sort.c srcprop.c	\
     stackchk.c stacks.c stime.c strings.c srfi-4.c srfi-13.c srfi-14.c	\
-    strorder.c strports.c struct.c symbols.c threads.c throw.c		\
-    values.c variable.c vectors.c version.c vports.c weaks.c ramap.c	\
-    unif.c
+    strorder.c strports.c struct.c symbols.c threads.c null-threads.c	\
+    throw.c values.c variable.c vectors.c version.c vports.c weaks.c	\
+    ramap.c unif.c
 
 DOT_X_FILES = alist.x arbiters.x async.x backtrace.x boolean.x chars.x	\
     continuations.x debug.x deprecation.x deprecated.x discouraged.x	\
@@ -182,24 +182,22 @@ pkginclude_HEADERS = gh.h
 
 # These are headers visible as <libguile/mumble.h>.
 modincludedir = $(includedir)/libguile
-modinclude_HEADERS = __scm.h alist.h arbiters.h async.h backtrace.h boolean.h \
-    chars.h continuations.h convert.h debug.h				      \
-    debug-malloc.h threads-plugin.h null-threads.h pthread-threads.h	      \
-    deprecation.h deprecated.h discouraged.h dynl.h dynwind.h		      \
-    environments.h eq.h							      \
-    error.h eval.h							      \
-    evalext.h extensions.h feature.h filesys.h fluids.h fports.h futures.h    \
-    gc.h gdb_interface.h gdbint.h					      \
-    goops.h gsubr.h guardians.h hash.h hashtab.h hooks.h i18n.h init.h	      \
-    inline.h ioext.h							      \
-    iselect.h keywords.h lang.h list.h load.h macros.h mallocs.h modules.h    \
-    net_db.h numbers.h objects.h objprop.h options.h pairs.h ports.h posix.h  \
-    regex-posix.h print.h procprop.h procs.h properties.h random.h ramap.h    \
-    rdelim.h read.h root.h rw.h scmsigs.h validate.h script.h simpos.h smob.h \
-    snarf.h socket.h sort.h srcprop.h stackchk.h stacks.h stime.h strings.h   \
-    srfi-4.h srfi-13.h srfi-14.h strorder.h strports.h struct.h symbols.h     \
-    tags.h threads.h							      \
-    throw.h unif.h values.h variable.h vectors.h vports.h weaks.h
+modinclude_HEADERS = __scm.h alist.h arbiters.h async.h backtrace.h	\
+    boolean.h chars.h continuations.h convert.h debug.h debug-malloc.h	\
+    deprecation.h deprecated.h discouraged.h dynl.h dynwind.h		\
+    environments.h eq.h error.h eval.h evalext.h extensions.h		\
+    feature.h filesys.h fluids.h fports.h futures.h gc.h		\
+    gdb_interface.h gdbint.h goops.h gsubr.h guardians.h hash.h		\
+    hashtab.h hooks.h i18n.h init.h inline.h ioext.h iselect.h		\
+    keywords.h lang.h list.h load.h macros.h mallocs.h modules.h	\
+    net_db.h numbers.h objects.h objprop.h options.h pairs.h ports.h	\
+    posix.h regex-posix.h print.h procprop.h procs.h properties.h	\
+    random.h ramap.h rdelim.h read.h root.h rw.h scmsigs.h validate.h	\
+    script.h simpos.h smob.h snarf.h socket.h sort.h srcprop.h		\
+    stackchk.h stacks.h stime.h strings.h srfi-4.h srfi-13.h srfi-14.h	\
+    strorder.h strports.h struct.h symbols.h tags.h threads.h		\
+    pthread-threads.h null-threads.h throw.h unif.h values.h		\
+    variable.h vectors.h vports.h weaks.h
 
 nodist_modinclude_HEADERS = version.h scmconfig.h
 
@@ -213,7 +211,7 @@ EXTRA_DIST = ChangeLog-gh ChangeLog-scm ChangeLog-threads		\
     ChangeLog-1996-1999 ChangeLog-2000 cpp_signal.c			\
     cpp_errno.c cpp_err_symbols.in cpp_err_symbols.c		\
     cpp_sig_symbols.c cpp_sig_symbols.in cpp_cnvt.awk	\
-    c-tokenize.lex threads-plugin.c version.h.in pthread-threads.c \
+    c-tokenize.lex version.h.in \
     scmconfig.h.top gettext.h
 #    $(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES) \
 #    guile-procedures.txt guile.texi
