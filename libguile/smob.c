@@ -439,8 +439,6 @@ scm_smob_prehistory ()
 
   scm_make_smob_type_mfpe ("complex", 0,    /* freed in gc */
 			   NULL, NULL, scm_print_complex, scm_complex_equalp);
-
-  scm_make_smob_type ("allocated", 0);
 }
 
 /*
