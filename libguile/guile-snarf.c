@@ -72,14 +72,16 @@
    Still to do:
 
    - Test by comparing output with old shell script.
+   - Add a test for this to Makefile.am.
    - Change build process to actually use this.
    - Make sure that errors cause .x file to be deleted.  `make' will do
      this if the process exits with a non-zero status, won't it?  If not,
      delete it ourselves.
+   - Could we generate both the declarations and the initializations?
    - Can we simplify or improve the argument lists for some of the
      snarfing keywords, now that we can parse them any way we like?
    - When a file declares a *lot* of something, would it save space to
-     emit a table and a loop, instead of a zillion function calls?
+     emit a table and a loop, instead of a zillion function calls?  */
 
 
 #include <stddef.h>
