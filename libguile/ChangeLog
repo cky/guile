@@ -1,3 +1,9 @@
+2001-10-12  Mikael Djurfeldt  <mdj@linnaeus>
+
+	* debug.c (scm_mem_to_proc): Fixed typo in previous change.
+
+	* validate.h (SCM_VALIDATE_DOUBLE_DEF_COPY): New macro.
+
 2001-10-12  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* print.c (scm_print_state_vtable, print_state_pool):

@@ -293,6 +293,19 @@
       } \
   } while (0)
 
+#define SCM_VALIDATE_DOUBLE_DEF_COPY(pos, k, default, cvar) \
+  do { \
+    if (SCM_UNBNDP (k)) \
+      { \
+        k = scm_make_real (default); \
+        cvar = default; \
+      } \
+    else \
+      { \
+        cvar = SCM_NUM2DOUBLE (pos, k); \
+      } \
+  } while (0)
+
 /* [low,high) */
 #define SCM_VALIDATE_INUM_RANGE(pos,k,low,high) \
   do { SCM_ASSERT(SCM_INUMP(k), k, pos, FUNC_NAME); \
