@@ -143,6 +143,7 @@
 #include "libguile/weaks.h"
 #include "libguile/guardians.h"
 #include "libguile/extensions.h"
+#include "libguile/deprecated.h"
 
 #include "libguile/init.h"
 
@@ -571,7 +572,11 @@ scm_init_guile_1 (SCM_STACKITEM *base)
   scm_init_script ();
 
   scm_init_goops ();
-  
+
+#if SCM_ENABLE_DEPRECATED == 1
+  scm_i_init_deprecated ();
+#endif
+
   scm_initialized_p = 1;
 
   scm_block_gc = 0;		/* permit the gc to run */
