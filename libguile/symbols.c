@@ -144,7 +144,7 @@ scm_sym2vcell (sym, thunk, definep)
 	  z = SCM_CAR (lsym);
 	  if (SCM_CAR (z) == sym)
 	    {
-	      if (definep)
+	      if (SCM_NFALSEP (definep))
 		{
 		  /* Move handle from scm_weak_symhash to scm_symhash. */
 		  *lsymp = SCM_CDR (lsym);
@@ -356,19 +356,16 @@ scm_intern0 (name)
 }
 
 
-/* Intern the symbol named NAME in scm_symhash, and give it the value VAL.
-   NAME is null-terminated.  */
+/* Intern the symbol named NAME in scm_symhash, NAME is null-terminated.  */
 SCM 
-scm_sysintern_no_module_lookup (name, val)
+scm_sysintern0_no_module_lookup (name)
      char *name;
-     SCM val;
 {
   SCM easy_answer;
   SCM_DEFER_INTS;
   easy_answer = scm_intern_obarray_soft (name, strlen (name), scm_symhash, 1);
   if (SCM_NIMP (easy_answer))
     {
-      SCM_SETCDR (easy_answer, val);
       SCM_ALLOW_INTS;
       return easy_answer;
     }
@@ -381,7 +378,7 @@ scm_sysintern_no_module_lookup (name, val)
       SCM_NEWCELL (lsym);
       SCM_SETLENGTH (lsym, (long) len, scm_tc7_ssymbol);
       SCM_SETCHARS (lsym, name);
-      lsym = scm_cons (lsym, val);
+      lsym = scm_cons (lsym, SCM_UNDEFINED);
       SCM_VELTS (scm_symhash)[scm_hash] = scm_cons (lsym, SCM_VELTS (scm_symhash)[scm_hash]);
       SCM_ALLOW_INTS;
       return lsym;
@@ -402,6 +399,15 @@ scm_sysintern (name, val)
      char *name;
      SCM val;
 {
+  SCM vcell = scm_sysintern0 (name);
+  SCM_SETCDR (vcell, val);
+  return vcell;
+}
+
+SCM
+scm_sysintern0 (name)
+     char *name;
+{
   SCM lookup_proc;
   if (scm_can_use_top_level_lookup_closure_var && 
       SCM_NIMP (lookup_proc = SCM_CDR (scm_top_level_lookup_closure_var)))
@@ -410,11 +416,10 @@ scm_sysintern (name, val)
       SCM vcell = scm_sym2vcell (sym, lookup_proc, SCM_BOOL_T);
       if (vcell == SCM_BOOL_F)
 	  scm_misc_error ("sysintern", "can't define variable", sym);
-      SCM_SETCDR (vcell, val);
       return vcell;
     }
   else
-    return scm_sysintern_no_module_lookup (name, val);
+    return scm_sysintern0_no_module_lookup (name);
 }
 
 SCM_PROC(s_symbol_p, "symbol?", 1, 0, 0, scm_symbol_p);

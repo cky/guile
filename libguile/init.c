@@ -138,6 +138,8 @@ scm_start_stack (base)
   scm_top_level_lookup_closure_var = SCM_BOOL_F;
   scm_system_transformer = SCM_BOOL_F;
 
+  scm_the_last_stack_var = SCM_BOOL_F;
+  
   /* Create an object to hold the root continuation.
    */
   SCM_NEWCELL (scm_rootcont);

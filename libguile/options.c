@@ -211,8 +211,7 @@ scm_init_opts (func, options, n)
 
   for (i = 0; i < n; ++i)
     {
-      options[i].name =	(char *) SCM_CAR (scm_sysintern (options[i].name,
-							 SCM_UNDEFINED));
+      options[i].name =	(char *) SCM_CAR (scm_sysintern0 (options[i].name));
       options[i].doc = (char *) scm_permanent_object (scm_take0str
 						      (options[i].doc));
     }

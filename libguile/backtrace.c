@@ -427,10 +427,45 @@ scm_display_backtrace (stack, port, first, depth)
   return SCM_UNSPECIFIED;
 }
 
+SCM_GLOBAL (scm_has_shown_backtrace_hint_p_var, "has-shown-backtrace-hint?");
+
+SCM_PROC(s_backtrace, "backtrace", 0, 0, 0, scm_backtrace);
+SCM
+scm_backtrace ()
+{
+  if (SCM_NFALSEP (SCM_CDR (scm_the_last_stack_var)))
+    {
+      scm_newline (scm_cur_outp);
+      scm_display_backtrace (SCM_CDR (scm_the_last_stack_var),
+			     scm_cur_outp,
+			     SCM_UNDEFINED,
+			     SCM_UNDEFINED);
+      scm_newline (scm_cur_outp);
+      if (SCM_FALSEP (SCM_CDR (scm_has_shown_backtrace_hint_p_var))
+	  && !SCM_BACKTRACE_P)
+	{
+	  scm_gen_puts (scm_regular_string,
+			"Type \"(debug-enable 'backtrace)\" if you would like a backtrace
+automatically if an error occurs in the future.\n",
+			scm_cur_outp);
+	  SCM_SETCDR (scm_has_shown_backtrace_hint_p_var, SCM_BOOL_T);
+	}
+    }
+  else
+    {
+      scm_gen_puts (scm_regular_string,
+		    "No backtrace available.\n",
+		    scm_cur_outp);
+    }
+  return SCM_UNSPECIFIED;
+}
+
 
 
 void
 scm_init_backtrace ()
 {
+  scm_the_last_stack_var = scm_sysintern ("the-last-stack", SCM_BOOL_F);
+
 #include "backtrace.x"
 }

@@ -1,3 +1,36 @@
+Mon Feb 10 00:08:08 1997  Mikael Djurfeldt  <mdj@kenneth>
+
+	* symbols.c (scm_sysintern0): New function.  Contains the core of
+ 	old scm_sysintern but doesn't take a second value argument.
+	(scm_sysintern): Now uses scm_sysintern0.
+	(scm_sysintern_no_module_lookup): Renamed to
+ 	scm_sysintern0_no_module_lookup and doesn't take a second value
+ 	argument any longer.
+
+	* symbols.h (scm_sysintern0: Added declaration.
+	
+	* options.c (scm_init_opts): Use scm_sysintern0 instead of
+ 	scm_sysintern when interning option keys.  Otherwise we risk
+ 	destroying the values of already interned variables.
+
+	* symbols.c (scm_sym2vcell): Bugfix: Treat definedp as
+	scheme-level boolean (use SCM_NFALSEP).
+
+	* backtrace.c (scm_init_backtrace): Make Scheme-level variable
+ 	`the-last-stack'.
+	(scm_backtrace): New function. (C version of old function from
+ 	boot-9.scm) Motivation: Make it possible to display backtraces
+ 	without depending on boot-9.scm.  (I'm uncertain if this
+ 	motivation is good enough...)
+
+	* root.h (scm_root_state): Add member the_last_stack_var.
+	(scm_the_stack_var): Defined to scm_root->the_last_stack_var.
+
+	* root.c (mark_root): Mark scm_the_last_stack_var.
+
+	* init.c (scm_start_stack): Initialize scm_the_last_stack_var to
+ 	SCM_BOOL_F.
+
 Sun Feb  9 18:04:41 1997  Mikael Djurfeldt  <mdj@kenneth>
 
 	* throw.c (mark_lazy_catch, free_lazy_catch): Removed.
