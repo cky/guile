@@ -48,7 +48,9 @@
 
 
 
+extern SCM scm_catch_apply SCM_P ((SCM tag, SCM proc, SCM a1, SCM args, SCM handler, int lazyp));
 extern SCM scm_catch SCM_P ((SCM tag, SCM thunk, SCM handler));
+extern SCM scm_lazy_catch SCM_P ((SCM tag, SCM thunk, SCM handler));
 extern SCM scm_ithrow SCM_P ((SCM key, SCM args, int noreturn));
 extern SCM scm_throw SCM_P ((SCM key, SCM args));
 extern void scm_init_throw SCM_P ((void));
