@@ -142,6 +142,23 @@ scm_i_plugin_mutex_unlock (scm_t_mutex *mx)
   pthread_mutex_unlock (&mutex_mutex);
   return 0;
 }
+
+int
+scm_i_plugin_cond_wait (scm_t_cond *c, scm_t_mutex *mx)
+{
+  mutex *m = (mutex *) mx;
+  return pthread_cond_wait ((pthread_cond_t *) c, m->mutex);
+}
+
+int
+scm_i_plugin_cond_wait (scm_t_cond *c,
+			scm_t_mutex *mx,
+			const struct timespec *t)
+{
+  mutex *m = (mutex *) mx;
+  return pthread_cond_timedwait ((pthread_cond_t *) c, m->mutex, t);
+}
+
 #endif
 
 /* The following section belongs in threads.c, or rather

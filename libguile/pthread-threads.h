@@ -80,6 +80,8 @@ typedef struct { char _[SCM_MUTEX_MAXSIZE]; } scm_t_mutex;
 
 extern scm_t_mutexattr scm_i_plugin_mutex; /* The "fast" mutex. */
 
+/* This debug stuff made things a bit messy.  This needs some
+   reorganization. */
 #ifdef SCM_DEBUG_THREADS
 int scm_i_plugin_mutex_init (scm_t_mutex *, const scm_t_mutexattr *);
 int scm_i_plugin_mutex_lock (scm_t_mutex *);
@@ -134,11 +136,18 @@ int scm_i_plugin_rec_mutex_unlock (scm_t_rec_mutex *);
 #define scm_t_cond			pthread_cond_t
 
 #define scm_i_plugin_cond_init		pthread_cond_init 
-#define scm_i_plugin_cond_destroy	pthread_cond_destroy 
+#define scm_i_plugin_cond_destroy	pthread_cond_destroy
+#ifdef SCM_DEBUG_THREADS
+int scm_i_plugin_cond_wait (scm_t_cond *, scm_t_mutex *);
+int scm_i_plugin_cond_timedwait (scm_t_cond *,
+				 scm_t_mutex *,
+				 const struct timespec *);
+#else
 #define scm_i_plugin_cond_wait(c, m) \
   pthread_cond_wait ((c), (pthread_mutex_t *) (m))
 #define scm_i_plugin_cond_timedwait(c, m, t) \
   pthread_cond_timedwait ((c), (pthread_mutex_t *) (m), (t))
+#endif
 #define scm_i_plugin_cond_signal	pthread_cond_signal 
 #define scm_i_plugin_cond_broadcast	pthread_cond_broadcast 
 

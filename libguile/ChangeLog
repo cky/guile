@@ -1,5 +1,8 @@
 2002-12-16  Mikael Djurfeldt  <mdj@kvast.blakulla.net>
 
+	* pthread-threads.c, pthread-threads.h (SCM_DEBUG_THREADS): Added
+	support for debugging mutex operations.
+
 	* threads.c (scm_thread): Removed filed joining_threads.
 	(thread_print): Print thread number as well as address of thread
 	structure.
