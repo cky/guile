@@ -1,7 +1,7 @@
 /* classes: h_files */
 
-#ifndef SOCKETH
-#define SOCKETH
+#ifndef NETDBH
+#define NETDBH
 /*	Copyright (C) 1995 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
@@ -49,24 +49,21 @@
 
 
 
-
 
 
-extern SCM scm_socket SCM_P ((SCM family, SCM style, SCM proto));
-extern SCM scm_socketpair SCM_P ((SCM family, SCM style, SCM proto));
-extern SCM scm_getsockopt SCM_P ((SCM sfd, SCM level, SCM optname));
-extern SCM scm_setsockopt SCM_P ((SCM sfd, SCM level, SCM optname, SCM value));
-extern SCM scm_shutdown SCM_P ((SCM sfd, SCM how));
-extern SCM scm_connect SCM_P ((SCM sockfd, SCM fam, SCM address, SCM args));
-extern SCM scm_bind SCM_P ((SCM sockfd, SCM fam, SCM address, SCM args));
-extern SCM scm_listen SCM_P ((SCM sfd, SCM backlog));
-extern SCM scm_accept SCM_P ((SCM sockfd));
-extern SCM scm_getsockname SCM_P ((SCM sockfd));
-extern SCM scm_getpeername SCM_P ((SCM sockfd));
-extern SCM scm_recv SCM_P ((SCM sockfd, SCM buff_or_size, SCM flags));
-extern SCM scm_send SCM_P ((SCM sockfd, SCM message, SCM flags));
-extern SCM scm_recvfrom SCM_P ((SCM sockfd, SCM buff_or_size, SCM flags));
-extern SCM scm_sendto SCM_P ((SCM sockfd, SCM message, SCM fam, SCM address, SCM args_and_flags));
-extern void scm_init_socket SCM_P ((void));
+extern SCM scm_gethost SCM_P ((SCM name));
+extern SCM scm_inet_aton SCM_P ((SCM address));
+extern SCM scm_inet_ntoa SCM_P ((SCM inetid));
+extern SCM scm_inet_netof SCM_P ((SCM address));
+extern SCM scm_lnaof SCM_P ((SCM address));
+extern SCM scm_inet_makeaddr SCM_P ((SCM net, SCM lna));
+extern SCM scm_getnet SCM_P ((SCM name));
+extern SCM scm_getproto SCM_P ((SCM name));
+extern SCM scm_getserv SCM_P ((SCM name, SCM proto));
+extern SCM scm_sethost SCM_P ((SCM arg));
+extern SCM scm_setnet SCM_P ((SCM arg));
+extern SCM scm_setproto SCM_P ((SCM arg));
+extern SCM scm_setserv SCM_P ((SCM arg));
+extern void scm_init_netdb SCM_P ((void));
 
-#endif  /* SOCKETH */
+#endif  /* NETDBH */

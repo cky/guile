@@ -37,13 +37,13 @@ INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 transform = @program_transform_name@
-VERSION = @VERSION@
+FD_SETTER = @FD_SETTER@
 RANLIB = @RANLIB@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
+PACKAGE = @PACKAGE@
+VERSION = @VERSION@
 module = @module@
 CC = @CC@
-PACKAGE = @PACKAGE@
-FD_SETTER = @FD_SETTER@
 
 AUTOMAKE_OPTIONS = foreign
 
@@ -52,9 +52,10 @@ INCLUDES = -I.. -I$(srcdir)/..
 lib_LIBRARIES = libguile.a
 libguile_a_SOURCES = alist.c append.c appinit.c arbiters.c async.c \
 backtrace.c boolean.c chars.c continuations.c debug.c dynl.c dynwind.c eq.c \
-error.c eval.c extchrs.c fdsocket.c feature.c filesys.c fports.c gc.c \
+error.c eval.c extchrs.c feature.c filesys.c fports.c gc.c \
 gdbint.c genio.c gsubr.c hash.c hashtab.c inet_aton.c init.c ioext.c \
-kw.c list.c load.c mallocs.c markers.c mbstrings.c numbers.c objprop.c \
+kw.c list.c load.c mallocs.c markers.c mbstrings.c net_db.c \
+numbers.c objprop.c \
 options.c pairs.c ports.c posix.c print.c procprop.c procs.c ramap.c \
 read.c root.c scmsigs.c sequences.c simpos.c smob.c socket.c srcprop.c \
 stackchk.c stacks.c stime.c strerror.c strings.c strop.c strorder.c \
@@ -67,9 +68,10 @@ include_HEADERS = libguile.h
 modincludedir = $(includedir)/@module@
 modinclude_HEADERS = __scm.h alist.h append.h arbiters.h async.h \
 backtrace.h boolean.h chars.h continuations.h debug.h dynl.h dynwind.h eq.h \
-error.h eval.h extchrs.h fdsocket.h feature.h filesys.h fports.h gc.h \
+error.h eval.h extchrs.h feature.h filesys.h fports.h gc.h \
 gdb_interface.h gdbint.h genio.h gsubr.h hash.h hashtab.h init.h ioext.h \
-kw.h list.h load.h mallocs.h markers.h mbstrings.h numbers.h objprop.h \
+kw.h list.h load.h mallocs.h markers.h mbstrings.h net_db.h \
+numbers.h objprop.h \
 options.h pairs.h ports.h posix.h print.h procprop.h procs.h ramap.h read.h \
 root.h scmhob.h scmsigs.h sequences.h simpos.h smob.h socket.h srcprop.h \
 stackchk.h stacks.h stime.h strings.h strop.h strorder.h strports.h struct.h \
@@ -101,9 +103,9 @@ LIBS = @LIBS@
 libguile_a_LIBADD = 
 libguile_a_OBJECTS =  alist.o append.o appinit.o arbiters.o async.o \
 backtrace.o boolean.o chars.o continuations.o debug.o dynl.o dynwind.o \
-eq.o error.o eval.o extchrs.o fdsocket.o feature.o filesys.o fports.o \
-gc.o gdbint.o genio.o gsubr.o hash.o hashtab.o inet_aton.o init.o \
-ioext.o kw.o list.o load.o mallocs.o markers.o mbstrings.o numbers.o \
+eq.o error.o eval.o extchrs.o feature.o filesys.o fports.o gc.o \
+gdbint.o genio.o gsubr.o hash.o hashtab.o inet_aton.o init.o ioext.o \
+kw.o list.o load.o mallocs.o markers.o mbstrings.o net_db.o numbers.o \
 objprop.o options.o pairs.o ports.o posix.o print.o procprop.o procs.o \
 ramap.o read.o root.o scmsigs.o sequences.o simpos.o smob.o socket.o \
 srcprop.o stackchk.o stacks.o stime.o strerror.o strings.o strop.o \
@@ -117,7 +119,7 @@ COMPILE = $(CC) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
 LINK = $(CC) $(LDFLAGS) -o $@
 DATA =  $(modinclude_DATA)
 
-HEADERS =  $(modinclude_HEADERS) $(include_HEADERS)
+HEADERS =  $(include_HEADERS) $(modinclude_HEADERS)
 
 DIST_COMMON =  COPYING ChangeLog Makefile.am Makefile.in acconfig.h \
 acinclude.m4 aclocal.m4 configure configure.in fd.h.in guile-snarf.in \
@@ -132,11 +134,11 @@ DEP_FILES =  .deps/alist.P .deps/append.P .deps/appinit.P \
 .deps/arbiters.P .deps/async.P .deps/backtrace.P .deps/boolean.P \
 .deps/chars.P .deps/continuations.P .deps/debug.P .deps/dynl.P \
 .deps/dynwind.P .deps/eq.P .deps/error.P .deps/eval.P .deps/extchrs.P \
-.deps/fdsocket.P .deps/feature.P .deps/filesys.P .deps/fports.P \
-.deps/gc.P .deps/gdbint.P .deps/genio.P .deps/gsubr.P .deps/hash.P \
-.deps/hashtab.P .deps/inet_aton.P .deps/init.P .deps/ioext.P .deps/kw.P \
-.deps/list.P .deps/load.P .deps/mallocs.P .deps/markers.P \
-.deps/mbstrings.P .deps/numbers.P .deps/objprop.P .deps/options.P \
+.deps/feature.P .deps/filesys.P .deps/fports.P .deps/gc.P \
+.deps/gdbint.P .deps/genio.P .deps/gsubr.P .deps/hash.P .deps/hashtab.P \
+.deps/inet_aton.P .deps/init.P .deps/ioext.P .deps/kw.P .deps/list.P \
+.deps/load.P .deps/mallocs.P .deps/markers.P .deps/mbstrings.P \
+.deps/net_db.P .deps/numbers.P .deps/objprop.P .deps/options.P \
 .deps/pairs.P .deps/ports.P .deps/posix.P .deps/print.P \
 .deps/procprop.P .deps/procs.P .deps/ramap.P .deps/read.P .deps/root.P \
 .deps/scmsigs.P .deps/sequences.P .deps/simpos.P .deps/smob.P \
@@ -277,19 +279,6 @@ uninstall-modincludeDATA:
 	  rm -f $(modincludedir)/$$p; \
 	done
 
-install-modincludeHEADERS: $(modinclude_HEADERS)
-	$(NORMAL_INSTALL)
-	$(mkinstalldirs) $(modincludedir)
-	@list="$(modinclude_HEADERS)"; for p in $$list; do \
-	  echo "$(INSTALL_DATA) $(srcdir)/$$p $(modincludedir)/$$p"; \
-	  $(INSTALL_DATA) $(srcdir)/$$p $(modincludedir)/$$p; \
-	done
-
-uninstall-modincludeHEADERS:
-	list="$(modinclude_HEADERS)"; for p in $$list; do \
-	  rm -f $(modincludedir)/$$p; \
-	done
-
 install-includeHEADERS: $(include_HEADERS)
 	$(NORMAL_INSTALL)
 	$(mkinstalldirs) $(includedir)
@@ -301,6 +290,19 @@ install-includeHEADERS: $(include_HEADERS)
 uninstall-includeHEADERS:
 	list="$(include_HEADERS)"; for p in $$list; do \
 	  rm -f $(includedir)/$$p; \
+	done
+
+install-modincludeHEADERS: $(modinclude_HEADERS)
+	$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(modincludedir)
+	@list="$(modinclude_HEADERS)"; for p in $$list; do \
+	  echo "$(INSTALL_DATA) $(srcdir)/$$p $(modincludedir)/$$p"; \
+	  $(INSTALL_DATA) $(srcdir)/$$p $(modincludedir)/$$p; \
+	done
+
+uninstall-modincludeHEADERS:
+	list="$(modinclude_HEADERS)"; for p in $$list; do \
+	  rm -f $(modincludedir)/$$p; \
 	done
 
 tags: TAGS
@@ -399,21 +401,21 @@ installcheck:
 install-exec: install-libLIBRARIES install-binSCRIPTS
 	$(NORMAL_INSTALL)
 
-install-data: install-modincludeDATA install-modincludeHEADERS install-includeHEADERS
+install-data: install-modincludeDATA install-includeHEADERS install-modincludeHEADERS
 	$(NORMAL_INSTALL)
 
 install: install-exec install-data all
 	@:
 
-uninstall: uninstall-libLIBRARIES uninstall-binSCRIPTS uninstall-modincludeDATA uninstall-modincludeHEADERS uninstall-includeHEADERS
+uninstall: uninstall-libLIBRARIES uninstall-binSCRIPTS uninstall-modincludeDATA uninstall-includeHEADERS uninstall-modincludeHEADERS
 
 all: $(LIBRARIES) $(SCRIPTS) $(DATA) $(HEADERS) Makefile scmconfig.h
 
 install-strip:
 	$(MAKE) INSTALL_PROGRAM='$(INSTALL_PROGRAM) -s' install
 installdirs:
-	$(mkinstalldirs)  $(libdir) $(bindir) $(modincludedir) $(modincludedir) \
-		$(includedir)
+	$(mkinstalldirs)  $(libdir) $(bindir) $(modincludedir) $(includedir) \
+		$(modincludedir)
 
 
 mostlyclean-generic:
@@ -455,10 +457,10 @@ clean-libLIBRARIES maintainer-clean-libLIBRARIES uninstall-libLIBRARIES \
 install-libLIBRARIES mostlyclean-compile distclean-compile \
 clean-compile maintainer-clean-compile uninstall-binSCRIPTS \
 install-binSCRIPTS uninstall-modincludeDATA install-modincludeDATA \
-uninstall-modincludeHEADERS install-modincludeHEADERS \
-uninstall-includeHEADERS install-includeHEADERS tags mostlyclean-tags \
-distclean-tags clean-tags maintainer-clean-tags distdir \
-mostlyclean-depend distclean-depend clean-depend \
+uninstall-includeHEADERS install-includeHEADERS \
+uninstall-modincludeHEADERS install-modincludeHEADERS tags \
+mostlyclean-tags distclean-tags clean-tags maintainer-clean-tags \
+distdir mostlyclean-depend distclean-depend clean-depend \
 maintainer-clean-depend info dvi installcheck install-exec install-data \
 install uninstall all installdirs mostlyclean-generic distclean-generic \
 clean-generic maintainer-clean-generic clean mostlyclean distclean \

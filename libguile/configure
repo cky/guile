@@ -3043,7 +3043,6 @@ fi; done
 EOF
 cat >> $CONFIG_STATUS <<EOF
 
-
 EOF
 cat >> $CONFIG_STATUS <<\EOF
 test -z "$CONFIG_HEADER" || echo timestamp > stamp-h

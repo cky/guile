@@ -1125,14 +1125,7 @@ scm_input_waiting_p (f, caller)
 # endif
 
   /* Is the file prepared to deliver input? */
-# ifdef FIONREAD
-  {
-    long remir;
-    ioctl(fileno(f), FIONREAD, &remir);
-    return remir;
-  }
-# else
-#  ifdef HAVE_SELECT
+# ifdef HAVE_SELECT
   {
     struct timeval timeout;
     SELECT_TYPE read_set;
@@ -1157,8 +1150,15 @@ scm_input_waiting_p (f, caller)
     SCM_ALLOW_INTS;
     return FD_ISSET (fno, &read_set);
   }
+# else
+# ifdef FIONREAD
+  {
+    long remir;
+    ioctl(fileno(f), FIONREAD, &remir);
+    return remir;
+  }
 #  else    
-    return -1;
+  scm_misc_error ("char-ready?", "Not fully implemented\n");
 #  endif
 # endif
 }

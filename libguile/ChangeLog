@@ -1,3 +1,58 @@
+Sat Dec 21 00:33:03 1996  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* filesys.c (scm_input_waiting_p): use select in preference to
+	FIONREAD, since the latter doesn't detect EOF.
+	Throw error if neither select nor FIONREAD available.
+
+	* socket.c (scm_connect): take a port, not a fd object.
+	(scm_fill_sockaddr): throw an error if fam is not recognised.
+	(scm_bind): use scm_fill_sockaddr.
+	(scm_listen): take a port, not a fd object.
+	(scm_accept): take and return a port.  return CDR in the car if
+	address can't be got
+	(scm_sock_fd_to_port): new procedure.
+	(scm_socket): use scm_sock_fd_to_port.
+	(scm_addr_vector): throw error if unrecognised address type.
+	take an extra argument with the calling procedure name.
+	(scm_getsockname): take a port.  return #f if address can't be got.
+	(scm_getpeername): take a port.  return #f if address can't be got.
+	(scm_recvfrom): take a port.  return #f for address component if can't
+	be got.
+	(scm_sendto, scm_socketpair, scm_getsockopt scm_shutdown, 
+	scm_setsockopt, scm_recv, scm_send): take a port not a fd object.
+
+Thu Dec 19 00:00:26 1996  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* socket.h (SCM_P): update bind prototype.
+	* socket.c (scm_init_socket): intern PF_UNSPEC, PF_UNIX, PF_INET.
+	include "feature.h".
+	(scm_socket): return a port, not a file descriptor object.
+	include "fports.h" and <unistd.h>
+	(scm_bind): take a port, not a file descriptor object.
+	take an extra argument for address args.
+
+	* net_db.c (scm_init_net_db): intern INADDR_ANY, INADDR_BROADCAST,
+	INADDR_NONE, INADDR_LOOPBACK.
+
+Tue Dec 17 22:58:26 1996  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* init.c: include net_db.h and not fdsocket.h.
+	(scm_boot_guile_1): call scm_init_net_db and not scm_init_fdsocket.
+
+	* Makefile.am: corresponding changes.
+	* socket.h: renamed from fdsocket.h, fix names.
+	* net_db.h: renamed from socket.h, fix names.
+	* socket.c: renamed from fdsocket.c.
+	remove _sys from procedure names.
+	(scm_init_socket): rename from scm_init_fdsocket.  include socket.x.
+	add "socket" to features list.
+	* net_db.c: renamed from socket.c.
+	remove _sys from procedure names.
+	(scm_init_net_db): rename from scm_init_socket.  include net_db.x.
+	add "net-db" to features list.
+	include "net_db.h".  don't include <sys/socket.h> or
+	<sys/un.h>.
+
 Thu Dec 19 14:03:24 1996  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* tags.h (scm_tags): Removed comma at end of last enumerator.

@@ -60,7 +60,6 @@
 #include "eq.h"
 #include "error.h"
 #include "eval.h"
-#include "fdsocket.h"
 #include "feature.h"
 #include "filesys.h"
 #include "fports.h"
@@ -75,6 +74,7 @@
 #include "load.h"
 #include "mallocs.h"
 #include "mbstrings.h"
+#include "net_db.h"
 #include "numbers.h"
 #include "objprop.h"
 #include "options.h"
@@ -362,7 +362,6 @@ scm_boot_guile_1 (base, argc, argv, main_func, closure)
       scm_init_dynwind ();
       scm_init_eq ();
       scm_init_error ();
-      scm_init_fdsocket ();
       scm_init_fports ();
       scm_init_filesys ();
       scm_init_gc ();
@@ -373,6 +372,7 @@ scm_boot_guile_1 (base, argc, argv, main_func, closure)
       scm_init_kw ();
       scm_init_list ();
       scm_init_mallocs ();
+      scm_init_net_db ();
       scm_init_numbers ();
       scm_init_objprop ();
 #if DEBUG_EXTENSIONS

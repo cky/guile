@@ -10,9 +10,10 @@ INCLUDES = -I.. -I$(srcdir)/..
 lib_LIBRARIES = libguile.a
 libguile_a_SOURCES = alist.c append.c appinit.c arbiters.c async.c \
 backtrace.c boolean.c chars.c continuations.c debug.c dynl.c dynwind.c eq.c \
-error.c eval.c extchrs.c fdsocket.c feature.c filesys.c fports.c gc.c \
+error.c eval.c extchrs.c feature.c filesys.c fports.c gc.c \
 gdbint.c genio.c gsubr.c hash.c hashtab.c inet_aton.c init.c ioext.c \
-kw.c list.c load.c mallocs.c markers.c mbstrings.c numbers.c objprop.c \
+kw.c list.c load.c mallocs.c markers.c mbstrings.c net_db.c \
+numbers.c objprop.c \
 options.c pairs.c ports.c posix.c print.c procprop.c procs.c ramap.c \
 read.c root.c scmsigs.c sequences.c simpos.c smob.c socket.c srcprop.c \
 stackchk.c stacks.c stime.c strerror.c strings.c strop.c strorder.c \
@@ -25,9 +26,10 @@ include_HEADERS = libguile.h
 modincludedir = $(includedir)/@module@
 modinclude_HEADERS = __scm.h alist.h append.h arbiters.h async.h \
 backtrace.h boolean.h chars.h continuations.h debug.h dynl.h dynwind.h eq.h \
-error.h eval.h extchrs.h fdsocket.h feature.h filesys.h fports.h gc.h \
+error.h eval.h extchrs.h feature.h filesys.h fports.h gc.h \
 gdb_interface.h gdbint.h genio.h gsubr.h hash.h hashtab.h init.h ioext.h \
-kw.h list.h load.h mallocs.h markers.h mbstrings.h numbers.h objprop.h \
+kw.h list.h load.h mallocs.h markers.h mbstrings.h net_db.h \
+numbers.h objprop.h \
 options.h pairs.h ports.h posix.h print.h procprop.h procs.h ramap.h read.h \
 root.h scmhob.h scmsigs.h sequences.h simpos.h smob.h socket.h srcprop.h \
 stackchk.h stacks.h stime.h strings.h strop.h strorder.h strports.h struct.h \
