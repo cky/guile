@@ -1,3 +1,8 @@
+Fri Feb  7 18:00:07 1997  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* configure.in: Recognize i686 as an okay processor too.
+	* configure: Regenerated.
+
 Mon Dec  9 17:55:59 1996  Jim Blandy  <jimb@duality.gnu.ai.mit.edu>
 
 	We need to name the object files produced from the

@@ -1,3 +1,7 @@
+Fri Feb  7 17:57:46 1997  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* config.sub, config.guess: New versions, that handle i686, etc.
+
 Thu Jan 23 07:06:15 1997  Mark Galassi  <rosalia@papageno.lanl.gov>
 
 	* newdoc/tutorial/guile-tut.texi: started checking in the Guile
