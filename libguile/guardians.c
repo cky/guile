@@ -232,7 +232,8 @@ g_mark (SCM ptr)
    its live list (tconc) to its zombie list (tconc).  */
 void scm_guardian_zombify (void)
 {
-  guardian_t *g;
+  guardian_t *first_guardian;
+  guardian_t **link_field = &first_live_guardian;
 
   /* Note that new guardians may be stuck on the end of the live
      guardian list as we run this loop.  As we move unmarked objects
@@ -240,59 +241,69 @@ void scm_guardian_zombify (void)
      guardians.  The guardian mark function will stick them on the end
      of this list, so they'll be processed properly.  */
 
-  for (g = first_live_guardian; g; g = g->next)
-    {
-      SCM tconc_tail = g->live.tail;
-      SCM *prev_ptr = &g->live.head;
-      SCM pair = g->live.head;
+  do {
+    guardian_t *g;
+    
+    first_guardian = *link_field;
+    link_field = current_link_field;
 
-      while (! SCM_EQ_P (pair, tconc_tail))
-	{
-	  SCM next_pair = SCM_CDR (pair);
+    /* first, scan all the guardians that are currently known to be live
+       and move their unmarked objects to zombie lists. */
 
-	  if (SCM_NMARKEDP (SCM_CAR (pair)))
-	    {
-	      /* got you, zombie! */
+    for (g = first_guardian; g; g = g->next)
+      {
+        SCM tconc_tail = g->live.tail;
+        SCM *prev_ptr = &g->live.head;
+        SCM pair = g->live.head;
 
-	      /* out of the live list! */
-	      *prev_ptr = next_pair;
+        while (! SCM_EQ_P (pair, tconc_tail))
+          {
+            SCM next_pair = SCM_CDR (pair);
 
-	      /* into the zombie list! */
-	      TCONC_IN (g->zombies, SCM_CAR (pair), pair);
-	    }
-	  else
-	    prev_ptr = SCM_CDRLOC (pair);
+            if (SCM_NMARKEDP (SCM_CAR (pair)))
+              {
+                /* got you, zombie! */
 
-	  pair = next_pair;
-	}
+                /* out of the live list! */
+                *prev_ptr = next_pair;
 
-      /* Mark the cells of the live list (yes, the cells in the list,
-	 even though we don't care about objects pointed to by the list
-	 cars, since we know they are already marked).  */
-      for (pair = g->live.head; SCM_NIMP (pair); pair = SCM_GCCDR (pair))
-      	SCM_SETGCMARK (pair);
+                /* into the zombie list! */
+                TCONC_IN (g->zombies, SCM_CAR (pair), pair);
+              }
+            else
+              prev_ptr = SCM_CDRLOC (pair);
 
-      /* Preserve the zombies in their undead state, by marking to
-	 prevent collection.  */
+            pair = next_pair;
+          }
 
-      /* ghouston: possible bug: this may mark objects which are
-	 protected by other guardians, but which have no references
-	 from outside of the guardian system.  section 3 of the paper
-	 mentions shared and cyclic objects and it seems that all
-	 parts should be made available for collection.  Currently the
-	 behaviour depends on the order in which guardians are
-	 scanned.
+        /* Mark the cells of the live list (yes, the cells in the list,
+           even though we don't care about objects pointed to by the list
+           cars, since we know they are already marked).  */
+        for (pair = g->live.head; SCM_NIMP (pair); pair = SCM_GCCDR (pair))
+          SCM_SETGCMARK (pair);
+      }
 
-	 Doesn't it seem a bit disturbing that if a zombie is returned
-	 to full life after getting returned from the guardian
-	 procedure, it may reference objects which are in a guardian's
-	 zombie list?  Is it not necessary to move such zombies back
-	 to the live list, to avoid allowing the guardian procedure to
-	 return an object which is referenced, so not collectable?
-	 The paper doesn't give this impression.  */
-
+    /* ghouston: Doesn't it seem a bit disturbing that if a zombie
+       is returned to full life after getting returned from the
+       guardian procedure, it may reference objects which are in a
+       guardian's zombie list?  Is it not necessary to move such
+       zombies back to the live list, to avoid allowing the
+       guardian procedure to return an object which is referenced,
+       so not collectable?  The paper doesn't give this
+       impression.
+       
+       cmm: the paper does explicitly say that an object that is    
+       guarded more than once should be returned more than once.    
+       I believe this covers the above scenario. */
+          
+    /* Preserve the zombies in their undead state, by marking to    
+       prevent collection.  Note that this may uncover zombified    
+       guardians -- if so, they'll be processed in the next loop. */
+      
+    for (g = first_guardian; g && (!*link_field || g != *link_field); g = g->next)
       scm_gc_mark (g->zombies.head);
-    }
+    
+  } while (current_link_field != link_field);
 }
 
 /* not generally used, since guardian smob is wrapped in a closure.

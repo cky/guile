@@ -1,3 +1,11 @@
+2000-04-03  Michael Livshin  <mlivshin@bigfoot.com>
+
+	* guardians.c (scm_guardian_zombify): mark all zombies in a
+ 	separate loop after processing all the currently known live
+ 	guardians, so as to not introduce order dependencies (thanks to
+ 	Gary Houston).  also, make another outer loop to process zombified
+ 	guardians (which are uncovered while marking zombies).
+
 2000-04-03  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* evalext.c (scm_definedp, scm_m_undefine), gc.c
@@ -531,22 +539,22 @@
 
 2000-03-18  Michael Livshin  <mlivshin@bigfoot.com>
 
-	* tags.h: (SCM_DOUBLE_CELLP, SCM_NDOUBLE_CELLP): new macros.
+	* tags.h: (SCM_DOUBLE_CELLP, SCM_NDOUBLE_CELLP): new macros (bad
+	names, anyone got any better ones?)
 
 	* gc.h: (typedef struct scm_freelist_t) remove from here.
 
-	* gc.c: (CELL_UP, CELL_DN) make these macros take additional
+	* gc.c: (CELL_UP, CELL_DN) made these macros take additional
  	parameter (the span).
 	(CLUSTER_SIZE_IN_BYTES, ALIGNMENT_SLACK) new macros.
-	(typedef struct scm_freelist_t) move here from gc.h, it had no
+	(typedef struct scm_freelist_t) moved here from gc.h, it had no
  	business being externally visible.
 	(typedef struct scm_heap_seg_data_t) renamed from
  	scm_heap_seg_data, to be style-compliant.
 	(scm_mark_locations) if the possible pointer points to a
- 	multy-cell, check that it's properly aligned.
-	(init_heap_seg) alighn multy-cells properly, work with the
- 	assumption that the segment size divides cleanly by cluster size
- 	(so that there's no spill).
+ 	double-cell, check that it's properly aligned.
+	(init_heap_seg) align double-cells properly, work with the
+ 	assumption that the segment size divides cleanly by cluster size.
 	(round_to_cluster_size) new function.
 	(alloc_some_heap, make_initial_segment) use round_to_cluster_size
  	to satisfy the new init_heap_seg invariant.
