@@ -33,7 +33,7 @@ Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
 
 
 /*
-SCM_DEFINE (scm_i_index, "i-index", 2, 2, 0, 
+xSCM_DEFINE (scm_i_index, "i-index", 2, 2, 0, 
            (SCM str, SCM chr, SCM frm, SCM to),
 	   "@deftypefn {Internal C Function} {static int} scm_i_index (SCM *@var{str}, \n"
 	   "SCM @var{chr}, int @var{direction}, SCM @var{sub_start}, SCM @var{sub_end}, char *@var{why})
