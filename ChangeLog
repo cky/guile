@@ -1,5 +1,7 @@
 Mon Feb 24 21:43:26 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
+	* ltconfig, ltmain.sh: New versions from libtool-0.9.
+	
 	* configure.in: Added AM_MAINTAINER_MODE
 
 Fri Feb  7 17:57:46 1997  Jim Blandy  <jimb@floss.cyclic.com>
