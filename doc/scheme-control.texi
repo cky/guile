@@ -372,17 +372,47 @@ the expressions in @var{body} @dots{} are evaluated in order.
 @cindex error handling
 @cindex exception handling
 
-It is traditional in Scheme to implement exception systems using
-@code{call-with-current-continuation} (@pxref{Continuations}).  Guile
-does not do this, for performance reasons.  The implementation of
-@code{call-with-current-continuation} is a stack copying implementation.
-This allows it to interact well with ordinary C code.  Unfortunately, a
-stack-copying implementation can be slow -- creating a new continuation
-involves a block copy of the stack.
+A common requirement in applications is to want to jump
+@dfn{non-locally} from the depths of a computation back to, say, the
+application's main processing loop.  Usually, the place that is the
+target of the jump is somewhere in the calling stack of procedures that
+called the procedure that wants to jump back.  For example, typical
+logic for a key press driven application might look something like this:
 
-Instead of using @code{call-with-current-continuation}, the exception
-primitives documented here are implemented as built-ins that take
-advantage of the @emph{upward only} nature of exceptions.
+@example
+main-loop:
+  read the next key press and call dispatch-key
+
+dispatch-key:
+  lookup the key in a keymap and call an appropriate procedure,
+  say find-file
+
+find-file:
+  interactively read the required file name, then call
+  find-specified-file
+
+find-specified-file:
+  check whether file exists; if not, jump back to main-loop
+  @dots{}
+@end example
+
+The jump back to @code{main-loop} could be achieved by returning through
+the stack one procedure at a time, using the return value of each
+procedure to indicate the error condition, but Guile (like most modern
+programming languages) provides an additional mechanism called
+@dfn{exception handling} that can be used to implement such jumps much
+more conveniently.
+
+@menu
+* Catch and Throw::             Basic exception handling primitives.
+* Lazy Catch::                  Catch without unwinding.
+* Stack Catch::                 Capturing the stack at a throw.
+* Exception Implementation::    How Guile implements exceptions.
+@end menu
+
+
+@node Catch and Throw
+@subsection Basic Exception Handling Primitives
 
 @deffn primitive catch key thunk handler
 Invoke @var{thunk} in the dynamic context of @var{handler} for
@@ -411,11 +441,51 @@ Invoke the catch form matching @var{key}, passing @var{args} to the
 If there is no handler at all, an error is signaled.
 @end deffn
 
+
+@node Lazy Catch
+@subsection Catch Without Unwinding
+
 @deffn primitive lazy-catch key thunk handler
 This behaves exactly like @code{catch}, except that it does
 not unwind the stack (this is the major difference), and if
 handler returns, its value is returned from the throw.
 @end deffn
+
+
+@node Stack Catch
+@subsection Capturing the Stack at a Throw
+
+
+@node Exception Implementation
+@subsection How Guile Implements Exceptions
+
+It is traditional in Scheme to implement exception systems using
+@code{call-with-current-continuation}.  Continuations
+(@pxref{Continuations}) are such a powerful concept that any other
+control mechanism --- including @code{catch} and @code{throw} --- can be
+implemented in terms of them.
+
+Guile does not implement @code{catch} and @code{throw} like this,
+though.  Why not?  Because Guile is specifically designed to be easy to
+integrate with applications written in C.  In a mixed Scheme/C
+environment, the concept of @dfn{continuation} must logically include
+``what happens next'' in the C parts of the application as well as the
+Scheme parts, and it turns out that the only reasonable way of
+implementing continuations like this is to save and restore the complete
+C stack.
+
+So Guile's implementation of @code{call-with-current-continuation} is a
+stack copying one.  This allows it to interact well with ordinary C
+code, but means that creating and calling a continuation is slowed down
+by the time that it takes to copy the C stack.
+
+The more targeted mechanism provided by @code{catch} and @code{throw}
+does not need to save and restore the C stack because the @code{throw}
+always jumps to a location higher up the stack of the code that executes
+the @code{throw}.  Therefore Guile implements the @code{catch} and
+@code{throw} primitives independently of
+@code{call-with-current-continuation}, in a way that takes advantage of
+this @emph{upwards only} nature of exceptions.
 
 
 @node Error Reporting
@@ -425,12 +495,10 @@ Guile provides a set of convenience procedures for signaling error
 conditions that are implemented on top of the exception primitives just
 described.
 
-@c begin (scm-doc-string "boot-9.scm" "error")
 @deffn procedure error msg args @dots{}
 Raise an error with key @code{misc-error} and a message constructed by
 displaying @var{msg} and writing @var{args}.
 @end deffn
-@c end
 
 @deffn primitive scm-error key subr message args data
 Raise an error with key @var{key}.  @var{subr} can be a string

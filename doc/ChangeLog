@@ -1,3 +1,8 @@
+2001-04-20  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scheme-control.texi (Exceptions): Reorganized and extended
+	existing documentation; more to come.
+
 2001-04-20  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* scheme-evaluation.texi (Comments): Document normal comments and
