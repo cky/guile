@@ -150,6 +150,11 @@
 	   #t)))
 
 (define (emacs-load filename linum colnum module interactivep)
+  (define (read-and-eval! port)
+    (let ((x (read port)))
+      (if (eof-object? x)
+	  (throw 'end-of-file)
+	  (primitive-eval x))))
   (set-port-filename! %%load-port filename)
   (set-port-line! %%load-port linum)
   (set-port-column! %%load-port colnum)

@@ -1,3 +1,8 @@
+2002-11-17  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* emacs.scm (emacs-load): Locally define `read-and-eval!', as it
+	has been removed from the core.
+
 2002-11-16  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* syncase.scm (define-syntax, eval-when, fluid-let-syntax,
