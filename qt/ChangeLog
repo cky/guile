@@ -1,3 +1,7 @@
+2002-02-24  Rob Browning  <rlb@defaultvalue.org>
+
+	* Makefile.am (libqthreads_la_LDFLAGS): use @LIBQTHREADS_INTERFACE@.
+
 2001-11-21  Gary Houston  <ghouston@arglist.com>
 
 	* Makefile.am (OMIT_DEPENDENCIES): removed, since it seems to be

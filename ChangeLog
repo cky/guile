@@ -1,3 +1,36 @@
+2002-02-24  Rob Browning  <rlb@defaultvalue.org>
+
+	* GUILE-VERSION: move all but guile-readline library versioning
+	information here.  guile-readline is still standalone.  Bump
+	CURRENT interfaces to 15 to allow some headroom for 1.6 release at
+	Thi-Thien's request.
+
+	* configure.in: AC_SUBST the centralized shared lib versioning
+	variables from ./GUILE-VERSION.
+	(LIBQTHREADS_INTERFACE_CURRENT): new AC_SUBST.
+	(LIBQTHREADS_INTERFACE_REVISION): new AC_SUBST.
+	(LIBQTHREADS_INTERFACE_AGE): new AC_SUBST.
+	(LIBQTHREADS_INTERFACE): new AC_SUBST.
+	(LIBGUILE_INTERFACE_CURRENT): new AC_SUBST.
+	(LIBGUILE_INTERFACE_REVISION): new AC_SUBST.
+	(LIBGUILE_INTERFACE_AGE): new AC_SUBST.
+	(LIBGUILE_INTERFACE): new AC_SUBST.
+	(LIBGUILE_SRFI_SRFI_4_INTERFACE_CURRENT): new AC_SUBST.
+	(LIBGUILE_SRFI_SRFI_4_INTERFACE_REVISION): new AC_SUBST.
+	(LIBGUILE_SRFI_SRFI_4_INTERFACE_AGE): new AC_SUBST.
+	(LIBGUILE_SRFI_SRFI_4_INTERFACE): new AC_SUBST.
+	(LIBGUILE_SRFI_SRFI_13_14_INTERFACE_CURRENT): new AC_SUBST.
+	(LIBGUILE_SRFI_SRFI_13_14_INTERFACE_REVISION): new AC_SUBST.
+	(LIBGUILE_SRFI_SRFI_13_14_INTERFACE_AGE): new AC_SUBST.
+	(LIBGUILE_SRFI_SRFI_13_14_INTERFACE): new AC_SUBST.
+
+	* autogen.sh: make absolutely sure we can't have stale files from
+	old versions lying around the libltdl dir since libtoolize
+	doesn't.  Also hack libltdl's configure.in to require autoconf 2.5
+	so the main tree and libltdl can't get out of sync again.
+
+	* RELEASE: update release building instructions.
+
 2002-02-21  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* acinclude.m4 (GUILE_HEADER_LIBC_WITH_UNISTD): Use [] rather than

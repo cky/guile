@@ -1,3 +1,11 @@
+2002-02-24  Rob Browning  <rlb@defaultvalue.org>
+
+	* syncase.scm (gensym): redefine locally so we can control it's
+	properties.  This is in preparation for changing the future public
+	gensym to produce unreadable symbols.
+
+	* psyntax.pp: updated to reflect new syncase.scm.
+
 2002-02-07  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* regex.scm: Add commentary; nfc.

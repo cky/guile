@@ -1,3 +1,10 @@
+2002-02-24  Rob Browning  <rlb@defaultvalue.org>
+
+	* Makefile.am (libguile_srfi_srfi_4_la_LDFLAGS): use
+	@LIBGUILE_SRFI_SRFI_4_INTERFACE@.
+	(libguile_srfi_srfi_13_14_la_LDFLAGS): use
+	@LIBGUILE_SRFI_SRFI_13_14_INTERFACE@.
+
 2002-02-23  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* srfi-19.scm (priv:month-assoc): Correct numbers so that they
