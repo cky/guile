@@ -127,6 +127,17 @@ SCM_DEFINE (F(scm_list_to_,TAG,vector), "list->"S(TAG)"vector", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+SCM_DEFINE (F(scm_any_to_,TAG,vector), "any->"S(TAG)"vector", 1, 0, 0,
+	    (SCM obj),
+	    "Convert @var{obj}, which can be a list, vector, or\n"
+	    "homogenous vector, to a numeric homogenous vector of\n"
+	    "type " S(TAG)".")
+#define FUNC_NAME s_F(scm_any_to_,TAG,vector)
+{
+  return coerce_to_uvec (TYPE, obj);
+}
+#undef FUNC_NAME
+
 CTYPE *
 F(scm_,TAG,vector_elements) (SCM obj)
 {

@@ -406,6 +406,38 @@ list_to_uvec (int type, SCM list)
   return uvec;
 }
 
+static SCM
+coerce_to_uvec (int type, SCM obj)
+{
+  if (is_uvec (type, obj))
+    return obj;
+  else if (scm_is_pair (obj))
+    return list_to_uvec (type, obj);
+  else if (scm_is_true (scm_vector_p (obj)))
+    {
+      SCM len = scm_vector_length (obj);
+      SCM uvec = make_uvec (type, len, SCM_UNDEFINED);
+      size_t clen = scm_to_size_t (len), i;
+      void *base = SCM_UVEC_BASE (uvec);
+      for (i = 0; i < clen; i++)
+	uvec_fast_set_x (type, base, i, SCM_VECTOR_REF (obj, i));
+      return uvec;
+    }
+  else if (scm_is_uniform_vector (obj))
+    {
+      SCM len = scm_uniform_vector_length (obj);
+      SCM uvec = make_uvec (type, len, SCM_UNDEFINED);
+      size_t clen = scm_to_size_t (len), i;
+      void *base = SCM_UVEC_BASE (uvec);
+      for (i = 0; i < clen; i++)
+	uvec_fast_set_x (type, base, i,
+			 scm_uniform_vector_ref (obj, scm_from_size_t (i)));
+      return uvec;
+    }
+  else
+    scm_wrong_type_arg_msg (NULL, 0, obj, "list, vector, or uniform vector");
+}
+
 static SCM *uvec_proc_vars[12] = {
   &scm_i_proc_make_u8vector,
   &scm_i_proc_make_s8vector,
@@ -551,45 +583,12 @@ scm_uniform_vector_element_size (SCM uvec)
 size_t
 scm_uniform_element_size (SCM obj)
 {
-  size_t result;
-
   if (scm_is_uniform_vector (obj))
     return scm_uniform_vector_element_size (obj);
-
-  switch (SCM_TYP7 (obj))
-    {
-    case scm_tc7_bvect:
-    case scm_tc7_uvect:
-    case scm_tc7_ivect:
-      result = sizeof (long);
-      break;
-
-    case scm_tc7_svect:
-      result = sizeof (short);
-      break;
-
-#if SCM_SIZEOF_LONG_LONG != 0
-    case scm_tc7_llvect:
-      result = sizeof (long long);
-      break;
-#endif 
-
-    case scm_tc7_fvect:
-      result = sizeof (float);
-      break;
-
-    case scm_tc7_dvect:
-      result = sizeof (double);
-      break;
-
-    case scm_tc7_cvect:
-      result = 2 * sizeof (double);
-      break;
-      
-    default:
-      result = 0;
-    }
-  return result;
+  else if (SCM_BITVECTOR_P (obj))
+    return sizeof (long);
+  else
+    return 0;
 }
 
 SCM_DEFINE (scm_uniform_vector_length, "uniform-vector-length", 1, 0, 0, 
@@ -599,30 +598,14 @@ SCM_DEFINE (scm_uniform_vector_length, "uniform-vector-length", 1, 0, 0,
 {
   if (scm_is_uniform_vector (v))
     return scm_from_size_t (SCM_UVEC_LENGTH (v));
-
-  SCM_ASRTGO (SCM_NIMP (v), badarg1);
-  switch SCM_TYP7 (v)
-    {
-    default:
-    badarg1:SCM_WRONG_TYPE_ARG (1, v);
-    case scm_tc7_vector:
-    case scm_tc7_wvect:
-      return scm_from_size_t (SCM_VECTOR_LENGTH (v));
-    case scm_tc7_string:
-      return scm_from_size_t (scm_i_string_length (v));
-    case scm_tc7_bvect:
-      return scm_from_size_t (SCM_BITVECTOR_LENGTH (v));
-    case scm_tc7_uvect:
-    case scm_tc7_ivect:
-    case scm_tc7_fvect:
-    case scm_tc7_dvect:
-    case scm_tc7_cvect:
-    case scm_tc7_svect:
-#if SCM_SIZEOF_LONG_LONG != 0
-    case scm_tc7_llvect:
-#endif
-      return scm_from_size_t (SCM_UVECTOR_LENGTH (v));
-    }
+  else if (scm_is_string (v))
+    return scm_string_length (v);
+  else if (scm_is_true (scm_vector_p (v)))
+    return scm_vector_length (v);
+  else if (SCM_BITVECTOR_P (v))
+    return scm_from_size_t (SCM_BITVECTOR_LENGTH (v));
+  else
+    scm_wrong_type_arg (NULL, 0, v);
 }
 #undef FUNC_NAME
 
