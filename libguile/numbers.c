@@ -1247,7 +1247,22 @@ SCM_DEFINE (scm_lognot, "lognot", 1, 0, 0,
 	    "@end lisp")
 #define FUNC_NAME s_scm_lognot
 {
-  return scm_difference (SCM_MAKINUM (-1L), n);
+  if (SCM_INUMP (n)) {
+    /* No overflow here, just need to toggle all the bits making up the inum.
+       Enhancement: No need to strip the tag and add it back, could just xor
+       a block of 1 bits, if that worked with the various debug versions of
+       the SCM typedef.  */
+    return SCM_MAKINUM (~ SCM_INUM (n));
+
+  } else if (SCM_BIGP (n)) {
+    SCM result = scm_i_mkbig ();
+    mpz_com (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (n));
+    scm_remember_upto_here_1 (n);
+    return result;
+
+  } else {
+    SCM_WRONG_TYPE_ARG (SCM_ARG1, n);
+  }
 }
 #undef FUNC_NAME
 
