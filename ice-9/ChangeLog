@@ -1,5 +1,11 @@
 1999-09-17  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
+	* debugger.scm (read-and-dispatch-commands): Handle other throws
+	than 'exit-debugger.
+
+	* boot-9.scm (before-signal-stack): New fluid.
+	(top-repl): Set before-signal-stack in the signal handler.
+
 	* debugger.scm (eval-handler): Handle unhandled exceptions.
 
 1999-09-16  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
