@@ -1,3 +1,11 @@
+Fri Aug 23 18:00:16 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
+
+	* socket.c: Added declaration of inet_aton to avoid compiler
+ 	warning.  (Hope this solution is correct.)
+
+	* stime.c: Added declaration of ftime.  (This is missing in
+	Solaris 2 headers.)
+
 Fri Aug 23 02:03:32 1996  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* configure, scmconfig.h.in: Updated, using autoconf and autoheader.
