@@ -93,9 +93,9 @@ CONFIG_CLEAN_FILES =
 DATA =  $(aclocal_DATA)
 
 DIST_COMMON =  README AUTHORS COPYING ChangeLog INSTALL Makefile.am \
-Makefile.in NEWS TODO acinclude.m4 aclocal.m4 config.guess config.sub \
-configure configure.in install-sh ltconfig ltmain.sh mdate-sh missing \
-mkinstalldirs
+Makefile.in NEWS THANKS TODO acinclude.m4 aclocal.m4 config.guess \
+config.sub configure configure.in install-sh ltconfig ltmain.sh \
+mdate-sh missing mkinstalldirs
 
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)

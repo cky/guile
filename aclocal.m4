@@ -255,7 +255,7 @@ AC_MSG_CHECKING([for ld used by the C compiler ($CC $CFLAGS $LDFLAGS)])
 AC_CACHE_VAL(am_cv_path_LD,
 [case "$LD" in
   /*)
-  ac_cv_path_LD="$LD" # Let the user override the test with a path.
+  am_cv_path_LD="$LD" # Let the user override the test with a path.
   ;;
   *)
   IFS="${IFS= 	}"; ac_save_ifs="$IFS"; IFS="${IFS}:"
