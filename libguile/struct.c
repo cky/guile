@@ -148,14 +148,12 @@ SCM_DEFINE (scm_make_struct_layout, "make-struct-layout", 1, 0, 0,
 
 
 
-void
-scm_struct_init (SCM handle, int tail_elts, SCM inits)
+static void
+scm_struct_init (SCM handle, SCM layout, scm_bits_t * mem, int tail_elts, SCM inits)
 {
-  SCM layout = SCM_STRUCT_LAYOUT (handle);
   unsigned char * fields_desc = (unsigned char *) SCM_CHARS (layout) - 2;
   unsigned char prot = 0;
   int n_fields = SCM_LENGTH (layout) / 2;
-  scm_bits_t * mem = SCM_STRUCT_DATA (handle);
   int tailp = 0;
 
   while (n_fields)
@@ -399,8 +397,8 @@ SCM_DEFINE (scm_make_struct, "make-struct", 2, 0, 1,
 			     scm_struct_n_extra_words,
 			     "make-struct");
   SCM_SET_CELL_WORD_1 (handle, data);
+  scm_struct_init (handle, layout, data, tail_elts, init);
   SCM_SET_CELL_WORD_0 (handle, (scm_bits_t) SCM_STRUCT_DATA (vtable) + scm_tc3_cons_gloc);
-  scm_struct_init (handle, tail_elts, init);
   SCM_ALLOW_INTS;
   return handle;
 }
@@ -489,9 +487,9 @@ SCM_DEFINE (scm_make_vtable_vtable, "make-vtable-vtable", 2, 0, 1,
 			   scm_struct_n_extra_words,
 			   "make-vtable-vtable");
   SCM_SET_CELL_WORD_1 (handle, data);
+  data [scm_vtable_index_layout] = SCM_UNPACK (layout);
+  scm_struct_init (handle, layout, data, tail_elts, scm_cons (layout, init));
   SCM_SET_CELL_WORD_0 (handle, (scm_bits_t) data + scm_tc3_cons_gloc);
-  SCM_SET_STRUCT_LAYOUT (handle, layout);
-  scm_struct_init (handle, tail_elts, scm_cons (layout, init));
   SCM_ALLOW_INTS;
   return handle;
 }

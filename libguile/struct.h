@@ -104,7 +104,6 @@ extern scm_sizet scm_struct_free_0 (scm_bits_t * vtable, scm_bits_t * data);
 extern scm_sizet scm_struct_free_light (scm_bits_t * vtable, scm_bits_t * data);
 extern scm_sizet scm_struct_free_standard (scm_bits_t * vtable, scm_bits_t * data);
 extern scm_sizet scm_struct_free_entity (scm_bits_t * vtable, scm_bits_t * data);
-extern void scm_struct_init (SCM handle, int tail_elts, SCM inits);
 extern SCM scm_make_struct_layout (SCM fields);
 extern SCM scm_struct_p (SCM x);
 extern SCM scm_struct_vtable_p (SCM x);

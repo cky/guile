@@ -1,3 +1,12 @@
+2000-07-26  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* struct.[ch] (scm_struct_init):  Made static.  Fixed not to rely
+	on the struct cell to be fully initialized.
+
+	* struct.c (scm_make_struct, scm_make_vtable_vtable):  Fix the
+	initialization order of the struct such that the type cell is
+	initialized last.
+
 2000-07-25  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* alist.c (scm_assq_remove_x, scm_assv_remove_x,
