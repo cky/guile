@@ -32,6 +32,12 @@ test_num2integral_LDADD = ${top_builddir}/libguile/libguile.la
 check_PROGRAMS += test-num2integral
 TESTS += test-num2integral
 
+# test-round
+test_round_CFLAGS = ${test_cflags}
+test_round_LDADD = ${top_builddir}/libguile/libguile.la
+check_PROGRAMS += test-round
+TESTS += test-round
+
 # test-gh
 test_gh_SOURCES = test-gh.c
 test_gh_CFLAGS = ${test_cflags}
