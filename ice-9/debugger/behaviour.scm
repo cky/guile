@@ -40,6 +40,7 @@
 
 ;;; This module defines useful kinds of behaviour for breakpoints.
 
+(define *trap* #f)
 (define *cont* #f)
 (define *frame* #f)
 (define *depth* #f)
@@ -53,6 +54,7 @@
 (add-hook! before-enter-frame-hook
 	   (lambda (cont tail? expr)
 	     (trc 'before-enter-frame-hook cont tail? expr)
+	     (set! *trap* #:evaluation)
 	     (set! *cont* cont)
 	     (set! *frame* (last-stack-frame cont))
 	     (set! *depth* (stack-length (make-stack cont)))
@@ -64,6 +66,7 @@
 (add-hook! before-apply-frame-hook
 	   (lambda (cont tail?)
 	     (trc 'before-apply-frame-hook cont tail?)
+	     (set! *trap* #:application)
 	     (set! *cont* cont)
 	     (set! *frame* (last-stack-frame cont))
 	     (set! *depth* (stack-length (make-stack cont)))
@@ -75,6 +78,7 @@
 (add-hook! before-exit-frame-hook
 	   (lambda (cont retval)
 	     (trc 'before-exit-frame-hook cont retval)
+	     (set! *trap* #:return)
 	     (set! *cont* cont)
 	     (set! *frame* (last-stack-frame cont))
 	     (set! *depth* (stack-length (make-stack cont)))
@@ -87,12 +91,15 @@
 
 (define (debug-if-flag-set)
   (if *debug-flag*
-      (begin
+      (let ((ds-flags (cons #:continuable
+			    (if (eq? *trap* #:return)
+				(list *trap* *retval*)
+				(list *trap*)))))
 	(for-each (lambda (msg)
 		    (display msg (debugger-output-port)))
 		  (reverse! *debug-entry-messages*))
 	(set! *debug-entry-messages* '())
-	(debug-stack (make-stack *cont*) #:continuable))))
+	(apply debug-stack (make-stack *cont*) ds-flags))))
 
 (add-hook! after-enter-frame-hook debug-if-flag-set)
 
@@ -177,22 +184,33 @@
 			  (thunk))))))
     (add-apply-frame-hook! apply)))
 
-;;; at-step [COUNT [THUNK]]
+;;; at-step [COUNT [THUNK [FILENAME]]]
 ;;;
-;;; Install a thunk to run when we get to the COUNT'th next
-;;; application or frame entry.  COUNT defaults to 1; THUNK defaults
-;;; to debug-here.
+;;; Install THUNK to run on the COUNT'th next application, frame entry
+;;; or frame exit.  COUNT defaults to 1; THUNK defaults to debug-here.
+;;; If FILENAME is specified and not #f, only frames that begin in the
+;;; named file are counted.
 
-(define* (at-step #:optional count thunk)
+(define* (at-step #:optional count thunk filename)
   (or count (set! count 1))
   (or thunk (set! thunk debug-here))
-  (letrec ((step (lambda ()
+  (letrec ((proc (lambda ()
+		   ;; Behaviour whenever we enter or exit a frame.
 		   (set! count (- count 1))
-		   (if (<= count 0)
+		   (if (= count 0)
 		       (begin
 			 (remove-enter-frame-hook! step)
 			 (remove-apply-frame-hook! step)
-			 (thunk))))))
+			 (thunk)))))
+	   (step (lambda ()
+		   ;; Behaviour on frame entry: both execute the above
+		   ;; and install it as an exit hook.
+		   (if (or (not filename)
+			   (equal? (current-file-name) filename))
+		       (begin
+			 (proc)
+			 (at-exit proc))))))
+    (at-exit proc)
     (add-enter-frame-hook! step)
     (add-apply-frame-hook! step)))
 
@@ -210,20 +228,7 @@
     (and position (car position))))
 
 (define* (at-next #:optional count thunk)
-  (or count (set! count 1))
-  (or thunk (set! thunk debug-here))
-  (let ((filename (current-file-name)))
-    (if filename
-	(letrec ((next (lambda ()
-			 (if (equal? (current-file-name) filename)
-			     (begin
-			       (set! count (- count 1))
-			       (if (<= count 0)
-				   (begin
-				     (remove-enter-frame-hook! next)
-				     (thunk))))))))
-	  (add-enter-frame-hook! next))
-	(at-entry count thunk))))
+  (at-step count thunk (current-file-name)))
 
 ;;; debug-here
 ;;;
