@@ -75,7 +75,7 @@ race_error ()
 }
 #endif
 
-SCM_DEFINE (scm_string_any, "string-any", 2, 2, 0,
+SCM_DEFINE (scm_string_any, "string-any-c-code", 2, 2, 0,
             (SCM char_pred, SCM s, SCM start, SCM end),
 	    "Check if the predicate @var{pred} is true for any character in\n"
 	    "the string @var{s}.\n"
@@ -134,7 +134,7 @@ SCM_DEFINE (scm_string_any, "string-any", 2, 2, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_string_every, "string-every", 2, 2, 0,
+SCM_DEFINE (scm_string_every, "string-every-c-code", 2, 2, 0,
             (SCM char_pred, SCM s, SCM start, SCM end),
 	    "Check if the predicate @var{pred} is true for every character\n"
 	    "in the string @var{s}.\n"

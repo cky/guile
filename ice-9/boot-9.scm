@@ -51,6 +51,34 @@
 
 (define format simple-format)
 
+;; this is scheme wrapping the C code so the final pred call is a tail call,
+;; per SRFI-13 spec
+(define (string-any char_pred s . rest)
+  (let ((start (if (null? rest)
+		   0 (car rest)))
+	(end   (if (or (null? rest) (null? (cdr rest)))
+		   (string-length s) (cadr rest))))
+    (if (and (procedure? char_pred)
+	     (> end start)
+	     (<= end (string-length s))) ;; let c-code handle range error
+	(or (string-any-c-code char_pred s start (1- end))
+	    (char_pred (string-ref s (1- end))))
+	(string-any-c-code char_pred s start end))))
+
+;; this is scheme wrapping the C code so the final pred call is a tail call,
+;; per SRFI-13 spec
+(define (string-every char_pred s . rest)
+  (let ((start (if (null? rest)
+		   0 (car rest)))
+	(end   (if (or (null? rest) (null? (cdr rest)))
+		   (string-length s) (cadr rest))))
+    (if (and (procedure? char_pred)
+	     (> end start)
+	     (<= end (string-length s))) ;; let c-code handle range error
+	(and (string-every-c-code char_pred s start (1- end))
+	     (char_pred (string-ref s (1- end))))
+	(string-every-c-code char_pred s start end))))
+
 
 
 ;;; {EVAL-CASE}
