@@ -418,7 +418,7 @@ create_thread (scm_t_catch_body body, void *body_data,
 
 SCM_DEFINE (scm_call_with_new_thread, "call-with-new-thread", 2, 0, 0,
 	    (SCM thunk, SCM handler),
-"Evaluate @var{(thunk)} in a new thread, and new dynamic context, "
+"Evaluate @code{(@var{thunk})} in a new thread, and new dynamic context, "
 "returning a new thread object representing the thread. "
 "If an error occurs during evaluation, call error-thunk, passing it an "
 "error code describing the condition. "
