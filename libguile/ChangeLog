@@ -1,3 +1,9 @@
+2000-04-04  Gary Houston  <ghouston@arglist.com>
+
+	* error.c (scm_syserror): save errno before doing anything else,
+	since it's used in two expressions and may get mutated (thanks to
+	Dirk Herrmann).
+
 2000-04-04  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* debug.c (scm_procedure_source, scm_procedure_environment),
