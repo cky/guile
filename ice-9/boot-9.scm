@@ -775,6 +775,36 @@
 		   file)))
 
 
+;;; {Help for scm_shell}
+;;; The argument-processing code used by Guile-based shells generates
+;;; Scheme code based on the argument list.  This page contains help
+;;; functions for the code it generates.
+
+(define (eval-string string)
+  (call-with-input-string
+   string
+   (lambda (port)
+     (let loop ()
+       (let ((expr (read port)))
+	 (if (eof-object? expr) #f
+	     (begin (eval expr) (loop))))))))
+
+(define (command-line) (program-arguments))
+
+(define (load-user-init)
+  (define (has-init? dir)
+    (let ((path (in-vicinity dir ".guile")))
+      (catch 'system-error 
+	     (lambda ()
+	       (let ((stats (stat path)))
+		 (if (not (eq? (stat:type stats) 'directory))
+		     path)))
+	     (lambda dummy #f))))
+  (let ((path (or (has-init? (getenv "HOME"))
+		  (has-init? (passwd:dir (getpw (getuid)))))))
+    (if path (primitive-load path))))
+
+
 ;;; {Loading by paths}
 
 ;;; Load a Scheme source file named NAME, searching for it in the
