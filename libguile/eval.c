@@ -81,6 +81,7 @@ char *alloca ();
 #include <stdio.h>
 #include "libguile/_scm.h"
 #include "libguile/debug.h"
+#include "libguile/dynwind.h"
 #include "libguile/alist.h"
 #include "libguile/eq.h"
 #include "libguile/continuations.h"
@@ -3808,15 +3809,55 @@ scm_eval_x (SCM exp, SCM module)
  * environment explicit.
  */
 
+static void
+change_environment (void *data)
+{
+  SCM pair = SCM_PACK (data);
+  SCM new_module = SCM_CAR (pair);
+  SCM old_module = scm_selected_module ();
+  SCM_SETCDR (pair, old_module);
+  scm_select_module (new_module);
+}
+
+
+static SCM
+inner_eval (void *data)
+{
+  SCM pair = SCM_PACK (data);
+  SCM exp = SCM_CAR (pair);
+  SCM env = SCM_CDR (pair);
+  SCM result = scm_i_eval (exp, env);
+  return result;
+}
+
+
+static void
+restore_environment (void *data)
+{
+  SCM pair = SCM_PACK (data);
+  SCM old_module = SCM_CDR (pair);
+  scm_select_module (old_module);
+}
+
+
 SCM_DEFINE (scm_eval, "eval", 2, 0, 0, 
            (SCM exp, SCM environment),
 	    "Evaluate @var{exp}, a list representing a Scheme expression, in the\n"
 	    "environment given by @var{environment specifier}.")
 #define FUNC_NAME s_scm_eval
 {
+  SCM copied_exp;
+  SCM env_closure;
+
   SCM_VALIDATE_MODULE (2, environment);
-  return scm_i_eval (scm_copy_tree (exp),
-		     scm_top_level_env (SCM_MODULE_EVAL_CLOSURE (environment)));
+
+  copied_exp = scm_copy_tree (exp);
+  env_closure = scm_top_level_env (SCM_MODULE_EVAL_CLOSURE (environment));
+
+  return scm_internal_dynamic_wind 
+    (change_environment, inner_eval, restore_environment,
+     (void *) SCM_UNPACK (scm_cons (copied_exp, env_closure)),
+     (void *) SCM_UNPACK (scm_cons (environment, SCM_BOOL_F)));
 }
 #undef FUNC_NAME
 

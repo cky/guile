@@ -1,3 +1,12 @@
+2000-12-15  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* eval.c (change_environment, inner_eval, restore_environment):
+	New functions.
+
+	(scm_eval):  Bring the global variable that holds the current
+	environment up to date when entering or leaving the scope of the
+	evaluated code.  Thanks to Matthias Koeppe for the bug report.
+
 2000-12-13  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* numbers.c (scm_init_numbers):  Re-introduced bindings for
