@@ -55,8 +55,13 @@
  *
  * Inums are exact integer data that fits within an SCM word.  */
 
+/* SCM_T_SIGNED_MAX is                 (- (expt 2 n) 1),
+ * SCM_MOST_POSITIVE_FIXNUM should be  (- (expt 2 (- n 2)) 1)
+ * which is the same as                (/ (- (expt 2 n) 4) 4)
+ */
+
 #define SCM_I_FIXNUM_BIT         (SCM_LONG_BIT - 2)
-#define SCM_MOST_POSITIVE_FIXNUM (SCM_T_SIGNED_BITS_MAX/8-1)
+#define SCM_MOST_POSITIVE_FIXNUM ((SCM_T_SIGNED_BITS_MAX-3)/4)
 #define SCM_MOST_NEGATIVE_FIXNUM (-SCM_MOST_POSITIVE_FIXNUM-1)
 
 /* SCM_SRS is signed right shift */
@@ -83,7 +88,7 @@
 #define SCM_INUM0 (SCM_MAKINUM (0))
 
 
-/* SCM_MAXEXP is the maximum double precision expontent
+/* SCM_MAXEXP is the maximum double precision exponent
  * SCM_FLTMAX is less than or scm_equal the largest single precision float
  */
 
