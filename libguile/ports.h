@@ -71,11 +71,11 @@ struct scm_port_table
 				 */
 
   SCM stream;
-  /*  SCM file_name; */
+  SCM file_name;		/* debugging support.  */
   int unchr;			/* pushed back character, if any */
 
-  int line_number;
-  int column_number;
+  int line_number;		/* debugging support.  */
+  int column_number;		/* debugging support.  */
 
   enum scm_port_representation_type representation;
 };

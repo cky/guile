@@ -185,7 +185,7 @@ scm_open_file (filename, modes)
       if (SCM_BUF0 & (SCM_CAR (port) = scm_tc16_fport | scm_mode_bits (mode)))
 	scm_setbuf0 (port);
       SCM_SETSTREAM (port, (SCM)f);
-      /* SCM_PTAB_ENTRY (port)->file_name = scm_makfrom0str (filename); */
+      SCM_PTAB_ENTRY (port)->file_name = scm_makfrom0str (file);
     }
   SCM_ALLOW_INTS;
   return port;
@@ -235,6 +235,7 @@ prinfport (exp, port, writing)
 #endif
 {
   /*
+  perhaps this isn't needed.
   SCM name;
   char * c;
   if (SCM_CLOSEDP (exp))

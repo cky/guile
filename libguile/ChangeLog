@@ -1,3 +1,9 @@
+Tue Sep 17 01:40:56 1996  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* ports.h (scm_port_table): put back file_name, it will be used to
+ 	support debugging.  Undo related changes in fports.c, ioext.c,
+	ports.c, gc.c.
+
 Sun Sep 15 03:58:29 1996  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* ports.h (scm_port_table): remove file_name member for now, it seems

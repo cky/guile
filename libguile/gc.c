@@ -677,10 +677,8 @@ gc_mark_nimp:
 	goto def;
       if (SCM_GC8MARKP (ptr))
 	break;
-      /*
-	if (SCM_PTAB_ENTRY(ptr))
-	   scm_gc_mark (SCM_PTAB_ENTRY(ptr)->file_name);
-	   */
+      if (SCM_PTAB_ENTRY(ptr))
+	scm_gc_mark (SCM_PTAB_ENTRY(ptr)->file_name);
       ptr = (scm_ptobs[i].mark) (ptr);
       goto gc_mark_loop;
       break;

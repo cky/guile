@@ -380,7 +380,7 @@ scm_add_to_port_table (port)
   scm_port_table[scm_port_table_size]->port = port;
   scm_port_table[scm_port_table_size]->revealed = 0;
   scm_port_table[scm_port_table_size]->stream = 0;
-  /* scm_port_table[scm_port_table_size]->file_name = SCM_BOOL_F;*/
+  scm_port_table[scm_port_table_size]->file_name = SCM_BOOL_F;
   scm_port_table[scm_port_table_size]->line_number = 1;
   scm_port_table[scm_port_table_size]->column_number = 0;
   scm_port_table[scm_port_table_size]->representation = scm_regular_port;
@@ -746,8 +746,6 @@ scm_column_number  (port)
     return SCM_MAKINUM (SCM_COL (p));
 }
 
-/* !!! dubious feature */
-#if 0
 SCM_PROC (s_port_file_name, "port-file-name", 0, 1, 0, scm_port_file_name);
 #ifdef __STDC__
 SCM 
@@ -767,7 +765,6 @@ scm_port_file_name (port)
   else
     return SCM_PTAB_ENTRY (p)->file_name;
 }
-#endif
 
 #ifndef ttyname
 extern char * ttyname();
