@@ -1,3 +1,11 @@
+2003-08-23  Kevin Ryde  <user42@zip.com.au>
+
+	* srfi-1.c, srfi-1.h, srfi-1.scm (list-copy): New function, derived
+	from core list-copy but allowing improper lists, per SRFI-1 spec.
+
+	* srfi-19.scm (date-week-number): Correction, day of week starting
+	week applied was off by one.
+
 2003-07-29  Kevin Ryde  <user42@zip.com.au>
 
 	* srfi-1.c, srfi-1.scm (concatenate, concatenate!): Use scm_append and
