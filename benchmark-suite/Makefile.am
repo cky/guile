@@ -1,8 +1,9 @@
-SCM_BENCHMARKS = benchmarks/foo.bm			\
-	         benchmarks/bar.bm
+SCM_BENCHMARKS = benchmarks/0-reference.bm			\
+	         benchmarks/continuations.bm                    \
+                 benchmarks/if.bm                               \
+                 benchmarks/logand.bm
 
-## SCM_BENCHMARKS_DIRS = benchmarks/dirfoo \
-##                       benchmarks/dirbar
+SCM_BENCHMARKS_DIRS =
 
 EXTRA_DIST = guile-benchmark lib.scm $(SCM_BENCHMARKS)
 
