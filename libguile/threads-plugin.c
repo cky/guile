@@ -42,6 +42,10 @@
 
 
 
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
 int scm_i_plugin_mutex_size = 0;
 int (*scm_i_plugin_mutex_init) (scm_t_mutex *, const scm_t_mutexattr *);
 int (*scm_i_plugin_mutex_lock) (scm_t_mutex *);
@@ -58,7 +62,7 @@ int (*scm_i_plugin_rec_mutex_unlock) (scm_t_rec_mutex *);
 int (*scm_i_plugin_cond_wait) (scm_t_cond *, scm_t_mutex *);
 int (*scm_i_plugin_cond_timedwait) (scm_t_cond *,
 				    scm_t_mutex *,
-				    const struct timespec *);
+				    const scm_t_timespec *);
 
 #ifdef SCM_DEBUG_THREADS
 #define FAST_MUTEX 1
