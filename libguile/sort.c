@@ -878,7 +878,7 @@ SCM_DEFINE (scm_stable_sort_x, "stable-sort!", 2, 0, 0,
 	 the following array does not contain any new references to
 	 SCM objects, so we can get away with allocing it on the heap.
       */
-      temp = malloc (len * sizeof(SCM));
+      temp = scm_malloc (len * sizeof(SCM));
 
       scm_merge_vector_step (items,
 			     temp,
@@ -919,7 +919,7 @@ SCM_DEFINE (scm_stable_sort, "stable-sort", 2, 0, 0,
   else if (SCM_VECTORP (items))
     {
       long len = SCM_VECTOR_LENGTH (items);
-      SCM *temp = malloc (len * sizeof (SCM));
+      SCM *temp = scm_malloc (len * sizeof (SCM));
       SCM retvec = scm_make_uve (len, scm_array_prototype (items));
       scm_array_copy_x (items, retvec);
 

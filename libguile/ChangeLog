@@ -1,3 +1,19 @@
+2002-08-17  Han-Wen Nienhuys  <hanwen@cs.uu.nl>
+
+	* *.c: use scm_malloc in stead of malloc everywhere.
+
+	* mallocs.c (scm_malloc_obj): use scm_gc_malloc in stead of
+	malloc.
+
+	* gc-segment.c (scm_i_get_new_heap_segment): remove cluster cruft:
+	only use SCM_MIN_HEAP_SEG_SIZE.
+
+	* ports.c (scm_add_to_port_table): add backwards compatibility
+	function
+
+	* ports.h: use scm_i_ prefix for port table and port table size.
+	
+
 2002-08-15  Mikael Djurfeldt  <mdj@linnaeus>
 
 	* vports.c (scm_make_soft_port): Initialize pt variable.

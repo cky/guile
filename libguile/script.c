@@ -83,7 +83,7 @@ scm_cat_path (char *str1, const char *str2, long n)
       strncat (str1 + len, str2, n);
       return str1;
     }
-  str1 = (char *) malloc ((size_t) (n + 1));
+  str1 = (char *) scm_malloc ((size_t) (n + 1));
   if (!str1)
     return 0L;
   str1[0] = 0;
@@ -236,7 +236,7 @@ script_read_arg (FILE *f)
 #define FUNC_NAME "script_read_arg"
 {
   size_t size = 7;
-  char *buf = malloc (size + 1);
+  char *buf = scm_malloc (size + 1);
   size_t len = 0;
 
   if (! buf)
@@ -315,7 +315,7 @@ scm_get_meta_args (int argc, char **argv)
   char *narg, **nargv;
   if (!(argc > 2 && script_meta_arg_P (argv[1])))
     return 0L;
-  if (!(nargv = (char **) malloc ((1 + nargc) * sizeof (char *))))
+  if (!(nargv = (char **) scm_malloc ((1 + nargc) * sizeof (char *))))
       return 0L;
   nargv[0] = argv[0];
   while (((argi + 1) < argc) && (script_meta_arg_P (argv[argi])))

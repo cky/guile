@@ -200,7 +200,7 @@ alloca (unsigned size)
   /* Allocate combined header + user data storage.  */
 
   {
-    register pointer new = (pointer) malloc (sizeof (header) + size);
+    register pointer new = (pointer) scm_malloc (sizeof (header) + size);
     /* Address of header.  */
 
     if (new == 0)

@@ -132,8 +132,8 @@ typedef struct
   size_t putback_buf_size;        /* allocated size of putback_buf.  */
 } scm_t_port;
 
-SCM_API scm_t_port **scm_port_table;
-SCM_API long scm_port_table_size; /* Number of ports in scm_port_table.  */
+SCM_API scm_t_port **scm_i_port_table;
+SCM_API long scm_i_port_table_size; /* Number of ports in scm_i_port_table.  */
 
 #define SCM_READ_BUFFER_EMPTY_P(c_port) (c_port->read_pos >= c_port->read_end)
 
@@ -215,7 +215,7 @@ typedef struct scm_t_ptob_descriptor
 
 SCM_API scm_t_ptob_descriptor *scm_ptobs;
 SCM_API long scm_numptob;
-SCM_API long scm_port_table_room;
+SCM_API long scm_i_port_table_room;
 
 
 
@@ -308,6 +308,11 @@ SCM_API void scm_ports_prehistory (void);
 SCM_API SCM scm_void_port (char * mode_str);
 SCM_API SCM scm_sys_make_void_port (SCM mode);
 SCM_API void scm_init_ports (void);
+
+
+#if SCM_ENABLE_DEPRECATED==1
+SCM_API scm_t_port * scm_add_to_port_table (SCM port);
+#endif
 
 #ifdef GUILE_DEBUG
 SCM_API SCM scm_pt_size (void);

@@ -906,7 +906,7 @@ environ_list_to_c (SCM envlist, int arg, const char *proc)
 
   num_strings = scm_ilength (envlist);
   SCM_ASSERT (num_strings >= 0, envlist, arg, proc);
-  result = (char **) malloc ((num_strings + 1) * sizeof (char *));
+  result = (char **) scm_malloc ((num_strings + 1) * sizeof (char *));
   if (result == NULL)
     scm_memory_error (proc);
   for (i = 0; !SCM_NULL_OR_NIL_P (envlist); ++i, envlist = SCM_CDR (envlist))
@@ -918,7 +918,7 @@ environ_list_to_c (SCM envlist, int arg, const char *proc)
       SCM_ASSERT (SCM_STRINGP (str), envlist, arg, proc);
       len = SCM_STRING_LENGTH (str);
       src = SCM_STRING_CHARS (str);
-      result[i] = malloc (len + 1);
+      result[i] = scm_malloc (len + 1);
       if (result[i] == NULL)
 	scm_memory_error (proc);
       memcpy (result[i], src, len);
@@ -1193,7 +1193,7 @@ SCM_DEFINE (scm_putenv, "putenv", 1, 0, 0,
   else
     {
       /* must make a new copy to be left in the environment, safe from gc.  */
-      ptr = malloc (SCM_STRING_LENGTH (str) + 1);
+      ptr = scm_malloc (SCM_STRING_LENGTH (str) + 1);
       if (ptr == NULL)
 	SCM_MEMORY_ERROR;
       strncpy (ptr, SCM_STRING_CHARS (str), SCM_STRING_LENGTH (str));

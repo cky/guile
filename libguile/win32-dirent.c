@@ -57,7 +57,7 @@ opendir (const char * name)
 
   if (!name || !*name) 
     return NULL;
-  file = malloc (strlen (name) + 3);
+  file = scm_malloc (strlen (name) + 3);
   strcpy (file, name);
   if (file[strlen (name) - 1] != '/' && file[strlen (name) - 1] != '\\')
     strcat (file, "/*");
@@ -70,10 +70,10 @@ opendir (const char * name)
       return NULL;
     }
 
-  dir = malloc (sizeof (DIR));
+  dir = scm_malloc (sizeof (DIR));
   dir->mask = file;
   dir->fd = (int) hnd;
-  dir->data = malloc (sizeof (WIN32_FIND_DATA));
+  dir->data = scm_malloc (sizeof (WIN32_FIND_DATA));
   dir->allocation = sizeof (WIN32_FIND_DATA);
   dir->size = dir->allocation;
   dir->filepos = 0;

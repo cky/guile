@@ -363,7 +363,7 @@ scm_c_string2str (SCM obj, char *str, size_t *lenp)
     {
       /* FIXME: Should we use exported wrappers for malloc (and free), which
        * allow windows DLLs to call the correct freeing function? */
-      str = (char *) malloc ((len + 1) * sizeof (char));
+      str = (char *) scm_malloc ((len + 1) * sizeof (char));
       if (str == NULL)
 	return NULL;
     }

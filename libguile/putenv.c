@@ -115,7 +115,7 @@ putenv (const char *string)
   if (*ep == NULL)
     {
       static char **last_environ = NULL;
-      char **new_environ = (char **) malloc ((size + 2) * sizeof (char *));
+      char **new_environ = (char **) scm_malloc ((size + 2) * sizeof (char *));
       if (new_environ == NULL)
 	return -1;
       memcpy ((char *) new_environ, (char *) environ, size * sizeof (char *));

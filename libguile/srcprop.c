@@ -138,7 +138,7 @@ scm_make_srcprops (long line, int col, SCM filename, SCM copy, SCM plist)
       scm_t_srcprops_chunk *mem;
       size_t n = sizeof (scm_t_srcprops_chunk)
 	            + sizeof (scm_t_srcprops) * (SRCPROPS_CHUNKSIZE - 1);
-      SCM_SYSCALL (mem = (scm_t_srcprops_chunk *) malloc (n));
+      SCM_SYSCALL (mem = (scm_t_srcprops_chunk *) scm_malloc (n));
       if (mem == NULL)
 	scm_memory_error ("srcprops");
       scm_mallocated += n;

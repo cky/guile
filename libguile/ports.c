@@ -446,36 +446,36 @@ SCM_DEFINE (scm_set_current_error_port, "set-current-error-port", 1, 0, 0,
 
 /* The port table --- an array of pointers to ports.  */
 
-scm_t_port **scm_port_table;
+scm_t_port **scm_i_port_table;
 
-long scm_port_table_size = 0;	/* Number of ports in scm_port_table.  */
-long scm_port_table_room = 20;	/* Size of the array.  */
+long scm_i_port_table_size = 0;	/* Number of ports in scm_i_port_table.  */
+long scm_i_port_table_room = 20;	/* Size of the array.  */
 
 
 SCM
 scm_new_port_table_entry (scm_t_bits tag)
 #define FUNC_NAME "scm_new_port_table_entry"
 {
-  SCM z = scm_cell (SCM_EOL, SCM_EOL);
+  SCM z = scm_cons (SCM_EOL, SCM_EOL);
   scm_t_port *entry = (scm_t_port *) scm_gc_calloc (sizeof (scm_t_port), "port");
-  if (scm_port_table_size == scm_port_table_room)
+  if (scm_i_port_table_size == scm_i_port_table_room)
     {
       /* initial malloc is in gc.c.  this doesn't use scm_gc_malloc etc.,
 	 since it can never be freed during gc.  */
-      void *newt = scm_realloc ((char *) scm_port_table,
+      void *newt = scm_realloc ((char *) scm_i_port_table,
 				(size_t) (sizeof (scm_t_port *)
-					  * scm_port_table_room * 2));
-      scm_port_table = (scm_t_port **) newt;
-      scm_port_table_room *= 2;
+					  * scm_i_port_table_room * 2));
+      scm_i_port_table = (scm_t_port **) newt;
+      scm_i_port_table_room *= 2;
     }
 
-  entry->entry = scm_port_table_size;
+  entry->entry = scm_i_port_table_size;
 
   entry->file_name = SCM_BOOL_F;
   entry->rw_active = SCM_PORT_NEITHER;
 
-  scm_port_table[scm_port_table_size] = entry;
-  scm_port_table_size++;
+  scm_i_port_table[scm_i_port_table_size] = entry;
+  scm_i_port_table_size++;
 
   entry->port = z;
   SCM_SET_CELL_TYPE(z, tag);
@@ -485,6 +485,22 @@ scm_new_port_table_entry (scm_t_bits tag)
 }
 #undef FUNC_NAME
 
+#if SCM_ENABLE_DEPRECATED==1
+SCM_API scm_t_port *
+scm_add_to_port_table (SCM port)
+{
+  SCM z = scm_new_port_table_entry (scm_tc7_port);
+  scm_t_port * pt = SCM_PTAB_ENTRY(z);
+
+  pt->port = port;
+  SCM_SETCAR(z, SCM_EOL);
+  SCM_SETCDR(z, SCM_EOL);
+  
+  return pt;
+}
+#endif
+
+
 /* Remove a port from the table and destroy it.  */
 void
 scm_remove_from_port_table (SCM port)
@@ -493,20 +509,20 @@ scm_remove_from_port_table (SCM port)
   scm_t_port *p = SCM_PTAB_ENTRY (port);
   long i = p->entry;
 
-  if (i >= scm_port_table_size)
+  if (i >= scm_i_port_table_size)
     SCM_MISC_ERROR ("Port not in table: ~S", scm_list_1 (port));
   if (p->putback_buf)
     scm_gc_free (p->putback_buf, p->putback_buf_size, "putback buffer");
   scm_gc_free (p, sizeof (scm_t_port), "port");
   /* Since we have just freed slot i we can shrink the table by moving
      the last entry to that slot... */
-  if (i < scm_port_table_size - 1)
+  if (i < scm_i_port_table_size - 1)
     {
-      scm_port_table[i] = scm_port_table[scm_port_table_size - 1];
-      scm_port_table[i]->entry = i;
+      scm_i_port_table[i] = scm_i_port_table[scm_i_port_table_size - 1];
+      scm_i_port_table[i]->entry = i;
     }
   SCM_SETPTAB_ENTRY (port, 0);
-  scm_port_table_size--;
+  scm_i_port_table_size--;
 }
 #undef FUNC_NAME
 
@@ -520,7 +536,7 @@ SCM_DEFINE (scm_pt_size, "pt-size", 0, 0, 0,
 	    "is only included in @code{--enable-guile-debug} builds.")
 #define FUNC_NAME s_scm_pt_size
 {
-  return SCM_MAKINUM (scm_port_table_size);
+  return SCM_MAKINUM (scm_i_port_table_size);
 }
 #undef FUNC_NAME
 
@@ -533,10 +549,10 @@ SCM_DEFINE (scm_pt_member, "pt-member", 1, 0, 0,
 {
   long i;
   SCM_VALIDATE_INUM_COPY (1, index, i);
-  if (i < 0 || i >= scm_port_table_size)
+  if (i < 0 || i >= scm_i_port_table_size)
     return SCM_BOOL_F;
   else
-    return scm_port_table[i]->port;
+    return scm_i_port_table[i]->port;
 }
 #undef FUNC_NAME
 #endif
@@ -741,8 +757,8 @@ SCM_DEFINE (scm_port_for_each, "port-for-each", 1, 0, 0,
   SCM_DEFER_INTS;
   scm_block_gc++;
   ports = SCM_EOL;
-  for (i = 0; i < scm_port_table_size; i++)
-    ports = scm_cons (scm_port_table[i]->port, ports);
+  for (i = 0; i < scm_i_port_table_size; i++)
+    ports = scm_cons (scm_i_port_table[i]->port, ports);
   scm_block_gc--;
   SCM_ALLOW_INTS;
 
@@ -844,10 +860,10 @@ SCM_DEFINE (scm_flush_all_ports, "flush-all-ports", 0, 0, 0,
 {
   size_t i;
 
-  for (i = 0; i < scm_port_table_size; i++)
+  for (i = 0; i < scm_i_port_table_size; i++)
     {
-      if (SCM_OPOUTPORTP (scm_port_table[i]->port))
-	scm_flush (scm_port_table[i]->port);
+      if (SCM_OPOUTPORTP (scm_i_port_table[i]->port))
+	scm_flush (scm_i_port_table[i]->port);
     }
   return SCM_UNSPECIFIED;
 }
@@ -1497,7 +1513,7 @@ void
 scm_ports_prehistory ()
 {
   scm_numptob = 0;
-  scm_ptobs = (scm_t_ptob_descriptor *) malloc (sizeof (scm_t_ptob_descriptor));
+  scm_ptobs = (scm_t_ptob_descriptor *) scm_malloc (sizeof (scm_t_ptob_descriptor));
 }
 
 

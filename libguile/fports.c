@@ -220,9 +220,9 @@ scm_evict_ports (int fd)
 {
   long i;
 
-  for (i = 0; i < scm_port_table_size; i++)
+  for (i = 0; i < scm_i_port_table_size; i++)
     {
-      SCM port = scm_port_table[i]->port;
+      SCM port = scm_i_port_table[i]->port;
 
       if (SCM_FPORTP (port))
 	{

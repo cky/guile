@@ -2393,7 +2393,7 @@ create_smob_classes (void)
 {
   long i;
 
-  scm_smob_class = (SCM *) malloc (255 * sizeof (SCM));
+  scm_smob_class = (SCM *) scm_malloc (255 * sizeof (SCM));
   for (i = 0; i < 255; ++i)
     scm_smob_class[i] = 0;
 
@@ -2436,7 +2436,7 @@ create_port_classes (void)
 {
   long i;
 
-  scm_port_class = (SCM *) malloc (3 * 256 * sizeof (SCM));
+  scm_port_class = (SCM *) scm_malloc (3 * 256 * sizeof (SCM));
   for (i = 0; i < 3 * 256; ++i)
     scm_port_class[i] = 0;
 

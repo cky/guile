@@ -302,11 +302,11 @@ SCM_DEFINE (scm_fdes_to_ports, "fdes->ports", 1, 0, 0,
   
   SCM_VALIDATE_INUM_COPY (1, fd, int_fd);
 
-  for (i = 0; i < scm_port_table_size; i++)
+  for (i = 0; i < scm_i_port_table_size; i++)
     {
-      if (SCM_OPFPORTP (scm_port_table[i]->port)
-	  && ((scm_t_fport *) scm_port_table[i]->stream)->fdes == int_fd)
-	result = scm_cons (scm_port_table[i]->port, result);
+      if (SCM_OPFPORTP (scm_i_port_table[i]->port)
+	  && ((scm_t_fport *) scm_i_port_table[i]->stream)->fdes == int_fd)
+	result = scm_cons (scm_i_port_table[i]->port, result);
     }
   return result;
 }

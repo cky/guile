@@ -707,7 +707,7 @@ scm_fill_sockaddr (int fam, SCM address, SCM *args, int which_arg,
 	SCM_VALIDATE_CONS (which_arg + 1, *args);
 	SCM_VALIDATE_INUM_COPY (which_arg + 1, SCM_CAR (*args), port);
 	*args = SCM_CDR (*args);
-	soka = (struct sockaddr_in *) malloc (sizeof (struct sockaddr_in));
+	soka = (struct sockaddr_in *) scm_malloc (sizeof (struct sockaddr_in));
 	if (!soka)
 	  scm_memory_error (proc);
 	/* 4.4BSD-style interface includes sin_len member and defines SIN_LEN,
@@ -745,7 +745,7 @@ scm_fill_sockaddr (int fam, SCM address, SCM *args, int which_arg,
 		*args = SCM_CDR (*args);
 	      }
 	  }
-	soka = (struct sockaddr_in6 *) malloc (sizeof (struct sockaddr_in6));
+	soka = (struct sockaddr_in6 *) scm_malloc (sizeof (struct sockaddr_in6));
 	if (!soka)
 	  scm_memory_error (proc);
 #ifdef SIN_LEN6
@@ -777,7 +777,7 @@ scm_fill_sockaddr (int fam, SCM address, SCM *args, int which_arg,
 	   member of the structure.  */
 	addr_size = sizeof (struct sockaddr_un)
 	  + max (0, SCM_STRING_LENGTH (address) + 1 - (sizeof soka->sun_path));
-	soka = (struct sockaddr_un *) malloc (addr_size);
+	soka = (struct sockaddr_un *) scm_malloc (addr_size);
 	if (!soka)
 	  scm_memory_error (proc);
 	memset (soka, 0, addr_size);  /* for sun_len: see sin_len above. */
