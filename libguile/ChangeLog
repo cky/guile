@@ -1,3 +1,13 @@
+1998-12-05  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* pairs.h (SCM_NEWCELL): When DEBUG_FREELIST is defined, don't
+	take the address of _into; it might be a register.  Just have
+	scm_debug_newcell return the new cell.
+	* gc.c (scm_debug_newcell): Just return the new cell, instead of
+	taking the address of a place to store it as an argument.
+	* gc.h (scm_debug_newcell): Change declaration.
+	(Thanks to Greg Harvey.)
+
 1998-12-08  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
 	* ramap.c (array-copy-in-order!, array-map-in-order):  New names.
