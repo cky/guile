@@ -146,14 +146,8 @@ SCM
 scm_make_synt (const char *name, SCM (*macroizer) (), SCM (*fcn)() )
 {
   SCM symcell = scm_sysintern (name, SCM_UNDEFINED);
-  long tmp = ((((SCM_CELLPTR) (SCM_CAR (symcell))) - scm_heap_org) << 8);
-  register SCM z;
-  if ((tmp >> 8) != ((SCM_CELLPTR) (SCM_CAR (symcell)) - scm_heap_org))
-    tmp = 0;
-  SCM_NEWCELL (z);
-  SCM_SUBRF (z) = fcn;
-  SCM_SETCAR (z, tmp + scm_tc7_subr_2);
-  SCM_SETCDR (symcell, macroizer (z));
+  SCM transformer = scm_make_subr_opt (name, scm_tc7_subr_2, fcn, 0);
+  SCM_SETCDR (symcell, macroizer (transformer));
   return SCM_CAR (symcell);
 }
 
