@@ -1,5 +1,8 @@
 2005-01-10  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
+	* eval.c (scm_eval): Added example to docstring.  Thanks to Issac
+	Trotts!
+
 	* unif.c (scm_list_to_typed_array): Allow the specification of the
 	upper bound as well.  This is needed for empty arrays.
 	(l2ra): Give needed number of elements in error message.
