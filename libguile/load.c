@@ -204,6 +204,7 @@ SCM_DEFINE (scm_parse_path, "parse-path", 1, 1, 0,
 void
 scm_init_load_path ()
 {
+  char *env;
   SCM path = SCM_EOL;
 
 #ifdef SCM_LIBRARY_DIR
@@ -212,8 +213,9 @@ scm_init_load_path ()
 		     scm_makfrom0str (SCM_PKGDATA_DIR));
 #endif /* SCM_LIBRARY_DIR */
 
-  path = scm_parse_path (scm_from_locale_string (getenv ("GUILE_LOAD_PATH")),
-			 path);
+  env = getenv ("GUILE_LOAD_PATH");
+  if (env)
+    path = scm_parse_path (scm_from_locale_string (env), path);
 
   *scm_loc_load_path = path;
 }
