@@ -191,12 +191,14 @@ SCM_SYMBOL (scm_no_data_key, "no-data");
 
 static void scm_resolv_error (const char *subr, SCM bad_value)
 {
+#ifdef NETDB_INTERNAL
   if (h_errno == NETDB_INTERNAL)
     {
       /* errno supposedly contains a useful value.  */
       scm_syserror (subr);
     }
   else
+#endif
     {
       SCM key;
       const char *errmsg;
