@@ -75,6 +75,7 @@ SCM_TESTS = tests/alist.test			\
 	    tests/srfi-31.test			\
 	    tests/srfi-34.test			\
 	    tests/srfi-39.test			\
+	    tests/srfi-60.test			\
 	    tests/srfi-4.test			\
 	    tests/srfi-9.test			\
 	    tests/strings.test			\
