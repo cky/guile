@@ -1,3 +1,10 @@
+2001-01-28  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* readline.scm (make-readline-port): PROMPT becomes PROMPT2 as
+	soon as GET-CHARACTER returns any character at all that was
+	previously read.  This makes the continuation prompt appear
+	properly for partial expressions.  Thanks to Neil Jerram!
+
 2001-01-26  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	This patch fixes a problem reported by Martin Grabmueller about
