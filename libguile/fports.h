@@ -2,7 +2,7 @@
 
 #ifndef FPORTSH
 #define FPORTSH
-/*	Copyright (C) 1995,1996,1997,1998 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996,1997,1998,1999 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -53,13 +53,6 @@
 /* struct allocated for each buffered FPORT.  */
 struct scm_fport {
   int fdes;			/* file descriptor.  */
-
-  /* if fdes supports random access (i.e., can change position using lseek)
-     then read/write ports reset the write position to account for buffered
-     chars whenever switching from reading to writing.  it wouldn't need to
-     be done if fdes is in append mode, but that can be changed at any time
-     and it would be more work to check for it.  */
-  int random;			/* whether fdes supports random-access.  */
 };
 
 #define SCM_FSTREAM(x) ((struct scm_fport *) SCM_STREAM (x))
@@ -82,7 +75,6 @@ extern void scm_setfileno (FILE *fs, int fd);
 extern void scm_evict_ports (int fd);
 extern SCM scm_open_file (SCM filename, SCM modes);
 extern SCM scm_fdes_to_port (int fdes, char *mode, SCM name);
-extern char *scm_fport_drain_input (SCM port, int *count_return);
 extern void scm_init_fports SCM_P ((void));
 
 #endif  /* FPORTSH */

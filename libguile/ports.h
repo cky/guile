@@ -2,7 +2,7 @@
 
 #ifndef PORTSH
 #define PORTSH
-/*	Copyright (C) 1995,1996,1997,1998 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996,1997,1998,1999 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -53,14 +53,17 @@
 
 #define SCM_INITIAL_CBUF_SIZE 4
 
-struct scm_port_table
+/* C representation of a Scheme port.  */
+
+typedef struct 
 {
   SCM port;			/* Link back to the port object.  */
   int entry;			/* Index in port table. */
   int revealed;			/* 0 not revealed, > 1 revealed.
 				 * Revealed ports do not get GC'd.
 				 */
-  /* ptob specific data.  may be SCM data or cast to a pointer to C data.  */
+  /* data for the underlying port implementation.  may be an SCM cell or 
+     cast to a pointer to C data.  */
   SCM stream;
 
   SCM file_name;		/* debugging support.  */
@@ -77,9 +80,9 @@ struct scm_port_table
      it reaches read_end.  */
 
   unsigned char *read_buf;	/* buffer start.  */
-  unsigned char *read_pos;      /* the next unread char.  */
+  const unsigned char *read_pos;/* the next unread char.  */
   unsigned char *read_end;      /* pointer to last buffered char + 1.  */
-  int read_buf_size;		/* size of the buffer.  */
+  off_t read_buf_size;		/* size of the buffer.  */
 
   /* write requests are saved into this buffer at write_pos until it
      reaches write_buf + write_buf_size, then the ptob flush is
@@ -88,21 +91,32 @@ struct scm_port_table
   unsigned char *write_buf;	/* buffer start.  */
   unsigned char *write_pos;     /* pointer to last buffered char + 1.  */
   unsigned char *write_end;     /* pointer to end of buffer + 1.  */
-  int write_buf_size;		/* size of the buffer.  */
+  off_t write_buf_size;		/* size of the buffer.  */
 
   unsigned char shortbuf;       /* buffer for "unbuffered" streams.  */
 
-  int write_needs_seek;		/* whether port position needs to be adjusted
-				   before writing to it.  */
+  int rw_random;                /* true if the port is bidirectional and
+				   random access.  implies that the buffers
+				   must be flushed before switching between
+				   reading and writing.  */
+
+  int rw_active;                /* for bidirectional random ports, indicates
+				   which of the buffers is currently in use.
+				   can be SCM_PORT_WRITE, SCM_PORT_READ,
+				   or 0.  */
 
   /* a completely separate buffer which is only used for un-read chars
      and strings.  */
   unsigned char *cp;	        /* where to put and get unget chars */
   unsigned char *cbufend;	/* points after this struct */
   unsigned char cbuf[SCM_INITIAL_CBUF_SIZE]; /* must be last: may grow */
-};
+} scm_port;
 
-extern struct scm_port_table **scm_port_table;
+/* values for the rw_active flag.  */
+#define SCM_PORT_READ 1
+#define SCM_PORT_WRITE 2
+
+extern scm_port **scm_port_table;
 extern int scm_port_table_size; /* Number of ports in scm_port_table.  */
 
 
@@ -133,7 +147,7 @@ extern int scm_port_table_size; /* Number of ports in scm_port_table.  */
 #define SCM_OUTPORTP(x) (((0x7f | SCM_WRTNG) & SCM_CAR(x))==(scm_tc7_port | SCM_WRTNG))
 #define SCM_OPENP(x) (SCM_OPN & SCM_CAR(x))
 #define SCM_CLOSEDP(x) (!SCM_OPENP(x))
-#define SCM_PTAB_ENTRY(x) ((struct scm_port_table *)SCM_CDR(x))
+#define SCM_PTAB_ENTRY(x) ((scm_port *) SCM_CDR(x))
 #define SCM_SETPTAB_ENTRY(x,ent) SCM_SETCDR ((x), (SCM)(ent))
 #define SCM_STREAM(x) SCM_PTAB_ENTRY(x)->stream
 #define SCM_SETSTREAM(x,s) (SCM_PTAB_ENTRY(x)->stream = (SCM) s)
@@ -194,9 +208,11 @@ typedef struct scm_ptobfuns
   int (*print) (SCM exp, SCM port, scm_print_state *pstate);
   SCM (*equalp) (SCM, SCM);
   void (*fflush) (SCM port);
+  void (*read_flush) (SCM port);
   int (*fclose) (SCM port);
   int (*fill_buffer) (SCM port);
   off_t (*seek) (SCM port, off_t OFFSET, int WHENCE);
+  void (*ftruncate) (SCM port, off_t length);
   int (*input_waiting_p) (SCM port);
 } scm_ptobfuns;
 
@@ -221,7 +237,7 @@ extern SCM scm_current_load_port SCM_P ((void));
 extern SCM scm_set_current_input_port SCM_P ((SCM port));
 extern SCM scm_set_current_output_port SCM_P ((SCM port));
 extern SCM scm_set_current_error_port SCM_P ((SCM port));
-extern struct scm_port_table * scm_add_to_port_table SCM_P ((SCM port));
+extern scm_port * scm_add_to_port_table SCM_P ((SCM port));
 extern void scm_remove_from_port_table SCM_P ((SCM port));
 extern void scm_grow_port_cbuf SCM_P ((SCM port, size_t requested));
 extern SCM scm_pt_size SCM_P ((void));
@@ -250,6 +266,8 @@ extern SCM scm_peek_char SCM_P ((SCM port));
 extern SCM scm_unread_char SCM_P ((SCM cobj, SCM port));
 extern SCM scm_unread_string SCM_P ((SCM str, SCM port));
 extern char *scm_generic_fgets SCM_P ((SCM port, int *len));
+extern SCM scm_lseek (SCM object, SCM offset, SCM whence);
+extern SCM scm_ftruncate (SCM port, SCM length);
 extern SCM scm_port_line SCM_P ((SCM port));
 extern SCM scm_set_port_line_x SCM_P ((SCM port, SCM line));
 extern SCM scm_port_column SCM_P ((SCM port));

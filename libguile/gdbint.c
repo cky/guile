@@ -208,11 +208,10 @@ gdb_read (str)
     }
   SCM_BEGIN_FOREIGN_BLOCK;
   unmark_port (gdb_input_port);
-  /* Replace string in input port and reset stream */
-  ans = SCM_CDR (SCM_STREAM (gdb_input_port));
-  SCM_SETCHARS (ans, str);
-  SCM_SETLENGTH (ans, strlen (str), scm_tc7_string);
-  SCM_SETCAR (SCM_STREAM (gdb_input_port), SCM_INUM0);
+  scm_lseek (gdb_input_port, SCM_INUM0, SCM_MAKINUM (SEEK_SET));
+  scm_puts (str, gdb_input_port);
+  scm_ftruncate (gdb_input_port, SCM_UNDEFINED);
+  scm_lseek (gdb_input_port, SCM_INUM0, SCM_MAKINUM (SEEK_SET));
   /* Read one object */
   tok_buf_mark_p = SCM_GC8MARKP (tok_buf);
   SCM_CLRGC8MARK (tok_buf);
@@ -271,10 +270,10 @@ gdb_print (obj)
   RESET_STRING;
   SCM_BEGIN_FOREIGN_BLOCK;
   /* Reset stream */
-  SCM_SETCAR (SCM_STREAM (gdb_output_port), SCM_INUM0);
+  scm_lseek (gdb_output_port, SCM_INUM0, SCM_MAKINUM (SEEK_SET));
   scm_write (obj, gdb_output_port);
-  scm_display (SCM_MAKICHR (0), gdb_output_port);
-  SEND_STRING (SCM_CHARS (SCM_CDR (SCM_STREAM (gdb_output_port))));
+  scm_ftruncate (gdb_output_port, SCM_UNDEFINED);
+  SEND_STRING (SCM_CHARS (SCM_STREAM (gdb_output_port)));
   SCM_END_FOREIGN_BLOCK;
   return 0;
 }
@@ -311,14 +310,14 @@ scm_init_gdbint ()
   scm_print_carefully_p = 0;
   
   port = scm_mkstrport (SCM_INUM0,
-			scm_make_string (SCM_MAKINUM (80), SCM_UNDEFINED),
+			scm_make_string (SCM_MAKINUM (0), SCM_UNDEFINED),
 			SCM_OPN | SCM_WRTNG,
 			s);
   gdb_output_port = scm_permanent_object (port);
   
   port = scm_mkstrport (SCM_INUM0,
 			scm_make_string (SCM_MAKINUM (0), SCM_UNDEFINED),
-			SCM_OPN | SCM_RDNG,
+			SCM_OPN | SCM_RDNG | SCM_WRTNG,
 			s);
   gdb_input_port = scm_permanent_object (port);
 

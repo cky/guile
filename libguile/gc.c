@@ -1922,8 +1922,8 @@ scm_init_storage (scm_sizet init_heap_size)
     return 1;
 
   /* Initialise the list of ports.  */
-  scm_port_table = (struct scm_port_table **) malloc ((long) (sizeof (struct scm_port_table)
-							      * scm_port_table_room));
+  scm_port_table = (scm_port **)
+    malloc (sizeof (scm_port *) * scm_port_table_room);
   if (!scm_port_table)
     return 1;
 

@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996,1998 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996,1998,1999 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -72,16 +72,15 @@ prinsfpt (exp, port, pstate)
   return !0;
 }
 
-/* called with a single char at most.  */
 static void
 sfflush (SCM port)
 {
-  struct scm_port_table *pt = SCM_PTAB_ENTRY (port);
+  scm_port *pt = SCM_PTAB_ENTRY (port);
   SCM stream = pt->stream;
 
   if (pt->write_pos > pt->write_buf)
     {
-      /* write the char. */
+      /* write the byte. */
       scm_apply (SCM_VELTS (stream)[0], SCM_MAKICHR (*pt->write_buf),
 		 scm_listofnull);
       pt->write_pos = pt->write_buf;
@@ -94,6 +93,11 @@ sfflush (SCM port)
 	  scm_apply (f, SCM_EOL, SCM_EOL);
       }
     }
+}
+
+static void
+sf_read_flush (SCM port)
+{
 }
 
 /* string output proc (element 1) is no longer called.  */
@@ -138,7 +142,7 @@ scm_make_soft_port (pv, modes)
      SCM pv;
      SCM modes;
 {
-  struct scm_port_table * pt;
+  scm_port *pt;
   SCM z;
   SCM_ASSERT (SCM_NIMP (pv) && SCM_VECTORP (pv) && 5 == SCM_LENGTH (pv), pv, SCM_ARG1, s_make_soft_port);
   SCM_ASSERT (SCM_NIMP (modes) && SCM_ROSTRINGP (modes), modes, SCM_ARG2, s_make_soft_port);
@@ -149,10 +153,11 @@ scm_make_soft_port (pv, modes)
   SCM_SETCAR (z, scm_tc16_sfport | scm_mode_bits (SCM_ROCHARS (modes)));
   SCM_SETPTAB_ENTRY (z, pt);
   SCM_SETSTREAM (z, pv);
-  pt->read_buf = pt->read_pos = pt->read_end = &pt->shortbuf;
+  pt->read_pos = pt->read_buf = pt->read_end = &pt->shortbuf;
   pt->write_buf = pt->write_pos = &pt->shortbuf;
   pt->read_buf_size = pt->write_buf_size = 1;
   pt->write_end = pt->write_buf + pt->write_buf_size;
+  pt->rw_random = 0;
   SCM_ALLOW_INTS;
   return z;
 }
@@ -172,8 +177,10 @@ scm_ptobfuns scm_sfptob =
   prinsfpt,
   0,
   sfflush,
+  sf_read_flush,
   sfclose,
   sf_fill_buffer,
+  0,
   0,
   0,
 };

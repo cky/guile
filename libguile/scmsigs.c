@@ -434,8 +434,25 @@ scm_init_scmsigs ()
       got_signal[i] = 0;
 #ifdef HAVE_SIGACTION
       orig_handlers[i].sa_handler = SIG_ERR;
+
 #else
       orig_handlers[i] = SIG_ERR;
+#endif
+
+#ifdef HAVE_RESTARTS
+      /* ensure that system calls will be restarted for all signals.  */
+      /* sigintterupt would be simpler, but it seems better to avoid
+	 dependency on another system call.  */
+      {
+	struct sigaction action;
+
+	sigaction (i, NULL, &action);
+	if (!(action.sa_flags & SA_RESTART))
+	  {
+	    action.sa_flags &= SA_RESTART;
+	    sigaction (i, &action, NULL);
+	  }
+      }
 #endif
     }
 

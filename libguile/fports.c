@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996,1997,1998 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996,1997,1998,1999 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -68,7 +68,7 @@ static void
 scm_fport_buffer_add (SCM port, int read_size, int write_size)
 {
   struct scm_fport *fp = SCM_FSTREAM (port);
-  struct scm_port_table *pt = SCM_PTAB_ENTRY (port);
+   scm_port *pt = SCM_PTAB_ENTRY (port);
   char *s_scm_fport_buffer_add = "scm_fport_buffer_add";
 
   if (read_size == -1 || write_size == -1)
@@ -91,19 +91,23 @@ scm_fport_buffer_add (SCM port, int read_size, int write_size)
 
   if (SCM_INPORTP (port) && read_size > 0)
     {
-      pt->read_buf = scm_must_malloc (read_size, s_scm_fport_buffer_add);
+      pt->read_buf = malloc (read_size);
+      if (pt->read_buf == NULL)
+	scm_memory_error (s_scm_fport_buffer_add);
       pt->read_pos = pt->read_end = pt->read_buf;
       pt->read_buf_size = read_size;
     }
   else
     {
-      pt->read_buf = pt->read_pos = pt->read_end = &pt->shortbuf;
+      pt->read_pos = pt->read_buf = pt->read_end = &pt->shortbuf;
       pt->read_buf_size = 1;
     }
 
   if (SCM_OUTPORTP (port) && write_size > 0)
     {
-      pt->write_buf = scm_must_malloc (write_size, s_scm_fport_buffer_add);
+      pt->write_buf = malloc (write_size);
+      if (pt->write_buf == NULL)
+	scm_memory_error (s_scm_fport_buffer_add);
       pt->write_pos = pt->write_buf;
       pt->write_buf_size = write_size;
     }
@@ -125,7 +129,7 @@ SCM
 scm_setvbuf (SCM port, SCM mode, SCM size)
 {
   int cmode, csize;
-  struct scm_port_table *pt;
+  scm_port *pt;
 
   port = SCM_COERCE_OUTPORT (port);
 
@@ -279,7 +283,7 @@ scm_fdes_to_port (int fdes, char *mode, SCM name)
 {
   long mode_bits = scm_mode_bits (mode);
   SCM port;
-  struct scm_port_table * pt;
+  scm_port *pt;
 
   SCM_NEWCELL (port);
   SCM_DEFER_INTS;
@@ -289,11 +293,12 @@ scm_fdes_to_port (int fdes, char *mode, SCM name)
 
   {
     struct scm_fport *fp
-      = (struct scm_fport *) scm_must_malloc (sizeof (struct scm_fport),
-					      "scm_fdes_to_port");
+      = (struct scm_fport *) malloc (sizeof (struct scm_fport));
+    if (fp == NULL)
+      scm_memory_error ("scm_fdes_to_port");
     fp->fdes = fdes;
-    fp->random = SCM_FDES_RANDOM_P (fdes);
-
+    pt->rw_random = (mode_bits & SCM_RDNG) && (mode_bits & SCM_WRTNG)
+      && SCM_FDES_RANDOM_P (fdes);
     SCM_SETSTREAM (port, fp);
     if (mode_bits & SCM_BUF0)
       scm_fport_buffer_add (port, 0, 0);
@@ -341,18 +346,6 @@ fport_input_waiting_p (SCM port)
 		  "Not fully implemented on this platform",
 		  SCM_EOL);
 #endif
-}
-
-/* Clear an fport's read buffer and return buffered chars.  */
-char *
-scm_fport_drain_input (SCM port, int *count_return)
-{
-  struct scm_port_table *pt = SCM_PTAB_ENTRY (port);
-  char *result = pt->read_pos;
-
-  *count_return = pt->read_end - pt->read_pos;
-  pt->read_pos = pt->read_end;
-  return result;
 }
 
 
@@ -419,17 +412,9 @@ static int
 fport_fill_buffer (SCM port)
 {
   int count;
-  struct scm_port_table *pt = SCM_PTAB_ENTRY (port);
+  scm_port *pt = SCM_PTAB_ENTRY (port);
   struct scm_fport *fp = SCM_FSTREAM (port);
 
-  if (fp->random)
-    {
-      /* flush any write buffer first: fix file position and allow the
-	 newly written chars to be read.  */
-      if (pt->write_pos > pt->write_buf)
-	local_fflush (port);
-      pt->write_needs_seek = 1;
-    }
 #ifdef GUILE_ISELECT
   fport_wait_for_input (port);
 #endif
@@ -450,8 +435,17 @@ static off_t
 local_seek (SCM port, off_t offset, int whence)
 {
   struct scm_fport *fp = SCM_FSTREAM (port);
-
+  
   return lseek (fp->fdes, offset, whence);
+}
+
+static void
+local_ftruncate (SCM port, off_t length)
+{
+  struct scm_fport *fp = SCM_FSTREAM (port);
+
+  if (ftruncate (fp->fdes, length) == -1)
+    scm_syserror ("ftruncate");
 }
 
 /* becomes 1 when process is exiting: exception handling is disabled. */
@@ -460,7 +454,7 @@ extern int terminating;
 static void
 local_fflush (SCM port)
 {
-  struct scm_port_table *pt = SCM_PTAB_ENTRY (port);
+  scm_port *pt = SCM_PTAB_ENTRY (port);
   struct scm_fport *fp = SCM_FSTREAM (port);
   char *ptr = pt->write_buf;
   int init_size = pt->write_pos - pt->write_buf;
@@ -505,24 +499,50 @@ local_fflush (SCM port)
       remaining -= count;
     }
   pt->write_pos = pt->write_buf;
+  pt->rw_active = 0;
+}
+
+/* clear the read buffer and adjust the file position for unread bytes.
+   this is only called if the port has rw_random set.  */
+static void
+local_read_flush (SCM port)
+{
+  struct scm_fport *fp = SCM_FSTREAM (port);
+  scm_port *pt = SCM_PTAB_ENTRY (port);
+  int offset = pt->read_end - pt->read_pos;
+
+  if (SCM_CRDYP (port))
+    {
+      offset += SCM_N_READY_CHARS (port);
+      SCM_CLRDY (port);
+    }
+  if (offset > 0)
+    {
+      pt->read_pos = pt->read_end;
+      /* will throw error if unread-char used at beginning of file
+	 then attempting to write.  seems correct.  */
+      if (lseek (fp->fdes, -offset, SEEK_CUR) == -1)
+	scm_syserror ("local_read_flush");
+    }
+  pt->rw_active = 0;
 }
 
 static int
 local_fclose (SCM port)
 {
   struct scm_fport *fp = SCM_FSTREAM (port);
-  struct scm_port_table *pt = SCM_PTAB_ENTRY (port);
+  scm_port *pt = SCM_PTAB_ENTRY (port);
   int rv;
-  
+
   local_fflush (port);
   SCM_SYSCALL (rv = close (fp->fdes));
   if (rv == -1 && errno != EBADF)
     scm_syserror ("local_fclose");
   if (pt->read_buf != &pt->shortbuf)
-    scm_must_free (pt->read_buf);
+    free (pt->read_buf);
   if (pt->write_buf != &pt->shortbuf)
-    scm_must_free (pt->write_buf);
-  scm_must_free ((char *) fp);
+    free (pt->write_buf);
+  free ((char *) fp);
   return rv;
 }
 
@@ -533,9 +553,11 @@ scm_ptobfuns scm_fptob =
   prinfport,
   0,
   local_fflush,
+  local_read_flush,
   local_fclose,
   fport_fill_buffer,
   local_seek,
+  local_ftruncate,
   fport_input_waiting_p,
 };
 

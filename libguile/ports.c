@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996,1997,1998 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996,1997,1998,1999 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -107,8 +107,11 @@ scm_newptob (ptob)
       scm_ptobs[scm_numptob].print = ptob->print;
       scm_ptobs[scm_numptob].equalp = ptob->equalp;
       scm_ptobs[scm_numptob].fflush = ptob->fflush;
+      scm_ptobs[scm_numptob].read_flush = ptob->read_flush;
       scm_ptobs[scm_numptob].fclose = ptob->fclose;
       scm_ptobs[scm_numptob].fill_buffer = ptob->fill_buffer;
+      scm_ptobs[scm_numptob].seek = ptob->seek;
+      scm_ptobs[scm_numptob].ftruncate = ptob->ftruncate;
       scm_ptobs[scm_numptob].input_waiting_p = ptob->input_waiting_p;
       scm_numptob++;
     }
@@ -135,7 +138,7 @@ scm_char_ready_p (port)
     return SCM_BOOL_T;
   else
     {
-      struct scm_port_table *pt = SCM_PTAB_ENTRY (port);
+      scm_port *pt = SCM_PTAB_ENTRY (port);
       
       if (pt->read_pos < pt->read_end)
 	return SCM_BOOL_T;
@@ -144,7 +147,7 @@ scm_char_ready_p (port)
 	  scm_ptobfuns *ptob = &scm_ptobs[SCM_PTOBNUM (port)];
 
 	  if (ptob->input_waiting_p)
-	    return ((ptob->input_waiting_p) (port)) ? SCM_BOOL_T : SCM_BOOL_F;
+	    return (ptob->input_waiting_p (port)) ? SCM_BOOL_T : SCM_BOOL_F;
 	  else
 	    return SCM_BOOL_T;
 	}
@@ -156,35 +159,32 @@ SCM_PROC (s_drain_input, "drain-input", 1, 0, 0, scm_drain_input);
 SCM
 scm_drain_input (SCM port)
 {
-  char *fp_buf = NULL;
-  int fp_count = 0;
+  SCM result;
+  scm_port *pt = SCM_PTAB_ENTRY (port);
+  int p_count;
+  char *dst;
+  char *p_buf;
 
   SCM_ASSERT (SCM_NIMP (port) && SCM_OPINPORTP (port), port, SCM_ARG1,
 	      s_drain_input);
-  if (SCM_FPORTP (port))
-    {
-      fp_buf = scm_fport_drain_input (port, &fp_count);
-    }
-  {
-    int p_count = (SCM_CRDYP (port)) ? SCM_N_READY_CHARS (port) : 0;
-    SCM result = scm_makstr (p_count + fp_count, 0);
-    char *dst = SCM_CHARS (result);
-    char *p_buf = SCM_PTAB_ENTRY (port)->cp;
 
-    while (p_count > 0)
-      {
-	*dst++ = *p_buf--;
-	p_count--;
-      }
-    while (fp_count > 0)
-      {
-	*dst++ = *fp_buf++;
-	fp_count--;
-      }
-    
-    SCM_CLRDY (port);
-    return result;
-  }
+  p_count = (SCM_CRDYP (port)) ? SCM_N_READY_CHARS (port) : 0;
+  result = scm_makstr (p_count + pt->read_end - pt->read_pos, 0);
+  dst = SCM_CHARS (result);
+  p_buf = SCM_PTAB_ENTRY (port)->cp;
+
+  while (p_count > 0)
+    {
+      *dst++ = *p_buf--;
+      p_count--;
+    }
+  SCM_CLRDY (port);
+
+  while (pt->read_pos < pt->read_end)
+    {
+      *dst++ = *(pt->read_pos++);
+    }
+  return result;
 }
 
 
@@ -263,47 +263,52 @@ scm_set_current_error_port (port)
 }
 
 
-/* The port table --- a table of all the open ports.  */
+/* The port table --- an array of pointers to ports.  */
 
-struct scm_port_table **scm_port_table;
+scm_port **scm_port_table;
 
 int scm_port_table_size = 0;	/* Number of ports in scm_port_table.  */
 int scm_port_table_room = 20;	/* Size of the array.  */
 
 /* Add a port to the table.  */
 
-struct scm_port_table *
+scm_port *
 scm_add_to_port_table (port)
      SCM port;
 {
+  scm_port *entry;
+
   if (scm_port_table_size == scm_port_table_room)
     {
       void *newt = realloc ((char *) scm_port_table,
-			    (scm_sizet) (sizeof (struct scm_port_table *)
+			    (scm_sizet) (sizeof (scm_port *)
 					 * scm_port_table_room * 2));
       if (newt == NULL)
-	{
-	  scm_memory_error ("scm_add_to_port_table");
-	}
-      scm_port_table = (struct scm_port_table **) newt;
+	scm_memory_error ("scm_add_to_port_table");
+      scm_port_table = (scm_port **) newt;
       scm_port_table_room *= 2;
     }
-  scm_port_table[scm_port_table_size] = ((struct scm_port_table *)
-					 scm_must_malloc (sizeof (struct scm_port_table),
-							  "system port table"));
-  scm_port_table[scm_port_table_size]->port = port;
-  scm_port_table[scm_port_table_size]->entry = scm_port_table_size;
-  scm_port_table[scm_port_table_size]->revealed = 0;
-  scm_port_table[scm_port_table_size]->stream = 0;
-  scm_port_table[scm_port_table_size]->file_name = SCM_BOOL_F;
-  scm_port_table[scm_port_table_size]->line_number = 0;
-  scm_port_table[scm_port_table_size]->column_number = 0;
-  scm_port_table[scm_port_table_size]->cp
-    = scm_port_table[scm_port_table_size]->cbuf;
-  scm_port_table[scm_port_table_size]->cbufend
-    = &scm_port_table[scm_port_table_size]->cbuf[SCM_INITIAL_CBUF_SIZE];
-  scm_port_table[scm_port_table_size]->write_needs_seek = 0;
-  return scm_port_table[scm_port_table_size++];
+  entry = (scm_port *) malloc (sizeof (scm_port));
+  if (entry == NULL)
+    scm_memory_error ("scm_add_to_port_table");
+
+  entry->port = port;
+  entry->entry = scm_port_table_size;
+  entry->revealed = 0;
+  entry->stream = 0;
+  entry->file_name = SCM_BOOL_F;
+  entry->line_number = 0;
+  entry->column_number = 0;
+  entry->cp
+    = entry->cbuf;
+  entry->cbufend
+    = &entry->cbuf[SCM_INITIAL_CBUF_SIZE];
+  entry->rw_active = 0;
+
+  scm_port_table[scm_port_table_size] = entry;
+  scm_port_table_size++;
+
+  return entry;
 }
 
 /* Remove a port from the table.  */
@@ -312,15 +317,12 @@ void
 scm_remove_from_port_table (port)
      SCM port;
 {
-  struct scm_port_table *p = SCM_PTAB_ENTRY (port);
+  scm_port *p = SCM_PTAB_ENTRY (port);
   int i = p->entry;
   /* Error if not found: too violent?  May occur in GC.  */
   if (i >= scm_port_table_size)
     scm_wta (port, "Port not in table", "scm_remove_from_port_table");
-  scm_mallocated -= (sizeof (*p)
-		     + (p->cbufend - p->cbuf)
-		     - SCM_INITIAL_CBUF_SIZE);
-  scm_must_free ((char *)p);
+  free (p);
   /* Since we have just freed slot i we can shrink the table by moving
      the last entry to that slot... */
   if (i < scm_port_table_size - 1)
@@ -337,7 +339,7 @@ scm_grow_port_cbuf (port, requested)
   SCM port;
   size_t requested;
 {
-  struct scm_port_table *p = SCM_PTAB_ENTRY (port);
+  scm_port *p = SCM_PTAB_ENTRY (port);
   int size = p->cbufend - p->cbuf;
   int new_size = size * 3 / 2;
   if (new_size < requested)
@@ -626,7 +628,13 @@ scm_getc (port)
      SCM port;
 {
   int c;
+  scm_port *pt = SCM_PTAB_ENTRY (port);
+  scm_ptobfuns *ptob = &scm_ptobs[SCM_PTOBNUM (port)];
 
+  if (pt->rw_active == SCM_PORT_WRITE)
+    {
+      ptob->fflush (port);
+    }
   if (SCM_CRDYP (port))
     {
       c = SCM_CGETUN (port);
@@ -634,19 +642,18 @@ scm_getc (port)
     }
   else
     {
-      struct scm_port_table *pt = SCM_PTAB_ENTRY (port);
-
       if (pt->read_pos < pt->read_end)
 	{
 	  c = *(pt->read_pos++);
 	}
       else
 	{
-	  scm_sizet i = SCM_PTOBNUM (port);
-
-	  c = (scm_ptobs [i].fill_buffer) (port);
+	  c = ptob->fill_buffer (port);
 	}
     }
+
+  if (pt->rw_random)
+    pt->rw_active = SCM_PORT_READ;
 
   if (c == '\n')
     {
@@ -664,48 +671,22 @@ scm_getc (port)
   return c;
 }
 
-/* a macro used whenever writing to a port.  in the case of fports,
-   if fdes is random access and the last access was a
-   read, then clear the read and put-back buffers and adjust the file position
-   to account for unread chars.  */
-#define SCM_MAYBE_DRAIN_INPUT(port, pt, ptob)\
-{\
-  if (pt->write_needs_seek)\
-    {\
-      int offset = pt->read_end - pt->read_pos;\
-      if (SCM_CRDYP (port))\
-	{\
-	  offset += SCM_N_READY_CHARS (port);\
-	  SCM_CLRDY (port);\
-	}\
-      if (offset > 0)\
-        {\
-          pt->read_pos = pt->read_end;\
-          /* will throw error if unread-char used at beginning of file\
-             then attempting to write.  seems correct.  */\
-          if ((ptob->seek) (port, -offset, SEEK_CUR) == -1)\
-    	    scm_syserror ("scm_maybe_drain_input");\
-        }\
-      pt->write_needs_seek = 0;\
-    }\
-}
-
 void 
 scm_putc (c, port)
      int c;
      SCM port;
 {
-  struct scm_port_table *pt = SCM_PTAB_ENTRY (port);  
+  scm_port *pt = SCM_PTAB_ENTRY (port);  
   scm_ptobfuns *ptob = &scm_ptobs[SCM_PTOBNUM (port)];
 
-  SCM_MAYBE_DRAIN_INPUT (port, pt, ptob)
+  if (pt->rw_active == SCM_PORT_READ)
+    ptob->read_flush (port);
   *(pt->write_pos++) = (char) c;
-  if (pt->write_pos == pt->write_end
-      || (c == '\n' 
-	  && (SCM_CAR (port) & SCM_BUFLINE)))
-    {
-      (ptob->fflush) (port);
-    }
+  if (pt->write_pos == pt->write_end)
+    ptob->fflush (port);
+  
+  if (pt->rw_random)
+    pt->rw_active = SCM_PORT_WRITE;
 }
 
 void 
@@ -713,21 +694,24 @@ scm_puts (s, port)
      char *s;
      SCM port;
 {
-  struct scm_port_table *pt = SCM_PTAB_ENTRY (port);
+  scm_port *pt = SCM_PTAB_ENTRY (port);
   scm_ptobfuns *ptob = &scm_ptobs[SCM_PTOBNUM (port)];
 
-  SCM_MAYBE_DRAIN_INPUT (port, pt, ptob);
+  if (pt->rw_active == SCM_PORT_READ)
+    ptob->read_flush (port);
   while (*s != 0)
     {
       *pt->write_pos++ = *s++;
       if (pt->write_pos == pt->write_end)
-	(ptob->fflush) (port);
+	ptob->fflush (port);
     }
-
   /* If the port is line-buffered, flush it.  */
   if ((SCM_CAR (port) & SCM_BUFLINE)
       && memchr (pt->write_buf, '\n', pt->write_pos - pt->write_buf))
-    (ptob->fflush) (port);
+    ptob->fflush (port);
+
+  if (pt->rw_random)
+    pt->rw_active = SCM_PORT_WRITE;
 }
 
 void 
@@ -736,10 +720,11 @@ scm_lfwrite (ptr, size, port)
      scm_sizet size;
      SCM port;
 {
-  struct scm_port_table *pt = SCM_PTAB_ENTRY (port);
+  scm_port *pt = SCM_PTAB_ENTRY (port);
   scm_ptobfuns *ptob = &scm_ptobs[SCM_PTOBNUM (port)];
 
-  SCM_MAYBE_DRAIN_INPUT (port, pt, ptob);
+  if (pt->rw_active == SCM_PORT_READ)
+    ptob->read_flush (port);
   while (size > 0)
     {
       int space = pt->write_end - pt->write_pos;
@@ -750,13 +735,15 @@ scm_lfwrite (ptr, size, port)
       size -= write_len;
       ptr += write_len;
       if (write_len == space)
-	(ptob->fflush) (port);
+	ptob->fflush (port);
     }
-
   /* If the port is line-buffered, flush it.  */
   if ((SCM_CAR (port) & SCM_BUFLINE)
       && memchr (pt->write_buf, '\n', pt->write_pos - pt->write_buf))
     (ptob->fflush) (port);
+
+  if (pt->rw_random)
+    pt->rw_active = SCM_PORT_WRITE;
 }
 
 
@@ -776,7 +763,12 @@ scm_ungetc (c, port)
      int c;
      SCM port;
 {
+  scm_port *pt = SCM_PTAB_ENTRY (port);
+
   SCM_CUNGET (c, port);
+
+  if (pt->rw_random)
+    pt->rw_active = SCM_PORT_READ;
 
   if (c == '\n')
     {
@@ -867,6 +859,80 @@ scm_unread_string (str, port)
   scm_ungets (SCM_ROUCHARS (str), SCM_LENGTH (str), port);
   
   return str;
+}
+
+SCM_PROC (s_lseek, "lseek", 3, 0, 0, scm_lseek);
+SCM 
+scm_lseek (SCM object, SCM offset, SCM whence)
+{
+  off_t off;
+  off_t rv;
+  int how;
+
+  object = SCM_COERCE_OUTPORT (object);
+
+  off = scm_num2long (offset, (char *)SCM_ARG2, s_lseek);
+  SCM_ASSERT (SCM_INUMP (whence), whence, SCM_ARG3, s_lseek);
+  how = SCM_INUM (whence);
+  if (how != SEEK_SET && how != SEEK_CUR && how != SEEK_END)
+    scm_out_of_range (s_lseek, whence);
+  if (SCM_NIMP (object) && SCM_OPPORTP (object))
+    {
+      scm_port *pt = SCM_PTAB_ENTRY (object);
+      scm_ptobfuns *ptob = scm_ptobs + SCM_PTOBNUM (object);
+
+      if (!ptob->seek)
+	scm_misc_error (s_lseek, "port is not seekable",
+			scm_cons (object, SCM_EOL));
+      else
+	{
+	  if (pt->rw_active == SCM_PORT_READ)
+	    ptob->read_flush (object);
+	  else if (pt->rw_active == SCM_PORT_WRITE)
+	    ptob->fflush (object);
+	  
+	  rv = ptob->seek (object, off, how);
+	  if (rv == -1)
+	    scm_syserror (s_lseek);
+	}
+    }
+  else /* file descriptor?.  */
+    {
+      SCM_ASSERT (SCM_INUMP (object), object, SCM_ARG1, s_lseek);
+      rv = lseek (SCM_INUM (object), off, how);
+      if (rv == -1)
+	scm_syserror (s_lseek);
+    }
+  return scm_long2num (rv);
+}
+
+SCM_PROC (s_ftruncate, "ftruncate", 1, 1, 0, scm_ftruncate);
+
+SCM
+scm_ftruncate (SCM port, SCM length)
+{
+  scm_port *pt;
+  scm_ptobfuns *ptob;
+
+  port = SCM_COERCE_OUTPORT (port);
+  SCM_ASSERT (SCM_NIMP (port) && SCM_OPOUTPORTP (port), port, SCM_ARG1,
+	      s_ftruncate);
+  pt = SCM_PTAB_ENTRY (port);
+  ptob = scm_ptobs + SCM_PTOBNUM (port);
+  if (!ptob->ftruncate)
+    scm_misc_error (s_ftruncate, "port is not truncatable",
+		    scm_cons (port, SCM_EOL));
+  if (SCM_UNBNDP (length))
+    {
+      length = scm_lseek (port, SCM_INUM0, SCM_MAKINUM (SEEK_CUR));
+    }
+  if (pt->rw_active == SCM_PORT_READ)
+    ptob->read_flush (port);
+  else if (pt->rw_active == SCM_PORT_WRITE)
+    ptob->fflush (port);
+
+  ptob->ftruncate (port, scm_num2long (length, (char *)SCM_ARG2, s_ftruncate));
+  return SCM_UNSPECIFIED;
 }
 
 SCM_PROC (s_port_line, "port-line", 1, 0, 0, scm_port_line);
@@ -1054,7 +1120,9 @@ static struct scm_ptobfuns void_port_ptob =
   print_void_port,
   0,				/* equal? */
   flush_void_port,
+  flush_void_port,
   close_void_port,
+  0,
   0,
   0,
   0,
@@ -1066,7 +1134,7 @@ scm_void_port (mode_str)
 {
   int mode_bits;
   SCM answer;
-  struct scm_port_table * pt;
+  scm_port * pt;
 
   SCM_NEWCELL (answer);
   SCM_DEFER_INTS;
@@ -1099,6 +1167,11 @@ scm_sys_make_void_port (mode)
 void
 scm_init_ports ()
 {
+  /* lseek() symbols.  */
+  scm_sysintern ("SEEK_SET", SCM_MAKINUM (SEEK_SET));
+  scm_sysintern ("SEEK_CUR", SCM_MAKINUM (SEEK_CUR));
+  scm_sysintern ("SEEK_END", SCM_MAKINUM (SEEK_END));
+
   scm_tc16_void_port = scm_newptob (&void_port_ptob);
 #include "ports.x"
 }
