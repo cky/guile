@@ -1,25 +1,94 @@
 @node SRFI Support
 @chapter Various SRFI Support Modules
 
-In addition to the string and character--set libraries --- documented in
-the next chapter --- Guile has support for a number of SRFIs.  This
+SRFI is an acronym for Scheme Request For Implementation.  The SRFI
+documents define a lot of syntactic and procedure extensions to standard
+Scheme as defined in R5RS.
+
+In addition to the string and character-set libraries---documented in
+the next chapter---Guile has support for a number of SRFIs.  This
 chapter gives an overview over the available SRFIs and some usage hints.
-For complete documentation, we advise you to get the relevant SRFI
-documents from the SRFI home page @url{http://srfi.schemers.org}.
+For complete documentation, design rationales and further examples, we
+advise you to get the relevant SRFI documents from the SRFI home page
+@url{http://srfi.schemers.org}.
 
 @menu
+* SRFI-0::                      cond-expand
 * SRFI-2::                      and-let*.
 * SRFI-6::                      Basic String Ports.
 * SRFI-8::                      receive.
 * SRFI-9::                      define-record-type.
-* SRFI-10::                     Hash--Comma Reader Extension.
+* SRFI-10::                     Hash-Comma Reader Extension.
 * SRFI-11::                     let-values and let-values*.
+* SRFI-13::                     String library.
+* SRFI-14::                     Character-set library.
+* SRFI-16::                     case-lambda
 * SRFI-17::                     Generalized set!
 @end menu
 
 
+@node SRFI-0
+@section SRFI-0 - cond-expand
+
+@c FIXME::martin: Review me!
+
+SRFI-0 defines a means for checking whether a Scheme implementation has
+support for a specified feature.  The syntactic form @code{cond-expand},
+which implements this means, has the following syntax.
+
+@example
+<cond-expand>
+  --> (cond-expand <cond-expand-clause>+)
+    | (cond-expand <cond-expand-clause>* (else <command-or-definition>))
+<cond-expand-clause>
+  --> (<feature-requirement> <command-or-definition>*)
+<feature-requirement>
+  --> <feature-identifier>
+    | (and <feature-requirement>*)
+    | (or <feature-requirement>*)
+    | (not <feature-requirement>)
+<feature-identifier>
+  --> <a symbol which is the name or alias of a SRFI>
+@end example
+
+When evaluated, this form checks all clauses in order, until it finds
+one whose feature requirement is satisfied.  Then the form expands into
+the commands or definitions in the clause.  A requirement is tested as
+follows:
+
+@itemize @bullet
+@item
+If it is a symbol, it is satisfied if the feature identifier is
+supported.
+
+@item
+If it is an @code{and} form, all requirements must be satisfied.  If no
+requirements are given, it is satisfied, too.
+
+@item
+If it is an @code{or} form, at least one of the requirements must be
+satisfied.  If no requirements are given, it is not satisfied.
+
+@item
+If it is a @code{not} form, the feature requirement must @emph{not} be
+satisfied.
+
+@item
+If the feature requirement is the keyword @code{else} and it is the last
+clause, it is satisfied if no prior clause matched.
+@end itemize
+
+Since @code{cond-expand} is needed to tell what a Scheme implementation
+provides, it must be accessible without using any
+implementation-dependant operations, such as @code{use-modules} in
+Guile.  Thus, it is not necessary to use any module to get access to
+this form.
+
+
 @node SRFI-2
-@section SRFI-2 -- and-let*
+@section SRFI-2 - and-let*
+
+@c FIXME::martin: Review me!
 
 The syntactic form @code{and-let*} combines the conditional evaluation
 form @code{and} with the binding form @var{let*}.  Each argument
@@ -29,9 +98,26 @@ the false value @code{#f}.
 
 Use @code{(use-modules (srfi srfi-2)} to access this syntax form.
 
+A short example will demonstrate how it works.  In the first expression,
+@var{x} will get bound to 1, but the next expression (@code{#f}) is
+false, so evaluation of the form is stopped, and @code{#f} is returned.
+In the next expression, @var{x} is bound to 1, @var{y} is bound to
+@code{#t} and since no expression in the binding section was false, the
+body of the @code{and-let*} expression is evaluated, which in this case
+returns the value of @var{x}.
+
+@lisp
+(and-let* ((x 1) (y #f)) 42)
+@result{}
+#f
+(and-let* ((x 1) (y #t)) x) 
+@result{}
+1
+@end lisp
+
 
 @node SRFI-6
-@section SRFI-6 -- Basic String Ports
+@section SRFI-6 - Basic String Ports
 
 SRFI-6 defines the procedures @code{open-input-string},
 @code{open-output-string} and @code{get-output-string}.  These
@@ -41,14 +127,14 @@ SRFI-6 will be factored out of the core library in the future, so using
 this module does not hurt, after all.
 
 @node SRFI-8
-@section SRFI-8 -- receive
+@section SRFI-8 - receive
 
-@code{receive} is a syntax for making the handling of multiple--value
+@code{receive} is a syntax for making the handling of multiple-value
 procedures easier.  It is documented in @xref{Multiple Values}.
 
 
 @node SRFI-9
-@section SRFI-9 -- define-record-type
+@section SRFI-9 - define-record-type
 
 This is the SRFI way for defining record types.  The Guile
 implementation is a layer above Guile's normal record construction
@@ -96,9 +182,9 @@ guile> (foo? 1)
 
 
 @node SRFI-10
-@section SRFI-10 -- Hash--Comma Reader Extension
+@section SRFI-10 - Hash-Comma Reader Extension
 
-@cindex hash--comma
+@cindex hash-comma
 @cindex #,()
 The module @code{(srfi srfi-10)} implements the syntax extension
 @code{#,()}, also called hash-comma, which is defined in SRFI-10.
@@ -128,20 +214,20 @@ Please note the quote before the @code{#,(file ...)} expression.  This
 is necessary because ports are not self-evaluating in Guile.
 
 @deffn procedure define-reader-ctor symbol proc
-Define @var{proc} as the reader constructor for hash--comma forms with a
+Define @var{proc} as the reader constructor for hash-comma forms with a
 tag @var{symbol}.  @var{proc} will be applied to the datum(s) following
-the tag in the hash--comma expression after the complete form has been
+the tag in the hash-comma expression after the complete form has been
 read in.  The result of @var{proc} is returned by the Scheme reader.
 @end deffn
 
 
 @node SRFI-11
-@section SRFI-11 -- let-values
+@section SRFI-11 - let-values
 
 This module implements the binding forms for multiple values
 @code{let-values} and @code{let-values*}.  These forms are similar to
 @code{let} and @code{let*} (REFFIXME), but they support binding of the
-values returned by multiple--valued expressions.
+values returned by multiple-valued expressions.
 
 Write @code{(use-modules (srfi srfi-11))} to make the bindings
 available.
@@ -157,12 +243,1111 @@ available.
 @code{let-values} performs all bindings simultaneously, which means that
 no expression in the binding clauses may refer to variables bound in the
 same clause list.  @code{let-values*}, on the other hand, performs the
-bindings sequentially, just like @code{let*} does for single--valued
+bindings sequentially, just like @code{let*} does for single-valued
 expressions.
 
 
+@node SRFI-13
+@section SRFI-13 - String Library
+
+In this section, we will describe all procedures defined in SRFI-13
+(string library) and implemented by the module @code{(srfi srfi-13)}.
+
+Note that only the procedures from SRFI-13 are documented here which are
+not already contained in Guile.  For procedures not documented here
+please refer to the relevant chapters in the Guile Reference Manual, for
+example the documentation of strings and string procedures (REFFIXME).
+
+All of the procedures defined in SRFI-13, which are not already included
+in the Guile core library, are implemented in the module @code{(srfi
+srfi-13)}.  The procedures which are both in Guile and in SRFI-13, but
+which are slightly extended, have been implemented in this module, and
+the bindings overwrite those in the Guile core.
+
+The procedures which are defined in the section @emph{Low-level
+procedures} of SRFI-13 for parsing optional string indices, substring
+specification checking and Knuth-Morris-Pratt-Searching are not
+implemented.
+
+The procedures @code{string-contains} and @code{string-contains-ci} are
+not implemented very efficiently at the moment.  This will be changed as
+soon as possible.
+
+@menu
+* Loading SRFI-13::             How to load SRFI-13 support.
+* SRFI-13 Predicates::          String predicates.
+* SRFI-13 Constructors::        String constructing procedures.
+* SRFI-13 List/String Conversion::  Conversion from/to lists.
+* SRFI-13 Selection::           Selection portions of strings.
+* SRFI-13 Modification::        Modfify strings in-place.
+* SRFI-13 Comparison::          Compare strings.
+* SRFI-13 Prefixes/Suffixes::   Detect common pre-/suffixes.
+* SRFI-13 Searching::           Searching for substrings.
+* SRFI-13 Case Mapping::        Mapping to lower-/upper-case.
+* SRFI-13 Reverse/Append::      Reverse and append strings.
+* SRFI-13 Fold/Unfold/Map::     Construct/deconstruct strings.
+* SRFI-13 Replicate/Rotate::    Replacate and rotate portions of strings.
+* SRFI-13 Miscellaneous::       Left-over string procedures.
+* SRFI-13 Filtering/Deleting::  Filter and delete characters from strings.
+@end menu
+
+
+@node Loading SRFI-13
+@subsection Loading SRFI-13
+
+When Guile is properly installed, SRFI-13 support can be loaded into a
+running Guile by using the @code{(srfi srfi-13)} module.
+
+@example
+$ guile
+guile> (use-modules (srfi srfi-13))
+guile>
+@end example
+
+When this step causes any errors, Guile is not properly installed.
+
+One possible reason is that Guile cannot find either the Scheme module
+file @file{srfi-13.scm}, or it cannot find the shared object file
+@file{libguile-srfi-srfi-13-14.so}.  Make sure that the former is in the
+Guile load path and that the latter is either installed in some default
+location like @file{/usr/local/lib} or that the directory it was
+installed to is in your @code{LTDL_LIBRARY_PATH}.  The same applies to
+@file{srfi-14.scm}.
+
+Now you can test whether the SRFI-13 procedures are working by calling
+the @code{string-concatenate} procedure.
+
+@example
+guile> (string-concatenate '("Hello" " " "World!"))
+"Hello World!"
+@end example
+
+@node SRFI-13 Predicates
+@subsection Predicates 
+
+In addition to the primitives @code{string?} and @code{string-null?},
+which are already in the Guile core, the string predicates
+@code{string-any} and @code{string-every} are defined by SRFI-13.
+
+@deffn primitive string-any pred s [start end]
+Check if the predicate @var{pred} is true for any character in
+the string @var{s}, proceeding from left (index @var{start}) to
+right (index @var{end}).  If @code{string-any} returns true,
+the returned true value is the one produced by the first
+successful application of @var{pred}.
+@end deffn
+
+@deffn primitive string-every pred s [start end]
+Check if the predicate @var{pred} is true for every character
+in the string @var{s}, proceeding from left (index @var{start})
+to right (index @var{end}).  If @code{string-every} returns
+true, the returned true value is the one produced by the final
+application of @var{pred} to the last character of @var{s}.
+@end deffn
+
+
+@c ===================================================================
+
+@node SRFI-13 Constructors
+@subsection Constructors
+
+SRFI-13 defines several procedures for constructing new strings.  In
+addition to @code{make-string} and @code{string} (available in the Guile
+core library), the procedure @code{string-tabulate} does exist.
+
+@deffn primitive string-tabulate proc len
+@var{proc} is an integer->char procedure.  Construct a string
+of size @var{len} by applying @var{proc} to each index to
+produce the corresponding string element.  The order in which
+@var{proc} is applied to the indices is not specified.
+@end deffn
+
+
+@c ===================================================================
+
+@node SRFI-13 List/String Conversion
+@subsection List/String Conversion
+
+The procedure @code{string->list} is extended by SRFI-13, that is why it
+is included in @code{(srfi srfi-13)}.  The other procedures are new.
+The Guile core already contains the procedure @code{list->string} for
+converting a list of characters into a string (REFFIXME).
+
+@deffn primitive string->list str [start end]
+Convert the string @var{str} into a list of characters.
+@end deffn
+
+@deffn primitive reverse-list->string chrs
+An efficient implementation of @code{(compose string->list
+reverse)}:
+
+@smalllisp
+(reverse-list->string '(#\a #\B #\c)) @result{} "cBa"
+@end smalllisp
+@end deffn
+
+@deffn primitive string-join ls [delimiter grammar]
+Append the string in the string list @var{ls}, using the string
+@var{delim} as a delimiter between the elements of @var{ls}.
+@var{grammar} is a symbol which specifies how the delimiter is
+placed between the strings, and defaults to the symbol
+@code{infix}.
+
+@table @code
+@item infix
+Insert the separator between list elements.  An empty string
+will produce an empty list.
+
+@item string-infix
+Like @code{infix}, but will raise an error if given the empty
+list.
+
+@item suffix
+Insert the separator after every list element.
+
+@item prefix
+Insert the separator before each list element.
+@end table
+@end deffn
+
+
+@c ===================================================================
+
+@node SRFI-13 Selection
+@subsection Selection
+
+These procedures are called @dfn{selectors}, because they access
+information about the string or select pieces of a given string.
+
+Additional selector procedures are documented in the Strings section
+(REFFIXME), like @code{string-length} or @code{string-ref}.
+
+@code{string-copy} is also available in core Guile, but this version
+accepts additional start/end indices.
+
+@deffn primitive string-copy str [start end]
+Return a freshly allocated copy of the string @var{str}.  If
+given, @var{start} and @var{end} delimit the portion of
+@var{str} which is copied.
+@end deffn
+
+@deffn primitive substring/shared str start [end]
+Like @code{substring}, but the result may share memory with the
+argument @var{str}.
+@end deffn
+
+@deffn primitive string-copy! target tstart s [start end]
+Copy the sequence of characters from index range [@var{start},
+@var{end}) in string @var{s} to string @var{target}, beginning
+at index @var{tstart}.  The characters are copied left-to-right
+or right-to-left as needed - the copy is guaranteed to work,
+even if @var{target} and @var{s} are the same string.  It is an
+error if the copy operation runs off the end of the target
+string.
+@end deffn
+
+@deffn primitive string-take s n
+@deffnx primitive string-take-right s n
+Return the @var{n} first/last characters of @var{s}.
+@end deffn
+
+@deffn primitive string-drop s n
+@deffnx primitive string-drop-right s n
+Return all but the first/last @var{n} characters of @var{s}.
+@end deffn
+
+@deffn primitive string-pad s len [chr start end]
+@deffnx primitive string-pad-right s len [chr start end]
+Take that characters from @var{start} to @var{end} from the
+string @var{s} and return a new string, right(left)-padded by the
+character @var{chr} to length @var{len}.  If the resulting
+string is longer than @var{len}, it is truncated on the right (left).
+@end deffn
+
+@deffn primitive string-trim s [char_pred start end]
+@deffnx primitive string-trim-right s [char_pred start end]
+@deffnx primitive string-trim-both s [char_pred start end]
+Trim @var{s} by skipping over all characters on the left/right/both
+sides of the string that satisfy the parameter @var{char_pred}:
+
+@itemize @bullet
+@item
+if it is the character @var{ch}, characters equal to
+@var{ch} are trimmed,
+
+@item
+if it is a procedure @var{pred} characters that
+satisfy @var{pred} are trimmed,
+
+@item
+if it is a character set, characters in that set are trimmed.
+@end itemize
+
+If called without a @var{char_pred} argument, all whitespace is
+trimmed.
+@end deffn
+
+
+@c ===================================================================
+
+@node SRFI-13 Modification
+@subsection Modification
+
+The procedure @code{string-fill!} is extended from R5RS because it
+accepts optional start/end indices.  This bindings shadows the procedure
+of the same name in the Guile core.  The second modification procedure
+@code{string-set!} is documented in the Strings section (REFFIXME).
+
+@deffn primitive string-fill! str chr [start end]
+Stores @var{chr} in every element of the given @var{str} and
+returns an unspecified value.
+@end deffn
+
+
+@c ===================================================================
+
+@node SRFI-13 Comparison
+@subsection Comparison
+
+The procedures in this section are used for comparing strings in
+different ways.  The comparison predicates differ from those in R5RS in
+that they do not only return @code{#t} or @code{#f}, but the mismatch
+index in the case of a true return value.
+
+@code{string-hash} and @code{string-hash-ci} are for calculating hash
+values for strings, useful for implementing fast lookup mechanisms.
+
+@deffn primitive string-compare s1 s2 proc_lt proc_eq proc_gt [start1 end1 start2 end2]
+@deffnx primitive string-compare-ci s1 s2 proc_lt proc_eq proc_gt [start1 end1 start2 end2]
+Apply @var{proc_lt}, @var{proc_eq}, @var{proc_gt} to the
+mismatch index, depending upon whether @var{s1} is less than,
+equal to, or greater than @var{s2}.  The mismatch index is the
+largest index @var{i} such that for every 0 <= @var{j} <
+@var{i}, @var{s1}[@var{j}] = @var{s2}[@var{j}] - that is,
+@var{i} is the first position that does not match.  The
+character comparison is done case-insensitively.
+@end deffn
+
+@deffn primitive string= s1 s2 [start1 end1 start2 end2]
+@deffnx primitive string<> s1 s2 [start1 end1 start2 end2]
+@deffnx primitive string< s1 s2 [start1 end1 start2 end2]
+@deffnx primitive string> s1 s2 [start1 end1 start2 end2]
+@deffnx primitive string<= s1 s2 [start1 end1 start2 end2]
+@deffnx primitive string>= s1 s2 [start1 end1 start2 end2]
+Compare @var{s1} and @var{s2} and return @code{#f} if the predicate
+fails.  Otherwise, the mismatch index is returned (or @var{end1} in the
+case of @code{string=}.
+@end deffn
+
+@deffn primitive string-ci= s1 s2 [start1 end1 start2 end2]
+@deffnx primitive string-ci<> s1 s2 [start1 end1 start2 end2]
+@deffnx primitive string-ci< s1 s2 [start1 end1 start2 end2]
+@deffnx primitive string-ci> s1 s2 [start1 end1 start2 end2]
+@deffnx primitive string-ci<= s1 s2 [start1 end1 start2 end2]
+@deffnx primitive string-ci>= s1 s2 [start1 end1 start2 end2]
+Compare @var{s1} and @var{s2} and return @code{#f} if the predicate
+fails.  Otherwise, the mismatch index is returned (or @var{end1} in the
+case of @code{string=}.  These are the case-insensitive variants.
+@end deffn
+
+@deffn primitive string-hash s [bound start end]
+@deffnx primitive string-hash-ci s [bound start end]
+Return a hash value of the string @var{s} in the range 0 @dots{}
+@var{bound} - 1.  @code{string-hash-ci} is the case-insensitive variant.
+@end deffn
+
+
+@c ===================================================================
+
+@node SRFI-13 Prefixes/Suffixes
+@subsection Prefixes/Suffixes
+
+Using these procedures you can determine whether a given string is a
+prefix or suffix of another string or how long a common prefix/suffix
+is.
+
+@deffn primitive string-prefix-length s1 s2 [start1 end1 start2 end2]
+@deffnx primitive string-prefix-length-ci s1 s2 [start1 end1 start2 end2]
+@deffnx primitive string-suffix-length s1 s2 [start1 end1 start2 end2]
+@deffnx primitive string-suffix-length-ci s1 s2 [start1 end1 start2 end2]
+Return the length of the longest common prefix/suffix of the two
+strings. @code{string-prefix-length-ci} and
+@code{string-suffix-length-ci} are the case-insensitive variants.
+@end deffn
+
+@deffn primitive string-prefix? s1 s2 [start1 end1 start2 end2]
+@deffnx primitive string-prefix-ci? s1 s2 [start1 end1 start2 end2]
+@deffnx primitive string-suffix? s1 s2 [start1 end1 start2 end2]
+@deffnx primitive string-suffix-ci? s1 s2 [start1 end1 start2 end2]
+Is @var{s1} a prefix/suffix of @var{s2}. @code{string-prefix-ci?} and
+@code{string-suffix-ci?} are the case-insensitive variants.
+@end deffn
+
+
+@c ===================================================================
+
+@node SRFI-13 Searching
+@subsection Searching
+
+Use these procedures to find out whether a string contains a given
+character or a given substring, or a character from a set of characters.
+
+@deffn primitive string-index s char_pred [start end]
+@deffnx primitive string-index-right s char_pred [start end]
+Search through the string @var{s} from left to right (right to left),
+returning the index of the first (last) occurence of a character which
+
+@itemize @bullet
+@item
+equals @var{char_pred}, if it is character,
+
+@item
+satisifies the predicate @var{char_pred}, if it is a 
+procedure,
+
+@item
+is in the set @var{char_pred}, if it is a character set.
+@end itemize
+@end deffn
+
+@deffn primitive string-skip s char_pred [start end]
+@deffnx primitive string-skip-right s char_pred [start end]
+Search through the string @var{s} from left to right (right to left),
+returning the index of the first (last) occurence of a character which
+
+@itemize @bullet
+@item
+does not equal @var{char_pred}, if it is character,
+
+@item
+does not satisify the predicate @var{char_pred}, if it is
+a procedure.
+
+@item
+is not in the set if @var{char_pred} is a character set.
+@end itemize
+@end deffn
+
+@deffn primitive string-count s char_pred [start end]
+Return the count of the number of characters in the string
+@var{s} which
+
+@itemize @bullet
+@item
+equals @var{char_pred}, if it is character,
+
+@item
+satisifies the predicate @var{char_pred}, if it is a procedure.
+
+@item
+is in the set @var{char_pred}, if it is a character set.
+@end itemize
+@end deffn
+
+@deffn primitive string-contains s1 s2 [start1 end1 start2 end2]
+@deffnx primitive string-contains-ci s1 s2 [start1 end1 start2 end2]
+Does string @var{s1} contain string @var{s2}?  Return the index
+in @var{s1} where @var{s2} occurs as a substring, or false.
+The optional start/end indices restrict the operation to the
+indicated substrings.
+
+@code{string-contains-ci} is the case-insensitive variant.
+@end deffn
+
+
+@c ===================================================================
+
+@node SRFI-13 Case Mapping
+@subsection Alphabetic Case Mapping
+
+These procedures convert the alphabetic case of strings.  They are
+similar to the procedures in the Guile core, but are extended to handle
+optional start/end indices.
+
+@deffn primitive string-upcase s [start end]
+@deffnx primitive string-upcase! s [start end]
+Upcase every character in @var{s}.  @code{string-upcase!} is the
+side-effecting variant.
+@end deffn
+
+@deffn primitive string-downcase s [start end]
+@deffnx primitive string-downcase! s [start end]
+Downcase every character in @var{s}.  @code{string-downcase!} is the
+side-effecting variant.
+@end deffn
+
+@deffn primitive string-titlecase s [start end]
+@deffnx primitive string-titlecase! s [start end]
+Upcase every first character in every word in @var{s}, downcase the
+other characters.  @code{string-titlecase!} is the side-effecting
+variant.
+@end deffn
+
+
+@c ===================================================================
+
+@node SRFI-13 Reverse/Append
+@subsection Reverse/Append
+
+One appending procedure, @code{string-append} is the same in R5RS and in
+SRFI-13, so it is not redefined.
+
+@deffn primitive string-reverse str [start end]
+@deffnx primitive string-reverse! str [start end]
+Reverse the string @var{str}.  The optional arguments
+@var{start} and @var{end} delimit the region of @var{str} to
+operate on.
+
+@code{string-reverse!} modifies the argument string and returns an
+unspecified value.
+@end deffn
+
+@deffn primitive string-append/shared ls @dots{}
+Like @code{string-append}, but the result may share memory
+with the argument strings.
+@end deffn
+
+@deffn primitive string-concatenate ls
+Append the elements of @var{ls} (which must be strings)
+together into a single string.  Guaranteed to return a freshly
+allocated string.
+@end deffn
+
+@deffn primitive string-concatenate/shared ls
+Like @code{string-concatenate}, but the result may share memory
+with the strings in the list @var{ls}.
+@end deffn
+
+@deffn primitive string-concatenate-reverse ls final_string end
+Without optional arguments, this procedure is equivalent to
+
+@smalllisp
+(string-concatenate (reverse ls))
+@end smalllisp
+
+If the optional argument @var{final_string} is specified, it is
+consed onto the beginning to @var{ls} before performing the
+list-reverse and string-concatenate operations.  If @var{end}
+is given, only the characters of @var{final_string} up to index
+@var{end} are used.
+
+Guaranteed to return a freshly allocated string.
+@end deffn
+
+@deffn primitive string-concatenate-reverse/shared ls final_string end
+Like @code{string-concatenate-reverse}, but the result may
+share memory with the the strings in the @var{ls} arguments.
+@end deffn
+
+
+@c ===================================================================
+
+@node SRFI-13 Fold/Unfold/Map
+@subsection Fold/Unfold/Map
+
+@code{string-map}, @code{string-for-each} etc. are for iterating over
+the characters a string is composed of.  The fold and unfold procedures
+are list iterators and constructors.
+
+@deffn primitive string-map proc s [start end]
+@var{proc} is a char->char procedure, it is mapped over
+@var{s}.  The order in which the procedure is applied to the
+string elements is not specified.
+@end deffn
+
+@deffn primitive string-map! proc s [start end]
+@var{proc} is a char->char procedure, it is mapped over
+@var{s}.  The order in which the procedure is applied to the
+string elements is not specified.  The string @var{s} is
+modified in-place, the return value is not specified.
+@end deffn
+
+@deffn primitive string-fold kons knil s [start end]
+@deffnx primitive string-fold-right kons knil s [start end]
+Fold @var{kons} over the characters of @var{s}, with @var{knil} as the
+terminating element, from left to right (or right to left, for
+@code{string-fold-right}).  @var{kons} must expect two arguments: The
+actual character and the last result of @var{kons}' application.
+@end deffn
+
+@deffn primitive string-unfold p f g seed [base make_final]
+@deffnx primitive string-unfold-right p f g seed [base make_final]
+These are the fundamental string constructors.
+@itemize @bullet
+@item @var{g} is used to generate a series of @emph{seed}
+values from the initial @var{seed}: @var{seed}, (@var{g}
+@var{seed}), (@var{g}^2 @var{seed}), (@var{g}^3 @var{seed}),
+@dots{}
+@item @var{p} tells us when to stop - when it returns true
+when applied to one of these seed values.
+@item @var{f} maps each seed value to the corresponding 
+character in the result string.  These chars are assembled into the
+string in a left-to-right (right-to-left) order.
+@item @var{base} is the optional initial/leftmost (rightmost)
+ portion of the constructed string; it default to the empty string.
+@item @var{make_final} is applied to the terminal seed
+value (on which @var{p} returns true) to produce the final/rightmost
+(leftmost) portion of the constructed string.  It defaults to
+@code{(lambda (x) "")}.
+@end itemize
+@end deffn
+
+@deffn primitive string-for-each proc s [start end]
+@var{proc} is mapped over @var{s} in left-to-right order.  The
+return value is not specified.
+@end deffn
+
+
+@c ===================================================================
+
+@node SRFI-13 Replicate/Rotate
+@subsection Replicate/Rotate
+
+These procedures are special substring procedures, which can also be
+used for replicating strings.  They are a bit tricky to use, but
+consider this code fragment, which replicates the input string
+@code{"foo"} so often that the resulting string has a length of six.
+
+@lisp
+(xsubstring "foo" 0 6)
+@result{}
+"foofoo"
+@end lisp
+
+@deffn primitive xsubstring s from [to start end]
+This is the @emph{extended substring} procedure that implements
+replicated copying of a substring of some string.
+
+@var{s} is a string, @var{start} and @var{end} are optional
+arguments that demarcate a substring of @var{s}, defaulting to
+0 and the length of @var{s}.  Replicate this substring up and
+down index space, in both the positive and negative directions.
+@code{xsubstring} returns the substring of this string
+beginning at index @var{from}, and ending at @var{to}, which
+defaults to @var{from} + (@var{end} - @var{start}).
+@end deffn
+
+@deffn primitive string-xcopy! target tstart s sfrom [sto start end]
+Exactly the same as @code{xsubstring}, but the extracted text
+is written into the string @var{target} starting at index
+@var{tstart}.  The operation is not defined if @code{(eq?
+@var{target} @var{s})} or these arguments share storage - you
+cannot copy a string on top of itself.
+@end deffn
+
+
+@c ===================================================================
+
+@node SRFI-13 Miscellaneous
+@subsection Miscellaneous
+
+@code{string-replace} is for replacing a portion of a string with
+another string and @code{string-tokenize} splits a string into a list of
+strings, breaking it up at a specified character.
+
+@deffn primitive string-replace s1 s2 [start1 end1 start2 end2]
+Return the string @var{s1}, but with the characters
+@var{start1} @dots{} @var{end1} replaced by the characters
+@var{start2} @dots{} @var{end2} from @var{s2}.
+@end deffn
+
+@deffn primitive string-tokenize s [token_char start end]
+Split the string @var{s} into a list of substrings, where each
+substring is a maximal non-empty contiguous sequence of
+characters equal to the character @var{token_char}, or
+whitespace, if @var{token_char} is not given.  If
+@var{token_char} is a character set, it is used for finding the
+token borders.
+@end deffn
+
+
+@c ===================================================================
+
+@node SRFI-13 Filtering/Deleting
+@subsection Filtering/Deleting
+
+@dfn{Filtering} means to remove all characters from a string which do
+not match a given criteria, @dfn{deleting} means the opposite.
+
+@deffn primitive string-filter s char_pred [start end]
+Filter the string @var{s}, retaining only those characters that
+satisfy the @var{char_pred} argument.  If the argument is a
+procedure, it is applied to each character as a predicate, if
+it is a character, it is tested for equality and if it is a
+character set, it is tested for membership.
+@end deffn
+
+@deffn primitive string-delete s char_pred [start end]
+Filter the string @var{s}, retaining only those characters that
+do not satisfy the @var{char_pred} argument.  If the argument
+is a procedure, it is applied to each character as a predicate,
+if it is a character, it is tested for equality and if it is a
+character set, it is tested for membership.
+@end deffn
+
+
+@node SRFI-14
+@section SRFI-14 - Character-set Library
+
+SRFI-14 defines the data type @dfn{character set}, and also defines a
+lot of procedures for handling this character type, and a few standard
+character sets like whitespace, alphabetic characters and others.
+
+All procedures from SRFI-14 (character-set library) are implemented in
+the module @code{(srfi srfi-14)}, as well as the standard variables
+@code{char-set:letter}, @code{char-set:digit} etc.
+
+@menu
+* Loading SRFI-14::             How to make charsets available.
+* SRFI-14 Character Set Data Type::  Underlying data type for charsets.
+* SRFI-14 Predicates/Comparison::  Charset predicates.
+* SRFI-14 Iterating Over Character Sets::  Enumerate charset elements.
+* SRFI-14 Creating Character Sets::  Makeing new charsets.
+* SRFI-14 Querying Character Sets::  Test charsets for membership etc.
+* SRFI-14 Character-Set Algebra::  Calculating new charsets.
+* SRFI-14 Standard Character Sets::  Variables containing predefined charsets.
+@end menu
+
+
+@node Loading SRFI-14
+@subsection Loading SRFI-14
+
+When Guile is properly installed, SRFI-14 support can be loaded into a
+running Guile by using the @code{(srfi srfi-14)} module.
+
+@example
+$ guile
+guile> (use-modules (srfi srfi-14))
+guile> (char-set-union (char-set #\f #\o #\o) (string->char-set "bar"))
+#<charset @{#\a #\b #\f #\o #\r@}>
+guile>
+@end example
+
+
+@node SRFI-14 Character Set Data Type
+@subsection Character Set Data Type
+
+The data type @dfn{charset} implements sets of characters (REFFIXME).
+Because the internal representation of character sets is not visible to
+the user, a lot of procedures for handling them are provided.
+
+Character sets can be created, extended, tested for the membership of a
+characters and be compared to other character sets.
+
+The Guile implementation of character sets deals with 8-bit characters.
+In the standard variables, only the ASCII part of the character range is
+really used, so that for example @dfn{Umlaute} and other accented
+characters are not considered to be letters.  In the future, as Guile
+may get support for international character sets, this will change, so
+don't rely on these ``features''.
+
+
+@c ===================================================================
+
+@node SRFI-14 Predicates/Comparison
+@subsection Predicates/Comparison
+
+Use these procedures for testing whether an object is a character set,
+or whether several character sets are equal or subsets of each other.
+@code{char-set-hash} can be used for calculating a hash value, maybe for
+usage in fast lookup procedures.
+
+@deffn primitive char-set? obj
+Return @code{#t} if @var{obj} is a character set, @code{#f}
+otherwise.
+@end deffn
+
+@deffn primitive char-set= cs1 @dots{}
+Return @code{#t} if all given character sets are equal.
+@end deffn
+
+@deffn primitive char-set<= cs1 @dots{}
+Return @code{#t} if every character set @var{cs}i is a subset
+of character set @var{cs}i+1.
+@end deffn
+
+@deffn primitive char-set-hash cs [bound]
+Compute a hash value for the character set @var{cs}.  If
+@var{bound} is given and not @code{#f}, it restricts the
+returned value to the range 0 @dots{} @var{bound - 1}.
+@end deffn
+
+
+@c ===================================================================
+
+@node SRFI-14 Iterating Over Character Sets
+@subsection Iterating Over Character Sets
+
+Character set cursors are a means for iterating over the members of a
+character sets.  After creating a character set cursor with
+@code{char-set-cursor}, a cursor can be dereferenced with
+@code{char-set-ref}, advanced to the next member with
+@code{char-set-cursor-next}.  Whether a cursor has passed past the last
+element of the set can be checked with @code{end-of-char-set?}.
+
+Additionally, mapping and (un-)folding procedures for character sets are
+provided.
+
+@deffn primitive char-set-cursor cs
+Return a cursor into the character set @var{cs}.
+@end deffn
+
+@deffn primitive char-set-ref cs cursor
+Return the character at the current cursor position
+@var{cursor} in the character set @var{cs}.  It is an error to
+pass a cursor for which @code{end-of-char-set?} returns true.
+@end deffn
+
+@deffn primitive char-set-cursor-next cs cursor
+Advance the character set cursor @var{cursor} to the next
+character in the character set @var{cs}.  It is an error if the
+cursor given satisfies @code{end-of-char-set?}.
+@end deffn
+
+@deffn primitive end-of-char-set? cursor
+Return @code{#t} if @var{cursor} has reached the end of a
+character set, @code{#f} otherwise.
+@end deffn
+
+@deffn primitive char-set-fold kons knil cs
+Fold the procedure @var{kons} over the character set @var{cs},
+initializing it with @var{knil}.
+@end deffn
+
+@deffn primitive char-set-unfold p f g seed [base_cs]
+@deffnx primitive char-set-unfold! p f g seed base_cs
+This is a fundamental constructor for character sets.
+@itemize
+@item @var{g} is used to generate a series of ``seed'' values 
+from the initial seed: @var{seed}, (@var{g} @var{seed}),
+(@var{g}^2 @var{seed}), (@var{g}^3 @var{seed}), @dots{}
+@item @var{p} tells us when to stop -- when it returns true
+when applied to one of the seed values. 
+@item @var{f} maps each seed value to a character. These
+characters are added to the base character set @var{base_cs} to
+form the result; @var{base_cs} defaults to the empty set.
+@end itemize
+
+@code{char-set-unfold!} is the side-effecting variant.
+@end deffn
+
+@deffn primitive char-set-for-each proc cs
+Apply @var{proc} to every character in the character set
+@var{cs}.  The return value is not specified.
+@end deffn
+
+@deffn primitive char-set-map proc cs
+Map the procedure @var{proc} over every character in @var{cs}.
+@var{proc} must be a character -> character procedure.
+@end deffn
+
+
+@c ===================================================================
+
+@node SRFI-14 Creating Character Sets
+@subsection Creating Character Sets
+
+New character sets are produced with these procedures.
+
+@deffn primitive char-set-copy cs
+Return a newly allocated character set containing all
+characters in @var{cs}.
+@end deffn
+
+@deffn primitive char-set char1 @dots{}
+Return a character set containing all given characters.
+@end deffn
+
+@deffn primitive list->char-set char_list [base_cs]
+@deffnx primitive list->char-set! char_list base_cs
+Convert the character list @var{list} to a character set.  If
+the character set @var{base_cs} is given, the character in this
+set are also included in the result.
+
+@code{list->char-set!} is the side-effecting variant.
+@end deffn
+
+@deffn primitive string->char-set s [base_cs]
+@deffnx primitive string->char-set! s base_cs
+Convert the string @var{str} to a character set.  If the
+character set @var{base_cs} is given, the characters in this
+set are also included in the result.
+
+@code{string->char-set!} is the side-effecting variant.
+@end deffn
+
+@deffn primitive char-set-filter pred cs [base_cs]
+@deffnx primitive char-set-filter! pred cs base_cs
+Return a character set containing every character from @var{cs}
+so that it satisfies @var{pred}.  If provided, the characters
+from @var{base_cs} are added to the result.
+
+@code{char-set-filter!} is the side-effecting variant.
+@end deffn
+
+@deffn primitive ucs-range->char-set lower upper [error? base_cs]
+@deffnx primitive uce-range->char-set! lower upper error? base_cs
+Return a character set containing all characters whose
+character codes lie in the half-open range
+[@var{lower},@var{upper}).
+
+If @var{error} is a true value, an error is signalled if the
+specified range contains characters which are not contained in
+the implemented character range.  If @var{error} is @code{#f},
+these characters are silently left out of the resultung
+character set.
+
+The characters in @var{base_cs} are added to the result, if
+given.
+
+@code{ucs-range->char-set!} is the side-effecting variant.
+@end deffn
+
+@deffn procedure ->char-set x
+Coerce @var{x} into a character set.  @var{x} may be a string, a
+character or a character set.
+@end deffn
+
+
+@c ===================================================================
+
+@node SRFI-14 Querying Character Sets
+@subsection Querying Character Sets
+
+Access the elements and other information of a character set with these
+procedures.
+
+@deffn primitive char-set-size cs
+Return the number of elements in character set @var{cs}.
+@end deffn
+
+@deffn primitive char-set-count pred cs
+Return the number of the elements int the character set
+@var{cs} which satisfy the predicate @var{pred}.
+@end deffn
+
+@deffn primitive char-set->list cs
+Return a list containing the elements of the character set
+@var{cs}.
+@end deffn
+
+@deffn primitive char-set->string cs
+Return a string containing the elements of the character set
+@var{cs}.  The order in which the characters are placed in the
+string is not defined.
+@end deffn
+
+@deffn primitive char-set-contains? cs char
+Return @code{#t} iff the character @var{ch} is contained in the
+character set @var{cs}.
+@end deffn
+
+@deffn primitive char-set-every pred cs
+Return a true value if every character in the character set
+@var{cs} satisfies the predicate @var{pred}.
+@end deffn
+
+@deffn primitive char-set-any pred cs
+Return a true value if any character in the character set
+@var{cs} satisfies the predicate @var{pred}.
+@end deffn
+
+
+@c ===================================================================
+
+@node SRFI-14 Character-Set Algebra
+@subsection Character-Set Algebra
+
+Character sets can be manipulated with the common set algebra operation,
+such as union, complement, intersection etc.  All of these procedures
+provide side--effecting variants, which modify their character set
+argument(s).
+
+@deffn primitive char-set-adjoin cs char1 @dots{}
+@deffnx primitive char-set-adjoin! cs char1 @dots{}
+Add all character arguments to the first argument, which must
+be a character set.
+@end deffn
+
+@deffn primitive char-set-delete cs char1 @dots{}
+@deffnx primitive char-set-delete! cs char1 @dots{}
+Delete all character arguments from the first argument, which
+must be a character set.
+@end deffn
+
+@deffn primitive char-set-complement cs
+@deffnx primitive char-set-complement! cs
+Return the complement of the character set @var{cs}.
+@end deffn
+
+@deffn primitive char-set-union cs1 @dots{}
+@deffnx primitive char-set-union! cs1 @dots{}
+Return the union of all argument character sets.
+@end deffn
+
+@deffn primitive char-set-intersection cs1 @dots{}
+@deffnx primitive char-set-intersection! cs1 @dots{}
+Return the intersection of all argument character sets.
+@end deffn
+
+@deffn primitive char-set-difference cs1 @dots{}
+@deffnx primitive char-set-difference! cs1 @dots{}
+Return the difference of all argument character sets.
+@end deffn
+
+@deffn primitive char-set-xor cs1 @dots{}
+@deffnx primitive char-set-xor! cs1 @dots{}
+Return the exclusive--or of all argument character sets.
+@end deffn
+
+@deffn primitive char-set-diff+intersection cs1 @dots{}
+@deffnx primitive char-set-diff+intersection! cs1 @dots{}
+Return the difference and the intersection of all argument
+character sets.
+@end deffn
+
+
+@c ===================================================================
+
+@node SRFI-14 Standard Character Sets
+@subsection Standard Character Sets
+
+In order to make the use of the character set data type and procedures
+useful, several predefined character set variables exist.
+
+@defvar char-set:lower-case
+All lower--case characters.
+@end defvar
+
+@defvar char-set:upper-case
+All upper--case characters.
+@end defvar
+
+@defvar char-set:title-case
+This is empty, because ASCII has no titlecase characters.
+@end defvar
+
+@defvar char-set:letter
+All letters, e.g. the union of @code{char-set:lower-case} and
+@code{char-set:upper-case}.
+@end defvar
+
+@defvar char-set:digit
+All digits.
+@end defvar
+
+@defvar char-set:letter+digit
+The union of @code{char-set:letter} and @code{char-set:digit}.
+@end defvar
+
+@defvar char-set:graphic
+All characters which would put ink on the paper.
+@end defvar
+
+@defvar char-set:printing
+The union of @code{char-set:graphic} and @code{char-set:whitespace}.
+@end defvar
+
+@defvar char-set:whitespace
+All whitespace characters.
+@end defvar
+
+@defvar char-set:blank
+All horizontal whitespace characters, that is @code{#\space} and
+@code{#\tab}.
+@end defvar
+
+@defvar char-set:iso-control
+The ISO control characters with the codes 0--31 and 127.
+@end defvar
+
+@defvar char-set:punctuation
+The characters @code{!"#%&'()*,-./:;?@@[\\]_@{@}}
+@end defvar
+
+@defvar char-set:symbol
+The characters @code{$+<=>^`|~}.
+@end defvar
+
+@defvar char-set:hex-digit
+The hexadecimal digits @code{0123456789abcdefABCDEF}.
+@end defvar
+
+@defvar char-set:ascii
+All ASCII characters.
+@end defvar
+
+@defvar char-set:empty
+The empty character set.
+@end defvar
+
+@defvar char-set:full
+This character set contains all possible characters.
+@end defvar
+
+@node SRFI-16
+@section SRFI-16 - case-lambda
+
+@c FIXME::martin: Review me!
+
+The syntactic form @code{case-lambda} creates procedures, just like
+@code{lambda}, but has syntactic extensions for writing procedures of
+varying arity easier.
+
+The syntax of the @code{case-lambda} form is defined in the following
+EBNF grammar.
+
+@example
+<case-lambda>
+   --> (case-lambda <case-lambda-clause>)
+<case-lambda-clause>
+   --> (<formals> <definition-or-command>*)
+<formals>
+   --> (<identifier>*)
+     | (<identifier>* . <identifier>)
+     | <identifier>
+@end example
+
+The value returned by a @code{case-lambda} form is a procedure which
+matches the number of actual arguments against the formals in the
+various clauses, in order.  @dfn{Formals} means a formal argument list
+just like with @code{lambda} (REFFIXME). The first matching clause is
+selected, the corresponding values from the actual parameter list are
+bound to the variable names in the clauses and the body of the clause is
+evaluated.  If no clause matches, an error is signalled.
+
+The following (silly) definition creates a procedure @var{foo} which
+acts differently, depending on the number of actual arguments.  If one
+argument is given, the constant @code{#t} is returned, two arguments are
+added and if more arguments are passed, their product is calculated.
+
+@lisp
+(define foo (case-lambda
+              ((x) #t)
+              ((x y) (+ x y))
+              (z
+                (apply * z))))
+(foo 'bar)
+@result{}
+#t
+(foo 2 4)
+@result{}
+6
+(foo 3 3 3)
+@result{}
+27
+(foo)
+@result{}
+1
+@end lisp
+
+The last expression evaluates to 1 because the last clause is matched,
+@var{z} is bound to the empty list and the following multiplication,
+applied to zero arguments, yields 1.
+
+
 @node SRFI-17
-@section SRFI-17 -- Generalized set!
+@section SRFI-17 - Generalized set!
 
 This is an implementation of SRFI-17: Generalized set!
 

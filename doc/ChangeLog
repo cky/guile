@@ -1,3 +1,18 @@
+2001-05-14  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* srfi-13-14.texi: Removed.
+
+	* srfi-modules.texi (SRFI-13): Merged SRFI-13 docs into SRFI
+	chapter.
+	(SRFI-14): Merged SRFI-14 too.
+
+	* guile.texi (Top): Remove inclusion of obsolete SRFI-13/14 file.
+
+	* srfi-modules.texi (SRFI-0): New section.
+	(SRFI-16): New section.
+	
+	Change `--' to `-' throughout.
+
 2001-05-13  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
 	* intro.texi, scheme-modules.texi, scheme-procedures.texi:
