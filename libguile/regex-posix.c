@@ -1,4 +1,4 @@
-/*	Copyright (C) 1997, 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
+/*	Copyright (C) 1997, 1998, 1999, 2000, 2001, 2004 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -188,9 +188,11 @@ SCM_DEFINE (scm_make_regexp, "make-regexp", 1, 0, 1,
 		    cflags & ~REG_NOSUB);
   if (status != 0)
     {
+      char *errmsg = scm_regexp_error_msg (status, rx);
+      scm_gc_free (rx, sizeof(regex_t), "regex");
       scm_error (scm_regexp_error_key,
 		 FUNC_NAME,
-		 scm_regexp_error_msg (status, rx),
+		 errmsg,
 		 SCM_BOOL_F,
 		 SCM_BOOL_F);
       /* never returns */
