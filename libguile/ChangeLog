@@ -1,3 +1,13 @@
+2001-03-15  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* numbers.c (scm_num2ulong): Check that a bignum is positive
+	before looking at the magnitude.  Correctly check for overflow
+	during conversion.
+	(scm_num2long_long): Likewise.
+	(scm_num2ulong_long): New.
+	(ULONG_LONG_MAX): Define if not already defined.
+	* numbers.h: (scm_num2ulong_long): New prototype.
+	
 2001-03-15  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* validate.h (SCM_VALIDATE_OPOUTSTRPORT): New macro.
