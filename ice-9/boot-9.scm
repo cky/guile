@@ -98,7 +98,7 @@
 (define (-1+ n) (+ n -1))
 (define 1- -1+)
 (define return-it noop)
-(define (and=> value thunk) (and value (thunk value)))
+(define (and=> value procedure) (and value (procedure value)))
 (define (make-hash-table k) (make-vector k '()))
 
 ;;; apply-to-args is functionally redunant with apply and, worse,
