@@ -11,6 +11,7 @@ gregh	Greg Harvey <Greg.Harvey@thezone.net>
 niibe	NIIBE Yutaka <gniibe@chroot.org>
 dirk	Dirk Herrmann <dirk@ida.ing.tu-bs.de>
 rlb	Rob Browning <rlb@cs.utexas.edu>
+ryanw	Ryan Weaver <ryanw@infohwy.com>
 
 * Assigned core tasks
 
@@ -39,6 +40,10 @@ thi
 ** Guile Debian package maintainer
 
 rlb
+
+** Guile RPM package manager
+
+ryanw
 
 ** integration of Jost's environments
 
