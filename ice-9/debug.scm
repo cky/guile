@@ -109,8 +109,25 @@
 (define trace-level 0)
 (add-hook! abort-hook (lambda () (set! trace-level 0)))
 
+(define traced-stack-ids (list 'repl-stack))
+(define trace-all-stacks? #f)
+
+(define-public (trace-stack id)
+  "Add ID to the set of stack ids for which tracing is active.
+If `#t' is in this set, tracing is active regardless of stack context.
+To remove ID again, use `untrace-stack'.  If you add the same ID twice
+using `trace-stack', you will need to remove it twice."
+  (set! traced-stack-ids (cons id traced-stack-ids))
+  (set! trace-all-stacks? (memq #t traced-stack-ids)))
+
+(define-public (untrace-stack id)
+  "Remove ID from the set of stack ids for which tracing is active."
+  (set! traced-stack-ids (delq1! id traced-stack-ids))
+  (set! trace-all-stacks? (memq #t traced-stack-ids)))
+
 (define (trace-entry key cont tail)
-  (if (eq? (stack-id cont) 'repl-stack)
+  (if (or trace-all-stacks?
+	  (memq (stack-id cont) traced-stack-ids))
       (let ((cep (current-error-port))
 	    (frame (last-stack-frame cont)))
 	(if (not tail)
@@ -125,7 +142,8 @@
   )
 
 (define (trace-exit key cont retval)
-  (if (eq? (stack-id cont) 'repl-stack)
+  (if (or trace-all-stacks?
+	  (memq (stack-id cont) traced-stack-ids))
       (let ((cep (current-error-port)))
 	(set! trace-level (- trace-level 1))
 	(let indent ((n trace-level))

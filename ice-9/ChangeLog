@@ -1,3 +1,13 @@
+2001-06-29  Neil Jerram  <neil@ossau.uklinux.net>
+
+	Changes to support tracing other than inside the repl-stack that
+	is set up by the REPL code in boot-9.scm.
+	
+	* debug.scm (trace-entry, trace-exit): Conditionalize tracing on
+	whether the current stack id is in `traced-stack-ids'.
+	(traced-stack-ids, trace-all-stacks?, trace-stack, untrace-stack):
+	New.
+
 2001-06-27  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* common-list.scm (member-if): Put in docstring for member-if, it
