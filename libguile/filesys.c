@@ -42,6 +42,7 @@
 #include "_scm.h"
 #include "genio.h"
 #include "smob.h"
+#include "feature.h"
 
 #include "filesys.h"
 
@@ -1082,9 +1083,9 @@ scm_sys_select (reads, writes, excepts, secs, msecs)
   SCM_DEFER_INTS;
   sreturn = select (SELECT_SET_SIZE,
 		    &read_set, &write_set, &except_set, time_p);
-  SCM_ALLOW_INTS;
   if (sreturn < 0)
     scm_syserror (s_sys_select);
+  SCM_ALLOW_INTS;
   return scm_listify (retrieve_select_type (&read_set, reads),
 		      retrieve_select_type (&write_set, writes),
 		      retrieve_select_type (&except_set, excepts),
@@ -1254,6 +1255,7 @@ void
 scm_init_filesys ()
 #endif
 {
+  scm_add_feature ("i/o-extensions");
   /* File type/permission bits.  */
 #ifdef S_IRUSR
   scm_sysintern ("S_IRUSR", SCM_MAKINUM (S_IRUSR));

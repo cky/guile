@@ -1,3 +1,10 @@
+Sun Oct  6 05:26:05 1996  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* filesys.c (scm_sys_select): move SCM_ALLOW_INTS past the sreturn
+	check.
+	(scm_init_filesys): set "i/o-extensions" feature.
+	include feature.h.
+	
 Sat Oct  5 12:22:00 1996  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* Makefile.in (root.o): Correct dependencies.
