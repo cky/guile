@@ -36,7 +36,7 @@
   "Search for bindings: apropos regexp {options= 'full 'shadow 'value}"
   (if (zero? (string-length rgx))
       "Empty string not allowed"
-      (let* ((match (regcomp rgx))
+      (let* ((match (make-regexp rgx))
 	     (modules (cons (current-module)
 			    (module-uses (current-module))))
 	     (separator #\tab)
@@ -64,7 +64,7 @@
 		 (lambda (oblist)
 		   (for-each
 		    (lambda (x)
-		      (cond ((regexec match (car x) #f)
+		      (cond ((regexp-exec match (car x))
 			     (display name)
 			     (display ": ")
 			     (display (car x))
