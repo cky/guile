@@ -1,3 +1,14 @@
+2000-04-20  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* numbers.c (scm_exact_p, scm_odd_p, scm_even_p):  Added
+	documentation strings.
+
+	* numbers.c (scm_exact_p, scm_odd_p, scm_even_p, scm_abs,
+	scm_quotient):  Reordered dispatch sequence to first handle
+	immediates, second handle bignums and finally handle generic
+	functions respectively signal wrong type arguments.  Hopefully
+	this will allow for easier separation when goops is integrated.
+
 2000-04-19  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* gc.c (which_seg):  Use SCM2PTR to convert a non immediate SCM

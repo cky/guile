@@ -79,83 +79,89 @@
 
 SCM_DEFINE (scm_exact_p, "exact?", 1, 0, 0, 
             (SCM x),
-	    "")
+	    "Return #t if X is an exact number, #f otherwise.")
 #define FUNC_NAME s_scm_exact_p
 {
-  if (SCM_INUMP (x))
+  if (SCM_INUMP (x)) {
     return SCM_BOOL_T;
 #ifdef SCM_BIGDIG
-  if (SCM_BIGP (x))
+  } else if (SCM_BIGP (x)) {
     return SCM_BOOL_T;
 #endif
-  return SCM_BOOL_F;
+  } else {
+    return SCM_BOOL_F;
+  }
 }
 #undef FUNC_NAME
+
 
 SCM_DEFINE (scm_odd_p, "odd?", 1, 0, 0, 
             (SCM n),
-	    "")
+	    "Return #t if N is an odd number, #f otherwise.")
 #define FUNC_NAME s_scm_odd_p
 {
+  if (SCM_INUMP (n)) {
+    return SCM_BOOL ((4 & SCM_UNPACK (n)) != 0);
 #ifdef SCM_BIGDIG
-  if (SCM_NINUMP (n))
-    {
-      SCM_VALIDATE_BIGINT (1,n);
-      return SCM_BOOL(1 & SCM_BDIGITS (n)[0]);
-    }
-#else
-  SCM_VALIDATE_INUM (1,n);
+  } else if (SCM_BIGP (n)) {
+    return SCM_BOOL ((1 & SCM_BDIGITS (n) [0]) != 0);
 #endif
-  return SCM_BOOL(4 & SCM_UNPACK (n));
+  } else {
+    SCM_ASSERT (0, n, 1, FUNC_NAME);
+  }
 }
 #undef FUNC_NAME
 
+
 SCM_DEFINE (scm_even_p, "even?", 1, 0, 0, 
             (SCM n),
-	    "")
+	    "Return #t if N is an even number, #f otherwise.")
 #define FUNC_NAME s_scm_even_p
 {
+  if (SCM_INUMP (n)) {
+    return SCM_BOOL ((4 & SCM_UNPACK (n)) == 0);
 #ifdef SCM_BIGDIG
-  if (SCM_NINUMP (n))
-    {
-      SCM_VALIDATE_BIGINT (1,n);
-      return SCM_NEGATE_BOOL(1 & SCM_BDIGITS (n)[0]);
-    }
-#else
-  SCM_VALIDATE_INUM (1,n);
+  } else if (SCM_BIGP (n)) {
+    return SCM_BOOL ((1 & SCM_BDIGITS (n) [0]) == 0);
 #endif
-  return SCM_NEGATE_BOOL(4 & SCM_UNPACK (n));
+  } else {
+    SCM_ASSERT (0, n, 1, FUNC_NAME);
+  }
 }
 #undef FUNC_NAME
+
 
 SCM_GPROC (s_abs, "abs", 1, 0, 0, scm_abs, g_abs);
 
 SCM
 scm_abs (SCM x)
 {
-  long int cx;
+  if (SCM_INUMP (x)) {
+    long int xx = SCM_INUM (x);
+    if (xx >= 0) {
+      return x;
+    } else if (SCM_POSFIXABLE (-xx)) {
+      return SCM_MAKINUM (-xx);
+    } else {
 #ifdef SCM_BIGDIG
-  if (SCM_NINUMP (x))
-    {
-      SCM_GASSERT1 (SCM_BIGP (x), g_abs, x, SCM_ARG1, s_abs);
-      if (!SCM_BIGSIGN (x))
-	return x;
-      return scm_copybig (x, 0);
-    }
-#else
-  SCM_GASSERT1 (SCM_INUMP (x), g_abs, x, SCM_ARG1, s_abs);
-#endif
-  if (SCM_INUM (x) >= 0)
-    return x;
-  cx = - SCM_INUM (x);
-  if (!SCM_POSFIXABLE (cx))
-#ifdef SCM_BIGDIG
-    return scm_long2big (cx);
+      return scm_long2big (-xx);
 #else
       scm_num_overflow (s_abs);
 #endif
-  return SCM_MAKINUM (cx);
+    }
+#ifdef SCM_BIGDIG
+  } else if (SCM_BIGP (x)) {
+    if (!SCM_BIGSIGN (x)) {
+      return x;
+    } else {
+      return scm_copybig (x, 0);
+    }
+#endif
+  } else {
+    SCM_WTA_DISPATCH_1 (g_abs, x, 1, s_abs);
+  }
 }
+
 
 SCM_GPROC (s_quotient, "quotient", 2, 0, 0, scm_quotient, g_quotient);
 
@@ -183,39 +189,26 @@ scm_quotient (SCM x, SCM y)
 	    z++;
 	}
 #endif
-	if (!SCM_FIXABLE (z)) {
+	if (SCM_FIXABLE (z)) {
+	  return SCM_MAKINUM (z);
+	} else {
 #ifdef SCM_BIGDIG
 	  return scm_long2big (z);
 #else
 	  scm_num_overflow (s_quotient);
 #endif
-	} else {
-	  return SCM_MAKINUM (z);
 	}
       }
-    } else {
 #ifdef SCM_BIGDIG
-      if (!SCM_BIGP (y)) {
-	SCM_WTA_DISPATCH_2 (g_quotient, x, y, SCM_ARG2, s_quotient);
-      } else {
-	return SCM_INUM0;
-      }
-#else
-      SCM_WTA_DISPATCH_2 (g_quotient, x, y, SCM_ARG2, s_quotient);
+    } else if (SCM_BIGP (y)) {
+      return SCM_INUM0;
 #endif
-    }
-  } else {
-#ifdef SCM_BIGDIG
-    SCM_GASSERT2 (SCM_BIGP (x), g_quotient, x, y, SCM_ARG1, s_quotient);
-    if (SCM_NINUMP (y)) {
-      if (!SCM_BIGP (y)) {
-	SCM_WTA_DISPATCH_2 (g_quotient, x, y, SCM_ARG2, s_quotient);
-      } else {
-	return scm_divbigbig (SCM_BDIGITS (x), SCM_NUMDIGS (x),
-			      SCM_BDIGITS (y), SCM_NUMDIGS (y),
-			      SCM_BIGSIGN (x) ^ SCM_BIGSIGN (y), 2);
-      }
     } else {
+      SCM_WTA_DISPATCH_2 (g_quotient, x, y, SCM_ARG2, s_quotient);
+    }
+#ifdef SCM_BIGDIG
+  } else if (SCM_BIGP (x)) {
+    if (SCM_INUMP (y)) {
       long yy = SCM_INUM (y);
       if (yy == 0) {
 	scm_num_overflow (s_quotient);
@@ -243,12 +236,19 @@ scm_quotient (SCM x, SCM y)
 #endif
 	}
       }
+    } else if (SCM_BIGP (y)) {
+      return scm_divbigbig (SCM_BDIGITS (x), SCM_NUMDIGS (x),
+			    SCM_BDIGITS (y), SCM_NUMDIGS (y),
+			    SCM_BIGSIGN (x) ^ SCM_BIGSIGN (y), 2);
+    } else {
+      SCM_WTA_DISPATCH_2 (g_quotient, x, y, SCM_ARG2, s_quotient);
     }
-#else
-    SCM_WTA_DISPATCH_2 (g_quotient, x, y, SCM_ARG2, s_quotient);
 #endif
+  } else {
+    SCM_WTA_DISPATCH_2 (g_quotient, x, y, SCM_ARG2, s_quotient);
   }
 }
+
 
 SCM_GPROC (s_remainder, "remainder", 2, 0, 0, scm_remainder, g_remainder);
 
