@@ -1,3 +1,12 @@
+1999-01-21  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+
+	* random.c, random.h (scm_i_make_rstate): New function: Makes
+	scm_rstate from seed.
+	(scm_copy_random_state, scm_seed_to_random_state): New functions.
+	(scm_make_random_state): Removed.
+
+	* random.c (scm_make_random_state): Use scm_i_make_rstate().
+
 1999-01-21  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* random.c: Bugfix: Retrieve and store most significant 32 bits in
