@@ -73,6 +73,79 @@ int scm_tc16_uvec = 0;
 static int uvec_sizes[10] = {1, 1, 2, 2, 4, 4, 8, 8, 4, 8};
 
 
+#ifdef SCM_HAVE_T_INT64
+
+// This is a modified version of scm_iint2str and should go away once
+// we have a public scm_print_integer or similar.
+
+static void
+print_int64 (scm_t_int64 num, SCM port)
+{
+  char num_buf[SCM_INTBUFLEN];
+  char *p = num_buf;
+  const int rad = 10;
+  size_t num_chars = 1;
+  size_t i;
+  scm_t_uint64 n = (num < 0) ? -num : num;
+
+  for (n /= rad; n > 0; n /= rad)
+    num_chars++;
+
+  i = num_chars;
+  if (num < 0)
+    {
+      *p++ = '-';
+      num_chars++;
+      n = -num;
+    }
+  else
+    n = num;
+  while (i--)
+    {
+      int d = n % rad;
+
+      n /= rad;
+      p[i] = d + ((d < 10) ? '0' : 'a' - 10);
+    }
+
+  scm_lfwrite (num_buf, num_chars, port);
+}
+
+#endif /* SCM_HAVE_T_INT64 */
+
+#ifdef SCM_HAVE_T_UINT64
+
+// This is a modified version of scm_iint2str and should go away once
+// we have a public scm_print_integer or similar.
+
+static void
+print_uint64 (scm_t_uint64 num, SCM port)
+{
+  char num_buf[SCM_INTBUFLEN];
+  char *p = num_buf;
+  const int rad = 10;
+  size_t num_chars = 1;
+  size_t i;
+  scm_t_uint64 n = num;
+
+  for (n /= rad; n > 0; n /= rad)
+    num_chars++;
+
+  i = num_chars;
+  n = num;
+  while (i--)
+    {
+      int d = n % rad;
+
+      n /= rad;
+      p[i] = d + ((d < 10) ? '0' : 'a' - 10);
+    }
+
+  scm_lfwrite (num_buf, num_chars, port);
+}
+
+#endif /* SCM_HAVE_T_UINT64 */
+
 /* ================================================================ */
 /* SMOB procedures.                                                 */
 /* ================================================================ */
@@ -82,233 +155,84 @@ static int uvec_sizes[10] = {1, 1, 2, 2, 4, 4, 8, 8, 4, 8};
 static int
 uvec_print (SCM uvec, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
-  switch (SCM_UVEC_TYPE (uvec))
-    {
-    case SCM_UVEC_U8:
-      {
-	int_u8 * p = (int_u8 *) SCM_UVEC_BASE (uvec);
-	int i = 0;
-
-	scm_puts ("#u8(", port);
-	if (SCM_UVEC_LENGTH (uvec) > 0)
-	  {
-	    scm_intprint (*p, 10, port);
-	    p++;
-	    i++;
-	    for (; i < SCM_UVEC_LENGTH (uvec); i++)
-	      {
-		scm_puts (" ", port);
-		scm_intprint (*p, 10, port);
-		p++;
-	      }
-	  }
-	scm_puts (")", port);
-	break;
-      }
-
-    case SCM_UVEC_S8:
-      {
-	int_s8 * p = (int_s8 *) SCM_UVEC_BASE (uvec);
-	int i = 0;
-
-	scm_puts ("#s8(", port);
-	if (SCM_UVEC_LENGTH (uvec) > 0)
-	  {
-	    scm_intprint (*p, 10, port);
-	    p++;
-	    i++;
-	    for (; i < SCM_UVEC_LENGTH (uvec); i++)
-	      {
-		scm_puts (" ", port);
-		scm_intprint (*p, 10, port);
-		p++;
-	      }
-	  }
-	scm_puts (")", port);
-	break;
-      }
-
-    case SCM_UVEC_U16:
-      {
-	int_u16 * p = (int_u16 *) SCM_UVEC_BASE (uvec);
-	int i = 0;
-
-	scm_puts ("#u16(", port);
-	if (SCM_UVEC_LENGTH (uvec) > 0)
-	  {
-	    scm_intprint (*p, 10, port);
-	    p++;
-	    i++;
-	    for (; i < SCM_UVEC_LENGTH (uvec); i++)
-	      {
-		scm_puts (" ", port);
-		scm_intprint (*p, 10, port);
-		p++;
-	      }
-	  }
-	scm_puts (")", port);
-	break;
-      }
-
-    case SCM_UVEC_S16:
-      {
-	int_s16 * p = (int_s16 *) SCM_UVEC_BASE (uvec);
-	int i = 0;
-
-	scm_puts ("#s16(", port);
-	if (SCM_UVEC_LENGTH (uvec) > 0)
-	  {
-	    scm_intprint (*p, 10, port);
-	    p++;
-	    i++;
-	    for (; i < SCM_UVEC_LENGTH (uvec); i++)
-	      {
-		scm_puts (" ", port);
-		scm_intprint (*p, 10, port);
-		p++;
-	      }
-	  }
-	scm_puts (")", port);
-	break;
-      }
-
-    case SCM_UVEC_U32:
-      {
-	int_u32 * p = (int_u32 *) SCM_UVEC_BASE (uvec);
-	int i = 0;
-
-	scm_puts ("#u32(", port);
-	if (SCM_UVEC_LENGTH (uvec) > 0)
-	  {
-	    scm_intprint (*p, 10, port);
-	    p++;
-	    i++;
-	    for (; i < SCM_UVEC_LENGTH (uvec); i++)
-	      {
-		scm_puts (" ", port);
-		scm_intprint (*p, 10, port);
-		p++;
-	      }
-	  }
-	scm_puts (")", port);
-	break;
-      }
-
-    case SCM_UVEC_S32:
-      {
-	int_s32 * p = (int_s32 *) SCM_UVEC_BASE (uvec);
-	int i = 0;
-
-	scm_puts ("#s32(", port);
-	if (SCM_UVEC_LENGTH (uvec) > 0)
-	  {
-	    scm_intprint (*p, 10, port);
-	    p++;
-	    i++;
-	    for (; i < SCM_UVEC_LENGTH (uvec); i++)
-	      {
-		scm_puts (" ", port);
-		scm_intprint (*p, 10, port);
-		p++;
-	      }
-	  }
-	scm_puts (")", port);
-	break;
-      }
-
-#ifdef SCM_HAVE_T_INT64
-    case SCM_UVEC_U64:
-      {
-	int_u64 * p = (int_u64 *) SCM_UVEC_BASE (uvec);
-	int i = 0;
-
-	scm_puts ("#u64(", port);
-	if (SCM_UVEC_LENGTH (uvec) > 0)
-	  {
-	    scm_intprint (*p, 10, port);
-	    p++;
-	    i++;
-	    for (; i < SCM_UVEC_LENGTH (uvec); i++)
-	      {
-		scm_puts (" ", port);
-		scm_intprint (*p, 10, port);
-		p++;
-	      }
-	  }
-	scm_puts (")", port);
-	break;
-      }
-
-    case SCM_UVEC_S64:
-      {
-	int_s64 * p = (int_s64 *) SCM_UVEC_BASE (uvec);
-	int i = 0;
-
-	scm_puts ("#s64(", port);
-	if (SCM_UVEC_LENGTH (uvec) > 0)
-	  {
-	    scm_intprint (*p, 10, port);
-	    p++;
-	    i++;
-	    for (; i < SCM_UVEC_LENGTH (uvec); i++)
-	      {
-		scm_puts (" ", port);
-		scm_intprint (*p, 10, port);
-		p++;
-	      }
-	  }
-	scm_puts (")", port);
-	break;
-      }
+  union {
+    int_u8 *u8;
+    int_s8 *s8;
+    int_u16 *u16;
+    int_s16 *s16;
+    int_u32 *u32;
+    int_s32 *s32;
+#if SCM_HAVE_T_UINT64
+    int_u64 *u64;
 #endif
+#if SCM_HAVE_T_INT64
+    int_s64 *s64;
+#endif
+    float_f32 *f32;
+    float_f64 *f64;
+  } np;
 
-    case SCM_UVEC_F32:
-      {
-	float_f32 * p = (float_f32 *) SCM_UVEC_BASE (uvec);
-	int i = 0;
+  scm_t_bits i = 0; // since SCM_UVEC_LENGTH will return something this size.
+  const scm_t_bits uvlen = SCM_UVEC_LENGTH (uvec);
+  char *tagstr;
+  void *uptr = SCM_UVEC_BASE (uvec);
 
-	scm_puts ("#f32(", port);
-	if (SCM_UVEC_LENGTH (uvec) > 0)
-	  {
-	    scm_iprin1 (scm_make_real (*p), port, pstate);
-	    p++;
-	    i++;
-	    for (; i < SCM_UVEC_LENGTH (uvec); i++)
-	      {
-		scm_puts (" ", port);
-		scm_iprin1 (scm_make_real (*p), port, pstate);
-		p++;
-	      }
-	  }
-	scm_puts (")", port);
-	break;
-      }
-
-    case SCM_UVEC_F64:
-      {
-	float_f64 * p = (float_f64 *) SCM_UVEC_BASE (uvec);
-	int i = 0;
-
-	scm_puts ("#f64(", port);
-	if (SCM_UVEC_LENGTH (uvec) > 0)
-	  {
-	    scm_iprin1 (scm_make_real (*p), port, pstate);
-	    p++;
-	    i++;
-	    for (; i < SCM_UVEC_LENGTH (uvec); i++)
-	      {
-		scm_puts (" ", port);
-		scm_iprin1 (scm_make_real (*p), port, pstate);
-		p++;
-	      }
-	  }
-	scm_puts (")", port);
-	break;
-      }
-
+  switch (SCM_UVEC_TYPE (uvec))
+  {
+    case SCM_UVEC_U8: tagstr = "u8"; np.u8 = (int_u8 *) uptr; break;
+    case SCM_UVEC_S8: tagstr = "s8"; np.s8 = (int_s8 *) uptr; break;
+    case SCM_UVEC_U16: tagstr = "u16"; np.u16 = (int_u16 *) uptr; break;
+    case SCM_UVEC_S16: tagstr = "s16"; np.s16 = (int_s16 *) uptr; break;
+    case SCM_UVEC_U32: tagstr = "u32"; np.u32 = (int_u32 *) uptr; break;
+    case SCM_UVEC_S32: tagstr = "s32"; np.s32 = (int_s32 *) uptr; break;
+#if SCM_HAVE_T_UINT64
+    case SCM_UVEC_U64: tagstr = "u64"; np.u64 = (int_u64 *) uptr; break;
+#endif
+#if SCM_HAVE_T_INT64
+    case SCM_UVEC_S64: tagstr = "s64"; np.s64 = (int_s64 *) uptr; break;
+#endif
+    case SCM_UVEC_F32: tagstr = "f32"; np.f32 = (float_f32 *) uptr; break;
+    case SCM_UVEC_F64: tagstr = "f64"; np.f64 = (float_f64 *) uptr; break;
     default:
       abort ();			/* Sanity check.  */
+      break;
+  }
+
+  scm_putc ('#', port);
+  scm_puts (tagstr, port);
+  scm_putc ('(', port);
+
+  while (i < uvlen)
+  {
+    if (i != 0) scm_puts (" ", port);
+    switch (SCM_UVEC_TYPE (uvec))
+    {
+      case SCM_UVEC_U8: scm_intprint (*np.u8, 10, port); np.u8++; break;
+      case SCM_UVEC_S8: scm_intprint (*np.s8, 10, port); np.s8++; break;
+      case SCM_UVEC_U16: scm_intprint (*np.u16, 10, port); np.u16++; break;
+      case SCM_UVEC_S16: scm_intprint (*np.s16, 10, port); np.s16++; break;
+      case SCM_UVEC_U32: scm_intprint (*np.u32, 10, port); np.u32++; break;
+      case SCM_UVEC_S32: scm_intprint (*np.s32, 10, port); np.s32++; break;
+#if SCM_HAVE_T_UINT64
+      case SCM_UVEC_U64: print_uint64(*np.u64, port); np.u64++; break;
+#endif
+#if SCM_HAVE_T_INT64
+      case SCM_UVEC_S64: print_int64(*np.s64, port); np.s64++; break;
+#endif
+      case SCM_UVEC_F32: scm_iprin1 (scm_make_real (*np.f32), port, pstate);
+        np.f32++;
+        break;
+      case SCM_UVEC_F64: scm_iprin1 (scm_make_real (*np.f64), port, pstate);
+        np.f64++;
+        break;
+      default:
+        abort ();			/* Sanity check.  */
+        break;
     }
+    i++;
+  }
+  scm_remember_upto_here_1 (uvec);
+  scm_puts (")", port);
   return 1;
 }
 
