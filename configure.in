@@ -140,6 +140,8 @@ AM_PROG_LIBTOOL
 
 AC_C_CONST
 AC_C_INLINE
+AC_C_BIGENDIAN
+
 AC_CHECK_SIZEOF(int)
 AC_CHECK_SIZEOF(long)
 AC_CACHE_CHECK([for long longs], scm_cv_long_longs,
