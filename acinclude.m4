@@ -76,11 +76,10 @@ dnl select.  Similarly for bzero.
     which can conflict with char $1(); below.  */
 #include <assert.h>
 /* Override any gcc2 internal prototype to avoid an error.  */
-]ifelse(AC_LANG, CPLUSPLUS, [#ifdef __cplusplus
+#ifdef __cplusplus
 extern "C"
 #endif
-])dnl
-[/* We use char because int might match the return type of a gcc2
+/* We use char because int might match the return type of a gcc2
     builtin and then its argument prototype would still apply.  */
 char $1();
 ], [
