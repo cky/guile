@@ -18,7 +18,46 @@ if test $ac_cv_lib_readline_main = no; then
   AC_MSG_WARN([libreadline was not found on your system.])
 fi
 
-AC_CHECK_FUNCS(rl_clear_signals rl_cleanup_after_signal)
+AC_CHECK_FUNCS(rl_clear_signals rl_cleanup_after_signal rl_pre_input_hook)
+
+
+AC_MSG_CHECKING(if readline clears SA_RESTART flag for SIGWINCH)
+AC_CACHE_VAL(guile_cv_sigwinch_sa_restart_cleared,
+AC_TRY_RUN([#include <signal.h>
+#include <stdio.h>
+#include <readline/readline.h>
+
+int
+hook ()
+{
+  struct sigaction action;
+
+  sigaction (SIGWINCH, NULL, &action);
+  rl_cleanup_after_signal();
+  
+  /* exit with 0 if readline disabled SA_RESTART */
+  exit (action.sa_flags & SA_RESTART);
+}
+    
+int
+main ()
+{
+  struct sigaction action;
+  
+  sigaction (SIGWINCH, NULL, &action);
+  action.sa_flags |= SA_RESTART;
+  sigaction (SIGWINCH, &action, NULL);
+  
+  rl_pre_input_hook = hook;
+  readline ("");
+}],
+guile_cv_sigwinch_sa_restart_cleared=yes,
+guile_cv_sigwinch_sa_restart_cleared=no,
+guile_cv_sigwinch_sa_restart_cleared=yes))
+AC_MSG_RESULT($guile_cv_sigwinch_sa_restart_cleared)
+if test $guile_cv_sigwinch_sa_restart_cleared = yes; then
+  AC_DEFINE(GUILE_SIGWINCH_SA_RESTART_CLEARED)
+fi
 
 AC_CACHE_CHECK([for rl_getc_function pointer in readline],
 		 ac_cv_var_rl_getc_function,
