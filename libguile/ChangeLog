@@ -1,3 +1,9 @@
+2000-12-20  Gary Houston  <ghouston@arglist.com>
+
+	* continuations.c (continuation_apply): subtract the length of
+	continuation->dynenv, not the dynenv itself.  I broke it last
+	time I changed this file.  thanks to Bernard Urban.
+
 2000-12-16  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* goops.c (remove_duplicate_slots, maplist,

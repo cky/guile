@@ -231,7 +231,8 @@ static SCM continuation_apply (SCM cont, SCM args)
     }
   
   scm_dowinds (continuation->dynenv,
-	       scm_ilength (scm_dynwinds) - continuation->dynenv);
+	       scm_ilength (scm_dynwinds)
+	       - scm_ilength (continuation->dynenv));
   
   scm_dynthrow (cont, scm_values (args));
   return SCM_UNSPECIFIED; /* not reached */
