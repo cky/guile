@@ -12,6 +12,8 @@
 
 	* posix.c (scm_mkstemp): Update docstring from manual.
 
+	* stime.c (scm_mktime): Missing default errno=EINVAL from prev change.
+
 2005-01-09  Marius Vollmer  <mvo@zagadka.de>
 
 	* srfi-4.h, srfi-4.c, srfi-4.i.c (scm_i_uniform_vector_ref_proc,
