@@ -1,5 +1,12 @@
 2004-04-03  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
 
+	* eval.c (CEVAL): Don't distinguish between short and long
+	instructions when dispatching - just always dispatch on the
+	instruction code, which is common for short and long instructions.
+	Further, removed unnecessary goto statements and added comment.
+
+2004-04-03  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
+
 	* eval.c (scm_unmemocopy): Don't distinguish between short and
 	long instructions when dispatching - just always dispatch on the
 	instruction code, which is common for short and long instructions.
