@@ -3261,7 +3261,7 @@ scm_max (SCM x, SCM y)
 {
   if (SCM_UNBNDP (y)) {
     if (SCM_UNBNDP (x)) {
-      SCM_WTA_DISPATCH_0 (g_max, x, SCM_ARG1, s_max);
+      SCM_WTA_DISPATCH_0 (g_max, s_max);
     } else if (SCM_NUMBERP (x)) {
       return x;
     } else {
@@ -3319,7 +3319,7 @@ scm_min (SCM x, SCM y)
 {
   if (SCM_UNBNDP (y)) {
     if (SCM_UNBNDP (x)) {
-      SCM_WTA_DISPATCH_0 (g_min, x, SCM_ARG1, s_min);
+      SCM_WTA_DISPATCH_0 (g_min, s_min);
     } else if (SCM_NUMBERP (x)) {
       return x;
     } else {
@@ -3481,11 +3481,14 @@ SCM_GPROC1 (s_difference, "-", scm_tc7_asubr, scm_difference, g_difference);
  * "all but the first argument are subtracted from the first\n"
  * "argument."
  */
+#define FUNC_NAME s_difference
 SCM
 scm_difference (SCM x, SCM y)
 {
   if (SCM_UNBNDP (y)) {
-    if (SCM_INUMP (x)) {
+    if (SCM_UNBNDP (x)) {
+      SCM_WTA_DISPATCH_0 (g_difference, s_difference);
+    } else if (SCM_INUMP (x)) {
       long xx = -SCM_INUM (x);
       if (SCM_FIXABLE (xx)) {
 	return SCM_MAKINUM (xx);
@@ -3603,7 +3606,7 @@ scm_difference (SCM x, SCM y)
     SCM_WTA_DISPATCH_2 (g_difference, x, y, SCM_ARG1, s_difference);
   }
 }
-
+#undef FUNC_NAME
 
 SCM_GPROC1 (s_product, "*", scm_tc7_asubr, scm_product, g_product);
 /* "Return the product of all arguments.  If called without arguments,\n"
@@ -3757,6 +3760,7 @@ scm_num2dbl (SCM a, const char *why)
 SCM_GPROC1 (s_divide, "/", scm_tc7_asubr, scm_divide, g_divide);
 /* "Divide the first argument by the product of the remaining arguments."
  */
+#define FUNC_NAME s_divide
 SCM
 scm_divide (SCM x, SCM y)
 {
@@ -3764,7 +3768,7 @@ scm_divide (SCM x, SCM y)
 
   if (SCM_UNBNDP (y)) {
     if (SCM_UNBNDP (x)) {
-      SCM_WTA_DISPATCH_0 (g_divide, x, SCM_ARG1, s_divide);
+      SCM_WTA_DISPATCH_0 (g_divide, s_divide);
     } else if (SCM_INUMP (x)) {
       if (SCM_EQ_P (x, SCM_MAKINUM (1L)) || SCM_EQ_P (x, SCM_MAKINUM (-1L))) {
 	return x;
@@ -3909,7 +3913,7 @@ scm_divide (SCM x, SCM y)
     SCM_WTA_DISPATCH_2 (g_divide, x, y, SCM_ARG1, s_divide);
   }
 }
-
+#undef FUNC_NAME
 
 SCM_GPROC1 (s_asinh, "$asinh", scm_tc7_cxr, (SCM (*)()) scm_asinh, g_asinh);
 /* "Return the inverse hyperbolic sine of @var{x}."
