@@ -1,3 +1,11 @@
+2001-08-02  Thien-Thi Nguyen  <ttn@revel.glug.org>
+
+	* getopt-long.scm: Refill to fit in 80 columns.
+
+	(process-long-option): Fix bug: Keep track of `optional'
+	value-required info and use this to determine whether or not the
+	next element is to be taken as the option arg.
+
 2001-07-31  Keisuke Nishida  <knishida@nurs.or.jp>
 
 	* boot-9.scm (process-define-module): Fixed a bug that did not
@@ -67,7 +75,7 @@
 
 	Changes to support tracing other than inside the repl-stack that
 	is set up by the REPL code in boot-9.scm.
-	
+
 	* debug.scm (trace-entry, trace-exit): Conditionalize tracing on
 	whether the current stack id is in `traced-stack-ids'.
 	(traced-stack-ids, trace-all-stacks?, trace-stack, untrace-stack):
@@ -82,7 +90,7 @@
 
 	* debug.scm (trace): Set evaluator trap options to handle tracing.
 	Don't reset trace-level to 0.
-	
+
 	* boot-9.scm (lazy-handler-dispatch): Remove enter-frame-handler,
 	apply-frame-handler and exit-frame-handler.  (They're replaced by
 	evaluator trap options.)
