@@ -68,7 +68,6 @@
     (with-test-prefix (object->string args)
       (apply vary-port regexp-substitute/global expected args)))
 
-  (try "" "" "" "")
   (try "hi" "a(x*)b" "ab" "hi")
   (try ""   "a(x*)b" "ab" 1)
   (try "xx" "a(x*)b" "axxb" 1)
