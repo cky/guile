@@ -197,6 +197,10 @@ AC_SUBST(DLPREOPEN)
 
 AC_CHECK_FUNCS(ctermid ftime fchown getcwd geteuid gettimeofday lstat mkdir mknod nice readlink rename rmdir select setegid seteuid setlocale setpgid setsid sigaction siginterrupt strftime strptime symlink sync tcgetpgrp tcsetpgrp times uname waitpid bzero strdup system usleep atexit on_exit)
 
+AC_CHECK_HEADERS(crypt.h sys/resource.h sys/file.h)
+AC_CHECK_FUNCS(chroot flock getlogin cuserid getpriority setpriority getpass sethostname gethostname)
+AC_CHECK_LIB(crypt, crypt)
+
 ### Some systems don't declare some functions.  On such systems, we
 ### need to at least provide our own K&R-style declarations.
 

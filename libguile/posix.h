@@ -95,6 +95,16 @@ extern SCM scm_setlocale (SCM category, SCM locale);
 extern SCM scm_mknod (SCM path, SCM type, SCM perms, SCM dev);
 extern SCM scm_nice (SCM incr);
 extern SCM scm_sync (void);
+extern SCM scm_crypt (SCM key, SCM salt);
+extern SCM scm_chroot (SCM path);
+extern SCM scm_getlogin (void);
+extern SCM scm_cuserid (void);
+extern SCM scm_getpriority (SCM which, SCM who);
+extern SCM scm_setpriority (SCM which, SCM who, SCM prio);
+extern SCM scm_getpass (SCM prompt);
+extern SCM scm_flock (SCM file, SCM operation);
+extern SCM scm_sethostname (SCM name);
+extern SCM scm_gethostname (void);
 extern void scm_init_posix (void);
 
 #endif  /* POSIXH */

@@ -71,6 +71,8 @@
 #endif
 
 #ifdef HAVE_UNISTD_H
+/* GNU/Linux libc requires __USE_XOPEN or cuserid() is not defined.  */
+#define __USE_XOPEN
 #include <unistd.h>
 #else
 #ifndef ttyname
@@ -124,6 +126,18 @@ extern char ** environ;
 
 #ifdef HAVE_SETLOCALE
 #include <locale.h>
+#endif
+
+#if HAVE_LIBCRYPT && HAVE_CRYPT_H
+#  include <crypt.h>
+#endif
+
+#if HAVE_SYS_RESOURCE_H
+#  include <sys/resource.h>
+#endif
+
+#if HAVE_SYS_FILE_H
+# include <sys/file.h>
 #endif
 
 /* Some Unix systems don't define these.  CPP hair is dangerous, but
@@ -1261,6 +1275,260 @@ SCM_DEFINE (scm_sync, "sync", 0, 0, 0,
 #undef FUNC_NAME
 #endif /* HAVE_SYNC */
 
+#if HAVE_LIBCRYPT && HAVE_CRYPT_H
+SCM_DEFINE (scm_crypt, "crypt", 2, 0, 0, 
+            (SCM key, SCM salt),
+	    "Encrypt @var{key} using @var{salt} as the salt value to the\n"
+	    "crypt(3) library call\n")
+#define FUNC_NAME s_scm_crypt
+{
+  char * p;
+
+  SCM_VALIDATE_STRING (1, key);
+  SCM_VALIDATE_STRING (2, salt);
+  SCM_STRING_COERCE_0TERMINATION_X (key);
+  SCM_STRING_COERCE_0TERMINATION_X (salt);
+
+  p = crypt (SCM_STRING_CHARS (key), SCM_STRING_CHARS (salt));
+  return scm_makfrom0str (p);
+}
+#undef FUNC_NAME
+#endif /* HAVE_LIBCRYPT && HAVE_CRYPT_H */
+
+#if HAVE_CHROOT
+SCM_DEFINE (scm_chroot, "chroot", 1, 0, 0, 
+            (SCM path),
+	    "Change the root directory to that specified in @var{path}.\n"
+	    "This directory will be used for path names beginning with\n"
+	    "@file{/}.  The root directory is inherited by all children\n"
+	    "of the current process.  Only the superuser may change the\n"
+	    "root directory.")
+#define FUNC_NAME s_scm_chroot
+{
+  SCM_VALIDATE_STRING (1, path);
+  SCM_STRING_COERCE_0TERMINATION_X (path);
+
+  if (chroot (SCM_STRING_CHARS (path)) == -1)
+    SCM_SYSERROR;
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+#endif /* HAVE_CHROOT */
+
+#if HAVE_GETLOGIN
+SCM_DEFINE (scm_getlogin, "getlogin", 0, 0, 0, 
+            (void),
+	    "Return a string containing the name of the user logged in on\n"
+	    "the controlling terminal of the process, or @code{#f} if this\n"
+	    "information cannot be obtained.")
+#define FUNC_NAME s_scm_getlogin
+{
+  char * p;
+
+  p = getlogin ();
+  if (!p || !*p)
+    return SCM_BOOL_F;
+  return scm_makfrom0str (p);
+}
+#undef FUNC_NAME
+#endif /* HAVE_GETLOGIN */
+
+#if HAVE_CUSERID
+SCM_DEFINE (scm_cuserid, "cuserid", 0, 0, 0, 
+            (void),
+	    "Return a string containing a user name associated with the\n"
+	    "effective user id of the process.  Return @code{#f} if this\n"
+	    "information cannot be obtained.")
+#define FUNC_NAME s_scm_cuserid
+{
+  char * p;
+
+  p = cuserid (NULL);
+  if (!p || !*p)
+    return SCM_BOOL_F;
+  return scm_makfrom0str (p);
+}
+#undef FUNC_NAME
+#endif /* HAVE_CUSERID */
+
+#if HAVE_GETPRIORITY
+SCM_DEFINE (scm_getpriority, "getpriority", 2, 0, 0, 
+            (SCM which, SCM who),
+	    "Return the scheduling priority of the process, process group\n"
+	    "or user, as indicated by @var{which} and @var{who}. @var{which}\n"
+	    "is one of the variables @code{PRIO_PROCESS}, @code{PRIO_PGRP}\n"
+	    "or @code{PRIO_USER}, and @var{who} is interpreted relative to\n"
+	    "@var{which} (a process identifier for @code{PRIO_PROCESS},\n"
+	    "process group identifier for @code{PRIO_PGRP}, and a user\n"
+	    "identifier for @code{PRIO_USER}.  A zero value of @var{who}\n"
+	    "denotes the current process, process group, or user.  Return\n"
+	    "the highest priority (lowest numerical value) of any of the\n"
+	    "specified processes.")
+#define FUNC_NAME s_scm_getpriority
+{
+  int cwhich, cwho, ret;
+
+  SCM_VALIDATE_INUM_COPY (1, which, cwhich);
+  SCM_VALIDATE_INUM_COPY (2, who, cwho);
+
+  /* We have to clear errno and examine it later, because -1 is a
+     legal return value for getpriority().  */
+  errno = 0;
+  ret = getpriority (cwhich, cwho);
+  if (errno != 0)
+    SCM_SYSERROR;
+  return SCM_MAKINUM (ret);
+}
+#undef FUNC_NAME
+#endif /* HAVE_GETPRIORITY */
+
+#if HAVE_SETPRIORITY
+SCM_DEFINE (scm_setpriority, "setpriority", 3, 0, 0, 
+            (SCM which, SCM who, SCM prio),
+	    "Set the scheduling priority of the process, process group\n"
+	    "or user, as indicated by @var{which} and @var{who}. @var{which}\n"
+	    "is one of the variables @code{PRIO_PROCESS}, @code{PRIO_PGRP}\n"
+	    "or @code{PRIO_USER}, and @var{who} is interpreted relative to\n"
+	    "@var{which} (a process identifier for @code{PRIO_PROCESS},\n"
+	    "process group identifier for @code{PRIO_PGRP}, and a user\n"
+	    "identifier for @code{PRIO_USER}.  A zero value of @var{who}\n"
+	    "denotes the current process, process group, or user.\n"
+	    "@var{prio} is a value in the range -20 and 20, the default\n"
+	    "priority is 0; lower priorities cause more favorable\n"
+	    "scheduling.  Sets the priority of all of the specified\n"
+	    "processes.  Only the super-user may lower priorities.\n"
+	    "The return value is not specified.")
+#define FUNC_NAME s_scm_setpriority
+{
+  int cwhich, cwho, cprio;
+
+  SCM_VALIDATE_INUM_COPY (1, which, cwhich);
+  SCM_VALIDATE_INUM_COPY (2, who, cwho);
+  SCM_VALIDATE_INUM_COPY (3, prio, cprio);
+
+  if (setpriority (cwhich, cwho, cprio) == -1)
+    SCM_SYSERROR;
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+#endif /* HAVE_SETPRIORITY */
+
+#if HAVE_GETPASS
+SCM_DEFINE (scm_getpass, "getpass", 1, 0, 0, 
+            (SCM prompt),
+	    "Display @var{prompt} to the standard error output and read\n"
+	    "a password from @file{/dev/tty}.  If this file is not\n"
+	    "accessible, it reads from standard input.  The password may be\n"
+	    "up to 127 characters in length.  Additional characters and the\n"
+	    "terminating newline character are discarded.  While reading\n"
+	    "the password, echoing and the generation of signals by special\n"
+	    "characters is disabled.")
+#define FUNC_NAME s_scm_getpass
+{
+  char * p;
+  SCM passwd;
+
+  SCM_VALIDATE_STRING (1, prompt);
+  SCM_STRING_COERCE_0TERMINATION_X (prompt);
+
+  p = getpass(SCM_STRING_CHARS (prompt));
+  passwd = scm_makfrom0str (p);
+
+  /* Clear out the password in the static buffer.  */
+  memset (p, 0, strlen (p));
+
+  return passwd;
+}
+#undef FUNC_NAME
+#endif /* HAVE_GETPASS */
+
+#if HAVE_FLOCK
+SCM_DEFINE (scm_flock, "flock", 2, 0, 0, 
+            (SCM file, SCM operation),
+	    "Apply or remove an advisory lock on an open file.\n"
+	    "@var{operation} specifies the action to be done:\n"
+	    "@table @code\n"
+	    "@item LOCK_SH\n"
+	    "Shared lock.  More than one process may hold a shared lock\n"
+	    "for a given file at a given time.\n"
+	    "@item LOCK_EX\n"
+	    "Exclusive lock.  Only one process may hold an exclusive lock\n"
+	    "for a given file at a given time.\n"
+	    "@item LOCK_UN\n"
+	    "Unlock the file.\n"
+	    "@item LOCK_NB\n"
+	    "Don't block when locking.  May be specified by bitwise OR'ing\n"
+	    "it to one of the other operations.\n"
+	    "@end table\n"
+	    "The return value is not specified. @var{file} may be an open\n"
+	    "file descriptor or an open file descriptior port.")
+#define FUNC_NAME s_scm_flock
+{
+  int coperation, fdes;
+
+  if (SCM_INUMP (file))
+    fdes = SCM_INUM (file);
+  else
+    {
+      SCM_VALIDATE_OPFPORT (2, file);
+
+      fdes = SCM_FPORT_FDES (file);
+    }
+  SCM_VALIDATE_INUM_COPY (2, operation, coperation);
+  if (flock (fdes, coperation) == -1)
+    SCM_SYSERROR;
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+#endif /* HAVE_FLOCK */
+
+#if HAVE_SETHOSTNAME
+SCM_DEFINE (scm_sethostname, "sethostname", 1, 0, 0, 
+            (SCM name),
+	    "Set the host name of the current processor to @var{name}. May\n"
+	    "only be used by the superuser.  The return value is not\n"
+	    "specified.")
+#define FUNC_NAME s_scm_sethostname
+{
+  SCM_VALIDATE_STRING (1, name);
+  SCM_STRING_COERCE_0TERMINATION_X (name);
+
+  if (sethostname (SCM_STRING_CHARS (name), SCM_STRING_LENGTH (name)) == -1)
+    SCM_SYSERROR;
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+#endif /* HAVE_SETHOSTNAME */
+
+#if HAVE_GETHOSTNAME
+SCM_DEFINE (scm_gethostname, "gethostname", 0, 0, 0, 
+            (void),
+	    "Return the host name of the current processor.")
+#define FUNC_NAME s_scm_gethostname
+{
+  int len = 2, res;
+  char *p = scm_must_malloc (len, "gethostname");
+  SCM name;
+
+  res = gethostname (p, len);
+  while (res == -1 && errno == ENAMETOOLONG)
+    {
+      p = scm_must_realloc (p, len, len * 2, "gethostname");
+      len *= 2;
+      res = gethostname (p, len);
+    }
+  if (res == -1)
+    {
+      scm_must_free (p);
+      SCM_SYSERROR;
+    }
+  name = scm_makfrom0str (p);
+  scm_must_free (p);
+  return name;
+}
+#undef FUNC_NAME
+#endif /* HAVE_GETHOSTNAME */
+
 void 
 scm_init_posix ()
 {
@@ -1310,6 +1578,29 @@ scm_init_posix ()
 #endif
 #ifdef PIPE_BUF
 scm_sysintern ("PIPE_BUF", scm_long2num (PIPE_BUF));
+#endif
+
+#ifdef PRIO_PROCESS
+  scm_sysintern ("PRIO_PROCESS", SCM_MAKINUM (PRIO_PROCESS));
+#endif
+#ifdef PRIO_PGRP
+  scm_sysintern ("PRIO_PGRP", SCM_MAKINUM (PRIO_PGRP));
+#endif
+#ifdef PRIO_USER
+  scm_sysintern ("PRIO_USER", SCM_MAKINUM (PRIO_USER));
+#endif
+
+#ifdef LOCK_SH
+  scm_sysintern ("LOCK_SH", SCM_MAKINUM (LOCK_SH));
+#endif
+#ifdef LOCK_EX
+  scm_sysintern ("LOCK_EX", SCM_MAKINUM (LOCK_EX));
+#endif
+#ifdef LOCK_UN
+  scm_sysintern ("LOCK_UN", SCM_MAKINUM (LOCK_UN));
+#endif
+#ifdef LOCK_NB
+  scm_sysintern ("LOCK_NB", SCM_MAKINUM (LOCK_NB));
 #endif
 
 #include "libguile/cpp_sig_symbols.c"

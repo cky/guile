@@ -365,6 +365,38 @@ close: Ports and File Descriptors.), the file descriptor will be
 closed even if a port is using it.  The return value is
 unspecified.
 
+** New function: crypt password salt
+
+Encrypts `password' using the standard unix password encryption
+algorithm.
+
+** New function: chroot path
+
+Change the root directory of the running process to `path'.
+
+** New functions: getlogin, cuserid
+
+Return the login name or the user name of the current effective user
+id, respectively.
+
+** New functions: getpriority which who, setpriority which who prio
+
+Get or set the priority of the running process.
+
+** New function: getpass prompt
+
+Read a password from the terminal, first displaying `prompt' and
+disabling echoing.
+
+** New function: flock file operation
+
+Set/remove an advisory shared or exclusive lock on `file'.
+
+** New functions: sethostname name, gethostname
+
+Set or get the hostname of the machine the current process is running
+on.
+
 ** Deprecated: close-all-ports-except.  This was intended for closing
 ports in a child process after a fork, but it has the undesirable side
 effect of flushing buffers.  port-for-each is more flexible.

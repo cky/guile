@@ -1,3 +1,17 @@
+2001-03-09  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* posix.h (scm_crypt, scm_chroot, scm_getlogin, scm_cuserid),
+	(scm_getpriority, scm_setpriority, scm_getpass, scm_flock),
+	(scm_sethostname, scm_gethostname): New prototypes.
+
+	* posix.c: Added inclusion of <crypt.h>, <sys/resource.h> and
+	<sys/file.h>, if present.
+	(scm_init_posix): [PRIO_PROCESS, PRIO_PGRP, PRIO_USER, LOCK_SH,
+	LOCK_EX, LOCK_UN, LOCK_NB]: New variables.
+	(scm_crypt, scm_chroot, scm_getlogin, scm_cuserid),
+	(scm_getpriority, scm_setpriority, scm_getpass, scm_flock),
+	(scm_sethostname, scm_gethostname): New procedures.
+
 2001-03-08  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* ports.c (scm_port_column): Docstring fixes: (i) port-line arg is

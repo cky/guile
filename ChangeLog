@@ -1,3 +1,10 @@
+2001-03-09  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* configure.in: Added header checks for crypt.h, sys/resource.h
+	and sys/file.h, function checks for chroot, flock, getlogin,
+	cuserid, getpriority, setpriority, getpass, sethostname,
+	gethostname, and for crypt() in libcrypt.
+
 2001-03-09  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* configure.in (htmldoc): Merge handling of `--enable-htmldoc'
