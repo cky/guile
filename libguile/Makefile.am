@@ -24,7 +24,7 @@ AUTOMAKE_OPTIONS = foreign
 ## Check for headers in $(srcdir)/.., so that #include
 ## <libguile/MUMBLE.h> will find MUMBLE.h in this dir when we're
 ## building.
-INCLUDES = -I.. -I$(srcdir)/.. ${THREAD_CPPFLAGS}
+INCLUDES = -I.. -I$(srcdir)/.. ${THREAD_CPPFLAGS} $(INCLTDL)
 
 ETAGS_ARGS = --regex='/SCM_\(GLOBAL_\)?\(G?PROC\|G?PROC1\|SYMBOL\|VCELL\|CONST_LONG\).*\"\([^\"]\)*\"/\3/' \
    --regex='/[ \t]*SCM_[G]?DEFINE1?[ \t]*(\([^,]*\),[^,]*/\1/'
@@ -34,6 +34,7 @@ bin_PROGRAMS = guile
 
 guile_SOURCES = guile.c
 guile_LDADD = libguile.la ${THREAD_LIBS_LOCAL}
+guile_LDFLAGS = @DLPREOPEN@
 
 libguile_la_SOURCES = \
     alist.c arbiters.c async.c backtrace.c boolean.c chars.c		\
@@ -76,7 +77,7 @@ EXTRA_libguile_la_SOURCES = _scm.h		\
 noinst_HEADERS = coop-threads.c coop-threads.h coop.c
 
 libguile_la_DEPENDENCIES = @LIBLOBJS@
-libguile_la_LIBADD = @LIBLOBJS@
+libguile_la_LIBADD = @LIBLOBJS@ $(LIBLTDL)
 libguile_la_LDFLAGS = -version-info 7:0 -export-dynamic
 
 include_HEADERS = libguile.h
@@ -117,10 +118,10 @@ check-local:
 	echo '(+ 1 2 3)' | GUILE_LOAD_PATH=${top_srcdir}:.. ./gh_test_c; echo
 	echo '(+ 1 2 3)' | GUILE_LOAD_PATH=${top_srcdir}:.. ./gh_test_repl; echo
 
-EXTRA_DIST = ChangeLog-gh ChangeLog-scm ChangeLog-threads dynl-dl.c \
-    dynl-dld.c dynl-shl.c dynl-vms.c DYNAMIC-LINKING cpp_signal.c cpp_errno.c \
-    cpp_err_symbols.in cpp_sig_symbols.in cpp_cnvt.awk coop-threads.h.cygnus \
-    coop-threads.c.cygnus mit-pthreads.h mit-pthreads.c fsu-pthreads.h
+EXTRA_DIST = ChangeLog-gh ChangeLog-scm ChangeLog-threads cpp_signal.c	\
+    cpp_errno.c cpp_err_symbols.in cpp_sig_symbols.in cpp_cnvt.awk	\
+    coop-threads.h.cygnus coop-threads.c.cygnus mit-pthreads.h		\
+    mit-pthreads.c fsu-pthreads.h
 
 ## FIXME: Consider using timestamp file, to avoid unnecessary rebuilds.
 libpath.h: $(srcdir)/Makefile.in  $(top_builddir)/config.status
