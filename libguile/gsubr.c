@@ -129,7 +129,7 @@ scm_make_gsubr_with_generic (const char *name,
 }
 
 
-SCM_DEFINE(scm_gsubr_apply, "gsubr-apply", 0, 0, 1, 
+SCM_DEFINE (scm_gsubr_apply, "gsubr-apply", 0, 0, 1, 
            (SCM args),
 "")
 #define FUNC_NAME s_scm_gsubr_apply

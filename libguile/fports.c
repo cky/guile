@@ -177,8 +177,8 @@ The value used to indicate the "close on exec" flag with @code{F_GETFL} or
 
   port = SCM_COERCE_OUTPORT (port);
 
-  SCM_VALIDATE_OPFPORT(1,port);
-  SCM_VALIDATE_INUM_COPY(2,mode,cmode);
+  SCM_VALIDATE_OPFPORT (1,port);
+  SCM_VALIDATE_INUM_COPY (2,mode,cmode);
   if (cmode != _IONBF && cmode != _IOFBF && cmode != _IOLBF)
     scm_out_of_range (FUNC_NAME, mode);
 
@@ -201,7 +201,7 @@ The value used to indicate the "close on exec" flag with @code{F_GETFL} or
     }
   else
     {
-      SCM_VALIDATE_INUM_COPY(3,size,csize);
+      SCM_VALIDATE_INUM_COPY (3,size,csize);
       if (csize < 0 || (cmode == _IONBF && csize > 0))
 	scm_out_of_range (FUNC_NAME, size);
     }
@@ -255,7 +255,7 @@ scm_evict_ports (int fd)
  *
  * Return the new port.
  */
-SCM_DEFINE(scm_open_file, "open-file", 2, 0, 0,
+SCM_DEFINE (scm_open_file, "open-file", 2, 0, 0,
            (SCM filename, SCM modes),
 "Open the file whose name is @var{string}, and return a port
 representing that file.  The attributes of the port are
@@ -308,8 +308,8 @@ If a file cannot be opened with the access requested,
   char *mode;
   char *ptr;
 
-  SCM_VALIDATE_ROSTRING(1,filename);
-  SCM_VALIDATE_ROSTRING(2,modes);
+  SCM_VALIDATE_ROSTRING (1,filename);
+  SCM_VALIDATE_ROSTRING (2,modes);
   if (SCM_SUBSTRP (filename))
     filename = scm_makfromstr (SCM_ROCHARS (filename), SCM_ROLENGTH (filename), 0);
   if (SCM_SUBSTRP (modes))

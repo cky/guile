@@ -143,8 +143,8 @@ as @code{-1}, then that ID is not changed.")
 
   object = SCM_COERCE_OUTPORT (object);
 
-  SCM_VALIDATE_INUM(2,owner);
-  SCM_VALIDATE_INUM(3,group);
+  SCM_VALIDATE_INUM (2,owner);
+  SCM_VALIDATE_INUM (3,group);
   if (SCM_INUMP (object) || (SCM_OPFPORTP (object)))
     {
       if (SCM_INUMP (object))
@@ -184,7 +184,7 @@ The return value is unspecified.")
 
   object = SCM_COERCE_OUTPORT (object);
 
-  SCM_VALIDATE_INUM(2,mode);
+  SCM_VALIDATE_INUM (2,mode);
   if (SCM_INUMP (object) || SCM_OPFPORTP (object))
     {
       if (SCM_INUMP (object))
@@ -195,7 +195,7 @@ The return value is unspecified.")
     }
   else
     {
-      SCM_VALIDATE_ROSTRING(1,object);
+      SCM_VALIDATE_ROSTRING (1,object);
       SCM_COERCE_SUBSTR (object);
       SCM_SYSCALL (rv = chmod (SCM_ROCHARS (object), SCM_INUM (mode)));
     }
@@ -222,7 +222,7 @@ E.g., @code{(umask #o022)} sets the mask to octal 22, decimal 18.")
     }
   else
     {
-      SCM_VALIDATE_INUM(1,mode);
+      SCM_VALIDATE_INUM (1,mode);
       mask = umask (SCM_INUM (mode));
     }
   return SCM_MAKINUM (mask);
@@ -241,10 +241,10 @@ port.")
   int iflags;
   int imode;
 
-  SCM_VALIDATE_ROSTRING(1,path);
+  SCM_VALIDATE_ROSTRING (1,path);
   SCM_COERCE_SUBSTR (path);
-  SCM_VALIDATE_INUM_COPY(2,flags,iflags);
-  SCM_VALIDATE_INUM_DEF_COPY(3,mode,0666,imode);
+  SCM_VALIDATE_INUM_COPY (2,flags,iflags);
+  SCM_VALIDATE_INUM_DEF_COPY (3,mode,0666,imode);
   SCM_SYSCALL (fd = open (SCM_ROCHARS (path), iflags, imode));
   if (fd == -1)
     SCM_SYSERROR;
@@ -289,7 +289,7 @@ for additional flags.")
   int iflags;
 
   fd = SCM_INUM (scm_open_fdes (path, flags, mode));
-  SCM_VALIDATE_INUM_COPY(2,flags,iflags);
+  SCM_VALIDATE_INUM_COPY (2,flags,iflags);
   if (iflags & O_RDWR)
     {
       if (iflags & O_APPEND)
@@ -328,7 +328,7 @@ their revealed counts set to zero.")
 
   if (SCM_PORTP (fd_or_port))
     return scm_close_port (fd_or_port);
-  SCM_VALIDATE_INUM(1,fd_or_port);
+  SCM_VALIDATE_INUM (1,fd_or_port);
   fd = SCM_INUM (fd_or_port);
   scm_evict_ports (fd);		/* see scsh manual.  */
   SCM_SYSCALL (rv = close (fd));
@@ -552,11 +552,11 @@ link may or may not be followed depending on the system.")
 {
   int val;
 
-  SCM_VALIDATE_ROSTRING(1,oldpath);
+  SCM_VALIDATE_ROSTRING (1,oldpath);
   if (SCM_SUBSTRP (oldpath))
     oldpath = scm_makfromstr (SCM_ROCHARS (oldpath),
 			      SCM_ROLENGTH (oldpath), 0);
-  SCM_VALIDATE_ROSTRING(2,newpath);
+  SCM_VALIDATE_ROSTRING (2,newpath);
   if (SCM_SUBSTRP (newpath))
     newpath = scm_makfromstr (SCM_ROCHARS (newpath),
 			      SCM_ROLENGTH (newpath), 0);
@@ -576,8 +576,8 @@ The return value is unspecified.")
 #define FUNC_NAME s_scm_rename
 {
   int rv;
-  SCM_VALIDATE_ROSTRING(1,oldname);
-  SCM_VALIDATE_ROSTRING(2,newname);
+  SCM_VALIDATE_ROSTRING (1,oldname);
+  SCM_VALIDATE_ROSTRING (2,newname);
   SCM_COERCE_SUBSTR (oldname);
   SCM_COERCE_SUBSTR (newname);
 #ifdef HAVE_RENAME
@@ -599,13 +599,13 @@ The return value is unspecified.")
 #undef FUNC_NAME
 
 
-SCM_DEFINE(scm_delete_file, "delete-file", 1, 0, 0, 
+SCM_DEFINE (scm_delete_file, "delete-file", 1, 0, 0, 
            (SCM str),
 "Deletes (or \"unlinks\") the file specified by @var{path}.")
 #define FUNC_NAME s_scm_delete_file
 {
   int ans;
-  SCM_VALIDATE_ROSTRING(1,str);
+  SCM_VALIDATE_ROSTRING (1,str);
   SCM_COERCE_SUBSTR (str);
   SCM_SYSCALL (ans = unlink (SCM_ROCHARS (str)));
   if (ans != 0)
@@ -625,7 +625,7 @@ umask.  Otherwise they are set to the decimal value specified with
 #ifdef HAVE_MKDIR
   int rv;
   mode_t mask;
-  SCM_VALIDATE_ROSTRING(1,path);
+  SCM_VALIDATE_ROSTRING (1,path);
   SCM_COERCE_SUBSTR (path);
   if (SCM_UNBNDP (mode))
     {
@@ -635,7 +635,7 @@ umask.  Otherwise they are set to the decimal value specified with
     }
   else
     {
-      SCM_VALIDATE_INUM(2,mode);
+      SCM_VALIDATE_INUM (2,mode);
       SCM_SYSCALL (rv = mkdir (SCM_ROCHARS (path), SCM_INUM (mode)));
     }
   if (rv != 0)
@@ -659,7 +659,7 @@ be empty for this to succeed.  The return value is unspecified.")
 #ifdef HAVE_RMDIR
   int val;
 
-  SCM_VALIDATE_ROSTRING(1,path);
+  SCM_VALIDATE_ROSTRING (1,path);
   SCM_COERCE_SUBSTR (path);
   SCM_SYSCALL (val = rmdir (SCM_ROCHARS (path)));
   if (val != 0)
@@ -696,7 +696,7 @@ stream.")
 #define FUNC_NAME s_scm_opendir
 {
   DIR *ds;
-  SCM_VALIDATE_ROSTRING(1,dirname);
+  SCM_VALIDATE_ROSTRING (1,dirname);
   SCM_COERCE_SUBSTR (dirname);
   SCM_SYSCALL (ds = opendir (SCM_ROCHARS (dirname)));
   if (ds == NULL)
@@ -714,7 +714,7 @@ end of file object is returned.")
 #define FUNC_NAME s_scm_readdir
 {
   struct dirent *rdent;
-  SCM_VALIDATE_OPDIR(1,port);
+  SCM_VALIDATE_OPDIR (1,port);
   errno = 0;
   SCM_SYSCALL (rdent = readdir ((DIR *) SCM_CDR (port)));
   if (errno != 0)
@@ -732,7 +732,7 @@ SCM_DEFINE (scm_rewinddir, "rewinddir", 1, 0, 0,
 @code{readdir} will return the first directory entry.")
 #define FUNC_NAME s_scm_rewinddir
 {
-  SCM_VALIDATE_OPDIR(1,port);
+  SCM_VALIDATE_OPDIR (1,port);
   rewinddir ((DIR *) SCM_CDR (port));
   return SCM_UNSPECIFIED;
 }
@@ -748,7 +748,7 @@ The return value is unspecified.")
 {
   int sts;
 
-  SCM_VALIDATE_DIR(1,port);
+  SCM_VALIDATE_DIR (1,port);
   if (SCM_CLOSEDP (port))
     {
       return SCM_UNSPECIFIED;
@@ -798,7 +798,7 @@ The return value is unspecified.")
 {
   int ans;
 
-  SCM_VALIDATE_ROSTRING(1,str);
+  SCM_VALIDATE_ROSTRING (1,str);
   SCM_COERCE_SUBSTR (str);
   SCM_SYSCALL (ans = chdir (SCM_ROCHARS (str)));
   if (ans != 0)
@@ -1003,7 +1003,7 @@ values instead of a list and has an additional select! interface.
 	    timeout.tv_usec = 0;
 	  else
 	    {
-              SCM_VALIDATE_INUM(5,usecs);
+              SCM_VALIDATE_INUM (5,usecs);
 	      timeout.tv_usec = SCM_INUM (usecs);
 	    }
 	}
@@ -1079,12 +1079,12 @@ The value used to indicate the "close on exec" flag with @code{F_GETFL} or
 
   object = SCM_COERCE_OUTPORT (object);
 
-  SCM_VALIDATE_INUM(2,cmd);
+  SCM_VALIDATE_INUM (2,cmd);
   if (SCM_OPFPORTP (object))
     fdes = SCM_FPORT_FDES (object);
   else
     {
-      SCM_VALIDATE_INUM(1,object);
+      SCM_VALIDATE_INUM (1,object);
       fdes = SCM_INUM (object);
     }
   if (SCM_NULLP (value))
@@ -1120,7 +1120,7 @@ The return value is unspecified.")
     }
   else
     {
-      SCM_VALIDATE_INUM(1,object);
+      SCM_VALIDATE_INUM (1,object);
       fdes = SCM_INUM (object);
     }
   if (fsync (fdes) == -1)
@@ -1138,8 +1138,8 @@ SCM_DEFINE (scm_symlink, "symlink", 2, 0, 0,
 #ifdef HAVE_SYMLINK
   int val;
 
-  SCM_VALIDATE_ROSTRING(1,oldpath);
-  SCM_VALIDATE_ROSTRING(2,newpath);
+  SCM_VALIDATE_ROSTRING (1,oldpath);
+  SCM_VALIDATE_ROSTRING (2,newpath);
   SCM_COERCE_SUBSTR (oldpath);
   SCM_COERCE_SUBSTR (newpath);
   SCM_SYSCALL (val = symlink(SCM_ROCHARS(oldpath), SCM_ROCHARS(newpath)));
@@ -1167,7 +1167,7 @@ file that the link points to.")
   int size = 100;
   char *buf;
   SCM result;
-  SCM_VALIDATE_ROSTRING(1,path);
+  SCM_VALIDATE_ROSTRING (1,path);
   SCM_COERCE_SUBSTR (path);
   buf = scm_must_malloc (size, FUNC_NAME);
   while ((rv = readlink (SCM_ROCHARS (path), buf, size)) == size)
@@ -1201,7 +1201,7 @@ file it points to.  @var{path} must be a string.")
   int rv;
   struct stat stat_temp;
 
-  SCM_VALIDATE_ROSTRING(1,str);
+  SCM_VALIDATE_ROSTRING (1,str);
   SCM_COERCE_SUBSTR (str);
   SCM_SYSCALL(rv = lstat(SCM_ROCHARS(str), &stat_temp));
   if (rv != 0)
@@ -1235,10 +1235,10 @@ The return value is unspecified.")
   char buf[BUFSIZ];
   struct stat oldstat;
 
-  SCM_VALIDATE_ROSTRING(1,oldfile);
+  SCM_VALIDATE_ROSTRING (1,oldfile);
   if (SCM_SUBSTRP (oldfile))
     oldfile = scm_makfromstr (SCM_ROCHARS (oldfile), SCM_ROLENGTH (oldfile), 0);
-  SCM_VALIDATE_ROSTRING(2,newfile);
+  SCM_VALIDATE_ROSTRING (2,newfile);
   if (SCM_SUBSTRP (newfile))
     newfile = scm_makfromstr (SCM_ROCHARS (newfile), SCM_ROLENGTH (newfile), 0);
   if (stat (SCM_ROCHARS (oldfile), &oldstat) == -1)
@@ -1279,7 +1279,7 @@ SCM_DEFINE (scm_dirname, "dirname", 1, 0, 0,
 {
   char *s;
   int i, len;
-  SCM_VALIDATE_ROSTRING(1,filename);
+  SCM_VALIDATE_ROSTRING (1,filename);
   s = SCM_ROCHARS (filename);
   len = SCM_LENGTH (filename);
   i = len - 1;
@@ -1305,7 +1305,7 @@ SCM_DEFINE (scm_basename, "basename", 1, 1, 0,
 {
   char *f, *s = 0;
   int i, j, len, end;
-  SCM_VALIDATE_ROSTRING(1,filename);
+  SCM_VALIDATE_ROSTRING (1,filename);
   SCM_ASSERT (SCM_UNBNDP (suffix)
 	      || (SCM_ROSTRINGP (suffix)),
 	      suffix,

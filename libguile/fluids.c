@@ -147,7 +147,7 @@ SCM_DEFINE (scm_fluid_ref, "fluid-ref", 1, 0, 0,
 {
   int n;
 
-  SCM_VALIDATE_FLUID(1,fl);
+  SCM_VALIDATE_FLUID (1,fl);
 
   n = SCM_FLUID_NUM (fl);
 
@@ -164,7 +164,7 @@ SCM_DEFINE (scm_fluid_set_x, "fluid-set!", 2, 0, 0,
 {
   int n;
 
-  SCM_VALIDATE_FLUID(1,fl);
+  SCM_VALIDATE_FLUID (1,fl);
   n = SCM_FLUID_NUM (fl);
 
   if (SCM_LENGTH (scm_root->fluids) <= n)

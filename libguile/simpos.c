@@ -63,7 +63,7 @@
 extern int system();
 
 
-SCM_DEFINE(scm_system, "system", 0, 1, 0, 
+SCM_DEFINE (scm_system, "system", 0, 1, 0, 
            (SCM cmd),
 "Executes @var{cmd} using the operating system's "command processor".
 Under Unix this is usually the default shell @code{sh}.  The value
@@ -85,7 +85,7 @@ indicating whether the command processor is available.")
 #endif
       return SCM_BOOL(rv);
     }
-  SCM_VALIDATE_ROSTRING(1,cmd);
+  SCM_VALIDATE_ROSTRING (1,cmd);
 #ifdef HAVE_SYSTEM
   SCM_DEFER_INTS;
   errno = 0;
@@ -112,7 +112,7 @@ returned.")
 #define FUNC_NAME s_scm_getenv
 {
   char *val;
-  SCM_VALIDATE_ROSTRING(1,nam);
+  SCM_VALIDATE_ROSTRING (1,nam);
   nam = scm_makfromstr (SCM_ROCHARS (nam), SCM_ROLENGTH (nam), 0);
   val = getenv(SCM_CHARS(nam));
   return (val) ? scm_makfromstr(val, (scm_sizet)strlen(val), 0) : SCM_BOOL_F;
@@ -130,7 +130,7 @@ is @var{status} if supplied, otherwise zero.")
   int cstatus = 0;
   if (!SCM_UNBNDP (status))
     {
-      SCM_VALIDATE_INUM(1,status);
+      SCM_VALIDATE_INUM (1,status);
       cstatus = SCM_INUM (status);
     }
   exit (cstatus);

@@ -246,7 +246,7 @@ display_error_handler (struct display_error_handler_data *data,
   return SCM_UNSPECIFIED;
 }
 
-SCM_DEFINE(scm_display_error, "display-error", 6, 0, 0,
+SCM_DEFINE (scm_display_error, "display-error", 6, 0, 0,
            (SCM stack, SCM port, SCM subr, SCM message, SCM args, SCM rest),
 "")
 #define FUNC_NAME s_scm_display_error
@@ -283,7 +283,7 @@ static print_params_t default_print_params[] = {
 static print_params_t *print_params = default_print_params;
 
 #ifdef GUILE_DEBUG
-SCM_DEFINE(scm_set_print_params_x, "set-print-params!", 1, 0, 0,
+SCM_DEFINE (scm_set_print_params_x, "set-print-params!", 1, 0, 0,
            (SCM params),
 "")
 #define FUNC_NAME s_scm_set_print_params_x
@@ -385,20 +385,20 @@ display_application (SCM frame,int indentation,SCM sport,SCM port,scm_print_stat
 		      pstate);
 }
 
-SCM_DEFINE(scm_display_application, "display-application", 1, 2, 0, 
+SCM_DEFINE (scm_display_application, "display-application", 1, 2, 0, 
            (SCM frame, SCM port, SCM indent),
 "")
 #define FUNC_NAME s_scm_display_application
 {
-  SCM_VALIDATE_FRAME(1,frame);
+  SCM_VALIDATE_FRAME (1,frame);
   if (SCM_UNBNDP (port))
     port = scm_cur_outp;
   else
-    SCM_VALIDATE_OPOUTPORT(2,port);
+    SCM_VALIDATE_OPOUTPORT (2,port);
   if (SCM_UNBNDP (indent))
     indent = SCM_INUM0;
   else
-    SCM_VALIDATE_INUM(3,indent);
+    SCM_VALIDATE_INUM (3,indent);
   
   if (SCM_FRAME_PROC_P (frame))
     /* Display an application. */
@@ -599,7 +599,7 @@ display_backtrace_body(struct display_backtrace_args *a)
 }
 #undef FUNC_NAME
 
-SCM_DEFINE(scm_display_backtrace, "display-backtrace", 2, 2, 0, 
+SCM_DEFINE (scm_display_backtrace, "display-backtrace", 2, 2, 0, 
            (SCM stack, SCM port, SCM first, SCM depth),
 "")
 #define FUNC_NAME s_scm_display_backtrace
@@ -621,7 +621,7 @@ SCM_DEFINE(scm_display_backtrace, "display-backtrace", 2, 2, 0,
 
 SCM_VCELL (scm_has_shown_backtrace_hint_p_var, "has-shown-backtrace-hint?");
 
-SCM_DEFINE(scm_backtrace, "backtrace", 0, 0, 0, 
+SCM_DEFINE (scm_backtrace, "backtrace", 0, 0, 0, 
            (),
 "")
 #define FUNC_NAME s_scm_backtrace

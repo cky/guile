@@ -118,11 +118,11 @@ SCM_DEFINE (scm_odd_p, "odd?", 1, 0, 0,
 #ifdef SCM_BIGDIG
   if (SCM_NINUMP (n))
     {
-      SCM_VALIDATE_BIGINT(1,n);
+      SCM_VALIDATE_BIGINT (1,n);
       return SCM_BOOL(1 & SCM_BDIGITS (n)[0]);
     }
 #else
-  SCM_VALIDATE_INUM(1,n);
+  SCM_VALIDATE_INUM (1,n);
 #endif
   return SCM_BOOL(4 & (int) n);
 }
@@ -136,11 +136,11 @@ SCM_DEFINE (scm_even_p, "even?", 1, 0, 0,
 #ifdef SCM_BIGDIG
   if (SCM_NINUMP (n))
     {
-      SCM_VALIDATE_BIGINT(1,n);
+      SCM_VALIDATE_BIGINT (1,n);
       return SCM_NEGATE_BOOL(1 & SCM_BDIGITS (n)[0]);
     }
 #else
-  SCM_VALIDATE_INUM(1,n);
+  SCM_VALIDATE_INUM (1,n);
 #endif
   return SCM_NEGATE_BOOL(4 & (int) n);
 }
@@ -528,8 +528,8 @@ Example:
 	return SCM_MAKINUM (-1);
       return n1;
     }
-  SCM_VALIDATE_INUM_COPY(1,n1,i1);
-  SCM_VALIDATE_INUM_COPY(2,n2,i2);
+  SCM_VALIDATE_INUM_COPY (1,n1,i1);
+  SCM_VALIDATE_INUM_COPY (2,n2,i2);
   return scm_ulong2num (i1 & i2);
 }
 #undef FUNC_NAME
@@ -553,8 +553,8 @@ Example:
 	return SCM_INUM0;
       return n1;
     }
-  SCM_VALIDATE_INUM_COPY(1,n1,i1);
-  SCM_VALIDATE_INUM_COPY(2,n2,i2);
+  SCM_VALIDATE_INUM_COPY (1,n1,i1);
+  SCM_VALIDATE_INUM_COPY (2,n2,i2);
   return scm_ulong2num (i1 | i2);
 }
 #undef FUNC_NAME
@@ -578,8 +578,8 @@ Example:
 	return SCM_INUM0;
       return n1;
     }
-  SCM_VALIDATE_INUM_COPY(1,n1,i1);
-  SCM_VALIDATE_INUM_COPY(2,n2,i2);
+  SCM_VALIDATE_INUM_COPY (1,n1,i1);
+  SCM_VALIDATE_INUM_COPY (2,n2,i2);
   return scm_ulong2num (i1 ^ i2);
 }
 #undef FUNC_NAME
@@ -590,8 +590,8 @@ SCM_DEFINE (scm_logtest, "logtest", 2, 0, 0,
 #define FUNC_NAME s_scm_logtest
 {
   int i1, i2;
-  SCM_VALIDATE_INUM_COPY(1,n1,i1);
-  SCM_VALIDATE_INUM_COPY(2,n2,i2);
+  SCM_VALIDATE_INUM_COPY (1,n1,i1);
+  SCM_VALIDATE_INUM_COPY (2,n2,i2);
   return SCM_BOOL(i1 & i2);
 }
 #undef FUNC_NAME
@@ -603,8 +603,8 @@ SCM_DEFINE (scm_logbit_p, "logbit?", 2, 0, 0,
 #define FUNC_NAME s_scm_logbit_p
 {
   int i1, i2;
-  SCM_VALIDATE_INUM_COPY(1,n1,i1);
-  SCM_VALIDATE_INUM_COPY(2,n2,i2);
+  SCM_VALIDATE_INUM_COPY (1,n1,i1);
+  SCM_VALIDATE_INUM_COPY (2,n2,i2);
   return SCM_BOOL((1 << i1) & i2);
 }
 #undef FUNC_NAME
@@ -623,8 +623,8 @@ GUILE_PROC1 (scm_logand, "logand", scm_tc7_asubr,
 	return SCM_MAKINUM (-1);
       return n1;
     }
-  SCM_VALIDATE_INUM_COPY(1,n1,i1);
-  SCM_VALIDATE_INUM_COPY(2,n2,i2);
+  SCM_VALIDATE_INUM_COPY (1,n1,i1);
+  SCM_VALIDATE_INUM_COPY (2,n2,i2);
   return SCM_MAKINUM (i1 & i2);
 }
 #undef FUNC_NAME
@@ -641,8 +641,8 @@ GUILE_PROC1 (scm_logior, "logior", scm_tc7_asubr,
 	return SCM_INUM0;
       return n1;
     }
-  SCM_VALIDATE_INUM_COPY(1,n1,i1);
-  SCM_VALIDATE_INUM_COPY(2,n2,i2);
+  SCM_VALIDATE_INUM_COPY (1,n1,i1);
+  SCM_VALIDATE_INUM_COPY (2,n2,i2);
   return SCM_MAKINUM (i1 | i2);
 }
 #undef FUNC_NAME
@@ -659,8 +659,8 @@ GUILE_PROC1 (scm_logxor, "logxor", scm_tc7_asubr,
 	return SCM_INUM0;
       return n1;
     }
-  SCM_VALIDATE_INUM_COPY(1,n1,i1);
-  SCM_VALIDATE_INUM_COPY(2,n2,i2);
+  SCM_VALIDATE_INUM_COPY (1,n1,i1);
+  SCM_VALIDATE_INUM_COPY (2,n2,i2);
   return SCM_MAKINUM (i1 ^ i2);
 }
 #undef FUNC_NAME
@@ -676,8 +676,8 @@ SCM_DEFINE (scm_logtest, "logtest", 2, 0, 0,
 #define FUNC_NAME s_scm_logtest
 {
   int i1, i2;
-  SCM_VALIDATE_INUM_COPY(1,n1,i1);
-  SCM_VALIDATE_INUM_COPY(2,n2,i2);
+  SCM_VALIDATE_INUM_COPY (1,n1,i1);
+  SCM_VALIDATE_INUM_COPY (2,n2,i2);
   return SCM_BOOL(i1 & i2);
 }
 #undef FUNC_NAME
@@ -696,8 +696,8 @@ SCM_DEFINE (scm_logbit_p, "logbit?", 2, 0, 0,
 #define FUNC_NAME s_scm_logbit_p
 {
   int i1, i2;
-  SCM_VALIDATE_INUM_MIN_COPY(1,n1,0,i1);
-  SCM_VALIDATE_INUM_COPY(2,n2,i2);
+  SCM_VALIDATE_INUM_MIN_COPY (1,n1,0,i1);
+  SCM_VALIDATE_INUM_COPY (2,n2,i2);
   return SCM_BOOL((1 << i1) & i2);
 }
 #undef FUNC_NAME
@@ -717,7 +717,7 @@ Example:
 ")
 #define FUNC_NAME s_scm_lognot
 {
-  SCM_VALIDATE_INUM(1,n);
+  SCM_VALIDATE_INUM (1,n);
   return scm_difference (SCM_MAKINUM (-1L), n);
 }
 #undef FUNC_NAME
@@ -743,7 +743,7 @@ Example:
   else if (SCM_MAKINUM (-1L) == z1)
     return SCM_BOOL_F == scm_even_p (z2) ? z1 : acc;
 #endif
-  SCM_VALIDATE_INUM_COPY(2,z2,i2);
+  SCM_VALIDATE_INUM_COPY (2,z2,i2);
   if (i2 < 0)
     {
       i2 = -i2;
@@ -779,7 +779,7 @@ Example:
 {
   /* GJB:FIXME:: what is going on here? */
   SCM res = SCM_INUM (n);
-  SCM_VALIDATE_INUM(2,cnt);
+  SCM_VALIDATE_INUM (2,cnt);
 #ifdef SCM_BIGDIG
   if (cnt < 0)
     {
@@ -793,7 +793,7 @@ Example:
   else
     return scm_product (n, scm_integer_expt (SCM_MAKINUM (2), cnt));
 #else
-  SCM_VALIDATE_INUM(1,n)
+  SCM_VALIDATE_INUM (1,n)
   cnt = SCM_INUM (cnt);
   if (cnt < 0)
     return SCM_MAKINUM (SCM_SRS (res, -cnt));
@@ -821,9 +821,9 @@ Example:
 @end lisp")
 #define FUNC_NAME s_scm_bit_extract
 {
-  SCM_VALIDATE_INUM(1,n);
-  SCM_VALIDATE_INUM_MIN(2,start,0);
-  SCM_VALIDATE_INUM_MIN(3,end,0);
+  SCM_VALIDATE_INUM (1,n);
+  SCM_VALIDATE_INUM_MIN (2,start,0);
+  SCM_VALIDATE_INUM_MIN (3,end,0);
   start = SCM_INUM (start);
   end = SCM_INUM (end);
   SCM_ASSERT (end >= start, SCM_MAKINUM (end), SCM_OUTOFRANGE, FUNC_NAME);
@@ -835,7 +835,7 @@ Example:
 				  SCM_MAKINUM (1L)),
 		  scm_ash (n, SCM_MAKINUM (-start)));
 #else
-  SCM_VALIDATE_INUM(1,n);
+  SCM_VALIDATE_INUM (1,n);
 #endif
   return SCM_MAKINUM ((SCM_INUM (n) >> start) & ((1L << (end - start)) - 1));
 }
@@ -870,7 +870,7 @@ Example:
     {
       scm_sizet i;
       SCM_BIGDIG *ds, d;
-      SCM_VALIDATE_BIGINT(1,n);
+      SCM_VALIDATE_BIGINT (1,n);
       if (SCM_BIGSIGN (n))
 	return scm_logcount (scm_difference (SCM_MAKINUM (-1L), n));
       ds = SCM_BDIGITS (n);
@@ -880,7 +880,7 @@ Example:
       return SCM_MAKINUM (c);
     }
 #else
-  SCM_VALIDATE_INUM(1,n);
+  SCM_VALIDATE_INUM (1,n);
 #endif
   if ((nn = SCM_INUM (n)) < 0)
     nn = -1 - nn;
@@ -917,7 +917,7 @@ Example:
   if (SCM_NINUMP (n))
     {
       SCM_BIGDIG *ds, d;
-      SCM_VALIDATE_BIGINT(1,n);
+      SCM_VALIDATE_BIGINT (1,n);
       if (SCM_BIGSIGN (n))
 	return scm_integer_length (scm_difference (SCM_MAKINUM (-1L), n));
       ds = SCM_BDIGITS (n);
@@ -930,7 +930,7 @@ Example:
       return SCM_MAKINUM (c - 4 + l);
     }
 #else
-  SCM_VALIDATE_INUM(1,n);
+  SCM_VALIDATE_INUM (1,n);
 #endif
   if ((nn = SCM_INUM (n)) < 0)
     nn = -1 - nn;
@@ -1862,7 +1862,7 @@ SCM_DEFINE (scm_number_to_string, "number->string", 1, 1, 0,
 #define FUNC_NAME s_scm_number_to_string
 {
   int base;
-  SCM_VALIDATE_INUM_MIN_DEF_COPY(2,radix,2,10,base);
+  SCM_VALIDATE_INUM_MIN_DEF_COPY (2,radix,2,10,base);
 #ifdef SCM_FLOATS
   if (SCM_NINUMP (x))
     {
@@ -2465,8 +2465,8 @@ SCM_DEFINE (scm_string_to_number, "string->number", 1, 1, 0,
 {
   SCM answer;
   int base;
-  SCM_VALIDATE_ROSTRING(1,str);
-  SCM_VALIDATE_INUM_MIN_DEF_COPY(2,radix,2,10,base);
+  SCM_VALIDATE_ROSTRING (1,str);
+  SCM_VALIDATE_INUM_MIN_DEF_COPY (2,radix,2,10,base);
   answer = scm_istring2number (SCM_ROCHARS (str),
 			       SCM_ROLENGTH (str),
                                base);
@@ -4440,7 +4440,7 @@ SCM_DEFINE (scm_inexact_to_exact, "inexact->exact", 1, 0, 0,
     }
 #endif
 #else
-  SCM_VALIDATE_REAL(1,z);
+  SCM_VALIDATE_REAL (1,z);
 #endif
 #ifdef SCM_BIGDIG
   {

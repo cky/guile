@@ -57,29 +57,29 @@ SCM_DEFINE (scm_makacro, "procedure->syntax", 1, 0, 0,
 "")
 #define FUNC_NAME s_scm_makacro
 {
-  SCM_VALIDATE_PROC(1,code);
+  SCM_VALIDATE_PROC (1,code);
   SCM_RETURN_NEWSMOB (scm_tc16_macro, code);
 }
 #undef FUNC_NAME
 
 
-SCM_DEFINE(scm_makmacro, "procedure->macro", 1, 0, 0, 
+SCM_DEFINE (scm_makmacro, "procedure->macro", 1, 0, 0, 
            (SCM code),
 "")
 #define FUNC_NAME s_scm_makmacro
 {
-  SCM_VALIDATE_PROC(1,code);
+  SCM_VALIDATE_PROC (1,code);
   SCM_RETURN_NEWSMOB (scm_tc16_macro | (1L << 16), code);
 }
 #undef FUNC_NAME
 
 
-SCM_DEFINE(scm_makmmacro, "procedure->memoizing-macro", 1, 0, 0, 
+SCM_DEFINE (scm_makmmacro, "procedure->memoizing-macro", 1, 0, 0, 
            (SCM code),
 "")
 #define FUNC_NAME s_scm_makmmacro
 {
-  SCM_VALIDATE_PROC(1,code);
+  SCM_VALIDATE_PROC (1,code);
   SCM_RETURN_NEWSMOB (scm_tc16_macro | (2L << 16), code);
 }
 #undef FUNC_NAME
@@ -126,7 +126,7 @@ SCM_DEFINE (scm_macro_name, "macro-name", 1, 0, 0,
 "")
 #define FUNC_NAME s_scm_macro_name
 {
-  SCM_VALIDATE_SMOB(1,m,macro);
+  SCM_VALIDATE_SMOB (1,m,macro);
   return scm_procedure_name (SCM_CDR (m));
 }
 #undef FUNC_NAME
@@ -137,7 +137,7 @@ SCM_DEFINE (scm_macro_transformer, "macro-transformer", 1, 0, 0,
 "")
 #define FUNC_NAME s_scm_macro_transformer
 {
-  SCM_VALIDATE_SMOB(1,m,macro);
+  SCM_VALIDATE_SMOB (1,m,macro);
   return SCM_CLOSUREP (SCM_CDR (m)) ? SCM_CDR (m) : SCM_BOOL_F;
 }
 #undef FUNC_NAME

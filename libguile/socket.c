@@ -80,7 +80,7 @@ short integer.")
 {
   unsigned short c_in;
 
-  SCM_VALIDATE_INUM_COPY(1,in,c_in);
+  SCM_VALIDATE_INUM_COPY (1,in,c_in);
   if (c_in != SCM_INUM (in))
     SCM_OUT_OF_RANGE (1,in);
 
@@ -97,7 +97,7 @@ integer.")
 {
   unsigned short c_in;
 
-  SCM_VALIDATE_INUM_COPY(1,in,c_in);
+  SCM_VALIDATE_INUM_COPY (1,in,c_in);
   if (c_in != SCM_INUM (in))
     SCM_OUT_OF_RANGE (1,in);
 
@@ -163,9 +163,9 @@ it has been connected to another socket.")
   int fd;
   SCM result;
 
-  SCM_VALIDATE_INUM(1,family);
-  SCM_VALIDATE_INUM(2,style);
-  SCM_VALIDATE_INUM(3,proto);
+  SCM_VALIDATE_INUM (1,family);
+  SCM_VALIDATE_INUM (2,style);
+  SCM_VALIDATE_INUM (3,proto);
   fd = socket (SCM_INUM (family), SCM_INUM (style), SCM_INUM (proto));
   result = SCM_SOCK_FD_TO_PORT (fd);
   return result;
@@ -189,9 +189,9 @@ the only meaningful value for @var{protocol}.")
   SCM a;
   SCM b;
 
-  SCM_VALIDATE_INUM(1,family);
-  SCM_VALIDATE_INUM(2,style);
-  SCM_VALIDATE_INUM(3,proto);
+  SCM_VALIDATE_INUM (1,family);
+  SCM_VALIDATE_INUM (2,style);
+  SCM_VALIDATE_INUM (3,proto);
 
   fam = SCM_INUM (family);
 
@@ -235,9 +235,9 @@ pair of integers.")
 #endif
 
   sock = SCM_COERCE_OUTPORT (sock);
-  SCM_VALIDATE_OPFPORT(1,sock);
-  SCM_VALIDATE_INUM_COPY(2,level,ilevel);
-  SCM_VALIDATE_INUM_COPY(3,optname,ioptname);
+  SCM_VALIDATE_OPFPORT (1,sock);
+  SCM_VALIDATE_INUM_COPY (2,level,ilevel);
+  SCM_VALIDATE_INUM_COPY (3,optname,ioptname);
 
   fd = SCM_FPORT_FDES (sock);
   if (getsockopt (fd, ilevel, ioptname, (void *) optval, &optlen) == -1)
@@ -299,9 +299,9 @@ The return value is unspecified.")
 #endif
   int ilevel, ioptname;
   sock = SCM_COERCE_OUTPORT (sock);
-  SCM_VALIDATE_OPFPORT(1,sock);
-  SCM_VALIDATE_INUM_COPY(2,level,ilevel);
-  SCM_VALIDATE_INUM_COPY(3,optname,ioptname);
+  SCM_VALIDATE_OPFPORT (1,sock);
+  SCM_VALIDATE_INUM_COPY (2,level,ilevel);
+  SCM_VALIDATE_INUM_COPY (3,optname,ioptname);
   fd = SCM_FPORT_FDES (sock);
   if (0);
 #ifdef SO_LINGER
@@ -332,7 +332,7 @@ The return value is unspecified.")
 #ifdef SO_SNDBUF
   else if (ilevel == SOL_SOCKET && ioptname == SO_SNDBUF)
     {
-      SCM_VALIDATE_INUM(4,value);
+      SCM_VALIDATE_INUM (4,value);
       optlen = (int) sizeof (scm_sizet);
       (*(scm_sizet *) optval) = (scm_sizet) SCM_INUM (value);
     }
@@ -340,7 +340,7 @@ The return value is unspecified.")
 #ifdef SO_RCVBUF
   else if (ilevel == SOL_SOCKET && ioptname == SO_RCVBUF)
     {
-      SCM_VALIDATE_INUM(4,value);
+      SCM_VALIDATE_INUM (4,value);
       optlen = (int) sizeof (scm_sizet);
       (*(scm_sizet *) optval) = (scm_sizet) SCM_INUM (value);
     }
@@ -348,7 +348,7 @@ The return value is unspecified.")
   else
     {
       /* Most options just take an int.  */
-      SCM_VALIDATE_INUM(4,value);
+      SCM_VALIDATE_INUM (4,value);
       optlen = (int) sizeof (int);
       (*(int *) optval) = (int) SCM_INUM (value);
     }
@@ -381,8 +381,8 @@ The return value is unspecified.")
 {
   int fd;
   sock = SCM_COERCE_OUTPORT (sock);
-  SCM_VALIDATE_OPFPORT(1,sock);
-  SCM_VALIDATE_INUM(2,how);
+  SCM_VALIDATE_OPFPORT (1,sock);
+  SCM_VALIDATE_INUM (2,how);
   SCM_ASSERT_RANGE(2,how,0 <= SCM_INUM (how) && 2 >= SCM_INUM (how));
   fd = SCM_FPORT_FDES (sock);
   if (shutdown (fd, SCM_INUM (how)) == -1)
@@ -470,8 +470,8 @@ The return value is unspecified.")
   scm_sizet size;
 
   sock = SCM_COERCE_OUTPORT (sock);
-  SCM_VALIDATE_OPFPORT(1,sock);
-  SCM_VALIDATE_INUM(2,fam);
+  SCM_VALIDATE_OPFPORT (1,sock);
+  SCM_VALIDATE_INUM (2,fam);
   fd = SCM_FPORT_FDES (sock);
   soka = scm_fill_sockaddr (SCM_INUM (fam), address, &args, 3, FUNC_NAME, &size);
   if (connect (fd, soka, size) == -1)
@@ -527,8 +527,8 @@ The return value is unspecified.")
   int fd;
 
   sock = SCM_COERCE_OUTPORT (sock);
-  SCM_VALIDATE_OPFPORT(1,sock);
-  SCM_VALIDATE_INUM(2,fam);
+  SCM_VALIDATE_OPFPORT (1,sock);
+  SCM_VALIDATE_INUM (2,fam);
   soka = scm_fill_sockaddr (SCM_INUM (fam), address, &args, 3, FUNC_NAME, &size);
   fd = SCM_FPORT_FDES (sock);
   rv = bind (fd, soka, size);
@@ -552,8 +552,8 @@ The return value is unspecified.")
 {
   int fd;
   sock = SCM_COERCE_OUTPORT (sock);
-  SCM_VALIDATE_OPFPORT(1,sock);
-  SCM_VALIDATE_INUM(2,backlog);
+  SCM_VALIDATE_OPFPORT (1,sock);
+  SCM_VALIDATE_INUM (2,backlog);
   fd = SCM_FPORT_FDES (sock);
   if (listen (fd, SCM_INUM (backlog)) == -1)
     SCM_SYSERROR;
@@ -641,7 +641,7 @@ connection and will continue to accept new requests.")
 
   int tmp_size;
   sock = SCM_COERCE_OUTPORT (sock);
-  SCM_VALIDATE_OPFPORT(1,sock);
+  SCM_VALIDATE_OPFPORT (1,sock);
   fd = SCM_FPORT_FDES (sock);
   tmp_size = scm_addr_buffer_size;
   newfd = accept (fd, (struct sockaddr *) scm_addr_buffer, &tmp_size);
@@ -666,7 +666,7 @@ in the @code{AF_FILE} namespace cannot be read.")
   int fd;
   SCM result;
   sock = SCM_COERCE_OUTPORT (sock);
-  SCM_VALIDATE_OPFPORT(1,sock);
+  SCM_VALIDATE_OPFPORT (1,sock);
   fd = SCM_FPORT_FDES (sock);
   tmp_size = scm_addr_buffer_size;
   if (getsockname (fd, (struct sockaddr *) scm_addr_buffer, &tmp_size) == -1)
@@ -691,7 +691,7 @@ in the @code{AF_FILE} namespace cannot be read.")
   int fd;
   SCM result;
   sock = SCM_COERCE_OUTPORT (sock);
-  SCM_VALIDATE_OPFPORT(1,sock);
+  SCM_VALIDATE_OPFPORT (1,sock);
   fd = SCM_FPORT_FDES (sock);
   tmp_size = scm_addr_buffer_size;
   if (getpeername (fd, (struct sockaddr *) scm_addr_buffer, &tmp_size) == -1)
@@ -727,9 +727,9 @@ any unread buffered port data is ignored.")
   int fd;
   int flg;
 
-  SCM_VALIDATE_OPFPORT(1,sock);
-  SCM_VALIDATE_STRING(2,buf);
-  SCM_VALIDATE_INUM_DEF_COPY(3,flags,0,flg);
+  SCM_VALIDATE_OPFPORT (1,sock);
+  SCM_VALIDATE_STRING (2,buf);
+  SCM_VALIDATE_INUM_DEF_COPY (3,flags,0,flg);
   fd = SCM_FPORT_FDES (sock);
 
   SCM_SYSCALL (rv = recv (fd, SCM_CHARS (buf), SCM_LENGTH (buf), flg));
@@ -758,9 +758,9 @@ any unflushed buffered port data is ignored.")
   int flg;
 
   sock = SCM_COERCE_OUTPORT (sock);
-  SCM_VALIDATE_OPFPORT(1,sock);
-  SCM_VALIDATE_ROSTRING(2,message);
-  SCM_VALIDATE_INUM_DEF_COPY(3,flags,0,flg);
+  SCM_VALIDATE_OPFPORT (1,sock);
+  SCM_VALIDATE_ROSTRING (2,message);
+  SCM_VALIDATE_INUM_DEF_COPY (3,flags,0,flg);
   fd = SCM_FPORT_FDES (sock);
 
   SCM_SYSCALL (rv = send (fd, SCM_ROCHARS (message), SCM_ROLENGTH (message), flg));
@@ -803,8 +803,8 @@ any unread buffered port data is ignored.")
   int tmp_size;
   SCM address;
 
-  SCM_VALIDATE_OPFPORT(1,sock);
-  SCM_VALIDATE_STRING(2,buf);
+  SCM_VALIDATE_OPFPORT (1,sock);
+  SCM_VALIDATE_STRING (2,buf);
   cend = SCM_LENGTH (buf);
   
   if (SCM_UNBNDP (flags))
@@ -873,9 +873,9 @@ any unflushed buffered port data is ignored.")
   int save_err;
 
   sock = SCM_COERCE_OUTPORT (sock);
-  SCM_VALIDATE_FPORT(1,sock);
-  SCM_VALIDATE_ROSTRING(2,message);
-  SCM_VALIDATE_INUM(3,fam);
+  SCM_VALIDATE_FPORT (1,sock);
+  SCM_VALIDATE_ROSTRING (2,message);
+  SCM_VALIDATE_INUM (3,fam);
   fd = SCM_FPORT_FDES (sock);
   soka = scm_fill_sockaddr (SCM_INUM (fam), address, &args_and_flags, 4,
 			    FUNC_NAME, &size);
@@ -883,7 +883,7 @@ any unflushed buffered port data is ignored.")
     flg = 0;
   else
     {
-      SCM_VALIDATE_CONS(5,args_and_flags);
+      SCM_VALIDATE_CONS (5,args_and_flags);
       flg = SCM_NUM2ULONG (5,SCM_CAR (args_and_flags));
     }
   SCM_SYSCALL (rv = sendto (fd, SCM_ROCHARS (message), SCM_ROLENGTH (message),

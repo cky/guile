@@ -137,7 +137,7 @@ sf_close (SCM port)
 
 
 
-SCM_DEFINE(scm_make_soft_port, "make-soft-port", 2, 0, 0,
+SCM_DEFINE (scm_make_soft_port, "make-soft-port", 2, 0, 0,
            (SCM pv, SCM modes),
 "Returns a port capable of receiving or delivering characters as
 specified by the @var{modes} string (@pxref{File Ports,
@@ -183,8 +183,8 @@ the port has reached end-of-file.  For example:
 {
   scm_port *pt;
   SCM z;
-  SCM_VALIDATE_VECTOR_LEN(1,pv,5);
-  SCM_VALIDATE_ROSTRING(2,modes);
+  SCM_VALIDATE_VECTOR_LEN (1,pv,5);
+  SCM_VALIDATE_ROSTRING (2,modes);
   SCM_COERCE_SUBSTR (modes);
   SCM_NEWCELL (z);
   SCM_DEFER_INTS;

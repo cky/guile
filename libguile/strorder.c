@@ -58,8 +58,8 @@ GUILE_PROC1 (scm_string_equal_p, "string=?", scm_tc7_rpsubr,
 {
   register scm_sizet i;
   register unsigned char *c1, *c2;
-  SCM_VALIDATE_ROSTRING(1,s1);
-  SCM_VALIDATE_ROSTRING(2,s2);
+  SCM_VALIDATE_ROSTRING (1,s1);
+  SCM_VALIDATE_ROSTRING (2,s2);
 
   i = SCM_ROLENGTH (s2);
   if (SCM_ROLENGTH (s1) != i)
@@ -82,8 +82,8 @@ GUILE_PROC1 (scm_string_ci_equal_p, "string-ci=?", scm_tc7_rpsubr,
 {
   register scm_sizet i;
   register unsigned char *c1, *c2;
-  SCM_VALIDATE_ROSTRING(1,s1);
-  SCM_VALIDATE_ROSTRING(2,s2);
+  SCM_VALIDATE_ROSTRING (1,s1);
+  SCM_VALIDATE_ROSTRING (2,s2);
 
   i = SCM_ROLENGTH (s2);
   if (SCM_ROLENGTH (s1) != i)
@@ -108,8 +108,8 @@ GUILE_PROC1 (scm_string_less_p, "string<?", scm_tc7_rpsubr,
   register unsigned char *c1, *c2;
   register int c;
 
-  SCM_VALIDATE_ROSTRING(1,s1);
-  SCM_VALIDATE_ROSTRING(2,s2);
+  SCM_VALIDATE_ROSTRING (1,s1);
+  SCM_VALIDATE_ROSTRING (2,s2);
   len = SCM_ROLENGTH (s1);
   s2len = SCM_ROLENGTH (s2);
   if (len>s2len) len = s2len;
@@ -166,8 +166,8 @@ GUILE_PROC1 (scm_string_ci_less_p, "string-ci<?", scm_tc7_rpsubr,
   register scm_sizet i, len, s2len;
   register unsigned char *c1, *c2;
   register int c;
-  SCM_VALIDATE_ROSTRING(1,s1);
-  SCM_VALIDATE_ROSTRING(2,s2);
+  SCM_VALIDATE_ROSTRING (1,s1);
+  SCM_VALIDATE_ROSTRING (2,s2);
   len = SCM_ROLENGTH (s1);
   s2len = SCM_ROLENGTH (s2);
   if (len>s2len) len = s2len;

@@ -375,7 +375,7 @@ SCM
 scm_join_thread (SCM t)
 #define FUNC_NAME s_join_thread
 {
-  SCM_VALIDATE_THREAD(1,t);
+  SCM_VALIDATE_THREAD (1,t);
   coop_join (SCM_THREAD_DATA (t));
   return SCM_BOOL_T;
 }

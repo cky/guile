@@ -277,7 +277,7 @@ mark_async (SCM obj)
 
 
 
-SCM_DEFINE(scm_async, "async", 1, 0, 0, 
+SCM_DEFINE (scm_async, "async", 1, 0, 0, 
            (SCM thunk),
 "")
 #define FUNC_NAME s_scm_async
@@ -290,7 +290,7 @@ SCM_DEFINE(scm_async, "async", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE(scm_system_async, "system-async", 1, 0, 0, 
+SCM_DEFINE (scm_system_async, "system-async", 1, 0, 0, 
             (SCM thunk),
 "")
 #define FUNC_NAME s_scm_system_async
@@ -305,26 +305,26 @@ SCM_DEFINE(scm_system_async, "system-async", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE(scm_async_mark, "async-mark", 1, 0, 0, 
+SCM_DEFINE (scm_async_mark, "async-mark", 1, 0, 0, 
             (SCM a),
 "")
 #define FUNC_NAME s_scm_async_mark
 {
   struct scm_async * it;
-  SCM_VALIDATE_ASYNC_COPY(1,a,it);
+  SCM_VALIDATE_ASYNC_COPY (1,a,it);
   it->got_it = 1;
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
 
 
-SCM_DEFINE(scm_system_async_mark, "system-async-mark", 1, 0, 0, 
+SCM_DEFINE (scm_system_async_mark, "system-async-mark", 1, 0, 0, 
            (SCM a),
 "")
 #define FUNC_NAME s_scm_system_async_mark
 {
   struct scm_async * it;
-  SCM_VALIDATE_ASYNC_COPY(1,a,it);
+  SCM_VALIDATE_ASYNC_COPY (1,a,it);
   SCM_REDEFER_INTS;
   it->got_it = 1;
   scm_async_rate = 1 + scm_async_rate - scm_async_clock;
@@ -335,7 +335,7 @@ SCM_DEFINE(scm_system_async_mark, "system-async-mark", 1, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE(scm_run_asyncs, "run-asyncs", 1, 0, 0, 
+SCM_DEFINE (scm_run_asyncs, "run-asyncs", 1, 0, 0, 
            (SCM list_of_a),
 "")
 #define FUNC_NAME s_scm_run_asyncs
@@ -346,7 +346,7 @@ SCM_DEFINE(scm_run_asyncs, "run-asyncs", 1, 0, 0,
     {
       SCM a;
       struct scm_async * it;
-      SCM_VALIDATE_CONS(1,list_of_a);
+      SCM_VALIDATE_CONS (1,list_of_a);
       a = SCM_CAR (list_of_a);
       SCM_ASSERT (SCM_ASYNCP (a), a, SCM_ARG1, FUNC_NAME);
       it = SCM_ASYNC (a);
@@ -366,7 +366,7 @@ SCM_DEFINE(scm_run_asyncs, "run-asyncs", 1, 0, 0,
 
 
 
-SCM_DEFINE(scm_noop, "noop", 0, 0, 1, 
+SCM_DEFINE (scm_noop, "noop", 0, 0, 1, 
            (SCM args),
 "")
 #define FUNC_NAME s_scm_noop
@@ -380,13 +380,13 @@ SCM_DEFINE(scm_noop, "noop", 0, 0, 1,
 
 
 
-SCM_DEFINE(scm_set_tick_rate, "set-tick-rate", 1, 0, 0, 
+SCM_DEFINE (scm_set_tick_rate, "set-tick-rate", 1, 0, 0, 
            (SCM n),
 "")
 #define FUNC_NAME s_scm_set_tick_rate
 {
   unsigned int old_n;
-  SCM_VALIDATE_INUM(1,n);
+  SCM_VALIDATE_INUM (1,n);
   old_n = scm_tick_rate;
   scm_desired_tick_rate = SCM_INUM (n);
   scm_async_rate = 1 + scm_async_rate - scm_async_clock;
@@ -398,13 +398,13 @@ SCM_DEFINE(scm_set_tick_rate, "set-tick-rate", 1, 0, 0,
 
 
 
-SCM_DEFINE(scm_set_switch_rate, "set-switch-rate", 1, 0, 0, 
+SCM_DEFINE (scm_set_switch_rate, "set-switch-rate", 1, 0, 0, 
            (SCM n),
 "")
 #define FUNC_NAME s_scm_set_switch_rate
 {
   unsigned int old_n;
-  SCM_VALIDATE_INUM(1,n);
+  SCM_VALIDATE_INUM (1,n);
   old_n = scm_switch_rate;
   scm_desired_switch_rate = SCM_INUM (n);
   scm_async_rate = 1 + scm_async_rate - scm_async_clock;
@@ -438,7 +438,7 @@ scm_sys_gc_async_thunk (void)
 
 
 
-SCM_DEFINE(scm_unmask_signals, "unmask-signals", 0, 0, 0, 
+SCM_DEFINE (scm_unmask_signals, "unmask-signals", 0, 0, 0, 
            (),
 "")
 #define FUNC_NAME s_scm_unmask_signals
@@ -449,7 +449,7 @@ SCM_DEFINE(scm_unmask_signals, "unmask-signals", 0, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE(scm_mask_signals, "mask-signals", 0, 0, 0, 
+SCM_DEFINE (scm_mask_signals, "mask-signals", 0, 0, 0, 
            (),
 "")
 #define FUNC_NAME s_scm_mask_signals

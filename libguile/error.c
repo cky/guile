@@ -87,7 +87,7 @@ scm_error (SCM key, const char *subr, const char *message, SCM args, SCM rest)
 }
 
 /* Scheme interface to scm_error.  */
-SCM_DEFINE(scm_error_scm, "scm-error", 5, 0, 0, 
+SCM_DEFINE (scm_error_scm, "scm-error", 5, 0, 0, 
            (SCM key, SCM subr, SCM message, SCM args, SCM rest),
 "Raise an error with key @var{key}.  @var{subr} can be a string naming
 the procedure associated with the error, or @code{#f}.  @var{message}
@@ -104,9 +104,9 @@ will usually be @code{#f}.")
 {
   char *szSubr;
   char *szMessage;
-  SCM_VALIDATE_SYMBOL(1,key);
-  SCM_VALIDATE_NULLORROSTRING_COPY(2,subr,szSubr);
-  SCM_VALIDATE_NULLORROSTRING_COPY(3,message,szMessage);
+  SCM_VALIDATE_SYMBOL (1,key);
+  SCM_VALIDATE_NULLORROSTRING_COPY (2,subr,szSubr);
+  SCM_VALIDATE_NULLORROSTRING_COPY (3,message,szMessage);
   SCM_COERCE_SUBSTR (message);
 
   scm_error (key, szSubr, szMessage, args, rest);
@@ -119,7 +119,7 @@ SCM_DEFINE (scm_strerror, "strerror", 1, 0, 0,
 "Returns the Unix error message corresponding to @var{errno}, an integer.")
 #define FUNC_NAME s_scm_strerror
 {
-  SCM_VALIDATE_INUM(1,err);
+  SCM_VALIDATE_INUM (1,err);
   return scm_makfrom0str (strerror (SCM_INUM (err)));
 }
 #undef FUNC_NAME

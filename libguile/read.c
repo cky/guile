@@ -102,7 +102,7 @@ SCM_DEFINE (scm_read, "read", 0, 1, 0,
 
   if (SCM_UNBNDP (port))
     port = scm_cur_inp;
-  SCM_VALIDATE_OPINPORT(1,port);
+  SCM_VALIDATE_OPINPORT (1,port);
 
   c = scm_flush_ws (port, (char *) NULL);
   if (EOF == c)
@@ -709,7 +709,7 @@ SCM_DEFINE (scm_read_hash_extend, "read-hash-extend", 2, 0, 0,
   SCM this;
   SCM prev;
 
-  SCM_VALIDATE_CHAR(1,chr);
+  SCM_VALIDATE_CHAR (1,chr);
   SCM_ASSERT (SCM_FALSEP (proc) || SCM_NIMP(proc), proc, SCM_ARG2,
 	      FUNC_NAME);
 

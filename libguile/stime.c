@@ -129,7 +129,7 @@ extern int errno;
 
 struct timeb scm_your_base = {0};
 
-SCM_DEFINE(scm_get_internal_real_time, "get-internal-real-time", 0, 0, 0, 
+SCM_DEFINE (scm_get_internal_real_time, "get-internal-real-time", 0, 0, 0, 
            (),
 "Returns the number of time units since the interpreter was started.")
 #define FUNC_NAME s_scm_get_internal_real_time
@@ -153,7 +153,7 @@ SCM_DEFINE(scm_get_internal_real_time, "get-internal-real-time", 0, 0, 0,
 
 timet scm_your_base = 0;
 
-SCM_DEFINE(scm_get_internal_real_time, "get-internal-real-time", 0, 0, 0, 
+SCM_DEFINE (scm_get_internal_real_time, "get-internal-real-time", 0, 0, 0, 
            (),
 "")
 #define FUNC_NAME s_scm_get_internal_real_time
@@ -215,7 +215,7 @@ terminated child processes.
 
 static long scm_my_base = 0;
 
-SCM_DEFINE(scm_get_internal_run_time, "get-internal-run-time", 0, 0, 0, 
+SCM_DEFINE (scm_get_internal_run_time, "get-internal-run-time", 0, 0, 0, 
            (void),
 "Returns the number of time units of processor time used by the interpreter.
 Both "system" and "user" time
@@ -226,7 +226,7 @@ are included but subprocesses are not.")
 }
 #undef FUNC_NAME
 
-SCM_DEFINE(scm_current_time, "current-time", 0, 0, 0, 
+SCM_DEFINE (scm_current_time, "current-time", 0, 0, 0, 
            (void),
 "Returns the number of seconds since 1970-01-01 00:00:00 UTC, excluding
 leap seconds.")
@@ -573,7 +573,7 @@ is the formatted string.
   int len;
   SCM result;
 
-  SCM_VALIDATE_ROSTRING(1,format);
+  SCM_VALIDATE_ROSTRING (1,format);
   bdtime2c (stime, &t, SCM_ARG2, FUNC_NAME);
 
   SCM_COERCE_SUBSTR (format);
@@ -611,8 +611,8 @@ were used for the conversion.")
   struct tm t;
   char *fmt, *str, *rest;
 
-  SCM_VALIDATE_ROSTRING(1,format);
-  SCM_VALIDATE_ROSTRING(2,string);
+  SCM_VALIDATE_ROSTRING (1,format);
+  SCM_VALIDATE_ROSTRING (2,string);
 
   SCM_COERCE_SUBSTR (format);
   SCM_COERCE_SUBSTR (string);

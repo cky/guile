@@ -53,7 +53,7 @@
 
 
 
-SCM_DEFINE(scm_acons, "acons", 3, 0, 0,
+SCM_DEFINE (scm_acons, "acons", 3, 0, 0,
            (SCM key, SCM value, SCM alist),
 "Adds a new key-value pair to @var{alist}.  A new pair is
 created whose car is @var{key} and whose cdr is @var{value}, and the
@@ -134,7 +134,7 @@ Recommended only for use in Guile internals.")
 
 
 
-SCM_DEFINE(scm_assq, "assq", 2, 0, 0,
+SCM_DEFINE (scm_assq, "assq", 2, 0, 0,
            (SCM key, SCM alist),
 "@deffnx primitive assv key alist
 @deffnx primitive assoc key alist
@@ -149,16 +149,16 @@ return the entire alist entry found (i.e. both the key and the value).")
 {
   SCM tmp;
   for(;SCM_NIMP(alist);alist = SCM_CDR(alist)) {
-    SCM_VALIDATE_ALISTCELL_COPYSCM(2,alist,tmp);
+    SCM_VALIDATE_ALISTCELL_COPYSCM (2,alist,tmp);
     if (SCM_CAR(tmp)==key) return tmp;
   }
-  SCM_VALIDATE_NULL(2,alist);
+  SCM_VALIDATE_NULL (2,alist);
   return SCM_BOOL_F;
 }
 #undef FUNC_NAME
 
 
-SCM_DEFINE(scm_assv, "assv", 2, 0, 0,
+SCM_DEFINE (scm_assv, "assv", 2, 0, 0,
            (SCM key, SCM alist),
 "Behaves like @code{assq} but uses @code{eqv?} for key comparison.")
 #define FUNC_NAME s_scm_assv
@@ -179,17 +179,17 @@ SCM_DEFINE(scm_assv, "assv", 2, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE(scm_assoc, "assoc", 2, 0, 0,
+SCM_DEFINE (scm_assoc, "assoc", 2, 0, 0,
            (SCM key, SCM alist),
 "Behaves like @code{assq} but uses @code{equal?} for key comparison.")
 #define FUNC_NAME s_scm_assoc
 {
   SCM tmp;
   for(;SCM_NIMP(alist);alist = SCM_CDR(alist)) {
-    SCM_VALIDATE_ALISTCELL_COPYSCM(2,alist,tmp);
+    SCM_VALIDATE_ALISTCELL_COPYSCM (2,alist,tmp);
     if SCM_NFALSEP(scm_equal_p(SCM_CAR(tmp), key)) return tmp;
   }
-  SCM_VALIDATE_NULL(2,alist);
+  SCM_VALIDATE_NULL (2,alist);
   return SCM_BOOL_F;
 }
 #undef FUNC_NAME

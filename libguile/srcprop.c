@@ -281,7 +281,7 @@ SCM_DEFINE (scm_set_source_property_x, "set-source-property!", 3, 0, 0,
     }
   else if (scm_sym_line == key)
     {
-      SCM_VALIDATE_INUM(3,datum);
+      SCM_VALIDATE_INUM (3,datum);
       if (SRCPROPSP (p))
 	SETSRCPROPLINE (p, SCM_INUM (datum));
       else
@@ -291,7 +291,7 @@ SCM_DEFINE (scm_set_source_property_x, "set-source-property!", 3, 0, 0,
     }
   else if (scm_sym_column == key)
     {
-      SCM_VALIDATE_INUM(3,datum);
+      SCM_VALIDATE_INUM (3,datum);
       if (SRCPROPSP (p))
 	SETSRCPROPCOL (p, SCM_INUM (datum));
       else

@@ -357,7 +357,7 @@ SCM_DEFINE (scm_random, "random", 1, 1, 0,
 {
   if (SCM_UNBNDP (state))
     state = SCM_CDR (scm_var_random_state);
-  SCM_VALIDATE_RSTATE(2,state);
+  SCM_VALIDATE_RSTATE (2,state);
   if (SCM_INUMP (n))
     {
       unsigned long m = SCM_INUM (n);
@@ -380,7 +380,7 @@ SCM_DEFINE (scm_copy_random_state, "copy-random-state", 0, 1, 0,
 {
   if (SCM_UNBNDP (state))
     state = SCM_CDR (scm_var_random_state);
-  SCM_VALIDATE_RSTATE(1,state);
+  SCM_VALIDATE_RSTATE (1,state);
   return make_rstate (scm_the_rng.copy_rstate (SCM_RSTATE (state)));
 }
 #undef FUNC_NAME
@@ -392,7 +392,7 @@ SCM_DEFINE (scm_seed_to_random_state, "seed->random-state", 1, 0, 0,
 {
   if (SCM_NUMBERP (seed))
     seed = scm_number_to_string (seed, SCM_UNDEFINED);
-  SCM_VALIDATE_STRING(1,seed);
+  SCM_VALIDATE_STRING (1,seed);
   return make_rstate (scm_c_make_rstate (SCM_ROCHARS (seed),
 					 SCM_LENGTH (seed)));
 }
@@ -405,7 +405,7 @@ SCM_DEFINE (scm_random_uniform, "random:uniform", 0, 1, 0,
 {
   if (SCM_UNBNDP (state))
     state = SCM_CDR (scm_var_random_state);
-  SCM_VALIDATE_RSTATE(1,state);
+  SCM_VALIDATE_RSTATE (1,state);
   return scm_makdbl (scm_c_uniform01 (SCM_RSTATE (state)), 0.0);
 }
 #undef FUNC_NAME
@@ -417,7 +417,7 @@ SCM_DEFINE (scm_random_normal, "random:normal", 0, 1, 0,
 {
   if (SCM_UNBNDP (state))
     state = SCM_CDR (scm_var_random_state);
-  SCM_VALIDATE_RSTATE(1,state);
+  SCM_VALIDATE_RSTATE (1,state);
   return scm_makdbl (scm_c_normal01 (SCM_RSTATE (state)), 0.0);
 }
 #undef FUNC_NAME
@@ -466,10 +466,10 @@ SCM_DEFINE (scm_random_solid_sphere_x, "random:solid-sphere!", 1, 1, 0,
 "")
 #define FUNC_NAME s_scm_random_solid_sphere_x
 {
-  SCM_VALIDATE_VECTOR_OR_DVECTOR(1,v);
+  SCM_VALIDATE_VECTOR_OR_DVECTOR (1,v);
   if (SCM_UNBNDP (state))
     state = SCM_CDR (scm_var_random_state);
-  SCM_VALIDATE_RSTATE(2,state);
+  SCM_VALIDATE_RSTATE (2,state);
   scm_random_normal_vector_x (v, state);
   vector_scale (v,
 		pow (scm_c_uniform01 (SCM_RSTATE (state)),
@@ -484,10 +484,10 @@ SCM_DEFINE (scm_random_hollow_sphere_x, "random:hollow-sphere!", 1, 1, 0,
 "")
 #define FUNC_NAME s_scm_random_hollow_sphere_x
 {
-  SCM_VALIDATE_VECTOR_OR_DVECTOR(1,v);
+  SCM_VALIDATE_VECTOR_OR_DVECTOR (1,v);
   if (SCM_UNBNDP (state))
     state = SCM_CDR (scm_var_random_state);
-  SCM_VALIDATE_RSTATE(2,state);
+  SCM_VALIDATE_RSTATE (2,state);
   scm_random_normal_vector_x (v, state);
   vector_scale (v, 1 / sqrt (vector_sum_squares (v)));
   return SCM_UNSPECIFIED;
@@ -501,10 +501,10 @@ SCM_DEFINE (scm_random_normal_vector_x, "random:normal-vector!", 1, 1, 0,
 #define FUNC_NAME s_scm_random_normal_vector_x
 {
   int n;
-  SCM_VALIDATE_VECTOR_OR_DVECTOR(1,v);
+  SCM_VALIDATE_VECTOR_OR_DVECTOR (1,v);
   if (SCM_UNBNDP (state))
     state = SCM_CDR (scm_var_random_state);
-  SCM_VALIDATE_RSTATE(2,state);
+  SCM_VALIDATE_RSTATE (2,state);
   n = SCM_LENGTH (v);
   if (SCM_VECTORP (v))
     while (--n >= 0)
@@ -525,7 +525,7 @@ SCM_DEFINE (scm_random_exp, "random:exp", 0, 1, 0,
 {
   if (SCM_UNBNDP (state))
     state = SCM_CDR (scm_var_random_state);
-  SCM_VALIDATE_RSTATE(1,state);
+  SCM_VALIDATE_RSTATE (1,state);
   return scm_makdbl (scm_c_exp1 (SCM_RSTATE (state)), 0.0);
 }
 #undef FUNC_NAME

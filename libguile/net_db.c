@@ -95,7 +95,7 @@ dotted decimal notation into an integer.
 {
   struct in_addr soka;
 
-  SCM_VALIDATE_ROSTRING(1,address);
+  SCM_VALIDATE_ROSTRING (1,address);
   if (SCM_SUBSTRP (address))
     address = scm_makfromstr (SCM_ROCHARS (address), SCM_ROLENGTH (address), 0);
   if (inet_aton (SCM_ROCHARS (address), &soka) == 0)
@@ -175,8 +175,8 @@ with the local-address-within-network number @var{lna}.
   unsigned long netnum;
   unsigned long lnanum;
 
-  SCM_VALIDATE_INUM_COPY(1,net,netnum);
-  SCM_VALIDATE_INUM_COPY(2,lna,lnanum);
+  SCM_VALIDATE_INUM_COPY (1,net,netnum);
+  SCM_VALIDATE_INUM_COPY (2,lna,lnanum);
   addr = inet_makeaddr (netnum, lnanum);
   return scm_ulong2num (ntohl (addr.s_addr));
 }
@@ -466,7 +466,7 @@ as its first argument; if given no arguments, it behaves like
 	}
       return scm_return_entry (entry);
     }
-  SCM_VALIDATE_ROSTRING(2,proto);
+  SCM_VALIDATE_ROSTRING (2,proto);
   SCM_COERCE_SUBSTR (proto);
   if (SCM_ROSTRINGP (name))
     {
@@ -475,7 +475,7 @@ as its first argument; if given no arguments, it behaves like
     }
   else
     {
-      SCM_VALIDATE_INUM(1,name);
+      SCM_VALIDATE_INUM (1,name);
       entry = getservbyport (htons (SCM_INUM (name)), SCM_ROCHARS (proto));
     }
   if (!entry)

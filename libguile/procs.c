@@ -177,7 +177,7 @@ SCM_DEFINE (scm_make_cclo, "make-cclo", 2, 0, 0,
 
 
 
-SCM_DEFINE(scm_procedure_p, "procedure?", 1, 0, 0, 
+SCM_DEFINE (scm_procedure_p, "procedure?", 1, 0, 0, 
            (SCM obj),
 "")
 #define FUNC_NAME s_scm_procedure_p
@@ -203,7 +203,7 @@ SCM_DEFINE(scm_procedure_p, "procedure?", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE(scm_closure_p, "closure?", 1, 0, 0, 
+SCM_DEFINE (scm_closure_p, "closure?", 1, 0, 0, 
            (SCM obj),
 "")
 #define FUNC_NAME s_scm_closure_p
@@ -212,7 +212,7 @@ SCM_DEFINE(scm_closure_p, "closure?", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE(scm_thunk_p, "thunk?", 1, 0, 0, 
+SCM_DEFINE (scm_thunk_p, "thunk?", 1, 0, 0, 
            (SCM obj),
 "")
 #define FUNC_NAME s_scm_thunk_p
@@ -260,7 +260,7 @@ scm_subr_p (SCM obj)
   return 0;
 }
 
-SCM_DEFINE(scm_procedure_documentation, "procedure-documentation", 1, 0, 0, 
+SCM_DEFINE (scm_procedure_documentation, "procedure-documentation", 1, 0, 0, 
            (SCM proc),
 "Return the documentation string associated with @code{proc}.  By
 convention, if a procedure contains more than one expression and the
@@ -313,8 +313,8 @@ SCM_DEFINE (scm_make_procedure_with_setter, "make-procedure-with-setter", 2, 0, 
 #define FUNC_NAME s_scm_make_procedure_with_setter
 {
   SCM z;
-  SCM_VALIDATE_PROC(1,procedure);
-  SCM_VALIDATE_PROC(2,setter);
+  SCM_VALIDATE_PROC (1,procedure);
+  SCM_VALIDATE_PROC (2,setter);
   SCM_NEWCELL (z);
   SCM_ENTER_A_SECTION;
   SCM_SETCDR (z, scm_cons (procedure, setter));

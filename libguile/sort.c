@@ -441,9 +441,9 @@ SCM_DEFINE (scm_restricted_vector_sort_x, "restricted-vector-sort!", 4, 0, 0,
   vp = SCM_VELTS (vec);		/* vector pointer */
   vlen = SCM_LENGTH (vec);
 
-  SCM_VALIDATE_INUM_COPY(3,startpos,spos);
+  SCM_VALIDATE_INUM_COPY (3,startpos,spos);
   SCM_ASSERT_RANGE (3,startpos,(spos >= 0) && (spos <= vlen));
-  SCM_VALIDATE_INUM_RANGE(4,endpos,0,vlen+1);
+  SCM_VALIDATE_INUM_RANGE (4,endpos,0,vlen+1);
   len = SCM_INUM (endpos) - spos;
 
   quicksort (&vp[spos], len, size, scm_cmp_function (less), less);
@@ -552,8 +552,8 @@ SCM_DEFINE (scm_merge, "merge", 3, 0, 0,
     return alist;
   else
     {
-      SCM_VALIDATE_NONEMPTYLIST_COPYLEN(1,alist,alen);
-      SCM_VALIDATE_NONEMPTYLIST_COPYLEN(2,blist,blen);
+      SCM_VALIDATE_NONEMPTYLIST_COPYLEN (1,alist,alen);
+      SCM_VALIDATE_NONEMPTYLIST_COPYLEN (2,blist,blen);
       if ((*cmp) (less, &SCM_CAR (blist), &SCM_CAR (alist)))
 	{
 	  build = scm_cons (SCM_CAR (blist), SCM_EOL);
@@ -657,8 +657,8 @@ SCM_DEFINE (scm_merge_x, "merge!", 3, 0, 0,
     return alist;
   else
     {
-      SCM_VALIDATE_NONEMPTYLIST_COPYLEN(1,alist,alen);
-      SCM_VALIDATE_NONEMPTYLIST_COPYLEN(2,blist,blen);
+      SCM_VALIDATE_NONEMPTYLIST_COPYLEN (1,alist,alen);
+      SCM_VALIDATE_NONEMPTYLIST_COPYLEN (2,blist,blen);
       return scm_merge_list_x (alist, blist,
 			       alen, blen,
 			       scm_cmp_function (less),
@@ -728,7 +728,7 @@ SCM_DEFINE (scm_sort_x, "sort!", 2, 0, 0,
 
   if (SCM_CONSP (items))
     {
-      SCM_VALIDATE_LIST_COPYLEN(1,items,len);
+      SCM_VALIDATE_LIST_COPYLEN (1,items,len);
       return scm_merge_list_step (&items, scm_cmp_function (less), less, len);
     }
   else if (SCM_VECTORP (items))
@@ -760,7 +760,7 @@ SCM_DEFINE (scm_sort, "sort", 2, 0, 0,
   SCM_VALIDATE_NIM (2,less);
   if (SCM_CONSP (items))
     {
-      SCM_VALIDATE_LIST_COPYLEN(1,items,len);
+      SCM_VALIDATE_LIST_COPYLEN (1,items,len);
       items = scm_list_copy (items);
       return scm_merge_list_step (&items, scm_cmp_function (less), less, len);
     }
@@ -851,7 +851,7 @@ SCM_DEFINE (scm_stable_sort_x, "stable-sort!", 2, 0, 0,
   SCM_VALIDATE_NIM (2,less);
   if (SCM_CONSP (items))
     {
-      SCM_VALIDATE_LIST_COPYLEN(1,items,len);
+      SCM_VALIDATE_LIST_COPYLEN (1,items,len);
       return scm_merge_list_step (&items, scm_cmp_function (less), less, len);
     }
   else if (SCM_VECTORP (items))
@@ -888,7 +888,7 @@ SCM_DEFINE (scm_stable_sort, "stable-sort", 2, 0, 0,
   SCM_VALIDATE_NIM (2,less);
   if (SCM_CONSP (items))
     {
-      SCM_VALIDATE_LIST_COPYLEN(1,items,len);
+      SCM_VALIDATE_LIST_COPYLEN (1,items,len);
       items = scm_list_copy (items);
       return scm_merge_list_step (&items, scm_cmp_function (less), less, len);
     }
@@ -925,7 +925,7 @@ SCM_DEFINE (scm_sort_list_x, "sort-list!", 2, 0, 0,
 #define FUNC_NAME s_scm_sort_list_x
 {
   long len;
-  SCM_VALIDATE_LIST_COPYLEN(1,items,len);
+  SCM_VALIDATE_LIST_COPYLEN (1,items,len);
   SCM_VALIDATE_NIM (2,less);
   return scm_merge_list_step (&items, scm_cmp_function (less), less, len);
 }
@@ -938,7 +938,7 @@ SCM_DEFINE (scm_sort_list, "sort-list", 2, 0, 0,
 #define FUNC_NAME s_scm_sort_list
 {
   long len;
-  SCM_VALIDATE_LIST_COPYLEN(1,items,len);
+  SCM_VALIDATE_LIST_COPYLEN (1,items,len);
   SCM_VALIDATE_NIM (2,less);
   items = scm_list_copy (items);
   return scm_merge_list_step (&items, scm_cmp_function (less), less, len);

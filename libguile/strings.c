@@ -55,7 +55,7 @@
 /* {Strings}
  */
 
-SCM_DEFINE(scm_string_p, "string?", 1, 0, 0, 
+SCM_DEFINE (scm_string_p, "string?", 1, 0, 0, 
            (SCM x),
 "")
 #define FUNC_NAME s_scm_string_p
@@ -66,7 +66,7 @@ SCM_DEFINE(scm_string_p, "string?", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE(scm_read_only_string_p, "read-only-string?", 1, 0, 0, 
+SCM_DEFINE (scm_read_only_string_p, "read-only-string?", 1, 0, 0, 
            (SCM x),
 "Return true of OBJ can be read as a string,
 
@@ -91,7 +91,7 @@ This illustrates the difference between @code{string?} and
 SCM_REGISTER_PROC(s_list_to_string, "list->string", 1, 0, 0, scm_string);
 
 
-SCM_DEFINE(scm_string, "string", 0, 0, 1, 
+SCM_DEFINE (scm_string, "string", 0, 0, 1, 
            (SCM chrs),
 "")
 #define FUNC_NAME s_scm_string
@@ -247,18 +247,18 @@ scm_makfrom0str_opt (const char *src)
 
 
 
-SCM_DEFINE(scm_make_string, "make-string", 1, 1, 0,
+SCM_DEFINE (scm_make_string, "make-string", 1, 1, 0,
            (SCM k, SCM chr),
 "")
 #define FUNC_NAME s_scm_make_string
 {
   SCM res;
   register long i;
-  SCM_VALIDATE_INUM_MIN_COPY(1,k,0,i);
+  SCM_VALIDATE_INUM_MIN_COPY (1,k,0,i);
   res = scm_makstr (i, 0);
   if (!SCM_UNBNDP (chr))
     {
-      SCM_VALIDATE_CHAR(2,chr);
+      SCM_VALIDATE_CHAR (2,chr);
       {
 	unsigned char *dst = SCM_UCHARS (res);
 	char c = SCM_ICHR (chr);
@@ -270,36 +270,36 @@ SCM_DEFINE(scm_make_string, "make-string", 1, 1, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE(scm_string_length, "string-length", 1, 0, 0, 
+SCM_DEFINE (scm_string_length, "string-length", 1, 0, 0, 
            (SCM str),
 "")
 #define FUNC_NAME s_scm_string_length
 {
-  SCM_VALIDATE_ROSTRING(1,str);
+  SCM_VALIDATE_ROSTRING (1,str);
   return SCM_MAKINUM (SCM_ROLENGTH (str));
 }
 #undef FUNC_NAME
 
-SCM_DEFINE(scm_string_ref, "string-ref", 1, 1, 0,
+SCM_DEFINE (scm_string_ref, "string-ref", 1, 1, 0,
            (SCM str, SCM k),
 "")
 #define FUNC_NAME s_scm_string_ref
 {
-  SCM_VALIDATE_ROSTRING(1,str);
-  SCM_VALIDATE_INUM_DEF(2,k,0);
+  SCM_VALIDATE_ROSTRING (1,str);
+  SCM_VALIDATE_INUM_DEF (2,k,0);
   SCM_ASSERT_RANGE (2,k,SCM_INUM (k) < SCM_ROLENGTH (str) && SCM_INUM (k) >= 0);
   return SCM_MAKICHR (SCM_ROUCHARS (str)[SCM_INUM (k)]);
 }
 #undef FUNC_NAME
 
-SCM_DEFINE(scm_string_set_x, "string-set!", 3, 0, 0,
+SCM_DEFINE (scm_string_set_x, "string-set!", 3, 0, 0,
            (SCM str, SCM k, SCM chr),
 "")
 #define FUNC_NAME s_scm_string_set_x
 {
-  SCM_VALIDATE_RWSTRING(1,str);
-  SCM_VALIDATE_INUM_RANGE(2,k,0,SCM_LENGTH(str));
-  SCM_VALIDATE_CHAR(3,chr);
+  SCM_VALIDATE_RWSTRING (1,str);
+  SCM_VALIDATE_INUM_RANGE (2,k,0,SCM_LENGTH(str));
+  SCM_VALIDATE_CHAR (3,chr);
   SCM_UCHARS (str)[SCM_INUM (k)] = SCM_ICHR (chr);
   return SCM_UNSPECIFIED;
 }
@@ -307,15 +307,15 @@ SCM_DEFINE(scm_string_set_x, "string-set!", 3, 0, 0,
 
 
 
-SCM_DEFINE(scm_substring, "substring", 2, 1, 0,
+SCM_DEFINE (scm_substring, "substring", 2, 1, 0,
            (SCM str, SCM start, SCM end),
 "")
 #define FUNC_NAME s_scm_substring
 {
   long l;
-  SCM_VALIDATE_ROSTRING(1,str);
-  SCM_VALIDATE_INUM(2,start);
-  SCM_VALIDATE_INUM_DEF(3,end,SCM_ROLENGTH(str));
+  SCM_VALIDATE_ROSTRING (1,str);
+  SCM_VALIDATE_INUM (2,start);
+  SCM_VALIDATE_INUM_DEF (3,end,SCM_ROLENGTH(str));
   SCM_ASSERT_RANGE (2,start,SCM_INUM (start) <= SCM_ROLENGTH (str));
   SCM_ASSERT_RANGE (2,end,SCM_INUM (end) <= SCM_ROLENGTH (str));
   l = SCM_INUM (end)-SCM_INUM (start);
@@ -324,7 +324,7 @@ SCM_DEFINE(scm_substring, "substring", 2, 1, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE(scm_string_append, "string-append", 0, 0, 1, 
+SCM_DEFINE (scm_string_append, "string-append", 0, 0, 1, 
            (SCM args),
 "")
 #define FUNC_NAME s_scm_string_append
@@ -335,7 +335,7 @@ SCM_DEFINE(scm_string_append, "string-append", 0, 0, 1,
   register unsigned char *data;
   for (l = args;SCM_CONSP (l);) {
     s = SCM_CAR (l);
-    SCM_VALIDATE_ROSTRING(SCM_ARGn,s);
+    SCM_VALIDATE_ROSTRING (SCM_ARGn,s);
     i += SCM_ROLENGTH (s);
     l = SCM_CDR (l);
   }
@@ -350,7 +350,7 @@ SCM_DEFINE(scm_string_append, "string-append", 0, 0, 1,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE(scm_make_shared_substring, "make-shared-substring", 1, 2, 0,
+SCM_DEFINE (scm_make_shared_substring, "make-shared-substring", 1, 2, 0,
            (SCM str, SCM frm, SCM to),
 "Return a shared substring of @var{str}.  The semantics are the same as
 for the @code{substring} function: the shared substring returned
@@ -366,9 +366,9 @@ defaults to the end of @var{str}.  The shared substring returned by
   SCM answer;
   SCM len_str;
 
-  SCM_VALIDATE_ROSTRING(1,str);
-  SCM_VALIDATE_INUM_DEF_COPY(2,frm,0,f);
-  SCM_VALIDATE_INUM_DEF_COPY(3,to,SCM_ROLENGTH(str),t);
+  SCM_VALIDATE_ROSTRING (1,str);
+  SCM_VALIDATE_INUM_DEF_COPY (2,frm,0,f);
+  SCM_VALIDATE_INUM_DEF_COPY (3,to,SCM_ROLENGTH(str),t);
 
   SCM_ASSERT_RANGE (2,frm,(f >= 0));
   SCM_ASSERT_RANGE (3,to, (f <= t) && (t <= SCM_ROLENGTH (str)));

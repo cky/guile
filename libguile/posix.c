@@ -256,7 +256,7 @@ or getpwent respectively.")
     }
   else
     {
-      SCM_VALIDATE_ROSTRING(1,user);
+      SCM_VALIDATE_ROSTRING (1,user);
       if (SCM_SUBSTRP (user))
 	user = scm_makfromstr (SCM_ROCHARS (user), SCM_ROLENGTH (user), 0);
       entry = getpwnam (SCM_ROCHARS (user));
@@ -326,7 +326,7 @@ or getgrent respectively.")
     SCM_SYSCALL (entry = getgrgid (SCM_INUM (name)));
   else
     {
-      SCM_VALIDATE_ROSTRING(1,name);
+      SCM_VALIDATE_ROSTRING (1,name);
       SCM_COERCE_SUBSTR (name);
       SCM_SYSCALL (entry = getgrnam (SCM_ROCHARS (name)));
     }
@@ -391,8 +391,8 @@ Interrupt signal.
 @end defvar")
 #define FUNC_NAME s_scm_kill
 {
-  SCM_VALIDATE_INUM(1,pid);
-  SCM_VALIDATE_INUM(2,sig);
+  SCM_VALIDATE_INUM (1,pid);
+  SCM_VALIDATE_INUM (2,sig);
   /* Signal values are interned in scm_init_posix().  */
   if (kill ((int) SCM_INUM (pid), (int) SCM_INUM (sig)) != 0)
     SCM_SYSERROR;
@@ -449,12 +449,12 @@ The integer status value.
   int i;
   int status;
   int ioptions;
-  SCM_VALIDATE_INUM(1,pid);
+  SCM_VALIDATE_INUM (1,pid);
   if (SCM_UNBNDP (options))
     ioptions = 0;
   else
     {
-      SCM_VALIDATE_INUM(2,options);
+      SCM_VALIDATE_INUM (2,options);
       /* Flags are interned in scm_init_posix.  */
       ioptions = SCM_INUM (options);
     }
@@ -475,7 +475,7 @@ call to @code{exit} or @code{_exit}, if any, otherwise @code{#f}.")
 {
   int lstatus;
 
-  SCM_VALIDATE_INUM(1,status);
+  SCM_VALIDATE_INUM (1,status);
 
   /* On Ultrix, the WIF... macros assume their argument is an lvalue;
      go figure.  SCM_INUM does not yield an lvalue.  */
@@ -495,7 +495,7 @@ process, if any, otherwise @code{#f}.")
 {
   int lstatus;
 
-  SCM_VALIDATE_INUM(1,status);
+  SCM_VALIDATE_INUM (1,status);
 
   lstatus = SCM_INUM (status);
   if (WIFSIGNALED (lstatus))
@@ -513,7 +513,7 @@ process, if any, otherwise @code{#f}.")
 {
   int lstatus;
 
-  SCM_VALIDATE_INUM(1,status);
+  SCM_VALIDATE_INUM (1,status);
 
   lstatus = SCM_INUM (status);
   if (WIFSTOPPED (lstatus))
@@ -598,7 +598,7 @@ the process has appropriate privileges.
 The return value is unspecified.")
 #define FUNC_NAME s_scm_setuid
 {
-  SCM_VALIDATE_INUM(1,id);
+  SCM_VALIDATE_INUM (1,id);
   if (setuid (SCM_INUM (id)) != 0)
     SCM_SYSERROR;
   return SCM_UNSPECIFIED;
@@ -612,7 +612,7 @@ the process has appropriate privileges.
 The return value is unspecified.")
 #define FUNC_NAME s_scm_setgid
 {
-  SCM_VALIDATE_INUM(1,id);
+  SCM_VALIDATE_INUM (1,id);
   if (setgid (SCM_INUM (id)) != 0)
     SCM_SYSERROR;
   return SCM_UNSPECIFIED;
@@ -630,7 +630,7 @@ The return value is unspecified.")
 {
   int rv;
 
-  SCM_VALIDATE_INUM(1,id);
+  SCM_VALIDATE_INUM (1,id);
 #ifdef HAVE_SETEUID
   rv = seteuid (SCM_INUM (id));
 #else
@@ -654,7 +654,7 @@ The return value is unspecified.")
 {
   int rv;
 
-  SCM_VALIDATE_INUM(1,id);
+  SCM_VALIDATE_INUM (1,id);
 #ifdef HAVE_SETEUID
   rv = setegid (SCM_INUM (id));
 #else
@@ -690,8 +690,8 @@ The return value is unspecified.")
 #define FUNC_NAME s_scm_setpgid
 {
 #ifdef HAVE_SETPGID
-  SCM_VALIDATE_INUM(1,pid);
-  SCM_VALIDATE_INUM(2,pgid);
+  SCM_VALIDATE_INUM (1,pid);
+  SCM_VALIDATE_INUM (2,pgid);
   /* FIXME(?): may be known as setpgrp.  */
   if (setpgid (SCM_INUM (pid), SCM_INUM (pgid)) != 0)
     SCM_SYSERROR;
@@ -735,7 +735,7 @@ SCM_DEFINE (scm_ttyname, "ttyname", 1, 0, 0,
   int fd;
 
   port = SCM_COERCE_OUTPORT (port);
-  SCM_VALIDATE_OPPORT(1,port);
+  SCM_VALIDATE_OPPORT (1,port);
   if (scm_tc16_fport != SCM_TYP16 (port))
     return SCM_BOOL_F;
   fd = SCM_FPORT_FDES (port);
@@ -787,7 +787,7 @@ foreground.")
 
   port = SCM_COERCE_OUTPORT (port);
 
-  SCM_VALIDATE_OPFPORT(1,port);
+  SCM_VALIDATE_OPFPORT (1,port);
   fd = SCM_FPORT_FDES (port);
   if ((pgid = tcgetpgrp (fd)) == -1)
     SCM_SYSERROR;
@@ -814,8 +814,8 @@ controlling terminal.  The return value is unspecified.")
 
   port = SCM_COERCE_OUTPORT (port);
 
-  SCM_VALIDATE_OPFPORT(1,port);
-  SCM_VALIDATE_INUM(2,pgid);
+  SCM_VALIDATE_OPFPORT (1,port);
+  SCM_VALIDATE_INUM (2,pgid);
   fd = SCM_FPORT_FDES (port);
   if (tcsetpgrp (fd, SCM_INUM (pgid)) == -1)
     SCM_SYSERROR;
@@ -878,7 +878,7 @@ call, but we call it @code{execl} because of its Scheme calling interface.")
 #define FUNC_NAME s_scm_execl
 {
   char **execargv;
-  SCM_VALIDATE_ROSTRING(1,filename);
+  SCM_VALIDATE_ROSTRING (1,filename);
   SCM_COERCE_SUBSTR (filename);
   execargv = scm_convert_exec_args (args, SCM_ARG2, FUNC_NAME);
   execv (SCM_ROCHARS (filename), execargv);
@@ -900,7 +900,7 @@ call, but we call it @code{execlp} because of its Scheme calling interface.")
 #define FUNC_NAME s_scm_execlp
 {
   char **execargv;
-  SCM_VALIDATE_ROSTRING(1,filename);
+  SCM_VALIDATE_ROSTRING (1,filename);
   SCM_COERCE_SUBSTR (filename);
   execargv = scm_convert_exec_args (args, SCM_ARG2, FUNC_NAME);
   execvp (SCM_ROCHARS (filename), execargv);
@@ -957,7 +957,7 @@ call, but we call it @code{execle} because of its Scheme calling interface.")
   char **execargv;
   char **exec_env;
 
-  SCM_VALIDATE_ROSTRING(1,filename);
+  SCM_VALIDATE_ROSTRING (1,filename);
   SCM_COERCE_SUBSTR (filename);
   
   execargv = scm_convert_exec_args (args, SCM_ARG1, FUNC_NAME);
@@ -1094,7 +1094,7 @@ time to the current time.")
   int rv;
   struct utimbuf utm_tmp;
 
-  SCM_VALIDATE_ROSTRING(1,pathname);
+  SCM_VALIDATE_ROSTRING (1,pathname);
   SCM_COERCE_SUBSTR (pathname);
   if (SCM_UNBNDP (actime))
     SCM_SYSCALL (time (&utm_tmp.actime));
@@ -1144,10 +1144,10 @@ test for existence of the file.
 {
   int rv;
 
-  SCM_VALIDATE_ROSTRING(1,path);
+  SCM_VALIDATE_ROSTRING (1,path);
   if (SCM_SUBSTRP (path))
     path = scm_makfromstr (SCM_ROCHARS (path), SCM_ROLENGTH (path), 0);
-  SCM_VALIDATE_INUM(2,how);
+  SCM_VALIDATE_INUM (2,how);
   rv = access (SCM_ROCHARS (path), SCM_INUM (how));
   return SCM_NEGATE_BOOL(rv);
 }
@@ -1180,7 +1180,7 @@ The return value is unspecified.")
   int rv;
   char *ptr;
 
-  SCM_VALIDATE_ROSTRING(1,str);
+  SCM_VALIDATE_ROSTRING (1,str);
   /* must make a new copy to be left in the environment, safe from gc.  */
   ptr = malloc (SCM_LENGTH (str) + 1);
   if (ptr == NULL)
@@ -1212,14 +1212,14 @@ is an empty string, the locale will be set using envirionment variables.")
   char *clocale;
   char *rv;
 
-  SCM_VALIDATE_INUM(1,category);
+  SCM_VALIDATE_INUM (1,category);
   if (SCM_UNBNDP (locale))
     {
       clocale = NULL;
     }
   else
     {
-      SCM_VALIDATE_ROSTRING(2,locale);
+      SCM_VALIDATE_ROSTRING (2,locale);
       SCM_COERCE_SUBSTR (locale);
       clocale = SCM_ROCHARS (locale);
     }
@@ -1260,10 +1260,10 @@ The return value is unspecified.")
   char *p;
   int ctype = 0;
 
-  SCM_VALIDATE_ROSTRING(1,path);
-  SCM_VALIDATE_SYMBOL(2,type);
-  SCM_VALIDATE_INUM(3,perms);
-  SCM_VALIDATE_INUM(4,dev);
+  SCM_VALIDATE_ROSTRING (1,path);
+  SCM_VALIDATE_SYMBOL (2,type);
+  SCM_VALIDATE_INUM (3,perms);
+  SCM_VALIDATE_INUM (4,dev);
   SCM_COERCE_SUBSTR (path);
 
   p = SCM_CHARS (type);
@@ -1306,7 +1306,7 @@ The return value is unspecified.")
 #define FUNC_NAME s_scm_nice
 {
 #ifdef HAVE_NICE
-  SCM_VALIDATE_INUM(1,incr);
+  SCM_VALIDATE_INUM (1,incr);
   if (nice(SCM_INUM(incr)) != 0)
     SCM_SYSERROR;
   return SCM_UNSPECIFIED;

@@ -494,8 +494,8 @@ SCM_DEFINE (scm_hash_fold, "hash-fold", 3, 0, 0,
 "")
 #define FUNC_NAME s_scm_hash_fold
 {
-  SCM_VALIDATE_PROC(1,proc);
-  SCM_VALIDATE_VECTOR(3,table);
+  SCM_VALIDATE_PROC (1,proc);
+  SCM_VALIDATE_VECTOR (3,table);
   return scm_internal_hash_fold (fold_proc, (void *) proc, init, table);
 }
 #undef FUNC_NAME

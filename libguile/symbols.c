@@ -419,7 +419,7 @@ scm_symbol_value0 (const char *name)
   return SCM_CDR (vcell);
 }
 
-SCM_DEFINE(scm_symbol_p, "symbol?", 1, 0, 0, 
+SCM_DEFINE (scm_symbol_p, "symbol?", 1, 0, 0, 
            (SCM x),
 "")
 #define FUNC_NAME s_scm_symbol_p
@@ -429,18 +429,18 @@ SCM_DEFINE(scm_symbol_p, "symbol?", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE(scm_symbol_to_string, "symbol->string", 1, 0, 0, 
+SCM_DEFINE (scm_symbol_to_string, "symbol->string", 1, 0, 0, 
            (SCM s),
 "")
 #define FUNC_NAME s_scm_symbol_to_string
 {
-  SCM_VALIDATE_SYMBOL(1,s);
+  SCM_VALIDATE_SYMBOL (1,s);
   return scm_makfromstr(SCM_CHARS(s), (scm_sizet)SCM_LENGTH(s), 0);
 }
 #undef FUNC_NAME
 
 
-SCM_DEFINE(scm_string_to_symbol, "string->symbol", 1, 0, 0, 
+SCM_DEFINE (scm_string_to_symbol, "string->symbol", 1, 0, 0, 
            (SCM s),
 "")
 #define FUNC_NAME s_scm_string_to_symbol
@@ -448,7 +448,7 @@ SCM_DEFINE(scm_string_to_symbol, "string->symbol", 1, 0, 0,
   SCM vcell;
   SCM answer;
 
-  SCM_VALIDATE_ROSTRING(1,s);
+  SCM_VALIDATE_ROSTRING (1,s);
   vcell = scm_intern(SCM_ROCHARS(s), (scm_sizet)SCM_LENGTH(s));
   answer = SCM_CAR (vcell);
   return answer;
@@ -456,7 +456,7 @@ SCM_DEFINE(scm_string_to_symbol, "string->symbol", 1, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE(scm_string_to_obarray_symbol, "string->obarray-symbol", 2, 1, 0,
+SCM_DEFINE (scm_string_to_obarray_symbol, "string->obarray-symbol", 2, 1, 0,
            (SCM o, SCM s, SCM softp),
 "Intern a new symbol in @var{obarray}, a symbol table, with name
 @var{string}.
@@ -477,7 +477,7 @@ table; instead, simply return @code{#f}.")
   SCM answer;
   int softness;
 
-  SCM_VALIDATE_ROSTRING(2,s);
+  SCM_VALIDATE_ROSTRING (2,s);
   SCM_ASSERT((o == SCM_BOOL_F)
 	     || (o == SCM_BOOL_T)
 	     || (SCM_VECTORP(o)),
@@ -501,7 +501,7 @@ table; instead, simply return @code{#f}.")
 }
 #undef FUNC_NAME
 
-SCM_DEFINE(scm_intern_symbol, "intern-symbol", 2, 0, 0,
+SCM_DEFINE (scm_intern_symbol, "intern-symbol", 2, 0, 0,
            (SCM o, SCM s),
 "Add a new symbol to @var{obarray} with name @var{string}, bound to an
 unspecified initial value.  The symbol table is not modified if a symbol
@@ -509,10 +509,10 @@ with this name is already present.")
 #define FUNC_NAME s_scm_intern_symbol
 {
   scm_sizet hval;
-  SCM_VALIDATE_SYMBOL(2,s);
+  SCM_VALIDATE_SYMBOL (2,s);
   if (o == SCM_BOOL_F)
     o = scm_symhash;
-  SCM_VALIDATE_VECTOR(1,o);
+  SCM_VALIDATE_VECTOR (1,o);
   hval = scm_strhash (SCM_UCHARS (s), SCM_LENGTH (s), SCM_LENGTH(o));
   /* If the symbol is already interned, simply return. */
   SCM_REDEFER_INTS;
@@ -538,7 +538,7 @@ with this name is already present.")
 }
 #undef FUNC_NAME
 
-SCM_DEFINE(scm_unintern_symbol, "unintern-symbol", 2, 0, 0,
+SCM_DEFINE (scm_unintern_symbol, "unintern-symbol", 2, 0, 0,
            (SCM o, SCM s),
 "Remove the symbol with name @var{string} from @var{obarray}.  This
 function returns @code{#t} if the symbol was present and @code{#f}
@@ -546,10 +546,10 @@ otherwise.")
 #define FUNC_NAME s_scm_unintern_symbol
 {
   scm_sizet hval;
-  SCM_VALIDATE_SYMBOL(2,s);
+  SCM_VALIDATE_SYMBOL (2,s);
   if (o == SCM_BOOL_F)
     o = scm_symhash;
-  SCM_VALIDATE_VECTOR(1,o);
+  SCM_VALIDATE_VECTOR (1,o);
   hval = scm_strhash (SCM_UCHARS (s), SCM_LENGTH (s), SCM_LENGTH(o));
   SCM_DEFER_INTS;
   {
@@ -578,7 +578,7 @@ otherwise.")
 }
 #undef FUNC_NAME
 
-SCM_DEFINE(scm_symbol_binding, "symbol-binding", 2, 0, 0,
+SCM_DEFINE (scm_symbol_binding, "symbol-binding", 2, 0, 0,
            (SCM o, SCM s),
 "Look up in @var{obarray} the symbol whose name is @var{string}, and
 return the value to which it is bound.  If @var{obarray} is @code{#f},
@@ -587,27 +587,27 @@ use the global symbol table.  If @var{string} is not interned in
 #define FUNC_NAME s_scm_symbol_binding
 {
   SCM vcell;
-  SCM_VALIDATE_SYMBOL(2,s);
+  SCM_VALIDATE_SYMBOL (2,s);
   if (o == SCM_BOOL_F)
     o = scm_symhash;
-  SCM_VALIDATE_VECTOR(1,o);
+  SCM_VALIDATE_VECTOR (1,o);
   vcell = scm_sym2ovcell (s, o);
   return SCM_CDR(vcell);
 }
 #undef FUNC_NAME
 
 
-SCM_DEFINE(scm_symbol_interned_p, "symbol-interned?", 2, 0, 0,
+SCM_DEFINE (scm_symbol_interned_p, "symbol-interned?", 2, 0, 0,
            (SCM o, SCM s),
 "Return @var{#t} if @var{obarray} contains a symbol with name
 @var{string}, and @var{#f} otherwise.")
 #define FUNC_NAME s_scm_symbol_interned_p
 {
   SCM vcell;
-  SCM_VALIDATE_SYMBOL(2,s);
+  SCM_VALIDATE_SYMBOL (2,s);
   if (o == SCM_BOOL_F)
     o = scm_symhash;
-  SCM_VALIDATE_VECTOR(1,o);
+  SCM_VALIDATE_VECTOR (1,o);
   vcell = scm_sym2ovcell_soft (s, o);
   if (SCM_IMP(vcell) && (o == scm_symhash))
     vcell = scm_sym2ovcell_soft (s, scm_weak_symhash);
@@ -618,7 +618,7 @@ SCM_DEFINE(scm_symbol_interned_p, "symbol-interned?", 2, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE(scm_symbol_bound_p, "symbol-bound?", 2, 0, 0,
+SCM_DEFINE (scm_symbol_bound_p, "symbol-bound?", 2, 0, 0,
            (SCM o, SCM s),
 "Return @var{#t} if @var{obarray} contains a symbol with name
 @var{string} bound to a defined value.  This differs from
@@ -628,10 +628,10 @@ been given any meaningful value.")
 #define FUNC_NAME s_scm_symbol_bound_p
 {
   SCM vcell;
-  SCM_VALIDATE_SYMBOL(2,s);
+  SCM_VALIDATE_SYMBOL (2,s);
   if (o == SCM_BOOL_F)
     o = scm_symhash;
-  SCM_VALIDATE_VECTOR(1,o);
+  SCM_VALIDATE_VECTOR (1,o);
   vcell = scm_sym2ovcell_soft (s, o);
   return ((  SCM_NIMP(vcell)
 	   && (SCM_CDR(vcell) != SCM_UNDEFINED))
@@ -641,7 +641,7 @@ been given any meaningful value.")
 #undef FUNC_NAME
 
 
-SCM_DEFINE(scm_symbol_set_x, "symbol-set!", 3, 0, 0,
+SCM_DEFINE (scm_symbol_set_x, "symbol-set!", 3, 0, 0,
            (SCM o, SCM s, SCM v),
 "Find the symbol in @var{obarray} whose name is @var{string}, and rebind
 it to @var{value}.  An error is signalled if @var{string} is not present
@@ -649,10 +649,10 @@ in @var{obarray}.")
 #define FUNC_NAME s_scm_symbol_set_x
 {
   SCM vcell;
-  SCM_VALIDATE_SYMBOL(2,s);
+  SCM_VALIDATE_SYMBOL (2,s);
   if (o == SCM_BOOL_F)
     o = scm_symhash;
-  SCM_VALIDATE_VECTOR(1,o);
+  SCM_VALIDATE_VECTOR (1,o);
   vcell = scm_sym2ovcell (s, o);
   SCM_SETCDR (vcell, v);
   return SCM_UNSPECIFIED;
@@ -676,12 +676,12 @@ msymbolize (SCM s)
 }
 
 
-SCM_DEFINE(scm_symbol_fref, "symbol-fref", 1, 0, 0, 
+SCM_DEFINE (scm_symbol_fref, "symbol-fref", 1, 0, 0, 
            (SCM s),
 "Return the contents of @var{symbol}'s @dfn{function slot}.")
 #define FUNC_NAME s_scm_symbol_fref
 {
-  SCM_VALIDATE_SYMBOL(1,s);
+  SCM_VALIDATE_SYMBOL (1,s);
   SCM_DEFER_INTS;
   if (SCM_TYP7(s) == scm_tc7_ssymbol)
     msymbolize (s);
@@ -691,12 +691,12 @@ SCM_DEFINE(scm_symbol_fref, "symbol-fref", 1, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE(scm_symbol_pref, "symbol-pref", 1, 0, 0, 
+SCM_DEFINE (scm_symbol_pref, "symbol-pref", 1, 0, 0, 
            (SCM s),
 "Return the @dfn{property list} currently associated with @var{symbol}.")
 #define FUNC_NAME s_scm_symbol_pref
 {
-  SCM_VALIDATE_SYMBOL(1,s);
+  SCM_VALIDATE_SYMBOL (1,s);
   SCM_DEFER_INTS;
   if (SCM_TYP7(s) == scm_tc7_ssymbol)
     msymbolize (s);
@@ -706,12 +706,12 @@ SCM_DEFINE(scm_symbol_pref, "symbol-pref", 1, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE(scm_symbol_fset_x, "symbol-fset!", 2, 0, 0, 
+SCM_DEFINE (scm_symbol_fset_x, "symbol-fset!", 2, 0, 0, 
            (SCM s, SCM val),
 "Change the binding of @var{symbol}'s function slot.")
 #define FUNC_NAME s_scm_symbol_fset_x
 {
-  SCM_VALIDATE_SYMBOL(1,s);
+  SCM_VALIDATE_SYMBOL (1,s);
   SCM_DEFER_INTS;
   if (SCM_TYP7(s) == scm_tc7_ssymbol)
     msymbolize (s);
@@ -722,12 +722,12 @@ SCM_DEFINE(scm_symbol_fset_x, "symbol-fset!", 2, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE(scm_symbol_pset_x, "symbol-pset!", 2, 0, 0,
+SCM_DEFINE (scm_symbol_pset_x, "symbol-pset!", 2, 0, 0,
            (SCM s, SCM val),
 "Change the binding of @var{symbol}'s property slot.")
 #define FUNC_NAME s_scm_symbol_pset_x
 {
-  SCM_VALIDATE_SYMBOL(1,s);
+  SCM_VALIDATE_SYMBOL (1,s);
   SCM_DEFER_INTS;
   if (SCM_TYP7(s) == scm_tc7_ssymbol)
     msymbolize (s);
@@ -738,13 +738,13 @@ SCM_DEFINE(scm_symbol_pset_x, "symbol-pset!", 2, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE(scm_symbol_hash, "symbol-hash", 1, 0, 0, 
+SCM_DEFINE (scm_symbol_hash, "symbol-hash", 1, 0, 0, 
            (SCM s),
 "Return the hash value derived from @var{symbol}'s name, i.e. the integer
 index into @var{symbol}'s obarray at which it is stored.")
 #define FUNC_NAME s_scm_symbol_hash
 {
-  SCM_VALIDATE_SYMBOL(1,s);
+  SCM_VALIDATE_SYMBOL (1,s);
   if (SCM_TYP7(s) == scm_tc7_ssymbol)
     msymbolize (s);
   return SCM_MAKINUM ((unsigned long)s ^ SCM_SYMBOL_HASH (s));
@@ -777,7 +777,7 @@ copy_and_prune_obarray (SCM from, SCM to)
 }
 
 
-SCM_DEFINE(scm_builtin_bindings, "builtin-bindings", 0, 0, 0, 
+SCM_DEFINE (scm_builtin_bindings, "builtin-bindings", 0, 0, 0, 
            (),
 "Create and return a copy of the global symbol table, removing all
 unbound symbols.")
@@ -791,7 +791,7 @@ unbound symbols.")
 #undef FUNC_NAME
 
 
-SCM_DEFINE(scm_builtin_weak_bindings, "builtin-weak-bindings", 0, 0, 0, 
+SCM_DEFINE (scm_builtin_weak_bindings, "builtin-weak-bindings", 0, 0, 0, 
            (),
 "")
 #define FUNC_NAME s_scm_builtin_weak_bindings
@@ -818,7 +818,7 @@ prefix for the new symbol's name.  The default prefix is @code{%%gensym}.")
   if (SCM_UNBNDP (name))
     name = gensym_prefix;
   else
-    SCM_VALIDATE_ROSTRING(1,name);
+    SCM_VALIDATE_ROSTRING (1,name);
 
   new = name;
   if (SCM_UNBNDP (obarray))

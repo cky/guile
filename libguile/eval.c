@@ -3179,13 +3179,13 @@ ret:
    you if you do (scm_apply scm_apply '( ... ))"  If you know what
    they're referring to, send me a patch to this comment.  */
 
-SCM_DEFINE(scm_nconc2last, "apply:nconc2last", 1, 0, 0, 
+SCM_DEFINE (scm_nconc2last, "apply:nconc2last", 1, 0, 0, 
            (SCM lst),
 "")
 #define FUNC_NAME s_scm_nconc2last
 {
   SCM *lloc;
-  SCM_VALIDATE_LIST(1,lst);
+  SCM_VALIDATE_LIST (1,lst);
   lloc = &lst;
   while (SCM_NNULLP (SCM_CDR (*lloc)))
     lloc = SCM_CDRLOC (*lloc);
@@ -3698,12 +3698,12 @@ prinprom (SCM exp,SCM port,scm_print_state *pstate)
 }
 
 
-SCM_DEFINE(scm_force, "force", 1, 0, 0, 
+SCM_DEFINE (scm_force, "force", 1, 0, 0, 
            (SCM x),
 "")
 #define FUNC_NAME s_scm_force
 {
-  SCM_VALIDATE_SMOB(1,x,promise);
+  SCM_VALIDATE_SMOB (1,x,promise);
   if (!((1L << 16) & SCM_CAR (x)))
     {
       SCM ans = scm_apply (SCM_CDR (x), SCM_EOL, SCM_EOL);
@@ -3794,7 +3794,7 @@ scm_eval_3 (SCM obj, int copyp, SCM env)
   return SCM_XEVAL (obj, env);
 }
 
-SCM_DEFINE(scm_eval2, "eval2", 2, 0, 0,
+SCM_DEFINE (scm_eval2, "eval2", 2, 0, 0,
            (SCM obj, SCM env_thunk),
 "Evaluate @var{exp}, a Scheme expression, in the environment designated
 by @var{lookup}, a symbol-lookup function.  @code{(eval exp)} is
@@ -3805,7 +3805,7 @@ equivalent to @code{(eval2 exp *top-level-lookup-closure*)}.")
 }
 #undef FUNC_NAME
 
-SCM_DEFINE(scm_eval, "eval", 1, 0, 0, 
+SCM_DEFINE (scm_eval, "eval", 1, 0, 0, 
            (SCM obj),
 "Evaluate @var{exp}, a list representing a Scheme expression, in the
 top-level environment.")

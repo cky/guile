@@ -52,7 +52,7 @@
 
 
 
-SCM_DEFINE(scm_not, "not", 1, 0, 0, 
+SCM_DEFINE (scm_not, "not", 1, 0, 0, 
            (SCM x),
 "")
 #define FUNC_NAME s_scm_not
@@ -62,7 +62,7 @@ SCM_DEFINE(scm_not, "not", 1, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE(scm_boolean_p, "boolean?", 1, 0, 0, 
+SCM_DEFINE (scm_boolean_p, "boolean?", 1, 0, 0, 
            (SCM obj),
 "")
 #define FUNC_NAME s_scm_boolean_p

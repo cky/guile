@@ -99,7 +99,7 @@ make_vcell_variable (SCM vcell)
   SCM_RETURN_NEWSMOB (scm_tc16_variable, vcell);
 }
 
-SCM_DEFINE(scm_make_variable, "make-variable", 1, 1, 0, 
+SCM_DEFINE (scm_make_variable, "make-variable", 1, 1, 0, 
            (SCM init, SCM name_hint),
 "")
 #define FUNC_NAME s_scm_make_variable
@@ -119,7 +119,7 @@ SCM_DEFINE(scm_make_variable, "make-variable", 1, 1, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE(scm_make_undefined_variable, "make-undefined-variable", 0, 1, 0, 
+SCM_DEFINE (scm_make_undefined_variable, "make-undefined-variable", 0, 1, 0, 
            (SCM name_hint),
 "")
 #define FUNC_NAME s_scm_make_undefined_variable
@@ -139,7 +139,7 @@ SCM_DEFINE(scm_make_undefined_variable, "make-undefined-variable", 0, 1, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE(scm_variable_p, "variable?", 1, 0, 0, 
+SCM_DEFINE (scm_variable_p, "variable?", 1, 0, 0, 
            (SCM obj),
 "")
 #define FUNC_NAME s_scm_variable_p
@@ -149,31 +149,31 @@ SCM_DEFINE(scm_variable_p, "variable?", 1, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE(scm_variable_ref, "variable-ref", 1, 0, 0, 
+SCM_DEFINE (scm_variable_ref, "variable-ref", 1, 0, 0, 
            (SCM var),
 "")
 #define FUNC_NAME s_scm_variable_ref
 {
-  SCM_VALIDATE_VARIABLE(1,var);
+  SCM_VALIDATE_VARIABLE (1,var);
   return SCM_CDR (SCM_CDR (var));
 }
 #undef FUNC_NAME
 
 
 
-SCM_DEFINE(scm_variable_set_x, "variable-set!", 2, 0, 0,
+SCM_DEFINE (scm_variable_set_x, "variable-set!", 2, 0, 0,
            (SCM var, SCM val),
 "")
 #define FUNC_NAME s_scm_variable_set_x
 {
-  SCM_VALIDATE_VARIABLE(1,var);
+  SCM_VALIDATE_VARIABLE (1,var);
   SCM_SETCDR (SCM_CDR (var), val);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
 
 
-SCM_DEFINE(scm_builtin_variable, "builtin-variable", 1, 0, 0, 
+SCM_DEFINE (scm_builtin_variable, "builtin-variable", 1, 0, 0, 
            (SCM name),
 "")
 #define FUNC_NAME s_scm_builtin_variable
@@ -181,7 +181,7 @@ SCM_DEFINE(scm_builtin_variable, "builtin-variable", 1, 0, 0,
   SCM vcell;
   SCM var_slot;
 
-  SCM_VALIDATE_SYMBOL(1,name);
+  SCM_VALIDATE_SYMBOL (1,name);
   vcell = scm_sym2vcell (name, SCM_BOOL_F, SCM_BOOL_T);
   if (vcell == SCM_BOOL_F)
     return SCM_BOOL_F;
@@ -200,12 +200,12 @@ SCM_DEFINE(scm_builtin_variable, "builtin-variable", 1, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE(scm_variable_bound_p, "variable-bound?", 1, 0, 0, 
+SCM_DEFINE (scm_variable_bound_p, "variable-bound?", 1, 0, 0, 
            (SCM var),
 "")
 #define FUNC_NAME s_scm_variable_bound_p
 {
-  SCM_VALIDATE_VARIABLE(1,var);
+  SCM_VALIDATE_VARIABLE (1,var);
   return SCM_NEGATE_BOOL(SCM_UNBNDP (SCM_CDR (SCM_VARVCELL (var))));
 }
 #undef FUNC_NAME

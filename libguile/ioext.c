@@ -92,20 +92,20 @@ without encountering a delimiter, this value is @var{#f}.")
   char *cdelims;
   int num_delims;
 
-  SCM_VALIDATE_ROSTRING_COPY(1,delims,cdelims);
+  SCM_VALIDATE_ROSTRING_COPY (1,delims,cdelims);
   num_delims = SCM_ROLENGTH (delims);
-  SCM_VALIDATE_STRING_COPY(2,buf,cbuf);
+  SCM_VALIDATE_STRING_COPY (2,buf,cbuf);
   cend = SCM_LENGTH (buf);
   if (SCM_UNBNDP (port))
     port = scm_cur_inp;
   else
-    SCM_VALIDATE_OPINPORT(4,port);
+    SCM_VALIDATE_OPINPORT (4,port);
 
-  SCM_VALIDATE_INUM_DEF_COPY(5,start,0,cstart);
+  SCM_VALIDATE_INUM_DEF_COPY (5,start,0,cstart);
   if (cstart < 0 || cstart >= cend)
     scm_out_of_range (FUNC_NAME, start);
 
-  SCM_VALIDATE_INUM_DEF_COPY(6,end,cend,tend);
+  SCM_VALIDATE_INUM_DEF_COPY (6,end,cend,tend);
   if (tend <= cstart || tend > cend)
     scm_out_of_range (FUNC_NAME, end);
   cend = tend;
@@ -245,7 +245,7 @@ delimiter may be either a newline or the @var{eof-object}; if
 
   if (SCM_UNBNDP (port))
     port = scm_cur_inp;
-  SCM_VALIDATE_OPINPORT(1,port);
+  SCM_VALIDATE_OPINPORT (1,port);
 
   pt = SCM_PTAB_ENTRY (port);
   if (pt->rw_active == SCM_PORT_WRITE)
@@ -345,8 +345,8 @@ revealed counts.")
   old = SCM_COERCE_OUTPORT (old);
   new = SCM_COERCE_OUTPORT (new);
   
-  SCM_VALIDATE_OPFPORT(1,old);
-  SCM_VALIDATE_OPFPORT(2,new);
+  SCM_VALIDATE_OPFPORT (1,old);
+  SCM_VALIDATE_OPFPORT (2,new);
   oldfd = SCM_FPORT_FDES (old);
   fp = SCM_FSTREAM (new);
   newfd = fp->fdes;
@@ -384,7 +384,7 @@ SCM_DEFINE (scm_dup_to_fdes, "dup->fdes", 1, 1, 0,
     oldfd = SCM_INUM (fd_or_port);
   else
     {
-      SCM_VALIDATE_OPFPORT(1,fd_or_port);
+      SCM_VALIDATE_OPFPORT (1,fd_or_port);
       oldfd = SCM_FPORT_FDES (fd_or_port);
     }
 
@@ -418,7 +418,7 @@ Does not change its revealed count.")
 #define FUNC_NAME s_scm_fileno
 {
   port = SCM_COERCE_OUTPORT (port);
-  SCM_VALIDATE_OPFPORT(1,port);
+  SCM_VALIDATE_OPFPORT (1,port);
   return SCM_MAKINUM (SCM_FPORT_FDES (port));
 }
 #undef FUNC_NAME
@@ -457,8 +457,8 @@ by @ref{File Ports, open-file}.")
 {
   SCM port;
 
-  SCM_VALIDATE_INUM(1,fdes);
-  SCM_VALIDATE_ROSTRING(2,modes);
+  SCM_VALIDATE_INUM (1,fdes);
+  SCM_VALIDATE_ROSTRING (2,modes);
   SCM_COERCE_SUBSTR (modes);
   port = scm_fdes_to_port (SCM_INUM (fdes), SCM_ROCHARS (modes), SCM_BOOL_F);
   return port;
@@ -489,8 +489,8 @@ required value or @code{#t} if it was moved.")
 
   port = SCM_COERCE_OUTPORT (port);
 
-  SCM_VALIDATE_OPFPORT(1,port);
-  SCM_VALIDATE_INUM(2,fd);
+  SCM_VALIDATE_OPFPORT (1,port);
+  SCM_VALIDATE_INUM (2,fd);
   stream = SCM_FSTREAM (port);
   old_fd = stream->fdes;
   new_fd = SCM_INUM (fd);
@@ -509,7 +509,7 @@ required value or @code{#t} if it was moved.")
 #undef FUNC_NAME
 
 /* Return a list of ports using a given file descriptor.  */
-SCM_DEFINE(scm_fdes_to_ports, "fdes->ports", 1, 0, 0, 
+SCM_DEFINE (scm_fdes_to_ports, "fdes->ports", 1, 0, 0, 
            (SCM fd),
 "Returns a list of existing ports which have @var{fdes} as an
 underlying file descriptor, without changing their revealed counts.")
@@ -519,7 +519,7 @@ underlying file descriptor, without changing their revealed counts.")
   int int_fd;
   int i;
   
-  SCM_VALIDATE_INUM_COPY(1,fd,int_fd);
+  SCM_VALIDATE_INUM_COPY (1,fd,int_fd);
 
   for (i = 0; i < scm_port_table_size; i++)
     {

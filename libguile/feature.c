@@ -71,7 +71,7 @@ scm_add_feature (const char *str)
 
 
 
-SCM_DEFINE(scm_program_arguments, "program-arguments", 0, 0, 0, 
+SCM_DEFINE (scm_program_arguments, "program-arguments", 0, 0, 0, 
            (),
 "")
 #define FUNC_NAME s_scm_program_arguments
@@ -214,7 +214,7 @@ SCM_DEFINE (scm_hook_empty_p, "hook-empty?", 1, 0, 0,
 "")
 #define FUNC_NAME s_scm_hook_empty_p
 {
-  SCM_VALIDATE_HOOK(1,hook);
+  SCM_VALIDATE_HOOK (1,hook);
   return SCM_BOOL(SCM_NULLP (SCM_HOOK_PROCEDURES (hook)));
 }
 #undef FUNC_NAME
@@ -227,7 +227,7 @@ SCM_DEFINE (scm_add_hook_x, "add-hook!", 2, 1, 0,
 {
   SCM arity, rest;
   int n_args;
-  SCM_VALIDATE_HOOK(1,hook);
+  SCM_VALIDATE_HOOK (1,hook);
   SCM_ASSERT (SCM_NFALSEP (arity = scm_i_procedure_arity (proc)),
 	      proc, SCM_ARG2, FUNC_NAME);
   n_args = SCM_HOOK_ARITY (hook);
@@ -251,7 +251,7 @@ SCM_DEFINE (scm_remove_hook_x, "remove-hook!", 2, 0, 0,
 "")
 #define FUNC_NAME s_scm_remove_hook_x
 {
-  SCM_VALIDATE_HOOK(1,hook);
+  SCM_VALIDATE_HOOK (1,hook);
   SCM_SET_HOOK_PROCEDURES (hook,
 			   scm_delq_x (proc, SCM_HOOK_PROCEDURES (hook)));
   return SCM_UNSPECIFIED;
@@ -264,7 +264,7 @@ SCM_DEFINE (scm_reset_hook_x, "reset-hook!", 1, 0, 0,
 "")
 #define FUNC_NAME s_scm_reset_hook_x
 {
-  SCM_VALIDATE_HOOK(1,hook);
+  SCM_VALIDATE_HOOK (1,hook);
   SCM_SET_HOOK_PROCEDURES (hook, SCM_EOL);
   return SCM_UNSPECIFIED;
 }
@@ -276,7 +276,7 @@ SCM_DEFINE (scm_run_hook, "run-hook", 1, 0, 1,
 "")
 #define FUNC_NAME s_scm_run_hook
 {
-  SCM_VALIDATE_HOOK(1,hook);
+  SCM_VALIDATE_HOOK (1,hook);
   if (SCM_UNBNDP (args))
     args = SCM_EOL;
   if (scm_ilength (args) != SCM_HOOK_ARITY (hook))
@@ -306,7 +306,7 @@ SCM_DEFINE (scm_hook_to_list, "hook->list", 1, 0, 0,
 "")
 #define FUNC_NAME s_scm_hook_to_list
 {
-  SCM_VALIDATE_HOOK(1,hook);
+  SCM_VALIDATE_HOOK (1,hook);
   return scm_list_copy (SCM_HOOK_PROCEDURES (hook));
 }
 #undef FUNC_NAME

@@ -82,7 +82,7 @@ scm_listify (SCM elt, ...)
 }
 
 
-SCM_DEFINE(scm_list, "list", 0, 0, 1, 
+SCM_DEFINE (scm_list, "list", 0, 0, 1, 
            (SCM objs),
 "")
 #define FUNC_NAME s_scm_list
@@ -115,7 +115,7 @@ SCM_DEFINE (scm_list_star, "list*", 1, 0, 1,
 
 /* general questions about lists --- null?, list?, length, etc.  */
 
-SCM_DEFINE(scm_null_p, "null?", 1, 0, 0, 
+SCM_DEFINE (scm_null_p, "null?", 1, 0, 0, 
            (SCM x),
 "")
 #define FUNC_NAME s_scm_null_p
@@ -124,7 +124,7 @@ SCM_DEFINE(scm_null_p, "null?", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE(scm_list_p, "list?", 1, 0, 0, 
+SCM_DEFINE (scm_list_p, "list?", 1, 0, 0, 
            (SCM x),
 "")
 #define FUNC_NAME s_scm_list_p
@@ -164,13 +164,13 @@ scm_ilength(SCM sx)
   return -1;
 }
 
-SCM_DEFINE(scm_length, "length", 1, 0, 0, 
+SCM_DEFINE (scm_length, "length", 1, 0, 0, 
            (SCM lst),
 "")
 #define FUNC_NAME s_scm_length
 {
   int i;
-  SCM_VALIDATE_LIST_COPYLEN(1,lst,i);
+  SCM_VALIDATE_LIST_COPYLEN (1,lst,i);
   return SCM_MAKINUM (i);
 }
 #undef FUNC_NAME
@@ -190,25 +190,25 @@ performed.  Return a pointer to the mutated list.")
   SCM res = SCM_EOL;
   SCM *lloc = &res, arg;
   if (SCM_IMP(args)) {
-    SCM_VALIDATE_NULL(SCM_ARGn, args);
+    SCM_VALIDATE_NULL (SCM_ARGn, args);
     return res;
   }
-  SCM_VALIDATE_CONS(SCM_ARGn, args);
+  SCM_VALIDATE_CONS (SCM_ARGn, args);
   while (1) {
     arg = SCM_CAR(args);
     args = SCM_CDR(args);
     if (SCM_IMP(args)) {
       *lloc = arg;
-      SCM_VALIDATE_NULL(SCM_ARGn, args);
+      SCM_VALIDATE_NULL (SCM_ARGn, args);
       return res;
     }
-    SCM_VALIDATE_CONS(SCM_ARGn, args);
+    SCM_VALIDATE_CONS (SCM_ARGn, args);
     for(;SCM_NIMP(arg);arg = SCM_CDR(arg)) {
-      SCM_VALIDATE_CONS(SCM_ARGn, arg);
+      SCM_VALIDATE_CONS (SCM_ARGn, arg);
       *lloc = scm_cons(SCM_CAR(arg), SCM_EOL);
       lloc = SCM_CDRLOC(*lloc);
     }
-    SCM_VALIDATE_NULL(SCM_ARGn, arg);
+    SCM_VALIDATE_NULL (SCM_ARGn, arg);
   }
 }
 #undef FUNC_NAME
@@ -226,14 +226,14 @@ SCM_DEFINE (scm_append_x, "append!", 0, 0, 1,
   args = SCM_CDR(args);
   if (SCM_NULLP(args)) return arg;
   if (SCM_NULLP(arg)) goto tail;
-  SCM_VALIDATE_CONS(SCM_ARG1,arg);
+  SCM_VALIDATE_CONS (SCM_ARG1,arg);
   SCM_SETCDR (scm_last_pair (arg), scm_append_x (args));
   return arg;
 }
 #undef FUNC_NAME
 
 
-SCM_DEFINE(scm_last_pair, "last-pair", 1, 0, 0, 
+SCM_DEFINE (scm_last_pair, "last-pair", 1, 0, 0, 
            (SCM sx),
 "Return a pointer to the last pair in @var{lst}, signalling an error if
 @var{lst} is circular.")
@@ -245,7 +245,7 @@ SCM_DEFINE(scm_last_pair, "last-pair", 1, 0, 0,
   if (SCM_NULLP (sx))
     return SCM_EOL;
 
-  SCM_VALIDATE_CONS(SCM_ARG1,res);
+  SCM_VALIDATE_CONS (SCM_ARG1,res);
   while (!0) {
     x = SCM_CDR(res);
     if (SCM_IMP(x) || SCM_NCONSP(x)) return res;
@@ -281,12 +281,12 @@ of the modified list is not lost, it is wise to save the return value of
   SCM p = ls, t = ls;
   while (SCM_NIMP (p))
     {
-      SCM_VALIDATE_CONS(1,ls);
+      SCM_VALIDATE_CONS (1,ls);
       res = scm_cons (SCM_CAR (p), res);
       p = SCM_CDR (p);
       if (SCM_IMP (p))
 	break;
-      SCM_VALIDATE_CONS(1,ls);
+      SCM_VALIDATE_CONS (1,ls);
       res = scm_cons (SCM_CAR (p), res);
       p = SCM_CDR (p);
       t = SCM_CDR (t);
@@ -294,7 +294,7 @@ of the modified list is not lost, it is wise to save the return value of
 	scm_misc_error (FUNC_NAME, "Circular structure: %S", SCM_LIST1 (ls));
     }
   ls = p;
-  SCM_VALIDATE_NULL(1,ls);
+  SCM_VALIDATE_NULL (1,ls);
   return res;
 }
 #undef FUNC_NAME
@@ -326,13 +326,13 @@ SCM_DEFINE (scm_reverse_x, "reverse!", 1, 1, 0,
 
 /* indexing lists by element number */
 
-SCM_DEFINE(scm_list_ref, "list-ref", 2, 0, 0,
+SCM_DEFINE (scm_list_ref, "list-ref", 2, 0, 0,
            (SCM lst, SCM k),
 "")
 #define FUNC_NAME s_scm_list_ref
 {
   register long i;
-  SCM_VALIDATE_INUM_MIN_COPY(2,k,0,i);
+  SCM_VALIDATE_INUM_MIN_COPY (2,k,0,i);
   while (i-- > 0) {
     SCM_ASRTGO(SCM_CONSP(lst), erout);
     lst = SCM_CDR(lst);
@@ -344,13 +344,13 @@ SCM_DEFINE(scm_list_ref, "list-ref", 2, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE(scm_list_set_x, "list-set!", 3, 0, 0,
+SCM_DEFINE (scm_list_set_x, "list-set!", 3, 0, 0,
            (SCM lst, SCM k, SCM val),
 "Set the @var{k}th element of @var{lst} to @var{val}.")
 #define FUNC_NAME s_scm_list_set_x
 {
   register long i;
-  SCM_VALIDATE_INUM_MIN_COPY(2,k,0,i);
+  SCM_VALIDATE_INUM_MIN_COPY (2,k,0,i);
   while (i-- > 0) {
     SCM_ASRTGO(SCM_CONSP(lst), erout);
     lst = SCM_CDR(lst);
@@ -366,7 +366,7 @@ SCM_DEFINE(scm_list_set_x, "list-set!", 3, 0, 0,
 
 SCM_REGISTER_PROC(s_list_cdr_ref, "list-cdr-ref", 2, 0, 0, scm_list_tail);
 
-SCM_DEFINE(scm_list_tail, "list-tail", 2, 0, 0,
+SCM_DEFINE (scm_list_tail, "list-tail", 2, 0, 0,
            (SCM lst, SCM k),
 "Return the \"tail\" of @var{lst} beginning with its @var{k}th element.
 The first element of the list is considered to be element 0.
@@ -377,9 +377,9 @@ or returning the results of cdring @var{k} times down @var{lst}.")
 #define FUNC_NAME s_scm_list_tail
 {
   register long i;
-  SCM_VALIDATE_INUM_MIN_COPY(2,k,0,i);
+  SCM_VALIDATE_INUM_MIN_COPY (2,k,0,i);
   while (i-- > 0) {
-    SCM_VALIDATE_CONS(1,lst);
+    SCM_VALIDATE_CONS (1,lst);
     lst = SCM_CDR(lst);
   }
   return lst;
@@ -387,13 +387,13 @@ or returning the results of cdring @var{k} times down @var{lst}.")
 #undef FUNC_NAME
 
 
-SCM_DEFINE(scm_list_cdr_set_x, "list-cdr-set!", 3, 0, 0,
+SCM_DEFINE (scm_list_cdr_set_x, "list-cdr-set!", 3, 0, 0,
            (SCM lst, SCM k, SCM val),
 "Set the @var{k}th cdr of @var{lst} to @var{val}.")
 #define FUNC_NAME s_scm_list_cdr_set_x
 {
   register long i;
-  SCM_VALIDATE_INUM_MIN_COPY(2,k,0,i);
+  SCM_VALIDATE_INUM_MIN_COPY (2,k,0,i);
   while (i-- > 0) {
     SCM_ASRTGO(SCM_CONSP(lst), erout);
     lst = SCM_CDR(lst);
@@ -410,7 +410,7 @@ erout:
 
 /* copying lists, perhaps partially */
 
-SCM_DEFINE(scm_list_head, "list-head", 2, 0, 0,
+SCM_DEFINE (scm_list_head, "list-head", 2, 0, 0,
            (SCM lst, SCM k),
 "Copy the first @var{k} elements from @var{lst} into a new list, and
 return it.")
@@ -420,12 +420,12 @@ return it.")
   SCM * pos;
   register long i;
 
-  SCM_VALIDATE_INUM_MIN_COPY(2,k,0,i);
+  SCM_VALIDATE_INUM_MIN_COPY (2,k,0,i);
   answer = SCM_EOL;
   pos = &answer;
   while (i-- > 0)
     {
-      SCM_VALIDATE_CONS(1,lst);
+      SCM_VALIDATE_CONS (1,lst);
       *pos = scm_cons (SCM_CAR (lst), SCM_EOL);
       pos = SCM_CDRLOC (*pos);
       lst = SCM_CDR(lst);
@@ -514,13 +514,13 @@ SCM_DEFINE (scm_sloppy_member, "sloppy-member", 2, 0, 0,
 
 
 
-SCM_DEFINE(scm_memq, "memq", 2, 0, 0,
+SCM_DEFINE (scm_memq, "memq", 2, 0, 0,
            (SCM x, SCM lst),
 "")
 #define FUNC_NAME s_scm_memq
 {
   SCM answer;
-  SCM_VALIDATE_LIST(2,lst);
+  SCM_VALIDATE_LIST (2,lst);
   answer = scm_sloppy_memq (x, lst);
   return (answer == SCM_EOL) ? SCM_BOOL_F : answer;
 }
@@ -528,26 +528,26 @@ SCM_DEFINE(scm_memq, "memq", 2, 0, 0,
 
 
 
-SCM_DEFINE(scm_memv, "memv", 2, 0, 0,
+SCM_DEFINE (scm_memv, "memv", 2, 0, 0,
            (SCM x, SCM lst),
 "")
 #define FUNC_NAME s_scm_memv
 {
   SCM answer;
-  SCM_VALIDATE_LIST(2,lst);
+  SCM_VALIDATE_LIST (2,lst);
   answer = scm_sloppy_memv (x, lst);
   return (answer == SCM_EOL) ? SCM_BOOL_F : answer;
 }
 #undef FUNC_NAME
 
 
-SCM_DEFINE(scm_member, "member", 2, 0, 0,
+SCM_DEFINE (scm_member, "member", 2, 0, 0,
            (SCM x, SCM lst),
 "")
 #define FUNC_NAME s_scm_member
 {
   SCM answer;
-  SCM_VALIDATE_LIST(2,lst);
+  SCM_VALIDATE_LIST (2,lst);
   answer = scm_sloppy_member (x, lst);
   return (answer == SCM_EOL) ? SCM_BOOL_F : answer;
 }
@@ -557,7 +557,7 @@ SCM_DEFINE(scm_member, "member", 2, 0, 0,
 
 /* deleting elements from a list (delq, etc.) */
 
-SCM_DEFINE(scm_delq_x, "delq!", 2, 0, 0,
+SCM_DEFINE (scm_delq_x, "delq!", 2, 0, 0,
            (SCM item, SCM lst),
 "@deffnx primitive delv! item lst
 @deffnx primitive delete! item lst
@@ -587,7 +587,7 @@ destructive list functions, these functions cannot modify the binding of
 #undef FUNC_NAME
 
 
-SCM_DEFINE(scm_delv_x, "delv!", 2, 0, 0,
+SCM_DEFINE (scm_delv_x, "delv!", 2, 0, 0,
            (SCM item, SCM lst),
 "")
 #define FUNC_NAME s_scm_delv_x
@@ -611,7 +611,7 @@ SCM_DEFINE(scm_delv_x, "delv!", 2, 0, 0,
 
 
 
-SCM_DEFINE(scm_delete_x, "delete!", 2, 0, 0,
+SCM_DEFINE (scm_delete_x, "delete!", 2, 0, 0,
            (SCM item, SCM lst),
 "")
 #define FUNC_NAME s_scm_delete_x
@@ -673,7 +673,7 @@ SCM_DEFINE (scm_delete, "delete", 2, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE(scm_delq1_x, "delq1!", 2, 0, 0,
+SCM_DEFINE (scm_delq1_x, "delq1!", 2, 0, 0,
            (SCM item, SCM lst),
 "")
 #define FUNC_NAME s_scm_delq1_x
@@ -699,7 +699,7 @@ SCM_DEFINE(scm_delq1_x, "delq1!", 2, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE(scm_delv1_x, "delv1!", 2, 0, 0,
+SCM_DEFINE (scm_delv1_x, "delv1!", 2, 0, 0,
            (SCM item, SCM lst),
 "")
 #define FUNC_NAME s_scm_delv1_x
@@ -725,7 +725,7 @@ SCM_DEFINE(scm_delv1_x, "delv1!", 2, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE(scm_delete1_x, "delete1!", 2, 0, 0,
+SCM_DEFINE (scm_delete1_x, "delete1!", 2, 0, 0,
            (SCM item, SCM lst),
 "")
 #define FUNC_NAME s_scm_delete1_x

@@ -106,7 +106,7 @@ scm_c_make_keyword (char *s)
   return scm_make_keyword_from_dash_symbol (SCM_CAR (vcell));
 }
 
-SCM_DEFINE(scm_keyword_p, "keyword?", 1, 0, 0, 
+SCM_DEFINE (scm_keyword_p, "keyword?", 1, 0, 0, 
            (SCM obj),
 "@code{keyword?} returns @code{#t} if the argument @var{kw} is a keyword;
 it returns @code{#f} otherwise.")
@@ -117,13 +117,13 @@ it returns @code{#f} otherwise.")
 #undef FUNC_NAME
 
 
-SCM_DEFINE(scm_keyword_dash_symbol, "keyword-dash-symbol", 1, 0, 0, 
+SCM_DEFINE (scm_keyword_dash_symbol, "keyword-dash-symbol", 1, 0, 0, 
            (SCM keyword),
 "@code{keyword-dash-symbol} [FIXME: have no idea what this does; it is
 not commented.]")
 #define FUNC_NAME s_scm_keyword_dash_symbol
 {
-  SCM_VALIDATE_KEYWORD(1,keyword);
+  SCM_VALIDATE_KEYWORD (1,keyword);
   return SCM_CDR (keyword);
 }
 #undef FUNC_NAME

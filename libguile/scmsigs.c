@@ -179,7 +179,7 @@ sys_deliver_signals (void)
 }
 
 /* user interface for installation of signal handlers.  */
-SCM_DEFINE(scm_sigaction, "sigaction", 1, 2, 0, 
+SCM_DEFINE (scm_sigaction, "sigaction", 1, 2, 0, 
            (SCM signum, SCM handler, SCM flags),
 "Install or report the signal hander for a specified signal.
 
@@ -222,7 +222,7 @@ structures.")
   SCM *scheme_handlers = SCM_VELTS (*signal_handlers);
   SCM old_handler;
 
-  SCM_VALIDATE_INUM_COPY(1,signum,csig);
+  SCM_VALIDATE_INUM_COPY (1,signum,csig);
 #if defined(HAVE_SIGACTION)
 #if defined(SA_RESTART) && defined(HAVE_RESTARTABLE_SYSCALLS)
   /* don't allow SA_RESTART to be omitted if HAVE_RESTARTABLE_SYSCALLS
@@ -234,7 +234,7 @@ structures.")
 #endif
   if (!SCM_UNBNDP (flags))
     {
-      SCM_VALIDATE_INUM(3,flags);
+      SCM_VALIDATE_INUM (3,flags);
       action.sa_flags |= SCM_INUM (flags);
     }
   sigemptyset (&action.sa_mask);
@@ -368,7 +368,7 @@ SCM_DEFINE (scm_restore_signals, "restore-signals", 0, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE(scm_alarm, "alarm", 1, 0, 0, 
+SCM_DEFINE (scm_alarm, "alarm", 1, 0, 0, 
            (SCM i),
 "Set a timer to raise a @code{SIGALRM} signal after the specified
 number of seconds (an integer).  It's advisable to install a signal
@@ -382,14 +382,14 @@ no previous alarm, the return value is zero.")
 #define FUNC_NAME s_scm_alarm
 {
   unsigned int j;
-  SCM_VALIDATE_INUM(1,i);
+  SCM_VALIDATE_INUM (1,i);
   j = alarm (SCM_INUM (i));
   return SCM_MAKINUM (j);
 }
 #undef FUNC_NAME
 
 #ifdef HAVE_PAUSE
-SCM_DEFINE(scm_pause, "pause", 0, 0, 0, 
+SCM_DEFINE (scm_pause, "pause", 0, 0, 0, 
            (),
 "Pause the current process (thread?) until a signal arrives whose
 action is to either terminate the current process or invoke a
@@ -402,7 +402,7 @@ handler procedure.  The return value is unspecified.")
 #undef FUNC_NAME
 #endif
 
-SCM_DEFINE(scm_sleep, "sleep", 1, 0, 0, 
+SCM_DEFINE (scm_sleep, "sleep", 1, 0, 0, 
            (SCM i),
 "Wait for the given number of seconds (an integer) or until a signal
 arrives.  The return value is zero if the time elapses or the number
@@ -410,7 +410,7 @@ of seconds remaining otherwise.")
 #define FUNC_NAME s_scm_sleep
 {
   unsigned long j;
-  SCM_VALIDATE_INUM_MIN(1,i,0);
+  SCM_VALIDATE_INUM_MIN (1,i,0);
 #ifdef USE_THREADS
   j = scm_thread_sleep (SCM_INUM(i));
 #else
@@ -421,12 +421,12 @@ of seconds remaining otherwise.")
 #undef FUNC_NAME
 
 #if defined(USE_THREADS) || defined(HAVE_USLEEP)
-SCM_DEFINE(scm_usleep, "usleep", 1, 0, 0, 
+SCM_DEFINE (scm_usleep, "usleep", 1, 0, 0, 
            (SCM i),
 "")
 #define FUNC_NAME s_scm_usleep
 {
-  SCM_VALIDATE_INUM_MIN(1,i,0);
+  SCM_VALIDATE_INUM_MIN (1,i,0);
 
 #ifdef USE_THREADS
   /* If we have threads, we use the thread system's sleep function.  */
@@ -449,14 +449,14 @@ SCM_DEFINE(scm_usleep, "usleep", 1, 0, 0,
 #undef FUNC_NAME
 #endif /* GUILE_ISELECT || HAVE_USLEEP */
 
-SCM_DEFINE(scm_raise, "raise", 1, 0, 0, 
+SCM_DEFINE (scm_raise, "raise", 1, 0, 0, 
            (SCM sig),
 "
 Sends a specified signal @var{sig} to the current process, where
 @var{sig} is as described for the kill procedure.")
 #define FUNC_NAME s_scm_raise
 {
-  SCM_VALIDATE_INUM(1,sig);
+  SCM_VALIDATE_INUM (1,sig);
   SCM_DEFER_INTS;
   if (kill (getpid (), (int) SCM_INUM (sig)) != 0)
     SCM_SYSERROR;

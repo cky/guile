@@ -97,7 +97,7 @@ load (void *data)
   return SCM_UNSPECIFIED;
 }
 
-SCM_DEFINE(scm_primitive_load, "primitive-load", 1, 0, 0, 
+SCM_DEFINE (scm_primitive_load, "primitive-load", 1, 0, 0, 
            (SCM filename),
 "Load @var{file} and evaluate its contents in the top-level environment.
 The load paths are not searched; @var{file} must either be a full
@@ -108,7 +108,7 @@ that will be called before any code is loaded.  See documentation for
 #define FUNC_NAME s_scm_primitive_load
 {
   SCM hook = *scm_loc_load_hook;
-  SCM_VALIDATE_ROSTRING(1,filename);
+  SCM_VALIDATE_ROSTRING (1,filename);
   SCM_ASSERT (hook == SCM_BOOL_F
 	      || (scm_procedure_p (hook) == SCM_BOOL_T),
 	      hook, "value of %load-hook is neither a procedure nor #f",
@@ -256,7 +256,7 @@ SCM scm_listofnullstr;
    If FILENAME is absolute, return it unchanged.
    If given, EXTENSIONS is a list of strings; for each directory 
    in PATH, we search for FILENAME concatenated with each EXTENSION.  */
-SCM_DEFINE(scm_search_path, "search-path", 2, 1, 0,
+SCM_DEFINE (scm_search_path, "search-path", 2, 1, 0,
            (SCM path, SCM filename, SCM extensions),
 "")
 #define FUNC_NAME s_scm_search_path
@@ -266,12 +266,12 @@ SCM_DEFINE(scm_search_path, "search-path", 2, 1, 0,
   size_t max_path_len;		/* maximum length of any PATH element */
   size_t max_ext_len;		/* maximum length of any EXTENSIONS element */
 
-  SCM_VALIDATE_LIST(1,path);
-  SCM_VALIDATE_ROSTRING(2,filename);
+  SCM_VALIDATE_LIST (1,path);
+  SCM_VALIDATE_ROSTRING (2,filename);
   if (SCM_UNBNDP (extensions))
     extensions = SCM_EOL;
   else
-    SCM_VALIDATE_LIST(3,extensions);
+    SCM_VALIDATE_LIST (3,extensions);
 
   filename_chars = SCM_ROCHARS (filename);
   filename_len = SCM_ROLENGTH (filename);
@@ -399,7 +399,7 @@ SCM_DEFINE(scm_search_path, "search-path", 2, 1, 0,
    The file must be readable, and not a directory.
    If we find one, return its full filename; otherwise, return #f.
    If FILENAME is absolute, return it unchanged.  */
-SCM_DEFINE(scm_sys_search_load_path, "%search-load-path", 1, 0, 0, 
+SCM_DEFINE (scm_sys_search_load_path, "%search-load-path", 1, 0, 0, 
            (SCM filename),
 "Search @var{%load-path} for @var{file}, which must be readable by the
 current user.  If @var{file} is found in the list of paths to search or
@@ -411,7 +411,7 @@ extension automatically.")
 {
   SCM path = *scm_loc_load_path;
   SCM exts = *scm_loc_load_extensions;
-  SCM_VALIDATE_ROSTRING(1,filename);
+  SCM_VALIDATE_ROSTRING (1,filename);
 
   SCM_ASSERT (scm_ilength (path) >= 0, path, "load path is not a proper list",
 	      FUNC_NAME);
@@ -423,7 +423,7 @@ extension automatically.")
 #undef FUNC_NAME
 
 
-SCM_DEFINE(scm_primitive_load_path, "primitive-load-path", 1, 0, 0, 
+SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 1, 0, 0, 
            (SCM filename),
 "Search @var{%load-path} for @var{file} and load it into the top-level
 environment.  If @var{file} is a relative pathname and is not found in
@@ -432,7 +432,7 @@ the list of search paths, an error is signalled.")
 {
   SCM full_filename;
 
-  SCM_VALIDATE_ROSTRING(1,filename);
+  SCM_VALIDATE_ROSTRING (1,filename);
 
   full_filename = scm_sys_search_load_path (filename);
 

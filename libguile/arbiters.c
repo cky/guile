@@ -74,7 +74,7 @@ prinarb (SCM exp, SCM port, scm_print_state *pstate)
   return !0;
 }
 
-SCM_DEFINE(scm_make_arbiter, "make-arbiter", 1, 0, 0, 
+SCM_DEFINE (scm_make_arbiter, "make-arbiter", 1, 0, 0, 
            (SCM name),
 "")
 #define FUNC_NAME s_scm_make_arbiter
@@ -83,12 +83,12 @@ SCM_DEFINE(scm_make_arbiter, "make-arbiter", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE(scm_try_arbiter, "try-arbiter", 1, 0, 0, 
+SCM_DEFINE (scm_try_arbiter, "try-arbiter", 1, 0, 0, 
            (SCM arb),
 "")
 #define FUNC_NAME s_scm_try_arbiter
 {
-  SCM_VALIDATE_SMOB(1,arb,arbiter);
+  SCM_VALIDATE_SMOB (1,arb,arbiter);
   SCM_DEFER_INTS;
   if (SCM_CAR (arb) & (1L << 16))
     arb = SCM_BOOL_F;
@@ -103,12 +103,12 @@ SCM_DEFINE(scm_try_arbiter, "try-arbiter", 1, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE(scm_release_arbiter, "release-arbiter", 1, 0, 0, 
+SCM_DEFINE (scm_release_arbiter, "release-arbiter", 1, 0, 0, 
            (SCM arb),
 "")
 #define FUNC_NAME s_scm_release_arbiter
 {
-  SCM_VALIDATE_SMOB(1,arb,arbiter);
+  SCM_VALIDATE_SMOB (1,arb,arbiter);
   if (!(SCM_CAR (arb) & (1L << 16)))
     return SCM_BOOL_F;
   SCM_SETCAR (arb, scm_tc16_arbiter);

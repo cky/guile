@@ -212,7 +212,7 @@ scm_set_port_input_waiting (long tc, int (*input_waiting) (SCM))
 
 
 
-SCM_DEFINE(scm_char_ready_p, "char-ready?", 0, 1, 0, 
+SCM_DEFINE (scm_char_ready_p, "char-ready?", 0, 1, 0, 
            (SCM port),
 "")
 #define FUNC_NAME s_scm_char_ready_p
@@ -222,7 +222,7 @@ SCM_DEFINE(scm_char_ready_p, "char-ready?", 0, 1, 0,
   if (SCM_UNBNDP (port))
     port = scm_cur_inp;
   else
-    SCM_VALIDATE_OPINPORT(1,port);
+    SCM_VALIDATE_OPINPORT (1,port);
 
   pt = SCM_PTAB_ENTRY (port);
 
@@ -257,7 +257,7 @@ and returns the contents as a single string.")
   int count;
   char *dst;
 
-  SCM_VALIDATE_OPINPORT(1,port);
+  SCM_VALIDATE_OPINPORT (1,port);
 
   count = pt->read_end - pt->read_pos;
   if (pt->read_buf == pt->putback_buf)
@@ -282,7 +282,7 @@ and returns the contents as a single string.")
 
 /* Standard ports --- current input, output, error, and more(!).  */
 
-SCM_DEFINE(scm_current_input_port, "current-input-port", 0, 0, 0,
+SCM_DEFINE (scm_current_input_port, "current-input-port", 0, 0, 0,
            (),
 "")
 #define FUNC_NAME s_scm_current_input_port
@@ -291,7 +291,7 @@ SCM_DEFINE(scm_current_input_port, "current-input-port", 0, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE(scm_current_output_port, "current-output-port", 0, 0, 0,
+SCM_DEFINE (scm_current_output_port, "current-output-port", 0, 0, 0,
            (),
 "")
 #define FUNC_NAME s_scm_current_output_port
@@ -300,7 +300,7 @@ SCM_DEFINE(scm_current_output_port, "current-output-port", 0, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE(scm_current_error_port, "current-error-port", 0, 0, 0,
+SCM_DEFINE (scm_current_error_port, "current-error-port", 0, 0, 0,
            (),
 "Return the port to which errors and warnings should be sent (the
 @dfn{standard error} in Unix and C terminology).")
@@ -310,7 +310,7 @@ SCM_DEFINE(scm_current_error_port, "current-error-port", 0, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE(scm_current_load_port, "current-load-port", 0, 0, 0,
+SCM_DEFINE (scm_current_load_port, "current-load-port", 0, 0, 0,
            (),
 "")
 #define FUNC_NAME s_scm_current_load_port
@@ -319,7 +319,7 @@ SCM_DEFINE(scm_current_load_port, "current-load-port", 0, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE(scm_set_current_input_port, "set-current-input-port", 1, 0, 0,
+SCM_DEFINE (scm_set_current_input_port, "set-current-input-port", 1, 0, 0,
            (SCM port),
 "@deffnx primitive set-current-output-port port
 @deffnx primitive set-current-error-port port
@@ -329,35 +329,35 @@ so that they use the supplied @var{port} for input or output.")
 #define FUNC_NAME s_scm_set_current_input_port
 {
   SCM oinp = scm_cur_inp;
-  SCM_VALIDATE_OPINPORT(1,port);
+  SCM_VALIDATE_OPINPORT (1,port);
   scm_cur_inp = port;
   return oinp;
 }
 #undef FUNC_NAME
 
 
-SCM_DEFINE(scm_set_current_output_port, "set-current-output-port", 1, 0, 0,
+SCM_DEFINE (scm_set_current_output_port, "set-current-output-port", 1, 0, 0,
            (SCM port),
 "")
 #define FUNC_NAME s_scm_set_current_output_port
 {
   SCM ooutp = scm_cur_outp;
   port = SCM_COERCE_OUTPORT (port);
-  SCM_VALIDATE_OPOUTPORT(1,port);
+  SCM_VALIDATE_OPOUTPORT (1,port);
   scm_cur_outp = port;
   return ooutp;
 }
 #undef FUNC_NAME
 
 
-SCM_DEFINE(scm_set_current_error_port, "set-current-error-port", 1, 0, 0,
+SCM_DEFINE (scm_set_current_error_port, "set-current-error-port", 1, 0, 0,
            (SCM port),
 "")
 #define FUNC_NAME s_scm_set_current_error_port
 {
   SCM oerrp = scm_cur_errp;
   port = SCM_COERCE_OUTPORT (port);
-  SCM_VALIDATE_OPOUTPORT(1,port);
+  SCM_VALIDATE_OPOUTPORT (1,port);
   scm_cur_errp = port;
   return oerrp;
 }
@@ -438,7 +438,7 @@ scm_remove_from_port_table (SCM port)
 /* Undocumented functions for debugging.  */
 /* Return the number of ports in the table.  */
 
-SCM_DEFINE(scm_pt_size, "pt-size", 0, 0, 0,
+SCM_DEFINE (scm_pt_size, "pt-size", 0, 0, 0,
            (),
 "")
 #define FUNC_NAME s_scm_pt_size
@@ -448,7 +448,7 @@ SCM_DEFINE(scm_pt_size, "pt-size", 0, 0, 0,
 #undef FUNC_NAME
 
 /* Return the ith member of the port table.  */
-SCM_DEFINE(scm_pt_member, "pt-member", 1, 0, 0,
+SCM_DEFINE (scm_pt_member, "pt-member", 1, 0, 0,
            (SCM member),
 "")
 #define FUNC_NAME s_scm_pt_member
@@ -481,27 +481,27 @@ scm_revealed_count (SCM port)
 
 /* Return the revealed count for a port.  */
 
-SCM_DEFINE(scm_port_revealed, "port-revealed", 1, 0, 0,
+SCM_DEFINE (scm_port_revealed, "port-revealed", 1, 0, 0,
            (SCM port),
 "Returns the revealed count for @var{port}.")
 #define FUNC_NAME s_scm_port_revealed
 {
   port = SCM_COERCE_OUTPORT (port);
-  SCM_VALIDATE_PORT(1,port);
+  SCM_VALIDATE_PORT (1,port);
   return SCM_MAKINUM (scm_revealed_count (port));
 }
 #undef FUNC_NAME
 
 /* Set the revealed count for a port.  */
-SCM_DEFINE(scm_set_port_revealed_x, "set-port-revealed!", 2, 0, 0,
+SCM_DEFINE (scm_set_port_revealed_x, "set-port-revealed!", 2, 0, 0,
            (SCM port, SCM rcount),
 "Sets the revealed count for a port to a given value.  
 The return value is unspecified.")
 #define FUNC_NAME s_scm_set_port_revealed_x
 {
   port = SCM_COERCE_OUTPORT (port);
-  SCM_VALIDATE_PORT(1,port);
-  SCM_VALIDATE_INUM(2,rcount);
+  SCM_VALIDATE_PORT (1,port);
+  SCM_VALIDATE_INUM (2,rcount);
   SCM_REVEALED (port) = SCM_INUM (rcount);
   return SCM_UNSPECIFIED;
 }
@@ -534,7 +534,7 @@ scm_mode_bits (char *modes)
  * Some modes such as "append" are only used when opening
  * a file and are not returned here.  */
 
-SCM_DEFINE(scm_port_mode, "port-mode", 1, 0, 0,
+SCM_DEFINE (scm_port_mode, "port-mode", 1, 0, 0,
            (SCM port),
 "Returns the port modes associated with the open port @var{port}.  These
 will not necessarily be identical to the modes used when the port was
@@ -546,7 +546,7 @@ port creation are not retained.")
   modes[0] = '\0';
 
   port = SCM_COERCE_OUTPORT (port);
-  SCM_VALIDATE_OPPORT(1,port);
+  SCM_VALIDATE_OPPORT (1,port);
   if (SCM_CAR (port) & SCM_RDNG) {
     if (SCM_CAR (port) & SCM_WRTNG)
       strcpy (modes, "r+");
@@ -569,7 +569,7 @@ port creation are not retained.")
  * Call the close operation on a port object. 
  * see also scm_close.
  */
-SCM_DEFINE(scm_close_port, "close-port", 1, 0, 0,
+SCM_DEFINE (scm_close_port, "close-port", 1, 0, 0,
            (SCM port),
 "Close the specified port object.  Returns @code{#t} if it successfully
 closes a port or @code{#f} if it was already
@@ -584,7 +584,7 @@ which can close file descriptors.")
 
   port = SCM_COERCE_OUTPORT (port);
 
-  SCM_VALIDATE_PORT(1,port);
+  SCM_VALIDATE_PORT (1,port);
   if (SCM_CLOSEDP (port))
     return SCM_BOOL_F;
   i = SCM_PTOBNUM (port);
@@ -598,7 +598,7 @@ which can close file descriptors.")
 }
 #undef FUNC_NAME
 
-SCM_DEFINE(scm_close_all_ports_except, "close-all-ports-except", 0, 0, 1,
+SCM_DEFINE (scm_close_all_ports_except, "close-all-ports-except", 0, 0, 1,
            (SCM ports),
 "Close all open file ports used by the interpreter
 except for those supplied as arguments.  This procedure
@@ -610,7 +610,7 @@ which are not needed in the new process.")
 #define FUNC_NAME s_scm_close_all_ports_except
 {
   int i = 0;
-  SCM_VALIDATE_CONS(1,ports);
+  SCM_VALIDATE_CONS (1,ports);
   while (i < scm_port_table_size)
     {
       SCM thisport = scm_port_table[i]->port;
@@ -621,7 +621,7 @@ which are not needed in the new process.")
 	{
 	  SCM port = SCM_COERCE_OUTPORT (SCM_CAR (ports_ptr));
 	  if (i == 0)
-            SCM_VALIDATE_OPPORT(SCM_ARG1,port);
+            SCM_VALIDATE_OPPORT (SCM_ARG1,port);
 	  if (port == thisport)
 	    found = 1;
 	  ports_ptr = SCM_CDR (ports_ptr);
@@ -640,7 +640,7 @@ which are not needed in the new process.")
 
 /* Utter miscellany.  Gosh, we should clean this up some time.  */
 
-SCM_DEFINE(scm_input_port_p, "input-port?", 1, 0, 0,
+SCM_DEFINE (scm_input_port_p, "input-port?", 1, 0, 0,
            (SCM x),
 "")
 #define FUNC_NAME s_scm_input_port_p
@@ -651,7 +651,7 @@ SCM_DEFINE(scm_input_port_p, "input-port?", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE(scm_output_port_p, "output-port?", 1, 0, 0,
+SCM_DEFINE (scm_output_port_p, "output-port?", 1, 0, 0,
            (SCM x),
 "")
 #define FUNC_NAME s_scm_output_port_p
@@ -664,17 +664,17 @@ SCM_DEFINE(scm_output_port_p, "output-port?", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE(scm_port_closed_p, "port-closed?", 1, 0, 0,
+SCM_DEFINE (scm_port_closed_p, "port-closed?", 1, 0, 0,
            (SCM port),
 "Returns @code{#t} if @var{port} is closed or @code{#f} if it is open.")
 #define FUNC_NAME s_scm_port_closed_p
 {
-  SCM_VALIDATE_OPPORT(1,port);
+  SCM_VALIDATE_OPPORT (1,port);
   return SCM_NEGATE_BOOL(SCM_OPPORTP (port));
 }
 #undef FUNC_NAME
 
-SCM_DEFINE(scm_eof_object_p, "eof-object?", 1, 0, 0,
+SCM_DEFINE (scm_eof_object_p, "eof-object?", 1, 0, 0,
            (SCM x),
 "")
 #define FUNC_NAME s_scm_eof_object_p
@@ -683,7 +683,7 @@ SCM_DEFINE(scm_eof_object_p, "eof-object?", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE(scm_force_output, "force-output", 0, 1, 0,
+SCM_DEFINE (scm_force_output, "force-output", 0, 1, 0,
            (SCM port),
 "Flush the specified output port, or the current output port if @var{port}
 is omitted.  The current output buffer contents are passed to the 
@@ -699,7 +699,7 @@ The return value is unspecified.")
   else
     {
       port = SCM_COERCE_OUTPORT (port);
-      SCM_VALIDATE_OPOUTPORT(1,port);
+      SCM_VALIDATE_OPOUTPORT (1,port);
     }
   scm_flush (port);
   return SCM_UNSPECIFIED;
@@ -723,7 +723,7 @@ all open output ports.  The return value is unspecified.")
 }
 #undef FUNC_NAME
 
-SCM_DEFINE(scm_read_char, "read-char", 0, 1, 0,
+SCM_DEFINE (scm_read_char, "read-char", 0, 1, 0,
            (SCM port),
 "")
 #define FUNC_NAME s_scm_read_char
@@ -731,7 +731,7 @@ SCM_DEFINE(scm_read_char, "read-char", 0, 1, 0,
   int c;
   if (SCM_UNBNDP (port))
     port = scm_cur_inp;
-  SCM_VALIDATE_OPINPORT(1,port);
+  SCM_VALIDATE_OPINPORT (1,port);
   c = scm_getc (port);
   if (EOF == c)
     return SCM_EOF_VAL;
@@ -945,7 +945,7 @@ scm_ungets (char *s, int n, SCM port)
 }
 
 
-SCM_DEFINE(scm_peek_char, "peek-char", 0, 1, 0,
+SCM_DEFINE (scm_peek_char, "peek-char", 0, 1, 0,
            (SCM port),
 "")
 #define FUNC_NAME s_scm_peek_char
@@ -954,7 +954,7 @@ SCM_DEFINE(scm_peek_char, "peek-char", 0, 1, 0,
   if (SCM_UNBNDP (port))
     port = scm_cur_inp;
   else
-    SCM_VALIDATE_OPINPORT(1,port);
+    SCM_VALIDATE_OPINPORT (1,port);
   c = scm_getc (port);
   if (EOF == c)
     return SCM_EOF_VAL;
@@ -973,11 +973,11 @@ not supplied, the current input port is used.")
 {
   int c;
 
-  SCM_VALIDATE_CHAR(1,cobj);
+  SCM_VALIDATE_CHAR (1,cobj);
   if (SCM_UNBNDP (port))
     port = scm_cur_inp;
   else
-    SCM_VALIDATE_OPINPORT(2,port);
+    SCM_VALIDATE_OPINPORT (2,port);
 
   c = SCM_ICHR (cobj);
 
@@ -994,11 +994,11 @@ unread characters will be read again in last-in first-out order.  If
 @var{port} is not supplied, the current-input-port is used.")
 #define FUNC_NAME s_scm_unread_string
 {
-  SCM_VALIDATE_STRING(1,str);
+  SCM_VALIDATE_STRING (1,str);
   if (SCM_UNBNDP (port))
     port = scm_cur_inp;
   else
-    SCM_VALIDATE_OPINPORT(2,port);
+    SCM_VALIDATE_OPINPORT (2,port);
 
   scm_ungets (SCM_ROUCHARS (str), SCM_LENGTH (str), port);
   
@@ -1040,7 +1040,7 @@ the current position of a port can be obtained using:
   object = SCM_COERCE_OUTPORT (object);
 
   off = SCM_NUM2LONG (2,offset);
-  SCM_VALIDATE_INUM_COPY(3,whence,how);
+  SCM_VALIDATE_INUM_COPY (3,whence,how);
   if (how != SEEK_SET && how != SEEK_CUR && how != SEEK_END)
     SCM_OUT_OF_RANGE (3, whence);
   if (SCM_OPPORTP (object))
@@ -1055,7 +1055,7 @@ the current position of a port can be obtained using:
     }
   else /* file descriptor?.  */
     {
-      SCM_VALIDATE_INUM(1,object);
+      SCM_VALIDATE_INUM (1,object);
       rv = lseek (SCM_INUM (object), off, how);
       if (rv == -1)
 	SCM_SYSERROR;
@@ -1114,7 +1114,7 @@ The return value is unspecified.")
     }
   else
     {
-      SCM_VALIDATE_ROSTRING(1,object);
+      SCM_VALIDATE_ROSTRING (1,object);
       SCM_COERCE_SUBSTR (object);
       SCM_SYSCALL (rv = truncate (SCM_ROCHARS (object), c_length));
     }
@@ -1130,7 +1130,7 @@ SCM_DEFINE (scm_port_line, "port-line", 1, 0, 0,
 #define FUNC_NAME s_scm_port_line
 {
   port = SCM_COERCE_OUTPORT (port);
-  SCM_VALIDATE_OPENPORT(1,port);
+  SCM_VALIDATE_OPENPORT (1,port);
   return SCM_MAKINUM (SCM_LINUM (port));
 }
 #undef FUNC_NAME
@@ -1141,8 +1141,8 @@ SCM_DEFINE (scm_set_port_line_x, "set-port-line!", 2, 0, 0,
 #define FUNC_NAME s_scm_set_port_line_x
 {
   port = SCM_COERCE_OUTPORT (port);
-  SCM_VALIDATE_OPENPORT(1,port);
-  SCM_VALIDATE_INUM(2,line);
+  SCM_VALIDATE_OPENPORT (1,port);
+  SCM_VALIDATE_INUM (2,line);
   return SCM_PTAB_ENTRY (port)->line_number = SCM_INUM (line);
 }
 #undef FUNC_NAME
@@ -1161,7 +1161,7 @@ what non-programmers will find most natural.)")
 #define FUNC_NAME s_scm_port_column
 {
   port = SCM_COERCE_OUTPORT (port);
-  SCM_VALIDATE_OPENPORT(1,port);
+  SCM_VALIDATE_OPENPORT (1,port);
   return SCM_MAKINUM (SCM_COL (port));
 }
 #undef FUNC_NAME
@@ -1174,8 +1174,8 @@ current input port if none is specified.")
 #define FUNC_NAME s_scm_set_port_column_x
 {
   port = SCM_COERCE_OUTPORT (port);
-  SCM_VALIDATE_OPENPORT(1,port);
-  SCM_VALIDATE_INUM(2,column);
+  SCM_VALIDATE_OPENPORT (1,port);
+  SCM_VALIDATE_INUM (2,column);
   return SCM_PTAB_ENTRY (port)->column_number = SCM_INUM (column);
 }
 #undef FUNC_NAME
@@ -1188,7 +1188,7 @@ when called on the current input, output and error ports respectively.")
 #define FUNC_NAME s_scm_port_filename
 {
   port = SCM_COERCE_OUTPORT (port);
-  SCM_VALIDATE_OPENPORT(1,port);
+  SCM_VALIDATE_OPENPORT (1,port);
   return SCM_PTAB_ENTRY (port)->file_name;
 }
 #undef FUNC_NAME
@@ -1202,7 +1202,7 @@ source of data, but only the value that is returned by
 #define FUNC_NAME s_scm_set_port_filename_x
 {
   port = SCM_COERCE_OUTPORT (port);
-  SCM_VALIDATE_OPENPORT(1,port);
+  SCM_VALIDATE_OPENPORT (1,port);
   /* We allow the user to set the filename to whatever he likes.  */
   return SCM_PTAB_ENTRY (port)->file_name = filename;
 }
@@ -1308,7 +1308,7 @@ the input/output modes for this port; for a description, see the
 documentation for @code{open-file} in @ref{File Ports}.")
 #define FUNC_NAME s_scm_sys_make_void_port
 {
-  SCM_VALIDATE_ROSTRING(1,mode);
+  SCM_VALIDATE_ROSTRING (1,mode);
   SCM_COERCE_SUBSTR (mode);
   return scm_void_port (SCM_ROCHARS (mode));
 }

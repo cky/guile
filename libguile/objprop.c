@@ -56,7 +56,7 @@
 /* {Object Properties}
  */
 
-SCM_DEFINE(scm_object_properties, "object-properties", 1, 0, 0, 
+SCM_DEFINE (scm_object_properties, "object-properties", 1, 0, 0, 
            (SCM obj),
 "@deffnx primitive procedure-properties obj
 Return @var{obj}'s property list.")
@@ -67,7 +67,7 @@ Return @var{obj}'s property list.")
 #undef FUNC_NAME
 
 
-SCM_DEFINE(scm_set_object_properties_x, "set-object-properties!", 2, 0, 0,
+SCM_DEFINE (scm_set_object_properties_x, "set-object-properties!", 2, 0, 0,
            (SCM obj, SCM plist),
 "@deffnx primitive set-procedure-properties! obj alist
 Set @var{obj}'s property list to @var{alist}.")
@@ -79,7 +79,7 @@ Set @var{obj}'s property list to @var{alist}.")
 }
 #undef FUNC_NAME
 
-SCM_DEFINE(scm_object_property, "object-property", 2, 0, 0,
+SCM_DEFINE (scm_object_property, "object-property", 2, 0, 0,
            (SCM obj, SCM key),
 "@deffnx primitive procedure-property obj key
 Return the property of @var{obj} with name @var{key}.")
@@ -91,7 +91,7 @@ Return the property of @var{obj} with name @var{key}.")
 }
 #undef FUNC_NAME
 
-SCM_DEFINE(scm_set_object_property_x, "set-object-property!", 3, 0, 0,
+SCM_DEFINE (scm_set_object_property_x, "set-object-property!", 3, 0, 0,
            (SCM obj, SCM key, SCM val),
 "@deffnx primitive set-procedure-property! obj key value
 In @var{obj}'s property list, set the property named @var{key} to

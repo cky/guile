@@ -74,7 +74,7 @@ SCM_DEFINE (scm_definedp, "defined?", 1, 1, 0,
 {
   SCM vcell;
 
-  SCM_VALIDATE_SYMBOL(1,sym);
+  SCM_VALIDATE_SYMBOL (1,sym);
 
   if (SCM_UNBNDP (env))
     vcell = scm_sym2vcell(sym,

@@ -184,7 +184,7 @@ static SCM print_state_pool;
 
 #ifdef GUILE_DEBUG /* Used for debugging purposes */
 
-SCM_DEFINE(scm_current_pstate, "current-pstate", 0, 0, 0, 
+SCM_DEFINE (scm_current_pstate, "current-pstate", 0, 0, 0, 
            (),
 "")
 #define FUNC_NAME s_scm_current_pstate
@@ -934,7 +934,7 @@ scm_display (SCM obj, SCM port)
   return SCM_UNSPECIFIED;
 }
 
-SCM_DEFINE(scm_newline, "newline", 0, 1, 0, 
+SCM_DEFINE (scm_newline, "newline", 0, 1, 0, 
            (SCM port),
 "")
 #define FUNC_NAME s_scm_newline
@@ -942,14 +942,14 @@ SCM_DEFINE(scm_newline, "newline", 0, 1, 0,
   if (SCM_UNBNDP (port))
     port = scm_cur_outp;
 
-  SCM_VALIDATE_OPORT_VALUE(1,port);
+  SCM_VALIDATE_OPORT_VALUE (1,port);
 
   scm_putc ('\n', SCM_COERCE_OUTPORT (port));
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
 
-SCM_DEFINE(scm_write_char, "write-char", 1, 1, 0,
+SCM_DEFINE (scm_write_char, "write-char", 1, 1, 0,
            (SCM chr, SCM port),
 "")
 #define FUNC_NAME s_scm_write_char
@@ -957,8 +957,8 @@ SCM_DEFINE(scm_write_char, "write-char", 1, 1, 0,
   if (SCM_UNBNDP (port))
     port = scm_cur_outp;
 
-  SCM_VALIDATE_CHAR(1,chr);
-  SCM_VALIDATE_OPORT_VALUE(2,port);
+  SCM_VALIDATE_CHAR (1,chr);
+  SCM_VALIDATE_OPORT_VALUE (2,port);
 
   scm_putc ((int) SCM_ICHR (chr), SCM_COERCE_OUTPORT (port));
 #ifdef HAVE_PIPE
@@ -1008,8 +1008,8 @@ SCM_DEFINE (scm_port_with_print_state, "port-with-print-state", 2, 0, 0,
 #define FUNC_NAME s_scm_port_with_print_state
 {
   SCM pwps;
-  SCM_VALIDATE_OPORT_VALUE(1,port);
-  SCM_VALIDATE_PRINTSTATE(2,pstate);
+  SCM_VALIDATE_OPORT_VALUE (1,port);
+  SCM_VALIDATE_PRINTSTATE (2,pstate);
   port = SCM_COERCE_OUTPORT (port);
   SCM_NEWSMOB (pwps, scm_tc16_port_with_ps, scm_cons (port, pstate));
   return pwps;

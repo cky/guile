@@ -303,7 +303,7 @@ SCM_DEFINE (scm_gc_set_debug_check_freelist_x, "gc-set-debug-check-freelist!", 1
 "")
 #define FUNC_NAME s_scm_gc_set_debug_check_freelist_x
 {
-  SCM_VALIDATE_BOOL_COPY(1,flag,scm_debug_check_freelist);
+  SCM_VALIDATE_BOOL_COPY (1,flag,scm_debug_check_freelist);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -418,7 +418,7 @@ returned by this function for @var{obj}")
 #undef FUNC_NAME
 
 
-SCM_DEFINE(scm_gc, "gc", 0, 0, 0, 
+SCM_DEFINE (scm_gc, "gc", 0, 0, 0, 
            (),
 "Scans all of SCM objects and reclaims for further use those that are
 no longer accessible.")
@@ -1761,7 +1761,7 @@ SCM_DEFINE (scm_unhash_name, "unhash-name", 1, 0, 0,
 {
   int x;
   int bound;
-  SCM_VALIDATE_SYMBOL(1,name);
+  SCM_VALIDATE_SYMBOL (1,name);
   SCM_DEFER_INTS;
   bound = scm_n_heap_segs;
   for (x = 0; x < bound; ++x)

@@ -86,7 +86,7 @@ scm_i_index (SCM *str, SCM chr, int direction, SCM sub_start,
   return -1;
 }
 
-SCM_DEFINE(scm_string_index, "string-index", 2, 2, 0, 
+SCM_DEFINE (scm_string_index, "string-index", 2, 2, 0, 
            (SCM str, SCM chr, SCM frm, SCM to),
 "Return the index of the first occurrence of @var{chr} in @var{str}.  The
 optional integer arguments @var{frm} and @var{to} limit the search to
@@ -107,7 +107,7 @@ a portion of the string.  This procedure essentially implements the
 }
 #undef FUNC_NAME
 
-SCM_DEFINE(scm_string_rindex, "string-rindex", 2, 2, 0, 
+SCM_DEFINE (scm_string_rindex, "string-rindex", 2, 2, 0, 
            (SCM str, SCM chr, SCM frm, SCM to),
 "Like @code{string-index}, but search from the right of the string rather
 than from the left.  This procedure essentially implements the
@@ -132,7 +132,7 @@ SCM_REGISTER_PROC(s_substring_move_left_x, "substring-move-left!", 5, 0, 0, scm_
 SCM_REGISTER_PROC(s_substring_move_right_x, "substring-move-right!", 5, 0, 0, scm_substring_move_x);
 
 
-SCM_DEFINE(scm_substring_move_x, "substring-move!", 5, 0, 0, 
+SCM_DEFINE (scm_substring_move_x, "substring-move!", 5, 0, 0, 
            (SCM str1, SCM start1, SCM end1, SCM str2, SCM start2),
 "Copy the substring of @var{str1} bounded by @var{start1} and @var{end1}
 into @var{str2} beginning at position @var{end2}.
@@ -154,11 +154,11 @@ are different strings, it does not matter which function you use.")
 {
   long s1, s2, e, len;
 
-  SCM_VALIDATE_STRING(1,str1);
-  SCM_VALIDATE_INUM_COPY(2,start1,s1);
-  SCM_VALIDATE_INUM_COPY(3,end1,e);
-  SCM_VALIDATE_STRING(4,str2);
-  SCM_VALIDATE_INUM_COPY(5,start2,s2);
+  SCM_VALIDATE_STRING (1,str1);
+  SCM_VALIDATE_INUM_COPY (2,start1,s1);
+  SCM_VALIDATE_INUM_COPY (3,end1,e);
+  SCM_VALIDATE_STRING (4,str2);
+  SCM_VALIDATE_INUM_COPY (5,start2,s2);
   len = e - s1;
   SCM_ASSERT_RANGE (3,end1,len >= 0);
   SCM_ASSERT_RANGE (2,start1,s1 <= SCM_LENGTH (str1) && s1 >= 0);
@@ -175,7 +175,7 @@ are different strings, it does not matter which function you use.")
 #undef FUNC_NAME
 
 
-SCM_DEFINE(scm_substring_fill_x, "substring-fill!", 4, 0, 0, 
+SCM_DEFINE (scm_substring_fill_x, "substring-fill!", 4, 0, 0, 
            (SCM str, SCM start, SCM end, SCM fill),
 "Change every character in @var{str} between @var{start} and @var{end} to
 @var{fill-char}.")
@@ -183,10 +183,10 @@ SCM_DEFINE(scm_substring_fill_x, "substring-fill!", 4, 0, 0,
 {
   long i, e;
   char c;
-  SCM_VALIDATE_STRING(1,str);
-  SCM_VALIDATE_INUM_COPY(2,start,i);
-  SCM_VALIDATE_INUM_COPY(3,end,e);
-  SCM_VALIDATE_CHAR_COPY(4,fill,c);
+  SCM_VALIDATE_STRING (1,str);
+  SCM_VALIDATE_INUM_COPY (2,start,i);
+  SCM_VALIDATE_INUM_COPY (3,end,e);
+  SCM_VALIDATE_CHAR_COPY (4,fill,c);
   SCM_ASSERT_RANGE (2,start,i <= SCM_LENGTH (str) && i >= 0);
   SCM_ASSERT_RANGE (3,end,e <= SCM_LENGTH (str) && e >= 0);
   while (i<e) SCM_CHARS (str)[i++] = c;
@@ -195,19 +195,19 @@ SCM_DEFINE(scm_substring_fill_x, "substring-fill!", 4, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE(scm_string_null_p, "string-null?", 1, 0, 0, 
+SCM_DEFINE (scm_string_null_p, "string-null?", 1, 0, 0, 
            (SCM str),
 "Return @code{#t} if @var{str}'s length is nonzero, and @code{#f}
 otherwise.")
 #define FUNC_NAME s_scm_string_null_p
 {
-  SCM_VALIDATE_ROSTRING(1,str);
+  SCM_VALIDATE_ROSTRING (1,str);
   return SCM_NEGATE_BOOL(SCM_ROLENGTH (str));
 }
 #undef FUNC_NAME
 
 
-SCM_DEFINE(scm_string_to_list, "string->list", 1, 0, 0, 
+SCM_DEFINE (scm_string_to_list, "string->list", 1, 0, 0, 
            (SCM str),
 "")
 #define FUNC_NAME s_scm_string_to_list
@@ -215,7 +215,7 @@ SCM_DEFINE(scm_string_to_list, "string->list", 1, 0, 0,
   long i;
   SCM res = SCM_EOL;
   unsigned char *src;
-  SCM_VALIDATE_ROSTRING(1,str);
+  SCM_VALIDATE_ROSTRING (1,str);
   src = SCM_ROUCHARS (str);
   for (i = SCM_ROLENGTH (str)-1;i >= 0;i--) res = scm_cons ((SCM)SCM_MAKICHR (src[i]), res);
   return res;
@@ -224,32 +224,32 @@ SCM_DEFINE(scm_string_to_list, "string->list", 1, 0, 0,
 
 
 
-SCM_DEFINE(scm_string_copy, "string-copy", 1, 0, 0, 
+SCM_DEFINE (scm_string_copy, "string-copy", 1, 0, 0, 
            (SCM str),
 "")
 #define FUNC_NAME s_scm_string_copy
 {
-  SCM_VALIDATE_STRINGORSUBSTR(1,str);
+  SCM_VALIDATE_STRINGORSUBSTR (1,str);
   return scm_makfromstr (SCM_ROCHARS (str), (scm_sizet)SCM_ROLENGTH (str), 0);
 }
 #undef FUNC_NAME
 
 
-SCM_DEFINE(scm_string_fill_x, "string-fill!", 2, 0, 0,
+SCM_DEFINE (scm_string_fill_x, "string-fill!", 2, 0, 0,
            (SCM str, SCM chr),
 "")
 #define FUNC_NAME s_scm_string_fill_x
 {
   register char *dst, c;
   register long k;
-  SCM_VALIDATE_STRING_COPY(1,str,dst);
-  SCM_VALIDATE_CHAR_COPY(2,chr,c);
+  SCM_VALIDATE_STRING_COPY (1,str,dst);
+  SCM_VALIDATE_CHAR_COPY (2,chr,c);
   for (k = SCM_LENGTH (str)-1;k >= 0;k--) dst[k] = c;
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
 
-SCM_DEFINE(scm_string_upcase_x, "string-upcase!", 1, 0, 0, 
+SCM_DEFINE (scm_string_upcase_x, "string-upcase!", 1, 0, 0, 
            (SCM v),
 "@deffnx primitive string-downcase! str
 Upcase or downcase every character in @code{str}, respectively.")
@@ -274,7 +274,7 @@ Upcase or downcase every character in @code{str}, respectively.")
 }
 #undef FUNC_NAME
 
-SCM_DEFINE(scm_string_upcase, "string-upcase", 1, 0, 0, 
+SCM_DEFINE (scm_string_upcase, "string-upcase", 1, 0, 0, 
            (SCM str),
 "")
 #define FUNC_NAME s_scm_string_upcase
@@ -283,7 +283,7 @@ SCM_DEFINE(scm_string_upcase, "string-upcase", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE(scm_string_downcase_x, "string-downcase!", 1, 0, 0, 
+SCM_DEFINE (scm_string_downcase_x, "string-downcase!", 1, 0, 0, 
            (SCM v),
 "")
 #define FUNC_NAME s_scm_string_downcase_x
@@ -306,24 +306,24 @@ SCM_DEFINE(scm_string_downcase_x, "string-downcase!", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE(scm_string_downcase, "string-downcase", 1, 0, 0, 
+SCM_DEFINE (scm_string_downcase, "string-downcase", 1, 0, 0, 
            (SCM str),
 "")
 #define FUNC_NAME s_scm_string_downcase
 {
-  SCM_VALIDATE_STRING(1,str);
+  SCM_VALIDATE_STRING (1,str);
   return scm_string_downcase_x(scm_string_copy(str));
 }
 #undef FUNC_NAME
 
-SCM_DEFINE(scm_string_capitalize_x, "string-capitalize!", 1, 0, 0, 
+SCM_DEFINE (scm_string_capitalize_x, "string-capitalize!", 1, 0, 0, 
            (SCM s),
 "")
 #define FUNC_NAME s_scm_string_capitalize_x
 {
   char *str;
   int i, len, in_word=0;
-  SCM_VALIDATE_STRING(1,s);
+  SCM_VALIDATE_STRING (1,s);
   len = SCM_LENGTH(s);
   str = SCM_CHARS(s);
   for(i=0; i<len;  i++) {
@@ -341,17 +341,17 @@ SCM_DEFINE(scm_string_capitalize_x, "string-capitalize!", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE(scm_string_capitalize, "string-capitalize", 1, 0, 0, 
+SCM_DEFINE (scm_string_capitalize, "string-capitalize", 1, 0, 0, 
            (SCM s),
 "")
 #define FUNC_NAME s_scm_string_capitalize
 {
-  SCM_VALIDATE_STRING(1,s);
+  SCM_VALIDATE_STRING (1,s);
   return scm_string_capitalize_x(scm_string_copy(s));
 }
 #undef FUNC_NAME
 
-SCM_DEFINE(scm_string_ci_to_symbol, "string-ci->symbol", 1, 0, 0, 
+SCM_DEFINE (scm_string_ci_to_symbol, "string-ci->symbol", 1, 0, 0, 
            (SCM str),
 "")
 #define FUNC_NAME s_scm_string_ci_to_symbol

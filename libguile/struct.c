@@ -81,7 +81,7 @@ indicate that the field is a tail-array.")
 #define FUNC_NAME s_scm_make_struct_layout
 {
   SCM new_sym;
-  SCM_VALIDATE_ROSTRING(1,fields);
+  SCM_VALIDATE_ROSTRING (1,fields);
   { /* scope */
     char * field_desc;
     int len;
@@ -390,8 +390,8 @@ can not be initialized by Scheme programs.")
   SCM * data;
   SCM handle;
 
-  SCM_VALIDATE_VTABLE(1,vtable);
-  SCM_VALIDATE_INUM(2,tail_array_size);
+  SCM_VALIDATE_VTABLE (1,vtable);
+  SCM_VALIDATE_INUM (2,tail_array_size);
 
   layout = SCM_STRUCT_DATA (vtable)[scm_vtable_index_layout];
   basic_size = SCM_LENGTH (layout) / 2;
@@ -496,8 +496,8 @@ provided, it will be interpreted as a print call-back function.
   SCM * data;
   SCM handle;
 
-  SCM_VALIDATE_ROSTRING(1,extra_fields);
-  SCM_VALIDATE_INUM(2,tail_array_size);
+  SCM_VALIDATE_ROSTRING (1,extra_fields);
+  SCM_VALIDATE_INUM (2,tail_array_size);
 
   fields = scm_string_append (scm_listify (required_vtable_fields,
 					   extra_fields,
@@ -542,8 +542,8 @@ integer value small enough to fit in one machine word.")
   unsigned char field_type = 0;
   
 
-  SCM_VALIDATE_STRUCT(1,handle);
-  SCM_VALIDATE_INUM(2,pos);
+  SCM_VALIDATE_STRUCT (1,handle);
+  SCM_VALIDATE_INUM (2,pos);
 
   layout = SCM_STRUCT_LAYOUT (handle);
   data = SCM_STRUCT_DATA (handle);
@@ -619,8 +619,8 @@ SCM_DEFINE (scm_struct_set_x, "struct-set!", 3, 0, 0,
   unsigned char * fields_desc;
   unsigned char field_type = 0;
 
-  SCM_VALIDATE_STRUCT(1,handle);
-  SCM_VALIDATE_INUM(2,pos);
+  SCM_VALIDATE_STRUCT (1,handle);
+  SCM_VALIDATE_INUM (2,pos);
 
   layout = SCM_STRUCT_LAYOUT (handle);
   data = SCM_STRUCT_DATA (handle);
@@ -686,7 +686,7 @@ SCM_DEFINE (scm_struct_vtable, "struct-vtable", 1, 0, 0,
 "Return the vtable structure that describes the type of @var{struct}.")
 #define FUNC_NAME s_scm_struct_vtable
 {
-  SCM_VALIDATE_STRUCT(1,handle);
+  SCM_VALIDATE_STRUCT (1,handle);
   return SCM_STRUCT_VTABLE (handle);
 }
 #undef FUNC_NAME
@@ -697,7 +697,7 @@ SCM_DEFINE (scm_struct_vtable_tag, "struct-vtable-tag", 1, 0, 0,
 "")
 #define FUNC_NAME s_scm_struct_vtable_tag
 {
-  SCM_VALIDATE_VTABLE(1,handle);
+  SCM_VALIDATE_VTABLE (1,handle);
   return scm_long2num ((long) SCM_STRUCT_DATA (handle) >> 3);
 }
 #undef FUNC_NAME
@@ -736,7 +736,7 @@ SCM_DEFINE (scm_struct_vtable_name, "struct-vtable-name", 1, 0, 0,
 "")
 #define FUNC_NAME s_scm_struct_vtable_name
 {
-  SCM_VALIDATE_VTABLE(1,vtable);
+  SCM_VALIDATE_VTABLE (1,vtable);
   return SCM_STRUCT_TABLE_NAME (SCM_CDR (scm_struct_create_handle (vtable)));
 }
 #undef FUNC_NAME
@@ -746,8 +746,8 @@ SCM_DEFINE (scm_set_struct_vtable_name_x, "set-struct-vtable-name!", 2, 0, 0,
 "")
 #define FUNC_NAME s_scm_set_struct_vtable_name_x
 {
-  SCM_VALIDATE_VTABLE(1,vtable);
-  SCM_VALIDATE_SYMBOL(2,name);
+  SCM_VALIDATE_VTABLE (1,vtable);
+  SCM_VALIDATE_SYMBOL (2,name);
   SCM_SET_STRUCT_TABLE_NAME (SCM_CDR (scm_struct_create_handle (vtable)),
 			     name);
   return SCM_UNSPECIFIED;
