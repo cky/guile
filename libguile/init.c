@@ -44,6 +44,10 @@
 /* Include the headers for just about everything.
    We call all their initialization functions.  */
 
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
 #include <stdio.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -551,7 +555,7 @@ scm_init_guile_1 (SCM_STACKITEM *base)
   scm_init_debug ();	/* Requires macro smobs */
 #endif
   scm_init_random ();
-#ifdef HAVE_ARRAYS
+#ifdef SCM_HAVE_ARRAYS
   scm_init_ramap ();
   scm_init_unif ();
 #endif
