@@ -1919,11 +1919,11 @@ an introduction can be found in the Emacs manual (@pxref{Regexps,
 , Syntax of Regular Expressions, emacs, The GNU Emacs Manual}), or
 in many general Unix reference books.
 
-If your system does not include a POSIX regular expression library, and
-you have not linked Guile with a third-party regexp library such as Rx,
-these functions will not be available.  You can tell whether your Guile
-installation includes regular expression support by checking whether the
-@code{*features*} list includes the @code{regex} symbol.
+If your system does not include a POSIX regular expression library,
+and you have not linked Guile with a third-party regexp library such
+as Rx, these functions will not be available.  You can tell whether
+your Guile installation includes regular expression support by
+checking whether @code{(provided? 'regex)} returns true.
 
 @menu
 * Regexp Functions::            Functions that create and match regexps.

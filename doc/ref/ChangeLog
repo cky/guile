@@ -1,3 +1,8 @@
+2002-09-15  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* scheme-data.texi: Tell them to use 'provided?' instead of
+	'*feaures*'.
+
 2002-09-09  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* scheme-ideas.texi (Creating a Procedure): Fixed typo.  Thanks to
