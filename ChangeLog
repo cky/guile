@@ -1,3 +1,7 @@
+2003-03-26  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* libguile.h: Include "libguile/deprecated.h".
+
 2003-03-25  Rob Browning  <rlb@defaultvalue.org>
 
 	* configure.in: big overhaul to shift us to have separate private,

@@ -1,8 +1,16 @@
 2003-03-26  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
+	* init.c (scm_init_guile_1): Call scm_i_init_deprecated.
+
+	* deprecated.c, deprecated.h: New files, to collect deprecated
+	things in one place.
+	* Makefile.am: Added them in all the right places.
+
 	* Makefile.am (EXTRA_DIST): Added "scmconfig.h.top".
 	(scmconfig.h): Get "scmconfig.h.top" from $(srcdir) so that VPATH
 	builds work.
+	(DOT_X_FILES): Removed "iselect.x".
+	(DOT_DOC_FILES): Removed "iselect.doc".
 	
 2003-03-25  Rob Browning  <rlb@defaultvalue.org>
 
