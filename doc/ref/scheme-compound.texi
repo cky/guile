@@ -2078,9 +2078,9 @@ Here is a longer example of how alists may be used in practice.
 
 ;; We left out South Dakota.
 (set! capitals
-      (assoc-set! capitals "South Dakota" "Bismarck"))
+      (assoc-set! capitals "South Dakota" "Pierre"))
 capitals
-@result{} (("South Dakota" . "Bismarck")
+@result{} (("South Dakota" . "Pierre")
     ("New York" . "Albany")
     ("Oregon" . "Salem")
     ("Florida" . "Miami"))
@@ -2089,7 +2089,7 @@ capitals
 (set! capitals
       (assoc-set! capitals "Florida" "Tallahassee"))
 capitals
-@result{} (("South Dakota" . "Bismarck")
+@result{} (("South Dakota" . "Pierre")
     ("New York" . "Albany")
     ("Oregon" . "Salem")
     ("Florida" . "Tallahassee"))
@@ -2098,7 +2098,7 @@ capitals
 (set! capitals
       (assoc-remove! capitals "Oregon"))
 capitals
-@result{} (("South Dakota" . "Bismarck")
+@result{} (("South Dakota" . "Pierre")
     ("New York" . "Albany")
     ("Florida" . "Tallahassee"))
 @end lisp
