@@ -1,3 +1,18 @@
+1998-10-03  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* init.c: Doc fixes.
+
+	* init.c (invoke_main_func): Load the startup files (boot-9.scm)
+ 	from here, not from scm_compile_shell_switches (which is a pretty
+ 	dumb place to do it).
+	(scm_load_startup_files): New function.
+	(scm_ice_9_already_loaded): Variable moved to here from script.c.
+	* script.c (scm_compile_shell_switches): Don't load the startup
+	files here.
+	(scm_ice_9_already_loaded): Variable moved.
+	* init.c (scm_load_startup_files): Prototype for new function.
+	* gh_init.c (gh_enter): Doc fix.
+
 1998-10-03    <jimb@savonarola.red-bean.com>
 
 	Some anti-warning changes from Greg Harvey.
