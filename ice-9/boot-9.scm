@@ -1741,6 +1741,13 @@
 	   (not (eq? module the-root-module)))
       (set-module-uses! module (append (module-uses module) (list the-scm-module)))))
 
+(define (purify-module! module)
+  "Removes bindings in MODULE which are inherited from the (guile) module."
+  (let ((use-list (module-uses module)))
+    (if (and (pair? use-list)
+	     (eq? (car (last-pair use-list)) the-scm-module))
+	(set-module-uses! module (reverse (cdr (reverse use-list)))))))
+
 ;; NOTE: This binding is used in libguile/modules.c.
 ;;
 (define (make-modules-in module name)
@@ -1816,6 +1823,14 @@
 	      ((no-backtrace)
 	       (set-system-module! module #t)
 	       (loop (cdr kws) reversed-interfaces))
+	      ((pure)
+	       (purify-module! module)
+	       (loop (cdr kws) reversed-interfaces))
+	      ((export)
+	       (if (not (and (pair? (cdr kws)) (pair? (cddr kws))))
+		   (error "unrecognized defmodule argument" kws))
+	       (module-export! module (cadr kws))
+	       (loop (cddr kws) reversed-interfaces))
 	      (else	
 	       (error "unrecognized defmodule argument" kws))))))
     module))
@@ -2738,19 +2753,19 @@
 			     (defmacro ,@ args))))))
 
 
+(define (module-export! m names)
+  (let ((public-i (module-public-interface m)))
+    (for-each (lambda (name)
+		;; Make sure there is a local variable:
+		(module-define! m name (module-ref m name #f))
+		;; Make sure that local is exported:
+		(module-add! public-i name (module-variable m name)))
+	      names)))
+
 (defmacro export names
-  `(let* ((m (current-module))
-	  (public-i (module-public-interface m)))
-     (for-each (lambda (name)
-		 ;; Make sure there is a local variable:
-		 (module-define! m name (module-ref m name #f))
-		 ;; Make sure that local is exported:
-		 (module-add! public-i name (module-variable m name)))
-	       ',names)))
+  `(module-export! (current-module) ',names))
 
 (define export-syntax export)
-
-
 
 
 (define load load-module)
