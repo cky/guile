@@ -59,34 +59,33 @@
  * scm_class_class
  */
 
-#define SCM_CLASS_CLASS_LAYOUT "pruosrpwpopopwururururururururpwpwpwpwpwpwpwpwpwpwpwpw"
+#define SCM_CLASS_CLASS_LAYOUT "prsrpwpopopwururururururururpwpwpwpwpwpwpwpwpwpwpwpw"
 
 #define scm_si_layout		  0 /* the struct layout */
-#define scm_si_vcell		  1 
-#define scm_si_vtable		  2 
-#define scm_si_print		  3 /* the struct print closure */
-#define scm_si_proc		  4
-#define scm_si_setter		  5 
+#define scm_si_vtable		  1 
+#define scm_si_print		  2 /* the struct print closure */
+#define scm_si_proc		  3
+#define scm_si_setter		  4 
 
-#define scm_si_goops_fields	  6
+#define scm_si_goops_fields	  5
 
-/* Defined in libguile/objects.c:
-#define scm_si_redefined	  6    The class to which class was redefined.
-#define scm_si_hashsets	 	  7
+/* Defined in libguile/objects.h:
+#define scm_si_redefined	  5    The class to which class was redefined.
+#define scm_si_hashsets	 	  6
 */
-#define scm_si_name 		 15 /* a symbol */
-#define scm_si_direct_supers 	 16 /* (class ...) */
-#define scm_si_direct_slots	 17 /* ((name . options) ...) */
-#define scm_si_direct_subclasses 18 /* (class ...) */
-#define scm_si_direct_methods	 19 /* (methods ...) */
-#define scm_si_cpl		 20 /* (class ...) */
-#define scm_si_slotdef_class	 21 
-#define scm_si_slots		 22 /* ((name . options) ...) */
-#define scm_si_name_access	 23 
-#define scm_si_keyword_access	 24 
-#define scm_si_nfields		 25 /* an integer */
-#define scm_si_environment	 26 /* The environment in which class is built  */
-#define SCM_N_CLASS_SLOTS	 27
+#define scm_si_name 		 14 /* a symbol */
+#define scm_si_direct_supers 	 15 /* (class ...) */
+#define scm_si_direct_slots	 16 /* ((name . options) ...) */
+#define scm_si_direct_subclasses 17 /* (class ...) */
+#define scm_si_direct_methods	 18 /* (methods ...) */
+#define scm_si_cpl		 19 /* (class ...) */
+#define scm_si_slotdef_class	 20 
+#define scm_si_slots		 21 /* ((name . options) ...) */
+#define scm_si_name_access	 22 
+#define scm_si_keyword_access	 23 
+#define scm_si_nfields		 24 /* an integer */
+#define scm_si_environment	 25 /* The environment in which class is built  */
+#define SCM_N_CLASS_SLOTS	 26
 
 typedef struct scm_t_method {
   SCM generic_function;
