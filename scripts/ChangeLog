@@ -1,3 +1,21 @@
+2002-01-11  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* Makefile.am (scripts_sources): Add autofrisk.
+
+	* autofrisk: New script.
+
+	* frisk: Fix typo in commentary; nfc.
+
+	* use2dot: Autoload module (ice-9 getopt-long).
+	Use module (srfi srfi-13).
+	Export `use2dot'.
+
+	(string-append/separator, mapconcat): Delete.
+	(vv): Now take list of pairs, and return the mapping..
+	(>>header): Use `string-join'.
+	(>>): New proc.
+	(use2dot): Use `getopt-long'.  Use `>>'.
+
 2002-01-08  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* Makefile.am (scripts_sources): Add frisk.
