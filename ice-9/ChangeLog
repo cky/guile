@@ -1,5 +1,7 @@
 2003-01-10  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
+	* occam-channel.scm (make-channel): Renamed from channel.
+
 	* Makefile.am (ice9_sources): Added occam-channel.scm.
 
 	* occam-channel.scm: New file.  Implements occam-like channels.

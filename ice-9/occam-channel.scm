@@ -45,7 +45,7 @@
   #:use-module (oop goops)
   #:use-module (ice-9 threads)
   ;;#:export-syntax (alt)
-  #:export (channel ? !))
+  #:export (make-channel ? !))
 
 (define no-data '(no-data))
 (define receiver-waiting '(receiver-waiting))
@@ -55,7 +55,7 @@
   (cv #:accessor cv #:init-form (make-condition-variable))
   (mutex #:accessor mutex #:init-form (make-mutex)))
 
-(define-method (channel)
+(define-method (make-channel)
   (make <channel>))
 
 (define-method (? (ch <channel>))
