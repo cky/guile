@@ -60,7 +60,6 @@ extern SCM scm_list_reverse SCM_P ((SCM lst));
 extern SCM scm_list_reverse_x SCM_P ((SCM lst, SCM newtail));
 extern SCM scm_list_ref SCM_P ((SCM lst, SCM k));
 extern SCM scm_list_set_x SCM_P ((SCM lst, SCM k, SCM val));
-extern SCM scm_list_cdr_ref SCM_P ((SCM lst, SCM k));
 extern SCM scm_list_cdr_set_x SCM_P ((SCM lst, SCM k, SCM val));
 extern SCM scm_last_pair SCM_P ((SCM sx));
 extern SCM scm_list_tail SCM_P ((SCM lst, SCM k));
