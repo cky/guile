@@ -1,3 +1,7 @@
+2005-01-18  Kevin Ryde  <user42@zip.com.au>
+
+	* srfi-1.scm: Remove (ice-9 session) and (ice-9 receive), not used.
+
 2005-01-12  Kevin Ryde  <user42@zip.com.au>
 
 	* srfi-39.scm (current-input-port, current-output-port): Parameter
