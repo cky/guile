@@ -1,3 +1,36 @@
+Fri Jul 11 00:19:47 1997  Jim Blandy  <jimb@floss.red-bean.com>
+
+	Changes to compile under gnu-win32, from Marcus Daniels:
+	* stime.c (tzset): If tzset isn't provided, make it a NOP.
+	(scm_localtime): Change SCM_EOF to SCM_EOL.
+	(scm_mktime): Likewise.
+	* socket.c: Don't include sys/un.h unless autoconf tells
+	us Unix domain sockets are available.
+	(scm_fill_sockaddr): Ignore Unix domain code.
+	(scm_addr_vector): Likewise.
+	(scm_init_addr_buffer): Likewise.
+	(scm_socketpair): Don't include unless socketpair was
+	found during autoconf.
+	* simpos.c (SYSTNAME): Treat cygwin like Unix.
+	* scmsigs.c (scm_pause): Don't include unless pause was found
+	during autoconf.
+	* posix.c (scm_getgroups): Don't include unless support function
+	was found during autoconf (in this case, getgroups).
+	(scm_setpwent): For setpwent.
+	(scm_setegid): For setegid.
+	* net_db.c (scm_inet_netof): Don't include unless support
+	function was found during autoconf (in this case, inet_netof).
+	(scm_lnaof): For inet_lnaof.
+	(scm_inet_makeaddr): For inet_makeaddr.
+	(scm_getnet): For getnetent, getnetbyname, getnetbyaddr.
+	(scm_getproto): For getprotoent.
+	(scm_getserv): For getservent.
+	(scm_sethost): For sethostent, endhostent.
+	(scm_setnet): For setnetent, endnetent.
+	(scm_setproto): For setprotoent, endprotoent.
+	(scm_setserv): For setservent, endservent.
+	* scmconfig.h.in: Regenerated.
+
 Thu Jul 10 00:22:24 1997  Jim Blandy  <jimb@floss.red-bean.com>
 
 	* stime.c (scm_localtime, scm_mktime): Pass SCM_EOL to

@@ -1,5 +1,9 @@
 Fri Jul 11 00:13:43 1997  Jim Blandy  <jimb@floss.red-bean.com>
 
+	Changes to compile under gnu-win32, from Marcus Daniels:
+	* boot-9.scm (load-user-init): If HOME is unset, provide
+	a default of /.
+
 	* boot-9.scm (define-public): Changed to accomodate Hobbit.
 
 Tue Jun 24 00:31:47 1997  Jim Blandy  <jimb@floss.red-bean.com>
