@@ -243,7 +243,10 @@ take_uvec (int type, const void *base, size_t len)
 static SCM
 alloc_uvec (int type, size_t len)
 {
-  void *base = scm_gc_malloc (len * uvec_sizes[type], uvec_names[type]);
+  void *base;
+  if (len > SCM_I_SIZE_MAX / uvec_sizes[type])
+    scm_out_of_range (NULL, scm_from_size_t (len));
+  base = scm_gc_malloc (len * uvec_sizes[type], uvec_names[type]);
   return take_uvec (type, base, len);
 }
 
@@ -326,8 +329,7 @@ uvec_fast_set_x (int type, void *base, size_t c_idx, SCM val)
 static SCM_C_INLINE SCM
 make_uvec (int type, SCM len, SCM fill)
 {
-  size_t c_len = scm_to_unsigned_integer (len, 0,
-					  SCM_I_SIZE_MAX / uvec_sizes[type]);
+  size_t c_len = scm_to_size_t (len);
   SCM uvec = alloc_uvec (type, c_len);
   if (!SCM_UNBNDP (fill))
     {
@@ -416,29 +418,17 @@ coerce_to_uvec (int type, SCM obj)
     return obj;
   else if (scm_is_pair (obj))
     return list_to_uvec (type, obj);
-  else if (scm_is_true (scm_vector_p (obj)))
+  else if (scm_is_generalized_vector (obj))
     {
-      SCM len = scm_vector_length (obj);
-      SCM uvec = make_uvec (type, len, SCM_UNDEFINED);
-      size_t clen = scm_to_size_t (len), i;
+      size_t len = scm_c_generalized_vector_length (obj), i;
+      SCM uvec = alloc_uvec (type, len);
       void *base = SCM_UVEC_BASE (uvec);
-      for (i = 0; i < clen; i++)
-	uvec_fast_set_x (type, base, i, SCM_VECTOR_REF (obj, i));
-      return uvec;
-    }
-  else if (scm_is_uniform_vector (obj))
-    {
-      SCM len = scm_uniform_vector_length (obj);
-      SCM uvec = make_uvec (type, len, SCM_UNDEFINED);
-      size_t clen = scm_to_size_t (len), i;
-      void *base = SCM_UVEC_BASE (uvec);
-      for (i = 0; i < clen; i++)
-	uvec_fast_set_x (type, base, i,
-			 scm_uniform_vector_ref (obj, scm_from_size_t (i)));
+      for (i = 0; i < len; i++)
+	uvec_fast_set_x (type, base, i, scm_c_generalized_vector_ref (obj, i));
       return uvec;
     }
   else
-    scm_wrong_type_arg_msg (NULL, 0, obj, "list, vector, or uniform vector");
+    scm_wrong_type_arg_msg (NULL, 0, obj, "list or generalized vector");
 }
 
 static SCM *uvec_proc_vars[12] = {
@@ -457,9 +447,18 @@ static SCM *uvec_proc_vars[12] = {
 };
 
 SCM
-scm_i_uniform_vector_creator (SCM uvec)
+scm_i_generalized_vector_creator (SCM v)
 {
-  return *(uvec_proc_vars[SCM_UVEC_TYPE(uvec)]);
+  if (scm_is_vector (v))
+    return scm_i_proc_make_vector;
+  else if (scm_is_string (v))
+    return scm_i_proc_make_string;
+  else if (scm_is_bitvector (v))
+    return scm_i_proc_make_bitvector;
+  else if (scm_is_uniform_vector (v))
+    return *(uvec_proc_vars[SCM_UVEC_TYPE(v)]);
+  else
+    return SCM_BOOL_F;
 }
 
 int
@@ -517,6 +516,20 @@ SCM_DEFINE (scm_uniform_vector_ref, "uniform-vector-ref", 2, 0, 0,
 }
 #undef FUNC_NAME
 
+SCM
+scm_c_uniform_vector_ref (SCM v, size_t idx)
+{
+  if (scm_is_uniform_vector (v))
+    {
+      if (idx < SCM_UVEC_LENGTH (v))
+	return uvec_fast_ref (SCM_UVEC_TYPE (v), SCM_UVEC_BASE (v), idx);
+      else
+	scm_out_of_range (NULL, scm_from_size_t (idx));
+    }
+  else
+    scm_wrong_type_arg_msg (NULL, 0, v, "uniform vector");
+}
+
 SCM_DEFINE (scm_uniform_vector_set_x, "uniform-vector-set!", 3, 0, 0,
 	    (SCM v, SCM idx, SCM val),
 	    "Set the element at index @var{idx} of the\n"
@@ -539,10 +552,24 @@ SCM_DEFINE (scm_uniform_vector_set_x, "uniform-vector-set!", 3, 0, 0,
 }
 #undef FUNC_NAME
 
+void
+scm_c_uniform_vector_set_x (SCM v, size_t idx, SCM val)
+{
+  if (scm_is_uniform_vector (v))
+    {
+      if (idx < SCM_UVEC_LENGTH (v))
+	uvec_fast_set_x (SCM_UVEC_TYPE (v), SCM_UVEC_BASE (v), idx, val);
+      else
+	scm_out_of_range (NULL, scm_from_size_t (idx));
+    }
+  else
+    scm_wrong_type_arg_msg (NULL, 0, v, "uniform vector");
+}
+
 SCM_DEFINE (scm_uniform_vector_to_list, "uniform-vector->list", 1, 0, 0,
             (SCM uvec),
 	    "Convert the homogeneous numeric vector @var{uvec} to a list.")
-#define FUNC_NAME s_uniform_vector_to_list
+#define FUNC_NAME s_scm_uniform_vector_to_list
 {
   if (scm_is_uniform_vector (uvec))
     return uvec_to_list (SCM_UVEC_TYPE (uvec), uvec);
@@ -567,7 +594,7 @@ scm_uniform_vector_release (SCM uvec)
      when uniform vectors need to be locked when giving away a pointer
      to their elements.
      
-     Also, a call to scm_uniform_vector acts like
+     Also, a call to scm_uniform_vector_release acts like
      scm_remember_upto_here, which is needed in any case.
   */
 }
@@ -595,27 +622,16 @@ scm_uniform_element_size (SCM obj)
 {
   if (scm_is_uniform_vector (obj))
     return scm_uniform_vector_element_size (obj);
-  else if (SCM_BITVECTOR_P (obj))
-    return sizeof (long);
   else
     return 0;
 }
 
 SCM_DEFINE (scm_uniform_vector_length, "uniform-vector-length", 1, 0, 0, 
 	    (SCM v),
-	    "Return the number of elements in @var{uve}.")
+	    "Return the number of elements in the uniform vector @var{v}.")
 #define FUNC_NAME s_scm_uniform_vector_length
 {
-  if (scm_is_uniform_vector (v))
-    return scm_from_size_t (SCM_UVEC_LENGTH (v));
-  else if (scm_is_string (v))
-    return scm_string_length (v);
-  else if (scm_is_true (scm_vector_p (v)))
-    return scm_vector_length (v);
-  else if (SCM_BITVECTOR_P (v))
-    return scm_from_size_t (SCM_BITVECTOR_LENGTH (v));
-  else
-    scm_wrong_type_arg (NULL, 0, v);
+  return scm_from_size_t (scm_c_uniform_vector_length (v));
 }
 #undef FUNC_NAME
 

@@ -34,6 +34,8 @@ SCM_API SCM scm_uniform_vector_to_list (SCM v);
 SCM_API int scm_is_uniform_vector (SCM obj);
 SCM_API size_t scm_c_uniform_vector_length (SCM v);
 SCM_API size_t scm_c_uniform_vector_size (SCM v);
+SCM_API SCM scm_c_uniform_vector_ref (SCM v, size_t idx);
+SCM_API void scm_c_uniform_vector_set_x (SCM v, size_t idx, SCM val);
 
 SCM_API void *scm_uniform_vector_elements (SCM uvec);
 SCM_API size_t scm_uniform_vector_element_size (SCM uvec);
@@ -187,9 +189,10 @@ SCM_API SCM scm_list_to_c64vector (SCM l);
 SCM_API SCM scm_any_to_c64vector (SCM obj);
 SCM_API double *scm_c64vector_elements (SCM uvec);
 
-SCM_API SCM scm_i_uniform_vector_creator (SCM uvec);
+SCM_API SCM scm_i_generalized_vector_creator (SCM uvec);
 SCM_API const char *scm_i_uniform_vector_tag (SCM uvec);
 
+/* deprecated */
 SCM_API size_t scm_uniform_element_size (SCM obj);
 
 SCM_API SCM scm_i_proc_make_u8vector;
