@@ -35,7 +35,8 @@
   :export (par-map
 	   par-for-each
 	   n-par-map
-	   n-par-for-each)
+	   n-par-for-each
+	   n-for-each-par-map)
   :re-export (future-ref)
   :export-syntax (begin-thread
 		  parallel
@@ -98,6 +99,50 @@
 			   (unlock-mutex m)
 			   (apply proc args)
 			   (loop)))))
+		  futures)))))
+
+;;; The following procedure is motivated by the common and important
+;;; case where a lot of work should be done (not too much) in parallel
+;;; but the results need to be handled serially (for example when
+;;; writing them to a file).
+;;;
+(define (n-for-each-par-map n s-proc p-proc . arglists)
+  "Using N parallel processes, apply S-PROC in serial order on the results
+of applying P-PROC on ARGLISTS."
+  (let* ((m (make-mutex))
+	 (futures '())
+	 (no-result '(no-value))
+	 (results (make-list (length (car arglists)) no-result))
+	 (result results))
+    (do ((i 0 (+ 1 i)))
+	((= i n)
+	 (for-each future-ref futures))
+      (set! futures
+	    (cons (future
+		   (let loop ()
+		     (lock-mutex m)
+		     (cond ((null? results)
+			    (unlock-mutex m))
+			   ((not (eq? (car results) no-result))
+			    (let ((arg (car results)))
+			      ;; stop others from choosing to process results
+			      (set-car! results no-result)
+			      (unlock-mutex m)
+			      (s-proc arg)
+			      (lock-mutex m)
+			      (set! results (cdr results))
+			      (unlock-mutex m)
+			      (loop)))
+			   ((null? result)
+			    (unlock-mutex m))
+			   (else
+			    (let ((args (map car arglists))
+				  (my-result result))
+			      (set! arglists (map cdr arglists))
+			      (set! result (cdr result))
+			      (unlock-mutex m)
+			      (set-car! my-result (apply p-proc args))
+			      (loop))))))
 		  futures)))))
 
 (define (thread-handler tag . args)

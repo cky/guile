@@ -1,3 +1,7 @@
+2003-04-24  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* threads.scm (n-for-each-par-map): New procedure.
+
 2003-04-05  Marius Vollmer  <mvo@zagadka.de>
 
 	* Changed license terms to the plain LGPL thru-out.

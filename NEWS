@@ -288,6 +288,15 @@ and/or the argument list(s) is/are long so that one thread per (set
 of) argument(s) would consume too much system resources.  On a
 dual-CPU system, N = 4 would often be a good choice.
 
+** New function: n-for-each-par-map N S-PROC P-PROC ARGLIST ...
+
+Using N parallel processes, apply S-PROC in serial order to each
+result of applying P-PROC to each set of arguments in the argument
+lists ARGLIST ...
+
+Like a composition of 'for-each' and 'n-par-map', but allows S-PROC to
+start processing while the results of P-PROC are being produced.
+
 ** Fair mutexes and condition variables
 
 Fair mutexes and condition variables have been added.  The fairness
