@@ -3,7 +3,7 @@
 #ifndef SCM_SOCKET_H
 #define SCM_SOCKET_H
 
-/* Copyright (C) 1995,1996,1997,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,2000,2001, 2004 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -30,7 +30,6 @@ SCM_API SCM scm_htons (SCM in);
 SCM_API SCM scm_ntohs (SCM in);
 SCM_API SCM scm_htonl (SCM in);
 SCM_API SCM scm_ntohl (SCM in);
-SCM_API SCM scm_gethost (SCM name);
 SCM_API SCM scm_inet_aton (SCM address);
 SCM_API SCM scm_inet_ntoa (SCM inetid);
 SCM_API SCM scm_inet_netof (SCM address);

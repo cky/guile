@@ -3,7 +3,7 @@
 #ifndef SCM_GC_H
 #define SCM_GC_H
 
-/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2002, 2003 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2002, 2003, 2004 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -268,7 +268,6 @@ SCM_API struct scm_t_cell_type_statistics scm_i_master_freelist2;
 
 
 SCM_API unsigned long scm_gc_cells_swept;
-SCM_API unsigned long scm_gc_cells_collected;
 SCM_API unsigned long scm_gc_cells_collected;
 SCM_API unsigned long scm_gc_malloc_collected;
 SCM_API unsigned long scm_gc_ports_collected;
