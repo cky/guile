@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,2000,2001,2004 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -266,7 +266,7 @@ scm_dynthrow (SCM cont, SCM val)
   SCM_STACKITEM stack_top_element;
 
 #if SCM_STACK_GROWS_UP
-  if (SCM_PTR_GE (dst + continuation->num_stack_items, &stack_top_element))
+  if (dst + continuation->num_stack_items >= &stack_top_element)
     grow_stack (cont, val);
 #else
   dst -= continuation->num_stack_items;
