@@ -1,6 +1,6 @@
 ;;; installed-scm-file
 
-;;;; 	Copyright (C) 1996, 1998, 2001 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1996, 1998, 2001, 2003 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -85,7 +85,7 @@
 	 (getc (lambda ()
 		 (if (not buffers)
 		     (read-char underlying-port)
-		     (let ((c (string-ref (car buffers))))
+		     (let ((c (string-ref (car buffers) 0)))
 		       (if (= 1 (string-length (car buffers)))
 			   (set! buffers (cdr buffers))
 			   (set-car! buffers (substring (car buffers) 1)))
