@@ -1,3 +1,8 @@
+2004-08-18  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/arbiters.test: New file
+	* Makefile.am (SCM_TESTS): Add it.
+
 2004-08-15  Marius Vollmer  <mvo@zagadka.de>
 
 	* tests/srfi-39.test: New, from Jose A Ortega Ruiz.  Thanks!
