@@ -12,7 +12,7 @@ more thorough tutorial manual, but we haven't sketched that out yet.
 
 Desired later on
 
-* Good interface to Tk and Gtk
+* Good interface to Tk
 
 * Add a convenient facility for running a pipeline of processes
 with redirections.  Gary Houston <ghouston@actrix.gen.nz>
