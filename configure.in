@@ -163,6 +163,9 @@ AC_ISC_POSIX
 AC_MINIX
 
 AM_PROG_CC_STDC
+
+## Needed for building DLLs on Cygwin, before AM_PROG_LIBTOOL
+AC_LIBTOOL_WIN32_DLL
 AM_PROG_LIBTOOL
 
 AC_CHECK_PROG(have_makeinfo, makeinfo, yes, no)
@@ -671,6 +674,54 @@ if test "${THREAD_PACKAGE}" != "" ; then
   fi
 fi
 
+## Cross building	
+if test "$cross_compiling" = "yes"; then
+  AC_MSG_CHECKING(cc for build)
+  ## /usr/bin/cc still uses wrong assembler
+  ## CC_FOR_BUILD="${CC_FOR_BUILD-/usr/bincc}"
+  CC_FOR_BUILD="${CC_FOR_BUILD-PATH=/usr/bin:$PATH cc}"
+else
+  CC_FOR_BUILD="${CC_FOR_BUILD-$CC}"
+fi   
+AC_ARG_WITH(cc-for-build,
+  [  --with-cc-for-build=CC  native C compiler, to be used during build])
+test -n "$with_cc_for_build" && CC_FOR_BUILD="$with_cc_for_build"
+     
+## AC_MSG_CHECKING("if we are cross compiling")
+## AC_MSG_RESULT($cross_compiling)
+if test "$cross_compiling" = "yes"; then
+   AC_MSG_RESULT($CC_FOR_BUILD)
+fi
+
+## No need as yet to be more elaborate
+CCLD_FOR_BUILD="$CC_FOR_BUILD"
+
+AC_SUBST(cross_compiling)
+AC_SUBST(CC_FOR_BUILD)
+AC_SUBST(CCLD_FOR_BUILD)
+	
+## libtool erroneously calls CC_FOR_BUILD HOST_CC;
+## --HOST is the platform that PACKAGE is compiled for.
+HOST_CC="$CC_FOR_BUILD"
+AC_SUBST(HOST_CC)
+
+if test "$cross_compiling" = "yes"; then
+  AC_MSG_CHECKING(guile for build)
+  GUILE_FOR_BUILD="${GUILE_FOR_BUILD-guile}"
+else
+  GUILE_FOR_BUILD='$(preinstguile)'
+fi   
+AC_ARG_WITH(guile-for-build,
+  [  --with-guile-for-build=guile  native guile executable, to be used during build])
+test -n "$with_guile_for_build" && GUILE_FOR_BUILD="$with_guile_for_build"
+
+## AC_MSG_CHECKING("if we are cross compiling")
+## AC_MSG_RESULT($cross_compiling)
+if test "$cross_compiling" = "yes"; then
+   AC_MSG_RESULT($GUILE_FOR_BUILD)
+fi
+AC_SUBST(GUILE_FOR_BUILD)
+  			
 ## If we're using GCC, ask for aggressive warnings.
 case "$GCC" in
   yes )
