@@ -330,7 +330,7 @@ SCM_DEFINE (scm_drain_input, "drain-input", 1, 0, 0,
     count += pt->saved_read_end - pt->saved_read_pos;
 
   result = scm_allocate_string (count);
-  scm_take_from_input_buffers (port, SCM_STRING_CHARS (result), count);
+  scm_take_from_input_buffers (port, SCM_I_STRING_CHARS (result), count);
 
   return result;
 }
@@ -680,6 +680,18 @@ scm_mode_bits (char *modes)
 	  | (strchr (modes, 'l') ? SCM_BUFLINE : 0));
 }
 
+long
+scm_i_mode_bits (SCM modes)
+{
+  long bits;
+
+  if (!scm_is_string (modes))
+    scm_wrong_type_arg_msg (NULL, 0, modes, "string");
+
+  bits = scm_mode_bits (SCM_I_STRING_CHARS (modes));
+  scm_remember_upto_here_1 (modes);
+  return bits;
+}
 
 /* Return the mode flags from an open port.
  * Some modes such as "append" are only used when opening
@@ -1310,7 +1322,7 @@ SCM_DEFINE (scm_unread_string, "unread-string", 2, 0, 0,
   else
     SCM_VALIDATE_OPINPORT (2, port);
 
-  scm_ungets (SCM_STRING_CHARS (str), SCM_STRING_LENGTH (str), port);
+  scm_ungets (SCM_I_STRING_CHARS (str), SCM_I_STRING_LENGTH (str), port);
   
   return str;
 }
@@ -1599,12 +1611,11 @@ write_void_port (SCM port SCM_UNUSED,
 {
 }
 
-SCM
-scm_void_port (char *mode_str)
+static SCM
+scm_i_void_port (long mode_bits)
 {
   scm_mutex_lock (&scm_i_port_table_mutex);
   {
-    int mode_bits = scm_mode_bits (mode_str);
     SCM answer = scm_new_port_table_entry (scm_tc16_void_port);
     scm_t_port * pt = SCM_PTAB_ENTRY(answer);
 
@@ -1617,6 +1628,12 @@ scm_void_port (char *mode_str)
   }
 }
 
+SCM
+scm_void_port (char *mode_str)
+{
+  return scm_i_void_port (scm_mode_bits (mode_str));
+}
+
 SCM_DEFINE (scm_sys_make_void_port, "%make-void-port", 1, 0, 0,
             (SCM mode),
 	    "Create and return a new void port.  A void port acts like\n"
@@ -1625,8 +1642,7 @@ SCM_DEFINE (scm_sys_make_void_port, "%make-void-port", 1, 0, 0,
 	    "documentation for @code{open-file} in @ref{File Ports}.")
 #define FUNC_NAME s_scm_sys_make_void_port
 {
-  SCM_VALIDATE_STRING (1, mode);
-  return scm_void_port (SCM_STRING_CHARS (mode));
+  return scm_i_void_port (scm_i_mode_bits (mode));
 }
 #undef FUNC_NAME
 

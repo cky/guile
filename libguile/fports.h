@@ -55,6 +55,10 @@ SCM_API SCM scm_fdes_to_port (int fdes, char *mode, SCM name);
 SCM_API SCM scm_file_port_p (SCM obj);
 SCM_API void scm_init_fports (void);
 
+/* internal functions */
+
+SCM_API SCM scm_i_fdes_to_port (int fdes, long mode_bits, SCM name);
+
 #endif  /* SCM_FPORTS_H */
 
 /*

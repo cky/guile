@@ -342,7 +342,7 @@ SCM_DEFINE (scm_open_file, "open-file", 2, 0, 0,
 			scm_cons (scm_strerror (scm_from_int (en)),
 				  scm_cons (filename, SCM_EOL)), en);
     }
-  port = scm_fdes_to_port (fdes, md, filename);
+  port = scm_i_fdes_to_port (fdes, scm_i_mode_bits (mode), filename);
 
   scm_frame_end ();
 
@@ -401,10 +401,9 @@ static int getflags (int fdes)
    NAME is a string to be used as the port's filename.
 */
 SCM
-scm_fdes_to_port (int fdes, char *mode, SCM name)
+scm_i_fdes_to_port (int fdes, long mode_bits, SCM name)
 #define FUNC_NAME "scm_fdes_to_port"
 {
-  long mode_bits = scm_mode_bits (mode);
   SCM port;
   scm_t_port *pt;
   int flags;
@@ -447,6 +446,12 @@ scm_fdes_to_port (int fdes, char *mode, SCM name)
   return port;
 }
 #undef FUNC_NAME
+
+SCM
+scm_fdes_to_port (int fdes, char *mode, SCM name)
+{
+  return scm_i_fdes_to_port (fdes, scm_mode_bits (mode), name);
+}
 
 /* Return a lower bound on the number of bytes available for input.  */
 static int

@@ -301,6 +301,11 @@ SCM_API SCM scm_pt_size (void);
 SCM_API SCM scm_pt_member (SCM member);
 #endif /* GUILE_DEBUG */
 
+/* internal */
+
+SCM_API long scm_i_mode_bits (SCM modes);
+
+
 #endif  /* SCM_PORTS_H */
 
 /*
