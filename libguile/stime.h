@@ -50,19 +50,6 @@
 
 
 
-# ifdef TIME_WITH_SYS_TIME
-#  include <sys/time.h>
-#  include <time.h>
-# else
-#  ifdef HAVE_SYS_TIME_H
-#   include <sys/time.h>
-#  else
-#   ifdef HAVE_TIME_H
-#    include <time.h>
-#   endif
-#  endif
-# endif
-
 /* This should be figured out by autoconf.  */
 #if ! defined(SCM_TIME_UNITS_PER_SECOND) && defined(CLK_TCK)
 #  define SCM_TIME_UNITS_PER_SECOND ((int) CLK_TCK)
