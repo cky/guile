@@ -107,7 +107,7 @@
     (if (not (eq? c #\nl))
 	(loop (read-char port)))))
 
-(define whitespace-chars (list #\space #\tab #\nl))
+(define whitespace-chars (list #\space #\tab #\nl #\np))
 
 (define (flush-whitespace port)
   (catch 'end-of-chunk
@@ -132,7 +132,8 @@
 		(let loop ((endp (flush-whitespace %%load-port)))
 		  (if (not endp)
 		      (begin
-			(start-stack read-and-eval! (read-and-eval! %%load-port))
+			(start-stack read-and-eval!
+				     (read-and-eval! %%load-port))
 			(loop (flush-whitespace %%load-port)))
 		      (begin
 			(load-acknowledge))))
@@ -142,7 +143,7 @@
 		       (set! the-last-stack #f)
 		       (set! stack-saved? #t)
 		       (scm-error 'misc-error
-				  'emacs-load
+				  #f
 				  "Incomplete expression"
 				  '()
 				  '()))

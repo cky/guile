@@ -1,6 +1,7 @@
 Wed Aug 20 13:21:11 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* emacs.scm (emacs-load): Adjust stack narrowing.
+	(whitespace-chars): Include #\np.
 
 	* syncase.scm: Also turn off debugging evaluator and recording of
 	procedure names during loading of psyntax.pp.
