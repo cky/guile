@@ -1,5 +1,11 @@
 2000-04-18  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* unif.c (l2ra):  Don't eliminate the call to scm_array_set_x
+	itself, as was done in the previous 'patch'.  (Thanks to Radey
+	Shouman)
+
+2000-04-18  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* options.c (scm_options), read.c (recsexpr):  Remove redundant
 	SCM_IMP test.
 

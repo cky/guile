@@ -2210,6 +2210,7 @@ l2ra (SCM lst, SCM ra, scm_sizet base, scm_sizet k)
 	{
 	  if (SCM_IMP (lst) || SCM_NCONSP (lst))
 	    return 0;
+	  scm_array_set_x (SCM_ARRAY_V (ra), SCM_CAR (lst), SCM_MAKINUM (base));
 	  base += inc;
 	  lst = SCM_CDR (lst);
 	}
