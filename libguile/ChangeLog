@@ -1,5 +1,8 @@
 2004-08-03  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
+	* num2integral.i.c, num2float.i.c: Removed.
+	* Makefile.am (noinst_HEADERS): Updated.
+
 	* numbers.h. numbers.c (scm_make_ratio): Renamed to
 	scm_i_make_ratio and made static, replaced uses with scm_divide.
 	(scm_complex_p): New, export as "complex?" to Scheme.
