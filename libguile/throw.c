@@ -472,6 +472,10 @@ handler_message (void *handler_data, SCM tag, SCM args)
    message header to print; if zero, we use "guile" instead.  That
    text is followed by a colon, then the message described by ARGS.  */
 
+/* Dirk:FIXME:: The name of the function should make clear that the
+ * application gets terminated.
+ */
+
 SCM
 scm_handle_by_message (void *handler_data, SCM tag, SCM args)
 {
@@ -605,11 +609,8 @@ scm_ithrow (SCM key, SCM args, int noreturn)
 
   /* Search the wind list for an appropriate catch.
      "Waiter, please bring us the wind list." */
-  for (winds = scm_dynwinds; SCM_NIMP (winds); winds = SCM_CDR (winds))
+  for (winds = scm_dynwinds; SCM_CONSP (winds); winds = SCM_CDR (winds))
     {
-      if (! SCM_CONSP (winds))
-	abort ();
-
       dynpair = SCM_CAR (winds);
       if (SCM_CONSP (dynpair))
 	{
@@ -620,28 +621,25 @@ scm_ithrow (SCM key, SCM args, int noreturn)
 	}
     }
 
-#ifdef BROKEN_GCSE
 #ifdef __GNUC__
+  /* Dirk:FIXME:: This bugfix should be removed some time. */
   /* GCC 2.95.2 has a bug in its optimizer that makes it generate
      incorrect code sometimes.  This barrier stops it from being too
      clever. */
   asm volatile ("" : "=g" (winds));
-#else
-#error "GCSE bug found: reconfigure without optimization?"
-#endif
 #endif
 
   /* If we didn't find anything, print a message and abort the process
      right here.  If you don't want this, establish a catch-all around
      any code that might throw up. */
-  if (SCM_NULLP (winds) || SCM_FALSEP (dynpair))
+  if (SCM_NULLP (winds))
     {
       scm_handle_by_message (NULL, key, args);
       abort ();
     }
 
   /* If the wind list is malformed, bail.  */
-  if (SCM_IMP (winds) || SCM_NCONSP (winds))
+  if (!SCM_CONSP (winds))
     abort ();
       
   jmpbuf = SCM_CDR (dynpair);

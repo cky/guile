@@ -1,3 +1,10 @@
+2000-09-19  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* throw.c (scm_handle_by_message):  Added a FIXME comment.
+
+	(scm_ithrow):  Removed some redundant tests.  When compiling on
+	gcc, always add the GCSE bug workaround.
+
 2000-09-14  Gary Houston  <ghouston@arglist.com>
 
 	* print.c (scm_iprin1): write the ascii delete character as #\del
