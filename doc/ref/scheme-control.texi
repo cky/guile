@@ -249,57 +249,148 @@ times.
 
 @node Continuations
 @section Continuations
+@cindex continuations
 
-@cindex call/cc
-@cindex call-with-current-continuation
-The ability to explicitly capture continuations using
-@code{call-with-current-continuation} (also often called @code{call/cc}
-for short), and to invoke such continuations later any number of times,
-and from any other point in a program, provides maybe the most powerful
-control structure known.  All other control structures, such as loops
-and coroutines, can be emulated using continuations.
+A ``continuation'' is the code that will execute when a given function
+or expression returns.  For example, consider
 
-@c NJFIXME - need a little something here about what continuations are
-@c and what they do for you.
+@example
+(define (foo)
+  (display "hello\n")
+  (display (bar)) (newline)
+  (exit))
+@end example
 
-The implementation of continuations in Guile is not as efficient as one
-might hope, because it is constrained by the fact that Guile is designed
-to cooperate with programs written in other languages, such as C, which
-do not know about continuations.  So continuations should be used when
-there is no other simple way of achieving the desired behaviour, or
-where the advantages of the elegant continuation mechanism outweigh the
-need for optimum performance.  If you find yourself using @code{call/cc}
-for escape procedures and your program is running too slow, you might
-want to use exceptions (@pxref{Exceptions}) instead.
+The continuation from the call to @code{bar} comprises a
+@code{display} of the value returned, a @code{newline} and an
+@code{exit}.  This can be expressed as a function of one argument.
 
-@rnindex call-with-current-continuation
+@example
+(lambda (r)
+  (display r) (newline)
+  (exit))
+@end example
+
+In Scheme, continuations are represented as special procedures just
+like this.  The special property is that when a continuation is called
+it abandons the current program location and jumps directly to that
+represented by the continuation.
+
+A continuation is like a dynamic label, capturing at run-time a point
+in program execution, including all the nested calls that have lead to
+it, or rather the code that will execute when those calls return.
+
+Continuations are created with the following functions.
+
 @deffn {Scheme Procedure} call-with-current-continuation proc
-Capture the current continuation and call @var{proc} with the captured
-continuation as the single argument.  This continuation can then be
-called with arbitrarily many arguments.  Such a call will work like a
-goto to the invocation location of
-@code{call-with-current-continuation}, passing the arguments in a way
-that they are returned by the call to
-@code{call-with-current-continuation}.  Since it is legal to store the
-captured continuation in a variable or to pass it to other procedures,
-it is possible that a procedure returns more than once, even if it is
-called only one time.  This can be confusing at times.
+@deffnx {Scheme Procedure} call/cc proc
+@rnindex call-with-current-continuation
+Capture the current continuation and call @code{(@var{proc}
+@var{cont})} with it.  The return value is the value returned by
+@var{proc}, or when @code{(@var{cont} @var{value})} is later invoked,
+the return is the @var{value} passed.
+
+Normally @var{cont} should be called with one argument, but when the
+location resumed is expecting multiple values (@pxref{Multiple
+Values}) then they should be passed as multiple arguments, for
+instance @code{(@var{cont} @var{x} @var{y} @var{z})}.
+
+@var{cont} may only be used from the dynamic root in which it was
+created (@pxref{Dynamic Roots}), and in a multi-threaded program only
+from the thread in which it was created, since each thread is a
+separate dynamic root.
+
+The call to @var{proc} is not part of the continuation captured, it
+runs only when the continuation is created.  Often a program will want
+to store @var{cont} somewhere for later use, this can be done in
+@var{proc}.
+
+The @code{call} in the name @code{call-with-current-continuation}
+refers to the way a call to @var{proc} gives the newly created
+continuation.  It's not related to the way a call is used later to
+invoke that continuation.
+
+@code{call/cc} is an alias for @code{call-with-current-continuation}.
+This is in common use since the latter is rather long.
 @end deffn
 
-@c FIXME::martin: Better example needed.
-@lisp
+@deftypefn {C Function} SCM scm_make_continuation (int *first)
+Capture the current continuation as described above.  The return value
+is the new continuation, and @var{*first} is set to 1.
+
+When the continuation is invoked, @code{scm_make_continuation} will
+return again, this time returning the value (or set of multiple
+values) passed in that invocation, and with @var{*first} set to 0.
+@end deftypefn
+
+@sp 1
+@noindent
+Here is a simple example,
+
+@example
 (define kont #f)
-(call-with-current-continuation
-  (lambda (k)
-     (set! kont k)
-     1))
-@result{}
-1
+(format #t "the return is ~a\n"
+        (call/cc (lambda (k)
+                   (set! kont k)
+                   1)))
+@result{} the return is 1
 
 (kont 2)
-@result{}
-2
-@end lisp
+@result{} the return is 2
+@end example
+
+@code{call/cc} captures a continuation in which the value returned is
+going to be displayed by @code{format}.  The @code{lambda} stores this
+in @code{kont} and gives an initial return @code{1} which is
+displayed.  The later invocation of @code{kont} resumes the captured
+point, but this time returning @code{2}, which is displayed.
+
+When Guile is run interactively, a call to @code{format} like this has
+an implicit return back to the read-eval-print loop.  @code{call/cc}
+captures that like any other return, which is why interactively
+@code{kont} will come back to read more input.
+
+@sp 1
+C programmers may note that @code{call/cc} is like @code{setjmp} in
+the way it records at runtime a point in program execution.  A call to
+a continuation is like a @code{longjmp} in that it abandons the
+present location and goes to the recorded one.  Like @code{longjmp},
+the value passed to the continuation is the value returned by
+@code{call/cc} on resuming there.  However @code{longjmp} can only go
+up the program stack, but the continuation mechanism can go anywhere.
+
+When a continuation is invoked, @code{call/cc} and subsequent code
+effectively ``returns'' a second time.  It can be confusing to imagine
+a function returning more times than it was called.  It may help
+instead to think of it being stealthily re-entered and then program
+flow going on as normal.
+
+@code{dynamic-wind} (@pxref{Dynamic Wind}) can be used to ensure setup
+and cleanup code is run when a program locus is resumed or abandoned
+through the continuation mechanism.  For instance locking and
+unlocking database records in use, or similar.
+
+@sp 1
+Continuations are a powerful mechanism, and can be used to implement
+almost any sort of control structure, such as loops, coroutines, or
+exception handlers.
+
+However the implementation of continuations in Guile is not as
+efficient as one might hope, because Guile is designed to cooperate
+with programs written in other languages, such as C, which do not know
+about continuations.  Basically continuations are captured by a block
+copy of the stack, and resumed by copying back.
+
+For this reason, generally continuations should be used only when
+there is no other simple way to achieve the desired result, or when
+the elegance of the continuation mechanism outweighs the need for
+performance.
+
+Escapes upwards from loops or nested functions are generally best
+handled with exceptions (@pxref{Exceptions}).  Coroutines can be
+efficiently implemented with cooperating threads (a thread holds a
+full program stack but doesn't copy it around the way continuations
+do).
 
 
 @node Multiple Values
