@@ -572,15 +572,45 @@ SCM_DEFINE (scm_strftime, "strftime", 2, 0, 0,
   len = SCM_ROLENGTH (format);
 
   tbuf = SCM_MUST_MALLOC (size);
-#ifdef LOCALTIME_CACHE
-  tzset ();
+  {
+#if !defined (HAVE_TM_ZONE)
+    /* it seems the only way to tell non-GNU versions of strftime what
+       zone to use (for the %Z format) is to set TZ in the
+       environment.  interrupts and thread switching must be deferred
+       until TZ is restored.  */
+    char **oldenv = NULL;
+    SCM *velts = SCM_VELTS (stime);
+
+    if (SCM_NFALSEP (velts[10]))
+      {
+	/* it's not required that the TZ setting be correct, just that
+	   it has the right name.  so try something like TZ=EST.
+	   possibly TZ=EST0 would be better.  */
+	SCM_DEFER_INTS;
+	oldenv = setzone (velts[10], SCM_ARG2, FUNC_NAME);
+      }
 #endif
-  while ((len = strftime (tbuf, size, fmt, &t)) == size)
-    {
-      scm_must_free (tbuf);
-      size *= 2;
-      tbuf = SCM_MUST_MALLOC (size);
+
+#ifdef LOCALTIME_CACHE
+    tzset ();
+#endif
+
+    while ((len = strftime (tbuf, size, fmt, &t)) == size)
+      {
+	scm_must_free (tbuf);
+	size *= 2;
+	tbuf = SCM_MUST_MALLOC (size);
+      }
+
+#if !defined (HAVE_TM_ZONE)
+    if (SCM_NFALSEP (velts[10]))
+      {
+	restorezone (velts[10], oldenv, FUNC_NAME);
+	SCM_ALLOW_INTS;
+      }
+#endif
     }
+
   result = scm_makfromstr (tbuf, len, 0);
   scm_must_free (tbuf);
   return result;
