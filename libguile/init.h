@@ -58,18 +58,13 @@ enum scm_boot_status
 
 
 
-#ifdef __STDC__
-extern void scm_start_stack (void * base, FILE * in, FILE * out, FILE * err);
-extern void scm_restart_stack (void * base);
-
-#else /* STDC */
-extern void scm_start_stack ();
-extern void scm_restart_stack ();
-
-#endif /* STDC */
-
-
-
-
+extern void scm_start_stack PROTO ((void *base,
+				    FILE *in, FILE *out, FILE *err));
+extern void scm_restart_stack PROTO ((void * base));
+extern int scm_boot_guile PROTO ((char **result,
+				  int argc, char **argv,
+				  FILE *in, FILE *out, FILE *err,
+				  void (*init_func) (),
+				  char *boot_cmd));
 
 #endif  /* INITH */
