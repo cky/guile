@@ -61,30 +61,43 @@ unsigned long
 scm_hasher(SCM obj, unsigned long n, scm_sizet d)
 {
   switch (7 & (int) obj) {
-  case 2: case 6:		/* SCM_INUMP(obj) */
-    return SCM_INUM(obj) % n;
+  case 2: 
+  case 6:
+    return SCM_INUM(obj) % n;   /* SCM_INUMP(obj) */
   case 4:
     if SCM_CHARP(obj)
       return (unsigned)(scm_downcase(SCM_CHAR(obj))) % n;
     switch ((int) obj) {
 #ifndef SICP
-    case (int) SCM_EOL: d = 256; break;
+    case (int) SCM_EOL: 
+      d = 256; 
+      break;
 #endif
-    case (int) SCM_BOOL_T: d = 257; break;
-    case (int) SCM_BOOL_F: d = 258; break;
-    case (int) SCM_EOF_VAL: d = 259; break;
-    default: d = 263;		/* perhaps should be error */
+    case (int) SCM_BOOL_T: 
+      d = 257; 
+      break;
+    case (int) SCM_BOOL_F: 
+      d = 258; 
+      break;
+    case (int) SCM_EOF_VAL: 
+      d = 259; 
+      break;
+    default: 
+      d = 263;		/* perhaps should be error */
     }
     return d % n;
-  default: return 263 % n;	/* perhaps should be error */
+  default: 
+    return 263 % n;	/* perhaps should be error */
   case 0:
     switch SCM_TYP7(obj) {
-    default: return 263 % n;
+    default: 
+      return 263 % n;
     case scm_tc7_smob:
       switch SCM_TYP16(obj) {
       case scm_tcs_bignums:
-      bighash: return SCM_INUM(scm_modulo(obj, SCM_MAKINUM(n)));
-      default: return 263 % n;
+        return SCM_INUM(scm_modulo(obj, SCM_MAKINUM(n)));
+      default: 
+	return 263 % n;
 #ifdef SCM_FLOATS
       case scm_tc16_flo:
 	if SCM_REALP(obj) {
@@ -92,7 +105,7 @@ scm_hasher(SCM obj, unsigned long n, scm_sizet d)
 	  if (floor(r)==r) {
 	    obj = scm_inexact_to_exact (obj);
 	    if SCM_IMP(obj) return SCM_INUM(obj) % n;
-	    goto bighash;
+	    return SCM_INUM(scm_modulo(obj, SCM_MAKINUM(n)));
 	  }
 	}
 	obj = scm_number_to_string(obj, SCM_MAKINUM(10));
@@ -122,12 +135,15 @@ scm_hasher(SCM obj, unsigned long n, scm_sizet d)
 	    return h;
 	  }
       }
-    case scm_tcs_cons_imcar: case scm_tcs_cons_nimcar:
+    case scm_tcs_cons_imcar: 
+    case scm_tcs_cons_nimcar:
       if (d) return (scm_hasher(SCM_CAR(obj), n, d/2)+scm_hasher(SCM_CDR(obj), n, d/2)) % n;
       else return 1;
     case scm_tc7_port:
       return ((SCM_RDNG & SCM_CAR(obj)) ? 260 : 261) % n;
-    case scm_tcs_closures: case scm_tc7_contin: case scm_tcs_subrs:
+    case scm_tcs_closures: 
+    case scm_tc7_contin: 
+    case scm_tcs_subrs:
       return 262 % n;
     }
   }
@@ -145,17 +161,20 @@ scm_ihashq (SCM obj, unsigned int n)
 
 
 SCM_DEFINE (scm_hashq, "hashq", 2, 0, 0,
-           (SCM obj, SCM n),
-	    "@deffnx primitive hashv key size\n"
-	    "@deffnx primitive hash key size\n"
-	    "Default hash functions for Guile hash tables.  @var{key} is the\n"
-	    "object to be hashed, and @var{size} is the size of the target hash\n"
-	    "table.  Each function returns an integer in the range 0 to\n"
-	    "@var{size}-1.")
+           (SCM key, SCM size),
+	    "Determine a hash value for KEY that is suitable for lookups in\n"
+	    "a hashtable of size SIZE, where eq? is used as the equality\n"
+	    "predicate.  The function returns an integer in the range 0 to\n"
+	    "SIZE - 1.  NOTE that `hashq' may use internal addresses.\n"
+	    "Thus two calls to hashq where the keys are eq? are not\n"
+	    "guaranteed to deliver the same value if the key object gets\n"
+	    "garbage collected in between.  This can happen, for example\n"
+	    "with symbols:  (hashq 'x n) (gc) (hashq 'x n) may produce two\n" 
+	    "different values, since 'x will be garbage collected.")
 #define FUNC_NAME s_scm_hashq
 {
-  SCM_VALIDATE_INUM_MIN (2,n,0);
-  return SCM_MAKINUM(scm_ihashq (obj, SCM_INUM (n)));
+  SCM_VALIDATE_INUM_MIN (2, size, 0);
+  return SCM_MAKINUM (scm_ihashq (key, SCM_INUM (size)));
 }
 #undef FUNC_NAME
 
@@ -177,12 +196,20 @@ scm_ihashv (SCM obj, unsigned int n)
 
 
 SCM_DEFINE (scm_hashv, "hashv", 2, 0, 0,
-           (SCM obj, SCM n),
-	    "")
+           (SCM key, SCM size),
+	    "Determine a hash value for KEY that is suitable for lookups in\n"
+	    "a hashtable of size SIZE, where eqv? is used as the equality\n"
+	    "predicate.  The function returns an integer in the range 0 to\n"
+	    "SIZE - 1.  NOTE that (hashv key) may use internal addresses.\n"
+	    "Thus two calls to hashv where the keys are eqv? are not\n"
+	    "guaranteed to deliver the same value if the key object gets\n"
+	    "garbage collected in between.  This can happen, for example\n"
+	    "with symbols:  (hashv 'x n) (gc) (hashv 'x n) may produce two\n" 
+	    "different values, since 'x will be garbage collected.")
 #define FUNC_NAME s_scm_hashv
 {
-  SCM_VALIDATE_INUM_MIN (2,n,0);
-  return SCM_MAKINUM(scm_ihashv (obj, SCM_INUM (n)));
+  SCM_VALIDATE_INUM_MIN (2, size, 0);
+  return SCM_MAKINUM (scm_ihashv (key, SCM_INUM (size)));
 }
 #undef FUNC_NAME
 
@@ -197,12 +224,15 @@ scm_ihash (SCM obj, unsigned int n)
 }
 
 SCM_DEFINE (scm_hash, "hash", 2, 0, 0,
-           (SCM obj, SCM n),
-	    "")
+           (SCM key, SCM size),
+	    "Determine a hash value for KEY that is suitable for lookups in\n"
+	    "a hashtable of size SIZE, where equal? is used as the equality\n"
+	    "predicate.  The function returns an integer in the range 0 to\n"
+	    "SIZE - 1.")
 #define FUNC_NAME s_scm_hash
 {
-  SCM_VALIDATE_INUM_MIN (2,n,0);
-  return SCM_MAKINUM(scm_ihash(obj, SCM_INUM(n)));
+  SCM_VALIDATE_INUM_MIN (2, size, 0);
+  return SCM_MAKINUM (scm_ihash (key, SCM_INUM (size)));
 }
 #undef FUNC_NAME
 
