@@ -17,15 +17,6 @@
 
 	* update-changelog.el: New file.
 
-	* update-change.el: bye bye
-
-	* update-change.el:
-	A little birdie from cobalt sang in my ear.
-	As guilish developers uploaded, disappeared.
-	  Thunderous silence?
-	  Mail server grievance?
-	Mangle that process (son), but don't drink the beer.
-
 	* patch.el (patch-send):
 	Renamed from `patch-submit'.
 	Gadzooks what kind of world is this?
