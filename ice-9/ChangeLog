@@ -1,6 +1,6 @@
 1999-09-12  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
-	* debug.scm, emacs.scm: Updated copyrigth notices.
+	* debug.scm, emacs.scm: Updated copyright notices.
 
 	* boot-9.scm (make-autoload-interface): Bugfix.
 	(top-repl): Autoload debugger.
@@ -11,8 +11,6 @@
 	expression.
 	("evaluate"): Evaluate in local environment frame, if existent;
 	Handle errors.
-
-	* emacs.scm: Set backtrace width to 60.
 
 1999-09-11  Jim Blandy  <jimb@savonarola.red-bean.com>
 

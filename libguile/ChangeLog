@@ -4,7 +4,7 @@
 	dynwind.c, dynwind.h, eval.h, evalext.c, evalext.h, feature.c,
 	feature.h, hashtab.c, hashtab.h, objects.c, objects.h, print.c,
 	procs.c, procs.h, smob.c, smob.h, srcprop.c, strorder.c, struct.c,
-	struct.h: Updated copyrigth notices.
+	struct.h: Updated copyright notices.
 
 	* srcprop.c (scm_source_property): Bugfix: Use SCM_NECONSP instead
 	of SCM_NCONSP.  (Thanks to Greg Badros.)
