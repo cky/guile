@@ -1,3 +1,9 @@
+2004-01-09  Kevin Ryde  <user42@zip.com.au>
+
+	* scheme-compound.texi (Bit Vectors): Revise for clarity, following
+	report by Rouben Rostamian.  Remove #b() example, that syntax is not
+	accepted.
+
 2004-01-07  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* scheme-control.texi, scheme-io.tex, scheme-scheduling.texi:
