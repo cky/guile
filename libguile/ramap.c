@@ -165,6 +165,10 @@ scm_ra_matchp (ra0, ras)
       case scm_tc7_bvect:
       case scm_tc7_uvect:
       case scm_tc7_ivect:
+      case scm_tc7_svect:
+#ifdef LONGLONGS
+      case scm_tc7_llvect:
+#endif
       case scm_tc7_fvect:
       case scm_tc7_dvect:
       case scm_tc7_cvect:
@@ -198,6 +202,10 @@ scm_ra_matchp (ra0, ras)
 	    case scm_tc7_bvect:
 	    case scm_tc7_uvect:
 	    case scm_tc7_ivect:
+	    case scm_tc7_svect:
+#ifdef LONGLONGS
+	    case scm_tc7_llvect:
+#endif
 	    case scm_tc7_fvect:
 	    case scm_tc7_dvect:
 	    case scm_tc7_cvect:
@@ -499,6 +507,24 @@ scm_array_fill_int (ra, fill, ignore)
 	    ve[i] = f;
 	  break;
 	}
+      case scm_tc7_svect:
+	SCM_ASRTGO (SCM_INUMP (fill), badarg2);
+	{
+	  short f = SCM_INUM (fill), *ve = (short *) SCM_VELTS (ra);
+	  for (i = base; n--; i += inc)
+	    ve[i] = f;
+	  break;
+	}
+#ifdef LONGLONGS
+      case scm_tc7_llvect:
+	SCM_ASRTGO (SCM_INUMP (fill), badarg2);
+	{
+	  long long f = SCM_INUM (fill), *ve = (long long *) SCM_VELTS (ra);
+	  for (i = base; n--; i += inc)
+	    ve[i] = f;
+	  break;
+	}
+#endif
 #ifdef SCM_FLOATS
 #ifdef SCM_SINGLES
       case scm_tc7_fvect:
@@ -1841,6 +1867,10 @@ scm_array_index_map_x (ra, proc)
     case scm_tc7_bvect:
     case scm_tc7_uvect:
     case scm_tc7_ivect:
+    case scm_tc7_svect:
+#ifdef LONGLONGS
+    case scm_tc7_llvect:
+#endif
     case scm_tc7_fvect:
     case scm_tc7_dvect:
     case scm_tc7_cvect:
@@ -1968,6 +1998,26 @@ raeql_1 (ra0, as_equal, ra1)
 	      return 0;
 	  return 1;
 	}
+      case scm_tc7_svect:
+	{
+	  short *v0 = (short *) SCM_VELTS (ra0) + i0;
+	  short *v1 = (short *) SCM_VELTS (ra1) + i1;
+	  for (; n--; v0 += inc0, v1 += inc1)
+	    if (*v0 != *v1)
+	      return 0;
+	  return 1;
+	}
+#ifdef LONGLONGS
+      case scm_tc7_llvect:
+	{
+	  long long *v0 = (long long *) SCM_VELTS (ra0) + i0;
+	  long long *v1 = (long long *) SCM_VELTS (ra1) + i1;
+	  for (; n--; v0 += inc0, v1 += inc1)
+	    if (*v0 != *v1)
+	      return 0;
+	  return 1;
+	}
+#endif
 #ifdef SCM_FLOATS
 #ifdef SCM_SINGLES
       case scm_tc7_fvect:
