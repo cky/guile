@@ -75,7 +75,6 @@ typedef struct
 
 
 extern SCM scm_make_cont (SCM * answer);
-extern void scm_dynthrow (SCM *a);
 extern SCM scm_call_continuation (SCM cont, SCM val);
 extern void scm_init_continuations (void);
 

@@ -1,3 +1,18 @@
+2000-04-13  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* continuations.c (scm_make_cont, scm_dynthrow):  Completely
+	separated implementations for defined (CHEAP_CONTINUATIONS) and
+	!defined (CHEAP_CONTINUATIONS).  Also, now using memcpy for stack
+	copying.
+
+	* continuations.c (grow_stack):  Renamed from grow_throw.
+
+	* continuations.c (copy_stack_and_call):  New static function.
+
+	* continuations.c (scm_dynthrow):  Simplified and made static.
+
+	* continuations.h (scm_dynthrow):  Made static.
+
 2000-04-13  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* unif.c, unif.h (shared-array-root, shared-array-offset,

@@ -54,6 +54,7 @@
 #include "dynwind.h"
 
 #include "continuations.h"
+
 
 
 /* {Continuations}
@@ -61,40 +62,19 @@
 
 static char s_cont[] = "continuation";
 
+static void scm_dynthrow (SCM, SCM);
+
+
+#ifndef CHEAP_CONTINUATIONS
+
 
 SCM 
 scm_make_cont (SCM *answer)
 {
   long j;
   SCM cont;
-
-#ifdef CHEAP_CONTINUATIONS
-  SCM_NEWCELL (cont);
-  *answer = cont;
-  SCM_ENTER_A_SECTION;
-  SCM_SET_CONTREGS (cont, scm_must_malloc (sizeof (scm_contregs), s_cont));
-  SCM_DYNENV (cont) = scm_dynwinds;
-  SCM_THROW_VALUE = SCM_EOL;
-  SCM_BASE (cont) = SCM_BASE (rootcont);
-  SCM_SEQ (cont) = SCM_SEQ (rootcont);
-  SCM_SETCAR (cont, scm_tc7_contin);
-  SCM_EXIT_A_SECTION;
-#else
-  register SCM_STACKITEM *src, *dst;
-
-#if 0
-  {
-    SCM winds;
-
-    for (winds = scm_dynwinds; winds != SCM_EOL; winds = SCM_CDR (winds))
-      {
-	if (SCM_INUMP (SCM_CAR (winds)))
-	  {
-	    scm_relocate_chunk_to_heap (SCM_CAR (winds));
-	  }
-      }
-  }
-#endif
+  SCM_STACKITEM * src;
+  SCM_STACKITEM * dst;
 
   SCM_NEWCELL (cont);
   *answer = cont;
@@ -115,92 +95,141 @@ scm_make_cont (SCM *answer)
   src -= SCM_LENGTH (cont);
 #endif /* ndef SCM_STACK_GROWS_UP */
   dst = (SCM_STACKITEM *) (SCM_CHARS (cont) + sizeof (scm_contregs));
-  for (j = SCM_LENGTH (cont); 0 <= --j;)
-    *dst++ = *src++;
-#endif /* def CHEAP_CONTINUATIONS */
+
+  /* memcpy should be safe:  src and dst will never overlap */
+  memcpy (dst, src, sizeof (SCM_STACKITEM) * SCM_LENGTH (cont));
+
 #ifdef DEBUG_EXTENSIONS
   SCM_DFRAME (cont) = scm_last_debug_frame;
 #endif
+
   return cont;
 }
 
-/* Grow the stack so that there is room */
-/* to copy in the continuation.  Then */
-#ifndef CHEAP_CONTINUATIONS
+
+/* Grow the stack by a fixed amount to provide space to copy in the
+ * continuation.  Possibly this function has to be called several times
+ * recursively before enough space is available.  Make sure the compiler does
+ * not optimize the growth array away by storing it's address into a global
+ * variable.
+ */
+
+scm_bits_t scm_i_dummy;
 
 static void 
-grow_throw (SCM *a)
-{				/* retry the throw. */
-  SCM growth[100];
-  growth[0] = a[0];
-  growth[1] = a[1];
-  growth[2] = a[2] + 1;
-  growth[3] = (SCM) a;
-  scm_dynthrow (growth);
-}
-#endif /* ndef CHEAP_CONTINUATIONS */
-
-
-void 
-scm_dynthrow (SCM *a)
+grow_stack (SCM cont, SCM val)
 {
-  SCM cont = a[0], val = a[1];
-#ifndef CHEAP_CONTINUATIONS
-  register long j;
-  register SCM_STACKITEM *src, *dst = SCM_BASE (scm_rootcont);
-#ifdef SCM_STACK_GROWS_UP
-  if (a[2] && (a - ((SCM *) a[3]) < 100))
-#else
-  if (a[2] && (((SCM *) a[3]) - a < 100))
-#endif
-    fputs ("grow_throw: check if SCM growth[100]; being optimized out\n",
-	   stderr);
-  /* if (a[2]) fprintf(stderr, " ct = %ld, dist = %ld\n",
-			  a[2], (((SCM *)a[3]) - a)); */
-#ifdef SCM_STACK_GROWS_UP
-  if (SCM_PTR_GE (dst + SCM_LENGTH (cont), (SCM_STACKITEM *) & a))
-    grow_throw (a);
-#else
-  dst -= SCM_LENGTH (cont);
-  if (SCM_PTR_LE (dst, (SCM_STACKITEM *) & a))
-    grow_throw (a);
-#endif /* def SCM_STACK_GROWS_UP */
-  SCM_FLUSH_REGISTER_WINDOWS;
-  src = (SCM_STACKITEM *) (SCM_CHARS (cont) + sizeof (scm_contregs));
-  for (j = SCM_LENGTH (cont); 0 <= --j;)
-    *dst++ = *src++;
-#ifdef sparc			/* clear out stack up to this stackframe */
-  /* maybe this would help, maybe not */
-/*	bzero((void *)&a, sizeof(SCM_STACKITEM) * (((SCM_STACKITEM *)&a) -
-					       (dst - SCM_LENGTH(cont)))) */
-#endif
-#endif /* ndef CHEAP_CONTINUATIONS */
+  scm_bits_t growth[100];
+
+  scm_i_dummy = (scm_bits_t) growth;
+  scm_dynthrow (cont, val);
+}
+
+
+/* Copy the continuation stack into the current stack.  Calling functions from
+ * within this function is safe, since only stack frames below this function's
+ * own frame are overwritten.  Thus, memcpy can be used for best performance.
+ */
+static void
+copy_stack_and_call (SCM cont, SCM val, 
+		     SCM_STACKITEM * src, SCM_STACKITEM * dst)
+{
+  /* memcpy should be safe:  src and dst will never overlap */
+  memcpy (dst, src, sizeof (SCM_STACKITEM) * SCM_LENGTH (cont));
+
 #ifdef DEBUG_EXTENSIONS
   scm_last_debug_frame = SCM_DFRAME (cont);
 #endif
-  SCM_THROW_VALUE(cont) = val;
+
+  SCM_THROW_VALUE (cont) = val;
   longjmp (SCM_JMPBUF (cont), 1);
 }
+
+
+/* Call grow_stack until the stack space is large enough, then, as the current
+ * stack frame might get overwritten, let copy_stack_and_call perform the
+ * actual copying and continuation calling.
+ */
+static void 
+scm_dynthrow (SCM cont, SCM val)
+{
+  SCM_STACKITEM * src;
+  SCM_STACKITEM * dst = SCM_BASE (scm_rootcont);
+  SCM_STACKITEM stack_top_element;
+
+#ifdef SCM_STACK_GROWS_UP
+  if (SCM_PTR_GE (dst + SCM_LENGTH (cont), & stack_top_element))
+    grow_stack (cont, val);
+#else
+  dst -= SCM_LENGTH (cont);
+  if (SCM_PTR_LE (dst, & stack_top_element))
+    grow_stack (cont, val);
+#endif /* def SCM_STACK_GROWS_UP */
+  SCM_FLUSH_REGISTER_WINDOWS;
+  src = (SCM_STACKITEM *) (SCM_CHARS (cont) + sizeof (scm_contregs));
+  copy_stack_and_call (cont, val, src, dst);
+}
+
+
+#else /* ifndef CHEAP_CONTINUATIONS */
+
+/* Dirk:FIXME:: It seems that nobody has ever tried to use this code, since it
+ * contains syntactic errors and thus would not have compiled anyway.
+ */
+
+
+SCM 
+scm_make_cont (SCM *answer)
+{
+  SCM cont;
+
+  SCM_NEWCELL (cont);
+  *answer = cont;
+  SCM_ENTER_A_SECTION;
+  SCM_SET_CONTREGS (cont, scm_must_malloc (sizeof (scm_contregs), s_cont));
+  SCM_DYNENV (cont) = scm_dynwinds;
+  SCM_THROW_VALUE = SCM_EOL;
+  SCM_BASE (cont) = SCM_BASE (rootcont);
+  SCM_SEQ (cont) = SCM_SEQ (rootcont);
+  SCM_SETCAR (cont, scm_tc7_contin);
+  SCM_EXIT_A_SECTION;
+
+#ifdef DEBUG_EXTENSIONS
+  SCM_DFRAME (cont) = scm_last_debug_frame;
+#endif
+
+  return cont;
+}
+
+
+static void
+scm_dynthrow (SCM cont, SCM val)
+{
+#ifdef DEBUG_EXTENSIONS
+  scm_last_debug_frame = SCM_DFRAME (cont);
+#endif
+  SCM_THROW_VALUE (cont) = val;
+  longjmp (SCM_JMPBUF (cont), 1);
+}
+
+
+#endif
 
 
 SCM
 scm_call_continuation (SCM cont, SCM val)
 {
-  SCM a[3];
-  a[0] = cont;
-  a[1] = val;
-  a[2] = 0;
-  if (   (SCM_SEQ (cont) != SCM_SEQ (scm_rootcont))
-      || (SCM_BASE (cont) != SCM_BASE (scm_rootcont)))  /* base compare not needed */
+  if ((SCM_SEQ (cont) != SCM_SEQ (scm_rootcont))
+      || (SCM_BASE (cont) != SCM_BASE (scm_rootcont)))  
+    /* base compare not needed */
     scm_wta (cont, "continuation from wrong top level", s_cont);
   
   scm_dowinds (SCM_DYNENV (cont),
 	       scm_ilength (scm_dynwinds) - scm_ilength (SCM_DYNENV (cont)));
   
-  scm_dynthrow (a);
+  scm_dynthrow (cont, val);
   return SCM_UNSPECIFIED; /* not reached */
 }
-
 
 
 void
