@@ -1,3 +1,7 @@
+2004-10-03  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
+
+	* tests/syntax.test: Added tests for unmemoization.
+
 2004-09-30  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* tests/strings.test (string-set!): Explicitely construct

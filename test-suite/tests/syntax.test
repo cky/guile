@@ -743,6 +743,24 @@
                ((foo)))
             (interaction-environment))))
 
+  (with-test-prefix "unmemoization"
+
+    (pass-if "definition unmemoized without prior execution"
+      (eval '(begin 
+               (define (blub) (cons ('(1 . 2)) 2))
+               (equal?
+                 (procedure-source blub)
+                 '(lambda () (cons ('(1 . 2)) 2))))
+            (interaction-environment)))
+
+    (pass-if "definition with documentation unmemoized without prior execution"
+      (eval '(begin 
+               (define (blub) "Comment" (cons ('(1 . 2)) 2))
+               (equal?
+                 (procedure-source blub)
+                 '(lambda () "Comment" (cons ('(1 . 2)) 2))))
+            (interaction-environment))))
+
   (with-test-prefix "missing or extra expressions"
 
     (pass-if-exception "(define)"
