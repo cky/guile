@@ -662,6 +662,43 @@ the handler procedure itself throws an exception, that exception can
 only be caught by another active catch higher up the call stack, if
 there is one.
 
+@sp 1
+@deftypefn {C Function} SCM scm_internal_catch (SCM tag, scm_t_catch_body body, void *body_data, scm_t_catch_handler handler, void *handler_data)
+The above @code{scm_catch} takes Scheme procedures as body and handler
+arguments.  @code{scm_internal_catch} is an equivalent taking C
+functions.
+
+@var{body} is called as @code{@var{body} (@var{body_data})} with a
+catch on exceptions of the given @var{tag} type.  If an exception is
+caught, @var{handler} is called @code{@var{handler}
+(@var{handler_data}, @var{key}, @var{args})}.  @var{key} and
+@var{args} are the @code{SCM} key and argument list from the
+@code{throw}.
+
+@tpindex scm_t_catch_body
+@tpindex scm_t_catch_handler
+@var{body} and @var{handler} should have the following prototypes.
+@code{scm_t_catch_body} and @code{scm_t_catch_handler} are pointer
+typedefs for these.
+
+@example
+SCM body (void *data);
+SCM handler (void *data, SCM key, SCM args);
+@end example
+
+The @var{body_data} and @var{handler_data} parameters are passed to
+the respective calls so an application can communicate extra
+information to those functions.
+
+If the data consists of an @code{SCM} object, care should be taken
+that it isn't garbage collected while still required.  If the
+@code{SCM} is a local C variable, one way to protect it is to pass a
+pointer to that variable as the data parameter, since the C compiler
+will then know the value must be held on the stack.  Another way is to
+use @code{scm_remember_upto_here_1} (@pxref{Remembering During
+Operations}).
+@end deftypefn
+
 
 @node Throw
 @subsection Throwing Exceptions
@@ -744,6 +781,14 @@ not unwind the stack before invoking @var{handler}.
 The @var{handler} procedure is not allowed to return:
 it must throw to another catch, or otherwise exit non-locally.
 @end deffn
+
+@deftypefn {C Function} SCM scm_internal_lazy_catch (SCM tag, scm_t_catch_body body, void *body_data, scm_t_catch_handler handler, void *handler_data)
+The above @code{scm_lazy_catch} takes Scheme procedures as body and
+handler arguments.  @code{scm_internal_lazy_catch} is an equivalent
+taking C functions.  See @code{scm_internal_catch} (@pxref{Catch}) for
+a description of the parameters, the behaviour however of course
+follows @code{lazy-catch}.
+@end deftypefn
 
 Typically, @var{handler} should save any desired state associated with
 the stack at the point where the corresponding @code{throw} occurred,
