@@ -165,16 +165,22 @@
   (cond ((null? forms) '(begin))
 	((null? (cdr forms)) (car forms))
 	(else
-	 `(apply values
-		 (map future-ref
-		      (list ,@(map (lambda (form) `(future ,form)) forms)))))))
+	 (let ((vars (map (lambda (f)
+			    (make-symbol "f"))
+			  forms)))
+	   `((lambda ,vars
+	       (values ,@(map (lambda (v) `(future-ref ,v)) vars)))
+	     ,@(map (lambda (form) `(future ,form)) forms))))))
 
 (define-macro (letpar bindings . body)
-  `(call-with-values
-       (lambda ()
-	 (parallel ,@(map cadr bindings)))
-     (lambda ,(map car bindings)
-       ,@body)))
+  (cond ((or (null? bindings) (null? (cdr bindings)))
+	 `(let ,bindings ,@body))
+	(else
+	 (let ((vars (map car bindings)))
+	   `((lambda ,vars
+	       ((lambda ,vars ,@body)
+		,@(map (lambda (v) `(future-ref ,v)) vars)))
+	     ,@(map (lambda (b) `(future ,(cadr b))) bindings))))))
 
 (define-macro (make-thread proc . args)
   `(call-with-new-thread
