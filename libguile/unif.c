@@ -694,17 +694,19 @@ scm_ra_set_contp (ra)
 #endif
 {
   scm_sizet k = SCM_ARRAY_NDIM (ra);
-  long inc;
   if (k)
-    inc = SCM_ARRAY_DIMS (ra)[k - 1].inc;
-  while (k--)
     {
-      if (inc != SCM_ARRAY_DIMS (ra)[k].inc)
+      long inc = SCM_ARRAY_DIMS (ra)[k - 1].inc;
+      while (k--)
 	{
-	  SCM_CAR (ra) &= ~SCM_ARRAY_CONTIGUOUS;
-	  return;
+	  if (inc != SCM_ARRAY_DIMS (ra)[k].inc)
+	    {
+	      SCM_CAR (ra) &= ~SCM_ARRAY_CONTIGUOUS;
+	      return;
+	    }
+	  inc *= (SCM_ARRAY_DIMS (ra)[k].ubnd 
+		  - SCM_ARRAY_DIMS (ra)[k].lbnd + 1);
 	}
-      inc *= (SCM_ARRAY_DIMS (ra)[k].ubnd - SCM_ARRAY_DIMS (ra)[k].lbnd + 1);
     }
   SCM_CAR (ra) |= SCM_ARRAY_CONTIGUOUS;
 }
