@@ -70,14 +70,21 @@ scm_program_arguments ()
   return scm_progargs;
 }
 
-/* Set the value returned by program-arguments, given a normal
-   argc/argv array.  */
+/* Set the value returned by program-arguments, given ARGC and ARGV.
+
+   If FIRST is non-zero, make it the first element; we do this in
+   situations where other code (like getopt) has parsed out a few
+   arguments, but we still want the script name to be the first
+   element.  */
 void
-scm_set_program_arguments (argc, argv)
+scm_set_program_arguments (argc, argv, first)
      int argc;
      char **argv;
+     char *first;
 {
   scm_progargs = scm_makfromstrs (argc, argv);
+  if (first)
+    scm_progargs = scm_cons (scm_makfrom0str (first), scm_progargs);
 }
 
 

@@ -428,7 +428,7 @@ scm_boot_guile_1 (base, argc, argv, main_func, closure)
     {
       scm_init_signals ();
 
-      scm_set_program_arguments (argc, argv);
+      scm_set_program_arguments (argc, argv, 0);
       (*main_func) (closure, argc, argv);
     }
 
