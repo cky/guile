@@ -1,4 +1,77 @@
-2004-03-24  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
+2004-03-29  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
+
+	Introduce scm_debug_mode_p as a replacement for scm_debug_mode and
+	SCM_DEBUGGINGP:
+
+	* debug.h (scm_debug_mode_p, scm_debug_mode, SCM_DEBUGGINGP),
+	eval.c (scm_debug_mode_p): Deprecated scm_debug_mode and
+	SCM_DEBUGGINGP.  Provided scm_debug_mode_p instead, to have one
+	single interface that also matches the naming conventions.
+	Probably scm_debug_mode_p should be part of the private interface
+	anyway.
+
+	* debug.h (scm_debug_mode_p), backtrace.c (display_error_body),
+	eval.c (SCM_APPLY, scm_trampoline_0, scm_trampoline_1,
+	scm_trampoline_2): Change uses of scm_debug_mode or SCM_DEBUGGINGP
+	to scm_debug_mode_p.
+
+
+	Deprecate direct access to scm_ceval, scm_deval and scm_ceval_ptr:
+
+	* eval.h (scm_ceval, scm_deval, scm_ceval_ptr), debug.h
+	(scm_ceval_ptr): Deprecated.  Moved declaration of scm_ceval_ptr
+	from debug.h to eval.h.
+
+	* debug.h (SCM_RESET_DEBUG_MODE): Don't access scm_ceval_ptr any
+	more, just leave it with setting scm_debug_mode_p, which is
+	equivalent for practical purposes.
+
+	* deprecated.h (SCM_XEVAL, SCM_XEVALCAR): Call scm_i_eval_x
+	instead of *scm_ceval_ptr.  Leave all evaluating to scm_i_eval_x.
+
+	* gdbint.c (gdb_eval): Call scm_i_eval_x instead of scm_ceval.
+
+	* eval.c (ceval, deval, scm_ceval, scm_deval): Made scm_ceval
+	static and renamed it to ceval throughout.  Provide a new exported
+	but deprecated function scm_ceval as a wrapper for backwards
+	compatibility.  The same is done for the deval/scm_deval pair of
+	functions.
+
+	* eval.c (CEVAL, SCM_CEVAL): Renamed SCM_CEVAL to CEVAL
+	throughout.  Defined CEVAL to ceval or deval, based on compilation
+	phase.
+
+	* eval.c (SCM_XEVAL, SCM_XEVALCAR): Dispatch on scm_debug_mode_p
+	to ceval and deval instead of calling *scm_ceval_ptr.
+
+	* eval.c (dispatching_eval): New deprecated static function.
+
+	* eval.c (scm_ceval_ptr): Initialized to dispatching_eval in order
+	to emulate its old behaviour as closely as possible.
+
+
+	Change the evaluator such that only expressions for which pair? is
+	true are passed to CEVAL, and such that all other expressions are
+	evaluated outside of CEVAL:
+
+	* eval.c (EVAL): New, provided in analogy to EVALCAR.  Evaluate an
+	expression that is assumed to be memoized already.  All but
+	expressions of the form '(<form> <form> ...)' are evaluated inline
+	without calling an evaluator.
+
+	* eval.c (SCM_XEVAL, SCM_XEVALCAR, EVALCAR): Evaluate all but
+	expressions of the form '(<form> <form> ...)' inline without
+	calling an evaluator.
+
+	* eval.c (scm_i_eval_x, scm_i_eval, scm_ceval, scm_deval): Handle
+	the special case of unmemoized symbols passed on the top level.
+
+	* eval.c (CEVAL): Change calls to CEVAL to EVAL, except where it
+	is known that the expression passed to CEVAL is of the form
+	'(<form> <form> ...)'.  Remove handling of the tc7-objects, since
+	now it is known that the input expression of CEVAL is a pair.
+
+2004-03-29  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
 
 	* eval.c (is_self_quoting_p): New static function.
 

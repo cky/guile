@@ -1037,6 +1037,13 @@ scm_m_expand_body, scm_macroexp
 These functions were used in the implementation of the evaluator.  It's
 unlikely that they have been used by user code.
 
+** Deprecated functions and variables for evaluation and application:
+scm_ceval, scm_deval and scm_ceval_ptr
+
+These functions and variables were used in the implementation of the
+evaluator.  It's unlikely that they have been used by user code.  If you have
+used these functions, switch to scm_eval or scm_eval_x.
+
 ** Deprecated functions for unmemoization: scm_unmemocar
 
 ** Deprecated macros for iloc handling: SCM_ILOC00, SCM_IDINC, SCM_IDSTMSK
@@ -1075,6 +1082,11 @@ scm_istr2flo, scm_istring2number, scm_istr2int, scm_istr2flo,
 scm_istring2number, scm_vtable_index_vcell, scm_si_vcell, SCM_ECONSP,
 SCM_NECONSP, SCM_GLOC_VAR, SCM_GLOC_VAL, SCM_GLOC_SET_VAL,
 SCM_GLOC_VAL_LOC, scm_make_gloc, scm_gloc_p, scm_tc16_variable
+
+** Deprecated definitions for debugging: scm_debug_mode, SCM_DEBUGGINGP
+
+These functions were used in the implementation of the evaluator.  It's
+unlikely that they have been used by user code.
 
 
 Changes since Guile 1.4:

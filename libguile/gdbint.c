@@ -1,5 +1,6 @@
 /* GDB interface for Guile
- * Copyright (C) 1996,1997,1999,2000,2001, 2002 Free Software Foundation, Inc.
+ * Copyright (C) 1996,1997,1999,2000,2001,2002,2004
+ * Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -216,11 +217,6 @@ int
 gdb_eval (SCM exp)
 {
   RESET_STRING;
-  if (SCM_IMP (exp))
-    {
-      gdb_result = exp;
-      return 0;
-    }
   if (SCM_GC_P)
     {
       SEND_STRING ("Can't evaluate lisp expressions during gc");
@@ -229,7 +225,7 @@ gdb_eval (SCM exp)
   SCM_BEGIN_FOREIGN_BLOCK;
   {
     SCM env = scm_top_level_env (SCM_TOP_LEVEL_LOOKUP_CLOSURE);
-    gdb_result = scm_permanent_object (scm_ceval (exp, env));
+    gdb_result = scm_permanent_object (scm_i_eval_x (exp, env));
   }
   SCM_END_FOREIGN_BLOCK;
   return 0;

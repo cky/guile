@@ -1,4 +1,5 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003, 2004 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004
+ * Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -17,13 +18,11 @@
 
 
 
-/* This file is read twice in order to produce debugging versions of
- * scm_ceval and scm_apply.  These functions, scm_deval and
- * scm_dapply, are produced when we define the preprocessor macro
- * DEVAL.  The file is divided into sections which are treated
- * differently with respect to DEVAL.  The heads of these sections are
- * marked with the string "SECTION:".
- */
+/* This file is read twice in order to produce debugging versions of ceval and
+ * scm_apply.  These functions, deval and scm_dapply, are produced when we
+ * define the preprocessor macro DEVAL.  The file is divided into sections
+ * which are treated differently with respect to DEVAL.  The heads of these
+ * sections are marked with the string "SECTION:".  */
 
 /* SECTION: This code is compiled once.
  */
@@ -906,20 +905,6 @@ m_expand_body (const SCM forms, const SCM env)
       SCM_SETCDR (forms, SCM_CDR (sequence));
     }
 }
-
-#if (SCM_ENABLE_DEPRECATED == 1)
-
-/* Deprecated in guile 1.7.0 on 2003-11-09.  */
-SCM
-scm_m_expand_body (SCM exprs, SCM env)
-{
-  scm_c_issue_deprecation_warning 
-    ("`scm_m_expand_body' is deprecated.");
-  m_expand_body (exprs, env);
-  return exprs;
-}
-
-#endif
 
 
 /* Start of the memoizers for the standard R5RS builtin macros.  */
@@ -2040,10 +2025,18 @@ scm_m_atfop (SCM expr, SCM env SCM_UNUSED)
 #endif /* SCM_ENABLE_ELISP */
 
 
-/* Start of the memoizers for deprecated macros.  */
-
-
 #if (SCM_ENABLE_DEPRECATED == 1)
+
+/* Deprecated in guile 1.7.0 on 2003-11-09.  */
+SCM
+scm_m_expand_body (SCM exprs, SCM env)
+{
+  scm_c_issue_deprecation_warning 
+    ("`scm_m_expand_body' is deprecated.");
+  m_expand_body (exprs, env);
+  return exprs;
+}
+
 
 SCM_SYNTAX (s_undefine, "undefine", scm_makacro, scm_m_undefine);
 
@@ -2068,10 +2061,6 @@ scm_m_undefine (SCM expr, SCM env)
   return SCM_UNSPECIFIED;
 }
 
-#endif
-
-
-#if (SCM_ENABLE_DEPRECATED == 1)
 
 SCM
 scm_macroexp (SCM x, SCM env)
@@ -2190,17 +2179,6 @@ unmemocar (SCM form, SCM env)
       return form;
     }
 }
-
-
-#if (SCM_ENABLE_DEPRECATED == 1)
-
-SCM
-scm_unmemocar (SCM form, SCM env)
-{
-  return unmemocar (form, env);
-}
-
-#endif
 
 
 SCM
@@ -2425,6 +2403,16 @@ loop:
 }
 
 
+#if (SCM_ENABLE_DEPRECATED == 1)
+
+SCM
+scm_unmemocar (SCM form, SCM env)
+{
+  return unmemocar (form, env);
+}
+
+#endif
+
 /*****************************************************************************/
 /*****************************************************************************/
 /*                 The definitions for execution start here.                 */
@@ -2459,36 +2447,45 @@ scm_badargsp (SCM formals, SCM args)
 
 
 
-/* The evaluator contains a plethora of EVAL symbols.
- * This is an attempt at explanation.
+/* The evaluator contains a plethora of EVAL symbols.  This is an attempt at
+ * explanation.
  *
- * The following macros should be used in code which is read twice
- * (where the choice of evaluator is hard soldered):
+ * The following macros should be used in code which is read twice (where the
+ * choice of evaluator is hard soldered):
  *
- *   SCM_CEVAL is the symbol used within one evaluator to call itself.
- *   Originally, it is defined to scm_ceval, but is redefined to
- *   scm_deval during the second pass.
+ *   CEVAL is the symbol used within one evaluator to call itself.
+ *   Originally, it is defined to ceval, but is redefined to deval during the
+ *   second pass.
  *  
  *   SCM_EVALIM is used when it is known that the expression is an
  *   immediate.  (This macro never calls an evaluator.)
- *  
- *   EVALCAR evaluates the car of an expression.
+ *
+ *   EVAL evaluates an expression that is expected to have its symbols already
+ *   memoized.  Expressions that are not of the form '(<form> <form> ...)' are
+ *   evaluated inline without calling an evaluator.
+ *
+ *   EVALCAR evaluates the car of an expression 'X:(Y:<form> <form> ...)',
+ *   potentially replacing a symbol at the position Y:<form> by its memoized
+ *   variable.  If Y:<form> is not of the form '(<form> <form> ...)', the
+ *   evaluation is performed inline without calling an evaluator.
  *  
  * The following macros should be used in code which is read once
  * (where the choice of evaluator is dynamic):
  *
- *   SCM_XEVAL takes care of immediates without calling an evaluator.  It
- *   then calls scm_ceval *or* scm_deval, depending on the debugging
- *   mode.
+ *   SCM_XEVAL corresponds to EVAL, but uses ceval *or* deval depending on the
+ *   debugging mode.
  *  
- *   SCM_XEVALCAR corresponds to EVALCAR, but uses scm_ceval *or* scm_deval
- *   depending on the debugging mode.
+ *   SCM_XEVALCAR corresponds to EVALCAR, but uses ceval *or* deval depending
+ *   on the debugging mode.
  *
  * The main motivation for keeping this plethora is efficiency
  * together with maintainability (=> locality of code).
  */
 
-#define SCM_CEVAL scm_ceval
+static SCM ceval (SCM x, SCM env);
+static SCM deval (SCM x, SCM env);
+#define CEVAL ceval
+
 
 #define SCM_EVALIM2(x) \
   ((SCM_EQ_P ((x), SCM_EOL) \
@@ -2497,24 +2494,52 @@ scm_badargsp (SCM formals, SCM args)
    (x))
 
 #define SCM_EVALIM(x, env) (SCM_ILOCP (x) \
-                            ? *scm_ilookup ((x), env) \
+                            ? *scm_ilookup ((x), (env)) \
 			    : SCM_EVALIM2(x))
 
-#define SCM_XEVAL(x, env) (SCM_IMP (x) \
-			   ? SCM_EVALIM2(x) \
-			   : (*scm_ceval_ptr) ((x), (env)))
+#define SCM_XEVAL(x, env) \
+  (SCM_IMP (x) \
+   ? SCM_EVALIM2 (x) \
+   : (SCM_VARIABLEP (x) \
+      ? SCM_VARIABLE_REF (x) \
+      : (SCM_CONSP (x) \
+         ? (scm_debug_mode_p \
+            ? deval ((x), (env)) \
+            : ceval ((x), (env))) \
+         : (x))))
 
-#define SCM_XEVALCAR(x, env) (SCM_IMP (SCM_CAR (x)) \
-			      ? SCM_EVALIM (SCM_CAR (x), env) \
-			      : (SCM_SYMBOLP (SCM_CAR (x)) \
-			         ? *scm_lookupcar (x, env, 1) \
-			         : (*scm_ceval_ptr) (SCM_CAR (x), env)))
+#define SCM_XEVALCAR(x, env) \
+  (SCM_IMP (SCM_CAR (x)) \
+   ? SCM_EVALIM (SCM_CAR (x), (env)) \
+   : (SCM_VARIABLEP (SCM_CAR (x)) \
+      ? SCM_VARIABLE_REF (SCM_CAR (x)) \
+      : (SCM_CONSP (SCM_CAR (x)) \
+         ? (scm_debug_mode_p \
+            ? deval (SCM_CAR (x), (env)) \
+            : ceval (SCM_CAR (x), (env))) \
+         : (!SCM_SYMBOLP (SCM_CAR (x)) \
+            ? SCM_CAR (x) \
+            : *scm_lookupcar ((x), (env), 1)))))
 
-#define EVALCAR(x, env) (SCM_IMP (SCM_CAR (x)) \
-			 ? SCM_EVALIM (SCM_CAR (x), env) \
-			 : (SCM_SYMBOLP (SCM_CAR (x)) \
-			    ? *scm_lookupcar (x, env, 1) \
-			    : SCM_CEVAL (SCM_CAR (x), env)))
+#define EVAL(x, env) \
+  (SCM_IMP (x) \
+   ? SCM_EVALIM ((x), (env)) \
+   : (SCM_VARIABLEP (x) \
+      ? SCM_VARIABLE_REF (x) \
+      : (SCM_CONSP (x) \
+         ? CEVAL ((x), (env)) \
+         : (x))))
+
+#define EVALCAR(x, env) \
+  (SCM_IMP (SCM_CAR (x)) \
+   ? SCM_EVALIM (SCM_CAR (x), (env)) \
+   : (SCM_VARIABLEP (SCM_CAR (x)) \
+      ? SCM_VARIABLE_REF (SCM_CAR (x)) \
+      : (SCM_CONSP (SCM_CAR (x)) \
+         ? CEVAL (SCM_CAR (x), (env)) \
+         : (!SCM_SYMBOLP (SCM_CAR (x)) \
+            ? SCM_CAR (x) \
+            :  *scm_lookupcar ((x), (env), 1)))))
 
 SCM_REC_MUTEX (source_mutex);
 
@@ -2548,6 +2573,7 @@ SCM
 scm_eval_body (SCM code, SCM env)
 {
   SCM next;
+
  again:
   next = SCM_CDR (code);
   while (!SCM_NULLP (next))
@@ -2594,13 +2620,16 @@ scm_eval_body (SCM code, SCM env)
 
 #else /* !DEVAL */
 
-#undef SCM_CEVAL
-#define SCM_CEVAL scm_deval	/* Substitute all uses of scm_ceval */
+#undef CEVAL
+#define CEVAL deval	/* Substitute all uses of ceval */
+
 #undef SCM_APPLY
 #define SCM_APPLY scm_dapply
+
 #undef PREP_APPLY
 #define PREP_APPLY(p, l) \
 { ++debug.info; debug.info->a.proc = p; debug.info->a.args = l; }
+
 #undef ENTER_APPLY
 #define ENTER_APPLY \
 do { \
@@ -2626,28 +2655,21 @@ do { \
 	SCM_TRAPS_P = 1;\
       }\
 } while (0)
+
 #undef RETURN
 #define RETURN(e) do { proc = (e); goto exit; } while (0)
+
 #ifdef STACK_CHECKING
 #ifndef EVAL_STACK_CHECKING
 #define EVAL_STACK_CHECKING
 #endif
 #endif
 
-/* scm_ceval_ptr points to the currently selected evaluator.
- * *fixme*: Although efficiency is important here, this state variable
- * should probably not be a global.  It should be related to the
- * current repl.
- */
 
-
-SCM (*scm_ceval_ptr) (SCM x, SCM env);
-
-/* scm_last_debug_frame contains a pointer to the last debugging
- * information stack frame.  It is accessed very often from the
- * debugging evaluator, so it should probably not be indirectly
- * addressed.  Better to save and restore it from the current root at
- * any stack swaps.
+/* scm_last_debug_frame contains a pointer to the last debugging information
+ * stack frame.  It is accessed very often from the debugging evaluator, so it
+ * should probably not be indirectly addressed.  Better to save and restore it
+ * from the current root at any stack swaps.
  */
 
 /* scm_debug_eframe_size is the number of slots available for pseudo
@@ -2656,7 +2678,10 @@ SCM (*scm_ceval_ptr) (SCM x, SCM env);
 
 long scm_debug_eframe_size;
 
-int scm_debug_mode, scm_check_entry_p, scm_check_apply_p, scm_check_exit_p;
+int scm_debug_mode_p;
+int scm_check_entry_p;
+int scm_check_apply_p;
+int scm_check_exit_p;
 
 long scm_eval_stack;
 
@@ -2774,46 +2799,32 @@ deval_args (SCM l, SCM env, SCM proc, SCM *lloc)
 
 /* This is the evaluator.  Like any real monster, it has three heads:
  *
- * scm_ceval is the non-debugging evaluator, scm_deval is the debugging
- * version.  Both are implemented using a common code base, using the
- * following mechanism:  SCM_CEVAL is a macro, which is either defined to
- * scm_ceval or scm_deval.  Thus, there is no function SCM_CEVAL, but the code
- * for SCM_CEVAL actually compiles to either scm_ceval or scm_deval.  When
- * SCM_CEVAL is defined to scm_ceval, it is known that the macro DEVAL is not
- * defined.  When SCM_CEVAL is defined to scm_deval, then the macro DEVAL is
- * known to be defined.  Thus, in SCM_CEVAL parts for the debugging evaluator
+ * ceval is the non-debugging evaluator, deval is the debugging version.  Both
+ * are implemented using a common code base, using the following mechanism:
+ * CEVAL is a macro, which is either defined to ceval or deval.  Thus, there
+ * is no function CEVAL, but the code for CEVAL actually compiles to either
+ * ceval or deval.  When CEVAL is defined to ceval, it is known that the macro
+ * DEVAL is not defined.  When CEVAL is defined to deval, then the macro DEVAL
+ * is known to be defined.  Thus, in CEVAL parts for the debugging evaluator
  * are enclosed within #ifdef DEVAL ... #endif.
  *
- * All three (scm_ceval, scm_deval and their common implementation SCM_CEVAL)
- * take two input parameters, x and env:  x is a single expression to be
- * evalutated.  env is the environment in which bindings are searched.
+ * All three (ceval, deval and their common implementation CEVAL) take two
+ * input parameters, x and env: x is a single expression to be evalutated.
+ * env is the environment in which bindings are searched.
  *
- * x is known to be a cell (i. e. a pair or any other non-immediate).  Since x
- * is a single expression, it is necessarily in a tail position.  If x is just
- * a call to another function like in the expression (foo exp1 exp2 ...), the
- * realization of that call therefore _must_not_ increase stack usage (the
- * evaluation of exp1, exp2 etc., however, may do so).  This is realized by
- * making extensive use of 'goto' statements within the evaluator:  The gotos
- * replace recursive calls to SCM_CEVAL, thus re-using the same stack frame
- * that SCM_CEVAL was already using.  If, however, x represents some form that
- * requires to evaluate a sequence of expressions like (begin exp1 exp2 ...),
- * then recursive calls to SCM_CEVAL are performed for all but the last
- * expression of that sequence. */
+ * x is known to be a pair.  Since x is a single expression, it is necessarily
+ * in a tail position.  If x is just a call to another function like in the
+ * expression (foo exp1 exp2 ...), the realization of that call therefore
+ * _must_not_ increase stack usage (the evaluation of exp1, exp2 etc.,
+ * however, may do so).  This is realized by making extensive use of 'goto'
+ * statements within the evaluator: The gotos replace recursive calls to
+ * CEVAL, thus re-using the same stack frame that CEVAL was already using.
+ * If, however, x represents some form that requires to evaluate a sequence of
+ * expressions like (begin exp1 exp2 ...), then recursive calls to CEVAL are
+ * performed for all but the last expression of that sequence.  */
 
-#if 0
-SCM 
-scm_ceval (SCM x, SCM env)
-{}
-#endif
-
-#if 0
-SCM 
-scm_deval (SCM x, SCM env)
-{}
-#endif
-
-SCM 
-SCM_CEVAL (SCM x, SCM env)
+static SCM
+CEVAL (SCM x, SCM env)
 {
   SCM proc, arg1;
 #ifdef DEVAL
@@ -2911,7 +2922,7 @@ start:
 #endif
 dispatch:
   SCM_TICK;
-  switch (SCM_TYP7 (x))
+  switch (SCM_ITAG7 (SCM_CAR (x)))
     {
     case SCM_BIT7 (SCM_IM_AND):
       x = SCM_CDR (x);
@@ -2969,7 +2980,7 @@ dispatch:
 		SCM_VALIDATE_NON_EMPTY_COMBINATION (form);
 	    }
 	  else
-	    SCM_CEVAL (form, env);
+	    EVAL (form, env);
 	  x = SCM_CDR (x);
 	}
       
@@ -3103,12 +3114,11 @@ dispatch:
 		   * with a pair.  All others are just constants.  However,
 		   * since in the common case there is no constant expression
 		   * in a body of a do form, we just check for immediates here
-		   * and have SCM_CEVAL take care of other cases.  In the long
-		   * run it would make sense to get rid of this test and have
-		   * the macro transformer of 'do' eliminate all forms that
-		   * have no sideeffect.  */
-		  if (!SCM_IMP (form))
-		    SCM_CEVAL (form, env);
+		   * and have CEVAL take care of other cases.  In the long run
+		   * it would make sense to get rid of this test and have the
+		   * macro transformer of 'do' eliminate all forms that have
+		   * no sideeffect.  */
+                  EVAL (form, env);
 		}
 	    }
 
@@ -3546,7 +3556,7 @@ dispatch:
 	    for (x = SCM_CDR (x); !SCM_NULLP (SCM_CDR (x)); x = SCM_CDR (x))
 	      {
 		if (SCM_CONSP (SCM_CAR (x)))
-		  SCM_CEVAL (SCM_CAR (x), env);
+		  CEVAL (SCM_CAR (x), env);
 	      }
 	    proc = EVALCAR (x, env);
 	  
@@ -3586,51 +3596,17 @@ dispatch:
 	}
 
 
-    default:
-      proc = x;
-      goto evapply;
-
-
-    case scm_tc7_vector:
-    case scm_tc7_wvect:
-#if SCM_HAVE_ARRAYS
-    case scm_tc7_bvect:
-    case scm_tc7_byvect:
-    case scm_tc7_svect:
-    case scm_tc7_ivect:
-    case scm_tc7_uvect:
-    case scm_tc7_fvect:
-    case scm_tc7_dvect:
-    case scm_tc7_cvect:
-#if SCM_SIZEOF_LONG_LONG != 0
-    case scm_tc7_llvect:
-#endif
-#endif
-    case scm_tc7_number:
-    case scm_tc7_string:
-    case scm_tc7_smob:
-    case scm_tcs_closures:
-    case scm_tc7_cclo:
-    case scm_tc7_pws:
-    case scm_tcs_subrs:
-    case scm_tcs_struct:
-    case scm_tc7_port:
-      RETURN (x);
-
-    case scm_tc7_symbol:
-      /* Only happens when called at top level.  */
-      x = scm_cons (x, SCM_UNDEFINED);
-      RETURN (*scm_lookupcar (x, env, 1));
-
-    case scm_tc7_variable:
-      RETURN (SCM_VARIABLE_REF(x));
-
     case SCM_BIT7 (SCM_ILOC00):
       proc = *scm_ilookup (SCM_CAR (x), env);
       goto checkmacro;
 
-    case scm_tcs_cons_nimcar:
-      if (SCM_SYMBOLP (SCM_CAR (x)))
+
+    default:
+      if (SCM_VARIABLEP (SCM_CAR (x)))
+        proc = SCM_VARIABLE_REF (SCM_CAR (x));
+      else if (SCM_CONSP (SCM_CAR (x)))
+	proc = CEVAL (SCM_CAR (x), env);
+      else if (SCM_SYMBOLP (SCM_CAR (x)))
 	{
 	  SCM orig_sym = SCM_CAR (x);
 	  {
@@ -3701,7 +3677,7 @@ dispatch:
 	    }
 	}
       else
-	proc = SCM_CEVAL (SCM_CAR (x), env);
+        proc = SCM_CAR (x);
 
     checkmacro:
       if (SCM_MACROP (proc))
@@ -4414,7 +4390,7 @@ SCM_APPLY (SCM proc, SCM arg1, SCM args)
   debug.vect[0].a.args = SCM_EOL;
   scm_last_debug_frame = &debug;
 #else
-  if (SCM_DEBUGGINGP)
+  if (scm_debug_mode_p)
     return scm_dapply (proc, arg1, args);
 #endif
 
@@ -4623,7 +4599,7 @@ tail:
 		SCM_VALIDATE_NON_EMPTY_COMBINATION (SCM_CAR (proc));
 	    }
 	  else
-	    SCM_CEVAL (SCM_CAR (proc), args);
+	    EVAL (SCM_CAR (proc), args);
 	  proc = arg1;
           arg1 = SCM_CDR (proc);
 	}
@@ -4830,7 +4806,7 @@ scm_trampoline_0 (SCM proc)
 
   /* If debugging is enabled, we want to see all calls to proc on the stack.
    * Thus, we replace the trampoline shortcut with scm_call_0.  */
-  if (SCM_DEBUGGINGP)
+  if (scm_debug_mode_p)
     return scm_call_0;
   else
     return trampoline;
@@ -4964,7 +4940,7 @@ scm_trampoline_1 (SCM proc)
 
   /* If debugging is enabled, we want to see all calls to proc on the stack.
    * Thus, we replace the trampoline shortcut with scm_call_1.  */
-  if (SCM_DEBUGGINGP)
+  if (scm_debug_mode_p)
     return scm_call_1;
   else
     return trampoline;
@@ -5058,7 +5034,7 @@ scm_trampoline_2 (SCM proc)
 
   /* If debugging is enabled, we want to see all calls to proc on the stack.
    * Thus, we replace the trampoline shortcut with scm_call_2.  */
-  if (SCM_DEBUGGINGP)
+  if (scm_debug_mode_p)
     return scm_call_2;
   else
     return trampoline;
@@ -5529,14 +5505,20 @@ SCM_DEFINE (scm_copy_tree, "copy-tree", 1, 0, 0,
 SCM 
 scm_i_eval_x (SCM exp, SCM env)
 {
-  return SCM_XEVAL (exp, env);
+  if (SCM_SYMBOLP (exp))
+    return *scm_lookupcar (scm_cons (exp, SCM_UNDEFINED), env, 1);
+  else
+    return SCM_XEVAL (exp, env);
 }
 
 SCM 
 scm_i_eval (SCM exp, SCM env)
 {
   exp = scm_copy_tree (exp);
-  return SCM_XEVAL (exp, env);
+  if (SCM_SYMBOLP (exp))
+    return *scm_lookupcar (scm_cons (exp, SCM_UNDEFINED), env, 1);
+  else
+    return SCM_XEVAL (exp, env);
 }
 
 SCM
@@ -5635,11 +5617,50 @@ SCM_DEFINE (scm_eval, "eval", 2, 0, 0,
 #undef FUNC_NAME
 
 
-/* At this point, scm_deval and scm_dapply are generated.
+/* At this point, deval and scm_dapply are generated.
  */
 
 #define DEVAL
 #include "eval.c"
+
+
+#if (SCM_ENABLE_DEPRECATED == 1)
+
+/* Deprecated in guile 1.7.0 on 2004-03-29.  */
+SCM scm_ceval (SCM x, SCM env)
+{
+  if (SCM_CONSP (x))
+    return ceval (x, env);
+  else if (SCM_SYMBOLP (x))
+    return *scm_lookupcar (scm_cons (x, SCM_UNDEFINED), env, 1);
+  else
+    return SCM_XEVAL (x, env);
+}
+
+/* Deprecated in guile 1.7.0 on 2004-03-29.  */
+SCM scm_deval (SCM x, SCM env)
+{
+  if (SCM_CONSP (x))
+    return deval (x, env);
+  else if (SCM_SYMBOLP (x))
+    return *scm_lookupcar (scm_cons (x, SCM_UNDEFINED), env, 1);
+  else
+    return SCM_XEVAL (x, env);
+}
+
+static SCM
+dispatching_eval (SCM x, SCM env)
+{
+  if (scm_debug_mode_p)
+    return scm_deval (x, env);
+  else
+    return scm_ceval (x, env);
+}
+
+/* Deprecated in guile 1.7.0 on 2004-03-29.  */
+SCM (*scm_ceval_ptr) (SCM x, SCM env) = dispatching_eval;
+
+#endif
 
 
 void 

@@ -218,7 +218,7 @@ display_error_body (struct display_error_args *a)
   SCM prev_frame = SCM_BOOL_F;
   SCM pname = a->subr;
 
-  if (SCM_DEBUGGINGP
+  if (scm_debug_mode_p
       && SCM_STACKP (a->stack)
       && SCM_STACK_LENGTH (a->stack) > 0)
     {

@@ -3,7 +3,8 @@
 #ifndef SCM_EVAL_H
 #define SCM_EVAL_H
 
-/* Copyright (C) 1995,1996,1998,1999,2000,2001,2002,2003 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001,2002,2003,2004
+ * Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -167,8 +168,6 @@ SCM_API SCM scm_m_atslot_set_x (SCM xorig, SCM env);
 SCM_API SCM scm_m_atdispatch (SCM xorig, SCM env);
 SCM_API SCM scm_m_at_call_with_values (SCM xorig, SCM env);
 SCM_API int scm_badargsp (SCM formals, SCM args);
-SCM_API SCM scm_ceval (SCM x, SCM env);
-SCM_API SCM scm_deval (SCM x, SCM env);
 SCM_API SCM scm_call_0 (SCM proc);
 SCM_API SCM scm_call_1 (SCM proc, SCM arg1);
 SCM_API SCM scm_call_2 (SCM proc, SCM arg1, SCM arg2);
@@ -213,6 +212,11 @@ SCM_API SCM scm_m_expand_body (SCM xorig, SCM env);
 /* Deprecated in guile 1.7.0 on 2003-11-16.  */
 SCM_API SCM scm_unmemocar (SCM form, SCM env);
 SCM_API SCM scm_macroexp (SCM x, SCM env);
+
+/* Deprecated in guile 1.7.0 on 2004-03-29.  */
+SCM_API SCM scm_ceval (SCM x, SCM env);
+SCM_API SCM scm_deval (SCM x, SCM env);
+SCM_API SCM (*scm_ceval_ptr) (SCM x, SCM env);
 
 #endif
 
