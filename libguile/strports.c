@@ -357,10 +357,10 @@ void
 scm_make_stptob ()
 {
   long tc = scm_make_port_type ("string", stfill_buffer, st_flush);
-  scm_set_ptob_mark        (tc, scm_markstream);
-  scm_set_ptob_flush_input (tc, st_read_flush);
-  scm_set_ptob_seek        (tc, st_seek);
-  scm_set_ptob_truncate    (tc, st_ftruncate);
+  scm_set_port_mark        (tc, scm_markstream);
+  scm_set_port_flush_input (tc, st_read_flush);
+  scm_set_port_seek        (tc, st_seek);
+  scm_set_port_truncate    (tc, st_ftruncate);
 }
 
 void

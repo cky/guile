@@ -202,25 +202,25 @@ extern SCM scm_markstream SCM_P ((SCM ptr));
 extern long scm_make_port_type (char *name,
 				int (*fill_buffer) (SCM port),
 				void (*write_flush) (SCM port));
-extern void scm_set_ptob_mark (long tc, SCM (*mark) (SCM));
-extern void scm_set_ptob_free (long tc, scm_sizet (*free) (SCM));
-extern void scm_set_ptob_print (long tc,
+extern void scm_set_port_mark (long tc, SCM (*mark) (SCM));
+extern void scm_set_port_free (long tc, scm_sizet (*free) (SCM));
+extern void scm_set_port_print (long tc,
 				int (*print) (SCM exp,
 					      SCM port,
 					      scm_print_state *pstate));
-extern void scm_set_ptob_equalp (long tc, SCM (*equalp) (SCM, SCM));
-extern void scm_set_ptob_flush_input (long tc,
+extern void scm_set_port_equalp (long tc, SCM (*equalp) (SCM, SCM));
+extern void scm_set_port_flush_input (long tc,
 				      void (*flush_input) (SCM port,
 							   int offset));
-extern void scm_set_ptob_close (long tc, int (*close) (SCM));
-extern void scm_set_ptob_seek (long tc,
+extern void scm_set_port_close (long tc, int (*close) (SCM));
+extern void scm_set_port_seek (long tc,
 			       off_t (*seek) (SCM port,
 					      off_t OFFSET,
 					      int WHENCE));
-extern void scm_set_ptob_truncate (long tc,
+extern void scm_set_port_truncate (long tc,
 				   void (*truncate) (SCM port,
 						     off_t length));
-extern void scm_set_ptob_input_waiting_p (long tc, int (*waitingp) (SCM));
+extern void scm_set_port_input_waiting_p (long tc, int (*waitingp) (SCM));
 extern SCM scm_char_ready_p SCM_P ((SCM port));
 extern SCM scm_drain_input (SCM port);
 extern SCM scm_current_input_port SCM_P ((void));

@@ -152,44 +152,44 @@ scm_make_port_type (char *name,
 }
 
 void
-scm_set_ptob_mark (long tc, SCM (*mark) (SCM))
+scm_set_port_mark (long tc, SCM (*mark) (SCM))
 {
   scm_ptobs[SCM_TC2PTOBNUM (tc)].mark = mark;
 }
 
 void
-scm_set_ptob_free (long tc, scm_sizet (*free) (SCM))
+scm_set_port_free (long tc, scm_sizet (*free) (SCM))
 {
   scm_ptobs[SCM_TC2PTOBNUM (tc)].free = free;
 }
 
 void
-scm_set_ptob_print (long tc, int (*print) (SCM exp, SCM port,
+scm_set_port_print (long tc, int (*print) (SCM exp, SCM port,
 					   scm_print_state *pstate))
 {
   scm_ptobs[SCM_TC2PTOBNUM (tc)].print = print;
 }
 
 void
-scm_set_ptob_equalp (long tc, SCM (*equalp) (SCM, SCM))
+scm_set_port_equalp (long tc, SCM (*equalp) (SCM, SCM))
 {
   scm_ptobs[SCM_TC2PTOBNUM (tc)].equalp = equalp;
 }
 
 void
-scm_set_ptob_flush_input (long tc, void (*flush_input) (SCM port, int offset))
+scm_set_port_flush_input (long tc, void (*flush_input) (SCM port, int offset))
 {
   scm_ptobs[SCM_TC2PTOBNUM (tc)].read_flush = flush_input;
 }
 
 void
-scm_set_ptob_close (long tc, int (*close) (SCM))
+scm_set_port_close (long tc, int (*close) (SCM))
 {
   scm_ptobs[SCM_TC2PTOBNUM (tc)].fclose = close;
 }
 
 void
-scm_set_ptob_seek (long tc, off_t (*seek) (SCM port,
+scm_set_port_seek (long tc, off_t (*seek) (SCM port,
 					   off_t OFFSET,
 					   int WHENCE))
 {
@@ -197,13 +197,13 @@ scm_set_ptob_seek (long tc, off_t (*seek) (SCM port,
 }
 
 void
-scm_set_ptob_truncate (long tc, void (*truncate) (SCM port, off_t length))
+scm_set_port_truncate (long tc, void (*truncate) (SCM port, off_t length))
 {
   scm_ptobs[SCM_TC2PTOBNUM (tc)].ftruncate = truncate;
 }
 
 void
-scm_set_ptob_input_waiting_p (long tc, int (*waitingp) (SCM))
+scm_set_port_input_waiting_p (long tc, int (*waitingp) (SCM))
 {
   scm_ptobs[SCM_TC2PTOBNUM (tc)].input_waiting_p = waitingp;
 }

@@ -158,8 +158,8 @@ void
 scm_make_sfptob ()
 {
   long tc = scm_make_port_type ("soft", sf_fill_buffer, sfflush);
-  scm_set_ptob_mark (tc, scm_markstream);
-  scm_set_ptob_close (tc, sfclose);
+  scm_set_port_mark (tc, scm_markstream);
+  scm_set_port_close (tc, sfclose);
 }
 
 void

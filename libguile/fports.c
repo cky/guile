@@ -568,13 +568,13 @@ void
 scm_make_fptob ()
 {
   long tc = scm_make_port_type ("file", fport_fill_buffer, local_fflush);
-  scm_set_ptob_free            (tc, local_free);
-  scm_set_ptob_print           (tc, prinfport);
-  scm_set_ptob_flush_input     (tc, local_read_flush);
-  scm_set_ptob_close           (tc, local_fclose);
-  scm_set_ptob_seek            (tc, local_seek);
-  scm_set_ptob_truncate        (tc, local_ftruncate);
-  scm_set_ptob_input_waiting_p (tc, fport_input_waiting_p);
+  scm_set_port_free            (tc, local_free);
+  scm_set_port_print           (tc, prinfport);
+  scm_set_port_flush_input     (tc, local_read_flush);
+  scm_set_port_close           (tc, local_fclose);
+  scm_set_port_seek            (tc, local_seek);
+  scm_set_port_truncate        (tc, local_ftruncate);
+  scm_set_port_input_waiting_p (tc, fport_input_waiting_p);
 }
 
 void
