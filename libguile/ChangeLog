@@ -1,3 +1,8 @@
+2004-07-24  Kevin Ryde  <user42@zip.com.au>
+
+	* threads.c, threads.h (scm_i_misc_mutex): New SCM_GLOBAL_MUTEX.
+	* posix.c (scm_crypt): Use it to protect static data in crypt().
+
 2004-07-23  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* deprecated.h, deprecated.c, numbers.h (SCM_INUMP, SCM_NINUMP,

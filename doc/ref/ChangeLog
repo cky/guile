@@ -1,8 +1,14 @@
 2004-07-24  Kevin Ryde  <user42@zip.com.au>
 
+	* scheme-control.texi (Frames): Add @vindex for SCM_F_WIND_EXPLICITLY.
+
 	* scheme-data.texi (String Syntax): Add all backslash forms accepted.
 	(Regexp Functions): Use @defvar for regexp/icase etc, to emphasise
 	that they're variables not symbols etc.
+
+	* scheme-smobs.texi (Smobs): In SCM_SMOB_OBJECT_LOC,
+	SCM_SMOB_OBJECT_2_LOC, SCM_SMOB_OBJECT_3_LOC, use {} to avoid "*"
+	getting into the index as part of the macro name.
 
 	* srfi-modules.texi (SRFI-0): Revise for clarity, drop BNF in favour
 	of plain description, emphasise this is just for portable programs.
