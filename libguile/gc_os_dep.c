@@ -110,6 +110,11 @@ typedef int GC_bool;
 #    define OPENBSD
 #    define mach_type_known
 # endif
+# if defined(__NetBSD__) && defined(__powerpc__)
+#    define POWERPC
+#    define NETBSD
+#    define mach_type_known
+# endif
 # if defined(__NetBSD__) && defined(m68k)
 #    define M68K
 #    define NETBSD
