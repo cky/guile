@@ -1,0 +1,86 @@
+#!/bin/sh
+# aside from this initial boilerplate, this is actually -*- scheme -*- code
+main='(module-ref (resolve-module '\''(scripts api-diff)) '\'main')'
+exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
+!#
+;;; api-diff --- diff guile-api.alist files
+
+;; 	Copyright (C) 2002 Free Software Foundation, Inc.
+;;
+;; This program is free software; you can redistribute it and/or
+;; modify it under the terms of the GNU General Public License as
+;; published by the Free Software Foundation; either version 2, or
+;; (at your option) any later version.
+;;
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;; General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with this software; see the file COPYING.  If not, write to
+;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+;; Boston, MA 02111-1307 USA
+
+;;; Author: Thien-Thi Nguyen <ttn@gnu.org>
+
+;;; Commentary:
+
+;; Usage: api-diff alist-file-A alist-file-B
+;; Read in the alists from files ALIST-FILE-A and ALIST-FILE-B
+;; and display four lists: old scheme, new scheme, old C, new C.
+;;
+;; For scheme programming, the (scripts api-diff) module exports
+;; two procedures:
+;;  (diff-alists A-alist B-alist report)
+;;  (api-diff A-file B-file)
+;; The latter implements the shell interface using the former.
+;; REPORT is a proc that takes the above four lists.  Its return
+;; value is returned by `diff-alists'.
+;;
+;; Note that the convention is that the "older" alist/file is
+;; specified first.
+;;
+;; TODO: When the annotations support it, also detect/report
+;;       procedure signature, or other simple type, changes.
+
+;;; Code:
+
+(define-module (scripts api-diff)
+  :use-module (ice-9 common-list)
+  :export (diff-alists api-diff))
+
+(define (read-alist-file file)
+  (with-input-from-file file
+    (lambda () (read))))
+
+(define (diff x y) (set-difference (map car x) (map car y)))
+
+(define (diff-alists A B report)
+  (let* ((A-scheme (assq-ref A 'scheme))
+         (A-C      (assq-ref A 'C))
+         (B-scheme (assq-ref B 'scheme))
+         (B-C      (assq-ref B 'C))
+         (OLD-scheme (diff A-scheme B-scheme))
+         (NEW-scheme (diff B-scheme A-scheme))
+         (OLD-C      (diff A-C B-C))
+         (NEW-C      (diff B-C A-C)))
+    (report OLD-scheme NEW-scheme OLD-C NEW-C)))
+
+(define (display-list head ls)
+  (format #t ":: ~A -- ~A\n" head (length ls))
+  (for-each (lambda (x) (format #t "~A\n" x)) ls)
+  (newline))
+
+(define (api-diff . args)
+  (diff-alists (read-alist-file (list-ref args 0))
+               (read-alist-file (list-ref args 1))
+               (lambda (OLD-scheme NEW-scheme OLD-C NEW-C)
+                 (display-list "OLD (deleted) scheme" OLD-scheme)
+                 (display-list "NEW scheme"           NEW-scheme)
+                 (display-list "OLD (deleted) C"      OLD-C)
+                 (display-list "NEW C"                NEW-C))))
+
+(define main api-diff)
+
+;;; api-diff ends here
