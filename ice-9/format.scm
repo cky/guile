@@ -1726,7 +1726,7 @@
 
 (define format:abort (lambda () (error "error in format")))
 
-(define format (monitor format:format))
+(define (format . args) (monitor (apply format:format args)))
 
 ;; Thanks to Shuji Narazaki
 (module-set! the-root-module 'format format)
