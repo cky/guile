@@ -16,7 +16,19 @@ These are likely to become separate modules some day.
 
 * Added new configure option --enable-debug-freelist
 
-Also added a setter `gc-set-debug-check-freelist!'
+This enables a debugging version of SCM_NEWCELL(), and also registers
+an extra primitive, the setter `gc-set-debug-check-freelist!'.
+
+Configure with the --enable-debug-freelist option to enable
+the gc-set-debug-check-freelist! primitive, and then use:
+
+(gc-set-debug-check-freelist! #t)  # turn on checking of the freelist
+(gc-set-debug-check-freelist! #f)  # turn off checking
+
+Checking of the freelist forces a traversal of the freelist and
+a garbage collection before each allocation of a cell.  This can
+slow down the interpreter dramatically, so the setter should be used to
+turn on this extra processing only when necessary.
 
 
 Changes since Guile 1.3.2:
