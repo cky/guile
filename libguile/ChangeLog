@@ -1,5 +1,31 @@
 2005-01-14  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
+	* random.c: Don't check for definedness of SCM_HAVE_T_INT64, check
+	its value.
+
+	Implement u64 and s64 uniform numeric vectors with bignums when
+	scm_t_uint64 and scm_t_int64 are not available.
+
+	* srfi-4.h, srfi-4.c, srfi-4.i.c (scm_take_u64vector,
+	scm_array_handle_u64_elements,
+	scm_array_handle_u64_writable_elements, scm_u64vector_elements,
+	scm_u64vector_writable_elements): Do not define when scm_t_uint64
+	is not available.
+	(scm_take_s64vector, scm_array_handle_s64_elements,
+	scm_array_handle_s64_writable_elements, scm_s64vector_elements,
+	scm_s64vector_writable_elements): Likewise for scm_t_int64.
+	(uvec_sizes, uvec_print, uvec_equalp): Use SCM bignums when
+	scm_t_int64/scm_t_uint64 are not available.
+	(uvec_mark): New, to mark the bignums.
+	(alloc_uvec): Initialize bignums.
+	(uvec_fast_ref): Return bignums directly.
+	(scm_uint64_min, scm_uint64_max, scm_int64_min, scm_int64_max,
+	assert_exact_integer): New.
+	(uvec_fast_set): Use them to validate the bignums.
+	(scm_init_srfi_4): Set mark function of smob when needed.
+	Initialize scm_uint64_min, scm_uint64_max, scm_int64_min,
+	scm_int64_max.
+	
 	Recognize 1.4 -e syntax.
 	
 	* script.c (sym_at, sym_atat, sym_main, all_symbols): New.
