@@ -1,3 +1,11 @@
+Wed Sep 24 22:09:52 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* backtrace.c: Introduced exception handlers which now enclose
+	`display-error' and `display-backtrace' so that error reporting
+	won't get into infinite loops if an error occurs during displaying
+	of the error.  This can very easily happen with user supplied
+	print call-back routines.
+
 Tue Sep 23 12:43:17 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* ramap.c: Added alias `array-map!' for `array-map'.  (Probably,

@@ -50,6 +50,7 @@
 #include "genio.h"
 #include "struct.h"
 #include "strports.h"
+#include "throw.h"
 
 #include "backtrace.h"
 
@@ -172,6 +173,72 @@ display_expression (frame, pname, source, port)
   scm_free_print_state (print_state);
 }
 
+struct display_error_args {
+  SCM stack;
+  SCM port;
+  SCM subr;
+  SCM message;
+  SCM args;
+  SCM rest;
+};
+
+static SCM
+display_error_body (struct display_error_args *a, SCM jmpbuf)
+{
+  SCM current_frame = SCM_BOOL_F;
+  SCM source = SCM_BOOL_F;
+  SCM pname = SCM_BOOL_F;
+  if (SCM_DEBUGGINGP
+      && SCM_NIMP (a->stack)
+      && SCM_STACKP (a->stack)
+      && SCM_STACK_LENGTH (a->stack) > 0)
+    {
+      current_frame = scm_stack_ref (a->stack, SCM_INUM0);
+      source = SCM_FRAME_SOURCE (current_frame);
+      if (!(SCM_NIMP (source) && SCM_MEMOIZEDP (source)))
+	source = SCM_FRAME_SOURCE (SCM_FRAME_PREV (current_frame));
+      if (SCM_FRAME_PROC_P (current_frame)
+	  && scm_procedure_p (SCM_FRAME_PROC (current_frame)) == SCM_BOOL_T)
+	pname = scm_procedure_name (SCM_FRAME_PROC (current_frame));
+    }
+  if (!(SCM_NIMP (pname) && SCM_ROSTRINGP (pname)))
+    pname = a->subr;
+  if ((SCM_NIMP (source) && SCM_MEMOIZEDP (source))
+      || (SCM_NIMP (pname) && SCM_ROSTRINGP (pname)))
+    {
+      display_header (source, a->port);
+      display_expression (current_frame, pname, source, a->port);
+    }
+  display_header (source, a->port);
+  scm_display_error_message (a->message, a->args, a->port);
+  return SCM_UNSPECIFIED;
+}
+
+struct display_error_handler_data {
+  char *mode;
+  SCM port;
+};
+
+/* This is the exception handler for error reporting routines.
+   Note that it is very important that this handler *doesn't* try to
+   print more than the error tag, since the error very probably is
+   caused by an erroneous print call-back routine.  If we would
+   tru to print all objects, we would enter an infinite loop. */
+static SCM
+display_error_handler (struct display_error_handler_data *data,
+		       SCM tag, SCM args)
+{
+  SCM print_state = scm_make_print_state ();
+  scm_gen_puts (scm_regular_string,
+		"\nException during displaying of ",
+		data->port);
+  scm_gen_puts (scm_regular_string, data->mode, data->port);
+  scm_gen_puts (scm_regular_string, ": ", data->port);
+  scm_iprin1 (tag, data->port, SCM_PRINT_STATE (print_state));
+  scm_gen_putc ('\n', data->port);
+  return SCM_UNSPECIFIED;
+}
+
 SCM_PROC(s_display_error, "display-error", 6, 0, 0, scm_display_error);
 SCM
 scm_display_error (stack, port, subr, message, args, rest)
@@ -182,32 +249,11 @@ scm_display_error (stack, port, subr, message, args, rest)
      SCM args;
      SCM rest;
 {
-  SCM current_frame = SCM_BOOL_F;
-  SCM source = SCM_BOOL_F;
-  SCM pname = SCM_BOOL_F;
-  if (SCM_DEBUGGINGP
-      && SCM_NIMP (stack)
-      && SCM_STACKP (stack)
-      && SCM_STACK_LENGTH (stack) > 0)
-    {
-      current_frame = scm_stack_ref (stack, SCM_INUM0);
-      source = SCM_FRAME_SOURCE (current_frame);
-      if (!(SCM_NIMP (source) && SCM_MEMOIZEDP (source)))
-	source = SCM_FRAME_SOURCE (SCM_FRAME_PREV (current_frame));
-      if (SCM_FRAME_PROC_P (current_frame)
-	  && scm_procedure_p (SCM_FRAME_PROC (current_frame)) == SCM_BOOL_T)
-	pname = scm_procedure_name (SCM_FRAME_PROC (current_frame));
-    }
-  if (!(SCM_NIMP (pname) && SCM_ROSTRINGP (pname)))
-    pname = subr;
-  if ((SCM_NIMP (source) && SCM_MEMOIZEDP (source))
-      || (SCM_NIMP (pname) && SCM_ROSTRINGP (pname)))
-    {
-      display_header (source, port);
-      display_expression (current_frame, pname, source, port);
-    }
-  display_header (source, port);
-  scm_display_error_message (message, args, port);
+  struct display_error_args a = { stack, port, subr, message, args, rest };
+  struct display_error_handler_data data = { "error", port };
+  scm_internal_catch (SCM_BOOL_T,
+		      (scm_catch_body_t) display_error_body, &a,
+		      (scm_catch_handler_t) display_error_handler, &data);
   return SCM_UNSPECIFIED;
 }
 
@@ -356,13 +402,17 @@ display_frame (frame, nfield, indentation, sport, port, pstate)
     }
 }
 
+struct display_backtrace_args {
+  SCM stack;
+  SCM port;
+  SCM first;
+  SCM depth;
+};
+
 SCM_PROC(s_display_backtrace, "display-backtrace", 2, 2, 0, scm_display_backtrace);
-SCM
-scm_display_backtrace (stack, port, first, depth)
-     SCM stack;
-     SCM port;
-     SCM first;
-     SCM depth;
+
+static SCM
+display_backtrace_body (struct display_backtrace_args *a, SCM jmpbuf)
 {
   int n_frames, beg, end, n, i, j;
   int nfield, indent_p, indentation;
@@ -370,19 +420,19 @@ scm_display_backtrace (stack, port, first, depth)
   scm_print_state *pstate;
 
   /* Argument checking and extraction. */
-  SCM_ASSERT (SCM_NIMP (stack) && SCM_STACKP (stack),
-	      stack,
+  SCM_ASSERT (SCM_NIMP (a->stack) && SCM_STACKP (a->stack),
+	      a->stack,
 	      SCM_ARG1,
 	      s_display_backtrace);
-  SCM_ASSERT (SCM_NIMP (port) && SCM_OPOUTPORTP (port),
-	      port,
+  SCM_ASSERT (SCM_NIMP (a->port) && SCM_OPOUTPORTP (a->port),
+	      a->port,
 	      SCM_ARG2,
 	      s_display_backtrace);
-  n_frames = SCM_INUM (scm_stack_length (stack));
-  n = SCM_INUMP (depth) ? SCM_INUM (depth) : SCM_BACKTRACE_DEPTH;
+  n_frames = SCM_INUM (scm_stack_length (a->stack));
+  n = SCM_INUMP (a->depth) ? SCM_INUM (a->depth) : SCM_BACKTRACE_DEPTH;
   if (SCM_BACKWARDS_P)
     {
-      beg = SCM_INUMP (first) ? SCM_INUM (first) : 0;
+      beg = SCM_INUMP (a->first) ? SCM_INUM (a->first) : 0;
       end = beg + n - 1;
       if (end >= n_frames)
 	end = n_frames - 1;
@@ -390,9 +440,9 @@ scm_display_backtrace (stack, port, first, depth)
     }
   else
     {
-      if (SCM_INUMP (first))
+      if (SCM_INUMP (a->first))
 	{
-	  beg = SCM_INUM (first);
+	  beg = SCM_INUM (a->first);
 	  end = beg - n + 1;
 	  if (end < 0)
 	    end = 0;
@@ -406,8 +456,8 @@ scm_display_backtrace (stack, port, first, depth)
 	}
       n = beg - end + 1;
     }
-  SCM_ASSERT (beg >= 0 && beg < n_frames, first, SCM_ARG3, s_display_backtrace);
-  SCM_ASSERT (n > 0, depth, SCM_ARG4, s_display_backtrace);
+  SCM_ASSERT (beg >= 0 && beg < n_frames, a->first, SCM_ARG3, s_display_backtrace);
+  SCM_ASSERT (n > 0, a->depth, SCM_ARG4, s_display_backtrace);
 
   /* Create a string port used for adaptation of printing parameters. */
   sport = scm_mkstrport (SCM_INUM0,
@@ -429,7 +479,7 @@ scm_display_backtrace (stack, port, first, depth)
   else
     {
       indent_p = 1;
-      frame = scm_stack_ref (stack, SCM_MAKINUM (beg));
+      frame = scm_stack_ref (a->stack, SCM_MAKINUM (beg));
       for (i = 0, j = 0; i < n; ++i)
 	{
 	  if (SCM_FRAME_REAL_P (frame))
@@ -446,24 +496,39 @@ scm_display_backtrace (stack, port, first, depth)
     }
   
   /* Determine size of frame number field. */
-  j = SCM_FRAME_NUMBER (scm_stack_ref (stack, SCM_MAKINUM (end)));
+  j = SCM_FRAME_NUMBER (scm_stack_ref (a->stack, SCM_MAKINUM (end)));
   for (i = 0; j > 0; ++i) j /= 10;
   nfield = i ? i : 1;
   
-  scm_gen_puts (scm_regular_string, "Backtrace:\n", port);
+  scm_gen_puts (scm_regular_string, "Backtrace:\n", a->port);
 
   /* Print frames. */
-  frame = scm_stack_ref (stack, SCM_MAKINUM (beg));
+  frame = scm_stack_ref (a->stack, SCM_MAKINUM (beg));
   indentation = 1;
-  display_frame (frame, nfield, indentation, sport, port, pstate);
+  display_frame (frame, nfield, indentation, sport, a->port, pstate);
   for (i = 1; i < n; ++i)
     {
       if (indent_p && SCM_FRAME_EVAL_ARGS_P (frame))
 	++indentation;
       frame = SCM_BACKWARDS_P ? SCM_FRAME_PREV (frame) : SCM_FRAME_NEXT (frame);
-      display_frame (frame, nfield, indentation, sport, port, pstate);
+      display_frame (frame, nfield, indentation, sport, a->port, pstate);
     }
-  
+
+  return SCM_UNSPECIFIED;
+}
+
+SCM
+scm_display_backtrace (stack, port, first, depth)
+     SCM stack;
+     SCM port;
+     SCM first;
+     SCM depth;
+{
+  struct display_backtrace_args a = { stack, port, first, depth };
+  struct display_error_handler_data data = { "backtrace", port };
+  scm_internal_catch (SCM_BOOL_T,
+		      (scm_catch_body_t) display_backtrace_body, &a,
+		      (scm_catch_handler_t) display_error_handler, &data);
   return SCM_UNSPECIFIED;
 }
 
