@@ -1,5 +1,6 @@
 2002-04-22  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
+	* goops.h (scm_slot_exists_p): Rename from scm_slots_exists_p.
 	* goops.c (scm_slot_exists_p): Rename from scm_slots_exists_p.
 	(s_scm_slot_exists_p): Rename from s_scm_slots_exists_p.
 	Thanks to Andreas Rottmann.
