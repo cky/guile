@@ -182,15 +182,6 @@ scm_ra_matchp (SCM ra0, SCM ras)
     case scm_tc7_wvect:
     case scm_tc7_string:
     case scm_tc7_bvect:
-    case scm_tc7_uvect:
-    case scm_tc7_ivect:
-    case scm_tc7_svect:
-#if SCM_SIZEOF_LONG_LONG != 0
-    case scm_tc7_llvect:
-#endif
-    case scm_tc7_fvect:
-    case scm_tc7_dvect:
-    case scm_tc7_cvect:
     uniform_vector_0:
       s0->lbnd = 0;
       s0->inc = 1;
@@ -219,15 +210,6 @@ scm_ra_matchp (SCM ra0, SCM ras)
 	case scm_tc7_wvect:
 	case scm_tc7_string:
 	case scm_tc7_bvect:
-	case scm_tc7_uvect:
-	case scm_tc7_ivect:
-	case scm_tc7_svect:
-#if SCM_SIZEOF_LONG_LONG != 0
-	case scm_tc7_llvect:
-#endif
-	case scm_tc7_fvect:
-	case scm_tc7_dvect:
-	case scm_tc7_cvect:
 	uniform_vector_1:
 	  {
 	    unsigned long int length;
@@ -527,82 +509,6 @@ scm_array_fill_int (SCM ra, SCM fill, SCM ignore SCM_UNUSED)
 	  }
 	break;
       }
-    case scm_tc7_uvect:
-      { /* scope */
-	unsigned long f = SCM_NUM2ULONG (2, fill);
-	unsigned long *ve = (unsigned long *) SCM_VELTS (ra);
-
-	for (i = base; n--; i += inc)
-	  ve[i] = f;
-	break;
-      }
-    case scm_tc7_ivect:
-      { /* scope */
-	long f = SCM_NUM2LONG (2, fill);
-	long *ve = (long *) SCM_VELTS (ra);
-
-	for (i = base; n--; i += inc)
-	  ve[i] = f;
-	break;
-      }
-    case scm_tc7_svect:
-      SCM_ASRTGO (SCM_I_INUMP (fill), badarg2);
-      { /* scope */
-	short f = SCM_I_INUM (fill);
-	short *ve = (short *) SCM_VELTS (ra);
-
-	if (f != SCM_I_INUM (fill))
-	  SCM_OUT_OF_RANGE (2, fill);
-	for (i = base; n--; i += inc)
-	  ve[i] = f;
-	break;
-      }
-#if SCM_SIZEOF_LONG_LONG != 0
-    case scm_tc7_llvect:
-      { /* scope */
-	long long f = SCM_NUM2LONG_LONG (2, fill);
-	long long *ve = (long long *) SCM_VELTS (ra);
-
-	for (i = base; n--; i += inc)
-	  ve[i] = f;
-	break;
-      }
-#endif
-    case scm_tc7_fvect:
-      { /* scope */
-	float f, *ve = (float *) SCM_VELTS (ra);
-        f = (float) scm_to_double (fill);
-	for (i = base; n--; i += inc)
-	  ve[i] = f;
-	break;
-      }
-    case scm_tc7_dvect:
-      { /* scope */
-	double f, *ve = (double *) SCM_VELTS (ra);
-        f = scm_to_double (fill);
-	for (i = base; n--; i += inc)
-	  ve[i] = f;
-	break;
-      }
-    case scm_tc7_cvect:
-      { /* scope */
-	double fr, fi;
-	double (*ve)[2] = (double (*)[2]) SCM_VELTS (ra);
-	SCM_ASRTGO (SCM_INEXACTP (fill), badarg2);
-	if (SCM_REALP (fill)) {
-	  fr = SCM_REAL_VALUE (fill);
-	  fi = 0.0;
-	} else {
-	  fr = SCM_COMPLEX_REAL (fill);
-	  fi = SCM_COMPLEX_IMAG (fill);
-	}
-	for (i = base; n--; i += inc)
-	  {
-	    ve[i][0] = fr;
-	    ve[i][1] = fi;
-	  }
-	break;
-      }
     }
   return 1;
 }
@@ -679,128 +585,6 @@ racp (SCM src, SCM dst)
 	      SCM_BITVEC_CLR(dst, i_d);
 	}
       break;
-    case scm_tc7_uvect:
-      if (scm_tc7_uvect != SCM_TYP7 (src))
-	goto gencase;
-      else
-	{
-	  long *d = (long *) SCM_VELTS (dst), *s = (long *) SCM_VELTS (src);
-	  IVDEP (src != dst,
-		 for (; n-- > 0; i_s += inc_s, i_d += inc_d)
-		 d[i_d] = s[i_s];)
-	    break;
-	}
-    case scm_tc7_ivect:
-      if (scm_tc7_uvect != SCM_TYP7 (src) && scm_tc7_ivect != SCM_TYP7 (src))
-	goto gencase;
-      else
-	{
-	  long *d = (long *) SCM_VELTS (dst), *s = (long *) SCM_VELTS (src);
-	  IVDEP (src != dst,
-		 for (; n-- > 0; i_s += inc_s, i_d += inc_d)
-		 d[i_d] = s[i_s];)
-	    break;
-	}
-    case scm_tc7_fvect:
-      {
-	float *d = (float *) SCM_VELTS (dst);
-	float *s = (float *) SCM_VELTS (src);
-	switch SCM_TYP7
-	  (src)
-	  {
-	  default:
-	    goto gencase;
-	  case scm_tc7_ivect:
-	  case scm_tc7_uvect:
-	    IVDEP (src != dst,
-		   for (; n-- > 0; i_s += inc_s, i_d += inc_d)
-		   d[i_d] = ((long *) s)[i_s];)
-	      break;
-	  case scm_tc7_fvect:
-	    IVDEP (src != dst,
-		   for (; n-- > 0; i_s += inc_s, i_d += inc_d)
-		   d[i_d] = s[i_s];)
-	      break;
-	  case scm_tc7_dvect:
-	    IVDEP (src !=dst,
-		   for (; n-- > 0; i_s += inc_s, i_d += inc_d)
-		   d[i_d] = ((double *) s)[i_s];)
-	      break;
-	  }
-	break;
-      }
-    case scm_tc7_dvect:
-      {
-	double *d = (double *) SCM_VELTS (dst);
-	double *s = (double *) SCM_VELTS (src);
-	switch SCM_TYP7
-	  (src)
-	  {
-	  default:
-	    goto gencase;
-	  case scm_tc7_ivect:
-	  case scm_tc7_uvect:
-	    IVDEP (src != dst,
-		   for (; n-- > 0; i_s += inc_s, i_d += inc_d)
-		   d[i_d] = ((long *) s)[i_s];)
-	      break;
-	  case scm_tc7_fvect:
-	    IVDEP (src != dst,
-		   for (; n-- > 0; i_s += inc_s, i_d += inc_d)
-		   d[i_d] = ((float *) s)[i_s];)
-	      break;
-	  case scm_tc7_dvect:
-	    IVDEP (src != dst,
-		   for (; n-- > 0; i_s += inc_s, i_d += inc_d)
-		   d[i_d] = s[i_s];)
-	      break;
-	  }
-	break;
-      }
-    case scm_tc7_cvect:
-      {
-	double (*d)[2] = (double (*)[2]) SCM_VELTS (dst);
-	double (*s)[2] = (double (*)[2]) SCM_VELTS (src);
-	switch SCM_TYP7
-	  (src)
-	  {
-	  default:
-	    goto gencase;
-	  case scm_tc7_ivect:
-	  case scm_tc7_uvect:
-	    IVDEP (src != dst,
-		   for (; n-- > 0; i_s += inc_s, i_d += inc_d)
-	           {
-		     d[i_d][0] = ((long *) s)[i_s];
-		     d[i_d][1] = 0.0;
-		   })
-	      break;
-	  case scm_tc7_fvect:
-	    IVDEP (src != dst,
-		   for (; n-- > 0; i_s += inc_s, i_d += inc_d)
-	           {
-		     d[i_d][0] = ((float *) s)[i_s];
-		     d[i_d][1] = 0.0;
-		   })
-	      break;
-	  case scm_tc7_dvect:
-	    IVDEP (src != dst,
-		   for (; n-- > 0; i_s += inc_s, i_d += inc_d)
-	           {
-		     d[i_d][0] = ((double *) s)[i_s];
-		     d[i_d][1] = 0.0;
-		   })
-	      break;
-	  case scm_tc7_cvect:
-	    IVDEP (src != dst,
-		   for (; n-- > 0; i_s += inc_s, i_d += inc_d)
-	           {
-		     d[i_d][0] = s[i_s][0];
-		     d[i_d][1] = s[i_s][1];
-		   })
-	      }
-	break;
-      }
     }
   return 1;
 }
@@ -849,37 +633,6 @@ scm_ra_eqp (SCM ra0, SCM ras)
 	      SCM_BITVEC_CLR (ra0, i0);
 	break;
       }
-    case scm_tc7_uvect:
-      for (; n-- > 0; i0 += inc0, i1 += inc1, i2 += inc2)
-	if (SCM_BITVEC_REF (ra0, i0))
-	  if (((unsigned long *) SCM_VELTS (ra1))[i1] != ((unsigned long *) SCM_VELTS (ra2))[i2])
-	    SCM_BITVEC_CLR (ra0, i0);
-      break;
-    case scm_tc7_ivect:
-      for (; n-- > 0; i0 += inc0, i1 += inc1, i2 += inc2)
-	if (SCM_BITVEC_REF (ra0, i0))
-	  if (((signed long *) SCM_VELTS (ra1))[i1] != ((signed long *) SCM_VELTS (ra2))[i2])
-	    SCM_BITVEC_CLR (ra0, i0);
-      break;
-    case scm_tc7_fvect:
-      for (; n-- > 0; i0 += inc0, i1 += inc1, i2 += inc2)
-	if (SCM_BITVEC_REF (ra0, i0))
-	  if (((float *) SCM_VELTS (ra1))[i1] != ((float *) SCM_VELTS (ra2))[i2])
-	    SCM_BITVEC_CLR (ra0, i0);
-      break;
-    case scm_tc7_dvect:
-      for (; n-- > 0; i0 += inc0, i1 += inc1, i2 += inc2)
-	if (SCM_BITVEC_REF (ra0, i0))
-	  if (((double *) SCM_VELTS (ra1))[i1] != ((double *) SCM_VELTS (ra2))[i2])
-	    SCM_BITVEC_CLR (ra0, i0);
-      break;
-    case scm_tc7_cvect:
-      for (; n-- > 0; i0 += inc0, i1 += inc1, i2 += inc2)
-	if (SCM_BITVEC_REF (ra0, i0))
-	  if (((double *) SCM_VELTS (ra1))[2 * i1] != ((double *) SCM_VELTS (ra2))[2 * i2] ||
-	      ((double *) SCM_VELTS (ra1))[2 * i1 + 1] != ((double *) SCM_VELTS (ra2))[2 * i2 + 1])
-	    SCM_BITVEC_CLR (ra0, i0);
-      break;
     }
   return 1;
 }
@@ -910,42 +663,6 @@ ra_compare (SCM ra0, SCM ra1, SCM ra2, int opt)
 	      SCM_BITVEC_CLR (ra0, i0);
 	break;
       }
-    case scm_tc7_uvect:
-      for (; n-- > 0; i0 += inc0, i1 += inc1, i2 += inc2)
-	{
-	  if (SCM_BITVEC_REF (ra0, i0))
-	    if (opt ?
-		((unsigned long *) SCM_VELTS (ra1))[i1] < ((unsigned long *) SCM_VELTS (ra2))[i2] :
-		((unsigned long *) SCM_VELTS (ra1))[i1] >= ((unsigned long *) SCM_VELTS (ra2))[i2])
-	      SCM_BITVEC_CLR (ra0, i0);
-	}
-      break;
-    case scm_tc7_ivect:
-      for (; n-- > 0; i0 += inc0, i1 += inc1, i2 += inc2)
-	{
-	  if (SCM_BITVEC_REF (ra0, i0))
-	    if (opt ?
-		((signed long *) SCM_VELTS (ra1))[i1] < ((signed long *) SCM_VELTS (ra2))[i2] :
-		((signed long *) SCM_VELTS (ra1))[i1] >= ((signed long *) SCM_VELTS (ra2))[i2])
-	      SCM_BITVEC_CLR (ra0, i0);
-	}
-      break;
-    case scm_tc7_fvect:
-      for (; n-- > 0; i0 += inc0, i1 += inc1, i2 += inc2)
-	if (SCM_BITVEC_REF(ra0, i0))
-	  if (opt ?
-	      ((float *) SCM_VELTS (ra1))[i1] < ((float *) SCM_VELTS (ra2))[i2] :
-	      ((float *) SCM_VELTS (ra1))[i1] >= ((float *) SCM_VELTS (ra2))[i2])
-	    SCM_BITVEC_CLR (ra0, i0);
-      break;
-    case scm_tc7_dvect:
-      for (; n-- > 0; i0 += inc0, i1 += inc1, i2 += inc2)
-	if (SCM_BITVEC_REF (ra0, i0))
-	  if (opt ?
-	      ((double *) SCM_VELTS (ra1))[i1] < ((double *) SCM_VELTS (ra2))[i2] :
-	      ((double *) SCM_VELTS (ra1))[i1] >= ((double *) SCM_VELTS (ra2))[i2])
-	    SCM_BITVEC_CLR (ra0, i0);
-      break;
     }
   return 1;
 }
@@ -1003,15 +720,6 @@ scm_ra_sum (SCM ra0, SCM ras)
 			       scm_from_ulong (i0));
 	    break;
 	  }
-	case scm_tc7_uvect:
-	case scm_tc7_ivect:
-          BINARY_ELTS_CODE( +=, long);
-	case scm_tc7_fvect:
-          BINARY_ELTS_CODE( +=, float);
-	case scm_tc7_dvect:
-          BINARY_ELTS_CODE( +=, double);
-	case scm_tc7_cvect:
-          BINARY_PAIR_ELTS_CODE( +=, double); 
 	}
     }
   return 1;
@@ -1039,12 +747,6 @@ scm_ra_difference (SCM ra0, SCM ras)
                                scm_from_ulong (i0));
 	    break;
 	  }
-	case scm_tc7_fvect:
-          UNARY_ELTS_CODE( =  -, float);
-	case scm_tc7_dvect:
-          UNARY_ELTS_CODE( =  -, double);
-	case scm_tc7_cvect:
-          UNARY_PAIR_ELTS_CODE( = -, double);
 	}
     }
   else
@@ -1062,12 +764,6 @@ scm_ra_difference (SCM ra0, SCM ras)
 	      scm_array_set_x (ra0, scm_difference (RVREF (ra0, i0, e0), RVREF (ra1, i1, e1)), scm_from_ulong (i0));
 	    break;
 	  }
-	case scm_tc7_fvect:
-          BINARY_ELTS_CODE( -=, float);
-	case scm_tc7_dvect:
-          BINARY_ELTS_CODE( -=, double);
-	case scm_tc7_cvect:
-          BINARY_PAIR_ELTS_CODE( -=, double);
 	}
     }
   return 1;
@@ -1098,28 +794,6 @@ scm_ra_product (SCM ra0, SCM ras)
 			       scm_from_ulong (i0));
 	    break;
 	  }
-	case scm_tc7_uvect:
-	case scm_tc7_ivect:
-          BINARY_ELTS_CODE( *=, long);
-	case scm_tc7_fvect:
-          BINARY_ELTS_CODE( *=, float);
-	case scm_tc7_dvect:
-          BINARY_ELTS_CODE( *=, double);
-	case scm_tc7_cvect:
-	  {
-	    double (*v0)[2] = (double (*)[2]) SCM_VELTS (ra0);
-	    register double r;
-	    double (*v1)[2] = (double (*)[2]) SCM_VELTS (ra1);
-	    IVDEP (ra0 != ra1,
-		   for (; n-- > 0; i0 += inc0, i1 += inc1)
-	      {
-		r = v0[i0][0] * v1[i1][0] - v0[i0][1] * v1[i1][1];
-		v0[i0][1] = v0[i0][0] * v1[i1][1] + v0[i0][1] * v1[i1][0];
-		v0[i0][0] = r;
-	      }
-		   );
-	    break;
-	  }
 	}
     }
   return 1;
@@ -1144,22 +818,6 @@ scm_ra_divide (SCM ra0, SCM ras)
 	      scm_array_set_x (ra0, scm_divide (RVREF (ra0, i0, e0), SCM_UNDEFINED), scm_from_ulong (i0));
 	    break;
 	  }
-	case scm_tc7_fvect:
-          UNARY_ELTS_CODE( = 1.0 / , float);
-	case scm_tc7_dvect:
-          UNARY_ELTS_CODE( = 1.0 / , double);
-	case scm_tc7_cvect:
-	  {
-	    register double d;
-	    double (*v0)[2] = (double (*)[2]) SCM_VELTS (ra0);
-	    for (; n-- > 0; i0 += inc0)
-	      {
-		d = v0[i0][0] * v0[i0][0] + v0[i0][1] * v0[i0][1];
-		v0[i0][0] /= d;
-		v0[i0][1] /= -d;
-	      }
-	    break;
-	  }
 	}
     }
   else
@@ -1176,26 +834,6 @@ scm_ra_divide (SCM ra0, SCM ras)
 	    for (; n-- > 0; i0 += inc0, i1 += inc1)
 	      scm_array_set_x (ra0, scm_divide (RVREF (ra0, i0, e0), RVREF (ra1, i1, e1)), scm_from_ulong (i0));
 	    break;
-	  }
-	case scm_tc7_fvect:
-          BINARY_ELTS_CODE( /=, float);
-	case scm_tc7_dvect:
-          BINARY_ELTS_CODE( /=, double);
-	case scm_tc7_cvect:
-	  {
-	    register double d, r;
-	    double (*v0)[2] = (double (*)[2]) SCM_VELTS (ra0);
-	    double (*v1)[2] = (double (*)[2]) SCM_VELTS (ra1);
-	    IVDEP (ra0 != ra1,
-		   for (; n-- > 0; i0 += inc0, i1 += inc1)
-	      {
-		d = v1[i1][0] * v1[i1][0] + v1[i1][1] * v1[i1][1];
-		r = (v0[i0][0] * v1[i1][0] + v0[i0][1] * v1[i1][1]) / d;
-		v0[i0][1] = (v0[i0][1] * v1[i1][0] - v0[i0][0] * v1[i1][1]) / d;
-		v0[i0][0] = r;
-	      }
-		   )
-	      break;
 	  }
 	}
     }
@@ -1265,48 +903,9 @@ ramap_dsubr (SCM ra0, SCM proc, SCM ras)
   switch (SCM_TYP7 (ra0))
     {
     default:
-    gencase:
  for (; n-- > 0; i0 += inc0, i1 += inc1)
    scm_array_set_x (ra0, scm_call_1 (proc, RVREF (ra1, i1, e1)), scm_from_ulong (i0));
  break;
-    case scm_tc7_fvect:
-      {
-	float *dst = (float *) SCM_VELTS (ra0);
-	switch (SCM_TYP7 (ra1))
-	  {
-	  default:
-	    goto gencase;
-	  case scm_tc7_fvect:
-	    for (; n-- > 0; i0 += inc0, i1 += inc1)
-	      dst[i0] = SCM_DSUBRF (proc) ((double) ((float *) SCM_VELTS (ra1))[i1]);
-	    break;
-	  case scm_tc7_uvect:
-	  case scm_tc7_ivect:
-	    for (; n-- > 0; i0 += inc0, i1 += inc1)
-	      dst[i0] = SCM_DSUBRF (proc) (SCM_UNPACK (SCM_VELTS (ra1)[i1]));
-	    break;
-	  }
-	break;
-      }
-    case scm_tc7_dvect:
-      {
-	double *dst = (double *) SCM_VELTS (ra0);
-	switch (SCM_TYP7 (ra1))
-	  {
-	  default:
-	    goto gencase;
-	  case scm_tc7_dvect:
-	    for (; n-- > 0; i0 += inc0, i1 += inc1)
-	      dst[i0] = SCM_DSUBRF (proc) (((double *) SCM_VELTS (ra1))[i1]);
-	    break;
-	  case scm_tc7_uvect:
-	  case scm_tc7_ivect:
-	    for (; n-- > 0; i0 += inc0, i1 += inc1)
-	      dst[i0] = SCM_DSUBRF (proc) (SCM_UNPACK (SCM_VELTS (ra1)[i1]));
-	    break;
-	  }
-	break;
-      }
     }
   return 1;
 }
@@ -1334,63 +933,6 @@ ramap_rp (SCM ra0, SCM proc, SCM ras)
 	  if (scm_is_false (SCM_SUBRF (proc) (RVREF (ra1, i1, e1), RVREF (ra2, i2, e2))))
 	    SCM_BITVEC_CLR (ra0, i0);
       break;
-    case scm_tc7_uvect:
-    case scm_tc7_ivect:
-      for (; n-- > 0; i0 += inc0, i1 += inc1, i2 += inc2)
-	if (SCM_BITVEC_REF (ra0, i0))
-	  {
-	    /* DIRK:FIXME:: There should be a way to access the elements
-	       of a cell as raw data.
-	     */
-	    SCM n1 = scm_from_long (((long *) SCM_UNPACK (SCM_CDR (ra1)))[i1]);
-	    SCM n2 = scm_from_long (((long *) SCM_UNPACK (SCM_CDR (ra2)))[i2]);
-	    if (scm_is_false (SCM_SUBRF (proc) (n1, n2)))
-	      SCM_BITVEC_CLR (ra0, i0);
-	  }
-      break;
-    case scm_tc7_fvect:
-      {
-	SCM a1 = scm_from_double (1.0), a2 = scm_from_double (1.0);
-	for (; n-- > 0; i0 += inc0, i1 += inc1, i2 += inc2)
-	  if (SCM_BITVEC_REF (ra0, i0))
-	    {
-	      SCM_REAL_VALUE (a1) = ((float *) SCM_VELTS (ra1))[i1];
-	      SCM_REAL_VALUE (a2) = ((float *) SCM_VELTS (ra2))[i2];
-	      if (scm_is_false (SCM_SUBRF (proc) (a1, a2)))
-		SCM_BITVEC_CLR (ra0, i0);
-	    }
-	break;
-      }
-    case scm_tc7_dvect:
-      {
-	SCM a1 = scm_from_double (1.0 / 3.0);
-	SCM a2 = scm_from_double (1.0 / 3.0);
-	for (; n-- > 0; i0 += inc0, i1 += inc1, i2 += inc2)
-	  if (SCM_BITVEC_REF (ra0, i0))
-	    {
-	      SCM_REAL_VALUE (a1) = ((double *) SCM_VELTS (ra1))[i1];
-	      SCM_REAL_VALUE (a2) = ((double *) SCM_VELTS (ra2))[i2];
-	      if (scm_is_false (SCM_SUBRF (proc) (a1, a2)))
-		SCM_BITVEC_CLR (ra0, i0);
-	    }
-	break;
-      }
-    case scm_tc7_cvect:
-      {
-	SCM a1 = scm_c_make_rectangular (1.0, 1.0);
-	SCM a2 = scm_c_make_rectangular (1.0, 1.0);
-	for (; n-- > 0; i0 += inc0, i1 += inc1, i2 += inc2)
-	  if (SCM_BITVEC_REF (ra0, i0))
-	    {
-	      SCM_COMPLEX_REAL (a1) = ((double *) SCM_VELTS (ra1))[2 * i1];
-	      SCM_COMPLEX_IMAG (a1) = ((double *) SCM_VELTS (ra1))[2 * i1 + 1];
-	      SCM_COMPLEX_REAL (a2) = ((double *) SCM_VELTS (ra2))[2 * i2];
-	      SCM_COMPLEX_IMAG (a2) = ((double *) SCM_VELTS (ra2))[2 * i2 + 1];
-	      if (scm_is_false (SCM_SUBRF (proc) (a1, a2)))
-		SCM_BITVEC_CLR (ra0, i0);
-	    }
-	break;
-      }
     }
   return 1;
 }
@@ -1696,15 +1238,6 @@ SCM_DEFINE (scm_array_index_map_x, "array-index-map!", 2, 0, 0,
       }
     case scm_tc7_string:
     case scm_tc7_bvect:
-    case scm_tc7_uvect:
-    case scm_tc7_ivect:
-    case scm_tc7_svect:
-#if SCM_SIZEOF_LONG_LONG != 0
-    case scm_tc7_llvect:
-#endif
-    case scm_tc7_fvect:
-    case scm_tc7_dvect:
-    case scm_tc7_cvect:
     uniform_vector:
       {
 	unsigned long int length = scm_to_ulong (scm_uniform_vector_length (ra));
@@ -1816,67 +1349,6 @@ raeql_1 (SCM ra0, SCM as_equal, SCM ra1)
 	if (SCM_BITVEC_REF (ra0, i0) != SCM_BITVEC_REF (ra1, i1))
 	  return 0;
       return 1;
-    case scm_tc7_uvect:
-    case scm_tc7_ivect:
-      {
-	long *v0 = (long *) SCM_VELTS (ra0) + i0;
-	long *v1 = (long *) SCM_VELTS (ra1) + i1;
-	for (; n--; v0 += inc0, v1 += inc1)
-	  if (*v0 != *v1)
-	    return 0;
-	return 1;
-      }
-    case scm_tc7_svect:
-      {
-	short *v0 = (short *) SCM_VELTS (ra0) + i0;
-	short *v1 = (short *) SCM_VELTS (ra1) + i1;
-	for (; n--; v0 += inc0, v1 += inc1)
-	  if (*v0 != *v1)
-	    return 0;
-	return 1;
-      }
-#if SCM_SIZEOF_LONG_LONG != 0
-    case scm_tc7_llvect:
-      {
-	long long *v0 = (long long *) SCM_VELTS (ra0) + i0;
-	long long *v1 = (long long *) SCM_VELTS (ra1) + i1;
-	for (; n--; v0 += inc0, v1 += inc1)
-	  if (*v0 != *v1)
-	    return 0;
-	return 1;
-      }
-#endif
-    case scm_tc7_fvect:
-      {
-	float *v0 = (float *) SCM_VELTS (ra0) + i0;
-	float *v1 = (float *) SCM_VELTS (ra1) + i1;
-	for (; n--; v0 += inc0, v1 += inc1)
-	  if (*v0 != *v1)
-	    return 0;
-	return 1;
-      }
-    case scm_tc7_dvect:
-      {
-	double *v0 = (double *) SCM_VELTS (ra0) + i0;
-	double *v1 = (double *) SCM_VELTS (ra1) + i1;
-	for (; n--; v0 += inc0, v1 += inc1)
-	  if (*v0 != *v1)
-	    return 0;
-	return 1;
-      }
-    case scm_tc7_cvect:
-      {
-	double (*v0)[2] = (double (*)[2]) SCM_VELTS (ra0) + i0;
-	double (*v1)[2] = (double (*)[2]) SCM_VELTS (ra1) + i1;
-	for (; n--; v0 += inc0, v1 += inc1)
-	  {
-	    if ((*v0)[0] != (*v1)[0])
-	      return 0;
-	    if ((*v0)[1] != (*v1)[1])
-	      return 0;
-	  }
-	return 1;
-      }
     }
 }
 
@@ -1978,12 +1450,6 @@ scm_array_equal_p (SCM ra0, SCM ra1)
       goto callequal;
     case scm_tc7_bvect:
     case scm_tc7_string:
-    case scm_tc7_uvect:
-    case scm_tc7_ivect:
-    case scm_tc7_svect:
-    case scm_tc7_fvect:
-    case scm_tc7_dvect:
-    case scm_tc7_cvect:
     case scm_tc7_vector:
     case scm_tc7_wvect:
       break;
@@ -1997,12 +1463,6 @@ scm_array_equal_p (SCM ra0, SCM ra1)
       goto callequal;
     case scm_tc7_bvect:
     case scm_tc7_string:
-    case scm_tc7_uvect:
-    case scm_tc7_ivect:
-    case scm_tc7_svect:
-    case scm_tc7_fvect:
-    case scm_tc7_dvect:
-    case scm_tc7_cvect:
     case scm_tc7_vector:
     case scm_tc7_wvect:
       break;

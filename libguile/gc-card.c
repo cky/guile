@@ -144,7 +144,7 @@ scm_i_sweep_card (scm_t_cell *  p, SCM *free_list, scm_t_heap_segment*seg)
 		       "compiled closure");
 	  break;
 #endif
-#if SCM_HAVE_ARRAYS
+
 	case scm_tc7_bvect:
 	  {
 	    unsigned long int length = SCM_BITVECTOR_LENGTH (scmptr);
@@ -157,21 +157,7 @@ scm_i_sweep_card (scm_t_cell *  p, SCM *free_list, scm_t_heap_segment*seg)
 	      }
 	  }
 	  break;
-	case scm_tc7_ivect:
-	case scm_tc7_uvect:
-	case scm_tc7_svect:
-#if SCM_SIZEOF_LONG_LONG != 0
-	case scm_tc7_llvect:
-#endif
-	case scm_tc7_fvect:
-	case scm_tc7_dvect:
-	case scm_tc7_cvect:
-	  scm_gc_free (SCM_UVECTOR_BASE (scmptr), 
-		       (SCM_UVECTOR_LENGTH (scmptr)
-			* scm_uniform_element_size (scmptr)),
-		       "vector");
-	  break;
-#endif
+
 	case scm_tc7_number:
 	  switch SCM_TYP16 (scmptr)
             {

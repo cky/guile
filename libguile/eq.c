@@ -205,12 +205,7 @@ SCM_PRIMITIVE_GENERIC_1 (scm_equal_p, "equal?", scm_tc7_rpsubr,
     case scm_tc7_wvect:
       return scm_vector_equal_p (x, y);
 #if SCM_HAVE_ARRAYS
-    case scm_tc7_bvect: case scm_tc7_uvect: case scm_tc7_ivect:
-    case scm_tc7_fvect:	case scm_tc7_cvect: case scm_tc7_dvect:
-    case scm_tc7_svect:
-#if SCM_SIZEOF_LONG_LONG != 0
-    case scm_tc7_llvect:
-#endif
+    case scm_tc7_bvect:
       if (scm_tc16_array && scm_smobs[SCM_TC2SMOBNUM (scm_tc16_array)].equalp)
 	return scm_array_equal_p (x, y);
 #endif

@@ -250,15 +250,6 @@ scm_gc_mark_dependencies (SCM p)
 #endif
 #if SCM_HAVE_ARRAYS
     case scm_tc7_bvect:
-    case scm_tc7_ivect:
-    case scm_tc7_uvect:
-    case scm_tc7_fvect:
-    case scm_tc7_dvect:
-    case scm_tc7_cvect:
-    case scm_tc7_svect:
-#if SCM_SIZEOF_LONG_LONG != 0
-    case scm_tc7_llvect:
-#endif
       break;
 #endif
 
