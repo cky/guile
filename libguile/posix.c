@@ -110,7 +110,7 @@ extern char ** environ;
 #include <locale.h>
 #endif
 
-#if HAVE_LIBCRYPT && HAVE_CRYPT_H
+#if HAVE_CRYPT_H
 #  include <crypt.h>
 #endif
 
@@ -1420,7 +1420,7 @@ SCM_DEFINE (scm_sync, "sync", 0, 0, 0,
 #undef FUNC_NAME
 #endif /* HAVE_SYNC */
 
-#if HAVE_LIBCRYPT && HAVE_CRYPT_H
+#if HAVE_CRYPT
 SCM_DEFINE (scm_crypt, "crypt", 2, 0, 0, 
             (SCM key, SCM salt),
 	    "Encrypt @var{key} using @var{salt} as the salt value to the\n"
@@ -1436,7 +1436,7 @@ SCM_DEFINE (scm_crypt, "crypt", 2, 0, 0,
   return scm_makfrom0str (p);
 }
 #undef FUNC_NAME
-#endif /* HAVE_LIBCRYPT && HAVE_CRYPT_H */
+#endif /* HAVE_CRYPT */
 
 #if HAVE_CHROOT
 SCM_DEFINE (scm_chroot, "chroot", 1, 0, 0, 
