@@ -152,9 +152,15 @@ fi
 
 #--------------------------------------------------------------------
 
+dnl Some more checks for Win32
+AC_CYGWIN
+AC_MINGW32
+AC_LIBTOOL_WIN32_DLL
+
 AC_LIBLTDL_CONVENIENCE
 AC_CONFIG_SUBDIRS(libltdl)
 
+AC_PROG_INSTALL
 AC_PROG_CC
 AC_PROG_CPP
 AC_LIBTOOL_DLOPEN
@@ -201,7 +207,7 @@ AC_HEADER_STDC
 AC_HEADER_DIRENT
 AC_HEADER_TIME
 AC_HEADER_SYS_WAIT
-AC_CHECK_HEADERS(io.h libc.h limits.h malloc.h memory.h string.h regex.h rxposix.h rx/rxposix.h sys/ioctl.h sys/select.h sys/time.h sys/timeb.h sys/times.h sys/stdtypes.h sys/types.h sys/utime.h time.h unistd.h utime.h pwd.h winsock2.h grp.h sys/utsname.h)
+AC_CHECK_HEADERS(io.h libc.h limits.h malloc.h memory.h string.h regex.h rxposix.h rx/rxposix.h sys/ioctl.h sys/select.h sys/time.h sys/timeb.h sys/times.h sys/stdtypes.h sys/types.h sys/utime.h time.h unistd.h utime.h pwd.h grp.h sys/utsname.h direct.h)
 GUILE_HEADER_LIBC_WITH_UNISTD
 
 AC_TYPE_GETGROUPS
@@ -218,7 +224,25 @@ if test $ac_cv_func_connect = no; then
     AC_CHECK_LIB(socket, connect)
 fi
 
-# Check for dynamic linking
+dnl
+dnl Check for Winsock and other functionality on Win32 (*not* CygWin)
+dnl
+EXTRA_DEFS=""
+EXTRA_LIB_DEFS=""
+if test "$MINGW32" = "yes" ; then
+    AC_CHECK_HEADER(winsock2.h, [AC_DEFINE([HAVE_WINSOCK2_H], 1, 
+      [Define if you have the <winsock2.h> header file.])])
+    AC_CHECK_LIB(ws2_32, main)
+    LIBOBJS="$LIBOBJS uname.o dirent.o"
+    if test $enable_shared = yes ; then
+      EXTRA_DEFS="-D__SCM_IMPORT__ -D__REGEX_IMPORT__ -D__CRYPT_IMPORT__"
+      EXTRA_LIB_DEFS="-D__REGEX_IMPORT__ -D__CRYPT_IMPORT__"
+    fi
+fi
+AC_SUBST(EXTRA_DEFS)
+AC_SUBST(EXTRA_LIB_DEFS)
+
+dnl Check for dynamic linking
 
 use_modules=yes
 AC_ARG_WITH(modules,
@@ -407,11 +431,14 @@ if test "$enable_regex" = yes; then
       test "$ac_cv_header_rx_rxposix_h" = yes; then
      GUILE_NAMED_CHECK_FUNC(regcomp, norx, [LIBOBJS="regex-posix.o $LIBOBJS"],
      [AC_CHECK_LIB(rx, main)
-      GUILE_NAMED_CHECK_FUNC(regcomp, rx, [LIBOBJS="regex-posix.o $LIBOBJS"])]
+      GUILE_NAMED_CHECK_FUNC(regcomp, rx, [LIBOBJS="regex-posix.o $LIBOBJS"],
+     [AC_CHECK_LIB(regex, main)
+      GUILE_NAMED_CHECK_FUNC(regcomp, regex, [LIBOBJS="regex-posix.o $LIBOBJS"])])]
      )
      dnl The following should not be necessary, but for some reason
      dnl autoheader misses it if we don't include it!
      if test "$ac_cv_func_regcomp_norx" = yes ||
+        test "$ac_cv_func_regcomp_regex" = yes ||
         test "$ac_cv_func_regcomp_rx" = yes; then
        AC_DEFINE(HAVE_REGCOMP)
      fi
