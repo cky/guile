@@ -1,5 +1,11 @@
 2004-11-04  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
+	* srfi-4.c (make_uvec): Use SCM_I_SIZE_MAX instead of SIZE_MAX for
+	added portability.
+
+	* chars.c (scm_charnames, scm_charnums): Added "sp" as an alias
+	for "space".  Thanks to Bruce Korb!
+
 	* rw.c (scm_read_string_x_partial): Bugfix, apply offset to dest
 	only after dest has been set.  Thanks to Hyper Division!
 
