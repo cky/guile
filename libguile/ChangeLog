@@ -1,3 +1,59 @@
+2001-05-19  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* version.c (s_scm_micro_version): Fix typo in FUNC_NAME, it
+	refered to s_scm_minor_version previously.
+
+	* modules.h, modules.c: Moved around a lot of code so that
+	deprecated features appear at the bottom.
+	(root_module_lookup_closure, scm_sym_app, scm_sym_modules,
+	module_prefix, make_modules_in_var, beautify_user_module_x_var,
+	scm_the_root_module, scm_make_module, scm_ensure_user_module,
+	scm_load_scheme_module): Deprecated.
+	(scm_system_module_env_p): Return SCM_BOOL_T directly for
+	environments corresponding to the root module.
+	(convert_module_name, scm_c_resolve_module,
+	scm_c_call_with_current_module, scm_c_define_module,
+	scm_c_use_module, scm_c_export): New.
+	(the_root_module): New static variant of scm_the_root_module.  Use
+	it everywhere instead of scm_the_root_module.
+	
+	* fluids.h, fluids.c (scm_internal_with_fluids): Deprecated.
+	(scm_c_with_fluids): Renamed from scm_internal_with_fluids.
+	(scm_c_with_fluid): New.
+	(scm_with_fluids): Use scm_c_with_fluids instead of
+	scm_internal_with_fluids.
+	
+	* goops.h, goops.c (scm_init_goops_builtins): Renamed from
+	`scm_init_goops'.  Do not explicitly create/switch modules.
+	Return SCM_UNSPECIFIED.
+	(scm_init_goops): Only register `%init-goops-builtins' procedure.
+	(scm_load_goops): Use scm_c_resolve_module instead of
+	scm_resolve_module.
+	
+	* init.c (scm_init_guile_1): Call `scm_init_goops' instead of
+	`scm_init_oop_goops_goopscore_module'.  Call `scm_init_rdelim' and
+	`scm_init_rw' prior to loading the startup files.
+
+	* rdelim.h, rdelim.c: (scm_init_rdelim_builtins): Renamed from
+	scm_init_rdelim.  Do not explicitly create/switch modules.
+	Return SCM_UNSPECIFIED.
+	(scm_init_rdelim): Only register `%init-rdelim-builtins'
+	procedure.
+	
+	* rw.c (scm_init_rw_builtins): Renamed from scm_init_rw.  Do not
+	explicitly create/switch modules.  Return SCM_UNSPECIFIED.
+	(scm_init_rw): Only register `%init-rw-builtins' procedure.
+
+	* script.c (scm_shell): Evaluate the compiled switches in the
+	current module, not in the root module.
+
+2001-05-18  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* fluids.c (scm_c_with_fluids): Rename from
+	scm_internal_with_fluids.
+	(scm_internal_with_fluids): Deprecated.
+	(scm_c_with_fluid): New.
+
 2001-05-17  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* print.h (PRINTH, SCM_PRINT_H):  Renamed PRINTH to SCM_PRINT_H.
