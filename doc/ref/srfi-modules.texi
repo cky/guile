@@ -1069,6 +1069,7 @@ defined previously, using @code{define-reader-ctor}.
 Example:
 
 @lisp
+(use-modules (ice-9 rdelim)) ; for read-line
 (define-reader-ctor 'file open-input-file)
 (define f '#,(file "/etc/passwd"))
 (read-line f)

@@ -738,11 +738,14 @@ currently running Guile REPL or the top of your script file.
 @end lisp
 
 This will load the module and make the procedures exported by
-@code{(ice-9 popen)} automatically available.  The next step could be to
-open a pipe to @file{ls} and read the contents of the current directory,
-one line at a time.
+@code{(ice-9 popen)} automatically available.  The next step could be
+to open a pipe to @file{ls} and read the contents of the current
+directory, one line at a time.  For the latter, we use the function
+@code{read-line}, which can be found in the module @code{(ice-9
+rdelim)}, so we use that module as well.
 
 @lisp
+(use-modules (ice-9 rdelim))
 (define p (open-input-pipe "ls -l"))
 (read-line p)
 @result{}
@@ -752,6 +755,13 @@ one line at a time.
 "drwxr-sr-x    2 mgrabmue mgrabmue     1024 Mar 29 19:57 CVS"
 @end lisp
 
+The macro @code{use-modules} can take any number of modules to use.
+Therefore, we could have written the two @code{use-modules} statements
+in the code above as
+
+@lisp
+(use-modules (ice-9 popen) (ice-9 rdelim))
+@end lisp
 
 @node Intro to Writing New Modules
 @subsection Intro to Writing New Modules
