@@ -20,6 +20,7 @@ reviewed and largely reorganized.]
 * Fluids::                      Thread-local variables.
 * Futures::                     Delayed execution in new threads.
 * Parallel Forms::              Parallel execution of forms.
+* Mutexes::                     Synchronization primitives.
 @end menu
 
 
@@ -31,10 +32,10 @@ Arbiters are synchronization objects, they can be used by threads to
 control access to a shared resource.  An arbiter can be locked to
 indicate a resource is in use, and unlocked when done.
 
-An arbiter is like a light-weight mutex (@pxref{Low level thread
-primitives}).  It uses less memory and may be a little faster, but
-there's no way for a thread to block waiting on an arbiter, it can
-only test and get the status returned.
+An arbiter is like a light-weight mutex (@pxref{Mutexes}).  It uses
+less memory and may be faster, but there's no way for a thread to
+block waiting on an arbiter, it can only test and get the status
+returned.
 
 @deffn {Scheme Procedure} make-arbiter name
 @deffnx {C Function} scm_make_arbiter (name)
@@ -351,40 +352,6 @@ If one or more threads are waiting to execute, calling yield forces an
 immediate context switch to one of them. Otherwise, yield has no effect.
 @end deffn
 
-@c begin (texi-doc-string "guile" "make-mutex")
-@deffn {Scheme Procedure} make-mutex
-Create a new mutex object.
-@end deffn
-
-@c begin (texi-doc-string "guile" "lock-mutex")
-@deffn {Scheme Procedure} lock-mutex mutex
-Lock @var{mutex}. If the mutex is already locked, the calling thread
-blocks until the mutex becomes available. The function returns when
-the calling thread owns the lock on @var{mutex}.  Locking a mutex that
-a thread already owns will succeed right away and will not block the
-thread.  That is, Guile's mutexes are @emph{recursive}.
-
-When a system async is activated for a thread that is blocked in a
-call to @code{lock-mutex}, the waiting is interrupted and the async is
-executed.  When the async returns, the waiting is resumed.
-@end deffn
-
-@deffn {Scheme Procedure} try-mutex mutex
-Try to lock @var{mutex}. If the mutex is already locked by someone
-else, return @code{#f}.  Else lock the mutex and return @code{#t}.
-@end deffn
-
-@c begin (texi-doc-string "guile" "unlock-mutex")
-@deffn {Scheme Procedure} unlock-mutex mutex
-Unlocks @var{mutex} if the calling thread owns the lock on
-@var{mutex}.  Calling unlock-mutex on a mutex not owned by the current
-thread results in undefined behaviour. Once a mutex has been unlocked,
-one thread blocked on @var{mutex} is awakened and grabs the mutex
-lock.  Every call to @code{lock-mutex} by this thread must be matched
-with a call to @code{unlock-mutex}.  Only the last call to
-@code{unlock-mutex} will actually unlock the mutex.
-@end deffn
-
 @c begin (texi-doc-string "guile" "make-condition-variable")
 @deffn {Scheme Procedure} make-condition-variable
 Make a new condition variable.
@@ -425,7 +392,7 @@ Wake up all threads that are waiting for @var{cv}.
 
 Higher level thread procedures are available by loading the
 @code{(ice-9 threads)} module.  These provide standardized
-thread creation and mutex interaction.
+thread creation.
 
 @deffn macro make-thread proc [args@dots{}]
 Apply @var{proc} to @var{args} in a new thread formed by
@@ -439,31 +406,12 @@ Evaluate forms @var{first} and @var{rest} in a new thread formed by
 the error to the current error port.
 @end deffn
 
-@deffn macro with-mutex m [body@dots{}]
-Lock mutex @var{m}, evaluate @var{body}, and then unlock @var{m}.
-These sub-operations form the branches of a @code{dynamic-wind}.
-@end deffn
-
-@deffn macro monitor body@dots{}
-Evaluate @var{body}, with a mutex locked so only one thread can
-execute that code at any one time.  Each @code{monitor} form has its
-own private mutex and the locking is done as per @code{with-mutex}
-above.  The return value is the return from the last form in
-@var{body}.
-
-The term ``monitor'' comes from operating system theory, where it
-means a particular bit of code managing access to some resource and
-which only ever executes on behalf of one process at any one time.
-@end deffn
-
 @node C level thread interface
 @subsubsection C level thread interface
 
-You can create and manage threads, mutexes, and condition variables
-with the C versions of the primitives above.  For example, you can
-create a mutex with @code{scm_make_mutex} and lock it with
-@code{scm_lock_mutex}.  In addition to these primitives there is also
-a second set of primitives for threading related things.  These
+You can create and manage threads
+with the C versions of the primitives above.
+These
 functions and data types are only available from C and can not be
 mixed with the first set from above.  However, they might be more
 efficient and can be used in situations where Scheme data types are
@@ -539,47 +487,13 @@ might have been detached by the time it terminates.
 Return the handle of the calling thread.
 @end deftypefn
 
-@deftp {C Data Type} scm_t_mutex
-This data type represents a mutex, to be used with scm_mutex_init,
-etc.
-@end deftp
-
-@deftypefn {C Function} void scm_mutex_init (scm_t_mutex *m)
-Initialize the mutex structure pointed to by @var{m}.
-@end deftypefn
-
-@deftypefn {C Function} void scm_mutex_destroy (scm_t_mutex *m)
-Deallocate all resources associated with @var{m}.
-@end deftypefn
-
-@deftypefn {C Function} void scm_mutex_lock (scm_t_mutex *m)
-Lock the mutex @var{m}.  When it is already locked by a different
-thread, wait until it becomes available.  Locking a mutex that is
-already locked by the current threads is not allowd and results in
-undefined behavior.  The mutices are not guaranteed to be fair.  That
-is, a thread that attempts a lock after yourself might be granted it
-before you.
-@end deftypefn
-
-@deftypefn {C Function} int scm_mutex_trylock (scm_t_mutex *m)
-Lock @var{m} as with @code{scm_mutex_lock} but don't wait when this
-does succeed immediately.  Returns non-zero when the mutex could in
-fact be locked , and zero when it is already locked by some other
-thread.
-@end deftypefn
-
-@deftypefn {C Function} void scm_mutex_unlock (scm_t_mutex *m)
-Unlock the mutex @var{m}.  The mutex must have been locked by the
-current thread, else the behavior is undefined.
-@end deftypefn
-
 @deftp {C Data Type} scm_t_cond
 This data type represents a condition variable, to be used with
 scm_cond_init, etc.
 @end deftp
 
 @deftypefn {C Function} void scm_cond_init (scm_t_cond *c)
-Initialize the mutex structure pointed to by @var{c}.
+Initialize the condition variable structure pointed to by @var{c}.
 @end deftypefn
 
 @deftypefn {C Function} void scm_cond_destroy (scm_t_cond *c)
@@ -856,6 +770,149 @@ But the actual implementation is more efficient since each @var{sproc}
 call, in turn, can be initiated once the relevant @var{pproc} call has
 completed, it doesn't need to wait for all to finish.
 @end deffn
+
+
+@node Mutexes
+@subsection Mutexes
+@cindex mutex
+
+A mutex is a thread synchronization object, it can be used by threads
+to control access to a shared resource.  A mutex can be locked to
+indicate a resource is in use, and other threads can then block on the
+mutex to wait for the resource (or can just test and do something else
+if not available).  ``Mutex'' is short for ``mutual exclusion''.
+
+There are two types of mutexes, ``standard'' and ``fair''.  They're
+created by @code{make-mutex} and @code{make-fair-mutex} respectively,
+the operation functions are then common to both.
+
+Note that for both types of mutex there's no protection against a
+``deadly embrace''.  For instance if one thread has locked mutex A and
+is waiting on mutex B, but another thread owns B and is waiting on A,
+then an endless wait will occur (in the current implementation).
+Acquiring requisite mutexes in a fixed order (like always A before B)
+in all threads is one way to avoid such problems.
+
+@sp 1
+@deffn {Scheme Procedure} make-mutex
+@deffnx {Scheme Procedure} make-fair-mutex
+Return a new mutex object.
+
+@code{make-mutex} creates a standard mutex.  This is fast, but its
+features are restricted.  Recursive locking (multiple lock calls by
+one thread) is not permitted, and an unlock can be done only when
+already locked and only by the owning thread.  When multiple threads
+are blocked waiting to acquire the mutex, it's unspecified which will
+get it next.
+
+@code{make-fair-mutex} creates a fair mutex.  This has more features
+and error checking.  Recursive locking is allowed, a given thread can
+make multiple lock calls and the mutex is released when a balancing
+number of unlocks are done.  Other threads blocked waiting to acquire
+the mutex form a queue and the one waiting longest will be the next to
+acquire it.
+@end deffn
+
+@deffn {Scheme Procedure} lock-mutex mutex
+Lock @var{mutex}.  If the mutex is already locked by another thread
+then block and return only when @var{mutex} has been acquired.
+
+For standard mutexes (@code{make-mutex}), if the thread has itself
+already locked @var{mutex} it must not call @code{lock-mutex} on it a
+further time.  Behaviour is unspecified if this is done.
+
+For a fair mutex (@code{make-fair-mutex}), if the thread has itself
+already locked @var{mutex}, then a further @code{lock-mutex} call
+increments the lock count.  An additional @code{unlock-mutex} will be
+required to finally release.
+
+When a system async (@pxref{System asyncs}) is activated for a thread
+blocked in @code{lock-mutex}, the wait is interrupted and the async is
+executed.  When the async returns the wait resumes.
+@end deffn
+
+@deffn {Scheme Procedure} try-mutex mutex
+Try to lock @var{mutex} as per @code{lock-mutex}.  If @var{mutex} can
+be acquired immediately then this is done and the return is @code{#t}.
+If @var{mutex} is locked by some other thread then nothing is done and
+the return is @code{#f}.
+@end deffn
+
+@deffn {Scheme Procedure} unlock-mutex mutex
+Unlock @var{mutex}.
+
+For a standard mutex (@code{make-mutex}), if @var{mutex} is not locked
+by the calling thread then behaviour is unspecified.
+
+For a fair mutex (@code{make-fair-mutex}), if @var{mutex} is not
+locked by the calling thread then an error is thrown.
+@end deffn
+
+@sp 1
+The following are higher level operations on mutexes.  These are
+available from
+
+@example
+(use-modules (ice-9 threads))
+@end example
+
+@deffn macro with-mutex mutex [body@dots{}]
+Lock @var{mutex}, evaluate the @var{body} forms, then unlock
+@var{mutex}.  The return value is the return from the last @var{body}
+form.
+
+The lock, body and unlock form the branches of a @code{dynamic-wind}
+(@pxref{Dynamic Wind}), so @var{mutex} is automatically unlocked if an
+error or new continuation exits @var{body}, and is re-locked if
+@var{body} is re-entered by a captured continuation.
+@end deffn
+
+@deffn macro monitor body@dots{}
+Evaluate the @var{body} forms, with a mutex locked so only one thread
+can execute that code at any one time.  The return value is the return
+from the last @var{body} form.
+
+Each @code{monitor} form has its own private mutex and the locking and
+evaluation is as per @code{with-mutex} above.  A standard mutex
+(@code{make-mutex}) is used, which means @var{body} must not
+recursively re-enter the @code{monitor} form.
+
+The term ``monitor'' comes from operating system theory, where it
+means a particular bit of code managing access to some resource and
+which only ever executes on behalf of one process at any one time.
+@end deffn
+
+@sp 1
+The following provide access to standard mutexes from C code.
+
+@deftp {C Data Type} scm_t_mutex
+A mutex, to be used with @code{scm_mutex_init}, etc.
+@end deftp
+
+@deftypefn {C Function} void scm_mutex_init (scm_t_mutex *m)
+Initialize the mutex structure pointed to by @var{m}.
+@end deftypefn
+
+@deftypefn {C Function} void scm_mutex_destroy (scm_t_mutex *m)
+Free all resources associated with @var{m}.
+@end deftypefn
+
+@deftypefn {C Function} void scm_mutex_lock (scm_t_mutex *m)
+Lock the mutex @var{m}.  This is as per @code{lock-mutex} above on a
+standard mutex.
+@end deftypefn
+
+@deftypefn {C Function} int scm_mutex_trylock (scm_t_mutex *m)
+Attempt to lock mutex @var{m}, as per @code{scm_mutex_lock}.  If
+@var{m} is unlocked then this is done and the return is non-zero.  If
+@var{m} is already locked by another thread then do nothing and return
+zero.
+@end deftypefn
+
+@deftypefn {C Function} void scm_mutex_unlock (scm_t_mutex *m)
+Unlock the mutex @var{m}.  The mutex must have been locked by the
+current thread, otherwise the behavior is undefined.
+@end deftypefn
 
 
 @c Local Variables:
