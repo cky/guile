@@ -1,3 +1,7 @@
+1999-06-16  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* ports.h: #include <sys/types.h>, to get a definition for `off_t'.
+
 1999-06-15  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	* stime.c (bdtime2c): Initialize lt->gmtoff and lt->tm_zone from
