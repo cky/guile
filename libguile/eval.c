@@ -1958,8 +1958,9 @@ scm_m_generalized_set_x (SCM expr, SCM env)
 	  && SCM_NULLP (SCM_CDDR (exp_target)))
 	{
 	  exp_target= SCM_CADR (exp_target);
-	  SCM_ASSYNT (SCM_SYMBOLP (exp_target) || SCM_VARIABLEP (exp_target),
-		      s_bad_variable, s_set_x);
+	  ASSERT_SYNTAX_2 (SCM_SYMBOLP (exp_target)
+			   || SCM_VARIABLEP (exp_target),
+			   s_bad_variable, exp_target, expr);
 	  return scm_cons (SCM_IM_SET_X, scm_cons (exp_target,
 						   SCM_CDR (cdr_expr)));
 	}
