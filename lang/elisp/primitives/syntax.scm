@@ -2,6 +2,7 @@
   #:use-module (lang elisp internals evaluation)
   #:use-module (lang elisp internals fset)
   #:use-module (lang elisp internals lambda)
+  #:use-module (lang elisp internals set)
   #:use-module (lang elisp internals trace)
   #:use-module (lang elisp transform))
 
@@ -13,13 +14,11 @@
 
 (define (setq exp env)
   (cons begin
-	(let loop ((sets (cdr exp)) (last-sym #f))
+	(let loop ((sets (cdr exp)))
 	  (if (null? sets)
-	      (list last-sym)
-	      (cons `(,module-define! ,the-elisp-module
-				      (,quote ,(car sets))
-				      ,(transformer (cadr sets)))
-		    (loop (cddr sets) (car sets)))))))
+	      '()
+	      (cons `(,set (,quote ,(car sets)) ,(transformer (cadr sets)))
+		    (loop (cddr sets)))))))
 
 (fset 'setq
       (procedure->memoizing-macro setq))

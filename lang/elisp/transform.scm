@@ -27,12 +27,21 @@
   (error "Syntax error in expression" x))
 
 (define-macro (scheme exp . module)
-  (let ((m (resolve-module (if (null? module)
-			       '(guile-user)
-			       (car module)))))
+  (let ((m (if (null? module)
+	       the-root-module
+	       (save-module-excursion
+		(lambda ()
+		  ;; In order for `resolve-module' to work as
+		  ;; expected, the current module must contain the
+		  ;; `app' variable.  This is not true for #:pure
+		  ;; modules, specifically (lang elisp base).  So,
+		  ;; switch to the root module (guile) before calling
+		  ;; resolve-module.
+		  (set-current-module the-root-module)
+		  (resolve-module (car module)))))))
     (let ((x `(,eval (,quote ,exp) ,m)))
-      (write x)
-      (newline)
+      ;;(write x)
+      ;;(newline)
       x)))
 
 (define (transformer x)

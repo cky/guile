@@ -35,7 +35,12 @@
 
 ;;; Everything below here is written in Elisp.
 
-(defun load-emacs ()
+(defun load-emacs (&optional new-load-path debug)
+  (if debug (message "load-path: %s" load-path))
+  (cond (new-load-path
+         (message "Setting load-path to: %s" new-load-path)
+         (setq load-path new-load-path)))
+  (if debug (message "load-path: %s" load-path))
   (scheme (read-set! keywords 'prefix))
   (message "Calling loadup.el to clothe the bare Emacs...")
   (load "loadup.el")

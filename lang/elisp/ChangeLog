@@ -1,3 +1,19 @@
+2002-02-13  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* base.scm (load-emacs): Add optional parameters for specifying an
+	alternative load path, and for debugging this.  (Thanks to
+	Thien-Thi Nguyen!)
+
+	* primitives/syntax.scm (setq): Use `set'.
+
+	* internals/set.scm (set): Fixed to support variables that are
+	imported from other modules.
+
+2002-02-12  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* transform.scm (scheme): Use set-current-module to ensure
+	expected behaviour of resolve-module.
+
 2002-02-08  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* STATUS: New file.

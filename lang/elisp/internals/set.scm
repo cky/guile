@@ -5,7 +5,9 @@
 
 ;; Set SYM's variable value to VAL, and return VAL.
 (define (set sym val)
-  (module-define! the-elisp-module sym val)
+  (if (module-defined? the-elisp-module sym)
+      (module-set! the-elisp-module sym val)
+      (module-define! the-elisp-module sym val))
   val)
 
 ;; Return SYM's variable value.  If it has none, signal an error if
