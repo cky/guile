@@ -1,5 +1,8 @@
 2003-01-10  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
+	* threads.c (scm_timed_wait_condition_variable): Support timed
+	waiting also for simple condition variables.
+
 	* goops.c (TEST_CHANGE_CLASS): Use scm_change_object_class instead
 	of calling the procedure change-object-class.
 

@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2002 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2002, 2003 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -943,11 +943,16 @@ SCM_DEFINE (scm_timed_wait_condition_variable, "wait-condition-variable", 2, 1, 
     {
       scm_t_cond *c = SCM_CONDVAR_DATA (cv);
       scm_t_mutex *m = SCM_MUTEX_DATA (mx);
-      err = scm_cond_wait (c, m);
+      if (SCM_UNBNDP (t))
+	err = scm_cond_wait (c, m);
+      else
+	err = scm_cond_timedwait (c, m, &waittime);
     }
 
   if (err)
     {
+      if (err == ETIMEDOUT)
+	return SCM_BOOL_F;
       errno = err;
       SCM_SYSERROR;
     }
