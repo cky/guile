@@ -157,8 +157,3 @@ using `trace-stack', you will need to remove it twice."
 ;;;
 ;;; XXX - Still needed?
 (module-set! the-root-module 'debug-options debug-options)
-
-
-
-(debug-enable 'debug)
-(read-enable 'positions)
