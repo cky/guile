@@ -160,17 +160,20 @@ SCM_DEFINE (scm_read_string_x_partial, "read-string!/partial", 1, 3, 0,
 }
 #undef FUNC_NAME
 
-void 
-scm_init_rw ()
+SCM 
+scm_init_rw_builtins ()
 {
-  SCM rw_module = scm_make_module (scm_read_0str ("(ice-9 rw)"));
-  SCM old_module = scm_set_current_module (rw_module);
-
 #ifndef SCM_MAGIC_SNARFER
 #include "libguile/rw.x"
 #endif
 
-  scm_set_current_module (old_module);
+  return SCM_UNSPECIFIED;
+}
+
+void
+scm_init_rw ()
+{
+  scm_make_gsubr ("%init-rw-builtins", 0, 0, 0, scm_init_rw_builtins);
 }
 
 /*
