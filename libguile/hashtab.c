@@ -228,19 +228,24 @@ scan_weak_hashtables (void *dummy1 SCM_UNUSED,
 	  int check_size_p = 0;
 	  for (i = 0; i < n; ++i)
 	    {
-	      SCM *next_spine = SCM_HASHTABLE_BUCKET_LOC (h, i);
-	      for (alist = *next_spine;
-		   !scm_is_null (alist);
-		   alist = SCM_CDR (alist))
-		if ((weak_car && UNMARKED_CELL_P (SCM_CAAR (alist)))
-		    || (weak_cdr && UNMARKED_CELL_P (SCM_CDAR (alist))))
-		  {
-		    *next_spine = SCM_CDR (alist);
-		    SCM_HASHTABLE_DECREMENT (h);
-		    check_size_p = 1;
-		  }
-		else
-		  next_spine = SCM_CDRLOC (alist);
+	      SCM *next_spine = NULL;
+	      alist = SCM_HASHTABLE_BUCKET (h, i);
+	      while (scm_is_pair (alist))
+		{
+		  if ((weak_car && UNMARKED_CELL_P (SCM_CAAR (alist)))
+		      || (weak_cdr && UNMARKED_CELL_P (SCM_CDAR (alist))))
+		    {
+		      if (next_spine)
+			*next_spine = SCM_CDR (alist);
+		      else
+			SCM_SET_HASHTABLE_BUCKET (h, i, SCM_CDR (alist));
+		      SCM_HASHTABLE_DECREMENT (h);
+		      check_size_p = 1;
+		    }
+		  else
+		    next_spine = SCM_CDRLOC (alist);
+		  alist = SCM_CDR (alist);
+		}
 	    }
 	  if (check_size_p
 	      && SCM_HASHTABLE_N_ITEMS (h) < SCM_HASHTABLE_LOWER (h))
