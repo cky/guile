@@ -1,3 +1,9 @@
+1999-01-11  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* slib.scm (install-require-module): Fixed the kludge which loads
+	the slib catalog: Doesn't anylonger assume that the feature tested
+	for isn't loaded.
+
 1998-12-14  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	* Makefile.in: Regenerated.
