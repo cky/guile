@@ -705,3 +705,39 @@ Return Inf.
 This function is used to turn on checking for a debug version of GUILE. This version does not support this functionality
 
 @end deffn
+
+@deffn {Scheme Procedure} all-threads
+implemented by the C function "scm_all_threads"
+@end deffn
+
+@deffn {Scheme Procedure} current-thread
+implemented by the C function "scm_current_thread"
+@end deffn
+
+@deffn {Scheme Procedure} standard-eval-closure module
+@deffnx {C Function} scm_standard_eval_closure (module)
+Return an eval closure for the module @var{module}.
+@end deffn
+
+@deffn {Scheme Procedure} mask-signals
+@deffnx {C Function} scm_mask_signals ()
+Mask signals. The returned value is not specified.
+@end deffn
+
+@deffn {Scheme Procedure} unmask-signals
+@deffnx {C Function} scm_unmask_signals ()
+Unmask signals. The returned value is not specified.
+@end deffn
+
+@deffn {Scheme Procedure} noop . args
+@deffnx {C Function} scm_noop (args)
+Do nothing.  When called without arguments, return @code{#f},
+otherwise return the first argument.
+@end deffn
+
+@deffn {Scheme Procedure} system-async thunk
+@deffnx {C Function} scm_system_async (thunk)
+This function is deprecated.  You can use @var{thunk} directly
+instead of explicitely creating an async object.
+
+@end deffn

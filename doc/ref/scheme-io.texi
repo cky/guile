@@ -839,7 +839,7 @@ accepting or delivering characters.  It allows emulation of I/O ports.
 @deffnx {C Function} scm_make_soft_port (pv, modes)
 Return a port capable of receiving or delivering characters as
 specified by the @var{modes} string (@pxref{File Ports,
-open-file}).  @var{pv} must be a vector of length 5.  Its
+open-file}).  @var{pv} must be a vector of length 5 or 6.  Its
 components are as follows:
 
 @enumerate 0
@@ -853,6 +853,9 @@ thunk for flushing output
 thunk for getting one character
 @item
 thunk for closing port (not by garbage collection)
+@item
+(if present and not @code{#f}) thunk for computing the number of
+characters that can be read from the port without blocking.
 @end enumerate
 
 For an output-only port only elements 0, 1, 2, and 4 need be

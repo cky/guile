@@ -267,7 +267,7 @@ top level environment.
 
 @c NJFIXME explain [env]
 @deffn {Scheme Procedure} defined? sym [env]
-@deffnx {C Function} scm_definedp (sym, env)
+@deffnx {C Function} scm_defined_p (sym, env)
 Return @code{#t} if @var{sym} is defined in the lexical environment @var{env}.  When @var{env} is not specified, look in the top-level environment as defined by the current module.
 @end deffn
 

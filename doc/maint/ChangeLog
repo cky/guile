@@ -1,3 +1,7 @@
+2002-10-19  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* guile.texi: Replaced by regenerated libguile version.
+
 2002-07-10  Gary Houston  <ghouston@arglist.com>
 
 	* docstring.el: optional 2nd environment variable to locate

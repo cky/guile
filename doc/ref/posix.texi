@@ -1526,8 +1526,8 @@ handles the signal, or @code{#f} if a non-Scheme procedure handles the
 signal.  The CDR contains the current @code{sigaction} flags for the handler.
 
 If @var{handler} is provided, it is installed as the new handler for
-@var{signum}.  The parameter @var{handler} can be a Scheme procedure
-taking one argument, or the value of @code{SIG_DFL} (default action) or
+@var{signum}.  @var{handler} can be a Scheme procedure taking one
+argument, or the value of @code{SIG_DFL} (default action) or
 @code{SIG_IGN} (ignore), or @code{#f} to restore whatever signal handler
 was installed before @code{sigaction} was first used.  When a scheme
 procedure has been specified, that procedure will run in the given

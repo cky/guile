@@ -99,7 +99,7 @@ temporarily decrease the blocking level of the current thread.  You
 can use it when you want to disable asyncs by default and only allow
 them temporarily.
 
-@deffn {Scheme procedure} system-async-mark proc [thread]
+@deffn {Scheme Procedure} system-async-mark proc [thread]
 @deffnx {C Function} scm_system_async_mark (proc)
 @deffnx {C Function} scm_system_async_mark_for_thread (proc, thread)
 Mark @var{proc} (a procedure with zero arguments) for future execution
@@ -115,7 +115,7 @@ signal handlers.
 
 @deffn {Scheme Procedure} call-with-blocked-asyncs proc
 @deffnx {C Function} scm_call_with_blocked_asyncs (proc)
-@deffnx {C Function} void *scm_c_call_with_blocked_asyncs (void *(*p) (void *d), void *d)
+@deffnx {C Function} void *scm_c_call_with_blocked_asyncs (void * (*proc) (void *data), void *data)
 Call @var{proc} and block the execution of system asyncs by one level
 for the current thread while it is running.  Return the value returned
 by @var{proc}.  For the first two variants, call @var{proc} with no

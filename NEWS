@@ -167,6 +167,14 @@ Change your code to use either procedure->memoizing-macro or, probably better,
 to use r5rs macros.  Also, be aware that macro expansion will not be done
 during evaluation, but prior to evaluation.
 
+** Soft ports now allow a `char-ready?' procedure
+
+The vector argument to `make-soft-port' can now have a length of
+either 5 or 6.  (Previously the length had to be 5.)  The optional 6th
+element is interpreted as an `input-waiting' thunk -- i.e. a thunk
+that returns the number of characters that can be read immediately
+without the soft port blocking.
+
 * Changes to the C interface
 
 ** The value 'scm_mask_ints' is no longer writable.

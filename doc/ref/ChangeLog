@@ -1,3 +1,8 @@
+2002-10-19  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* new-docstrings.texi, scheme-binding.texi, scheme-io.texi,
+	scheme-scheduling.texi, posix.texi: Automatic docstring updates.
+
 2002-10-14  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* intro.texi (Whirlwind Tour): Added pointer to examples

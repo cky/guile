@@ -228,9 +228,14 @@ scm_i_queue_async_cell (SCM c, scm_root_state *root)
 
 SCM_DEFINE (scm_system_async_mark_for_thread, "system-async-mark", 1, 1, 0,
            (SCM proc, SCM thread),
-	    "Register the procedure @var{proc} for future execution\n"
-            "in @var{thread}.  When @var{thread} is not specified,\n"
-	    "use the current thread.")
+	    "Mark @var{proc} (a procedure with zero arguments) for future execution\n"
+	    "in @var{thread}.  If @var{proc} has already been marked for\n"
+	    "@var{thread} but has not been executed yet, this call has no effect.\n"
+	    "If @var{thread} is omitted, the thread that called\n"
+	    "@code{system-async-mark} is used.\n\n"
+	    "This procedure is not safe to be called from C signal handlers.  Use\n"
+	    "@code{scm_sigaction} or @code{scm_sigaction_for_thread} to install\n"
+	    "signal handlers.")
 #define FUNC_NAME s_scm_system_async_mark_for_thread
 {
 #ifdef USE_THREADS
