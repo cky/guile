@@ -46,6 +46,10 @@
 
 #include "__scm.h"
 
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif
+
 
 
 #define SCM_STRINGP(x) (SCM_TYP7S(x)==scm_tc7_string)

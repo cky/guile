@@ -42,6 +42,7 @@
 
 #include <stdio.h>
 #include "_scm.h"
+#include "ramap.h"
 
 
 /* The set of uniform scm_vector types is:

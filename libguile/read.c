@@ -54,12 +54,12 @@
 SCM_PROC (s_read, "read", 0, 3, 0, scm_read);
 #ifdef __STDC__
 SCM 
-scm_read (SCM port, SCM case_insensative_p, SCM sharp)
+scm_read (SCM port, SCM case_insensitive_p, SCM sharp)
 #else
 SCM 
-scm_read (port, case_insensative_p, sharp)
+scm_read (port, case_insensitive_p, sharp)
      SCM port;
-     SCM case_insensative_p;
+     SCM case_insensitive_p;
      SCM sharp;
 #endif
 {
@@ -72,9 +72,9 @@ scm_read (port, case_insensative_p, sharp)
   else
     SCM_ASSERT (SCM_NIMP (port) && SCM_OPINPORTP (port), port, SCM_ARG1, s_read);
 
-  case_i = (SCM_UNBNDP (case_insensative_p)
+  case_i = (SCM_UNBNDP (case_insensitive_p)
 	    ? default_case_i
-	    : (case_insensative_p == SCM_BOOL_F));
+	    : (case_insensitive_p == SCM_BOOL_F));
   
   if (SCM_UNBNDP (sharp))
     sharp = SCM_BOOL_F;

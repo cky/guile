@@ -1,3 +1,53 @@
+Wed Aug  7 06:28:42 1996  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* Fixes motivated by Petr Adamek <adamek@mit.edu>:
+
+	* unif.c: include ramap.h.
+
+	* read.c (endif): case_insensative_p renamed case_insensitive_p.
+
+	* ramap.h: rename scm_array_copy prototypes to scm_array_copy_x.
+
+	* ports.c: include sys/ioctl.h.
+
+	* scmconfig.h.in: add HAVE_SYS_IOCTL_H.
+
+	* configure.in: check for sys/ioctl.h.
+
+	* ports.c: include <malloc.h> not "malloc.h".
+
+	* mallocs.c: include <malloc.h> not "malloc.h", likewise for unistd.h.
+
+	* fports.c: remove ttyname and tmpnam declarations.
+
+	* posix.c: fewer ttyname declarations.
+
+	* fports.c: include <string.h> not "string.h".
+
+	* init.c, ioext.c: include string.h and unistd.h.
+
+	* gc.c: include <malloc.h> not "malloc.h", likewise for unistd.h.
+
+	* async.c, strings.h, strports.c, struct.c, symbols.c, feature.c, genio.c, simpos.c, vports.c:
+	include string.h.
+
+	* socket.c, fdsocket.c: include string.h only if HAVE_STRING_H.
+
+	* fdsocket.c (getsockopt, setsockopt): change type of optlen from 
+	scm_sizet to int.
+	(scm_addr_buffer_size): change type from scm_sizet to int.
+	(accept, getsockname, getpeername, recvfrom): change type of tmp_size
+	from scm_sizet to int.
+
+	* error.c: include unistd.h.
+
+	* __scm.h: (SCM_SYSMISSING): another version in case ENOSYS isn't
+	defined.
+
+	* Makefile.in: remove references to .hd, .cd suffix and __scm.hd.
+
+	* __scm.hd, def.sed: deleted.
+
 Tue Aug  6 14:49:08 1996  Jim Blandy  <jimb@totoro.cyclic.com>
 
 	Changes for NeXT, suggested by Robert Brown.

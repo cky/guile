@@ -61,6 +61,10 @@
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#else
+#ifndef ttyname
+extern char *ttyname();
+#endif
 #endif
 
 #ifdef HAVE_SYS_SELECT_H
@@ -102,7 +106,6 @@
 
 #endif /* no FD_SET */
 
-extern char *ttyname ();
 extern FILE *popen ();
 extern char ** environ;
 
@@ -601,10 +604,6 @@ scm_setsid ()
     SCM_SYSERROR (s_setsid);
   return SCM_UNSPECIFIED;
 }
-
-#ifndef ttyname
-extern char * ttyname();
-#endif
 
 SCM_PROC (s_ttyname, "ttyname", 1, 0, 0, scm_ttyname);
 #ifdef __STDC__

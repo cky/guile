@@ -44,13 +44,16 @@
 
 
 #ifdef HAVE_MALLOC_H
-#include "malloc.h"
+#include <malloc.h>
 #endif
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
 
+#ifdef HAVE_SYS_IOCTL_H
+#include <sys/ioctl.h>
+#endif
 
 
 

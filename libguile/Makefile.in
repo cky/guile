@@ -144,7 +144,7 @@ libobjs=	alist.o \
 		$(extras)
 
 
-uninstalled_h_files= _scm.h __scm.hd
+uninstalled_h_files= _scm.h
 
 installed_h_files= __scm.h \
 		alist.h \
@@ -365,21 +365,7 @@ manifest = $(ancillary) $(c_sources)
 
 
 .SUFFIXES:
-.SUFFIXES: .o .c .h .ps .dvi .info .texinfo .scm .cd .x .hd
-
-.cd.c:
-	(   echo "/* DO NOT EDIT  --- AUTO-GENERATED --- DO NOT EDIT */" > $@ \
-	 && echo -n "#line 1" \" \
-	 && echo $<\" | sed -e "s,^.*/,," >> $@ \
-	 && sed -f $(srcdir)/def.sed $< >> $@) \
-        || rm -f $@
-
-.hd.h:
-	(   echo "/* DO NOT EDIT  --- AUTO-GENERATED --- DO NOT EDIT */" > $@ \
-	 && echo -n "#line 1" \" >> $@ \
-	 && echo $<\" | sed -e "s,^.*/,," >> $@ \
-	 && sed -f $(srcdir)/def.sed $< >> $@) \
-        || rm -f $@
+.SUFFIXES: .o .c .h .ps .dvi .info .texinfo .scm .x
 
 .c.x:
 	if test ! -escmconfig.h ; then \
@@ -476,8 +462,6 @@ depends:
 	gcc -MM -I. $(DEPENDS_CFLAGS) $(c_files)
 	rm $(gen_c_files)
 	rm scmconfig.h
-
-$(srcdir)/__scm.h: __scm.hd
 
 ###
 alist.o : alist.c _scm.h libguile.h __scm.h tags.h smob.h params.h alist.h append.h \

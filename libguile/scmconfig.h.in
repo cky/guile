@@ -176,6 +176,9 @@
 /* Define if you have the <sys/types.h> header file.  */
 #undef HAVE_SYS_TYPES_H
 
+/* Define if you have the <sys/ioctl.h> header file.  */
+#undef HAVE_SYS_IOCTL_H
+
 /* Define if you have the <time.h> header file.  */
 #undef HAVE_TIME_H
 

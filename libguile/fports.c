@@ -42,22 +42,20 @@
 
 #include <stdio.h>
 #include "_scm.h"
+
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #else
-char *ttyname ();
-char *tmpnam ();
 scm_sizet fwrite ();
-#endif
-#ifdef HAVE_STRING_H
-#include "string.h"
 #endif
 
 
 #ifdef __IBMC__
 #include <io.h>
 #include <direct.h>
-#define ttyname(x) "CON:"
 #else
 #ifndef MSDOS
 #ifndef ultrix

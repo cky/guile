@@ -1210,7 +1210,7 @@ EOF
 
 fi
 
-for ac_hdr in libc.h limits.h malloc.h memory.h string.h sys/select.h sys/time.h sys/timeb.h sys/times.h sys/types.h time.h unistd.h
+for ac_hdr in libc.h limits.h malloc.h memory.h string.h sys/ioctl.h sys/select.h sys/time.h sys/timeb.h sys/times.h sys/types.h time.h unistd.h
 do
 ac_safe=`echo "$ac_hdr" | tr './\055' '___'`
 echo $ac_n "checking for $ac_hdr""... $ac_c" 1>&6

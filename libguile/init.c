@@ -43,6 +43,12 @@
 #include <stdio.h>
 #include "_scm.h"
 
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 
 
 #ifdef __STDC__

@@ -1,5 +1,3 @@
-/* DO NOT EDIT  --- AUTO-GENERATED --- DO NOT EDIT */
-#line 1 "__scm.hd"
 /* classes: h_files */
 
 #ifndef __SCMH
@@ -180,7 +178,6 @@ typedef unsigned long ulong_long;
 # endif				/* ndef _CRAY1 */
 #endif				/* ndef vms */
 
-
 /* James Clark came up with this neat one instruction fix for
  * continuations on the SPARC.  It flushes the register windows so
  * that all the state of the process is contained in the stack. 
@@ -285,6 +282,7 @@ extern unsigned int scm_async_clock;
         if (!(_cond)) \
           goto _label
 #endif
+
 #define SCM_SYSERROR(_subr) \
 	scm_everr (SCM_UNDEFINED, SCM_EOL, SCM_UNDEFINED, \
 		   strerror (errno), _subr)
@@ -295,10 +293,15 @@ extern unsigned int scm_async_clock;
 	           scm_makfrom0str (_subr), \
 	           SCM_UNDEFINED));
      */
-#define SCM_SYSMISSING(_subr) \
-	scm_everr (SCM_UNDEFINED, SCM_EOL, SCM_UNDEFINED, \
-		   strerror (ENOSYS), _subr)
-
+#ifdef ENOSYS
+# define SCM_SYSMISSING(_subr) \
+     scm_everr (SCM_UNDEFINED, SCM_EOL, SCM_UNDEFINED, \
+		strerror (ENOSYS), _subr)
+#else
+# define SCM_SYSMISSING(_subr) \
+     scm_everr (SCM_UNDEFINED, SCM_EOL, SCM_UNDEFINED, \
+		"missing function, even ENOSYS is missing", _subr)
+#endif
 #define SCM_ARGn 		0
 #define SCM_ARG1 		1
 #define SCM_ARG2 		2

@@ -23,10 +23,10 @@
 #include "_scm.h"
 #include "mallocs.h"
 #ifdef HAVE_MALLOC_H
-#include "malloc.h"
+#include <malloc.h>
 #endif
 #ifdef HAVE_UNISTD_H
-#include "unistd.h"
+#include <unistd.h>
 #endif
 
 
