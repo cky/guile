@@ -1,75 +1,95 @@
-People:
+* People
 
 neil	Neil Jerram <neil@ossau.uklinux.net>
 gjb	Greg J. Badros <gjb@cs.washington.edu>
 thi	thi <ttn@revel.glug.org>
 peter	Peter C. Norton <spacey@lenin.nu>
+mvo	Marius Vollmer <mvo@zagadka.ping.de>
 mdj	Mikael Djurfeldt <djurfeldt@nada.kth.se>
 livshin	Michael Livshin <mlivshin@bigfoot.com>
-greg	Greg Harvey <Greg.Harvey@thezone.net>
+gregh	Greg Harvey <Greg.Harvey@thezone.net>
 niibe	NIIBE Yutaka <gniibe@chroot.org>
 dirk	Dirk Herrmann <dirk@ida.ing.tu-bs.de>
+rlb	Rob Browning <rlb@cs.utexas.edu>
 
-Assigned core tasks:
+* Assigned core tasks
 
 (? = has shown interest, but has not yet taken on the task)
 
-* reference manual
+** reference manual
 
 neil?
 
-* docstrings
+** docstrings
 
 gjb
 
-* Guile FAQ
+** Guile FAQ
 
 thi
 
-* Guile WWW pages at GNU
+** Guile WWW pages at GNU
 
 peter
 
-* Guile project list
+** Guile project list
 
 thi
 
-* integration of Jost's environments
+** Guile Debian package maintainer
+
+rlb
+
+** integration of Jost's environments
 
 gjb
 
-* generational garbage collection
+** generational garbage collection
 
-greg
+gregh
 livshin
 
-* POSIX thread support
+** POSIX thread support
 
 niibe
 
-** factorizing thread support out of libguile
+*** factorizing thread support out of libguile
 
 niibe
 dirk?
 
-* GOOPS
+** GOOPS
 
-** integration into libguile
+*** integration into libguile
 
 mdj
 
-** developing better representation for GOOPS objects
+*** developing better representation for GOOPS objects
 
 livshin
 
-** rewrite method cache management in C
+*** rewrite method cache management in C
 
 thi
 
-** rewrite core macros (define-class et al) in C
+*** rewrite core macros (define-class et al) in C
 
 thi
 
-** Orbit CORBA interface
+*** GOOPS C API
 
-dirk?
+mvo
+dirk
+
+* Core tasks in need of attention
+
+** GOOPS
+
+*** Orbit CORBA interface
+
+Talk to mdj
+
+
+Local Variables:
+mode: outline
+End:
