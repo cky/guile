@@ -69,7 +69,9 @@ scm_threads_init (SCM_STACKITEM *i)
 
   scm_thread_count = 1;
 
+#ifndef GUILE_PTHREAD_COMPAT
   coop_global_main.sto = i;
+#endif
   coop_global_main.base = i;
   coop_global_curr = &coop_global_main;
   coop_all_qput (&coop_global_allq, coop_global_curr);
