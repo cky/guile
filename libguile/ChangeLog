@@ -1,4 +1,27 @@
-1999-03-11  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+1999-03-12  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	Improvement of backtraces: Introduces a new stack narrowing
+	specifier, #t, for the inner cut.  (See further in the comments in
+	stacks.c:narrow_stack ().)
+	
+	* procprop.c, procprop.h (scm_sym_system_procedure): New symbol.
+	(Used to flag certain system procedures which shouldn't turn up in
+	backtraces.)
+
+	* eval.c (scm_sym_system_module): New symbol.  (Used to flag
+	modules which aren't "user" modules and the code of which
+	shouldn't turn up in backtraces.)
+
+	* eval.c, eval.h (scm_top_level_lookup_closure): New function:
+	Extract the lookup closure from an environment.
+	(scm_system_module_env_p): New function: Return non-#f if MODULE
+	is a system module.
+
+	* stacks.c: #include "eval.h"; #include "procprop.h";
+	(narrow_stack): Handle new narrowing specifier #t.
+
+	* debug.c (scm_procedure_name): Use name property in the default
+	case.
 
 	* gc.c, gc.h (scm_object_address): Renamed from scm_object_addr ().
 
