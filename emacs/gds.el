@@ -1,4 +1,4 @@
-;;; gds.el -- Guile debugging frontend
+;;; gds.el -- frontend for Guile development in Emacs
 
 ;;;; Copyright (C) 2003 Free Software Foundation, Inc.
 ;;;;
@@ -23,6 +23,7 @@
 
 (require 'widget)
 (require 'wid-edit)
+(require 'scheme)
 
 
 ;;;; Debugging (of this code!).
@@ -35,7 +36,7 @@
 ;;;; Customization group setup.
 
 (defgroup gds nil
-  "Customization options for Guile Debugging."
+  "Customization options for Guile Emacs frontend."
   :group 'scheme)
 
 
@@ -49,8 +50,9 @@
 ;; the buffer position of the start of the next unread form.
 (defvar gds-read-cursor nil)
 
-;; Start (or restart) the subprocess.
 (defun gds-start ()
+  "Start (or restart, if already running) the GDS subprocess."
+  (interactive)
   (if gds-process (gds-shutdown))
   (with-current-buffer (get-buffer-create "*GDS Process*")
     (erase-buffer)
@@ -72,6 +74,8 @@
 
 ;; Shutdown the subprocess and cleanup all associated data.
 (defun gds-shutdown ()
+  "Shut down the GDS subprocess."
+  (interactive)
   ;; Do cleanup for all clients.
   (while gds-names
     (gds-client-cleanup (caar gds-names)))
@@ -125,7 +129,7 @@
 ;; At any moment one Guile application has the focus of the frontend
 ;; code.  `gds-displayed-client' holds the port number of that client.
 ;; If there are no Guile applications wanting the focus - that is,
-;; ready for debugging instructions - `gds-displayed-client' is nil.
+;; ready for instructions - `gds-displayed-client' is nil.
 (defvar gds-displayed-client nil)
 
 ;; The list of other Guile applications waiting for focus, referenced
@@ -172,7 +176,7 @@
 (defun gds-focus-yield ()
   (interactive)
   (if (and (null gds-waiting)
-	   (y-or-n-p "No other clients waiting - bury *Guile Debug* buffer? "))
+	   (y-or-n-p "No other clients waiting - bury *Guile* buffer? "))
       (bury-buffer)
     (or (memq gds-displayed-client gds-waiting)
 	(setq gds-waiting (append gds-waiting (list gds-displayed-client))))
@@ -287,7 +291,25 @@
 		    ;; (closed) - Client has gone away.
 		    (gds-client-cleanup client))
 
+		   ((eq proc 'eval-results)
+		    ;; (eval-results ...) - Results of evaluation.
+		    (gds-display-results client (cddr form)))
+
 		   ))))))
+
+(defun gds-display-results (client results)
+  (let ((buf (get-buffer-create "*Guile Results*")))
+    (save-excursion
+      (set-buffer buf)
+      (erase-buffer)
+      (while results
+	(insert (car results))
+	(mapcar (function (lambda (value)
+			    (insert " => " value "\n")))
+		(cadr results))
+	(insert "\n")
+	(setq results (cddr results))))
+    (pop-to-buffer buf)))
 
 ;; Store latest status, stack or module list for the specified client.
 (defmacro gds-set (alist client val)
@@ -315,25 +337,25 @@
 
 (define-derived-mode gds-mode
   fundamental-mode
-  "Guile Debugging"
-  "Major mode for Guile debugging information buffers.")
+  "Guile"
+  "Major mode for Guile information buffers.")
 
 (defun gds-set-client-buffer (&optional client)
   (if (and gds-client-buffer
 	   (buffer-live-p gds-client-buffer))
       (set-buffer gds-client-buffer)
-    (setq gds-client-buffer (get-buffer-create "*Guile Debug*"))
+    (setq gds-client-buffer (get-buffer-create "*Guile*"))
     (set-buffer gds-client-buffer)
     (gds-mode))
   ;; Rename to something we don't want first.  Otherwise, if the
   ;; buffer is already correctly named, we get a confusing change
-  ;; from, say, `*Guile Debug: REPL*' to `*Guile Debug: REPL*<2>'.
-  (rename-buffer "*Guile Debug Fake Buffer Name*" t)
+  ;; from, say, `*Guile: REPL*' to `*Guile: REPL*<2>'.
+  (rename-buffer "*Guile Fake Buffer Name*" t)
   (rename-buffer (if client
-		     (concat "*Guile Debug: "
+		     (concat "*Guile: "
 			     (cdr (assq client gds-names))
 			     "*")
-		   "*Guile Debug*")
+		   "*Guile*")
 		 t)			; Rename uniquely if needed,
 					; although it shouldn't be.
   (force-mode-line-update t))
@@ -363,7 +385,7 @@
 (defvar gds-displayed-stack nil)
 (defvar gds-displayed-modules nil)
 
-;; Types of display areas in the *Guile Debug* buffer.
+;; Types of display areas in the *Guile* buffer.
 (defvar gds-display-types '("Status" "Stack" "Modules"))
 (defvar gds-display-type-regexp
   (concat "^\\("
@@ -461,7 +483,7 @@
   (setq gds-displayed-client client)
   (dmessage "consider display")
   (if (eq (window-buffer (selected-window)) gds-client-buffer)
-      ;; *Guile Debug* buffer already selected.
+      ;; *Guile* buffer already selected.
       (gds-display-buffers)
     (dmessage "Running GDS timer")
     (setq gds-timer
@@ -472,7 +494,7 @@
 				 (gds-display-buffers))))))
 
 (defun gds-display-buffers ()
-  ;; If there's already a window showing the *Guile Debug* buffer, use
+  ;; If there's already a window showing the *Guile* buffer, use
   ;; it.
   (let ((window (get-buffer-window gds-client-buffer t)))
     (if window
@@ -751,9 +773,245 @@ not of primary interest when debugging application code."
 
 ;;;; Evaluating code.
 
-;; The Scheme process to which code is sent is determined in the usual
-;; cmuscheme.el way by the `scheme-buffer' variable (q.v.).
-;; Customizations to the way that code is sent, for example pro- and
-;; postlogs to set up and restore evaluation context correctly in the
-;; Scheme process, are achieved (elsewhere than this file) by advising
-;; `scheme-send-region' accordingly.
+;; The following commands send code for evaluation through the GDS TCP
+;; connection, receive the result and any output generated through the
+;; same connection, and display the result and output to the user.
+;;
+;; Where there are multiple Guile applications known to GDS, GDS by
+;; default sends code to the one that holds the debugging focus,
+;; i.e. `gds-displayed-client'.  Where no application has the focus,
+;; or the command is invoked `C-u', GDS asks the user which
+;; application is intended.
+
+(defun gds-read-client ()
+  (let* ((def (if gds-displayed-client
+		  (cdr (assq gds-displayed-client gds-names))))
+	 (prompt (if def
+		     (concat "Application for eval (default "
+			     def
+			     "): ")
+		   "Application for eval: "))
+	 (name
+	  (completing-read prompt
+			   (mapcar (function cdr) gds-names)
+			   nil t nil nil
+			   def)))
+    (let (client (names gds-names))
+      (while (and names (not client))
+	(if (string-equal (cadar names) name)
+	    (setq client (caar names)))
+	(setq names (cdr names))))))
+
+(defun gds-choose-client (client)
+  (or ;; If client is an integer, it is the port number of the
+      ;; intended client.
+      (if (integerp client) client)
+      ;; Any other non-nil value indicates invocation with a prefix
+      ;; arg, which forces asking the user which application is
+      ;; intended.
+      (if client (gds-read-client))
+      ;; If ask not forced, and there is a client with the focus,
+      ;; default to that one.
+      gds-displayed-client
+      ;; Last resort - ask the user.
+      (gds-read-client)
+      ;; Signal an error.
+      (error "No application chosen.")))
+
+(defcustom gds-default-module-name '(guile-user)
+  "Name of the default module for GDS code evaluation, as list of symbols.
+This module is used when there is no `define-module' form in the
+buffer preceding the code to be evaluated."
+  :type 'sexp
+  :group 'gds)
+
+(defun gds-module-name (start end)
+  "Determine and return the name of the module that governs the
+specified region.  The module name is returned as a list of symbols."
+  (interactive "r")			; why not?
+  (save-excursion
+    (goto-char start)
+    (let (module-name)
+      (while (and (not module-name)
+		  (beginning-of-defun-raw 1))
+	(if (looking-at "(define-module ")
+	    (setq module-name
+		  (progn
+		    (goto-char (match-end 0))
+		    (read (current-buffer))))))
+      module-name)))
+
+(defun gds-port-name (start end)
+  "Return port name for the specified region of the current buffer.
+The name will be used by Guile as the port name when evaluating that
+region's code."
+  (or (buffer-file-name)
+      (concat "Emacs buffer: " (buffer-name))))
+
+(defun gds-eval-region (start end &optional client)
+  "Evaluate the current region."
+  (interactive "r\nP")
+  (setq client (gds-choose-client client))
+  (let ((module (gds-module-name start end))
+	(port-name (gds-port-name start end))
+	line column)
+    (save-excursion
+      (goto-char start)
+      (setq column (current-column))	; 0-based
+      (beginning-of-line)
+      (setq line (count-lines (point-min) (point)))) ; 0-based
+    (gds-send (format "(%S eval %s %S %d %d %S)\n"
+		      client
+		      (if module (prin1-to-string module) "#f")
+		      port-name line column
+		      (buffer-substring-no-properties start end)))))
+
+(defun gds-eval-expression (expr &optional client)
+  "Evaluate the supplied EXPR (a string)."
+  (interactive "sEvaluate expression: \nP")
+  (setq client (gds-choose-client client))
+  (gds-send (format "(%S eval #f \"Emacs expression\" 0 0 %S)\n"
+		    client expr)))
+
+(defun gds-eval-defun (&optional client)
+  "Evaluate the defun (top-level form) at point."
+  (interactive "P")
+  (save-excursion
+   (end-of-defun)
+   (let ((end (point)))
+     (beginning-of-defun)
+     (gds-eval-region (point) end client))))
+
+(defun gds-eval-last-sexp (&optional client)
+  "Evaluate the sexp before point."
+  (interactive "P")
+  (gds-eval-region (save-excursion (backward-sexp) (point)) (point) client))
+
+(defcustom gds-source-modes '(scheme-mode)
+  "*Used to determine if a buffer contains Scheme source code.
+If it's loaded into a buffer that is in one of these major modes, it's
+considered a scheme source file by `gds-load-file'."
+  :type '(repeat function)
+  :group 'gds)
+
+(defvar gds-prev-load-dir/file nil
+  "Holds the last (directory . file) pair passed to `gds-load-file'.
+Used for determining the default for the next `gds-load-file'.")
+
+(defun gds-load-file (file-name &optional client)
+  "Load a Scheme file into the inferior Scheme process."
+  (interactive (list (car (comint-get-source "Load Scheme file: "
+					     gds-prev-load-dir/file
+					     gds-source-modes t))
+					; T because LOAD needs an
+					; exact name
+		     current-prefix-arg))
+  (comint-check-source file-name) ; Check to see if buffer needs saved.
+  (setq gds-prev-load-dir/file (cons (file-name-directory    file-name)
+				     (file-name-nondirectory file-name)))
+  (setq client (gds-choose-client client))
+  (gds-send (format "(%S load %S)\n" client file-name)))
+
+;; Install the process communication commands in the scheme-mode keymap.
+(define-key scheme-mode-map "\M-\C-x" 'gds-eval-defun);gnu convention
+(define-key scheme-mode-map "\C-x\C-e" 'gds-eval-last-sexp);gnu convention
+(define-key scheme-mode-map "\C-c\C-e" 'gds-eval-defun)
+(define-key scheme-mode-map "\C-c\C-r" 'gds-eval-region)
+(define-key scheme-mode-map "\C-c\C-l" 'gds-load-file)
+
+
+;;;; Menu bar entries.
+
+(defvar gds-debug-menu nil
+  "GDS debugging menu.")
+(if gds-debug-menu
+    nil
+  (setq gds-debug-menu (make-sparse-keymap "Debug"))
+  (define-key gds-debug-menu [go]
+    '(menu-item "Go" gds-go))
+  (define-key gds-debug-menu [trace-finish]
+    '(menu-item "Trace This Frame" gds-trace-finish))
+  (define-key gds-debug-menu [step-out]
+    '(menu-item "Finish This Frame" gds-step-out))
+  (define-key gds-debug-menu [next]
+    '(menu-item "Next" gds-next))
+  (define-key gds-debug-menu [step-in]
+    '(menu-item "Single Step" gds-step-in))
+  (define-key gds-debug-menu [eval]
+    '(menu-item "Eval In This Frame..." gds-evaluate)))
+
+(defvar gds-eval-menu nil
+  "GDS evaluation menu.")
+(if gds-eval-menu
+    nil
+  (setq gds-eval-menu (make-sparse-keymap "Evaluate"))
+  (define-key gds-eval-menu [load-file]
+    '(menu-item "Load Scheme File" gds-load-file))
+  (define-key gds-eval-menu [defun]
+    '(menu-item "Defun At Point" gds-eval-defun))
+  (define-key gds-eval-menu [region]
+    '(menu-item "Region" gds-eval-region))
+  (define-key gds-eval-menu [last-sexp]
+    '(menu-item "Sexp Before Point" gds-eval-last-sexp))
+  (define-key gds-eval-menu [expr]
+    '(menu-item "Expression..." gds-eval-expression)))
+
+(defvar gds-help-menu nil
+  "GDS help menu.")
+(if gds-help-menu
+    nil
+  (setq gds-help-menu (make-sparse-keymap "Help"))
+  (define-key gds-help-menu [apropos]
+    '(menu-item "Apropos..." gds-apropos))
+  (define-key gds-help-menu [sym-here]
+    '(menu-item "Symbol At Point" gds-help-symbol-here))
+  (define-key gds-help-menu [sym]
+    '(menu-item "Symbol..." gds-help-symbol)))
+
+(defvar gds-advanced-menu nil
+  "Menu of rarely needed GDS operations.")
+(if gds-advanced-menu
+    nil
+  (setq gds-advanced-menu (make-sparse-keymap "Advanced"))
+  (define-key gds-advanced-menu [restart-gds]
+    '(menu-item "Restart IDE" gds-start :enable gds-process))
+  (define-key gds-advanced-menu [kill-gds]
+    '(menu-item "Shutdown IDE" gds-shutdown :enable gds-process))
+  (define-key gds-advanced-menu [start-gds]
+    '(menu-item "Start IDE" gds-start :enable (not gds-process))))
+
+(defvar gds-menu nil
+  "Global menu for GDS commands.")
+(if gds-menu
+    nil
+  (setq gds-menu (make-sparse-keymap "Guile"))
+  (define-key gds-menu [advanced]
+    (cons "Advanced" gds-advanced-menu))
+  (define-key gds-menu [separator-1]
+    '("--"))
+  (define-key gds-menu [help]
+    `(menu-item "Help" ,gds-help-menu :enable gds-names))
+  (define-key gds-menu [eval]
+    `(menu-item "Evaluate" ,gds-eval-menu :enable gds-names))
+  (define-key gds-menu [debug]
+    `(menu-item "Debug" ,gds-debug-menu :enable (and gds-displayed-client
+						     (gds-client-waiting))))
+  (setq menu-bar-final-items
+	(cons 'guile menu-bar-final-items))
+  (define-key global-map [menu-bar guile]
+    (cons "Guile" gds-menu)))
+
+;;;; Autostarting the GDS server.
+
+(defcustom gds-autostart-server t
+  "Whether to automatically start the GDS server when `gds.el' is loaded."
+  :type 'boolean
+  :group 'gds)
+
+(if (and gds-autostart-server
+	 (not gds-process))
+    (gds-start))
+
+(provide 'gds)
+
+;;; gds.el ends here.

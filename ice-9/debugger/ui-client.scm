@@ -259,7 +259,52 @@ decimal IP address where the UI server is running; default is
 			   (debug-here))))
 		      (module-ref (resolve-module (cadr ins)) (caddr ins)))
      state)
+    ((eval)
+     (apply (lambda (module port-name line column code)
+	      (with-input-from-string code
+	        (lambda ()
+		  (set-port-filename! (current-input-port) port-name)
+		  (set-port-line! (current-input-port) line)
+		  (set-port-column! (current-input-port) column)
+		  (let ((m (and module (resolve-module module))))
+		    (let loop ((results '()) (x (read)))
+		      (if (eof-object? x)
+			  (write-form `(eval-results ,@results))
+			  (loop (append results (ui-eval x m))
+				(read))))))))
+	    (cdr ins))
+     state)
     (else state)))
+
+(define (ui-eval x m)
+  ;; Consumer to accept possibly multiple values and present them for
+  ;; Emacs as a list of strings.
+  (define (value-consumer . values)
+    (if (unspecified? (car values))
+	'()
+	(map (lambda (value)
+	       (with-output-to-string (lambda () (write value))))
+	     values)))
+  (let ((value #f))
+    (let ((output
+	   (with-output-to-string
+	    (lambda ()
+	      (if m
+		  (begin
+		    (display "Evaluating in module ")
+		    (write (module-name m))
+		    (newline)
+		    (set! value
+			  (call-with-values (lambda () (eval x m))
+			    value-consumer)))
+		  (begin
+		    (display "Evaluating in current module ")
+		    (write (module-name (current-module)))
+		    (newline)
+		    (set! value
+			  (call-with-values (lambda () (primitive-eval x))
+			    value-consumer))))))))
+      (list output value))))
 
 (define (write-status status)
   (write-form (list 'status status)))
