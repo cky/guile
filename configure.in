@@ -61,8 +61,18 @@ if test $ac_cv_func_connect = no; then
 fi
 AC_CHECK_LIB(termcap, tgoto)
 AC_CHECK_LIB(readline, readline)
-AC_CHECK_FUNCS(rl_getc_function rl_clear_signals rl_cleanup_after_signal)
-if test $ac_cv_lib_readline_readline = yes -a $ac_cv_func_rl_getc_function = no; then
+AC_CHECK_FUNCS(rl_clear_signals rl_cleanup_after_signal)
+
+AC_CACHE_CHECK([for rl_getc_function pointer in readline],
+               ac_cv_var_rl_getc_function,
+               [AC_TRY_LINK([
+#include <stdio.h>
+#include <readline/readline.h>],
+                            [rl_getc_function;],
+                            [ac_cv_var_rl_getc_function=yes],
+                            [ac_cv_var_rl_getc_function=no])])
+
+if test $ac_cv_lib_readline_readline = yes -a $ac_cv_var_rl_getc_function = no; then
   echo 'Warning: libreadline is too old on your system.  Need >= 2.1.'
 fi
 
