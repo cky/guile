@@ -112,6 +112,17 @@ replacement.
 A typical example is `format' in (ice-9 format) which is a replacement
 for the core binding `format'.
 
+** Adding prefixes to imported bindings in the module system
+
+There is now a new :use-module option :prefix.  It can be used to add
+a prefix to all imported bindings.
+
+  (define-module (foo)
+    :use-module ((bar) :prefix bar:))
+
+will import all bindings exported from bar, but rename them by adding
+the prefix `bar:'.
+
 ** Merging generic functions
 
 It is sometimes tempting to use GOOPS accessors with short names.
