@@ -1,3 +1,7 @@
+2000-06-21  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* Guile 1.4 released.
+
 2000-06-20  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* GUILE-VERSION: Changed to work also when included by a Makefile
