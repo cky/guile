@@ -275,9 +275,8 @@ typedef long SCM;
 #define SCM_CONSP(x) (!SCM_NCONSP(x))
 
 
-/* ECONSP is historical and, in fact, slightly buggy.
- * There are two places to fix where structures and glocs can be confused.
- * !!!
+/* SCM_ECONSP should be used instead of SCM_CONSP at places where GLOCS
+ * can be expected to occur.
  */
 #define SCM_ECONSP(x) (SCM_CONSP (x) \
 		       || (SCM_TYP3(x) == 1 \

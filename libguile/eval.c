@@ -674,7 +674,6 @@ iqq (form, env, depth)
       --depth;
     label:
       form = SCM_CDR (form);
-      /* !!! might need a check here to be sure that form isn't a struct. */
       SCM_ASSERT (SCM_NIMP (form) && SCM_ECONSP (form) && SCM_NULLP (SCM_CDR (form)),
 	      form, SCM_ARG1, s_quasiquote);
       if (0 == depth)
