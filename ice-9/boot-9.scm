@@ -1712,11 +1712,11 @@
                              (orig (if direct? bspec (car bspec)))
                              (seen (if direct? bspec (cdr bspec))))
                         (module-add! custom-i (renamer seen)
-                                     (or (module-local-variable module orig)
+                                     (or (module-local-variable public-i orig)
                                          (error
                                           ;; fixme: format manually for now
                                           (simple-format
-                                           #f "no binding `~A' in module ~A"
+                                           #f "no binding `~A' exported from module ~A"
                                            orig name))))))
                     selection)
           custom-i))))
