@@ -2889,6 +2889,9 @@
 	   use-emacs-interface)
       (load-emacs-interface))
 
+  ;; Place the user in the guile-user module.
+  (define-module (guile-user))
+
   (let ((old-handlers #f)
 	(signals `((,SIGINT . "User interrupt")
 		   (,SIGFPE . "Arithmetic error")
@@ -3030,6 +3033,3 @@
     
 (append! %load-path (cons "." ()))
 
-
-
-(define-module (guile-user))

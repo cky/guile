@@ -1,3 +1,8 @@
+1998-11-05  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+
+	* boot-9.scm: Set the repl start module in `top-repl' instead of
+	at the end of boot-9.scm.
+
 1998-11-01  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* emacs.scm (format): Bugfix: Handle multiple arguments
