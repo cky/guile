@@ -65,7 +65,6 @@
 #include "iselect.h"
 #endif
 
-/* #define GUILE_PTHREAD_COMPAT 1 */
 #ifdef GUILE_PTHREAD_COMPAT
 #include <pthread.h>
 #endif
