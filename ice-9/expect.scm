@@ -1,6 +1,4 @@
-;;; installed-scm-file
-
-;;;; 	Copyright (C) 1996, 1998 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1996, 1998, 1999 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -98,7 +96,7 @@
 
 
 (define-public expect-strings-compile-flags regexp/newline)
-(define-public expect-strings-exec-flags 0)
+(define-public expect-strings-exec-flags regexp/noteol)
 
 ;;; the regexec front-end to expect:
 ;;; each test must evaluate to a regular expression.
@@ -135,14 +133,20 @@
 	 (pair? (car (select (list port) '() '()
 			     relative))))))
 
-;;; convert a match object to a list of strings, for the => syntax.
+;;; return a regexp match as a list of strings, for the => syntax.
 (define-public (expect-regexec rx s port)
-  (let* ((flags (if eof-next?
-		    expect-strings-exec-flags
-		    (logior expect-strings-exec-flags regexp/noteol)))
+  ;; if expect-strings-exec-flags contains regexp/noteol,
+  ;; check whether at EOF.  if so, remove regexp/noteol
+  (let* ((eof-next? 
+	  (and (logand expect-strings-exec-flags regexp/noteol)
+	       (eof-object? (peek-char port))))
+	 (flags (if eof-next?
+		    (logxor expect-strings-exec-flags regexp/noteol)
+		    expect-strings-exec-flags))
 	 (match (regexp-exec rx s 0 flags)))
     (if match
 	(do ((i (- (match:count match) 1) (- i 1))
 	     (result '() (cons (match:substring match i) result)))
 	    ((< i 0) result))
 	#f)))
+
