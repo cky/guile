@@ -58,6 +58,12 @@
 #define IS_INF(x) ((x) == (x) / 2)
 #endif
 
+/* Return true if X is not infinite and is not a NaN
+ */
+#ifndef isfinite
+#define isfinite(x) (!IS_INF (x) && (x) == (x))
+#endif
+
 /* MAXEXP is the maximum double precision expontent
  * FLTMAX is less than or scm_equal the largest single precision float
  */
@@ -4489,7 +4495,7 @@ scm_inexact_to_exact (z)
 	if (SCM_INUM (ans) == (long) u)
 	  return ans;
       }
-    SCM_ASRTGO (!IS_INF (u), badz);	/* problem? */
+    SCM_ASRTGO (isfinite (u), badz);	/* problem? */
     return scm_dbl2big (u);
   }
 #else
