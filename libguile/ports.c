@@ -39,6 +39,7 @@
 #include "libguile/mallocs.h"
 #include "libguile/validate.h"
 #include "libguile/ports.h"
+#include "libguile/vectors.h"
 
 #ifdef HAVE_STRING_H
 #include <string.h>
@@ -319,6 +320,7 @@ SCM_DEFINE (scm_drain_input, "drain-input", 1, 0, 0,
 #define FUNC_NAME s_scm_drain_input
 {
   SCM result;
+  char *data;
   scm_t_port *pt;
   long count;
 
@@ -329,9 +331,8 @@ SCM_DEFINE (scm_drain_input, "drain-input", 1, 0, 0,
   if (pt->read_buf == pt->putback_buf)
     count += pt->saved_read_end - pt->saved_read_pos;
 
-  result = scm_allocate_string (count);
-  scm_take_from_input_buffers (port, SCM_I_STRING_CHARS (result), count);
-
+  result = scm_i_make_string (count, &data);
+  scm_take_from_input_buffers (port, data, count);
   return result;
 }
 #undef FUNC_NAME
@@ -668,16 +669,22 @@ SCM_DEFINE (scm_set_port_revealed_x, "set-port-revealed!", 2, 0, 0,
  * See PORT FLAGS in scm.h
  */
 
+static long
+scm_i_mode_bits_n (const char *modes, size_t n)
+{
+  return (SCM_OPN
+	  | (memchr (modes, 'r', n) || memchr (modes, '+', n) ? SCM_RDNG : 0)
+	  | (   memchr (modes, 'w', n)
+	     || memchr (modes, 'a', n)
+	     || memchr (modes, '+', n) ? SCM_WRTNG : 0)
+	  | (memchr (modes, '0', n) ? SCM_BUF0 : 0)
+	  | (memchr (modes, 'l', n) ? SCM_BUFLINE : 0));
+}
+
 long
 scm_mode_bits (char *modes)
 {
-  return (SCM_OPN
-	  | (strchr (modes, 'r') || strchr (modes, '+') ? SCM_RDNG : 0)
-	  | (   strchr (modes, 'w')
-	     || strchr (modes, 'a')
-	     || strchr (modes, '+') ? SCM_WRTNG : 0)
-	  | (strchr (modes, '0') ? SCM_BUF0 : 0)
-	  | (strchr (modes, 'l') ? SCM_BUFLINE : 0));
+  return scm_i_mode_bits_n (modes, strlen (modes));
 }
 
 long
@@ -688,7 +695,8 @@ scm_i_mode_bits (SCM modes)
   if (!scm_is_string (modes))
     scm_wrong_type_arg_msg (NULL, 0, modes, "string");
 
-  bits = scm_mode_bits (SCM_I_STRING_CHARS (modes));
+  bits = scm_i_mode_bits_n (scm_i_string_chars (modes),
+			    scm_i_string_length (modes));
   scm_remember_upto_here_1 (modes);
   return bits;
 }
@@ -720,7 +728,7 @@ SCM_DEFINE (scm_port_mode, "port-mode", 1, 0, 0,
     strcpy (modes, "w");
   if (SCM_CELL_WORD_0 (port) & SCM_BUF0)
     strcat (modes, "0");
-  return scm_mem2string (modes, strlen (modes));
+  return scm_from_locale_string (modes);
 }
 #undef FUNC_NAME
 
@@ -798,26 +806,29 @@ void
 scm_c_port_for_each (void (*proc)(void *data, SCM p), void *data)
 {
   long i;
+  size_t n;
   SCM ports;
 
   /* Even without pre-emptive multithreading, running arbitrary code
      while scanning the port table is unsafe because the port table
-     can change arbitrarily (from a GC, for example).  So we build a
-     list in advance while blocking the GC. -mvo */
+     can change arbitrarily (from a GC, for example).  So we first
+     collect the ports into a vector. -mvo */
 
   scm_mutex_lock (&scm_i_port_table_mutex);
-  scm_block_gc++;
-  ports = SCM_EOL;
-  for (i = 0; i < scm_i_port_table_size; i++)
-    ports = scm_cons (scm_i_port_table[i]->port, ports);
-  scm_block_gc--;
+  n = scm_i_port_table_size;
   scm_mutex_unlock (&scm_i_port_table_mutex);
 
-  while (ports != SCM_EOL)
-    {
-      proc (data, SCM_CAR (ports));
-      ports = SCM_CDR (ports);
-    }
+  ports = scm_make_vector (scm_from_size_t (n), SCM_BOOL_F);
+
+  scm_mutex_lock (&scm_i_port_table_mutex);
+  if (n > scm_i_port_table_size)
+    n = scm_i_port_table_size;
+  for (i = 0; i < n; i++)
+    SCM_VECTOR_SET (ports, i, scm_i_port_table[i]->port);
+  scm_mutex_unlock (&scm_i_port_table_mutex);
+
+  for (i = 0; i < n; i++)
+    proc (data, SCM_VECTOR_REF (ports, i));
 }
 
 SCM_DEFINE (scm_port_for_each, "port-for-each", 1, 0, 0,
@@ -1322,7 +1333,7 @@ SCM_DEFINE (scm_unread_string, "unread-string", 2, 0, 0,
   else
     SCM_VALIDATE_OPINPORT (2, port);
 
-  scm_ungets (SCM_I_STRING_CHARS (str), SCM_I_STRING_LENGTH (str), port);
+  scm_ungets (scm_i_string_chars (str), scm_i_string_length (str), port);
   
   return str;
 }
