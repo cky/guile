@@ -21,10 +21,11 @@
    allocating any.  It is a good idea to use alloca(0) in
    your main control loop, etc. to force garbage collection.  */
 
-
-#ifdef HAVE_CONFIG_H
-#include "libguile/scmconfig.h"
+#if HAVE_CONFIG_H
+#  include <config.h>
 #endif
+
+#include "libguile/scmconfig.h"
 
 #ifdef HAVE_STRING_H
 #include <string.h>
