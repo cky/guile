@@ -1,3 +1,47 @@
+Sat Jan 18 00:03:31 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* fports.c (scm_open_file): pass errno to scm_syserror_msg.
+	* filesys.h: update prototypes.  Remove macros: SCM_FD_P, SCM_FD_FLAGS,
+	SCM_FD.
+	* filesys.c (scm_sys_stat, scm_sys_lstat): pass errno to
+	scm_syserror_msg.
+*	(scm_sys_read_fd, scm_sys_write_fd, scm_sys_close, scm_sys_lseek,
+	scm_sys_dup): deleted: FD capability will be added to other
+	procedures.
+*	Remove support for the FD object type: scm_tc16_fd, scm_fd_print,
+	scm_fd_free, fd_smob, scm_intern_fd.
+*	(scm_open): renamed from scm_sys_open.  Return a port instead of
+	an FD object.  Make the mode argument optional.
+*	(scm_sys_create): deleted, it's just a special case of open.
+	(scm_init_filesys): move interning of constants O_CREAT etc.,
+	here (were previously using SCM_CONST_LONG macro).
+	Add missing constants: O_RDONLY, O_WRONLY, O_RDWR, O_CREAT.
+	don't newsmob fd.
+	(numerous _sys_ procedures): remove gratuitous _sys_ from names.
+	include "fports.h" and <stdio.h>
+	(scm_stat, scm_select): don't support FD objects.
+
+	* error.h: adjust scm_syserror_msg prototype.
+	* error.c (scm_syserror_msg): take an extra argument for errno.
+	Using the global value didn't always work, since it could be
+	reset by procedure calls in the message or args arguments.
+
+	* fports.c (scm_setbuf0): call setbuf even if FIONREAD is not defined.
+	I don't understand why the check was there (and what about the
+	ultrix check?)
+	
+	* strop.c (scm_string_copy): allow shared substrings to be copied.
+
+	* unif.h: corresponding change to prototypes.
+	* unif.c (scm_uniform_array_read_x, scm_uniform_array_write_x):
+ 	recognize two new optional arguments: offset and length.  Allow
+ 	the port argument to be an integer (file descriptor, for scsh).
+  	Include <unistd.h> for "read" prototype.
+
+Tue Jan 14 02:42:02 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* socket.c: don't include filesys.h.
+
 Mon Jan 13 03:47:04 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* Makefile.am: add AWK=@AWK@ (?)

@@ -2,7 +2,7 @@
 
 #ifndef ERRORH
 #define ERRORH
-/*	Copyright (C) 1995,1996 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996,1997 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -67,8 +67,8 @@ extern void scm_error SCM_P ((SCM key, char *subr, char *message,
 extern void (*scm_error_callback) SCM_P ((SCM key, char *subr,
 					  char *message, SCM args, SCM rest));
 extern void scm_syserror SCM_P ((char *subr)) SCM_NORETURN;
-extern void scm_syserror_msg SCM_P ((char *subr, char *message, SCM args))
-                                   SCM_NORETURN;
+extern void scm_syserror_msg SCM_P ((char *subr, char *message, SCM args,
+				     int eno)) SCM_NORETURN;
 extern void scm_sysmissing SCM_P ((char *subr)) SCM_NORETURN;
 extern void scm_num_overflow SCM_P ((char *subr)) SCM_NORETURN;
 extern void scm_out_of_range SCM_P ((char *subr, SCM bad_value)) SCM_NORETURN;

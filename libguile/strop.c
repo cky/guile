@@ -1,6 +1,6 @@
 /* classes: src_files */
 
-/*	Copyright (C) 1994 Free Software Foundation, Inc.
+/*	Copyright (C) 1994, 1996, 1997 Software Foundation, Inc.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -293,8 +293,10 @@ SCM
 scm_string_copy (str)
      SCM str;
 {
-  SCM_ASSERT (SCM_NIMP (str) && SCM_STRINGP (str), str, SCM_ARG1, s_string_copy);
-  return scm_makfromstr (SCM_CHARS (str), (scm_sizet)SCM_LENGTH (str), 0);
+  /* doesn't handle multibyte strings.  */
+  SCM_ASSERT (SCM_NIMP (str) && (SCM_STRINGP (str) || SCM_SUBSTRP (str)),
+	      str, SCM_ARG1, s_string_copy);
+  return scm_makfromstr (SCM_ROCHARS (str), (scm_sizet)SCM_ROLENGTH (str), 0);
 }
 
 

@@ -2,7 +2,7 @@
 
 #ifndef UNIFH
 #define UNIFH
-/*	Copyright (C) 1995,1996 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996,1997 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -95,8 +95,8 @@ extern SCM scm_cvref SCM_P ((SCM v, scm_sizet pos, SCM last));
 extern SCM scm_array_set_x SCM_P ((SCM v, SCM obj, SCM args));
 extern SCM scm_array_contents SCM_P ((SCM ra, SCM strict));
 extern SCM scm_ra2contig SCM_P ((SCM ra, int copy));
-extern SCM scm_uniform_array_read_x SCM_P ((SCM ra, SCM port));
-extern SCM scm_uniform_array_write SCM_P ((SCM v, SCM port));
+extern SCM scm_uniform_array_read_x SCM_P ((SCM ra, SCM port_or_fd, SCM offset, SCM length));
+extern SCM scm_uniform_array_write SCM_P ((SCM v, SCM port_or_fd, SCM offset, SCM length));
 extern SCM scm_bit_count SCM_P ((SCM item, SCM seq));
 extern SCM scm_bit_position SCM_P ((SCM item, SCM v, SCM k));
 extern SCM scm_bit_set_star_x SCM_P ((SCM v, SCM kv, SCM obj));

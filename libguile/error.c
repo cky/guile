@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996,1997 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -164,16 +164,17 @@ scm_syserror (subr)
 }
 
 void
-scm_syserror_msg (subr, message, args)
+scm_syserror_msg (subr, message, args, eno)
      char *subr;
      char *message;
      SCM args;
+     int eno;
 {
   scm_error (scm_system_error_key,
 	     subr,
 	     message,
 	     args,
-	     scm_listify (SCM_MAKINUM (errno), SCM_UNDEFINED));
+	     scm_listify (SCM_MAKINUM (eno), SCM_UNDEFINED));
 }
 
 void

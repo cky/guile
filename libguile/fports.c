@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996,1997 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -95,10 +95,8 @@ scm_setbuf0 (port)
 {
 #ifndef NOSETBUF
 #ifndef MSDOS
-#ifdef FIONREAD
 #ifndef ultrix
   SCM_SYSCALL (setbuf ((FILE *)SCM_STREAM (port), 0););
-#endif
 #endif
 #endif
 #endif
@@ -159,10 +157,13 @@ scm_open_file (filename, modes)
   SCM_SYSCALL (f = fopen (file, mode));
   if (!f)
     {
+      int en = errno;
+
       scm_syserror_msg (s_open_file, "%s: %S",
 			scm_listify (scm_makfrom0str (strerror (errno)),
 				     filename,
-				     SCM_UNDEFINED));
+				     SCM_UNDEFINED),
+			en);
     }
   else
     {

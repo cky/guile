@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996,1997 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -52,6 +52,10 @@
 
 #include "unif.h"
 #include "ramap.h"
+
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 
 
 /* The set of uniform scm_vector types is:
@@ -1430,25 +1434,29 @@ scm_ra2contig (ra, copy)
 
 
 
-SCM_PROC(s_uniform_array_read_x, "uniform-array-read!", 1, 1, 0, scm_uniform_array_read_x);
+SCM_PROC(s_uniform_array_read_x, "uniform-array-read!", 1, 3, 0, scm_uniform_array_read_x);
 
 SCM 
-scm_uniform_array_read_x (ra, port)
+scm_uniform_array_read_x (ra, port_or_fd, offset, length)
      SCM ra;
-     SCM port;
+     SCM port_or_fd;
+     SCM offset;
+     SCM length;
 {
   SCM cra = SCM_UNDEFINED, v = ra;
-  long sz, len, ans;
+  long sz, vlen, ans;
   long start = 0;
+  long len_to_read;
 
-  if (SCM_UNBNDP (port))
-    port = scm_cur_inp;
-  else
-    SCM_ASSERT (SCM_NIMP (port) && SCM_OPINFPORTP (port), port, SCM_ARG2,
-		s_uniform_array_read_x);
   SCM_ASRTGO (SCM_NIMP (v), badarg1);
+  if (SCM_UNBNDP (port_or_fd))
+    port_or_fd = scm_cur_inp;
+  else
+    SCM_ASSERT (SCM_INUMP (port_or_fd)
+		|| (SCM_NIMP (port_or_fd) && SCM_OPINFPORTP (port_or_fd)),
+		port_or_fd, SCM_ARG2, s_uniform_array_read_x);
+  vlen = SCM_LENGTH (v);
 
-  len = SCM_LENGTH (v);
 loop:
   switch SCM_TYP7 (v)
     {
@@ -1457,8 +1465,8 @@ loop:
     case scm_tc7_smob:
       SCM_ASRTGO (SCM_ARRAYP (v), badarg1);
       cra = scm_ra2contig (ra, 0);
-      start = SCM_ARRAY_BASE (cra);
-      len = SCM_ARRAY_DIMS (cra)->inc *
+      start += SCM_ARRAY_BASE (cra);
+      vlen = SCM_ARRAY_DIMS (cra)->inc *
 	(SCM_ARRAY_DIMS (cra)->ubnd - SCM_ARRAY_DIMS (cra)->lbnd + 1);
       v = SCM_ARRAY_V (cra);
       goto loop;
@@ -1467,7 +1475,7 @@ loop:
       sz = sizeof (char);
       break;
     case scm_tc7_bvect:
-      len = (len + SCM_LONG_BIT - 1) / SCM_LONG_BIT;
+      vlen = (vlen + SCM_LONG_BIT - 1) / SCM_LONG_BIT;
       start /= SCM_LONG_BIT;
     case scm_tc7_uvect:
     case scm_tc7_ivect:
@@ -1495,19 +1503,52 @@ loop:
       break;
 #endif
     }
+  
+  len_to_read = vlen;
+  if (!SCM_UNBNDP (offset))
+    {
+      long loff =
+	scm_num2long (offset, (char *) SCM_ARG3, s_uniform_array_read_x);
 
-  /* An ungetc before an fread will not work on some systems if setbuf(0).
-     do #define NOSETBUF in scmfig.h to fix this. */
-  if (SCM_CRDYP (port))
-    {				/* UGGH!!! */
-      ungetc (SCM_CGETUN (port), (FILE *)SCM_STREAM (port));
-      SCM_CLRDY (port);		/* Clear ungetted char */
+      if (loff < 0 || loff >= vlen)
+	scm_out_of_range (s_uniform_array_read_x, offset);
+      start += loff;
+      len_to_read -= loff;
+    }
+  if (!SCM_UNBNDP (length))
+    {
+      long llen =
+	scm_num2long (length, (char *) SCM_ARG4, s_uniform_array_read_x);
+      
+      if (llen < 0 || llen > len_to_read)
+	scm_out_of_range (s_uniform_array_read_x, length);
+      len_to_read = llen;
     }
 
-  SCM_SYSCALL (ans = fread (SCM_CHARS (v) + start * sz,
-			    (scm_sizet) sz, (scm_sizet) len,
-			    (FILE *)SCM_STREAM (port)));
-
+  if (SCM_NIMP (port_or_fd))
+    {
+      /* if we have stored a character from the port in our own buffer,
+	 push it back onto the stream.  */
+      /* An ungetc before an fread will not work on some systems if
+	 setbuf(0).  do #define NOSETBUF in scmfig.h to fix this. */
+      if (SCM_CRDYP (port_or_fd))
+	{
+	  ungetc (SCM_CGETUN (port_or_fd), (FILE *)SCM_STREAM (port_or_fd));
+	  SCM_CLRDY (port_or_fd); /* Clear ungetted char */
+	}
+      SCM_SYSCALL (ans = fread (SCM_CHARS (v) + start * sz,
+			       (scm_sizet) sz, (scm_sizet) len_to_read,
+			       (FILE *)SCM_STREAM (port_or_fd)));
+      
+    }
+  else /* file descriptor.  */
+    {
+      SCM_SYSCALL (ans = read (SCM_INUM (port_or_fd),
+			       SCM_CHARS (v) + start * sz,
+			       (scm_sizet) (sz * len_to_read)));
+      if (ans == -1)
+	scm_syserror (s_uniform_array_read_x);
+    }
   if (SCM_TYP7 (v) == scm_tc7_bvect)
     ans *= SCM_LONG_BIT;
 
@@ -1517,24 +1558,30 @@ loop:
   return SCM_MAKINUM (ans);
 }
 
-SCM_PROC(s_uniform_array_write, "uniform-array-write", 1, 1, 0, scm_uniform_array_write);
+SCM_PROC(s_uniform_array_write, "uniform-array-write", 1, 3, 0, scm_uniform_array_write);
 
 SCM 
-scm_uniform_array_write (v, port)
+scm_uniform_array_write (v, port_or_fd, offset, length)
      SCM v;
-     SCM port;
+     SCM port_or_fd;
+     SCM offset;
+     SCM length;
 {
-  long sz, len, ans;
+  long sz, vlen, ans;
   long start = 0;
-  if (SCM_UNBNDP (port))
- port = scm_cur_outp;
-  else
-    SCM_ASSERT (SCM_NIMP (port) && SCM_OPOUTFPORTP (port), port, SCM_ARG2, s_uniform_array_write);
+  long len_to_write;
+
   SCM_ASRTGO (SCM_NIMP (v), badarg1);
-  len = SCM_LENGTH (v);
+  if (SCM_UNBNDP (port_or_fd))
+    port_or_fd = scm_cur_outp;
+  else
+    SCM_ASSERT (SCM_INUMP (port_or_fd)
+		|| (SCM_NIMP (port_or_fd) && SCM_OPOUTFPORTP (port_or_fd)),
+		port_or_fd, SCM_ARG2, s_uniform_array_write);
+  vlen = SCM_LENGTH (v);
+
 loop:
-  switch SCM_TYP7
-    (v)
+  switch SCM_TYP7 (v)
     {
     default:
     badarg1:scm_wta (v, (char *) SCM_ARG1, s_uniform_array_write);
@@ -1542,15 +1589,16 @@ loop:
       SCM_ASRTGO (SCM_ARRAYP (v), badarg1);
       v = scm_ra2contig (v, 1);
       start = SCM_ARRAY_BASE (v);
-      len = SCM_ARRAY_DIMS (v)->inc * (SCM_ARRAY_DIMS (v)->ubnd - SCM_ARRAY_DIMS (v)->lbnd + 1);
+      vlen = SCM_ARRAY_DIMS (v)->inc
+	* (SCM_ARRAY_DIMS (v)->ubnd - SCM_ARRAY_DIMS (v)->lbnd + 1);
       v = SCM_ARRAY_V (v);
       goto loop;
-    case scm_tc7_byvect:
     case scm_tc7_string:
+    case scm_tc7_byvect:
       sz = sizeof (char);
       break;
     case scm_tc7_bvect:
-      len = (len + SCM_LONG_BIT - 1) / SCM_LONG_BIT;
+      vlen = (vlen + SCM_LONG_BIT - 1) / SCM_LONG_BIT;
       start /= SCM_LONG_BIT;
     case scm_tc7_uvect:
     case scm_tc7_ivect:
@@ -1578,9 +1626,45 @@ loop:
       break;
 #endif
     }
-  SCM_SYSCALL (ans = fwrite (SCM_CHARS (v) + start * sz, (scm_sizet) sz, (scm_sizet) len, (FILE *)SCM_STREAM (port)));
+
+  len_to_write = vlen;
+  if (!SCM_UNBNDP (offset))
+    {
+      long loff =
+	scm_num2long (offset, (char *) SCM_ARG3, s_uniform_array_write);
+
+      if (loff < 0 || loff >= vlen)
+	scm_out_of_range (s_uniform_array_write, offset);
+      start += loff;
+      len_to_write -= loff;
+    }
+  if (!SCM_UNBNDP (length))
+    {
+      long llen =
+	scm_num2long (length, (char *) SCM_ARG4, s_uniform_array_read_x);
+      
+      if (llen < 0 || llen > len_to_write)
+	scm_out_of_range (s_uniform_array_read_x, length);
+      len_to_write = llen;
+    }
+
+  if (SCM_NIMP (port_or_fd))
+    {
+      SCM_SYSCALL (ans = fwrite (SCM_CHARS (v) + start * sz,
+				 (scm_sizet) sz, (scm_sizet) len_to_write,
+				 (FILE *)SCM_STREAM (port_or_fd)));
+    }
+  else /* file descriptor.  */
+    {
+      SCM_SYSCALL (ans = write (SCM_INUM (port_or_fd),
+				SCM_CHARS (v) + start * sz,
+				(scm_sizet) (sz * len_to_write)));
+      if (ans == -1)
+	scm_syserror (s_uniform_array_write);
+    }
   if (SCM_TYP7 (v) == scm_tc7_bvect)
     ans *= SCM_LONG_BIT;
+
   return SCM_MAKINUM (ans);
 }
 
