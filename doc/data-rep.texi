@@ -46,7 +46,7 @@
 @c essay @sp 10
 @c essay @comment The title is printed in a large font.
 @c essay @title Data Representation in Guile
-@c essay @subtitle $Id: data-rep.texi,v 1.19 2001-04-13 09:56:37 ossau Exp $
+@c essay @subtitle $Id: data-rep.texi,v 1.20 2001-04-13 11:12:01 ossau Exp $
 @c essay @subtitle For use with Guile @value{VERSION}
 @c essay @author Jim Blandy
 @c essay @author Free Software Foundation
@@ -1136,7 +1136,7 @@ integral type.  Only after applying @code{SCM_UNPACK} it is possible to
 access the bits and contents of the @code{SCM} value.
 @end deftypefn
 
-@deftypefn SCM SCM_PACK (scm_bits_t @var{x})
+@deftypefn Macro SCM SCM_PACK (scm_bits_t @var{x})
 Takes a valid integral representation of a Scheme object and transforms
 it into its representation as a @code{SCM} value.
 @end deftypefn
@@ -1362,9 +1362,9 @@ Determine, whether the Scheme object @var{x} is a Scheme pair,
 i.e. whether @var{x} references a heap cell consisting of exactly two
 entries, where both entries contain a Scheme object.  In this case, both
 entries will have to be accessed using the @code{SCM_CELL_OBJECT}
-macros.  On the contrary, if the SCM_CONSP predicate is not fulfilled,
-the first entry of the Scheme cell is guaranteed not to be a Scheme
-value and thus the first cell entry must be accessed using the
+macros.  On the contrary, if the @code{SCM_CONSP} predicate is not
+fulfilled, the first entry of the Scheme cell is guaranteed not to be a
+Scheme value and thus the first cell entry must be accessed using the
 @code{SCM_CELL_WORD_0} macro.
 @end deftypefn
 
