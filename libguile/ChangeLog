@@ -1,5 +1,12 @@
 Sun Oct 27 01:22:04 1996  Gary Houston  <ghouston@actrix.gen.nz>
 
+	* filesys.c (scm_stat2scm): derive file type and permissions from
+ 	the stat mode and append them to the returned vector.
+	There isn't much overhead in doing this and it avoids the need to
+	work with S_IRUSR et al. in Scheme.
+	Define symbols scm_sym_regular etc.
+	(scm_init_filesys): don't intern S_IRUSR etc.
+	
 	* load.c: change s_try_load and s_try_load_path to s_primitive_load
 	and s_primitive_load_path.
 

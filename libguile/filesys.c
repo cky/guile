@@ -493,14 +493,24 @@ scm_sys_dup (oldfd, newfd)
 /* {Files}
  */
 
+SCM_SYMBOL (scm_sym_regular, "regular");
+SCM_SYMBOL (scm_sym_directory, "directory");
+SCM_SYMBOL (scm_sym_symlink, "symlink");
+SCM_SYMBOL (scm_sym_block_special, "block-special");
+SCM_SYMBOL (scm_sym_char_special, "char-special");
+SCM_SYMBOL (scm_sym_fifo, "fifo");
+SCM_SYMBOL (scm_sym_sock, "socket");
+SCM_SYMBOL (scm_sym_unknown, "unknown");
+
 static SCM scm_stat2scm SCM_P ((struct stat *stat_temp));
 
 static SCM 
 scm_stat2scm (stat_temp)
      struct stat *stat_temp;
 {
-  SCM ans = scm_make_vector (SCM_MAKINUM (13), SCM_UNSPECIFIED, SCM_BOOL_F);
+  SCM ans = scm_make_vector (SCM_MAKINUM (15), SCM_UNSPECIFIED, SCM_BOOL_F);
   SCM *ve = SCM_VELTS (ans);
+  
   ve[0] = scm_ulong2num ((unsigned long) stat_temp->st_dev);
   ve[1] = scm_ulong2num ((unsigned long) stat_temp->st_ino);
   ve[2] = scm_ulong2num ((unsigned long) stat_temp->st_mode);
@@ -526,6 +536,59 @@ scm_stat2scm (stat_temp)
 #else
   ve[12] = SCM_BOOL_F;
 #endif
+  {
+    int mode = stat_temp->st_mode;
+    
+    if (S_ISREG (mode))
+      ve[13] = scm_sym_regular;
+    else if (S_ISDIR (mode))
+      ve[13] = scm_sym_directory;
+    else if (S_ISLNK (mode))
+      ve[13] = scm_sym_symlink;
+    else if (S_ISBLK (mode))
+      ve[13] = scm_sym_block_special;
+    else if (S_ISCHR (mode))
+      ve[13] = scm_sym_char_special;
+    else if (S_ISFIFO (mode))
+      ve[13] = scm_sym_fifo;
+    else if (S_ISSOCK (mode))
+      ve[13] = scm_sym_sock;
+    else
+      ve[13] = scm_sym_unknown;
+
+    ve[14] = SCM_MAKINUM ((~S_IFMT) & mode);
+
+    /* the layout of the bits in ve[14] is intended to be portable.
+       If there are systems that don't follow the usual convention,
+       the following could be used:
+
+       tmp = 0;
+       if (S_ISUID & mode) tmp += 1;
+       tmp <<= 1;
+       if (S_IRGRP & mode) tmp += 1;
+       tmp <<= 1;
+       if (S_ISVTX & mode) tmp += 1;
+       tmp <<= 1;
+       if (S_IRUSR & mode) tmp += 1;
+       tmp <<= 1;
+       if (S_IWUSR & mode) tmp += 1;
+       tmp <<= 1;
+       if (S_IXUSR & mode) tmp += 1;
+       tmp <<= 1;
+       if (S_IWGRP & mode) tmp += 1;
+       tmp <<= 1;
+       if (S_IXGRP & mode) tmp += 1;
+       tmp <<= 1;
+       if (S_IROTH & mode) tmp += 1;
+       tmp <<= 1;
+       if (S_IWOTH & mode) tmp += 1;
+       tmp <<= 1;
+       if (S_IXOTH & mode) tmp += 1; 
+
+       ve[14] = SCM_MAKINUM (tmp);
+       
+       */
+  }  
 
   return ans;
 }
@@ -1126,81 +1189,6 @@ void
 scm_init_filesys ()
 {
   scm_add_feature ("i/o-extensions");
-  /* File type/permission bits.  */
-#ifdef S_IRUSR
-  scm_sysintern ("S_IRUSR", SCM_MAKINUM (S_IRUSR));
-#endif
-#ifdef S_IWUSR
-  scm_sysintern ("S_IWUSR", SCM_MAKINUM (S_IWUSR));
-#endif
-#ifdef S_IXUSR
-  scm_sysintern ("S_IXUSR", SCM_MAKINUM (S_IXUSR));
-#endif
-#ifdef S_IRWXU
-  scm_sysintern ("S_IRWXU", SCM_MAKINUM (S_IRWXU));
-#endif
-
-#ifdef S_IRGRP
-  scm_sysintern ("S_IRGRP", SCM_MAKINUM (S_IRGRP));
-#endif
-#ifdef S_IWGRP
-  scm_sysintern ("S_IWGRP", SCM_MAKINUM (S_IWGRP));
-#endif
-#ifdef S_IXGRP
-  scm_sysintern ("S_IXGRP", SCM_MAKINUM (S_IXGRP));
-#endif
-#ifdef S_IRWXG
-  scm_sysintern ("S_IRWXG", SCM_MAKINUM (S_IRWXG));
-#endif
-
-#ifdef S_IROTH
-  scm_sysintern ("S_IROTH", SCM_MAKINUM (S_IROTH));
-#endif
-#ifdef S_IWOTH
-  scm_sysintern ("S_IWOTH", SCM_MAKINUM (S_IWOTH));
-#endif
-#ifdef S_IXOTH
-  scm_sysintern ("S_IXOTH", SCM_MAKINUM (S_IXOTH));
-#endif
-#ifdef S_IRWXO
-  scm_sysintern ("S_IRWXO", SCM_MAKINUM (S_IRWXO));
-#endif
-
-#ifdef S_ISUID
-  scm_sysintern ("S_ISUID", SCM_MAKINUM (S_ISUID));
-#endif
-#ifdef S_ISGID
-  scm_sysintern ("S_ISGID", SCM_MAKINUM (S_ISGID));
-#endif
-#ifdef S_ISVTX
-  scm_sysintern ("S_ISVTX", SCM_MAKINUM (S_ISVTX));
-#endif
-
-#ifdef S_IFMT
-  scm_sysintern ("S_IFMT", SCM_MAKINUM (S_IFMT));
-#endif
-#ifdef S_IFDIR
-  scm_sysintern ("S_IFDIR", SCM_MAKINUM (S_IFDIR));
-#endif
-#ifdef S_IFCHR
-  scm_sysintern ("S_IFCHR", SCM_MAKINUM (S_IFCHR));
-#endif
-#ifdef S_IFBLK
-  scm_sysintern ("S_IFBLK", SCM_MAKINUM (S_IFBLK));
-#endif
-#ifdef S_IFREG
-  scm_sysintern ("S_IFREG", SCM_MAKINUM (S_IFREG));
-#endif
-#ifdef S_IFLNK
-  scm_sysintern ("S_IFLNK", SCM_MAKINUM (S_IFLNK));
-#endif
-#ifdef S_IFSOCK
-  scm_sysintern ("S_IFSOCK", SCM_MAKINUM (S_IFSOCK));
-#endif
-#ifdef S_IFIFO
-  scm_sysintern ("S_IFIFO", SCM_MAKINUM (S_IFIFO));
-#endif
-
 
   scm_tc16_fd = scm_newsmob (&fd_smob);
   scm_tc16_dir = scm_newsmob (&dir_smob);
