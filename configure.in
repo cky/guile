@@ -594,7 +594,23 @@ AC_CHECK_FUNCS([ctermid ftime fchown getcwd geteuid gettimeofday lstat mkdir mkn
 
 AC_CHECK_HEADERS(crypt.h sys/resource.h sys/file.h)
 AC_CHECK_FUNCS(chroot flock getlogin cuserid getpriority setpriority getpass sethostname gethostname)
-AC_CHECK_LIB(crypt, crypt)
+
+# crypt() may or may not be available, for instance in some countries there
+# are restrictions on cryptography.
+#
+# crypt() might be in libc (eg. OpenBSD), or it might be in a separate
+# -lcrypt library (eg. Debian GNU/Linux).
+#
+# On HP-UX 11, crypt() is in libc and there's a dummy libcrypt.a.  We must
+# be careful to avoid -lcrypt in this case, since libtool will see there's
+# only a static libcrypt and decide to build only a static libguile.
+#
+# AC_SEARCH_LIBS lets us add -lcrypt to LIBS only if crypt() is not in the
+# libraries already in that list.
+#
+AC_SEARCH_LIBS(crypt, crypt,
+  [AC_DEFINE(HAVE_CRYPT,1,
+             [Define to 1 if you have the `crypt' function.])])
 
 dnl GMP tests
 AC_CHECK_LIB([gmp], [__gmpz_init], ,
