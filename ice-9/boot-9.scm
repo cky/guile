@@ -2018,32 +2018,22 @@
 					  (set! options (delq! flag options)))
 					flags)
 			      (,interface options)
-			      (,interface)))))
-
-	 (make-set! (lambda (interface)
-		      `((name exp)
-			(,'quasiquote
-			 (begin (,interface (append (,interface)
-						    (list '(,'unquote name)
-							  (,'unquote exp))))
-				(,interface)))))))
+			      (,interface))))))
     (procedure->memoizing-macro
      (lambda (exp env)
-       (cons 'begin
-	     (let* ((option-group (cadr exp))
-		    (interface (car option-group)))
-	       (append (map (lambda (name constructor)
-			      `(define ,name
-				 ,(constructor interface)))
-			    (cadr option-group)
-			    (list make-options
-				  make-enable
-				  make-disable))
-		       (map (lambda (name constructor)
-			      `(defmacro ,name
-				 ,@(constructor interface)))
-			    (caddr option-group)
-			    (list make-set!)))))))))
+       (let* ((option-group (cadr exp))
+	      (interface (car option-group))
+	      (options/enable/disable (cadr option-group)))
+	 `(begin
+	    (define ,(car options/enable/disable)
+	      ,(make-options interface))
+	    (define ,(cadr options/enable/disable)
+	      ,(make-enable interface))
+	    (define ,(caddr options/enable/disable)
+	      ,(make-disable interface))
+	    (defmacro ,(caaddr option-group) (opt val)
+	      `(,,(car options/enable/disable)
+		(list ',opt ,val)))))))))
 
 (define-option-interface
   (eval-options-interface

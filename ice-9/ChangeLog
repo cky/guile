@@ -1,5 +1,8 @@
 2002-11-04  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* boot-9.scm (define-option-interface): Simplify code-generation
+	code.
+
 	* debugger/command-loop.scm (read-and-dispatch-command): Import
 	set-readline-prompt dynamically if we need to.  (Previous
 	arrangement didn't work if this module was loaded before (ice-9
