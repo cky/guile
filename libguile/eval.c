@@ -2353,9 +2353,21 @@ scm_procedure_documentation (proc)
     }
 }
 
-/* This code is for scm_apply. it is destructive on multiple args.
- * This will only screw you if you do (scm_apply scm_apply '( ... )) 
- */
+/* This code processes the 'arg ...' parameters to apply.
+
+   (apply PROC ARG1 ... ARGS)
+
+   The ARG1 ... arguments are consed on to the front of ARGS (which
+   must be a list), and then PROC is applied to the elements of the
+   result.  apply:nconc2last takes care of building the list of
+   arguments, given (ARG1 ... ARGS).
+
+   apply:nconc2last destroys its argument.  On that topic, this code
+   came into my care with the following beautifully cryptic comment on
+   that topic: "This will only screw you if you do (scm_apply
+   scm_apply '( ... ))"  If you know what they're referring to, send
+   me a patch to this comment.  */
+
 SCM_PROC(s_nconc2last, "apply:nconc2last", 1, 0, 0, scm_nconc2last);
 #ifdef __STDC__
 SCM 
@@ -2367,15 +2379,11 @@ scm_nconc2last (lst)
 #endif
 {
   SCM *lloc;
-  if (SCM_EOL == lst)
-    return lst;
-  SCM_ASSERT (SCM_NIMP (lst) && SCM_CONSP (lst), lst, SCM_ARG1, s_nconc2last);
+  SCM_ASSERT (scm_ilength (lst) > 0, lst, SCM_ARG1, s_nconc2last);
   lloc = &lst;
   while (SCM_NNULLP (SCM_CDR (*lloc)))
-    {
-      lloc = &SCM_CDR (*lloc);
-      SCM_ASSERT (SCM_NIMP (*lloc) && SCM_CONSP (*lloc), lst, SCM_ARG1, s_nconc2last);
-    }
+    lloc = &SCM_CDR (*lloc);
+  SCM_ASSERT (scm_ilength (SCM_CAR (*lloc)) >= 0, lst, SCM_ARG1, s_nconc2last);
   *lloc = SCM_CAR (*lloc);
   return lst;
 }
