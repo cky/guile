@@ -1,3 +1,19 @@
+2004-05-16  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
+
+	* eval.c (unmemoize_quote): New static function.
+
+	(scm_m_quote, scm_m_atslot_ref, SCM_CEVAL): Changed the byte code
+	representation of 'quote' and '@slot-ref' to an improper list.
+	This reduces execution time, the number of cells used to hold the
+	memoized code, and thus also reduces garbage collection time.
+
+	(scm_unmemocopy): Use unmemoize_quote for quote expressions.
+
+	(SCM_CEVAL): Changed macro handling to also work with macros that
+	return improper lists.  Added an assertion, that the code returned
+	by a macro transformer will not lead to cycles in the memoized
+	code.
+
 2004-05-15  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
 
 	No functional change, just rearrangements of functions within the

@@ -52,6 +52,7 @@ char *alloca ();
 # endif
 #endif
 
+#include <assert.h>
 #include "libguile/_scm.h"
 #include "libguile/alist.h"
 #include "libguile/async.h"
@@ -1550,8 +1551,16 @@ scm_m_quote (SCM expr, SCM env SCM_UNUSED)
   quotee = SCM_CAR (cdr_expr);
   if (is_self_quoting_p (quotee))
     return quotee;
+
   SCM_SETCAR (expr, SCM_IM_QUOTE);
+  SCM_SETCDR (expr, quotee);
   return expr;
+}
+
+static SCM
+unmemoize_quote (const SCM expr, const SCM env SCM_UNUSED)
+{
+  return scm_list_2 (scm_sym_quote, SCM_CDR (expr));
 }
 
 
@@ -1777,6 +1786,7 @@ scm_m_atslot_ref (SCM expr, SCM env SCM_UNUSED)
   ASSERT_SYNTAX_2 (SCM_INUMP (slot_nr), s_bad_slot_number, slot_nr, expr);
 
   SCM_SETCAR (expr, SCM_IM_SLOT_REF);
+  SCM_SETCDR (cdr_expr, slot_nr);
   return expr;
 }
 
@@ -2201,9 +2211,10 @@ scm_unmemocopy (SCM x, SCM env)
           ls = scm_cons (scm_sym_lambda, z);
           env = SCM_EXTEND_ENV (SCM_CAR (x), SCM_EOL, env);
           break;
+
         case (ISYMNUM (SCM_IM_QUOTE)):
-          ls = z = scm_cons (scm_sym_quote, SCM_UNSPECIFIED);
-          break;
+          return unmemoize_quote (x, env);
+
         case (ISYMNUM (SCM_IM_SET_X)):
           ls = z = scm_cons (scm_sym_set_x, SCM_UNSPECIFIED);
           break;
@@ -3347,7 +3358,7 @@ dispatch:
 
 
         case (ISYMNUM (SCM_IM_QUOTE)):
-          RETURN (SCM_CADR (x));
+          RETURN (SCM_CDR (x));
 
 
         case (ISYMNUM (SCM_IM_SET_X)):
@@ -3589,7 +3600,7 @@ dispatch:
 	  x = SCM_CDR (x);
 	  {
 	    SCM instance = EVALCAR (x, env);
-	    unsigned long int slot = SCM_INUM (SCM_CADR (x));
+	    unsigned long int slot = SCM_INUM (SCM_CDR (x));
 	    RETURN (SCM_PACK (SCM_STRUCT_DATA (instance) [slot]));
 	  }
 
@@ -3735,8 +3746,12 @@ dispatch:
 		{
 		case 3:
 		case 2:
-		  if (scm_ilength (arg1) <= 0)
+		  if (!SCM_CONSP (arg1))
 		    arg1 = scm_list_2 (SCM_IM_BEGIN, arg1);
+
+                  assert (!SCM_EQ_P (x, SCM_CAR (arg1))
+                          && !SCM_EQ_P (x, SCM_CDR (arg1)));
+
 #ifdef DEVAL
 		  if (!SCM_CLOSUREP (SCM_MACRO_CODE (proc)))
 		    {
