@@ -1,3 +1,11 @@
+2001-04-12  Niibe Yutaka  <gniibe@m17n.org>
+
+	* GUILE-VERSION (LIBGUILEQTHREADS_MAJOR_VERSION,
+	LIBGUILEQTHREADS_MINOR_VERSION, LIBGUILEQTHREADS_REVISION_VERSION,
+	LIBGUILEQTHREADS_VERSION): Added libguileqthreads version info.
+
+	* configure.in: Likewise.
+
 2001-04-11  Keisuke Nishida  <kxn30@po.cwru.edu>
 
 	* configure.in (AC_CHECK_FUNCS): Don't check bzero.
