@@ -286,7 +286,8 @@ compare_function (SCM less, unsigned int arg_nr, const char* fname)
 SCM_DEFINE (scm_restricted_vector_sort_x, "restricted-vector-sort!", 4, 0, 0, 
             (SCM vec, SCM less, SCM startpos, SCM endpos),
 	    "Sort the vector @var{vec}, using @var{less} for comparing\n"
-	    "the vector elements.  @var{startpos} and @var{endpos} delimit\n"
+	    "the vector elements.  @var{startpos} (inclusively) and\n"
+	    "@var{endpos} (exclusively) delimit\n"
 	    "the range of the vector which gets sorted.  The return value\n"
 	    "is not specified.")
 #define FUNC_NAME s_scm_restricted_vector_sort_x
@@ -300,7 +301,7 @@ SCM_DEFINE (scm_restricted_vector_sort_x, "restricted-vector-sort!", 4, 0, 0,
   vlen = SCM_VECTOR_LENGTH (vec);
 
   spos = scm_to_unsigned_integer (startpos, 0, vlen);
-  len = scm_to_unsigned_integer (endpos, 0, vlen) - spos;
+  len = scm_to_unsigned_integer (endpos, spos, vlen) - spos;
 
   quicksort (&vp[spos], len, cmp, less);
   scm_remember_upto_here_1 (vec);
