@@ -1,10 +1,11 @@
 AC_PREREQ(2.50)
 
-AC_INIT
-AC_CONFIG_SRCDIR([readline.c])
+AC_INIT(guile-readline,
+        m4_esyscmd(. ../GUILE-VERSION && echo -n ${GUILE_VERSION}))
+AC_CONFIG_SRCDIR(readline.c)
+AM_INIT_AUTOMAKE([foreign no-define])
+
 . $srcdir/../GUILE-VERSION
-PACKAGE=guile-readline
-AM_INIT_AUTOMAKE($PACKAGE, $VERSION, no-define)
 
 AC_PROG_INSTALL
 AC_PROG_CC
@@ -138,5 +139,5 @@ AC_SUBST(LIBGUILEREADLINE_INTERFACE)
 
 AC_SUBST(GUILE_EFFECTIVE_VERSION)
 
-AC_CONFIG_FILES(Makefile)
+AC_CONFIG_FILES(Makefile ice-9/Makefile)
 AC_OUTPUT
