@@ -49,7 +49,7 @@
 
 
 extern SCM scm_lisp_nil;
-extern SCM scm_t_lisp;
+extern SCM scm_lisp_t;
 
 #define SCM_NILP(x) (SCM_EQ_P ((x), scm_lisp_nil))
 #define SCM_NILNULLP(x) (SCM_NILP (x) || SCM_NULLP (x))

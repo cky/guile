@@ -1044,7 +1044,7 @@ scm_m_cont (SCM xorig, SCM env SCM_UNUSED)
 /* Multi-language support */
 
 SCM_GLOBAL_SYMBOL (scm_lisp_nil, "nil");
-SCM_GLOBAL_SYMBOL (scm_t_lisp, "t");
+SCM_GLOBAL_SYMBOL (scm_lisp_t, "t");
 
 SCM_SYNTAX (s_nil_cond, "nil-cond", scm_makmmacro, scm_m_nil_cond);
 
@@ -2419,7 +2419,7 @@ dispatch:
 	    
 	case (SCM_ISYMNUM (SCM_IM_T_IFY)):
 	  x = SCM_CDR (x);
-	  RETURN (SCM_NFALSEP (EVALCAR (x, env)) ? scm_t_lisp : scm_lisp_nil)
+	  RETURN (SCM_NFALSEP (EVALCAR (x, env)) ? scm_lisp_t : scm_lisp_nil)
 	    
 	case (SCM_ISYMNUM (SCM_IM_0_COND)):
 	  proc = SCM_CDR (x);
@@ -4125,7 +4125,7 @@ scm_init_eval ()
 #endif
 
   scm_c_define ("nil", scm_lisp_nil);
-  scm_c_define ("t", scm_t_lisp);
+  scm_c_define ("t", scm_lisp_t);
   
   scm_add_feature ("delay");
 }
