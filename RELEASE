@@ -173,5 +173,3 @@ Punting checklist:
   version numbers of the form "N.M.L", where L is odd.
 * Start a new section of the NEWS file.
 * Start a new THANKS file.
-* Send mail to majordomo-owner@cygnus.com updating the message you
-  get when you ask majordomo for "info guile".
