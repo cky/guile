@@ -35,4 +35,4 @@ info_TEXINFOS = gds.texi
 TEXINFO_TEX = ../doc/ref/texinfo.tex
 
 TAGS_FILES = $(subpkgdata_DATA) $(lisp_LISP)
-EXTRA_DIST = $(subpkgdata_DATA) $(lisp_LISP)
+EXTRA_DIST = $(subpkgdata_DATA) $(lisp_LISP) gds-tutorial.txt gds-problems.txt

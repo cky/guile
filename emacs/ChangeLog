@@ -1,3 +1,9 @@
+2004-02-22  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* Makefile.am (EXTRA_DIST): Distribute new files.
+
+	* gds-tutorial.txt, gds-problems.txt: New files.
+
 2004-02-21  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* gds.el: Add requirements: cl, comint, info.
