@@ -25,6 +25,7 @@ AUTOMAKE_OPTIONS = gnu
 
 elisp_sources = \
 	buffers.scm \
+	char-table.scm \
 	features.scm \
 	fns.scm \
 	format.scm \
