@@ -103,6 +103,7 @@ typedef struct scm_t_cell
 #define SCM_GC_CELL_CARD(x)    ((scm_t_cell *) ((long) (x) & SCM_GC_CARD_ADDR_MASK))
 #define SCM_GC_CELL_OFFSET(x)  (((long) (x) & SCM_GC_CARD_SIZE_MASK) >> SCM_CELL_SIZE_SHIFT)
 #define SCM_GC_CELL_BVEC(x)    SCM_GC_CARD_BVEC (SCM_GC_CELL_CARD (x))
+#define SCM_GC_SET_CELL_BVEC(x, bvec)    SCM_GC_SET_CARD_BVEC (SCM_GC_CELL_CARD (x), bvec)
 #define SCM_GC_CELL_GET_BIT(x) SCM_C_BVEC_GET (SCM_GC_CELL_BVEC (x), SCM_GC_CELL_OFFSET (x))
 #define SCM_GC_CELL_SET_BIT(x) SCM_C_BVEC_SET (SCM_GC_CELL_BVEC (x), SCM_GC_CELL_OFFSET (x))
 #define SCM_GC_CELL_CLEAR_BIT(x) SCM_C_BVEC_CLEAR (SCM_GC_CELL_BVEC (x), SCM_GC_CELL_OFFSET (x))

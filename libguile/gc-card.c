@@ -308,7 +308,7 @@ scm_i_init_card_freelist (scm_t_cell *  card, SCM *free_list,
   int idx = (card  - seg->bounds[0]) / SCM_GC_CARD_N_CELLS; 
 
   bvec_ptr += idx *SCM_GC_CARD_BVEC_SIZE_IN_LONGS;
-  SCM_GC_CELL_BVEC (card) = bvec_ptr;
+  SCM_GC_SET_CELL_BVEC (card, bvec_ptr);
   
   /*
      ASSUMPTION: n_header_cells <= 2. 
