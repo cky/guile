@@ -26,6 +26,8 @@
 
 (define exception:missing/extra-expr
   (cons 'misc-error "^missing or extra expression"))
+(define exception:missing/extra-expr-syntax
+  (cons 'syntax-error "^missing or extra expression"))
 (define exception:missing-expr
   (cons 'syntax-error "Missing expression"))
 (define exception:extra-expr
@@ -429,12 +431,12 @@
   (with-test-prefix "missing or extra expressions"
 
     (pass-if-exception "(if)"
-      exception:missing/extra-expr
+      exception:missing/extra-expr-syntax
       (eval '(if)
 	    (interaction-environment)))
 
     (pass-if-exception "(if 1 2 3 4)"
-      exception:missing/extra-expr
+      exception:missing/extra-expr-syntax
       (eval '(if 1 2 3 4)
 	    (interaction-environment)))))
 

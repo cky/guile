@@ -63,6 +63,7 @@ char *alloca ();
 #include "libguile/strings.h"
 #include "libguile/throw.h"
 #include "libguile/smob.h"
+#include "libguile/list.h"
 #include "libguile/macros.h"
 #include "libguile/procprop.h"
 #include "libguile/hashtab.h"
@@ -161,6 +162,11 @@ static const char s_bad_bindings[] = "Bad bindings";
  * If anything else is detected in a place where a binding was expected, a
  * 'Bad binding' error is signalled.  */
 static const char s_bad_binding[] = "Bad binding";
+
+/* Some syntactic forms don't allow variable names to appear more than once in
+ * a list of bindings.  If such a situation is nevertheless detected, a
+ * 'Duplicate binding' error is signalled.  */
+static const char s_duplicate_binding[] = "Duplicate binding";
 
 /* If the exit form of a 'do' expression is not in the format
  *   (<test> <expression> ...)
@@ -804,12 +810,8 @@ scm_m_case (SCM expr, SCM env)
   for (; !SCM_NULLP (all_labels); all_labels = SCM_CDR (all_labels))
     {
       const SCM label = SCM_CAR (all_labels);
-      SCM label_idx = SCM_CDR (all_labels);
-      for (; !SCM_NULLP (label_idx); label_idx = SCM_CDR (label_idx))
-	{
-	  ASSERT_SYNTAX_2 (!SCM_EQ_P (SCM_CAR (label_idx), label),
-			   s_duplicate_case_label, label, expr);
-	}
+      ASSERT_SYNTAX_2 (SCM_FALSEP (scm_c_memq (label, SCM_CDR (all_labels))),
+                       s_duplicate_case_label, label, expr);
     }
 
   SCM_SETCAR (expr, SCM_IM_CASE);
@@ -908,7 +910,8 @@ scm_m_define (SCM expr, SCM env)
       /* This while loop realizes function currying by variable nesting.
        * Variable is known to be a nested-variable.  In every iteration of the
        * loop another level of lambda expression is created, starting with the
-       * innermost one.  */
+       * innermost one.  Note that we don't check for duplicate formals here:
+       * This will be done by the memoizer of the lambda expression.  */
       const SCM formals = SCM_CDR (variable);
       const SCM tail = scm_cons (formals, body);
 
@@ -986,8 +989,8 @@ SCM_SYNTAX(s_do, "do", scm_i_makbimacro, scm_m_do);
 SCM_GLOBAL_SYMBOL(scm_sym_do, s_do);
 
 /* DO gets the most radically altered syntax.  The order of the vars is
- * reversed here.  In contrast, the order of the inits and steps is reversed
- * during the evaluation:
+ * reversed here.  During the evaluation this allows for simple consing of the
+ * results of the inits and steps:
 
    (do ((<var1> <init1> <step1>)
         (<var2> <init2>)
@@ -1035,6 +1038,9 @@ scm_m_do (SCM expr, SCM env SCM_UNUSED)
         const SCM init = SCM_CADR (binding);
         const SCM step = (length == 2) ? name : SCM_CADDR (binding);
         ASSERT_SYNTAX_2 (SCM_SYMBOLP (name), s_bad_variable, name, expr);
+        ASSERT_SYNTAX_2 (SCM_FALSEP (scm_c_memq (name, variables)),
+                         s_duplicate_binding, name, expr);
+
         variables = scm_cons (name, variables);
         init_forms = scm_cons (init, init_forms);
         step_forms = scm_cons (step, step_forms);
@@ -1062,27 +1068,31 @@ SCM_SYNTAX (s_if, "if", scm_i_makbimacro, scm_m_if);
 SCM_GLOBAL_SYMBOL (scm_sym_if, s_if);
 
 SCM
-scm_m_if (SCM xorig, SCM env SCM_UNUSED)
+scm_m_if (SCM expr, SCM env SCM_UNUSED)
 {
-  long len = scm_ilength (SCM_CDR (xorig));
-  SCM_ASSYNT (len >= 2 && len <= 3, s_expression, s_if);
-  return scm_cons (SCM_IM_IF, SCM_CDR (xorig));
+  const SCM cdr_expr = SCM_CDR (expr);
+  const long length = scm_ilength (cdr_expr);
+  ASSERT_SYNTAX (length == 2 || length == 3, s_expression, expr);
+  SCM_SETCAR (expr, SCM_IM_IF);
+  return expr;
 }
 
 
 SCM_SYNTAX (s_lambda, "lambda", scm_i_makbimacro, scm_m_lambda);
 SCM_GLOBAL_SYMBOL (scm_sym_lambda, s_lambda);
 
-/* Return true if OBJ is `eq?' to one of the elements of LIST or to the
- * cdr of the last cons.  (Thus, LIST is not required to be a proper
- * list and OBJ can also be found in the improper ending.) */
+/* A helper function for memoize_lambda to support checking for duplicate
+ * formal arguments: Return true if OBJ is `eq?' to one of the elements of
+ * LIST or to the cdr of the last cons.  Therefore, LIST may have any of the
+ * forms that a formal argument can have:
+ *   <rest>, (<arg1> ...), (<arg1> ...  .  <rest>) */
 static int
-scm_c_improper_memq (SCM obj, SCM list)
+c_improper_memq (SCM obj, SCM list)
 {
   for (; SCM_CONSP (list); list = SCM_CDR (list))
     {
       if (SCM_EQ_P (SCM_CAR (list), obj))
-	return 1;
+        return 1;
     }
   return SCM_EQ_P (list, obj);
 }
@@ -1100,7 +1110,7 @@ scm_m_lambda (SCM xorig, SCM env SCM_UNUSED)
     {
       SCM formal = SCM_CAR (formals);
       SCM_ASSYNT (SCM_SYMBOLP (formal), s_formals, s_lambda);
-      if (scm_c_improper_memq (formal, SCM_CDR (formals)))
+      if (c_improper_memq (formal, SCM_CDR (formals)))
 	scm_misc_error (s_lambda, s_duplicate_formals, SCM_EOL);
       formals = SCM_CDR (formals);
     }
@@ -1129,7 +1139,7 @@ transform_bindings (SCM bindings, SCM *rvarloc, SCM *initloc, const char *what)
       SCM binding = SCM_CAR (bindings);
       SCM_ASSYNT (scm_ilength (binding) == 2, s_bindings, what);
       SCM_ASSYNT (SCM_SYMBOLP (SCM_CAR (binding)), s_variable, what);
-      if (scm_c_improper_memq (SCM_CAR (binding), rvars))
+      if (!SCM_FALSEP (scm_c_memq (SCM_CAR (binding), rvars)))
 	scm_misc_error (what, s_duplicate_bindings, SCM_EOL);
       rvars = scm_cons (SCM_CAR (binding), rvars);
       *initloc = scm_list_1 (SCM_CADR (binding));
@@ -2650,11 +2660,10 @@ dispatch:
       x = SCM_CDR (x);
       {
 	SCM test_result = EVALCAR (x, env);
-	if (!SCM_FALSEP (test_result) && !SCM_NILP (test_result))
-	  x = SCM_CDR (x);
-	else
+	x = SCM_CDR (x);  /* then expression */
+	if (SCM_FALSEP (test_result) || SCM_NILP (test_result))
 	  {
-	    x = SCM_CDDR (x);
+	    x = SCM_CDR (x);  /* else expression */
 	    if (SCM_NULLP (x))
 	      RETURN (SCM_UNSPECIFIED);
 	  }

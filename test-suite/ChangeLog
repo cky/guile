@@ -1,5 +1,13 @@
 2003-10-11  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* tests/syntax.test (exception:missing/extra-expr-syntax): New,
+	introduced temporarily until all memoizers use the new way of
+	error reporting.
+
+	Adapted tests for 'if' to the new way of error reporting.
+
+2003-10-11  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* tests/syntax.test (exception:missing-expr,
 	exception:extra-expr): New.
 
