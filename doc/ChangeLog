@@ -1,3 +1,7 @@
+1999-09-11  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	* Makefile.in: Regenerated.
+
 Fri Jun 25 22:21:43 1999  Greg Badros  <gjb@cs.washington.edu>
 
 	* data-rep.texi: Updated SMOB docs to talk about

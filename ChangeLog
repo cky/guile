@@ -1,3 +1,9 @@
+1999-09-11  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	* configure.in (GUILE_STAMP): Don't set this variable, or
+	substitute it into anything.  Full explanation in ice-9/ChangeLog.
+	* configure, Makefile.in: Regenerated.
+	
 1999-09-06  James Blandy  <jimb@mule.m17n.org>
 
 	Propagate the changes of 2 Sept the rest of the way through.

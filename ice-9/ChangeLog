@@ -1,3 +1,20 @@
+1999-09-11  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	Delete the test which compares the configuration date of libguile
+	with the configuration date of ice-9.  This test yields too many
+	false positives to be helpful.  For example, if you build Guile
+	for several architectures but have them all share a "share"
+	directory (which is supposed to work), then all but one
+	architecture's Guile will complain that the configuration dates
+	don't match.  Which is true, but indicates nothing wrong.
+	* boot-9.scm: Delete code which compares ice-9-config-stamp with
+	libguile-config-stamp.
+	* version.scm.in: Delete.
+	* Makefile.am (ice9_generated): Delete.
+	(subpkgdata_DATA): Remove ice9_generated.
+	(EXTRA_DIST): Remove version.scm.in.
+	* Makefile.in: Regenerate.
+
 1999-09-11  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 *	* debugger.scm: New file: Initial version of the Guile debugger

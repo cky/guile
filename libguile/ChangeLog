@@ -1,3 +1,10 @@
+1999-09-11  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	* version.c (scm_libguile_config_stamp): Deleted.  See
+	corresponding change to ../ice-9/boot-9.scm.
+	* version.h: Delete prototype.
+	* Makefile.in: Regenerated.
+
 1999-09-11  Gary Houston  <ghouston@easynet.co.uk>
 
 	* filesys.c (scm_directory_p): new procedure "directory?"  Returns

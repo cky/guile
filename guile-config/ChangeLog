@@ -1,3 +1,7 @@
+1999-09-11  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	* Makefile.in: Regenerated.
+
 1998-07-29  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* guile-config.in (build-link): Correct non-RnRS usage of internal
