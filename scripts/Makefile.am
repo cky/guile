@@ -35,7 +35,8 @@ scripts_sources =		\
 	read-text-outline	\
 	use2dot                 \
 	snarf-check-and-output-texi \
-	summarize-guile-TODO
+	summarize-guile-TODO	\
+	scan-api
 
 subpkgdatadir = $(pkgdatadir)/$(VERSION)/scripts
 subpkgdata_SCRIPTS = $(scripts_sources)
