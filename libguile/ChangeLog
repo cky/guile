@@ -1,3 +1,25 @@
+2000-04-19  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* eval.c (undef_cell):  Removed, replaced by:
+
+	(undef_object):  Added to replace undef_cell.
+
+	(scm_lookupcar, scm_lookupcar1):  Use undef_object.
+
+	* eval.c (scm_lookupcar, scm_lookupcar1, scm_m_atfop,
+	scm_m_atbind, CHECK_EQVISH, SCM_CEVAL), procs.h (SCM_SETCODE):
+	Don't perform arithmetic operations with SCM values.
+
+	* eval.c (scm_lookupcar, scm_lookupcar1, scm_m_atfop,
+	scm_m_atbind, scm_eval_args, scm_deval_args, SCM_CEVAL):  Use
+	symbolic names for the tc3 type codes.
+
+	* eval.c (scm_m_define, SCM_CEVAL, SCM_APPLY):  Remove redundant
+	cast to SCM.
+
+	* eval.c (scm_eval_args, scm_deval_args, SCM_CEVAL):  Made the
+	access of the struct vcell element explicit.
+
 2000-04-19  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* struct.c (scm_struct_free_light, scm_struct_free_standard,
@@ -82,7 +104,6 @@
 	* eval.h (SCM_IFRAME, SCM_IDIST), weaks.h (SCM_IS_WHVEC_ANY):
 	Added missing call to SCM_UNPACK.
 
->>>>>>> 1.913
 2000-04-17  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* validate.h (SCM_VALIDATE_INUM_RANGE_COPY,

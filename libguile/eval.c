@@ -256,7 +256,7 @@ scm_ilookup (SCM iloc, SCM env)
 /* scm_lookupcar returns a pointer to this when a variable could not
    be found and it should not throw an error.  Never assign to this. 
 */
-static scm_cell undef_cell = { SCM_UNDEFINED, SCM_UNDEFINED };
+static SCM undef_object = SCM_UNDEFINED;
 
 SCM_SYMBOL (scm_unbound_variable_key, "unbound-variable");
 
@@ -292,7 +292,7 @@ scm_lookupcar (SCM vloc, SCM genv, int check)
 		if (! SCM_EQ_P (SCM_CAR (vloc), var))
 		  goto race;
 #endif
-		SCM_SETCAR (vloc, iloc + SCM_ICDR);
+		SCM_SET_CELL_WORD_0 (vloc, SCM_UNPACK (iloc) + SCM_ICDR);
 #endif
 		return SCM_CDRLOC (*al);
 	      }
@@ -319,11 +319,11 @@ scm_lookupcar (SCM vloc, SCM genv, int check)
 	      return SCM_CARLOC (*al);
 	    }
 #ifdef MEMOIZE_LOCALS
-	  iloc += SCM_IDINC;
+	  iloc = SCM_PACK (SCM_UNPACK (iloc) + SCM_IDINC);
 #endif
 	}
 #ifdef MEMOIZE_LOCALS
-      iloc = SCM_PACK ((~SCM_IDSTMSK) & SCM_UNPACK(iloc + SCM_IFRINC));
+      iloc = SCM_PACK ((~SCM_IDSTMSK) & (SCM_UNPACK(iloc) + SCM_IFRINC));
 #endif
     }
   {
@@ -357,7 +357,7 @@ scm_lookupcar (SCM vloc, SCM genv, int check)
 			    scm_cons (var, SCM_EOL));
 	}
       else
-	return SCM_CDRLOC (&undef_cell);
+	return &undef_object;
     }
 #endif
 #ifdef USE_THREADS
@@ -368,7 +368,7 @@ scm_lookupcar (SCM vloc, SCM genv, int check)
          completely. */
     race:
       var = SCM_CAR (vloc);
-      if (SCM_ITAG3 (var) == 1)
+      if (SCM_ITAG3 (var) == scm_tc3_cons_gloc)
 	return SCM_GLOC_VAL_LOC (var);
 #ifdef MEMOIZE_LOCALS
       if ((SCM_UNPACK (var) & 127) == (127 & SCM_UNPACK (SCM_ILOC00)))
@@ -383,7 +383,7 @@ scm_lookupcar (SCM vloc, SCM genv, int check)
     }
 #endif /* USE_THREADS */
 
-  SCM_SETCAR (vloc, var + 1);
+  SCM_SET_CELL_WORD_0 (vloc, SCM_UNPACK (var) + scm_tc3_cons_gloc);
   /* Except wait...what if the var is not a vcell,
    * but syntax or something....  */
   return SCM_CDRLOC (var);
@@ -915,7 +915,7 @@ scm_m_define (SCM x, SCM env)
       arg1 = scm_sym2vcell (proc, scm_env_top_level (env), SCM_BOOL_T);
 #if 0
 #ifndef SCM_RECKLESS
-      if (SCM_NIMP (SCM_CDR (arg1)) && ((SCM) SCM_SNAME (SCM_CDR (arg1)) == proc)
+      if (SCM_NIMP (SCM_CDR (arg1)) && (SCM_SNAME (SCM_CDR (arg1)) == proc)
 	  && (SCM_CDR (arg1) != x))
 	scm_warn ("redefining built-in ", SCM_CHARS (proc));
       else
@@ -1143,7 +1143,7 @@ scm_m_atfop (SCM xorig, SCM env)
   vcell = scm_symbol_fref (SCM_CAR (x));
   SCM_ASSYNT (SCM_CONSP (vcell), x,
 	      "Symbol's function definition is void", NULL);
-  SCM_SETCAR (x, vcell + 1);
+  SCM_SET_CELL_WORD_0 (x, SCM_UNPACK (vcell) + scm_tc3_cons_gloc);
   return x;
 }
 
@@ -1169,7 +1169,7 @@ scm_m_atbind (SCM xorig, SCM env)
   x = SCM_CAR (x);
   while (SCM_NIMP (x))
     {
-      SCM_SETCAR (x, scm_sym2vcell (SCM_CAR (x), env, SCM_BOOL_T) + 1);
+      SCM_SET_CELL_WORD_0 (x, SCM_UNPACK (scm_sym2vcell (SCM_CAR (x), env, SCM_BOOL_T)) + scm_tc3_cons_gloc);
       x = SCM_CDR (x);
     }
   return scm_cons (SCM_IM_BIND, SCM_CDR (xorig));
@@ -1539,10 +1539,13 @@ scm_eval_args (SCM l, SCM env, SCM proc)
 	  else
 	    res = EVALCELLCAR (l, env);
 	}
-      else if (SCM_TYP3 (l) == 1)
+      else if (SCM_TYP3 (l) == scm_tc3_cons_gloc)
 	{
-	  if ((res = SCM_GLOC_VAL (SCM_CAR (l))) == 0)
+	  scm_bits_t vcell = SCM_STRUCT_VTABLE_DATA (l) [scm_vtable_index_vcell];
+	  if (vcell == 0)
 	    res = SCM_CAR (l); /* struct planted in code */
+	  else
+	    res = SCM_PACK (vcell);
 	}
       else
 	goto wrongnumargs;
@@ -1758,10 +1761,13 @@ scm_deval_args (SCM l, SCM env, SCM proc, SCM *lloc)
 	  else
 	    res = EVALCELLCAR (l, env);
 	}
-      else if (SCM_TYP3 (l) == 1)
+      else if (SCM_TYP3 (l) == scm_tc3_cons_gloc)
 	{
-	  if ((res = SCM_GLOC_VAL (SCM_CAR (l))) == 0)
+	  scm_bits_t vcell = SCM_STRUCT_VTABLE_DATA (l) [scm_vtable_index_vcell];
+	  if (vcell == 0)
 	    res = SCM_CAR (l); /* struct planted in code */
+	  else
+	    res = SCM_PACK (vcell);
 	}
       else
 	goto wrongnumargs;
@@ -1789,7 +1795,7 @@ scm_deval_args (SCM l, SCM env, SCM proc, SCM *lloc)
  */
 
 #ifndef DEVAL
-#define CHECK_EQVISH(A,B) 	(((A) == (B)) || (SCM_NFALSEP (scm_eqv_p ((A), (B)))))
+#define CHECK_EQVISH(A,B) 	(SCM_EQ_P ((A), (B)) || (SCM_NFALSEP (scm_eqv_p ((A), (B)))))
 #endif /* DEVAL */
 
 #define BUILTIN_RPASUBR /* Handle rpsubrs and asubrs without calling apply */
@@ -2141,16 +2147,16 @@ dispatch:
     case SCM_BIT8(SCM_IM_SET_X):
       x = SCM_CDR (x);
       proc = SCM_CAR (x);
-      switch (7 & (int) proc)
+      switch (SCM_ITAG3 (proc))
 	{
-	case 0:
+	case scm_tc3_cons:
 	  t.lloc = scm_lookupcar (x, env, 1);
 	  break;
-	case 1:
+	case scm_tc3_cons_gloc:
 	  t.lloc = SCM_GLOC_VAL_LOC (proc);
 	  break;
 #ifdef MEMOIZE_LOCALS
-	case 4:
+	case scm_tc3_imm24:
 	  t.lloc = scm_ilookup (proc, env);
 	  break;
 #endif
@@ -2359,7 +2365,7 @@ dispatch:
 	  while (SCM_NIMP (x = SCM_CDR (proc)))
 	    {
 	      if (!(SCM_FALSEP (t.arg1 = EVALCAR (proc, env))
-		    || t.arg1 == scm_lisp_nil))
+		    || SCM_EQ_P (t.arg1, scm_lisp_nil)))
 		{
 		  if (SCM_EQ_P (SCM_CAR (x), SCM_UNSPECIFIED))
 		    RETURN (t.arg1);
@@ -2387,7 +2393,7 @@ dispatch:
 	  while (SCM_NIMP (x = SCM_CDR (proc)))
 	    {
 	      if (!(SCM_FALSEP (t.arg1 = EVALCAR (proc, env))
-		    || t.arg1 == SCM_INUM0))
+		    || SCM_EQ_P (t.arg1, SCM_INUM0)))
 		{
 		  if (SCM_EQ_P (SCM_CAR (x), SCM_UNSPECIFIED))
 		    RETURN (t.arg1);
@@ -2499,19 +2505,22 @@ dispatch:
 #endif /* ifdef MEMOIZE_LOCALS */
 
 
-    case scm_tcs_cons_gloc:
-      proc = SCM_GLOC_VAL (SCM_CAR (x));
-      if (proc == 0)
+    case scm_tcs_cons_gloc: {
+      scm_bits_t vcell = SCM_STRUCT_VTABLE_DATA (x) [scm_vtable_index_vcell];
+      if (vcell == 0) {
 	/* This is a struct implanted in the code, not a gloc. */
 	RETURN (x);
-      SCM_ASRTGO (SCM_NIMP (proc), badfun);
+      } else {
+	proc = SCM_PACK (vcell);
+	SCM_ASRTGO (SCM_NIMP (proc), badfun);
 #ifndef SCM_RECKLESS
 #ifdef SCM_CAUTIOUS
-      goto checkargs;
+	goto checkargs;
 #endif
 #endif
+      }
       break;
-
+    }
 
     case scm_tcs_cons_nimcar:
       if (SCM_SYMBOLP (SCM_CAR (x)))
@@ -2711,10 +2720,13 @@ evapply:
       else
 	t.arg1 = EVALCELLCAR (x, env);
     }
-  else if (SCM_TYP3 (x) == 1)
+  else if (SCM_TYP3 (x) == scm_tc3_cons_gloc)
     {
-      if ((t.arg1 = SCM_GLOC_VAL (SCM_CAR (x))) == 0)
+      scm_bits_t vcell = SCM_STRUCT_VTABLE_DATA (x) [scm_vtable_index_vcell];
+      if (vcell == 0)
 	t.arg1 = SCM_CAR (x); /* struct planted in code */
+      else
+	t.arg1 = SCM_PACK (vcell);
     }
   else
     goto wrongnumargs;
@@ -2759,7 +2771,7 @@ evapply:
 	      SCM_WTA_DISPATCH_1 (*SCM_SUBR_GENERIC (proc), t.arg1,
 				  SCM_ARG1, SCM_CHARS (SCM_SNAME (proc)));
 	    }
-	  proc = (SCM) SCM_SNAME (proc);
+	  proc = SCM_SNAME (proc);
 	  {
 	    char *chrs = SCM_CHARS (proc) + SCM_LENGTH (proc) - 1;
 	    while ('c' != *--chrs)
@@ -2856,10 +2868,13 @@ evapply:
       else
 	arg2 = EVALCELLCAR (x, env);
     }
-  else if (SCM_TYP3 (x) == 1)
+  else if (SCM_TYP3 (x) == scm_tc3_cons_gloc)
     {
-      if ((arg2 = SCM_GLOC_VAL (SCM_CAR (x))) == 0)
+      scm_bits_t vcell = SCM_STRUCT_VTABLE_DATA (x) [scm_vtable_index_vcell];
+      if (vcell == 0)
 	arg2 = SCM_CAR (x); /* struct planted in code */
+      else
+	arg2 = SCM_PACK (vcell);
     }
   else
     goto wrongnumargs;
@@ -3350,7 +3365,7 @@ tail:
 	  SCM_WTA_DISPATCH_1 (*SCM_SUBR_GENERIC (proc), arg1,
 			      SCM_ARG1, SCM_CHARS (SCM_SNAME (proc)));
 	}
-      proc = (SCM) SCM_SNAME (proc);
+      proc = SCM_SNAME (proc);
       {
 	char *chrs = SCM_CHARS (proc) + SCM_LENGTH (proc) - 1;
 	while ('c' != *--chrs)
