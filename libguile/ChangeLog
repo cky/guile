@@ -1,9 +1,11 @@
 2000-03-16  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
-
+	
 	* __scm.h (GC_FREE_SEGMENTS): Disable this until we have made
 	freeing of segment work with the new GC scheme.  (Thanks to
-	Michael Livshin.)
-
+	Michael Livshin.)  Oops, also happened to make GUILE_NEW_GC_SCHEME
+	the default, but I'll let this change stay in CVS Guile since this
+	code is not expected to contain serious bugs.
+	
 2000-03-16  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* gc.c, gc.h (scm_map_free_list): Define also if GUILE_DEBUG is
