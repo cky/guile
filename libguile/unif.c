@@ -1317,10 +1317,10 @@ SCM_DEFINE (scm_array_set_x, "array-set!", 2, 0, 1,
       ((char *) SCM_UVECTOR_BASE (v))[pos] = SCM_INUM (obj);
       break;
     case scm_tc7_uvect:
-      SCM_VELTS(v)[pos] = SCM_PACK (scm_num2ulong(obj, (char *)SCM_ARG2, FUNC_NAME));
+      SCM_VELTS(v)[pos] = SCM_PACK (scm_num2ulong(obj, SCM_ARG2, FUNC_NAME));
       break;
     case scm_tc7_ivect:
-      SCM_VELTS(v)[pos] = SCM_PACK (scm_num2long(obj, (char *)SCM_ARG2, FUNC_NAME));
+      SCM_VELTS(v)[pos] = SCM_PACK (scm_num2long (obj, SCM_ARG2, FUNC_NAME));
       break;
     case scm_tc7_svect:
       SCM_ASRTGO (SCM_INUMP (obj), badobj);
@@ -1328,7 +1328,7 @@ SCM_DEFINE (scm_array_set_x, "array-set!", 2, 0, 1,
       break;
 #ifdef HAVE_LONG_LONGS
     case scm_tc7_llvect:
-      ((long_long *) SCM_CELL_WORD_1 (v))[pos] = scm_num2long_long (obj, (char *)SCM_ARG2, FUNC_NAME);
+      ((long_long *) SCM_CELL_WORD_1 (v))[pos] = scm_num2long_long (obj, SCM_ARG2, FUNC_NAME);
       break;
 #endif
 

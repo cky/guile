@@ -4358,7 +4358,7 @@ scm_ulong2num (unsigned long sl)
 
 
 long
-scm_num2long (SCM num, char *pos, const char *s_caller)
+scm_num2long (SCM num, unsigned long int pos, const char *s_caller)
 {
   if (SCM_INUMP (num)) {
     return SCM_INUM (num);
@@ -4402,7 +4402,7 @@ scm_num2long (SCM num, char *pos, const char *s_caller)
       scm_out_of_range (s_caller, num);
     }
   } else {
-    scm_wrong_type_arg (s_caller, (int) pos, num);
+    scm_wrong_type_arg (s_caller, pos, num);
   }
 }
 
@@ -4414,7 +4414,7 @@ scm_num2long (SCM num, char *pos, const char *s_caller)
 #endif
 
 long_long
-scm_num2long_long (SCM num, char *pos, const char *s_caller)
+scm_num2long_long (SCM num, unsigned long int pos, const char *s_caller)
 {
   if (SCM_INUMP (num)) {
     return SCM_INUM (num);
@@ -4453,12 +4453,12 @@ scm_num2long_long (SCM num, char *pos, const char *s_caller)
       scm_out_of_range (s_caller, num);
     }
   } else {
-    scm_wrong_type_arg (s_caller, (int) pos, num);
+    scm_wrong_type_arg (s_caller, pos, num);
   }
 }
 
 ulong_long
-scm_num2ulong_long (SCM num, char *pos, const char *s_caller)
+scm_num2ulong_long (SCM num, unsigned long int pos, const char *s_caller)
 {
   if (SCM_INUMP (num)) 
     {
@@ -4493,14 +4493,14 @@ scm_num2ulong_long (SCM num, char *pos, const char *s_caller)
 	scm_out_of_range (s_caller, num);
     }
   else
-    scm_wrong_type_arg (s_caller, (int) pos, num);
+    scm_wrong_type_arg (s_caller, pos, num);
 }
 
 #endif /* HAVE_LONG_LONGS */
 
 
 unsigned long
-scm_num2ulong (SCM num, char *pos, const char *s_caller)
+scm_num2ulong (SCM num, unsigned long int pos, const char *s_caller)
 {
   if (SCM_INUMP (num)) {
     long nnum = SCM_INUM (num);
@@ -4531,7 +4531,7 @@ scm_num2ulong (SCM num, char *pos, const char *s_caller)
       scm_out_of_range (s_caller, num);
     }
   } else {
-    scm_wrong_type_arg (s_caller, (int) pos, num);
+    scm_wrong_type_arg (s_caller, pos, num);
   }
 }
 

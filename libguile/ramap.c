@@ -1,4 +1,4 @@
-/*	Copyright (C) 1996, 1998, 2000, 2001 Free Software Foundation, Inc.
+/* Copyright (C) 1996,1998,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -551,7 +551,7 @@ scm_array_fill_int (SCM ra, SCM fill, SCM ignore)
       }
     case scm_tc7_uvect:
       { /* scope */
-	unsigned long f = SCM_NUM2ULONG (2,fill);
+	unsigned long f = SCM_NUM2ULONG (2, fill);
 	unsigned long *ve = (unsigned long *) SCM_VELTS (ra);
 
 	for (i = base; n--; i += inc)
@@ -560,7 +560,7 @@ scm_array_fill_int (SCM ra, SCM fill, SCM ignore)
       }
     case scm_tc7_ivect:
       { /* scope */
-	long f = SCM_NUM2LONG (2,fill);
+	long f = SCM_NUM2LONG (2, fill);
 	long *ve = (long *) SCM_VELTS (ra);
 
 	for (i = base; n--; i += inc)
@@ -582,7 +582,7 @@ scm_array_fill_int (SCM ra, SCM fill, SCM ignore)
 #ifdef HAVE_LONG_LONGS
     case scm_tc7_llvect:
       { /* scope */
-	long long f = SCM_NUM2LONG_LONG (2,fill);
+	long long f = SCM_NUM2LONG_LONG (2, fill);
 	long long *ve = (long long *) SCM_VELTS (ra);
 
 	for (i = base; n--; i += inc)

@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998, 1999, 2000, 2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -355,7 +355,7 @@ SCM_DEFINE (scm_localtime, "localtime", 1, 1, 0,
   char **oldenv;
   int err;
 
-  itime = SCM_NUM2LONG (1,time);
+  itime = SCM_NUM2LONG (1, time);
 
   /* deferring interupts is essential since a) setzone may install a temporary
      environment b) localtime uses a static buffer.  */
@@ -423,7 +423,7 @@ SCM_DEFINE (scm_gmtime, "gmtime", 1, 0, 0,
   struct tm *bd_time;
   SCM result;
 
-  itime = SCM_NUM2LONG (1,time);
+  itime = SCM_NUM2LONG (1, time);
   SCM_DEFER_INTS;
   bd_time = gmtime (&itime);
   if (bd_time == NULL)

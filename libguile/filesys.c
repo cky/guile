@@ -1,4 +1,4 @@
-/*	Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
+/* Copyright (C) 1996,1997,1998,1999,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -243,8 +243,8 @@ SCM_DEFINE (scm_open_fdes, "open-fdes", 2, 1, 0,
 
   SCM_VALIDATE_STRING (1, path);
   SCM_STRING_COERCE_0TERMINATION_X (path);
-  iflags = SCM_NUM2LONG(2,flags);
-  imode = SCM_NUM2LONG_DEF(3,mode,0666);
+  iflags = SCM_NUM2LONG (2, flags);
+  imode = SCM_NUM2LONG_DEF (3, mode, 0666);
   SCM_SYSCALL (fd = open (SCM_STRING_CHARS (path), iflags, imode));
   if (fd == -1)
     SCM_SYSERROR;
@@ -286,7 +286,7 @@ SCM_DEFINE (scm_open, "open", 2, 1, 0,
   int iflags;
 
   fd = SCM_INUM (scm_open_fdes (path, flags, mode));
-  iflags = SCM_NUM2LONG (2,flags);
+  iflags = SCM_NUM2LONG (2, flags);
   if (iflags & O_RDWR)
     {
       if (iflags & O_APPEND)

@@ -1,5 +1,5 @@
-/* $Id: validate.h,v 1.30 2001-03-17 13:34:21 dirk Exp $ */
-/*	Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+/* $Id: validate.h,v 1.31 2001-04-10 07:57:05 dirk Exp $ */
+/* Copyright (C) 1999,2000,2001 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -61,15 +61,15 @@
 #define SCM_WRONG_TYPE_ARG(pos, obj) \
   do { scm_wrong_type_arg (FUNC_NAME, pos, obj); } while (0)
 
-#define SCM_NUM2ULONG(pos, arg) (scm_num2ulong (arg, (char *) pos, FUNC_NAME))
+#define SCM_NUM2ULONG(pos, arg) (scm_num2ulong (arg, pos, FUNC_NAME))
 
-#define SCM_NUM2LONG(pos, arg) (scm_num2long (arg, (char *) pos, FUNC_NAME))
+#define SCM_NUM2LONG(pos, arg) (scm_num2long (arg, pos, FUNC_NAME))
 
 #define SCM_NUM2LONG_DEF(pos, arg, def) \
-  (SCM_UNBNDP (arg) ? def : scm_num2long (arg, (char *) pos, FUNC_NAME))
+  (SCM_UNBNDP (arg) ? def : scm_num2long (arg, pos, FUNC_NAME))
 
 #define SCM_NUM2LONG_LONG(pos, arg) \
-  (scm_num2long_long (arg, (char *) pos, FUNC_NAME))
+  (scm_num2long_long (arg, pos, FUNC_NAME))
 
 #define SCM_OUT_OF_RANGE(pos, arg) \
   do { scm_out_of_range_pos (FUNC_NAME, arg, SCM_MAKINUM (pos)); } while (0)
@@ -162,7 +162,7 @@
 
 #define SCM_VALIDATE_LONG_COPY(pos, k, cvar) \
   do { \
-    cvar = SCM_NUM2LONG(pos, k); \
+    cvar = SCM_NUM2LONG (pos, k); \
   } while (0)
 
 #define SCM_VALIDATE_BIGINT(pos, k) SCM_MAKE_VALIDATE (pos, k, BIGP)

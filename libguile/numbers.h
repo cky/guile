@@ -2,7 +2,7 @@
 
 #ifndef NUMBERSH
 #define NUMBERSH
-/*	Copyright (C) 1995, 1996, 1998, 2000 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -290,15 +290,16 @@ extern SCM scm_dbl2big (double d);
 extern double scm_big2dbl (SCM b);
 extern SCM scm_long2num (long sl);
 extern SCM scm_ulong2num (unsigned long sl);
-extern long scm_num2long (SCM num, char *pos, const char *s_caller);
+extern long scm_num2long (SCM num, unsigned long int pos,
+			  const char *s_caller);
 #ifdef HAVE_LONG_LONGS
 extern SCM scm_long_long2num (long_long sl);
-extern long_long scm_num2long_long (SCM num, char *pos,
+extern long_long scm_num2long_long (SCM num, unsigned long int pos,
                                     const char *s_caller);
-extern ulong_long scm_num2ulong_long (SCM num, char *pos,
+extern ulong_long scm_num2ulong_long (SCM num, unsigned long int pos,
 				      const char *s_caller);
 #endif
-extern unsigned long scm_num2ulong (SCM num, char *pos,
+extern unsigned long scm_num2ulong (SCM num, unsigned long int pos,
                                     const char *s_caller);
 extern void scm_init_numbers (void);
 

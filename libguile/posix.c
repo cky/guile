@@ -1,4 +1,4 @@
-/* Copyright (C) 1995, 96, 97, 98, 99, 2000, 2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1095,12 +1095,12 @@ SCM_DEFINE (scm_utime, "utime", 1, 2, 0,
   if (SCM_UNBNDP (actime))
     SCM_SYSCALL (time (&utm_tmp.actime));
   else
-    utm_tmp.actime = SCM_NUM2ULONG (2,actime);
+    utm_tmp.actime = SCM_NUM2ULONG (2, actime);
 
   if (SCM_UNBNDP (modtime))
     SCM_SYSCALL (time (&utm_tmp.modtime));
   else
-    utm_tmp.modtime = SCM_NUM2ULONG (3,modtime);
+    utm_tmp.modtime = SCM_NUM2ULONG (3, modtime);
 
   SCM_SYSCALL (rv = utime (SCM_STRING_CHARS (pathname), &utm_tmp));
   if (rv != 0)

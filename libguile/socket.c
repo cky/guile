@@ -1,4 +1,4 @@
-/*	Copyright (C) 1996,1997,1998, 2000, 2001 Free Software Foundation, Inc.
+/* Copyright (C) 1996,1997,1998,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -123,7 +123,7 @@ SCM_DEFINE (scm_htonl, "htonl", 1, 0, 0,
 	    "unsigned long integer.")
 #define FUNC_NAME s_scm_htonl
 {
-  unsigned long c_in = SCM_NUM2ULONG (1,in);
+  unsigned long c_in = SCM_NUM2ULONG (1, in);
   return scm_ulong2num (htonl (c_in));
 }
 #undef FUNC_NAME
@@ -135,7 +135,7 @@ SCM_DEFINE (scm_ntohl, "ntohl", 1, 0, 0,
 	    "a C unsigned long integer.")
 #define FUNC_NAME s_scm_ntohl
 {
-  unsigned long c_in = SCM_NUM2ULONG (1,in);
+  unsigned long c_in = SCM_NUM2ULONG (1, in);
   return scm_ulong2num (ntohl (c_in));
 }
 #undef FUNC_NAME
@@ -426,7 +426,7 @@ scm_fill_sockaddr (int fam, SCM address, SCM *args, int which_arg,
 	memset (soka, 0, sizeof (struct sockaddr_in));
 	soka->sin_family = AF_INET;
 	soka->sin_addr.s_addr =
-	  htonl (scm_num2ulong (address, (char *) which_arg, proc));
+	  htonl (scm_num2ulong (address, which_arg, proc));
 	*args = SCM_CDR (*args);
 	soka->sin_port = htons (SCM_INUM (isport));
 	*size = sizeof (struct sockaddr_in);
@@ -874,7 +874,7 @@ SCM_DEFINE (scm_sendto, "sendto", 4, 0, 1,
   else
     {
       SCM_VALIDATE_CONS (5,args_and_flags);
-      flg = SCM_NUM2ULONG (5,SCM_CAR (args_and_flags));
+      flg = SCM_NUM2ULONG (5, SCM_CAR (args_and_flags));
     }
   SCM_SYSCALL (rv = sendto (fd, SCM_STRING_CHARS (message),
 			    SCM_STRING_LENGTH (message),

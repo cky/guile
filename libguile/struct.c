@@ -683,7 +683,7 @@ SCM_DEFINE (scm_struct_set_x, "struct-set!", 3, 0, 0,
 
 #if 0
     case 'i':
-      data[p] = SCM_NUM2LONG (3,val);
+      data[p] = SCM_NUM2LONG (3, val);
       break;
 
     case 'd':

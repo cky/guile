@@ -1,3 +1,26 @@
+2001-04-10  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* numbers.[ch] (scm_num2long, scm_num2long_long,
+	scm_num2ulong_long, scm_num2ulong):  Argument position is an
+	unsigned integer.
+
+	* environments.c (eval_environment_folder,
+	import_environment_folder), gh_data.c (gh_scm2longs,
+	gh_scm2floats, gh_scm2doubles):  Distinguish between 0 and NULL
+	for integers and pointers, respectively.
+
+	* gh_data.c (gh_scm2ulong, gh_scm2long, gh_scm2int), socket.c
+	(scm_fill_sockaddr), unif.c (scm_array_set_x), validate.h
+	(SCM_NUM2ULONG, SCM_NUM2LONG, SCM_NUM2LONG_DEF,
+	SCM_NUM2LONG_LONG):  Don't pass argument positions as pointers.
+
+	* filesys.c (scm_open_fdes, scm_open), net_db (scm_inet_ntoa,
+	scm_inet_netof, scm_lnaof, scm_gethost, scm_getproto), posix.c
+	(scm_utime), ramap.c (scm_array_fill_int), scmsigs.c
+	(scm_sigaction), socket.c (scm_htonl, scm_ntohl, scm_sendto),
+	stime.c (scm_localtime, scm_gmtime), struct.c (scm_struct_set_x),
+	validate.h (SCM_VALIDATE_LONG_COPY):  Whitespace fixes.
+
 2001-04-09  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* strings.c (scm_read_only_string_p): Update docstring to reflect

@@ -1,5 +1,5 @@
 /* "net_db.c" network database support
- * Copyright (C) 1995, 96, 97, 98, 99, 2000, 2001 Free Software Foundation, Inc.
+ * Copyright (C) 1995,1996,1997,1998,1999,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -119,7 +119,7 @@ SCM_DEFINE (scm_inet_ntoa, "inet-ntoa", 1, 0, 0,
   struct in_addr addr;
   char *s;
   SCM answer;
-  addr.s_addr = htonl (SCM_NUM2ULONG (1,inetid));
+  addr.s_addr = htonl (SCM_NUM2ULONG (1, inetid));
   s = inet_ntoa (addr);
   answer = scm_makfromstr (s, strlen (s), 0);
   return answer;
@@ -137,7 +137,7 @@ SCM_DEFINE (scm_inet_netof, "inet-netof", 1, 0, 0,
 #define FUNC_NAME s_scm_inet_netof
 {
   struct in_addr addr;
-  addr.s_addr = htonl (SCM_NUM2ULONG (1,address));
+  addr.s_addr = htonl (SCM_NUM2ULONG (1, address));
   return scm_ulong2num ((unsigned long) inet_netof (addr));
 }
 #undef FUNC_NAME
@@ -154,7 +154,7 @@ SCM_DEFINE (scm_lnaof, "inet-lnaof", 1, 0, 0,
 #define FUNC_NAME s_scm_lnaof
 {
   struct in_addr addr;
-  addr.s_addr = htonl (SCM_NUM2ULONG (1,address));
+  addr.s_addr = htonl (SCM_NUM2ULONG (1, address));
   return scm_ulong2num ((unsigned long) inet_lnaof (addr));
 }
 #undef FUNC_NAME
@@ -288,7 +288,7 @@ SCM_DEFINE (scm_gethost, "gethost", 0, 1, 0,
     }
   else
     {
-      inad.s_addr = htonl (SCM_NUM2ULONG (1,host));
+      inad.s_addr = htonl (SCM_NUM2ULONG (1, host));
       entry = gethostbyaddr ((char *) &inad, sizeof (inad), AF_INET);
     }
   if (!entry)
@@ -412,7 +412,7 @@ SCM_DEFINE (scm_getproto, "getproto", 0, 1, 0,
   else
     {
       unsigned long protonum;
-      protonum = SCM_NUM2ULONG (1,protocol);
+      protonum = SCM_NUM2ULONG (1, protocol);
       entry = getprotobynumber (protonum);
     }
   if (!entry)

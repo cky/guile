@@ -1,4 +1,4 @@
-/* Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+/* Copyright (C) 1999,2000,2001 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1246,7 +1246,7 @@ eval_environment_folder (SCM extended_data, SCM symbol, SCM value, SCM tail)
   if (!SCM_ENVIRONMENT_BOUND_P (local, symbol))
     {
       SCM proc_as_nr = SCM_CADR (extended_data);
-      unsigned long int proc_as_ul = scm_num2ulong (proc_as_nr, NULL, NULL);
+      unsigned long int proc_as_ul = scm_num2ulong (proc_as_nr, 0, NULL);
       scm_environment_folder proc = (scm_environment_folder) proc_as_ul;
       SCM data = SCM_CDDR (extended_data);
 
@@ -1652,7 +1652,7 @@ import_environment_folder (SCM extended_data, SCM symbol, SCM value, SCM tail)
   SCM imported_env = SCM_CADR (extended_data);
   SCM owner = import_environment_lookup (import_env, symbol);
   SCM proc_as_nr = SCM_CADDR (extended_data);
-  unsigned long int proc_as_ul = scm_num2ulong (proc_as_nr, NULL, NULL);
+  unsigned long int proc_as_ul = scm_num2ulong (proc_as_nr, 0, NULL);
   scm_environment_folder proc = (scm_environment_folder) proc_as_ul;
   SCM data = SCM_CDDDR (extended_data);
 

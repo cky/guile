@@ -1,4 +1,4 @@
-/* Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -237,8 +237,8 @@ SCM_DEFINE (scm_sigaction, "sigaction", 1, 2, 0,
     query_only = 1;
   else if (SCM_EQ_P (scm_integer_p (handler), SCM_BOOL_T))
     {
-      if (SCM_NUM2LONG (2,handler) == (long) SIG_DFL
-	  || SCM_NUM2LONG (2,handler) == (long) SIG_IGN)
+      if (SCM_NUM2LONG (2, handler) == (long) SIG_DFL
+	  || SCM_NUM2LONG (2, handler) == (long) SIG_IGN)
 	{
 #ifdef HAVE_SIGACTION
 	  action.sa_handler = (SIGRETTYPE (*) (int)) SCM_INUM (handler);
