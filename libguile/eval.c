@@ -2202,39 +2202,6 @@ dispatch:
     case (127 & SCM_IM_DEFINE):	/* only for internal defines */
       scm_misc_error (NULL, "Bad define placement", SCM_EOL);
 
-#if 0
-      x = SCM_CDR (x);
-      proc = SCM_CAR (x);
-      x = SCM_CDR (x);
-      x = evalcar (x, env);
-#ifdef DEBUG_EXTENSIONS
-      if (SCM_REC_PROCNAMES_P && SCM_NIMP (x))
-	{
-	  t.arg1 = x;
-	proc:
-	  if (SCM_CLOSUREP (t.arg1)
-	      /* Only the first definition determines the name. */
-	      && (scm_procedure_property (t.arg1, scm_i_inner_name)
-		  == SCM_BOOL_F))
-	    scm_set_procedure_property_x (t.arg1, scm_i_inner_name, proc);
-	  else if (SCM_TYP16 (t.arg1) == scm_tc16_macro
-		   && SCM_CDR (t.arg1) != t.arg1)
-	    {
-	      t.arg1 = SCM_CDR (t.arg1);
-	      goto proc;
-	    }
-	}
-#endif
-      env = SCM_CAR (env);
-      SCM_DEFER_INTS;
-      SCM_SETCAR (env, scm_cons (proc, SCM_CAR (env)));
-      SCM_SETCDR (env, scm_cons (x, SCM_CDR (env)));
-      SCM_ALLOW_INTS;
-      RETURN (SCM_UNSPECIFIED);
-
-#endif
-
-
       /* new syntactic forms go here. */
     case (127 & SCM_MAKISYM (0)):
       proc = SCM_CAR (x);
