@@ -1,3 +1,17 @@
+1998-11-21  Mikael Djurfeldt  <mdj@kenneth>
+
+	* eval.c (SCM_CEVAL): Allow structs implanted in code.
+	Previously, structs implanted in code were interpreted as forms
+	the operator of which was a gloc.  We solve this by checking for
+	the zero in the emulated vcell in the struct vtable.  Since
+	implanted structs always will look like forms with a gloc
+	operator, execution will only be slowed down by maximally one
+	extra test-and-branch per application.
+
+	* evalext.c (scm_definedp): Removed check for isyms; Added a
+	second optional argument: It is now possible to supply an
+	evaluation environment in which to look for the symbol.
+
 1998-11-19  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* readline.c (scm_init_readline): Set

@@ -1995,6 +1995,9 @@ dispatch:
 
     case scm_tcs_cons_gloc:
       proc = SCM_GLOC_VAL (SCM_CAR (x));
+      if (proc == 0)
+	/* This is a struct implanted in the code, not a gloc. */
+	RETURN (x);
       SCM_ASRTGO (SCM_NIMP (proc), badfun);
 #ifndef SCM_RECKLESS
 #ifdef SCM_CAUTIOUS
