@@ -19,7 +19,7 @@ ryanw	Ryan Weaver <ryanw@infohwy.com>
 
 ** reference manual
 
-neil?
+neil
 
 ** docstrings
 
@@ -61,7 +61,7 @@ niibe
 *** factorizing thread support out of libguile
 
 niibe
-dirk?
+dirk
 
 *** Protecting common resources using mutecis from the new interface.
 
