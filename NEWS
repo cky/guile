@@ -593,11 +593,11 @@ prevent a potential memory leak:
     scm_frame_begin (0);
 
     mem = scm_malloc (100);
-    scm_frame_unwind (free, mem, SCM_F_WIND_EXPLICITELY);
+    scm_frame_unwind_handler (free, mem, SCM_F_WIND_EXPLICITELY);
 
-    /* MEM would leak if BAR throws an error.  SCM_FRAME_UNWIND frees it
-       nevertheless.
-     */
+    /* MEM would leak if BAR throws an error.
+       SCM_FRAME_UNWIND_HANDLER frees it nevertheless.  */
+
     bar ();
   
     scm_frame_end ();

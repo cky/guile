@@ -35,7 +35,7 @@ func1 ()
 {
   scm_frame_begin (0);
   flag1 = 0;
-  scm_frame_unwind (set_flag, &flag1, 0);
+  scm_frame_unwind_handler (set_flag, &flag1, 0);
   scm_frame_end ();
 }
 
@@ -47,7 +47,7 @@ func2 ()
 {
   scm_frame_begin (0);
   flag1 = 0;
-  scm_frame_unwind (set_flag, &flag1, SCM_F_WIND_EXPLICITLY);
+  scm_frame_unwind_handler (set_flag, &flag1, SCM_F_WIND_EXPLICITLY);
   scm_frame_end ();
 }
 
@@ -59,7 +59,7 @@ func3 ()
 {
   scm_frame_begin (0);
   flag1 = 0;
-  scm_frame_unwind (set_flag, &flag1, 0);
+  scm_frame_unwind_handler (set_flag, &flag1, 0);
   scm_misc_error ("func3", "gratuitous error", SCM_EOL);
   scm_frame_end ();
 }
@@ -72,7 +72,7 @@ func4 ()
 {
   scm_frame_begin (0);
   flag1 = 0;
-  scm_frame_unwind (set_flag, &flag1, SCM_F_WIND_EXPLICITLY);
+  scm_frame_unwind_handler (set_flag, &flag1, SCM_F_WIND_EXPLICITLY);
   scm_misc_error ("func4", "gratuitous error", SCM_EOL);
   scm_frame_end ();
 }
@@ -179,7 +179,8 @@ check_ports ()
   {
     SCM port = scm_open_file (scm_str2string (filename),
 			      scm_str2string ("w"));
-    scm_frame_unwind_with_scm (close_port, port, SCM_F_WIND_EXPLICITLY);
+    scm_frame_unwind_handler_with_scm (close_port, port,
+				       SCM_F_WIND_EXPLICITLY);
 
     scm_frame_current_output_port (port);
     scm_write (scm_version (), SCM_UNDEFINED);
@@ -191,8 +192,9 @@ check_ports ()
     SCM port = scm_open_file (scm_str2string (filename),
 			      scm_str2string ("r"));
     SCM res;
-    scm_frame_unwind_with_scm (close_port, port, SCM_F_WIND_EXPLICITLY);
-    scm_frame_unwind (delete_file, filename, SCM_F_WIND_EXPLICITLY);
+    scm_frame_unwind_handler_with_scm (close_port, port,
+				       SCM_F_WIND_EXPLICITLY);
+    scm_frame_unwind_handler (delete_file, filename, SCM_F_WIND_EXPLICITLY);
 
     scm_frame_current_input_port (port);
     res = scm_read (SCM_UNDEFINED);

@@ -1167,10 +1167,10 @@ scm_foo (SCM s1, SCM s2)
   scm_frame_begin (0);
 
   c_s1 = scm_to_string (s1);
-  scm_frame_unwind (free, c_s1, SCM_F_WIND_EXPLICITLY);
+  scm_frame_unwind_handler (free, c_s1, SCM_F_WIND_EXPLICITLY);
 
   c_s2 = scm_to_string (s2);
-  scm_frame_unwind (free, c_s2, SCM_F_WIND_EXPLICITLY);
+  scm_frame_unwind_handler (free, c_s2, SCM_F_WIND_EXPLICITLY);
 
   c_res = foo (c_s1, c_s2);
   if (c_res == NULL)
@@ -1226,8 +1226,8 @@ End the current frame explicitly and make the previous frame current.
 
 @deftp {C Type} scm_t_wind_flags
 This is an enumeration of several flags that modify the behavior of
-@code{scm_on_unwind} and @code{scm_on_rewind}.  The flags are listed in
-the following table.
+@code{scm_on_unwind_handler} and @code{scm_on_rewind_handler}.  The
+flags are listed in the following table.
 
 @table @code
 @item SCM_F_WIND_EXPLICITLY
@@ -1236,26 +1236,26 @@ left locally.
 @end table
 @end deftp
 
-@deftypefn {C Function} void scm_frame_unwind (void (*func)(void *), void *data, scm_t_wind_flags flags)
-@deftypefnx {C Function} void scm_frame_unwind_with_scm (void (*func)(SCM), SCM data, scm_t_wind_flags flags)
+@deftypefn {C Function} void scm_frame_unwind_handler (void (*func)(void *), void *data, scm_t_wind_flags flags)
+@deftypefnx {C Function} void scm_frame_unwind_handler_with_scm (void (*func)(SCM), SCM data, scm_t_wind_flags flags)
 Arranges for @var{func} to be called with @var{data} as its arguments
 when the current frame ends implicitly.  If @var{flags} contains
 @code{SCM_F_WIND_EXPLICITLY}, @var{func} is also called when the frame
 ends explicitly with @code{scm_frame_end}.
 
-The function @code{scm_frame_unwind_with_scm} takes care that @var{data}
-is protected from garbage collection.
+The function @code{scm_frame_unwind_handler_with_scm} takes care that
+@var{data} is protected from garbage collection.
 @end deftypefn
 
-@deftypefn {C Function} void scm_frame_rewind (void (*func)(void *), void *data, scm_t_wind_flags flags)
-@deftypefnx {C Function} void scm_frame_rewind_with_scm (void (*func)(SCM), SCM data, scm_t_wind_flags flags)
+@deftypefn {C Function} void scm_frame_rewind_handler (void (*func)(void *), void *data, scm_t_wind_flags flags)
+@deftypefnx {C Function} void scm_frame_rewind_handler_with_scm (void (*func)(SCM), SCM data, scm_t_wind_flags flags)
 Arrange for @var{func} to be called with @var{data} as its argument when
 the current frame is restarted by rewinding the stack.  When @var{flags}
 contains @code{SCM_F_WIND_EXPLICITLY}, @var{func} is called immediately
 as well.
 
-The function @code{scm_frame_rewind_with_scm} takes care that @var{data}
-is protected from garbage collection.
+The function @code{scm_frame_rewind_handler_with_scm} takes care that
+@var{data} is protected from garbage collection.
 @end deftypefn
 
 
