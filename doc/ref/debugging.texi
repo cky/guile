@@ -720,7 +720,7 @@ In standard input:
 @deffnx {Debugger Command} bt [count]
 @deffnx {Debugger Command} where [count]
 Print backtrace of all stack frames, or of the innermost @var{count}
-frames.  With a negative argument, print the outermost -@var{COUNT}
+frames.  With a negative argument, print the outermost -@var{count}
 frames.  If the number of frames isn't explicitly given, the debug
 option @code{depth} determines the maximum number of frames printed.
 @end deffn
@@ -750,13 +750,13 @@ this:
 @lisp
 debug> up
 Frame 1 at standard input:36:14
-	[* 4 ...
+        [* 4 ...
 debug> frame 0
 Frame 0 at standard input:36:1
-	[make-string ...
+        [make-string ...
 debug> down
 Frame 1 at standard input:36:14
-	[* 4 ...
+        [* 4 ...
 @end lisp
 
 @deffn {Debugger Command} up [n]
@@ -783,11 +783,11 @@ frame to select; it must be a stack-frame number.
 
 [to be completed]
 
-@deffn {Debugger Command} info frame
+@deffn {Debugger Command} {info frame}
 All about selected stack frame.
 @end deffn
 
-@deffn {Debugger Command} info args
+@deffn {Debugger Command} {info args}
 Argument variables of current stack frame.
 @end deffn
 
@@ -1036,8 +1036,8 @@ Set breakpoint 4: standard input:13:9: (= n 0)
 (set-breakpoint! trace-here 4)
 @print{}
 Breakpoint 4: standard input:13:9: (= n 0)
-	enabled? = #t
-	behaviour = #<procedure trace-here ()>
+        enabled? = #t
+        behaviour = #<procedure trace-here ()>
 
 (fact1 4)
 @print{}
@@ -1070,8 +1070,8 @@ compared by the @code{=} procedure:
 (set-breakpoint! trace-subtree 4)
 @print{}
 Breakpoint 4: standard input:13:9: (= n 0)
-	enabled? = #t
-	behaviour = #<procedure trace-subtree ()>
+        enabled? = #t
+        behaviour = #<procedure trace-subtree ()>
 
 (fact1 4)
 @print{}
