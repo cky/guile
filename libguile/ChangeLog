@@ -1,3 +1,14 @@
+2004-04-25  Kevin Ryde  <user42@zip.com.au>
+
+	* socket.c (VALIDATE_INET6): Correction to bignum_in_ipv6_range_p
+	call.  Reported by Hyperdivision.
+
+	* threads.c (scm_yield): Correction, actually call scm_thread_yield.
+	Reported by Hyperdivision.
+
+	* unif.c (s_scm_make_uve): Remove unused local variable.  Reported by
+	Hyperdivision.
+
 2004-04-22  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
 
 	Hide the implementation of ilocs and isyms in eval.c.
