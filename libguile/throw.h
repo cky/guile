@@ -48,7 +48,15 @@
 
 
 
-extern SCM scm_catch_apply SCM_P ((SCM tag, SCM proc, SCM a1, SCM args, SCM handler));
+typedef SCM (*scm_catch_body_t) SCM_P ((void *data, SCM jmpbuf));
+typedef SCM (*scm_catch_handler_t) SCM_P ((void *data,
+					   SCM tag, SCM throw_args));
+
+extern SCM scm_internal_catch SCM_P ((SCM tag,
+				      scm_catch_body_t body,
+				      scm_catch_handler_t handler,
+				      void *data));
+
 extern SCM scm_catch SCM_P ((SCM tag, SCM thunk, SCM handler));
 extern SCM scm_lazy_catch SCM_P ((SCM tag, SCM thunk, SCM handler));
 extern SCM scm_ithrow SCM_P ((SCM key, SCM args, int noreturn));

@@ -158,10 +158,72 @@ scm_make_root (parent)
  * the process is somehow exitted).
  */
 
+/* Some questions about cwdr:
+
+   Couldn't the body just be a closure?  Do we really need to pass
+   args through to it?
+
+   The semantics are a lot like catch's; in fact, we call
+   scm_internal_catch to take care of that part of things.  Wouldn't
+   it be cleaner to say that uncaught throws just disappear into the
+   ether (or print a message to stderr), and let the caller use catch
+   themselves if they want to?
+
+   -JimB */
+
 #if 0
 SCM scm_exitval;		/* INUM with return value */
 #endif
 static int n_dynamic_roots = 0;
+
+
+/* cwdr fills out one of these structures, and then passes a pointer
+   to it through scm_internal_catch to the cwdr_body and cwdr_handler
+   functions, to tell them how to behave.
+
+   A cwdr is a lot like a catch, except there is no tag (all
+   exceptions are caught), and the body procedure takes the arguments
+   passed to cwdr as A1 and ARGS.  */
+
+struct cwdr_body_data {
+
+  /* Arguments to pass to the cwdr body function.  */
+  SCM a1, args;
+
+  /* Scheme procedure to use as body of cwdr.  */
+  SCM body_proc;
+
+  /* Scheme procedure to call if a throw occurs within the cwdr.  */
+  SCM handler_proc;
+};
+
+
+/* Invoke the body of a cwdr, assuming that the throw handler has
+   already been set up.  DATA points to a struct set up by cwdr that
+   says what proc to call, and what args to apply it to.  */
+static SCM cwdr_body SCM_P ((void *, SCM));
+
+static SCM
+cwdr_body (void *data, SCM jmpbuf)
+{
+  struct cwdr_body_data *c = (struct cwdr_body_data *) data;
+
+  return scm_apply (c->body_proc, c->a1, c->args);
+}
+
+
+/* Invoke the handler of a cwdr.  DATA points to a struct set up by
+   cwdr that says what proc to call to handle the throw.  */
+static SCM cwdr_handler SCM_P ((void *, SCM, SCM));
+
+static SCM
+cwdr_handler (void *data, SCM tag, SCM throw_args)
+{
+  struct cwdr_body_data *c = (struct cwdr_body_data *) data;
+
+  return scm_apply (c->handler_proc, scm_cons (tag, throw_args), SCM_EOL);
+}
+
 
 static SCM cwdr SCM_P ((SCM thunk, SCM a1, SCM args, SCM handler, SCM_STACKITEM *stack_start));
 
@@ -169,8 +231,7 @@ static SCM cwdr SCM_P ((SCM thunk, SCM a1, SCM args, SCM handler, SCM_STACKITEM 
  *
  * WARNING!  The order of actions in this routine is in many ways
  * critical.  E. g., it is essential that an error doesn't leave Guile
- * in a messed up state.
- */
+ * in a messed up state.  */
 
 static SCM 
 cwdr (proc, a1, args, handler, stack_start)
@@ -215,7 +276,16 @@ cwdr (proc, a1, args, handler, stack_start)
 #endif
   
   /* Catch all errors. */
-  answer = scm_catch_apply (SCM_BOOL_T, proc, a1, args, handler);
+  {
+    struct cwdr_body_data c;
+
+    c.a1 = a1;
+    c.args = args;
+    c.body_proc = proc;
+    c.handler_proc = handler;
+
+    answer = scm_internal_catch (SCM_BOOL_T, cwdr_body, cwdr_handler, &c);
+  }
   
   scm_dowinds (old_winds, - scm_ilength (old_winds));
   SCM_REDEFER_INTS;

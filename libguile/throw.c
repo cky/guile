@@ -137,13 +137,53 @@ struct jmp_buf_and_retval	/* use only on the stack, in scm_catch */
   SCM retval;
 };
 
+
+/* scm_internal_catch is the guts of catch.  It handles all the
+   mechanics of setting up a catch target, invoking the catch body,
+   and perhaps invoking the handler if the body does a throw.
+
+   The function is designed to be usable from C code, but is general
+   enough to implement all the semantics Guile Scheme expects from
+   throw.
+
+   TAG is the catch tag.  Typically, this is a symbol, but this
+   function doesn't actually care about that.
+
+   BODY is a pointer to a C function which runs the body of the catch;
+   this is the code you can throw from.  We call it like this:
+      BODY (DATA, JMPBUF)
+   where:
+      DATA is just the DATA argument we received; we pass it through
+	 to BODY as its first argument.  The caller can make DATA point
+	 to anything useful that BODY might need.
+      JMPBUF is the Scheme jmpbuf object corresponding to this catch,
+         which we have just created and initialized.
+
+   HANDLER is a pointer to a C function to deal with a throw to TAG,
+   should one occur.  We call it like this:
+      HANDLER (DATA, TAG, THROW_ARGS)
+   where
+      DATA is the DATA argument we recevied, as for BODY above.
+      TAG is the tag that the user threw to; usually this is TAG, but
+         it could be something else if TAG was #t (i.e., a catch-all),
+         or the user threw to a jmpbuf.
+      THROW_ARGS is the list of arguments the user passed to the THROW
+         function.
+
+   DATA is just a pointer we pass through to BODY and (if we call it)
+   HANDLER.  We don't actually use it otherwise ourselves.  The idea
+   is that, if our caller wants to communicate something to BODY and
+   HANDLER, it can pass a pointer to it as DATA, which BODY and
+   HANDLER can then use.  Think of it as a way to make BODY and
+   HANDLER closures, not just functions; DATA points to the enclosed
+   variables.  */
+
 SCM
-scm_catch_apply (tag, proc, a1, args, handler)
+scm_internal_catch (tag, body, handler, data)
      SCM tag;
-     SCM proc;
-     SCM a1;
-     SCM args;
-     SCM handler;
+     scm_catch_body_t body;
+     scm_catch_handler_t handler;
+     void *data;
 {
   struct jmp_buf_and_retval jbr;
   SCM jmpbuf;
@@ -172,19 +212,12 @@ scm_catch_apply (tag, proc, a1, args, handler)
       throw_tag = jbr.throw_tag;
       jbr.throw_tag = SCM_EOL;
       jbr.retval = SCM_EOL;
-      answer = scm_apply (handler, scm_cons (throw_tag, throw_args), SCM_EOL);
+      answer = handler (data, throw_tag, throw_args);
     }
   else
     {
       ACTIVATEJB (jmpbuf);
-      if (tag == SCM_BOOL_F)
-	answer = scm_apply (proc,
-			    SCM_NULLP (a1)
-			    ? scm_cons (jmpbuf, SCM_EOL)
-			    : scm_cons2 (jmpbuf, a1, args),
-			    SCM_EOL);
-      else
-	answer = scm_apply (proc, a1, args);
+      answer = body (data, jmpbuf);
       SCM_REDEFER_INTS;
       DEACTIVATEJB (jmpbuf);
       scm_dynwinds = SCM_CDR (scm_dynwinds);
@@ -193,6 +226,60 @@ scm_catch_apply (tag, proc, a1, args, handler)
   return answer;
 }
 
+
+/* scm_catch passes a pointer to one of these structures through to
+   its body and handler routines, to tell them what to do.  */
+struct catch_body_data
+{
+  /* The tag being caught.  We only use it to figure out what
+     arguments to pass to the body procedure; see catch_body for
+     details.  */
+  SCM tag;
+
+  /* The Scheme procedure object constituting the catch body.
+     catch_body invokes this.  */
+  SCM body_proc;
+
+  /* The Scheme procedure object we invoke to handle throws.  */
+  SCM handler_proc;
+};
+
+
+/* This function runs the catch body.  DATA contains the Scheme
+   procedure to invoke.  If the tag being caught is #f, then we pass
+   JMPBUF to the body procedure; otherwise, it gets no arguments.  */
+static SCM catch_body SCM_P ((void *, SCM));
+
+static SCM
+catch_body (data, jmpbuf)
+     void *data;
+     SCM jmpbuf;
+{
+  struct catch_body_data *c = (struct catch_body_data *) data;
+
+  if (c->tag == SCM_BOOL_F)
+    return scm_apply (c->body_proc, scm_cons (jmpbuf, SCM_EOL), SCM_EOL);
+  else
+    return scm_apply (c->body_proc, SCM_EOL, SCM_EOL);
+}
+
+
+/* If the user does a throw to this catch, this function runs the
+   handler.  DATA says which Scheme procedure object to invoke.  */
+static SCM catch_handler SCM_P ((void *, SCM, SCM));
+
+static SCM
+catch_handler (data, tag, throw_args)
+     void *data;
+     SCM tag;
+     SCM throw_args;
+{
+  struct catch_body_data *c = (struct catch_body_data *) data;
+
+  return scm_apply (c->handler_proc, scm_cons (tag, throw_args), SCM_EOL);
+}
+
+
 SCM_PROC(s_catch, "catch", 3, 0, 0, scm_catch);
 SCM
 scm_catch (tag, thunk, handler)
@@ -200,11 +287,23 @@ scm_catch (tag, thunk, handler)
      SCM thunk;
      SCM handler;
 {
+  struct catch_body_data c;
+
   SCM_ASSERT ((tag == SCM_BOOL_F)
 	      || (SCM_NIMP(tag) && SCM_SYMBOLP(tag))
 	      || (tag == SCM_BOOL_T),
 	      tag, SCM_ARG1, s_catch);
-  return scm_catch_apply (tag, thunk, SCM_EOL, SCM_EOL, handler);
+
+  c.tag = tag;
+  c.body_proc = thunk;
+  c.handler_proc = handler;
+
+  /* scm_internal_catch takes care of all the mechanics of setting up
+     a catch tag; we tell it to call catch_body to run the body, and
+     catch_handler to deal with any throws to this catch.  Both those
+     functions receive the pointer to c, which tells them the details
+     of how to behave.  */
+  return scm_internal_catch (tag, catch_body, catch_handler, (void *) &c);
 }
 
 SCM_PROC(s_lazy_catch, "lazy-catch", 3, 0, 0, scm_lazy_catch);
