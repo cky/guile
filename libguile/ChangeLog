@@ -1,5 +1,9 @@
 2004-10-22  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
+	* sort.c (quicksort, scm_merge, scm_merge_list_x,
+	scm_merge_list_step, scm_merge_vector_step): Inserted SCM_TICKs at
+	strategic places so that the loops can be interrupted.
+
 	* Makefile.am (INCLUDES): Use @LTDLINC@ instead of
 	"-I$(top_srcdir)/libguile-ltdl".
 	(libguile_la_LIBADD): Use @LIBLTDL@ instead of
