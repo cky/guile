@@ -337,24 +337,11 @@ VM_DEFINE_INSTRUCTION (call, "call", 1, -1, 1)
    */
   if (SCM_PROGRAM_P (x))
     {
-      int i, last;
-
       program = x;
     vm_call_program:
       CACHE_PROGRAM ();
       INIT_ARGS ();
       NEW_FRAME ();
-
-      /* Init local variables */
-      last = bp->nargs + bp->nlocs;
-      for (i = bp->nargs; i < last; i++)
-	LOCAL_SET (i, SCM_UNDEFINED);
-
-      /* Create external variables */
-      external = bp->external;
-      for (i = 0; i < bp->nexts; i++)
-	CONS (external, SCM_UNDEFINED, external);
-
       ENTER_HOOK ();
       APPLY_HOOK ();
       NEXT;
@@ -501,6 +488,7 @@ VM_DEFINE_INSTRUCTION (return, "return", 0, 0, 1)
   FREE_FRAME ();
 
   /* Restore the last program */
+  external = fp[bp->nargs + bp->nlocs];
   program = SCM_VM_FRAME_PROGRAM (fp);
   CACHE_PROGRAM ();
   PUSH (ret);

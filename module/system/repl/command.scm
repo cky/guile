@@ -171,10 +171,9 @@ List/show/set options."
      (repl-option-set! repl key val)
      (case key
        ((trace)
-	(let ((opts (repl-option-ref repl 'trace-options)))
-	  (if val
-	      (apply vm-trace-on repl.env.vm opts)
-	      (vm-trace-off repl.env.vm))))))))
+	(if val
+	    (apply vm-trace-on repl.env.vm val)
+	    (vm-trace-off repl.env.vm)))))))
 
 (define (quit repl)
   "quit

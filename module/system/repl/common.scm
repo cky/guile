@@ -35,8 +35,7 @@
 (define-vm-class <repl> () env options tm-stats gc-stats vm-stats)
 
 (define repl-default-options
-  '((trace . #f)
-    (trace-options . (:s))))
+  '((trace . #f)))
 
 (define-public (make-repl lang)
   (let ((cenv (make-cenv :vm (the-vm)

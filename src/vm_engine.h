@@ -287,15 +287,29 @@ do {						\
 
 #define NEW_FRAME()				\
 {						\
+  int i;					\
   SCM ra = SCM_VM_MAKE_BYTE_ADDRESS (ip);	\
   SCM dl = SCM_VM_MAKE_STACK_ADDRESS (fp);	\
+  SCM *p = sp + 1;				\
+  SCM *q = p + bp->nlocs;			\
+						\
+  /* New pointers */				\
   ip = bp->base;				\
-  fp = sp - bp->nargs + 1;			\
-  sp = sp + bp->nlocs + 3;			\
+  fp = p - bp->nargs;				\
+  sp = q + 2;					\
   CHECK_OVERFLOW ();				\
-  sp[0]  = ra;					\
-  sp[-1] = dl;					\
-  sp[-2] = external;				\
+						\
+  /* Init local variables */			\
+  for (; p < q; p++)				\
+    *p = SCM_UNDEFINED;				\
+						\
+  /* Create external variables */		\
+  external = bp->external;			\
+  for (i = 0; i < bp->nexts; i++)		\
+    CONS (external, SCM_UNDEFINED, external);	\
+  p[0] = external;				\
+  p[1] = dl;					\
+  p[2] = ra;					\
 }
 
 #define FREE_FRAME()				\
@@ -304,7 +318,6 @@ do {						\
   sp = fp - 2;					\
   ip = SCM_VM_BYTE_ADDRESS (p[2]);		\
   fp = SCM_VM_STACK_ADDRESS (p[1]);		\
-  external = p[0];				\
 }
 
 /*
