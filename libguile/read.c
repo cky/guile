@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1999,2000,2001,2003 Free Software
+/* Copyright (C) 1995,1996,1997,1999,2000,2001,2003, 2004 Free Software
  * Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
@@ -271,27 +271,33 @@ recsexpr (SCM obj, long line, int column, SCM filename)
 
 /* Consume an SCSH-style block comment.  Assume that we've already
    read the initial `#!', and eat characters until we get a
-   newline/exclamation-point/sharp-sign/newline sequence.  */
+   newline/exclamation-point/sharp-sign/newline sequence. 
+
+   A carriage return is also reocgnized as a newline. */
 
 static void
 skip_scsh_block_comment (SCM port)
 #define FUNC_NAME "skip_scsh_block_comment"
 {
-  /* Is this portable?  Dear God, spare me from the non-eight-bit
-     characters.  But is it tasteful?  */
-  long history = 0;
+  int state = 0;
 
   for (;;)
     {
       int c = scm_getc (port);
-
+      
       if (c == EOF)
 	SCM_MISC_ERROR ("unterminated `#! ... !#' comment", SCM_EOL);
-      history = ((history << 8) | (c & 0xff)) & 0xffffffff;
 
-      /* Were the last four characters read "\n!#\n"?  */
-      if (history == (('\n' << 24) | ('!' << 16) | ('#' << 8) | '\n'))
+      if (state == 1 && c == '!')
+	state = 2;
+      else if (state == 2 && c == '#')
+	state = 3;
+      else if (state == 3 && (c == '\n' || c == '\r'))
 	return;
+      else if (c == '\n' || c == '\r')
+	state = 1;
+      else
+	state = 0;
     }
 }
 #undef FUNC_NAME
