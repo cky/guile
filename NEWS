@@ -131,6 +131,13 @@ debugging evaluator gives better error messages.
 
 * Changes to Scheme functions and syntax
 
+** 'while' now provides 'break' and 'continue'
+
+break and continue were previously bound in a while loop, but not
+documented, and continue didn't quite work properly.  The undocumented
+parameter to break which gave a return value for the while has been
+dropped.
+
 ** 'call-with-current-continuation' is now also available under the name
    'call/cc'.
 
@@ -466,10 +473,12 @@ There is no replacement for undefine.
 Properties set with set-source-properties! can now be read back
 correctly with source-properties.
 
-** SRFI-1 delete equality argument order fixed.
+** SRFI-1 fixes
 
-In the srfi-1 module delete and delete!, the order of the arguments to
-the "=" procedure now matches the SRFI-1 specification.
+delete and delete! now call the "=" procedure with arguments in the
+order described by the SRFI-1 specification
+
+list-copy now accepts improper lists, per the specification.
 
 * Changes to the C interface
 
