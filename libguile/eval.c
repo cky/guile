@@ -1571,11 +1571,11 @@ scm_unmemocopy (SCM x, SCM env)
 int 
 scm_badargsp (SCM formals, SCM args)
 {
-  while (SCM_NIMP (formals))
+  while (!SCM_NULLP (formals))
     {
       if (!SCM_CONSP (formals)) 
         return 0;
-      if (SCM_IMP(args)) 
+      if (SCM_NULLP (args)) 
         return 1;
       formals = SCM_CDR (formals);
       args = SCM_CDR (args);
@@ -1845,9 +1845,6 @@ deval_args (SCM l, SCM env, SCM proc, SCM *lloc)
       env = scm_top_level_env (p); \
   } while (0)
 
-#ifndef DEVAL
-#define CHECK_EQVISH(A,B) 	(SCM_EQ_P ((A), (B)) || (!SCM_FALSEP (scm_eqv_p ((A), (B)))))
-#endif /* DEVAL */
 
 /* This is the evaluator.  Like any real monster, it has three heads:
  *
@@ -1926,9 +1923,11 @@ SCM_CEVAL (SCM x, SCM env)
       scm_report_stack_overflow ();
     }
 #endif
+
 #ifdef DEVAL
   goto start;
 #endif
+
 loopnoap:
   PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
 loop:
@@ -1951,6 +1950,7 @@ loop:
       SCM_SET_OVERFLOW (debug);
       debug.info -= 2;
     }
+
 start:
   debug.info->e.exp = x;
   debug.info->e.env = env;
@@ -1999,11 +1999,12 @@ dispatch:
       x = scm_cons (x, SCM_UNDEFINED);
       RETURN (*scm_lookupcar (x, env, 1));
 
-    case SCM_BIT8(SCM_IM_AND):
+    case SCM_BIT8 (SCM_IM_AND):
       x = SCM_CDR (x);
       while (!SCM_NULLP (SCM_CDR (x)))
 	{
-	  if (SCM_FALSEP (t.arg1 = EVALCAR (x, env)) || SCM_NILP (t.arg1))
+	  SCM condition = EVALCAR (x, env);
+	  if (SCM_FALSEP (condition) || SCM_NILP (condition))
 	    RETURN (SCM_BOOL_F);
 	  else
 	    x = SCM_CDR (x);
@@ -2011,7 +2012,7 @@ dispatch:
       PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
       goto carloop;
 
-    case SCM_BIT8(SCM_IM_BEGIN):
+    case SCM_BIT8 (SCM_IM_BEGIN):
       if (SCM_NULLP (SCM_CDR (x)))
 	RETURN (SCM_UNSPECIFIED);
 
@@ -2046,59 +2047,73 @@ dispatch:
     nontoplevel_begin:
       while (!SCM_NULLP (SCM_CDR (x)))
 	{
-	  if (SCM_IMP (SCM_CAR (x)))
+	  SCM form = SCM_CAR (x);
+	  if (SCM_IMP (form))
 	    {
-	      if (SCM_ISYMP (SCM_CAR (x)))
+	      if (SCM_ISYMP (form))
 		{
 		  x = scm_m_expand_body (x, env);
 		  goto nontoplevel_begin;
 		}
 	      else
-		SCM_VALIDATE_NON_EMPTY_COMBINATION (SCM_CAR (x));
+		SCM_VALIDATE_NON_EMPTY_COMBINATION (form);
 	    }
 	  else
-	    SCM_CEVAL (SCM_CAR (x), env);
+	    SCM_CEVAL (form, env);
 	  x = SCM_CDR (x);
 	}
       
-    carloop:			/* scm_eval car of last form in list */
-      if (SCM_IMP (SCM_CAR (x)))
-	{
-	  x = SCM_CAR (x);
-	  RETURN (SCM_EVALIM (x, env));
-	}
+    carloop:
+      {
+	/* scm_eval last form in list */
+	SCM last_form = SCM_CAR (x);
 
-      if (SCM_SYMBOLP (SCM_CAR (x)))
-	RETURN (*scm_lookupcar (x, env, 1));
-
-      x = SCM_CAR (x);
-      goto loop;		/* tail recurse */
+	if (SCM_CONSP (last_form))
+	  {
+	    /* This is by far the most frequent case. */
+	    x = last_form;
+	    goto loop;		/* tail recurse */
+	  }
+	else if (SCM_IMP (last_form))
+	  RETURN (SCM_EVALIM (last_form, env));
+	else if (SCM_VARIABLEP (last_form))
+	  RETURN (SCM_VARIABLE_REF (last_form));
+	else if (SCM_SYMBOLP (last_form))
+	  RETURN (*scm_lookupcar (x, env, 1));
+	else
+	  RETURN (last_form);
+      }
 
 
     case SCM_BIT8(SCM_IM_CASE):
       x = SCM_CDR (x);
-      t.arg1 = EVALCAR (x, env);
-      while (SCM_NIMP (x = SCM_CDR (x)))
-	{
-	  proc = SCM_CAR (x);
-	  if (SCM_EQ_P (scm_sym_else, SCM_CAR (proc)))
-	    {
-	      x = SCM_CDR (proc);
-	      PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
-	      goto begin;
-	    }
-	  proc = SCM_CAR (proc);
-	  while (SCM_NIMP (proc))
-	    {
-	      if (CHECK_EQVISH (SCM_CAR (proc), t.arg1))
-		{
-		  x = SCM_CDAR (x);
-		  PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
-		  goto begin;
-		}
-	      proc = SCM_CDR (proc);
-	    }
-	}
+      {
+	SCM key = EVALCAR (x, env);
+	x = SCM_CDR (x);
+	while (!SCM_NULLP (x))
+	  {
+	    SCM clause = SCM_CAR (x);
+	    SCM labels = SCM_CAR (clause);
+	    if (SCM_EQ_P (labels, scm_sym_else))
+	      {
+		x = SCM_CDR (clause);
+		PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
+		goto begin;
+	      }
+	    while (!SCM_NULLP (labels))
+	      {
+		SCM label = SCM_CAR (labels);
+		if (SCM_EQ_P (label, key) || !SCM_FALSEP (scm_eqv_p (label, key)))
+		  {
+		    x = SCM_CDR (clause);
+		    PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
+		    goto begin;
+		  }
+		labels = SCM_CDR (labels);
+	      }
+	    x = SCM_CDR (x);
+	  }
+      }
       RETURN (SCM_UNSPECIFIED);
 
 
@@ -2119,14 +2134,14 @@ dispatch:
 	      x = SCM_CDR (proc);
 	      if (SCM_NULLP (x))
 		RETURN (t.arg1);
-	      if (!SCM_EQ_P (scm_sym_arrow, SCM_CAR (x)))
+	      else if (!SCM_EQ_P (SCM_CAR (x), scm_sym_arrow))
 		{
 		  PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
 		  goto begin;
 		}
 	      proc = SCM_CDR (x);
 	      proc = EVALCAR (proc, env);
-	      SCM_ASRTGO (SCM_NIMP (proc), badfun);
+	      SCM_ASRTGO (!SCM_IMP (proc), badfun);
 	      PREP_APPLY (proc, scm_list_1 (t.arg1));
 	      ENTER_APPLY;
 	      if (SCM_CLOSUREP(proc) && scm_badformalsp (proc, 1))
@@ -2142,7 +2157,7 @@ dispatch:
       x = SCM_CDR (x);
       proc = SCM_CADR (x); /* inits */
       t.arg1 = SCM_EOL;		/* values */
-      while (SCM_NIMP (proc))
+      while (!SCM_NULLP (proc))
 	{
 	  t.arg1 = scm_cons (EVALCAR (proc, env), t.arg1);
 	  proc = SCM_CDR (proc);

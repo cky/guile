@@ -1,3 +1,16 @@
+2002-03-02  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* eval.c (scm_badargsp, SCM_CEVAL): Replaced SCM_N?IMP by a more
+	explicit predicate in some places.
+
+	(CHECK_EQVISH): Removed.
+
+	(SCM_CEVAL): Removed some uses of t.arg1 and proc as temporary
+	variables.  Removed side-effecting operations from conditions and
+	macro calls.  Introduced temporary variables for clarification.
+	Sorted if-else-if check for the type of the last form in a list by
+	frequency.  Avoided some unnecessary tail-recursion calls.
+
 2002-03-01  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* gc.c (SCM_HEAP_SEG_SIZE, CELL_UP, CELL_DN, NEXT_DATA_CELL,
