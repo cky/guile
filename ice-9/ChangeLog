@@ -1,3 +1,8 @@
+2000-02-11  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* format.scm (format): Reintroduce (define format format:format)
+	so that the binding in the public interface of the module will be OK.
+
 2000-01-30  Gary Houston  <ghouston@arglist.com>
 
 	* boot-9.scm (find-and-link-dynamic-module): pass strings, not symbols,
