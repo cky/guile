@@ -1077,23 +1077,7 @@ char *foo (char *s1, char *s2);
 /* SCM_FOO interfaces the C function FOO to the Scheme way of life.
    It takes care to free up all temporary strings in the case of
    non-local exits.
-
-   It uses SCM_TO_STRING as a helper procedure.
  */
-
-char *
-scm_to_string (SCM obj)
-@{
-  if (SCM_STRINGP (obj))
-    @{
-      char *res = scm_malloc (SCM_STRING_LENGTH (obj)+1);
-      strcpy (res, SCM_STRING_CHARS (obj));
-      scm_remember_upto_here_1 (obj);
-      return res;
-    @}
-  else
-    scm_wrong_type_arg ("scm_to_string", 1, obj);
-@}
 
 SCM
 scm_foo (SCM s1, SCM s2)
@@ -1102,11 +1086,17 @@ scm_foo (SCM s1, SCM s2)
 
   scm_frame_begin (0);
 
-  c_s1 = scm_to_string (s1);
+  c_s1 = scm_to_locale_string (s1);
+
+  /* Call 'free (c_s1)' when the frame is left. 
+  */
   scm_frame_unwind_handler (free, c_s1, SCM_F_WIND_EXPLICITLY);
 
-  c_s2 = scm_to_string (s2);
-  scm_frame_unwind_handler (free, c_s2, SCM_F_WIND_EXPLICITLY);
+  c_s2 = scm_to_locale_string (s2);
+  
+  /* Same as above, but more concisely.
+  */
+  scm_frame_free (c_s2);
 
   c_res = foo (c_s1, c_s2);
   if (c_res == NULL)
@@ -1114,7 +1104,7 @@ scm_foo (SCM s1, SCM s2)
 
   scm_frame_end ();
 
-  return scm_take0str (res);
+  return scm_take_locale_string (res);
 @}
 @end example
 
