@@ -1,3 +1,16 @@
+2003-04-16  Rob Browning  <rlb@defaultvalue.org>
+
+	* numbers.c (PTRDIFF_MIN): use SCM_CHAR_BIT.
+
+	* socket.c: use SCM_CHAR_BIT.
+
+	* random.c (scm_c_random_bignum): use SCM_CHAR_BIT.
+
+	* num2integral.i.c (NUM2INTEGRAL): use SCM_CHAR_BIT.
+
+	* gc_os_dep.c (mach_type_known): added patch for UnixWare and
+	OpenUNIX support.  Thanks to Boyd Gerber.
+
 2003-04-16  Mikael Djurfeldt  <mdj@kvast.blakulla.net>
 
 	* feature.c (scm_init_feature): Always add threads feature.
