@@ -184,7 +184,7 @@ static SCM
 winder_mark (SCM w)
 {
   if (WINDER_MARK_P (w))
-    return WINDER_DATA (w);
+    return SCM_PACK (WINDER_DATA (w));
   return SCM_BOOL_F;
 }
 
