@@ -1,3 +1,8 @@
+2004-07-10  Kevin Ryde  <user42@zip.com.au>
+
+	* srfi-modules.texi (SRFI-0): Add srfi-6 to the identifiers provided
+	by default.
+
 2004-07-07  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* scheme-data.texi (Integers): Added docs for the new scm_is_,
