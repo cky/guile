@@ -121,6 +121,9 @@ CVS log entries from that.
 
 Coding standards =====================================================
 
+- Before contributing larger amounts of code to Guile, please read the
+documents in `guile-core/devel/policy' in the CVS source tree.
+
 - As for any part of Project GNU, changes to Guile should follow the
 GNU coding standards.  The standards are available via anonymous FTP
 from prep.ai.mit.edu, as /pub/gnu/standards/standards.texi and
