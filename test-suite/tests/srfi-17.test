@@ -1,6 +1,6 @@
 ;;;; srfi-17.test --- test suite for Guile's SRFI-17 functions. -*- scheme -*-
 ;;;;
-;;;; Copyright (C) 2001, 2003 Free Software Foundation, Inc.
+;;;; Copyright (C) 2001, 2003, 2005 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -22,6 +22,25 @@
   :use-module (srfi srfi-17))
 
 
+(pass-if "cond-expand srfi-17"
+  (cond-expand (srfi-17 #t)
+	       (else    #f)))
+
+;;
+;; car
+;;
+
+(with-test-prefix "car"
+
+  (pass-if "set! (car x)"
+    (let ((lst (list 1)))
+      (set! (car lst) 2)
+      (eqv? 2 (car lst)))))
+
+;;
+;; set!
+;;
+
 (with-test-prefix "set!"
 
   (with-test-prefix "target is not procedure with setter"
@@ -33,3 +52,15 @@
     (pass-if-exception "(set! '#f 1)"
       exception:bad-variable
       (eval '(set! '#f 1) (interaction-environment)))))
+
+;;
+;; setter
+;;
+
+(with-test-prefix "setter"
+
+  (pass-if-exception "set! (setter x)" (cons 'misc-error ".*")
+    (set! (setter car) noop))
+
+  (pass-if "car"
+    (eq? set-car! (setter car))))
