@@ -1,5 +1,10 @@
 2003-04-20  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* eval.c (SCM_BIT8, SCM_BIT8, unmemocopy, SCM_CEVAL): Renamed
+	file-local macro SCM_BIT8 to SCM_BIT7, which is more appropriate.
+
+2003-04-20  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* numbers.c (scm_logtest):  Fixed argument bug in the call to
 	mpz_and, which showed up when compiling with SCM_DEBUG defined.
 
