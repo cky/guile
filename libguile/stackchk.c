@@ -48,14 +48,14 @@
 /* {Stack Checking}
  */
 
-#ifdef SCM_STACK_CHECK
-int scm_check_stack_p;
+#ifdef STACK_CHECKING
+int scm_stack_checking_enabled_p;
 
 void
 scm_report_stack_overflow ()
 {
-  scm_check_stack_p = 0;
-  scm_wta (SCM_UNDEFINED, (char *) STACK_SCM_OVSCM_FLOW, NULL);
+  scm_stack_checking_enabled_p = 0;
+  scm_wta (SCM_UNDEFINED, (char *) SCM_STACK_OVFLOW, NULL);
 }
 
 #endif
@@ -104,9 +104,5 @@ void
 scm_init_stackchk ()
 #endif
 {
-#ifdef SCM_STACK_CHECK
-  scm_check_stack_p = 1;
-#endif
 #include "stackchk.x"
 }
-

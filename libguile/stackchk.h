@@ -47,33 +47,46 @@
 
 
 
-#ifdef SCM_STACK_LIMIT
-# define SCM_STACK_CHECK
+/* With debug extensions we have the possibility to use the debug options
+ * to disable stack checking.
+ */
+#ifdef DEBUG_EXTENSIONS
+#define SCM_STACK_CHECKING_P SCM_STACK_LIMIT
+#else
+/* *fixme* This option should be settable also without debug extensions. */
+#define SCM_STACK_LIMIT 100000
+#define SCM_STACK_CHECKING_P 1
+#endif
+
+#ifdef STACK_CHECKING
 # ifdef SCM_STACK_GROWS_UP
-#  define SCM_STACK_OVERFLOW_P(s) (s - SCM_BASE (rootcont) > SCM_STACK_LIMIT * sizeof (SCM_STACKITEM))
+#  define SCM_STACK_OVERFLOW_P(s)\
+   (s - SCM_BASE (scm_rootcont) > SCM_STACK_LIMIT * sizeof (SCM_STACKITEM))
 # else
-#  define SCM_STACK_OVERFLOW_P(s) (SCM_BASE (rootcont) - s > SCM_STACK_LIMIT * sizeof (SCM_STACKITEM))
+#  define SCM_STACK_OVERFLOW_P(s)\
+   (SCM_BASE (scm_rootcont) - s > SCM_STACK_LIMIT * sizeof (SCM_STACKITEM))
 # endif
 # define SCM_CHECK_STACK\
     {\
        SCM_STACKITEM stack;\
-       if (SCM_STACK_OVERFLOW_P (&stack) && scm_check_stack_p)\
+       if (SCM_STACK_OVERFLOW_P (&stack) && scm_stack_checking_enabled_p)\
 	 scm_report_stack_overflow ();\
     }
 #else
 # define SCM_CHECK_STACK /**/
-#endif /* def SCM_STACK_LIMIT */
+#endif /* STACK_CHECKING */
 
-
-extern int scm_check_stack_p;
+extern int scm_stack_checking_enabled_p;
 
 
 #ifdef __STDC__
+extern void scm_report_stack_overflow (void);
 extern long scm_stack_size (SCM_STACKITEM *start);
 extern void scm_stack_report (void);
 extern void scm_init_stackchk (void);
 
 #else /* STDC */
+extern void scm_report_stack_overflow ();
 extern long scm_stack_size ();
 extern void scm_stack_report ();
 extern void scm_init_stackchk ();
