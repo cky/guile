@@ -1,5 +1,9 @@
 1998-10-07  Jim Blandy  <jimb@zwingli.cygnus.com>
 
+	* strings.c (scm_string_set_x): Require the argument to be a
+	writable string, not a substring or a symbol.
+	* strings.h (SCM_RWSTRINGP, SCM_NRWSTRINGP): New predicates.
+
 	* scmconfig.h.in: Regenerated; ../acconfig.h has changed.
 
 1998-10-07  Jim Blandy  <jimb@totoro.red-bean.com>
