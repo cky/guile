@@ -1,3 +1,11 @@
+2001-05-06  Thien-Thi Nguyen  <ttn@revel.glug.org>
+
+	* q.scm, runq.scm, getopt-long.scm: Update copyright.
+	Surround commentary w/ standard markers; nfc.
+
+	* expect.scm: Update copyright.
+	Fix commentary typo; nfc.
+
 2001-05-05  Rob Browning  <rlb@cs.utexas.edu>
 
 	* psyntax.ss: make sure emacs knows it's scheme code.
@@ -20,7 +28,7 @@
 	(eval-in-module): Manifest deprecation via `begin-deprecation' and
 	`issue-deprecation-warning'.
 	(warn-autoload-deprecation): Deactivated.
-	
+
 2001-04-26  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* boot-9.scm (the-module, set-current-module, current-module):
