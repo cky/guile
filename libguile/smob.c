@@ -300,8 +300,6 @@ scm_make_smob_type (char *name, scm_sizet size)
       scm_smobs[scm_numsmob].apply_2 = 0;
       scm_smobs[scm_numsmob].apply_3 = 0;
       scm_smobs[scm_numsmob].gsubr_type = 0;
-      scm_smobs[scm_numsmob].dump    = 0;
-      scm_smobs[scm_numsmob].undump  = 0;
       scm_numsmob++;
     }
   SCM_ALLOW_INTS;
@@ -449,18 +447,6 @@ scm_set_smob_apply (scm_bits_t tc, SCM (*apply) (),
   scm_smobs[SCM_TC2SMOBNUM (tc)].apply_2 = apply_2;
   scm_smobs[SCM_TC2SMOBNUM (tc)].apply_3 = apply_3;
   scm_smobs[SCM_TC2SMOBNUM (tc)].gsubr_type = type;
-}
-
-void
-scm_set_smob_dump (scm_bits_t tc, void (*dump) (SCM, SCM))
-{
-  scm_smobs[SCM_TC2SMOBNUM (tc)].dump = dump;
-}
-
-void
-scm_set_smob_undump (scm_bits_t tc, SCM (*undump) (SCM))
-{
-  scm_smobs[SCM_TC2SMOBNUM (tc)].undump = undump;
 }
 
 SCM

@@ -53,24 +53,16 @@ typedef struct scm_smob_descriptor
 {
   char *name;
   scm_sizet size;
-
-  /* Basic functions */
   SCM (*mark) (SCM);
   scm_sizet (*free) (SCM);
   int (*print) (SCM exp, SCM port, scm_print_state *pstate);
   SCM (*equalp) (SCM, SCM);
-
-  /* Apply functions */
   SCM (*apply) ();
   SCM (*apply_0) (SCM);
   SCM (*apply_1) (SCM, SCM);
   SCM (*apply_2) (SCM, SCM, SCM);
   SCM (*apply_3) (SCM, SCM, SCM, SCM);
   int gsubr_type; /* Used in procprop.c */
-
-  /* Dump functions */
-  void (*dump) (SCM, SCM);
-  SCM (*undump) (SCM);
 } scm_smob_descriptor;
 
 
@@ -163,8 +155,6 @@ extern void scm_set_smob_apply (scm_bits_t tc,
 				unsigned int req,
 				unsigned int opt,
 				unsigned int rst);
-extern void scm_set_smob_dump (scm_bits_t tc, void (*dump) (SCM, SCM));
-extern void scm_set_smob_undump (scm_bits_t tc, SCM (*undump) (SCM));
 
 /* Function for creating smobs */
 

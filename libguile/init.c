@@ -66,7 +66,6 @@
 #ifdef GUILE_DEBUG_MALLOC
 #include "libguile/debug-malloc.h"
 #endif
-#include "libguile/dump.h"
 #include "libguile/dynl.h"
 #include "libguile/dynwind.h"
 #include "libguile/environments.h"
@@ -494,7 +493,6 @@ scm_init_guile_1 (SCM_STACKITEM *base)
 #ifdef GUILE_DEBUG_MALLOC
   scm_init_debug_malloc ();
 #endif
-  scm_init_dump ();
   scm_init_dynwind ();
   scm_init_eq ();
   scm_init_error ();

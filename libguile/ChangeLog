@@ -1,3 +1,19 @@
+2001-03-02  Keisuke Nishida  <kxn30@po.cwru.edu>
+
+	* Remove dump facilities.
+	* dump.c, dump.h: Removed.
+	* Makefile.am: Remove dump.c, dump.h, dump.x, dump.doc.
+	* init.c: Remove #include "libguile/dump.h".
+	(scm_init_guile_1): Remove scm_init_dump.
+	* smob.h (scm_smob_descriptor): Remove slots: dump, undump.
+	(scm_set_smob_dump, scm_set_smob_undump): Remove declaration.
+	* smob.c (scm_make_smob_type): Remove initialization: dump, undump.
+	(scm_set_smob_dump, scm_set_smob_undump): Removed.
+
+	* keywords.c: Remove #include "libguile/dump.h".
+	(keyword_dump, keyword_undump): Removed.
+	(scm_init_keywords): Remove scm_set_smob_dump and scm_set_smob_undump.
+
 2001-03-02  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* vectors.c (s_scm_vector_p, list->vector, scm_vector)
