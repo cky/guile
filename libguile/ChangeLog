@@ -1,3 +1,10 @@
+2000-10-06  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* continuations.h (SCM_CONTINUATION_LENGTH), strings.h
+	(SCM_STRING_LENGTH), symbols.h (SCM_SYMBOL_LENGTH), unif.h
+	(SCM_UVECTOR_LENGTH, SCM_BITVECTOR_LENGTH), vectors.h
+	(SCM_VECTOR_LENGTH):  Added as replacements for SCM_LENGTH.
+
 2000-10-02  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* coop-defs.h (coop_key_create): Don't use the C++ keyword
