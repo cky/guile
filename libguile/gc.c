@@ -319,8 +319,8 @@ which_seg (SCM cell)
   int i;
 
   for (i = 0; i < scm_n_heap_segs; i++)
-    if (SCM_PTR_LE (scm_heap_table[i].bounds[0], (SCM_CELLPTR) cell)
-	&& SCM_PTR_GT (scm_heap_table[i].bounds[1], (SCM_CELLPTR) cell))
+    if (SCM_PTR_LE (scm_heap_table[i].bounds[0], SCM2PTR (cell))
+	&& SCM_PTR_GT (scm_heap_table[i].bounds[1], SCM2PTR (cell)))
       return i;
   fprintf (stderr, "which_seg: can't find segment containing cell %lx\n",
 	   SCM_UNPACK (cell));
@@ -1391,7 +1391,7 @@ scm_mark_locations (SCM_STACKITEM x[], scm_sizet n)
   while (0 <= --m)
     if (SCM_CELLP (* (SCM *) &x[m]))
       {
-	ptr = (SCM_CELLPTR) SCM2PTR (* (SCM *) &x[m]);
+	ptr = SCM2PTR (* (SCM *) &x[m]);
 	i = 0;
 	j = scm_n_heap_segs - 1;
 	if (   SCM_PTR_LE (scm_heap_table[i].bounds[0], ptr)
@@ -1458,7 +1458,7 @@ scm_cellp (SCM value)
 
   if (SCM_CELLP (value))
     {
-      ptr = (SCM_CELLPTR) SCM2PTR (value);
+      ptr = SCM2PTR (value);
       i = 0;
       j = scm_n_heap_segs - 1;
       if (   SCM_PTR_LE (scm_heap_table[i].bounds[0], ptr)
@@ -2197,8 +2197,8 @@ init_heap_seg (SCM_CELLPTR seg_org, scm_sizet size, scm_freelist_t *freelist)
   scm_heap_table[new_seg_index].valid = 0;
   scm_heap_table[new_seg_index].span = span;
   scm_heap_table[new_seg_index].freelist = freelist;
-  scm_heap_table[new_seg_index].bounds[0] = (SCM_CELLPTR)ptr;
-  scm_heap_table[new_seg_index].bounds[1] = (SCM_CELLPTR)seg_end;
+  scm_heap_table[new_seg_index].bounds[0] = ptr;
+  scm_heap_table[new_seg_index].bounds[1] = seg_end;
 
 
   /* Compute the least valid object pointer w/in this segment
@@ -2425,8 +2425,8 @@ SCM_DEFINE (scm_unhash_name, "unhash-name", 1, 0, 0,
     {
       SCM_CELLPTR p;
       SCM_CELLPTR pbound;
-      p  = (SCM_CELLPTR)scm_heap_table[x].bounds[0];
-      pbound = (SCM_CELLPTR)scm_heap_table[x].bounds[1];
+      p  = scm_heap_table[x].bounds[0];
+      pbound = scm_heap_table[x].bounds[1];
       while (p < pbound)
 	{
 	  SCM cell = PTR2SCM (p);

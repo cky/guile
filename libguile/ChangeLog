@@ -1,5 +1,13 @@
 2000-04-19  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* gc.c (which_seg):  Use SCM2PTR to convert a non immediate SCM
+	variable into a pointer to a heap cell.
+
+	* gc.c (scm_mark_locations, scm_cellp, init_heap_seg,
+	scm_unhash_name):  Remove redundant cast to SCM_CELLPTR.
+
+2000-04-19  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* print.c (scm_iprin1):  Don't assign zero to SCM values, use
 	SCM_UNDEFINED instead.
 
