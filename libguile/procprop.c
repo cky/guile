@@ -52,6 +52,7 @@
 #include "procprop.h"
 
 
+SCM_GLOBAL_SYMBOL (scm_sym_system_procedure, "system-procedure");
 SCM_GLOBAL_SYMBOL (scm_sym_arity, "arity");
 
 SCM
