@@ -1,3 +1,40 @@
+2005-03-10  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* threads.h, threads.c (scm_i_thread): Added gc_running_p field.
+	(guilify_self_1): Initialize it.
+
+	* gc.h, gc.c (SCM_FREECELL_P): Removed for good.
+	(scm_block_gc, scm_gc_heap_lock): Removed.  Removed all uses.
+	(scm_gc_running_p): Now a macro that refers to the scm_i_thread
+	field.
+	(scm_i_sweep_mutex): Now a non-recursive mutex.  GC can not happen
+	recursively.
+	(scm_igc, scm_i_gc): Renamed former to latter.  Changed all uses.
+	Do not lock scm_i_sweep_mutex, which is now non-recursive, or set
+	scm_gc_running_p.  Do not run the scm_after_gc_c_hook.
+	(scm_gc): Lock scm_i_sweep_mutex, set scm_gc_running_p and run the
+	scm_after_gc_c_hook here.
+	(scm_gc_for_new_cell): Set scm_gc_running_p here and run the
+	scm_after_gc_c_hook when a full GC has in fact been performed.
+	(scm_i_expensive_validation_check): Call scm_gc, not scm_i_gc.
+
+	* gc-segment.c (scm_i_get_new_heap_segment): Do not check
+	scm_gc_heap_lock.
+
+	* gc-malloc.c (scm_realloc, increase_mtrigger): Set
+	scm_gc_running_p while the scm_i_sweep_mutex is locked.
+
+	* inline.h (scm_cell, scm_double_cell): Do not check
+	scm_gc_running_p, allocation during sweeping is OK.
+
+	* gdbint.c (SCM_BEGIN_FOREIGN_BLOCK, SCM_END_FOREIGN_BLOCK): Do
+	not set scm_block_gc.
+
+	* init.c (scm_i_init_guile): Do not set scm_block_gc.
+
+	* deprecation.c (scm_c_issue_deprecation_warning): Use malloc
+	instead of scm_malloc.  The latter can not be used during GC.
+
 2005-03-09  Marius Vollmer  <mvo@zagadka.de>
 
 	* script.c (scm_compile_shell_switches): Added 2005 to Copyright
