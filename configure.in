@@ -623,6 +623,7 @@ AC_CONFIG_FILES([
   examples/box/Makefile
   examples/box-module/Makefile
   examples/box-dynamic/Makefile
+  examples/box-dynamic-module/Makefile
   examples/modules/Makefile
   examples/safe/Makefile
   check-guile

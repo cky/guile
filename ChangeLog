@@ -1,3 +1,7 @@
+2001-06-05  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* configure.in: Generate examples/box-dynamic-module/Makefile.
+
 2001-06-03  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* configure.in (AC_CONFIG_FILES, AC_CONFIG_COMMANDS): Add
