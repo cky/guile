@@ -2626,8 +2626,12 @@
 ;;     body)
 
 (defmacro with-fluids (bindings . body)
-  `(with-fluids* (list ,@(map car bindings)) (list ,@(map cadr bindings))
-		 (lambda () ,@body)))
+  (let ((fluids (map car bindings))
+	(values (map cadr bindings)))
+    (if (and (= (length fluids) 1) (= (length values) 1))
+	`(with-fluid* ,(car fluids) ,(car values) (lambda () ,@body))
+	`(with-fluids* (list ,@fluids) (list ,@values)
+		       (lambda () ,@body)))))
 
 
 
