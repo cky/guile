@@ -84,7 +84,7 @@ display_header (SCM source, SCM port)
        * filename with the source properties?  Then we could in case of
        * non-file ports give at least some more details than just
        * "<unnamed port>". */
-      if (SCM_STRINGP (fname))
+      if (scm_is_true (fname))
 	scm_prin1 (fname, port, 0);
       else
 	scm_puts ("<unnamed port>", port);
@@ -116,7 +116,7 @@ struct display_error_message_data {
 static SCM
 display_error_message (struct display_error_message_data *d)
 {
-  if (SCM_STRINGP (d->message) && scm_is_true (scm_list_p (d->args)))
+  if (scm_is_string (d->message) && scm_is_true (scm_list_p (d->args)))
     scm_simple_format (d->port, d->message, d->args);
   else
     scm_display (d->message, d->port);
@@ -176,7 +176,7 @@ display_expression (SCM frame, SCM pname, SCM source, SCM port)
   pstate->fancyp = 1;
   pstate->level  = DISPLAY_EXPRESSION_MAX_LEVEL;
   pstate->length = DISPLAY_EXPRESSION_MAX_LENGTH;
-  if (SCM_SYMBOLP (pname) || SCM_STRINGP (pname))
+  if (SCM_SYMBOLP (pname) || scm_is_string (pname))
     {
       if (SCM_FRAMEP (frame)
 	  && SCM_FRAME_EVAL_ARGS_P (frame))
@@ -227,11 +227,13 @@ display_error_body (struct display_error_args *a)
       prev_frame = SCM_FRAME_PREV (current_frame);
       if (!SCM_MEMOIZEDP (source) && scm_is_true (prev_frame))
 	source = SCM_FRAME_SOURCE (prev_frame);
-      if (!SCM_SYMBOLP (pname) && !SCM_STRINGP (pname) && SCM_FRAME_PROC_P (current_frame)
+      if (!SCM_SYMBOLP (pname)
+	  && !scm_is_string (pname)
+	  && SCM_FRAME_PROC_P (current_frame)
 	  && scm_is_true (scm_procedure_p (SCM_FRAME_PROC (current_frame))))
 	pname = scm_procedure_name (SCM_FRAME_PROC (current_frame));
     }
-  if (SCM_SYMBOLP (pname) || SCM_STRINGP (pname) || SCM_MEMOIZEDP (source))
+  if (SCM_SYMBOLP (pname) || scm_is_string (pname) || SCM_MEMOIZEDP (source))
     {
       display_header (source, a->port);
       display_expression (current_frame, pname, source, a->port);
@@ -530,7 +532,8 @@ display_backtrace_file_and_line (SCM frame, SCM port, scm_print_state *pstate)
 	{
 	  pstate -> writingp = 0;
 #ifdef HAVE_POSIX
-	  scm_iprin1 (SCM_STRINGP (file) ? scm_basename (file, SCM_UNDEFINED) : file,
+	  scm_iprin1 ((scm_is_string (file)?
+		       scm_basename (file, SCM_UNDEFINED) : file),
 		      port, pstate);
 #else
 	  scm_iprin1 (file, port, pstate);
