@@ -1,3 +1,9 @@
+2000-04-11  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* numbers.c (scm_quotient, scm_modulo):  Reordered to handle the
+	case of immediate numbers parameters first.  Also, only use
+	decoded numbers for numerical comparison.
+	
 2000-04-10  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* objects.h: Don't redeclare scm_call_generic_0 and

@@ -162,91 +162,92 @@ SCM_GPROC (s_quotient, "quotient", 2, 0, 0, scm_quotient, g_quotient);
 SCM
 scm_quotient (SCM x, SCM y)
 {
-  register long z;
-#ifdef SCM_BIGDIG
-  if (SCM_NINUMP (x))
-    {
-      SCM_GASSERT2 (SCM_BIGP (x),
-		    g_quotient, x, y, SCM_ARG1, s_quotient);
-      if (SCM_NINUMP (y))
+  if (SCM_INUMP (x)) {
+    long xx = SCM_INUM (x);
+    if (SCM_INUMP (y)) {
+      long yy = SCM_INUM (y);
+      if (yy == 0) {
+	scm_num_overflow (s_quotient);
+      } else {
+	long z = xx / yy;
+#ifdef BADIVSGNS
 	{
-	  SCM_ASRTGO (SCM_BIGP (y), bady);
-	  return scm_divbigbig (SCM_BDIGITS (x), SCM_NUMDIGS (x),
-				SCM_BDIGITS (y), SCM_NUMDIGS (y),
-				SCM_BIGSIGN (x) ^ SCM_BIGSIGN (y), 2);
+#if (__TURBOC__ == 1)
+	  long t = ((yy < 0) ? -xx : xx) % yy;
+#else
+	  long t = xx % yy;
+#endif
+	  if ((t < 0) && (xx > 0)) 
+	    z--;
+	  else if ((t > 0) && (xx < 0)) 
+	    z++;
 	}
-      z = SCM_INUM (y);
-      SCM_ASRTGO (z, ov);
-      if (1 == z)
+#endif
+	if (!SCM_FIXABLE (z)) {
+#ifdef SCM_BIGDIG
+	  return scm_long2big (z);
+#else
+	  scm_num_overflow (s_quotient);
+#endif
+	} else {
+	  return SCM_MAKINUM (z);
+	}
+      }
+    } else {
+#ifdef SCM_BIGDIG
+      if (!SCM_BIGP (y)) {
+	SCM_WTA_DISPATCH_2 (g_quotient, x, y, SCM_ARG2, s_quotient);
+      } else {
+	return SCM_INUM0;
+      }
+#else
+      SCM_WTA_DISPATCH_2 (g_quotient, x, y, SCM_ARG2, s_quotient);
+#endif
+    }
+  } else {
+#ifdef SCM_BIGDIG
+    SCM_GASSERT2 (SCM_BIGP (x), g_quotient, x, y, SCM_ARG1, s_quotient);
+    if (SCM_NINUMP (y)) {
+      if (!SCM_BIGP (y)) {
+	SCM_WTA_DISPATCH_2 (g_quotient, x, y, SCM_ARG2, s_quotient);
+      } else {
+	return scm_divbigbig (SCM_BDIGITS (x), SCM_NUMDIGS (x),
+			      SCM_BDIGITS (y), SCM_NUMDIGS (y),
+			      SCM_BIGSIGN (x) ^ SCM_BIGSIGN (y), 2);
+      }
+    } else {
+      long yy = SCM_INUM (y);
+      if (yy == 0) {
+	scm_num_overflow (s_quotient);
+      } else if (yy == 1) {
 	return x;
-      if (z < 0)
-	z = -z;
-      if (z < SCM_BIGRAD)
-	{
-	  SCM sw = scm_copybig (x,
-				SCM_BIGSIGN (x)
-				? (SCM_UNPACK (y) > 0)
-				: (SCM_UNPACK (y) < 0));
+      } else {
+	long z = yy < 0 ? -yy : yy;
+	
+	if (z < SCM_BIGRAD) {
+	  SCM sw = scm_copybig (x, SCM_BIGSIGN (x) ? (yy > 0) : (yy < 0));
 	  scm_divbigdig (SCM_BDIGITS (sw), SCM_NUMDIGS (sw), (SCM_BIGDIG) z);
 	  return scm_normbig (sw);
-	}
-      { /* scope */
+	} else {
 #ifndef SCM_DIGSTOOBIG
-      long w = scm_pseudolong (z);
-      return scm_divbigbig (SCM_BDIGITS (x), SCM_NUMDIGS (x),
-			    (SCM_BIGDIG *) & w, SCM_DIGSPERLONG,
-			    SCM_BIGSIGN (x) ? (y > 0) : (y < 0), 2);
+	  long w = scm_pseudolong (z);
+	  return scm_divbigbig (SCM_BDIGITS (x), SCM_NUMDIGS (x),
+				(SCM_BIGDIG *) & w, SCM_DIGSPERLONG,
+				SCM_BIGSIGN (x) ? (yy > 0) : (yy < 0), 2);
 #else
-	SCM_BIGDIG zdigs[SCM_DIGSPERLONG];
-	scm_longdigs (z, zdigs);
-	return scm_divbigbig (SCM_BDIGITS (x), SCM_NUMDIGS (x),
-			      zdigs, SCM_DIGSPERLONG,
-			      SCM_BIGSIGN (x) ? (y > 0) : (y < 0), 2);
+	  SCM_BIGDIG zdigs[SCM_DIGSPERLONG];
+	  scm_longdigs (z, zdigs);
+	  return scm_divbigbig (SCM_BDIGITS (x), SCM_NUMDIGS (x),
+				zdigs, SCM_DIGSPERLONG,
+				SCM_BIGSIGN (x) ? (yy > 0) : (yy < 0), 2);
 #endif
-      } /* end scope */
-    }
-  if (SCM_NINUMP (y))
-    {
-      if (!SCM_BIGP (y))
-	{
-	bady:
-	  SCM_WTA_DISPATCH_2 (g_quotient, x, y, SCM_ARG2, s_quotient);
 	}
-      return SCM_INUM0;
+      }
     }
 #else
-  SCM_GASSERT2 (SCM_INUMP (x), g_quotient, x, y, SCM_ARG1, s_quotient);
-  SCM_GASSERT2 (SCM_INUMP (y), g_quotient, x, y, SCM_ARG2, s_quotient);
+    SCM_WTA_DISPATCH_2 (g_quotient, x, y, SCM_ARG2, s_quotient);
 #endif
-  if ((z = SCM_INUM (y)) == 0)
-    {
-    ov:
-      scm_num_overflow (s_quotient);
-    }
-  z = SCM_INUM (x) / z;
-#ifdef BADIVSGNS
-  {
-#if (__TURBOC__ == 1)
-    long t = ((y < 0) ? -SCM_INUM (x) : SCM_INUM (x)) % SCM_INUM (y);
-#else
-    long t = SCM_INUM (x) % SCM_INUM (y);
-#endif
-    if (t == 0);
-    else if (t < 0)
-      if (x < 0);
-      else
-	z--;
-    else if (x < 0)
-      z++;
   }
-#endif
-  if (!SCM_FIXABLE (z))
-#ifdef SCM_BIGDIG
-    return scm_long2big (z);
-#else
-  scm_num_overflow (s_quotient);
-#endif
-  return SCM_MAKINUM (z);
 }
 
 SCM_GPROC (s_remainder, "remainder", 2, 0, 0, scm_remainder, g_remainder);
@@ -311,50 +312,56 @@ SCM_GPROC (s_modulo, "modulo", 2, 0, 0, scm_modulo, g_modulo);
 SCM
 scm_modulo (SCM x, SCM y)
 {
-  register long yy, z;
+  if (SCM_INUMP (x)) {
+    long xx = SCM_INUM (x);
+    if (SCM_INUMP (y)) {
+      long yy = SCM_INUM (y);
+      if (yy == 0) {
+	scm_num_overflow (s_modulo);
+      } else {
+#if (__TURBOC__ == 1)
+	long z = ((yy < 0) ? -xx : xx) % yy;
+#else
+	long z = xx % yy;
+#endif
+	return SCM_MAKINUM (((yy < 0) ? (z > 0) : (z < 0)) ? z + yy : z);
+      }
+    } else {
 #ifdef SCM_BIGDIG
-  if (SCM_NINUMP (x))
-    {
-      SCM_GASSERT2 (SCM_BIGP (x),
-		    g_modulo, x, y, SCM_ARG1, s_modulo);
-      if (SCM_NINUMP (y))
-	{
-	  SCM_ASRTGO (SCM_BIGP (y), bady);
-	  return scm_divbigbig (SCM_BDIGITS (x), SCM_NUMDIGS (x),
-				SCM_BDIGITS (y), SCM_NUMDIGS (y),
-				SCM_BIGSIGN (y),
-				(SCM_BIGSIGN (x) ^ SCM_BIGSIGN (y)) ? 1 : 0);
-	}
-      if (!(z = SCM_INUM (y)))
-	goto ov;
-      return scm_divbigint (x, z, y < 0,
-			    (SCM_BIGSIGN (x) ? (y > 0) : (y < 0)) ? 1 : 0);
+      if (!SCM_BIGP (y)) {
+	SCM_WTA_DISPATCH_2 (g_modulo, x, y, SCM_ARG2, s_modulo);
+      } else {
+	return (SCM_BIGSIGN (y) ? (xx > 0) : (xx < 0)) ? scm_sum (x, y) : x;
+      }
+#else
+      SCM_WTA_DISPATCH_2 (g_modulo, x, y, SCM_ARG2, s_modulo);
+#endif
     }
-  if (SCM_NINUMP (y))
-    {
-      if (!SCM_BIGP (y))
-	{
-	bady:
-	  SCM_WTA_DISPATCH_2 (g_modulo, x, y, SCM_ARG2, s_modulo);
-	}
-      return (SCM_BIGSIGN (y) ? (x > 0) : (x < 0)) ? scm_sum (x, y) : x;
+  } else {
+#ifdef SCM_BIGDIG
+    SCM_GASSERT2 (SCM_BIGP (x), g_modulo, x, y, SCM_ARG1, s_modulo);
+    if (SCM_NINUMP (y)) {
+      if (!SCM_BIGP (y)) {
+	SCM_WTA_DISPATCH_2 (g_modulo, x, y, SCM_ARG2, s_modulo);
+      } else {
+	return scm_divbigbig (SCM_BDIGITS (x), SCM_NUMDIGS (x),
+			      SCM_BDIGITS (y), SCM_NUMDIGS (y),
+			      SCM_BIGSIGN (y),
+			      (SCM_BIGSIGN (x) ^ SCM_BIGSIGN (y)) ? 1 : 0);
+      }
+    } else {
+      long yy = SCM_INUM (y);
+      if (yy == 0) {
+	scm_num_overflow (s_modulo);
+      } else {
+	return scm_divbigint (x, yy, yy < 0,
+			      (SCM_BIGSIGN (x) ? (yy > 0) : (yy < 0)) ? 1 : 0);
+      }
     }
 #else
-  SCM_GASSERT1 (SCM_INUMP (x), g_modulo, x, y, SCM_ARG1, s_modulo);
-  SCM_GASSERT2 (SCM_INUMP (y), g_modulo, x, y, SCM_ARG2, s_modulo);
+    SCM_WTA_DISPATCH_2 (g_modulo, x, y, SCM_ARG2, s_modulo);
 #endif
-  if (!(yy = SCM_INUM (y)))
-    {
-    ov:
-      scm_num_overflow (s_modulo);
-    }
-#if (__TURBOC__==1)
-  z = SCM_INUM (x);
-  z = ((yy < 0) ? -z : z) % yy;
-#else
-  z = SCM_INUM (x) % yy;
-#endif
-  return SCM_MAKINUM (((yy < 0) ? (z > 0) : (z < 0)) ? z + yy : z);
+  }
 }
 
 SCM_GPROC1 (s_gcd, "gcd", scm_tc7_asubr, scm_gcd, g_gcd);
