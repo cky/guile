@@ -2402,7 +2402,7 @@
 	   (-eval (lambda (sourc)
 		    (repl-report-start-timing)
 		    (start-stack 'repl-stack
-				 (eval sourc (interaction-environment)))))
+				 (primitive-eval sourc))))
 
 	   (-print (let ((maybe-print (lambda (result)
 					(if (or scm-repl-print-unspecified
@@ -2569,13 +2569,8 @@
 	      (module-add! public-i ',name
 			   (module-variable (current-module) ',name)))
 			       
-	    ;; Now (re)define the var normally.  Bernard URBAN
-	    ;; suggests we use eval here to accomodate Hobbit; it lets
-	    ;; the interpreter handle the define-private form, which
-	    ;; Hobbit can't digest.
-	    (eval '(define-private ,@ args) (interaction-environment)))))))
-
-
+	    ;; Now (re)define the var normally.
+	    (define-private ,@ args) (interaction-environment))))))
 
 (defmacro defmacro-public args
   (define (syntax)
