@@ -12,7 +12,33 @@ Changes in Guile 1.2:
 
 * Changes to the procedure for linking libguile with your programs
 
+** Like Guile 1.1, Guile 1.2 will now use the Rx regular expression
+library, if it is installed on your system.  When you are linking
+libguile into your own programs, this means you will have to link
+against -lguile, -lqt (if you configured Guile with thread support),
+and -lrx.  
+
+If you are using autoconf to generate configuration scripts for your
+application, the following lines should suffice to add the appropriate
+libraries to your link command:
+
+### Find Rx, quickthreads and libguile.
+AC_CHECK_LIB(rx, main)
+AC_CHECK_LIB(qt, main)
+AC_CHECK_LIB(guile, scm_shell)
+
 * Changes to Scheme functions and syntax
+
+** The #/ syntax for module names is depreciated, and will be removed
+in a future version of Guile.  Instead of 
+
+	#/foo/bar/baz
+
+instead write
+
+	(foo bar baz)
+
+The latter syntax is more consistent with existing Lisp practice.
 
 ** Guile now supports a new R4RS-compliant syntax for keywords.  A
 token of the form #:NAME, where NAME has the same syntax as a Scheme
