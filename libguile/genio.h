@@ -55,5 +55,6 @@ extern void scm_gen_puts SCM_P ((enum scm_string_representation_type rep,
 extern void scm_gen_write SCM_P ((enum scm_string_representation_type rep, char *str_data, scm_sizet nitems, SCM port));
 extern int scm_gen_getc SCM_P ((SCM port));
 extern void scm_gen_ungetc SCM_P ((int c, SCM port));
+extern char *scm_gen_read_line SCM_P ((SCM port));
 
 #endif  /* GENIOH */

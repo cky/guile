@@ -300,6 +300,7 @@ scm_ptobfuns scm_stptob =
   stwrite,
   noop0,
   stgetc,
+  scm_generic_fgets,
   0
 };
 

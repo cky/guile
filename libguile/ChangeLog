@@ -1,3 +1,17 @@
+Wed Jul 23 16:17:46 1997  Tim Pierce  <twpierce@bio-5.bsd.uchicago.edu>
+
+	Supply an `fgets' method for port objects to do fast line i/o.
+	* ioext.c (scm_read_line): New function.
+	* genio.c (scm_gen_read_line): New function.
+	* fports.c (scm_fgets): New function.
+	(scm_fptob, scm_pipob): Add scm_fgets method.
+	* ports.c (fgets_void_port, scm_generic_fgets): New functions.
+	(void_port_ptob): Add void fgets method.
+	(scm_newptob): Initialize fgets method from ptob struct.
+	* ports.h (scm_ptobfuns): Add fgets method.
+	* vports.c (scm_sfptob): Supply generic fgets method.
+	* strports.c (scm_stptob): Supply generic fgets method.
+
 Mon Jul 21 04:03:42 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* ioext.h: removed scm_duplicate_port prototype.

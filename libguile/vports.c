@@ -214,6 +214,7 @@ scm_ptobfuns scm_sfptob =
   sfwrite,
   sfflush,
   sfgetc,
+  scm_generic_fgets,
   sfclose
 };
 

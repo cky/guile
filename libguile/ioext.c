@@ -138,6 +138,26 @@ scm_read_delimited_x (delims, buf, gobble, port, start, end)
   return scm_cons (SCM_BOOL_F, scm_long2num (j - cstart));
 }
 
+SCM_PROC (s_read_line, "%read-line", 0, 1, 0, scm_read_line);
+
+SCM
+scm_read_line (port)
+     SCM port;
+{
+  char *s;
+
+  if (SCM_UNBNDP (port))
+    port = scm_cur_inp;
+  else
+    {
+      SCM_ASSERT (SCM_NIMP (port) && SCM_OPINPORTP (port),
+		  port, SCM_ARG1, s_read_line);
+    }
+
+  s = scm_gen_read_line (port);
+  return (s == NULL ? SCM_EOF_VAL : scm_makfrom0str (s));
+}
+
 SCM_PROC (s_write_line, "write-line", 1, 1, 0, scm_write_line);
 
 SCM 

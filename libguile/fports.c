@@ -262,6 +262,57 @@ scm_fgetc (s)
     return fgetc (s);
 }
 
+/*
+ * The fgets method must take a port as its argument, rather than
+ * the underlying file handle.  The reason is that we also provide
+ * a generic fgets method for ports which can't use fgets(3) (e.g.
+ * string ports).  This generic method calls the port's own
+ * fgetc method.  In order for it to know how to get that method,
+ * we must pass the original Scheme port object.
+ */
+
+static char * scm_fgets SCM_P ((SCM port));
+
+static char *
+scm_fgets (port)
+     SCM port;
+{
+  FILE *f;
+
+  char *buf   = NULL;
+  char *p;		/* pointer to current buffer position */
+  int   i     = 0;	/* index into current buffer position */
+  int   limit = 80;	/* current size of buffer */
+  int   lp;
+
+  f = SCM_STREAM (port);
+  if (feof (f))
+    return NULL;
+
+  buf = (char *) scm_must_malloc (limit * sizeof(char), "fgets");
+
+  while (1) {
+    p = buf + i;
+    if (fgets (p, limit - i, f) == NULL) {
+      if (i)
+	return buf;
+      scm_must_free (buf);
+      return NULL;
+    }
+
+    if (strlen(p) < limit - i - 1)
+      return buf;
+
+    buf = (char *) scm_must_realloc (buf,
+				     sizeof(char) * limit,
+				     sizeof(char) * limit * 2,
+				     "fgets");
+
+    i = limit - 1;
+    limit *= 2;
+  }
+}
+
 #ifdef vms
 
 static scm_sizet pwrite SCM_P ((char *ptr, scm_sizet size, nitems, FILE *port));
@@ -372,6 +423,7 @@ scm_ptobfuns scm_fptob =
   (scm_sizet (*) SCM_P ((char *, scm_sizet, scm_sizet, SCM))) local_ffwrite,
   (int (*) SCM_P ((SCM))) local_fflush,
   (int (*) SCM_P ((SCM))) scm_fgetc,
+  (char * (*) SCM_P ((SCM))) scm_fgets,
   (int (*) SCM_P ((SCM))) local_fclose
 };
 
@@ -387,6 +439,7 @@ scm_ptobfuns scm_pipob =
   (scm_sizet (*) SCM_P ((char *, scm_sizet, scm_sizet, SCM))) local_ffwrite,
   (int (*) SCM_P ((SCM))) local_fflush,
   (int (*) SCM_P ((SCM))) scm_fgetc,
+  (char * (*) SCM_P ((SCM))) scm_fgets,
   (int (*) SCM_P ((SCM))) local_pclose
 };
 

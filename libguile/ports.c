@@ -114,6 +114,7 @@ scm_newptob (ptob)
       scm_ptobs[scm_numptob].fwrite = ptob->fwrite;
       scm_ptobs[scm_numptob].fflush = ptob->fflush;
       scm_ptobs[scm_numptob].fgetc = ptob->fgetc;
+      scm_ptobs[scm_numptob].fgets = ptob->fgets;
       scm_ptobs[scm_numptob].fclose = ptob->fclose;
       scm_numptob++;
     }
@@ -567,6 +568,61 @@ scm_peek_char (port)
   return SCM_MAKICHR (c);
 }
 
+/*
+ * A generic fgets method.  We supply this method so that ports which
+ * can't use fgets(3) (like string ports or soft ports) can still use
+ * line-based i/o.  The generic method calls the port's own fgetc method
+ * for input.  It should be possible to write a more efficient
+ * method for any given port representation -- this is supplied just
+ * to ensure that you don't have to.
+ */
+
+char * scm_generic_fgets SCM_P ((SCM port));
+
+char *
+scm_generic_fgets (port)
+     SCM port;
+{
+  SCM f		= SCM_STREAM (port);
+  scm_sizet p	= SCM_PTOBNUM (port);
+
+  char *buf   = NULL;
+  int   i     = 0;	/* index into current buffer position */
+  int   limit = 80;	/* current size of buffer */
+  int   c;
+
+  if (feof ((FILE *)f))
+    return NULL;
+
+  buf = (char *) scm_must_malloc (limit * sizeof(char), "generic_fgets");
+
+  while (1) {
+    if (i >= limit-1)
+      {
+	buf = (char *) scm_must_realloc (buf,
+					 sizeof(char) * limit,
+					 sizeof(char) * limit * 2,
+					 "generic_fgets");
+	limit *= 2;
+      }
+
+    c = (scm_ptobs[p].fgetc) (f);
+    if (c != EOF)
+      buf[i++] = c;
+
+    if (c == EOF || c == '\n')
+      {
+	if (i)
+	  {
+	    buf[i] = '\0';
+	    return buf;
+	  }
+	scm_must_free (buf);
+	return NULL;
+      }
+  }
+}
+
 SCM_PROC (s_unread_char, "unread-char", 2, 0, 0, scm_unread_char);
 
 SCM 
@@ -589,8 +645,6 @@ scm_unread_char (cobj, port)
   scm_gen_ungetc (c, port);
   return cobj;
 }
-
-
 
 SCM_PROC (s_port_line, "port-line", 0, 1, 0, scm_port_line);
 
@@ -807,6 +861,11 @@ getc_void_port (SCM strm)
   return EOF;
 }
 
+static char *
+fgets_void_port (SCM strm)
+{
+  return NULL;
+}
 
 static int
 close_void_port (SCM strm)
@@ -834,6 +893,7 @@ static struct scm_ptobfuns  void_port_ptob =
   write_void_port,
   flush_void_port,
   getc_void_port,
+  fgets_void_port,
   close_void_port,
 };
 

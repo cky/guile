@@ -507,3 +507,15 @@ scm_gen_ungetc (c, port)
 }
 
 
+char *
+scm_gen_read_line (port)
+     SCM port;
+{
+  char *s;
+  scm_sizet i;
+
+  i = SCM_PTOBNUM (port);
+  SCM_SYSCALL (s = (scm_ptobs[i].fgets) (port));
+  return s;
+}
+
