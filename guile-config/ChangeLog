@@ -1,3 +1,8 @@
+2002-03-12  Rob Browning  <rlb@defaultvalue.org>
+
+	* guile-config.in (build-link): don't output -L/usr/lib.
+	(build-compile): don't output -I/usr/include.
+
 2002-03-03  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* guile.m4 (GUILE_PROGS): In docstring, change `are' to `is'.

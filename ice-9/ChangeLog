@@ -1,3 +1,8 @@
+2002-03-12  Rob Browning  <rlb@defaultvalue.org>
+
+	* syncase.scm: fix bad let.
+	(gensym): fix failure on non-threaded
+
 2002-03-05  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* ftw.scm: New file.
