@@ -71,7 +71,7 @@ typedef scm_cell * SCM_CELLPTR;
  * within the word.  The following macros deal with this by storing the
  * native Cray pointers like the ones that looks like scm expects.  This
  * is done for any pointers that might appear in the car of a scm_cell,
- *  pointers to scm_vector elts, functions, &c are not munged.
+ * pointers to scm_vector elts, functions, &c are not munged.
  */
 #ifdef _UNICOS
 #  define SCM2PTR(x) ((SCM_CELLPTR) (SCM_UNPACK (x) >> 3))
@@ -81,6 +81,134 @@ typedef scm_cell * SCM_CELLPTR;
 #  define PTR2SCM(x) (SCM_PACK ((scm_bits_t) (x)))
 #endif /* def _UNICOS */
 
+/* This mess was copied from the GNU getpagesize.h.  */
+
+#ifndef HAVE_GETPAGESIZE
+
+/* Assume that all systems that can run configure have sys/param.h.  */
+# ifndef HAVE_SYS_PARAM_H
+#  define HAVE_SYS_PARAM_H 1
+# endif
+
+# ifdef _SC_PAGESIZE
+#  define getpagesize() sysconf(_SC_PAGESIZE)
+# else /* no _SC_PAGESIZE */
+#  ifdef HAVE_SYS_PARAM_H
+#   include <sys/param.h>
+#   ifdef EXEC_PAGESIZE
+#    define getpagesize() EXEC_PAGESIZE
+#   else /* no EXEC_PAGESIZE */
+#    ifdef NBPG
+#     define getpagesize() NBPG * CLSIZE
+#     ifndef CLSIZE
+#      define CLSIZE 1
+#     endif /* no CLSIZE */
+#    else /* no NBPG */
+#     ifdef NBPC
+#      define getpagesize() NBPC
+#     else /* no NBPC */
+#      ifdef PAGESIZE
+#       define getpagesize() PAGESIZE
+#      endif /* PAGESIZE */
+#     endif /* no NBPC */
+#    endif /* no NBPG */
+#   endif /* no EXEC_PAGESIZE */
+#  else /* no HAVE_SYS_PARAM_H */
+#   define getpagesize() 8192	/* punt totally */
+#  endif /* no HAVE_SYS_PARAM_H */
+# endif /* no _SC_PAGESIZE */
+
+#endif /* no HAVE_GETPAGESIZE */
+
+#define SCM_GC_CARD_N_HEADER_CELLS 1
+#define SCM_GC_CARD_N_CELLS        (8 * sizeof (scm_cell) * 4)
+
+#define SCM_GC_CARD_SIZE           (SCM_GC_CARD_N_CELLS * sizeof (scm_cell))
+#define SCM_GC_CARD_N_DATA_CELLS   (SCM_GC_CARD_N_CELLS - SCM_GC_CARD_N_HEADER_CELLS)
+
+#define SCM_GC_CARD_BVEC_SIZE_IN_LIMBS \
+    ((SCM_GC_CARD_N_CELLS + SCM_C_BVEC_LIMB_BITS - 1) / SCM_C_BVEC_LIMB_BITS)
+
+#define SCM_GC_IN_CARD_HEADERP(x) \
+    SCM_PTR_LT ((scm_cell *) (x), SCM_GC_CELL_CARD (x) + SCM_GC_CARD_N_HEADER_CELLS)
+
+#define SCM_GC_CARD_BVEC(card)  ((scm_c_bvec_limb_t *) ((card)->word_0))
+
+#define SCM_GC_GET_CARD_FLAGS(card) ((long) ((card)->word_1))
+#define SCM_GC_SET_CARD_FLAGS(card, flags) (SCM_GC_GET_CARD_FLAGS (card) = (flags))
+#define SCM_GC_CLR_CARD_FLAGS(card) (SCM_GC_GET_CARD_FLAGS (card) = 0L)
+
+#define SCM_GC_GET_CARD_FLAG(card, shift) (SCM_GC_GET_CARD_FLAGS (card) & (1L << (shift)))
+#define SCM_GC_SET_CARD_FLAG(card, shift) (SCM_GC_GET_CARD_FLAGS (card) |= (1L << (shift)))
+#define SCM_GC_CLR_CARD_FLAG(card, shift) (SCM_GC_GET_CARD_FLAGS (card) &= ~(1L << (shift)))
+
+#define SCM_GC_CARDF_DOUBLECELL 0
+
+#define SCM_GC_CARD_DOUBLECELLP(card)    SCM_GC_GET_CARD_FLAG (card, SCM_GC_CARDF_DOUBLECELL)
+#define SCM_GC_SET_CARD_DOUBLECELL(card) SCM_GC_SET_CARD_FLAG (card, SCM_GC_CARDF_DOUBLECELL)
+
+/* card addressing. for efficiency, cards are *always* aligned to
+   SCM_GC_CARD_SIZE. */
+
+#define SCM_GC_CARD_SIZE_MASK  (SCM_GC_CARD_SIZE - 1)
+#define SCM_GC_CARD_ADDR_MASK  (~SCM_GC_CARD_SIZE_MASK)
+
+#define SCM_GC_CELL_CARD(x)    ((SCM_CELLPTR) ((long) (x) & SCM_GC_CARD_ADDR_MASK))
+#define SCM_GC_CELL_SPAN(x)    ((SCM_GC_CARD_DOUBLECELLP (SCM_GC_CELL_CARD (x))) ? 2 : 1)
+#define SCM_GC_CELL_OFFSET(x)  (((long) (x) & SCM_GC_CARD_SIZE_MASK) >> SCM_CELL_SIZE_SHIFT)
+#define SCM_GC_CELL_BVEC(x)    SCM_GC_CARD_BVEC (SCM_GC_CELL_CARD (x))
+#define SCM_GC_CELL_GET_BIT(x) SCM_C_BVEC_GET (SCM_GC_CELL_BVEC (x), SCM_GC_CELL_OFFSET (x))
+#define SCM_GC_CELL_SET_BIT(x) SCM_C_BVEC_SET (SCM_GC_CELL_BVEC (x), SCM_GC_CELL_OFFSET (x))
+#define SCM_GC_CELL_CLR_BIT(x) SCM_C_BVEC_CLR (SCM_GC_CELL_BVEC (x), SCM_GC_CELL_OFFSET (x))
+
+#define SCM_GC_CARD_UP(x)      SCM_GC_CELL_CARD ((char *) (x) + SCM_GC_CARD_SIZE - 1)
+#define SCM_GC_CARD_DOWN       SCM_GC_CELL_CARD
+
+/* low level bit banging aids */
+
+typedef unsigned long scm_c_bvec_limb_t;
+
+#if (SIZEOF_LONG == 8)
+#       define SCM_C_BVEC_LIMB_BITS    64
+#       define SCM_C_BVEC_OFFSET_SHIFT 6
+#       define SCM_C_BVEC_POS_MASK     63
+#       define SCM_CELL_SIZE_SHIFT     4
+#else
+#       define SCM_C_BVEC_LIMB_BITS    32
+#       define SCM_C_BVEC_OFFSET_SHIFT 5
+#       define SCM_C_BVEC_POS_MASK     31
+#       define SCM_CELL_SIZE_SHIFT     3
+#endif
+
+#define SCM_C_BVEC_OFFSET(pos) (pos >> SCM_C_BVEC_OFFSET_SHIFT)
+
+#define SCM_C_BVEC_GET(bvec, pos) (bvec[SCM_C_BVEC_OFFSET (pos)] & (1L << (pos & SCM_C_BVEC_POS_MASK)))
+#define SCM_C_BVEC_SET(bvec, pos) (bvec[SCM_C_BVEC_OFFSET (pos)] |= (1L << (pos & SCM_C_BVEC_POS_MASK)))
+#define SCM_C_BVEC_CLR(bvec, pos) (bvec[SCM_C_BVEC_OFFSET (pos)] &= ~(1L << (pos & SCM_C_BVEC_POS_MASK)))
+
+#define SCM_C_BVEC_BITS2BYTES(bits) \
+    (sizeof (scm_c_bvec_limb_t) * ((((bits) & SCM_C_BVEC_POS_MASK) ? 1L : 0L) + SCM_C_BVEC_OFFSET (bits)))
+
+#define SCM_C_BVEC_SET_BYTES(bvec, bytes)   (memset (bvec, 0xff, bytes))
+#define SCM_C_BVEC_SET_ALL_BITS(bvec, bits) SCM_C_BVEC_SET_BYTES (bvec, SCM_C_BVEC_BITS2BYTES (bits))
+
+#define SCM_C_BVEC_CLR_BYTES(bvec, bytes)   (memset (bvec, 0, bytes))
+#define SCM_C_BVEC_CLR_ALL_BITS(bvec, bits) SCM_C_BVEC_CLR_BYTES (bvec, SCM_C_BVEC_BITS2BYTES (bits))
+
+/* testing and changing GC marks */
+
+#define SCM_GCMARKP(x)   SCM_GC_CELL_GET_BIT (x)
+#define SCM_SETGCMARK(x) SCM_GC_CELL_SET_BIT (x)
+#define SCM_CLRGCMARK(x) SCM_GC_CELL_CLR_BIT (x)
+
+/* compatibility stuff: */
+
+#define SCM_GC8MARKP(x)   SCM_GCMARKP (x)
+#define SCM_SETGC8MARK(x) SCM_SETGCMARK (x)
+#define SCM_CLRGC8MARK(x) SCM_CLRGCMARK (x)
+
+#define SCM_GCTYP16(x) SCM_TYP16 (x)
+#define SCM_GCCDR(x)   SCM_CDR (x)
 
 /* Low level cell data accessing macros:
  */
@@ -203,11 +331,7 @@ typedef scm_cell * SCM_CELLPTR;
 #define SCM_FREEP(x) (SCM_FREE_CELL_P (x))
 #define SCM_NFREEP(x) (!SCM_FREEP (x))
 
-/* 1. This shouldn't be used on immediates.
-   2. It thinks that subrs are always unmarked (harmless). */
-#define SCM_MARKEDP(x) ((SCM_CELL_TYPE (x) & 5) == 5 \
-			? SCM_GC8MARKP (x) \
-			: SCM_GCMARKP (x))
+#define SCM_MARKEDP    SCM_GCMARKP
 #define SCM_NMARKEDP(x) (!SCM_MARKEDP (x))
 
 extern struct scm_heap_seg_data_t *scm_heap_table;
