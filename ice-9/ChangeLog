@@ -1,3 +1,9 @@
+2001-09-07  Thien-Thi Nguyen  <ttn@revel.glug.org>
+
+	* getopt-long.scm (process-options, getopt-long): Fix omission
+	bug: Handle multiple occurrances of an option.  Thanks to Daniel
+	Skarda.
+
 2001-08-31  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* boot-9.scm: Don't load module (ice-9 rdelim).

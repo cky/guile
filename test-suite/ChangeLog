@@ -1,3 +1,8 @@
+2001-09-07  Thien-Thi Nguyen  <ttn@revel.glug.org>
+
+	* tests/getopt-long.test ("apples-blimps-catalexis example",
+	"multiple occurances"): New top-level sections.
+
 2001-08-31  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* tests/numbers.test:  Made some of the patterns better readable.
