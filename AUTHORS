@@ -19,7 +19,7 @@ In the subdirectory libguile, wrote:
     gsubr.c  ramap.c  unif.c
     gsubr.h  ramap.h  unif.h
 
-Gary Houston: 
+Gary Houston:
 In the subdirectory libguile, wrote:
     rw.c
 In the subdirectory ice-9, wrote:
@@ -178,7 +178,7 @@ In the subdirectory doc, changes to:
 In the subdirectory libguile, rewrote:
     environments.c, environments.h
 In the subdirectory libguile, changes to:
-    error.c, gc.c, gc.h, numbers.c, strings.c, symbols.c 
+    error.c, gc.c, gc.h, numbers.c, strings.c, symbols.c
 In the subdirectory test-suite, rewrote:
     lib.scm
 In the subdirectory test-suite/tests, wrote:
@@ -243,9 +243,9 @@ In the subdirectory doc, wrote:
     pretty-print.scm
 
 Matthias Koeppe:
-In the subdirectory test-suite/tests, wrote
+In the subdirectory test-suite/tests, wrote:
     format.test, srfi-19.test, optargs.test
-In the subdirectory test-suite/tests, changes to
+In the subdirectory test-suite/tests, changes to:
     ports.test
 
 The file libguile/gc_os_dep.c is from the Boehm-Weiser conservative
@@ -291,3 +291,21 @@ all to the code in gc_os_dep.c:
     (Blame for misinstallation of these modifications goes to the
     first author, however.)
 
+Keisuke Nishida: [added by ttn; kei, please review]
+In the top-level directory, changes to:
+    libguile.h
+In the subdirectory ice-9, wrote:
+    channel.scm     history.scm         time.scm
+    match.scm
+In the subdirectory ice-9, changes to:
+    boot-9.scm      receive.scm         safe-r5rs.scm
+    common-list.scm
+In the subdirectory emacs, wrote:
+    guile.el        guile-scheme.el     guile-emacs.scm
+In the subdirectory libguile, changes to:
+    goops.c         vectors.h       vectors.c
+    eval.c          hashtab.h       hashtab.c
+    environments.c  smob.h          smob.c
+    keywords.c      list.c          strports.c
+    tag.c           Makefile.am     guile-snarf.awk.in
+Many other changes throughout.
