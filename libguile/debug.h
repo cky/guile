@@ -124,7 +124,7 @@ typedef struct scm_debug_frame
 {
   struct scm_debug_frame *prev;
   long status;
-  scm_debug_info *vect;
+  scm_debug_info vect[1];
 } scm_debug_frame;
 
 #ifndef USE_THREADS

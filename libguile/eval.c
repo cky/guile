@@ -1318,13 +1318,11 @@ SCM_CEVAL (x, env)
   {
     scm_debug_frame *prev;
     long status;
-    scm_debug_info *vect;
+    scm_debug_info vect[scm_debug_eframe_size];
     scm_debug_info *info;
   } debug;
   debug.prev = scm_last_debug_frame;
   debug.status = scm_debug_eframe_size;
-  debug.vect = ((scm_debug_info *)
-		alloca (scm_debug_eframe_size * sizeof (debug.vect[0])));
   debug.info = &debug.vect[0];
   scm_last_debug_frame = (scm_debug_frame *) &debug;
 #endif
