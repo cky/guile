@@ -60,6 +60,8 @@ extern int scm_eval_stack;
 
 extern scm_option scm_evaluator_trap_table[];
 
+extern SCM scm_eval_options_interface SCM_P ((SCM setting));
+
 #define SCM_TRAPS_P	       scm_evaluator_trap_table[0].val
 #define SCM_ENTER_FRAME_P      scm_evaluator_trap_table[1].val
 #define SCM_APPLY_FRAME_P      scm_evaluator_trap_table[2].val
