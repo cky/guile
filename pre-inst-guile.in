@@ -39,7 +39,7 @@
 subdirs_with_ltlibs="srfi guile-readline"       # maintain me
 
 # env (set by configure)
-top_srcdir="@top_srcdir@"
+top_srcdir=`(cd "@top_srcdir@" ; pwd)`
 top_builddir="@top_builddir_absolute@"
 
 [ x"$top_srcdir"   = x -o ! -d "$top_srcdir" -o \
