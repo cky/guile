@@ -262,13 +262,13 @@ scm_intern_obarray_soft (const char *name,scm_sizet len,SCM obarray,unsigned int
       scm_sizet i;
       SCM a = SCM_CAR (lsym);
       SCM z = SCM_CAR (a);
-      unsigned char *tmp = SCM_SYMBOL_UCHARS (z);
+      char *tmp = SCM_SYMBOL_CHARS (z);
       if (SCM_SYMBOL_HASH (z) != raw_hash)
 	goto trynext;
       if (SCM_SYMBOL_LENGTH (z) != len)
 	goto trynext;
       for (i = len; i--;)
-	if (((unsigned char *) name)[i] != tmp[i])
+	if (name[i] != tmp[i])
 	  goto trynext;
       {
 	SCM_REALLOW_INTS;

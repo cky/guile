@@ -1,3 +1,12 @@
+2000-11-28  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* struct.c (scm_struct_ref, scm_struct_set_x), symbols.c
+	(scm_intern_obarray_soft), symbols.h (SCM_ROUCHARS):  Eliminate
+	use of SCM_SYMBOL_UCHARS by using chars instead of unsigned
+	chars.
+
+	(SCM_SYMBOL_UCHARS):  Removed.
+
 2000-11-26  Gary Houston  <ghouston@arglist.com>
 
 	* reimplementation of values, call-with-values as primitives:

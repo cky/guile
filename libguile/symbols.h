@@ -56,12 +56,13 @@ extern int scm_symhash_dim;
  * SCM_SYMBOL_CHARS(SYM) is the address of the first character of SYM's name.
  */
 
-#define SCM_SYMBOLP(x)	(SCM_NIMP (x) && (SCM_TYP7 (x) == scm_tc7_symbol))
-#define SCM_SYMBOL_UCHARS(x)  ((unsigned char *) (SCM_CELL_WORD_1 (x)))
-#define SCM_SYMBOL_CHARS(x)  ((char *) (SCM_CELL_WORD_1 (x)))
-#define SCM_SET_SYMBOL_CHARS(s, c)  (SCM_SET_CELL_WORD_1 ((s), (c)))
-#define SCM_SYMBOL_LENGTH(x)  (((unsigned long) SCM_CELL_WORD_0 (x)) >> 8)
+#define SCM_SYMBOLP(x)              (SCM_NIMP (x) && (SCM_TYP7 (x) == scm_tc7_symbol))
+#define SCM_SYMBOL_LENGTH(x)        (((unsigned long) SCM_CELL_WORD_0 (x)) >> 8)
 #define SCM_SET_SYMBOL_LENGTH(s, l) (SCM_SET_CELL_WORD_0 ((s), ((l) << 8) + scm_tc7_symbol))
+#define SCM_SYMBOL_CHARS(x)         ((char *) (SCM_CELL_WORD_1 (x)))
+#define SCM_SET_SYMBOL_CHARS(s, c)  (SCM_SET_CELL_WORD_1 ((s), (c)))
+#define SCM_SYMBOL_HASH(X)          ((unsigned long) SCM_CELL_WORD_2 (X))
+#define SCM_SET_SYMBOL_HASH(X, v)   (SCM_SET_CELL_WORD_2 ((X), (v)))
 
 #define SCM_PROP_SLOTS(X)           (SCM_CELL_WORD_3 (X))
 #define SCM_SET_PROP_SLOTS(X, v)    (SCM_SET_CELL_WORD_3 ((X), (v)))
@@ -69,8 +70,6 @@ extern int scm_symhash_dim;
 #define SCM_SET_SYMBOL_FUNC(X, v)   (SCM_SETCAR (SCM_CELL_WORD_3 (X), (v)))
 #define SCM_SYMBOL_PROPS(X)	    (SCM_CDR (SCM_CELL_WORD_3 (X)))
 #define SCM_SET_SYMBOL_PROPS(X, v)  (SCM_SETCDR (SCM_CELL_WORD_3 (X), (v)))
-#define SCM_SYMBOL_HASH(X)	    (SCM_CELL_WORD_2 (X))
-#define SCM_SET_SYMBOL_HASH(X, v)   (SCM_SET_CELL_WORD_2 ((X), (v)))
 
 
 
@@ -132,7 +131,7 @@ extern void scm_init_symbols (void);
 			 ? (SCM_INUM (SCM_CADR (x)) + SCM_STRING_UCHARS (SCM_CDDR (x))) \
 			 : ((SCM_TYP7 (x) == scm_tc7_string) \
 			    ? SCM_STRING_UCHARS (x) \
-			    : SCM_SYMBOL_UCHARS (x)))
+			    : (unsigned char *) SCM_SYMBOL_CHARS (x)))
 #define SCM_SUBSTRP(x) (SCM_NIMP (x) && (SCM_TYP7 (x) == scm_tc7_substring))
 #define SCM_COERCE_SUBSTR(x) SCM_STRING_COERCE_0TERMINATION_X (x)
 #define scm_strhash(str, len, n) (scm_string_hash ((str), (len)) % (n))

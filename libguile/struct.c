@@ -566,8 +566,8 @@ SCM_DEFINE (scm_struct_ref, "struct-ref", 2, 0, 0,
   SCM layout;
   int p;
   scm_bits_t n_fields;
-  unsigned char * fields_desc;
-  unsigned char field_type = 0;
+  char * fields_desc;
+  char field_type = 0;
   
 
   SCM_VALIDATE_STRUCT (1,handle);
@@ -577,14 +577,14 @@ SCM_DEFINE (scm_struct_ref, "struct-ref", 2, 0, 0,
   data = SCM_STRUCT_DATA (handle);
   p = SCM_INUM (pos);
 
-  fields_desc = SCM_SYMBOL_UCHARS (layout);
+  fields_desc = SCM_SYMBOL_CHARS (layout);
   n_fields = data[scm_struct_i_n_words];
   
   SCM_ASSERT_RANGE(1,pos, p < n_fields);
 
   if (p * 2 < SCM_SYMBOL_LENGTH (layout))
     {
-      unsigned char ref;
+      char ref;
       field_type = fields_desc[p * 2];
       ref = fields_desc[p * 2 + 1];
       if ((ref != 'r') && (ref != 'w'))
@@ -644,8 +644,8 @@ SCM_DEFINE (scm_struct_set_x, "struct-set!", 3, 0, 0,
   SCM layout;
   int p;
   int n_fields;
-  unsigned char * fields_desc;
-  unsigned char field_type = 0;
+  char * fields_desc;
+  char field_type = 0;
 
   SCM_VALIDATE_STRUCT (1,handle);
   SCM_VALIDATE_INUM (2,pos);
@@ -654,14 +654,14 @@ SCM_DEFINE (scm_struct_set_x, "struct-set!", 3, 0, 0,
   data = SCM_STRUCT_DATA (handle);
   p = SCM_INUM (pos);
 
-  fields_desc = SCM_SYMBOL_UCHARS (layout);
+  fields_desc = SCM_SYMBOL_CHARS (layout);
   n_fields = data[scm_struct_i_n_words];
 
   SCM_ASSERT_RANGE (1,pos, p < n_fields);
 
   if (p * 2 < SCM_SYMBOL_LENGTH (layout))
     {
-      unsigned char set_x;
+      char set_x;
       field_type = fields_desc[p * 2];
       set_x = fields_desc [p * 2 + 1];
       if (set_x != 'w')
