@@ -1176,7 +1176,8 @@ SCM_DEFINE (scm_set_port_line_x, "set-port-line!", 2, 0, 0,
   port = SCM_COERCE_OUTPORT (port);
   SCM_VALIDATE_OPENPORT (1,port);
   SCM_VALIDATE_INUM (2,line);
-  return SCM_PTAB_ENTRY (port)->line_number = SCM_INUM (line);
+  SCM_PTAB_ENTRY (port)->line_number = SCM_INUM (line);
+  return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
 
@@ -1201,7 +1202,7 @@ SCM_DEFINE (scm_port_column, "port-column", 1, 0, 0,
 
 SCM_DEFINE (scm_set_port_column_x, "set-port-column!", 2, 0, 0,
             (SCM port, SCM column),
-	    "@deffnx primitive set-port-line! [input-port] line\n"
+	    "@deffnx primitive set-port-column! [input-port] column\n"
 	    "Set the current column or line number of @var{input-port}, using the\n"
 	    "current input port if none is specified.")
 #define FUNC_NAME s_scm_set_port_column_x
@@ -1209,7 +1210,8 @@ SCM_DEFINE (scm_set_port_column_x, "set-port-column!", 2, 0, 0,
   port = SCM_COERCE_OUTPORT (port);
   SCM_VALIDATE_OPENPORT (1,port);
   SCM_VALIDATE_INUM (2,column);
-  return SCM_PTAB_ENTRY (port)->column_number = SCM_INUM (column);
+  SCM_PTAB_ENTRY (port)->column_number = SCM_INUM (column);
+  return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
 
