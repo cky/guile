@@ -170,8 +170,8 @@
                                          pos_end, end, c_end) \
   do {\
     SCM_VALIDATE_STRING_COPY (pos_str, str, c_str);\
-    SCM_VALIDATE_INUM_DEF_COPY (pos_start, start, 0, c_start);\
-    SCM_VALIDATE_INUM_DEF_COPY (pos_end, end, SCM_STRING_LENGTH (str), c_end);\
+    c_start = SCM_UNBNDP(start)? 0 : scm_to_size_t (start);\
+    c_end = SCM_UNBNDP(end)? SCM_STRING_LENGTH(str) : scm_to_size_t (end);\
     SCM_ASSERT_RANGE (pos_start, start,\
                       0 <= c_start \
                       && (size_t) c_start <= SCM_STRING_LENGTH (str));\
@@ -183,14 +183,6 @@
 #define SCM_VALIDATE_REAL(pos, z) SCM_MAKE_VALIDATE_MSG (pos, z, REALP, "real")
 
 #define SCM_VALIDATE_NUMBER(pos, z) SCM_MAKE_VALIDATE_MSG (pos, z, NUMBERP, "number")
-
-#define SCM_VALIDATE_INUM(pos, k) SCM_MAKE_VALIDATE_MSG (pos, k, INUMP, "exact integer")
-
-#define SCM_VALIDATE_INUM_COPY(pos, k, cvar) \
-  do { \
-    SCM_ASSERT (SCM_INUMP (k), k, pos, FUNC_NAME); \
-    cvar = SCM_INUM (k); \
-  } while (0)
 
 #define SCM_VALIDATE_USHORT_COPY(pos, k, cvar) \
   do { \
@@ -232,51 +224,6 @@
     cvar = SCM_NUM2DOUBLE (pos, k); \
   } while (0)
 
-#define SCM_VALIDATE_BIGINT(pos, k) SCM_MAKE_VALIDATE_MSG (pos, k, BIGP, "bignum")
-
-#define SCM_VALIDATE_INUM_MIN(pos, k, min) \
-  do { \
-    SCM_ASSERT (SCM_INUMP(k), k, pos, FUNC_NAME); \
-    SCM_ASSERT_RANGE (pos, k, (SCM_INUM (k) >= min)); \
-  } while (0)
-
-#define SCM_VALIDATE_INUM_MIN_COPY(pos, k, min, cvar) \
-  do { \
-    SCM_ASSERT (SCM_INUMP (k), k, pos, FUNC_NAME); \
-    SCM_ASSERT_RANGE (pos, k, (SCM_INUM (k) >= min)); \
-    cvar = SCM_INUM (k); \
-  } while (0)
-
-#define SCM_VALIDATE_INUM_MIN_DEF_COPY(pos, k, min, default, cvar) \
-  do { \
-    if (SCM_UNBNDP (k)) \
-      k = SCM_I_MAKINUM (default); \
-    SCM_ASSERT (SCM_INUMP (k), k, pos, FUNC_NAME); \
-    SCM_ASSERT_RANGE (pos, k, (SCM_INUM (k) >= min)); \
-    cvar = SCM_INUM (k); \
-  } while (0)
-
-#define SCM_VALIDATE_INUM_DEF(pos, k, default) \
-  do { \
-    if (SCM_UNBNDP (k)) \
-      k = SCM_I_MAKINUM (default); \
-    else SCM_ASSERT (SCM_INUMP (k), k, pos, FUNC_NAME); \
-  } while (0)
-
-#define SCM_VALIDATE_INUM_DEF_COPY(pos, k, default, cvar) \
-  do { \
-    if (SCM_UNBNDP (k)) \
-      { \
-        k = SCM_I_MAKINUM (default); \
-        cvar = default; \
-      } \
-    else \
-      { \
-        SCM_ASSERT (SCM_INUMP (k), k, pos, FUNC_NAME); \
-        cvar = SCM_INUM (k); \
-      } \
-  } while (0)
-
 #define SCM_VALIDATE_DOUBLE_DEF_COPY(pos, k, default, cvar) \
   do { \
     if (SCM_UNBNDP (k)) \
@@ -288,21 +235,6 @@
       { \
         cvar = SCM_NUM2DOUBLE (pos, k); \
       } \
-  } while (0)
-
-/* [low, high) */
-#define SCM_VALIDATE_INUM_RANGE(pos, k, low, high) \
-  do { SCM_ASSERT(SCM_INUMP(k), k, pos, FUNC_NAME); \
-       SCM_ASSERT_RANGE(pos, k, \
-                        (SCM_INUM (k) >= low && \
-                         SCM_INUM (k) < high)); \
-     } while (0)
-
-#define SCM_VALIDATE_INUM_RANGE_COPY(pos, k, low, high, cvar) \
-  do { \
-    SCM_ASSERT (SCM_INUMP (k), k, pos, FUNC_NAME); \
-    SCM_ASSERT_RANGE (pos, k, low <= SCM_INUM (k) && SCM_INUM (k) < high); \
-    cvar = SCM_INUM (k); \
   } while (0)
 
 #define SCM_VALIDATE_NULL(pos, scm) SCM_MAKE_VALIDATE_MSG (pos, scm, NULLP, "null")
