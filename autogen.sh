@@ -48,16 +48,23 @@ libtoolize --force --copy --automake
 
 ######################################################################
 
+ac_version=`autoconf --version | head -1`
+ac_version=`echo ${ac_version} | sed -e 's/autoconf.* \([0-9].[0-9]\+\)$/\1/'`
+case "${ac_version}" in
+  (2.5?) autoconf=autoconf ;;
+esac
 
 # configure.in reqs autoconf-2.53; try to find it
-for suf in "-2.53" "2.53" ""  false; do
-  version=`autoconf$suf --version 2>/dev/null | head -1 | awk '{print $NF}' | awk -F. '{print $1 * 100 + $2}'`
-  if test "0$version" -eq 253; then
-    autoconf=autoconf$suf
-    autoheader=autoheader$suf
-    break
-  fi
-done
+if test -z "$autoconf"; then
+  for suf in "-2.53" "2.53" ""  false; do
+    version=`autoconf$suf --version 2>/dev/null | head -1 | awk '{print $NF}' | awk -F. '{print $1 * 100 + $2}'`
+    if test "0$version" -eq 253; then
+      autoconf=autoconf$suf
+      autoheader=autoheader$suf
+      break
+    fi
+  done
+fi
 
 if test -z "$autoconf"; then
     echo "ERROR: Please install autoconf 2.53"
@@ -93,13 +100,6 @@ $autoconf
 
 $automake --add-missing
 $automake --add-missing
-
-# Make sure that libltdl uses the same autoconf version as the rest.
-#
-echo "libltdl..."
-(cd libltdl && aclocal)
-(cd libltdl && autoconf)
-(cd libltdl && $automake --gnu --add-missing)
 
 echo "guile-readline..."
 (cd guile-readline && ./autogen.sh)
