@@ -53,13 +53,13 @@
 				     input-port
 				     output-port
 				     read-hook))
-		    (if (not (zero? (string-length read-string)))
-			(set! prompt "... "))
 		    (set! string-index 0)
 		    (if (not (eof-object? read-string))
 			(begin
 			  (or (string=? read-string "")
-			      (add-history read-string))
+			      (begin
+				(add-history read-string)
+				(set! prompt "... ")))
 			  (get-character))
 			read-string)))
 		 (else 
