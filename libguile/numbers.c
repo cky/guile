@@ -414,8 +414,14 @@ scm_logand(n1, n2)
      SCM n1;
      SCM n2;
 {
-  return scm_long2num(scm_num2long(n1, (char *)SCM_ARG1, s_logand)
-		      & scm_num2long(n2, (char *)SCM_ARG2, s_logand));
+  if SCM_UNBNDP (n2)
+    {
+      if (SCM_UNBNDP (n1))
+	return SCM_MAKINUM (-1);
+      return n1;
+    }
+  return scm_long2num (scm_num2long(n1, (char *)SCM_ARG1, s_logand)
+		       & scm_num2long(n2, (char *)SCM_ARG2, s_logand));
 }
 
 SCM_PROC1 (s_logior, "logior", scm_tc7_asubr, scm_logior);
@@ -425,6 +431,12 @@ scm_logior(n1, n2)
      SCM n1;
      SCM n2;
 {
+  if SCM_UNBNDP (n2)
+    {
+      if (SCM_UNBNDP (n1))
+	return SCM_INUM0;
+      return n1;
+    }
   return scm_long2num(scm_num2long(n1, (char *)SCM_ARG1, s_logior)
 		      | scm_num2long(n2, (char *)SCM_ARG2, s_logior));
 }
@@ -436,6 +448,12 @@ scm_logxor(n1, n2)
      SCM n1;
      SCM n2;
 {
+  if SCM_UNBNDP (n2)
+    {
+      if (SCM_UNBNDP (n1))
+	return SCM_INUM0;
+      return n1;
+    }
   return scm_long2num(scm_num2long(n1, (char *)SCM_ARG1, s_logxor)
 		      ^ scm_num2long(n2, (char *)SCM_ARG2, s_logxor));
 }
@@ -474,8 +492,12 @@ scm_logand(n1, n2)
      SCM n1;
      SCM n2;
 {
-  SCM_ASSERT(SCM_INUMP(n1), n1, SCM_ARG1, s_logand);
-  SCM_ASSERT(SCM_INUMP(n2), n2, SCM_ARG2, s_logand);
+  if SCM_UNBNDP (n2)
+    {
+      if (SCM_UNBNDP (n1))
+	return SCM_MAKINUM (-1);
+      return n1;
+    }
   return SCM_MAKINUM(SCM_INUM(n1) & SCM_INUM(n2));
 }
 
@@ -486,8 +508,12 @@ scm_logior(n1, n2)
      SCM n1;
      SCM n2;
 {
-  SCM_ASSERT(SCM_INUMP(n1), n1, SCM_ARG1, s_logior);
-  SCM_ASSERT(SCM_INUMP(n2), n2, SCM_ARG2, s_logior);
+  if SCM_UNBNDP (n2)
+    {
+      if (SCM_UNBNDP (n1))
+	return SCM_INUM0;
+      return n1;
+    }
   return SCM_MAKINUM(SCM_INUM(n1) | SCM_INUM(n2));
 }
 
@@ -498,8 +524,12 @@ scm_logxor(n1, n2)
      SCM n1;
      SCM n2;
 {
-  SCM_ASSERT(SCM_INUMP(n1), n1, SCM_ARG1, s_logxor);
-  SCM_ASSERT(SCM_INUMP(n2), n2, SCM_ARG2, s_logxor);
+  if SCM_UNBNDP (n2)
+    {
+      if (SCM_UNBNDP (n1))
+	return SCM_INUM0;
+      return n1;
+    }
   return SCM_MAKINUM(SCM_INUM(n1) ^ SCM_INUM(n2));
 }
 

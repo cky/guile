@@ -1,3 +1,7 @@
+Mon Sep  1 22:30:33 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* numbers.c (logand, logior, logxor): Handle 0 or 1 arguments.
+
 Sat Aug 30 18:56:19 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* unif.c (scm_shap2ra): tighten the checking of the array dimension
