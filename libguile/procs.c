@@ -102,7 +102,6 @@ scm_make_subr_opt (const char *name, int type, SCM (*fcn) (), int set)
   scm_subr_table[entry].handle = z;
   scm_subr_table[entry].name = symbol;
   scm_subr_table[entry].generic = 0;
-  scm_subr_table[entry].properties = SCM_EOL;
   
   SCM_SET_SUBRF (z, fcn);
   SCM_SET_CELL_TYPE (z, (entry << 8) + type);
@@ -149,8 +148,6 @@ scm_mark_subr_table ()
       SCM_SETGCMARK (scm_subr_table[i].name);
       if (scm_subr_table[i].generic && *scm_subr_table[i].generic)
 	scm_gc_mark (*scm_subr_table[i].generic);
-      if (SCM_NIMP (scm_subr_table[i].properties))
-	scm_gc_mark (scm_subr_table[i].properties);
     }
 }
 

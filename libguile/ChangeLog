@@ -1,3 +1,13 @@
+2000-12-23  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* procs.h (scm_subr_entry):  Removed unused struct member
+	"properties".
+
+	(SCM_SUBR_PROPS):  Deprecated.
+
+	* procs.c (scm_make_subr_opt, scm_mark_subr_table):  Struct
+	scm_subr_entry does not have a member "properties" any more.
+
 2000-12-22  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* procs.h (scm_subr_entry):  Removed unused struct member

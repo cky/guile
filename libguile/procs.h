@@ -62,7 +62,6 @@ typedef struct
   SCM *generic;			/* 0 if no generic support
 				 * *generic == 0 until first method
 				 */
-  SCM properties;		/* procedure properties */
 } scm_subr_entry;
 
 #define SCM_SUBRNUM(subr) (SCM_CELL_WORD_0 (subr) >> 8)
@@ -73,6 +72,7 @@ typedef struct
 #define SCM_SUBRF(x) ((SCM (*)()) SCM_CELL_WORD_1 (x))
 #define SCM_SET_SUBRF(x, v) (SCM_SET_CELL_WORD_1 ((x), (v)))
 #define SCM_DSUBRF(x) ((double (*)()) SCM_CELL_WORD_1 (x))
+#define SCM_SUBR_GENERIC(x) (SCM_SUBR_ENTRY (x).generic)
 
 #define SCM_CCLO_LENGTH(x) (SCM_CELL_WORD_0 (x) >> 8)
 #define SCM_SET_CCLO_LENGTH(x, v) (SCM_SET_CELL_WORD_0 ((x), ((v) << 8) + scm_tc7_cclo))
@@ -84,9 +84,6 @@ typedef struct
 
 #define SCM_CCLO_SUBR(x) (SCM_CCLO_REF ((x), 0))
 #define SCM_SET_CCLO_SUBR(x, v) (SCM_CCLO_SET ((x), 0, (v)))
-
-#define SCM_SUBR_GENERIC(x) (SCM_SUBR_ENTRY (x).generic)
-#define SCM_SUBR_PROPS(x) (SCM_SUBR_ENTRY (x).properties)
 
 /* Closures
  */
@@ -191,6 +188,7 @@ extern SCM scm_make_cclo (SCM proc, SCM len);
 
 #if (SCM_DEBUG_DEPRECATED == 0)
 
+#define SCM_SUBR_PROPS(x) SCM_EOL
 #define SCM_SUBR_DOC(x) SCM_BOOL_F
 
 #endif  /* SCM_DEBUG_DEPRECATED == 0 */
