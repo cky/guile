@@ -41,7 +41,8 @@
 	    remove-breakpoint-hook!
 	    remove-enter-frame-hook!
 	    remove-exit-frame-hook!
-	    remove-trace-hook!))
+	    remove-trace-hook!
+	    debug-hook-membership))
 
 ;;; The current low level traps interface is as follows.
 ;;;
@@ -297,5 +298,23 @@ it twice."
 (define-public (remove-trace-hook! proc)
   (remove-hook! trace-hook proc)
   (set-debug-and-trap-options))
+
+(define-public (debug-hook-membership)
+  (for-each (lambda (name+hook)
+	      (format #t "~A:\n" (car name+hook))
+	      (for-each (lambda (proc)
+			  (format #t "  ~S\n" proc))
+			(hook->list (cdr name+hook))))
+	    `((before-enter-frame-hook . ,before-enter-frame-hook)
+	      (enter-frame-hook	       . ,enter-frame-hook       )
+	      (breakpoint-hook	       . ,breakpoint-hook        )
+	      (after-enter-frame-hook  . ,after-enter-frame-hook )
+	      (before-exit-frame-hook  . ,before-exit-frame-hook )
+	      (exit-frame-hook	       . ,exit-frame-hook        )
+	      (after-exit-frame-hook   . ,after-exit-frame-hook  )
+	      (before-apply-frame-hook . ,before-apply-frame-hook)
+	      (apply-frame-hook	       . ,apply-frame-hook       )
+	      (trace-hook	       . ,trace-hook             )
+	      (after-apply-frame-hook  . ,after-apply-frame-hook ))))
 
 ;;; (ice-9 debugger trap-hooks) ends here.

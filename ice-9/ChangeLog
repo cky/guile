@@ -1,3 +1,9 @@
+2004-02-09  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* debugger/trap-hooks.scm (debug-hook-membership): New, exported.
+
+	* debugger/commands.scm (debug-trap-hooks): New, exported.
+
 2004-02-08  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* debugger/breakpoints/Makefile.am (TAGS_FILES),

@@ -21,6 +21,7 @@
   #:use-module (ice-9 debugger)
   #:use-module (ice-9 debugger behaviour)
   #:use-module (ice-9 debugger state)
+  #:use-module (ice-9 debugger trap-hooks)
   #:use-module (ice-9 debugger utils)
   #:export (backtrace
 	    evaluate
@@ -34,7 +35,8 @@
 	    finish
 	    trace-finish
 	    next
-	    step))
+	    step
+	    debug-trap-hooks))
 
 (define (backtrace state n-frames)
   "Print backtrace of all stack frames, or innermost COUNT frames.
@@ -148,6 +150,10 @@ With no argument, print the selected stack frame.  (See also \"info frame\").
 An argument specifies the frame to select; it must be a stack-frame number."
   (if n (set-stack-index! state (frame-number->index n (state-stack state))))
   (write-state-short state))
+
+(define (debug-trap-hooks state)
+  (debug-hook-membership)
+  state)
 
 ;;;; Additional commands that make sense when debugging code that has
 ;;;; stopped at a breakpoint.
