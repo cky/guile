@@ -1,3 +1,9 @@
+2004-05-18  Marius Vollmer  <mvo@zagadka.de>
+
+	* hashtab.c (rehash_after_gc): Bug fix: properly link the
+	processed hashtables back into the weak_hashtables list.  Thanks
+	to Bill Schottstaedt!
+
 2004-05-16  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
 
 	* eval.c (unmemoize_quote): New static function.
