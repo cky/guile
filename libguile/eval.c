@@ -459,17 +459,6 @@ SCM scm_sym_enter_frame, scm_sym_apply_frame, scm_sym_exit_frame;
 SCM scm_sym_trace;
 #endif
 
-#define ASRTSYNTAX(cond_, msg_) if(!(cond_))scm_wta(xorig, (msg_), what);
-
-
-
-static void  bodycheck (SCM xorig, SCM *bodyloc, const char *what);
-
-static void 
-bodycheck (SCM xorig, SCM *bodyloc, const char *what)
-{
-  ASRTSYNTAX (scm_ilength (*bodyloc) >= 1, scm_s_expression);
-}
 
 /* Check that the body denoted by XORIG is valid and rewrite it into
    its internal form.  The internal form of a body is just the body
@@ -487,7 +476,7 @@ bodycheck (SCM xorig, SCM *bodyloc, const char *what)
 static SCM
 scm_m_body (SCM op, SCM xorig, const char *what)
 {
-  ASRTSYNTAX (scm_ilength (xorig) >= 1, scm_s_expression);
+  SCM_ASSYNT (scm_ilength (xorig) >= 1, xorig, scm_s_expression, what);
 
   /* Don't add another ISYM if one is present already. */
   if (SCM_ISYMP (SCM_CAR (xorig)))
@@ -502,7 +491,7 @@ scm_m_body (SCM op, SCM xorig, const char *what)
       return xorig;
     }
 
-  return scm_cons2 (op, SCM_CAR (xorig), SCM_CDR(xorig));
+  return scm_cons (op, xorig);
 }
 
 SCM_SYNTAX(s_quote,"quote", scm_makmmacro, scm_m_quote);
@@ -789,7 +778,6 @@ scm_m_do (SCM xorig, SCM env)
   SCM_ASSYNT (scm_ilength (SCM_CAR (x)) >= 1, xorig, scm_s_test, "do");
   x = scm_cons2 (SCM_CAR (x), SCM_CDR (x), steps);
   x = scm_cons2 (vars, inits, x);
-  bodycheck (xorig, SCM_CARLOC (SCM_CDR (SCM_CDR (x))), "do");
   return scm_cons (SCM_IM_DO, x);
 }
 
@@ -942,14 +930,13 @@ scm_m_letrec1 (SCM op, SCM imm, SCM xorig, SCM env)
   SCM vars = SCM_EOL, inits = SCM_EOL, *initloc = &inits;
 
   proc = SCM_CAR (x);
-  ASRTSYNTAX (scm_ilength (proc) >= 1, scm_s_bindings);
+  SCM_ASSYNT (scm_ilength (proc) >= 1, xorig, scm_s_bindings, what);
   do
     {
       /* vars scm_list reversed here, inits reversed at evaluation */
       arg1 = SCM_CAR (proc);
-      ASRTSYNTAX (2 == scm_ilength (arg1), scm_s_bindings);
-      ASRTSYNTAX (SCM_SYMBOLP (SCM_CAR (arg1)),
-		  scm_s_variable);
+      SCM_ASSYNT (2 == scm_ilength (arg1), xorig, scm_s_bindings, what);
+      SCM_ASSYNT (SCM_SYMBOLP (SCM_CAR (arg1)), xorig, scm_s_variable, what);
       vars = scm_cons (SCM_CAR (arg1), vars);
       *initloc = scm_cons (SCM_CAR (SCM_CDR (arg1)), SCM_EOL);
       initloc = SCM_CDRLOC (*initloc);

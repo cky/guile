@@ -1,3 +1,17 @@
+2000-05-08  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* eval.c (ASRTSYNTAX, scm_m_body, scm_m_letrec1):  Removed
+	ASRTSYNTAX.  Using SCM_ASSYNT instead.
+
+	(scm_m_body):  Don't create a redundant cons cell.
+
+	(scm_m_do):  Removed redundant test 'bodycheck'.
+
+	(bodycheck):  Removed.
+
+	* stacks.c (stack_depth, read_frame, read_frames):  Removed
+	redundant calculation of size, minimized some variable scopes.
+
 2000-05-05  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* pairs.c (scm_cons, scm_cons2):  Use SCM{_SET}?_CELL_OBJECT as

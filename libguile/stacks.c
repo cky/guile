@@ -156,17 +156,15 @@
 static int
 stack_depth (scm_debug_frame *dframe,long offset,SCM *id,int *maxp)
 {
-  int n, size;
+  int n;
   int max_depth = SCM_BACKTRACE_MAXDEPTH;
-  scm_debug_info *info;
   for (n = 0;
        dframe && !SCM_VOIDFRAMEP (*dframe) && n < max_depth;
        dframe = RELOC_FRAME (dframe->prev, offset))
     {
       if (SCM_EVALFRAMEP (*dframe))
 	{
-	  size = dframe->status & SCM_MAX_FRAME_SIZE;
-	  info = RELOC_INFO (dframe->info, offset);
+	  scm_debug_info * info = RELOC_INFO (dframe->info, offset);
 	  n += (info - dframe->vect) / 2 + 1;
 	  /* Data in the apply part of an eval info frame comes from previous
 	     stack frame if the scm_debug_info vector is overflowed. */
@@ -191,12 +189,9 @@ static void
 read_frame (scm_debug_frame *dframe,long offset,scm_info_frame *iframe)
 {
   scm_bits_t flags = SCM_UNPACK (SCM_INUM0); /* UGh. */
-  int size;
-  scm_debug_info *info;
   if (SCM_EVALFRAMEP (*dframe))
     {
-      size = dframe->status & SCM_MAX_FRAME_SIZE;
-      info = RELOC_INFO (dframe->info, offset);
+      scm_debug_info * info = RELOC_INFO (dframe->info, offset);
       if ((info - dframe->vect) & 1)
 	{
 	  /* Debug.vect ends with apply info. */
@@ -260,7 +255,6 @@ do { \
 static int
 read_frames (scm_debug_frame *dframe,long offset,int n,scm_info_frame *iframes)
 {
-  int size;
   scm_info_frame *iframe = iframes;
   scm_debug_info *info;
   static SCM applybody = SCM_UNDEFINED;
@@ -283,7 +277,6 @@ read_frames (scm_debug_frame *dframe,long offset,int n,scm_info_frame *iframes)
 	      *(iframe - 1) = *iframe;
 	      --iframe;
 	    }
-	  size = dframe->status & SCM_MAX_FRAME_SIZE;
 	  info =  RELOC_INFO (dframe->info, offset);
 	  if ((info - dframe->vect) & 1)
 	    --info;
