@@ -226,8 +226,8 @@ is a expression suitable for initializing a new variable.
 For procedures, you can use @code{SCM_DEFINE} for most purposes.  Use
 @code{SCM_PROC} along with @code{SCM_REGISTER_PROC} when you don't
 want to be bothered with docstrings.  Use @code{SCM_GPROC} for generic
-functions (@pxref{GOOPS,,,goops}).  All procedures are declared with
-return type @code{SCM}.
+functions (@pxref{Creating Generic Functions,,, goops, GOOPS}).  All
+procedures are declared with return type @code{SCM}.
 
 For everything else, use the appropriate macro (@code{SCM_SYMBOL} for
 symbols, and so on).  Without "_GLOBAL_", the declarations are
