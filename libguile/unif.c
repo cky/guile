@@ -2209,30 +2209,23 @@ static SCM
 ra2l (SCM ra, unsigned long base, unsigned long k)
 {
   SCM res = SCM_EOL;
-  long inc = SCM_ARRAY_DIMS (ra)[k].inc;
+  long inc;
   size_t i;
   int enclosed = SCM_ENCLOSED_ARRAYP (ra);
   
+  if (k == SCM_ARRAY_NDIM (ra))
+    return scm_i_cvref (SCM_ARRAY_V (ra), base, enclosed);
+
+  inc = SCM_ARRAY_DIMS (ra)[k].inc;
   if (SCM_ARRAY_DIMS (ra)[k].ubnd < SCM_ARRAY_DIMS (ra)[k].lbnd)
     return SCM_EOL;
   i = base + (1 + SCM_ARRAY_DIMS (ra)[k].ubnd - SCM_ARRAY_DIMS (ra)[k].lbnd) * inc;
-  if (k < SCM_ARRAY_NDIM (ra) - 1)
+  do
     {
-      do
-	{
-	  i -= inc;
-	  res = scm_cons (ra2l (ra, i, k + 1), res);
-	}
-      while (i != base);
+      i -= inc;
+      res = scm_cons (ra2l (ra, i, k + 1), res);
     }
-  else
-    do
-      {
-	i -= inc;
-	res = scm_cons (scm_i_cvref (SCM_ARRAY_V (ra), i, enclosed),
-			res);
-      }
-    while (i != base);
+  while (i != base);
   return res;
 }
 
@@ -2456,7 +2449,35 @@ scm_i_print_array (SCM array, SCM port, scm_print_state *pstate)
 	break;
       }
 
-  return scm_i_print_array_dimension (array, 0, base, 0, port, pstate);
+  if (ndim == 0)
+    {
+      /* Rank zero arrays, which are really just scalars, are printed
+	 specially.  The consequent way would be to print them as
+
+            #0 OBJ
+
+         where OBJ is the printed representation of the scalar, but we
+         print them instead as
+
+            #0(OBJ)
+
+         to make them look less strange.
+
+	 Just printing them as
+
+            OBJ
+
+         would be correct in a way as well, but zero rank arrays are
+         not really the same as Scheme values since they are boxed and
+         can be modified with array-set!, say.
+      */
+      scm_putc ('(', port);
+      scm_iprin1 (scm_i_cvref (v, base, 0), port, pstate);
+      scm_putc (')', port);
+      return 1;
+    }
+  else
+    return scm_i_print_array_dimension (array, 0, base, 0, port, pstate);
 }
 
 static int
@@ -2527,8 +2548,11 @@ tag_to_type (const char *tag, SCM port)
       }
   }
 #endif
-
-  return scm_from_locale_symbol (tag);
+  
+  if (*tag == '\0')
+    return SCM_BOOL_T;
+  else
+    return scm_from_locale_symbol (tag);
 }
 
 SCM
@@ -2539,7 +2563,7 @@ scm_i_read_array (SCM port, int c)
   char tag[80];
   int tag_len;
 
-  SCM lower_bounds, elements;
+  SCM lower_bounds = SCM_BOOL_F, elements;
 
   /* XXX - shortcut for ordinary vectors.  Shouldn't be necessary but
      the array code can not deal with zero-length dimensions yet, and
@@ -2569,8 +2593,7 @@ scm_i_read_array (SCM port, int c)
       goto continue_reading_tag;
     }
 
-  /* Read rank.  We disallow arrays of rank zero since they do not
-     seem to work reliably yet. */
+  /* Read rank. */
   rank = 0;
   got_rank = 0;
   while ('0' <= c && c <= '9')
@@ -2581,9 +2604,6 @@ scm_i_read_array (SCM port, int c)
     }
   if (!got_rank)
     rank = 1;
-  else if (rank == 0)
-    scm_i_input_error (NULL, port,
-		       "array rank must be positive", SCM_EOL);
 
   /* Read tag. */
   tag_len = 0;
@@ -2596,28 +2616,32 @@ scm_i_read_array (SCM port, int c)
   tag[tag_len] = '\0';
   
   /* Read lower bounds. */
-  lower_bounds = SCM_EOL;
-  while (c == '@')
+  if (c == '@')
     {
-      /* Yeah, right, we should use some ready-made integer parsing
-	 routine for this...
-       */
-
-      long lbnd = 0;
-      long sign = 1;
-
-      c = scm_getc (port);
-      if (c == '-')
+      lower_bounds = SCM_EOL;
+      
+      do
 	{
-	  sign = -1;
+	  /* Yeah, right, we should use some ready-made integer parsing
+	     routine for this...
+	  */
+
+	  long lbnd = 0;
+	  long sign = 1;
+	  
 	  c = scm_getc (port);
-	}
-      while ('0' <= c && c <= '9')
-	{
-	  lbnd = 10*lbnd + c-'0';
-	  c = scm_getc (port);
-	}
-      lower_bounds = scm_cons (scm_from_long (sign*lbnd), lower_bounds);
+	  if (c == '-')
+	    {
+	      sign = -1;
+	      c = scm_getc (port);
+	    }
+	  while ('0' <= c && c <= '9')
+	    {
+	      lbnd = 10*lbnd + c-'0';
+	      c = scm_getc (port);
+	    }
+	  lower_bounds = scm_cons (scm_from_long (sign*lbnd), lower_bounds);
+	} while (c == '@');
     }
 
   /* Read nested lists of elements.
@@ -2629,14 +2653,21 @@ scm_i_read_array (SCM port, int c)
   scm_ungetc (c, port);
   elements = scm_read (port);
 
-  if (scm_is_null (lower_bounds))
+  if (scm_is_false (lower_bounds))
     lower_bounds = scm_from_size_t (rank);
   else if (scm_ilength (lower_bounds) != rank)
     scm_i_input_error (NULL, port,
 		       "the number of lower bounds must match the array rank",
 		       SCM_EOL);
 
-  /* Construct array. */
+  /* Handle special print syntax of rank zero arrays; see
+     scm_i_print_array for a rationale.
+  */
+  if (rank == 0)
+    elements = scm_car (elements);
+
+  /* Construct array. 
+   */
   return scm_list_to_typed_array (tag_to_type (tag, port),
 				  lower_bounds,
 				  elements);
