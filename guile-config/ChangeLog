@@ -1,5 +1,8 @@
 1998-10-05  Jim Blandy  <jimb@zwingli.cygnus.com>
 
+	* guile-config.in: Redo the help system, so that each subcommand
+	defines its own usage text, as well as its help text.
+
 	* guile-config.in (build-link): Include a -L option in the output
 	from `guile-config link', indicating where libguile was installed.
 
