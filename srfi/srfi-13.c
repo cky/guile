@@ -29,10 +29,16 @@
 SCM_DEFINE (scm_string_any, "string-any", 2, 2, 0,
             (SCM pred, SCM s, SCM start, SCM end),
 	    "Check if the predicate @var{pred} is true for any character in\n"
-	    "the string @var{s}, proceeding from left (index @var{start}) to\n"
-	    "right (index @var{end}).  If @code{string-any} returns true,\n"
-	    "the returned true value is the one produced by the first\n"
-	    "successful application of @var{pred}.")
+	    "the string @var{s}.\n"
+	    "\n"
+	    "Calls to @var{pred} are made from left to right across @var{s}.\n"
+	    "When it returns true (ie.@: non-@code{#f}), that return value\n"
+	    "is the return from @code{string-any}.\n"
+	    "\n"
+	    "The SRFI-13 specification requires that the call to @var{pred}\n"
+	    "on the last character of @var{s} (assuming that point is\n"
+	    "reached) be a tail call, but currently in Guile this is not the\n"
+	    "case.")
 #define FUNC_NAME s_scm_string_any
 {
   char * cstr;
@@ -60,10 +66,20 @@ SCM_DEFINE (scm_string_any, "string-any", 2, 2, 0,
 SCM_DEFINE (scm_string_every, "string-every", 2, 2, 0,
             (SCM pred, SCM s, SCM start, SCM end),
 	    "Check if the predicate @var{pred} is true for every character\n"
-	    "in the string @var{s}, proceeding from left (index @var{start})\n"
-	    "to right (index @var{end}).  If @code{string-every} returns\n"
-	    "true, the returned true value is the one produced by the final\n"
-	    "application of @var{pred} to the last character of @var{s}.")
+	    "in the string @var{s}.\n"
+	    "\n"
+	    "Calls to @var{pred} are made from left to right across @var{s}.\n"
+	    "If the predicate is true for every character then the return\n"
+	    "value from the last @var{pred} call is the return from\n"
+	    "@code{string-every}.\n"
+	    "\n"
+	    "If there are no characters in @var{s} (ie.@: @var{start} equals\n"
+	    "@var{end}) then the return is @code{#t}.\n"
+	    "\n"
+	    "The SRFI-13 specification requires that the call to @var{pred}\n"
+	    "on the last character of @var{s} (assuming that point is\n"
+	    "reached) be a tail call, but currently in Guile this is not the\n"
+	    "case.")
 #define FUNC_NAME s_scm_string_every
 {
   char * cstr;
