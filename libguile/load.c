@@ -63,9 +63,9 @@
 
 /* Loading a file, given an absolute filename.  */
 
-SCM_PROC(s_sys_try_load, "primitive-load", 1, 2, 0, scm_sys_try_load);
+SCM_PROC(s_sys_try_load, "primitive-load", 1, 2, 0, scm_primitive_load);
 SCM 
-scm_sys_try_load (filename, case_insensitive_p, sharp)
+scm_primitive_load (filename, case_insensitive_p, sharp)
      SCM filename;
      SCM case_insensitive_p;
      SCM sharp;
@@ -197,9 +197,9 @@ scm_sys_search_load_path (filename)
 }
 
 
-SCM_PROC(s_sys_try_load_path, "%try-load-path", 1, 2, 0,scm_sys_try_load_path);
+SCM_PROC(s_sys_try_load_path, "primitive-load-path", 1, 2, 0,scm_primitive_load_path);
 SCM 
-scm_sys_try_load_path (filename, case_insensitive_p, sharp)
+scm_primitive_load_path (filename, case_insensitive_p, sharp)
      SCM filename;
      SCM case_insensitive_p;
      SCM sharp;
@@ -213,7 +213,7 @@ scm_sys_try_load_path (filename, case_insensitive_p, sharp)
 		 scm_listify (filename, *scm_loc_load_path, SCM_UNDEFINED),
 		 SCM_BOOL_F);
     }
-  return scm_sys_try_load (full_filename, case_insensitive_p, sharp);
+  return scm_primitive_load (full_filename, case_insensitive_p, sharp);
 }
 
 
