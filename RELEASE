@@ -2,6 +2,15 @@ This is a checklist for making Guile releases.
 It's specific to the FSF's development environment; please don't put
 it in the distribution.
 
+In release 1.2:
+- note that #/ syntax is going to go away.
+
+In release 1.3:
+- make #/ generate a warning.
+
+In release 1.4:
+- remove #/ syntax
+
 1) Verify that Guile builds and runs in your working directory.  I
    hope that we'll eventually have a test suite to make this more
    concrete, but for the moment, just make sure things seem sane.
