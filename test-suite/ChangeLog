@@ -1,3 +1,7 @@
+2003-10-02  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/ports.test (call-with-output-string): Test proc closing port.
+
 2003-09-22  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* guile-test: Wrapped in module (test-suite guile-test).
