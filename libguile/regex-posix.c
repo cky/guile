@@ -52,6 +52,7 @@
 #endif
 #endif
 
+#include "libguile/async.h"
 #include "libguile/smob.h"
 #include "libguile/symbols.h"
 #include "libguile/vectors.h"
