@@ -1,6 +1,7 @@
 2004-06-20  Rob Browning  <rlb@defaultvalue.org>
 
 	* srfi-4.c: fix #ifdef checks for 64-bit types; should be #if.
+	Add separate symmetric test for SCM_HAVE_T_UINT64 in one case.
 	(uvec_print): rewrite using a union to make more
 	compact, and use static print_uint64 and print_int64 to print
 	64-bit elements.
