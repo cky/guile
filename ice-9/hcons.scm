@@ -36,13 +36,14 @@
 	  n))
 
 (define-public (hashq-cons-assoc key l)
-  (and l (or (and (pair? l)
-		  (pair? (car l))
-		  (pair? (caar l))
-		  (eq? (car key) (caaar l))
-		  (eq? (cdr key) (cdaar l))
-		  (car l))
-	     (hashq-cons-assoc key (cdr l)))))
+  (and (not (null? l))
+       (or (and (pair? l)		; If not a pair, use its cdr?
+		(pair? (car l))
+		(pair? (caar l))
+		(eq? (car key) (caaar l))
+		(eq? (cdr key) (cdaar l))
+		(car l))
+	   (hashq-cons-assoc key (cdr l)))))
 
 (define-public (hashq-cons-get-handle table key)
   (hashx-get-handle hashq-cons-hash hashq-cons-assoc table key #f))
