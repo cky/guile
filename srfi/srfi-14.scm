@@ -92,7 +92,7 @@
 
 (cond-expand-provide (current-module) '(srfi-14))
 
-(dynamic-call "scm_init_srfi_14" (dynamic-link "libguile-srfi-srfi-13-14"))
+(load-extension "libguile-srfi-srfi-13-14" "scm_init_srfi_14")
 
 (define (->char-set x)
   (cond
