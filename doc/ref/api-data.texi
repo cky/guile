@@ -3441,8 +3441,20 @@ return value is not specified.
 
 @deffn {Scheme Procedure} string-for-each-index proc s [start [end]]
 @deffnx {C Function} scm_string_for_each_index (proc, s, start, end)
-@var{proc} is mapped over @var{s} in left-to-right order.  The
-return value is not specified.
+Call @code{(@var{proc} i)} for each index i in @var{s}, from left to
+right.
+
+For example, to change characters to alternately upper and lower case,
+
+@example
+(define str (string-copy "studly"))
+(string-for-each-index (lambda (i)
+                         (string-set! str i
+                           ((if (even? i) char-upcase char-downcase)
+                            (string-ref str i))))
+                       str)
+str @result{} "StUdLy"
+@end example
 @end deffn
 
 @deffn {Scheme Procedure} string-fold kons knil s [start [end]]
