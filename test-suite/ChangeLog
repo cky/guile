@@ -1,3 +1,7 @@
+1999-09-06  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* tests/interp.test: Added tests for evaluation of closure bodies.
+
 1999-09-03  James Blandy  <jimb@mule.m17n.org>
 
 	* tests/multilingual.nottest: New file, which we will turn into a
