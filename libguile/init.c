@@ -352,6 +352,7 @@ scm_boot_guile (result, argc, argv, in, out, err, init_func, boot_cmd)
       scm_init_unif ();
       scm_init_simpos ();
       scm_progargs = scm_makfromstrs (argc, argv);
+      scm_init_load_path ();
       initialized = 1;
     }
 
