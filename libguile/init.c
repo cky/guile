@@ -303,6 +303,7 @@ scm_boot_guile (result, argc, argv, in, out, err, init_func, boot_cmd)
       scm_init_files ();
       scm_init_filesys ();
       scm_init_gc ();
+      scm_init_gdbint ();
       scm_init_hash ();
       scm_init_hashtab ();
       scm_init_ioext ();
