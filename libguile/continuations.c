@@ -45,15 +45,15 @@
 
 
 #include <stdio.h>
-#include "_scm.h"
-#include "root.h"
-#include "stackchk.h"
+#include "libguile/_scm.h"
+#include "libguile/root.h"
+#include "libguile/stackchk.h"
 #ifdef DEBUG_EXTENSIONS
-#include "debug.h"
+#include "libguile/debug.h"
 #endif
-#include "dynwind.h"
+#include "libguile/dynwind.h"
 
-#include "continuations.h"
+#include "libguile/continuations.h"
 
 
 
@@ -235,7 +235,7 @@ scm_call_continuation (SCM cont, SCM val)
 void
 scm_init_continuations ()
 {
-#include "continuations.x"
+#include "libguile/continuations.x"
 }
 
 

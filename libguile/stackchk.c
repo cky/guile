@@ -45,11 +45,11 @@
 
 
 #include <stdio.h>
-#include "_scm.h"
-#include "ports.h"
-#include "root.h"
+#include "libguile/_scm.h"
+#include "libguile/ports.h"
+#include "libguile/root.h"
 
-#include "stackchk.h"
+#include "libguile/stackchk.h"
 
 
 /* {Stack Checking}
@@ -104,7 +104,7 @@ scm_stack_report ()
 void
 scm_init_stackchk ()
 {
-#include "stackchk.x"
+#include "libguile/stackchk.x"
 }
 
 /*

@@ -1,5 +1,5 @@
-#include "copyright.h"
-#include "qt.h"
+#include "qt/copyright.h"
+#include "qt/qt.h"
 
 #ifdef QT_VARGS_DEFAULT
 

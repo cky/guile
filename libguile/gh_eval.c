@@ -44,7 +44,7 @@
 
 #include <stdio.h>
 
-#include <gh.h>
+#include "libguile/gh.h"
 
 typedef SCM (*gh_eval_t) (void *data, SCM jmpbuf);
 

@@ -45,16 +45,16 @@
 
 
 #include <stdio.h>
-#include "_scm.h"
-#include "eval.h"
-#include "chars.h"
-#include "fports.h"
-#include "root.h"
-#include "strings.h"
-#include "vectors.h"
+#include "libguile/_scm.h"
+#include "libguile/eval.h"
+#include "libguile/chars.h"
+#include "libguile/fports.h"
+#include "libguile/root.h"
+#include "libguile/strings.h"
+#include "libguile/vectors.h"
 
-#include "validate.h"
-#include "vports.h"
+#include "libguile/validate.h"
+#include "libguile/vports.h"
 
 #ifdef HAVE_STRING_H
 #include <string.h>
@@ -211,7 +211,7 @@ scm_make_sfptob ()
 void
 scm_init_vports ()
 {
-#include "vports.x"
+#include "libguile/vports.x"
 }
 
 /*

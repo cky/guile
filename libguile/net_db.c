@@ -52,13 +52,13 @@
 
 
 #include <stdio.h>
-#include "_scm.h"
-#include "feature.h"
-#include "strings.h"
-#include "vectors.h"
+#include "libguile/_scm.h"
+#include "libguile/feature.h"
+#include "libguile/strings.h"
+#include "libguile/vectors.h"
 
-#include "validate.h"
-#include "net_db.h"
+#include "libguile/validate.h"
+#include "libguile/net_db.h"
 
 #ifdef HAVE_STRING_H
 #include <string.h>
@@ -568,7 +568,7 @@ scm_init_net_db ()
 #endif
 
   scm_add_feature ("net-db");
-#include "net_db.x"
+#include "libguile/net_db.x"
 }
 
 /*

@@ -1,3 +1,13 @@
+2000-04-21  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* *.*: Change includes so that they always use the "prefixes"
+	libguile/, qt/, guile-readline/, or libltdl/.
+
+	* Makefile.am (DEFS): Added.  automake adds -I options to DEFS,
+	and we don't want that.
+	(INCLUDES): Removed all -I options except for the root source
+	directory and the root build directory.
+	
 2000-04-04  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* readline.c (scm_readline):  Must unpack SCM values to access

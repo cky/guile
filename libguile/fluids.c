@@ -43,17 +43,17 @@
    gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
 
 
-#include "_scm.h"
-#include "print.h"
-#include "smob.h"
-#include "dynwind.h"
-#include "fluids.h"
-#include "alist.h"
-#include "eval.h"
-#include "ports.h"
+#include "libguile/_scm.h"
+#include "libguile/print.h"
+#include "libguile/smob.h"
+#include "libguile/dynwind.h"
+#include "libguile/fluids.h"
+#include "libguile/alist.h"
+#include "libguile/eval.h"
+#include "libguile/ports.h"
 
 #define INITIAL_FLUIDS 10
-#include "validate.h"
+#include "libguile/validate.h"
 
 static volatile int n_fluids;
 long scm_tc16_fluid;
@@ -260,7 +260,7 @@ scm_init_fluids ()
 {
   scm_tc16_fluid = scm_make_smob_type_mfpe ("fluid", 0,
                                            NULL, NULL, print_fluid, NULL);
-#include "fluids.x"
+#include "libguile/fluids.x"
 }
 
 /*

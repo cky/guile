@@ -49,19 +49,19 @@
 
 
 #include <stdio.h>
-#include "_scm.h"
-#include "eval.h"
-#include "debug.h"
-#include "continuations.h"
-#include "struct.h"
-#include "macros.h"
-#include "procprop.h"
-#include "modules.h"
-#include "root.h"
-#include "strings.h"
+#include "libguile/_scm.h"
+#include "libguile/eval.h"
+#include "libguile/debug.h"
+#include "libguile/continuations.h"
+#include "libguile/struct.h"
+#include "libguile/macros.h"
+#include "libguile/procprop.h"
+#include "libguile/modules.h"
+#include "libguile/root.h"
+#include "libguile/strings.h"
 
-#include "validate.h"
-#include "stacks.h"
+#include "libguile/validate.h"
+#include "libguile/stacks.h"
 
 
 /* {Frames and stacks}
@@ -753,7 +753,7 @@ scm_init_stacks ()
 						       SCM_EOL)));
   scm_set_struct_vtable_name_x (scm_stack_type,
 				SCM_CAR (scm_intern0 ("stack")));
-#include "stacks.x"
+#include "libguile/stacks.x"
 }
 
 /*

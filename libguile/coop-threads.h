@@ -55,8 +55,8 @@
 
 #include <time.h>
 
-#include "coop-defs.h"
-#include "../qt/qt.h"
+#include "libguile/coop-defs.h"
+#include "qt/qt.h"
 
 /* This code is based on a sample thread libraru by David Keppel.
    Portions of this file fall under the following copyright: */

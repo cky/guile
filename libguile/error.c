@@ -46,13 +46,13 @@
 
 #include <stdio.h>
 
-#include "_scm.h"
-#include "pairs.h"
-#include "strings.h"
-#include "throw.h"
+#include "libguile/_scm.h"
+#include "libguile/pairs.h"
+#include "libguile/strings.h"
+#include "libguile/throw.h"
 
-#include "validate.h"
-#include "error.h"
+#include "libguile/validate.h"
+#include "libguile/error.h"
 
 #ifdef HAVE_STRING_H
 #include <string.h>
@@ -325,8 +325,8 @@ scm_wta (SCM arg, const char *pos, const char *s_subr)
 void
 scm_init_error ()
 {
-#include "cpp_err_symbols.c"
-#include "error.x"
+#include "libguile/cpp_err_symbols.c"
+#include "libguile/error.x"
 }
 
 

@@ -1,5 +1,15 @@
 2000-04-21  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
+	* *.*: Change includes so that they always use the "prefixes"
+	libguile/, qt/, guile-readline/, or libltdl/.
+	(Thanks to Tim Mooney.)
+
+	* Makefile.am (INCLUDES): Removed THREAD_CPPFLAGS and INCLTDL.
+	(DEFS): Added.  automake adds -I options to DEFS, and we don't
+	want that.
+	Removed all -I options except for the root source directory and
+	the root build directory.
+
 	* numbers.c (scm_odd_p, scm_even_p): Use SCM_WRONG_TYPE_ARG
 	instead of SCM_ASSERT (0, ...).  (Some compilers will complain
 	about control reaching end of function otherwise, and, besides,

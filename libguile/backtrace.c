@@ -50,23 +50,23 @@
 #include <stdio.h>
 #include <ctype.h>
 
-#include "_scm.h"
+#include "libguile/_scm.h"
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
 
-#include "stacks.h"
-#include "srcprop.h"
-#include "struct.h"
-#include "strports.h"
-#include "throw.h"
-#include "fluids.h"
-#include "ports.h"
-#include "strings.h"
+#include "libguile/stacks.h"
+#include "libguile/srcprop.h"
+#include "libguile/struct.h"
+#include "libguile/strports.h"
+#include "libguile/throw.h"
+#include "libguile/fluids.h"
+#include "libguile/ports.h"
+#include "libguile/strings.h"
 
-#include "validate.h"
-#include "backtrace.h"
+#include "libguile/validate.h"
+#include "libguile/backtrace.h"
 
 /* {Error reporting and backtraces}
  * (A first approximation.)
@@ -639,7 +639,7 @@ scm_init_backtrace ()
   SCM f = scm_make_fluid ();
   scm_the_last_stack_fluid = scm_sysintern ("the-last-stack", f);
 
-#include "backtrace.x"
+#include "libguile/backtrace.x"
 }
 
 /*

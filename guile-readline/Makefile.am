@@ -21,10 +21,12 @@
 
 AUTOMAKE_OPTIONS = foreign
 
+## Prevent automake from adding extra -I options
+DEFS = @DEFS@
 ## Check for headers in $(srcdir)/.., so that #include
 ## <libguile/MUMBLE.h> will find MUMBLE.h in this dir when we're
 ## building.
-INCLUDES = -I.. -I$(srcdir)/.. -I$(srcdir)/../libguile ${THREAD_CPPFLAGS}
+INCLUDES = -I.. -I$(srcdir)/..
 
 GUILE_SNARF = ../libguile/guile-snarf
 

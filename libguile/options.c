@@ -48,10 +48,10 @@
 
 
 #include <stdio.h>
-#include "_scm.h"
-#include "strings.h"
+#include "libguile/_scm.h"
+#include "libguile/strings.h"
 
-#include "options.h"
+#include "libguile/options.h"
 
 
 /* {Run-time options}
@@ -233,7 +233,7 @@ void
 scm_init_options ()
 {
   protected_objects = scm_permanent_object (scm_cons (SCM_UNDEFINED, SCM_EOL));
-#include "options.x"
+#include "libguile/options.x"
 }
 
 /*

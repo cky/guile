@@ -45,18 +45,18 @@
 
 
 #include <stdio.h>
-#include "_scm.h"
+#include "libguile/_scm.h"
 
-#include "alist.h"
-#include "eval.h"
-#include "procs.h"
-#include "gsubr.h"
-#include "objects.h"
-#include "root.h"
-#include "vectors.h"
+#include "libguile/alist.h"
+#include "libguile/eval.h"
+#include "libguile/procs.h"
+#include "libguile/gsubr.h"
+#include "libguile/objects.h"
+#include "libguile/root.h"
+#include "libguile/vectors.h"
 
-#include "validate.h"
-#include "procprop.h"
+#include "libguile/validate.h"
+#include "libguile/procprop.h"
 
 
 SCM_GLOBAL_SYMBOL (scm_sym_system_procedure, "system-procedure");
@@ -239,7 +239,7 @@ SCM_DEFINE (scm_set_procedure_property_x, "set-procedure-property!", 3, 0, 0,
 void
 scm_init_procprop ()
 {
-#include "procprop.x"
+#include "libguile/procprop.x"
 }
 
 

@@ -56,7 +56,7 @@
 #include <stdio.h>
 #include <sys/types.h>
 
-#include "_scm.h"
+#include "libguile/_scm.h"
 
 /* Supposedly, this file is never compiled unless we know we have
    POSIX regular expressions.  But we still put this in an #ifdef so
@@ -76,16 +76,16 @@
 #endif
 #endif
 
-#include "smob.h"
-#include "symbols.h"
-#include "vectors.h"
-#include "strports.h"
-#include "ports.h"
-#include "feature.h"
-#include "strings.h"
+#include "libguile/smob.h"
+#include "libguile/symbols.h"
+#include "libguile/vectors.h"
+#include "libguile/strports.h"
+#include "libguile/ports.h"
+#include "libguile/feature.h"
+#include "libguile/strings.h"
 
-#include "validate.h"
-#include "regex-posix.h"
+#include "libguile/validate.h"
+#include "libguile/regex-posix.h"
 
 /* This is defined by some regex libraries and omitted by others. */
 #ifndef REG_BASIC
@@ -292,7 +292,7 @@ scm_init_regex_posix ()
   scm_sysintern ("regexp/notbol", scm_long2num (REG_NOTBOL));
   scm_sysintern ("regexp/noteol", scm_long2num (REG_NOTEOL));
 
-#include "regex-posix.x"
+#include "libguile/regex-posix.x"
 
   scm_add_feature ("regex");
 }

@@ -45,13 +45,13 @@
 
 
 #include <stdio.h>
-#include "_scm.h"
-#include "chars.h"
-#include "ports.h"
-#include "vectors.h"
+#include "libguile/_scm.h"
+#include "libguile/chars.h"
+#include "libguile/ports.h"
+#include "libguile/vectors.h"
 
-#include "validate.h"
-#include "hash.h"
+#include "libguile/validate.h"
+#include "libguile/hash.h"
 
 
 #ifndef floor
@@ -248,7 +248,7 @@ SCM_DEFINE (scm_hash, "hash", 2, 0, 0,
 void
 scm_init_hash ()
 {
-#include "hash.x"
+#include "libguile/hash.x"
 }
 
 

@@ -65,14 +65,14 @@ maybe_drag_in_eprintf ()
 #endif
 
 #include <stdio.h>
-#include "_scm.h"
-#include "dynl.h"
-#include "smob.h"
-#include "keywords.h"
-#include "ports.h"
-#include "strings.h"
+#include "libguile/_scm.h"
+#include "libguile/dynl.h"
+#include "libguile/smob.h"
+#include "libguile/keywords.h"
+#include "libguile/ports.h"
+#include "libguile/strings.h"
 
-#include "validate.h"
+#include "libguile/validate.h"
 
 /* Converting a list of SCM strings into a argv-style array.  You must
    have ints disabled for the whole lifetime of the created argv (from
@@ -558,7 +558,7 @@ scm_init_dynamic_linking ()
   scm_set_smob_mark (scm_tc16_dynamic_obj, mark_dynl_obj);
   scm_set_smob_print (scm_tc16_dynamic_obj, print_dynl_obj);
   sysdep_dynl_init ();
-#include "dynl.x"
+#include "libguile/dynl.x"
   kw_global = scm_make_keyword_from_dash_symbol (sym_global);
 }
 

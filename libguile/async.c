@@ -46,14 +46,14 @@
 
 #include <stdio.h>
 #include <signal.h>
-#include "_scm.h"
-#include "eval.h"
-#include "throw.h"
-#include "root.h"
-#include "smob.h"
+#include "libguile/_scm.h"
+#include "libguile/eval.h"
+#include "libguile/throw.h"
+#include "libguile/root.h"
+#include "libguile/smob.h"
 
-#include "validate.h"
-#include "async.h"
+#include "libguile/validate.h"
+#include "libguile/async.h"
 
 #ifdef HAVE_STRING_H
 #include <string.h>
@@ -498,7 +498,7 @@ scm_init_async ()
   a_thunk = scm_make_gsubr ("%gc-thunk", 0, 0, 0, scm_sys_gc_async_thunk);
   scm_gc_async = scm_system_async (a_thunk);
 
-#include "async.x"
+#include "libguile/async.x"
 }
 
 /*

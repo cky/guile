@@ -24,13 +24,13 @@ Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
 
 
 #include <stdio.h>
-#include "_scm.h"
-#include "chars.h"
-#include "strings.h"
+#include "libguile/_scm.h"
+#include "libguile/chars.h"
+#include "libguile/strings.h"
 
-#include "validate.h"
-#include "strop.h"
-#include "read.h" /*For SCM_CASE_INSENSITIVE_P*/
+#include "libguile/validate.h"
+#include "libguile/strop.h"
+#include "libguile/read.h" /*For SCM_CASE_INSENSITIVE_P*/
 
 #ifdef HAVE_STRING_H
 #include <string.h>
@@ -492,7 +492,7 @@ SCM_DEFINE (scm_string_ci_to_symbol, "string-ci->symbol", 1, 0, 0,
 void
 scm_init_strop ()
 {
-#include "strop.x"
+#include "libguile/strop.x"
 }
 
 /*

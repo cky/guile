@@ -47,24 +47,24 @@
    gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
 
 
-#include "_scm.h"
+#include "libguile/_scm.h"
 
 #include <stdio.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
 
-#include "tag.h"
-#include "strports.h"
-#include "read.h"
-#include "eval.h"
-#include "chars.h"
-#include "modules.h"
-#include "ports.h"
-#include "root.h"
-#include "strings.h"
+#include "libguile/tag.h"
+#include "libguile/strports.h"
+#include "libguile/read.h"
+#include "libguile/eval.h"
+#include "libguile/chars.h"
+#include "libguile/modules.h"
+#include "libguile/ports.h"
+#include "libguile/root.h"
+#include "libguile/strings.h"
 
-#include "gdbint.h"
+#include "libguile/gdbint.h"
 
 /* {Support for debugging with gdb}
  *
@@ -77,7 +77,7 @@
 
 #define GDB_TYPE SCM
 
-#include "gdb_interface.h"
+#include "libguile/gdb_interface.h"
 
 
 

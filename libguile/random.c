@@ -44,18 +44,18 @@
 
 /* Author: Mikael Djurfeldt <djurfeldt@nada.kth.se> */
 
-#include "_scm.h"
+#include "libguile/_scm.h"
 
 #include <stdio.h>
 #include <math.h>
-#include "smob.h"
-#include "numbers.h"
-#include "feature.h"
-#include "strings.h"
-#include "vectors.h"
+#include "libguile/smob.h"
+#include "libguile/numbers.h"
+#include "libguile/feature.h"
+#include "libguile/strings.h"
+#include "libguile/vectors.h"
 
-#include "validate.h"
-#include "random.h"
+#include "libguile/validate.h"
+#include "libguile/random.h"
 
 
 /*
@@ -585,7 +585,7 @@ scm_init_random ()
     for (i = m >> 1; i < m; ++i)
       scm_masktab[i] = m - 1;
   
-#include "random.x"
+#include "libguile/random.x"
 
   /* Check that the assumptions about bits per bignum digit are correct. */
 #if SIZEOF_INT == 4

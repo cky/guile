@@ -45,13 +45,13 @@
 
 
 #include <stdio.h>
-#include "_scm.h"
-#include "feature.h"
-#include "strings.h"
-#include "vectors.h"
+#include "libguile/_scm.h"
+#include "libguile/feature.h"
+#include "libguile/strings.h"
+#include "libguile/vectors.h"
 
-#include "validate.h"
-#include "stime.h"
+#include "libguile/validate.h"
+#include "libguile/stime.h"
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -651,7 +651,7 @@ scm_init_stime()
   if (!scm_my_base) scm_my_base = mytime();
 
   scm_add_feature ("current-time");
-#include "stime.x"
+#include "libguile/stime.x"
 }
 
 

@@ -49,10 +49,10 @@
 #include <libguile.h>
 
 #ifdef HAVE_CONFIG_H
-#include <scmconfig.h>
+#include <libguile/scmconfig.h>
 #endif
 #ifdef DYNAMIC_LINKING
-#include <ltdl.h>
+#include <libltdl/ltdl.h>
 #endif
 
 /* Debugger interface (don't change the order of the following lines) */

@@ -44,12 +44,12 @@
 
 
 
-#include "_scm.h"
+#include "libguile/_scm.h"
 
-#include "eval.h"
-#include "procprop.h"
+#include "libguile/eval.h"
+#include "libguile/procprop.h"
 
-#include "modules.h"
+#include "libguile/modules.h"
 
 static SCM the_root_module;
 static SCM root_module_lookup_closure;
@@ -179,7 +179,7 @@ scm_system_module_env_p (SCM env)
 void
 scm_init_modules ()
 {
-#include "modules.x"
+#include "libguile/modules.x"
 }
 
 void

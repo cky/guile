@@ -44,22 +44,22 @@
 
 
 
-#include "_scm.h"
+#include "libguile/_scm.h"
 
 #include <stdio.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
 
-#include "unif.h"
-#include "eval.h"
-#include "ports.h"
-#include "read.h"
-#include "root.h"
-#include "strings.h"
-#include "vectors.h"
+#include "libguile/unif.h"
+#include "libguile/eval.h"
+#include "libguile/ports.h"
+#include "libguile/read.h"
+#include "libguile/root.h"
+#include "libguile/strings.h"
+#include "libguile/vectors.h"
 
-#include "strports.h"
+#include "libguile/strports.h"
 
 #ifdef HAVE_STRING_H
 #include <string.h>
@@ -424,7 +424,7 @@ scm_make_stptob ()
 void
 scm_init_strports ()
 {
-#include "strports.x"
+#include "libguile/strports.x"
 }
 
 

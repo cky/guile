@@ -44,7 +44,7 @@
 
 #include <stdio.h>
 
-#include <gh.h>
+#include "libguile/gh.h"
 
 typedef void (*main_prog_t) (int argc, char **argv);
 typedef void (*repl_prog_t) (int argc, char **argv);

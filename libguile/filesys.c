@@ -44,16 +44,16 @@
 
 
 #include <stdio.h>
-#include "_scm.h"
-#include "smob.h"
-#include "feature.h"
-#include "fports.h"
-#include "iselect.h"
-#include "strings.h"
-#include "vectors.h"
+#include "libguile/_scm.h"
+#include "libguile/smob.h"
+#include "libguile/feature.h"
+#include "libguile/fports.h"
+#include "libguile/iselect.h"
+#include "libguile/strings.h"
+#include "libguile/vectors.h"
 
-#include "validate.h"
-#include "filesys.h"
+#include "libguile/validate.h"
+#include "libguile/filesys.h"
 
 
 #ifdef HAVE_IO_H
@@ -1462,7 +1462,7 @@ scm_sysintern ("F_SETOWN", scm_long2num (F_SETOWN));
 scm_sysintern ("FD_CLOEXEC", scm_long2num (FD_CLOEXEC));
 #endif
 
-#include "filesys.x"
+#include "libguile/filesys.x"
 }
 
 /*

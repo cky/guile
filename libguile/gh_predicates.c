@@ -44,7 +44,7 @@
 
 #include <stdio.h>
 
-#include <gh.h>
+#include "libguile/gh.h"
 
 /* type predicates: tell you if an SCM object has a given type */
 int 

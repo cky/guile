@@ -44,7 +44,7 @@
  * If you do not wish that, delete this exception notice.  */
 
 
-#include "__scm.h"
+#include "libguile/__scm.h"
 
 /* "What's the difference between _scm.h and __scm.h?"
 
@@ -60,21 +60,21 @@
 
 /* Include headers for those files central to the implementation.  The
    rest should be explicitly #included in the C files themselves.  */
-#include "error.h"		/* Everyone signals errors.  */
-#include "print.h"		/* Everyone needs to print.  */
-#include "pairs.h"		/* Everyone conses.  */
-#include "list.h"		/* Everyone makes lists.  */
-#include "gc.h"			/* Everyone allocates.  */
-#include "gsubr.h"		/* Everyone defines global functions.  */
-#include "procs.h"		/* Same.  */
-#include "numbers.h"		/* Everyone deals with fixnums.  */
-#include "symbols.h"		/* For length, chars, values, miscellany.  */
-#include "boolean.h"		/* Everyone wonders about the truth.  */
-#ifdef USE_THREADS
-#include "threads.h"		/* The cooperative thread package does
+#include "libguile/error.h"	/* Everyone signals errors.  */
+#include "libguile/print.h"	/* Everyone needs to print.  */
+#include "libguile/pairs.h"	/* Everyone conses.  */
+#include "libguile/list.h"	/* Everyone makes lists.  */
+#include "libguile/gc.h"	/* Everyone allocates.  */
+#include "libguile/gsubr.h"	/* Everyone defines global functions.  */
+#include "libguile/procs.h"	/* Same.  */
+#include "libguile/numbers.h"	/* Everyone deals with fixnums.  */
+#include "libguile/symbols.h"	/* For length, chars, values, miscellany.  */
+#include "libguile/boolean.h"	/* Everyone wonders about the truth.  */
+#ifdef USE_THREADS		
+#include "libguile/threads.h"	/* The cooperative thread package does
 				   switching at async ticks.  */
 #endif
-#include "snarf.h"		/* Everyone snarfs. */
+#include "libguile/snarf.h"	/* Everyone snarfs. */
 
 /* On VMS, GNU C's errno.h contains a special hack to get link attributes
  * for errno correct for linking to the C RTL.

@@ -45,16 +45,16 @@
 
 
 #include <stdio.h>
-#include "_scm.h"
+#include "libguile/_scm.h"
 
-#include "objects.h"
-#include "ports.h"
+#include "libguile/objects.h"
+#include "libguile/ports.h"
 
 #ifdef HAVE_MALLOC_H
 #include <malloc.h>
 #endif
 
-#include "smob.h"
+#include "libguile/smob.h"
 
 
 

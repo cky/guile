@@ -45,9 +45,9 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "_scm.h"
-#include "alist.h"
-#include "strings.h"
+#include "libguile/_scm.h"
+#include "libguile/alist.h"
+#include "libguile/strings.h"
 
 #include "debug-malloc.h"
 

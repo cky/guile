@@ -44,14 +44,14 @@
 
 
 
-#include "_scm.h"
-#include "eval.h"
-#include "macros.h"
-#include "modules.h"
-#include "root.h"
+#include "libguile/_scm.h"
+#include "libguile/eval.h"
+#include "libguile/macros.h"
+#include "libguile/modules.h"
+#include "libguile/root.h"
 
-#include "validate.h"
-#include "evalext.h"
+#include "libguile/validate.h"
+#include "libguile/evalext.h"
 
 SCM_SYMBOL (scm_sym_setter, "setter");
 
@@ -158,7 +158,7 @@ void
 scm_init_evalext ()
 {
   scm_make_synt (scm_s_set_x, scm_makmmacro, scm_m_generalized_set_x);
-#include "evalext.x"
+#include "libguile/evalext.x"
 }
 
 /*

@@ -44,12 +44,12 @@
 
 
 
-#include "_scm.h"
-#include "root.h"
-#include "smob.h"
+#include "libguile/_scm.h"
+#include "libguile/root.h"
+#include "libguile/smob.h"
 
-#include "validate.h"
-#include "macros.h"
+#include "libguile/validate.h"
+#include "libguile/macros.h"
 
 long scm_tc16_macro;
 
@@ -181,7 +181,7 @@ scm_init_macros ()
 {
   scm_tc16_macro = scm_make_smob_type_mfpe ("macro", 0,
                                            scm_markcdr, NULL, NULL, NULL);
-#include "macros.x"
+#include "libguile/macros.x"
 }
 
 /*

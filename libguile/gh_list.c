@@ -44,7 +44,7 @@
 
 #include <stdio.h>
 
-#include <gh.h>
+#include "libguile/gh.h"
 
 /* returns the length of a list */
 unsigned long 

@@ -45,15 +45,15 @@
 
 
 #include <stdio.h>
-#include "_scm.h"
-#include "fports.h"
-#include "scmsigs.h"
-#include "feature.h"
-#include "strings.h"
-#include "vectors.h"
+#include "libguile/_scm.h"
+#include "libguile/fports.h"
+#include "libguile/scmsigs.h"
+#include "libguile/feature.h"
+#include "libguile/strings.h"
+#include "libguile/vectors.h"
 
-#include "validate.h"
-#include "posix.h"
+#include "libguile/validate.h"
+#include "libguile/posix.h"
 
 
 #ifdef HAVE_STRING_H
@@ -1322,8 +1322,8 @@ scm_init_posix ()
 scm_sysintern ("PIPE_BUF", scm_long2num (PIPE_BUF));
 #endif
 
-#include "cpp_sig_symbols.c"
-#include "posix.x"
+#include "libguile/cpp_sig_symbols.c"
+#include "libguile/posix.x"
 }
 
 /*

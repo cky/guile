@@ -46,15 +46,15 @@
 
 #include <stdio.h>
 
-#include "_scm.h"
-#include "unif.h"
-#include "feature.h"
-#include "fports.h"
-#include "strings.h"
-#include "vectors.h"
+#include "libguile/_scm.h"
+#include "libguile/unif.h"
+#include "libguile/feature.h"
+#include "libguile/fports.h"
+#include "libguile/strings.h"
+#include "libguile/vectors.h"
 
-#include "validate.h"
-#include "socket.h"
+#include "libguile/validate.h"
+#include "libguile/socket.h"
 
 #ifdef HAVE_STRING_H
 #include <string.h>
@@ -976,7 +976,7 @@ scm_init_socket ()
   scm_add_feature ("socket");
   scm_init_addr_buffer ();
 
-#include "socket.x"
+#include "libguile/socket.x"
 }
 
 

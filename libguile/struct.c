@@ -45,17 +45,17 @@
 
 
 #include <stdio.h>
-#include "_scm.h"
-#include "chars.h"
-#include "eval.h"
-#include "alist.h"
-#include "weaks.h"
-#include "hashtab.h"
-#include "ports.h"
-#include "strings.h"
+#include "libguile/_scm.h"
+#include "libguile/chars.h"
+#include "libguile/eval.h"
+#include "libguile/alist.h"
+#include "libguile/weaks.h"
+#include "libguile/hashtab.h"
+#include "libguile/ports.h"
+#include "libguile/strings.h"
 
-#include "validate.h"
-#include "struct.h"
+#include "libguile/validate.h"
+#include "libguile/struct.h"
 
 #ifdef HAVE_STRING_H
 #include <string.h>
@@ -764,7 +764,7 @@ scm_init_struct ()
   scm_sysintern ("vtable-index-vtable", SCM_MAKINUM (scm_vtable_index_vtable));
   scm_sysintern ("vtable-index-printer", SCM_MAKINUM (scm_vtable_index_printer));
   scm_sysintern ("vtable-offset-user", SCM_MAKINUM (scm_vtable_offset_user));
-#include "struct.x"
+#include "libguile/struct.x"
 }
 
 /*

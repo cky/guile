@@ -44,13 +44,13 @@
 
 
 
-#include "_scm.h"
+#include "libguile/_scm.h"
 
-#include "eval.h"
-#include "macros.h"
-#include "root.h"
+#include "libguile/eval.h"
+#include "libguile/macros.h"
+#include "libguile/root.h"
 
-#include "validate.h"
+#include "libguile/validate.h"
 #include "lang.h"
 
 
@@ -150,7 +150,7 @@ SCM_DEFINE1 (scm_nil_eq, "nil-eq", scm_tc7_rpsubr,
 void
 scm_init_lang ()
 {
-#include "lang.x"
+#include "libguile/lang.x"
   scm_make_synt ("nil-while", scm_makacro, scm_m_while);
 }
 

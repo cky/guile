@@ -45,14 +45,14 @@
 
 
 #include <stdio.h>
-#include "_scm.h"
-#include "eq.h"
-#include "ports.h"
-#include "root.h"
-#include "smob.h"
+#include "libguile/_scm.h"
+#include "libguile/eq.h"
+#include "libguile/ports.h"
+#include "libguile/root.h"
+#include "libguile/smob.h"
 
-#include "validate.h"
-#include "variable.h"
+#include "libguile/validate.h"
+#include "libguile/variable.h"
 
 
 static int
@@ -235,7 +235,7 @@ scm_init_variable ()
   scm_tc16_variable = scm_make_smob_type_mfpe ("variable", 0,
                                               scm_markvar, NULL, prin_var, var_equal);
   anonymous_variable_sym = SCM_CAR (scm_sysintern ("anonymous-variable", SCM_UNDEFINED));
-#include "variable.x"
+#include "libguile/variable.x"
 }
 
 

@@ -59,7 +59,7 @@
  */
 
 /* We need this to get the definitions for HAVE_ALLOCA_H, etc.  */
-#include "scmconfig.h"
+#include "libguile/scmconfig.h"
 
 /* AIX requires this to be the first thing in the file.  The #pragma
    directive is indented so pre-ANSI compilers will ignore it, rather
@@ -78,17 +78,17 @@ char *alloca ();
 # endif
 #endif
 
-#include "_scm.h"
+#include "libguile/_scm.h"
 
-#include "eval.h"
-#include "unif.h"
-#include "ramap.h"
-#include "alist.h"
-#include "feature.h"
-#include "vectors.h"
+#include "libguile/eval.h"
+#include "libguile/unif.h"
+#include "libguile/ramap.h"
+#include "libguile/alist.h"
+#include "libguile/feature.h"
+#include "libguile/vectors.h"
 
-#include "validate.h"
-#include "sort.h"
+#include "libguile/validate.h"
+#include "libguile/sort.h"
 
 /* The routine quicksort was extracted from the GNU C Library qsort.c
    written by Douglas C. Schmidt (schmidt@ics.uci.edu)
@@ -949,7 +949,7 @@ SCM_DEFINE (scm_sort_list, "sort-list", 2, 0, 0,
 void
 scm_init_sort ()
 {
-#include "sort.x"
+#include "libguile/sort.x"
 
   scm_add_feature ("sort");
 }

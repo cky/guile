@@ -36,7 +36,7 @@
 #endif
 
 #ifdef emacs
-#include "blockinput.h"
+#include "libguile/blockinput.h"
 #endif
 
 /* If compiling with GCC 2, this file's not needed.  */

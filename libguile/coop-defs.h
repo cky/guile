@@ -62,7 +62,7 @@
 # endif
 
 #ifdef GUILE_ISELECT
-#include "iselect.h"
+#include "libguile/iselect.h"
 #endif
 
 #ifdef GUILE_PTHREAD_COMPAT

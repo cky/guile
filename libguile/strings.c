@@ -45,11 +45,11 @@
 
 
 #include <stdio.h>
-#include "_scm.h"
-#include "chars.h"
+#include "libguile/_scm.h"
+#include "libguile/chars.h"
 
-#include "strings.h"
-#include "validate.h"
+#include "libguile/strings.h"
+#include "libguile/validate.h"
 
 
 /* {Strings}
@@ -378,7 +378,7 @@ SCM_DEFINE (scm_make_shared_substring, "make-shared-substring", 1, 2, 0,
 void
 scm_init_strings ()
 {
-#include "strings.x"
+#include "libguile/strings.x"
 }
 
 

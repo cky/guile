@@ -44,11 +44,11 @@
 
 
 #include <stdio.h>
-#include "_scm.h"
-#include "eq.h"
+#include "libguile/_scm.h"
+#include "libguile/eq.h"
 
-#include "validate.h"
-#include "list.h"
+#include "libguile/validate.h"
+#include "libguile/list.h"
 
 #ifdef __STDC__
 #include <stdarg.h>
@@ -782,7 +782,7 @@ SCM_DEFINE (scm_delete1_x, "delete1!", 2, 0, 0,
 void
 scm_init_list ()
 {
-#include "list.x"
+#include "libguile/list.x"
 }
 
 /*

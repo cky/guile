@@ -45,13 +45,13 @@
 
 
 #include <stdio.h>
-#include "_scm.h"
+#include "libguile/_scm.h"
 
-#include "scmsigs.h"
-#include "strings.h"
+#include "libguile/scmsigs.h"
+#include "libguile/strings.h"
 
-#include "validate.h"
-#include "simpos.h"
+#include "libguile/validate.h"
+#include "libguile/simpos.h"
 
 #ifdef HAVE_STRING_H
 #include <string.h>
@@ -135,7 +135,7 @@ SCM_DEFINE (scm_primitive_exit, "primitive-exit", 0, 1, 0,
 void
 scm_init_simpos ()
 {
-#include "simpos.x"
+#include "libguile/simpos.x"
 }
 
 

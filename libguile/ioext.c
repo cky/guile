@@ -46,18 +46,18 @@
 
 
 #include <stdio.h>
-#include "_scm.h"
-#include "ports.h"
-#include "read.h"
-#include "fports.h"
-#include "unif.h"
-#include "chars.h"
-#include "feature.h"
-#include "root.h"
-#include "strings.h"
+#include "libguile/_scm.h"
+#include "libguile/ports.h"
+#include "libguile/read.h"
+#include "libguile/fports.h"
+#include "libguile/unif.h"
+#include "libguile/chars.h"
+#include "libguile/feature.h"
+#include "libguile/root.h"
+#include "libguile/strings.h"
 
-#include "validate.h"
-#include "ioext.h"
+#include "libguile/validate.h"
+#include "libguile/ioext.h"
 
 #include <fcntl.h>
 
@@ -530,7 +530,7 @@ scm_init_ioext ()
 {
   scm_add_feature ("i/o-extensions");
 
-#include "ioext.x"
+#include "libguile/ioext.x"
 }
 
 

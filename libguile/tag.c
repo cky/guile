@@ -44,11 +44,11 @@
 
 
 #include <stdio.h>
-#include "_scm.h"
-#include "chars.h"
-#include "struct.h"
+#include "libguile/_scm.h"
+#include "libguile/chars.h"
+#include "libguile/struct.h"
 
-#include "tag.h"
+#include "libguile/tag.h"
 
 
 SCM_CONST_LONG (scm_utag_immediate_integer, "utag_immediate_integer", 0);
@@ -215,7 +215,7 @@ SCM_DEFINE (scm_tag, "tag", 1, 0, 0,
 void
 scm_init_tag ()
 {
-#include "tag.x"
+#include "libguile/tag.x"
 }
 
 

@@ -44,11 +44,11 @@
 
 
 #include <stdio.h>
-#include "_scm.h"
-#include "chars.h"
+#include "libguile/_scm.h"
+#include "libguile/chars.h"
 
-#include "validate.h"
-#include "strorder.h"
+#include "libguile/validate.h"
+#include "libguile/strorder.h"
 
 
 SCM_DEFINE1 (scm_string_equal_p, "string=?", scm_tc7_rpsubr,
@@ -233,7 +233,7 @@ SCM_DEFINE1 (scm_string_ci_geq_p, "string-ci>=?", scm_tc7_rpsubr,
 void
 scm_init_strorder ()
 {
-#include "strorder.x"
+#include "libguile/strorder.x"
 }
 
 

@@ -43,7 +43,7 @@
 
 #include <stdio.h>
 
-#include <gh.h>
+#include "libguile/gh.h"
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif

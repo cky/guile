@@ -45,19 +45,19 @@
 
 
 #include <stdio.h>
-#include "_scm.h"
-#include "libpath.h"
-#include "fports.h"
-#include "read.h"
-#include "eval.h"
-#include "throw.h"
-#include "alist.h"
-#include "dynwind.h"
-#include "root.h"
-#include "strings.h"
+#include "libguile/_scm.h"
+#include "libguile/libpath.h"
+#include "libguile/fports.h"
+#include "libguile/read.h"
+#include "libguile/eval.h"
+#include "libguile/throw.h"
+#include "libguile/alist.h"
+#include "libguile/dynwind.h"
+#include "libguile/root.h"
+#include "libguile/strings.h"
 
-#include "validate.h"
-#include "load.h"
+#include "libguile/validate.h"
+#include "libguile/load.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -507,7 +507,7 @@ scm_init_load ()
 
   init_build_info ();
 
-#include "load.x"
+#include "libguile/load.x"
 }
 
 /*

@@ -52,20 +52,20 @@
 
 
 #include <stdio.h>
-#include "_scm.h"
-#include "chars.h"
-#include "eval.h"
-#include "fports.h"
-#include "smob.h"
-#include "strop.h"
-#include "feature.h"
-#include "root.h"
-#include "strings.h"
-#include "vectors.h"
+#include "libguile/_scm.h"
+#include "libguile/chars.h"
+#include "libguile/eval.h"
+#include "libguile/fports.h"
+#include "libguile/smob.h"
+#include "libguile/strop.h"
+#include "libguile/feature.h"
+#include "libguile/root.h"
+#include "libguile/strings.h"
+#include "libguile/vectors.h"
 
-#include "validate.h"
-#include "unif.h"
-#include "ramap.h"
+#include "libguile/validate.h"
+#include "libguile/unif.h"
+#include "libguile/ramap.h"
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -2563,7 +2563,7 @@ scm_init_unif ()
 					    scm_raprin1,
 					    scm_array_equal_p);
   scm_add_feature ("array");
-#include "unif.x"
+#include "libguile/unif.x"
 }
 
 /*

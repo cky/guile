@@ -45,7 +45,7 @@
 
 #include <stdio.h>
 
-#include <gh.h>
+#include "libguile/gh.h"
 
 /* allows you to define new scheme primitives written in C */
 SCM

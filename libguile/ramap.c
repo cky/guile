@@ -52,18 +52,18 @@
 
 
 #include <stdio.h>
-#include "_scm.h"
-#include "unif.h"
-#include "smob.h"
-#include "chars.h"
-#include "eq.h"
-#include "eval.h"
-#include "feature.h"
-#include "root.h"
-#include "vectors.h"
+#include "libguile/_scm.h"
+#include "libguile/unif.h"
+#include "libguile/smob.h"
+#include "libguile/chars.h"
+#include "libguile/eq.h"
+#include "libguile/eval.h"
+#include "libguile/feature.h"
+#include "libguile/root.h"
+#include "libguile/vectors.h"
 
-#include "validate.h"
-#include "ramap.h"
+#include "libguile/validate.h"
+#include "libguile/ramap.h"
 
 
 typedef struct
@@ -2016,7 +2016,7 @@ scm_init_ramap ()
   init_raprocs (ra_asubrs);
   scm_make_subr (s_array_equal_p, scm_tc7_rpsubr, scm_array_equal_p);
   scm_smobs[0x0ff & (scm_tc16_array >> 8)].equalp = scm_raequal;
-#include "ramap.x"
+#include "libguile/ramap.x"
   scm_add_feature (s_scm_array_for_each);
 }
 

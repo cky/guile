@@ -49,21 +49,21 @@
  * libguile.  See the comments in objects.h.
  */
 
-#include "_scm.h"
+#include "libguile/_scm.h"
 
-#include "struct.h"
-#include "procprop.h"
-#include "chars.h"
-#include "keywords.h"
-#include "smob.h"
-#include "eval.h"
-#include "alist.h"
-#include "ports.h"
-#include "strings.h"
-#include "vectors.h"
+#include "libguile/struct.h"
+#include "libguile/procprop.h"
+#include "libguile/chars.h"
+#include "libguile/keywords.h"
+#include "libguile/smob.h"
+#include "libguile/eval.h"
+#include "libguile/alist.h"
+#include "libguile/ports.h"
+#include "libguile/strings.h"
+#include "libguile/vectors.h"
 
-#include "validate.h"
-#include "objects.h"
+#include "libguile/validate.h"
+#include "libguile/objects.h"
 
 
 SCM scm_metaclass_standard;
@@ -490,7 +490,7 @@ scm_init_objects ()
   SCM_SET_CLASS_DESTRUCTOR (et, scm_struct_free_entity);
   scm_sysintern ("<entity>", et);
 
-#include "objects.x"
+#include "libguile/objects.x"
 }
 
 /*

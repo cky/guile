@@ -27,6 +27,10 @@ SUBDIRS = md time
 lib_LTLIBRARIES = @QTHREAD_LTLIBS@
 EXTRA_LTLIBRARIES = libqthreads.la
 
+## Prevent automake from adding extra -I options
+DEFS = @DEFS@
+INCLUDES = -I.. -I$(srcdir)/..
+
 libqthreads_la_SOURCES = qt.c copyright.h
 libqthreads_la_LIBADD = qtmds.lo qtmdc.lo
 libqthreads_la_DEPENDENCIES = qtmds.lo qtmdc.lo

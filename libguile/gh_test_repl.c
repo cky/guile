@@ -46,7 +46,7 @@
 #include <stdio.h>
 #include <math.h>
 
-#include <gh.h>
+#include "libguile/gh.h"
 
 SCM c_factorial (SCM s_n);
 SCM c_sin (SCM s_x);

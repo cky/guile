@@ -46,10 +46,10 @@
 
 #include <stdio.h>
 #include <ctype.h>
-#include "_scm.h"
-#include "validate.h"
+#include "libguile/_scm.h"
+#include "libguile/validate.h"
 
-#include "chars.h"
+#include "libguile/chars.h"
 
 
 SCM_DEFINE (scm_char_p, "char?", 1, 0, 0, 
@@ -397,7 +397,7 @@ int scm_n_charnames = sizeof (scm_charnames) / sizeof (char *);
 void
 scm_init_chars ()
 {
-#include "chars.x"
+#include "libguile/chars.x"
 }
 
 

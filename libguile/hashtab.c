@@ -45,14 +45,14 @@
 
 
 #include <stdio.h>
-#include "_scm.h"
-#include "alist.h"
-#include "hash.h"
-#include "eval.h"
-#include "vectors.h"
+#include "libguile/_scm.h"
+#include "libguile/alist.h"
+#include "libguile/hash.h"
+#include "libguile/eval.h"
+#include "libguile/vectors.h"
 
-#include "validate.h"
-#include "hashtab.h"
+#include "libguile/validate.h"
+#include "libguile/hashtab.h"
 
 
 
@@ -563,7 +563,7 @@ scm_internal_hash_fold (SCM (*fn) (), void *closure, SCM init, SCM table)
 void
 scm_init_hashtab ()
 {
-#include "hashtab.x"
+#include "libguile/hashtab.x"
 }
 
 /*

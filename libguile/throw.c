@@ -45,24 +45,24 @@
 
 
 #include <stdio.h>
-#include "_scm.h"
-#include "smob.h"
-#include "alist.h"
-#include "eval.h"
-#include "eq.h"
-#include "dynwind.h"
-#include "backtrace.h"
+#include "libguile/_scm.h"
+#include "libguile/smob.h"
+#include "libguile/alist.h"
+#include "libguile/eval.h"
+#include "libguile/eq.h"
+#include "libguile/dynwind.h"
+#include "libguile/backtrace.h"
 #ifdef DEBUG_EXTENSIONS
-#include "debug.h"
+#include "libguile/debug.h"
 #endif
-#include "continuations.h"
-#include "stackchk.h"
-#include "stacks.h"
-#include "fluids.h"
-#include "ports.h"
+#include "libguile/continuations.h"
+#include "libguile/stackchk.h"
+#include "libguile/stacks.h"
+#include "libguile/fluids.h"
+#include "libguile/ports.h"
 
-#include "validate.h"
-#include "throw.h"
+#include "libguile/validate.h"
+#include "libguile/throw.h"
 
 
 /* the jump buffer data structure */
@@ -732,7 +732,7 @@ scm_init_throw ()
 					     NULL,
 					     print_lazy_catch,
 					     NULL);
-#include "throw.x"
+#include "libguile/throw.x"
 }
 
 /*

@@ -43,14 +43,14 @@
 #include <limits.h>
 #include <string.h>
 
-#include "_scm.h"
-#include "async.h"
+#include "libguile/_scm.h"
+#include "libguile/async.h"
 
-#include "iselect.h"
+#include "libguile/iselect.h"
 
 #ifdef GUILE_ISELECT
 
-#include "coop-threads.h"
+#include "libguile/coop-threads.h"
 
 #ifdef MISSING_BZERO_DECL
 extern void bzero (void *, size_t);
@@ -621,7 +621,7 @@ scm_init_iselect ()
   timeout0.tv_usec = 0;
 #endif
   init_bc (0x80, 0, 0);
-#include "iselect.x"
+#include "libguile/iselect.x"
 }
 
 #endif /* GUILE_ISELECT */

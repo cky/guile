@@ -57,14 +57,14 @@
 #include <stdio.h>
 #include <assert.h>
 
-#include "_scm.h"
-#include "ports.h"
-#include "print.h"
-#include "smob.h"
-#include "vectors.h"
+#include "libguile/_scm.h"
+#include "libguile/ports.h"
+#include "libguile/print.h"
+#include "libguile/smob.h"
+#include "libguile/vectors.h"
 
-#include "validate.h"
-#include "guardians.h"
+#include "libguile/validate.h"
+#include "libguile/guardians.h"
 
 static long scm_tc16_guardian;
 
@@ -327,7 +327,7 @@ scm_init_guardian()
 					       g_mark, NULL, g_print, NULL);
   guard1 = scm_make_subr_opt ("guardian", scm_tc7_subr_2o, guard, 0);
 
-#include "guardians.x"
+#include "libguile/guardians.x"
 }
 
 /*

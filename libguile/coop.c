@@ -40,7 +40,7 @@
  * If you do not wish that, delete this exception notice.  */
 
 
-/* $Id: coop.c,v 1.24 2000-04-10 12:38:19 mdj Exp $ */
+/* $Id: coop.c,v 1.25 2000-04-21 14:16:30 mdj Exp $ */
 
 /* Cooperative thread library, based on QuickThreads */
 
@@ -50,8 +50,8 @@
 
 #include <errno.h>
 
-#include <qt.h>
-#include "eval.h"
+#include "qt/qt.h"
+#include "libguile/eval.h"
 
 /* #define COOP_STKSIZE (0x10000) */
 #define COOP_STKSIZE (scm_eval_stack)

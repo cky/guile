@@ -46,17 +46,17 @@
 /* Headers.  */
 
 #include <stdio.h>
-#include "_scm.h"
-#include "objects.h"
-#include "smob.h"
-#include "chars.h"
+#include "libguile/_scm.h"
+#include "libguile/objects.h"
+#include "libguile/smob.h"
+#include "libguile/chars.h"
 
-#include "keywords.h"
-#include "root.h"
-#include "strings.h"
+#include "libguile/keywords.h"
+#include "libguile/root.h"
+#include "libguile/strings.h"
 
-#include "validate.h"
-#include "ports.h"
+#include "libguile/validate.h"
+#include "libguile/ports.h"
 
 #ifdef HAVE_STRING_H
 #include <string.h>
@@ -1402,7 +1402,7 @@ scm_init_ports ()
 
   scm_tc16_void_port = scm_make_port_type ("void", fill_input_void_port, 
 					   write_void_port);
-#include "ports.x"
+#include "libguile/ports.x"
 }
 
 /*

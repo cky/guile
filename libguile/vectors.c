@@ -45,14 +45,14 @@
 
 
 #include <stdio.h>
-#include "_scm.h"
-#include "eq.h"
-#include "root.h"
-#include "strings.h"
+#include "libguile/_scm.h"
+#include "libguile/eq.h"
+#include "libguile/root.h"
+#include "libguile/strings.h"
 
-#include "validate.h"
-#include "vectors.h"
-#include "unif.h"
+#include "libguile/validate.h"
+#include "libguile/vectors.h"
+#include "libguile/unif.h"
 
 
 /* 
@@ -381,7 +381,7 @@ SCM_DEFINE (scm_vector_move_right_x, "vector-move-right!", 5, 0, 0,
 void
 scm_init_vectors ()
 {
-#include "vectors.x"
+#include "libguile/vectors.x"
   /*
     scm_make_subr (s_resizuve, scm_tc7_subr_2, scm_vector_set_length_x); */
 }

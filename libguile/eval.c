@@ -59,7 +59,7 @@
 #ifndef DEVAL
 
 /* We need this to get the definitions for HAVE_ALLOCA_H, etc.  */
-#include "scmconfig.h"
+#include "libguile/scmconfig.h"
 
 /* AIX requires this to be the first thing in the file.  The #pragma
    directive is indented so pre-ANSI compilers will ignore it, rather
@@ -79,29 +79,29 @@ char *alloca ();
 #endif
 
 #include <stdio.h>
-#include "_scm.h"
-#include "debug.h"
-#include "alist.h"
-#include "eq.h"
-#include "continuations.h"
-#include "throw.h"
-#include "smob.h"
-#include "macros.h"
-#include "procprop.h"
-#include "hashtab.h"
-#include "hash.h"
-#include "srcprop.h"
-#include "stackchk.h"
-#include "objects.h"
-#include "async.h"
-#include "feature.h"
-#include "modules.h"
-#include "ports.h"
-#include "root.h"
-#include "vectors.h"
+#include "libguile/_scm.h"
+#include "libguile/debug.h"
+#include "libguile/alist.h"
+#include "libguile/eq.h"
+#include "libguile/continuations.h"
+#include "libguile/throw.h"
+#include "libguile/smob.h"
+#include "libguile/macros.h"
+#include "libguile/procprop.h"
+#include "libguile/hashtab.h"
+#include "libguile/hash.h"
+#include "libguile/srcprop.h"
+#include "libguile/stackchk.h"
+#include "libguile/objects.h"
+#include "libguile/async.h"
+#include "libguile/feature.h"
+#include "libguile/modules.h"
+#include "libguile/ports.h"
+#include "libguile/root.h"
+#include "libguile/vectors.h"
 
-#include "validate.h"
-#include "eval.h"
+#include "libguile/validate.h"
+#include "libguile/eval.h"
 
 SCM (*scm_memoize_method) (SCM, SCM);
 
@@ -3904,7 +3904,7 @@ scm_init_eval ()
   scm_sym_trace = SCM_CAR (scm_sysintern ("trace", SCM_UNDEFINED));
 #endif
 
-#include "eval.x"
+#include "libguile/eval.x"
 
   scm_add_feature ("delay");
 }

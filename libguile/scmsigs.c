@@ -46,14 +46,14 @@
 
 #include <stdio.h>
 #include <signal.h>
-#include "_scm.h"
+#include "libguile/_scm.h"
 
-#include "async.h"
-#include "eval.h"
-#include "vectors.h"
+#include "libguile/async.h"
+#include "libguile/eval.h"
+#include "libguile/vectors.h"
 
-#include "validate.h"
-#include "scmsigs.h"
+#include "libguile/validate.h"
+#include "libguile/scmsigs.h"
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -522,7 +522,7 @@ scm_init_scmsigs ()
   scm_sysintern ("SA_RESTART", scm_long2num (SA_RESTART));
 #endif
 
-#include "scmsigs.x"
+#include "libguile/scmsigs.x"
 }
 
 

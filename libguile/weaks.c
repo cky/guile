@@ -44,11 +44,11 @@
 
 
 #include <stdio.h>
-#include "_scm.h"
-#include "vectors.h"
+#include "libguile/_scm.h"
+#include "libguile/vectors.h"
 
-#include "validate.h"
-#include "weaks.h"
+#include "libguile/validate.h"
+#include "libguile/weaks.h"
 
 
 
@@ -213,7 +213,7 @@ SCM_DEFINE (scm_doubly_weak_hash_table_p, "doubly-weak-hash-table?", 1, 0, 0,
 void
 scm_init_weaks ()
 {
-#include "weaks.x"
+#include "libguile/weaks.x"
 }
 
 

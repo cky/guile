@@ -45,12 +45,12 @@
 
 
 #include <stdio.h>
-#include "_scm.h"
-#include "procprop.h"
-#include "root.h"
-#include "vectors.h"
+#include "libguile/_scm.h"
+#include "libguile/procprop.h"
+#include "libguile/root.h"
+#include "libguile/vectors.h"
 
-#include "gsubr.h"
+#include "libguile/gsubr.h"
 
 /*
  * gsubr.c

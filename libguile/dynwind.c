@@ -45,14 +45,14 @@
 
 
 #include <stdio.h>
-#include "_scm.h"
-#include "eval.h"
-#include "alist.h"
-#include "fluids.h"
-#include "ports.h"
-#include "smob.h"
+#include "libguile/_scm.h"
+#include "libguile/eval.h"
+#include "libguile/alist.h"
+#include "libguile/fluids.h"
+#include "libguile/ports.h"
+#include "libguile/smob.h"
 
-#include "dynwind.h"
+#include "libguile/dynwind.h"
 
 
 /* {Dynamic wind}
@@ -273,7 +273,7 @@ scm_init_dynwind ()
 {
   tc16_guards = scm_make_smob_type_mfpe ("guards", 0,
                                          NULL, scm_free0, printguards, NULL);
-#include "dynwind.x"
+#include "libguile/dynwind.x"
 }
 
 /*

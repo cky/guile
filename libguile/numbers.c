@@ -46,17 +46,17 @@
 
 #include <stdio.h>
 #include <math.h>
-#include "_scm.h"
-#include "unif.h"
-#include "feature.h"
-#include "ports.h"
-#include "root.h"
-#include "smob.h"
-#include "strings.h"
-#include "vectors.h"
+#include "libguile/_scm.h"
+#include "libguile/unif.h"
+#include "libguile/feature.h"
+#include "libguile/ports.h"
+#include "libguile/root.h"
+#include "libguile/smob.h"
+#include "libguile/strings.h"
+#include "libguile/vectors.h"
 
-#include "validate.h"
-#include "numbers.h"
+#include "libguile/validate.h"
+#include "libguile/numbers.h"
 
 #define DIGITS '0':case '1':case '2':case '3':case '4':\
  case '5':case '6':case '7':case '8':case '9'
@@ -4656,7 +4656,7 @@ scm_init_numbers ()
     scm_dblprec = scm_dblprec - 1;
   }
 #endif /* DBL_DIG */
-#include "numbers.x"
+#include "libguile/numbers.x"
 }
 
 /*

@@ -44,12 +44,12 @@
 
 
 #include <stdio.h>
-#include "_scm.h"
-#include "eq.h"
-#include "list.h"
+#include "libguile/_scm.h"
+#include "libguile/eq.h"
+#include "libguile/list.h"
 
-#include "validate.h"
-#include "alist.h"
+#include "libguile/validate.h"
+#include "libguile/alist.h"
 
 
 
@@ -391,7 +391,7 @@ SCM_DEFINE (scm_assoc_remove_x, "assoc-remove!", 2, 0, 0,
 void
 scm_init_alist ()
 {
-#include "alist.x"
+#include "libguile/alist.x"
 }
 
 

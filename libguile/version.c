@@ -44,11 +44,11 @@
 
 
 
-#include "_scm.h"
-#include "strings.h"
-#include "versiondat.h"
+#include "libguile/_scm.h"
+#include "libguile/strings.h"
+#include "libguile/versiondat.h"
 
-#include "version.h"
+#include "libguile/version.h"
 
 
 /* Return a Scheme string containing Guile's major version number.  */
@@ -100,7 +100,7 @@ SCM_DEFINE (scm_version, "version", 0, 0, 0,
 void
 scm_init_version ()
 {
-#include "version.x"
+#include "libguile/version.x"
 }
 
 /*

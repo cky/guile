@@ -46,11 +46,11 @@
 
 #include <stdio.h>
 #include <fcntl.h>
-#include "_scm.h"
-#include "strings.h"
+#include "libguile/_scm.h"
+#include "libguile/strings.h"
 
-#include "validate.h"
-#include "fports.h"
+#include "libguile/validate.h"
+#include "libguile/fports.h"
 
 #ifdef HAVE_STRING_H
 #include <string.h>
@@ -66,7 +66,7 @@ scm_sizet fwrite ();
 
 #include <errno.h>
 
-#include "iselect.h"
+#include "libguile/iselect.h"
 
 /* default buffer size, used if the O/S won't supply a value.  */
 static const int default_buffer_size = 1024;
@@ -730,7 +730,7 @@ scm_make_fptob ()
 void
 scm_init_fports ()
 {
-#include "fports.x"
+#include "libguile/fports.x"
   scm_sysintern ("_IOFBF", SCM_MAKINUM (_IOFBF));
   scm_sysintern ("_IOLBF", SCM_MAKINUM (_IOLBF));
   scm_sysintern ("_IONBF", SCM_MAKINUM (_IONBF));

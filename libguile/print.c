@@ -45,26 +45,26 @@
 
 
 #include <stdio.h>
-#include "_scm.h"
-#include "chars.h"
-#include "smob.h"
-#include "eval.h"
-#include "macros.h"
-#include "procprop.h"
-#include "read.h"
-#include "weaks.h"
-#include "unif.h"
-#include "alist.h"
-#include "struct.h"
-#include "objects.h"
-#include "ports.h"
-#include "root.h"
-#include "strings.h"
-#include "strports.h"
-#include "vectors.h"
+#include "libguile/_scm.h"
+#include "libguile/chars.h"
+#include "libguile/smob.h"
+#include "libguile/eval.h"
+#include "libguile/macros.h"
+#include "libguile/procprop.h"
+#include "libguile/read.h"
+#include "libguile/weaks.h"
+#include "libguile/unif.h"
+#include "libguile/alist.h"
+#include "libguile/struct.h"
+#include "libguile/objects.h"
+#include "libguile/ports.h"
+#include "libguile/root.h"
+#include "libguile/strings.h"
+#include "libguile/strports.h"
+#include "libguile/vectors.h"
 
-#include "validate.h"
-#include "print.h"
+#include "libguile/validate.h"
+#include "libguile/print.h"
 
 
 /* {Names of immediate symbols}
@@ -1119,7 +1119,7 @@ scm_init_print ()
   scm_set_smob_mark (scm_tc16_port_with_ps, scm_markcdr);
   scm_set_smob_print (scm_tc16_port_with_ps, print_port_with_ps);
   
-#include "print.x"
+#include "libguile/print.x"
 }
 
 /*

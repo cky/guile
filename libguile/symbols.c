@@ -45,18 +45,18 @@
 
 
 #include <stdio.h>
-#include "_scm.h"
-#include "chars.h"
-#include "eval.h"
-#include "variable.h"
-#include "alist.h"
-#include "root.h"
-#include "strings.h"
-#include "vectors.h"
-#include "weaks.h"
+#include "libguile/_scm.h"
+#include "libguile/chars.h"
+#include "libguile/eval.h"
+#include "libguile/variable.h"
+#include "libguile/alist.h"
+#include "libguile/root.h"
+#include "libguile/strings.h"
+#include "libguile/vectors.h"
+#include "libguile/weaks.h"
 
-#include "validate.h"
-#include "symbols.h"
+#include "libguile/validate.h"
+#include "libguile/symbols.h"
 
 #ifdef HAVE_STRING_H
 #include <string.h>
@@ -883,7 +883,7 @@ scm_init_symbols ()
 {
   gensym_counter = 0;
   gensym_prefix = scm_permanent_object (scm_makfrom0str ("%%gensym"));
-#include "symbols.x"
+#include "libguile/symbols.x"
 }
 
 /*

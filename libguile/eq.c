@@ -44,18 +44,18 @@
 
 
 #include <stdio.h>
-#include "_scm.h"
-#include "ramap.h"
-#include "stackchk.h"
-#include "strorder.h"
-#include "async.h"
-#include "root.h"
-#include "smob.h"
-#include "unif.h"
-#include "vectors.h"
+#include "libguile/_scm.h"
+#include "libguile/ramap.h"
+#include "libguile/stackchk.h"
+#include "libguile/strorder.h"
+#include "libguile/async.h"
+#include "libguile/root.h"
+#include "libguile/smob.h"
+#include "libguile/unif.h"
+#include "libguile/vectors.h"
 
-#include "validate.h"
-#include "eq.h"
+#include "libguile/validate.h"
+#include "libguile/eq.h"
 
 SCM_DEFINE1 (scm_eq_p, "eq?", scm_tc7_rpsubr,
              (SCM x, SCM y),
@@ -204,7 +204,7 @@ SCM_DEFINE1 (scm_equal_p, "equal?", scm_tc7_rpsubr,
 void
 scm_init_eq ()
 {
-#include "eq.x"
+#include "libguile/eq.x"
 }
 
 

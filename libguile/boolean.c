@@ -45,10 +45,10 @@
 
 
 #include <stdio.h>
-#include "_scm.h"
+#include "libguile/_scm.h"
 
-#include "validate.h"
-#include "boolean.h"
+#include "libguile/validate.h"
+#include "libguile/boolean.h"
 
 
 
@@ -76,7 +76,7 @@ SCM_DEFINE (scm_boolean_p, "boolean?", 1, 0, 0,
 void
 scm_init_boolean ()
 {
-#include "boolean.x"
+#include "libguile/boolean.x"
 }
 
 

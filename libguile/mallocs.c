@@ -23,11 +23,11 @@
 
 
 #include <stdio.h>
-#include "_scm.h"
-#include "ports.h"
-#include "smob.h"
+#include "libguile/_scm.h"
+#include "libguile/ports.h"
+#include "libguile/smob.h"
 
-#include "mallocs.h"
+#include "libguile/mallocs.h"
 
 #ifdef HAVE_MALLOC_H
 #include <malloc.h>

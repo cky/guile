@@ -35,7 +35,7 @@
 #include <sys/time.h>
 
 #include "libguile/validate.h"
-#include "readline.h"
+#include "guile-readline/readline.h"
 
 scm_option scm_readline_opts[] = {
   { SCM_OPTION_BOOLEAN, "history-file", 1,
@@ -503,7 +503,7 @@ match_paren (int x, int k)
 void
 scm_init_readline ()
 {
-#include "readline.x"
+#include "guile-readline/readline.x"
   scm_readline_completion_function_var
     = scm_sysintern ("*readline-completion-function*", SCM_BOOL_F);
   rl_getc_function = current_input_getc;

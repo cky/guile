@@ -42,7 +42,7 @@
 
 #include <stdio.h>
 
-#include <gh.h>
+#include "libguile/gh.h"
 
 void 
 gh_display (SCM x)

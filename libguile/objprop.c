@@ -45,13 +45,13 @@
 
 
 #include <stdio.h>
-#include "_scm.h"
-#include "hashtab.h"
-#include "alist.h"
-#include "root.h"
-#include "weaks.h"
+#include "libguile/_scm.h"
+#include "libguile/hashtab.h"
+#include "libguile/alist.h"
+#include "libguile/root.h"
+#include "libguile/weaks.h"
 
-#include "objprop.h"
+#include "libguile/objprop.h"
 
 
 /* {Object Properties}
@@ -121,7 +121,7 @@ void
 scm_init_objprop ()
 {
   scm_object_whash = scm_make_weak_key_hash_table (SCM_MAKINUM (511));
-#include "objprop.x"
+#include "libguile/objprop.x"
 }
 
 

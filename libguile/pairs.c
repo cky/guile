@@ -44,10 +44,10 @@
 
 
 #include <stdio.h>
-#include "_scm.h"
+#include "libguile/_scm.h"
 
 
-#include "validate.h"
+#include "libguile/validate.h"
 
 
 
@@ -164,7 +164,7 @@ void
 scm_init_pairs ()
 {
   scm_init_iprocs (cxrs, scm_tc7_cxr);
-#include "pairs.x"
+#include "libguile/pairs.x"
 }
 
 

@@ -48,18 +48,18 @@
 
 
 #include <stdio.h>
-#include "_scm.h"
-#include "smob.h"
-#include "alist.h"
-#include "debug.h"
-#include "hashtab.h"
-#include "hash.h"
-#include "ports.h"
-#include "root.h"
-#include "weaks.h"
+#include "libguile/_scm.h"
+#include "libguile/smob.h"
+#include "libguile/alist.h"
+#include "libguile/debug.h"
+#include "libguile/hashtab.h"
+#include "libguile/hash.h"
+#include "libguile/ports.h"
+#include "libguile/root.h"
+#include "libguile/weaks.h"
 
-#include "validate.h"
-#include "srcprop.h"
+#include "libguile/validate.h"
+#include "libguile/srcprop.h"
 
 /* {Source Properties}
  *
@@ -335,7 +335,7 @@ scm_init_srcprop ()
   scm_sym_breakpoint = SCM_CAR (scm_sysintern ("breakpoint", SCM_UNDEFINED));
 
   scm_sysintern ("source-whash", scm_source_whash);
-#include "srcprop.x"
+#include "libguile/srcprop.x"
 }
 
 void

@@ -45,17 +45,17 @@
 
 
 #include <stdio.h>
-#include "_scm.h"
+#include "libguile/_scm.h"
 
-#include "eval.h"
-#include "ports.h"
-#include "procprop.h"
-#include "root.h"
-#include "smob.h"
-#include "strings.h"
+#include "libguile/eval.h"
+#include "libguile/ports.h"
+#include "libguile/procprop.h"
+#include "libguile/root.h"
+#include "libguile/smob.h"
+#include "libguile/strings.h"
 
-#include "validate.h"
-#include "feature.h"
+#include "libguile/validate.h"
+#include "libguile/feature.h"
 
 #ifdef HAVE_STRING_H
 #include <string.h>
@@ -348,7 +348,7 @@ scm_init_feature()
   scm_set_smob_mark (scm_tc16_hook, scm_markcdr);
   scm_set_smob_print (scm_tc16_hook, print_hook);
 
-#include "feature.x"
+#include "libguile/feature.x"
 }
 
 /*

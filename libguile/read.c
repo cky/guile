@@ -45,22 +45,22 @@
 
 
 #include <stdio.h>
-#include "_scm.h"
-#include "chars.h"
-#include "eval.h"
-#include "unif.h"
-#include "keywords.h"
-#include "alist.h"
-#include "srcprop.h"
-#include "hashtab.h"
-#include "hash.h"
-#include "ports.h"
-#include "root.h"
-#include "strings.h"
-#include "vectors.h"
+#include "libguile/_scm.h"
+#include "libguile/chars.h"
+#include "libguile/eval.h"
+#include "libguile/unif.h"
+#include "libguile/keywords.h"
+#include "libguile/alist.h"
+#include "libguile/srcprop.h"
+#include "libguile/hashtab.h"
+#include "libguile/hash.h"
+#include "libguile/ports.h"
+#include "libguile/root.h"
+#include "libguile/strings.h"
+#include "libguile/vectors.h"
 
-#include "validate.h"
-#include "read.h"
+#include "libguile/validate.h"
+#include "libguile/read.h"
 
 
 
@@ -785,7 +785,7 @@ scm_init_read ()
     SCM_CDRLOC (scm_sysintern ("read-hash-procedures", SCM_EOL));
 
   scm_init_opts (scm_read_options, scm_read_opts, SCM_N_READ_OPTIONS);
-#include "read.x"
+#include "libguile/read.x"
 }
 
 /*

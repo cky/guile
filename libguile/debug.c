@@ -48,26 +48,26 @@
 
 
 #include <stdio.h>
-#include "_scm.h"
-#include "eval.h"
-#include "stackchk.h"
-#include "throw.h"
-#include "macros.h"
-#include "smob.h"
-#include "procprop.h"
-#include "srcprop.h"
-#include "alist.h"
-#include "continuations.h"
-#include "strports.h"
-#include "read.h"
-#include "feature.h"
-#include "dynwind.h"
-#include "modules.h"
-#include "ports.h"
-#include "root.h"
+#include "libguile/_scm.h"
+#include "libguile/eval.h"
+#include "libguile/stackchk.h"
+#include "libguile/throw.h"
+#include "libguile/macros.h"
+#include "libguile/smob.h"
+#include "libguile/procprop.h"
+#include "libguile/srcprop.h"
+#include "libguile/alist.h"
+#include "libguile/continuations.h"
+#include "libguile/strports.h"
+#include "libguile/read.h"
+#include "libguile/feature.h"
+#include "libguile/dynwind.h"
+#include "libguile/modules.h"
+#include "libguile/ports.h"
+#include "libguile/root.h"
 
-#include "validate.h"
-#include "debug.h"
+#include "libguile/validate.h"
+#include "libguile/debug.h"
 
 
 /* {Run time control of the debugging evaluator}
@@ -248,8 +248,8 @@ scm_make_memoized (SCM exp, SCM env)
  * - constant: SCM_IM_DISPATCH
  */
 
-#include "variable.h"
-#include "procs.h"
+#include "libguile/variable.h"
+#include "libguile/procs.h"
 
 SCM_DEFINE (scm_make_gloc, "make-gloc", 1, 1, 0, 
             (SCM var, SCM env),
@@ -641,7 +641,7 @@ scm_init_debug ()
 #endif
   scm_add_feature ("debug-extensions");
 
-#include "debug.x"
+#include "libguile/debug.x"
 }
 
 /*

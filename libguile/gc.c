@@ -46,25 +46,25 @@
 
 
 #include <stdio.h>
-#include "_scm.h"
-#include "stime.h"
-#include "stackchk.h"
-#include "struct.h"
-#include "weaks.h"
-#include "guardians.h"
-#include "smob.h"
-#include "unif.h"
-#include "async.h"
-#include "ports.h"
-#include "root.h"
-#include "strings.h"
-#include "vectors.h"
+#include "libguile/_scm.h"
+#include "libguile/stime.h"
+#include "libguile/stackchk.h"
+#include "libguile/struct.h"
+#include "libguile/weaks.h"
+#include "libguile/guardians.h"
+#include "libguile/smob.h"
+#include "libguile/unif.h"
+#include "libguile/async.h"
+#include "libguile/ports.h"
+#include "libguile/root.h"
+#include "libguile/strings.h"
+#include "libguile/vectors.h"
 
-#include "validate.h"
-#include "gc.h"
+#include "libguile/validate.h"
+#include "libguile/gc.h"
 
 #ifdef GUILE_DEBUG_MALLOC
-#include "debug-malloc.h"
+#include "libguile/debug-malloc.h"
 #endif
 
 #ifdef HAVE_MALLOC_H
@@ -2735,7 +2735,7 @@ scm_init_storage (scm_sizet init_heap_size_1, scm_sizet init_heap_size_2)
 void
 scm_init_gc ()
 {
-#include "gc.x"
+#include "libguile/gc.x"
 }
 
 /*

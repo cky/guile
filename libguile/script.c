@@ -46,12 +46,12 @@
 
 #include <stdio.h>
 #include <ctype.h>
-#include "_scm.h"
-#include "gh.h"
-#include "load.h"
-#include "version.h"
+#include "libguile/_scm.h"
+#include "libguile/gh.h"
+#include "libguile/load.h"
+#include "libguile/version.h"
 
-#include "script.h"
+#include "libguile/script.h"
 
 #ifdef HAVE_STRING_H
 #include <string.h>
@@ -651,7 +651,7 @@ scm_shell (int argc, char **argv)
 void
 scm_init_script ()
 {
-#include "script.x"
+#include "libguile/script.x"
 }
 
 /*

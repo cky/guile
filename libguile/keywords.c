@@ -45,14 +45,14 @@
 
 
 #include <stdio.h>
-#include "_scm.h"
-#include "ports.h"
-#include "root.h"
-#include "smob.h"
-#include "vectors.h"
+#include "libguile/_scm.h"
+#include "libguile/ports.h"
+#include "libguile/root.h"
+#include "libguile/smob.h"
+#include "libguile/vectors.h"
 
-#include "validate.h"
-#include "keywords.h"
+#include "libguile/validate.h"
+#include "libguile/keywords.h"
 
 
 static int
@@ -138,7 +138,7 @@ scm_init_keywords ()
                                              scm_markcdr, NULL, prin_keyword, NULL);
   scm_tc16_kw = scm_tc16_keyword;
   scm_keyword_obarray = scm_make_vector (SCM_MAKINUM (256), SCM_EOL);
-#include "keywords.x"
+#include "libguile/keywords.x"
 }
 
 

@@ -44,17 +44,17 @@
 
 
 
-#include "validate.h"
-#include "coop-threads.h"
-#include "root.h"
-#include "strings.h"
+#include "libguile/validate.h"
+#include "libguile/coop-threads.h"
+#include "libguile/root.h"
+#include "libguile/strings.h"
 
 /* A counter of the current number of threads */
 size_t scm_thread_count = 0;
 
 /* This is included rather than compiled separately in order
    to simplify the configuration mechanism. */
-#include "coop.c"
+#include "libguile/coop.c"
 
 /* A count-down counter used to determine when to switch
    contexts */

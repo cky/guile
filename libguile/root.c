@@ -45,17 +45,17 @@
 
 
 #include <stdio.h>
-#include "_scm.h"
-#include "stackchk.h"
-#include "dynwind.h"
-#include "eval.h"
-#include "smob.h"
-#include "pairs.h"
-#include "throw.h"
-#include "fluids.h"
-#include "ports.h"
+#include "libguile/_scm.h"
+#include "libguile/stackchk.h"
+#include "libguile/dynwind.h"
+#include "libguile/eval.h"
+#include "libguile/smob.h"
+#include "libguile/pairs.h"
+#include "libguile/throw.h"
+#include "libguile/fluids.h"
+#include "libguile/ports.h"
 
-#include "root.h"
+#include "libguile/root.h"
 
 
 /* Define this if you want to try out the stack allocation of cwdr's
@@ -444,7 +444,7 @@ scm_init_root ()
   scm_tc16_root = scm_make_smob_type_mfpe ("root", sizeof (struct scm_root_state),
                                           mark_root, NULL, print_root, NULL);
                                           
-#include "root.x"
+#include "libguile/root.x"
 }
 
 /*

@@ -45,14 +45,14 @@
 
 
 #include <stdio.h>
-#include "_scm.h"
+#include "libguile/_scm.h"
 
-#include "objects.h"
-#include "strings.h"
-#include "vectors.h"
+#include "libguile/objects.h"
+#include "libguile/strings.h"
+#include "libguile/vectors.h"
 
-#include "validate.h"
-#include "procs.h"
+#include "libguile/validate.h"
+#include "libguile/procs.h"
 
 
 
@@ -392,7 +392,7 @@ scm_init_subr_table ()
 void
 scm_init_procs ()
 {
-#include "procs.x"
+#include "libguile/procs.x"
 }
 
 /*

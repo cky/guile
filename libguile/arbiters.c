@@ -45,12 +45,12 @@
 
 
 #include <stdio.h>
-#include "_scm.h"
-#include "ports.h"
-#include "smob.h"
+#include "libguile/_scm.h"
+#include "libguile/ports.h"
+#include "libguile/smob.h"
 
-#include "validate.h"
-#include "arbiters.h"
+#include "libguile/validate.h"
+#include "libguile/arbiters.h"
 
 
 /* {Arbiters}
@@ -128,7 +128,7 @@ scm_init_arbiters ()
 {
   scm_tc16_arbiter = scm_make_smob_type_mfpe ("arbiter", 0,
                                               scm_markcdr, NULL, prinarb, NULL);
-#include "arbiters.x"
+#include "libguile/arbiters.x"
 }
 
 /*
