@@ -1,3 +1,14 @@
+1999-03-22  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+
+	* keywords.c (scm_tc16_kw): Added for backward compatibility.
+	Will be removed in next release.
+
+	* Makefile.am (modinclude_HEADERS): Added kw.h;
+	
+	* kw.h: New file.
+
+	* libguile.h: #include "libguile/kw.h"
+
 1999-03-22  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* pairs.c (scm_set_car_x, scm_set_cdr_x): Return SCM_UNSPECIFIED.
