@@ -1,3 +1,9 @@
+1997-11-24  Tim Pierce  <twp@twp.tezcat.com>
+
+	* acinclude.m4: Assume dlsym does not add underscore if
+ 	cross-compiling.
+	* aclocal.m4, configure: Regenderated.
+
 1997-11-21  Tim Pierce  <twp@twp.tezcat.com>
 
 	* acinclude.m4 (GUILE_DLSYM_USCORE): New macro, thanks Dan Hagerty

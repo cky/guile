@@ -134,7 +134,8 @@ main() { void *self, *ptr1, *ptr2; self=dlopen(NULL,RTLD_LAZY);
     if(self) { ptr1=dlsym(self,"fnord"); ptr2=dlsym(self,"_fnord");
     if(ptr1 && !ptr2) exit(0); } exit(1); } 
 ], [guile_cv_dlsym_adds_uscore=yes
-	AC_DEFINE(DLSYM_ADDS_USCORE) ], guile_cv_dlsym_adds_uscore=no))
+	AC_DEFINE(DLSYM_ADDS_USCORE) ], guile_cv_dlsym_adds_uscore=no,
+	guile_cv_dlsym_adds_uscore=no))
 
         AC_MSG_RESULT($guile_cv_dlsym_adds_uscore)
     fi
