@@ -522,8 +522,6 @@ display_backtrace_body (struct display_backtrace_args *a)
   for (i = 0; j > 0; ++i) j /= 10;
   nfield = i ? i : 1;
   
-  scm_puts ("Backtrace:\n", a->port);
-
   /* Print frames. */
   frame = scm_stack_ref (a->stack, SCM_MAKINUM (beg));
   indentation = 1;
@@ -570,6 +568,7 @@ scm_backtrace ()
   if (SCM_NFALSEP (the_last_stack))
     {
       scm_newline (scm_cur_outp);
+      scm_puts ("Backtrace:\n", scm_cur_outp);
       scm_display_backtrace (the_last_stack,
 			     scm_cur_outp,
 			     SCM_UNDEFINED,
