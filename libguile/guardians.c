@@ -206,11 +206,13 @@ static guardian_t **current_link_field = NULL;
 
 /* called before gc mark phase begins to initialise the live guardian
    list.  */
-void
-scm_guardian_gc_init()
+static void *
+scm_guardian_gc_init (void *dummy1, void *dummy2, void *dummy3)
 {
   current_link_field = &first_live_guardian;
   first_live_guardian = NULL;
+
+  return 0;
 }
 
 /* mark a guardian by adding it to the live guardian list.  */
@@ -230,7 +232,8 @@ g_mark (SCM ptr)
 /* this is called by the garbage collector between the mark and sweep
    phases.  for each marked guardian, it moves any unmarked object in
    its live list (tconc) to its zombie list (tconc).  */
-void scm_guardian_zombify (void)
+static void *
+scm_guardian_zombify (void *dummy1, void *dummy2, void *dummy3)
 {
   guardian_t *first_guardian;
   guardian_t **link_field = &first_live_guardian;
@@ -304,6 +307,8 @@ void scm_guardian_zombify (void)
       scm_gc_mark (g->zombies.head);
     
   } while (current_link_field != link_field);
+  
+  return 0;
 }
 
 /* not generally used, since guardian smob is wrapped in a closure.
@@ -326,6 +331,8 @@ scm_init_guardian()
   scm_tc16_guardian = scm_make_smob_type_mfpe ("guardian", sizeof (guardian_t),
 					       g_mark, NULL, g_print, NULL);
   guard1 = scm_make_subr_opt ("guardian", scm_tc7_subr_2o, guard, 0);
+  scm_c_hook_add (&scm_before_mark_c_hook, scm_guardian_gc_init, 0, 0);
+  scm_c_hook_add (&scm_before_sweep_c_hook, scm_guardian_zombify, 0, 0);
 
 #include "libguile/guardians.x"
 }
