@@ -76,15 +76,12 @@ scm_sloppy_assq(x, alist)
      SCM x;
      SCM alist;
 {
-  SCM tmp;
-  for(;SCM_NIMP(alist);alist = SCM_CDR(alist))
+
+  for (; SCM_NIMP (alist) && SCM_CONSP (alist); alist = SCM_CDR (alist))
     {
-      if (SCM_CONSP(alist))
-	{
-	  tmp = SCM_CAR(alist);
-	  if (SCM_NIMP (tmp) && SCM_CONSP (tmp) && (SCM_CAR (tmp)==x))
-	    return tmp;
-	}
+      SCM tmp = SCM_CAR(alist);
+      if (SCM_NIMP (tmp) && SCM_CONSP (tmp) && (SCM_CAR (tmp)==x))
+	return tmp;
     }
   return SCM_BOOL_F;
 }
@@ -98,17 +95,13 @@ scm_sloppy_assv(x, alist)
      SCM x;
      SCM alist;
 {
-  SCM tmp;
-  for(;SCM_NIMP(alist);alist = SCM_CDR(alist))
+  for (; SCM_NIMP (alist) && SCM_CONSP (alist); alist = SCM_CDR (alist))
     {
-      if (SCM_CONSP(alist))
-	{
-	  tmp = SCM_CAR(alist);
-	  if (   SCM_NIMP (tmp)
-	      && SCM_CONSP (tmp)
-	      && SCM_NFALSEP (scm_eqv_p (SCM_CAR (tmp), x)))
-	    return tmp;
-	}
+      SCM tmp = SCM_CAR(alist);
+      if (SCM_NIMP (tmp)
+	  && SCM_CONSP (tmp)
+	  && SCM_NFALSEP (scm_eqv_p (SCM_CAR (tmp), x)))
+	return tmp;
     }
   return SCM_BOOL_F;
 }
@@ -121,17 +114,13 @@ scm_sloppy_assoc(x, alist)
      SCM x;
      SCM alist;
 {
-  SCM tmp;
-  for(;SCM_NIMP(alist);alist = SCM_CDR(alist))
+  for (; SCM_NIMP (alist) && SCM_CONSP (alist); alist = SCM_CDR (alist))
     {
-      if (SCM_CONSP(alist))
-	{
-	  tmp = SCM_CAR(alist);
-	  if (   SCM_NIMP (tmp)
-	      && SCM_CONSP (tmp)
-	      && SCM_NFALSEP (scm_equal_p (SCM_CAR (tmp), x)))
-	    return tmp;
-	}
+      SCM tmp = SCM_CAR(alist);
+      if (SCM_NIMP (tmp)
+	  && SCM_CONSP (tmp)
+	  && SCM_NFALSEP (scm_equal_p (SCM_CAR (tmp), x)))
+	return tmp;
     }
   return SCM_BOOL_F;
 }
