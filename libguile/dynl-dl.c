@@ -53,6 +53,10 @@
 #  define DLOPEN_MODE	1	/* Thats what it says in the man page. */
 #endif
 
+#ifndef RTLD_GLOBAL		/* Some systems have no such flag. */
+# define RTLD_GLOBAL 0
+#endif
+
 static void *
 sysdep_dynl_link (fname, flags, subr)
      const char *fname;
