@@ -48,13 +48,6 @@
 
 typedef SCM (*gh_eval_t) (void *data, SCM jmpbuf);
 
-struct cwss_data
-  {
-    SCM tag;
-    scm_catch_body_t body;
-    void *data;
-  };
-
 /* Evaluate the string; toss the value.  */
 #if 0
 void
@@ -112,47 +105,15 @@ gh_eval_str_with_standard_handler (char *scheme_code)
   return gh_eval_str_with_catch (scheme_code, gh_standard_handler);
 }
 
-
-SCM
-ss_handler (void *data, SCM tag, SCM throw_args)
-{
-  /* Save the stack */
-  SCM_SETCDR (scm_the_last_stack_var,
-	      scm_make_stack (scm_cons (SCM_BOOL_T, SCM_EOL)));
-  /* Throw the error */
-  return scm_throw (tag, throw_args);
-}
-
-static SCM
-cwss_body (void *data, SCM jmpbuf)
-{
-  struct cwss_data *d = data;
-  return scm_internal_lazy_catch (d->tag, d->body, d->data, ss_handler, NULL);
-}
-/* FIXME: should catch_with_saved_stack() be in the gh_ API? */
-static SCM
-catch_with_saved_stack (SCM tag,
-			scm_catch_body_t body,
-			void *body_data,
-			scm_catch_handler_t handler,
-			void *handler_data)
-{
-  struct cwss_data d;
-  d.tag = tag;
-  d.body = body;
-  d.data = body_data;
-  return scm_internal_catch (tag, cwss_body, &d, handler, handler_data);
-}
-
 SCM
 gh_eval_str_with_stack_saving_handler (char *scheme_code)
 {
-  return catch_with_saved_stack (SCM_BOOL_T,
-				 (scm_catch_body_t) eval_str_wrapper,
-				 scheme_code,
-				 (scm_catch_handler_t)
-				 gh_standard_handler,
-				 scheme_code);
+  return scm_internal_stack_catch (SCM_BOOL_T,
+				   (scm_catch_body_t) eval_str_wrapper,
+				   scheme_code,
+				   (scm_catch_handler_t)
+				   gh_standard_handler,
+				   scheme_code);
 }
 
 static SCM

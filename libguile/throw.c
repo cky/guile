@@ -54,6 +54,7 @@
 #endif
 #include "continuations.h"
 #include "stackchk.h"
+#include "stacks.h"
 
 #include "throw.h"
 
@@ -335,9 +336,52 @@ scm_internal_lazy_catch (tag, body, body_data, handler, handler_data)
   return answer;
 }
 
+
+/* scm_internal_stack_catch
+   Use this one if you want debugging information to be stored in
+   scm_the_last_stack_var on error. */
+
+static SCM
+ss_handler (void *data, SCM tag, SCM throw_args)
+{
+  /* Save the stack */
+  SCM_SETCDR (scm_the_last_stack_var,
+	      scm_make_stack (scm_cons (SCM_BOOL_T, SCM_EOL)));
+  /* Throw the error */
+  return scm_throw (tag, throw_args);
+}
+
+struct cwss_data
+{
+  SCM tag;
+  scm_catch_body_t body;
+  void *data;
+};
+
+static SCM
+cwss_body (void *data, SCM jmpbuf)
+{
+  struct cwss_data *d = data;
+  return scm_internal_lazy_catch (d->tag, d->body, d->data, ss_handler, NULL);
+}
+
+SCM
+scm_internal_stack_catch (SCM tag,
+			  scm_catch_body_t body,
+			  void *body_data,
+			  scm_catch_handler_t handler,
+			  void *handler_data)
+{
+  struct cwss_data d;
+  d.tag = tag;
+  d.body = body;
+  d.data = body_data;
+  return scm_internal_catch (tag, cwss_body, &d, handler, handler_data);
+}
+
 
 
-/* body and handler functions for use with either of the above */
+/* body and handler functions for use with any of the above catch variants */
 
 /* This is a body function you can pass to scm_internal_catch if you
    want the body to be like Scheme's `catch' --- a thunk, or a
