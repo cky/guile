@@ -54,9 +54,9 @@
 
 #if defined(MISSING_USLEEP_DECL) || (defined(GUILE_ISELECT) && !defined(HAVE_USLEEP))
 #ifdef USLEEP_RETURNS_VOID
-extern void usleep (unsigned);
+extern void usleep (USLEEP_ARG_TYPE);
 #else
-extern int usleep (unsigned);
+extern int usleep (USLEEP_ARG_TYPE);
 #endif
 #endif
 

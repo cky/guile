@@ -179,6 +179,9 @@
 /* Define if usleep doesn't return a value. */
 #undef USLEEP_RETURNS_VOID
 
+/* Define to be the type of the argument to usleep.  */
+#undef USLEEP_ARG_TYPE
+
 /* Define if your readline library has the rl_getc_function variable.  */
 #undef HAVE_RL_GETC_FUNCTION
 

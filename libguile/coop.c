@@ -40,7 +40,7 @@
  * If you do not wish that, delete this exception notice.  */
 
 
-/* $Id: coop.c,v 1.12 1998-10-04 12:10:11 jimb Exp $ */
+/* $Id: coop.c,v 1.13 1998-10-12 21:08:36 jimb Exp $ */
 
 /* Cooperative thread library, based on QuickThreads */
 
@@ -59,9 +59,9 @@ extern unsigned int sleep (unsigned int);
 
 #if defined(MISSING_USLEEP_DECL)
 #ifdef USLEEP_RETURNS_VOID
-extern void usleep (unsigned);
+extern void usleep (USLEEP_ARG_TYPE);
 #else
-extern int usleep (unsigned);
+extern int usleep (USLEEP_ARG_TYPE);
 #endif
 #endif
 
@@ -673,7 +673,7 @@ void
 #else
 int
 #endif
-usleep (unsigned usec)
+usleep (USLEEP_ARG_TYPE usec)
 {
   struct timeval timeout;
   timeout.tv_sec = 0;
