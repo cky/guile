@@ -1,3 +1,18 @@
+2001-10-11  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* debug.c (scm_make_iloc):  Prefer !SCM_<foo> over SCM_N<foo>.
+
+	(scm_memcons, scm_mem_to_proc):  When building lists, prefer
+	scm_list_<n> over scm_cons[2]?.
+
+	(scm_mem_to_proc):  Prefer SCM_CONSP over SCM_NIMP.
+
+	(scm_procedure_name):  Use SCM_CADR instead of explicit form.
+
+	(debugobj_print):  Coerce scm_intprint arg 1 to long, not int.
+	Thanks to Rob Browning for the patch (see log entry 2001-09-21) -
+	for some reason his patch didn't make it into the cvs.
+
 2001-10-09  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* numbers.c (mem2decimal_from_point):  Cleaned up the parsing a

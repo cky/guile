@@ -47,6 +47,7 @@
 
 #include "libguile/_scm.h"
 #include "libguile/eval.h"
+#include "libguile/list.h"
 #include "libguile/stackchk.h"
 #include "libguile/throw.h"
 #include "libguile/macros.h"
@@ -251,7 +252,7 @@ SCM_DEFINE (scm_make_iloc, "make-iloc", 3, 0, 0,
   SCM_VALIDATE_INUM (2,binding);
   return SCM_PACK (SCM_UNPACK (SCM_ILOC00)
                    + SCM_IFRINC * SCM_INUM (frame)
-                   + (SCM_NFALSEP (cdrp) ? SCM_ICDR : 0)
+                   + (!SCM_FALSEP (cdrp) ? SCM_ICDR : 0)
                    + SCM_IDINC * SCM_INUM (binding));
 }
 #undef FUNC_NAME
@@ -276,7 +277,7 @@ SCM_DEFINE (scm_memcons, "memcons", 2, 1, 0,
       /*fixme* environments may be two different but equal top-level envs */
       if (!SCM_UNBNDP (env) && SCM_MEMOIZED_ENV (car) != env)
 	SCM_MISC_ERROR ("environment mismatch arg1 <-> arg3",
-			scm_cons2 (car, env, SCM_EOL));
+			scm_list_2 (car, env));
       else
 	env = SCM_MEMOIZED_ENV (car);
       car = SCM_MEMOIZED_EXP (car);
@@ -285,7 +286,7 @@ SCM_DEFINE (scm_memcons, "memcons", 2, 1, 0,
     {
       if (!SCM_UNBNDP (env) && SCM_MEMOIZED_ENV (cdr) != env)
 	SCM_MISC_ERROR ("environment mismatch arg2 <-> arg3",
-			scm_cons2 (cdr, env, SCM_EOL));
+			scm_list_2 (cdr, env));
       else
 	env = SCM_MEMOIZED_ENV (cdr);
       cdr = SCM_MEMOIZED_EXP (cdr);
@@ -308,9 +309,8 @@ SCM_DEFINE (scm_mem_to_proc, "mem->proc", 1, 0, 0,
   SCM_VALIDATE_MEMOIZED (1,obj);
   env = SCM_MEMOIZED_ENV (obj);
   obj = SCM_MEMOIZED_EXP (obj);
-  if (!(SCM_NIMP (obj) && SCM_CAR (obj) == SCM_IM_LAMBDA))
-    SCM_MISC_ERROR ("expected lambda expression",
-		    scm_cons (obj, SCM_EOL));
+  if (!SCM_CONSP (obj) || !SCM_EQ_P (CAR (obj), SCM_IM_LAMBDA))
+    SCM_MISC_ERROR ("expected lambda expression", scm_list_1 (obj));
   return scm_closure (SCM_CDR (obj), env);
 }
 #undef FUNC_NAME
@@ -362,7 +362,7 @@ SCM_DEFINE (scm_procedure_name, "procedure-name", 1, 0, 0,
       SCM name = scm_procedure_property (proc, scm_sym_name);
 #if 0
       /* Source property scm_sym_procname not implemented yet... */
-      SCM name = scm_source_property (SCM_CAR (SCM_CDR (SCM_CODE (proc))), scm_sym_procname);
+      SCM name = scm_source_property (SCM_CADR (SCM_CODE (proc)), scm_sym_procname);
       if (SCM_FALSEP (name))
 	name = scm_procedure_property (proc, scm_sym_name);
 #endif
@@ -521,7 +521,7 @@ static int
 debugobj_print (SCM obj, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
   scm_puts ("#<debug-object ", port);
-  scm_intprint ((int) SCM_DEBUGOBJ_FRAME (obj), 16, port);
+  scm_intprint ((long) SCM_DEBUGOBJ_FRAME (obj), 16, port);
   scm_putc ('>', port);
   return 1;
 }
