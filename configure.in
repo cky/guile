@@ -1,5 +1,7 @@
 AC_INIT(Makefile.in)
 
+. $srcdir/GUILE-VERSION
+
 all_subdirs=`cat $srcdir/*/PLUGIN/REQ $srcdir/*/PLUGIN/OPT /dev/null | tsort | xargs echo`
 req_subdirs=`cat $srcdir/*/PLUGIN/REQ /dev/null | tsort | xargs echo`
 opt_subdirs=`cat $srcdir/*/PLUGIN/OPT /dev/null | tsort | xargs echo`
@@ -47,4 +49,5 @@ fi
 
 
 AC_SUBST(existingdirs)
-AC_OUTPUT(Makefile)
+AC_SUBST(GUILE_VERSION)
+AC_OUTPUT(Makefile doc/Makefile)

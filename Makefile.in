@@ -14,21 +14,25 @@
 # along with this software; see the file COPYING.  If not, write to
 # the Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+VERSION = @GUILE_VERSION@
 
 SHELL = /bin/sh
 
+srcdir=@srcdir@
 subdirs=@existingdirs@
+dist_dirs=${subdirs} doc
 
-localfiles =	ANNOUNCE \
+DISTFILES =	ANNOUNCE \
+		BUILDING \
 		COPYING \
+		GUILE-VERSION \
+		TODO \
 		Makefile.in \
 		configure \
 		configure.in \
 		config.sub \
 		config.guess \
 		install-sh
-
-localtreats = ANN.BX
 
 # `all'
 #     Compile the entire program.  This should be the default target.
@@ -167,12 +171,7 @@ TAGS:
 #     should run the Makeinfo program, which is part of the Texinfo2
 #     distribution.
 info:
-	for dir in ${subdirs}; do \
-		cd $$dir; \
-		${MAKE} info; \
-		cd ..  ;\
-	done
-
+	cd doc; ${MAKE} info
 
 #`dvi'
 #     Generate DVI files for all TeXinfo documentation.  For example:
@@ -209,35 +208,33 @@ dvi:
 #     The `dist' target should explicitly depend on all non-source files
 #     that are in the distribution, to make sure they are up to date in
 #     the distribution.  *Ref Making Releases: (standards)Releases.
-distname = brand-x
-distdir = $(distname)
-treats = $(localtreats)
-announcefile = ANN.BX
-
-manifest-file:
-	rm -f MANIFEST
-	cp $(announcefile) ANNOUNCE
-	for treat in $(localfiles) $(treats) ; \
-	  do echo $$treat >> MANIFEST ; \
+.PHONY: dist
+GZIP=gzip --best
+GZIP_EXT=.gz
+TAR_VERBOSE=v
+DIST_NAME=guile-${VERSION}
+dist: info
+	@echo "Creating distribution for ${DIST_NAME}."
+	rm -rf ${DIST_NAME} ${DIST_NAME}.tar${GZIP_EXT}
+	${MAKE} dist-dir DISTDIR="${DIST_NAME}"
+	for dir in ${dist_dirs}; do \
+	  ( DISTDIR="../${DIST_NAME}/$${dir}"; \
+	    cd $${dir} && \
+	    ${MAKE} dist-dir DISTDIR="$${DISTDIR}" \
+	  ); \
 	done
-	for subdir in $(subdirs) ; do \
-	  make -s -f $$subdir/Makefile.in SUBDIR=$$subdir manifest >> MANIFEST ; \
-	done
-	sed -e "s%^%$(distdir)/%" MANIFEST > M2
-	sed -e "/Entering dir/d" -e "/Leaving dir/d" M2 > MANIFEST
-	rm M2
+	tar chf${TAR_VERBOSE} - ${DIST_NAME} | ${GZIP} > "${DIST_NAME}.tar${GZIP_EXT}"
+	rm -rf ${DIST_NAME}
 
-
-
-dist: manifest-file
-	mkdir $(distdir)
-	- cd $(distdir); \
-	for file in $(localfiles) $(treats) $(subdirs); do ln -s ../$$file .; done; \
-	cd ..; \
-	gtar -zhcvf $(distname).tar.gz --files-from MANIFEST
-	rm -rf $(distdir)
-	-gtar ztvf $(distname).tar.gz | grep ".*~" > BACKUPS
-	test -s BACKUPS && (echo WARNING -- MANIFEST INCLUDES BACK FILES; cat BACKUPS)
+# The `dist' target in the top-level Makefile uses this `dist-dir'
+# target to select the appropriate files for distribution from the
+# directory containing this Makefile.
+.PHONY: dist-dir
+dist-dir:
+	mkdir ${DISTDIR}
+	for i in ${DISTFILES}; do \
+	  ln $(srcdir)/$${i} ${DISTDIR}; \
+        done
 
 #`check'
 #     Perform self-tests (if any).  The user must build the program
