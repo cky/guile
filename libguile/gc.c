@@ -95,6 +95,12 @@
  *
  * INIT_MALLOC_LIMIT is the initial amount of malloc usage which will
  * trigger a GC. 
+ *
+ * SCM_MTRIGGER_HYSTERESIS is the amount of malloc storage that must be
+ * reclaimed by a GC triggered by must_malloc. If less than this is
+ * reclaimed, the trigger threshold is raised. [I don't know what a
+ * good value is. I arbitrarily chose 1/10 of the INIT_MALLOC_LIMIT to
+ * work around a oscillation that caused almost constant GC.]  
  */
 
 #define SCM_INIT_HEAP_SIZE (32768L*sizeof(scm_cell))
@@ -110,6 +116,7 @@
 #endif
 #define SCM_EXPHEAP(scm_heap_size) (scm_heap_size*2)
 #define SCM_INIT_MALLOC_LIMIT 100000
+#define SCM_MTRIGGER_HYSTERESIS (SCM_INIT_MALLOC_LIMIT/10)
 
 /* CELL_UP and CELL_DN are used by scm_init_heap_seg to find scm_cell aligned inner
    bounds for allocated storage */
@@ -1405,14 +1412,19 @@ scm_must_malloc (len, what)
 	  return ptr;
 	}
     }
+
   scm_igc (what);
   nm = scm_mallocated + size;
   SCM_SYSCALL (ptr = (char *) malloc (size));
   if (NULL != ptr)
     {
       scm_mallocated = nm;
-      if (nm > scm_mtrigger)
-	scm_mtrigger = nm + nm / 2;
+      if (nm > scm_mtrigger - SCM_MTRIGGER_HYSTERESIS) {
+	if (nm > scm_mtrigger)
+	  scm_mtrigger = nm + nm / 2;
+	else
+	  scm_mtrigger += scm_mtrigger / 2;
+      }
       return ptr;
     }
   goto malerr;
@@ -1450,8 +1462,12 @@ scm_must_realloc (where, olen, len, what)
   if (NULL != ptr)
     {
       scm_mallocated = nm;
-      if (nm > scm_mtrigger)
-	scm_mtrigger = nm + nm / 2;
+      if (nm > scm_mtrigger - SCM_MTRIGGER_HYSTERESIS) {
+	if (nm > scm_mtrigger)
+	  scm_mtrigger = nm + nm / 2;
+	else
+	  scm_mtrigger += scm_mtrigger / 2;
+      }
       return ptr;
     }
   goto ralerr;
