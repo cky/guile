@@ -57,7 +57,7 @@
 #endif /* __GNUC__ */
 
 void gh_enter(int argc, char *argv[], void (*c_main_prog)());
-void gh_repl();
+void gh_repl(int argc, char *argv[]);
 SCM gh_catch(SCM tag, scm_catch_body_t body, void *body_data,
 	     scm_catch_handler_t handler, void *handler_data);
 

@@ -62,7 +62,6 @@ gh_launch_pad (void *closure, int argc, char **argv)
   exit (0);
 }
 
-
 /* starts up the Scheme interpreter, and stays in it.  c_main_prog()
    is the address of the user's main program, since gh_enter() never
    returns. */

@@ -1,3 +1,8 @@
+1997-11-25  Mark Galassi  <rosalia@cygnus.com>
+
+	* gh_test_repl.c (main_prog): changed invocation of gh_repl() to
+	gh_repl (argc, argv).
+
 1997-11-24  Mark Galassi  <rosalia@nis.lanl.gov>
 
 	* gh_init.c (gh_repl): modified gh_repl() to accept argc and argv
@@ -5,6 +10,11 @@
 	(gh_launch_pad): took out the loading of boot-9.scm from here,
 	since it is probably best to let the user control that.  In fact,
 	gh_repl() now invokes scm_shell() which does that.
+
+1997-11-23  Mark Galassi  <rosalia@cygnus.com>
+
+	* gh_test_repl.c (main_prog): added argc and argv to the gh_repl()
+	invocation.
 
 1997-11-22  Tim Pierce  <twp@twp.tezcat.com>
 

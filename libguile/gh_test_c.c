@@ -233,7 +233,7 @@ c_vector_test (SCM s_length)
   /* create a vector filled witth 0.0 entries */
   xvec = gh_make_vector (s_length, gh_double2scm (0.0));
   /* set the second element in it to some floating point value */
-  gh_vector_set (xvec, gh_int2scm(2), gh_double2scm (1.9));
+  gh_vector_set_x (xvec, gh_int2scm(2), gh_double2scm (1.9));
 
   /* I think I can use == because Scheme's doubles should be the same
      as C doubles, with no operations in between */
