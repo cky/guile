@@ -87,7 +87,18 @@ There is a mailing list for CVS commit messages; see README for details.
 actual "configure" script that then must be run to create the various
 Makefile-s to build guile. The general rule is that you should be able
 to check out a working directory of Guile from CVS, and then type
-"./autogen.sh", then "configure", and finally "make".
+"./autogen.sh", then "configure", and finally "make".  No
+automatically generated files should be checked into the CVS
+repository.
+
+- The .cvsignore file is contained in the repository, to provide a
+reasonable list of auto-generated files that should not be checked in.
+This, however, prohibits one from having local additions to the
+.cvsignore file (yes, you can modify it and never check it in, but
+that doesn't seem to be a good solution to me).  To get around this
+problem, you might want to patch your cvs program so that it uses a
+.cvsignore-local file (say) instead of the one from the repository.  A
+patch for this can be found at the very end of this file.
 
 - (Automake 1.4 only) Be sure to run automake at the top of the tree
 with no arguments.  Do not use `automake Makefile' to regenerate
@@ -235,3 +246,98 @@ prototypes for everything.  You don't need to use SCM_P in new code.
 
 
 Jim Blandy
+
+
+Patches ===========================================================
+
+This one makes cvs-1.10 consider the file $CVSDOTIGNORE instead of
+.cvsignore when that environment variable is set.
+
+=== patch start ===
+diff -r -u cvs-1.10/src/cvs.h cvs-1.10.ignore-hack/src/cvs.h
+--- cvs-1.10/src/cvs.h	Mon Jul 27 04:54:11 1998
++++ cvs-1.10.ignore-hack/src/cvs.h	Sun Jan 23 12:58:09 2000
+@@ -516,7 +516,7 @@
+ 
+ extern int ign_name PROTO ((char *name));
+ void ign_add PROTO((char *ign, int hold));
+-void ign_add_file PROTO((char *file, int hold));
++int ign_add_file PROTO((char *file, int hold));
+ void ign_setup PROTO((void));
+ void ign_dir_add PROTO((char *name));
+ int ignore_directory PROTO((char *name));
+diff -r -u cvs-1.10/src/ignore.c cvs-1.10.ignore-hack/src/ignore.c
+--- cvs-1.10/src/ignore.c	Mon Sep  8 01:04:15 1997
++++ cvs-1.10.ignore-hack/src/ignore.c	Sun Jan 23 12:57:50 2000
+@@ -99,9 +99,9 @@
+ /*
+  * Open a file and read lines, feeding each line to a line parser. Arrange
+  * for keeping a temporary list of wildcards at the end, if the "hold"
+- * argument is set.
++ * argument is set.  Return true when the file exists and has been handled.
+  */
+-void
++int
+ ign_add_file (file, hold)
+     char *file;
+     int hold;
+@@ -149,8 +149,8 @@
+     if (fp == NULL)
+     {
+ 	if (! existence_error (errno))
+-	    error (0, errno, "cannot open %s", file);
+-	return;
++	  error (0, errno, "cannot open %s", file);
++	return 0;
+     }
+     while (getline (&line, &line_allocated, fp) >= 0)
+ 	ign_add (line, hold);
+@@ -159,6 +159,7 @@
+     if (fclose (fp) < 0)
+ 	error (0, errno, "cannot close %s", file);
+     free (line);
++    return 1;
+ }
+ 
+ /* Parse a line of space-separated wildcards and add them to the list. */
+@@ -375,6 +376,7 @@
+     struct stat sb;
+     char *file;
+     char *xdir;
++    char *cvsdotignore;
+ 
+     /* Set SUBDIRS if we have subdirectory information in ENTRIES.  */
+     if (entries == NULL)
+@@ -397,7 +399,10 @@
+     if (dirp == NULL)
+ 	return;
+ 
+-    ign_add_file (CVSDOTIGNORE, 1);
++    cvsdotignore = getenv("CVSDOTIGNORE");
++    if (cvsdotignore == NULL || !ign_add_file (cvsdotignore, 1))
++      ign_add_file (CVSDOTIGNORE, 1);
++
+     wrap_add_file (CVSDOTWRAPPER, 1);
+ 
+     while ((dp = readdir (dirp)) != NULL)
+=== patch end ===
+
+This one is for pcl-cvs-2.9.2, so that `i' adds to the local
+.cvsignore file.
+
+=== patch start ===
+--- pcl-cvs.el~ Mon Nov  1 12:33:46 1999
++++ pcl-cvs.el  Tue Jan 25 21:46:27 2000
+@@ -1177,7 +1177,10 @@
+   "Append the file in FILEINFO to the .cvsignore file.
+ Can only be used in the *cvs* buffer."
+   (save-window-excursion
+-    (set-buffer (find-file-noselect (expand-file-name ".cvsignore" dir)))
++    (set-buffer (find-file-noselect 
++                (expand-file-name (or (getenv "CVSDOTIGNORE")
++                                      ".cvsignore")
++                                  dir)))
+     (goto-char (point-max))
+     (unless (zerop (current-column)) (insert "\n"))
+     (insert str "\n")
+=== patch end ===
