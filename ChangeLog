@@ -21,7 +21,9 @@
 	are commented out now INCLTDL and LIBLTDL.  I think we may not
 	need them anymore, but I'll leave them until we're sure.  We also
 	killed off the libltdl dir and related options including the
-	AC_CONFIG_SUBDIRS.
+	AC_CONFIG_SUBDIRS.  I also added some explicit tests for some
+	headers and functions that weren't listed but were in
+	scmconfig.h.in. though this may have been unnecessary.
 
 2002-10-04  Marius Vollmer  <mvo@zagadka.ping.de>
 
