@@ -1,3 +1,8 @@
+1999-08-05  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* eval.c (SCM_CEVAL:SCM_IM_DISPATCH): Bugfix: Jump back to
+	cdrxnoap and loopnoap instead of begin and loop.
+
 1999-08-04  Gary Houston  <ghouston@easynet.co.uk>
 
 	* ports.c (scm_putc, scm_puts),
