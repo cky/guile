@@ -261,3 +261,7 @@
 (variable-set! (builtin-variable '%%emacs-frame-eval) emacs-frame-eval)
 (variable-set! (builtin-variable '%%emacs-symdoc) emacs-symdoc)
 (variable-set! (builtin-variable '%%apropos-internal) apropos-internal)
+
+;;; Set backtrace width to 60
+
+(debug-set! width 60)
