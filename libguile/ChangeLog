@@ -1,3 +1,15 @@
+2002-06-30  Gary Houston  <ghouston@arglist.com>
+
+	* posix.c (scm_convert_exec_args), dynl.c
+	(scm_make_argv_from_stringlist): static procs: 1) renamed both to
+	allocate_string_pointers.  2) simplified: don't reallocate the
+	strings, just make an array of pointers 3) avoid memory leaks on
+	error 4) let the procedure report errors in its own name.
+	Consequences: 1) the procedures now assume that SCM strings are
+	nul-terminated, which should always be the case.  2) Since strings
+	are not reallocated, it's now possible for strings passed to
+	dynamic-args-call to be mutated.
+
 2002-06-28  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* __scm.h, eval.c, eval.h:  Removed compile time option

@@ -75,60 +75,6 @@ maybe_drag_in_eprintf ()
 #include "libguile/lang.h"
 #include "libguile/validate.h"
 
-/* Create a new C argv array from a scheme list of strings. */
-/* Dirk:FIXME:: A quite similar function is implemented in posix.c */
-/* Dirk:FIXME:: In case of assertion errors, we get memory leaks */
-
-/* Converting a list of SCM strings into a argv-style array.  You must
-   have ints disabled for the whole lifetime of the created argv (from
-   before MAKE_ARGV_FROM_STRINGLIST until after
-   MUST_FREE_ARGV). Atleast this is was the documentation for
-   MAKARGVFROMSTRS says, it isn't really used that way.
-
-   This code probably belongs into strings.c 
-   (Dirk: IMO strings.c is not the right place.) */
-
-static char **
-scm_make_argv_from_stringlist (SCM args, int *argcp, const char *subr, 
-			       int argn)
-{
-  char **argv;
-  int argc;
-  int i;
-
-  argc = scm_ilength (args);
-  SCM_ASSERT (argc >= 0, args, argn, subr);
-  argv = (char **) scm_malloc ((argc + 1) * sizeof (char *));
-  for (i = 0; !SCM_NULL_OR_NIL_P (args); args = SCM_CDR (args), ++i) {
-    SCM arg = SCM_CAR (args);
-    size_t len;
-    char *dst;
-    char *src;
-
-    SCM_ASSERT (SCM_STRINGP (arg), args, argn, subr);
-    len = SCM_STRING_LENGTH (arg);
-    src = SCM_STRING_CHARS (arg);
-    dst = (char *) scm_malloc (len + 1);
-    memcpy (dst, src, len);
-    dst[len] = 0;
-    argv[i] = dst;
-  }
-
-  if (argcp)
-    *argcp = argc;
-  argv[argc] = 0;
-  return argv;
-}
-
-static void
-scm_free_argv (char **argv)
-{
-  char **av = argv;
-  while (*av)
-    free (*(av++));
-  free (argv);
-}
-
 /* Dispatch to the system dependent files
  *
  * They define some static functions.  These functions are called with
@@ -372,6 +318,35 @@ SCM_DEFINE (scm_dynamic_call, "dynamic-call", 2, 0, 0,
 }
 #undef FUNC_NAME
 
+/* return a newly allocated array of char pointers to each of the strings
+   in args, with a terminating NULL pointer.  */
+/* Note: a similar function is defined in posix.c, but we don't necessarily
+   want to export it.  */
+static char **allocate_string_pointers (SCM args, int *num_args_return)
+{
+  char **result;
+  int n_args = scm_ilength (args);
+  int i;
+
+  SCM_ASSERT (n_args >= 0, args, SCM_ARGn, "allocate_string_pointers");
+  result = (char **) scm_malloc ((n_args + 1) * sizeof (char *));
+  result[n_args] = NULL;
+  for (i = 0; i < n_args; i++)
+    {
+      SCM car = SCM_CAR (args);
+
+      if (!SCM_STRINGP (car))
+	{
+	  free (result);
+	  scm_wrong_type_arg ("allocate_string_pointers", SCM_ARGn, car);
+	}
+      result[i] = SCM_STRING_CHARS (SCM_CAR (args));
+      args = SCM_CDR (args);
+    }
+  *num_args_return = n_args;
+  return result;
+}
+
 SCM_DEFINE (scm_dynamic_args_call, "dynamic-args-call", 3, 0, 0, 
             (SCM func, SCM dobj, SCM args),
 	    "Call the C function indicated by @var{func} and @var{dobj},\n"
@@ -397,9 +372,12 @@ SCM_DEFINE (scm_dynamic_args_call, "dynamic-args-call", 3, 0, 0,
 
   fptr = (int (*) (int, char **)) SCM_NUM2ULONG (1, func);
   SCM_DEFER_INTS;
-  argv = scm_make_argv_from_stringlist (args, &argc, FUNC_NAME, SCM_ARG3);
+  argv = allocate_string_pointers (args, &argc);
+  /* if the procedure mutates its arguments, the original strings will be
+     changed -- in Guile 1.6 and earlier, this wasn't the case since a
+     new copy of each string was allocated.  */
   result = (*fptr) (argc, argv);
-  scm_free_argv (argv);
+  free (argv);
   SCM_ALLOW_INTS;
 
   return SCM_MAKINUM (0L + result);

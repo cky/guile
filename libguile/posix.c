@@ -827,37 +827,32 @@ SCM_DEFINE (scm_tcsetpgrp, "tcsetpgrp", 2, 0, 0,
 #undef FUNC_NAME
 #endif /* HAVE_TCSETPGRP */
 
-/* Create a new C argv array from a scheme list of strings. */
-/* Dirk:FIXME:: A quite similar function is implemented in dynl.c */
-/* Dirk:FIXME:: In case of assertion errors, we get memory leaks */
-
-static char **
-scm_convert_exec_args (SCM args, int argn, const char *subr)
+/* return a newly allocated array of char pointers to each of the strings
+   in args, with a terminating NULL pointer.  */
+/* Note: a similar function is defined in dynl.c, but we don't necessarily
+   want to export it.  */
+static char **allocate_string_pointers (SCM args)
 {
-  char **argv;
-  int argc;
+  char **result;
+  int n_args = scm_ilength (args);
   int i;
 
-  argc = scm_ilength (args);
-  SCM_ASSERT (argc >= 0, args, argn, subr);
-  argv = (char **) scm_malloc ((argc + 1) * sizeof (char *));
-  for (i = 0; !SCM_NULLP (args); args = SCM_CDR (args), ++i)
+  SCM_ASSERT (n_args >= 0, args, SCM_ARGn, "allocate_string_pointers");
+  result = (char **) scm_malloc ((n_args + 1) * sizeof (char *));
+  result[n_args] = NULL;
+  for (i = 0; i < n_args; i++)
     {
-      SCM arg = SCM_CAR (args);
-      size_t len;
-      char *dst;
-      char *src;
+      SCM car = SCM_CAR (args);
 
-      SCM_ASSERT (SCM_STRINGP (arg), args, argn, subr);
-      len = SCM_STRING_LENGTH (arg);
-      src = SCM_STRING_CHARS (arg);
-      dst = (char *) scm_malloc (len + 1);
-      memcpy (dst, src, len);
-      dst[len] = 0;
-      argv[i] = dst;
+      if (!SCM_STRINGP (car))
+	{
+	  free (result);
+	  scm_wrong_type_arg ("allocate_string_pointers", SCM_ARGn, car);
+	}
+      result[i] = SCM_STRING_CHARS (SCM_CAR (args));
+      args = SCM_CDR (args);
     }
-  argv[i] = 0;
-  return argv;
+  return result;
 }
 
 SCM_DEFINE (scm_execl, "execl", 1, 0, 1, 
@@ -875,7 +870,7 @@ SCM_DEFINE (scm_execl, "execl", 1, 0, 1,
 {
   char **execargv;
   SCM_VALIDATE_STRING (1, filename);
-  execargv = scm_convert_exec_args (args, SCM_ARG2, FUNC_NAME);
+  execargv = allocate_string_pointers (args);
   execv (SCM_STRING_CHARS (filename), execargv);
   SCM_SYSERROR;
   /* not reached.  */
@@ -895,7 +890,7 @@ SCM_DEFINE (scm_execlp, "execlp", 1, 0, 1,
 {
   char **execargv;
   SCM_VALIDATE_STRING (1, filename);
-  execargv = scm_convert_exec_args (args, SCM_ARG2, FUNC_NAME);
+  execargv = allocate_string_pointers (args);
   execvp (SCM_STRING_CHARS (filename), execargv);
   SCM_SYSERROR;
   /* not reached.  */
@@ -948,7 +943,7 @@ SCM_DEFINE (scm_execle, "execle", 2, 0, 1,
 
   SCM_VALIDATE_STRING (1, filename);
   
-  execargv = scm_convert_exec_args (args, SCM_ARG1, FUNC_NAME);
+  execargv = allocate_string_pointers (args);
   exec_env = environ_list_to_c (env, SCM_ARG2, FUNC_NAME);
   execve (SCM_STRING_CHARS (filename), execargv, exec_env);
   SCM_SYSERROR;
