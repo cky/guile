@@ -1,4 +1,6 @@
-1999-09-20  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+1999-09-21  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* __scm.h (SCM_WTA_DISPATCH_0, SCM_GASSERT0): New macros.
 
 	* numbers.c (scm_max, scm_min, scm_sum, scm_difference,
 	scm_product, scm_divide): Bugfix: Don't pass SCM_UNDEFINED to the

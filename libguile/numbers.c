@@ -3030,9 +3030,9 @@ scm_max (x, y)
 #endif
   if (SCM_UNBNDP (y))
     {
-#ifndef SCM_RECKLESS
+      SCM_GASSERT0 (!SCM_UNBNDP (x),
+		    g_max, scm_makfrom0str (s_max), SCM_WNA, 0);
       SCM_GASSERT1 (SCM_NUMBERP (x), g_max, x, SCM_ARG1, s_max);
-#endif
       return x;
     }
 #ifdef SCM_FLOATS
@@ -3147,9 +3147,9 @@ scm_min (x, y)
 #endif
   if (SCM_UNBNDP (y))
     {
-#ifndef SCM_RECKLESS
+      SCM_GASSERT0 (!SCM_UNBNDP (x),
+		    g_min, scm_makfrom0str (s_min), SCM_WNA, 0);
       SCM_GASSERT1 (SCM_NUMBERP (x), g_min, x, SCM_ARG1, s_min);
-#endif
       return x;
     }
 #ifdef SCM_FLOATS
@@ -3462,6 +3462,8 @@ scm_difference (x, y)
 	{
 	  if (SCM_UNBNDP (y))
 	    {
+	      SCM_GASSERT0 (!SCM_UNBNDP (x), g_difference,
+			    scm_makfrom0str (s_difference), SCM_WNA, 0);
 	    badx:
 	      SCM_WTA_DISPATCH_1 (g_difference, x, SCM_ARG1, s_difference);
 	    }
@@ -3918,6 +3920,8 @@ scm_divide (x, y)
 	{
 	  if (SCM_UNBNDP (y))
 	    {
+	      SCM_GASSERT0 (!SCM_UNBNDP (x),
+			    g_divide, scm_makfrom0str (s_divide), SCM_WNA, 0);
 	    badx:
 	      SCM_WTA_DISPATCH_1 (g_divide, x, SCM_ARG1, s_divide);
 	    }
