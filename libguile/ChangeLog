@@ -7,6 +7,26 @@
 	* backtrace.c (display_header): Add 1 to line and column numbers
 	when presenting them to the user.
 
+	* eval.h, eval.c, debug.h, debug.c (scm_evaluator_traps): Moved
+	from debug.c --> eval.c
+
+	* eval.h, eval.c (scm_eval_options_interface): New options
+	interface.
+	(SCM_EVAL_STACK): New option: Size of newly created stacks,
+	i.e. stacks for new threads.
+	
+	* coop.c (COOP_STKSIZE): Use SCM_EVAL_STACK.
+
+	* eval.c (unsafe_setjmp): Removed with #if 0.
+
+	* gsubr.c (scm_gsubr_apply): Added dummy return to avoid compiler
+	warning.
+
+	* eval.c, numbers.c, unif.c, srcprop.c: Added a few curly braces
+	to avoid compiler warnings.
+
+	* dynl-dl.c (sysdep_dynl_func): Only define usymb if needed.
+
 1998-03-28  Mikael Djurfeldt  <mdj@nada.kth.se>
 
 	* throw.c (handler_message): Print message on current error port
