@@ -598,11 +598,11 @@ T-Scheme compatibility.
 Argument jumping.  Parameter: @var{N}.
 
 Move forward @var{N} arguments (default 1) in the argument list.  With
-the @nicode{:} modifier move backwards.  @var{N} can be negative to
-move backwards too.
+the @nicode{:} modifier move backwards.  (@var{N} cannot be negative.)
 
 @example
-(format #f "~d ~:*~d" 6) @result{} "6 6"
+(format #f "~d ~2*~d" 1 2 3 4) @result{} "1 4"
+(format #f "~d ~:*~d" 6)       @result{} "6 6"
 @end example
 
 With the @nicode{@@} modifier, move to argument number @var{N}.  The
@@ -613,20 +613,16 @@ first argument is number 0 (and that's the default for @var{N}).
 (format #f "~d~d~d ~1@@*~d~d" 1 2 3)  @result{} "123 23"
 @end example
 
-At the end of the format string the last argument must have been
-consumed, or a ``too many arguments'' error results.  If the last
-argument is not the last to be printed, then a move to skip the
-remaining must be given.  This can be done with the @nicode{#}
-parameter (count of remaining arguments).
-
-@example
-(format #t "~2*~d"    1 2 3 4)  ;; error
-(format #t "~2*~d~#*" 1 2 3 4)  @result{} 3
-@end example
-
 A @nicode{#} move to the end followed by a @nicode{:} modifier move
 back can be used for an absolute position relative to the end of the
 argument list, a reverse of what the @nicode{@@} modifier does.
+
+@example
+(format #t "~#*~2:*~a" 'a 'b 'c 'd)   @print{} c
+@end example
+
+At the end of the format string, the current argument postion doesn't
+matter, any further arguments are ignored.
 
 @item @nicode{~t}
 Advance to a column position.  Parameters: @var{colnum}, @var{colinc},
@@ -659,6 +655,9 @@ isn't already so.
 @example
 (format #f "a~3,5'*@@tx") @result{} "a****x"
 @end example
+
+@nicode{~t} is implemented using @code{port-column} (@pxref{Reading}),
+so it works even there has been other output before @code{format}.
 
 @item @nicode{~~}
 Tilde character.  Parameter: @var{n}.
@@ -882,8 +881,8 @@ for a number out of range.
 @end example
 
 The @nicode{:} modifier to @nicode{~[} treats the argument as a flag,
-and expects two clauses.  The first used if the argument is @code{#f}
-or the second otherwise.
+and expects two clauses.  The first is used if the argument is
+@code{#f} or the second otherwise.
 
 @example
 (format #f "~:[false~;not false~]" #f)   @result{} "false"
@@ -971,9 +970,8 @@ the @nicode{:} modifier insert the format implementation version.
 @end table
 
 @sp 1
-It's an error if there are too many or not enough arguments for the
-escapes in the format string.  (Unwanted arguments can be skipped with
-an argument jump @nicode{~#*} described above if desired.)
+It's an error if there are not enough arguments for the escapes in the
+format string, but any excess arguments are ignored.
 
 Iterations @nicode{~@{} @nicode{~@}} and conditionals @nicode{~[}
 @nicode{~;} @nicode{~]} can be nested, but must be properly nested,
