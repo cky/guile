@@ -1,6 +1,6 @@
 ;;;; ls.scm --- functions for browsing modules
 ;;;;
-;;;; 	Copyright (C) 1995, 1996, 1997 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1995, 1996, 1997, 1999 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -35,6 +35,9 @@
 ;;;
 ;;;	ls . various-names
 ;;;
+;;;		With no arguments, return a list of definitions in
+;;;		`(current-module)'.
+;;;
 ;;;		With just one argument, interpret that argument as the
 ;;;		name of a subdirectory of the current module and
 ;;;		return a list of names defined there.
@@ -45,6 +48,9 @@
 ;;;			 (<subdir-name> . <names-defined-there>)
 ;;;			 ...)
 ;;;
+;;;     lls . various-names
+;;;
+;;;		Analogous to `ls', but with local definitions only.
 
 (define-public (local-definitions-in root names)
   (let ((m (nested-ref root names))
@@ -64,22 +70,26 @@
 			   (module-uses m)))))))
 
 (define-public (ls . various-refs)
-  (and (pair? various-refs)
+  (if (pair? various-refs)
        (if (cdr various-refs)
 	   (map (lambda (ref)
 		  (cons ref (definitions-in (current-module) ref)))
 		various-refs)
-	   (definitions-in (current-module) (car various-refs)))))
+	  (definitions-in (current-module) (car various-refs)))
+      (definitions-in (current-module) '())))
 
 (define-public (lls . various-refs)
-  (and (pair? various-refs)
+  (if (pair? various-refs)
        (if (cdr various-refs)
 	   (map (lambda (ref)
 		  (cons ref (local-definitions-in (current-module) ref)))
 		various-refs)
-	   (local-definitions-in (current-module) (car various-refs)))))
+	  (local-definitions-in (current-module) (car various-refs)))
+      (local-definitions-in (current-module) '())))
 
 (define-public (recursive-local-define name value)
   (let ((parent (reverse! (cdr (reverse name)))))
     (and parent (make-modules-in (current-module) parent))
     (local-define name value)))
+
+;;; ls.scm ends here
