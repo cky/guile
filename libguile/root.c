@@ -335,7 +335,7 @@ cwdr (SCM proc, SCM a1, SCM args, SCM handler, SCM_STACKITEM *stack_start)
 
 SCM_DEFINE (scm_call_with_dynamic_root, "call-with-dynamic-root", 2, 0, 0,
            (SCM thunk, SCM handler),
-	    "Evaluate @var{(thunk)} in a new dynamic context, returning its value.\n\n"
+	    "Evaluate @code{(thunk)} in a new dynamic context, returning its value.\n\n"
 	    "If an error occurs during evaluation, apply @var{handler} to the\n"
 	    "arguments to the throw, just as @code{throw} would.  If this happens,\n"
 	    "@var{handler} is called outside the scope of the new root -- it is\n"

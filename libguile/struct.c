@@ -410,7 +410,7 @@ scm_free_structs (void *dummy1, void *dummy2, void *dummy3)
 SCM_DEFINE (scm_make_struct, "make-struct", 2, 0, 1, 
             (SCM vtable, SCM tail_array_size, SCM init),
 	    "Create a new structure.\n\n"
-	    "@var{type} must be a vtable structure (@xref{Vtables}).\n\n"
+	    "@var{type} must be a vtable structure (@pxref{Vtables}).\n\n"
 	    "@var{tail-elts} must be a non-negative integer.  If the layout\n"
 	    "specification indicated by @var{type} includes a tail-array,\n"
 	    "this is the number of elements allocated to that array.\n\n"

@@ -1,3 +1,11 @@
+2000-09-22  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* struct.c (scm_make_struct): Fix texinfo warning in docstring by
+	using @pxref rather than @xref.
+
+	* root.c (scm_call_with_dynamic_root): Fix texinfo warning in
+	docstring by using @code for (thunk) rather than @var.
+
 2000-09-20  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* numbers.c (scm_istr2flo): Throw an `out of range' error when
