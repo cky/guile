@@ -85,7 +85,7 @@ extern scm_t_rec_mutex_unlock scm_i_plugin_rec_mutex_unlock;
 typedef int (*scm_t_cond_wait) (scm_t_cond *, scm_t_mutex *);
 typedef int (*scm_t_cond_timedwait) (scm_t_cond *,
 				     scm_t_mutex *,
-				     const struct timespec *);
+				     const scm_t_timespec *);
 extern scm_t_cond_wait scm_i_plugin_cond_wait;
 extern scm_t_cond_timedwait scm_i_plugin_cond_timedwait;
 
