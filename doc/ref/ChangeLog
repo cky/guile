@@ -1,3 +1,8 @@
+2001-11-18  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scheme-data.texi (Vectors): Autoupdate docs for
+	vector-move-left! and vector-move-right!.
+
 2001-11-16  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* debugging.texi, deprecated.texi, intro.texi, misc-modules.texi,

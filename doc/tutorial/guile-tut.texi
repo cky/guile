@@ -285,7 +285,7 @@ In the fall of 1994, Richard Stallman, director of the GNU project,
 posted an article with the subject "Why you should not use Tcl", in
 which he argued that Tcl is inadequate as an extension language.  This
 generated a flurry of flames (available in the hypermail archive
-(@url{http://www.utdallas.edu/acc/glv/Tcl/war/}) @strong{The Tcl War}).
+(@url{http://www.vanderburg.org/Tcl/war/}) @strong{The Tcl War}).
 @cindex Stallman, Richard
 @cindex GNU project
 @cindex Tcl
@@ -293,7 +293,7 @@ generated a flurry of flames (available in the hypermail archive
 The result was that Stallman then proposed his design for the GNU
 Extension Language, first called GEL and then renamed Guile.  The
 discussion triggered by that article is also available in a hypermail
-archive, @url{http://www.utdallas.edu/acc/glv/Tcl/war2/}.
+archive, @url{http://www.vanderburg.org/Tcl/war2/}.
 
 One interesting feature of this GNU Extension Language plan was that
 users should have a @emph{choice} of languages to use in extending their

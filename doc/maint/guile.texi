@@ -4986,13 +4986,27 @@ returned by @code{vector-fill!} is unspecified.
 vector-move-left!
 @deffn {Scheme Procedure} vector-move-left! vec1 start1 end1 vec2 start2
 @deffnx {C Function} scm_vector_move_left_x (vec1, start1, end1, vec2, start2)
-Vector version of @code{substring-move-left!}.
+Copy elements from @var{vec1}, positions @var{start1} to @var{end1},
+to @var{vec2} starting at position @var{start2}.  @var{start1} and
+@var{start2} are inclusive indices; @var{end1} is exclusive.
+
+@code{vector-move-left!} copies elements in leftmost order.
+Therefore, in the case where @var{vec1} and @var{vec2} refer to the
+same vector, @code{vector-move-left!} is usually appropriate when
+@var{start1} is greater than @var{start2}.
 @end deffn
 
 vector-move-right!
 @deffn {Scheme Procedure} vector-move-right! vec1 start1 end1 vec2 start2
 @deffnx {C Function} scm_vector_move_right_x (vec1, start1, end1, vec2, start2)
-Vector version of @code{substring-move-right!}.
+Copy elements from @var{vec1}, positions @var{start1} to @var{end1},
+to @var{vec2} starting at position @var{start2}.  @var{start1} and
+@var{start2} are inclusive indices; @var{end1} is exclusive.
+
+@code{vector-move-right!} copies elements in rightmost order.
+Therefore, in the case where @var{vec1} and @var{vec2} refer to the
+same vector, @code{vector-move-right!} is usually appropriate when
+@var{start1} is less than @var{start2}.
 @end deffn
 
 major-version

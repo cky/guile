@@ -1,3 +1,9 @@
+2001-11-18  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* vectors.c (scm_vector_move_left_x, scm_vector_move_right_x):
+	Rewrite docstrings without reference to substring-move-left/right,
+	since the latter no longer exist.
+
 2001-11-17  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* eval.c:  Removed bogus comment about acros.

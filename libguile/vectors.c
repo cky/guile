@@ -275,7 +275,13 @@ scm_vector_equal_p(SCM x, SCM y)
 
 SCM_DEFINE (scm_vector_move_left_x, "vector-move-left!", 5, 0, 0, 
             (SCM vec1, SCM start1, SCM end1, SCM vec2, SCM start2),
-	    "Vector version of @code{substring-move-left!}.")
+	    "Copy elements from @var{vec1}, positions @var{start1} to @var{end1},\n"
+	    "to @var{vec2} starting at position @var{start2}.  @var{start1} and\n"
+	    "@var{start2} are inclusive indices; @var{end1} is exclusive.\n\n"
+	    "@code{vector-move-left!} copies elements in leftmost order.\n"
+	    "Therefore, in the case where @var{vec1} and @var{vec2} refer to the\n"
+	    "same vector, @code{vector-move-left!} is usually appropriate when\n"
+	    "@var{start1} is greater than @var{start2}.")
 #define FUNC_NAME s_scm_vector_move_left_x
 {
   long i;
@@ -298,7 +304,13 @@ SCM_DEFINE (scm_vector_move_left_x, "vector-move-left!", 5, 0, 0,
 
 SCM_DEFINE (scm_vector_move_right_x, "vector-move-right!", 5, 0, 0, 
             (SCM vec1, SCM start1, SCM end1, SCM vec2, SCM start2),
-	    "Vector version of @code{substring-move-right!}.")
+	    "Copy elements from @var{vec1}, positions @var{start1} to @var{end1},\n"
+	    "to @var{vec2} starting at position @var{start2}.  @var{start1} and\n"
+	    "@var{start2} are inclusive indices; @var{end1} is exclusive.\n\n"
+	    "@code{vector-move-right!} copies elements in rightmost order.\n"
+	    "Therefore, in the case where @var{vec1} and @var{vec2} refer to the\n"
+	    "same vector, @code{vector-move-right!} is usually appropriate when\n"
+	    "@var{start1} is less than @var{start2}.")
 #define FUNC_NAME s_scm_vector_move_right_x
 {
   long i;
