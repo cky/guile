@@ -1,3 +1,14 @@
+2004-10-22  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* Makefile.am (INCLUDES): Use @LTDLINC@ instead of
+	"-I$(top_srcdir)/libguile-ltdl".
+	(libguile_la_LIBADD): Use @LIBLTDL@ instead of
+	"../libguile-ltdl/libguile-ltdl.a".
+	
+	* guile.c, dynl.c: Switched to using libltdl directly.  Replaced
+	all references to scm_lt_* with just lt_*.  Include <ltdl.h>
+	instead of <libguile-ltdl.h>.
+
 2004-10-20  Marius Vollmer  <mvo@zagadka.de>
 
 	* sort.c (quicksort): Copy pivot out of the array while
@@ -14,7 +25,7 @@
 	scm_out_of_range.	
 
 	* sort.c (scm_restricted_vector_sort_x): Validate startpos <=
-	endpos.  State inclusiveness/exclusiveness if bounds in docstring.
+	endpos.  State inclusiveness/exclusiveness of bounds in docstring.
 
 	* unif.c (scm_array_p): When no prototype is given, explicitely
 	test for allowable types, do not simply return true.  Thanks to

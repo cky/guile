@@ -1,3 +1,17 @@
+2004-10-22  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+        Removed usage of libguile-ltdl.
+	
+	* configure.in: Call AC_LIBLTDL_INSTALLABLE instead of
+	AC_LIB_LTDL.
+	(AC_CONFIG_SUBDIRS): Added libltdl.
+	(DLPREOPEN, LTDLINC, LIBLTDL): Moved AC_SUBST near other libtool
+	stuff.  Also subst LTDLINC instead of INCLTDL.
+	(AC_CONFIG_FILES): Removed libguile-ltdl/Makefile and
+	libguile-ltdl/upstream/Makefile.
+
+	* Makefile.am (SUBDIRS): Replaced libguile-ltdl with libltdl.
+
 2004-09-28  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* ABOUT-NLS: New, from gettext 0.14.1.

@@ -115,10 +115,9 @@ This is an implementation of SRFI-31 which provides a special form
 The modules are still available, tho, and you could use them together
 with a renaming import, for example.
 
-** Guile now includes its own version of libltdl.
+** Guile no longer includes its own version of libltdl.
 
-We now use a modified version of libltdl that allows us to make
-improvements to it without having to rely on libtool releases.
+The official version is good enough now.
 
 ** The --enable-htmldoc option has been removed from 'configure'.
 
