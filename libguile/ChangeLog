@@ -1,3 +1,14 @@
+2002-03-26  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* srcprop.[ch] (scm_c_source_property_breakpoint_p):  New
+	function, replaces macro SRCBRKP.
+
+	(SRCBRKP):  Deprecated.
+
+	* eval.c (SCM_CEVAL): Replaced use of SRCBRKP by call to
+	scm_c_source_property_breakpoint_p.  Removed some use of arg1 as
+	temporary variable.
+
 2002-03-25  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* debug.h, eval.c: Deprecated CHECK_ENTRY, CHECK_APPLY and

@@ -1939,19 +1939,21 @@ start:
   debug.info->e.env = env;
   if (scm_check_entry_p && SCM_TRAPS_P)
     {
-      if (SCM_ENTER_FRAME_P || (SCM_BREAKPOINTS_P && SRCBRKP (x)))
+      if (SCM_ENTER_FRAME_P
+	  || (SCM_BREAKPOINTS_P && scm_c_source_property_breakpoint_p (x)))
 	{
-	  SCM tail = SCM_BOOL(SCM_TAILRECP (debug));
+	  SCM stackrep;
+	  SCM tail = SCM_BOOL (SCM_TAILRECP (debug));
 	  SCM_SET_TAILREC (debug);
 	  if (SCM_CHEAPTRAPS_P)
-	    arg1 = scm_make_debugobj (&debug);
+	    stackrep = scm_make_debugobj (&debug);
 	  else
 	    {
 	      int first;
 	      SCM val = scm_make_continuation (&first);
 
 	      if (first)
-		arg1 = val;
+		stackrep = val;
 	      else
 		{
 		  x = val;
@@ -1966,7 +1968,7 @@ start:
 	  SCM_TRAPS_P = 0;
 	  scm_call_4 (SCM_ENTER_FRAME_HDLR,
 		      scm_sym_enter_frame,
-		      arg1,
+		      stackrep,
 		      tail,
 		      scm_unmemocopy (x, env));
 	  SCM_TRAPS_P = 1;

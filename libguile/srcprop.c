@@ -117,6 +117,14 @@ srcprops_print (SCM obj, SCM port, scm_print_state *pstate)
 }
 
 
+int
+scm_c_source_property_breakpoint_p (SCM form)
+{
+  SCM obj = scm_whash_lookup (scm_source_whash, form);
+  return SRCPROPSP (obj) && SRCPROPBRK (obj);
+}
+
+
 SCM
 scm_make_srcprops (long line, int col, SCM filename, SCM copy, SCM plist)
 {

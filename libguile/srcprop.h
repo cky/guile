@@ -115,10 +115,6 @@ typedef struct scm_t_srcprops_chunk
 #define SETSRCPROPLINE(p,l) SETSRCPROPPOS (p, l, SRCPROPCOL (p))
 #define SETSRCPROPCOL(p,c) SETSRCPROPPOS (p, SRCPROPLINE (p), c)
 
-#define SRCBRKP(x) (!SCM_IMP (arg1 = scm_whash_lookup (scm_source_whash, (x)))\
-		    && SRCPROPSP (arg1)\
-		    && SRCPROPBRK (arg1))
-
 #define PROCTRACEP(x) (!SCM_FALSEP (scm_procedure_property (x, scm_sym_trace)))
 
 SCM_API SCM scm_sym_filename;
@@ -129,7 +125,7 @@ SCM_API SCM scm_sym_breakpoint;
 
 
 
-
+SCM_API int scm_c_source_property_breakpoint_p (SCM form);
 SCM_API SCM scm_srcprops_to_plist (SCM obj);
 SCM_API SCM scm_make_srcprops (long line, int col, SCM fname, SCM copy, SCM plist);
 SCM_API SCM scm_source_property (SCM obj, SCM key);
@@ -138,6 +134,10 @@ SCM_API SCM scm_source_properties (SCM obj);
 SCM_API SCM scm_set_source_properties_x (SCM obj, SCM props);
 SCM_API void scm_finish_srcprop (void);
 SCM_API void scm_init_srcprop (void);
+
+#if SCM_ENABLE_DEPRECATED == 1
+#define SRCBRKP(x) (scm_source_property_breakpoint_p (x))
+#endif
 
 #endif  /* SCM_SRCPROP_H */
 
