@@ -6,5 +6,6 @@
 }
 
 aclocal -I .
+libtoolize --copy --automake
 autoconf
-automake
+automake --add-missing
