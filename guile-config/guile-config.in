@@ -48,18 +48,28 @@
     (show-help-overview))))
 
 (define (show-help-overview)
-  (let ((dl display-line-error))
-    (dl "Usage: ")
-    (dl "  " program-name " link        - print libraries to link with")
-    ;; Not yet implemented.
-    ;; (dl "  " program-name " main        - generate initialization code")
-    (dl "  " program-name " info [VAR]  - print Guile build directories")
-    (dl "  " program-name " --help      - show usage info (this message)")
-    (dl "  " program-name " --help SUBCOMMAND - show help for SUBCOMMAND")
-    (dl "  " program-name " --version   - show running version")))
+  (display-line-error "Usage: ")
+  (for-each (lambda (row) ((cadddr row)))
+	    command-table))
+
+(define (usage-help)
+  (let ((dle display-line-error)
+	(p program-name))
+    (dle "  " p " --help      - show usage info (this message)")
+    (dle "  " p " --help SUBCOMMAND - show help for SUBCOMMAND")))
 
 (define (show-version args)
-  (display-line program-name " - Guile version " program-version))
+  (display-line-error program-name " - Guile version " program-version))
+
+(define (help-version)
+  (let ((dle display-line-error))
+    (dle "Usage: " program-name " --version")
+    (dle "Show the version of this script.  This is also the version of")
+    (dle "Guile this script was installed with.")))
+
+(define (usage-version)
+  (display-line-error
+   "  " program-name " --version   - show installed script and Guile version"))
 
 
 ;;;; the "link" subcommand
@@ -123,25 +133,20 @@
   (let ((dle display-line-error))
     (dle "Usage: " program-name " link")
     (dle "Print linker flags for building the `guile' executable.")
-    (dle "Print the linker command-line flags necessary to link against the")
-    (dle "Guile library, and any other libraries it requires.")))
+    (dle "Print the linker command-line flags necessary to link against")
+    (dle "the Guile library, and any other libraries it requires.")))
+
+(define (usage-link)
+  (display-line-error
+   "  " program-name " link        - print libraries to link with"))
 
 
 
-;;;; The "main" subcommand
+;;;; The "compile" subcommand
 
-;;; We haven't implemented this yet, because we don't have the
-;;; mechanisms in place to discover the installed static link
-;;; libraries.  When we do implement this, remember to fix the message
-;;; in show-help-overview.
-(define (build-main args)
-  (display-line-error program-name ": `main' subcommand not yet implemented")
-  (quit 2))
-
-(define (help-main)
-  (let ((dle display-line-error))
-    (dle "Usage: " program-name " main")
-    (dle "This subcommand is not yet implemented.")))
+(define (build-compile) #f)
+(define (help-compile) #f)
+(define (usage-compile) #f)
 
 
 ;;;; The "info" subcommand
@@ -163,13 +168,16 @@
   (newline))
 
 (define (help-info)
-  (let ((dle display-line-error))
-    (dle "Usage: " program-name " info [VAR]")
-    (dle "Display the value of the Makefile variable VAR used when Guile")
-    (dle "was built.  If VAR is omitted, display all Makefile variables.")
-    (dle "Use this command to find out where Guile was installed,")
-    (dle "where it will look for Scheme code at run-time, and so on.")))
+  (let ((d display-line-error))
+    (d "Usage: " program-name " info [VAR]")
+    (d "Display the value of the Makefile variable VAR used when Guile")
+    (d "was built.  If VAR is omitted, display all Makefile variables.")
+    (d "Use this command to find out where Guile was installed,")
+    (d "where it will look for Scheme code at run-time, and so on.")))
 
+(define (usage-info)
+  (display-line-error
+   "  " program-name " info [VAR]  - print Guile build directories"))
 
 
 ;;;; trivial utilities
@@ -209,13 +217,11 @@
 ;;; functions have been defined.
 (define command-table
   (list
-   (list "--version" show-version show-help-overview)
-   (list "--help" show-help show-help-overview)
-   (list "link" build-link help-link)
-   (list "main" build-main help-main)
-   (list "info" build-info help-info)))
-
-
+   (list "--version" show-version help-version usage-version)
+   (list "--help" show-help show-help-overview usage-help)
+   (list "link" build-link help-link usage-link)
+   (list "compile" build-compile help-compile usage-compile)
+   (list "info" build-info help-info usage-info)))
 
 
 ;;; Local Variables:
