@@ -1,3 +1,14 @@
+Sat Jan  8 19:52:04 2000  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* scm_validate.h (SCM_VALIDATE_BOOL_COPY): Fix typo.
+
+Sat Jan  8 17:06:46 2000  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* backtrace.c: Fix spelling typo in a comment.
+
+	* snarf.h: Use new SCM_DOCS macro to encapsulate the non SCM_INIT
+ 	text.  Reformatted some of the expansions.
+
 Fri Jan  7 15:50:46 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* scm_validate.h (SCM_OUT_OF_RANGE): Use scm_out_of_range_pos to
