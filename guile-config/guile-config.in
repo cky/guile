@@ -148,14 +148,17 @@
     ;; do something more dynamic (i.e. what do we need.
     
     ;; Display the flags, separated by spaces.
-    (display-separated (list (get-build-info 'CFLAGS) ""))
-    (if (or (string=? libdir "/usr/lib")
-            (string=? libdir "/usr/lib/"))
-        (display-separated (cons "-lguile -lguile-ltdl" other-flags))
-        (display-separated (cons
-                            (string-append "-L" (get-build-info 'libdir))
-                            (cons "-lguile -lguile-ltdl" other-flags))))
+    (display (string-join
+	      (list
+	       (get-build-info 'CFLAGS)
+	       (string-join other-flags)
+	       "-lguile -lguile-ltdl" 
+	       (if (or (string=? libdir "/usr/lib")
+		       (string=? libdir "/usr/lib/"))
+		   (string-append "-L" (get-build-info 'libdir))
+		   ""))))
     (newline)))
+
 
 (define (help-link)
   (let ((dle display-line-error))
@@ -182,7 +185,7 @@
   ;; `-I/usr/include' may cause trouble."  For now we hard-code this.
   ;; Later maybe we can do something more dynamic.
   (if (not (string=? (get-build-info 'includedir) "/usr/include"))
-      (display-separated (list "-I" (get-build-info 'includedir) "")))
+      (display (string-append "-I" (get-build-info 'includedir))))
   (display-line (get-build-info 'CFLAGS)))
 
 (define (help-compile)
@@ -248,14 +251,6 @@
   (for-each (lambda (arg) (display arg port))
 	    args)
   (newline port))
-
-(define (display-separated args)
-  (if (not (null? args))
-      (begin
-        (display (car args))
-        (for-each
-         (lambda (arg) (display " ") (display arg))
-         (cdr args)))))
 
 
 ;;;; the command table

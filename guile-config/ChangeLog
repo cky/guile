@@ -1,3 +1,9 @@
+2004-10-08  Han-Wen Nienhuys  <hanwen@xs4all.nl>
+
+	* guile-config.in: remove display-separated.
+	(build-link): cleanup.
+	(build-compile): remove space between -I and path.
+
 2004-09-24  Marius Vollmer  <mvo@zagadka.de>
 
 	* guile-config.in (build-link, build-compile): Include CFLAGS in
