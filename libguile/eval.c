@@ -633,40 +633,6 @@ literal_p (const SCM symbol, const SCM env)
     return 0;
 }
 
-#define unmemocar scm_unmemocar
-
-SCM_SYMBOL (sym_three_question_marks, "???");
-
-SCM 
-scm_unmemocar (SCM form, SCM env)
-{
-  if (!SCM_CONSP (form))
-    return form;
-  else
-    {
-      SCM c = SCM_CAR (form);
-      if (SCM_VARIABLEP (c))
-	{
-	  SCM sym = scm_module_reverse_lookup (scm_env_module (env), c);
-	  if (SCM_FALSEP (sym))
-	    sym = sym_three_question_marks;
-	  SCM_SETCAR (form, sym);
-	}
-      else if (SCM_ILOCP (c))
-	{
-	  unsigned long int ir;
-
-	  for (ir = SCM_IFRAME (c); ir != 0; --ir)
-	    env = SCM_CDR (env);
-	  env = SCM_CAAR (env);
-	  for (ir = SCM_IDIST (c); ir != 0; --ir)
-	    env = SCM_CDR (env);
-	  SCM_SETCAR (form, SCM_ICDRP (c) ? env : SCM_CAR (env));
-	}
-      return form;
-    }
-}
-
 
 SCM
 scm_eval_car (SCM pair, SCM env)
@@ -1925,6 +1891,7 @@ static SCM f_apply;
 /* An endless list consisting of #<undefined> objects:  */
 static SCM undefineds;
 
+
 /* scm_unmemocopy takes a memoized expression together with its
  * environment and rewrites it to its original form.  Thus, it is the
  * inversion of the rewrite rules above.  The procedure is not
@@ -1941,17 +1908,52 @@ static SCM undefineds;
  */
 
 static SCM
-build_binding_list (SCM names, SCM inits)
+build_binding_list (SCM rnames, SCM rinits)
 {
   SCM bindings = SCM_EOL;
-  while (!SCM_NULLP (names))
+  while (!SCM_NULLP (rnames))
     {
-      SCM binding = scm_list_2 (SCM_CAR (names), SCM_CAR (inits));
+      SCM binding = scm_list_2 (SCM_CAR (rnames), SCM_CAR (rinits));
       bindings = scm_cons (binding, bindings);
-      names = SCM_CDR (names);
-      inits = SCM_CDR (inits);
+      rnames = SCM_CDR (rnames);
+      rinits = SCM_CDR (rinits);
     }
   return bindings;
+}
+
+
+SCM_SYMBOL (sym_three_question_marks, "???");
+
+#define unmemocar scm_unmemocar
+
+SCM 
+scm_unmemocar (SCM form, SCM env)
+{
+  if (!SCM_CONSP (form))
+    return form;
+  else
+    {
+      SCM c = SCM_CAR (form);
+      if (SCM_VARIABLEP (c))
+	{
+	  SCM sym = scm_module_reverse_lookup (scm_env_module (env), c);
+	  if (SCM_FALSEP (sym))
+	    sym = sym_three_question_marks;
+	  SCM_SETCAR (form, sym);
+	}
+      else if (SCM_ILOCP (c))
+	{
+	  unsigned long int ir;
+
+	  for (ir = SCM_IFRAME (c); ir != 0; --ir)
+	    env = SCM_CDR (env);
+	  env = SCM_CAAR (env);
+	  for (ir = SCM_IDIST (c); ir != 0; --ir)
+	    env = SCM_CDR (env);
+	  SCM_SETCAR (form, SCM_ICDRP (c) ? env : SCM_CAR (env));
+	}
+      return form;
+    }
 }
 
 static SCM
@@ -2032,33 +2034,33 @@ unmemocopy (SCM x, SCM env)
 	/* format: (#@let (nk nk-1 ...) (i1 ... ik) b1 ...),
 	 * where nx is the name of a local variable, ix is an initializer for
 	 * the local variable and by are the body clauses.  */
-	SCM names, inits, bindings;
+	SCM rnames, rinits, bindings;
 
 	x = SCM_CDR (x);
-	names = SCM_CAR (x);
+	rnames = SCM_CAR (x);
 	x = SCM_CDR (x);
-	inits = scm_reverse (unmemocopy (SCM_CAR (x), env));
-	env = SCM_EXTEND_ENV (names, SCM_EOL, env);
+	rinits = scm_reverse (unmemocopy (SCM_CAR (x), env));
+	env = SCM_EXTEND_ENV (rnames, SCM_EOL, env);
 
-	bindings = build_binding_list (names, inits);
+	bindings = build_binding_list (rnames, rinits);
 	z = scm_cons (bindings, SCM_UNSPECIFIED);
 	ls = scm_cons (scm_sym_let, z);
 	break;
       }
     case SCM_BIT7 (SCM_IM_LETREC):
       {
-	/* format: (#@letrec (nk nk-1 ...) (i1 ... ik) b1 ...),
-	 * where nx is the name of a local variable, ix is an initializer for
+	/* format: (#@letrec (vn ... v2 v1) (i1 i2 ... in) b1 ...),
+	 * where vx is the name of a local variable, ix is an initializer for
 	 * the local variable and by are the body clauses.  */
-	SCM names, inits, bindings;
+	SCM rnames, rinits, bindings;
 
 	x = SCM_CDR (x);
-	names = SCM_CAR (x);
-	env = SCM_EXTEND_ENV (names, SCM_EOL, env);
+	rnames = SCM_CAR (x);
+	env = SCM_EXTEND_ENV (rnames, SCM_EOL, env);
 	x = SCM_CDR (x);
-	inits = scm_reverse (unmemocopy (SCM_CAR (x), env));
+	rinits = scm_reverse (unmemocopy (SCM_CAR (x), env));
 
-	bindings = build_binding_list (names, inits);
+	bindings = build_binding_list (rnames, rinits);
 	z = scm_cons (bindings, SCM_UNSPECIFIED);
 	ls = scm_cons (scm_sym_letrec, z);
 	break;
@@ -5166,7 +5168,7 @@ scm_init_eval ()
   scm_permanent_object (f_apply);
 
 #include "libguile/eval.x"
-  
+
   scm_add_feature ("delay");
 }
 

@@ -1,3 +1,11 @@
+2003-10-25  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* eval.c (unmemocar, sym_three_question_marks, scm_unmemocar):
+	Grouped together with unmemocopy, without modifications.
+
+	(build_binding_list, unmemocopy): Renamed names of list arguments
+	and variables to reflect the actual order of the list elements.
+
 2003-10-22  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* eval.c (s_defun): New static identifier.
