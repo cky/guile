@@ -107,7 +107,7 @@ SCM_DEFINE (scm_odd_p, "odd?", 1, 0, 0,
     return SCM_BOOL ((1 & SCM_BDIGITS (n) [0]) != 0);
 #endif
   } else {
-    SCM_ASSERT (0, n, 1, FUNC_NAME);
+    SCM_WRONG_TYPE_ARG (1, n);
   }
 }
 #undef FUNC_NAME
@@ -125,7 +125,7 @@ SCM_DEFINE (scm_even_p, "even?", 1, 0, 0,
     return SCM_BOOL ((1 & SCM_BDIGITS (n) [0]) == 0);
 #endif
   } else {
-    SCM_ASSERT (0, n, 1, FUNC_NAME);
+    SCM_WRONG_TYPE_ARG (1, n);
   }
 }
 #undef FUNC_NAME
