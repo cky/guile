@@ -1,17 +1,17 @@
 ;;;; common-list.scm --- COMMON LISP list functions for Scheme
 ;;;;
-;;;; 	Copyright (C) 1995, 1996, 1997 Free Software Foundation, Inc.
-;;;; 
+;;;; 	Copyright (C) 1995, 1996, 1997, 2001 Free Software Foundation, Inc.
+;;;;
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
 ;;;; the Free Software Foundation; either version 2, or (at your option)
 ;;;; any later version.
-;;;; 
+;;;;
 ;;;; This program is distributed in the hope that it will be useful,
 ;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;;;; GNU General Public License for more details.
-;;;; 
+;;;;
 ;;;; You should have received a copy of the GNU General Public License
 ;;;; along with this software; see the file COPYING.  If not, write to
 ;;;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
@@ -40,7 +40,40 @@
 ;;;; If you write modifications of your own for GUILE, it is your choice
 ;;;; whether to permit this exception to apply to your modifications.
 ;;;; If you do not wish that, delete this exception notice.
-;;;; 
+;;;;
+
+;;; Commentary:
+
+;; These procedures are exported:
+;;  (adjoin e l)
+;;  (union l1 l2)
+;;  (intersection l1 l2)
+;;  (set-difference l1 l2)
+;;  (reduce-init p init l)
+;;  (reduce p l)
+;;  (some pred l . rest)
+;;  (every pred l . rest)
+;;  (notany pred . ls)
+;;  (notevery pred . ls)
+;;  (count-if pred l)
+;;  (find-if pred l)
+;;  (member-if pred l)
+;;  (remove-if pred l)
+;;  (remove-if-not pred l)
+;;  (delete-if! pred l)
+;;  (delete-if-not! pred l)
+;;  (butlast lst n)
+;;  (and? . args)
+;;  (or? . args)
+;;  (has-duplicates? lst)
+;;  (pick p l)
+;;  (pick-mappings p l)
+;;  (uniq l)
+;;
+;; See docstrings for each procedure for more info.  See also module
+;; `(srfi srfi-1)' for a complete list handling library.
+
+;;; Code:
 
 (define-module (ice-9 common-list))
 
@@ -63,21 +96,21 @@
 ;promotional, or sales literature without prior written consent in
 ;each case.
 
-(define-public (adjoin e l) 
-  "Returns list L, possibly with element E added if it is not already in L."
+(define-public (adjoin e l)
+  "Return list L, possibly with element E added if it is not already in L."
   (if (memq e l) l (cons e l)))
 
 (define-public (union l1 l2)
-  "Returns a new list that is the union of L1 and L2.
-Elements that occur in both lists will occur only once
-in the result list."
+  "Return a new list that is the union of L1 and L2.
+Elements that occur in both lists occur only once in
+the result list."
   (cond ((null? l1) l2)
 	((null? l2) l1)
 	(else (union (cdr l1) (adjoin (car l1) l2)))))
 
 (define-public (intersection l1 l2)
-  "Returns a new list that is the intersection of L1 and L2.
-Only elements that occur in both lists will occur in the result list."
+  "Return a new list that is the intersection of L1 and L2.
+Only elements that occur in both lists occur in the result list."
   (if (null? l2) l2
       (let loop ((l1 l1) (result '()))
 	(cond ((null? l1) (reverse! result))
@@ -98,9 +131,9 @@ Only elements that occur in both lists will occur in the result list."
       (reduce-init p (p init (car l)) (cdr l))))
 
 (define-public (reduce p l)
-  "Combines all the elements of sequence L using a binary operation P.
-The combination is left-associative. For example, using +, one can
-add up all the elements. `reduce' allows you to apply a function which
+  "Combine all the elements of sequence L using a binary operation P.
+The combination is left-associative.  For example, using +, one can
+add up all the elements.  `reduce' allows you to apply a function which
 accepts only two arguments to more than 2 objects.  Functional
 programmers usually refer to this as foldl."
   (cond ((null? l) l)
@@ -109,11 +142,11 @@ programmers usually refer to this as foldl."
 
 (define-public (some pred l . rest)
   "PRED is a boolean function of as many arguments as there are list
-arguments to `some'. I.e., L plus any optional arguments. PRED is
-applied to successive elements of the list arguments in order. As soon
-as one of these applications returns a true value, `some' terminates
-and returns that value.  If no application returns a true value,
-`some' returns #f. All the lists should have the same length."
+arguments to `some', i.e., L plus any optional arguments.  PRED is
+applied to successive elements of the list arguments in order.  As soon
+as one of these applications returns a true value, return that value.
+If no application returns a true value, return #f.
+All the lists should have the same length."
   (cond ((null? rest)
 	 (let mapf ((l l))
 	   (and (not (null? l))
@@ -136,52 +169,49 @@ PRED is #t and #f otherwise."
 		    (and (apply pred (car l) (map car rest))
 			 (mapf (cdr l) (map cdr rest))))))))
 
-(define-public (notany pred . ls) 
+(define-public (notany pred . ls)
   "Return #t iff every application of PRED to L, etc., returns #f.
 Analogous to some but returns #t if no application of PRED returns a
 true value or #f as soon as any one does."
   (not (apply some pred ls)))
 
-(define-public (notevery pred . ls) 
+(define-public (notevery pred . ls)
   "Return #t iff there is an application of PRED to L, etc., that returns #f.
 Analogous to some but returns #t as soon as an application of PRED returns #f,
 or #f otherwise."
   (not (apply every pred ls)))
 
 (define-public (count-if pred l)
-  "Returns the number of elements in L such that (PRED element)
-returns true."
+  "Return the number of elements in L for which (PRED element) returns true."
   (let loop ((n 0) (l l))
     (cond ((null? l) n)
 	  ((pred (car l)) (loop (+ n 1) (cdr l)))
 	  (else (loop n (cdr l))))))
 
 (define-public (find-if pred l)
-  "Searches for the first element in L such that (PRED element)
-returns true. If it finds any such element in L, element is
-returned. Otherwise, #f is returned."
+  "Search for the first element in L for which (PRED element) returns true.
+If found, return that element, otherwise return #f."
   (cond ((null? l) #f)
 	((pred (car l)) (car l))
 	(else (find-if pred (cdr l)))))
 
 (define-public (member-if pred l)
-  "Returns L if (T element) is true for any element in L.  Returns #f
-if PRED does not apply to any element in L."
+  "Return #f iff (PRED element) is not true for any element in L."
   (cond ((null? l) #f)
 	((pred (car l)) l)
 	(else (member-if pred (cdr l)))))
 
-(define-public (remove-if pred? l)
-  "Removes all elements from L where (PRED? element) is true.
-Returns everything that's left."
+(define-public (remove-if pred l)
+  "Remove all elements from L where (PRED element) is true.
+Return everything that's left."
   (let loop ((l l) (result '()))
     (cond ((null? l) (reverse! result))
 	  ((pred? (car l)) (loop (cdr l) result))
 	  (else (loop (cdr l) (cons (car l) result))))))
 
-(define-public (remove-if-not pred? l)
-  "Removes all elements from L where (PRED? element) is #f.
-Returns everything that's left."
+(define-public (remove-if-not pred l)
+  "Remove all elements from L where (PRED element) is #f.
+Return everything that's left."
   (let loop ((l l) (result '()))
     (cond ((null? l) (reverse! result))
 	  ((not (pred? (car l))) (loop (cdr l) result))
@@ -194,7 +224,7 @@ Returns everything that's left."
 	  ((pred (car l)) (delete-if (cdr l)))
 	  (else
 	   (set-cdr! l (delete-if (cdr l)))
-	   l)))) 
+	   l))))
 
 (define-public (delete-if-not! pred l)
   "Destructive version of `remove-if-not'."
@@ -246,7 +276,7 @@ for which P returns a non-#f value."
      (else		(loop s (cdr l))))))
 
 (define-public (pick-mappings p l)
-  "Apply P to each element of L, returning a list of the 
+  "Apply P to each element of L, returning a list of the
 non-#f return values of P."
   (let loop ((s '())
 	     (l l))
@@ -265,3 +295,5 @@ non-#f return values of P."
 		  acc
 		  (cons (car l) acc))
 	      (cdr l)))))
+
+;;; common-list.scm ends here
