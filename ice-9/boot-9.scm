@@ -1727,7 +1727,7 @@
 ;;
 (define (resolve-module name . maybe-autoload)
   (let ((full-name (append '(app modules) name)))
-    (let ((already (local-ref full-name)))
+    (let ((already (nested-ref the-root-module full-name)))
       (if already
 	  ;; The module already exists...
 	  (if (and (or (null? maybe-autoload) (car maybe-autoload))
