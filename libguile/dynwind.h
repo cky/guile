@@ -36,7 +36,7 @@ SCM_API SCM scm_internal_dynamic_wind (scm_t_guard before,
 				       void *inner_data,
 				       void *guard_data);
 SCM_API void scm_dowinds (SCM to, long delta);
-SCM_API void scm_i_dowinds (SCM to, long delta, int explicit,
+SCM_API void scm_i_dowinds (SCM to, long delta,
 			    void (*turn_func) (void *), void *data);
 SCM_API void scm_init_dynwind (void);
 

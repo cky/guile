@@ -239,8 +239,7 @@ copy_stack_and_call (scm_t_contregs *continuation, SCM val,
   delta = scm_ilength (scm_dynwinds) - scm_ilength (continuation->dynenv);
   data.continuation = continuation;
   data.dst = dst;
-  scm_i_dowinds (continuation->dynenv, delta, 0,
-		 copy_stack, &data);
+  scm_i_dowinds (continuation->dynenv, delta, copy_stack, &data);
 
   scm_last_debug_frame = continuation->dframe;
 

@@ -136,9 +136,9 @@ static scm_t_bits tc16_frame;
 #define FRAME_REWINDABLE_P(f) (SCM_CELL_WORD_0(f) & FRAME_F_REWINDABLE)
 
 static scm_t_bits tc16_winder;
-#define WINDER_P(w)    SCM_SMOB_PREDICATE (tc16_winder, (w))
-#define WINDER_PROC(w) ((void (*)(void *))SCM_CELL_WORD_1 (w))
-#define WINDER_DATA(w) ((void *)SCM_CELL_WORD_2 (w))
+#define WINDER_P(w)     SCM_SMOB_PREDICATE (tc16_winder, (w))
+#define WINDER_PROC(w)  ((void (*)(void *))SCM_CELL_WORD_1 (w))
+#define WINDER_DATA(w)  ((void *)SCM_CELL_WORD_2 (w))
 
 #define WINDER_F_EXPLICIT    (1 << 16)
 #define WINDER_F_REWIND      (1 << 17)
@@ -263,12 +263,11 @@ scm_swap_bindings (SCM vars, SCM vals)
 void
 scm_dowinds (SCM to, long delta)
 {
-  scm_i_dowinds (to, delta, 0, NULL, NULL);
+  scm_i_dowinds (to, delta, NULL, NULL);
 }
 
 void 
-scm_i_dowinds (SCM to, long delta, int explicit,
-	       void (*turn_func) (void *), void *data)
+scm_i_dowinds (SCM to, long delta, void (*turn_func) (void *), void *data)
 {
  tail:
   if (SCM_EQ_P (to, scm_dynwinds))
@@ -281,8 +280,7 @@ scm_i_dowinds (SCM to, long delta, int explicit,
       SCM wind_elt;
       SCM wind_key;
 
-      scm_i_dowinds (SCM_CDR (to), 1 + delta, explicit,
-		     turn_func, data);
+      scm_i_dowinds (SCM_CDR (to), 1 + delta, turn_func, data);
       wind_elt = SCM_CAR (to);
 
 #if 0
@@ -303,11 +301,7 @@ scm_i_dowinds (SCM to, long delta, int explicit,
 	  else if (WINDER_P (wind_elt))
 	    {
 	      if (WINDER_REWIND_P (wind_elt))
-		{
-		  void (*proc) (void *) = WINDER_PROC (wind_elt);
-		  void *data = WINDER_DATA (wind_elt);
-		  proc (data);
-		}
+		WINDER_PROC (wind_elt) (WINDER_DATA (wind_elt));
 	    }
 	  else
 	    {
@@ -349,13 +343,8 @@ scm_i_dowinds (SCM to, long delta, int explicit,
 	    }
 	  else if (WINDER_P (wind_elt))
 	    {
-	      if (!WINDER_REWIND_P (wind_elt)
-		  && (!explicit || WINDER_EXPLICIT_P (wind_elt)))
-		{
-		  void (*proc) (void *) = WINDER_PROC (wind_elt);
-		  void *data = WINDER_DATA (wind_elt);
-		  proc (data);
-		}
+	      if (!WINDER_REWIND_P (wind_elt))
+		WINDER_PROC (wind_elt) (WINDER_DATA (wind_elt));
 	    }
 	  else
 	    {
