@@ -594,6 +594,7 @@ scm_init_guile_1 (SCM_STACKITEM *base)
   scm_stack_checking_enabled_p = SCM_STACK_CHECKING_P;
 #endif
 
+  scm_load_startup_files ();
 }
 
 /* Record here whether SCM_BOOT_GUILE_1 has already been called.  This
@@ -634,8 +635,6 @@ static SCM
 invoke_main_func (void *body_data)
 {
   struct main_func_closure *closure = (struct main_func_closure *) body_data;
-
-  scm_load_startup_files ();
 
   (*closure->main_func) (closure->closure, closure->argc, closure->argv);
 
