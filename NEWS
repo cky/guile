@@ -18,6 +18,8 @@ Changes since the stable branch:
 
 ** Guile is now licensed with the GNU Lesser General Public License.
 
+** The manual is now licensed with the GNU Free Documentation License.
+
 ** Guile now requires GNU MP (http://swox.com/gmp).
 
 Guile now uses the GNU MP library for arbitrary precision arithmetic.
