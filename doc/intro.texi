@@ -1,4 +1,4 @@
-@c $Id: intro.texi,v 1.1 2001-03-09 08:21:59 ossau Exp $
+@c $Id: intro.texi,v 1.2 2001-03-12 00:50:08 mvo Exp $
 
 @page
 @node What is Guile?
@@ -62,6 +62,7 @@ used.
 * Running Guile Interactively::  
 * Guile Scripts::               
 * Linking Programs With Guile::  
+* Writing Extensions for Guile::  
 * Writing Guile Modules::       
 @end menu
 
@@ -355,15 +356,18 @@ Furthermore, any Scheme function described in this manual as a
 The header file @code{<libguile.h>} provides declarations for all of
 Guile's functions and constants.  You should @code{#include} it at the
 head of any C source file that uses identifiers described in this
-manual.
+manual.  Once you've compiled your source files, you need to link them
+against the Guile object code library, @code{libguile}.
 
-Once you've compiled your source files, you can link them against Guile
-by passing the flag @code{-lguile} to your linker.  If you installed
-Guile with multi-thread support (by passing @code{--enable-threads} to
-the @code{configure} script), you may also need to link against the
-QuickThreads library, @code{-lqt}.  Guile refers to various mathematical
-functions, so you will probably need to link against the mathematical
-library, @code{-lm}, as well.
+On most systems, you should not need to do tell the compiler and linker
+explicitely where they can find @file{libguile.h} and @file{libguile}.
+When Guile has been installed in a peculiar way, or when you are on a
+peculiar system, things might not be so easy and you might need to pass
+additional @code{-I} or @code{-L} options to the compiler.  Guile
+provides the utility program @code{guile-config} to help you find the
+right values for these options.  You would typically run
+@code{guile-config} during the configuration phase of your program and
+use the obtained information in the Makefile.
 
 @menu
 * Guile Initialization Functions::  What to call first.
@@ -374,7 +378,19 @@ library, @code{-lm}, as well.
 @node Guile Initialization Functions
 @subsection Guile Initialization Functions
 
-To initialize Guile, use this function:
+To initialize Guile, you can use one of two functions.  The first,
+@code{scm_boot_guile}, is the most portable way to initialize Guile.  It
+should be used whenever you have control over the main function of your
+program because it never returns.  The second function,
+@code{scm_init_guile}, does return and can thus be used in more
+situations.  However, @code{scm_init_guile} is not as widely available
+as @code{scm_boot_guile} because it needs to rely on non-portable code
+to find the stack bounds.  When Guile does not know how to find these
+bounds on your system, it will not provide @code{scm_init_guile}.
+
+When you can tolerate the limits of @code{scm_boot_guile}, you should
+use it in favor of @code{scm_init_guile} since that will make your
+program more portable.
 
 @deftypefun void scm_boot_guile (int @var{argc}, char **@var{argv}, void (*@var{main_func}) (), void *@var{closure})
 Initialize the Guile Scheme interpreter.  Then call @var{main_func},
@@ -391,20 +407,34 @@ function to return the strings given by @var{argc} and @var{argv}.  If
 @code{scm_set_program_arguments} with the final list, so Scheme code
 will know which arguments have been processed.
 
-@code{scm_boot_guile} establishes a catch-all error handler which prints
-an error message and exits the process.  This means that Guile exits in
-a coherent way if a system error occurs and the user isn't prepared to
-handle it.  If the user doesn't like this behavior, they can establish
-their own universal catcher in @var{main_func} to shadow this one.
-
 Why must the caller do all the real work from @var{main_func}?  Guile's
-garbage collector assumes that all local variables which reference
-Scheme objects will be above @code{scm_boot_guile}'s stack frame on the
-stack.  If you try to manipulate Scheme objects after this function
-returns, it's the luck of the draw whether Guile's storage manager will
-be able to find the objects you allocate.  So, @code{scm_boot_guile}
-function exits, rather than returning, to discourage you from making
-that mistake.
+garbage collector scans the stack to find all local variables that
+reference Scheme objects.  To do this, it needs to know the bounds of
+the stack that might contain such references.  Because there is no
+protable way in C to find the base of the stack, @code{scm_boot_guile}
+assumes that all references are above its own stack frame.  If you try
+to manipulate Scheme objects after this function returns, it's the luck
+of the draw whether Guile's storage manager will be able to find the
+objects you allocate.  So, @code{scm_boot_guile} function exits, rather
+than returning, to discourage you from making that mistake.
+
+See @code{scm_init_guile}, below, for a function that can find the real
+base of the stack, but not in a portable way.
+@end deftypefun
+
+@deftypefun void scm_init_guile ()
+Initialize the Guile Scheme interpreter.
+
+In contrast to @code{scm_boot_guile}, this function knows how to find
+the true base of the stack and thus does not need to usurp the control
+flow of your program.  However, since finding the stack base can not be
+done portably, this function might not be available in all installations
+of Guile.  If you can, you should use @code{scm_boot_guile} instead.
+
+Note that @code{scm_init_guile} does not inform Guile about the command
+line arguments that should be returned by the Scheme function
+@code{comamnd-line}.  You can use @code{scm_set_program_arguments} to do
+this.
 @end deftypefun
 
 One common way to use Guile is to write a set of C functions which
@@ -427,10 +457,6 @@ specified by @code{-s} or @code{-e} options, and then exiting.
 
 Since this function does not return, you must do all
 application-specific initialization before calling this function.
-
-If you do not use this function to start Guile, you are responsible for
-making sure Guile's usual initialization files, @file{init.scm} and
-@file{ice-9/boot-9.scm}, get loaded.  This will change soon.
 @end deftypefun
 
 
@@ -468,19 +494,22 @@ Guile, passing it @code{inner_main}.  Once @code{scm_boot_guile} is
 ready, it invokes @code{inner_main}, which calls @code{scm_shell} to
 process the command-line arguments in the usual way.
 
-Here is a Makefile which you can use to compile the above program.
+Here is a Makefile which you can use to compile the above program.  It
+uses @code{guile-config} to learn about the necessary compiler and
+linker flags.
 @example
 # Use GCC, if you have it installed.
 CC=gcc
 
-# Tell the C compiler where to find <libguile.h> and -lguile.
-CFLAGS=-I/usr/local/include -L/usr/local/lib
+# Tell the C compiler where to find <libguile.h>
+CFLAGS=`guile-config compile`
 
-# Include -lqt and -lrx if they are present on your system.
-LIBS=-lguile -lqt -lrx -lm
+# Tell the linker what libraries to use and where to find them.
+LIBS=`guile-config link`
 
 simple-guile: simple-guile.o
-        $@{CC@} $@{CFLAGS@} simple-guile.o $@{LIBS@} -o simple-guile
+        $@{CC@} simple-guile.o $@{LIBS@} -o simple-guile
+
 simple-guile.o: simple-guile.c
         $@{CC@} -c $@{CFLAGS@} simple-guile.c
 @end example
@@ -488,20 +517,22 @@ simple-guile.o: simple-guile.c
 If you are using the GNU Autoconf package to make your application more
 portable, Autoconf will settle many of the details in the Makefile above
 automatically, making it much simpler and more portable; we recommend
-using Autoconf with Guile.  Here is a @file{configure.in} file for
-@code{simple-guile}, which Autoconf can use as a template to generate a
-@code{configure} script:
+using Autoconf with Guile.  Guile also provides the @code{GUILE_FLAGS}
+macro for autoconf that performs all necessary checks.  Here is a
+@file{configure.in} file for @code{simple-guile} that uses this macro.
+Autoconf can use as this file as template to generate a @code{configure}
+script.  In order for Autoconf to find the @code{GUILE_FLAGS} macro, you
+will need to run @code{aclocal} first.  This is not really Guile
+specific, so you should refer to the Autoconf documentation REFFIXME
+when in doubt.
 @example
 AC_INIT(simple-guile.c)
 
 # Find a C compiler.
 AC_PROG_CC
 
-# Check for libraries.
-AC_CHECK_LIB(m, sin)
-AC_CHECK_LIB(rx, regcomp)
-AC_CHECK_LIB(qt, main)
-AC_CHECK_LIB(guile, scm_boot_guile)
+# Check for Guile
+GUILE_FLAGS
 
 # Generate a Makefile, based on the results.
 AC_OUTPUT(Makefile)
@@ -512,11 +543,11 @@ script produces a Makefile customized for the host system:
 @example
 # The configure script fills in these values.
 CC=@@CC@@
-CFLAGS=@@CFLAGS@@
-LIBS=@@LIBS@@
+CFLAGS=@@GUILE_CFLAGS@@
+LIBS=@@GUILE_LDFLAGS@@
 
 simple-guile: simple-guile.o
-        $@{CC@} $@{CFLAGS@} simple-guile.o $@{LIBS@} -o simple-guile
+        $@{CC@} simple-guile.o $@{LIBS@} -o simple-guile
 simple-guile.o: simple-guile.c
         $@{CC@} -c $@{CFLAGS@} simple-guile.c
 @end example
@@ -531,21 +562,17 @@ $ ls
 Makefile.in     configure*      configure.in    simple-guile.c
 $ ./configure
 creating cache ./config.cache
-checking for gcc... gcc
+checking for gcc... (cached) gcc
 checking whether the C compiler (gcc  ) works... yes
 checking whether the C compiler (gcc  ) is a cross-compiler... no
-checking whether we are using GNU C... yes
-checking whether gcc accepts -g... yes
-checking for sin in -lm... yes
-checking for regcomp in -lrx... yes
-checking for main in -lqt... yes
-checking for scm_boot_guile in -lguile... yes
-updating cache ./config.cache
+checking whether we are using GNU C... (cached) yes
+checking whether gcc accepts -g... (cached) yes
+checking for Guile... yes
 creating ./config.status
 creating Makefile
 $ make
-gcc -c -g -O2 simple-guile.c
-gcc -g -O2 simple-guile.o -lguile -lqt -lrx -lm  -o simple-guile
+gcc -c -I/usr/local/include simple-guile.c
+gcc simple-guile.o -L/usr/local/lib -lguile -lqthreads -lpthread -lm -o simple-guile
 $ ./simple-guile
 guile> (+ 1 2 3)
 6
@@ -556,12 +583,125 @@ guile> (exit)
 $ 
 @end example
 
+@node Writing Extensions for Guile
+@section Writing Extensions for Guile
+
+The previous sections have briefly explained how to write programs that
+make use of an embedded Guile interpreter.  But sometimes, all you want
+to do is make new primitive procedures and data types available to the
+Scheme programmer.  Writing a new version of @code{guile} is
+inconvenient in this case and it would in fact make the life of the
+users of your new fetaures needlessly hard.
+
+@c [[ the following is probably a bit longwinded ]]
+
+For example, suppose that there is a program @code{guile-db} that is a
+version of Guile with additional features for accessing a database.
+People who want to write Scheme programs that use these features would
+have to use @code{guile-db} instead of the usual @code{guile} program.
+Now suppose that there is also a program @code{guile-gtk} that extends
+Guile with access to the popular Gtk+ toolkit for graphical user
+interfaces.  People who want to write GUIs in Scheme would have to use
+@code{guile-gtk}.  Now, what happens when you want to write a Scheme
+application that uses a GUI to let the user accessa a database?  You
+would have to write a @emph{third} program that incorporates both the
+database stuff and the GUI stuff.  This might not be easy (because
+@code{guile-gtk} might be a quite obscure program, say) and taking this
+example further makes it easy to see that this approach can not work in
+practice.
+
+It would have been much better if both the database features and the GUI
+feature had been provided as libraries that can just be linked with
+@code{guile}.  Guile makes it easy to do just this, and we encourage you
+to make your extensions to Guile available as libraries whenever
+possible.
+
+You write the new primitive procedures and data types in the normal
+fashion, and link them into a shared library instead of into a
+standalone program.  The shared library can then be loaded dynamically
+by Guile.
+
+@menu
+* A Sample Guile Extension::    
+@end menu
+
+@node A Sample Guile Extension
+@subsection A Sample Guile Extension
+
+This section explains how to make the Bessel functions of the C library
+available to Scheme.  First we need to write the appropriate glue code
+to convert the arguments and return values of the functions from Scheme
+to C and back.  Additionally, we need a function that will add them to
+the set of Guile primitives.  Because this is just an example, we will
+only implement this for the @code{j0} function, tho.
+
+Consider the following file @file{bessel.c}.
+
+@smallexample
+#include <math.h>
+#include <libguile.h>
+
+SCM
+j0_wrapper (SCM x)
+@{
+  return scm_make_real (j0 (scm_num2dbl (x, "j0")));
+@}
+
+void
+init_bessel ()
+@{
+  scm_make_gsubr ("j0", 1, 0, 0, j0_wrapper);
+@}
+@end smallexample
+
+This C source file needs to be compiled into a shared library.  Here is
+how to do it on GNU/Linux:
+
+@smallexample
+gcc -shared -o libguile-bessel.so -fPIC bessel.c
+@end smallexample
+
+For creating shared libraries portably, we recommend the use of
+@code{GNU Libtool}.
+
+A shared library can be loaded into a running Guile process with
+@code{dynamic-link}.  After it has been linked you can call its exported
+functions via @code{dynamic-call}.  For our example, we are going to
+call the function @code{init_bessel} which will make @code{j0_wrapper}
+available to Scheme programs with the name @code{j0}.  Note that we do
+not specify a filename extension such as @file{.so} when invoking
+@code{dynamic-link}.  The right extension for the host platform will be
+provided automatically.
+
+@smalllisp
+(define bessel-lib (dynamic-link "libguile-bessel"))
+(dynamic-call "init_bessel" bessel-lib)
+(j0 2)
+@result{} 0.223890779141236
+@end smalllisp
+
+For this to work, @code{dynamic-link} must be able to find
+@file{libguile-bessel}, of course.  It will look in the places that are
+usual for your operating system, and it will additionally look into the
+directories listed in the @code{LTDL_LIBRRAY_PATH} environment variable.
+
+To see how these Guile extensions via shared libraries relate to the
+module system, see below REFFIXME.
 
 @node Writing Guile Modules
 @section Writing Guile Modules
 
-[to be written]
+Guile has support for dividing a program into @dfn{modules}.  By using
+modules, you can group related code together and manage the composition
+of complete programs from their largely independent parts.
 
+(The module system is in flux, and will likely look very different in
+the future.  Feel free to use the existing system anyway.  Guile will
+provide reasonable backwards compatability.)
+
+[[ more stuff to follow: how to load third-party modules, how to write
+new modules, how to arrange for autoloading, how to load shared
+libraries as modules. ]]
 
 @page
 @node Reporting Bugs
