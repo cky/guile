@@ -123,7 +123,7 @@
 
 (define-language gscheme
   :title	"Guile Scheme"
-  :version	"0.3"
+  :version	"0.4"
   :reader	read
   :expander	expand
   :translator	translate

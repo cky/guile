@@ -1,5 +1,5 @@
 AC_INIT(src/guile-vm.c)
-AM_INIT_AUTOMAKE(guile-vm, 0.3)
+AM_INIT_AUTOMAKE(guile-vm, 0.4)
 AM_CONFIG_HEADER(src/config.h)
 
 GUILE_FLAGS
