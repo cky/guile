@@ -1,3 +1,8 @@
+2002-07-09  Gary Houston  <ghouston@arglist.com>
+
+	* docstring.el: defined caddr, used in several places but missing
+	for some reason.
+
 2002-04-02  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* doctring.el: List commands in commentary; nfc.

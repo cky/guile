@@ -243,6 +243,10 @@ to which new docstrings should be added.")
 				alist))))))))))
     alist))
 
+;; missing in some environments?
+(defun caddr (list)
+  (nth 2 list))
+
 ;; Return the docstring from the specified LOCATION.  LOCATION is a
 ;; list of three elements: buffer, start position and end position.
 (defun location-to-docstring (location)
