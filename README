@@ -37,6 +37,8 @@ libguile.a --- an object library containing the Guile interpreter,
 libqthreads.a --- an object library containing the QuickThreads
 	primitives.  If you enabled thread support when you configured
 	Guile, you will need to link your code against this too.
+libguilereadline --- an object library containing glue code for the
+        GNU readline library.
 <libguile.h>, <guile/gh.h>, <libguile/*.h> --- header files for
 	libguile.a, usually installed in /usr/local/include.
 ice-9, ice-9/*.scm --- run-time support for Guile: the module
@@ -59,6 +61,10 @@ qt: 	A cooperative threads package from the University of Washington,
         --with-threads flag, you will need to link against the -lqt
         library, found in this directory.  Qt is under a separate
         copyright; see `qt/README' for more details.
+guile-readline:
+        The glue code for using GNU readline with Guile.  This
+        will be build when configure can find a recent enough readline
+        library on your system.
 doc:	Some preliminary documentation for Guile.  The real Guile
 	manual is incomplete, and is currently being revised.
 	A development snapshot of the manual is available at
