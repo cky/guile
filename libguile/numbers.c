@@ -47,6 +47,7 @@
 
 #include <math.h>
 #include <ctype.h>
+#include <string.h>
 #include "libguile/_scm.h"
 #include "libguile/feature.h"
 #include "libguile/ports.h"
@@ -2793,7 +2794,7 @@ mem2complex (const char* mem, size_t len, unsigned int idx,
     }
   else
     {
-      if (sign == -1)
+      if (sign == -1 && SCM_FALSEP (scm_nan_p (ureal)))
 	ureal = scm_difference (ureal, SCM_UNDEFINED);
 
       if (idx == len)
@@ -2844,7 +2845,7 @@ mem2complex (const char* mem, size_t len, unsigned int idx,
 	      if (idx != len)
 		return SCM_BOOL_F;
 
-	      if (sign == -1)
+	      if (sign == -1 && SCM_FALSEP (scm_nan_p (ureal)))
 		angle = scm_difference (angle, SCM_UNDEFINED);
 
 	      result = scm_make_polar (ureal, angle);
@@ -2864,7 +2865,7 @@ mem2complex (const char* mem, size_t len, unsigned int idx,
 
 	      if (SCM_FALSEP (imag))
 		imag = SCM_MAKINUM (sign);
-	      else if (sign == -1)
+	      else if (sign == -1 && SCM_FALSEP (scm_nan_p (ureal)))
 		imag = scm_difference (imag, SCM_UNDEFINED);
 
 	      if (idx == len)
@@ -3284,6 +3285,8 @@ scm_leq_p (SCM x, SCM y)
     SCM_WTA_DISPATCH_2 (g_leq_p, x, y, SCM_ARG1, FUNC_NAME);
   else if (!SCM_NUMBERP (y))
     SCM_WTA_DISPATCH_2 (g_leq_p, x, y, SCM_ARG2, FUNC_NAME);
+  else if (SCM_NFALSEP (scm_nan_p (x)) || SCM_NFALSEP (scm_nan_p (y)))
+    return SCM_BOOL_F;
   else
     return SCM_BOOL_NOT (scm_less_p (y, x));
 }
@@ -3302,8 +3305,10 @@ scm_geq_p (SCM x, SCM y)
     SCM_WTA_DISPATCH_2 (g_geq_p, x, y, SCM_ARG1, FUNC_NAME);
   else if (!SCM_NUMBERP (y))
     SCM_WTA_DISPATCH_2 (g_geq_p, x, y, SCM_ARG2, FUNC_NAME);
+  else if (SCM_NFALSEP (scm_nan_p (x)) || SCM_NFALSEP (scm_nan_p (y)))
+    return SCM_BOOL_F;
   else
-  return SCM_BOOL_NOT (scm_less_p (x, y));
+    return SCM_BOOL_NOT (scm_less_p (x, y));
 }
 #undef FUNC_NAME
 
@@ -4479,7 +4484,7 @@ SCM_DEFINE (scm_inexact_to_exact, "inexact->exact", 1, 0, 0,
     if (SCM_FIXABLE (lu)) {
       return SCM_MAKINUM (lu);
 #ifdef SCM_BIGDIG
-    } else if (isfinite (u)) {
+    } else if (isfinite (u) && !xisnan (u)) {
       return scm_i_dbl2big (u);
 #endif
     } else {
