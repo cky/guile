@@ -557,7 +557,7 @@ scm_m_start_stack (SCM exp, SCM env)
 scm_bits_t scm_tc16_debugobj;
 
 static int
-debugobj_print (SCM obj, SCM port, scm_print_state *pstate)
+debugobj_print (SCM obj, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
   scm_puts ("#<debug-object ", port);
   scm_intprint ((int) SCM_DEBUGOBJ_FRAME (obj), 16, port);

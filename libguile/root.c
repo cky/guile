@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996,1997,1998, 1999, 2000 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -92,7 +92,7 @@ root_mark (SCM root)
 
 
 static int
-root_print (SCM exp, SCM port, scm_print_state *pstate)
+root_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
   scm_puts ("#<root ", port);
   scm_intprint(SCM_SEQ (SCM_ROOT_STATE (exp) -> rootcont), 16, port);

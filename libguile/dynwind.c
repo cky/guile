@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995, 1996, 1998, 1999, 2000 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -147,7 +147,7 @@ SCM_DEFINE (scm_dynamic_wind, "dynamic-wind", 3, 0, 0,
 static scm_bits_t tc16_guards;
 
 static int
-guards_print (SCM exp, SCM port, scm_print_state *pstate)
+guards_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
   scm_puts ("#<guards ", port);
   scm_intprint (SCM_UNPACK (SCM_CDR (exp)), 16, port);

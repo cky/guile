@@ -84,7 +84,7 @@ scm_smob_descriptor scm_smobs[MAX_SMOB_COUNT];
    to make their links fail.  */
 
 SCM 
-scm_mark0 (SCM ptr)
+scm_mark0 (SCM ptr SCM_UNUSED)
 {
   return SCM_BOOL_F;
 }
@@ -101,7 +101,7 @@ scm_markcdr (SCM ptr)
  */
 
 size_t 
-scm_free0 (SCM ptr)
+scm_free0 (SCM ptr SCM_UNUSED)
 {
   return 0;
 }
@@ -117,7 +117,7 @@ scm_smob_free (SCM obj)
  */
 
 int
-scm_smob_print (SCM exp, SCM port, scm_print_state *pstate)
+scm_smob_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
   long n = SCM_SMOBNUM (exp);
   scm_puts ("#<", port);
@@ -216,7 +216,7 @@ scm_smob_apply_1_021 (SCM smob, SCM a1)
 }
 
 static SCM
-scm_smob_apply_1_error (SCM smob, SCM a1)
+scm_smob_apply_1_error (SCM smob, SCM a1 SCM_UNUSED)
 {
   scm_wrong_num_args (smob);
 }
@@ -246,7 +246,7 @@ scm_smob_apply_2_021 (SCM smob, SCM a1, SCM a2)
 }
 
 static SCM
-scm_smob_apply_2_error (SCM smob, SCM a1, SCM a2)
+scm_smob_apply_2_error (SCM smob, SCM a1 SCM_UNUSED, SCM a2 SCM_UNUSED)
 {
   scm_wrong_num_args (smob);
 }
@@ -278,7 +278,10 @@ scm_smob_apply_3_021 (SCM smob, SCM a1, SCM a2, SCM rst)
 }
 
 static SCM
-scm_smob_apply_3_error (SCM smob, SCM a1, SCM a2, SCM rst)
+scm_smob_apply_3_error (SCM smob,
+			SCM a1 SCM_UNUSED,
+			SCM a2 SCM_UNUSED,
+			SCM rst SCM_UNUSED)
 {
   scm_wrong_num_args (smob);
 }
@@ -512,7 +515,7 @@ scm_set_smob_mfpe (long tc,
  */
 
 static int
-free_print (SCM exp, SCM port, scm_print_state *pstate)
+free_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
   char buf[100];
 

@@ -192,7 +192,7 @@ scm_take0str (char *s)
 }
 
 SCM 
-scm_makfromstr (const char *src, size_t len, int dummy)
+scm_makfromstr (const char *src, size_t len, int dummy SCM_UNUSED)
 {
   SCM s = scm_allocate_string (len);
   char *dst = SCM_STRING_CHARS (s);

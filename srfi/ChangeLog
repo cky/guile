@@ -1,3 +1,8 @@
+2001-06-07  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* srfi-14.c (charset_print): Mark unused parameters with
+	SCM_UNUSED.
+
 2001-06-07  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* srfi-1.scm (fold, fold-pair): Fixed a buggy call to apply.
@@ -5,7 +10,6 @@
 	retained, as required.
 	(member, assoc): Fixed wrong order of equality predicate
 	application.
-	
 
 2001-06-06  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 

@@ -1047,7 +1047,7 @@ slot_definition_using_name (SCM class, SCM slot_name)
 }
 
 static SCM
-get_slot_value (SCM class, SCM obj, SCM slotdef)
+get_slot_value (SCM class SCM_UNUSED, SCM obj, SCM slotdef)
 {
   SCM access = SCM_CDDR (slotdef);
   /* Two cases here:
@@ -1084,7 +1084,7 @@ get_slot_value_using_name (SCM class, SCM obj, SCM slot_name)
 }
 
 static SCM
-set_slot_value (SCM class, SCM obj, SCM slotdef, SCM value)
+set_slot_value (SCM class SCM_UNUSED, SCM obj, SCM slotdef, SCM value)
 {
   SCM access = SCM_CDDR (slotdef);
   /* Two cases here:
@@ -1125,7 +1125,7 @@ set_slot_value_using_name (SCM class, SCM obj, SCM slot_name, SCM value)
 }
 
 static SCM
-test_slot_existence (SCM class, SCM obj, SCM slot_name)
+test_slot_existence (SCM class SCM_UNUSED, SCM obj, SCM slot_name)
 {
   register SCM l;
 
@@ -1518,7 +1518,7 @@ purgatory (void *args)
 }
 
 void
-scm_change_object_class (SCM obj, SCM old_class, SCM new_class)
+scm_change_object_class (SCM obj, SCM old_class SCM_UNUSED, SCM new_class)
 {
   if (!burnin (obj))
     scm_internal_dynamic_wind (go_to_hell, purgatory, go_to_heaven,
@@ -1868,7 +1868,7 @@ SCM_VARIABLE_INIT (var_compute_applicable_methods, "compute-applicable-methods",
 SCM_SYNTAX (s_atslot_ref, "@slot-ref", scm_makmmacro, scm_m_atslot_ref);
 
 SCM
-scm_m_atslot_ref (SCM xorig, SCM env)
+scm_m_atslot_ref (SCM xorig, SCM env SCM_UNUSED)
 #define FUNC_NAME s_atslot_ref
 {
   SCM x = SCM_CDR (xorig);
@@ -1882,7 +1882,7 @@ scm_m_atslot_ref (SCM xorig, SCM env)
 SCM_SYNTAX (s_atslot_set_x, "@slot-set!", scm_makmmacro, scm_m_atslot_set_x);
 
 SCM
-scm_m_atslot_set_x (SCM xorig, SCM env)
+scm_m_atslot_set_x (SCM xorig, SCM env SCM_UNUSED)
 #define FUNC_NAME s_atslot_set_x
 {
   SCM x = SCM_CDR (xorig);
@@ -2413,7 +2413,8 @@ create_port_classes (void)
 }
 
 static SCM
-make_struct_class (void *closure, SCM key, SCM data, SCM prev)
+make_struct_class (void *closure SCM_UNUSED, SCM key SCM_UNUSED, 
+		   SCM data, SCM prev SCM_UNUSED)
 {
   if (SCM_NFALSEP (SCM_STRUCT_TABLE_NAME (data)))
     SCM_SET_STRUCT_TABLE_CLASS (data,
@@ -2499,7 +2500,7 @@ SCM_KEYWORD (k_accessor, "accessor");
 SCM_KEYWORD (k_getter, "getter");
 
 static SCM
-default_setter (SCM obj, SCM c)
+default_setter (SCM obj SCM_UNUSED, SCM c SCM_UNUSED)
 {
   scm_misc_error ("slot-set!", "read-only slot", SCM_EOL);
   return 0;

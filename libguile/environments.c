@@ -506,7 +506,7 @@ observer_mark (SCM observer)
 
 
 static int
-observer_print (SCM type, SCM port, scm_print_state *pstate)
+observer_print (SCM type, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
   SCM address = scm_ulong2num (SCM_UNPACK (type));
   SCM base16 = scm_number_to_string (address, SCM_MAKINUM (16));
@@ -752,7 +752,7 @@ core_environments_mark (SCM env)
 
 
 static void
-core_environments_finalize (SCM env)
+core_environments_finalize (SCM env SCM_UNUSED)
 {
 }
 
@@ -975,7 +975,7 @@ leaf_environment_set_x (SCM env, SCM sym, SCM val)
 
 
 static SCM
-leaf_environment_cell(SCM env, SCM sym, int for_write)
+leaf_environment_cell (SCM env, SCM sym, int for_write SCM_UNUSED)
 {
   SCM obarray = LEAF_ENVIRONMENT (env)->obarray;
   SCM binding = obarray_retrieve (obarray, sym);
@@ -1002,7 +1002,7 @@ leaf_environment_free (SCM env)
 
 
 static int
-leaf_environment_print (SCM type, SCM port, scm_print_state *pstate)
+leaf_environment_print (SCM type, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
   SCM address = scm_ulong2num (SCM_UNPACK (type));
   SCM base16 = scm_number_to_string (address, SCM_MAKINUM (16));
@@ -1363,7 +1363,7 @@ eval_environment_free (SCM env)
 
 
 static int
-eval_environment_print (SCM type, SCM port, scm_print_state *pstate)
+eval_environment_print (SCM type, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
   SCM address = scm_ulong2num (SCM_UNPACK (type));
   SCM base16 = scm_number_to_string (address, SCM_MAKINUM (16));
@@ -1395,7 +1395,7 @@ void *scm_type_eval_environment = &eval_environment_funcs;
 
 
 static void
-eval_environment_observer (SCM caller, SCM eval_env)
+eval_environment_observer (SCM caller SCM_UNUSED, SCM eval_env)
 {
   SCM obarray = EVAL_ENVIRONMENT (eval_env)->obarray;
 
@@ -1687,7 +1687,9 @@ import_environment_fold (SCM env, scm_environment_folder proc, SCM data, SCM ini
 
 
 static SCM
-import_environment_define (SCM env, SCM sym, SCM val)
+import_environment_define (SCM env SCM_UNUSED,
+			   SCM sym SCM_UNUSED,
+			   SCM val SCM_UNUSED)
 #define FUNC_NAME "import_environment_define"
 {
   return SCM_ENVIRONMENT_BINDING_IMMUTABLE;
@@ -1696,7 +1698,8 @@ import_environment_define (SCM env, SCM sym, SCM val)
 
 
 static SCM
-import_environment_undefine (SCM env, SCM sym)
+import_environment_undefine (SCM env SCM_UNUSED,
+			     SCM sym SCM_UNUSED)
 #define FUNC_NAME "import_environment_undefine"
 {
   return SCM_ENVIRONMENT_BINDING_IMMUTABLE;
@@ -1779,7 +1782,8 @@ import_environment_free (SCM env)
 
 
 static int
-import_environment_print (SCM type, SCM port, scm_print_state *pstate)
+import_environment_print (SCM type, SCM port, 
+			  scm_print_state *pstate SCM_UNUSED)
 {
   SCM address = scm_ulong2num (SCM_UNPACK (type));
   SCM base16 = scm_number_to_string (address, SCM_MAKINUM (16));
@@ -1811,7 +1815,7 @@ void *scm_type_import_environment = &import_environment_funcs;
 
 
 static void
-import_environment_observer (SCM caller, SCM import_env)
+import_environment_observer (SCM caller SCM_UNUSED, SCM import_env)
 {
   core_environments_broadcast (import_env);
 }
@@ -1997,7 +2001,9 @@ export_environment_fold (SCM env, scm_environment_folder proc, SCM data, SCM ini
 
 
 static SCM
-export_environment_define (SCM env, SCM sym, SCM val)
+export_environment_define (SCM env SCM_UNUSED, 
+			   SCM sym SCM_UNUSED, 
+			   SCM val SCM_UNUSED)
 #define FUNC_NAME "export_environment_define"
 {
   return SCM_ENVIRONMENT_BINDING_IMMUTABLE;
@@ -2006,7 +2012,7 @@ export_environment_define (SCM env, SCM sym, SCM val)
 
 
 static SCM
-export_environment_undefine (SCM env, SCM sym)
+export_environment_undefine (SCM env SCM_UNUSED, SCM sym SCM_UNUSED)
 #define FUNC_NAME "export_environment_undefine"
 {
   return SCM_ENVIRONMENT_BINDING_IMMUTABLE;
@@ -2082,7 +2088,8 @@ export_environment_free (SCM env)
 
 
 static int
-export_environment_print (SCM type, SCM port, scm_print_state *pstate)
+export_environment_print (SCM type, SCM port,
+			  scm_print_state *pstate SCM_UNUSED)
 {
   SCM address = scm_ulong2num (SCM_UNPACK (type));
   SCM base16 = scm_number_to_string (address, SCM_MAKINUM (16));
@@ -2114,7 +2121,7 @@ void *scm_type_export_environment = &export_environment_funcs;
 
 
 static void
-export_environment_observer (SCM caller, SCM export_env)
+export_environment_observer (SCM caller SCM_UNUSED, SCM export_env)
 {
   core_environments_broadcast (export_env);
 }

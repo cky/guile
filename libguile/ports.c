@@ -108,12 +108,12 @@ scm_markstream (SCM ptr)
  */
 
 static void
-flush_port_default (SCM port)
+flush_port_default (SCM port SCM_UNUSED)
 {
 }
 
 static void
-end_input_default (SCM port, int offset)
+end_input_default (SCM port SCM_UNUSED, int offset SCM_UNUSED)
 {
 }
 
@@ -1487,7 +1487,7 @@ scm_print_port_mode (SCM exp, SCM port)
 }
 
 int
-scm_port_print (SCM exp, SCM port, scm_print_state *pstate)
+scm_port_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
   char *type = SCM_PTOBNAME (SCM_PTOBNUM (exp));
   if (!type)
@@ -1514,13 +1514,15 @@ scm_ports_prehistory ()
 
 scm_bits_t scm_tc16_void_port = 0;
 
-static int fill_input_void_port (SCM port)
+static int fill_input_void_port (SCM port SCM_UNUSED)
 {
   return EOF;
 }
 
 static void
-write_void_port (SCM port, const void *data, size_t size)
+write_void_port (SCM port SCM_UNUSED,
+		 const void *data SCM_UNUSED,
+		 size_t size SCM_UNUSED)
 {
 }
 

@@ -184,7 +184,7 @@ guardian_free (SCM ptr)
 
 
 static int
-guardian_print (SCM guardian, SCM port, scm_print_state *pstate)
+guardian_print (SCM guardian, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
   guardian_t *g = GUARDIAN (guardian);
   
@@ -428,7 +428,9 @@ SCM_DEFINE (scm_destroy_guardian_x, "destroy-guardian!", 1, 0, 0,
             
 /* called before gc mark phase begins to initialise the live guardian list. */
 static void *
-guardian_gc_init (void *dummy1, void *dummy2, void *dummy3)
+guardian_gc_init (void *dummy1 SCM_UNUSED,
+		  void *dummy2 SCM_UNUSED,
+		  void *dummy3 SCM_UNUSED)
 {
   greedy_guardians = sharing_guardians = NULL;
 
@@ -530,7 +532,9 @@ mark_and_zombify (guardian_t *g)
    phases.  for each marked guardian, it moves any unmarked object in
    its live list (tconc) to its zombie list (tconc).  */
 static void *
-guardian_zombify (void *dummy1, void *dummy2, void *dummy3)
+guardian_zombify (void *dummy1 SCM_UNUSED,
+		  void *dummy2 SCM_UNUSED,
+		  void *dummy3 SCM_UNUSED)
 {
   guardian_t *last_greedy_guardian = NULL;
   guardian_t *last_sharing_guardian = NULL;
@@ -588,7 +592,9 @@ guardian_zombify (void *dummy1, void *dummy2, void *dummy3)
 }
 
 static void *
-whine_about_self_centered_zombies (void *dummy1, void *dummy2, void *dummy3)
+whine_about_self_centered_zombies (void *dummy1 SCM_UNUSED,
+				   void *dummy2 SCM_UNUSED,
+				   void *dummy3 SCM_UNUSED)
 {
   if (! SCM_NULLP (SCM_CDR (self_centered_zombies)))
     {

@@ -1,6 +1,6 @@
 /* srfi-14.c --- SRFI-14 procedures for Guile
  *
- * 	Copyright (C) 2001 Free Software Foundation, Inc.
+ * Copyright (C) 2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -60,7 +60,7 @@ int scm_tc16_charset = 0;
 
 /* Smob print hook for character sets.  */
 static int
-charset_print (SCM charset, SCM port, scm_print_state *pstate)
+charset_print (SCM charset, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
   int i;
   int first = 1;

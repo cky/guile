@@ -1,3 +1,77 @@
+2001-06-07  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* __scm.h (SCM_NORETURN):  Moved here from error.h.
+
+	(SCM_UNUSED):  New macro.
+
+	(SCM_DEBUG_PAIR_ACCESSES):  New macro.
+
+	* backtrace.c (display_error_handler), continuations.c
+	(continuation_print), debug.c (debugobj_print), dynwind.c
+	(guards_print), environments.c (observer_print,
+	core_environments_finalize, leaf_environment_cell,
+	leaf_environment_print, eval_environment_print,
+	eval_environment_observer, import_environment_define,
+	import_environment_undefine, import_environment_print,
+	import_environment_observer, export_environment_define,
+	export_environment_undefine, export_environment_print,
+	export_environment_observer), eval.c (scm_m_quote, scm_m_begin,
+	scm_m_if, scm_m_set_x, scm_m_and, scm_m_or, scm_m_case,
+	scm_m_cond, scm_m_lambda, scm_m_letstar, scm_m_do, scm_m_delay,
+	scm_m_letrec1, scm_m_apply, scm_m_cont, scm_m_nil_cond,
+	scm_m_nil_ify, scm_m_t_ify, scm_m_0_cond, scm_m_0_ify,
+	scm_m_1_ify, scm_m_atfop, scm_m_at_call_with_values), evalext.c
+	(scm_m_generalized_set_x), fluids.c (fluid_print), fports.c
+	(fport_print), gc.c (gc_start_stats, scm_remember_upto_here_1,
+	scm_remember_upto_here_2, scm_remember_upto_here, mark_gc_async),
+	gh_init.c (gh_standard_handler), goops.c (get_slot_value,
+	set_slot_value, test_slot_existence, scm_change_object_class,
+	scm_m_atslot_ref, scm_m_atslot_set_x, make_struct_class,
+	default_setter), guardians.c (guardian_print, guardian_gc_init,
+	guardian_zombify, whine_about_self_centered_zombies), guile.c
+	(inner_main), init.c (stream_handler), keywords.c (keyword_print),
+	mallocs.c (malloc_print), numbers.c (scm_print_real,
+	scm_print_complex, scm_bigprint), ports.c (flush_port_default,
+	end_input_default, scm_port_print, fill_input_void_port,
+	write_void_port), root.c (root_print), smob.c (scm_mark0,
+	scm_free0, scm_smob_print, scm_smob_apply_1_error,
+	scm_smob_apply_2_error, scm_smob_apply_3_error, free_print),
+	stime.c (restorezone), strings.c (scm_makfromstr), struct.c
+	(scm_struct_free_0, scm_struct_free_standard,
+	scm_struct_free_entity, scm_struct_gc_init, scm_free_structs),
+	throw.c (jmpbuffer_print, lazy_catch_print, ss_handler,
+	scm_handle_by_throw, scm_ithrow), weaks.c
+	(scm_weak_vector_gc_init, scm_mark_weak_vector_spines,
+	scm_scan_weak_vectors), ramap.c (scm_array_fill_int), filesys.c
+	(scm_dir_print): Mark unused parameters with SCM_UNUSED.
+
+	* error.h (SCM_NORETURN):  Moved to __scm.h.
+
+	* error.h (ERRORH, SCM_ERROR_H), pairs.h (PAIRSH, SCM_PAIRS_H):
+	Renamed <foo>H to SCM_<foo>_H.
+
+	* gc.c (debug_cells_gc_interval):  New static variable.
+
+	(scm_assert_cell_valid):  If selected by the user, perform
+	additional garbage collections.
+
+	(scm_set_debug_cell_accesses_x):  Extended to let the user specify
+	if additional garbage collections are desired.
+
+	(mark_gc_async):  If additional garbage collections are selected
+	by the user, don't call the after-gc-hook.  Instead require the
+	user to run the hook manually.
+
+	* pairs.c (scm_error_pair_access):  New function.  Only compiled
+	if SCM_DEBUG_PAIR_ACCESSES is set to 1.
+
+	* pairs.h (SCM_VALIDATE_PAIR):  New macro.
+
+	(SCM_CAR, SCM_CDR, SCM_SETCAR, SCM_SETCDR):  If
+	SCM_DEBUG_PAIR_ACCESSES is set to 1, make sure that the argument
+	is a real pair object.  (Glocs are also accepted, but that may
+	change.)  If not, abort with an error message.
+
 2001-06-05  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* eval.c (SCM_VALIDATE_NON_EMPTY_COMBINATION):  New macro.

@@ -1,5 +1,5 @@
 /* Printing of backtraces and error messages
- * Copyright (C) 1996, 1997, 1998, 1999, 2000 Free Software Foundation
+ * Copyright (C) 1996,1997,1998,1999,2000,2001 Free Software Foundation
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -216,7 +216,7 @@ struct display_error_handler_data {
    try to print all objects, we would enter an infinite loop. */
 static SCM
 display_error_handler (struct display_error_handler_data *data,
-		       SCM tag, SCM args)
+		       SCM tag, SCM args SCM_UNUSED)
 {
   SCM print_state = scm_make_print_state ();
   scm_puts ("\nException during displaying of ", data->port);

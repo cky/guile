@@ -55,6 +55,38 @@
    should go in __scm.h.  */
 
 
+/* {Compiler hints}
+ *
+ * The following macros are used to provide additional information for the
+ * compiler, which may help to do better error checking and code
+ * optimization.  A second benefit of these macros is, that they also provide
+ * additional information to the developers.
+ */
+
+/* The macro SCM_NORETURN indicates that a function will never return.
+ * Examples:
+ *   1) int foo (char arg) SCM_NORETURN;
+ */
+#ifdef __GNUC__
+#define SCM_NORETURN __attribute__ ((noreturn))
+#else
+#define SCM_NORETURN
+#endif
+
+/* The macro SCM_UNUSED indicates that a function, function argument or
+ * variable may potentially be unused.
+ * Examples:
+ *   1) static int unused_function (char arg) SCM_UNUSED;
+ *   2) int foo (char unused_argument SCM_UNUSED);
+ *   3) int unused_variable SCM_UNUSED;
+ */
+#ifdef __GNUC__
+#define SCM_UNUSED __attribute__ ((unused))
+#else
+#define SCM_UNUSED
+#endif
+
+
 /* {Supported Options}
  *
  * These may be defined or undefined.
@@ -175,6 +207,14 @@
  */
 #ifndef SCM_DEBUG_INTERRUPTS
 #define SCM_DEBUG_INTERRUPTS SCM_DEBUG
+#endif
+
+/* If SCM_DEBUG_PAIR_ACCESSES is set to 1, accesses to cons cells will be
+ * exhaustively checked.  Note:  If this option is enabled, guile will run
+ * slower than normally.
+ */
+#ifndef SCM_DEBUG_PAIR_ACCESSES
+#define SCM_DEBUG_PAIR_ACCESSES SCM_DEBUG
 #endif
 
 /* If SCM_DEBUG_REST_ARGUMENT is set to 1, functions that take rest arguments

@@ -325,7 +325,7 @@ setzone (SCM zone, int pos, const char *subr)
 }
 
 static void
-restorezone (SCM zone, char **oldenv, const char *subr)
+restorezone (SCM zone, char **oldenv, const char *subr SCM_UNUSED)
 {
   if (!SCM_UNBNDP (zone))
     {

@@ -1,5 +1,5 @@
-/*      Copyright (C) 1995,1996,1997, 2000 Free Software Foundation, Inc.
-
+/* Copyright (C) 1995,1996,1997,2000,2001 Free Software Foundation, Inc.
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2, or (at your option)
@@ -94,7 +94,7 @@ gh_catch (SCM tag, scm_catch_body_t body, void *body_data,
 }
 
 SCM 
-gh_standard_handler (void *data, SCM tag, SCM throw_args)
+gh_standard_handler (void *data SCM_UNUSED, SCM tag, SCM throw_args SCM_UNUSED)
 {
   fprintf (stderr, "\nJust got an error; tag is\n        ");
   scm_display (tag, scm_current_output_port ());

@@ -783,7 +783,7 @@ SCM_DEFINE (scm_closedir, "closedir", 1, 0, 0,
 
 
 static int 
-scm_dir_print (SCM exp, SCM port, scm_print_state *pstate)
+scm_dir_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
   scm_puts ("#<", port);
   if (!SCM_DIR_OPEN_P (exp))

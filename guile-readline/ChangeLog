@@ -1,3 +1,8 @@
+2001-06-07  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* readline.c (current_input_getc):  Mark unused parameters with
+	SCM_UNUSED.
+
 2001-06-03  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* configure.in: Added AC_PREREQ(2.50) and minimally changed for

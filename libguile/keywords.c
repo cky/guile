@@ -59,7 +59,7 @@
 scm_bits_t scm_tc16_keyword;
 
 static int
-keyword_print (SCM exp, SCM port, scm_print_state *pstate)
+keyword_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
   scm_puts ("#:", port);
   scm_print_symbol_name (SCM_SYMBOL_CHARS (SCM_CDR (exp)) + 1,

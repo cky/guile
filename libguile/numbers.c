@@ -2205,7 +2205,7 @@ SCM_DEFINE (scm_number_to_string, "number->string", 1, 1, 0,
    SCM_BIGDIG conditionals */
 
 int
-scm_print_real (SCM sexp, SCM port, scm_print_state *pstate)
+scm_print_real (SCM sexp, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
   char num_buf[FLOBUFLEN];
   scm_lfwrite (num_buf, iflo2str (sexp, num_buf), port);
@@ -2213,7 +2213,7 @@ scm_print_real (SCM sexp, SCM port, scm_print_state *pstate)
 }
 
 int
-scm_print_complex (SCM sexp, SCM port, scm_print_state *pstate)
+scm_print_complex (SCM sexp, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
   char num_buf[FLOBUFLEN];
   scm_lfwrite (num_buf, iflo2str (sexp, num_buf), port);
@@ -2221,7 +2221,7 @@ scm_print_complex (SCM sexp, SCM port, scm_print_state *pstate)
 }
 
 int
-scm_bigprint (SCM exp, SCM port, scm_print_state *pstate)
+scm_bigprint (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
 #ifdef SCM_BIGDIG
   exp = big2str (exp, (unsigned int) 10);

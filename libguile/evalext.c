@@ -1,4 +1,4 @@
-/*	Copyright (C) 1998, 1999, 2000 Free Software Foundation, Inc.
+/* Copyright (C) 1998,1999,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -56,7 +56,7 @@
 SCM_SYMBOL (scm_sym_setter, "setter");
 
 SCM 
-scm_m_generalized_set_x (SCM xorig, SCM env)
+scm_m_generalized_set_x (SCM xorig, SCM env SCM_UNUSED)
 {
   SCM x = SCM_CDR (xorig);
   SCM_ASSYNT (2 == scm_ilength (x), scm_s_expression, scm_s_set_x);

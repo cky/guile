@@ -279,7 +279,9 @@ stream_body (void *data)
 
 /* exception handler for stream_body.  */
 static SCM
-stream_handler (void *data, SCM tag, SCM throw_args)
+stream_handler (void *data SCM_UNUSED,
+		SCM tag SCM_UNUSED,
+		SCM throw_args SCM_UNUSED)
 {
   return SCM_BOOL_F;
 }

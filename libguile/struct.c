@@ -332,7 +332,8 @@ scm_alloc_struct (int n_words, int n_extra, char *who)
 }
 
 size_t
-scm_struct_free_0 (scm_bits_t * vtable, scm_bits_t * data)
+scm_struct_free_0 (scm_bits_t * vtable SCM_UNUSED,
+		   scm_bits_t * data SCM_UNUSED)
 {
   return 0;
 }
@@ -345,7 +346,7 @@ scm_struct_free_light (scm_bits_t * vtable, scm_bits_t * data)
 }
 
 size_t
-scm_struct_free_standard (scm_bits_t * vtable, scm_bits_t * data)
+scm_struct_free_standard (scm_bits_t * vtable SCM_UNUSED, scm_bits_t * data)
 {
   size_t n = (data[scm_struct_i_n_words] + scm_struct_n_extra_words)
 	     * sizeof (scm_bits_t) + 7;
@@ -354,7 +355,7 @@ scm_struct_free_standard (scm_bits_t * vtable, scm_bits_t * data)
 }
 
 size_t
-scm_struct_free_entity (scm_bits_t * vtable, scm_bits_t * data)
+scm_struct_free_entity (scm_bits_t * vtable SCM_UNUSED, scm_bits_t * data)
 {
   size_t n = (data[scm_struct_i_n_words] + scm_struct_entity_n_extra_words)
 	     * sizeof (scm_bits_t) + 7;
@@ -363,14 +364,18 @@ scm_struct_free_entity (scm_bits_t * vtable, scm_bits_t * data)
 }
 
 static void *
-scm_struct_gc_init (void *dummy1, void *dummy2, void *dummy3)
+scm_struct_gc_init (void *dummy1 SCM_UNUSED,
+		    void *dummy2 SCM_UNUSED,
+		    void *dummy3 SCM_UNUSED)
 {
   scm_structs_to_free = SCM_EOL;
   return 0;
 }
 
 static void *
-scm_free_structs (void *dummy1, void *dummy2, void *dummy3)
+scm_free_structs (void *dummy1 SCM_UNUSED,
+		  void *dummy2 SCM_UNUSED,
+		  void *dummy3 SCM_UNUSED)
 {
   SCM newchain = scm_structs_to_free;
   do

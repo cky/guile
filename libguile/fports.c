@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996,1997,1998,1999,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -441,7 +441,7 @@ fport_input_waiting (SCM port)
 
 
 static int 
-fport_print (SCM exp, SCM port, scm_print_state *pstate)
+fport_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
   scm_puts ("#<", port);
   scm_print_port_mode (exp, port);    

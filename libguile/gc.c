@@ -108,11 +108,19 @@ scm_bits_t scm_tc16_allocated;
  */
 unsigned int scm_debug_cell_accesses_p = 1;
 
+/* Set this to 0 if no additional gc's shall be performed, otherwise set it to
+ * the number of cell accesses after which a gc shall be called.
+ */
+static unsigned int debug_cells_gc_interval = 0;
+
 
 /* Assert that the given object is a valid reference to a valid cell.  This
  * test involves to determine whether the object is a cell pointer, whether
  * this pointer actually points into a heap segment and whether the cell
- * pointed to is not a free cell.
+ * pointed to is not a free cell.  Further, additional garbage collections may
+ * get executed after a user defined number of cell accesses.  This helps to
+ * find places in the C code where references are dropped for extremely short
+ * periods.
  */
 void
 scm_assert_cell_valid (SCM cell)
@@ -146,6 +154,24 @@ scm_assert_cell_valid (SCM cell)
                        (unsigned long) SCM_UNPACK (cell));
 	      abort ();
 	    }
+
+	  /* If desired, perform additional garbage collections after a user
+	   * defined number of cell accesses.
+	   */
+	  if (debug_cells_gc_interval)
+	    {
+	      static unsigned int counter = 0;
+	      
+	      if (counter != 0)
+		{
+		  --counter;
+		}
+	      else
+		{
+		  counter = debug_cells_gc_interval;
+		  scm_igc ("scm_assert_cell_valid");
+		}
+	    }
 	}
       already_running = 0;  /* re-enable */
     }
@@ -155,7 +181,11 @@ scm_assert_cell_valid (SCM cell)
 SCM_DEFINE (scm_set_debug_cell_accesses_x, "set-debug-cell-accesses!", 1, 0, 0,
 	    (SCM flag),
 	    "If @var{flag} is @code{#f}, cell access checking is disabled.\n"
-	    "If @var{flag} is @code{#t}, cell access checking is enabled.\n"
+	    "If @var{flag} is @code{#t}, cell access checking is enabled,\n"
+	    "but no additional calls to garbage collection are issued.\n"
+	    "If @var{flag} is a number, cell access checking is enabled,\n"
+	    "with an additional garbage collection after the given\n"
+	    "number of cell accesses.\n"
 	    "This procedure only exists when the compile-time flag\n"
 	    "@code{SCM_DEBUG_CELL_ACCESSES} was set to 1.")
 #define FUNC_NAME s_scm_set_debug_cell_accesses_x
@@ -163,6 +193,12 @@ SCM_DEFINE (scm_set_debug_cell_accesses_x, "set-debug-cell-accesses!", 1, 0, 0,
   if (SCM_FALSEP (flag)) {
     scm_debug_cell_accesses_p = 0;
   } else if (SCM_EQ_P (flag, SCM_BOOL_T)) {
+    debug_cells_gc_interval = 0;
+    scm_debug_cell_accesses_p = 1;
+  } else if (SCM_INUMP (flag)) {
+    long int f = SCM_INUM (flag);
+    if (f <= 0) SCM_OUT_OF_RANGE (1, flag);
+    debug_cells_gc_interval = f;
     scm_debug_cell_accesses_p = 1;
   } else {
     SCM_WRONG_TYPE_ARG (1, flag);
@@ -824,7 +860,7 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
 
 
 static void
-gc_start_stats (const char *what)
+gc_start_stats (const char *what SCM_UNUSED)
 {
   t_before_gc = scm_c_get_internal_run_time ();
   scm_gc_cells_swept = 0;
@@ -2449,19 +2485,19 @@ alloc_some_heap (scm_freelist_t *freelist, policy_on_error error_policy)
  */
 
 void
-scm_remember_upto_here_1 (SCM obj)
+scm_remember_upto_here_1 (SCM obj SCM_UNUSED)
 {
   /* Empty.  Protects a single object from garbage collection. */
 }
 
 void
-scm_remember_upto_here_2 (SCM obj1, SCM obj2)
+scm_remember_upto_here_2 (SCM obj1 SCM_UNUSED, SCM obj2 SCM_UNUSED)
 {
   /* Empty.  Protects two objects from garbage collection. */
 }
 
 void
-scm_remember_upto_here (SCM obj, ...)
+scm_remember_upto_here (SCM obj SCM_UNUSED, ...)
 {
   /* Empty.  Protects any number of objects from garbage collection. */
 }
@@ -2828,9 +2864,41 @@ gc_async_thunk (void)
  * gc_async_thunk).
  */
 static void *
-mark_gc_async (void * hook_data, void *func_data, void *data)
+mark_gc_async (void * hook_data SCM_UNUSED,
+	       void *func_data SCM_UNUSED,
+	       void *data SCM_UNUSED)
 {
+  /* If cell access debugging is enabled, the user may choose to perform
+   * additional garbage collections after an arbitrary number of cell
+   * accesses.  We don't want the scheme level after-gc-hook to be performed
+   * for each of these garbage collections for the following reason: The
+   * execution of the after-gc-hook causes cell accesses itself.  Thus, if the
+   * after-gc-hook was performed with every gc, and if the gc was performed
+   * after a very small number of cell accesses, then the number of cell
+   * accesses during the execution of the after-gc-hook will suffice to cause
+   * the execution of the next gc.  Then, guile would keep executing the
+   * after-gc-hook over and over again, and would never come to do other
+   * things.
+   * 
+   * To overcome this problem, if cell access debugging with additional
+   * garbage collections is enabled, the after-gc-hook is never run by the
+   * garbage collecter.  When running guile with cell access debugging and the
+   * execution of the after-gc-hook is desired, then it is necessary to run
+   * the hook explicitly from the user code.  This has the effect, that from
+   * the scheme level point of view it seems that garbage collection is
+   * performed with a much lower frequency than it actually is.  Obviously,
+   * this will not work for code that depends on a fixed one to one
+   * relationship between the execution counts of the C level garbage
+   * collection hooks and the execution count of the scheme level
+   * after-gc-hook.
+   */
+#if (SCM_DEBUG_CELL_ACCESSES == 1)
+  if (debug_cells_gc_interval == 0)
+    scm_system_async_mark (gc_async);
+#else
   scm_system_async_mark (gc_async);
+#endif
+
   return NULL;
 }
 

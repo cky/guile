@@ -475,7 +475,7 @@ SCM_DEFINE (scm_array_fill_x, "array-fill!", 2, 0, 0,
 /* to be used as cproc in scm_ramapc to fill an array dimension with
    "fill". */
 int 
-scm_array_fill_int (SCM ra, SCM fill, SCM ignore)
+scm_array_fill_int (SCM ra, SCM fill, SCM ignore SCM_UNUSED)
 #define FUNC_NAME s_scm_array_fill_x
 {
   unsigned long i;

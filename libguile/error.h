@@ -1,8 +1,8 @@
 /* classes: h_files */
 
-#ifndef ERRORH
-#define ERRORH
-/*	Copyright (C) 1995,1996,1997,1998, 2000 Free Software Foundation, Inc.
+#ifndef SCM_ERROR_H
+#define SCM_ERROR_H
+/* Copyright (C) 1995,1996,1997,1998,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,15 +50,6 @@ extern int scm_ints_disabled;
 
 
 
-/* GCC can be told that a function doesn't return; this helps it do
-   better error checking (for uninitialized variable use, for
-   example), and some optimization.  */
-#ifdef __GNUC__
-#define SCM_NORETURN __attribute__ ((noreturn))
-#else
-#define SCM_NORETURN
-#endif
-
 extern void scm_error (SCM key, const char *subr, const char *message,
                              SCM args, SCM rest) SCM_NORETURN;
 extern SCM scm_error_scm (SCM key, SCM subr, SCM message,
@@ -91,7 +82,7 @@ extern SCM scm_wta (SCM arg, const char *pos, const char *s_subr);
 
 #endif  /* SCM_DEBUG_DEPRECATED == 0 */
 
-#endif  /* ERRORH */
+#endif  /* SCM_ERROR_H */
 
 /*
   Local Variables:

@@ -96,7 +96,7 @@ scm_copy_fluids (scm_root_state *root_state)
 }
 
 static int
-fluid_print (SCM exp, SCM port, scm_print_state *pstate)
+fluid_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
   scm_puts ("#<fluid ", port);
   scm_intprint ((int) SCM_FLUID_NUM (exp), 10, port);

@@ -217,7 +217,9 @@ SCM_DEFINE (scm_doubly_weak_hash_table_p, "doubly-weak-hash-table?", 1, 0, 0,
 #undef FUNC_NAME
 
 static void *
-scm_weak_vector_gc_init (void *dummy1, void *dummy2, void *dummy3)
+scm_weak_vector_gc_init (void *dummy1 SCM_UNUSED,
+			 void *dummy2 SCM_UNUSED,
+			 void *dummy3 SCM_UNUSED)
 {
   scm_weak_vectors = SCM_EOL;
 
@@ -225,7 +227,9 @@ scm_weak_vector_gc_init (void *dummy1, void *dummy2, void *dummy3)
 }
 
 static void *
-scm_mark_weak_vector_spines (void *dummy1, void *dummy2, void *dummy3)
+scm_mark_weak_vector_spines (void *dummy1 SCM_UNUSED,
+			     void *dummy2 SCM_UNUSED,
+			     void *dummy3 SCM_UNUSED)
 {
   SCM w;
 
@@ -262,7 +266,9 @@ scm_mark_weak_vector_spines (void *dummy1, void *dummy2, void *dummy3)
 }
 
 static void *
-scm_scan_weak_vectors (void *dummy1, void *dummy2, void *dummy3)
+scm_scan_weak_vectors (void *dummy1 SCM_UNUSED,
+		       void *dummy2 SCM_UNUSED,
+		       void *dummy3 SCM_UNUSED)
 {
   SCM *ptr, w;
   for (w = scm_weak_vectors; !SCM_NULLP (w); w = SCM_WVECT_GC_CHAIN (w))

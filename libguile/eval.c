@@ -518,7 +518,7 @@ SCM_SYNTAX(s_quote,"quote", scm_makmmacro, scm_m_quote);
 SCM_GLOBAL_SYMBOL(scm_sym_quote, s_quote);
 
 SCM 
-scm_m_quote (SCM xorig, SCM env)
+scm_m_quote (SCM xorig, SCM env SCM_UNUSED)
 {
   SCM x = scm_copy_tree (SCM_CDR (xorig));
 
@@ -532,7 +532,7 @@ SCM_SYNTAX(s_begin, "begin", scm_makmmacro, scm_m_begin);
 SCM_GLOBAL_SYMBOL(scm_sym_begin, s_begin);
 
 SCM 
-scm_m_begin (SCM xorig, SCM env)
+scm_m_begin (SCM xorig, SCM env SCM_UNUSED)
 {
   SCM_ASSYNT (scm_ilength (SCM_CDR (xorig)) >= 1, scm_s_expression, s_begin);
   return scm_cons (SCM_IM_BEGIN, SCM_CDR (xorig));
@@ -542,7 +542,7 @@ SCM_SYNTAX(s_if, "if", scm_makmmacro, scm_m_if);
 SCM_GLOBAL_SYMBOL(scm_sym_if, s_if);
 
 SCM 
-scm_m_if (SCM xorig, SCM env)
+scm_m_if (SCM xorig, SCM env SCM_UNUSED)
 {
   long len = scm_ilength (SCM_CDR (xorig));
   SCM_ASSYNT (len >= 2 && len <= 3, scm_s_expression, "if");
@@ -556,7 +556,7 @@ const char scm_s_set_x[] = "set!";
 SCM_GLOBAL_SYMBOL(scm_sym_set_x, scm_s_set_x);
 
 SCM 
-scm_m_set_x (SCM xorig, SCM env)
+scm_m_set_x (SCM xorig, SCM env SCM_UNUSED)
 {
   SCM x = SCM_CDR (xorig);
   SCM_ASSYNT (2 == scm_ilength (x), scm_s_expression, scm_s_set_x);
@@ -569,7 +569,7 @@ SCM_SYNTAX(s_and, "and", scm_makmmacro, scm_m_and);
 SCM_GLOBAL_SYMBOL(scm_sym_and, s_and);
 
 SCM 
-scm_m_and (SCM xorig, SCM env)
+scm_m_and (SCM xorig, SCM env SCM_UNUSED)
 {
   long len = scm_ilength (SCM_CDR (xorig));
   SCM_ASSYNT (len >= 0, scm_s_test, s_and);
@@ -583,7 +583,7 @@ SCM_SYNTAX(s_or,"or", scm_makmmacro, scm_m_or);
 SCM_GLOBAL_SYMBOL(scm_sym_or,s_or);
 
 SCM 
-scm_m_or (SCM xorig, SCM env)
+scm_m_or (SCM xorig, SCM env SCM_UNUSED)
 {
   long len = scm_ilength (SCM_CDR (xorig));
   SCM_ASSYNT (len >= 0, scm_s_test, s_or);
@@ -598,7 +598,7 @@ SCM_SYNTAX(s_case, "case", scm_makmmacro, scm_m_case);
 SCM_GLOBAL_SYMBOL(scm_sym_case, s_case);
 
 SCM 
-scm_m_case (SCM xorig, SCM env)
+scm_m_case (SCM xorig, SCM env SCM_UNUSED)
 {
   SCM proc, cdrx = scm_list_copy (SCM_CDR (xorig)), x = cdrx;
   SCM_ASSYNT (scm_ilength (x) >= 2, scm_s_clauses, s_case);
@@ -620,7 +620,7 @@ SCM_GLOBAL_SYMBOL(scm_sym_cond, s_cond);
 
 
 SCM 
-scm_m_cond (SCM xorig, SCM env)
+scm_m_cond (SCM xorig, SCM env SCM_UNUSED)
 {
   SCM arg1, cdrx = scm_list_copy (SCM_CDR (xorig)), x = cdrx;
   long len = scm_ilength (x);
@@ -663,7 +663,7 @@ scm_c_improper_memq (SCM obj, SCM list)
 }
 
 SCM 
-scm_m_lambda (SCM xorig, SCM env)
+scm_m_lambda (SCM xorig, SCM env SCM_UNUSED)
 {
   SCM proc, x = SCM_CDR (xorig);
   if (scm_ilength (x) < 2)
@@ -710,7 +710,7 @@ SCM_GLOBAL_SYMBOL(scm_sym_letstar,s_letstar);
 
 
 SCM 
-scm_m_letstar (SCM xorig, SCM env)
+scm_m_letstar (SCM xorig, SCM env SCM_UNUSED)
 {
   SCM x = SCM_CDR (xorig), arg1, proc, vars = SCM_EOL, *varloc = &vars;
   long len = scm_ilength (x);
@@ -750,7 +750,7 @@ SCM_SYNTAX(s_do, "do", scm_makmmacro, scm_m_do);
 SCM_GLOBAL_SYMBOL(scm_sym_do, s_do);
 
 SCM 
-scm_m_do (SCM xorig, SCM env)
+scm_m_do (SCM xorig, SCM env SCM_UNUSED)
 {
   SCM x = SCM_CDR (xorig), arg1, proc;
   SCM vars = SCM_EOL, inits = SCM_EOL, steps = SCM_EOL;
@@ -852,7 +852,7 @@ SCM_SYNTAX (s_delay, "delay", scm_makmmacro, scm_m_delay);
 SCM_GLOBAL_SYMBOL (scm_sym_delay, s_delay);
 
 SCM 
-scm_m_delay (SCM xorig, SCM env)
+scm_m_delay (SCM xorig, SCM env SCM_UNUSED)
 {
   SCM_ASSYNT (scm_ilength (xorig) == 2, scm_s_expression, s_delay);
   return scm_cons2 (SCM_IM_DELAY, SCM_EOL, SCM_CDR (xorig));
@@ -912,7 +912,7 @@ scm_m_define (SCM x, SCM env)
 /* end of acros */
 
 static SCM
-scm_m_letrec1 (SCM op, SCM imm, SCM xorig, SCM env)
+scm_m_letrec1 (SCM op, SCM imm, SCM xorig, SCM env SCM_UNUSED)
 {
   SCM cdrx = SCM_CDR (xorig);	/* locally mutable version of form */
   char *what = SCM_SYMBOL_CHARS (SCM_CAR (xorig));
@@ -1022,7 +1022,7 @@ SCM_GLOBAL_SYMBOL (scm_sym_atapply, s_atapply);
 SCM_GLOBAL_SYMBOL (scm_sym_apply, s_atapply + 1);
 
 SCM 
-scm_m_apply (SCM xorig, SCM env)
+scm_m_apply (SCM xorig, SCM env SCM_UNUSED)
 {
   SCM_ASSYNT (scm_ilength (SCM_CDR (xorig)) == 2, scm_s_expression, s_atapply);
   return scm_cons (SCM_IM_APPLY, SCM_CDR (xorig));
@@ -1034,7 +1034,7 @@ SCM_GLOBAL_SYMBOL(scm_sym_atcall_cc,s_atcall_cc);
 
 
 SCM 
-scm_m_cont (SCM xorig, SCM env)
+scm_m_cont (SCM xorig, SCM env SCM_UNUSED)
 {
   SCM_ASSYNT (scm_ilength (SCM_CDR (xorig)) == 1,
 	      scm_s_expression, s_atcall_cc);
@@ -1049,7 +1049,7 @@ SCM_GLOBAL_SYMBOL (scm_lisp_t, "t");
 SCM_SYNTAX (s_nil_cond, "nil-cond", scm_makmmacro, scm_m_nil_cond);
 
 SCM
-scm_m_nil_cond (SCM xorig, SCM env)
+scm_m_nil_cond (SCM xorig, SCM env SCM_UNUSED)
 {
   long len = scm_ilength (SCM_CDR (xorig));
   SCM_ASSYNT (len >= 1 && (len & 1) == 1, scm_s_expression, "nil-cond");
@@ -1059,7 +1059,7 @@ scm_m_nil_cond (SCM xorig, SCM env)
 SCM_SYNTAX (s_nil_ify, "nil-ify", scm_makmmacro, scm_m_nil_ify);
 
 SCM
-scm_m_nil_ify (SCM xorig, SCM env)
+scm_m_nil_ify (SCM xorig, SCM env SCM_UNUSED)
 {
   SCM_ASSYNT (scm_ilength (SCM_CDR (xorig)) == 1, scm_s_expression, "nil-ify");
   return scm_cons (SCM_IM_NIL_IFY, SCM_CDR (xorig));
@@ -1068,7 +1068,7 @@ scm_m_nil_ify (SCM xorig, SCM env)
 SCM_SYNTAX (s_t_ify, "t-ify", scm_makmmacro, scm_m_t_ify);
 
 SCM
-scm_m_t_ify (SCM xorig, SCM env)
+scm_m_t_ify (SCM xorig, SCM env SCM_UNUSED)
 {
   SCM_ASSYNT (scm_ilength (SCM_CDR (xorig)) == 1, scm_s_expression, "t-ify");
   return scm_cons (SCM_IM_T_IFY, SCM_CDR (xorig));
@@ -1077,7 +1077,7 @@ scm_m_t_ify (SCM xorig, SCM env)
 SCM_SYNTAX (s_0_cond, "0-cond", scm_makmmacro, scm_m_0_cond);
 
 SCM
-scm_m_0_cond (SCM xorig, SCM env)
+scm_m_0_cond (SCM xorig, SCM env SCM_UNUSED)
 {
   long len = scm_ilength (SCM_CDR (xorig));
   SCM_ASSYNT (len >= 1 && (len & 1) == 1, scm_s_expression, "0-cond");
@@ -1087,7 +1087,7 @@ scm_m_0_cond (SCM xorig, SCM env)
 SCM_SYNTAX (s_0_ify, "0-ify", scm_makmmacro, scm_m_0_ify);
 
 SCM
-scm_m_0_ify (SCM xorig, SCM env)
+scm_m_0_ify (SCM xorig, SCM env SCM_UNUSED)
 {
   SCM_ASSYNT (scm_ilength (SCM_CDR (xorig)) == 1, scm_s_expression, "0-ify");
   return scm_cons (SCM_IM_0_IFY, SCM_CDR (xorig));
@@ -1096,7 +1096,7 @@ scm_m_0_ify (SCM xorig, SCM env)
 SCM_SYNTAX (s_1_ify, "1-ify", scm_makmmacro, scm_m_1_ify);
 
 SCM
-scm_m_1_ify (SCM xorig, SCM env)
+scm_m_1_ify (SCM xorig, SCM env SCM_UNUSED)
 {
   SCM_ASSYNT (scm_ilength (SCM_CDR (xorig)) == 1, scm_s_expression, "1-ify");
   return scm_cons (SCM_IM_1_IFY, SCM_CDR (xorig));
@@ -1105,7 +1105,7 @@ scm_m_1_ify (SCM xorig, SCM env)
 SCM_SYNTAX (s_atfop, "@fop", scm_makmmacro, scm_m_atfop);
 
 SCM
-scm_m_atfop (SCM xorig, SCM env)
+scm_m_atfop (SCM xorig, SCM env SCM_UNUSED)
 {
   SCM x = SCM_CDR (xorig), var;
   SCM_ASSYNT (scm_ilength (x) >= 1, scm_s_expression, "@fop");
@@ -1148,7 +1148,7 @@ SCM_SYNTAX (s_at_call_with_values, "@call-with-values", scm_makmmacro, scm_m_at_
 SCM_GLOBAL_SYMBOL(scm_sym_at_call_with_values, s_at_call_with_values);
 
 SCM
-scm_m_at_call_with_values (SCM xorig, SCM env)
+scm_m_at_call_with_values (SCM xorig, SCM env SCM_UNUSED)
 {
   SCM_ASSYNT (scm_ilength (SCM_CDR (xorig)) == 2,
 	      scm_s_expression, s_at_call_with_values);

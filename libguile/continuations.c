@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996,1998, 2000 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -94,7 +94,7 @@ continuation_free (SCM obj)
 }
 
 static int
-continuation_print (SCM obj, SCM port, scm_print_state *state)
+continuation_print (SCM obj, SCM port, scm_print_state *state SCM_UNUSED)
 {
   scm_contregs_t *continuation = SCM_CONTREGS (obj);
 

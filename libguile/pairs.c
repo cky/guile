@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996, 2000 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -53,6 +53,20 @@
 
 /* {Pairs}
  */
+
+#if (SCM_DEBUG_PAIR_ACCESSES == 1)
+
+#include "libguile/ports.h"
+#include "libguile/strings.h"
+
+void scm_error_pair_access (SCM non_pair)
+{
+  SCM message = scm_makfrom0str ("Non-pair accessed with SCM_C[AD]R: `~S´\n");
+  scm_simple_format (scm_current_error_port (), message, SCM_LIST1 (non_pair));
+  abort ();
+}
+
+#endif
 
 SCM_DEFINE (scm_cons, "cons", 2, 0, 0,
 	    (SCM x, SCM y),

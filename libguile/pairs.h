@@ -1,8 +1,8 @@
 /* classes: h_files */
 
-#ifndef PAIRSH
-#define PAIRSH
-/* Copyright (C) 1995,1996,2000 Free Software Foundation, Inc.
+#ifndef SCM_PAIRS_H
+#define SCM_PAIRS_H
+/* Copyright (C) 1995,1996,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -52,14 +52,22 @@
 
 
 
+#if (SCM_DEBUG_PAIR_ACCESSES == 1)
+# include "libguile/struct.h"
+# define SCM_VALIDATE_PAIR(cell, expr) \
+    ((!SCM_ECONSP (cell) ? scm_error_pair_access (cell), 0 : 0), (expr))
+#else
+# define SCM_VALIDATE_PAIR(cell, expr) (expr)
+#endif
+
 #define SCM_NULLP(x)		(SCM_EQ_P ((x), SCM_EOL))
 #define SCM_NNULLP(x)		(!SCM_NULLP (x))
 
-#define SCM_CAR(x)		(SCM_CELL_OBJECT_0 (x))
-#define SCM_CDR(x)		(SCM_CELL_OBJECT_1 (x))
+#define SCM_CAR(x)		(SCM_VALIDATE_PAIR (x, SCM_CELL_OBJECT_0 (x)))
+#define SCM_CDR(x)		(SCM_VALIDATE_PAIR (x, SCM_CELL_OBJECT_1 (x)))
 
-#define SCM_SETCAR(x, v)	(SCM_SET_CELL_OBJECT_0 ((x), (v)))
-#define SCM_SETCDR(x, v)	(SCM_SET_CELL_OBJECT_1 ((x), (v)))
+#define SCM_SETCAR(x, v)	(SCM_VALIDATE_PAIR (x, SCM_SET_CELL_OBJECT_0 ((x), (v))))
+#define SCM_SETCDR(x, v)	(SCM_VALIDATE_PAIR (x, SCM_SET_CELL_OBJECT_1 ((x), (v))))
 
 #define SCM_CAAR(OBJ)		SCM_CAR (SCM_CAR (OBJ))
 #define SCM_CDAR(OBJ)		SCM_CDR (SCM_CAR (OBJ))
@@ -94,6 +102,9 @@
 
 
 
+#if (SCM_DEBUG_PAIR_ACCESSES == 1)
+extern void scm_error_pair_access (SCM) SCM_NORETURN;
+#endif
 extern SCM scm_cons (SCM x, SCM y);
 extern SCM scm_cons2 (SCM w, SCM x, SCM y);
 extern SCM scm_pair_p (SCM x);
@@ -101,7 +112,7 @@ extern SCM scm_set_car_x (SCM pair, SCM value);
 extern SCM scm_set_cdr_x (SCM pair, SCM value);
 extern void scm_init_pairs (void);
 
-#endif  /* PAIRSH */
+#endif  /* SCM_PAIRS_H */
 
 /*
   Local Variables:

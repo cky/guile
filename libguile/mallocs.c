@@ -74,7 +74,7 @@ malloc_free (SCM ptr)
 
 
 static int
-malloc_print (SCM exp, SCM port, scm_print_state *pstate)
+malloc_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
   scm_puts("#<malloc ", port);
   scm_intprint (SCM_CELL_WORD_1 (exp), 16, port);

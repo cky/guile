@@ -84,7 +84,7 @@ static scm_bits_t tc16_jmpbuffer;
 #endif
 
 static int
-jmpbuffer_print (SCM exp, SCM port, scm_print_state *pstate)
+jmpbuffer_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
   scm_puts ("#<jmpbuffer ", port);
   scm_puts (JBACTIVE(exp) ? "(active) " : "(inactive) ", port);
@@ -238,7 +238,7 @@ struct lazy_catch {
    appear in normal data structures, only in the wind list.  However,
    it might be nice for debugging someday... */
 static int
-lazy_catch_print (SCM closure, SCM port, scm_print_state *pstate)
+lazy_catch_print (SCM closure, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
   struct lazy_catch *c = (struct lazy_catch *) SCM_CELL_WORD_1 (closure);
   char buf[200];
@@ -295,7 +295,7 @@ scm_internal_lazy_catch (SCM tag, scm_catch_body_t body, void *body_data, scm_ca
    scm_the_last_stack_fluid_var on error. */
 
 static SCM
-ss_handler (void *data, SCM tag, SCM throw_args)
+ss_handler (void *data SCM_UNUSED, SCM tag, SCM throw_args)
 {
   /* Save the stack */
   scm_fluid_set_x (SCM_VARIABLE_REF (scm_the_last_stack_fluid_var),
@@ -503,7 +503,7 @@ scm_handle_by_message_noexit (void *handler_data, SCM tag, SCM args)
 
 
 SCM
-scm_handle_by_throw (void *handler_data, SCM tag, SCM args)
+scm_handle_by_throw (void *handler_data SCM_UNUSED, SCM tag, SCM args)
 {
   scm_ithrow (tag, args, 1);
   return SCM_UNSPECIFIED;  /* never returns */
@@ -602,7 +602,7 @@ SCM_DEFINE (scm_throw, "throw", 1, 0, 1,
 #undef FUNC_NAME
 
 SCM
-scm_ithrow (SCM key, SCM args, int noreturn)
+scm_ithrow (SCM key, SCM args, int noreturn SCM_UNUSED)
 {
   SCM jmpbuf = SCM_UNDEFINED;
   SCM wind_goal;
