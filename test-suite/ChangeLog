@@ -1,3 +1,14 @@
+2004-07-06  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* standalone/test-num2integral.c, standalone/test-unwind.c:
+	Replaced all uses of deprecated SCM_FALSEP, SCM_NFALSEP, SCM_BOOL,
+	SCM_NEGATE_BOOL, and SCM_BOOLP with scm_is_false, scm_is_true,
+	scm_from_bool, and scm_is_bool, respectively.
+
+	* standalone/Makefile.am: Added test-conversion to the TESTS.
+
+	* standalone/test-conversion.c: New file.
+
 2004-06-20  Rob Browning  <rlb@defaultvalue.org>
 
 	* tests/srfi-31.test: new test for SRFI-31.
