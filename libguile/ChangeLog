@@ -1,3 +1,9 @@
+2000-07-24  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* stime.c (scm_strftime): Recognize a return value of zero from
+	strftime as buffer overflow and take care to detect a valid zero
+	length result regardless.  Thanks to David Barts!
+
 2000-07-23  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* alist.c (scm_assq_remove_x, scm_assv_remove_x,

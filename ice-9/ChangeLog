@@ -1,3 +1,7 @@
+2000-07-24  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* common-list.scm (uniq): Made tail-recursive.  Thanks to thi!
+
 2000-07-13  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* boot-9.scm (expt):  In case of negative integer exponents return
