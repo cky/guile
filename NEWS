@@ -584,6 +584,16 @@ starting the week.
 
 * Changes to the C interface
 
+** SCM_CELL_WORD_LOC has been deprecated.
+
+Use the new macro SCM_CELL_OBJECT_LOC instead, which return a pointer
+to a SCM, as opposed to a pointer to a scm_t_bits.
+
+This was done to allow the correct use of pointers into the Scheme
+heap.  Previously, the heap words were of type scm_t_bits and local
+variables and function arguments were of type SCM, making it
+non-standards-conformant to have a pointer that can point to both.
+
 ** New macros SCM_SMOB_DATA_2, SM_SMOB_DATA_3, etc.
 
 These macros should be used instead of SCM_CELL_WORD_2/3 to access the

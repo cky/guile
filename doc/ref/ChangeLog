@@ -1,3 +1,12 @@
+2004-05-06  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* scheme-smobs.texi: Updated for new SCM_SMOB_* macros.
+
+	* preface.texi: Moved around the sections so that the manual
+	overview comes first.
+
+	* libguile-smobs.texi: Updated for the new role of scm_t_bits.
+
 2004-04-21  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* Big reorganization of the whole manual to give it a simpler
