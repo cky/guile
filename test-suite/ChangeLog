@@ -1,3 +1,14 @@
+2001-08-12  Thien-Thi Nguyen  <ttn@revel.glug.org>
+
+	* tests/getopt-long.test (exception:no-such-option,
+	exception:option-does-not-support-arg,
+	exception:option-must-be-specified,
+	exception:option-must-have-arg, exception:not-enough-args):
+	New vars.
+
+	("option-ref", "required", "specified no value, given anyway",
+	"specified arg required"): New top-level sections.
+
 2001-08-11  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* tests/numbers.test:  Added Some syntax tests for
