@@ -177,6 +177,8 @@ extern SCM scm_set_object_procedure_x (SCM obj, SCM procs);
 extern SCM scm_make_class_object (SCM metaclass, SCM layout);
 extern SCM scm_make_subclass_object (SCM class, SCM layout);
 
+extern SCM scm_i_make_class_object (SCM metaclass, SCM layout_string,
+				    unsigned long flags);
 extern void scm_init_objects SCM_P ((void));
 
 #endif /* OBJECTSH */

@@ -1,3 +1,13 @@
+1998-11-14  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+
+	* objects.c (scm_i_make_class_object): Renamed from
+	make_class_object; exported; error checking moved to
+	scm_make_class_object and scm_make_subclass_object.
+	(scm_make_class_object, scm_make_subclass_object): Use
+	scm_i_make_class_object.
+	(scm_make_subclass_object): Let the subclass have same metaclass
+	as the superclass.
+
 1998-11-14  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* debug.c (scm_debug_options): Bugfix: Set the value of

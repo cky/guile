@@ -150,20 +150,13 @@ scm_set_object_procedure_x (SCM obj, SCM procs)
   return SCM_UNSPECIFIED;
 }
 
-static SCM
-make_class_object (SCM meta,
-		   SCM pl,
-		   SCM layout,
-		   unsigned long flags,
-		   char* subr)
+SCM
+scm_i_make_class_object (SCM meta,
+			 SCM layout_string,
+			 unsigned long flags)
 {
   SCM c;
-  SCM_ASSERT (SCM_NIMP (meta) && SCM_STRUCTP (meta), meta, SCM_ARG1, subr);
-  SCM_ASSERT (SCM_NIMP (layout) && SCM_STRINGP (layout),
-	      layout,
-	      SCM_ARG2,
-	      subr);
-  layout = scm_make_struct_layout (scm_string_append (SCM_LIST2 (pl, layout)));
+  SCM layout = scm_make_struct_layout (layout_string);
   c = scm_make_struct (meta,
 		       SCM_INUM0,
 		       SCM_LIST4 (layout, SCM_BOOL_F, SCM_EOL, SCM_EOL));
@@ -177,13 +170,13 @@ SCM
 scm_make_class_object (SCM metaclass, SCM layout)
 {
   unsigned long flags = 0;
+  SCM_ASSERT (SCM_NIMP (metaclass) && SCM_STRUCTP (metaclass),
+	      metaclass, SCM_ARG1, s_make_class_object);
+  SCM_ASSERT (SCM_NIMP (layout) && SCM_STRINGP (layout),
+	      layout, SCM_ARG2, s_make_class_object);
   if (metaclass == scm_metaclass_operator)
     flags = SCM_CLASSF_OPERATOR;
-  return make_class_object (metaclass,
-			    scm_nullstr,
-			    layout,
-			    flags,
-			    s_make_class_object);
+  return scm_i_make_class_object (metaclass, layout, flags);
 }
 
 SCM_PROC (s_make_subclass_object, "make-subclass-object", 2, 0, 0, scm_make_subclass_object);
@@ -196,13 +189,16 @@ scm_make_subclass_object (SCM class, SCM layout)
 	      class,
 	      SCM_ARG1,
 	      s_make_subclass_object);
+  SCM_ASSERT (SCM_NIMP (layout) && SCM_STRINGP (layout),
+	      layout,
+	      SCM_ARG2,
+	      s_make_subclass_object);
   pl = SCM_STRUCT_DATA (class)[scm_vtable_index_layout];
+  /* Convert symbol->string */
   pl = scm_makfromstr (SCM_CHARS (pl), (scm_sizet) SCM_LENGTH (pl), 0);
-  return make_class_object (scm_metaclass_standard,
-			    pl,
-			    layout,
-			    SCM_CLASS_FLAGS (class),
-			    s_make_subclass_object);
+  return scm_i_make_class_object (SCM_STRUCT_VTABLE (class),
+				  scm_string_append (SCM_LIST2 (pl, layout)),
+				  SCM_CLASS_FLAGS (class));
 }
 
 void
