@@ -46,10 +46,41 @@
 
 #include "libguile/__scm.h"
 
+#include "libguile/validate.h"
+
 
+
+#define SCM_MODULEP(OBJ) \
+  (SCM_NIMP (OBJ) && SCM_CELL_TYPE (OBJ) == scm_module_tag)
+
+#define SCM_VALIDATE_MODULE(pos, scm) SCM_MAKE_VALIDATE (pos, scm, MODULEP)
+
+/* NOTE: Indexes of module fields are dependent upon the definition of
+ *       module-type in boot-9.scm.
+ */
+
+#define scm_module_index_obarray	0
+#define scm_module_index_uses		1
+#define scm_module_index_binder		2
+#define scm_module_index_eval_closure	3
+
+#define SCM_MODULE_OBARRAY(module) \
+  SCM_PACK (SCM_STRUCT_DATA (module) [scm_module_index_obarray])
+#define SCM_MODULE_USES(module) \
+  SCM_PACK (SCM_STRUCT_DATA (module) [scm_module_index_uses])
+#define SCM_MODULE_BINDER(module) \
+  SCM_PACK (SCM_STRUCT_DATA (module) [scm_module_index_binder])
+#define SCM_MODULE_EVAL_CLOSURE(module) \
+  SCM_PACK (SCM_STRUCT_DATA (module)[scm_module_index_eval_closure])
+
+
+
+extern SCM scm_module_system_booted_p;
+extern SCM scm_module_tag;
 
 extern SCM scm_the_root_module (void);
 extern SCM scm_selected_module (void);
+extern SCM scm_interaction_environment (void);
 extern SCM scm_select_module (SCM module);
 extern SCM scm_make_module (SCM name);
 extern SCM scm_ensure_user_module (SCM name);
