@@ -138,6 +138,7 @@ extern SCM scm_i_unquote;
 extern SCM scm_i_uq_splicing;
 extern SCM scm_i_apply;
 extern SCM scm_sym_set_x;
+extern SCM scm_sym_args;
 
 extern long scm_tc16_macro;
 

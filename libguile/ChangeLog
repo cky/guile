@@ -1,4 +1,25 @@
+1999-08-06  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* eval.c (SCM_IM_DISPATCH): Rewrote dispatch protocol.  Dispatch
+	forms now contain the expressions to be dispatched upon instead of
+	depending on a surrounding lambda or let; Generic function
+	dispatch has been optimized; `apply' on a generic function now
+	works a little bit strangely.  It uses a trick so that the type
+	dispatch code in SCM_CEVAL can be reused.
+
+	* objects.h, objects.c (scm_apply_generic_env): Added (used by
+	apply).
+	(scm_operator_p): Added.
+	(scm_sym_atdispatch): Added.
+	(scm_set_object_procedure_x): Modified to handle the new style
+	generic functions.
+	(scm_object_procedures): New debugging procedure.
+
 1999-08-05  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* eval.c, eval.h (scm_sym_args): Added.
+
+	* objects.h (SCM_CLASSF_PURE_GENERIC): Added.
 
 	* feature.c, feature.h (scm_c_run_hook): Added.
 
