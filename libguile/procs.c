@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995, 1996, 1997, 1999 Free Software Foundation, Inc.
+/*	Copyright (C) 1995, 1996, 1997, 1999, 2000 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -313,11 +313,12 @@ SCM_DEFINE (scm_make_procedure_with_setter, "make-procedure-with-setter", 2, 0, 
 #define FUNC_NAME s_scm_make_procedure_with_setter
 {
   SCM z;
-  SCM_VALIDATE_PROC (1,procedure);
-  SCM_VALIDATE_PROC (2,setter);
-  SCM_NEWCELL (z);
+  SCM_VALIDATE_PROC (1, procedure);
+  SCM_VALIDATE_PROC (2, setter);
+  SCM_NEWCELL2 (z);
   SCM_ENTER_A_SECTION;
-  SCM_SETCDR (z, scm_cons (procedure, setter));
+  SCM_SET_CELL_WORD1 (z, procedure);
+  SCM_SET_CELL_WORD2 (z, setter);
   SCM_SETCAR (z, scm_tc7_pws);
   SCM_EXIT_A_SECTION;
   return z;
@@ -329,7 +330,7 @@ SCM_DEFINE (scm_procedure, "procedure", 1, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_procedure
 {
-  SCM_VALIDATE_NIM (1,proc);
+  SCM_VALIDATE_NIM (1, proc);
   if (SCM_PROCEDURE_WITH_SETTER_P (proc))
     return SCM_PROCEDURE (proc);
   else if (SCM_STRUCTP (proc))
