@@ -414,7 +414,12 @@ SCM_DEFINE (scm_stack_p, "stack?", 1, 0, 0,
 
 SCM_DEFINE (scm_make_stack, "make-stack", 1, 0, 1, 
             (SCM obj, SCM args),
-	    "")
+	    "Create a new stack. If @var{obj} is @code{#t}, the current\n"
+	    "evaluation stack is used for creating the stack frames,\n"
+	    "otherwise the frames are taken from @var{obj} (which must be\n"
+	    "either a debug object or a continuation).\n"
+	    "@var{args} must be a list if integers and specifies how the\n"
+	    "resulting stack will be narrowed.")
 #define FUNC_NAME s_scm_make_stack
 {
   int n, maxp, size;
@@ -541,7 +546,7 @@ SCM_DEFINE (scm_stack_id, "stack-id", 1, 0, 0,
 
 SCM_DEFINE (scm_stack_ref, "stack-ref", 2, 0, 0,
             (SCM stack, SCM i),
-	    "")
+	    "Return the @var{i}'th frame from @var{stack}.")
 #define FUNC_NAME s_scm_stack_ref
 {
   SCM_VALIDATE_STACK (1,stack);
@@ -554,8 +559,8 @@ SCM_DEFINE (scm_stack_ref, "stack-ref", 2, 0, 0,
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_stack_length, "stack-length", 1, 0, 0, 
-           (SCM stack),
-	    "")
+	    (SCM stack),
+	    "Return the length of @var{stack}.")
 #define FUNC_NAME s_scm_stack_length
 {
   SCM_VALIDATE_STACK (1,stack);
@@ -568,7 +573,7 @@ SCM_DEFINE (scm_stack_length, "stack-length", 1, 0, 0,
 
 SCM_DEFINE (scm_frame_p, "frame?", 1, 0, 0, 
             (SCM obj),
-	    "")
+	    "Return @code{#t} if @var{obj} is a stack frame.")
 #define FUNC_NAME s_scm_frame_p
 {
   return SCM_BOOL(SCM_FRAMEP (obj));
@@ -576,8 +581,10 @@ SCM_DEFINE (scm_frame_p, "frame?", 1, 0, 0,
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_last_stack_frame, "last-stack-frame", 1, 0, 0, 
-           (SCM obj),
-	    "")
+	    (SCM obj),
+	    "Return a stack which consists of a single frame, which is the\n"
+	    "last stack frame for @var{obj}. @var{obj} must be either a\n"
+	    "debug object or a continuation.")
 #define FUNC_NAME s_scm_last_stack_frame
 {
   scm_debug_frame *dframe;
@@ -617,8 +624,8 @@ SCM_DEFINE (scm_last_stack_frame, "last-stack-frame", 1, 0, 0,
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_frame_number, "frame-number", 1, 0, 0, 
-           (SCM frame),
-	    "")
+	    (SCM frame),
+	    "Return the frame number of @var{frame}.")
 #define FUNC_NAME s_scm_frame_number
 {
   SCM_VALIDATE_FRAME (1,frame);
@@ -627,8 +634,8 @@ SCM_DEFINE (scm_frame_number, "frame-number", 1, 0, 0,
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_frame_source, "frame-source", 1, 0, 0, 
-           (SCM frame),
-	    "")
+	    (SCM frame),
+	    "Return the source of @var{frame}.")
 #define FUNC_NAME s_scm_frame_source
 {
   SCM_VALIDATE_FRAME (1,frame);
@@ -637,8 +644,9 @@ SCM_DEFINE (scm_frame_source, "frame-source", 1, 0, 0,
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_frame_procedure, "frame-procedure", 1, 0, 0, 
-           (SCM frame),
-	    "")
+	    (SCM frame),
+	    "Return the procedure for @var{frame}, or @code{#f} if no\n"
+	    "procedure is associated with @var{frame}.")
 #define FUNC_NAME s_scm_frame_procedure
 {
   SCM_VALIDATE_FRAME (1,frame);
@@ -649,8 +657,8 @@ SCM_DEFINE (scm_frame_procedure, "frame-procedure", 1, 0, 0,
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_frame_arguments, "frame-arguments", 1, 0, 0, 
-           (SCM frame),
-	    "")
+	    (SCM frame),
+	    "Return the arguments of @var{frame}.")
 #define FUNC_NAME s_scm_frame_arguments
 {
   SCM_VALIDATE_FRAME (1,frame);
@@ -659,8 +667,9 @@ SCM_DEFINE (scm_frame_arguments, "frame-arguments", 1, 0, 0,
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_frame_previous, "frame-previous", 1, 0, 0, 
-           (SCM frame),
-	    "")
+	    (SCM frame),
+	    "Return the previous frame of @var{frame}, or @code{#f} if\n"
+	    "@var{frame} is the first frame in its stack.")
 #define FUNC_NAME s_scm_frame_previous
 {
   int n;
@@ -675,7 +684,8 @@ SCM_DEFINE (scm_frame_previous, "frame-previous", 1, 0, 0,
 
 SCM_DEFINE (scm_frame_next, "frame-next", 1, 0, 0, 
            (SCM frame),
-	    "")
+	    "Return the next frame of @var{frame}, or @code{#f} if\n"
+	    "@var{frame} is the last frame in its stack.")
 #define FUNC_NAME s_scm_frame_next
 {
   int n;
@@ -689,8 +699,8 @@ SCM_DEFINE (scm_frame_next, "frame-next", 1, 0, 0,
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_frame_real_p, "frame-real?", 1, 0, 0, 
-           (SCM frame),
-	    "")
+	    (SCM frame),
+	    "Return @code{#t} if @var{frame} is a real frame.")
 #define FUNC_NAME s_scm_frame_real_p
 {
   SCM_VALIDATE_FRAME (1,frame);
@@ -699,8 +709,8 @@ SCM_DEFINE (scm_frame_real_p, "frame-real?", 1, 0, 0,
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_frame_procedure_p, "frame-procedure?", 1, 0, 0, 
-           (SCM frame),
-	    "")
+	    (SCM frame),
+	    "Return @code{#t} if a procedure is associated with @var{frame}.")
 #define FUNC_NAME s_scm_frame_procedure_p
 {
   SCM_VALIDATE_FRAME (1,frame);
@@ -709,8 +719,8 @@ SCM_DEFINE (scm_frame_procedure_p, "frame-procedure?", 1, 0, 0,
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_frame_evaluating_args_p, "frame-evaluating-args?", 1, 0, 0, 
-           (SCM frame),
-	    "")
+	    (SCM frame),
+	    "Return @code{#t} if @var{frame} contains evaluated arguments.")
 #define FUNC_NAME s_scm_frame_evaluating_args_p
 {
   SCM_VALIDATE_FRAME (1,frame);
@@ -719,8 +729,8 @@ SCM_DEFINE (scm_frame_evaluating_args_p, "frame-evaluating-args?", 1, 0, 0,
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_frame_overflow_p, "frame-overflow?", 1, 0, 0, 
-           (SCM frame),
-	    "")
+	    (SCM frame),
+	    "Return @code{#t} if @var{frame} is an overflow frame.")
 #define FUNC_NAME s_scm_frame_overflow_p
 {
   SCM_VALIDATE_FRAME (1,frame);
