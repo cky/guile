@@ -152,26 +152,25 @@ exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
               (with-output-to-string
                 (lambda ()
                   (format #t "~A" *function-name*)
-                  (let loop-req ((r 0))
+                  (let loop-req ((args *args*) (r 0))
                     (if (< r req)
                       (begin
-                       (format #t " ~A" (list-ref *args* r))
-                       (loop-req (+ 1 r)))
-                      (begin
-                       (if (> opt 0)
-                         (format #t "~A[" (if (> req 0) " " "")))
-                       (let loop-opt ((o 0) (space #f))
-                         (if (< o opt)
-                           (begin
-                            (format #t "~A~A" (if space " " "")
-                                    (list-ref *args* (+ r o)))
-                            (loop-opt (+ 1 o) #t))
-                           (begin
-                            (if (> opt 0)
-                              (format #t "]"))
-                            (if (> var 0)
-                              (format #t " . ~A"
-                                      (car (last-pair *args*)))))))))))))))
+                       (format #t " ~A" (car args))
+                       (loop-req (cdr args) (+ 1 r)))
+                      (let loop-opt ((o 0) (args args) (tail '()))
+                       (if (< o opt)
+                         (begin
+                          (format #t " [~A" (car args))
+                          (loop-opt (+ 1 o) (cdr args) (cons #\] tail)))
+                         (begin
+                          (if (> var 0)
+                            (format #t " . ~A"
+                                    (car args)))
+                          (let loop-tail ((tail tail))
+                               (if (not (null? tail))
+                                 (begin
+                                  (format #t "~A" (car tail))
+                                  (loop-tail (cdr tail)))))))))))))))
       (format #t "\n~A\n" *function-name*)
       (format #t "@c snarfed from ~A:~A\n" *file* *line*)
       (format #t "@deffn primitive ~A\n" nice-sig)

@@ -1,3 +1,8 @@
+2001-08-07  Michael Livshin  <mlivshin@bigfoot.com>
+
+	* snarf-check-and-output-texi: print optional args in a prettier
+	manner.
+
 2001-08-01  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
 	* PROGRAM, README, display-commentary, doc-snarf,
