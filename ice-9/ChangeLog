@@ -1,5 +1,10 @@
 Mon Oct 28 17:56:29 1996  Jim Blandy  <jimb@floss.cyclic.com>
 
+	* boot-9.scm (load-from-path): New function.
+
+	* boot-9.scm (try-load, basic-try-load, try-load-module,
+	try-load): Deleted.  I don't think they're being used.
+
 	* Makefile.in (scm_files): Add r4rs.scm and test.scm to this list,
 	so they'll get distributed.
 
