@@ -237,7 +237,6 @@ SCM scm_m_atdispatch (SCM xorig, SCM env);
 #ifdef GUILE_DEBUG
 SCM scm_pure_generic_p (SCM obj);
 #endif
-extern void scm_init_oop_goops_goopscore_module (void);
 
 SCM scm_sys_compute_slots (SCM c); 
 SCM scm_i_get_keyword (SCM key, SCM l, int len, SCM default_value, const char *subr); 
@@ -281,6 +280,8 @@ SCM stklos_version (void);
 SCM scm_make (SCM args); 
 SCM scm_find_method (SCM args); 
 SCM scm_sys_method_more_specific_p (SCM m1, SCM m2, SCM targs); 
+
+SCM scm_init_goops_builtins (void);
 void scm_init_goops (void); 
 
 #endif /* GOOPSH */

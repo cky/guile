@@ -2437,7 +2437,7 @@ void
 scm_load_goops ()
 {
   if (!goops_loaded_p)
-    scm_resolve_module (scm_read_0str ("(oop goops)"));
+    scm_c_resolve_module ("oop goops");
 }
 
 
@@ -2645,13 +2645,10 @@ SCM_DEFINE (scm_sys_goops_loaded, "%goops-loaded", 0, 0, 0,
 
 SCM scm_module_goops;
 
-void
-scm_init_goops (void)
+SCM
+scm_init_goops_builtins (void)
 {
-  SCM old_module;
-  scm_module_goops = scm_make_module (scm_read_0str ("(oop goops)"));
-  old_module = scm_set_current_module (scm_module_goops);
-  
+  scm_module_goops = scm_current_module ();
   scm_goops_lookup_closure = scm_module_lookup_closure (scm_module_goops);
 
   /* Not really necessary right now, but who knows... 
@@ -2689,14 +2686,14 @@ scm_init_goops (void)
 						   name)));
     DEFVAR (name, scm_no_applicable_method);
   }
-  
-  scm_set_current_module (old_module);
+
+  return SCM_UNSPECIFIED;
 }
 
 void
-scm_init_oop_goops_goopscore_module ()
+scm_init_goops ()
 {
-  scm_register_module_xxx ("oop goops goopscore", (void *) scm_init_goops);
+  scm_make_gsubr ("%init-goops-builtins", 0, 0, 0, scm_init_goops_builtins);
 }
 
 /*
