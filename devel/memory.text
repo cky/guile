@@ -1,0 +1,198 @@
+The following is gathered from a shortish discussion on the
+guile-devel mailing list.  I plan to implement this in the next
+days. -mvo
+
+Improving memory handling in Guile
+----------------------------------
+
+I think we have a problem with the `mallocated' GC trigger.  It is not
+maintained reliably and I'm afraid we need to have everybody review
+their code to get it right.
+
+I think the current interface with scm_must_malloc, scm_must_free,
+scm_done_malloc, scm_done_free is too difficult to use right and too
+hard to debug.
+
+Guile itself is full of mtrigger related bugs, I'm afraid.  A typical
+one is in fports.c: the buffers for a fport are allocated with
+scm_must_malloc and freed with scm_must_free.  The allocation is
+reported to the GC, but the freeing never is.  The result is that the
+GC thinks that more and more memory is being allocated that it should
+be able to free, but that never actually gets freed (although in
+reality the program is very well behaved).  As a counter measure to
+constant GC, the GC raises its mtrigger setting in a frenzy until it
+wraps around, causing a `hallucinating GC' syndrome, effectively
+stopping the program dead.
+
+(Watch scm_mtrigger while your favorite long-running Guile program
+executes, it will continuously rise.)
+
+The problem is that scm_must_malloc registers the allocated amount
+with the GC, but scm_must_free does not de-register it.  For that, one
+would currently needs to use scm_done_free, or return an appropriate
+number from a smob free routine.
+
+Another problem is that scm_must_malloc is used in places where it is
+probably not appropriate since the caller does not know whether that
+block memory is really ending up under the control of the GC, or not.
+For example scm_do_read_line in rdelim.c uses scm_must_malloc to
+allocate a buffer that it returns, and scm_read_line passes this to
+scm_take_string.  scm_take_string assumes that the memory has not been
+under GC control previously and calls scm_done_malloc to account for
+the fact that it now is.  But scm_must_malloc has _already_ increased
+scm_mallocated by the proper amount.  Thus, it is now doubly
+reflected.
+
+Since the current interface is unsymmetrical (scm_must_malloc
+registers, but scm_must_free doesn't de-register), I propose to change
+it as follows.  Switching to this new interface will force us and
+everybody else to systematically review their code.
+
+    - the smob free routine does no longer return the number of bytes
+      that have been freed.  For the transition period, free routines
+      are first encourged to return 0, then required, and then their
+      return type changes to void.
+
+    - scm_must_malloc, scm_must_free are deprecated.
+
+    - in their place, we have 
+
+      Function: void *scm_malloc (size_t size, const char *what);
+
+        Allocate SIZE bytes of memory.  When not enough memory is
+        available, signal an error.  This function runs the GC to free
+        up some memory when it deems it appropriate.
+
+        The WHAT argument is used for statistical purposes and for
+        error reporting.  It should describe the type of object that
+        the memory will be used for so that users can identify just
+        what strange objects are eating up their memory.
+
+      [ Note: this function will not consider the memory block to be
+        under GC control. ]
+
+      Function: void scm_free (void *mem);
+
+        Free the memory at MEM.  MEM must have been returned by
+        scm_malloc.  MEM might be NULL in which case nothing happens.
+
+      Function: void *scm_realloc (void *mem, size_t newsize);
+
+        Change the size of the memory block at MEM to NEWSIZE.  A new
+        pointer is returned.  When NEWSIZE is 0 this is the same as
+        calling scm_free on MEM and NULL is returned.  MEM must be
+        non-NULL, that is, the first allocation must be done with
+        scm_malloc, to allow specifying the WHAT value.
+
+      Function: void scm_gc_register_collectable_memory
+                      (void *mem, size_t size, const char *what);
+
+        Informs the GC that the memory at MEM of size SIZE can
+        potentially be freed during a GC.  That is, MEM is part of a
+        GC controlled object and when the GC happens to free that
+        object, SIZE bytes will be freed along with it.  The GC will
+        _not_ free the memory itself, it will just know that so-and-so
+        much bytes of memory are associated with GC controlled objects
+        and the memory system figures this into its decisions when to
+        run a GC.
+
+        MEM does not need to come from scm_malloc.  You can only call
+        this function once for every memory block.
+
+      Function: void scm_gc_unregister_collectable_memory 
+                      (void *mem, size_t size);
+
+        Inform the GC that the memory at MEM of size SIZE is no longer
+        associated with a GC controlled object.
+
+      Function: void *scm_gc_malloc (size_t size, const char *what);
+
+        Like scm_malloc, but also call scm_gc_register_collectable_memory.
+
+      Function: void scm_gc_free (void *mem, size_t size, const char *what);
+
+        Like scm_free, but also call scm_gc_unregister_collectable_memory.
+
+	Note that you need to explicitely pass the SIZE parameter.
+	This is done since it should normally be easy to provide this
+	parameter (for memory that is associated with GC controlled
+	objects) and this frees us from tracking this value in the GC
+	itself.  (We don't do this out of lazyness but because it will
+	keep the memory management overhead very low.)
+
+The normal thing to use is scm_gc_malloc / scm_gc_free.
+
+
+Cell allocation and initialization
+----------------------------------
+
+It can happen that the GC is invoked during the code that initializes
+a cell.  The half initialized cell is seen by the GC, which would
+normally cause it to crash.  To prevent this, the initialization code
+is careful to set the type tag of the cell last, so that the GC will
+either see a completely initialized cell, or a cell with type tag
+`free_cell'.  However, some slot of that `free' cell might be the only
+place where a live object is referenced from (since the compiler might
+reuse the stack location or register that held it before it was
+stuffed into the cell).  To protect such an object, the contents of
+the cell (except the first word) is marked conservatively.
+
+What happened to me was that scm_gc_mark hit upon a completely
+uninitialized cell, that was tagged a s a free cell, and still pointed
+to the rest of the freelist were it came from.  (It was probably this code
+
+     :
+    SCM_NEWCELL (port);                  // port is a free cell
+    SCM_DEFER_INTS;
+    pt = scm_add_to_port_table (port);   // this invokes the GC
+     :
+
+that caused it.)
+
+scm_gc_mark would conservatively mark the cdr of the free cell, which
+resulted in marking the whole free list.  This caused a stack overflow
+because the marking didn't happen in a tail-calling manner.  (Even if
+it doesn't crash, a lot of unnecessary work is done.)
+
+I propose to change the current practice so that no half initialized
+cell is ever seen by the GC.  scm_gc_mark would abort on seeing a free
+cell, and scm_mark_locations (and scm_gc_mark_cell_conservatively if
+will survive) would not mark a free cell, even if the pointer points
+to a valid cell.  scm_gc_sweep would continue to ignore free cells.
+
+To ensure that initialization can not be interrupted by a GC, we
+provide new functions/macros to allocate a cell that include
+initialization.  For example
+
+    SCM scm_newcell_init (scm_bits_t car, scm_bits_t cdr)
+    {
+      SCM z;
+      if (SCM_NULLP (scm_freelist))
+        z = scm_gc_for_newcell (&scm_master_freelist,
+                                &scm_freelist);
+      else
+        {
+          z = scm_freelist;
+          scm_freelist = SCM_FREE_CELL_CDR (scm_freelist);
+        }
+      SCM_SET_CELL_WORD_1 (z, cdr);
+      SCM_SET_CELL_WORD_0 (z, car);
+      scm_remember_upto_here (cdr);
+      return into;
+    }
+
+For performance, we might turn this into a macro, and find some
+specialized ways to make the compiler remember certain values (like
+some `asm' statement for GCC).  For a non-threaded Guile, and a
+cooperatively threaded one, the scm_remember_upto_here call is not
+even needed since we know the the function can not be
+interrupted. (Signals can not interrupt the flow of control any
+longer).
+
+In the transition period, while SCM_NEWCELL is deprecated, we can make
+it always initialize the first slot with scm_tc16_allocated.  Such
+cells are marked conservatively by the GC.  SCM_NEWCELL can have
+abysmal performance while being deprecated.
+
+Update: SCM_NEWCELL already behaves like this.  We only need to
+implement scm_newcell_init and replace uses of SCM_NEWCELL with it.
