@@ -57,10 +57,20 @@
 
 
 
+(define expansion-eval-closure (make-fluid))
+
+(define (env->eval-closure env)
+  (or (and env
+	   (car (last-pair env)))
+      (module-eval-closure the-root-module)))
+
 (define sc-macro
   (procedure->memoizing-macro
     (lambda (exp env)
-      (sc-expand exp))))
+      (with-fluids ((expansion-eval-closure (env->eval-closure env)))
+        (sc-expand exp)))))
+
+(fluid-set! expansion-eval-closure (env->eval-closure #f))
 
 ;;; Exported variables
 
@@ -127,13 +137,12 @@
 			  '())))
 
 (define the-syncase-module (current-module))
+(define the-syncase-eval-closure (module-eval-closure the-syncase-module))
 
 (define (putprop symbol key binding)
-  (let* ((m (current-module))
-	 (v (or (module-variable m symbol)
-		(module-make-local-var! m symbol))))
+  (let* ((v ((fluid-ref expansion-eval-closure) symbol #t)))
     (if (symbol-property symbol 'primitive-syntax)
-	(if (eq? (current-module) the-syncase-module)
+	(if (eq? (fluid-ref expansion-eval-closure) the-syncase-eval-closure)
 	    (set-object-property! (module-variable the-root-module symbol)
 				  key
 				  binding))
@@ -141,8 +150,7 @@
     (set-object-property! v key binding)))
 
 (define (getprop symbol key)
-  (let* ((m (current-module))
-	 (v (module-variable m symbol)))
+  (let* ((v ((fluid-ref expansion-eval-closure) symbol #f)))
     (and v (or (object-property v key)
 	       (let ((root-v (module-local-variable the-root-module symbol)))
 		 (and (equal? root-v v)
