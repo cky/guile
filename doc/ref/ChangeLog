@@ -8,6 +8,7 @@
 	for right shifts of negatives.  Describe integer-length behaviour on
 	negatives.  Add `...' to logand, logior, logxor since they take
 	multiple parameters.
+	* guile.texi (m): New macro.
 
 	* scheme-control.texi (Handling Errors): Revise C support section to
 	get index entries, and clarify parameters.  Remove scm_regex_error, no
