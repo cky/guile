@@ -1481,11 +1481,11 @@
 ;;
 ;; NOTE: This binding is used in libguile/modules.c.
 ;;
-(define the-module #f)
+(define the-module (make-fluid))
 
 ;; scm:eval-transformer
 ;;
-(define scm:eval-transformer #f)
+;;(define scm:eval-transformer (make-fluid)) ; initialized in eval.c.
 
 ;; set-current-module module
 ;;
@@ -1494,19 +1494,20 @@
 ;; NOTE: This binding is used in libguile/modules.c.
 ;;
 (define (set-current-module m)
-  (set! the-module m)
+  (fluid-set! the-module m)
   (if m
       (begin
-	(set! *top-level-lookup-closure* (module-eval-closure the-module))
-	(set! scm:eval-transformer (module-transformer the-module)))
-      (set! *top-level-lookup-closure* #f)))
+	(fluid-set! *top-level-lookup-closure*
+		    (module-eval-closure (fluid-ref the-module)))
+	(fluid-set! scm:eval-transformer (module-transformer (fluid-ref the-module))))
+      (fluid-set! *top-level-lookup-closure* #f)))
 
 
 ;; current-module
 ;;
 ;; return the current module as viewed by the normalizer.
 ;;
-(define (current-module) the-module)
+(define (current-module) (fluid-ref the-module))
 
 ;;; {Module-based Loading}
 ;;;
@@ -2688,7 +2689,7 @@
 	     (set-module-transformer! (current-module)
 				      ,(car (last-pair spec))))
 	   `((set-module-transformer! (current-module) ,spec)))
-     (set! scm:eval-transformer (module-transformer (current-module)))))
+     (fluid-set! scm:eval-transformer (module-transformer (current-module)))))
 
 (define define-private define)
 
