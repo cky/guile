@@ -121,17 +121,17 @@ It works like this:
   variable GUILE_WARN_DEPRECATED.  A value of "yes" is changed to
   "summary" and "shutup" is changed to "no", however.
 
-  When GUILE_WARN_DEPRECATION has the value "no", nothing special will
+  When GUILE_WARN_DEPRECATED has the value "no", nothing special will
   happen when a deprecated feature is used.
 
-  When GUILE_WARN_DEPRECATION has the value "summary", and a deprecated
+  When GUILE_WARN_DEPRECATED has the value "summary", and a deprecated
   feature has been used, Guile will print this message at exit:
 
     Some deprecated features have been used.  Set the environment
     variable GUILE_WARN_DEPRECATED to "detailed" and rerun the program
     to get more information.  Set it to "no" to suppress this message.
 
-  When GUILE_WARN_DEPRECATION has the value "detailed", a detailed
+  When GUILE_WARN_DEPRECATED has the value "detailed", a detailed
   warning is emitted immediatly for the first use of a deprecated
   feature.
 
