@@ -26,10 +26,15 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 
 
-int
-scm_i_index (str, chr, sub_start, sub_end, pos, pos2, pos3, pos4, why)
+static int scm_i_index SCM_P ((SCM * str, SCM chr, int direction, SCM sub_start, SCM sub_end, int pos, int pos2, int pos3, int pos4, char * why));
+
+/* implements index if direction > 0 otherwise rindex.  */
+static int
+scm_i_index (str, chr, direction, sub_start, sub_end, pos, pos2, pos3, pos4,
+	     why)
      SCM * str;
      SCM chr;
+     int direction;
      SCM sub_start;
      SCM sub_end;
      int pos;
@@ -40,7 +45,8 @@ scm_i_index (str, chr, sub_start, sub_end, pos, pos2, pos3, pos4, why)
 {
   unsigned char * p;
   int x;
-  int bound;
+  int lower;
+  int upper;
   int ch;
 
   SCM_ASSERT (SCM_NIMP (*str) && SCM_ROSTRINGP (*str), *str, pos, why);
@@ -48,80 +54,42 @@ scm_i_index (str, chr, sub_start, sub_end, pos, pos2, pos3, pos4, why)
 
   if (sub_start == SCM_BOOL_F)
     sub_start = SCM_MAKINUM (0);
-  else
-    SCM_ASSERT (   SCM_INUMP (sub_start)
-	    && (0 <= SCM_INUM (sub_start))
-	    && (SCM_INUM (sub_start) <= SCM_ROLENGTH (*str)),
-	    sub_start, pos3, why);
+
+  SCM_ASSERT (SCM_INUMP (sub_start), sub_start, pos3, why);
+  lower = SCM_INUM (sub_start);
+  if (lower < 0
+      || lower >= SCM_ROLENGTH (*str))
+    scm_out_of_range (why, sub_start);
 
   if (sub_end == SCM_BOOL_F)
     sub_end = SCM_MAKINUM (SCM_ROLENGTH (*str));
+
+  SCM_ASSERT (SCM_INUMP (sub_end), sub_end, pos4, why);
+  upper = SCM_INUM (sub_end);
+  if (upper < SCM_INUM (sub_start)
+      || upper > SCM_ROLENGTH (*str))
+    scm_out_of_range (why, sub_end);
+
+  if (direction > 0)
+    {
+      p = (unsigned char *)SCM_ROCHARS (*str) + lower;
+      ch = SCM_ICHR (chr);
+
+      for (x = SCM_INUM (sub_start); x < upper; ++x, ++p)
+	if (*p == ch)
+	  return x;
+    }
   else
-    SCM_ASSERT (   SCM_INUMP (sub_end)
-	    && (SCM_INUM (sub_start) <= SCM_INUM (sub_end))
-	    && (SCM_INUM (sub_end) <= SCM_ROLENGTH (*str)),
-	    sub_end, pos4, why);
-
-  p = (unsigned char *)SCM_ROCHARS (*str) + SCM_INUM (sub_start);
-  bound = SCM_INUM (sub_end);
-  ch = SCM_ICHR (chr);
-
-  for (x = SCM_INUM (sub_start); x < bound; ++x, ++p)
-    if (*p == ch)
-      return x;
+    {
+      p = upper - 1 + (unsigned char *)SCM_ROCHARS (*str);
+      ch = SCM_ICHR (chr);
+      for (x = upper - 1; x >= lower; --x, --p)
+	if (*p == ch)
+	  return x;
+    }
 
   return -1;
 }
-
-
-int
-scm_i_rindex (str, chr, sub_start, sub_end, pos, pos2, pos3, pos4, why)
-     SCM * str;
-     SCM chr;
-     SCM sub_start;
-     SCM sub_end;
-     int pos;
-     int pos2;
-     int pos3;
-     int pos4;
-     char * why;
-{
-  unsigned char * p;
-  int x;
-  int upper_bound;
-  int lower_bound;
-  int ch;
-
-  SCM_ASSERT (SCM_NIMP (*str) && SCM_ROSTRINGP (*str), *str, pos, why);
-  SCM_ASSERT (SCM_ICHRP (chr), chr, pos2, why);
-
-  if (sub_start == SCM_BOOL_F)
-    sub_start = SCM_MAKINUM (0);
-  else
-    SCM_ASSERT (   SCM_INUMP (sub_start)
-	    && (0 <= SCM_INUM (sub_start))
-	    && (SCM_INUM (sub_start) <= SCM_ROLENGTH (*str)),
-	    sub_start, pos3, why);
-
-  if (sub_end == SCM_BOOL_F)
-    sub_end = SCM_MAKINUM (SCM_ROLENGTH (*str));
-  else
-    SCM_ASSERT (   SCM_INUMP (sub_end)
-	    && (SCM_INUM (sub_start) <= SCM_INUM (sub_end))
-	    && (SCM_INUM (sub_end) <= SCM_ROLENGTH (*str)),
-	    sub_end, pos4, why);
-
-  upper_bound = SCM_INUM (sub_end);
-  lower_bound = SCM_INUM (sub_start);
-  p = upper_bound - 1 + (unsigned char *)SCM_ROCHARS (*str);
-  ch = SCM_ICHR (chr);
-  for (x = upper_bound - 1; x >= lower_bound; --x, --p)
-    if (*p == ch)
-      return x;
-
-  return -1;
-}
-
 
 SCM_PROC(s_string_index, "string-index", 2, 2, 0, scm_string_index);
 
@@ -138,7 +106,7 @@ scm_string_index (str, chr, frm, to)
     frm = SCM_BOOL_F;
   if (to == SCM_UNDEFINED)
     to = SCM_BOOL_F;
-  pos = scm_i_index (&str, chr, frm, to, SCM_ARG1, SCM_ARG2, SCM_ARG3, SCM_ARG4, s_string_index);
+  pos = scm_i_index (&str, chr, 1, frm, to, SCM_ARG1, SCM_ARG2, SCM_ARG3, SCM_ARG4, s_string_index);
   return (pos < 0
 	  ? SCM_BOOL_F
 	  : SCM_MAKINUM (pos));
@@ -159,7 +127,7 @@ scm_string_rindex (str, chr, frm, to)
     frm = SCM_BOOL_F;
   if (to == SCM_UNDEFINED)
     to = SCM_BOOL_F;
-  pos = scm_i_rindex (&str, chr, frm, to, SCM_ARG1, SCM_ARG2, SCM_ARG3, SCM_ARG4, s_string_index);
+  pos = scm_i_index (&str, chr, -1, frm, to, SCM_ARG1, SCM_ARG2, SCM_ARG3, SCM_ARG4, s_string_index);
   return (pos < 0
 	  ? SCM_BOOL_F
 	  : SCM_MAKINUM (pos));

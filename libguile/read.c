@@ -419,7 +419,9 @@ tryagain_no_flush_ws:
 	      else
 		return got;
 	    }
-	unkshrp:scm_wta ((SCM) SCM_MAKICHR (c), "unknown # object", "");
+	unkshrp:
+	  scm_misc_error (s_read, "Unknown # object: %S",
+			  scm_listify (SCM_MAKICHR (c), SCM_UNDEFINED));
 	}
 
     case '"':

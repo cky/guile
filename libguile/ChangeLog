@@ -1,3 +1,20 @@
+Tue Feb  4 05:07:35 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+*	* net_db.c (scm_lnaof): change scheme name from lnaof to inet-lnaof.
+
+Mon Feb  3 06:12:37 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* read.c (scm_lreadr): use scm_misc_error to improve one of the 
+	"unknown # object" error messages.
+
+	* strop.c (scm_i_index, scm_i_rindex): combine into one procedure
+	(scm_i_index) and declare it static.  Add a 'direction' argument
+	to indicate what way the search should go.
+	(scm_i_index): throw out-of-range error instead	of wrong-type-arg
+	if indices are bad.
+	(scm_string_index, scm_string_rindex): adjust usage of scm_i_index.
+	strop.h: remove scm_i_index, scm_i_rindex prototypes.
+
 Fri Jan 31 04:33:11 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* ioext.c, ioext.h: remove obsolete _sys_ from 9 procedure names.

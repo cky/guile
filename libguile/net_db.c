@@ -116,7 +116,7 @@ scm_inet_netof (address)
   return scm_ulong2num ((unsigned long) inet_netof (addr));
 }
 
-SCM_PROC (s_lnaof, "lnaof", 1, 0, 0, scm_lnaof);
+SCM_PROC (s_lnaof, "inet-lnaof", 1, 0, 0, scm_lnaof);
 
 SCM 
 scm_lnaof (address)

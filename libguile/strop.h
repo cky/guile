@@ -49,8 +49,6 @@
 
 
 
-extern int scm_i_index SCM_P ((SCM * str, SCM chr, SCM sub_start, SCM sub_end, int pos, int pos2, int pos3, int pos4, char * why));
-extern int scm_i_rindex SCM_P ((SCM * str, SCM chr, SCM sub_start, SCM sub_end, int pos, int pos2, int pos3, int pos4, char * why));
 extern SCM scm_string_index SCM_P ((SCM str, SCM chr, SCM frm, SCM to));
 extern SCM scm_string_rindex SCM_P ((SCM str, SCM chr, SCM frm, SCM to));
 extern SCM scm_substring_move_left_x SCM_P ((SCM str1, SCM start1, SCM args));
