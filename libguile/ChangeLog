@@ -1,5 +1,12 @@
 2000-12-08  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* symbols.[ch] (scm_mem2symbol, scm_str2symbol):  New functions.
+	These shall replace all those calls to scm_intern... which are
+	only required to create a scheme symbol from a C string or a field
+	of chars.
+
+2000-12-08  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* environments.c (DEFAULT_OBARRAY_SIZE), gc.c
 	(DEFAULT_SYMHASH_SIZE):  Added to locally determine arbitrary
 	default values for obarrays, thus removing the dependency from

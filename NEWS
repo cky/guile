@@ -216,6 +216,13 @@ current values of file descriptors 0, 1, and 2 in the parent process.
 In contrast to scm_boot_guile, scm_init_guile will return normally
 after initializing Guile.  It is not available on all systems, tho.
 
+** New functions: scm_str2symbol, scm_mem2symbol
+
+The function scm_str2symbol takes a const char* pointing to a zero-terminated
+field of characters and creates a scheme symbol object from that C string.
+The function scm_mem2symbol takes a const char* and a number of characters and
+creates a symbol from the characters in that memory area.
+
 ** New functions: scm_primitive_make_property
                   scm_primitive_property_ref
                   scm_primitive_property_set_x

@@ -317,6 +317,20 @@ scm_intern_obarray_soft (const char *name,scm_sizet len,SCM obarray,unsigned int
 
 
 SCM
+scm_mem2symbol (const char *mem, scm_sizet len)
+{
+  return SCM_CAR (scm_intern_obarray_soft (mem, len, scm_symhash, 0));
+}
+
+
+SCM
+scm_str2symbol (const char *str)
+{
+  return SCM_CAR (scm_intern_obarray_soft (str, strlen (str), scm_symhash, 0));
+}
+
+
+SCM
 scm_intern_obarray (const char *name,scm_sizet len,SCM obarray)
 {
   return scm_intern_obarray_soft (name, len, obarray, 0);
