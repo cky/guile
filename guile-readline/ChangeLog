@@ -1,3 +1,7 @@
+2001-03-09  Keisuke Nishida  <kxn30@po.cwru.edu>
+
+	* readline.c: Add #include <stdio.h>
+
 2001-03-05  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* readline.scm (make-readline-port): Rewrite using

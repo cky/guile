@@ -30,6 +30,7 @@
 #include "libguile/gh.h"
 #include "libguile/iselect.h"
 
+#include <stdio.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
