@@ -1049,7 +1049,7 @@ scm_m_cont (SCM xorig, SCM env SCM_UNUSED)
   return scm_cons (SCM_IM_CONT, SCM_CDR (xorig));
 }
 
-#ifdef SCM_ENABLE_ELISP
+#if SCM_ENABLE_ELISP
 
 SCM_SYNTAX (s_nil_cond, "nil-cond", scm_makmmacro, scm_m_nil_cond);
 
@@ -2575,7 +2575,7 @@ dispatch:
 	  }
 
 
-#ifdef SCM_ENABLE_ELISP
+#if SCM_ENABLE_ELISP
 	  
 	case (SCM_ISYMNUM (SCM_IM_NIL_COND)):
 	  {
@@ -2669,7 +2669,7 @@ dispatch:
       scm_misc_error (NULL, "Wrong type to apply: ~S", scm_list_1 (proc));
     case scm_tc7_vector:
     case scm_tc7_wvect:
-#ifdef SCM_HAVE_ARRAYS
+#if SCM_HAVE_ARRAYS
     case scm_tc7_bvect:
     case scm_tc7_byvect:
     case scm_tc7_svect:
