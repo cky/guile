@@ -20,6 +20,7 @@ configure
 conftest
 conftest.c
 depcomp
+elisp-comp
 guile-*.tar.gz
 guile-tools
 install-sh
