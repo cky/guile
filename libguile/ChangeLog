@@ -1,3 +1,24 @@
+Sun Dec  8 17:55:34 1996  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* acconfig.h: Added DYNAMIC_LINKING symbol.
+	* configure.in: Add option and checks for dynamic linking.
+        * dynl.c, dynl-dl.c, dynl-dld.c, dynl-shl.c, dynl-vms.c,
+ 	dynl.h:	New files for dynamic linking support.
+  	* Makefile.am (libguile_a_SOURCES):
+ 	Added "dynl.c".
+	(modinclude_HEADERS): Added "dynl.h".
+	(EXTRA_DIST): Added "dynl-dl.c", "dynl-dld.c", "dynl-shl.c" and
+ 	"dynl-vms.c".
+  	* init.c (scm_boot_guile_1): Call
+ 	scm_init_dynamic_linking to initialize dynamic linking support.
+
+Thu Dec  5 22:47:53 1996  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* init.c (scm_boot_guile_1): Moved `live' variable to the toplevel
+ 	(as we Schemers say). It needs to be global, so that I can tweak
+ 	it for the proper operation of unexec.
+	(scm_boot_guile_1_live): New variable, see above.
+
 Sun Dec  1 00:00:49 1996  Tom Tromey  <tromey@cygnus.com>
 
 	* guile-snarf.sh: Removed.
