@@ -1,5 +1,12 @@
 Tue Feb  4 16:57:40 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
+	Change from Thomas Morgan:
+        * variable.c: Include eq.h.
+        (var_equal): New function.
+	(variable_smob): Use var_equal as the discriminator for variables.
+
+	* throw.c (s_throw): Remove extraneous declaration.
+
 	* configure.in: Call AC_FUNC_ALLOCA, to see if we have alloca.
 	* eval.c: Add necessary CPP cruft to support that.
 	* configure, Makefile.in, scmconfig.h.in: regenerated.
