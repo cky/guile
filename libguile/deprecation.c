@@ -67,7 +67,7 @@ scm_c_issue_deprecation_warning (const char *msg)
 	  scm_newline (scm_current_error_port ());
 	}
       msg = strdup (msg);
-      iw = scm_malloc (sizeof (struct issued_warning));
+      iw = malloc (sizeof (struct issued_warning));
       if (msg == NULL || iw == NULL)
 	return;
       iw->message = msg;
