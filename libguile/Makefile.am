@@ -148,11 +148,11 @@ BUILT_SOURCES = cpp_err_symbols.c cpp_sig_symbols.c libpath.h \
     version.h scmconfig.h \
     $(DOT_X_FILES) $(EXTRA_DOT_X_FILES) guile.texi
 
-EXTRA_libguile_la_SOURCES = _scm.h			\
-    alloca.c inet_aton.c memmove.c putenv.c strerror.c	\
-    dynl.c regex-posix.c				\
-    filesys.c posix.c net_db.c socket.c			\
-    ramap.c unif.c debug-malloc.c mkstemp.c		\
+EXTRA_libguile_la_SOURCES = _scm.h		\
+    inet_aton.c memmove.c putenv.c strerror.c	\
+    dynl.c regex-posix.c			\
+    filesys.c posix.c net_db.c socket.c		\
+    ramap.c unif.c debug-malloc.c mkstemp.c	\
     win32-uname.c win32-dirent.c win32-socket.c
 
 ## delete guile-snarf.awk from the installation bindir, in case it's
