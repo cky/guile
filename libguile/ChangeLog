@@ -1,3 +1,8 @@
+2002-05-14  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* gc_os_dep.c: For I386/OPENBSD, allow for `__i386__'
+	in addition to `i386'.
+
 2002-05-08  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* eq.c (real_eqv): New.
@@ -8,14 +13,14 @@
 	(scm_leq_p, scm_geq_p): Explicitely return #f when comparing a
 	NaN.
 	(scm_inexact_to_exact): Signal error when converting a NaN.
-	
+
 2002-05-06  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* posix.c (scm_putenv): Handle removing variables explicitely by
 	calling unsetenv.
 
 	From John W. Eaton.
-	
+
 	* numbers.h: Conditionally include floatingpoint.h, ieeefp.h, and
 	nan.h.	Provide declarations for scm_inf_p, scm_nan_p, scn_inf,
 	and scm_nan.
@@ -43,7 +48,7 @@
 	NaN.  They will provide their own sign.
 	(scm_divide): Only allow divides by inexact zeros.  Dividing by
 	exact zeros still signals an errors.
-	
+
 2002-04-22  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* goops.h (scm_slot_exists_p): Rename from scm_slots_exists_p.
