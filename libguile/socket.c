@@ -107,6 +107,7 @@ scm_socket (family, style, proto)
   SCM_DEFER_INTS;
   fd = socket (SCM_INUM (family), SCM_INUM (style), SCM_INUM (proto));
   result = scm_sock_fd_to_port (fd, s_socket);
+  SCM_SETOR_CAR (result, SCM_NOFTELL);
   SCM_ALLOW_INTS;
   return result;
 }

@@ -416,6 +416,16 @@ local_fgets (SCM port, int *len)
 
   pre_read (port);
 
+  /* If this is a socket port or something where we can't rely on
+     ftell to determine how much we've read, then call the generic
+     function.  We could use a separate scm_ptobfuns table with
+     scm_generic_fgets, but then we'd have to change SCM_FPORTP, etc.
+     Ideally, it should become something that means "this port has a
+     file descriptor"; sometimes we reject sockets when we shouldn't.
+     But I'm too stupid at the moment to do that right.  */
+  if (SCM_CAR (port) & SCM_NOFTELL)
+    return scm_generic_fgets (port, len);
+
   f = (FILE *) SCM_STREAM (port);
   if (feof (f))
     return NULL;

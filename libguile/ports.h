@@ -83,6 +83,7 @@ extern int scm_port_table_size; /* Number of ports in scm_port_table.  */
 #define SCM_RDNG	(2L<<16) /* Is it a readable port? */
 #define SCM_WRTNG	(4L<<16) /* Is it writable? */
 #define SCM_BUF0	(8L<<16)
+#define SCM_NOFTELL     (16L<<16) /* Does ftell work on this?  Yuck!  */
 #define SCM_CRDY	(32L<<16) /* Should char-ready? return #t? */
 
 /* A mask used to clear the char-ready port flag. */
