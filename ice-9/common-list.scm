@@ -206,7 +206,7 @@ If found, return that element, otherwise return #f."
 Return everything that's left."
   (let loop ((l l) (result '()))
     (cond ((null? l) (reverse! result))
-	  ((pred? (car l)) (loop (cdr l) result))
+	  ((pred (car l)) (loop (cdr l) result))
 	  (else (loop (cdr l) (cons (car l) result))))))
 
 (define-public (remove-if-not pred l)
@@ -214,7 +214,7 @@ Return everything that's left."
 Return everything that's left."
   (let loop ((l l) (result '()))
     (cond ((null? l) (reverse! result))
-	  ((not (pred? (car l))) (loop (cdr l) result))
+	  ((not (pred (car l))) (loop (cdr l) result))
 	  (else (loop (cdr l) (cons (car l) result))))))
 
 (define-public (delete-if! pred l)
