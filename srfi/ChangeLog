@@ -1,3 +1,10 @@
+2005-01-24  Kevin Ryde  <user42@zip.com.au>
+
+	* srfi-1.c (scm_srfi1_member): Correction to pred call arg order, srfi
+	spec is (PRED X elem).
+
+	* srfi-1.scm (lset=): Allow no list arguments, per srfi spec example.
+
 2005-01-18  Kevin Ryde  <user42@zip.com.au>
 
 	* srfi-1.scm: Remove (ice-9 session) and (ice-9 receive), not used.
