@@ -1,3 +1,12 @@
+2001-05-18  Thien-Thi Nguyen  <ttn@revel.glug.org>
+
+	* documentation.scm: Fix documentation for Guile Documentation
+	Format Version 2: Mention required terminating newlines.
+
+	(find-documentation): Delete.
+	(search-documentation-files): New proc, exported.
+	(object-documentation): Use `search-documentation-files'.
+
 2001-05-15  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* boot-9.scm (cond-expand-features): Made the feature list public,
