@@ -448,13 +448,11 @@ SCM_DEFINE (scm_fdopen, "fdopen", 2, 0, 0,
 	    "by @ref{File Ports, open-file}.")
 #define FUNC_NAME s_scm_fdopen
 {
-  SCM port;
-
   SCM_VALIDATE_INUM (1,fdes);
   SCM_VALIDATE_ROSTRING (2,modes);
   SCM_COERCE_SUBSTR (modes);
-  port = scm_fdes_to_port (SCM_INUM (fdes), SCM_ROCHARS (modes), SCM_BOOL_F);
-  return port;
+
+  return scm_fdes_to_port (SCM_INUM (fdes), SCM_ROCHARS (modes), SCM_BOOL_F);
 }
 #undef FUNC_NAME
 

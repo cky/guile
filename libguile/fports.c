@@ -67,6 +67,9 @@ scm_sizet fwrite ();
 
 #include "iselect.h"
 
+/* default buffer size, used if the O/S won't supply a value.  */
+static const int default_buffer_size = 1024;
+
 /* create FPORT buffer with specified sizes (or -1 to use default size or
    0 for no buffer.  */
 static void
@@ -82,11 +85,10 @@ scm_fport_buffer_add (SCM port, int read_size, int write_size)
 #ifdef HAVE_ST_BLKSIZE
       struct stat st;
       
-      if (fstat (fp->fdes, &st) == -1)
-	scm_syserror (s_scm_fport_buffer_add);
-      default_size = st.st_blksize;
+      default_size = (fstat (fp->fdes, &st) == -1) ? default_buffer_size
+	: st.st_blksize;
 #else
-      default_size = 1024;
+      default_size = default_buffer_size;
 #endif
       if (read_size == -1)
 	read_size = default_size;
@@ -359,14 +361,28 @@ SCM_DEFINE (scm_open_file, "open-file", 2, 0, 0,
 /* Build a Scheme port from an open file descriptor `fdes'.
    MODE indicates whether FILE is open for reading or writing; it uses
       the same notation as open-file's second argument.
-   Use NAME as the port's filename.  */
-
+   NAME is a string to be used as the port's filename.
+*/
 SCM
 scm_fdes_to_port (int fdes, char *mode, SCM name)
+#define FUNC_NAME "scm_fdes_to_port"
 {
   long mode_bits = scm_mode_bits (mode);
   SCM port;
   scm_port *pt;
+  int flags;
+
+  /* test that fdes is valid.  */
+  flags = fcntl (fdes, F_GETFL, 0);
+  if (flags == -1)
+    SCM_SYSERROR;
+  flags &= O_ACCMODE;
+  if (flags != O_RDWR
+      && ((flags != O_WRONLY && (mode_bits & SCM_WRTNG))
+	  || (flags != O_RDONLY && (mode_bits & SCM_RDNG))))
+    {
+      SCM_MISC_ERROR ("requested file mode not available on fdes", SCM_EOL);
+    }
 
   SCM_NEWCELL (port);
   SCM_DEFER_INTS;
@@ -378,7 +394,7 @@ scm_fdes_to_port (int fdes, char *mode, SCM name)
     struct scm_fport *fp
       = (struct scm_fport *) malloc (sizeof (struct scm_fport));
     if (fp == NULL)
-      scm_memory_error ("scm_fdes_to_port");
+      SCM_MEMORY_ERROR;
     fp->fdes = fdes;
     pt->rw_random = SCM_FDES_RANDOM_P (fdes);
     SCM_SETSTREAM (port, fp);
@@ -391,7 +407,7 @@ scm_fdes_to_port (int fdes, char *mode, SCM name)
   SCM_ALLOW_INTS;
   return port;
 }
-
+#undef FUNC_NAME
 
 /* Return a lower bound on the number of bytes available for input.  */
 static int

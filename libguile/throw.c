@@ -148,13 +148,11 @@ struct jmp_buf_and_retval	/* use only on the stack, in scm_catch */
 
    BODY is a pointer to a C function which runs the body of the catch;
    this is the code you can throw from.  We call it like this:
-      BODY (BODY_DATA, JMPBUF)
+      BODY (BODY_DATA)
    where:
       BODY_DATA is just the BODY_DATA argument we received; we pass it
 	 through to BODY as its first argument.  The caller can make
 	 BODY_DATA point to anything useful that BODY might need.
-      JMPBUF is the Scheme jmpbuf object corresponding to this catch,
-         which we have just created and initialized.
 
    HANDLER is a pointer to a C function to deal with a throw to TAG,
    should one occur.  We call it like this:
@@ -609,7 +607,6 @@ SCM_DEFINE (scm_throw, "throw", 1, 0, 1,
   return scm_ithrow (key, args, 1);
 }
 #undef FUNC_NAME
-
 
 SCM
 scm_ithrow (SCM key, SCM args, int noreturn)

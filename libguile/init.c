@@ -248,32 +248,69 @@ check_config (void)
 
 /* initializing standard and current I/O ports */
 
-/* Like scm_fdes_to_port, except that:
-   - NAME is a standard C string, not a Guile string
-   - we set the revealed count for FILE's file descriptor to 1, so
-     that FDES won't be closed when the port object is GC'd.
-   - when FDES is not a valid file descripter (as determined by
-     fstat), we open "/dev/null" and use that instead.  In that case,
-     the revealed count is left at zero.
-*/
+typedef struct
+{
+  int fdes;
+  char *mode;
+  char *name;
+} stream_body_data;
+
+/* proc to be called in scope of exception handler stream_handler. */
+static SCM
+stream_body (void *data)
+{
+  stream_body_data *body_data = (stream_body_data *) data;
+  SCM port = scm_fdes_to_port (body_data->fdes, body_data->mode,
+			       scm_makfrom0str (body_data->name));
+
+  SCM_REVEALED (port) = 1;
+  return port;
+}
+
+/* exception handler for stream_body.  */
+static SCM
+stream_handler (void *data, SCM tag, SCM throw_args)
+{
+  return SCM_BOOL_F;
+}
+
+/* Convert a file descriptor to a port, using scm_fdes_to_port.
+   - NAME is a C string, not a Guile string
+   - set the revealed count for FILE's file descriptor to 1, so
+   that fdes won't be closed when the port object is GC'd.
+   - catch exceptions: allow Guile to be able to start up even
+   if it has been handed bogus stdin/stdout/stderr.  In this case
+   try to open a new stream on /dev/null.  */
 static SCM
 scm_standard_stream_to_port (int fdes, char *mode, char *name)
 {
-  struct stat st;
-  if (fstat (fdes, &st) == -1)
-    {
-      /* We do not bother to check errno.  When fstat fails, there is
-         generally no point in trying to use FDES, I think. */
+  SCM port;
+  stream_body_data body_data;
 
-      fdes = open ("/dev/null", (mode[0] == 'r')? O_RDONLY : O_WRONLY);
-      return scm_fdes_to_port (fdes, mode, scm_makfrom0str (name));
-    }
-  else
+  body_data.fdes = fdes;
+  body_data.mode = mode;
+  body_data.name = name;
+  port = scm_internal_catch (SCM_BOOL_T, stream_body, &body_data, 
+			     stream_handler, NULL);
+  if (SCM_FALSEP (port))
     {
-      SCM port = scm_fdes_to_port (fdes, mode, scm_makfrom0str (name));
-      scm_set_port_revealed_x (port, SCM_MAKINUM (1));
-      return port;
-    }
+      /* FIXME: /dev/null portability.  there's also *null-device* in
+	 r4rs.scm.  */
+      int null_fdes = open ("/dev/null",
+			    (mode[0] == 'r') ? O_RDONLY : O_WRONLY);
+      
+      body_data.fdes = null_fdes;
+      port = (null_fdes == -1) ? SCM_BOOL_F
+	: scm_internal_catch (SCM_BOOL_T, stream_body, &body_data, 
+			      stream_handler, NULL);
+      /* if the standard fdes was not allocated, reset the revealed count
+	 on the grounds that the user doesn't know what it is. */
+      if (SCM_NFALSEP (port) && null_fdes != fdes)
+	SCM_REVEALED (port) = 0;
+      /* if port is still #f, we'll just leave it like that and
+	 an error will be raised on the first attempt to use it.  */
+    }      
+  return port;
 }
 
 /* Create standard ports from stdin, stdout, and stderr.  */
