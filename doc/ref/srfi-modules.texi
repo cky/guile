@@ -1154,53 +1154,78 @@ procedures easier.  It is documented in @xref{Multiple Values}.
 @node SRFI-9
 @section SRFI-9 - define-record-type
 @cindex SRFI-9
-@findex define-record-type
 
-This is the SRFI way for defining record types.  The Guile
-implementation is a layer above Guile's normal record construction
-procedures (@pxref{Records}).  The nice thing about this kind of record
-definition method is that no new names are implicitly created, all
-constructor, accessor and predicates are explicitly given.  This reduces
-the risk of variable capture.
-
-The syntax of a record type definition is:
+This SRFI is a syntax for defining new record types and creating
+predicate, constructor, and field getter and setter functions.  In
+Guile this is simply an alternate interface to the core record
+functionality (@pxref{Records}).  It can be used with,
 
 @example
-@group
-<record type definition>
-  -> (define-record-type <type name>
-       (<constructor name> <field tag> ...)
-       <predicate name>
-       <field spec> ...)
-<field spec> -> (<field tag> <accessor name>)
-             -> (<field tag> <accessor name> <modifier name>)
-<field tag>  -> <identifier>
-<... name>   -> <identifier>
-@end group
+(use-modules (srfi srfi-9))
 @end example
 
-Usage example:
+@deffn {library syntax} define-record-type type @* (constructor fieldname @dots{}) @* predicate @* (fieldname accessor [modifier]) @dots{}
+@sp 1
+Create a new record type, and make various @code{define}s for using
+it.  This syntax can only occur at the top-level, not nested within
+some other form.
+
+@var{type} is bound to the record type, which is as per the return
+from the core @code{make-record-type}.  @var{type} also provides the
+name for the record, as per @code{record-type-name}.
+
+@var{constructor} is bound to a function to be called as
+@code{(@var{constructor} fieldval @dots{})} to create a new record of
+this type.  The arguments are initial values for the fields, one
+argument for each field, in the order they appear in the
+@code{define-record-type} form.
+
+The @var{fieldname}s provide the names for the record fields, as per
+the core @code{record-type-fields} etc, and are referred to in the
+subsequent accessor/modifier forms.
+
+@var{predictate} is bound to a function to be called as
+@code{(@var{predicate} obj)}.  It returns @code{#t} or @code{#f}
+according to whether @var{obj} is a record of this type.
+
+Each @var{accessor} is bound to a function to be called
+@code{(@var{accessor} record)} to retrieve the respective field from a
+@var{record}.  Similarly each @var{modifier} is bound to a function to
+be called @code{(@var{modifier} record val)} to set the respective
+field in a @var{record}.
+@end deffn
+
+@noindent
+An example will illustrate typical usage,
 
 @example
-guile> (use-modules (srfi srfi-9))
-guile> (define-record-type :foo (make-foo x) foo?
-                           (x get-x) (y get-y set-y!))
-guile> (define f (make-foo 1))
-guile> f
-#<:foo x: 1 y: #f>
-guile> (get-x f)
-1
-guile> (set-y! f 2)
-2
-guile> (get-y f)
-2
-guile> f
-#<:foo x: 1 y: 2>
-guile> (foo? f)
-#t
-guile> (foo? 1)
-#f
+(define-record-type employee-type
+  (make-employee name age salary)
+  employee?
+  (name    get-employee-name)
+  (age     get-employee-age    set-employee-age)
+  (salary  get-employee-salary set-employee-salary))
 @end example
+
+This creates a new employee data type, with name, age and salary
+fields.  Accessor functions are created for each field, but no
+modifier function for the name (the intention in this example being
+that it's established only when an employee object is created).  These
+can all then be used as for example,
+
+@example
+employee-type @result{} #<record-type employee-type>
+
+(define fred (make-employee "Fred" 45 20000.00))
+
+(employee? fred)        @result{} #t
+(get-employee-age fred) @result{} 45
+(set-employee-salary fred 25000.00)  ;; pay rise
+@end example
+
+The functions created by @code{define-record-type} are ordinary
+top-level @code{define}s.  They can be redefined or @code{set!} as
+desired, exported from a module, etc.
 
 
 @node SRFI-10
