@@ -616,8 +616,7 @@
 
 ;;; Association lists
 
-(define (alist-cons key datum alist)
-  (acons key datum alist))
+(define alist-cons acons)
 
 (define (alist-copy alist)
   (let lp ((a alist)
