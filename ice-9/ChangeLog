@@ -1,5 +1,7 @@
 2003-03-12  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
+	* slib.scm (logical:ipow-by-squaring): Removed.
+
 	* boot-9.scm (ipow-by-squaring): Removed.
 	(default-duplicate-binding-handler): Set default to
 	'(replace warn-override-core warn last)

@@ -87,7 +87,6 @@
 (define logical:integer-length integer-length)
 (define logical:bit-extract bit-extract)
 (define logical:integer-expt integer-expt)
-(define logical:ipow-by-squaring ipow-by-squaring)
 (define slib:eval-load eval-load)
 (define slib:tab #\tab)
 (define slib:form-feed #\page)
