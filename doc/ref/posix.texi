@@ -594,8 +594,9 @@ The user ID of the file's owner.
 The group ID of the file.
 @end deffn
 @deffn {Scheme Procedure} stat:rdev st
-Device ID; this entry is defined only for character or block
-special files.
+Device ID; this entry is defined only for character or block special
+files.  On some systems this field is not available at all, in which
+case @code{stat:rdev} returns @code{#f}.
 @end deffn
 @deffn {Scheme Procedure} stat:size st
 The size of a regular file in bytes.
@@ -610,12 +611,14 @@ The last modification time for the file.
 The last modification time for the attributes of the file.
 @end deffn
 @deffn {Scheme Procedure} stat:blksize st
-The optimal block size for reading or writing the file, in
-bytes.
+The optimal block size for reading or writing the file, in bytes.  On
+some systems this field is not available, in which case
+@code{stat:blksize} returns a sensible suggested block size.
 @end deffn
 @deffn {Scheme Procedure} stat:blocks st
-The amount of disk space that the file occupies measured in
-units of 512 byte blocks.
+The amount of disk space that the file occupies measured in units of
+512 byte blocks.  On some systems this field is not available, in
+which case @code{stat:blocks} returns @code{#f}.
 @end deffn
 
 In addition, the following procedures return the information
