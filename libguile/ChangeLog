@@ -1,3 +1,9 @@
+1999-07-23  Mikael Djurfeldt  <mdj@mdj-pc.nada.kth.se>
+
+	* init.c: Make sure that scm_post_boot_init_modules is called only
+	once.  (Important when using a dumped image.; Thanks to Bernard
+	Urban.)
+
 1999-07-19  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	* guardians.c (scm_guardian_zombify): Separate scanning for
