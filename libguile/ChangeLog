@@ -1,3 +1,12 @@
+Tue Mar  7 08:05:22 2000  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* run-test, remaining-docs-needed:  Added these scripts.  The
+	second one is only temporary until the docstring additions are
+	complete.   run-test may best live on, but is here mostly for
+	convenience and awareness for now.
+
+	* hash.c: Docs, minor cleanup patch from Dirk Herrman.
+
 Thu Mar  2 16:06:58 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* error.h, error.c: Added `scm_wrong_type_arg_msg' to support
