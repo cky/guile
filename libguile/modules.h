@@ -73,10 +73,13 @@
 #define SCM_MODULE_EVAL_CLOSURE(module) \
   SCM_PACK (SCM_STRUCT_DATA (module)[scm_module_index_eval_closure])
 
+#define SCM_EVAL_CLOSURE_P(OBJ)	SCM_SMOB_PREDICATE (scm_eval_closure_tag, OBJ)
+
 
 
 extern SCM scm_module_system_booted_p;
 extern SCM scm_module_tag;
+extern SCM scm_eval_closure_tag;
 
 extern SCM scm_the_root_module (void);
 extern SCM scm_selected_module (void);
@@ -90,6 +93,7 @@ extern SCM scm_load_scheme_module (SCM name);
 extern SCM scm_env_top_level (SCM env);
 extern SCM scm_top_level_env (SCM thunk);
 extern SCM scm_system_module_env_p (SCM env);
+extern SCM scm_eval_closure_lookup (SCM eclo, SCM sym, SCM definep);
 extern SCM scm_standard_eval_closure (SCM module);
 extern void scm_init_modules (void);
 extern void scm_post_boot_init_modules (void);

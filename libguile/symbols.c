@@ -48,6 +48,7 @@
 #include "libguile/_scm.h"
 #include "libguile/chars.h"
 #include "libguile/eval.h"
+#include "libguile/smob.h"
 #include "libguile/variable.h"
 #include "libguile/alist.h"
 #include "libguile/fluids.h"
@@ -112,10 +113,9 @@ scm_sym2vcell (SCM sym, SCM thunk, SCM definep)
     {
       SCM var;
 
-      if (SCM_TYP7 (thunk) == scm_tc7_cclo
-	  && SCM_TYP7 (SCM_CCLO_SUBR (thunk)) == scm_tc7_subr_3)
+      if (SCM_EVAL_CLOSURE_P (thunk))
 	/* Bypass evaluator in the standard case. */
-	var = SCM_SUBRF (SCM_CCLO_SUBR (thunk)) (thunk, sym, definep);
+	var = scm_eval_closure_lookup (thunk, sym, definep);
       else
 	var = scm_apply (thunk, sym, scm_cons (definep, scm_listofnull));
 

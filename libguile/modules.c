@@ -47,6 +47,7 @@
 #include "libguile/_scm.h"
 
 #include "libguile/eval.h"
+#include "libguile/smob.h"
 #include "libguile/procprop.h"
 #include "libguile/vectors.h"
 #include "libguile/hashtab.h"
@@ -240,12 +241,14 @@ module_variable (SCM module, SCM sym)
   }
 }
 
-static SCM f_eval_closure;
+SCM scm_eval_closure_tag;
 
-static SCM
-eval_closure (SCM cclo, SCM sym, SCM definep)
+/* NOTE: This function may be called by a smob application
+   or from another C function directly. */
+SCM
+scm_eval_closure_lookup (SCM eclo, SCM sym, SCM definep)
 {
-  SCM module = SCM_VELTS (cclo) [1];
+  SCM module = SCM_PACK (SCM_SMOB_DATA (eclo));
   if (SCM_NFALSEP (definep))
     return scm_apply (SCM_CDR (module_make_local_var_x),
 		      SCM_LIST2 (module, sym),
@@ -259,9 +262,7 @@ SCM_DEFINE (scm_standard_eval_closure, "standard-eval-closure", 1, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_standard_eval_closure
 {
-  SCM cclo = scm_makcclo (f_eval_closure, 2);
-  SCM_VELTS (cclo) [1] = module;
-  return cclo;
+  SCM_RETURN_NEWSMOB (scm_eval_closure_tag, SCM_UNPACK (module));
 }
 #undef FUNC_NAME
 
@@ -271,10 +272,9 @@ scm_init_modules ()
 #include "libguile/modules.x"
   module_make_local_var_x = scm_sysintern ("module-make-local-var!",
 					   SCM_UNDEFINED);
-  f_eval_closure = scm_make_subr_opt ("eval-closure",
-				      scm_tc7_subr_3,
-				      eval_closure,
-				      0);
+  scm_eval_closure_tag = scm_make_smob_type ("eval-closure", 0);
+  scm_set_smob_mark (scm_eval_closure_tag, scm_markcdr);
+  scm_set_smob_apply (scm_eval_closure_tag, scm_eval_closure_lookup, 2, 0, 0);
 }
 
 void
