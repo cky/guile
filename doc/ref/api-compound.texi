@@ -635,19 +635,15 @@ accessed element in the list.
 Vectors can contain any kind of Scheme object; it is even possible to
 have different types of objects in the same vector.  For vectors
 containing vectors, you may wish to use arrays, instead.  Note, too,
-that vectors are the special case of non-uniform, one-dimensional
-arrays and that most array procedures operate happily on vectors
+that vectors are the special case of one dimensional non-uniform arrays
+and that most array procedures operate happily on vectors
 (@pxref{Arrays}).
-
-C code must deal with the additional distinction between @dfn{simple}
-and non-@dfn{simple} vector.  A simple vector is one whose elements
-are stored in contiguous memory locations.  Most vectors are simple,
-but some vectors produced by @code{make-shared-array} are not.
 
 @menu
 * Vector Syntax::               Read syntax for vectors.
 * Vector Creation::             Dynamic vector creation and validation.
 * Vector Accessors::            Accessing and modifying vector contents.
+* Vector Accessing from C::     Ways to work with vectors from C.
 @end menu
 
 
@@ -668,7 +664,7 @@ number in hexadecimal notation.
 #("Hello" foo #xdeadbeef)
 @end lisp
 
-Like lists, vectors have to be quoted (REFFIXME):
+Like lists, vectors have to be quoted:
 
 @lisp
 '#(a b c) @result{} #(a b c)
@@ -695,12 +691,6 @@ given arguments.  Analogous to @code{list}.
 (vector 'a 'b 'c) @result{} #(a b c)
 @end lisp
 @end deffn
-
-(As an aside, an interesting implementation detail is that the Guile
-reader reads the @code{#(@dots{})} syntax by reading everything but the
-initial @code{#} as a @emph{list}, and then passing the list that
-results to @code{list->vector}.  Notice how neatly this fits with the
-similarity between the read (and print) syntaxes for lists and vectors.)
 
 The inverse operation is @code{vector->list}:
 
@@ -781,7 +771,7 @@ Return the contents of position @var{k} of @var{vector}.
 @end deffn
 
 @deftypefn {C Function} SCM scm_c_vector_ref (SCM v, size_t k)
-Return the contents of position @var{k} (s @code{size_t}) of
+Return the contents of position @var{k} (a @code{size_t}) of
 @var{vector}.
 @end deftypefn
 
@@ -842,62 +832,110 @@ same vector, @code{vector-move-right!} is usually appropriate when
 @var{start1} is less than @var{start2}.
 @end deffn
 
-@deftypefn {C Function} {const SCM *} scm_vector_elements (SCM vec)
-Return a pointer to the memory that holds the elements of @var{vec}
-for reading.  The vector @var{vec} must be simple.
+@node Vector Accessing from C
+@subsubsection Vector Accessing from C
 
-For each call to this function, you must call
-@code{scm_vector_release_elements} and after that call the pointer to
-the elements becomes invalid.
+A vector can be read and modified from C with the functions
+@code{scm_c_vector_ref} and @code{scm_c_vector_set_x}, for example.  In
+addition to these functions, there are two more ways to access vectors
+from C that might be more efficient in certain situations: you can
+restrict yourself to @dfn{simple vectors} and then use the very fast
+@emph{simple vector macros}; or you can use the very general framework
+for accessing all kinds of arrays (@pxref{Accessing Arrays from C}),
+which is more verbose, but can deal efficiently with all kinds of
+vectors (and arrays).
+
+@deftypefn {C Function} int scm_is_simple_vector (SCM obj)
+Return non-zero if @var{obj} is a simple vector, else return zero.  A
+simple vector is a vector that can be used with the @code{SCM_SIMPLE_*}
+macros below.
+
+The following functions are guaranteed to return simple vectors:
+@code{scm_make_vector}, @code{scm_c_make_vector}, @code{scm_vector},
+@code{scm_list_to_vector}.
 @end deftypefn
 
-@deftypefn {C Function} void scm_vector_release_elements (SCM vec)
-Finish the access to the elements of a simple vector, as exlained above.
+@deftypefn {C Macro} size_t SCM_SIMPLE_VECTOR_LENGTH (SCM vec)
+Evaluates to the length of the simple vector @var{vec}.  No type
+checking is done.
 @end deftypefn
 
-@deftypefn {C Function} void scm_frame_vector_release_elements (SCM vec)
-Arrange for @code{scm_vector_release_elements} to be called with @var{vec}
-when the current frame is unwound, implicitely or explicitely;
-@xref{Frames}.
+@deftypefn {C Macro} SCM SCM_SIMPLE_VECTOR_REF (SCM vec, size_t idx)
+Evaluates to the element at position @var{idx} in the simple vector
+@var{vec}.  No type or range checking is done.
 @end deftypefn
 
-@deftypefn {C Function} SCM *scm_vector_writable_elements (SCM vec)
-Return a pointer to the memory that holds the elements of @var{vec}
-for writing.  The vector @var{vec} must be simple.
-
-For each call to this function, you must call
-@code{scm_vector_release_writable_elements} and after that call the
-pointer to the elements becomes invalid.
+@deftypefn {C Macro} void SCM_SIMPLE_VECTOR_SET_X (SCM vec, size_t idx, SCM val)
+Sets the element at position @var{idx} in the simple vector
+@var{vec} to @var{val}.  No type or range checking is done.
 @end deftypefn
 
-@deftypefn {C Function} void scm_vector_release_writable_elements (SCM vec)
-Finish the access to the elements of a vector, as exlained above.
+@deftypefn {C Function} const SCM *scm_vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
+Acquire a handle for the vector @var{vec} and return a pointer to the
+elements of it.  This pointer can only be used to read the elements of
+@var{vec}.  When @var{vec} is not a vector, an error is signaled.
+
+The variables pointed to by @var{lenp} and @var{incp} are filled with
+the number of elements of the vector and the increment between elements,
+respectively.  Note that the increment can well be negative.
+
+The following example shows the typical way to use this function.  It
+creates a list of all elements of @code{vec} (in reverse order).
+
+@example
+scm_t_array_handle handle;
+size_t i, len;
+ssize_t inc;
+const SCM *elt;
+SCM list;
+
+elt = scm_vector_elements (vec, &handle, &len, &inc);
+list = SCM_EOL;
+for (i = 0; i < len; i++, elt += inc)
+  list = scm_cons (*elt, list);
+@end example
+
 @end deftypefn
 
-@deftypefn {C Function} void scm_frame_vector_release_writable_elements (SCM vec)
-Arrange for @code{scm_vector_release_writable_elements} to be called
-with @var{vec} when the current frame is unwound, implicitely or
-explicitely; @xref{Frames}.
+@deftypefn {C Function} SCM *scm_vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
+Like @code{scm_vector_elements} but the pointer can be used to modify
+the vector.
+
+The following example shows the typical way to use this function.  It
+fills a vector with @code{#t}.
+
+@example
+scm_t_array_handle handle;
+size_t i, len;
+ssize_t inc;
+SCM *elt;
+
+elt = scm_vector_elements (vec, &handle, &len, &inc);
+for (i = 0; i < len; i++, elt += inc)
+  *elt = SCM_BOOL_T;
+@end example
+
 @end deftypefn
 
 @node Uniform Numeric Vectors
 @subsection Uniform Numeric Vectors
 
 A uniform numeric vector is a vector whose elements are all of a single
-numeric type.  Guile offers uniform vectors for signed and unsigned
-8-bit, 16-bit, 32-bit, and 64-bit integers, two sizes of floating point
-values, and complex floating-point numbers of these two sizes.
+numeric type.  Guile offers uniform numeric vectors for signed and
+unsigned 8-bit, 16-bit, 32-bit, and 64-bit integers, two sizes of
+floating point values, and complex floating-point numbers of these two
+sizes.
 
 Strings could be regarded as uniform vectors of characters,
 @xref{Strings}.  Likewise, bit vectors could be regarded as uniform
 vectors of bits, @xref{Bit Vectors}.  Both are sufficiently different
-from numeric vectors that the procedures described here do not apply to
-these two data types.  However, both strings and bit vectors are
-generalized vectors, @xref{Generalized Vectors}, and arrays,
+from uniform numeric vectors that the procedures described here do not
+apply to these two data types.  However, both strings and bit vectors
+are generalized vectors, @xref{Generalized Vectors}, and arrays,
 @xref{Arrays}.
 
-Uniform numeric vectors are the special case of one-dimensional, uniform
-numeric, zero-origin arrays.
+Uniform numeric vectors are the special case of one dimensional uniform
+numeric arrays.
 
 Uniform numeric vectors can be useful since they consume less memory
 than the non-uniform, general vectors.  Also, since the types they can
@@ -919,17 +957,21 @@ datatypes and the two cannot be inter-mixed.  If you want to work
 primarily with uniform numeric vectors, but want to offer support for
 general vectors as a convenience, you can use one of the
 @code{scm_any_to_*} functions.  They will coerce lists and vectors to
-the given type of uniform vector.
+the given type of uniform vector.  Alternatively, you can write two
+versions of your code: one that is fast and works only with uniform
+numeric vectors, and one that works with any kind of vector but is
+slower.
 
-One set of these procedures is a generic one: it works with all types of
-uniform vectors.  In addition to that, there is a set of procedures for
-each type that only works with that type.  Unless you really need to the
-generality of the first set, it is best to use the more specific
-functions.  They might not be that much faster, but their use can serve
-as a kind of declaration and makes it easier to optimize later on.
+One set of the procedures listed below is a generic one: it works with
+all types of uniform numeric vectors.  In addition to that, there is a
+set of procedures for each type that only works with that type.  Unless
+you really need to the generality of the first set, it is best to use
+the more specific functions.  They might not be that much faster, but
+their use can serve as a kind of declaration and makes it easier to
+optimize later on.
 
-The generic set of procedures uses @code{uniform-vector} in its names,
-the specific ones use the tag from the following table.
+The generic set of procedures uses @code{uniform} in its names, the
+specific ones use the tag from the following table.
 
 @table @nicode
 @item u8
@@ -1279,76 +1321,6 @@ are at even indices in that array, the corresponding imaginary parts are
 at the following odd index.
 @end deftypefn
 
-@deftypefn  {C Function} {const void *} scm_uniform_vector_elements (SCM uvec)
-@deftypefnx {C Function} {const scm_t_uint8 *} scm_u8vector_elements (SCM uvec)
-@deftypefnx {C Function} {const scm_t_int8 *} scm_s8vector_elements (SCM uvec)
-@deftypefnx {C Function} {const scm_t_uint16 *} scm_u16vector_elements (SCM uvec)
-@deftypefnx {C Function} {const scm_t_int16 *} scm_s16vector_elements (SCM uvec)
-@deftypefnx {C Function} {const scm_t_uint32 *} scm_u32vector_elements (SCM uvec)
-@deftypefnx {C Function} {const scm_t_int32 *} scm_s32vector_elements (SCM uvec)
-@deftypefnx {C Function} {const scm_t_uint64 *} scm_u64vector_elements (SCM uvec)
-@deftypefnx {C Function} {const scm_t_int64 *} scm_s64vector_elements (SCM uvec)
-@deftypefnx {C Function} {const float *} scm_f32vector_elements (SCM uvec)
-@deftypefnx {C Function} {const double *} scm_f64vector_elements (SCM uvec)
-@deftypefnx {C Function} {const float *} scm_c32vector_elements (SCM uvec)
-@deftypefnx {C Function} {const double *} scm_c64vector_elements (SCM uvec)
-Return a pointer to the elements of a uniform vector for reading.  For
-each call to one of these functions, you must call
-@code{scm_uniform_vector_release_elements} and after that call the pointer to
-the elements becomes invalid.
-
-The @code{c32} and @code{c64} variants return pointers to a C array of
-@code{float}s or @code{double}s.  The real parts of the complex numbers
-are at even indices in that array, the corresponding imaginary parts are
-at the following odd index.
-@end deftypefn
-
-@deftypefn {C Function} void scm_uniform_vector_release_elements (SCM uvec)
-Finish the access to the elements of a uniform vector, as exlained
-above.
-@end deftypefn
-
-@deftypefn {C Function} void scm_frame_uniform_vector_release_elements (SCM uvec)
-Arrange for @code{scm_uniform_vector_release_elements} to be called with
-@var{uvec} when the current frame is unwound, implicitely or
-explicitely; @xref{Frames}.
-@end deftypefn
-
-@deftypefn  {C Function} {void *} scm_uniform_vector_writable_elements (SCM uvec)
-@deftypefnx {C Function} {scm_t_uint8 *} scm_u8vector_writable_elements (SCM uvec)
-@deftypefnx {C Function} {scm_t_int8 *} scm_s8vector_writable_elements (SCM uvec)
-@deftypefnx {C Function} {scm_t_uint16 *} scm_u16vector_writable_elements (SCM uvec)
-@deftypefnx {C Function} {scm_t_int16 *} scm_s16vector_writable_elements (SCM uvec)
-@deftypefnx {C Function} {scm_t_uint32 *} scm_u32vector_writable_elements (SCM uvec)
-@deftypefnx {C Function} {scm_t_int32 *} scm_s32vector_writable_elements (SCM uvec)
-@deftypefnx {C Function} {scm_t_uint64 *} scm_u64vector_writable_elements (SCM uvec)
-@deftypefnx {C Function} {scm_t_int64 *} scm_s64vector_writable_elements (SCM uvec)
-@deftypefnx {C Function} {float *} scm_f32vector_writable_elements (SCM uvec)
-@deftypefnx {C Function} {double *} scm_f64vector_writable_elements (SCM uvec)
-@deftypefnx {C Function} {float *} scm_c32vector_writable_elements (SCM uvec)
-@deftypefnx {C Function} {double *} scm_c64vector_writable_elements (SCM uvec)
-Return a pointer to the elements of a uniform vector for writing.  For
-each call to one of these functions, you must call
-@code{scm_uniform_vector_release_writable_elements} and after that
-call the pointer to the elements becomes invalid.
-
-The @code{c32} and @code{c64} variants return pointers to a C array of
-@code{float}s or @code{double}s.  The real parts of the complex numbers
-are at even indices in that array, the corresponding imaginary parts are
-at the following odd index.
-@end deftypefn
-
-@deftypefn {C Function} void scm_uniform_vector_release_writable_elements (SCM uvec)
-Finish the access to the elements of a uniform vector, as exlained
-above.
-@end deftypefn
-
-@deftypefn {C Function} void scm_frame_uniform_vector_release_writable_elements (SCM uvec)
-Arrange for @code{scm_uniform_vector_release_writable_elements} to be called with
-@var{uvec} when the current frame is unwound, implicitely or
-explicitely; @xref{Frames}.
-@end deftypefn
-
 @deftypefn {C Function} size_t scm_c_uniform_vector_length (SCM uvec)
 Return the number of elements of @var{uvec} as a @code{size_t}.
 @end deftypefn
@@ -1379,6 +1351,7 @@ are displayed as a sequence of @code{0}s and @code{1}s prefixed by
 
 Bit vectors are are also generalized vectors, @xref{Generalized
 Vectors}, and can thus be used with the array procedures, @xref{Arrays}.
+Bit vectors are the special case of one dimensional bit arrays.
 
 @deffn {Scheme Procedure} bitvector? obj
 @deffnx {C Function} scm_bitvector_p (obj)
@@ -1455,56 +1428,6 @@ of @var{list}.
 Return a new list initialized with the elements
 of the bitvector @var{vec}.
 @end deffn
-
-@deftypefn {C Function} {const scm_t_uint32 *} scm_bitvector_elements (SCM vec)
-Return a pointer to the memory that holds the elements of @var{vec}
-for reading.  Each word pointed to by this pointer has exactly 32
-bits, the least significant bit having the lowest index.
-
-There are @code{(scm_c_bitvector_length(@var{vec})+31)/32} words in the
-returned memory block.  The last word might be only partially used when
-the bitvector length is not a multiple of 32.  The unused bits must be
-ignored during reading.
-
-For each call to this function, you must call
-@code{scm_bitvector_release_elements} and after that call the pointer
-to the elements becomes invalid.
-@end deftypefn
-
-@deftypefn {C Function} void scm_bitvector_release_elements (SCM vec)
-Finish the access to the elements of a bitvector, as exlained above.
-@end deftypefn
-
-@deftypefn {C Function} void scm_frame_bitvector_release_elements (SCM vec)
-Arrange for @code{scm_bitvector_release_elements} to be called with @var{vec}
-when the current frame is unwound, implicitely or explicitely;
-@xref{Frames}.
-@end deftypefn
-
-@deftypefn {C Function} scm_t_uint32 *scm_bitvector_writable_elements (SCM vec)
-Return a pointer to the memory that holds the elements of @var{vec}
-for writing.  Each word pointed to by this pointer has exactly 32
-bits, the least significant bit having the lowest index.
-
-There are @code{(scm_c_bitvector_length(@var{vec})+31)/32} words in
-the returned memory block.  The last word might be only partially used
-when the bitvector length is not a multiple of 32.  The unused bits
-can be overwritten freely since they must be ignored during reading.
-
-For each call to this function, you must call
-@code{scm_bitvector_release_writable_elements} and after that call the
-pointer to the elements becomes invalid.
-@end deftypefn
-
-@deftypefn {C Function} void scm_bitvector_release_writable_elements (SCM vec)
-Finish the access to the elements of a bitvector, as exlained above.
-@end deftypefn
-
-@deftypefn {C Function} void scm_frame_bitvector_release_writable_elements (SCM vec)
-Arrange for @code{scm_bitvector_release_writable_elements} to be
-called with @var{vec} when the current frame is unwound, implicitely
-or explicitely; @xref{Frames}.
-@end deftypefn
 
 @deffn {Scheme Procedure} bit-count bool bitvector
 @deffnx {C Function} scm_bit_count (bool, bitvector)
@@ -1597,9 +1520,6 @@ types with common code, you can use the procedures in this section.
 They work with the @emph{generalized vector} type, which is the union
 of the four vector-like types.
 
-Generalized vectors play an important role as the underlying storage
-for arrays, @xref{Arrays}.
-
 @deffn {Scheme Procedure} generalized-vector? obj
 @deffnx {C Function} scm_generalized_vector_p (obj)
 Return @code{#t} if @var{obj} is a vector, string,
@@ -1663,18 +1583,27 @@ values.  For example, arrays with an underlying @code{c64vector} might
 be nice for digital signal processing, while arrays made from a
 @code{u8vector} might be used to hold gray-scale images.
 
-The number of dimensions of an array is called its @dfn{rank}.  Thus,
-a matrix is an array of rank 2, while a vector has rank 1.  When
-accessing an array element, you have to specify one exact integer for
-each dimension.  These integers are called the @dfn{indices} of the
-element.  An array specifies the allowed range of indices for each
-dimension via a inclusive lower and upper bound.  These bounds can
-well be negative, but the upper bound must be grater than or equal to
-the lower bound.  When all lower bounds of an array are zero, it is
-called a @dfn{zero-origin} array.
+The number of dimensions of an array is called its @dfn{rank}.  Thus, a
+matrix is an array of rank 2, while a vector has rank 1.  When accessing
+an array element, you have to specify one exact integer for each
+dimension.  These integers are called the @dfn{indices} of the element.
+An array specifies the allowed range of indices for each dimension via
+an inclusive lower and upper bound.  These bounds can well be negative,
+but the upper bound must be greater than or equal to the lower bound.
+When all lower bounds of an array are zero, it is called a
+@dfn{zero-origin} array.
 
-For example, ordinary vectors can be regarded as one-dimensional,
-zero-origin arrays.
+For example, ordinary vectors are the special case of one dimensional,
+ordinary arrays and strings are one dimensional character arrays.
+
+@menu
+* Array Syntax::
+* Array Procedures::
+* Accessing Arrays from C::    
+@end menu
+
+@node Array Syntax
+@subsubsection Array Syntax
 
 An array is displayed as @code{#} followed by its rank, followed by a
 tag that describes the underlying vector, optionally followed by the
@@ -1724,6 +1653,8 @@ is a uniform u8 array of rank 2 with index ranges 2..3 and 3..4.
 
 @end table
 
+@node Array Procedures
+@subsubsection Array Procedures
 
 When an array is created, the range of each dimension must be
 specified, e.g., to create a 2@cross{}3 array with a zero-based index:
@@ -2118,6 +2049,49 @@ The number of objects actually written is returned.
 omitted, in which case it defaults to the value returned by
 @code{(current-output-port)}.
 @end deffn
+
+@node Accessing Arrays from C
+@subsubsection Accessing Arrays from C
+
+Arrays, especially uniform numeric arrays, are useful to efficiently
+represent large amounts of rectangularily organized information, such as
+matrices, images, or generally blobs of binary data.  It is desirable to
+access these blobs in a C like manner so that they can be handed to
+external code such as linear algebra libraries or image processing
+routines.
+
+While pointers to the elements of an array are in use, the array itself
+must be protected so that the pointer remains valid.  Such a protected
+array is said to be @dfn{reserved}.  A reserved array can be read but it
+can not be modified.  When you try to modify it, an error is signalled.
+
+(This is similar to locking the array while it is in use, but without
+the danger of a deadlock.  In a multi-threaded program, you will need
+additional synchronization to avoid modifying reserved arrays.)
+
+You must take care to always unreserve an array after reserving it, also
+in the presence of non-local exits.  To simplify this, reserving and
+unreserving work like a frame (@pxref{Frames}): a call to
+@code{scm_array_get_handle} can be thought of as beginning a frame and
+@code{scm_array_handle_release} as ending it.  When a non-local exit
+happens between these two calls, the array is implicitely unreserved.
+
+That is, you need to properly pair reserving and unreserving in your
+code, but you don't need to worry about non-local exits.
+
+These calls and other pairs of calls that establish dynamic contexts
+need to be properly nested.  If you begin a frame prior to reserving an
+array, you need to unreserve the array before ending the frame.
+Likewise, when reserving two or more arrays in a certain order, you need
+to unreserve them in the opposite order.
+
+Once you have reserved an array and have retrieved the pointer to its
+elements, you must figure out the layout of the elements in memory.
+Guile allows slices to be taken out of arrays without actually making a
+copy, such as making an alias for the diagonal of a matrix.  Arrays that
+result from such an operation are not stored contiguously in memory and
+when working with them, you need to take this into account.
+
 
 @node Records
 @subsection Records
