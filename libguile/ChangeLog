@@ -1,3 +1,23 @@
+2001-05-02  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* rw.c: Include "modules.h" and "strports.h".
+
+	* net_db.h (scm_gethost): Added prototype.
+
+	* deprecation.h, deprecation.c: New.
+	* Makefile.am (libguile_la_SOURCES): Added "deprecation.c".
+	(DOT_X_FILES): Added "deprecation.x".
+	(modinclude_HEADERS): Added "deprecation.h".
+
+	* init.c: Include "deprecation.h".
+	(scm_init_guile_1): Call scm_init_deprecation.
+	
+2001-05-01  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* gh.h (gh_init_guile, gh_make_string, gh_string_length,
+	gh_string_ref, gh_string_set_x, gh_substring, gh_string_append):
+	New.
+
 2001-04-29  Gary Houston  <ghouston@arglist.com>
 
 	* rw.c: new file, implementing C part of module (ice-9 rw).
