@@ -1,3 +1,38 @@
+Sat Oct  5 18:40:42 1996  Mikael Djurfeldt  <mdj@kenneth>
+
+	* Makefile.in: Added dependency entry for root.o.
+
+	* continuations.c, debug.[ch], eval.c, gscm.c init.c, root.c,
+	throw.c: Renamed last_debug_info_frame -> scm_last_debug_frame.
+
+	* init.c (scm_start_stack): Set initial root continuation number
+	to 0.
+
+	* procs.c: New function: scm_thunk_p.
+
+	* procs.h: Added declarations of scm_thunk_p.
+
+	* root.c: Renamed `call-with-new-root' -->
+	`call-with-dynamic-root'.
+	(cwdr): Removed allocation of new root state.  This should be done
+	separately by use of scm_make_root.
+	(scm_apply_with_dynamic_root): New function: Does what it
+	sounds like.  Needed when spawning threads.
+
+	* root.h: Added member last_debug_frame to root state.
+	Added #include "libguile/debug.h"
+
+	* throw.c: Renamed scm_catch --> scm_catch_apply and added more
+	arguments.  The motivation is that code in root.c needs catch
+	functionality, and we want to avoid code duplication.
+	New functions: scm_catch, scm_lazy_catch.  These are wrappers for
+	scm_catch_apply.  scm_lazy_catch is intended to introduce catch
+	handlers that run without popping the stack into the dynwind
+	chain.
+
+	* throw.h: Added prototypes for scm_catch_apply and
+	scm_lazy_catch.
+
 Thu Oct  3 11:12:33 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
 
 	* root.h (scm_root, scm_set_root): Decouple thread support details
