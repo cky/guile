@@ -129,7 +129,40 @@ evaluator turned off, even for interactive sessions.
 Previously, the normal evaluator would have been used.  Using the
 debugging evaluator gives better error messages.
 
+** The '-e' option now 'read's its argument.
+
+This is to allow the new '(@ MODULE-NAME VARIABLE-NAME)' construct to
+be used with '-e'.  For example, you can now write a script like
+
+  #! /bin/sh
+  exec guile -e '(@ (demo) main)' -s "$0" "$@"
+  !#
+
+  (define-module (demo)
+    :export (main))
+
+  (define (main args)
+    (format #t "Demo: ~a~%" args))
+
+
 * Changes to Scheme functions and syntax
+
+** New syntax '@' and '@@':
+
+You can now directly refer to variables exported from a module by
+writing
+
+    (@ MODULE-NAME VARIABLE-NAME)
+
+For example (@ (ice-9 pretty-print) pretty-print) will directly access
+the pretty-print variable exported from the (ice-9 pretty-print)
+module.  You don't need to 'use' that module first.  You can also use
+'@' with 'set!'.
+
+The related syntax (@@ MODULE-NAME VARIABLE-NAME) works just like '@',
+but it can also access variables that have not been exported.  It is
+intended only for kluges and temporary fixes and for debugging, not
+for ordinary code.
 
 ** 'while' now provides 'break' and 'continue'
 

@@ -1,3 +1,7 @@
+2003-11-17  Marius Vollmer  <mvo@zagadka.de>
+
+	* boot-9.scm (@, @@): New macros.
+
 2003-11-16  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* boot-9.scm: Started comment about module system workings.

@@ -1,3 +1,9 @@
+2003-11-17  Marius Vollmer  <mvo@zagadka.de>
+
+	* scheme-modules.texi: Document '@' and '@@'.
+
+	* scripts.texi: Mention that "-e (@ ...)" also works.
+
 2003-11-15  Kevin Ryde  <user42@zip.com.au>
 
 	* scheme-data.texi (Random): Add *random-state* variable, put note at
