@@ -1,4 +1,7 @@
-AC_INIT(readline.c)
+AC_PREREQ(2.50)
+
+AC_INIT
+AC_CONFIG_SRCDIR([readline.c])
 . $srcdir/../GUILE-VERSION
 PACKAGE=guile-readline
 AM_INIT_AUTOMAKE($PACKAGE, $VERSION, no-define)
@@ -98,4 +101,5 @@ fi
 
 AC_CHECK_FUNCS(strdup)
 
-AC_OUTPUT(Makefile)
+AC_CONFIG_FILES(Makefile)
+AC_OUTPUT
