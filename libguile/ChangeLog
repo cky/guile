@@ -1,5 +1,15 @@
 2004-05-15  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
 
+	* numbers.h (SCM_SLOPPY_FRACTIONP): Removed.  It was not used
+	throughout guile, has not been part of an official release yet,
+	and the concept of sloppy predicates has never been a good idea.
+
+	(SCM_FRACTION_NUMERATOR, SCM_FRACTION_DENOMINATOR,
+	SCM_FRACTION_SET_NUMERATOR, SCM_FRACTION_SET_DENOMINATOR):
+	Simplified.
+
+2004-05-15  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
+
 	* throw.c (SETJBJMPBUF, SCM_SETJBDFRAME): Add cast to scm_t_bits
 	to make explicit what happens.
 

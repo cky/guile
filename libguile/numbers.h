@@ -154,11 +154,11 @@
 /* 0xfcff (#b1100) for 0 free, 1 big, 2 real, 3 complex, then 0xfbff (#b1011) for 4 fraction */
 
 #define SCM_FRACTIONP(x) (!SCM_IMP (x) && SCM_TYP16 (x) == scm_tc16_fraction)
-#define SCM_SLOPPY_FRACTIONP(x) (SCM_TYP16 (x) == scm_tc16_fraction)
-#define SCM_FRACTION_NUMERATOR(x)   ((SCM) (SCM_CELL_WORD_1 (x)))
-#define SCM_FRACTION_DENOMINATOR(x) ((SCM) (SCM_CELL_WORD_2 (x)))
-#define SCM_FRACTION_SET_NUMERATOR(x, v)   ((SCM) (SCM_SET_CELL_WORD_1 ((x), (v))))
-#define SCM_FRACTION_SET_DENOMINATOR(x, v) ((SCM) (SCM_SET_CELL_WORD_2 ((x), (v))))
+#define SCM_FRACTION_NUMERATOR(x) (SCM_CELL_OBJECT_1 (x))
+#define SCM_FRACTION_DENOMINATOR(x) (SCM_CELL_OBJECT_2 (x))
+#define SCM_FRACTION_SET_NUMERATOR(x, v) (SCM_SET_CELL_OBJECT_1 ((x), (v)))
+#define SCM_FRACTION_SET_DENOMINATOR(x, v) (SCM_SET_CELL_OBJECT_2 ((x), (v)))
+
   /* I think the left half word is free in the type, so I'll use bit 17 */
 #define SCM_FRACTION_REDUCED_BIT 0x10000
 #define SCM_FRACTION_REDUCED_SET(x) (SCM_SET_CELL_TYPE((x), (SCM_CELL_TYPE (x) | SCM_FRACTION_REDUCED_BIT)))
