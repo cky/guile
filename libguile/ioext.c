@@ -213,7 +213,7 @@ scm_ftell (object)
     {
       SCM_SYSCALL (pos = ftell ((FILE *)SCM_STREAM (object)));
       if (pos > 0 && SCM_CRDYP (object))
-	pos--;
+	pos -= SCM_N_READY_CHARS (object);
     }
   else
     {
