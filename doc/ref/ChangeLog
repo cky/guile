@@ -1,3 +1,8 @@
+2003-11-03  Kevin Ryde  <user42@zip.com.au>
+
+	* misc-modules.texi (File Tree Walk): New chapter.
+	* guile.texi: Add it.
+
 2003-10-18  Kevin Ryde  <user42@zip.com.au>
 
 	* gh.texi (Calling Scheme procedures from C, scm transition summary):
