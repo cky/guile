@@ -483,7 +483,7 @@ do { \
 
 #ifdef SCM_RECKLESS
 #define SCM_ASSERT(_cond, _arg, _pos, _subr)
-#define SCM_ASSERT_TYPE(_cond, _arg, _pos, _subr)
+#define SCM_ASSERT_TYPE(_cond, _arg, _pos, _subr, _msg)
 #define SCM_ASRTGO(_cond, _label)
 #else
 #define SCM_ASSERT(_cond, _arg, _pos, _subr) \

@@ -1,4 +1,4 @@
-/* $Id: validate.h,v 1.25 2001-01-24 00:02:43 dirk Exp $ */
+/* $Id: validate.h,v 1.26 2001-02-28 16:58:12 dirk Exp $ */
 /*	Copyright (C) 1999, 2000 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -83,7 +83,7 @@
   do { scm_out_of_range_pos (FUNC_NAME, arg, SCM_MAKINUM (pos)); } while (0)
 
 #define SCM_ASSERT_RANGE(pos, arg, f) \
-  do { if (!(f)) scm_out_of_range (FUNC_NAME, arg); } while (0)
+  do { if (!(f)) scm_out_of_range_pos (FUNC_NAME, arg, SCM_MAKINUM (pos)); } while (0)
 
 #define SCM_MUST_MALLOC_TYPE(type) \
   ((type *) scm_must_malloc (sizeof (type), FUNC_NAME))

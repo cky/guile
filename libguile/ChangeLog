@@ -1,3 +1,10 @@
+2001-02-28  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* __scm.h (SCM_ASSERT_TYPE):  Add missing macro parameter.
+	(Obviously nobody compiles with SCM_RECKLESS defined...)
+
+	* validate.h (SCM_ASSERT_RANGE):  Use the argument number.
+
 2001-02-23  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
 
 	* ports.c, ports.h (scm_c_read, scm_c_write): New functions.
