@@ -1,3 +1,10 @@
+2004-09-25  Marius Vollmer  <mvo@zagadka.de>
+
+	* configure.in: Do not use AM_GNU_GETTEXT for now, it causes
+	gettextize to run during autogen.sh, which we do not want.
+	Explicitely check for libintl, gettext, bindtextdomain, and
+	textdomain instead.
+	
 2004-09-24  Marius Vollmer  <mvo@zagadka.de>
 
 	* libguile.h: Include <gmp.h> outside of extern "C" block.
