@@ -56,7 +56,8 @@ The "Spiffing" phase you might go through several times as you
 discover problems.  The "Punting" phase you do only once.
 
 
-Spiffing checklist:
+Spiffing checklist (NOTE: these instructions are out of date now that
+we're using cvs branches for stable vs unstable).
 
 * Do a `cvs update -A', to get rid of any sticky tags in your working
   directory.
