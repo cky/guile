@@ -171,6 +171,10 @@ information.
 Use string-copy or similar to make a copy if you really want to modify
 such a string.
 
+** 'gettext' support for internationalization has been added.
+
+See the manual for details.
+
 ** New syntax '@' and '@@':
 
 You can now directly refer to variables exported from a module by
