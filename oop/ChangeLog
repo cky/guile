@@ -3,6 +3,11 @@
 	* goops.scm (define-extended-generics): New syntax.
 	(<class> <operator-class> <entity-class> <entity>): Marked as
 	replacements.
+	(upgrade-accessor): Renamed from upgrade-generic-with-setter.
+	(ensure-accessor, upgrade-accessor): Rewritten to accomodate the
+	new <accessor> class.
+	(merge-accessors): Provide for merging of accessors imported from
+	different modules under the same name.
 
 2003-03-07  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 

@@ -1,3 +1,9 @@
+2003-03-11  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* goops.c, goops.h (scm_class_accessor_method): Renamed from
+	scm_class_accessor.
+	(scm_class_accessor): New class.
+
 2003-03-06  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* goops.c (scm_primitive_generic_generic): Enable primitive

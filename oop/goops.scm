@@ -466,7 +466,7 @@
 			     (current-module) ',name))
 		       (old (and (variable-bound? var) (variable-ref var))))
 		  (if (or (not old)
-			  (and (is-a? old <generic-with-setter>)
+			  (and (is-a? old <accessor>)
 			       (is-a? (setter old) <generic>)))
 		      (variable-set! var (make-accessor ',name))
 		      (variable-set! var (ensure-accessor old ',name)))))
@@ -478,21 +478,22 @@
 
 (define (make-accessor . name)
   (let ((name (and (pair? name) (car name))))
-    (make <generic-with-setter>
+    (make <accessor>
 	  #:name name
 	  #:setter (make <generic>
 		         #:name (and name (make-setter-name name))))))
 
 (define (ensure-accessor proc . name)
   (let ((name (and (pair? name) (car name))))
-    (cond ((is-a? proc <generic-with-setter>)
-	   (if (is-a? (setter proc) <generic>)
-	       proc
-	       (upgrade-generic-with-setter proc (setter proc))))
+    (cond ((and (is-a? proc <accessor>)
+		(is-a? (setter proc) <generic>))
+	   proc)
+	  ((is-a? proc <generic-with-setter>)
+	   (upgrade-accessor proc (setter proc)))
 	  ((is-a? proc <generic>)
-	   (upgrade-generic-with-setter proc (make-generic name)))
+	   (upgrade-accessor proc (make-generic name)))
 	  ((procedure-with-setter? proc)
-	   (make <generic-with-setter>
+	   (make <accessor>
 		 #:name name
 		 #:default (procedure proc)
 		 #:setter (ensure-generic (setter proc) name)))
@@ -501,11 +502,11 @@
 	  (else
 	   (make-accessor name)))))
 
-(define (upgrade-generic-with-setter generic setter)
+(define (upgrade-accessor generic setter)
   (let ((methods (slot-ref generic 'methods))
 	(gws (make (if (is-a? generic <extended-generic>)
 		       <extended-generic-with-setter>
-		       <generic-with-setter>)
+		       <accessor>)
 		   #:name (generic-function-name generic)
 		   #:extended-by (slot-ref generic 'extended-by)
 		   #:setter setter)))
@@ -875,6 +876,28 @@
   var)
 
 (module-define! duplicate-handlers 'merge-generics merge-generics)
+
+(define-method (merge-accessors (module <module>)
+				(name <symbol>)
+				(int1 <module>)
+				(val1 <top>)
+				(int2 <module>)
+				(val2 <top>)
+				(var <top>)
+				(val <top>))
+  #f)
+
+(define-method (merge-accessors (module <module>)
+				(name <symbol>)
+				(int1 <module>)
+				(val1 <accessor>)
+				(int2 <module>)
+				(val2 <accessor>)
+				(var <top>)
+				(val <top>))
+  (merge-generics module name int1 val1 int2 val2 var val))
+
+(module-define! duplicate-handlers 'merge-accessors merge-accessors)
 
 ;;;
 ;;; slot access

@@ -137,9 +137,10 @@ static SCM scm_goops_lookup_closure;
 SCM scm_class_top, scm_class_object, scm_class_class;
 SCM scm_class_entity, scm_class_entity_with_setter;
 SCM scm_class_generic, scm_class_generic_with_setter;
+SCM scm_class_accessor;
 SCM scm_class_extended_generic, scm_class_extended_generic_with_setter;
 SCM scm_class_method;
-SCM scm_class_simple_method, scm_class_accessor;
+SCM scm_class_simple_method, scm_class_accessor_method;
 SCM scm_class_procedure_class;
 SCM scm_class_operator_class, scm_class_operator_with_setter_class;
 SCM scm_class_entity_class;
@@ -2113,7 +2114,7 @@ SCM_DEFINE (scm_make, "make",  0, 0, 1,
   class = SCM_CAR(args);
   args  = SCM_CDR(args);
 
-  if (class == scm_class_generic || class == scm_class_generic_with_setter)
+  if (class == scm_class_generic || class == scm_class_accessor)
     {
       z = scm_make_struct (class, SCM_INUM0,
 			   scm_list_5 (SCM_EOL,
@@ -2126,7 +2127,7 @@ SCM_DEFINE (scm_make, "make",  0, 0, 1,
 						     args,
 						     SCM_BOOL_F));
       clear_method_cache (z);
-      if (class == scm_class_generic_with_setter)
+      if (class == scm_class_accessor)
 	{
 	  SCM setter = scm_get_keyword (k_setter, args, SCM_BOOL_F);
 	  if (!SCM_FALSEP (setter))
@@ -2139,7 +2140,7 @@ SCM_DEFINE (scm_make, "make",  0, 0, 1,
 
       if (class == scm_class_method
 	  || class == scm_class_simple_method
-	  || class == scm_class_accessor)
+	  || class == scm_class_accessor_method)
 	{
 	  SCM_SET_SLOT (z, scm_si_generic_function,
 	    scm_i_get_keyword (k_gf,
@@ -2352,9 +2353,9 @@ create_standard_classes (void)
   make_stdcls (&scm_class_simple_method,   "<simple-method>",
 	       scm_class_class, scm_class_method,	   SCM_EOL);
   SCM_SET_CLASS_FLAGS (scm_class_simple_method, SCM_CLASSF_SIMPLE_METHOD);
-  make_stdcls (&scm_class_accessor,	   "<accessor-method>",
+  make_stdcls (&scm_class_accessor_method, "<accessor-method>",
 	       scm_class_class, scm_class_simple_method,   amethod_slots);
-  SCM_SET_CLASS_FLAGS (scm_class_accessor, SCM_CLASSF_ACCESSOR_METHOD);
+  SCM_SET_CLASS_FLAGS (scm_class_accessor_method, SCM_CLASSF_ACCESSOR_METHOD);
   make_stdcls (&scm_class_entity,	   "<entity>",
 	       scm_class_entity_class, scm_class_object,   SCM_EOL);
   make_stdcls (&scm_class_entity_with_setter, "<entity-with-setter>",
@@ -2363,15 +2364,16 @@ create_standard_classes (void)
 	       scm_class_entity_class, scm_class_entity,   gf_slots);
   SCM_SET_CLASS_FLAGS (scm_class_generic, SCM_CLASSF_PURE_GENERIC);
   make_stdcls (&scm_class_extended_generic, "<extended-generic>",
-	       scm_class_entity_class,
-	       scm_list_1 (scm_class_generic),
-	       egf_slots);
+	       scm_class_entity_class, scm_class_generic, egf_slots);
   SCM_SET_CLASS_FLAGS (scm_class_extended_generic, SCM_CLASSF_PURE_GENERIC);
   make_stdcls (&scm_class_generic_with_setter, "<generic-with-setter>",
 	       scm_class_entity_class,
 	       scm_list_2 (scm_class_generic, scm_class_entity_with_setter),
 	       SCM_EOL);
   SCM_SET_CLASS_FLAGS (scm_class_generic_with_setter, SCM_CLASSF_PURE_GENERIC);
+  make_stdcls (&scm_class_accessor,	   "<accessor>",
+	       scm_class_entity_class, scm_class_generic_with_setter, SCM_EOL);
+  SCM_SET_CLASS_FLAGS (scm_class_accessor, SCM_CLASSF_PURE_GENERIC);
   make_stdcls (&scm_class_extended_generic_with_setter,
 	       "<extended-generic-with-setter>",
 	       scm_class_entity_class,
@@ -2644,13 +2646,13 @@ scm_add_slot (SCM class, char *slot_name, SCM slot_class,
 			     gf);
       SCM gns = scm_list_4 (name, SCM_BOOL_F, get, set);
 
-      scm_add_method (gf, scm_make (scm_list_5 (scm_class_accessor,
+      scm_add_method (gf, scm_make (scm_list_5 (scm_class_accessor_method,
 						k_specializers,
 						scm_list_1 (class),
 						k_procedure,
 						getm)));
       scm_add_method (scm_setter (gf),
-		      scm_make (scm_list_5 (scm_class_accessor,
+		      scm_make (scm_list_5 (scm_class_accessor_method,
 					    k_specializers,
 					    scm_list_2 (class, scm_class_top),
 					    k_procedure,
@@ -2700,10 +2702,10 @@ SCM
 scm_ensure_accessor (SCM name)
 {
   SCM gf = scm_call_2 (SCM_TOP_LEVEL_LOOKUP_CLOSURE, name, SCM_BOOL_F);
-  if (!SCM_IS_A_P (gf, scm_class_generic_with_setter))
+  if (!SCM_IS_A_P (gf, scm_class_accessor))
     {
       gf = scm_make (scm_list_3 (scm_class_generic, k_name, name));
-      gf = scm_make (scm_list_5 (scm_class_generic_with_setter,
+      gf = scm_make (scm_list_5 (scm_class_accessor,
 				 k_name, name, k_setter, gf));
     }
   return gf;

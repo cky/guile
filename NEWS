@@ -99,6 +99,7 @@ Currently available duplicates handlers are:
   last		     select the last encountered binding (override)
   merge-generics     merge generic functions with a common name
 		     into an <extended-generic>
+  merge-accessors    merge accessors with a common name
 
 The default duplicates handler is:
 
