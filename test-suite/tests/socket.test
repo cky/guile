@@ -41,3 +41,40 @@
 
 	(pass-if-exception "2^1024" exception:out-of-range
 	  (inet-ntop AF_INET6 (ash 1 1024))))))
+
+;;;
+;;; inet-pton
+;;;
+
+(if (defined? 'inet-pton)
+    (with-test-prefix "inet-pton"
+
+      (with-test-prefix "ipv6"
+	(pass-if "00:00:00:00:00:00:00:00"
+	  (eqv? 0 (inet-pton AF_INET6 "00:00:00:00:00:00:00:00")))
+
+	(pass-if "0:0:0:0:0:0:0:1"
+	  (eqv? 1 (inet-pton AF_INET6 "0:0:0:0:0:0:0:1")))
+
+	(pass-if "::1"
+	  (eqv? 1 (inet-pton AF_INET6 "::1")))
+
+	(pass-if "FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF"
+	  (eqv? #xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+		(inet-pton AF_INET6
+			   "FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF")))
+
+	(pass-if "F000:0000:0000:0000:0000:0000:0000:0000"
+	  (eqv? #xF0000000000000000000000000000000
+		(inet-pton AF_INET6
+			   "F000:0000:0000:0000:0000:0000:0000:0000")))
+
+	(pass-if "0F00:0000:0000:0000:0000:0000:0000:0000"
+	  (eqv? #x0F000000000000000000000000000000
+		(inet-pton AF_INET6
+			   "0F00:0000:0000:0000:0000:0000:0000:0000")))
+
+	(pass-if "0000:0000:0000:0000:0000:0000:0000:00F0"
+	  (eqv? #xF0
+		(inet-pton AF_INET6
+			   "0000:0000:0000:0000:0000:0000:0000:00F0"))))))
