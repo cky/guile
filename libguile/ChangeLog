@@ -1,3 +1,7 @@
+2001-03-27  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* eval.c (SCM_APPLY): Check that arg1 is bound for scm_tc7_cxr.
+
 2001-03-27  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* strop.c (scm_string_to_list): Fixed docstring markup.
