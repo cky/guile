@@ -1,3 +1,47 @@
+1999-07-13  Gary Houston  <ghouston@easynet.co.uk>
+
+	* strports.c (scm_strprint_obj): simplify.  start with initial
+	buffer size of 0.
+	(st_seek): don't allow string to be extended if seeking past
+	the end of a read-only port.
+
+1999-07-12  Gary Houston  <ghouston@easynet.co.uk>
+
+	* strports.c (st_seek): change the resize checks.
+
+	* ports.c (scm_ftruncate): throw error if offset works out negative.
+
+	* strports.c (st_flush): increase string size in blocks of
+	SCM_WRITE_BLOCK instead of 1. set read_end to read_pos if
+	it's greater and reset read_buf_size.
+	(scm_mkstrport): set rw_randow if only writing, since read_buf needs
+	to be maintained for output ports too (it holds the written
+	part of the string, while write_buf may have unwritten buffer
+	chars.)
+	(st_truncate): rewritten.
+	(top of file): added a few notes. 
+
+1999-07-06  Gary Houston  <ghouston@easynet.co.uk>
+	
+	* strports.c (st_grow_port): set pt->read_pos.  set
+	pt->read_buf_size one less than pt->write_buf_size if there's
+	an unwritten char at the end of the string.  similarly for
+	pt->read_end.
+	(st_resize_port): renamed from st_grow_port.
+	(st_seek): simplify by assuming that pt->write_pos == pt->read_pos.
+	seek from read_end instead of write_end for SEEK_END.
+	(st_ftruncate): calculate current length using readbuf, not write
+	buf.
+	(scm_strport_to_string): use read_buf_size for length.
+	(stfill_buffer): don't re-initialise the readbuf.
+
+1999-07-05  Gary Houston  <ghouston@easynet.co.uk>
+
+	* strports.c (scm_strport_to_string): new procedure.
+	(scm_call_with_output_string, scm_strprint_obj): use
+	scm_strport_to_string.
+	used SCM_INUM0 instead of SCM_MAKINUM (0) in a few places.
+
 1999-07-08  Mikael Djurfeldt  <mdj@mdj-pc.nada.kth.se>
 
 	* symbols.c (scm_gensym): Bugfix.  (Thanks to Johannes Hjorth.)
@@ -421,7 +465,6 @@ Fri Jun 25 22:14:32 1999  Greg Badros  <gjb@cs.washington.edu>
 
 	* strports.c (scm_call_with_output_string): get size from
 	buffer instead of port stream.
-	(scm_strprint_obj): likewise.
 	(st_flush): new proc.
 
 	* ports.h (struct scm_port_table): added write_end member,

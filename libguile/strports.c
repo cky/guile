@@ -58,6 +58,13 @@
  *
  */
 
+/* NOTES:
+   write_buf/write_end point to the ends of the allocated string.
+   read_buf/read_end in principle point to the part of the string which
+   has been written to, but this is only updated after a flush.
+   read_pos and write_pos in principle should be equal, but this is only true
+   when rw_active is 0.
+*/
 
 static int 
 prinstpt (SCM exp, SCM port, scm_print_state *pstate)
@@ -69,37 +76,39 @@ prinstpt (SCM exp, SCM port, scm_print_state *pstate)
 static int
 stfill_buffer (SCM port)
 {
-  SCM str = SCM_STREAM (port);
   scm_port *pt = SCM_PTAB_ENTRY (port);
   
-  pt->read_buf = SCM_ROCHARS (str);
-  pt->read_buf_size = SCM_ROLENGTH (str);
-  pt->read_end = pt->read_buf + pt->read_buf_size;
-
   if (pt->read_pos >= pt->read_end)
     return EOF;
   else
     return scm_return_first (*(pt->read_pos++), port);
 }
 
+/* change the size of a port's string to new_size.  this doesn't
+   change read_buf_size.  */
 static void 
-st_grow_port (scm_port *pt, off_t add)
+st_resize_port (scm_port *pt, off_t new_size)
 {
-  off_t new_size = pt->write_buf_size + add;
+  off_t index = pt->write_pos - pt->write_buf;
 
-  scm_vector_set_length_x (pt->stream,
-			   SCM_MAKINUM (new_size));
-  pt->read_buf_size = pt->write_buf_size = new_size;
+  pt->write_buf_size = new_size;
+
+  scm_vector_set_length_x (pt->stream, SCM_MAKINUM (new_size));
+
   /* reset buffer in case reallocation moved the string. */
   {
-    off_t index = pt->write_pos - pt->write_buf;
-    
     pt->read_buf = pt->write_buf = SCM_CHARS (pt->stream);
-    pt->write_pos = pt->write_buf + index;
-    pt->read_end = pt->write_end = pt->write_buf + pt->write_buf_size;
+    pt->read_pos = pt->write_pos = pt->write_buf + index;
+    pt->write_end = pt->write_buf + pt->write_buf_size;
+    pt->read_end = pt->read_buf + pt->read_buf_size;
   }
 }
 
+/* amount by which write_buf is expanded.  */
+#define SCM_WRITE_BLOCK 80
+
+/* ensure that write_pos < write_end by enlarging the buffer when
+   necessary.  update read_buf to account for written chars.  */
 static void
 st_flush (SCM port)
 {
@@ -107,9 +116,14 @@ st_flush (SCM port)
 
   if (pt->write_pos == pt->write_end)
     {
-      st_grow_port (pt, 1);
+      st_resize_port (pt, pt->write_buf_size + SCM_WRITE_BLOCK);
     }
   pt->read_pos = pt->write_pos;
+  if (pt->read_pos > pt->read_end)
+    {
+      pt->read_end = (unsigned char *) pt->read_pos;
+      pt->read_buf_size = pt->read_end - pt->read_buf;
+    }
   pt->rw_active = 0;
 }
 
@@ -128,29 +142,44 @@ st_seek (SCM port, off_t offset, int whence)
   scm_port *pt = SCM_PTAB_ENTRY (port);
   off_t target;
 
+  /* we can assume at this point that pt->write_pos == pt->read_pos.  */
   switch (whence)
     {
     case SEEK_CUR:
-      if (SCM_CAR (port) & SCM_WRTNG)
-	target = pt->write_pos - pt->write_buf + offset;
-      else
-	target = pt->read_pos - pt->read_buf + offset;
+      target = pt->read_pos - pt->read_buf + offset;
       break;
     case SEEK_END:
-      target = pt->write_end - pt->write_buf + offset;
+      target = pt->read_end - pt->read_buf + offset;
       break;
     default: /* SEEK_SET */
       target = offset;
       break;
     }
   if (target < 0)
-    scm_misc_error ("st_seek", "negative offset",
-		    scm_cons (SCM_MAKINUM (target), EOF));
-  if (target > pt->read_buf_size)
+    scm_misc_error ("st_seek", "negative offset", SCM_EOL);
+  if (target >= pt->write_buf_size)
     {
-      st_grow_port (pt, target - pt->read_buf_size);
+      if (!(SCM_CAR (port) & SCM_WRTNG))
+	{
+	  if (target > pt->write_buf_size)
+	    {
+	      scm_misc_error ("st_seek", "seek past end of read-only strport",
+			      SCM_EOL);
+	    }
+	}
+      else
+	{
+	  st_resize_port (pt, target + (target == pt->write_buf_size
+					? SCM_WRITE_BLOCK
+					: 0));
+	}
     }
   pt->read_pos = pt->write_pos = pt->read_buf + target;
+  if (pt->read_pos > pt->read_end)
+    {
+      pt->read_end = (unsigned char *) pt->read_pos;
+      pt->read_buf_size = pt->read_end - pt->read_buf;
+    }
   return target;
 }
 
@@ -158,10 +187,17 @@ static void
 st_ftruncate (SCM port, off_t length)
 {
   scm_port *pt = SCM_PTAB_ENTRY (port);
-  off_t old_len = pt->write_end - pt->write_buf;
+
+  if (length > pt->write_buf_size)
+    st_resize_port (pt, length);
+
+  pt->read_buf_size = length;
+  pt->read_end = pt->read_buf + length;
+  if (pt->read_pos > pt->read_end)
+    pt->read_pos = pt->read_end;
   
-  if (length != old_len)
-    st_grow_port (pt, length - old_len);
+  if (pt->write_pos > pt->read_end)
+    pt->write_pos = pt->read_end;
 }
 
 SCM 
@@ -192,11 +228,28 @@ scm_mkstrport (pos, str, modes, caller)
   pt->read_pos = pt->write_pos = pt->read_buf + SCM_INUM (pos);
   pt->write_buf_size = pt->read_buf_size = str_len;
   pt->write_end = pt->read_end = pt->read_buf + pt->read_buf_size;
-  pt->rw_random = (modes & SCM_RDNG) && (modes & SCM_WRTNG);
+
+  /* doesn't check (modes & SCM_RDNG), since the read_buf must be
+     maintained even for output-only ports.  */
+  pt->rw_random = modes & SCM_WRTNG;
+
   SCM_ALLOW_INTS;
+
+  /* ensure write_pos is writable. */
   if ((modes & SCM_WRTNG) && pt->write_pos == pt->write_end)
     st_flush (z);
   return z;
+}
+
+/* create a new string from a string port's buffer.  */
+SCM scm_strport_to_string (SCM port)
+{
+  scm_port *pt = SCM_PTAB_ENTRY (port);
+
+  if (pt->rw_active == SCM_PORT_WRITE)
+    st_flush (port);
+  return scm_makfromstr (SCM_CHARS (SCM_STREAM (port)),
+			 pt->read_buf_size, 0);
 }
 
 SCM_PROC(s_call_with_output_string, "call-with-output-string", 1, 0, 0, scm_call_with_output_string);
@@ -212,22 +265,8 @@ scm_call_with_output_string (proc)
 		     SCM_OPN | SCM_WRTNG,
 		     s_call_with_output_string);
   scm_apply (proc, p, scm_listofnull);
-  {
-    SCM answer;
 
-    /* can't use pt->write_pos, in case port position was changed with
-       seek.
-       
-       The port buffer protocol promises that you can always store at
-       least one character at write_pos.  This means that the
-       underlying string always has one spare character at the end,
-       that the user didn't write.  Make sure we don't include that in
-       the result.  */
-    answer = scm_makfromstr (SCM_CHARS (SCM_STREAM (p)),
-			     SCM_LENGTH (SCM_STREAM (p)) - 1,
-			     0);
-    return answer;
-  }
+  return scm_strport_to_string (p);
 }
 
 
@@ -243,17 +282,11 @@ scm_strprint_obj (obj)
   SCM str;
   SCM port;
 
-  str = scm_makstr (64, 0);
-  port = scm_mkstrport (SCM_MAKINUM (0), str, SCM_OPN | SCM_WRTNG, "scm_strprint_obj");
+  str = scm_makstr (0, 0);
+  port = scm_mkstrport (SCM_INUM0, str, SCM_OPN | SCM_WRTNG, "scm_strprint_obj");
   scm_prin1 (obj, port, 1);
   {
-    scm_port *pt = SCM_PTAB_ENTRY (port);
-    SCM answer;
-
-    answer = scm_makfromstr (SCM_CHARS (SCM_STREAM (port)),
-			     pt->write_pos - pt->write_buf,
-			     0);
-    return answer;
+    return scm_strport_to_string (port);
   }
 }
 
@@ -279,7 +312,7 @@ SCM
 scm_read_0str (expr)
      char *expr;
 {
-  SCM port = scm_mkstrport (SCM_MAKINUM (0),
+  SCM port = scm_mkstrport (SCM_INUM0,
 			    scm_makfrom0str (expr),
 			    SCM_OPN | SCM_RDNG,
 			    "scm_eval_0str");
@@ -308,7 +341,7 @@ SCM
 scm_eval_string (string)
      SCM string;
 {
-  SCM port = scm_mkstrport (SCM_MAKINUM (0), string, SCM_OPN | SCM_RDNG,
+  SCM port = scm_mkstrport (SCM_INUM0, string, SCM_OPN | SCM_RDNG,
 			    "scm_eval_0str");
   SCM form;
   SCM ans = SCM_UNSPECIFIED;

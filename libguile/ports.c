@@ -1022,7 +1022,15 @@ scm_ftruncate (SCM port, SCM length)
   else if (pt->rw_active == SCM_PORT_WRITE)
     ptob->fflush (port);
 
-  ptob->ftruncate (port, scm_num2long (length, (char *)SCM_ARG2, s_ftruncate));
+  {
+    off_t c_length = scm_num2long (length, (char *)SCM_ARG2, s_ftruncate);
+
+    if (c_length < 0)
+      scm_misc_error (s_ftruncate, "negative offset", 
+		      scm_cons (length, SCM_EOL));
+		  
+    ptob->ftruncate (port, c_length);
+  }
   return SCM_UNSPECIFIED;
 }
 

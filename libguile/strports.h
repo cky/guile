@@ -51,6 +51,7 @@ extern scm_ptobfuns scm_stptob;
 
 
 extern SCM scm_mkstrport SCM_P ((SCM pos, SCM str, long modes, const char * caller));
+extern SCM scm_strport_to_string (SCM port);
 extern SCM scm_call_with_output_string SCM_P ((SCM proc));
 extern SCM scm_strprint_obj SCM_P ((SCM obj));
 extern SCM scm_call_with_input_string SCM_P ((SCM str, SCM proc));
