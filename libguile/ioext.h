@@ -49,6 +49,7 @@
 
 
 extern SCM scm_read_delimited_x SCM_P ((SCM delims, SCM buf, SCM gobble, SCM port, SCM offset, SCM length));
+extern SCM scm_read_line (SCM port);
 extern SCM scm_write_line SCM_P ((SCM obj, SCM port));
 extern SCM scm_ftell SCM_P ((SCM object));
 extern SCM scm_fseek SCM_P ((SCM object, SCM offset, SCM whence));
