@@ -1,3 +1,7 @@
+2001-06-27  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* tests/srfi-4.test: New file.
+
 2001-06-16  Marius Vollmer  <mvo@zagadka.ping.de>
 
         Thanks to Matthias Köppe!
