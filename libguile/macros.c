@@ -148,22 +148,23 @@ SCM_DEFINE (scm_macro_type, "macro-type", 1, 0, 0,
 
 SCM_DEFINE (scm_macro_name, "macro-name", 1, 0, 0, 
             (SCM m),
-	    "")
+	    "Return the name of the macro @var{m}.")
 #define FUNC_NAME s_scm_macro_name
 {
   SCM_VALIDATE_SMOB (1,m,macro);
-  return scm_procedure_name (SCM_CDR (m));
+  return scm_procedure_name (SCM_PACK (SCM_SMOB_DATA (m)));
 }
 #undef FUNC_NAME
 
 
 SCM_DEFINE (scm_macro_transformer, "macro-transformer", 1, 0, 0, 
             (SCM m),
-	    "")
+	    "Return the transformer of the macro @var{m}.")
 #define FUNC_NAME s_scm_macro_transformer
 {
   SCM_VALIDATE_SMOB (1,m,macro);
-  return SCM_CLOSUREP (SCM_CDR (m)) ? SCM_CDR (m) : SCM_BOOL_F;
+  return ((SCM_CLOSUREP (SCM_PACK (SCM_SMOB_DATA (m)))) ?
+	  SCM_PACK(SCM_SMOB_DATA (m)) : SCM_BOOL_F);
 }
 #undef FUNC_NAME
 
