@@ -162,7 +162,7 @@ Returns everything that's left."
 
 (define-public (delete-if-not! pred list)
   "Destructive version of `remove-if-not'."
-  (let delete-if ((list list))
+  (let delete-if-not ((list list))
     (cond ((null? list) '())
 	  ((not (pred (car list))) (delete-if-not (cdr list)))
 	  (else
