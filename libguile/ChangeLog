@@ -1,5 +1,14 @@
 1999-08-31  James Blandy  <jimb@mule.m17n.org>
 
+	* numbers.c (scm_init_numbers): Claim to support the `complex'
+	feature, as expected by (ice-9 format).  (Thanks to Ceri Storey.)
+
+	Allocators should use the `void *' type for generic pointers.
+	* gc.c (scm_must_malloc, scm_must_realloc, scm_must_free): Change
+	argument and return types.
+	* gc.h: Corresponding changes to prototypes.
+	(Thanks to Forcer.)
+
 	* Makefile.am (check-local): Set GUILE_LOAD_PATH so the tests can
 	find (ice-9 boot-9) when Guile was compiled in a separate
 	directory from the source.  (Thanks to Rodney Brown.)
