@@ -1,3 +1,8 @@
+1998-05-11  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* configure.in: Added test for rl_getc_function.  Warn if
+	libreadline is found but not this function.
+
 1998-05-06  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* configure.in: Replaced some AC_CHECK_FUNC --> AC_CHECK_FUNCS so
