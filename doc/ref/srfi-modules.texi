@@ -706,8 +706,20 @@ If one of @var{lst1} @dots{} @var{lstN} is empty then no calls to
 @var{pred} are made, and the return is @code{#t}.
 @end deffn
 
-@deffn {Scheme Procedure} list-index pred lst1 lst2 @dots{}
-Return the index of the leftmost element that satisfies @var{pred}.
+@deffn {Scheme Procedure} list-index pred lst1 @dots{} lstN
+Call @var{pred} on sets of elements from the @var{lst}s, one from each
+list, starting from the first, as @code{(@var{pred} elem1 @dots{}
+elemN)}.  Return the index of the first set for which @var{pred}
+returns true.
+
+The index starts from 0 for the first first set of elements.
+Searching stops when the end of the shortest @var{lst} is reached.  If
+no set of elements pass then the return is @code{#f}.
+
+@example
+(list-index odd? '(2 4 6 9))      @result{} 3
+(list-index = '(1 2 3) '(3 1 2))  @result{} #f
+@end example
 @end deffn
 
 @deffn {Scheme Procedure} member x lst [=]
