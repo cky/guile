@@ -1,3 +1,8 @@
+Sun Sep 28 21:35:42 1997  Radey Shouman  <shouman@zianet.com>
+
+	* ramap.c (scm_array_index_map_x): Fixed for zero-rank arguments,
+	was looping endlessly.
+
 Sun Sep 28 00:04:29 1997  Jim Blandy  <jimb@totoro.red-bean.com>
 
 	* strports.c (scm_eval_string): Don't close the port.
