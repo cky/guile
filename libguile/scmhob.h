@@ -53,7 +53,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #define in2ex			scm_inexact_to_exact
 #define inexactp		scm_inexact_p
 #define input_portp		scm_input_port_p
-#define intp			scm_int_p
+#define intp			scm_integer_p
 #define length			scm_length
 #define leqp			scm_leq_p
 #define lessp			scm_less_p

@@ -276,7 +276,7 @@ extern SCM scm_bigequal SCM_P ((SCM x, SCM y));
 extern SCM scm_floequal SCM_P ((SCM x, SCM y));
 extern SCM scm_number_p SCM_P ((SCM x));
 extern SCM scm_real_p SCM_P ((SCM x));
-extern SCM scm_int_p SCM_P ((SCM x));
+extern SCM scm_integer_p SCM_P ((SCM x));
 extern SCM scm_inexact_p SCM_P ((SCM x));
 extern SCM scm_num_eq_p SCM_P ((SCM x, SCM y));
 extern SCM scm_less_p SCM_P ((SCM x, SCM y));
