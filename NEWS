@@ -40,6 +40,9 @@ See INSTALL and README for more information.
 SRFI-0 `cond-expand' is now supported in Guile, without requiring
 using a module.
 
+(srfi srfi-1) is a library containing many useful pair- and list-processing
+  procedures.
+
 (srfi srfi-2) exports and-let*.
 
 (srfi srfi-6) is a dummy module for now, since guile already provides

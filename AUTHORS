@@ -138,6 +138,7 @@ In the subdirectory libguile, changes to:
     gh_data.c       strports.h   strports.c   validate.h
     and changed many docstrings throughout.
 In the subdirectory srfi, wrote:
+    srfi-1.scm
     srfi-9.scm
     srfi-10.scm
     srfi-13.scm
