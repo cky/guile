@@ -1,3 +1,9 @@
+2004-09-08  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* Makefile.am (CLEANFILES, MAINTAINERCLEANFILES): Moved
+	autoconf-macros.texi to MAINTAINERCLEANFILES.  It is in the
+	tarball and we shouldn't clean it, then.
+
 2004-09-07  Kevin Ryde  <user42@zip.com.au>
 
 	* api-procedures.texi (let-keywords Reference): Typo, should be

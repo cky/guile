@@ -1,3 +1,7 @@
+2004-09-08  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* Makefile.am (scripts_sources): Added snarf-guile-m4-docs.
+
 2004-08-06  Kevin Ryde  <user42@zip.com.au>
 
 	* scripts/read-rfc822 (parse-message): Correction to header

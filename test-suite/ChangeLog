@@ -1,3 +1,8 @@
+2004-09-08  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* tests/fractions.test: Don't expect (expt 1/2 2.0) to yield an
+	exact result, use (expt 1/2 2) instead.
+
 2004-09-08  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/ports.test (port-column): Further tests, of new \a \b \r.
