@@ -59,6 +59,7 @@
 #include "eq.h"
 #include "eval.h"
 #include "feature.h"
+#include "vectors.h"
 
 #include "validate.h"
 #include "ramap.h"

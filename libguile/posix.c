@@ -49,6 +49,7 @@
 #include "fports.h"
 #include "scmsigs.h"
 #include "feature.h"
+#include "vectors.h"
 
 #include "validate.h"
 #include "posix.h"

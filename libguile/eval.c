@@ -95,6 +95,7 @@ char *alloca ();
 #include "objects.h"
 #include "feature.h"
 #include "modules.h"
+#include "vectors.h"
 
 #include "validate.h"
 #include "eval.h"

@@ -71,7 +71,6 @@
 #include "symbols.h"		/* For length, chars, values, miscellany.  */
 #include "boolean.h"		/* Everyone wonders about the truth.  */
 #include "strings.h"		/* Everyone loves string.  */
-#include "vectors.h"		/* Vectors are used for structures a lot.  */
 #include "root.h"		/* Everyone uses these objects.  */
 #include "ports.h"		/* Everyone does I/O.  */
 #include "async.h"		/* Everyone allows/disallows ints.  */

@@ -85,6 +85,7 @@ char *alloca ();
 #include "ramap.h"
 #include "alist.h"
 #include "feature.h"
+#include "vectors.h"
 
 #include "validate.h"
 #include "sort.h"

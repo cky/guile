@@ -47,6 +47,7 @@
 #include <stdio.h>
 #include "_scm.h"
 #include "chars.h"
+#include "vectors.h"
 
 #include "validate.h"
 #include "hash.h"

@@ -59,6 +59,7 @@
 #include "smob.h"
 #include "strop.h"
 #include "feature.h"
+#include "vectors.h"
 
 #include "validate.h"
 #include "unif.h"

@@ -1,5 +1,15 @@
 2000-03-17  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* _scm.h:  Don't include vectors.h everywhere...
+
+	* eq.c eval.c filesys.c gc.c gsubr.c guardians.c hash.c hashtab.c
+	keywords.c net_db.c numbers.c objects.c posix.c print.c procprop.c
+	procs.c ramap.c random.c read.c scmsigs.c socket.c sort.c stime.c
+	strports.c symbols.c unif.c vports.c weaks.c:  ... only include it
+	here.
+
+2000-03-17  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* genio.h:  removed.  (Only content was '/* delete me */'.)
 
 	* Makefile.am arbiters.c backtrace.c debug.c dynl.c dynwind.c

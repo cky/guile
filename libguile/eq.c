@@ -50,6 +50,7 @@
 #include "strorder.h"
 #include "smob.h"
 #include "unif.h"
+#include "vectors.h"
 
 #include "validate.h"
 #include "eq.h"

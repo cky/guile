@@ -48,6 +48,7 @@
 #include "_scm.h"
 
 #include "objects.h"
+#include "vectors.h"
 
 #include "validate.h"
 #include "procs.h"

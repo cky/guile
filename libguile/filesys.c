@@ -49,6 +49,7 @@
 #include "feature.h"
 #include "fports.h"
 #include "iselect.h"
+#include "vectors.h"
 
 #include "validate.h"
 #include "filesys.h"

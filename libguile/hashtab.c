@@ -49,6 +49,7 @@
 #include "alist.h"
 #include "hash.h"
 #include "eval.h"
+#include "vectors.h"
 
 #include "validate.h"
 #include "hashtab.h"

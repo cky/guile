@@ -51,6 +51,7 @@
 #include "smob.h"
 #include "numbers.h"
 #include "feature.h"
+#include "vectors.h"
 
 #include "validate.h"
 #include "random.h"

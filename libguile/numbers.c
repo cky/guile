@@ -50,6 +50,7 @@
 #include "unif.h"
 #include "feature.h"
 #include "smob.h"
+#include "vectors.h"
 
 #include "validate.h"
 #include "numbers.h"

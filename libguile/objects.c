@@ -58,6 +58,7 @@
 #include "smob.h"
 #include "eval.h"
 #include "alist.h"
+#include "vectors.h"
 
 #include "validate.h"
 #include "objects.h"

@@ -58,6 +58,7 @@
 #include "struct.h"
 #include "objects.h"
 #include "strports.h"
+#include "vectors.h"
 
 #include "validate.h"
 #include "print.h"

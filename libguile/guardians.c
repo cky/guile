@@ -60,6 +60,7 @@
 #include "_scm.h"
 #include "print.h"
 #include "smob.h"
+#include "vectors.h"
 
 #include "validate.h"
 #include "guardians.h"

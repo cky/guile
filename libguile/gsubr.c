@@ -47,6 +47,7 @@
 #include <stdio.h>
 #include "_scm.h"
 #include "procprop.h"
+#include "vectors.h"
 
 #include "gsubr.h"
 

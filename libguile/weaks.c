@@ -45,6 +45,7 @@
 
 #include <stdio.h>
 #include "_scm.h"
+#include "vectors.h"
 
 #include "validate.h"
 #include "weaks.h"

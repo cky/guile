@@ -50,6 +50,7 @@
 
 #include "async.h"
 #include "eval.h"
+#include "vectors.h"
 
 #include "validate.h"
 #include "scmsigs.h"

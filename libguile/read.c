@@ -54,6 +54,7 @@
 #include "srcprop.h"
 #include "hashtab.h"
 #include "hash.h"
+#include "vectors.h"
 
 #include "validate.h"
 #include "read.h"

@@ -52,6 +52,7 @@
 #include "procs.h"
 #include "gsubr.h"
 #include "objects.h"
+#include "vectors.h"
 
 #include "validate.h"
 #include "procprop.h"

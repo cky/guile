@@ -50,6 +50,7 @@
 #include "eval.h"
 #include "variable.h"
 #include "alist.h"
+#include "vectors.h"
 #include "weaks.h"
 
 #include "validate.h"
