@@ -2435,7 +2435,7 @@ tail:
       scm_putc ('a', port);
       break;
     case scm_tc7_byvect:
-      scm_puts ("bytes", port);
+      scm_putc ('y', port);
       break;
     case scm_tc7_uvect:
       scm_putc ('u', port);
@@ -2444,7 +2444,7 @@ tail:
       scm_putc ('e', port);
       break;
     case scm_tc7_svect:
-      scm_puts ("short", port);
+      scm_putc ('h', port);
       break;
 #ifdef LONGLONGS
     case scm_tc7_llvect:

@@ -1,3 +1,17 @@
+1998-10-18  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+
+	* unif.c (scm_raprin1): Changed print syntax for byte vectors from
+	#bytes(...) to #y(...), and syntax for short vectors from
+	#short(...) to #h(...).  This may seem nutty, but, like the other
+	uniform vectors, byte vectors and short vectors want to have the
+	same print and read syntax (and, more basic, want to have read
+	syntax!).  Changing the read syntax to use multiple characters
+	after the hash sign breaks with the conventions used in R5RS and
+	the conventions used for the other uniform vectors.  It also
+	introduces complexity in the current reader, both on the C and
+	Scheme levels.  (The Right solution is probably to change the
+	syntax and prototypes for uniform vectors entirely.)
+
 1998-10-17  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	Don't use local_fgets on sockets; ftell doesn't work on sockets.
