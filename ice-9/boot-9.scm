@@ -2488,28 +2488,31 @@
     (error "bad syntax" (list 'define-public args)))
   (define (defined-name n)
     (cond
-     ((symbol? n)	n)
-     ((pair? n)		(defined-name (car n)))
-     (else 		(syntax))))
+     ((symbol? n) n)
+     ((pair? n) (defined-name (car n)))
+     (else (syntax))))
   (cond
-   ((null? args)	(syntax))
+   ((null? args) (syntax))
 
-   (#t 			(let ((name (defined-name (car args))))
-			  `(begin
-			     (let ((public-i (module-public-interface (current-module))))
-			       ;; Make sure there is a local variable:
-			       ;;
-			       (module-define! (current-module)
-					       ',name
-					       (module-ref (current-module) ',name #f))
+   (#t (let ((name (defined-name (car args))))
+	 `(begin
+	    (let ((public-i (module-public-interface (current-module))))
+	      ;; Make sure there is a local variable:
+	      ;;
+	      (module-define! (current-module)
+			      ',name
+			      (module-ref (current-module) ',name #f))
 			       
-			       ;; Make sure that local is exported:
-			       ;;
-			       (module-add! public-i ',name (module-variable (current-module) ',name)))
+	      ;; Make sure that local is exported:
+	      ;;
+	      (module-add! public-i ',name
+			   (module-variable (current-module) ',name)))
 			       
-			     ;; Now (re)define the var normally.
-			     ;;
-			     (define-private ,@ args))))))
+	    ;; Now (re)define the var normally.  Bernard URBAN
+	    ;; suggests we use eval here to accomodate Hobbit; it lets
+	    ;; the interpreter handle the define-private form, which
+	    ;; Hobbit can't digest.
+	    (eval '(define-private ,@ args)))))))
 
 
 
