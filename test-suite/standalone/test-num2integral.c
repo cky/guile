@@ -71,7 +71,7 @@ test_long_long ()
     SCM n = scm_difference (scm_long_long2num (LLONG_MIN), SCM_MAKINUM(1));
     SCM caught = scm_internal_catch (SCM_BOOL_T, call_num2long_long_body, &n,
                                      out_of_range_handler, NULL);
-    assert (! SCM_FALSEP (caught));
+    assert (scm_is_true (caught));
   }
 
   /* LLONG_MIN + LLONG_MIN/2 */
@@ -80,7 +80,7 @@ test_long_long ()
                      scm_long_long2num (LLONG_MIN / 2));
     SCM caught = scm_internal_catch (SCM_BOOL_T, call_num2long_long_body, &n,
                                      out_of_range_handler, NULL);
-    assert (! SCM_FALSEP (caught));
+    assert (scm_is_true (caught));
   }
 
   /* LLONG_MAX + 1 */
@@ -88,7 +88,7 @@ test_long_long ()
     SCM n = scm_sum (scm_long_long2num (LLONG_MAX), SCM_MAKINUM(1));
     SCM caught = scm_internal_catch (SCM_BOOL_T, call_num2long_long_body, &n,
                                      out_of_range_handler, NULL);
-    assert (! SCM_FALSEP (caught));
+    assert (scm_is_true (caught));
   }
 
   /* 2^1024 */
@@ -96,7 +96,7 @@ test_long_long ()
     SCM n = scm_ash (SCM_MAKINUM (1), SCM_MAKINUM (1024));
     SCM caught = scm_internal_catch (SCM_BOOL_T, call_num2long_long_body, &n,
                                      out_of_range_handler, NULL);
-    assert (! SCM_FALSEP (caught));
+    assert (scm_is_true (caught));
   }
 
   /* -2^1024 */
@@ -105,7 +105,7 @@ test_long_long ()
                             scm_ash (SCM_MAKINUM (1), SCM_MAKINUM (1024)));
     SCM caught = scm_internal_catch (SCM_BOOL_T, call_num2long_long_body, &n,
                                      out_of_range_handler, NULL);
-    assert (! SCM_FALSEP (caught));
+    assert (scm_is_true (caught));
   }
 
 #endif /* SCM_SIZEOF_LONG_LONG != 0 */
@@ -127,7 +127,7 @@ test_ulong_long ()
     SCM n = SCM_MAKINUM (-1);
     SCM caught = scm_internal_catch (SCM_BOOL_T, call_num2ulong_long_body, &n,
                                      out_of_range_handler, NULL);
-    assert (! SCM_FALSEP (caught));
+    assert (scm_is_true (caught));
   }
 
   /* ULLONG_MAX + 1 */
@@ -135,7 +135,7 @@ test_ulong_long ()
     SCM n = scm_sum (scm_ulong_long2num (ULLONG_MAX), SCM_MAKINUM(1));
     SCM caught = scm_internal_catch (SCM_BOOL_T, call_num2ulong_long_body, &n,
                                      out_of_range_handler, NULL);
-    assert (! SCM_FALSEP (caught));
+    assert (scm_is_true (caught));
   }
 
   /* 2^1024 */
@@ -143,7 +143,7 @@ test_ulong_long ()
     SCM n = scm_ash (SCM_MAKINUM (1), SCM_MAKINUM (1024));
     SCM caught = scm_internal_catch (SCM_BOOL_T, call_num2long_long_body, &n,
                                      out_of_range_handler, NULL);
-    assert (! SCM_FALSEP (caught));
+    assert (scm_is_true (caught));
   }
 
 #endif /* SCM_SIZEOF_LONG_LONG != 0 */

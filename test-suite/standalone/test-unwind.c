@@ -131,12 +131,12 @@ check_cont (int rewindable)
      the continuation, or a catch-tag, such as 'misc-error.
    */
 
-  if (SCM_NFALSEP (scm_procedure_p (res)))
+  if (scm_is_true (scm_procedure_p (res)))
     {
       /* a continuation, invoke it */
       scm_call_1 (res, SCM_BOOL_F);
     }
-  else if (SCM_FALSEP (res))
+  else if (scm_is_false (res))
     {
       /* the result of invoking the continuation, frame must be
 	 rewindable */
@@ -198,7 +198,7 @@ check_ports ()
 
     scm_frame_current_input_port (port);
     res = scm_read (SCM_UNDEFINED);
-    if (SCM_FALSEP (scm_equal_p (res, scm_version ())))
+    if (scm_is_false (scm_equal_p (res, scm_version ())))
       {
 	printf ("ports didn't work\n");
 	exit (1);
