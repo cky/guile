@@ -55,7 +55,7 @@
 #include <libguile/scmconfig.h>
 #endif
 #ifdef DYNAMIC_LINKING
-#include <libltdl/ltdl.h>
+#include <guile-ltdl.h>
 #endif
 
 #ifdef HAVE_WINSOCK2_H
@@ -89,7 +89,7 @@ int
 main (int argc, char **argv)
 {
 #if defined (DYNAMIC_LINKING) && !defined (__MINGW32__)
-  LTDL_SET_PRELOADED_SYMBOLS ();
+  scm_lt_dlset_preloaded_symbols ();
 #endif
   scm_boot_guile (argc, argv, inner_main, 0);
   return 0; /* never reached */
