@@ -39,7 +39,7 @@ SRFI support in Guile is currently implemented partly in the core
 library, and partly as add-on modules.  That means that some SRFIs are
 automatically available when the interpreter is started, whereas the
 other SRFIs require you to use the appropriate support module
-explicitly.  
+explicitly.
 
 There are several reasons for this inconsistency.  First, the feature
 checking syntactic form @code{cond-expand} (@pxref{SRFI-0}) must be
@@ -128,7 +128,7 @@ this form.
 Currently, the feature identifiers @code{guile}, @code{r5rs} and
 @code{srfi-0} are supported.  The other SRFIs are not in that list by
 default, because the SRFI modules must be explicitly used before their
-exported bindings can be used.  
+exported bindings can be used.
 
 So if a Scheme program wishes to use SRFI-8, it has two possibilities:
 First, it can check whether the running Scheme implementation is Guile,
@@ -507,16 +507,16 @@ be applied to tge list elements in left-to-right order.
 
 @deffn procedure append-map f lst1 lst2 @dots{}
 @deffnx procedure append-map! f lst1 lst2 @dots{}
-Equivalent to 
+Equivalent to
 
 @lisp
-(apply append (map f clist1 clist2 ...)) 
+(apply append (map f clist1 clist2 ...))
 @end lisp
 
-and 
+and
 
 @lisp
-(apply append! (map f clist1 clist2 ...)) 
+(apply append! (map f clist1 clist2 ...))
 @end lisp
 
 Map @var{f} over the elements of the lists, just as in the @code{map}
@@ -848,7 +848,7 @@ returns the value of @var{x}.
 (and-let* ((x 1) (y #f)) 42)
 @result{}
 #f
-(and-let* ((x 1) (y #t)) x) 
+(and-let* ((x 1) (y #t)) x)
 @result{}
 1
 @end lisp
@@ -1026,7 +1026,7 @@ Usage example:
 
 @example
 guile> (use-modules (srfi srfi-9))
-guile> (define-record-type :foo (make-foo x) foo? 
+guile> (define-record-type :foo (make-foo x) foo?
                            (x get-x) (y get-y set-y!))
 guile> (define f (make-foo 1))
 guile> f
@@ -1189,7 +1189,7 @@ guile> (string-concatenate '("Hello" " " "World!"))
 @end example
 
 @node SRFI-13 Predicates
-@subsection Predicates 
+@subsection Predicates
 
 In addition to the primitives @code{string?} and @code{string-null?},
 which are already in the Guile core, the string predicates
@@ -1471,7 +1471,7 @@ returning the index of the first (last) occurence of a character which
 equals @var{char_pred}, if it is character,
 
 @item
-satisifies the predicate @var{char_pred}, if it is a 
+satisifies the predicate @var{char_pred}, if it is a
 procedure,
 
 @item
@@ -1649,7 +1649,7 @@ values from the initial @var{seed}: @var{seed}, (@var{g}
 @dots{}
 @item @var{p} tells us when to stop - when it returns true
 when applied to one of these seed values.
-@item @var{f} maps each seed value to the corresponding 
+@item @var{f} maps each seed value to the corresponding
 character in the result string.  These chars are assembled into the
 string in a left-to-right (right-to-left) order.
 @item @var{base} is the optional initial/leftmost (rightmost)
@@ -1888,11 +1888,11 @@ initializing it with @var{knil}.
 @deffnx primitive char-set-unfold! p f g seed base_cs
 This is a fundamental constructor for character sets.
 @itemize @bullet
-@item @var{g} is used to generate a series of ``seed'' values 
+@item @var{g} is used to generate a series of ``seed'' values
 from the initial seed: @var{seed}, (@var{g} @var{seed}),
 (@var{g}^2 @var{seed}), (@var{g}^3 @var{seed}), @dots{}
 @item @var{p} tells us when to stop -- when it returns true
-when applied to one of the seed values. 
+when applied to one of the seed values.
 @item @var{f} maps each seed value to a character. These
 characters are added to the base character set @var{base_cs} to
 form the result; @var{base_cs} defaults to the empty set.
@@ -2239,3 +2239,160 @@ procedure is to create a new object (a @dfn{procedure with setter}) via
 the @code{getter-with-setter} procedure. This procedure is also
 specified in the SRFI.  Using it avoids the described problems.
 
+
+@node SRFI-19
+@section SRFI-19 - Time/Date Library
+
+This is an implementation of SRFI-19: Time/Date Library
+
+It depends on SRFIs: 6 (@pxref{SRFI-6}), 8 (@pxref{SRFI-8}),
+9 (@pxref{SRFI-9}).
+
+This section documents constants and procedure signatures.
+
+@menu
+* SRFI-19 Constants::
+* SRFI-19 Current time and clock resolution::
+* SRFI-19 Time object and accessors::
+* SRFI-19 Time comparison procedures::
+* SRFI-19 Time arithmetic procedures::
+* SRFI-19 Date object and accessors::
+* SRFI-19 Time/Date/Julian Day/Modified Julian Day converters::
+* SRFI-19 Date to string/string to date converters::
+@end menu
+
+@node SRFI-19 Constants
+@subsection SRFI-19 Constants
+
+All these are bound to their symbol names:
+
+@example
+           time-duration
+           time-monotonic
+           time-process
+           time-tai
+           time-thread
+           time-utc
+@end example
+
+@node SRFI-19 Current time and clock resolution
+@subsection SRFI-19 Current time and clock resolution
+
+@example
+           (current-date . tz-offset)
+           (current-julian-day)
+           (current-modified-julian-day)
+           (current-time . clock-type)
+           (time-resolution . clock-type)
+@end example
+
+@node SRFI-19 Time object and accessors
+@subsection SRFI-19 Time object and accessors
+
+@example
+           (make-time type nanosecond second)
+           (time? obj)
+           (time-type time)
+           (time-nanosecond time)
+           (time-second time)
+           (set-time-type! time type)
+           (set-time-nanosecond! time nsec)
+           (set-time-second! time sec)
+           (copy-time time)
+@end example
+
+@node SRFI-19 Time comparison procedures
+@subsection SRFI-19 Time comparison procedures
+
+Args are all @code{time} values.
+
+@example
+           (time<=? t1 t2)
+           (time<? t1 t2)
+           (time=? t1 t2)
+           (time>=? t1 t2)
+           (time>? t1 t2)
+@end example
+
+@node SRFI-19 Time arithmetic procedures
+@subsection SRFI-19 Time arithmetic procedures
+
+The @code{foo!} variants modify in place.  Time difference
+is expressed in @code{time-duration} values.
+
+@example
+           (time-difference t1 t2)
+           (time-difference! t1 t2)
+           (add-duration time duration)
+           (add-duration! time duration)
+           (subtract-duration time duration)
+           (subtract-duration! time duration)
+ @end example
+
+@node SRFI-19 Date object and accessors
+@subsection SRFI-19 Date object and accessors
+
+@example
+           (make-date nsecs seconds minutes hours
+                      date month year offset)
+           (date? obj)
+           (date-nanosecond date)
+           (date-second date)
+           (date-minute date)
+           (date-hour date)
+           (date-day date)
+           (date-month date)
+           (date-year date)
+           (date-zone-offset date)
+           (date-year-day date)
+           (date-week-day date)
+           (date-week-number date day-of-week-starting-week)
+@end example
+
+@node SRFI-19 Time/Date/Julian Day/Modified Julian Day converters
+@subsection SRFI-19 Time/Date/Julian Day/Modified Julian Day converters
+
+@example
+           (date->julian-day date)
+           (date->modified-julian-day date)
+           (date->time-monotonic date)
+           (date->time-tai date)
+           (date->time-utc date)
+           (julian-day->date jdn . tz-offset)
+           (julian-day->time-monotonic jdn)
+           (julian-day->time-tai jdn)
+           (julian-day->time-utc jdn)
+           (modified-julian-day->date jdn . tz-offset)
+           (modified-julian-day->time-monotonic jdn)
+           (modified-julian-day->time-tai jdn)
+           (modified-julian-day->time-utc jdn)
+           (time-monotonic->date time . tz-offset)
+           (time-monotonic->time-tai time-in)
+           (time-monotonic->time-tai! time-in)
+           (time-monotonic->time-utc time-in)
+           (time-monotonic->time-utc! time-in)
+           (time-tai->date time . tz-offset)
+           (time-tai->julian-day time)
+           (time-tai->modified-julian-day time)
+           (time-tai->time-monotonic time-in)
+           (time-tai->time-monotonic! time-in)
+           (time-tai->time-utc time-in)
+           (time-tai->time-utc! time-in)
+           (time-utc->date time . tz-offset)
+           (time-utc->julian-day time)
+           (time-utc->modified-julian-day time)
+           (time-utc->time-monotonic time-in)
+           (time-utc->time-monotonic! time-in)
+           (time-utc->time-tai time-in)
+           (time-utc->time-tai! time-in)
+@end example
+
+@node SRFI-19 Date to string/string to date converters
+@subsection SRFI-19 Date to string/string to date converters
+
+@example
+           (date->string date . format-string)
+           (string->date input-string template-string)
+@end example
+
+@c srfi-modules.texi ends here
