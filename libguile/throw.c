@@ -389,7 +389,7 @@ scm_ithrow (key, args, noreturn)
     }
   else
     {
-      SCM dynpair;
+      SCM dynpair = SCM_UNDEFINED;
       SCM winds;
 
       if (noreturn)

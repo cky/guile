@@ -696,8 +696,8 @@ scm_lreadrecparen (tok_buf, port, name, case_i, sharp, copy)
 {
   register int c;
   register SCM tmp;
-  register SCM tl, tl2;
-  SCM ans, ans2;
+  register SCM tl, tl2 = SCM_EOL;
+  SCM ans, ans2 = SCM_EOL;
   /* Need to capture line and column numbers here. */
   int line = SCM_LINUM (port);
   int column = SCM_COL (port) - 1;

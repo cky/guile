@@ -411,7 +411,7 @@ taloop:
 	      char * str;
 	      int weird;
 	      int maybe_weird;
-	      int mw_pos;
+	      int mw_pos = 0;
 
 	      len = SCM_LENGTH (exp);
 	      str = SCM_CHARS (exp);

@@ -383,8 +383,8 @@ scm_print_mb_symbol (exp, port)
   char * str;
   int weird;
   int maybe_weird;
-  int mw_pos;
-  int inc;
+  int mw_pos = 0;		/* initialized to placate compiler */
+  int inc = 0;			/* same */
   xwchar_t c;
 
   len = SCM_LENGTH (exp);
