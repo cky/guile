@@ -46,7 +46,7 @@ by the Free Software Foundation.
 @sp 10
 @comment The title is printed in a large font.
 @title Data Representation in Guile
-@subtitle $Id: data-rep.texi,v 1.3 1998-10-15 22:06:34 jimb Exp $
+@subtitle $Id: data-rep.texi,v 1.4 1999-04-17 15:16:18 jimb Exp $
 @subtitle For use with Guile @value{VERSION}
 @author Jim Blandy
 @author Free Software Foundation
@@ -112,7 +112,8 @@ Scheme is a latently-typed language; this means that the system cannot,
 in general, determine the type of a given expression at compile time.
 Types only become apparent at run time.  Variables do not have fixed
 types; a variable may hold a pair at one point, an integer at the next,
-and a thousand-element vector later.  Instead, values have fixed types.
+and a thousand-element vector later.  Instead, values, not variables,
+have fixed types.
 
 In order to implement standard Scheme functions like @code{pair?} and
 @code{string?} and provide garbage collection, the representation of
