@@ -187,7 +187,7 @@ typedef struct scm_ptob_descriptor
   SCM (*equalp) (SCM, SCM);
   int (*close) (SCM port);
 
-  void (*write) (SCM port, void *data, size_t size);
+  void (*write) (SCM port, const void *data, size_t size);
   void (*flush) (SCM port);
 
   void (*end_input) (SCM port, int offset);
@@ -215,7 +215,7 @@ extern int scm_port_table_room;
 extern SCM scm_markstream (SCM ptr);
 extern long scm_make_port_type (char *name,
 				int (*fill_input) (SCM port),
-				void (*write) (SCM port, void *data,
+				void (*write) (SCM port, const void *data,
 					       size_t size));
 extern void scm_set_port_mark (long tc, SCM (*mark) (SCM));
 extern void scm_set_port_free (long tc, scm_sizet (*free) (SCM));

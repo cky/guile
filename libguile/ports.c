@@ -100,12 +100,12 @@ scm_markstream (SCM ptr)
 
 static void flush_void_port (SCM port);
 static void end_input_void_port (SCM port, int offset);
-static void write_void_port (SCM port, void *data, size_t size);
+static void write_void_port (SCM port, const void *data, size_t size);
 
 long 
 scm_make_port_type (char *name,
 		    int (*fill_input) (SCM port),
-		    void (*write) (SCM port, void *data, size_t size))
+		    void (*write) (SCM port, const void *data, size_t size))
 {
   char *tmp;
   if (255 <= scm_numptob)
@@ -1278,7 +1278,7 @@ end_input_void_port (SCM port, int offset)
 }
 
 static void
-write_void_port (SCM port, void *data, size_t size)
+write_void_port (SCM port, const void *data, size_t size)
 {
 }
 

@@ -130,7 +130,7 @@ st_flush (SCM port)
 }
 
 static void
-st_write (SCM port, void *data, size_t size)
+st_write (SCM port, const void *data, size_t size)
 {
   scm_port *pt = SCM_PTAB_ENTRY (port);
   const char *input = (char *) data;

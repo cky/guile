@@ -88,7 +88,7 @@ sf_flush (SCM port)
 }
 
 static void
-sf_write (SCM port, void *data, size_t size)
+sf_write (SCM port, const void *data, size_t size)
 {
   SCM p = SCM_STREAM (port);
 

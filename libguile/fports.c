@@ -590,7 +590,7 @@ fport_truncate (SCM port, off_t length)
 }
 
 static void
-fport_write (SCM port, void *data, size_t size)
+fport_write (SCM port, const void *data, size_t size)
 {
   scm_port *pt = SCM_PTAB_ENTRY (port);
 
