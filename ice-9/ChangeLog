@@ -1,3 +1,8 @@
+2001-05-14  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* boot-9.scm (cond-expand): Reduce feature list to built-in
+	features.
+
 2001-05-14  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* boot-9.scm (-1+, return-it, string-character-length, flags):

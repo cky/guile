@@ -2715,15 +2715,16 @@
 ;;;
 ;;; Currently, the following feature identifiers are supported:
 ;;;
-;;;   guile r5rs srfi-0 srfi-2 srfi-6 srfi-8 srfi-9 srfi-10 srfi-11 srfi-13
-;;;   srfi-14 srfi-17 srfi-19
+;;;   guile r5rs srfi-0 srfi-6
 ;;;
 ;;; Remember to update the features list when adding more SRFIs.
 
 (define-macro (cond-expand clause . clauses)
+
   (define features
-    '(guile r5rs srfi-0 srfi-2 srfi-6 srfi-8 srfi-9 srfi-10 srfi-11 srfi-13
-	    srfi-14 srfi-17 srfi-19))
+    ;; Adjust the above comment when changing this.
+    '(guile r5rs srfi-0 srfi-6))
+
   (let ((clauses (cons clause clauses))
 	(syntax-error (lambda (cl)
 			(error "invalid clause in `cond-expand'" cl))))
