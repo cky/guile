@@ -275,6 +275,9 @@
 /* Define if you have the rename function.  */
 #undef HAVE_RENAME
 
+/* Define if you have the rl_cleanup_after_signal function.  */
+#undef HAVE_RL_CLEANUP_AFTER_SIGNAL
+
 /* Define if you have the rl_clear_signals function.  */
 #undef HAVE_RL_CLEAR_SIGNALS
 
