@@ -513,37 +513,6 @@ scm_delete_file (str)
   return SCM_UNSPECIFIED;
 }
 
-SCM_PROC (s_truncate_file, "truncate-file", 2, 0, 0, scm_truncate_file);
-SCM
-scm_truncate_file (SCM object, SCM size)
-{
-  int rv;
-  scm_sizet csize;
-  int fdes;
-
-  object = SCM_COERCE_OUTPORT (object);
-
-  csize = (scm_sizet) scm_num2long (size, (char *) SCM_ARG2, s_truncate_file);
-  if (SCM_INUMP (object) || (SCM_NIMP (object) && SCM_OPFPORTP (object)))
-    {
-      if (SCM_INUMP (object))
-	fdes = SCM_INUM (object);
-      else
-	fdes = SCM_FPORT_FDES (object);
-      SCM_SYSCALL (rv = ftruncate (fdes, csize));
-    }
-  else
-    {
-      SCM_ASSERT (SCM_NIMP (object) && SCM_ROSTRINGP (object),
-		  object, SCM_ARG1, s_chown);
-      SCM_COERCE_SUBSTR (object);
-      SCM_SYSCALL (rv = truncate (SCM_ROCHARS (object), csize));
-    }
-  if (rv == -1)
-    scm_syserror (s_truncate_file);
-  return SCM_UNSPECIFIED;
-}
-
 SCM_PROC (s_mkdir, "mkdir", 1, 1, 0, scm_mkdir);
 
 SCM 

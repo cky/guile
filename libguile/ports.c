@@ -978,40 +978,57 @@ scm_lseek (SCM object, SCM offset, SCM whence)
   return scm_long2num (rv);
 }
 
-SCM_PROC (s_ftruncate, "ftruncate", 1, 1, 0, scm_ftruncate);
+SCM_PROC (s_truncate_file, "truncate-file", 1, 1, 0, scm_truncate_file);
 
 SCM
-scm_ftruncate (SCM port, SCM length)
+scm_truncate_file (SCM object, SCM length)
 {
-  scm_port *pt;
-  scm_ptobfuns *ptob;
+  int rv;
+  off_t c_length;
 
-  port = SCM_COERCE_OUTPORT (port);
-  SCM_ASSERT (SCM_NIMP (port) && SCM_OPOUTPORTP (port), port, SCM_ARG1,
-	      s_ftruncate);
-  pt = SCM_PTAB_ENTRY (port);
-  ptob = scm_ptobs + SCM_PTOBNUM (port);
-  if (!ptob->ftruncate)
-    scm_misc_error (s_ftruncate, "port is not truncatable",
-		    scm_cons (port, SCM_EOL));
+  /* object can be a port, fdes or filename.  */
+
   if (SCM_UNBNDP (length))
     {
-      length = scm_lseek (port, SCM_INUM0, SCM_MAKINUM (SEEK_CUR));
+      /* must supply length if object is a filename.  */
+      if (SCM_NIMP (object) && SCM_ROSTRINGP (object))
+	scm_wrong_num_args (scm_makfrom0str (s_truncate_file));
+      
+      length = scm_lseek (object, SCM_INUM0, SCM_MAKINUM (SEEK_CUR));
     }
-  if (pt->rw_active == SCM_PORT_READ)
-    scm_read_flush (port);
-  else if (pt->rw_active == SCM_PORT_WRITE)
-    ptob->fflush (port);
+  c_length = scm_num2long (length, (char *)SCM_ARG2, s_truncate_file);
+  if (c_length < 0)
+    scm_misc_error (s_truncate_file, "negative offset", SCM_EOL);
 
-  {
-    off_t c_length = scm_num2long (length, (char *)SCM_ARG2, s_ftruncate);
-
-    if (c_length < 0)
-      scm_misc_error (s_ftruncate, "negative offset", 
-		      scm_cons (length, SCM_EOL));
-		  
-    ptob->ftruncate (port, c_length);
-  }
+  object = SCM_COERCE_OUTPORT (object);
+  if (SCM_INUMP (object))
+    {
+      SCM_SYSCALL (rv = ftruncate (SCM_INUM (object), c_length));
+    }
+  else if (SCM_NIMP (object) && SCM_OPOUTPORTP (object))
+    {
+      scm_port *pt = SCM_PTAB_ENTRY (object);
+      scm_ptobfuns *ptob = scm_ptobs + SCM_PTOBNUM (object);
+      
+      if (!ptob->ftruncate)
+	scm_misc_error (s_truncate_file, "port is not truncatable", SCM_EOL);
+      if (pt->rw_active == SCM_PORT_READ)
+	scm_read_flush (object);
+      else if (pt->rw_active == SCM_PORT_WRITE)
+	ptob->fflush (object);
+      
+      ptob->ftruncate (object, c_length);
+      rv = 0;
+    }
+  else
+    {
+      SCM_ASSERT (SCM_NIMP (object) && SCM_ROSTRINGP (object),
+		  object, SCM_ARG1, s_truncate_file);
+      SCM_COERCE_SUBSTR (object);
+      SCM_SYSCALL (rv = truncate (SCM_ROCHARS (object), c_length));
+    }
+  if (rv == -1)
+    scm_syserror (s_truncate_file);
   return SCM_UNSPECIFIED;
 }
 

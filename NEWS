@@ -989,9 +989,9 @@ work on any kind of port, not just ports which are open on a file.
 
 ** now 'l' in a port mode requests line buffering.
 
-** new procedure: ftruncate PORT [LENGTH]
-Truncates PORT after LENGTH bytes, or at the current position if
-LENGTH is omitted.  Works on random-access file and string ports.
+** The procedure truncate-file now works on string ports as well
+as file ports.  If the size argument is omitted, the current
+file position is now used.
 
 ** new procedure: lseek PORT/FDES OFFSET WHENCE
 The arguments are the same as for the old fseek procedure, but it

@@ -64,7 +64,6 @@ extern SCM scm_stat SCM_P ((SCM object));
 extern SCM scm_link SCM_P ((SCM oldpath, SCM newpath));
 extern SCM scm_rename SCM_P ((SCM oldname, SCM newname));
 extern SCM scm_delete_file SCM_P ((SCM str));
-extern SCM scm_truncate_file (SCM object, SCM size);
 extern SCM scm_mkdir SCM_P ((SCM path, SCM mode));
 extern SCM scm_rmdir SCM_P ((SCM path));
 extern SCM scm_opendir SCM_P ((SCM dirname));

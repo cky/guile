@@ -237,7 +237,7 @@ extern SCM scm_unread_char SCM_P ((SCM cobj, SCM port));
 extern SCM scm_unread_string SCM_P ((SCM str, SCM port));
 extern char *scm_generic_fgets SCM_P ((SCM port, int *len));
 extern SCM scm_lseek (SCM object, SCM offset, SCM whence);
-extern SCM scm_ftruncate (SCM port, SCM length);
+extern SCM scm_truncate_file (SCM object, SCM length);
 extern SCM scm_port_line SCM_P ((SCM port));
 extern SCM scm_set_port_line_x SCM_P ((SCM port, SCM line));
 extern SCM scm_port_column SCM_P ((SCM port));

@@ -1,3 +1,13 @@
+1999-07-24  Gary Houston  <ghouston@easynet.co.uk>
+
+	* gdbint.c (gdb_print, gdb_read): call scm_truncate_file.
+
+	* ports.c (scm_truncate_file): renamed from scm_ftruncate.
+	allow the 1st argument to be a fdes or filename as well as a
+	port (as in the filesys.c version).
+
+	* filesys.c (scm_truncate_file): removed.
+
 1999-07-24  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* readline.c, readline.h: Removed.
