@@ -1,3 +1,7 @@
+2001-08-25  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* Makefile.am (AUTOMAKE_OPTIONS): Change "foreign" to "gnu".
+
 2001-08-24  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
 	* srfi-13.h (scm_string_map, scm_string_map_x,

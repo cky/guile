@@ -1,3 +1,12 @@
+2001-08-25  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* Makefile.am (AUTOMAKE_OPTIONS): Change "foreign" to "gnu".
+
+	* eval.c (scm_m_atbind): Redesigned to behvae like `let', but with
+	dynamic scope.
+	* dynwind.h (scm_swap_bindings): Declare.
+	* dynwind.c (scm_swap_bindings): Make non-static.
+
 2001-08-25  Michael Livshin  <mlivshin@bigfoot.com>
 
 	* gc.c (scm_gc_sweep): now can sweep unreachable variables (by

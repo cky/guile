@@ -1,3 +1,7 @@
+2001-08-25  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* tests/dynamic-scope.test: New file.
+
 2001-08-24  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
 	* tests/srfi-13.test (string-for-each, string-for-each-index):
