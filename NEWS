@@ -214,6 +214,10 @@ the C variables that control garbage collection.  The environment
 variables GUILE_MAX_SEGMENT_SIZE, GUILE_INIT_SEGMENT_SIZE_2,
 GUILE_INIT_SEGMENT_SIZE_1, and GUILE_MIN_YIELD_2 should be used.
 
+** The function scm_definedp has been renamed to scm_defined_p
+
+The name scm_definedp is deprecated.
+
 ** The struct scm_cell has been renamed to scm_t_cell
 
 This is in accordance to Guile's naming scheme for types.  Note that

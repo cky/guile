@@ -51,9 +51,15 @@
 
 
 SCM_API SCM scm_m_generalized_set_x (SCM xorig, SCM env);
-SCM_API SCM scm_definedp (SCM sym, SCM env);
+SCM_API SCM scm_defined_p (SCM sym, SCM env);
 SCM_API SCM scm_m_undefine (SCM x, SCM env);
 SCM_API void scm_init_evalext (void);
+
+#if (SCM_ENABLE_DEPRECATED == 1)
+
+#define scm_definedp scm_defined_p
+
+#endif
 
 #endif  /* SCM_EVALEXT_H */
 

@@ -1,4 +1,4 @@
-/* Copyright (C) 1998,1999,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1998,1999,2000,2001,2002 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -67,13 +67,13 @@ scm_m_generalized_set_x (SCM xorig, SCM env SCM_UNUSED)
     scm_misc_error (scm_s_set_x, scm_s_variable, SCM_EOL);
 }
 
-SCM_DEFINE (scm_definedp, "defined?", 1, 1, 0,
+SCM_DEFINE (scm_defined_p, "defined?", 1, 1, 0,
             (SCM sym, SCM env),
 	    "Return @code{#t} if @var{sym} is defined in the lexical "
 	    "environment @var{env}.  When @var{env} is not specified, "
 	    "look in the top-level environment as defined by the "
 	    "current module.")
-#define FUNC_NAME s_scm_definedp
+#define FUNC_NAME s_scm_defined_p
 {
   SCM var;
 

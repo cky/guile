@@ -1,5 +1,10 @@
 2002-10-19  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* evalext.h, evalext.c (scm_definedp, scm_defined_p):  Renamed
+	scm_definedp to scm_defined_p and deprecated scm_definedp.
+
+2002-10-19  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* async.h, async.c (scm_system_async):  Fixed deprecation to work
 	correctly when deprecated features are excluded.
 
