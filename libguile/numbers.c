@@ -708,6 +708,8 @@ scm_gcd (SCM x, SCM y)
         {
           unsigned long result;
           long yy = SCM_INUM (y);
+          if (yy == 0)
+            return scm_abs (x);
           if (yy < 0) yy = -yy;
           result = mpz_gcd_ui (NULL, SCM_I_BIG_MPZ (x), yy);
           scm_remember_upto_here_1 (x);
