@@ -126,7 +126,8 @@ SCM_DEFINE (scm_char_set_eq, "char-set=", 0, 0, 1,
       SCM csi = SCM_CAR (char_sets);
       long *csi_data;
 
-      SCM_VALIDATE_SMOB (argnum++, csi, charset);
+      SCM_VALIDATE_SMOB (argnum, csi, charset);
+      argnum++;
       csi_data = (long *) SCM_SMOB_DATA (csi);
       if (cs1_data == NULL)
 	cs1_data = csi_data;
@@ -155,7 +156,8 @@ SCM_DEFINE (scm_char_set_leq, "char-set<=", 0, 0, 1,
       SCM csi = SCM_CAR (char_sets);
       long *csi_data;
 
-      SCM_VALIDATE_SMOB (argnum++, csi, charset);
+      SCM_VALIDATE_SMOB (argnum, csi, charset);
+      argnum++;
       csi_data = (long *) SCM_SMOB_DATA (csi);
       if (prev_data)
 	{
@@ -200,7 +202,7 @@ SCM_DEFINE (scm_char_set_hash, "char-set-hash", 1, 1, 0,
     }
 
   p = (long *) SCM_SMOB_DATA (cs);
-  for (k = 0; k < SCM_CHARSET_SIZE - 1; k++)
+  for (k = 0; k < SCM_CHARSET_SIZE / sizeof (long); k++)
     {
       val = p[k] ^ val;
     }
@@ -458,21 +460,20 @@ SCM_DEFINE (scm_char_set, "char-set", 0, 0, 1,
 	    "Return a character set containing all given characters.")
 #define FUNC_NAME s_scm_char_set
 {
-  SCM cs, ls;
+  SCM cs;
   long * p;
+  int argnum = 1;
 
   SCM_VALIDATE_REST_ARGUMENT (rest);
-  ls = rest;
   cs = make_char_set (FUNC_NAME);
   p = (long *) SCM_SMOB_DATA (cs);
-  while (!SCM_NULLP (ls))
+  while (!SCM_NULLP (rest))
     {
-      SCM chr = SCM_CAR (ls);
       int c;
 
-      SCM_VALIDATE_CHAR_COPY (1, chr, c);
-      ls = SCM_CDR (ls);
-
+      SCM_VALIDATE_CHAR_COPY (argnum, SCM_CAR (rest), c);
+      argnum++;
+      rest = SCM_CDR (rest);
       p[c / sizeof (long)] |= 1 << (c % sizeof (long));
     }
   return cs;

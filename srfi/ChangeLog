@@ -3,6 +3,12 @@
 	* srfi-14.c (scm_char_set_hash): recognise 0 instead of #f in the
 	opt arg to give default bound, as in final spec.  don't allow
 	negative bounds.
+	(scm_char_set_hash): bug fix: was overrunning the buffer and
+	calculating based on garbage.
+	(scm_char_set_eq, scm_char_set_leq): fix argument number in error
+	reporting: wasn't incremented due to macro coding.
+	(scm_char_set): report argument number in error reporting: was
+	hard coded to 1.  remove a couple of local variables.
 
 2001-07-13  Marius Vollmer  <mvo@zagadka.ping.de>
 
