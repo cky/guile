@@ -119,10 +119,21 @@ available.
 @end example
 @end deffn
 
-The Guile core provides features @code{guile}, @code{r5rs},
-@code{srfi-0} and @code{srfi-6} initially.  Other SRFI feature symbols
-are defined once their code has been loaded with @code{use-modules},
-since only then are their bindings available.
+@noindent
+The Guile core has the following features,
+
+@example
+guile
+r5rs
+srfi-0
+srfi-4
+srfi-6
+srfi-13
+srfi-14
+@end example
+
+Other SRFI feature symbols are defined once their code has been loaded
+with @code{use-modules}, since only then are their bindings available.
 
 The @samp{--use-srfi} command line option (@pxref{Invoking Guile}) is
 a good way to load SRFIs to satisfy @code{cond-expand} when running a
