@@ -191,6 +191,7 @@ scm_c_export (const char *name, ...)
       *tail = scm_cons (scm_str2symbol (n), SCM_EOL);
       tail = SCM_CDRLOC (*tail);
     }
+  va_end (ap);
   scm_call_2 (SCM_VARIABLE_REF (module_export_x_var),
 	      scm_current_module (), names);
 }
