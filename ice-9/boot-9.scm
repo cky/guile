@@ -1844,8 +1844,6 @@
 (define autoloads-in-progress '())
 
 (define (try-module-autoload module-name)
-
-  (define (sfx name) (string-append name (scheme-file-suffix)))
   (let* ((reverse-name (reverse module-name))
 	 (name (car reverse-name))
 	 (dir-hint-module-name (reverse (cdr reverse-name)))
