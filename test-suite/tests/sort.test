@@ -18,6 +18,10 @@
 
 (use-modules (test-suite lib))
 
+(define (randomize-vector! v n)
+  (array-index-map! v (lambda (i) (random n)))
+  v)
+
 (with-test-prefix "sort"
 
   (pass-if-exception "less function taking less than two arguments"
@@ -26,4 +30,36 @@
 
   (pass-if-exception "less function taking more than two arguments"
     exception:wrong-type-arg
-    (sort '(1 2) (lambda (x y z) z))))
+    (sort '(1 2) (lambda (x y z) z)))
+
+  (pass-if "sort!"
+    (let ((v (randomize-vector! (make-vector 1000) 1000)))
+      (sorted? (sort! v <) <)))
+
+  (pass-if "sort! of non-contigous vector"
+    (let* ((a (make-array 0 1000 3))
+	   (v (make-shared-array a (lambda (i) (list i 0)) 1000)))
+      (randomize-vector! v 1000)
+      (sorted? (sort! v <) <)))
+
+  (pass-if "sort! of negative-increment vector"
+    (let* ((a (make-array 0 1000 3))
+	   (v (make-shared-array a (lambda (i) (list (- 999 i) 0)) 1000)))
+      (randomize-vector! v 1000)
+      (sorted? (sort! v <) <)))
+
+  (pass-if "stable-sort!"
+    (let ((v (randomize-vector! (make-vector 1000) 1000)))
+      (sorted? (stable-sort! v <) <)))
+
+  (pass-if "stable-sort! of non-contigous vector"
+    (let* ((a (make-array 0 1000 3))
+	   (v (make-shared-array a (lambda (i) (list i 0)) 1000)))
+      (randomize-vector! v 1000)
+      (sorted? (stable-sort! v <) <)))
+
+  (pass-if "stable-sort! of negative-increment vector"
+    (let* ((a (make-array 0 1000 3))
+	   (v (make-shared-array a (lambda (i) (list (- 999 i) 0)) 1000)))
+      (randomize-vector! v 1000)
+      (sorted? (stable-sort! v <) <))))
