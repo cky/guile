@@ -369,6 +369,10 @@ typedef int GC_bool;
 #   endif
 #   define mach_type_known
 # endif
+# if defined(__s390__) && defined(LINUX)
+#    define S370
+#    define mach_type_known
+# endif
 # if defined(__GNU__)
 #    define I386
 #    define GNU
