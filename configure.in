@@ -129,6 +129,33 @@ if test "$scm_cv_long_longs" = yes; then
   AC_DEFINE(HAVE_LONG_LONGS)
 fi
 
+dnl check for an optimisation problem which is present in some versions
+dnl of gcc, including 2.95.2.
+AC_MSG_CHECKING(for broken GCSE optimisation)
+AC_CACHE_VAL(guile_cv_broken_gcse,
+   AC_TRY_RUN([
+	int main ()
+	{
+	  long winds = 0;
+
+	  while (winds != 0)
+	    {
+	      if (*(char *) 0)
+	        break;
+	    }
+
+	  if (winds == 0 || *(char *) 0)
+	    exit (0);
+
+	  return 0;
+	}],
+        guile_cv_broken_gcse=no, guile_cv_broken_gcse=yes,
+        guile_cv_broken_gcse=yes))
+AC_MSG_RESULT($guile_cv_broken_gcse)
+if test $guile_cv_broken_gcse = yes; then
+   AC_DEFINE(BROKEN_GCSE)
+fi
+
 AC_HEADER_STDC
 AC_HEADER_DIRENT
 AC_HEADER_TIME
