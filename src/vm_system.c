@@ -464,6 +464,7 @@ SCM_DEFINE_INSTRUCTION (call, "%call", INST_INUM)
 */
 SCM_DEFINE_INSTRUCTION (tail_call, "%tail-call", INST_INUM)
 {
+  SCM_TICK;			/* allow interrupt here */
   nargs = SCM_INUM (FETCH ());	/* the number of arguments */
 
   /*
@@ -488,17 +489,19 @@ SCM_DEFINE_INSTRUCTION (tail_call, "%tail-call", INST_INUM)
 	      POP (obj);
 	      SCM_VM_FRAME_VARIABLE (fp, nvars++) = obj;
 	    }
+
 	  VM_FRAME_INIT_EXTERNAL_VARIABLES (fp, ac);
 	}
       else
-	/* Dynamic return call */
+	/* Proper tail call */
 	{
-	  /* Create a new frame */
-	  SCM *p = fp;
+	  /* FIXME: Must remove the last frame.
+	     FIXME: We need to move arguments before that. */
+	  SCM *last_fp = fp;
 	  VM_NEW_FRAME (fp, ac,
-			SCM_VM_FRAME_DYNAMIC_LINK (p),
-			SCM_VM_FRAME_STACK_POINTER (p),
-			SCM_VM_FRAME_RETURN_ADDRESS (p));
+			SCM_VM_FRAME_DYNAMIC_LINK (last_fp),
+			SCM_VM_FRAME_STACK_POINTER (last_fp),
+			SCM_VM_FRAME_RETURN_ADDRESS (last_fp));
 	  VM_CALL_HOOK ();
 	}
 
