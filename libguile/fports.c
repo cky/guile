@@ -363,6 +363,18 @@ local_ffwrite (ptr, size, nitems, fp)
   return ffwrite (ptr, size, nitems, fp);
 }
 
+/* On SunOS, there's no declaration for pclose in the headers, so
+   putting it directly in the initializer for scm_pipob doesn't really
+   fly.  We could add an extern declaration for it, but then it'll
+   mismatch on some systems that do have a declaration.  So we just
+   wrap it up this way.  */
+static int
+local_pclose (fp)
+     FILE * fp;
+{
+  return pclose (fp);
+}
+
 
 scm_ptobfuns scm_fptob =
 {
@@ -378,12 +390,11 @@ scm_ptobfuns scm_fptob =
   (int (*) SCM_P ((SCM))) local_fclose
 };
 
-/* {Pipe ports}
- */
+/* {Pipe ports} */
 scm_ptobfuns scm_pipob =
 {
   scm_mark0,
-  (int (*) SCM_P ((SCM))) pclose,  
+  (int (*) SCM_P ((SCM))) local_pclose,  
   scm_prinport,
   0,
   (int (*) SCM_P ((int, SCM))) local_fputc,
@@ -391,7 +402,7 @@ scm_ptobfuns scm_pipob =
   (scm_sizet (*) SCM_P ((char *, scm_sizet, scm_sizet, SCM))) local_ffwrite,
   (int (*) SCM_P ((SCM))) local_fflush,
   (int (*) SCM_P ((SCM))) scm_fgetc,
-  (int (*) SCM_P ((SCM))) pclose
+  (int (*) SCM_P ((SCM))) local_pclose
 };
 
 void
