@@ -7,18 +7,30 @@
 @set MANUAL_EDITION 1.1
 @c %**end of header
 
-@c Notes: (distilled from Jim's and Tim's notes, and kept up to date)
+@c Notes
 @c
-@c Remember to use "primitive" whereever appropriate.
-@c FIXME: gotta change existing "subr" uses to "Primitive".
-@c [JimB:] In my text for the Guile snarfer, I've used the term "subr"
-@c to denote a C function made available to the Scheme world as a
-@c function.  This terminology is weird, but consistent with the
-@c function names and also with Emacs Lisp, which I assume takes
-@c Maclisp's lead.
+@c We no longer use the category "primitive" to distinguish C-defined
+@c Scheme procedures from those defined in Scheme.  Instead, the
+@c reference manual now includes a C declaration as well as a Scheme
+@c declaration for each procedure that is available in both Scheme and
+@c C.
 @c
-@c When adding a new function to the Guile manual, please document
-@c it with @deffn as one of `primitive', `procedure', or `syntax'.
+@c When adding a new reference entry to the Guile manual, please
+@c document it with @deffn using one of the following categories:
+@c
+@c   {Scheme Procedure}
+@c   {Scheme Syntax}
+@c   {C Function}
+@c   {C Macro}
+@c
+@c If the entry is for a new primitive, it should have both a @deffn
+@c {Scheme Procedure} line and a @deffnx {C Function} line; see the
+@c manual source for plenty of existing examples of this.
+@c
+@c For {C Function} entries where the return type and all parameter
+@c types are SCM, we omit the SCMs.  This is easier to read and also
+@c gets round the problem that Texinfo doesn't allow a @deftypefnx
+@c inside a @deffn.
 @c
 @c For a list of Guile primitives that are not yet incorporated into the
 @c reference manual, see the file `new-docstrings.texi', which holds all
@@ -26,8 +38,9 @@
 @c that are not in the reference manual.  If you have worked with some
 @c of these concepts, implemented them, or just happen to know what they
 @c do, please write up a little explanation -- it would be a big help.
-@c Alternatively, if you know of a great reason why some of these should
-@c *not* go in the manual, please let me know. 
+@c Alternatively, if you know of any reason why some of these should
+@c *not* go in the manual, please let the mailing list
+@c <guile-devel@gnu.org> know.
 
 @c Define indices that are used in the Guile Scheme part of the
 @c reference manual to group stuff according to whether it is R5RS or a
@@ -81,7 +94,7 @@ by the Free Software Foundation.
 @sp 10
 @comment The title is printed in a large font.
 @title Guile Reference Manual
-@subtitle $Id: guile.texi,v 1.6 2001-11-11 15:01:51 ossau Exp $
+@subtitle $Id: guile.texi,v 1.7 2001-12-01 15:53:04 ossau Exp $
 @subtitle For use with Guile @value{VERSION}
 
 @c AUTHORS
@@ -237,6 +250,7 @@ Part IV: Guile Modules
 * Value History::               Maintaining a value history in the REPL.
 * Pretty Printing::             Nicely formatting Scheme objects for output.
 * Formatted Output::            The @code{format} procedure.
+* Rx Regexps::                  The Rx regular expression library.
 * Expect::			Controlling interactive programs with Guile.
 * The Scheme shell (scsh)::     Using scsh interfaces in Guile.
 

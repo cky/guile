@@ -55,6 +55,7 @@ Guile's object types as the builtin procedures.  This is particularly
 important for smobs, for which a write procedure can be defined and be
 used by @code{write}, but not by @code{pretty-print}.
 
+
 @page
 @node Formatted Output
 @chapter Formatted Output
@@ -284,6 +285,140 @@ is that the full-featured module is fairly large and requires some
 time to get loaded.  So the Guile maintainers decided not to load the
 large version of @code{format} by default, so that the start-up time
 of the interpreter is not unnecessarily increased.
+
+
+@page
+@node Rx Regexps
+@chapter The Rx Regular Expression Library
+
+[FIXME: this is taken from Gary and Mark's quick summaries and should be
+reviewed and expanded.  Rx is pretty stable, so could already be done!]
+
+@cindex rx
+@cindex finite automaton
+
+The @file{guile-lang-allover} package provides an interface to Tom
+Lord's Rx library (currently only to POSIX regular expressions).  Use of
+the library requires a two step process: compile a regular expression
+into an efficient structure, then use the structure in any number of
+string comparisons.
+
+For example, given the regular expression @samp{abc.} (which matches any
+string containing @samp{abc} followed by any single character):
+
+@smalllisp
+guile> @kbd{(define r (regcomp "abc."))}
+guile> @kbd{r}
+#<rgx abc.>
+guile> @kbd{(regexec r "abc")}
+#f
+guile> @kbd{(regexec r "abcd")}
+#((0 . 4))
+guile>
+@end smalllisp
+
+The definitions of @code{regcomp} and @code{regexec} are as follows:
+
+@deffn {Scheme Procedure} regcomp pattern [flags]
+Compile the regular expression pattern using POSIX rules.  Flags is
+optional and should be specified using symbolic names:
+@defvar REG_EXTENDED
+use extended POSIX syntax
+@end defvar
+@defvar REG_ICASE
+use case-insensitive matching
+@end defvar
+@defvar REG_NEWLINE
+allow anchors to match after newline characters in the
+string and prevents @code{.} or @code{[^...]} from matching newlines.
+@end defvar
+
+The @code{logior} procedure can be used to combine multiple flags.
+The default is to use
+POSIX basic syntax, which makes @code{+} and @code{?}  literals and @code{\+}
+and @code{\?}
+operators.  Backslashes in @var{pattern} must be escaped if specified in a
+literal string e.g., @code{"\\(a\\)\\?"}.
+@end deffn
+
+@deffn {Scheme Procedure} regexec regex string [match-pick] [flags]
+Match @var{string} against the compiled POSIX regular expression
+@var{regex}.
+@var{match-pick} and @var{flags} are optional.  Possible flags (which can be
+combined using the logior procedure) are:
+
+@defvar REG_NOTBOL
+The beginning of line operator won't match the beginning of
+@var{string} (presumably because it's not the beginning of a line)
+@end defvar
+
+@defvar REG_NOTEOL
+Similar to REG_NOTBOL, but prevents the end of line operator
+from matching the end of @var{string}.
+@end defvar
+
+If no match is possible, regexec returns #f.  Otherwise @var{match-pick}
+determines the return value:
+
+@code{#t} or unspecified: a newly-allocated vector is returned,
+containing pairs with the indices of the matched part of @var{string} and any
+substrings.
+
+@code{""}: a list is returned: the first element contains a nested list
+with the matched part of @var{string} surrounded by the the unmatched parts.
+Remaining elements are matched substrings (if any).  All returned
+substrings share memory with @var{string}.
+
+@code{#f}: regexec returns #t if a match is made, otherwise #f.
+
+vector: the supplied vector is returned, with the first element replaced
+by a pair containing the indices of the matched portion of @var{string} and
+further elements replaced by pairs containing the indices of matched
+substrings (if any).
+
+list: a list will be returned, with each member of the list
+specified by a code in the corresponding position of the supplied list:
+
+a number: the numbered matching substring (0 for the entire match).
+
+@code{#\<}: the beginning of @var{string} to the beginning of the part matched
+by regex.
+
+@code{#\>}: the end of the matched part of @var{string} to the end of
+@var{string}.
+
+@code{#\c}: the "final tag", which seems to be associated with the "cut
+operator", which doesn't seem to be available through the posix
+interface.
+
+e.g., @code{(list #\< 0 1 #\>)}.  The returned substrings share memory with
+@var{string}.
+@end deffn
+
+Here are some other procedures that might be used when using regular
+expressions:
+
+@deffn {Scheme Procedure} compiled-regexp? obj
+Test whether obj is a compiled regular expression.
+@end deffn
+
+@deffn {Scheme Procedure} regexp->dfa regex [flags]
+@end deffn
+
+@deffn {Scheme Procedure} dfa-fork dfa
+@end deffn
+
+@deffn {Scheme Procedure} reset-dfa! dfa
+@end deffn
+
+@deffn {Scheme Procedure} dfa-final-tag dfa
+@end deffn
+
+@deffn {Scheme Procedure} dfa-continuable? dfa
+@end deffn
+
+@deffn {Scheme Procedure} advance-dfa! dfa string
+@end deffn
 
 
 @c Local Variables:

@@ -47,7 +47,7 @@ sections of this manual that cover them.
 * Characters::                  New character names.
 * Strings::                     Special things about strings.
 * Regular Expressions::         Pattern matching and substitution.
-* Symbols and Variables::       Manipulating the Scheme symbol table.
+* Symbols::                     Symbols.
 * Keywords::                    Self-quoting, customizable display keywords.
 * Pairs::                       Scheme's basic building block.
 * Lists::                       Special list functions supported by Guile.
@@ -1427,7 +1427,6 @@ called with string containing unusal characters.
 * String Searching::            Searching in strings.
 * Alphabetic Case Mapping::     Convert the alphabetic case of strings.
 * Appending Strings::           Appending strings to form a new string.
-* String Miscellanea::          Miscellaneous string procedures.
 @end menu
 
 @node String Syntax
@@ -1823,19 +1822,6 @@ concatenation of the given strings, @var{args}.
 @end deffn
 
 
-@node String Miscellanea
-@subsection String Miscellanea
-
-This section contains all remaining string procedures.
-
-@deffn {Scheme Procedure} string-ci->symbol str
-@deffnx {C Function} scm_string_ci_to_symbol (str)
-Return the symbol whose name is @var{str}.  @var{str} is
-converted to lowercase before the conversion is done, if Guile
-is currently reading symbols case-insensitively.
-@end deffn
-
-
 @node Regular Expressions
 @section Regular Expressions
 @tpindex Regular expressions
@@ -1861,7 +1847,6 @@ installation includes regular expression support by checking whether the
 * Regexp Functions::            Functions that create and match regexps.
 * Match Structures::            Finding what was matched by a regexp.
 * Backslash Escapes::           Removing the special meaning of regexp metacharacters.
-* Rx Interface::                Tom Lord's Rx library does things differently.
 @end menu
 
 [FIXME: it may be useful to include an Examples section.  Parts of this
@@ -2173,212 +2158,103 @@ support strings with different quoting conventions (an ungainly and
 confusing extension when implemented in other languages), we must adhere
 to this cumbersome escape syntax.
 
-@node Rx Interface
-@subsection Rx Interface
-
-@c FIXME::martin:  Shouldn't this be removed or moved to the 
-@c ``Guile Modules'' chapter?  The functions are not available in
-@c plain Guile...
-
-[FIXME: this is taken from Gary and Mark's quick summaries and should be
-reviewed and expanded.  Rx is pretty stable, so could already be done!]
-
-@cindex rx
-@cindex finite automaton
-
-Guile includes an interface to Tom Lord's Rx library (currently only to
-POSIX regular expressions).  Use of the library requires a two step
-process: compile a regular expression into an efficient structure, then
-use the structure in any number of string comparisons.
-
-For example, given the
-regular expression @samp{abc.} (which matches any string containing
-@samp{abc} followed by any single character):
-
-@smalllisp
-guile> @kbd{(define r (regcomp "abc."))}
-guile> @kbd{r}
-#<rgx abc.>
-guile> @kbd{(regexec r "abc")}
-#f
-guile> @kbd{(regexec r "abcd")}
-#((0 . 4))
-guile>
-@end smalllisp
-
-The definitions of @code{regcomp} and @code{regexec} are as follows:
-
-@c NJFIXME not in libguile!
-@deffn {Scheme Procedure} regcomp pattern [flags]
-Compile the regular expression pattern using POSIX rules.  Flags is
-optional and should be specified using symbolic names:
-@defvar REG_EXTENDED
-use extended POSIX syntax
-@end defvar
-@defvar REG_ICASE
-use case-insensitive matching
-@end defvar
-@defvar REG_NEWLINE
-allow anchors to match after newline characters in the
-string and prevents @code{.} or @code{[^...]} from matching newlines.
-@end defvar
-
-The @code{logior} procedure can be used to combine multiple flags.
-The default is to use
-POSIX basic syntax, which makes @code{+} and @code{?}  literals and @code{\+}
-and @code{\?}
-operators.  Backslashes in @var{pattern} must be escaped if specified in a
-literal string e.g., @code{"\\(a\\)\\?"}.
-@end deffn
-
-@c NJFIXME not in libguile!
-@deffn {Scheme Procedure} regexec regex string [match-pick] [flags]
-
-Match @var{string} against the compiled POSIX regular expression
-@var{regex}.
-@var{match-pick} and @var{flags} are optional.  Possible flags (which can be
-combined using the logior procedure) are:
-
-@defvar REG_NOTBOL
-The beginning of line operator won't match the beginning of
-@var{string} (presumably because it's not the beginning of a line)
-@end defvar
-
-@defvar REG_NOTEOL
-Similar to REG_NOTBOL, but prevents the end of line operator
-from matching the end of @var{string}.
-@end defvar
-
-If no match is possible, regexec returns #f.  Otherwise @var{match-pick}
-determines the return value:
-
-@code{#t} or unspecified: a newly-allocated vector is returned,
-containing pairs with the indices of the matched part of @var{string} and any
-substrings.
-
-@code{""}: a list is returned: the first element contains a nested list
-with the matched part of @var{string} surrounded by the the unmatched parts.
-Remaining elements are matched substrings (if any).  All returned
-substrings share memory with @var{string}.
-
-@code{#f}: regexec returns #t if a match is made, otherwise #f.
-
-vector: the supplied vector is returned, with the first element replaced
-by a pair containing the indices of the matched portion of @var{string} and
-further elements replaced by pairs containing the indices of matched
-substrings (if any).
-
-list: a list will be returned, with each member of the list
-specified by a code in the corresponding position of the supplied list:
-
-a number: the numbered matching substring (0 for the entire match).
-
-@code{#\<}: the beginning of @var{string} to the beginning of the part matched
-by regex.
-
-@code{#\>}: the end of the matched part of @var{string} to the end of
-@var{string}.
-
-@code{#\c}: the "final tag", which seems to be associated with the "cut
-operator", which doesn't seem to be available through the posix
-interface.
-
-e.g., @code{(list #\< 0 1 #\>)}.  The returned substrings share memory with
-@var{string}.
-@end deffn
-
-Here are some other procedures that might be used when using regular
-expressions:
-
-@c NJFIXME not in libguile!
-@deffn {Scheme Procedure} compiled-regexp? obj
-Test whether obj is a compiled regular expression.
-@end deffn
-
-@c NJFIXME not in libguile!
-@deffn {Scheme Procedure} regexp->dfa regex [flags]
-@end deffn
-
-@c NJFIXME not in libguile!
-@deffn {Scheme Procedure} dfa-fork dfa
-@end deffn
-
-@c NJFIXME not in libguile!
-@deffn {Scheme Procedure} reset-dfa! dfa
-@end deffn
-
-@c NJFIXME not in libguile!
-@deffn {Scheme Procedure} dfa-final-tag dfa
-@end deffn
-
-@c NJFIXME not in libguile!
-@deffn {Scheme Procedure} dfa-continuable? dfa
-@end deffn
-
-@c NJFIXME not in libguile!
-@deffn {Scheme Procedure} advance-dfa! dfa string
-@end deffn
-
-
-@node Symbols and Variables
-@section Symbols and Variables
-
-@c FIXME::martin: Review me!
-
-Symbols are a data type with a special property.  On the one hand,
-symbols are used for denoting variables in a Scheme program, on the
-other they can be used as literal data as well.
-
-The association between symbols and values is maintained in special data
-structures, the symbol tables.
-
-In addition, Guile offers variables as first-class objects.  They can
-be used for interacting with the module system.
-
-@menu
-* Symbols::                     All about symbols as a data type.
-* Symbol Tables::               Tables for mapping symbols to values.
-* Variables::                   First-class variables.
-@end menu
 
 @node Symbols
-@subsection Symbols
+@section Symbols
 @tpindex Symbols
 
-@c FIXME::martin: Review me!
+Symbols have two main uses.  Crucially, they are used for denoting
+variables in a Scheme program.  In addition, they are very useful for
+describing discrete literal data.
 
-Symbols are especially useful because two symbols which are spelled the
-same way are equivalent in the sense of @code{eq?}.  That means that
-they are actually the same Scheme object.  The advantage is that symbols
-can be compared extremely efficiently, although they carry more
-information for the human reader than, say, numbers.
+A symbol is an object with a name that consists of a string of
+characters.  In the usual case (where the name doesn't include any
+characters that could be confused with other elements of Scheme syntax)
+a symbol can be written in a Scheme program by writing the sequence of
+characters that make up the symbol's name.  For example, the read syntax
+for the symbol named "multiply-by-2" is simply
 
-It is very common in Scheme programs to use symbols as keys in
-association lists (@pxref{Association Lists}) or hash tables
-(@pxref{Hash Tables}), because this usage improves the readability a
-lot, and does not cause any performance loss.
+@lisp
+multiply-by-2
+@end lisp
+
+Symbols, then, look rather like strings but without any quotation marks.
+But there are several functional differences between them.  The first
+big functional difference between symbols and strings concerns
+uniqueness.  If the same-looking string is read twice from two different
+places in a program, the result is two @emph{distinguishable} string
+objects whose contents just happen to be the same.  If, on the other
+hand, the same-looking symbol is read twice from two different places in
+a program, the result is the @emph{same} symbol object both times.
+
+@lisp
+(define str1 "hello")
+(define str2 "hello")
+(eq? str1 str2) @result{} #f
+
+(define sym1 (quote hello))
+(define sym2 (quote hello))
+(eq? sym1 sym2) @result{} #t
+@end lisp
+
+The second important difference is that symbols, unlike strings, are not
+self-evaluating.  An unquoted symbol is interpreted as a variable
+reference, and the result of evaluating that symbol is the corresponding
+variable's value.  (By the way, this is why we needed the @code{(quote
+@dots{})}s in the example above: @code{(quote hello)} returns the symbol
+object named "hello" itself, whereas an unquoted @code{hello} would try
+to find and dereference a variable associated with that symbol.)
+
+For example, when the expression @code{(string-length "abcd")} is read
+and evaluated, the sequence of characters @code{string-length} is read
+as the symbol whose name is "string-length".  This symbol is associated
+with a variable whose value is the procedure that implements string
+length calculation.  Therefore evaluation of the @code{string-length}
+symbol results in that procedure.
+
+Although the use of symbols for variable references is undoubtedly their
+most important role in Scheme, it is not documented further here.  See
+instead @ref{Binding Constructs}, for how associations between symbols
+and variables are created, and @ref{Modules}, for how those associations
+are affected by Guile's module system.  The rest of this section
+explains how symbols can also be used to represent discrete values, and
+documents the procedures available that relate to symbols as data
+objects @i{per se}.
+
+@menu
+* Symbol Read Syntax::          Extended read syntax for symbols.
+* Symbol Primitives::           Operations related to symbols.
+* Symbol Discrete::             Using symbols as discrete values.
+* Symbol Props::                Function slots and property lists.
+@end menu
+
+
+@node Symbol Read Syntax
+@subsection Extended Read Syntax for Symbols
 
 The read syntax for symbols is a sequence of letters, digits, and
-@dfn{extended alphabetic characters} that begins with a character that
-cannot begin a number is an identifier.  In addition, @code{+},
-@code{-}, and @code{...} are identifiers.
+@dfn{extended alphabetic characters}, beginning with a character that
+cannot begin a number.  In addition, the special cases of @code{+},
+@code{-}, and @code{...} are read as symbols even though numbers can
+begin with @code{+}, @code{-} or @code{.}.
 
 Extended alphabetic characters may be used within identifiers as if
-they were letters.  The following are extended alphabetic characters:
+they were letters.  The set of extended alphabetic characters is:
 
 @example
 ! $ % & * + - . / : < = > ? @@ ^ _ ~ 
 @end example
 
-In addition to the read syntax defined above (which is taken from R5RS
-(@pxref{Formal syntax,,,r5rs,The Revised^5 Report on Scheme})), Guile
-provides a method for writing symbols with unusual characters, such as
-space characters.  If you (for whatever reason) need to write a symbol
-containing characters not mentioned above, you write symbols as follows:
+In addition to the standard read syntax defined above (which is taken
+from R5RS (@pxref{Formal syntax,,,r5rs,The Revised^5 Report on
+Scheme})), Guile provides an extended symbol read syntax that allows the
+inclusion of unusual characters such as space characters, newlines and
+parentheses.  If (for whatever reason) you need to write a symbol
+containing characters not mentioned above, you can do so as follows.
 
 @itemize @bullet
 @item
-Begin the symbol with the two character @code{#@{},
+Begin the symbol with the characters @code{#@{},
 
 @item
 write the characters of the symbol and
@@ -2387,19 +2263,27 @@ write the characters of the symbol and
 finish the symbol with the characters @code{@}#}.
 @end itemize
 
-Here are a few examples of this form of read syntax; the first
-containing a space character, the second containing a line break and the
-last one looks like a number.
+Here are a few examples of this form of read syntax.  The first symbol
+needs to use extended syntax because it contains a space character, the
+second because it contains a line break, and the last because it looks
+like a number.
 
 @lisp
 #@{foo bar@}#
+
 #@{what
 ever@}#
+
 #@{4242@}#
 @end lisp
 
-Usage of this form of read syntax is discouraged, because it is not
-portable at all, and is not very readable.
+Although Guile provides this extended read syntax for symbols,
+widespread usage of it is discouraged because it is not portable and not
+very readable.
+
+
+@node Symbol Primitives
+@subsection Operations Related to Symbols
 
 @rnindex symbol?
 @deffn {Scheme Procedure} symbol? obj
@@ -2433,6 +2317,13 @@ standard case is lower case:
 @end lisp
 @end deffn
 
+@deffn {Scheme Procedure} string-ci->symbol str
+@deffnx {C Function} scm_string_ci_to_symbol (str)
+Return the symbol whose name is @var{str}.  @var{str} is
+converted to lowercase before the conversion is done, if Guile
+is currently reading symbols case-insensitively.
+@end deffn
+
 @rnindex symbol->string
 @deffn {Scheme Procedure} symbol->string s
 @deffnx {C Function} scm_symbol_to_string (s)
@@ -2461,19 +2352,10 @@ standard case is lower case:
 @end lisp
 @end deffn
 
-@node Symbol Tables
-@subsection Symbol Tables
-
-@c FIXME::martin: Review me!
-
-@c FIXME::martin: Are all these procedures still relevant?
-
-Guile symbol tables are hash tables.  Each hash table, also called an
-@dfn{obarray} (for `object array'), is a vector of association lists.
-Each entry in the alists is a pair (@var{SYMBOL} . @var{VALUE}).  To
-@dfn{intern} a symbol in a symbol table means to return its
-(@var{SYMBOL} . @var{VALUE}) pair, adding a new entry to the symbol
-table (with an undefined value) if none is yet present.
+@deffn {Scheme Procedure} symbol-hash symbol
+@deffnx {C Function} scm_symbol_hash (symbol)
+Return a hash value for @var{symbol}.
+@end deffn
 
 @deffn {Scheme Procedure} gensym [prefix]
 @deffnx {C Function} scm_gensym (prefix)
@@ -2484,42 +2366,24 @@ is increased by 1 at each call. There is no provision for
 resetting the counter.
 @end deffn
 
-@deffn {Scheme Procedure} gentemp [prefix [obarray]]
-Create a new symbol with a name unique in an obarray.
-The name is constructed from an optional string @var{prefix}
-and a counter value.  The default prefix is @code{t}.  The
-@var{obarray} is specified as a second optional argument.
-Default is the system obarray where all normal symbols are
-interned.  The counter is increased by 1 at each
-call.  There is no provision for resetting the counter.
-@end deffn
 
-@deffn {Scheme Procedure} intern-symbol obarray string
-Add a new symbol to @var{obarray} with name @var{string}, bound to an
-unspecified initial value.  The symbol table is not modified if a symbol
-with this name is already present.
-@end deffn
+@node Symbol Discrete
+@subsection Using Symbols as Discrete Values
 
-@deffn {Scheme Procedure} string->obarray-symbol obarray string [soft?]
-Intern a new symbol in @var{obarray}, a symbol table, with name
-@var{string}.
-@end deffn
+Symbols are especially useful because two symbols which are spelled the
+same way are equivalent in the sense of @code{eq?}.  That means that
+they are actually the same Scheme object.  The advantage is that symbols
+can be compared extremely efficiently, although they carry more
+information for the human reader than, say, numbers.
 
-@deffn {Scheme Procedure} symbol-binding obarray string
-Look up in @var{obarray} the symbol whose name is @var{string}, and
-return the value to which it is bound.  If @var{obarray} is @code{#f},
-use the global symbol table.  If @var{string} is not interned in
-@var{obarray}, an error is signalled.
-@end deffn
+It is very common in Scheme programs to use symbols as keys in
+association lists (@pxref{Association Lists}) or hash tables
+(@pxref{Hash Tables}), because this usage improves the readability a
+lot, and does not cause any performance loss.
 
-@deffn {Scheme Procedure} symbol-bound? obarray string
-Return @code{#t} if @var{obarray} contains a symbol with name
-@var{string} bound to a defined value.  This differs from
-@var{symbol-interned?} in that the mere mention of a symbol
-usually causes it to be interned; @code{symbol-bound?}
-determines whether a symbol has been given any meaningful
-value.
-@end deffn
+
+@node Symbol Props
+@subsection Function Slots and Property Lists
 
 @deffn {Scheme Procedure} symbol-fref symbol
 @deffnx {C Function} scm_symbol_fref (symbol)
@@ -2531,16 +2395,6 @@ Return the contents of @var{symbol}'s @dfn{function slot}.
 Change the binding of @var{symbol}'s function slot.
 @end deffn
 
-@deffn {Scheme Procedure} symbol-hash symbol
-@deffnx {C Function} scm_symbol_hash (symbol)
-Return a hash value for @var{symbol}.
-@end deffn
-
-@deffn {Scheme Procedure} symbol-interned? obarray string
-Return @code{#t} if @var{obarray} contains a symbol with name
-@var{string}, and @code{#f} otherwise.
-@end deffn
-
 @deffn {Scheme Procedure} symbol-pref symbol
 @deffnx {C Function} scm_symbol_pref (symbol)
 Return the @dfn{property list} currently associated with @var{symbol}.
@@ -2549,95 +2403,6 @@ Return the @dfn{property list} currently associated with @var{symbol}.
 @deffn {Scheme Procedure} symbol-pset! symbol value
 @deffnx {C Function} scm_symbol_pset_x (symbol, value)
 Change the binding of @var{symbol}'s property slot.
-@end deffn
-
-@deffn {Scheme Procedure} symbol-set! obarray string value
-Find the symbol in @var{obarray} whose name is @var{string}, and rebind
-it to @var{value}.  An error is signalled if @var{string} is not present
-in @var{obarray}.
-@end deffn
-
-@deffn {Scheme Procedure} unintern-symbol obarray string
-Remove the symbol with name @var{string} from @var{obarray}.  This
-function returns @code{#t} if the symbol was present and @code{#f}
-otherwise.
-@end deffn
-
-
-@node Variables
-@subsection Variables
-@tpindex Variables
-
-A variable is a box-like object that can hold any Scheme value.  It is
-said to be @dfn{undefined} if its box holds a special Scheme value that
-denotes undefined-ness (which is different from all other Scheme values,
-including for example @code{#f}); otherwise the variable is
-@dfn{defined}.
-
-On its own, a variable object is anonymous.  A variable is said to be
-@dfn{bound} when it is associated with a name in some way, usually a
-symbol in a module obarray.  When this happens, the relationship is
-mutual: the variable is bound to the name (in that module), and the name
-(in that module) is bound to the variable.
-
-(That's the theory, anyway.  In practice, defined-ness and bound-ness
-sometimes get confused, because Lisp and Scheme implementations have
-often conflated --- or deliberately drawn no distinction between --- a
-name that is unbound and a name that is bound to a variable whose value
-is undefined.  We will try to be clear about the difference and explain
-any confusion where it is unavoidable.)
-
-Variables do not have a read syntax.  Most commonly they are created and
-bound implicitly by @code{define} expressions: a top-level @code{define}
-expression of the form
-
-@lisp
-(define @var{name} @var{value})
-@end lisp
-
-@noindent
-creates a variable with initial value @var{value} and binds it to the
-name @var{name} in the current module.  But they can also be created
-dynamically by calling one of the constructor procedures
-@code{make-variable} and @code{make-undefined-variable}.
-
-First-class variables are especially useful for interacting with the
-current module system (@pxref{The Guile module system}).
-
-@deffn {Scheme Procedure} make-undefined-variable
-@deffnx {C Function} scm_make_undefined_variable ()
-Return a variable that is initially unbound.
-@end deffn
-
-@deffn {Scheme Procedure} make-variable init
-@deffnx {C Function} scm_make_variable (init)
-Return a variable initialized to value @var{init}.
-@end deffn
-
-@deffn {Scheme Procedure} variable-bound? var
-@deffnx {C Function} scm_variable_bound_p (var)
-Return @code{#t} iff @var{var} is bound to a value.
-Throws an error if @var{var} is not a variable object.
-@end deffn
-
-@deffn {Scheme Procedure} variable-ref var
-@deffnx {C Function} scm_variable_ref (var)
-Dereference @var{var} and return its value.
-@var{var} must be a variable object; see @code{make-variable}
-and @code{make-undefined-variable}.
-@end deffn
-
-@deffn {Scheme Procedure} variable-set! var val
-@deffnx {C Function} scm_variable_set_x (var, val)
-Set the value of the variable @var{var} to @var{val}.
-@var{var} must be a variable object, @var{val} can be any
-value. Return an unspecified value.
-@end deffn
-
-@deffn {Scheme Procedure} variable? obj
-@deffnx {C Function} scm_variable_p (obj)
-Return @code{#t} iff @var{obj} is a variable object, else
-return @code{#f}.
 @end deffn
 
 
@@ -2777,8 +2542,8 @@ Or, even more economically, like this:
 @end lisp
 
 For further details on @code{let-keywords}, @code{define*} and other
-facilities provided by the @code{(ice-9 optargs)} module, @ref{Optional
-Arguments}.
+facilities provided by the @code{(ice-9 optargs)} module, see
+@ref{Optional Arguments}.
 
 
 @node Keyword Read Syntax
@@ -2786,10 +2551,11 @@ Arguments}.
 
 Guile, by default, only recognizes the keyword syntax specified by R5RS.
 A token of the form @code{#:NAME}, where @code{NAME} has the same syntax
-as a Scheme symbol, is the external representation of the keyword named
-@code{NAME}.  Keyword objects print using this syntax as well, so values
-containing keyword objects can be read back into Guile.  When used in an
-expression, keywords are self-quoting objects.
+as a Scheme symbol (@pxref{Symbol Read Syntax}), is the external
+representation of the keyword named @code{NAME}.  Keyword objects print
+using this syntax as well, so values containing keyword objects can be
+read back into Guile.  When used in an expression, keywords are
+self-quoting objects.
 
 If the @code{keyword} read option is set to @code{'prefix}, Guile also
 recognizes the alternative read syntax @code{:NAME}.  Otherwise, tokens
@@ -2817,7 +2583,7 @@ interface} and @ref{Reader options}.
 #:type
 
 :type
-@result{}
+@print{}
 ERROR: In expression :type:
 ERROR: Unbound variable: :type
 ABORT: (unbound-variable)

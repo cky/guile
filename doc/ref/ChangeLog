@@ -1,3 +1,31 @@
+2001-12-01  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scheme-data.texi (Variables): Node moved to modules chapter.
+	(Symbol Read Syntax): New node, with syntax-related material taken
+	from old Symbols node.
+	(Symbol Primitives): Renamed from `Symbols'.
+	(Symbols and Variables): Renamed to `Symbols'.
+	(Symbol Props): Renamed from `Symbol Tables'.
+	(Symbols): General review, improvements and additional material
+	throughout this section.
+
+	* guile.texi: Updated Notes comment.
+
+	* scheme-data.texi (Rx Interface): Node moved to Guile Modules
+	part, as the Rx interface is not core Guile.
+
+2001-11-30  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scheme-data.texi (String Miscellanea): Removed, moving doc for
+	string-ci->symbol into the node on Symbols.
+
+	* Makefile.am (ETAGS_ARGS): Added.
+
+	* scheme-data.texi (Symbol Tables): Removed doc for gentemp,
+	intern-symbol, string->obarray-symbol, symbol-binding,
+	symbol-bound?, symbol-set!, unintern-symbol, symbol-interned?; all
+	of which no longer exist.
+
 2001-11-25  Thien-Thi Nguyen  <ttn@glug.org>
 
 	* posix.texi: Fix spelling.  Thanks to Chris Cramer.

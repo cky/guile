@@ -32,10 +32,14 @@ designed languages: ML, Python, Perl, and Modula 3 all allow the
 clutter the global name space.
 @cindex name space - private
 
+In addition, Guile offers variables as first-class objects.  They can
+be used for interacting with the module system.
+
 @menu
 * Scheme and modules::          How modules are handled in standard Scheme.
 * The Guile module system::     How Guile does it.
 * Dynamic Libraries::           Loading libraries of compiled code at run time.
+* Variables::                   First-class variables.
 @end menu
 
 
@@ -825,6 +829,83 @@ from the architecture independent directory.  This will at least work on
 heterogenous systems where the architecture dependent stuff resides in
 the same place on all machines (which seems like a good idea to me
 anyway).
+
+
+@node Variables
+@section Variables
+@tpindex Variables
+
+A variable is a box-like object that can hold any Scheme value.  It is
+said to be @dfn{undefined} if its box holds a special Scheme value that
+denotes undefined-ness (which is different from all other Scheme values,
+including for example @code{#f}); otherwise the variable is
+@dfn{defined}.
+
+On its own, a variable object is anonymous.  A variable is said to be
+@dfn{bound} when it is associated with a name in some way, usually a
+symbol in a module obarray.  When this happens, the relationship is
+mutual: the variable is bound to the name (in that module), and the name
+(in that module) is bound to the variable.
+
+(That's the theory, anyway.  In practice, defined-ness and bound-ness
+sometimes get confused, because Lisp and Scheme implementations have
+often conflated --- or deliberately drawn no distinction between --- a
+name that is unbound and a name that is bound to a variable whose value
+is undefined.  We will try to be clear about the difference and explain
+any confusion where it is unavoidable.)
+
+Variables do not have a read syntax.  Most commonly they are created and
+bound implicitly by @code{define} expressions: a top-level @code{define}
+expression of the form
+
+@lisp
+(define @var{name} @var{value})
+@end lisp
+
+@noindent
+creates a variable with initial value @var{value} and binds it to the
+name @var{name} in the current module.  But they can also be created
+dynamically by calling one of the constructor procedures
+@code{make-variable} and @code{make-undefined-variable}.
+
+First-class variables are especially useful for interacting with the
+current module system (@pxref{The Guile module system}).
+
+@deffn {Scheme Procedure} make-undefined-variable
+@deffnx {C Function} scm_make_undefined_variable ()
+Return a variable that is initially unbound.
+@end deffn
+
+@deffn {Scheme Procedure} make-variable init
+@deffnx {C Function} scm_make_variable (init)
+Return a variable initialized to value @var{init}.
+@end deffn
+
+@deffn {Scheme Procedure} variable-bound? var
+@deffnx {C Function} scm_variable_bound_p (var)
+Return @code{#t} iff @var{var} is bound to a value.
+Throws an error if @var{var} is not a variable object.
+@end deffn
+
+@deffn {Scheme Procedure} variable-ref var
+@deffnx {C Function} scm_variable_ref (var)
+Dereference @var{var} and return its value.
+@var{var} must be a variable object; see @code{make-variable}
+and @code{make-undefined-variable}.
+@end deffn
+
+@deffn {Scheme Procedure} variable-set! var val
+@deffnx {C Function} scm_variable_set_x (var, val)
+Set the value of the variable @var{var} to @var{val}.
+@var{var} must be a variable object, @var{val} can be any
+value. Return an unspecified value.
+@end deffn
+
+@deffn {Scheme Procedure} variable? obj
+@deffnx {C Function} scm_variable_p (obj)
+Return @code{#t} iff @var{obj} is a variable object, else
+return @code{#f}.
+@end deffn
 
 
 @c Local Variables:
