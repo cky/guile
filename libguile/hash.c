@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996,1997, 2000 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996,1997, 2000, 2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -69,7 +69,7 @@ scm_string_hash (const unsigned char *str, scm_sizet len)
       scm_sizet i = 5;
       unsigned long h = 264;
       while (i--)
-	h = (h << 8) + ((unsigned) (scm_downcase (str[h % len])));
+	h = (h << 8) + (unsigned) str[h % len];
       return h;
     }
   else
@@ -77,7 +77,7 @@ scm_string_hash (const unsigned char *str, scm_sizet len)
       scm_sizet i = len;
       unsigned long h = 0;
       while (i)
-	h = (h << 8) + ((unsigned) (scm_downcase (str[--i])));
+	h = (h << 8) + (unsigned) str[--i];
       return h;
     }
 }

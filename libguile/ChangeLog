@@ -1,6 +1,10 @@
+2001-03-08  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
+
+	* hash.c (scm_string_hash): Don't downcase characters.
+
 2001-03-07  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
 
-	* symmbols.c (scm_symbols_prehistory): Changed symbol hash table
+	* symbols.c (scm_symbols_prehistory): Changed symbol hash table
 	size from 277 --> 1009.
 
 	* symbols.c, symbols.h (scm_sys_symbols): New function GUILE_DEBUG
