@@ -1,4 +1,4 @@
-;;; generated 2002-05-11 19:43:06 UTC by scan-api -- do not edit!
+;;; generated 2002-05-12 05:25:39 UTC by scan-api -- do not edit!
 
 (
 (meta
@@ -3156,6 +3156,7 @@
 (unmemoize (groups Scheme) (scan-data "#<primitive-procedure unmemoize>"))
 (unread-char (groups POSIX Scheme) (scan-data "#<primitive-procedure unread-char>"))
 (unread-string (groups POSIX Scheme) (scan-data "#<primitive-procedure unread-string>"))
+(unsetenv (groups Scheme) (scan-data "#<procedure unsetenv (name)>"))
 (unspecified? (groups Scheme) (scan-data "#<procedure unspecified? (v)>"))
 (use-emacs-interface (groups Scheme) (scan-data ""))
 (use-modules (groups Scheme) (scan-data ""))
