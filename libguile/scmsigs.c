@@ -300,7 +300,7 @@ SCM_DEFINE (scm_sigaction, "sigaction", 1, 2, 0,
     case SIGSEGV:
     case SIGBUS:
     case SIGABRT:
-#if SIGIOT != SIGABRT
+#if defined(SIGIOT) && (SIGIOT != SIGABRT)
     case SIGIOT:
 #endif
     case SIGTRAP:

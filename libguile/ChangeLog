@@ -1,3 +1,9 @@
+2000-06-18  Michael Livshin  <mlivshin@bigfoot.com>
+
+	* scmsigs.c (s_scm_sigaction): guard the SIGIOT case with an
+ 	#ifdef -- it's missing on at least one platform.  (thanks to
+ 	Jan Nieuwenhuizen).
+
 2000-06-16  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* list.c (list*):  Added documentation from common-list.scm.
