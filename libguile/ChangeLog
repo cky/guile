@@ -1,3 +1,14 @@
+2000-06-19  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* init.c, init.h (scm_initialized_p): Renamed from `initialized'
+	and made global.
+
+	* gdbint.c (gdb_print): Print warning instead of calling scm_write
+	if Guile isn't yet initialized.
+
+	* print.c (scm_current_pstate, scm_make_print_state): Simplified
+	tests, using the assumption that Guile has been initialized.
+
 Sun Jun 18 14:45:21 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* print.c (s_scm_current_pstate): Do not segfault when the
