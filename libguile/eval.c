@@ -1487,12 +1487,18 @@ static const char s_set_x[] = "set!";
 SCM_GLOBAL_SYMBOL (scm_sym_set_x, s_set_x);
 
 SCM
-scm_m_set_x (SCM xorig, SCM env SCM_UNUSED)
+scm_m_set_x (SCM expr, SCM env SCM_UNUSED)
 {
-  SCM x = SCM_CDR (xorig);
-  SCM_ASSYNT (scm_ilength (x) == 2, s_expression, s_set_x);
-  SCM_ASSYNT (SCM_SYMBOLP (SCM_CAR (x)), s_variable, s_set_x);
-  return scm_cons (SCM_IM_SET_X, x);
+  SCM variable;
+
+  const SCM cdr_expr = SCM_CDR (expr);
+  ASSERT_SYNTAX (scm_ilength (cdr_expr) >= 0, s_bad_expression, expr);
+  ASSERT_SYNTAX (scm_ilength (cdr_expr) == 2, s_expression, expr);
+  variable = SCM_CAR (cdr_expr);
+  ASSERT_SYNTAX_2 (SCM_SYMBOLP (variable), s_bad_variable, variable, expr);
+
+  SCM_SETCAR (expr, SCM_IM_SET_X);
+  return expr;
 }
 
 
@@ -1504,64 +1510,69 @@ SCM_GLOBAL_SYMBOL (scm_sym_atapply, s_atapply);
 SCM_GLOBAL_SYMBOL (scm_sym_apply, s_atapply + 1);
 
 SCM 
-scm_m_apply (SCM xorig, SCM env SCM_UNUSED)
+scm_m_apply (SCM expr, SCM env SCM_UNUSED)
 {
-  SCM_ASSYNT (scm_ilength (SCM_CDR (xorig)) == 2, s_expression, s_atapply);
-  return scm_cons (SCM_IM_APPLY, SCM_CDR (xorig));
+  const SCM cdr_expr = SCM_CDR (expr);
+  ASSERT_SYNTAX (scm_ilength (cdr_expr) >= 0, s_bad_expression, expr);
+  ASSERT_SYNTAX (scm_ilength (cdr_expr) == 2, s_missing_expression, expr);
+
+  SCM_SETCAR (expr, SCM_IM_APPLY);
+  return expr;
 }
 
 
-/* (@bind ((var exp) ...) body ...)
-
-  This will assign the values of the `exp's to the global variables
-  named by `var's (symbols, not evaluated), creating them if they
-  don't exist, executes body, and then restores the previous values of
-  the `var's.  Additionally, whenever control leaves body, the values
-  of the `var's are saved and restored when control returns.  It is an
-  error when a symbol appears more than once among the `var's.
-  All `exp's are evaluated before any `var' is set.
-
-  Think of this as `let' for dynamic scope.
-
-  It is memoized into (#@bind ((var ...) . (reversed-val ...)) body ...).
-
-  XXX - also implement `@bind*'.
-*/
-
 SCM_SYNTAX (s_atbind, "@bind", scm_i_makbimacro, scm_m_atbind);
 
+/* FIXME: The following explanation should go into the documentation: */
+/* (@bind ((var init) ...) body ...) will assign the values of the `init's to
+ * the global variables named by `var's (symbols, not evaluated), creating
+ * them if they don't exist, executes body, and then restores the previous
+ * values of the `var's.  Additionally, whenever control leaves body, the
+ * values of the `var's are saved and restored when control returns.  It is an
+ * error when a symbol appears more than once among the `var's.  All `init's
+ * are evaluated before any `var' is set.
+ *
+ * Think of this as `let' for dynamic scope.
+ */
+
+/* (@bind ((var1 exp1) ... (varn expn)) body ...) is memoized into
+ * (#@bind ((varn ... var1) . (exp1 ... expn)) body ...).
+ *
+ * FIXME - also implement `@bind*'.
+ */
 SCM
-scm_m_atbind (SCM xorig, SCM env)
+scm_m_atbind (SCM expr, SCM env)
 {
-  SCM x = SCM_CDR (xorig);
-  SCM top_level = scm_env_top_level (env);
-  SCM vars = SCM_EOL, var;
-  SCM exps = SCM_EOL;
+  SCM bindings;
+  SCM rvariables;
+  SCM inits;
+  SCM variable_idx;
 
-  SCM_ASSYNT (scm_ilength (x) > 1, s_expression, s_atbind);
+  const SCM top_level = scm_env_top_level (env);
 
-  x = SCM_CAR (x);
-  while (SCM_NIMP (x))
+  const SCM cdr_expr = SCM_CDR (expr);
+  ASSERT_SYNTAX (scm_ilength (cdr_expr) >= 0, s_bad_expression, expr);
+  ASSERT_SYNTAX (scm_ilength (cdr_expr) >= 2, s_missing_expression, expr);
+  bindings = SCM_CAR (cdr_expr);
+  check_bindings (bindings, expr);
+  transform_bindings (bindings, expr, &rvariables, &inits);
+
+  for (variable_idx = rvariables;
+       !SCM_NULLP (variable_idx);
+       variable_idx = SCM_CDR (variable_idx))
     {
-      SCM rest;
-      SCM sym_exp = SCM_CAR (x);
-      SCM_ASSYNT (scm_ilength (sym_exp) == 2, s_bindings, s_atbind);
-      SCM_ASSYNT (SCM_SYMBOLP (SCM_CAR (sym_exp)), s_bindings, s_atbind);
-      x = SCM_CDR (x);
-      for (rest = x; SCM_NIMP (rest); rest = SCM_CDR (rest))
-	if (SCM_EQ_P (SCM_CAR (sym_exp), SCM_CAAR (rest)))
-	  scm_misc_error (s_atbind, s_duplicate_bindings, SCM_EOL);
-      /* The first call to scm_sym2var will look beyond the current
-	 module, while the second call wont. */
-      var = scm_sym2var (SCM_CAR (sym_exp), top_level, SCM_BOOL_F);
-      if (SCM_FALSEP (var))
-	var = scm_sym2var (SCM_CAR (sym_exp), top_level, SCM_BOOL_T);
-      vars = scm_cons (var, vars);
-      exps = scm_cons (SCM_CADR (sym_exp), exps);
+      /* The first call to scm_sym2var will look beyond the current module,
+       * while the second call wont.  */
+      const SCM variable = SCM_CAR (variable_idx);
+      SCM new_variable = scm_sym2var (variable, top_level, SCM_BOOL_F);
+      if (SCM_FALSEP (new_variable))
+	new_variable = scm_sym2var (variable, top_level, SCM_BOOL_T);
+      SCM_SETCAR (variable_idx, new_variable);
     }
-  return scm_cons (SCM_IM_BIND,
-		   scm_cons (scm_cons (scm_reverse_x (vars, SCM_EOL), exps),
-			     SCM_CDDR (xorig)));
+
+  SCM_SETCAR (expr, SCM_IM_BIND);
+  SCM_SETCAR (cdr_expr, scm_cons (rvariables, inits));
+  return expr;
 }
 
 
@@ -3169,10 +3180,8 @@ dispatch:
 	    x = SCM_CDR (x);
 	    vars = SCM_CAAR (x);
 	    exps = SCM_CDAR (x);
-
 	    vals = SCM_EOL;
-
-	    while (SCM_NIMP (exps))
+	    while (!SCM_NULLP (exps))
 	      {
 		vals = scm_cons (EVALCAR (exps, env), vals);
 		exps = SCM_CDR (exps);
@@ -3206,9 +3215,15 @@ dispatch:
 	    proc = EVALCAR (x, env);  /* proc is the consumer. */
 	    arg1 = SCM_APPLY (producer, SCM_EOL, SCM_EOL);
 	    if (SCM_VALUESP (arg1))
-	      arg1 = scm_struct_ref (arg1, SCM_INUM0);
+              {
+                /* The list of arguments is not copied.  Rather, it is assumed
+                 * that this has been done by the 'values' procedure.  */
+                arg1 = scm_struct_ref (arg1, SCM_INUM0);
+              }
 	    else
-	      arg1 = scm_list_1 (arg1);
+              {
+                arg1 = scm_list_1 (arg1);
+              }
             PREP_APPLY (proc, arg1);
             goto apply_proc;
 	  }
@@ -3221,6 +3236,7 @@ dispatch:
     default:
       proc = x;
       goto evapply;
+
     case scm_tc7_vector:
     case scm_tc7_wvect:
 #if SCM_HAVE_ARRAYS

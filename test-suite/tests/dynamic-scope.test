@@ -22,10 +22,12 @@
   :use-module (test-suite lib))
 
 
-(define exception:duplicate-binding
-  (cons 'misc-error "^duplicate bindings"))
+(define exception:missing-expr
+  (cons 'syntax-error "Missing expression"))
 (define exception:bad-binding
-  (cons 'misc-error "^bad bindings"))
+  (cons 'syntax-error "Bad binding"))
+(define exception:duplicate-binding
+  (cons 'syntax-error "Duplicate binding"))
 
 (define global-a 0)
 (define (fetch-global-a) global-a)
@@ -47,7 +49,7 @@
 	  (interaction-environment)))
 
   (pass-if-exception "@bind missing expression"
-    exception:missing-expression
+    exception:missing-expr
     (eval '(@bind ((global-a 1)))
 	  (interaction-environment)))
 

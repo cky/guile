@@ -1,5 +1,11 @@
 2003-10-18  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* tests/dynamic-scope.test (exception:missing-expr): Introduced
+	temporarily until all memoizers use the new way of error
+	reporting.
+
+2003-10-18  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* tests/syntax.test (exception:missing/extra-expr,
 	exception:missing/extra-expr-misc): Renamed
 	exception:missing/extra-expr to exception:missing/extra-expr-misc.

@@ -1,5 +1,19 @@
 2003-10-18  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* eval.c (scm_m_set_x, scm_m_apply, scm_m_atbind): Use
+	ASSERT_SYNTAX to signal syntax errors.  Avoid unnecessary consing
+	when creating the memoized code.
+
+	(scm_m_atbind): Reversed the order, in which the init expressions
+	are stored and executed.  The order of execution is now equal to
+	the order in which the initializers of the let-forms are executed.
+	Use check_bindings and transform_bindings.
+
+	(SCM_CEVAL): Eliminated SCM_NIMP in favor of more appropriate
+	!SCM_NULLP.  Added some comments.
+
+2003-10-18  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* eval.c: Sorted include files alphabetically.
 
 	(scm_m_begin): Added comment.
