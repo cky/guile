@@ -46,6 +46,8 @@
 
 #include "__scm.h"
 
+/* This file is only visible to the libguile sources */
+
 /* Include headers for those files central to the implementation.  The
    rest should be explicitly #included in the C files themselves.  */
 #include "error.h"		/* Everyone signals errors.  */
@@ -147,6 +149,9 @@
 #define SCM_CONST_LONG(C_NAME, SCHEME_NAME,VALUE) \
 %%%	C_NAME = scm_permanent_object (scm_intern0 (SCHEME_NAME)); SCM_SETCDR (C_NAME, scm_long2num (VALUE))
 #endif
+
+#define min(A,B) ((A) <= (B) ? (A) : (B))
+#define max(A,B) ((A) >= (B) ? (A) : (B))
 
 #endif  /* _SCMH */
 
