@@ -617,12 +617,11 @@
       clist)))
 
 (define (span pred clist)
-  (if (null? clist)
-    (values '() '())
-    (if (pred (car clist))
-      (receive (first last) (span pred (cdr clist))
-	       (values (cons (car clist) first) last))
-      (values '() clist))))
+  (let lp ((clist clist) (rl '()))
+    (if (and (not (null? clist))
+	     (pred (car clist)))
+	(lp (cdr clist) (cons (car clist) rl))
+	(values (reverse! rl) clist))))
 
 (define (span! pred list)
   (span pred list))			; XXX:optimize
