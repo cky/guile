@@ -1,3 +1,33 @@
+2005-03-09  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* gc-card.c (scm_i_sweep_card): Do not increase/decrease
+	scm_gc_running_p.  Sweeping can happen in parallel with
+	allocation.
+
+	* inline.h: Updated comments for current threading implementation.
+
+	* threads.h, threads.c (scm_i_frame_single_threaded): Removed.
+	(scm_i_thread): Removed unused signal_asyncs field.
+	(threads_mark): Do not mark it.
+	(guilify_self_1): Do not initialize it.  Do initialize
+	continuation_root field.
+	(do_thread_exit): Do not remove thread from all_threads list.
+	(on_thread_exit): Do it here, after leaving guile mode.
+	(sleep_level): Removed.
+	(scm_i_thread_put_to_sleep): Leave thread_admin_mutex locked when
+	returning.  Do not support recursive sleeps.
+	(scm_i_thread_wake_up): Expect thread_admin_mutex to be locked on
+	entry.  Do not support recursive sleeps.
+
+	* fluids.c (ensure_state_size, ensure_all_state_sizes,
+	resize_all_states): Collapsed ensure_state_size and
+	ensure_all_state_sizes into one function named resize_all_states.
+	Allocate new vectors outside of single threaded region.  Do only
+	simple things inside that region.
+	 (scm_make_fluid, scm_make_dynamic_state): Lock fluid_admin_mutex
+	while adding to the global lists.
+	
+
 2005-03-08  Marius Vollmer  <mvo@zagadka.de>
 
 	libltdl is no longer distributed.  We expect it to be installed
