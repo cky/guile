@@ -1,3 +1,19 @@
+2003-08-21  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* guile-init.el: Removed (because now empty).
+
+	* inda-scheme.el (scheme-send-buffer, indent-buffer,
+	indent-defun): Moved here from guile-init.el.
+
+	* guile-init.el (inda-boldify): Removed (because unused).
+
+	* inda-scheme.el (inda-barf-at-modifications,
+	inda-boldify-previous-character, inda-make-input-memory,
+	inda-reset-guile-last-output, inferior-scheme-mode-map mouse
+	bindings, inda-mouse-yank-at-click, inda-insert-input-memory,
+	inda-insert-input-memory-and-send, inda-extend-read-only-overlay):
+	Moved here from guile-init.el.
+
 2003-08-20  Neil Jerram  <neil@ossau.uklinux.net>
 
 	Import of Mikael's guileint-1.5.2.tgz into Guile CVS ...
