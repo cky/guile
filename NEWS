@@ -147,6 +147,14 @@ Use scm_memory_error instead of SCM_NALLOC.
 
 Use scm_catch or scm_lazy_catch from throw.[ch] instead.
 
+** scm_gensym has changed prototype
+
+scm_gensym now only takes one argument.
+
+** New function: scm_gentemp (SCM prefix, SCM obarray)
+
+The builtin `gentemp' has now become a primitive.
+
 
 Changes since Guile 1.3.4:
 

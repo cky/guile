@@ -1,3 +1,11 @@
+2000-09-12  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
+
+	* symbols.h (scm_gentemp): Declared.
+
+	* symbols.c (scm_gensym): Reimplemented.  Now only takes one
+	optional argument which should be a *string*.
+	(scm_gentemp): Reimplemented and moved from boot-9.scm.
+
 2000-09-10  Keisuke Nishida  <kxn30@po.cwru.edu>
 
 	* modules.c: Use applicable smobs for eval closures instead of
