@@ -112,7 +112,8 @@
 			   (else (error 'hash-table-mapping
 					"Hash-procedure specified with no known delete function."
 					hash-proc)))))
-	 (table-constructor (or (kw-arg-ref options :table-constructor) make-vector)))
+	 (table-constructor (or (kw-arg-ref options :table-constructor)
+				(lambda (len) (make-vector len '())))))
     (make-hash-table-mapping (table-constructor size)
 			     hash-proc
 			     assoc-proc

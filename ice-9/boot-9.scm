@@ -307,7 +307,7 @@
 	   (else 					    	((print-style-hook style obj)
 								 obj port depth length style table)))))))))
 
-(define (make-print-style) (make-vector 59))
+(define (make-print-style) (make-vector 59 '()))
 
 (define (extend-print-style! style utag printer) (hashq-set! style utag printer))
 
@@ -326,7 +326,7 @@
 (define (print-style-excess-length-hook style) (hashq-ref style 'excess-length-hook))
 (define (print-style-excess-depth-hook style) (hashq-ref style 'excess-depth-hook))
 
-(define (make-print-table) (make-vector 59))
+(define (make-print-table) (make-vector 59 '()))
 (define (print-table-ref table obj) (hashq-ref table obj))
 (define (print-table-add! table obj) (hashq-set! table obj (gensym 'ref)))
 
