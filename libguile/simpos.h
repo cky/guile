@@ -27,6 +27,7 @@
 
 
 SCM_API SCM scm_system (SCM cmd);
+SCM_API SCM scm_system_star (SCM cmds);
 SCM_API SCM scm_getenv (SCM nam);
 SCM_API SCM scm_primitive_exit (SCM status);
 SCM_API void scm_init_simpos (void);
