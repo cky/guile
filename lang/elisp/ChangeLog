@@ -1,3 +1,7 @@
+2003-01-05  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* primitives/Makefile.am (elisp_sources): Added char-table.scm.
+
 2002-12-28  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* base.scm (lang): Use char-table module.
