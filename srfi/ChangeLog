@@ -1,3 +1,11 @@
+2002-04-24  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* srfi-13.c (s_scm_string_tokenize): Only take character sets as
+	the second arg.  Collect characters belonging to this set into
+	tokens (as specified by the SRFI), instead of splitting at these
+	characters.  Default to an equivalent of char-set:graphic instead
+	of everything-but-whitespace.  Thanks to Matthias Koeppe!
+
 2002-04-10  Rob Browning  <rlb@defaultvalue.org>
 
 	* .cvsignore: add *.c.clean.c.
