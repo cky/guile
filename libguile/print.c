@@ -398,7 +398,7 @@ taloop:
 		name = scm_macro_name (exp);
 		if (!SCM_CLOSUREP (SCM_CDR (exp)))
 		  {
-		    code = env = 0;
+		    code = env = SCM_UNDEFINED;
 		    scm_puts ("#<primitive-", port);
 		  }
 		else
@@ -427,7 +427,7 @@ taloop:
 		scm_putc (' ', port);
 		scm_puts (SCM_ROCHARS (name), port);
 	      }
-	    if (code)
+	    if (!SCM_UNBNDP (code))
 	      {
 		if (SCM_PRINT_SOURCE_P)
 		  {
