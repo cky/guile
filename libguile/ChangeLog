@@ -1,3 +1,43 @@
+2004-12-29  Marius Vollmer  <mvo@zagadka.de>
+
+	No longer use creators to specify the type of an array.  Creators
+	expose the fact that arrays are wrapped around vectors, but that
+	might change.
+	
+	* srfi-4.h (scm_i_proc_make_u8vector, scm_i_proc_make_s8vector,
+	scm_i_proc_make_u16vector, scm_i_proc_make_s16vector,
+	scm_i_proc_make_u32vector, scm_i_proc_make_s32vector,
+	scm_i_proc_make_u64vector, scm_i_proc_make_s64vector,
+	scm_i_proc_make_f32vector, scm_i_proc_make_f64vector,
+	scm_i_proc_make_c32vector, scm_i_proc_make_c64vector,
+	uvec_proc_vars): Removed.
+	(scm_i_generalized_vector_creator): Removed.
+	(scm_i_generalized_vector_type): New.
+
+	* unif.h, unif.c (scm_typed_array_p, scm_make_array,
+	scm_make_typed_array, scm_array_type, scm_list_to_array,
+	scm_list_to_typed_array, scm_is_array, scm_is_typed_array): New.
+	(scm_array_creator): Removed.
+	(scm_array_p): Deprecated second PROT argument.
+	(scm_dimensions_to_uniform_array, scm_list_to_uniform_array):
+	Deprecated, reimplemented in terms of scm_make_typed_array and
+	scm_list_to_typed_array.
+	(scm_i_proc_make_vector, scm_i_proc_make_string,
+	scm_i_proc_make_bitvector): Removed.
+	(type_creator_table, init_type_creator_table, type_to_creator,
+	make_typed_vector): New.
+	(scm_i_convert_old_prototype): Removed.
+	(prototype_to_type): New.
+	(scm_make_uve): Deprecated, reimplemented using make_typed_vector.
+	(scm_array_dimensions): Use scm_list_1 instead of scm_cons for
+	minor added clarity.
+	(scm_make_shared_array, scm_ra2contig): Use make_typed_vector
+	instead of scm_make_uve.
+	(tag_creator_table, scm_i_tag_to_creator): Removed.
+	(tag_to_type): New.
+	(scm_i_read_array): Use scm_list_to_typed_array instead of
+	scm_list_to_uniform_array.
+	
 2004-12-27  Marius Vollmer  <mvo@zagadka.de>
 
 	* unif.h, unif.c (scm_bitvector_elements): Made return value "const".
