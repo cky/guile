@@ -1399,7 +1399,7 @@ for every character in @var{s}.
 
 When @var{char_pred} does return true (ie.@: non-@code{#f}) for every
 character, the return from the last call is the value returned by
-@code{string-any}.
+@code{string-every}.
 @end itemize
 
 If there are no characters in @var{s} (ie.@: @var{start} equals
