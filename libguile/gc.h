@@ -2,7 +2,7 @@
 
 #ifndef GCH
 #define GCH
-/*	Copyright (C) 1995, 1996, 1998, 1999 Free Software Foundation, Inc.
+/* Copyright (C) 1995, 96, 98, 99, 2000 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -71,6 +71,7 @@ extern int scm_gc_heap_lock;
 extern unsigned long scm_heap_size;
 extern SCM_CELLPTR scm_heap_org;
 extern SCM scm_freelist;
+extern SCM scm_freelist2;
 extern unsigned long scm_gc_cells_collected;
 extern unsigned long scm_gc_malloc_collected;
 extern unsigned long scm_gc_ports_collected;
@@ -81,6 +82,7 @@ extern unsigned long scm_mtrigger;
 #ifdef GUILE_DEBUG_FREELIST
 extern SCM scm_map_free_list (void);
 extern SCM scm_debug_newcell (void);
+extern SCM scm_debug_newcell2 (void);
 extern SCM scm_gc_set_debug_check_freelist_x (SCM flag);
 #endif
 
@@ -93,7 +95,7 @@ extern void scm_gc_start (const char *what);
 extern void scm_gc_end (void);
 extern SCM scm_gc (void);
 extern void scm_gc_for_alloc (int ncells, SCM * freelistp);
-extern SCM scm_gc_for_newcell (void);
+extern SCM scm_gc_for_newcell (int ncells, SCM * freelistp);
 extern void scm_igc (const char *what);
 extern void scm_gc_mark (SCM p);
 extern void scm_mark_locations (SCM_STACKITEM x[], scm_sizet n);
@@ -111,6 +113,7 @@ extern int scm_return_first_int (int x, ...);
 extern SCM scm_permanent_object (SCM obj);
 extern SCM scm_protect_object (SCM obj);
 extern SCM scm_unprotect_object (SCM obj);
-extern int scm_init_storage (scm_sizet init_heap_size);
+extern int scm_init_storage (scm_sizet init_heap_size,
+                             scm_sizet init_heap2_size);
 extern void scm_init_gc (void);
 #endif  /* GCH */

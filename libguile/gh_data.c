@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998, 1999 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998, 1999, 2000 Free Software Foundation, Inc.
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2, or (at your option)
@@ -203,8 +203,6 @@ gh_ulongs2uvect (unsigned long *d, int n)
   return makvect (m, n, scm_tc7_uvect);
 }
 
-#ifdef SCM_FLOATS
-#ifdef SCM_SINGLES
 SCM
 gh_floats2fvect (float *d, int n)
 {
@@ -212,7 +210,6 @@ gh_floats2fvect (float *d, int n)
   memcpy (m, d, n * sizeof (float));
   return makvect (m, n, scm_tc7_fvect);
 }
-#endif
 
 SCM
 gh_doubles2dvect (double *d, int n)
@@ -221,7 +218,6 @@ gh_doubles2dvect (double *d, int n)
   memcpy (m, d, n * sizeof (double));
   return makvect (m, n, scm_tc7_dvect);
 }
-#endif
 #endif
 
 /* data conversion scheme->C */
@@ -430,15 +426,13 @@ gh_scm2floats (SCM obj, float *m)
 	}
       break;
 #ifdef HAVE_ARRAYS
-#ifdef SCM_FLOATS
-#ifdef SCM_SINGLES
     case scm_tc7_fvect:
       n = SCM_LENGTH (obj);
       if (m == 0)
 	m = (float *) malloc (n * sizeof (float));
       memcpy (m, (float *) SCM_VELTS (obj), n * sizeof (float));
       break;
-#endif
+
     case scm_tc7_dvect:
       n = SCM_LENGTH (obj);
       if (m == 0)
@@ -446,7 +440,6 @@ gh_scm2floats (SCM obj, float *m)
       for (i = 0; i < n; ++i)
 	m[i] = ((double *) SCM_VELTS (obj))[i];
       break;
-#endif
 #endif
     default:
       scm_wrong_type_arg (0, 0, obj);
@@ -489,8 +482,6 @@ gh_scm2doubles (SCM obj, double *m)
 	}
       break;
 #ifdef HAVE_ARRAYS
-#ifdef SCM_FLOATS
-#ifdef SCM_SINGLES
     case scm_tc7_fvect:
       n = SCM_LENGTH (obj);
       if (m == 0)
@@ -498,14 +489,13 @@ gh_scm2doubles (SCM obj, double *m)
       for (i = 0; i < n; ++i)
 	m[i] = ((float *) SCM_VELTS (obj))[i];
       break;
-#endif
+
     case scm_tc7_dvect:
       n = SCM_LENGTH (obj);
       if (m == 0)
 	m = (double*) malloc (n * sizeof (double));
       memcpy (m, SCM_VELTS (obj), n * sizeof (double));
       break;
-#endif
 #endif
     default:
       scm_wrong_type_arg (0, 0, obj);

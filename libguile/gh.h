@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996,1997,1998 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996,1997,1998, 2000 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -114,12 +114,8 @@ SCM gh_chars2byvect(char *d, int n);
 SCM gh_shorts2svect(short *d, int n);
 SCM gh_longs2ivect(long *d, int n);
 SCM gh_ulongs2uvect(unsigned long *d, int n);
-#ifdef SCM_FLOATS
-#ifdef SCM_SINGLES
 SCM gh_floats2fvect(float *d, int n);
-#endif
 SCM gh_doubles2dvect(double *d, int n);
-#endif
 #endif
 
 SCM gh_doubles2scm(double *d, int n);

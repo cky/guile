@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995, 1996, 1998, 1999 Free Software Foundation, Inc.
+/*	Copyright (C) 1995, 1996, 1998, 1999, 2000 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -266,14 +266,14 @@ scm_smob_prehistory ()
   scm_make_smob_type_mfpe ("free", 0,
                           NULL, NULL, freeprint, NULL);
 
-  scm_make_smob_type_mfpe ("flo", 0,    /* freed in gc */
-                          NULL, NULL, scm_floprint, scm_floequal);
-
-  scm_make_smob_type_mfpe ("bigpos", 0,     /* freed in gc */
+  scm_make_smob_type_mfpe ("big", 0,     /* freed in gc */
                           NULL, NULL, scm_bigprint, scm_bigequal);
 
-  scm_make_smob_type_mfpe ("bigneg", 0,
-                          NULL, NULL, scm_bigprint, scm_bigequal);
+  scm_make_smob_type_mfpe ("real", 0,    /* freed in gc */
+			   NULL, NULL, scm_print_real, scm_real_equalp);
 
-  scm_make_smob_type("allocated", 0);
+  scm_make_smob_type_mfpe ("complex", 0,    /* freed in gc */
+			   NULL, NULL, scm_print_complex, scm_complex_equalp);
+
+  scm_make_smob_type ("allocated", 0);
 }

@@ -1,3 +1,100 @@
+2000-03-14  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* Makefile.am (libguile_la_LDFLAGS): Bumped library version
+	number.
+
+	* __scm.h eq.c, eval.c, gc.c, hc.h, gh_data, hash.c, numbers.c,
+	numbers.h, objects.c, ramap.c, random.c, unif.c, unif.h: Extensive
+	rewrite of handling of real and complex numbers.
+	(SCM_FLOATS, SCM_SINGLES): These #ifdef conditionals have been
+	removed along with the support for floats.  (Float vectors are
+	still supported.)
+
+	* tags.h (scm_tcs_bignums): Removed.
+	(scm_tc16_bigpos, scm_tc16_bigneg): Replaced by scm_tc16_big.
+	Use SCM_BIGSIGN(x) to test for sign!
+	(scm_tc16_big): The new bignum type.
+	(SCM_REAL_PART, SCM_IMAG_PART): Removed.
+
+	* numbers.h (SCM_BIGSIGN): Sign moved to bit 16.
+	(scm_makdbl): Deprecated.
+	(SCM_NEWREAL, SCM_NEWCOMPLEX): New macros.
+	(SCM_SINGP): Deprecated.
+	(SCM_FLO): Removed.
+	(SCM_INEXP, SCM_CPLXP): Deprecated.
+	(SCM_INEXACTP, SCM_COMPLEXP): New macros.
+	(SCM_COMPLEX_REAL, SCM_COMPLEX_IMAG): Renamed from
+	SCM_REAL, SCM_IMAG (and now only valid for complex numbers).
+	(SCM_REAL, SCM_IMAG): New, *deprecated*, selectors which work both
+	for doubles and complex numbers.
+	(SCM_REAL_VALUE): New selector for doubles.
+	(scm_double_t, scm_complex_t): New types.
+	(scm_dbl): Removed.
+
+	* numbers.c (scm_floprint, scm_floequal): Removed.
+	(scm_print_real, scm_print_complex, scm_real_equalp,
+	scm_complex_equalp): New functions.
+
+	* unif.c (scm_makflo): Removed.
+
+	* smob.h (SCM_SMOB_PREDICATE): New macro.
+	(SCM_NEWSMOB2, SCM_RETURN_NEWSMOB2, SCM_NEWSMOB3,
+	SCM_RETURN_NEWSMOB3): New macros.
+
+1999-11-21  Michael Livshin  <mlivshin@bigfoot.com>
+
+	The following changes implement primitive support for double cells
+	(i.e. four-word cells) and change the representation of some
+	things to multi-cells instead of cons+malloc.  (Applied and
+	modified by mdj.)
+
+	* pairs.h (SCM_NEWCELL2): double-cell variants of SCM_NEWCELL.
+	(SCM_CELL_WORD, SCM_CELL_WORDLOC, SCM_SET_CELL_WORD): primitive
+	multi-cell access macros (used by the ones below).
+	(SCM_CELL_WORD[0-3], SCM_SET_CELL_WORD[0-3]): multi-cell access
+ 	macros.
+
+	* gc.c (scm_freelist2): multi-cell freelists.
+	(inner_map_free_list): map_free_list, parameterized on ncells.
+  	"nn cells in segment mm" was misleading for ncells > 1; changed to
+ 	"objects".  still print cells too, though.
+	(scm_map_free_list): rewritten using inner_map_free_list.
+	(scm_check_freelist): get freelist as parameter, since now we have
+ 	more than one.
+	(scm_debug_newcell2): multi-cell variants of
+ 	scm_debug_newcell.
+	(scm_gc_for_newcell): take ncells and freelist pointer as
+ 	parameters.
+	(scm_gc_mark): add case for tc7_pws (procedures with setters are
+ 	now double cells).
+	(scm_gc_sweep): don't free the float data, since it's not malloced
+ 	anymore.
+	(init_heap_seg): didn't understand what n_new_objects stood for,
+ 	so changed to n_new_cells.
+	(make_initial_segment): new function, makes an initial segment
+ 	according to given ncells.
+	(scm_init_storage): call make_initial_segment, for ncells={1,2,3}.
+
+	* numbers.c (scm_makdbl): no malloc'ing needed, so the
+ 	{DEFER,ALLOW}_INTS thing removed.
+
+	* numbers.h (struct scm_dbl): changed to represent a double cell,
+ 	with the number in the second half.
+	(struct scm_cplx): new, represents a complex number as a triple
+ 	cell.
+
+	* dynwind.c: changed the wind-guards representation to double
+ 	cell.
+
+	* procs.c, procs.h: changed the procedure-with-setter representation
+	to double cell.
+
+	* async.c, async.h: made async representation a double cell.
+
+	* guardians.c: made guardian representation a triple cell.
+
+	* dynl.c: made dynamic_obj representation a double cell.
+	
 2000-03-13  Gary Houston  <ghouston@arglist.com>
 
 	* ports.c (flush_void_port): renamed to flush_port_default.

@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999, 2000 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -218,12 +218,6 @@ check_config (void)
   j = HEAP_SEG_SIZE;
   if (HEAP_SEG_SIZE != j)
     fixconfig ("reduce", "size of HEAP_SEG_SIZE", 0);
-
-#ifdef SCM_SINGLES
-  if (sizeof (float) != sizeof (long))
-      fixconfig (remsg, "SCM_SINGLES", 0);
-#endif /* def SCM_SINGLES */
-
 
 #ifdef SCM_BIGDIG
   if (2 * SCM_BITSPERDIG / SCM_CHAR_BIT > sizeof (long))
@@ -465,7 +459,7 @@ scm_boot_guile_1 (SCM_STACKITEM *base, struct main_func_closure *closure)
       scm_ports_prehistory ();
       scm_smob_prehistory ();
       scm_tables_prehistory ();
-      scm_init_storage (0);
+      scm_init_storage (0, 0);
       scm_init_subr_table ();
       scm_init_root ();
 #ifdef USE_THREADS
