@@ -136,8 +136,6 @@ struct scm_thread {
   SCM result;
   int exited;
 
-  SCM joining_threads;
-
   /* For keeping track of the stack and registers. */
   SCM_STACKITEM *base;
   SCM_STACKITEM *top;
@@ -155,7 +153,6 @@ make_thread (SCM creation_protects)
   t->handle = z;
   t->result = creation_protects;
   t->base = NULL;
-  t->joining_threads = make_queue ();
   scm_i_plugin_cond_init (&t->sleep_cond, 0);
   scm_i_plugin_mutex_init (&t->heap_mutex, &scm_i_plugin_mutex);
   t->clear_freelists_p = 0;
@@ -178,7 +175,6 @@ thread_mark (SCM obj)
 {
   scm_thread *t = SCM_THREAD_DATA (obj);
   scm_gc_mark (t->result);
-  scm_gc_mark (t->joining_threads);
   return t->root->handle; /* mark root-state of this thread */
 }
 
@@ -187,8 +183,10 @@ thread_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
   scm_thread *t = SCM_THREAD_DATA (exp);
   scm_puts ("#<thread ", port);
+  scm_intprint ((unsigned long)t->thread, 10, port);
+  scm_puts (" (", port);
   scm_intprint ((unsigned long)t, 16, port);
-  scm_putc ('>', port);
+  scm_puts (")>", port);
   return 1;
 }
 

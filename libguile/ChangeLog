@@ -1,5 +1,9 @@
 2002-12-16  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
+	* threads.c (scm_thread): Removed filed joining_threads.
+	(thread_print): Print thread number as well as address of thread
+	structure.
+
 	* pthread-threads.c, pthread-threads.h, threads.c: Fixes to
 	pthread "native" recursive mutex support.
 
