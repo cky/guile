@@ -753,7 +753,7 @@ scm_m_define (x, env)
     {
       x = evalcar (x, env);
 #ifdef DEBUG_EXTENSIONS
-      if (SCM_REC_PROCNAMES_P)
+      if (SCM_REC_PROCNAMES_P && SCM_NIMP (x) && SCM_CLOSUREP (x))
 	scm_set_procedure_property_x (x, scm_i_name, proc);
 #endif
       arg1 = scm_sym2vcell (proc, env_top_level (env), SCM_BOOL_T);
