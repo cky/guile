@@ -1,3 +1,9 @@
+2004-05-03  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/time.test (strftime): Force tm:isdst to 0 for the test, for
+	the benefit of HP-UX.  Reported by Andreas Vögele.
+	Use set-tm:zone rather than a hard coded vector offset.
+
 2004-04-29  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
 
 	* tests/elisp.test: Wrap tests in module (test-suite
