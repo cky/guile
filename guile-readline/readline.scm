@@ -23,13 +23,21 @@
 
 (define-module (ice-9 readline)
   :use-module (ice-9 session)
-  :use-module (ice-9 regex))
+  :use-module (ice-9 regex)
+  :no-backtrace)
 
 ;;; Dynamically link the glue code for accessing the readline library,
 ;;; but only when it isn't already present.
 
 (if (not (feature? 'readline))
     (dynamic-call "scm_init_readline" (dynamic-link "libguilereadline.so")))
+
+(if (not (feature? 'readline))
+    (scm-error 'misc-error
+	       #f
+	       "readline is not provided in this Guile installation"
+	       '()
+	       '()))
 
 ;;; MDJ 980513 <djurfeldt@nada.kth.se>:
 ;;; There should probably be low-level support instead of this code.
