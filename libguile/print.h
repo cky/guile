@@ -47,7 +47,13 @@
 #include "__scm.h"
 
 
+extern scm_option scm_print_opts[];
+
+#define PRINT_PROCNAMES  scm_print_opts[0].val
+#define N_PRINT_OPTIONS 1
+
 #ifdef __STDC__
+extern SCM scm_print_options (SCM new_values);
 extern void scm_intprint (long n, int radix, SCM port);
 extern void scm_ipruk (char *hdr, SCM ptr, SCM port);
 extern void scm_iprlist (char *hdr, SCM exp, char tlr, SCM port, int writing);
@@ -59,6 +65,7 @@ extern SCM scm_write_char (SCM chr, SCM port);
 extern void scm_init_print (void);
 
 #else /* STDC */
+extern SCM scm_print_options ();
 extern void scm_intprint ();
 extern void scm_ipruk ();
 extern void scm_iprlist ();
