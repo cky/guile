@@ -1,5 +1,10 @@
 2003-01-23  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
+	* futures.c (mark_futures): Don't need to mark data of recycled
+	futures.
+	(scan_futures, cleanup_undead): Be smarter about marking
+	futures---avoid unnecessary passes through future lists.
+
 	* futures.h, futures.c: New files; Introduced recycling of
 	futures.  For fine-grained threading this lifts performance to
 	another level.  We can now use parallelization in inner loops of

@@ -290,6 +290,7 @@ cleanup_undead ()
 	  scm_cond_signal (SCM_FUTURE_COND (next));
 	  scm_mutex_unlock (SCM_FUTURE_MUTEX (next));
 	next:
+	  SCM_SET_GC_MARK (next);
 	  nextloc = SCM_FUTURE_NEXTLOC (next);
 	  next = *nextloc;
 	}
@@ -309,7 +310,6 @@ mark_futures (SCM futures)
 {
   while (!SCM_NULLP (futures))
     {
-      scm_gc_mark (SCM_FUTURE_DATA (futures));
       SCM_SET_GC_MARK (futures);
       futures = SCM_FUTURE_NEXT (futures);
     }
@@ -329,6 +329,8 @@ scan_futures (void *dummy1, void *dummy2, void *dummy3)
       young = SCM_EOL;
       last_switch = now;
     }
+  else
+    mark_futures (young);    
 
   next = futures;
   nextloc = &futures;
@@ -352,15 +354,14 @@ scan_futures (void *dummy1, void *dummy2, void *dummy3)
       {
 	SCM future;
 	UNLINK (next, future);
+	SCM_SET_GC_MARK (future);
 	LINK (young, future);
       }
     }
   *nextloc = SCM_EOL;
  exit:
   cleanup_undead ();
-  mark_futures (young);
   mark_futures (old);
-  mark_futures (undead);
   return 0;
 }
 
