@@ -7,7 +7,7 @@ as a separate package.  The current status of guile-scsh can be found at
 @url{http://arglist.com/guile/}.
 
 For information about scsh see
-@url{http://www-swiss.ai.mit.edu/ftpdir/scsh/}.
+@url{http://www.scsh.net/}.
 
 The closest emulation of scsh can be obtained by running:
 

@@ -90,6 +90,13 @@ Evaluation}).
 In addition, in Guile any module can be used as an R5RS environment,
 i.e., passed as the second argument to @code{eval}.
 
+Note: the following two procedures are available only when the 
+@code{(ice-9 r5rs)} module is loaded:
+
+@smalllisp
+(use-modules (ice-9 r5rs))
+@end smalllisp
+
 @deffn {Scheme Procedure} scheme-report-environment version
 @deffnx {Scheme Procedure} null-environment version
 @var{version} must be the exact integer `5', corresponding to revision
