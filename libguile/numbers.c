@@ -3707,10 +3707,13 @@ scm_divide (SCM x, SCM y)
     if (SCM_UNBNDP (x)) {
       SCM_WTA_DISPATCH_0 (g_divide, s_divide);
     } else if (SCM_INUMP (x)) {
-      if (SCM_EQ_P (x, SCM_MAKINUM (1L)) || SCM_EQ_P (x, SCM_MAKINUM (-1L))) {
+      long xx = SCM_INUM (x);
+      if (xx == 1 || xx == -1) {
 	return x;
+      } else if (xx == 0) {
+	scm_num_overflow (s_divide);
       } else {
-	return scm_make_real (1.0 / (double) SCM_INUM (x));
+	return scm_make_real (1.0 / (double) xx);
       }
     } else if (SCM_BIGP (x)) {
       return scm_make_real (1.0 / scm_i_big2dbl (x));

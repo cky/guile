@@ -1,3 +1,8 @@
+2001-11-22  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* numbers.c (scm_divide):  Fix (/ 0).  Thanks to Keith Wright for
+	reporting the bug.
+
 2001-11-21  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* Makefile.am (install-exec-hook): Prepend $(DESTDIR) to filename.
