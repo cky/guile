@@ -20,10 +20,11 @@ AC_HEADER_STDC
 AC_HEADER_DIRENT
 AC_HEADER_TIME
 AC_HEADER_SYS_WAIT
-AC_CHECK_HEADERS(unistd.h string.h malloc.h memory.h limits.h time.h sys/types.h sys/select.h sys/time.h sys/timeb.h sys/times.h)
+AC_CHECK_HEADERS(libc.h limits.h malloc.h memory.h string.h sys/select.h sys/time.h sys/timeb.h sys/times.h sys/types.h time.h unistd.h)
 
 AC_TYPE_GETGROUPS
 AC_TYPE_SIGNAL
+AC_TYPE_MODE_T
 
 AC_CHECK_FUNCS(ftime times geteuid seteuid setegid select uname mkdir rmdir getcwd rename putenv setlocale strftime strptime mknod nice lstat readlink symlink sync)
 

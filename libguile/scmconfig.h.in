@@ -32,6 +32,9 @@
 /* Define if on MINIX.  */
 #undef _MINIX
 
+/* Define to `int' if <sys/types.h> doesn't define.  */
+#undef mode_t
+
 /* Define if the system does not provide POSIX.1 features except
    with this defined.  */
 #undef _POSIX_1_SOURCE
@@ -50,6 +53,23 @@
 
 /* Define to `int' if <sys/types.h> doesn't define.  */
 #undef uid_t
+
+/* Define this if your system has a way to set a stdio stream's file
+   descriptor.  You should also copy fd.h.in to fd.h, and give the
+   macro SET_FILE_FD_FIELD an appropriate definition.  See
+   configure.in for more details.  */
+#undef HAVE_FD_SETTER
+
+/* Define this if your system defines struct linger, for use with the
+   getsockopt and setsockopt system calls.  */
+#undef HAVE_STRUCT_LINGER
+
+/* Define this if floats are the same size as longs.  */
+#undef SCM_SINGLES
+
+/* Define this if a callee's stack frame has a higher address than the
+   caller's stack frame.  On most machines, this is not the case.  */
+#undef SCM_STACK_GROWS_UP
 
 /* Define if you have the ftime function.  */
 #undef HAVE_FTIME
@@ -87,6 +107,12 @@
 /* Define if you have the select function.  */
 #undef HAVE_SELECT
 
+/* Define if you have the setegid function.  */
+#undef HAVE_SETEGID
+
+/* Define if you have the seteuid function.  */
+#undef HAVE_SETEUID
+
 /* Define if you have the setlocale function.  */
 #undef HAVE_SETLOCALE
 
@@ -110,6 +136,9 @@
 
 /* Define if you have the <dirent.h> header file.  */
 #undef HAVE_DIRENT_H
+
+/* Define if you have the <libc.h> header file.  */
+#undef HAVE_LIBC_H
 
 /* Define if you have the <limits.h> header file.  */
 #undef HAVE_LIMITS_H
@@ -152,10 +181,3 @@
 
 /* Define if you have the <unistd.h> header file.  */
 #undef HAVE_UNISTD_H
-
-#undef SCM_SINGLES
-
-#undef SCM_STACK_GROWS_UP
-
-/* Define if you have struct linger.  */
-#undef HAVE_STRUCT_LINGER
