@@ -15,7 +15,7 @@ automatically when the first thread enters guile mode.
 
 When a thread wants to block outside of a Guile API function, it should
 leave guile mode temporarily with either @code{scm_without_guile} or
-@code{scm_leave_guile}, @xref{Threads}.
+@code{scm_leave_guile}, @xref{Blocking}.
 
 Threads that are created by @code{call-with-new-thread} or
 @code{scm_spawn_thread} start out in guile mode so you don't need to
