@@ -53,6 +53,8 @@ AC_TYPE_MODE_T
 
 AC_CHECK_FUNCS(ctermid ftime getcwd geteuid gethostent gettimeofday lstat mkdir mknod nice readlink rename rmdir select setegid seteuid setlocale setpgid setsid strftime strptime symlink sync tcgetpgrp tcsetpgrp times uname waitpid)
 
+AC_CHECK_FUNCS(regcomp, [LIBOBJS="regex-posix.o $LIBOBJS"])
+
 AC_REPLACE_FUNCS(inet_aton putenv strerror)
 
 AC_FUNC_ALLOCA
