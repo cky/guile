@@ -865,7 +865,7 @@ SCM_DEFINE (scm_execlp, "execlp", 1, 0, 1,
 	    "@var{filename} does not contain a slash\n"
 	    "then the file to execute will be located by searching the\n"
 	    "directories listed in the @code{PATH} environment variable.\n\n"
-	    "This procedure is currently implemented using the @code{execlv} system\n"
+	    "This procedure is currently implemented using the @code{execvp} system\n"
 	    "call, but we call it @code{execlp} because of its Scheme calling interface.")
 #define FUNC_NAME s_scm_execlp
 {
