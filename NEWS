@@ -183,6 +183,53 @@ when this hook is run in the future.
 C programmers: Note the new C level hooks scm_before_gc_c_hook,
 scm_before_sweep_c_hook, scm_after_gc_c_hook.
 
+** Improvements to garbage collector
+
+Guile 1.4 has a new policy for triggering heap allocation and
+determining the sizes of heap segments.  It fixes a number of problems
+in the old GC.
+
+1. The new policy can handle two separate pools of cells
+   (2-word/4-word) better.  (The old policy would run wild, allocating
+   more and more memory for certain programs.)
+
+2. The old code would sometimes allocate far too much heap so that the
+   Guile process became gigantic.  The new code avoids this.
+
+3. The old code would sometimes allocate too little so that few cells
+   were freed at GC so that, in turn, too much time was spent in GC.
+
+4. The old code would often trigger heap allocation several times in a
+   row.  (The new scheme predicts how large the segments needs to be
+   in order not to need further allocation.)
+
+The new GC scheme also is prepared for POSIX threading.  Threads can
+allocate private pools of cells ("clusters") with just a single
+function call.  Allocation of single cells from such a cluster can
+then proceed without any need of inter-thread synchronization.
+
+** New environment variables controlling GC parameters
+
+GUILE_MAX_SEGMENT_SIZE          Maximal segment size
+                                (default = 2097000)
+
+Allocation of 2-word cell heaps:
+
+GUILE_INIT_SEGMENT_SIZE_1       Size of initial heap segment in bytes
+                                (default = 360000)
+
+GUILE_MIN_YIELD_1               Minimum number of freed cells at each
+                                GC in percent of total heap size
+                                (default = 40)
+
+Allocation of 4-word cell heaps
+(used for real numbers and misc other objects):
+
+GUILE_INIT_SEGMENT_SIZE_2, GUILE_MIN_YIELD_2
+
+(See entry "Way for application to customize GC parameters" under
+ section "Changes to the scm_ interface" below.)
+
 * Changes to Scheme functions and syntax
 
 ** close-input-port and close-output-port are now R5RS
@@ -214,6 +261,16 @@ Returns #t if PORT is closed or #f if it is open.
 ** Deprecated: list*
 
 The list* functionality is now provided by cons* (SRFI-1 compliant)
+
+** New procedure: cons* ARG1 ARG2 ... ARGn
+
+Like `list', but the last arg provides the tail of the constructed list,
+returning (cons ARG1 (cons ARG2 (cons ... ARGn))).
+
+Requires at least one argument.  If given one argument, that argument
+is returned as result.
+
+This function is called `list*' in some other Schemes and in Common LISP.
 
 ** Removed deprecated: serial-map, serial-array-copy!, serial-array-map!
 
@@ -464,6 +521,26 @@ are run when the heap is locked.  These are intended for extension of
 the GC in a modular fashion.  Examples are the weaks and guardians
 modules.
 
+** Way for application to customize GC parameters
+
+The application can set up other default values for the GC heap
+allocation parameters
+
+  GUILE_INIT_HEAP_SIZE_1, GUILE_MIN_YIELD_1,
+  GUILE_INIT_HEAP_SIZE_2, GUILE_MIN_YIELD_2,
+  GUILE_MAX_SEGMENT_SIZE,
+
+by setting
+
+  scm_default_init_heap_size_1, scm_default_min_yield_1,
+  scm_default_init_heap_size_2, scm_default_min_yield_2,
+  scm_default_max_segment_size
+
+respectively before callong scm_boot_guile.
+
+(See entry "New environment variables ..." in section
+"Changes to the stand-alone interpreter" above.)
+
 ** Deprecated type tags:  scm_tc16_flo, scm_tc_flo, scm_tc_dblr, scm_tc_dblc
 
 Guile does not provide the float representation for inexact real numbers any
@@ -474,6 +551,13 @@ and scm_tc16_complex, respectively.
 ** Removed deprecated type scm_smobfuns
 
 ** Removed deprecated function scm_newsmob
+
+** Warning: scm_make_smob_type_mfpe might become deprecated in a future release
+
+There is an ongoing discussion among the developers whether to
+deprecate `scm_make_smob_type_mfpe' or not.  Please use the current
+standard interface (scm_make_smob_type, scm_set_smob_XXX) in new code
+until this issue has been settled.
 
 ** Removed deprecated type tag scm_tc16_kw
 

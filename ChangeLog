@@ -1,3 +1,10 @@
+2000-06-20  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* GUILE-VERSION: Changed to work also when included by a Makefile
+	(e.g. debian/rules).  (Thanks to Karl M. Hegbloom.)
+	(LIBGUILE_MAJOR_VERSION): Bumped to 9.
+	(GUILE_MINOR_VERSION): Bumped to 4.
+
 2000-06-12  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* libguile.h: Removed #include "libguile/kw.h".

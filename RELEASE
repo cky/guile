@@ -121,6 +121,10 @@ Spiffing checklist:
     (If the above steps are not done, the dependencies won't be properly
     included in the generated Makefile.in files.)
   + Then do 'make dist'.
+  + Check that the dependencies in guile-readline/Makefile look OK.
+    (We currently use a kludge which edits the dependencies generated
+    by automake so that Guile can be built in a directory separate
+    from the source tree also with non-GNU make programs.)
 * Give the test disty to various people to try.  Here's what you should do:
   + Unset GUILE_LOAD_PATH.
   + Remove automake and autoconf from your path, or turn off their

@@ -1,3 +1,20 @@
+2000-06-20  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* gc.c, gc.h (scm_default_init_heap_size_1,
+	scm_default_min_yield_1, scm_default_init_heap_size_2,
+	scm_default_min_yield_2, scm_default_max_segment_size): New global
+	variables.  Can be customized by the application before booting
+	Guile.  (We might want to be able to control these parameters
+	dynamically through the "options interface" in the future, but
+	note that that is additional functionality.  Here we're giving
+	default values which the environment variables can override.)
+
+	* list.c (scm_cons_star): Updated comment.
+
+	* smob.h: Changed comments for scm_make_smob_type and
+	scm_make_smob_type_mfpe, warning that the latter might be
+	deprecated in a future release.
+
 2000-06-19  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* list.[ch] (scm_cons_star/cons*):  Renamed from
