@@ -8,8 +8,9 @@ Changes since Guile 1.2:
 
 * Changes to the distribution
 
-** libguile/append.h, libguile/append.c, libguile/sequences.h,
-libguile/sequences.c removed.
+** libguile/append.h, libguile/append.c, libguile/extchrs.h,
+libguile/extchrs.c, libguile/mbstrings.h libguile/mbstrings.c,
+libguile/sequences.h, libguile/sequences.c removed.
 
 * Changes to the stand-alone interpreter
 
@@ -28,6 +29,9 @@ Function: set-batch-mode?! ARG
 * Changes to the procedure for linking libguile with your programs
 
 * Changes to Scheme functions and syntax
+
+** Multi-byte strings have been removed, as have multi-byte and wide
+ports.
 
 ** Some magic has been added to the printer to better handle user
 written printing routines (like record printers, closure printers).
@@ -343,6 +347,10 @@ scm_tc7_mb_substring has been removed.
 
 SCM_TYP7S now masks away the bit which distinguishes substrings from
 strings.
+
+** All genio functions changed names and interfaces; new functions are
+scm_putc, scm_puts, scm_lfwrite, scm_getc, scm_ungetc, and
+scm_do_read_line.
 
 
 Changes in Guile 1.2 (released Tuesday, June 24 1997):
