@@ -369,7 +369,7 @@ defaults to the end of @var{str}.  The shared substring returned by
 
   SCM_VALIDATE_ROSTRING(1,str);
   SCM_VALIDATE_INT_DEF_COPY(2,frm,0,f);
-  SCM_VALIDATE_INT_DEF_COPY(3,to,0,t);
+  SCM_VALIDATE_INT_DEF_COPY(3,to,SCM_ROLENGTH(str),t);
 
   SCM_ASSERT_RANGE (2,frm,(f >= 0));
   SCM_ASSERT_RANGE (3,to, (f <= t) && (t <= SCM_ROLENGTH (str)));
