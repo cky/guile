@@ -1,7 +1,15 @@
+2002-01-12  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	More options for pretty-print.  Thanks to Matthias Köppe!
+	
+	* pretty-print.scm (generic-write): New per-line-prefix argument.
+	(pretty-print): Check whether the new keyword argument style is
+	used and dispatch to pretty-print-with-keys accordingly.
+
 2001-11-27  Marius Vollmer  <mvo@zagadka.ping.de>
 
-	* format.scm (string-index, list-head): Removed, we already these
-	in the core.
+	* format.scm (string-index, list-head): Removed, we already have
+	these in the core.
 
 2001-11-06  Marius Vollmer  <mvo@zagadka.ping.de>
 

@@ -20,6 +20,12 @@ debugging evaluator gives better error messages.
 
 * Changes to Scheme functions and syntax
 
+** pretty-print has more options.
+
+The function pretty-print from the (ice-9 pretty-print) module can now
+also be invoked with keyword arguments that control things like
+maximum output width.  See its online documentation.
+
 ** Variables have no longer a special behavior for `equal?'.
 
 Previously, comparing two variables with `equal?' would recursivly
