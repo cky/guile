@@ -1,3 +1,14 @@
+2000-04-18  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* print.c (ENTER_NESTED_DATA, print_circref, scm_iprlist):
+	Compare SCM's with SCM_EQ_P.
+
+	* print.c (scm_make_print_state), srcprop.c
+	(scm_source_properties):  Use valid scheme object to initialize
+	SCM variable.
+
+	* print.c (scm_iprin1):  Remove redundant calls to SCM_UNPACK.
+
 2000-04-17  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* struct.c (scm_alloc_struct, scm_struct_free_0,

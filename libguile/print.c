@@ -166,7 +166,7 @@ do { \
 do { \
   register unsigned long i; \
   for (i = 0; i < pstate->top; ++i) \
-    if (pstate->ref_stack[i] == (obj)) \
+    if (SCM_EQ_P (pstate->ref_stack[i], (obj))) \
       goto label; \
   if (pstate->fancyp) \
     { \
@@ -218,7 +218,7 @@ make_print_state (void)
 SCM
 scm_make_print_state ()
 {
-  SCM answer = 0;
+  SCM answer = SCM_BOOL_F;
 
   /* First try to allocate a print state from the pool */
   SCM_DEFER_INTS;
@@ -229,7 +229,7 @@ scm_make_print_state ()
     }
   SCM_ALLOW_INTS;
   
-  return answer ? answer : make_print_state ();
+  return SCM_FALSEP (answer) ? make_print_state () : answer;
 }
 
 void
@@ -273,14 +273,15 @@ print_circref (SCM port,scm_print_state *pstate,SCM ref)
       while (i > 0)
 	{
 	  if (SCM_NCONSP (pstate->ref_stack[i - 1])
-	      || SCM_CDR (pstate->ref_stack[i - 1]) != pstate->ref_stack[i])
+	      || !SCM_EQ_P (SCM_CDR (pstate->ref_stack[i - 1]), 
+			    pstate->ref_stack[i]))
 	    break;
 	  --i;
 	}
       self = i;
     }
   for (i = pstate->top - 1; 1; --i)
-    if (pstate->ref_stack[i] == ref)
+    if (SCM_EQ_P (pstate->ref_stack[i], ref))
       break;
   scm_putc ('#', port);
   scm_intprint (i - self, 10, port);
@@ -327,9 +328,9 @@ taloop:
       else if (SCM_ILOCP (exp))
 	{
 	  scm_puts ("#@", port);
-	  scm_intprint (SCM_UNPACK (SCM_IFRAME (exp)), 10, port);
+	  scm_intprint (SCM_IFRAME (exp), 10, port);
 	  scm_putc (SCM_ICDRP (exp) ? '-' : '+', port);
-	  scm_intprint (SCM_UNPACK (SCM_IDIST (exp)), 10, port);
+	  scm_intprint (SCM_IDIST (exp), 10, port);
 	}
       else
 	goto idef;
@@ -819,7 +820,7 @@ scm_iprlist (char *hdr,SCM exp,int tlr,SCM port,scm_print_state *pstate)
       if (SCM_NECONSP (exp))
 	break;
       for (i = floor; i >= 0; --i)
-	if (pstate->ref_stack[i] == exp)
+	if (SCM_EQ_P (pstate->ref_stack[i], exp))
 	  goto circref;
       PUSH_REF (pstate, exp);
       scm_putc (' ', port);
@@ -850,7 +851,7 @@ fancy_printing:
 	if (SCM_NECONSP (exp))
 	  break;
 	for (i = 0; i < pstate->top; ++i)
-	  if (pstate->ref_stack[i] == exp)
+	  if (SCM_EQ_P (pstate->ref_stack[i], exp))
 	    goto fancy_circref;
 	if (pstate->fancyp)
 	  {

@@ -177,8 +177,8 @@ SCM_DEFINE (scm_source_properties, "source-properties", 1, 0, 0,
   else if (SCM_NCONSP (obj))
     SCM_WRONG_TYPE_ARG (1, obj);
 #endif
-  p = scm_hashq_ref (scm_source_whash, obj, (SCM) NULL);
-  if (p != (SCM) NULL && SRCPROPSP (p))
+  p = scm_hashq_ref (scm_source_whash, obj, SCM_BOOL_F);
+  if (SRCPROPSP (p))
     return scm_srcprops_to_plist (p);
   return SCM_EOL;
 }
