@@ -1,3 +1,29 @@
+1998-06-18  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* filesys.c (dirname, basename): New procedures.
+
+	* init.c (scm_boot_guile_1): Removed condition around
+	scm_init_options.
+
+	* dynwind.c: #include "genio.h"; #include "smob.h"; Implemented a
+	new data type (guards) for representation of C level guards and
+	data on the wind chain.
+	(scm_internal_dynamic_wind): New function.
+
+	* dynwind.h: Declare scm_internal_dynamic_wind.
+	
+	* root.h (scm_root_state): Added scm_cur_loadp.
+
+	* root.c (mark_root): Added comment about cur_loadp.
+
+	* load.c: #include "dynwind.h";
+	(scm_primitive_load): Use scm_inner_dynamic_wind to update
+	scm_cur_loadp.
+
+	* init.c (scm_init_standard_ports): Initialize scm_def_loadp.
+
+	* ports.c (current-load-port): New procedure.
+
 1998-06-09  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* ioext.c (scm_isatty_p): Accept any kind of data as argument.  If
