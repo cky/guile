@@ -133,7 +133,6 @@ In the subdirectory scripts, wrote:
 In the subdirectory doc, wrote:
     script-getopt.texi
     srfi-modules.texi
-    srfi-13-14.texi
     repl-modules.texi
 In the subdirectory doc, changes to:
     guile.texi      intro.texi      posix.texi
