@@ -124,8 +124,12 @@ scm_start_stack (base, in, out, err)
      FILE * out;
      FILE * err;
 {
+  SCM root;
   struct scm_port_table * pt;
 
+  root = scm_permanent_object (scm_make_root (SCM_UNDEFINED));
+  scm_set_root (SCM_ROOT_STATE (root));
+  
   scm_stack_base = base;
 
   /* Create standard ports from stdio files, if requested to do so.
@@ -348,6 +352,10 @@ scm_boot_guile (result, argc, argv, in, out, err, init_func, boot_cmd)
       scm_smob_prehistory ();
       scm_tables_prehistory ();
       scm_init_storage (0);
+      scm_init_root ();
+#ifdef USE_THREADS
+      scm_init_threads ();
+#endif
       scm_start_stack (&i, in, out, err);
       scm_init_gsubr ();
       scm_init_feature ();
