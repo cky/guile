@@ -1,3 +1,8 @@
+2001-07-09  Rob Browning  <rlb@defaultvalue.org>
+
+	* boot-9.scm: Fixed the sense of the error message when read-eval?
+	is #f.  Thanks to Matthias for catching this.
+
 2001-07-06  Rob Browning  <rlb@defaultvalue.org>
 
 	* boot-9.scm: added fix suggested by Matthias for #. read
