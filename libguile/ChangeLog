@@ -2,6 +2,8 @@
 
 	* strings.c (scm_read_only_string_p): Update docstring to reflect
 	current (non-)usage of "read only" strings.
+	(scm_make_shared_substring): Clarify docstring by changing
+	"semantics" to "arguments".
 
 2001-04-06  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 

@@ -384,7 +384,7 @@ SCM_DEFINE (scm_string_append, "string-append", 0, 0, 1,
 
 SCM_DEFINE (scm_make_shared_substring, "make-shared-substring", 1, 2, 0,
 	    (SCM str, SCM start, SCM end),
-	    "Return a shared substring of @var{str}.  The semantics are the\n"
+	    "Return a shared substring of @var{str}.  The arguments are the\n"
 	    "same as for the @code{substring} function: the shared substring\n"
 	    "returned includes all of the text from @var{str} between\n"
 	    "indexes @var{start} (inclusive) and @var{end} (exclusive).  If\n"
