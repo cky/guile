@@ -3,6 +3,9 @@
 	* numbers.c (scm_max, scm_min): For inum, bignum and real, if other
 	operand is NaN, then return NaN.  Also avoid passing NaN to mpz_cmp_d.
 
+	* read.c (scm_input_error): Pass arg list parameter to scm_error_scm,
+	rather than SCM_EOL.  Needed by "Unknown # object" case in scm_lreadr.
+	
 2003-06-04  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* __scm.h, gc-card.c (SCM_DEBUG_DEBUGGER_SUPPORT,

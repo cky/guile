@@ -1,3 +1,10 @@
+2003-06-05  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/numbers.test (logcount): Add a few more tests, to exercise
+	recent scm_logcount change.
+
+	* tests/reader.test (reading): Test bad # error message is formattable.
+	
 2003-06-01  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* tests/pairs.test: Added.

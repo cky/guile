@@ -1,3 +1,20 @@
+2003-06-05  Kevin Ryde  <user42@zip.com.au>
+
+	* posix.texi (File System): stat:rdev and stat:blocks can return #f,
+	stat:blksize returns a sensible size if the field is not available.
+
+	* scheme-compound.texi (Array Mapping): Reword for clarity, and in
+	particular have the same parameter names in the text and prototypes.
+
+	* scheme-evaluation.texi (Delayed Evaluation): Add delay, reword
+	promise? and force a bit, describe recursive forcing of a promise by
+	its own code.
+
+	* scheme-scheduling.texi (Futures): New section.
+
+	* srfi-modules.texi (SRFI-13 Miscellaneous): In string-replace, note
+	that start1 and end1 optional is a Guile extension.
+
 2003-05-30  Kevin Ryde  <user42@zip.com.au>
 
 	* deprecated.texi: Add substring-move-left! and substring-move-right!.
