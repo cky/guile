@@ -67,13 +67,11 @@
 
 #define SCM_WHITE_SPACES  SCM_SINGLE_SPACES: case '\t'
 
-#ifdef READER_EXTENSIONS
 extern scm_option scm_read_opts[];
 
 #define SCM_COPY_SOURCE_P      scm_read_opts[0].val
 #define SCM_RECORD_POSITIONS_P scm_read_opts[1].val
 #define SCM_N_READ_OPTIONS 2
-#endif
 
 
 
@@ -83,9 +81,10 @@ extern SCM scm_read (SCM port, SCM casep, SCM sharp);
 extern char * scm_grow_tok_buf (SCM * tok_buf);
 extern int scm_flush_ws (SCM port, char *eoferr);
 extern int scm_casei_streq (char * s1, char * s2);
-extern SCM scm_lreadr (SCM * tok_buf, SCM port, int case_i, SCM sharp);
+extern SCM scm_lreadr (SCM * tok_buf, SCM port, int case_i, SCM sharp, SCM *copy);
 extern scm_sizet scm_read_token (int ic, SCM * tok_buf, SCM port, int case_i, int weird);
-extern SCM scm_lreadparen (SCM * tok_buf, SCM port, char *name, int case_i, SCM sharp);
+extern SCM scm_lreadparen (SCM * tok_buf, SCM port, char *name, int case_i, SCM sharp, SCM *copy);
+extern SCM scm_lreadrecparen (SCM * tok_buf, SCM port, char *name, int case_i, SCM sharp, SCM *copy);
 extern void scm_init_read (void);
 
 #else /* STDC */
@@ -97,6 +96,7 @@ extern int scm_casei_streq ();
 extern SCM scm_lreadr ();
 extern scm_sizet scm_read_token ();
 extern SCM scm_lreadparen ();
+extern SCM scm_lreadrecparen ();
 extern void scm_init_read ();
 
 #endif /* STDC */
