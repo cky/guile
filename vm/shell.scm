@@ -166,7 +166,7 @@ certain conditions.  There is absolutely no warranty for Guile VM.\n")
 	  (loop (cdr list) (1- n))))
     list)
   (let* ((prog (frame-program frame))
-	 (name (or (program-name prog) prog)))
+	 (name (or (name prog) prog)))
     (cons name (reverse! (vector->list (frame-variables frame))))))
 
 (define (vm-trace-apply vm)
