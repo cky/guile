@@ -245,7 +245,8 @@ which_seg (SCM cell)
 
 SCM_DEFINE (scm_map_free_list, "map-free-list", 0, 0, 0, 
             (),
-"")
+            "Print debugging information about the free-list.\n"
+            "`map-free-list' is only included in GUILE_DEBUG_FREELIST builds of Guile.")
 #define FUNC_NAME s_scm_map_free_list
 {
   int last_seg = -1, count = 0;

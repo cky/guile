@@ -176,8 +176,7 @@ SCM_DEFINE (scm_make_regexp, "make-regexp", 1, 0, 1,
 	    "call to @code{make-regexp} includes both @code{regexp/basic} and\n"
 	    "@code{regexp/extended} flags, the one which comes last will override\n"
 	    "the earlier one.\n"
-	    "@end table\n"
-	    "")
+	    "@end table\n")
 #define FUNC_NAME s_scm_make_regexp
 {
   SCM flag;

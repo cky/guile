@@ -59,8 +59,7 @@ SCM_DEFINE1 (scm_eq_p, "eq?", scm_tc7_rpsubr,
              "Return #t iff X references the same object as Y.\n"
              "`eq?' is similar to `eqv?' except that in some cases\n"
              "it is capable of discerning distinctions finer than\n"
-             "those detectable by `eqv?'.\n"
-             "")
+             "those detectable by `eqv?'.\n")
 #define FUNC_NAME s_scm_eq_p
 {
   return SCM_BOOL(x==y);
@@ -104,8 +103,7 @@ SCM_DEFINE1 (scm_equal_p, "equal?", scm_tc7_rpsubr,
              "strings, applying `eqv?' on other objects such as numbers and\n"
              "symbols.  A rule of thumb is that objects are generally `equal?'\n"
              "if they print the same.  `Equal?' may fail to terminate if its\n"
-             "arguments are circular data structures.\n"
-             "")
+             "arguments are circular data structures.\n")
 #define FUNC_NAME s_scm_equal_p
 {
   SCM_CHECK_STACK;

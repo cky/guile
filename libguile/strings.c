@@ -218,8 +218,7 @@ SCM_DEFINE (scm_make_string, "make-string", 1, 1, 0,
 	    "Returns a newly allocated string of\n"
             "length K.  If CHR is given, then all elements of the string\n"
             "are initialized to CHR, otherwise the contents of the\n"
-            "STRING are unspecified.\n"
-            "")
+            "STRING are unspecified.\n")
 #define FUNC_NAME s_scm_make_string
 {
   SCM res;

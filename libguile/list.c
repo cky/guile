@@ -81,7 +81,7 @@ scm_listify (SCM elt, ...)
 
 SCM_DEFINE (scm_list, "list", 0, 0, 1, 
            (SCM objs),
-"")
+            "Return a list containing OBJS, the arguments to `list'.")
 #define FUNC_NAME s_scm_list
 {
   return objs;
@@ -114,7 +114,7 @@ SCM_DEFINE (scm_list_star, "list*", 1, 0, 1,
 
 SCM_DEFINE (scm_null_p, "null?", 1, 0, 0, 
            (SCM x),
-"")
+            "Return #t iff X is the empty list, else #f.")
 #define FUNC_NAME s_scm_null_p
 {
   return SCM_BOOL (SCM_NULLP (x));
@@ -124,7 +124,7 @@ SCM_DEFINE (scm_null_p, "null?", 1, 0, 0,
 
 SCM_DEFINE (scm_list_p, "list?", 1, 0, 0, 
            (SCM x),
-"")
+            "Return #t iff X is a proper list, else #f.")
 #define FUNC_NAME s_scm_list_p
 {
   return SCM_BOOL (scm_ilength (x) >= 0);
@@ -165,7 +165,7 @@ scm_ilength(SCM sx)
 
 SCM_DEFINE (scm_length, "length", 1, 0, 0, 
            (SCM lst),
-"")
+            "Return the number of elements in list LST.")
 #define FUNC_NAME s_scm_length
 {
   int i;
@@ -214,7 +214,7 @@ SCM_DEFINE (scm_append, "append", 0, 0, 1,
 
 SCM_DEFINE (scm_append_x, "append!", 0, 0, 1, 
             (SCM args),
-"")
+            "")
 #define FUNC_NAME s_scm_append_x
 {
   SCM arg;
@@ -263,7 +263,7 @@ SCM_DEFINE (scm_last_pair, "last-pair", 1, 0, 0,
 
 SCM_DEFINE (scm_reverse, "reverse", 1, 0, 0,
             (SCM lst),
-	    "")
+	    "Return a new list that contains the elements of LST but in reverse order.")
 #define FUNC_NAME s_scm_reverse
 {
   SCM result = SCM_EOL;
@@ -323,7 +323,7 @@ SCM_DEFINE (scm_reverse_x, "reverse!", 1, 1, 0,
 
 SCM_DEFINE (scm_list_ref, "list-ref", 2, 0, 0,
            (SCM lst, SCM k),
-	    "")
+	    "Return the Kth element from list LST.")
 #define FUNC_NAME s_scm_list_ref
 {
   register long i;
@@ -459,12 +459,9 @@ SCM_DEFINE (scm_list_copy, "list-copy", 1, 0, 0,
 
 SCM_DEFINE (scm_sloppy_memq, "sloppy-memq", 2, 0, 0,
             (SCM x, SCM lst),
-	    "@deffnx primitive sloppy-memv\n"
-	    "@deffnx primitive sloppy-member\n"
-	    "These procedures behave like @code{memq}, @code{memv} and @code{member}\n"
-	    "(@pxref{Pairs and Lists,,,r4rs, The Revised^4 Report on Scheme}), but do\n"
-	    "not perform any type or error checking.  Their use is recommended only\n"
-	    "in writing Guile internals, not for high-level Scheme programs.")
+	    "This procedure behaves like @code{memq}, but does no type or error checking.\n"
+	    "Its use is recommended only in writing Guile internals,\n"
+            "not for high-level Scheme programs.")
 #define FUNC_NAME s_scm_sloppy_memq
 {
   for(;  SCM_CONSP (lst);  lst = SCM_CDR(lst))
@@ -479,7 +476,9 @@ SCM_DEFINE (scm_sloppy_memq, "sloppy-memq", 2, 0, 0,
 
 SCM_DEFINE (scm_sloppy_memv, "sloppy-memv", 2, 0, 0,
             (SCM x, SCM lst),
-	    "")
+ 	    "This procedure behaves like @code{memv}, but does no type or error checking.\n"
+	    "Its use is recommended only in writing Guile internals,\n"
+            "not for high-level Scheme programs.")
 #define FUNC_NAME s_scm_sloppy_memv
 {
   for(;  SCM_CONSP (lst);  lst = SCM_CDR(lst))
@@ -494,7 +493,9 @@ SCM_DEFINE (scm_sloppy_memv, "sloppy-memv", 2, 0, 0,
 
 SCM_DEFINE (scm_sloppy_member, "sloppy-member", 2, 0, 0,
             (SCM x, SCM lst),
-	    "")
+ 	    "This procedure behaves like @code{member}, but does no type or error checking.\n"
+	    "Its use is recommended only in writing Guile internals,\n"
+            "not for high-level Scheme programs.")
 #define FUNC_NAME s_scm_sloppy_member
 {
   for(;  SCM_CONSP (lst);  lst = SCM_CDR(lst))
@@ -510,7 +511,11 @@ SCM_DEFINE (scm_sloppy_member, "sloppy-member", 2, 0, 0,
 
 SCM_DEFINE (scm_memq, "memq", 2, 0, 0,
            (SCM x, SCM lst),
-	    "")
+            "Return the first sublist of LST whose car is `eq?' to X\n"
+            "where the sublists of LST are the non-empty lists returned\n"
+            "by `(list-tail LST K)' for K less than the length of LST.  If\n"
+            "X does not occur in LST, then `#f' (not the empty list) is\n"
+            "returned.")
 #define FUNC_NAME s_scm_memq
 {
   SCM answer;
@@ -524,7 +529,11 @@ SCM_DEFINE (scm_memq, "memq", 2, 0, 0,
 
 SCM_DEFINE (scm_memv, "memv", 2, 0, 0,
            (SCM x, SCM lst),
-	    "")
+            "Return the first sublist of LST whose car is `eqv?' to X\n"
+            "where the sublists of LST are the non-empty lists returned\n"
+            "by `(list-tail LST K)' for K less than the length of LST.  If\n"
+            "X does not occur in LST, then `#f' (not the empty list) is\n"
+            "returned.")
 #define FUNC_NAME s_scm_memv
 {
   SCM answer;
@@ -537,7 +546,11 @@ SCM_DEFINE (scm_memv, "memv", 2, 0, 0,
 
 SCM_DEFINE (scm_member, "member", 2, 0, 0,
            (SCM x, SCM lst),
-	    "")
+            "Return the first sublist of LST whose car is `equal?' to X\n"
+            "where the sublists of LST are the non-empty lists returned\n"
+            "by `(list-tail LST K)' for K less than the length of LST.  If\n"
+            "X does not occur in LST, then `#f' (not the empty list) is\n"
+            "returned.")
 #define FUNC_NAME s_scm_member
 {
   SCM answer;
@@ -583,7 +596,7 @@ SCM_DEFINE (scm_delq_x, "delq!", 2, 0, 0,
 
 SCM_DEFINE (scm_delv_x, "delv!", 2, 0, 0,
            (SCM item, SCM lst),
-	    "")
+	    "Destructively remove all elements from LST that are `eqv?' to ITEM.")
 #define FUNC_NAME s_scm_delv_x
 {
   SCM walk;
@@ -607,7 +620,7 @@ SCM_DEFINE (scm_delv_x, "delv!", 2, 0, 0,
 
 SCM_DEFINE (scm_delete_x, "delete!", 2, 0, 0,
            (SCM item, SCM lst),
-	    "")
+	    "Destructively remove all elements from LST that are `equal?' to ITEM.")
 #define FUNC_NAME s_scm_delete_x
 {
   SCM walk;
@@ -633,12 +646,10 @@ SCM_DEFINE (scm_delete_x, "delete!", 2, 0, 0,
 
 SCM_DEFINE (scm_delq, "delq", 2, 0, 0,
             (SCM item, SCM lst),
-	    "@deffnx primitive delv item lst\n"
-	    "@deffnx primitive delete item lst\n"
-	    "Return a newly-created copy of @var{lst} with @var{item} removed.  These\n"
-	    "procedures mirror @code{memq}, @code{memv} and @code{member}:\n"
+	    "Return a newly-created copy of @var{lst} with elements `eq?' to @var{item} removed.\n"
+            "This procedure mirrors @code{memq}:\n"
 	    "@code{delq} compares elements of @var{lst} against @var{item} with\n"
-	    "@code{eq?}, @code{delv} uses @code{eqv?} and @code{delete} uses @code{equal?}")
+	    "@code{eq?}.")
 #define FUNC_NAME s_scm_delq
 {
   SCM copy = scm_list_copy (lst);
@@ -648,7 +659,10 @@ SCM_DEFINE (scm_delq, "delq", 2, 0, 0,
 
 SCM_DEFINE (scm_delv, "delv", 2, 0, 0,
             (SCM item, SCM lst),
-	    "")
+	    "Return a newly-created copy of @var{lst} with elements `eqv?' to @var{item} removed.\n"
+            "This procedure mirrors @code{memv}:\n"
+	    "@code{delv} compares elements of @var{lst} against @var{item} with\n"
+	    "@code{eqv?}.")
 #define FUNC_NAME s_scm_delv
 {
   SCM copy = scm_list_copy (lst);
@@ -658,7 +672,10 @@ SCM_DEFINE (scm_delv, "delv", 2, 0, 0,
 
 SCM_DEFINE (scm_delete, "delete", 2, 0, 0,
             (SCM item, SCM lst),
-	    "")
+	    "Return a newly-created copy of @var{lst} with elements `equal?' to @var{item} removed.\n"
+            "This procedure mirrors @code{member}:\n"
+	    "@code{delete} compares elements of @var{lst} against @var{item} with\n"
+	    "@code{equal?}.")
 #define FUNC_NAME s_scm_delete
 {
   SCM copy = scm_list_copy (lst);

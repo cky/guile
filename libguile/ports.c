@@ -332,7 +332,8 @@ SCM_DEFINE (scm_current_error_port, "current-error-port", 0, 0, 0,
 
 SCM_DEFINE (scm_current_load_port, "current-load-port", 0, 0, 0,
            (),
-	    "")
+	    "Return the current-load-port.\n"
+            "The load port is used internally by `primitive-load'.")
 #define FUNC_NAME s_scm_current_load_port
 {
   return scm_cur_loadp;
@@ -358,7 +359,7 @@ SCM_DEFINE (scm_set_current_input_port, "set-current-input-port", 1, 0, 0,
 
 SCM_DEFINE (scm_set_current_output_port, "set-current-output-port", 1, 0, 0,
            (SCM port),
-	    "")
+	    "Set the current default output port to PORT.")
 #define FUNC_NAME s_scm_set_current_output_port
 {
   SCM ooutp = scm_cur_outp;
@@ -372,7 +373,7 @@ SCM_DEFINE (scm_set_current_output_port, "set-current-output-port", 1, 0, 0,
 
 SCM_DEFINE (scm_set_current_error_port, "set-current-error-port", 1, 0, 0,
            (SCM port),
-	    "")
+	    "Set the current default error port to PORT.")
 #define FUNC_NAME s_scm_set_current_error_port
 {
   SCM oerrp = scm_cur_errp;
@@ -455,26 +456,26 @@ scm_remove_from_port_table (SCM port)
 }
 
 #ifdef GUILE_DEBUG
-/* Undocumented functions for debugging.  */
-/* Return the number of ports in the table.  */
+/* Functions for debugging.  */
 
 SCM_DEFINE (scm_pt_size, "pt-size", 0, 0, 0,
-           (),
-	    "")
+            (),
+	    "Returns the number of ports in the port table.\n"
+            "`pt-size' is only included in GUILE_DEBUG builds.")
 #define FUNC_NAME s_scm_pt_size
 {
   return SCM_MAKINUM (scm_port_table_size);
 }
 #undef FUNC_NAME
 
-/* Return the ith member of the port table.  */
 SCM_DEFINE (scm_pt_member, "pt-member", 1, 0, 0,
-           (SCM member),
-	    "")
+            (SCM index),
+	    "Returns the port at INDEX in the port table.\n"
+            "`pt-member' is only included in GUILE_DEBUG builds.")
 #define FUNC_NAME s_scm_pt_member
 {
   int i;
-  SCM_VALIDATE_INUM_COPY (1,member,i);
+  SCM_VALIDATE_INUM_COPY (1,index,i);
   if (i < 0 || i >= scm_port_table_size)
     return SCM_BOOL_F;
   else
@@ -515,7 +516,7 @@ SCM_DEFINE (scm_port_revealed, "port-revealed", 1, 0, 0,
 /* Set the revealed count for a port.  */
 SCM_DEFINE (scm_set_port_revealed_x, "set-port-revealed!", 2, 0, 0,
            (SCM port, SCM rcount),
-	    "Sets the revealed count for a port to a given value.  \n"
+	    "Sets the revealed count for a port to a given value.\n"
 	    "The return value is unspecified.")
 #define FUNC_NAME s_scm_set_port_revealed_x
 {
@@ -1158,7 +1159,7 @@ SCM_DEFINE (scm_truncate_file, "truncate-file", 1, 1, 0,
 
 SCM_DEFINE (scm_port_line, "port-line", 1, 0, 0,
             (SCM port),
-	    "")
+	    "Return the current line number for PORT.")
 #define FUNC_NAME s_scm_port_line
 {
   port = SCM_COERCE_OUTPORT (port);
@@ -1169,7 +1170,7 @@ SCM_DEFINE (scm_port_line, "port-line", 1, 0, 0,
 
 SCM_DEFINE (scm_set_port_line_x, "set-port-line!", 2, 0, 0,
             (SCM port, SCM line),
-	    "")
+	    "Set the current line number for PORT to LINE.")
 #define FUNC_NAME s_scm_set_port_line_x
 {
   port = SCM_COERCE_OUTPORT (port);

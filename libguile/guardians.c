@@ -159,8 +159,7 @@ SCM_DEFINE (scm_make_guardian, "make-guardian", 0, 0, 0,
             "See R. Kent Dybvig, Carl Bruggeman, and David Eby (1993)\n"
             "\"Guardians in a Generation-Based Garbage Collector\".\n"
             "ACM SIGPLAN Conference on Programming Language Design\n"
-            "and Implementation, June 1993\n"
-            "")
+            "and Implementation, June 1993\n.")
 #define FUNC_NAME s_scm_make_guardian
 {
   SCM cclo = scm_makcclo (guard1, 2L);

@@ -105,8 +105,7 @@ SCM_DEFINE (scm_make_variable, "make-variable", 1, 1, 0,
             "If given, uses NAME-HINT as its internal (debugging)\n"
             "name, otherwise just treat it as an anonymous variable.\n"
             "Remember, of course, that multiple bindings to the same\n"
-            "variable may exist, so NAME-HINT is just that---a hint.\n"
-            "")
+            "variable may exist, so NAME-HINT is just that---a hint.\n")
 #define FUNC_NAME s_scm_make_variable
 {
   SCM val_cell;
@@ -130,8 +129,7 @@ SCM_DEFINE (scm_make_undefined_variable, "make-undefined-variable", 0, 1, 0,
             "If given, uses NAME-HINT as its internal (debugging)\n"
             "name, otherwise just treat it as an anonymous variable.\n"
             "Remember, of course, that multiple bindings to the same\n"
-            "variable may exist, so NAME-HINT is just that---a hint.\n"
-            "")
+            "variable may exist, so NAME-HINT is just that---a hint.\n")
 #define FUNC_NAME s_scm_make_undefined_variable
 {
   SCM vcell;
@@ -177,8 +175,7 @@ SCM_DEFINE (scm_variable_set_x, "variable-set!", 2, 0, 0,
             (SCM var, SCM val),
             "Set the value of the variable VAR to VAL.\n"
             "VAR must be a variable object, VAL can be any value.\n"
-            "Returns an unspecified value.\n"
-            "")
+            "Returns an unspecified value.\n")
 #define FUNC_NAME s_scm_variable_set_x
 {
   SCM_VALIDATE_VARIABLE (1,var);
@@ -192,8 +189,7 @@ SCM_DEFINE (scm_builtin_variable, "builtin-variable", 1, 0, 0,
             (SCM name),
             "Return the built-in variable with the name NAME.\n"
             "NAME must be a symbol (not a string).\n"
-            "Then use `variable-ref' to access its value.\n"
-            "")
+            "Then use `variable-ref' to access its value.\n")
 #define FUNC_NAME s_scm_builtin_variable
 {
   SCM vcell;
@@ -221,8 +217,7 @@ SCM_DEFINE (scm_builtin_variable, "builtin-variable", 1, 0, 0,
 SCM_DEFINE (scm_variable_bound_p, "variable-bound?", 1, 0, 0, 
             (SCM var),
             "Return #t iff VAR is bound to a value.\n"
-            "Throws an error if VAR is not a variable object.\n"
-            "")
+            "Throws an error if VAR is not a variable object.\n")
 #define FUNC_NAME s_scm_variable_bound_p
 {
   SCM_VALIDATE_VARIABLE (1,var);

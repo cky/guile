@@ -126,14 +126,17 @@ long mytime()
 extern int errno;
 
 #ifdef HAVE_FTIME
-
 struct timeb scm_your_base = {0};
+#else
+timet scm_your_base = 0;
+#endif
 
 SCM_DEFINE (scm_get_internal_real_time, "get-internal-real-time", 0, 0, 0, 
            (),
 	    "Returns the number of time units since the interpreter was started.")
 #define FUNC_NAME s_scm_get_internal_real_time
 {
+#ifdef HAVE_FTIME
   struct timeb time_buffer;
 
   SCM tmp;
@@ -145,24 +148,12 @@ SCM_DEFINE (scm_get_internal_real_time, "get-internal-real-time", 0, 0, 0,
 			      SCM_MAKINUM (time_buffer.time)));
   return scm_quotient (scm_product (tmp, SCM_MAKINUM (CLKTCK)),
 		       SCM_MAKINUM (1000));
-}
-#undef FUNC_NAME
-
-
 #else
-
-timet scm_your_base = 0;
-
-SCM_DEFINE (scm_get_internal_real_time, "get-internal-real-time", 0, 0, 0, 
-           (),
-	    "")
-#define FUNC_NAME s_scm_get_internal_real_time
-{
   return scm_long2num((time((timet*)0) - scm_your_base) * (int)CLKTCK);
+#endif /* HAVE_FTIME */
 }
 #undef FUNC_NAME
 
-#endif
 
 #ifdef HAVE_TIMES
 SCM_DEFINE (scm_times, "times", 0, 0, 0, 

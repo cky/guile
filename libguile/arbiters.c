@@ -76,7 +76,8 @@ prinarb (SCM exp, SCM port, scm_print_state *pstate)
 
 SCM_DEFINE (scm_make_arbiter, "make-arbiter", 1, 0, 0, 
            (SCM name),
-"")
+"Returns an object of type arbiter and name name. Its state is initially unlocked.\n"
+"Arbiters are a way to achieve process synchronization.")
 #define FUNC_NAME s_scm_make_arbiter
 {
   SCM_RETURN_NEWSMOB (scm_tc16_arbiter, name);
@@ -85,7 +86,7 @@ SCM_DEFINE (scm_make_arbiter, "make-arbiter", 1, 0, 0,
 
 SCM_DEFINE (scm_try_arbiter, "try-arbiter", 1, 0, 0, 
            (SCM arb),
-"")
+"Returns #t and locks arbiter if arbiter was unlocked. Otherwise, returns #f.")
 #define FUNC_NAME s_scm_try_arbiter
 {
   SCM_VALIDATE_SMOB (1,arb,arbiter);
@@ -105,7 +106,7 @@ SCM_DEFINE (scm_try_arbiter, "try-arbiter", 1, 0, 0,
 
 SCM_DEFINE (scm_release_arbiter, "release-arbiter", 1, 0, 0, 
            (SCM arb),
-"")
+"Returns #t and unlocks arbiter if arbiter was locked. Otherwise, returns #f.")
 #define FUNC_NAME s_scm_release_arbiter
 {
   SCM_VALIDATE_SMOB (1,arb,arbiter);

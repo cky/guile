@@ -187,7 +187,8 @@ static SCM print_state_pool;
 
 SCM_DEFINE (scm_current_pstate, "current-pstate", 0, 0, 0, 
            (),
-"")
+            "Return the current-pstate--the `cadr' of the print_state_pool.\n"
+            "`current-pstate' is only included in GUILE_DEBUG builds.")
 #define FUNC_NAME s_scm_current_pstate
 {
   return SCM_CADR (print_state_pool);
@@ -998,8 +999,8 @@ SCM_DEFINE (scm_simple_format, "simple-format", 2, 0, 1,
 
 
 SCM_DEFINE (scm_newline, "newline", 0, 1, 0, 
-           (SCM port),
-	    "")
+            (SCM port),
+	    "Send a newline to PORT.")
 #define FUNC_NAME s_scm_newline
 {
   if (SCM_UNBNDP (port))
@@ -1013,8 +1014,8 @@ SCM_DEFINE (scm_newline, "newline", 0, 1, 0,
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_write_char, "write-char", 1, 1, 0,
-           (SCM chr, SCM port),
-	    "")
+            (SCM chr, SCM port),
+	    "Send character CHR to PORT.")
 #define FUNC_NAME s_scm_write_char
 {
   if (SCM_UNBNDP (port))
