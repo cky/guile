@@ -37,20 +37,21 @@ INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 transform = @program_transform_name@
-host_triplet = @host@
 host_alias = @host_alias@
+host_triplet = @host@
+RANLIB = @RANLIB@
+LIBTOOL = @LIBTOOL@
+AWK = @AWK@
+module = @module@
+LIBLOBJS = @LIBLOBJS@
+CC = @CC@
+PACKAGE = @PACKAGE@
 ERRNO_EXTRACT = @ERRNO_EXTRACT@
 FD_SETTER = @FD_SETTER@
-LIBLOBJS = @LIBLOBJS@
-AWK = @AWK@
-LIBTOOL = @LIBTOOL@
 VERSION = @VERSION@
-module = @module@
-CC = @CC@
-RANLIB = @RANLIB@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 xtra_PLUGIN_guile_libs = @xtra_PLUGIN_guile_libs@
-PACKAGE = @PACKAGE@
+MAINT = @MAINT@
 
 AUTOMAKE_OPTIONS = foreign
 
@@ -132,7 +133,7 @@ COMPILE = $(CC) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
 LINK = $(LIBTOOL) --mode=link $(CC) $(LDFLAGS) -o $@
 DATA =  $(modinclude_DATA)
 
-HEADERS =  $(include_HEADERS) $(modinclude_HEADERS)
+HEADERS =  $(modinclude_HEADERS) $(include_HEADERS)
 
 DIST_COMMON =  COPYING ChangeLog Makefile.am Makefile.in acconfig.h \
 acinclude.m4 aclocal.m4 configure configure.in fd.h.in guile-snarf.in \
@@ -167,19 +168,19 @@ default: all
 
 .SUFFIXES:
 .SUFFIXES: .c .o .lo .x
-$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL) 
+$(srcdir)/Makefile.in: @MAINT@ Makefile.am $(top_srcdir)/configure.in $(ACLOCAL) 
 	cd $(top_srcdir) && automake --foreign Makefile
 
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status $(BUILT_SOURCES)
 	cd $(top_builddir) \
 	  && CONFIG_FILES=$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
-$(srcdir)/aclocal.m4: configure.in acinclude.m4
+$(srcdir)/aclocal.m4: @MAINT@configure.in acinclude.m4
 	cd $(srcdir) && aclocal
 
 config.status: configure
 	$(SHELL) ./config.status --recheck
-$(srcdir)/configure: configure.in $(ACLOCAL) $(CONFIGURE_DEPENDENCIES)
+$(srcdir)/configure: @MAINT@configure.in $(ACLOCAL) $(CONFIGURE_DEPENDENCIES)
 	cd $(srcdir) && autoconf
 
 $(CONFIG_HEADER): stamp-h
@@ -188,7 +189,7 @@ stamp-h: $(CONFIG_HEADER_IN) $(top_builddir)/config.status
 	  && CONFIG_FILES= CONFIG_HEADERS=$(CONFIG_HEADER) \
 	     $(SHELL) ./config.status
 	@echo timestamp > stamp-h
-$(srcdir)/$(CONFIG_HEADER_IN): stamp-h.in
+$(srcdir)/$(CONFIG_HEADER_IN): @MAINT@stamp-h.in
 $(srcdir)/stamp-h.in: $(top_srcdir)/configure.in $(ACLOCAL) acconfig.h
 	cd $(top_srcdir) && autoheader
 	echo timestamp > $(srcdir)/stamp-h.in
@@ -296,19 +297,6 @@ uninstall-modincludeDATA:
 	  rm -f $(modincludedir)/$$p; \
 	done
 
-install-includeHEADERS: $(include_HEADERS)
-	$(NORMAL_INSTALL)
-	$(mkinstalldirs) $(includedir)
-	@list="$(include_HEADERS)"; for p in $$list; do \
-	  echo "$(INSTALL_DATA) $(srcdir)/$$p $(includedir)/$$p"; \
-	  $(INSTALL_DATA) $(srcdir)/$$p $(includedir)/$$p; \
-	done
-
-uninstall-includeHEADERS:
-	list="$(include_HEADERS)"; for p in $$list; do \
-	  rm -f $(includedir)/$$p; \
-	done
-
 install-modincludeHEADERS: $(modinclude_HEADERS)
 	$(NORMAL_INSTALL)
 	$(mkinstalldirs) $(modincludedir)
@@ -320,6 +308,19 @@ install-modincludeHEADERS: $(modinclude_HEADERS)
 uninstall-modincludeHEADERS:
 	list="$(modinclude_HEADERS)"; for p in $$list; do \
 	  rm -f $(modincludedir)/$$p; \
+	done
+
+install-includeHEADERS: $(include_HEADERS)
+	$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(includedir)
+	@list="$(include_HEADERS)"; for p in $$list; do \
+	  echo "$(INSTALL_DATA) $(srcdir)/$$p $(includedir)/$$p"; \
+	  $(INSTALL_DATA) $(srcdir)/$$p $(includedir)/$$p; \
+	done
+
+uninstall-includeHEADERS:
+	list="$(include_HEADERS)"; for p in $$list; do \
+	  rm -f $(includedir)/$$p; \
 	done
 
 tags: TAGS
@@ -418,21 +419,21 @@ installcheck:
 install-exec: install-libPROGRAMS install-binSCRIPTS
 	$(NORMAL_INSTALL)
 
-install-data: install-modincludeDATA install-includeHEADERS install-modincludeHEADERS
+install-data: install-modincludeDATA install-modincludeHEADERS install-includeHEADERS
 	$(NORMAL_INSTALL)
 
 install: install-exec install-data all
 	@:
 
-uninstall: uninstall-libPROGRAMS uninstall-binSCRIPTS uninstall-modincludeDATA uninstall-includeHEADERS uninstall-modincludeHEADERS
+uninstall: uninstall-libPROGRAMS uninstall-binSCRIPTS uninstall-modincludeDATA uninstall-modincludeHEADERS uninstall-includeHEADERS
 
 all: $(PROGRAMS) $(SCRIPTS) $(DATA) $(HEADERS) Makefile scmconfig.h
 
 install-strip:
 	$(MAKE) INSTALL_PROGRAM='$(INSTALL_PROGRAM) -s' install
 installdirs:
-	$(mkinstalldirs)  $(libdir) $(bindir) $(modincludedir) $(includedir) \
-		$(modincludedir)
+	$(mkinstalldirs)  $(libdir) $(bindir) $(modincludedir) $(modincludedir) \
+		$(includedir)
 
 
 mostlyclean-generic:
@@ -477,10 +478,10 @@ install-libPROGRAMS mostlyclean-compile distclean-compile clean-compile \
 maintainer-clean-compile mostlyclean-libtool distclean-libtool \
 clean-libtool maintainer-clean-libtool uninstall-binSCRIPTS \
 install-binSCRIPTS uninstall-modincludeDATA install-modincludeDATA \
-uninstall-includeHEADERS install-includeHEADERS \
-uninstall-modincludeHEADERS install-modincludeHEADERS tags \
-mostlyclean-tags distclean-tags clean-tags maintainer-clean-tags \
-distdir mostlyclean-depend distclean-depend clean-depend \
+uninstall-modincludeHEADERS install-modincludeHEADERS \
+uninstall-includeHEADERS install-includeHEADERS tags mostlyclean-tags \
+distclean-tags clean-tags maintainer-clean-tags distdir \
+mostlyclean-depend distclean-depend clean-depend \
 maintainer-clean-depend info dvi installcheck install-exec install-data \
 install uninstall all installdirs mostlyclean-generic distclean-generic \
 clean-generic maintainer-clean-generic clean mostlyclean distclean \

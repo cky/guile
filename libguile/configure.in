@@ -1,6 +1,7 @@
 AC_INIT(eval.c)
 AM_CONFIG_HEADER(scmconfig.h)
 AM_INIT_GUILE_MODULE(libguile)
+AM_MAINTAINER_MODE
 
 #--------------------------------------------------------------------
 #

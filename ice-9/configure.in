@@ -1,7 +1,0 @@
-#
-# Process this file with autoconf to produce a configure script.
-#
-
-AC_INIT(boot-9.scm)
-AM_INIT_GUILE_MODULE(ice-9)
-AC_OUTPUT(Makefile)

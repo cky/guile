@@ -37,21 +37,22 @@ INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 transform = @program_transform_name@
-host_triplet = @host@
 host_alias = @host_alias@
-target_libs = @target_libs@
-VERSION = @VERSION@
+host_triplet = @host@
+RANLIB = @RANLIB@
 module = @module@
+qtmd_h = @qtmd_h@
 CC = @CC@
+PACKAGE = @PACKAGE@
+VERSION = @VERSION@
+INSTALL_SCRIPT = @INSTALL_SCRIPT@
 qtmds_o = @qtmds_o@
 qtmdc_o = @qtmdc_o@
-RANLIB = @RANLIB@
-qtmdb_s = @qtmdb_s@
-INSTALL_SCRIPT = @INSTALL_SCRIPT@
-qtmdc_c = @qtmdc_c@
+target_libs = @target_libs@
 qtmds_s = @qtmds_s@
-PACKAGE = @PACKAGE@
-qtmd_h = @qtmd_h@
+qtmdc_c = @qtmdc_c@
+qtmdb_s = @qtmdb_s@
+MAINT = @MAINT@
 
 AUTOMAKE_OPTIONS = foreign
 
@@ -97,19 +98,19 @@ default: all
 
 .SUFFIXES:
 .SUFFIXES: .c .o
-$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL) 
+$(srcdir)/Makefile.in: @MAINT@ Makefile.am $(top_srcdir)/configure.in $(ACLOCAL) 
 	cd $(top_srcdir) && automake --foreign Makefile
 
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status $(BUILT_SOURCES)
 	cd $(top_builddir) \
 	  && CONFIG_FILES=$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
-$(srcdir)/aclocal.m4: configure.in
+$(srcdir)/aclocal.m4: @MAINT@configure.in
 	cd $(srcdir) && aclocal
 
 config.status: configure
 	$(SHELL) ./config.status --recheck
-$(srcdir)/configure: configure.in $(ACLOCAL) $(CONFIGURE_DEPENDENCIES)
+$(srcdir)/configure: @MAINT@configure.in $(ACLOCAL) $(CONFIGURE_DEPENDENCIES)
 	cd $(srcdir) && autoconf
 qt.h: $(top_builddir)/config.status qt.h.in
 	cd $(top_builddir) && CONFIG_FILES=$@ CONFIG_HEADERS= ./config.status

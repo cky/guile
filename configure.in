@@ -2,6 +2,7 @@ dnl Process this file with autoconf to produce configure.
 AC_INIT(Makefile.in)
 . $srcdir/GUILE-VERSION
 AM_INIT_AUTOMAKE($PACKAGE, $VERSION)
+AM_MAINTAINER_MODE
 
 dnl FIXME: tsort, xargs not GNU standard.
 all_subdirs=`cat $srcdir/*/PLUGIN/REQ $srcdir/*/PLUGIN/OPT /dev/null | tsort | xargs echo`

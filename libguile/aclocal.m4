@@ -135,7 +135,31 @@ fi
 rm -f conftest*
 AC_MSG_RESULT(yes)])
 
-# serial 1 AM_PROG_LIBTOOL
+# Add --enable-maintainer-mode option to configure.
+# From Jim Meyering
+
+# serial 1
+
+AC_DEFUN(AM_MAINTAINER_MODE,
+[AC_MSG_CHECKING([whether to enable maintainer-specific portions of Makefiles])
+  dnl maintainer-mode is disabled by default
+  AC_ARG_ENABLE(maintainer-mode,
+[  --enable-maintainer-mode enable make rules and dependencies not useful
+                          (and sometimes confusing) to the casual installer],
+      USE_MAINTAINER_MODE=$enableval,
+      USE_MAINTAINER_MODE=no)
+  AC_MSG_RESULT($USE_MAINTAINER_MODE)
+  if test $USE_MAINTAINER_MODE = yes; then
+    MAINT=
+  else
+    MAINT='#M#'
+  fi
+  AC_SUBST(MAINT)dnl
+]
+)
+
+
+# serial 2 AM_PROG_LIBTOOL
 AC_DEFUN(AM_PROG_LIBTOOL,
 [AC_REQUIRE([AC_CANONICAL_HOST])
 AC_REQUIRE([AC_PROG_CC])
@@ -154,6 +178,11 @@ libtool_shared=)
 libtool_flags="$libtool_shared"
 test "$silent" = yes && libtool_flags="$libtool_flags --silent"
 test "$ac_cv_prog_gcc" = yes && libtool_flags="$libtool_flags --with-gcc"
+
+# On SCO OpenServer 5, we need -belf to get full-featured binaries.
+case "$host" in
+*-*-sco3.2v5*) CFLAGS="$CFLAGS -belf" ;;
+esac
 
 # Actually configure libtool.  ac_aux_dir is where install-sh is found.
 CC="$CC" CFLAGS="$CFLAGS" CPPFLAGS="$CPPFLAGS" LD="$LD" RANLIB="$RANLIB" \

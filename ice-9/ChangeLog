@@ -1,3 +1,7 @@
+Mon Feb 24 21:46:15 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* configure.in: Added AM_MAINTAINER_MODE
+
 Sat Feb 15 04:51:20 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* boot-9.scm (read-sharp): define directly, don't go through a

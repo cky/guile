@@ -1,3 +1,11 @@
+Tue Feb 25 00:14:10 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* unif.c (scm_init_unif): Added #include "unif.x".  (There are two
+	scm_init_unif in this file.  This will also fix a previous problem
+	with guile-snarf.)
+
+	* configure.in: Added AM_MAINTAINER_MODE
+
 Fri Feb 21 23:07:26 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* gdb_interface.h (GDB_INTERFACE): Added some (void *) casts to

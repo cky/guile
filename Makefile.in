@@ -37,10 +37,11 @@ INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 transform = @program_transform_name@
+VERSION = @VERSION@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 PACKAGE = @PACKAGE@
+MAINT = @MAINT@
 existingdirs = @existingdirs@
-VERSION = @VERSION@
 
 SUBDIRS = @existingdirs@ doc newdoc
 
@@ -67,19 +68,19 @@ TAR = tar
 default: all
 
 .SUFFIXES:
-$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL) 
+$(srcdir)/Makefile.in: @MAINT@ Makefile.am $(top_srcdir)/configure.in $(ACLOCAL) 
 	cd $(top_srcdir) && automake --gnu Makefile
 
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status $(BUILT_SOURCES)
 	cd $(top_builddir) \
 	  && CONFIG_FILES=$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
-$(srcdir)/aclocal.m4: configure.in
+$(srcdir)/aclocal.m4: @MAINT@configure.in
 	cd $(srcdir) && aclocal
 
 config.status: configure
 	$(SHELL) ./config.status --recheck
-$(srcdir)/configure: configure.in $(ACLOCAL) $(CONFIGURE_DEPENDENCIES)
+$(srcdir)/configure: @MAINT@configure.in $(ACLOCAL) $(CONFIGURE_DEPENDENCIES)
 	cd $(srcdir) && autoconf
 
 install-aclocalDATA: $(aclocal_DATA)
