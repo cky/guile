@@ -319,8 +319,8 @@ SCM_DEFINE (scm_make_procedure_with_setter, "make-procedure-with-setter", 2, 0, 
   SCM_VALIDATE_PROC (2, setter);
   SCM_NEWCELL2 (z);
   SCM_ENTER_A_SECTION;
-  SCM_SET_CELL_WORD1 (z, procedure);
-  SCM_SET_CELL_WORD2 (z, setter);
+  SCM_SET_CELL_OBJECT_1 (z, procedure);
+  SCM_SET_CELL_OBJECT_2 (z, setter);
   SCM_SETCAR (z, scm_tc7_pws);
   SCM_EXIT_A_SECTION;
   return z;

@@ -159,8 +159,8 @@ typedef struct
    new four-word cells.  */
 
 #define SCM_PROCEDURE_WITH_SETTER_P(obj) (SCM_NIMP(obj) && (SCM_TYP7 (obj) == scm_tc7_pws))
-#define SCM_PROCEDURE(obj) SCM_CELL_WORD1 (obj)
-#define SCM_SETTER(obj) SCM_CELL_WORD2 (obj)
+#define SCM_PROCEDURE(obj) SCM_CELL_OBJECT_1 (obj)
+#define SCM_SETTER(obj) SCM_CELL_OBJECT_2 (obj)
 
 extern scm_subr_entry *scm_subr_table;
 extern int scm_subr_table_size;

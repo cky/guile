@@ -1,3 +1,14 @@
+2000-03-24  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* pairs.h (SCM_CELL_OBJECT, SCM_CELL_OBJECT_[0-3],
+	SCM_SET_CELL_OBJECT, SCM_SET_CELL_OBJECT_[0-3], SCM_CELL_TYPE,
+	SCM_SET_CELL_TYPE):  Added a set of low level macros for accessing
+	cell entries.
+	(SCM_CELL_WORD_[0-3]): Renamed from the SCM_CELL_WORD[0-3].
+
+	* procs.h, procs.c:  Instead of SCM_{SET_}?CELL_WORD[12], use the
+	newly introduced SCM_{SET_}?CELL_OBJECT_[12] macros.
+
 2000-03-23  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* tags.h: Disabled definition of SCM_VOIDP_TEST.

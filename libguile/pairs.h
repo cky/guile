@@ -58,6 +58,39 @@ typedef struct scm_cell
   SCM cdr;
 } scm_cell;
 
+
+/* Low level cell data accessing macros:
+ */
+
+#define SCM_CELL_WORD(x, n) (SCM_UNPACK (((SCM *) SCM2PTR (x))[n]))
+#define SCM_CELL_WORD_0(x) SCM_CELL_WORD (x, 0)
+#define SCM_CELL_WORD_1(x) SCM_CELL_WORD (x, 1)
+#define SCM_CELL_WORD_2(x) SCM_CELL_WORD (x, 2)
+#define SCM_CELL_WORD_3(x) SCM_CELL_WORD (x, 3)
+
+#define SCM_CELL_OBJECT(x, n) (((SCM *) SCM2PTR (x))[n])
+#define SCM_CELL_OBJECT_0(x) SCM_CELL_OBJECT (x, 0)
+#define SCM_CELL_OBJECT_1(x) SCM_CELL_OBJECT (x, 1)
+#define SCM_CELL_OBJECT_2(x) SCM_CELL_OBJECT (x, 2)
+#define SCM_CELL_OBJECT_3(x) SCM_CELL_OBJECT (x, 3)
+
+#define SCM_SET_CELL_WORD(x, n, v) ((((SCM *) SCM2PTR (x))[n]) = SCM_PACK (v))
+#define SCM_SET_CELL_WORD_0(x, v) SCM_SET_CELL_WORD (x, 0, v)
+#define SCM_SET_CELL_WORD_1(x, v) SCM_SET_CELL_WORD (x, 1, v)
+#define SCM_SET_CELL_WORD_2(x, v) SCM_SET_CELL_WORD (x, 2, v)
+#define SCM_SET_CELL_WORD_3(x, v) SCM_SET_CELL_WORD (x, 3, v)
+
+#define SCM_SET_CELL_OBJECT(x, n, v) ((((SCM *) SCM2PTR (x))[n]) = v)
+#define SCM_SET_CELL_OBJECT_0(x, v) SCM_SET_CELL_OBJECT (x, 0, v)
+#define SCM_SET_CELL_OBJECT_1(x, v) SCM_SET_CELL_OBJECT (x, 1, v)
+#define SCM_SET_CELL_OBJECT_2(x, v) SCM_SET_CELL_OBJECT (x, 2, v)
+#define SCM_SET_CELL_OBJECT_3(x, v) SCM_SET_CELL_OBJECT (x, 3, v)
+
+
+#define SCM_CELL_TYPE(x) SCM_CELL_WORD_0 (x)
+#define SCM_SET_CELL_TYPE(x, t) SCM_SET_CELL_WORD_0 (x, t)
+
+
 /* SCM_PTR_LT defines how to compare two SCM_CELLPTRs (which may not be in the
  * same scm_array).  SCM_CELLPTR is a pointer to a cons cell which may be
  * compared or differenced.  SCMPTR is used for stack bounds.
@@ -155,19 +188,7 @@ typedef SCM  huge *SCMPTR;
 /* Multi-cells
  */
 
-#define SCM_CELL_WORD(x, n) (((SCM *) (SCM2PTR (x)))[n])
-#define SCM_SET_CELL_WORD(x, n, v) (SCM_CELL_WORD (x, n) = (SCM) (v))
 #define SCM_CELL_WORD_LOC(x, n) (&SCM_CELL_WORD (x, n))
-
-#define SCM_CELL_WORD0(x)   SCM_CELL_WORD (x, 0)
-#define SCM_CELL_WORD1(x)   SCM_CELL_WORD (x, 1)
-#define SCM_CELL_WORD2(x)   SCM_CELL_WORD (x, 2)
-#define SCM_CELL_WORD3(x)   SCM_CELL_WORD (x, 3)
-
-#define SCM_SET_CELL_WORD0(x, v)  SCM_SET_CELL_WORD(x, 0, v)
-#define SCM_SET_CELL_WORD1(x, v)  SCM_SET_CELL_WORD(x, 1, v)
-#define SCM_SET_CELL_WORD2(x, v)  SCM_SET_CELL_WORD(x, 2, v)
-#define SCM_SET_CELL_WORD3(x, v)  SCM_SET_CELL_WORD(x, 3, v)
 
 /* the allocated thing: The car of newcells are set to
    scm_tc16_allocated to avoid the fragile state of newcells wrt the
