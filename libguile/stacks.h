@@ -113,7 +113,7 @@ extern SCM scm_stack_type;
 
 
 SCM scm_stack_p SCM_P ((SCM obj));
-SCM scm_make_stack SCM_P ((SCM obj, SCM outer_cut, SCM inner_cut));
+SCM scm_make_stack SCM_P ((SCM args));
 SCM scm_stack_ref SCM_P ((SCM stack, SCM i));
 SCM scm_stack_length SCM_P ((SCM stack));
 
