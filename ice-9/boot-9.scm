@@ -2837,14 +2837,15 @@
     m))
 
 (define (lookup-duplicates-handlers handler-names)
-  (map (lambda (handler-name)
-	 (or (module-symbol-local-binding
-	      duplicate-handlers handler-name #f)
-	     (error "invalid duplicate handler name:"
-		    handler-name)))
-       (if (list? handler-names)
-	   handler-names
-	   (list handler-names))))
+  (and handler-names
+       (map (lambda (handler-name)
+	      (or (module-symbol-local-binding
+		   duplicate-handlers handler-name #f)
+		  (error "invalid duplicate handler name:"
+			 handler-name)))
+	    (if (list? handler-names)
+		handler-names
+		(list handler-names)))))
 
 (define default-module-duplicates-handler
   (make-mutable-parameter '(replace warn-override-core check)
@@ -2856,55 +2857,47 @@
     (set-module-name! m 'duplicates)
     m))
 
-(define (module-symbol-interface module sym)
-  (or-map (lambda (interface)
-	    (module-search (lambda (interface sym)
-			     (and (module-local-variable interface sym)
-				  interface))
-			   interface
-			   sym))
-	  (module-uses module)))
-
 (define (process-duplicates module interface)
   (let* ((duplicates-info (module-duplicates-info module))
 	 (duplicates-handlers (car duplicates-info))
 	 (duplicates-interface (cdr duplicates-info)))
     (module-for-each
      (lambda (name var)
-       (let ((prev-interface (module-symbol-interface module name)))
-	 (if prev-interface
-	     (let ((var1 (module-local-variable prev-interface name))
-		   (var2 (module-local-variable interface name)))
-	       (if (not (eq? var1 var2))
-		   (begin
-		     (if (not duplicates-interface)
-			 (begin
-			   (set! duplicates-interface
-				 (make-duplicates-interface))
-			   (set-cdr! duplicates-info duplicates-interface)))
-		     (let* ((var (module-local-variable duplicates-interface
-							name))
-			    (val (and var
-				      (variable-bound? var)
-				      (variable-ref var))))
-		       (let loop ((duplicates-handlers duplicates-handlers))
-			 (cond ((null? duplicates-handlers))
-			       (((car duplicates-handlers)
-				 module
-				 name
-				 prev-interface
-				 (and (variable-bound? var1)
-				      (variable-ref var1))
-				 interface
-				 (and (variable-bound? var2)
-				      (variable-ref var2))
-				 var
-				 val)
-				=>
-				(lambda (var)
-				  (module-add! duplicates-interface name var)))
-			       (else
-				(loop (cdr duplicates-handlers))))))))))))
+       (cond ((module-import-interface module name)
+	      =>
+	      (lambda (prev-interface)
+		(let ((var1 (module-local-variable prev-interface name))
+		      (var2 (module-local-variable interface name)))
+		  (if (not (eq? var1 var2))
+		      (begin
+			(if (not duplicates-interface)
+			    (begin
+			      (set! duplicates-interface
+				    (make-duplicates-interface))
+			      (set-cdr! duplicates-info duplicates-interface)))
+			(let* ((var (module-local-variable duplicates-interface
+							   name))
+			       (val (and var
+					 (variable-bound? var)
+					 (variable-ref var))))
+			  (let loop ((duplicates-handlers duplicates-handlers))
+			    (cond ((null? duplicates-handlers))
+				  (((car duplicates-handlers)
+				    module
+				    name
+				    prev-interface
+				    (and (variable-bound? var1)
+					 (variable-ref var1))
+				    interface
+				    (and (variable-bound? var2)
+					 (variable-ref var2))
+				    var
+				    val)
+				   =>
+				   (lambda (var)
+				     (module-add! duplicates-interface name var)))
+				  (else
+				   (loop (cdr duplicates-handlers)))))))))))))
      interface)))
 
 

@@ -1,5 +1,8 @@
 2003-03-11  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
+	* boot-9.scm (process-duplicates): Use module-import-interface.
+	(module-symbol-interface): Removed.
+
 	* boot-9.scm (module-override!, make-mutable-parameter,
 	lookup-duplicates-handlers, default-module-duplicates-handler):
 	New functions.

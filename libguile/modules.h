@@ -3,7 +3,7 @@
 #ifndef SCM_MODULES_H
 #define SCM_MODULES_H
 
-/* Copyright (C) 1998, 2000, 2001, 2002 Free Software Foundation, Inc.
+/* Copyright (C) 1998, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -114,6 +114,7 @@ SCM_API void scm_c_export (const char *name, ...);
 
 SCM_API SCM scm_sym2var (SCM sym, SCM thunk, SCM definep);
 
+SCM_API SCM scm_module_import_interface (SCM module, SCM sym);
 SCM_API SCM scm_module_lookup_closure (SCM module);
 SCM_API SCM scm_module_transformer (SCM module);
 SCM_API SCM scm_current_module_lookup_closure (void);

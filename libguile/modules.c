@@ -413,6 +413,42 @@ scm_current_module_transformer ()
     return SCM_BOOL_F;
 }
 
+SCM_DEFINE (scm_module_import_interface, "module-import-interface", 2, 0, 0,
+	    (SCM module, SCM sym),
+	    "")
+#define FUNC_NAME s_scm_module_import_interface
+{
+#define SCM_BOUND_THING_P(b) (!SCM_FALSEP (b))
+  SCM_VALIDATE_MODULE (SCM_ARG1, module);
+  /* Search the use list */
+  SCM uses = SCM_MODULE_USES (module);
+  while (SCM_CONSP (uses))
+    {
+      SCM interface = SCM_CAR (uses);
+      /* 1. Check module obarray */
+      SCM b = scm_hashq_ref (SCM_MODULE_OBARRAY (interface), sym, SCM_BOOL_F);
+      if (SCM_BOUND_THING_P (b))
+	return interface;
+      {
+	SCM binder = SCM_MODULE_BINDER (interface);
+	if (!SCM_FALSEP (binder))
+	  /* 2. Custom binder */
+	  {
+	    b = scm_call_3 (binder, interface, sym, SCM_BOOL_F);
+	    if (SCM_BOUND_THING_P (b))
+	      return interface;
+	  }
+      }
+      /* 3. Search use list recursively. */
+      interface = scm_module_import_interface (interface, sym);
+      if (!SCM_FALSEP (interface))
+	return interface;
+      uses = SCM_CDR (uses);
+    }
+  return SCM_BOOL_F;
+}
+#undef FUNC_NAME
+
 /* scm_sym2var
  *
  * looks up the variable bound to SYM according to PROC.  PROC should be
