@@ -1,3 +1,7 @@
+2004-03-21  Kevin Ryde  <user42@zip.com.au>
+
+	* configure.in (AC_CHECK_FUNCS): Add gmtime_r.
+
 2004-03-14  Kevin Ryde  <user42@zip.com.au>
 
 	* configure.in (strptime): Use #define _GNU_SOURCE to get the
