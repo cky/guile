@@ -121,7 +121,8 @@ char *scm_isymnames[] =
   "#@bind",
   
   "#@delay",
-  
+  "#@call-with-values",
+
   "#<unbound>"
 };
 
