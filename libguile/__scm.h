@@ -293,6 +293,19 @@
  * - ... add more
  */
 
+#if SIZEOF_UINTPTR_T != 0
+#define HAVE_UINTPTR_T
+#endif
+
+#if SIZEOF_PTRDIFF_T != 0
+#define HAVE_PTRDIFF_T
+#endif
+
+#if SIZEOF_LONG_LONG != 0
+#define HAVE_LONG_LONGS
+#define HAVE_LONG_LONG
+#endif
+
 #ifndef HAVE_PTRDIFF_T
 typedef long ptrdiff_t;
 #endif
