@@ -230,15 +230,53 @@ only by module bookkeeping operations.")
 
 #define DYNL_GLOBAL 0x0001
 
-#ifdef HAVE_DLOPEN
-#include "dynl-dl.c"
+#ifdef DYNAMIC_LINKING
+
+#include <ltdl.h>
+
+static void *
+sysdep_dynl_link (const char *fname, int flags, const char *subr)
+{
+  lt_dlhandle handle = lt_dlopenext (fname);
+  if (NULL == handle)
+    {
+      SCM_ALLOW_INTS;
+      scm_misc_error (subr, (char *)lt_dlerror (), SCM_EOL);
+    }
+  return (void *) handle;
+}
+
+static void
+sysdep_dynl_unlink (void *handle, const char *subr)
+{
+  if (lt_dlclose ((lt_dlhandle) handle))
+    {
+      SCM_ALLOW_INTS;
+      scm_misc_error (subr, (char *)lt_dlerror (), SCM_EOL);
+    }
+}
+   
+static void *
+sysdep_dynl_func (const char *symb, void *handle, const char *subr)
+{
+  void *fptr;
+
+  fptr = lt_dlsym ((lt_dlhandle) handle, symb);
+  if (!fptr)
+    {
+      SCM_ALLOW_INTS;
+      scm_misc_error (subr, (char *)lt_dlerror (), SCM_EOL);
+    }
+  return fptr;
+}
+
+static void
+sysdep_dynl_init ()
+{
+  lt_dlinit ();
+}
+
 #else
-#ifdef HAVE_SHL_LOAD
-#include "dynl-shl.c"
-#else
-#ifdef HAVE_LIBDLD
-#include "dynl-dld.c"
-#else 
 
 /* no dynamic linking available, throw errors. */
 
@@ -279,8 +317,6 @@ sysdep_dynl_func (const char *symbol,
     return NULL;
 }
 
-#endif
-#endif
 #endif
 
 int scm_tc16_dynamic_obj;
