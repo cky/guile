@@ -844,7 +844,31 @@ AC_CHECK_HEADERS(floatingpoint.h ieeefp.h nan.h)
 #                                older systems
 #   sincos - GLIBC extension
 #
-AC_CHECK_FUNCS(asinh acosh atanh copysign finite isinf isnan sincos trunc)
+AC_CHECK_FUNCS(asinh acosh atanh copysign finite sincos trunc)
+
+# C99 specifies isinf and isnan as macros.
+# HP-UX provides only macros, no functions.
+# Glibc 2.3.2 provides both macros and functions.
+#
+# We're concerned that some systems may have only functions, the following
+# tests are designed to detect both functions and macros.
+#
+AC_MSG_CHECKING([for isinf])
+AC_LINK_IFELSE(
+[#include <math.h>
+int main () { return (isinf(0.0) != 0); }],
+  [AC_MSG_RESULT([yes])
+   AC_DEFINE(HAVE_ISINF, 1,
+             [Define to 1 if you have the `isinf' macro or function.])],
+  [AC_MSG_RESULT([no])])
+AC_MSG_CHECKING([for isnan])
+AC_LINK_IFELSE(
+[#include <math.h>
+int main () { return (isnan(0.0) != 0); }],
+  [AC_MSG_RESULT([yes])
+   AC_DEFINE(HAVE_ISNAN, 1,
+             [Define to 1 if you have the `isnan' macro or function.])],
+  [AC_MSG_RESULT([no])])
 
 # When testing for the presence of alloca, we need to add alloca.o
 # explicitly to LIBOBJS to make sure that it is translated to
