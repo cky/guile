@@ -225,7 +225,7 @@ AC_CHECK_LIB(crypt, crypt)
 AC_DEFUN(GUILE_FUNC_DECLARED, [
   AC_CACHE_CHECK(for $1 declaration, guile_cv_func_$1_declared,
     AC_EGREP_HEADER($1, $2,
-		    guile_cv_func_$1_declared=yes, 
+		    guile_cv_func_$1_declared=yes,
 		    guile_cv_func_$1_declared=no))
   if test [x$guile_cv_func_]$1[_declared] = xno; then
     AC_DEFINE([MISSING_]translit($1, [a-z], [A-Z])[_DECL])
@@ -386,7 +386,7 @@ AC_STRUCT_ST_RDEV
 AC_STRUCT_ST_BLKSIZE
 
 # We could use AC_STRUCT_ST_BLOCKS here, but that adds fileblocks.o to
-# LIBOBJS, which we don't need.  This seems more direct. 
+# LIBOBJS, which we don't need.  This seems more direct.
 AC_CACHE_CHECK([for st_blocks in struct stat], ac_cv_struct_st_blocks,
 [AC_TRY_COMPILE([#include <sys/types.h>
 #include <sys/stat.h>], [struct stat s; s.st_blocks;],
@@ -417,7 +417,7 @@ GUILE_STRUCT_UTIMBUF
 
 AC_TRY_RUN(aux (l) unsigned long l;
 	     { int x; exit (l >= ((unsigned long)&x)); }
-	   main () { int q; aux((unsigned long)&q); }, 
+	   main () { int q; aux((unsigned long)&q); },
 	   AC_DEFINE(SCM_STACK_GROWS_UP),,AC_MSG_WARN(Guessing that stack grows down -- see scmconfig.h.in))
 
 AC_CACHE_CHECK([whether floats fit in longs], guile_cv_type_float_fits_long,
@@ -591,8 +591,9 @@ AC_OUTPUT([Makefile
 	   qt/time/Makefile
 	   guile-config/Makefile
 	   doc/Makefile
-           check-guile],
-	  [chmod +x libguile/guile-snarf libguile/guile-doc-snarf libguile/guile-func-name-check check-guile])
+           check-guile
+	   guile-tools],
+	  [chmod +x libguile/guile-snarf libguile/guile-doc-snarf libguile/guile-func-name-check check-guile guile-tools])
 
 dnl Local Variables:
 dnl comment-start: "dnl "
