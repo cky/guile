@@ -177,8 +177,8 @@
 
 (define (@car x) `(@@ car ,x))
 (define (@cdr x) `(@@ cdr ,x))
-(define (@set-car! x) `(@@ set-car! ,x))
-(define (@set-cdr! x) `(@@ set-cdr! ,x))
+(define (@set-car! x y) `(@@ set-car! ,x ,y))
+(define (@set-cdr! x y) `(@@ set-cdr! ,x ,y))
 
 (define (@caar x) `(@@ car (@@ car ,x)))
 (define (@cadr x) `(@@ car (@@ cdr ,x)))

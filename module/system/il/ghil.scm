@@ -68,7 +68,8 @@
 (define *macro-module* (resolve-module '(system il macros)))
 
 (define (ghil-primitive-macro? x)
-  (module-defined? *macro-module* x))
+  (and (module-defined? *macro-module* x)
+       (procedure? (module-ref *macro-module* x))))
 
 (define (ghil-macro-expander x)
   (module-ref *macro-module* x))
