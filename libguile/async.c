@@ -167,21 +167,33 @@ SCM_DEFINE (scm_run_asyncs, "run-asyncs", 1, 0, 0,
 void
 scm_async_click ()
 {
-  SCM asyncs;
+  /* Reset pending_asyncs even when asyncs are blocked and not really
+     executed.
+  */
 
+  scm_root->pending_asyncs = 0;
   if (scm_root->block_asyncs == 0)
     {
+      SCM asyncs;
       while (!SCM_NULLP(asyncs = scm_root->active_asyncs))
 	{
 	  scm_root->active_asyncs = SCM_EOL;
 	  do
 	    {
-	      SCM c = SCM_CDR (asyncs);
-	      SCM_SETCDR (asyncs, SCM_BOOL_F);
 	      scm_call_0 (SCM_CAR (asyncs));
-	      asyncs = c;
+	      asyncs = SCM_CDR (asyncs);
 	    }
 	  while (!SCM_NULLP(asyncs));
+	}
+      for (asyncs = scm_root->signal_asyncs; !SCM_NULLP(asyncs);
+	   asyncs = SCM_CDR (asyncs))
+	{
+	  if (!SCM_FALSEP (SCM_CAR (asyncs)))
+	    {
+	      SCM proc = SCM_CAR (asyncs);
+	      SCM_SETCAR (asyncs, SCM_BOOL_F);
+	      scm_call_0 (proc);
+	    }
 	}
     }
 }
@@ -206,24 +218,22 @@ SCM_DEFINE (scm_system_async, "system-async", 1, 0, 0,
 void
 scm_i_queue_async_cell (SCM c, scm_root_state *root)
 {
-  if (SCM_CDR (c) == SCM_BOOL_F)
+  SCM p = root->active_asyncs;
+  SCM_SETCDR (c, SCM_EOL);
+  if (p == SCM_EOL)
+    root->active_asyncs = c;
+  else
     {
-      SCM p = root->active_asyncs;
-      SCM_SETCDR (c, SCM_EOL);
-      if (p == SCM_EOL)
-	root->active_asyncs = c;
-      else
+      SCM pp;
+      while ((pp = SCM_CDR(p)) != SCM_EOL)
 	{
-	  SCM pp;
-	  while ((pp = SCM_CDR(p)) != SCM_EOL)
-	    {
-	      if (SCM_CAR (p) == SCM_CAR (c))
-		return;
-	      p = pp;
-	    }
-	  SCM_SETCDR (p, c);
+	  if (SCM_CAR (p) == SCM_CAR (c))
+	    return;
+	  p = pp;
 	}
+      SCM_SETCDR (p, c);
     }
+  root->pending_asyncs = 1;
 }
 
 SCM_DEFINE (scm_system_async_mark_for_thread, "system-async-mark", 1, 1, 0,
@@ -242,8 +252,11 @@ SCM_DEFINE (scm_system_async_mark_for_thread, "system-async-mark", 1, 1, 0,
   if (SCM_UNBNDP (thread))
     thread = scm_current_thread ();
   else
-    SCM_VALIDATE_THREAD (2, thread);
-      
+    {
+      SCM_VALIDATE_THREAD (2, thread);
+      if (scm_c_thread_exited_p (thread))
+	SCM_MISC_ERROR ("thread has already exited", SCM_EOL);
+    }
   scm_i_queue_async_cell (scm_cons (proc, SCM_BOOL_F),
 			  scm_i_thread_root (thread));
 #else
@@ -292,6 +305,7 @@ SCM_DEFINE (scm_unmask_signals, "unmask-signals", 0, 0, 0,
   if (scm_root->block_asyncs == 0)
     SCM_MISC_ERROR ("signals already unmasked", SCM_EOL);
   scm_root->block_asyncs = 0;
+  scm_async_click ();
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -324,6 +338,8 @@ static void
 decrease_block (void *unused)
 {
   scm_root->block_asyncs--;
+  if (scm_root->block_asyncs == 0)
+    scm_async_click ();
 }
 
 SCM_DEFINE (scm_call_with_blocked_asyncs, "call-with-blocked-asyncs", 1, 0, 0,
@@ -336,17 +352,17 @@ SCM_DEFINE (scm_call_with_blocked_asyncs, "call-with-blocked-asyncs", 1, 0, 0,
   return scm_internal_dynamic_wind (increase_block,
 				    (scm_t_inner) scm_call_0,
 				    decrease_block,
-				    proc, NULL);
+				    (void *)proc, NULL);
 }
 #undef FUNC_NAME
 
 void *
 scm_c_call_with_blocked_asyncs (void *(*proc) (void *data), void *data)
 {
-  return scm_internal_dynamic_wind (increase_block,
-				    (scm_t_inner) proc,
-				    decrease_block,
-				    data, NULL);
+  return (void *)scm_internal_dynamic_wind (increase_block,
+					    (scm_t_inner) proc,
+					    decrease_block,
+					    data, NULL);
 }
 
 
@@ -362,7 +378,7 @@ SCM_DEFINE (scm_call_with_unblocked_asyncs, "call-with-unblocked-asyncs", 1, 0, 
   return scm_internal_dynamic_wind (decrease_block,
 				    (scm_t_inner) scm_call_0,
 				    increase_block,
-				    proc, NULL);
+				    (void *)proc, NULL);
 }
 #undef FUNC_NAME
 
@@ -372,10 +388,10 @@ scm_c_call_with_unblocked_asyncs (void *(*proc) (void *data), void *data)
   if (scm_root->block_asyncs == 0)
     scm_misc_error ("scm_c_call_with_unblocked_asyncs",
 		    "asyncs already unblocked", SCM_EOL);
-  return scm_internal_dynamic_wind (decrease_block,
-				     (scm_t_inner) proc,
-				    increase_block,
-				    data, NULL);
+  return (void *)scm_internal_dynamic_wind (decrease_block,
+					    (scm_t_inner) proc,
+					    increase_block,
+					    data, NULL);
 }
 
 
