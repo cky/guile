@@ -29,7 +29,7 @@
     (do ((i 0 (1+ i))
 	 (l (vector->list (frame-variables frame)) (cdr l))
 	 (r '() (cons (car l) r)))
-	((= i nargs) (cons (program-name prog) r)))))
+	((= i nargs) (cons (program-name prog) (reverse! r))))))
 
 (define (program-name x)
   (hash-fold (lambda (s v d) (if (eq? x (variable-ref v)) s d)) x
