@@ -1,0 +1,622 @@
+@node Low level Unix
+@chapter Low level Unix interfaces
+
+The low level Unix interfaces are currently available by
+default in the Guile top level.  However in the future they will probably
+be placed in a module and @code{use-modules} or something similar will
+be required to make them available.
+
+@menu
+* Unix conventions::            Conventions followed by the low level Unix
+                                interfaces.
+* Ports and descriptors::       Ports, file descriptors and how they
+                                interact.
+* Extended I/O::                Reading and writing to ports.
+* File system::                 Working in a hierarchical filesystem.
+* User database::               Information about users from system databases.
+* Processes::                   Information and control of Unix processes.
+* Terminals::                   Terminals and pseudo-terminals.
+* Network databases::           Network address conversion and information
+                                from system databases.
+* Network sockets::             An interface to the BSD socket library.
+* Miscellaneous Unix::          Miscellaneous Unix interfaces.
+@end menu
+
+@node Unix conventions
+@section Low level Unix conventions
+
+The low-level interfaces are designed to give Scheme programs
+access to as much functionality as possible from the underlying
+Unix system.  They can be used to implement higher level
+intefaces such as the Scheme shell @ref{scsh}.
+
+Generally there is a single procedure for each corresponding Unix
+facility.  However some of the procedures are implemented for
+speed and convenience in Scheme and have no Unix equivalent
+(e.g., @code{read-delimited}, @code{copy-file}.)
+
+This interface is intended as far as possible to be portable across
+different versions of Unix, so that Scheme programmers don't need to be
+concerned with implementation differences.  In some cases procedures
+which can't be implemented (or reimplemented) on particular systems may
+become no-ops, or perform limited actions.  In other cases they may
+throw errors.  It should be possible to use the feature system to
+determine what functionality is available.
+
+General naming conventions are as follows:
+
+@itemize @bullet
+@item
+The Scheme name is often identical to the name of the underlying Unix
+facility.
+@item
+Underscores in Unix names are converted to hyphens.
+@item
+Procedures which destructively modify Scheme data gain postpended
+exclaimation marks, e.g., @code{recv!}.
+@item
+Predicates are postpended with question marks, e.g., @code{access?}.
+@item
+Some names are changed to avoid conflict with dissimilar interfaces
+defined by scsh.
+@item
+Unix preprocessor names such as @code{EPERM} or @code{R_OK} are converted
+to Scheme variables of the same name (underscores are not replaced
+with hyphens)
+@end itemize
+
+Most of the Unix interface procedures can be relied on to return a
+well-specified value.  Unexpected conditions are handled by raising
+exceptions.
+
+There are a few procedures which return a special
+value if they don't succeed, e.g., @code{getenv} returns @code{#f}
+if it the requested string is not found in the environment.  These
+cases will be noted in the documentation.
+
+For ways to deal with exceptions, @ref{Exceptions}.
+
+Errors which the C-library would report by returning a NULL
+pointer or through some other means cause a @code{system-error} exception
+to be raised.  The value of the Unix @code{errno} variable is available
+in the data passed by the exception, so there is no need to access the
+global errno value (doing so would be unreliable in the presence of
+continuations or multiple threads).
+
+@deffn procedure errno [n]
+@end deffn
+@deffn procedure perror string
+@end deffn
+
+@node Ports and descriptors
+@section Ports and file descriptors
+
+@deffn procedure move->fdes port fd
+@end deffn
+@deffn procedure release-port-handle port
+@end deffn
+@deffn procedure set-port-revealed! @var{port} count
+@end deffn
+@deffn procedure fdes->ports fdes
+@end deffn
+@deffn procedure fileno port
+@end deffn
+@deffn procedure fdopen fdes modes
+@end deffn
+@deffn procedure duplicate-port port modes
+@end deffn
+@deffn procedure redirect-port into-port from-port
+@end deffn
+@deffn procedure freopen filename modes port
+@end deffn
+
+@node Extended I/O
+@section Extended I/O
+
+Extended I/O procedures are available which read or write lines of text,
+read text delimited by a specified set of characters, or report or
+set the current position of a port.
+
+@findex fwrite
+@findex fread
+Interfaces to @code{read}/@code{fread} and @code{write}/@code{fwrite} are
+also available, as @code{uniform-array-read!} and @code{uniform-array-write!},
+@ref{Uniform arrays}.
+
+@deffn procedure read-line [port] [handle-delim]
+Return a line of text from @var{port} if specified, otherwise from the
+value returned by @code{(current-input-port)}.  Under Unix, a line of text
+is terminated by the first end-of-line character or by end-of-file.
+
+If @var{handle-delim} is specified, it should be one of the following
+symbols:
+@table @code
+@item trim
+Discard the terminating delimiter.  This is the default, but it will
+be impossible to tell whether the read terminated with a delimiter or
+end-of-file.
+@item concat
+Append the terminating delimiter (if any) to the returned string.
+@item peek
+Push the terminating delimiter (if any) back on to the port.
+@item split
+Return a pair containing the string read from the port and the 
+terminating delimiter or end-of-file object.
+
+NOTE: if the scsh module is loaded then
+multiple values are returned instead of a pair.
+@end table
+@end deffn
+@deffn procedure read-line! buf [port]
+Read a line of text into the supplied string @var{buf} and return the
+number of characters added to @var{buf}.  If @var{buf} is filled, then
+@code{#f} is returned.
+Read from @var{port} if
+specified, otherwise from the value returned by @code{(current-input-port)}.
+@end deffn
+@deffn procedure read-delimited delims [port] [handle-delim]
+Read text until one of the characters in the string @var{delims} is found
+or end-of-file is reached.  Read from @var{port} if supplied, otherwise
+from the value returned by @code{(current-input-port)}.
+@var{handle-delim} takes the same values as described for @code{read-line}.
+
+NOTE: if the scsh module is loaded then @var{delims} must be an scsh
+char-set, not a string.
+@end deffn
+@deffn procedure read-delimited! delims buf [port] [handle-delim] [start] [end]
+Read text into the supplied string @var{buf} and return the number of
+characters added to @var{buf} (subject to @var{handle-delim}, which takes
+the same values specified for @code{read-line}.  If @var{buf} is filled,
+@code{#f} is returned for both the number of characters read and the
+delimiter.  Also terminates if one of the characters in the string
+@var{delims} is found
+or end-of-file is reached.  Read from @var{port} if supplied, otherwise
+from the value returned by @code{(current-input-port)}.
+
+NOTE: if the scsh module is loaded then @var{delims} must be an scsh
+char-set, not a string.
+@end deffn
+@deffn procedure write-line obj [port]
+Display @var{obj} and a new-line character to @var{port} if specified,
+otherwise to the
+value returned by @code{(current-output-port)}; equivalent to:
+
+@smalllisp
+(display obj [port])
+(newline [port])
+@end smalllisp
+@end deffn
+@deffn procedure ftell port
+Returns an integer representing the current position of @var{port},
+measured from the beginning.
+@end deffn
+@deffn procedure fseek port offset whence
+Sets the current position of @var{port} to the integer @var{offset},
+which is interpreted according to the value of @var{whence}.
+
+One of the following variables should be supplied
+for @var{whence}:
+@defvar SEEK_SET
+Seek from the beginning of the file.
+@end defvar
+@defvar SEEK_CUR
+Seek from the current position.
+@end defvar
+@defvar SEEK_END
+Seek from the end of the file.
+@end defvar
+@end deffn
+
+@node File system
+@section File system
+
+These procedures query and set file system attributes (such as owner,
+permissions, sizes and types of files); deleting, copying, renaming and
+linking files; creating and removing directories and querying their
+contents; and the @code{sync} interface.
+
+@deffn procedure access? path how
+Evaluates to @code{#t} if @var{path} corresponds to an existing
+file and the current process
+has the type of access specified by @var{how}, otherwise 
+@code{#f}.
+@var{how} should be specified
+using the values of the variables listed below.  Multiple values can
+be combined using a bitwise or, in which case @code{#t} will only
+be returned if all accesses are granted.
+
+Permissions are checked using the real id of the current process,
+not the effective id, although it's the effective id which determines
+whether the access would actually be granted.
+
+@defvar R_OK
+test for read permission.
+@end defvar
+@defvar W_OK
+test for write permission.
+@end defvar
+@defvar X_OK
+test for execute permission.
+@end defvar
+@defvar F_OK
+test for existence of the file.
+@end defvar
+@end deffn
+@findex fstat
+@deffn procedure stat obj
+Evaluates to an object containing various information
+about the file determined by @var{obj}.
+@var{obj} can be a string containing a file name or a port or file
+descriptor which is open on a file (in which case @code{fstat} is used
+as the underlying system call).
+
+The object returned by @code{stat} can be passed as a single parameter
+to the following procedures, all of which return integers:
+
+@table @r
+@item stat:dev
+The device containing the file.
+@item stat:ino
+The file serial number, which distinguishes this file from all other
+files on the same device.
+@item stat:mode
+The mode of the file.  This includes file type information
+and the file permission bits.  See @code{stat:type} and @code{stat:perms}
+below.
+@item stat:nlink
+The number of hard links to the file.
+@item stat:uid
+The user ID of the file's owner.
+@item stat:gid
+The group ID of the file.
+@item stat:rdev
+Device ID; this entry is defined only for character or block
+special files.
+@item stat:size
+The size of a regular file in bytes.
+@item stat:atime
+The last access time for the file.
+@item stat:mtime
+The last modification time for the file.
+@item stat:ctime
+The last modification time for the attributes of the file.
+@item stat:blksize
+The optimal block size for reading or writing the file, in bytes.
+@item stat:blocks
+The amount of disk space that the file occupies measured in units of
+512 byte blocks.
+@end table
+
+In addition, the following procedures return the information
+from stat:mode in a more convenient form:
+
+@table @r
+@item stat:type
+A symbol representing the type of file.  Possible values are
+currently: regular, directory, symlink, block-special, char-special,
+fifo, socket, unknown
+@item stat:perms
+An integer representing the access permission bits.
+@end table
+@end deffn
+@deffn procedure lstat path
+Similar to @code{stat}, but does not follow symbolic links, i.e.,
+it will return information about a symbolic link itself, not the 
+file it points to.  @var{path} must be a string.
+@end deffn
+@deffn procedure readlink path
+@end deffn
+@deffn procedure chown path owner group
+@end deffn
+@deffn procedure chmod port-or-path mode
+@end deffn
+@deffn procedure utime path [actime] [modtime]
+@end deffn
+@deffn procedure delete-file path
+@end deffn
+@deffn procedure copy-file path-from path-to
+@end deffn
+@deffn procedure rename-file path-from path-to
+@end deffn
+@deffn procedure link path-from path-to
+@end deffn
+@deffn procedure symlink path-from path-to
+@end deffn
+@deffn procedure mkdir path [mode]
+@end deffn
+@deffn procedure rmdir path
+@end deffn
+@deffn procedure opendir path
+@end deffn
+@deffn procedure readdir port
+@end deffn
+@deffn procedure rewinddir port
+@end deffn
+@deffn procedure closedir port
+@end deffn
+@deffn procedure sync
+@end deffn
+
+@node User database
+@section User database
+
+@deffn procedure getpwuid uid
+@end deffn
+@deffn procedure getpwnam name
+@end deffn
+@deffn procedure getpwent
+@end deffn
+@deffn procedure setpwent port
+@end deffn
+@deffn procedure endpwent
+@end deffn
+@deffn procedure getgrgid uid
+@end deffn
+@deffn procedure getgrnam name
+@end deffn
+@deffn procedure getgrent
+@end deffn
+@deffn procedure setgrent port
+@end deffn
+@deffn procedure endgrent
+@end deffn
+
+@node Processes
+@section Processes
+
+@deffn procedure chdir path
+@end deffn
+@deffn procedure getcwd
+@end deffn
+@deffn procedure umask [mode]
+@end deffn
+@deffn procedure getpid
+@end deffn
+@deffn procedure getgroups
+@end deffn
+@deffn procedure kill pid sig
+
+@var{sig} should be specified using a variable corresponding to
+the Unix symbolic name, e.g,
+@defvar SIGHUP
+Hang-up signal.
+@end defvar
+@defvar SIGINT
+Interrupt signal.
+@end defvar
+@end deffn
+@deffn procedure waitpid pid options
+@defvar WAIT_ANY
+@end defvar
+@defvar WAIT_MYPGRP
+@end defvar
+@defvar WNOHANG
+@end defvar
+@defvar WUNTRACED
+@end defvar
+@end deffn
+@deffn procedure getppid
+@end deffn
+@deffn procedure getuid
+@end deffn
+@deffn procedure getgid
+@end deffn
+@deffn procedure geteuid
+@end deffn
+@deffn procedure getegid
+@end deffn
+@deffn procedure setuid id
+@end deffn
+@deffn procedure setgid id
+@end deffn
+@deffn procedure seteuid id
+@end deffn
+@deffn procedure setegid id
+@end deffn
+@deffn procedure getpgrp
+@end deffn
+@deffn procedure setpgid pid pgid
+@end deffn
+@deffn procedure setsid
+@end deffn
+@deffn procedure execl arg ...
+@end deffn
+@deffn procedure execlp arg ...
+@end deffn
+@deffn procedure primitive-fork
+@end deffn
+@deffn procedure environ [env]
+@end deffn
+@deffn procedure putenv string
+@end deffn
+@deffn procedure nice incr
+@end deffn
+
+@node Terminals
+@section Terminals and pseudo-terminals
+
+@deffn procedure isatty? port
+@end deffn
+@deffn procedure ttyname port
+@end deffn
+@deffn procedure ctermid
+@end deffn
+@deffn procedure tcgetpgrp port
+@end deffn
+@deffn procedure tcsetpgrp port pgid
+@end deffn
+
+@node Network databases
+@section Network address conversion and system databases
+
+@deffn procedure inet-aton address
+@end deffn
+@deffn procedure inet-ntoa number
+@end deffn
+@deffn procedure inet-netof address
+@end deffn
+@deffn procedure inet-lnaof address
+@end deffn
+@deffn procedure inet-makeaddr net lna
+@end deffn
+@deffn procedure gethostbyname name
+@end deffn
+@deffn procedure gethostbyaddr address
+@end deffn
+@deffn procedure gethostent
+@end deffn
+@deffn procedure sethostent port
+@end deffn
+@deffn procedure endhostent
+@end deffn
+@deffn procedure getnetbyname name
+@end deffn
+@deffn procedure getnetbyaddr address
+@end deffn
+@deffn procedure getnetent
+@end deffn
+@deffn procedure setnetent port
+@end deffn
+@deffn procedure endnetent
+@end deffn
+@deffn procedure getprotobyname name
+@end deffn
+@deffn procedure getprotobynumber number
+@end deffn
+@deffn procedure getprotoent
+@end deffn
+@deffn procedure setprotoent port
+@end deffn
+@deffn procedure endprotoent
+@end deffn
+@deffn procedure getservbyname name protocol
+@end deffn
+@deffn procedure getservbyport port protocol
+@end deffn
+@deffn procedure getservent
+@end deffn
+@deffn procedure setservent port
+@end deffn
+@deffn procedure endservent
+@end deffn
+
+@node Network sockets
+@section BSD socket library interface
+
+@deffn procedure socket family style protocol
+@end deffn
+@deffn procedure socketpair family style protocol
+@end deffn
+@deffn procedure getsockopt socket level optname
+@end deffn
+@deffn procedure setsockopt socket level optname value
+@end deffn
+@deffn procedure shutdown socket how
+@end deffn
+@deffn procedure connect socket family address arg ...
+@end deffn
+@deffn procedure bind socket family address arg ...
+@end deffn
+@deffn procedure listen socket backlog
+@end deffn
+@deffn procedure accept socket
+@end deffn
+@deffn procedure getsockname socket
+@end deffn
+@deffn procedure getpeername socket
+@end deffn
+@deffn procedure recv! socket buf [flags]
+@end deffn
+@deffn procedure send socket message [flags]
+@end deffn
+@deffn procedure recvfrom! socket buf [flags] [start] [end]
+@end deffn
+@deffn procedure sendto socket message family address args ... [flags]
+@end deffn
+
+@node Miscellaneous Unix
+@section Miscellaneous Unix interfaces
+
+Things which haven't been classified elsewhere (yet?).
+
+@deffn procedure open path flags [mode]
+@defvar O_RDONLY
+@end defvar
+@defvar O_WRONLY
+@end defvar
+@defvar O_RDWR
+@end defvar
+@defvar O_CREAT
+@end defvar
+@defvar O_EXCL
+@end defvar
+@defvar O_NOCTTY
+@end defvar
+@defvar O_TRUNC
+@end defvar
+@defvar O_APPEND
+@end defvar
+@defvar O_NONBLOCK
+@end defvar
+@defvar O_NDELAY
+@end defvar
+@defvar O_SYNC
+@end defvar
+@end deffn
+@deffn procedure select reads writes excepts secs msecs
+@end deffn
+@deffn procedure uname
+@end deffn
+@deffn procedure pipe
+@end deffn
+@deffn procedure open-pipe command modes
+@end deffn
+@deffn procedure open-input-pipe command
+@end deffn
+@deffn procedure open-output-pipe command
+@end deffn
+@deffn procedure setlocale category [locale]
+@defvar LC_COLLATE
+@end defvar
+@defvar LC_CTYPE
+@end defvar
+@defvar LC_MONETARY
+@end defvar
+@defvar LC_NUMERIC
+@end defvar
+@defvar LC_TIME
+@end defvar
+@defvar LC_MESSAGES
+@end defvar
+@defvar LC_ALL
+@end defvar
+@end deffn
+@deffn procedure strftime format stime
+@end deffn
+@deffn procedure strptime format string
+@end deffn
+@deffn procedure mknod
+@end deffn
+
+@node scsh
+@chapter The Scheme shell (scsh) 
+
+Guile includes an incomplete port of the Scheme shell (scsh) 0.4.4.
+
+For information about scsh on the Web see
+@url{http://www-swiss.ai.mit.edu/scsh/scsh.html}.
+The original scsh is available by ftp from
+@url{ftp://swiss-ftp.ai.mit.edu:/pub/su}.
+
+This port of scsh does not currently use the Guile module system, but
+can be initialized using:
+@smalllisp
+(load-from-path "scsh/init")
+@end smalllisp
+
+Note that SLIB must be installed before scsh can be initialized, see
+@ref{SLIB} for details.
+
+@node Threads
+@chapter Programming Threads.
+

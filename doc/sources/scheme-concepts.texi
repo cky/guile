@@ -1,0 +1,249 @@
+@node Guile Scheme concepts
+@chapter Guile Scheme concepts
+
+Most Scheme implementations go beyond what is specified in the R4RS
+document @footnote{Remember?  R4RS is the Revised^4 report on the
+Algorithmic Language Scheme}, mostly because R4RS does not give
+specifications (or even recommendations) regarding some issues that are
+quite important in practical programming.
+
+Here is a list of how Guile implements some of these much-needed Scheme
+extensions; other Scheme implementations do so quite similarly.
+
+@menu
+* Scheme slang::                
+* Read-eval-print loops::       
+* Extra data types::            
+* Miscellaneous features::      
+@end menu
+
+@node Scheme slang
+@section Scheme slang
+@cindex slang
+
+Even if you read some of the nice books on Scheme, or the R4RS report,
+you might not find some of the terms frequently used by Scheme hackers,
+both in the manual and in the @url{news:comp.lang.scheme} newsgroup.
+
+Here is a glossary of some of the terms that make Scheme beginners and
+intermediate users say ``huh?''
+
+@table @strong
+@item thunk
+@cindex thunk
+A Scheme procedure that takes no arguments.  In this example,
+@code{thunk} and @code{another-thunk} are both thunks:
+@lisp
+(define (thunk)
+  (display "Dude, I'm a thunk!")
+  (newline))
+(define another-thunk
+  (lambda ()
+    (display "Me too!\n")
+    (newline)))
+@end lisp
+
+@item closure
+@cindex closure
+A closure is a procedure.  However, the term emphasizes the fact that a
+Scheme procedure remembers (or @dfn{closes over}) the variables that
+were visible when the @code{lambda} expression was
+evaluated.
+
+In the example below, we might refer to @code{q} as a closure, because
+it has closed over the value of @code{x}:
+@lisp
+(define p
+  (lambda (x)
+    (lambda (y)
+      (+ x y))))
+(define q (p 5.7))
+
+(q 10)
+@result{} 15.7
+@end lisp
+
+However, strictly speaking, every Scheme procedure is really a closure,
+since it closes over the top-level environment.
+
+@item alist
+@itemx association list
+
+@item plist
+@itemx property list
+
+@end table
+
+
+@node Read-eval-print loops
+@section Read-eval-print loops
+@cindex Read-eval-print loop
+@cindex REPL
+
+To explicitly mention the Scheme read-eval-print loop (REPL) seems weird
+because we are all accustomed to firing up an interpreter and having it
+read and execute commands.
+
+But the REPL is not specified in R4RS; rather, it is proposed by the
+Scheme Bible @cite{Structure and Interpretation of Computer Programs}
+(also known as @emph{SICP}), and implemented in some form in all Scheme
+interpreters.
+@cindex Structure and Interpretation of Computer Programs
+@cindex SICP
+
+[FIXME: Someone needs to tell me what needs to be said about Guile's
+REPL.]
+
+@node Extra data types
+@section Extra data types
+
+The fundamental Scheme data types specified in R4RS are @emph{numbers}
+(both exact and inexact), @emph{characters}, @emph{strings},
+@emph{symbols}, @emph{vectors}, @emph{pairs} and @emph{lists} [FIXME: is
+this complete?].
+
+Many Scheme interpreters offer more types, and Guile is no exception.
+Guile is based on Aubrey Jaffer's SCM interpreter, and thus inherits
+@emph{uniform arrays}, [FIXME: any others?  How about records?].
+
+On top of that, Guile allows you to add extra types, but that is covered
+in @ref{Adding types to Guile}.  Here I will simply document all the
+extra Scheme types shipped with Guile.
+
+@menu
+* Conventional arrays::         
+* Uniform arrays::              
+* Bit vectors::                 
+* Complex numbers::             
+@end menu
+
+@node Conventional arrays
+@subsection Conventional arrays
+
+@node Uniform arrays
+@subsection Uniform arrays
+@cindex arrays - uniform
+
+The motivation for uniform arrays in Scheme is performance.  A vector
+provides a performance increase over lists when you want a fixed-size
+indexable list.  But the elements in a vector can be of different types,
+and this makes for larger storage requirements and slightly lower
+performance.
+
+A uniform array is similar to a vector, but all elements have to be of
+the same type.
+
+arrays, uniform arrays, bit vectors:
+
+@deffn procedure array-fill ra fill
+@end deffn
+@deffn procedure serial-array-copy! src dst
+@end deffn
+@deffn procedure serial-array-map ra0 proc [lra]
+@end deffn
+@deffn procedure array-map ra0 proc [lra]
+@end deffn
+@deffn procedure array-for-each proc ra0 [lra]
+@end deffn
+@deffn procedure array-index-map! ra proc
+@end deffn
+@deffn procedure array-copy! src dst
+@end deffn
+@deffn procedure array-copy! src dst
+@end deffn
+@deffn procedure array-copy! src dst
+@end deffn
+@deffn procedure array-copy! src dst
+@end deffn
+@deffn procedure array-copy! src dst
+@end deffn
+@deffn procedure array? ra [prot]
+@end deffn
+@deffn procedure array-rank ra
+@end deffn
+@deffn procedure array-dimensions ra
+@end deffn
+@deffn procedure dimensions->uniform-array dims prot fill ...
+@end deffn
+@deffn procedure make-shared-array ra mapfunc dims ...
+@end deffn
+@deffn procedure transpose-array arg ...
+@end deffn
+@deffn procedure enclose-array axes ...
+@end deffn
+@deffn procedure array-in-bounds? arg ...
+@end deffn
+@deffn procedure array-ref ra arg ..
+@end deffn
+@deffn procedure uniform-vector-ref vec pos
+@end deffn
+@deffn procedure array-set! ra obj arg ...
+@end deffn
+@deffn procedure uniform-array-set1! ua obj arg
+@end deffn
+@deffn procedure array-contents ra [strict]
+@end deffn
+@deffn procedure uniform-array-read! ra [port-or-fd] [start] [end]
+@end deffn
+@deffn procedure uniform-array-write! ra [port-or-fd] [start] [end]
+@end deffn
+@deffn procedure bit-count item seq
+@end deffn
+@deffn procedure bit-position item v k
+@end deffn
+@deffn procedure bit-set! v kv obj
+@end deffn
+@deffn procedure bit-count* v kv obj
+@end deffn
+@deffn procedure bit-invert v
+@end deffn
+@deffn procedure array->list ra
+@end deffn
+@deffn procedure list->uniform-array ndim prot list
+@end deffn
+@deffn procedure array-prototype ra
+@end deffn
+
+Unform arrays can be written and read, but @code{read} won't recognize
+them unless the optional @code{read-sharp} parameter is supplied,
+e.g, 
+@smalllisp
+(read port #t read-sharp)
+@end smalllisp
+
+where @code{read-sharp} is the default procedure for parsing extended
+sharp notations.
+
+Reading an array is not very efficient at present, since it's implemented
+by reading a list and converting the list to an array.
+
+@c FIXME: must use @deftp, but its generation of TeX code is buggy.
+@c Must fix it when TeXinfo gets fixed.
+@deftp {Scheme type} {uniform array}
+
+@end deftp
+
+@node Bit vectors
+@subsection Bit vectors
+
+@node Complex numbers
+@subsection Complex numbers
+
+@c FIXME: must use @deftp, but its generation of TeX code is buggy.
+@c Must fix it when TeXinfo gets fixed.
+@deftp {Scheme type} complex
+Standard complex numbers.
+@end deftp
+
+@node Miscellaneous features
+@section Miscellaneous features
+
+@defun defined? symbol
+Returns @code{#t} if a symbol is bound to a value, @code{#f} otherwise.
+This kind of procedure is not specified in R4RS because @c FIXME: finish
+this thought
+@end defun
+
+@defun object-properties OBJ
+and so forth
+@end defun

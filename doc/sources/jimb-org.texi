@@ -1,0 +1,131 @@
+@menu
+Preliminary
+
+* Introduction::
+* Using Guile::
+
+
+
+@bye
+
+>You can actually put any English text to break up the menu, so you
+>could put the "Part n" headings in it.
+
+
+
+Introduction
+    --- Explains Guile's goals, and gives brief examples of how to use
+        Guile interactively (show off repl), as a script interpreter,
+        and as an embedded interpreter.
+
+Part I: Guile Scheme
+    R4RS Scheme as a Starting Point
+	--- Here we refer to R4RS, and explain that we're only
+	    describing differences.
+    Block comments and interpreter triggers
+    Symbol case
+    Keywords
+    Exceptions
+    Modules
+	--- the preceeding three come first, because we need them
+	    in order to explain the behavior of some things later
+    Exception Handling
+        --- mention that repls usually establish default exception handlers
+    Dynamic Wind
+    Records
+    Structures
+    Arrays
+    Binary Numeric Operations
+    Shared and Read-Only Strings
+    Object Properties
+    Association Lists and Hash Tables
+        (Dictionaries In General)
+        association lists
+        hash tables (Hash Values)
+    Input/Output ports
+	file ports
+	soft ports
+	string ports
+	extended I/O (fseek; line read/write)
+    Garbage Collection
+    Threads and Dynamic Roots
+    Reflection
+        eval
+        Tag Values
+    Weak references
+    Regular Expressions
+    SLIB
+    POSIX system calls and networking
+	--- I think people will generally know whether they're looking
+	    for a system call or not, so this should be an okay category.
+	conventions (includes error handling)
+	ports vs. file descriptors
+	file system (mknod goes here, no?)
+	user database
+	time (includes gettimeofday or whatever, strftime, strptime)
+	processes
+	terminals and pseudo-terminals
+	pipes
+	networking (includes databases, address conversion, and sockets)
+	system identification (uname)
+	locales (setlocale)
+	--- Note that there is no more 'misc'.  It's better to have
+	    small sections than unhelpful names.
+    SCSH
+	--- includes info on how to get SCSH features (open this
+            module), but mostly just a pointer to the SCSH manual.
+            This should not be under POSIX.  SCSH includes plenty of
+	    high-level stuff for starting processes and string
+	    processing.  SCSH is not a subset of POSIX, nor the
+            reverse.
+    Tcl/Tk interface
+    Module internals
+        first-class variables
+	first-class modules
+    internal debugging interface
+	--- The name of this chapter needs to clearly distinguish it
+	    from the appendix describing the debugger UI.  The intro
+	    should have a pointer to the UI appendix.
+
+Part II: Using Scheme with C --- a Portable Interface
+    --- We cover gh in a completely separate section.  Why?  I admit
+        I'm on shaky ground, but here's my reasoning: People who want
+        to write portable C code need to restrict themselves to only
+        using GH, and GH's semantics are (necessarily) well-defined
+        without reference to Guile's particulars.  This makes life
+        more difficult for folks who just prefer to use the GH
+        interface when they can, but I really think the SCM interface
+        is not so bad, once you're used to it.  A *lot* of GH
+        functions are just wrappers for SCM functions.
+    --- We cover repls here too, since GH has repl functions.
+
+Part III: Using Scheme with C --- Guile's Interface
+    Scheme data representation
+    Relationship between Scheme and C functions
+        --- this is where we explain that all the functions marked as
+	    "Primitive Functions" are also accessible from C, and how
+	    to derive the C interface given the Scheme interface, when
+	    we don't spell it out.
+    ... I think there's other stuff needed here ...
+    I/O internals
+    linking Guile with your code
+	--- Mark's "Tools to automate adding libraries" is not a
+            well-defined concept.  I think this is closer to what we
+            want to cover for now.
+    snarfing
+
+Appendices: 
+    Obtaining and Installing Guile
+    Invoking Guile
+        --- mentions read-eval-print loops
+	--- both the SCSH and GAWK manuals relegate invocation details
+            to an appendix.  We can give examples in the introduction.
+    debugger user interface
+	--- The title and introduction of this appendix need to
+            distinguish this clearly from the chapter on the internal
+            debugging interface.
+
+Indices:
+	--- At the top of the function/variable index, remind people
+            to look for functions under their Scheme names as well as
+            their C names.
