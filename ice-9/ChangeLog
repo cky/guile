@@ -1,3 +1,11 @@
+Fri Sep 13 04:58:11 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
+
+	* boot-9.scm: Name change: value-ref --> local-ref
+	resolved-ref --> nested-ref  Motivation: conformance to the other
+	dictionary operators: list-ref operates on list, vector-ref
+	operates on vector, nested-ref operates on nested namespace,
+	local-ref operates on the local nested namespace.
+
 Sat Sep  7 06:44:47 1996  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* boot-9.scm (%%handle-system-error): recognise errors thrown
