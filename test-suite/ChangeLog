@@ -1,3 +1,8 @@
+2003-05-06  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/numbers.test (-): Add test for negative inum subtract bignum.
+	(logcount): New tests, exercising some negatives.
+	
 2003-05-03  Marius Vollmer  <mvo@zagadka.de>
 
 	* tests/r5rs_pitfall.test: New.  Thanks to Dale P. Smith for

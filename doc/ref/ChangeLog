@@ -1,3 +1,11 @@
+2003-05-06  Kevin Ryde  <user42@zip.com.au>
+
+	* scheme-scheduling.texi (C level thread interface): Use @deftypefn
+	not @deftypefun, to get function names (not types) indexed.
+
+	* scheme-options.texi (Build Config): Add index entries for
+	%guile-build-info keys.
+
 2003-05-04  Kevin Ryde  <user42@zip.com.au>
 
 	* scheme-data.texi (Integer Operations): Describe how quotient,
