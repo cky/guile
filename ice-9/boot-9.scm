@@ -760,42 +760,17 @@
 ;;; {Load Paths}
 ;;;
 
-(define implementation-vicinity compiled-library-path)
-
 ;;; Here for backward compatability
 ;;
 (define scheme-file-suffix (lambda () ".scm"))
 
-(define in-vicinity string-append)
-
-(define (parse-path env_path)
-  (cond ((string? env_path)
-	 (let loop ((curdir "") (env env_path) (path '()))
-	   (cond ((= (string-length env) 0) 
-		  (if (> (string-length curdir) 0)
-		      (append path (list curdir))
-		      path))
-		 ((char=? (string-ref env 0) #\:)
-		  (loop "" 
-			(substring env 1 (string-length env))
-			(append path (list curdir))))
-		 (#t
-		  (loop (string-append curdir (substring env 0 1))
-			(substring env 1 (string-length env))
-			path)))))
-	(#t '())))
-
-;;; we don't have false-if-exception (or defmacro) yet.
-(define %load-path
-  (let ((lp (catch #t (lambda () (getenv "SCHEME_LOAD_PATH"))
-		   (lambda args #f))))
-    (append
-     (parse-path lp)
-     (cons "./"
-	   (map (lambda (dir) (in-vicinity (implementation-vicinity) dir "/"))
-		(cons "site"
-		      (map (lambda (dir) (string-append (version) "/" dir))
-			   '("." "gls/guile" "gls" "slib"))))))))
+(define (in-vicinity vicinity file)
+  (let ((tail (let ((len (string-length vicinity)))
+		(if (zero? len) #f
+		    (string-ref vicinity (- len 1))))))
+    (string-append vicinity
+		   (if (eq? tail #\/) "" "/")
+		   file)))
 
 
 ;;; {try-load}
