@@ -1,3 +1,8 @@
+2001-08-31  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* readline.scm: `feature?´ is deprecated.  Use `provided?´
+	instead.
+
 2001-08-25  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* readline.scm: Use load-extension instead of explicit

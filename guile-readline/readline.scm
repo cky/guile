@@ -34,10 +34,10 @@
 ;;; Dynamically link the glue code for accessing the readline library,
 ;;; but only when it isn't already present.
 
-(if (not (feature? 'readline))
+(if (not (provided? 'readline))
     (load-extension "libguilereadline" "scm_init_readline"))
 
-(if (not (feature? 'readline))
+(if (not (provided? 'readline))
     (scm-error 'misc-error
 	       #f
 	       "readline is not provided in this Guile installation"
@@ -168,7 +168,7 @@
 (define-public (set-readline-read-hook! h)
   (set! read-hook h))
 
-(if (feature? 'regex)
+(if (provided? 'regex)
     (begin
       (define-public apropos-completion-function
 	(let ((completions '()))
