@@ -70,6 +70,31 @@ SCM2CTYPES (SCM obj, CTYPE *data)
       return data;
     }
 
+  /* uniform vectors */
+#ifdef UVEC_PREDICATE
+  if (scm_is_true (UVEC_PREDICATE (obj)))
+    {
+      n = scm_c_uniform_vector_length (obj);
+      ARRAYCTYPE *elts = (ARRAYCTYPE *)scm_uniform_vector_elements (obj);
+
+      /* allocate new memory if necessary */
+      if (data == NULL)
+	if ((data = (CTYPE *) malloc (n * sizeof (CTYPE))) == NULL)
+	  return NULL;
+
+#if SIZEOF_CTYPE != SIZEOF_ARRAYTYPE
+      /* copy array element by element */
+      for (i = 0; i < n; i++)
+	data[i] = (CTYPE) elts[i];
+#else
+      /* copy whole array */
+      memcpy (data, (CTYPE *) elts, n * sizeof (CTYPE));
+#endif
+      scm_uniform_vector_release (obj);
+      return data;
+    }
+#endif
+      
   /* other conversions */
   switch (SCM_TYP7 (obj))
     {
@@ -127,7 +152,7 @@ SCM2CTYPES (SCM obj, CTYPE *data)
 #endif
 	}
       break;
-
+#ifdef ARRAYTPE
 #if SCM_HAVE_ARRAYS
       /* array conversions (uniform vectors) */
     case ARRAYTYPE:
@@ -160,6 +185,7 @@ SCM2CTYPES (SCM obj, CTYPE *data)
 #endif
       break;
 #endif /* SCM_HAVE_ARRAYS */
+#endif
 
 #if SIZEOF_CTYPE == 1
     case scm_tc7_string:
@@ -204,11 +230,16 @@ CTYPES2UVECT (const CTYPE *data, long n)
   v = scm_gc_malloc (n * sizeof (CTYPE), "uvect");
   memcpy (v, data, n * sizeof (CTYPE));
 #endif
+
+#ifdef UVEC_CREATOR
+  return UVEC_CREATOR (v, n);
+#else
   return scm_cell (SCM_MAKE_UVECTOR_TAG (n, UVECTTYPE), (scm_t_bits) v);
+#endif
 }
 #undef FUNC_NAME
 
-#ifdef UVECTTYPE_OPTIONAL
+#if defined(UVECTTYPE_OPTIONAL) || defined(UVEC_CREATOR_OPTIONAL)
 #define FUNC_NAME CTYPES2UVECT_FN_OPTIONAL
 SCM
 CTYPES2UVECT_OPTIONAL (const unsigned CTYPE *data, long n)
@@ -230,11 +261,15 @@ CTYPES2UVECT_OPTIONAL (const unsigned CTYPE *data, long n)
   v = scm_gc_malloc (n * sizeof (CTYPE), "uvect");
   memcpy (v, data, n * sizeof (CTYPE));
 #endif
+#ifdef UVEC_CREATOR_OPTIONAL
+  return UVEC_CREATOR_OPTIONAL (v, n);
+#else
   return scm_cell (SCM_MAKE_UVECTOR_TAG (n, UVECTTYPE_OPTIONAL), 
 		   (scm_t_bits) v);
+#endif
 }
 #undef FUNC_NAME
-#endif /* UVECTTYPE_OPTIONAL */
+#endif /* UVECTTYPE_OPTIONAL || UVEC_CREATOR_OPTIONAL */
 
 #endif /* SCM_HAVE_ARRAYS */
 
@@ -278,7 +313,9 @@ CTYPES2SCM (const CTYPE *data, long n)
 #undef SIZEOF_CTYPE
 #undef SIZEOF_UVECTTYPE
 #undef SIZEOF_ARRAYTYPE
+#ifdef ARRAYTYPE
 #undef ARRAYTYPE
+#endif
 #ifdef ARRAYTYPE_OPTIONAL
 #undef ARRAYTYPE_OPTIONAL
 #endif
@@ -294,6 +331,16 @@ CTYPES2SCM (const CTYPE *data, long n)
 #ifdef ARRAYCTYPE
 #undef ARRAYCTYPE
 #endif
+#ifdef UVEC_PREDICATE
+#undef UVEC_PREDICATE
+#endif
+#ifdef UVEC_CREATOR
+#undef UVEC_CREATOR
+#endif
+#ifdef UVEC_CREATOR_OPTIONAL
+#undef UVEC_CREATOR_OPTIONAL
+#endif
+
 
 /*
   Local Variables:

@@ -28,6 +28,7 @@
 #if SCM_HAVE_ARRAYS
 # include "libguile/unif.h"
 #endif
+#include "libguile/srfi-4.h"
 
 #include "libguile/convert.h"
 
@@ -43,10 +44,10 @@
 #define CTYPES2SCM       scm_c_chars2scm
 #define CTYPES2UVECT_FN  "scm_c_chars2byvect"
 #define CTYPES2UVECT     scm_c_chars2byvect
-#define UVECTTYPE        scm_tc7_byvect
+#define UVEC_CREATOR    scm_take_s8vector
 #define SIZEOF_UVECTTYPE 1
 #define UVECTCTYPE       char
-#define ARRAYTYPE        scm_tc7_byvect
+#define UVEC_PREDICATE  scm_s8vector_p
 #define SIZEOF_ARRAYTYPE 1
 #define ARRAYCTYPE       char
 #include "convert.i.c"
