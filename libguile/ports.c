@@ -229,14 +229,15 @@ SCM_DEFINE (scm_char_ready_p, "char-ready?", 0, 1, 0,
 	    "@code{#t} then the next @code{read-char} operation on\n"
 	    "@var{port} is guaranteed not to hang.  If @var{port} is a file\n"
 	    "port at end of file then @code{char-ready?} returns @code{#t}.\n"
-	    "@footnote{@code{char-ready?} exists to make it possible for a\n"
+	    "\n"
+	    "@code{char-ready?} exists to make it possible for a\n"
 	    "program to accept characters from interactive ports without\n"
 	    "getting stuck waiting for input.  Any input editors associated\n"
 	    "with such ports must make sure that characters whose existence\n"
 	    "has been asserted by @code{char-ready?} cannot be rubbed out.\n"
 	    "If @code{char-ready?} were to return @code{#f} at end of file,\n"
 	    "a port at end of file would be indistinguishable from an\n"
-	    "interactive port that has no ready characters.}")
+	    "interactive port that has no ready characters.")
 #define FUNC_NAME s_scm_char_ready_p
 {
   scm_t_port *pt;
@@ -1187,7 +1188,9 @@ SCM_DEFINE (scm_peek_char, "peek-char", 0, 1, 0,
 	    "Return the next character available from @var{port},\n"
 	    "@emph{without} updating @var{port} to point to the following\n"
 	    "character.  If no more characters are available, the\n"
-	    "end-of-file object is returned.@footnote{The value returned by\n"
+	    "end-of-file object is returned.\n"
+	    "\n"
+	    "The value returned by\n"
 	    "a call to @code{peek-char} is the same as the value that would\n"
 	    "have been returned by a call to @code{read-char} on the same\n"
 	    "port.  The only difference is that the very next call to\n"
@@ -1195,7 +1198,7 @@ SCM_DEFINE (scm_peek_char, "peek-char", 0, 1, 0,
 	    "return the value returned by the preceding call to\n"
 	    "@code{peek-char}.  In particular, a call to @code{peek-char} on\n"
 	    "an interactive port will hang waiting for input whenever a call\n"
-	    "to @code{read-char} would have hung.}")
+	    "to @code{read-char} would have hung.")
 #define FUNC_NAME s_scm_peek_char
 {
   int c, column;
