@@ -1684,7 +1684,95 @@
   (pass-if (not (< (1- (ash 3 1023)) +nan.0)))
   (pass-if (not (< +nan.0 (ash 3 1023))))
   (pass-if (not (< +nan.0 (1+ (ash 3 1023)))))
-  (pass-if (not (< +nan.0 (1- (ash 3 1023))))))
+  (pass-if (not (< +nan.0 (1- (ash 3 1023)))))
+
+  (with-test-prefix "inum/frac"
+    (pass-if (< 2 9/4))
+    (pass-if (< -2 9/4))
+    (pass-if (< -2 7/4))
+    (pass-if (< -2 -7/4))
+    (pass-if (eq? #f (< 2 7/4)))
+    (pass-if (eq? #f (< 2 -7/4)))
+    (pass-if (eq? #f (< 2 -9/4)))
+    (pass-if (eq? #f (< -2 -9/4))))
+
+  (with-test-prefix "bignum/frac"
+    (let ((x (ash 1 2048)))
+      (pass-if (< x (* 4/3 x)))
+      (pass-if (< (- x) (* 4/3 x)))
+      (pass-if (< (- x) (* 2/3 x)))
+      (pass-if (< (- x) (* -2/3 x)))
+      (pass-if (eq? #f (< x (* 2/3 x))))
+      (pass-if (eq? #f (< x (* -2/3 x))))
+      (pass-if (eq? #f (< x (* -4/3 x))))
+      (pass-if (eq? #f (< (- x) (* -4/3 x))))))
+
+  (with-test-prefix "flonum/frac"
+    (pass-if (< 0.75 4/3))
+    (pass-if (< -0.75 4/3))
+    (pass-if (< -0.75 2/3))
+    (pass-if (< -0.75 -2/3))
+    (pass-if (eq? #f (< 0.75 2/3)))
+    (pass-if (eq? #f (< 0.75 -2/3)))
+    (pass-if (eq? #f (< 0.75 -4/3)))
+    (pass-if (eq? #f (< -0.75 -4/3)))
+
+    (pass-if (< -inf.0 4/3))
+    (pass-if (< -inf.0 -4/3))
+    (pass-if (eq? #f (< +inf.0 4/3)))
+    (pass-if (eq? #f (< +inf.0 -4/3)))
+
+    (pass-if (eq? #f (< +nan.0 4/3)))
+    (pass-if (eq? #f (< +nan.0 -4/3))))
+
+  (with-test-prefix "frac/inum"
+    (pass-if (< 7/4 2))
+    (pass-if (< -7/4 2))
+    (pass-if (< -9/4 2))
+    (pass-if (< -9/4 -2))
+    (pass-if (eq? #f (< 9/4 2)))
+    (pass-if (eq? #f (< 9/4 -2)))
+    (pass-if (eq? #f (< 7/4 -2)))
+    (pass-if (eq? #f (< -7/4 -2))))
+
+  (with-test-prefix "frac/bignum"
+    (let ((x (ash 1 2048)))
+      (pass-if (< (* 2/3 x) x))
+      (pass-if (< (* -2/3 x) x))
+      (pass-if (< (* -4/3 x) x))
+      (pass-if (< (* -4/3 x) (- x)))
+      (pass-if (eq? #f (< (* 4/3 x) x)))
+      (pass-if (eq? #f (< (* 4/3 x) (- x))))
+      (pass-if (eq? #f (< (* 2/3 x) (- x))))
+      (pass-if (eq? #f (< (* -2/3 x) (- x))))))
+
+  (with-test-prefix "frac/flonum"
+    (pass-if (< 2/3 0.75))
+    (pass-if (< -2/3 0.75))
+    (pass-if (< -4/3 0.75))
+    (pass-if (< -4/3 -0.75))
+    (pass-if (eq? #f (< 4/3 0.75)))
+    (pass-if (eq? #f (< 4/3 -0.75)))
+    (pass-if (eq? #f (< 2/3 -0.75)))
+    (pass-if (eq? #f (< -2/3 -0.75)))
+
+    (pass-if (< 4/3 +inf.0))
+    (pass-if (< -4/3 +inf.0))
+    (pass-if (eq? #f (< 4/3 -inf.0)))
+    (pass-if (eq? #f (< -4/3 -inf.0)))
+
+    (pass-if (eq? #f (< 4/3 +nan.0)))
+    (pass-if (eq? #f (< -4/3 +nan.0))))
+
+  (with-test-prefix "frac/frac"
+    (pass-if (< 2/3 6/7))
+    (pass-if (< -2/3 6/7))
+    (pass-if (< -4/3 6/7))
+    (pass-if (< -4/3 -6/7))
+    (pass-if (eq? #f (< 4/3 6/7)))
+    (pass-if (eq? #f (< 4/3 -6/7)))
+    (pass-if (eq? #f (< 2/3 -6/7)))
+    (pass-if (eq? #f (< -2/3 -6/7)))))
 
 ;;;
 ;;; >
