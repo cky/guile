@@ -226,7 +226,7 @@ SCM_API SCM scm_m_letrec (SCM xorig, SCM env);
 SCM_API SCM scm_m_let (SCM xorig, SCM env);
 SCM_API SCM scm_m_apply (SCM xorig, SCM env);
 SCM_API SCM scm_m_cont (SCM xorig, SCM env);
-#ifdef SCM_ENABLE_ELISP
+#if SCM_ENABLE_ELISP
 SCM_API SCM scm_m_nil_cond (SCM xorig, SCM env);
 SCM_API SCM scm_m_atfop (SCM xorig, SCM env);
 #endif /* SCM_ENABLE_ELISP */
