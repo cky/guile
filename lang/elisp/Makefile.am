@@ -32,7 +32,7 @@ elisp_sources = \
 	transform.scm \
 	variables.scm
 
-subpkgdatadir = $(pkgdatadir)/$(VERSION)/lang/elisp
+subpkgdatadir = $(pkgdatadir)/$(GUILE_EFFECTIVE_VERSION)/lang/elisp
 subpkgdata_DATA = $(elisp_sources)
 ETAGS_ARGS = $(subpkgdata_DATA)
 

@@ -40,7 +40,7 @@ scripts_sources =		\
 	api-diff		\
 	read-rfc822
 
-subpkgdatadir = $(pkgdatadir)/$(VERSION)/scripts
+subpkgdatadir = $(pkgdatadir)/$(GUILE_EFFECTIVE_VERSION)/scripts
 subpkgdata_SCRIPTS = $(scripts_sources)
 
 EXTRA_DIST = $(scripts_sources)
