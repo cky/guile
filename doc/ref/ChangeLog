@@ -1,3 +1,9 @@
+2003-09-21  Kevin Ryde  <user42@zip.com.au>
+
+	* posix.texi (File System): In access?, reword a bit, clarify real
+	versus effective ID handling, cross reference glibc on that, and
+	recommend against access tests in library functions.
+
 2003-09-13  Kevin Ryde  <user42@zip.com.au>
 
 	* posix.texi (File System): In stat:dev and stat:mode, clarify that
