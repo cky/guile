@@ -244,12 +244,12 @@
   (set! run-test local-run-test))
 
 ;;; A short form for tests that are expected to pass, taken from Greg.
-(defmacro pass-if (name body)
-  `(run-test ,name #t (lambda () (not (not (begin ,body))))))
+(defmacro pass-if (name body . rest)
+  `(run-test ,name #t (lambda () (not (not (begin ,body ,@rest))))))
 
 ;;; A short form for tests that are expected to fail, taken from Greg.
-(defmacro expect-fail (name body)
-  `(run-test ,name #f (lambda () ,body)))
+(defmacro expect-fail (name body . rest)
+  `(run-test ,name #f (lambda () ,body ,@rest)))
 
 
 ;;;; TEST NAMES

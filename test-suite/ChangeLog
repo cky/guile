@@ -1,3 +1,10 @@
+2000-08-21  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* lib.scm (pass-if, expect-fail):  Generalized to allow a sequence
+	of expressions.
+
+	* tests/eval.test:  Fix documentation test.
+
 2000-06-30  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* tests/list.test:  Added tests for list-ref, list-set! and

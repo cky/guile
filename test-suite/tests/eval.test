@@ -94,7 +94,7 @@
   ;; Is documentation available?
 
   (expect-fail "documented?"
-    (documented? 'map))
+    (documented? map))
 
   (with-test-prefix "argument error"
 
