@@ -442,7 +442,6 @@ scm_init_guile_1 (SCM_STACKITEM *base)
       abort ();
     }
 
-  scm_ints_disabled = 1;
   scm_block_gc = 1;
 
   scm_threads_prehistory ();

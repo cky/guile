@@ -1,5 +1,5 @@
 /* GDB interface for Guile
- * Copyright (C) 1996,1997,1999,2000,2001 Free Software Foundation, Inc.
+ * Copyright (C) 1996,1997,1999,2000,2001, 2002 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -90,7 +90,6 @@
  */
 #define SCM_BEGIN_FOREIGN_BLOCK \
 do { \
-  old_ints = scm_ints_disabled; scm_ints_disabled = 1; \
   old_gc = scm_block_gc; scm_block_gc = 1; \
   scm_print_carefully_p = 1; \
 } while (0)
@@ -100,7 +99,6 @@ do { \
 do { \
   scm_print_carefully_p = 0; \
   scm_block_gc = old_gc; \
-  scm_ints_disabled = old_ints; \
 } while (0)
 
 
@@ -135,7 +133,7 @@ static SCM tok_buf;
 static int tok_buf_mark_p;
 
 static SCM gdb_output_port;
-static int old_ints, old_gc;
+static int old_gc;
 
 
 static void

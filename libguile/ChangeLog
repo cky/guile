@@ -1,3 +1,20 @@
+2002-12-10  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	These changes remove scm_ints_disabled (which hasn't has any
+	effect in Guile for quite some time).
+	
+	* async.c, error.h (scm_ints_disabled): Removed.
+
+	* gc.c (scm_gc_for_newcell), init.c (scm_init_guile_1),
+	root.c (scm_internal_cwdr), gdbint.c (SCM_BEGIN_FOREIGN_BLOCK,
+	SCM_END_FOREIGN_BLOCK): Don't touch scm_ints_disabled.
+	(old_ints): Removed.
+
+	* __scm.h (SCM_DEFER_INTS, SCM_ALLOW_INTS): Define as a recursive
+	critical section.
+	(SCM_REDEFER_INTS, SCM_ALLOW_INTS): Define as SCM_DEFER_INTS and
+	SCM_ALLOW_INTS.
+
 2002-12-09  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* threads.c (scm_mutex_lock, scm_cond_wait, scm_cond_timedwait):

@@ -403,27 +403,6 @@ do { \
     scm_async_click (); \
 } while (0)
 
-#if (SCM_DEBUG_INTERRUPTS == 1)
-#include <stdio.h>
-#define SCM_CHECK_NOT_DISABLED \
-  do { \
-    if (scm_ints_disabled) \
-      fprintf(stderr, "ints already disabled (at %s:%d)\n", \
-              __FILE__, __LINE__); \
-  } while (0)
-
-#define SCM_CHECK_NOT_ENABLED \
-  do { \
-    if (!scm_ints_disabled) \
-      fprintf(stderr, "ints already enabled (at %s:%d)\n", \
-              __FILE__, __LINE__); \
-  } while (0)
-
-#else
-#define SCM_CHECK_NOT_DISABLED
-#define SCM_CHECK_NOT_ENABLED
-#endif
-
 
 /* Anthony Green writes:
    When the compiler sees...
@@ -446,48 +425,13 @@ do { \
 #define SCM_FENCE
 #endif
 
-#define SCM_DEFER_INTS				\
-do {						\
-  SCM_FENCE;					\
-  SCM_CHECK_NOT_DISABLED;			\
-  SCM_REC_CRITICAL_SECTION_START (scm_i_defer);	\
-  SCM_FENCE;					\
-  scm_ints_disabled = 1;			\
-  SCM_FENCE;					\
-} while (0)
+#define SCM_DEFER_INTS SCM_REC_CRITICAL_SECTION_START (scm_i_defer)
 
+#define SCM_ALLOW_INTS SCM_REC_CRITICAL_SECTION_END (scm_i_defer)
 
-#define SCM_ALLOW_INTS				\
-do {						\
-  SCM_FENCE;					\
-  SCM_CHECK_NOT_ENABLED;			\
-  SCM_REC_CRITICAL_SECTION_END (scm_i_defer);	\
-  SCM_FENCE;					\
-  scm_ints_disabled = 0;			\
-  SCM_FENCE;					\
-  SCM_THREAD_SWITCHING_CODE;			\
-  SCM_FENCE;					\
-} while (0)
+#define SCM_REDEFER_INTS SCM_DEFER_INTS
 
-
-#define SCM_REDEFER_INTS			\
-do {						\
-  SCM_FENCE;					\
-  SCM_REC_CRITICAL_SECTION_START (scm_i_defer);	\
-  ++scm_ints_disabled;				\
-  SCM_FENCE;					\
-} while (0)
-
-
-#define SCM_REALLOW_INTS			\
-do {						\
-  SCM_FENCE;					\
-  SCM_REC_CRITICAL_SECTION_END (scm_i_defer);	\
-  SCM_FENCE;					\
-  --scm_ints_disabled;				\
-  SCM_FENCE;					\
-} while (0)
-
+#define SCM_REALLOW_INTS SCM_ALLOW_INTS
 
 #define SCM_TICK \
 do { \

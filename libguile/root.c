@@ -234,7 +234,6 @@ scm_internal_cwdr (scm_t_catch_body body, void *body_data,
 		   scm_t_catch_handler handler, void *handler_data,
 		   SCM_STACKITEM *stack_start)
 {
-  int old_ints_disabled = scm_ints_disabled;
   SCM old_rootcont, old_winds;
   struct cwdr_handler_data my_handler_data;
   SCM answer;
@@ -286,7 +285,6 @@ scm_internal_cwdr (scm_t_catch_body body, void *body_data,
 #endif
   scm_rootcont = old_rootcont;
   SCM_REALLOW_INTS;
-  scm_ints_disabled = old_ints_disabled;
 
   /* Now run the real handler iff the body did a throw. */
   if (my_handler_data.run_handler)

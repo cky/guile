@@ -3,7 +3,7 @@
 #ifndef SCM_ERROR_H
 #define SCM_ERROR_H
 
-/* Copyright (C) 1995,1996,1997,1998,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2002 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,8 +49,6 @@
 #include "libguile/__scm.h"
 
 
-SCM_API int scm_ints_disabled;
-
 SCM_API SCM scm_system_error_key;
 SCM_API SCM scm_num_overflow_key;
 SCM_API SCM scm_out_of_range_key;

@@ -62,11 +62,6 @@
 #include <unistd.h>
 #endif
 
-/* This is not used for anything except checking that DEFER_INTS and
-   ALLOW_INTS are used properly.
- */
-int scm_ints_disabled = 1;
-
 
 /* {Asynchronous Events}
  *

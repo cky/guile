@@ -481,8 +481,6 @@ scm_gc_for_newcell (scm_t_cell_type_statistics *freelist, SCM *free_cells)
  
   scm_i_thread_put_to_sleep ();
 
-  ++scm_ints_disabled;
-
   *free_cells = scm_i_sweep_some_segments (freelist);
   if (*free_cells == SCM_EOL && scm_i_gc_grow_heap_p (freelist))
     {
@@ -520,8 +518,6 @@ scm_gc_for_newcell (scm_t_cell_type_statistics *freelist, SCM *free_cells)
     abort ();
 
   cell = *free_cells;
-
-  --scm_ints_disabled;
 
   *free_cells = SCM_FREE_CELL_CDR (cell);
 
