@@ -352,7 +352,7 @@ SCM_GLOBAL_VCELL_INIT (scm_var_random_state, "*random-state*", scm_seed_to_rando
 
 GUILE_PROC (scm_random, "random", 1, 1, 0, 
             (SCM n, SCM state),
-            "")
+"")
 #define FUNC_NAME s_scm_random
 {
   if (SCM_UNBNDP (state))
@@ -375,7 +375,7 @@ GUILE_PROC (scm_random, "random", 1, 1, 0,
 
 GUILE_PROC (scm_copy_random_state, "copy-random-state", 0, 1, 0, 
             (SCM state),
-            "")
+"")
 #define FUNC_NAME s_scm_copy_random_state
 {
   if (SCM_UNBNDP (state))
@@ -387,7 +387,7 @@ GUILE_PROC (scm_copy_random_state, "copy-random-state", 0, 1, 0,
 
 GUILE_PROC (scm_seed_to_random_state, "seed->random-state", 1, 0, 0, 
             (SCM seed),
-            "")
+"")
 #define FUNC_NAME s_scm_seed_to_random_state
 {
   if (SCM_NUMBERP (seed))
@@ -400,7 +400,7 @@ GUILE_PROC (scm_seed_to_random_state, "seed->random-state", 1, 0, 0,
 
 GUILE_PROC (scm_random_uniform, "random:uniform", 0, 1, 0, 
             (SCM state),
-            "")
+"")
 #define FUNC_NAME s_scm_random_uniform
 {
   if (SCM_UNBNDP (state))
@@ -412,7 +412,7 @@ GUILE_PROC (scm_random_uniform, "random:uniform", 0, 1, 0,
 
 GUILE_PROC (scm_random_normal, "random:normal", 0, 1, 0, 
             (SCM state),
-            "")
+"")
 #define FUNC_NAME s_scm_random_normal
 {
   if (SCM_UNBNDP (state))
@@ -463,7 +463,7 @@ vector_sum_squares (SCM v)
  */
 GUILE_PROC (scm_random_solid_sphere_x, "random:solid-sphere!", 1, 1, 0, 
             (SCM v, SCM state),
-            "")
+"")
 #define FUNC_NAME s_scm_random_solid_sphere_x
 {
   SCM_ASSERT (SCM_NIMP (v)
@@ -483,7 +483,7 @@ GUILE_PROC (scm_random_solid_sphere_x, "random:solid-sphere!", 1, 1, 0,
 
 GUILE_PROC (scm_random_hollow_sphere_x, "random:hollow-sphere!", 1, 1, 0, 
             (SCM v, SCM state),
-            "")
+"")
 #define FUNC_NAME s_scm_random_hollow_sphere_x
 {
   SCM_ASSERT (SCM_NIMP (v)
@@ -526,7 +526,7 @@ GUILE_PROC (scm_random_normal_vector_x, "random:normal-vector!", 1, 1, 0,
 
 GUILE_PROC (scm_random_exp, "random:exp", 0, 1, 0, 
             (SCM state),
-            "")
+"")
 #define FUNC_NAME s_scm_random_exp
 {
   if (SCM_UNBNDP (state))

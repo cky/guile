@@ -184,7 +184,7 @@ static SCM print_state_pool;
 
 GUILE_PROC(scm_current_pstate, "current-pstate", 0, 0, 0, 
            (),
-           "")
+"")
 #define FUNC_NAME s_scm_current_pstate
 {
   return SCM_CADR (print_state_pool);

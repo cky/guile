@@ -361,7 +361,7 @@ scm_call_generic_3 (SCM gf, SCM a1, SCM a2, SCM a3)
 
 GUILE_PROC (scm_entity_p, "entity?", 1, 0, 0, 
             (SCM obj),
-            "")
+"")
 #define FUNC_NAME s_scm_entity_p
 {
   return SCM_BOOL(SCM_NIMP (obj) && SCM_STRUCTP (obj) && SCM_I_ENTITYP (obj));
@@ -370,7 +370,7 @@ GUILE_PROC (scm_entity_p, "entity?", 1, 0, 0,
 
 GUILE_PROC (scm_operator_p, "operator?", 1, 0, 0, 
             (SCM obj),
-            "")
+"")
 #define FUNC_NAME s_scm_operator_p
 {
   return SCM_BOOL(SCM_NIMP (obj)
@@ -382,7 +382,7 @@ GUILE_PROC (scm_operator_p, "operator?", 1, 0, 0,
 
 GUILE_PROC (scm_set_object_procedure_x, "set-object-procedure!", 2, 0, 0, 
             (SCM obj, SCM proc),
-            "")
+"")
 #define FUNC_NAME s_scm_set_object_procedure_x
 {
   SCM_ASSERT (SCM_NIMP (obj) && SCM_STRUCTP (obj)
@@ -405,7 +405,7 @@ GUILE_PROC (scm_set_object_procedure_x, "set-object-procedure!", 2, 0, 0,
 #ifdef GUILE_DEBUG
 GUILE_PROC (scm_object_procedure, "object-procedure", 1, 0, 0, 
             (SCM obj),
-            "")
+"")
 #define FUNC_NAME s_scm_object_procedure
 {
   SCM_ASSERT (SCM_NIMP (obj) && SCM_STRUCTP (obj)
@@ -440,7 +440,7 @@ scm_i_make_class_object (SCM meta,
 
 GUILE_PROC (scm_make_class_object, "make-class-object", 2, 0, 0, 
             (SCM metaclass, SCM layout),
-            "")
+"")
 #define FUNC_NAME s_scm_make_class_object
 {
   unsigned long flags = 0;
@@ -454,7 +454,7 @@ GUILE_PROC (scm_make_class_object, "make-class-object", 2, 0, 0,
 
 GUILE_PROC (scm_make_subclass_object, "make-subclass-object", 2, 0, 0, 
             (SCM class, SCM layout),
-            "")
+"")
 #define FUNC_NAME s_scm_make_subclass_object
 {
   SCM pl;

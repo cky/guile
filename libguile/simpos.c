@@ -113,7 +113,7 @@ GUILE_PROC (scm_getenv, "getenv", 1, 0, 0,
 /* simple exit, without unwinding the scheme stack or flushing ports.  */
 GUILE_PROC (scm_primitive_exit, "primitive-exit", 0, 1, 0, 
             (SCM status),
-            "")
+"")
 #define FUNC_NAME s_scm_primitive_exit
 {
   int cstatus = 0;

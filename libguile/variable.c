@@ -101,7 +101,7 @@ make_vcell_variable (SCM vcell)
 
 GUILE_PROC(scm_make_variable, "make-variable", 1, 1, 0, 
            (SCM init, SCM name_hint),
-           "")
+"")
 #define FUNC_NAME s_scm_make_variable
 {
   SCM val_cell;
@@ -121,7 +121,7 @@ GUILE_PROC(scm_make_variable, "make-variable", 1, 1, 0,
 
 GUILE_PROC(scm_make_undefined_variable, "make-undefined-variable", 0, 1, 0, 
            (SCM name_hint),
-           "")
+"")
 #define FUNC_NAME s_scm_make_undefined_variable
 {
   SCM vcell;

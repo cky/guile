@@ -297,7 +297,7 @@ GUILE_PROC(scm_procedure_documentation, "procedure-documentation", 1, 0, 0,
 
 GUILE_PROC (scm_procedure_with_setter_p, "procedure-with-setter?", 1, 0, 0, 
             (SCM obj),
-            "")
+"")
 #define FUNC_NAME s_scm_procedure_with_setter_p
 {
   return SCM_BOOL(SCM_NIMP (obj) && SCM_PROCEDURE_WITH_SETTER_P (obj));
@@ -306,7 +306,7 @@ GUILE_PROC (scm_procedure_with_setter_p, "procedure-with-setter?", 1, 0, 0,
 
 GUILE_PROC (scm_make_procedure_with_setter, "make-procedure-with-setter", 2, 0, 0, 
             (SCM procedure, SCM setter),
-            "")
+"")
 #define FUNC_NAME s_scm_make_procedure_with_setter
 {
   SCM z;
@@ -323,7 +323,7 @@ GUILE_PROC (scm_make_procedure_with_setter, "make-procedure-with-setter", 2, 0, 
 
 GUILE_PROC (scm_procedure, "procedure", 1, 0, 0, 
             (SCM proc),
-            "")
+"")
 #define FUNC_NAME s_scm_procedure
 {
   SCM_VALIDATE_NIM (1,proc);

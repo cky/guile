@@ -165,7 +165,7 @@ scm_srcprops_to_plist (SCM obj)
 
 GUILE_PROC (scm_source_properties, "source-properties", 1, 0, 0, 
             (SCM obj),
-            "")
+"")
 #define FUNC_NAME s_scm_source_properties
 {
   SCM p;

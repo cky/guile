@@ -187,7 +187,7 @@ GUILE_PROC (scm_make_regexp, "make-regexp", 1, 0, 1,
 
 GUILE_PROC (scm_regexp_exec, "regexp-exec", 2, 2, 0, 
             (SCM rx, SCM str, SCM start, SCM flags),
-            "")
+"")
 #define FUNC_NAME s_scm_regexp_exec
 {
   int status, nmatches, offset;

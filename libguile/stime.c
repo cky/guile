@@ -155,7 +155,7 @@ timet scm_your_base = 0;
 
 GUILE_PROC(scm_get_internal_real_time, "get-internal-real-time", 0, 0, 0, 
            (),
-           "")
+"")
 #define FUNC_NAME s_scm_get_internal_real_time
 {
   return scm_long2num((time((timet*)0) - scm_your_base) * (int)CLKTCK);
@@ -223,7 +223,7 @@ GUILE_PROC(scm_current_time, "current-time", 0, 0, 0,
 
 GUILE_PROC (scm_gettimeofday, "gettimeofday", 0, 0, 0, 
             (void),
-            "")
+"")
 #define FUNC_NAME s_scm_gettimeofday
 {
 #ifdef HAVE_GETTIMEOFDAY

@@ -54,7 +54,7 @@
 
 GUILE_PROC(scm_not, "not", 1, 0, 0, 
            (SCM x),
-           "")
+"")
 #define FUNC_NAME s_scm_not
 {
   return SCM_BOOL(SCM_FALSEP(x));

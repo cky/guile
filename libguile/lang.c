@@ -79,7 +79,7 @@ GUILE_PROC (scm_nil_cons, "nil-cons", 2, 0, 0,
 
 GUILE_PROC (scm_nil_car, "nil-car", 1, 0, 0, 
             (SCM x),
-            "")
+"")
 #define FUNC_NAME s_scm_nil_car
 {
   if (SCM_NILP (x))
@@ -91,7 +91,7 @@ GUILE_PROC (scm_nil_car, "nil-car", 1, 0, 0,
 
 GUILE_PROC (scm_nil_cdr, "nil-cdr", 1, 0, 0, 
             (SCM x),
-            "")
+"")
 #define FUNC_NAME s_scm_nil_cdr
 {
   if (SCM_NILP (x))
@@ -105,7 +105,7 @@ GUILE_PROC (scm_nil_cdr, "nil-cdr", 1, 0, 0,
    Could use SCM_BOOL, below, otherwise */
 GUILE_PROC (scm_null, "null", 1, 0, 0, 
             (SCM x),
-            "")
+"")
 #define FUNC_NAME s_scm_null
 {
   return (SCM_NILP (x) || SCM_NULLP (x) || SCM_FALSEP (x)) ? scm_t : scm_nil;

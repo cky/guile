@@ -360,7 +360,7 @@ scm_struct_free_entity (SCM *vtable, SCM *data)
 
 GUILE_PROC (scm_make_struct, "make-struct", 2, 0, 1, 
             (SCM vtable, SCM tail_array_size, SCM init),
-            "")
+"")
 #define FUNC_NAME s_scm_make_struct
 {
   SCM layout;
@@ -642,7 +642,7 @@ scm_struct_create_handle (SCM obj)
 
 GUILE_PROC (scm_struct_vtable_name, "struct-vtable-name", 1, 0, 0, 
             (SCM vtable),
-            "")
+"")
 #define FUNC_NAME s_scm_struct_vtable_name
 {
   SCM_VALIDATE_VTABLE(1,vtable);
@@ -652,7 +652,7 @@ GUILE_PROC (scm_struct_vtable_name, "struct-vtable-name", 1, 0, 0,
 
 GUILE_PROC (scm_set_struct_vtable_name_x, "set-struct-vtable-name!", 2, 0, 0, 
             (SCM vtable, SCM name),
-            "")
+"")
 #define FUNC_NAME s_scm_set_struct_vtable_name_x
 {
   SCM_VALIDATE_VTABLE(1,vtable);

@@ -162,7 +162,7 @@ GUILE_PROC (scm_make_doubly_weak_hash_table, "make-doubly-weak-hash-table", 1, 0
 
 GUILE_PROC(scm_weak_key_hash_table_p, "weak-key-hash-table?", 1, 0, 0, 
            (SCM x),
-           "")
+"")
 #define FUNC_NAME s_scm_weak_key_hash_table_p
 {
   return SCM_BOOL(SCM_NIMP (x) && SCM_WVECTP (x) && SCM_IS_WHVEC(x));

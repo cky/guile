@@ -248,7 +248,7 @@ GUILE_PROC(scm_char_ready_p, "char-ready?", 0, 1, 0,
 /* Clear a port's read buffers, returning the contents.  */
 GUILE_PROC (scm_drain_input, "drain-input", 1, 0, 0, 
             (SCM port),
-            "")
+"")
 #define FUNC_NAME s_scm_drain_input
 {
   SCM result;

@@ -73,7 +73,7 @@
 
 GUILE_PROC (scm_htons, "htons", 1, 0, 0, 
             (SCM in),
-            "")
+"")
 #define FUNC_NAME s_scm_htons
 {
   unsigned short c_in;
@@ -88,7 +88,7 @@ GUILE_PROC (scm_htons, "htons", 1, 0, 0,
 
 GUILE_PROC (scm_ntohs, "ntohs", 1, 0, 0, 
             (SCM in),
-            "")
+"")
 #define FUNC_NAME s_scm_ntohs
 {
   unsigned short c_in;
@@ -103,7 +103,7 @@ GUILE_PROC (scm_ntohs, "ntohs", 1, 0, 0,
 
 GUILE_PROC (scm_htonl, "htonl", 1, 0, 0, 
             (SCM in),
-            "")
+"")
 #define FUNC_NAME s_scm_htonl
 {
   unsigned long c_in = SCM_NUM2ULONG (1,in);
@@ -113,7 +113,7 @@ GUILE_PROC (scm_htonl, "htonl", 1, 0, 0,
 
 GUILE_PROC (scm_ntohl, "ntohl", 1, 0, 0, 
             (SCM in),
-            "")
+"")
 #define FUNC_NAME s_scm_ntohl
 {
   unsigned long c_in = SCM_NUM2ULONG (1,in);

@@ -682,7 +682,7 @@ GUILE_PROC(scm_symbol_pref, "symbol-pref", 1, 0, 0,
 
 GUILE_PROC(scm_symbol_fset_x, "symbol-fset!", 2, 0, 0, 
            (SCM s, SCM val),
-           "")
+"")
 #define FUNC_NAME s_scm_symbol_fset_x
 {
   SCM_VALIDATE_SYMBOL(1,s);

@@ -129,7 +129,7 @@ SCM_REGISTER_PROC(s_substring_move_right_x, "substring-move-right!", 5, 0, 0, sc
 
 GUILE_PROC(scm_substring_move_x, "substring-move!", 5, 0, 0, 
            (SCM str1, SCM start1, SCM end1, SCM str2, SCM start2),
-           "")
+"")
 #define FUNC_NAME s_scm_substring_move_x
 {
   long s1, s2, e, len;
@@ -157,7 +157,7 @@ GUILE_PROC(scm_substring_move_x, "substring-move!", 5, 0, 0,
 
 GUILE_PROC(scm_substring_fill_x, "substring-fill!", 4, 0, 0, 
            (SCM str, SCM start, SCM end, SCM fill),
-           "")
+"")
 #define FUNC_NAME s_scm_substring_fill_x
 {
   long i, e;

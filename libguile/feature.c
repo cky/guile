@@ -305,7 +305,7 @@ scm_c_run_hook (SCM hook, SCM args)
 
 GUILE_PROC (scm_hook_to_list, "hook->list", 1, 0, 0, 
             (SCM hook),
-            "")
+"")
 #define FUNC_NAME s_scm_hook_to_list
 {
   SCM_VALIDATE_HOOK(1,hook);

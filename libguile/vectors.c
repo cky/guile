@@ -266,7 +266,7 @@ scm_vector_equal_p(SCM x, SCM y)
 
 GUILE_PROC (scm_vector_move_left_x, "vector-move-left!", 5, 0, 0, 
             (SCM vec1, SCM start1, SCM end1, SCM vec2, SCM start2),
-            "")
+"")
 #define FUNC_NAME s_scm_vector_move_left_x
 {
   long i;
@@ -289,7 +289,7 @@ GUILE_PROC (scm_vector_move_left_x, "vector-move-left!", 5, 0, 0,
 
 GUILE_PROC (scm_vector_move_right_x, "vector-move-right!", 5, 0, 0, 
             (SCM vec1, SCM start1, SCM end1, SCM vec2, SCM start2),
-            "")
+"")
 #define FUNC_NAME s_scm_vector_move_right_x
 {
   long i;
