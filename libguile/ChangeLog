@@ -1,3 +1,8 @@
+2000-08-19  Michael Livshin  <mlivshin@bigfoot.com>
+
+	* gc.h: removed some stuff that broke compilation for people and
+ 	wasn't actually needed anyway.
+
 2000-08-18  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* filesys.c (scm_fcntl): Docstring fix - missing newlines inserted.
@@ -5,14 +10,14 @@
 	* net_db.c (scm_gethost, scm_getnet, scm_getproto, scm_sethost,
 	scm_setnet, setproto, setserv): Argument names changed to match
 	doc string.
-	
+
 	* feature.c (scm_program_arguments): New docstring.
 
 	* simpos.c (scm_getenv): Reflow docstring.
 
 	* eq.c (scm_eq_p, scm_eqv_p, scm_equal_p): Add texinfo markup to
 	docstrings.
-	
+
 	* chars.c (scm_char*): Docstring fixes - texinfo markup.
 
 2000-08-18  Neil Jerram  <neil@ossau.uklinux.net>
@@ -23,7 +28,7 @@
 2000-08-17  Michael Livshin  <mlivshin@bigfoot.com>
 
 	this changes the Guile GC to use cards (aka "chunklets").
-	(most of the ideas and some of the code are by Greg Harvey, though 
+	(most of the ideas and some of the code are by Greg Harvey, though
 	the code is probably unrecognizable now.  the original chunklet
 	proposal, way back, is by Dale Jordan).
 
