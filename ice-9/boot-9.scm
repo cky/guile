@@ -2866,6 +2866,7 @@
        ;; kludge, but we'll fix it soon.  At least we only get
        ;; readline involved when we're actually running the repl.
        (if (and (memq 'readline *features*)
+		(isatty? (current-input-port))
 		(not (and (module-defined? the-root-module
 					   'use-emacs-interface)
 			  use-emacs-interface)))
@@ -2921,7 +2922,8 @@
 ;;; Ideally, we wouldn't do this until we were sure we were actually
 ;;; going to enter the repl, but autoloading individual functions is
 ;;; clumsy at the moment.
-(if (memq 'readline *features*)
+(if (and (memq 'readline *features*)
+	 (isatty? (current-input-port)))
     (define-module (guile) :use-module (ice-9 readline)))
 
 
