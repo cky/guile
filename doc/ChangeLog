@@ -1,3 +1,16 @@
+2001-05-13  Thien-Thi Nguyen  <ttn@revel.glug.org>
+
+	* scheme-modules.texi (Modules): Remove "babbling" fixme.
+	(The Guile module system): Rewrite intro.
+	(General Information about Modules): Rewrite some parts.
+	Move problems to "Module System Quirks".
+	(Using Guile Modules): Renamed from "Loading Guile Modules".
+	Rewrite most parts.
+	Remove reivewme comment.
+	(Creating Guile Modules): Review, touch up.
+	Remove "Tkintr" comment.
+	(Module System Quirks): New node/subsection.
+
 2001-05-06  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
 	* intro.texi (Using Guile Modules): Review; remove reviewme
