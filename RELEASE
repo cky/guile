@@ -37,30 +37,38 @@ HP/UX (gcc, HP cc) --- nutrimat.gnu.ai.mit.edu
 5) Set up README appropriately for the release.
 6) Choose new interface numbers for shared libraries.
 7) Do a `cvs update -A', to get rid of any sticky tags.
-8) Commit all changes to the CVS repository.
-9) Verify that the disty works, too:
-   a) Make a disty, using 'make dist'.
-   b) Unpack it somewhere else.
-   c) Remove automake and autoconf from your path, or turn off their
-      execute bits, or something.  (Users should be able to build disty
-      without installing those tools.)
-   d) Configure, make, and install.
-   e) Test the installed version; don't forget to unset SCHEME_LOAD_PATH.
-   f) If you made any fixes, commit them, and start from a) again
-10) Tag the entire source tree with a tag of the form "release_N_M".
-11) Copy the tar file over to the GNU machines, and ask the appropriate
+8) Rebuild all generated files in the source tree:
+   a) Check that the versions of aclocal, automake, autoconf, and autoheader
+      in your PATH match those given in README.
+   a) Install the .m4 files where aclocal will find them.
+   b) Run aclocal.
+   c) Run automake.
+   d) Run autoconf.
+   e) Run autoheader.
+9) Commit all changes to the CVS repository.
+10) Verify that the disty works, too:
+    a) Make a disty, using 'make dist'.
+    b) Unpack it somewhere else.
+    c) Remove automake and autoconf from your path, or turn off their
+       execute bits, or something.  (Users should be able to build disty
+       without installing those tools.)
+    d) Configure, make, and install.
+    e) Test the installed version; don't forget to unset SCHEME_LOAD_PATH.
+    f) If you made any fixes, commit them, and start from a) again
+11) Tag the entire source tree with a tag of the form "release_N_M".
+12) Copy the tar file over to the GNU machines, and ask the appropriate
     person to put it on prep.  At the time of this writing, Daniel Hagerty
     <hag@ai.mit.edu> has been generous about helping with that.
-12) Send an announcement message to gnu-announce@gnu.org.  Put
+13) Send an announcement message to gnu-announce@gnu.org.  Put
     "Obtaining Guile" first, then a brief summary of the changes in
     this release, then "Thanks," "About This Distribution," and
     "Nightly Snapshots."  If I remember correctly, the moderator will
     delay it until the tar file appears on prep.  The announcement
     text should be mostly taken from Guile's README file.
-13) Notify freshmeat.net, although they're probably watching anyway.
-14) Tweak the version numbers in GUILE-VERSION, and README to indicate that 
+14) Notify freshmeat.net, although they're probably watching anyway.
+15) Tweak the version numbers in GUILE-VERSION, and README to indicate that 
     the sources are snapshot again.  Snapshots should have version numbers 
     of the form "N.Ma", where the "a" means "alpha".
-15) Start a new section of the NEWS file.
-16) Send mail to majordomo-owner@cygnus.com updating the message you get
+16) Start a new section of the NEWS file.
+17) Send mail to majordomo-owner@cygnus.com updating the message you get
     when you ask majordomo for "info guile".
