@@ -1,3 +1,9 @@
+1999-06-19  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	* eval.c (scm_map, scm_for_each): Verify that all arguments are
+	proper lists, and of the appropriate lengths.
+	(check_map_args): New function.
+
 1999-06-19  Michael Livshin  <mike@olan.com>
 
 	* guardians.c (guardian_t): `next' - new field to be used for
