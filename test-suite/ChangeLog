@@ -1,3 +1,8 @@
+2001-03-09  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* tests/syntax.test ("let*"): Changed the `duplicate bindings'
+	test, dups are allowed in `let*' and are now expected to pass.
+
 2001-03-05  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* lib.scm (run-test-exception):  Preserve the original error's
