@@ -1,5 +1,6 @@
 This is a checklist for making Guile releases.
-Please don't put it in the distribution.
+It's specific to the FSF's development environment; please don't put
+it in the distribution.
 
 1) Verify that Guile builds and runs in your working directory.  I
    hope that we'll eventually have a test suite to make this more
@@ -12,8 +13,9 @@ Please don't put it in the distribution.
       documented.
 3) Update the version numbers in GUILE-VERSION, and README, to remove the
    "unreleased" indications.
-4) Commit all changes to the CVS repository.
-5) Verify that the disty works, too:
+4) Do a `cvs update -A', to get rid of any sticky tags.
+5) Commit all changes to the CVS repository.
+6) Verify that the disty works, too:
    a) Make a disty, using 'make dist'.
    b) Unpack it somewhere else.
    c) Remove automake and autoconf from your path, or turn off their
@@ -21,14 +23,14 @@ Please don't put it in the distribution.
       without installing those tools.)
    d) Configure, make, and install.
    e) Test the installed version; don't forget to unset SCHEME_LOAD_PATH.
-   f) If you made any fixes, commit them, and start from the top of 5).
-6) Tag the entire source tree with a tag of the form "release_N_M".
-7) Copy the tar file over to the GNU machines, and ask the appropriate
+   f) If you made any fixes, commit them, and start from the top of 6).
+7) Tag the entire source tree with a tag of the form "release_N_M".
+8) Copy the tar file over to the GNU machines, and ask the appropriate
    person to put it on prep.  At the time of this writing, Daniel Hagerty
    <hag@ai.mit.edu> has usually been generous enough to help with that.
-8) Send an announcement message to gnu-announce@prep.ai.mit.edu.  If I
+9) Send an announcement message to gnu-announce@prep.ai.mit.edu.  If I
    remember correctly, the moderator will delay it until the tar file
    appears on prep.  The announcement text should be mostly taken from 
    Guile's README file.
-9) Tweak the version numbers in GUILE-VERSION, and README to indicate that 
-   the sources are snapshot again.
+10) Tweak the version numbers in GUILE-VERSION, and README to indicate that 
+   the sources are snapshot again.  Start a new section of the NEWS file.
