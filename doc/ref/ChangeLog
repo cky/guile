@@ -3,6 +3,7 @@
 	* scheme-compound.texi (List Constructors): In list, use "elem1
 	... elemN".  Add scm_list_1, scm_list_2, scm_list_3, scm_list_4,
 	scm_list_5, scm_list_n.  Remove scm_list, since it's a no-op.
+	* guile.texi (nicode): New macro.
 
 2003-07-12  Kevin Ryde  <user42@zip.com.au>
 
