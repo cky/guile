@@ -577,15 +577,15 @@ parameter to the following procedures, all of which return
 integers:
 
 @deffn {Scheme Procedure} stat:dev st
-The device containing the file.
+The device number containing the file.
 @end deffn
 @deffn {Scheme Procedure} stat:ino st
 The file serial number, which distinguishes this file from all
 other files on the same device.
 @end deffn
 @deffn {Scheme Procedure} stat:mode st
-The mode of the file.  This includes file type information and
-the file permission bits.  See @code{stat:type} and
+The mode of the file.  This is an integer which incorporates file type
+information and file permission bits.  See also @code{stat:type} and
 @code{stat:perms} below.
 @end deffn
 @deffn {Scheme Procedure} stat:nlink st
@@ -626,7 +626,7 @@ which case @code{stat:blocks} returns @code{#f}.
 @end deffn
 
 In addition, the following procedures return the information
-from stat:mode in a more convenient form:
+from @code{stat:mode} in a more convenient form:
 
 @deffn {Scheme Procedure} stat:type st
 A symbol representing the type of file.  Possible values are
