@@ -35,9 +35,10 @@ HP/UX (gcc, HP cc) --- nutrimat.gnu.ai.mit.edu
    d) Check for any [[incomplete]] sections of NEWS.
 4) Scan output from `cvs log' to find files that have changed a lot, but
    do not have up-to-date copyright notices.
-5) Update the version numbers in GUILE-VERSION, and README, to remove the
-   "unreleased" indications.  They should be straight numbers, of the form
-   "N.M", not alpha numbers, of the form "N.Ma".
+5) Update the version numbers in GUILE-VERSION, and README.  The Guile
+   version number should be of the form N.M for a major release, and
+   N.M.L for snapshots and beta releases; L should be even for beta
+   releases, and odd for snapshots.
 6) Set up README appropriately for the release; check name spellings
    in THANKS, and reformat.
 7) Choose new interface numbers for shared libraries.
@@ -71,8 +72,7 @@ HP/UX (gcc, HP cc) --- nutrimat.gnu.ai.mit.edu
 15) Notify freshmeat.net, although they're probably watching anyway.
 16) Tweak the version numbers in GUILE-VERSION, and README to indicate that 
     the sources are snapshot again.  Snapshots should have version numbers 
-    of the form "N.M.L", where L is odd for snapshots, and even for
-    real releases.
+    of the form "N.M.L", where L is odd.
 17) Start a new section of the NEWS file.
 18) Send mail to majordomo-owner@cygnus.com updating the message you get
     when you ask majordomo for "info guile".
