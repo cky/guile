@@ -271,79 +271,66 @@ scm_c_random (scm_t_rstate *state, unsigned long m)
 SCM
 scm_c_random_bignum (scm_t_rstate *state, SCM m)
 {
-  SCM b;
-  int i, nd;
-  scm_t_int32 *bits, mask, w;
-  nd = SCM_NUMDIGS (m);
-  /* Compute a 32-bit bitmask for use when filling bits into the most
-     significant long word in b's bit space.  A combination of
-     conditionals and an 8-bit lookup table (scm_masktab) is used.
-  */
-#if SIZEOF_INT == 4
-  /* 16 bit digits */
-  if (nd & 1)
+  SCM result = scm_i_mkbig ();
+  int finished = 0;
+  const size_t m_bits = mpz_sizeinbase (SCM_I_BIG_MPZ (m), 2);
+  /* how many bits would only partially fill the last unsigned long? */
+  const size_t end_bits = m_bits % (sizeof (unsigned long) * 8);
+  unsigned long *random_chunks = NULL;
+  const unsigned long num_full_chunks = m_bits / (sizeof (unsigned long) * 8);
+  const unsigned long num_chunks = num_full_chunks + ((end_bits) ? 1 : 0);
+
+  /* we know the result will be this big */
+  mpz_realloc2 (SCM_I_BIG_MPZ (result), m_bits);
+
+  random_chunks =
+    (unsigned long *) scm_gc_calloc (num_chunks * sizeof (unsigned long),
+                                     "random bignum chunks");
+
+  /* FIXME: what about chance that bignums end up with zeroes at the
+     front? -- do we need to normalize? */
+
+  while (!finished)
     {
-      /* fix most significant 16 bits */
-      unsigned short s = SCM_BDIGITS (m)[nd - 1];
-      mask = s < 0x100 ? scm_masktab[s] : scm_masktab[s >> 8] << 8 | 0xff;
+      unsigned long *current_chunk = random_chunks + (num_chunks - 1);
+      unsigned long chunks_left = num_chunks;
+      int cmp;
+
+      mpz_set_ui (SCM_I_BIG_MPZ (result), 0);
+      
+      if (end_bits)
+        {
+          /* generate a mask with ones in the end_bits position, i.e. if
+             end_bits is 3, then we'd have a mask of ...0000000111 */
+          const unsigned long rndbits = scm_the_rng.random_bits (state);
+          int rshift = (sizeof (unsigned long) * 8) - end_bits;
+          unsigned long mask = ((unsigned long) ULONG_MAX) >> rshift;
+          unsigned long highest_bits = rndbits & mask;
+          *current_chunk-- = highest_bits;
+          chunks_left--;
+        }
+      
+      while (chunks_left)
+        {
+          /* now fill in the remaining unsigned long sized chunks */
+          *current_chunk-- = scm_the_rng.random_bits (state);
+          chunks_left--;
+        }
+      mpz_import (SCM_I_BIG_MPZ (result),
+                  num_chunks,
+                  -1,
+                  sizeof (unsigned long),
+                  0,
+                  0,
+                  random_chunks);
+      cmp = mpz_cmp (SCM_I_BIG_MPZ (m), SCM_I_BIG_MPZ (result));
+      if (cmp >= 0)
+        finished = 1;
     }
-  else
-#endif
-    {
-      /* fix most significant 32 bits */
-#if SIZEOF_INT == 4
-      w = SCM_BDIGITS (m)[nd - 1] << 16 | SCM_BDIGITS (m)[nd - 2];
-#else
-      w = SCM_BDIGITS (m)[nd - 1];
-#endif
-      mask = (w < 0x10000
-	      ? (w < 0x100
-		 ? scm_masktab[w]
-		 : scm_masktab[w >> 8] << 8 | 0xff)
-	      : (w < 0x1000000
-		 ? scm_masktab[w >> 16] << 16 | 0xffff
-		 : scm_masktab[w >> 24] << 24 | 0xffffff));
-    }
-  /* allocate b and assign the bit space address to the variable "bits" */
-  b = scm_i_mkbig (nd, 0);
-  bits = (scm_t_int32 *) SCM_BDIGITS (b);
-  do
-    {
-      i = nd;
-      /* generate the most significant bits using the mask */
-#if SIZEOF_INT == 4
-      /* 16 bit digits */
-      if (i & 1)
-	{
-	  ((SCM_BIGDIG*) bits)[i - 1] = scm_the_rng.random_bits (state) & mask;
-	  i /= 2;
-	}
-      else
-#endif
-	{
-	  /* fix most significant 32 bits */
-#if SIZEOF_INT == 4
-	  w = scm_the_rng.random_bits (state) & mask;
-	  ((SCM_BIGDIG*) bits)[i - 2] = w & 0xffff;
-	  ((SCM_BIGDIG*) bits)[i - 1] = w >> 16;
-	  i = i / 2 - 1;
-#else
-	  i /= 2;
-	  bits[--i] = scm_the_rng.random_bits (state) & mask;
-#endif
-	}
-      /* now fill up the rest of the bignum */
-      while (i)
-	bits[--i] = scm_the_rng.random_bits (state);
-      /* use scm_i_normbig to cut away leading zeros and/or convert to inum */
-      b = scm_i_normbig (b);
-      if (SCM_INUMP (b))
-	return b;
-      /* if b >= m, regenerate b (it is important to regenerates all
-	 bits in order not to get a distorted distribution)
-      */
-    } while (scm_bigcomp (b, m) <= 0);
-  return b;
+  scm_gc_free (random_chunks,
+               num_chunks * sizeof (unsigned long),
+               "random bignum chunks");
+  return result;
 }
 
 /*
@@ -400,7 +387,8 @@ SCM_DEFINE (scm_random, "random", 1, 1, 0,
   if (SCM_REALP (n))
     return scm_make_real (SCM_REAL_VALUE (n)
 			  * scm_c_uniform01 (SCM_RSTATE (state)));
-  SCM_VALIDATE_SMOB (1, n, big);
+
+  SCM_VALIDATE_BIGINT (1, n);
   return scm_c_random_bignum (SCM_RSTATE (state), n);
 }
 #undef FUNC_NAME
@@ -603,18 +591,6 @@ scm_init_random ()
   
 #include "libguile/random.x"
 
-  /* Check that the assumptions about bits per bignum digit are correct. */
-#if SIZEOF_INT == 4
-  m = 16;
-#else
-  m = 32;
-#endif
-  if (m != SCM_BITSPERDIG)
-    {
-      fprintf (stderr, "Internal inconsistency: Confused about bignum digit size in random.c\n");
-      exit (1);
-    }
-  
   scm_add_feature ("random");
 }
 
