@@ -182,10 +182,10 @@ libpath.h: $(srcdir)/Makefile.in  $(top_builddir)/config.status
 
 SUFFIXES = .x .doc
 .c.x:
-	PATH=.:${PATH} ./guile-doc-snarf $< $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< > $@ \
+	./guile-doc-snarf $< $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< > $@ \
 	|| { rm $@; false; }
 .x.doc: 
-	PATH=.:${PATH} ./guile-doc-snarf $(srcdir)/$*.c $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $(srcdir)/$*.c > /dev/null \
+	./guile-doc-snarf $(srcdir)/$*.c $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $(srcdir)/$*.c > /dev/null \
         || { rm $@; false; }
 
 error.x: cpp_err_symbols.c

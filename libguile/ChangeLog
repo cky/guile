@@ -1,3 +1,9 @@
+2000-11-18  Gary Houston  <ghouston@arglist.com>
+
+	* Makefile.am (.c.x): don't prefix ".:" to $PATH when running
+	guile-doc-snarf.  it doesn't seem to do anything useful, but would
+	fail if $PATH contained whitespace.  Thanks to Lars J. Aas.
+
 2000-11-17  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* alist.c, arbiters.c, async.c, backtrace.c, boolean.c, chars.c,
