@@ -370,6 +370,16 @@
 
 (with-test-prefix "cond =>"
 
+  (with-test-prefix "else is handled correctly"
+
+    (pass-if "else =>"
+      (let ((=> 'foo))
+	(eq? (cond (else =>)) 'foo)))
+
+    (pass-if "else => identity"
+      (let* ((=> 'foo))
+	(eq? (cond (else => identity)) identity))))
+
   (with-test-prefix "bad formals"
 
     (pass-if-exception "=> (lambda (x 1) 2)"
@@ -384,18 +394,16 @@
       exception:bad/missing-clauses
       (case))
 
-    ;; FIXME:  Wouldn't one rather expect a 'bad or missing clauses' error?
     (pass-if-exception "(case . \"foo\")"
-      exception:wrong-type-arg
+      exception:bad/missing-clauses
       (case . "foo"))
 
     (pass-if-exception "(case 1)"
       exception:bad/missing-clauses
       (case 1))
 
-    ;; FIXME:  Wouldn't one rather expect a 'bad or missing clauses' error?
     (pass-if-exception "(case 1 . \"foo\")"
-      exception:wrong-type-arg
+      exception:bad/missing-clauses
       (case 1 . "foo"))
 
     (pass-if-exception "(case 1 \"foo\")"
@@ -419,18 +427,16 @@
     ;;   exception:bad/missing-clauses
     ;;   (case 1 (() "bar")))
 
-    ;; FIXME:  Wouldn't one rather expect a 'bad or missing clauses' error?
     (pass-if-exception "(case 1 ((2) \"bar\") . \"foo\")"
-      exception:wrong-type-arg
+      exception:bad/missing-clauses
       (case 1 ((2) "bar") . "foo"))
 
     (pass-if-exception "(case 1 (else #f) ((1) #t))"
       exception:bad/missing-clauses
       (case 1 ((2) "bar") (else)))
 
-    ;; FIXME:  Wouldn't one rather expect a 'bad or missing clauses' error?
     (pass-if-exception "(case 1 (else #f) . \"foo\")"
-      exception:wrong-type-arg
+      exception:bad/missing-clauses
       (case 1 (else #f) . "foo"))
 
     (pass-if-exception "(case 1 (else #f) ((1) #t))"

@@ -1,3 +1,9 @@
+2001-10-18  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* tests/syntax.test:  Added test cases for 'cond =>' syntax with
+	else clause.  Changed some tests and comments related to the
+	'case' form to reflect recent changes in the implementation.
+
 2001-10-14  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* tests/syntax.test:  Added test cases for 'lambda' syntax.
