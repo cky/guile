@@ -1,5 +1,9 @@
 1999-07-19  Jim Blandy  <jimb@savonarola.red-bean.com>
 
+	* streams.scm: New module, contributed by Michael Livshin.
+	* Makefile.am (ice9_sources): List it.
+	* Makefile.in: Regenerated.
+
 	* boot-9.scm (read-delimited!): Put the terminator in the correct
 	position.
 
