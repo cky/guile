@@ -1,6 +1,6 @@
 /* srfi-14.c --- SRFI-14 procedures for Guile
  *
- * Copyright (C) 2001 Free Software Foundation, Inc.
+ * Copyright (C) 2001, 2004 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -525,8 +525,8 @@ SCM_DEFINE (scm_string_to_char_set, "string->char-set", 1, 1, 0,
 {
   SCM cs;
   long * p;
-  char * s;
-  size_t k = 0;
+  const char * s;
+  size_t k = 0, len;
 
   SCM_VALIDATE_STRING (1, str);
   if (SCM_UNBNDP (base_cs))
@@ -537,12 +537,14 @@ SCM_DEFINE (scm_string_to_char_set, "string->char-set", 1, 1, 0,
       cs = scm_char_set_copy (base_cs);
     }
   p = (long *) SCM_SMOB_DATA (cs);
-  s = SCM_STRING_CHARS (str);
-  while (k < SCM_STRING_LENGTH (str))
+  s = scm_i_string_chars (str);
+  len = scm_i_string_length (str);
+  while (k < len)
     {
       int c = s[k++];
       p[c / SCM_BITS_PER_LONG] |= 1L << (c % SCM_BITS_PER_LONG);
     }
+  scm_remember_upto_here_1 (str);
   return cs;
 }
 #undef FUNC_NAME
@@ -556,18 +558,20 @@ SCM_DEFINE (scm_string_to_char_set_x, "string->char-set!", 2, 0, 0,
 #define FUNC_NAME s_scm_string_to_char_set_x
 {
   long * p;
-  char * s;
-  size_t k = 0;
+  const char * s;
+  size_t k = 0, len;
 
   SCM_VALIDATE_STRING (1, str);
   SCM_VALIDATE_SMOB (2, base_cs, charset);
   p = (long *) SCM_SMOB_DATA (base_cs);
-  s = SCM_STRING_CHARS (str);
-  while (k < SCM_STRING_LENGTH (str))
+  s = scm_i_string_chars (str);
+  len = scm_i_string_length (str);
+  while (k < len)
     {
       int c = s[k++];
       p[c / SCM_BITS_PER_LONG] |= 1L << (c % SCM_BITS_PER_LONG);
     }
+  scm_remember_upto_here_1 (str);
   return base_cs;
 }
 #undef FUNC_NAME
@@ -807,8 +811,7 @@ SCM_DEFINE (scm_char_set_to_string, "char-set->string", 1, 0, 0,
   for (k = 0; k < SCM_CHARSET_SIZE; k++)
     if (SCM_CHARSET_GET (cs, k))
       count++;
-  result = scm_allocate_string (count);
-  p = SCM_STRING_CHARS (result);
+  result = scm_i_make_string (count, &p);
   for (k = 0; k < SCM_CHARSET_SIZE; k++)
     if (SCM_CHARSET_GET (cs, k))
       p[idx++] = k;
