@@ -1,3 +1,7 @@
+2003-07-24  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/numbers.test (angle): New tests.
+
 2003-07-18  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/numbers.test (*): Add complex/bignum test.
