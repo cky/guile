@@ -2280,6 +2280,14 @@ for (i = 0; i < RANK; i++)
 @end example
 @end deftypefn
 
+@deftypefn {C Function} ssize_t scm_array_handle_pos (scm_t_array_handle *handle, SCM indices)
+Compute the position corresponding to @var{indices}, a list of
+indices.  The position is computed as described above for
+@code{scm_array_handle_dims}.  The number of the indices and their
+range is checked and an approrpiate error is signalled for invalid
+indices.
+@end deftypefn
+
 @deftypefn {C Function} SCM scm_array_handle_ref (scm_t_array_handle *handle, ssize_t pos)
 Return the element at position @var{pos} in the storage block of the
 array represented by @var{handle}.  Any kind of array is acceptable.  No
