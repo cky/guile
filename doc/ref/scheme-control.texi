@@ -2,6 +2,63 @@
 @node Control Mechanisms
 @chapter Controlling the Flow of Program Execution
 
+Scheme has a more general view of program flow than C, both locally and
+non-locally.
+
+Controlling the local flow of control involves things like gotos, loops,
+calling functions and returning from them.  Non-local control flow
+refers to situations where the program jumps across one or more levels
+of function activations without using the normal call or return
+operations.
+
+[ XXX - tail calls instead of goto. ]
+
+In addition to calling functions and returning from them, a Scheme
+program can also exit non-locally from a function so that the control
+flow returns directly to an outer level.  This means that some functions
+might not return at all.
+
+Even more, it is not only possible to jump to some outer level of
+control, a Scheme program can also jump back into the middle of a
+function that has already exited.  This might cause some functions to
+return more than once.
+
+In general, these non-local jumps are done by invoking
+@emph{continuations} that have previously been captured using
+@code{call-with-current-continuation}.  Guile also offers a slightly
+restricted set of functions, @code{catch} and @code{throw}, that can
+only be used for non-local exits.  This restriction makes them more
+efficient.  Error reporting (with the function @code{error}) is done by
+invoking @code{throw}, for example.  The functions @code{catch} and
+@code{throw} belong to the topic of @dfn{exceptions}.
+
+Since Scheme functions can call C functions and vice versa, C code can
+experience the more general flow of control of Scheme as well.  It is
+possible that a C function will not return at all, or will return more
+than once.  While C does offer @code{setjmp} and @code{longjmp} for
+non-local exits, it is still a unusual thing for C code.  In contrast,
+non-local exits are very common in Scheme, mostly to report errors.
+
+You need to be prepared for the non-local jumps in the control flow
+whenever you use a function from @code{libguile}: it is best to assume
+that any @code{libguile} function might signal an error or run a pending
+signal handler (which in turn can do arbitrary things).
+
+It is often necessary to take cleanup actions when the control leaves a
+function non-locally.  Also, when the control returns non-locally, some
+setup actions might be called for.  For example, the Scheme function
+@code{with-output-to-port} needs to modify the global state so that
+@code{current-output-port} returns the port passed to
+@code{with-output-to-port}.  The global output port needs to be reset to
+its previous value when @code{with-output-to-port} returns normally or
+when it is exited non-locally.  Likewise, the port needs to be set again
+when control enters non-locally.
+
+Scheme code can use the @code{dynamic-wind} function to arrange the
+setting and resetting of the global state.  C code could use the
+corresponding @code{scm_internal_dynamic_wind} function, but it might
+prefer to use the @emph{frames} concept that is more natural for C code.
+
 @menu
 * begin::                       Evaluating a sequence of expressions.
 * if cond case::                Simple conditional evaluation.
@@ -12,6 +69,7 @@
 * Exceptions::                  Throwing and catching exceptions.
 * Error Reporting::             Procedures for signaling errors.
 * Dynamic Wind::                Guarding against non-local entrance/exit.
+* Frames::                      Another way to handle non-localness
 * Handling Errors::             How to handle errors in C code.
 @end menu
 
@@ -19,15 +77,11 @@
 @node begin
 @section Evaluating a Sequence of Expressions
 
-@c FIXME::martin: Review me!
-
-@c FIXME::martin: Maybe add examples?
-
 @cindex begin
 @cindex sequencing
 @cindex expression sequencing
 
-@code{begin} is used for grouping several expression together so that
+@code{begin} is used for grouping several expressions together so that
 they syntactically are treated as if they were one expression.  This is
 particularly important when syntactic expressions are used which only
 allow one expression, but the programmer wants to use more than one
@@ -48,14 +102,13 @@ The expression(s) are evaluated in left-to-right order and the value
 of the last expression is returned as the value of the
 @code{begin}-expression.  This expression type is used when the
 expressions before the last one are evaluated for their side effects.
+
+Guile also allows the expression @code{(begin)}, a @code{begin} with no
+sub-expressions.  Such an expression returns the `unspecified' value.
 @end deffn
 
 @node if cond case
 @section Simple Conditional Evaluation
-
-@c FIXME::martin: Review me!
-
-@c FIXME::martin: Maybe add examples?
 
 @cindex conditional evaluation
 @cindex if
@@ -91,7 +144,7 @@ where @var{test} and @var{expression} are arbitrary expression, or like
 this
 
 @lisp
-(@var{test} => @var{expression}
+(@var{test} => @var{expression})
 @end lisp
 
 where @var{expression} must evaluate to a procedure.
@@ -104,8 +157,10 @@ the @code{cond}-expression.  For the @code{=>} clause type,
 the value of @var{test}.  The result of this procedure application is
 then the result of the @code{cond}-expression.
 
-The @var{test} of the last @var{clause} may be the keyword @code{else}.
-Then, if none of the preceding @var{test}s is true, the @var{expression}s following the @code{else} are evaluated to produce the result of the @code{cond}-expression.
+The @var{test} of the last @var{clause} may be the symbol @code{else}.
+Then, if none of the preceding @var{test}s is true, the
+@var{expression}s following the @code{else} are evaluated to produce the
+result of the @code{cond}-expression.
 @end deffn
 
 @deffn syntax case key clause1 clause2 @dots{}
@@ -137,12 +192,8 @@ unspecified.
 @node and or
 @section Conditional Evaluation of a Sequence of Expressions
 
-@c FIXME::martin: Review me!
-
-@c FIXME::martin: Maybe add examples?
-
-@code{and} and @code{or} evaluate all their arguments, similar to
-@code{begin}, but evaluation stops as soon as one of the expressions
+@code{and} and @code{or} evaluate all their arguments in order, similar
+to @code{begin}, but evaluation stops as soon as one of the expressions
 evaluates to false or true, respectively.
 
 @deffn syntax and expr @dots{}
@@ -168,10 +219,6 @@ If used without expressions, @code{#f} is returned.
 
 @node while do
 @section Iteration mechanisms
-
-@c FIXME::martin: Review me!
-
-@c FIXME::martin: Maybe add examples?
 
 @cindex iteration
 @cindex looping
@@ -330,9 +377,9 @@ created (@pxref{Dynamic Roots}), and in a multi-threaded program only
 from the thread in which it was created, since each thread is a
 separate dynamic root.
 
-The call to @var{proc} is not part of the continuation captured, it
-runs only when the continuation is created.  Often a program will want
-to store @var{cont} somewhere for later use, this can be done in
+The call to @var{proc} is not part of the continuation captured, it runs
+only when the continuation is created.  Often a program will want to
+store @var{cont} somewhere for later use; this can be done in
 @var{proc}.
 
 The @code{call} in the name @code{call-with-current-continuation}
@@ -395,10 +442,10 @@ a function returning more times than it was called.  It may help
 instead to think of it being stealthily re-entered and then program
 flow going on as normal.
 
-@code{dynamic-wind} (@pxref{Dynamic Wind}) can be used to ensure setup
-and cleanup code is run when a program locus is resumed or abandoned
-through the continuation mechanism.  For instance locking and
-unlocking database records in use, or similar.
+The functions @code{dynamic-wind} (@pxref{Dynamic Wind}) can be used to
+ensure setup and cleanup code is run when a program locus is resumed or
+abandoned through the continuation mechanism.  C code can use the
+functions explained in @pxref{Frames}.
 
 @sp 1
 Continuations are a powerful mechanism, and can be used to implement
@@ -426,7 +473,6 @@ do).
 @node Multiple Values
 @section Returning and Accepting Multiple Values
 
-@c FIXME::martin: Review me!
 @cindex multiple values
 @cindex receive
 
@@ -565,9 +611,7 @@ condition is involved, @dfn{error}.
 @end itemize
 
 Where @dfn{signal} and @dfn{signalling} are used, special care is needed
-to avoid the risk of confusion with POSIX signals.  (Especially
-considering that Guile handles POSIX signals by throwing a corresponding
-kind of exception: REFFIXME.)
+to avoid the risk of confusion with POSIX signals.
 
 This manual prefers to speak of throwing and catching exceptions, since
 this terminology matches the corresponding Guile primitives.
@@ -579,13 +623,13 @@ this terminology matches the corresponding Guile primitives.
 @code{catch} is used to set up a target for a possible non-local jump.
 The arguments of a @code{catch} expression are a @dfn{key}, which
 restricts the set of exceptions to which this @code{catch} applies, a
-thunk that specifies the @dfn{normal case} code --- i.e. what should
-happen if no exceptions are thrown --- and a @dfn{handler} procedure
-that says what to do if an exception is thrown.  Note that if the
-@dfn{normal case} thunk executes @dfn{normally}, which means without
-throwing any exceptions, the handler procedure is not executed at all.
+thunk that specifies the code to execute and a @dfn{handler} procedure
+that says what to do if an exception is thrown while executing the code.
+Note that if the execution thunk executes @dfn{normally}, which means
+without throwing any exceptions, the handler procedure is not called at
+all.
 
-When an exception is thrown using the @code{throw} primitive, the first
+When an exception is thrown using the @code{throw} function, the first
 argument of the @code{throw} is a symbol that indicates the type of the
 exception.  For example, Guile throws an exception using the symbol
 @code{numerical-overflow} to indicate numerical overflow errors such as
@@ -943,9 +987,6 @@ if an exception occurs then @code{#f} is returned instead.
 @node Dynamic Wind
 @section Dynamic Wind
 
-[FIXME: this is pasted in from Tom Lord's original guile.texi and should
-be reviewed]
-
 @rnindex dynamic-wind
 @deffn {Scheme Procedure} dynamic-wind in_guard thunk out_guard
 @deffnx {C Function} scm_dynamic_wind (in_guard, thunk, out_guard)
@@ -954,8 +995,8 @@ All three arguments must be 0-argument procedures.
 @var{out_guard}.
 
 If, any time during the execution of @var{thunk}, the
-continuation of the @code{dynamic_wind} expression is escaped
-non-locally, @var{out_guard} is called.  If the continuation of
+dynamic extent of the @code{dynamic-wind} expression is escaped
+non-locally, @var{out_guard} is called.  If the dynamic extent of
 the dynamic-wind is re-entered, @var{in_guard} is called.  Thus
 @var{in_guard} and @var{out_guard} may be called any number of
 times.
@@ -999,9 +1040,145 @@ a-cont
 @end lisp
 @end deffn
 
+@node Frames
+@section Frames
+
+For Scheme code, the fundamental procedure to react to non-local entry
+and exits of dynamic contexts is @code{dynamic-wind}.  C code could use
+@code{scm_internal_dynamic_wind}, but since C does not allow the
+convenient construction of anonymous procedures that close over lexical
+variables, this will be, well, inconvenient.  Instead, C code can use
+@dfn{frames}.
+
+Guile offers the functions @code{scm_begin_frame} and
+@code{scm_end_frame} to delimit a dynamic extent.  Within this dynamic
+extent, which is called a @dfn{frame}, you can perform various
+@dfn{frame actions} that control what happens when the frame is entered
+or left.  For example, you can register a cleanup routine with
+@code{scm_on_unwind} that is executed when the frame is left.  There are
+several other more specialized frame actions as well, for example to
+temporarily block the execution of asyncs or to temporarily change the
+current output port.  They are described elsewhere in this manual.
+
+Here is an example that shows how to prevent memory leaks.
+
+@example
+
+/* Suppose there is a function called FOO in some library that you
+   would like to make available to Scheme code (or to C code that
+   follows the Scheme conventions).
+
+   FOO takes two C strings and returns a new string.  When an error has
+   occurred in FOO, it returns NULL.
+*/
+
+char *foo (char *s1, char *s2);
+
+/* SCM_FOO interfaces the C function FOO to the Scheme way of life.
+   It takes care to free up all temporary strings in the case of
+   non-local exits.
+
+   It uses SCM_TO_STRING as a helper procedure.
+ */
+
+char *
+scm_to_string (SCM obj)
+@{
+  if (SCM_STRINGP (obj))
+    @{
+      char *res = scm_malloc (SCM_STRING_LENGTH (obj)+1);
+      strcpy (res, SCM_STRING_CHARS (obj));
+      scm_remember_upto_here_1 (obj);
+      return res;
+    @}
+  else
+    scm_wrong_type_arg ("scm_to_string", 1, obj);
+@}
+
+SCM
+scm_foo (SCM s1, SCM s2)
+@{
+  char *c_s1, *c_s2, *c_res;
+
+  scm_begin_frame (0);
+
+  c_s1 = scm_to_string (s1);
+  scm_on_unwind (free, s1, SCM_F_EXPLICIT);
+
+  c_s2 = scm_to_string (s2);
+  scm_on_unwind (free, s2, SCM_F_EXPLICIT);
+
+  c_res = foo (c_s1, c_s2);
+  if (c_res == NULL)
+    scm_memory_error ("foo");
+
+  scm_end_frame ();
+
+  return scm_take0str (res);
+@}
+@end example
+
+@deftp {C Type} scm_t_frame_flags
+This is an enumeration of several flags that modify the behavior of
+@code{scm_begin_frame}.  The flags are listed in the following table.
+
+@table @code
+@item SCM_F_FRAME_REWINDABLE
+The frame is @dfn{rewindable}.  This means that it can be reentered
+non-locally (via the invokation of a continuation).  The default is that
+a frame can not be reentered non-locally.
+@end table
+
+@end deftp
+
+@deftypefn {C Function} void scm_begin_frame (scm_t_frame_flags flags)
+The function @code{scm_begin_frame} starts a new frame and makes it the
+`current' one.  
+
+The @var{flags} argument determines the default behavior of the frame.
+For normal frames, use 0.  This will result in a frame that can not be
+reentered with a captured continuation.  When you are prepared to handle
+reentries, include @code{SCM_F_FRAME_REWINDABLE} in @var{flags}.
+
+The frame is ended either implicitly when a non-local exit happens, or
+explicitly with @code{scm_end_frame}.  You must make sure that a frame
+is indeed ended properly.  If you fail to call @code{scm_end_frame} each
+@code{scm_begin_frame}, the behavior is undefined.
+@end deftypefn
+
+@deftypefn {C Function} void scm_end_frame ()
+End the current frame explicitly and make the previous frame current.
+@end deftypefn
+
+@deftp {C Type} scm_t_wind_flags
+This is an enumeration of several flags that modify the behavior of
+@code{scm_on_unwind} and @code{scm_on_rewind}.  The flags are listed in
+the following table.
+
+@table @code
+@item SCM_F_WIND_EXPLICITELY
+The registered action is also carried out when the frame is entered or
+left locally.
+@end table
+@end deftp
+
+@deftypefn {C Function} void scm_on_unwind (void (*func)(void *), void *data, scm_t_wind_flags flags)
+Arranges for @var{func} to be called with @var{data} as its arguments
+when the current frame ends implicitly.  If @var{flags} contains
+@code{SCM_F_WIND_EXPLICITELY}, @var{func} is also called when the frame
+ends explicitly with @code{scm_end_frame}.
+@end deftypefn
+
+@deftypefn {C Function} void scm_on_rewind (void (*func)(void *), void *data, scm_t_wind_flags flags)
+Arrange for @var{func} to be called with @var{data} as its argument when
+the current frame is restarted by rewinding the stack.  When @var{flags}
+contains @code{SCM_F_WIND_EXPLICITELY}, @var{func} is called immediately
+as well.
+@end deftypefn
+
 
 @node Handling Errors
-@section How to Handle Errors in C Code
+@section How to Handle Errors
 
 Error handling is based on @code{catch} and @code{throw}.  Errors are
 always thrown with a @var{key} and four arguments:
@@ -1039,16 +1216,6 @@ be @code{#f} if no additional objects are required.
 
 In addition to @code{catch} and @code{throw}, the following Scheme
 facilities are available:
-
-@deffn {Scheme Procedure} scm-error key subr message args rest
-Throw an error, with arguments
-as described above.
-@end deffn
-
-@deffn {Scheme Procedure} error msg arg @dots{}
-Throw an error using the key @code{'misc-error}.  The error
-message is created by displaying @var{msg} and writing the @var{args}.
-@end deffn
 
 @deffn {Scheme Procedure} display-error stack port subr message args rest
 @deffnx {C Function} scm_display_error (stack, port, subr, message, args, rest)
@@ -1118,7 +1285,7 @@ expression library.
 @subsection C Support
 
 In the following C functions, @var{SUBR} and @var{MESSAGE} parameters
-can be @code{NULL} to give the @code{#f} described above.
+can be @code{NULL} to give the effect of @code{#f} described above.
 
 @deftypefn {C Function} SCM scm_error (SCM @var{key}, char *@var{subr}, char *@var{message}, SCM @var{args}, SCM @var{rest})
 Throw an error, as per @code{scm-error} above.
@@ -1144,11 +1311,6 @@ Throw an error with the various keys described above.
 For @code{scm_wrong_num_args}, @var{proc} should be a Scheme symbol
 which is the name of the procedure incorrectly invoked.
 @end deftypefn
-
-Exception handlers can also be installed from C, using
-@code{scm_internal_catch}, @code{scm_lazy_catch}, or
-@code{scm_stack_catch} from @file{libguile/throw.c}.  These have not
-yet been documented, but the source contains some useful comments.
 
 
 @c Local Variables:
