@@ -1,3 +1,26 @@
+2002-10-09  Rob Browning  <rlb@defaultvalue.org>
+
+	* upstream/Makefile.am (ltdl.h.diff): remove
+	SCM_INSERTED_DLSYMLIST_STRUCT_DECL during diff computation.
+	(ltdl.c.diff): remove SCM_INSERTED_DLSYMLIST_STRUCT_DECL during
+	diff computation.
+
+	* raw-ltdl.h: add SCM_INSERTED_DLSYMLIST_STRUCT_DECL so we can
+	insert our own struct name here.
+
+	* guile-ltdl.h: add scm_lt_dlsymlist typedef.
+	(scm_lt_dlpreload_default): new function.  Replaces
+	scm_lt_dlset_preloaded_symbols which depended on global that
+	libtool automagically defines in binaries, not libs.
+
+	* guile-ltdl.c (scm_lt_dlpreload_default): new function.  Replaces
+	scm_lt_dlset_preloaded_symbols which depended on global that
+	libtool automagically defines in binaries, not libs.  Now the call
+	in guile.c has to pass us that magic value.
+	(SCM_INSERTED_DLSYMLIST_STRUCT_DECL): used to add a struct name in
+	the lt_dlsymlist typedef -- we use such a crazy name so we can
+	remove this in the upstream diff computation.
+
 2002-10-05  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* upstream/Makefile.am (ltdl.h.diff, ltdl.c.diff): Create them in
