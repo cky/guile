@@ -7,7 +7,7 @@
 
 ./guile-aclocal.sh
 
-libtoolize --copy --automake --ltdl
+libtoolize --copy --force --automake --ltdl
 autoheader
 autoconf
 automake --add-missing
