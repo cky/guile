@@ -2,7 +2,7 @@
 
 #ifndef VERSIONH
 #define VERSIONH
-/*	Copyright (C) 1995, 1996, 1998 Free Software Foundation, Inc.
+/*	Copyright (C) 1995, 1996, 1998, 1999 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,7 +51,6 @@
 extern SCM scm_major_version SCM_P ((void));
 extern SCM scm_minor_version SCM_P ((void));
 extern SCM scm_version SCM_P ((void));
-extern SCM scm_libguile_config_stamp SCM_P ((void));
 extern void scm_init_version SCM_P ((void));
 
 #endif  /* VERSIONH */

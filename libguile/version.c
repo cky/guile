@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996, 1999 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -74,16 +74,6 @@ SCM
 scm_version ()
 {
   return scm_makfrom0str (GUILE_VERSION);
-}
-
-/* Return a Scheme string containing Guile's configuration stamp.  */
-
-SCM_PROC(s_libguile_config_stamp, "libguile-config-stamp", 0, 0, 0, scm_libguile_config_stamp);
-
-SCM
-scm_libguile_config_stamp ()
-{
-  return scm_makfrom0str (GUILE_STAMP);
 }
 
 
