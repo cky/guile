@@ -1,3 +1,9 @@
+2001-05-15  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* boot-9.scm (error-catching-repl): Call the E
+	("eval'er") procedure via call-with-values and call the P
+	("printer") for each produced value.  Thanks to Matthias Köppe!
+
 2001-05-14  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* boot-9.scm (cond-expand): Reduce feature list to built-in

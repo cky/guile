@@ -1,3 +1,7 @@
+2001-05-15  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* acinclude.m4: Removed copy of "libtool.m4".
+
 2001-05-14  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* configure.in (SCM_DEBUG_DEPRECATED):  Always defined.
