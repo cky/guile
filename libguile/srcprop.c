@@ -49,6 +49,7 @@
 #include "alist.h"
 #include "debug.h"
 #include "hashtab.h"
+#include "hash.h"
 #include "weaks.h"
 
 #include "srcprop.h"
@@ -72,7 +73,7 @@ SCM scm_i_copy;
 static SCM scm_i_breakpoint, scm_i_line, scm_i_column;
 static SCM scm_i_filename;
 
-long tc16_srcprops;
+long scm_tc16_srcprops;
 static scm_srcprops_chunk *srcprops_chunklist = 0;
 static scm_srcprops *srcprops_freelist = 0;
 
@@ -127,10 +128,10 @@ static scm_smobfuns srcpropssmob =
 
 #ifdef __STDC__
 SCM
-_scm_make_srcprops (int line, int col, SCM filename, SCM copy, SCM plist)
+scm_make_srcprops (int line, int col, SCM filename, SCM copy, SCM plist)
 #else
 SCM
-_scm_make_srcprops (line, col, filename, copy, plist)
+scm_make_srcprops (line, col, filename, copy, plist)
      int line;
      int col;
      SCM filename;
@@ -161,7 +162,7 @@ _scm_make_srcprops (line, col, filename, copy, plist)
       srcprops_freelist = (scm_srcprops *) &ptr[1];
     }
   SCM_NEWCELL (ans);
-  SCM_CAR (ans) = tc16_srcprops;
+  SCM_CAR (ans) = scm_tc16_srcprops;
   ptr->pos = SRCPROPMAKPOS (line, col);
   ptr->fname = filename;
   ptr->copy = copy;
@@ -292,13 +293,13 @@ scm_set_source_property_x (obj, key, datum)
       CLEARSRCPROPBRK (SCM_NIMP (p) && SRCPROPSP (p)
 		       ? p
 		       : SCM_WHASHSET (scm_source_whash, h,
-				   _scm_make_srcprops (0, 0, SCM_UNDEFINED,
+				   scm_make_srcprops (0, 0, SCM_UNDEFINED,
 						       SCM_UNDEFINED, p)));
     else
       SETSRCPROPBRK (SCM_NIMP (p) && SRCPROPSP (p)
 		     ? p
 		     : SCM_WHASHSET (scm_source_whash, h,
-				 _scm_make_srcprops (0, 0, SCM_UNDEFINED,
+				 scm_make_srcprops (0, 0, SCM_UNDEFINED,
 						     SCM_UNDEFINED, p)));
   else if (scm_i_line == key)
     {
@@ -306,7 +307,7 @@ scm_set_source_property_x (obj, key, datum)
 	SETSRCPROPLINE (p, datum);
       else
 	SCM_WHASHSET (scm_source_whash, h,
-		  _scm_make_srcprops (datum, 0, SCM_UNDEFINED, SCM_UNDEFINED, p));
+		  scm_make_srcprops (datum, 0, SCM_UNDEFINED, SCM_UNDEFINED, p));
     }
   else if (scm_i_column == key)
     {
@@ -314,21 +315,21 @@ scm_set_source_property_x (obj, key, datum)
 	SETSRCPROPCOL (p, datum);
       else
 	SCM_WHASHSET (scm_source_whash, h,
-		  _scm_make_srcprops (0, datum, SCM_UNDEFINED, SCM_UNDEFINED, p));
+		  scm_make_srcprops (0, datum, SCM_UNDEFINED, SCM_UNDEFINED, p));
     }
   else if (scm_i_filename == key)
     {
       if (SCM_NIMP (p) && SRCPROPSP (p))
 	SRCPROPFNAME (p) = datum;
       else
-	SCM_WHASHSET (scm_source_whash, h, _scm_make_srcprops (0, 0, datum, SCM_UNDEFINED, p));
+	SCM_WHASHSET (scm_source_whash, h, scm_make_srcprops (0, 0, datum, SCM_UNDEFINED, p));
     }
   else if (scm_i_filename == key)
     {
       if (SCM_NIMP (p) && SRCPROPSP (p))
 	SRCPROPCOPY (p) = datum;
       else
-	SCM_WHASHSET (scm_source_whash, h, _scm_make_srcprops (0, 0, SCM_UNDEFINED, datum, p));
+	SCM_WHASHSET (scm_source_whash, h, scm_make_srcprops (0, 0, SCM_UNDEFINED, datum, p));
     }
   else
     SCM_WHASHSET (scm_source_whash, h, scm_acons (key, datum, p));
@@ -343,8 +344,8 @@ void
 scm_init_srcprop ()
 #endif
 {
-  tc16_srcprops = scm_newsmob (&srcpropssmob);
-  scm_source_whash = scm_make_weak_key_hash_table (SCM_MAKINUM (255));
+  scm_tc16_srcprops = scm_newsmob (&srcpropssmob);
+  scm_source_whash = scm_make_weak_key_hash_table (SCM_MAKINUM (2047));
 
   scm_i_filename = SCM_CAR (scm_sysintern ("filename", SCM_UNDEFINED));
   scm_i_copy = SCM_CAR (scm_sysintern ("copy", SCM_UNDEFINED));
@@ -366,5 +367,6 @@ scm_finish_srcprop ()
       free ((char *) ptr);
       scm_mallocated -= sizeof (scm_srcprops_chunk)
 	                + sizeof (scm_srcprops) * (SRCPROPS_CHUNKSIZE - 1);
+      ptr = next;
     }
 }
