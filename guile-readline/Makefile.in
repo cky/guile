@@ -74,7 +74,7 @@ VERSION = @VERSION@
 
 AUTOMAKE_OPTIONS = foreign
 
-INCLUDES = -I.. -I$(srcdir)/.. ${THREAD_CPPFLAGS}
+INCLUDES = -I.. -I$(srcdir)/.. -I$(srcdir)/../libguile ${THREAD_CPPFLAGS}
 
 GUILE_SNARF = ../libguile/guile-snarf
 
