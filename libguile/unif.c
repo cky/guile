@@ -2612,7 +2612,7 @@ scm_i_print_array (SCM array, SCM port, scm_print_state *pstate)
   long i;
 
   scm_putc ('#', port);
-  if (rank != 1 || dim_specs[0].lbnd != 0)
+  if (ndim != 1 || dim_specs[0].lbnd != 0)
     scm_intprint (ndim, 10, port);
   if (scm_is_uniform_vector (SCM_ARRAY_V (array)))
     scm_puts (scm_i_uniform_vector_tag (SCM_ARRAY_V (array)), port);
