@@ -54,6 +54,29 @@
 
   
 ;;
+;; mkstemp!
+;;
+
+(with-test-prefix "mkstemp!"
+
+  ;; the temporary names used in the tests here are kept to 8 characters so
+  ;; they'll work on a DOS 8.3 file system
+
+  (define (string-copy str)
+    (list->string (string->list str)))
+
+  (pass-if-exception "number arg" exception:wrong-type-arg
+    (mkstemp! 123))
+
+  (pass-if "filename string modified"
+    (let* ((template "T-XXXXXX")
+	   (str      (string-copy template))
+	   (port     (mkstemp! str))
+	   (result   (not (string=? str template))))
+      (delete-file str)
+      result)))
+
+;;
 ;; putenv
 ;;
 
