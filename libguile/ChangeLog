@@ -1,3 +1,9 @@
+2000-01-06  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* chars.c (scm_integer_to_char): Use Greg's nice
+	SCM_VALIDATE_INUM_RANGE macro for argument checking for closer
+	adherence to R5RS.
+
 Thu Jan  6 11:48:49 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* *.c, snarf.h: Replace GUILE_PROC1 with SCM_DEFINE1 throughout.
