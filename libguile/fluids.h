@@ -95,8 +95,10 @@ SCM scm_fluid_p (SCM fl);
 SCM scm_fluid_ref (SCM fluid);
 SCM scm_fluid_set_x (SCM fluid, SCM value);
 
-SCM scm_internal_with_fluids (SCM fluids, SCM vals,
-                              SCM (*cproc)(void *), void *cdata);
+SCM scm_c_with_fluids (SCM fluids, SCM vals,
+		       SCM (*cproc)(void *), void *cdata);
+SCM scm_c_with_fluid (SCM fluid, SCM val,
+		      SCM (*cproc)(void *), void *cdata);
 SCM scm_with_fluids (SCM fluids, SCM vals, SCM thunk);
 
 SCM scm_make_initial_fluids (void);
@@ -105,6 +107,14 @@ void scm_swap_fluids (SCM fluids, SCM vals);
 void scm_swap_fluids_reverse (SCM fluids, SCM vals);
 
 void scm_init_fluids (void);
+
+#if SCM_DEBUG_DEPRECATED == 0
+
+/* Use scm_c_with_fluids instead. */
+SCM scm_internal_with_fluids (SCM fluids, SCM vals,
+                              SCM (*cproc)(void *), void *cdata);
+
+#endif
 
 #endif /* !FLUIDSH */
 

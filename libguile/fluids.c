@@ -51,6 +51,7 @@
 #include "libguile/alist.h"
 #include "libguile/eval.h"
 #include "libguile/ports.h"
+#include "libguile/deprecation.h"
 
 #define INITIAL_FLUIDS 10
 #include "libguile/validate.h"
@@ -224,13 +225,13 @@ SCM_DEFINE (scm_with_fluids, "with-fluids*", 3, 0, 0,
 	    "one after another.  @var{thunk} must be a procedure with no argument.")
 #define FUNC_NAME s_scm_with_fluids
 {
-  return scm_internal_with_fluids (fluids, values, apply_thunk, (void *) SCM_UNPACK (thunk));
+  return scm_c_with_fluids (fluids, values, apply_thunk, (void *) SCM_UNPACK (thunk));
 }
 #undef FUNC_NAME
 
 SCM
-scm_internal_with_fluids (SCM fluids, SCM values, SCM (*cproc) (), void *cdata)
-#define FUNC_NAME "scm_internal_with_fluids"
+scm_c_with_fluids (SCM fluids, SCM values, SCM (*cproc) (), void *cdata)
+#define FUNC_NAME "scm_c_with_fluids"
 {
   SCM ans;
   int flen, vlen;
@@ -249,7 +250,14 @@ scm_internal_with_fluids (SCM fluids, SCM values, SCM (*cproc) (), void *cdata)
 }
 #undef FUNC_NAME
 
-
+SCM
+scm_c_with_fluid (SCM fluid, SCM value, SCM (*cproc) (), void *cdata)
+#define FUNC_NAME "scm_c_with_fluid"
+{
+  return scm_c_with_fluids (SCM_LIST1 (fluid), SCM_LIST1 (value),
+			    cproc, cdata);
+}
+#undef FUNC_NAME
 
 void
 scm_init_fluids ()
@@ -260,6 +268,19 @@ scm_init_fluids ()
 #include "libguile/fluids.x"
 #endif
 }
+
+#if SCM_DEBUG_DEPRECATED == 0
+
+SCM
+scm_internal_with_fluids (SCM fluids, SCM values, SCM (*cproc) (), void *cdata)
+{
+  scm_c_issue_deprecation_warning ("`scm_internal_with_fluids' is deprecated. "
+				   "Use `scm_c_with_fluids' instead.");
+
+  return scm_c_with_fluids (fluids, values, cproc, cdata);
+}
+
+#endif
 
 /*
   Local Variables:
