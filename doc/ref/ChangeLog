@@ -1,3 +1,12 @@
+2003-06-09  Marius Vollmer  <mvo@zagadka.de>
+
+	From Mike Gran <spikegran@earthlink.net>.  Thanks!
+
+        * preface.texi: Minor punctuation mistakes.  Hyphens should link
+	compound adjectives.  Commas should be placed after a "therefore"
+	that begins a sentence.  Commas should not be used to separate a
+	list of only 2 dependent clauses.
+
 2003-06-07  Kevin Ryde  <user42@zip.com.au>
 
 	* scheme-data.texi (Arithmetic): Cross reference glibc floor and ceil.
