@@ -114,29 +114,6 @@
 
 (define generated-symbols (make-weak-key-hash-table 1019))
 
-;;; Compatibility
-
-(define values:*values-rtd*
-  (make-record-type "values"
-		    '(values)))
-
-(define values
-  (let ((make-values (record-constructor values:*values-rtd*)))
-    (lambda x
-      (if (and (not (null? x))
-	       (null? (cdr x)))
-	  (car x)
-	  (make-values x)))))
-
-(define call-with-values
-  (let ((access-values (record-accessor values:*values-rtd* 'values))
-	(values-predicate? (record-predicate values:*values-rtd*)))
-    (lambda (producer consumer)
-      (let ((result (producer)))
-	(if (values-predicate? result)
-	    (apply consumer (access-values result))
-	    (consumer result))))))
-
 ;;; Utilities
 
 (define (psyncomp)
