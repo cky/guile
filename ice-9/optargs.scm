@@ -1,6 +1,6 @@
 ;;;; optargs.scm -- support for optional arguments
 ;;;;
-;;;; 	Copyright (C) 1997, 1998, 1999, 2001 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1997, 1998, 1999, 2001, 2002 Free Software Foundation, Inc.
 ;;;;
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -313,6 +313,12 @@
   (or (symbol? obj)
       (and (list? obj) (= 2 (length obj)) (symbol? (car obj)))))
 
+;; XXX - not tail recursive
+(define (improper-list-copy obj)
+  (if (pair? obj)
+      (cons (car obj) (improper-list-copy (cdr obj)))
+      obj))
+
 (define (parse-arglist arglist cont)
   (define (split-list-at val lst cont)
     (cond
@@ -355,7 +361,7 @@
      ((null? arglist) (cont '() '() '() #f #f))
      ((not (pair? arglist)) (cont '() '() '() #f arglist))
      ((not (list? arglist))
-	  (let* ((copy (list-copy arglist))
+	  (let* ((copy (improper-list-copy arglist))
 		 (lp (last-pair copy))
 		 (ra (cdr lp)))
 	    (set-cdr! lp '())
