@@ -2005,7 +2005,7 @@ dispatch:
 	      SCM_ASRTGO (SCM_NIMP (proc), badfun);
 	      PREP_APPLY (proc, scm_cons (t.arg1, SCM_EOL));
 	      ENTER_APPLY;
-	      if (scm_badformalsp (proc, 1))
+	      if (SCM_CLOSUREP(proc) && scm_badformalsp (proc, 1))
 		goto umwrongnumargs;
 	      goto evap1;
 	    }
@@ -2217,7 +2217,7 @@ dispatch:
 	  SCM_ASRTGO (SCM_NIMP (proc), badfun);
 	  PREP_APPLY (proc, scm_cons (t.arg1, SCM_EOL));
 	  ENTER_APPLY;
-	  if (scm_badformalsp (proc, 1))
+	  if (SCM_CLOSUREP(proc) && scm_badformalsp (proc, 1))
 	    goto umwrongnumargs;
 	  goto evap1;
 
