@@ -62,7 +62,7 @@ DOT_X_FILES = \
     root.x scmsigs.x script.x simpos.x smob.x socket.x sort.x		\
     srcprop.x stackchk.x stacks.x stime.x strings.x strop.x strorder.x	\
     strports.x struct.x symbols.x tag.x threads.x throw.x unif.x	\
-    variable.x vectors.x version.x vports.x weaks.x
+    variable.x vectors.x version.x vports.x weaks.x debug-malloc.x
 
 DOT_DOC_FILES = $(DOT_X_FILES:.x=.doc)
 
@@ -72,7 +72,7 @@ EXTRA_libguile_la_SOURCES = _scm.h		\
     alloca.c inet_aton.c memmove.c putenv.c strerror.c	\
     threads.c regex-posix.c \
     filesys.c posix.c net_db.c socket.c \
-    ramap.c unif.c
+    ramap.c unif.c debug-malloc.c
 
 ## This is kind of nasty... there are ".c" files that we don't want to
 ## compile, since they are #included in threads.c.  So instead we list
@@ -103,7 +103,7 @@ modinclude_HEADERS = \
     sort.h srcprop.h stackchk.h stacks.h stime.h strings.h strop.h	\
     strorder.h strports.h struct.h symbols.h tag.h tags.h throw.h	\
     unif.h variable.h vectors.h version.h vports.h weaks.h snarf.h	\
-    threads.h coop-defs.h fluids.h iselect.h
+    threads.h coop-defs.h fluids.h iselect.h debug-malloc.h
 
 ## This file is generated at configure time.  That is why it is DATA
 ## and not a header -- headers are included in the distribution.
