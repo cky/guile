@@ -8,64 +8,32 @@ Changes since Guile 1.3:
 
 * Changes to the distribution
 
-** The configure script now accepts a --with-readline flag.
+** Readline support is no longer included with Guile by default.
 
-By default, Guile includes support for the readline line-editing
-library, if a sufficiently recent version of the library is installed
-on your system.
+Based on the different license terms of Guile and Readline, we
+concluded that Guile should not *by default* cause the linking of
+Readline into an application program.  Readline support is now offered
+as a separate module, which is linked into an application only when
+you explicitly specify it.
 
-If you do not want readline included in Guile, pass the following flag
-to the configure script:
+Although Guile is GNU software, its distribution terms add a special
+exception to the usual GNU General Public License (GPL).  Guile's
+license includes a clause that allows you to link Guile with non-free
+programs.  We add this exception so as not to put Guile at a
+disadvantage vis-a-vis other extensibility packages that support other
+languages.
 
-  --with-readline=no
+In contrast, the GNU Readline library is distributed under the GNU
+General Public License pure and simple.  This means that you may not
+link Readline, even dynamically, into an application unless it is
+distributed under a free software license that is compatible the GPL.
 
-You may not want to configure Guile to use readline if you are unable
-to release your program under the GNU General Public License; the
-readline library is released under the GPL, so anything linked with it
-must also be distributed under the GPL.
-
-Enabling readline support does not significantly increase the size of
-the Guile library.  Readline itself is a shared library on most
-systems, and the readline interface code in Guile is less than 3
-kilobytes long.
-
-In future releases of Guile, we hope to have the readline support
-linked into Guile dynamically, if and when you use it.  This would
-make this configuration option unnecessary; the same Guile library
-could be used both with and without the readline library.
+Because of this difference in distribution terms, an application that
+can use Guile may not be able to use Readline.  Now users will be
+explicitly offered two independent decisions about the use of these
+two packages.
 
 * Changes to the stand-alone interpreter
-
-** Command-line editing is enhanced.
-
-If you have a sufficiently recent version of the GNU readline library
-installed on your system, Guile will use it to read expressions
-interactively.  
-
-You can now use the readline-options interface to control readline's
-behavior.  You can now control the readline library's behavior by
-changing the options listed below.
-
-  (readline-enable 'history-file)
-    Tell readline to record your commands in a file when you exit
-    Guile, and restore them when you restart Guile.  By default, Guile
-    saves commands to `$HOME/.guile_history', but if the
-    `GUILE_HISTORY' environment variable is set, Guile will use its
-    value as the name of the history file.
-
-    If Guile is unable to save or restore lines from the history file,
-    the operation is simply not performed; the user is not notified.
-
-  (readline-disable 'history-file)
-    Tell Guile not to save or restore command history.
-
-  (readline-set! history-length N)
-    Tell Guile to save at most N lines of command history.
-
-  (readline-set! bounce-parens N)
-    Tell Guile to indicate the matching opening parenthesis when you
-    type a closing parenthesis, by resting the cursor on it for N
-    milliseconds.  If N is zero, do not highlight opening parethesis.
 
 ** All builtins now print as primitives.
 Previously builtin procedures not belonging to the fundamental subr
