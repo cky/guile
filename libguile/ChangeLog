@@ -1,3 +1,8 @@
+2001-06-13  Thien-Thi Nguyen  <ttn@revel.glug.org>
+
+	* mkstemp.c: Update path to #include file scmconfig.h.
+	Thanks to Golubev I. N.
+
 2001-06-11  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* struct.h (SCM_STRUCT_VTABLE_FLAGS):  New macro.
@@ -24,7 +29,7 @@
 
 	* ports.c (scm_lfwrite): Maintain columnd and row count in port.
 	Thanks to Matthias Köppe!
-	
+
 2001-06-08  Michael Livshin  <mlivshin@bigfoot.com>
 
 	* snarf.h, filter-doc-snarfage.c: more changes to cope with
@@ -170,7 +175,7 @@
 	* extensions.c (scm_c_register_extension): Allow NULL as library
 	name.
 	(load_extension): Ignore NULL library names when comparing.
-	
+
 	* hash.c (scm_hasher): Use SCM_UNPACK in the case labels so that
 	non-pointers are being compared.  Thanks to Alexander Klimov!
 
@@ -179,7 +184,7 @@
 	* rw.c (scm_write_string_partial): new procedure implementing
 	write-string/partial in (ice-9 rw).
 	* rw.h: declare scm_write_string_partial.
-	
+
 2001-06-04  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* keywords.c (keyword_print): Substract 1 from length of symbol
@@ -247,7 +252,7 @@
 	* print.h, print.c (scm_print_symbol_name): Factored out of
 	scm_iprin1.
 	(scm_iprin1): Call it.
-	
+
 	* keywords.c (keyword_print): Use scm_print_symbol_name so that
 	weird names are printed correctly.
 
@@ -266,7 +271,7 @@
 2001-05-28  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* symbols.c (scm_gensym): Fix buffer overrun (try `(gensym
-	(make-string 2000 #\!))' in an older version).  
+	(make-string 2000 #\!))' in an older version).
 
 	Change strncpy to memcpy to allow embedded NUL characters in
 	symbol prefix.
@@ -352,8 +357,8 @@
 	corresponds to the former situation that SCM_VOIDP_TEST was
 	defined.
 
-	(SCM):  Now defined as typedef struct scm_unused_struct * SCM; 
-	If this appears to be not ANSI compliant, we will change it to 
+	(SCM):  Now defined as typedef struct scm_unused_struct * SCM;
+	If this appears to be not ANSI compliant, we will change it to
 	typedef struct scm_unused_struct { } * SCM;
 	Thanks to Han-Wen Nienhuys for the suggestion.
 
@@ -627,7 +632,7 @@
 	`duplicate_string'.  Do not use an indirect cell, store symbol
 	directly in collision list of hash table.
 	(duplicate_string): Removed.
-	
+
 	* init.c (scm_init_guile_1): Call scm_init_extensions.
 
 	* Makefile.am: Add "extensions.c" and related files in all the
@@ -662,7 +667,7 @@
 	* eval.c, gc.c, gh_funcs.c, goops.c, macros.c, pairs.c, ramap.c,
 	rdelim.c, rw.c, scmsigs.c, snarf.h, values.c: Changed according to
 	the comments above.
-	
+
 2001-05-19  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* throw.c (scm_lazy_catch): Slight docstring clarification.
@@ -691,20 +696,20 @@
 	scm_c_use_module, scm_c_export): New.
 	(the_root_module): New static variant of scm_the_root_module.  Use
 	it everywhere instead of scm_the_root_module.
-	
+
 	* fluids.h, fluids.c (scm_internal_with_fluids): Deprecated.
 	(scm_c_with_fluids): Renamed from scm_internal_with_fluids.
 	(scm_c_with_fluid): New.
 	(scm_with_fluids): Use scm_c_with_fluids instead of
 	scm_internal_with_fluids.
-	
+
 	* goops.h, goops.c (scm_init_goops_builtins): Renamed from
 	`scm_init_goops'.  Do not explicitly create/switch modules.
 	Return SCM_UNSPECIFIED.
 	(scm_init_goops): Only register `%init-goops-builtins' procedure.
 	(scm_load_goops): Use scm_c_resolve_module instead of
 	scm_resolve_module.
-	
+
 	* init.c (scm_init_guile_1): Call `scm_init_goops' instead of
 	`scm_init_oop_goops_goopscore_module'.  Call `scm_init_rdelim' and
 	`scm_init_rw' prior to loading the startup files.
@@ -714,7 +719,7 @@
 	Return SCM_UNSPECIFIED.
 	(scm_init_rdelim): Only register `%init-rdelim-builtins'
 	procedure.
-	
+
 	* rw.c (scm_init_rw_builtins): Renamed from scm_init_rw.  Do not
 	explicitly create/switch modules.  Return SCM_UNSPECIFIED.
 	(scm_init_rw): Only register `%init-rw-builtins' procedure.
@@ -933,7 +938,7 @@
 2001-05-15  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* eval.c (scm_init_eval):  Initialize scm_undefineds and
-	scm_listofnull. 
+	scm_listofnull.
 
 	* gc.c (scm_debug_newcell, scm_debug_newcell2):  Fixed to behave
 	like the SCM_NEWCELL macro counterparts.
