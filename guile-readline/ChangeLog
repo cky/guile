@@ -1,3 +1,9 @@
+Tue Jan 11 17:51:40 2000  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* readline.c (scm_init_readline): Drop extra argument to
+ 	scm_mutex_init as that argument should not exist.  I do not know
+	how this escaped detection for so long.
+	
 2000-01-09  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* readline.c (match_paren): Changed return type to int (this is
