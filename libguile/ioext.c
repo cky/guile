@@ -423,12 +423,6 @@ scm_init_ioext ()
   scm_sysintern ("SEEK_CUR", SCM_MAKINUM (SEEK_CUR));
   scm_sysintern ("SEEK_END", SCM_MAKINUM (SEEK_END));
 
-  /* access() symbols.  */
-  scm_sysintern ("R_OK", SCM_MAKINUM (R_OK));
-  scm_sysintern ("W_OK", SCM_MAKINUM (W_OK));
-  scm_sysintern ("X_OK", SCM_MAKINUM (X_OK));
-  scm_sysintern ("F_OK", SCM_MAKINUM (F_OK));
-
   /* File type/permission bits.  */
 #ifdef S_IRUSR
   scm_sysintern ("S_IRUSR", SCM_MAKINUM (S_IRUSR));

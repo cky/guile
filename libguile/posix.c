@@ -1534,10 +1534,10 @@ scm_init_posix ()
   scm_sysintern ("SIGPWR", SCM_MAKINUM (SIGPWR));
 #endif
   /* access() symbols.  */
-  scm_sysintern ("R_OK", SCM_MAKINUM (R_OK));
-  scm_sysintern ("W_OK", SCM_MAKINUM (W_OK));
-  scm_sysintern ("X_OK", SCM_MAKINUM (X_OK));
-  scm_sysintern ("F_OK", SCM_MAKINUM (F_OK));
+  scm_sysintern ("R_OK", SCM_MAKINUM (4));
+  scm_sysintern ("W_OK", SCM_MAKINUM (2));
+  scm_sysintern ("X_OK", SCM_MAKINUM (1));
+  scm_sysintern ("F_OK", SCM_MAKINUM (0));
 
 #ifdef LC_COLLATE
   scm_sysintern ("LC_COLLATE", SCM_MAKINUM (LC_COLLATE));
