@@ -1,3 +1,8 @@
+1998-11-09  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+
+	* boot-9.scm (readline-options, readline-enable, readline.disable,
+	readline-set!: New options interface.
+
 1998-11-05  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
 	* boot-9.scm: Set the repl start module in `top-repl' instead of

@@ -2275,6 +2275,10 @@
 		 (print-options-interface
 		  (print-options print-enable print-disable)
 		  (print-set!))
+
+		 (readline-options-interface
+		  (readline-options readline-enable readline-disable)
+		  (readline-set!))
 		 ))
 	(option-name car)
 	(option-value cadr)
