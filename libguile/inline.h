@@ -66,7 +66,7 @@ scm_cell (scm_t_bits car, scm_t_bits cdr)
   SCM z;
   /* We retrieve the SCM pointer only once since the call to
      SCM_FREELIST_LOC will be slightly expensive when we support
-     preemptive multithreading.  SCM_FREELIST_DOC will then retrieve
+     preemptive multithreading.  SCM_FREELIST_LOC will then retrieve
      the thread specific freelist.
    
      Until then, SCM_FREELIST_DOC expands to (&scm_i_freelist) and the
