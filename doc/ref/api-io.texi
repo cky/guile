@@ -684,6 +684,7 @@ representing that file.  The attributes of the port are
 determined by the @var{mode} string.  The way in which this is
 interpreted is similar to C stdio.  The first character must be
 one of the following:
+
 @table @samp
 @item r
 Open an existing file for input.
@@ -696,7 +697,9 @@ exist.  All writes to the port will go to the end of the file.
 The "append mode" can be turned off while the port is in use
 @pxref{Ports and File Descriptors, fcntl}
 @end table
+
 The following additional characters can be appended:
+
 @table @samp
 @item +
 Open the port for both input and output.  E.g., @code{r+}: open
@@ -711,7 +714,19 @@ setvbuf}
 @item l
 Add line-buffering to the port.  The port output buffer will be
 automatically flushed whenever a newline character is written.
+@item b
+Use binary mode.  On DOS systems the default text mode converts CR+LF
+in the file to newline for the program, whereas binary mode reads and
+writes all bytes unchanged.  On Unix-like systems there is no such
+distinction, text files already contain just newlines and no
+conversion is ever made.  The @code{b} flag is accepted on all
+systems, but has no effect on Unix-like systems.
+
+(For reference, Guile leaves text versus binary up to the C library,
+@code{b} here just adds @code{O_BINARY} to the underlying @code{open}
+call, when that flag is available.)
 @end table
+
 In theory we could create read/write ports which were buffered
 in one direction only.  However this isn't included in the
 current interfaces.  If a file cannot be opened with the access
