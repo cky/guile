@@ -1,3 +1,15 @@
+2003-05-12  Kevin Ryde  <user42@zip.com.au>
+
+	* preface.texi (Guile License): Refer to COPYING.LIB.
+
+	* repl-modules.texi (Loading Readline Support, Readline Options):
+	Index entries for readline functions.
+
+	* scheme-control.texi (Handling Errors): Fix regexp error key, should
+	be `regular-expression-syntax'.
+
+	* scheme-data.texi (Complex): Show z argument in prototypes.
+
 2003-05-10  Kevin Ryde  <user42@zip.com.au>
 
 	* scheme-data.texi (Reals and Rationals): Fix typo @result{#f}, and
