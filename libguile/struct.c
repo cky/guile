@@ -355,6 +355,58 @@ scm_struct_free_entity (scm_bits_t * vtable, scm_bits_t * data)
   return n;
 }
 
+static void *
+scm_struct_gc_init (void *dummy1, void *dummy2, void *dummy3)
+{
+  scm_structs_to_free = SCM_EOL;
+  return 0;
+}
+
+static void *
+scm_free_structs (void *dummy1, void *dummy2, void *dummy3)
+{
+  SCM newchain = scm_structs_to_free;
+  do
+    {
+      /* Mark vtables in GC chain.  GC mark set means delay freeing. */
+      SCM chain = newchain;
+      while (SCM_NNULLP (chain))
+	{
+	  SCM vtable = SCM_STRUCT_VTABLE (chain);
+	  if (SCM_STRUCT_GC_CHAIN (vtable) != 0 && vtable != chain)
+	    SCM_SETGCMARK (vtable);
+	  chain = SCM_STRUCT_GC_CHAIN (chain);
+	}
+      /* Free unmarked structs.  */
+      chain = newchain;
+      newchain = SCM_EOL;
+      while (SCM_NNULLP (chain))
+	{
+	  SCM obj = chain;
+	  chain = SCM_STRUCT_GC_CHAIN (chain);
+	  if (SCM_GCMARKP (obj))
+	    {
+	      SCM_CLRGCMARK (obj);
+	      SCM_SET_STRUCT_GC_CHAIN (obj, newchain);
+	      newchain = obj;
+	    }
+	  else
+	    {
+	      scm_bits_t word0 = SCM_CELL_WORD_0 (obj) - scm_tc3_cons_gloc;
+	      /* access as struct */
+	      scm_bits_t * vtable_data = (scm_bits_t *) word0;
+	      scm_bits_t * data = (scm_bits_t *) SCM_UNPACK (SCM_CDR (obj));
+	      scm_struct_free_t free_struct_data
+		= ((scm_struct_free_t) vtable_data[scm_struct_i_free]);
+	      SCM_SET_CELL_TYPE (obj, scm_tc_free_cell);
+	      free_struct_data (vtable_data, data);
+	    }
+	}
+    }
+  while (SCM_NNULLP (newchain));
+  return 0;
+}
+
 SCM_DEFINE (scm_make_struct, "make-struct", 2, 0, 1, 
             (SCM vtable, SCM tail_array_size, SCM init),
 	    "Create a new structure.\n\n"
@@ -392,7 +444,7 @@ SCM_DEFINE (scm_make_struct, "make-struct", 2, 0, 1,
   layout = SCM_PACK (SCM_STRUCT_DATA (vtable) [scm_vtable_index_layout]);
   basic_size = SCM_LENGTH (layout) / 2;
   tail_elts = SCM_INUM (tail_array_size);
-  SCM_NEWCELL (handle);
+  SCM_NEWCELL2 (handle);
   SCM_DEFER_INTS;
   if (SCM_STRUCT_DATA (vtable)[scm_struct_i_flags] & SCM_STRUCTF_ENTITY)
     {
@@ -407,6 +459,7 @@ SCM_DEFINE (scm_make_struct, "make-struct", 2, 0, 1,
 			     scm_struct_n_extra_words,
 			     "make-struct");
   SCM_SET_CELL_WORD_1 (handle, data);
+  SCM_SET_STRUCT_GC_CHAIN (handle, 0);
   scm_struct_init (handle, layout, data, tail_elts, init);
   SCM_SET_CELL_WORD_0 (handle, (scm_bits_t) SCM_STRUCT_DATA (vtable) + scm_tc3_cons_gloc);
   SCM_ALLOW_INTS;
@@ -482,12 +535,13 @@ SCM_DEFINE (scm_make_vtable_vtable, "make-vtable-vtable", 2, 0, 1,
   layout = scm_make_struct_layout (fields);
   basic_size = SCM_LENGTH (layout) / 2;
   tail_elts = SCM_INUM (tail_array_size);
-  SCM_NEWCELL (handle);
+  SCM_NEWCELL2 (handle);
   SCM_DEFER_INTS;
   data = scm_alloc_struct (basic_size + tail_elts,
 			   scm_struct_n_extra_words,
 			   "make-vtable-vtable");
   SCM_SET_CELL_WORD_1 (handle, data);
+  SCM_SET_STRUCT_GC_CHAIN (handle, 0);
   data [scm_vtable_index_layout] = SCM_UNPACK (layout);
   scm_struct_init (handle, layout, data, tail_elts, scm_cons (layout, init));
   SCM_SET_CELL_WORD_0 (handle, (scm_bits_t) data + scm_tc3_cons_gloc);
@@ -752,6 +806,13 @@ scm_print_struct (SCM exp, SCM port, scm_print_state *pstate)
       scm_intprint (SCM_UNPACK (exp), 16, port);
       scm_putc ('>', port);
     }
+}
+
+void
+scm_struct_prehistory ()
+{
+  scm_c_hook_add (&scm_before_mark_c_hook, scm_struct_gc_init, 0, 0);
+  scm_c_hook_add (&scm_after_sweep_c_hook, scm_free_structs, 0, 0);
 }
 
 void
