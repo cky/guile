@@ -1,6 +1,9 @@
-2000-09-20  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+2000-09-20  Marius Vollmer  <mvo@zagadka.ping.de>
 
-	* boot-9.scm: Removed comment.  (Thanks to Brad Knotwell.)
+	* numbers.c (scm_istr2flo): Throw an `out of range' error when
+	exponent is too large instead of returning `#f'.  The rationale is
+	that in this case the string represents a valid number but we
+	can't deal with it.
 
 2000-09-20  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
