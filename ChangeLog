@@ -1,3 +1,8 @@
+2001-07-19  Rob Browning  <rlb@defaultvalue.org>
+
+	* configure.in: add checks for setitimer and getitimer.
+	Add --enable-error-on-warning.
+
 2001-07-15  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
 	* HACKING: Remove onerous authorship-info deletion clause.

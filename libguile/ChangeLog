@@ -1,3 +1,18 @@
+2001-07-19  Rob Browning  <rlb@defaultvalue.org>
+
+	* gc_os_dep.c (GC_noop1): ifdef out (unused) to quiet warning.
+
+	* c-tokenize.lex: add option %nounput to quiet warning.
+	Add prototype for yylex to quiet warning.
+
+	* scmconfig.h.in: add flags for setitimer and getitimer.
+
+	* scmsigs.h (scm_init_scmsigs): new prototype.
+	(scm_init_scmsigs): new prototype.
+
+	* scmsigs.c (s_scm_setitimer): new function.
+	(s_scm_setitimer): new function.
+
 2001-07-17  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* goops.c (sym_layout, sym_vcell, sym_vtable, sym_print,
