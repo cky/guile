@@ -4139,40 +4139,59 @@ rm -fr conftest*
 fi
 
 
-
-if test "$cross_compiling" = yes; then
-  cat >> confdefs.h <<\EOF
-#define SCM_SINGLES 1
-EOF
-
-	   echo "configure: warning: Guessing that sizeof(long) == sizeof(float) -- see scmconfig.h.in" 1>&2
+echo $ac_n "checking whether floats fit in longs""... $ac_c" 1>&6
+echo "configure:4144: checking whether floats fit in longs" >&5
+if eval "test \"`echo '$''{'guile_cv_type_float_fits_long'+set}'`\" = set"; then
+  echo $ac_n "(cached) $ac_c" 1>&6
+else
+  if test "$cross_compiling" = yes; then
+  guile_cv_type_float_fits_long=guess-yes
 else
   cat > conftest.$ac_ext <<EOF
 #line 4152 "configure"
 #include "confdefs.h"
-main () { exit (sizeof(float) != sizeof(long)); }
+main () { exit (sizeof(float) > sizeof(long)); }
 EOF
 if { (eval echo configure:4156: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest && (./conftest; exit) 2>/dev/null
 then
-  cat >> confdefs.h <<\EOF
-#define SCM_SINGLES 1
-EOF
-
+  guile_cv_type_float_fits_long=yes
 else
   echo "configure: failed program was:" >&5
   cat conftest.$ac_ext >&5
+  rm -fr conftest*
+  guile_cv_type_float_fits_long=no
 fi
 rm -fr conftest*
 fi
 
+fi
+
+echo "$ac_t""$guile_cv_type_float_fits_long" 1>&6
+case $guile_cv_type_float_fits_long in
+  "yes" )
+    cat >> confdefs.h <<\EOF
+#define SCM_SINGLES 1
+EOF
+
+  ;;
+  "guess-yes" )
+    cat >> confdefs.h <<\EOF
+#define SCM_SINGLES 1
+EOF
+
+    echo "configure: warning: guessing that sizeof(long) == sizeof(float)" 1>&2
+    echo "configure: warning: see SCM_SINGLES in scmconfig.h.in" 1>&2
+  ;;
+esac
+
 
 echo $ac_n "checking for struct linger""... $ac_c" 1>&6
-echo "configure:4171: checking for struct linger" >&5
+echo "configure:4190: checking for struct linger" >&5
 if eval "test \"`echo '$''{'scm_cv_struct_linger'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 4176 "configure"
+#line 4195 "configure"
 #include "confdefs.h"
 
 #include <sys/types.h>
@@ -4181,7 +4200,7 @@ int main() {
 struct linger lgr;  lgr.l_linger = 100
 ; return 0; }
 EOF
-if { (eval echo configure:4185: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+if { (eval echo configure:4204: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
   scm_cv_struct_linger="yes"
 else
@@ -4208,19 +4227,19 @@ fi
 #--------------------------------------------------------------------
 
 echo $ac_n "checking how to set a stream file descriptor""... $ac_c" 1>&6
-echo "configure:4212: checking how to set a stream file descriptor" >&5
+echo "configure:4231: checking how to set a stream file descriptor" >&5
 if eval "test \"`echo '$''{'scm_cv_fd_setter'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 4217 "configure"
+#line 4236 "configure"
 #include "confdefs.h"
 #include <stdio.h>
 int main() {
 stdout->_file = 1
 ; return 0; }
 EOF
-if { (eval echo configure:4224: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+if { (eval echo configure:4243: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
   scm_cv_fd_setter="_file"
 else
@@ -4228,14 +4247,14 @@ else
   cat conftest.$ac_ext >&5
   rm -rf conftest*
   cat > conftest.$ac_ext <<EOF
-#line 4232 "configure"
+#line 4251 "configure"
 #include "confdefs.h"
 #include <stdio.h>
 int main() {
 stdout->__file = 1
 ; return 0; }
 EOF
-if { (eval echo configure:4239: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+if { (eval echo configure:4258: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
   scm_cv_fd_setter="__file"
 else
@@ -4243,14 +4262,14 @@ else
   cat conftest.$ac_ext >&5
   rm -rf conftest*
   cat > conftest.$ac_ext <<EOF
-#line 4247 "configure"
+#line 4266 "configure"
 #include "confdefs.h"
 #include <stdio.h>
 int main() {
 stdout->_fileno = 1
 ; return 0; }
 EOF
-if { (eval echo configure:4254: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+if { (eval echo configure:4273: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
   scm_cv_fd_setter="_fileno"
 else
@@ -4290,19 +4309,19 @@ fi
 #--------------------------------------------------------------------
 
 echo $ac_n "checking how to get buffer char count from FILE structure""... $ac_c" 1>&6
-echo "configure:4294: checking how to get buffer char count from FILE structure" >&5
+echo "configure:4313: checking how to get buffer char count from FILE structure" >&5
 if eval "test \"`echo '$''{'scm_cv_struct_file_count'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 4299 "configure"
+#line 4318 "configure"
 #include "confdefs.h"
 #include <stdio.h>
 int main() {
 FILE *f = stdin; f->_cnt = 0
 ; return 0; }
 EOF
-if { (eval echo configure:4306: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+if { (eval echo configure:4325: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
   scm_cv_struct_file_count="_cnt"
 else
@@ -4310,14 +4329,14 @@ else
   cat conftest.$ac_ext >&5
   rm -rf conftest*
   cat > conftest.$ac_ext <<EOF
-#line 4314 "configure"
+#line 4333 "configure"
 #include "confdefs.h"
 #include <stdio.h>
 int main() {
 FILE *f = stdin; f->__cnt = 0
 ; return 0; }
 EOF
-if { (eval echo configure:4321: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+if { (eval echo configure:4340: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
   scm_cv_struct_file_count="__cnt"
 else
@@ -4325,14 +4344,14 @@ else
   cat conftest.$ac_ext >&5
   rm -rf conftest*
   cat > conftest.$ac_ext <<EOF
-#line 4329 "configure"
+#line 4348 "configure"
 #include "confdefs.h"
 #include <stdio.h>
 int main() {
 FILE *f = stdin; f->_r = 0
 ; return 0; }
 EOF
-if { (eval echo configure:4336: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+if { (eval echo configure:4355: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
   scm_cv_struct_file_count="_r"
 else
@@ -4340,14 +4359,14 @@ else
   cat conftest.$ac_ext >&5
   rm -rf conftest*
   cat > conftest.$ac_ext <<EOF
-#line 4344 "configure"
+#line 4363 "configure"
 #include "confdefs.h"
 #include <stdio.h>
 int main() {
 FILE *f = stdin; f->readCount = 0
 ; return 0; }
 EOF
-if { (eval echo configure:4351: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+if { (eval echo configure:4370: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
   scm_cv_struct_file_count="readCount"
 else
@@ -4376,14 +4395,14 @@ if eval "test \"`echo '$''{'scm_cv_struct_file_gptr'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 4380 "configure"
+#line 4399 "configure"
 #include "confdefs.h"
 #include <stdio.h>
 int main() {
 FILE *f = stdin; f->_gptr = f->egptr;
 ; return 0; }
 EOF
-if { (eval echo configure:4387: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+if { (eval echo configure:4406: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
   scm_cv_struct_file_gptr=1
 else
@@ -4406,14 +4425,14 @@ if eval "test \"`echo '$''{'scm_cv_struct_file_readptr'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 4410 "configure"
+#line 4429 "configure"
 #include "confdefs.h"
 #include <stdio.h>
 int main() {
 FILE *f = stdin; f->_IO_read_ptr = f->_IO_read_end;
 ; return 0; }
 EOF
-if { (eval echo configure:4417: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+if { (eval echo configure:4436: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
   scm_cv_struct_file_readptr=1
 else
@@ -4454,7 +4473,7 @@ fi
 ### Turn $with_threads into either the name of a threads package, like
 ### `qt', or `no', meaning that threads should not be supported.
 echo $ac_n "checking whether to support threads""... $ac_c" 1>&6
-echo "configure:4458: checking whether to support threads" >&5
+echo "configure:4477: checking whether to support threads" >&5
 case "$with_threads" in
   "yes" | "qt" | "coop" | "")
     with_threads=qt
@@ -4478,7 +4497,7 @@ case "${with_threads}" in
   
 
   echo $ac_n "checking QuickThreads configuration""... $ac_c" 1>&6
-echo "configure:4482: checking QuickThreads configuration" >&5
+echo "configure:4501: checking QuickThreads configuration" >&5
   # How can we refer to the qt source directory from within the qt build
   # directory?  For headers, we can rely on the fact that the qt src
   # directory appears in the #include path.
@@ -4609,7 +4628,7 @@ do
 # Extract the first word of "$ac_prog", so it can be a program name with args.
 set dummy $ac_prog; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
-echo "configure:4613: checking for $ac_word" >&5
+echo "configure:4632: checking for $ac_word" >&5
 if eval "test \"`echo '$''{'ac_cv_prog_AWK'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
