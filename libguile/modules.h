@@ -84,6 +84,7 @@ extern SCM scm_module_tag;
 
 extern SCM scm_the_root_module (void);
 extern SCM scm_current_module (void);
+extern SCM scm_current_module_lookup_closure (void);
 extern SCM scm_interaction_environment (void);
 extern SCM scm_set_current_module (SCM module);
 extern SCM scm_make_module (SCM name);

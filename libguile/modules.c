@@ -144,6 +144,15 @@ scm_module_lookup_closure (SCM module)
   return SCM_MODULE_EVAL_CLOSURE (module);
 }
 
+SCM
+scm_current_module_lookup_closure ()
+{
+  if (scm_module_system_booted_p)
+    return scm_module_lookup_closure (scm_current_module ());
+  else
+    return SCM_BOOL_F;
+}
+
 static SCM resolve_module;
 
 SCM
