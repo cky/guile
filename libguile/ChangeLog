@@ -1,3 +1,7 @@
+Thu Jan  6 11:48:49 2000  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* *.c, snarf.h: Replace GUILE_PROC1 with SCM_DEFINE1 throughout.
+
 Thu Jan  6 11:22:53 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* Makefile.am (ETAGS_ARGS): Switch to SCM_DEFINE, SCM_DEFINE1
