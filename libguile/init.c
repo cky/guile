@@ -323,7 +323,7 @@ scm_boot_guile (argc, argv, main_func, closure)
   c.argc = argc;
   c.argv = argv;
 
-  return scm_boot_guile_1 (&dummy, &c);
+  scm_boot_guile_1 (&dummy, &c);
 }
 
 
