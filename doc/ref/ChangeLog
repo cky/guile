@@ -1,4 +1,17 @@
+2003-06-19  Kevin Ryde  <user42@zip.com.au>
+
+	* scheme-io.texi (File Ports): Describe call-with-input-file and
+	call-with-output-file together.  Describe with-input-from-file,
+	with-output-to-file and with-error-to-file together, and add that they
+	use dynamic-wind on the current port setting and keep the port open in
+	support of captured continuations.
+	(Closing): Describe close-input-port and close-output-port together,
+	tweak the wording slightly.
+
 2003-06-14  Kevin Ryde  <user42@zip.com.au>
+
+	* data-rep.texi (Vector Data): For SCM_VECTOR_BASE, SCM_STRING_CHARS
+	and SCM_SYMBOL_CHARS, cross reference "Remembering During Operations".
 
 	* scheme-data.texi (Arithmetic): round is to nearest even.
 
