@@ -2,6 +2,8 @@
 
 	* lint: New script.
 
+	* Makefile.am (scripts_sources): Add "lint".
+
 2002-04-02  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* PROGRAM: Update copyright; nfc.
@@ -10,7 +12,7 @@
 
 	* Makefile.am (scripts_sources): Add "read-text-outline".
 
-	* read-text-outlint (read-text-outline-silently):
+	* read-text-outline (read-text-outline-silently):
 	Move `tp' inside `loop'; nfc.
 
 2002-03-12  Neil Jerram  <neil@ossau.uklinux.net>
