@@ -720,11 +720,15 @@
 ;;; Filtering & partitioning
 
 (define (filter pred list)
-  (if (null? list)
-    '()
-    (if (pred (car list))
-      (cons (car list) (filter pred (cdr list)))
-      (filter pred (cdr list)))))
+  (letrec ((filiter (lambda (pred rest result)
+		      (if (null? rest)
+			  (reverse! result)
+			  (filiter pred (cdr rest)
+				   (cond ((pred (car rest))
+					  (cons (car rest) result))
+					 (else
+					  result)))))))
+    (filiter pred list '())))
 
 (define (partition pred list)
   (if (null? list)
@@ -736,11 +740,7 @@
 	       (values in (cons (car list) out))))))
 
 (define (remove pred list)
-  (if (null? list)
-    '()
-    (if (pred (car list))
-      (remove pred (cdr list))
-      (cons (car list) (remove pred (cdr list))))))
+  (filter (lambda (x) (not (pred x))) list))
 
 (define (filter! pred list)
   (filter pred list))			; XXX:optimize

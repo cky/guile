@@ -1,3 +1,8 @@
+2001-08-04  Gary Houston  <ghouston@arglist.com>
+
+	* srfi-1.scm (filter): replaced with a tail-recursive version.
+	(remove): implement using filter, to make it tail-recursive.
+
 2001-07-31  Gary Houston  <ghouston@arglist.com>
 
 	* srfi-14.c (scm_char_set_diff_plus_intersection): wasn't correctly
