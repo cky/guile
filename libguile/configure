@@ -1850,8 +1850,6 @@ EOF
 
 
 
-
-
 trap '' 1 2 15
 cat > confcache <<\EOF
 # This file is a shell script that caches the results of configure
@@ -1973,8 +1971,6 @@ s%@CPP@%$CPP%g
 s%@RANLIB@%$RANLIB%g
 s%@LIBOBJS@%$LIBOBJS%g
 s%@FD_SETTER@%$FD_SETTER%g
-s%@TCL_SRC_DIR@%$TCL_SRC_DIR%g
-s%@TK_SRC_DIR@%$TK_SRC_DIR%g
 s%@XINCLUDES@%$XINCLUDES%g
 s%@GUILE_MAJOR_VERSION@%$GUILE_MAJOR_VERSION%g
 s%@GUILE_MINOR_VERSION@%$GUILE_MINOR_VERSION%g
