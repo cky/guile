@@ -176,9 +176,6 @@
 /* Define if you have the atexit function.  */
 #undef HAVE_ATEXIT
 
-/* Define if you have the bcopy function.  */
-#undef HAVE_BCOPY
-
 /* Define if you have the bzero function.  */
 #undef HAVE_BZERO
 
