@@ -28,6 +28,7 @@
 ;;; There should probably be low-level support instead of this code.
 
 (define prompt "")
+(define prompt2 "")
 (define input-port (current-input-port))
 (define output-port (current-output-port))
 (define read-hook #f)
@@ -59,7 +60,7 @@
 			  (or (string=? read-string "")
 			      (begin
 				(add-history read-string)
-				(set! prompt "... ")))
+				(set! prompt prompt2)))
 			  (get-character))
 			read-string)))
 		 (else 
@@ -121,8 +122,10 @@
 				    inp)
 				args))))))
 
-(define-public (set-readline-prompt! p)
-  (set! prompt p))
+(define-public (set-readline-prompt! p . rest)
+  (set! prompt p)
+  (if (not (null? rest))
+      (set! prompt2 (car rest))))
 
 (define-public (set-readline-input-port! p)
   (set! input-port p))
