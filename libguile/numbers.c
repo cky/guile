@@ -3060,7 +3060,14 @@ scm_difference (SCM x, SCM y)
           int sgn_y = mpz_sgn (SCM_I_BIG_MPZ (y));
           SCM result = scm_i_mkbig ();
 
-          mpz_ui_sub (SCM_I_BIG_MPZ (result), xx, SCM_I_BIG_MPZ (y));
+          if (xx >= 0)
+            mpz_ui_sub (SCM_I_BIG_MPZ (result), xx, SCM_I_BIG_MPZ (y));
+          else
+            {
+              /* x - y == -(y + -x) */
+              mpz_add_ui (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (y), -xx);
+              mpz_neg (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (result));
+            }
           scm_remember_upto_here_1 (y);
 
           if ((xx < 0 && (sgn_y > 0)) || ((xx > 0) && sgn_y < 0))
