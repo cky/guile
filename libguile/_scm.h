@@ -113,8 +113,12 @@
 
 
 
+#ifndef min
 #define min(A,B) ((A) <= (B) ? (A) : (B))
+#endif
+#ifndef max
 #define max(A,B) ((A) >= (B) ? (A) : (B))
+#endif
 
 #endif  /* _SCMH */
 
