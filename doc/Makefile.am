@@ -3,17 +3,17 @@
 ##  	Copyright (C) 1998 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
-##   
+##
 ##   GUILE is free software; you can redistribute it and/or modify
 ##   it under the terms of the GNU General Public License as
 ##   published by the Free Software Foundation; either version 2, or
 ##   (at your option) any later version.
-##   
+##
 ##   GUILE is distributed in the hope that it will be useful, but
 ##   WITHOUT ANY WARRANTY; without even the implied warranty of
 ##   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ##   GNU General Public License for more details.
-##   
+##
 ##   You should have received a copy of the GNU General Public
 ##   License along with GUILE; see the file COPYING.  If not, write
 ##   to the Free Software Foundation, Inc., 59 Temple Place, Suite
@@ -40,3 +40,10 @@ dist-hook:
 
 # pending the papers from Robert Merkel
 # EXTRA_DIST = guile.1
+
+if MAINTAINER_MODE
+include $(top_srcdir)/am/maintainer-dirs
+guile-api.alist: guile-api.alist-FORCE
+	( cd $(top_builddir) ; $(mscripts)/update-guile-api.alist )
+guile-api.alist-FORCE:
+endif
