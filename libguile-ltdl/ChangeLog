@@ -1,0 +1,54 @@
+2002-10-04  Rob Browning  <rlb@defaultvalue.org>
+
+	* raw-ltdl.h: guile's modified version of the upstream ltdl.h.
+
+	* raw-ltdl.c: guile's modified version of the upstream ltdl.c.
+
+	* guile-ltdl.h: main header file for guile's internal
+	libguile-ltdl.
+
+	* guile-ltdl.c: main source file for libguile-ltdl -- #includes
+	raw-ltdl.c and raw-ldtl.h directly.  See README.
+
+	* COPYING.LIB: moved from ../libltdl.
+
+	* ChangeLog: moved from ../libltdl.
+
+	* README: moved from ../libltdl.
+
+	* Makefile.am: build new libguile-ltdl.
+
+	* upstream/Makefile.am: new file.
+
+	* upstream/ltdl.c: upstream source.
+
+	* upstream/ltdl.h: upstream source.
+
+	* raw-ltdl.c: Remove custom realloc. (#define rpl_realloc
+	realloc).  You can't define realloc like this unless you also
+	define malloc.  This is a quick hack for now; we may want
+	something cleaner later.
+	(memcpy): coerce ptrs to (char *) before copying characters
+	through them -- I can't recall for sure, but I believe this was
+	causing an overrun error at times.
+	(realloc): commented out -- as mentioned above, you can't define
+	your own malloc unless you know enough about the malloc in use to
+	be able to tell how big the src ptr is.  The disabled code
+	incorrectly used the *destination* ptr to decide how much to copy.
+	This sometimes results in out-of-bound accesses which cause
+	segfaults.
+	(tryall_dlopen_module): check to be sure (dirname_len > 0) before
+	testing first character against '/'.
+	(try_dlopen): check for feof(file) in read loop -- otherwise
+	infloop?
+	(scm_lt_dlopenext): remove unused variable file_found.
+	(LT_EOS_CHAR): moved here from guile-ltdl.h.
+
+2002-10-04  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* raw-ltdl.c: Renamed all exported functions and variables to have a
+	"scm_lt_" prefix.
+	(try_dlopen): Set newhandle to null when try_all_dlopen failed.
+	(scm_lt_dlopenext): Reverse test of "file_not_found()".
+	Previously, we would stop searching when the file wasn't found
+	yet, while we should continue in that case.
