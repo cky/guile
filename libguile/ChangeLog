@@ -1,5 +1,17 @@
 2000-09-26  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* strings.c (scm_string, scm_make_string, scm_string_set_x,
+	scm_string_append), strop.c (scm_string_upcase_x,
+	scm_string_downcase_x), strports.c (st_resize_port), symbols.c
+	(scm_sym2vcell, scm_sym2ovcell_soft, scm_intern_obarray_soft,
+	scm_intern_symbol, scm_unintern_symbol), unif.c	(scm_cvref,
+	scm_uniform_vector_ref, scm_array_set_x, rapr1):  Replace calls to
+	SCM_UCHARS with SCM_STRING_UCHARS or SCM_SYMBOL_UCHARS.
+
+	* symbols.h (SCM_UCHARS):  Deprecated.
+
+2000-09-26  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* gc.c (scm_gc_sweep):  Replace SCM_CHARS by SCM_COMPLEX_MEM.
 
 	* numbers.h (SCM_COMPLEX_MEM):  Added as a replacement for
