@@ -1,3 +1,22 @@
+Sat Nov  9 19:02:46 1996  Jim Blandy  <jimb@floss.cyclic.com>
+
+	On some systems <libc.h> conflicts with <unistd.h>, and should not
+	be #included at all.
+	* aclocal.m4 (GUILE_HEADER_LIBC_WITH_UNISTD): New autoconf macro.
+	* acconfig.h (LIBC_H_WITH_UNISTD_H): New CPP symbol.
+	* configure.in: Call it.
+	* posix.c, filesys.c: Use its results to decide whether or not to
+	#include <libc.h>.
+	* configure, scmconfig.h.in: Rebuilt with autoconf and
+	autoheader.
+
+Wed Nov  6 16:19:50 1996  Jim Blandy  <jimb@totoro.cyclic.com>
+
+	* fports.c (scm_stdio_to_port, scm_open_file): Set the port's
+	pointer to the stdio stream before calling scm_setbuf0, so the
+	latter will be able to retrieve it.  I'm surprised this didn't
+	segfault earlier.  (Thanks to Christopher Lee.)
+
 Wed Nov  6 16:01:20 1996  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* throw.c (scm_lazy_catch, scm_ithrow): Completed implementation
