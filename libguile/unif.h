@@ -118,6 +118,7 @@ SCM_API SCM scm_array_to_list (SCM v);
 SCM_API SCM scm_list_to_uniform_array (SCM ndim, SCM prot, SCM lst);
 SCM_API int scm_raprin1 (SCM exp, SCM port, scm_print_state *pstate);
 SCM_API SCM scm_array_prototype (SCM ra);
+SCM_API SCM scm_array_creator (SCM ra);
 
 SCM_API SCM scm_i_read_array (SCM port, int c);
 

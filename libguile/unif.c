@@ -171,6 +171,35 @@ scm_i_convert_old_prototype (SCM proto)
   return new_proto;
 }
 
+static SCM
+scm_i_get_old_prototype (SCM uvec)
+{
+  if (SCM_BITVECTOR_P (uvec))
+    return SCM_BOOL_T;
+  else if (scm_is_string (uvec))
+    return SCM_MAKE_CHAR ('a');
+  else if (scm_is_true (scm_s8vector_p (uvec)))
+    return SCM_MAKE_CHAR ('\0');
+  else if (scm_is_true (scm_s16vector_p (uvec)))
+    return scm_sym_s;
+  else if (scm_is_true (scm_u32vector_p (uvec)))
+    return scm_from_int (1);
+  else if (scm_is_true (scm_s32vector_p (uvec)))
+    return scm_from_int (-1);
+  else if (scm_is_true (scm_s64vector_p (uvec)))
+    return scm_sym_l;
+  else if (scm_is_true (scm_f32vector_p (uvec)))
+    return scm_from_double (1.0);
+  else if (scm_is_true (scm_f64vector_p (uvec)))
+    return scm_divide (scm_from_int (1), scm_from_int (3));
+  else if (scm_is_true (scm_c64vector_p (uvec)))
+    return scm_c_make_rectangular (0, 1);
+  else if (scm_is_true (scm_vector_p (uvec)))
+    return SCM_EOL;
+  else
+    return SCM_UNSPECIFIED;
+}
+
 #endif
 
 SCM 
@@ -180,7 +209,7 @@ scm_make_uve (long k, SCM prot)
 #if SCM_ENABLE_DEPRECATED
   prot = scm_i_convert_old_prototype (prot);
 #endif
-  return scm_call_2 (prot, scm_from_long (k), SCM_UNDEFINED);
+  return scm_call_1 (prot, scm_from_long (k));
 }
 #undef FUNC_NAME
 
@@ -2942,6 +2971,41 @@ tail:
   return 1;
 }
 
+SCM_DEFINE (scm_array_creator, "array-creator", 1, 0, 0, 
+           (SCM ra),
+	    "Return a procedure that would produce an array of the same type\n"
+	    "as @var{array}, if used as the @var{creator} with\n"
+	    "@code{make-uniform-array}.")
+#define FUNC_NAME s_scm_array_creator
+{
+  int outer = 1;
+  SCM orig_ra = ra;
+
+  if (SCM_ARRAYP (ra))
+    {
+      ra = SCM_ARRAY_V (ra);
+      outer = 0;
+    }
+
+  if (scm_is_uniform_vector (ra))
+    return scm_i_uniform_vector_creator (ra);
+  else if (scm_is_true (scm_vector_p (ra)))
+    return scm_i_proc_make_vector;
+  else if (scm_is_string (ra))
+    return scm_i_proc_make_string;
+  else if (SCM_BITVECTOR_P (ra))
+    return scm_i_proc_make_u1vector;
+  else if (SCM_ARRAYP (ra))
+    scm_misc_error (NULL, "creator not known for enclosed array: ~a",
+		    scm_list_1 (orig_ra));
+  else if (outer)
+    scm_wrong_type_arg_msg (NULL, 0, ra, "array");
+  else
+    scm_misc_error (NULL, "creator not known for array content: ~a",
+		    scm_list_1 (ra));
+}
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_array_prototype, "array-prototype", 1, 0, 0, 
            (SCM ra),
 	    "Return an object that would produce an array of the same type\n"
@@ -2952,21 +3016,25 @@ SCM_DEFINE (scm_array_prototype, "array-prototype", 1, 0, 0,
   int enclosed = 0;
   SCM_ASRTGO (SCM_NIMP (ra), badarg);
 loop:
-  if (scm_is_uniform_vector (ra))
-    return scm_i_uniform_vector_creator (ra);
-  else if (scm_is_true (scm_vector_p (ra)))
-    return scm_i_proc_make_vector;
-
   switch SCM_TYP7 (ra)
     {
     default:
     badarg:SCM_WRONG_TYPE_ARG (1, ra);
     case scm_tc7_smob:
-      SCM_ASRTGO (SCM_ARRAYP (ra), badarg);
-      if (enclosed++)
-	return SCM_UNSPECIFIED;
-      ra = SCM_ARRAY_V (ra);
-      goto loop;
+      if (SCM_ARRAYP (ra))
+	{
+	  if (enclosed++)
+	    return SCM_UNSPECIFIED;
+	  ra = SCM_ARRAY_V (ra);
+	  goto loop;
+	}
+      else
+	{
+	  SCM proto = scm_i_get_old_prototype (ra);
+	  if (scm_is_eq (SCM_UNSPECIFIED, proto))
+	    goto badarg;
+	  return proto;
+	}
     case scm_tc7_vector:
     case scm_tc7_wvect:
       return SCM_EOL;
