@@ -18,6 +18,7 @@
 ;;;; Boston, MA 02111-1307 USA
 
 (define-module (test-suite test-srfi-34)
+  :duplicates (last)  ;; avoid warning about srfi-34 replacing `raise'
   :use-module (test-suite lib)
   :use-module (srfi srfi-13)
   :use-module (srfi srfi-34))

@@ -22,6 +22,7 @@
 ;; separate module, or later tests will fail.
 
 (define-module (test-suite test-srfi-19)
+  :duplicates (last)  ;; avoid warning about srfi-19 replacing `current-time'
   :use-module (test-suite lib)
   :use-module (srfi srfi-19)
   :use-module (ice-9 format))
