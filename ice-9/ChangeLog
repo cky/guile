@@ -2,6 +2,7 @@ Sat Sep  7 06:44:47 1996  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* boot-9.scm (%%handle-system-error): recognise errors thrown
 	by lgh-error (fill-message etc.)
+	(fill-message): check first whether args is null.
 
 Thu Sep  5 11:33:41 1996  Jim Blandy  <jimb@floss.cyclic.com>
 

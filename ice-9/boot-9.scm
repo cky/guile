@@ -677,22 +677,25 @@
 		  (args (caddr arg-list))
 		  (rest (cadddr arg-list))
 		  (cep (current-error-port))
-		  (fill-message (lambda (message args)
-				  (let ((len (string-length message)))
-				    (cond ((< len 2)
-					   (display message cep))
-					  ((string=? (substring message 0 2)
-						     "%S")
-					   (display (car args) cep)
-					   (fill-message
-					    (substring message 2 len)
-					    (cdr args)))
-					  (else
-					   (display (substring message 0 2)
-						    cep)
-					   (fill-message
-					    (substring message 2 len)
-					    args)))))))
+		  (fill-message
+		   (lambda (message args)
+		     (if (null? args)
+			 (display message cep)
+			 (let ((len (string-length message)))
+			   (cond ((< len 2)
+				  (display message cep))
+				 ((string=? (substring message 0 2)
+					    "%S")
+				  (display (car args) cep)
+				  (fill-message
+				   (substring message 2 len)
+				   (cdr args)))
+				 (else
+				  (display (substring message 0 2)
+					   cep)
+				  (fill-message
+				   (substring message 2 len)
+				   args))))))))
 	   (display "ERROR: " cep)
 	   (display subr cep)
 	   (display ": " cep)
