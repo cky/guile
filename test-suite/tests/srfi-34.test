@@ -37,6 +37,10 @@
 
 (with-test-prefix "SRFI 34"
 
+  (pass-if "cond-expand"
+    (cond-expand (srfi-34 #t)
+		 (else    #f)))
+
   (pass-if "example 1"
 	   (expr-prints-and-evals-to?
 	    '(call-with-current-continuation
