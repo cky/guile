@@ -93,7 +93,7 @@
   (let ((code (code-unpack code)))
     (cond ((code->object code) => object->string)
 	  ((branch-code? code)
-	   (format #f "-> ~A" (+ addr (cadr code))))
+	   (format #f "-> ~A" (+ addr (cadr code) 2)))
 	  (else
 	   (let ((inst (car code)) (args (cdr code)))
 	     (case inst

@@ -103,8 +103,18 @@ VM_DEFINE_INSTRUCTION (load_program, "load-program", -1, 0, 1)
 
   FETCH_LENGTH (len);
   prog = scm_c_make_program (ip, len, program);
+  ip += len;
 
-  x = sp[0];
+  /* init object table */
+  x = *sp;
+  if (SCM_VECTORP (x))
+    {
+      SCM_PROGRAM_OBJS (prog) = x;
+      DROP ();
+      x = *sp;
+    }
+
+  /* init parameters */
   if (SCM_INUMP (x))
     {
       int i = SCM_INUM (x);
@@ -117,12 +127,9 @@ VM_DEFINE_INSTRUCTION (load_program, "load-program", -1, 0, 1)
       SCM_PROGRAM_NARGS (prog) = SCM_INUM (sp[3]);
       SCM_PROGRAM_NREST (prog) = SCM_INUM (sp[2]);
       SCM_PROGRAM_NLOCS (prog) = SCM_INUM (sp[1]);
-      if (SCM_VECTORP (x))
-	SCM_PROGRAM_OBJS (prog) = x;
       sp += 3;
     }
 
-  ip += len;
   *sp = prog;
   NEXT;
 }

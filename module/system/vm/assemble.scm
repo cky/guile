@@ -74,22 +74,23 @@
 	   (label-alist '())
 	   (object-alist '())
 	   (nvars (+ nargs nlocs -1)))
-       (define (current-address) (length stack))
        (define (push-code! code)
 	 (set! stack (optimizing-push code stack)))
-       (define (object-index obj)
-	 (cond ((assq-ref object-alist obj))
-	       (else (let ((index (length object-alist)))
-		       (set! object-alist (acons obj index object-alist))
-		       index))))
+       (define (push-object! x)
+	 (let ((index (or ((if (vlink? x) assoc-ref assq-ref) object-alist x)
+			  (let ((index (length object-alist)))
+			    (set! object-alist (acons x index object-alist))
+			    index))))
+	   (push-code! `(object-ref ,index))))
        (define (label-ref key)
 	 (assq-ref label-alist key))
-       (define (label-set key pos)
-	 (set! label-alist (assq-set! label-alist key pos)))
+       (define (label-set key)
+	 (let ((addr (apply + (map length stack))))
+	   (set! label-alist (assq-set! label-alist key addr))))
        (define (generate-code x)
 	 (match x
 	   (($ <vm-asm> env)
-	    (push-code! `(object-ref ,(object-index (codegen x #f))))
+	    (push-object! (codegen x #f))
 	    (if (venv-closure? env) (push-code! `(make-closure))))
 
 	   (($ <glil-void>)
@@ -99,40 +100,37 @@
 	    (if toplevel
 		(for-each push-code! (object->dump-code x))
 		(cond ((object->code x) => push-code!)
-		      (else (push-code! `(object-ref ,(object-index x)))))))
+		      (else (push-object! x)))))
 
 	   (($ <glil-argument> op index)
-	    (push-code! (list (symbol-append 'local- op)
-			      (- nvars index))))
+	    (push-code! `(,(symbol-append 'local- op) ,(- nvars index))))
 
 	   (($ <glil-local> op index)
-	    (push-code! (list (symbol-append 'local- op)
-			      (- nvars (+ nargs index)))))
+	    (push-code! `(,(symbol-append 'local- op)
+			  ,(- nvars (+ nargs index)))))
 
 	   (($ <glil-external> op depth index)
 	    (do ((e venv (venv-parent e))
 		 (d depth (1- d))
 		 (i 0 (+ i (venv-nexts e))))
 		((= d 0)
-		 (push-code! (list (symbol-append 'external- op)
-				   (+ index i))))))
+		 (push-code! `(,(symbol-append 'external- op) ,(+ index i))))))
 
 	   (($ <glil-module> op module name)
 	    (if toplevel
 		(begin
 		  ;; (push-code! `(load-module ,module))
-		  (push-code! `(load-symbol ,name))
+		  (for-each push-code! (object->dump-code name))
 		  (push-code! `(link/current-module)))
 		;; (let ((vlink (make-vlink (make-vmod module) name)))
-		(let ((vlink (make-vlink #f name)))
-		  (push-code! `(object-ref ,(object-index vlink)))))
+		(push-object! (make-vlink #f name)))
 	    (push-code! (list (symbol-append 'variable- op))))
 
 	   (($ <glil-label> label)
-	    (label-set label (current-address)))
+	    (label-set label))
 
 	   (($ <glil-branch> inst label)
-	    (let ((setter (lambda (addr) (- (label-ref label) (1+ addr)))))
+	    (let ((setter (lambda (addr) (- (label-ref label) addr))))
 	      (push-code! (list inst setter))))
 
 	   (($ <glil-call> inst nargs)
@@ -149,17 +147,20 @@
        ;; main
        (if (> nexts 0) (push-code! `(external ,nexts)))
        (for-each generate-code body)
-       (let ((bytes (code->bytes
-		     (map/index (lambda (v n) (if (procedure? v) (v n) v))
-				(reverse! stack))))
+       (let ((bytes (apply string-append (stack-finalize (reverse! stack))))
 	     (objs (map car (reverse! object-alist))))
 	 (make-bytespec nargs nrest nlocs bytes objs))))))
 
-(define (map/index f l)
-  (do ((n 0 (1+ n))
-       (l l (cdr l))
-       (r '() (cons (f (car l) n) r)))
-      ((null? l) (reverse! r))))
+(define (stack-finalize stack)
+  (let loop ((list '()) (stack stack) (addr 0))
+    (if (null? stack)
+	(reverse! list)
+	(let* ((orig (car stack))
+	       (addr (+ addr (length orig)))
+	       (code (if (and (pair? (cdr orig)) (procedure? (cadr orig)))
+			 `(,(car orig) ,((cadr orig) addr))
+			 orig)))
+	  (loop (cons (code->bytes code) list) (cdr stack) addr)))))
 
 ;; Optimization
 
@@ -185,10 +186,9 @@
 
 (define (optimizing-push code stack)
   (let ((alist (assq-ref *optimize-table* (car code))))
-    (cond ((and alist (pair? stack) (assq-ref alist (car stack))) =>
-	   (lambda (inst) (append! (reverse! (cons inst (cdr code)))
-				   (cdr stack))))
-	  (else (append! (reverse! (code-finalize code)) stack)))))
+    (cond ((and alist (pair? stack) (assq-ref alist (caar stack))) =>
+	   (lambda (inst) (cons (cons inst (cdr code)) (cdr stack))))
+	  (else (cons (code-pack code) stack)))))
 
 
 ;;;
@@ -215,10 +215,10 @@
 	(cond
 	 ((vlink? x)
 	  ;; (push-code! `(local-ref ,(object-index (vlink-module x))))
-	  (push-code! `(load-symbol ,(vlink-name x)))
+	  (for-each push-code! (object->dump-code (vlink-name x)))
 	  (push-code! `(link/current-module)))
-	 ((vmod? x)
-	  (push-code! `(load-module ,(vmod-id x))))
+	 ;;((vmod? x)
+	 ;;  (push-code! `(load-module ,(vmod-id x))))
 	 (else
 	  (for-each push-code! (object->dump-code x)))))
       (push-code! `(local-set ,(cdr obj+index))))
@@ -234,19 +234,18 @@
 	    (nrest (bytespec-nrest spec))
 	    (nlocs (bytespec-nlocs spec))
 	    (objs  (bytespec-objs spec)))
-	(if (and (null? objs) (< nargs 4) (< nlocs 16))
-	    ;; zero-object encoding
+	;; dump parameters
+	(if (and (< nargs 4) (< nlocs 16))
 	    (push-code! (object->code (+ (* nargs 32) (* nrest 16) nlocs)))
 	    (begin
-	      ;; dump parameters
 	      (push-code! (object->code nargs))
 	      (push-code! (object->code nrest))
 	      (push-code! (object->code nlocs))
-	      ;; dump object table
-	      (cond ((null? objs) (push-code! (object->code #f)))
-		    (else
-		     (for-each dump-object! objs)
-		     (push-code! `(vector ,(length objs)))))))
+	      (push-code! (object->code #f))))
+	;; dump object table
+	(cond ((not (null? objs))
+	       (for-each dump-object! objs)
+	       (push-code! `(vector ,(length objs)))))
 	;; dump bytecode
 	(push-code! `(load-program ,(bytespec-bytes spec)))))
     ;;
@@ -254,9 +253,8 @@
     (for-each dump-table-object! object-table)
     (dump-bytecode! bytespec)
     (push-code! last-code)
-    (code->bytes (apply append! (map code-finalize (reverse! stack))))))
-
-;; object table
+    (apply string-append
+	   (map code->bytes (map code-pack (reverse! stack))))))
 
 (define (object-find table x)
   ((if (or (vlink? x) (vmod? x)) assoc assq) x table))
@@ -274,55 +272,3 @@
 		  (if (bytespec? x) (loop x) (insert! x)))
 		(bytespec-objs spec)))
     (reverse! table)))
-
-;; code generation
-
-(define (code-finalize code)
-  (match code
-    ((inst (? symbol? s))
-     (let ((s (symbol->string s)))
-       `(,inst ,(string-length s) ,s)))
-    ((inst (? string? s))
-     `(,inst ,(string-length s) ,s))
-    (else (code-pack code))))
-
-(define (integer->string n) (make-string 1 (integer->char n)))
-
-(define (length->string len)
-  (define C integer->char)
-  (list->string
-   (cond ((< len 254) (list (C len)))
-	 ((< len 65536)
-	  (list (C 254) (C (quotient len 256)) (C (modulo len 256))))
-	 ((< len most-positive-fixnum)
-	  (list (C 255)
-		(C (quotient len (* 256 256 256)))
-		(C (modulo (quotient len (* 256 256)) 256))
-		(C (modulo (quotient len 256) 256))
-		(C (modulo len 256))))
-	 (else (error "Too long" len)))))
-
-(define (code->bytes code)
-  (let* ((code (list->vector code))
-	 (size (vector-length code)))
-    (let loop ((i 0))
-      (if (>= i size)
-	  (apply string-append (vector->list code))
-	  (let ((inst (vector-ref code i)))
-	    (if (not (instruction? inst))
-		(error "Unknown instruction:" inst))
-	    (vector-set! code i (integer->string (instruction->opcode inst)))
-	    (let ((bytes (instruction-length inst)))
-	      (cond ((< bytes 0)
-		     (vector-set! code i
-				  (integer->string (instruction->opcode inst)))
-		     (vector-set! code (+ i 1)
-				  (length->string (vector-ref code (1+ i))))
-		     (loop (+ i 3)))
-		    ((= bytes 0) (loop (+ i 1)))
-		    (else
-		     (let ((end (+ i 1 bytes)))
-		       (do ((j (+ i 1) (1+ j)))
-			   ((= j end) (loop end))
-			 (vector-set! code j (integer->string
-					      (vector-ref code j)))))))))))))

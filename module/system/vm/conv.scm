@@ -25,6 +25,10 @@
   :use-module (ice-9 regex)
   :export (code-pack code-unpack object->code object->dump-code code->object))
 
+;;;
+;;; Code compress/decompression
+;;;
+
 (define (code-pack code)
   (match code
     ((inst (? integer? n))
@@ -48,6 +52,11 @@
 	       (string->number (match:substring data 2))
 	       (cdr code))))
      (else code))))
+
+
+;;;
+;;; Encoder/decoder
+;;;
 
 (define (object->code x)
   (cond ((eq? x #t) `(make-true))
@@ -113,18 +122,27 @@
     (('load-keyword s) (symbol->keyword (string->symbol s)))
     (else #f)))
 
+(define-public (code->bytes code)
+  (let* ((inst (car code))
+	 (rest (cdr code))
+	 (head (make-string 1 (integer->char (instruction->opcode inst))))
+	 (len (instruction-length inst)))
+    (cond ((< len 0)
+	   ;; Variable-length code
+	   (let ((str (car rest)))
+	     (string-append head (encode-length (string-length str)) str)))
+	  ((= len (length rest))
+	   ;; Fixed-length code
+	   (string-append head (list->string (map integer->char rest))))
+	  (else
+	   (error "Invalid code:" code)))))
+
 (define-public (make-byte-decoder bytes)
   (let ((addr 0) (size (string-length bytes)))
     (define (pop)
       (let ((byte (char->integer (string-ref bytes addr))))
 	(set! addr (1+ addr))
 	byte))
-    (define (pop-length)
-      (let ((len (pop)))
-	(cond ((< len 254) len)
-	      ((= len 254) (+ (* (pop) 256) (pop)))
-	      (else (+ (* (pop) 256 256 256) (* (pop) 256 256)
-		       (* (pop) 256) (pop))))))
     (lambda ()
       (if (< addr size)
 	  (let* ((start addr)
@@ -132,7 +150,7 @@
 		 (n (instruction-length inst))
 		 (code (if (< n 0)
 			   ;; variable length
-			   (let* ((end (+ (pop-length) addr))
+			   (let* ((end (+ (decode-length pop) addr))
 				  (str (substring bytes addr end)))
 			     (set! addr end)
 			     (list inst str))
@@ -142,3 +160,31 @@
 			       ((= n 0) (cons* inst (reverse! l)))))))
 	    (values start code))
 	  #f))))
+
+
+;;;
+;;; Variable-length code
+;;;
+
+(define (encode-length len)
+  (define C integer->char)
+  (list->string
+   (cond ((< len 254) (list (C len)))
+	 ((< len (* 256 256))
+	  (list (C 254) (C (quotient len 256)) (C (modulo len 256))))
+	 ((< len most-positive-fixnum)
+	  (list (C 255)
+		(C (quotient len (* 256 256 256)))
+		(C (modulo (quotient len (* 256 256)) 256))
+		(C (modulo (quotient len 256) 256))
+		(C (modulo len 256))))
+	 (else (error "Too long code length:" len)))))
+
+(define (decode-length pop)
+  (let ((len (pop)))
+    (cond ((< len 254) len)
+	  ((= len 254) (+ (* (pop) 256) (pop)))
+	  (else (+ (* (pop) 256 256 256)
+		   (* (pop) 256 256)
+		   (* (pop) 256)
+		   (pop))))))
