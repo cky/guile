@@ -54,6 +54,7 @@ extern void scm_lfwrite SCM_P ((char *ptr, scm_sizet size, SCM port));
 extern void scm_fflush SCM_P ((SCM port));
 extern int scm_getc SCM_P ((SCM port));
 extern void scm_ungetc SCM_P ((int c, SCM port));
+extern void scm_ungets SCM_P ((char *s, int n, SCM port));
 /* FIXME: this is a terrible name.  */
 extern char *scm_do_read_line SCM_P ((SCM port, int *len));
 
