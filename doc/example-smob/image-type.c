@@ -21,7 +21,7 @@
 #include <stdlib.h>
 #include <libguile.h>
 
-static scm_bits_t image_tag;
+static scm_t_bits image_tag;
 
 struct image {
   int width, height;
@@ -49,10 +49,10 @@ make_image (SCM name, SCM s_width, SCM s_height)
   width = SCM_INUM (s_width);
   height = SCM_INUM (s_height);
   
-  image = (struct image *) scm_must_malloc (sizeof (struct image), "image");
+  image = (struct image *) scm_gc_malloc (sizeof (struct image), "image");
   image->width = width;
   image->height = height;
-  image->pixels = scm_must_malloc (width * height, "image pixels");
+  image->pixels = scm_gc_malloc (width * height, "image pixels");
   image->name = name;
   image->update_func = SCM_BOOL_F;
 
@@ -93,12 +93,11 @@ static size_t
 free_image (SCM image_smob)
 {
   struct image *image = (struct image *) SCM_SMOB_DATA (image_smob);
-  size_t size = image->width * image->height + sizeof (struct image);
 
-  free (image->pixels);
-  free (image);
+  scm_gc_free (image->pixels, image->width * image->height, "image pixels");
+  scm_gc_free (image, sizeof (struct image), "image");
 
-  return size;
+  return 0;
 }
 
 static int
