@@ -296,6 +296,8 @@ if test "$ac_cv_header_stdint_h" = yes; then
    AC_CHECK_TYPE([uint32_t],[scm_stdint_has_uint32=1],,[#include <stdint.h>])
    AC_CHECK_TYPE([int64_t],[scm_stdint_has_int64=1],,[#include <stdint.h>])
    AC_CHECK_TYPE([uint64_t],[scm_stdint_has_uint64=1],,[#include <stdint.h>])
+   AC_CHECK_TYPE([intmax_t],[scm_stdint_has_intmax=1],,[#include <stdint.h>])
+   AC_CHECK_TYPE([uintmax_t],[scm_stdint_has_uintmax=1],,[#include <stdint.h>])
 fi
 
 # so we don't get confused by the cache (wish there was a better way
@@ -309,6 +311,8 @@ unset ac_cv_type_int32_t
 unset ac_cv_type_uint32_t
 unset ac_cv_type_int64_t
 unset ac_cv_type_uint64_t
+unset ac_cv_type_intmax_t
+unset ac_cv_type_uintmax_t
 
 ### See what's provided by inttypes.h
 if test "$ac_cv_header_inttypes_h" = yes; then
@@ -320,6 +324,8 @@ if test "$ac_cv_header_inttypes_h" = yes; then
   AC_CHECK_TYPE([uint32_t],[scm_inttypes_has_uint32=1],,[#include <inttypes.h>])
   AC_CHECK_TYPE([int64_t],[scm_inttypes_has_int64=1],,[#include <inttypes.h>])
   AC_CHECK_TYPE([uint64_t],[scm_inttypes_has_uint64=1],,[#include <inttypes.h>])
+  AC_CHECK_TYPE([intmax_t],[scm_inttypes_has_intmax=1],,[#include <inttypes.h>])
+  AC_CHECK_TYPE([uintmax_t],[scm_inttypes_has_uintmax=1],,[#include <inttypes.h>])
 fi
 
 # Try hard to find definitions for some required scm_t_*int* types.
@@ -469,6 +475,48 @@ else
   AC_MSG_ERROR([Can't find appropriate type for scm_t_uint64.])
 fi
 AC_SUBST([SCM_I_GSC_T_UINT64])
+
+### Required type scm_t_intmax
+###
+### We try 'intmax_t', '__int64', 'long long' in this order.  When
+### none of them is available, we use 'long'.
+###
+SCM_I_GSC_T_INTMAX=0
+if test "$scm_stdint_has_intmax"; then
+  SCM_I_GSC_T_INTMAX='"intmax_t"'
+  SCM_I_GSC_NEEDS_STDINT_H=1
+elif test "$scm_inttypes_has_intmax"; then
+  SCM_I_GSC_T_INTMAX='"intmax_t"'
+  SCM_I_GSC_NEEDS_INTTYPES_H=1
+elif test "$ac_cv_sizeof___int64" -ne 0; then
+  SCM_I_GSC_T_INTMAX='"__int64"'
+elif test "$ac_cv_sizeof_long_long" -ne 0; then
+  SCM_I_GSC_T_INTMAX='"long long"'
+else
+  SCM_I_GSC_T_INTMAX='"long"'
+fi
+AC_SUBST([SCM_I_GSC_T_INTMAX])
+
+### Required type scm_t_uintmax
+###
+### We try 'uintmax_t', 'unsigned __int64', 'unsigned long long' in
+### this order.  When none of them is available, we use 'unsigned long'.
+###
+SCM_I_GSC_T_UINTMAX=0
+if test "$scm_stdint_has_uintmax"; then
+  SCM_I_GSC_T_UINTMAX='"uintmax_t"'
+  SCM_I_GSC_NEEDS_STDINT_H=1
+elif test "$scm_inttypes_has_uintmax"; then
+  SCM_I_GSC_T_UINTMAX='"uintmax_t"'
+  SCM_I_GSC_NEEDS_INTTYPES_H=1
+elif test "$ac_cv_sizeof_unsigned___int64" -ne 0; then
+  SCM_I_GSC_T_UINTMAX='"unsigned __int64"'
+elif test "$ac_cv_sizeof_unsigned_long_long" -ne 0; then
+  SCM_I_GSC_T_UINTMAX='"unsigned long long"'
+else
+  SCM_I_GSC_T_UINTMAX='"unsigned long"'
+fi
+AC_SUBST([SCM_I_GSC_T_UINTMAX])
 
 
 AC_SUBST([SCM_I_GSC_NEEDS_STDINT_H])
