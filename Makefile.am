@@ -21,7 +21,7 @@
 
 AUTOMAKE_OPTIONS = 1.5
 
-SUBDIRS = oop qt libltdl libguile ice-9 guile-config guile-readline \
+SUBDIRS = oop qt libguile-ltdl libguile ice-9 guile-config guile-readline \
 	  scripts srfi doc examples test-suite benchmark-suite lang am
 
 bin_SCRIPTS = guile-tools
