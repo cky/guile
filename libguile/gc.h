@@ -266,8 +266,6 @@ extern SCM scm_gc_set_debug_check_freelist_x (SCM flag);
 extern SCM scm_object_address (SCM obj);
 extern SCM scm_unhash_name (SCM name);
 extern SCM scm_gc_stats (void);
-extern void scm_gc_start (const char *what);
-extern void scm_gc_end (void);
 extern SCM scm_gc (void);
 extern void scm_gc_for_alloc (struct scm_freelist_t *freelist);
 extern SCM scm_gc_for_newcell (struct scm_freelist_t *master, SCM *freelist);

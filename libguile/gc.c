@@ -332,8 +332,15 @@ unsigned long scm_gc_yield;
 static unsigned long scm_gc_yield_1 = 0; /* previous GC yield */
 unsigned long scm_gc_malloc_collected;
 unsigned long scm_gc_ports_collected;
-unsigned long scm_gc_rt;
 unsigned long scm_gc_time_taken = 0;
+static unsigned long t_before_gc;
+static unsigned long t_before_sweep;
+unsigned long scm_gc_mark_time_taken = 0;
+unsigned long scm_gc_sweep_time_taken = 0;
+unsigned long scm_gc_times = 0;
+unsigned long scm_gc_cells_swept = 0;
+double scm_gc_cells_marked_acc = 0.;
+double scm_gc_cells_swept_acc = 0.;
 
 SCM_SYMBOL (sym_cells_allocated, "cells-allocated");
 SCM_SYMBOL (sym_heap_size, "cell-heap-size");
@@ -341,6 +348,11 @@ SCM_SYMBOL (sym_mallocated, "bytes-malloced");
 SCM_SYMBOL (sym_mtrigger, "gc-malloc-threshold");
 SCM_SYMBOL (sym_heap_segments, "cell-heap-segments");
 SCM_SYMBOL (sym_gc_time_taken, "gc-time-taken");
+SCM_SYMBOL (sym_gc_mark_time_taken, "gc-mark-time-taken");
+SCM_SYMBOL (sym_gc_sweep_time_taken, "gc-sweep-time-taken");
+SCM_SYMBOL (sym_times, "gc-times");
+SCM_SYMBOL (sym_cells_marked, "cells-marked");
+SCM_SYMBOL (sym_cells_swept, "cells-swept");
 
 typedef struct scm_heap_seg_data_t
 {
@@ -641,6 +653,11 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
   long int local_scm_heap_size;
   long int local_scm_cells_allocated;
   long int local_scm_gc_time_taken;
+  long int local_scm_gc_times;
+  long int local_scm_gc_mark_time_taken;
+  long int local_scm_gc_sweep_time_taken;
+  double local_scm_gc_cells_swept;
+  double local_scm_gc_cells_marked;
   SCM answer;
 
   SCM_DEFER_INTS;
@@ -667,12 +684,22 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
   local_scm_heap_size = SCM_HEAP_SIZE;
   local_scm_cells_allocated = compute_cells_allocated ();
   local_scm_gc_time_taken = scm_gc_time_taken;
+  local_scm_gc_mark_time_taken = scm_gc_mark_time_taken;
+  local_scm_gc_sweep_time_taken = scm_gc_sweep_time_taken;
+  local_scm_gc_times = scm_gc_times;
+  local_scm_gc_cells_swept = scm_gc_cells_swept_acc;
+  local_scm_gc_cells_marked = scm_gc_cells_marked_acc;
 
   answer = scm_listify (scm_cons (sym_gc_time_taken, scm_ulong2num (local_scm_gc_time_taken)),
 			scm_cons (sym_cells_allocated, scm_ulong2num (local_scm_cells_allocated)),
 			scm_cons (sym_heap_size, scm_ulong2num (local_scm_heap_size)),
 			scm_cons (sym_mallocated, scm_ulong2num (local_scm_mallocated)),
 			scm_cons (sym_mtrigger, scm_ulong2num (local_scm_mtrigger)),
+			scm_cons (sym_times, scm_ulong2num (local_scm_gc_times)),
+                        scm_cons (sym_gc_mark_time_taken, scm_ulong2num (local_scm_gc_mark_time_taken)),
+                        scm_cons (sym_gc_sweep_time_taken, scm_ulong2num (local_scm_gc_sweep_time_taken)),
+                        scm_cons (sym_cells_marked, scm_dbl2big (local_scm_gc_cells_marked)),
+                        scm_cons (sym_cells_swept, scm_dbl2big (local_scm_gc_cells_swept)),
 			scm_cons (sym_heap_segments, heap_segs),
 			SCM_UNDEFINED);
   SCM_ALLOW_INTS;
@@ -681,10 +708,11 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
 #undef FUNC_NAME
 
 
-void
-scm_gc_start (const char *what)
+static void
+gc_start_stats (const char *what)
 {
-  scm_gc_rt = SCM_INUM (scm_get_internal_run_time ());
+  t_before_gc = scm_c_get_internal_run_time ();
+  scm_gc_cells_swept = 0;
   scm_gc_cells_collected = 0;
   scm_gc_yield_1 = scm_gc_yield;
   scm_gc_yield = (scm_cells_allocated
@@ -695,11 +723,16 @@ scm_gc_start (const char *what)
 }
 
 
-void
-scm_gc_end ()
+static void
+gc_end_stats ()
 {
-  scm_gc_rt = SCM_INUM (scm_get_internal_run_time ()) - scm_gc_rt;
-  scm_gc_time_taken += scm_gc_rt;
+  unsigned long t = scm_c_get_internal_run_time ();
+  scm_gc_time_taken += (t - t_before_gc);
+  scm_gc_sweep_time_taken += (t - t_before_sweep);
+  ++scm_gc_times;
+
+  scm_gc_cells_marked_acc += scm_gc_cells_swept - scm_gc_cells_collected;
+  scm_gc_cells_swept_acc += scm_gc_cells_swept;
 }
 
 
@@ -867,14 +900,13 @@ scm_igc (const char *what)
 
   /* fprintf (stderr, "gc: %s\n", what); */
 
-  scm_gc_start (what);
-
   if (!scm_stack_base || scm_block_gc)
     {
-      scm_gc_end ();
       --scm_gc_running_p;
       return;
     }
+
+  gc_start_stats (what);
 
   if (scm_mallocated < 0)
     /* The byte count of allocated objects has underflowed.  This is
@@ -959,6 +991,9 @@ scm_igc (const char *what)
   scm_gc_mark (scm_root->handle);
 #endif
 
+  t_before_sweep = scm_c_get_internal_run_time ();
+  scm_gc_mark_time_taken += (t_before_sweep - t_before_gc);
+
   scm_c_hook_run (&scm_before_sweep_c_hook, 0);
 
   scm_gc_sweep ();
@@ -966,7 +1001,7 @@ scm_igc (const char *what)
   scm_c_hook_run (&scm_after_sweep_c_hook, 0);
 
   --scm_gc_heap_lock;
-  scm_gc_end ();
+  gc_end_stats ();
 
 #ifdef USE_THREADS
   SCM_THREAD_CRITICAL_SECTION_END;
@@ -1452,6 +1487,9 @@ scm_gc_sweep ()
 
       ptr = CELL_UP (scm_heap_table[i].bounds[0], span);
       seg_size = CELL_DN (scm_heap_table[i].bounds[1], span) - ptr;
+
+      scm_gc_cells_swept += seg_size;
+
       for (j = seg_size + span; j -= span; ptr += span)
 	{
 	  SCM scmptr = PTR2SCM (ptr);
