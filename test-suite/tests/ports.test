@@ -80,17 +80,17 @@
  (let* ((filename (test-file))
 	(port (open-file filename "w+")))
    (display "J'Accuse" port)
-   (lseek port -1 SEEK_CUR)
+   (seek port -1 SEEK_CUR)
    (pass-if "file: r/w 1"
 	    (char=? (read-char port) #\e))
    (pass-if "file: r/w 2"
 	    (eof-object? (read-char port)))
-   (lseek port -1 SEEK_CUR)
+   (seek port -1 SEEK_CUR)
    (write-char #\x port)
-   (lseek port 7 SEEK_SET)
+   (seek port 7 SEEK_SET)
    (pass-if "file: r/w 3"
 	    (char=? (read-char port) #\x))
-   (lseek port -2 SEEK_END)
+   (seek port -2 SEEK_END)
    (pass-if "file: r/w 4"
 	    (char=? (read-char port) #\s))
    (delete-file filename)))
@@ -100,17 +100,17 @@
  (let* ((filename (test-file))
 	(port (open-file filename "w+0")))
    (display "J'Accuse" port)
-   (lseek port -1 SEEK_CUR)
+   (seek port -1 SEEK_CUR)
    (pass-if "file: ub r/w 1"
 	    (char=? (read-char port) #\e))
    (pass-if "file: ub r/w 2"
 	    (eof-object? (read-char port)))
-   (lseek port -1 SEEK_CUR)
+   (seek port -1 SEEK_CUR)
    (write-char #\x port)
-   (lseek port 7 SEEK_SET)
+   (seek port 7 SEEK_SET)
    (pass-if "file: ub r/w 3"
 	    (char=? (read-char port) #\x))
-   (lseek port -2 SEEK_END)
+   (seek port -2 SEEK_END)
    (pass-if "file: ub r/w 4"
 	    (char=? (read-char port) #\s))
    (delete-file filename)))
