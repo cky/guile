@@ -1051,6 +1051,10 @@ following shortcut procedures are also available.
 Return a string containing a user name associated with the
 effective user id of the process.  Return @code{#f} if this
 information cannot be obtained.
+
+This function has been removed from the latest POSIX specification,
+Guile provides it only if the system has it.  Using @code{(getpwuid
+(geteuid))} may be a better idea.
 @end deffn
 
 @deffn {Scheme Procedure} getlogin
