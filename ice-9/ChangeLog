@@ -1,7 +1,14 @@
 2001-05-25  Marius Vollmer  <mvo@zagadka.ping.de>
 
+	* boot-9.scm (cond-expand): Define using
+	`procedure->memoizing-macro' to get at the lexical environment.
+	Use `env-module' instead of `current-module' to get the right
+	module.
+
 	* Makefile.am (ice9_sources): Added "pretty-print.scm".
 	* pretty-print.scm: New file, copied from SLIB.
+	(generic-write): Return the `unspecified' value.
+
 	* format.scm: Autoload `pretty-print'.
 
 2001-05-23  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>

@@ -1,5 +1,7 @@
 2001-05-25  Marius Vollmer  <mvo@zagadka.ping.de>
 
+	* modules.c (scm_env_module): Exported to Scheme.
+
 	* eval.c (scm_debug_opts): New option `show-file-name'.
 	* debug.h (SCM_SHOW_FILE_NAME): New.
 	
