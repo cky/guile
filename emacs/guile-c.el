@@ -22,8 +22,8 @@
 ;; (add-hook 'c-mode-hook
 ;;   (lambda ()
 ;;     (require 'guile-c)
-;;     (define-key c-mode-map "\C-c\C-g\C-e" 'guile-c-edit-docstring)
 ;;     (define-key c-mode-map "\C-c\C-g\C-p" 'guile-c-insert-define)
+;;     (define-key c-mode-map "\C-c\C-g\C-e" 'guile-c-edit-docstring)
 ;;     (define-key c-mode-map "\C-c\C-g\C-d" 'guile-c-deprecate-region)
 ;;     ))
 
