@@ -1,3 +1,9 @@
+2004-08-19  Marius Vollmer  <mvo@zagadka.de>
+
+	* deprecated.c (SCM_SYMBOL_CHARS): Cast away const in return.
+	(SCM_SYMBOL_LENGTH): It's scm_i_symbol_length, not
+	scm_c_symbol_length.
+
 2004-08-19  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
         New string implementation, with copy-on-write strings and
