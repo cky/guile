@@ -76,6 +76,16 @@ SCM_API SCM scm_load_scheme_module (SCM name);
 
 SCM_API SCM scm_close_all_ports_except (SCM ports);
 
+#define scm_rstate scm_t_rstate
+#define scm_rng scm_t_rng
+
+#define SCM_SLOPPY_CONSP(x)  ((1 & SCM_CELL_TYPE (x)) == 0)
+#define SCM_SLOPPY_NCONSP(x) (!SCM_SLOPPY_CONSP(x))
+
+#define scm_tc7_ssymbol		scm_tc7_symbol
+#define scm_tc7_msymbol		scm_tc7_symbol
+#define scm_tcs_symbols         scm_tc7_symbol
+
 void scm_i_init_deprecated (void);
 
 #endif
@@ -84,29 +94,6 @@ void scm_i_init_deprecated (void);
 
 #if 0 
 /* TODO */
-
-scm_close_all_ports_except
-scm_rstate
-scm_rng
-scm_i_rstate
-
-SCM_SLOPPY_STRINGP
-SCM_RWSTRINGP
-SCM_STRING_UCHARS
-SCM_STRING_CHARS
-
-scm_read_only_string_p
-scm_makstr
-scm_makfromstr
-
-scm_make_shared_substring
-scm_tc7_substring
-
-SCM_SLOPPY_CONSP
-SCM_SLOPPY_NCONSP
-scm_tc7_ssymbol
-scm_tc7_msymbol
-scm_tcs_symbols
 
 scm_variable_set_name_hint
 scm_builtin_variable
