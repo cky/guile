@@ -1,3 +1,7 @@
+2001-05-28  Michael Livshin  <mlivshin@bigfoot.com>
+
+	* check-guile.in: fix to be runnable when srcdir!=builddir.
+
 2001-05-26  Michael Livshin  <mlivshin@bigfoot.com>
 
 	revert the controversial part of the 2001-05-23 changes

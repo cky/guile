@@ -21,7 +21,7 @@ if [ x"$1" = x-i ] ; then
 else
     guile=libguile/guile
     GUILE_LOAD_PATH=$srcdir:$TEST_SUITE_DIR
-    LTDL_LIBRARY_PATH=$srcdir/srfi/.libs:${LTDL_LIBRARY_PATH}
+    LTDL_LIBRARY_PATH=`pwd`/srfi/.libs:${LTDL_LIBRARY_PATH}
 fi
 export GUILE_LOAD_PATH
 export LTDL_LIBRARY_PATH
