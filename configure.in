@@ -1,4 +1,5 @@
-dnl Process this file with autoconf to produce configure.
+dnl   configuration script for Guile
+dnl   Process this file with autoconf to produce configure.
 AC_INIT(Makefile.in)
 . $srcdir/GUILE-VERSION
 AM_INIT_AUTOMAKE($PACKAGE, $VERSION, no-define)
@@ -96,16 +97,26 @@ GUILE_DLSYM_USCORE
 
 AC_CHECK_FUNCS(ctermid ftime getcwd geteuid gethostent gettimeofday lstat mkdir mknod nice readlink rename rmdir select setegid seteuid setlocale setpgid setsid sigaction strftime strptime symlink sync tcgetpgrp tcsetpgrp times uname waitpid bzero strdup system usleep)
 
-# Determine the host we are working on
-AC_CANONICAL_HOST
+### Some systems don't declare some functions.  On such systems, we
+### need to at least provide our own K&R-style declarations.
 
-# Some operating systems don't declare all functions
-case "$host_os" in
-  solaris2.5*)
-    AC_DEFINE(DECLARE_BZERO)
-    AC_DEFINE(DECLARE_USLEEP)
-  ;;
-esac
+### GUILE_FUNC_DECLARED(function, headerfile)
+
+### Check for a declaration of FUNCTION in HEADERFILE; if it is
+### not there, #define MISSING_FUNCTION_DECL.
+AC_DEFUN(GUILE_FUNC_DECLARED, [
+  AC_CACHE_CHECK(for $1 declaration, ac_cv_func_$1_declared,
+    AC_EGREP_HEADER($1, $2,
+		    ac_cv_func_$1_declared=yes, 
+		    ac_cv_func_$1_declared=no))
+  if test [x$ac_cv_func_]$1[_declared] = xno; then
+    AC_DEFINE([MISSING_]translit($1, [a-z], [A-Z])[_DECL])
+  fi
+])
+
+GUILE_FUNC_DECLARED(strptime, time.h)
+GUILE_FUNC_DECLARED(bzero, string.h)
+GUILE_FUNC_DECLARED(usleep, unistd.h)
 
 # On some systems usleep has no return value
 AC_EGREP_HEADER(changequote(<, >)<void[ 	][ 	]*usleep>changequote([, ]),
