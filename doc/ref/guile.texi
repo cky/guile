@@ -97,18 +97,15 @@ x
 @end macro
 @end ifnottex
 
-@c  @nicode{S} is plain S in info, or @code{S} elsewhere.  This can be
-@c  used when the quotes that @code{} gives in info aren't wanted, but
-@c  the fontification in tex or html is wanted.
+@c  @nicode{S} is plain S in info, or @code{S} elsewhere.  This can be used
+@c  when the quotes that @code{} gives in info aren't wanted, but the
+@c  fontification in tex or html is wanted.  @alias is used rather
+@c  than @macro because backslashes don't work properly in an @macro.
 @ifinfo
-@macro nicode {S}
-\S\
-@end macro
+@alias nicode=asis
 @end ifinfo
 @ifnotinfo
-@macro nicode {S}
-@code{\S\}
-@end macro
+@alias nicode=code
 @end ifnotinfo
 
 
@@ -128,7 +125,7 @@ x
 @comment The title is printed in a large font.
 @title Guile Reference Manual
 @subtitle Edition @value{MANUAL-EDITION}, for use with Guile @value{VERSION}
-@c @subtitle $Id: guile.texi,v 1.31 2004-06-28 13:24:53 mvo Exp $
+@c @subtitle $Id: guile.texi,v 1.32 2004-07-24 00:45:02 kryde Exp $
 
 @c See preface.texi for the list of authors
 @author The Guile Developers
