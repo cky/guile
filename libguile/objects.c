@@ -51,6 +51,7 @@
 #include "procprop.h"
 #include "chars.h"
 #include "kw.h"
+#include "smob.h"
 
 #include "objects.h"
 
@@ -63,9 +64,12 @@ SCM scm_class_boolean, scm_class_char, scm_class_pair;
 SCM scm_class_procedure, scm_class_string, scm_class_symbol;
 SCM scm_class_procedure_with_setter;
 SCM scm_class_vector, scm_class_null;
-SCM scm_class_real, scm_class_complex, scm_class_integer;
-SCM scm_class_keyword, scm_class_unknown;
+SCM scm_class_integer, scm_class_real, scm_class_complex;
+SCM scm_class_unknown;
 
+SCM *scm_smob_class = 0;
+
+SCM (*scm_make_extended_class) (char *type_name);
 void (*scm_change_object_class) (SCM, SCM, SCM);
 
 /* This function is used for efficient type dispatch.  */
@@ -129,6 +133,7 @@ scm_class_of (SCM x)
 	case scm_tc7_subr_2o:
 	case scm_tc7_lsubr_2:
 	case scm_tc7_lsubr:
+	case scm_tc7_cclo:
 	  return scm_class_procedure;
 	case scm_tc7_pws:
 	  return scm_class_procedure_with_setter;
@@ -145,23 +150,36 @@ scm_class_of (SCM x)
 		else
 		  return scm_class_real;
 	      }
-	    else if (type == scm_tc16_bigpos || type == scm_tc16_bigneg)
-	      return scm_class_integer;
-	    else if (type == scm_tc16_kw)
-	      return scm_class_keyword;
 	    else
-	      return scm_class_unknown;
+	      return scm_smob_class[SCM_TC2SMOBNUM (type)];
 	  }
 	case scm_tcs_cons_gloc:
 	  /* must be a struct */
 	  if (SCM_OBJ_CLASS_FLAGS (x) & SCM_CLASSF_GOOPS)
-	  {
-	    if (SCM_OBJ_CLASS_REDEF (x) != SCM_BOOL_F)
-	      scm_change_object_class (x,
-				       SCM_CLASS_OF (x),         /* old */
-				       SCM_OBJ_CLASS_REDEF (x)); /* new */
-	    return SCM_CLASS_OF (x);
-	  }
+	    {
+	      /* Goops object */
+	      if (SCM_OBJ_CLASS_REDEF (x) != SCM_BOOL_F)
+		scm_change_object_class (x,
+					 SCM_CLASS_OF (x),         /* old */
+					 SCM_OBJ_CLASS_REDEF (x)); /* new */
+	      return SCM_CLASS_OF (x);
+	    }
+	  else
+	    {
+	      /* ordinary struct */
+	      SCM handle = scm_struct_create_handle (SCM_STRUCT_VTABLE (x));
+	      if (SCM_NFALSEP (SCM_STRUCT_TABLE_CLASS (SCM_CDR (handle))))
+		return SCM_STRUCT_TABLE_CLASS (SCM_CDR (handle));
+	      else
+		{
+		  SCM name = SCM_STRUCT_TABLE_NAME (SCM_CDR (handle));
+		  SCM class = scm_make_extended_class (SCM_NFALSEP (name)
+						       ? SCM_ROCHARS (name)
+						       : 0);
+		  SCM_SET_STRUCT_TABLE_CLASS (handle, class);
+		  return class;
+		}
+	    }
 	default:
 	  if (SCM_CONSP (x))
 	    return scm_class_pair;
@@ -282,6 +300,11 @@ scm_set_object_procedure_x (SCM obj, SCM procs)
     *pp++ = proc[i];
   return SCM_UNSPECIFIED;
 }
+
+/* The following procedures are not a part of Goops but a minimal
+ * object system built upon structs.  They are here for those who
+ * want to implement their own object system.
+ */
 
 SCM
 scm_i_make_class_object (SCM meta,
