@@ -238,18 +238,18 @@ SCM
 scm_set_object_procedure_x (SCM obj, SCM procs)
 {
   SCM proc[4], *pp, p, setp, arity;
-  int i, a, r, c = 0;
+  int i, a, r;
   SCM_ASSERT (SCM_NIMP (obj) && SCM_STRUCTP (obj)
-	      && (SCM_I_ENTITYP (obj)
-		  || (SCM_CLASS_FLAGS (obj) & SCM_CLASSF_OPERATOR)),
+	      && ((SCM_CLASS_FLAGS (obj) & SCM_CLASSF_OPERATOR)
+		  || (SCM_I_ENTITYP (obj)
+		      && !(SCM_OBJ_CLASS_FLAGS (obj)
+			   & SCM_CLASSF_PURE_GENERIC))),
 	      obj,
 	      SCM_ARG1,
 	      s_set_object_procedure_x);
   for (i = 0; i < 4; ++i)
     proc[i] = SCM_BOOL_F;
   i = 0;
-  if (SCM_OBJ_CLASS_FLAGS (obj) & SCM_CLASSF_PURE_GENERIC)
-    c = 1;
   while (SCM_NIMP (procs))
     {
       if (i == 4)
@@ -257,23 +257,6 @@ scm_set_object_procedure_x (SCM obj, SCM procs)
       p = SCM_CAR (procs);
       setp = 0;
       SCM_ASSERT (SCM_NIMP (p), p, SCM_ARG2 + i, s_set_object_procedure_x);
-      if (c != 0)
-	{
-	  if ((SCM_CAR (p) == scm_sym_atdispatch
-	       || SCM_CAR (p) == SCM_IM_DISPATCH)
-	      && c < 4)
-	    {
-	      proc[c++] = setp = p;
-	      goto next;
-	    }
-	  else
-	    SCM_ASSERT (SCM_TYP7 (p) == scm_tc7_subr_1
-			|| (SCM_CLOSUREP (p)
-			    && (SCM_INUM (SCM_CAR (scm_procedure_property
-						   (p, scm_sym_arity)))
-				== 1)),
-			p, SCM_ARG2 + i, s_set_object_procedure_x);
-	}
       if (SCM_CLOSUREP (p))
 	{
 	  arity = scm_procedure_property (p, scm_sym_arity);
@@ -334,22 +317,14 @@ scm_set_object_procedure_x (SCM obj, SCM procs)
 	  proc[3] = setp = p;
 	}
       SCM_ASSERT (setp, p, SCM_ARG2 + i, s_set_object_procedure_x);
-    next:
       ++i;
       procs = SCM_CDR (procs);
     }
-  /* Fill the rest of the method cache slots
-     if a cache has been supplied earlier. */
-  if (c != 0)
-    for (; c < 4; ++c)
-      proc[c] = proc[c - 1];
-  
   pp = (SCM_I_ENTITYP (obj)
 	? &SCM_ENTITY_PROC_0 (obj)
 	: &SCM_OPERATOR_CLASS (obj)->proc0);
   for (i = 0; i < 4; ++i)
     *pp++ = proc[i];
-  
   return SCM_UNSPECIFIED;
 }
 
