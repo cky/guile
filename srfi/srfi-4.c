@@ -50,21 +50,18 @@
 
 /* For brevity and maintainability, we define our own types for the
    various integer and floating point types.  */
-typedef unsigned char int_u8;
-typedef signed char int_s8;
-typedef unsigned short int_u16;
-typedef signed short int_s16;
-typedef unsigned int int_u32;
-typedef signed int int_s32;
-#ifdef HAVE_LONG_LONG
-#if SIZEOF_LONG == 8
-typedef unsigned long int_u64;
-typedef signed long int_s64;
-#else
-typedef unsigned long long int_u64;
-typedef signed long long int_s64;
-#endif /* SIZEOF_LONG */
-#endif /* HAVE_LONG_LONG */
+typedef scm_t_uint8 int_u8;
+typedef scm_t_int8 int_s8;
+typedef scm_t_uint16 int_u16;
+typedef scm_t_int16 int_s16;
+typedef scm_t_uint32 int_u32;
+typedef scm_t_int32 int_s32;
+
+#ifdef SCM_HAVE_T_INT64
+typedef scm_t_uint64 int_u64;
+typedef scm_t_int64 int_s64;
+#endif /* SCM_HAVE_T_INT64 */
+
 typedef float float_f32;
 typedef double float_f64;
 
@@ -245,7 +242,7 @@ uvec_print (SCM uvec, SCM port, scm_print_state *pstate SCM_UNUSED)
 	break;
       }
 
-#ifdef HAVE_LONG_LONG
+#ifdef SCM_HAVE_T_INT64
     case SCM_UVEC_U64:
       {
 	int_u64 * p = (int_u64 *) SCM_UVEC_BASE (uvec);
@@ -1429,7 +1426,7 @@ SCM_DEFINE (scm_list_to_s32vector, "list->s32vector", 1, 0, 0,
 #undef FUNC_NAME
 
 
-#ifdef HAVE_LONG_LONG
+#ifdef SCM_HAVE_T_INT64
 
 /* ================================================================ */
 /* U64 procedures.                                                   */
@@ -1772,7 +1769,7 @@ SCM_DEFINE (scm_list_to_s64vector, "list->s64vector", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-#endif /* HAVE_LONG_LONG */
+#endif /* SCM_HAVE_T_INT64 */
 
 
 /* ================================================================ */
