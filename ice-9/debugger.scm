@@ -548,10 +548,15 @@ frames that were created more recently.  N defaults to one."
       state)))
 
 (define (eval-handler key . args)
-  (apply display-error
-	 (make-stack #t eval-handler)
-	 (current-output-port)
-	 args)
+  (let ((stack (make-stack #t eval-handler)))
+    (if (= (length args) 4)
+	(apply display-error stack (current-output-port) args)
+	;; We want display-error to be the "final common pathway"
+	(catch #t
+	       (lambda ()
+		 (apply bad-throw key args))
+	       (lambda (key . args)
+		 (apply display-error stack (current-output-port) args)))))
   (throw 'continue))
 
 (define-command "evaluate" '(object)
