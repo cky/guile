@@ -4,6 +4,12 @@
 	resolve-module.
 	(resolve-module): Bugfix: Make it possible for a module at a
 	deeper level (x y z) to depend on a module on a higher (x y).
+
+	This also has the desired side-effect that multiple attempts to
+	load a module (e.g. with `use-modules') work until source is
+	actually found for the module (e.g. because the correct catalog
+	has been added to the load path).
+	
 	Use try-load-module.
 
 1999-03-18  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
