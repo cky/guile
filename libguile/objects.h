@@ -175,11 +175,22 @@ struct scm_metaclass_operator {
  */
 
 /* Internal representation of Goops objects. */
-#define SCM_CLASSF_GOOPS       (0x10 << 24)
-#define scm_si_redefined       18
-#define scm_si_hashsets        20
+#define SCM_CLASSF_GOOPS_VALID (0x080 << 20)
+#define SCM_CLASSF_GOOPS       (0x100 << 20)
+#define scm_si_redefined        9
+#define scm_si_hashsets        10
 #define SCM_CLASS_OF(x)        SCM_STRUCT_VTABLE (x)
 #define SCM_OBJ_CLASS_REDEF(x) (SCM_STRUCT_VTABLE_DATA(x)[scm_si_redefined])
+
+typedef struct scm_effective_slot_definition {
+  SCM name;
+  long location;
+  SCM init_value;
+  SCM (*get) (SCM obj, SCM slotdef);
+  SCM (*set) (SCM obj, SCM slotdef, SCM value);
+} scm_effective_slot_definition;
+
+#define SCM_ESLOTDEF(x) ((scm_effective_slot_definition *) SCM_CDR (x))
 
 /* Port classes */
 #define SCM_IN_PCLASS_INDEX    0x000
