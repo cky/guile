@@ -6,6 +6,21 @@ Please send Guile bug reports to bug-guile@prep.ai.mit.edu.
 
 Changes since Guile 1.0 (Sun 5 Jan 1997):
 
+* Changes to the gh_ interface
+
+** gh_eval_str() now returns an SCM object which is the result of the
+evaluation
+
+* Changes to documentation
+
+** the $(srcdir)/newdoc hierarchy now contains a new approach to the
+manuals.  The approach, recommended by Jim Blandy, is to have: (*) a
+tutorial with the pedagogical style of guile-user, and a non-dry
+reference manual in the style of the most excellent GNU libc reference
+manual: the reference manual should be complete, but at the same time
+it should have an introductory screen for each major topic, which can
+be referenced if the user goes "up" a level in the info documentation.
+
 
 Guile 1.0b3
 
@@ -331,7 +346,7 @@ Until then, gtcltk-lib provides trivial, low-maintenance functionality.
 
 Copyright information:
 
-Copyright (C) 1996 Free Software Foundation, Inc.
+Copyright (C) 1996,1997 Free Software Foundation, Inc.
 
    Permission is granted to anyone to make or distribute verbatim copies
    of this document as received, in any medium, provided that the
