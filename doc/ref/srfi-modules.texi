@@ -77,100 +77,71 @@ automatically (@pxref{Invoking Guile}).
 @node SRFI-0
 @subsection SRFI-0 - cond-expand
 @cindex SRFI-0
-@findex cond-expand
 
-@c FIXME::martin: Review me!
+This SRFI lets a portable Scheme program test for the presence of
+certain features, and adapt itself by using different blocks of code,
+or fail if the necessary features are not available.  There's no
+module to load, this is in the Guile core.
 
-SRFI-0 defines a means for checking whether a Scheme implementation has
-support for a specified feature.  The syntactic form @code{cond-expand},
-which implements this means, has the following syntax.
+A program designed only for Guile will generally not need this
+mechanism, such a program can of course directly use the various
+documented parts of Guile.
 
-@example
-@group
-<cond-expand>
-  --> (cond-expand <cond-expand-clause>+)
-    | (cond-expand <cond-expand-clause>* (else <command-or-definition>))
-<cond-expand-clause>
-  --> (<feature-requirement> <command-or-definition>*)
-<feature-requirement>
-  --> <feature-identifier>
-    | (and <feature-requirement>*)
-    | (or <feature-requirement>*)
-    | (not <feature-requirement>)
-<feature-identifier>
-  --> <a symbol which is the name or alias of a SRFI>
-@end group
-@end example
-
-When evaluated, this form checks all clauses in order, until it finds
-one whose feature requirement is satisfied.  Then the form expands into
-the commands or definitions in the clause.  A requirement is tested as
-follows:
-
-@itemize @bullet
-@item
-If it is a symbol, it is satisfied if the feature identifier is
-supported.
-
-@item
-If it is an @code{and} form, all requirements must be satisfied.  If no
-requirements are given, it is satisfied, too.
-
-@item
-If it is an @code{or} form, at least one of the requirements must be
-satisfied.  If no requirements are given, it is not satisfied.
-
-@item
-If it is a @code{not} form, the feature requirement must @emph{not} be
+@deffn syntax cond-expand (feature body@dots{}) @dots{}
+Expand to the @var{body} of the first clause whose @var{feature}
+specification is satisfied.  It is an error if no @var{feature} is
 satisfied.
 
-@item
-If the feature requirement is the keyword @code{else} and it is the last
-clause, it is satisfied if no prior clause matched.
-@end itemize
+Features are symbols such as @code{srfi-1}, and a feature
+specification can use @code{and}, @code{or} and @code{not} forms to
+test combinations.  The last clause can be an @code{else}, to be used
+if no other passes.
 
-If no clause is satisfied, an error is signalled.
-
-Since @code{cond-expand} is needed to tell what a Scheme implementation
-provides, it must be accessible without using any
-implementation-dependent operations, such as @code{use-modules} in
-Guile.  Thus, it is not necessary to use any module to get access to
-this form.
-
-Currently, the feature identifiers @code{guile}, @code{r5rs}, @code{srfi-0} and
-@code{srfi-6} are supported.  The other SRFIs are not in that list by
-default, because the SRFI modules must be explicitly used before their
-exported bindings can be used.
-
-So if a Scheme program wishes to use SRFI-8, it has two possibilities:
-First, it can check whether the running Scheme implementation is Guile,
-and if it is, it can use the appropriate module:
-
-@lisp
-(cond-expand
-  (guile
-    (use-modules (srfi srfi-8)))
-  (srfi-8
-    #t))
-  ;; otherwise fail.
-@end lisp
-
-The other possibility is to use the @code{--use-srfi} command line
-option when invoking Guile (@pxref{Invoking Guile}).  When you do that,
-the specified SRFI support modules will be loaded and add their feature
-identifier to the list of symbols checked by @code{cond-expand}.
-
-So, if you invoke Guile like this:
+For example, define a private version of @code{alist-cons} if SRFI-1
+is not available.
 
 @example
-$ guile --use-srfi=8
+(cond-expand (srfi-1
+              )
+             (else
+              (define (alist-cons key val alist)
+                (cons (cons key val) alist))))
 @end example
 
-the following snippet will expand to @code{'hooray}.
+Or demand a certain set of SRFIs (list operations, string ports,
+@code{receive} and string operations), failing if they're not
+available.
 
-@lisp
-(cond-expand (srfi-8 'hooray))
-@end lisp
+@example
+(cond-expand ((and srfi-1 srfi-6 srfi-8 srfi-13)
+              ))
+@end example
+@end deffn
+
+The Guile core provides features @code{guile}, @code{r5rs},
+@code{srfi-0} and @code{srfi-6} initially.  Other SRFI feature symbols
+are defined once their code has been loaded with @code{use-modules},
+since only then are their bindings available.
+
+The @samp{--use-srfi} command line option (@pxref{Invoking Guile}) is
+a good way to load SRFIs to satisfy @code{cond-expand} when running a
+portable program.
+
+Testing the @code{guile} feature allows a program to adapt itself to
+the Guile module system, but still run on other Scheme systems.  For
+example the following demands SRFI-8 (@code{receive}), but also knows
+how to load it with the Guile mechanism.
+
+@example
+(cond-expand (srfi-8
+              )
+             (guile
+              (use-modules (srfi srfi-8))))
+@end example
+
+It should be noted that @code{cond-expand} is separate from the
+@code{*features*} mechanism (@pxref{Feature Tracking}), feature
+symbols in one are unrelated to those in the other.
 
 
 @node SRFI-1
