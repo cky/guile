@@ -76,7 +76,9 @@
 
 SCM_DEFINE (scm_debug_options, "debug-options-interface", 0, 1, 0, 
             (SCM setting),
-"")
+	    "Option interface for the debug options. Instead of using\n"
+	    "this procedure directly, use the procedures @code{debug-enable},\n"
+	    "@code{debug-disable}, @code{debug-set!} and @var{debug-options}.")
 #define FUNC_NAME s_scm_debug_options
 {
   SCM ans;
@@ -124,7 +126,7 @@ with_traps_inner (void *data)
 
 SCM_DEFINE (scm_with_traps, "with-traps", 1, 0, 0, 
             (SCM thunk),
-"")
+	    "Call @var{thunk} with traps enabled.")
 #define FUNC_NAME s_scm_with_traps
 {
   int trap_flag;
@@ -166,7 +168,7 @@ memoized_print (SCM obj, SCM port, scm_print_state *pstate)
 
 SCM_DEFINE (scm_memoized_p, "memoized?", 1, 0, 0, 
             (SCM obj),
-"")
+	    "Return @code{#t} if @var{obj} is memoized.")
 #define FUNC_NAME s_scm_memoized_p
 {
   return SCM_BOOL(SCM_MEMOIZEDP (obj));
@@ -255,7 +257,8 @@ scm_make_memoized (SCM exp, SCM env)
 
 SCM_DEFINE (scm_make_gloc, "make-gloc", 1, 1, 0, 
             (SCM var, SCM env),
-"")
+	    "Create a gloc for variable @var{var} in the environment\n"
+	    "@var{env}.")
 #define FUNC_NAME s_scm_make_gloc
 {
 #if 1 /* Unsafe */
@@ -274,7 +277,7 @@ SCM_DEFINE (scm_make_gloc, "make-gloc", 1, 1, 0,
 
 SCM_DEFINE (scm_gloc_p, "gloc?", 1, 0, 0, 
             (SCM obj),
-"")
+	    "Return @code{#t} if @var{obj} is a gloc.")
 #define FUNC_NAME s_scm_gloc_p
 {
   return SCM_BOOL((SCM_MEMOIZEDP (obj)
@@ -284,7 +287,8 @@ SCM_DEFINE (scm_gloc_p, "gloc?", 1, 0, 0,
 
 SCM_DEFINE (scm_make_iloc, "make-iloc", 3, 0, 0,
             (SCM frame, SCM binding, SCM cdrp),
-"")
+	    "Return a new iloc with frame offset @var{frame}, binding\n"
+	    "offset @var{binding} and the cdr flag @var{cdrp}.")
 #define FUNC_NAME s_scm_make_iloc
 {
   SCM_VALIDATE_INUM (1,frame);
@@ -298,7 +302,7 @@ SCM_DEFINE (scm_make_iloc, "make-iloc", 3, 0, 0,
 
 SCM_DEFINE (scm_iloc_p, "iloc?", 1, 0, 0, 
           (SCM obj),
-"")
+	    "Return @code{#t} if @var{obj} is an iloc.")
 #define FUNC_NAME s_scm_iloc_p
 {
   return SCM_BOOL(SCM_ILOCP (obj));
@@ -307,7 +311,8 @@ SCM_DEFINE (scm_iloc_p, "iloc?", 1, 0, 0,
 
 SCM_DEFINE (scm_memcons, "memcons", 2, 1, 0,
             (SCM car, SCM cdr, SCM env),
-"")
+	    "Return a new memoized cons cell with @var{car} and @var{cdr}\n"
+	    "as members and @var{env} as the environment.")
 #define FUNC_NAME s_scm_memcons
 {
   if (SCM_MEMOIZEDP (car))
@@ -339,7 +344,8 @@ SCM_DEFINE (scm_memcons, "memcons", 2, 1, 0,
 
 SCM_DEFINE (scm_mem_to_proc, "mem->proc", 1, 0, 0, 
             (SCM obj),
-"")
+	    "Convert a memoized object (which must be a lambda expression)\n"
+	    "to a procedure.")
 #define FUNC_NAME s_scm_mem_to_proc
 {
   SCM env;
@@ -355,7 +361,7 @@ SCM_DEFINE (scm_mem_to_proc, "mem->proc", 1, 0, 0,
 
 SCM_DEFINE (scm_proc_to_mem, "proc->mem", 1, 0, 0, 
             (SCM obj),
-"")
+	    "Convert a procedure to a memoized object.")
 #define FUNC_NAME s_scm_proc_to_mem
 {
   SCM_VALIDATE_CLOSURE (1, obj);
@@ -368,7 +374,7 @@ SCM_DEFINE (scm_proc_to_mem, "proc->mem", 1, 0, 0,
 
 SCM_DEFINE (scm_unmemoize, "unmemoize", 1, 0, 0, 
             (SCM m),
-"")
+	    "Unmemoize the memoized expression @var{m},")
 #define FUNC_NAME s_scm_unmemoize
 {
   SCM_VALIDATE_MEMOIZED (1,m);
@@ -378,7 +384,7 @@ SCM_DEFINE (scm_unmemoize, "unmemoize", 1, 0, 0,
 
 SCM_DEFINE (scm_memoized_environment, "memoized-environment", 1, 0, 0, 
             (SCM m),
-"")
+	    "Return the environment of the memoized expression @var{m}.")
 #define FUNC_NAME s_scm_memoized_environment
 {
   SCM_VALIDATE_MEMOIZED (1,m);
@@ -388,7 +394,7 @@ SCM_DEFINE (scm_memoized_environment, "memoized-environment", 1, 0, 0,
 
 SCM_DEFINE (scm_procedure_name, "procedure-name", 1, 0, 0, 
             (SCM proc),
-"")
+	    "Return the name of the procedure @var{proc}")
 #define FUNC_NAME s_scm_procedure_name
 {
   SCM_VALIDATE_PROC (1,proc);
@@ -414,7 +420,7 @@ SCM_DEFINE (scm_procedure_name, "procedure-name", 1, 0, 0,
 
 SCM_DEFINE (scm_procedure_source, "procedure-source", 1, 0, 0, 
             (SCM proc),
-"")
+	    "Return the source of the procedure @var{proc}.")
 #define FUNC_NAME s_scm_procedure_source
 {
   SCM_VALIDATE_NIM (1,proc);
@@ -448,7 +454,7 @@ SCM_DEFINE (scm_procedure_source, "procedure-source", 1, 0, 0,
 
 SCM_DEFINE (scm_procedure_environment, "procedure-environment", 1, 0, 0, 
             (SCM proc),
-"")
+	    "Return the environment of the procedure @var{proc}.")
 #define FUNC_NAME s_scm_procedure_environment
 {
   SCM_VALIDATE_NIM (1,proc);
@@ -567,7 +573,7 @@ debugobj_print (SCM obj, SCM port, scm_print_state *pstate)
 
 SCM_DEFINE (scm_debug_object_p, "debug-object?", 1, 0, 0, 
             (SCM obj),
-	    "")
+	    "Return @code{#t} if @var{obj} is a debug object.")
 #define FUNC_NAME s_scm_debug_object_p
 {
   return SCM_BOOL(SCM_DEBUGOBJP (obj));
@@ -593,7 +599,8 @@ scm_make_debugobj (scm_debug_frame *frame)
 #ifdef GUILE_DEBUG
 SCM_DEFINE (scm_debug_hang, "debug-hang", 0, 1, 0, 
             (SCM obj),
-	    "")
+	    "Go into an endless loop, which can be only terminated with\n"
+	    "a debugger.")
 #define FUNC_NAME s_scm_debug_hang
 {
   int go = 0;
