@@ -2400,7 +2400,7 @@ SCM_DEFINE (scm_string_concatenate_reverse_shared, "string-concatenate-reverse/s
 
 
 SCM_DEFINE (scm_string_map, "string-map", 2, 2, 0,
-	    (SCM s, SCM proc, SCM start, SCM end),
+	    (SCM proc, SCM s, SCM start, SCM end),
 	    "@var{proc} is a char->char procedure, it is mapped over\n"
 	    "@var{s}.  The order in which the procedure is applied to the\n"
 	    "string elements is not specified.")
@@ -2410,10 +2410,10 @@ SCM_DEFINE (scm_string_map, "string-map", 2, 2, 0,
   int cstart, cend;
   SCM result;
 
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, s, cstr,
+  SCM_VALIDATE_PROC (1, proc);
+  SCM_VALIDATE_SUBSTRING_SPEC_COPY (2, s, cstr,
 				    3, start, cstart,
 				    4, end, cend);
-  SCM_VALIDATE_PROC (2, proc);
   result = scm_allocate_string (cend - cstart);
   p = SCM_STRING_CHARS (result);
   while (cstart < cend)
@@ -2430,7 +2430,7 @@ SCM_DEFINE (scm_string_map, "string-map", 2, 2, 0,
 
 
 SCM_DEFINE (scm_string_map_x, "string-map!", 2, 2, 0,
-	    (SCM s, SCM proc, SCM start, SCM end),
+	    (SCM proc, SCM s, SCM start, SCM end),
 	    "@var{proc} is a char->char procedure, it is mapped over\n"
 	    "@var{s}.  The order in which the procedure is applied to the\n"
 	    "string elements is not specified.  The string @var{s} is\n"
@@ -2440,10 +2440,10 @@ SCM_DEFINE (scm_string_map_x, "string-map!", 2, 2, 0,
   char * cstr, *p;
   int cstart, cend;
 
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, s, cstr,
+  SCM_VALIDATE_PROC (1, proc);
+  SCM_VALIDATE_SUBSTRING_SPEC_COPY (2, s, cstr,
 				    3, start, cstart,
 				    4, end, cend);
-  SCM_VALIDATE_PROC (2, proc);
   p = SCM_STRING_CHARS (s) + cstart;
   while (cstart < cend)
     {

@@ -1,3 +1,8 @@
+2001-08-22  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
+
+	* srfi-13.c (string-map): Swapped order of string and proc args to
+	conform with the srfi.  (Thanks to Alex Shinn.)
+
 2001-08-05  Gary Houston  <ghouston@arglist.com>
 
 	* srfi-1.scm (check-arg-type, non-negative-integer?): a couple of new

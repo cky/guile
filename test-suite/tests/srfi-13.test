@@ -18,7 +18,7 @@
 ;;;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
 ;;;; Boston, MA 02111-1307 USA
 
-(use-modules (srfi srfi-13) (srfi srfi-14))
+(use-modules (srfi srfi-13) (srfi srfi-14) (test-suite lib))
 
 ;;; This kludge is needed, because SRFI-13 redefines some bindings in
 ;;; the core.
@@ -1010,3 +1010,14 @@
 
   (pass-if "pred, start and end index"
     (string=? "" (string-delete ".foo.bar." char-alphabetic? 2 4))))
+
+(with-test-prefix "string-map"
+
+  (pass-if "constant"
+    (string=? "xxx" (string-map (lambda (c) #\x) "foo")))
+
+  (pass-if "identity"
+    (string=? "foo" (string-map identity "foo")))
+
+  (pass-if "upcase"
+    (string=? "FOO" (string-map char-upcase "foo"))))
