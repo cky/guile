@@ -303,33 +303,6 @@ extern unsigned long scm_num2ulong (SCM num, unsigned long int pos,
                                     const char *s_caller);
 extern void scm_init_numbers (void);
 
-
-
-#if (SCM_DEBUG_DEPRECATED == 0)
-
-typedef struct scm_dblproc
-{
-  char *scm_string;
-  double (*cproc) ();
-} scm_dblproc;
-
-#define SCM_UNEGFIXABLE(n) ((n) <= -SCM_MOST_NEGATIVE_FIXNUM)
-#define SCM_FLOBUFLEN (10+2*(sizeof(double)/sizeof(char)*SCM_CHAR_BIT*3+9)/10)
-#define SCM_INEXP(x) SCM_INEXACTP(x)
-#define SCM_CPLXP(x) SCM_COMPLEXP(x)
-#define SCM_REAL(x) (SCM_SLOPPY_REALP (x) ? SCM_REAL_VALUE (x) : SCM_COMPLEX_REAL (x))
-#define SCM_IMAG(x) (SCM_SLOPPY_REALP (x) ? 0.0 : SCM_COMPLEX_IMAG (x))
-#define SCM_REALPART(x) (SCM_SLOPPY_REALP (x) ? SCM_REAL_VALUE (x) : SCM_COMPLEX_REAL (x))
-#define scm_makdbl scm_make_complex
-#define SCM_SINGP(x) 0
-#define SCM_NUM2DBL(x) scm_num2dbl(x, "SCM_NUM2DBL")
-
-#ifndef SCM_BIGDIG
-# define SCM_NO_BIGDIG
-#endif
-
-#endif  /* SCM_DEBUG_DEPRECATED == 0 */
-
 #endif  /* NUMBERSH */
 
 /*
