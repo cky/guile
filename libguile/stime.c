@@ -697,6 +697,9 @@ SCM_DEFINE (scm_strftime, "strftime", 2, 0, 0,
   result = scm_from_locale_stringn (tbuf + 1, len - 1);
   free (tbuf);
   free (myfmt);
+#if HAVE_STRUCT_TM_TM_ZONE
+  free ((char *) t.tm_zone);
+#endif
   return result;
 }
 #undef FUNC_NAME
