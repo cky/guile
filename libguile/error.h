@@ -51,6 +51,14 @@
 
 extern int scm_ints_disabled;
 
+extern SCM scm_system_error_key;
+extern SCM scm_num_overflow_key;
+extern SCM scm_out_of_range_key;
+extern SCM scm_args_number_key;
+extern SCM scm_arg_type_key;
+extern SCM scm_memory_alloc_key;
+extern SCM scm_misc_error_key;
+
 
 
 extern void scm_error (SCM key, const char *subr, const char *message,
