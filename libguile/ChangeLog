@@ -6,7 +6,7 @@
 2000-03-14  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* eval.c, lang.c, lang.h (scm_lisp_nil, scm_lisp_t): Renamed from
-	scm_nil, scm_t.  (Thanks to Dirk Herrmann.)
+	scm_nil, scm_t.  (Thanks to Keisuke Nishida.)
 
 2000-03-14  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
