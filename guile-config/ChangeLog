@@ -1,3 +1,11 @@
+2004-09-24  Marius Vollmer  <mvo@zagadka.de>
+
+	* guile-config.in (build-link, build-compile): Include CFLAGS in
+	output.  This is needed to get "-pthread" into the builds, for
+	example.
+
+	* Makefile.am (EXTRA_DIST): Removed qthreads.m4.
+
 2003-04-05  Marius Vollmer  <mvo@zagadka.de>
 
 	* Changed license terms to the plain LGPL thru-out.
