@@ -896,7 +896,7 @@ sign as @var{d}.
 @end deffn
 
 @c begin (texi-doc-string "guile" "gcd")
-@deffn {Scheme Procedure} gcd
+@deffn {Scheme Procedure} gcd x@dots{}
 @deffnx {C Function} scm_gcd (x, y)
 Return the greatest common divisor of all arguments.
 If called without arguments, 0 is returned.
@@ -906,7 +906,7 @@ Scheme function can take an arbitrary number.
 @end deffn
 
 @c begin (texi-doc-string "guile" "lcm")
-@deffn {Scheme Procedure} lcm
+@deffn {Scheme Procedure} lcm x@dots{}
 @deffnx {C Function} scm_lcm (x, y)
 Return the least common multiple of the arguments.
 If called without arguments, 1 is returned.
@@ -1155,7 +1155,7 @@ Return the minimum of all parameter values.
 @end deffn
 
 @c begin (texi-doc-string "guile" "truncate")
-@deffn {Scheme Procedure} truncate
+@deffn {Scheme Procedure} truncate x
 @deffnx {C Function} scm_truncate_number (x)
 Round the inexact number @var{x} towards zero.
 @end deffn
