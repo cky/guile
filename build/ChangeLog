@@ -1,3 +1,7 @@
+1998-01-05  Tim Pierce  <twp@skepsis.com>
+
+	* .cvsignore: New file.
+
 Mon Oct  6 11:45:59 1997  Jim Blandy  <jimb@totoro.red-bean.com>
 
 	* build-guile.in: Try to return an appropriate exit status.
