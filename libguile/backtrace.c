@@ -231,8 +231,6 @@ display_frame_expr (hdr, exp, tlr, indentation, sport, port, pstate)
      SCM port;
      scm_print_state *pstate;
 {
-  pstate->level = 2;
-  pstate->length = 3;
   if (SCM_NIMP (exp) && SCM_CONSP (exp))
     {
       scm_iprlist (hdr, exp, tlr[0], port, pstate);
@@ -241,6 +239,57 @@ display_frame_expr (hdr, exp, tlr, indentation, sport, port, pstate)
   else
     scm_iprin1 (exp, port, pstate);
   scm_gen_putc ('\n', port);
+}
+
+static void display_application SCM_P ((SCM frame, int indentation, SCM sport, SCM port, scm_print_state *pstate));
+static void
+display_application (frame, indentation, sport, port, pstate)
+     SCM frame;
+     int indentation;
+     SCM sport;
+     SCM port;
+     scm_print_state *pstate;
+{
+  SCM proc = SCM_FRAME_PROC (frame);
+  SCM name = (SCM_NFALSEP (scm_procedure_p (proc))
+	      ? scm_procedure_name (proc)
+	      : SCM_BOOL_F);
+  display_frame_expr ("[",
+		      scm_cons (SCM_NFALSEP (name) ? name : proc,
+				SCM_FRAME_ARGS (frame)),
+		      SCM_FRAME_EVAL_ARGS_P (frame) ? " ..." : "]",
+		      indentation,
+		      sport,
+		      port,
+		      pstate);
+}
+
+SCM_PROC(s_display_application, "display-application", 1, 1, 0, scm_display_application);
+
+SCM
+scm_display_application (SCM frame, SCM port)
+{
+  if (SCM_UNBNDP (port))
+    port = scm_cur_outp;
+  if (SCM_FRAME_PROC_P (frame))
+    /* Display an application. */
+    {
+      SCM print_state;
+      scm_print_state *pstate;
+      
+      /* Create a print state for printing of frames. */
+      print_state = scm_make_print_state ();
+      pstate = SCM_PRINT_STATE (print_state);
+      pstate->writingp = 1;
+      pstate->fancyp = 1;
+      pstate->level = 2;
+      pstate->length = 9;
+      
+      display_application (frame, 0, SCM_BOOL_F, port, pstate); /*fixme*/
+      return SCM_BOOL_T;
+    }
+  else
+    return SCM_BOOL_F;
 }
 
 static void display_frame SCM_P ((SCM frame, int nfield, int indentation, SCM sport, SCM port, scm_print_state *pstate));
@@ -280,20 +329,7 @@ display_frame (frame, nfield, indentation, sport, port, pstate)
 
   if (SCM_FRAME_PROC_P (frame))
     /* Display an application. */
-    {
-      SCM proc = SCM_FRAME_PROC (frame);
-      SCM name = (SCM_NFALSEP (scm_procedure_p (proc))
-		  ? scm_procedure_name (proc)
-		  : SCM_BOOL_F);
-      display_frame_expr ("[",
-			  scm_cons (SCM_NFALSEP (name) ? name : proc,
-				    SCM_FRAME_ARGS (frame)),
-			  SCM_FRAME_EVAL_ARGS_P (frame) ? " ..." : "]",
-			  nfield + 1 + indentation,
-			  sport,
-			  port,
-			  pstate);
-    }
+    display_application (frame, nfield + 1 + indentation, sport, port, pstate);
   else
     /* Display a special form. */
     {
@@ -382,6 +418,8 @@ scm_display_backtrace (stack, port, first, depth)
   pstate = SCM_PRINT_STATE (print_state);
   pstate->writingp = 1;
   pstate->fancyp = 1;
+  pstate->level = 2;
+  pstate->length = 3;
 
   /* First find out if it's reasonable to do indentation. */
   if (SCM_BACKWARDS_P)
