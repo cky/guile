@@ -301,23 +301,15 @@ File Descriptors, close}, for a procedure which can close file
 descriptors.
 @end deffn
 
-@rnindex close-input-port
 @deffn {Scheme Procedure} close-input-port port
+@deffnx {Scheme Procedure} close-output-port port
 @deffnx {C Function} scm_close_input_port (port)
-Close the specified input port object.  The routine has no effect if
-the file has already been closed.  An exception may be raised if an
-error occurs.  The value returned is unspecified.
-
-See also @ref{Ports and File Descriptors, close}, for a procedure
-which can close file descriptors.
-@end deffn
-
-@rnindex close-output-port
-@deffn {Scheme Procedure} close-output-port port
 @deffnx {C Function} scm_close_output_port (port)
-Close the specified output port object.  The routine has no effect if
-the file has already been closed.  An exception may be raised if an
-error occurs.  The value returned is unspecified.
+@rnindex close-input-port
+@rnindex close-output-port
+Close the specified input or output @var{port}.  An exception may be
+raised if an error occurs while closing.  If @var{port} is already
+closed, nothing is done.  The return value is unspecified.
 
 See also @ref{Ports and File Descriptors, close}, for a procedure
 which can close file descriptors.
@@ -709,68 +701,47 @@ Open @var{filename} for output.  Equivalent to
 @end smalllisp
 @end deffn
 
+@deffn {Scheme Procedure} call-with-input-file filename proc
+@deffnx {Scheme Procedure} call-with-output-file filename proc
 @rnindex call-with-input-file
-@deffn {Scheme Procedure} call-with-input-file file proc
-@var{proc} should be a procedure of one argument, and @var{file} should
-be a string naming a file.  The file must already exist. These
-procedures call @var{proc} with one argument: the port obtained by
-opening the named file for input or output.  If the file cannot be
-opened, an error is signalled.  If the procedure returns, then the port
-is closed automatically and the value yielded by the procedure is
-returned.  If the procedure does not return, then the port will not be
-closed automatically unless it is possible to prove that the port will
-never again be used for a read or write operation.
-@end deffn
-
 @rnindex call-with-output-file
-@deffn {Scheme Procedure} call-with-output-file file proc
-@var{proc} should be a procedure of one argument, and @var{file} should
-be a string naming a file.  The behaviour is unspecified if the file
-already exists. These procedures call @var{proc} with one argument: the
-port obtained by opening the named file for input or output.  If the
-file cannot be opened, an error is signalled.  If the procedure returns,
-then the port is closed automatically and the value yielded by the
-procedure is returned.  If the procedure does not return, then the port
-will not be closed automatically unless it is possible to prove that the
-port will never again be used for a read or write operation.
+Open @var{filename} for input or output, and call @code{(@var{proc}
+port)} with the resulting port.  Return the value returned by
+@var{proc}.  @var{filename} is opened as per @code{open-input-file} or
+@code{open-output-file} respectively, and an error is signalled if it
+cannot be opened.
+
+When @var{proc} returns, the port is closed.  If @var{proc} does not
+return (eg.@: if it throws an error), then the port might not be
+closed automatically, though it will be garbage collected in the usual
+way if not otherwise referenced.
 @end deffn
 
+@deffn {Scheme Procedure} with-input-from-file filename thunk
+@deffnx {Scheme Procedure} with-output-to-file filename thunk
+@deffnx {Scheme Procedure} with-error-to-file filename thunk
 @rnindex with-input-from-file
-@deffn {Scheme Procedure} with-input-from-file file thunk
-@var{thunk} must be a procedure of no arguments, and @var{file} must be
-a string naming a file.  The file must already exist. The file is opened
-for input, an input port connected to it is made the default value
-returned by @code{current-input-port}, and the @var{thunk} is called
-with no arguments.  When the @var{thunk} returns, the port is closed and
-the previous default is restored.  Returns the value yielded by
-@var{thunk}.  If an escape procedure is used to escape from the
-continuation of these procedures, their behavior is implementation
-dependent.
-@end deffn
-
 @rnindex with-output-to-file
-@deffn {Scheme Procedure} with-output-to-file file thunk
-@var{thunk} must be a procedure of no arguments, and @var{file} must be
-a string naming a file.  The effect is unspecified if the file already
-exists.  The file is opened for output, an output port connected to it
-is made the default value returned by @code{current-output-port}, and
-the @var{thunk} is called with no arguments.  When the @var{thunk}
-returns, the port is closed and the previous default is restored.
-Returns the value yielded by @var{thunk}.  If an escape procedure is
-used to escape from the continuation of these procedures, their behavior
-is implementation dependent.
-@end deffn
+Open @var{filename} and call @code{(@var{thunk})} with the new port
+setup as respectively the @code{current-input-port},
+@code{current-output-port}, or @code{current-error-port}.  Return the
+value returned by @var{thunk}.  @var{filename} is opened as per
+@code{open-input-file} or @code{open-output-file} respectively, and an
+error is signalled if it cannot be opened.
 
-@deffn {Scheme Procedure} with-error-to-file file thunk
-@var{thunk} must be a procedure of no arguments, and @var{file} must be
-a string naming a file.  The effect is unspecified if the file already
-exists.  The file is opened for output, an output port connected to it
-is made the default value returned by @code{current-error-port}, and the
-@var{thunk} is called with no arguments.  When the @var{thunk} returns,
-the port is closed and the previous default is restored.  Returns the
-value yielded by @var{thunk}.  If an escape procedure is used to escape
-from the continuation of these procedures, their behavior is
-implementation dependent.
+When @var{thunk} returns, the port is closed and the previous setting
+of the respective current port is restored.
+
+The current port setting is managed with @code{dynamic-wind}, so the
+previous value is restored no matter how @var{thunk} exits (eg.@: an
+exception), and if @var{thunk} is re-entered (via a captured
+continuation) then it's set again to the @var{FILENAME} port.
+
+The port is closed when @var{thunk} returns normally, but not when
+exited via an exception or new continuation.  This ensures it's still
+ready for use if @var{thunk} is re-entered by a captured continuation.
+Of course the port is always garbage collected and closed in the usual
+way when no longer referenced anywhere.
 @end deffn
 
 @deffn {Scheme Procedure} port-mode port
