@@ -1,3 +1,10 @@
+2000-03-29  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* acconfig.h (GUILE_PTHREAD_COMPAT): New config variable.
+
+	* configure.in: Enable workaround for COOP-linuxthreads
+	compatibility on Linux systems (currently disabled).
+
 2000-03-19  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* devel: New directory.  Intended to carry documentation related

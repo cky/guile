@@ -1,3 +1,23 @@
+2000-03-29  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* threads.c (scm_init_threads): Pass 0 size to scm_make_smob_type
+	for scm_tc16_thread.  As the current COOP threads are written, GC
+	is not supposed to manage storage for threads.
+
+	* error.c (scm_error): Don't try to throw an error if
+	scm_gc_heap_lock is true.
+
+	* coop.c (coop_finish): New function.  Called at exit.
+	(coop_aborthelp): Free thread structures when threads die.
+	Finished LinuxThreads compatibility support => COOP threads now
+	mesh with LinuxThreads.
+	
+	* coop-threads.c (scm_call_with_new_thread, scm_spawn_thread):
+	Changed SETCDR --> SET_CELL_WORD_1.
+
+	* coop-threads.c (scheme_launch_thread): Set word 1 of handle to 0
+	when thread dies.
+
 2000-03-29  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* boolean.h (SCM_TRUE_P):  New macro.
