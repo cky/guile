@@ -49,7 +49,6 @@
 
 
 
-extern unsigned int scm_async_clock;
 extern unsigned int scm_mask_ints;
 
 
