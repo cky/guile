@@ -35,11 +35,22 @@ exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
 ;;
 ;; This program reads TODOFILE and displays interpretations on its
 ;; structure, including registered markers and ownership, in various
-;; ways.  [TODO]
+;; ways.
 ;;
 ;; A primary interest in any task is its parent task.  The output
 ;; summarization by default lists every item and its parent chain.
-;; Top-level parents are not items.
+;; Top-level parents are not items.  You can use these command-line
+;; options to modify the selection and display (selection criteria
+;; are ANDed together):
+;;
+;; -i, --involved USER  -- select USER-involved items
+;; -p, --personal USER  -- select USER-responsible items
+;; -t, --todo           -- select unfinished items (status "-")
+;; -t, --done           -- select finished items (status "+")
+;; -r, --review         -- select review items (marker "R")
+;;
+;; -w, --who            -- also show who is associated w/ the item
+;; -n, --no-parent      -- do not show parent chain
 ;;
 ;;
 ;; Usage from a Scheme program:
@@ -52,14 +63,18 @@ exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
 ;;           somewhat exclusive, which is currently the case for D R X.
 ;;           N% used w/ these needs to be something like: "D25%" (this
 ;;           means discussion accounts for 1/4 of the task).
-
-;; TODO: Implement the various ways. (Patches welcome.)
+;;
+;; TODO: Implement more various ways. (Patches welcome.)
+;;       Add support for ORing criteria.
 
 ;;; Code:
+(debug-enable 'debug 'backtrace)
 
 (define-module (scripts summarize-guile-TODO)
   :use-module (scripts read-text-outline)
+  :use-module (ice-9 getopt-long)
   :autoload (srfi srfi-13) (string-tokenize) ; string library
+  :autoload (ice-9 common-list) (remove-if-not)
   :export (summarize-guile-TODO))
 
 (define put set-object-property!)
@@ -107,30 +122,85 @@ exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
                         (who . 11)))))
     (open-file file "r"))))
 
-(define (display-item item)
-  (format #t "status: ~A~A~A~A~A\nitem  : ~A\n"
-          (get item 'status)
-          (if (get item 'design?) "D" "")
-          (if (get item 'review?) "R" "")
-          (if (get item 'extblock?) "X" "")
-          (cond ((get item 'pct-done)
-                 => (lambda (pct-done)
-                      (format #f " ~A%" pct-done)))
-                (else ""))
-          item)
-  (let loop ((parent (get item 'parent)) (indent 2))
-    (and parent
-         (begin
-           (format #t "under : ~A~A\n"
-                   (make-string indent #\space)
-                   parent)
-           (loop (get parent 'parent) (+ 2 indent))))))
+(define (select-items p items)
+  (let ((sub '()))
+    (cond ((option-ref p 'involved #f)
+           => (lambda (u)
+                (let ((u (string->symbol u)))
+                  (set! sub (cons
+                             (lambda (x)
+                               (and (get x 'who)
+                                    (memq u (get x 'who))))
+                             sub))))))
+    (cond ((option-ref p 'personal #f)
+           => (lambda (u)
+                (let ((u (string->symbol u)))
+                  (set! sub (cons
+                             (lambda (x)
+                               (cond ((get x 'who)
+                                      => (lambda (ls)
+                                           (eq? (car (reverse ls))
+                                                u)))
+                                     (else #f)))
+                             sub))))))
+    (for-each (lambda (pair)
+                (cond ((option-ref p (car pair) #f)
+                       (set! sub (cons (cdr pair) sub)))))
+              `((todo . ,(lambda (x) (string=? (get x 'status) "-")))
+                (done . ,(lambda (x) (string=? (get x 'status) "+")))
+                (review . ,(lambda (x) (get x 'review?)))))
+    (let loop ((sub (reverse sub)) (items items))
+      (if (null? sub)
+          (reverse items)
+          (loop (cdr sub) (remove-if-not (car sub) items))))))
 
-(define (display-items items)
-  (for-each display-item items))
+(define (make-display-item show-who? show-parent?)
+  (lambda (item)
+    (format #t "status: ~A~A~A~A~A~A\nitem  : ~A\n"
+            (get item 'status)
+            (if (get item 'design?) "D" "")
+            (if (get item 'review?) "R" "")
+            (if (get item 'extblock?) "X" "")
+            (cond ((get item 'pct-done)
+                   => (lambda (pct-done)
+                        (format #f " ~A%" pct-done)))
+                  (else ""))
+            (cond ((get item 'who)
+                   => (lambda (who)
+                        (if show-who?
+                            (format #f " ~A" who)
+                            "")))
+                  (else ""))
+            item)
+    (and show-parent?
+         (let loop ((parent (get item 'parent)) (indent 2))
+           (and parent
+                (begin
+                  (format #t "under : ~A~A\n"
+                          (make-string indent #\space)
+                          parent)
+                  (loop (get parent 'parent) (+ 2 indent))))))))
+
+(define (display-items p items)
+  (let ((display-item (make-display-item (option-ref p 'who #f)
+                                         (not (option-ref p 'no-parent #f))
+                                         )))
+    (for-each display-item items)))
 
 (define (summarize-guile-TODO . args)
-  (display-items (read-TODO (car args)))
+  (let ((p (getopt-long (cons "summarize-guile-TODO" args)
+                        '((who (single-char #\w))
+                          (no-parent (single-char #\n))
+                          (involved (single-char #\i)
+                                    (value #t))
+                          (personal (single-char #\p)
+                                    (value #t))
+                          (todo (single-char #\t))
+                          (done (single-char #\d))
+                          (review (single-char #\d))
+                          ;; Add options here.
+                          ))))
+    (display-items p (select-items p (read-TODO (car (option-ref p '() #f))))))
   #t)                                   ; exit val
 
 (define main summarize-guile-TODO)
