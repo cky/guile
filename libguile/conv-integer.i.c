@@ -1,10 +1,10 @@
-/* This code in included by number.s.c to generate integer conversion
+/* This code in included by numbers.c to generate integer conversion
    functions like scm_to_int and scm_from_int.  It is only for signed
    types, see conv-uinteger.i.c for the unsigned variant.
 */
 
 /* You need to define the following macros before including this
-   template.  They are undefined at the end of this file to giove a
+   template.  They are undefined at the end of this file to give a
    clean slate for the next inclusion.
 
    TYPE         - the integral type to be converted
@@ -91,7 +91,9 @@ SCM_TO_TYPE_PROTO (SCM val)
 	  else
 	    {
 	    out_of_range:
-	      scm_out_of_range (NULL, val);
+	      scm_i_range_error (val,
+				 scm_from_signed_integer (TYPE_MIN),
+				 scm_from_signed_integer (TYPE_MAX));
 	      return 0;
 	    }
 	}

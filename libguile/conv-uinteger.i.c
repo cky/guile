@@ -35,7 +35,9 @@ SCM_TO_TYPE_PROTO (SCM val)
       else
 	{
 	out_of_range:
-	  scm_out_of_range (NULL, val);
+	  scm_i_range_error (val,
+			     scm_from_unsigned_integer (TYPE_MIN),
+			     scm_from_unsigned_integer (TYPE_MAX));
 	  return 0;
 	}
     }

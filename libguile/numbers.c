@@ -5595,6 +5595,16 @@ scm_is_unsigned_integer (SCM val, scm_t_uintmax min, scm_t_uintmax max)
     return 0;
 }
 
+static void
+scm_i_range_error (SCM bad_val, SCM min, SCM max)
+{
+  scm_error (scm_out_of_range_key,
+	     NULL,
+	     "Value out of range ~S to ~S: ~S",
+             scm_list_3 (min, max, bad_val),
+             scm_list_1 (bad_val));
+}
+
 #define TYPE                     scm_t_intmax
 #define TYPE_MIN                 min
 #define TYPE_MAX                 max
