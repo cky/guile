@@ -63,6 +63,10 @@
 
 /* Loading a file, given an absolute filename.  */
 
+/* Hook to run when we load a file, perhaps to announce the fact somewhere.
+   Applied to the full name of the file.  */
+static SCM *scm_loc_load_hook;
+
 SCM_PROC(s_primitive_load, "primitive-load", 1, 2, 0, scm_primitive_load);
 SCM 
 scm_primitive_load (filename, case_insensitive_p, sharp)
@@ -70,8 +74,17 @@ scm_primitive_load (filename, case_insensitive_p, sharp)
      SCM case_insensitive_p;
      SCM sharp;
 {
+  SCM hook = *scm_loc_load_hook;
   SCM_ASSERT (SCM_NIMP (filename) && SCM_ROSTRINGP (filename), filename,
 	      SCM_ARG1, s_primitive_load);
+  SCM_ASSERT (hook == SCM_BOOL_F
+	      || (scm_procedure_p (hook) == SCM_BOOL_T),
+	      hook, "value of %load-hook is neither a procedure nor #f",
+	      s_primitive_load);
+
+  if (hook != SCM_BOOL_F)
+    scm_apply (hook, scm_listify (filename, SCM_UNDEFINED), SCM_EOL);
+
   {
     SCM form, port;
     port = scm_open_file (filename,
@@ -91,7 +104,11 @@ scm_primitive_load (filename, case_insensitive_p, sharp)
 
 /* Initializing the load path, and searching it.  */
 
+/* List of names of directories we search for files to load.  */
 static SCM *scm_loc_load_path;
+
+/* List of extensions we try adding to the filenames.  */
+static SCM *scm_loc_load_extensions;
 
 /* Initialize the global variable %load-path, given the value of the
    LIBRARY_PATH preprocessor symbol and the SCHEME_LOAD_PATH
@@ -132,46 +149,96 @@ scm_init_load_path ()
 
 /* Search %load-path for a directory containing a file named FILENAME.
    The file must be readable, and not a directory.
-   If we find one, return its full filename; otherwise, return #f.  */
+   If we find one, return its full filename; otherwise, return #f.
+   If FILENAME is absolute, return it unchanged.  */
 SCM_PROC(s_sys_search_load_path, "%search-load-path", 1, 0, 0, scm_sys_search_load_path);
 SCM 
 scm_sys_search_load_path (filename)
      SCM filename;
 {
   SCM path = *scm_loc_load_path;
+  SCM exts = *scm_loc_load_extensions;
   char *buf;
-  int buf_size;
   int filename_len;
+  int max_path_len;
+  int max_ext_len;
 
   SCM_ASSERT (SCM_NIMP (filename) && SCM_ROSTRINGP (filename), filename,
 	      SCM_ARG1, s_sys_search_load_path);
+  SCM_ASSERT (scm_ilength (path) >= 0, path, "load path is not a proper list",
+	      s_sys_search_load_path);
+  SCM_ASSERT (scm_ilength (exts) >= 0, exts,
+	      "load extension list is not a proper list",
+	      s_sys_search_load_path);
   filename_len = SCM_ROLENGTH (filename);
+
+  /* If FILENAME is absolute, return it unchanged.  */
+  if (filename_len >= 1
+      && SCM_ROCHARS (filename)[0] == '/')
+    return filename;
+
+  /* Find the length of the longest element of path.  */
+  {
+    SCM walk;
+
+    max_path_len = 0;
+    for (walk = path; SCM_NIMP (walk); walk = SCM_CDR (walk))
+      {
+	SCM elt = SCM_CAR (walk);
+	SCM_ASSERT (SCM_NIMP (elt) && SCM_ROSTRINGP (elt), elt,
+		    "load path is not a list of strings",
+		    s_sys_search_load_path);
+	if (SCM_LENGTH (elt) > max_path_len)
+	  max_path_len = SCM_LENGTH (elt);
+      }
+  }
+
+  /* Find the length of the longest element of the load extensions
+     list.  */
+  {
+    SCM walk;
+
+    max_ext_len = 0;
+    for (walk = exts; SCM_NIMP (walk); walk = SCM_CDR (walk))
+      {
+	SCM elt = SCM_CAR (walk);
+	SCM_ASSERT (SCM_NIMP (elt) && SCM_ROSTRINGP (elt), elt,
+		    "load extension list is not a list of strings",
+		    s_sys_search_load_path);
+	if (SCM_LENGTH (elt) > max_ext_len)
+	  max_ext_len = SCM_LENGTH (elt);
+      }
+  }
 
   SCM_DEFER_INTS;
 
-  buf_size = 80;
-  buf = scm_must_malloc (buf_size, s_sys_search_load_path);
+  buf = scm_must_malloc (max_path_len + 1 + filename_len + max_ext_len + 1,
+			 s_sys_search_load_path);
 
-  while (SCM_NIMP (path) && SCM_CONSP (path))
+  /* Try every path element.  At this point, we know it's a proper
+     list of strings.  */
+  for (; SCM_NIMP (path); path = SCM_CDR (path))
     {
-      SCM elt = SCM_CAR (path);
-      if (SCM_NIMP (elt) && SCM_ROSTRINGP (elt))
+      SCM path_elt = SCM_CAR (path);
+
+      /* Try every extension.  At this point, we know it's a proper
+         list of strings.  */
+      for (exts = *scm_loc_load_extensions;
+	   SCM_NIMP (exts);
+	   exts = SCM_CDR (exts))
 	{
-	  int len = SCM_ROLENGTH (elt) + 1 + filename_len;
+	  SCM ext_elt = SCM_CAR (exts);
+	  int i;
 
-	  if (len + 1 > buf_size)
-	    {
-	      int old_size = buf_size;
-	      buf_size = len + 50;
-	      buf = scm_must_realloc (buf, old_size, buf_size,
-				      s_sys_search_load_path);
-	    }
-
-	  memcpy (buf, SCM_ROCHARS (elt), SCM_ROLENGTH (elt));
-	  buf[SCM_ROLENGTH (elt)] = '/';
-	  memcpy (buf + SCM_ROLENGTH (elt) + 1,
-		  SCM_ROCHARS (filename), filename_len);
-	  buf[len] = '\0';
+	  /* Concatenate the path name, the filename, and the extension. */
+	  i = SCM_ROLENGTH (path_elt);
+	  memcpy (buf, SCM_ROCHARS (path_elt), i);
+	  buf[i++] = '/';
+	  memcpy (buf + i, SCM_ROCHARS (filename), filename_len);
+	  i += filename_len;
+	  memcpy (buf + i, SCM_ROCHARS (ext_elt), SCM_LENGTH (ext_elt));
+	  i += SCM_LENGTH (ext_elt);
+	  buf[i] = '\0';
 
 	  {
 	    struct stat mode;
@@ -180,15 +247,13 @@ scm_sys_search_load_path (filename)
 		&& ! (mode.st_mode & S_IFDIR)
 		&& access (buf, R_OK) == 0)
 	      {
-		SCM result = scm_makfromstr (buf, len, 0);
+		SCM result = scm_makfromstr (buf, i, 0);
 		scm_must_free (buf);
 		SCM_ALLOW_INTS;
 		return result;
 	      }
 	  }
 	}
-
-      path = SCM_CDR (path);
     }
   
   scm_must_free (buf);
@@ -197,21 +262,31 @@ scm_sys_search_load_path (filename)
 }
 
 
-SCM_PROC(s_primitive_load_path, "primitive-load-path", 1, 2, 0,scm_primitive_load_path);
+SCM_PROC(s_primitive_load_path, "primitive-load-path", 1, 2, 0, scm_primitive_load_path);
 SCM 
 scm_primitive_load_path (filename, case_insensitive_p, sharp)
      SCM filename;
      SCM case_insensitive_p;
      SCM sharp;
 {
-  SCM full_filename = scm_sys_search_load_path (filename);
+  SCM full_filename;
+
+  SCM_ASSERT (SCM_NIMP (filename) && SCM_ROSTRINGP (filename), filename,
+	      SCM_ARG1, s_primitive_load_path);
+
+  full_filename = scm_sys_search_load_path (filename);
+
   if (SCM_FALSEP (full_filename))
     {
+      int absolute = (SCM_LENGTH (filename) >= 1
+		      && SCM_ROCHARS (filename)[0] == '/');
       scm_misc_error (s_primitive_load_path,
-		      "Unable to find file %S in %S",
-		      scm_listify (filename, *scm_loc_load_path,
-				   SCM_UNDEFINED));
+		      (absolute
+		       ? "Unable to load file %S"
+		       : "Unable to find file %S in load path"),
+		      scm_listify (filename, SCM_UNDEFINED));
     }
+
   return scm_primitive_load (full_filename, case_insensitive_p, sharp);
 }
 
@@ -221,6 +296,12 @@ void
 scm_init_load ()
 {
   scm_loc_load_path = SCM_CDRLOC(scm_sysintern("%load-path", SCM_EOL));
+  scm_loc_load_extensions
+    = SCM_CDRLOC(scm_sysintern("%load-extensions",
+			       scm_listify (scm_makfrom0str (""),
+					    scm_makfrom0str (".scm"),
+					    SCM_UNDEFINED)));
+  scm_loc_load_hook = SCM_CDRLOC(scm_sysintern("%load-hook", SCM_BOOL_F));
 
 #include "load.x"
 }
