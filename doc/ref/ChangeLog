@@ -1,4 +1,4 @@
-2003-05-08  Kevin Ryde  <kevin@swox.se>
+2003-05-08  Kevin Ryde  <user42@zip.com.au>
 
 	* scheme-data.texi (Bitwise Operations): Fix lognot to ones-complement.
 
