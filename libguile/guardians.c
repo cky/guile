@@ -66,8 +66,9 @@
 #include "libguile/print.h"
 #include "libguile/smob.h"
 #include "libguile/validate.h"
-#include "libguile/properties.h"
 #include "libguile/root.h"
+#include "libguile/hashtab.h"
+#include "libguile/weaks.h"
 
 #include "libguile/guardians.h"
 
@@ -126,9 +127,7 @@ typedef struct guardian_t
 static guardian_t *greedy_guardians = NULL;
 static guardian_t *sharing_guardians = NULL;
 
-/* greedily guarded objects have this property set, so that we can
-   catch any attempt to greedily guard them again */
-static SCM greedily_guarded_prop = SCM_EOL;
+static SCM greedily_guarded_whash = SCM_EOL;
 
 /* this is the list of guarded objects that are parts of cycles.  we
    don't know in which order to return them from guardians, so we just
@@ -219,13 +218,13 @@ scm_guard (SCM guardian, SCM obj)
 
       if (GUARDIAN_GREEDY_P (guardian))
         {
-          if (SCM_NFALSEP (scm_primitive_property_ref
-                           (greedily_guarded_prop, obj)))
+          if (SCM_NFALSEP (scm_hashq_get_handle
+                           (greedily_guarded_whash, obj)))
             scm_misc_error ("guard",
                             "object is already greedily guarded", obj);
           else
-            scm_primitive_property_set_x (greedily_guarded_prop,
-                                          obj, SCM_BOOL_T);
+            scm_hashq_create_handle_x (greedily_guarded_whash,
+                                       obj, guardian);
         }
 
       SCM_NEWCELL (z);
@@ -251,9 +250,9 @@ scm_get_one_zombie (SCM guardian)
 
   if (SCM_NFALSEP (res)
       && GUARDIAN_GREEDY_P (guardian)
-      && SCM_NFALSEP (scm_primitive_property_ref
-                      (greedily_guarded_prop, res)))
-    scm_primitive_property_del_x (greedily_guarded_prop, res);
+      && SCM_NFALSEP (scm_hashq_get_handle
+                      (greedily_guarded_whash, res)))
+    scm_hashq_remove_x (greedily_guarded_whash, res);
   
   return res;
 }
@@ -506,13 +505,13 @@ scm_init_guardians ()
   scm_c_hook_add (&scm_before_mark_c_hook, guardian_gc_init, 0, 0);
   scm_c_hook_add (&scm_before_sweep_c_hook, guardian_zombify, 0, 0);
 
-  greedily_guarded_prop =
-    scm_permanent_object (scm_primitive_make_property (SCM_BOOL_F));
-
   self_centered_zombies =
     scm_permanent_object (scm_cons (SCM_UNDEFINED, SCM_EOL));
   scm_c_hook_add (&scm_after_gc_c_hook,
                   whine_about_self_centered_zombies, 0, 0);
+
+  greedily_guarded_whash =
+    scm_permanent_object (scm_make_doubly_weak_hash_table (SCM_MAKINUM (31)));
 
 #ifndef SCM_MAGIC_SNARFER
 #include "libguile/guardians.x"

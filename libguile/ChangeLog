@@ -1,3 +1,18 @@
+2000-12-30  Michael Livshin  <mlivshin@bigfoot.com>
+
+	* weaks.c (scm_scan_weak_vectors): move the calculation of the
+	`weak_keys' and `weak_values' flags out of the inner loop.
+
+2000-12-29  Michael Livshin  <mlivshin@bigfoot.com>
+
+	* guardians.c: (greedily_guarded_prop): deleted.
+	(greedily_guarded_whash): new variable.  a doubly-weak hash table
+	used to keep the "greedily hashed" object property.  the previous
+	implementation (via primitive object properties) was incorrect due
+	to its only-the-key-is-weak semantics.
+	(scm_guard, get_one_zombie, scm_init_guardians): use/init
+	`greedily_guarded_whash'.
+
 2000-12-28  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* eval.c (check_map_args), gh_data.c (gh_set_substr,

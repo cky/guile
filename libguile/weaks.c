@@ -273,6 +273,8 @@ scm_scan_weak_vectors (void *dummy1, void *dummy2, void *dummy3)
 	  SCM obj = w;
 	  register long n = SCM_VECTOR_LENGTH (w);
 	  register long j;
+          int weak_keys = SCM_IS_WHVEC (obj) || SCM_IS_WHVEC_B (obj);
+          int weak_values = SCM_IS_WHVEC_V (obj) || SCM_IS_WHVEC_B (obj);
 
 	  ptr = SCM_VELTS (w);
 
@@ -280,11 +282,6 @@ scm_scan_weak_vectors (void *dummy1, void *dummy2, void *dummy3)
 	    {
 	      SCM * fixup;
 	      SCM alist;
-	      int weak_keys;
-	      int weak_values;
-
-	      weak_keys = SCM_IS_WHVEC (obj) || SCM_IS_WHVEC_B (obj);
-	      weak_values = SCM_IS_WHVEC_V (obj) || SCM_IS_WHVEC_B (obj);
 
 	      fixup = ptr + j;
 	      alist = *fixup;
