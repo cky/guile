@@ -28,6 +28,7 @@ the same result using the scm interface.
 * Memory allocation and garbage collection::  
 * Calling Scheme procedures from C::  
 * Mixing gh and scm APIs::      
+* scm transition summary::
 @end menu
 
 
@@ -831,3 +832,223 @@ here.
 
 @node Mixing gh and scm APIs
 @section Mixing gh and scm APIs
+
+
+@node scm transition summary
+@section Transitioning to the scm Interface
+
+The following table summarizes the available information on how to
+transition from the GH to the scm interface.  Where transitioning is not
+completely straightforward, the table includes a reference to more
+detailed documentation in the preceding sections.
+
+@table @asis
+@item Header file
+Use @code{#include <libguile.h>} instead of @code{#include
+<guile/gh.h>}.
+
+@item Linking flags
+No change: @code{-lguile} should be added to the link command line,
+along with any additional libraries that your application needs.
+
+@item The @code{SCM} type
+No change: the scm interface also uses this type to represent an
+arbitrary Scheme value.
+
+@item @code{SCM_BOOL_F} and @code{SCM_BOOL_T}
+No change.
+
+@item @code{SCM_UNSPECIFIED}
+No change.
+
+@item @code{gh_enter}
+Use @code{scm_boot_guile} instead, but note that @code{scm_boot_guile}
+has a slightly different calling convention from @code{gh_enter}:
+@code{scm_boot_guile}, and the main program function that you specify
+for @code{scm_boot_guile} to call, both take an additional @var{closure}
+parameter.  @ref{Guile Initialization Functions} for more details.
+
+@item @code{gh_repl}
+Use @code{scm_shell} instead.
+
+@item @code{gh_init}
+Use @code{scm_init_guile} instead.
+
+@item @code{gh_eval_str}
+Use @code{scm_eval_0str} instead.
+
+@item @code{gh_eval_file} or @code{gh_load}
+Replace @code{gh_eval_file (@var{fname})} by
+@example
+scm_primitive_load (scm_makfrom0str (@var{fname}))
+@end example
+
+@item @code{gh_new_procedure}
+Use @code{scm_c_define_gsubr} instead, but note that the arguments are
+in a different order: for @code{scm_c_define_gsubr} the C function
+pointer is the last argument.  @ref{A Sample Guile Extension} for an
+example.
+
+@item @code{gh_defer_ints} and @code{gh_allow_ints}
+Use @code{SCM_DEFER_INTS} and @code{SCM_ALLOW_INTS} instead.  Note that
+these macros are used without parentheses, as in @code{SCM_DEFER_INTS;}.
+
+@item @code{gh_bool2scm}
+Use @code{SCM_BOOL} instead.
+
+@item @code{gh_ulong2scm}
+Use @code{scm_ulong2num} instead.
+
+@item @code{gh_long2scm}
+Use @code{scm_long2num} instead.
+
+@item @code{gh_double2scm}
+Use @code{scm_make_real} instead.
+
+@item @code{gh_char2scm}
+Use @code{SCM_MAKE_CHAR} instead.
+
+@item @code{gh_str2scm}
+Use @code{scm_makfromstr} instead.  Note that @code{scm_makfromstr}
+currently has an additional, third parameter, but it's unused and will
+hopefully disappear soon.  If it's still there, set it to 0.
+
+@item @code{gh_str02scm}
+Use @code{scm_makfrom0str} instead.
+
+@item @code{gh_set_substr}
+No direct scm equivalent.  [FIXME]
+
+@item @code{gh_symbol2scm}
+Use @code{scm_str2symbol} instead.  [FIXME: inconsistent naming,
+should be @code{scm_str02symbol}.]
+
+@item @code{gh_ints2scm} and @code{gh_doubles2scm}
+No direct scm equivalent.  [FIXME]
+
+@item @code{gh_chars2byvect} and @code{gh_shorts2svect}
+No direct scm equivalent.  [FIXME]
+
+@item @code{gh_longs2ivect} and @code{gh_ulongs2uvect}
+No direct scm equivalent.  [FIXME]
+
+@item @code{gh_floats2fvect} and @code{gh_doubles2dvect}
+No direct scm equivalent.  [FIXME]
+
+@item @code{gh_scm2bool}
+Use @code{SCM_NFALSEP} instead.
+
+@item @code{gh_scm2int}
+Use @code{scm_num2int} instead.
+
+@item @code{gh_scm2ulong}
+Use @code{scm_num2ulong} instead.
+
+@item @code{gh_scm2long}
+Use @code{scm_num2long} instead.
+
+@item @code{gh_scm2double}
+Use @code{scm_num2dbl} instead.
+
+@item @code{gh_scm2char}
+Use the @code{SCM_CHAR} macro instead, but note that @code{SCM_CHAR}
+does not check that its argument is actually a character.  To check that
+a @code{SCM} value is a character before using @code{SCM_CHAR} to
+extract the character value, use the @code{SCM_VALIDATE_CHAR} macro.
+
+@item @code{gh_scm2newstr}
+No direct scm equivalent.  [FIXME]
+
+@item @code{gh_get_substr}
+No direct scm equivalent.  [FIXME]
+
+@item @code{gh_symbol2newstr}
+No direct scm equivalent.  [FIXME]
+
+@item @code{gh_scm2chars}
+No direct scm equivalent.  [FIXME]
+
+@item @code{gh_scm2shorts} and @code{gh_scm2longs}
+No direct scm equivalent.  [FIXME]
+
+@item @code{gh_scm2floats} and @code{gh_scm2doubles}
+No direct scm equivalent.  [FIXME]
+
+@item @code{gh_boolean_p}
+Use the @code{SCM_BOOLP} macro instead, or replace @code{gh_boolean_p
+(@var{obj})} by
+@example
+SCM_NFALSEP (scm_boolean_p (@var{obj}))
+@end example
+
+@item @code{gh_symbol_p}
+Use the @code{SCM_SYMBOLP} macro instead, or replace @code{gh_symbol_p
+(@var{obj})} by
+@example
+SCM_NFALSEP (scm_symbol_p (@var{obj}))
+@end example
+
+@item @code{gh_char_p}
+Use the @code{SCM_CHARP} macro instead, or replace @code{gh_char_p
+(@var{obj})} by
+@example
+SCM_NFALSEP (scm_char_p (@var{obj}))
+@end example
+
+@item @code{gh_vector_p}
+Use the @code{SCM_VECTORP} macro instead, or replace @code{gh_vector_p
+(@var{obj})} by
+@example
+SCM_NFALSEP (scm_vector_p (@var{obj}))
+@end example
+
+@item @code{gh_pair_p}
+Use the @code{SCM_CONSP} macro instead, or replace @code{gh_pair_p
+(@var{obj})} by
+@example
+SCM_NFALSEP (scm_pair_p (@var{obj}))
+@end example
+
+@item @code{gh_number_p}
+Use the @code{SCM_NUMBERP} macro instead, or replace @code{gh_number_p
+(@var{obj})} by
+@example
+SCM_NFALSEP (scm_number_p (@var{obj}))
+@end example
+
+@item @code{gh_string_p}
+Use the @code{SCM_STRINGP} macro instead, or replace @code{gh_string_p
+(@var{obj})} by
+@example
+SCM_NFALSEP (scm_string_p (@var{obj}))
+@end example
+
+@item @code{gh_procedure_p}
+Replace @code{gh_procedure_p (@var{obj})} by
+@example
+SCM_NFALSEP (scm_procedure_p (@var{obj}))
+@end example
+
+@item @code{gh_list_p}
+Replace @code{gh_list_p (@var{obj})} by
+@example
+SCM_NFALSEP (scm_list_p (@var{obj}))
+@end example
+
+@item @code{gh_inexact_p}
+Use the @code{SCM_INEXACTP} macro instead, or replace @code{gh_inexact_p
+(@var{obj})} by
+@example
+SCM_NFALSEP (scm_inexact_p (@var{obj}))
+@end example
+
+@item @code{gh_exact_p}
+Replace @code{gh_exact_p (@var{obj})} by
+@example
+SCM_NFALSEP (scm_exact_p (@var{obj}))
+@end example
+
+@item @code{gh_list}
+Use @code{scm_listify} instead.
+
+@end table

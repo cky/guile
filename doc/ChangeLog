@@ -1,3 +1,9 @@
+2001-06-22  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* gh.texi (scm transition summary): New node for summary of how to
+	transition from GH to scm interface.
+	(GH): Link to new node.
+
 2001-06-20  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* guile.texi (Top): Move GH chapter to end of Part V.
