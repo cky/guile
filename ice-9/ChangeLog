@@ -1,3 +1,10 @@
+Mon Oct 27 02:05:49 1997  Jim Blandy  <jimb@totoro.red-bean.com>
+
+	* boot-9.scm: Revert changes to this file from Oct 23.  It turns
+ 	out to interact badly with the Emacs support and the Tcl/Tk
+ 	support.  It's not a high enough priority at the moment to be
+ 	worth fixing.  I'm leaving the other readline support in, though.
+
 Sat Oct 25 14:23:22 1997  Jim Blandy  <jimb@totoro.red-bean.com>
 
 	* Makefile.am: Include readline.scm in the list of files to be
