@@ -3074,6 +3074,12 @@ scm_num_eq_p (SCM x, SCM y)
 }
 
 
+/* OPTIMIZE-ME: For int/frac and frac/frac compares, the multiplications
+   done are good for inums, but for bignums an answer can almost always be
+   had by just examining a few high bits of the operands, as done by GMP in
+   mpq_cmp.  flonum/frac compares likewise, but with the slight complication
+   of the float exponent to take into account.  */
+
 SCM_GPROC1 (s_less_p, "<", scm_tc7_rpsubr, scm_less_p, g_less_p);
 /* "Return @code{#t} if the list of parameters is monotonically\n"
  * "increasing."
@@ -3081,6 +3087,7 @@ SCM_GPROC1 (s_less_p, "<", scm_tc7_rpsubr, scm_less_p, g_less_p);
 SCM
 scm_less_p (SCM x, SCM y)
 {
+ again:
   if (SCM_INUMP (x))
     {
       long xx = SCM_INUM (x);
@@ -3098,7 +3105,13 @@ scm_less_p (SCM x, SCM y)
       else if (SCM_REALP (y))
 	return SCM_BOOL ((double) xx < SCM_REAL_VALUE (y));
       else if (SCM_FRACTIONP (y))
-	return SCM_BOOL ((double) xx < scm_i_fraction2double (y));
+        {
+          /* "x < a/b" becomes "x*b < a" */
+        int_frac:
+          x = scm_product (x, SCM_FRACTION_DENOMINATOR (y));
+          y = SCM_FRACTION_NUMERATOR (y);
+          goto again;
+        }
       else
 	SCM_WTA_DISPATCH_2 (g_less_p, x, y, SCM_ARGn, s_less_p);
     }
@@ -3126,12 +3139,7 @@ scm_less_p (SCM x, SCM y)
 	  return SCM_BOOL (cmp < 0);
 	}
       else if (SCM_FRACTIONP (y))
-	{
-	  int cmp;
-	  cmp = xmpz_cmp_d (SCM_I_BIG_MPZ (x), scm_i_fraction2double (y));
-	  scm_remember_upto_here_1 (x);
-	  return SCM_BOOL (cmp < 0);
-	}
+        goto int_frac;
       else
 	SCM_WTA_DISPATCH_2 (g_less_p, x, y, SCM_ARGn, s_less_p);
     }
@@ -3151,25 +3159,48 @@ scm_less_p (SCM x, SCM y)
       else if (SCM_REALP (y))
 	return SCM_BOOL (SCM_REAL_VALUE (x) < SCM_REAL_VALUE (y));
       else if (SCM_FRACTIONP (y))
-	return SCM_BOOL (SCM_REAL_VALUE (x) < scm_i_fraction2double (y));
+        {
+          double  xx = SCM_REAL_VALUE (x);
+	  if (xisnan (xx))
+	    return SCM_BOOL_F;
+          if (xisinf (xx))
+            return SCM_BOOL (xx < 0.0);
+          x = scm_inexact_to_exact (x);  /* with x as frac or int */
+          goto again;
+        }
       else
 	SCM_WTA_DISPATCH_2 (g_less_p, x, y, SCM_ARGn, s_less_p);
     }
   else if (SCM_FRACTIONP (x))
     {
-      if (SCM_INUMP (y))
-	return SCM_BOOL (scm_i_fraction2double (x) < (double) SCM_INUM (y));
-      else if (SCM_BIGP (y))
-	{
-	  int cmp;
-	  cmp = xmpz_cmp_d (SCM_I_BIG_MPZ (y), scm_i_fraction2double (x));
-	  scm_remember_upto_here_1 (y);
-	  return SCM_BOOL (cmp > 0);
-	}
+      if (SCM_INUMP (y) || SCM_BIGP (y))
+        {
+          /* "a/b < y" becomes "a < y*b" */
+          y = scm_product (y, SCM_FRACTION_DENOMINATOR (x));
+          x = SCM_FRACTION_NUMERATOR (x);
+          goto again;
+        }
       else if (SCM_REALP (y))
-	return SCM_BOOL (scm_i_fraction2double (x) < SCM_REAL_VALUE (y));
+        {
+          double yy = SCM_REAL_VALUE (y);
+          if (xisnan (yy))
+            return SCM_BOOL_F;
+          if (xisinf (yy))
+            return SCM_BOOL (0.0 < yy);
+          y = scm_inexact_to_exact (y);  /* with y as frac or int */
+          goto again;
+        }
       else if (SCM_FRACTIONP (y))
-	return SCM_BOOL (scm_i_fraction2double (x) < scm_i_fraction2double (y));
+        {
+          /* "a/b < c/d" becomes "a*d < c*b" */
+          SCM new_x = scm_product (SCM_FRACTION_NUMERATOR (x),
+                                   SCM_FRACTION_DENOMINATOR (y));
+          SCM new_y = scm_product (SCM_FRACTION_NUMERATOR (y),
+                                   SCM_FRACTION_DENOMINATOR (x));
+          x = new_x;
+          y = new_y;
+          goto again;
+        }
       else
 	SCM_WTA_DISPATCH_2 (g_less_p, x, y, SCM_ARGn, s_less_p);
     }
