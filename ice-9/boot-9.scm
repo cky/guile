@@ -2008,29 +2008,58 @@
 					    #\_))
 				      (string->list mod-name)))
 		   '_module))
-  (let ((libname
+
+  ;; Put the subdirectory for this module in the car of SUBDIR-AND-LIBNAME,
+  ;; and the `libname' (the name of the module prepended by `lib') in the cdr
+  ;; field.  For example, if MODULE-NAME is the list (inet tcp-ip udp), then
+  ;; SUBDIR-AND-LIBNAME will be the pair ("inet/tcp-ip" . "libudp").
+  (let ((subdir-and-libname
 	 (let loop ((dirs "")
 		    (syms module-name))
-	   (cond
-	    ((null? (cdr syms))
-	     (string-append dirs "lib" (car syms) ".so"))
-	    (else
-	     (loop (string-append dirs (car syms) "/") (cdr syms))))))
+	   (if (null? (cdr syms))
+	       (cons dirs (string-append "lib" (car syms)))
+	       (loop (string-append dirs (car syms) "/") (cdr syms)))))
 	(init (make-init-name (apply string-append
 				     (map (lambda (s)
 					    (string-append "_" s))
 					  module-name)))))
-    ;; (pk 'libname libname 'init init)
-    (or-map
-     (lambda (dir)
-       (let ((full (in-vicinity dir libname)))
-	 ;; (pk 'trying full)
-	 (if (file-exists? full)
-	     (begin
-	       (link-dynamic-module full init)
-	       #t)
-	     #f)))
-     %load-path)))
+    (let ((subdir (car subdir-and-libname))
+	  (libname (cdr subdir-and-libname)))
+
+      ;; Now look in each dir in %LOAD-PATH for `subdir/libfoo.la'.  If that
+      ;; file exists, fetch the dlname from that file and attempt to link
+      ;; against it.  If `subdir/libfoo.la' does not exist, or does not seem
+      ;; to name any shared library, look for `subdir/libfoo.so' instead and
+      ;; link against that.
+      (let check-dirs ((dir-list %load-path))
+	(if (null? dir-list)
+	    #f
+	    (let* ((dir (in-vicinity (car dir-list) subdir))
+		   (sharlib-full
+		    (or (try-using-libtool-name dir libname)
+			(try-using-sharlib-name dir libname))))
+	      (if (and sharlib-full (file-exists? sharlib-full))
+		  (link-dynamic-module sharlib-full init)
+		  (check-dirs (cdr dir-list)))))))))
+
+(define (try-using-libtool-name libdir libname)
+  ;; FIXME: is `use-modules' legal inside `define'?
+  (use-modules (ice-9 regex))
+  (let ((libtool-filename (in-vicinity libdir
+				       (string-append libname ".la"))))
+    (and (file-exists? libtool-filename)
+	 (let ((dlname-pattern (make-regexp "^dlname='(.*)'")))
+	   (with-input-from-file libtool-filename
+	     (lambda ()
+	       (let loop ((ln (read-line)))
+		 (cond ((eof-object? ln) #f)
+		       ((regexp-exec dlname-pattern ln)
+			=> (lambda (match)
+			     (in-vicinity libdir (match:substring match 1))))
+		       (else (loop (read-line)))))))))))
+			      
+(define (try-using-sharlib-name libdir libname)
+  (in-vicinity libdir (string-append libname ".so")))
 
 (define (link-dynamic-module filename initname)
   (let ((dynobj (dynamic-link filename)))
