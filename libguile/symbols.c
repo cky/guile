@@ -111,7 +111,7 @@ scm_sym2vcell (SCM sym,SCM thunk,SCM definep)
     {
       SCM var = scm_apply (thunk, sym, scm_cons(definep, scm_listofnull));
 
-      if (var == SCM_BOOL_F)
+      if (SCM_FALSEP (var))
 	return SCM_BOOL_F;
       else
 	{
@@ -132,7 +132,7 @@ scm_sym2vcell (SCM sym,SCM thunk,SCM definep)
       for (lsym = SCM_VELTS (scm_symhash)[scm_hash]; SCM_NIMP (lsym); lsym = SCM_CDR (lsym))
 	{
 	  z = SCM_CAR (lsym);
-	  if (SCM_CAR (z) == sym)
+	  if (SCM_EQ_P (SCM_CAR (z), sym))
 	    {
 	      SCM_ALLOW_INTS;
 	      return z;
@@ -144,7 +144,7 @@ scm_sym2vcell (SCM sym,SCM thunk,SCM definep)
 	   lsym = *(lsymp = SCM_CDRLOC (lsym)))
 	{
 	  z = SCM_CAR (lsym);
-	  if (SCM_CAR (z) == sym)
+	  if (SCM_EQ_P (SCM_CAR (z), sym))
 	    {
 	      if (SCM_NFALSEP (definep))
 		{
@@ -181,7 +181,7 @@ scm_sym2ovcell_soft (SCM sym, SCM obarray)
        lsym = SCM_CDR (lsym))
     {
       z = SCM_CAR (lsym);
-      if (SCM_CAR (z) == sym)
+      if (SCM_EQ_P (SCM_CAR (z), sym))
 	{
 	  SCM_REALLOW_INTS;
 	  return z;
@@ -197,7 +197,7 @@ scm_sym2ovcell (SCM sym, SCM obarray)
 {
   SCM answer;
   answer = scm_sym2ovcell_soft (sym, obarray);
-  if (answer != SCM_BOOL_F)
+  if (!SCM_FALSEP (answer))
     return answer;
   scm_wta (sym, "uninterned symbol? ", "");
   return SCM_UNSPECIFIED;		/* not reached */
@@ -237,7 +237,7 @@ scm_intern_obarray_soft (const char *name,scm_sizet len,SCM obarray,int softness
 
   SCM_REDEFER_INTS;
 
-  if (obarray == SCM_BOOL_F)
+  if (SCM_FALSEP (obarray))
     {
       scm_hash = scm_strhash (name, len, 1019);
       goto uninterned_symbol;
@@ -272,7 +272,7 @@ scm_intern_obarray_soft (const char *name,scm_sizet len,SCM obarray,int softness
     trynext:;
     }
 
-  if (obarray == scm_symhash)
+  if (SCM_EQ_P (obarray, scm_symhash))
     {
       obarray = scm_weak_symhash;
       goto retry_new_obarray;
@@ -290,7 +290,7 @@ scm_intern_obarray_soft (const char *name,scm_sizet len,SCM obarray,int softness
   SCM_SETLENGTH (lsym, (long) len, scm_tc7_msymbol);
   SCM_SYMBOL_HASH (lsym) = scm_hash;
   SCM_SYMBOL_PROPS (lsym) = SCM_EOL;
-  if (obarray == SCM_BOOL_F)
+  if (SCM_FALSEP (obarray))
     {
       SCM answer;
       SCM_REALLOW_INTS;
@@ -393,7 +393,7 @@ scm_sysintern0 (const char *name)
     {
       SCM sym = SCM_CAR (scm_intern0 (name));
       SCM vcell = scm_sym2vcell (sym, lookup_proc, SCM_BOOL_T);
-      if (vcell == SCM_BOOL_F)
+      if (SCM_FALSEP (vcell))
 	  scm_misc_error ("sysintern0", "can't define variable", sym);
       return vcell;
     }
@@ -520,23 +520,20 @@ SCM_DEFINE (scm_string_to_obarray_symbol, "string->obarray-symbol", 2, 1, 0,
   int softness;
 
   SCM_VALIDATE_ROSTRING (2,s);
-  SCM_ASSERT((o == SCM_BOOL_F)
-	     || (o == SCM_BOOL_T)
-	     || (SCM_VECTORP(o)),
-	     o, SCM_ARG1, FUNC_NAME);
+  SCM_ASSERT (SCM_BOOLP (o) || SCM_VECTORP (o), o, SCM_ARG1, FUNC_NAME);
 
-  softness = ((softp != SCM_UNDEFINED) && (softp != SCM_BOOL_F));
+  softness = (!SCM_UNBNDP (softp) && !SCM_FALSEP(softp));
   /* iron out some screwy calling conventions */
-  if (o == SCM_BOOL_F)
+  if (SCM_FALSEP (o))
     o = scm_symhash;
-  else if (o == SCM_BOOL_T)
+  else if (SCM_TRUE_P (o))
     o = SCM_BOOL_F;
     
   vcell = scm_intern_obarray_soft (SCM_ROCHARS(s),
 				   (scm_sizet)SCM_ROLENGTH(s),
 				   o,
 				   softness);
-  if (vcell == SCM_BOOL_F)
+  if (SCM_FALSEP (vcell))
     return vcell;
   answer = SCM_CAR (vcell);
   return answer;
@@ -552,7 +549,7 @@ SCM_DEFINE (scm_intern_symbol, "intern-symbol", 2, 0, 0,
 {
   scm_sizet hval;
   SCM_VALIDATE_SYMBOL (2,s);
-  if (o == SCM_BOOL_F)
+  if (SCM_FALSEP (o))
     o = scm_symhash;
   SCM_VALIDATE_VECTOR (1,o);
   hval = scm_strhash (SCM_UCHARS (s), SCM_LENGTH (s), SCM_LENGTH(o));
@@ -566,7 +563,7 @@ SCM_DEFINE (scm_intern_symbol, "intern-symbol", 2, 0, 0,
 	 lsym = SCM_CDR (lsym))
       {
 	sym = SCM_CAR (lsym);
-	if (SCM_CAR (sym) == s)
+	if (SCM_EQ_P (SCM_CAR (sym), s))
 	  {
 	    SCM_REALLOW_INTS;
 	    return SCM_UNSPECIFIED;
@@ -589,7 +586,7 @@ SCM_DEFINE (scm_unintern_symbol, "unintern-symbol", 2, 0, 0,
 {
   scm_sizet hval;
   SCM_VALIDATE_SYMBOL (2,s);
-  if (o == SCM_BOOL_F)
+  if (SCM_FALSEP (o))
     o = scm_symhash;
   SCM_VALIDATE_VECTOR (1,o);
   hval = scm_strhash (SCM_UCHARS (s), SCM_LENGTH (s), SCM_LENGTH(o));
@@ -603,10 +600,10 @@ SCM_DEFINE (scm_unintern_symbol, "unintern-symbol", 2, 0, 0,
 	 lsym_follow = lsym, lsym = SCM_CDR (lsym))
       {
 	sym = SCM_CAR (lsym);
-	if (SCM_CAR (sym) == s)
+	if (SCM_EQ_P (SCM_CAR (sym), s))
 	  {
 	    /* Found the symbol to unintern. */
-	    if (lsym_follow == SCM_BOOL_F)
+	    if (SCM_FALSEP (lsym_follow))
 	      SCM_VELTS(o)[hval] = lsym;
 	    else
 	      SCM_SETCDR (lsym_follow, SCM_CDR(lsym));
@@ -630,7 +627,7 @@ SCM_DEFINE (scm_symbol_binding, "symbol-binding", 2, 0, 0,
 {
   SCM vcell;
   SCM_VALIDATE_SYMBOL (2,s);
-  if (o == SCM_BOOL_F)
+  if (SCM_FALSEP (o))
     o = scm_symhash;
   SCM_VALIDATE_VECTOR (1,o);
   vcell = scm_sym2ovcell (s, o);
@@ -647,11 +644,11 @@ SCM_DEFINE (scm_symbol_interned_p, "symbol-interned?", 2, 0, 0,
 {
   SCM vcell;
   SCM_VALIDATE_SYMBOL (2,s);
-  if (o == SCM_BOOL_F)
+  if (SCM_FALSEP (o))
     o = scm_symhash;
   SCM_VALIDATE_VECTOR (1,o);
   vcell = scm_sym2ovcell_soft (s, o);
-  if (SCM_IMP(vcell) && (o == scm_symhash))
+  if (SCM_IMP (vcell) && SCM_EQ_P (o, scm_symhash))
     vcell = scm_sym2ovcell_soft (s, scm_weak_symhash);
   return (SCM_NIMP(vcell)
 	  ? SCM_BOOL_T
@@ -671,14 +668,11 @@ SCM_DEFINE (scm_symbol_bound_p, "symbol-bound?", 2, 0, 0,
 {
   SCM vcell;
   SCM_VALIDATE_SYMBOL (2,s);
-  if (o == SCM_BOOL_F)
+  if (SCM_FALSEP (o))
     o = scm_symhash;
   SCM_VALIDATE_VECTOR (1,o);
   vcell = scm_sym2ovcell_soft (s, o);
-  return ((  SCM_NIMP(vcell)
-	   && (SCM_CDR(vcell) != SCM_UNDEFINED))
-	  ? SCM_BOOL_T
-	  : SCM_BOOL_F);
+  return SCM_BOOL (SCM_NIMP (vcell) && !SCM_UNBNDP (SCM_CDR (vcell)));
 }
 #undef FUNC_NAME
 
@@ -692,7 +686,7 @@ SCM_DEFINE (scm_symbol_set_x, "symbol-set!", 3, 0, 0,
 {
   SCM vcell;
   SCM_VALIDATE_SYMBOL (2,s);
-  if (o == SCM_BOOL_F)
+  if (SCM_FALSEP (o))
     o = scm_symhash;
   SCM_VALIDATE_VECTOR (1,o);
   vcell = scm_sym2ovcell (s, o);
@@ -873,8 +867,7 @@ SCM_DEFINE (scm_gensym, "gensym", 0, 2, 0,
 		obarray,
 		SCM_ARG2,
 		FUNC_NAME);
-  while (scm_string_to_obarray_symbol (obarray, new, SCM_BOOL_T)
-	 != SCM_BOOL_F)
+  while (!SCM_FALSEP (scm_string_to_obarray_symbol (obarray, new, SCM_BOOL_T)))
     skip_test:
     new = scm_string_append
       (scm_cons2 (name,
