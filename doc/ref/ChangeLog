@@ -1,3 +1,8 @@
+2003-08-09  Kevin Ryde  <user42@zip.com.au>
+
+	* scheme-memory.texi (Memory Blocks): Add index entries for deprecated
+	scm_must_malloc and friends.
+
 2003-07-29  Kevin Ryde  <user42@zip.com.au>
 
 	* scheme-compound.texi (List Constructors): Remove scm_cons_star,
