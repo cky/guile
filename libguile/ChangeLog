@@ -1,3 +1,9 @@
+2004-09-09  Kevin Ryde  <user42@zip.com.au>
+
+	* filesys.c, stime.c (_POSIX_C_SOURCE): Use this only on hpux, it
+	causes too many problems elsewhere (glibc, freebsd, mingw).  Reported
+	by Andreas Vögele.
+
 2004-09-08  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* Makefile.am (EXTRA_libguile_la_SOURCES): Removed "alloca.c".
