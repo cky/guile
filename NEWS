@@ -8,6 +8,17 @@ Changes since Guile 1.3.2:
 
 * Changes to Scheme functions and syntax
 
+** Readline support has changed again.
+
+The old (readline-activator) module is gone.  Use (ice-9 readline)
+instead, which now contains all readline functionality.  So the code
+to activate readline is now
+
+    (use-modules (ice-9 readline))
+    (activate-readline)
+
+This should work at any time, including from the guile prompt.
+
 ** Hooks
 
 *** New function: hook? OBJ
