@@ -1,8 +1,39 @@
-1998-11-22  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+1998-11-23  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+
+	* boot-9.scm (beautify-user-module!): Beautify also if public
+	interface is set to the module itself.  In this way we can use
+	beautify-user-module! to beautify a module prepared for object
+	code.
+	(process-define-module): Special case: Try to load object code as
+	well if a module does :use-module on itself.
+
+	* boot-9.scm: Bugfix: Since boot-9.scm is now loaded from
+	invoke_main_func, we can no longer be sure that all modules have
+	been registered when boot-9.scm is loaded.
+	(register-modules): New function: Register and tag modules
+	registered by scm_register_module_xxx since last call to this
+	function.  Modules are tagged with the dynamic object passed as
+	argument.  (Already linked modules should be tagged with #f.)
+	(init-dynamic-module, link-dynamic-module): Call register-modules
+	first to register linked modules.
+
+	* boot-9.scm (init-dynamic-module): Remove module from
+	registered-modules as soon as possible in case we are recursively
+	invoked; Set public interface before doing the dynamic-call.
+	
+	* boot-9.scm (map-in-order): Removed (replaced by scm_serial_map).
+	(abort-hook, before-error-hook, after-error-hook,
+	before-backtrace-hook, after-backtrace-hook, before-read-hook,
+	after-read-hook, exit-hook): Make hooks with `make-hook'.
+
+	* boot-9.scm: Make hooks first class citizens and make them easier
+	to use from C:
+	(make-hook, add-hook!, remove-hook!, run-hooks): Moved to
+	libguile/feature.c.
 
 	* boot-9.scm: Added warnings about bindings used in
 	libguile/modules.c: the-module, set-current-module,
-	make-modules-in, module-eval-closure.
+	make-modules-in, beautify-user-module!, module-eval-closure.
 
 1998-11-21  Mikael Djurfeldt  <mdj@kenneth>
 

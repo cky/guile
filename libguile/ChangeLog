@@ -1,3 +1,13 @@
+1998-11-23  Mikael Djurfeldt  <mdj@kenneth>
+
+	* feature.c, feature.h (scm_make_hook, scm_add_hook_x,
+	scm_remove_hook_x, scm_run_hooks): Moved from ice-9/boot-9.scm.
+	(scm_make_named_hook): New function.
+
+	* feature.c: Added #include "eval.h".
+	
+	* modules.c (scm_make_module): Beautify the module.
+
 1998-11-22  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
 	* modules.c, modules.h: New files: C interface to modules.  (This
