@@ -213,7 +213,9 @@ SCM scm_listofnullstr;
 /* Search PATH for a directory containing a file named FILENAME.
    The file must be readable, and not a directory.
    If we find one, return its full filename; otherwise, return #f.
-   If FILENAME is absolute, return it unchanged.  */
+   If FILENAME is absolute, return it unchanged.
+   If given, EXTENSIONS is a list of strings; for each directory 
+   in PATH, we search for FILENAME concatenated with each EXTENSION.  */
 SCM_PROC(s_search_path, "search-path", 2, 1, 0, scm_search_path);
 SCM 
 scm_search_path (path, filename, extensions)
@@ -221,25 +223,25 @@ scm_search_path (path, filename, extensions)
      SCM filename;
      SCM extensions;
 {
-  char *buf, *endp;
+  char *filename_chars;
   int filename_len;
-  size_t max_path_len;
-  size_t max_ext_len;
-  SCM result = SCM_BOOL_F;
+  size_t max_path_len;		/* maximum length of any PATH element */
+  size_t max_ext_len;		/* maximum length of any EXTENSIONS element */
 
   SCM_ASSERT (scm_ilength (path) >= 0, path, SCM_ARG1, s_search_path);
   SCM_ASSERT (SCM_NIMP (filename) && SCM_ROSTRINGP (filename), filename,
 	      SCM_ARG2, s_search_path);
   if (SCM_UNBNDP (extensions))
-    extensions = scm_listofnullstr;
+    extensions = SCM_EOL;
   else
     SCM_ASSERT (scm_ilength (extensions) >= 0, extensions,
 		SCM_ARG3, s_search_path);
+
+  filename_chars = SCM_ROCHARS (filename);
   filename_len = SCM_ROLENGTH (filename);
 
   /* If FILENAME is absolute, return it unchanged.  */
-  if (filename_len >= 1
-      && SCM_ROCHARS (filename)[0] == '/')
+  if (filename_len >= 1 && filename_chars[0] == '/')
     return filename;
 
   /* Find the length of the longest element of path.  */
@@ -255,6 +257,28 @@ scm_search_path (path, filename, extensions)
 		    s_search_path);
 	if (SCM_ROLENGTH (elt) > max_path_len)
 	  max_path_len = SCM_ROLENGTH (elt);
+      }
+  }
+
+  /* If FILENAME has an extension, don't try to add EXTENSIONS to it.  */
+  {
+    char *endp;
+
+    for (endp = filename_chars + filename_len - 1;
+	 endp >= filename_chars;
+	 endp--)
+      {
+	if (*endp == '.')
+	  {
+	    /* This filename already has an extension, so cancel the
+               list of extensions.  */
+	    extensions = SCM_EOL;
+	    break;
+	  }
+	else if (*endp == '/')
+	  /* This filename has no extension, so keep the current list
+             of extensions.  */
+	  break;
       }
   }
 
@@ -275,63 +299,62 @@ scm_search_path (path, filename, extensions)
       }
   }
 
-  /* Remove the same extension that FILENAME already has.  */
-  for (endp = SCM_ROCHARS (filename) + filename_len - 1;
-       endp > SCM_ROCHARS (filename) && *endp != '/'; endp--)
-    if (*endp == '.')
-      {
-	extensions = scm_delete (scm_makfromstr (endp, SCM_ROCHARS (filename)
-						 + filename_len - endp, 0),
-				 extensions);
-	break;
-      }
-
   SCM_DEFER_INTS;
 
-  buf = scm_must_malloc (max_path_len + 1 + filename_len + max_ext_len + 1,
-			 s_search_path);
+  {
+    SCM result = SCM_BOOL_F;
+    int buf_size = max_path_len + 1 + filename_len + max_ext_len + 1;
+    char *buf = scm_must_malloc (buf_size, s_search_path);
 
-  /* Try every path element.  At this point, we know it's a proper
-     list of strings.  */
-  for (; SCM_NIMP (path); path = SCM_CDR (path))
-    {
-      int len;
-      SCM dir = SCM_CAR (path), exts;
+    /* This simplifies the loop below a bit.  */
+    if (SCM_NULLP (extensions))
+      extensions = scm_listofnullstr;
 
-      /* Concatenate the path name and the filename. */
-      len = SCM_ROLENGTH (dir);
-      memcpy (buf, SCM_ROCHARS (dir), len);
-      if (len >= 1 && buf[len - 1] != '/')
-	buf[len++] = '/';
-      memcpy (buf + len, SCM_ROCHARS (filename), filename_len);
-      endp = buf + len + filename_len;
+    /* Try every path element.  At this point, we know the path is a
+       proper list of strings.  */
+    for (; SCM_NIMP (path); path = SCM_CDR (path))
+      {
+	int len;
+	SCM dir = SCM_CAR (path);
+	SCM exts;
 
-      /* Try every extension.  At this point, we know it's a proper
-         list of strings.  */
-      for (exts = extensions; SCM_NIMP (exts); exts = SCM_CDR (exts))
-	{
-	  SCM ext = SCM_CAR (exts);
-	  struct stat mode;
+	/* Concatenate the path name and the filename. */
+	len = SCM_ROLENGTH (dir);
+	memcpy (buf, SCM_ROCHARS (dir), len);
+	if (len >= 1 && buf[len - 1] != '/')
+	  buf[len++] = '/';
+	memcpy (buf + len, filename_chars, filename_len);
+	len += filename_len;
 
-	  /* Concatenate the extension. */
-	  len = SCM_ROLENGTH (ext);
-	  memcpy (endp, SCM_ROCHARS (ext), len);
-	  *(endp + len) = '\0';
+	/* Try every extension.  At this point, we know the extension
+	   list is a proper, nonempty list of strings.  */
+	for (exts = extensions; SCM_NIMP (exts); exts = SCM_CDR (exts))
+	  {
+	    SCM ext = SCM_CAR (exts);
+	    int ext_len = SCM_ROLENGTH (ext);
+	    struct stat mode;
 
-	  if (stat (buf, &mode) == 0
-	      && ! (mode.st_mode & S_IFDIR)
-	      && access (buf, R_OK) == 0)
-	    {
-	      result = scm_makfromstr (buf, endp + len - buf, 0);
-	      goto end;
-	    }
-	}
-    }
+	    /* Concatenate the extension. */
+	    memcpy (buf + len, SCM_ROCHARS (ext), ext_len);
+	    buf[len + ext_len] = '\0';
+	    
+	    /* If the file exists at all, we should return it.  If the
+	       file is inaccessible, then that's an error.  */
+	    if (stat (buf, &mode) == 0
+		&& ! (mode.st_mode & S_IFDIR))
+	      {
+		result = scm_makfromstr (buf, len + ext_len, 0);
+		goto end;
+	      }
+	  }
+      }
 
- end:
-  scm_must_free (buf);
-  SCM_ALLOW_INTS;
-  return result;
+  end:
+    scm_must_free (buf);
+    scm_done_malloc (- buf_size);
+    SCM_ALLOW_INTS;
+    return result;
+  }
 }
 
 
