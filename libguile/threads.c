@@ -145,7 +145,7 @@ scm_init_threads (SCM_STACKITEM *i)
   scm_tc16_thread = scm_make_smob_type ("thread", 0);
   scm_tc16_mutex = scm_make_smob_type ("mutex", sizeof (scm_t_mutex));
   scm_tc16_condvar = scm_make_smob_type ("condition-variable",
-					 sizeof (scm_t_condvar));
+					 sizeof (scm_t_cond));
                                         
 #include "libguile/threads.x"
   /* Initialize implementation specific details of the threads support */
