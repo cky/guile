@@ -50,7 +50,6 @@
 #include <math.h>
 #include <ctype.h>
 #include <string.h>
-#include <gmp.h>
 
 #include "libguile/_scm.h"
 #include "libguile/feature.h"
@@ -5679,6 +5678,23 @@ scm_is_unsigned_integer (SCM val, scm_t_uintmax min, scm_t_uintmax max)
 #include "libguile/conv-uinteger.i.c"
 
 #endif
+
+void
+scm_to_mpz (SCM val, mpz_t rop)
+{
+  if (SCM_I_INUMP (val))
+    mpz_set_si (rop, SCM_I_INUM (val));
+  else if (SCM_BIGP (val))
+    mpz_set (rop, SCM_I_BIG_MPZ (val));
+  else
+    scm_wrong_type_arg_msg (NULL, 0, val, "exact integer");
+}
+
+SCM
+scm_from_mpz (mpz_t val)
+{
+  return scm_i_mpz2num (val);
+}
 
 int
 scm_is_real (SCM val)
