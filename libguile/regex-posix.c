@@ -1,4 +1,4 @@
-/*	Copyright (C) 1997, 1998 Free Software Foundation, Inc.
+/*	Copyright (C) 1997, 1998, 1999 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -101,9 +101,7 @@ free_regex (obj)
 SCM_SYMBOL (scm_regexp_error_key, "regular-expression-syntax");
 
 static char *
-scm_regexp_error_msg (regerrno, rx)
-     int regerrno;
-     SCM rx;
+scm_regexp_error_msg (int regerrno, regex_t *rx)
 {
   SCM errmsg;
   int l;
@@ -120,11 +118,11 @@ scm_regexp_error_msg (regerrno, rx)
 
   errmsg = scm_make_string (SCM_MAKINUM (80), SCM_UNDEFINED);
   SCM_DEFER_INTS;
-  l = regerror (regerrno, SCM_RGX (rx), SCM_CHARS (errmsg), 80);
+  l = regerror (regerrno, rx, SCM_CHARS (errmsg), 80);
   if (l > 80)
     {
       errmsg = scm_make_string (SCM_MAKINUM (l), SCM_UNDEFINED);
-      regerror (regerrno, SCM_RGX (rx), SCM_CHARS (errmsg), l);
+      regerror (regerrno, rx, SCM_CHARS (errmsg), l);
     }
   SCM_ALLOW_INTS;
   return SCM_CHARS (errmsg);
@@ -242,7 +240,7 @@ scm_regexp_exec (SCM rx, SCM str, SCM start, SCM flags)
   if (status != 0 && status != REG_NOMATCH)
     scm_error (scm_regexp_error_key,
 	       s_regexp_exec,
-	       scm_regexp_error_msg (status),
+	       scm_regexp_error_msg (status, SCM_RGX (rx)),
 	       SCM_BOOL_F,
 	       SCM_BOOL_F);
   return mvec;
