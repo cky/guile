@@ -1,3 +1,10 @@
+2000-09-05  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* tests/environments.test:  Finished and cleaned up the tests for
+	the leaf environments.  Added a complete set of testcases for the
+	leaf environment based eval environments.  Started with the tests
+	for the import environments.
+
 2000-08-25  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* tests/environments.test:  Added.
