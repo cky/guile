@@ -1,3 +1,24 @@
+Wed Sep 18 09:07:37 1996  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* boot-9.scm (%%handle-system-error key): remove the code for
+	SCM-style errors.  handle the case that an unexpected number
+	of args are supplied.
+	(%%system-errors): removed.
+	(error): redefine using a throw with key and 4 args.
+	('error): associate 'error, 'error-signal keys with
+	%%handle-system-error.
+	(%%default-error-handler): removed.
+	(signal-handler): throw with 4 args and use the error-signal key.
+	Create an error message instead of using numerical codes.
+	(%%bad-throw): call error instead of throw if key not found.
+
+Tue Sep 17 04:11:28 1996  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* boot-9.scm: initialize new error keys (see libguile/ChangeLog).
+	(%%handle-system-error key): check subr is not #f before printing.
+	Recognize %s (embed an argument using "display") and
+	%S (embed an argument using "write").
+
 Sun Sep 15 03:55:35 1996  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* boot-9.scm (%%handle-system-error key): set args and rest to

@@ -577,41 +577,15 @@
 ;;; {Error Handling}
 ;;;
 
-
-;; (error . args) is short for (throw (quote error) . args)
-;;
 (define (error . args)
-  (apply throw 'error args))
-
-
-
-
-;; Error handling a la SCM.
-;;
-(define (%%default-error-handler tag . args)
-  (define cep (current-error-port))
-  (perror "ERROR")
-  (errno 0)
-  (display "ERROR: " cep)
-  (if (not (null? args))
-      (begin (display (car args) cep)
-	     (for-each (lambda (x) (display #\  cep) (write x cep))
-		       (cdr args))))
-  (newline cep)
-  (force-output cep)
-  (apply throw 'abort tag args))
-
-
-
-;; Install SCM error handling as the default.
-;;
-(set-symbol-property! 'error
-		      'throw-handler-default
-		      %%default-error-handler)
-
-
-
-
+  (if (null? args)
+      (throw 'error #f "?" #f #f)
+      (let loop ((msg "%s")
+		 (rest (cdr args)))
+	(if (not (null? rest))
+	    (loop (string-append msg " %S")
+		  (cdr rest))
+	    (throw 'error #f msg args #f)))))
 
 ;; %%bad-throw is the hook that is called upon a throw to a an unhandled
 ;; key.  If the key has a default handler (a throw-handler-default property),
@@ -620,40 +594,37 @@
 (define (%%bad-throw key . args)
   (let ((default (symbol-property key 'throw-handler-default)))
     (or (and default (apply default key args))
-	(throw 'error 'unhandled-exception key args))))
+	(apply error "unhandled-exception:" key args))))
 
-
-
-
-
-;; A number of internally defined error types are represented
+;; mostly obsolete.
+;; A number of internally defined error types were represented
 ;; as integers.  Here is the mapping to symbolic names
 ;; and error messages.
 ;;
-(define %%system-errors
-  '((-1 UNKNOWN "Unknown error")
-    (0 ARGn  "Wrong type argument to ")
-    (1 ARG1  "Wrong type argument in position 1 to ")
-    (2 ARG2  "Wrong type argument in position 2 to ")
-    (3 ARG3  "Wrong type argument in position 3 to ")
-    (4 ARG4  "Wrong type argument in position 4 to ")
-    (5 ARG5  "Wrong type argument in position 5 to ")
-    (6 ARG5  "Wrong type argument in position 5 to ")
-    (7 ARG5  "Wrong type argument in position 5 to ")
-    (8 WNA "Wrong number of arguments to ")
-    (9 OVFLOW "Numerical overflow to ")
-    (10 OUTOFRANGE "Argument out of range to ")
-    (11 NALLOC "Could not allocate to ")
-    (12 STACK_OVFLOW "Stack overflow")
-    (13 EXIT "Exit (internal error?).")
-    (14 HUP_SIGNAL "hang-up")
-    (15 INT_SIGNAL "user interrupt")
-    (16 FPE_SIGNAL "arithmetic error")
-    (17 BUS_SIGNAL "bus error")
-    (18 SEGV_SIGNAL "segmentation violation")
-    (19 ALRM_SIGNAL "alarm")
-    (20 GC_SIGNAL "gc")
-    (21 TICK_SIGNAL "tick")))
+;(define %%system-errors
+;  '((-1 UNKNOWN "Unknown error")
+;    (0 ARGn  "Wrong type argument to ")
+;    (1 ARG1  "Wrong type argument in position 1 to ")
+;    (2 ARG2  "Wrong type argument in position 2 to ")
+;    (3 ARG3  "Wrong type argument in position 3 to ")
+;    (4 ARG4  "Wrong type argument in position 4 to ")
+;    (5 ARG5  "Wrong type argument in position 5 to ")
+;    (6 ARG5  "Wrong type argument in position 5 to ")
+;    (7 ARG5  "Wrong type argument in position 5 to ")
+;    (8 WNA "Wrong number of arguments to ")
+;    (9 OVFLOW "Numerical overflow to ")
+;    (10 OUTOFRANGE "Argument out of range to ")
+;    (11 NALLOC "Could not allocate to ")
+;    (12 STACK_OVFLOW "Stack overflow")
+;    (13 EXIT "Exit (internal error?).")
+;    (14 HUP_SIGNAL "hang-up")
+;    (15 INT_SIGNAL "user interrupt")
+;    (16 FPE_SIGNAL "arithmetic error")
+;    (17 BUS_SIGNAL "bus error")
+;    (18 SEGV_SIGNAL "segmentation violation")
+;    (19 ALRM_SIGNAL "alarm")
+;    (20 GC_SIGNAL "gc")
+;    (21 TICK_SIGNAL "tick")))
 
 
 (define (timer-thunk) #t)
@@ -661,76 +632,88 @@
 (define (alarm-thunk) #t)
 
 (define (signal-handler n)
-  (cond
-   ((= n 21)	(unmask-signals) (timer-thunk))
-   ((= n 20)	(unmask-signals) (gc-thunk))
-   ((= n 19)	(unmask-signals) (alarm-thunk))
-   (else	(unmask-signals) (throw 'system-error n #f))))
+  (let* (
+	 ;; these numbers are set in libguile, not the same as those 
+	 ;; interned in posix.c.
+	 ;;
+	 (signal-messages `((14 . "hang-up")
+			    (15 . "user interrupt")
+			    (16 . "arithmetic error")
+			    (17 . "bus error")
+			    (18 . "segmentation violation"))))
+    (cond
+     ((= n 21)	(unmask-signals) (timer-thunk))
+     ((= n 20)	(unmask-signals) (gc-thunk))
+     ((= n 19)	(unmask-signals) (alarm-thunk))
+     (else (unmask-signals)
+	   (let ((sig-pair (assoc n signal-messages)))
+	     (throw 'error-signal #f 
+		    (cdr (or sig-pair
+			     (cons n "Unknow signal: %s")))
+		    (if sig-pair
+			#f
+			(list n))
+		    (list n)))))))
 
+(define display-error-message
+  (lambda (message args port)
+    (if (or (not (list? args))
+	    (null? args))
+	(display message port)
+	(let ((len (string-length message)))
+	  (cond ((< len 2)
+		 (display message port))
+		((string=? (substring message 0 2)
+			   "%s")
+		 (display (car args) port)
+		 (display-error-message (substring message 2 len)
+					(cdr args)
+					port))
+		((string=? (substring message 0 2)
+			   "%S")
+		 (write (car args) port)
+		 (display-error-message (substring message 2 len)
+					(cdr args)
+					port))
+		(else
+		 (display (substring message 0 1)
+			  port)
+		 (display-error-message (substring message 1 len)
+					args
+					port)))))))
 
-;; The default handler for built-in error types when
-;; thrown by their symbolic name.
+;; The default handler for built-in error types when thrown by their
+;; symbolic names.
 (define (%%handle-system-error key . arg-list)
-  (cond ((= (length arg-list) 4)
-	 (letrec ((subr (car arg-list))
-		  (message (cadr arg-list))
-		  (args (or (caddr arg-list)
-			    '()))
-		  (rest (or (cadddr arg-list)
-			    '()))
-		  (cep (current-error-port))
-		  (fill-message
-		   (lambda (message args)
-		     (if (null? args)
-			 (display message cep)
-			 (let ((len (string-length message)))
-			   (cond ((< len 2)
-				  (display message cep))
-				 ((string=? (substring message 0 2)
-					    "%S")
-				  (display (car args) cep)
-				  (fill-message
-				   (substring message 2 len)
-				   (cdr args)))
-				 (else
-				  (display (substring message 0 1)
-					   cep)
-				  (fill-message
-				   (substring message 1 len)
-				   args))))))))
-	   (display "ERROR: " cep)
-	   (display subr cep)
-	   (display ": " cep)
-	   (cond ((list? args)
-		  (fill-message message args))
-		 (else
-		  (display message cep)
-		  (display " (bad message args)" cep)))
-	   (newline cep)
-	   (force-output cep)
-	   (apply throw 'abort key (list (car arg-list)))))
-	(else
-	 ;; old style errors.
-	 (let* ((desc (car arg-list))
-		(proc (cadr arg-list))
-		(args (cddr arg-list))
-		(b (assoc desc %%system-errors))
-		(msghead (cond
-			  (b (caddr b))
-			  ((or (symbol? desc) (string? desc))
-			   (string-append desc " "))
-			  (#t "Unknown error")))
-		(msg (if (symbol? proc)
-			 (string-append msghead proc ":")
-			 msghead))
-		(rest (if (and proc (not (symbol? proc)))
-			  (cons proc args)
-			  args))
-		(fixed-args (cons msg rest)))
-	   (apply error fixed-args)))))
+  (let ((cep (current-error-port)))
+    (cond ((not (= (length arg-list) 4))
+	   (display "ERROR: bad error throw: " cep)
+	   (write arg-list cep))
+	  (else
+	   (let ((subr (car arg-list))
+		 (message (cadr arg-list))
+		 (args (or (caddr arg-list)
+			   '()))
+		 (rest (or (cadddr arg-list)
+			   '())))
+	     (display "ERROR: " cep)
+	     (cond (subr
+		    (display subr cep)
+		    (display ": " cep)))
+	     (cond ((list? args)
+		    (display-error-message message args cep))
+		   (else
+		    (display message cep)
+		    (display " (bad message args)" cep))))))
+    (newline cep)
+    (force-output cep)
+    (throw 'abort key)))
 
-;; associate error symbols with the default handler.
-(let loop ((keys '(system-error numerical-overflow out-of-range)))
+;; associate error symbols with %%handle-system-error.
+(let loop ((keys '(error error-signal system-error numerical-overflow
+			 out-of-range wrong-type-arg wrong-number-of-args
+			 memory-allocation-error stack-overflow
+			 misc-error)))
   (cond ((not (null? keys))
 	 (set-symbol-property! (car keys)
 			       'throw-handler-default
