@@ -3448,7 +3448,8 @@ SCM_PROC1 (s_i_tanh, "$tanh", scm_tc7_cxr, (SCM (*)())tanh);
 
 struct dpair {double x, y;};
 
-void scm_two_doubles(z1, z2, sstring, xy)
+static void 
+scm_two_doubles(z1, z2, sstring, xy)
      SCM z1, z2;
      char *sstring;
      struct dpair *xy;
