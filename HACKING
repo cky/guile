@@ -217,9 +217,9 @@ When deprecating a definition, always follow this procedure:
 4. Add an entry that the definition has been deprecated in NEWS and
    explain what do do instead.
 
-5. At the top of RELEASE, there is a list of releases with reminders
-   about what to do at each release.  Add a reminder about the removal
-   of the deprecated defintion at the appropriate release.
+5. In file TODO, there is a list of releases with reminders about what
+   to do at each release.  Add a reminder about the removal of the
+   deprecated defintion at the appropriate release.
 
 - When you make a user-visible change (i.e. one that should be
 documented, and appear in NEWS, put an asterisk in column zero of the
