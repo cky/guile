@@ -1,6 +1,6 @@
 ## Process this file with Automake to create Makefile.in
 ##
-##  	Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
+##  	Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
@@ -102,7 +102,7 @@ libguile_la_SOURCES = alist.c arbiters.c async.c backtrace.c boolean.c	    \
     load.c macros.c mallocs.c modules.c numbers.c objects.c objprop.c	    \
     options.c pairs.c ports.c print.c procprop.c procs.c properties.c	    \
     random.c rdelim.c read.c root.c rw.c scmsigs.c script.c simpos.c smob.c \
-    sort.c srcprop.c stackchk.c stacks.c stime.c strings.c strop.c	    \
+    sort.c srcprop.c stackchk.c stacks.c stime.c strings.c srfi-13.c srfi-14.c \
     strorder.c strports.c struct.c symbols.c threads.c throw.c values.c	    \
     variable.c vectors.c version.c vports.c weaks.c
 
@@ -118,7 +118,7 @@ DOT_X_FILES = alist.x arbiters.x async.x backtrace.x boolean.x chars.x	 \
     numbers.x objects.x objprop.x options.x pairs.x ports.x print.x	 \
     procprop.x procs.x properties.x random.x rdelim.x read.x root.x rw.x \
     scmsigs.x script.x simpos.x smob.x sort.x srcprop.x			 \
-    stackchk.x stacks.x stime.x strings.x strop.x strorder.x strports.x	 \
+    stackchk.x stacks.x stime.x strings.x srfi-13.x srfi-14.x strorder.x strports.x	 \
     struct.x symbols.x threads.x throw.x values.x variable.x vectors.x	 \
     version.x vports.x weaks.x
 
@@ -138,7 +138,7 @@ DOT_DOC_FILES = alist.doc arbiters.doc async.doc backtrace.doc		    \
     options.doc pairs.doc ports.doc print.doc procprop.doc		    \
     procs.doc properties.doc random.doc rdelim.doc read.doc root.doc rw.doc \
     scmsigs.doc script.doc simpos.doc smob.doc sort.doc			    \
-    srcprop.doc stackchk.doc stacks.doc stime.doc strings.doc strop.doc	    \
+    srcprop.doc stackchk.doc stacks.doc stime.doc strings.doc srfi-13.doc srfi-14.doc \
     strorder.doc strports.doc struct.doc symbols.doc threads.doc throw.doc  \
     values.doc variable.doc vectors.doc version.doc vports.doc weaks.doc
 
@@ -194,7 +194,7 @@ modinclude_HEADERS = __scm.h alist.h arbiters.h async.h backtrace.h boolean.h \
     regex-posix.h print.h procprop.h procs.h properties.h random.h ramap.h    \
     rdelim.h read.h root.h rw.h scmsigs.h validate.h script.h simpos.h smob.h \
     snarf.h socket.h sort.h srcprop.h stackchk.h stacks.h stime.h strings.h   \
-    strop.h strorder.h strports.h struct.h symbols.h tags.h threads.h	      \
+    srfi-13.h srfi-14.h strorder.h strports.h struct.h symbols.h tags.h threads.h	      \
     throw.h unif.h values.h variable.h vectors.h vports.h weaks.h
 
 nodist_modinclude_HEADERS = version.h scmconfig.h
