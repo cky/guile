@@ -1,3 +1,12 @@
+2003-06-19  Marius Vollmer  <mvo@zagadka.de>
+
+	* deprecated.h, deprecated.c (scm_strhash, scm_sym2ovcell_soft,
+	scm_sym2ovcell, scm_intern_obarray_soft, scm_intern_obarray,
+	scm_symbol_value0, scm_string_to_obarray_symbol scm_intern_symbol,
+	scm_unintern_symbol, scm_symbol_binding, scm_symbol_interned_p,
+	scm_symbol_bound_p, scm_symbol_set_x, scm_gentemp): Re-added from
+	the release_1_6 branch.
+
 2003-06-14  Stefan Jahn  <stefan@lkcc.org>
 
 	* threads.h: Redefined scm_getspecific() and scm_setspecific()
