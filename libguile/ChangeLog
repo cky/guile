@@ -1,3 +1,30 @@
+Fri Jul 18 11:19:53 1997  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* fluids.c, fluid.h: New files.
+	* Makefile.am (libguile_la_SOURCES): Added "fluids.c".
+  	(modinclude_HEADERS): Added "fluids.h"
+	
+	* init.c: Include "fluids.h".  (scm_boot_guile_1): Added call to
+ 	scm_init_fluids to initialize the fluid machine.
+  	(scm_start_stack): Initialize the fluids of the first root with
+ 	scm_make_initial_fluids.
+
+	* root.h: Added "fluids" member to scm_root_state.
+	* root.c: Include "fluids.h".  (scm_mark_root): Mark "fluids".
+	(scm_make_root): Call scm_copy_fluids to make fluid bindings
+ 	unique for the new root when it has a parent.
+	
+	* smob.h: Include "libguile/print.h" to make scm_print_state
+ 	visible.
+
+	* dynl.c (free_dynl_obj): New function to free the dynamic object
+ 	data. (dynl_smob): Use it.
+	* dynl.c (scm_dynamic_link): Moved allocating of the memory for
+ 	the dynamic object data below the linking of the object to avoid
+ 	memory leak when the linking code throws an error.  Now the code
+ 	leaks a whole dynamically linked library when must_malloc throws,
+ 	but that should be much less likely.
+
 Fri Jul 11 00:19:47 1997  Jim Blandy  <jimb@floss.red-bean.com>
 
 	Changes to compile under gnu-win32, from Marcus Daniels:
