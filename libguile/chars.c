@@ -338,13 +338,13 @@ char *const scm_charnames[] =
    "bs", "ht", "newline", "vt", "np", "cr", "so", "si",
   "dle","dc1","dc2","dc3","dc4","nak","syn","etb",
   "can", "em","sub","esc", "fs", "gs", "rs", "us",
-  "space", "nl", "tab", "backspace", "return", "page", "null", "del"};
+  "space", "sp", "nl", "tab", "backspace", "return", "page", "null", "del"};
 const char scm_charnums[] =
 "\000\001\002\003\004\005\006\007\
 \010\011\012\013\014\015\016\017\
 \020\021\022\023\024\025\026\027\
 \030\031\032\033\034\035\036\037\
- \n\t\b\r\f\0\177";
+  \n\t\b\r\f\0\177";
 #endif /* def ASCII */
 
 int scm_n_charnames = sizeof (scm_charnames) / sizeof (char *);
