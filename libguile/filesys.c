@@ -640,7 +640,7 @@ SCM_DEFINE (scm_stat, "stat", 1, 0, 0,
       int en = errno;
 
       SCM_SYSERROR_MSG ("~A: ~S",
-			scm_list_2 (scm_makfrom0str (strerror (errno)),
+			scm_list_2 (scm_strerror (scm_from_int (en)),
 				    object),
 			en);
     }
@@ -1393,7 +1393,7 @@ SCM_DEFINE (scm_lstat, "lstat", 1, 0, 0,
       int en = errno;
 
       SCM_SYSERROR_MSG ("~A: ~S",
-			scm_list_2 (scm_makfrom0str (strerror (errno)), str),
+			scm_list_2 (scm_strerror (scm_from_int (en)), str),
 			en);
     }
   return scm_stat2scm(&stat_temp);
