@@ -28,6 +28,7 @@ guile-snarf
 guile-snarf-docs
 guile-snarf-docs-texi
 guile-snarf.awk
+guile_filter_doc_snarfage
 guile.texi
 libpath.h
 libtool
