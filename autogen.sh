@@ -10,5 +10,5 @@ autoheader
 autoconf
 automake
 
-( cd guile-readline; ./autogen.sh )
-( cd libltdl; ./autogen.sh )
+( echo "guile-readline..."; cd guile-readline; ./autogen.sh )
+( echo "libltdl..."; cd libltdl; ./autogen.sh )
