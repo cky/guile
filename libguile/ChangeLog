@@ -1,5 +1,10 @@
 1998-10-04  Jim Blandy  <jimb@zwingli.cygnus.com>
 
+	* backtrace.c (display_error_body): The current frame does not
+ 	always have a parent frame; consider a function called directly
+ 	from the MAIN_FUNC passed to scm_boot_guile.  (Thanks to Maciej
+ 	Stachowiak.)
+
 	* alloca.c (alloca): Undo yesterday's changes, and simply call
  	malloc directly for storage, and abort if we don't get what we
  	want.  The situation is much simpler --- just call malloc.  Emacs
