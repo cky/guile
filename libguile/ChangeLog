@@ -1,3 +1,12 @@
+2000-03-21  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* gc.c (scm_gc_mark): Bugfix 1: The recent SCM_PACK/UNPACK change
+	made SCM values into pointers.  This turned an arithmetic
+	computation of the address of the vcell into a pointer-arithmetic
+	one, thereby screwing up marking of structs.
+	Bugfix 2: Removed incompletely introduced loop variable `j' used
+	when protecting the tail array of a struct.
+
 2000-03-21  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* struct.h (SCM_STRUCT_DATA):  Don't cast SCM values to pointers.
