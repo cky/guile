@@ -1,3 +1,16 @@
+Mon Jul 21 04:03:42 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* ioext.h: removed scm_duplicate_port prototype.
+
+	* ioext.c (scm_primitive_dup2): return the new file descriptor
+	instead of SCM_UNSPECIFIED, since similarity to scm_primitive_dup
+	is convenient.
+	(scm_fdopen): bug fix: don't try to make port unbuffered until its
+	stream has been set.
+	(scm_duplicate_port): deleted, there's now an implementation in
+	boot-9.scm.
+	(scm_primitive_dup2): do nothing if newfd == oldfd.
+
 Sun Jul 20 03:55:49 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* filesys.c (scm_close): oops, don't call SCM_INUM twice on the

@@ -766,15 +766,78 @@
 (define (open-input-pipe command) (open-pipe command OPEN_READ))
 (define (open-output-pipe command) (open-pipe command OPEN_WRITE))
 
-(define (move->fdes port fd)
-  (primitive-move->fdes port fd)
-  (set-port-revealed! port 1)
-  port)
+(define (move->fdes fd/port fd)
+  (cond ((integer? fd/port)
+	 (primitive-dup2 fd/port fd)
+	 (close fd/port)
+	 fd)
+	(else
+	 (primitive-move->fdes fd/port fd)
+	 (set-port-revealed! fd/port 1)
+	 fd/port)))
 
 (define (release-port-handle port)
   (let ((revealed (port-revealed port)))
     (if (> revealed 0)
 	(set-port-revealed! port (- revealed 1)))))
+
+(define (dup->port port/fd mode . maybe-fd)
+  (let ((port (fdopen (if (pair? maybe-fd)
+			  (primitive-dup2 port/fd (car maybe-fd))
+			  (primitive-dup port/fd))
+		      mode)))
+    (if (pair? maybe-fd)
+	(set-port-revealed! port 1))
+    port))
+  
+(define (dup->inport port/fd . maybe-fd)
+  (apply dup->port port/fd "r" maybe-fd))
+
+(define (dup->outport port/fd . maybe-fd)
+  (apply dup->port port/fd "w" maybe-fd))
+
+(define (dup->fdes port/fd . maybe-fd)
+  (if (pair? maybe-fd)
+      (primitive-dup2 port/fd (car maybe-fd))
+      (primitive-dup port/fd)))
+
+(define (dup port/fd . maybe-fd)
+  (if (integer? port/fd)
+      (apply dup->fdes port/fd maybe-fd)
+      (apply dup->port port/fd (port-mode port/fd) maybe-fd)))
+
+(define (duplicate-port port modes)
+  (dup->port port modes))
+
+(define (fdes->inport fdes)
+  (let loop ((rest-ports (fdes->ports fdes)))
+    (cond ((null? rest-ports)
+	   (let ((result (fdopen fdes "r")))
+	     (set-port-revealed! result 1)
+	     result))
+	  ((input-port? (car rest-ports))
+	   (set-port-revealed! (car rest-ports)
+			       (+ (port-revealed (car rest-ports)) 1))
+	   (car rest-ports))
+	  (else
+	   (loop (cdr rest-ports))))))
+
+(define (fdes->outport fdes)
+  (let loop ((rest-ports (fdes->ports fdes)))
+    (cond ((null? rest-ports)
+	   (let ((result (fdopen fdes "w")))
+	     (set-port-revealed! result 1)
+	     result))
+	  ((output-port? (car rest-ports))
+	   (set-port-revealed! (car rest-ports)
+			       (+ (port-revealed (car rest-ports)) 1))
+	   (car rest-ports))
+	  (else
+	   (loop (cdr rest-ports))))))
+
+(define (port->fdes port)
+  (set-port-revealed! port (+ (port-revealed port) 1))
+  (fileno port))
 
 
 ;;; {Load Paths}

@@ -233,55 +233,6 @@ scm_freopen (filename, modes, port)
   return port;
 }
 
-
-
-SCM_PROC (s_duplicate_port, "duplicate-port", 2, 0, 0, scm_duplicate_port);
-
-SCM 
-scm_duplicate_port (oldpt, modes)
-     SCM oldpt;
-     SCM modes;
-{
-  int oldfd;
-  int newfd;
-  FILE *f;
-  SCM newpt;
-  SCM_ASSERT (SCM_NIMP (oldpt) && SCM_OPPORTP (oldpt), oldpt, SCM_ARG1,
-	      s_duplicate_port);
-  SCM_ASSERT (SCM_NIMP (modes) && SCM_ROSTRINGP (modes), modes, SCM_ARG2,
-	      s_duplicate_port);
-
-  SCM_COERCE_SUBSTR (modes);
-  SCM_NEWCELL (newpt);
-  SCM_DEFER_INTS;
-  oldfd = fileno ((FILE *)SCM_STREAM (oldpt));
-  if (oldfd == -1)
-    scm_syserror (s_duplicate_port);
-  SCM_SYSCALL (newfd = dup (oldfd));
-  if (newfd == -1)
-    scm_syserror (s_duplicate_port);
-  f = fdopen (newfd, SCM_ROCHARS (modes));
-  if (!f)
-    {
-      SCM_SYSCALL (close (newfd));
-      scm_syserror (s_duplicate_port);
-    }
-  {
-    struct scm_port_table * pt;
-    pt = scm_add_to_port_table (newpt);
-    SCM_SETPTAB_ENTRY (newpt, pt);
-    SCM_SETCAR (newpt, scm_tc16_fport | scm_mode_bits (SCM_ROCHARS (modes)));
-    SCM_SETSTREAM (newpt, (SCM)f);
-    if (SCM_BUF0 & SCM_CAR (newpt))
-      scm_setbuf0 (newpt);
-    SCM_PTAB_ENTRY (newpt)->file_name = SCM_PTAB_ENTRY (oldpt)->file_name;
-  }
-  SCM_ALLOW_INTS;
-  return newpt;
-}
-
-
-
 SCM_PROC (s_redirect_port, "redirect-port", 2, 0, 0, scm_redirect_port);
 
 SCM 
@@ -349,14 +300,19 @@ scm_primitive_dup2 (SCM fd_or_port, SCM fd)
 	scm_syserror (s_primitive_dup2);
     }
   
-  SCM_ASSERT (SCM_INUMP (newfd), newfd, SCM_ARG2, s_primitive_dup2);
+  SCM_ASSERT (SCM_INUMP (fd), fd, SCM_ARG2, s_primitive_dup2);
   newfd = SCM_INUM (fd);
+  if (oldfd == newfd)
+    {
+      SCM_ALLOW_INTS;
+      return fd;
+    }
   scm_evict_ports (newfd);	/* see scsh manual.  */
   SCM_SYSCALL (rv = dup2 (oldfd, newfd));
   if (rv == -1)
     scm_syserror (s_primitive_dup2);
   SCM_ALLOW_INTS;
-  return SCM_UNSPECIFIED;
+  return fd;
 }
 
 SCM_PROC (s_fileno, "fileno", 1, 0, 0, scm_fileno);
@@ -413,9 +369,9 @@ scm_fdopen (fdes, modes)
   pt = scm_add_to_port_table (port);
   SCM_SETPTAB_ENTRY (port, pt);
   SCM_SETCAR (port, scm_tc16_fport | scm_mode_bits (SCM_ROCHARS (modes)));
+  SCM_SETSTREAM (port, (SCM)f);
   if (SCM_BUF0 & SCM_CAR (port))
     scm_setbuf0 (port);
-  SCM_SETSTREAM (port, (SCM)f);
   SCM_ALLOW_INTS;
   return port;
 }

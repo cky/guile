@@ -1,3 +1,11 @@
+Mon Jul 21 06:45:45 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* boot-9.scm (dup->port, dup->inport, dup->outport, dup->fdes,
+	dup, fdes->inport, fdes->outport, port->fdes): new procedures.
+	(duplicate-port): was a C primitive, now it's here.
+	(move->fdes): allow the first argument to be a file descriptor.
+	Return the modified port or file descriptor (was unspecified.)
+
 Fri Jul 11 00:13:43 1997  Jim Blandy  <jimb@floss.red-bean.com>
 
 	Changes to compile under gnu-win32, from Marcus Daniels:
