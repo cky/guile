@@ -580,7 +580,7 @@ gh_vector_length (SCM v)
 unsigned long
 gh_uniform_vector_length (SCM v)
 {
-  return (unsigned long) SCM_UVECTOR_LENGTH (v);
+  return (unsigned long) scm_uniform_vector_length (v);
 }
 
 /* gets the given element from a uniform vector; ilist is a list (or
