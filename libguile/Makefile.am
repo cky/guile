@@ -1,6 +1,6 @@
 ## Process this file with Automake to create Makefile.in
 ##
-##  	Copyright (C) 1998 Free Software Foundation, Inc.
+##  	Copyright (C) 1998, 1999 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##   
@@ -206,7 +206,7 @@ MOSTLYCLEANFILES = \
 	cpp_err_symbols_here cpp_err_symbols_diff cpp_err_symbols_new \
 	cpp_sig_symbols_here cpp_sig_symbols_diff cpp_sig_symbols_new
 
-CLEANFILES = versiondat.h libpath.h
+CLEANFILES = libpath.h
 
 DISTCLEANFILES = *.x
 
