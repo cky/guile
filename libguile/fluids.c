@@ -224,13 +224,13 @@ SCM_DEFINE (scm_with_fluids, "with-fluids*", 3, 0, 0,
 
 SCM
 scm_internal_with_fluids (SCM fluids, SCM vals, SCM (*cproc) (), void *cdata)
+#define FUNC_NAME "scm_internal_with_fluids"
 {
   SCM ans;
+  int flen, vlen;
 
-  int flen = scm_ilength (fluids);
-  int vlen = scm_ilength (vals);
-  SCM_ASSERT (flen >= 0, fluids, SCM_ARG1, s_scm_with_fluids);
-  SCM_ASSERT (vlen >= 0, vals, SCM_ARG2, s_scm_with_fluids);
+  SCM_VALIDATE_LIST_COPYLEN (1, fluids, flen);
+  SCM_VALIDATE_LIST_COPYLEN (2, vals, vlen);
   if (flen != vlen)
     scm_out_of_range (s_scm_with_fluids, vals);
 
@@ -241,6 +241,7 @@ scm_internal_with_fluids (SCM fluids, SCM vals, SCM (*cproc) (), void *cdata)
   scm_swap_fluids_reverse (fluids, vals);
   return ans;
 }
+#undef FUNC_NAME
 
 
 

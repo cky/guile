@@ -155,8 +155,7 @@ as @code{-1}, then that ID is not changed.")
     }
   else
     {
-      SCM_ASSERT (SCM_ROSTRINGP (object),
-		  object, SCM_ARG1, FUNC_NAME);
+      SCM_VALIDATE_ROSTRING(1,object);
       SCM_COERCE_SUBSTR (object);
       SCM_SYSCALL (rv = chown (SCM_ROCHARS (object),
 			       SCM_INUM (owner), SCM_INUM (group)));
@@ -243,8 +242,8 @@ port.")
 
   SCM_VALIDATE_ROSTRING (1,path);
   SCM_COERCE_SUBSTR (path);
-  SCM_VALIDATE_INUM_COPY (2,flags,iflags);
-  SCM_VALIDATE_INUM_DEF_COPY (3,mode,0666,imode);
+  iflags = SCM_NUM2LONG(2,flags);
+  imode = SCM_NUM2LONG_DEF(3,mode,0666);
   SCM_SYSCALL (fd = open (SCM_ROCHARS (path), iflags, imode));
   if (fd == -1)
     SCM_SYSERROR;
@@ -289,7 +288,7 @@ for additional flags.")
   int iflags;
 
   fd = SCM_INUM (scm_open_fdes (path, flags, mode));
-  SCM_VALIDATE_INUM_COPY (2,flags,iflags);
+  iflags = SCM_NUM2LONG (2,flags);
   if (iflags & O_RDWR)
     {
       if (iflags & O_APPEND)
@@ -520,7 +519,7 @@ An integer representing the access permission bits.
       else
 	{
 	  object = SCM_COERCE_OUTPORT (object);
-	  SCM_ASSERT (SCM_OPFPORTP (object), object, SCM_ARG1, FUNC_NAME);
+          SCM_VALIDATE_OPFPORT(1,object);
 	  fdes = SCM_FPORT_FDES (object);
 	  SCM_SYSCALL (rv = fstat (fdes, &stat_temp));
 	}
@@ -996,9 +995,9 @@ values instead of a list and has an additional select! interface.
 	  double fl = scm_num2dbl (secs, FUNC_NAME);
 
 	  if (!SCM_UNBNDP (usecs))
-	    scm_wrong_type_arg (FUNC_NAME, 4, secs);
+	    SCM_WRONG_TYPE_ARG (4, secs);
 	  if (fl > LONG_MAX)
-	    scm_out_of_range (FUNC_NAME, secs);
+	    SCM_OUT_OF_RANGE (4, secs);
 	  timeout.tv_sec = (long) fl;
 	  timeout.tv_usec = (long) ((fl - timeout.tv_sec) * 1000000);
 	}

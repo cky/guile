@@ -102,12 +102,11 @@ without encountering a delimiter, this value is @var{#f}.")
     SCM_VALIDATE_OPINPORT (4,port);
 
   SCM_VALIDATE_INUM_DEF_COPY (5,start,0,cstart);
-  if (cstart < 0 || cstart >= cend)
-    scm_out_of_range (FUNC_NAME, start);
+  SCM_ASSERT_RANGE(5, start, cstart >= 0 && cstart < cend);
 
   SCM_VALIDATE_INUM_DEF_COPY (6,end,cend,tend);
-  if (tend <= cstart || tend > cend)
-    scm_out_of_range (FUNC_NAME, end);
+  SCM_ASSERT_RANGE(6, end, tend > cstart && tend <= cend);
+
   cend = tend;
 
   for (j = cstart; j < cend; j++)
@@ -397,8 +396,7 @@ SCM_DEFINE (scm_dup_to_fdes, "dup->fdes", 1, 1, 0,
     }
   else
     {
-      SCM_ASSERT (SCM_INUMP (fd), fd, SCM_ARG2, FUNC_NAME);
-      newfd = SCM_INUM (fd);
+      SCM_VALIDATE_INUM_COPY (2, fd, newfd);
       if (oldfd != newfd)
 	{
 	  scm_evict_ports (newfd);	/* see scsh manual.  */

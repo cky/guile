@@ -514,7 +514,7 @@ scm_init_readline ()
   rl_readline_name = "Guile";
 
 #ifdef USE_THREADS
-  scm_mutex_init (&reentry_barrier_mutex, NULL);
+  scm_mutex_init (&reentry_barrier_mutex);
 #endif
   scm_init_opts (scm_readline_options,
 		 scm_readline_opts,

@@ -3190,7 +3190,7 @@ SCM_DEFINE (scm_nconc2last, "apply:nconc2last", 1, 0, 0,
 #define FUNC_NAME s_scm_nconc2last
 {
   SCM *lloc;
-  SCM_VALIDATE_LIST (1,lst);
+  SCM_VALIDATE_NONEMPTYLIST (1,lst);
   lloc = &lst;
   while (SCM_NNULLP (SCM_CDR (*lloc)))
     lloc = SCM_CDRLOC (*lloc);

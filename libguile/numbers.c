@@ -510,6 +510,11 @@ scm_lcm (SCM n1, SCM n2)
 #endif
 
 #ifndef scm_long2num
+#define SCM_LOGOP_RETURN(x) scm_ulong2num(x)
+#else
+#define SCM_LOGOP_RETURN(x) SCM_MAKINUM(x)
+#endif
+
 SCM_DEFINE1 (scm_logand, "logand", scm_tc7_asubr,
              (SCM n1, SCM n2),
 "Returns the integer which is the bit-wise AND of the two integer
@@ -530,7 +535,7 @@ Example:
     }
   SCM_VALIDATE_INUM_COPY (1,n1,i1);
   SCM_VALIDATE_INUM_COPY (2,n2,i2);
-  return scm_ulong2num (i1 & i2);
+  return SCM_LOGOP_RETURN (i1 & i2);
 }
 #undef FUNC_NAME
 
@@ -555,7 +560,7 @@ Example:
     }
   SCM_VALIDATE_INUM_COPY (1,n1,i1);
   SCM_VALIDATE_INUM_COPY (2,n2,i2);
-  return scm_ulong2num (i1 | i2);
+  return SCM_LOGOP_RETURN (i1 | i2);
 }
 #undef FUNC_NAME
 
@@ -580,88 +585,7 @@ Example:
     }
   SCM_VALIDATE_INUM_COPY (1,n1,i1);
   SCM_VALIDATE_INUM_COPY (2,n2,i2);
-  return scm_ulong2num (i1 ^ i2);
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_logtest, "logtest", 2, 0, 0,
-            (SCM n1, SCM n2),
-"")
-#define FUNC_NAME s_scm_logtest
-{
-  int i1, i2;
-  SCM_VALIDATE_INUM_COPY (1,n1,i1);
-  SCM_VALIDATE_INUM_COPY (2,n2,i2);
-  return SCM_BOOL(i1 & i2);
-}
-#undef FUNC_NAME
-
-
-SCM_DEFINE (scm_logbit_p, "logbit?", 2, 0, 0,
-            (SCM n1, SCM n2),
-"")
-#define FUNC_NAME s_scm_logbit_p
-{
-  int i1, i2;
-  SCM_VALIDATE_INUM_COPY (1,n1,i1);
-  SCM_VALIDATE_INUM_COPY (2,n2,i2);
-  return SCM_BOOL((1 << i1) & i2);
-}
-#undef FUNC_NAME
-
-#else
-
-SCM_DEFINE1 (scm_logand, "logand", scm_tc7_asubr,
-             (SCM n1, SCM n2),
-"")
-#define FUNC_NAME s_scm_logand
-{
-  int i1, i2;
-  if (SCM_UNBNDP (n2))
-    {
-      if (SCM_UNBNDP (n1))
-	return SCM_MAKINUM (-1);
-      return n1;
-    }
-  SCM_VALIDATE_INUM_COPY (1,n1,i1);
-  SCM_VALIDATE_INUM_COPY (2,n2,i2);
-  return SCM_MAKINUM (i1 & i2);
-}
-#undef FUNC_NAME
-
-SCM_DEFINE1 (scm_logior, "logior", scm_tc7_asubr,
-             (SCM n1, SCM n2),
-"")
-#define FUNC_NAME s_scm_logior
-{
-  int i1, i2;
-  if (SCM_UNBNDP (n2))
-    {
-      if (SCM_UNBNDP (n1))
-	return SCM_INUM0;
-      return n1;
-    }
-  SCM_VALIDATE_INUM_COPY (1,n1,i1);
-  SCM_VALIDATE_INUM_COPY (2,n2,i2);
-  return SCM_MAKINUM (i1 | i2);
-}
-#undef FUNC_NAME
-
-SCM_DEFINE1 (scm_logxor, "logxor", scm_tc7_asubr,
-             (SCM n1, SCM n2),
-"")
-#define FUNC_NAME s_scm_logxor
-{
-  int i1, i2;
-  if (SCM_UNBNDP (n2))
-    {
-      if (SCM_UNBNDP (n1))
-	return SCM_INUM0;
-      return n1;
-    }
-  SCM_VALIDATE_INUM_COPY (1,n1,i1);
-  SCM_VALIDATE_INUM_COPY (2,n2,i2);
-  return SCM_MAKINUM (i1 ^ i2);
+  return SCM_LOGOP_RETURN (i1 ^ i2);
 }
 #undef FUNC_NAME
 
@@ -682,6 +606,7 @@ SCM_DEFINE (scm_logtest, "logtest", 2, 0, 0,
 }
 #undef FUNC_NAME
 
+
 SCM_DEFINE (scm_logbit_p, "logbit?", 2, 0, 0,
             (SCM n1, SCM n2),
 "@example
@@ -701,7 +626,6 @@ SCM_DEFINE (scm_logbit_p, "logbit?", 2, 0, 0,
   return SCM_BOOL((1 << i1) & i2);
 }
 #undef FUNC_NAME
-#endif
 
 SCM_DEFINE (scm_lognot, "lognot", 1, 0, 0, 
             (SCM n),
@@ -821,23 +745,22 @@ Example:
 @end lisp")
 #define FUNC_NAME s_scm_bit_extract
 {
+  int istart, iend;
   SCM_VALIDATE_INUM (1,n);
-  SCM_VALIDATE_INUM_MIN (2,start,0);
-  SCM_VALIDATE_INUM_MIN (3,end,0);
-  start = SCM_INUM (start);
-  end = SCM_INUM (end);
-  SCM_ASSERT (end >= start, SCM_MAKINUM (end), SCM_OUTOFRANGE, FUNC_NAME);
+  SCM_VALIDATE_INUM_MIN_COPY (2,start,0,istart);
+  SCM_VALIDATE_INUM_MIN_COPY (3, end, 0, iend);
+  SCM_ASSERT_RANGE (3, end, (iend >= istart));
 #ifdef SCM_BIGDIG
   if (SCM_NINUMP (n))
     return
       scm_logand (scm_difference (scm_integer_expt (SCM_MAKINUM (2),
-						    SCM_MAKINUM (end - start)),
+						    SCM_MAKINUM (iend - istart)),
 				  SCM_MAKINUM (1L)),
-		  scm_ash (n, SCM_MAKINUM (-start)));
+		  scm_ash (n, SCM_MAKINUM (-istart)));
 #else
   SCM_VALIDATE_INUM (1,n);
 #endif
-  return SCM_MAKINUM ((SCM_INUM (n) >> start) & ((1L << (end - start)) - 1));
+  return SCM_MAKINUM ((SCM_INUM (n) >> istart) & ((1L << (iend - istart)) - 1));
 }
 #undef FUNC_NAME
 

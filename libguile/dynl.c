@@ -367,7 +367,7 @@ as the @var{lib} argument to the following functions.")
     struct dynl_obj *d;
     int flags = DYNL_GLOBAL;
 
-    fname = scm_coerce_rostring (fname, FUNC_NAME, SCM_ARG1);
+    SCM_COERCE_ROSTRING (1, fname);
 
     /* collect flags */
     while (SCM_CONSP (rest))
@@ -475,7 +475,7 @@ needed or not and will add it when necessary.
     struct dynl_obj *d;
     void (*func) ();
 
-    symb = scm_coerce_rostring (symb, FUNC_NAME, SCM_ARG1);
+    SCM_COERCE_ROSTRING (1, symb);
     d = get_dynl_obj (dobj, FUNC_NAME, SCM_ARG2);
 
     SCM_DEFER_INTS;

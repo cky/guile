@@ -90,8 +90,7 @@ SCM_DEFINE (scm_definedp, "defined?", 1, 1, 0,
 	  b = SCM_CAR (frames);
 	  if (SCM_NFALSEP (scm_procedure_p (b)))
 	    break;
-	  SCM_ASSERT (SCM_CONSP (b),
-		      env, SCM_ARG2, FUNC_NAME);
+	  SCM_ASSERT (SCM_CONSP (b), env, SCM_ARG2, FUNC_NAME);
 	  for (b = SCM_CAR (b); SCM_NIMP (b); b = SCM_CDR (b))
 	    {
 	      if (SCM_NCONSP (b))

@@ -669,7 +669,7 @@ SCM_DEFINE (scm_port_closed_p, "port-closed?", 1, 0, 0,
 "Returns @code{#t} if @var{port} is closed or @code{#f} if it is open.")
 #define FUNC_NAME s_scm_port_closed_p
 {
-  SCM_VALIDATE_OPPORT (1,port);
+  SCM_VALIDATE_PORT (1,port);
   return SCM_NEGATE_BOOL(SCM_OPPORTP (port));
 }
 #undef FUNC_NAME
@@ -1084,7 +1084,7 @@ The return value is unspecified.")
     {
       /* must supply length if object is a filename.  */
       if (SCM_ROSTRINGP (object))
-	scm_wrong_num_args (SCM_FUNC_NAME);
+        SCM_MISC_ERROR("must supply length if OBJECT is a filename",SCM_EOL);
       
       length = scm_seek (object, SCM_INUM0, SCM_MAKINUM (SEEK_CUR));
     }

@@ -1,4 +1,4 @@
-/* $Id: scm_validate.h,v 1.16 2000-01-11 19:19:59 gjb Exp $ */
+/* $Id: scm_validate.h,v 1.17 2000-01-12 01:51:18 gjb Exp $ */
 /*	Copyright (C) 1999 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
@@ -54,6 +54,9 @@
 #define SCM_SYSERROR_MSG(str,args,val) \
   do { scm_syserror_msg(FUNC_NAME,(str),(args),(val)); } while (0)
 
+#define SCM_COERCE_ROSTRING(pos,scm) \
+  do { scm = scm_coerce_rostring (scm, FUNC_NAME, pos); } while (0)
+
 #define SCM_WTA(pos,scm) \
   do { scm_wta(scm,(char *)pos,FUNC_NAME); } while (0)
 
@@ -70,9 +73,11 @@
 
 #define SCM_NUM2LONG(pos,arg) (scm_num2long(arg, (char *) pos, FUNC_NAME))
 
+#define SCM_NUM2LONG_DEF(pos,arg,def) (SCM_UNBNDP(arg)?SCM_MAKINUM(def):(scm_num2long(arg, (char *) pos, FUNC_NAME)))
+
 #define SCM_NUM2LONG_LONG(pos,arg) (scm_num2long_long(arg, (char *) pos, FUNC_NAME))
 
-#define SCM_OUT_OF_RANGE(pos,arg) do { scm_out_of_range_pos(FUNC_NAME,arg,scm_long2num(pos)); } while (0)
+#define SCM_OUT_OF_RANGE(pos,arg) do { scm_out_of_range_pos(FUNC_NAME,arg, SCM_MAKINUM(pos)); } while (0)
 
 #define SCM_ASSERT_RANGE(pos,arg,f) do { SCM_ASSERT(f,arg,SCM_OUTOFRANGE,FUNC_NAME); } while (0)
 
@@ -114,8 +119,8 @@
 #define SCM_VALIDATE_STRING(pos,str) SCM_MAKE_VALIDATE(pos,str,STRINGP)
 
 #define SCM_VALIDATE_STRINGORSUBSTR(pos,str) \
-  do { SCM_ASSERT(SCM_SLOPPY_STRINGP (str) || \
-                  SCM_SLOPPY_SUBSTRP(str), str, pos, FUNC_NAME); } while (0)
+  do { SCM_ASSERT(SCM_STRINGP (str) || \
+                  SCM_SUBSTRP(str), str, pos, FUNC_NAME); } while (0)
 
 #define SCM_VALIDATE_STRING_COPY(pos,str,cvar) \
   do { SCM_ASSERT(SCM_STRINGP (str), str, pos, FUNC_NAME); \
@@ -170,6 +175,9 @@
 
 #define SCM_VALIDATE_LIST(pos,lst) \
   do { SCM_ASSERT (scm_ilength (lst) >= 0, lst, pos, FUNC_NAME); } while (0)
+
+#define SCM_VALIDATE_NONEMPTYLIST(pos,lst) \
+  do { SCM_ASSERT (scm_ilength (lst) > 0, lst, pos, FUNC_NAME); } while (0)
 
 #define SCM_VALIDATE_LIST_COPYLEN(pos,lst,cvar) \
   do { cvar = scm_ilength(lst); SCM_ASSERT(cvar >= 0,lst,pos,FUNC_NAME); } while (0)
