@@ -50,18 +50,32 @@ and ice-9/threads.scm.
 
 Mikael Djurfeldt:
 In the subdirectory ice-9, wrote:
-    emacs.scm	 syncase.scm
+    documentation.scm emacs.scm stack-catch.scm
+    null.scm 	      r5rs.scm          safe-r5rs.scm safe.scm
+    receive.scm       occam-channel.scm syncase.scm
+In the subdirectory ice-9, changes to:
+    boot-9.scm        psyntax.ss        slib.scm      threads.scm
+In the subdirectory oop, wrote:
+    goops.scm
+In the subdirectory oop/goops, wrote:
+    compile.scm  dispatch.scm internal.scm old-define-method.scm save.scm
+    stklos.scm   util.scm
+In the subdirectory oop/goops, rewrote files from STKlos:
+    active-slot.scm composite-slot.scm describe.scm
 In the subdirectory libguile, wrote:
     backtrace.c  debug.c      options.c    root.c       srcprop.c    stacks.c
     backtrace.h  debug.h      options.h    root.h       srcprop.h    stacks.h
     iselect.c	 gdbint.c     objects.c    objprop.c    stackchk.c   modules.c
     iselect.h	 gdbint.h     objects.h    objprop.h    stackchk.h   modules.h
-    random.c
-    random.h
+    random.c	 futures.c    evalext.c    goops.c	hooks.c	     macros.c
+    random.h	 futures.h    evalext.h    goops.h	hooks.h	     macros.h
     gdb_interface.h
 In the subdirectory libguile, rewrote:
     coop-threads.c  coop.c          mit-pthreads.c  threads.c print.c
     coop-threads.h  fsu-pthreads.h  mit-pthreads.h  threads.h print.h
+In the subdirectory srfi, wrote:
+    srfi.c
+    srfi.h
 In the subdirectory doc, wrote:
     goops-tutorial.texi             hierarchy.eps
     hierarchy.txt   mop.txt         oldfmt.c
