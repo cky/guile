@@ -18,7 +18,7 @@
 @c essay @ifinfo
 @c essay Data Representation in Guile
 
-@c essay Copyright (C) 1998, 1999, 2000 Free Software Foundation
+@c essay Copyright (C) 1998, 1999, 2000, 2003 Free Software Foundation
 
 @c essay Permission is granted to make and distribute verbatim copies of
 @c essay this manual provided the copyright notice and this permission notice
@@ -46,7 +46,7 @@
 @c essay @sp 10
 @c essay @comment The title is printed in a large font.
 @c essay @title Data Representation in Guile
-@c essay @subtitle $Id: data-rep.texi,v 1.14 2003-08-29 23:32:21 kryde Exp $
+@c essay @subtitle $Id: data-rep.texi,v 1.15 2003-10-06 19:24:15 mvo Exp $
 @c essay @subtitle For use with Guile @value{VERSION}
 @c essay @author Jim Blandy
 @c essay @author Free Software Foundation
@@ -1907,23 +1907,6 @@ This function should not be needed anymore, because simply passing
 It's important that a smob is visible to the garbage collector
 whenever its contents are being accessed.  Otherwise it could be freed
 while code is still using it.
-
-@c  NOTE: The varargs scm_remember_upto_here is deliberately not
-@c  documented, because we don't think it can be implemented as a nice
-@c  inline compiler directive or asm block.  New _3, _4 or whatever
-@c  forms could certainly be added though, if needed.
-
-@deftypefn {C Macro} void scm_remember_upto_here_1 (SCM obj)
-@deftypefnx {C Macro} void scm_remember_upto_here_2 (SCM obj1, SCM obj2)
-Create a reference to the given object or objects, so they're certain
-to be present on the stack or in a register and hence will not be
-freed by the garbage collector before this point.
-
-Note that these functions can only be applied to ordinary C local
-variables (ie.@: ``automatics'').  Objects held in global or static
-variables or some malloced block or the like cannot be protected with
-this mechanism.
-@end deftypefn
 
 For example, consider a procedure to convert image data to a list of
 pixel values.

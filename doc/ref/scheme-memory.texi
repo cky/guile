@@ -6,16 +6,12 @@ Guile uses a @emph{garbage collector} to manage most of its objects.
 This means that the memory used to store a Scheme string, say, is
 automatically reclaimed when no one is using this string any longer.
 This can work because Guile knows enough about its objects at run-time
-to be able to trace all references between them.  Thus, it can find
-all 'live' objects (objects that are still in use) by starting from a
-known set of 'root' objects and following the links that these objects
-have to other objects, and so on.  The objects that are not reached by
-this recursive process can be considered 'dead' and their memory can
-be  reused for new objects.
-
-When you are programming in Scheme, you don't need to worry about the
-garbage collector.  When programming in C, there are a few rules that
-you must follow so that the garbage collector can do its job.
+to be able to trace all references between them.  Thus, it can find all
+'live' objects (objects that are still in use) by starting from a known
+set of 'root' objects and following the links that these objects have to
+other objects, and so on.  The objects that are not reached by this
+recursive process can be considered 'dead' and their memory can be
+reused for new objects.
 
 @menu
 * Garbage Collection::
@@ -28,12 +24,121 @@ you must follow so that the garbage collector can do its job.
 @node Garbage Collection
 @section Garbage Collection
 
+The general process of collecting dead objects outlined above relies on
+the fact that the garbage collector is able to find all references to
+SCM objects that might be used by the program in the future.  When you
+are programming in Scheme, you don't need to worry about this: The
+collector is automatically aware of all objects in use by Scheme code.
+
+When programming in C, you must help the garbage collector a bit so that
+it can find all objects that are accessible from C.  You do this when
+writing a SMOB mark function, for example.  By calling this function,
+the garbage collector learns about all references that your SMOB has to
+other SCM objects.
+
+Other references to SCM objects, such as global variables of type SCM or
+other random data structures in the heap that contain fields of type
+SCM, can be made visible to the garbage collector by calling the
+functions @code{scm_gc_protect} or @code{scm_permanent_object}.  You
+normally use these funtions for long lived objects such as a hash table
+that is stored in a global variable.  For temporary references in local
+variables or function arguments, using these functions would be too
+expensive.
+
+These references are handled differently: Local variables (and function
+arguments) of type SCM are automatically visible to the garbage
+collector.  This works because the collector scans the stack for
+potential references to SCM objects and considers all referenced objects
+to be alive.  The scanning considers each and every word of the stack,
+regardless of what it is actually used for, and then decides whether it
+could possible be a reference to a SCM object.  Thus, the scanning is
+guaranteed to find all actual references, but it might also find words
+that only accidentally look like references.  These `false positives'
+might keep SCM objects alive that would otherwise be considered dead.
+While this might waste memory, keeping an object around longer than it
+strictly needs to is harmless.  This is why this technique is called
+``conservative garbage collection''.  In practice, the wasted memory
+seems to be no problem.
+
+The stack of every thread is scanned in this way and the registers of
+the CPU and all other memory locations where local variables or function
+parameters might show up are included in this scan as well.
+
+The consequence of the conservative scanning is that you can just
+declare local variables and function parameters of type SCM and be sure
+that the garbage collector will not free the corresponding objects.
+
+However, a local variable or function parameter is only protected as
+long as it is really on the stack (or in some register).  As an
+optimization, the C compiler might reuse its location for some other
+value and the SCM object would no longer be protected.  Normally, this
+leads to exactly the right behabvior: the compiler will only overwrite a
+reference when it is no longer needed and thus the object becomes
+unprotected precisely when the reference disappears, just as wanted.
+
+There are situations, however, where a SCM object needs to be around
+longer than its reference from a local variable or function parameter.
+This happens, for example, when you retrieve the array of characters
+from a Scheme string and work on that array directly.  The reference to
+the SCM string object might be dead after the character array has been
+retrieved, but the array itself is still in use and thus the string
+object must be protected.  The compiler does not know about this
+connection and might overwrite the SCM reference too early.
+
+To get around this problem, you can use @code{scm_remember_upto_here_1}
+and its cousins.  It will keep the compiler from overwriting the
+reference.  For an example of its use, see @ref{Remembering During
+Operations}.
+
 @deffn {Scheme Procedure} gc
 @deffnx {C Function} scm_gc ()
 Scans all of SCM objects and reclaims for further use those that are
 no longer accessible.  You normally don't need to call this function
 explicitly.  It is called automatically when appropriate.
 @end deffn
+
+@deftypefn {C Function} SCM scm_gc_protect_object (SCM @var{obj})
+Protects @var{obj} from being freed by the garbage collector, when it
+otherwise might be.  When you are done with the object, call
+@code{scm_gc_unprotect_object} on the object. Calls to
+@code{scm_gc_protect}/@code{scm_gc_unprotect_object} can be nested, and
+the object remains protected until it has been unprotected as many times
+as it was protected. It is an error to unprotect an object more times
+than it has been protected. Returns the SCM object it was passed.
+@end deftypefn
+
+@deftypefn {C Function} SCM scm_gc_unprotect_object (SCM @var{obj})
+
+Unprotects an object from the garbage collector which was protected by
+@code{scm_gc_unprotect_object}. Returns the SCM object it was passed.
+@end deftypefn
+
+@deftypefn {C Function} SCM scm_permanent_object (SCM @var{obj})
+
+Similar to @code{scm_gc_protect_object} in that it causes the
+collector to always mark the object, except that it should not be
+nested (only call @code{scm_permanent_object} on an object once), and
+it has no corresponding unpermanent function. Once an object is
+declared permanent, it will never be freed. Returns the SCM object it
+was passed.
+@end deftypefn
+
+@c  NOTE: The varargs scm_remember_upto_here is deliberately not
+@c  documented, because we don't think it can be implemented as a nice
+@c  inline compiler directive or asm block.  New _3, _4 or whatever
+@c  forms could certainly be added though, if needed.
+
+@deftypefn {C Macro} void scm_remember_upto_here_1 (SCM obj)
+@deftypefnx {C Macro} void scm_remember_upto_here_2 (SCM obj1, SCM obj2)
+Create a reference to the given object or objects, so they're certain
+to be present on the stack or in a register and hence will not be
+freed by the garbage collector before this point.
+
+Note that these functions can only be applied to ordinary C local
+variables (ie.@: ``automatics'').  Objects held in global or static
+variables or some malloced block or the like cannot be protected with
+this mechanism.
+@end deftypefn
 
 @deffn {Scheme Procedure} gc-stats
 @deffnx {C Function} scm_gc_stats ()
