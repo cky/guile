@@ -60,7 +60,7 @@ typedef struct scm_option
     schizophrenic use: both SCM and int
    */
   unsigned long val;
-  // SCM val
+  /* SCM val */
   char *doc;
 } scm_option;
 
