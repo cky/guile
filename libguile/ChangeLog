@@ -1,3 +1,19 @@
+2004-07-08  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* numbers.c (scm_is_signed_integer, scm_is_unsigned_integer):
+	Rewritten using the same logic as scm_to_signed_integer and
+	scm_to_unsigned_integer, respectively, which is better(tm).  Also,
+	use CHAR_BIT instead of hardcoding 8.
+	(LLONG_MIN, LLONG_MAX, ULLONG_MAX): Removed and used
+	SCM_I_LLONG_MIN etc. instead.
+	
+	* numbers.h (SCM_MAKINUM, SCM_I_MAKINUM): Renamed SCM_MAKINUM to
+	SCM_I_MAKINUM and changed all uses.
+	* deprecated.h, deprecated.c (SCM_MAKINUM): Newly deprecated.
+
+	* gen-scmconfig.c: Instead of hard-coding the numbers, compute
+	them by assuming twos-complement.
+
 2004-07-07  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* gen-scmconfig.h.in: Added all the new SCM_I_GSC_*_LIMITS that
