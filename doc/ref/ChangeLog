@@ -1,3 +1,9 @@
+2003-05-10  Kevin Ryde  <user42@zip.com.au>
+
+	* scheme-control.texi (Handling Errors): Revise C support section to
+	get index entries, and clarify parameters.  Remove scm_regex_error, no
+	longer exists and wasn't available to applications.
+
 2003-05-08  Kevin Ryde  <user42@zip.com.au>
 
 	* scheme-data.texi (Bitwise Operations): Fix lognot to ones-complement.
