@@ -46,24 +46,12 @@
 
 #include <libguile/__scm.h>
 
-
 
 extern SCM *scm_loc_features;
 
-
-#ifdef __STDC__
-extern void scm_add_feature(char* str);
-extern SCM scm_compiled_library_path (void);
-extern SCM scm_program_arguments (void);
-extern void scm_init_feature(void);
-
-#else /* STDC */
-extern void scm_add_feature();
-extern SCM scm_compiled_library_path ();
-extern SCM scm_program_arguments ();
-extern void scm_init_feature();
-
-#endif /* STDC */
-
+extern void scm_add_feature PROTO((char* str));
+extern SCM scm_compiled_library_path  PROTO((void));
+extern SCM scm_program_arguments  PROTO((void));
+extern void scm_init_feature PROTO((void));
 
 #endif  /* FEATUREH */

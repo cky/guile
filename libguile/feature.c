@@ -51,14 +51,9 @@
 
 SCM *scm_loc_features;
 
-#ifdef __STDC__
-void
-scm_add_feature(char* str)
-#else
 void
 scm_add_feature(str)
      char* str;
-#endif
 {
   *scm_loc_features = scm_cons(SCM_CAR(scm_intern(str, strlen(str))), *scm_loc_features);
 }
@@ -70,13 +65,8 @@ scm_add_feature(str)
 
 
 SCM_PROC(s_compiled_library_path, "compiled-library-path", 0, 0, 0, scm_compiled_library_path);
-#ifdef __STDC__
-SCM
-scm_compiled_library_path (void)
-#else
 SCM
 scm_compiled_library_path ()
-#endif
 {
 #ifndef LIBRARY_PATH
   return SCM_BOOL_F;
@@ -89,13 +79,8 @@ scm_compiled_library_path ()
 
 
 SCM_PROC(s_program_arguments, "program-arguments", 0, 0, 0, scm_program_arguments);
-#ifdef __STDC__
-SCM 
-scm_program_arguments (void)
-#else
 SCM 
 scm_program_arguments ()
-#endif
 {
   return scm_progargs;
 }
@@ -105,13 +90,8 @@ scm_program_arguments ()
 
 
 
-#ifdef __STDC__
-void
-scm_init_feature(void)
-#else
 void
 scm_init_feature()
-#endif
 {
   scm_loc_features = &SCM_CDR(scm_sysintern("*features*", SCM_EOL));
 #ifdef RECKLESS
