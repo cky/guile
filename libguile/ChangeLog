@@ -1,5 +1,9 @@
 1998-10-03  Jim Blandy  <jimb@zwingli.cygnus.com>
 
+	* unif.c (scm_array_set_x): Accept any kind of number as an
+	element for a uniform vector of doubles.  This is more consistent
+	with Scheme's view of numbers.  (Thanks to Miroslav Silovic.)
+
 	* alloca.c: Use scm_must_malloc to obtain storage.  Hopefully this
 	works; I can't conveniently test it myself.  (Thanks to Dvid
 	Tillman for the bug report.)
