@@ -109,16 +109,16 @@ display_header (SCM source, SCM port)
 void
 scm_display_error_message (SCM message, SCM args, SCM port)
 {
-  if (SCM_IMP (message) || !SCM_ROSTRINGP (message) || SCM_IMP (args)
-      || !scm_list_p (args))
+  if (SCM_ROSTRINGP (message) && SCM_NFALSEP (scm_list_p (args)))
+    {
+      scm_simple_format (port, message, args);
+      scm_newline (port);
+    }
+  else
     {
       scm_prin1 (message, port, 0);
       scm_putc ('\n', port);
-      return;
     }
-
-  scm_simple_format(port,message,args);
-  scm_newline(port);
 }
 
 static void
@@ -263,11 +263,13 @@ SCM_DEFINE (scm_set_print_params_x, "set-print-params!", 1, 0, 0,
 "")
 #define FUNC_NAME s_scm_set_print_params_x
 {
-  int i, n = scm_ilength (params);
+  int i;
+  int n;
   SCM ls;
   print_params_t *new_params;
-  SCM_ASSERT (n >= 1, params, SCM_ARG2, FUNC_NAME);
-  for (ls = params; SCM_NIMP (ls); ls = SCM_CDR (ls))
+
+  SCM_VALIDATE_NONEMPTYLIST_COPYLEN (2, params, n);
+  for (ls = params; SCM_NNULLP (ls); ls = SCM_CDR (ls))
     SCM_ASSERT (scm_ilength (SCM_CAR (params)) == 2
 		&& SCM_INUMP (SCM_CAAR (ls))
 		&& SCM_INUM (SCM_CAAR (ls)) >= 0
