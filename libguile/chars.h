@@ -3,7 +3,7 @@
 #ifndef SCM_CHARS_H
 #define SCM_CHARS_H
 
-/* Copyright (C) 1995,1996,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,2000,2001,2004 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -60,7 +60,6 @@ SCM_API SCM scm_char_to_integer (SCM chr);
 SCM_API SCM scm_integer_to_char (SCM n);
 SCM_API SCM scm_char_upcase (SCM chr);
 SCM_API SCM scm_char_downcase (SCM chr);
-SCM_API void scm_tables_prehistory (void);
 SCM_API int scm_c_upcase (unsigned int c);
 SCM_API int scm_c_downcase (unsigned int c);
 SCM_API void scm_init_chars (void);
