@@ -118,6 +118,11 @@ while the scripting code runs single-threadedly.
 
 This is an implementation of SRFI-26.
 
+** New module (srfi srfi-31)
+
+This is an implementation of SRFI-31 which provides a special form
+`rec' for recursive evaluation.
+
 ** Guile now includes its own version of libltdl.
 
 We now use a modified version of libltdl that allows us to make
@@ -576,6 +581,10 @@ delete and delete! now call the "=" procedure with arguments in the
 order described by the SRFI-1 specification
 
 list-copy now accepts improper lists, per the specification.
+
+** SRFI-4 fixes
+
+Larger values in 64-bit vectors should print correctly now.
 
 ** SRFI-19 fixes
 
