@@ -11,7 +11,3 @@ translation	Language traslation
 vm		Virtual machines
 
 vm/ior		Mikael's ideas on a new type of Scheme interpreter
-
-Files:
-
-tasks.text	Guile project task list
