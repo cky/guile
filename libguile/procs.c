@@ -54,7 +54,7 @@
 
 scm_subr_entry *scm_subr_table;
 
-/* libguile contained approx. 700 primitive procedures 990824. */
+/* libguile contained approx. 700 primitive procedures on 24 Aug 1999. */
 
 int scm_subr_table_size = 0;
 int scm_subr_table_room = 750;
@@ -72,11 +72,12 @@ scm_make_subr_opt (name, type, fcn, set)
 
   if (scm_subr_table_size == scm_subr_table_room)
     {
-      scm_sizet new_size = scm_port_table_room * 3 / 2;
-      void *new_table = scm_must_realloc ((char *) scm_subr_table,
-					  scm_subr_table_room,
-					  new_size,
-					  "scm_make_subr_opt");
+      scm_sizet new_size = scm_subr_table_room * 3 / 2;
+      void *new_table
+	= scm_must_realloc ((char *) scm_subr_table,
+			    sizeof (scm_subr_entry) * scm_subr_table_room,
+			    sizeof (scm_subr_entry) * new_size, 
+			    "scm_make_subr_opt");
       scm_subr_table = new_table;
       scm_subr_table_room = new_size;
     }
