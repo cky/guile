@@ -130,8 +130,8 @@ typedef struct
   size_t putback_buf_size;        /* allocated size of putback_buf.  */
 } scm_t_port;
 
-extern scm_t_port **scm_t_portable;
-extern long scm_t_portable_size; /* Number of ports in scm_t_portable.  */
+extern scm_t_port **scm_port_table;
+extern long scm_port_table_size; /* Number of ports in scm_port_table.  */
 
 #define SCM_READ_BUFFER_EMPTY_P(c_port) (c_port->read_pos >= c_port->read_end)
 
@@ -219,7 +219,7 @@ typedef struct scm_t_ptob_descriptor
 
 extern scm_t_ptob_descriptor *scm_ptobs;
 extern long scm_numptob;
-extern long scm_t_portable_room;
+extern long scm_port_table_room;
 
 
 

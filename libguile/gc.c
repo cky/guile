@@ -2821,9 +2821,9 @@ scm_init_storage ()
   scm_c_hook_init (&scm_after_gc_c_hook, 0, SCM_C_HOOK_NORMAL);
 
   /* Initialise the list of ports.  */
-  scm_t_portable = (scm_t_port **)
-    malloc (sizeof (scm_t_port *) * scm_t_portable_room);
-  if (!scm_t_portable)
+  scm_port_table = (scm_t_port **)
+    malloc (sizeof (scm_t_port *) * scm_port_table_room);
+  if (!scm_port_table)
     return 1;
 
 #ifdef HAVE_ATEXIT
