@@ -88,6 +88,16 @@ main ()
   action.sa_flags |= SA_RESTART;
   sigaction (SIGWINCH, &action, NULL);
 
+  /* Give readline something to read.  Otherwise, it might hang, for
+     example when run as a background process with job control.
+  */
+  rl_instream = fopen ("/dev/null", "r");
+  if (rl_instream == NULL)
+    {
+      perror ("/dev/null");
+      exit (1);
+    }
+
   rl_pre_input_hook = hook;
   readline ("");
 }],
