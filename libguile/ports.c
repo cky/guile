@@ -216,13 +216,15 @@ SCM
 scm_char_ready_p (port)
      SCM port;
 {
-  scm_port *pt = SCM_PTAB_ENTRY (port);
+  scm_port *pt;
 
   if (SCM_UNBNDP (port))
     port = scm_cur_inp;
   else
     SCM_ASSERT (SCM_NIMP (port) && SCM_OPINPORTP (port), port, SCM_ARG1,
 		s_char_ready_p);
+
+  pt = SCM_PTAB_ENTRY (port);
 
   /* if the current read buffer is filled, or the
      last pushed-back char has been read and the saved buffer is
