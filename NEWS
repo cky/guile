@@ -166,11 +166,6 @@ Three new procedures are related to this: substring/shared,
 substring/copy, and substring/read-only.  See the manual for more
 information.
 
-** String literals are now read-only.
-
-Use string-copy or similar to make a copy if you really want to modify
-such a string.
-
 ** 'gettext' support for internationalization has been added.
 
 See the manual for details.
