@@ -61,6 +61,7 @@
 #include <sys/select.h>
 #endif
 
+#include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 
