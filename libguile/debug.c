@@ -210,6 +210,7 @@ scm_procedure_name (proc)
 	     s_procedure_name);
   switch (SCM_TYP7 (proc)) {
   case scm_tcs_closures:
+  case scm_tc7_cclo:
     {
       SCM name = scm_procedure_property (proc, scm_i_name);
 #if 0
@@ -309,15 +310,23 @@ scm_m_start_stack (exp, env)
      SCM env;
 {
   SCM answer;
-  scm_debug_frame *old = scm_last_debug_frame;
+  scm_debug_frame *oframe = scm_last_debug_frame;
+  scm_debug_frame vframe;
   exp = SCM_CDR (exp);
-  SCM_ASSERT (SCM_NIMP (exp) && SCM_CONSP (exp) && SCM_NULLP (SCM_CDR (exp)),
+  SCM_ASSERT (SCM_NIMP (exp)
+	      && SCM_CONSP (exp)
+	      && SCM_NIMP (SCM_CDR (exp))
+	      && SCM_CONSP (SCM_CDR (exp))
+	      && SCM_NULLP (SCM_CDDR (exp)),
 	      exp,
 	      SCM_WNA,
 	      s_start_stack);
-  scm_last_debug_frame = 0;
-  answer = scm_eval_car (exp, env);
-  scm_last_debug_frame = old;
+  vframe.prev = 0;
+  vframe.status = SCM_VOIDFRAME;
+  vframe.vect[0].id = scm_eval_car (exp, env);
+  scm_last_debug_frame = &vframe;
+  answer = scm_eval_car (SCM_CDR (exp), env);
+  scm_last_debug_frame = oframe;
   return answer;
 }
 
