@@ -158,7 +158,7 @@ SCM_DEFINE (scm_class_of, "class-of", 1, 0, 0,
 
 	case scm_tc7_smob:
 	  {
-	    long type = SCM_TYP16 (x);
+	    scm_t_bits type = SCM_TYP16 (x);
 	    if (type != scm_tc16_port_with_ps)
 	      return scm_smob_class[SCM_TC2SMOBNUM (type)];
 	    x = SCM_PORT_WITH_PS_PORT (x);
@@ -187,12 +187,12 @@ SCM_DEFINE (scm_class_of, "class-of", 1, 0, 0,
 	    {
 	      /* ordinary struct */
 	      SCM handle = scm_struct_create_handle (SCM_STRUCT_VTABLE (x));
-	      if (SCM_NFALSEP (SCM_STRUCT_TABLE_CLASS (SCM_CDR (handle))))
+	      if (!SCM_FALSEP (SCM_STRUCT_TABLE_CLASS (SCM_CDR (handle))))
 		return SCM_STRUCT_TABLE_CLASS (SCM_CDR (handle));
 	      else
 		{
 		  SCM name = SCM_STRUCT_TABLE_NAME (SCM_CDR (handle));
-		  SCM class = scm_make_extended_class (SCM_NFALSEP (name)
+		  SCM class = scm_make_extended_class (!SCM_FALSEP (name)
 						       ? SCM_SYMBOL_CHARS (name)
 						       : 0);
 		  SCM_SET_STRUCT_TABLE_CLASS (SCM_CDR (handle), class);
@@ -217,10 +217,15 @@ SCM_DEFINE (scm_class_of, "class-of", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-/* (SCM_IM_DISPATCH ARGS N-SPECIALIZED
+/* The cache argument for scm_mcache_lookup_cmethod has one of two possible
+ * formats:
+ *
+ * Format #1:
+ * (SCM_IM_DISPATCH ARGS N-SPECIALIZED
  *   #((TYPE1 ... ENV FORMALS FORM ...) ...)
  *   GF)
  *
+ * Format #2:
  * (SCM_IM_HASH_DISPATCH ARGS N-SPECIALIZED HASHSET MASK
  *   #((TYPE1 ... ENV FORMALS FORM ...) ...)
  *   GF)
@@ -256,16 +261,9 @@ scm_mcache_lookup_cmethod (SCM cache, SCM args)
   n = SCM_INUM (SCM_CAR (z)); /* maximum number of specializers */
   methods = SCM_CADR (z);
 
-  if (SCM_NIMP (methods))
+  if (SCM_INUMP (methods))
     {
-      /* Prepare for linear search */
-      mask = -1;
-      i = 0;
-      end = SCM_VECTOR_LENGTH (methods);
-    }
-  else
-    {
-      /* Compute a hash value */
+      /* cache format #2: compute a hash value */
       long hashset = SCM_INUM (methods);
       long j = n;
       z = SCM_CDDR (z);
@@ -273,16 +271,23 @@ scm_mcache_lookup_cmethod (SCM cache, SCM args)
       methods = SCM_CADR (z);
       i = 0;
       ls = args;
-      if (SCM_NIMP (ls))
+      if (!SCM_NULLP (ls))
 	do
 	  {
 	    i += SCM_STRUCT_DATA (scm_class_of (SCM_CAR (ls)))
 		 [scm_si_hashsets + hashset];
 	    ls = SCM_CDR (ls);
 	  }
-	while (j-- && SCM_NIMP (ls));
+	while (j-- && !SCM_NULLP (ls));
       i &= mask;
       end = i;
+    }
+  else /* SCM_VECTORP (methods) */
+    {
+      /* cache format #1: prepare for linear search */
+      mask = -1;
+      i = 0;
+      end = SCM_VECTOR_LENGTH (methods);
     }
 
   /* Search for match  */
@@ -291,7 +296,7 @@ scm_mcache_lookup_cmethod (SCM cache, SCM args)
       long j = n;
       z = SCM_VELTS (methods)[i];
       ls = args; /* list of arguments */
-      if (SCM_NIMP (ls))
+      if (!SCM_NULLP (ls))
 	do
 	  {
 	    /* More arguments than specifiers => CLASS != ENV */
@@ -300,11 +305,10 @@ scm_mcache_lookup_cmethod (SCM cache, SCM args)
 	    ls = SCM_CDR (ls);
 	    z = SCM_CDR (z);
 	  }
-	while (j-- && SCM_NIMP (ls));
+	while (j-- && !SCM_NULLP (ls));
       /* Fewer arguments than specifiers => CAR != ENV */
-      if (!(SCM_IMP (SCM_CAR (z)) || SCM_CONSP (SCM_CAR (z))))
-	goto next_method;
-      return z;
+      if (SCM_NULLP (SCM_CAR (z)) || SCM_CONSP (SCM_CAR (z)))
+	return z;
     next_method:
       i = (i + 1) & mask;
     } while (i != end);
@@ -315,7 +319,7 @@ SCM
 scm_mcache_compute_cmethod (SCM cache, SCM args)
 {
   SCM cmethod = scm_mcache_lookup_cmethod (cache, args);
-  if (SCM_IMP (cmethod))
+  if (SCM_FALSEP (cmethod))
     /* No match - memoize */
     return scm_memoize_method (cache, args);
   return cmethod;

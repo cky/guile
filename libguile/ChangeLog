@@ -1,3 +1,29 @@
+2001-06-23  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* backtrace.c (display_backtrace_body):  Use SCM_VALIDATE_STACK
+	and SCM_VALIDATE_OPOUTPORT instead of SCM_ASSERT.  Fix signedness
+	problem.
+
+	* backtrace.c (display_expression, scm_set_print_params_x,
+	display_application, display_frame, scm_backtrace), numbers.c
+	(scm_istring2number), objects.c (scm_class_of,
+	scm_mcache_lookup_cmethod, scm_mcache_compute_cmethod):  Prefer
+	explicit type check over SCM_N?IMP, !SCM_<pred> over SCM_N<pred>.
+
+	* fluids.c (scm_fluid_ref, scm_fluid_set_x):  Fluid numbers are
+	always positive.
+
+	* numbers.c (scm_i_mkbig):  Remove unnecessary casts, remove
+	unnecessary SCM_DEFER_INTS, SCM_ALLOW_INTS.
+
+	* objects.c (scm_class_of):  Type fix.
+
+	(scm_mcache_lookup_cmethod):  Improved comment, simplified,
+	eliminated goto.
+
+	* pairs.h (scm_error_pair_access):  The function can return if
+	called recursively.
+
 2001-06-20  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* init.c (scm_init_guile_1): Removed initialization of tag.c.

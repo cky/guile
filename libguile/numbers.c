@@ -1383,16 +1383,16 @@ SCM
 scm_i_mkbig (size_t nlen, int sign)
 {
   SCM v;
-  /* Cast to long int to avoid signed/unsigned comparison warnings.  */
-  if ((( ((long int) nlen) << SCM_BIGSIZEFIELD) >> SCM_BIGSIZEFIELD)
-      != (long int) nlen)
+  SCM_BIGDIG *base;
+
+  if (((nlen << SCM_BIGSIZEFIELD) >> SCM_BIGSIZEFIELD) != nlen)
     scm_memory_error (s_bignum);
-  
+
+  base = scm_must_malloc (nlen * sizeof (SCM_BIGDIG), s_bignum);
+
   SCM_NEWCELL (v);
-  SCM_DEFER_INTS;
-  SCM_SET_BIGNUM_BASE (v, scm_must_malloc (nlen * sizeof (SCM_BIGDIG), s_bignum));
+  SCM_SET_BIGNUM_BASE (v, base);
   SCM_SETNUMDIGS (v, nlen, sign);
-  SCM_ALLOW_INTS;
   return v;
 }
 
@@ -2739,7 +2739,7 @@ scm_istring2number (char *str, long len, long radix)
       return scm_istr2int (&str[i], len - i, radix);
     case 0:
       res = scm_istr2int (&str[i], len - i, radix);
-      if (SCM_NFALSEP (res))
+      if (!SCM_FALSEP (res))
 	return res;
     case 2:
       return scm_istr2flo (&str[i], len - i, radix);

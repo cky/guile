@@ -154,7 +154,7 @@ display_expression (SCM frame,SCM pname,SCM source,SCM port)
 	  scm_iprin1 (scm_unmemoize (source), port, pstate);
 	}
     }
-  else if (SCM_NIMP (source))
+  else if (SCM_MEMOIZEDP (source))
     {
       scm_puts ("In expression ", port);
       pstate->writingp = 1;
@@ -300,7 +300,7 @@ SCM_DEFINE (scm_set_print_params_x, "set-print-params!", 1, 0, 0,
   print_params_t *new_params;
 
   SCM_VALIDATE_NONEMPTYLIST_COPYLEN (2, params, n);
-  for (ls = params; SCM_NNULLP (ls); ls = SCM_CDR (ls))
+  for (ls = params; !SCM_NULLP (ls); ls = SCM_CDR (ls))
     SCM_ASSERT (scm_ilength (SCM_CAR (params)) == 2
 		&& SCM_INUMP (SCM_CAAR (ls))
 		&& SCM_INUM (SCM_CAAR (ls)) >= 0
@@ -380,11 +380,11 @@ static void
 display_application (SCM frame,int indentation,SCM sport,SCM port,scm_print_state *pstate)
 {
   SCM proc = SCM_FRAME_PROC (frame);
-  SCM name = (SCM_NFALSEP (scm_procedure_p (proc))
+  SCM name = (!SCM_FALSEP (scm_procedure_p (proc))
 	      ? scm_procedure_name (proc)
 	      : SCM_BOOL_F);
   display_frame_expr ("[",
-		      scm_cons (SCM_NFALSEP (name) ? name : proc,
+		      scm_cons (!SCM_FALSEP (name) ? name : proc,
 				SCM_FRAME_ARGS (frame)),
 		      SCM_FRAME_EVAL_ARGS_P (frame) ? " ..." : "]",
 		      indentation,
@@ -532,7 +532,7 @@ display_frame (SCM frame,int nfield,int indentation,SCM sport,SCM port,scm_print
     }
 
   /* display file name and line number */
-  if (SCM_NFALSEP (SCM_SHOW_FILE_NAME))
+  if (!SCM_FALSEP (SCM_SHOW_FILE_NAME))
     display_backtrace_file_and_line (frame, port, pstate);
 
   /* Check size of frame number. */
@@ -590,7 +590,7 @@ struct display_backtrace_args {
 };
 
 static SCM
-display_backtrace_body(struct display_backtrace_args *a)
+display_backtrace_body (struct display_backtrace_args *a)
 #define FUNC_NAME "display_backtrace_body"
 {
   int n_frames, beg, end, n, i, j;
@@ -602,14 +602,8 @@ display_backtrace_body(struct display_backtrace_args *a)
   a->port = SCM_COERCE_OUTPORT (a->port);
 
   /* Argument checking and extraction. */
-  SCM_ASSERT (SCM_STACKP (a->stack),
-	      a->stack,
-	      SCM_ARG1,
-	      s_display_backtrace);
-  SCM_ASSERT (SCM_OPOUTPORTP (a->port),
-	      a->port,
-	      SCM_ARG2,
-	      s_display_backtrace);
+  SCM_VALIDATE_STACK (1, a->stack);
+  SCM_VALIDATE_OPOUTPORT (2, a->port);
   n_frames = SCM_INUM (scm_stack_length (a->stack));
   n = SCM_INUMP (a->depth) ? SCM_INUM (a->depth) : SCM_BACKTRACE_DEPTH;
   if (SCM_BACKWARDS_P)
@@ -658,6 +652,8 @@ display_backtrace_body(struct display_backtrace_args *a)
     indent_p = 0;
   else
     {
+      unsigned int j;
+
       indent_p = 1;
       frame = scm_stack_ref (a->stack, SCM_MAKINUM (beg));
       for (i = 0, j = 0; i < n; ++i)
@@ -736,7 +732,7 @@ SCM_DEFINE (scm_backtrace, "backtrace", 0, 0, 0,
 {
   SCM the_last_stack =
     scm_fluid_ref (SCM_VARIABLE_REF (scm_the_last_stack_fluid_var));
-  if (SCM_NFALSEP (the_last_stack))
+  if (!SCM_FALSEP (the_last_stack))
     {
       scm_newline (scm_cur_outp);
       scm_puts ("Backtrace:\n", scm_cur_outp);

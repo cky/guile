@@ -103,7 +103,7 @@
 
 
 #if (SCM_DEBUG_PAIR_ACCESSES == 1)
-extern void scm_error_pair_access (SCM) SCM_NORETURN;
+extern void scm_error_pair_access (SCM);
 #endif
 extern SCM scm_cons (SCM x, SCM y);
 extern SCM scm_cons2 (SCM w, SCM x, SCM y);

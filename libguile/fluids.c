@@ -149,10 +149,9 @@ SCM_DEFINE (scm_fluid_ref, "fluid-ref", 1, 0, 0,
 	    "@code{#f}.")
 #define FUNC_NAME s_scm_fluid_ref
 {
-  long n;
+  unsigned long int n;
 
   SCM_VALIDATE_FLUID (1, fluid);
-
   n = SCM_FLUID_NUM (fluid);
 
   if (SCM_VECTOR_LENGTH (scm_root->fluids) <= n)
@@ -166,7 +165,7 @@ SCM_DEFINE (scm_fluid_set_x, "fluid-set!", 2, 0, 0,
 	    "Set the value associated with @var{fluid} in the current dynamic root.")
 #define FUNC_NAME s_scm_fluid_set_x
 {
-  long n;
+  unsigned long int n;
 
   SCM_VALIDATE_FLUID (1, fluid);
   n = SCM_FLUID_NUM (fluid);
