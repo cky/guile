@@ -160,7 +160,7 @@ SCM_DEFINE (scm_fluid_ref, "fluid-ref", 1, 0, 0,
 
   if (SCM_LENGTH (scm_root->fluids) <= n)
     grow_fluids (scm_root, n+1);
-  return SCM_VELTS(scm_root->fluids)[n];
+  return SCM_VELTS (scm_root->fluids)[n];
 }
 #undef FUNC_NAME
 

@@ -61,7 +61,7 @@
 #include "libguile/chars.h"
 #include "libguile/modules.h"
 #include "libguile/ports.h"
-#include "libguile/root.h"
+#include "libguile/fluids.h"
 #include "libguile/strings.h"
 #include "libguile/init.h"
 
@@ -256,7 +256,7 @@ gdb_eval (SCM exp)
     }
   SCM_BEGIN_FOREIGN_BLOCK;
   {
-    SCM env = scm_top_level_env (SCM_CDR (scm_top_level_lookup_closure_var));
+    SCM env = scm_top_level_env (SCM_TOP_LEVEL_LOOKUP_CLOSURE);
     gdb_result = scm_permanent_object (scm_ceval (exp, env));
   }
   SCM_END_FOREIGN_BLOCK;
@@ -302,7 +302,7 @@ gdb_binding (SCM name, SCM value)
   SCM_BEGIN_FOREIGN_BLOCK;
   {
     SCM vcell = scm_sym2vcell (name,
-			       SCM_CDR (scm_top_level_lookup_closure_var),
+			       SCM_TOP_LEVEL_LOOKUP_CLOSURE,
 			       SCM_BOOL_T);
     SCM_SETCDR (vcell, value);
   }

@@ -48,7 +48,7 @@
 #include "libguile/eval.h"
 #include "libguile/macros.h"
 #include "libguile/modules.h"
-#include "libguile/root.h"
+#include "libguile/fluids.h"
 
 #include "libguile/validate.h"
 #include "libguile/evalext.h"
@@ -79,7 +79,7 @@ SCM_DEFINE (scm_definedp, "defined?", 1, 1, 0,
 
   if (SCM_UNBNDP (env))
     vcell = scm_sym2vcell(sym,
-			  SCM_CDR (scm_top_level_lookup_closure_var),
+			  SCM_TOP_LEVEL_LOOKUP_CLOSURE,
 			  SCM_BOOL_F);
   else
     {

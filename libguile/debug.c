@@ -263,7 +263,7 @@ SCM_DEFINE (scm_make_gloc, "make-gloc", 1, 1, 0,
 #endif
     SCM_VALIDATE_VARIABLE (1,var);
   if (SCM_UNBNDP (env))
-    env = scm_top_level_env (SCM_CDR (scm_top_level_lookup_closure_var));
+    env = scm_top_level_env (SCM_TOP_LEVEL_LOOKUP_CLOSURE);
   else
     SCM_VALIDATE_NULLORCONS (2,env);
   return scm_make_memoized (SCM_VARVCELL (var) + 1, env);
@@ -328,7 +328,7 @@ SCM_DEFINE (scm_memcons, "memcons", 2, 1, 0,
       cdr = SCM_MEMOIZED_EXP (cdr);
     }
   if (SCM_UNBNDP (env))
-    env = scm_top_level_env (SCM_CDR (scm_top_level_lookup_closure_var));
+    env = scm_top_level_env (SCM_TOP_LEVEL_LOOKUP_CLOSURE);
   else
     SCM_VALIDATE_NULLORCONS (3,env);
   return scm_make_memoized (scm_cons (car, cdr), env);

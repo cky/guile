@@ -50,7 +50,7 @@
 #include "libguile/eval.h"
 #include "libguile/variable.h"
 #include "libguile/alist.h"
-#include "libguile/root.h"
+#include "libguile/fluids.h"
 #include "libguile/strings.h"
 #include "libguile/vectors.h"
 #include "libguile/weaks.h"
@@ -398,7 +398,7 @@ scm_sysintern0 (const char *name)
 {
   SCM lookup_proc;
   if (scm_can_use_top_level_lookup_closure_var && 
-      SCM_NIMP (lookup_proc = SCM_CDR (scm_top_level_lookup_closure_var)))
+      SCM_NIMP (lookup_proc = SCM_TOP_LEVEL_LOOKUP_CLOSURE))
     {
       SCM sym = SCM_CAR (scm_intern0 (name));
       SCM vcell = scm_sym2vcell (sym, lookup_proc, SCM_BOOL_T);
@@ -420,7 +420,7 @@ scm_symbol_value0 (const char *name)
      lookup closures are written in scheme which needs real symbols. */
   SCM symbol = scm_intern_obarray_soft (name, strlen (name), scm_symhash, 0);
   SCM vcell = scm_sym2vcell (SCM_CAR (symbol),
-			     SCM_CDR (scm_top_level_lookup_closure_var),
+			     SCM_TOP_LEVEL_LOOKUP_CLOSURE,
 			     SCM_BOOL_F);
   if (SCM_FALSEP (vcell))
     return SCM_UNDEFINED;
