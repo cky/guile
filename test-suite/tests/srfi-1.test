@@ -1,6 +1,6 @@
 ;;;; srfi-1.test --- Test suite for Guile's SRFI-1 functions. -*- scheme -*-
 ;;;;
-;;;; Copyright 2003, 2004 Free Software Foundation, Inc.
+;;;; Copyright 2003, 2004, 2005 Free Software Foundation, Inc.
 ;;;;
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -734,6 +734,80 @@
   (pass-if (not (length+ (circular-list 1))))
   (pass-if (not (length+ (circular-list 1 2))))
   (pass-if (not (length+ (circular-list 1 2 3)))))
+
+;;
+;; list=
+;;
+
+(with-test-prefix "list="
+
+  (pass-if "no lists"
+    (eq? #t (list= eqv?)))
+
+  (with-test-prefix "one list"
+
+    (pass-if "empty"
+      (eq? #t (list= eqv? '())))
+    (pass-if "one elem"
+      (eq? #t (list= eqv? '(1))))
+    (pass-if "two elems"
+      (eq? #t (list= eqv? '(2)))))
+
+  (with-test-prefix "two lists"
+
+    (pass-if "empty / empty"
+      (eq? #t (list= eqv? '() '())))
+
+    (pass-if "one / empty"
+      (eq? #f (list= eqv? '(1) '())))
+
+    (pass-if "empty / one"
+      (eq? #f (list= eqv? '() '(1))))
+
+    (pass-if "one / one same"
+      (eq? #t (list= eqv? '(1) '(1))))
+
+    (pass-if "one / one diff"
+      (eq? #f (list= eqv? '(1) '(2))))
+
+    (pass-if "called arg order"
+      (let ((good #t))
+	(list= (lambda (x y)
+		 (set! good (and good (= (1+ x) y)))
+		 #t)
+	       '(1 3) '(2 4))
+	good)))
+
+  (with-test-prefix "three lists"
+
+    (pass-if "empty / empty / empty"
+      (eq? #t (list= eqv? '() '() '())))
+
+    (pass-if "one / empty / empty"
+      (eq? #f (list= eqv? '(1) '() '())))
+
+    (pass-if "one / one / empty"
+      (eq? #f (list= eqv? '(1) '(1) '())))
+
+    (pass-if "one / diff / empty"
+      (eq? #f (list= eqv? '(1) '(2) '())))
+
+    (pass-if "one / one / one"
+      (eq? #t (list= eqv? '(1) '(1) '(1))))
+
+    (pass-if "two / two / diff"
+      (eq? #f (list= eqv? '(1 2) '(1 2) '(1 99))))
+
+    (pass-if "two / two / two"
+      (eq? #t (list= eqv? '(1 2) '(1 2) '(1 2))))
+
+    (pass-if "called arg order"
+      (let ((good #t))
+	(list= (lambda (x y)
+		 (set! good (and good (= (1+ x) y)))
+		 #t)
+	       '(1 4) '(2 5) '(3 6))
+	good))))
 
 ;;
 ;; list-copy
