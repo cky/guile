@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2003 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2003, 2004 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -31,6 +31,7 @@
 #include "libguile/objects.h"
 #include "libguile/smob.h"
 #include "libguile/chars.h"
+#include "libguile/dynwind.h"
 
 #include "libguile/keywords.h"
 #include "libguile/root.h"
@@ -424,6 +425,60 @@ SCM_DEFINE (scm_set_current_error_port, "set-current-error-port", 1, 0, 0,
   return oerrp;
 }
 #undef FUNC_NAME
+
+typedef struct {
+  SCM value;
+  SCM (*getter) (void);
+  SCM (*setter) (SCM);
+} swap_data;
+
+static void
+swap_port (void *data)
+{
+  swap_data *d = (swap_data *)data;
+  SCM t;
+
+  t = d->getter ();
+  d->setter (d->value);
+  d->value = t;
+}
+
+static void
+scm_with_current_foo_port (SCM port,
+			   SCM (*getter) (void), SCM (*setter) (SCM))
+{
+  swap_data data;
+  data.value = port;
+  data.getter = getter;
+  data.setter = setter;
+  
+  scm_on_rewind (swap_port, &data, SCM_F_WIND_EXPLICITELY);
+  scm_on_unwind (swap_port, &data, SCM_F_WIND_EXPLICITELY);
+}
+
+void
+scm_with_current_input_port (SCM port)
+{
+  scm_with_current_foo_port (port,
+			     scm_current_input_port,
+			     scm_set_current_input_port);
+}
+
+void
+scm_with_current_output_port (SCM port)
+{
+  scm_with_current_foo_port (port,
+			     scm_current_output_port,
+			     scm_set_current_output_port);
+}
+
+void
+scm_with_current_error_port (SCM port)
+{
+  scm_with_current_foo_port (port,
+			     scm_current_error_port,
+			     scm_set_current_error_port);
+}
 
 
 /* The port table --- an array of pointers to ports.  */
