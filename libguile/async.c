@@ -263,21 +263,6 @@ scm_switch ()
 
 
 
-static int print_async SCM_P ((SCM exp, SCM port, scm_print_state *pstate));
-
-static int
-print_async (exp, port, pstate)
-     SCM exp;
-     SCM port;
-     scm_print_state *pstate;
-{
-  scm_puts ("#<async ", port);
-  scm_intprint(exp, 16, port);
-  scm_putc('>', port);
-  return 1;
-}
-
-
 static SCM mark_async SCM_P ((SCM obj));
 
 static SCM
@@ -289,29 +274,6 @@ mark_async (obj)
   return it->thunk;
 }
 
-
-static scm_sizet free_async SCM_P ((SCM obj));
-
-static scm_sizet
-free_async (obj)
-     SCM obj;
-{
-  struct scm_async * it;
-  it = SCM_ASYNC (obj);
-  scm_must_free ((char *)it);
-  return (sizeof (*it));
-}
-
-
-static scm_smobfuns  async_smob =
-{
-  mark_async,
-  free_async,
-  print_async,
-  0
-};
-
-
 
 
 SCM_PROC(s_async, "async", 1, 0, 0, scm_async);
@@ -321,17 +283,11 @@ scm_async (thunk)
      SCM thunk;
 {
   SCM it;
-  struct scm_async * async;
-
-  SCM_NEWCELL (it);
-  SCM_DEFER_INTS;
-  SCM_SETCDR (it, SCM_EOL);
-  async = (struct scm_async *)scm_must_malloc (sizeof (*async), s_async);
+  struct scm_async * async
+    = (struct scm_async *) scm_must_malloc (sizeof (*async), s_async);
   async->got_it = 0;
   async->thunk = thunk;
-  SCM_SETCDR (it, (SCM)async);
-  SCM_SETCAR (it, (SCM)scm_tc16_async);
-  SCM_ALLOW_INTS;
+  SCM_NEWSMOB (it, scm_tc16_async, async);
   return it;
 }
 
@@ -517,8 +473,8 @@ void
 scm_init_async ()
 {
   SCM a_thunk;
-  scm_tc16_async = scm_newsmob (&async_smob);
-
+  scm_tc16_async = scm_make_smob_type ("async", sizeof (struct scm_async));
+  scm_set_smob_mark (scm_tc16_async, mark_async);
   scm_gc_vcell = scm_sysintern ("gc-thunk", SCM_BOOL_F);
   a_thunk = scm_make_gsubr ("%gc-thunk", 0, 0, 0, scm_sys_gc_async_thunk);
   scm_gc_async = scm_system_async (a_thunk);

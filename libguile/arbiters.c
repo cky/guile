@@ -43,6 +43,7 @@
 #include <stdio.h>
 #include "_scm.h"
 #include "smob.h"
+#include "genio.h"
 
 #include "arbiters.h"
 
@@ -71,23 +72,14 @@ prinarb (exp, port, pstate)
   return !0;
 }
 
-static scm_smobfuns arbsmob =
-{
-  scm_markcdr, scm_free0, prinarb, 0
-};
-
 SCM_PROC(s_make_arbiter, "make-arbiter", 1, 0, 0, scm_make_arbiter);
 
 SCM 
 scm_make_arbiter (name)
      SCM name;
 {
-  register SCM z;
-  SCM_NEWCELL (z);
-  SCM_DEFER_INTS;
-  SCM_SETCDR (z, name);
-  SCM_SETCAR (z, scm_tc16_arbiter);
-  SCM_ALLOW_INTS;
+  SCM z;
+  SCM_NEWSMOB (z, scm_tc16_arbiter, name);
   return z;
 }
 
@@ -129,7 +121,9 @@ scm_release_arbiter (arb)
 void
 scm_init_arbiters ()
 {
-  scm_tc16_arbiter = scm_newsmob (&arbsmob);
+  scm_tc16_arbiter = scm_make_smob_type ("arbiter", 0);
+  scm_set_smob_mark (scm_tc16_arbiter, scm_markcdr);
+  scm_set_smob_print (scm_tc16_arbiter, prinarb);
+
 #include "arbiters.x"
 }
-
