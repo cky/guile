@@ -131,15 +131,14 @@ change in the future, the Scheme programming interface described in this
 manual should be considered stable.  The C programming interface is
 considered relatively stable, although at the time of this writing,
 there is still some flux.
-@c fixme: Review: Need better C code interface commentary.
 
 @menu
 * General Information about Modules::  Guile module basics.
 * Using Guile Modules::         How to use existing modules.
 * Creating Guile Modules::      How to package your code into modules.
-* More Module Procedures::      Low-level module code.
 * Module System Quirks::        Strange things to be aware of.
 * Included Guile Modules::      Which modules come with Guile?
+* Accessing Modules from C::    How to work with modules with C code.
 @end menu
 
 @node General Information about Modules
@@ -376,24 +375,6 @@ Equivalent to @code{(begin (define foo ...) (export foo))}.
 @c end
 
 
-@node More Module Procedures
-@subsection More Module Procedures
-
-@c FIXME::martin: Review me!
-
-@c FIXME::martin: Should this procedure be documented and supported
-@c   at all?
-
-The procedures in this section are useful if you want to dig into the
-innards of Guile's module system.  If you don't know precisely what you
-do, you should probably avoid using any of them.
-
-@deffn {Scheme Procedure} standard-eval-closure module
-@deffnx {C Function} scm_standard_eval_closure (module)
-Return an eval closure for the module @var{module}.
-@end deffn
-
-
 @node Module System Quirks
 @subsection Module System Quirks
 
@@ -501,6 +482,103 @@ This module contains hooks for using Aubrey Jaffer's symbolic math
 package Jacal from Guile (@pxref{JACAL}).
 @end table
 
+
+@node Accessing Modules from C
+@subsection Accessing Modules from C
+
+The last sections have described how modules are used in Scheme code,
+which is the recommended way of creating and accessing modules.  You
+can also work with modules from C, but it is more cumbersome.
+
+The following procedures are available.
+
+@deftypefn {C Procedure} SCM scm_current_module ()
+Return the module that is the @emph{current module}.
+@end deftypefn
+
+@deftypefn {C Procedure} SCM scm_set_current_module (SCM module)
+Set the current module to @var{module} and return the previous current
+module.
+@end deftypefn
+
+@deftypefn {C Procedure} SCM scm_c_call_with_current_module (SCM module, SCM (*func)(void *), void *data)
+Call @var{func} and make @var{module} the current module during the
+call.  The argument @var{data} is passed to @var{func}.  The return
+value of @code{scm_c_call_with_current_module} is the return value of
+@var{func}.
+@end deftypefn
+
+@deftypefn {C Procedure} SCM scm_c_lookup (const char *name)
+Return the variable bound to the symbol indicated by @var{name} in the
+current module.  If there is no such binding or the symbol is not
+bound to a variable, signal an error.
+@end deftypefn
+
+@deftypefn {C Procedure} SCM scm_lookup (SCM name)
+Like @code{scm_c_lookup}, but the symbol is specified directly.
+@end deftypefn
+
+@deftypefn {C Procedure} SCM scm_c_module_lookup (SCM module, const char *name)
+@deftypefnx {C Procedure} SCM scm_module_lookup (SCM module, SCM name)
+Like @code{scm_c_lookup} and @code{scm_lookup}, but the specified
+module is used instead of the current one.
+@end deftypefn
+
+@deftypefn {C Procedure} SCM scm_c_define (const char *name, SCM val)
+Bind the symbol indicated by @var{name} to a variable in the current
+module and set that variable to @var{val}.  When @var{name} is already
+bound to a variable, use that.  Else create a new variable.
+@end deftypefn
+
+@deftypefn {C Procedure} SCM scm_define (SCM name, SCM val)
+Like @code{scm_c_define}, but the symbol is specified directly.
+@end deftypefn
+
+@deftypefn {C Procedure} SCM scm_c_module_define (SCM module, const char *name, SCM val)
+@deftypefnx {C Procedure} SCM scm_module_define (SCM module, SCM name, SCM val)
+Like @code{scm_c_define} and @code{scm_define}, but the specified
+module is used instead of the current one.
+@end deftypefn
+
+@deftypefn {C Procedure} SCM scm_module_reverse_lookup (SCM module, SCM variable)
+Find the symbol that is bound to @var{variable} in @var{module}.  When no such binding is found, return @var{#f}.
+@end deftypefn
+
+@deftypefn {C Procedure} SCM scm_c_define_module (const char *name, void (*init)(void *), void *data)
+Define a new module named @var{name} and make it current while
+@var{init} is called, passing it @var{data}.  Return the module.
+
+The parameter @var{name} is a string with the symbols that make up
+the module name, separated by spaces.  For example, @samp{"foo bar"} names
+the module @samp{(foo bar)}.
+
+When there already exists a module named @var{name}, it is used
+unchanged, otherwise, an empty module is created.
+@end deftypefn
+
+@deftypefn {C Procedure} SCM scm_c_resolve_module (const char *name)
+Find the module name @var{name} and return it.  When it has not
+already been defined, try to auto-load it.  When it can't be found
+that way either, create an empty module.  The name is interpreted as
+for @code{scm_c_define_module}.
+@end deftypefn
+
+@deftypefn {C Procedure} SCM scm_resolve_module (SCM name)
+Like @code{scm_c_resolve_module}, but the name is given as a real list
+of symbols.
+@end deftypefn
+
+@deftypefn {C Procedure} SCM scm_c_use_module (const char *name)
+Add the module named @var{name} to the uses list of the current
+module, as with @code{(use-modules @var{name})}.  The name is
+interpreted as for @code{scm_c_define_module}.
+@end deftypefn
+
+@deftypefn {C Procedure} SCM scm_c_export (const char *name, ...)
+Add the bindings designated by @var{name}, ... to the public interface
+of the current module.  The list of names is terminated by
+@code{NULL}.
+@end deftypefn
 
 @node Dynamic Libraries
 @section Dynamic Libraries
