@@ -1,3 +1,28 @@
+/* This code in included by number.s.c to generate integer conversion
+   functions like scm_to_int and scm_from_int.  It is only for
+   unsigned types, see conv-integer.i.c for the signed variant.
+*/
+
+/* You need to define the following macros before including this
+   template.  They are undefined at the end of this file to giove a
+   clean slate for the next inclusion.
+
+   TYPE         - the integral type to be converted
+   TYPE_MIN     - the smallest representable number of TYPE, typically 0.
+   TYPE_MAX     - the largest representable number of TYPE
+   SIZEOF_TYPE  - the size of TYPE, equal to "sizeof (TYPE)" but
+                  in a form that can be computed by the preprocessor.
+		  When this number is 0, the preprocessor is not used
+		  to select which code to compile; the most general
+		  code is always used.
+
+   SCM_TO_TYPE_PROTO(arg), SCM_FROM_TYPE_PROTO(arg) 
+                - These two macros should expand into the prototype
+                  for the two defined functions, without the return
+                  type.
+
+*/
+
 TYPE
 SCM_TO_TYPE_PROTO (SCM val)
 {
