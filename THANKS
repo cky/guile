@@ -9,7 +9,7 @@ Thanks to:
 - Gary Houston, for continuing work on the I/O system.
 - Tom Tromey, for Automake therapy (the code and its users alike).
 - Greg Harvey, for work on the Guile web pages.
-- Marius Vollmer, for kibbitzing, and keeping Mikael company.
+- Marius Vollmer, for extensive kibbitzing, and keeping Mikael company.
 
 Bug reports and fixes from:
 

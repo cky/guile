@@ -1,3 +1,9 @@
+1999-09-22  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	* configure.in: Call AM_PROG_CC_STDC before AM_PROG_LIBTOOL, so
+	libtool knows how to get ANSI C behavior from the compiler.
+	* configure: Regenerated.
+
 1999-09-20  Gary Houston  <ghouston@freewire.co.uk>
 
 	* configure.in: check availability of siginterrupt.

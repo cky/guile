@@ -1,3 +1,8 @@
+1999-09-22  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	* configure.in: Call AM_PROG_CC_STDC.
+	* configure, aclocal.m4: Regenerated.
+
 1999-09-16  Mikael Djurfeldt  <mdj@mdj-pc.nada.kth.se>
 
 	* Makefile.am (.c.x): Use same rule as in libguile.
