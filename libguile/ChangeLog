@@ -1,3 +1,9 @@
+2002-04-22  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* goops.c (scm_slot_exists_p): Rename from scm_slots_exists_p.
+	(s_scm_slot_exists_p): Rename from s_scm_slots_exists_p.
+	Thanks to Andreas Rottmann.
+
 2002-04-20  Gary Houston  <ghouston@arglist.com>
 
 	* removal of unused fields in root state (thanks to Christopher
