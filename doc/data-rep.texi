@@ -46,7 +46,7 @@ by the Free Software Foundation.
 @sp 10
 @comment The title is printed in a large font.
 @title Data Representation in Guile
-@subtitle $Id: data-rep.texi,v 1.13 2000-07-28 13:19:01 ossau Exp $
+@subtitle $Id: data-rep.texi,v 1.14 2001-02-04 17:29:06 mvo Exp $
 @subtitle For use with Guile @value{VERSION}
 @author Jim Blandy
 @author Free Software Foundation
@@ -1366,11 +1366,10 @@ clear_image (SCM image_smob)
   int area;
   struct image *image;
 
-  SCM_ASSERT ((SCM_NIMP (image_smob)
-               && SCM_CAR (image_smob) == image_tag),
+  SCM_ASSERT (SCM_SMOB_PREDICATE (image_tag, image_smob),
               image_smob, SCM_ARG1, "clear-image");
 
-  image = (struct image *) SCM_CDR (image_smob);
+  image = (struct image *) SCM_SMOB_DATA (image_smob);
   area = image->width * image->height;
   memset (image->pixels, 0, area);
 
@@ -1449,7 +1448,7 @@ SCM
 mark_image (SCM image_smob)
 @{
   /* Mark the image's name and update function.  */
-  struct image *image = (struct image *) SCM_CDR (image_smob);
+  struct image *image = (struct image *) SCM_SMOB_DATA (image_smob);
 
   scm_gc_mark (image->name);
   scm_gc_mark (image->update_func);
@@ -1475,7 +1474,7 @@ SCM
 mark_image (SCM image_smob)
 @{
   /* Mark the image's name and update function.  */
-  struct image *image = (struct image *) SCM_CDR (image_smob);
+  struct image *image = (struct image *) SCM_SMOB_DATA (image_smob);
 
   scm_gc_mark (image->name);
   return image->update_func;
@@ -1502,7 +1501,7 @@ type:
 scm_sizet
 free_image (SCM image_smob)
 @{
-  struct image *image = (struct image *) SCM_CDR (image_smob);
+  struct image *image = (struct image *) SCM_SMOB_DATA (image_smob);
   scm_sizet size = image->width * image->height + sizeof (*image);
 
   free (image->pixels);
@@ -1695,9 +1694,7 @@ make_image (SCM name, SCM s_width, SCM s_height)
   image->name = name;
   image->update_func = SCM_BOOL_F;
 
-  SCM_NEWCELL (image_smob);
-  SCM_SETCDR (image_smob, image);
-  SCM_SETCAR (image_smob, image_tag);
+  SCM_NEWSMOB (image_smob, image_tag, image);
 
   return image_smob;
 @}
@@ -1708,11 +1705,10 @@ clear_image (SCM image_smob)
   int area;
   struct image *image;
 
-  SCM_ASSERT ((SCM_NIMP (image_smob)
-               && SCM_CAR (image_smob) == image_tag),
+  SCM_ASSERT (SCM_SMOB_PREDICATE (image_tag, image_smob),
               image_smob, SCM_ARG1, "clear-image");
 
-  image = (struct image *) SCM_CDR (image_smob);
+  image = (struct image *) SCM_SMOB_DATA (image_smob);
   area = image->width * image->height;
   memset (image->pixels, 0, area);
 
@@ -1726,7 +1722,7 @@ clear_image (SCM image_smob)
 static SCM
 mark_image (SCM image_smob)
 @{
-  struct image *image = (struct image *) SCM_CDR (image_smob);
+  struct image *image = (struct image *) SCM_SMOB_DATA (image_smob);
 
   scm_gc_mark (image->name);
   return image->update_func;
@@ -1735,7 +1731,7 @@ mark_image (SCM image_smob)
 static scm_sizet
 free_image (SCM image_smob)
 @{
-  struct image *image = (struct image *) SCM_CDR (image_smob);
+  struct image *image = (struct image *) SCM_SMOB_DATA (image_smob);
   scm_sizet size = image->width * image->height + sizeof (struct image);
 
   free (image->pixels);
@@ -1747,7 +1743,7 @@ free_image (SCM image_smob)
 static int
 print_image (SCM image_smob, SCM port, scm_print_state *pstate)
 @{
-  struct image *image = (struct image *) SCM_CDR (image_smob);
+  struct image *image = (struct image *) SCM_SMOB_DATA (image_smob);
 
   scm_puts ("#<image ", port);
   scm_display (image->name, port);
