@@ -1,3 +1,16 @@
+Mon Oct 14 04:21:51 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
+
+	* debug.scm (make-enable, make-disable): Simplified.
+
+	* boot-9.scm: Renamed %%throw-handler-default -->
+ 	throw-handler-default.
+	((handle-system-error key . arg-list)): Changed the way errors are
+	reported.
+	((scm-style-repl)): Wrap up the call to eval in a start-stack
+ 	acro.
+	((error-catching-loop thunk)): Introduce a lazy-catch into
+ 	error-catching-loop so that the stack can be captured.
+
 Thu Oct 10 22:27:32 1996  Jim Blandy  <jimb@totoro.cyclic.com>
 
 	* mapping.scm (hash-table-mapping): Explicitly request that

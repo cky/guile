@@ -1,3 +1,62 @@
+Mon Oct 14 04:21:51 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
+
+	* debug.c, debug.h: Removed obsolete code.
+
+	* continuations.c, continuations.h, debug.c, gc.c, init.c, root.c,
+	stacks.c: Renamed regs --> scm_contregs.
+
+	* print.c (scm_free_print_state): Cleanup print state before
+	returning it to pool.  It is better to do it here than in
+	scm_prin1 since scm_prin1 is called often.
+
+	* srcprop.c (scm_source_properties, scm_set_source_properties_x,
+ 	s_set_source_property_x): Check that first argument is a pair or a
+	memoized object.
+
+	* srcprop.c, srcprop.h: Made scm_i_filename, scm_i_copy,
+	scm_i_line, scm_i_column and scm_i_breakpoint global.
+
+	* init.c: Added #include "backtrace.h" and #include "stacks.h".
+	(scm_boot_guile_1): Added calls to scm_init_backtrace and
+	scm_init_stacks.
+
+	* debug.h: Added debug object smob declaration and macro
+	definitions.
+
+	* configure.in: Build with backtrace.o and stacks.o if debug
+	support enabled.
+
+	* Makefile.in: Added entries for new files: backtrace.c,
+	backtrace.h, stacks.c and stacks.h.
+
+	* symbols.c (scm_sym2ovcell): Fixed documentation.
+
+	* _scm.h (min, max): Added.
+
+	* async.c: Moved `min' macro to _scm.h.
+
+	* debug.h: New debug options SCM_BACKTRACE_MAXDEPTH and
+	SCM_BACKTRACE_INDENT.
+
+	* eval.c: Added new debug options `maxdepth' and `indent'.
+
+	* print.c (make_print_state): Bugfix: Initialize pstate->ceiling.
+
+	* print.h: Added selector SCM_PRINT_STATE.
+
+	* print.c: New functions: scm_make_print_state,
+ 	scm_free_print_state.
+
+	* print.h: Added declarations for scm_make_print_state,
+ 	scm_free_print_state.
+	
+*	* debug.c (scm_m_start_stack): New acro.
+
+	* debug.h: Small cleanup.
+
+	* init.c (scm_boot_guile_1): Moved scm_init_debug below
+	scm_init_eval.
+
 Sun Oct 13 20:14:53 1996  Jim Blandy  <jimb@totoro.cyclic.com>
 
 	* __scm.h, alist.c, alist.h, append.c, append.h, appinit.c,
