@@ -1,3 +1,8 @@
+2001-11-11  Thien-Thi Nguyen  <ttn@glug.org>
+
+	* strop.c (scm_string_null_p): Docfix; nfc.
+	Thanks to Scott Lenser.
+
 2001-11-07  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* extensions.c (scm_load_extension): Canonicalize docstring
@@ -33,13 +38,13 @@
 	* socket.c (scm_init_socket): Initialize `win32-socket' part
 	here under M$-Windows.
 
-	* numbers.h: Added missing declaration of 
+	* numbers.h: Added missing declaration of
 	`scm_sys_check_number_conversions()'.
 
 	* error.c: Local definition of SCM_I_STRERROR and SCM_I_ERRNO
 	and use in `(strerror)' and `(system-error)'.
 
-	* Makefile.am (EXTRA_libguile_la_SOURCES): Added 
+	* Makefile.am (EXTRA_libguile_la_SOURCES): Added
 	`win32-socket.[ch]' to extra source and header files.
 
 2001-11-06  Marius Vollmer  <mvo@zagadka.ping.de>
@@ -56,10 +61,10 @@
 2001-11-04  Stefan Jahn  <stefan@lkcc.org>
 
 	* Makefile.am (libguile_la_LIBADD): Added $(THREAD_LIBS_LOCAL)
-	here (was at guile_LDADD) which describes the dependency 
+	here (was at guile_LDADD) which describes the dependency
 	correctly and allows a clean build on Win32.
 
-	* __scm.h (SCM_API): Follow-up patch.  Renamed __FOO__ macros 
+	* __scm.h (SCM_API): Follow-up patch.  Renamed __FOO__ macros
 	into FOO.
 
 	* __scm.h: USE_DLL_IMPORT indicates the usage of the DLL
@@ -104,7 +109,7 @@
 2001-11-02  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	Support for native Win32.  Thanks to Stefan Jahn!
-	
+
         * Makefile.am: Add win32-uname.c, win32-uname.h, win32-dirent.c
 	and win32-dirent.h to extra source and header files.  These
 	include the uname() and the POSIX dirent interface implementation
@@ -113,18 +118,18 @@
 	libraries.  Corrected `guile_filter_doc_snarfage$(EXEEXT)'
 	dependency.
 
-        * __scm.h: Defined SCM_API.  This macro gets prepended to all 
-        function and data definitions which should be exported or imported 
+        * __scm.h: Defined SCM_API.  This macro gets prepended to all
+        function and data definitions which should be exported or imported
         in the resulting dynamic link library in the Win32 port.
 
         * __scm.h, alist.h, arbiters.h, async.h, backtrace.h, boolean.h,
-        chars.h, continuations.h, coop-defs.h, coop-threads.h, 
+        chars.h, continuations.h, coop-defs.h, coop-threads.h,
         debug-malloc.h, debug.h, deprecation.h, dynl.h, dynwind.h,
         environments.h, eq.h, error.h, eval.h, evalext.h, extensions.h,
         feature.h, filesys.h, fluids.h, fports.h, gc.h, gdb_interface.h,
         gdbint.h, gh.h, goops.h, gsubr.h, guardians.h, hash.h, hashtab.h,
         hooks.h, init.h, ioext.h, iselect.h, keywords.h, lang.h, list.h,
-        load.h, macros.h, mallocs.h, modules.h, net_db.h, numbers.h, 
+        load.h, macros.h, mallocs.h, modules.h, net_db.h, numbers.h,
         objects.h, objprop.h, options.h, pairs.h, ports.h, posix.h, print.h,
         procprop.h, procs.h, properties.h, ramap.h, random.h, rdelim.h,
         read.h, regex-posix.h, root.h, rw.h, scmsigs.h, script.h, simpos.h,
@@ -134,7 +139,7 @@
         vports.h, weaks.h:
         Prefixed each each exported symbol with SCM_API.
 
-        * continuations.c: Added comment about the use of the extern 
+        * continuations.c: Added comment about the use of the extern
         declarations of {get,set}context() functions used in the ia64 port.
 
         * continuations.h, gc.c: `__libc_ia64_register_backing_store_base'
@@ -150,7 +155,7 @@
         * fports.c: Include `io.h' is possible.  Put `*fp' into referring
         statement block in `scm_fport_buffer_add()'.
         Some corrections in `getflags()'.
-        
+
         * gdb_interface.h (GDB_INTERFACE): Also support __CYGWIN__.
 
         * guile.c: Make sure to define __SCM_IMPORT__ for shared library
@@ -377,7 +382,7 @@
 
 	These changes fixes a race condition in the Guile coop - pthread
 	compatibility code.
-	
+
 	* coop.c (mother_awake_p): New variable.
 	(coop_create): Set mother_awake_p before creating or signalling
 	mother; wait until mother is going to sleep before returning.
