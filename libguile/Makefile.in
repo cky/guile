@@ -455,6 +455,7 @@ distclean: clean
 	-rm -f config.status
 	-rm -f Makefile
 	-rm -f scmconfig.h
+	-rm -f fd.h
 
 
 realclean: distclean
