@@ -1,7 +1,7 @@
 /* classes: h_files */
 
-#ifndef TIMEH
-#define TIMEH
+#ifndef STIMEH
+#define STIMEH
 /*	Copyright (C) 1995,1996,1997 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
@@ -60,4 +60,4 @@ extern SCM scm_strftime SCM_P ((SCM format, SCM stime));
 extern SCM scm_strptime SCM_P ((SCM format, SCM string));
 extern void scm_init_stime SCM_P ((void));
 
-#endif  /* TIMEH */
+#endif  /* STIMEH */
