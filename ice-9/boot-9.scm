@@ -975,8 +975,7 @@
 	    (error
 	     "Lazy-binder expected to be a procedure or #f." binder))
 
-	(let ((module (module-constructor (and (not (zero? size))
-					       (make-hash-table size))
+	(let ((module (module-constructor (make-hash-table size)
 					  uses binder #f #f #f #f #f #f
 					  '()
 					  (make-weak-value-hash-table 31)
@@ -1878,7 +1877,7 @@
 		    ;; Replace autoload-interface with interface
 		    (set-car! (memq a (module-uses module)) i)
 		    (module-local-variable i sym))))))
-    (module-constructor '#() '() b #f #f name 'autoload #f #f
+    (module-constructor (make-hash-table 0) '() b #f #f name 'autoload #f #f
 			'() (make-weak-value-hash-table 31) 0)))
 
 ;;; {Compiled module}
