@@ -1,3 +1,8 @@
+2004-04-22  Kevin Ryde  <user42@zip.com.au>
+
+	* configure.in (AC_CHECK_HEADERS): Add fenv.h.
+	(AC_CHECK_FUNCS): Add fesetround.
+
 2004-04-18  Kevin Ryde  <user42@zip.com.au>
 
 	* configure.in (AC_CHECK_FUNCS): Add readdir_r.
