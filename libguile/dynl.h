@@ -48,8 +48,8 @@
 
 
 void scm_register_module_xxx SCM_P ((char *module_name, void *init_func));
-SCM scm_registered_modules SCM_P (());
-SCM scm_clear_registered_modules SCM_P (());
+SCM scm_registered_modules SCM_P ((void));
+SCM scm_clear_registered_modules SCM_P ((void));
 
 SCM scm_dynamic_link SCM_P ((SCM fname));
 SCM scm_dynamic_unlink SCM_P ((SCM dobj));
