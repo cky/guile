@@ -50,7 +50,7 @@
 #include "libguile/procs.h"
 #include "libguile/throw.h"
 #include "libguile/root.h"
-
+#include "libguile/iselect.h"
 
 
 /* smob tags for the thread datatypes */
@@ -67,8 +67,15 @@ SCM_API scm_t_bits scm_tc16_condvar;
 #define SCM_CONDVARP(x)     SCM_TYP16_PREDICATE (scm_tc16_condvar, x)
 #define SCM_CONDVAR_DATA(x) ((void *) SCM_CELL_WORD_1 (x))
 
-/* Initialize implementation specific details of the threads support */
-SCM_API void scm_threads_init (SCM_STACKITEM *);
+#define SCM_VALIDATE_THREAD(pos, a) \
+ SCM_MAKE_VALIDATE_MSG (pos, a, THREADP, "thread")
+
+#define SCM_VALIDATE_MUTEX(pos, a) \
+ SCM_MAKE_VALIDATE_MSG (pos, a, MUTEXP, "mutex")
+
+#define SCM_VALIDATE_CONDVAR(pos, a) \
+ SCM_MAKE_VALIDATE_MSG (pos, a, CONDVARP, "condition variable")
+
 SCM_API void scm_threads_mark_stacks (void);
 SCM_API void scm_init_threads (SCM_STACKITEM *);
 SCM_API void scm_init_thread_procs (void);
@@ -76,18 +83,39 @@ SCM_API void scm_init_thread_procs (void);
 SCM_API SCM scm_spawn_thread (scm_t_catch_body body, void *body_data,
 			      scm_t_catch_handler handler, void *handler_data);
 
-/* These are versions of the ordinary sleep and usleep functions,
+/* These are versions of the ordinary sleep and usleep functions
    that play nicely with the thread system.  */
 SCM_API unsigned long scm_thread_sleep (unsigned long);
 SCM_API unsigned long scm_thread_usleep (unsigned long);
 
+/* Critical sections */
+
+/* Since only one thread can be active anyway, we don't need to do
+   anything special around critical sections.  In fact, that's the
+   reason we do only support cooperative threading: Guile's critical
+   regions have not been completely identified yet.  (I think.) */
+
+#define SCM_CRITICAL_SECTION_START 
+#define SCM_CRITICAL_SECTION_END 
+
+/* Switching */
+
+SCM_API int scm_i_switch_counter;
+#define SCM_I_THREAD_SWITCH_COUNT 50
+
+#define SCM_THREAD_SWITCHING_CODE \
+do { \
+  scm_i_switch_counter--; \
+  if (scm_i_switch_counter == 0) \
+    { \
+      scm_i_switch_counter = SCM_I_THREAD_SWITCH_COUNT; \
+      scm_yield(); \
+    } \
+} while (0)
 
 /* The C versions of the Scheme-visible thread functions.  */
-#ifdef USE_COOP_THREADS
-SCM_API SCM scm_single_thread_p (void);
-#endif
 SCM_API SCM scm_yield (void);
-SCM_API SCM scm_call_with_new_thread (SCM argl);
+SCM_API SCM scm_call_with_new_thread (SCM thunk, SCM handler);
 SCM_API SCM scm_join_thread (SCM t);
 SCM_API SCM scm_make_mutex (void);
 SCM_API SCM scm_lock_mutex (SCM m);
@@ -108,6 +136,11 @@ SCM_API SCM scm_thread_exited_p (SCM thread);
 
 SCM_API scm_root_state *scm_i_thread_root (SCM thread);
 
+SCM_API void *scm_i_thread_data;
+SCM_API void scm_i_set_thread_data (void *);
+#define SCM_THREAD_LOCAL_DATA        scm_i_thread_data
+#define SCM_SET_THREAD_LOCAL_DATA(x) scm_i_set_thread_data(x)
+
 #ifndef HAVE_STRUCT_TIMESPEC
 /* POSIX.4 structure for a time value.  This is like a `struct timeval' but
    has nanoseconds instead of microseconds.  */
@@ -118,41 +151,11 @@ struct timespec
 };
 #endif
 
-#ifdef USE_COOP_THREADS
-#include "libguile/coop-defs.h"
-#else
 #ifdef USE_COPT_THREADS
-#include "libguile/coop-pthreads.h"
+#include "libguile/pthread-threads.h"
 #else
 #include "libguile/null-threads.h"
 #endif
-#endif
-
-#if (SCM_ENABLE_DEPRECATED == 1)
-
-typedef struct {
-  SCM m;
-} scm_t_mutex;
-
-SCM_API int scm_mutex_init (scm_t_mutex *m);
-SCM_API int scm_mutex_lock (scm_t_mutex *m);
-SCM_API int scm_mutex_trylock (scm_t_mutex *m);
-SCM_API int scm_mutex_unlock (scm_t_mutex *m);
-SCM_API int scm_mutex_destroy (scm_t_mutex *m);
-
-typedef struct {
-  SCM c;
-} scm_t_cond;
-
-SCM_API int scm_cond_init (scm_t_cond *c, int *cattr);
-SCM_API int scm_cond_wait (scm_t_cond *c, scm_t_mutex *m);
-SCM_API int scm_cond_timedwait (scm_t_cond *c, scm_t_mutex *m,
-				const struct timespec *abstime);
-SCM_API int scm_cond_signal (scm_t_cond *c);
-SCM_API int scm_cond_broadcast (scm_t_cond *c);
-SCM_API int scm_cond_destroy (scm_t_cond *c);
-
-#endif /* SCM_ENABLE_DEPRECATED == 1 */
 
 #endif  /* SCM_THREADS_H */
 
