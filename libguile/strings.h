@@ -55,6 +55,10 @@
 #define SCM_STRINGP(x) (SCM_TYP7S(x)==scm_tc7_string)
 #define SCM_NSTRINGP(x) (!SCM_STRINGP(x))
 
+/* Is X a writable string (i.e., not a substring)?  */
+#define SCM_RWSTRINGP(x) (SCM_TYP7(x) == scm_tc7_string)
+#define SCM_NRWSTRINGP(x) (! SCM_RWSTRINGP (x))
+
 
 
 
