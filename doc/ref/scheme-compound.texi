@@ -372,25 +372,18 @@ itself is not modified or used in the return.
 
 @rnindex reverse
 @deffn {Scheme Procedure} reverse lst
+@deffnx {Scheme Procedure} reverse! lst [newtail]
 @deffnx {C Function} scm_reverse (lst)
-Return a new list that contains the elements of @var{lst} but
-in reverse order.
-@end deffn
+@deffnx {C Function} scm_reverse_x (lst, newtail)
+Return a list comprising the elements of @var{lst}, in reverse order.
 
-@c NJFIXME explain new_tail
-@deffn {Scheme Procedure} reverse! lst [new_tail]
-@deffnx {C Function} scm_reverse_x (lst, new_tail)
-A destructive version of @code{reverse} (@pxref{Pairs and lists,,,r5rs,
-The Revised^5 Report on Scheme}).  The cdr of each cell in @var{lst} is
-modified to point to the previous list element.  Return a pointer to the
-head of the reversed list.
+@code{reverse} constructs a new list, @code{reverse!} modifies
+@var{lst} in constructing its return.
 
-Caveat: because the list is modified in place, the tail of the original
-list now becomes its head, and the head of the original list now becomes
-the tail.  Therefore, the @var{lst} symbol to which the head of the
-original list was bound now points to the tail.  To ensure that the head
-of the modified list is not lost, it is wise to save the return value of
-@code{reverse!}
+For @code{reverse!}, the optional @var{newtail} is appended to to the
+result.  @var{newtail} isn't reversed, it simply becomes the list
+tail.  For @code{scm_reverse_x}, the @var{newtail} parameter is
+mandatory, but can be @code{SCM_EOL} if no further tail is required.
 @end deffn
 
 @node List Modification
