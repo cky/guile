@@ -1,3 +1,12 @@
+1998-04-12  Mikael Djurfeldt  <mdj@kenneth>
+
+	* eval.c (SCM_CEVAL, SCM_APPLY): In SCM_IM_APPLY and in the
+	procedure apply: Copy argument lists before pushing them unto the
+	environment so that the environment won't get mutated due to
+	manipulation of procedure arguments.  This should perhaps be
+	regarded as a temporary solution until someone finds a more
+	efficient one.  (Thanks to Maciej Stachowiak.)
+
 1998-04-10  Mikael Djurfeldt  <mdj@kenneth>
 
 	* script.c (scm_compile_shell_switches): Use "guile" as default

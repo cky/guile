@@ -1922,6 +1922,7 @@ dispatch:
 	  SCM_ASRTGO (SCM_NIMP (proc), badfun);
 	  if (SCM_CLOSUREP (proc))
 	    {
+	      SCM argl, tl;
 	      PREP_APPLY (proc, SCM_EOL);
 	      t.arg1 = SCM_CDR (SCM_CDR (x));
 	      t.arg1 = EVALCAR (t.arg1, env);
@@ -1932,7 +1933,23 @@ dispatch:
 	      if (scm_badargsp (SCM_CAR (SCM_CODE (proc)), t.arg1))
 		goto wrongnumargs;
 #endif
-	      env = EXTEND_ENV (SCM_CAR (SCM_CODE (proc)), t.arg1, SCM_ENV (proc));
+	      /* Copy argument list */
+	      if (SCM_IMP (t.arg1))
+		argl = t.arg1;
+	      else
+		{
+		  argl = tl = scm_cons (SCM_CAR (t.arg1), SCM_UNSPECIFIED);
+		  while (SCM_NIMP (t.arg1 = SCM_CDR (t.arg1))
+			 && SCM_CONSP (t.arg1))
+		    {
+		      SCM_SETCDR (tl, scm_cons (SCM_CAR (t.arg1),
+						SCM_UNSPECIFIED));
+		      tl = SCM_CDR (tl);
+		    }
+		  SCM_SETCDR (tl, t.arg1);
+		}
+	      
+	      env = EXTEND_ENV (SCM_CAR (SCM_CODE (proc)), argl, SCM_ENV (proc));
 	      x = SCM_CODE (proc);
 	      goto cdrxbegin;
 	    }
@@ -2883,7 +2900,24 @@ tail:
       if (scm_badargsp (SCM_CAR (SCM_CODE (proc)), arg1))
 	goto wrongnumargs;
 #endif
-      args = EXTEND_ENV (SCM_CAR (SCM_CODE (proc)), arg1, SCM_ENV (proc));
+      
+      /* Copy argument list */
+      if (SCM_IMP (arg1))
+	args = arg1;
+      else
+	{
+	  SCM tl = args = scm_cons (SCM_CAR (arg1), SCM_UNSPECIFIED);
+	  while (SCM_NIMP (arg1 = SCM_CDR (arg1))
+		 && SCM_CONSP (arg1))
+	    {
+	      SCM_SETCDR (tl, scm_cons (SCM_CAR (arg1),
+					SCM_UNSPECIFIED));
+	      tl = SCM_CDR (tl);
+	    }
+	  SCM_SETCDR (tl, arg1);
+	}
+      
+      args = EXTEND_ENV (SCM_CAR (SCM_CODE (proc)), args, SCM_ENV (proc));
       proc = SCM_CODE (proc);
       while (SCM_NNULLP (proc = SCM_CDR (proc)))
 	arg1 = EVALCAR (proc, args);
