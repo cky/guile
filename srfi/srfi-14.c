@@ -1350,7 +1350,7 @@ SCM_DEFINE (scm_char_set_diff_plus_intersection_x, "char-set-diff+intersection!"
 void
 scm_c_init_srfi_14 (void)
 {
-  static initialized = 0;
+  static int initialized = 0;
 
   if (!initialized)
     {
