@@ -1,3 +1,62 @@
+1997-10-02  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	Streamlining of call-with-dynamic-root:
+	
+	* root.c (cwdr_inner_body, cwdr_body): Remove "inner" from name,
+	there is now only one catch.
+	(cwdr_outer_body): Removed.
+	(cwdr_handler): New function.
+	(scm_internal_cwdr): New function to perform the function of cwdr
+	but take args that are more useful to C code.  Also, the handler
+	is now invoked *outside* of the new dynamic root, like the docs
+	say.  We no longer have to catch absolutely all errors, the caller
+	is responsible for using a handler that does not throw, if he
+	wants that.
+	(cwdr): Reimplemented in terms of scm_internal_cwdr.
+	* root.h (scm_internal_cwdr): New prototype.
+
+	Even more but risky streamlining:
+	
+	* root.c (USE_STACKJMPBUF): New define to activate a stack-based
+	allocation of the jumpbuf of a root continuation.  The changes
+	below are controlled by it.  They are now deactivated.
+	(scm_internal_cwdr): Allocate the scm_contregs on the stack.  Set
+	the JMPBUF of the scm_rootcont to NULL before returning.
+
+	* gc.c (scm_gc_sweep): Free the SCM_VELTS of a scm_tc7_contin only
+	when they are non-NULL.
+	(scm_gc_mark): Likewise, mark only when non-NULL.
+
+	Make dynamic linking work on Dec Unix. (Thanks to Clark McGrew)
+	* dynl.c: Include "dynl-dl.c" also when HAVE_DLOPEN is defined.
+
+	* gc.c (scm_done_malloc): New function.
+        gc.h (scm_done_malloc): New prototype.
+	
+	* print.h (SCM_PRINT_STATE_P, SCM_COERCE_OPORT): New macros.
+	(struct scm_print_state) [revealed]: New field.
+	(scm_print_state_vtable): Make visible to the outside world for
+	type checking purposes.
+	(scm_valid_oport_value_p): New prototype.
+	
+	* print.c (scm_valid_oport_value_p): New function to check whether
+	a certain value is acceptable as a port argument.
+	(scm_print_state_vtable): New variable.
+	(scm_free_print_state): Set `revealed' field to false.
+	(scm_iprin1): Call user supplied closure printer with
+	scm_printer_apply.  Print in the traditional way when there isn't
+	one or when it returns #f.
+	(scm_prin1, scm_display, scm_write, scm_newline, scm_write_char):
+	Accept a port/print-state pair in addition to just a port.
+	(scm_prin1): Don't return the print_state to the pool when it has
+	been `revealed'.
+	(scm_printer_apply): Set `revealed' field of print_state to true.
+	(scm_init_print): Set scm_print_state_vtable.
+	(print_state_fluid, print_state_fluid_num): Removed.
+	
+	* throw.h (scm_handle_by_proc_catching_all): New prototype
+	throw.c (scm_handle_by_proc_catching_all): New function
+	
 Mon Sep 29 23:54:09 1997  Jim Blandy  <jimb@totoro.red-bean.com>
 
 	* Makefile.in: Regenerated with automake 1.2c.
