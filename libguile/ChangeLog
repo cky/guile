@@ -1,3 +1,8 @@
+2000-03-14  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* objprop.c (s_scm_set_object_property_x): Use scm_assq instead of
+	scm_assoc.  (Thanks to Dirk Herrmann.)
+
 2000-03-14  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* eval.c, lang.c, lang.h (scm_lisp_nil, scm_lisp_t): Renamed from
