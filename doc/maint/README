@@ -8,10 +8,21 @@ in the libguile C source change.
 
 - README is this file.
 
-- docstring.el is a helpful Emacs Lisp library.  The two key entry
-  points are `docstring-process-module' and
-  `docstring-ediff-this-line'.
+- docstring.el is a helpful Emacs Lisp library (see source for
+  customziation).  The two key entry points are:
+    `docstring-process-module' and
+    `docstring-ediff-this-line'.
 
 - guile.texi is a snapshot of the built file
   guile-core/libguile/guile.texi, copied last time the reference
   manual was determined to be in sync with the libguile source.
+
+For example:
+
+If you've just fixed a docstring in, say, ../libguile/strop.c, do in emacs:
+
+    M-x load-file RET .../doc/maint/docstring.el RET
+    M-x docstring-process-module RET (guile) RET
+
+Save all modified .texi files and copy the current ../libguile/guile.texi
+to ./guile.texi, then commit.  See elisp var `docstring-snarfed-roots'.
