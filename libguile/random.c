@@ -42,6 +42,10 @@
 
 /* Author: Mikael Djurfeldt <djurfeldt@nada.kth.se> */
 
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
 #include "libguile/_scm.h"
 
 #include <stdio.h>
@@ -93,29 +97,13 @@ scm_t_rng scm_the_rng;
 #define M_PI 3.14159265359
 #endif
 
-#if SIZEOF_LONG > 4
-#if SIZEOF_INT > 4
-#define LONG32 unsigned short
-#else
-#define LONG32 unsigned int
-#endif
-#define LONG64 unsigned long
-#else
-#define LONG32 unsigned long
-#ifdef __MINGW32__
-#define LONG64 unsigned __int64
-#else
-#define LONG64 unsigned long long
-#endif
-#endif
-
-#if SIZEOF_LONG > 4 || defined (HAVE_LONG_LONGS)
+#ifdef SCM_HAVE_T_INT64
 
 unsigned long
 scm_i_uniform32 (scm_t_i_rstate *state)
 {
-  LONG64 x = (LONG64) A * state->w + state->c;
-  LONG32 w = x & 0xffffffffUL;
+  scm_t_int64 x = (scm_t_int64) A * state->w + state->c;
+  scm_t_int32 w = x & 0xffffffffUL;
   state->w = w;
   state->c = x >> 32L;
   return w;
@@ -140,12 +128,12 @@ scm_i_uniform32 (scm_t_i_rstate *state)
 unsigned long
 scm_i_uniform32 (scm_t_i_rstate *state)
 {
-  LONG32 x1 = L (A) * L (state->w);
-  LONG32 x2 = L (A) * H (state->w);
-  LONG32 x3 = H (A) * L (state->w);
-  LONG32 w = L (x1) + L (state->c);
-  LONG32 m = H (x1) + L (x2) + L (x3) + H (state->c) + H (w);
-  LONG32 x4 = H (A) * H (state->w);
+  scm_t_int32 x1 = L (A) * L (state->w);
+  scm_t_int32 x2 = L (A) * H (state->w);
+  scm_t_int32 x3 = H (A) * L (state->w);
+  scm_t_int32 w = L (x1) + L (state->c);
+  scm_t_int32 m = H (x1) + L (x2) + L (x3) + H (state->c) + H (w);
+  scm_t_int32 x4 = H (A) * H (state->w);
   state->w = w = (L (m) << 16) + L (w);
   state->c = H (x2) + H (x3) + x4 + H (m);
   return w;
@@ -156,8 +144,8 @@ scm_i_uniform32 (scm_t_i_rstate *state)
 void
 scm_i_init_rstate (scm_t_i_rstate *state, char *seed, int n)
 {
-  LONG32 w = 0L;
-  LONG32 c = 0L;
+  scm_t_int32 w = 0L;
+  scm_t_int32 c = 0L;
   int i, m;
   for (i = 0; i < n; ++i)
     {
@@ -285,7 +273,7 @@ scm_c_random_bignum (scm_t_rstate *state, SCM m)
 {
   SCM b;
   int i, nd;
-  LONG32 *bits, mask, w;
+  scm_t_int32 *bits, mask, w;
   nd = SCM_NUMDIGS (m);
   /* Compute a 32-bit bitmask for use when filling bits into the most
      significant long word in b's bit space.  A combination of
@@ -318,7 +306,7 @@ scm_c_random_bignum (scm_t_rstate *state, SCM m)
     }
   /* allocate b and assign the bit space address to the variable "bits" */
   b = scm_i_mkbig (nd, 0);
-  bits = (LONG32 *) SCM_BDIGITS (b);
+  bits = (scm_t_int32 *) SCM_BDIGITS (b);
   do
     {
       i = nd;
@@ -470,7 +458,7 @@ SCM_DEFINE (scm_random_normal, "random:normal", 0, 1, 0,
 }
 #undef FUNC_NAME
 
-#ifdef HAVE_ARRAYS
+#ifdef SCM_HAVE_ARRAYS
 
 static void
 vector_scale (SCM v, double c)
@@ -576,7 +564,7 @@ SCM_DEFINE (scm_random_normal_vector_x, "random:normal-vector!", 1, 1, 0,
 }
 #undef FUNC_NAME
 
-#endif /* HAVE_ARRAYS */
+#endif /* SCM_HAVE_ARRAYS */
 
 SCM_DEFINE (scm_random_exp, "random:exp", 0, 1, 0, 
             (SCM state),
