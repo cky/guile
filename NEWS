@@ -20,6 +20,31 @@ debugging evaluator gives better error messages.
 
 * Changes to Scheme functions and syntax
 
+** There is support for Infinity and NaNs.
+
+Following PLT Scheme, Guile can now work with infinite numbers, and
+'not-a-numbers'.
+
+There is new syntax for numbers: "+inf.0" (infinity), "-inf.0"
+(negative infinity), "+nan.0" (not-a-number), and "-nan.0" (same as
+"+nan.0").  These numbers are inexact and have no exact counterpart.
+
+Dividing by an inexact zero returns +inf.0 or -inf.0, depending on the
+sign of the dividend.  The infinities are integers, and they answer #t
+for both 'even?' and 'odd?'. The +nan.0 value is not an integer and is
+not '=' to itself, but '+nan.0' is 'eqv?' to itself.
+
+For example
+
+    (/ 1 0.0)
+    => +inf.0
+
+    (/ 0 0.0)
+    => +nan.0
+
+    (/ 0)
+    ERROR: Numerical overflow
+
 ** We now have uninterned symbols.
 
 The new function 'make-symbol' will return a uninterned symbol.  This
