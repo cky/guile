@@ -50,15 +50,15 @@
 
 extern SCM scm_read_delimited_x SCM_P ((SCM delims, SCM buf, SCM gobble, SCM port, SCM offset, SCM length));
 extern SCM scm_write_line SCM_P ((SCM obj, SCM port));
-extern SCM scm_sys_ftell SCM_P ((SCM port));
-extern SCM scm_sys_fseek SCM_P ((SCM port, SCM offset, SCM whence));
-extern SCM scm_sys_freopen SCM_P ((SCM filename, SCM modes, SCM port));
-extern SCM scm_sys_duplicate_port SCM_P ((SCM oldpt, SCM modes));
-extern SCM scm_sys_redirect_port SCM_P ((SCM into_pt, SCM from_pt));
-extern SCM scm_sys_fileno SCM_P ((SCM port));
-extern SCM scm_sys_isatty_p SCM_P ((SCM port));
-extern SCM scm_sys_fdopen SCM_P ((SCM fdes, SCM modes));
-extern SCM scm_sys_primitive_move_to_fdes SCM_P ((SCM port, SCM fd));
+extern SCM scm_ftell SCM_P ((SCM port));
+extern SCM scm_fseek SCM_P ((SCM port, SCM offset, SCM whence));
+extern SCM scm_freopen SCM_P ((SCM filename, SCM modes, SCM port));
+extern SCM scm_duplicate_port SCM_P ((SCM oldpt, SCM modes));
+extern SCM scm_redirect_port SCM_P ((SCM into_pt, SCM from_pt));
+extern SCM scm_fileno SCM_P ((SCM port));
+extern SCM scm_isatty_p SCM_P ((SCM port));
+extern SCM scm_fdopen SCM_P ((SCM fdes, SCM modes));
+extern SCM scm_primitive_move_to_fdes SCM_P ((SCM port, SCM fd));
 extern void scm_setfileno SCM_P ((FILE *fs, int fd));
 extern void scm_evict_ports SCM_P ((int fd));
 extern SCM scm_fdes_to_ports SCM_P ((SCM fd));

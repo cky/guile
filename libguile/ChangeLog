@@ -1,3 +1,10 @@
+Fri Jan 31 04:33:11 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* ioext.c, ioext.h: remove obsolete _sys_ from 9 procedure names.
+	
+*	* posix.c (scm_fork): Scheme name changed from fork to primitive-fork,
+	to avoid clash with various scsh forks.
+
 Thu Jan 30 20:14:09 1997  Mikael Djurfeldt  <mdj@syk-0606.pdc.kth.se>
 
 	The following two changes (ramap.c, throw.c) are motivated by the

@@ -750,8 +750,7 @@ scm_execlp (args)
   return SCM_BOOL_F;
 }
 
-/* Flushing streams etc., is not done here.  */
-SCM_PROC (s_fork, "fork", 0, 0, 0, scm_fork);
+SCM_PROC (s_fork, "primitive-fork", 0, 0, 0, scm_fork);
 
 SCM
 scm_fork()
