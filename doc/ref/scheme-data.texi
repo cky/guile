@@ -859,7 +859,8 @@ Return the arccosine of @var{z}.
 @rnindex atan
 @c begin (texi-doc-string "guile" "atan")
 @deffn {Scheme Procedure} atan z
-Return the arctangent of @var{z}.
+@deffnx {Scheme Procedure} atan y x
+Return the arctangent of @var{z}, or of @math{@var{y}/@var{x}}.
 @end deffn
 
 @rnindex exp
