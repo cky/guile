@@ -772,6 +772,84 @@ test_int_sizes ()
 
 }
 
+static void
+test_9 (double val, const char *result)
+{
+  SCM res = scm_c_eval_string (result);
+  if (scm_is_false (scm_eqv_p (res, scm_from_double (val))))
+    {
+      fprintf (stderr, "fail: scm_from_double (%g) == %s\n", val, result);
+      exit (1);
+    }
+}
+
+static void
+test_from_double ()
+{
+  test_9 (12, "12.0");
+  test_9 (0.25, "0.25");
+  test_9 (0.1, "0.1");
+  test_9 (1.0/0.0, "+inf.0");
+  test_9 (-1.0/0.0, "-inf.0");
+  test_9 (0.0/0.0, "+nan.0");
+}
+
+typedef struct {
+  SCM val;
+  double result;
+} to_double_data;
+
+static SCM
+to_double_body (void *data)
+{
+  to_double_data *d = (to_double_data *)data;
+  d->result = scm_to_double (d->val);
+  return SCM_BOOL_F;
+}
+
+static void
+test_10 (const char *val, double result, int type_error)
+{
+  to_double_data data;
+  data.val = scm_c_eval_string (val);
+  
+  if (type_error)
+    {
+      if (scm_is_false (scm_internal_catch (SCM_BOOL_T,
+					    to_double_body, &data,
+					    wrong_type_handler, NULL)))
+	{
+	  fprintf (stderr,
+		   "fail: scm_double (%s) -> wrong type\n", val);
+	  exit (1);
+	}
+    }
+  else
+    {
+      if (scm_is_true (scm_internal_catch (SCM_BOOL_T,
+					   to_double_body, &data,
+					   any_handler, NULL))
+	  || data.result != result)
+	{
+	  fprintf (stderr,
+		   "fail: scm_to_double (%s) = %g\n", val, result);
+	  exit (1);
+	}
+    }
+}
+
+static void
+test_to_double ()
+{
+  test_10 ("#f",          0.0,  1);
+  test_10 ("12",         12.0,  0);
+  test_10 ("0.25",       0.25,  0);
+  test_10 ("1/4",        0.25,  0);
+  test_10 ("+inf.0",  1.0/0.0,  0);
+  test_10 ("-inf.0", -1.0/0.0,  0);
+  test_10 ("+1i",         0.0,  1);
+}
+
 int
 main (int argc, char *argv[])
 {
@@ -783,5 +861,7 @@ main (int argc, char *argv[])
   test_from_signed_integer ();
   test_from_unsigned_integer ();
   test_int_sizes ();
+  test_from_double ();
+  test_to_double ();
   return 0;
 }
