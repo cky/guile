@@ -70,7 +70,7 @@ The README file says which versions of those tools you will need.
 cooperative threading.  If you use this switch, Guile will also build
 and install the QuickThreads non-preemptive threading library,
 libqt.a, which you will need to link into your programs after
-libguile.a.  That is, you should pass the switches -lguile -qt to your
+libguile.a.  That is, you should pass the switches -lguile -lqt to your
 linker.
 
 Cooperative threads are not yet thoroughly tested; once they are, they
