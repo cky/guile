@@ -1,3 +1,8 @@
+2000-08-14  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* format.scm (format:obj->str): Made tail-recursive.  (Thanks to
+	Matthias Köppe.)
+
 2000-08-13  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
 
 	* psyntax.ss (top-level-eval-hook, local-eval-hook): Pass
