@@ -482,15 +482,6 @@ scm_c_uniform_vector_length (SCM v)
     scm_wrong_type_arg_msg (NULL, 0, v, "uniform vector");
 }
 
-size_t
-scm_c_uniform_vector_size (SCM v)
-{
-  if (scm_is_uniform_vector (v))
-    return SCM_UVEC_LENGTH (v) * uvec_sizes[SCM_UVEC_TYPE (v)];
-  else
-    scm_wrong_type_arg_msg (NULL, 0, v, "uniform vector");
-}
-
 SCM_DEFINE (scm_uniform_vector_p, "uniform-vector?", 1, 0, 0,
 	    (SCM obj),
 	    "Return @code{#t} if @var{obj} is a uniform vector.")
@@ -585,21 +576,23 @@ SCM_DEFINE (scm_uniform_vector_to_list, "uniform-vector->list", 1, 0, 0,
 #undef FUNC_NAME
 
 size_t
-scm_uniform_vector_element_size (SCM uvec)
+scm_array_handle_uniform_element_size (scm_t_array_handle *h)
 {
-  if (scm_is_uniform_vector (uvec))
-    return uvec_sizes[SCM_UVEC_TYPE (uvec)];
-  else
-    scm_wrong_type_arg_msg (NULL, 0, uvec, "uniform vector");
+  SCM vec = h->array;
+  if (SCM_ARRAYP (vec))
+    vec = SCM_ARRAY_V (vec);
+  if (scm_is_uniform_vector (vec))
+    return uvec_sizes[SCM_UVEC_TYPE(vec)];
+  scm_wrong_type_arg_msg (NULL, 0, h->array, "uniform array");
 }
-  
+ 
 /* return the size of an element in a uniform array or 0 if type not
    found.  */
 size_t
 scm_uniform_element_size (SCM obj)
 {
   if (scm_is_uniform_vector (obj))
-    return scm_uniform_vector_element_size (obj);
+    return uvec_sizes[SCM_UVEC_TYPE(obj)];
   else
     return 0;
 }
@@ -638,7 +631,7 @@ scm_uniform_vector_writable_elements (SCM uvec,
 				      scm_t_array_handle *h,
 				      size_t *lenp, ssize_t *incp)
 {
-  scm_vector_get_handle (uvec, h);
+  scm_generalized_vector_get_handle (uvec, h);
   if (lenp)
     {
       scm_t_array_dim *dim = scm_array_handle_dims (h);
@@ -696,7 +689,7 @@ SCM_DEFINE (scm_uniform_vector_read_x, "uniform-vector-read!", 1, 3, 0,
     scm_wrong_type_arg_msg (NULL, 0, uvec, "uniform vector");
 
   base = scm_uniform_vector_writable_elements (uvec, &handle, &vlen, &inc);
-  sz = scm_uniform_vector_element_size (uvec);
+  sz = scm_array_handle_uniform_element_size (&handle);
 
   if (inc != 1)
     {
@@ -765,6 +758,8 @@ SCM_DEFINE (scm_uniform_vector_read_x, "uniform-vector-read!", 1, 3, 0,
       ans = n / sz;
     }
 
+  scm_array_handle_release (&handle);
+
   return scm_from_size_t (ans);
 }
 #undef FUNC_NAME
@@ -806,7 +801,7 @@ SCM_DEFINE (scm_uniform_vector_write, "uniform-vector-write", 1, 3, 0,
 		port_or_fd, SCM_ARG2, FUNC_NAME);
 
   base = scm_uniform_vector_elements (uvec, &handle, &vlen, &inc);
-  sz = scm_uniform_vector_element_size (uvec);
+  sz = scm_array_handle_uniform_element_size (&handle);
 
   if (inc != 1)
     {
@@ -842,6 +837,8 @@ SCM_DEFINE (scm_uniform_vector_write, "uniform-vector-write", 1, 3, 0,
 	SCM_MISC_ERROR ("last element only written partially", SCM_EOL);
       ans = n / sz;
     }
+
+  scm_array_handle_release (&handle);
 
   return scm_from_size_t (ans);
 }
