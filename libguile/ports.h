@@ -2,7 +2,7 @@
 
 #ifndef PORTSH
 #define PORTSH
-/*	Copyright (C) 1995,1996,1997,1998,1999 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996,1997,1998,1999, 2000 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -156,8 +156,14 @@ extern int scm_port_table_size; /* Number of ports in scm_port_table.  */
 #define SCM_OPPORTP(x) (SCM_NIMP(x) && (((0x7f | SCM_OPN) & SCM_UNPACK_CAR(x))==(scm_tc7_port | SCM_OPN)))
 #define SCM_OPINPORTP(x) (SCM_NIMP(x) && (((0x7f | SCM_OPN | SCM_RDNG) & SCM_UNPACK_CAR(x))==(scm_tc7_port | SCM_OPN | SCM_RDNG)))
 #define SCM_OPOUTPORTP(x) (SCM_NIMP(x) && (((0x7f | SCM_OPN | SCM_WRTNG) & SCM_UNPACK_CAR(x))==(scm_tc7_port | SCM_OPN | SCM_WRTNG)))
-#define SCM_INPORTP(x) (SCM_NIMP(x) && (((0x7f | SCM_RDNG) & SCM_UNPACK_CAR(x))==(scm_tc7_port | SCM_RDNG)))
-#define SCM_OUTPORTP(x) (SCM_NIMP(x) && (((0x7f | SCM_WRTNG) & SCM_UNPACK_CAR(x))==(scm_tc7_port | SCM_WRTNG)))
+#define SCM_INPUT_PORT_P(x) \
+  (SCM_NIMP(x) \
+   && (((0x7f | SCM_RDNG) & SCM_UNPACK_CAR(x)) == (scm_tc7_port | SCM_RDNG)))
+#define SCM_INPORTP(x) SCM_INPUT_PORT_P (x) /* Deprecated */
+#define SCM_OUTPUT_PORT_P(x) \
+  (SCM_NIMP(x) \
+   && (((0x7f | SCM_WRTNG) & SCM_UNPACK_CAR(x))==(scm_tc7_port | SCM_WRTNG)))
+#define SCM_OUTPORTP(x) SCM_OUTPUT_PORT_P (x) /* Deprecated */
 #define SCM_OPENP(x) (SCM_NIMP(x) && (SCM_OPN & SCM_UNPACK_CAR (x)))
 #define SCM_CLOSEDP(x) (!SCM_OPENP(x))
 
@@ -259,6 +265,8 @@ extern SCM scm_port_revealed (SCM port);
 extern SCM scm_set_port_revealed_x (SCM port, SCM rcount);
 extern long scm_mode_bits (char *modes);
 extern SCM scm_port_mode (SCM port);
+extern SCM scm_close_input_port (SCM port);
+extern SCM scm_close_output_port (SCM port);
 extern SCM scm_close_port (SCM port);
 extern SCM scm_close_all_ports_except (SCM ports);
 extern SCM scm_input_port_p (SCM x);
