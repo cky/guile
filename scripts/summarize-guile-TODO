@@ -44,6 +44,14 @@ exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
 ;;
 ;; Usage from a Scheme program:
 ;;   (summrize-guile-TODO . args)       ; uses first arg only
+;;
+;;
+;; Bugs: (1) Markers are scanned in sequence: D R X N%.  This means "XD"
+;;           and the like are completely dropped.  However, such strings
+;;           are unlikely to be used if the markers are chosen to be
+;;           somewhat exclusive, which is currently the case for D R X.
+;;           N% used w/ these needs to be something like: "D25%" (this
+;;           means discussion accounts for 1/4 of the task).
 
 ;; TODO: Implement the various ways. (Patches welcome.)
 
@@ -51,10 +59,22 @@ exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
 
 (define-module (scripts summarize-guile-TODO)
   :use-module (scripts read-text-outline)
+  :autoload (srfi srfi-13) (string-tokenize) ; string library
   :export (summarize-guile-TODO))
 
 (define put set-object-property!)
 (define get object-property)
+
+(define (as-leaf x)
+  (cond ((get x 'who)
+         => (lambda (who)
+              (put x 'who
+                   (map string->symbol
+                        (string-tokenize who #\:))))))
+  (cond ((get x 'pct-done)
+         => (lambda (pct-done)
+              (put x 'pct-done (string->number pct-done)))))
+  x)
 
 (define (hang-by-the-leaves trees)
   (let ((leaves '()))
@@ -67,26 +87,37 @@ exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
                                      (cdr tree)))
                          (begin
                            (put tree 'parent parent)
-                           (set! leaves (cons tree leaves)))))))
+                           (set! leaves (cons (as-leaf tree) leaves)))))))
       (for-each (lambda (tree)
                   (hang tree #f))
                 trees))
     leaves))
 
-
 (define (read-TODO file)
   (hang-by-the-leaves
-   ((make-text-outline-reader "(([ ][ ])*)([-+])(R*) *([^[]*)(.*)"
-                              '((level-substring-divisor . 2)
-                                (body-submatch-number . 5)
-                                (extra-fields . ((status . 3)
-                                                 (review? . 4)
-                                                 (who . 6)))))
+   ((make-text-outline-reader
+     "(([ ][ ])*)([-+])(D*)(R*)(X*)(([0-9]+)%)* *([^[]*)(\\[(.*)\\])*"
+     '((level-substring-divisor . 2)
+       (body-submatch-number . 9)
+       (extra-fields . ((status . 3)
+                        (design? . 4)
+                        (review? . 5)
+                        (extblock? . 6)
+                        (pct-done . 8)
+                        (who . 11)))))
     (open-file file "r"))))
 
 (define (display-item item)
-  (format #t "status: ~A~A\nitem  : ~A\n" (get item 'status)
-          (if (get item 'review?) "R" "") item)
+  (format #t "status: ~A~A~A~A~A\nitem  : ~A\n"
+          (get item 'status)
+          (if (get item 'design?) "D" "")
+          (if (get item 'review?) "R" "")
+          (if (get item 'extblock?) "X" "")
+          (cond ((get item 'pct-done)
+                 => (lambda (pct-done)
+                      (format #f " ~A%" pct-done)))
+                (else ""))
+          item)
   (let loop ((parent (get item 'parent)) (indent 2))
     (and parent
          (begin
