@@ -472,6 +472,9 @@ parse_args (char *keyword)
 	      else
 		add_char (&arg, c);
 	      break;
+
+	    default:
+	      abort ();
 	    }
 
 	  c = arglist_getc (keyword);
