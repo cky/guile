@@ -1,3 +1,7 @@
+2001-08-02  Thien-Thi Nguyen  <ttn@revel.glug.org>
+
+	* tests/getopt-long.test: New file.
+
 2001-08-01  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
 	* lib.scm (run-test-exception): Add special handling for
