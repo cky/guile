@@ -20,11 +20,6 @@
 #include <stdio.h>
 #include <assert.h>
 
-#define SCM_T_UINTMAX_MAX (~(scm_t_uintmax)0)
-#define SCM_T_UINTMAX_MIN ((scm_t_uintmax)0)
-#define SCM_T_INTMAX_MAX ((scm_t_intmax)(SCM_T_UINTMAX_MAX/2))
-#define SCM_T_INTMAX_MIN (~SCM_T_INTMAX_MAX)
-
 static void
 test_1 (const char *str, scm_t_intmax min, scm_t_intmax max,
 	int result)
@@ -124,42 +119,42 @@ static void
 test_is_unsigned_integer ()
 {
   test_2 ("'foo", 
-	  SCM_T_UINTMAX_MIN, SCM_T_UINTMAX_MAX,
+	  0, SCM_T_UINTMAX_MAX,
 	  0);
   test_2 ("3.0", 
-	  SCM_T_UINTMAX_MIN, SCM_T_UINTMAX_MAX,
+	  0, SCM_T_UINTMAX_MAX,
 	  1);
   test_2 ("3.5",
-	  SCM_T_UINTMAX_MIN, SCM_T_UINTMAX_MAX,
+	  0, SCM_T_UINTMAX_MAX,
 	  0);
   test_2 ("most-positive-fixnum",
-	  SCM_T_UINTMAX_MIN, SCM_T_UINTMAX_MAX,
+	  0, SCM_T_UINTMAX_MAX,
 	  1);
   test_2 ("(+ most-positive-fixnum 1)",
-	  SCM_T_UINTMAX_MIN, SCM_T_UINTMAX_MAX,
+	  0, SCM_T_UINTMAX_MAX,
 	  1);
   test_2 ("most-negative-fixnum",
-	  SCM_T_UINTMAX_MIN, SCM_T_UINTMAX_MAX,
+	  0, SCM_T_UINTMAX_MAX,
 	  0);
   test_2 ("(- most-negative-fixnum 1)",
-	  SCM_T_UINTMAX_MIN, SCM_T_UINTMAX_MAX,
+	  0, SCM_T_UINTMAX_MAX,
 	  0);
   if (sizeof (scm_t_intmax) == 8)
     {
       test_2 ("(- (expt 2 64) 1)",
-	      SCM_T_UINTMAX_MIN, SCM_T_UINTMAX_MAX,
+	      0, SCM_T_UINTMAX_MAX,
 	      1);
       test_2 ("(expt 2 64)",
-	      SCM_T_UINTMAX_MIN, SCM_T_UINTMAX_MAX,
+	      0, SCM_T_UINTMAX_MAX,
 	      0);
     }
   else if (sizeof (scm_t_intmax) == 4)
     {
       test_2 ("(- (expt 2 32) 1)",
-	      SCM_T_UINTMAX_MIN, SCM_T_UINTMAX_MAX,
+	      0, SCM_T_UINTMAX_MAX,
 	      1);
       test_2 ("(expt 2 32)",
-	      SCM_T_UINTMAX_MIN, SCM_T_UINTMAX_MAX,
+	      0, SCM_T_UINTMAX_MAX,
 	      0);
     }
   else
@@ -393,39 +388,39 @@ static void
 test_to_unsigned_integer ()
 {
   test_4 ("'foo",
-	  SCM_T_UINTMAX_MIN, SCM_T_UINTMAX_MAX,
+	  0, SCM_T_UINTMAX_MAX,
 	  0, 0, 1);
   test_4 ("3.5",
-	  SCM_T_UINTMAX_MIN, SCM_T_UINTMAX_MAX,
+	  0, SCM_T_UINTMAX_MAX,
 	  0, 0, 1);
   test_4 ("12",
-	  SCM_T_UINTMAX_MIN, SCM_T_UINTMAX_MAX,
+	  0, SCM_T_UINTMAX_MAX,
 	  12, 0, 0);
   test_4 ("1000",
 	  0, 999,
 	  0, 1, 0);
   test_4 ("most-positive-fixnum",
-	  SCM_T_UINTMAX_MIN, SCM_T_UINTMAX_MAX,
+	  0, SCM_T_UINTMAX_MAX,
 	  SCM_MOST_POSITIVE_FIXNUM, 0, 0);
   test_4 ("(+ most-positive-fixnum 1)",
-	  SCM_T_UINTMAX_MIN, SCM_T_UINTMAX_MAX,
+	  0, SCM_T_UINTMAX_MAX,
 	  SCM_MOST_POSITIVE_FIXNUM+1, 0, 0);
   if (sizeof (scm_t_intmax) == 8)
     {
       test_4 ("(- (expt 2 64) 1)",
-	      SCM_T_UINTMAX_MIN, SCM_T_UINTMAX_MAX,
+	      0, SCM_T_UINTMAX_MAX,
 	      SCM_T_UINTMAX_MAX, 0, 0);
       test_4 ("(expt 2 64)",
-	      SCM_T_UINTMAX_MIN, SCM_T_UINTMAX_MAX,
+	      0, SCM_T_UINTMAX_MAX,
 	      0, 1, 0);
     }
   else if (sizeof (scm_t_intmax) == 4)
     {
       test_4 ("(- (expt 2 32) 1)",
-	      SCM_T_UINTMAX_MIN, SCM_T_UINTMAX_MAX,
+	      0, SCM_T_UINTMAX_MAX,
 	      SCM_T_UINTMAX_MAX, 0, 0);
       test_4 ("(expt 2 32)",
-	      SCM_T_UINTMAX_MIN, SCM_T_UINTMAX_MAX,
+	      0, SCM_T_UINTMAX_MAX,
 	      0, 1, 0);
     }
   else
@@ -470,11 +465,6 @@ test_6 (scm_t_uintmax val, const char *result)
   SCM res = scm_c_eval_string (result);
   if (scm_is_false (scm_equal_p (scm_from_unsigned_integer (val), res)))
     {
-      scm_write (scm_from_unsigned_integer (val), SCM_UNDEFINED);
-      scm_newline (SCM_UNDEFINED);
-      scm_write (res, SCM_UNDEFINED);
-      scm_newline (SCM_UNDEFINED);
-
       fprintf (stderr, "fail: scm_from_unsigned_integer (%Lu) == %s\n",
 	       val, result);
       exit (1);
@@ -497,6 +487,62 @@ test_from_unsigned_integer ()
   test_6 (SCM_MOST_POSITIVE_FIXNUM+1, "(+ most-positive-fixnum 1)");
 }
 
+static void
+test_int_sizes ()
+{
+  SCM n = scm_from_int (91);
+
+  /* Just list them here to check whether the macros expand to correct
+     code. */
+     
+  scm_from_schar (91);
+  scm_from_uchar (91);
+  scm_from_char (91);
+  scm_from_short (91);
+  scm_from_int (91);
+  scm_from_long (91);
+#if SCM_SIZEOF_LONG_LONG != 0
+  scm_from_long_long (91);
+  scm_from_ulong_long (91);
+#endif
+  scm_from_size_t (91);
+  scm_from_ssize_t (91);
+  scm_from_int8 (91);
+  scm_from_uint8 (91);
+  scm_from_int16 (91);
+  scm_from_uint16 (91);
+  scm_from_int32 (91);
+  scm_from_uint32 (91);
+#if SCM_HAVE_T_INT64
+  scm_from_int64 (91);
+  scm_from_uint64 (91);
+#endif
+
+  scm_to_schar (n);
+  scm_to_uchar (n);
+  scm_to_char (n);
+  scm_to_short (n);
+  scm_to_int (n);
+  scm_to_long (n);
+#if SCM_SIZEOF_LONG_LONG != 0
+  scm_to_long_long (n);
+  scm_to_ulong_long (n);
+#endif
+  scm_to_size_t (n);
+  scm_to_ssize_t (n);
+  scm_to_int8 (n);
+  scm_to_uint8 (n);
+  scm_to_int16 (n);
+  scm_to_uint16 (n);
+  scm_to_int32 (n);
+  scm_to_uint32 (n);
+#if SCM_HAVE_T_INT64
+  scm_to_int64 (n);
+  scm_to_uint64 (n);
+#endif
+
+}
+
 int
 main (int argc, char *argv[])
 {
@@ -507,5 +553,6 @@ main (int argc, char *argv[])
   test_to_unsigned_integer ();
   test_from_signed_integer ();
   test_from_unsigned_integer ();
+  test_int_sizes ();
   return 0;
 }
