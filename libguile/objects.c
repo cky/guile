@@ -219,12 +219,12 @@ scm_init_objects ()
   SCM et = scm_make_struct (mt, SCM_INUM0,
 			    SCM_LIST4 (el, SCM_BOOL_F, SCM_EOL, SCM_EOL));
 
-  scm_sysintern ("<standard-metaclass>", mt);
+  scm_sysintern ("<standard-class>", mt);
   scm_metaclass_standard = mt;
-  scm_sysintern ("<operator-metaclass>", ot);
+  scm_sysintern ("<operator-class>", ot);
   scm_metaclass_operator = ot;
   SCM_SET_CLASS_FLAGS (et, SCM_CLASSF_OPERATOR | SCM_CLASSF_ENTITY);
-  scm_sysintern ("<entity-class>", et);
+  scm_sysintern ("<entity>", et);
 
 #include "objects.x"
 }
