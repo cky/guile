@@ -60,6 +60,9 @@ SCM FNAME ARGLIST
 static const char s_ ## FNAME [] = PRIMNAME; \
 SCM FNAME ARGLIST
 
+#define SCM_PROC(RANAME, STR, REQ, OPT, VAR, CFN)  \
+	static const char RANAME[]=STR
+
 #define SCM_REGISTER_PROC(RANAME, STR, REQ, OPT, VAR, CFN)  \
 	static const char RANAME[]=STR
 
@@ -84,6 +87,9 @@ $$$P PRIMNAME #ARGLIST | REQ | OPT | VAR | __FILE__:__LINE__ | @@@ DOCSTRING @!!
 #define GUILE_PROC1(FNAME, PRIMNAME, TYPE, ARGLIST, DOCSTRING) \
 %%%     scm_make_subr (s_ ## FNAME, TYPE, FNAME); \
 $$$1 PRIMNAME #ARGLIST | 2 | 0 | 0 | __FILE__:__LINE__ | @@@ DOCSTRING @!!!
+
+#define SCM_PROC(RANAME, STR, REQ, OPT, VAR, CFN)  \
+%%%	scm_make_gsubr (RANAME, REQ, OPT, VAR, (SCM (*)(...)) CFN)
 
 #define SCM_REGISTER_PROC(RANAME, STR, REQ, OPT, VAR, CFN)  \
 %%%	scm_make_gsubr (RANAME, REQ, OPT, VAR, (SCM (*)(...)) CFN); \
