@@ -61,13 +61,10 @@ print_values (SCM obj, SCM pwps)
   SCM port = SCM_PORT_WITH_PS_PORT (pwps);
   scm_print_state *ps = SCM_PRINT_STATE (SCM_PORT_WITH_PS_PS (pwps));
 
-  while (SCM_CONSP (values))
-    {
-      scm_iprin1 (SCM_CAR (values), port, ps);
-      values = SCM_CDR (values);
-      if (SCM_CONSP (values))
-	scm_newline (port);
-    }
+  scm_puts ("#<values ", port);
+  scm_iprin1 (values, port, ps);
+  scm_puts (">", port);
+
   return SCM_UNSPECIFIED;
 }
 
