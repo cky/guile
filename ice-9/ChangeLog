@@ -1,5 +1,9 @@
 Thu Oct 17 20:33:08 1996  Gary Houston  <ghouston@actrix.gen.nz>
 
+	* Makefile.in (scm_files): add expect.scm.
+
+	* expect.scm: new file ported from guile-iii.
+
 	* boot-9.scm: remove handle-system-error, after moving the code into
 	error-catching-loop.
 	Don't set 'throw-handler-default property on error keys.
