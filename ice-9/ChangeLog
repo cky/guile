@@ -1,3 +1,8 @@
+2001-10-17  Mikael Djurfeldt  <mdj@linnaeus>
+
+	* boot-9.scm (process-define-module): New options: :export-syntax,
+	:re-export-syntax
+
 2001-10-14  Mikael Djurfeldt  <mdj@linnaeus>
 
 	* arrays.scm (read:uniform-vector): Return *unspecified* instead
