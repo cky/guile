@@ -1,7 +1,24 @@
+Fri Aug 23 03:02:46 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
+
+	* debug.h, debug.c: Various name changes.
+	(Mostly prefixing with SCM_.)  Renamed "debug-options" -->
+	"debug-options-interface".  See commentary in options.c.
+
+	* options.h, options.c: Options now have documentation strings.
+	Also added a long explanatory commentary.
+	
+	* eval.c, print.h, print.c, read.h, read.c: Modifications to
+	run-time options.
+
+	* gscm.c, init.c, root.c, throw.c: Bug fixes:
+	last_debug_info_frame is now updated in all cases.
+
+	* stackchk.h, stackchk.c: Guile now performs stack checking.
+
 Thu Aug 22 17:34:17 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
 
-	* error.c (scm_everr, scm_init_error): write now writes correct
-	number of characters.  Define %%system-error with SCM_SYMBOL.
+	* __scm.h: SCM_STACK_LIMIT removed (now a run-time option).
+	Added option STACK_CHECKING.
 
 Tue Aug 20 18:48:40 1996  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
