@@ -822,13 +822,17 @@
 	  (string-append "("
 			 (let loop ((obj-list obj)
 				    (visited visited)
-				    (offset 0))
+				    (offset 0)
+				    (prefix ""))
 			   (cond ((null? (cdr obj-list))
-				  (obj->str (car obj-list)
-					    #t
-					    (cons (car obj-list) visited)))
+				  (string-append
+				   prefix
+				   (obj->str (car obj-list)
+					     #t
+					     (cons (car obj-list) visited))))
 				 ((memq (cdr obj-list) visited)
 				  (string-append
+				   prefix
 				   (obj->str (car obj-list)
 					     #t
 					     (cons (car obj-list) visited))
@@ -838,16 +842,18 @@
 				       (list-index visited (cdr obj-list))))
 				   "#"))
 				 ((pair? (cdr obj-list))
-				  (string-append
-				   (obj->str (car obj-list)
-					     #t
-					     (cons (car obj-list) visited))
-				   " "
-				   (loop (cdr obj-list)
-					 (cons (cdr obj-list) visited)
-					 (+ 1 offset))))
+				  (loop (cdr obj-list)
+					(cons (cdr obj-list) visited)
+					(+ 1 offset)
+					(string-append
+					 prefix
+					 (obj->str (car obj-list)
+						   #t
+						   (cons (car obj-list) visited))
+					 " ")))
 				 (else
 				  (string-append
+				   prefix
 				   (obj->str (car obj-list)
 					     #t
 					     (cons (car obj-list) visited))
