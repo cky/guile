@@ -4,6 +4,9 @@ See the end for copying conditions.
 
 Please send Guile bug reports to bug-guile@gnu.org.
 
+Changes since Guile 1.3.4:
+
+
 Changes since Guile 1.3.2:
 
 * Changes to Scheme functions and syntax
@@ -24,6 +27,108 @@ Return a new port with the associated print state PRINT-STATE.
 
 Return the print state associated with this port if it exists,
 otherwise return #f.
+
+* Changes to the scm_ interface
+
+** The internal representation of subr's has changed
+
+Instead of giving a hint to the subr name, the CAR field of the subr
+now contains an index to a subr entry in scm_subr_table.
+
+*** New variable: scm_subr_table
+
+An array of subr entries.  A subr entry contains the name, properties
+and documentation associated with the subr.  The properties and
+documentation slots are not yet used.
+
+** A new scheme for "forwarding" calls to a builtin to a generic function
+
+It is now possible to extend the functionality of some Guile
+primitives by letting them defer a call to a GOOPS generic function on
+argument mismatch.  This functionality is enabled with the GOOPS
+primitive
+
+  enable-primitive-generic! PRIMITIVE ...
+
+It is then possible to extend the primitive(s) by defining methods for
+them without loss of efficiency in normal evaluation.
+
+Example:
+
+  (use-modules (oop goops))
+  (enable-primitive-generic! +)
+  (define-method + ((x <string>) (y <string>))
+    (string-append x y))
+
+  + will still be as efficient as usual in numerical calculations, but
+  can also be used for concatenating strings.
+
+  Who will be the first one to extend Guile's numerical tower to
+  rationals?  :)
+
+*** New snarf macros for defining primitives: SCM_GPROC, SCM_GPROC1
+
+  New macro: SCM_GPROC (CNAME, SNAME, REQ, OPT, VAR, CFUNC, GENERIC)
+
+  New macro: SCM_GPROC1 (CNAME, SNAME, TYPE, CFUNC, GENERIC)
+
+These do the same job as SCM_PROC and SCM_PROC1, but they also defines
+a variable GENERIC which can be used by the dispatch macros below.
+
+[This is experimental code which may change soon.]
+
+*** New macros for forwarding control to a generic on arg type error
+
+  New macro: SCM_WTA_DISPATCH_1 (GENERIC, ARG1, POS, SUBR)
+
+  New macro: SCM_WTA_DISPATCH_2 (GENERIC, ARG1, ARG2, POS, SUBR)
+
+These correspond to the scm_wta function call, and have the same
+behaviour until the user has called the GOOPS primitive
+`enable-primitive-generic!'.  After that, these macros will apply the
+generic function GENERIC to the argument(s) instead of calling
+scm_wta.
+
+[This is experimental code which may change soon.]
+
+*** New macros for argument testing with generic dispatch
+
+  New macro: SCM_GASSERT1 (COND, GENERIC, ARG1, POS, SUBR)
+
+  New macro: SCM_GASSERT2 (COND, GENERIC, ARG1, ARG2, POS, SUBR)
+
+These correspond to the SCM_ASSERT macro, but will defer control to
+GENERIC on error after `enable-primitive-generic!' has been called.
+
+[This is experimental code which may change soon.]
+
+** New function: SCM scm_eval_body (SCM body, SCM env)
+
+Evaluates the body of a special form.
+
+** The internal representation of struct's has changed
+
+Previously, four slots were allocated for the procedure(s) of entities
+and operators.  The motivation for this representation had to do with
+the structure of the evaluator, the wish to support tail-recursive
+generic functions, and efficiency.  Since the generic function
+dispatch mechanism has changed, there is no longer a need for such an
+expensive representation, and the representation has been simplified.
+
+This should not make any difference for most users.
+
+** GOOPS support has been cleaned up.
+
+Some code has been moved from eval.c to objects.c and code in both of
+these compilation units has been cleaned up and better structured.
+
+*** New functions for applying generic functions
+
+  New function: SCM scm_apply_generic (GENERIC, ARGS)
+  New function: SCM scm_call_generic_0 (GENERIC)
+  New function: SCM scm_call_generic_1 (GENERIC, ARG1)
+  New function: SCM scm_call_generic_2 (GENERIC, ARG1, ARG2)
+  New function: SCM scm_call_generic_3 (GENERIC, ARG1, ARG2, ARG3)
 
 
 Changes since Guile 1.3:
