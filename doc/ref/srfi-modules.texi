@@ -774,12 +774,20 @@ spine of the list as well as the pairs are copied.
 
 @deffn {Scheme Procedure} alist-delete key alist [=]
 @deffnx {Scheme Procedure} alist-delete! key alist [=]
-Return a list containing the pairs of @var{alist}, but without the
-pairs whose @sc{cars} are equal to @var{key}.  Equality is determined
-by @var{=}, which defaults to @code{equal?} if not given.
+Return a list containing the elements of @var{alist} but with those
+elements whose keys are equal to @var{key} deleted.  The returned
+elements will be in the same order as they were in @var{alist}.
 
-@code{alist-delete!} is allowed, but not required to modify the
-structure of the list @var{alist} in order to produce the result.
+Equality is determined by the @var{=} predicate, or @code{equal?} if
+not given.  The order in which elements are tested is unspecified, but
+each equality call is made @code{(= key alistkey)}, ie. the given
+@var{key} parameter is first and the key from @var{alist} second.
+This means for instance all associations with a key greater than 5 can
+be removed with @code{(alist-delete 5 alist <)}.
+
+@code{alist-delete} does not modify @var{alist}, but the return might
+share a common tail with @var{alist}.  @code{alist-delete!} may modify
+the list structure of @var{alist} to construct its return.
 @end deffn
 
 
