@@ -1,3 +1,8 @@
+2003-01-10  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* goops.c (TEST_CHANGE_CLASS): Use scm_change_object_class instead
+	of calling the procedure change-object-class.
+
 2003-01-09  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* ramap.c (scm_ramapc): Typo in error message.

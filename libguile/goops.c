@@ -119,8 +119,7 @@
 	{ 								      \
 	  class = SCM_CLASS_OF (obj);					      \
           if (SCM_OBJ_CLASS_REDEF (obj) != SCM_BOOL_F) 			      \
-	    CALL_GF3 ("change-object-class",				      \
-		      obj, class, SCM_OBJ_CLASS_REDEF (obj));  		      \
+	    scm_change_object_class (obj, class, SCM_OBJ_CLASS_REDEF (obj));  \
 	}
 
 #define NXT_MTHD_METHODS(m)	(SCM_VELTS (m)[1])
@@ -1559,6 +1558,10 @@ purgatory (void *args)
   return scm_apply_0 (GETVAR (scm_sym_change_class),
 		      SCM_PACK ((scm_t_bits) args));
 }
+
+/* This function calls the generic function change-class for all
+ * instances which aren't currently undergoing class change.
+ */
 
 void
 scm_change_object_class (SCM obj, SCM old_class SCM_UNUSED, SCM new_class)
