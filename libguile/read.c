@@ -485,7 +485,7 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
 #if SCM_HAVE_ARRAYS
 	case '*':
 	  j = scm_read_token (c, tok_buf, port, 0);
-	  p = scm_istr2bve (scm_c_substring_shared (*tok_buf, 1, j-1));
+	  p = scm_istr2bve (scm_c_substring_shared (*tok_buf, 1, j));
 	  if (scm_is_true (p))
 	    return p;
 	  else
