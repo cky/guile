@@ -318,10 +318,6 @@ extern SCM scm_pt_member (SCM member);
 
 #if (SCM_DEBUG_DEPRECATED == 0)
 
-/* #define SCM_CRDY	(32L<<16)  obsolete, for pushed back characters  */
-#define SCM_INPORTP(x) SCM_INPUT_PORT_P (x)
-#define SCM_OUTPORTP(x) SCM_OUTPUT_PORT_P (x)
-
 extern SCM scm_close_all_ports_except (SCM ports);
 
 #endif  /* SCM_DEBUG_DEPRECATED == 0 */
