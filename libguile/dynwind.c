@@ -75,6 +75,9 @@ scm_dynamic_wind (thunk1, thunk2, thunk3)
      SCM thunk3;
 {
   SCM ans;
+  SCM_ASSERT (SCM_NFALSEP (scm_thunk_p (thunk3)),
+	      thunk3,
+	      SCM_ARG3, s_dynamic_wind);
   scm_apply (thunk1, SCM_EOL, SCM_EOL);
   scm_dynwinds = scm_acons (thunk1, thunk3, scm_dynwinds);
   ans = scm_apply (thunk2, SCM_EOL, SCM_EOL);
@@ -150,6 +153,21 @@ scm_wind_chain ()
 }
 #endif
 
+#ifdef GUILE_LANG
+static void
+scm_swap_bindings (SCM glocs, SCM vals)
+{
+  SCM tmp;
+  while (SCM_NIMP (vals))
+    {
+      tmp = SCM_GLOC_VAL (SCM_CAR (glocs));
+      SCM_SETCDR (SCM_CAR (glocs) - 1L, SCM_CAR (vals));
+      SCM_SETCAR (vals, tmp);
+      glocs = SCM_CDR (glocs);
+      vals = SCM_CDR (vals);
+    }
+}
+#endif
 
 void 
 scm_dowinds (to, delta)
@@ -174,16 +192,20 @@ scm_dowinds (to, delta)
 #endif
 	{
 	  wind_key = SCM_CAR (wind_elt);
-	  if (!(SCM_NIMP (wind_key) && SCM_SYMBOLP (wind_key))
-	      && (wind_key != SCM_BOOL_F)
-	      && (wind_key != SCM_BOOL_T))
+	  /* key = #t | symbol | thunk | list of glocs | list of fluids */
+	  if (SCM_NIMP (wind_key))
 	    {
-	      if (SCM_NIMP (wind_key) && SCM_CONSP (wind_key))
-		scm_swap_fluids (wind_key, SCM_CDR (wind_elt));
-	      else if (SCM_NIMP (wind_key) && SCM_GUARDSP (wind_key))
-		SCM_BEFORE_GUARD (wind_key) (SCM_GUARD_DATA (wind_key));
+#ifdef GUILE_LANG
+	      if (SCM_TYP3 (wind_key) == scm_tc3_cons_gloc)
+		scm_swap_bindings (wind_key, SCM_CDR (wind_elt));
 	      else
-		scm_apply (wind_key, SCM_EOL, SCM_EOL);
+#endif
+		if (SCM_TYP3 (wind_key) == scm_tc3_cons)
+		  scm_swap_fluids (wind_key, SCM_CDR (wind_elt));
+		else if (SCM_GUARDSP (wind_key))
+		  SCM_BEFORE_GUARD (wind_key) (SCM_GUARD_DATA (wind_key));
+		else if (SCM_TYP3 (wind_key) == scm_tc3_closure)
+		  scm_apply (wind_key, SCM_EOL, SCM_EOL);
 	    }
 	}
       scm_dynwinds = to;
@@ -206,16 +228,19 @@ scm_dowinds (to, delta)
 #endif
 	{
 	  wind_key = SCM_CAR (wind_elt);
-	  if (!(SCM_NIMP (wind_key) && SCM_SYMBOLP (wind_key))
-	      && (wind_key != SCM_BOOL_F)
-	      && (wind_key != SCM_BOOL_T))
+	  if (SCM_NIMP (wind_key))
 	    {
-	      if (SCM_NIMP (wind_key) && SCM_CONSP (wind_key))
-		scm_swap_fluids_reverse (wind_key, from);
-	      else if (SCM_NIMP (wind_key) && SCM_GUARDSP (wind_key))
-		SCM_AFTER_GUARD (wind_key) (SCM_GUARD_DATA (wind_key));
+#ifdef GUILE_LANG
+	      if (SCM_TYP3 (wind_key) == scm_tc3_cons_gloc)
+		scm_swap_bindings (wind_key, from);
 	      else
-		scm_apply (from, SCM_EOL, SCM_EOL);
+#endif
+		if (SCM_TYP3 (wind_key) == scm_tc3_cons)
+		  scm_swap_fluids_reverse (wind_key, from);
+		else if (SCM_GUARDSP (wind_key))
+		  SCM_AFTER_GUARD (wind_key) (SCM_GUARD_DATA (wind_key));
+		else if (SCM_TYP3 (wind_key) == scm_tc3_closure)
+		  scm_apply (from, SCM_EOL, SCM_EOL);
 	    }
 	}
       delta--;
