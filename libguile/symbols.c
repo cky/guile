@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2003 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2003, 2004 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -264,8 +264,6 @@ SCM_DEFINE (scm_string_to_symbol, "string->symbol", 1, 0, 0,
 
 #define MAX_PREFIX_LENGTH 30
 
-static int gensym_counter;
-
 SCM_DEFINE (scm_gensym, "gensym", 0, 1, 0,
             (SCM prefix),
 	    "Create a new symbol with a name constructed from a prefix and\n"
@@ -275,6 +273,8 @@ SCM_DEFINE (scm_gensym, "gensym", 0, 1, 0,
 	    "resetting the counter.")
 #define FUNC_NAME s_scm_gensym
 {
+  static int gensym_counter = 0;
+
   char buf[MAX_PREFIX_LENGTH + SCM_INTBUFLEN];
   char *name = buf;
   size_t len;
@@ -293,7 +293,14 @@ SCM_DEFINE (scm_gensym, "gensym", 0, 1, 0,
       memcpy (name, SCM_STRING_CHARS (prefix), len);
     }
   {
-    int n_digits = scm_iint2str (gensym_counter++, 10, &name[len]);
+    int n, n_digits;
+
+    /* mutex in case another thread looks and incs at the exact same moment */
+    scm_mutex_lock (&scm_i_misc_mutex);
+    n = gensym_counter++;
+    scm_mutex_unlock (&scm_i_misc_mutex);
+
+    n_digits = scm_iint2str (n, 10, &name[len]);
     SCM res = scm_mem2symbol (name, len + n_digits);
     if (name != buf)
       free (name);
@@ -414,7 +421,6 @@ scm_symbols_prehistory ()
 void
 scm_init_symbols ()
 {
-  gensym_counter = 0;
 #include "libguile/symbols.x"
 }
 
