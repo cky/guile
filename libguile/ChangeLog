@@ -1,3 +1,12 @@
+2002-03-08  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* debug.h (SCM_MAX_FRAME_SIZE): Remove incorrect comment about use
+	of SCM_MAX_FRAME_SIZE as a bit mask; it isn't used like this.
+
+	* eval.c (SCM_CEVAL): Don't store scm_debug_eframe_size in
+	debug.status.  It isn't needed, and it can overflow the bits
+	reserved for it (which may lead to a segv or a GC abort).
+
 2002-03-02  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* eval.c (SCM_CEVAL): Cleaned up the handling of 'apply'.  Removed

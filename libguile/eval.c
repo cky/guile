@@ -1899,7 +1899,7 @@ SCM_CEVAL (SCM x, SCM env)
   scm_t_debug_frame debug;
   scm_t_debug_info *debug_info_end;
   debug.prev = scm_last_debug_frame;
-  debug.status = scm_debug_eframe_size;
+  debug.status = 0;
   /*
    * The debug.vect contains twice as much scm_t_debug_info frames as the
    * user has specified with (debug-set! frames <n>).

@@ -141,7 +141,7 @@ SCM_API scm_t_debug_frame *scm_last_debug_frame;
 #define SCM_TRACED_FRAME (1L << 8)
 #define SCM_ARGS_READY   (1L << 7)
 #define SCM_DOVERFLOW    (1L << 6)
-#define SCM_MAX_FRAME_SIZE 63 /* also used as a mask for the size field */
+#define SCM_MAX_FRAME_SIZE 63
 
 #define SCM_FRAMETYPE    (3L << 11)
 
