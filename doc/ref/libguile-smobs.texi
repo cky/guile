@@ -131,24 +131,34 @@ init_image_type (void)
 @node Creating Instances
 @subsection Creating Instances
 
-Normally, smobs can have one @emph{immediate} words of data.  This word
-stores either a pointer to an additional memory block that holds the
-real data, or it might hold the data itself when it fits.  The word is
-of type @code{scm_t_bits} and is large enough for a @code{SCM} value or
-a pointer to @code{void}.
+Normally, smobs can have one @emph{immediate} words of data.  This
+word stores either a pointer to an additional memory block that holds
+the real data, or it might hold the data itself when it fits.  The
+word is large enough for a @code{SCM} value or a pointer to
+@code{void}.
 
 You can also create smobs that have two or three immediate words, and
 when these words suffice to store all data, it is more efficient to use
 these super-sized smobs instead of using a normal smob plus a memory
 block.  @xref{Double Smobs}, for their discussion.
 
+Guile provides functions for managing memory which are often helpful
+when implementing smobs.  @xref{Memory Blocks}.
+
 To retrieve the immediate word of a smob, you use the macro
 @code{SCM_SMOB_DATA}.  It can be set with @code{SCM_SET_SMOB_DATA}.
 The 16 extra bits can be accessed with @code{SCM_SMOB_FLAGS} and
 @code{SCM_SET_SMOB_FLAGS}.
 
-Guile provides functions for managing memory which are often helpful
-when implementing smobs.  @xref{Memory Blocks}.
+The two macro @code{SCM_SMOB_DATA} and @code{SCM_SET_SMOB_DATA} treat
+the immediate word as if it were of type @code{scm_t_bits}, which is
+an unsigned integer type large enough to hold a pointer to
+@code{void}.  Thus you can use these macros to store arbitrary
+pointers in the smob word.
+
+When you want to store a @code{SCM} value directly in the immediate
+word of a smob, you should use the macros @code{SCM_SMOB_OBJECT} and
+@code{SCM_SET_SMOB_OBJECT} to access it.
 
 Creating a smob instance can be tricky when it consists of multiple
 steps that allocate resources and might fail.  It is recommended that
@@ -174,11 +184,12 @@ Complete the initialization of the memory block by, for example,
 allocating additional resources and making it point to them.
 @end itemize
 
-This precedure ensures that the smob is in a valid state as soon as it
-exists, that all resources that are allocated for the smob are properly
-associated with it so that they can be properly freed, and that no
-@code{SCM} values that need to be protected are stored in it while the
-smob does not yet competely exist and thus can not protect them.
+This procedure ensures that the smob is in a valid state as soon as it
+exists, that all resources that are allocated for the smob are
+properly associated with it so that they can be properly freed, and
+that no @code{SCM} values that need to be protected are stored in it
+while the smob does not yet competely exist and thus can not protect
+them.
 
 Continuing the example from above, if the global variable
 @code{image_tag} contains a tag returned by @code{scm_make_smob_type},
@@ -247,9 +258,10 @@ yet.  Thus, it is important to not store @code{SCM} values in the
 @var{image} struct until after the smob has been created.
 
 Step 4, finally, might fail and cause a non-local exit.  In that case,
-the creation of the smob has not been successful.  It will eventually be
-freed by the garbage collector, and all the resources that have been
-allocated for it will be correctly freed by @code{free_image}.
+the complete creation of the smob has not been successful, but it does
+nevertheless exist in a valid state.  It will eventually be freed by
+the garbage collector, and all the resources that have been allocated
+for it will be correctly freed by @code{free_image}.
 
 @node Type checking
 @subsection Type checking
@@ -422,14 +434,17 @@ If the smob refers to no other Scheme objects, then no action is
 necessary; the garbage collector has already marked the smob cell
 itself.  In that case, you can use zero as your mark function.
 
-@deftypefun SCM scm_markcdr (SCM @var{x})
-Mark the references in the smob @var{x}, assuming that @var{x}'s first
-data word contains an ordinary Scheme object, and @var{x} refers to no
-other objects.  This function simply returns @var{x}'s first data word.
+If the smob refers to exactly one other Scheme object via its first
+immediate word, you can use @code{scm_markcdr} as its mark function.
+Its definition is simply:
 
-This is only useful for simple smobs created by @code{SCM_NEWSMOB} or
-@code{SCM_RETURN_NEWSMOB}, not for smobs allocated as double cells.
-@end deftypefun
+@smallexample
+SCM
+scm_markcdr (SCM obj)
+@{
+  return SCM_SMOB_OBJECT (obj);
+@}
+@end smallexample
 
 @node Remembering During Operations
 @subsection Remembering During Operations
@@ -481,7 +496,7 @@ It's only in quite rare circumstances that a missing
 @code{scm_remember_upto_here_1} will bite, but when it happens the
 consequences are serious.  Fortunately the rule is simple: whenever
 calling a Guile library function or doing something that might, ensure
-the @code{SCM} of a smob is referenced past all accesses to its
+that the @code{SCM} of a smob is referenced past all accesses to its
 insides.  Do this by adding an @code{scm_remember_upto_here_1} if
 there are no other references.
 
@@ -495,12 +510,13 @@ while the collector runs.)
 @subsection Double Smobs
 
 Smobs are called smob because they are small: they normally have only
-room for one @code{scm_t_bits} value plus 16 bits.  The reason for
-this is that smobs are directly implemented by using the low-level,
-two-word cells of Guile that are also used to implement pairs, for
-example.  (@pxref{Data Representation} for the details.)  One word of
-the two-word cells is used for @code{SCM_SMOB_DATA}, the other
-contains the 16-bit type tag and the 16 extra bits.
+room for one @code{void*} or @code{SCM} value plus 16 bits.  The
+reason for this is that smobs are directly implemented by using the
+low-level, two-word cells of Guile that are also used to implement
+pairs, for example.  (@pxref{Data Representation} for the details.)
+One word of the two-word cells is used for @code{SCM_SMOB_DATA} (or
+@code{SCM_SMOB_OBJECT}), the other contains the 16-bit type tag and
+the 16 extra bits.
 
 In addition to the fundamental two-word cells, Guile also has
 four-word cells, which are appropriately called @dfn{double cells}.
@@ -509,10 +525,15 @@ words of type @code{scm_t_bits}.
 
 A double smob is created with @code{SCM_NEWSMOB2} or
 @code{SCM_NEWSMOB3} instead of @code{SCM_NEWSMOB}.  Its immediate
-words can be retrieved with @code{SCM_SMOB_DATA2} and
-@code{SCM_SMOB_DATA3} in addition to @code{SCM_SMOB_DATA}.
-Unsurprisingly, the words can be set with @code{SCM_SET_SMOB_DATA2}
-and @code{SCM_SET_SMOB_DATA3}.
+words can be retrieved as @code{scm_t_bits} with
+@code{SCM_SMOB_DATA_2} and @code{SCM_SMOB_DATA_3} in addition to
+@code{SCM_SMOB_DATA}.  Unsurprisingly, the words can be set to
+@code{scm_t_bits} values with @code{SCM_SET_SMOB_DATA_2} and
+@code{SCM_SET_SMOB_DATA_3}.
+
+Of course there are also @code{SCM_SMOB_OBJECT_2},
+@code{SCM_SMOB_OBJECT_3}, @code{SCM_SET_SMOB_OBJECT_2}, and
+@code{SCM_SET_SMOB_OBJECT_3}.
 
 @node The Complete Example
 @subsection The Complete Example
