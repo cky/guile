@@ -13,7 +13,8 @@
 
 	* readline.c (scm_add_history): Bugfix: Do strdup before giving
 	away the string to add_history.
-	(completion_function): Do completion for readline.
+	(completion_function): Do completion for readline. (Thanks to
+	Andrew Archibald.)
 	(scm_filename_completion_function): New procedure: Filename
 	completer.
 	(current_input_getc): New function.  Use this one instead of
