@@ -1,3 +1,8 @@
+1997-11-21  Tim Pierce  <twp@twp.tezcat.com>
+
+	* dynl-dl.c (sysdep_dynl_func): Prepend symb with underscore if
+	DLSYM_ADDS_UNDERSCORE is not defined.
+
 1997-11-06  Mikael Djurfeldt  <mdj@nada.kth.se>
 
 	* regex-posix.c (scm_free_regex_t): Return size of regex_t instead
