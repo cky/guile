@@ -665,15 +665,6 @@
 ;;; list-copy
 
 
-;;; sloppy-memq
-
-
-;;; sloppy-memv
-
-
-;;; sloppy-member
-
-
 ;;; memq
 
 

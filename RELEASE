@@ -60,6 +60,7 @@ In release 1.6:
 - remove scm_tc7_ssymbol
 - remove scm_tc7_msymbol
 - remove scm_tcs_symbols
+- remove scm_sloppy_memq, scm_sloppy_memv, scm_sloppy_member
 
 Modules sort.c and random.c should be factored out into separate
 modules (but still be distributed with guile-core) when we get a new

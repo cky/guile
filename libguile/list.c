@@ -504,6 +504,8 @@ SCM_DEFINE (scm_list_copy, "list-copy", 1, 0, 0,
 
 /* membership tests (memq, memv, etc.) */ 
 
+#if SCM_DEBUG_DEPRECATED == 0
+
 SCM_DEFINE (scm_sloppy_memq, "sloppy-memq", 2, 0, 0,
             (SCM x, SCM lst),
 	    "This procedure behaves like @code{memq}, but does no type or error checking.\n"
@@ -554,7 +556,7 @@ SCM_DEFINE (scm_sloppy_member, "sloppy-member", 2, 0, 0,
 }
 #undef FUNC_NAME
 
-
+#endif /* DEPRECATED */
 
 SCM_DEFINE (scm_memq, "memq", 2, 0, 0,
            (SCM x, SCM lst),
@@ -565,10 +567,13 @@ SCM_DEFINE (scm_memq, "memq", 2, 0, 0,
             "returned.")
 #define FUNC_NAME s_scm_memq
 {
-  SCM answer;
-  SCM_VALIDATE_LIST (2,lst);
-  answer = scm_sloppy_memq (x, lst);
-  return (SCM_NULLP (answer)) ? SCM_BOOL_F : answer;
+  SCM_VALIDATE_LIST (2, lst);
+  for (; !SCM_NULLP (lst); lst = SCM_CDR (lst))
+    {
+      if (SCM_EQ_P (SCM_CAR (lst), x))
+	return lst;
+    }
+  return SCM_BOOL_F;
 }
 #undef FUNC_NAME
 
@@ -583,10 +588,13 @@ SCM_DEFINE (scm_memv, "memv", 2, 0, 0,
             "returned.")
 #define FUNC_NAME s_scm_memv
 {
-  SCM answer;
-  SCM_VALIDATE_LIST (2,lst);
-  answer = scm_sloppy_memv (x, lst);
-  return (SCM_NULLP (answer)) ? SCM_BOOL_F : answer;
+  SCM_VALIDATE_LIST (2, lst);
+  for (; !SCM_NULLP (lst); lst = SCM_CDR (lst))
+    {
+      if (! SCM_FALSEP (scm_eqv_p (SCM_CAR (lst), x)))
+	return lst;
+    }
+  return SCM_BOOL_F;
 }
 #undef FUNC_NAME
 
@@ -600,10 +608,13 @@ SCM_DEFINE (scm_member, "member", 2, 0, 0,
             "returned.")
 #define FUNC_NAME s_scm_member
 {
-  SCM answer;
-  SCM_VALIDATE_LIST (2,lst);
-  answer = scm_sloppy_member (x, lst);
-  return (SCM_NULLP (answer)) ? SCM_BOOL_F : answer;
+  SCM_VALIDATE_LIST (2, lst);
+  for (; !SCM_NULLP (lst); lst = SCM_CDR (lst))
+    {
+      if (! SCM_FALSEP (scm_equal_p (SCM_CAR (lst), x)))
+	return lst;
+    }
+  return SCM_BOOL_F;
 }
 #undef FUNC_NAME
 

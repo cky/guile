@@ -1,3 +1,7 @@
+2000-10-13  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* tests/list.test:  Removed references to sloppy-mem(q|v|ber)
+
 2000-09-26  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* tests/strings.test:  Added a test to help remember that string=?

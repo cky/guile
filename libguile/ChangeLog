@@ -1,3 +1,10 @@
+2000-10-13  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* list.[ch] (scm_sloppy_memq, scm_sloppy_memv, scm_sloppy_member):
+	Deprecated.
+
+	(scm_memq, scm_memv, scm_member):  Inline the sloppy code.
+
 2000-10-11  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* alloca.c:  Fixed include file path.  Thanks to Bruce Korb for

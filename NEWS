@@ -100,6 +100,10 @@ internally, combined with a copy-on-write strategy.
 The concept of read-only strings will disappear in next release of
 Guile.
 
+** Deprecated: scm_sloppy_memq, scm_sloppy_memv, scm_sloppy_member
+
+Instead, use scm_memq, scm_memv, scm_member.
+
 * Changes to the gh_ interface
 
 * Changes to the scm_ interface
