@@ -999,7 +999,9 @@
                  (lambda (x y)
                    (let ((xx (string->number x)))
                      (if (or (eq? xx #f) (not (eqv? xx y)))
-			 (throw 'fail))))
+			 (begin 
+			   (pk x y)
+			   (throw 'fail)))))
                  couple))
               `(;; Radix:
                 ("#b0" 0) ("#B0" 0) ("#b1" 1) ("#B1" 1) ("#o0" 0) ("#O0" 0)
@@ -1017,7 +1019,7 @@
                 ("#d1234567890" 1234567890)
                 ("#x1234567890abcdef" 1311768467294899695)
                 ;; Exactness:
-                ("#e1" 1) ("#e1.2" ,(inexact->exact 1.2))
+                ("#e1" 1) ("#e1.2" 12/10)
 		("#i1.1" 1.1) ("#i1" 1.0)
                 ;; Integers:
                 ("1" ,(1+ 0)) ("23" ,(+ 9 9 5)) ("-1" ,(- 0 1)) 
@@ -1172,13 +1174,27 @@
   (pass-if (not (inexact? (- 1 fixnum-min))))
   (pass-if (inexact? 1.3))
   (pass-if (inexact? 3.1+4.2i))
-  (pass-if (not (inexact? #\a)))
-  (pass-if (not (inexact? "a")))
-  (pass-if (not (inexact? (make-vector 0))))
-  (pass-if (not (inexact? (cons 1 2))))
-  (pass-if (not (inexact? #t)))
-  (pass-if (not (inexact? (lambda () #t))))
-  (pass-if (not (inexact? (current-input-port)))))
+  (pass-if-exception "char"
+		     exception:wrong-type-arg
+		     (not (inexact? #\a)))
+  (pass-if-exception "string"
+		     exception:wrong-type-arg
+		     (not (inexact? "a")))
+  (pass-if-exception "vector"
+		     exception:wrong-type-arg
+		     (not (inexact? (make-vector 0))))
+  (pass-if-exception "cons"
+		     exception:wrong-type-arg
+		     (not (inexact? (cons 1 2))))
+  (pass-if-exception "bool"
+		     exception:wrong-type-arg
+		     (not (inexact? #t)))
+  (pass-if-exception "procedure"
+		     exception:wrong-type-arg
+		     (not (inexact? (lambda () #t))))
+  (pass-if-exception "port"
+		     exception:wrong-type-arg
+		     (not (inexact? (current-input-port)))))
 
 ;;;
 ;;; equal?
