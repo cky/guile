@@ -635,9 +635,14 @@ accessed element in the list.
 Vectors can contain any kind of Scheme object; it is even possible to
 have different types of objects in the same vector.  For vectors
 containing vectors, you may wish to use arrays, instead.  Note, too,
-that vectors are the special case of non-uniform, one-dimensional,
-zero-origin arrays and that most array procedures operate happily on
-vectors (@pxref{Arrays}).
+that vectors are the special case of non-uniform, one-dimensional
+arrays and that most array procedures operate happily on vectors
+(@pxref{Arrays}).
+
+C code must deal with the additional distinction between @dfn{simple}
+and non-@dfn{simple} vector.  A simple vector is one whose elements
+are stored in contiguous memory locations.  Most vectors are simple,
+but some vectors produced by @code{make-shared-array} are not.
 
 @menu
 * Vector Syntax::               Read syntax for vectors.
@@ -836,6 +841,44 @@ Therefore, in the case where @var{vec1} and @var{vec2} refer to the
 same vector, @code{vector-move-right!} is usually appropriate when
 @var{start1} is less than @var{start2}.
 @end deffn
+
+@deftypefn {C Function} {const SCM *} scm_vector_elements (SCM vec)
+Return a pointer to the memory that holds the elements of @var{vec}
+for reading.  The vector @var{vec} must be simple.
+
+For each call to this function, you must call
+@code{scm_vector_release_elements} and after that call the pointer to
+the elements becomes invalid.
+@end deftypefn
+
+@deftypefn {C Function} void scm_vector_release_elements (SCM vec)
+Finish the access to the elements of a simple vector, as exlained above.
+@end deftypefn
+
+@deftypefn {C Function} void scm_frame_vector_release_elements (SCM vec)
+Arrange for @code{scm_vector_release_elements} to be called with @var{vec}
+when the current frame is unwound, implicitely or explicitely;
+@xref{Frames}.
+@end deftypefn
+
+@deftypefn {C Function} SCM *scm_vector_writable_elements (SCM vec)
+Return a pointer to the memory that holds the elements of @var{vec}
+for writing.  The vector @var{vec} must be simple.
+
+For each call to this function, you must call
+@code{scm_vector_release_writable_elements} and after that call the
+pointer to the elements becomes invalid.
+@end deftypefn
+
+@deftypefn {C Function} void scm_vector_release_writable_elements (SCM vec)
+Finish the access to the elements of a vector, as exlained above.
+@end deftypefn
+
+@deftypefn {C Function} void scm_frame_vector_release_writable_elements (SCM vec)
+Arrange for @code{scm_vector_release_writable_elements} to be called
+with @var{vec} when the current frame is unwound, implicitely or
+explicitely; @xref{Frames}.
+@end deftypefn
 
 @node Uniform Numeric Vectors
 @subsection Uniform Numeric Vectors
@@ -1236,22 +1279,23 @@ are at even indices in that array, the corresponding imaginary parts are
 at the following odd index.
 @end deftypefn
 
-@deftypefn  {C Function} {void *} scm_uniform_vector_elements (SCM uvec)
-@deftypefnx {C Function} {scm_t_uint8 *} scm_u8vector_elements (SCM uvec)
-@deftypefnx {C Function} {scm_t_int8 *} scm_s8vector_elements (SCM uvec)
-@deftypefnx {C Function} {scm_t_uint16 *} scm_u16vector_elements (SCM uvec)
-@deftypefnx {C Function} {scm_t_int16 *} scm_s16vector_elements (SCM uvec)
-@deftypefnx {C Function} {scm_t_uint32 *} scm_u32vector_elements (SCM uvec)
-@deftypefnx {C Function} {scm_t_int32 *} scm_s32vector_elements (SCM uvec)
-@deftypefnx {C Function} {scm_t_uint64 *} scm_u64vector_elements (SCM uvec)
-@deftypefnx {C Function} {scm_t_int64 *} scm_s64vector_elements (SCM uvec)
-@deftypefnx {C Function} {float *} scm_f32vector_elements (SCM uvec)
-@deftypefnx {C Function} {double *} scm_f64vector_elements (SCM uvec)
-@deftypefnx {C Function} {float *} scm_c32vector_elements (SCM uvec)
-@deftypefnx {C Function} {double *} scm_c64vector_elements (SCM uvec)
-Return a pointer to the elements of a uniform vector.  For each call to
-one of these functions, you must call @code{scm_uniform_vector_release}
-and after that call the pointer to the elements becomes invalid.
+@deftypefn  {C Function} {const void *} scm_uniform_vector_elements (SCM uvec)
+@deftypefnx {C Function} {const scm_t_uint8 *} scm_u8vector_elements (SCM uvec)
+@deftypefnx {C Function} {const scm_t_int8 *} scm_s8vector_elements (SCM uvec)
+@deftypefnx {C Function} {const scm_t_uint16 *} scm_u16vector_elements (SCM uvec)
+@deftypefnx {C Function} {const scm_t_int16 *} scm_s16vector_elements (SCM uvec)
+@deftypefnx {C Function} {const scm_t_uint32 *} scm_u32vector_elements (SCM uvec)
+@deftypefnx {C Function} {const scm_t_int32 *} scm_s32vector_elements (SCM uvec)
+@deftypefnx {C Function} {const scm_t_uint64 *} scm_u64vector_elements (SCM uvec)
+@deftypefnx {C Function} {const scm_t_int64 *} scm_s64vector_elements (SCM uvec)
+@deftypefnx {C Function} {const float *} scm_f32vector_elements (SCM uvec)
+@deftypefnx {C Function} {const double *} scm_f64vector_elements (SCM uvec)
+@deftypefnx {C Function} {const float *} scm_c32vector_elements (SCM uvec)
+@deftypefnx {C Function} {const double *} scm_c64vector_elements (SCM uvec)
+Return a pointer to the elements of a uniform vector for reading.  For
+each call to one of these functions, you must call
+@code{scm_uniform_vector_release_elements} and after that call the pointer to
+the elements becomes invalid.
 
 The @code{c32} and @code{c64} variants return pointers to a C array of
 @code{float}s or @code{double}s.  The real parts of the complex numbers
@@ -1259,13 +1303,48 @@ are at even indices in that array, the corresponding imaginary parts are
 at the following odd index.
 @end deftypefn
 
-@deftypefn {C Function} void scm_uniform_vector_release (SCM uvec)
+@deftypefn {C Function} void scm_uniform_vector_release_elements (SCM uvec)
 Finish the access to the elements of a uniform vector, as exlained
 above.
 @end deftypefn
 
-@deftypefn {C Function} void scm_frame_uniform_vector_release (SCM uvec)
-Arrange for @code{scm_uniform_vector_release} to be called with
+@deftypefn {C Function} void scm_frame_uniform_vector_release_elements (SCM uvec)
+Arrange for @code{scm_uniform_vector_release_elements} to be called with
+@var{uvec} when the current frame is unwound, implicitely or
+explicitely; @xref{Frames}.
+@end deftypefn
+
+@deftypefn  {C Function} {void *} scm_uniform_vector_writable_elements (SCM uvec)
+@deftypefnx {C Function} {scm_t_uint8 *} scm_u8vector_writable_elements (SCM uvec)
+@deftypefnx {C Function} {scm_t_int8 *} scm_s8vector_writable_elements (SCM uvec)
+@deftypefnx {C Function} {scm_t_uint16 *} scm_u16vector_writable_elements (SCM uvec)
+@deftypefnx {C Function} {scm_t_int16 *} scm_s16vector_writable_elements (SCM uvec)
+@deftypefnx {C Function} {scm_t_uint32 *} scm_u32vector_writable_elements (SCM uvec)
+@deftypefnx {C Function} {scm_t_int32 *} scm_s32vector_writable_elements (SCM uvec)
+@deftypefnx {C Function} {scm_t_uint64 *} scm_u64vector_writable_elements (SCM uvec)
+@deftypefnx {C Function} {scm_t_int64 *} scm_s64vector_writable_elements (SCM uvec)
+@deftypefnx {C Function} {float *} scm_f32vector_writable_elements (SCM uvec)
+@deftypefnx {C Function} {double *} scm_f64vector_writable_elements (SCM uvec)
+@deftypefnx {C Function} {float *} scm_c32vector_writable_elements (SCM uvec)
+@deftypefnx {C Function} {double *} scm_c64vector_writable_elements (SCM uvec)
+Return a pointer to the elements of a uniform vector for writing.  For
+each call to one of these functions, you must call
+@code{scm_uniform_vector_release_writable_elements} and after that
+call the pointer to the elements becomes invalid.
+
+The @code{c32} and @code{c64} variants return pointers to a C array of
+@code{float}s or @code{double}s.  The real parts of the complex numbers
+are at even indices in that array, the corresponding imaginary parts are
+at the following odd index.
+@end deftypefn
+
+@deftypefn {C Function} void scm_uniform_vector_release_writable_elements (SCM uvec)
+Finish the access to the elements of a uniform vector, as exlained
+above.
+@end deftypefn
+
+@deftypefn {C Function} void scm_frame_uniform_vector_release_writable_elements (SCM uvec)
+Arrange for @code{scm_uniform_vector_release_writable_elements} to be called with
 @var{uvec} when the current frame is unwound, implicitely or
 explicitely; @xref{Frames}.
 @end deftypefn
@@ -1377,10 +1456,10 @@ Return a new list initialized with the elements
 of the bitvector @var{vec}.
 @end deffn
 
-@deftypefn {C Function} scm_t_uint32 *scm_bitvector_elements (SCM vec)
-Return a pointer to the memory that holds the elements of @var{vec}.
-Each word pointed to by this pointer has exactly 32 bits, the least
-significant bit having the lowest index.
+@deftypefn {C Function} {const scm_t_uint32 *} scm_bitvector_elements (SCM vec)
+Return a pointer to the memory that holds the elements of @var{vec}
+for reading.  Each word pointed to by this pointer has exactly 32
+bits, the least significant bit having the lowest index.
 
 There are @code{(scm_c_bitvector_length(@var{vec})+31)/32} words in the
 returned memory block.  The last word might be only partially used when
@@ -1388,18 +1467,43 @@ the bitvector length is not a multiple of 32.  The unused bits must be
 ignored during reading.
 
 For each call to this function, you must call
-@code{scm_bitvector_release} and after that call the pointer to the
-elements becomes invalid.
+@code{scm_bitvector_release_elements} and after that call the pointer
+to the elements becomes invalid.
 @end deftypefn
 
-@deftypefn {C Function} void scm_bitvector_release (SCM vec)
+@deftypefn {C Function} void scm_bitvector_release_elements (SCM vec)
 Finish the access to the elements of a bitvector, as exlained above.
 @end deftypefn
 
-@deftypefn {C Function} void scm_frame_bitvector_release (SCM vec)
-Arrange for @code{scm_bitvector_release} to be called with @var{vec}
+@deftypefn {C Function} void scm_frame_bitvector_release_elements (SCM vec)
+Arrange for @code{scm_bitvector_release_elements} to be called with @var{vec}
 when the current frame is unwound, implicitely or explicitely;
 @xref{Frames}.
+@end deftypefn
+
+@deftypefn {C Function} scm_t_uint32 *scm_bitvector_writable_elements (SCM vec)
+Return a pointer to the memory that holds the elements of @var{vec}
+for writing.  Each word pointed to by this pointer has exactly 32
+bits, the least significant bit having the lowest index.
+
+There are @code{(scm_c_bitvector_length(@var{vec})+31)/32} words in
+the returned memory block.  The last word might be only partially used
+when the bitvector length is not a multiple of 32.  The unused bits
+can be overwritten freely since they must be ignored during reading.
+
+For each call to this function, you must call
+@code{scm_bitvector_release_writable_elements} and after that call the
+pointer to the elements becomes invalid.
+@end deftypefn
+
+@deftypefn {C Function} void scm_bitvector_release_writable_elements (SCM vec)
+Finish the access to the elements of a bitvector, as exlained above.
+@end deftypefn
+
+@deftypefn {C Function} void scm_frame_bitvector_release_writable_elements (SCM vec)
+Arrange for @code{scm_bitvector_release_writable_elements} to be
+called with @var{vec} when the current frame is unwound, implicitely
+or explicitely; @xref{Frames}.
 @end deftypefn
 
 @deffn {Scheme Procedure} bit-count bool bitvector
