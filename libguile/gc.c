@@ -50,6 +50,8 @@
 #include "unif.h"
 #include "async.h"
 
+#include "gc.h"
+
 #ifdef HAVE_MALLOC_H
 #include <malloc.h>
 #endif
