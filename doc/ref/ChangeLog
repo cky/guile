@@ -1,3 +1,9 @@
+2001-11-20  Thien-Thi Nguyen  <ttn@glug.org>
+
+	* scheme-options.texi (Install Config):
+	Tweak `%load-path' verb to not imply it's a proc.
+	Add documentation for `%guile-build-info'.
+
 2001-11-19  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* scheme-data.texi (Symbol Tables), new-docstrings.texi: Removed
