@@ -57,61 +57,71 @@ everybody else to systematically review their code.
 
     - in their place, we have 
 
-      Function: void *scm_malloc (size_t size, const char *what);
+      Function: void *scm_malloc (size_t size);
 
         Allocate SIZE bytes of memory.  When not enough memory is
         available, signal an error.  This function runs the GC to free
         up some memory when it deems it appropriate.
 
-        The WHAT argument is used for statistical purposes and for
-        error reporting.  It should describe the type of object that
-        the memory will be used for so that users can identify just
-        what strange objects are eating up their memory.
+	The memory is allocated by the libc "malloc" function and can
+	be freed with "free".  We do not introduce a `scm_free'
+	function to go with scm_malloc to make it easier to pass
+	memory back and forth between different modules.
 
       [ Note: this function will not consider the memory block to be
         under GC control. ]
-
-      Function: void scm_free (void *mem);
-
-        Free the memory at MEM.  MEM must have been returned by
-        scm_malloc.  MEM might be NULL in which case nothing happens.
 
       Function: void *scm_realloc (void *mem, size_t newsize);
 
         Change the size of the memory block at MEM to NEWSIZE.  A new
         pointer is returned.  When NEWSIZE is 0 this is the same as
-        calling scm_free on MEM and NULL is returned.  MEM must be
-        non-NULL, that is, the first allocation must be done with
-        scm_malloc, to allow specifying the WHAT value.
+        calling scm_free on MEM and NULL is returned.  When MEM is
+        NULL, this function behaves like scm_malloc and allocates a
+        new block of size SIZE.
+
+	When not enough memory is available, signal an error.  This
+        function runs the GC to free up some memory when it deems it
+        appropriate.
 
       Function: void scm_gc_register_collectable_memory
                       (void *mem, size_t size, const char *what);
 
         Informs the GC that the memory at MEM of size SIZE can
-        potentially be freed during a GC.  That is, MEM is part of a
-        GC controlled object and when the GC happens to free that
-        object, SIZE bytes will be freed along with it.  The GC will
-        _not_ free the memory itself, it will just know that so-and-so
-        much bytes of memory are associated with GC controlled objects
-        and the memory system figures this into its decisions when to
-        run a GC.
+        potentially be freed during a GC.  That is, announce that MEM
+        is part of a GC controlled object and when the GC happens to
+        free that object, SIZE bytes will be freed along with it.  The
+        GC will _not_ free the memory itself, it will just know that
+        so-and-so much bytes of memory are associated with GC
+        controlled objects and the memory system figures this into its
+        decisions when to run a GC.
 
         MEM does not need to come from scm_malloc.  You can only call
         this function once for every memory block.
+
+        The WHAT argument is used for statistical purposes.  It should
+        describe the type of object that the memory will be used for
+        so that users can identify just what strange objects are
+        eating up their memory.
 
       Function: void scm_gc_unregister_collectable_memory 
                       (void *mem, size_t size);
 
         Inform the GC that the memory at MEM of size SIZE is no longer
-        associated with a GC controlled object.
+        associated with a GC controlled object.  You must take care to
+        match up every call to scm_gc_register_collectable_memory with
+        a call to scm_gc_unregister_collectable_memory.  If you don't
+        do this, the GC might have a wrong impression of what is going
+        on and run much less efficiently than it could.
 
       Function: void *scm_gc_malloc (size_t size, const char *what);
+      Function: void *scm_gc_realloc (void *mem, size_t size,
+                                      const char *what);
 
         Like scm_malloc, but also call scm_gc_register_collectable_memory.
 
       Function: void scm_gc_free (void *mem, size_t size, const char *what);
 
-        Like scm_free, but also call scm_gc_unregister_collectable_memory.
+        Like free, but also call scm_gc_unregister_collectable_memory.
 
 	Note that you need to explicitely pass the SIZE parameter.
 	This is done since it should normally be easy to provide this
@@ -125,6 +135,8 @@ The normal thing to use is scm_gc_malloc / scm_gc_free.
 
 Cell allocation and initialization
 ----------------------------------
+
+The following has been implemented in the unstable branch now.
 
 It can happen that the GC is invoked during the code that initializes
 a cell.  The half initialized cell is seen by the GC, which would
@@ -193,6 +205,3 @@ In the transition period, while SCM_NEWCELL is deprecated, we can make
 it always initialize the first slot with scm_tc16_allocated.  Such
 cells are marked conservatively by the GC.  SCM_NEWCELL can have
 abysmal performance while being deprecated.
-
-Update: SCM_NEWCELL already behaves like this.  We only need to
-implement scm_newcell_init and replace uses of SCM_NEWCELL with it.
