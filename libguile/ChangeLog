@@ -1,3 +1,9 @@
+2000-05-09  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* scmsigs.c (take_signal): Execute SCM_ASYNC_TICK for SIGSEGV,
+	SIGILL and SIGBUS signals.  These signals are not continuable and
+	must be handled for real right away.
+
 2000-05-08  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* numbers.c (scm_zero_p, scm_positive_p, scm_negative_p,
