@@ -1,5 +1,10 @@
 2000-12-24  Michael Livshin  <mlivshin@bigfoot.com>
 
+	* gc.c: (scm_gc_mark_dependencies): use SCM_EQ_P for SCMs, not
+	'=='.  also, return after calling `scm_gc_mark'.
+
+2000-12-24  Michael Livshin  <mlivshin@bigfoot.com>
+
 	* gc.c: (scm_gc_mark_dependencies): new function.  like
 	`scm_gc_mark', but doesn't mark the argument itself.  defined
 	using an arrangement similar to that in eval.c: `scm_gc_mark' and

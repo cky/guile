@@ -1125,10 +1125,11 @@ gc_mark_loop:
 gc_mark_nimp:
   
 #ifdef MARK_DEPENDENCIES
-  if (ptr == p)
+  if (SCM_EQ_P (ptr, p))
     return;
 
   scm_gc_mark (ptr);
+  return;
 
 gc_mark_loop_first_time:
 #endif
@@ -1381,13 +1382,13 @@ gc_mark_loop_first_time:
     def:
       SCM_MISC_ERROR ("unknown type", SCM_EOL);
     }
+#undef RECURSE
 }
 #undef FUNC_NAME
 
 #ifndef MARK_DEPENDENCIES
 
 #undef MARK
-#undef RECURSE
 #undef FNAME
 
 /* And here we define `scm_gc_mark_dependencies', by including this
@@ -1399,7 +1400,6 @@ gc_mark_loop_first_time:
 #include "gc.c"
 #undef MARK_DEPENDENCIES
 #undef MARK
-#undef RECURSE
 #undef FNAME
 
 
