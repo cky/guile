@@ -31,9 +31,9 @@
 ;; On the patch creation side of things, there are various version
 ;; control systems that are happy to write a diff to stdout (and
 ;; numerous Emacs interfaces to them all).  Thus, we provide only a
-;; simple `patch-submit' that composes mail from the current buffer;
+;; simple `patch-send' that composes mail from the current buffer;
 ;; the contents of that buffer are left as an exercise for the patch
-;; creator.  When preparing the mail, `patch-submit' scans the patch
+;; creator.  When preparing the mail, `patch-send' scans the patch
 ;; for standard filename headers and sets up a skeleton change log --
 ;; filling this in is a good way to earn respect from maintainers (hint
 ;; hint).  Type `C-c C-c' to send the mail when you are done.  (See
@@ -82,7 +82,7 @@
      files
      "\n")))
 
-(defun patch-submit (buffer subject)
+(defun patch-send (buffer subject)
   (interactive "bBuffer: \nsSubject: ")
   (when (string= "" subject)
     (error "(empty subject)"))
