@@ -1,4 +1,5 @@
+DISTDIRS = $(srcdir)/language $(srcdir)/system
+EXCLUDES = --exclude=CVS --exclude='*~'
+
 dist-hook:
-	mkdir $(distdir)/module
-	$(TAR) cf - --exclude=CVS $(srcdir)/language $(srcdir)/system \
-	| (cd $(distdir)/module; $(TAR) xf -)
+	$(TAR) cf - $(EXCLUDES) $(DISTDIRS) | (cd $(distdir); $(TAR) xf -)
