@@ -20,6 +20,15 @@ debugging evaluator gives better error messages.
 
 * Changes to Scheme functions and syntax
 
+** We now have uninterned symbols.
+
+The new function 'make-symbol' will return a uninterned symbol.  This
+is a symbol that is unique and is guaranteed to remain unique.
+However, uninterned symbols can not yet be read back in.
+
+Use the new function 'symbol-interned?' to check whether a symbol is
+interned or not.
+
 ** pretty-print has more options.
 
 The function pretty-print from the (ice-9 pretty-print) module can now
