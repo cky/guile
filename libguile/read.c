@@ -442,7 +442,7 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
 	  c = scm_flush_ws (port, (char *)NULL);
 	  goto tryagain_no_flush_ws;
 
-#ifdef HAVE_ARRAYS
+#ifdef SCM_HAVE_ARRAYS
 	case '*':
 	  j = scm_read_token (c, tok_buf, port, 0);
 	  p = scm_istr2bve (SCM_STRING_CHARS (*tok_buf) + 1, (long) (j - 1));
