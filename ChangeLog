@@ -1,3 +1,10 @@
+2001-10-25  Thien-Thi Nguyen  <ttn@glug.org>
+
+	* BUGS: Expand on file format description.
+
+	(1): Update "fixed" field.
+	(2, 3): New.
+
 2001-10-14  Gary Houston  <ghouston@arglist.com>
 
 	* configure.in: include sys/types.h when testing uint32_t.
