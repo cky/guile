@@ -32,7 +32,7 @@
 /* In the beginning was the Word:
  */
 #if SCM_SIZEOF_INTPTR_T != 0 && defined(INTPTR_MAX) && defined(INTPTR_MIN)
-typedef scm_t_intptr scm_t_signed_bits;
+typedef intptr_t scm_t_signed_bits;
 #define SCM_T_SIGNED_BITS_MAX INTPTR_MAX
 #define SCM_T_SIGNED_BITS_MIN INTPTR_MIN
 #else
