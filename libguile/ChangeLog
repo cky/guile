@@ -1,3 +1,15 @@
+Sun Dec 12 10:29:12 1999  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* *.c, scm_validate.h: Use SCM_VALIDATE_NIM, not SCM_VALIDATE_NIMP
+ 	(none of the other validate macros have the trailing P).
+
+Sun Dec 12 10:07:29 1999  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* scm_validate.h: Added the FSF copyright to the top.
+
+	* strings.c: Use SCM_ASSERT_RANGE in a couple of places instead of 
+	SCM_ASSERT w/ SCM_OUT_OF_RANGE.
+
 Sat Dec 11 18:34:12 1999  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* Makefile.am: Added scm_validate.h to modinclude_HEADERS.
