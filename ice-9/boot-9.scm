@@ -559,15 +559,14 @@
 ;;; procedures.  This interface is only provided for backward compatibility
 ;;; and will be removed.
 ;;;
-(if (not (defined? 'new-run-hooks))
+(if (not (defined? 'new-add-hook!))
     (begin
-      (define new-run-hooks run-hooks)
       (define new-add-hook! add-hook!)
       (define new-remove-hook! remove-hook!)))
 
 (define (run-hooks hook)
   (if (and (pair? hook) (eq? (car hook) 'hook))
-      (new-run-hooks hook)
+      (run-hook hook)
       (for-each (lambda (thunk) (thunk)) hook)))
 
 (define add-hook!
@@ -2522,7 +2521,7 @@
 			 ;; (set! first #f) above
 			 ;;
 			 (lambda ()
-			   (run-hooks abort-hook)
+			   (run-hook abort-hook)
 			   (force-output)
 			   (display "ABORT: "  (current-error-port))
 			   (write args (current-error-port))
@@ -2587,14 +2586,14 @@
   (let ((cep (current-error-port)))
     (cond ((not (stack? (fluid-ref the-last-stack))))
 	  ((memq 'backtrace (debug-options-interface))
-	   (run-hooks before-backtrace-hook)
+	   (run-hook before-backtrace-hook)
 	   (newline cep)
 	   (display-backtrace (fluid-ref the-last-stack) cep)
 	   (newline cep)
-	   (run-hooks after-backtrace-hook)))
-    (run-hooks before-error-hook)
+	   (run-hook after-backtrace-hook)))
+    (run-hook before-error-hook)
     (apply display-error (fluid-ref the-last-stack) cep args)
-    (run-hooks after-error-hook)
+    (run-hook after-error-hook)
     (force-output cep)
     (throw 'abort key)))
 
@@ -2636,7 +2635,7 @@
   (lambda (prompt)
     (display prompt)
     (force-output)
-    (run-hooks before-read-hook)
+    (run-hook before-read-hook)
     (read (current-input-port))))
 
 (define (scm-style-repl)
@@ -2688,7 +2687,7 @@
 		      ;; trailing newline here, as well as any whitespace
 		      ;; before it.
 		      (consume-trailing-whitespace)
-		      (run-hooks after-read-hook)
+		      (run-hook after-read-hook)
 		      (if (eof-object? val)
 			  (begin
 			    (repl-report-start-timing)
@@ -3015,7 +3014,7 @@
 		(not (and (module-defined? the-root-module
 					   'use-emacs-interface)
 			  use-emacs-interface)))
-	   (let ((read-hook (lambda () (run-hooks before-read-hook))))
+	   (let ((read-hook (lambda () (run-hook before-read-hook))))
 	     (set-current-input-port (readline-port))
 	     (set! repl-reader
 		   (lambda (prompt)
@@ -3028,7 +3027,7 @@
 			(set-readline-prompt! "")
 			(set-readline-read-hook! #f)))))))
        (let ((status (scm-style-repl)))
-	 (run-hooks exit-hook)
+	 (run-hook exit-hook)
 	 status))
 
      ;; call at exit.
