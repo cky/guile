@@ -37,9 +37,9 @@ INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 transform = @program_transform_name@
-FD_SETTER = @FD_SETTER@
 RANLIB = @RANLIB@
 CC = @CC@
+FD_SETTER = @FD_SETTER@
 
 AUTOMAKE_OPTIONS = foreign
 
@@ -109,7 +109,7 @@ COMPILE = $(CC) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
 LINK = $(CC) $(LDFLAGS) -o $@
 DATA =  $(modinclude_DATA)
 
-HEADERS =  $(include_HEADERS) $(modinclude_HEADERS)
+HEADERS =  $(modinclude_HEADERS) $(include_HEADERS)
 
 DIST_COMMON =  COPYING ChangeLog Makefile.am Makefile.in acconfig.h \
 acinclude.m4 aclocal.m4 configure configure.in fd.h.in scmconfig.h.in \
@@ -248,18 +248,6 @@ uninstall-modincludeDATA:
 	  rm -f $(modincludedir)/$$p; \
 	done
 
-install-includeHEADERS: $(include_HEADERS)
-	$(NORMAL_INSTALL)
-	$(mkinstalldirs) $(includedir)
-	list="$(include_HEADERS)"; for p in $$list; do \
-	  $(INSTALL_DATA) $(srcdir)/$$p $(includedir)/$$p; \
-	done
-
-uninstall-includeHEADERS:
-	list="$(include_HEADERS)"; for p in $$list; do \
-	  rm -f $(includedir)/$$p; \
-	done
-
 install-modincludeHEADERS: $(modinclude_HEADERS)
 	$(NORMAL_INSTALL)
 	$(mkinstalldirs) $(modincludedir)
@@ -270,6 +258,18 @@ install-modincludeHEADERS: $(modinclude_HEADERS)
 uninstall-modincludeHEADERS:
 	list="$(modinclude_HEADERS)"; for p in $$list; do \
 	  rm -f $(modincludedir)/$$p; \
+	done
+
+install-includeHEADERS: $(include_HEADERS)
+	$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(includedir)
+	list="$(include_HEADERS)"; for p in $$list; do \
+	  $(INSTALL_DATA) $(srcdir)/$$p $(includedir)/$$p; \
+	done
+
+uninstall-includeHEADERS:
+	list="$(include_HEADERS)"; for p in $$list; do \
+	  rm -f $(includedir)/$$p; \
 	done
 
 tags: TAGS
@@ -355,11 +355,11 @@ distclean-depend:
 maintainer-clean-depend:
 	rm -rf .deps
 
-.deps/%.P: $(srcdir)/%@EXT@
+.deps/%.P: $(srcdir)/%.c
 	@echo "Computing dependencies for $<..."
 	@o='o';				\
-ONLYC	test -n "$o" && o='$$o';	\
-	$(@MKDEP@) $< | sed "s/^\(.*\)\.o:/\1.$$o \1.l$$o:/" > $@
+	test -n "$o" && o='$$o';	\
+	$(MKDEP) $< | sed "s/^\(.*\)\.o:/\1.$$o \1.l$$o:/" > $@
 info:
 dvi:
 check: all
@@ -368,21 +368,21 @@ installcheck:
 install-exec: install-libLIBRARIES
 	$(NORMAL_INSTALL)
 
-install-data: install-modincludeDATA install-includeHEADERS install-modincludeHEADERS
+install-data: install-modincludeDATA install-modincludeHEADERS install-includeHEADERS
 	$(NORMAL_INSTALL)
 
 install: install-exec install-data all
 	@:
 
-uninstall: uninstall-libLIBRARIES uninstall-modincludeDATA uninstall-includeHEADERS uninstall-modincludeHEADERS
+uninstall: uninstall-libLIBRARIES uninstall-modincludeDATA uninstall-modincludeHEADERS uninstall-includeHEADERS
 
 all: $(LIBRARIES) $(DATA) $(HEADERS) Makefile scmconfig.h
 
 install-strip:
 	$(MAKE) INSTALL_PROGRAM='$(INSTALL_PROGRAM) -s' install
 installdirs:
-	$(mkinstalldirs)  $(libdir) $(modincludedir) $(includedir) \
-		$(modincludedir)
+	$(mkinstalldirs)  $(libdir) $(modincludedir) $(modincludedir) \
+		$(includedir)
 
 
 mostlyclean-generic:
@@ -423,14 +423,14 @@ maintainer-clean-hdr mostlyclean-libLIBRARIES distclean-libLIBRARIES \
 clean-libLIBRARIES maintainer-clean-libLIBRARIES uninstall-libLIBRARIES \
 install-libLIBRARIES mostlyclean-compile distclean-compile \
 clean-compile maintainer-clean-compile uninstall-modincludeDATA \
-install-modincludeDATA uninstall-includeHEADERS install-includeHEADERS \
-uninstall-modincludeHEADERS install-modincludeHEADERS tags \
-mostlyclean-tags distclean-tags clean-tags maintainer-clean-tags \
-distdir mostlyclean-depend distclean-depend clean-depend \
-maintainer-clean-depend info dvi installcheck install-exec install-data \
-install uninstall all installdirs mostlyclean-generic distclean-generic \
-clean-generic maintainer-clean-generic clean mostlyclean distclean \
-maintainer-clean
+install-modincludeDATA uninstall-modincludeHEADERS \
+install-modincludeHEADERS uninstall-includeHEADERS \
+install-includeHEADERS tags mostlyclean-tags distclean-tags clean-tags \
+maintainer-clean-tags distdir mostlyclean-depend distclean-depend \
+clean-depend maintainer-clean-depend info dvi installcheck install-exec \
+install-data install uninstall all installdirs mostlyclean-generic \
+distclean-generic clean-generic maintainer-clean-generic clean \
+mostlyclean distclean maintainer-clean
 
 
 libpath.h: Makefile

@@ -37,15 +37,15 @@ INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 transform = @program_transform_name@
-host_triplet = @host@
 host_alias = @host_alias@
-target_libs = @target_libs@
+host_triplet = @host@
 RANLIB = @RANLIB@
-qtmdb_s = @qtmdb_s@
-qtmds_s = @qtmds_s@
-qtmdc_c = @qtmdc_c@
 qtmd_h = @qtmd_h@
 CC = @CC@
+target_libs = @target_libs@
+qtmdc_c = @qtmdc_c@
+qtmds_s = @qtmds_s@
+qtmdb_s = @qtmdb_s@
 
 AUTOMAKE_OPTIONS = foreign
 
@@ -277,11 +277,11 @@ distclean-depend:
 maintainer-clean-depend:
 	rm -rf .deps
 
-.deps/%.P: $(srcdir)/%@EXT@
+.deps/%.P: $(srcdir)/%.c
 	@echo "Computing dependencies for $<..."
 	@o='o';				\
-ONLYC	test -n "$o" && o='$$o';	\
-	$(@MKDEP@) $< | sed "s/^\(.*\)\.o:/\1.$$o \1.l$$o:/" > $@
+	test -n "$o" && o='$$o';	\
+	$(MKDEP) $< | sed "s/^\(.*\)\.o:/\1.$$o \1.l$$o:/" > $@
 info: info-recursive
 dvi: dvi-recursive
 check: all-am
