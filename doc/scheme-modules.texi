@@ -3,9 +3,6 @@
 @chapter Modules
 @cindex modules
 
-[FIXME: somewhat babbling; should be reviewed by someone who understands
-modules, once the new module system is in place]
-
 When programs become large, naming conflicts can occur when a function
 or global variable defined in one file has the same name as a function
 or global variable in another file.  Even just a @emph{similarity}
@@ -73,60 +70,59 @@ module system.
 @node The Guile module system
 @section The Guile module system
 
-In 1996 Tom Lord implemented a full-featured module system for Guile
-which allows loading Scheme source files into a private name space.
+In 1996 Tom Lord implemented a full-featured module system for Guile which
+allows loading Scheme source files into a private name space.  This system has
+been in available since Guile version 1.4.
+@c fixme: Actually, was it available before?  1.4 seems a bit late...
 
-This module system is regarded as being rather idiosyncratic, and will
-probably change to something more like the ML module system, so for now
-I will simply describe how it works for a couple of simple cases.
+For Guile version 1.5.0 and later, the system has been improved to have better
+integration from C code, more fine-grained user control over interfaces, and
+documentation.
 
-So for example, the pipe interprocess communication interface
-(REFFIXME), contained in @file{$srcdir/ice-9/popen.scm}, starts out with
-
-@smalllisp
-(define-module (ice-9 popen))
-@end smalllisp
-
-and a user program can use
-
-@smalllisp
-(use-modules (ice-9 popen))
-@end smalllisp
-
-to have access to all procedures and variables exported from the module.
+Although it is anticipated that the module system implementation will
+change in the future, the Scheme programming interface described in this
+manual should be considered stable.  The C programming interface is
+considered relatively stable, although at the time of this writing,
+there is still some flux.
+@c fixme: Review: Need better C code interface commentary.
 
 @menu
 * General Information about Modules::  Guile module basics.
-* Loading Guile Modules::       How to use existing modules.
+* Using Guile Modules::         How to use existing modules.
 * Creating Guile Modules::      How to package your code into modules.
 * More Module Procedures::      Low-level module code.
+* Module System Quirks::        Strange things to be aware of.
 * Included Guile Modules::      Which modules come with Guile?
 @end menu
 
 @node General Information about Modules
 @subsection General Information about Modules
 
-A Guile module is a collection of procedures, variables and syntactic
-forms (macros), which are either public or private.  Public bindings are
-in the so-called @dfn{export list} of a module and can be made visible
-to other modules, which import them.  This @dfn{module import} is called
-@dfn{using} of a module, and consists of loading of the module code (if
-it has not already been loaded) and making all exported items of the
-loaded module visible to the importing module (@pxref{Loading Guile
+A Guile module is a collection of named procedures, variables and
+macros, altogether called the @dfn{bindings}, since they bind, or
+associate, a symbol (the name) to a Scheme object (procedure, variable,
+or macro).  Within a module, all bindings are visible.  Certain bindings
+can be declared @dfn{public}, in which case they are added to the
+module's so-called @dfn{export list}; this set of public bindings is
+called the module's @dfn{public interface} (@pxref{Creating Guile
 Modules}).
 
-The other side is called @dfn{defining} a module, and consists of giving
-a name to a module, add procedures and variables to it and declare which
-of the names should be exported when another module uses it
-(@pxref{Creating Guile Modules}).
+A client module @dfn{uses} a providing module's bindings by either
+accessing the providing module's public interface, or by building a
+custom interface (and then accessing that).  In a custom interface, the
+client module can @dfn{select} which bindings to access and can also
+algorithmically @dfn{rename} bindings.  In contrast, when using the
+providing module's public interface, the entire export list is available
+without renaming (@pxref{Using Guile Modules}).
 
-All Guile modules have unique names, which are lists of one or more
-symbols.  Examples are @code{(ice-9 popen)} or @code{(srfi srfi-11)}.
-When Guile searches for the code of a module, it constructs the name of
-the file to load by concatenating the name elements with slashes between
-the elements and appending a number of file name extensions from the
-list @code{%load-extensions} (REFFIXME).  The resulting file name is
-then searched in all directories in the variable @code{%load-path}.  For
+To use a module, it must be found and loaded.  All Guile modules have a
+unique @dfn{module name}, which is a list of one or more symbols.
+Examples are @code{(ice-9 popen)} or @code{(srfi srfi-11)}.  When Guile
+searches for the code of a module, it constructs the name of the file to
+load by concatenating the name elements with slashes between the
+elements and appending a number of file name extensions from the list
+@code{%load-extensions} (REFFIXME).  The resulting file name is then
+searched in all directories in the variable @code{%load-path}.  For
 example, the @code{(ice-9 popen)} module would result in the filename
 @code{ice-9/popen.scm} and searched in the installation directory of
 Guile and in all other directories in the load path.
@@ -140,53 +136,106 @@ you can manipulate the current syntax transformer using the
 definition option (@pxref{Creating Guile Modules}).
 
 Please note that there are some problems with the current module system
-you should keep in mind.  When importing a module which exports a macro
-definition, the other module must export all bindings the macro
-expansion uses, too, because the expanded code would otherwise not be
-able to see these definitions and issue a ``variable unbound'' error, or
-worse, would use another binding which might be present in the scope of
-the expansion.
-
-When two or more modules are imported, and they export bindings with the
-same names, the last imported module wins, and the exported binding of
-that last module will silently be used.  This might lead to
-hard-to-find errors because wrong procedures or variables are used.
+you should keep in mind (@pxref{Module System Quirks}).  We hope to
+address these eventually.
 
 
-@node Loading Guile Modules
-@subsection Loading Guile Modules
+@node Using Guile Modules
+@subsection Using Guile Modules
 
-@c FIXME::martin: Review me!
+To use a Guile module is to access either its public interface or a
+custom interface (@pxref{General Information About Modules}).  Both
+types of access are handled by the syntactic form @code{use-modules},
+which accepts one or more interface specifications and, upon evaluation,
+arranges for those interfaces to be available to the current module.
+This process may include locating and loading code for a given module if
+that code has not yet been loaded (REFFIXME %load-path).
 
-There are several modules included in the Guile distribution, and not
-all of the procedures available for Guile are immedietely available when
-you start up the interpreter.  Some of the procedures are packaged in
-modules, so that they are only accessible after the user has explicitly
-said that she wants to use them.  In Guile, the syntactic form
-@code{use-modules} is used for telling the interpreter that he should
-locate the code for a given module, load it and make the exported
-bindings of the module visible to the caller.
-
-@c begin (scm-doc-string "boot-9.scm" "use-modules")
-@deffn syntax use-modules module-specification @dots{}
-All @var{module-specification}s are of the form @code{(hierarchy file)}.
-One example of this is
+An @dfn{interface specification} has one of two forms.  The first
+variation is simply to name the module, in which case its public
+interface is the one accessed.  For example:
 
 @smalllisp
 (use-modules (ice-9 popen))
 @end smalllisp
 
-@code{use-modules} allows the current Guile program to use all publicly
-defined procedures and variables in the modules denoted by the
-@var{module-specification}s.
+Here, the interface specification is @code{(ice-9 popen)}, and the
+result is that the current module now has access to @code{open-pipe},
+@code{close-pipe}, @code{open-input-pipe}, and so on (@pxref{Included
+Guile Modules}).
+
+Note in the previous example that if the current module had already
+defined @code{open-pipe}, that definition would be overwritten by the
+definition in @code{(ice-9 popen)}.  For this reason (and others), there
+is a second variation of interface specification that not only names a
+module to be accessed, but also selects bindings from it and renames
+them to suit the current module's needs.  For example:
+
+@smalllisp
+(use-modules ((ice-9 popen)
+              :select ((open-pipe . pipe-open) close-pipe)
+              :rename (symbol-prefix-proc 'unixy:)))
+@end smalllisp
+
+Here, the interface specification is more complex than before, and the
+result is that a custom interface with only two bindings is created and
+subsequently accessed by the current module.  The mapping of old to new
+names is as follows:
+
+@c Use `smallexample' since `table' is ugly.  --ttn
+@smallexample
+(ice-9 popen) sees:             current module sees:
+open-pipe                       unixy:pipe-open
+close-pipe                      unixy:close-pipe
+@end smallexample
+
+This example also shows how to use the convenience procedure
+@code{symbol-prefix-proc}.
+
+@c begin (scm-doc-string "boot-9.scm" "symbol-prefix-proc")
+@deffn procedure symbol-prefix-proc prefix-sym
+Return a procedure that prefixes its arg (a symbol) with
+@var{prefix-sym}.
+@c Insert gratuitous C++ slam here.  --ttn
 @end deffn
-@c end
+
+@c begin (scm-doc-string "boot-9.scm" "use-modules")
+@deffn syntax use-modules spec @dots{}
+Resolve each interface specification @var{spec} into an interface and
+arrange for these to be accessible by the current module.  The return
+value is unspecified.
+
+@var{spec} can be a list of symbols, in which case it names a module
+whose public interface is found and used.
+
+@var{spec} can also be of the form:
+
+@smalllisp
+ (MODULE-NAME [:select SELECTION] [:rename RENAMER])
+@end smalllisp
+
+in which case a custom interface is newly created and used.
+@var{module-name} is a list of symbols, as above; @var{selection} is a
+list of selection-specs; and @var{renamer} is a procedure that takes a
+symbol and returns its new name.  A selection-spec is either a symbol or
+a pair of symbols @code{(ORIG . SEEN)}, where @var{orig} is the name in
+the used module and @var{seen} is the name in the using module.  Note
+that @var{seen} is also passed through @var{renamer}.
+
+The @code{:select} and @code{:rename} clauses are optional.  If both are
+omitted, the returned interface has no bindings.  If the @code{:select}
+clause is omitted, @var{renamer} operates on the used module's public
+interface.
+
+Signal error if module name is not resolvable.
+@end deffn
+
 
 @c FIXME::martin: Is this correct, and is there more to say?
 @c FIXME::martin: Define term and concept `system transformer' somewhere.
 
-@deffn syntax use-syntax module-specification
-Load the module @code{module-specification} and use its system
+@deffn syntax use-syntax module-name
+Load the module @code{module-name} and use its system
 transformer as the system transformer for the currently defined module,
 as well as installing it as the current system transformer.
 @end deffn
@@ -194,8 +243,6 @@ as well as installing it as the current system transformer.
 
 @node Creating Guile Modules
 @subsection Creating Guile Modules
-
-@c FIXME::martin: Review me!
 
 When you want to create your own modules, you have to take the following
 steps:
@@ -209,13 +256,13 @@ to export, or which are required by the exported procedures.
 Add a @code{define-module} form at the beginning.
 
 @item
-Export all bindings which should be visible to importing modules, either
+Export all bindings which should be in the public interface, either
 by using @code{define-public} or @code{export} (both documented below).
 @end itemize
 
 @c begin (scm-doc-string "boot-9.scm" "define-module")
-@deffn syntax define-module module-specification [options @dots{}]
-@var{module-specification} is of the form @code{(hierarchy file)}.  One
+@deffn syntax define-module module-name [options @dots{}]
+@var{module-name} is of the form @code{(hierarchy file)}.  One
 example of this is
 
 @smalllisp
@@ -223,16 +270,18 @@ example of this is
 @end smalllisp
 
 @code{define-module} makes this module available to Guile programs under
-the given @var{module-specification}.
+the given @var{module-name}.
 
 The @var{options} are keyword/value pairs which specify more about the
 defined module.  The recognized options and their meaning is shown in
 the following table.
 
+@c fixme: Should we use "#:" or ":"?
+
 @table @code
-@item #:use-module @var{module}
-Equivalent to a @code{(use-modules @var{module})}.  Use the specified
-@var{module} when loading this module.
+@item #:use-module @var{interface-specification}
+Equivalent to a @code{(use-modules @var{interface-specification})}
+(@pxref{Using Guile Modules}).
 
 @item #:use-syntax @var{module}
 Use @var{module} when loading the currently defined module, and install
@@ -266,16 +315,10 @@ bindings of the current module.
 
 @c begin (scm-doc-string "boot-9.scm" "define-public")
 @deffn syntax define-public @dots{}
-Makes a procedure or variable available to programs that use the current
-module.
+Equivalent to @code{(begin (define foo ...) (export foo))}.
 @end deffn
 @c end
 
-
-[FIXME: must say more, and explain, and also demonstrate a private name
-space use, and demonstrate how one would do Python's "from Tkinter
-import *" versus "import Tkinter".  Must also add something about paths
-and standards for contributed modules.]
 
 @node More Module Procedures
 @subsection More Module Procedures
@@ -292,6 +335,42 @@ do, you should probably avoid using any of them.
 @deffn primitive standard-eval-closure module
 Return an eval closure for the module @var{module}.
 @end deffn
+
+
+@node Module System Quirks
+@subsection Module System Quirks
+
+Although the programming interfaces are relatively stable, the Guile
+module system itself is still evolving.  Here are some situations where
+usage surpasses design.
+
+@itemize @bullet
+
+@item
+When using a module which exports a macro definition, the other module
+must export all bindings the macro expansion uses, too, because the
+expanded code would otherwise not be able to see these definitions and
+issue a ``variable unbound'' error, or worse, would use another binding
+which might be present in the scope of the expansion.
+
+@item
+From C, you need to construct a @code{module-export!} call using
+@code{gh_eval_str}.  This is cumbersome.
+
+@item
+When two or more used modules export bindings with the same names, the
+last accessed module wins, and the exported binding of that last module
+will silently be used.  This might lead to hard-to-find errors because
+wrong procedures or variables are used.  To avoid this kind of
+@dfn{name-clash} situation, use a custom interface specification
+(@pxref{Using Guile Modules}).  (We include this entry for the possible
+benefit of users of Guile versions previous to 1.5.0, when custom
+interfaces were added to the module system.)
+
+@item
+[Add other quirks here.]
+
+@end itemize
 
 
 @node Included Guile Modules
@@ -398,9 +477,9 @@ dynamic linking apparatus, and a more high-level interface that
 integrates dynamically linked libraries into the module system.
 
 @menu
-* Low level dynamic linking::   
-* Compiled Code Modules::       
-* Dynamic Linking and Compiled Code Modules::  
+* Low level dynamic linking::
+* Compiled Code Modules::
+* Dynamic Linking and Compiled Code Modules::
 @end menu
 
 @node Low level dynamic linking
