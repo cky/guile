@@ -1,3 +1,8 @@
+2000-03-16  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* gc.c (scm_gc_sweep): Sigh... forgot to clear private freelists
+	after GC.
+
 Wed Mar 15 08:27:04 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* fluids.c: Docstring patch from Keisuke Nishida.  Some
