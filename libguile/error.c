@@ -82,7 +82,7 @@ err_head (str)
 #if 0
   if (SCM_BOOL_F != *scm_loc_loadpath)
     {
-      scm_iprin1 (*scm_loc_loadpath, scm_cur_errp, 1);
+      scm_prin1 (*scm_loc_loadpath, scm_cur_errp, 1);
       scm_gen_puts (scm_regular_string, ", line ", scm_cur_errp);
       scm_intprint ((long) scm_linum, 10, scm_cur_errp);
       scm_gen_puts (scm_regular_string, ": ", scm_cur_errp);
