@@ -1,8 +1,8 @@
 2004-08-20  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
-	* eval.c (scm_lookupcar1): Report an "Undefined variable" insetad
-	of an "Unbound" one for variables that are found but still contain
-	SCM_UNDEFINED.
+	* eval.c (scm_lookupcar1): Report "Variable used before given a
+	value" insetad of an "Unbound" one for variables that are found
+	but still contain SCM_UNDEFINED.
 
 	* posix.c (scm_mkstemp): Correction to the correction, mkstemp
 	expects a null-terminated string in the locale encoding, but
