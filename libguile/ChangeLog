@@ -1,5 +1,7 @@
 Wed May 14 12:18:12 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
+	* net_db.c (h_errno): Add extern decl for this.
+
 	* fports.c (local_pclose): New function.
 	(scm_pipob): Use it in the initializer here.
 
