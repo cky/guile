@@ -1,3 +1,8 @@
+2001-08-02  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* stacks.c (scm_make_stack): Improve docstring by explaining use
+	of cutting args.
+
 2001-08-01  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* chars.c (scm_char_alphabetic_p, scm_char_numeric_p,

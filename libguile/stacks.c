@@ -420,9 +420,26 @@ SCM_DEFINE (scm_make_stack, "make-stack", 1, 0, 1,
 	    "Create a new stack. If @var{obj} is @code{#t}, the current\n"
 	    "evaluation stack is used for creating the stack frames,\n"
 	    "otherwise the frames are taken from @var{obj} (which must be\n"
-	    "either a debug object or a continuation).\n"
-	    "@var{args} must be a list of integers and specifies how the\n"
-	    "resulting stack will be narrowed.")
+	    "either a debug object or a continuation).\n\n"
+	    "@var{args} should be a list containing any combination of\n"
+	    "integer, procedure and @code{#t} values.\n\n"
+	    "These values specify various ways of cutting away uninteresting\n"
+	    "stack frames from the top and bottom of the stack that\n"
+	    "@code{make-stack} returns.  They come in pairs like this:\n"
+	    "@code{(@var{inner_cut_1} @var{outer_cut_1} @var{inner_cut_2}\n"
+	    "@var{outer_cut_2} @dots{})}.\n\n"
+	    "Each @var{inner_cut_N} can be @code{#t}, an integer, or a\n"
+	    "procedure.  @code{#t} means to cut away all frames up to but\n"
+	    "excluding the first user module frame.  An integer means to cut\n"
+	    "away exactly that number of frames.  A procedure means to cut\n"
+	    "away all frames up to but excluding the application frame whose\n"
+	    "procedure matches the specified one.\n\n"
+	    "Each @var{outer_cut_N} can be an integer or a procedure.  An\n"
+	    "integer means to cut away that number of frames.  A procedure\n"
+	    "means to cut away frames down to but excluding the application\n"
+	    "frame whose procedure matches the specified one.\n\n"
+	    "If the @var{outer_cut_N} of the last pair is missing, it is\n"
+	    "taken as 0.")
 #define FUNC_NAME s_scm_make_stack
 {
   long n, size;
