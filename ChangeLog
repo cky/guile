@@ -1,3 +1,10 @@
+1998-10-19  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* GUILE-VERSION: Bump to 1.3.
+
+	* Makefile.am (EXTRA_DIST): Don't omit ANON-CVS and SNAPSHOTS.
+	* Makefile.in: Regenerated.
+
 1998-10-16  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	* qthreads.m4 (QTHREADS_CONFIGURE): On NetBSD, pass through a flag

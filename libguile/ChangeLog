@@ -1,5 +1,23 @@
 1998-10-19  Jim Blandy  <jimb@zwingli.cygnus.com>
 
+	* __scm.h, alist.c, async.c, async.h, backtrace.h, chars.c,
+ 	continuations.c, debug.c, debug.h, dynl-dl.c, dynl.c, dynl.h,
+ 	dynwind.c, dynwind.h, eq.c, error.c, error.h, eval.c, eval.h,
+ 	feature.c, filesys.c, filesys.h, fports.c, fports.h, gc.c, gc.h,
+ 	genio.c, genio.h, gh.h, gh_data.c, gsubr.c, gsubr.h, hash.c,
+ 	hashtab.c, init.c, init.h, ioext.c, ioext.h, kw.c, libguile.h,
+ 	list.c, list.h, load.c, load.h, mallocs.c, markers.c,
+ 	mit-pthreads.c, net_db.c, numbers.c, numbers.h, options.c,
+ 	ports.c, ports.h, posix.c, posix.h, print.c, print.h, procprop.c,
+ 	procprop.h, procs.c, procs.h, ramap.c, ramap.h, regex-posix.c,
+ 	regex-posix.h, root.c, root.h, scmsigs.c, scmsigs.h, script.c,
+ 	script.h, simpos.c, simpos.h, smob.c, smob.h, snarf.h, socket.c,
+ 	srcprop.c, stackchk.c, stackchk.h, stacks.c, stime.c, stime.h,
+ 	strings.c, strings.h, strports.c, struct.c, struct.h, symbols.c,
+ 	symbols.h, tags.h, threads.c, throw.h, unif.c, variable.c,
+ 	vectors.c, vectors.h, version.h, vports.c, weaks.c: Update
+	copyright years.
+
 	* script.c (scm_compile_shell_switches): Define
 	use-emacs-interface in the root module, so the repl code can see
 	it.  See today's change to top-repl in ice-9/boot-9.scm.

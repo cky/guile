@@ -1,5 +1,8 @@
 1998-10-19  Jim Blandy  <jimb@zwingli.cygnus.com>
 
+	* boot-9.scm, debug.scm, expect.scm, hcons.scm, lineio.scm,
+ 	r4rs.scm, slib.scm, threads.scm: Update copyright years.
+
 	* getopt-gnu-style.scm, slib.scm: Add copyright notice.
 
 	Talked to Stallman.  Actually, the syntax-case copyright is no
