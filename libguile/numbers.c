@@ -1668,7 +1668,7 @@ SCM_DEFINE (scm_modulo_expt, "modulo-expt", 3, 0, 0,
 
 SCM_DEFINE (scm_integer_expt, "integer-expt", 2, 0, 0,
             (SCM n, SCM k),
-	    "Return @var{n} raised to the non-negative integer exponent\n"
+	    "Return @var{n} raised to the exact integer exponent\n"
 	    "@var{k}.\n"
 	    "\n"
 	    "@lisp\n"
@@ -1697,22 +1697,6 @@ SCM_DEFINE (scm_integer_expt, "integer-expt", 2, 0, 0,
       z_i2 = scm_i_clonebig (k, 1);
       scm_remember_upto_here_1 (k);
       i2_is_big = 1;
-    }
-  else if (SCM_REALP (k))
-    {
-      double r = SCM_REAL_VALUE (k);
-      if (floor (r) != r || xisinf (r))
-        SCM_WRONG_TYPE_ARG (2, k);
-      if ((r > SCM_MOST_POSITIVE_FIXNUM) || (r < SCM_MOST_NEGATIVE_FIXNUM))
-        {
-          z_i2 = scm_i_mkbig ();
-          mpz_set_d (SCM_I_BIG_MPZ (z_i2), r);
-          i2_is_big = 1;
-        }
-      else
-        {
-          i2 = r;
-        }
     }
   else
     SCM_WRONG_TYPE_ARG (2, k);
