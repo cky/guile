@@ -180,7 +180,8 @@ procedures like 'generalized-vector-ref'.  Generalized vectors include
 strings bitvectors, ordinary vectors, and uniform numeric vectors.
 
 Arrays use generalized vectors their storage, so that you still have
-arrays of characters, bits, etc.
+arrays of characters, bits, etc.  However, uniform-array-read! and
+uniform-array-write can no longer read/write strings and bitvectors.
 
 ** There is now support for copy-on-write substrings, mutation-sharing
    substrings and read-only strings.
