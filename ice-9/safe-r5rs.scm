@@ -57,6 +57,7 @@
 	cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr
 	null?
 	list?
+	list
 	length
 	append
 	reverse

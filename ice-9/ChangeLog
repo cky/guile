@@ -1,3 +1,7 @@
+2001-03-20  Keisuke Nishida  <kxn30@po.cwru.edu>
+
+	* safe-r5rs.scm (list): Export.
+
 2001-03-17  Keisuke Nishida  <kxn30@po.cwru.edu>
 
 	* boot-9.scm (before-eval-hook, after-eval-hook,
