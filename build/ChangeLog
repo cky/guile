@@ -1,3 +1,11 @@
+Mon Oct  6 11:45:59 1997  Jim Blandy  <jimb@totoro.red-bean.com>
+
+	* build-guile.in: Rearranged to use a table of subcommands, and
+ 	include per-subcommand help.
+
+	* build-guile.in: New "info" subcommand, for easy access to Guile
+ 	build variables.
+
 Mon Sep 29 23:53:14 1997  Jim Blandy  <jimb@totoro.red-bean.com>
 
 	* Makefile.in: Regenerated with automake 1.2c.
