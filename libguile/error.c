@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2004 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -26,6 +26,7 @@
 #include <errno.h>
 
 #include "libguile/_scm.h"
+#include "libguile/dynwind.h"
 #include "libguile/pairs.h"
 #include "libguile/strings.h"
 #include "libguile/throw.h"
@@ -142,13 +143,38 @@ SCM_DEFINE (scm_error_scm, "scm-error", 5, 0, 0,
 # define SCM_I_ERRNO() errno
 #endif /* __MINGW32__ */
 
+/* strerror may not be thread safe, for instance in glibc (version 2.3.2) an
+   error number not among the known values results in a string like "Unknown
+   error 9999" formed in a static buffer, which will be overwritten by a
+   similar call in another thread.  A test program running two threads with
+   different unknown error numbers can trip this fairly quickly.
+
+   Some systems don't do what glibc does, instead just giving a single
+   "Unknown error" for unrecognised numbers.  It doesn't seem worth trying
+   to tell if that's the case, a mutex is reasonably fast, and strerror
+   isn't needed very often.
+
+   strerror_r (when available) could be used, it might be a touch faster
+   than a frame and a mutex, though there's probably not much
+   difference.  */
+
 SCM_DEFINE (scm_strerror, "strerror", 1, 0, 0, 
             (SCM err),
 	    "Return the Unix error message corresponding to @var{err}, which\n"
 	    "must be an integer value.")
 #define FUNC_NAME s_scm_strerror
 {
-  return scm_makfrom0str (SCM_I_STRERROR (scm_to_int (err)));
+  SCM ret;
+  scm_frame_begin (0);
+  scm_frame_unwind_handler ((void(*)(void*)) scm_mutex_unlock,
+                            &scm_i_misc_mutex,
+                            SCM_F_WIND_EXPLICITLY);
+  scm_mutex_lock (&scm_i_misc_mutex);
+
+  ret = scm_makfrom0str (SCM_I_STRERROR (scm_to_int (err)));
+
+  scm_frame_end ();
+  return ret;
 }
 #undef FUNC_NAME
 
@@ -156,13 +182,12 @@ SCM_GLOBAL_SYMBOL (scm_system_error_key, "system-error");
 void
 scm_syserror (const char *subr)
 {
-  int save_errno = SCM_I_ERRNO ();
-  
+  SCM err = scm_from_int (SCM_I_ERRNO ());
   scm_error (scm_system_error_key,
 	     subr,
 	     "~A",
-	     scm_cons (scm_makfrom0str (SCM_I_STRERROR (save_errno)), SCM_EOL),
-	     scm_cons (scm_from_int (save_errno), SCM_EOL));
+	     scm_cons (scm_strerror (err), SCM_EOL),
+	     scm_cons (err, SCM_EOL));
 }
 
 void
