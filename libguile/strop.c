@@ -44,11 +44,7 @@ xSCM_DEFINE (scm_i_index, "i-index", 2, 2, 0,
 	   "@deftypefn {Internal C Function} {static int} scm_i_index (SCM *@var{str}, \n"
 	   "SCM @var{chr}, int @var{direction}, SCM @var{sub_start}, SCM @var{sub_end}, char *@var{why})
 	   "This is a workhorse function that performs either an @code{index} or\n"
-	   "@code{rindex} function, depending on the value of @var{direction}. I'm\n"
-	   "not at all clear on the usage of the pos arguments, though the purpose\n"
-	   "seems to be correct reporting of which argument values are reporting\n"
-	   "errors. Why you would do that, rather than just use @code{SCM_ARG[1234]}\n"
-	   "explicitly is beyond me. Anyone holding any enlightenment?"
+	   "@code{rindex} function, depending on the value of @var{direction}."
 */
 /* implements index if direction > 0 otherwise rindex.  */
 static int

@@ -1,5 +1,9 @@
 2000-11-28  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* strop.c (scm_i_index):  Removed outdated comment.
+
+2000-11-28  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* struct.c (scm_struct_ref, scm_struct_set_x), symbols.c
 	(scm_intern_obarray_soft), symbols.h (SCM_ROUCHARS):  Eliminate
 	use of SCM_SYMBOL_UCHARS by using chars instead of unsigned
