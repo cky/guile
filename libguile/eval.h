@@ -46,6 +46,10 @@
 
 #include "libguile/__scm.h"
 
+/* Needed by SCM_TOP_LEVEL_LOOKUP_CLOSURE below. */
+
+#include "struct.h"
+
 
 
 /* {Options}
@@ -118,11 +122,17 @@ extern SCM scm_eval_options_interface (SCM setting);
 
 #define SCM_EXTEND_ENV scm_acons
 
+/*fixme* This should probably be removed throught the code. */
 
-#define SCM_TOP_LEVEL_LOOKUP_CLOSURE scm_fluid_ref (SCM_CDR (scm_top_level_lookup_closure_var))
+#define SCM_TOP_LEVEL_LOOKUP_CLOSURE \
+  SCM_MODULE_EVAL_CLOSURE (scm_selected_module ())
+
+#if SCM_DEBUG_DEPRECATED == 0
+
+extern SCM scm_top_level_lookup_closure_var;
+#endif
 
 extern SCM scm_system_transformer;
-extern SCM scm_top_level_lookup_closure_var;
 
 
 extern const char scm_s_expression[];
@@ -227,10 +237,14 @@ extern SCM scm_force (SCM x);
 extern SCM scm_promise_p (SCM x);
 extern SCM scm_cons_source (SCM xorig, SCM x, SCM y);
 extern SCM scm_copy_tree (SCM obj);
+#if SCM_DEBUG_DEPRECATED == 0
 extern SCM scm_eval_3 (SCM obj, int copyp, SCM env);
 extern SCM scm_eval2 (SCM obj, SCM env_thunk);
-extern SCM scm_eval (SCM obj);
-extern SCM scm_eval_x (SCM obj);
+#endif
+extern SCM scm_i_eval_x (SCM obj, SCM env);
+extern SCM scm_i_eval (SCM obj, SCM env);
+extern SCM scm_eval (SCM obj, SCM environment);
+extern SCM scm_eval_x (SCM obj, SCM environment);
 extern void scm_init_eval (void);
 
 #endif  /* EVALH */
