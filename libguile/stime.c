@@ -18,8 +18,21 @@
 
 
 
+/* _POSIX_C_SOURCE is not defined always, because it causes problems on some
+   systems, notably
+
+       - FreeBSD loses all BSD and XOPEN defines.
+       - glibc loses some things like CLK_TCK.
+       - On MINGW it conflicts with the pthread headers.
+
+   But on HP-UX _POSIX_C_SOURCE is needed, as noted, for gmtime_r.
+
+   Perhaps a configure test could figure out what _POSIX_C_SOURCE gives and
+   what it takes away, and decide from that whether to use it, instead of
+   hard coding __hpux.  */
+
 #define _GNU_SOURCE  /* ask glibc for everything, in particular strptime */
-#ifndef __MINGW32__
+#ifdef __hpux
 #define _POSIX_C_SOURCE 199506L  /* for gmtime_r prototype */
 #endif
 
