@@ -120,6 +120,22 @@ typedef unsigned long ulong_long;
 
 
 
+/* What did the configure script discover about the outside world?  */
+#include <scmconfig.h>
+
+
+/* Write prototype declarations like this:
+     int foo PROTO(int a, int b);
+   At definitions, use K&R style declarations, but make sure there's a
+   declarative prototype (as above) in scope.  This will give you
+   argument type checking, when available, and be harmless otherwise.  */
+#ifdef __STDC__
+#  define PROTO(x) x
+#else
+#  define PROTO(x) (x)
+#endif
+
+
 
 /* Define
  *
@@ -128,7 +144,7 @@ typedef unsigned long ulong_long;
  * SCM_MOST_NEGATIVE_FIXNUM 	== SCM_SRS((long)LONG_MIN, 2)
  */
 
-#ifdef HAVE_LIMITSH
+#ifdef HAVE_LIMITS_H
 # include <limits.h>
 # ifdef UCHAR_MAX
 #  define SCM_CHAR_SCM_CODE_LIMIT (UCHAR_MAX+1L)
@@ -149,10 +165,9 @@ typedef unsigned long ulong_long;
 # else
 #  define SCM_MOST_NEGATIVE_FIXNUM (-SCM_MOST_POSITIVE_FIXNUM)
 # endif /*  (0 != ~0) */
-#endif /* def HAVE_LIMITSH */
+#endif /* def HAVE_LIMITS_H */
 
 
-#include <scmconfig.h>
 #include "tags.h"
 
 
@@ -300,7 +315,7 @@ extern unsigned int scm_async_clock;
 #else
 # define SCM_SYSMISSING(_subr) \
      scm_everr (SCM_UNDEFINED, SCM_EOL, SCM_UNDEFINED, \
-		"missing function, even ENOSYS is missing", _subr)
+		"missing function", _subr)
 #endif
 #define SCM_ARGn 		0
 #define SCM_ARG1 		1
