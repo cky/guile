@@ -1,3 +1,8 @@
+2000-05-30  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* acconfig.h (USE_FSU_PTHREADS, USE_MIT_PTHREADS,
+	USE_PCTHREADS_PTHREADS):  Removed.
+
 2000-05-01  Gary Houston  <ghouston@arglist.com>
 
 	* Makefile.am: add include_HEADERS.

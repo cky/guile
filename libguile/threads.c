@@ -52,7 +52,6 @@
 	threads.h
 	  coop-defs.h
 	    iselect.h
-	mit-pthreads.c
 	coop-threads.c
 	  coop-threads.h
 	    coop-defs.h*
@@ -133,10 +132,6 @@ SCM_REGISTER_PROC(s_wait_condition_variable, "wait-condition-variable", 2, 0, 0,
 SCM_REGISTER_PROC(s_signal_condition_variable, "signal-condition-variable", 1, 0, 0, scm_signal_condition_variable);
 
 
-
-#ifdef USE_MIT_PTHREADS
-#include "mit-pthreads.c"
-#endif
 
 #ifdef USE_COOP_THREADS
 #include "libguile/coop-threads.c"

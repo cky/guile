@@ -1,3 +1,12 @@
+2000-05-30  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* coop-threads.c.cygnus, coop-threads.h.cygnus, fsu-pthreads.h,
+	mit-pthreads.c, mit-pthreads.h:  Deleted.
+
+	* Makefile.am (EXTRA_DIST), scmsigs.c, threads.[ch]:  Drop
+	references to deleted files and fsu/mit thread support in
+	general.
+
 2000-05-29  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* hooks.c (symbol_name, scm_create_hook):  Restored the original

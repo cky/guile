@@ -123,9 +123,7 @@ check-local:
 	echo '(+ 1 2 3)' | GUILE_LOAD_PATH=${top_srcdir}:.. ./gh_test_repl; echo
 
 EXTRA_DIST = ChangeLog-gh ChangeLog-scm ChangeLog-threads cpp_signal.c	\
-    cpp_errno.c cpp_err_symbols.in cpp_sig_symbols.in cpp_cnvt.awk	\
-    coop-threads.h.cygnus coop-threads.c.cygnus mit-pthreads.h		\
-    mit-pthreads.c fsu-pthreads.h
+    cpp_errno.c cpp_err_symbols.in cpp_sig_symbols.in cpp_cnvt.awk
 
 ## FIXME: Consider using timestamp file, to avoid unnecessary rebuilds.
 libpath.h: $(srcdir)/Makefile.in  $(top_builddir)/config.status

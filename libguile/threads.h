@@ -3,7 +3,7 @@
 #ifndef THREADSH
 #define THREADSH
 
-/*	Copyright (C) 1996, 1997, 1998, 2000 Free Software Foundation, Inc.
+/* Copyright (C) 1996, 1997, 1998, 2000 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -52,19 +52,21 @@
 #include "libguile/procs.h"
 #include "libguile/throw.h"
 
+
+
 /* smob tags for the thread datatypes */
 extern long scm_tc16_thread;
 extern long scm_tc16_mutex;
 extern long scm_tc16_condvar;
 
-#define SCM_THREADP(obj) (SCM_NIMP(obj) && (scm_tc16_thread == SCM_TYP16 (obj)))
-#define SCM_THREAD_DATA(obj) ((void *) SCM_CDR (obj))
+#define SCM_THREADP(x) (!SCM_IMP (x) && (SCM_TYP16 (x) == scm_tc16_thread))
+#define SCM_THREAD_DATA(x) ((void *) SCM_CELL_WORD_1 (x))
 
-#define SCM_MUTEXP(obj) (SCM_NIMP(obj) && (scm_tc16_mutex == SCM_TYP16 (obj)))
-#define SCM_MUTEX_DATA(obj) ((void *) SCM_CDR (obj))
+#define SCM_MUTEXP(x) (!SCM_IMP (x) && (SCM_TYP16 (x) == scm_tc16_mutex))
+#define SCM_MUTEX_DATA(x) ((void *) SCM_CELL_WORD_1 (x))
 
-#define SCM_CONDVARP(obj) (SCM_NIMP(obj) && (scm_tc16_condvar == SCM_TYP16 (obj)))
-#define SCM_CONDVAR_DATA(obj) ((void *) SCM_CDR (obj))
+#define SCM_CONDVARP(x) (!SCM_IMP (x) && (SCM_TYP16 (x) == scm_tc16_condvar))
+#define SCM_CONDVAR_DATA(x) ((void *) SCM_CELL_WORD_1 (x))
 
 /* Initialize implementation specific details of the threads support */
 void scm_threads_init (SCM_STACKITEM *);
@@ -99,17 +101,6 @@ extern SCM scm_unlock_mutex (SCM m);
 extern SCM scm_make_condition_variable (void);
 extern SCM scm_wait_condition_variable (SCM cond, SCM mutex);
 extern SCM scm_signal_condition_variable (SCM cond);
-
-#if 0
-/* These don't work any more.  */ 
-#ifdef USE_MIT_PTHREADS
-#include "mit-pthreads.h"
-#endif
-
-#ifdef USE_FSU_PTHREADS
-#include "fsu-pthreads.h"
-#endif
-#endif
 
 #ifdef USE_COOP_THREADS
 #include "libguile/coop-defs.h"
