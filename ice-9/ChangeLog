@@ -1,3 +1,15 @@
+Thu Mar 27 05:06:00 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* boot-9.scm (netent:addrtype, servent:port): added missing
+	procedures.
+	(netent:net, servent:proto): repaired.
+	(utsname:sysname etc.): new accessors for uname.
+
+Tue Mar 25 03:04:03 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* boot-9.scm (sockaddr:fam, sockaddr:path, sockaddr:addr,
+	sockaddr:port): new functions.
+
 Wed Mar 19 04:50:34 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* boot-9.scm: define accessor procedures for the objects returned

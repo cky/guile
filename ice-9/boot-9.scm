@@ -695,7 +695,8 @@
 
 (define (netent:name obj) (vector-ref obj 0))
 (define (netent:aliases obj) (vector-ref obj 1))
-(define (netent:net obj) (vector-ref obj 2))
+(define (netent:addrtype obj) (vector-ref obj 2))
+(define (netent:net obj) (vector-ref obj 3))
 
 (define (protoent:name obj) (vector-ref obj 0))
 (define (protoent:aliases obj) (vector-ref obj 1))
@@ -703,7 +704,19 @@
 
 (define (servent:name obj) (vector-ref obj 0))
 (define (servent:aliases obj) (vector-ref obj 1))
-(define (servent:proto obj) (vector-ref obj 2))
+(define (servent:port obj) (vector-ref obj 2))
+(define (servent:proto obj) (vector-ref obj 3))
+
+(define (sockaddr:fam obj) (vector-ref obj 0))
+(define (sockaddr:path obj) (vector-ref obj 1))
+(define (sockaddr:addr obj) (vector-ref obj 1))
+(define (sockaddr:port obj) (vector-ref obj 2))
+
+(define (utsname:sysname obj) (vector-ref obj 0))
+(define (utsname:nodename obj) (vector-ref obj 1))
+(define (utsname:release obj) (vector-ref obj 2))
+(define (utsname:version obj) (vector-ref obj 3))
+(define (utsname:machine obj) (vector-ref obj 4))
 
 (define (file-position . args) (apply ftell args))
 (define (file-set-position . args) (apply fseek args))
