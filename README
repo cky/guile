@@ -5,6 +5,7 @@ extensible programs.
 
 Please send bug reports to bug-guile@prep.ai.mit.edu.
 
+
 Important Facts About Snapshots ======================================
 
 Please keep in mind that these sources are strictly experimental; they
@@ -85,6 +86,7 @@ This distribution also includes `qt', a cooperative threads package
 from Washington University, which Guile can use.  Qt is under a
 separate copyright; see `qt/README' for more details.
 
+
 Hacking It Yourself ==================================================
 
 As distributed, Guile needs only an ANSI C compiler and a Unix system
@@ -99,14 +101,14 @@ Autoconf 2.12 --- a system for automatically generate `configure'
 	program would like to use.  Available in
 	"ftp://prep.ai.mit.edu/pub/gnu".
 
-Automake 1.1l --- a system for automatically generating Makefiles that
+Automake 1.1n --- a system for automatically generating Makefiles that
 	conform to the (rather Byzantine) GNU coding standards.  The
 	nice thing is that it takes care of hairy targets like 'make
 	dist' and 'make distclean', and automatically generates
 	Makefile dependencies.  Available in
 	"ftp://ftp.cygnus.com/pub/tromey".
 
-libtool 0.7 --- a system for managing the zillion hairy options needed
+libtool 0.8 --- a system for managing the zillion hairy options needed
 	on various systems to produce shared libraries.  Available in
 	"http://casual1.enci.ucalgary.ca/~gord/src/".
 
@@ -150,5 +152,3 @@ evaluator.
 George Carrette wrote SIOD, a stand-alone scheme interpreter.
 Although most of this code as been rewritten or replaced over time,
 the garbage collector from SIOD is still an important part of Guile.
-
-
