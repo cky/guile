@@ -57,6 +57,18 @@ MKDEP = gcc -M -MG $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
 
 CLEANFILES = *.x
 
+ice-9/readline.scm:
+	-rm ice-9/readline.scm
+	-rmdir ice-9
+	mkdir ice-9
+	cd ice-9 && ln -s ../readline.scm
+
+all-local: ice-9/readline.scm
+
+clean-local:
+	rm -f ice-9/readline.scm
+	-rmdir ice-9
+
 dist-hook:
 	(temp="/tmp/mangle-deps.$$$$"; \
 	 trap "rm -f $$temp" 0 1 2 15; \
