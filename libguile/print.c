@@ -960,18 +960,24 @@ SCM_DEFINE (scm_simple_format, "simple-format", 2, 0, 1,
   char *start;
   char *p;
 
-  if (SCM_EQ_P (destination, SCM_BOOL_T)) {
-    destination = scm_cur_outp;
-  } else if (SCM_FALSEP (destination)) {
-    fReturnString = 1;
-    destination = scm_mkstrport (SCM_INUM0, 
-                          scm_make_string (SCM_INUM0, SCM_UNDEFINED),
-                          SCM_OPN | SCM_WRTNG,
-                          FUNC_NAME);
-  } else {
-    SCM_VALIDATE_OPORT_VALUE (1,destination);
-  }
-  SCM_VALIDATE_STRING(2,message);
+  if (SCM_EQ_P (destination, SCM_BOOL_T))
+    {
+      destination = scm_cur_outp;
+    }
+  else if (SCM_FALSEP (destination))
+    {
+      fReturnString = 1;
+      destination = scm_mkstrport (SCM_INUM0, 
+				   scm_make_string (SCM_INUM0, SCM_UNDEFINED),
+				   SCM_OPN | SCM_WRTNG,
+				   FUNC_NAME);
+    }
+  else
+    {
+      SCM_VALIDATE_OPORT_VALUE (1, destination);
+      destination = SCM_COERCE_OUTPORT (destination);
+    }
+  SCM_VALIDATE_STRING (2, message);
   SCM_VALIDATE_REST_ARGUMENT (args);
 
   start = SCM_ROCHARS (message);
@@ -999,7 +1005,7 @@ SCM_DEFINE (scm_simple_format, "simple-format", 2, 0, 1,
   if (fReturnString)
     answer = scm_strport_to_string (destination);
 
-  return scm_return_first(answer,message);
+  return scm_return_first (answer, message);
 }
 #undef FUNC_NAME
 
