@@ -1,3 +1,24 @@
+2000-01-09  Marius Vollmer  <mvo@zagadka.ping.de>
+
+ 	Finally applied the libltdl patch from Thomas Tanner, with slight
+	modifications.
+
+	* DYNAMIC-LINKING: Removed because it is obsolete.
+	* dynl.c: Use ANSI prototypes.
+	(sysdep_dynl_link): Use lt_dlopenext instead of lt_dlopen.
+	* scmconfig.h.in: Do not change, as it is automatically generated.
+	
+    1999-07-25  Thomas Tanner  <tanner@ffii.org>
+
+	    * dynl-dl.c, dynl-dld.c, dynl-shl.c, dynl-vms.c: deleted
+	    (obsolete)
+	    * Makefile.am: likewise, add INCLTDL (libltdl headers) to
+	    INCLUDES, set dlpreopened files in LDFLAGS, link libguile
+	    against libltdl
+	    * dynl.c: use libltdl if DYNAMIC_LINKING is enabled,
+	    * guile.c: register preloaded modules
+	    * scmconfig.h.in: remove obsolete symbols
+
 2000-01-09  Gary Houston  <ghouston@arglist.com>
 
 	* These changes should make it unnecessary to call tzset from

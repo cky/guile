@@ -1,3 +1,8 @@
+2000-01-09  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* boot-9.scm (try-using-libtool-name): Do not bother to look
+	inside libtool ".la" file, dynamic-link does this for us now.
+
 1999-12-15  Gary Houston  <ghouston@freewire.co.uk>
 
 	* slib.scm (library-vicinity, home-vicinity, 
