@@ -83,10 +83,12 @@ extern SCM scm_body_thunk SCM_P ((void *, SCM));
 
 extern SCM scm_handle_by_proc SCM_P ((void *, SCM, SCM));
 extern SCM scm_handle_by_message SCM_P ((void *, SCM, SCM));
+extern int scm_exit_status SCM_P ((SCM args));
 
 extern SCM scm_catch SCM_P ((SCM tag, SCM thunk, SCM handler));
 extern SCM scm_lazy_catch SCM_P ((SCM tag, SCM thunk, SCM handler));
 extern SCM scm_ithrow SCM_P ((SCM key, SCM args, int noreturn));
+
 extern SCM scm_throw SCM_P ((SCM key, SCM args));
 extern void scm_init_throw SCM_P ((void));
 #endif  /* THROWH */

@@ -46,6 +46,7 @@
 #include "smob.h"
 #include "alist.h"
 #include "eval.h"
+#include "eq.h"
 #include "dynwind.h"
 #include "backtrace.h"
 #ifdef DEBUG_EXTENSIONS
@@ -448,6 +449,9 @@ scm_handle_by_message (handler_data, tag, args)
   char *prog_name = (char *) handler_data;
   SCM p = scm_def_errp;
 
+  if (SCM_NFALSEP (scm_eq_p (tag, SCM_CAR (scm_intern0 ("quit")))))
+    exit (scm_exit_status (args));
+
   if (! prog_name)
     prog_name = "guile";
 
@@ -473,6 +477,23 @@ scm_handle_by_message (handler_data, tag, args)
   exit (2);
 }
 
+/* Derive the an exit status from the arguments to (quit ...).  */
+int
+scm_exit_status (args)
+  SCM args;
+{
+  if (SCM_NNULLP (args))
+    {
+      SCM cqa = SCM_CAR (args);
+      
+      if (SCM_INUMP (cqa))
+	return (SCM_INUM (cqa));
+      else if (SCM_FALSEP (cqa))
+	return 1;
+    }
+  return 0;
+}
+	
 
 SCM_PROC(s_throw, "throw", 1, 0, 1, scm_throw);
 SCM

@@ -2455,15 +2455,7 @@
 ;; (set-current-error-port errp)
 
 (define (top-repl) 
-  ;; scm-style-repl returns the list of arguments from quit: convert to
-  ;; an integer status and return.
-  (let ((quit-args (scm-style-repl)))
-    (if (null? quit-args)
-	0
-	(let ((cqa (car quit-args)))
-	  (cond ((number? cqa) cqa)
-		((eq? cqa #f) 1)
-		(else 0))))))
+  (scm-style-repl))
 
 (defmacro false-if-exception (expr)
   `(catch #t (lambda () ,expr)

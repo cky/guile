@@ -4,9 +4,7 @@ Sun Mar  2 05:25:11 1997  Gary Houston  <ghouston@actrix.gen.nz>
 	return the quit args.
 	(scm-style-repl): call -quit, passing return value from
 	error-catching-repl.  Make -quit return its args.
-	stand-along-repl: comment out, since it seems unused.
-	(top-repl): convert the value returned by scm-style-repl to
-	an integer and return it.
+	stand-alone-repl: comment out, since it seems unused.
 	
 	(error-catching-loop thunk): discard trailing junk after a (quit).
 

@@ -1,3 +1,12 @@
+Sun Mar  2 06:37:31 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* throw.h: prototype for scm_exit_status.
+	* throw.c (scm_handle_by_message): if a 'quit is caught, use its
+	args to derive an exit status.  Allows (quit) to work from a
+	script.
+	(scm_exit_status): new function.
+	#include "eq.h".
+
 Sat Mar  1 00:09:15 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* eval.c (scm_deval): Removed some old code.
