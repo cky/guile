@@ -75,12 +75,6 @@ struct scm_dump_header {
 					/* or immediate value */
 };
 
-struct scm_dump_update {
-  scm_bits_t id;			/* object identifier */
-  scm_bits_t *addr;			/* object address */
-  struct scm_dump_update *next;		/* next update */
-};
-
 
 /*
  * Dump state
@@ -92,17 +86,24 @@ struct scm_dstate {
   int mmapped;
   scm_sizet image_size;
   int image_index;
-  char *image_base;			/* Memory image */
+  char *image_base;		/* Memory image */
   int table_index;
-  SCM table;				/* Object table */
-  struct scm_dump_update *updates;	/* Update schedule */
+  SCM table;			/* Object table */
+  SCM task;			/* Update task */
 };
 
 #define SCM_DSTATE_DATA(d)	    ((struct scm_dstate *) SCM_SMOB_DATA (d))
 #define SCM_DSTATE_TABLE(d)	    (SCM_DSTATE_DATA (d)->table)
 #define SCM_DSTATE_TABLE_REF(d,i)   (SCM_VELTS (SCM_DSTATE_TABLE (d))[i])
 #define SCM_DSTATE_TABLE_SET(d,i,x) (SCM_VELTS (SCM_DSTATE_TABLE (d))[i] = (x))
-#define SCM_DSTATE_UPDATES(d)	    (SCM_DSTATE_DATA (d)->updates)
+#define SCM_DSTATE_TASK(d)	    (SCM_DSTATE_DATA (d)->task)
+
+#define SCM_DTASK_ID(t)		    ((scm_bits_t) SCM_CELL_WORD_1 (t))
+#define SCM_DTASK_ADDR(t)	    ((scm_bits_t *) SCM_CELL_WORD_2 (t))
+#define SCM_DTASK_NEXT(t)	    (SCM_CELL_OBJECT_3 (t))
+#define SCM_SET_DTASK_ID(t,x)	    SCM_SET_CELL_WORD_1 (t, x)
+#define SCM_SET_DTASK_ADDR(t,x)	    SCM_SET_CELL_WORD_2 (t, x)
+#define SCM_SET_DTASK_NEXT(t,x)	    SCM_SET_CELL_OBJECT_3 (t, x)
 
 static SCM
 make_dstate ()
@@ -115,7 +116,7 @@ make_dstate ()
   p->image_base  = SCM_MUST_MALLOC (p->image_size);
   p->table_index = 0;
   p->table       = SCM_BOOL_F;
-  p->updates     = 0;
+  p->task        = SCM_EOL;
   SCM_RETURN_NEWSMOB (scm_tc16_dstate, p);
 }
 #undef FUNC_NAME
@@ -143,7 +144,7 @@ make_dstate_by_mmap (int fd)
   p->image_base  = addr;
   p->table_index = 0;
   p->table       = SCM_BOOL_F;
-  p->updates     = 0;
+  p->task        = SCM_EOL;
   SCM_RETURN_NEWSMOB (scm_tc16_dstate, p);
 }
 #undef FUNC_NAME
@@ -151,7 +152,11 @@ make_dstate_by_mmap (int fd)
 static SCM
 dstate_mark (SCM obj)
 {
-  return SCM_DSTATE_TABLE (obj);
+  SCM task;
+  struct scm_dstate *p = SCM_DSTATE_DATA (obj);
+  for (task = p->task; !SCM_NULLP (task); task = SCM_DTASK_NEXT (task))
+    scm_gc_mark (task);
+  return p->table;
 }
 
 static scm_sizet
@@ -174,15 +179,6 @@ dstate_free (SCM obj)
       size += p->image_size;
       if (p->image_base)
 	scm_must_free (p->image_base);
-    }
-
-  /* Free update schedules */
-  while (p->updates)
-    {
-      struct scm_dump_update *next = p->updates->next;
-      scm_must_free (p->updates);
-      size += sizeof (struct scm_dump_update);
-      p->updates = next;
     }
 
   scm_must_free (p);
@@ -286,13 +282,12 @@ scm_store_object (SCM obj, SCM dstate)
     {
       /* OBJ is not stored yet.  Do it later */
       struct scm_dstate *p = SCM_DSTATE_DATA (dstate);
-      struct scm_dump_update *update =
-	scm_must_malloc (sizeof (struct scm_dump_update),
-			 "scm_store_object");
-      update->id   = SCM_UNPACK (obj);
-      update->addr = (scm_bits_t *) p->image_index;
-      update->next = p->updates;
-      p->updates = update;
+      SCM task;
+      SCM_NEWCELL2 (task);
+      SCM_SET_DTASK_ID (task, SCM_UNPACK (obj));
+      SCM_SET_DTASK_ADDR (task, p->image_index);
+      SCM_SET_DTASK_NEXT (task, p->task);
+      p->task = task;
     }
   scm_store_word (id, dstate);
 }
@@ -342,13 +337,13 @@ scm_restore_object (SCM *objp, SCM dstate)
 
   if (SCM_UNBNDP (*objp))
     {
-      struct scm_dump_update *update =
-	scm_must_malloc (sizeof (struct scm_dump_update),
-			 "scm_restore_object");
-      update->id   = id;
-      update->addr = (scm_bits_t *) objp;
-      update->next = SCM_DSTATE_UPDATES (dstate);
-      SCM_DSTATE_UPDATES (dstate) = update;
+      struct scm_dstate *p = SCM_DSTATE_DATA (dstate);
+      SCM task;
+      SCM_NEWCELL2 (task);
+      SCM_SET_DTASK_ID (task, id);
+      SCM_SET_DTASK_ADDR (task, objp);
+      SCM_SET_DTASK_NEXT (task, p->task);
+      p->task = task;
     }
 }
 
@@ -426,15 +421,16 @@ scm_dump (SCM obj, SCM dstate)
     }
 
  next_dump:
-  while (p->updates)
-    {
-      struct scm_dump_update *update = p->updates;
-      p->updates = update->next;
-      scm_dump (SCM_PACK (update->id), dstate);
-      *(scm_bits_t *) (p->image_base + (int) update->addr) =
-	scm_object_indicator (SCM_PACK (update->id), dstate);
-      scm_must_free (update);
-    }
+  {
+    SCM task;
+    for (task = p->task; !SCM_NULLP (task); task = SCM_DTASK_NEXT (task))
+      {
+	SCM obj = SCM_PACK (SCM_DTASK_ID (task));
+	scm_dump (obj, dstate);
+	*(scm_bits_t *) (p->image_base + (int) SCM_DTASK_ADDR (task)) =
+	  scm_object_indicator (obj, dstate);
+      }
+  }
 }
 
 static void
@@ -591,13 +587,14 @@ SCM_DEFINE (scm_binary_read, "binary-read", 0, 1, 0,
     scm_undump (dstate);
 
   /* Update references */
-  while (p->updates)
-    {
-      struct scm_dump_update *update = p->updates;
-      p->updates = update->next;
-      *(update->addr) = SCM_UNPACK (scm_indicator_object (update->id, dstate));
-      scm_must_free (update);
-    }
+  {
+    SCM task;
+    for (task = p->task; !SCM_NULLP (task); task = SCM_DTASK_NEXT (task))
+      {
+	*SCM_DTASK_ADDR (task) =
+	  SCM_UNPACK (scm_indicator_object (SCM_DTASK_ID (task), dstate));
+      }
+  }
 
   /* Return */
   {

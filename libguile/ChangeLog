@@ -1,3 +1,7 @@
+2001-02-09  Keisuke Nishida  <kxn30@po.cwru.edu>
+
+	* dump.c: Use double cells for update schedule.
+
 2001-02-08  Keisuke Nishida  <kxn30@po.cwru.edu>
 
 	* ports.c (scm_unread_char): Take an optional argument.
