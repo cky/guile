@@ -1,3 +1,7 @@
+2000-06-05  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* boot-9.scm (error-catching-loop): Inform about debugger on error.
+
 2000-06-04  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* boot-9.scm (scm-module-closure): New procedure: Was previously
