@@ -1,3 +1,11 @@
+2004-08-25  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* script.c (scm_compile_shell_switches): Use
+	scm_from_locale_string instead of scm_makfrom0str.
+
+	* srfi-13.c (scm_string_rindex): Export to Scheme, as it has
+	always been.
+
 2004-08-25  Marius Vollmer  <mvo@zagadka.de>
 
 	Moved SRFI-13 and SRFI-14 into the core, taking over the role of
