@@ -1,3 +1,12 @@
+1998-04-18  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* configure.in (GUILE_LIBS): New variable.  Contains libraries
+	which libguile needs to be linked with.  Substituted into
+	libpath.h.
+
+	* threads.m4 (threads_package): Don't add $LDFLAGS and $LIBS to
+	$cy_cv_threads_libs.
+
 1998-04-11  Mikael Djurfeldt  <mdj@kenneth>
 
 	New libtool: 1.2
