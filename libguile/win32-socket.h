@@ -44,8 +44,9 @@
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
 
+#include "libguile/__scm.h"
 
-#if HAVE_WINSOCK2_H
+#ifdef SCM_HAVE_WINSOCK2_H
 # include <winsock2.h>
 #endif
 
