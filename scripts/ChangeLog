@@ -1,3 +1,14 @@
+2002-04-08  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* summarize-guile-TODO: Use (ice-9 getopt-long).
+	Autoload (ice-9 common-list).
+
+	(select-items): New proc.
+	(make-display-item): New proc.
+	(display-item): Delete.
+	(display-items): Use `make-display-item'.
+	(summarize-guile-TODO): Add option handling.
+
 2002-04-07  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* summarize-guile-TODO: Add "Bugs" section to commentary.
