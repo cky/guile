@@ -22,9 +22,11 @@ values can be looked up within them.
 * Pairs::                       Scheme's basic building block.
 * Lists::                       Special list functions supported by Guile.
 * Vectors::                     One-dimensional arrays of Scheme objects.
+* Uniform Vectors::             Vectors with elements of a single type.
+* Bit Vectors::                 Vectors of bits.
+* Arrays::                      Matrices, etc.
 * Records::                     
 * Structures::                  
-* Arrays::                      Arrays of values.
 * Dictionary Types::            About dictionary types in general.
 * Association Lists::           List-based dictionaries.
 * Hash Tables::                 Table-based dictionaries.
@@ -629,10 +631,12 @@ given its @dfn{position} (synonymous with @dfn{index}), a zero-origin number,
 is constant, whereas lists have an access time linear to the position of the
 accessed element in the list.
 
-Vectors can contain any kind of Scheme object; it is even possible to have
-different types of objects in the same vector.  For vectors containing
-vectors, you may wish to use arrays, instead.  Note, too, that some array
-procedures operate happily on vectors (@pxref{Arrays}).
+Vectors can contain any kind of Scheme object; it is even possible to
+have different types of objects in the same vector.  For vectors
+containing vectors, you may wish to use arrays, instead.  Note, too,
+that vectors are the special case of non-uniform, one-dimensional,
+zero-origin arrays and that most array procedures operate happily on
+vectors (@pxref{Arrays}).
 
 @menu
 * Vector Syntax::               Read syntax for vectors.
@@ -811,428 +815,433 @@ same vector, @code{vector-move-right!} is usually appropriate when
 @var{start1} is less than @var{start2}.
 @end deffn
 
-
-@node Records
-@subsection Records
-
-A @dfn{record type} is a first class object representing a user-defined
-data type.  A @dfn{record} is an instance of a record type.
-
-@deffn {Scheme Procedure} record? obj
-Return @code{#t} if @var{obj} is a record of any type and @code{#f}
-otherwise.
-
-Note that @code{record?} may be true of any Scheme value; there is no
-promise that records are disjoint with other Scheme types.
-@end deffn
-
-@deffn {Scheme Procedure} make-record-type type-name field-names
-Return a @dfn{record-type descriptor}, a value representing a new data
-type disjoint from all others.  The @var{type-name} argument must be a
-string, but is only used for debugging purposes (such as the printed
-representation of a record of the new type).  The @var{field-names}
-argument is a list of symbols naming the @dfn{fields} of a record of the
-new type.  It is an error if the list contains any duplicates.  It is
-unspecified how record-type descriptors are represented.
-@end deffn
-
-@deffn {Scheme Procedure} record-constructor rtd [field-names]
-Return a procedure for constructing new members of the type represented
-by @var{rtd}.  The returned procedure accepts exactly as many arguments
-as there are symbols in the given list, @var{field-names}; these are
-used, in order, as the initial values of those fields in a new record,
-which is returned by the constructor procedure.  The values of any
-fields not named in that list are unspecified.  The @var{field-names}
-argument defaults to the list of field names in the call to
-@code{make-record-type} that created the type represented by @var{rtd};
-if the @var{field-names} argument is provided, it is an error if it
-contains any duplicates or any symbols not in the default list.
-@end deffn
-
-@deffn {Scheme Procedure} record-predicate rtd
-Return a procedure for testing membership in the type represented by
-@var{rtd}.  The returned procedure accepts exactly one argument and
-returns a true value if the argument is a member of the indicated record
-type; it returns a false value otherwise.
-@end deffn
-
-@deffn {Scheme Procedure} record-accessor rtd field-name
-Return a procedure for reading the value of a particular field of a
-member of the type represented by @var{rtd}.  The returned procedure
-accepts exactly one argument which must be a record of the appropriate
-type; it returns the current value of the field named by the symbol
-@var{field-name} in that record.  The symbol @var{field-name} must be a
-member of the list of field-names in the call to @code{make-record-type}
-that created the type represented by @var{rtd}.
-@end deffn
-
-@deffn {Scheme Procedure} record-modifier rtd field-name
-Return a procedure for writing the value of a particular field of a
-member of the type represented by @var{rtd}.  The returned procedure
-accepts exactly two arguments: first, a record of the appropriate type,
-and second, an arbitrary Scheme value; it modifies the field named by
-the symbol @var{field-name} in that record to contain the given value.
-The returned value of the modifier procedure is unspecified.  The symbol
-@var{field-name} must be a member of the list of field-names in the call
-to @code{make-record-type} that created the type represented by
-@var{rtd}.
-@end deffn
-
-@deffn {Scheme Procedure} record-type-descriptor record
-Return a record-type descriptor representing the type of the given
-record.  That is, for example, if the returned descriptor were passed to
-@code{record-predicate}, the resulting predicate would return a true
-value when passed the given record.  Note that it is not necessarily the
-case that the returned descriptor is the one that was passed to
-@code{record-constructor} in the call that created the constructor
-procedure that created the given record.
-@end deffn
-
-@deffn {Scheme Procedure} record-type-name rtd
-Return the type-name associated with the type represented by rtd.  The
-returned value is @code{eqv?} to the @var{type-name} argument given in
-the call to @code{make-record-type} that created the type represented by
-@var{rtd}.
-@end deffn
-
-@deffn {Scheme Procedure} record-type-fields rtd
-Return a list of the symbols naming the fields in members of the type
-represented by @var{rtd}.  The returned value is @code{equal?} to the
-field-names argument given in the call to @code{make-record-type} that
-created the type represented by @var{rtd}.
-@end deffn
-
-
-@node Structures
-@subsection Structures
-@tpindex Structures
-
-[FIXME: this is pasted in from Tom Lord's original guile.texi and should
-be reviewed]
-
-A @dfn{structure type} is a first class user-defined data type.  A
-@dfn{structure} is an instance of a structure type.  A structure type is
-itself a structure.
-
-Structures are less abstract and more general than traditional records.
-In fact, in Guile Scheme, records are implemented using structures.
-
-@menu
-* Structure Concepts::          The structure of Structures
-* Structure Layout::            Defining the layout of structure types
-* Structure Basics::            make-, -ref and -set! procedures for structs
-* Vtables::                     Accessing type-specific data
-@end menu
-
-@node  Structure Concepts
-@subsubsection Structure Concepts
-
-A structure object consists of a handle, structure data, and a vtable.
-The handle is a Scheme value which points to both the vtable and the
-structure's data.  Structure data is a dynamically allocated region of
-memory, private to the structure, divided up into typed fields.  A
-vtable is another structure used to hold type-specific data.  Multiple
-structures can share a common vtable.
-
-Three concepts are key to understanding structures.
-
-@itemize @bullet{}
-@item @dfn{layout specifications}
-
-Layout specifications determine how memory allocated to structures is
-divided up into fields.  Programmers must write a layout specification
-whenever a new type of structure is defined.
-
-@item @dfn{structural accessors}
-
-Structure access is by field number.   There is only one set of
-accessors common to all structure objects.
-
-@item @dfn{vtables}
-
-Vtables, themselves structures, are first class representations of
-disjoint sub-types of structures in general.   In most cases, when a
-new structure is created, programmers must specify a vtable for the
-new structure.   Each vtable has a field describing the layout of its
-instances.   Vtables can have additional, user-defined fields as well.
-@end itemize
-
-
-
-@node  Structure Layout
-@subsubsection Structure Layout
-
-When a structure is created, a region of memory is allocated to hold its
-state.  The @dfn{layout} of the structure's type determines how that
-memory is divided into fields.
-
-Each field has a specified type.  There are only three types allowed, each
-corresponding to a one letter code.  The allowed types are:
-
-@itemize @bullet{}
-@item 'u' -- unprotected
-
-The field holds binary data that is not GC protected.
-
-@item 'p' -- protected
-
-The field holds a Scheme value and is GC protected.
-
-@item 's' -- self
-
-The field holds a Scheme value and is GC protected.  When a structure is
-created with this type of field, the field is initialized to refer to
-the structure's own handle.  This kind of field is mainly useful when
-mixing Scheme and C code in which the C code may need to compute a
-structure's handle given only the address of its malloc'd data.
-@end itemize
-
-
-Each field also has an associated access protection.   There are only
-three kinds of protection, each corresponding to a one letter code.
-The allowed protections are:
-
-@itemize @bullet{}
-@item 'w' -- writable
-
-The field can be read and written.
-
-@item 'r' -- readable
-
-The field can be read, but not written.
-
-@item 'o' -- opaque
-
-The field can be neither read nor written.   This kind
-of protection is for fields useful only to built-in routines.
-@end itemize
-
-A layout specification is described by stringing together pairs
-of letters: one to specify a field type and one to specify a field
-protection.    For example, a traditional cons pair type object could
-be described as:
-
-@example
-; cons pairs have two writable fields of Scheme data
-"pwpw"
-@end example
-
-A pair object in which the first field is held constant could be:
-
-@example
-"prpw"
-@end example
-
-Binary fields, (fields of type "u"), hold one @dfn{word} each.  The
-size of a word is a machine dependent value defined to be equal to the
-value of the C expression: @code{sizeof (long)}.
-
-The last field of a structure layout may specify a tail array.
-A tail array is indicated by capitalizing the field's protection
-code ('W', 'R' or 'O').   A tail-array field is replaced by
-a read-only binary data field containing an array size.   The array
-size is determined at the time the structure is created.  It is followed
-by a corresponding number of fields of the type specified for the
-tail array.   For example, a conventional Scheme vector can be
-described as:
-
-@example
-; A vector is an arbitrary number of writable fields holding Scheme
-; values:
-"pW"
-@end example
-
-In the above example, field 0 contains the size of the vector and
-fields beginning at 1 contain the vector elements.
-
-A kind of tagged vector (a constant tag followed by conventional
-vector elements) might be:
-
-@example
-"prpW"
-@end example
-
-
-Structure layouts are represented by specially interned symbols whose
-name is a string of type and protection codes.  To create a new
-structure layout, use this procedure:
-
-@deffn {Scheme Procedure} make-struct-layout fields
-@deffnx {C Function} scm_make_struct_layout (fields)
-Return a new structure layout object.
-
-@var{fields} must be a string made up of pairs of characters
-strung together.  The first character of each pair describes a field
-type, the second a field protection.  Allowed types are 'p' for
-GC-protected Scheme data, 'u' for unprotected binary data, and 's' for
-a field that points to the structure itself.    Allowed protections
-are 'w' for mutable fields, 'r' for read-only fields, and 'o' for opaque
-fields.  The last field protection specification may be capitalized to
-indicate that the field is a tail-array.
-@end deffn
-
-
-
-@node Structure Basics
-@subsubsection Structure Basics
-
-This section describes the basic procedures for creating and accessing
-structures.
-
-@deffn {Scheme Procedure} make-struct vtable tail_array_size . init
-@deffnx {C Function} scm_make_struct (vtable, tail_array_size, init)
-Create a new structure.
-
-@var{type} must be a vtable structure (@pxref{Vtables}).
-
-@var{tail-elts} must be a non-negative integer.  If the layout
-specification indicated by @var{type} includes a tail-array,
-this is the number of elements allocated to that array.
-
-The @var{init1}, @dots{} are optional arguments describing how
-successive fields of the structure should be initialized.  Only fields
-with protection 'r' or 'w' can be initialized, except for fields of
-type 's', which are automatically initialized to point to the new
-structure itself; fields with protection 'o' can not be initialized by
-Scheme programs.
-
-If fewer optional arguments than initializable fields are supplied,
-fields of type 'p' get default value #f while fields of type 'u' are
-initialized to 0.
-
-Structs are currently the basic representation for record-like data
-structures in Guile.  The plan is to eventually replace them with a
-new representation which will at the same time be easier to use and
-more powerful.
-
-For more information, see the documentation for @code{make-vtable-vtable}.
-@end deffn
-
-@deffn {Scheme Procedure} struct? x
-@deffnx {C Function} scm_struct_p (x)
-Return @code{#t} iff @var{x} is a structure object, else
-@code{#f}.
-@end deffn
-
-
-@deffn {Scheme Procedure} struct-ref handle pos
-@deffnx {Scheme Procedure} struct-set! struct n value
-@deffnx {C Function} scm_struct_ref (handle, pos)
-@deffnx {C Function} scm_struct_set_x (struct, n, value)
-Access (or modify) the @var{n}th field of @var{struct}.
-
-If the field is of type 'p', then it can be set to an arbitrary value.
-
-If the field is of type 'u', then it can only be set to a non-negative
-integer value small enough to fit in one machine word.
-@end deffn
-
-
-
-@node  Vtables
-@subsubsection Vtables
-
-Vtables are structures that are used to represent structure types.  Each
-vtable contains a layout specification in field
-@code{vtable-index-layout} -- instances of the type are laid out
-according to that specification.  Vtables contain additional fields
-which are used only internally to libguile.  The variable
-@code{vtable-offset-user} is bound to a field number.  Vtable fields
-at that position or greater are user definable.
-
-@deffn {Scheme Procedure} struct-vtable handle
-@deffnx {C Function} scm_struct_vtable (handle)
-Return the vtable structure that describes the type of @var{struct}.
-@end deffn
-
-@deffn {Scheme Procedure} struct-vtable? x
-@deffnx {C Function} scm_struct_vtable_p (x)
-Return @code{#t} iff @var{x} is a vtable structure.
-@end deffn
-
-If you have a vtable structure, @code{V}, you can create an instance of
-the type it describes by using @code{(make-struct V ...)}.  But where
-does @code{V} itself come from?  One possibility is that @code{V} is an
-instance of a user-defined vtable type, @code{V'}, so that @code{V} is
-created by using @code{(make-struct V' ...)}.  Another possibility is
-that @code{V} is an instance of the type it itself describes.  Vtable
-structures of the second sort are created by this procedure:
-
-@deffn {Scheme Procedure} make-vtable-vtable user_fields tail_array_size . init
-@deffnx {C Function} scm_make_vtable_vtable (user_fields, tail_array_size, init)
-Return a new, self-describing vtable structure.
-
-@var{user-fields} is a string describing user defined fields of the
-vtable beginning at index @code{vtable-offset-user}
-(see @code{make-struct-layout}).
-
-@var{tail-size} specifies the size of the tail-array (if any) of
-this vtable.
-
-@var{init1}, @dots{} are the optional initializers for the fields of
-the vtable.
-
-Vtables have one initializable system field---the struct printer.
-This field comes before the user fields in the initializers passed
-to @code{make-vtable-vtable} and @code{make-struct}, and thus works as
-a third optional argument to @code{make-vtable-vtable} and a fourth to
-@code{make-struct} when creating vtables:
-
-If the value is a procedure, it will be called instead of the standard
-printer whenever a struct described by this vtable is printed.
-The procedure will be called with arguments STRUCT and PORT.
-
-The structure of a struct is described by a vtable, so the vtable is
-in essence the type of the struct.  The vtable is itself a struct with
-a vtable.  This could go on forever if it weren't for the
-vtable-vtables which are self-describing vtables, and thus terminate
-the chain.
-
-There are several potential ways of using structs, but the standard
-one is to use three kinds of structs, together building up a type
-sub-system: one vtable-vtable working as the root and one or several
-"types", each with a set of "instances".  (The vtable-vtable should be
-compared to the class <class> which is the class of itself.)
+@node Uniform Vectors
+@subsection Uniform Vectors
+
+A uniform vector is a vector elements are all of a single type.  Guile
+offers uniform vectors for signed and unsigned 8-bit, 16-bit, 32-bit,
+and 64-bit integers and for two sizes of floating point values.
+
+Strings could be regarded as uniform vectors of characters,
+@xref{Strings}.  Likewise, bit vectors could be regarded as uniform
+vectors of bits, @xref{Bit Vectors}.  Both are sufficiently different
+that the procedures described here do not apply to these two data types.
+However, both strings and bit vectors are arrays, @xref{Arrays}.
+
+Uniform vectors are the special case of one-dimensional, uniform,
+zero-origin array.
+
+Uniform vectors can be useful since they consume less memory than the
+non-uniform, general vectors.  Also, since the types they can store
+correspond directly to C types, it is easier to work with them
+efficiently on a low level.  Consider image processing as an example,
+where you want to apply a filter to some image.  While you could store
+the pixels of an image in a general vector and write a general
+convolution function, things are much more efficient with uniform
+vectors: the convolution function knows that all pixels are unsigned
+8-bit values (say), and can use a very tight inner loop.  (That is, when
+it is written in C.)
+
+Procedures similar to the vector procedures (@pxref{Vectors}) are
+provided for handling these homogeneous vectors, but they are distinct
+datatypes and the two cannot be inter-mixed.
+
+One set of these procedures is a generic one: it works with all types of
+uniform vectors.  In addition to that, there is a set of procedures for
+each type that only works with that type.  Unless you really need to the
+generality of the first set, it is best to use the more specific
+functions.  They might not be that much faster, but their use can serve
+as a kind of declaration and makes it easier to optimize later on.
+
+(Functions for efficiently working with uniform vectors from C are
+listed at the end of this section.)
+
+The generic set of procedures uses @code{uniform-vector} in its names,
+the specific ones use the tag from the following table.
+
+@table @nicode
+@item u8
+unsigned 8-bit integers
+
+@item s8
+signed 8-bit integers
+
+@item u16
+unsigned 16-bit integers
+
+@item s16
+signed 16-bit integers
+
+@item u32
+unsigned 32-bit integers
+
+@item s32
+signed 32-bit integers
+
+@item u64
+unsigned 64-bit integers
+
+@item s64
+signed 64-bit integers
+
+@item f32
+the C type @code{float}
+
+@item f64
+the C type @code{double}
+@end table
+
+The external representation (ie.@: read syntax) for these vectors is
+similar to normal Scheme vectors, but with an additional tag from the
+tabel above indiciating the vector's type.  For example,
 
 @lisp
-(define ball-root (make-vtable-vtable "pr" 0))
-
-(define (make-ball-type ball-color)
-  (make-struct ball-root 0
-	       (make-struct-layout "pw")
-               (lambda (ball port)
-                 (format port "#<a ~A ball owned by ~A>"
-                         (color ball)
-                         (owner ball)))
-               ball-color))
-(define (color ball) (struct-ref (struct-vtable ball) vtable-offset-user))
-(define (owner ball) (struct-ref ball 0))
-
-(define red (make-ball-type 'red))
-(define green (make-ball-type 'green))
-
-(define (make-ball type owner) (make-struct type 0 owner))
-
-(define ball (make-ball green 'Nisse))
-ball @result{} #<a green ball owned by Nisse>
+#u16(1 2 3)
+#f64(3.1415 2.71)
 @end lisp
+
+Note that the read syntax for floating-point here conflicts with
+@code{#f} for false.  In Standard Scheme one can write @code{(1 #f3)}
+for a three element list @code{(1 #f 3)}, but for Guile @code{(1 #f3)}
+is invalid.  @code{(1 #f 3)} is almost certainly what one should write
+anyway to make the intention clear, so this is rarely a problem.
+
+@deffn  {Scheme Procedure} uniform-vector? obj
+@deffnx {Scheme Procedure} u8vector? obj
+@deffnx {Scheme Procedure} s8vector? obj
+@deffnx {Scheme Procedure} u16vector? obj
+@deffnx {Scheme Procedure} s16vector? obj
+@deffnx {Scheme Procedure} u32vector? obj
+@deffnx {Scheme Procedure} s32vector? obj
+@deffnx {Scheme Procedure} u64vector? obj
+@deffnx {Scheme Procedure} s64vector? obj
+@deffnx {Scheme Procedure} f32vector? obj
+@deffnx {Scheme Procedure} f64vector? obj
+@deffnx {C Function} scm_uniform_vector_p obj
+@deffnx {C Function} scm_u8vector_p obj
+@deffnx {C Function} scm_s8vector_p obj
+@deffnx {C Function} scm_u16vector_p obj
+@deffnx {C Function} scm_s16vector_p obj
+@deffnx {C Function} scm_u32vector_p obj
+@deffnx {C Function} scm_s32vector_p obj
+@deffnx {C Function} scm_u64vector_p obj
+@deffnx {C Function} scm_s64vector_p obj
+@deffnx {C Function} scm_f32vector_p obj
+@deffnx {C Function} scm_f64vector_p obj
+Return @code{#t} if @var{obj} is a homogeneous numeric vector of the
+indicated type.
 @end deffn
 
-@deffn {Scheme Procedure} struct-vtable-name vtable
-@deffnx {C Function} scm_struct_vtable_name (vtable)
-Return the name of the vtable @var{vtable}.
+@deffn  {Scheme Procedure} make-u8vector n [value]
+@deffnx {Scheme Procedure} make-s8vector n [value]
+@deffnx {Scheme Procedure} make-u16vector n [value]
+@deffnx {Scheme Procedure} make-s16vector n [value]
+@deffnx {Scheme Procedure} make-u32vector n [value]
+@deffnx {Scheme Procedure} make-s32vector n [value]
+@deffnx {Scheme Procedure} make-u64vector n [value]
+@deffnx {Scheme Procedure} make-s64vector n [value]
+@deffnx {Scheme Procedure} make-f32vector n [value]
+@deffnx {Scheme Procedure} make-f64vector n [value]
+@deffnx {C Function} scm_make_u8vector n [value]
+@deffnx {C Function} scm_make_s8vector n [value]
+@deffnx {C Function} scm_make_u16vector n [value]
+@deffnx {C Function} scm_make_s16vector n [value]
+@deffnx {C Function} scm_make_u32vector n [value]
+@deffnx {C Function} scm_make_s32vector n [value]
+@deffnx {C Function} scm_make_u64vector n [value]
+@deffnx {C Function} scm_make_s64vector n [value]
+@deffnx {C Function} scm_make_f32vector n [value]
+@deffnx {C Function} scm_make_f64vector n [value]
+Return a newly allocated homogeneous numeric vector holding @var{n}
+elements of the indicated type.  If @var{value} is given, the vector
+is initialized with that value, otherwise the contents are
+unspecified.
 @end deffn
 
-@deffn {Scheme Procedure} set-struct-vtable-name! vtable name
-@deffnx {C Function} scm_set_struct_vtable_name_x (vtable, name)
-Set the name of the vtable @var{vtable} to @var{name}.
+@deffn  {Scheme Procedure} u8vector value @dots{}
+@deffnx {Scheme Procedure} s8vector value @dots{}
+@deffnx {Scheme Procedure} u16vector value @dots{}
+@deffnx {Scheme Procedure} s16vector value @dots{}
+@deffnx {Scheme Procedure} u32vector value @dots{}
+@deffnx {Scheme Procedure} s32vector value @dots{}
+@deffnx {Scheme Procedure} u64vector value @dots{}
+@deffnx {Scheme Procedure} s64vector value @dots{}
+@deffnx {Scheme Procedure} f32vector value @dots{}
+@deffnx {Scheme Procedure} f64vector value @dots{}
+@deffnx {C Function} scm_u8vector values
+@deffnx {C Function} scm_s8vector values
+@deffnx {C Function} scm_u16vector valus
+@deffnx {C Function} scm_s16vector valus
+@deffnx {C Function} scm_u32vector valus
+@deffnx {C Function} scm_s32vector valus
+@deffnx {C Function} scm_u64vector valus
+@deffnx {C Function} scm_s64vector valus
+@deffnx {C Function} scm_f32vector valus
+@deffnx {C Function} scm_f64vector valus
+Return a newly allocated homogeneous numeric vector of the indicated
+type, holding the given parameter @var{value}s.  The vector length is
+the number of parameters given.
 @end deffn
 
-@deffn {Scheme Procedure} struct-vtable-tag handle
-@deffnx {C Function} scm_struct_vtable_tag (handle)
-Return the vtable tag of the structure @var{handle}.
+@deffn  {Scheme Procedure} uniform-vector-length vec
+@deffnx {Scheme Procedure} u8vector-length vec
+@deffnx {Scheme Procedure} s8vector-length vec
+@deffnx {Scheme Procedure} u16vector-length vec
+@deffnx {Scheme Procedure} s16vector-length vec
+@deffnx {Scheme Procedure} u32vector-length vec
+@deffnx {Scheme Procedure} s32vector-length vec
+@deffnx {Scheme Procedure} u64vector-length vec
+@deffnx {Scheme Procedure} s64vector-length vec
+@deffnx {Scheme Procedure} f32vector-length vec
+@deffnx {Scheme Procedure} f64vector-length vec
+@deffnx {C Function} scm_uniform_vector_length vec
+@deffnx {C Function} scm_u8vector_length vec
+@deffnx {C Function} scm_s8vector_length vec
+@deffnx {C Function} scm_u16vector_length vec
+@deffnx {C Function} scm_s16vector_length vec
+@deffnx {C Function} scm_u32vector_length vec
+@deffnx {C Function} scm_s32vector_length vec
+@deffnx {C Function} scm_u64vector_length vec
+@deffnx {C Function} scm_s64vector_length vec
+@deffnx {C Function} scm_f32vector_length vec
+@deffnx {C Function} scm_f64vector_length vec
+Return the number of elements in @var{vec}.
 @end deffn
 
+@deffn  {Scheme Procedure} uniform-vector-ref vec i
+@deffnx {Scheme Procedure} u8vector-ref vec i
+@deffnx {Scheme Procedure} s8vector-ref vec i
+@deffnx {Scheme Procedure} u16vector-ref vec i
+@deffnx {Scheme Procedure} s16vector-ref vec i
+@deffnx {Scheme Procedure} u32vector-ref vec i
+@deffnx {Scheme Procedure} s32vector-ref vec i
+@deffnx {Scheme Procedure} u64vector-ref vec i
+@deffnx {Scheme Procedure} s64vector-ref vec i
+@deffnx {Scheme Procedure} f32vector-ref vec i
+@deffnx {Scheme Procedure} f64vector-ref vec i
+@deffnx {C Function} scm_uniform_vector_ref vec i
+@deffnx {C Function} scm_u8vector_ref vec i
+@deffnx {C Function} scm_s8vector_ref vec i
+@deffnx {C Function} scm_u16vector_ref vec i
+@deffnx {C Function} scm_s16vector_ref vec i
+@deffnx {C Function} scm_u32vector_ref vec i
+@deffnx {C Function} scm_s32vector_ref vec i
+@deffnx {C Function} scm_u64vector_ref vec i
+@deffnx {C Function} scm_s64vector_ref vec i
+@deffnx {C Function} scm_f32vector_ref vec i
+@deffnx {C Function} scm_f64vector_ref vec i
+Return the element at index @var{i} in @var{vec}.  The first element
+in @var{vec} is index 0.
+@end deffn
+
+@deffn  {Scheme Procedure} uniform-vector-set! vec i value
+@deffnx {Scheme Procedure} u8vector-set! vec i value
+@deffnx {Scheme Procedure} s8vector-set! vec i value
+@deffnx {Scheme Procedure} u16vector-set! vec i value
+@deffnx {Scheme Procedure} s16vector-set! vec i value
+@deffnx {Scheme Procedure} u32vector-set! vec i value
+@deffnx {Scheme Procedure} s32vector-set! vec i value
+@deffnx {Scheme Procedure} u64vector-set! vec i value
+@deffnx {Scheme Procedure} s64vector-set! vec i value
+@deffnx {Scheme Procedure} f32vector-set! vec i value
+@deffnx {Scheme Procedure} f64vector-set! vec i value
+@deffnx {C Function} scm_uniform_vector_set_x vec i value
+@deffnx {C Function} scm_u8vector_set_x vec i value
+@deffnx {C Function} scm_s8vector_set_x vec i value
+@deffnx {C Function} scm_u16vector_set_x vec i value
+@deffnx {C Function} scm_s16vector_set_x vec i value
+@deffnx {C Function} scm_u32vector_set_x vec i value
+@deffnx {C Function} scm_s32vector_set_x vec i value
+@deffnx {C Function} scm_u64vector_set_x vec i value
+@deffnx {C Function} scm_s64vector_set_x vec i value
+@deffnx {C Function} scm_f32vector_set_x vec i value
+@deffnx {C Function} scm_f64vector_set_x vec i value
+Set the element at index @var{i} in @var{vec} to @var{value}.  The
+first element in @var{vec} is index 0.  The return value is
+unspecified.
+@end deffn
+
+@deffn  {Scheme Procedure} uniform-vector->list vec
+@deffnx {Scheme Procedure} u8vector->list vec
+@deffnx {Scheme Procedure} s8vector->list vec
+@deffnx {Scheme Procedure} u16vector->list vec
+@deffnx {Scheme Procedure} s16vector->list vec
+@deffnx {Scheme Procedure} u32vector->list vec
+@deffnx {Scheme Procedure} s32vector->list vec
+@deffnx {Scheme Procedure} u64vector->list vec
+@deffnx {Scheme Procedure} s64vector->list vec
+@deffnx {Scheme Procedure} f32vector->list vec
+@deffnx {Scheme Procedure} f64vector->list vec
+@deffnx {C Function} scm_uniform_vector_to_list vec
+@deffnx {C Function} scm_u8vector_to_list vec
+@deffnx {C Function} scm_s8vector_to_list vec
+@deffnx {C Function} scm_u16vector_to_list vec
+@deffnx {C Function} scm_s16vector_to_list vec
+@deffnx {C Function} scm_u32vector_to_list vec
+@deffnx {C Function} scm_s32vector_to_list vec
+@deffnx {C Function} scm_u64vector_to_list vec
+@deffnx {C Function} scm_s64vector_to_list vec
+@deffnx {C Function} scm_f32vector_to_list vec
+@deffnx {C Function} scm_f64vector_to_list vec
+Return a newly allocated list holding all elements of @var{vec}.
+@end deffn
+
+@deffn  {Scheme Procedure} list->u8vector lst
+@deffnx {Scheme Procedure} list->s8vector lst
+@deffnx {Scheme Procedure} list->u16vector lst
+@deffnx {Scheme Procedure} list->s16vector lst
+@deffnx {Scheme Procedure} list->u32vector lst
+@deffnx {Scheme Procedure} list->s32vector lst
+@deffnx {Scheme Procedure} list->u64vector lst
+@deffnx {Scheme Procedure} list->s64vector lst
+@deffnx {Scheme Procedure} list->f32vector lst
+@deffnx {Scheme Procedure} list->f64vector lst
+@deffnx {C Function} scm_list_to_u8vector lst
+@deffnx {C Function} scm_list_to_s8vector lst
+@deffnx {C Function} scm_list_to_u16vector lst
+@deffnx {C Function} scm_list_to_s16vector lst
+@deffnx {C Function} scm_list_to_u32vector lst
+@deffnx {C Function} scm_list_to_s32vector lst
+@deffnx {C Function} scm_list_to_u64vector lst
+@deffnx {C Function} scm_list_to_s64vector lst
+@deffnx {C Function} scm_list_to_f32vector lst
+@deffnx {C Function} scm_list_to_f64vector lst
+Return a newly allocated homogeneous numeric vector of the indicated type,
+initialized with the elements of the list @var{lst}.
+@end deffn
+
+@deftypefn {C Function} int scm_is_uniform_vector (SCM uvec)
+Return @code{1} when @var{uvec} is a uniform vector, @code{0} otherwise.
+@end deftypefn
+
+@deftypefn  {C Function} {void *} scm_uniform_vector_elements (SCM uvec)
+@deftypefnx {C Function} {scm_t_uint8 *} scm_u8vector_elements (SCM uvec)
+@deftypefnx {C Function} {scm_t_int8 *} scm_s8vector_elements (SCM uvec)
+@deftypefnx {C Function} {scm_t_uint16 *} scm_u16vector_elements (SCM uvec)
+@deftypefnx {C Function} {scm_t_int16 *} scm_s16vector_elements (SCM uvec)
+@deftypefnx {C Function} {scm_t_uint32 *} scm_u32vector_elements (SCM uvec)
+@deftypefnx {C Function} {scm_t_int32 *} scm_s32vector_elements (SCM uvec)
+@deftypefnx {C Function} {scm_t_uint64 *} scm_u64vector_elements (SCM uvec)
+@deftypefnx {C Function} {scm_t_int64 *} scm_s64vector_elements (SCM uvec)
+@deftypefnx {C Function} {float *} scm_f32vector_elements (SCM uvec)
+@deftypefnx {C Function} {double *} scm_f64vector_elements (SCM uvec)
+Return a pointer to the elements of a uniform vector.  For each call to
+one of these functions, you must call @code{scm_uniform_vector_release}
+and after that call the pointer to the elements becomes invalid.
+@end deftypefn
+
+@deftypefn {C Function} void scm_uniform_vector_release (SCM uvec)
+Finish the access to the elements of a uniform vector, as exlained
+above.
+@end deftypefn
+
+@deftypefn {C Function} size_t scm_c_uniform_vector_length (SCM uvec)
+Return the number of elements of @var{uvec} as a @code{size_t}.
+@end deftypefn
+
+@deftypefn {C Function} size_t scm_c_uniform_vector_element_size (SCM uvec)
+Return the number of bytes of one element of @var{uvec}.
+@end deftypefn
+
+@deftypefn {C Function} size_t scm_c_uniform_vector_size (SCM uvec)
+Return the number of bytes used by all elements of @var{uvec}.  This is
+just @code{scm_c_uniform_vector_length (@var{uvec}) *
+scm_c_uniform_vector_element_size (@var{uvec})}.
+@end deftypefn
+
+
+@node Bit Vectors
+@subsection Bit Vectors
+
+@noindent
+Bit vectors are a specific type of uniform array: an array of booleans
+with a single zero-based index.
+
+@noindent
+They are displayed as a sequence of @code{0}s and
+@code{1}s prefixed by @code{#*}, e.g.,
+
+@example
+(make-uniform-vector 8 #t #f) @result{}
+#*00000000
+@end example
+
+@deffn {Scheme Procedure} bit-count bool bitvector
+@deffnx {C Function} scm_bit_count (bool, bitvector)
+Return a count of how many entries in @var{bitvector} are equal to
+@var{bool}.  For example,
+
+@example
+(bit-count #f #*000111000)  @result{} 6
+@end example
+@end deffn
+
+@deffn {Scheme Procedure} bit-position bool bitvector start
+@deffnx {C Function} scm_bit_position (bool, bitvector, start)
+Return the index of the first occurrance of @var{bool} in
+@var{bitvector}, starting from @var{start}.  If there is no @var{bool}
+entry between @var{start} and the end of @var{bitvector}, then return
+@code{#f}.  For example,
+
+@example
+(bit-position #t #*000101 0)  @result{} 3
+(bit-position #f #*0001111 3) @result{} #f
+@end example
+@end deffn
+
+@deffn {Scheme Procedure} bit-invert! bitvector
+@deffnx {C Function} scm_bit_invert_x (bitvector)
+Modify @var{bitvector} by replacing each element with its negation.
+@end deffn
+
+@deffn {Scheme Procedure} bit-set*! bitvector uvec bool
+@deffnx {C Function} scm_bit_set_star_x (bitvector, uvec, bool)
+Set entries of @var{bitvector} to @var{bool}, with @var{uvec}
+selecting the entries to change.  The return value is unspecified.
+
+If @var{uvec} is a bit vector, then those entries where it has
+@code{#t} are the ones in @var{bitvector} which are set to @var{bool}.
+@var{uvec} and @var{bitvector} must be the same length.  When
+@var{bool} is @code{#t} it's like @var{uvec} is OR'ed into
+@var{bitvector}.  Or when @var{bool} is @code{#f} it can be seen as an
+ANDNOT.
+
+@example
+(define bv #*01000010)
+(bit-set*! bv #*10010001 #t)
+bv
+@result{} #*11010011
+@end example
+
+If @var{uvec} is a uniform vector of unsigned long integers, then
+they're indexes into @var{bitvector} which are set to @var{bool}.  
+
+@example
+(define bv #*01000010)
+(bit-set*! bv #u(5 2 7) #t)
+bv
+@result{} #*01100111
+@end example
+@end deffn
+
+@deffn {Scheme Procedure} bit-count* bitvector uvec bool
+@deffnx {C Function} scm_bit_count_star (bitvector, uvec, bool)
+Return a count of how many entries in @var{bitvector} are equal to
+@var{bool}, with @var{uvec} selecting the entries to consider.
+
+@var{uvec} is interpreted in the same way as for @code{bit-set*!}
+above.  Namely, if @var{uvec} is a bit vector then entries which have
+@code{#t} there are considered in @var{bitvector}.  Or if @var{uvec}
+is a uniform vector of unsigned long integers then it's the indexes in
+@var{bitvector} to consider.
+
+For example,
+
+@example
+(bit-count* #*01110111 #*11001101 #t) @result{} 3
+(bit-count* #*01110111 #u(7 0 4) #f)  @result{} 2
+@end example
+@end deffn
 
 @node Arrays
 @subsection Arrays
@@ -1242,7 +1251,6 @@ Return the vtable tag of the structure @var{handle}.
 * Conventional Arrays::         Arrays with arbitrary data.
 * Array Mapping::               Applying a procedure to the contents of an array.
 * Uniform Arrays::              Arrays with data of a single type.
-* Bit Vectors::                 Vectors of bits.
 @end menu
 
 @node Conventional Arrays
@@ -1722,97 +1730,425 @@ omitted, in which case it defaults to the value returned by
 @code{(current-output-port)}.
 @end deffn
 
-@node Bit Vectors
-@subsubsection Bit Vectors
+@node Records
+@subsection Records
 
-@noindent
-Bit vectors are a specific type of uniform array: an array of booleans
-with a single zero-based index.
+A @dfn{record type} is a first class object representing a user-defined
+data type.  A @dfn{record} is an instance of a record type.
 
-@noindent
-They are displayed as a sequence of @code{0}s and
-@code{1}s prefixed by @code{#*}, e.g.,
+@deffn {Scheme Procedure} record? obj
+Return @code{#t} if @var{obj} is a record of any type and @code{#f}
+otherwise.
 
-@example
-(make-uniform-vector 8 #t #f) @result{}
-#*00000000
-@end example
-
-@deffn {Scheme Procedure} bit-count bool bitvector
-@deffnx {C Function} scm_bit_count (bool, bitvector)
-Return a count of how many entries in @var{bitvector} are equal to
-@var{bool}.  For example,
-
-@example
-(bit-count #f #*000111000)  @result{} 6
-@end example
+Note that @code{record?} may be true of any Scheme value; there is no
+promise that records are disjoint with other Scheme types.
 @end deffn
 
-@deffn {Scheme Procedure} bit-position bool bitvector start
-@deffnx {C Function} scm_bit_position (bool, bitvector, start)
-Return the index of the first occurrance of @var{bool} in
-@var{bitvector}, starting from @var{start}.  If there is no @var{bool}
-entry between @var{start} and the end of @var{bitvector}, then return
-@code{#f}.  For example,
-
-@example
-(bit-position #t #*000101 0)  @result{} 3
-(bit-position #f #*0001111 3) @result{} #f
-@end example
+@deffn {Scheme Procedure} make-record-type type-name field-names
+Return a @dfn{record-type descriptor}, a value representing a new data
+type disjoint from all others.  The @var{type-name} argument must be a
+string, but is only used for debugging purposes (such as the printed
+representation of a record of the new type).  The @var{field-names}
+argument is a list of symbols naming the @dfn{fields} of a record of the
+new type.  It is an error if the list contains any duplicates.  It is
+unspecified how record-type descriptors are represented.
 @end deffn
 
-@deffn {Scheme Procedure} bit-invert! bitvector
-@deffnx {C Function} scm_bit_invert_x (bitvector)
-Modify @var{bitvector} by replacing each element with its negation.
+@deffn {Scheme Procedure} record-constructor rtd [field-names]
+Return a procedure for constructing new members of the type represented
+by @var{rtd}.  The returned procedure accepts exactly as many arguments
+as there are symbols in the given list, @var{field-names}; these are
+used, in order, as the initial values of those fields in a new record,
+which is returned by the constructor procedure.  The values of any
+fields not named in that list are unspecified.  The @var{field-names}
+argument defaults to the list of field names in the call to
+@code{make-record-type} that created the type represented by @var{rtd};
+if the @var{field-names} argument is provided, it is an error if it
+contains any duplicates or any symbols not in the default list.
 @end deffn
 
-@deffn {Scheme Procedure} bit-set*! bitvector uvec bool
-@deffnx {C Function} scm_bit_set_star_x (bitvector, uvec, bool)
-Set entries of @var{bitvector} to @var{bool}, with @var{uvec}
-selecting the entries to change.  The return value is unspecified.
-
-If @var{uvec} is a bit vector, then those entries where it has
-@code{#t} are the ones in @var{bitvector} which are set to @var{bool}.
-@var{uvec} and @var{bitvector} must be the same length.  When
-@var{bool} is @code{#t} it's like @var{uvec} is OR'ed into
-@var{bitvector}.  Or when @var{bool} is @code{#f} it can be seen as an
-ANDNOT.
-
-@example
-(define bv #*01000010)
-(bit-set*! bv #*10010001 #t)
-bv
-@result{} #*11010011
-@end example
-
-If @var{uvec} is a uniform vector of unsigned long integers, then
-they're indexes into @var{bitvector} which are set to @var{bool}.  
-
-@example
-(define bv #*01000010)
-(bit-set*! bv #u(5 2 7) #t)
-bv
-@result{} #*01100111
-@end example
+@deffn {Scheme Procedure} record-predicate rtd
+Return a procedure for testing membership in the type represented by
+@var{rtd}.  The returned procedure accepts exactly one argument and
+returns a true value if the argument is a member of the indicated record
+type; it returns a false value otherwise.
 @end deffn
 
-@deffn {Scheme Procedure} bit-count* bitvector uvec bool
-@deffnx {C Function} scm_bit_count_star (bitvector, uvec, bool)
-Return a count of how many entries in @var{bitvector} are equal to
-@var{bool}, with @var{uvec} selecting the entries to consider.
+@deffn {Scheme Procedure} record-accessor rtd field-name
+Return a procedure for reading the value of a particular field of a
+member of the type represented by @var{rtd}.  The returned procedure
+accepts exactly one argument which must be a record of the appropriate
+type; it returns the current value of the field named by the symbol
+@var{field-name} in that record.  The symbol @var{field-name} must be a
+member of the list of field-names in the call to @code{make-record-type}
+that created the type represented by @var{rtd}.
+@end deffn
 
-@var{uvec} is interpreted in the same way as for @code{bit-set*!}
-above.  Namely, if @var{uvec} is a bit vector then entries which have
-@code{#t} there are considered in @var{bitvector}.  Or if @var{uvec}
-is a uniform vector of unsigned long integers then it's the indexes in
-@var{bitvector} to consider.
+@deffn {Scheme Procedure} record-modifier rtd field-name
+Return a procedure for writing the value of a particular field of a
+member of the type represented by @var{rtd}.  The returned procedure
+accepts exactly two arguments: first, a record of the appropriate type,
+and second, an arbitrary Scheme value; it modifies the field named by
+the symbol @var{field-name} in that record to contain the given value.
+The returned value of the modifier procedure is unspecified.  The symbol
+@var{field-name} must be a member of the list of field-names in the call
+to @code{make-record-type} that created the type represented by
+@var{rtd}.
+@end deffn
 
-For example,
+@deffn {Scheme Procedure} record-type-descriptor record
+Return a record-type descriptor representing the type of the given
+record.  That is, for example, if the returned descriptor were passed to
+@code{record-predicate}, the resulting predicate would return a true
+value when passed the given record.  Note that it is not necessarily the
+case that the returned descriptor is the one that was passed to
+@code{record-constructor} in the call that created the constructor
+procedure that created the given record.
+@end deffn
+
+@deffn {Scheme Procedure} record-type-name rtd
+Return the type-name associated with the type represented by rtd.  The
+returned value is @code{eqv?} to the @var{type-name} argument given in
+the call to @code{make-record-type} that created the type represented by
+@var{rtd}.
+@end deffn
+
+@deffn {Scheme Procedure} record-type-fields rtd
+Return a list of the symbols naming the fields in members of the type
+represented by @var{rtd}.  The returned value is @code{equal?} to the
+field-names argument given in the call to @code{make-record-type} that
+created the type represented by @var{rtd}.
+@end deffn
+
+
+@node Structures
+@subsection Structures
+@tpindex Structures
+
+[FIXME: this is pasted in from Tom Lord's original guile.texi and should
+be reviewed]
+
+A @dfn{structure type} is a first class user-defined data type.  A
+@dfn{structure} is an instance of a structure type.  A structure type is
+itself a structure.
+
+Structures are less abstract and more general than traditional records.
+In fact, in Guile Scheme, records are implemented using structures.
+
+@menu
+* Structure Concepts::          The structure of Structures
+* Structure Layout::            Defining the layout of structure types
+* Structure Basics::            make-, -ref and -set! procedures for structs
+* Vtables::                     Accessing type-specific data
+@end menu
+
+@node  Structure Concepts
+@subsubsection Structure Concepts
+
+A structure object consists of a handle, structure data, and a vtable.
+The handle is a Scheme value which points to both the vtable and the
+structure's data.  Structure data is a dynamically allocated region of
+memory, private to the structure, divided up into typed fields.  A
+vtable is another structure used to hold type-specific data.  Multiple
+structures can share a common vtable.
+
+Three concepts are key to understanding structures.
+
+@itemize @bullet{}
+@item @dfn{layout specifications}
+
+Layout specifications determine how memory allocated to structures is
+divided up into fields.  Programmers must write a layout specification
+whenever a new type of structure is defined.
+
+@item @dfn{structural accessors}
+
+Structure access is by field number.   There is only one set of
+accessors common to all structure objects.
+
+@item @dfn{vtables}
+
+Vtables, themselves structures, are first class representations of
+disjoint sub-types of structures in general.   In most cases, when a
+new structure is created, programmers must specify a vtable for the
+new structure.   Each vtable has a field describing the layout of its
+instances.   Vtables can have additional, user-defined fields as well.
+@end itemize
+
+
+
+@node  Structure Layout
+@subsubsection Structure Layout
+
+When a structure is created, a region of memory is allocated to hold its
+state.  The @dfn{layout} of the structure's type determines how that
+memory is divided into fields.
+
+Each field has a specified type.  There are only three types allowed, each
+corresponding to a one letter code.  The allowed types are:
+
+@itemize @bullet{}
+@item 'u' -- unprotected
+
+The field holds binary data that is not GC protected.
+
+@item 'p' -- protected
+
+The field holds a Scheme value and is GC protected.
+
+@item 's' -- self
+
+The field holds a Scheme value and is GC protected.  When a structure is
+created with this type of field, the field is initialized to refer to
+the structure's own handle.  This kind of field is mainly useful when
+mixing Scheme and C code in which the C code may need to compute a
+structure's handle given only the address of its malloc'd data.
+@end itemize
+
+
+Each field also has an associated access protection.   There are only
+three kinds of protection, each corresponding to a one letter code.
+The allowed protections are:
+
+@itemize @bullet{}
+@item 'w' -- writable
+
+The field can be read and written.
+
+@item 'r' -- readable
+
+The field can be read, but not written.
+
+@item 'o' -- opaque
+
+The field can be neither read nor written.   This kind
+of protection is for fields useful only to built-in routines.
+@end itemize
+
+A layout specification is described by stringing together pairs
+of letters: one to specify a field type and one to specify a field
+protection.    For example, a traditional cons pair type object could
+be described as:
 
 @example
-(bit-count* #*01110111 #*11001101 #t) @result{} 3
-(bit-count* #*01110111 #u(7 0 4) #f)  @result{} 2
+; cons pairs have two writable fields of Scheme data
+"pwpw"
 @end example
+
+A pair object in which the first field is held constant could be:
+
+@example
+"prpw"
+@end example
+
+Binary fields, (fields of type "u"), hold one @dfn{word} each.  The
+size of a word is a machine dependent value defined to be equal to the
+value of the C expression: @code{sizeof (long)}.
+
+The last field of a structure layout may specify a tail array.
+A tail array is indicated by capitalizing the field's protection
+code ('W', 'R' or 'O').   A tail-array field is replaced by
+a read-only binary data field containing an array size.   The array
+size is determined at the time the structure is created.  It is followed
+by a corresponding number of fields of the type specified for the
+tail array.   For example, a conventional Scheme vector can be
+described as:
+
+@example
+; A vector is an arbitrary number of writable fields holding Scheme
+; values:
+"pW"
+@end example
+
+In the above example, field 0 contains the size of the vector and
+fields beginning at 1 contain the vector elements.
+
+A kind of tagged vector (a constant tag followed by conventional
+vector elements) might be:
+
+@example
+"prpW"
+@end example
+
+
+Structure layouts are represented by specially interned symbols whose
+name is a string of type and protection codes.  To create a new
+structure layout, use this procedure:
+
+@deffn {Scheme Procedure} make-struct-layout fields
+@deffnx {C Function} scm_make_struct_layout (fields)
+Return a new structure layout object.
+
+@var{fields} must be a string made up of pairs of characters
+strung together.  The first character of each pair describes a field
+type, the second a field protection.  Allowed types are 'p' for
+GC-protected Scheme data, 'u' for unprotected binary data, and 's' for
+a field that points to the structure itself.    Allowed protections
+are 'w' for mutable fields, 'r' for read-only fields, and 'o' for opaque
+fields.  The last field protection specification may be capitalized to
+indicate that the field is a tail-array.
+@end deffn
+
+
+
+@node Structure Basics
+@subsubsection Structure Basics
+
+This section describes the basic procedures for creating and accessing
+structures.
+
+@deffn {Scheme Procedure} make-struct vtable tail_array_size . init
+@deffnx {C Function} scm_make_struct (vtable, tail_array_size, init)
+Create a new structure.
+
+@var{type} must be a vtable structure (@pxref{Vtables}).
+
+@var{tail-elts} must be a non-negative integer.  If the layout
+specification indicated by @var{type} includes a tail-array,
+this is the number of elements allocated to that array.
+
+The @var{init1}, @dots{} are optional arguments describing how
+successive fields of the structure should be initialized.  Only fields
+with protection 'r' or 'w' can be initialized, except for fields of
+type 's', which are automatically initialized to point to the new
+structure itself; fields with protection 'o' can not be initialized by
+Scheme programs.
+
+If fewer optional arguments than initializable fields are supplied,
+fields of type 'p' get default value #f while fields of type 'u' are
+initialized to 0.
+
+Structs are currently the basic representation for record-like data
+structures in Guile.  The plan is to eventually replace them with a
+new representation which will at the same time be easier to use and
+more powerful.
+
+For more information, see the documentation for @code{make-vtable-vtable}.
+@end deffn
+
+@deffn {Scheme Procedure} struct? x
+@deffnx {C Function} scm_struct_p (x)
+Return @code{#t} iff @var{x} is a structure object, else
+@code{#f}.
+@end deffn
+
+
+@deffn {Scheme Procedure} struct-ref handle pos
+@deffnx {Scheme Procedure} struct-set! struct n value
+@deffnx {C Function} scm_struct_ref (handle, pos)
+@deffnx {C Function} scm_struct_set_x (struct, n, value)
+Access (or modify) the @var{n}th field of @var{struct}.
+
+If the field is of type 'p', then it can be set to an arbitrary value.
+
+If the field is of type 'u', then it can only be set to a non-negative
+integer value small enough to fit in one machine word.
+@end deffn
+
+
+
+@node  Vtables
+@subsubsection Vtables
+
+Vtables are structures that are used to represent structure types.  Each
+vtable contains a layout specification in field
+@code{vtable-index-layout} -- instances of the type are laid out
+according to that specification.  Vtables contain additional fields
+which are used only internally to libguile.  The variable
+@code{vtable-offset-user} is bound to a field number.  Vtable fields
+at that position or greater are user definable.
+
+@deffn {Scheme Procedure} struct-vtable handle
+@deffnx {C Function} scm_struct_vtable (handle)
+Return the vtable structure that describes the type of @var{struct}.
+@end deffn
+
+@deffn {Scheme Procedure} struct-vtable? x
+@deffnx {C Function} scm_struct_vtable_p (x)
+Return @code{#t} iff @var{x} is a vtable structure.
+@end deffn
+
+If you have a vtable structure, @code{V}, you can create an instance of
+the type it describes by using @code{(make-struct V ...)}.  But where
+does @code{V} itself come from?  One possibility is that @code{V} is an
+instance of a user-defined vtable type, @code{V'}, so that @code{V} is
+created by using @code{(make-struct V' ...)}.  Another possibility is
+that @code{V} is an instance of the type it itself describes.  Vtable
+structures of the second sort are created by this procedure:
+
+@deffn {Scheme Procedure} make-vtable-vtable user_fields tail_array_size . init
+@deffnx {C Function} scm_make_vtable_vtable (user_fields, tail_array_size, init)
+Return a new, self-describing vtable structure.
+
+@var{user-fields} is a string describing user defined fields of the
+vtable beginning at index @code{vtable-offset-user}
+(see @code{make-struct-layout}).
+
+@var{tail-size} specifies the size of the tail-array (if any) of
+this vtable.
+
+@var{init1}, @dots{} are the optional initializers for the fields of
+the vtable.
+
+Vtables have one initializable system field---the struct printer.
+This field comes before the user fields in the initializers passed
+to @code{make-vtable-vtable} and @code{make-struct}, and thus works as
+a third optional argument to @code{make-vtable-vtable} and a fourth to
+@code{make-struct} when creating vtables:
+
+If the value is a procedure, it will be called instead of the standard
+printer whenever a struct described by this vtable is printed.
+The procedure will be called with arguments STRUCT and PORT.
+
+The structure of a struct is described by a vtable, so the vtable is
+in essence the type of the struct.  The vtable is itself a struct with
+a vtable.  This could go on forever if it weren't for the
+vtable-vtables which are self-describing vtables, and thus terminate
+the chain.
+
+There are several potential ways of using structs, but the standard
+one is to use three kinds of structs, together building up a type
+sub-system: one vtable-vtable working as the root and one or several
+"types", each with a set of "instances".  (The vtable-vtable should be
+compared to the class <class> which is the class of itself.)
+
+@lisp
+(define ball-root (make-vtable-vtable "pr" 0))
+
+(define (make-ball-type ball-color)
+  (make-struct ball-root 0
+	       (make-struct-layout "pw")
+               (lambda (ball port)
+                 (format port "#<a ~A ball owned by ~A>"
+                         (color ball)
+                         (owner ball)))
+               ball-color))
+(define (color ball) (struct-ref (struct-vtable ball) vtable-offset-user))
+(define (owner ball) (struct-ref ball 0))
+
+(define red (make-ball-type 'red))
+(define green (make-ball-type 'green))
+
+(define (make-ball type owner) (make-struct type 0 owner))
+
+(define ball (make-ball green 'Nisse))
+ball @result{} #<a green ball owned by Nisse>
+@end lisp
+@end deffn
+
+@deffn {Scheme Procedure} struct-vtable-name vtable
+@deffnx {C Function} scm_struct_vtable_name (vtable)
+Return the name of the vtable @var{vtable}.
+@end deffn
+
+@deffn {Scheme Procedure} set-struct-vtable-name! vtable name
+@deffnx {C Function} scm_set_struct_vtable_name_x (vtable, name)
+Set the name of the vtable @var{vtable} to @var{name}.
+@end deffn
+
+@deffn {Scheme Procedure} struct-vtable-tag handle
+@deffnx {C Function} scm_struct_vtable_tag (handle)
+Return the vtable tag of the structure @var{handle}.
 @end deffn
 
 
