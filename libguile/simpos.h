@@ -50,7 +50,6 @@
 extern SCM scm_system SCM_P ((SCM cmd));
 extern SCM scm_getenv SCM_P ((SCM nam));
 extern SCM scm_primitive_exit SCM_P ((SCM status));
-extern SCM scm_software_type SCM_P ((void));
 extern void scm_init_simpos SCM_P ((void));
 
 #endif  /* SIMPOSH */

@@ -118,66 +118,6 @@ scm_primitive_exit (SCM status)
   exit (cstatus);
 }
 
-/* I have a feeling this whole arrangement below is a bad idea.  One
-   should always test for the presence or absence of a particular
-   feature, instead of checking the system name.  Older versions of a
-   system may lack features posessed by new ones, and a feature
-   appearing on one system will soon appear on others.  And autoconf
-   provides the mechanisms for detecting features.  -JimB  */
-
-#ifdef _AIX
-# define SYSTNAME "AIX"
-#endif
-#ifdef vms
-# define SYSTNAME "VMS"
-#endif
-#if defined (unix) || defined (__unix) || defined(__CYGWIN32__)
-# define SYSTNAME "UNIX"
-#endif
-#ifdef MWC
-# define SYSTNAME "COHERENT"
-#endif
-#ifdef _Windows
-# define SYSTNAME "WINDOWS"
-#else
-# ifdef MSDOS
-#  define SYSTNAME "MS-DOS"
-# endif
-#endif
-#ifdef __EMX__
-# define SYSTNAME "OS/2"
-#endif
-#ifdef __IBMC__
-# define SYSTNAME "OS/2"
-#endif
-#ifdef THINK_C
-# define SYSTNAME "THINKC"
-#endif
-#ifdef AMIGA
-# define SYSTNAME "AMIGA"
-#endif
-#ifdef atarist
-# define SYSTNAME "ATARIST"
-#endif
-#ifdef mach
-# define SYSTNAME "MACH"
-#endif
-#ifdef ARM_ULIB
-# define SYSTNAME "ACORN"
-#endif
-
-SCM_PROC(s_software_type, "software-type", 0, 0, 0, scm_software_type);
-
-SCM
-scm_software_type()
-{
-#ifdef nosve
-  return SCM_CAR(scm_intern("nosve", 5));
-#else
-  return SCM_CAR(scm_intern(SYSTNAME, sizeof SYSTNAME/sizeof(char) -1));
-#endif
-}
-
 
 void
 scm_init_simpos ()
