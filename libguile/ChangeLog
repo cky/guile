@@ -1,3 +1,26 @@
+1998-10-14  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	Don't redefine sleep and usleep.
+	* coop.c (sleep, usleep): Remove declarations; we don't use or
+	redefine these any more.
+	(scm_thread_usleep, scm_thread_sleep): New functions which do the
+	job of usleep and sleep in a thread-friendly way.  We can use
+	these in the rest of Guile.  Define versions for systems both with
+	and without iselect.
+	* threads.h (scm_thread_usleep, scm_thread_sleep): New declarations.
+	* scmsigs.c (usleep): Clean up oddities declaring usleep; since
+ 	we're just using it, not redefining it, we can use a K&R style
+ 	declaration here.
+	(sleep): Declare this, too, if the system hasn't.
+	(scm_sleep, scm_usleep): Use scm_thread_sleep and
+	scm_uthread_sleep if they're available; otherwise, just call the
+	system functions.
+	* scmconfig.h.in: Regenerated.
+
+	* coop.c (scm_thread_sleep): Make `slept' an unsigned long.
+
+	* coop.c (coop_sleephelp): Remove ANSI #ifdef hair.
+
 1998-10-12  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	* threads.c: Doc fix.
