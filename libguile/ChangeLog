@@ -1,3 +1,8 @@
+1999-09-21  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	* backtrace.c: #include "_scm.h" before testing whether
+	HAVE_UNISTD_H is #defined.
+
 1999-09-20  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	* read.c (scm_read): Don't assume that scm_cur_inp is always open.
