@@ -1,8 +1,8 @@
 /* classes: h_files */
 
-#ifndef GCH
-#define GCH
-/* Copyright (C) 1995, 96, 98, 99, 2000 Free Software Foundation, Inc.
+#ifndef SCM_GC_H
+#define SCM_GC_H
+/* Copyright (C) 1995,1996,1998,1999,2000,2001 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -173,7 +173,7 @@ typedef unsigned long scm_c_bvec_limb_t;
 #if (SCM_DEBUG_CELL_ACCESSES == 1)
 #  define SCM_VALIDATE_CELL(cell, expr) (scm_assert_cell_valid (cell), (expr))
 #else
-#  define SCM_VALIDATE_CELL(cell, expr) expr
+#  define SCM_VALIDATE_CELL(cell, expr) (expr)
 #endif
 
 #define SCM_CELL_WORD(x, n) \
@@ -207,14 +207,21 @@ typedef unsigned long scm_c_bvec_limb_t;
 #define SCM_CELL_TYPE(x) SCM_CELL_WORD_0 (x)
 #define SCM_SET_CELL_TYPE(x, t) SCM_SET_CELL_WORD_0 (x, t)
 
+
+/* Except for the garbage collector, no part of guile should ever run over a
+ * free cell.  Thus, in debug mode the above macros report an error if they
+ * are applied to a free cell.  Since the garbage collector is allowed to
+ * access free cells, it needs its own way to access cells which will not
+ * result in errors when in debug mode.  */
+
+#define SCM_GC_CELL_TYPE(x) \
+  (((const scm_bits_t *) SCM2PTR (x)) [0])
+
+
 #define SCM_SETAND_CAR(x, y) \
   (SCM_SETCAR ((x), SCM_PACK (SCM_UNPACK (SCM_CAR (x)) & (y))))
-#define SCM_SETAND_CDR(x, y)\
-  (SCM_SETCDR ((x), SCM_PACK (SCM_UNPACK (SCM_CDR (x)) & (y))))
 #define SCM_SETOR_CAR(x, y)\
   (SCM_SETCAR ((x), SCM_PACK (SCM_UNPACK (SCM_CAR (x)) | (y))))
-#define SCM_SETOR_CDR(x, y)\
-  (SCM_SETCDR ((x), SCM_PACK (SCM_UNPACK (SCM_CDR (x)) | (y))))
 
 #define SCM_CELL_WORD_LOC(x, n) ((scm_bits_t *) & SCM_CELL_WORD (x, n))
 #define SCM_CARLOC(x) ((SCM *) SCM_CELL_WORD_LOC ((x), 0))
@@ -240,10 +247,16 @@ typedef unsigned long scm_c_bvec_limb_t;
   (!SCM_IMP (x) && (* (const scm_bits_t *) SCM2PTR (x) == scm_tc_free_cell))
 #define SCM_FREE_CELL_CDR(x) \
   (SCM_PACK (((const scm_bits_t *) SCM2PTR (x)) [1]))
-#define SCM_SET_FREE_CELL_TYPE(x, v) \
-  (((scm_bits_t *) SCM2PTR (x)) [0] = (v))
 #define SCM_SET_FREE_CELL_CDR(x, v) \
   (((scm_bits_t *) SCM2PTR (x)) [1] = SCM_UNPACK (v))
+
+
+#if (SCM_DEBUG_CELL_ACCESSES == 1)
+#  define SCM_GC_SET_ALLOCATED(x) \
+     (((scm_bits_t *) SCM2PTR (x)) [0] = scm_tc16_allocated)
+#else
+#  define SCM_GC_SET_ALLOCATED(x)
+#endif
 
 #ifdef GUILE_DEBUG_FREELIST
 #define SCM_NEWCELL(_into) do { _into = scm_debug_newcell (); } while (0)
@@ -254,23 +267,31 @@ typedef unsigned long scm_c_bvec_limb_t;
 #define SCM_NEWCELL(_into) \
         do { \
           if (SCM_IMP (scm_freelist)) \
+            { \
              _into = scm_gc_for_newcell (&scm_master_freelist, \
                                          &scm_freelist); \
+             SCM_GC_SET_ALLOCATED (_into); \
+            } \
           else \
             { \
                _into = scm_freelist; \
                scm_freelist = SCM_FREE_CELL_CDR (scm_freelist); \
+               SCM_GC_SET_ALLOCATED (_into); \
             } \
         } while(0)
 #define SCM_NEWCELL2(_into) \
         do { \
           if (SCM_IMP (scm_freelist2)) \
+            { \
              _into = scm_gc_for_newcell (&scm_master_freelist2, \
                                          &scm_freelist2); \
+             SCM_GC_SET_ALLOCATED (_into); \
+            } \
           else \
             { \
                _into = scm_freelist2; \
                scm_freelist2 = SCM_FREE_CELL_CDR (scm_freelist2); \
+               SCM_GC_SET_ALLOCATED (_into); \
             } \
         } while(0)
 #endif
@@ -278,6 +299,11 @@ typedef unsigned long scm_c_bvec_limb_t;
 
 #define SCM_MARKEDP    SCM_GCMARKP
 #define SCM_NMARKEDP(x) (!SCM_MARKEDP (x))
+
+#if (SCM_DEBUG_CELL_ACCESSES == 1)
+extern scm_bits_t scm_tc16_allocated;
+extern unsigned int scm_debug_cell_accesses_p;
+#endif
 
 extern struct scm_heap_seg_data_t *scm_heap_table;
 extern int scm_n_heap_segs;
@@ -314,12 +340,6 @@ extern scm_c_hook_t scm_before_sweep_c_hook;
 extern scm_c_hook_t scm_after_sweep_c_hook;
 extern scm_c_hook_t scm_after_gc_c_hook;
 
-#if (SCM_DEBUG_CELL_ACCESSES == 1)
-extern void scm_assert_cell_valid (SCM);
-extern unsigned int scm_debug_cell_accesses_p;
-extern SCM scm_set_debug_cell_accesses_x (SCM flag);
-#endif
-
 #if defined (GUILE_DEBUG) || defined (GUILE_DEBUG_FREELIST)
 extern SCM scm_map_free_list (void);
 extern SCM scm_free_list_length (void);
@@ -332,6 +352,10 @@ extern SCM scm_gc_set_debug_check_freelist_x (SCM flag);
 
 
 
+#if (SCM_DEBUG_CELL_ACCESSES == 1)
+extern void scm_assert_cell_valid (SCM);
+extern SCM scm_set_debug_cell_accesses_x (SCM flag);
+#endif
 extern SCM scm_object_address (SCM obj);
 extern SCM scm_unhash_name (SCM name);
 extern SCM scm_gc_stats (void);
@@ -370,6 +394,10 @@ extern void scm_init_gc (void);
 
 #if (SCM_DEBUG_DEPRECATED == 0)
 
+#define SCM_SETAND_CDR(x, y)\
+  (SCM_SETCDR ((x), SCM_PACK (SCM_UNPACK (SCM_CDR (x)) & (y))))
+#define SCM_SETOR_CDR(x, y)\
+  (SCM_SETCDR ((x), SCM_PACK (SCM_UNPACK (SCM_CDR (x)) | (y))))
 #define SCM_FREEP(x) (SCM_FREE_CELL_P (x))
 #define SCM_NFREEP(x) (!SCM_FREE_CELL_P (x))
 #define SCM_GC8MARKP(x) SCM_GCMARKP (x)
@@ -381,7 +409,7 @@ extern void scm_remember (SCM * ptr);
 
 #endif  /* SCM_DEBUG_DEPRECATED == 0 */
 
-#endif  /* GCH */
+#endif  /* SCM_GC_H */
 
 /*
   Local Variables:

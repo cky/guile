@@ -1,5 +1,49 @@
 2001-03-30  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* gc.[ch] (scm_tc16_allocated):  New type tag for allocated cells.
+	It is only defined and used if guile is compiled with
+	SCM_DEBUG_CELL_ACCESSES set to true.  It's purpose is, to never
+	let cells with a free_cell type tag be visible outside of the
+	garbage collector when in debug mode.
+
+	* gc.c (scm_debug_cell_accesses_p):  Set to true as default.
+
+	(scm_assert_cell_valid):  Use a local static variable to avoid
+	recursion.
+
+	(MARK):  Only check for rogue cell pointers in debug mode.  Use
+	scm_cellp for this purpose and place all checks for rogue pointers
+	into that function.  Further, since due to conservative scanning
+	we may encounter free cells during marking, don't use the standard
+	cell type accessor macro to determine the cell type.
+
+	(scm_cellp):  Check if the cell pointer actually points into a
+	card header.
+
+	(scm_init_gc):  Initalize scm_tc16_allocated.
+
+	* gc.h (GCH):  Renamed to SCM_GC_H.
+
+	(SCM_VALIDATE_CELL):  Enclose the expression in brackets.  This
+	might be unnecessary, but I feel better this way :-)
+
+	(SCM_GC_CELL_TYPE):  New macro.
+
+	(SCM_SETAND_CDR, SCM_SETOR_CDR):  Deprecated.  These are not used
+	in guile, and it is unlikely that they will be applied to real
+	pairs anyway.
+
+	(SCM_SET_FREE_CELL_TYPE):  Removed.  It was not used.
+
+	(SCM_GC_SET_ALLOCATED):  New macro.  Only non-empty if guile is
+	compiled with SCM_DEBUG_CELL_ACCESSES set to true.
+
+	(SCM_NEWCELL, SCM_NEWCELL2):  Use of SCM_GC_SET_ALLOCATED will
+	make sure that in debug mode no free cell will ever be visible
+	outside of the garbage collector.
+
+2001-03-30  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* async.c (scm_asyncs_pending):  Don't use != to compare SCM
 	values.
 

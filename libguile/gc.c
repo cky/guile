@@ -101,7 +101,11 @@ unsigned int scm_gc_running_p = 0;
 
 #if (SCM_DEBUG_CELL_ACCESSES == 1)
 
-unsigned int scm_debug_cell_accesses_p = 0;
+scm_bits_t scm_tc16_allocated;
+
+/* Set this to != 0 if every cell that is accessed shall be checked: 
+ */
+unsigned int scm_debug_cell_accesses_p = 1;
 
 
 /* Assert that the given object is a valid reference to a valid cell.  This
@@ -112,9 +116,11 @@ unsigned int scm_debug_cell_accesses_p = 0;
 void
 scm_assert_cell_valid (SCM cell)
 {
-  if (scm_debug_cell_accesses_p)
+  static unsigned int already_running = 0;
+
+  if (scm_debug_cell_accesses_p && !already_running)
     {
-      scm_debug_cell_accesses_p = 0;  /* disable to avoid recursion */
+      already_running = 1;  /* set to avoid recursion */
 
       if (!scm_cellp (cell))
 	{
@@ -138,7 +144,7 @@ scm_assert_cell_valid (SCM cell)
 	      abort ();
 	    }
 	}
-      scm_debug_cell_accesses_p = 1;  /* re-enable */
+      already_running = 0;  /* re-enable */
     }
 }
 
@@ -1120,6 +1126,7 @@ MARK (SCM p)
 {
   register long i;
   register SCM ptr;
+  scm_bits_t cell_type;
 
 #ifndef MARK_DEPENDENCIES
 # define RECURSE scm_gc_mark
@@ -1149,14 +1156,9 @@ gc_mark_nimp:
 gc_mark_loop_first_time:
 #endif
   
-  if (!SCM_CELLP (ptr))
+#if (SCM_DEBUG_CELL_ACCESSES == 1) || (defined (GUILE_DEBUG_FREELIST))
+  if (!scm_cellp (ptr))
     SCM_MISC_ERROR ("rogue pointer in heap", SCM_EOL);
-
-#if (defined (GUILE_DEBUG_FREELIST))
-
-  if (SCM_GC_IN_CARD_HEADERP (SCM2PTR (ptr)))
-    SCM_MISC_ERROR ("rogue pointer in heap", SCM_EOL);
-
 #endif
 
 #ifndef MARK_DEPENDENCIES
@@ -1168,7 +1170,8 @@ gc_mark_loop_first_time:
 
 #endif
 
-  switch (SCM_TYP7 (ptr))
+  cell_type = SCM_GC_CELL_TYPE (ptr);
+  switch (SCM_ITAG7 (cell_type))
     {
     case scm_tcs_cons_nimcar:
       if (SCM_IMP (SCM_CDR (ptr)))
@@ -1498,6 +1501,9 @@ scm_cellp (SCM value)
     scm_cell * ptr = SCM2PTR (value);
     unsigned int i = 0;
     unsigned int j = scm_n_heap_segs - 1;
+
+    if (SCM_GC_IN_CARD_HEADERP (ptr))
+      return 0;
 
     while (i < j) {
       int k = (i + j) / 2;
@@ -2697,6 +2703,10 @@ void
 scm_init_gc ()
 {
   SCM after_gc_thunk;
+
+#if (SCM_DEBUG_CELL_ACCESSES == 1)
+  scm_tc16_allocated = scm_make_smob_type ("allocated cell", 0);
+#endif  /* SCM_DEBUG_CELL_ACCESSES == 1 */
 
   scm_after_gc_hook = scm_create_hook ("after-gc-hook", 0);
 
