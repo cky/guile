@@ -1,6 +1,6 @@
 ;;; srfi-4.scm --- Homogeneous Numeric Vector Datatypes
 
-;; 	Copyright (C) 2001, 2002 Free Software Foundation, Inc.
+;; 	Copyright (C) 2001, 2002, 2004 Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -20,13 +20,15 @@
 
 ;;; Commentary:
 
-;; This module implements homogeneous numeric vectors as defined in SRFI-4.
-;; This module is fully documented in the Guile Reference Manual.
+;; This module exports the homogeneous numeric vector procedures as
+;; defined in SRFI-4.  They are fully documented in the Guile
+;; Reference Manual.
 
 ;;; Code:
 
-(define-module (srfi srfi-4)
-  :export (
+(define-module (srfi srfi-4))
+
+(re-export
 ;;; Unsigned 8-bit vectors.
  u8vector? make-u8vector u8vector u8vector-length u8vector-ref
  u8vector-set! u8vector->list list->u8vector
@@ -66,112 +68,4 @@
 ;;; 64-bit floating point vectors.
  f64vector? make-f64vector f64vector f64vector-length f64vector-ref
  f64vector-set! f64vector->list list->f64vector
- ))
-
-
-;; Make 'srfi-4 available as a feature identifiere to `cond-expand'.
-;;
-(cond-expand-provide (current-module) '(srfi-4))
-
-
-;; Load the compiled primitives from the shared library.
-;;
-(load-extension "libguile-srfi-srfi-4-v-2" "scm_init_srfi_4")
-
-
-;; Reader extension for #f32() and #f64() vectors.
-;;
-(define (hash-f char port)
-  (if (or (char=? (peek-char port) #\3)
-	  (char=? (peek-char port) #\6))
-    (let* ((obj (read port)))
-      (if (number? obj)
-	(cond ((= obj 32)
-	       (let ((l (read port)))
-		 (if (list? l)
-		   (list->f32vector l)
-		   (error "syntax error in #f32() vector literal"))))
-	      ((= obj 64)
-	       (let ((l (read port)))
-		 (if (list? l)
-		   (list->f64vector l)
-		   (error "syntax error in #f64() vector literal"))))
-	      (else
-	       (error "syntax error in #f...() vector literal")))
-	(error "syntax error in #f...() vector literal")))
-    #f))
-
-
-;; Reader extension for #u8(), #u16(), #u32() and #u64() vectors.
-;;
-(define (hash-u char port)
-  (if (or (char=? (peek-char port) #\8)
-	  (char=? (peek-char port) #\1)
-	  (char=? (peek-char port) #\3)
-	  (char=? (peek-char port) #\6))
-    (let ((obj (read port)))
-      (cond ((= obj 8)
-	       (let ((l (read port)))
-		 (if (list? l)
-		   (list->u8vector l)
-		   (error "syntax error in #u8() vector literal"))))
-	    ((= obj 16)
-	       (let ((l (read port)))
-		 (if (list? l)
-		   (list->u16vector l)
-		   (error "syntax error in #u16() vector literal"))))
-	    ((= obj 32)
-	       (let ((l (read port)))
-		 (if (list? l)
-		   (list->u32vector l)
-		   (error "syntax error in #u32() vector literal"))))
-	    ((= obj 64)
-	       (let ((l (read port)))
-		 (if (list? l)
-		   (list->u64vector l)
-		   (error "syntax error in #u64() vector literal"))))
-	    (else
-	     (error "syntax error in #u...() vector literal"))))
-    (error "syntax error in #u...() vector literal")))
-
-
-;; Reader extension for #s8(), #s16(), #s32() and #s64() vectors.
-;;
-(define (hash-s char port)
-  (if (or (char=? (peek-char port) #\8)
-	  (char=? (peek-char port) #\1)
-	  (char=? (peek-char port) #\3)
-	  (char=? (peek-char port) #\6))
-    (let ((obj (read port)))
-      (cond ((= obj 8)
-	       (let ((l (read port)))
-		 (if (list? l)
-		   (list->s8vector l)
-		   (error "syntax error in #s8() vector literal"))))
-	    ((= obj 16)
-	       (let ((l (read port)))
-		 (if (list? l)
-		   (list->s16vector l)
-		   (error "syntax error in #s16() vector literal"))))
-	    ((= obj 32)
-	       (let ((l (read port)))
-		 (if (list? l)
-		   (list->s32vector l)
-		   (error "syntax error in #s32() vector literal"))))
-	    ((= obj 64)
-	       (let ((l (read port)))
-		 (if (list? l)
-		   (list->s64vector l)
-		   (error "syntax error in #s64() vector literal"))))
-	    (else
-	     (error "syntax error in #s...() vector literal"))))
-    (error "syntax error in #s...() vector literal")))
-
-
-;; Install the hash extensions.
-;;
-(read-hash-extend #\f hash-f)
-(read-hash-extend #\u hash-u)
-(read-hash-extend #\s hash-s)
-
-;;; srfi-4.scm ends here
+ )
