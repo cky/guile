@@ -48,7 +48,7 @@ scm_option scm_readline_opts[] = {
 
 extern void stifle_history (int max);
 
-GUILE_PROC (scm_readline_options, "readline-options-interface", 0, 1, 0, 
+SCM_DEFINE (scm_readline_options, "readline-options-interface", 0, 1, 0, 
             (SCM setting),
 "")
 #define FUNC_NAME s_scm_readline_options
@@ -152,7 +152,7 @@ static SCM handle_error (void *data, SCM tag, SCM args);
 static void reentry_barrier ();
 
 
-GUILE_PROC (scm_readline, "%readline", 0, 4, 0, 
+SCM_DEFINE (scm_readline, "%readline", 0, 4, 0, 
             (SCM text, SCM inp, SCM outp, SCM read_hook),
 "")
 #define FUNC_NAME s_scm_readline
@@ -319,7 +319,7 @@ scm_readline_init_ports (SCM inp, SCM outp)
 
 
 
-GUILE_PROC (scm_add_history, "add-history", 1, 0, 0, 
+SCM_DEFINE (scm_add_history, "add-history", 1, 0, 0, 
             (SCM text),
 "")
 #define FUNC_NAME s_scm_add_history
@@ -336,7 +336,7 @@ GUILE_PROC (scm_add_history, "add-history", 1, 0, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC (scm_read_history, "read-history", 1, 0, 0, 
+SCM_DEFINE (scm_read_history, "read-history", 1, 0, 0, 
             (SCM file),
 "")
 #define FUNC_NAME s_scm_read_history
@@ -347,7 +347,7 @@ GUILE_PROC (scm_read_history, "read-history", 1, 0, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC (scm_write_history, "write-history", 1, 0, 0, 
+SCM_DEFINE (scm_write_history, "write-history", 1, 0, 0, 
             (SCM file),
 "")
 #define FUNC_NAME s_scm_write_history
@@ -358,7 +358,7 @@ GUILE_PROC (scm_write_history, "write-history", 1, 0, 0,
 #undef FUNC_NAME
 
 
-GUILE_PROC (scm_filename_completion_function, "filename-completion-function", 2, 0, 0, 
+SCM_DEFINE (scm_filename_completion_function, "filename-completion-function", 2, 0, 0, 
             (SCM text, SCM continuep),
 "")
 #define FUNC_NAME s_scm_filename_completion_function
