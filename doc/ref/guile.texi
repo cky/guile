@@ -87,11 +87,9 @@ section entitled ``GNU Free Documentation License''.
 
 @c  @cross{} is a \times symbol in tex, or an "x" in info.  In tex it works
 @c  inside or outside $ $.
-@macro cross
 @tex
 \gdef\cross{\ifmmode\times\else$\times$\fi}
 @end tex
-@end macro
 @ifnottex
 @macro cross
 x
@@ -139,7 +137,7 @@ x
 @comment The title is printed in a large font.
 @title Guile Reference Manual
 @subtitle Edition @value{MANUAL-EDITION}, for use with Guile @value{VERSION}
-@c @subtitle $Id: guile.texi,v 1.41 2005-04-04 09:38:13 hanwen Exp $
+@c @subtitle $Id: guile.texi,v 1.42 2005-04-09 01:05:27 kryde Exp $
 
 @c See preface.texi for the list of authors
 @author The Guile Developers
