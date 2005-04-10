@@ -1,3 +1,9 @@
+2005-04-11  Kevin Ryde  <user42@zip.com.au>
+
+	* srfi-13.c (scm_string_concatenate, scm_string_concatenate_shared):
+	Validate list argument, scm_string_append and scm_string_append_shared
+	don't do that to their rest argument (in a normal build).
+
 2005-04-04  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* hashtab.h, hashtab.c (scm_t_hashtable): Removed 'closure' field.  The
