@@ -1,6 +1,6 @@
 /* srfi-13.c --- SRFI-13 procedures for Guile
  *
- * Copyright (C) 2001, 2004 Free Software Foundation, Inc.
+ * Copyright (C) 2001, 2004, 2005 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -2656,6 +2656,7 @@ SCM_DEFINE (scm_string_concatenate, "string-concatenate", 1, 0, 0,
 	    "allocated string.")
 #define FUNC_NAME s_scm_string_concatenate
 {
+  SCM_VALIDATE_LIST (SCM_ARG1, ls);
   return scm_string_append (ls);
 }
 #undef FUNC_NAME
@@ -2695,6 +2696,7 @@ SCM_DEFINE (scm_string_concatenate_shared, "string-concatenate/shared", 1, 0, 0,
 	    "with the strings in the list @var{ls}.")
 #define FUNC_NAME s_scm_string_concatenate_shared
 {
+  SCM_VALIDATE_LIST (SCM_ARG1, ls);
   return scm_string_append_shared (ls);
 }
 #undef FUNC_NAME
