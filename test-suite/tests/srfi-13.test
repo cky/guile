@@ -125,6 +125,40 @@
       (string-any char-upper-case? "abCDE" 1 4))))
 
 ;;;
+;;; string-concatenate
+;;;
+
+(with-test-prefix "string-concatenate"
+
+  (pass-if-exception "inum" exception:wrong-type-arg
+    (string-concatenate 123))
+
+  (pass-if-exception "symbol" exception:wrong-type-arg
+    (string-concatenate 'x))
+
+  (pass-if-exception "improper 1" exception:wrong-type-arg
+    (string-concatenate '("a" . "b")))
+
+  (pass-if (equal? "abc" (string-concatenate '("a" "b" "c")))))
+
+;;;
+;;; string-concatenate/shared
+;;;
+
+(with-test-prefix "string-concatenate/shared"
+
+  (pass-if-exception "inum" exception:wrong-type-arg
+    (string-concatenate/shared 123))
+
+  (pass-if-exception "symbol" exception:wrong-type-arg
+    (string-concatenate/shared 'x))
+
+  (pass-if-exception "improper 1" exception:wrong-type-arg
+    (string-concatenate/shared '("a" . "b")))
+
+  (pass-if (equal? "abc" (string-concatenate/shared '("a" "b" "c")))))
+
+;;;
 ;;; string-every
 ;;;
 
