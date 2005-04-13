@@ -1,3 +1,7 @@
+2005-04-14  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/numbers.test (1+, 1-): New tests.
+
 2005-04-11  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/srfi-13.test (string-concatenate, string-concatenate/shared):
