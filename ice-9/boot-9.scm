@@ -239,8 +239,6 @@
 ;;;
 
 (define (identity x) x)
-(define (1+ n) (+ n 1))
-(define (1- n) (+ n -1))
 (define (and=> value procedure) (and value (procedure value)))
 (define call/cc call-with-current-continuation)
 
