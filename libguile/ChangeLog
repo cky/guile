@@ -1,3 +1,8 @@
+2005-04-14  Kevin Ryde  <user42@zip.com.au>
+
+	* numbers.c, numbers.h (scm_oneplus, scm_oneminus): New functions,
+	converted from scheme code in boot-9.scm.
+
 2005-04-11  Kevin Ryde  <user42@zip.com.au>
 
 	* srfi-13.c (scm_string_concatenate, scm_string_concatenate_shared):
