@@ -4107,6 +4107,16 @@ scm_sum (SCM x, SCM y)
 }
 
 
+SCM_DEFINE (scm_oneplus, "1+", 1, 0, 0, 
+            (SCM x),
+	    "Return @math{@var{x}+1}.")
+#define FUNC_NAME s_scm_oneplus
+{
+  return scm_sum (x, SCM_I_MAKINUM (1));
+}
+#undef FUNC_NAME
+
+
 SCM_GPROC1 (s_difference, "-", scm_tc7_asubr, scm_difference, g_difference);
 /* If called with one argument @var{z1}, -@var{z1} returned. Otherwise
  * the sum of all but the first argument are subtracted from the first
@@ -4338,6 +4348,16 @@ scm_difference (SCM x, SCM y)
     }
   else
     SCM_WTA_DISPATCH_2 (g_difference, x, y, SCM_ARG1, s_difference);
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_oneminus, "1-", 1, 0, 0, 
+            (SCM x),
+	    "Return @math{@var{x}-1}.")
+#define FUNC_NAME s_scm_oneminus
+{
+  return scm_difference (x, SCM_I_MAKINUM (1));
 }
 #undef FUNC_NAME
 
