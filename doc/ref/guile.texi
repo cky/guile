@@ -137,7 +137,7 @@ x
 @comment The title is printed in a large font.
 @title Guile Reference Manual
 @subtitle Edition @value{MANUAL-EDITION}, for use with Guile @value{VERSION}
-@c @subtitle $Id: guile.texi,v 1.42 2005-04-09 01:05:27 kryde Exp $
+@c @subtitle $Id: guile.texi,v 1.43 2005-04-18 22:29:42 kryde Exp $
 
 @c See preface.texi for the list of authors
 @author The Guile Developers
@@ -341,7 +341,6 @@ available through both Scheme and C interfaces.
 * Value History::               Maintaining a value history in the REPL.
 * Pretty Printing::             Nicely formatting Scheme objects for output.
 * Formatted Output::            The @code{format} procedure.
-* Rx Regexps::                  The Rx regular expression library.
 * File Tree Walk::              Traversing the file system.
 * Queues::                      First-in first-out queuing.
 * Streams::                     Sequences of values.
