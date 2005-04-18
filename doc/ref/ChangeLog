@@ -1,5 +1,7 @@
 2005-04-19  Kevin Ryde  <user42@zip.com.au>
 
+	* api-data.texi (Regexp Functions): Clarity flags parameter.
+
 	* misc-modules.texi, guile.texi (Rx Regexps): Remove this section, Rx
 	is not in the core and we don't want to confuse anyone with it and the
 	builtin posix regexps.
