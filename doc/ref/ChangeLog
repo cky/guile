@@ -1,3 +1,9 @@
+2005-04-19  Kevin Ryde  <user42@zip.com.au>
+
+	* misc-modules.texi, guile.texi (Rx Regexps): Remove this section, Rx
+	is not in the core and we don't want to confuse anyone with it and the
+	builtin posix regexps.
+
 2005-04-04  Han-Wen Nienhuys  <hanwen@xs4all.nl>
 
 	* srfi-modules.texi (SRFI-1 Set Operations): use @cross iso. @times.
