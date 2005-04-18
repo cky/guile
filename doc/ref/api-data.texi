@@ -3818,19 +3818,24 @@ provided, begin matching from that position in the string.
 Return a match structure describing the results of the match,
 or @code{#f} if no match could be found.
 
-The @var{flags} arguments change the matching behavior.
-The following flags may be supplied:
+The @var{flags} argument changes the matching behavior.  The following
+flag values may be supplied, use @code{logior} (@pxref{Bitwise
+Operations}) to combine them,
 
 @defvar regexp/notbol
-Operator @samp{^} always fails (unless @code{regexp/newline}
-is used).  Use this when the beginning of the string should
-not be considered the beginning of a line.
+Consider that the @var{start} offset into @var{str} is not the
+beginning of a line and should not match operator @samp{^}.
+
+If @var{rx} was created with the @code{regexp/newline} option above,
+@samp{^} will still match after a newline in @var{str}.
 @end defvar
 
 @defvar regexp/noteol
-Operator @samp{$} always fails (unless @code{regexp/newline}
-is used).  Use this when the end of the string should not be
-considered the end of a line.
+Consider that the end of @var{str} is not the end of a line and should
+not match operator @samp{$}.
+
+If @var{rx} was created with the @code{regexp/newline} option above,
+@samp{$} will still match before a newline in @var{str}.
 @end defvar
 @end deffn
 
