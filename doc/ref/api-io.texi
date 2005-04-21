@@ -614,6 +614,7 @@ return 0 immediately if the request size is 0 bytes.
 @rnindex current-input-port
 @deffn {Scheme Procedure} current-input-port
 @deffnx {C Function} scm_current_input_port ()
+@cindex standard input
 Return the current input port.  This is the default port used
 by many input procedures.  Initially, @code{current-input-port}
 returns the @dfn{standard input} in Unix and C terminology.
@@ -622,6 +623,7 @@ returns the @dfn{standard input} in Unix and C terminology.
 @rnindex current-output-port
 @deffn {Scheme Procedure} current-output-port
 @deffnx {C Function} scm_current_output_port ()
+@cindex standard output
 Return the current output port.  This is the default port used
 by many output procedures.  Initially,
 @code{current-output-port} returns the @dfn{standard output} in
@@ -630,6 +632,7 @@ Unix and C terminology.
 
 @deffn {Scheme Procedure} current-error-port
 @deffnx {C Function} scm_current_error_port ()
+@cindex standard error output
 Return the port to which errors and warnings should be sent (the
 @dfn{standard error} in Unix and C terminology).
 @end deffn
