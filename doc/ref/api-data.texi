@@ -3862,6 +3862,41 @@ or @code{#f} otherwise.
 @end deffn
 
 @sp 1
+@deffn {Scheme Procedure} list-matches regexp str [flags]
+Return a list of match structures which are the non-overlapping
+matches of @var{regexp} in @var{str}.  @var{regexp} can be either a
+pattern string or a compiled regexp.  The @var{flags} argument is as
+per @code{regexp-exec} above.
+
+@example
+(map match:substring (list-matches "[a-z]+" "abc 42 def 78"))
+@result{} ("abc" "def")
+@end  example
+@end deffn
+
+@deffn {Scheme Procedure} fold-matches regexp str init proc [flags]
+Apply @var{proc} to the non-overlapping matches of @var{regexp} in
+@var{str}, to build a result.  @var{regexp} can be either a pattern
+string or a compiled regexp.  The @var{flags} argument is as per
+@code{regexp-exec} above.
+
+@var{proc} is called as @code{(@var{proc} match prev)} where
+@var{match} is a match structure and @var{prev} is the previous return
+from @var{proc}.  For the first call @var{prev} is the given
+@var{init} parameter.  @code{fold-matches} returns the final value
+from @var{proc}.
+
+For example to count matches,
+
+@example
+(fold-matches "[a-z][0-9]" "abc x1 def y2" 0
+              (lambda (match count)
+                (1+ count)))
+@result{} 2
+@end example
+@end deffn
+
+@sp 1
 Regular expressions are commonly used to find patterns in one string
 and replace them with the contents of another string.  The following
 functions are convenient ways to do this.
