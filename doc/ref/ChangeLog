@@ -1,3 +1,9 @@
+2005-04-23  Kevin Ryde  <user42@zip.com.au>
+
+	* api-data.texi (Regexp Functions): Add list-matches and fold-matches.
+
+	* data-rep.texi (Subrs): Note that subr must not modify its rest list.
+
 2005-04-19  Kevin Ryde  <user42@zip.com.au>
 
 	* api-data.texi (Regexp Functions): Clarity flags parameter.
