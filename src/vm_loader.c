@@ -138,9 +138,9 @@ VM_DEFINE_LOADER (load_program, "load-program")
 
   /* init parameters */
   /* NOTE: format defined in system/vm/assemble.scm */
-  if (SCM_INUMP (x))
+  if (scm_is_integer (x))
     {
-      int i = SCM_INUM (x);
+      int i = scm_to_int (x);
       if (-128 <= i && i <= 127)
 	{
 	  /* 8-bit representation */
@@ -162,10 +162,10 @@ VM_DEFINE_LOADER (load_program, "load-program")
     {
       /* Other cases */
       sp -= 4;
-      p->nargs = SCM_INUM (sp[0]);
-      p->nrest = SCM_INUM (sp[1]);
-      p->nlocs = SCM_INUM (sp[2]);
-      p->nexts = SCM_INUM (sp[3]);
+      p->nargs = scm_to_int (sp[0]);
+      p->nrest = scm_to_int (sp[1]);
+      p->nlocs = scm_to_int (sp[2]);
+      p->nexts = scm_to_int (sp[3]);
     }
 
   PUSH (prog);

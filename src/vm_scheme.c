@@ -164,12 +164,12 @@ VM_DEFINE_FUNCTION (set_cdr, "set-cdr!", 2)
  */
 
 #undef REL
-#define REL(crel,srel)					\
-{							\
-  ARGS2 (x, y);						\
-  if (SCM_INUMP (x) && SCM_INUMP (y))			\
-    RETURN (SCM_BOOL (SCM_INUM (x) crel SCM_INUM (y)));	\
-  RETURN (srel (x, y));					\
+#define REL(crel,srel)						\
+{								\
+  ARGS2 (x, y);							\
+  if (scm_is_integer (x) && scm_is_integer (y))			\
+    RETURN (SCM_BOOL (scm_to_int (x) crel scm_to_int (y)));	\
+  RETURN (srel (x, y));						\
 }
 
 VM_DEFINE_FUNCTION (ee, "ee?", 2)
@@ -206,11 +206,11 @@ VM_DEFINE_FUNCTION (ge, "ge?", 2)
 #define FUNC1(CEXP,SEXP)			\
 {						\
   ARGS1 (x);					\
-  if (SCM_INUMP (x))				\
+  if (scm_is_integer (x))			\
     {						\
       int n = CEXP;				\
       if (SCM_FIXABLE (n))			\
-	RETURN (SCM_MAKINUM (n));		\
+	RETURN (scm_from_int (n));		\
     }						\
   RETURN (SEXP);				\
 }
@@ -218,12 +218,12 @@ VM_DEFINE_FUNCTION (ge, "ge?", 2)
 #undef FUNC2
 #define FUNC2(CFUNC,SFUNC)				\
 {							\
-  ARGS2 (x, y);					\
-  if (SCM_INUMP (x) && SCM_INUMP (y))			\
+  ARGS2 (x, y);						\
+  if (scm_is_integer (x) && scm_is_integer (y))		\
     {							\
-      int n = SCM_INUM (x) CFUNC SCM_INUM (y);	\
+      int n = scm_to_int (x) CFUNC scm_to_int (y);	\
       if (SCM_FIXABLE (n))				\
-	RETURN (SCM_MAKINUM (n));			\
+	RETURN (scm_from_int (n));			\
     }							\
   RETURN (SFUNC (x, y));				\
 }

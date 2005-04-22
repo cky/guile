@@ -50,8 +50,8 @@ scm_t_bits scm_tc16_env;
 SCM
 scm_c_make_env (void)
 {
-  struct scm_env *p = scm_must_malloc (sizeof (struct scm_env),
-				       "scm_c_make_env");
+  struct scm_env *p = scm_gc_malloc (sizeof (struct scm_env),
+				     "env");
   p->identifier = SCM_BOOL_F;
   p->obarray    = scm_c_make_hash_table (ENV_OBARRAY_SIZE);
   SCM_RETURN_NEWSMOB (scm_tc16_env, p);
@@ -68,8 +68,9 @@ env_mark (SCM obj)
 static scm_sizet
 env_free (SCM obj)
 {
-  scm_must_free (SCM_ENV_DATA (obj));
-  return sizeof (struct scm_env);
+  scm_gc_free (SCM_ENV_DATA (obj), sizeof (struct scm_env),
+	       "env");
+  return 0;
 }
 
 

@@ -27,7 +27,7 @@
   :use-module (ice-9 match)
   :use-module (ice-9 regex)
   :use-module (ice-9 common-list)
-  :export (assemble))
+  :export (preprocess assemble))
 
 (define (assemble glil env . opts)
   (codegen (preprocess glil #f) #t))

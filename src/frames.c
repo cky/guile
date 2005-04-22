@@ -52,10 +52,12 @@ scm_c_make_heap_frame (SCM *fp)
   SCM *lower = SCM_FRAME_LOWER_ADDRESS (fp);
   SCM *upper = SCM_FRAME_UPPER_ADDRESS (fp);
   size_t size = sizeof (SCM) * (upper - lower + 1);
-  SCM *p = scm_must_malloc (size, "scm_c_make_heap_frame");
+  SCM *p = scm_gc_malloc (size, "frame");
+
   SCM_NEWSMOB (frame, scm_tc16_heap_frame, p);
   p[0] = frame; /* self link */
   memcpy (p + 1, lower, size - sizeof (SCM));
+
   return frame;
 }
 
@@ -80,8 +82,10 @@ heap_frame_free (SCM obj)
   SCM *lower = SCM_FRAME_LOWER_ADDRESS (fp);
   SCM *upper = SCM_FRAME_UPPER_ADDRESS (fp);
   size_t size = sizeof (SCM) * (upper - lower + 1);
-  scm_must_free (SCM_HEAP_FRAME_DATA (obj));
-  return size;
+
+  scm_gc_free (SCM_HEAP_FRAME_DATA (obj), size, "frame");
+
+  return 0;
 }
 
 /* Scheme interface */
@@ -113,7 +117,7 @@ SCM_DEFINE (scm_frame_local_ref, "frame-local-ref", 2, 0, 0,
   SCM_VALIDATE_HEAP_FRAME (1, frame);
   SCM_VALIDATE_INUM (2, index); /* FIXME: Check the range! */
   return SCM_FRAME_VARIABLE (SCM_HEAP_FRAME_POINTER (frame),
-			     SCM_INUM (index));
+			     scm_to_int (index));
 }
 #undef FUNC_NAME
 
@@ -124,7 +128,8 @@ SCM_DEFINE (scm_frame_local_set_x, "frame-local-set!", 3, 0, 0,
 {
   SCM_VALIDATE_HEAP_FRAME (1, frame);
   SCM_VALIDATE_INUM (2, index); /* FIXME: Check the range! */
-  SCM_FRAME_VARIABLE (SCM_HEAP_FRAME_POINTER (frame), SCM_INUM (index)) = val;
+  SCM_FRAME_VARIABLE (SCM_HEAP_FRAME_POINTER (frame),
+		      scm_to_int (index)) = val;
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME

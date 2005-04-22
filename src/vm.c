@@ -68,10 +68,10 @@ scm_t_bits scm_tc16_vm_cont;
 static SCM
 capture_vm_cont (struct scm_vm *vp)
 {
-  struct scm_vm *p = scm_must_malloc (sizeof (*p), "capture_vm_cont");
+  struct scm_vm *p = scm_gc_malloc (sizeof (*p), "capture_vm_cont");
   p->stack_size = vp->stack_limit - vp->sp;
-  p->stack_base = scm_must_malloc (p->stack_size * sizeof (SCM),
-				   "capture_vm_cont");
+  p->stack_base = scm_gc_malloc (p->stack_size * sizeof (SCM),
+				 "capture_vm_cont");
   p->stack_limit = p->stack_base + p->stack_size - 2;
   p->ip = vp->ip;
   p->sp = (SCM *) (vp->stack_limit - vp->sp);
@@ -110,10 +110,11 @@ static scm_sizet
 vm_cont_free (SCM obj)
 {
   struct scm_vm *p = SCM_VM_CONT_VP (obj);
-  int size = sizeof (struct scm_vm) + p->stack_size * sizeof (SCM);
-  scm_must_free (p->stack_base);
-  scm_must_free (p);
-  return size;
+
+  scm_gc_free (p->stack_base, p->stack_size * sizeof (SCM), "stack-base");
+  scm_gc_free (p, sizeof (struct scm_vm), "vm");
+
+  return 0;
 }
 
 
@@ -232,9 +233,11 @@ make_vm (void)
 #define FUNC_NAME "make_vm"
 {
   int i;
-  struct scm_vm *vp = SCM_MUST_MALLOC (sizeof (struct scm_vm));
+  struct scm_vm *vp = scm_gc_malloc (sizeof (struct scm_vm), "vm");
+
   vp->stack_size  = VM_DEFAULT_STACK_SIZE;
-  vp->stack_base  = SCM_MUST_MALLOC (vp->stack_size * sizeof (SCM));
+  vp->stack_base  = scm_gc_malloc (vp->stack_size * sizeof (SCM),
+				   "stack-base");
   vp->stack_limit = vp->stack_base + vp->stack_size - 3;
   vp->ip    	  = NULL;
   vp->sp    	  = vp->stack_base - 1;
@@ -272,10 +275,12 @@ static scm_sizet
 vm_free (SCM obj)
 {
   struct scm_vm *vp = SCM_VM_DATA (obj);
-  int size = (sizeof (struct scm_vm) + vp->stack_size * sizeof (SCM));
-  scm_must_free (vp->stack_base);
-  scm_must_free (vp);
-  return size;
+
+  scm_gc_free (vp->stack_base, vp->stack_size * sizeof (SCM),
+	       "stack-base");
+  scm_gc_free (vp, sizeof (struct scm_vm), "vm");
+
+  return 0;
 }
 
 SCM_SYMBOL (sym_debug, "debug");

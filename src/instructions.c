@@ -58,10 +58,22 @@ struct scm_instruction *
 scm_lookup_instruction (SCM name)
 {
   struct scm_instruction *ip;
+  char *symbol;
+
   if (SCM_SYMBOLP (name))
     for (ip = scm_instruction_table; ip->opcode != scm_op_last; ip++)
-      if (strcmp (ip->name, SCM_SYMBOL_CHARS (name)) == 0)
-	return ip;
+      {
+	symbol = scm_to_locale_string (scm_symbol_to_string (name));
+	if ((symbol) && (strcmp (ip->name, symbol) == 0))
+	  {
+	    free (symbol);
+	    return ip;
+	  }
+
+	if (symbol)
+	  free (symbol);
+      }
+
   return 0;
 }
 
@@ -95,7 +107,7 @@ SCM_DEFINE (scm_instruction_length, "instruction-length", 1, 0, 0,
 #define FUNC_NAME s_scm_instruction_length
 {
   SCM_VALIDATE_INSTRUCTION (1, inst);
-  return SCM_MAKINUM (SCM_INSTRUCTION_LENGTH (inst));
+  return scm_from_schar (SCM_INSTRUCTION_LENGTH (inst));
 }
 #undef FUNC_NAME
 
@@ -105,7 +117,7 @@ SCM_DEFINE (scm_instruction_pops, "instruction-pops", 1, 0, 0,
 #define FUNC_NAME s_scm_instruction_pops
 {
   SCM_VALIDATE_INSTRUCTION (1, inst);
-  return SCM_MAKINUM (SCM_INSTRUCTION_POPS (inst));
+  return scm_from_schar (SCM_INSTRUCTION_POPS (inst));
 }
 #undef FUNC_NAME
 
@@ -115,7 +127,7 @@ SCM_DEFINE (scm_instruction_pushes, "instruction-pushes", 1, 0, 0,
 #define FUNC_NAME s_scm_instruction_pushes
 {
   SCM_VALIDATE_INSTRUCTION (1, inst);
-  return SCM_MAKINUM (SCM_INSTRUCTION_PUSHES (inst));
+  return scm_from_char (SCM_INSTRUCTION_PUSHES (inst));
 }
 #undef FUNC_NAME
 
@@ -125,7 +137,7 @@ SCM_DEFINE (scm_instruction_to_opcode, "instruction->opcode", 1, 0, 0,
 #define FUNC_NAME s_scm_instruction_to_opcode
 {
   SCM_VALIDATE_INSTRUCTION (1, inst);
-  return SCM_MAKINUM (SCM_INSTRUCTION_OPCODE (inst));
+  return scm_from_char (SCM_INSTRUCTION_OPCODE (inst));
 }
 #undef FUNC_NAME
 
@@ -136,7 +148,7 @@ SCM_DEFINE (scm_opcode_to_instruction, "opcode->instruction", 1, 0, 0,
 {
   int i;
   SCM_VALIDATE_INUM (1, op);
-  i = SCM_INUM (op);
+  i = scm_to_int (op);
   SCM_ASSERT_RANGE (1, op, 0 <= i && i < scm_op_last);
   return scm_str2symbol (scm_instruction_table[i].name);
 }

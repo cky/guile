@@ -57,9 +57,13 @@ enum scm_opcode {
 
 struct scm_instruction {
   enum scm_opcode opcode;	/* opcode */
-  char *name;			/* instruction name */
-  char len;			/* instruction length */
-  char npop;			/* the number of values popped */
+  const char *name;		/* instruction name */
+  signed char len;		/* Instruction length.  This may be -1 for
+				   the loader (see the `VM_LOADER'
+				   macro).  */
+  signed char npop;		/* The number of values popped.  This may be
+				   -1 for insns like `call' which can take
+				   any number of arguments.  */
   char npush;			/* the number of values pushed */
 };
 

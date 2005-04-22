@@ -53,7 +53,8 @@ SCM
 scm_c_make_program (void *addr, size_t size, SCM holder)
 #define FUNC_NAME "scm_c_make_program"
 {
-  struct scm_program *p = SCM_MUST_MALLOC (sizeof (struct scm_program));
+  struct scm_program *p = scm_gc_malloc (sizeof (struct scm_program),
+					 "program");
   p->size     = size;
   p->nargs    = 0;
   p->nrest    = 0;
@@ -66,7 +67,7 @@ scm_c_make_program (void *addr, size_t size, SCM holder)
 
   /* If nobody holds bytecode's address, then allocate a new memory */
   if (SCM_FALSEP (holder))
-    p->base = SCM_MUST_MALLOC (size);
+    p->base = scm_gc_malloc (size, "program-base");
   else
     p->base = addr;
 
@@ -98,13 +99,13 @@ program_free (SCM obj)
 {
   struct scm_program *p = SCM_PROGRAM_DATA (obj);
   scm_sizet size = (sizeof (struct scm_program));
+
   if (SCM_FALSEP (p->holder))
-    {
-      size += p->size;
-      scm_must_free (p->base);
-    }
-  scm_must_free (p);
-  return size;
+    scm_gc_free (p->base, p->size, "program-base");
+
+  scm_gc_free (p, size, "program");
+
+  return 0;
 }
 
 static SCM

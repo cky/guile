@@ -62,9 +62,10 @@ static SCM
 make_objcode (size_t size)
 #define FUNC_NAME "make_objcode"
 {
-  struct scm_objcode *p = SCM_MUST_MALLOC (sizeof (struct scm_objcode));
+  struct scm_objcode *p = scm_gc_malloc (sizeof (struct scm_objcode),
+					 "objcode");
   p->size = size;
-  p->base = SCM_MUST_MALLOC (size);
+  p->base = scm_gc_malloc (size, "objcode-base");
   p->fd   = -1;
   SCM_RETURN_NEWSMOB (scm_tc16_objcode, p);
 }
@@ -85,7 +86,7 @@ make_objcode_by_mmap (int fd)
   addr = mmap (0, st.st_size, PROT_READ, MAP_SHARED, fd, 0);
   if (addr == MAP_FAILED) SCM_SYSERROR;
 
-  p = SCM_MUST_MALLOC (sizeof (struct scm_objcode));
+  p = scm_gc_malloc (sizeof (struct scm_objcode), "objcode");
   p->size = st.st_size;
   p->base = addr;
   p->fd   = fd;
@@ -97,7 +98,7 @@ static scm_sizet
 objcode_free (SCM obj)
 #define FUNC_NAME "objcode_free"
 {
-  size_t size = (sizeof (struct scm_objcode));
+  size_t size = sizeof (struct scm_objcode);
   struct scm_objcode *p = SCM_OBJCODE_DATA (obj);
 
   if (p->fd >= 0)
@@ -109,13 +110,11 @@ objcode_free (SCM obj)
       if (rv < 0) SCM_SYSERROR;
     }
   else
-    {
-      size += p->size;
-      scm_must_free (p->base);
-    }
+    scm_gc_free (p->base, p->size, "objcode-base");
 
-  scm_must_free (p);
-  return size;
+  scm_gc_free (p, size, "objcode");
+
+  return 0;
 }
 #undef FUNC_NAME
 
@@ -139,21 +138,26 @@ SCM_DEFINE (scm_bytecode_to_objcode, "bytecode->objcode", 3, 0, 0,
 #define FUNC_NAME s_scm_bytecode_to_objcode
 {
   size_t size;
-  char *base;
+  char *base, *c_bytecode;
   SCM objcode;
 
   SCM_VALIDATE_STRING (1, bytecode);
   SCM_VALIDATE_INUM (2, nlocs);
   SCM_VALIDATE_INUM (3, nexts);
 
-  size = SCM_STRING_LENGTH (bytecode) + 10;
+  size = scm_c_string_length (bytecode) + 10;
   objcode = make_objcode (size);
   base = SCM_OBJCODE_BASE (objcode);
 
   memcpy (base, OBJCODE_COOKIE, 8);
-  base[8] =  SCM_INUM (nlocs);
-  base[9] =  SCM_INUM (nexts);
-  memcpy (base + 10, SCM_STRING_CHARS (bytecode), size - 10);
+  base[8] = scm_to_int (nlocs);
+  base[9] = scm_to_int (nexts);
+
+  /* FIXME:  We should really use SRFI-4 u8vectors!  (Ludovic) */
+  c_bytecode = scm_to_locale_string (bytecode);
+  memcpy (base + 10, c_bytecode, size - 10);
+  free (c_bytecode);
+
   return objcode;
 }
 #undef FUNC_NAME

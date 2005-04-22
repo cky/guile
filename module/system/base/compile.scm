@@ -41,9 +41,10 @@
   (throw 'syntax-error loc msg exp))
 
 (define-public (call-with-compile-error-catch thunk)
-  (try (thunk)
-    ((syntax-error loc msg exp)
-     (format #t "~A:~A: ~A: ~A" (car loc) (cdr loc) msg exp))))
+  (catch 'syntax-error
+	 (thunk)
+	 (lambda (key loc msg exp)
+	   (format #t "~A:~A: ~A: ~A" (car loc) (cdr loc) msg exp))))
 
 
 ;;;
