@@ -52,7 +52,7 @@
 @c essay @sp 10
 @c essay @comment The title is printed in a large font.
 @c essay @title Data Representation in Guile
-@c essay @subtitle $Id: data-rep.texi,v 1.18 2004-07-07 12:17:41 mvo Exp $
+@c essay @subtitle $Id: data-rep.texi,v 1.19 2005-04-22 23:16:43 kryde Exp $
 @c essay @subtitle For use with Guile @value{VERSION}
 @c essay @author Jim Blandy
 @c essay @author Free Software Foundation
@@ -977,9 +977,14 @@ arguments, or else Guile signals an error.  @var{function} receives the
 subr's first @var{req} arguments as its first @var{req} arguments.  If
 there are fewer than @var{opt} arguments remaining, then @var{function}
 receives the value @code{SCM_UNDEFINED} for any missing optional
-arguments.  If @var{rst} is non-zero, then any arguments after the first
-@code{@var{req} + @var{opt}} are packaged up as a list as passed as
-@var{function}'s last argument.
+arguments.
+
+If @var{rst} is non-zero, then any arguments after the first
+@code{@var{req} + @var{opt}} are packaged up as a list and passed as
+@var{function}'s last argument.  @var{function} must not modify that
+list.  (Because when subr is called through @code{apply} the list is
+directly from the @code{apply} argument, which the caller will expect
+to be unchanged.)
 
 Note that subrs can actually only accept a predefined set of
 combinations of required, optional, and rest arguments.  For example, a
@@ -1337,3 +1342,6 @@ Scheme value and thus the first cell entry must be accessed using the
 @end deftypefn
 
 
+@c Local Variables:
+@c TeX-master: "guile.texi"
+@c End:
