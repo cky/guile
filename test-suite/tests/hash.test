@@ -1,6 +1,6 @@
 ;;;; hash.test --- test guile hashing     -*- scheme -*-
 ;;;;
-;;;; Copyright (C) 2004 Free Software Foundation, Inc.
+;;;; Copyright (C) 2004, 2005 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -61,3 +61,15 @@
   (pass-if (= 0 (hashq #t 1)))
   (pass-if (= 0 (hashq #f 1)))
   (pass-if (= 0 (hashq noop 1))))
+
+;;;
+;;; hashx-remove!
+;;;
+
+(with-test-prefix "hashx-remove!"
+  (pass-if (->bool (object-documentation hashx-remove!)))
+
+  (pass-if (let ((table (make-hash-table)))
+	     (hashx-set! hashq assq table 'x 123)
+	     (hashx-remove! hashq assq table 'x)
+	     (null? (hash-map->list noop table)))))
