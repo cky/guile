@@ -933,7 +933,8 @@ SCM_DEFINE (scm_hashx_remove_x, "hashx-remove!", 4, 0, 0,
   scm_t_ihashx_closure closure;
   closure.hash = hash;
   closure.assoc = assoc;
-  return scm_hash_fn_remove_x (table, obj, scm_ihashx, scm_sloppy_assx, 0);
+  return scm_hash_fn_remove_x (table, obj, scm_ihashx, scm_sloppy_assx,
+                               (void *) &closure);
 }
 #undef FUNC_NAME
 
