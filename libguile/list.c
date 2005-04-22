@@ -98,17 +98,6 @@ scm_list_n (SCM elt, ...)
 }
 
 
-SCM_DEFINE (scm_list, "list", 0, 0, 1, 
-           (SCM objs),
-	    "Return a list containing @var{objs}, the arguments to\n"
-	    "@code{list}.")
-#define FUNC_NAME s_scm_list
-{
-  return objs;
-}
-#undef FUNC_NAME
-
-
 SCM_DEFINE (scm_cons_star, "cons*", 1, 0, 1,
             (SCM arg, SCM rest),
 	    "Like @code{list}, but the last arg provides the tail of the\n"
@@ -553,6 +542,13 @@ SCM_DEFINE (scm_list_copy, "list-copy", 1, 0, 0,
   return newlst;
 }
 #undef FUNC_NAME
+
+
+SCM_PROC (s_list, "list", 0, 0, 1, scm_list_copy);
+SCM_SNARF_DOCS (register, scm_list_copy, "list", (SCM objs), 0, 0, 1,
+                "Return a list containing @var{objs}, the arguments to\n"
+                "@code{list}.")
+
 
 
 /* membership tests (memq, memv, etc.) */ 
