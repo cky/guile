@@ -109,7 +109,7 @@ SCM_DEFINE (scm_list, "list", 0, 0, 1,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_cons_star, "cons*", 1, 0, 1, 
+SCM_DEFINE (scm_cons_star, "cons*", 1, 0, 1,
             (SCM arg, SCM rest),
 	    "Like @code{list}, but the last arg provides the tail of the\n"
 	    "constructed list, returning @code{(cons @var{arg1} (cons\n"
@@ -119,18 +119,20 @@ SCM_DEFINE (scm_cons_star, "cons*", 1, 0, 1,
 	    "Schemes and in Common LISP.")
 #define FUNC_NAME s_scm_cons_star
 {
+  SCM ret = SCM_EOL;
+  SCM *p = &ret;
+
   SCM_VALIDATE_REST_ARGUMENT (rest);
-  if (!scm_is_null (rest))
+
+  for ( ; scm_is_pair (rest); rest = SCM_CDR (rest))
     {
-      SCM prev = arg = scm_cons (arg, rest);
-      while (!scm_is_null (SCM_CDR (rest)))
-	{
-	  prev = rest;
-	  rest = SCM_CDR (rest);
-	}
-      SCM_SETCDR (prev, SCM_CAR (rest));
+      *p = scm_cons (arg, SCM_EOL);
+      p = SCM_CDRLOC (*p);
+      arg = SCM_CAR (rest);
     }
-  return arg;
+
+  *p = arg;
+  return ret;
 }
 #undef FUNC_NAME
 
