@@ -1,3 +1,15 @@
+2005-04-23  Kevin Ryde  <user42@zip.com.au>
+
+	* hashtab.c (scm_hashx_remove_x): Need to pass "closure" to
+	scm_hash_fn_remove_x.
+
+	* list.c (scm_cons_star): Don't modify the rest list, it belongs to
+	the caller when cons* is reached through apply.
+
+	* list.c (list): Use scm_list_copy, so as to produce a fresh list when
+	list is called using apply, under the debugging evaluator.
+	(scm_list): Remove.
+
 2005-04-14  Kevin Ryde  <user42@zip.com.au>
 
 	* numbers.c, numbers.h (scm_oneplus, scm_oneminus): New functions,
