@@ -61,8 +61,11 @@ VM_DEFINE_LOADER (load_integer, "load-integer")
 VM_DEFINE_LOADER (load_number, "load-number")
 {
   size_t len;
+
   FETCH_LENGTH (len);
-  PUSH (scm_istring2number (ip, len, 10));
+  PUSH (scm_string_to_number (scm_from_locale_stringn (ip, len),
+			      SCM_UNSPECIFIED /* radix = 10 */));
+  /* Was: scm_istring2number (ip, len, 10)); */
   ip += len;
   NEXT;
 }
@@ -71,7 +74,8 @@ VM_DEFINE_LOADER (load_string, "load-string")
 {
   size_t len;
   FETCH_LENGTH (len);
-  PUSH (scm_makfromstr (ip, len, 0));
+  PUSH (scm_from_locale_stringn (ip, len));
+  /* Was: scm_makfromstr (ip, len, 0) */
   ip += len;
   NEXT;
 }
@@ -189,7 +193,8 @@ VM_DEFINE_LOADER (link, "link")
       /* Create a new variable if not defined yet */
       var = scm_eval_closure_lookup (scm_standard_eval_closure (mod),
 				     sym, SCM_BOOL_T);
-    PUSH (SCM_VARVCELL (var));
+    PUSH (scm_variable_ref (var));
+    /* Was: SCM_VARVCELL (var)); */
     NEXT;
   }
 }

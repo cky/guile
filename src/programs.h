@@ -64,7 +64,7 @@ struct scm_program {
   SCM holder;			/* the owner of bytecode */
 };
 
-extern scm_bits_t scm_tc16_program;
+extern scm_t_bits scm_tc16_program;
 
 #define SCM_PROGRAM_P(x)	(SCM_SMOB_PREDICATE (scm_tc16_program, x))
 #define SCM_PROGRAM_DATA(x)	((struct scm_program *) SCM_SMOB_DATA (x))

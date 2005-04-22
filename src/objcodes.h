@@ -51,7 +51,7 @@ struct scm_objcode {
   int fd;			/* file descriptor when mmap'ed */
 };
 
-extern scm_bits_t scm_tc16_objcode;
+extern scm_t_bits scm_tc16_objcode;
 
 #define SCM_OBJCODE_P(x)	(SCM_SMOB_PREDICATE (scm_tc16_objcode, x))
 #define SCM_OBJCODE_DATA(x)	((struct scm_objcode *) SCM_SMOB_DATA (x))

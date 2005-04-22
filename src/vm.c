@@ -59,7 +59,7 @@
  * VM Continuation
  */
 
-scm_bits_t scm_tc16_vm_cont;
+scm_t_bits scm_tc16_vm_cont;
 
 
 #define SCM_VM_CONT_P(OBJ)	SCM_SMOB_PREDICATE (scm_tc16_vm_cont, OBJ)
@@ -223,7 +223,7 @@ vm_heapify_frames (SCM vm)
 #undef VM_NAME
 #undef VM_ENGINE
 
-scm_bits_t scm_tc16_vm;
+scm_t_bits scm_tc16_vm;
 
 static SCM the_vm;
 
@@ -471,9 +471,11 @@ SCM_DEFINE (scm_vm_stats, "vm-stats", 1, 0, 0,
 
   SCM_VALIDATE_VM (1, vm);
 
-  stats = scm_c_make_vector (2, SCM_MAKINUM (0));
-  SCM_VELTS (stats)[0] = scm_ulong2num (SCM_VM_DATA (vm)->time);
-  SCM_VELTS (stats)[1] = scm_ulong2num (SCM_VM_DATA (vm)->clock);
+  stats = scm_make_vector (scm_from_int (2), SCM_UNSPECIFIED);
+  scm_vector_set_x (stats, scm_from_int (0),
+		    scm_from_ulong (SCM_VM_DATA (vm)->time));
+  scm_vector_set_x (stats, scm_from_int (1),
+		    scm_from_ulong (SCM_VM_DATA (vm)->clock));
 
   return stats;
 }

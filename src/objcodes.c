@@ -56,7 +56,7 @@
  * Objcode type
  */
 
-scm_bits_t scm_tc16_objcode;
+scm_t_bits scm_tc16_objcode;
 
 static SCM
 make_objcode (size_t size)

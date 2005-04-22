@@ -88,7 +88,7 @@
  * Heap frames
  */
 
-extern scm_bits_t scm_tc16_heap_frame;
+extern scm_t_bits scm_tc16_heap_frame;
 
 #define SCM_HEAP_FRAME_P(x)	SCM_SMOB_PREDICATE (scm_tc16_heap_frame, x)
 #define SCM_HEAP_FRAME_DATA(f)		((SCM *) SCM_SMOB_DATA (f))

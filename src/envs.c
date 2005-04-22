@@ -45,7 +45,7 @@
 #define ENV_OBARRAY_SIZE 31
 
 
-scm_bits_t scm_tc16_env;
+scm_t_bits scm_tc16_env;
 
 SCM
 scm_c_make_env (void)
@@ -236,7 +236,8 @@ scm_init_envs (void)
   load_env = scm_eval_closure_lookup (scm_standard_eval_closure (mod),
 				      scm_str2symbol ("load-env"),
 				      SCM_BOOL_T);
-  load_env = SCM_VARVCELL (load_env);
+  load_env = scm_variable_ref (load_env);
+  /* Was: SCM_VARVCELL (load_env); */
 }
 
 /*

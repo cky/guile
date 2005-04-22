@@ -45,7 +45,7 @@
 #include <libguile.h>
 #include "config.h"
 
-extern scm_bits_t scm_tc16_env;
+extern scm_t_bits scm_tc16_env;
 
 struct scm_env {
   SCM identifier;

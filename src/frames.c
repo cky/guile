@@ -43,7 +43,7 @@
 #include "frames.h"
 
 
-scm_bits_t scm_tc16_heap_frame;
+scm_t_bits scm_tc16_heap_frame;
 
 SCM
 scm_c_make_heap_frame (SCM *fp)

@@ -45,7 +45,7 @@
 #include "vm.h"
 
 
-scm_bits_t scm_tc16_program;
+scm_t_bits scm_tc16_program;
 
 static SCM zero_vector;
 
