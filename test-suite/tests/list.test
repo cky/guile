@@ -15,7 +15,8 @@
 ;;;; License along with this library; if not, write to the Free Software
 ;;;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-(use-modules (ice-9 documentation))
+(use-modules (test-suite lib)
+	     (ice-9 documentation))
 
 
 ;;;
@@ -117,9 +118,70 @@
 
 ;;; list
 
+(with-test-prefix "list"
+
+  (pass-if "documented?"
+    (documented? list))
+
+  ;; in guile 1.6.7 and earlier `list' called using `apply' didn't make a
+  ;; new list, it just returned the given list
+  (pass-if "apply gets fresh list"
+    (let* ((x '(1 2 3))
+	   (y (apply list x)))
+      (not (eq? x y)))))
 
 ;;; cons*
 
+(with-test-prefix "cons*"
+
+  (pass-if "documented?"
+    (documented? list))
+
+  (with-test-prefix "one arg"
+    (pass-if "empty list"
+      (eq? '() (cons* '())))
+    (pass-if "one elem list"
+      (let* ((lst '(1)))
+	(eq? lst (cons* lst))))
+    (pass-if "two elem list"
+      (let* ((lst '(1 2)))
+	(eq? lst (cons* lst)))))
+
+  (with-test-prefix "two args"
+    (pass-if "empty list"
+      (equal? '(1) (cons* 1 '())))
+    (pass-if "one elem list"
+      (let* ((lst '(1))
+	     (ret (cons* 2 lst)))
+	(and (equal? '(2 1) ret)
+	     (eq? lst (cdr ret)))))
+    (pass-if "two elem list"
+      (let* ((lst '(1 2))
+	     (ret (cons* 3 lst)))
+	(and (equal? '(3 1 2) ret)
+	     (eq? lst (cdr ret))))))
+
+  (with-test-prefix "three args"
+    (pass-if "empty list"
+      (equal? '(1 2) (cons* 1 2 '())))
+    (pass-if "one elem list"
+      (let* ((lst '(1))
+	     (ret (cons* 2 3 lst)))
+	(and (equal? '(2 3 1) ret)
+	     (eq? lst (cddr ret)))))
+    (pass-if "two elem list"
+      (let* ((lst '(1 2))
+	     (ret (cons* 3 4 lst)))
+	(and (equal? '(3 4 1 2) ret)
+	     (eq? lst (cddr ret))))))
+
+  ;; in guile 1.6.7 and earlier `cons*' called using `apply' modified its
+  ;; list argument
+  (pass-if "apply list unchanged"
+    (let* ((lst '(1 2 (3 4)))
+	   (ret (apply cons* lst)))
+      (and (equal? lst '(1 2 (3 4)))
+	   (equal? ret '(1 2 3 4))))))
 
 ;;; null?
 
