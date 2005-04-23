@@ -98,6 +98,27 @@ scm_list_n (SCM elt, ...)
 }
 
 
+SCM_DEFINE (scm_make_list, "make-list", 1, 1, 0,
+            (SCM n, SCM init),
+	    "Create a list containing of @var{n} elements, where each\n"
+	    "element is initialized to @var{init}.  @var{init} defaults to\n"
+	    "the empty list @code{()} if not given.")
+#define FUNC_NAME s_scm_srfi1_count
+{
+  unsigned nn = scm_to_uint (n);
+  unsigned i;
+  SCM ret = SCM_EOL;
+
+  if (SCM_UNBNDP (init))
+    init = SCM_EOL;
+
+  for (i = 0; i < nn; i++)
+    ret = scm_cons (init, ret);
+  return ret;
+}
+#undef FUNC_NAME
+
+
 SCM_DEFINE (scm_cons_star, "cons*", 1, 0, 1,
             (SCM arg, SCM rest),
 	    "Like @code{list}, but the last arg provides the tail of the\n"
