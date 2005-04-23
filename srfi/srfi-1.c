@@ -198,28 +198,30 @@ SCM_DEFINE (scm_srfi1_count, "count", 2, 0, 1,
   else
     {
       /* three or more lists */
-      SCM  lstlst, args, l, a;
+      SCM  vec, args, a;
+      size_t  len, i;
 
-      /* lstlst is a list of the list arguments */
-      lstlst = scm_cons (list1, rest);
+      /* vec is the list arguments */
+      vec = scm_vector (scm_cons (list1, rest));
+      len = SCM_SIMPLE_VECTOR_LENGTH (vec);
 
-      /* args is the argument list to pass to pred, same length as lstlst,
+      /* args is the argument list to pass to pred, same length as vec,
          re-used for each call */
-      args = scm_list_copy (lstlst);
+      args = scm_make_list (SCM_I_MAKINUM (len), SCM_UNDEFINED);
 
       for (;;)
         {
-          /* first elem of each list in lstlst into args, and step those
-             lstlst entries onto their next element */
-          for (l = lstlst, a = args, argnum = 2;
-               scm_is_pair (l);
-               l = SCM_CDR (l), a = SCM_CDR (a), argnum++)
+          /* first elem of each list in vec into args, and step those
+             vec entries onto their next element */
+          for (i = 0, a = args, argnum = 2;
+               i < len;
+               i++, a = SCM_CDR (a), argnum++)
             {
-              lst = SCM_CAR (l);  /* list argument */
+              lst = SCM_SIMPLE_VECTOR_REF (vec, i);  /* list argument */
               if (! scm_is_pair (lst))
                 goto check_lst_and_done;
               SCM_SETCAR (a, SCM_CAR (lst));  /* arg for pred */
-              SCM_SETCAR (l, SCM_CDR (lst));  /* keep rest of lst */
+              SCM_SIMPLE_VECTOR_SET (vec, i, SCM_CDR (lst));  /* rest of lst */
             }
 
           count += scm_is_true (scm_apply (pred, args, SCM_EOL));
@@ -623,28 +625,30 @@ SCM_DEFINE (scm_srfi1_filter_map, "filter-map", 2, 0, 1,
   else
     {
       /* three or more lists */
-      SCM  lstlst, args, l, a;
+      SCM  vec, args, a;
+      size_t len, i;
 
-      /* lstlst is a list of the list arguments */
-      lstlst = scm_cons (list1, rest);
+      /* vec is the list arguments */
+      vec = scm_vector (scm_cons (list1, rest));
+      len = SCM_SIMPLE_VECTOR_LENGTH (vec);
 
-      /* args is the argument list to pass to proc, same length as lstlst,
+      /* args is the argument list to pass to proc, same length as vec,
          re-used for each call */
-      args = scm_list_copy (lstlst);
+      args = scm_make_list (SCM_I_MAKINUM (len), SCM_UNDEFINED);
 
       for (;;)
         {
-          /* first elem of each list in lstlst into args, and step those
-             lstlst entries onto their next element */
-          for (l = lstlst, a = args, argnum = 2;
-               scm_is_pair (l);
-               l = SCM_CDR (l), a = SCM_CDR (a), argnum++)
+          /* first elem of each list in vec into args, and step those
+             vec entries onto their next element */
+          for (i = 0, a = args, argnum = 2;
+               i < len;
+               i++, a = SCM_CDR (a), argnum++)
             {
-              lst = SCM_CAR (l);  /* list argument */
+              lst = SCM_SIMPLE_VECTOR_REF (vec, i);  /* list argument */
               if (! scm_is_pair (lst))
                 goto check_lst_and_done;
               SCM_SETCAR (a, SCM_CAR (lst));  /* arg for proc */
-              SCM_SETCAR (l, SCM_CDR (lst));  /* keep rest of lst */
+              SCM_SIMPLE_VECTOR_SET (vec, i, SCM_CDR (lst));  /* rest of lst */
             }
 
           elem = scm_apply (proc, args, SCM_EOL);
