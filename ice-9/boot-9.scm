@@ -487,14 +487,6 @@
 	     n
 	     (loop (+ n 1) (cdr l))))))
 
-(define (make-list n . init)
-  (if (pair? init) (set! init (car init)))
-  (let loop ((answer '())
-	     (n n))
-    (if (<= n 0)
-	answer
-	(loop (cons init answer) (- n 1)))))
-
 
 
 ;;; {and-map and or-map}
