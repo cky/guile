@@ -279,6 +279,12 @@
     
     (pass-if-exception "too many args" exception:wrong-num-args
       (concatenate-proc '() '()))
+
+    (pass-if-exception "number" exception:wrong-type-arg
+      (concatenate-proc 123))
+
+    (pass-if-exception "vector" exception:wrong-type-arg
+      (concatenate-proc #(1 2 3)))
     
     (pass-if "no lists"
       (try '() '()))
@@ -309,103 +315,103 @@
 (with-test-prefix "count"
   (pass-if-exception "no args" exception:wrong-num-args
     (count))
-  
+
   (pass-if-exception "one arg" exception:wrong-num-args
     (count noop))
-  
+
   (with-test-prefix "one list"
     (define (or1 x)
       x)
-    
+
     (pass-if "empty list" (= 0 (count or1 '())))
-    
+
     (pass-if-exception "pred arg count 0" exception:wrong-type-arg
       (count (lambda () x) '(1 2 3)))
     (pass-if-exception "pred arg count 2" exception:wrong-type-arg
       (count (lambda (x y) x) '(1 2 3)))
-    
+
     (pass-if-exception "improper 1" exception:wrong-type-arg
       (count or1 1))
     (pass-if-exception "improper 2" exception:wrong-type-arg
       (count or1 '(1 . 2)))
     (pass-if-exception "improper 3" exception:wrong-type-arg
       (count or1 '(1 2 . 3)))
-    
+
     (pass-if (= 0 (count or1 '(#f))))
     (pass-if (= 1 (count or1 '(#t))))
-    
+
     (pass-if (= 0 (count or1 '(#f #f))))
     (pass-if (= 1 (count or1 '(#f #t))))
     (pass-if (= 1 (count or1 '(#t #f))))
     (pass-if (= 2 (count or1 '(#t #t))))
-    
+
     (pass-if (= 0 (count or1 '(#f #f #f))))
     (pass-if (= 1 (count or1 '(#f #f #t))))
     (pass-if (= 1 (count or1 '(#t #f #f))))
     (pass-if (= 2 (count or1 '(#t #f #t))))
     (pass-if (= 3 (count or1 '(#t #t #t)))))
-  
+
   (with-test-prefix "two lists"
     (define (or2 x y)
       (or x y))
-    
+
     (pass-if "arg order"
       (= 1 (count (lambda (x y)
 		    (and (= 1 x)
 			 (= 2 y)))
 		  '(1) '(2))))
-    
+
     (pass-if "empty lists" (= 0 (count or2 '() '())))
-    
+
     (pass-if-exception "pred arg count 0" exception:wrong-type-arg
       (count (lambda () #t) '(1 2 3) '(1 2 3)))
     (pass-if-exception "pred arg count 1" exception:wrong-type-arg
       (count (lambda (x) x) '(1 2 3) '(1 2 3)))
     (pass-if-exception "pred arg count 3" exception:wrong-type-arg
       (count (lambda (x y z) x) '(1 2 3) '(1 2 3)))
-    
+
     (pass-if-exception "improper first 1" exception:wrong-type-arg
       (count or2 1 '(1 2 3)))
     (pass-if-exception "improper first 2" exception:wrong-type-arg
       (count or2 '(1 . 2) '(1 2 3)))
     (pass-if-exception "improper first 3" exception:wrong-type-arg
       (count or2 '(1 2 . 3) '(1 2 3)))
-    
+
     (pass-if-exception "improper second 1" exception:wrong-type-arg
       (count or2 '(1 2 3) 1))
     (pass-if-exception "improper second 2" exception:wrong-type-arg
       (count or2 '(1 2 3) '(1 . 2)))
     (pass-if-exception "improper second 3" exception:wrong-type-arg
       (count or2 '(1 2 3) '(1 2 . 3)))
-    
+
     (pass-if (= 0 (count or2 '(#f) '(#f))))
     (pass-if (= 1 (count or2 '(#t) '(#f))))
     (pass-if (= 1 (count or2 '(#f) '(#t))))
-    
+
     (pass-if (= 0 (count or2 '(#f #f) '(#f #f))))
     (pass-if (= 1 (count or2 '(#t #f) '(#t #f))))
     (pass-if (= 2 (count or2 '(#t #t) '(#f #f))))
     (pass-if (= 2 (count or2 '(#t #f) '(#f #t))))
-    
+
     (with-test-prefix "stop shortest"
       (pass-if (= 2 (count or2 '(#t #f #t) '(#f #t))))
       (pass-if (= 2 (count or2 '(#t #f #t #t) '(#f #t))))
       (pass-if (= 2 (count or2 '(#t #f) '(#f #t #t))))
       (pass-if (= 2 (count or2 '(#t #f) '(#f #t #t #t))))))
-  
+
   (with-test-prefix "three lists"
     (define (or3 x y z)
       (or x y z))
-    
+
     (pass-if "arg order"
       (= 1 (count (lambda (x y z)
 		    (and (= 1 x)
 			 (= 2 y)
 			 (= 3 z)))
 		  '(1) '(2) '(3))))
-    
+
     (pass-if "empty lists" (= 0 (count or3 '() '() '())))
-    
+
     ;; currently bad pred argument gives wrong-num-args when 3 or more
     ;; lists, as opposed to wrong-type-arg for 1 or 2 lists
     (pass-if-exception "pred arg count 0" exception:wrong-num-args
@@ -414,55 +420,61 @@
       (count (lambda (x y) x) '(1 2 3) '(1 2 3)'(1 2 3) ))
     (pass-if-exception "pred arg count 4" exception:wrong-num-args
       (count (lambda (w x y z) x) '(1 2 3) '(1 2 3) '(1 2 3)))
-    
+
     (pass-if-exception "improper first 1" exception:wrong-type-arg
       (count or3 1 '(1 2 3) '(1 2 3)))
     (pass-if-exception "improper first 2" exception:wrong-type-arg
       (count or3 '(1 . 2) '(1 2 3) '(1 2 3)))
     (pass-if-exception "improper first 3" exception:wrong-type-arg
       (count or3 '(1 2 . 3) '(1 2 3) '(1 2 3)))
-    
+
     (pass-if-exception "improper second 1" exception:wrong-type-arg
       (count or3 '(1 2 3) 1 '(1 2 3)))
     (pass-if-exception "improper second 2" exception:wrong-type-arg
       (count or3 '(1 2 3) '(1 . 2) '(1 2 3)))
     (pass-if-exception "improper second 3" exception:wrong-type-arg
       (count or3 '(1 2 3) '(1 2 . 3) '(1 2 3)))
-    
+
     (pass-if-exception "improper third 1" exception:wrong-type-arg
       (count or3 '(1 2 3) '(1 2 3) 1))
     (pass-if-exception "improper third 2" exception:wrong-type-arg
       (count or3 '(1 2 3) '(1 2 3) '(1 . 2)))
     (pass-if-exception "improper third 3" exception:wrong-type-arg
       (count or3 '(1 2 3) '(1 2 3) '(1 2 . 3)))
-    
+
     (pass-if (= 0 (count or3 '(#f) '(#f) '(#f))))
     (pass-if (= 1 (count or3 '(#t) '(#f) '(#f))))
     (pass-if (= 1 (count or3 '(#f) '(#t) '(#f))))
     (pass-if (= 1 (count or3 '(#f) '(#f) '(#t))))
-    
+
     (pass-if (= 0 (count or3 '(#f #f) '(#f #f) '(#f #f))))
-    
+
     (pass-if (= 1 (count or3 '(#t #f) '(#f #f) '(#f #f))))
     (pass-if (= 1 (count or3 '(#f #t) '(#f #f) '(#f #f))))
     (pass-if (= 1 (count or3 '(#f #f) '(#t #f) '(#f #f))))
     (pass-if (= 1 (count or3 '(#f #f) '(#f #t) '(#f #f))))
     (pass-if (= 1 (count or3 '(#f #f) '(#f #f) '(#t #f))))
     (pass-if (= 1 (count or3 '(#f #f) '(#f #f) '(#f #t))))
-    
+
     (pass-if (= 2 (count or3 '(#t #t) '(#f #f) '(#f #f))))
     (pass-if (= 2 (count or3 '(#f #f) '(#t #t) '(#f #f))))
     (pass-if (= 2 (count or3 '(#f #f) '(#f #f) '(#t #t))))
     (pass-if (= 2 (count or3 '(#f #f) '(#t #f) '(#f #t))))
-    
+
     (with-test-prefix "stop shortest"
       (pass-if (= 0 (count or3 '() '(#t #t #t) '(#t #t))))
       (pass-if (= 0 (count or3 '(#t #t #t) '() '(#t #t))))
       (pass-if (= 0 (count or3 '(#t #t #t) '(#t #t) '())))
-      
+
       (pass-if (= 1 (count or3 '(#t) '(#t #t #t) '(#t #t))))
       (pass-if (= 1 (count or3 '(#t #t #t) '(#t) '(#t #t))))
-      (pass-if (= 1 (count or3 '(#t #t #t) '(#t #t) '(#t)))))))
+      (pass-if (= 1 (count or3 '(#t #t #t) '(#t #t) '(#t)))))
+
+    (pass-if "apply list unchanged"
+      (let ((lst (list (list 1 2) (list 3 4) (list 5 6))))
+	(and (equal? 2 (apply count or3 lst))
+	     ;; lst unmodified
+	     (equal? '((1 2) (3 4) (5 6)) lst))))))
 
 ;;
 ;; delete and delete!
@@ -807,7 +819,13 @@
       (equal? '(2) (filter-map noop '(#f 2 3) '(7 8 9) '(4 5))))
 
     (pass-if "(4 #f) (1 2 3) (7 8 9)"
-      (equal? '(4) (filter-map noop '(4 #f) '(1 2 3) '(7 8 9))))))
+      (equal? '(4) (filter-map noop '(4 #f) '(1 2 3) '(7 8 9))))
+
+    (pass-if "apply list unchanged"
+      (let ((lst (list (list 1 #f 2) (list 3 4 5) (list 6 7 8))))
+	(and (equal? '(1 2) (apply filter-map noop lst))
+	     ;; lst unmodified
+	     (equal? lst '((1 #f 2) (3 4 5) (6 7 8))))))))
   
 ;;
 ;; find
@@ -1051,6 +1069,22 @@
 		     (= x y))
 		   '(1) 2)
       good))
+
+  (pass-if (equal? '() (lset-adjoin = '())))
+
+  (pass-if (equal? '(1) (lset-adjoin = '() 1)))
+
+  (pass-if (equal? '(1) (lset-adjoin = '() 1 1)))
+
+  (pass-if (equal? '(2 1) (lset-adjoin = '() 1 2)))
+
+  (pass-if (equal? '(3 1 2) (lset-adjoin = '(1 2) 1 2 3 2 1)))
+
+  (pass-if "apply list unchanged"
+    (let ((lst (list 1 2)))
+      (and (equal? '(2 1 3) (apply lset-adjoin = '(3) lst))
+	   ;; lst unmodified
+	   (equal? '(1 2) lst))))
 
   (pass-if "(1 1) 1 1"
     (equal? '(1 1) (lset-adjoin = '(1 1) 1 1)))
