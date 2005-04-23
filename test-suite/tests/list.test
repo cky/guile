@@ -130,6 +130,33 @@
 	   (y (apply list x)))
       (not (eq? x y)))))
 
+;;; make-list
+
+(with-test-prefix "make-list"
+
+  (pass-if "documented?"
+    (documented? make-list))
+
+  (with-test-prefix "no init"
+    (pass-if "0"
+      (equal? '() (make-list 0)))
+    (pass-if "1"
+      (equal? '(()) (make-list 1)))
+    (pass-if "2"
+      (equal? '(() ()) (make-list 2)))
+    (pass-if "3"
+      (equal? '(() () ()) (make-list 3))))
+
+  (with-test-prefix "with init"
+    (pass-if "0"
+      (equal? '() (make-list 0 'foo)))
+    (pass-if "1"
+      (equal? '(foo) (make-list 1 'foo)))
+    (pass-if "2"
+      (equal? '(foo foo) (make-list 2 'foo)))
+    (pass-if "3"
+      (equal? '(foo foo foo) (make-list 3 'foo)))))
+
 ;;; cons*
 
 (with-test-prefix "cons*"
