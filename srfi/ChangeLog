@@ -1,3 +1,9 @@
+2005-04-23  Kevin Ryde  <user42@zip.com.au>
+
+	* srfi-1.c (scm_srfi1_count, scm_srfi1_filter_map): Don't modify the
+	rest argument, that belongs to the caller when reached from apply.
+	Use a temp vector like scm_srfi1_for_each.
+
 2005-04-04  Kevin Ryde  <user42@zip.com.au>
 
 	* srfi-1.c, srfi-1.h (scm_srfi1_concatenate, scm_srfi1_concatenate_x):

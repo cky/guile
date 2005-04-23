@@ -4,6 +4,9 @@
 
 	* tests/list.test (list, make-list, cons*): New tests.
 
+	* tests/srfi-1.test (concatenate, concatenate!, count, filter-map,
+	lset-adjoin): More tests.
+
 2005-04-14  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/numbers.test (1+, 1-): New tests.
