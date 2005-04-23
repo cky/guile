@@ -35,6 +35,7 @@ SCM_API SCM scm_list_5 (SCM e1, SCM e2, SCM e3, SCM e4, SCM e5);
 SCM_API SCM scm_list_n (SCM elt, ...);
 SCM_API SCM scm_list_head (SCM lst, SCM k);
 SCM_API SCM scm_list (SCM objs);
+SCM_API SCM scm_make_list (SCM n, SCM init);
 SCM_API SCM scm_cons_star (SCM arg, SCM objs);
 SCM_API SCM scm_null_p (SCM x);
 SCM_API SCM scm_list_p (SCM x);
