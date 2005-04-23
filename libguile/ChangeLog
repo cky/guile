@@ -10,6 +10,8 @@
 	list is called using apply, under the debugging evaluator.
 	(scm_list): Remove.
 
+	* list.c (scm_make_list): New code, moving make-list from boot-9.scm.
+
 2005-04-14  Kevin Ryde  <user42@zip.com.au>
 
 	* numbers.c, numbers.h (scm_oneplus, scm_oneminus): New functions,

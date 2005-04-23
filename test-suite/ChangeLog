@@ -2,7 +2,7 @@
 
 	* tests/hash.test (hashx-remove!): New tests.
 
-	* tests/list.test (list, cons*): New tests.
+	* tests/list.test (list, make-list, cons*): New tests.
 
 2005-04-14  Kevin Ryde  <user42@zip.com.au>
 
