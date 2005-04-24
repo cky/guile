@@ -1555,7 +1555,7 @@
 
 (define (change-object-class old-instance old-class new-class)
   (let ((new-instance (allocate-instance new-class '())))
-    ;; Initalize the slot of the new instance
+    ;; Initialize the slots of the new instance
     (for-each (lambda (slot)
 		(if (and (slot-exists-using-class? old-class old-instance slot)
 			 (eq? (slot-definition-allocation
