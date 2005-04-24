@@ -82,10 +82,10 @@
    memory block m2 are allocated.  The headers h1 and h2 then switch
    pointers so that h1 refers to m2 and h2 to m1.  In this way, names
    bound to h1 will point to the new class at the same time as h2 will
-   be a handle which the GC will us to free m1.
+   be a handle which the GC will use to free m1.
 
    The `redefined' slot of m1 will be set to point to h1.  An old
-   instance will have it's class pointer (the CAR of the heap header)
+   instance will have its class pointer (the CAR of the heap header)
    pointing to m1.  The non-immediate `redefined'-slot in m1 indicates
    the class modification and the new class pointer can be found via
    h1.
