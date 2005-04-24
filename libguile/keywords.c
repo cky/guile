@@ -66,6 +66,7 @@ SCM_DEFINE (scm_symbol_to_keyword, "symbol->keyword", 1, 0, 0,
   SCM_ASSERT_TYPE (scm_is_symbol (symbol), symbol, 0, NULL, "symbol");
 
   SCM_CRITICAL_SECTION_START;
+  /* njrev: NEWSMOB and hashq_set_x can raise errors */
   keyword = scm_hashq_ref (scm_keyword_obarray, symbol, SCM_BOOL_F);
   if (scm_is_false (keyword))
     {
@@ -105,7 +106,7 @@ scm_from_locale_keywordn (const char *str, size_t len)
   return scm_symbol_to_keyword (scm_from_locale_symboln (str, len));
 }
 
-
+/* njrev: critical sections reviewed so far up to here */
 void
 scm_init_keywords ()
 {

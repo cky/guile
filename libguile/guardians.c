@@ -226,6 +226,7 @@ scm_guard (SCM guardian, SCM obj, int throw_p)
       SCM z;
 
       /* This critical section barrier will be replaced by a mutex. */
+      /* njrev: per comment above, should use a mutex. */
       SCM_CRITICAL_SECTION_START;
 
       if (GREEDY_P (g))
@@ -245,6 +246,7 @@ scm_guard (SCM guardian, SCM obj, int throw_p)
           else
             scm_hashq_create_handle_x (greedily_guarded_whash,
                                        obj, guardian);
+	  /* njrev: this can throw a memory or out-of-range error. */
         }
 
       z = scm_cons (SCM_BOOL_F, SCM_BOOL_F);
@@ -265,6 +267,7 @@ scm_get_one_zombie (SCM guardian)
 
   /* This critical section barrier will be replaced by a mutex. */
   SCM_CRITICAL_SECTION_START;
+  /* njrev: -> mutex */
 
   if (!TCONC_EMPTYP (g->zombies))
     TCONC_OUT (g->zombies, res);
@@ -339,7 +342,9 @@ SCM_DEFINE (scm_guardian_destroyed_p, "guardian-destroyed?", 1, 0, 0,
 
   /* This critical section barrier will be replaced by a mutex. */
   SCM_CRITICAL_SECTION_START;
-
+  /* njrev: Critical section not needed here.  (Falls into category of
+     stuff that is the responsibility of Scheme code, whenever
+     accessing data from multiple threads.) */
   res = scm_from_bool (DESTROYED_P (GUARDIAN_DATA (guardian)));
   
   SCM_CRITICAL_SECTION_END;
