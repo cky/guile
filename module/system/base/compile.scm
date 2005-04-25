@@ -57,8 +57,8 @@
   (let ((comp (compiled-file-name file)))
     (catch #t
       (lambda ()
-	(call-with-compile-error-catch
-	 (lambda ()
+;	(call-with-compile-error-catch
+;	 (lambda ()
 	   (call-with-output-file comp
 	     (lambda (port)
 	       (let* ((source (read-file-in file scheme))
@@ -66,8 +66,8 @@
 				      scheme opts)))
 		 (if (memq :c opts)
 		   (pprint-glil objcode port)
-		   (uniform-array-write (objcode->string objcode) port)))))
-	   (format #t "Wrote ~A\n" comp))))
+		   (uniform-vector-write (objcode->u8vector objcode) port)))))
+	   (format #t "Wrote ~A\n" comp))
       (lambda (key . args)
 	(format #t "ERROR: During compiling ~A:\n" file)
 	(display "ERROR: ")
@@ -75,6 +75,15 @@
 	(newline)
 	(format #t "ERROR: ~A ~A ~A\n" key (car args) (cadddr args))
 	(delete-file comp)))))
+
+; (let ((c-f compile-file))
+;   ;; XXX:  Debugging output
+;   (set! compile-file
+; 	(lambda (file . opts)
+; 	  (format #t "compile-file: ~a ~a~%" file opts)
+; 	  (let ((result (apply c-f (cons file opts))))
+; 	    (format #t "compile-file: returned ~a~%" result)
+; 	    result))))
 
 (define-public (load-source-file file . opts)
   (let ((source (read-file-in file scheme)))

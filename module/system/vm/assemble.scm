@@ -27,6 +27,7 @@
   :use-module (ice-9 match)
   :use-module (ice-9 regex)
   :use-module (ice-9 common-list)
+  :use-module (srfi srfi-4)
   :export (preprocess assemble))
 
 (define (assemble glil env . opts)
@@ -89,7 +90,7 @@
 		  (push-code! `(object-ref ,i))))))
        (define (current-address)
 	 (define (byte-length x)
-	   (cond ((string? x) (string-length x))
+	   (cond ((string? x) (u8vector-length x))
 		 (else 3)))
 	 (apply + (map byte-length stack)))
        (define (generate-code x)
@@ -187,7 +188,9 @@
 (define (stack->bytes stack label-alist)
   (let loop ((result '()) (stack stack) (addr 0))
     (if (null? stack)
-	(apply string-append (reverse! result))
+	(apply u8vector
+	       (apply append
+		      (map u8vector->list (reverse! result))))
 	(let ((bytes (car stack)))
 	  (if (pair? bytes)
 	      (let* ((offset (- (assq-ref label-alist (cadr bytes))
@@ -198,7 +201,7 @@
 					       (modulo n 256))))))
 	  (loop (cons bytes result)
 		(cdr stack)
-		(+ addr (string-length bytes)))))))
+		(+ addr (u8vector-length bytes)))))))
 
 
 ;;;
@@ -208,6 +211,18 @@
 ;; NOTE: undumpped in vm_load.c.
 
 (define (dump-object! push-code! x)
+  (define (symbol->u8vector sym)
+    (apply u8vector
+	   (map char->integer
+		(string->list (symbol->string sym)))))
+  (define (number->u8vector num)
+    (apply u8vector
+	   (map char->integer
+		(string->list (number->string num)))))
+  (define (string->u8vector str)
+    (apply u8vector
+	   (map char->integer (string->list str))))
+
   (let dump! ((x x))
     (cond
      ((object->code x) => push-code!)
@@ -241,24 +256,24 @@
 	 (push-code! `(load-program ,bytes)))
 	(($ <vlink> module name)
 	 ;; FIXME: dump module
-	 (push-code! `(link ,(symbol->string name))))
+	 (push-code! `(link ,(symbol->u8vector name))))
 	(($ <vmod> id)
 	 (push-code! `(load-module ,id)))
 	((and ($ integer) ($ exact))
 	 (let ((str (do ((n x (quotient n 256))
 			 (l '() (cons (modulo n 256) l)))
 			((= n 0)
-			 (list->string (map integer->char l))))))
+			 (apply u8vector l)))))
 	   (push-code! `(load-integer ,str))))
 	(($ number)
-	 (push-code! `(load-number ,(number->string x))))
+	 (push-code! `(load-number ,(number->u8vector x))))
 	(($ string)
-	 (push-code! `(load-string ,x)))
+	 (push-code! `(load-string ,(string->u8vector x))))
 	(($ symbol)
-	 (push-code! `(load-symbol ,(symbol->string x))))
+	 (push-code! `(load-symbol ,(symbol->u8vector x))))
 	(($ keyword)
 	 (push-code! `(load-keyword
-		       ,(symbol->string (keyword-dash-symbol x)))))
+		       ,(symbol->u8vector (keyword-dash-symbol x)))))
 	(($ list)
 	 (for-each dump! x)
 	 (push-code! `(list ,(length x))))

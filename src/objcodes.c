@@ -45,6 +45,7 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <assert.h>
 
 #include "programs.h"
 #include "objcodes.h"
@@ -138,14 +139,20 @@ SCM_DEFINE (scm_bytecode_to_objcode, "bytecode->objcode", 3, 0, 0,
 #define FUNC_NAME s_scm_bytecode_to_objcode
 {
   size_t size;
-  char *base, *c_bytecode;
+  ssize_t increment;
+  scm_t_array_handle handle;
+  char *base;
+  const char *c_bytecode;
   SCM objcode;
 
-  SCM_VALIDATE_STRING (1, bytecode);
+  if (scm_u8vector_p (bytecode) != SCM_BOOL_T)
+    scm_wrong_type_arg (FUNC_NAME, 1, bytecode);
   SCM_VALIDATE_INUM (2, nlocs);
   SCM_VALIDATE_INUM (3, nexts);
 
-  size = scm_c_string_length (bytecode) + 10;
+  c_bytecode = scm_u8vector_elements (bytecode, &handle, &size, &increment);
+  assert (increment == 1);
+
   objcode = make_objcode (size);
   base = SCM_OBJCODE_BASE (objcode);
 
@@ -153,10 +160,9 @@ SCM_DEFINE (scm_bytecode_to_objcode, "bytecode->objcode", 3, 0, 0,
   base[8] = scm_to_int (nlocs);
   base[9] = scm_to_int (nexts);
 
-  /* FIXME:  We should really use SRFI-4 u8vectors!  (Ludovic) */
-  c_bytecode = scm_to_locale_string (bytecode);
   memcpy (base + 10, c_bytecode, size - 10);
-  free (c_bytecode);
+
+  scm_array_handle_release (&handle);
 
   return objcode;
 }
@@ -178,15 +184,22 @@ SCM_DEFINE (scm_load_objcode, "load-objcode", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_objcode_to_string, "objcode->string", 1, 0, 0,
+SCM_DEFINE (scm_objcode_to_u8vector, "objcode->u8vector", 1, 0, 0,
 	    (SCM objcode),
 	    "")
-#define FUNC_NAME s_scm_objcode_to_string
+#define FUNC_NAME s_scm_objcode_to_u8vector
 {
+  char *u8vector;
+  size_t size;
+
   SCM_VALIDATE_OBJCODE (1, objcode);
-  return scm_makfromstr (SCM_OBJCODE_BASE (objcode),
-			 SCM_OBJCODE_SIZE (objcode),
-			 0);
+
+  size = SCM_OBJCODE_SIZE (objcode);
+  /* FIXME:  Is `gc_malloc' ok here? */
+  u8vector = scm_gc_malloc (size, "objcode-u8vector");
+  memcpy (u8vector, SCM_OBJCODE_BASE (objcode), size);
+
+  return scm_take_u8vector (u8vector, size);
 }
 #undef FUNC_NAME
 

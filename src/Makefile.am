@@ -4,6 +4,8 @@ guile_vm_SOURCES = guile-vm.c
 guile_vm_LDADD = libguilevm.la 
 guile_vm_LDFLAGS = $(GUILE_LDFLAGS)
 
+AM_CFLAGS = -Wall -g
+
 lib_LTLIBRARIES = libguilevm.la
 libguilevm_la_SOURCES =							\
 	envs.c frames.c instructions.c objcodes.c programs.c vm.c	\

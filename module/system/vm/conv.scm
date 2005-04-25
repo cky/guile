@@ -23,6 +23,7 @@
   :use-module (system vm core)
   :use-module (ice-9 match)
   :use-module (ice-9 regex)
+  :use-module (srfi srfi-4)
   :export (code-pack code-unpack object->code code->object code->bytes
 		     make-byte-decoder))
 
@@ -89,22 +90,38 @@
   (let* ((code (code-pack code))
 	 (inst (car code))
 	 (rest (cdr code))
-	 (head (make-string 1 (integer->char (instruction->opcode inst))))
-	 (len (instruction-length inst)))
+	 (len (instruction-length inst))
+	 (head (instruction->opcode inst)))
     (cond ((< len 0)
 	   ;; Variable-length code
-	   (let ((str (car rest)))
-	     (string-append head (encode-length (string-length str)) str)))
+	   ;; Typical instructions are `link' and `load-program'.
+	   (let* ((str (car rest))
+		  (str-len (u8vector-length str))
+		  (encoded-len (encode-length str-len))
+		  (encoded-len-len (u8vector-length encoded-len)))
+	     (apply u8vector
+		    (append (cons head (u8vector->list encoded-len))
+			    (u8vector->list str)))))
 	  ((= len (length rest))
 	   ;; Fixed-length code
-	   (string-append head (list->string (map integer->char rest))))
+	   (apply u8vector (cons head rest)))
 	  (else
 	   (error "Invalid code:" code)))))
 
+; (let ((c->b code->bytes))
+;   ;; XXX: Debugging output
+;   (set! code->bytes
+; 	(lambda (code)
+; 	  (format #t "code->bytes: ~a~%" code)
+; 	  (let ((result (c->b code)))
+; 	    (format #t "code->bytes: returned ~a~%" result)
+; 	    result))))
+
+
 (define (make-byte-decoder bytes)
-  (let ((addr 0) (size (string-length bytes)))
+  (let ((addr 0) (size (u8vector-length bytes)))
     (define (pop)
-      (let ((byte (char->integer (string-ref bytes addr))))
+      (let ((byte (char->integer (u8vector-ref bytes addr))))
 	(set! addr (1+ addr))
 	byte))
     (lambda ()
@@ -115,7 +132,10 @@
 		 (code (if (< n 0)
 			   ;; variable length
 			   (let* ((end (+ (decode-length pop) addr))
-				  (str (substring bytes addr end)))
+				  (str (apply u8vector
+					      (list-tail (u8vector->list
+							  bytes)
+							 addr))))
 			     (set! addr end)
 			     (list inst str))
 			   ;; fixed length
@@ -133,16 +153,15 @@
 ;; NOTE: decoded in vm_fetch_length in vm.c as well.
 
 (define (encode-length len)
-  (define C integer->char)
-  (cond ((< len 254) (string (C len)))
+  (cond ((< len 254) (u8vector len))
 	((< len (* 256 256))
-	 (string (C 254) (C (quotient len 256)) (C (modulo len 256))))
+	 (u8vector 254 (quotient len 256) (modulo len 256)))
 	((< len most-positive-fixnum)
-	 (string (C 255)
-		 (C (quotient len (* 256 256 256)))
-		 (C (modulo (quotient len (* 256 256)) 256))
-		 (C (modulo (quotient len 256) 256))
-		 (C (modulo len 256))))
+	 (u8vector 255
+		   (quotient len (* 256 256 256))
+		   (modulo (quotient len (* 256 256)) 256)
+		   (modulo (quotient len 256) 256)
+		   (modulo len 256)))
 	(else (error "Too long code length:" len))))
 
 (define (decode-length pop)
