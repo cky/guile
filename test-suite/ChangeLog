@@ -1,3 +1,7 @@
+2005-04-25  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/ramap.test (array-map!): Further tests.
+
 2005-04-23  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/hash.test (hashx-remove!): New tests.
