@@ -1,4 +1,4 @@
-/* Copyright (C) 1996,1998,2000,2001,2004 Free Software Foundation, Inc.
+/* Copyright (C) 1996,1998,2000,2001,2004,2005 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -811,12 +811,7 @@ SCM_DEFINE (scm_array_map_x, "array-map!", 2, 0, 1,
 {
   SCM_VALIDATE_PROC (2, proc);
   SCM_VALIDATE_REST_ARGUMENT (lra);
-  /* This is done as a test on lra, rather than an extra mandatory parameter
-     eval could check, so that the prototype for scm_array_map_x stays as it
-     was in the past.  scm_array_map_x isn't actually documented, but did
-     get a mention in the NEWS file, so is best left alone.  */
-  if (scm_is_null (lra))
-    SCM_WRONG_NUM_ARGS ();
+
   switch (SCM_TYP7 (proc))
     {
     default:
@@ -824,13 +819,23 @@ SCM_DEFINE (scm_array_map_x, "array-map!", 2, 0, 1,
  scm_ramapc (ramap, proc, ra0, lra, FUNC_NAME);
  return SCM_UNSPECIFIED;
     case scm_tc7_subr_1:
+      if (! scm_is_pair (lra))
+        SCM_WRONG_NUM_ARGS ();  /* need 1 source */
       scm_ramapc (ramap_1, proc, ra0, lra, FUNC_NAME);
       return SCM_UNSPECIFIED;
     case scm_tc7_subr_2:
+      if (! (scm_is_pair (lra) && scm_is_pair (SCM_CDR (lra))))
+        SCM_WRONG_NUM_ARGS ();  /* need 2 sources */
+      goto subr_2o;
     case scm_tc7_subr_2o:
+      if (! scm_is_pair (lra))
+        SCM_WRONG_NUM_ARGS ();  /* need 1 source */
+    subr_2o:
       scm_ramapc (ramap_2o, proc, ra0, lra, FUNC_NAME);
       return SCM_UNSPECIFIED;
     case scm_tc7_dsubr:
+      if (! scm_is_pair (lra))
+        SCM_WRONG_NUM_ARGS ();  /* need 1 source */
       scm_ramapc (ramap_dsubr, proc, ra0, lra, FUNC_NAME);
       return SCM_UNSPECIFIED;
     case scm_tc7_rpsubr:
