@@ -87,7 +87,7 @@ SCM_DEFINE (scm_instruction_list, "instruction-list", 0, 0, 0,
   SCM list = SCM_EOL;
   struct scm_instruction *ip;
   for (ip = scm_instruction_table; ip->opcode != scm_op_last; ip++)
-    list = scm_cons (scm_str2symbol (ip->name), list);
+    list = scm_cons (scm_from_locale_symbol (ip->name), list);
   return scm_reverse_x (list, SCM_EOL);
 }
 #undef FUNC_NAME
@@ -150,7 +150,7 @@ SCM_DEFINE (scm_opcode_to_instruction, "opcode->instruction", 1, 0, 0,
   SCM_VALIDATE_INUM (1, op);
   i = scm_to_int (op);
   SCM_ASSERT_RANGE (1, op, 0 <= i && i < scm_op_last);
-  return scm_str2symbol (scm_instruction_table[i].name);
+  return scm_from_locale_symbol (scm_instruction_table[i].name);
 }
 #undef FUNC_NAME
 

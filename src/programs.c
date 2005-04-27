@@ -188,14 +188,25 @@ SCM_DEFINE (scm_program_external, "program-external", 1, 0, 0,
 
 SCM_DEFINE (scm_program_bytecode, "program-bytecode", 1, 0, 0,
 	    (SCM program),
-	    "")
+	    "Return a u8vector containing @var{program}'s bytecode.")
 #define FUNC_NAME s_scm_program_bytecode
 {
+  size_t size;
+  char *c_bytecode;
+
   SCM_VALIDATE_PROGRAM (1, program);
-  return scm_makfromstr (SCM_PROGRAM_DATA (program)->base,
-			 SCM_PROGRAM_DATA (program)->size, 0);
+
+  size = SCM_PROGRAM_DATA (program)->size;
+  c_bytecode = malloc (size);
+  if (!c_bytecode)
+    return SCM_BOOL_F;
+
+  memcpy (c_bytecode, SCM_PROGRAM_DATA (program)->base, size);
+
+  return scm_take_u8vector (c_bytecode, size);
 }
 #undef FUNC_NAME
+
 
 
 void

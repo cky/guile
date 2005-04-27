@@ -27,7 +27,7 @@
   :use-module (ice-9 format)
   :use-module (ice-9 receive)
   :use-module (ice-9 and-let-star)
-  :export (disassemble-objcode disassemble-program))
+  :export (disassemble-objcode disassemble-program disassemble-bytecode))
 
 (define (disassemble-objcode objcode . opts)
   (let* ((prog  (objcode->program objcode))
@@ -128,6 +128,15 @@
 
 (define (list->info list)
   (object->string list))
+
+;   (define (u8vector->string vec)
+;     (list->string (map integer->char (u8vector->list vec))))
+
+;   (case (car list)
+;     ((link)
+;      (object->string `(link ,(u8vector->string (cadr list)))))
+;     (else
+;      (object->string list))))
 
 (define (print-info addr info extra)
   (if extra

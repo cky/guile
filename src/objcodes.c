@@ -153,6 +153,8 @@ SCM_DEFINE (scm_bytecode_to_objcode, "bytecode->objcode", 3, 0, 0,
   c_bytecode = scm_u8vector_elements (bytecode, &handle, &size, &increment);
   assert (increment == 1);
 
+  /* Account for the 10 byte-long header.  */
+  size += 10;
   objcode = make_objcode (size);
   base = SCM_OBJCODE_BASE (objcode);
 

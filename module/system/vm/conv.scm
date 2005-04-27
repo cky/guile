@@ -24,6 +24,7 @@
   :use-module (ice-9 match)
   :use-module (ice-9 regex)
   :use-module (srfi srfi-4)
+  :use-module (srfi srfi-1)
   :export (code-pack code-unpack object->code code->object code->bytes
 		     make-byte-decoder))
 
@@ -86,7 +87,18 @@
     (('load-keyword s) (make-keyword-from-dash-symbol (string->symbol s)))
     (else #f)))
 
+; (let ((c->o code->object))
+;   (set! code->object
+; 	(lambda (code)
+; 	  (format #t "code->object: ~a~%" code)
+; 	  (let ((ret (c->o code)))
+; 	    (format #t "code->object returned ~a~%" ret)
+; 	    ret))))
+
 (define (code->bytes code)
+  (define (string->u8vector str)
+    (apply u8vector (map char->integer (string->list str))))
+
   (let* ((code (code-pack code))
 	 (inst (car code))
 	 (rest (cdr code))
@@ -95,6 +107,8 @@
     (cond ((< len 0)
 	   ;; Variable-length code
 	   ;; Typical instructions are `link' and `load-program'.
+	   (if (string? (car rest))
+	       (set-car! rest (string->u8vector (car rest))))
 	   (let* ((str (car rest))
 		  (str-len (u8vector-length str))
 		  (encoded-len (encode-length str-len))
@@ -121,9 +135,11 @@
 (define (make-byte-decoder bytes)
   (let ((addr 0) (size (u8vector-length bytes)))
     (define (pop)
-      (let ((byte (char->integer (u8vector-ref bytes addr))))
+      (let ((byte (u8vector-ref bytes addr)))
 	(set! addr (1+ addr))
 	byte))
+    (define (sublist lst start end)
+      (take (drop lst start) (- end start)))
     (lambda ()
       (if (< addr size)
 	  (let* ((start addr)
@@ -132,12 +148,16 @@
 		 (code (if (< n 0)
 			   ;; variable length
 			   (let* ((end (+ (decode-length pop) addr))
-				  (str (apply u8vector
-					      (list-tail (u8vector->list
-							  bytes)
-							 addr))))
+				  (subbytes (sublist
+					     (u8vector->list bytes)
+					     addr end))
+				  (->string? (not (eq? inst 'load-program))))
 			     (set! addr end)
-			     (list inst str))
+			     (list inst
+				   (if ->string?
+				       (list->string
+					(map integer->char subbytes))
+				       (apply u8vector subbytes))))
 			   ;; fixed length
 			   (do ((n n (1- n))
 				(l '() (cons (pop) l)))
