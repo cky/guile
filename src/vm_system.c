@@ -119,19 +119,19 @@ VM_DEFINE_INSTRUCTION (make_eol, "make-eol", 0, 0, 1)
 
 VM_DEFINE_INSTRUCTION (make_int8, "make-int8", 1, 0, 1)
 {
-  PUSH (SCM_MAKINUM ((signed char) FETCH ()));
+  PUSH (scm_from_schar ((signed char) FETCH ()));
   NEXT;
 }
 
 VM_DEFINE_INSTRUCTION (make_int8_0, "make-int8:0", 0, 0, 1)
 {
-  PUSH (SCM_MAKINUM (0));
+  PUSH (SCM_INUM0);
   NEXT;
 }
 
 VM_DEFINE_INSTRUCTION (make_int8_1, "make-int8:1", 0, 0, 1)
 {
-  PUSH (SCM_MAKINUM (1));
+  PUSH (SCM_I_MAKINUM (1));
   NEXT;
 }
 
@@ -139,7 +139,7 @@ VM_DEFINE_INSTRUCTION (make_int16, "make-int16", 2, 0, 1)
 {
   int h = FETCH ();
   int l = FETCH ();
-  PUSH (SCM_MAKINUM ((signed short) (h << 8) + l));
+  PUSH (scm_from_short ((signed short) (h << 8) + l));
   NEXT;
 }
 
@@ -197,8 +197,8 @@ VM_DEFINE_INSTRUCTION (list_break, "list-break", 0, 0, 0)
 #define LOCAL_REF(i)		SCM_FRAME_VARIABLE (fp, i)
 #define LOCAL_SET(i,o)		SCM_FRAME_VARIABLE (fp, i) = o
 
-#define VARIABLE_REF(v)		SCM_CDR (v)
-#define VARIABLE_SET(v,o)	SCM_SETCDR (v, o)
+/* #define VARIABLE_REF(v)		SCM_CDR (v) */
+/* #define VARIABLE_SET(v,o)	SCM_SETCDR (v, o) */
 
 /* ref */
 
@@ -231,13 +231,19 @@ VM_DEFINE_INSTRUCTION (external_ref, "external-ref", 1, 0, 1)
 VM_DEFINE_INSTRUCTION (variable_ref, "variable-ref", 0, 0, 1)
 {
   SCM x = *sp;
-  SCM o = VARIABLE_REF (x);
-  if (SCM_UNBNDP (o))
+
+  if (SCM_FALSEP (scm_variable_bound_p (x)))
     {
-      err_args = SCM_LIST1 (SCM_CAR (x));
+      err_args = SCM_LIST1 (x);
+      /* Was: err_args = SCM_LIST1 (SCM_CAR (x)); */
       goto vm_error_unbound;
     }
-  *sp = o;
+  else
+    {
+      SCM o = scm_variable_ref (x);
+      *sp = o;
+    }
+
   NEXT;
 }
 
@@ -267,7 +273,7 @@ VM_DEFINE_INSTRUCTION (external_set, "external-set", 1, 1, 0)
 
 VM_DEFINE_INSTRUCTION (variable_set, "variable-set", 0, 1, 0)
 {
-  VARIABLE_SET (sp[0], sp[-1]);
+  scm_variable_set_x (sp[0], sp[-1]);
   scm_set_object_property_x (sp[-1], scm_sym_name, SCM_CAR (sp[0]));
   sp -= 2;
   NEXT;

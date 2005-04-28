@@ -369,7 +369,7 @@ SCM_DEFINE (scm_vm_fp, "vm:fp", 1, 0, 0,
   SCM_VALIDATE_VM (1, vm);				\
   vp = SCM_VM_DATA (vm);				\
   if (SCM_FALSEP (vp->hooks[n]))			\
-    vp->hooks[n] = scm_make_hook (SCM_MAKINUM (1));	\
+    vp->hooks[n] = scm_make_hook (SCM_I_MAKINUM (1));	\
   return vp->hooks[n];					\
 }
 
@@ -528,7 +528,7 @@ SCM_DEFINE (scm_vm_fetch_code, "vm-fetch-code", 1, 0, 0,
 
   list = SCM_LIST1 (scm_str2symbol (p->name));
   for (i = 1; i <= p->len; i++)
-    list = scm_cons (SCM_MAKINUM (ip[i]), list);
+    list = scm_cons (scm_from_uint8 (ip[i]), list);
   return scm_reverse_x (list, SCM_EOL);
 }
 #undef FUNC_NAME

@@ -130,10 +130,20 @@
   vp->fp = fp;					\
 }
 
-#define CACHE_PROGRAM()				\
-{						\
-  bp = SCM_PROGRAM_DATA (program);		\
-  objects = SCM_VELTS (bp->objs);		\
+/* Get a local copy of the program's "object table" (i.e. the vector of
+   external bindings that are referenced by the program), initialized by
+   `load-program'.  */
+#define CACHE_PROGRAM()					\
+{							\
+  size_t _vsize;					\
+  ssize_t _vincr;					\
+  scm_t_array_handle _vhandle;				\
+							\
+  bp = SCM_PROGRAM_DATA (program);			\
+  /* Was: objects = SCM_VELTS (bp->objs); */		\
+  objects = scm_vector_elements (bp->objs, &_vhandle,	\
+				 &_vsize, &_vincr);	\
+  scm_array_handle_release (&_vhandle);			\
 }
 
 #define SYNC_BEFORE_GC()			\
@@ -208,12 +218,8 @@
 
 #define CONS(x,y,z)				\
 {						\
-  SCM cell;					\
   SYNC_BEFORE_GC ();				\
-  SCM_NEWCELL (cell);				\
-  SCM_SET_CELL_OBJECT_0 (cell, y);		\
-  SCM_SET_CELL_OBJECT_1 (cell, z);		\
-  x = cell;					\
+  x = scm_cons (y, z);				\
 }
 
 #define POP_LIST(n)				\

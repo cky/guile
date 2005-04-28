@@ -43,6 +43,7 @@
 
 #include "vm_engine.h"
 
+
 static SCM
 vm_run (SCM vm, SCM program, SCM args)
 #define FUNC_NAME "vm-engine"

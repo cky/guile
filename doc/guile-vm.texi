@@ -10,15 +10,21 @@
 @set VERSION 0.6
 @set UPDATED 2005-04-26
 
+@c Macro for instruction definitions.
+@macro insn{}
+Instruction
+@end macro
+
 @ifinfo
 @dircategory Scheme Programming
 @direntry
-* Guile VM: (guile-vm).         Guile Virtual Machine.
+* Guile VM: (guile-vm).         Guile's Virtual Machine.
 @end direntry
 
 This file documents Guile VM.
 
 Copyright @copyright{} 2000 Keisuke Nishida
+Copyright @copyright{} 2005 Ludovic Court`es
 
 Permission is granted to make and distribute verbatim copies of this
 manual provided the copyright notice and this permission notice are
@@ -54,6 +60,7 @@ Updated for Guile VM @value{VERSION} @*
 @value{UPDATED} @*
 
 Copyright @copyright{} 2000 Keisuke Nishida
+Copyright @copyright{} 2005 Ludovic Court`es
 
 Permission is granted to make and distribute verbatim copies of this
 manual provided the copyright notice and this permission notice are
@@ -76,7 +83,9 @@ approved by the Free Software Foundation.
 @node Top, Introduction, (dir), (dir)
 @top Guile VM Specification
 
-This document corresponds to Guile VM @value{VERSION}.
+This document would like to correspond to Guile VM @value{VERSION}.
+However, be warned that important parts still correspond to version
+0.0 and are not valid anymore.
 
 @menu
 * Introduction::                
@@ -457,10 +466,49 @@ External function:
 The Guile VM instruction set is roughly divided two groups: system
 instructions and functional instructions.  System instructions control
 the execution of programs, while functional instructions provide many
-useful calculations.  By convention, system instructions begin with a
-letter `%'.
+useful calculations.
 
-@section Environment control instructions
+@menu
+* Environment Control Instructions::  
+* Subprogram Control Instructions::  
+* Data Control Instructions::   
+@end menu
+
+@node Environment Control Instructions, Subprogram Control Instructions, Instruction Set, Instruction Set
+@section Environment Control Instructions
+
+@deffn @insn{} link binding-name
+Look up @var{binding-name} (a string) in the current environment and
+push the corresponding variable object onto the stack.  If
+@var{binding-name} is not bound yet, then create a new binding and
+push its variable object.
+@end deffn
+
+@deffn @insn{} variable-ref
+Dereference the variable object which is on top of the stack and
+replace it by the value of the variable it represents.
+@end deffn
+
+@deffn @insn{} variable-set
+Set the value of the variable on top of the stack (at @code{sp[0]}) to
+the object located immediately before (at @code{sp[-1]}).
+@end deffn
+
+As an example, let us look at what a simple function call looks like:
+
+@example
+(+ 2 3)
+@end example
+
+This call yields the following sequence of instructions:
+
+@example
+(link "+")      ;; lookup binding "x"
+(variable-ref)  ;; dereference it
+(make-int8 2)   ;; push immediate value `2'
+(make-int8 3)   ;; push immediate value `3'
+(tail-call 2)   ;; call the proc at sp[-3] with two args
+@end example
 
 @itemize
 @item %alloc
@@ -469,15 +517,125 @@ letter `%'.
 @item %unbind
 @end itemize
 
-@section Subprogram control instructions
+@node Subprogram Control Instructions, Data Control Instructions, Environment Control Instructions, Instruction Set
+@section Subprogram Control Instructions
+
+Programs (read: ``compiled procedure'') may refer to external
+bindings, like variables or functions defined outside the program
+itself, in the environment in which it will evaluate at run-time.  In
+a sense, a program's environment and its bindings are an implicit
+parameter of every program.
+
+@cindex Object table
+In order to handle such bindings, each program has an @dfn{object
+table} associated to it.  This table (actually a vector) contains all
+the variable objects corresponding to the external bindings referenced
+by the program.  The object table of a program is initialized right
+before a program is loaded and run with @var{load-program}.
+
+Therefore, external bindings only need to be looked up once before the
+program is loaded.  References to the corresponding external variables
+from within the program are then performed via the @var{object-ref}
+instruction and are almost as fast as local variable references.
+
+Let us consider the following program (procedure) which references
+external bindings @code{frob} and @var{%magic}:
+
+@example
+(lambda (x)
+  (frob x %magic))
+@end example
+
+This yields the following assembly code:
+
+@example
+(make-int8 64)   ;; number of args, vars, etc. (see below)
+(link "frob")
+(link "%magic")
+(vector 2)
+...
+(load-program #u8(20 0 23 21 0 20 1 23 36 2))
+(return)
+@end example
+
+All the instructions occurring before @var{load-program} (some were
+omitted for simplicity) form a @dfn{prologue} which, among other
+things, pushed an object table (a vector) that contains the variable
+objects for the variables bound to @var{frob} and @var{%magic}.  This
+vector and other data pushed onto the stack are then popped by the
+@var{load-program} instruction.
+
+Besides, the @var{load-program} instruction takes one explicit
+argument which is the bytecode of the program itself.  Disassembled,
+this bytecode looks like:
+
+@example
+(object-ref 0)  ;; push the variable object of `frob'
+(variable-ref)  ;; dereference it
+(local-ref 0)   ;; push the value of `x'
+(object-ref 1)  ;; push the variable object of `%magic'
+(variable-ref)  ;; dereference it
+(tail-call 2)   ;; call `frob' with two parameters
+@end example
+
+This clearly shows that there is little difference between references
+to local variables and references to externally bound variables.
+
+@deffn @insn{} load-program bytecode
+Load the program whose bytecode is @var{bytecode} (a u8vector) and pop
+its meta-information from the stack.  The program's meta-information
+may consist of (in the order in which it should be pushed onto the
+stack):
 
 @itemize
-@item %make-program
-@item %call
-@item %return
+@item optionally, a pair representing meta-data (see the
+@var{program-meta} procedure); [FIXME: explain their meaning]
+@item optionally, a vector which is the program's object table (a
+program that does not reference external bindings does not need an
+object table);
+@item either one integer or four integers representing respectively
+the number of arguments taken by the function (@var{nargs}), the
+number of @dfn{rest arguments} (@var{nrest}, 0 or 1), the number of
+local variables (@var{nlocs}) and the number of external variables
+(@var{nexts}) (see the example above).
 @end itemize
 
-@section Data control instructinos
+In the end, push a program object onto the stack.
+
+@end deffn
+
+@deffn @insn{} object-ref offset
+Push the variable object for the external variable located at
+@var{offset} within the program's object table.
+@end deffn
+
+@deffn @insn{} return
+Free the program's frame.
+@end deffn
+
+
+@node Data Control Instructions,  , Subprogram Control Instructions, Instruction Set
+@section Data Control Instructions
+
+@deffn @insn{} make-int8 value
+Push @var{value}, an 8-bit integer, onto the stack.
+@end deffn
+
+@deffn @insn{} make-int8:0
+Push the immediate value @code{0} onto the stack.
+@end deffn
+
+@deffn @insn{} make-int8:1
+Push the immediate value @code{1} onto the stack.
+@end deffn
+
+@deffn @insn{} make-false
+Push @code{#f} onto the stack.
+@end deffn
+
+@deffn @insn{} make-true
+Push @code{#t} onto the stack.
+@end deffn
 
 @itemize
 @item %push
@@ -558,3 +716,5 @@ letter `%'.
 @c mode:outline-minor
 @c outline-regexp:"@\\(ch\\|sec\\|subs\\)"
 @c End:
+
+@c  LocalWords:  bytecode

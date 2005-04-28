@@ -258,7 +258,7 @@
 	(($ number)
 	 (push-code! `(load-number ,(number->string x))))
 	(($ string)
-	 (push-code! `(load-string ,(string->string x))))
+	 (push-code! `(load-string ,x)))
 	(($ symbol)
 	 (push-code! `(load-symbol ,(symbol->string x))))
 	(($ keyword)

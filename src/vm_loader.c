@@ -130,7 +130,7 @@ VM_DEFINE_LOADER (load_program, "load-program")
     }
 
   /* init object table */
-  if (SCM_VECTORP (x))
+  if (scm_is_vector (x))
     {
       p->objs = x;
       POP (x);
@@ -178,7 +178,7 @@ VM_DEFINE_LOADER (link, "link")
   size_t len;
 
   FETCH_LENGTH (len);
-  sym = scm_mem2symbol (ip, len);
+  sym = scm_from_locale_symboln (ip, len);
   ip += len;
 
 #if 0
@@ -193,7 +193,7 @@ VM_DEFINE_LOADER (link, "link")
       /* Create a new variable if not defined yet */
       var = scm_eval_closure_lookup (scm_standard_eval_closure (mod),
 				     sym, SCM_BOOL_T);
-    PUSH (scm_variable_ref (var));
+    PUSH (var);
     /* Was: SCM_VARVCELL (var)); */
     NEXT;
   }
