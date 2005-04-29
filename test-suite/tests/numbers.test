@@ -2416,41 +2416,60 @@
   (with-test-prefix "division by zero"
 
     (pass-if-exception "(/ 0)"
-      exception:numerical-overflow
+	exception:numerical-overflow
       (/ 0))
 
     (pass-if "(/ 0.0)"
       (= +inf.0 (/ 0.0)))
 
     (pass-if-exception "(/ 1 0)"
-      exception:numerical-overflow
+	exception:numerical-overflow
       (/ 1 0))
 
     (pass-if "(/ 1 0.0)"
       (= +inf.0 (/ 1 0.0)))
 
     (pass-if-exception "(/ bignum 0)"
-      exception:numerical-overflow
+	exception:numerical-overflow
       (/ (+ fixnum-max 1) 0))
 
     (pass-if "(/ bignum 0.0)"
       (= +inf.0 (/ (+ fixnum-max 1) 0.0)))
 
     (pass-if-exception "(/ 1.0 0)"
-      exception:numerical-overflow
+	exception:numerical-overflow
       (/ 1.0 0))
 
     (pass-if "(/ 1.0 0.0)"
       (= +inf.0 (/ 1.0 0.0)))
 
     (pass-if-exception "(/ +i 0)"
-      exception:numerical-overflow
+	exception:numerical-overflow
       (/ +i 0))
 
     (pass-if "(/ +i 0.0)"
       (= +inf.0 (imag-part (/ +i 0.0)))))
 
-  (with-test-prefix "complex division"
+  (with-test-prefix "1/complex"
+
+    (pass-if "0+1i"
+      (eqv? 0-1i (/ 0+1i)))
+
+    ;; in guile 1.6 through 1.6.7 this incorrectly resulted in nans
+    (pass-if "0-1i"
+      (eqv? 0+1i (/ 0-1i)))
+
+    (pass-if "1+1i"
+      (eqv? 0.5-0.5i (/ 1+1i)))
+
+    (pass-if "1-1i"
+      (eqv? 0.5+0.5i (/ 1-1i)))
+
+    (pass-if "-1+1i"
+      (eqv? -0.5-0.5i (/ -1+1i)))
+
+    (pass-if "-1-1i"
+      (eqv? -0.5+0.5i (/ -1-1i)))
 
     (pass-if "(/ 3+4i)"
       (= (/ 3+4i) 0.12-0.16i))
@@ -2458,20 +2477,24 @@
     (pass-if "(/ 4+3i)"
       (= (/ 4+3i) 0.16-0.12i))
 
-    (pass-if "(/ 25+125i 3+4i)"
-      (= (/ 25+125i 3+4i) 23.0+11.0i))
+    (pass-if "(/ 1e200+1e200i)"
+      (= (/ 1e200+1e200i) 5.0e-201-5.0e-201i)))
 
-    (pass-if "(/ 25+125i 4+3i)"
-      (= (/ 25+125i 4+3i) 19.0+17.0i))
+  (with-test-prefix "inum/complex"
 
     (pass-if "(/ 25 3+4i)"
       (= (/ 25 3+4i) 3.0-4.0i))
 
     (pass-if "(/ 25 4+3i)"
-      (= (/ 25 4+3i) 4.0-3.0i))
+      (= (/ 25 4+3i) 4.0-3.0i)))
 
-    (pass-if "(/ 1e200+1e200i)"
-      (= (/ 1e200+1e200i) 5.0e-201-5.0e-201i))))
+  (with-test-prefix "complex/complex"
+
+    (pass-if "(/ 25+125i 3+4i)"
+      (= (/ 25+125i 3+4i) 23.0+11.0i))
+
+    (pass-if "(/ 25+125i 4+3i)"
+      (= (/ 25+125i 4+3i) 19.0+17.0i))))
 
 ;;;
 ;;; truncate
