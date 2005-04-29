@@ -1,3 +1,7 @@
+2005-04-30  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/numbers.test (/): Further tests.
+
 2005-04-25  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/ramap.test (array-map!): Further tests.
