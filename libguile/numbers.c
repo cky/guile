@@ -4622,7 +4622,7 @@ scm_i_divide (SCM x, SCM y, int inexact)
 	{
 	  double r = SCM_COMPLEX_REAL (x);
 	  double i = SCM_COMPLEX_IMAG (x);
-	  if (r <= i)
+	  if (fabs(r) <= fabs(i))
 	    {
 	      double t = r / i;
 	      double d = i * (1.0 + t * t);
@@ -4694,7 +4694,7 @@ scm_i_divide (SCM x, SCM y, int inexact)
 	  {
 	    double r = SCM_COMPLEX_REAL (y);
 	    double i = SCM_COMPLEX_IMAG (y);
-	    if (r <= i)
+	    if (fabs(r) <= fabs(i))
 	      {
 		double t = r / i;
 		double d = i * (1.0 + t * t);
@@ -4899,7 +4899,7 @@ scm_i_divide (SCM x, SCM y, int inexact)
 	{
 	  double ry = SCM_COMPLEX_REAL (y);
 	  double iy = SCM_COMPLEX_IMAG (y);
-	  if (ry <= iy)
+	  if (fabs(ry) <= fabs(iy))
 	    {
 	      double t = ry / iy;
 	      double d = iy * (1.0 + t * t);
