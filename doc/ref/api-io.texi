@@ -616,8 +616,19 @@ return 0 immediately if the request size is 0 bytes.
 @deffnx {C Function} scm_current_input_port ()
 @cindex standard input
 Return the current input port.  This is the default port used
-by many input procedures.  Initially, @code{current-input-port}
-returns the @dfn{standard input} in Unix and C terminology.
+by many input procedures.
+
+Initially this is the @dfn{standard input} in Unix and C terminology.
+When the standard input is a tty the port is unbuffered, otherwise
+it's fully buffered.
+
+Unbuffered input is good if an application runs an interactive
+subprocess, since any type-ahead input won't go into Guile's buffer
+and hence be unavailable to the subprocess.
+
+Note that Guile buffering is completely separate from the tty ``line
+discipline''.  In the usual cooked mode on a tty, Guile only sees a
+line of input once the user presses @key{return}.
 @end deffn
 
 @rnindex current-output-port
@@ -625,16 +636,27 @@ returns the @dfn{standard input} in Unix and C terminology.
 @deffnx {C Function} scm_current_output_port ()
 @cindex standard output
 Return the current output port.  This is the default port used
-by many output procedures.  Initially,
-@code{current-output-port} returns the @dfn{standard output} in
-Unix and C terminology.
+by many output procedures.
+
+Initially this is the @dfn{standard output} in Unix and C terminology.
+When the standard output is a tty this port is unbuffered, otherwise
+it's fully buffered.
+
+Unbuffered output to a tty is good for ensuring progress output or a
+prompt is seen.  But an application which always prints whole lines
+could change to line buffered, or an application with a lot of output
+could go fully buffered and perhaps make explicit @code{force-output}
+calls (@pxref{Writing}) at selected points.
 @end deffn
 
 @deffn {Scheme Procedure} current-error-port
 @deffnx {C Function} scm_current_error_port ()
 @cindex standard error output
-Return the port to which errors and warnings should be sent (the
-@dfn{standard error} in Unix and C terminology).
+Return the port to which errors and warnings should be sent.
+
+Initially this is the @dfn{standard error} in Unix and C terminology.
+When the standard error is a tty this port is unbuffered, otherwise
+it's fully buffered.
 @end deffn
 
 @deffn {Scheme Procedure} set-current-input-port port
