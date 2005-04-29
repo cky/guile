@@ -1,3 +1,7 @@
+2005-04-30  Kevin Ryde  <user42@zip.com.au>
+
+	* api-io.texi (Default Ports): Describe buffering on standard ports.
+
 2005-04-23  Kevin Ryde  <user42@zip.com.au>
 
 	* api-data.texi (Regexp Functions): Add list-matches and fold-matches.
