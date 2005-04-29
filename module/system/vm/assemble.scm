@@ -77,7 +77,7 @@
 	   (label-alist '())
 	   (object-alist '()))
        (define (push-code! code)
-	 (format #t "push-code! ~a~%" code)
+;	 (format #t "push-code! ~a~%" code)
 	 (set! stack (cons (code->bytes code) stack)))
        (define (push-object! x)
 	 (cond ((object->code x) => push-code!)
@@ -168,7 +168,7 @@
        ;;
        ;; main
        (for-each generate-code body)
-       (format #t "codegen: stack = ~a~%" (reverse stack))
+;       (format #t "codegen: stack = ~a~%" (reverse stack))
        (let ((bytes (stack->bytes (reverse! stack) label-alist)))
 	 (if toplevel
 	     (bytecode->objcode bytes vars.nlocs vars.nexts)

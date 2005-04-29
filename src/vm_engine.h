@@ -216,10 +216,15 @@
 #define DROP()	do { CHECK_UNDERFLOW (); sp--; } while (0)
 #define POP(x)	do { x = *sp; DROP (); } while (0)
 
-#define CONS(x,y,z)				\
-{						\
-  SYNC_BEFORE_GC ();				\
-  x = scm_cons (y, z);				\
+/* A fast CONS.  This has to be fast since its used, for instance, by
+   POP_LIST when fetching a function's argument list.  Note: `scm_cell' is an
+   inlined function in Guile 1.7.  Unfortunately, it calls
+   `scm_gc_for_newcell ()' which is _not_ inlined and allocated cells on the
+   heap.  XXX  */
+#define CONS(x,y,z)					\
+{							\
+  SYNC_BEFORE_GC ();					\
+  x = scm_cell (SCM_UNPACK (y), SCM_UNPACK (z));	\
 }
 
 #define POP_LIST(n)				\

@@ -1,3 +1,33 @@
+This is an attempt to revive the Guile-VM project by Keisuke Nishida
+written back in the years 2000 and 2001.  Below are a few pointers to
+relevant threads on Guile's development mailing list.
+
+Enjoy!
+
+Ludovic Courtès <ludovic.courtes@laas.fr>, Apr. 2005.
+
+
+Pointers
+--------
+
+Status of the last release, 0.5
+  http://lists.gnu.org/archive/html/guile-devel/2001-04/msg00266.html
+
+The very first release, 0.0
+  http://sources.redhat.com/ml/guile/2000-07/msg00418.html
+
+Performance, portability, GNU Lightning
+  http://lists.gnu.org/archive/html/guile-devel/2001-03/msg00132.html
+
+Playing with GNU Lightning
+  http://lists.gnu.org/archive/html/guile-devel/2001-03/msg00185.html
+
+On things left to be done
+  http://lists.gnu.org/archive/html/guile-devel/2001-03/msg00146.html
+
+
+---8<---  Original README below.  -----------------------------------------
+
 Installation
 ------------
 

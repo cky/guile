@@ -72,7 +72,7 @@ vm_run (SCM vm, SCM program, SCM args)
 #endif
 
 #ifdef HAVE_LABELS_AS_VALUES
-  /* Jump talbe */
+  /* Jump table */
   static void *jump_table[] = {
 #define VM_INSTRUCTION_TO_LABEL 1
 #include "vm_expand.h"

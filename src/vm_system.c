@@ -119,7 +119,7 @@ VM_DEFINE_INSTRUCTION (make_eol, "make-eol", 0, 0, 1)
 
 VM_DEFINE_INSTRUCTION (make_int8, "make-int8", 1, 0, 1)
 {
-  PUSH (scm_from_schar ((signed char) FETCH ()));
+  PUSH (SCM_I_MAKINUM ((signed char) FETCH ()));
   NEXT;
 }
 
@@ -139,7 +139,7 @@ VM_DEFINE_INSTRUCTION (make_int16, "make-int16", 2, 0, 1)
 {
   int h = FETCH ();
   int l = FETCH ();
-  PUSH (scm_from_short ((signed short) (h << 8) + l));
+  PUSH (SCM_I_MAKINUM ((signed short) (h << 8) + l));
   NEXT;
 }
 
@@ -197,8 +197,12 @@ VM_DEFINE_INSTRUCTION (list_break, "list-break", 0, 0, 0)
 #define LOCAL_REF(i)		SCM_FRAME_VARIABLE (fp, i)
 #define LOCAL_SET(i,o)		SCM_FRAME_VARIABLE (fp, i) = o
 
-/* #define VARIABLE_REF(v)		SCM_CDR (v) */
-/* #define VARIABLE_SET(v,o)	SCM_SETCDR (v, o) */
+/* For the variable operations, we _must_ obviously avoid function calls to
+   `scm_variable_ref ()', `scm_variable_bound_p ()' and friends which do
+   nothing more than the corresponding macros.  */
+#define VARIABLE_REF(v)		SCM_VARIABLE_REF (v)
+#define VARIABLE_SET(v,o)	SCM_VARIABLE_SET (v, o)
+#define VARIABLE_BOUNDP(v)      (VARIABLE_REF (v) != SCM_UNDEFINED)
 
 /* ref */
 
@@ -232,7 +236,7 @@ VM_DEFINE_INSTRUCTION (variable_ref, "variable-ref", 0, 0, 1)
 {
   SCM x = *sp;
 
-  if (SCM_FALSEP (scm_variable_bound_p (x)))
+  if (!VARIABLE_BOUNDP (x))
     {
       err_args = SCM_LIST1 (x);
       /* Was: err_args = SCM_LIST1 (SCM_CAR (x)); */
@@ -240,7 +244,7 @@ VM_DEFINE_INSTRUCTION (variable_ref, "variable-ref", 0, 0, 1)
     }
   else
     {
-      SCM o = scm_variable_ref (x);
+      SCM o = VARIABLE_REF (x);
       *sp = o;
     }
 
@@ -273,7 +277,7 @@ VM_DEFINE_INSTRUCTION (external_set, "external-set", 1, 1, 0)
 
 VM_DEFINE_INSTRUCTION (variable_set, "variable-set", 0, 1, 0)
 {
-  scm_variable_set_x (sp[0], sp[-1]);
+  VARIABLE_SET (sp[0], sp[-1]);
   scm_set_object_property_x (sp[-1], scm_sym_name, SCM_CAR (sp[0]));
   sp -= 2;
   NEXT;

@@ -149,10 +149,10 @@ SCM_DEFINE (scm_program_arity, "program-arity", 1, 0, 0,
   SCM_VALIDATE_PROGRAM (1, program);
 
   p = SCM_PROGRAM_DATA (program);
-  return SCM_LIST4 (scm_from_uchar (p->nargs),
-		    scm_from_uchar (p->nrest),
-		    scm_from_uchar (p->nlocs),
-		    scm_from_uchar (p->nexts));
+  return SCM_LIST4 (SCM_I_MAKINUM (p->nargs),
+		    SCM_I_MAKINUM (p->nrest),
+		    SCM_I_MAKINUM (p->nlocs),
+		    SCM_I_MAKINUM (p->nexts));
 }
 #undef FUNC_NAME
 

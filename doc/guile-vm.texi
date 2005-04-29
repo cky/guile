@@ -593,11 +593,12 @@ stack):
 @item optionally, a vector which is the program's object table (a
 program that does not reference external bindings does not need an
 object table);
-@item either one integer or four integers representing respectively
-the number of arguments taken by the function (@var{nargs}), the
-number of @dfn{rest arguments} (@var{nrest}, 0 or 1), the number of
-local variables (@var{nlocs}) and the number of external variables
-(@var{nexts}) (see the example above).
+@item either one immediate integer or four immediate integers
+representing respectively the number of arguments taken by the
+function (@var{nargs}), the number of @dfn{rest arguments}
+(@var{nrest}, 0 or 1), the number of local variables (@var{nlocs}) and
+the number of external variables (@var{nexts}) (see the example
+above).
 @end itemize
 
 In the end, push a program object onto the stack.

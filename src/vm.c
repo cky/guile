@@ -476,10 +476,10 @@ SCM_DEFINE (scm_vm_stats, "vm-stats", 1, 0, 0,
 
   SCM_VALIDATE_VM (1, vm);
 
-  stats = scm_make_vector (scm_from_int (2), SCM_UNSPECIFIED);
-  scm_vector_set_x (stats, scm_from_int (0),
+  stats = scm_make_vector (SCM_I_MAKINUM (2), SCM_UNSPECIFIED);
+  scm_vector_set_x (stats, SCM_I_MAKINUM (0),
 		    scm_from_ulong (SCM_VM_DATA (vm)->time));
-  scm_vector_set_x (stats, scm_from_int (1),
+  scm_vector_set_x (stats, SCM_I_MAKINUM (1),
 		    scm_from_ulong (SCM_VM_DATA (vm)->clock));
 
   return stats;
@@ -528,7 +528,7 @@ SCM_DEFINE (scm_vm_fetch_code, "vm-fetch-code", 1, 0, 0,
 
   list = SCM_LIST1 (scm_str2symbol (p->name));
   for (i = 1; i <= p->len; i++)
-    list = scm_cons (scm_from_uint8 (ip[i]), list);
+    list = scm_cons (SCM_I_MAKINUM (ip[i]), list);
   return scm_reverse_x (list, SCM_EOL);
 }
 #undef FUNC_NAME

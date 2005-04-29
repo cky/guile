@@ -4,7 +4,8 @@ guile_vm_SOURCES = guile-vm.c
 guile_vm_LDADD = libguilevm.la 
 guile_vm_LDFLAGS = $(GUILE_LDFLAGS)
 
-AM_CFLAGS = -Wall -g
+AM_CFLAGS = -Wall -g -pg
+guile_vm_LDFLAGS += -pg
 
 lib_LTLIBRARIES = libguilevm.la
 libguilevm_la_SOURCES =							\
@@ -12,6 +13,7 @@ libguilevm_la_SOURCES =							\
 	envs.h frames.h instructions.h objcodes.h programs.h vm.h	\
 	vm_engine.h vm_expand.h
 libguilevm_la_LDFLAGS = -version-info 0:0:0 -export-dynamic
+libguilevm_la_LDFLAGS += -pg
 EXTRA_DIST = vm_engine.c vm_system.c vm_scheme.c vm_loader.c
 BUILT_SOURCES = vm_system.i vm_scheme.i vm_loader.i \
 	envs.x frames.x instructions.x objcodes.x programs.x vm.x
@@ -25,11 +27,22 @@ ETAGS_ARGS = --regex='/SCM_\(SYMBOL\|VCELL\).*\"\([^\"]\)*\"/\3/' \
 
 SNARF = guile-snarf
 SUFFIXES = .i .x
+
 .c.i:
 	grep '^VM_DEFINE' $< > $@
+
 .c.x:
 	$(SNARF) $< $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< > $@ \
 	|| { rm $@; false; }
+
+
+# Extra rules for debugging purposes.
+
+%.I: %.c
+	$(CPP) $(DEFS) $(INCLUDES) $(CPPFLAGS) $< > $@
+
+%.s: %.c
+	$(CC) -S -dA $(DEFS) $(INCLUDES) $(CFLAGS) $(CPPFLAGS) -o $@ $<
 
 GUILE = "$(bindir)/guile"
 guilec: guilec.in

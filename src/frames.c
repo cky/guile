@@ -117,7 +117,7 @@ SCM_DEFINE (scm_frame_local_ref, "frame-local-ref", 2, 0, 0,
   SCM_VALIDATE_HEAP_FRAME (1, frame);
   SCM_VALIDATE_INUM (2, index); /* FIXME: Check the range! */
   return SCM_FRAME_VARIABLE (SCM_HEAP_FRAME_POINTER (frame),
-			     scm_to_int (index));
+			     SCM_I_INUM (index));
 }
 #undef FUNC_NAME
 
@@ -129,7 +129,7 @@ SCM_DEFINE (scm_frame_local_set_x, "frame-local-set!", 3, 0, 0,
   SCM_VALIDATE_HEAP_FRAME (1, frame);
   SCM_VALIDATE_INUM (2, index); /* FIXME: Check the range! */
   SCM_FRAME_VARIABLE (SCM_HEAP_FRAME_POINTER (frame),
-		      scm_to_int (index)) = val;
+		      SCM_I_INUM (index)) = val;
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME

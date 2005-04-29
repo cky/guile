@@ -159,8 +159,8 @@ SCM_DEFINE (scm_bytecode_to_objcode, "bytecode->objcode", 3, 0, 0,
   base = SCM_OBJCODE_BASE (objcode);
 
   memcpy (base, OBJCODE_COOKIE, 8);
-  base[8] = scm_to_int (nlocs);
-  base[9] = scm_to_int (nexts);
+  base[8] = SCM_I_INUM (nlocs);
+  base[9] = SCM_I_INUM (nexts);
 
   memcpy (base + 10, c_bytecode, size - 10);
 
@@ -176,10 +176,13 @@ SCM_DEFINE (scm_load_objcode, "load-objcode", 1, 0, 0,
 #define FUNC_NAME s_scm_load_objcode
 {
   int fd;
+  char *c_file;
 
   SCM_VALIDATE_STRING (1, file);
 
-  fd = open (SCM_STRING_CHARS (file), O_RDONLY);
+  c_file = scm_to_locale_string (file);
+  fd = open (c_file, O_RDONLY);
+  free (c_file);
   if (fd < 0) SCM_SYSERROR;
 
   return make_objcode_by_mmap (fd);
