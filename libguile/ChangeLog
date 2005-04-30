@@ -1,3 +1,9 @@
+2005-04-30  Han-Wen Nienhuys  <hanwen@xs4all.nl>
+
+	* fluids.c (DYNAMIC_STATE_NEXT_LOC): new macro for use with
+	SCM_DEBUG_CELL_ACCESSES
+	(FLUID_NEXT_LOC): idem.
+
 2005-04-30  Kevin Ryde  <user42@zip.com.au>
 
 	* numbers.c (scm_divide): Correction to 1/complex and <any>/complex,

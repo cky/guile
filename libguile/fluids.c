@@ -65,6 +65,7 @@ static scm_t_bits tc16_fluid;
 #define IS_FLUID(x)         SCM_SMOB_PREDICATE(tc16_fluid, (x))
 #define FLUID_NUM(x)        ((size_t)SCM_SMOB_DATA(x))
 #define FLUID_NEXT(x)       SCM_SMOB_OBJECT_2(x)
+#define FLUID_NEXT_LOC(x)       SCM_SMOB_OBJECT_2_LOC(x)
 #define SET_FLUID_NEXT(x,y) SCM_SET_SMOB_OBJECT_2((x), (y))
 
 static scm_t_bits tc16_dynamic_state;
@@ -73,6 +74,7 @@ static scm_t_bits tc16_dynamic_state;
 #define DYNAMIC_STATE_FLUIDS(x)        SCM_SMOB_OBJECT(x)
 #define SET_DYNAMIC_STATE_FLUIDS(x, y) SCM_SET_SMOB_OBJECT((x), (y))
 #define DYNAMIC_STATE_NEXT(x)          SCM_SMOB_OBJECT_2(x)
+#define DYNAMIC_STATE_NEXT_LOC(x)          SCM_SMOB_OBJECT_2_LOC(x)
 #define SET_DYNAMIC_STATE_NEXT(x, y)   SCM_SET_SMOB_OBJECT_2((x), (y))
 
 /* Weak lists of all dynamic states and all fluids.
@@ -145,7 +147,7 @@ scan_dynamic_states_and_fluids (void *dummy1 SCM_UNUSED,
 	  *fluidp = FLUID_NEXT (*fluidp);
 	}
       else
-	fluidp = &FLUID_NEXT (*fluidp);
+	fluidp = FLUID_NEXT_LOC (*fluidp);
     }
 
   /* Scan all dynamic states and remove the unmarked ones.  The live
@@ -166,7 +168,7 @@ scan_dynamic_states_and_fluids (void *dummy1 SCM_UNUSED,
 	    if (allocated_fluids[i] == 0)
 	      SCM_SIMPLE_VECTOR_SET (fluids, i, SCM_BOOL_F);
 
-	  statep = &DYNAMIC_STATE_NEXT (*statep);
+	  statep = DYNAMIC_STATE_NEXT_LOC (*statep);
 	}
     }
 
