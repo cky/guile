@@ -1,5 +1,7 @@
 2005-04-30  Han-Wen Nienhuys  <hanwen@xs4all.nl>
 
+	* list.h: remove scm_list()
+
 	* fluids.c (DYNAMIC_STATE_NEXT_LOC): new macro for use with
 	SCM_DEBUG_CELL_ACCESSES
 	(FLUID_NEXT_LOC): idem.
