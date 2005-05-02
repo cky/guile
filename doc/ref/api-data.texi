@@ -2583,13 +2583,35 @@ strings.
 
 @c FIXME::martin: list->string belongs into `List/String Conversion'
 
+@deffn {Scheme Procedure} string char@dots{}
 @rnindex string
+Return a newly allocated string made from the given character
+arguments.
+
+@example
+(string #\x #\y #\z) @result{} "xyz"
+(string)             @result{} ""
+@end example
+@end deffn
+
+@deffn {Scheme Procedure} list->string lst
+@deffnx {C Function} scm_string (lst)
 @rnindex list->string
-@deffn {Scheme Procedure} string . chrs
-@deffnx {Scheme Procedure} list->string chrs
-@deffnx {C Function} scm_string (chrs)
-Return a newly allocated string composed of the arguments,
-@var{chrs}.
+Return a newly allocated string made from a list of characters.
+
+@example
+(list->string '(#\a #\b #\c)) @result{} "abc"
+@end example
+@end deffn
+
+@deffn {Scheme Procedure} reverse-list->string lst
+@deffnx {C Function} scm_reverse_list_to_string (lst)
+Return a newly allocated string made from a list of characters, in
+reverse order.
+
+@example
+(reverse-list->string '(#\a #\B #\c)) @result{} "cBa"
+@end example
 @end deffn
 
 @rnindex make-string
@@ -2612,16 +2634,6 @@ Like @code{scm_make_string}, but expects the length as a
 of size @var{len} by applying @var{proc} to each index to
 produce the corresponding string element.  The order in which
 @var{proc} is applied to the indices is not specified.
-@end deffn
-
-@deffn {Scheme Procedure} reverse-list->string chrs
-@deffnx {C Function} scm_reverse_list_to_string (chrs)
-An efficient implementation of @code{(compose string->list
-reverse)}:
-
-@smalllisp
-(reverse-list->string '(#\a #\B #\c)) @result{} "cBa"
-@end smalllisp
 @end deffn
 
 @deffn {Scheme Procedure} string-join ls [delimiter [grammar]]
