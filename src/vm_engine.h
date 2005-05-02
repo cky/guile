@@ -214,6 +214,7 @@
 
 #define PUSH(x)	do { sp++; CHECK_OVERFLOW (); *sp = x; } while (0)
 #define DROP()	do { CHECK_UNDERFLOW (); sp--; } while (0)
+#define DROPN(_n)	do { CHECK_UNDERFLOW (); sp -= (_n); } while (0)
 #define POP(x)	do { x = *sp; DROP (); } while (0)
 
 /* A fast CONS.  This has to be fast since its used, for instance, by
@@ -227,8 +228,11 @@
   x = scm_cell (SCM_UNPACK (y), SCM_UNPACK (z));	\
 }
 
+/* Pop the N objects on top of the stack and push a list that contains
+   them.  */
 #define POP_LIST(n)				\
-do {						\
+do						\
+{						\
   int i;					\
   SCM l = SCM_EOL;				\
   sp -= n;					\

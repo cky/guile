@@ -376,7 +376,10 @@ VM_DEFINE_INSTRUCTION (call, "call", 1, -1, 1)
    */
   if (!SCM_FALSEP (scm_procedure_p (x)))
     {
+      /* At this point, the stack contains the procedure and each one of its
+	 arguments.  */
       SCM args;
+
       POP_LIST (nargs);
       POP (args);
       *sp = scm_apply (x, args, SCM_EOL);
@@ -407,7 +410,7 @@ VM_DEFINE_INSTRUCTION (call, "call", 1, -1, 1)
 
 VM_DEFINE_INSTRUCTION (tail_call, "tail-call", 1, -1, 1)
 {
-  SCM x;
+  register SCM x;
   nargs = FETCH ();
   x = sp[-nargs];
 
@@ -425,7 +428,9 @@ VM_DEFINE_INSTRUCTION (tail_call, "tail-call", 1, -1, 1)
       sp -= bp->nargs - 1;
       for (i = 0; i < bp->nargs; i++)
 	LOCAL_SET (i, sp[i]);
-      sp--;
+
+      /* Drop the first argument and the program itself.  */
+      sp -= 2;
 
       /* Call itself */
       ip = bp->base;

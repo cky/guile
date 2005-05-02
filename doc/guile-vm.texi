@@ -92,6 +92,18 @@ However, be warned that important parts still correspond to version
 * Variable Management::         
 * Program Execution::           
 * Instruction Set::             
+
+@detailmenu
+ --- The Detailed Node Listing ---
+
+Instruction Set
+
+* Environment Control Instructions::  
+* Branch Instructions::         
+* Subprogram Control Instructions::  
+* Data Control Instructions::   
+
+@end detailmenu
 @end menu
 
 @c *********************************************************************
@@ -470,11 +482,12 @@ useful calculations.
 
 @menu
 * Environment Control Instructions::  
+* Branch Instructions::         
 * Subprogram Control Instructions::  
 * Data Control Instructions::   
 @end menu
 
-@node Environment Control Instructions, Subprogram Control Instructions, Instruction Set, Instruction Set
+@node Environment Control Instructions, Branch Instructions, Instruction Set, Instruction Set
 @section Environment Control Instructions
 
 @deffn @insn{} link binding-name
@@ -517,7 +530,61 @@ This call yields the following sequence of instructions:
 @item %unbind
 @end itemize
 
-@node Subprogram Control Instructions, Data Control Instructions, Environment Control Instructions, Instruction Set
+
+@node Branch Instructions, Subprogram Control Instructions, Environment Control Instructions, Instruction Set
+@section Branch Instructions
+
+All the conditional branch instructions described below work in the
+same way:
+
+@itemize
+@item They take the Scheme object located on the stack and use it as
+the branch condition;
+@item If the condition if false, then program execution continues with
+the next instruction;
+@item If the condition is true, then the instruction pointer is
+increased by the offset passed as an argument to the branch
+instruction;
+@item Finally, when the instruction finished, the condition object is
+removed from the stack.
+@end itemize
+
+Note that the offset passed to the instruction is encoded on two 8-bit
+integers which are then combined by the VM as one 16-bit integer.
+
+@deffn @insn{} br offset
+Jump to @var{offset}.
+@end deffn
+
+@deffn @insn{} br-if offset
+Jump to @var{offset} if the condition on the stack is not false.
+@end deffn
+
+@deffn @insn{} br-if-not offset
+Jump to @var{offset} if the condition on the stack is false.
+@end deffn
+
+@deffn @insn{} br-if-eq offset
+Jump to @var{offset} if the two objects located on the stack are
+equal in the sense of @var{eq?}.  Note that, for this instruction, the
+stack pointer is decremented by two Scheme objects instead of only
+one.
+@end deffn
+
+@deffn @insn{} br-if-not-eq offset
+Same as @var{br-if-eq} for non-equal objects.
+@end deffn
+
+@deffn @insn{} br-if-null offset
+Jump to @var{offset} if the object on the stack is @code{'()}.
+@end deffn
+
+@deffn @insn{} br-if-not-null offset
+Jump to @var{offset} if the object on the stack is not @code{'()}.
+@end deffn
+
+
+@node Subprogram Control Instructions, Data Control Instructions, Branch Instructions, Instruction Set
 @section Subprogram Control Instructions
 
 Programs (read: ``compiled procedure'') may refer to external
@@ -582,10 +649,10 @@ This clearly shows that there is little difference between references
 to local variables and references to externally bound variables.
 
 @deffn @insn{} load-program bytecode
-Load the program whose bytecode is @var{bytecode} (a u8vector) and pop
-its meta-information from the stack.  The program's meta-information
-may consist of (in the order in which it should be pushed onto the
-stack):
+Load the program whose bytecode is @var{bytecode} (a u8vector), pop
+its meta-information from the stack, and push a corresponding program
+object onto the stack.  The program's meta-information may consist of
+(in the order in which it should be pushed onto the stack):
 
 @itemize
 @item optionally, a pair representing meta-data (see the
@@ -601,8 +668,6 @@ the number of external variables (@var{nexts}) (see the example
 above).
 @end itemize
 
-In the end, push a program object onto the stack.
-
 @end deffn
 
 @deffn @insn{} object-ref offset
@@ -612,6 +677,19 @@ Push the variable object for the external variable located at
 
 @deffn @insn{} return
 Free the program's frame.
+@end deffn
+
+@deffn @insn{} call nargs
+Call the procedure, continuation or program located at
+@code{sp[-nargs]} with the @var{nargs} arguments located from
+@code{sp[0]} to @code{sp[-nargs + 1]}.  The
+procedure/continuation/program and its arguments are dropped from the
+stack and the result is pushed.
+@end deffn
+
+@deffn @insn{} tail-call nargs
+Same as @code{call} except that, for tail-recursive calls to a
+program, the current stack frame is re-used, as required by RnRS.
 @end deffn
 
 

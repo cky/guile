@@ -16,12 +16,12 @@
 	  (g-c-d x (- y x))
 	  (g-c-d (- x y) y))))
 
-(define (loop how-long)
+(define (loop n)
   ;; This one shows that procedure calls are no faster than within the
   ;; interpreter: the VM yields no performance improvement.
-  (if (= 0 how-long)
+  (if (= 0 n)
       0
-      (loop (1- how-long))))
+      (loop (1- n))))
 
 ;; Disassembly of `loop'
 ;;
@@ -35,7 +35,7 @@
 ;   11    (link "1-")
 ;   15    (vector 3)
 ;   17    (make-int8:0)                   ;; 0
-;   18    (load-symbol "how-long")        ;; how-long
+;   18    (load-symbol "n")               ;; n
 ;   28    (make-false)                    ;; #f
 ;   29    (make-int8:0)                   ;; 0
 ;   30    (list 3)
@@ -92,25 +92,27 @@
 ;   23    (tail-call 1)
 
 
-(define (loopi how-long)
+(define (loopi n)
   ;; Same as `loop'.
-  (let loopi ((how-long how-long))
-    (if (= 0 how-long)
+  (let loopi ((n n))
+    (if (= 0 n)
 	0
-	(loopi (1- how-long)))))
+	(loopi (1- n)))))
 
 
 (define (do-cons x)
   ;; This one shows that the built-in `cons' instruction yields a significant
-  ;; improvement (speedup: 1.4).
+  ;; improvement (speedup: 1.5).
   (let loop ((x x)
 	     (result '()))
     (if (<= x 0)
 	result
 	(loop (1- x) (cons x result)))))
 
+(define big-list (iota 500000))
+
 (define (copy-list lst)
-  ;; Speedup: 1.3.
+  ;; Speedup: 5.9.
   (let loop ((lst lst)
 	     (result '()))
     (if (null? lst)

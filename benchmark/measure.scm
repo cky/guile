@@ -10,18 +10,21 @@ exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
 (define-module (measure)
   :export (measure)
   :use-module (system vm core)
+  :use-module (system vm disasm)
   :use-module (system base compile)
   :use-module (system base language))
 
+
 (define (time-for-eval sexp eval)
   (let ((before (tms:utime (times))))
-    (eval sexp (current-module))
+    (eval sexp)
     (let ((elapsed (- (tms:utime (times)) before)))
       (format #t "elapsed time: ~a~%" elapsed)
       elapsed)))
 
 (define *scheme* (lookup-language 'scheme))
 
+
 (define (measure . args)
   (if (< (length args) 2)
       (begin
@@ -33,13 +36,29 @@ exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
   (let* ((sexp (with-input-from-string (car args)
 		 (lambda ()
 		   (read))))
-	 (time-interpreted (time-for-eval sexp eval))
-	 (objcode (compile-in sexp (current-module) *scheme*))
-	 (time-compiled (time-for-eval objcode
-				       (let ((vm (the-vm))
-					     (prog (objcode->program objcode)))
-					 (lambda (o e)
-					   (vm prog))))))
+	 (eval-here (lambda (sexp) (eval sexp (current-module))))
+	 (proc-name (car sexp))
+	 (proc-source (procedure-source (eval proc-name (current-module))))
+	 (% (format #t "proc: ~a~%source: ~a~%" proc-name proc-source))
+	 (time-interpreted (time-for-eval sexp eval-here))
+	 (& (if (defined? proc-name)
+		(eval `(set! ,proc-name #f) (current-module))
+		(format #t "unbound~%")))
+	 (objcode (compile-in proc-source
+			      (current-module) *scheme*))
+	 (the-program (vm-load (the-vm) objcode))
+
+;	 (%%% (disassemble-objcode objcode))
+	 (time-compiled (time-for-eval `(,proc-name ,@(cdr sexp))
+				       (lambda (sexp)
+					 (eval `(begin
+						  (define ,proc-name
+						    ,the-program)
+						  ,sexp)
+					       (current-module))))))
+
+    (format #t "proc:        ~a => ~a~%"
+	    proc-name (eval proc-name (current-module)))
     (format #t "interpreted: ~a~%" time-interpreted)
     (format #t "compiled:    ~a~%" time-compiled)
     (format #t "speedup:     ~a~%"

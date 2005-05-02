@@ -135,7 +135,7 @@ SCM_DEFINE (scm_program_base, "program-base", 1, 0, 0,
 {
   SCM_VALIDATE_PROGRAM (1, program);
 
-  return scm_ulong2num ((unsigned long) SCM_PROGRAM_DATA (program)->base);
+  return scm_from_ulong ((unsigned long) SCM_PROGRAM_DATA (program)->base);
 }
 #undef FUNC_NAME
 

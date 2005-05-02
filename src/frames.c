@@ -140,7 +140,7 @@ SCM_DEFINE (scm_frame_return_address, "frame-return-address", 1, 0, 0,
 #define FUNC_NAME s_scm_frame_return_address
 {
   SCM_VALIDATE_HEAP_FRAME (1, frame);
-  return scm_ulong2num ((unsigned long) (SCM_FRAME_RETURN_ADDRESS
+  return scm_from_ulong ((unsigned long) (SCM_FRAME_RETURN_ADDRESS
 					 (SCM_HEAP_FRAME_POINTER (frame))));
 }
 #undef FUNC_NAME

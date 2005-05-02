@@ -51,7 +51,7 @@ VM_DEFINE_LOADER (load_integer, "load-integer")
       long val = 0;
       while (len-- > 0)
 	val = (val << 8) + FETCH ();
-      PUSH (scm_long2num (val));
+      PUSH (scm_from_ulong (val));
       NEXT;
     }
   else
@@ -84,7 +84,7 @@ VM_DEFINE_LOADER (load_symbol, "load-symbol")
 {
   size_t len;
   FETCH_LENGTH (len);
-  PUSH (scm_mem2symbol (ip, len));
+  PUSH (scm_from_locale_symboln (ip, len));
   ip += len;
   NEXT;
 }
@@ -94,7 +94,7 @@ VM_DEFINE_LOADER (load_keyword, "load-keyword")
   SCM sym;
   size_t len;
   FETCH_LENGTH (len);
-  sym = scm_mem2symbol (ip, len);
+  sym = scm_from_locale_symboln (ip, len);
   PUSH (scm_make_keyword_from_dash_symbol (sym));
   ip += len;
   NEXT;
@@ -104,7 +104,7 @@ VM_DEFINE_LOADER (load_module, "load-module")
 {
   size_t len;
   FETCH_LENGTH (len);
-  PUSH (scm_c_lookup_env (scm_mem2symbol (ip, len)));
+  PUSH (scm_c_lookup_env (scm_from_locale_symboln (ip, len)));
   ip += len;
   NEXT;
 }
