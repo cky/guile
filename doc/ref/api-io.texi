@@ -169,7 +169,7 @@ Place the string @var{str} in @var{port} so that its characters will
 be read from left-to-right as the next characters from @var{port}
 during subsequent read operations.  If called multiple times, the
 unread characters will be read again in last-in first-out order.  If
-@var{port} is not supplied, the current-input-port is used.
+@var{port} is not supplied, the @code{current-input-port} is used.
 @end deffn
 
 @deffn {Scheme Procedure} drain-input port
@@ -624,11 +624,11 @@ it's fully buffered.
 
 Unbuffered input is good if an application runs an interactive
 subprocess, since any type-ahead input won't go into Guile's buffer
-and hence be unavailable to the subprocess.
+and be unavailable to the subprocess.
 
 Note that Guile buffering is completely separate from the tty ``line
-discipline''.  In the usual cooked mode on a tty, Guile only sees a
-line of input once the user presses @key{return}.
+discipline''.  In the usual cooked mode on a tty Guile only sees a
+line of input once the user presses @key{Return}.
 @end deffn
 
 @rnindex current-output-port
