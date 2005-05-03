@@ -1,3 +1,9 @@
+2005-05-04  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/srfi-1.test (break!, drop-right!, drop-while, eighth, fifth,
+	ninth, seventh, sixth, span!, take!, take-while, take-while!, tenth):
+	New tests.
+
 2005-04-30  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/numbers.test (/): Further tests.

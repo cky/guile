@@ -1,3 +1,10 @@
+2005-05-04  Kevin Ryde  <user42@zip.com.au>
+
+	* srfi-1.scm, srfi-1.c, srfi-1.h (break, break!, drop-right!,
+	drop-while, eighth, fifth, lset-adjoin, ninth, reduce, reduce-right,
+	seventh, sixth, span, span!, take!, take-while, take-while!, tenth):
+	Rewrite in C.
+	
 2005-04-23  Kevin Ryde  <user42@zip.com.au>
 
 	* srfi-1.c (scm_srfi1_count, scm_srfi1_filter_map): Don't modify the
