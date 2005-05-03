@@ -341,31 +341,6 @@
 (define take list-head)
 (define drop list-tail)
 
-(define (take! x i)
-  (if (<= i 0)
-    '()
-    (let lp ((n (- i 1)) (l x))
-      (if (<= n 0)
-	(begin
-	  (set-cdr! l '())
-	  x)
-	(lp (- n 1) (cdr l))))))
-
-(define (drop-right! flist i)
-  (if (<= i 0)
-    flist
-    (let lp ((n (+ i 1)) (l flist))
-      (if (<= n 0)
-	(let lp0 ((s flist) (l l))
-	  (if (null? l)
-	    (begin
-	      (set-cdr! s '())
-	      flist)
-	    (lp0 (cdr s) (cdr l))))
-	(if (null? l)
-	  '()
-	  (lp (- n 1) (cdr l)))))))
-
 (define (last pair)
   (car (last-pair pair)))
 
@@ -476,16 +451,6 @@
 	  lis
 	  (uf (g seed) (cons (f seed) lis))))))
 
-(define (reduce f ridentity lst)
-  (if (null? lst)
-      ridentity
-      (fold f (car lst) (cdr lst))))
-
-(define (reduce-right f ridentity lst)
-  (if (null? lst)
-      ridentity
-      (fold-right f (last lst) (drop-right lst 1))))
-
 
 ;; Internal helper procedure.  Map `f' over the single list `ls'.
 ;;
@@ -516,38 +481,6 @@
 	  (lp (map1 cdr l)))))))
 
 ;;; Searching
-
-(define (take-while pred ls)
-  (cond ((null? ls) '())
-        ((not (pred (car ls))) '())
-        (else
-         (let ((result (list (car ls))))
-           (let lp ((ls (cdr ls)) (p result))
-             (cond ((null? ls) result)
-                   ((not (pred (car ls))) result)
-                   (else
-                    (set-cdr! p (list (car ls)))
-                    (lp (cdr ls) (cdr p)))))))))
-
-(define (take-while! pred clist)
-  (take-while pred clist))		; XXX:optimize
-
-(define (drop-while pred clist)
-  (if (null? clist)
-    '()
-    (if (pred (car clist))
-      (drop-while pred (cdr clist))
-      clist)))
-
-(define (span pred clist)
-  (let lp ((clist clist) (rl '()))
-    (if (and (not (null? clist))
-	     (pred (car clist)))
-	(lp (cdr clist) (cons (car clist) rl))
-	(values (reverse! rl) clist))))
-
-(define (span! pred list)
-  (span pred list))			; XXX:optimize
 
 (define (break pred clist)
   (let lp ((clist clist) (rl '()))
@@ -649,20 +582,6 @@
 	  (and (every (lambda (el) (member el (car r) =)) f)
 	       (every (lambda (el) (member el f (lambda (x y) (= y x)))) (car r))
 	       (lp (car r) (cdr r)))))))
-
-;; It's not quite clear if duplicates among the `rest' elements are meant to
-;; be cast out.  The spec says `=' is called as (= lstelem restelem),
-;; suggesting perhaps not, but the reference implementation shows the "list"
-;; at each stage as including those elements already added.  The latter
-;; corresponds to what's described for lset-union, so that's what's done.
-;;
-(define (lset-adjoin = list . rest)
-  (let lp ((l rest) (acc list))
-    (if (null? l)
-      acc
-      (if (member (car l) acc (lambda (x y) (= y x)))
-	(lp (cdr l) acc)
-	(lp (cdr l) (cons (car l) acc))))))
 
 (define (lset-union = . rest)
   (let ((acc '()))
