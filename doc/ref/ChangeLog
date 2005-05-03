@@ -1,3 +1,8 @@
+2005-05-04  Kevin Ryde  <user42@zip.com.au>
+
+	* srfi-modules.texi (SRFI-1 Selectors): In drop-right, note always a
+	new list.  In take-right, note result shares common tail.  Per spec.
+
 2005-05-03  Kevin Ryde  <user42@zip.com.au>
 
 	* api-data.texi (String Constructors): Clarify string, list->string
