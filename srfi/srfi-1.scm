@@ -482,16 +482,6 @@
 
 ;;; Searching
 
-(define (break pred clist)
-  (let lp ((clist clist) (rl '()))
-    (if (or (null? clist)
-	    (pred (car clist)))
-	(values (reverse! rl) clist)
-	(lp (cdr clist) (cons (car clist) rl)))))
-
-(define (break! pred list)
-  (break pred list))			; XXX:optimize
-
 (define (any pred ls . lists)
   (if (null? lists)
       (any1 pred ls)

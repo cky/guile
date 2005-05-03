@@ -33,6 +33,8 @@
 #endif
 
 SCM_SRFI1_API SCM scm_srfi1_alist_copy (SCM alist);
+SCM_SRFI1_API SCM scm_srfi1_break (SCM pred, SCM lst);
+SCM_SRFI1_API SCM scm_srfi1_break_x (SCM pred, SCM lst);
 SCM_SRFI1_API SCM scm_srfi1_concatenate (SCM lstlst);
 SCM_SRFI1_API SCM scm_srfi1_concatenate_x (SCM lstlst);
 SCM_SRFI1_API SCM scm_srfi1_count (SCM pred, SCM list1, SCM rest);
