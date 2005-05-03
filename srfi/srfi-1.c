@@ -557,6 +557,53 @@ SCM_DEFINE (scm_srfi1_drop_right, "drop-right", 2, 0, 0,
 #undef FUNC_NAME
 
 
+SCM_DEFINE (scm_srfi1_drop_right_x, "drop-right!", 2, 0, 0,
+            (SCM lst, SCM n),
+	    "Return the a list containing the @var{n} last elements of\n"
+	    "@var{lst}.  @var{lst} may be modified to build the return.")
+#define FUNC_NAME s_scm_srfi1_drop_right_x
+{
+  SCM tail, *p;
+
+  if (scm_is_eq (n, SCM_INUM0))
+    return lst;
+
+  tail = scm_list_tail (lst, n);
+  p = &lst;
+
+  /* p and tail work along the list, p being the cdrloc of the cell n steps
+     behind tail */
+  for ( ; scm_is_pair (tail); tail = SCM_CDR (tail))
+    p = SCM_CDRLOC (*p);
+
+  SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P(tail), tail, SCM_ARG1, FUNC_NAME, "list");
+
+  *p = SCM_EOL;
+  return lst;
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_srfi1_drop_while, "drop-while", 2, 0, 0,
+            (SCM pred, SCM lst),
+	    "Drop the longest initial prefix of @var{lst} whose elements all\n"
+	    "satisfy the predicate @var{pred}.")
+#define FUNC_NAME s_scm_srfi1_drop_while
+{
+  scm_t_trampoline_1 pred_tramp = scm_trampoline_1 (pred);
+  SCM_ASSERT (pred_tramp, pred, SCM_ARG1, FUNC_NAME);
+
+  for ( ; scm_is_pair (lst); lst = SCM_CDR (lst))
+    if (scm_is_false (pred_tramp (pred, SCM_CAR (lst))))
+      goto done;
+
+  SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P (lst), lst, SCM_ARG2, FUNC_NAME, "list");
+ done:
+  return lst;
+}
+#undef FUNC_NAME
+
+
 SCM_DEFINE (scm_srfi1_filter_map, "filter-map", 2, 0, 1,
             (SCM proc, SCM list1, SCM rest),
 	    "Apply @var{proc} to to the elements of @var{list1} @dots{} and\n"
@@ -752,6 +799,58 @@ SCM_DEFINE (scm_srfi1_list_copy, "list-copy", 1, 0, 0,
       from_here = SCM_CDR (from_here);
     }
   return newlst;
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_srfi1_lset_adjoin, "lset-adjoin", 2, 0, 1,
+            (SCM equal, SCM lst, SCM rest),
+	    "Add to @var{list} any of the given @var{elem}s not already in\n"
+	    "the list.  @var{elem}s are @code{cons}ed onto the start of\n"
+	    "@var{list} (so the return shares a common tail with\n"
+	    "@var{list}), but the order they're added is unspecified.\n"
+	    "\n"
+	    "The given @var{=} procedure is used for comparing elements,\n"
+	    "called as @code{(@var{=} listelem elem)}, ie.@: the second\n"
+	    "argument is one of the given @var{elem} parameters.\n"
+	    "\n"
+	    "@example\n"
+	    "(lset-adjoin eqv? '(1 2 3) 4 1 5) @result{} (5 4 1 2 3)\n"
+	    "@end example")
+#define FUNC_NAME s_scm_srfi1_lset_adjoin
+{
+  scm_t_trampoline_2 equal_tramp;
+  SCM l, elem;
+
+  equal_tramp = scm_trampoline_2 (equal);
+  SCM_ASSERT (equal_tramp, equal, SCM_ARG1, FUNC_NAME);
+  SCM_VALIDATE_REST_ARGUMENT (rest);
+
+  /* It's not clear if duplicates among the `rest' elements are meant to be
+     cast out.  The spec says `=' is called as (= list-elem rest-elem),
+     suggesting perhaps not, but the reference implementation shows the
+     "list" at each stage as including those "rest" elements already added.
+     The latter corresponds to what's described for lset-union, so that's
+     what's done here.  */
+
+  for ( ; scm_is_pair (rest); rest = SCM_CDR (rest))
+    {
+      elem = SCM_CAR (rest);
+
+      for (l = lst; scm_is_pair (l); l = SCM_CDR (l))
+        if (scm_is_true (equal_tramp (equal, SCM_CAR (l), elem)))
+          goto next_elem; /* elem already in lst, don't add */
+
+      SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P(l), lst, SCM_ARG2, FUNC_NAME, "list");
+
+      /* elem is not equal to anything already in lst, add it */
+      lst = scm_cons (elem, lst);
+
+    next_elem:
+      ;
+    }
+
+  return lst;
 }
 #undef FUNC_NAME
 
@@ -1116,6 +1215,132 @@ SCM_DEFINE (scm_srfi1_partition_x, "partition!", 2, 0, 0,
 #undef FUNC_NAME
 
 
+SCM_DEFINE (scm_srfi1_reduce, "reduce", 3, 0, 0,
+            (SCM proc, SCM def, SCM lst),
+	    "@code{reduce} is a variant of @code{fold}, where the first call\n"
+	    "to @var{proc} is on two elements from @var{lst}, rather than\n"
+	    "one element and a given initial value.\n"
+	    "\n"
+	    "If @var{lst} is empty, @code{reduce} returns @var{def} (this is\n"
+	    "the only use for @var{def}).  If @var{lst} has just one element\n"
+	    "then that's the return value.  Otherwise @var{proc} is called\n"
+	    "on the elements of @var{lst}.\n"
+	    "\n"
+	    "Each @var{proc} call is @code{(@var{proc} @var{elem}\n"
+	    "@var{previous})}, where @var{elem} is from @var{lst} (the\n"
+	    "second and subsequent elements of @var{lst}), and\n"
+	    "@var{previous} is the return from the previous call to\n"
+	    "@var{proc}.  The first element of @var{lst} is the\n"
+	    "@var{previous} for the first call to @var{proc}.\n"
+	    "\n"
+	    "For example, the following adds a list of numbers, the calls\n"
+	    "made to @code{+} are shown.  (Of course @code{+} accepts\n"
+	    "multiple arguments and can add a list directly, with\n"
+	    "@code{apply}.)\n"
+	    "\n"
+	    "@example\n"
+	    "(reduce + 0 '(5 6 7)) @result{} 18\n"
+	    "\n"
+	    "(+ 6 5)  @result{} 11\n"
+	    "(+ 7 11) @result{} 18\n"
+	    "@end example\n"
+	    "\n"
+	    "@code{reduce} can be used instead of @code{fold} where the\n"
+	    "@var{init} value is an ``identity'', meaning a value which\n"
+	    "under @var{proc} doesn't change the result, in this case 0 is\n"
+	    "an identity since @code{(+ 5 0)} is just 5.  @code{reduce}\n"
+	    "avoids that unnecessary call.")
+#define FUNC_NAME s_scm_srfi1_reduce
+{
+  scm_t_trampoline_2 proc_tramp = scm_trampoline_2 (proc);
+  SCM  ret;
+
+  SCM_ASSERT (proc_tramp, proc, SCM_ARG1, FUNC_NAME);
+
+  ret = def;  /* if lst is empty */
+  if (scm_is_pair (lst))
+    {
+      ret = SCM_CAR (lst);  /* if lst has one element */
+
+      for (lst = SCM_CDR (lst); scm_is_pair (lst); lst = SCM_CDR (lst))
+        ret = proc_tramp (proc, SCM_CAR (lst), ret);
+    }
+
+  SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P (lst), lst, SCM_ARG3, FUNC_NAME, "list");
+  return ret;
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_srfi1_reduce_right, "reduce-right", 3, 0, 0,
+            (SCM proc, SCM def, SCM lst),
+	    "@code{reduce-right} is a variant of @code{fold-right}, where\n"
+	    "the first call to @var{proc} is on two elements from @var{lst},\n"
+	    "rather than one element and a given initial value.\n"
+	    "\n"
+	    "If @var{lst} is empty, @code{reduce-right} returns @var{def}\n"
+	    "(this is the only use for @var{def}).  If @var{lst} has just\n"
+	    "one element then that's the return value.  Otherwise @var{proc}\n"
+	    "is called on the elements of @var{lst}.\n"
+	    "\n"
+	    "Each @var{proc} call is @code{(@var{proc} @var{elem}\n"
+	    "@var{previous})}, where @var{elem} is from @var{lst} (the\n"
+	    "second last and then working back to the first element of\n"
+	    "@var{lst}), and @var{previous} is the return from the previous\n"
+	    "call to @var{proc}.  The last element of @var{lst} is the\n"
+	    "@var{previous} for the first call to @var{proc}.\n"
+	    "\n"
+	    "For example, the following adds a list of numbers, the calls\n"
+	    "made to @code{+} are shown.  (Of course @code{+} accepts\n"
+	    "multiple arguments and can add a list directly, with\n"
+	    "@code{apply}.)\n"
+	    "\n"
+	    "@example\n"
+	    "(reduce-right + 0 '(5 6 7)) @result{} 18\n"
+	    "\n"
+	    "(+ 6 7)  @result{} 13\n"
+	    "(+ 5 13) @result{} 18\n"
+	    "@end example\n"
+	    "\n"
+	    "@code{reduce-right} can be used instead of @code{fold-right}\n"
+	    "where the @var{init} value is an ``identity'', meaning a value\n"
+	    "which under @var{proc} doesn't change the result, in this case\n"
+	    "0 is an identity since @code{(+ 7 0)} is just 5.\n"
+	    "@code{reduce-right} avoids that unnecessary call.\n"
+	    "\n"
+	    "@code{reduce} should be preferred over @code{reduce-right} if\n"
+	    "the order of processing doesn't matter, or can be arranged\n"
+	    "either way, since @code{reduce} is a little more efficient.")
+#define FUNC_NAME s_scm_srfi1_reduce_right
+{
+  /* To work backwards across a list requires either repeatedly traversing
+     to get each previous element, or using some memory for a reversed or
+     random-access form.  Repeated traversal might not be too terrible, but
+     is of course quadratic complexity and hence to be avoided in case LST
+     is long.  A vector is preferred over a reversed list since it's more
+     compact and is less work for the gc to collect.  */
+
+  scm_t_trampoline_2 proc_tramp = scm_trampoline_2 (proc);
+  SCM  ret, vec;
+  long len, i;
+
+  SCM_ASSERT (proc_tramp, proc, SCM_ARG1, FUNC_NAME);
+
+  if (SCM_NULL_OR_NIL_P (lst))
+    return def;
+
+  vec = scm_vector (lst);
+  len = SCM_SIMPLE_VECTOR_LENGTH (vec);
+
+  ret = SCM_SIMPLE_VECTOR_REF (vec, len-1);
+  for (i = len-2; i >= 0; i--)
+    ret = proc_tramp (proc, SCM_SIMPLE_VECTOR_REF (vec, i), ret);
+
+  return ret;
+}
+#undef FUNC_NAME
+
+
 SCM_DEFINE (scm_srfi1_remove, "remove", 2, 0, 0,
 	    (SCM pred, SCM list),
 	    "Return a list containing all elements from @var{lst} which do\n"
@@ -1179,6 +1404,71 @@ SCM_DEFINE (scm_srfi1_remove_x, "remove!", 2, 0, 0,
 #undef FUNC_NAME
 
 
+SCM_DEFINE (scm_srfi1_span, "span", 2, 0, 0,
+            (SCM pred, SCM lst),
+	    "Return two values, the longest initial prefix of @var{lst}\n"
+	    "whose elements all satisfy the predicate @var{pred}, and the\n"
+	    "remainder of @var{lst}.")
+#define FUNC_NAME s_scm_srfi1_span
+{
+  scm_t_trampoline_1 pred_tramp;
+  SCM ret, *p;
+
+  pred_tramp = scm_trampoline_1 (pred);
+  SCM_ASSERT (pred_tramp, pred, SCM_ARG1, FUNC_NAME);
+
+  ret = SCM_EOL;
+  p = &ret;
+  for ( ; scm_is_pair (lst); lst = SCM_CDR (lst))
+    {
+      SCM elem = SCM_CAR (lst);
+      if (scm_is_false (pred_tramp (pred, elem)))
+        goto done;
+
+      /* want this elem, tack it onto the end of ret */
+      *p = scm_cons (elem, SCM_EOL);
+      p = SCM_CDRLOC (*p);
+    }
+  SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P (lst), lst, SCM_ARG2, FUNC_NAME, "list");
+
+ done:
+  return scm_values (scm_list_2 (ret, lst));
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_srfi1_span_x, "span!", 2, 0, 0,
+            (SCM pred, SCM lst),
+	    "Return two values, the longest initial prefix of @var{lst}\n"
+	    "whose elements all satisfy the predicate @var{pred}, and the\n"
+	    "remainder of @var{lst}.  @var{lst} may be modified to form the\n"
+	    "return.")
+#define FUNC_NAME s_scm_srfi1_span_x
+{
+  SCM upto, *p;
+  scm_t_trampoline_1 pred_tramp;
+
+  pred_tramp = scm_trampoline_1 (pred);
+  SCM_ASSERT (pred_tramp, pred, SCM_ARG1, FUNC_NAME);
+
+  p = &lst;
+  for (upto = lst; scm_is_pair (upto); upto = SCM_CDR (upto))
+    {
+      if (scm_is_false (pred_tramp (pred, SCM_CAR (upto))))
+        goto done;
+
+      /* want this element */
+      p = SCM_CDRLOC (upto);
+    }
+  SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P (upto), lst, SCM_ARG2, FUNC_NAME, "list");
+
+ done:
+  *p = SCM_EOL;
+  return scm_values (scm_list_2 (lst, upto));
+}
+#undef FUNC_NAME
+
+
 SCM_DEFINE (scm_srfi1_split_at, "split-at", 2, 0, 0,
             (SCM lst, SCM n),
 	    "Return two values (multiple values), being a list of the\n"
@@ -1230,6 +1520,34 @@ SCM_DEFINE (scm_srfi1_split_at_x, "split-at!", 2, 0, 0,
 #undef FUNC_NAME
 
 
+SCM_DEFINE (scm_srfi1_take_x, "take!", 2, 0, 0,
+            (SCM lst, SCM n),
+	    "Return a list containing the first @var{n} elements of\n"
+	    "@var{lst}.")
+#define FUNC_NAME s_scm_srfi1_take_x
+{
+  long nn;
+  SCM pos;
+
+  SCM_VALIDATE_INUM_MIN_COPY (SCM_ARG2, n, 0, nn);
+
+  if (nn == 0)
+    return SCM_EOL;
+
+  pos = scm_list_tail (lst, SCM_I_MAKINUM (nn - 1));
+
+  /* Must have at least one cell left, mustn't have reached the end of an
+     n-1 element list.  SCM_VALIDATE_CONS here gives the same error as
+     scm_list_tail does on say an n-2 element list, though perhaps a range
+     error would make more sense (for both).  */
+  SCM_VALIDATE_CONS (SCM_ARG1, pos);
+
+  SCM_SETCDR (pos, SCM_EOL);
+  return lst;
+}
+#undef FUNC_NAME
+
+
 SCM_DEFINE (scm_srfi1_take_right, "take-right", 2, 0, 0,
             (SCM lst, SCM n),
 	    "Return the a list containing the @var{n} last elements of\n"
@@ -1243,6 +1561,69 @@ SCM_DEFINE (scm_srfi1_take_right, "take-right", 2, 0, 0,
       tail = SCM_CDR (tail);
     }
   SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P(tail), tail, SCM_ARG1, FUNC_NAME, "list");
+  return lst;
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_srfi1_take_while, "take-while", 2, 0, 0,
+            (SCM pred, SCM lst),
+	    "Return a new list which is the longest initial prefix of\n"
+	    "@var{lst} whose elements all satisfy the predicate @var{pred}.")
+#define FUNC_NAME s_scm_srfi1_take_while
+{
+  scm_t_trampoline_1 pred_tramp;
+  SCM ret, *p;
+
+  pred_tramp = scm_trampoline_1 (pred);
+  SCM_ASSERT (pred_tramp, pred, SCM_ARG1, FUNC_NAME);
+
+  ret = SCM_EOL;
+  p = &ret;
+  for ( ; scm_is_pair (lst); lst = SCM_CDR (lst))
+    {
+      SCM elem = SCM_CAR (lst);
+      if (scm_is_false (pred_tramp (pred, elem)))
+        goto done;
+
+      /* want this elem, tack it onto the end of ret */
+      *p = scm_cons (elem, SCM_EOL);
+      p = SCM_CDRLOC (*p);
+    }
+  SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P (lst), lst, SCM_ARG2, FUNC_NAME, "list");
+
+ done:
+  return ret;
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_srfi1_take_while_x, "take-while!", 2, 0, 0,
+            (SCM pred, SCM lst),
+	    "Return the longest initial prefix of @var{lst} whose elements\n"
+	    "all satisfy the predicate @var{pred}.  @var{lst} may be\n"
+	    "modified to form the return.")
+#define FUNC_NAME s_scm_srfi1_take_while_x
+{
+  SCM upto, *p;
+  scm_t_trampoline_1 pred_tramp;
+
+  pred_tramp = scm_trampoline_1 (pred);
+  SCM_ASSERT (pred_tramp, pred, SCM_ARG1, FUNC_NAME);
+
+  p = &lst;
+  for (upto = lst; scm_is_pair (upto); upto = SCM_CDR (upto))
+    {
+      if (scm_is_false (pred_tramp (pred, SCM_CAR (upto))))
+        goto done;
+
+      /* want this element */
+      p = SCM_CDRLOC (upto);
+    }
+  SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P (upto), lst, SCM_ARG2, FUNC_NAME, "list");
+
+ done:
+  *p = SCM_EOL;
   return lst;
 }
 #undef FUNC_NAME
