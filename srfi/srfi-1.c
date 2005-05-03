@@ -674,6 +674,26 @@ SCM_DEFINE (scm_srfi1_drop_while, "drop-while", 2, 0, 0,
 #undef FUNC_NAME
 
 
+SCM_DEFINE (scm_srfi1_eighth, "eighth", 1, 0, 0,
+            (SCM lst),
+	    "Return the eighth element of @var{lst}.")
+#define FUNC_NAME s_scm_srfi1_eighth
+{
+  return scm_list_ref (lst, SCM_I_MAKINUM (7));
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_srfi1_fifth, "fifth", 1, 0, 0,
+            (SCM lst),
+	    "Return the fifth element of @var{lst}.")
+#define FUNC_NAME s_scm_srfi1_fifth
+{
+  return scm_list_ref (lst, SCM_I_MAKINUM (4));
+}
+#undef FUNC_NAME
+
+
 SCM_DEFINE (scm_srfi1_filter_map, "filter-map", 2, 0, 1,
             (SCM proc, SCM list1, SCM rest),
 	    "Apply @var{proc} to to the elements of @var{list1} @dots{} and\n"
@@ -1188,6 +1208,17 @@ SCM_DEFINE (scm_srfi1_assoc, "assoc", 2, 1, 0,
 }
 #undef FUNC_NAME
 
+
+SCM_DEFINE (scm_srfi1_ninth, "ninth", 1, 0, 0,
+            (SCM lst),
+	    "Return the ninth element of @var{lst}.")
+#define FUNC_NAME s_scm_srfi1_ninth
+{
+  return scm_list_ref (lst, SCM_I_MAKINUM (8));
+}
+#undef FUNC_NAME
+
+
 SCM_DEFINE (scm_srfi1_partition, "partition", 2, 0, 0,
 	    (SCM pred, SCM list),
 	    "Partition the elements of @var{list} with predicate @var{pred}.\n"
@@ -1474,6 +1505,26 @@ SCM_DEFINE (scm_srfi1_remove_x, "remove!", 2, 0, 0,
 #undef FUNC_NAME
 
 
+SCM_DEFINE (scm_srfi1_seventh, "seventh", 1, 0, 0,
+            (SCM lst),
+	    "Return the seventh element of @var{lst}.")
+#define FUNC_NAME s_scm_srfi1_seventh
+{
+  return scm_list_ref (lst, SCM_I_MAKINUM (6));
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_srfi1_sixth, "sixth", 1, 0, 0,
+            (SCM lst),
+	    "Return the sixth element of @var{lst}.")
+#define FUNC_NAME s_scm_srfi1_sixth
+{
+  return scm_list_ref (lst, SCM_I_MAKINUM (5));
+}
+#undef FUNC_NAME
+
+
 SCM_DEFINE (scm_srfi1_span, "span", 2, 0, 0,
             (SCM pred, SCM lst),
 	    "Return two values, the longest initial prefix of @var{lst}\n"
@@ -1695,6 +1746,16 @@ SCM_DEFINE (scm_srfi1_take_while_x, "take-while!", 2, 0, 0,
  done:
   *p = SCM_EOL;
   return lst;
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_srfi1_tenth, "tenth", 1, 0, 0,
+            (SCM lst),
+	    "Return the tenth element of @var{lst}.")
+#define FUNC_NAME s_scm_srfi1_tenth
+{
+  return scm_list_ref (lst, SCM_I_MAKINUM (9));
 }
 #undef FUNC_NAME
 
