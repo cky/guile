@@ -261,6 +261,65 @@
     (test-break '(-1 -2 -3) '() '(-1 -2 -3))))
 
 ;;
+;; break!
+;;
+
+(with-test-prefix "break!"
+
+  (define (test-break! lst want-v1 want-v2)
+    (call-with-values
+	(lambda ()
+	  (break! negative? lst))
+      (lambda (got-v1 got-v2)
+	(and (equal? got-v1 want-v1)
+	     (equal? got-v2 want-v2)))))
+
+  (pass-if "empty"
+    (test-break! '() '() '()))
+
+  (pass-if "y"
+    (test-break! (list 1) '(1) '()))
+
+  (pass-if "n"
+    (test-break! (list -1) '() '(-1)))
+
+  (pass-if "yy"
+    (test-break! (list 1 2) '(1 2) '()))
+
+  (pass-if "ny"
+    (test-break! (list -1 1) '() '(-1 1)))
+
+  (pass-if "yn"
+    (test-break! (list 1 -1) '(1) '(-1)))
+
+  (pass-if "nn"
+    (test-break! (list -1 -2) '() '(-1 -2)))
+
+  (pass-if "yyy"
+    (test-break! (list 1 2 3) '(1 2 3) '()))
+
+  (pass-if "nyy"
+    (test-break! (list -1 1 2) '() '(-1 1 2)))
+
+  (pass-if "yny"
+    (test-break! (list 1 -1 2) '(1) '(-1 2)))
+
+  (pass-if "nny"
+    (test-break! (list -1 -2 1) '() '(-1 -2 1)))
+
+  (pass-if "yyn"
+    (test-break! (list 1 2 -1) '(1 2) '(-1)))
+
+  (pass-if "nyn"
+    (test-break! (list -1 1 -2) '() '(-1 1 -2)))
+
+  (pass-if "ynn"
+    (test-break! (list 1 -1 -2) '(1) '(-1 -2)))
+
+  (pass-if "nnn"
+    (test-break! (list -1 -2 -3) '() '(-1 -2 -3))))
+
+;;
 ;; concatenate and concatenate!
 ;;
 
@@ -721,6 +780,61 @@
   (pass-if (equal? '() (drop-right '(4 5 6) 3)))
   (pass-if-exception "(4 5 6) 4" exception:wrong-type-arg
     (drop-right '(4 5 6) 4)))
+
+;;
+;; drop-right!
+;;
+
+(with-test-prefix "drop-right!"
+
+  (pass-if-exception "() -1" exception:out-of-range
+    (drop-right! '() -1))
+  (pass-if (equal? '() (drop-right! '() 0)))
+  (pass-if-exception "() 1" exception:wrong-type-arg
+    (drop-right! '() 1))
+
+  (pass-if-exception "(1) -1" exception:out-of-range
+    (drop-right! (list 1) -1))
+  (pass-if (equal? '(1) (drop-right! (list 1) 0)))
+  (pass-if (equal? '() (drop-right! (list 1) 1)))
+  (pass-if-exception "(1) 2" exception:wrong-type-arg
+    (drop-right! (list 1) 2))
+
+  (pass-if-exception "(4 5) -1" exception:out-of-range
+    (drop-right! (list 4 5) -1))
+  (pass-if (equal? '(4 5) (drop-right! (list 4 5) 0)))
+  (pass-if (equal? '(4) (drop-right! (list 4 5) 1)))
+  (pass-if (equal? '() (drop-right! (list 4 5) 2)))
+  (pass-if-exception "(4 5) 3" exception:wrong-type-arg
+    (drop-right! (list 4 5) 3))
+
+  (pass-if-exception "(4 5 6) -1" exception:out-of-range
+    (drop-right! (list 4 5 6) -1))
+  (pass-if (equal? '(4 5 6) (drop-right! (list 4 5 6) 0)))
+  (pass-if (equal? '(4 5) (drop-right! (list 4 5 6) 1)))
+  (pass-if (equal? '(4) (drop-right! (list 4 5 6) 2)))
+  (pass-if (equal? '() (drop-right! (list 4 5 6) 3)))
+  (pass-if-exception "(4 5 6) 4" exception:wrong-type-arg
+    (drop-right! (list 4 5 6) 4)))
+
+;;
+;; drop-while
+;;
+
+(with-test-prefix "drop-while"
+  
+  (pass-if (equal? '()      (drop-while odd? '())))
+  (pass-if (equal? '()      (drop-while odd? '(1))))
+  (pass-if (equal? '()      (drop-while odd? '(1 3))))
+  (pass-if (equal? '()      (drop-while odd? '(1 3 5))))
+
+  (pass-if (equal? '(2)     (drop-while odd? '(2))))
+  (pass-if (equal? '(2)     (drop-while odd? '(1 2))))
+  (pass-if (equal? '(4)     (drop-while odd? '(1 3 4))))
+
+  (pass-if (equal? '(2 1)   (drop-while odd? '(2 1))))
+  (pass-if (equal? '(4 3)   (drop-while odd? '(1 4 3))))
+  (pass-if (equal? '(4 1 3) (drop-while odd? '(4 1 3)))))
 
 ;;
 ;; filter-map
@@ -1236,6 +1350,44 @@
 	    (take '(a b . c) 2))))
 
 ;;
+;; take-while
+;;
+
+(with-test-prefix "take-while"
+  
+  (pass-if (equal? '()      (take-while odd? '())))
+  (pass-if (equal? '(1)     (take-while odd? '(1))))
+  (pass-if (equal? '(1 3)   (take-while odd? '(1 3))))
+  (pass-if (equal? '(1 3 5) (take-while odd? '(1 3 5))))
+
+  (pass-if (equal? '()      (take-while odd? '(2))))
+  (pass-if (equal? '(1)     (take-while odd? '(1 2))))
+  (pass-if (equal? '(1 3)   (take-while odd? '(1 3 4))))
+
+  (pass-if (equal? '()      (take-while odd? '(2 1))))
+  (pass-if (equal? '(1)     (take-while odd? '(1 4 3))))
+  (pass-if (equal? '()      (take-while odd? '(4 1 3)))))
+
+;;
+;; take-while!
+;;
+
+(with-test-prefix "take-while!"
+  
+  (pass-if (equal? '()      (take-while! odd? '())))
+  (pass-if (equal? '(1)     (take-while! odd? (list 1))))
+  (pass-if (equal? '(1 3)   (take-while! odd? (list 1 3))))
+  (pass-if (equal? '(1 3 5) (take-while! odd? (list 1 3 5))))
+
+  (pass-if (equal? '()      (take-while! odd? (list 2))))
+  (pass-if (equal? '(1)     (take-while! odd? (list 1 2))))
+  (pass-if (equal? '(1 3)   (take-while! odd? (list 1 3 4))))
+
+  (pass-if (equal? '()      (take-while! odd? (list 2 1))))
+  (pass-if (equal? '(1)     (take-while! odd? (list 1 4 3))))
+  (pass-if (equal? '()      (take-while! odd? (list 4 1 3)))))
+
+;;
 ;; partition
 ;;
 
@@ -1621,6 +1773,102 @@
 
   (pass-if "nnn"
     (test-span '(-1 -2 -3) '() '(-1 -2 -3))))
+
+;;
+;; span!
+;;
+
+(with-test-prefix "span!"
+
+  (define (test-span! lst want-v1 want-v2)
+    (call-with-values
+	(lambda ()
+	  (span! positive? lst))
+      (lambda (got-v1 got-v2)
+	(and (equal? got-v1 want-v1)
+	     (equal? got-v2 want-v2)))))
+
+  (pass-if "empty"
+    (test-span! '() '() '()))
+
+  (pass-if "y"
+    (test-span! (list 1) '(1) '()))
+
+  (pass-if "n"
+    (test-span! (list -1) '() '(-1)))
+
+  (pass-if "yy"
+    (test-span! (list 1 2) '(1 2) '()))
+
+  (pass-if "ny"
+    (test-span! (list -1 1) '() '(-1 1)))
+
+  (pass-if "yn"
+    (test-span! (list 1 -1) '(1) '(-1)))
+
+  (pass-if "nn"
+    (test-span! (list -1 -2) '() '(-1 -2)))
+
+  (pass-if "yyy"
+    (test-span! (list 1 2 3) '(1 2 3) '()))
+
+  (pass-if "nyy"
+    (test-span! (list -1 1 2) '() '(-1 1 2)))
+
+  (pass-if "yny"
+    (test-span! (list 1 -1 2) '(1) '(-1 2)))
+
+  (pass-if "nny"
+    (test-span! (list -1 -2 1) '() '(-1 -2 1)))
+
+  (pass-if "yyn"
+    (test-span! (list 1 2 -1) '(1 2) '(-1)))
+
+  (pass-if "nyn"
+    (test-span! (list -1 1 -2) '() '(-1 1 -2)))
+
+  (pass-if "ynn"
+    (test-span! (list 1 -1 -2) '(1) '(-1 -2)))
+
+  (pass-if "nnn"
+    (test-span! (list -1 -2 -3) '() '(-1 -2 -3))))
+
+;;
+;; take!
+;;
+
+(with-test-prefix "take!"
+
+  (pass-if-exception "() -1" exception:out-of-range
+    (take! '() -1))
+  (pass-if (equal? '() (take! '() 0)))
+  (pass-if-exception "() 1" exception:wrong-type-arg
+    (take! '() 1))
+
+  (pass-if-exception "(1) -1" exception:out-of-range
+    (take! '(1) -1))
+  (pass-if (equal? '() (take! '(1) 0)))
+  (pass-if (equal? '(1) (take! '(1) 1)))
+  (pass-if-exception "(1) 2" exception:wrong-type-arg
+    (take! '(1) 2))
+
+  (pass-if-exception "(4 5) -1" exception:out-of-range
+    (take! '(4 5) -1))
+  (pass-if (equal? '() (take! '(4 5) 0)))
+  (pass-if (equal? '(4) (take! '(4 5) 1)))
+  (pass-if (equal? '(4 5) (take! '(4 5) 2)))
+  (pass-if-exception "(4 5) 3" exception:wrong-type-arg
+    (take! '(4 5) 3))
+
+  (pass-if-exception "(4 5 6) -1" exception:out-of-range
+    (take! '(4 5 6) -1))
+  (pass-if (equal? '() (take! '(4 5 6) 0)))
+  (pass-if (equal? '(4) (take! '(4 5 6) 1)))
+  (pass-if (equal? '(4 5) (take! '(4 5 6) 2)))
+  (pass-if (equal? '(4 5 6) (take! '(4 5 6) 3)))
+  (pass-if-exception "(4 5 6) 4" exception:wrong-type-arg
+    (take! '(4 5 6) 4)))
+
 
 ;;
 ;; take-right
