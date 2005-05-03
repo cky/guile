@@ -837,6 +837,26 @@
   (pass-if (equal? '(4 1 3) (drop-while odd? '(4 1 3)))))
 
 ;;
+;; eighth
+;;
+
+(with-test-prefix "eighth"
+  (pass-if-exception "() -1" exception:out-of-range
+    (eighth '(a b c d e f g)))
+  (pass-if (eq? 'h (eighth '(a b c d e f g h))))
+  (pass-if (eq? 'h (eighth '(a b c d e f g h i)))))
+
+;;
+;; fifth
+;;
+
+(with-test-prefix "fifth"
+  (pass-if-exception "() -1" exception:out-of-range
+    (fifth '(a b c d)))
+  (pass-if (eq? 'e (fifth '(a b c d e))))
+  (pass-if (eq? 'e (fifth '(a b c d e f)))))
+
+;;
 ;; filter-map
 ;;
 
@@ -1280,6 +1300,16 @@
       good)))
 
 ;;
+;; ninth
+;;
+
+(with-test-prefix "ninth"
+  (pass-if-exception "() -1" exception:out-of-range
+    (ninth '(a b c d e f g h)))
+  (pass-if (eq? 'i (ninth '(a b c d e f g h i))))
+  (pass-if (eq? 'i (ninth '(a b c d e f g h i j)))))
+
+;;
 ;; take
 ;;
 
@@ -1632,6 +1662,26 @@
   (pass-if (equal? '(2 4 6) (remove! odd? (list 2 4 6)))))
 
 ;;
+;; seventh
+;;
+
+(with-test-prefix "seventh"
+  (pass-if-exception "() -1" exception:out-of-range
+    (seventh '(a b c d e f)))
+  (pass-if (eq? 'g (seventh '(a b c d e f g))))
+  (pass-if (eq? 'g (seventh '(a b c d e f g h)))))
+
+;;
+;; sixth
+;;
+
+(with-test-prefix "sixth"
+  (pass-if-exception "() -1" exception:out-of-range
+    (sixth '(a b c d e)))
+  (pass-if (eq? 'f (sixth '(a b c d e f))))
+  (pass-if (eq? 'f (sixth '(a b c d e f g)))))
+
+;;
 ;; split-at
 ;;
 
@@ -1906,4 +1956,12 @@
   (pass-if-exception "(4 5 6) 4" exception:wrong-type-arg
     (take-right '(4 5 6) 4)))
 
+;;
+;; tenth
+;;
 
+(with-test-prefix "tenth"
+  (pass-if-exception "() -1" exception:out-of-range
+    (tenth '(a b c d e f g h i)))
+  (pass-if (eq? 'j (tenth '(a b c d e f g h i j))))
+  (pass-if (eq? 'j (tenth '(a b c d e f g h i j k)))))
