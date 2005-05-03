@@ -124,6 +124,38 @@ objcode_free (SCM obj)
  * Scheme interface
  */
 
+#if 0
+SCM_DEFINE (scm_do_pair, "do-pair", 2, 0, 0,
+	    (SCM car, SCM cdr),
+	    "This is a stupid test to see how cells work.  (Ludo)")
+{
+  static SCM room[512];
+  static SCM *where = &room[0];
+  SCM the_pair;
+  size_t incr;
+
+  if ((scm_t_bits)where & 6)
+    {
+      /* Align the cell pointer so that Guile considers it as a
+	 non-immediate object (see tags.h).  */
+      incr = (scm_t_bits)where & 6;
+      incr = (~incr) & 7;
+      where += incr;
+    }
+
+  printf ("do-pair: pool @ %p, pair @ %p\n", &room[0], where);
+  where[0] = car;
+  where[1] = cdr;
+
+  the_pair = PTR2SCM (where);
+  /* This doesn't work because SCM_SET_GC_MARK will look for some sort of a
+     "mark bitmap" at the end of a supposed cell segment which doesn't
+     exist.  */
+
+  return (the_pair);
+}
+#endif
+
 SCM_DEFINE (scm_objcode_p, "objcode?", 1, 0, 0,
 	    (SCM obj),
 	    "")

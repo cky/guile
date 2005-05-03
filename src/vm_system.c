@@ -380,7 +380,12 @@ VM_DEFINE_INSTRUCTION (call, "call", 1, -1, 1)
 	 arguments.  */
       SCM args;
 
+#if 1
       POP_LIST (nargs);
+#else
+      /* Experimental:  Build the arglist on the VM stack.  XXX  */
+      POP_LIST_ON_STACK (nargs);
+#endif
       POP (args);
       *sp = scm_apply (x, args, SCM_EOL);
       NEXT;
