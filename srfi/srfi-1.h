@@ -35,6 +35,7 @@
 SCM_SRFI1_API SCM scm_srfi1_alist_copy (SCM alist);
 SCM_SRFI1_API SCM scm_srfi1_break (SCM pred, SCM lst);
 SCM_SRFI1_API SCM scm_srfi1_break_x (SCM pred, SCM lst);
+SCM_SRFI1_API SCM scm_srfi1_car_plus_cdr (SCM pair);
 SCM_SRFI1_API SCM scm_srfi1_concatenate (SCM lstlst);
 SCM_SRFI1_API SCM scm_srfi1_concatenate_x (SCM lstlst);
 SCM_SRFI1_API SCM scm_srfi1_count (SCM pred, SCM list1, SCM rest);
@@ -50,14 +51,19 @@ SCM_SRFI1_API SCM scm_srfi1_fifth (SCM lst);
 SCM_SRFI1_API SCM scm_srfi1_filter_map (SCM proc, SCM list1, SCM rest);
 SCM_SRFI1_API SCM scm_srfi1_find (SCM pred, SCM lst);
 SCM_SRFI1_API SCM scm_srfi1_find_tail (SCM pred, SCM lst);
+SCM_SRFI1_API SCM scm_srfi1_fold (SCM proc, SCM init, SCM list1, SCM rest);
+SCM_SRFI1_API SCM scm_srfi1_last (SCM lst);
 SCM_SRFI1_API SCM scm_srfi1_length_plus (SCM lst);
 SCM_SRFI1_API SCM scm_srfi1_lset_adjoin (SCM equal, SCM lst, SCM rest);
 SCM_SRFI1_API SCM scm_srfi1_list_copy (SCM lst);
+SCM_SRFI1_API SCM scm_srfi1_list_index (SCM pred, SCM list1, SCM rest);
+SCM_SRFI1_API SCM scm_srfi1_list_tabulate (SCM n, SCM proc);
 SCM_SRFI1_API SCM scm_srfi1_map (SCM proc, SCM arg1, SCM args);
 SCM_SRFI1_API SCM scm_srfi1_for_each (SCM proc, SCM arg1, SCM args);
 SCM_SRFI1_API SCM scm_srfi1_member (SCM obj, SCM ls, SCM pred);
 SCM_SRFI1_API SCM scm_srfi1_ninth (SCM lst);
 SCM_SRFI1_API SCM scm_srfi1_assoc (SCM key, SCM alist, SCM pred);
+SCM_SRFI1_API SCM scm_srfi1_not_pair_p (SCM obj);
 SCM_SRFI1_API SCM scm_srfi1_partition (SCM pred, SCM list);
 SCM_SRFI1_API SCM scm_srfi1_partition_x (SCM pred, SCM list);
 SCM_SRFI1_API SCM scm_srfi1_reduce (SCM proc, SCM def, SCM lst);
@@ -75,6 +81,7 @@ SCM_SRFI1_API SCM scm_srfi1_take_right (SCM lst, SCM n);
 SCM_SRFI1_API SCM scm_srfi1_take_while (SCM pred, SCM lst);
 SCM_SRFI1_API SCM scm_srfi1_take_while_x (SCM pred, SCM lst);
 SCM_SRFI1_API SCM scm_srfi1_tenth (SCM lst);
+SCM_SRFI1_API SCM scm_srfi1_xcons (SCM d, SCM a);
 
 SCM_SRFI1_API void scm_init_srfi_1 (void);
 

@@ -225,9 +225,6 @@
 
 ;;; Constructors
 
-(define (xcons d a)
-  (cons a d))
-
 ;; internal helper, similar to (scsh utilities) check-arg.
 (define (check-arg-type pred arg caller)
   (if (pred arg)
@@ -238,12 +235,7 @@
 ;; the srfi spec doesn't seem to forbid inexact integers.
 (define (non-negative-integer? x) (and (integer? x) (>= x 0)))
 
-(define (list-tabulate n init-proc)
-  (check-arg-type non-negative-integer? n "list-tabulate")
-  (let lp ((n n) (acc '()))
-    (if (<= n 0)
-      acc
-      (lp (- n 1) (cons (init-proc (- n 1)) acc)))))
+
 
 (define (circular-list elt1 . elts)
   (set! elts (cons elt1 elts))
@@ -304,9 +296,6 @@
     (else
      (error "not a proper list in null-list?"))))
 
-(define (not-pair? x)
-  (not (pair? x)))
-
 (define (list= elt= . rest)
   (define (lists-equal a b)
     (let lp ((a a) (b b))
@@ -330,13 +319,8 @@
 (define third caddr)
 (define fourth cadddr)
 
-(define (car+cdr x) (values (car x) (cdr x)))
-
 (define take list-head)
 (define drop list-tail)
-
-(define (last pair)
-  (car (last-pair pair)))
 
 ;;; Miscelleneous: length, append, concatenate, reverse, zip & count
 
@@ -369,19 +353,6 @@
 	  (map1 fifth l)))
 
 ;;; Fold, unfold & map
-
-(define (fold kons knil list1 . rest)
-  (if (null? rest)
-      (let f ((knil knil) (list1 list1))
-	(if (null? list1)
-	    knil
-	    (f (kons (car list1) knil) (cdr list1))))
-      (let f ((knil knil) (lists (cons list1 rest)))
-	(if (any null? lists)
-	    knil
-	    (let ((cars (map1 car lists))
-		  (cdrs (map1 cdr lists)))
-	      (f (apply kons (append! cars (list knil))) cdrs))))))
 
 (define (fold-right kons knil clist1 . rest)
   (if (null? rest)
@@ -515,21 +486,6 @@
 	   (pred (car ls)))
 	  (else
 	   (and (pred (car ls)) (lp (cdr ls)))))))
-
-(define (list-index pred clist1 . rest)
-  (if (null? rest)
-    (let lp ((l clist1) (i 0))
-      (if (null? l)
-	#f
-	(if (pred (car l))
-	  i
-	  (lp (cdr l) (+ i 1)))))
-    (let lp ((lists (cons clist1 rest)) (i 0))
-      (cond ((any1 null? lists)
-	     #f)
-	    ((apply pred (map1 car lists)) i)
-	    (else
-	     (lp (map1 cdr lists) (+ i 1)))))))
 
 ;;; Association lists
 
