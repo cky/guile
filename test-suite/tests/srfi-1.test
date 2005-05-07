@@ -320,6 +320,20 @@
     (test-break! (list -1 -2 -3) '() '(-1 -2 -3))))
 
 ;;
+;; car+cdr
+;;
+
+(with-test-prefix "car+cdr"
+
+  (pass-if "(1 . 2)"
+    (call-with-values
+	(lambda ()
+	  (car+cdr '(1 . 2)))
+      (lambda (x y)
+	(and (eqv? x 1)
+	     (eqv? y 2))))))
+
+;;
 ;; concatenate and concatenate!
 ;;
 
@@ -1000,6 +1014,149 @@
 	     (eq? (cddr lst) (find-tail (lambda (x) (= 1 x)) lst)))))
 
 ;;
+;; fold
+;;
+
+(with-test-prefix "fold"
+  (pass-if-exception "no args" exception:wrong-num-args
+    (fold))
+
+  (pass-if-exception "one arg" exception:wrong-num-args
+    (fold 123))
+
+  (pass-if-exception "two args" exception:wrong-num-args
+    (fold 123 noop))
+
+  (with-test-prefix "one list"
+
+    (pass-if "arg order"
+      (eq? #t (fold (lambda (x prev)
+		      (and (= 1 x)
+			   (= 2 prev)))
+		    2 '(1))))
+
+    (pass-if "empty list" (= 123 (fold + 123 '())))
+
+    (pass-if-exception "proc arg count 0" exception:wrong-type-arg
+      (fold (lambda () x) 123 '(1 2 3)))
+    (pass-if-exception "proc arg count 1" exception:wrong-type-arg
+      (fold (lambda (x) x) 123 '(1 2 3)))
+    (pass-if-exception "proc arg count 3" exception:wrong-type-arg
+      (fold (lambda (x y z) x) 123 '(1 2 3)))
+
+    (pass-if-exception "improper 1" exception:wrong-type-arg
+      (fold + 123 1))
+    (pass-if-exception "improper 2" exception:wrong-type-arg
+      (fold + 123 '(1 . 2)))
+    (pass-if-exception "improper 3" exception:wrong-type-arg
+      (fold + 123 '(1 2 . 3)))
+
+    (pass-if (= 3 (fold + 1 '(2))))
+    (pass-if (= 6 (fold + 1 '(2 3))))
+    (pass-if (= 10 (fold + 1 '(2 3 4)))))
+
+  (with-test-prefix "two lists"
+
+    (pass-if "arg order"
+      (eq? #t (fold (lambda (x y prev)
+		      (and (= 1 x)
+			   (= 2 y)
+			   (= 3 prev)))
+		    3 '(1) '(2))))
+
+    (pass-if "empty lists" (= 1 (fold + 1 '() '())))
+
+    ;; currently bad proc argument gives wrong-num-args when 2 or more
+    ;; lists, as opposed to wrong-type-arg for 1 list
+    (pass-if-exception "proc arg count 2" exception:wrong-num-args
+      (fold (lambda (x prev) x) 1 '(1 2 3) '(1 2 3)))
+    (pass-if-exception "proc arg count 4" exception:wrong-num-args
+      (fold (lambda (x y z prev) x) 1 '(1 2 3) '(1 2 3)))
+
+    (pass-if-exception "improper first 1" exception:wrong-type-arg
+      (fold + 1 1 '(1 2 3)))
+    (pass-if-exception "improper first 2" exception:wrong-type-arg
+      (fold + 1 '(1 . 2) '(1 2 3)))
+    (pass-if-exception "improper first 3" exception:wrong-type-arg
+      (fold + 1 '(1 2 . 3) '(1 2 3)))
+
+    (pass-if-exception "improper second 1" exception:wrong-type-arg
+      (fold + 1 '(1 2 3) 1))
+    (pass-if-exception "improper second 2" exception:wrong-type-arg
+      (fold + 1 '(1 2 3) '(1 . 2)))
+    (pass-if-exception "improper second 3" exception:wrong-type-arg
+      (fold + 1 '(1 2 3) '(1 2 . 3)))
+
+    (pass-if (= 6 (fold + 1 '(2) '(3))))
+    (pass-if (= 15 (fold + 1 '(2 3) '(4 5))))
+    (pass-if (= 28 (fold + 1 '(2 3 4) '(5 6 7))))
+
+    (with-test-prefix "stop shortest"
+      (pass-if (= 13 (fold + 1 '(1 2 3) '(4 5))))
+      (pass-if (= 13 (fold + 1 '(4 5) '(1 2 3))))
+      (pass-if (= 11 (fold + 1 '(3 4) '(1 2 9 9))))
+      (pass-if (= 11 (fold + 1 '(1 2 9 9) '(3 4)))))
+
+    (pass-if "apply list unchanged"
+      (let ((lst (list (list 1 2) (list 3 4))))
+	(and (equal? 11 (apply fold + 1 lst))
+	     ;; lst unmodified
+	     (equal? '((1 2) (3 4)) lst)))))
+
+  (with-test-prefix "three lists"
+
+    (pass-if "arg order"
+      (eq? #t (fold (lambda (x y z prev)
+		      (and (= 1 x)
+			   (= 2 y)
+			   (= 3 z)
+			   (= 4 prev)))
+		    4 '(1) '(2) '(3))))
+
+    (pass-if "empty lists" (= 1 (fold + 1 '() '() '())))
+
+    (pass-if-exception "proc arg count 3" exception:wrong-num-args
+      (fold (lambda (x y prev) x) 1 '(1 2 3) '(1 2 3)'(1 2 3) ))
+    (pass-if-exception "proc arg count 5" exception:wrong-num-args
+      (fold (lambda (w x y z prev) x) 1 '(1 2 3) '(1 2 3) '(1 2 3)))
+
+    (pass-if-exception "improper first 1" exception:wrong-type-arg
+      (fold + 1 1 '(1 2 3) '(1 2 3)))
+    (pass-if-exception "improper first 2" exception:wrong-type-arg
+      (fold + 1 '(1 . 2) '(1 2 3) '(1 2 3)))
+    (pass-if-exception "improper first 3" exception:wrong-type-arg
+      (fold + 1 '(1 2 . 3) '(1 2 3) '(1 2 3)))
+
+    (pass-if-exception "improper second 1" exception:wrong-type-arg
+      (fold + 1 '(1 2 3) 1 '(1 2 3)))
+    (pass-if-exception "improper second 2" exception:wrong-type-arg
+      (fold + 1 '(1 2 3) '(1 . 2) '(1 2 3)))
+    (pass-if-exception "improper second 3" exception:wrong-type-arg
+      (fold + 1 '(1 2 3) '(1 2 . 3) '(1 2 3)))
+
+    (pass-if-exception "improper third 1" exception:wrong-type-arg
+      (fold + 1 '(1 2 3) '(1 2 3) 1))
+    (pass-if-exception "improper third 2" exception:wrong-type-arg
+      (fold + 1 '(1 2 3) '(1 2 3) '(1 . 2)))
+    (pass-if-exception "improper third 3" exception:wrong-type-arg
+      (fold + 1 '(1 2 3) '(1 2 3) '(1 2 . 3)))
+
+    (pass-if (= 10 (fold + 1 '(2) '(3) '(4))))
+    (pass-if (= 28 (fold + 1 '(2 5) '(3 6) '(4 7))))
+    (pass-if (= 55 (fold + 1 '(2 5 8) '(3 6 9) '(4 7 10))))
+
+    (with-test-prefix "stop shortest"
+      (pass-if (= 28 (fold + 1 '(2 5 9) '(3 6) '(4 7))))
+      (pass-if (= 28 (fold + 1 '(2 5) '(3 6 9) '(4 7))))
+      (pass-if (= 28 (fold + 1 '(2 5) '(3 6) '(4 7 9)))))
+
+    (pass-if "apply list unchanged"
+      (let ((lst (list (list 1 2) (list 3 4) (list 5 6))))
+	(and (equal? 22 (apply fold + 1 lst))
+	     ;; lst unmodified
+	     (equal? '((1 2) (3 4) (5 6)) lst))))))
+
+;;
 ;; length+
 ;;
 
@@ -1015,6 +1172,23 @@
   (pass-if (not (length+ (circular-list 1))))
   (pass-if (not (length+ (circular-list 1 2))))
   (pass-if (not (length+ (circular-list 1 2 3)))))
+
+;;
+;; last
+;;
+
+(with-test-prefix "last"
+
+  (pass-if-exception "empty" exception:wrong-type-arg
+    (last '()))
+  (pass-if "one elem"
+    (eqv? 1 (last '(1))))
+  (pass-if "two elems"
+    (eqv? 2 (last '(1 2))))
+  (pass-if "three elems"
+    (eqv? 3 (last '(1 2 3))))
+  (pass-if "four elems"
+    (eqv? 4 (last '(1 2 3 4)))))
 
 ;;
 ;; list=
@@ -1107,6 +1281,195 @@
   (pass-if (equal? '(1 2 . 3)     (list-copy '(1 2 . 3))))
   (pass-if (equal? '(1 2 3 . 4)   (list-copy '(1 2 3 . 4))))
   (pass-if (equal? '(1 2 3 4 . 5) (list-copy '(1 2 3 4 . 5)))))
+
+;;
+;; list-index
+;;
+
+(with-test-prefix "list-index"
+  (pass-if-exception "no args" exception:wrong-num-args
+    (list-index))
+
+  (pass-if-exception "one arg" exception:wrong-num-args
+    (list-index noop))
+
+  (with-test-prefix "one list"
+
+    (pass-if "empty list" (eq? #f (list-index symbol? '())))
+
+    (pass-if-exception "pred arg count 0" exception:wrong-type-arg
+      (list-index (lambda () x) '(1 2 3)))
+    (pass-if-exception "pred arg count 2" exception:wrong-type-arg
+      (list-index (lambda (x y) x) '(1 2 3)))
+
+    (pass-if-exception "improper 1" exception:wrong-type-arg
+      (list-index symbol? 1))
+    (pass-if-exception "improper 2" exception:wrong-type-arg
+      (list-index symbol? '(1 . 2)))
+    (pass-if-exception "improper 3" exception:wrong-type-arg
+      (list-index symbol? '(1 2 . 3)))
+
+    (pass-if (eqv? #f (list-index symbol? '(1))))
+    (pass-if (eqv? 0 (list-index symbol? '(x))))
+
+    (pass-if (eqv? #f (list-index symbol? '(1 2))))
+    (pass-if (eqv? 0 (list-index symbol? '(x 1))))
+    (pass-if (eqv? 1 (list-index symbol? '(1 x))))
+
+    (pass-if (eqv? #f (list-index symbol? '(1 2 3))))
+    (pass-if (eqv? 0 (list-index symbol? '(x 1 2))))
+    (pass-if (eqv? 1 (list-index symbol? '(1 x 2))))
+    (pass-if (eqv? 2 (list-index symbol? '(1 2 x)))))
+
+  (with-test-prefix "two lists"
+    (define (sym1 x y)
+      (symbol? x))
+    (define (sym2 x y)
+      (symbol? y))
+
+    (pass-if "arg order"
+      (eqv? 0 (list-index (lambda (x y)
+			    (and (= 1 x)
+				 (= 2 y)))
+			  '(1) '(2))))
+
+    (pass-if "empty lists" (eqv? #f (list-index sym2 '() '())))
+
+    (pass-if-exception "pred arg count 0" exception:wrong-type-arg
+      (list-index (lambda () #t) '(1 2 3) '(1 2 3)))
+    (pass-if-exception "pred arg count 1" exception:wrong-type-arg
+      (list-index (lambda (x) x) '(1 2 3) '(1 2 3)))
+    (pass-if-exception "pred arg count 3" exception:wrong-type-arg
+      (list-index (lambda (x y z) x) '(1 2 3) '(1 2 3)))
+
+    (pass-if-exception "improper first 1" exception:wrong-type-arg
+      (list-index sym2 1 '(1 2 3)))
+    (pass-if-exception "improper first 2" exception:wrong-type-arg
+      (list-index sym2 '(1 . 2) '(1 2 3)))
+    (pass-if-exception "improper first 3" exception:wrong-type-arg
+      (list-index sym2 '(1 2 . 3) '(1 2 3)))
+
+    (pass-if-exception "improper second 1" exception:wrong-type-arg
+      (list-index sym2 '(1 2 3) 1))
+    (pass-if-exception "improper second 2" exception:wrong-type-arg
+      (list-index sym2 '(1 2 3) '(1 . 2)))
+    (pass-if-exception "improper second 3" exception:wrong-type-arg
+      (list-index sym2 '(1 2 3) '(1 2 . 3)))
+
+    (pass-if (eqv? #f (list-index sym2 '(1) '(2))))
+    (pass-if (eqv? 0  (list-index sym2 '(1) '(x))))
+
+    (pass-if (eqv? #f (list-index sym2 '(1 2) '(3 4))))
+    (pass-if (eqv? 0  (list-index sym2 '(1 2) '(x 3))))
+    (pass-if (eqv? 1  (list-index sym2 '(1 2) '(3 x))))
+
+    (pass-if (eqv? #f (list-index sym2 '(1 2 3) '(3 4 5))))
+    (pass-if (eqv? 0  (list-index sym2 '(1 2 3) '(x 3 4))))
+    (pass-if (eqv? 1  (list-index sym2 '(1 2 3) '(3 x 4))))
+    (pass-if (eqv? 2  (list-index sym2 '(1 2 3) '(3 4 x))))
+
+    (with-test-prefix "stop shortest"
+      (pass-if (eqv? #f (list-index sym1 '(1 2 x) '(4 5))))
+      (pass-if (eqv? #f (list-index sym2 '(4 5) '(1 2 x))))
+      (pass-if (eqv? #f (list-index sym1 '(3 4) '(1 2 x y))))
+      (pass-if (eqv? #f (list-index sym2 '(1 2 x y) '(3 4))))))
+
+  (with-test-prefix "three lists"
+    (define (sym1 x y z)
+      (symbol? x))
+    (define (sym2 x y z)
+      (symbol? y))
+    (define (sym3 x y z)
+      (symbol? z))
+
+    (pass-if "arg order"
+      (eqv? 0 (list-index (lambda (x y z)
+			    (and (= 1 x)
+				 (= 2 y)
+				 (= 3 z)))
+			  '(1) '(2) '(3))))
+
+    (pass-if "empty lists" (eqv? #f (list-index sym3 '() '() '())))
+
+    ;; currently bad pred argument gives wrong-num-args when 3 or more
+    ;; lists, as opposed to wrong-type-arg for 1 or 2 lists
+    (pass-if-exception "pred arg count 0" exception:wrong-num-args
+      (list-index (lambda () #t) '(1 2 3) '(1 2 3) '(1 2 3)))
+    (pass-if-exception "pred arg count 2" exception:wrong-num-args
+      (list-index (lambda (x y) x) '(1 2 3) '(1 2 3)'(1 2 3) ))
+    (pass-if-exception "pred arg count 4" exception:wrong-num-args
+      (list-index (lambda (w x y z) x) '(1 2 3) '(1 2 3) '(1 2 3)))
+
+    (pass-if-exception "improper first 1" exception:wrong-type-arg
+      (list-index sym3 1 '(1 2 3) '(1 2 3)))
+    (pass-if-exception "improper first 2" exception:wrong-type-arg
+      (list-index sym3 '(1 . 2) '(1 2 3) '(1 2 3)))
+    (pass-if-exception "improper first 3" exception:wrong-type-arg
+      (list-index sym3 '(1 2 . 3) '(1 2 3) '(1 2 3)))
+
+    (pass-if-exception "improper second 1" exception:wrong-type-arg
+      (list-index sym3 '(1 2 3) 1 '(1 2 3)))
+    (pass-if-exception "improper second 2" exception:wrong-type-arg
+      (list-index sym3 '(1 2 3) '(1 . 2) '(1 2 3)))
+    (pass-if-exception "improper second 3" exception:wrong-type-arg
+      (list-index sym3 '(1 2 3) '(1 2 . 3) '(1 2 3)))
+
+    (pass-if-exception "improper third 1" exception:wrong-type-arg
+      (list-index sym3 '(1 2 3) '(1 2 3) 1))
+    (pass-if-exception "improper third 2" exception:wrong-type-arg
+      (list-index sym3 '(1 2 3) '(1 2 3) '(1 . 2)))
+    (pass-if-exception "improper third 3" exception:wrong-type-arg
+      (list-index sym3 '(1 2 3) '(1 2 3) '(1 2 . 3)))
+
+    (pass-if (eqv? #f (list-index sym3 '(#f) '(#f) '(#f))))
+    (pass-if (eqv? 0  (list-index sym3 '(#f) '(#f) '(x))))
+
+    (pass-if (eqv? #f (list-index sym3 '(#f #f) '(#f #f) '(#f #f))))
+    (pass-if (eqv? 0  (list-index sym3 '(#f #f) '(#f #f) '(x #f))))
+    (pass-if (eqv? 1  (list-index sym3 '(#f #f) '(#f #f) '(#f x))))
+
+    (pass-if (eqv? #f (list-index sym3 '(#f #f #f) '(#f #f #f) '(#f #f #f))))
+    (pass-if (eqv? 0  (list-index sym3 '(#f #f #f) '(#f #f #f) '(x #f #f))))
+    (pass-if (eqv? 1  (list-index sym3 '(#f #f #f) '(#f #f #f) '(#f x #f))))
+    (pass-if (eqv? 2  (list-index sym3 '(#f #f #f) '(#f #f #f) '(#f #f x))))
+
+    (with-test-prefix "stop shortest"
+      (pass-if (eqv? #f (list-index sym2 '() '(x x x) '(x x))))
+      (pass-if (eqv? #f (list-index sym1 '(x x x) '() '(x x))))
+      (pass-if (eqv? #f (list-index sym2 '(x x x) '(x x) '())))
+
+      (pass-if (eqv? #f (list-index sym2 '(#t) '(#t x x) '(#t x))))
+      (pass-if (eqv? #f (list-index sym1 '(#t x x) '(#t) '(#t x))))
+      (pass-if (eqv? #f (list-index sym1 '(#t x x) '(#t x) '(#t)))))
+
+    (pass-if "apply list unchanged"
+      (let ((lst (list (list 1 2) (list 3 4) (list 5 6))))
+	(and (equal? #f (apply list-index sym3 lst))
+	     ;; lst unmodified
+	     (equal? '((1 2) (3 4) (5 6)) lst))))))
+
+;;
+;; list-tabulate
+;;
+
+(with-test-prefix "list-tabulate"
+
+  (pass-if-exception "-1" exception:out-of-range
+    (list-tabulate -1 identity))
+  (pass-if "0"
+    (equal? '() (list-tabulate 0 identity)))
+  (pass-if "1"
+    (equal? '(0) (list-tabulate 1 identity)))
+  (pass-if "2"
+    (equal? '(0 1) (list-tabulate 2 identity)))
+  (pass-if "3"
+    (equal? '(0 1 2) (list-tabulate 3 identity)))
+  (pass-if "4"
+    (equal? '(0 1 2 3) (list-tabulate 4 identity)))
+  (pass-if "string ref proc"
+    (equal? '(#\a #\b #\c #\d) (list-tabulate 4
+					      (lambda (i)
+						(string-ref "abcd" i))))))
 
 ;;
 ;; lset=
@@ -1308,6 +1671,19 @@
     (ninth '(a b c d e f g h)))
   (pass-if (eq? 'i (ninth '(a b c d e f g h i))))
   (pass-if (eq? 'i (ninth '(a b c d e f g h i j)))))
+
+
+;;
+;; not-pair?
+;;
+
+(with-test-prefix "not-pair?"
+  (pass-if "inum"
+    (eq? #t (not-pair? 123)))
+  (pass-if "pair"
+    (eq? #f (not-pair? '(x . y))))
+  (pass-if "symbol"
+    (eq? #t (not-pair? 'x))))
 
 ;;
 ;; take
@@ -1965,3 +2341,10 @@
     (tenth '(a b c d e f g h i)))
   (pass-if (eq? 'j (tenth '(a b c d e f g h i j))))
   (pass-if (eq? 'j (tenth '(a b c d e f g h i j k)))))
+
+;;
+;; xcons
+;;
+
+(with-test-prefix "xcons"
+  (pass-if (equal? '(y . x) (xcons 'x 'y))))
