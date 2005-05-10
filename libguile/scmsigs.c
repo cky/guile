@@ -149,6 +149,8 @@ signal_delivery_thread (void *data)
       else if (n < 0 && errno != EINTR)
 	perror ("error in signal delivery thread");
     }
+
+  return SCM_UNSPECIFIED;	/* not reached */
 }
 
 static void

@@ -1,3 +1,8 @@
+2005-05-10  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scmsigs.c (signal_delivery_thread): Return a value, to avoid
+	compile warning reported by Werner Scheinast.
+
 2005-04-30  Han-Wen Nienhuys  <hanwen@xs4all.nl>
 
 	* list.h: remove scm_list()
