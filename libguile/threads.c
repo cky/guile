@@ -883,9 +883,9 @@ SCM_DEFINE (scm_lock_mutex, "lock-mutex", 1, 0, 0,
 "thread.  That is, Guile's mutexes are @emph{recursive}. ")
 #define FUNC_NAME s_scm_lock_mutex
 {
-  SCM_VALIDATE_MUTEX (1, mx);
   char *msg;
 
+  SCM_VALIDATE_MUTEX (1, mx);
   msg = fat_mutex_lock (mx);
   if (msg)
     scm_misc_error (NULL, msg, SCM_EOL);

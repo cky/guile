@@ -308,11 +308,13 @@ scm_i_card_statistics (scm_t_cell *p, SCM hashtab, scm_t_heap_segment *seg)
 
   for (p += offset; p < end; p += span, offset += span)
     {
+      scm_t_bits tag;
       SCM scmptr = PTR2SCM (p);
+
       if (!SCM_C_BVEC_GET (bitvec, offset))
         continue;
 
-      scm_t_bits tag = SCM_TYP7 (scmptr);
+      tag = SCM_TYP7 (scmptr);
       if (tag  == scm_tc7_smob)
 	{
 	  tag = SCM_TYP16(scmptr);
@@ -337,12 +339,14 @@ scm_i_card_statistics (scm_t_cell *p, SCM hashtab, scm_t_heap_segment *seg)
 	  tag = scm_tc7_asubr;
 	  break;
 	}
-      
-      SCM tag_as_scm = scm_from_int (tag);
-      SCM current = scm_hashq_ref (hashtab, tag_as_scm, SCM_I_MAKINUM (0));
 
-      scm_hashq_set_x (hashtab, tag_as_scm,
-		       scm_from_int (scm_to_int (current) + 1));
+      {      
+	SCM tag_as_scm = scm_from_int (tag);
+	SCM current = scm_hashq_ref (hashtab, tag_as_scm, SCM_I_MAKINUM (0));
+
+	scm_hashq_set_x (hashtab, tag_as_scm,
+			 scm_from_int (scm_to_int (current) + 1));
+      }
     }
 }
 

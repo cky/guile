@@ -277,9 +277,11 @@ SCM_DEFINE (scm_gc_live_object_stats, "gc-live-object-stats", 0, 0, 0,
 #define FUNC_NAME s_scm_gc_live_object_stats
 {
   SCM tab = scm_make_hash_table (scm_from_int (57));
+  SCM alist;
+
   scm_i_all_segments_statistics (tab);
   
-  SCM alist
+  alist
     = scm_internal_hash_fold (&tag_table_to_type_alist, NULL, SCM_EOL, tab);
   
   return alist;

@@ -1,3 +1,18 @@
+2005-05-11  Neil Jerram  <neil@ossau.uklinux.net>
+
+	Fix C99isms reported by Ludovic Courtès:
+	
+	* threads.c (s_scm_lock_mutex): Don't declare msg in middle of
+	code.
+
+	* gc.c (s_scm_gc_live_object_stats): Don't declare alist in middle
+	of code.
+
+	* gc-card.c (scm_i_card_statistics): Don't declare tag in middle
+	of code.
+	(scm_i_card_statistics): Add block for declarations of tag_as_scm
+	and current.
+
 2005-05-10  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* scmsigs.c (signal_delivery_thread): Return a value, to avoid
