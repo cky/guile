@@ -106,7 +106,7 @@ st_resize_port (scm_t_port *pt, off_t new_size)
   /* reset buffer. */
   {
     pt->stream = SCM_UNPACK (new_stream);
-    pt->read_buf = pt->write_buf = dst;
+    pt->read_buf = pt->write_buf = (unsigned char *)dst;
     pt->read_pos = pt->write_pos = pt->write_buf + index;
     pt->write_end = pt->write_buf + pt->write_buf_size;
     pt->read_end = pt->read_buf + pt->read_buf_size;
@@ -294,7 +294,7 @@ scm_mkstrport (SCM pos, SCM str, long modes, const char *caller)
   SCM_SETSTREAM (z, SCM_UNPACK (str));
   SCM_SET_CELL_TYPE(z, scm_tc16_strport|modes);
   /* see above why we can use scm_i_string_chars here. */
-  pt->write_buf = pt->read_buf = (char *)scm_i_string_chars (str);
+  pt->write_buf = pt->read_buf = (unsigned char *) scm_i_string_chars (str);
   pt->read_pos = pt->write_pos = pt->read_buf + c_pos;
   pt->write_buf_size = pt->read_buf_size = str_len;
   pt->write_end = pt->read_end = pt->read_buf + pt->read_buf_size;

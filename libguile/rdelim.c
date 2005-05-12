@@ -204,7 +204,7 @@ SCM_DEFINE (scm_read_line, "%read-line", 0, 1, 0,
 {
   scm_t_port *pt;
   char *s;
-  size_t slen;
+  size_t slen = 0;
   SCM line, term;
 
   if (SCM_UNBNDP (port))

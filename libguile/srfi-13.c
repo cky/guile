@@ -2473,7 +2473,7 @@ string_titlecase_x (SCM str, size_t start, size_t end)
   size_t i;
   int in_word = 0;
 
-  sz = scm_i_string_writable_chars (str);
+  sz = (unsigned char *) scm_i_string_writable_chars (str);
   for(i = start; i < end;  i++)
     {
       if (scm_is_true (scm_char_alphabetic_p (SCM_MAKE_CHAR (sz[i]))))

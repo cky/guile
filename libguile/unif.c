@@ -2660,7 +2660,7 @@ read_decimal_integer (SCM port, int c, ssize_t *resp)
 SCM
 scm_i_read_array (SCM port, int c)
 {
-  size_t rank;
+  ssize_t rank;
   int got_rank;
   char tag[80];
   int tag_len;
@@ -2756,7 +2756,7 @@ scm_i_read_array (SCM port, int c)
   elements = scm_read (port);
 
   if (scm_is_false (shape))
-    shape = scm_from_size_t (rank);
+    shape = scm_from_ssize_t (rank);
   else if (scm_ilength (shape) != rank)
     scm_i_input_error 
       (NULL, port,

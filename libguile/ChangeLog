@@ -1,3 +1,24 @@
+2005-05-12  Neil Jerram  <neil@ossau.uklinux.net>
+
+	Mac OS X compile warning fixes, reported by Richard Todd.
+	
+	* unif.c (scm_i_read_array): Declare rank as ssize_t, to guarantee
+	that it is signed.
+
+	* strports.c (st_resize_port): Add unsigned char cast.
+	(scm_mkstrport): Make read/write_buf cast unsigned.
+
+	* srfi-13.c (string_titlecase_x): Add unsigned char cast.
+
+	* rdelim.c (scm_read_line): Initialize slen.
+
+	* load.c (scm_search_path): Remove weird >=1, and add
+	parentheses to clarify conditions.
+
+	* hash.c (scm_hasher): Add const unsigned char cast.
+
+	* gh_data.c (gh_chars2byvect): Add scm_t_int8 cast.
+
 2005-05-11  Neil Jerram  <neil@ossau.uklinux.net>
 
 	Fix C99isms reported by Ludovic Courtès:

@@ -372,9 +372,9 @@ SCM_DEFINE (scm_search_path, "search-path", 2, 1, 0,
       /* Concatenate the path name and the filename. */
       
 #ifdef __MINGW32__
-      if (buf.ptr > buf.buf && buf.ptr[-1] != '/' && buf.ptr[-1] != '\\')
+      if ((buf.ptr > buf.buf) && (buf.ptr[-1] != '/') && (buf.ptr[-1] != '\\'))
 #else
-      if (buf.ptr > buf.buf >= 1 && buf.ptr[-1] != '/')
+      if ((buf.ptr > buf.buf) && (buf.ptr[-1] != '/'))
 #endif
 	stringbuf_cat (&buf, "/");
 

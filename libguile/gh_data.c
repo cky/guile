@@ -128,7 +128,7 @@ gh_chars2byvect (const char *d, long n)
 {
   char *m = scm_malloc (n);
   memcpy (m, d, n * sizeof (char));
-  return scm_take_s8vector (m, n);
+  return scm_take_s8vector ((scm_t_int8 *)m, n);
 }
 
 SCM
