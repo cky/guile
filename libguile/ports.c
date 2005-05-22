@@ -1021,12 +1021,14 @@ scm_getc (SCM port)
 void 
 scm_putc (char c, SCM port)
 {
+  SCM_ASSERT_TYPE (SCM_OPOUTPORTP (port), port, 0, NULL, "output port");
   scm_lfwrite (&c, 1, port);
 }
 
 void 
 scm_puts (const char *s, SCM port)
 {
+  SCM_ASSERT_TYPE (SCM_OPOUTPORTP (port), port, 0, NULL, "output port");
   scm_lfwrite (s, strlen (s), port);
 }
 
