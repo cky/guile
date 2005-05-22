@@ -897,7 +897,7 @@ SCM_DEFINE (scm_make_shared_array, "make-shared-array", 2, 0, 1,
 
   imap = scm_apply_0 (mapfunc, scm_reverse (inds));
   i = scm_array_handle_pos (&old_handle, imap);
-  SCM_I_ARRAY_BASE (ra) = new_min = new_max = i;
+  SCM_I_ARRAY_BASE (ra) = new_min = new_max = i + SCM_I_ARRAY_BASE (oldra);
   indptr = inds;
   k = SCM_I_ARRAY_NDIM (ra);
   while (k--)
@@ -2885,7 +2885,7 @@ scm_aind (SCM ra, SCM args, const char *what)
     args = scm_list_1 (args);
   
   scm_array_get_handle (ra, &handle);
-  pos = scm_array_handle_pos (&handle, args);
+  pos = scm_array_handle_pos (&handle, args) + SCM_I_ARRAY_BASE (ra);
   scm_array_handle_release (&handle);
   return pos;
 }
