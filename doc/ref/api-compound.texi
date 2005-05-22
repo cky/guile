@@ -895,11 +895,14 @@ handle mustr eventually be released with
 @code{scm_array_handle_release}.
 
 The variables pointed to by @var{lenp} and @var{incp} are filled with
-the number of elements of the vector and the increment between elements,
-respectively.  Note that the increment can well be negative.
+the number of elements of the vector and the increment (number of
+elements) between successive elements, respectively.  Successive
+elements of @var{vec} need not be contiguous in their underlying
+``root vector'' returned here; hence the increment is not necessarily
+equal to 1 and may well be negative too (@pxref{Shared Arrays}).
 
 The following example shows the typical way to use this function.  It
-creates a list of all elements of @code{vec} (in reverse order).
+creates a list of all elements of @var{vec} (in reverse order).
 
 @example
 scm_t_array_handle handle;
@@ -1362,8 +1365,9 @@ Return the number of elements of @var{uvec} as a @code{size_t}.
 @deftypefnx {C Function} {const double *} scm_f64vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
 @deftypefnx {C Function} {const float *} scm_c32vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
 @deftypefnx {C Function} {const double *} scm_c64vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
-Like @code{scm_vector_elements} (which see), but returns a pointer to
-the elements of a uniform numeric vector of the indicated kind.
+Like @code{scm_vector_elements} (@pxref{Vector Accessing from C}), but
+returns a pointer to the elements of a uniform numeric vector of the
+indicated kind.
 @end deftypefn
 
 @deftypefn  {C Function} {void *} scm_uniform_vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
@@ -1379,8 +1383,9 @@ the elements of a uniform numeric vector of the indicated kind.
 @deftypefnx {C Function} {double *} scm_f64vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
 @deftypefnx {C Function} {float *} scm_c32vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
 @deftypefnx {C Function} {double *} scm_c64vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
-Like @code{scm_vector_writable_elements} (which see), but returns a
-pointer to the elements of a uniform numeric vector of the indicated kind.
+Like @code{scm_vector_writable_elements} (@pxref{Vector Accessing from
+C}), but returns a pointer to the elements of a uniform numeric vector
+of the indicated kind.
 @end deftypefn
 
 @deffn {Scheme Procedure} uniform-vector-read! uvec [port_or_fd [start [end]]]
@@ -1605,11 +1610,11 @@ For example,
 @end deffn
 
 @deftypefn {C Function} {const scm_t_uint32 *} scm_bitvector_elements (SCM vec, scm_t_array_handle *handle, size_t *offp, size_t *lenp, ssize_t *incp)
-Like @code{scm_vector_elements} (which see), but for bitvectors.  The
-variable pointed to by @var{offp} is set to the value returned by
-@code{scm_array_handle_bit_elements_offset}.  See
-@code{scm_array_handle_bit_elements} for how to use the returned pointer
-and the offset.
+Like @code{scm_vector_elements} (@pxref{Vector Accessing from C}), but
+for bitvectors.  The variable pointed to by @var{offp} is set to the
+value returned by @code{scm_array_handle_bit_elements_offset}.  See
+@code{scm_array_handle_bit_elements} for how to use the returned
+pointer and the offset.
 @end deftypefn
 
 @deftypefn {C Function} {scm_t_uint32 *} scm_bitvector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *offp, size_t *lenp, ssize_t *incp)
