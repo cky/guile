@@ -1,5 +1,9 @@
 2005-05-22  Marius Vollmer  <mvo@zagadka.de>
 
+	* unif.c (scm_make_shared_array): Add old base to new base since
+	scm_array_handle_pos does not include the base.
+	(scm_aind): Likewise.
+
 	* ports.c (scm_putc, scm_puts): Assert that the port argument is a
 	output port.
 
