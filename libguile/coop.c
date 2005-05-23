@@ -12,11 +12,11 @@
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 
-/* $Id: coop.c,v 1.37 2003-04-05 19:10:23 mvo Exp $ */
+/* $Id: coop.c,v 1.38 2005-05-23 19:57:20 mvo Exp $ */
 
 /* Cooperative thread library, based on QuickThreads */
 

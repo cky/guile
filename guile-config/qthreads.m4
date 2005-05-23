@@ -17,8 +17,8 @@ dnl   GNU General Public License for more details.
 dnl
 dnl   You should have received a copy of the GNU General Public
 dnl   License along with GUILE; see the file COPYING.  If not, write
-dnl   to the Free Software Foundation, Inc., 59 Temple Place, Suite
-dnl   330, Boston, MA 02111-1307 USA
+dnl   to the Free Software Foundation, Inc., 51 Franklin Street, Fifth
+dnl   Floor, Boston, MA 02110-1301 USA
 
 
 

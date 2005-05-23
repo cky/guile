@@ -17,8 +17,8 @@
 ##
 ##   You should have received a copy of the GNU General Public
 ##   License along with GUILE; see the file COPYING.  If not, write
-##   to the Free Software Foundation, Inc., 59 Temple Place, Suite
-##   330, Boston, MA 02111-1307 USA
+##   to the Free Software Foundation, Inc., 51 Franklin Street, Fifth
+##   Floor, Boston, MA 02110-1301 USA
 
 guile_pdd = $(patsubst %/guile-readline,%/guile,$(pkgdatadir))
 ice9dir = $(guile_pdd)/$(GUILE_EFFECTIVE_VERSION)/ice-9
