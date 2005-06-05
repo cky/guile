@@ -79,6 +79,11 @@
 	     (char_pred (string-ref s (1- end))))
 	(string-every-c-code char_pred s start end))))
 
+;; A variant of string-fill! that we keep for compatability
+;;
+(define (substring-fill! str start end fill)
+  (string-fill! str fill start end))
+
 
 
 ;;; {EVAL-CASE}
