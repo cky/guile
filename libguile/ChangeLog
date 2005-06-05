@@ -1,3 +1,9 @@
+2005-06-06  Kevin Ryde  <user42@zip.com.au>
+
+	* srfi-13.c (scm_string_split): Compare char/char in scan.  Mixing an
+	unsigned int SCM_CHAR and a char string meant an 8-bit char was never
+	matched.
+
 2005-06-05  Marius Vollmer  <mvo@zagadka.de>
 
 	* eval.c: Added comment on how to make case 1.1 of
