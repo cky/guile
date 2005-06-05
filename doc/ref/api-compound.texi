@@ -1933,7 +1933,7 @@ Return @code{#t} if the given index would be acceptable to
 
 @example
 (define a (make-array #f '(1 2) '(3 4)))
-(array-in-bounds? a 2 3) @result{} #f
+(array-in-bounds? a 2 3) @result{} #t
 (array-in-bounds? a 0 0) @result{} #f
 @end example
 @end deffn
