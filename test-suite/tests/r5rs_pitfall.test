@@ -47,6 +47,9 @@
 ;; In thread:
 ;; defines in letrec body 
 ;; http://groups.google.com/groups?selm=87bsoq0wfk.fsf%40app.dial.idiom.com
+
+;; See eval.c for how to make this test succeed.  Look for "r5rs pitfall".
+
 (should-be-but-isnt 1.1 0
  (let ((cont #f))
    (letrec ((x (call-with-current-continuation (lambda (c) (set! cont c) 0)))
