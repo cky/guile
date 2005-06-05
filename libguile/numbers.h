@@ -92,7 +92,6 @@
 #  include <float.h>
 #  ifdef __MINGW32__
 #   define copysign _copysign
-#   define isnan _isnan
 #   define finite _finite
 #  endif /* __MINGW32__ */
 # endif /* ndef GO32 */

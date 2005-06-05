@@ -42,7 +42,7 @@ gen_scmconfig_SOURCES = gen-scmconfig.c
 ## For some reason, OBJEXT does not include the dot
 gen-scmconfig.$(OBJEXT): gen-scmconfig.c
 	if [ "$(cross_compiling)" = "yes" ]; then \
-		$(CC_FOR_BUILD) $(DEFS) $(INCLUDES) -c -o $@ $<; \
+		$(CC_FOR_BUILD) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) -c -o $@ $<; \
 	else \
 		$(COMPILE) -c -o $@ $<; \
 	fi

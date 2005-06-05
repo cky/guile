@@ -653,19 +653,18 @@ SCM_DEFINE (scm_strftime, "strftime", 2, 0, 0,
        environment.  interrupts and thread switching must be deferred
        until TZ is restored.  */
     char **oldenv = NULL;
-    SCM *velts = (SCM *) SCM_VELTS (stime);
+    SCM zone_spec = SCM_SIMPLE_VECTOR_REF (stime, 10);
     int have_zone = 0;
 
-    if (scm_is_true (velts[10]) && *SCM_STRING_CHARS (velts[10]) != 0)
+    if (scm_is_true (zone_spec) && scm_c_string_length (zone_spec) > 0)
       {
 	/* it's not required that the TZ setting be correct, just that
 	   it has the right name.  so try something like TZ=EST0.
 	   using only TZ=EST would be simpler but it doesn't work on
 	   some OSs, e.g., Solaris.  */
 	SCM zone =
-	  scm_string_append (scm_cons (velts[10],
-				       scm_cons (scm_from_locale_string ("0"),
-						 SCM_EOL)));
+	  scm_string_append (scm_list_2 (zone_spec,
+					 scm_from_locale_string ("0")));
 
 	have_zone = 1;
 	SCM_CRITICAL_SECTION_START;
@@ -690,7 +689,7 @@ SCM_DEFINE (scm_strftime, "strftime", 2, 0, 0,
 #if !defined (HAVE_TM_ZONE)
     if (have_zone)
       {
-	restorezone (velts[10], oldenv, FUNC_NAME);
+	restorezone (zone_spec, oldenv, FUNC_NAME);
 	SCM_CRITICAL_SECTION_END;
       }
 #endif

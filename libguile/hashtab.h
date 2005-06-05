@@ -31,7 +31,7 @@
 #define SCM_HASHTABLEF_WEAK_CAR SCM_WVECTF_WEAK_KEY
 #define SCM_HASHTABLEF_WEAK_CDR SCM_WVECTF_WEAK_VALUE
 
-extern scm_t_bits scm_tc16_hashtable;
+SCM_API scm_t_bits scm_tc16_hashtable;
 
 #define SCM_HASHTABLE_P(x)	   SCM_SMOB_PREDICATE (scm_tc16_hashtable, x)
 #define SCM_VALIDATE_HASHTABLE(pos, arg) \

@@ -43,6 +43,15 @@
 #include "libguile/continuations.h"
 #include "libguile/init.h"
 
+#ifdef __MINGW32__
+#ifndef ETIMEDOUT
+# define ETIMEDOUT       WSAETIMEDOUT
+#endif
+# include <fcntl.h>
+# include <process.h>
+# define pipe(fd) _pipe (fd, 256, O_BINARY)
+#endif /* __MINGW32__ */
+
 /*** Queues */
 
 /* Make an empty queue data structure.

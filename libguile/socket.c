@@ -67,10 +67,6 @@
 		      + strlen ((ptr)->sun_path))
 #endif
 
-/* we are not currently using socklen_t.  it's not defined on all systems,
-   so would need to be checked by configure.  in the meantime, plain
-   int is the best alternative.  */
-
 
 
 SCM_DEFINE (scm_htons, "htons", 1, 0, 0, 
@@ -550,7 +546,10 @@ SCM_DEFINE (scm_setsockopt, "setsockopt", 4, 0, 0,
 #ifdef HAVE_STRUCT_LINGER
   struct linger opt_linger;
 #endif
+
+#if HAVE_STRUCT_IP_MREQ
   struct ip_mreq opt_mreq;
+#endif
 
   const void *optval = NULL;
   socklen_t optlen = 0;
@@ -602,6 +601,7 @@ SCM_DEFINE (scm_setsockopt, "setsockopt", 4, 0, 0,
 	  }
     }
 
+#if HAVE_STRUCT_IP_MREQ
   if (ilevel == IPPROTO_IP &&
       (ioptname == IP_ADD_MEMBERSHIP || ioptname == IP_DROP_MEMBERSHIP))
     {
@@ -612,6 +612,7 @@ SCM_DEFINE (scm_setsockopt, "setsockopt", 4, 0, 0,
       optlen = sizeof (opt_mreq);
       optval = &opt_mreq;
     }
+#endif
 
   if (optval == NULL)
     {
