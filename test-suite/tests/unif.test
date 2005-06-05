@@ -259,6 +259,15 @@
       (pass-if "5/8"    (array-fill! a 5/8)    #t))))
 
 ;;;
+;;; array-in-bounds?
+;;;
+
+(with-test-prefix "array-in-bounds?"
+
+  (pass-if (let ((a (make-array #f '(425 425))))
+	     (eq? #f (array-in-bounds? a 0)))))
+
+;;;
 ;;; array-prototype
 ;;;
 
