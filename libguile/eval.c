@@ -3570,6 +3570,13 @@ dispatch:
                 init_forms = SCM_CDR (init_forms);
               }
             while (!scm_is_null (init_forms));
+
+	    /* In order to make case 1.1 of the R5RS pitfall testsuite
+	       succeed, we would need to copy init_values here like
+	       so:
+
+	       init_values = scm_list_copy (init_values);
+	    */
             SCM_SETCDR (SCM_CAR (env), init_values);
           }
           x = SCM_CDR (x);
