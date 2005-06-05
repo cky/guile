@@ -1,3 +1,7 @@
+2005-06-05  Marius Vollmer  <mvo@zagadka.de>
+
+	* boot-9.scm (substring-fill!): New, for compatability.
+
 2005-04-23  Kevin Ryde  <user42@zip.com.au>
 
 	* boot-9.scm (make-list): Moved to C code in list.c
