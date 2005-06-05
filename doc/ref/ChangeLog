@@ -1,3 +1,8 @@
+2005-06-06  Kevin Ryde  <user42@zip.com.au>
+
+	* api-compound.texi (Array Procedures): In array-in-bounds?,
+	correction to example result.
+
 2005-05-04  Kevin Ryde  <user42@zip.com.au>
 
 	* srfi-modules.texi (SRFI-1 Selectors): In drop-right, note always a
