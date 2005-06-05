@@ -1,3 +1,23 @@
+2005-06-05  Marius Vollmer  <mvo@zagadka.de>
+
+	From Jan Nieuwenhuizen <janneke@gnu.org>. Thanks!
+
+ 	* hashtab.h: Bugfix: use SCM_API (WAS: extern).
+ 
+ 	* socket.c: Remove obsolete comment about socklen_t.
+ 	(s_scm_setsockopt)[!HAVE_IP_MREQ]: Do not use ip_mreq code.
+ 
+ 	* numbers.h (isnan)[__MINGW32__]: Remove.
+ 
+ 	* Makefile.am (gen_scmconfig_SOURCES): Bugfix: Add
+ 	DEFAULT_INCLUDES when cross compiling.
+ 
+ 	* threads.c (ETIMEDOUT, pipe)[__MINGW32__]: Add defines.
+
+ 	* stime.c (s_scm_strftime)[!HAVE_TM_ZONE]: Use
+	SCM_SIMPLE_VECTOR_REF instead of SCM_VELTS.  (Changed slightly
+	from Jan's patch.)
+ 
 2005-05-22  Marius Vollmer  <mvo@zagadka.de>
 
 	* unif.c (scm_make_shared_array): Add old base to new base since
