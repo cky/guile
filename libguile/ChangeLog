@@ -94,7 +94,9 @@
 2005-04-25  Kevin Ryde  <user42@zip.com.au>
 
 	* ramap.c (scm_array_map_x): Allow no source args, add num args checks
-	to subr_1, subr_2, subr_2o and dsubr cases.
+	to subr_1, subr_2, subr_2o and dsubr cases.  No source args only has a
+	few sensible uses (like filling with a random number generator say),
+	but has been allowed in the past and so should be kept.
 
 2005-04-23  Kevin Ryde  <user42@zip.com.au>
 

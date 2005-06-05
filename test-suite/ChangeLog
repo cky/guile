@@ -1,3 +1,7 @@
+2005-06-06  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/strings.test (string-split): Try splitting on an 8-bit char.
+
 2005-05-07  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/srfi-1.test (car+cdr, fold, last, list-index, list-tabulate,
