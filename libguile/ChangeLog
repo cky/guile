@@ -1,5 +1,8 @@
 2005-06-05  Marius Vollmer  <mvo@zagadka.de>
 
+	* eval.c: Added comment on how to make case 1.1 of
+	r5rs_pitfall.test succeed.
+
 	From Jan Nieuwenhuizen <janneke@gnu.org>. Thanks!
 
  	* hashtab.h: Bugfix: use SCM_API (WAS: extern).
