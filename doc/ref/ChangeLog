@@ -3,6 +3,9 @@
 	* api-compound.texi (Array Procedures): In array-in-bounds?,
 	correction to example result.
 
+	* api-init.texi (Initialization), api-scheduling.texi (Blocking):
+	{} groups around "void*" C return types.
+
 2005-05-04  Kevin Ryde  <user42@zip.com.au>
 
 	* srfi-modules.texi (SRFI-1 Selectors): In drop-right, note always a
