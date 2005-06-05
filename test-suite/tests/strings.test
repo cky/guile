@@ -1,7 +1,7 @@
 ;;;; strings.test --- test suite for Guile's string functions    -*- scheme -*-
 ;;;; Jim Blandy <jimb@red-bean.com> --- August 1999
 ;;;;
-;;;; Copyright (C) 1999, 2001, 2004 Free Software Foundation, Inc.
+;;;; Copyright (C) 1999, 2001, 2004, 2005 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -78,6 +78,14 @@
   (pass-if-exception "read-only string"
     exception:read-only-string
     (string-set! (substring/read-only "abc" 0) 1 #\space)))
+
+(with-test-prefix "string-split"
+
+  ;; in guile 1.6.7 and earlier, character >=128 wasn't matched in the string
+  (pass-if "char 255"
+    (equal? '("a" "b")
+	    (string-split (string #\a (integer->char 255) #\b)
+			  (integer->char 255)))))
 
 (with-test-prefix "substring-move!"
 
