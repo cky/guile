@@ -1,3 +1,9 @@
+2005-06-05  Marius Vollmer  <mvo@zagadka.de>
+
+	From  Jan Nieuwenhuizen <janneke@gnu.org>.  Thanks!
+
+	* configure.in: Add tests for socklen_t and ip_mreq.
+
 2005-03-13  Kevin Ryde  <user42@zip.com.au>
 
 	* configure.in, GUILE-VERSION (LIBGUILE_SRFI_SRFI_60): New defines.
