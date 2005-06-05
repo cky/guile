@@ -21,7 +21,7 @@ Threads that are created by @code{call-with-new-thread} or
 @code{scm_spawn_thread} start out in guile mode so you don't need to
 initialize them.
 
-@deftypefn {C Function} void *scm_with_guile (void *(*func)(void *), void *data)
+@deftypefn {C Function} {void *} scm_with_guile (void *(*func)(void *), void *data)
 Call @var{func}, passing it @var{data} and return what @var{func}
 returns.  While @var{func} is running, the current thread is in guile
 mode and can thus use the Guile API.

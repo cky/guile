@@ -219,7 +219,7 @@ message is printed to the current error port and @code{#f} is returned.
 Thus, @code{with-continuation-barrier} returns exactly once.
 @end deffn
 
-@deftypefn {C Function} void *scm_c_with_continuation_barrier (void *(*func) (void *), void *data)
+@deftypefn {C Function} {void *} scm_c_with_continuation_barrier (void *(*func) (void *), void *data)
 Like @code{scm_with_continuation_barrier} but call @var{func} on
 @var{data}.  When an error is caught, @code{NULL} is returned.
 @end deftypefn
@@ -472,7 +472,7 @@ mode without having to know whether the current thread is in guile mode
 or not.
 @end deftypefn
 
-@deftypefn {C Function} void *scm_without_guile (void *(*func) (void *), void *data)
+@deftypefn {C Function} {void *} scm_without_guile (void *(*func) (void *), void *data)
 Leave guile mode as with @code{scm_leave_guile}, call @var{func} on
 @var{data}, enter guile mode as with @code{scm_enter_guile} and return
 the result of calling @var{func}.
@@ -693,7 +693,7 @@ Set the current dynamic state to @var{state} for the dynamic extent of
 the current frame.
 @end deftypefn
 
-@deftypefn {C Procedure} void *scm_c_with_dynamic_state (SCM state, void *(*func)(void *), void *data)
+@deftypefn {C Procedure} {void *} scm_c_with_dynamic_state (SCM state, void *(*func)(void *), void *data)
 Like @code{scm_with_dynamic_state}, but call @var{func} with
 @var{data}.
 @end deftypefn
