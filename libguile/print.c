@@ -506,30 +506,38 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 	case scm_tc7_string:
 	  if (SCM_WRITINGP (pstate))
 	    {
-	      size_t i, len;
+	      size_t i, j, len;
 	      const char *data;
 
 	      scm_putc ('"', port);
 	      len = scm_i_string_length (exp);
 	      data = scm_i_string_chars (exp);
-	      for (i = 0; i < len; ++i)
+	      for (i = 0, j = 0; i < len; ++i)
 		{
 		  unsigned char ch = data[i];
 		  if ((ch < 32 && ch != '\n') || (127 <= ch && ch < 148))
 		    {
 		      static char const hex[]="0123456789abcdef";
-		      scm_putc ('\\', port);
-		      scm_putc ('x', port);
-		      scm_putc (hex [ch / 16], port);
-		      scm_putc (hex [ch % 16], port);
+		      char buf[4];
+
+		      scm_lfwrite (data+j, i-j, port);
+		      buf[0] = '\\';
+		      buf[1] = 'x';
+		      buf[2] =  hex [ch / 16];
+		      buf[3] = hex [ch % 16];
+		      scm_lfwrite (buf, 4, port);
+		      data = scm_i_string_chars (exp);
+		      j = i+1;
 		    }
-		  else
+		  else if (ch == '"' || ch == '\\')
 		    {
-		      if (ch == '"' || ch == '\\')
-			scm_putc ('\\', port);
-		      scm_putc (ch, port);
+		      scm_lfwrite (data+j, i-j, port);
+		      scm_putc ('\\', port);
+		      data = scm_i_string_chars (exp);
+		      j = i;
 		    }
 		}
+	      scm_lfwrite (data+j, i-j, port);
 	      scm_putc ('"', port);
 	      scm_remember_upto_here_1 (exp);
 	    }
