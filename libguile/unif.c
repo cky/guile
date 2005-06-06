@@ -1136,18 +1136,7 @@ SCM_DEFINE (scm_array_in_bounds_p, "array-in-bounds?", 1, 0, 1,
 
   SCM_VALIDATE_REST_ARGUMENT (args);
 
-  if (scm_is_generalized_vector (v))
-    {
-      long ind;
-
-      if (!scm_is_pair (args))
-	SCM_WRONG_NUM_ARGS ();
-      ind = scm_to_long (SCM_CAR (args));
-      args = SCM_CDR (args);
-      res = scm_from_bool (ind >= 0
-			   && ind < scm_c_generalized_vector_length (v));
-    }
-  else if (SCM_I_ARRAYP (v) || SCM_I_ENCLOSED_ARRAYP (v))
+  if (SCM_I_ARRAYP (v) || SCM_I_ENCLOSED_ARRAYP (v))
     {
       size_t k = SCM_I_ARRAY_NDIM (v);
       scm_t_array_dim *s = SCM_I_ARRAY_DIMS (v);
@@ -1171,6 +1160,21 @@ SCM_DEFINE (scm_array_in_bounds_p, "array-in-bounds?", 1, 0, 1,
 	      */
 	    }
 	}
+    }
+  else if (scm_is_generalized_vector (v))
+    {
+      /* Since real arrays have been covered above, all generalized
+	 vectors are guaranteed to be zero-origin here.
+      */
+
+      long ind;
+
+      if (!scm_is_pair (args))
+	SCM_WRONG_NUM_ARGS ();
+      ind = scm_to_long (SCM_CAR (args));
+      args = SCM_CDR (args);
+      res = scm_from_bool (ind >= 0
+			   && ind < scm_c_generalized_vector_length (v));
     }
   else
     scm_wrong_type_arg_msg (NULL, 0, v, "array");
