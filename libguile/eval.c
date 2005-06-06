@@ -3097,16 +3097,16 @@ SCM_DEFINE (scm_eval_options_interface, "eval-options-interface", 0, 1, 0,
 #define FUNC_NAME s_scm_eval_options_interface
 {
   SCM ans;
-  SCM_CRITICAL_SECTION_START;
+  
+  scm_frame_begin (0);
+  scm_frame_critical_section (SCM_BOOL_F);
   ans = scm_options (setting,
 		     scm_eval_opts,
 		     SCM_N_EVAL_OPTIONS,
 		     FUNC_NAME);
-  /* njrev: There are several ways that scm_options can signal an
-     error: scm_cons, scm_malloc_obj, scm_misc_error; so should use a
-     critical section frame here. */
   scm_eval_stack = SCM_EVAL_STACK * sizeof (void *);
-  SCM_CRITICAL_SECTION_END;
+  scm_frame_end ();
+
   return ans;
 }
 #undef FUNC_NAME
