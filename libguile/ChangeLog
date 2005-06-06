@@ -1,5 +1,9 @@
 2005-06-06  Marius Vollmer  <mvo@zagadka.de>
 
+	* eval.c (scm_eval_options_interface): Use
+	scm_frame_critical_section instead of SCM_CRITICAL_SECTION_START
+	and SCM_CRITICAL_SECTION_END.
+
 	* unif.c (scm_array_in_bounds_p): First test for real arrays, then
 	check for generalized vectors.  This ensures that the generalized
 	vector case need only work with zero-origin ranges.
