@@ -1,3 +1,9 @@
+2005-06-06  Marius Vollmer  <mvo@zagadka.de>
+
+	* unif.c (scm_array_in_bounds_p): First test for real arrays, then
+	check for generalized vectors.  This ensures that the generalized
+	vector case need only work with zero-origin ranges.
+
 2005-06-06  Kevin Ryde  <user42@zip.com.au>
 
 	* srfi-13.c (scm_string_split): Compare char/char in scan.  Mixing an
@@ -23,7 +29,7 @@
  
  	* threads.c (ETIMEDOUT, pipe)[__MINGW32__]: Add defines.
 
- 	* stime.c (s_scm_strftime)[!HAVE_TM_ZONE]: Use
+ 	* stime.c (scm_strftime)[!HAVE_TM_ZONE]: Use
 	SCM_SIMPLE_VECTOR_REF instead of SCM_VELTS.  (Changed slightly
 	from Jan's patch.)
  
