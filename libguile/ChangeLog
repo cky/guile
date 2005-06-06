@@ -1,5 +1,10 @@
 2005-06-06  Marius Vollmer  <mvo@zagadka.de>
 
+	* print.c (iprin1): When writing a string, collect all characters
+	that can be printed directly into one call to scm_lfwrite.
+	Previously, every character was output with its own call to
+	write(2) on unbuffered ports.
+
 	* eval.c (scm_eval_options_interface): Use
 	scm_frame_critical_section instead of SCM_CRITICAL_SECTION_START
 	and SCM_CRITICAL_SECTION_END.
