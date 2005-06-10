@@ -3253,11 +3253,14 @@ SCM_DEFINE (scm_string_split, "string-split", 2, 0, 0,
 
 SCM_DEFINE (scm_string_filter, "string-filter", 2, 2, 0,
 	    (SCM s, SCM char_pred, SCM start, SCM end),
-	    "Filter the string @var{s}, retaining only those characters that\n"
-	    "satisfy the @var{char_pred} argument.  If the argument is a\n"
-	    "procedure, it is applied to each character as a predicate, if\n"
-	    "it is a character, it is tested for equality and if it is a\n"
-	    "character set, it is tested for membership.")
+	    "Filter the string @var{s}, retaining only those characters\n"
+	    "which satisfy @var{char_pred}.  The result may share storage\n"
+	    "with @var{s}.\n"
+	    "\n"
+	    "If @var{char_pred} is a procedure, it is applied to each\n"
+	    "character as a predicate, if it is a character, it is tested\n"
+	    "for equality and if it is a character set, it is tested for\n"
+	    "membership.")
 #define FUNC_NAME s_scm_string_filter
 {
   const char *cstr;
@@ -3270,33 +3273,55 @@ SCM_DEFINE (scm_string_filter, "string-filter", 2, 2, 0,
 				   4, end, cend);
   if (SCM_CHARP (char_pred))
     {
-      SCM ls = SCM_EOL;
+      size_t count;
       char chr;
 
+      /* count chars to keep */
       chr = SCM_CHAR (char_pred);
-      idx = cstart;
-      while (idx < cend)
-	{
-	  if (cstr[idx] == chr)
-	    ls = scm_cons (SCM_MAKE_CHAR (cstr[idx]), ls);
-	  cstr = scm_i_string_chars (s);
-	  idx++;
-	}
-      result = scm_reverse_list_to_string (ls);
+      count = 0;
+      for (idx = cstart; idx < cend; idx++)
+        if (cstr[idx] == chr)
+          count++;
+
+      /* if whole of start to end kept then return substring, including
+         possibly s itself */
+      if (count == cend - cstart)
+        result = scm_i_substring_shared (s, cstart, cend);
+      else
+        result = scm_c_make_string (count, char_pred);
     }
   else if (SCM_CHARSETP (char_pred))
     {
-      SCM ls = SCM_EOL;
+      size_t count;
 
-      idx = cstart;
-      while (idx < cend)
-	{
-	  if (SCM_CHARSET_GET (char_pred, cstr[idx]))
-	    ls = scm_cons (SCM_MAKE_CHAR (cstr[idx]), ls);
-	  cstr = scm_i_string_chars (s);
-	  idx++;
-	}
-      result = scm_reverse_list_to_string (ls);
+      /* count chars to be kept */
+      count = 0;
+      for (idx = cstart; idx < cend; idx++)
+        if (SCM_CHARSET_GET (char_pred, cstr[idx]))
+          count++;
+
+      /* if whole of start to end kept then return substring, including
+         possibly s itself */
+      if (count == cend - cstart)
+        result = scm_i_substring_shared (s, cstart, cend);
+      else
+        {
+          char *dst;
+          result = scm_i_make_string (count, &dst);
+          cstr = scm_i_string_chars (s);
+
+          /* decrement "count" in this loop as well as using idx, so that if
+             another thread is simultaneously changing "s" there's no chance
+             it'll make us copy more than count characters */
+          for (idx = cstart; idx < cend && count != 0; idx++)
+            {
+              if (SCM_CHARSET_GET (char_pred, cstr[idx]))
+                {
+                  *dst++ = cstr[idx];
+                  count--;
+                }
+            }
+        }
     }
   else
     {
@@ -3325,11 +3350,13 @@ SCM_DEFINE (scm_string_filter, "string-filter", 2, 2, 0,
 
 SCM_DEFINE (scm_string_delete, "string-delete", 2, 2, 0,
 	    (SCM s, SCM char_pred, SCM start, SCM end),
-	    "Filter the string @var{s}, retaining only those characters that\n"
-	    "do not satisfy the @var{char_pred} argument.  If the argument\n"
-	    "is a procedure, it is applied to each character as a predicate,\n"
-	    "if it is a character, it is tested for equality and if it is a\n"
-	    "character set, it is tested for membership.")
+	    "Delete characters satisfying @var{char_pred} from @var{s}.  The\n"
+	    "result may share storage with @var{s}.\n"
+	    "\n"
+	    "If @var{char_pred} is a procedure, it is applied to each\n"
+	    "character as a predicate, if it is a character, it is tested\n"
+	    "for equality and if it is a character set, it is tested for\n"
+	    "membership.")
 #define FUNC_NAME s_scm_string_delete
 {
   const char *cstr;
@@ -3342,33 +3369,77 @@ SCM_DEFINE (scm_string_delete, "string-delete", 2, 2, 0,
 				   4, end, cend);
   if (SCM_CHARP (char_pred))
     {
-      SCM ls = SCM_EOL;
+      size_t count;
       char chr;
 
       chr = SCM_CHAR (char_pred);
-      idx = cstart;
-      while (idx < cend)
-	{
-	  if (cstr[idx] != chr)
-	    ls = scm_cons (SCM_MAKE_CHAR (cstr[idx]), ls);
-	  cstr = scm_i_string_chars (s);
-	  idx++;
-	}
-      result = scm_reverse_list_to_string (ls);
+
+      /* count chars to be kept */
+      count = 0;
+      for (idx = cstart; idx < cend; idx++)
+        if (cstr[idx] != chr)
+          count++;
+
+      /* if whole of start to end kept then return substring, including
+         possibly s itself */
+      if (count == cend - cstart)
+        {
+        result_substring:
+          result = scm_i_substring_shared (s, cstart, cend);
+        }
+      else
+        {
+          /* new string for retained portion */
+          char *dst;
+          result = scm_i_make_string (count, &dst);
+          cstr = scm_i_string_chars (s);
+
+          /* decrement "count" in this loop as well as using idx, so that if
+             another thread is simultaneously changing "s" there's no chance
+             it'll make us copy more than count characters */
+          for (idx = cstart; idx < cend && count != 0; idx++)
+            {
+              if (cstr[idx] != chr)
+                {
+                  *dst++ = cstr[idx];
+                  count--;
+                }
+            }
+        }
     }
   else if (SCM_CHARSETP (char_pred))
     {
-      SCM ls = SCM_EOL;
+      size_t count;
 
-      idx = cstart;
-      while (idx < cend)
-	{
-	  if (!SCM_CHARSET_GET (char_pred, cstr[idx]))
-	    ls = scm_cons (SCM_MAKE_CHAR (cstr[idx]), ls);
-	  cstr = scm_i_string_chars (s);
-	  idx++;
-	}
-      result = scm_reverse_list_to_string (ls);
+      /* count chars to be kept */
+      count = 0;
+      for (idx = cstart; idx < cend; idx++)
+        if (! SCM_CHARSET_GET (char_pred, cstr[idx]))
+          count++;
+
+      /* if whole of start to end kept then return substring, including
+         possibly s itself */
+      if (count == cend - cstart)
+        goto result_substring;
+      else
+        {
+          /* new string for retained portion */
+          char *dst;
+          result = scm_i_make_string (count, &dst);
+          cstr = scm_i_string_chars (s);
+
+          /* decrement "count" in this loop as well as using idx, so that if
+             another thread is simultaneously changing "s" there's no chance
+             it'll make us copy more than count characters */
+          for (idx = cstart; idx < cend && count != 0; idx++)
+            {
+              if (! SCM_CHARSET_GET (char_pred, cstr[idx]))
+                {
+                  *dst++ = cstr[idx];
+                  count--;
+                }
+            }
+        }
     }
   else
     {
