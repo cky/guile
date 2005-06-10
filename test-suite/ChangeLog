@@ -1,3 +1,7 @@
+2005-06-11  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/srfi-13.test (string-filter): A few more tests.
+
 2005-06-10  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/unif.test (array-index-map!): Add a test failing in the

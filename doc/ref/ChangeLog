@@ -1,3 +1,9 @@
+2005-06-11  Kevin Ryde  <user42@zip.com.au>
+
+	* api-data.texi (Miscellaneous String Operations): In string-filter
+	and string-delete, note result may share with input string (as allowed
+	by srfi spec).
+
 2005-06-06  Kevin Ryde  <user42@zip.com.au>
 
 	* api-compound.texi (Array Procedures): In array-in-bounds?,
