@@ -20,6 +20,18 @@
   #:use-module (test-suite lib))
 
 ;;;
+;;; array-index-map!
+;;;
+
+(with-test-prefix "array-index-map!"
+
+  (pass-if (let ((nlst '()))
+	     (array-index-map! (make-array #f '(1 1))
+			       (lambda (n)
+				 (set! nlst (cons n nlst))))
+	     (equal? nlst '(1)))))
+
+;;;
 ;;; array-map!
 ;;;
 
