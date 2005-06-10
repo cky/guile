@@ -1,3 +1,8 @@
+2005-06-10  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/unif.test (array-index-map!): Add a test failing in the
+	current code.
+
 2005-06-06  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/strings.test (string-split): Try splitting on an 8-bit char.
