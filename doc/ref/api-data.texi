@@ -3605,20 +3605,22 @@ of @var{s}.
 
 @deffn {Scheme Procedure} string-filter s char_pred [start [end]]
 @deffnx {C Function} scm_string_filter (s, char_pred, start, end)
-Filter the string @var{s}, retaining only those characters that
-satisfy the @var{char_pred} argument.  If the argument is a
-procedure, it is applied to each character as a predicate, if
-it is a character, it is tested for equality and if it is a
-character set, it is tested for membership.
+Filter the string @var{s}, retaining only those characters which
+satisfy @var{char_pred}.  The result may share storage with @var{s}.
+
+If @var{char_pred} is a procedure, it is applied to each character as
+a predicate, if it is a character, it is tested for equality and if it
+is a character set, it is tested for membership.
 @end deffn
 
 @deffn {Scheme Procedure} string-delete s char_pred [start [end]]
 @deffnx {C Function} scm_string_delete (s, char_pred, start, end)
-Filter the string @var{s}, retaining only those characters that
-do not satisfy the @var{char_pred} argument.  If the argument
-is a procedure, it is applied to each character as a predicate,
-if it is a character, it is tested for equality and if it is a
-character set, it is tested for membership.
+Delete characters satisfying @var{char_pred} from @var{s}.  The result
+may share storage with @var{s}.
+
+If @var{char_pred} is a procedure, it is applied to each character as
+a predicate, if it is a character, it is tested for equality and if it
+is a character set, it is tested for membership.
 @end deffn
 
 @node Conversion to/from C
