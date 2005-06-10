@@ -1102,8 +1102,19 @@
   (pass-if "charset, start and end index"
     (equal? '("oo" "bar" "!") (string-tokenize "foo\tbar !a"
 					       char-set:graphic 1 9))))
+;;;
+;;; string-filter
+;;;
 
 (with-test-prefix "string-filter"
+
+  (with-test-prefix "bad char_pred"
+
+    (pass-if-exception "integer" exception:wrong-type-arg
+      (string-filter 123 "abcde"))
+
+    (pass-if-exception "string" exception:wrong-type-arg
+      (string-filter "zzz" "abcde")))
 
   (pass-if "empty string, char"
     (string=? "" (string-filter "" #\.)))
@@ -1139,7 +1150,38 @@
     (string=? "" (string-filter ".foo.bar." char-set:punctuation 2 4)))
 
   (pass-if "pred, start and end index"
-    (string=? "oo" (string-filter ".foo.bar." char-alphabetic? 2 4))))
+    (string=? "oo" (string-filter ".foo.bar." char-alphabetic? 2 4)))
+
+  (with-test-prefix "char"
+
+    (pass-if (equal? "x" (string-filter "x" #\x)))
+    (pass-if (equal? "xx" (string-filter "xx" #\x)))
+    (pass-if (equal? "xx" (string-filter "xyx" #\x)))
+    (pass-if (equal? "x" (string-filter "xyyy" #\x)))
+    (pass-if (equal? "x" (string-filter "yyyx" #\x)))
+
+    (pass-if (equal? "xx" (string-filter "xxx" #\x 1)))
+    (pass-if (equal? "xx" (string-filter "xxx" #\x 0 2)))
+    (pass-if (equal? "x" (string-filter "xyx" #\x 1)))
+    (pass-if (equal? "x" (string-filter "yxx" #\x 0 2))))
+
+  (with-test-prefix "charset"
+
+    (let ((charset (char-set #\x #\y)))
+      (pass-if (equal? "x" (string-filter "x" charset)))
+      (pass-if (equal? "xx" (string-filter "xx" charset)))
+      (pass-if (equal? "xy" (string-filter "xy" charset)))
+      (pass-if (equal? "x" (string-filter "xaaa" charset)))
+      (pass-if (equal? "y" (string-filter "aaay" charset)))
+
+      (pass-if (equal? "yx" (string-filter "xyx" charset 1)))
+      (pass-if (equal? "xy" (string-filter "xyx" charset 0 2)))
+      (pass-if (equal? "x" (string-filter "xax" charset 1)))
+      (pass-if (equal? "x" (string-filter "axx" charset 0 2))))))
+
+;;;
+;;; string-delete
+;;;
 
 (with-test-prefix "string-delete"
 
