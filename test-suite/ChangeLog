@@ -1,3 +1,8 @@
+2005-06-10  Han-Wen Nienhuys  <hanwen@xs4all.nl>
+
+	* tests/gc.test ("gc"): add a test to verify that modules are
+	garbage collected.
+
 2005-06-11  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/srfi-13.test (string-filter): A few more tests.

@@ -65,7 +65,6 @@
 ;;;
 ;;; hashx-remove!
 ;;;
-
 (with-test-prefix "hashx-remove!"
   (pass-if (->bool (object-documentation hashx-remove!)))
 

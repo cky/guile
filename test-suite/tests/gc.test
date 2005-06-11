@@ -55,3 +55,17 @@
       (gc)
       (remove-hook! after-gc-hook thunk)
       foo)))
+
+
+(with-test-prefix "gc"
+  (pass-if "Unused modules are removed"
+	   (let*
+	       ((dummy (gc))
+	        (last-count (cdr (assoc
+				  "eval-closure" (gc-live-object-stats)))))
+	       
+	     (for-each (lambda (x) (make-module)) (iota 1000))
+	     (gc)
+	     (gc) ;; twice: have to kill the weak vectors.
+	     (= last-count (cdr (assoc "eval-closure" (gc-live-object-stats)))))
+	   ))

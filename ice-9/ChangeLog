@@ -1,3 +1,9 @@
+2005-06-10  Han-Wen Nienhuys  <hanwen@xs4all.nl>
+
+	* boot-9.scm (set-module-eval-closure!): remove
+	set-procedure-property! closure 'module. Setting this property
+	causes un-gc-able modules.
+
 2005-06-05  Marius Vollmer  <mvo@zagadka.de>
 
 	* boot-9.scm (substring-fill!): New, for compatability.
