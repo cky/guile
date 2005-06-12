@@ -1,3 +1,11 @@
+2005-06-12  Marius Vollmer  <mvo@zagadka.de>
+
+	* gh.h, gh_data.c, gh_eval.c, gh_funcs.c, gh_init.c, gh_io.c,
+	gh_list.c, gh_predicates.c: Deprecated everything.
+
+	* environments.c (environment_default_folder,
+	environment_default_observer): Do not use gh_call3, gh_call1.
+
 2005-06-10  Han-Wen Nienhuys  <hanwen@xs4all.nl>
 
 	* modules.c (s_scm_eval_closure_module): new function. Return the

@@ -1,3 +1,7 @@
+2005-06-12  Marius Vollmer  <mvo@zagadka.de>
+
+	* srfi-1.c: Do not use INUM macros, they are deprecated.
+
 2005-05-07  Kevin Ryde  <user42@zip.com.au>
 
 	* srfi-1.scm, srfi-1.c, srfi-1.h (car+cdr, fold, last, list-index,
