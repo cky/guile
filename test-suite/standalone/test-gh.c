@@ -23,6 +23,8 @@
 #include <assert.h>
 #include <string.h>
 
+#if SCM_ENABLE_DEPRECATED
+
 static int
 string_equal (SCM str, char *lit)
 {
@@ -72,3 +74,13 @@ main (int argc, char *argv[])
   test_gh_set_substr ();
   return 0;
 }
+
+#else
+
+int 
+main (int argc, char *argv[])
+{
+  return 0;
+}
+
+#endif /* !SCM_ENABLE_DEPRECATED */
