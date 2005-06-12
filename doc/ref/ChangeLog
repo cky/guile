@@ -1,3 +1,7 @@
+2005-06-12  Marius Vollmer  <mvo@zagadka.de>
+
+	* gh.texi: More stuff about transitioning away from GH.
+
 2005-06-11  Kevin Ryde  <user42@zip.com.au>
 
 	* api-data.texi (Miscellaneous String Operations): In string-filter

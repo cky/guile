@@ -719,6 +719,14 @@ remove a pair from an alist, and this must not be configurable.
 
 This is an incompatible change.
 
+** The GH interface is now subject to the deprecation mechanism
+
+The GH interface has been deprecated for quite some time but now it is
+actually removed from Guile when it is configured with
+--disable-deprecated.
+
+See the manual "Transitioning away from GH" for more information.
+
 ** A new family of functions for converting between C values and
    Scheme values has been added.
 
