@@ -3,6 +3,9 @@
 	* ramap.c (scm_array_index_map_x): First test for real arrays,
 	then check for generalized vectors.  This ensures that the
 	generalized vector case need only work with zero-origin ranges.
+	(scm_ra_eqp, scm_ra_compare): Use the new array handle functions
+	to access the target array, making these functions work with all
+	kinds of arrays, not just bit arrays.
 
 	* gh.h, gh_data.c, gh_eval.c, gh_funcs.c, gh_init.c, gh_io.c,
 	gh_list.c, gh_predicates.c: Deprecated everything.
