@@ -17,13 +17,14 @@ whose behaviour is specified by application specific code written in C.
 
 Note, however, that the GH interface is now deprecated, and developers
 are encouraged to switch to using the scm interface instead.  Therefore,
-for each GH feature, this chapter should also document how to achieve
+for each GH feature, this chapter also documents how to achieve
 the same result using the scm interface.
 
 @menu
 * GH deprecation::              Why the GH interface is now deprecated.
-* gh preliminaries::            
-* Data types and constants defined by gh::  
+* Transitioning away from GH::
+* GH preliminaries::            
+* Data types and constants defined by GH::  
 * Starting and controlling the interpreter::  
 * Error messages::              
 * Executing Scheme code::       
@@ -33,8 +34,6 @@ the same result using the scm interface.
 * Equality predicates::         
 * Memory allocation and garbage collection::  
 * Calling Scheme procedures from C::  
-* Mixing gh and scm APIs::      
-* scm transition summary::
 @end menu
 
 
@@ -80,9 +79,386 @@ still be an interesting project to attempt to define a corresponding
 GH-like interface, but the Guile developers no longer plan to try to do
 this as part of the core Guile project.
 
+@node Transitioning away from GH
+@subsection Transitioning away from GH
 
-@node gh preliminaries
-@subsection gh preliminaries
+The following table summarizes how to transition from the GH to the
+scm interface.  The replacements that are recommended are not always
+completely equivalent to the GH functionality that they should
+replace.  Therefore, you should read the reference documentation of
+the replacements carefully if you are not yet familiar with them.
+
+@table @asis
+@item Header file
+Use @code{#include <libguile.h>} instead of @code{#include
+<guile/gh.h>}.
+
+@item Compiling and Linking
+Use @code{guile-config} to pick up the flags required to compile C or
+C++ code that uses @code{libguile}, like so
+
+@smallexample
+$(CC) -o prog.o -c prog.c `guile-config compile`
+@end smallexample
+
+If you are using libtool to link your executables, just use
+@code{-lguile} in your link command.  Libtool will expand this into
+the needed linker options automatically.  If you are not using
+libtool, use the @code{guile-config} program to query the needed
+options explicitly.  A linker command like
+
+@smallexample
+$(CC) -o prog prog.o `guile-config link`
+@end smallexample
+
+should be all that is needed.  To link shared libraries that will be
+used as Guile Extensions, use libtool to control both the compilation
+and the link stage.
+
+@item The @code{SCM} type
+No change: the scm interface also uses this type to represent an
+arbitrary Scheme value.
+
+@item @code{SCM_BOOL_F} and @code{SCM_BOOL_T}
+No change.
+
+@item @code{SCM_UNSPECIFIED} and @code{SCM_UNDEFINED}
+No change.
+
+@item @code{gh_enter}
+Use @code{scm_boot_guile} instead, but note that @code{scm_boot_guile}
+has a slightly different calling convention from @code{gh_enter}:
+@code{scm_boot_guile}, and the main program function that you specify
+for @code{scm_boot_guile} to call, both take an additional @var{closure}
+parameter.  @ref{Guile Initialization Functions} for more details.
+
+@item @code{gh_repl}
+Use @code{scm_shell} instead.
+
+@item @code{gh_init}
+Use @code{scm_init_guile} instead.
+
+@item @code{gh_catch}
+Use @code{scm_internal_catch} instead.
+
+@item @code{gh_eval_str}
+Use @code{scm_c_eval_string} instead.
+
+@item @code{gh_eval_str_with_catch}
+Use @code{scm_c_eval_string} together with @code{scm_internal_catch}
+instead.
+
+@item @code{gh_eval_str_with_standard_handler}
+Use @code{scm_c_eval_string} together with @code{scm_internal_catch}
+and @code{scm_handle_by_message_no_exit} instead.
+
+@item @code{gh_eval_str_with_stack_saving_handler}
+Use @code{scm_c_eval_string} together with
+@code{scm_internal_stack_catch} and
+@code{scm_handle_by_message_no_exit} instead.
+
+@item @code{gh_eval_file} or @code{gh_load}
+Use @code{scm_c_primitive_load} instead.
+
+@item @code{gh_eval_file_with_catch}
+Use @code{scm_c_primitive_load} together with
+@code{scm_internal_catch} instead.
+
+@item @code{gh_eval_file_with_standard_handler}
+Use @code{scm_c_primitive_load} together with
+@code{scm_internal_catch} and @code{scm_handle_by_message_no_exit}
+instead.
+
+@item  @code{gh_new_procedure}
+@itemx @code{gh_new_procedure0_0}
+@itemx @code{gh_new_procedure0_1}
+@itemx @code{gh_new_procedure0_2}
+@itemx @code{gh_new_procedure1_0}
+@itemx @code{gh_new_procedure1_1}
+@itemx @code{gh_new_procedure1_2}
+@itemx @code{gh_new_procedure2_0}
+@itemx @code{gh_new_procedure2_1}
+@itemx @code{gh_new_procedure2_2}
+@itemx @code{gh_new_procedure3_0} 
+@itemx @code{gh_new_procedure4_0} 
+@itemx @code{gh_new_procedure5_0} 
+Use @code{scm_c_define_gsubr} instead, but note that the arguments are
+in a different order: for @code{scm_c_define_gsubr} the C function
+pointer is the last argument.  @ref{A Sample Guile Extension} for an
+example.
+
+@item @code{gh_defer_ints} and @code{gh_allow_ints}
+Use @code{SCM_CRITICAL_SECTION_START} and
+@code{SCM_CRITICAL_SECTION_END} instead.  Note that these macros are
+used without parentheses, as in @code{SCM_DEFER_INTS;}.
+
+@item @code{gh_bool2scm}
+Use @code{scm_from_bool} instead.
+
+@item @code{gh_int2scm}
+Use @code{scm_from_int} instead.
+
+@item @code{gh_ulong2scm}
+Use @code{scm_from_ulong} instead.
+
+@item @code{gh_long2scm}
+Use @code{scm_from_long} instead.
+
+@item @code{gh_double2scm}
+Use @code{scm_make_real} instead.
+
+@item @code{gh_char2scm}
+Use @code{SCM_MAKE_CHAR} instead.
+
+@item @code{gh_str2scm}
+Use @code{scm_from_locale_stringn} instead.
+
+@item @code{gh_str02scm}
+Use @code{scm_from_locale_string} instead.
+
+@item @code{gh_set_substr}
+Use @code{scm_string_copy_x}.
+
+@item @code{gh_symbol2scm}
+Use @code{scm_from_locale_symbol} instead.
+
+@item  @code{gh_ints2scm}
+@itemx @code{gh_doubles2scm}
+@itemx @code{gh_chars2byvect}
+@itemx @code{gh_shorts2svect}
+@itemx @code{gh_longs2ivect}
+@itemx @code{gh_ulongs2uvect}
+@itemx @code{gh_floats2fvect}
+@itemx @code{gh_doubles2dvect}
+Use the uniform numeric vector function, @xref{Uniform Numeric
+Vectors}.
+
+@item @code{gh_scm2bool}
+Use @code{scm_is_true} or @code{scm_to_bool} instead.
+
+@item @code{gh_scm2int}
+Use @code{scm_to_int} instead.
+
+@item @code{gh_scm2ulong}
+Use @code{scm_to_ulong} instead.
+
+@item @code{gh_scm2long}
+Use @code{scm_to_long} instead.
+
+@item @code{gh_scm2double}
+Use @code{scm_to_double} instead.
+
+@item @code{gh_scm2char}
+Use @code{scm_to_char} instead.
+
+@item @code{gh_scm2newstr}
+Use @code{scm_to_locale_string} or similar instead.
+
+@item @code{gh_get_substr}
+Use @code{scm_c_substring} together with @code{scm_to_locale_string}
+or similar instead.
+
+@item @code{gh_symbol2newstr}
+Use @code{scm_symbol_to_string} together with @code{scm_to_locale_string} or similar instead.
+
+@item @code{gh_scm2chars}
+Use @code{scm_from_locale_string} (or similar) or the uniform numeric
+vector functions (@pxref{Uniform Numeric Vectors}) instead.
+
+@item  @code{gh_scm2shorts}
+@itemx @code{gh_scm2longs}
+@itemx @code{gh_scm2floats}
+@itemx @code{gh_scm2doubles}
+Use the uniform numeric vector function, @xref{Uniform Numeric
+Vectors}.
+
+@item @code{gh_boolean_p}
+Use @code{scm_is_bool} instead.
+
+@item @code{gh_symbol_p}
+Use @code{scm_is_symbol} instead.
+
+@item @code{gh_char_p}
+Replace @code{gh_char_p (@var{obj})} with
+@example
+scm_is_true (scm_char_p (@var{obj}))
+@end example
+
+@item @code{gh_vector_p}
+Replace @code{gh_vector_p (@var{obj})} with
+@example
+scm_is_true (scm_vector_p (@var{obj}))
+@end example
+
+@item @code{gh_pair_p}
+Replace @code{gh_pair_p (@var{obj})} with
+@example
+scm_is_true (scm_pair_p (@var{obj}))
+@end example
+
+@item @code{gh_number_p}
+Use @code{scm_is_number} instead.
+
+@item @code{gh_string_p}
+Use @code{scm_is_string} instead.
+
+@item @code{gh_procedure_p}
+Replace @code{gh_procedure_p (@var{obj})} by
+@example
+scm_is_true (scm_procedure_p (@var{obj}))
+@end example
+
+@item @code{gh_list_p}
+Replace @code{gh_list_p (@var{obj})} with
+@example
+scm_is_true (scm_list_p (@var{obj}))
+@end example
+
+@item @code{gh_inexact_p}
+Replace @code{gh_inexact_p (@var{obj})} with
+@example
+scm_is_true (scm_inexact_p (@var{obj}))
+@end example
+
+@item @code{gh_exact_p}
+Replace @code{gh_exact_p (@var{obj})} with
+@example
+scm_is_true (scm_exact_p (@var{obj}))
+@end example
+
+@item @code{gh_eq_p}
+Use @code{scm_is_eq} instead.
+
+@item @code{gh_eqv_p}
+Replace @code{gh_eqv_p (@var{x}, @var{y})} with
+@example
+scm_is_true (scm_eqv_p (@var{x}, @var{y}))
+@end example
+
+@item @code{gh_equal_p}
+Replace @code{gh_equal_p (@var{x}, @var{y})} with
+@example
+scm_is_true (scm_equal_p (@var{x}, @var{y}))
+@end example
+
+@item @code{gh_string_equal_p}
+Replace @code{gh_string_equal_p (@var{x}, @var{y})} with
+@example
+scm_is_true (scm_string_equal_p (@var{x}, @var{y}))
+@end example
+
+@item @code{gh_null_p}
+Use @code{scm_is_null} instead.
+
+@item @code{gh_not}
+Use @code{scm_not} instead.
+
+@item @code{gh_make_string}
+Use @code{scm_make_string} instead.
+
+@item @code{gh_string_length}
+Use @code{scm_string_length} instead.
+
+@item @code{gh_string_ref}
+Use @code{scm_string_ref} instead.
+
+@item @code{gh_string_set_x}
+Use @code{scm_string_set_x} instead.
+
+@item @code{gh_substring}
+Use @code{scm_substring} instead.
+
+@item @code{gh_string_append}
+Use @code{scm_string_append} instead.
+
+@item @code{gh_cons}
+Use @code{scm_cons} instead.
+
+@item @code{gh_car} and @code{gh_cdr}
+Use @code{scm_car} and @code{scm_cdr} instead.
+
+@item @code{gh_cxxr} and @code{gh_cxxxr}
+(Where each x is either @samp{a} or @samp{d}.)  Use the corresponding
+@code{scm_cxxr} or @code{scm_cxxxr} function instead.
+
+@item @code{gh_set_car_x} and @code{gh_set_cdr_x}
+Use @code{scm_set_car_x} and @code{scm_set_cdr_x} instead.
+
+@item @code{gh_list}
+Use @code{scm_list_n} instead.
+
+@item @code{gh_length}
+Replace @code{gh_length (@var{lst})} with
+@example
+scm_to_size_t (scm_length (@var{lst}))
+@end example
+
+@item @code{gh_append}
+Use @code{scm_append} instead.
+
+@item @code{gh_append2}, @code{gh_append3}, @code{gh_append4}
+Replace @code{gh_append@var{N} (@var{l1}, @dots{}, @var{lN})} by
+@example
+scm_append (scm_list_n (@var{l1}, @dots{}, @var{lN}, SCM_UNDEFINED))
+@end example
+
+@item @code{gh_reverse}
+Use @code{scm_reverse} instead.
+
+@item @code{gh_list_tail} and @code{gh_list_ref}
+Use @code{scm_list_tail} and @code{scm_list_ref} instead.
+
+@item @code{gh_memq}, @code{gh_memv} and @code{gh_member}
+Use @code{scm_memq}, @code{scm_memv} and @code{scm_member} instead.
+
+@item @code{gh_assq}, @code{gh_assv} and @code{gh_assoc}
+Use @code{scm_assq}, @code{scm_assv} and @code{scm_assoc} instead.
+
+@item @code{gh_make_vector}
+Use @code{scm_make_vector} instead.
+
+@item @code{gh_vector} or @code{gh_list_to_vector}
+Use @code{scm_vector} instead.
+
+@item @code{gh_vector_ref} and @code{gh_vector_set_x}
+Use @code{scm_vector_ref} and @code{scm_vector_set_x} instead.
+
+@item @code{gh_vector_length}
+Use @code{scm_c_vector_length} instead.
+
+@item @code{gh_uniform_vector_length}
+Use @code{scm_c_uniform_vector_length} instead.
+
+@item @code{gh_uniform_vector_ref}
+Use @code{scm_c_uniform_vector_ref} instead.
+
+@item @code{gh_vector_to_list}
+Use @code{scm_vector_to_list} instead.
+
+@item @code{gh_apply}
+Use @code{scm_apply_0} instead.
+
+@item  @code{gh_call0}
+@itemx @code{gh_call1}
+@itemx @code{gh_call2}
+@itemx @code{gh_call3}
+Use @code{scm_call_0}, @code{scm_call_1}, etc instead.
+
+@item  @code{gh_display}
+@itemx @code{gh_write}
+@itemx @code{gh_newline}
+Use @code{scm_display (obj, scm_current_output_port ())} instead, etc.
+
+@item @code{gh_lookup}
+Use @code{scm_variable_ref (scm_c_lookup (name))} instead.
+
+@item @code{gh_module_lookup}
+Use @code{scm_variable_ref (scm_c_module_lookup (module, name))} instead.
+
+@end table
+
+@node GH preliminaries
+@subsection GH preliminaries
 
 To use gh, you must have the following toward the beginning of your C
 source:
@@ -97,9 +473,8 @@ interpreter, you will have to add more libraries.
 @cindex gh - linking
 
 
-@node Data types and constants defined by gh
-@subsection Data types and constants defined by gh
-@cindex libguile - data types
+@node Data types and constants defined by GH
+@subsection Data types and constants defined by GH
 
 The following C constants and data types are defined in gh:
 
@@ -824,300 +1199,3 @@ here.
    -twp] */
 @end smallexample
 
-
-@node Mixing gh and scm APIs
-@subsection Mixing gh and scm APIs
-
-
-@node scm transition summary
-@subsection Transitioning to the scm Interface
-
-The following table summarizes the available information on how to
-transition from the GH to the scm interface.  Where transitioning is not
-completely straightforward, the table includes a reference to more
-detailed documentation in the preceding sections.
-
-@table @asis
-@item Header file
-Use @code{#include <libguile.h>} instead of @code{#include
-<guile/gh.h>}.
-
-@item Compiling and Linking
-Use @code{guile-config} to pick up the flags required to compile C or
-C++ code that uses @code{libguile}, like so
-
-@smallexample
-$(CC) -o prog.o -c prog.c `guile-config compile`
-@end smallexample
-
-If you are using libtool to link your executables, just use
-@code{-lguile} in your link command.  Libtool will expand this into
-the needed linker options automatically.  If you are not using
-libtool, use the @code{guile-config} program to query the needed
-options explicitly.  A linker command like
-
-@smallexample
-$(CC) -o prog prog.o `guile-config link`
-@end smallexample
-
-should be all that is needed.  To link shared libraries that will be
-used as Guile Extensions, use libtool to control both the compilation
-and the link stage.
-
-@item The @code{SCM} type
-No change: the scm interface also uses this type to represent an
-arbitrary Scheme value.
-
-@item @code{SCM_BOOL_F} and @code{SCM_BOOL_T}
-No change.
-
-@item @code{SCM_UNSPECIFIED} and @code{SCM_UNDEFINED}
-No change.
-
-@item @code{gh_enter}
-Use @code{scm_boot_guile} instead, but note that @code{scm_boot_guile}
-has a slightly different calling convention from @code{gh_enter}:
-@code{scm_boot_guile}, and the main program function that you specify
-for @code{scm_boot_guile} to call, both take an additional @var{closure}
-parameter.  @ref{Guile Initialization Functions} for more details.
-
-@item @code{gh_repl}
-Use @code{scm_shell} instead.
-
-@item @code{gh_init}
-Use @code{scm_init_guile} instead.
-
-@item @code{gh_eval_str}
-Use @code{scm_c_eval_string} instead.
-
-@item @code{gh_eval_file} or @code{gh_load}
-Use @code{scm_c_primitive_load} instead.
-
-@item @code{gh_new_procedure}
-Use @code{scm_c_define_gsubr} instead, but note that the arguments are
-in a different order: for @code{scm_c_define_gsubr} the C function
-pointer is the last argument.  @ref{A Sample Guile Extension} for an
-example.
-
-@item @code{gh_defer_ints} and @code{gh_allow_ints}
-Use @code{SCM_DEFER_INTS} and @code{SCM_ALLOW_INTS} instead.  Note that
-these macros are used without parentheses, as in @code{SCM_DEFER_INTS;}.
-
-@item @code{gh_bool2scm}
-Use @code{scm_from_bool} instead.
-
-@item @code{gh_ulong2scm}
-Use @code{scm_from_ulong} instead.
-
-@item @code{gh_long2scm}
-Use @code{scm_from_long} instead.
-
-@item @code{gh_double2scm}
-Use @code{scm_make_real} instead.
-
-@item @code{gh_char2scm}
-Use @code{SCM_MAKE_CHAR} instead.
-
-@item @code{gh_str2scm}
-Use @code{scm_from_locale_stringn} instead.
-
-@item @code{gh_str02scm}
-Use @code{scm_from_locale_string} instead.
-
-@item @code{gh_set_substr}
-Use @code{scm_string_copy_x}.
-
-@item @code{gh_symbol2scm}
-Use @code{scm_from_locale_symbol} instead.
-
-@item @code{gh_ints2scm} and @code{gh_doubles2scm}
-Use @code{scm_c_ints2scm} and @code{scm_c_doubles2scm} instead.
-
-@item @code{gh_chars2byvect} and @code{gh_shorts2svect}
-Use @code{scm_c_chars2byvect} and @code{scm_c_shorts2svect} instead.
-
-@item @code{gh_longs2ivect} and @code{gh_ulongs2uvect}
-Use @code{scm_c_longs2ivect} and @code{scm_c_ulongs2uvect} instead.
-
-@item @code{gh_floats2fvect} and @code{gh_doubles2dvect}
-Use @code{scm_c_floats2fvect} and @code{scm_c_doubles2dvect} instead.
-
-@item @code{gh_scm2bool}
-Use @code{scm_is_true} or @code{scm_to_bool} instead.
-
-@item @code{gh_scm2int}
-Use @code{scm_to_int} instead.
-
-@item @code{gh_scm2ulong}
-Use @code{scm_to_ulong} instead.
-
-@item @code{gh_scm2long}
-Use @code{scm_to_long} instead.
-
-@item @code{gh_scm2double}
-Use @code{scm_to_double} instead.
-
-@item @code{gh_scm2char}
-Use @code{scm_to_char} instead.
-
-@item @code{gh_scm2newstr}
-Use @code{scm_to_locale_string} or similar instead.
-
-@item @code{gh_get_substr}
-Use @code{scm_c_substring} together with @code{scm_to_locale_string}
-or similar instead.
-
-@item @code{gh_symbol2newstr}
-Use @code{scm_symbol_to_string} together with @code{scm_to_locale_string} or similar instead.
-
-@item @code{gh_scm2chars}
-Use @code{scm_c_scm2chars} instead.
-
-@item @code{gh_scm2shorts} and @code{gh_scm2longs}
-Use @code{scm_c_shorts2scm} and @code{scm_c_longs2scm} instead.
-
-@item @code{gh_scm2floats} and @code{gh_scm2doubles}
-Use @code{scm_c_floats2scm} and @code{scm_c_doubles2scm} instead.
-
-@item @code{gh_boolean_p}
-Use @code{scm_is_bool} instead.
-
-@item @code{gh_symbol_p}
-Use @code{scm_is_symbol} instead.
-
-@item @code{gh_char_p}
-Replace @code{gh_char_p (@var{obj})} by
-@example
-scm_is_true (scm_char_p (@var{obj}))
-@end example
-
-@item @code{gh_vector_p}
-Replace @code{gh_vector_p (@var{obj})} by
-@example
-scm_is_true (scm_vector_p (@var{obj}))
-@end example
-
-@item @code{gh_pair_p}
-Replace @code{gh_pair_p (@var{obj})} by
-@example
-scm_is_true (scm_pair_p (@var{obj}))
-@end example
-
-@item @code{gh_number_p}
-Use @code{scm_is_number} instead.
-
-@item @code{gh_string_p}
-Use @code{scm_is_string} instead.
-
-@item @code{gh_procedure_p}
-Replace @code{gh_procedure_p (@var{obj})} by
-@example
-scm_is_true (scm_procedure_p (@var{obj}))
-@end example
-
-@item @code{gh_list_p}
-Replace @code{gh_list_p (@var{obj})} by
-@example
-scm_is_true (scm_list_p (@var{obj}))
-@end example
-
-@item @code{gh_inexact_p}
-Replace @code{gh_inexact_p (@var{obj})} by
-@example
-scm_is_true (scm_inexact_p (@var{obj}))
-@end example
-
-@item @code{gh_exact_p}
-Replace @code{gh_exact_p (@var{obj})} by
-@example
-scm_is_true (scm_exact_p (@var{obj}))
-@end example
-
-@item @code{gh_eq_p}
-Use @code{scm_is_eq} instead.
-
-@item @code{gh_eqv_p}
-Replace @code{gh_eqv_p (@var{x}, @var{y})} by
-@example
-scm_is_true (scm_eqv_p (@var{x}, @var{y}))
-@end example
-
-@item @code{gh_equal_p}
-Replace @code{gh_equal_p (@var{x}, @var{y})} by
-@example
-scm_is_true (scm_equal_p (@var{x}, @var{y}))
-@end example
-
-@item @code{gh_string_equal_p}
-Replace @code{gh_string_equal_p (@var{x}, @var{y})} by
-@example
-scm_is_true (scm_string_equal_p (@var{x}, @var{y}))
-@end example
-
-@item @code{gh_null_p}
-Use the @code{SCM_NULLP} macro instead, or replace @code{gh_null_p
-(@var{obj})} by
-@example
-scm_is_true (scm_null_p (@var{obj}))
-@end example
-
-@item @code{gh_cons}
-Use @code{scm_cons} instead.
-
-@item @code{gh_car} and @code{gh_cdr}
-Use @code{scm_car} and @code{scm_cdr} instead.
-
-@item @code{gh_cxxr} and @code{gh_cxxxr}
-(Where each x is either @samp{a} or @samp{d}.)  Use the corresponding
-@code{scm_cxxr} or @code{scm_cxxxr} function instead.
-
-@item @code{gh_set_car_x} and @code{gh_set_cdr_x}
-Use @code{scm_set_car_x} and @code{scm_set_cdr_x} instead.
-
-@item @code{gh_list}
-Use @code{scm_list_n} instead.
-
-@item @code{gh_length}
-Replace @code{gh_length (@var{lst})} by
-@example
-scm_to_size_t (scm_length (@var{lst}), SCM_ARG1, @var{str})
-@end example
-where @var{str} is a C string that describes the context of the call.
-
-@item @code{gh_append}
-Use @code{scm_append} instead.
-
-@item @code{gh_append2}, @code{gh_append3}, @code{gh_append4}
-Replace @code{gh_append@var{N} (@var{l1}, @dots{}, @var{lN})} by
-@example
-scm_append (scm_list_n (@var{l1}, @dots{}, @var{lN}, SCM_UNDEFINED))
-@end example
-
-@item @code{gh_reverse}
-Use @code{scm_reverse} instead.
-
-@item @code{gh_list_tail} and @code{gh_list_ref}
-Use @code{scm_list_tail} and @code{scm_list_ref} instead.
-
-@item @code{gh_memq}, @code{gh_memv} and @code{gh_member}
-Use @code{scm_memq}, @code{scm_memv} and @code{scm_member} instead.
-
-@item @code{gh_assq}, @code{gh_assv} and @code{gh_assoc}
-Use @code{scm_assq}, @code{scm_assv} and @code{scm_assoc} instead.
-
-@item @code{gh_make_vector}
-Use @code{scm_make_vector} instead.
-
-@item @code{gh_vector} or @code{gh_list_to_vector}
-Use @code{scm_vector} instead.
-
-@item @code{gh_vector_ref} and @code{gh_vector_set_x}
-Use @code{scm_vector_ref} and @code{scm_vector_set_x} instead.
-
-@item @code{gh_vector_length}
-Use the @code{SCM_VECTOR_LENGTH} macro instead.
-
-@item @code{gh_apply}
-Use @code{scm_apply_0} instead.
-
-@end table
