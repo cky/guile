@@ -1145,11 +1145,11 @@ SCM_DEFINE (scm_srfi1_list_tabulate, "list-tabulate", 2, 0, 0,
   scm_t_trampoline_1 proc_tramp = scm_trampoline_1 (proc);
   SCM ret = SCM_EOL;
 
-  SCM_VALIDATE_INUM_MIN_COPY (SCM_ARG1, n, 0, nn);
+  nn = scm_to_signed_integer (n, 0, LONG_MAX);
   SCM_ASSERT (proc_tramp, proc, SCM_ARG2, FUNC_NAME);
 
   for (i = nn-1; i >= 0; i--)
-    ret = scm_cons (proc_tramp (proc, SCM_I_MAKINUM (i)), ret);
+    ret = scm_cons (proc_tramp (proc, scm_from_long (i)), ret);
 
   return ret;
 }
@@ -1477,7 +1477,7 @@ SCM_DEFINE (scm_srfi1_ninth, "ninth", 1, 0, 0,
 	    "Return the ninth element of @var{lst}.")
 #define FUNC_NAME s_scm_srfi1_ninth
 {
-  return scm_list_ref (lst, SCM_I_MAKINUM (8));
+  return scm_list_ref (lst, scm_from_int (8));
 }
 #undef FUNC_NAME
 
@@ -1788,7 +1788,7 @@ SCM_DEFINE (scm_srfi1_seventh, "seventh", 1, 0, 0,
 	    "Return the seventh element of @var{lst}.")
 #define FUNC_NAME s_scm_srfi1_seventh
 {
-  return scm_list_ref (lst, SCM_I_MAKINUM (6));
+  return scm_list_ref (lst, scm_from_int (6));
 }
 #undef FUNC_NAME
 
@@ -1798,7 +1798,7 @@ SCM_DEFINE (scm_srfi1_sixth, "sixth", 1, 0, 0,
 	    "Return the sixth element of @var{lst}.")
 #define FUNC_NAME s_scm_srfi1_sixth
 {
-  return scm_list_ref (lst, SCM_I_MAKINUM (5));
+  return scm_list_ref (lst, scm_from_int (5));
 }
 #undef FUNC_NAME
 
@@ -1928,12 +1928,11 @@ SCM_DEFINE (scm_srfi1_take_x, "take!", 2, 0, 0,
   long nn;
   SCM pos;
 
-  SCM_VALIDATE_INUM_MIN_COPY (SCM_ARG2, n, 0, nn);
-
+  nn = scm_to_signed_integer (n, 0, LONG_MAX);
   if (nn == 0)
     return SCM_EOL;
 
-  pos = scm_list_tail (lst, SCM_I_MAKINUM (nn - 1));
+  pos = scm_list_tail (lst, scm_from_long (nn - 1));
 
   /* Must have at least one cell left, mustn't have reached the end of an
      n-1 element list.  SCM_VALIDATE_CONS here gives the same error as
@@ -2033,7 +2032,7 @@ SCM_DEFINE (scm_srfi1_tenth, "tenth", 1, 0, 0,
 	    "Return the tenth element of @var{lst}.")
 #define FUNC_NAME s_scm_srfi1_tenth
 {
-  return scm_list_ref (lst, SCM_I_MAKINUM (9));
+  return scm_list_ref (lst, scm_from_int (9));
 }
 #undef FUNC_NAME
 
