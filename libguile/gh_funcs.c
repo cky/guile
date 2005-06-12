@@ -21,6 +21,8 @@
 
 #include "libguile/gh.h"
 
+#if SCM_ENABLE_DEPRECATED
+
 /* allows you to define new scheme primitives written in C */
 SCM
 gh_new_procedure (const char *proc_name, SCM (*fn) (),
@@ -142,6 +144,8 @@ gh_call3 (SCM proc, SCM arg1, SCM arg2, SCM arg3)
 {
   return scm_apply (proc, arg1, scm_cons2 (arg2, arg3, scm_listofnull));
 }
+
+#endif /* SCM_ENABLE_DEPRECATED */
 
 /*
   Local Variables:

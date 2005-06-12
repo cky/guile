@@ -23,6 +23,8 @@
  */
 #include <libguile.h>
 
+#if SCM_ENABLE_DEPRECATED
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -228,6 +230,8 @@ SCM_API void gh_newline (void);
 
 #ifdef __cplusplus
 }
+#endif
+
 #endif
 
 #endif /* __GH_H */

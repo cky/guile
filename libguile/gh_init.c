@@ -22,6 +22,8 @@
 
 #include "libguile/gh.h"
 
+#if SCM_ENABLE_DEPRECATED
+
 typedef void (*main_prog_t) (int argc, char **argv);
 typedef void (*repl_prog_t) (int argc, char **argv);
 
@@ -79,6 +81,8 @@ gh_standard_handler (void *data SCM_UNUSED, SCM tag, SCM throw_args SCM_UNUSED)
 
   return SCM_BOOL_F;
 }
+
+#endif /* SCM_ENABLE_DEPRECATED */
 
 /*
   Local Variables:

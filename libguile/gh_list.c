@@ -20,6 +20,8 @@
 
 #include "libguile/gh.h"
 
+#if SCM_ENABLE_DEPRECATED
+
 /* returns the length of a list */
 unsigned long 
 gh_length (SCM l)
@@ -165,6 +167,8 @@ gh_set_cdr_x(SCM pair, SCM value)
 {
   return scm_set_cdr_x(pair, value);
 }
+
+#endif /* SCM_ENABLE_DEPRECATED */
 
 /*
   Local Variables:

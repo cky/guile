@@ -20,6 +20,8 @@
 
 #include "libguile/gh.h"
 
+#if SCM_ENABLE_DEPRECATED
+
 /* type predicates: tell you if an SCM object has a given type */
 int 
 gh_boolean_p (SCM val)
@@ -109,6 +111,8 @@ gh_null_p(SCM l)
 {
   return (scm_is_true(scm_null_p(l)));
 }
+
+#endif /* SCM_ENABLE_DEPRECATED */
 
 /*
   Local Variables:

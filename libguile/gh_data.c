@@ -28,6 +28,8 @@
 
 #include <assert.h>
 
+#if SCM_ENABLE_DEPRECATED
+
 /* data conversion C->scheme */
 
 SCM 
@@ -647,6 +649,8 @@ gh_module_lookup (SCM module, const char *sname)
     return SCM_UNDEFINED;
 }
 #undef FUNC_NAME
+
+#endif /* SCM_ENABLE_DEPRECATED */
 
 /*
   Local Variables:

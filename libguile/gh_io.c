@@ -18,6 +18,8 @@
 
 #include "libguile/gh.h"
 
+#if SCM_ENABLE_DEPRECATED
+
 void 
 gh_display (SCM x)
 {
@@ -35,6 +37,8 @@ gh_newline ()
 {
   scm_newline (scm_current_output_port ());
 }
+
+#endif /* SCM_ENABLE_DEPRECATED */
 
 /*
   Local Variables:
