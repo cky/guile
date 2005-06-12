@@ -420,22 +420,30 @@ int
 scm_ra_eqp (SCM ra0, SCM ras)
 {
   SCM ra1 = SCM_CAR (ras), ra2 = SCM_CAR (SCM_CDR (ras));
-  long n = SCM_I_ARRAY_DIMS (ra0)->ubnd - SCM_I_ARRAY_DIMS (ra0)->lbnd + 1;
-  unsigned long i0 = SCM_I_ARRAY_BASE (ra0), i1 = SCM_I_ARRAY_BASE (ra1), i2 = SCM_I_ARRAY_BASE (ra2);
-  long inc0 = SCM_I_ARRAY_DIMS (ra0)->inc;
+  scm_t_array_handle ra0_handle;
+  scm_t_array_dim *ra0_dims;
+  size_t n;
+  ssize_t inc0;
+  size_t i0 = 0;
+  unsigned long i1 = SCM_I_ARRAY_BASE (ra1), i2 = SCM_I_ARRAY_BASE (ra2);
   long inc1 = SCM_I_ARRAY_DIMS (ra1)->inc;
   long inc2 = SCM_I_ARRAY_DIMS (ra1)->inc;
-  ra0 = SCM_I_ARRAY_V (ra0);
   ra1 = SCM_I_ARRAY_V (ra1);
   ra2 = SCM_I_ARRAY_V (ra2);
-  
+
+  scm_array_get_handle (ra0, &ra0_handle);
+  ra0_dims = scm_array_handle_dims (&ra0_handle);
+  n = ra0_dims[0].ubnd - ra0_dims[0].lbnd + 1;
+  inc0 = ra0_dims[0].inc;
+
   {
     for (; n-- > 0; i0 += inc0, i1 += inc1, i2 += inc2)
-      if (scm_is_true (scm_c_bitvector_ref (ra0, i0)))
+      if (scm_is_true (scm_array_handle_ref (&ra0_handle, i0)))
 	if (!scm_is_eq (GVREF (ra1, i1), GVREF (ra2, i2)))
-	  scm_c_bitvector_set_x (ra0, i0, SCM_BOOL_F);
+	  scm_array_handle_set (&ra0_handle, i0, SCM_BOOL_F);
   }
 
+  scm_array_handle_release (&ra0_handle);
   return 1;
 }
 
@@ -444,24 +452,32 @@ scm_ra_eqp (SCM ra0, SCM ras)
 static int
 ra_compare (SCM ra0, SCM ra1, SCM ra2, int opt)
 {
-  long n = SCM_I_ARRAY_DIMS (ra0)->ubnd - SCM_I_ARRAY_DIMS (ra0)->lbnd + 1;
-  unsigned long i0 = SCM_I_ARRAY_BASE (ra0), i1 = SCM_I_ARRAY_BASE (ra1), i2 = SCM_I_ARRAY_BASE (ra2);
-  long inc0 = SCM_I_ARRAY_DIMS (ra0)->inc;
+  scm_t_array_handle ra0_handle;
+  scm_t_array_dim *ra0_dims;
+  size_t n;
+  ssize_t inc0;
+  size_t i0 = 0;
+  unsigned long i1 = SCM_I_ARRAY_BASE (ra1), i2 = SCM_I_ARRAY_BASE (ra2);
   long inc1 = SCM_I_ARRAY_DIMS (ra1)->inc;
   long inc2 = SCM_I_ARRAY_DIMS (ra1)->inc;
-  ra0 = SCM_I_ARRAY_V (ra0);
   ra1 = SCM_I_ARRAY_V (ra1);
   ra2 = SCM_I_ARRAY_V (ra2);
 
+  scm_array_get_handle (ra0, &ra0_handle);
+  ra0_dims = scm_array_handle_dims (&ra0_handle);
+  n = ra0_dims[0].ubnd - ra0_dims[0].lbnd + 1;
+  inc0 = ra0_dims[0].inc;
+
   {
     for (; n-- > 0; i0 += inc0, i1 += inc1, i2 += inc2)
-      if (scm_is_true (scm_c_bitvector_ref (ra0, i0)))
+      if (scm_is_true (scm_array_handle_ref (&ra0_handle, i0)))
 	if (opt ?
 	    scm_is_true (scm_less_p (GVREF (ra1, i1), GVREF (ra2, i2))) :
 	    scm_is_false (scm_less_p (GVREF (ra1, i1), GVREF (ra2, i2))))
-	  scm_c_bitvector_set_x (ra0, i0, SCM_BOOL_F);
+	  scm_array_handle_set (&ra0_handle, i0, SCM_BOOL_F);
   }
 
+  scm_array_handle_release (&ra0_handle);
   return 1;
 }
 
