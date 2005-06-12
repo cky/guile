@@ -986,14 +986,7 @@ SCM_DEFINE (scm_array_index_map_x, "array-index-map!", 2, 0, 0,
   unsigned long i;
   SCM_VALIDATE_PROC (2, proc);
 
-  if (scm_is_generalized_vector (ra))
-    {
-      size_t length = scm_c_generalized_vector_length (ra);
-      for (i = 0; i < length; i++)
-	GVSET (ra, i, scm_call_1 (proc, scm_from_ulong (i)));
-      return SCM_UNSPECIFIED;
-    }
-  else if (SCM_I_ARRAYP (ra))
+  if (SCM_I_ARRAYP (ra))
     {
       SCM args = SCM_EOL;
       int j, k, kmax = SCM_I_ARRAY_NDIM (ra) - 1;
@@ -1040,7 +1033,14 @@ SCM_DEFINE (scm_array_index_map_x, "array-index-map!", 2, 0, 0,
       scm_frame_end ();
       return SCM_UNSPECIFIED;
     }
-  else
+  else if (scm_is_generalized_vector (ra))
+    {
+      size_t length = scm_c_generalized_vector_length (ra);
+      for (i = 0; i < length; i++)
+	GVSET (ra, i, scm_call_1 (proc, scm_from_ulong (i)));
+      return SCM_UNSPECIFIED;
+    }
+  else 
     scm_wrong_type_arg_msg (NULL, 0, ra, "array");
 }
 #undef FUNC_NAME
