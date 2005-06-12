@@ -163,7 +163,7 @@ scm_c_environment_ref (SCM env, SCM sym)
 static SCM
 environment_default_folder (SCM proc, SCM symbol, SCM value, SCM tail)
 {
-  return gh_call3 (proc, symbol, value, tail);
+  return scm_call_3 (proc, symbol, value, tail);
 }
 
 
@@ -364,7 +364,7 @@ scm_c_environment_cell(SCM env, SCM sym, int for_write)
 static void
 environment_default_observer (SCM env, SCM proc)
 {
-  gh_call1 (proc, env);
+  scm_call_1 (proc, env);
 }
 
 
