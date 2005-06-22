@@ -89,7 +89,7 @@ Scheme terms).  You need to use @code{scm_is_eq} for this.
 The one exception is that you can directly assign a @code{SCM} value to
 a @code{SCM} variable by using the C @code{=} operator.
 
-The following (contrieved) example shows how to do it right.  It
+The following (contrived) example shows how to do it right.  It
 implements a function of two arguments (@var{a} and @var{flag}) that
 returns @var{a}+1 if @var{flag} is true, else it returns @var{a}
 unchanged.
@@ -193,7 +193,7 @@ periodically free all blocks that have been allocated but are not used
 by any active Scheme values.  This activity is called @dfn{garbage
 collection}.
 
-It is easy for Guile to remember all blocks of memory that is has
+It is easy for Guile to remember all blocks of memory that it has
 allocated for use by Scheme values, but you need to help it with finding
 all Scheme values that are in use by C code.
 
@@ -217,7 +217,7 @@ collector.  This works because the collector scans the stack for
 potential references to @code{SCM} objects and considers all referenced
 objects to be alive.  The scanning considers each and every word of the
 stack, regardless of what it is actually used for, and then decides
-whether it could possible be a reference to a @code{SCM} object.  Thus,
+whether it could possibly be a reference to a @code{SCM} object.  Thus,
 the scanning is guaranteed to find all actual references, but it might
 also find words that only accidentally look like references.  These
 `false positives' might keep @code{SCM} objects alive that would
@@ -281,7 +281,7 @@ implemented by a function that calls itself, that is, by recursion.
 
 This approach is theoretically very powerful since it is easier to
 reason formally about recursion than about gotos.  In C, using
-recursion exclusively would not be practical, tho, since it would eat
+recursion exclusively would not be practical, though, since it would eat
 up the stack very quickly.  In Scheme, however, it is practical:
 function calls that appear in a @dfn{tail position} do not use any
 additional stack space (@pxref{Tail Calls}).
@@ -291,7 +291,7 @@ calling function does.  The value returned by the called function is
 immediately returned from the calling function.  In the following
 example, the call to @code{bar-1} is in a tail position, while the
 call to @code{bar-2} is not.  (The call to @code{1-} in @code{foo-2}
-is in a tail position, tho.)
+is in a tail position, though.)
 
 @lisp
 (define (foo-1 x)
@@ -384,7 +384,7 @@ prefer to use the @dfn{frames} concept that is more natural for C code,
 (@pxref{Frames}).
 
 Instead of coping with non-local control flow, you can also prevent it
-by errecting a @emph{continuation barrier}, @xref{Continuation
+by erecting a @emph{continuation barrier}, @xref{Continuation
 Barriers}.  The function @code{scm_c_with_continuation_barrier}, for
 example, is guaranteed to return exactly once.
 
@@ -541,7 +541,7 @@ fresh object that no other thread can possibly know about until it is
 returned from @code{my_list_to_vector}.)
 
 Of course the behavior of @code{my_list_to_vector} is suboptimal when
-@var{list} does indeed gets asynchronously lengthened or shortened in
+@var{list} does indeed get asynchronously lengthened or shortened in
 another thread.  But it is robust: it will always return a valid vector.
 That vector might be shorter than expected, or its last elements might
 be unspecified, but it is a valid vector and if a program wants to rule

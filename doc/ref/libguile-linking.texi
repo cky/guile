@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -121,7 +121,7 @@ automatically, making it much simpler and more portable; we recommend
 using Autoconf with Guile.  Guile also provides the @code{GUILE_FLAGS}
 macro for autoconf that performs all necessary checks.  Here is a
 @file{configure.in} file for @code{simple-guile} that uses this macro.
-Autoconf can use as this file as template to generate a @code{configure}
+Autoconf can use this file as a template to generate a @code{configure}
 script.  In order for Autoconf to find the @code{GUILE_FLAGS} macro, you
 will need to run @code{aclocal} first.  This is not really Guile
 specific, so you should refer to the Autoconf documentation REFFIXME

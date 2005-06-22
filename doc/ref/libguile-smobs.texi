@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -96,9 +96,9 @@ type, and the call should be placed immediately following the call to
 There can only be at most 256 different smob types in the system.
 Instead of registering a huge number of smob types (for example, one
 for each relevant C struct in your application), it is sometimes
-better to register just one and implement a second alyer of type
+better to register just one and implement a second layer of type
 dispatching on top of it.  This second layer might use the 16 extra
-bits for as an extended type, for example.
+bits to extend its type, for example.
 
 Here is how one might declare and register a new type representing
 eight-bit gray-scale images:

@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -86,7 +86,7 @@ For creating shared libraries portably, we recommend the use of
 
 A shared library can be loaded into a running Guile process with the
 function @code{load-extension}.  In addition to the name of the
-library to load, this function also expects the name of function from
+library to load, this function also expects the name of a function from
 that library that will be called to initialize it.  For our example,
 we are going to call the function @code{init_bessel} which will make
 @code{j0_wrapper} available to Scheme programs with the name
