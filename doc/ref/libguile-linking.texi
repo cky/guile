@@ -123,9 +123,9 @@ macro for autoconf that performs all necessary checks.  Here is a
 @file{configure.in} file for @code{simple-guile} that uses this macro.
 Autoconf can use this file as a template to generate a @code{configure}
 script.  In order for Autoconf to find the @code{GUILE_FLAGS} macro, you
-will need to run @code{aclocal} first.  This is not really Guile
-specific, so you should refer to the Autoconf documentation REFFIXME
-when in doubt.
+will need to run @code{aclocal} first (@pxref{Invoking aclocal,,,
+automake, GNU Automake}).
+
 @example
 AC_INIT(simple-guile.c)
 
@@ -184,3 +184,7 @@ guile> (exit)
 $
 @end example
 
+
+@c Local Variables:
+@c TeX-master: "guile.texi"
+@c End:
