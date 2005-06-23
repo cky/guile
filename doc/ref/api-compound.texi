@@ -63,8 +63,8 @@ parser would not be able to figure out where to split the tokens.
 
 But beware, if you want to try out these examples, you have to
 @dfn{quote} the expressions.  More information about quotation is
-available in the section (REFFIXME).  The correct way to try these
-examples is as follows.
+available in the section @ref{Expression Syntax}.  The correct way
+to try these examples is as follows.
 
 @lisp
 '(1 . 2)
@@ -273,9 +273,10 @@ up a list.  An example will clear that up:
 ()
 @end lisp
 
-This example also shows that lists have to be quoted (REFFIXME) when
-written, because they would otherwise be mistakingly taken as procedure
-applications (@pxref{Simple Invocation}).
+This example also shows that lists have to be quoted when written
+(@pxref{Expression Syntax}), because they would otherwise be
+mistakingly taken as procedure applications (@pxref{Simple
+Invocation}).
 
 
 @node List Predicates
