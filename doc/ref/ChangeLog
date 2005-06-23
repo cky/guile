@@ -1,3 +1,8 @@
+2005-06-24  Kevin Ryde  <user42@zip.com.au>
+
+	* api-options.texi (Debugger options): Cross reference new Tail Calls
+	node rather than R5RS on tail recursion.
+
 2005-06-23  Kevin Ryde  <user42@zip.com.au>
 
 	* guile.texi, libguile-concepts.texi, libguile-extensions.texi,
