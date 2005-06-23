@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -880,7 +880,8 @@ The following core functions make tail calls,
 receiving the new continuation
 
 @item
-@code{call-with-values} --- tail call to given procedure
+@code{call-with-values} --- tail call to the values-receiving
+procedure
 
 @item
 @code{eval} --- tail call to evaluate the form
@@ -891,7 +892,7 @@ the last character (if that point is reached)
 @end itemize
 
 @sp 1
-The above are just the core functions and special forms, tail calls in
+The above are just core functions and special forms.  Tail calls in
 other modules are described with the relevant documentation, for
 example SRFI-1 @code{any} and @code{every} (@pxref{SRFI-1 Searching}).
 
