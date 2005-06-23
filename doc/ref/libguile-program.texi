@@ -314,7 +314,7 @@ errors like this must be caught at run time.
 
 Having written the C code for your primitives, you need to make them
 available as Scheme procedures by calling the @code{scm_c_define_gsubr}
-function.  @code{scm_c_define_gsubr} (REFFIXME) takes arguments that
+function.  @code{scm_c_define_gsubr} (@pxref{Primitive Procedures}) takes arguments that
 specify the Scheme-level name for the primitive and how many required,
 optional and rest arguments it can accept.  The @code{square?} primitive
 always requires exactly one argument, so the call to make it available
