@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -38,7 +38,8 @@ available.
 @subsection How One Might Extend Dia Using Guile
 
 Dia is a free software program for drawing schematic diagrams like flow
-charts and floor plans (REFFIXME).  This section conducts the thought
+charts and floor plans (@uref{http://www.gnome.org/projects/dia/}).
+This section conducts the thought
 experiment of adding Guile to Dia.  In so doing, it aims to illustrate
 several of the steps and considerations involved in adding Guile to
 applications in general.
@@ -780,3 +781,8 @@ developing a new application of your own using some of the primitive
 functionality provided by the original application.  As such, all the
 discussions of the preceding sections of this chapter are relevant to
 how you can proceed with developing your extension.
+
+
+@c Local Variables:
+@c TeX-master: "guile.texi"
+@c End:
