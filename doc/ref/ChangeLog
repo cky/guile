@@ -1,3 +1,17 @@
+2005-06-23  Kevin Ryde  <user42@zip.com.au>
+
+	* guile.texi, libguile-concepts.texi, libguile-extensions.texi,
+	libguile-linking.texi, libguile-smobs.texi: Spelling errors reported
+	by hyperdivision.
+
+	* api-compound.texi (Pairs, List Syntax): Cross reference Expression
+	Syntax for quoting.
+	* api-control.texi (Lazy Catch): Cross ref for with-fluids.
+	* libguile-linking.texi (A Sample Guile Main Program): Cross reference
+	automake manual for aclocal.
+	* libguile-program.texi (Extending Dia): URL for Dia home page.
+	(Dia Primitives): Cross ref for scm_c_define_gsubr.
+
 2005-06-12  Marius Vollmer  <mvo@zagadka.de>
 
 	* gh.texi: More stuff about transitioning away from GH.
