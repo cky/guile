@@ -868,7 +868,8 @@ Then, when the handler @emph{itself} throws an exception, that exception
 must be caught by some kind of @code{catch} (including perhaps another
 @code{lazy-catch}) higher up the call stack.
 
-The dynamic context also includes @code{with-fluids} blocks (REFFIXME),
+The dynamic context also includes @code{with-fluids} blocks
+(@pxref{Fluids and Dynamic States}),
 so the effect of unwinding the dynamic context can also be seen in fluid
 variable values.  This is illustrated by the following code, in which
 the normal case thunk uses @code{with-fluids} to temporarily change the
