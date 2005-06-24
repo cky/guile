@@ -1,3 +1,14 @@
+2005-06-25  Kevin Ryde  <user42@zip.com.au>
+
+	* srfi-13.c (scm_string_filter, scm_string_delete): Partial revert
+	last change, use plain copy-on-write substrings, the individual
+	descriptions in the srfi don't mention shared storage (only the
+	introduction does).
+
+	* strings.c (scm_take_locale_stringn): Use realloc to make room for
+	null-terminator, rather than mallocing a whole new block.
+	(scm_take_locale_string): Use scm_take_locale_stringn len==-1.
+
 2005-06-12  Marius Vollmer  <mvo@zagadka.de>
 
 	* ramap.c (scm_array_index_map_x): First test for real arrays,
