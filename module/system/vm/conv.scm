@@ -26,7 +26,7 @@
   :use-module (srfi srfi-4)
   :use-module (srfi srfi-1)
   :export (code-pack code-unpack object->code code->object code->bytes
-		     make-byte-decoder))
+	   make-byte-decoder))
 
 ;;;
 ;;; Code compress/decompression

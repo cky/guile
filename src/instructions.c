@@ -147,7 +147,7 @@ SCM_DEFINE (scm_opcode_to_instruction, "opcode->instruction", 1, 0, 0,
 #define FUNC_NAME s_scm_opcode_to_instruction
 {
   int i;
-  SCM_VALIDATE_INUM (1, op);
+  SCM_MAKE_VALIDATE (1, op, I_INUMP);
   i = SCM_I_INUM (op);
   SCM_ASSERT_RANGE (1, op, 0 <= i && i < scm_op_last);
   return scm_from_locale_symbol (scm_instruction_table[i].name);

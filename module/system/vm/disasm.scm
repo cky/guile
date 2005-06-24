@@ -76,7 +76,7 @@
 	  (('load-program x)
 	   (let ((sym (gensym "")))
 	     (set! programs (acons sym x programs))
-	     (print-info addr (format #f "load-program #~A" sym) #f)))
+	     (print-info addr (format #f "(load-program #~A)" sym) #f)))
 	  (else
 	   (let ((info (list->info code))
 		 (extra (original-value addr code objs)))

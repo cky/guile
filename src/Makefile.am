@@ -1,5 +1,5 @@
 bin_PROGRAMS = guile-vm
-bin_SCRIPTS = guilec
+bin_SCRIPTS = guilec guile-disasm
 guile_vm_SOURCES = guile-vm.c
 guile_vm_LDADD = libguilevm.la 
 guile_vm_LDFLAGS = $(GUILE_LDFLAGS)
@@ -14,7 +14,8 @@ libguilevm_la_SOURCES =							\
 	vm_engine.h vm_expand.h
 libguilevm_la_LDFLAGS = -version-info 0:0:0 -export-dynamic
 libguilevm_la_LDFLAGS += -pg
-EXTRA_DIST = vm_engine.c vm_system.c vm_scheme.c vm_loader.c
+EXTRA_DIST = vm_engine.c vm_system.c vm_scheme.c vm_loader.c \
+             guilec.in guile-disasm.in
 BUILT_SOURCES = vm_system.i vm_scheme.i vm_loader.i \
 	envs.x frames.x instructions.x objcodes.x programs.x vm.x
 
@@ -32,7 +33,7 @@ SUFFIXES = .i .x
 	grep '^VM_DEFINE' $< > $@
 
 .c.x:
-	$(SNARF) $< $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< > $@ \
+	$(SNARF) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< > $@ \
 	|| { rm $@; false; }
 
 
@@ -44,9 +45,9 @@ SUFFIXES = .i .x
 %.s: %.c
 	$(CC) -S -dA $(DEFS) $(INCLUDES) $(CFLAGS) $(CPPFLAGS) -o $@ $<
 
-GUILE = "$(bindir)/guile"
-guilec: guilec.in
-	sed "s!@guile@!$(GUILE)!" guilec.in > guilec
-	@chmod 755 guilec
+
+%: %.in
+	sed "s!@guile@!$(GUILE)!" $^ > $@
+	@chmod 755 $@
 
 $(BUILT_SOURCES): config.h vm_expand.h

@@ -516,19 +516,80 @@ As an example, let us look at what a simple function call looks like:
 This call yields the following sequence of instructions:
 
 @example
-(link "+")      ;; lookup binding "x"
+(link "+")      ;; lookup binding "+"
 (variable-ref)  ;; dereference it
 (make-int8 2)   ;; push immediate value `2'
 (make-int8 3)   ;; push immediate value `3'
 (tail-call 2)   ;; call the proc at sp[-3] with two args
 @end example
 
-@itemize
-@item %alloc
-@item %bind
-@item %export
-@item %unbind
-@end itemize
+@deffn @insn{} local-ref offset
+Push onto the stack the value of the local variable located at
+@var{offset} within the current stack frame.
+@end deffn
+
+@deffn @insn{} local-set offset
+Pop the Scheme object located on top of the stack and make it the new
+value of the local variable located at @var{offset} within the current
+stack frame.
+@end deffn
+
+@deffn @insn{} external-ref offset
+Push the value of the closure variable located at position
+@var{offset} within the program's list of external variables.
+@end deffn
+
+@deffn @insn{} external-set offset
+Pop the Scheme object located on top of the stack and make it the new
+value of the closure variable located at @var{offset} within the
+program's list of external variables.
+@end deffn
+
+Let's look at a more complete example:
+
+@example
+(let ((x 2))
+  (lambda ()
+    (let ((x++ (+ 1 x)))
+      (set! x x++)
+      x++)))
+@end example
+
+The resulting program has one external (closure) variable, i.e. its
+@var{nexts} is set to 1 (@pxref{Subprogram Control Instructions}).
+This yields the following code:
+
+@example
+   ;; the traditional program prologue
+   0    (make-int8 2)
+   2    (external-set 0)
+   4    (make-int8 4)
+   6    (link "+")    ;; lookup `+'
+   9    (vector 1)    ;; create the external variable vector for
+                      ;; later use by `object-ref' and `object-set'
+        ...
+  40    (load-program ##34#)
+  59    (return)
+@end example
+
+The program loaded here by @var{load-program} contains the following
+sequence of instructions:
+
+@example
+   0    (object-ref 0)     ;; push the variable for `+'
+   2    (variable-ref)     ;; dereference `+'
+   3    (make-int8:1)      ;; push 1
+   4    (external-ref 0)   ;; push the value of `x'
+   6    (call 2)           ;; call `+' and push the result
+   8    (local-set 0)      ;; make it the new value of `x++'
+  10    (local-ref 0)      ;; push the value of `x++'
+  12    (external-set 0)   ;; make it the new value of `x'
+  14    (local-ref 0)      ;; push the value of `x++'
+  16    (return)           ;; return it
+@end example
+
+At this point, you know pretty much everything about the three types
+of variables a program may need to access.
 
 
 @node Branch Instructions, Subprogram Control Instructions, Environment Control Instructions, Instruction Set
@@ -619,7 +680,7 @@ This yields the following assembly code:
 (make-int8 64)   ;; number of args, vars, etc. (see below)
 (link "frob")
 (link "%magic")
-(vector 2)
+(vector 2)       ;; object table (external bindings)
 ...
 (load-program #u8(20 0 23 21 0 20 1 23 36 2))
 (return)
@@ -637,7 +698,7 @@ argument which is the bytecode of the program itself.  Disassembled,
 this bytecode looks like:
 
 @example
-(object-ref 0)  ;; push the variable object of `frob'
+z(object-ref 0)  ;; push the variable object of `frob'
 (variable-ref)  ;; dereference it
 (local-ref 0)   ;; push the value of `x'
 (object-ref 1)  ;; push the variable object of `%magic'
@@ -646,7 +707,9 @@ this bytecode looks like:
 @end example
 
 This clearly shows that there is little difference between references
-to local variables and references to externally bound variables.
+to local variables and references to externally bound variables since
+lookup of externally bound variables if performed only once before the
+program is run.
 
 @deffn @insn{} load-program bytecode
 Load the program whose bytecode is @var{bytecode} (a u8vector), pop
@@ -664,8 +727,8 @@ object table);
 representing respectively the number of arguments taken by the
 function (@var{nargs}), the number of @dfn{rest arguments}
 (@var{nrest}, 0 or 1), the number of local variables (@var{nlocs}) and
-the number of external variables (@var{nexts}) (see the example
-above).
+the number of external variables (@var{nexts}) (@pxref{Environment
+Control Instructions}).
 @end itemize
 
 @end deffn
@@ -684,12 +747,16 @@ Call the procedure, continuation or program located at
 @code{sp[-nargs]} with the @var{nargs} arguments located from
 @code{sp[0]} to @code{sp[-nargs + 1]}.  The
 procedure/continuation/program and its arguments are dropped from the
-stack and the result is pushed.
+stack and the result is pushed.  When calling a program, the
+@code{call} instruction reserves room for its local variables on the
+stack, and initializes its list of closure variables and its vector of
+externally bound variables.
 @end deffn
 
 @deffn @insn{} tail-call nargs
 Same as @code{call} except that, for tail-recursive calls to a
 program, the current stack frame is re-used, as required by RnRS.
+This instruction is otherwise similar to @code{call}.
 @end deffn
 
 

@@ -186,6 +186,19 @@ SCM_DEFINE (scm_program_external, "program-external", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+SCM_DEFINE (scm_program_external_set_x, "program-external-set!", 2, 0, 0,
+	    (SCM program, SCM external),
+	    "Modify the list of closure variables of @var{program} (for "
+	    "debugging purposes).")
+#define FUNC_NAME s_scm_program_external_set_x
+{
+  SCM_VALIDATE_PROGRAM (1, program);
+  SCM_VALIDATE_LIST (2, external);
+  SCM_PROGRAM_DATA (program)->external = external;
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_program_bytecode, "program-bytecode", 1, 0, 0,
 	    (SCM program),
 	    "Return a u8vector containing @var{program}'s bytecode.")

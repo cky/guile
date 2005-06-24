@@ -82,10 +82,15 @@ make_objcode_by_mmap (int fd)
   struct scm_objcode *p;
 
   ret = fstat (fd, &st);
-  if (ret < 0) SCM_SYSERROR;
+  if ((ret < 0) || (st.st_size <= strlen (OBJCODE_COOKIE)))
+    SCM_SYSERROR;
 
   addr = mmap (0, st.st_size, PROT_READ, MAP_SHARED, fd, 0);
-  if (addr == MAP_FAILED) SCM_SYSERROR;
+  if (addr == MAP_FAILED)
+    SCM_SYSERROR;
+
+  if (memcmp (addr, OBJCODE_COOKIE, strlen (OBJCODE_COOKIE)))
+    SCM_SYSERROR;
 
   p = scm_gc_malloc (sizeof (struct scm_objcode), "objcode");
   p->size = st.st_size;
@@ -179,8 +184,8 @@ SCM_DEFINE (scm_bytecode_to_objcode, "bytecode->objcode", 3, 0, 0,
 
   if (scm_u8vector_p (bytecode) != SCM_BOOL_T)
     scm_wrong_type_arg (FUNC_NAME, 1, bytecode);
-  SCM_VALIDATE_INUM (2, nlocs);
-  SCM_VALIDATE_INUM (3, nexts);
+  SCM_VALIDATE_NUMBER (2, nlocs);
+  SCM_VALIDATE_NUMBER (3, nexts);
 
   c_bytecode = scm_u8vector_elements (bytecode, &handle, &size, &increment);
   assert (increment == 1);
@@ -191,8 +196,8 @@ SCM_DEFINE (scm_bytecode_to_objcode, "bytecode->objcode", 3, 0, 0,
   base = SCM_OBJCODE_BASE (objcode);
 
   memcpy (base, OBJCODE_COOKIE, 8);
-  base[8] = SCM_I_INUM (nlocs);
-  base[9] = SCM_I_INUM (nexts);
+  base[8] = scm_to_uint8 (nlocs);
+  base[9] = scm_to_uint8 (nexts);
 
   memcpy (base + 10, c_bytecode, size - 10);
 

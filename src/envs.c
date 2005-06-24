@@ -85,7 +85,7 @@ SCM
 scm_c_lookup_env (SCM identifier)
 {
   /* Check if the env is already loaded */
-  SCM vcell = scm_sym2ovcell_soft (identifier, env_table);
+  SCM vcell = scm_hash_get_handle (env_table, identifier);
 
   /* If not, load the env */
   if (SCM_FALSEP (vcell))
@@ -95,21 +95,24 @@ scm_c_lookup_env (SCM identifier)
       if (!SCM_ENV_P (env))
 	scm_misc_error ("scm_c_lookup_env",
 			"Invalid env: ~S", SCM_LIST1 (env));
-      scm_intern_symbol (env_table, identifier);
-      vcell = scm_sym2ovcell_soft (identifier, env_table);
-      SCM_SETCDR (vcell, env);
+      vcell = scm_hash_create_handle_x (env_table, identifier, env);
     }
 
-  return SCM_CDR (vcell);
+  return (SCM_CDR (vcell));
 }
 
 SCM
 scm_c_env_vcell (SCM env, SCM name, int intern)
 {
+  SCM vcell;
   SCM ob = SCM_ENV_OBARRAY (env);
+
   if (intern)
-    scm_intern_symbol (ob, name);
-  return scm_sym2ovcell_soft (name, ob);
+    vcell = scm_hash_create_handle_x (ob, name, SCM_UNSPECIFIED);
+  else
+    vcell = scm_hash_get_handle (ob, name);
+
+  return vcell;
 }
 
 
@@ -162,10 +165,13 @@ SCM_DEFINE (scm_env_bound_p, "env-bound?", 2, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_env_bound_p
 {
-  SCM vcell;
+  SCM obarray, vcell;
   SCM_VALIDATE_ENV (1, env);
   SCM_VALIDATE_SYMBOL (2, name);
-  vcell = scm_sym2ovcell_soft (name, SCM_ENV_OBARRAY (env));
+
+  obarray = SCM_ENV_OBARRAY (env);
+  vcell = scm_hash_get_handle (obarray, name);
+
   return SCM_BOOL (!SCM_FALSEP (vcell) && !SCM_UNBNDP (SCM_CDR (vcell)));
 }
 #undef FUNC_NAME
@@ -178,7 +184,7 @@ SCM_DEFINE (scm_env_ref, "env-ref", 2, 0, 0,
   SCM vcell;
   SCM_VALIDATE_ENV (1, env);
   SCM_VALIDATE_SYMBOL (2, name);
-  vcell = scm_sym2ovcell_soft (name, SCM_ENV_OBARRAY (env));
+  vcell = scm_hash_get_handle (name, SCM_ENV_OBARRAY (env));
   if (SCM_FALSEP (vcell) || SCM_UNBNDP (SCM_CDR (vcell)))
     SCM_MISC_ERROR ("Unbound variable in env: ~A, ~A",
 		    SCM_LIST2 (env, name));
@@ -194,11 +200,12 @@ SCM_DEFINE (scm_env_set_x, "env-set!", 3, 0, 0,
   SCM vcell;
   SCM_VALIDATE_ENV (1, env);
   SCM_VALIDATE_SYMBOL (2, name);
-  vcell = scm_sym2ovcell_soft (name, SCM_ENV_OBARRAY (env));
+  vcell = scm_hash_get_handle (name, SCM_ENV_OBARRAY (env));
   if (SCM_FALSEP (vcell))
     SCM_MISC_ERROR ("Unbound variable in env: ~A, ~A",
 		    SCM_LIST2 (env, name));
   SCM_SETCDR (vcell, val);
+
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME

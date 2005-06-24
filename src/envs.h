@@ -47,10 +47,12 @@
 
 extern scm_t_bits scm_tc16_env;
 
-struct scm_env {
+struct scm_env
+{
   SCM identifier;
   SCM obarray;
 };
+typedef struct scm_env scm_env_t;
 
 #define SCM_ENV_P(x)		SCM_SMOB_PREDICATE (scm_tc16_env, x)
 #define SCM_ENV_DATA(x)		((struct scm_env *) SCM_SMOB_DATA (x))
