@@ -829,32 +829,32 @@ scm_from_locale_string (const char *str)
 SCM
 scm_take_locale_stringn (char *str, size_t len)
 {
+  SCM buf, res;
+
   if (len == (size_t)-1)
-    return scm_take_locale_string (str);
+    len = strlen (str);
   else
     {
-      /* STR might not be zero terminated and we are not allowed to
-	 look at str[len], so we have to make a new one...
-      */
-      SCM res = scm_from_locale_stringn (str, len);
-      free (str);
-      return res;
+      /* Ensure STR is null terminated.  A realloc for 1 extra byte should
+         often be satisfied from the alignment padding after the block, with
+         no actual data movement.  */
+      str = scm_realloc (str, len+1);
+      str[len] = '\0';
     }
+
+  buf = scm_double_cell (STRINGBUF_TAG, (scm_t_bits) str,
+                         (scm_t_bits) len, (scm_t_bits) 0);
+  res = scm_double_cell (STRING_TAG,
+                         SCM_UNPACK (buf),
+                         (scm_t_bits) 0, (scm_t_bits) len);
+  scm_gc_register_collectable_memory (str, len+1, "string");
+  return res;
 }
 
 SCM
 scm_take_locale_string (char *str)
 {
-  size_t len = strlen (str);
-  SCM buf, res;
-
-  buf = scm_double_cell (STRINGBUF_TAG, (scm_t_bits) str,
-			 (scm_t_bits) len, (scm_t_bits) 0);
-  res = scm_double_cell (STRING_TAG,
-			 SCM_UNPACK (buf),
-			 (scm_t_bits) 0, (scm_t_bits) len);
-  scm_gc_register_collectable_memory (str, len+1, "string");
-  return res;
+  return scm_take_locale_stringn (str, -1);
 }
 
 char *
