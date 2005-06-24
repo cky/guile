@@ -3283,10 +3283,12 @@ SCM_DEFINE (scm_string_filter, "string-filter", 2, 2, 0,
         if (cstr[idx] == chr)
           count++;
 
-      /* if whole of start to end kept then return substring, including
-         possibly s itself */
+      /* if whole of start to end kept then return substring */
       if (count == cend - cstart)
-        result = scm_i_substring_shared (s, cstart, cend);
+        {
+        result_substring:
+          result = scm_i_substring (s, cstart, cend);
+        }
       else
         result = scm_c_make_string (count, char_pred);
     }
@@ -3300,10 +3302,9 @@ SCM_DEFINE (scm_string_filter, "string-filter", 2, 2, 0,
         if (SCM_CHARSET_GET (char_pred, cstr[idx]))
           count++;
 
-      /* if whole of start to end kept then return substring, including
-         possibly s itself */
+      /* if whole of start to end kept then return substring */
       if (count == cend - cstart)
-        result = scm_i_substring_shared (s, cstart, cend);
+        goto result_substring;
       else
         {
           char *dst;
@@ -3380,12 +3381,11 @@ SCM_DEFINE (scm_string_delete, "string-delete", 2, 2, 0,
         if (cstr[idx] != chr)
           count++;
 
-      /* if whole of start to end kept then return substring, including
-         possibly s itself */
+      /* if whole of start to end kept then return substring */
       if (count == cend - cstart)
         {
         result_substring:
-          result = scm_i_substring_shared (s, cstart, cend);
+          result = scm_i_substring (s, cstart, cend);
         }
       else
         {
