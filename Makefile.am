@@ -1,4 +1,4 @@
-SUBDIRS = src doc module
+SUBDIRS = src doc module testsuite
 
 EXTRA_DIST = acconfig.h
 

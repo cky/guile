@@ -23,4 +23,5 @@ AC_SUBST(GUILEC)
 AC_OUTPUT(Makefile src/Makefile doc/Makefile module/Makefile
   module/system/Makefile module/system/base/Makefile
   module/system/vm/Makefile module/system/il/Makefile
-  module/system/repl/Makefile)
+  module/system/repl/Makefile
+  testsuite/Makefile)

@@ -48,6 +48,7 @@
 #define VM_USE_HOOKS		1	/* Various hooks */
 #define VM_USE_CLOCK		1	/* Bogoclock */
 #define VM_CHECK_EXTERNAL	1	/* Check external link */
+#define VM_CHECK_OBJECT         1       /* Check object table */
 
 
 /*
@@ -133,17 +134,16 @@
 /* Get a local copy of the program's "object table" (i.e. the vector of
    external bindings that are referenced by the program), initialized by
    `load-program'.  */
-#define CACHE_PROGRAM()					\
-{							\
-  size_t _vsize;					\
-  ssize_t _vincr;					\
-  scm_t_array_handle _vhandle;				\
-							\
-  bp = SCM_PROGRAM_DATA (program);			\
-  /* Was: objects = SCM_VELTS (bp->objs); */		\
-  objects = scm_vector_elements (bp->objs, &_vhandle,	\
-				 &_vsize, &_vincr);	\
-  scm_array_handle_release (&_vhandle);			\
+#define CACHE_PROGRAM()						\
+{								\
+  ssize_t _vincr;						\
+  scm_t_array_handle _vhandle;					\
+								\
+  bp = SCM_PROGRAM_DATA (program);				\
+  /* Was: objects = SCM_VELTS (bp->objs); */			\
+  objects = scm_vector_elements (bp->objs, &_vhandle,		\
+				 &object_count, &_vincr);	\
+  scm_array_handle_release (&_vhandle);				\
 }
 
 #define SYNC_BEFORE_GC()			\
@@ -167,6 +167,14 @@
   do { if (!SCM_CONSP (e)) goto vm_error_external; } while (0)
 #else
 #define CHECK_EXTERNAL(e)
+#endif
+
+/* Accesses to a program's object table.  */
+#if VM_CHECK_OBJECT
+#define CHECK_OBJECT(_num) \
+  do { if ((_num) >= object_count) goto vm_error_object; } while (0)
+#else
+#define CHECK_OBJECT(_num)
 #endif
 
 

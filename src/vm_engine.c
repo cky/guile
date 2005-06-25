@@ -58,6 +58,7 @@ vm_run (SCM vm, SCM program, SCM args)
   struct scm_program *bp = NULL;	/* program base pointer */
   SCM external = SCM_EOL;		/* external environment */
   SCM *objects = NULL;			/* constant objects */
+  size_t object_count;                  /* length of OBJECTS */
   SCM *stack_base = vp->stack_base;	/* stack base address */
   SCM *stack_limit = vp->stack_limit;	/* stack limit address */
 
@@ -138,8 +139,10 @@ vm_run (SCM vm, SCM program, SCM args)
     goto vm_error;
 
   vm_error_wrong_type_apply:
-    err_msg  = scm_from_locale_string ("VM: Wrong type to apply: ~S");
-    err_args = SCM_LIST1 (program);
+    err_msg  = scm_from_locale_string ("VM: Wrong type to apply: ~S "
+				       "[IP offset: ~a]");
+    err_args = SCM_LIST2 (program,
+			  SCM_I_MAKINUM (ip - bp->base));
     goto vm_error;
 
   vm_error_stack_overflow:
@@ -162,6 +165,13 @@ vm_run (SCM vm, SCM program, SCM args)
 #if VM_CHECK_EXTERNAL
   vm_error_external:
     err_msg  = scm_from_locale_string ("VM: Invalid external access");
+    err_args = SCM_EOL;
+    goto vm_error;
+#endif
+
+#if VM_CHECK_OBJECT
+  vm_error_object:
+    err_msg = scm_from_locale_string ("VM: Invalid object table access");
     err_args = SCM_EOL;
     goto vm_error;
 #endif

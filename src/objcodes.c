@@ -82,8 +82,12 @@ make_objcode_by_mmap (int fd)
   struct scm_objcode *p;
 
   ret = fstat (fd, &st);
-  if ((ret < 0) || (st.st_size <= strlen (OBJCODE_COOKIE)))
+  if (ret < 0)
     SCM_SYSERROR;
+
+  if (st.st_size <= strlen (OBJCODE_COOKIE))
+    scm_misc_error (FUNC_NAME, "object file too small (~a bytes)",
+		    SCM_LIST1 (SCM_I_MAKINUM (st.st_size)));
 
   addr = mmap (0, st.st_size, PROT_READ, MAP_SHARED, fd, 0);
   if (addr == MAP_FAILED)

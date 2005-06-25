@@ -99,6 +99,13 @@
 	0
 	(loopi (1- n)))))
 
+(define (do-loop n)
+  ;; Same as `loop' using `do'.
+  (do ((i n (1- i)))
+      ((= 0 i))
+    ;; do nothing
+    ))
+
 
 (define (do-cons x)
   ;; This one shows that the built-in `cons' instruction yields a significant
