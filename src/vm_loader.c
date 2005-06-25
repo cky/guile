@@ -132,6 +132,12 @@ VM_DEFINE_LOADER (load_program, "load-program")
   /* init object table */
   if (scm_is_vector (x))
     {
+#if 0
+      if (scm_is_simple_vector (x))
+	printf ("is_simple_vector!\n");
+      else
+	printf ("NOT is_simple_vector\n");
+#endif
       p->objs = x;
       POP (x);
     }

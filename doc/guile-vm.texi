@@ -15,6 +15,16 @@
 Instruction
 @end macro
 
+@c For Scheme procedure definitions.
+@macro scmproc{}
+Scheme Procedure
+@end macro
+
+@c Scheme records.
+@macro scmrec{}
+Record
+@end macro
+
 @ifinfo
 @dircategory Scheme Programming
 @direntry
@@ -90,8 +100,8 @@ However, be warned that important parts still correspond to version
 @menu
 * Introduction::                
 * Variable Management::         
-* Program Execution::           
 * Instruction Set::             
+* The Compiler::                
 
 @detailmenu
  --- The Detailed Node Listing ---
@@ -102,6 +112,14 @@ Instruction Set
 * Branch Instructions::         
 * Subprogram Control Instructions::  
 * Data Control Instructions::   
+
+The Compiler
+
+* Overview::                    
+* The Language Front-Ends::     
+* GHIL::                        
+* GLIL::                        
+* The Assembler::               
 
 @end detailmenu
 @end menu
@@ -156,8 +174,12 @@ Most instructions deal with the accumulator (ac).  The VM stores all
 results from functions in ac, instead of pushing them into the stack.
 I'm not sure whether this is a good thing or not.
 
-@node Variable Management, Program Execution, Introduction, Top
+@node Variable Management, Instruction Set, Introduction, Top
 @chapter Variable Management
+
+FIXME:  This chapter needs to be reviewed so that it matches reality.
+A more up-to-date description of the mechanisms described in this
+section is given in @ref{Instruction Set}.
 
 A program may have access to local variables, external variables, and
 top-level variables.
@@ -301,38 +323,6 @@ object directly.
 
 [ We'll also need dynamic scope addressing to support Emacs Lisp? ]
 
-@unnumberedsubsec At a Glance
-
-Guile VM has a set of instructions for each instruction family.  `%load'
-is, for example, a family to load an object from memory and set the
-accumulator (ac).  There are four basic `%load' instructions:
-
-@example
-  %loadl - Local addressing
-  %loade - External addressing
-  %loadt - Top-level addressing
-  %loadi - Immediate addressing
-@end example
-
-A possible program code may look like this:
-
-@example
-  %loadl (0 . 1)                ; ac = local[0][1]
-  %loade (2 . 3)                ; ac = external[2][3]
-  %loadt (foo . #<undefined>)   ; ac = #<undefined>
-  %loadi "hello"                ; ac = "hello"
-@end example
-
-One instruction that uses real addressing is `%jump', which changes the
-value of the program counter:
-
-@example
-  %jump  0x80234ab8             ; pc = 0x80234ab8
-@end example
-
-
-@node Program Execution, Instruction Set, Variable Management, Top
-@chapter Program Execution
 
 Overall procedure:
 
@@ -346,120 +336,8 @@ Overall procedure:
 @item When all programs terminated, the VM returns the final value and stops.
 @end enumerate
 
-@section Environment
-
-Local variable:
-
-@example
- (let ((a 1) (b 2) (c 3)) (+ a b c)) ->
-
-   %pushi 1       ; a
-   %pushi 2       ; b
-   %pushi 3       ; c
-   %bind  3       ; create local bindings
-   %pushl (0 . 0) ; local variable a
-   %pushl (0 . 1) ; local variable b
-   %pushl (0 . 2) ; local variable c
-   add    3       ; ac = a + b + c
-   %unbind        ; remove local bindings
-@end example
-
-External variable:
-
-@example
- (define foo (let ((n 0)) (lambda () n)))
-
-   %pushi 0                      ; n
-   %bind  1                      ; create local bindings
-   %export [0]                   ; make it an external variable
-   %make-program #<bytecode xxx> ; create a program in this environment
-   %unbind                       ; remove local bindings
-   %savet (foo . #<undefined>)   ; save the program in foo
-
- (foo) ->
-
-   %loadt (foo . #<program xxx>) ; program has an external link
-   %call  0                      ; change the current external link
-   %loade (0 . 0)                ; external variable n
-   %return                       ; recover the external link
-@end example
-
-Top-level variable:
-
-@example
- foo ->
-
-   %loadt (foo . #<program xxx>) ; top-level variable foo
-@end example
-
-@section Flow control
-
-@example
- (if #t 1 0) ->
-
-      %loadi      #t
-      %br-if-not  L1
-      %loadi      1
-      %jump       L2
-  L1: %loadi      0
-  L2: 
-@end example
-
-@section Function call
-
-Builtin function:
-
-@example
- (1+ 2) ->
-
-   %loadi 2  ; ac = 2
-   1+        ; one argument
-
- (+ 1 2) ->
-
-   %pushi 1  ; 1 -> stack
-   %loadi 2  ; ac = 2
-   add2      ; two argument
-
- (+ 1 2 3) ->
-
-   %pushi 1  ; 1 -> stack
-   %pushi 2  ; 2 -> stack
-   %pushi 3  ; 3 -> stack
-   add    3  ; many argument
-@end example
-
-External function:
-
-@example
- (version) ->
-
-   %func0 (version . #<primitive-procedure version>) ; no argument
-
- (display "hello") ->
-
-   %loadi "hello"
-   %func1 (display . #<primitive-procedure display>) ; one argument
-
- (open-file "file" "w") ->
-
-   %pushi "file"
-   %loadi "w"
-   %func2 (open-file . #<primitive-procedure open-file>) ; two arguments
-
- (equal 1 2 3)
-
-   %pushi 1
-   %pushi 2
-   %pushi 3
-   %loadi 3                                      ; the number of arguments
-   %func  (equal . #<primitive-procedure equal>) ; many arguments
-@end example
-
-@section Subprogram call
-
-
-@node Instruction Set,  , Program Execution, Top
+
+@node Instruction Set, The Compiler, Variable Management, Top
 @chapter Instruction Set
 
 The Guile VM instruction set is roughly divided two groups: system
@@ -843,6 +721,203 @@ Push @code{#t} onto the stack.
 @item num-eq2
 @end itemize
 
+
+
+@node The Compiler,  , Instruction Set, Top
+@chapter The Compiler
+
+This section describes Guile-VM's compiler and the compilation process
+to produce bytecode executable by the VM itself (@pxref{Instruction
+Set}).
+
+@menu
+* Overview::                    
+* The Language Front-Ends::     
+* GHIL::                        
+* GLIL::                        
+* The Assembler::               
+@end menu
+
+@node Overview, The Language Front-Ends, The Compiler, The Compiler
+@section Overview
+
+Compilation in Guile-VM is a three-stage process:
+
+@enumerate
+@item the source programming language (e.g. R5RS Scheme) is read and
+translated into GHIL, @dfn{Guile's High-Level Intermediate Language};
+@item GHIL code is then translated into a lower-level intermediate
+language call GLIL, @dfn{Guile's Low-Level Intermediate Language};
+@item finally, GLIL is @dfn{assembled} into the VM's assembly language
+(@pxref{Instruction Set}) and bytecode.
+@end enumerate
+
+The use of two separate intermediate languages eases the
+implementation of front-ends since the gap between high-level
+languages like Scheme and GHIL is relatively small.
+
+From an end-user viewpoint, compiling a Guile program into bytecode
+can be done either by using the @command{guilec} command-line tool, or
+by using the @code{compile-file} procedure exported by the
+@code{(system base compile)} module.
+
+
+@node The Language Front-Ends, GHIL, Overview, The Compiler
+@section The Language Front-Ends
+
+Guile-VM comes with a number of @dfn{language front-ends}, that is,
+code that can read a given high-level programming language like R5RS
+Scheme, and translate it into a lower-level representation suitable to
+the compiler.
+
+Each language front-end provides a @dfn{specification} and a
+@dfn{translator} to GHIL.  Both of them come in the @code{language}
+module hierarchy.  As an example, the front-end for Scheme is located
+in the @code{(language scheme spec)} and @code{(language scheme
+translate)} modules.  Language front-ends can then be retrieved using
+the @code{lookup-language} procedure of the @code{(system base
+language)} module.
+
+@deftp @scmrec{} <language> name title version reader printer read-file expander translator evaluator environment
+Denotes a language front-end specification a various methods used by
+the compiler to handle source written in that language.  Of particular
+interest is the @code{translator} slot (@pxref{GHIL}).
+@end deftp
+
+@deffn @scmproc{} lookup-language symbol
+Look for a language front-end named @var{symbol} and return the
+@code{<language>} record describing it if found.  If @var{symbol}
+doesn't denote a language front-end, an error is raised.  Note that
+this procedure assumes that language @var{symbol} exists if there
+exist a @code{(language @var{symbol} spec)} module.
+@end deffn
+
+
+@node GHIL, GLIL, The Language Front-Ends, The Compiler
+@section Guile's High-Level Intermediate Language
+
+GHIL has constructs almost equivalent to those found in Scheme.
+However, unlike Scheme, it is meant to be read only by the compiler
+itself.  Therefore, a sequence of GHIL code is only a sequence of GHIL
+@emph{objects} (records), as opposed to symbols, each of which
+represents a particular language feature.  These records are all
+defined in the @code{(system il ghil)} module and are named
+@code{<ghil-*>}.
+
+Each GHIL record has at least two fields:  one containing the
+environment (Guile module) in which it is considered, and one
+containing its location [FIXME:  currently seems to be unused].  Below
+is a list of the main GHIL object types and their fields:
+
+@example
+;; Objects
+(<ghil-void> env loc)
+(<ghil-quote> env loc obj)
+(<ghil-quasiquote> env loc exp)
+(<ghil-unquote> env loc exp)
+(<ghil-unquote-splicing> env loc exp)
+;; Variables
+(<ghil-ref> env loc var)
+(<ghil-set> env loc var val)
+(<ghil-define> env loc var val)
+;; Controls
+(<ghil-if> env loc test then else)
+(<ghil-and> env loc exps)
+(<ghil-or> env loc exps)
+(<ghil-begin> env loc exps)
+(<ghil-bind> env loc vars vals body)
+(<ghil-lambda> env loc vars rest body)
+(<ghil-call> env loc proc args)
+(<ghil-inline> env loc inline args)
+@end example
+
+As can be seen from this examples, the constructs in GHIL are pretty
+close to the fundamental primitives of Scheme.
+
+It is the role of front-end language translators (@pxref{The Language
+Front-Ends}) to produce a sequence of GHIL objects from the
+human-readable, source programming language.
+
+[FIXME:  Describe more.]
+
+@node GLIL, The Assembler, GHIL, The Compiler
+@section Guile's Low-Level Intermediate Language
+
+A GHIL instruction sequence can be compiled into GLIL using the
+@code{compile} procedure exported by the @code{(system il compile)}
+module.  During this translation process, various optimizations may
+also be performed.
+
+The module @code{(system il glil)} defines record types representing
+various low-level abstractions.  Compared to GHIL, the flow control
+primitives in GLIL are much more low-level:  only @code{<glil-label>},
+@code{<glil-branch>} and @code{<glil-call>} are available, no
+@code{lambda}, @code{if}, etc.
+
+
+@deffn @scmproc{} compile ghil environment . opts
+Compile @var{ghil}, a GHIL instruction sequence, within
+environment/module @var{environment}, and return the resulting GLIL
+instruction sequence.  The option list @var{opts} may be either the
+empty list or a list containing the @code{:O} keyword in which case
+@code{compile} will first go through an optimization stage of
+@var{ghil}.
+@end deffn
+
+@deffn @scmproc{} pprint-glil glil . port
+Print @var{glil}, a GLIL sequence instructions, in a human-readable
+form.  If @var{port} is passed, it will be used as the output port.
+@end deffn
+
+
+Let's consider the following Scheme expression:
+
+@example
+(lambda (x) (+ x 1))
+@end example
+
+The corresponding (unoptimized) GLIL code, as shown by
+@code{pprint-glil}, looks like this:
+
+@example
+(@@asm (0 0 0 0)
+  (@@asm (1 0 0 0)           ;; expect one arg.
+    (@@bind (x argument 0))  ;; debugging info
+    (module-ref #f +)       ;; lookup `+'
+    (argument-ref 0)        ;; push the argument onto
+                            ;; the stack
+    (const 1)               ;; push `1'
+    (tail-call 2)           ;; call `+', with 2 args,
+                            ;; using the same stack frame
+    (@@source 15 33))        ;; additional debugging info
+  (return 0))
+@end example
+
+This is not unlike the VM's assembly language described in
+@ref{Instruction Set}.
+
+@node The Assembler,  , GLIL, The Compiler
+@section The Assembler
+
+The final compilation step consists in converting the GLIL instruction
+sequence into VM bytecode.  This is what the @code{assemble} procedure
+defined in the @code{(system vm assemble)} module is for.  It relies
+on the @code{code->bytes} procedure of the @code{(system vm conv)}
+module to convert instructions (represented as lists whose @code{car}
+is a symbol naming the instruction, e.g. @code{object-ref},
+@pxref{Instruction Set}) into binary code, or @dfn{bytecode}.
+Bytecode itself is represented using SRFI-4 byte vectors,
+@inforef{SRFI-4, SRFI-4 homogeneous numeric vectors, guile}.
+
+
+@deffn @scmproc{} assemble glil environment . opts
+Return a binary representation of @var{glil} (bytecode), either in the
+form of an SRFI-4 @code{u8vector} or a @code{<bytespec>} object.
+[FIXME:  Why is that?]
+@end deffn
+
+
+
 @c *********************************************************************
 @c @node Concept Index, Command Index, Related Information, Top
 @c @unnumbered Concept Index

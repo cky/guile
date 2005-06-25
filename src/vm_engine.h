@@ -134,16 +134,20 @@
 /* Get a local copy of the program's "object table" (i.e. the vector of
    external bindings that are referenced by the program), initialized by
    `load-program'.  */
-#define CACHE_PROGRAM()						\
-{								\
-  ssize_t _vincr;						\
-  scm_t_array_handle _vhandle;					\
-								\
-  bp = SCM_PROGRAM_DATA (program);				\
-  /* Was: objects = SCM_VELTS (bp->objs); */			\
-  objects = scm_vector_elements (bp->objs, &_vhandle,		\
-				 &object_count, &_vincr);	\
-  scm_array_handle_release (&_vhandle);				\
+/* XXX:  We could instead use the "simple vector macros", thus not having to
+   call `scm_vector_writable_elements ()' and the likes.  */
+#define CACHE_PROGRAM()							\
+{									\
+  ssize_t _vincr;							\
+									\
+  bp = SCM_PROGRAM_DATA (program);					\
+  /* Was: objects = SCM_VELTS (bp->objs); */				\
+									\
+  if (objects)								\
+    scm_array_handle_release (&objects_handle);				\
+									\
+  objects = scm_vector_writable_elements (bp->objs, &objects_handle,	\
+					  &object_count, &_vincr);	\
 }
 
 #define SYNC_BEFORE_GC()			\

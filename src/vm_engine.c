@@ -58,6 +58,7 @@ vm_run (SCM vm, SCM program, SCM args)
   struct scm_program *bp = NULL;	/* program base pointer */
   SCM external = SCM_EOL;		/* external environment */
   SCM *objects = NULL;			/* constant objects */
+  scm_t_array_handle objects_handle;    /* handle of the OBJECTS array */
   size_t object_count;                  /* length of OBJECTS */
   SCM *stack_base = vp->stack_base;	/* stack base address */
   SCM *stack_limit = vp->stack_limit;	/* stack limit address */
@@ -178,6 +179,9 @@ vm_run (SCM vm, SCM program, SCM args)
 
   vm_error:
     SYNC_ALL ();
+    if (objects)
+      scm_array_handle_release (&objects_handle);
+
     vp->last_frame = vm_heapify_frames (vm);
     scm_ithrow (sym_vm_error, SCM_LIST3 (sym_vm_run, err_msg, err_args), 1);
   }

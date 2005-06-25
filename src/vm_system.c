@@ -208,7 +208,7 @@ VM_DEFINE_INSTRUCTION (list_break, "list-break", 0, 0, 0)
 
 VM_DEFINE_INSTRUCTION (object_ref, "object-ref", 1, 0, 1)
 {
-  register objnum = FETCH ();
+  register unsigned objnum = FETCH ();
   CHECK_OBJECT (objnum);
   PUSH (OBJECT_REF (objnum));
   NEXT;

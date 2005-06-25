@@ -53,8 +53,9 @@
     (($ <ghil-lambda> env vars rest body)
      (<ghil-lambda> env vars rest (optimize body)))
 
-    (($ <ghil-inst> inst args)
-     (<ghil-inst> inst (map optimize args)))
+;; FIXME:  <ghil-inst> does not exist.  -- Ludo'.
+;     (($ <ghil-inst> inst args)
+;      (<ghil-inst> inst (map optimize args)))
 
     (($ <ghil-call> env proc args)
      (match proc
