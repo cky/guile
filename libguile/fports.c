@@ -264,6 +264,8 @@ SCM_DEFINE (scm_open_file, "open-file", 2, 0, 0,
 	    "@end table\n"
 	    "The following additional characters can be appended:\n"
 	    "@table @samp\n"
+	    "@item b\n"
+	    "Open the underlying file in binary mode, if supported by the operating system. "
 	    "@item +\n"
 	    "Open the port for both input and output.  E.g., @code{r+}: open\n"
 	    "an existing file for both input and output.\n"

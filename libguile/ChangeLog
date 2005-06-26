@@ -1,3 +1,7 @@
+2005-06-18  Han-Wen Nienhuys  <hanwen@xs4all.nl>
+
+	* fports.c (s_scm_open_file): add the b flag for binary to the doc string.
+
 2005-06-25  Kevin Ryde  <user42@zip.com.au>
 
 	* srfi-13.c (scm_string_filter, scm_string_delete): Partial revert
