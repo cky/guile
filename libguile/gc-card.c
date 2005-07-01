@@ -308,7 +308,7 @@ scm_i_card_statistics (scm_t_cell *p, SCM hashtab, scm_t_heap_segment *seg)
 
   for (p += offset; p < end; p += span, offset += span)
     {
-      scm_t_bits tag;
+      scm_t_bits tag = -1;
       SCM scmptr = PTR2SCM (p);
 
       if (!SCM_C_BVEC_GET (bitvec, offset))
