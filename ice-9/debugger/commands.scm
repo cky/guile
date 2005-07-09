@@ -19,9 +19,7 @@
 (define-module (ice-9 debugger commands)
   #:use-module (ice-9 debug)
   #:use-module (ice-9 debugger)
-  #:use-module (ice-9 debugger behaviour)
   #:use-module (ice-9 debugger state)
-  #:use-module (ice-9 debugger trap-hooks)
   #:use-module (ice-9 debugger utils)
   #:export (backtrace
 	    evaluate
@@ -30,13 +28,7 @@
 	    position
 	    up
 	    down
-	    frame
-	    continue
-	    finish
-	    trace-finish
-	    next
-	    step
-	    debug-trap-hooks))
+	    frame))
 
 (define (backtrace state n-frames)
   "Print backtrace of all stack frames, or innermost COUNT frames.
@@ -150,57 +142,5 @@ With no argument, print the selected stack frame.  (See also \"info frame\").
 An argument specifies the frame to select; it must be a stack-frame number."
   (if n (set-stack-index! state (frame-number->index n (state-stack state))))
   (write-state-short state))
-
-(define (debug-trap-hooks state)
-  (debug-hook-membership)
-  state)
-
-;;;; Additional commands that make sense when debugging code that has
-;;;; stopped at a breakpoint.
-
-(define (assert-continuable state)
-  ;; Check that debugger is in a state where `continuing' makes sense.
-  ;; If not, signal an error.
-  (or (memq #:continuable (state-flags state))
-      (debugger-error "This debug session is not continuable.")))
-
-(define (continue state)
-  "Continue program execution."
-  (assert-continuable state)
-  (debugger-quit))
-
-(define (finish state)
-  "Continue until evaluation of the current frame is complete, and
-print the result obtained."
-  (assert-continuable state)
-  (with-reference-frame (stack-ref (state-stack state) (state-index state))
-    (at-exit (lambda ()
-	       (trace-exit-value)
-	       (debug-here))))
-  (continue state))
-
-(define (next state n)
-  "Continue until entry to @var{n}th next frame in same file."
-  (assert-continuable state)
-  (with-reference-frame (stack-ref (state-stack state) (state-index state))
-    (at-next (or n 1) debug-here))
-  (continue state))
-
-(define (step state n)
-  "Continue until entry to @var{n}th next frame."
-  (assert-continuable state)
-  (at-step (or n 1) debug-here)
-  ;; An alternative behaviour that might be interesting ...
-  ;; (with-reference-frame (stack-ref (state-stack state) (state-index state))
-  ;;   (at-exit (lambda () (at-step (or n 1) debug-here))))
-  (continue state))
-
-(define (trace-finish state)
-  "Trace until evaluation of the current frame is complete."
-  (assert-continuable state)
-  (with-reference-frame (stack-ref (state-stack state) (state-index state))
-    (trace-until-exit)
-    (at-exit debug-here))
-  (continue state))
 
 ;;; (ice-9 debugger commands) ends here.

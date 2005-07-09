@@ -540,14 +540,3 @@
 (define-command-alias "where" "backtrace")
 (define-command-alias "p" "evaluate")
 (define-command-alias '("info" "stack") "backtrace")
-
-
-(define-command "continue" '() debugger:continue)
-
-(define-command "finish" '() debugger:finish)
-
-(define-command "trace-finish" '() debugger:trace-finish)
-
-(define-command "step" '('optional exact-integer) debugger:step)
-
-(define-command "next" '('optional exact-integer) debugger:next)

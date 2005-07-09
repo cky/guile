@@ -21,7 +21,6 @@
   #:use-module (ice-9 debugger state)
   #:use-module (ice-9 debugger utils)
   #:use-module (ice-9 format)
-  #:use-module (emacs gds-client)
   #:export (debug-stack
 	    debug
 	    debug-last-error
@@ -121,9 +120,7 @@ Indicates that the debugger should display an introductory message.
 			(display "There is 1 frame on the stack.\n\n")
 			(format #t "There are ~A frames on the stack.\n\n" ssize))))
 	      (write-state-short state)
-	      (if (gds-connected?)
-		  (gds-command-loop state)
-		  (debugger-command-loop state)))))))))
+	      (debugger-command-loop state))))))))
 
 (define (debug)
   "Invoke the Guile debugger to explore the context of the last error."

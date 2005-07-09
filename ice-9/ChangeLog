@@ -1,3 +1,22 @@
+2005-07-09  Neil Jerram  <neil@ossau.uklinux.net>
+
+	Changes to remove breakpoint support from CVS, as I am now
+	developing this function outside Guile core.
+	
+	* debugger/commands.scm (assert-continuable, continue, finish,
+	trace-finish, step, next): Removed.
+
+	* debugger/breakpoints/*: Removed.
+	
+	* debugger/breakpoints.scm: Removed.
+	
+	* debugger/command-loop.scm: Remove command definitions for
+	continue, finish, trace-finish, step and next.
+
+	* debugger/behaviour.scm: Removed.
+
+	* debugger.scm (debug-stack): Remove GDS related code.
+
 2005-06-10  Han-Wen Nienhuys  <hanwen@xs4all.nl>
 
 	* boot-9.scm (set-module-eval-closure!): remove
