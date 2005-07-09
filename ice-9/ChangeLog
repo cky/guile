@@ -1,5 +1,7 @@
 2005-07-09  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* debugger.scm: Remove comments which are now incorrect.
+
 	* debugger/Makefile.am (ice9_debugger_sources): Removed
 	breakpoints.scm, behaviour.scm, trap-hooks.scm.
 	(SUBDIRS): Removed.

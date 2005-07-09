@@ -58,33 +58,7 @@
 ;;; any other that implements the `debugger-command-loop-*' interface
 ;;; simply by changing the relevant #:use-module line above.
 ;;;
-;;; The following new parts add breakpoint support:
-;;;
-;;; (... behaviour) - codification of the things that can happen when
-;;;                   a breakpoint is hit, regardless of the type of
-;;;                   the breakpoint
-;;;
-;;; (... breakpoints) - management of breakpoints in general
-;;;
-;;; (... breakpoints procedural) - breakpoints that trigger upon
-;;;                                application of a specified
-;;;                                procedure
-;;;
-;;; (... breakpoints source) - breakpoints that trigger upon
-;;;                            evaluation of a specific source
-;;;                            expression
-;;;
-;;; (... trap-hooks) - a (slightly) higher-level abstraction of
-;;;                    Guile's evaluator traps interface
-;;;
-;;; (... trc) - generic tracing interface for debugging tricky code
-;;;             using the `printf' method :-)
-;;;
-;;; Note that (... breakpoints range) doesn't work yet.  If loaded, it
-;;; seems to cause some kind of explosion in the GOOPS method cache
-;;; calculation code.
-;;;
-;;; - Neil Jerram <neil@ossau.uklinux.net> 2002-10-26
+;;; - Neil Jerram <neil@ossau.uklinux.net> 2002-10-26, updated 2005-07-09
 
 (define *not-yet-introduced* #t)
 
