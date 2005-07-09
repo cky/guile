@@ -1,5 +1,9 @@
 2005-07-09  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* debugger/Makefile.am (ice9_debugger_sources): Removed
+	breakpoints.scm, behaviour.scm, trap-hooks.scm.
+	(SUBDIRS): Removed.
+
 	Changes to remove breakpoint support from CVS, as I am now
 	developing this function outside Guile core.
 	

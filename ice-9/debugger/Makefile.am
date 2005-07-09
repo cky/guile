@@ -21,11 +21,8 @@
 
 AUTOMAKE_OPTIONS = gnu
 
-SUBDIRS = breakpoints
-
 # These should be installed and distributed.
-ice9_debugger_sources = behaviour.scm breakpoints.scm command-loop.scm \
-	commands.scm state.scm trap-hooks.scm trc.scm utils.scm
+ice9_debugger_sources = command-loop.scm commands.scm state.scm trc.scm utils.scm
 
 subpkgdatadir = $(pkgdatadir)/$(GUILE_EFFECTIVE_VERSION)/ice-9/debugger
 subpkgdata_DATA = $(ice9_debugger_sources)
