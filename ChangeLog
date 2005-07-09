@@ -1,5 +1,8 @@
 2005-07-09  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* configure.in (AC_CONFIG_FILES): Removed emacs/Makefile and
+	ice-9/debugger/breakpoints/Makefile.
+
 	* Makefile.am (SUBDIRS): Removed emacs.
 
 2005-06-05  Marius Vollmer  <mvo@zagadka.de>

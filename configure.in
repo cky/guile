@@ -1186,7 +1186,6 @@ AC_CONFIG_FILES([
   doc/r5rs/Makefile
   doc/ref/Makefile
   doc/tutorial/Makefile
-  emacs/Makefile
   examples/Makefile
   examples/box-dynamic-module/Makefile
   examples/box-dynamic/Makefile
@@ -1198,7 +1197,6 @@ AC_CONFIG_FILES([
   guile-config/Makefile
   ice-9/Makefile
   ice-9/debugger/Makefile
-  ice-9/debugger/breakpoints/Makefile
   lang/Makefile
   lang/elisp/Makefile
   lang/elisp/internals/Makefile
