@@ -1,3 +1,8 @@
+2005-07-09  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* Makefile.am, REAME.GDS, gds-client.scm, gds-problems.txt,
+	gds-server.scm, gds-tutorial.txt, gds.el, gds.texi: Removed.
+
 2004-03-10  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* guileint: Subdirectory (with contents) removed.  This was a dead
