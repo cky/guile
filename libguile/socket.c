@@ -365,7 +365,7 @@ SCM_DEFINE (scm_inet_pton, "inet-pton", 2, 0, 0,
   if (af == AF_INET)
     return scm_from_ulong (ntohl (*(scm_t_uint32 *) dst));
   else
-    return scm_from_ipv6 ((char *) dst);
+    return scm_from_ipv6 ((scm_t_uint8 *) dst);
 }
 #undef FUNC_NAME
 #endif
@@ -397,7 +397,7 @@ SCM_DEFINE (scm_inet_ntop, "inet-ntop", 2, 0, 0,
   if (af == AF_INET)
     *(scm_t_uint32 *) addr6 = htonl (SCM_NUM2ULONG (2, address));
   else
-    scm_to_ipv6 (addr6, address);
+    scm_to_ipv6 ((scm_t_uint8 *) addr6, address);
   if (inet_ntop (af, &addr6, dst, sizeof dst) == NULL)
     SCM_SYSERROR;
   return scm_from_locale_string (dst);
@@ -476,10 +476,10 @@ SCM_DEFINE (scm_getsockopt, "getsockopt", 3, 0, 0,
   /* size of optval is the largest supported option.  */
 #ifdef HAVE_STRUCT_LINGER
   char optval[sizeof (struct linger)];
-  int optlen = sizeof (struct linger);
+  socklen_t optlen = sizeof (struct linger);
 #else
   char optval[sizeof (size_t)];
-  int optlen = sizeof (size_t);
+  socklen_t optlen = sizeof (size_t);
 #endif
   int ilevel;
   int ioptname;
@@ -998,7 +998,7 @@ SCM_DEFINE (scm_accept, "accept", 1, 0, 0,
   int newfd;
   SCM address;
   SCM newsock;
-  int addr_size = MAX_ADDR_SIZE;
+  socklen_t addr_size = MAX_ADDR_SIZE;
   char max_addr[MAX_ADDR_SIZE];
   struct sockaddr *addr = (struct sockaddr *) max_addr;
 
@@ -1022,7 +1022,7 @@ SCM_DEFINE (scm_getsockname, "getsockname", 1, 0, 0,
 #define FUNC_NAME s_scm_getsockname
 {
   int fd;
-  int addr_size = MAX_ADDR_SIZE;
+  socklen_t addr_size = MAX_ADDR_SIZE;
   char max_addr[MAX_ADDR_SIZE];
   struct sockaddr *addr = (struct sockaddr *) max_addr;
 
@@ -1044,7 +1044,7 @@ SCM_DEFINE (scm_getpeername, "getpeername", 1, 0, 0,
 #define FUNC_NAME s_scm_getpeername
 {
   int fd;
-  int addr_size = MAX_ADDR_SIZE;
+  socklen_t addr_size = MAX_ADDR_SIZE;
   char max_addr[MAX_ADDR_SIZE];
   struct sockaddr *addr = (struct sockaddr *) max_addr;
 
@@ -1179,7 +1179,7 @@ SCM_DEFINE (scm_recvfrom, "recvfrom!", 2, 3, 0,
   size_t offset;
   size_t cend;
   SCM address;
-  int addr_size = MAX_ADDR_SIZE;
+  socklen_t addr_size = MAX_ADDR_SIZE;
   char max_addr[MAX_ADDR_SIZE];
   struct sockaddr *addr = (struct sockaddr *) max_addr;
 
