@@ -3254,8 +3254,7 @@ SCM_DEFINE (scm_string_split, "string-split", 2, 0, 0,
 SCM_DEFINE (scm_string_filter, "string-filter", 2, 2, 0,
 	    (SCM s, SCM char_pred, SCM start, SCM end),
 	    "Filter the string @var{s}, retaining only those characters\n"
-	    "which satisfy @var{char_pred}.  The result may share storage\n"
-	    "with @var{s}.\n"
+	    "which satisfy @var{char_pred}.\n"
 	    "\n"
 	    "If @var{char_pred} is a procedure, it is applied to each\n"
 	    "character as a predicate, if it is a character, it is tested\n"
@@ -3271,21 +3270,36 @@ SCM_DEFINE (scm_string_filter, "string-filter", 2, 2, 0,
   MY_VALIDATE_SUBSTRING_SPEC_COPY (1, s, cstr,
 				   3, start, cstart,
 				   4, end, cend);
+
+  /* The explicit loops below stripping leading and trailing non-matches
+     mean we can return a substring if those are the only deletions, making
+     string-filter as efficient as string-trim-both in that case.  */
+
   if (SCM_CHARP (char_pred))
     {
       size_t count;
       char chr;
 
-      /* count chars to keep */
       chr = SCM_CHAR (char_pred);
+
+      /* strip leading non-matches by incrementing cstart */
+      while (cstart < cend && cstr[cstart] != chr)
+        cstart++;
+
+      /* strip trailing non-matches by decrementing cend */
+      while (cend > cstart && cstr[cend-1] != chr)
+        cend--;
+
+      /* count chars to keep */
       count = 0;
       for (idx = cstart; idx < cend; idx++)
         if (cstr[idx] == chr)
           count++;
 
-      /* if whole of start to end kept then return substring */
       if (count == cend - cstart)
         {
+          /* whole of cstart to cend is to be kept, return a copy-on-write
+             substring */
         result_substring:
           result = scm_i_substring (s, cstart, cend);
         }
@@ -3295,6 +3309,14 @@ SCM_DEFINE (scm_string_filter, "string-filter", 2, 2, 0,
   else if (SCM_CHARSETP (char_pred))
     {
       size_t count;
+
+      /* strip leading non-matches by incrementing cstart */
+      while (cstart < cend && ! SCM_CHARSET_GET (char_pred, cstr[cstart]))
+        cstart++;
+
+      /* strip trailing non-matches by decrementing cend */
+      while (cend > cstart && ! SCM_CHARSET_GET (char_pred, cstr[cend-1]))
+        cend--;
 
       /* count chars to be kept */
       count = 0;
@@ -3351,8 +3373,7 @@ SCM_DEFINE (scm_string_filter, "string-filter", 2, 2, 0,
 
 SCM_DEFINE (scm_string_delete, "string-delete", 2, 2, 0,
 	    (SCM s, SCM char_pred, SCM start, SCM end),
-	    "Delete characters satisfying @var{char_pred} from @var{s}.  The\n"
-	    "result may share storage with @var{s}.\n"
+	    "Delete characters satisfying @var{char_pred} from @var{s}.\n"
 	    "\n"
 	    "If @var{char_pred} is a procedure, it is applied to each\n"
 	    "character as a predicate, if it is a character, it is tested\n"
@@ -3368,6 +3389,11 @@ SCM_DEFINE (scm_string_delete, "string-delete", 2, 2, 0,
   MY_VALIDATE_SUBSTRING_SPEC_COPY (1, s, cstr,
 				   3, start, cstart,
 				   4, end, cend);
+
+  /* The explicit loops below stripping leading and trailing matches mean we
+     can return a substring if those are the only deletions, making
+     string-delete as efficient as string-trim-both in that case.  */
+
   if (SCM_CHARP (char_pred))
     {
       size_t count;
@@ -3375,15 +3401,24 @@ SCM_DEFINE (scm_string_delete, "string-delete", 2, 2, 0,
 
       chr = SCM_CHAR (char_pred);
 
+      /* strip leading matches by incrementing cstart */
+      while (cstart < cend && cstr[cstart] == chr)
+        cstart++;
+
+      /* strip trailing matches by decrementing cend */
+      while (cend > cstart && cstr[cend-1] == chr)
+        cend--;
+
       /* count chars to be kept */
       count = 0;
       for (idx = cstart; idx < cend; idx++)
         if (cstr[idx] != chr)
           count++;
 
-      /* if whole of start to end kept then return substring */
       if (count == cend - cstart)
         {
+          /* whole of cstart to cend is to be kept, return a copy-on-write
+             substring */
         result_substring:
           result = scm_i_substring (s, cstart, cend);
         }
@@ -3411,14 +3446,20 @@ SCM_DEFINE (scm_string_delete, "string-delete", 2, 2, 0,
     {
       size_t count;
 
+      /* strip leading matches by incrementing cstart */
+      while (cstart < cend && SCM_CHARSET_GET (char_pred, cstr[cstart]))
+        cstart++;
+
+      /* strip trailing matches by decrementing cend */
+      while (cend > cstart && SCM_CHARSET_GET (char_pred, cstr[cend-1]))
+        cend--;
+
       /* count chars to be kept */
       count = 0;
       for (idx = cstart; idx < cend; idx++)
         if (! SCM_CHARSET_GET (char_pred, cstr[idx]))
           count++;
 
-      /* if whole of start to end kept then return substring, including
-         possibly s itself */
       if (count == cend - cstart)
         goto result_substring;
       else
