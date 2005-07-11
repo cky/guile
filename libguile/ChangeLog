@@ -1,3 +1,10 @@
+2005-07-10  Kevin Ryde  <user42@zip.com.au>
+
+	* socket.c (scm_inet_pton, scm_inet_ntop): Pointer cast to scm_t_uint8
+	for scm ipv6 funcs, gcc 4 is picky about char* vs uchar*.
+	(scm_getsockopt, scm_accept, scm_getsockname, scm_getpeername,
+	scm_recvfrom) Use socklen_t, gcc 4 is picky about int* vs socklen_t*.
+
 2005-07-01  Han-Wen Nienhuys  <hanwen@xs4all.nl>
 
 	* gc-card.c (scm_i_card_statistics): init tag.
