@@ -36,7 +36,7 @@
 void scm_error_pair_access (SCM non_pair)
 {
   static unsigned int running = 0;
-  SCM message = scm_from_locale_string ("Non-pair accessed with SCM_C[AD]R: `~S´\n");
+  SCM message = scm_from_locale_string ("Non-pair accessed with SCM_C[AD]R: `~S'\n");
 
   if (!running)
     {
