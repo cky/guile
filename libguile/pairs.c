@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,2000,2001, 2004 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,2000,2001, 2004, 2005 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -36,7 +36,7 @@
 void scm_error_pair_access (SCM non_pair)
 {
   static unsigned int running = 0;
-  SCM message = scm_makfrom0str ("Non-pair accessed with SCM_C[AD]R: `~S´\n");
+  SCM message = scm_from_locale_string ("Non-pair accessed with SCM_C[AD]R: `~S´\n");
 
   if (!running)
     {
