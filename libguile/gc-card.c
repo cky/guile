@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2004 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2004, 2005 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -447,7 +447,7 @@ typedef struct scm_dbg_t_double_cell {
 
 int scm_dbg_gc_marked_p (SCM obj);
 scm_t_cell * scm_dbg_gc_get_card (SCM obj);
-long * scm_dbg_gc_get_bvec (SCM obj);
+scm_t_c_bvec_long * scm_dbg_gc_get_bvec (SCM obj);
 
 
 int
@@ -468,7 +468,7 @@ scm_dbg_gc_get_card (SCM obj)
     return NULL;
 }
 
-long *
+scm_t_c_bvec_long *
 scm_dbg_gc_get_bvec (SCM obj)
 {
   if (!SCM_IMP (obj))
