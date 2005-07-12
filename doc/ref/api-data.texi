@@ -2819,71 +2819,33 @@ characters.
 @end deffn
 
 @deffn {Scheme Procedure} string-trim s [char_pred [start [end]]]
+@deffnx {Scheme Procedure} string-trim-right s [char_pred [start [end]]]
+@deffnx {Scheme Procedure} string-trim-both s [char_pred [start [end]]]
 @deffnx {C Function} scm_string_trim (s, char_pred, start, end)
-Trim @var{s} by skipping over all characters on the left
-that satisfy the parameter @var{char_pred}:
-
-@itemize @bullet
-@item
-if it is the character @var{ch}, characters equal to
-@var{ch} are trimmed,
-
-@item
-if it is a procedure @var{pred} characters that
-satisfy @var{pred} are trimmed,
-
-@item
-if it is a character set, characters in that set are trimmed.
-@end itemize
-
-If called without a @var{char_pred} argument, all whitespace is
-trimmed.
-@end deffn
-
-@deffn {Scheme Procedure} string-trim-right s [char_pred [start [end]]]
 @deffnx {C Function} scm_string_trim_right (s, char_pred, start, end)
-Trim @var{s} by skipping over all characters on the rightt
-that satisfy the parameter @var{char_pred}:
-
-@itemize @bullet
-@item
-if it is the character @var{ch}, characters equal to @var{ch}
-are trimmed,
-
-@item
-if it is a procedure @var{pred} characters that satisfy
-@var{pred} are trimmed,
-
-@item
-if it is a character sets, all characters in that set are
-trimmed.
-@end itemize
-
-If called without a @var{char_pred} argument, all whitespace is
-trimmed.
-@end deffn
-
-@deffn {Scheme Procedure} string-trim-both s [char_pred [start [end]]]
 @deffnx {C Function} scm_string_trim_both (s, char_pred, start, end)
-Trim @var{s} by skipping over all characters on both sides of
-the string that satisfy the parameter @var{char_pred}:
+Trim occurrances of @var{char_pred} from the ends of @var{s}.
 
-@itemize @bullet
-@item
-if it is the character @var{ch}, characters equal to @var{ch}
-are trimmed,
+@code{string-trim} trims @var{char_pred} characters from the left
+(start) of the string, @code{string-trim-right} trims them from the
+right (end) of the string, @code{string-trim-both} trims from both
+ends.
 
-@item
-if it is a procedure @var{pred} characters that satisfy
-@var{pred} are trimmed,
+@var{char_pred} can be a character, a character set, or a predicate
+procedure to call on each character.  If @var{char_pred} is not given
+the default is whitespace as per @code{char-set:whitespace}
+(@pxref{Standard Character Sets}).
 
-@item
-if it is a character set, the characters in the set are
-trimmed.
-@end itemize
-
-If called without a @var{char_pred} argument, all whitespace is
-trimmed.
+@example
+(string-trim " x ")              @result{} "x "
+(string-trim-right "banana" #\a) @result{} "banan"
+(string-trim-both ".,xy:;" char-set:punctuation)
+                  @result{} "xy"
+(string-trim-both "xyzzy" (lambda (c)
+                             (or (eqv? c #\x)
+                                 (eqv? c #\y))))
+                  @result{} "zz"
+@end example
 @end deffn
 
 @node String Modification
