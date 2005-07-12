@@ -1114,7 +1114,7 @@
 	try-module-dynamic-link): Removed.
 
 	(module-make-local-var!, module-ensure-local-variable!,
-	module-define!): Eliminate call to `variable-set-name-hint!´.
+	module-define!): Eliminate call to `variable-set-name-hint!'.
 
 	(try-load-module, use-syntax, module-export!): Remove deprecated
 	functionality.

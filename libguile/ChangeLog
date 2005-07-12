@@ -8754,7 +8754,7 @@
 	* deprecation.c (scm_include_deprecated_features): Simplified.
 
 	* eval.c (EVALCAR, unmemocopy), eval.h (SCM_XEVALCAR): Use
-	`SCM_IMP´ instead of `!SCM_CELLP´.
+	`SCM_IMP' instead of `!SCM_CELLP´.
 
 	* eval.c (unmemocopy): Eliminate redundant SCM_CELLP tests.
 	Extract side-effecting operations from macros.
@@ -9664,7 +9664,7 @@
 	(scm_stack_ref, scm_frame_previous, scm_frame_next):  Fix
 	signedness.
 
-	(scm_last_stack_frame):  Remove bogus `;´.
+	(scm_last_stack_frame):  Remove bogus `;'.
 
 	* stacks.h (SCM_FRAMEP):  Fix type check.
 
@@ -9774,7 +9774,7 @@
 
 	* struct.h (SCM_STRUCT_VTABLE_FLAGS):  New macro.
 
-	* goops.h (SCM_NUMBER_OF_SLOTS):  Removed bogus `\´ at the end of
+	* goops.h (SCM_NUMBER_OF_SLOTS):  Removed bogus `\' at the end of
 	the macro definition.
 
 	(SCM_CLASSP, SCM_INSTANCEP, SCM_PUREGENERICP, SCM_ACCESSORP,
@@ -10108,7 +10108,7 @@
 
 	* objects.h (SCM_SET_CLASS_INSTANCE_SIZE):  Fixed typing.
 
-	* ramap.c (ramap_rp):  Removed bogus `;´.
+	* ramap.c (ramap_rp):  Removed bogus `;'.
 
 	* sort.c (scm_restricted_vector_sort_x):  Fixed signedness
 	problem.
