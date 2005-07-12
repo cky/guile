@@ -1,3 +1,23 @@
+2005-07-12  Kevin Ryde  <user42@zip.com.au>
+
+	* eval.c (scm_dbg_make_iloc): Should be SCM_IFRAMEMAX and
+	SCM_IDISTMAX, and cast uints through scm_t_bits to make gcc happy.
+	* pairs.c (scm_error_pair_access): Use scm_from_locale_string rather
+	than scm_makfrom0str.
+	Reported by Ken Raeburn.
+	
+	* gc-card.c (scm_dbg_gc_get_bvec): Change return from long* to
+	scm_t_c_bvec_long*, gcc 4 doesn't like different pointer targets when
+	returning SCM_GC_CARD_BVEC.
+	
+	* pairs.c (scm_error_pair_access): Plain ascii ' in error message
+	rather than latin-1 acute accent, the latter may not print on all
+	terminals.
+
+	* srfi-13.c (scm_string_filter, scm_string_delete): Strip leading and
+	trailing deletions, so as to return a substring if those are the only
+	changes.
+
 2005-07-10  Kevin Ryde  <user42@zip.com.au>
 
 	* socket.c (scm_inet_pton, scm_inet_ntop): Pointer cast to scm_t_uint8
