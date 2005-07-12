@@ -1,3 +1,13 @@
+2005-07-12  Kevin Ryde  <user42@zip.com.au>
+
+	* api-data.texi (String Selection): In string-pad, don't say anything
+	about sharing strings, decided against doing that.
+	(Miscellaneous String Operations): Ditto in string-filter and
+	string-delete.
+
+	* api-data.texi (String Selection): Merge descriptions of string-trim,
+	string-trim-right and string-trim-both for brevity.
+
 2005-06-24  Kevin Ryde  <user42@zip.com.au>
 
 	* api-options.texi (Debugger options): Cross reference new Tail Calls
