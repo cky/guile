@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005
  * Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
@@ -372,8 +372,8 @@ SCM_DEFINE (scm_dbg_make_iloc, "dbg-make-iloc", 3, 0, 0,
 	    "offset @var{binding} and the cdr flag @var{cdrp}.")
 #define FUNC_NAME s_scm_dbg_make_iloc
 {
-  return SCM_MAKE_ILOC (scm_to_unsigned_integer (frame, 0, SCM_IFRAME_MAX),
-			scm_to_unsigned_integer (binding, 0, SCM_IDIST_MAX),
+  return SCM_MAKE_ILOC ((scm_t_bits) scm_to_unsigned_integer (frame, 0, SCM_IFRAMEMAX),
+			(scm_t_bits) scm_to_unsigned_integer (binding, 0, SCM_IDISTMAX),
 			scm_is_true (cdrp));
 }
 #undef FUNC_NAME
