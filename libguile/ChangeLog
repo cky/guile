@@ -1,3 +1,17 @@
+2005-07-18  Mikael Djurfeldt  <mdj@d14n36.pdc.kth.se>
+
+	Some changes towards making it possible to run Guile on the EM64T
+	platform.
+
+	* gc.c (scm_gc_stats): Bugfix: Measure size of the type we are
+	mallocating for (unsigned long *bounds).
+
+	* hashtab.c (scm_i_rehash): Cast SCM_HASHTABLE_FLAGS (table) to
+	scm_t_bits before storing them in the type word.
+	
+	* gc.c (tag_table_to_type_alist): Modified type of c_tag from
+	scm_t_bits to int.
+
 2005-07-12  Kevin Ryde  <user42@zip.com.au>
 
 	* eval.c (scm_dbg_make_iloc): Should be SCM_IFRAMEMAX and

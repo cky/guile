@@ -264,7 +264,7 @@ tag_table_to_type_alist (void *closure, SCM key, SCM val, SCM acc)
 {
   if (scm_is_integer (key))
     {
-      scm_t_bits c_tag = scm_to_int (key);
+      int c_tag = scm_to_int (key);
 
       char const * name = scm_i_tag_name (c_tag);
       if (name != NULL)
@@ -329,7 +329,7 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
     temporarily store the numbers, so as not to cause GC.
    */
  
-  bounds = malloc (sizeof (int)  * table_size * 2);
+  bounds = malloc (sizeof (unsigned long)  * table_size * 2);
   if (!bounds)
     abort();
   for (i = table_size; i--; )

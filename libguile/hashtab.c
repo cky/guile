@@ -176,7 +176,7 @@ scm_i_rehash (SCM table,
   SCM_SET_HASHTABLE_VECTOR (table, new_buckets);
   SCM_SET_HASHTABLE_N_ITEMS (table, 0);
   if (SCM_HASHTABLE_WEAK_P (table))
-    SCM_I_SET_WVECT_TYPE (buckets, (SCM_HASHTABLE_FLAGS (table)));
+    SCM_I_SET_WVECT_TYPE (buckets, ((scm_t_bits) SCM_HASHTABLE_FLAGS (table)));
 
   old_size = SCM_SIMPLE_VECTOR_LENGTH (buckets);
   for (i = 0; i < old_size; ++i)
