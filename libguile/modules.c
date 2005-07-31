@@ -347,18 +347,6 @@ SCM_DEFINE (scm_standard_eval_closure, "standard-eval-closure", 1, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_eval_closure_module, "eval-closure-module", 1, 0, 0,
-	    (SCM closure),
-	    "Return the module for @var{closure}.")
-#define FUNC_NAME s_scm_eval_closure_module
-{
-  SCM_ASSERT_TYPE(SCM_EVAL_CLOSURE_P (closure), closure, SCM_ARG1, FUNC_NAME, "eval-closure");
-  return SCM_PACK (SCM_CELL_WORD_1(closure));
-}
-#undef FUNC_NAME
- 
-
-
 SCM_DEFINE (scm_standard_interface_eval_closure,
 	    "standard-interface-eval-closure", 1, 0, 0,
 	    (SCM module),
