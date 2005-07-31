@@ -1,3 +1,9 @@
+2005-08-01  Marius Vollmer  <mvo@zagadka.de>
+
+	* boot-9.scm (set-module-eval-closure!): Undone change from
+	2005-06-10; with the new weak hashtable semantics, cyclic
+	references are no longer a problem.
+
 2005-07-09  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* debugger.scm: Remove comments which are now incorrect.

@@ -1,5 +1,10 @@
 2005-08-01  Marius Vollmer  <mvo@zagadka.de>
 
+	* modules.h, modules.c (scm_eval_closure_module): Removed, we
+	already have scm_lookup_closure_module, which does the same thing.
+	
+2005-08-01  Marius Vollmer  <mvo@zagadka.de>
+
 	New marking algorithm for weak hashtables that fixes the problem
 	that references from the non-weak value to the associated weak
 	key (for example) would prevent the entry from ever being dropped.
