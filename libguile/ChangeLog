@@ -1,3 +1,51 @@
+2005-08-01  Marius Vollmer  <mvo@zagadka.de>
+
+	New marking algorithm for weak hashtables that fixes the problem
+	that references from the non-weak value to the associated weak
+	key (for example) would prevent the entry from ever being dropped.
+
+	Guardians have been changed back to their original semantics and
+	are no longer greedy and no longer drop cycles.
+	
+	* gc-mark.c (scm_mark_all): Do not rely on hooks to run the weak
+	hashtable and guardian machinery but call the relevant functions
+	directly.
+
+	* guardians.h, guardians.c, deprecated.h,
+	deprecated.c (scm_destroy_guardian_x, scm_guardian_greedy_p,
+	scm_guardian_destroyed_p, scm_guard, scm_get_one_zombie):
+	Deprecated and moved into deprecated.[ch].
+
+	* guardians.h, guardians.c: Mostly rewritten.
+	(scm_i_init_guardians_for_gc,
+	scm_i_identify_inaccessible_guardeds,
+	scm_i_mark_inaccessible_guardeds): New.
+	
+	* weaks.h, weaks.c (SCM_I_WVECT_TYPE, SCM_I_SET_WVECT_TYPE): New.
+	(SCM_I_WVECT_N_ITEMS, SCM_I_SET_WVECT_N_ITEMS): New.
+	(SCM_WVECTF_NOSCAN, SCM_WVECT_NOSCAN_P): Removed.
+	(scm_weaks_prehistory): Removed.
+	(scm_i_init_weak_vectors_for_gc, scm_i_mark_weak_vector,
+	scm_i_mark_weak_vectors_non_weaks,
+	scm_i_remove_weaks_from_weak_vectors, scm_i_remove_weaks): New.
+	(scm_weak_vector_gc_init, scm_mark_weak_vector_spines,
+	scm_scan_weak_vectors): Removed.
+	
+	* hashtab.h (scm_i_scan_weak_hashtables): New.
+	* hashtab.c (make_hash_table, scm_i_rehash): Do not use
+	SCM_WVECTF_NOSCAN.
+	(hashtable_print): Use SCM_HASHTABLE_N_ITEMS instead of
+	t->n_items.
+	(scan_weak_hashtables, scm_i_scan_weak_hashtables): Renamed former
+	to latter.  Do not scan the alists themselves, this is done by the
+	weak vector code now.  Just update the element count.
+
+	* vectors.h (SCM_I_WVECT_TYPE, SCM_I_WVECT_EXTRA): Renamed former
+	to latter.  The type is now only part of the cell word.
+	(SCM_I_SET_WVECT_TYPE, SCM_I_SET_WVECT_EXTRA): Likewise.
+
+	* init.c (scm_i_init_guile): Do not call scm_weaks_prehistory.
+
 2005-07-18  Mikael Djurfeldt  <mdj@d14n36.pdc.kth.se>
 
 	Some changes towards making it possible to run Guile on the EM64T
