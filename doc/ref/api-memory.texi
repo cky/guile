@@ -392,50 +392,56 @@ weak hashes are also weak vectors.
 @node Guardians
 @subsection Guardians
 
-@deffn {Scheme Procedure} make-guardian [greedy?]
-@deffnx {C Function} scm_make_guardian (greedy_p)
-Create a new guardian.
-A guardian protects a set of objects from garbage collection,
-allowing a program to apply cleanup or other actions.
+Guardians provide a way to be notified about objects that would
+otherwise be collected as garbage.  Guarding them prevents the objects
+from being collected and cleanup actions can be performed on them, for
+example.
+
+See R. Kent Dybvig, Carl Bruggeman, and David Eby (1993) "Guardians in
+a Generation-Based Garbage Collector".  ACM SIGPLAN Conference on
+Programming Language Design and Implementation, June 1993.
+
+@deffn {Scheme Procedure} make-guardian
+@deffnx {C Function} scm_make_guardian ()
+Create a new guardian.  A guardian protects a set of objects from
+garbage collection, allowing a program to apply cleanup or other
+actions.
 
 @code{make-guardian} returns a procedure representing the guardian.
-Calling the guardian procedure with an argument adds the
-argument to the guardian's set of protected objects.
-Calling the guardian procedure without an argument returns
-one of the protected objects which are ready for garbage
-collection, or @code{#f} if no such object is available.
-Objects which are returned in this way are removed from
+Calling the guardian procedure with an argument adds the argument to
+the guardian's set of protected objects.  Calling the guardian
+procedure without an argument returns one of the protected objects
+which are ready for garbage collection, or @code{#f} if no such object
+is available.  Objects which are returned in this way are removed from
 the guardian.
 
-@code{make-guardian} takes one optional argument that says whether the
-new guardian should be greedy or sharing.  If there is any chance
-that any object protected by the guardian may be resurrected,
-then you should make the guardian greedy (this is the default).
+You can put a single object into a guardian more than once and you can
+put a single object into more than one guardian.  The object will then
+be returned multiple times by the guardian procedures.
 
-See R. Kent Dybvig, Carl Bruggeman, and David Eby (1993)
-"Guardians in a Generation-Based Garbage Collector".
-ACM SIGPLAN Conference on Programming Language Design
-and Implementation, June 1993.
+An object is eligible to be returned from a guardian when it is no
+longer referenced from outside any guardian.
 
-(the semantics are slightly different at this point, but the
-paper still (mostly) accurately describes the interface).
-@end deffn
+There is no guarantee about the order in which objects are returned
+from a guardian.  If you want to impose an order on finalization
+actions, for example, you can do that by keeping objects alive in some
+global data structure until they are no longer needed for finalizing
+other objects.
 
-@deffn {Scheme Procedure} destroy-guardian! guardian
-@deffnx {C Function} scm_destroy_guardian_x (guardian)
-Destroys @var{guardian}, by making it impossible to put any more
-objects in it or get any objects from it.  It also unguards any
-objects guarded by @var{guardian}.
-@end deffn
+Being an element in a weak vector, a key in a hash table with weak
+keys, or a value in a hash table with weak value does not prevent an
+object from being returned by a guardian.  But as long as an object
+can be returned from a guardian it will not be removed from such a
+weak vector or hash table.  In other words, a weak link does not
+prevent an object from being considered collectable, but being inside
+a guardian prevents a weak link from being broken.
 
-@deffn {Scheme Procedure} guardian-greedy? guardian
-@deffnx {C Function} scm_guardian_greedy_p (guardian)
-Return @code{#t} if @var{guardian} is a greedy guardian, otherwise @code{#f}.
-@end deffn
-
-@deffn {Scheme Procedure} guardian-destroyed? guardian
-@deffnx {C Function} scm_guardian_destroyed_p (guardian)
-Return @code{#t} if @var{guardian} has been destroyed, otherwise @code{#f}.
+A key in a weak key hash table can be though of as having a strong
+reference to its associated value as long as the key is accessible.
+Consequently, when the key only accessible from within a guardian, the
+reference from the key to the value is also considered to be coming
+from within a guardian.  Thus, if there is no other reference to the
+value, it is eligible to be returned from a guardian.
 @end deffn
 
 

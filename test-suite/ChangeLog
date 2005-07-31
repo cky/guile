@@ -1,3 +1,12 @@
+2005-08-01  Marius Vollmer  <mvo@zagadka.de>
+
+
+	* tests/weaks.test: Do not fail when the GC does not collect an
+	object, report it as 'unresolved'.
+
+	* tests/guardians.test: Adapted to new (original) semantics.  test
+	guardingobjects multiple times.
+	
 2005-06-12  Marius Vollmer  <mvo@zagadka.de>
 
 	* standalone/test-gh.c: Do nothing when deprecated things are

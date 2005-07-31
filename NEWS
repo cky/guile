@@ -195,6 +195,17 @@ be used with '-e'.  For example, you can now write a script like
 
 * Changes to Scheme functions and syntax
 
+** Guardians have changed back to their original semantics
+
+Guardians now behave like described in the paper by Dybvig et al.  In
+particular, they no longer make guarantees about the order in which
+they return objects, and they can no longer be greedy.
+
+They no longer drop cyclic data structures.
+
+The C function scm_make_guardian has been changed incompatibly and no
+longer takes the 'greedy_p' argument.
+
 ** New function hashx-remove!
 
 This function completes the set of 'hashx' functions.
