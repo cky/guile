@@ -1,3 +1,9 @@
+2005-08-01  Marius Vollmer  <mvo@zagadka.de>
+
+	* srfi-1.c (check_map_args): Move check_map_error label and elt
+	variable outside of loop scope so that we do not jump past the
+	initialization of elt.
+
 2005-06-12  Marius Vollmer  <mvo@zagadka.de>
 
 	* srfi-1.c: Do not use INUM macros, they are deprecated.
