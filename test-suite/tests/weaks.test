@@ -33,7 +33,8 @@
 ;;; other reasons why they might not work as tested here, so if you
 ;;; haven't done anything to weaks, don't sweat it :)
 
-(use-modules (ice-9 weak-vector))
+(use-modules (test-suite lib)
+	     (ice-9 weak-vector))
 
 ;;; Creation functions 
 
@@ -114,11 +115,12 @@
    (pass-if "dies"
 	    (begin
 	      (gc)
-	      (or (not (vector-ref global-weak 0))
-		  (not (vector-ref global-weak 1))
-		  (not (vector-ref global-weak 2))
-		  (not (vector-ref global-weak 3))
-		  (not (vector-ref global-weak 4)))))))
+	      (or (and (not (vector-ref global-weak 0))
+		       (not (vector-ref global-weak 1))
+		       (not (vector-ref global-weak 2))
+		       (not (vector-ref global-weak 3))
+		       (not (vector-ref global-weak 4)))
+		  (throw 'unresolved))))))
 
  (let ((x (make-weak-key-alist-vector 17))
       (y (make-weak-value-alist-vector 17))
