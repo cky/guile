@@ -1266,11 +1266,10 @@
   (let ((setter (record-modifier module-type 'eval-closure)))
     (lambda (module closure)
       (setter module closure)
-      
-      ;; do not set procedure properties on closures.
-      ;; since procedure properties are weak-hashes, they cannot
-      ;; have cyclical data, otherwise the data cannot be GC-ed.
-      )))
+      ;; Make it possible to lookup the module from the environment.
+      ;; This implementation is correct since an eval closure can belong
+      ;; to maximally one module.
+      (set-procedure-property! closure 'module module))))
 
 
 
