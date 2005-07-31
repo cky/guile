@@ -1222,20 +1222,15 @@ check_map_args (SCM argv,
 		const char *who)
 {
   long i;
+  SCM elt;
 
   for (i = SCM_SIMPLE_VECTOR_LENGTH (argv) - 1; i >= 1; i--)
     {
-      SCM elt = SCM_SIMPLE_VECTOR_REF (argv, i);
       long elt_len;
+      elt = SCM_SIMPLE_VECTOR_REF (argv, i);
 
       if (!(scm_is_null (elt) || scm_is_pair (elt)))
-	{
-	check_map_error:
-	  if (gf)
-	    scm_apply_generic (gf, scm_cons (proc, args));
-	  else
-	    scm_wrong_type_arg (who, i + 2, elt);
-	}
+	goto check_map_error;
 	
       elt_len = srfi1_ilength (elt);
       if (elt_len < -1)
@@ -1244,10 +1239,18 @@ check_map_args (SCM argv,
       if (len < 0 || (elt_len >= 0 && elt_len < len))
 	len = elt_len;
     }
+
   if (len < 0)
-    /* i == 0 */
-    goto check_map_error;
-  
+    {
+      /* i == 0 */
+      elt = SCM_EOL;
+    check_map_error:
+      if (gf)
+	scm_apply_generic (gf, scm_cons (proc, args));
+      else
+	scm_wrong_type_arg (who, i + 2, elt);
+    }
+
   scm_remember_upto_here_1 (argv);
   return len;
 }
