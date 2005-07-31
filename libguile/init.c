@@ -428,7 +428,6 @@ scm_i_init_guile (SCM_STACKITEM *base)
   
   scm_struct_prehistory ();	  /* requires storage */
   scm_symbols_prehistory ();      /* requires storage */
-  scm_weaks_prehistory ();	  /* requires storage */
   scm_init_subr_table ();
   scm_environments_prehistory (); /* requires storage */
   scm_modules_prehistory ();      /* requires storage and hash tables */

@@ -18,6 +18,8 @@
 
 
 
+#include <stdio.h>
+
 #include "libguile/_scm.h"
 #include "libguile/alist.h"
 #include "libguile/hash.h"
@@ -88,12 +90,7 @@ make_hash_table (int flags, unsigned long k, const char *func_name)
     ++i;
   n = hashtable_size[i];
   if (flags)
-    /* The SCM_WVECTF_NOSCAN flag informs the weak vector code not to
-       perform the final scan for broken references.  Instead we do
-       that ourselves in scan_weak_hashtables. */
-    vector = scm_i_allocate_weak_vector (flags | SCM_WVECTF_NOSCAN,
-					 scm_from_int (n),
-					 SCM_EOL);
+    vector = scm_i_allocate_weak_vector (flags, scm_from_int (n), SCM_EOL);
   else
     vector = scm_c_make_vector (n, SCM_EOL);
   t = scm_gc_malloc (sizeof (*t), s_hashtable);
@@ -158,8 +155,7 @@ scm_i_rehash (SCM table,
   buckets = SCM_HASHTABLE_VECTOR (table);
   
   if (SCM_HASHTABLE_WEAK_P (table))
-    new_buckets = scm_i_allocate_weak_vector (SCM_HASHTABLE_FLAGS (table)
-					      | SCM_WVECTF_NOSCAN,
+    new_buckets = scm_i_allocate_weak_vector (SCM_HASHTABLE_FLAGS (table),
 					      scm_from_ulong (new_size),
 					      SCM_EOL);
   else
@@ -167,16 +163,13 @@ scm_i_rehash (SCM table,
 
   /* When this is a weak hashtable, running the GC might change it.
      We need to cope with this while rehashing its elements.  We do
-     this by first installing the new, empty bucket vector and turning
-     the old bucket vector into a regularily scanned weak vector.
-     Then we remove the elements from the old bucket vector and insert
-     them into the new one.
+     this by first installing the new, empty bucket vector.  Then we
+     remove the elements from the old bucket vector and insert them
+     into the new one.
   */
 
   SCM_SET_HASHTABLE_VECTOR (table, new_buckets);
   SCM_SET_HASHTABLE_N_ITEMS (table, 0);
-  if (SCM_HASHTABLE_WEAK_P (table))
-    SCM_I_SET_WVECT_TYPE (buckets, ((scm_t_bits) SCM_HASHTABLE_FLAGS (table)));
 
   old_size = SCM_SIMPLE_VECTOR_LENGTH (buckets);
   for (i = 0; i < old_size; ++i)
@@ -206,7 +199,6 @@ scm_i_rehash (SCM table,
 static int
 hashtable_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
-  scm_t_hashtable *t = SCM_HASHTABLE (exp);
   scm_puts ("#<", port);
   if (SCM_HASHTABLE_WEAK_KEY_P (exp))
     scm_puts ("weak-key-", port);
@@ -215,7 +207,7 @@ hashtable_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
   else if (SCM_HASHTABLE_DOUBLY_WEAK_P (exp))
     scm_puts ("doubly-weak-", port);
   scm_puts ("hash-table ", port);
-  scm_uintprint (t->n_items, 10, port);
+  scm_uintprint (SCM_HASHTABLE_N_ITEMS (exp), 10, port);
   scm_putc ('/', port);
   scm_uintprint (SCM_SIMPLE_VECTOR_LENGTH (SCM_HASHTABLE_VECTOR (exp)),
 		 10, port);
@@ -228,12 +220,9 @@ hashtable_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
 /* keep track of hash tables that need to shrink after scan */
 static SCM to_rehash = SCM_EOL;
 
-/* scan hash tables for broken references, remove them, and update
-   hash tables item count */
-static void *
-scan_weak_hashtables (void *dummy1 SCM_UNUSED,
-		      void *dummy2 SCM_UNUSED,
-		      void *dummy3 SCM_UNUSED)
+/* scan hash tables and update hash tables item count */
+void
+scm_i_scan_weak_hashtables ()
 {
   SCM *next = &weak_hashtables;
   SCM h = *next;
@@ -243,34 +232,12 @@ scan_weak_hashtables (void *dummy1 SCM_UNUSED,
 	*next = h = SCM_HASHTABLE_NEXT (h);
       else
 	{
-	  SCM alist;
-	  int i, n = SCM_HASHTABLE_N_BUCKETS (h);
-	  int weak_car = SCM_HASHTABLE_FLAGS (h) & SCM_HASHTABLEF_WEAK_CAR;
-	  int weak_cdr = SCM_HASHTABLE_FLAGS (h) & SCM_HASHTABLEF_WEAK_CDR;
-	  int check_size_p = 0;
-	  for (i = 0; i < n; ++i)
-	    {
-	      SCM *next_spine = NULL;
-	      alist = SCM_HASHTABLE_BUCKET (h, i);
-	      while (scm_is_pair (alist))
-		{
-		  if ((weak_car && UNMARKED_CELL_P (SCM_CAAR (alist)))
-		      || (weak_cdr && UNMARKED_CELL_P (SCM_CDAR (alist))))
-		    {
-		      if (next_spine)
-			*next_spine = SCM_CDR (alist);
-		      else
-			SCM_SET_HASHTABLE_BUCKET (h, i, SCM_CDR (alist));
-		      SCM_HASHTABLE_DECREMENT (h);
-		      check_size_p = 1;
-		    }
-		  else
-		    next_spine = SCM_CDRLOC (alist);
-		  alist = SCM_CDR (alist);
-		}
-	    }
-	  if (check_size_p
-	      && SCM_HASHTABLE_N_ITEMS (h) < SCM_HASHTABLE_LOWER (h))
+	  SCM vec = SCM_HASHTABLE_VECTOR (h);
+	  size_t delta = SCM_I_WVECT_DELTA (vec);
+	  SCM_I_SET_WVECT_DELTA (vec, 0);
+	  SCM_SET_HASHTABLE_N_ITEMS (h, SCM_HASHTABLE_N_ITEMS (h) - delta);
+
+	  if (SCM_HASHTABLE_N_ITEMS (h) < SCM_HASHTABLE_LOWER (h))
 	    {
 	      SCM tmp = SCM_HASHTABLE_NEXT (h);
 	      /* temporarily move table from weak_hashtables to to_rehash */
@@ -285,7 +252,6 @@ scan_weak_hashtables (void *dummy1 SCM_UNUSED,
 	    }
 	}
     }
-  return 0;
 }
 
 static void *
@@ -1104,7 +1070,6 @@ scm_hashtab_prehistory ()
   scm_set_smob_mark (scm_tc16_hashtable, scm_markcdr);
   scm_set_smob_print (scm_tc16_hashtable, hashtable_print);
   scm_set_smob_free (scm_tc16_hashtable, hashtable_free);
-  scm_c_hook_add (&scm_after_sweep_c_hook, scan_weak_hashtables, 0, 0);
   scm_c_hook_add (&scm_after_gc_c_hook, rehash_after_gc, 0, 0);
 }
 

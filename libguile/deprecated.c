@@ -1439,6 +1439,59 @@ scm_i_defer_ints_etc ()
      "Use a mutex instead if appropriate.");
 }
 
+SCM
+scm_guard (SCM guardian, SCM obj, int throw_p)
+{
+  scm_c_issue_deprecation_warning
+    ("scm_guard is deprecated.  Use scm_call_1 instead.");
+
+  return scm_call_1 (guardian, obj);
+}
+
+SCM
+scm_get_one_zombie (SCM guardian)
+{
+  scm_c_issue_deprecation_warning
+    ("scm_guard is deprecated.  Use scm_call_0 instead.");
+
+  return scm_call_0 (guardian);
+}
+
+SCM_DEFINE (scm_guardian_destroyed_p, "guardian-destroyed?", 1, 0, 0, 
+            (SCM guardian),
+            "Return @code{#t} if @var{guardian} has been destroyed, otherwise @code{#f}.")
+#define FUNC_NAME s_scm_guardian_destroyed_p       
+{
+  scm_c_issue_deprecation_warning
+    ("'guardian-destroyed?' is deprecated.");
+  return SCM_BOOL_F;
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_guardian_greedy_p, "guardian-greedy?", 1, 0, 0,
+            (SCM guardian),
+            "Return @code{#t} if @var{guardian} is a greedy guardian, otherwise @code{#f}.")
+#define FUNC_NAME s_scm_guardian_greedy_p  
+{
+  scm_c_issue_deprecation_warning
+    ("'guardian-greedy?' is deprecated.");
+  return SCM_BOOL_F;
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_destroy_guardian_x, "destroy-guardian!", 1, 0, 0, 
+            (SCM guardian),
+            "Destroys @var{guardian}, by making it impossible to put any more\n"
+            "objects in it or get any objects from it.  It also unguards any\n"
+            "objects guarded by @var{guardian}.")
+#define FUNC_NAME s_scm_destroy_guardian_x
+{
+  scm_c_issue_deprecation_warning
+    ("'destroy-guardian!' is deprecated and ineffective.");
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+
 void
 scm_i_init_deprecated ()
 {

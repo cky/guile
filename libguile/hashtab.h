@@ -97,6 +97,7 @@ SCM_API SCM scm_weak_value_hash_table_p (SCM h);
 SCM_API SCM scm_doubly_weak_hash_table_p (SCM h);
 
 SCM_API void scm_i_rehash (SCM table, unsigned long (*hash_fn)(), void *closure, const char*func_name);
+SCM_API void scm_i_scan_weak_hashtables (void);
 
 SCM_API SCM scm_hash_fn_get_handle (SCM table, SCM obj, unsigned long (*hash_fn) (), SCM (*assoc_fn) (), void * closure);
 SCM_API SCM scm_hash_fn_create_handle_x (SCM table, SCM obj, SCM init, unsigned long (*hash_fn) (), SCM (*assoc_fn) (), void * closure);

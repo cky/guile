@@ -50,6 +50,7 @@ extern unsigned long * __libc_ia64_register_backing_store_base;
 #include "libguile/validate.h"
 #include "libguile/deprecation.h"
 #include "libguile/gc.h"
+#include "libguile/guardians.h"
 
 #ifdef GUILE_DEBUG_MALLOC
 #include "libguile/debug-malloc.h"
@@ -70,7 +71,9 @@ void
 scm_mark_all (void)
 {
   long j;
-  
+
+  scm_i_init_weak_vectors_for_gc ();
+  scm_i_init_guardians_for_gc ();
   
   scm_i_clear_mark_space ();
   
@@ -95,11 +98,55 @@ scm_mark_all (void)
       }
   }
   
-
-  /* FIXME: we should have a means to register C functions to be run
-   * in different phases of GC
-   */
   scm_mark_subr_table ();
+
+  int loops = 0;
+  while (1)
+    {
+      loops++;
+      int again;
+
+      /* Mark the non-weak references of weak vectors.  For a weak key
+	 alist vector, this would mark the values for keys that are
+	 marked.  We need to do this in a loop until everything
+	 settles down since the newly marked values might be keys in
+	 other weak key alist vectors, for example.
+      */
+      again = scm_i_mark_weak_vectors_non_weaks ();
+      if (again)
+	continue;
+
+      /* Now we scan all marked guardians and move all unmarked objects
+	 from the accessible to the inaccessible list.
+      */
+      scm_i_identify_inaccessible_guardeds ();
+
+      /* When we have identified all inaccessible objects, we can mark
+	 them.
+      */
+      again = scm_i_mark_inaccessible_guardeds ();
+
+      /* This marking might have changed the situation for weak vectors
+	 and might have turned up new guardians that need to be processed,
+	 so we do it all over again.
+      */
+      if (again)
+	continue;
+      
+      /* Nothing new marked in this round, we are done.
+       */
+      break;
+    }
+
+  //fprintf (stderr, "%d loops\n", loops);
+
+  /* Remove all unmarked entries from the weak vectors.
+   */
+  scm_i_remove_weaks_from_weak_vectors ();
+  
+  /* Bring hashtables upto date.
+   */
+  scm_i_scan_weak_hashtables ();
 }
 
 /* {Mark/Sweep}
@@ -144,6 +191,7 @@ Perhaps this would work better with an explicit markstack?
 
 
 */
+
 void
 scm_gc_mark_dependencies (SCM p)
 #define FUNC_NAME "scm_gc_mark_dependencies"
@@ -267,62 +315,7 @@ scm_gc_mark_dependencies (SCM p)
       break;
 
     case scm_tc7_wvect:
-      SCM_I_SET_WVECT_GC_CHAIN (ptr, scm_weak_vectors);
-      scm_weak_vectors = ptr;
-      if (SCM_IS_WHVEC_ANY (ptr))
-	{
-	  long x;
-	  long len;
-	  int weak_keys;
-	  int weak_values;
-
-	  len = SCM_SIMPLE_VECTOR_LENGTH (ptr);
-	  weak_keys = SCM_WVECT_WEAK_KEY_P (ptr);
-	  weak_values = SCM_WVECT_WEAK_VALUE_P (ptr);
-
-	  for (x = 0; x < len; ++x)
-	    {
-	      SCM alist;
-	      alist = SCM_SIMPLE_VECTOR_REF (ptr, x);
-
-	      /* mark everything on the alist except the keys or
-	       * values, according to weak_values and weak_keys.  */
-	      while (   scm_is_pair (alist)
-		     && !SCM_GC_MARK_P (alist)
-		     && scm_is_pair (SCM_CAR (alist)))
-		{
-		  SCM kvpair;
-		  SCM next_alist;
-
-		  kvpair = SCM_CAR (alist);
-		  next_alist = SCM_CDR (alist);
-		  /*
-		   * Do not do this:
-		   * 	SCM_SET_GC_MARK (alist);
-		   *	SCM_SET_GC_MARK (kvpair);
-		   *
-		   * It may be that either the key or value is protected by
-		   * an escaped reference to part of the spine of this alist.
-		   * If we mark the spine here, and only mark one or neither of the
-		   * key and value, they may never be properly marked.
-		   * This leads to a horrible situation in which an alist containing
-		   * freelist cells is exported.
-		   *
-		   * So only mark the spines of these arrays last of all marking.
-		   * If somebody confuses us by constructing a weak vector
-		   * with a circular alist then we are hosed, but at least we
-		   * won't prematurely drop table entries.
-		   */
-		  if (!weak_keys)
-		    scm_gc_mark (SCM_CAR (kvpair));
-		  if (!weak_values)
-		    scm_gc_mark (SCM_CDR (kvpair));
-		  alist = next_alist;
-		}
-	      if (SCM_NIMP (alist))
-		scm_gc_mark (alist);
-	    }
-	}
+      scm_i_mark_weak_vector (ptr);
       break;
 
     case scm_tc7_symbol:
@@ -389,8 +382,8 @@ scm_gc_mark_dependencies (SCM p)
     were called with.)
    */
   return ;
-  
-gc_mark_loop:
+
+ gc_mark_loop:
   if (SCM_IMP (ptr))
     return;
 

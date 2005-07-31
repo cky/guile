@@ -42,6 +42,8 @@
 
 
 
+#include <stdio.h>
+
 #include "libguile/_scm.h"
 #include "libguile/vectors.h"
 #include "libguile/lang.h"
@@ -201,131 +203,179 @@ SCM_DEFINE (scm_doubly_weak_alist_vector_p, "doubly-weak-alist-vector?", 1, 0, 0
 }
 #undef FUNC_NAME
 
-
-static void *
-scm_weak_vector_gc_init (void *dummy1 SCM_UNUSED,
-			 void *dummy2 SCM_UNUSED,
-			 void *dummy3 SCM_UNUSED)
-{
-  scm_weak_vectors = SCM_EOL;
-
-  return 0;
-}
-
-
-static void *
-scm_mark_weak_vector_spines (void *dummy1 SCM_UNUSED,
-			     void *dummy2 SCM_UNUSED,
-			     void *dummy3 SCM_UNUSED)
-{
-  SCM w;
-
-  for (w = scm_weak_vectors; !scm_is_null (w); w = SCM_I_WVECT_GC_CHAIN (w))
-    {
-      if (SCM_IS_WHVEC_ANY (w))
-	{
-	  SCM const *ptr;
-	  SCM obj;
-	  long j;
-	  long n;
-
-	  obj = w;
-	  ptr = SCM_I_WVECT_GC_WVELTS (w);
-	  n = SCM_I_WVECT_LENGTH (w);
-	  for (j = 0; j < n; ++j)
-	    {
-	      SCM alist;
-
-	      alist = ptr[j];
-	      while (   scm_is_pair (alist)
-		     && !SCM_GC_MARK_P (alist)
-		     && scm_is_pair  (SCM_CAR (alist)))
-		{
-		  SCM_SET_GC_MARK (alist);
-		  SCM_SET_GC_MARK (SCM_CAR (alist));
-		  alist = SCM_CDR (alist);
-		}
-	    }
-	}
-    }
-
-  return 0;
-}
-
 #define UNMARKED_CELL_P(x) (SCM_NIMP(x) && !SCM_GC_MARK_P (x))
 
-static void *
-scm_scan_weak_vectors (void *dummy1 SCM_UNUSED,
-		       void *dummy2 SCM_UNUSED,
-		       void *dummy3 SCM_UNUSED)
+static SCM weak_vectors;
+
+void
+scm_i_init_weak_vectors_for_gc ()
 {
-  SCM *ptr, w;
-  for (w = scm_weak_vectors; !scm_is_null (w); w = SCM_I_WVECT_GC_CHAIN (w))
+  weak_vectors = SCM_EOL;
+}
+
+void
+scm_i_mark_weak_vector (SCM w)
+{
+  SCM_I_SET_WVECT_GC_CHAIN (w, weak_vectors);
+  weak_vectors = w;
+}
+
+static int
+scm_i_mark_weak_vector_non_weaks (SCM w)
+{
+  int again = 0;
+
+  if (SCM_IS_WHVEC_ANY (w))
     {
-      if (!SCM_IS_WHVEC_ANY (w))
+      SCM *ptr;
+      long n = SCM_I_WVECT_LENGTH (w);
+      long j;
+      int weak_keys = SCM_IS_WHVEC (w) || SCM_IS_WHVEC_B (w);
+      int weak_values = SCM_IS_WHVEC_V (w) || SCM_IS_WHVEC_B (w);
+
+      ptr = SCM_I_WVECT_GC_WVELTS (w);
+
+      for (j = 0; j < n; ++j)
 	{
-	  register long j, n;
+	  SCM alist, slow_alist;
+	  int slow_toggle = 0;
 
-	  ptr = SCM_I_WVECT_GC_WVELTS (w);
-	  n = SCM_I_WVECT_LENGTH (w);
-	  for (j = 0; j < n; ++j)
-	    if (UNMARKED_CELL_P (ptr[j]))
-	      ptr[j] = SCM_BOOL_F;
-	}
-      /* check if we should scan the alist vector here (hashtables
-	 have their own scan function in hashtab.c). */
-      else if (!SCM_WVECT_NOSCAN_P (w))
-	{
-	  SCM obj = w;
-	  register long n = SCM_I_WVECT_LENGTH (w);
-	  register long j;
-          int weak_keys = SCM_IS_WHVEC (obj) || SCM_IS_WHVEC_B (obj);
-          int weak_values = SCM_IS_WHVEC_V (obj) || SCM_IS_WHVEC_B (obj);
+	  /* We do not set the mark bits of the alist spine cells here
+	     since we do not want to ever create the situation where a
+	     marked cell references an unmarked cell (except in
+	     scm_gc_mark, where the referenced cells will be marked
+	     immediately).  Thus, we can not use mark bits to stop us
+	     from looping indefinitely over a cyclic alist.  Instead,
+	     we use the standard tortoise and hare trick to catch
+	     cycles.  The fast walker does the work, and stops when it
+	     catches the slow walker to ensure that the whole cycle
+	     has been worked on.
+	  */
 
-	  ptr = SCM_I_WVECT_GC_WVELTS (w);
+	  alist = slow_alist = ptr[j];
 
-	  for (j = 0; j < n; ++j)
+	  while (scm_is_pair (alist))
 	    {
-	      SCM * fixup;
-	      SCM alist;
+	      SCM elt = SCM_CAR (alist);
 
-	      fixup = ptr + j;
-	      alist = *fixup;
-
-	      while (scm_is_pair (alist)
-		     && scm_is_pair (SCM_CAR (alist)))
+	      if (UNMARKED_CELL_P (elt))
 		{
-		  SCM key;
-		  SCM value;
-
-		  key = SCM_CAAR (alist);
-		  value = SCM_CDAR (alist);
-		  if (   (weak_keys && UNMARKED_CELL_P (key))
-			 || (weak_values && UNMARKED_CELL_P (value)))
+		  if (scm_is_pair (elt))
 		    {
-		      *fixup = SCM_CDR (alist);
+		      SCM key = SCM_CAR (elt);
+		      SCM value = SCM_CDR (elt);
+		  
+		      if (!((weak_keys && UNMARKED_CELL_P (key))
+			    || (weak_values && UNMARKED_CELL_P (value))))
+			{
+			  /* The item should be kept.  We need to mark it
+			     recursively.
+			  */ 
+			  scm_gc_mark (elt);
+			  again = 1;
+			}
 		    }
 		  else
-		    fixup = SCM_CDRLOC (alist);
-		  alist = SCM_CDR (alist);
+		    {
+		      /* A non-pair cell element.  This should not
+			 appear in a real alist, but when it does, we
+			 need to keep it.
+		      */
+		      scm_gc_mark (elt);
+		      again = 1;
+		    }
+		}
+
+	      alist = SCM_CDR (alist);
+
+	      if (slow_toggle && scm_is_pair (slow_alist))
+		{
+		  slow_alist = SCM_CDR (slow_alist);
+		  slow_toggle = !slow_toggle;
+		  if (scm_is_eq (slow_alist, alist))
+		    break;
 		}
 	    }
+	  if (!scm_is_pair (alist))
+	    scm_gc_mark (alist);
 	}
     }
 
-  return 0;
+  return again;
+}
+
+int
+scm_i_mark_weak_vectors_non_weaks ()
+{
+  int again = 0;
+  SCM w = weak_vectors;
+  while (!scm_is_null (w))
+    {
+      if (scm_i_mark_weak_vector_non_weaks (w))
+	again = 1;
+      w = SCM_I_WVECT_GC_CHAIN (w);
+    }
+  return again;
+}
+
+static void
+scm_i_remove_weaks (SCM w)
+{
+  SCM *ptr = SCM_I_WVECT_GC_WVELTS (w);
+  size_t n = SCM_I_WVECT_LENGTH (w);
+  size_t i;
+
+  if (!SCM_IS_WHVEC_ANY (w))
+    {
+      for (i = 0; i < n; ++i)
+	if (UNMARKED_CELL_P (ptr[i]))
+	  ptr[i] = SCM_BOOL_F;
+    }
+  else
+    {
+      size_t delta = 0;
+
+      for (i = 0; i < n; ++i)
+	{
+	  SCM alist, *fixup;
+
+	  fixup = ptr + i;
+	  alist = *fixup;
+	  while (scm_is_pair (alist) && !SCM_GC_MARK_P (alist))
+	    {
+	      if (UNMARKED_CELL_P (SCM_CAR (alist)))
+		{
+		  *fixup = SCM_CDR (alist);
+		  delta++;
+		}
+	      else
+		{
+		  SCM_SET_GC_MARK (alist);
+		  fixup = SCM_CDRLOC (alist);
+		}
+	      alist = *fixup;
+	    }
+	}
+#if 0
+      if (delta)
+	fprintf (stderr, "vector %p, delta %d\n", w, delta);
+#endif
+      SCM_I_SET_WVECT_DELTA (w, delta);
+    }
+}
+
+void
+scm_i_remove_weaks_from_weak_vectors ()
+{
+  SCM w = weak_vectors;
+  while (!scm_is_null (w))
+    {
+      scm_i_remove_weaks (w);
+      w = SCM_I_WVECT_GC_CHAIN (w);
+    }
 }
 
 
-
-void
-scm_weaks_prehistory ()
-{
-  scm_c_hook_add (&scm_before_mark_c_hook, scm_weak_vector_gc_init, 0, 0);
-  scm_c_hook_add (&scm_before_sweep_c_hook, scm_mark_weak_vector_spines, 0, 0);
-  scm_c_hook_add (&scm_after_sweep_c_hook, scm_scan_weak_vectors, 0, 0);
-}
-
 
 SCM
 scm_init_weaks_builtins ()

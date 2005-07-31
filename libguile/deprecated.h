@@ -538,22 +538,25 @@ SCM_API SCM_STACKITEM *scm_i_stack_base (void);
 #define SCM_FLUIDP(x) scm_i_fluidp (x)
 SCM_API int scm_i_fluidp (SCM x);
 
-/* In the old days, SCM_CRITICAL_SECTION_START stopped signal handlers from running,
-   since in those days the handler directly ran scheme code, and that had to
-   be avoided when the heap was not in a consistent state etc.  And since
-   the scheme code could do a stack swapping new continuation etc, signals
-   had to be deferred around various C library functions which were not safe
-   or not known to be safe to swap away, which was a lot of stuff.
+/* In the old days, SCM_CRITICAL_SECTION_START stopped signal handlers
+   from running, since in those days the handler directly ran scheme
+   code, and that had to be avoided when the heap was not in a
+   consistent state etc.  And since the scheme code could do a stack
+   swapping new continuation etc, signals had to be deferred around
+   various C library functions which were not safe or not known to be
+   safe to swap away, which was a lot of stuff.
 
-   These days signals are implemented with asyncs and don't directly run
-   scheme code in the handler, but hold it until an SCM_TICK etc where it
-   will be safe.  This means interrupt protection is not needed and
-   SCM_CRITICAL_SECTION_START / SCM_CRITICAL_SECTION_END is something of an anachronism.
+   These days signals are implemented with asyncs and don't directly
+   run scheme code in the handler, but hold it until an SCM_TICK etc
+   where it will be safe.  This means interrupt protection is not
+   needed and SCM_CRITICAL_SECTION_START / SCM_CRITICAL_SECTION_END is
+   something of an anachronism.
 
-   What past SCM_CRITICAL_SECTION_START usage also did though was indicate code that was
-   not reentrant, ie. could not be reentered by signal handler code.  The
-   present definitions are a mutex lock, affording that reentrancy
-   protection against the new guile 1.8 free-running posix threads.
+   What past SCM_CRITICAL_SECTION_START usage also did though was
+   indicate code that was not reentrant, ie. could not be reentered by
+   signal handler code.  The present definitions are a mutex lock,
+   affording that reentrancy protection against the new guile 1.8
+   free-running posix threads.
 
    One big problem with the present defintions though is that code which
    throws an error from within a DEFER/ALLOW region will leave the
@@ -566,6 +569,17 @@ SCM_API void scm_i_defer_ints_etc (void);
 #define SCM_ALLOW_INTS scm_i_defer_ints_etc ()
 #define SCM_REDEFER_INTS scm_i_defer_ints_etc ()
 #define SCM_REALLOW_INTS scm_i_defer_ints_etc ()
+
+/* Deprecated since they are unnecessary and had not been documented.
+ */
+SCM_API SCM scm_guard (SCM guardian, SCM obj, int throw_p);
+SCM_API SCM scm_get_one_zombie (SCM guardian);
+
+/* Deprecated since guardians no longer have these special features.
+ */
+SCM_API SCM scm_destroy_guardian_x (SCM guardian);
+SCM_API SCM scm_guardian_greedy_p (SCM guardian);
+SCM_API SCM scm_guardian_destroyed_p (SCM guardian);
 
 void scm_i_init_deprecated (void);
 

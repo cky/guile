@@ -23,14 +23,20 @@
  * Programming Language Design and Implementation, June 1993
  * ftp://ftp.cs.indiana.edu/pub/scheme-repository/doc/pubs/guardians.ps.gz
  *
+ * Original design:          Mikael Djurfeldt
+ * Original implementation:  Michael Livshin
+ * Hacked on since by:       everybody
+ *
  * By this point, the semantics are actually quite different from
  * those described in the abovementioned paper.  The semantic changes
  * are there to improve safety and intuitiveness.  The interface is
  * still (mostly) the one described by the paper, however.
  *
- * Original design:         Mikael Djurfeldt
- * Original implementation: Michael Livshin
- * Hacked on since by:      everybody
+ * Boiled down again:        Marius Vollmer
+ *
+ * Now they should again behave like those described in the paper.
+ * Scheme guardians should be simple and friendly, not like the greedy
+ * monsters we had...
  */
 
 
@@ -43,6 +49,8 @@
 #include "libguile/root.h"
 #include "libguile/hashtab.h"
 #include "libguile/weaks.h"
+#include "libguile/deprecation.h"
+#include "libguile/eval.h"
 
 #include "libguile/guardians.h"
 
@@ -83,71 +91,105 @@ typedef struct t_guardian
   t_tconc live;
   t_tconc zombies;
   struct t_guardian *next;
-  unsigned long flags;
 } t_guardian;
 
-#define GUARDIAN_P(x) SCM_SMOB_PREDICATE(tc16_guardian, x)
+#define GUARDIAN_P(x)    SCM_SMOB_PREDICATE(tc16_guardian, x)
 #define GUARDIAN_DATA(x) ((t_guardian *) SCM_CELL_WORD_1 (x))
 
-#define F_GREEDY 1L
-#define F_LISTED (1L << 1)
-#define F_DESTROYED (1L << 2)
+static t_guardian *guardians;
 
-#define GREEDY_P(x)   (((x)->flags & F_GREEDY) != 0)
-#define SET_GREEDY(x) ((x)->flags |= F_GREEDY)
-
-#define LISTED_P(x)   (((x)->flags & F_LISTED) != 0)
-#define SET_LISTED(x) ((x)->flags |= F_LISTED)
-#define CLR_LISTED(x) ((x)->flags &= ~F_LISTED)
-
-#define DESTROYED_P(x)   (((x)->flags & F_DESTROYED) != 0)
-#define SET_DESTROYED(x) ((x)->flags |= F_DESTROYED)
-
-/* during the gc mark phase, live guardians are linked into the lists
-   here. */
-static t_guardian *greedy_guardians = NULL;
-static t_guardian *sharing_guardians = NULL;
-
-static SCM greedily_guarded_whash = SCM_EOL;
-
-/* this is the list of guarded objects that are parts of cycles.  we
-   don't know in which order to return them from guardians, so we just
-   unguard them and whine about it in after-gc-hook */
-static SCM self_centered_zombies = SCM_EOL;
-
-
-static void
-add_to_live_list (t_guardian *g)
+void
+scm_i_init_guardians_for_gc ()
 {
-  if (LISTED_P (g))
-    return;
-
-  if (GREEDY_P (g))
-    {
-      g->next = greedy_guardians;
-      greedy_guardians = g;
-    }
-  else
-    {
-      g->next = sharing_guardians;
-      sharing_guardians = g;
-    }
-
-  SET_LISTED (g);
+  guardians = NULL;
 }
 
 /* mark a guardian by adding it to the live guardian list.  */
 static SCM
 guardian_mark (SCM ptr)
 {
-  add_to_live_list (GUARDIAN_DATA (ptr));
+  t_guardian *g = GUARDIAN_DATA (ptr);
+  g->next = guardians;
+  guardians = g;
 
-  /* the objects protected by the guardian are not marked here: that
-     would prevent them from ever getting collected.  instead marking
-     is done at the end of the mark phase by guardian_zombify.  */
   return SCM_BOOL_F;
 }
 
+/* Identify inaccessible objects and move them from the live list to
+   the zombie list.  An object is inaccessible when it is unmarked at
+   this point.  Therefore, the inaccessible objects are not marked yet
+   since that would prevent them from being recognized as
+   inaccessible.
+
+   The pairs that form the life list itself are marked, tho.
+*/
+void
+scm_i_identify_inaccessible_guardeds ()
+{
+  t_guardian *g;
+
+  for (g = guardians; g; g = g->next)
+    {
+      SCM pair, next_pair;
+      SCM *prev_ptr;
+
+      for (pair = g->live.head, prev_ptr = &g->live.head;
+	   !scm_is_eq (pair, g->live.tail);
+	   pair = next_pair)
+	{
+	  SCM obj = SCM_CAR (pair);
+	  next_pair = SCM_CDR (pair);
+	  if (!SCM_GC_MARK_P (obj))
+	    {
+	      /* Unmarked, move to 'inaccessible' list.
+	       */
+	      *prev_ptr = next_pair;
+	      TCONC_IN (g->zombies, obj, pair);
+	    }
+	  else
+	    {
+	      SCM_SET_GC_MARK (pair);
+	      prev_ptr = SCM_CDRLOC (pair);
+	    }
+	}
+      SCM_SET_GC_MARK (pair);
+    }
+}
+
+int
+scm_i_mark_inaccessible_guardeds ()
+{
+  t_guardian *g;
+  int again = 0;
+
+  /* We never need to see the guardians again that are processed here,
+     so we clear the list.  Calling scm_gc_mark below might find new
+     guardians, however (and other things), and we inform the GC about
+     this by returning non-zero.  See scm_mark_all in gc-mark.c
+  */
+
+  g = guardians;
+  guardians = NULL;
+
+  for (; g; g = g->next)
+    {
+      SCM pair;
+
+      for (pair = g->zombies.head;
+	   !scm_is_eq (pair, g->zombies.tail);
+	   pair = SCM_CDR (pair))
+	{
+	  if (!SCM_GC_MARK_P (pair))
+	    {
+	      scm_gc_mark (SCM_CAR (pair));
+	      SCM_SET_GC_MARK (pair);
+	      again = 1;
+	    }
+	}
+      SCM_SET_GC_MARK (pair);
+    }
+  return again;
+}
 
 static size_t
 guardian_free (SCM ptr)
@@ -156,39 +198,49 @@ guardian_free (SCM ptr)
   return 0;
 }
 
-
 static int
 guardian_print (SCM guardian, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
   t_guardian *g = GUARDIAN_DATA (guardian);
   
-  scm_puts ("#<", port);
-  
-  if (DESTROYED_P (g))
-    scm_puts ("destroyed ", port);
-
-  if (GREEDY_P (g))
-    scm_puts ("greedy", port);
-  else
-    scm_puts ("sharing", port);
-
-  scm_puts (" guardian 0x", port);
+  scm_puts ("#<guardian ", port);
   scm_uintprint ((scm_t_bits) g, 16, port);
 
-  if (! DESTROYED_P (g))
-    {
-      scm_puts (" (reachable: ", port);
-      scm_display (scm_length (SCM_CDR (g->live.head)), port);
-      scm_puts (" unreachable: ", port);
-      scm_display (scm_length (SCM_CDR (g->zombies.head)), port);
-      scm_puts (")", port);
-    }
+  scm_puts (" (reachable: ", port);
+  scm_display (scm_length (SCM_CDR (g->live.head)), port);
+  scm_puts (" unreachable: ", port);
+  scm_display (scm_length (SCM_CDR (g->zombies.head)), port);
+  scm_puts (")", port);
 
   scm_puts (">", port);
 
   return 1;
 }
 
+static void
+scm_i_guard (SCM guardian, SCM obj)
+{
+  t_guardian *g = GUARDIAN_DATA (guardian);
+  
+  if (!SCM_IMP (obj))
+    {
+      SCM z;
+      z = scm_cons (SCM_BOOL_F, SCM_BOOL_F);
+      TCONC_IN (g->live, obj, z);
+    }
+}
+
+static SCM
+scm_i_get_one_zombie (SCM guardian)
+{
+  t_guardian *g = GUARDIAN_DATA (guardian);
+  SCM res = SCM_BOOL_F;
+
+  if (!TCONC_EMPTYP (g->zombies))
+    TCONC_OUT (g->zombies, res);
+
+  return res;
+}
 
 /* This is the Scheme entry point for each guardian: If OBJ is an
  * object, it's added to the guardian's live list.  If OBJ is unbound,
@@ -202,112 +254,63 @@ guardian_print (SCM guardian, SCM port, scm_print_state *pstate SCM_UNUSED)
 static SCM
 guardian_apply (SCM guardian, SCM obj, SCM throw_p)
 {
-  if (DESTROYED_P (GUARDIAN_DATA (guardian)))
-    scm_misc_error ("guard", "attempted use of destroyed guardian: ~A",
-                    scm_list_1 (guardian));
-  
+#if ENABLE_DEPRECATED
+  if (!SCM_UNBNDP (throw_p))
+    scm_c_issue_deprecation_warning
+      ("Using the 'throw?' argument of a guardian is deprecated "
+       "and ineffective.");
+#endif
+
   if (!SCM_UNBNDP (obj))
-    return scm_guard (guardian, obj,
-                      (SCM_UNBNDP (throw_p)
-                       ? 1
-                       : scm_is_true (throw_p)));
-  else
-    return scm_get_one_zombie (guardian);
-}
-
-
-SCM
-scm_guard (SCM guardian, SCM obj, int throw_p)
-{
-  t_guardian *g = GUARDIAN_DATA (guardian);
-  
-  if (!SCM_IMP (obj))
     {
-      SCM z;
-
-      /* This critical section barrier will be replaced by a mutex. */
-      /* njrev: per comment above, should use a mutex. */
-      SCM_CRITICAL_SECTION_START;
-
-      if (GREEDY_P (g))
-        {
-          if (scm_is_true (scm_hashq_get_handle
-                           (greedily_guarded_whash, obj)))
-            {
-              SCM_CRITICAL_SECTION_END;
-
-              if (throw_p)
-                scm_misc_error ("guard",
-                                "object is already greedily guarded: ~A",
-                                scm_list_1 (obj));
-              else
-                return SCM_BOOL_F;
-            }
-          else
-            scm_hashq_create_handle_x (greedily_guarded_whash,
-                                       obj, guardian);
-	  /* njrev: this can throw a memory or out-of-range error. */
-        }
-
-      z = scm_cons (SCM_BOOL_F, SCM_BOOL_F);
-      TCONC_IN (g->live, obj, z);
-
-      SCM_CRITICAL_SECTION_END;
+      scm_i_guard (guardian, obj);
+      return SCM_UNSPECIFIED;
     }
-
-  return throw_p ? SCM_UNSPECIFIED : SCM_BOOL_T;
+  else
+    return scm_i_get_one_zombie (guardian);
 }
 
-
-SCM
-scm_get_one_zombie (SCM guardian)
-{
-  t_guardian *g = GUARDIAN_DATA (guardian);
-  SCM res = SCM_BOOL_F;
-
-  /* This critical section barrier will be replaced by a mutex. */
-  SCM_CRITICAL_SECTION_START;
-  /* njrev: -> mutex */
-
-  if (!TCONC_EMPTYP (g->zombies))
-    TCONC_OUT (g->zombies, res);
-
-  if (scm_is_true (res) && GREEDY_P (g))
-    scm_hashq_remove_x (greedily_guarded_whash, res);
-
-  SCM_CRITICAL_SECTION_END;
-  
-  return res;
-}
-
-
-SCM_DEFINE (scm_make_guardian, "make-guardian", 0, 1, 0, 
-            (SCM greedy_p),
-            "Create a new guardian.\n"
-	    "A guardian protects a set of objects from garbage collection,\n"
-	    "allowing a program to apply cleanup or other actions.\n\n"
-
-	    "@code{make-guardian} returns a procedure representing the guardian.\n"
-	    "Calling the guardian procedure with an argument adds the\n"
-	    "argument to the guardian's set of protected objects.\n"
-	    "Calling the guardian procedure without an argument returns\n"
-	    "one of the protected objects which are ready for garbage\n"
-	    "collection, or @code{#f} if no such object is available.\n"
-	    "Objects which are returned in this way are removed from\n"
-	    "the guardian.\n\n"
-
-            "@code{make-guardian} takes one optional argument that says whether the\n"
-            "new guardian should be greedy or sharing.  If there is any chance\n"
-            "that any object protected by the guardian may be resurrected,\n"
-            "then you should make the guardian greedy (this is the default).\n\n"
-
-            "See R. Kent Dybvig, Carl Bruggeman, and David Eby (1993)\n"
-            "\"Guardians in a Generation-Based Garbage Collector\".\n"
-            "ACM SIGPLAN Conference on Programming Language Design\n"
-            "and Implementation, June 1993.\n\n"
-
-            "(the semantics are slightly different at this point, but the\n"
-            "paper still (mostly) accurately describes the interface).")
+SCM_DEFINE (scm_make_guardian, "make-guardian", 0, 0, 0, 
+	    (),
+"Create a new guardian.  A guardian protects a set of objects from\n"
+"garbage collection, allowing a program to apply cleanup or other\n"
+"actions.\n"
+"\n"
+"@code{make-guardian} returns a procedure representing the guardian.\n"
+"Calling the guardian procedure with an argument adds the argument to\n"
+"the guardian's set of protected objects.  Calling the guardian\n"
+"procedure without an argument returns one of the protected objects\n"
+"which are ready for garbage collection, or @code{#f} if no such object\n"
+"is available.  Objects which are returned in this way are removed from\n"
+"the guardian.\n"
+"\n"
+"You can put a single object into a guardian more than once and you can\n"
+"put a single object into more than one guardian.  The object will then\n"
+"be returned multiple times by the guardian procedures.\n"
+"\n"
+"An object is eligible to be returned from a guardian when it is no\n"
+"longer referenced from outside any guardian.\n"
+"\n"
+"There is no guarantee about the order in which objects are returned\n"
+"from a guardian.  If you want to impose an order on finalization\n"
+"actions, for example, you can do that by keeping objects alive in some\n"
+"global data structure until they are no longer needed for finalizing\n"
+"other objects.\n"
+"\n"
+"Being an element in a weak vector, a key in a hash table with weak\n"
+"keys, or a value in a hash table with weak value does not prevent an\n"
+"object from being returned by a guardian.  But as long as an object\n"
+"can be returned from a guardian it will not be removed from such a\n"
+"weak vector or hash table.  In other words, a weak link does not\n"
+"prevent an object from being considered collectable, but being inside\n"
+"a guardian prevents a weak link from being broken.\n"
+"\n"
+"A key in a weak key hash table can be though of as having a strong\n"
+"reference to its associated value as long as the key is accessible.\n"
+"Consequently, when the key only accessible from within a guardian, the\n"
+"reference from the key to the value is also considered to be coming\n"
+"from within a guardian.  Thus, if there is no other reference to the\n"
+	    "value, it is eligible to be returned from a guardian.\n")
 #define FUNC_NAME s_scm_make_guardian
 {
   t_guardian *g = scm_gc_malloc (sizeof (t_guardian), "guardian");
@@ -320,279 +323,12 @@ SCM_DEFINE (scm_make_guardian, "make-guardian", 0, 1, 0,
   g->zombies.head = g->zombies.tail = z2;
 
   g->next = NULL;
-  g->flags = 0L;
 
-  /* [cmm] the UNBNDP check below is redundant but I like it. */
-  if (SCM_UNBNDP (greedy_p) || scm_is_true (greedy_p))
-    SET_GREEDY (g);
-  
   SCM_NEWSMOB (z, tc16_guardian, g);
 
   return z;
 }
 #undef FUNC_NAME
-
-
-SCM_DEFINE (scm_guardian_destroyed_p, "guardian-destroyed?", 1, 0, 0, 
-            (SCM guardian),
-            "Return @code{#t} if @var{guardian} has been destroyed, otherwise @code{#f}.")
-#define FUNC_NAME s_scm_guardian_destroyed_p       
-{
-  SCM res = SCM_BOOL_F;
-
-  /* This critical section barrier will be replaced by a mutex. */
-  SCM_CRITICAL_SECTION_START;
-  /* njrev: Critical section not needed here.  (Falls into category of
-     stuff that is the responsibility of Scheme code, whenever
-     accessing data from multiple threads.) */
-  res = scm_from_bool (DESTROYED_P (GUARDIAN_DATA (guardian)));
-  
-  SCM_CRITICAL_SECTION_END;
-
-  return res;
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_guardian_greedy_p, "guardian-greedy?", 1, 0, 0,
-            (SCM guardian),
-            "Return @code{#t} if @var{guardian} is a greedy guardian, otherwise @code{#f}.")
-#define FUNC_NAME s_scm_guardian_greedy_p  
-{
-  return scm_from_bool (GREEDY_P (GUARDIAN_DATA (guardian)));
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_destroy_guardian_x, "destroy-guardian!", 1, 0, 0, 
-            (SCM guardian),
-            "Destroys @var{guardian}, by making it impossible to put any more\n"
-            "objects in it or get any objects from it.  It also unguards any\n"
-            "objects guarded by @var{guardian}.")
-#define FUNC_NAME s_scm_destroy_guardian_x
-{
-  t_guardian *g = GUARDIAN_DATA (guardian);
-
-  /* This critical section barrier will be replaced by a mutex. */
-  SCM_CRITICAL_SECTION_START;
-  
-  if (DESTROYED_P (g))
-    {
-      SCM_CRITICAL_SECTION_END;
-      SCM_MISC_ERROR ("guardian is already destroyed: ~A",
-		      scm_list_1 (guardian));
-    }
-
-  if (GREEDY_P (g))
-    {
-      /* clear the "greedily guarded" property of the objects */
-      SCM pair;
-      for (pair = g->live.head; pair != g->live.tail; pair = SCM_CDR (pair))
-        scm_hashq_remove_x (greedily_guarded_whash, SCM_CAR (pair));
-      for (pair = g->zombies.head; pair != g->zombies.tail; pair = SCM_CDR (pair))
-        scm_hashq_remove_x (greedily_guarded_whash, SCM_CAR (pair));
-    }
-
-  /* empty the lists */
-  g->live.head = g->live.tail;
-  g->zombies.head = g->zombies.tail;
-  
-  SET_DESTROYED (g);
-  
-  SCM_CRITICAL_SECTION_END;
-
-  return SCM_UNSPECIFIED;
-}
-#undef FUNC_NAME
-            
-/* called before gc mark phase begins to initialise the live guardian list. */
-static void *
-guardian_gc_init (void *dummy1 SCM_UNUSED,
-		  void *dummy2 SCM_UNUSED,
-		  void *dummy3 SCM_UNUSED)
-{
-  greedy_guardians = sharing_guardians = NULL;
-
-  return 0;
-}
-
-static void
-mark_dependencies_in_tconc (t_tconc *tc)
-{
-  SCM pair, next_pair;
-  SCM *prev_ptr;
-
-  /* scan the list for unmarked objects, and mark their
-     dependencies */
-  for (pair = tc->head, prev_ptr = &tc->head;
-       !scm_is_eq (pair, tc->tail);
-       pair = next_pair)
-    {
-      SCM obj = SCM_CAR (pair);
-      next_pair = SCM_CDR (pair);
-            
-      if (! SCM_GC_MARK_P (obj))
-        {
-          /* a candidate for finalizing */
-          scm_gc_mark_dependencies (obj);
-
-          if (SCM_GC_MARK_P (obj))
-            {
-              /* uh oh.  a cycle.  transfer this object (the
-                 spine cell, to be exact) to
-                 self_centered_zombies, so we'll be able to
-                 complain about it later. */
-              *prev_ptr = next_pair;
-              SCM_SET_GC_MARK (pair);
-              SCM_SETCDR (pair, self_centered_zombies);
-              self_centered_zombies = pair;
-            }
-          else
-            {
-              /* see if this is a guardian.  if yes, list it (but don't   
-                 mark it yet). */
-              if (GUARDIAN_P (obj))
-                add_to_live_list (GUARDIAN_DATA (obj));
-
-              prev_ptr = SCM_CDRLOC (pair);
-            }
-        }
-    }
-}
-
-static void
-mark_dependencies (t_guardian *g)
-{
-  mark_dependencies_in_tconc (&g->zombies);
-  mark_dependencies_in_tconc (&g->live);
-}
-
-static void
-mark_and_zombify (t_guardian *g)
-{
-  SCM tconc_tail = g->live.tail;
-  SCM *prev_ptr = &g->live.head;
-  SCM pair = g->live.head;
-
-  while (!scm_is_eq (pair, tconc_tail))
-    {
-      SCM next_pair = SCM_CDR (pair);
-
-      if (!SCM_GC_MARK_P (SCM_CAR (pair)))
-        {
-          /* got you, zombie! */
-
-          /* out of the live list! */
-          *prev_ptr = next_pair;
-
-          if (GREEDY_P (g))
-            /* if the guardian is greedy, mark this zombie now.  this
-               way it won't be zombified again this time around. */
-            SCM_SET_GC_MARK (SCM_CAR (pair));
-
-          /* into the zombie list! */
-          TCONC_IN (g->zombies, SCM_CAR (pair), pair);
-        }
-      else
-        prev_ptr = SCM_CDRLOC (pair);
-
-      pair = next_pair;
-    }
-
-  /* Mark the cells of the live list (yes, the cells in the list, we
-     don't care about objects pointed to by the list cars, since we
-     know they are already marked).  */
-  for (pair = g->live.head; !scm_is_null (pair); pair = SCM_CDR (pair))
-    SCM_SET_GC_MARK (pair);
-}
-
-
-/* this is called by the garbage collector between the mark and sweep
-   phases.  for each marked guardian, it moves any unmarked object in
-   its live list (tconc) to its zombie list (tconc).  */
-static void *
-guardian_zombify (void *dummy1 SCM_UNUSED,
-		  void *dummy2 SCM_UNUSED,
-		  void *dummy3 SCM_UNUSED)
-{
-  t_guardian *last_greedy_guardian = NULL;
-  t_guardian *last_sharing_guardian = NULL;
-  t_guardian *first_greedy_guardian = NULL;
-  t_guardian *first_sharing_guardian = NULL;
-  t_guardian *g;
-
-  /* First, find all newly unreachable objects and mark their
-     dependencies.
-     
-     Note that new guardians may be stuck on the end of the live
-     guardian lists as we run this loop, since guardians might be
-     guarded too.  When we mark a guarded guardian, its mark function
-     sticks in the appropriate live guardian list.  The loop
-     terminates when no new guardians are found. */
-
-  do {
-    first_greedy_guardian = greedy_guardians;
-    first_sharing_guardian = sharing_guardians;
-
-    for (g = greedy_guardians; g != last_greedy_guardian;
-         g = g->next)
-      mark_dependencies (g);
-    for (g = sharing_guardians; g != last_sharing_guardian;
-         g = g->next)
-      mark_dependencies (g);
-
-    last_greedy_guardian = first_greedy_guardian;
-    last_sharing_guardian = first_sharing_guardian;
-  } while (first_greedy_guardian != greedy_guardians
-           || first_sharing_guardian != sharing_guardians);
-
-  /* now, scan all the guardians that are currently known to be live
-     and move their unmarked objects to zombie lists. */
-
-  for (g = greedy_guardians; g; g = g->next)
-    {
-      mark_and_zombify (g);
-      CLR_LISTED (g);
-    }
-  for (g = sharing_guardians; g; g = g->next)
-    {
-      mark_and_zombify (g);
-      CLR_LISTED (g);
-    }
-  
-  /* Preserve the zombies in their undead state, by marking to prevent
-     collection. */
-  for (g = greedy_guardians; g; g = g->next)
-    scm_gc_mark (g->zombies.head);
-  for (g = sharing_guardians; g; g = g->next)
-    scm_gc_mark (g->zombies.head);
-
-  return 0;
-}
-
-static void *
-whine_about_self_centered_zombies (void *dummy1 SCM_UNUSED,
-				   void *dummy2 SCM_UNUSED,
-				   void *dummy3 SCM_UNUSED)
-{
-  if (!scm_is_null (self_centered_zombies))
-    {
-      SCM port = scm_current_error_port ();
-      SCM pair;
-      
-      scm_puts ("** WARNING: the following guarded objects were unguarded due to cycles:",
-                port);
-      scm_newline (port);
-      for (pair = self_centered_zombies;
-           !scm_is_null (pair); pair = SCM_CDR (pair))
-        {
-          scm_display (SCM_CAR (pair), port);
-          scm_newline (port);
-        }
-
-      self_centered_zombies = SCM_EOL;
-    }
-  
-  return 0;
-}
 
 void
 scm_init_guardians ()
@@ -601,17 +337,11 @@ scm_init_guardians ()
   scm_set_smob_mark (tc16_guardian, guardian_mark);
   scm_set_smob_free (tc16_guardian, guardian_free);
   scm_set_smob_print (tc16_guardian, guardian_print);
+#if ENABLE_DEPRECATED
   scm_set_smob_apply (tc16_guardian, guardian_apply, 0, 2, 0);
-
-  scm_c_hook_add (&scm_before_mark_c_hook, guardian_gc_init, 0, 0);
-  scm_c_hook_add (&scm_before_sweep_c_hook, guardian_zombify, 0, 0);
-
-  scm_gc_register_root (&self_centered_zombies);
-  scm_c_hook_add (&scm_after_gc_c_hook,
-                  whine_about_self_centered_zombies, 0, 0);
-
-  greedily_guarded_whash =
-    scm_permanent_object (scm_make_doubly_weak_hash_table (scm_from_int (31)));
+#else
+  scm_set_smob_apply (tc16_guardian, guardian_apply, 0, 1, 0);
+#endif
 
 #include "libguile/guardians.x"
 }
