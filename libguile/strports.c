@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,1999,2000,2001,2002, 2003 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001,2002, 2003, 2005 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -65,7 +65,30 @@
    has been written to, but this is only updated after a flush.
    read_pos and write_pos in principle should be equal, but this is only true
    when rw_active is SCM_PORT_NEITHER.
-*/
+
+   ENHANCE-ME - output blocks:
+
+   The current code keeps an output string as a single block.  That means
+   when the size is increased the entire old contents must be copied.  It'd
+   be more efficient to begin a new block when the old one is full, so
+   there's no re-copying of previous data.
+
+   To make seeking efficient, keeping the pieces in a vector might be best,
+   though appending is probably the most common operation.  The size of each
+   block could be progressively increased, so the bigger the string the
+   bigger the blocks.
+
+   When `get-output-string' is called the blocks have to be coalesced into a
+   string, the result could be kept as a single big block.  If blocks were
+   strings then `get-output-string' could notice when there's just one and
+   return that with a copy-on-write (though repeated calls to
+   `get-output-string' are probably unlikely).
+
+   Another possibility would be to extend the port mechanism to let SCM
+   strings come through directly from `display' and friends.  That way if a
+   big string is written it can be kept as a copy-on-write, saving time
+   copying and maybe saving some space.  */
+
 
 scm_t_bits scm_tc16_strport;
 
@@ -117,7 +140,14 @@ st_resize_port (scm_t_port *pt, off_t new_size)
 #define SCM_WRITE_BLOCK 80
 
 /* ensure that write_pos < write_end by enlarging the buffer when
-   necessary.  update read_buf to account for written chars.  */
+   necessary.  update read_buf to account for written chars.
+
+   The buffer is enlarged by 1.5 times, plus SCM_WRITE_BLOCK.  Adding just a
+   fixed amount is no good, because there's a block copy for each increment,
+   and that copying would take quadratic time.  In the past it was found to
+   be very slow just adding 80 bytes each time (eg. about 10 seconds for
+   writing a 100kbyte string).  */
+
 static void
 st_flush (SCM port)
 {
@@ -125,7 +155,7 @@ st_flush (SCM port)
 
   if (pt->write_pos == pt->write_end)
     {
-      st_resize_port (pt, pt->write_buf_size + SCM_WRITE_BLOCK);
+      st_resize_port (pt, pt->write_buf_size * 3 / 2 + SCM_WRITE_BLOCK);
     }
   pt->read_pos = pt->write_pos;
   if (pt->read_pos > pt->read_end)
