@@ -1,3 +1,9 @@
+2005-08-02  Kevin Ryde  <user42@zip.com.au>
+
+	* strports.c (st_flush): Increase buffer by 1.5x when growing, to
+	avoid lots of copying where previoulsy growing by only 80 bytes at a
+	time.
+
 2005-08-01  Marius Vollmer  <mvo@zagadka.de>
 
 	* modules.h, modules.c (scm_eval_closure_module): Removed, we
