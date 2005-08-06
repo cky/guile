@@ -974,8 +974,12 @@ it will usually be @code{#f}.
 
 @deffn {Scheme Procedure} strerror err
 @deffnx {C Function} scm_strerror (err)
-Return the Unix error message corresponding to @var{err}, which
-must be an integer value.
+Return the Unix error message corresponding to @var{err}, an integer
+@code{errno} value.
+
+When @code{setlocale} has been called (@pxref{Locales}), the message
+is in the language and charset of @code{LC_MESSAGES}.  (This is done
+by the C library.)
 @end deffn
 
 @c begin (scm-doc-string "boot-9.scm" "false-if-exception")
