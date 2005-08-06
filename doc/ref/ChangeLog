@@ -1,3 +1,12 @@
+2005-08-06  Kevin Ryde  <user42@zip.com.au>
+
+	* api-compound.texi (List Modification): In filter, return may share a
+	tail with the input, as per docstring.  In filter!, fix chopped off
+	note of modifying input.
+
+	* api-control.texi (Error Reporting): In strerror, note message is in
+	locale language and charset.
+
 2005-07-12  Kevin Ryde  <user42@zip.com.au>
 
 	* api-data.texi (String Selection): In string-pad, don't say anything
