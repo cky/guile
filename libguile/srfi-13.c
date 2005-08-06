@@ -120,11 +120,12 @@ SCM_DEFINE (scm_string_any, "string-any-c-code", 2, 2, 0,
     }
   else
     {
-      SCM_VALIDATE_PROC (1, char_pred);
+      scm_t_trampoline_1 pred_tramp = scm_trampoline_1 (char_pred);
+      SCM_ASSERT (pred_tramp, char_pred, SCM_ARG1, FUNC_NAME);
 
       while (cstart < cend)
         {
-          res = scm_call_1 (char_pred, SCM_MAKE_CHAR (cstr[cstart]));
+          res = pred_tramp (char_pred, SCM_MAKE_CHAR (cstr[cstart]));
           if (scm_is_true (res))
             break;
 	  cstr = scm_i_string_chars (s);
@@ -188,11 +189,12 @@ SCM_DEFINE (scm_string_every, "string-every-c-code", 2, 2, 0,
     }
   else
     {
-      SCM_VALIDATE_PROC (1, char_pred);
+      scm_t_trampoline_1 pred_tramp = scm_trampoline_1 (char_pred);
+      SCM_ASSERT (pred_tramp, char_pred, SCM_ARG1, FUNC_NAME);
 
       while (cstart < cend)
         {
-          res = scm_call_1 (char_pred, SCM_MAKE_CHAR (cstr[cstart]));
+          res = pred_tramp (char_pred, SCM_MAKE_CHAR (cstr[cstart]));
           if (scm_is_false (res))
             break;
           cstr = scm_i_string_chars (s);
@@ -218,8 +220,11 @@ SCM_DEFINE (scm_string_tabulate, "string-tabulate", 2, 0, 0,
   SCM res;
   SCM ch;
   char *p;
+  scm_t_trampoline_1 proc_tramp;
 
-  SCM_VALIDATE_PROC (1, proc);
+  proc_tramp = scm_trampoline_1 (proc);
+  SCM_ASSERT (proc_tramp, proc, SCM_ARG1, FUNC_NAME);
+
   clen = scm_to_size_t (len);
   SCM_ASSERT_RANGE (2, len, clen >= 0);
 
@@ -230,7 +235,7 @@ SCM_DEFINE (scm_string_tabulate, "string-tabulate", 2, 0, 0,
       /* The RES string remains untouched since nobody knows about it
 	 yet. No need to refetch P.
       */
-      ch = scm_call_1 (proc, scm_from_size_t (i));
+      ch = proc_tramp (proc, scm_from_size_t (i));
       if (!SCM_CHARP (ch))
 	SCM_MISC_ERROR ("procedure ~S returned non-char", scm_list_1 (proc));
       *p++ = SCM_CHAR (ch);
@@ -728,12 +733,14 @@ SCM_DEFINE (scm_string_trim, "string-trim", 1, 3, 0,
     }
   else
     {
-      SCM_VALIDATE_PROC (2, char_pred);
+      scm_t_trampoline_1 pred_tramp = scm_trampoline_1 (char_pred);
+      SCM_ASSERT (pred_tramp, char_pred, SCM_ARG2, FUNC_NAME);
+
       while (cstart < cend)
 	{
 	  SCM res;
 
-	  res = scm_call_1 (char_pred, SCM_MAKE_CHAR (cstr[cstart]));
+	  res = pred_tramp (char_pred, SCM_MAKE_CHAR (cstr[cstart]));
 	  if (scm_is_false (res))
 	    break;
 	  cstr = scm_i_string_chars (s);
@@ -804,12 +811,14 @@ SCM_DEFINE (scm_string_trim_right, "string-trim-right", 1, 3, 0,
     }
   else
     {
-      SCM_VALIDATE_PROC (2, char_pred);
+      scm_t_trampoline_1 pred_tramp = scm_trampoline_1 (char_pred);
+      SCM_ASSERT (pred_tramp, char_pred, SCM_ARG2, FUNC_NAME);
+
       while (cstart < cend)
 	{
 	  SCM res;
 
-	  res = scm_call_1 (char_pred, SCM_MAKE_CHAR (cstr[cend - 1]));
+	  res = pred_tramp (char_pred, SCM_MAKE_CHAR (cstr[cend - 1]));
 	  if (scm_is_false (res))
 	    break;
 	  cstr = scm_i_string_chars (s);
@@ -898,12 +907,14 @@ SCM_DEFINE (scm_string_trim_both, "string-trim-both", 1, 3, 0,
     }
   else
     {
-      SCM_VALIDATE_PROC (2, char_pred);
+      scm_t_trampoline_1 pred_tramp = scm_trampoline_1 (char_pred);
+      SCM_ASSERT (pred_tramp, char_pred, SCM_ARG2, FUNC_NAME);
+
       while (cstart < cend)
 	{
 	  SCM res;
 
-	  res = scm_call_1 (char_pred, SCM_MAKE_CHAR (cstr[cstart]));
+	  res = pred_tramp (char_pred, SCM_MAKE_CHAR (cstr[cstart]));
 	  if (scm_is_false (res))
 	    break;
 	  cstr = scm_i_string_chars (s);
@@ -913,7 +924,7 @@ SCM_DEFINE (scm_string_trim_both, "string-trim-both", 1, 3, 0,
 	{
 	  SCM res;
 
-	  res = scm_call_1 (char_pred, SCM_MAKE_CHAR (cstr[cend - 1]));
+	  res = pred_tramp (char_pred, SCM_MAKE_CHAR (cstr[cend - 1]));
 	  if (scm_is_false (res))
 	    break;
 	  cstr = scm_i_string_chars (s);
@@ -1931,11 +1942,13 @@ SCM_DEFINE (scm_string_index, "string-index", 2, 2, 0,
     }
   else
     {
-      SCM_VALIDATE_PROC (2, char_pred);
+      scm_t_trampoline_1 pred_tramp = scm_trampoline_1 (char_pred);
+      SCM_ASSERT (pred_tramp, char_pred, SCM_ARG2, FUNC_NAME);
+
       while (cstart < cend)
 	{
 	  SCM res;
-	  res = scm_call_1 (char_pred, SCM_MAKE_CHAR (cstr[cstart]));
+	  res = pred_tramp (char_pred, SCM_MAKE_CHAR (cstr[cstart]));
 	  if (scm_is_true (res))
 	    goto found;
 	  cstr = scm_i_string_chars (s);
@@ -1996,12 +2009,14 @@ SCM_DEFINE (scm_string_index_right, "string-index-right", 2, 2, 0,
     }
   else
     {
-      SCM_VALIDATE_PROC (2, char_pred);
+      scm_t_trampoline_1 pred_tramp = scm_trampoline_1 (char_pred);
+      SCM_ASSERT (pred_tramp, char_pred, SCM_ARG2, FUNC_NAME);
+
       while (cstart < cend)
 	{
 	  SCM res;
 	  cend--;
-	  res = scm_call_1 (char_pred, SCM_MAKE_CHAR (cstr[cend]));
+	  res = pred_tramp (char_pred, SCM_MAKE_CHAR (cstr[cend]));
 	  if (scm_is_true (res))
 	    goto found;
 	  cstr = scm_i_string_chars (s);
@@ -2083,11 +2098,13 @@ SCM_DEFINE (scm_string_skip, "string-skip", 2, 2, 0,
     }
   else
     {
-      SCM_VALIDATE_PROC (2, char_pred);
+      scm_t_trampoline_1 pred_tramp = scm_trampoline_1 (char_pred);
+      SCM_ASSERT (pred_tramp, char_pred, SCM_ARG2, FUNC_NAME);
+
       while (cstart < cend)
 	{
 	  SCM res;
-	  res = scm_call_1 (char_pred, SCM_MAKE_CHAR (cstr[cstart]));
+	  res = pred_tramp (char_pred, SCM_MAKE_CHAR (cstr[cstart]));
 	  if (scm_is_false (res))
 	    goto found;
 	  cstr = scm_i_string_chars (s);
@@ -2150,12 +2167,14 @@ SCM_DEFINE (scm_string_skip_right, "string-skip-right", 2, 2, 0,
     }
   else
     {
-      SCM_VALIDATE_PROC (2, char_pred);
+      scm_t_trampoline_1 pred_tramp = scm_trampoline_1 (char_pred);
+      SCM_ASSERT (pred_tramp, char_pred, SCM_ARG2, FUNC_NAME);
+
       while (cstart < cend)
 	{
 	  SCM res;
 	  cend--;
-	  res = scm_call_1 (char_pred, SCM_MAKE_CHAR (cstr[cend]));
+	  res = pred_tramp (char_pred, SCM_MAKE_CHAR (cstr[cend]));
 	  if (scm_is_false (res))
 	    goto found;
 	  cstr = scm_i_string_chars (s);
@@ -2218,11 +2237,13 @@ SCM_DEFINE (scm_string_count, "string-count", 2, 2, 0,
     }
   else
     {
-      SCM_VALIDATE_PROC (2, char_pred);
+      scm_t_trampoline_1 pred_tramp = scm_trampoline_1 (char_pred);
+      SCM_ASSERT (pred_tramp, char_pred, SCM_ARG2, FUNC_NAME);
+
       while (cstart < cend)
 	{
 	  SCM res;
-	  res = scm_call_1 (char_pred, SCM_MAKE_CHAR (cstr[cstart]));
+	  res = pred_tramp (char_pred, SCM_MAKE_CHAR (cstr[cstart]));
 	  if (scm_is_true (res))
 	    count++;
 	  cstr = scm_i_string_chars (s);
@@ -2724,15 +2745,16 @@ SCM_DEFINE (scm_string_map, "string-map", 2, 2, 0,
   char *p;
   size_t cstart, cend;
   SCM result;
+  scm_t_trampoline_1 proc_tramp = scm_trampoline_1 (proc);
 
-  SCM_VALIDATE_PROC (1, proc);
+  SCM_ASSERT (proc_tramp, proc, SCM_ARG1, FUNC_NAME);
   MY_VALIDATE_SUBSTRING_SPEC (2, s,
 			      3, start, cstart,
 			      4, end, cend);
   result = scm_i_make_string (cend - cstart, &p);
   while (cstart < cend)
     {
-      SCM ch = scm_call_1 (proc, scm_c_string_ref (s, cstart));
+      SCM ch = proc_tramp (proc, scm_c_string_ref (s, cstart));
       if (!SCM_CHARP (ch))
 	SCM_MISC_ERROR ("procedure ~S returned non-char", scm_list_1 (proc));
       cstart++;
@@ -2752,14 +2774,15 @@ SCM_DEFINE (scm_string_map_x, "string-map!", 2, 2, 0,
 #define FUNC_NAME s_scm_string_map_x
 {
   size_t cstart, cend;
+  scm_t_trampoline_1 proc_tramp = scm_trampoline_1 (proc);
 
-  SCM_VALIDATE_PROC (1, proc);
+  SCM_ASSERT (proc_tramp, proc, SCM_ARG1, FUNC_NAME);
   MY_VALIDATE_SUBSTRING_SPEC (2, s,
 			      3, start, cstart,
 			      4, end, cend);
   while (cstart < cend)
     {
-      SCM ch = scm_call_1 (proc, scm_c_string_ref (s, cstart));
+      SCM ch = proc_tramp (proc, scm_c_string_ref (s, cstart));
       if (!SCM_CHARP (ch))
 	SCM_MISC_ERROR ("procedure ~S returned non-char", scm_list_1 (proc));
       scm_c_string_set_x (s, cstart, ch);
@@ -2966,15 +2989,16 @@ SCM_DEFINE (scm_string_for_each, "string-for-each", 2, 2, 0,
 {
   const char *cstr;
   size_t cstart, cend;
+  scm_t_trampoline_1 proc_tramp = scm_trampoline_1 (proc);
 
-  SCM_VALIDATE_PROC (1, proc);
+  SCM_ASSERT (proc_tramp, proc, SCM_ARG1, FUNC_NAME);
   MY_VALIDATE_SUBSTRING_SPEC_COPY (2, s, cstr,
 				   3, start, cstart,
 				   4, end, cend);
   while (cstart < cend)
     {
       unsigned int c = (unsigned char) cstr[cstart];
-      scm_call_1 (proc, SCM_MAKE_CHAR (c));
+      proc_tramp (proc, SCM_MAKE_CHAR (c));
       cstr = scm_i_string_chars (s);
       cstart++;
     }
@@ -2991,15 +3015,16 @@ SCM_DEFINE (scm_string_for_each_index, "string-for-each-index", 2, 2, 0,
 #define FUNC_NAME s_scm_string_for_each_index
 {
   size_t cstart, cend;
+  scm_t_trampoline_1 proc_tramp = scm_trampoline_1 (proc);
 
-  SCM_VALIDATE_PROC (1, proc);
+  SCM_ASSERT (proc_tramp, proc, SCM_ARG1, FUNC_NAME);
   MY_VALIDATE_SUBSTRING_SPEC (2, s,
 			      3, start, cstart,
 			      4, end, cend);
 
   while (cstart < cend)
     {
-      scm_call_1 (proc, scm_from_size_t (cstart));
+      proc_tramp (proc, scm_from_size_t (cstart));
       cstart++;
     }
 
@@ -3349,14 +3374,15 @@ SCM_DEFINE (scm_string_filter, "string-filter", 2, 2, 0,
   else
     {
       SCM ls = SCM_EOL;
+      scm_t_trampoline_1 pred_tramp = scm_trampoline_1 (char_pred);
 
-      SCM_VALIDATE_PROC (2, char_pred);
+      SCM_ASSERT (pred_tramp, char_pred, SCM_ARG2, FUNC_NAME);
       idx = cstart;
       while (idx < cend)
 	{
 	  SCM res, ch;
 	  ch = SCM_MAKE_CHAR (cstr[idx]);
-	  res = scm_call_1 (char_pred, ch);
+	  res = pred_tramp (char_pred, ch);
 	  if (scm_is_true (res))
 	    ls = scm_cons (ch, ls);
 	  cstr = scm_i_string_chars (s);
@@ -3485,13 +3511,14 @@ SCM_DEFINE (scm_string_delete, "string-delete", 2, 2, 0,
   else
     {
       SCM ls = SCM_EOL;
+      scm_t_trampoline_1 pred_tramp = scm_trampoline_1 (char_pred);
+      SCM_ASSERT (pred_tramp, char_pred, SCM_ARG2, FUNC_NAME);
 
-      SCM_VALIDATE_PROC (2, char_pred);
       idx = cstart;
       while (idx < cend)
 	{
 	  SCM res, ch = SCM_MAKE_CHAR (cstr[idx]);
-	  res = scm_call_1 (char_pred, ch);
+	  res = pred_tramp (char_pred, ch);
 	  if (scm_is_false (res))
 	    ls = scm_cons (ch, ls);
 	  cstr = scm_i_string_chars (s);
