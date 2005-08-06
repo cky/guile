@@ -1,3 +1,13 @@
+2005-08-06  Kevin Ryde  <user42@zip.com.au>
+
+	* srfi-13.c (scm_string_any, scm_string_every, scm_string_tabulate,
+	scm_string_trim, scm_string_trim_right, scm_string_trim_both,
+	scm_string_index, scm_string_index_right, scm_string_skip,
+	scm_string_skip_right, scm_string_count, scm_string_map,
+	scm_string_map_x, scm_string_for_each, scm_string_for_each_index,
+	scm_string_filter, scm_string_delete): Use scm_t_trampoline_1 for
+	procedures called in loops.
+
 2005-08-02  Kevin Ryde  <user42@zip.com.au>
 
 	* strports.c (st_flush): Increase buffer by 1.5x when growing, to
