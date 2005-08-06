@@ -1007,6 +1007,12 @@ This section describes how to use Scheme ports from C.
 
 @subsubheading Port basics
 
+@cindex ptob
+@tindex scm_ptob_descriptor
+@tindex scm_port
+@findex SCM_PTAB_ENTRY
+@findex SCM_PTOBNUM
+@vindex scm_ptobs
 There are two main data structures.  A port type object (ptob) is of
 type @code{scm_ptob_descriptor}.  A port instance is of type
 @code{scm_port}.  Given an @code{SCM} variable which points to a port,
