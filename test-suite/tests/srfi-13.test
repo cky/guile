@@ -164,6 +164,14 @@
 
 (with-test-prefix "string-every"
 
+  (with-test-prefix "bad char_pred"
+
+    (pass-if-exception "integer" exception:wrong-type-arg
+      (string-every 123 "abcde"))
+
+    (pass-if-exception "string" exception:wrong-type-arg
+      (string-every "zzz" "abcde")))
+
   (with-test-prefix "char"
 
     (pass-if "empty string"
@@ -271,6 +279,14 @@
       (string-every char-upper-case? "aBCDe" 1 4))))
 
 (with-test-prefix "string-tabulate"
+
+  (with-test-prefix "bad proc"
+
+    (pass-if-exception "integer" exception:wrong-type-arg
+      (string-tabulate 123 10))
+
+    (pass-if-exception "string" exception:wrong-type-arg
+      (string-tabulate "zzz" 10)))
 
   (pass-if "static fill-char"
     (string=? (string-tabulate (lambda (idx) #\!) 10) "!!!!!!!!!!"))
@@ -515,6 +531,14 @@
 
 (with-test-prefix "string-trim"
 
+  (with-test-prefix "bad char_pred"
+
+    (pass-if-exception "integer" exception:wrong-type-arg
+      (string-trim "abcde" 123))
+
+    (pass-if-exception "string" exception:wrong-type-arg
+      (string-trim "abcde" "zzz")))
+
   (pass-if "empty string"
     (string=? "" (string-trim "")))
 
@@ -541,6 +565,14 @@
 
 (with-test-prefix "string-trim-right"
 
+  (with-test-prefix "bad char_pred"
+
+    (pass-if-exception "integer" exception:wrong-type-arg
+      (string-trim-right "abcde" 123))
+
+    (pass-if-exception "string" exception:wrong-type-arg
+      (string-trim-right "abcde" "zzz")))
+
   (pass-if "empty string"
     (string=? "" (string-trim-right "")))
 
@@ -566,6 +598,14 @@
     (string=? "\tf" (string-trim-right " \tfoo " char-set:whitespace 1 3))))
 
 (with-test-prefix "string-trim-both"
+
+  (with-test-prefix "bad char_pred"
+
+    (pass-if-exception "integer" exception:wrong-type-arg
+      (string-trim-both "abcde" 123))
+
+    (pass-if-exception "string" exception:wrong-type-arg
+      (string-trim-both "abcde" "zzz")))
 
   (pass-if "empty string"
     (string=? "" (string-trim-both "")))
@@ -710,6 +750,14 @@
 
 (with-test-prefix "string-index"
 
+  (with-test-prefix "bad char_pred"
+
+    (pass-if-exception "integer" exception:wrong-type-arg
+      (string-index "abcde" 123))
+
+    (pass-if-exception "string" exception:wrong-type-arg
+      (string-index "abcde" "zzz")))
+
   (pass-if "empty string - char"
     (not (string-index "" #\a)))
 
@@ -801,6 +849,14 @@
 
 (with-test-prefix "string-index-right"
 
+  (with-test-prefix "bad char_pred"
+
+    (pass-if-exception "integer" exception:wrong-type-arg
+      (string-index-right "abcde" 123))
+
+    (pass-if-exception "string" exception:wrong-type-arg
+      (string-index-right "abcde" "zzz")))
+
   (pass-if "empty string - char"
     (not (string-index-right "" #\a)))
 
@@ -883,6 +939,14 @@
     (not (string-index-right "frobnicate" char-numeric? 2 5))))
 
 (with-test-prefix "string-skip"
+
+  (with-test-prefix "bad char_pred"
+
+    (pass-if-exception "integer" exception:wrong-type-arg
+      (string-skip "abcde" 123))
+
+    (pass-if-exception "string" exception:wrong-type-arg
+      (string-skip "abcde" "zzz")))
 
   (pass-if "empty string - char"
     (not (string-skip "" #\a)))
@@ -967,6 +1031,14 @@
 
 (with-test-prefix "string-skip-right"
 
+  (with-test-prefix "bad char_pred"
+
+    (pass-if-exception "integer" exception:wrong-type-arg
+      (string-skip-right "abcde" 123))
+
+    (pass-if-exception "string" exception:wrong-type-arg
+      (string-skip-right "abcde" "zzz")))
+
   (pass-if "empty string - char"
     (not (string-skip-right "" #\a)))
 
@@ -1048,6 +1120,75 @@
   (pass-if "non-empty - pred - no match - start and end index"
     (= 4 (string-skip-right "frobnicate" char-numeric? 2 5))))
 
+;;
+;; string-count
+;;
+
+(with-test-prefix "string-count"
+
+  (with-test-prefix "bad char_pred"
+
+    (pass-if-exception "integer" exception:wrong-type-arg
+      (string-count "abcde" 123))
+
+    (pass-if-exception "string" exception:wrong-type-arg
+      (string-count "abcde" "zzz")))
+
+  (with-test-prefix "char"
+
+    (pass-if (eqv? 0 (string-count "" #\a)))
+    (pass-if (eqv? 0 (string-count "-" #\a)))
+    (pass-if (eqv? 1 (string-count "a" #\a)))
+    (pass-if (eqv? 0 (string-count "--" #\a)))
+    (pass-if (eqv? 1 (string-count "a-" #\a)))
+    (pass-if (eqv? 1 (string-count "-a" #\a)))
+    (pass-if (eqv? 2 (string-count "aa" #\a)))
+    (pass-if (eqv? 0 (string-count "---" #\a)))
+    (pass-if (eqv? 1 (string-count "-a-" #\a)))
+    (pass-if (eqv? 1 (string-count "a--" #\a)))
+    (pass-if (eqv? 2 (string-count "aa-" #\a)))
+    (pass-if (eqv? 2 (string-count "a-a" #\a)))
+    (pass-if (eqv? 3 (string-count "aaa" #\a)))
+    (pass-if (eqv? 1 (string-count "--a" #\a)))
+    (pass-if (eqv? 2 (string-count "-aa" #\a))))
+
+  (with-test-prefix "charset"
+
+    (pass-if (eqv? 0 (string-count "" char-set:letter)))
+    (pass-if (eqv? 0 (string-count "-" char-set:letter)))
+    (pass-if (eqv? 1 (string-count "a" char-set:letter)))
+    (pass-if (eqv? 0 (string-count "--" char-set:letter)))
+    (pass-if (eqv? 1 (string-count "a-" char-set:letter)))
+    (pass-if (eqv? 1 (string-count "-a" char-set:letter)))
+    (pass-if (eqv? 2 (string-count "aa" char-set:letter)))
+    (pass-if (eqv? 0 (string-count "---" char-set:letter)))
+    (pass-if (eqv? 1 (string-count "-a-" char-set:letter)))
+    (pass-if (eqv? 1 (string-count "a--" char-set:letter)))
+    (pass-if (eqv? 2 (string-count "aa-" char-set:letter)))
+    (pass-if (eqv? 2 (string-count "a-a" char-set:letter)))
+    (pass-if (eqv? 3 (string-count "aaa" char-set:letter)))
+    (pass-if (eqv? 1 (string-count "--a" char-set:letter)))
+    (pass-if (eqv? 2 (string-count "-aa" char-set:letter))))
+
+  (with-test-prefix "proc"
+
+    (pass-if (eqv? 0 (string-count "" char-alphabetic?)))
+    (pass-if (eqv? 0 (string-count "-" char-alphabetic?)))
+    (pass-if (eqv? 1 (string-count "a" char-alphabetic?)))
+    (pass-if (eqv? 0 (string-count "--" char-alphabetic?)))
+    (pass-if (eqv? 1 (string-count "a-" char-alphabetic?)))
+    (pass-if (eqv? 1 (string-count "-a" char-alphabetic?)))
+    (pass-if (eqv? 2 (string-count "aa" char-alphabetic?)))
+    (pass-if (eqv? 0 (string-count "---" char-alphabetic?)))
+    (pass-if (eqv? 1 (string-count "-a-" char-alphabetic?)))
+    (pass-if (eqv? 1 (string-count "a--" char-alphabetic?)))
+    (pass-if (eqv? 2 (string-count "aa-" char-alphabetic?)))
+    (pass-if (eqv? 2 (string-count "a-a" char-alphabetic?)))
+    (pass-if (eqv? 3 (string-count "aaa" char-alphabetic?)))
+    (pass-if (eqv? 1 (string-count "--a" char-alphabetic?)))
+    (pass-if (eqv? 2 (string-count "-aa" char-alphabetic?)))))
+
+
 (with-test-prefix "string-replace"
 
   (pass-if "empty string(s), no indices"
@@ -1111,10 +1252,10 @@
   (with-test-prefix "bad char_pred"
 
     (pass-if-exception "integer" exception:wrong-type-arg
-      (string-filter 123 "abcde"))
+      (string-filter "abcde" 123))
 
     (pass-if-exception "string" exception:wrong-type-arg
-      (string-filter "zzz" "abcde")))
+      (string-filter "abcde" "zzz")))
 
   (pass-if "empty string, char"
     (string=? "" (string-filter "" #\.)))
@@ -1163,7 +1304,19 @@
     (pass-if (equal? "xx" (string-filter "xxx" #\x 1)))
     (pass-if (equal? "xx" (string-filter "xxx" #\x 0 2)))
     (pass-if (equal? "x" (string-filter "xyx" #\x 1)))
-    (pass-if (equal? "x" (string-filter "yxx" #\x 0 2))))
+    (pass-if (equal? "x" (string-filter "yxx" #\x 0 2)))
+
+    ;; leading and trailing removals
+    (pass-if (string=? "" (string-filter "." #\x)))
+    (pass-if (string=? "" (string-filter ".." #\x)))
+    (pass-if (string=? "" (string-filter "..." #\x)))
+    (pass-if (string=? "x" (string-filter ".x" #\x)))
+    (pass-if (string=? "x" (string-filter "..x" #\x)))
+    (pass-if (string=? "x" (string-filter "...x" #\x)))
+    (pass-if (string=? "x" (string-filter "x." #\x)))
+    (pass-if (string=? "x" (string-filter "x.." #\x)))
+    (pass-if (string=? "x" (string-filter "x..." #\x)))
+    (pass-if (string=? "x" (string-filter "...x..." #\x))))
 
   (with-test-prefix "charset"
 
@@ -1177,13 +1330,33 @@
       (pass-if (equal? "yx" (string-filter "xyx" charset 1)))
       (pass-if (equal? "xy" (string-filter "xyx" charset 0 2)))
       (pass-if (equal? "x" (string-filter "xax" charset 1)))
-      (pass-if (equal? "x" (string-filter "axx" charset 0 2))))))
+      (pass-if (equal? "x" (string-filter "axx" charset 0 2))))
+
+    ;; leading and trailing removals
+    (pass-if (string=? "" (string-filter "." char-set:letter)))
+    (pass-if (string=? "" (string-filter ".." char-set:letter)))
+    (pass-if (string=? "" (string-filter "..." char-set:letter)))
+    (pass-if (string=? "x" (string-filter ".x" char-set:letter)))
+    (pass-if (string=? "x" (string-filter "..x" char-set:letter)))
+    (pass-if (string=? "x" (string-filter "...x" char-set:letter)))
+    (pass-if (string=? "x" (string-filter "x." char-set:letter)))
+    (pass-if (string=? "x" (string-filter "x.." char-set:letter)))
+    (pass-if (string=? "x" (string-filter "x..." char-set:letter)))
+    (pass-if (string=? "x" (string-filter "...x..." char-set:letter)))))
 
 ;;;
 ;;; string-delete
 ;;;
 
 (with-test-prefix "string-delete"
+
+  (with-test-prefix "bad char_pred"
+
+    (pass-if-exception "integer" exception:wrong-type-arg
+      (string-delete "abcde" 123))
+
+    (pass-if-exception "string" exception:wrong-type-arg
+      (string-delete "abcde" "zzz")))
 
   (pass-if "empty string, char"
     (string=? "" (string-delete "" #\.)))
@@ -1219,9 +1392,42 @@
     (string=? "oo" (string-delete ".foo.bar." char-set:punctuation 2 4)))
 
   (pass-if "pred, start and end index"
-    (string=? "" (string-delete ".foo.bar." char-alphabetic? 2 4))))
+    (string=? "" (string-delete ".foo.bar." char-alphabetic? 2 4)))
+
+  ;; leading and trailing removals
+  (pass-if (string=? "" (string-delete "." #\.)))
+  (pass-if (string=? "" (string-delete ".." #\.)))
+  (pass-if (string=? "" (string-delete "..." #\.)))
+  (pass-if (string=? "x" (string-delete ".x" #\.)))
+  (pass-if (string=? "x" (string-delete "..x" #\.)))
+  (pass-if (string=? "x" (string-delete "...x" #\.)))
+  (pass-if (string=? "x" (string-delete "x." #\.)))
+  (pass-if (string=? "x" (string-delete "x.." #\.)))
+  (pass-if (string=? "x" (string-delete "x..." #\.)))
+  (pass-if (string=? "x" (string-delete "...x..." #\.)))
+
+  ;; leading and trailing removals
+  (pass-if (string=? "" (string-delete "." char-set:punctuation)))
+  (pass-if (string=? "" (string-delete ".." char-set:punctuation)))
+  (pass-if (string=? "" (string-delete "..." char-set:punctuation)))
+  (pass-if (string=? "x" (string-delete ".x" char-set:punctuation)))
+  (pass-if (string=? "x" (string-delete "..x" char-set:punctuation)))
+  (pass-if (string=? "x" (string-delete "...x" char-set:punctuation)))
+  (pass-if (string=? "x" (string-delete "x." char-set:punctuation)))
+  (pass-if (string=? "x" (string-delete "x.." char-set:punctuation)))
+  (pass-if (string=? "x" (string-delete "x..." char-set:punctuation)))
+  (pass-if (string=? "x" (string-delete "...x..." char-set:punctuation))))
+
 
 (with-test-prefix "string-map"
+
+  (with-test-prefix "bad proc"
+
+    (pass-if-exception "integer" exception:wrong-type-arg
+      (string-map 123 "abcde"))
+
+    (pass-if-exception "string" exception:wrong-type-arg
+      (string-map "zzz" "abcde")))
 
   (pass-if "constant"
     (string=? "xxx" (string-map (lambda (c) #\x) "foo")))
@@ -1232,7 +1438,40 @@
   (pass-if "upcase"
     (string=? "FOO" (string-map char-upcase "foo"))))
 
+(with-test-prefix "string-map!"
+
+  (with-test-prefix "bad proc"
+
+    (pass-if-exception "integer" exception:wrong-type-arg
+      (string-map 123 "abcde"))
+
+    (pass-if-exception "string" exception:wrong-type-arg
+      (string-map "zzz" "abcde")))
+
+  (pass-if "constant"
+    (let ((str (string-copy "foo")))
+      (string-map! (lambda (c) #\x) str)
+      (string=? str "xxx")))
+
+  (pass-if "identity"
+    (let ((str (string-copy "foo")))
+      (string-map! identity str)
+      (string=? str "foo")))
+
+  (pass-if "upcase"
+    (let ((str (string-copy "foo")))
+      (string-map! char-upcase str)
+      (string=? str "FOO"))))
+
 (with-test-prefix "string-for-each"
+
+  (with-test-prefix "bad proc"
+
+    (pass-if-exception "integer" exception:wrong-type-arg
+      (string-for-each 123 "abcde"))
+
+    (pass-if-exception "string" exception:wrong-type-arg
+      (string-for-each "zzz" "abcde")))
 
   (pass-if "copy"
      (let* ((foo "foo")
@@ -1240,7 +1479,17 @@
             (i 0))
        (string-for-each
         (lambda (c) (string-set! bar i c) (set! i (1+ i))) foo)
-       (string=? foo bar)))
+       (string=? foo bar))))
+
+(with-test-prefix "string-for-each-index"
+
+  (with-test-prefix "bad proc"
+
+    (pass-if-exception "integer" exception:wrong-type-arg
+      (string-for-each-index 123 "abcde"))
+
+    (pass-if-exception "string" exception:wrong-type-arg
+      (string-for-each-index "zzz" "abcde")))
 
   (pass-if "index"
      (let* ((foo "foo")
