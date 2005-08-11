@@ -720,7 +720,7 @@ SCM_DEFINE (scm_srfi1_filter_map, "filter-map", 2, 0, 1,
   ret = SCM_EOL;
   loc = &ret;
 
-  if (SCM_NULLP (rest))
+  if (scm_is_null (rest))
     {
       /* one list */
       scm_t_trampoline_1 proc_tramp = scm_trampoline_1 (proc);
@@ -742,7 +742,7 @@ SCM_DEFINE (scm_srfi1_filter_map, "filter-map", 2, 0, 1,
       lst = list1;
       argnum = 2;
     }
-  else if (SCM_NULLP (SCM_CDR (rest)))
+  else if (scm_is_null (SCM_CDR (rest)))
     {
       /* two lists */
       scm_t_trampoline_2 proc_tramp = scm_trampoline_2 (proc);
