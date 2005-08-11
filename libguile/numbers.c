@@ -3228,9 +3228,9 @@ scm_num_eq_p (SCM x, SCM y)
              might be fastest or easiest for the cpu.  */
 
           double yy = SCM_REAL_VALUE (y);
-          return SCM_BOOL ((double) xx == yy
-                           && (DBL_MANT_DIG >= SCM_I_FIXNUM_BIT-1
-                               || xx == (long) yy));
+          return scm_from_bool ((double) xx == yy
+				&& (DBL_MANT_DIG >= SCM_I_FIXNUM_BIT-1
+				    || xx == (long) yy));
         }
       else if (SCM_COMPLEXP (y))
 	return scm_from_bool (((double) xx == SCM_COMPLEX_REAL (y))
@@ -3282,9 +3282,9 @@ scm_num_eq_p (SCM x, SCM y)
         {
           /* see comments with inum/real above */
           long yy = SCM_I_INUM (y);
-          return SCM_BOOL (xx == (double) yy
-                           && (DBL_MANT_DIG >= SCM_I_FIXNUM_BIT-1
-                               || (long) xx == yy));
+          return scm_from_bool (xx == (double) yy
+				&& (DBL_MANT_DIG >= SCM_I_FIXNUM_BIT-1
+				    || (long) xx == yy));
         }
       else if (SCM_BIGP (y))
 	{
