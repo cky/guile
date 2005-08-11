@@ -1,3 +1,8 @@
+2005-08-12  Marius Vollmer  <mvo@zagadka.de>
+
+	* srfi-1.c: Use scm_is_null instead of SCM_NULLP.  Thanks to
+	Peter Gavin!
+
 2005-08-01  Marius Vollmer  <mvo@zagadka.de>
 
 	* srfi-1.c (check_map_args): Move check_map_error label and elt

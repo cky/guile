@@ -1,3 +1,8 @@
+2005-08-12  Marius Vollmer  <mvo@zagadka.de>
+
+	* numbers.c: Use scm_from_bool instead of SCM_BOOL.  Thanks to
+	Peter Gavin!
+
 2005-08-06  Kevin Ryde  <user42@zip.com.au>
 
 	* srfi-13.c (scm_string_any, scm_string_every, scm_string_tabulate,
