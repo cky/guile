@@ -3010,8 +3010,22 @@ SCM_DEFINE (scm_string_for_each, "string-for-each", 2, 2, 0,
 
 SCM_DEFINE (scm_string_for_each_index, "string-for-each-index", 2, 2, 0,
 	    (SCM proc, SCM s, SCM start, SCM end),
-	    "@var{proc} is mapped over @var{s} in left-to-right order.  The\n"
-	    "return value is not specified.")
+	    "Call @code{(@var{proc} i)} for each index i in @var{s}, from\n"
+	    "left to right.\n"
+	    "\n"
+	    "For example, to change characters to alternately upper and\n"
+	    "lower case,\n"
+	    "\n"
+	    "@example\n"
+	    "(define str (string-copy \"studly\"))\n"
+	    "(string-for-each-index\n"
+	    "    (lambda (i)\n"
+	    "      (string-set! str i\n"
+	    "        ((if (even? i) char-upcase char-downcase)\n"
+	    "         (string-ref str i))))\n"
+	    "    str)\n"
+	    "str @result{} \"StUdLy\"\n"
+	    "@end example")
 #define FUNC_NAME s_scm_string_for_each_index
 {
   size_t cstart, cend;
