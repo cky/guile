@@ -1591,6 +1591,90 @@
     (equal? '(1 2) (lset-adjoin = '(2) 1 1))))
 
 ;;
+;; lset-difference
+;;
+
+(with-test-prefix "lset-difference"
+
+  (pass-if "called arg order"
+    (let ((good #f))
+      (lset-difference (lambda (x y)
+			 (set! good (and (= x 1) (= y 2)))
+			 (= x y))
+		       '(1) '(2))
+      good)))  
+
+;;
+;; lset-difference!
+;;
+
+(with-test-prefix "lset-difference"
+
+  (pass-if "called arg order"
+    (let ((good #f))
+      (lset-difference (lambda (x y)
+			 (set! good (and (= x 1) (= y 2)))
+			 (= x y))
+		       (list 1) (list 2))
+      good)))  
+
+;;
+;; lset-diff+intersection
+;;
+
+(with-test-prefix "lset-diff+intersection"
+
+  (pass-if "called arg order"
+    (let ((good #f))
+      (lset-diff+intersection (lambda (x y)
+				(set! good (and (= x 1) (= y 2)))
+				(= x y))
+			      '(1) '(2))
+      good)))  
+
+;;
+;; lset-diff+intersection!
+;;
+
+(with-test-prefix "lset-diff+intersection"
+
+  (pass-if "called arg order"
+    (let ((good #f))
+      (lset-diff+intersection (lambda (x y)
+				(set! good (and (= x 1) (= y 2)))
+				(= x y))
+			      (list 1) (list 2))
+      good)))  
+
+;;
+;; lset-intersection
+;;
+
+(with-test-prefix "lset-intersection"
+
+  (pass-if "called arg order"
+    (let ((good #f))
+      (lset-intersection (lambda (x y)
+			   (set! good (and (= x 1) (= y 2)))
+			   (= x y))
+			 '(1) '(2))
+      good)))  
+
+;;
+;; lset-intersection!
+;;
+
+(with-test-prefix "lset-intersection"
+
+  (pass-if "called arg order"
+    (let ((good #f))
+      (lset-intersection (lambda (x y)
+			   (set! good (and (= x 1) (= y 2)))
+			   (= x y))
+			 (list 1) (list 2))
+      good)))  
+
+;;
 ;; lset-union
 ;;
 
