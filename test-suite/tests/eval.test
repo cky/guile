@@ -245,5 +245,24 @@
       exception:wrong-type-arg
       (+ (delay (* 3 7)) 13))))
 
+;;;
+;;; letrec init evaluation
+;;;
+
+(with-test-prefix "letrec init evaluation"
+
+  (pass-if "lots of inits calculated in correct order"
+    (equal? (letrec ((a 'a) (b 'b) (c 'c) (d 'd)
+		     (e 'e) (f 'f) (g 'g) (h 'h)
+		     (i 'i) (j 'j) (k 'k) (l 'l)
+		     (m 'm) (n 'n) (o 'o) (p 'p)
+		     (q 'q) (r 'r) (s 's) (t 't)
+		     (u 'u) (v 'v) (w 'w) (x 'x)
+		     (y 'y) (z 'z))
+	      (list a b c d e f g h i j k l m
+		    n o p q r s t u v w x y z))
+	    '(a b c d e f g h i j k l m
+	      n o p q r s t u v w x y z))))
+
 
 ;;; eval.test ends here
