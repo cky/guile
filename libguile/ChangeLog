@@ -1,3 +1,8 @@
+2005-08-15  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* eval.c (eval_letrec_inits): New.
+	(CEVAL): Eval letrec initializer forms using eval_letrec_inits.
+
 2005-08-12  Marius Vollmer  <mvo@zagadka.de>
 
 	* numbers.c: Use scm_from_bool instead of SCM_BOOL.  Thanks to

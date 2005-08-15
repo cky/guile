@@ -96,6 +96,7 @@ static SCM unmemoize_exprs (SCM expr, SCM env);
 static SCM canonicalize_define (SCM expr);
 static SCM *scm_lookupcar1 (SCM vloc, SCM genv, int check);
 static SCM unmemoize_builtin_macro (SCM expr, SCM env);
+static void eval_letrec_inits (SCM env, SCM init_forms, SCM **init_values_eol);
 
 
 
@@ -3148,6 +3149,30 @@ deval_args (SCM l, SCM env, SCM proc, SCM *lloc)
   return *results;
 }
 
+static void
+eval_letrec_inits (SCM env, SCM init_forms, SCM **init_values_eol)
+{
+  SCM argv[10];
+  int i = 0, imax = sizeof (argv) / sizeof (SCM);
+
+  while (!scm_is_null (init_forms))
+    {
+      if (imax == i)
+	{
+	  eval_letrec_inits (env, init_forms, init_values_eol);
+	  break;
+	}
+      argv[i++] = EVALCAR (init_forms, env);
+      init_forms = SCM_CDR (init_forms);
+    }
+
+  for (i--; i >= 0; i--)
+    {
+      **init_values_eol = scm_list_1 (argv[i]);
+      *init_values_eol = SCM_CDRLOC (**init_values_eol);
+    }
+}
+
 #endif /* !DEVAL */
 
 
@@ -3563,21 +3588,10 @@ dispatch:
           x = SCM_CDR (x);
           {
             SCM init_forms = SCM_CAR (x);
-            SCM init_values = SCM_EOL;
-            do
-              {
-                init_values = scm_cons (EVALCAR (init_forms, env), init_values);
-                init_forms = SCM_CDR (init_forms);
-              }
-            while (!scm_is_null (init_forms));
-
-	    /* In order to make case 1.1 of the R5RS pitfall testsuite
-	       succeed, we would need to copy init_values here like
-	       so:
-
-	       init_values = scm_list_copy (init_values);
-	    */
-            SCM_SETCDR (SCM_CAR (env), init_values);
+	    SCM init_values = scm_list_1 (SCM_BOOL_T);
+	    SCM *init_values_eol = SCM_CDRLOC (init_values);
+	    eval_letrec_inits (env, init_forms, &init_values_eol);
+            SCM_SETCDR (SCM_CAR (env), SCM_CDR (init_values));
           }
           x = SCM_CDR (x);
           PREP_APPLY (SCM_UNDEFINED, SCM_EOL);

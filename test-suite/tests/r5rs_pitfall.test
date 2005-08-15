@@ -18,8 +18,6 @@
 ;; These tests have been copied from
 ;; http://sisc.sourceforge.net/r5rs_pitfall.scm and the 'should-be'
 ;; macro has been modified to fit into our test suite machinery.
-;;
-;; Test 1.1 fails, but we expect that.
 
 (define-module (test-suite test-r5rs-pitfall)
   :use-syntax (ice-9 syncase)
@@ -48,9 +46,7 @@
 ;; defines in letrec body 
 ;; http://groups.google.com/groups?selm=87bsoq0wfk.fsf%40app.dial.idiom.com
 
-;; See eval.c for how to make this test succeed.  Look for "r5rs pitfall".
-
-(should-be-but-isnt 1.1 0
+(should-be 1.1 0
  (let ((cont #f))
    (letrec ((x (call-with-current-continuation (lambda (c) (set! cont c) 0)))
             (y (call-with-current-continuation (lambda (c) (set! cont c) 0))))
