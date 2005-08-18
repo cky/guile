@@ -1,3 +1,7 @@
+2005-08-19  Kevin Ryde  <user42@zip.com.au>
+
+	* srfi-19.scm (priv:leap-second-table): Add new 2005 leap second.
+
 2005-08-12  Marius Vollmer  <mvo@zagadka.de>
 
 	* srfi-1.c: Use scm_is_null instead of SCM_NULLP.  Thanks to
