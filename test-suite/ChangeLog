@@ -1,11 +1,31 @@
+2005-08-19  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/srfi-19.test (date->time-tai): New tests, exercising new
+	leap-second.
+
 2005-08-15  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* tests/eval.test ("letrec init evaluation"): New paranoid test.
 
 	* tests/r5rs_pitfall.test (1.1): Now passes.
 
-2005-08-01  Marius Vollmer  <mvo@zagadka.de>
+2005-08-12  Kevin Ryde  <user42@zip.com.au>
 
+	* tests/srfi-1.test (lset-difference, lset-difference,
+	lset-diff+intersection, lset-diff+intersection, lset-intersection):
+	Exercise equality procedure arg order (already correct in these procs,
+	but had been wrong in other lset ones).
+
+2005-08-06  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/srfi-13.test (string-every, string-tabulate, string-trim,
+	string-trim-right, string-trim-both, string-index, string-index-right,
+	string-skip, string-skip-right, string-count, string-filter,
+	string-delete, string-map, string-map!, string-for-each,
+	string-for-each-index): Further tests, mainly to exercise new
+	trampolines for proc calls.
+
+2005-08-01  Marius Vollmer  <mvo@zagadka.de>
 
 	* tests/weaks.test: Do not fail when the GC does not collect an
 	object, report it as 'unresolved'.
