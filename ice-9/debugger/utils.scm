@@ -7,6 +7,7 @@
 	    write-frame-index-long
 	    write-frame-short/expression
 	    write-frame-short/application
+	    write-frame-long
 	    write-state-long
 	    write-state-short))
 
