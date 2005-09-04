@@ -335,6 +335,25 @@ Now:
     guile> #: foo
     #:foo
 
+** The printing of symbols that might look like keywords can be
+   controlled.
+
+The new printer option 'quote-keywordish-symbols' controls how symbols
+are printed that have a colon as their first or last character.  The
+default now is to only quote a symbol with #{...}# when the read
+option 'keywords' is not '#f'.  Thus:
+
+    guile> (define foo (string->symbol ":foo"))
+    guile> (read-set! keywords #f)
+    guile> foo
+    :foo
+    guile> (read-set! keywords 'prefix)
+    guile> foo
+    #{:foo}#
+    guile> (print-set! quote-keywordish-symbols #f)
+    guile> foo
+    :foo
+
 ** 'while' now provides 'break' and 'continue'
 
 break and continue were previously bound in a while loop, but not
