@@ -1,3 +1,13 @@
+2005-09-05  Marius Vollmer  <mvo@zagadka.de>
+
+	* print.h (SCM_PRINT_KEYWORD_STYLE_I, SCM_PRINT_KEYWORD_STYLE):
+	New.
+	(sym_reader): New.
+	(scm_print_opts): Added "quote-keywordish-symbols" option.
+	(quote_keywordish_symbol): New, for evaluating the option.
+	(scm_print_symbol_name): Use it.
+	(scm_init_print): Initialize new option to sym_reader.
+	
 2005-08-15  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* eval.c (eval_letrec_inits): New.
