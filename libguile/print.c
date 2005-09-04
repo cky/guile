@@ -68,6 +68,8 @@ static const char *iflagnames[] =
   "#nil"
 };
 
+SCM_SYMBOL (sym_reader, "reader");
+
 scm_t_option scm_print_opts[] = {
   { SCM_OPTION_SCM, "closure-hook", SCM_UNPACK (SCM_BOOL_F),
     "Hook for printing closures (should handle macros as well)." },
@@ -76,7 +78,12 @@ scm_t_option scm_print_opts[] = {
   { SCM_OPTION_SCM, "highlight-prefix", (unsigned long)SCM_BOOL_F,
     "The string to print before highlighted values." },
   { SCM_OPTION_SCM, "highlight-suffix", (unsigned long)SCM_BOOL_F,
-    "The string to print after highlighted values." }
+    "The string to print after highlighted values." },
+  { SCM_OPTION_SCM, "quote-keywordish-symbols", (unsigned long)SCM_BOOL_F,
+    "How to print symbols that have a colon as their first or last character. "
+    "The value '#f' does not quote the colons; '#t' quotes them; "
+    "'reader' quotes them when the reader option 'keywords' is not '#f'." 
+  }
 };
 
 SCM_DEFINE (scm_print_options, "print-options-interface", 0, 1, 0, 
@@ -267,6 +274,24 @@ print_circref (SCM port, scm_print_state *pstate, SCM ref)
 
 /* Print the name of a symbol. */
 
+static int
+quote_keywordish_symbol (const char *str, size_t len)
+{
+  SCM option;
+
+  /* LEN is guaranteed to be > 0.
+   */
+  if (str[0] != ':' && str[len-1] != ':')
+    return 0;
+
+  option = SCM_PRINT_KEYWORD_STYLE;
+  if (scm_is_false (option))
+    return 0;
+  if (scm_is_eq (option, sym_reader))
+    return scm_is_true (SCM_PACK (SCM_KEYWORD_STYLE));
+  return 1;
+}
+
 void
 scm_print_symbol_name (const char *str, size_t len, SCM port)
 {
@@ -290,9 +315,10 @@ scm_print_symbol_name (const char *str, size_t len, SCM port)
   int maybe_weird = 0;
   size_t mw_pos = 0;
 
-  if (len == 0 || str[0] == '\'' || str[0] == '`' || str[0] == ',' ||
-      str[0] == ':' || str[len-1] == ':' || (str[0] == '.' && len == 1) ||
-      scm_is_true (scm_i_mem2number(str, len, 10)))
+  if (len == 0 || str[0] == '\'' || str[0] == '`' || str[0] == ','
+      || quote_keywordish_symbol (str, len)
+      || (str[0] == '.' && len == 1)
+      || scm_is_true (scm_i_mem2number(str, len, 10)))
     {
       scm_lfwrite ("#{", 2, port);
       weird = 1;
@@ -1146,6 +1172,8 @@ scm_init_print ()
   scm_set_smob_print (scm_tc16_port_with_ps, port_with_ps_print);
 
 #include "libguile/print.x"
+
+  scm_print_opts[SCM_PRINT_KEYWORD_STYLE_I].val = SCM_UNPACK (sym_reader);
 }
 
 /*
