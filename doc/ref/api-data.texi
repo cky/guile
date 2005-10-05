@@ -3705,6 +3705,16 @@ This regular expression interface was modeled after that
 implemented by SCSH, the Scheme Shell.  It is intended to be
 upwardly compatible with SCSH regular expressions.
 
+Zero bytes (@code{#\nul}) cannot be used in regex patterns or input
+strings, since the underlying C functions treat that as the end of
+string.  If there's a zero byte an error is thrown.
+
+Patterns and input strings are treated as being in the locale
+character set if @code{setlocale} has been called (@pxref{Locales}),
+and in a multibyte locale this includes treating multi-byte sequences
+as a single character.  (Guile strings are currently merely bytes,
+though this may change in the future, @xref{Conversion to/from C}.)
+
 @deffn {Scheme Procedure} string-match pattern str [start]
 Compile the string @var{pattern} into a regular expression and compare
 it with @var{str}.  The optional numeric argument @var{start} specifies
