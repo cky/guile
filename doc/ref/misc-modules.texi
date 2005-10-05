@@ -118,7 +118,7 @@ parameters are accepted by some codes too.  Parameters have the
 following forms,
 
 @table @asis
-@item @nicode{[+/-] number}
+@item @nicode{[+/-]number}
 An integer, with optional @nicode{+} or @nicode{-}.
 @item @nicode{'}  (apostrophe)
 The following character in the format string, for instance @nicode{'z}
@@ -153,16 +153,16 @@ outputs an argument like @code{write} (@pxref{Writing}).
 (format #t "~s" "foo") @print{} "foo"
 @end example
 
-With the @nicode{:} modifier, objects which don't have an external
-representation are put in quotes like a string.
+@nicode{~:a} and @nicode{~:s} put objects that don't have an external
+representation in quotes like a string.
 
 @example
 (format #t "~:a" car) @print{} "#<primitive-procedure car>"
 @end example
 
 If the output is less than @var{minwidth} characters (default 0), it's
-padded on the right with @var{padchar} (default space).  The
-@nicode{@@} modifier puts the padding on the left instead.
+padded on the right with @var{padchar} (default space).  @nicode{~@@a}
+and @nicode{~@@s} put the padding on the left instead.
 
 @example
 (format #f "~5a" 'abc)       @result{} "abc  "
@@ -184,9 +184,9 @@ no minimum or multiple).
 Character.  Parameter: @var{charnum}.
 
 Output a character.  The default is to simply output, as per
-@code{write-char} (@pxref{Writing}).  With the @nicode{@@} modifier
-output is in @code{write} style.  Or with the @nicode{:} modifier
-control characters (ASCII 0 to 31) are printed in @nicode{^X} form.
+@code{write-char} (@pxref{Writing}).  @nicode{~@@c} prints in
+@code{write} style.  @nicode{~:c} prints control characters (ASCII 0
+to 31) in @nicode{^X} form.
 
 @example
 (format #t "~c" #\z)        @print{} z
@@ -217,7 +217,7 @@ integer (respectively).
 (format #t "~d" 123) @print{} 123
 @end example
 
-With the @nicode{@@} modifier, a @nicode{+} sign is shown on positive
+@nicode{~@@d} etc shows a @nicode{+} sign is shown on positive
 numbers.
 
 @c  FIXME: "+" is not shown on zero, unlike in Common Lisp.  Should
@@ -238,8 +238,8 @@ minimum), it's padded on the left with the @var{padchar} parameter
 (format #t "~3d"    1234) @print{} 1234
 @end example
 
-The @nicode{:} modifier adds commas (or the @var{commachar} parameter)
-every three digits (or the @var{commawidth} parameter many).
+@nicode{~:d} adds commas (or the @var{commachar} parameter) every
+three digits (or the @var{commawidth} parameter many).
 
 @example
 (format #t "~:d" 1234567)         @print{} 1,234,567
@@ -261,7 +261,7 @@ Integer in words, roman numerals, or a specified radix.  Parameters:
 @var{commawidth}.
 
 With no parameters output is in words as a cardinal like ``ten'', or
-with the @nicode{:} modifier as an ordinal like ``tenth''.
+@nicode{~:r} prints an ordinal like ``tenth''.
 
 @example
 (format #t "~r" 9)  @print{} nine        ;; cardinal
@@ -269,11 +269,10 @@ with the @nicode{:} modifier as an ordinal like ``tenth''.
 (format #t "~:r" 9) @print{} ninth       ;; ordinal
 @end example
 
-And also with no parameters, the @nicode{@@} modifier gives roman
-numerals and @nicode{@@} and @nicode{:} together give old roman
-numerals.  In old roman numerals there's no ``subtraction'', so 9 is
-@nicode{VIIII} instead of @nicode{IX}.  In both cases only positive
-numbers can be output.
+And also with no parameters, @nicode{~@@r} gives roman numerals and
+@nicode{~@@:r} gives old roman numerals.  In old roman numerals
+there's no ``subtraction'', so 9 is @nicode{VIIII} instead of
+@nicode{IX}.  In both cases only positive numbers can be output.
 
 @example
 (format #t "~@@r" 89)  @print{} LXXXIX     ;; roman
@@ -302,8 +301,8 @@ decimal point.
 (format #t "~f" "1e-1") @print{} 0.1
 @end example
 
-With the @nicode{@@} modifier a @nicode{+} sign is shown on positive
-numbers (including zero).
+@nicode{~@@f} prints a @nicode{+} sign on positive numbers (including
+zero).
 
 @example
 (format #t "~@@f" 0) @print{} +0.0
@@ -360,9 +359,9 @@ Output a number or number string in exponential notation.
 (format #t "~e" "1e4")   @print{} 1.0E+4
 @end example
 
-With the @nicode{@@} modifier a @nicode{+} sign is shown on positive
-numbers (including zero).  (This is for the mantissa, a @nicode{+} or
-@nicode{-} sign is always shown on the exponent.)
+@nicode{~@@e} prints a @nicode{+} sign on positive numbers (including
+zero).  (This is for the mantissa, a @nicode{+} or @nicode{-} sign is
+always shown on the exponent.)
 
 @example
 (format #t "~@@e" 5000.0) @print{} +5.0E+3
@@ -486,8 +485,8 @@ show, default 2.
 (format #t "~4$" "1e-2") @print{} 0.0100
 @end example
 
-With the @nicode{@@} modifier a @nicode{+} sign is shown on positive
-numbers (including zero).
+@nicode{~@@$} prints a @nicode{+} sign on positive numbers (including
+zero).
 
 @example
 (format #t "~@@$" 0) @print{} +0.00
@@ -502,8 +501,8 @@ part of the value (default 1).
 @end example
 
 If the output is less than @var{width} characters (default 0), it's
-padded on the left with @var{padchar} (default space).  With the
-@nicode{:} modifier the padding is output after the sign.
+padded on the left with @var{padchar} (default space).  @nicode{~:$}
+puts the padding after the sign.
 
 @example
 (format #f "~,,8$" -1.5)   @result{} "   -1.50"
@@ -556,21 +555,26 @@ value.
 (format #t "enter name~p" 2) @print{} enter names
 @end example
 
-With the @nicode{@@} modifier, the output is @samp{y} for 1 or
-@samp{ies} otherwise.
+@nicode{~@@p} prints @samp{y} for 1 or @samp{ies} otherwise.
 
 @example
 (format #t "pupp~@@p" 1) @print{} puppy
 (format #t "pupp~@@p" 2) @print{} puppies
 @end example
 
-The @nicode{:} modifier means re-use the preceding argument instead of
-taking a new one, which can be convenient when printing some sort of
-count.
+@nicode{~:p} re-uses the preceding argument instead of taking a new
+one, which can be convenient when printing some sort of count.
 
 @example
-(format #t "~d cat~:p" 9) @print{} 9 cats
+(format #t "~d cat~:p" 9)   @print{} 9 cats
+(format #t "~d pupp~@@:p" 5) @print{} 5 puppies
 @end example
+
+@nicode{~p} is designed for English plurals and there's no attempt to
+support other languages.  @nicode{~[} conditionals (below) may be able
+to help.  When using @code{gettext} to translate messages
+@code{ngettext} is probably best though
+(@pxref{Internationalization}).
 
 @item @nicode{~y}
 Pretty print.  No parameters.
@@ -582,12 +586,16 @@ Output an argument with @code{pretty-print} (@pxref{Pretty Printing}).
 Sub-format.  No parameters.
 
 Take a format string argument and a second argument which is a list of
-arguments for it, and output the result.  With the @nicode{@@}
-modifier, the arguments for the sub-format are taken directly rather
-than from a list.
+arguments for that string, and output the result.
 
 @example
-(format #t "~?"     "~d ~d" '(1 2))    @print{} 1 2
+(format #t "~?" "~d ~d" '(1 2))    @print{} 1 2
+@end example
+
+@nicode{~@@?} takes arguments for the sub-format directly rather than
+in a list.
+
+@example
 (format #t "~@@? ~s" "~d ~d" 1 2 "foo") @print{} 1 2 "foo"
 @end example
 
@@ -597,16 +605,16 @@ T-Scheme compatibility.
 @item @nicode{~*}
 Argument jumping.  Parameter: @var{N}.
 
-Move forward @var{N} arguments (default 1) in the argument list.  With
-the @nicode{:} modifier move backwards.  (@var{N} cannot be negative.)
+Move forward @var{N} arguments (default 1) in the argument list.
+@nicode{~:*} moves backwards.  (@var{N} cannot be negative.)
 
 @example
 (format #f "~d ~2*~d" 1 2 3 4) @result{} "1 4"
 (format #f "~d ~:*~d" 6)       @result{} "6 6"
 @end example
 
-With the @nicode{@@} modifier, move to argument number @var{N}.  The
-first argument is number 0 (and that's the default for @var{N}).
+@nicode{~@@*} moves to argument number @var{N}.  The first argument is
+number 0 (and that's the default for @var{N}).
 
 @example
 (format #f "~d~d again ~@@*~d~d" 1 2) @result{} "12 again 12"
@@ -621,7 +629,7 @@ argument list, a reverse of what the @nicode{@@} modifier does.
 (format #t "~#*~2:*~a" 'a 'b 'c 'd)   @print{} c
 @end example
 
-At the end of the format string, the current argument postion doesn't
+At the end of the format string the current argument postion doesn't
 matter, any further arguments are ignored.
 
 @item @nicode{~t}
@@ -647,10 +655,10 @@ The default @var{colinc} is 1 (which means no further move).
 (format #f "abcd~2,5,'.tx") @result{} "abcd...x"
 @end example
 
-With the @nicode{@@} modifier, @var{colnum} is relative to the current
-column.  @var{colnum} many padding characters are output, then further
-padding to make the current column a multiple of @var{colinc}, if it
-isn't already so.
+@nicode{~@@t} takes @var{colnum} as an offset from the current column.
+@var{colnum} many pad characters are output, then further padding to
+make the current column a multiple of @var{colinc}, if it isn't
+already so.
 
 @example
 (format #f "a~3,5'*@@tx") @result{} "a****x"
@@ -721,19 +729,21 @@ nothing.
 Continuation line.  No parameters.
 
 Skip this newline and any following whitespace in the format string,
-don't send it to the output.  With the @nicode{:} modifier the newline
-is not output but any further following whitespace is.  With the
-@nicode{@@} modifier the newline is output but not any following
+ie.@: don't send it to the output.  This can be used to break up a
+long format string for readability, but not print the extra
 whitespace.
-
-This escape can be used to break up a long format string into multiple
-lines for readability, but supress that extra whitespace.
 
 @example
 (format #f "abc~
             ~d def~
             ~d" 1 2) @result{} "abc1 def2"
 @end example
+
+@nicode{~:newline} skips the newline but leaves any further whitespace
+to be printed normally.
+
+@nicode{~@@newline} prints the newline then skips following
+whitespace.
 
 @item @nicode{~(} @nicode{~)}
 Case conversion.  No parameters.
@@ -743,7 +753,7 @@ The modifiers on @nicode{~(} control the conversion.
 
 @itemize @w{}
 @item
-no modifiers --- lower case.
+@nicode{~(} --- lower case.
 @c
 @c  FIXME: The : and @ modifiers are not yet documented because the
 @c  code applies string-capitalize and string-capitalize-first to each
@@ -767,7 +777,7 @@ no modifiers --- lower case.
 @c  rest lower case.
 @c
 @item
-@nicode{:} and @nicode{@@} together --- upper case.
+@nicode{~@@:(} --- upper case.
 @end itemize
 
 For example,
@@ -800,26 +810,26 @@ elements from it.  This is a convenient way to output a whole list.
 (format #t "~@{~s=~d ~@}" '("x" 1 "y" 2)) @print{} "x"=1 "y"=2
 @end example
 
-With the @nicode{:} modifier a list of lists argument is taken, each
-of those lists gives the arguments for the iterated format.
+@nicode{~:@{} takes a single argument which is a list of lists, each
+of those contained lists gives the arguments for the iterated format.
 
 @example
 (format #t "~:@{~dx~d ~@}" '((1 2) (3 4) (5 6))) @print{} 1x2 3x4 5x6
 @end example
 
-With the @nicode{@@} modifier, the remaining arguments are used, each
-iteration successively consuming elements.
+@nicode{~@@@{} takes arguments directly, with each iteration
+successively consuming arguments.
 
 @example
 (format #t "~@@@{~d~@}"     1 2 3)       @print{} 123
 (format #t "~@@@{~s=~d ~@}" "x" 1 "y" 2) @print{} "x"=1 "y"=2
 @end example
 
-With both @nicode{:} and @nicode{@@} modifiers, the remaining
-arguments are used, each is a list of arguments for the format.
+@nicode{~@@:@{} takes list arguments, one argument for each iteration,
+using that list for the format.
 
 @example
-(format #t "~:@@@{~dx~d ~@}" '(1 2) '(3 4) '(5 6)) @print{} 1x2 3x4 5x6
+(format #t "~@@:@{~dx~d ~@}" '(1 2) '(3 4) '(5 6)) @print{} 1x2 3x4 5x6
 @end example
 
 Iterating stops when there are no more arguments or when the
@@ -853,6 +863,8 @@ to @code{(1 2)} then @code{(3 4 5)} etc.
 (format #t "~@{~@{~d~@}x~@}" '((1 2) (3 4 5))) @print{} 12x345x
 @end example
 
+See also @nicode{~^} below for escaping from iteration.
+
 @item @nicode{~[} @nicode{~;} @nicode{~]}
 Conditional.  Parameter: @var{selector}.
 
@@ -873,17 +885,16 @@ instead of taking an argument.
 @end example
 
 If the clause number is out of range then nothing is output.  Or the
-last @nicode{~;} can have a @nicode{:} modifier to make it the default
-for a number out of range.
+last clause can be @nicode{~:;} to use that for a number out of range.
 
 @example
 (format #f "~[banana~;mango~]"         99) @result{} ""
 (format #f "~[banana~;mango~:;fruit~]" 99) @result{} "fruit"
 @end example
 
-The @nicode{:} modifier to @nicode{~[} treats the argument as a flag,
-and expects two clauses.  The first is used if the argument is
-@code{#f} or the second otherwise.
+@nicode{~:[} treats the argument as a flag, and expects two clauses.
+The first is used if the argument is @code{#f} or the second
+otherwise.
 
 @example
 (format #f "~:[false~;not false~]" #f)   @result{} "false"
@@ -894,12 +905,12 @@ and expects two clauses.  The first is used if the argument is
 @print{} 3 gnus are here
 @end example
 
-The @nicode{@@} modifier to @nicode{~[} also treats the argument as a
-flag, and expects one clause.  If the argument is @code{#f} then no
-output is produced and the argument is consumed, otherwise the clause
-is used and the argument is not consumed by @nicode{~[}, it's left for
-the clause.  This can be used for instance to suppress output if
-@code{#f} means something not available.
+@nicode{~@@[} also treats the argument as a flag, and expects one
+clause.  If the argument is @code{#f} then no output is produced and
+the argument is consumed, otherwise the clause is used and the
+argument is not consumed, it's left for the clause.  This can be used
+for instance to suppress output if @code{#f} means something not
+available.
 
 @example
 (format #f "~@@[temperature=~d~]" 27) @result{} "temperature=27"
@@ -910,7 +921,7 @@ the clause.  This can be used for instance to suppress output if
 Escape.  Parameters: @var{val1}, @var{val2}, @var{val3}.
 
 Stop formatting if there are no more arguments.  This can be used for
-instance to let a format string adapt to a variable number of
+instance to have a format string adapt to a variable number of
 arguments.
 
 @example
@@ -920,8 +931,9 @@ arguments.
 
 Within a @nicode{~@{} @nicode{~@}} iteration, @nicode{~^} stops the
 current iteration step if there are no more arguments to that step,
-continuing with possible further steps (for instance in the case of
-the @nicode{:} modifier to @nicode{~@{}) and the rest of the format.
+but continuing with possible further steps and the rest of the format.
+This can be used for instance to avoid a separator on the last
+iteration, or to adapt to variable length argument lists.
 
 @example
 (format #f "~@{~d~^/~@} go"    '(1 2 3))     @result{} "1/2/3 go"
@@ -966,8 +978,9 @@ equal.  For three parameters, termination is when @math{@var{val1}
 @c  FIXME: Good examples of these?
 
 @item @nicode{~q}
-Inquiry message.  Insert a copyright message into the output.  With
-the @nicode{:} modifier insert the format implementation version.
+Inquiry message.  Insert a copyright message into the output.
+
+@nicode{~:q} inserts the format implementation version.
 @end table
 
 @sp 1
