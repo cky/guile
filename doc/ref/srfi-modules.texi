@@ -1430,8 +1430,8 @@ lookup.
   (lambda elems
     (let ((table (make-hash-table)))
       (for-each (lambda (elem)
-		  (apply hash-set! table elem))
-		elems)
+                  (apply hash-set! table elem))
+                elems)
       table)))
 
 (define (animal->family animal)
