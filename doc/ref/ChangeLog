@@ -1,3 +1,14 @@
+2005-10-15  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* api-debug.texi (Source Properties): Add text describing/advising
+	limited use of source properties.
+
+	* api-debug.texi (Source Properties): Documentation of source
+	property procedures moved here from ...
+
+	* api-procedures.texi (Procedure Properties): ... where it didn't
+	belong.
+
 2005-10-05  Kevin Ryde  <user42@zip.com.au>
 
 	* api-data.texi (Regexp Functions): Notes on zero bytes and locale

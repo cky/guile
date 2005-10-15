@@ -463,35 +463,6 @@ first expression is a string constant, that string is assumed to contain
 documentation for that procedure.
 @end deffn
 
-@cindex source properties
-@c FIXME::martin: Is the following true?
-Source properties are properties which are related to the source code of
-a procedure, such as the line and column numbers, the file name etc.
-
-@deffn {Scheme Procedure} set-source-properties! obj plist
-@deffnx {C Function} scm_set_source_properties_x (obj, plist)
-Install the association list @var{plist} as the source property
-list for @var{obj}.
-@end deffn
-
-@deffn {Scheme Procedure} set-source-property! obj key datum
-@deffnx {C Function} scm_set_source_property_x (obj, key, datum)
-Set the source property of object @var{obj}, which is specified by
-@var{key} to @var{datum}.  Normally, the key will be a symbol.
-@end deffn
-
-@deffn {Scheme Procedure} source-properties obj
-@deffnx {C Function} scm_source_properties (obj)
-Return the source property association list of @var{obj}.
-@end deffn
-
-
-@deffn {Scheme Procedure} source-property obj key
-@deffnx {C Function} scm_source_property (obj, key)
-Return the source property specified by @var{key} from
-@var{obj}'s source property list.
-@end deffn
-
 
 @node Procedures with Setters
 @subsection Procedures with Setters

@@ -161,6 +161,60 @@ named ``positions'' (@pxref{Reader options}).  This option is switched
 interactively; all these options are @emph{off} by default when Guile
 runs a script non-interactively.
 
+The following procedures can be used to access and set the source
+properties of read expressions.
+
+@deffn {Scheme Procedure} set-source-properties! obj plist
+@deffnx {C Function} scm_set_source_properties_x (obj, plist)
+Install the association list @var{plist} as the source property
+list for @var{obj}.
+@end deffn
+
+@deffn {Scheme Procedure} set-source-property! obj key datum
+@deffnx {C Function} scm_set_source_property_x (obj, key, datum)
+Set the source property of object @var{obj}, which is specified by
+@var{key} to @var{datum}.  Normally, the key will be a symbol.
+@end deffn
+
+@deffn {Scheme Procedure} source-properties obj
+@deffnx {C Function} scm_source_properties (obj)
+Return the source property association list of @var{obj}.
+@end deffn
+
+@deffn {Scheme Procedure} source-property obj key
+@deffnx {C Function} scm_source_property (obj, key)
+Return the source property specified by @var{key} from
+@var{obj}'s source property list.
+@end deffn
+
+In practice there are only two ways that you should use the ability to
+set an expression's source breakpoints.
+
+@itemize
+@item
+To set a breakpoint on an expression, use @code{(set-source-property!
+@var{expr} 'breakpoint #t)}.  If you do this, you should also set the
+@code{traps} and @code{enter-frame-handler} trap options
+(@pxref{Evaluator trap options}) and @code{breakpoints} debug option
+(@pxref{Debugger options}) appropriately, and the evaluator will then
+call your enter frame handler whenever it is about to evaluate that
+expression.
+
+@item
+To make a read or constructed expression appear to have come from a
+different source than what the expression's source properties already
+say, you can use @code{set-source-property!} to set the expression's
+@code{filename}, @code{line} and @code{column} properties.  The
+properties that you set will then show up later if that expression is
+involved in a backtrace or error report.
+@end itemize
+
+If you are looking for a way to attach arbitrary information to an
+expression other than these properties, you should use
+@code{make-object-property} instead (@pxref{Object Properties}), because
+that will avoid bloating the source property hash table, which is really
+only intended for the specific purposes described in this section.
+
 
 @node Using Traps
 @subsection Using Traps
