@@ -611,13 +611,22 @@ SCM_DEFINE (scm_tzset, "tzset", 0, 0, 0,
 
 SCM_DEFINE (scm_strftime, "strftime", 2, 0, 0,
             (SCM format, SCM stime),
-	    "Formats a time specification @var{time} using @var{template}.  @var{time}\n"
-	    "is an object with time components in the form returned by @code{localtime}\n"
-	    "or @code{gmtime}.  @var{template} is a string which can include formatting\n"
-	    "specifications introduced by a @code{%} character.  The formatting of\n"
-	    "month and day names is dependent on the current locale.  The value returned\n"
-	    "is the formatted string.\n"
-	    "@xref{Formatting Date and Time, , , libc, The GNU C Library Reference Manual}.)")
+	    "Return a string which is broken-down time structure @var{stime}\n"
+	    "formatted according to the given @var{format} string.\n"
+	    "\n"
+	    "@var{format} contains field specifications introduced by a\n"
+	    "@samp{%} character.  See @ref{Formatting Calendar Time,,, libc,\n"
+	    "The GNU C Library Reference Manual}, or @samp{man 3 strftime},\n"
+	    "for the available formatting.\n"
+	    "\n"
+	    "@lisp\n"
+	    "(strftime \"%c\" (localtime (current-time)))\n"
+	    "@result{} \"Mon Mar 11 20:17:43 2002\"\n"
+	    "@end lisp\n"
+	    "\n"
+	    "If @code{setlocale} has been called (@pxref{Locales}), month\n"
+	    "and day names are from the current locale and in the locale\n"
+	    "character set.")
 #define FUNC_NAME s_scm_strftime
 {
   struct tm t;
