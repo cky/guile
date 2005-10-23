@@ -11,7 +11,7 @@
 @menu
 * Conventions::                 Conventions employed by the POSIX interface.
 * Ports and File Descriptors::  Scheme ``ports'' and Unix file descriptors
-				  have different representations.
+                                  have different representations.
 * File System::                 stat, chown, chmod, etc.
 * User Information::            Retrieving a user's GECOS (/etc/passwd) entry.
 * Time::                        gettimeofday, localtime, strftime, etc.
