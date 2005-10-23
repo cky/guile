@@ -81,12 +81,23 @@
 ;; If localtime is in daylight savings then it will decide there's no
 ;; daylight savings zone name for the fake ZOW, and come back empty.
 ;;
-(pass-if "strftime %Z doesn't return garbage"
-	 (let ((t (localtime (current-time))))
-	   (set-tm:zone t "ZOW")
-	   (set-tm:isdst t 0)
-	   (string=? (strftime "%Z" t)
-		     "ZOW")))
+;; This test is disabled because on NetBSD %Z doesn't look at the tm_zone
+;; field in struct tm passed by guile.  That behaviour is reasonable enough
+;; since that field is not in C99 so a C99 program won't know it has to be
+;; set.  For the details on that see
+;;
+;;     http://www.netbsd.org/cgi-bin/query-pr-single.pl?number=21722
+;;
+;; Not sure what to do about this in guile, it'd be nice for %Z to look at
+;; tm:zone everywhere.
+;;
+;;
+;; (pass-if "strftime %Z doesn't return garbage"
+;; 	 (let ((t (localtime (current-time))))
+;; 	   (set-tm:zone t "ZOW")
+;; 	   (set-tm:isdst t 0)
+;; 	   (string=? (strftime "%Z" t)
+;; 		     "ZOW")))
 
 ;;;
 ;;; strptime
