@@ -1212,21 +1212,24 @@ since it's done automatically by other procedures that depend on the
 timezone.
 @end deffn
 
-@deffn {Scheme Procedure} strftime format stime
-@deffnx {C Function} scm_strftime (format, stime)
+@deffn {Scheme Procedure} strftime format tm
+@deffnx {C Function} scm_strftime (format, tm)
 @cindex time formatting
-Formats a time specification @var{time} using @var{template}.  @var{time}
-is an object with time components in the form returned by @code{localtime}
-or @code{gmtime}.  @var{template} is a string which can include formatting
-specifications introduced by a @samp{%} character.  The formatting of
-month and day names is dependent on the current locale.  The value returned
-is the formatted string.
-@xref{Formatting Calendar Time, , , libc, The GNU C Library Reference Manual}.
+Return a string which is broken-down time structure @var{tm} formatted
+according to the given @var{format} string.
+
+@var{format} contains field specifications introduced by a @samp{%}
+character.  See @ref{Formatting Calendar Time,,, libc, The GNU C
+Library Reference Manual}, or @samp{man 3 strftime}, for the available
+formatting.
 
 @lisp
 (strftime "%c" (localtime (current-time)))
 @result{} "Mon Mar 11 20:17:43 2002"
 @end lisp
+
+If @code{setlocale} has been called (@pxref{Locales}), month and day
+names are from the current locale and in the locale character set.
 @end deffn
 
 @deffn {Scheme Procedure} strptime format string
