@@ -50,13 +50,13 @@
 /* Mutexes
  */
 #define SCM_I_PTHREAD_MUTEX_INITIALIZER     0
-#define SCM_I_PTHREAD_RECURSIVE_MUTEX_INITIALIZER     0
 #define scm_i_pthread_mutex_t               int
 #define scm_i_pthread_mutex_init(m,a)       (*(m) = 0)
 #define scm_i_pthread_mutex_destroy(m)      do { (void)(m); } while(0)
 #define scm_i_pthread_mutex_trylock(m)      ((*(m))++)
 #define scm_i_pthread_mutex_lock(m)         ((*(m))++)
 #define scm_i_pthread_mutex_unlock(m)       ((*(m))--)
+#define scm_i_pthread_mutexattr_recursive   0
 
 /* Condition variables
  */

@@ -1481,8 +1481,7 @@ scm_i_thread_sleep_for_gc ()
 
 /* This mutex is used by SCM_CRITICAL_SECTION_START/END.
  */
-scm_i_pthread_mutex_t scm_i_critical_section_mutex =
-  SCM_I_PTHREAD_RECURSIVE_MUTEX_INITIALIZER;
+scm_i_pthread_mutex_t scm_i_critical_section_mutex;
 int scm_i_critical_section_level = 0;
 
 static SCM framed_critical_section_mutex;
@@ -1501,9 +1500,21 @@ scm_frame_critical_section (SCM mutex)
 scm_i_pthread_key_t scm_i_freelist, scm_i_freelist2;
 scm_i_pthread_mutex_t scm_i_misc_mutex;
 
+#if SCM_USE_PTHREAD_THREADS
+pthread_mutexattr_t scm_i_pthread_mutexattr_recursive[1];
+#endif
+
 void
 scm_threads_prehistory (SCM_STACKITEM *base)
 {
+#if SCM_USE_PTHREAD_THREADS
+  pthread_mutexattr_init (scm_i_pthread_mutexattr_recursive);
+  pthread_mutexattr_settype (scm_i_pthread_mutexattr_recursive,
+			     PTHREAD_MUTEX_RECURSIVE);
+#endif
+
+  scm_i_pthread_mutex_init (&scm_i_critical_section_mutex,
+			    scm_i_pthread_mutexattr_recursive);
   scm_i_pthread_mutex_init (&scm_i_misc_mutex, NULL);
   scm_i_pthread_cond_init (&wake_up_cond, NULL);
   scm_i_pthread_key_create (&scm_i_freelist, NULL);

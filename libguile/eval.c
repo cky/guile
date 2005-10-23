@@ -2655,7 +2655,7 @@ static SCM deval (SCM x, SCM env);
             ? SCM_CAR (x) \
             :  *scm_lookupcar ((x), (env), 1)))))
 
-scm_i_pthread_mutex_t source_mutex = SCM_I_PTHREAD_RECURSIVE_MUTEX_INITIALIZER;
+scm_i_pthread_mutex_t source_mutex;
 
 
 /* Lookup a given local variable in an environment.  The local variable is
@@ -6022,6 +6022,9 @@ SCM (*scm_ceval_ptr) (SCM x, SCM env) = dispatching_eval;
 void 
 scm_init_eval ()
 {
+  scm_i_pthread_mutex_init (&source_mutex,
+			    scm_i_pthread_mutexattr_recursive);
+
   scm_init_opts (scm_evaluator_traps,
 		 scm_evaluator_trap_table,
 		 SCM_N_EVALUATOR_TRAPS);

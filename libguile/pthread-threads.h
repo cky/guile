@@ -44,14 +44,13 @@
 /* Mutexes
  */
 #define SCM_I_PTHREAD_MUTEX_INITIALIZER     PTHREAD_MUTEX_INITIALIZER
-#define SCM_I_PTHREAD_RECURSIVE_MUTEX_INITIALIZER \
-                                       PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP
 #define scm_i_pthread_mutex_t               pthread_mutex_t
 #define scm_i_pthread_mutex_init            pthread_mutex_init
 #define scm_i_pthread_mutex_destroy         pthread_mutex_destroy
 #define scm_i_pthread_mutex_trylock         pthread_mutex_trylock
 #define scm_i_pthread_mutex_lock            pthread_mutex_lock
 #define scm_i_pthread_mutex_unlock          pthread_mutex_unlock
+extern pthread_mutexattr_t scm_i_pthread_mutexattr_recursive[1];
 
 /* Condition variables
  */
