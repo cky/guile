@@ -2497,31 +2497,73 @@ for @var{proto}.
 @end deffn
 
 @deffn {Scheme Procedure} getsockopt sock level optname
+@deffnx {Scheme Procedure} setsockopt sock level optname value
 @deffnx {C Function} scm_getsockopt (sock, level, optname)
-Return the value of a particular socket option for the socket
-port @var{sock}.  @var{level} is an integer code for type of
-option being requested, e.g., @code{SOL_SOCKET} for
-socket-level options.  @var{optname} is an integer code for the
-option required and should be specified using one of the
-symbols @code{SO_DEBUG}, @code{SO_REUSEADDR} etc.
-
-The returned value is typically an integer but @code{SO_LINGER}
-returns a pair of integers.
-@end deffn
-
-@deffn {Scheme Procedure} setsockopt sock level optname value
 @deffnx {C Function} scm_setsockopt (sock, level, optname, value)
-Set the value of a particular socket option for the socket
-port @var{sock}.  @var{level} is an integer code for type of option
-being set, e.g., @code{SOL_SOCKET} for socket-level options.
-@var{optname} is an
-integer code for the option to set and should be specified using one of
-the symbols @code{SO_DEBUG}, @code{SO_REUSEADDR} etc.
-@var{value} is the value to which the option should be set.  For
-most options this must be an integer, but for @code{SO_LINGER} it must
-be a pair.
+Get or set an option on socket port @var{sock}.  @code{getsockopt}
+returns the current value.  @code{setsockopt} sets a value and the
+return is unspecified.
 
-The return value is unspecified.
+@var{level} is an integer specifying a protocol layer, either
+@code{SOL_SOCKET} for socket level options, or a protocol number from
+the @code{IPPROTO} constants or @code{getprotoent} (@pxref{Network
+Databases}).
+
+@defvar SOL_SOCKET
+@defvarx IPPROTO_IP
+@defvarx IPPROTO_TCP
+@defvarx IPPROTO_UDP
+@end defvar
+
+@var{optname} is an integer specifying an option within the protocol
+layer.
+
+For @code{SOL_SOCKET} level the following @var{optname}s are defined
+(when provided by the system).  For their meaning see
+@ref{Socket-Level Options,,, libc, The GNU C Library Reference
+Manual}, or @command{man 7 socket}.
+
+@defvar SO_DEBUG
+@defvarx SO_REUSEADDR
+@defvarx SO_STYLE
+@defvarx SO_TYPE
+@defvarx SO_ERROR
+@defvarx SO_DONTROUTE
+@defvarx SO_BROADCAST
+@defvarx SO_SNDBUF
+@defvarx SO_RCVBUF
+@defvarx SO_KEEPALIVE
+@defvarx SO_OOBINLINE
+@defvarx SO_NO_CHECK
+@defvarx SO_PRIORITY
+The @var{value} taken or returned is an integer.
+@end defvar
+
+@defvar SO_LINGER
+The @var{value} taken or returned is a pair of integers
+@code{(@var{ENABLE} . @var{TIMEOUT})}.  On old systems without timeout
+support (ie.@: without @code{struct linger}), only @var{ENABLE} has an
+effect but the value in Guile is always a pair.
+@end defvar
+
+@c  Note that we refer only to ``man ip'' here.  On GNU/Linux it's
+@c  ``man 7 ip'' but on NetBSD it's ``man 4 ip''.
+@c 
+For IP level (@code{IPPROTO_IP}) the following @var{optname}s are
+defined (when provided by the system).  See @command{man ip} for what
+they mean.
+
+@defvar IP_ADD_MEMBERSHIP
+@defvarx IP_DROP_MEMBERSHIP
+These can be used only with @code{setsockopt}, not @code{getsockopt}.
+@var{value} is a pair @code{(@var{MULTIADDR} . @var{INTERFACEADDR})}
+of IPv4 addresses (@pxref{Network Address Conversion}).
+@var{MULTIADDR} is a multicast address to be added to or dropped from
+the interface @var{INTERFACEADDR}.  @var{INTERFACEADDR} can be
+@code{INADDR_ANY} to have the system select the interface.
+@var{INTERFACEADDR} can also be an interface index number, on systems
+supporting that.
+@end defvar
 @end deffn
 
 @deffn {Scheme Procedure} shutdown sock how
