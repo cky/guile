@@ -1,3 +1,8 @@
+2005-10-24  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/time.test (strftime %Z): Disable this test, its assumptions
+	about %Z are not valid on NetBSD.
+
 2005-08-19  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/srfi-19.test (date->time-tai): New tests, exercising new

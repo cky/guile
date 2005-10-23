@@ -1,3 +1,15 @@
+2005-10-24  Kevin Ryde  <user42@zip.com.au>
+
+	* socket.c (scm_init_socket): Add IPPROTO_IP, IPPROTO_TCP,
+	IPPROTO_UDP.  Remove SOL_IP, SOL_TCP, SOL_UDP.  The former are in
+	POSIX spec examples, the latter are not available on for instance
+	NetBSD.
+
+	* socket.c (scm_getsockopt, scm_setsockopt): Update docstrings from
+	posix.texi.
+
+	* stime.c (scm_strftime): Update docstring from posix.texi.
+
 2005-10-23  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP is not portable enough.

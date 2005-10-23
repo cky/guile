@@ -1,3 +1,13 @@
+2005-10-24  Kevin Ryde  <user42@zip.com.au>
+
+	* posix.texi (Network Sockets and Communication): Combine and revise
+	getsockopt and setsockopt.  Add OPTNAME constants, including new
+	IP_ADD_MEMBERSHIP and IP_DROP_MEMBERSHIP.
+
+	* posix.texi (Time): Revise strftime for clarity, cross reference man
+	3 strftime (suggested by Greg Troxel), note locale character set when
+	setlocale has been called.
+
 2005-10-15  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* api-debug.texi (Source Properties): Add text describing/advising
