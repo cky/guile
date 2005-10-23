@@ -1341,18 +1341,25 @@ scm_init_socket ()
   scm_c_define ("SOCK_RDM", scm_from_int (SOCK_RDM));
 #endif
 
-  /* setsockopt level.  */
+  /* setsockopt level.
+
+     SOL_IP, SOL_TCP and SOL_UDP are defined on gnu/linux, but not on for
+     instance NetBSD.  We define IPPROTOs because that's what the posix spec
+     shows in its example at
+
+     http://www.opengroup.org/onlinepubs/007904975/functions/getsockopt.html
+  */
 #ifdef SOL_SOCKET
   scm_c_define ("SOL_SOCKET", scm_from_int (SOL_SOCKET));
 #endif
-#ifdef SOL_IP
-  scm_c_define ("SOL_IP", scm_from_int (SOL_IP));
+#ifdef IPPROTO_IP
+  scm_c_define ("IPPROTO_IP", scm_from_int (IPPROTO_IP));
 #endif
-#ifdef SOL_TCP
-  scm_c_define ("SOL_TCP", scm_from_int (SOL_TCP));
+#ifdef IPPROTO_TCP
+  scm_c_define ("IPPROTO_TCP", scm_from_int (IPPROTO_TCP));
 #endif
-#ifdef SOL_UDP
-  scm_c_define ("SOL_UDP", scm_from_int (SOL_UDP));
+#ifdef IPPROTO_UDP
+  scm_c_define ("IPPROTO_UDP", scm_from_int (IPPROTO_UDP));
 #endif
 
   /* setsockopt names.  */
