@@ -1,6 +1,6 @@
 ;;;; socket.test --- test socket functions     -*- scheme -*-
 ;;;;
-;;;; Copyright (C) 2004 Free Software Foundation, Inc.
+;;;; Copyright (C) 2004, 2005 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -19,6 +19,7 @@
 (define-module (test-suite test-numbers)
   #:use-module (test-suite lib))
 
+
 ;;;
 ;;; inet-ntop
 ;;;
@@ -78,3 +79,177 @@
 	  (eqv? #xF0
 		(inet-pton AF_INET6
 			   "0000:0000:0000:0000:0000:0000:0000:00F0"))))))
+
+
+;;;
+;;; make-socket-address
+;;;
+
+(with-test-prefix "make-socket-address"
+  (if (defined? 'AF_INET)
+      (pass-if "AF_INET"
+	(let ((sa (make-socket-address AF_INET 123456 80)))
+	  (and (= (sockaddr:fam  sa) AF_INET)
+	       (= (sockaddr:addr sa) 123456)
+	       (= (sockaddr:port sa) 80)))))
+
+  (if (defined? 'AF_INET6)
+      (pass-if "AF_INET6"
+	;; Since the platform doesn't necessarily support `scopeid', we won't
+        ;; test it.
+	(let ((sa* (make-socket-address AF_INET6 123456 80 1))
+	      (sa+ (make-socket-address AF_INET6 123456 80)))
+	  (and (= (sockaddr:fam  sa*) (sockaddr:fam  sa+) AF_INET6)
+	       (= (sockaddr:addr sa*) (sockaddr:addr sa+) 123456)
+	       (= (sockaddr:port sa*) (sockaddr:port sa+) 80)
+	       (= (sockaddr:flowinfo sa*) 1)))))
+
+  (if (defined? 'AF_UNIX)
+      (pass-if "AF_UNIX"
+	(let ((sa (make-socket-address AF_UNIX "/tmp/unix-socket")))
+	  (and (= (sockaddr:fam sa) AF_UNIX)
+	       (string=? (sockaddr:path sa) "/tmp/unix-socket"))))))
+
+
+
+;;;
+;;; AF_UNIX sockets and `make-socket-address'
+;;;
+
+(if (defined? 'AF_UNIX)
+    (with-test-prefix "AF_UNIX/SOCK_DGRAM"
+
+      ;; testing `bind' and `sendto' and datagram sockets
+
+      (let ((server-socket (socket AF_UNIX SOCK_DGRAM 0))
+	    (server-bound? #f)
+	    (path (tmpnam)))
+
+	(pass-if "bind"
+	  (catch 'system-error
+	    (lambda ()
+	      (bind server-socket AF_UNIX path)
+	      (set! server-bound? #t)
+	      #t)
+	    (lambda args
+	      (let ((errno (system-error-errno args)))
+		(cond ((= errno EADDRINUSE) (throw 'unresolved))
+		      (else (apply throw args)))))))
+
+	(pass-if "bind/sockaddr"
+	  (let* ((sock (socket AF_UNIX SOCK_STREAM 0))
+		 (path (tmpnam))
+		 (sockaddr (make-socket-address AF_UNIX path)))
+	    (catch 'system-error
+	      (lambda ()
+		(bind sock sockaddr)
+		(false-if-exception (delete-file path))
+		#t)
+	      (lambda args
+		(let ((errno (system-error-errno args)))
+		  (cond ((= errno EADDRINUSE) (throw 'unresolved))
+			(else (apply throw args))))))))
+
+	(pass-if "sendto"
+	  (if (not server-bound?)
+	      (throw 'unresolved)
+	      (let ((client (socket AF_UNIX SOCK_DGRAM 0)))
+		(> (sendto client "hello" AF_UNIX path) 0))))
+
+	(pass-if "sendto/sockaddr"
+	  (if (not server-bound?)
+	      (throw 'unresolved)
+	      (let ((client (socket AF_UNIX SOCK_DGRAM 0))
+		    (sockaddr (make-socket-address AF_UNIX path)))
+		(> (sendto client "hello" sockaddr) 0))))
+
+	(false-if-exception (delete-file path)))))
+
+
+(if (defined? 'AF_UNIX)
+    (with-test-prefix "AF_UNIX/SOCK_STREAM"
+
+      ;; testing `bind', `listen' and `connect' on stream-oriented sockets
+
+      (let ((server-socket (socket AF_UNIX SOCK_STREAM 0))
+	    (server-bound? #f)
+	    (server-listening? #f)
+	    (server-pid #f)
+	    (path (tmpnam)))
+
+	(pass-if "bind"
+	  (catch 'system-error
+	    (lambda ()
+	      (bind server-socket AF_UNIX path)
+	      (set! server-bound? #t)
+	      #t)
+	    (lambda args
+	      (let ((errno (system-error-errno args)))
+		(cond ((= errno EADDRINUSE) (throw 'unresolved))
+		      (else (apply throw args)))))))
+
+	(pass-if "bind/sockaddr"
+	  (let* ((sock (socket AF_UNIX SOCK_STREAM 0))
+		 (path (tmpnam))
+		 (sockaddr (make-socket-address AF_UNIX path)))
+	    (catch 'system-error
+	      (lambda ()
+		(bind sock sockaddr)
+		(false-if-exception (delete-file path))
+		#t)
+	      (lambda args
+		(let ((errno (system-error-errno args)))
+		  (cond ((= errno EADDRINUSE) (throw 'unresolved))
+			(else (apply throw args))))))))
+
+	(pass-if "listen"
+	  (if (not server-bound?)
+	      (throw 'unresolved)
+	      (begin
+		(listen server-socket 123)
+		(set! server-listening? #t)
+		#t)))
+
+	(if server-listening?
+	    (let ((pid (primitive-fork)))
+	      ;; Spawn a server process.
+	      (case pid
+		((-1) (throw 'unresolved))
+		((0)   ;; the kid:  serve two connections and exit
+		 (let serve ((conn
+			      (false-if-exception (accept server-socket)))
+			     (count 1))
+		   (if (not conn)
+		       (exit 1)
+		       (if (> count 0)
+			   (serve (false-if-exception (accept server-socket))
+				  (- count 1)))))
+		 (exit 0))
+		(else  ;; the parent
+		 (set! server-pid pid)
+		 #t))))
+
+	(pass-if "connect"
+	  (if (not server-pid)
+	      (throw 'unresolved)
+	      (let ((s (socket AF_UNIX SOCK_STREAM 0)))
+		(connect s AF_UNIX path)
+		#t)))
+
+	(pass-if "connect/sockaddr"
+	  (if (not server-pid)
+	      (throw 'unresolved)
+	      (let ((s (socket AF_UNIX SOCK_STREAM 0)))
+		(connect s (make-socket-address AF_UNIX path))
+		#t)))
+
+	(pass-if "accept"
+	  (if (not server-pid)
+	      (throw 'unresolved)
+	      (let ((status (cdr (waitpid server-pid))))
+		(eq? 0 (status:exit-val status)))))
+
+	(false-if-exception (delete-file path))
+
+	#t)))
+
