@@ -3,7 +3,7 @@
 #ifndef SCM_SOCKET_H
 #define SCM_SOCKET_H
 
-/* Copyright (C) 1995,1996,1997,2000,2001, 2004 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,2000,2001, 2004, 2005 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -53,6 +53,16 @@ SCM_API SCM scm_send (SCM sockfd, SCM message, SCM flags);
 SCM_API SCM scm_recvfrom (SCM sockfd, SCM buff_or_size, SCM flags, SCM offset, SCM length);
 SCM_API SCM scm_sendto (SCM sockfd, SCM message, SCM fam, SCM address, SCM args_and_flags);
 SCM_API void scm_init_socket (void);
+
+/* Wrapping/unwrapping address objects.  */
+struct sockaddr;
+SCM_API SCM scm_from_sockaddr (const struct sockaddr *address,
+			       unsigned addr_size);
+SCM_API struct sockaddr *scm_to_sockaddr (SCM address, size_t *adress_size);
+SCM_API struct sockaddr *scm_c_make_socket_address (SCM family, SCM address,
+						    SCM args,
+						    size_t *address_size);
+SCM_API SCM scm_make_socket_address (SCM family, SCM address, SCM args);
 
 #endif  /* SCM_SOCKET_H */
 
