@@ -2038,10 +2038,11 @@ the garbage collector pick them up at some later time.
 @cindex network
 
 @menu
-* Network Address Conversion::
-* Network Databases::
-* Network Sockets and Communication::
-* Internet Socket Examples::
+* Network Address Conversion::  
+* Network Databases::           
+* Network Socket Address::      
+* Network Sockets and Communication::  
+* Internet Socket Examples::    
 @end menu
 
 @node Network Address Conversion
@@ -2058,13 +2059,19 @@ An IPv4 Internet address is a 4-byte value, represented in Guile as an
 integer in network byte order (meaning the first byte is the most
 significant in the number).
 
-@defvar INADDR_LOOPBACK
-The address of the local host using the loopback device, ie.@:
-@samp{127.0.0.1}.
+@defvar INADDR_ANY
+For a server, this can be used with @code{bind} (@pxref{Network
+Sockets and Communication}) to allow connections from any interface on
+the machine.
 @end defvar
 
 @defvar INADDR_BROADCAST
 The broadcast address on the local network.
+@end defvar
+
+@defvar INADDR_LOOPBACK
+The address of the local host using the loopback device, ie.@:
+@samp{127.0.0.1}.
 @end defvar
 
 @c  INADDR_NONE is defined in the code, but serves no purpose.
@@ -2437,6 +2444,71 @@ If @var{stayopen} is omitted, this is equivalent to @code{endservent}.
 Otherwise it is equivalent to @code{setservent stayopen}.
 @end deffn
 
+
+@node Network Socket Address
+@subsubsection Network Socket Address
+@cindex socket
+@cindex network socket
+
+A socket address object identifies a socket endpoint for
+communication.  In the case of @code{AF_INET} for instance, the host
+address is only the machine (or interface on the machine), a port
+number is also needed to specify a particular open socket in a running
+client or server process.
+
+A socket address object can be created with,
+
+@defun {Scheme Procedure} make-socket-address AF_INET ipv4addr port
+@defunx {Scheme Procedure} make-socket-address AF_INET6 ipv6addr port [flowinfo [scopeid]]
+@defunx {Scheme Procedure} make-socket-address AF_UNIX path
+Return a new socket address object.  The first argument is the address
+family, one of the @code{AF} constants, then the arguments vary
+according to the family.
+
+For @code{AF_INET} the arguments are an IPv4 network address number
+and a port number.
+
+For @code{AF_INET6} the arguments are an IPv6 network address number
+and a port number.  Optional @var{flowinfo} and @var{scopeid}
+arguments may be given (both integers, default 0).
+
+For @code{AF_UNIX} the argument is a filename (a string).
+@end defun
+
+@noindent
+The following functions access the fields of a socket address object,
+
+@deffn {Scheme Procedure} sockaddr:fam sa
+Return the address family from socket address object @var{sa}.  This
+is one of the @code{AF} constants (eg. @code{AF_INET}).
+@end deffn
+
+@deffn {Scheme Procedure} sockaddr:path sa
+For an @code{AF_UNIX} socket address object @var{sa}, return the
+filename.
+@end deffn
+
+@deffn {Scheme Procedure} sockaddr:addr sa
+For an @code{AF_INET} or @code{AF_INET6} socket address object
+@var{sa}, return the network address number.
+@end deffn
+
+@deffn {Scheme Procedure} sockaddr:port sa
+For an @code{AF_INET} or @code{AF_INET6} socket address object
+@var{sa}, return the port number.
+@end deffn
+
+@deffn {Scheme Procedure} sockaddr:flowinfo sa
+For an @code{AF_INET6} socket address object @var{sa}, return the
+flowinfo value.
+@end deffn
+
+@deffn {Scheme Procedure} sockaddr:scopeid sa
+For an @code{AF_INET6} socket address object @var{sa}, return the
+scope ID value.
+@end deffn
+
+
 @node Network Sockets and Communication
 @subsubsection Network Sockets and Communication
 @cindex socket
@@ -2590,76 +2662,41 @@ Stop both reception and transmission.
 The return value is unspecified.
 @end deffn
 
-@deffn {Scheme Procedure} connect sock fam address . args
+@deffn {Scheme Procedure} connect sock sockaddr
+@deffnx {Scheme Procedure} connect sock AF_INET ipv4addr port
+@deffnx {Scheme Procedure} connect sock AF_INET6 ipv6addr port [flowinfo [scopeid]]
+@deffnx {Scheme Procedure} connect sock AF_UNIX path
 @deffnx {C Function} scm_connect (sock, fam, address, args)
-Initiate a connection from a socket using a specified address
-family to the address
-specified by @var{address} and possibly @var{args}.
-The format required for @var{address}
-and @var{args} depends on the family of the socket.
+Initiate a connection on socket port @var{sock} to a given address.
+The destination is either a socket address object, or arguments the
+same as @code{make-socket-address} would take to make such an object
+(@pxref{Network Socket Address}).  The return value is unspecified.
 
-For a socket of family @code{AF_UNIX},
-only @var{address} is specified and must be a string with the
-filename where the socket is to be created.
-
-For a socket of family @code{AF_INET},
-@var{address} must be an integer IPv4 host address and
-@var{args} must be a single integer port number.
-
-For a socket of family @code{AF_INET6},
-@var{address} must be an integer IPv6 host address and
-@var{args} may be up to three integers:
-port [flowinfo] [scope_id],
-where flowinfo and scope_id default to zero.
-
-The return value is unspecified.
+@example
+(connect sock AF_INET INADDR_LOCALHOST 23)
+(connect sock (make-socket-address AF_INET INADDR_LOCALHOST 23))
+@end example
 @end deffn
 
-@deffn {Scheme Procedure} bind sock fam address . args
+@deffn {Scheme Procedure} bind sock sockaddr
+@deffnx {Scheme Procedure} bind sock AF_INET ipv4addr port
+@deffnx {Scheme Procedure} bind sock AF_INET6 ipv6addr port [flowinfo [scopeid]]
+@deffnx {Scheme Procedure} bind sock AF_UNIX path
 @deffnx {C Function} scm_bind (sock, fam, address, args)
-Assign an address to the socket port @var{sock}.
-Generally this only needs to be done for server sockets,
-so they know where to look for incoming connections.  A socket
-without an address will be assigned one automatically when it
-starts communicating.
+Bind socket port @var{sock} to the given address.  The address is
+either a socket address object, or arguments the same as
+@code{make-socket-address} would take to make such an object
+(@pxref{Network Socket Address}).  The return value is unspecified.
 
-The format of @var{address} and @var{args} depends
-on the family of the socket.
+Generally a socket is only explicitly bound to a particular address
+when making a server, ie. to listen on a particular port.  For an
+outgoing connection the system will assign a local address
+automatically, if not already bound.
 
-For a socket of family @code{AF_UNIX}, only @var{address}
-is specified and must be a string with the filename where
-the socket is to be created.
-
-For a socket of family @code{AF_INET}, @var{address}
-must be an integer IPv4 address and @var{args}
-must be a single integer port number.
-
-The values of the following variables can also be used for
-@var{address}:
-
-@defvar INADDR_ANY
-Allow connections from any address.
-@end defvar
-
-@defvar INADDR_LOOPBACK
-The address of the local host using the loopback device.
-@end defvar
-
-@defvar INADDR_BROADCAST
-The broadcast address on the local network.
-@end defvar
-
-@defvar INADDR_NONE
-No address.
-@end defvar
-
-For a socket of family @code{AF_INET6}, @var{address}
-must be an integer IPv6 address and @var{args}
-may be up to three integers:
-port [flowinfo] [scope_id],
-where flowinfo and scope_id default to zero.
-
-The return value is unspecified.
+@example
+(bind sock AF_INET INADDR_ANY 12345)
+(bind sock (make-socket-object AF_INET INADDR_ANY 12345))
+@end example
 @end deffn
 
 @deffn {Scheme Procedure} listen sock backlog
@@ -2676,55 +2713,40 @@ The return value is unspecified.
 
 @deffn {Scheme Procedure} accept sock
 @deffnx {C Function} scm_accept (sock)
-Accept a connection on a bound, listening socket.
-If there
-are no pending connections in the queue, wait until
-one is available unless the non-blocking option has been
-set on the socket.
+Accept a connection from socket port @var{sock} which has been enabled
+for listening with @code{listen} above.  If there are no incoming
+connections in the queue, wait until one is available (unless the
+non-blocking option has been set on the socket).
 
-The return value is a
-pair in which the @acronym{CAR} is a new socket port for the
-connection and
-the @acronym{CDR} is an object with address information about the
-client which initiated the connection.
+The return value is a pair.  The @code{car} is a new socket port,
+connected and ready to communicate.  The @code{cdr} is a socket
+address object (@pxref{Network Socket Address}) which is where the
+remote connection is from (like @code{getpeername} below).
 
-@var{sock} does not become part of the
-connection and will continue to accept new requests.
-@end deffn
-
-The following functions take a socket address object, as returned
-by @code{accept} and other procedures, and return a selected component.
-
-@deffn {Scheme Procedure} sockaddr:fam sa
-The socket family, typically equal to the value of @code{AF_UNIX} or
-@code{AF_INET}.
-@end deffn
-@deffn {Scheme Procedure} sockaddr:path sa
-If the socket family is @code{AF_UNIX}, returns the path of the
-filename the socket is based on.
-@end deffn
-@deffn {Scheme Procedure} sockaddr:addr sa
-If the socket family is @code{AF_INET}, returns the Internet host
-address.
-@end deffn
-@deffn {Scheme Procedure} sockaddr:port sa
-If the socket family is @code{AF_INET}, returns the Internet port
-number.
+All communication takes place using the new socket returned.  The
+given @var{sock} remains bound and listening, and @code{accept} may be
+called on it again to get another incoming connection when desired.
 @end deffn
 
 @deffn {Scheme Procedure} getsockname sock
 @deffnx {C Function} scm_getsockname (sock)
-Return the address of @var{sock}, in the same form as the
-object returned by @code{accept}.  On many systems the address
-of a socket in the @code{AF_FILE} namespace cannot be read.
+Return a socket address object which is the where @var{sock} is bound
+locally.  @var{sock} may have obtained its local address from
+@code{bind} (above), or if a @code{connect} is done with an otherwise
+unbound socket (which is usual) then the system will have assigned an
+address.
+
+Note that on many systems the address of a socket in the
+@code{AF_UNIX} namespace cannot be read.
 @end deffn
 
 @deffn {Scheme Procedure} getpeername sock
 @deffnx {C Function} scm_getpeername (sock)
-Return the address that @var{sock}
-is connected to, in the same form as the object returned by
-@code{accept}.  On many systems the address of a socket in the
-@code{AF_FILE} namespace cannot be read.
+Return a socket address object which is where @var{sock} is connected
+to, ie. the remote endpoint.
+
+Note that on many systems the address of a socket in the
+@code{AF_UNIX} namespace cannot be read.
 @end deffn
 
 @deffn {Scheme Procedure} recv! sock buf [flags]
@@ -2801,17 +2823,20 @@ Note that the data is read directly from the socket file
 descriptor: any unread buffered port data is ignored.
 @end deffn
 
-@deffn {Scheme Procedure} sendto sock message fam address . args_and_flags
+@deffn {Scheme Procedure} sendto sock message sockaddr [flags]
+@deffnx {Scheme Procedure} sendto sock message AF_INET ipv4addr port [flags]
+@deffnx {Scheme Procedure} sendto sock message AF_INET6 ipv6addr port [flowinfo [scopeid [flags]]]
+@deffnx {Scheme Procedure} sendto sock message AF_UNIX path [flags]
 @deffnx {C Function} scm_sendto (sock, message, fam, address, args_and_flags)
-Transmit the string @var{message} on the socket port
-@var{sock}.  The
-destination address is specified using the @var{fam},
-@var{address} and
-@var{args_and_flags} arguments, in a similar way to the
-@code{connect} procedure.  @var{args_and_flags} contains
-the usual connection arguments optionally followed by
-a flags argument, which is a value or
-bitwise OR of @code{MSG_OOB}, @code{MSG_PEEK}, @code{MSG_DONTROUTE} etc.
+Transmit the string @var{message} as a datagram on socket port
+@var{sock}.  The destination is specified either as a socket address
+object, or as arguments the same as would be taken by
+@code{make-socket-address} to create such an object (@pxref{Network
+Socket Address}).
+
+The destination address may be followed by an optional @var{flags}
+argument which is a @code{logior} (@pxref{Bitwise Operations}) of
+@code{MSG_OOB}, @code{MSG_PEEK}, @code{MSG_DONTROUTE} etc.
 
 The value returned is the number of bytes transmitted --
 it's possible for
