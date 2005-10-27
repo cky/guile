@@ -1,4 +1,4 @@
-/* Copyright (C) 1996,1997,1998,2000,2001, 2002, 2003, 2004 Free Software Foundation, Inc.
+/* Copyright (C) 1996,1997,1998,2000,2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -753,9 +753,9 @@ SCM_DEFINE (scm_shutdown, "shutdown", 2, 0, 0,
    proc is the name of the original procedure.
    size returns the size of the structure allocated.  */
 
-static struct sockaddr *
+static SCM_C_INLINE_KEYWORD struct sockaddr *
 scm_fill_sockaddr (int fam, SCM address, SCM *args, int which_arg,
-		   const char *proc, int *size)
+		   const char *proc, size_t *size)
 #define FUNC_NAME proc
 {
   switch (fam)
@@ -771,8 +771,7 @@ scm_fill_sockaddr (int fam, SCM address, SCM *args, int which_arg,
 	port = scm_to_int (SCM_CAR (*args));
 	*args = SCM_CDR (*args);
 	soka = (struct sockaddr_in *) scm_malloc (sizeof (struct sockaddr_in));
-	if (!soka)
-	  scm_memory_error (proc);
+
 #if HAVE_STRUCT_SOCKADDR_SIN_LEN
 	soka->sin_len = sizeof (struct sockaddr_in);
 #endif
@@ -806,8 +805,7 @@ scm_fill_sockaddr (int fam, SCM address, SCM *args, int which_arg,
 	      }
 	  }
 	soka = (struct sockaddr_in6 *) scm_malloc (sizeof (struct sockaddr_in6));
-	if (!soka)
-	  scm_memory_error (proc);
+
 #if HAVE_STRUCT_SOCKADDR_IN6_SIN6_LEN
 	soka->sin6_len = sizeof (struct sockaddr_in6);
 #endif
@@ -857,9 +855,9 @@ scm_fill_sockaddr (int fam, SCM address, SCM *args, int which_arg,
     }
 }
 #undef FUNC_NAME
-  
-SCM_DEFINE (scm_connect, "connect", 3, 0, 1,
-            (SCM sock, SCM fam, SCM address, SCM args),
+
+SCM_DEFINE (scm_connect, "connect", 2, 1, 1,
+            (SCM sock, SCM fam_or_sockaddr, SCM address, SCM args),
 	    "Initiate a connection from a socket using a specified address\n"
 	    "family to the address\n"
 	    "specified by @var{address} and possibly @var{args}.\n"
@@ -876,22 +874,32 @@ SCM_DEFINE (scm_connect, "connect", 3, 0, 1,
 	    "@var{args} may be up to three integers:\n"
 	    "port [flowinfo] [scope_id],\n"
 	    "where flowinfo and scope_id default to zero.\n\n"
+	    "Alternatively, the second argument can be a socket address object "
+	    "as returned by @code{make-socket-address}, in which case the "
+	    "no additional arguments should be passed.\n\n"
 	    "The return value is unspecified.")
 #define FUNC_NAME s_scm_connect
 {
   int fd;
   struct sockaddr *soka;
-  int size;
+  size_t size;
 
   sock = SCM_COERCE_OUTPORT (sock);
   SCM_VALIDATE_OPFPORT (1, sock);
   fd = SCM_FPORT_FDES (sock);
-  soka = scm_fill_sockaddr (scm_to_int (fam), address, &args, 3, FUNC_NAME,
-			    &size);
+
+  if (address == SCM_UNDEFINED)
+    /* No third argument was passed to FAM_OR_SOCKADDR must actually be a
+       `socket address' object.  */
+    soka = scm_to_sockaddr (fam_or_sockaddr, &size);
+  else
+    soka = scm_fill_sockaddr (scm_to_int (fam_or_sockaddr), address,
+			      &args, 3, FUNC_NAME, &size);
+
   if (connect (fd, soka, size) == -1)
     {
       int save_errno = errno;
-      
+
       free (soka);
       errno = save_errno;
       SCM_SYSERROR;
@@ -901,8 +909,8 @@ SCM_DEFINE (scm_connect, "connect", 3, 0, 1,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_bind, "bind", 3, 0, 1,
-            (SCM sock, SCM fam, SCM address, SCM args),
+SCM_DEFINE (scm_bind, "bind", 2, 1, 1,
+            (SCM sock, SCM fam_or_sockaddr, SCM address, SCM args),
 	    "Assign an address to the socket port @var{sock}.\n"
 	    "Generally this only needs to be done for server sockets,\n"
 	    "so they know where to look for incoming connections.  A socket\n"
@@ -935,22 +943,33 @@ SCM_DEFINE (scm_bind, "bind", 3, 0, 1,
 	    "may be up to three integers:\n"
 	    "port [flowinfo] [scope_id],\n"
 	    "where flowinfo and scope_id default to zero.\n\n"
+	    "Alternatively, the second argument can be a socket address object "
+	    "as returned by @code{make-socket-address}, in which case the "
+	    "no additional arguments should be passed.\n\n"
 	    "The return value is unspecified.")
 #define FUNC_NAME s_scm_bind
 {
   struct sockaddr *soka;
-  int size;
+  size_t size;
   int fd;
 
   sock = SCM_COERCE_OUTPORT (sock);
   SCM_VALIDATE_OPFPORT (1, sock);
-  soka = scm_fill_sockaddr (scm_to_int (fam), address, &args, 3, FUNC_NAME,
-			    &size);
   fd = SCM_FPORT_FDES (sock);
+
+  if (address == SCM_UNDEFINED)
+    /* No third argument was passed to FAM_OR_SOCKADDR must actually be a
+       `socket address' object.  */
+    soka = scm_to_sockaddr (fam_or_sockaddr, &size);
+  else
+    soka = scm_fill_sockaddr (scm_to_int (fam_or_sockaddr), address,
+			      &args, 3, FUNC_NAME, &size);
+
+
   if (bind (fd, soka, size) == -1)
   {
     int save_errno = errno;
-      
+
     free (soka);
     errno = save_errno;
     SCM_SYSERROR;
@@ -982,8 +1001,8 @@ SCM_DEFINE (scm_listen, "listen", 2, 0, 0,
 #undef FUNC_NAME
 
 /* Put the components of a sockaddr into a new SCM vector.  */
-static SCM
-scm_addr_vector (const struct sockaddr *address, int addr_size, 
+static SCM_C_INLINE_KEYWORD SCM
+_scm_from_sockaddr (const struct sockaddr *address, unsigned addr_size,
 		 const char *proc)
 {
   short int fam = address->sa_family;
@@ -1042,12 +1061,212 @@ scm_addr_vector (const struct sockaddr *address, int addr_size,
       break;
 #endif
     default:
-      scm_misc_error (proc, "Unrecognised address family: ~A",
+      result = SCM_UNSPECIFIED;
+      scm_misc_error (proc, "unrecognised address family: ~A",
 		      scm_list_1 (scm_from_int (fam)));
+
     }
   return result;
 }
 
+/* The publicly-visible function.  Return a Scheme object representing
+   ADDRESS, an address of ADDR_SIZE bytes.  */
+SCM
+scm_from_sockaddr (const struct sockaddr *address, unsigned addr_size)
+{
+  return (_scm_from_sockaddr (address, addr_size, "scm_from_sockaddr"));
+}
+
+/* Convert ADDRESS, an address object returned by either
+   `scm_from_sockaddr ()' or `scm_make_socket_address ()', into its C
+   representation.  On success, a non-NULL pointer is returned and
+   ADDRESS_SIZE is updated to the actual size (in bytes) of the returned
+   address.  The result must eventually be freed using `free ()'.  */
+struct sockaddr *
+scm_to_sockaddr (SCM address, size_t *address_size)
+#define FUNC_NAME "scm_to_sockaddr"
+{
+  short int family;
+  struct sockaddr *c_address = NULL;
+
+  SCM_VALIDATE_VECTOR (1, address);
+
+  *address_size = 0;
+  family = scm_to_short (SCM_SIMPLE_VECTOR_REF (address, 0));
+
+  switch (family)
+    {
+    case AF_INET:
+      {
+	if (SCM_SIMPLE_VECTOR_LENGTH (address) != 3)
+	  scm_misc_error (FUNC_NAME,
+			  "invalid inet address representation: ~A",
+			  scm_list_1 (address));
+	else
+	  {
+	    struct sockaddr_in c_inet;
+
+	    c_inet.sin_addr.s_addr =
+	      htonl (scm_to_ulong (SCM_SIMPLE_VECTOR_REF (address, 1)));
+	    c_inet.sin_port =
+	      htons (scm_to_ushort (SCM_SIMPLE_VECTOR_REF (address, 2)));
+	    c_inet.sin_family = AF_INET;
+
+	    *address_size = sizeof (c_inet);
+	    c_address = scm_malloc (sizeof (c_inet));
+	    memcpy (c_address, &c_inet, sizeof (c_inet));
+	  }
+
+	break;
+      }
+
+#ifdef HAVE_IPV6
+    case AF_INET6:
+      {
+	if (SCM_SIMPLE_VECTOR_LENGTH (address) != 5)
+	  scm_misc_error (FUNC_NAME, "invalid inet6 address representation: ~A",
+			  scm_list_1 (address));
+	else
+	  {
+	    struct sockaddr_in6 c_inet6;
+
+	    scm_to_ipv6 (c_inet6.sin6_addr.s6_addr, address);
+	    c_inet6.sin6_port =
+	      htons (scm_to_ushort (SCM_SIMPLE_VECTOR_REF (address, 2)));
+	    c_inet6.sin6_flowinfo =
+	      scm_to_uint32 (SCM_SIMPLE_VECTOR_REF (address, 3));
+#ifdef HAVE_SIN6_SCOPE_ID
+	    c_inet6.sin6_scope_id =
+	      scm_to_ulong (SCM_SIMPLE_VECTOR_REF (address, 4));
+#endif
+
+	    c_inet6.sin6_family = AF_INET6;
+
+	    *address_size = sizeof (c_inet6);
+	    c_address = scm_malloc (sizeof (c_inet6));
+	    memcpy (c_address, &c_inet6, sizeof (c_inet6));
+	  }
+
+	break;
+      }
+#endif
+
+#ifdef HAVE_UNIX_DOMAIN_SOCKETS
+    case AF_UNIX:
+      {
+	if (SCM_SIMPLE_VECTOR_LENGTH (address) != 2)
+	  scm_misc_error (FUNC_NAME, "invalid unix address representation: ~A",
+			  scm_list_1 (address));
+	else
+	  {
+	    SCM path;
+	    size_t path_len = 0;
+
+	    path = SCM_SIMPLE_VECTOR_REF (address, 1);
+	    if ((!scm_is_string (path)) && (path != SCM_BOOL_F))
+	      scm_misc_error (FUNC_NAME, "invalid unix address "
+			      "path: ~A", scm_list_1 (path));
+	    else
+	      {
+		struct sockaddr_un c_unix;
+
+		if (path == SCM_BOOL_F)
+		  path_len = 0;
+		else
+		  path_len = scm_c_string_length (path);
+
+#ifdef UNIX_PATH_MAX
+		if (path_len >= UNIX_PATH_MAX)
+#else
+/* We can hope that this limit will eventually vanish, at least on GNU.
+   However, currently, while glibc doesn't define `UNIX_PATH_MAX', it
+   documents it has being limited to 108 bytes.  */
+		if (path_len >= sizeof (c_unix.sun_path))
+#endif
+		  scm_misc_error (FUNC_NAME, "unix address path "
+				  "too long: ~A", scm_list_1 (path));
+		else
+		  {
+		    if (path_len)
+		      {
+			scm_to_locale_stringbuf (path, c_unix.sun_path,
+#ifdef UNIX_PATH_MAX
+						 UNIX_PATH_MAX);
+#else
+			                         sizeof (c_unix.sun_path));
+#endif
+			c_unix.sun_path[path_len] = '\0';
+
+			/* Sanity check.  */
+			if (strlen (c_unix.sun_path) != path_len)
+			  scm_misc_error (FUNC_NAME, "unix address path "
+					  "contains nul characters: ~A",
+					  scm_list_1 (path));
+		      }
+		    else
+		      c_unix.sun_path[0] = '\0';
+
+		    c_unix.sun_family = AF_UNIX;
+
+		    *address_size = SUN_LEN (&c_unix);
+		    c_address = scm_malloc (sizeof (c_unix));
+		    memcpy (c_address, &c_unix, sizeof (c_unix));
+		  }
+	      }
+	  }
+
+	break;
+      }
+#endif
+
+    default:
+      scm_misc_error (FUNC_NAME, "unrecognised address family: ~A",
+		      scm_list_1 (scm_from_ushort (family)));
+    }
+
+  return c_address;
+}
+#undef FUNC_NAME
+
+
+/* Return a newly-allocated `sockaddr' structure that reflects ADDRESS, being
+   an address of family FAMILY, with the family-specific parameters ARGS (see
+   the description of `connect' for details).  The returned structure may be
+   freed using `free ()'.  */
+struct sockaddr *
+scm_c_make_socket_address (SCM family, SCM address, SCM args,
+			   size_t *address_size)
+{
+  size_t size;
+  struct sockaddr *soka;
+
+  soka = scm_fill_sockaddr (scm_to_ushort (family), address, &args, 1,
+			    "scm_c_make_socket_address", &size);
+
+  return soka;
+}
+
+SCM_DEFINE (scm_make_socket_address, "make-socket-address", 2, 0, 1,
+	    (SCM family, SCM address, SCM args),
+	    "Return a Scheme address object that reflects @var{address}, "
+	    "being an address of family @var{family}, with the "
+	    "family-specific parameters @var{args} (see the description of "
+	    "@code{connect} for details).")
+#define FUNC_NAME s_scm_make_socket_address
+{
+  struct sockaddr *c_address;
+  size_t c_address_size;
+
+  c_address = scm_c_make_socket_address (family, address, args,
+					 &c_address_size);
+  if (!c_address)
+    return SCM_BOOL_F;
+
+  return (scm_from_sockaddr (c_address, c_address_size));
+}
+#undef FUNC_NAME
+
+
 /* calculate the size of a buffer large enough to hold any supported
    sockaddr type.  if the buffer isn't large enough, certain system
    calls will return a truncated address.  */
@@ -1098,7 +1317,7 @@ SCM_DEFINE (scm_accept, "accept", 1, 0, 0,
   if (newfd == -1)
     SCM_SYSERROR;
   newsock = SCM_SOCK_FD_TO_PORT (newfd);
-  address = scm_addr_vector (addr, addr_size, FUNC_NAME);
+  address = _scm_from_sockaddr (addr, addr_size, FUNC_NAME);
   return scm_cons (newsock, address);
 }
 #undef FUNC_NAME
@@ -1120,7 +1339,7 @@ SCM_DEFINE (scm_getsockname, "getsockname", 1, 0, 0,
   fd = SCM_FPORT_FDES (sock);
   if (getsockname (fd, addr, &addr_size) == -1)
     SCM_SYSERROR;
-  return scm_addr_vector (addr, addr_size, FUNC_NAME);
+  return _scm_from_sockaddr (addr, addr_size, FUNC_NAME);
 }
 #undef FUNC_NAME
 
@@ -1142,7 +1361,7 @@ SCM_DEFINE (scm_getpeername, "getpeername", 1, 0, 0,
   fd = SCM_FPORT_FDES (sock);
   if (getpeername (fd, addr, &addr_size) == -1)
     SCM_SYSERROR;
-  return scm_addr_vector (addr, addr_size, FUNC_NAME);
+  return _scm_from_sockaddr (addr, addr_size, FUNC_NAME);
 }
 #undef FUNC_NAME
 
@@ -1296,7 +1515,7 @@ SCM_DEFINE (scm_recvfrom, "recvfrom!", 2, 3, 0,
   if (rv == -1)
     SCM_SYSERROR;
   if (addr->sa_family != AF_UNSPEC)
-    address = scm_addr_vector (addr, addr_size, FUNC_NAME);
+    address = _scm_from_sockaddr (addr, addr_size, FUNC_NAME);
   else
     address = SCM_BOOL_F;
 
@@ -1305,13 +1524,14 @@ SCM_DEFINE (scm_recvfrom, "recvfrom!", 2, 3, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_sendto, "sendto", 4, 0, 1,
-            (SCM sock, SCM message, SCM fam, SCM address, SCM args_and_flags),
+SCM_DEFINE (scm_sendto, "sendto", 3, 1, 1,
+            (SCM sock, SCM message, SCM fam_or_sockaddr, SCM address, SCM args_and_flags),
 	    "Transmit the string @var{message} on the socket port\n"
 	    "@var{sock}.  The\n"
 	    "destination address is specified using the @var{fam},\n"
 	    "@var{address} and\n"
-	    "@var{args_and_flags} arguments, in a similar way to the\n"
+	    "@var{args_and_flags} arguments, or just a socket address object "
+	    "returned by @code{make-socket-address}, in a similar way to the\n"
 	    "@code{connect} procedure.  @var{args_and_flags} contains\n"
 	    "the usual connection arguments optionally followed by\n"
 	    "a flags argument, which is a value or\n"
@@ -1330,14 +1550,26 @@ SCM_DEFINE (scm_sendto, "sendto", 4, 0, 1,
   int fd;
   int flg;
   struct sockaddr *soka;
-  int size;
+  size_t size;
 
   sock = SCM_COERCE_OUTPORT (sock);
   SCM_VALIDATE_FPORT (1, sock);
   SCM_VALIDATE_STRING (2, message);
   fd = SCM_FPORT_FDES (sock);
-  soka = scm_fill_sockaddr (scm_to_int (fam), address, &args_and_flags, 4,
-			    FUNC_NAME, &size);
+
+  if (!scm_is_number (fam_or_sockaddr))
+    {
+      /* FAM_OR_SOCKADDR must actually be a `socket address' object.  This
+	 means that the following arguments, i.e. ADDRESS and those listed in
+	 ARGS_AND_FLAGS, are the `MSG_' flags.  */
+      soka = scm_to_sockaddr (fam_or_sockaddr, &size);
+      if (address != SCM_UNDEFINED)
+	args_and_flags = scm_cons (address, args_and_flags);
+    }
+  else
+    soka = scm_fill_sockaddr (scm_to_int (fam_or_sockaddr), address,
+			      &args_and_flags, 3, FUNC_NAME, &size);
+
   if (scm_is_null (args_and_flags))
     flg = 0;
   else
