@@ -1,3 +1,8 @@
+2005-10-27  Ludovic Courtès  <ludovic.courtes@laas.fr>
+
+	* tests/socket.test (make-socket-address): New tests.
+	(connect, bind, sendto): Exercise sockaddr object.
+
 2005-10-24  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/time.test (strftime %Z): Disable this test, its assumptions

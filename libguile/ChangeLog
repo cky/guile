@@ -1,3 +1,12 @@
+2005-10-27  Ludovic Courtès  <ludovic.courtes@laas.fr>
+
+	* socket.c (scm_fill_sockaddr): No need to check NULL from scm_malloc.
+	(scm_connect, scm_bind, scm_sendto): Accept sockaddr object.
+	(scm_addr_vector): Renamed to _scm_from_sockaddr, update usages.
+	(scm_from_sockaddr, scm_to_sockaddr, scm_make_socket_address,
+	scm_c_make_socket_address): New functions.
+	* socket.h: Add prototypes.
+
 2005-10-24  Kevin Ryde  <user42@zip.com.au>
 
 	* socket.c (scm_init_socket): Add IPPROTO_IP, IPPROTO_TCP,
