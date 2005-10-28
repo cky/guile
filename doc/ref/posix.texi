@@ -2447,33 +2447,40 @@ Otherwise it is equivalent to @code{setservent stayopen}.
 
 @node Network Socket Address
 @subsubsection Network Socket Address
-@cindex socket
-@cindex network socket
+@cindex socket address
+@cindex network socket address
+@tpindex Socket address
 
-A socket address object identifies a socket endpoint for
-communication.  In the case of @code{AF_INET} for instance, the host
-address is only the machine (or interface on the machine), a port
-number is also needed to specify a particular open socket in a running
-client or server process.
+A @dfn{socket address} object identifies a socket endpoint for
+communication.  In the case of @code{AF_INET} for instance, the socket
+address object comprises the host address (or interface on the host)
+and a port number which specifies a particular open socket in a
+running client or server process.  A socket address object can be
+created with,
 
-A socket address object can be created with,
-
-@defun {Scheme Procedure} make-socket-address AF_INET ipv4addr port
-@defunx {Scheme Procedure} make-socket-address AF_INET6 ipv6addr port [flowinfo [scopeid]]
-@defunx {Scheme Procedure} make-socket-address AF_UNIX path
+@deffn {Scheme Procedure} make-socket-address AF_INET ipv4addr port
+@deffnx {Scheme Procedure} make-socket-address AF_INET6 ipv6addr port [flowinfo [scopeid]]
+@deffnx {Scheme Procedure} make-socket-address AF_UNIX path
+@deffnx {C Function} scm_make_socket_address family address arglist
 Return a new socket address object.  The first argument is the address
 family, one of the @code{AF} constants, then the arguments vary
 according to the family.
 
 For @code{AF_INET} the arguments are an IPv4 network address number
-and a port number.
+(@pxref{Network Address Conversion}), and a port number.
 
 For @code{AF_INET6} the arguments are an IPv6 network address number
 and a port number.  Optional @var{flowinfo} and @var{scopeid}
 arguments may be given (both integers, default 0).
 
 For @code{AF_UNIX} the argument is a filename (a string).
-@end defun
+
+The C function @code{scm_make_socket_address} takes the @var{family}
+and @var{address} arguments directly, then @var{arglist} is a list of
+further arguments, being the port for IPv4, port and optional flowinfo
+and scopeid for IPv6, or the empty list @code{SCM_EOL} for Unix
+domain.
+@end deffn
 
 @noindent
 The following functions access the fields of a socket address object,
@@ -2507,6 +2514,47 @@ flowinfo value.
 For an @code{AF_INET6} socket address object @var{sa}, return the
 scope ID value.
 @end deffn
+
+@tpindex @code{struct sockaddr}
+@tpindex @code{sockaddr}
+The functions below convert to and from the C @code{struct sockaddr}
+(@pxref{Address Formats,,, libc, The GNU C Library Reference Manual}).
+That structure is a generic type, an application can cast to or from
+@code{struct sockaddr_in}, @code{struct sockaddr_in6} or @code{struct
+sockaddr_un} according to the address family.
+
+In a @code{struct sockaddr} taken or returned, the byte ordering in
+the fields follows the C conventions (@pxref{Byte Order,, Byte Order
+Conversion, libc, The GNU C Library Reference Manual}).  This means
+network byte order for @code{AF_INET} host address
+(@code{sin_addr.s_addr}) and port number (@code{sin_port}), and
+@code{AF_INET6} port number (@code{sin6_port}).  But at the Scheme
+level these values are taken or returned in host byte order, so the
+port is an ordinary integer, and the host address likewise is an
+ordinary integer (as described in @ref{Network Address Conversion}).
+
+@deftypefn {C Function} {struct sockaddr *} scm_c_make_socket_address (SCM family, SCM address, SCM args, size_t *outsize)
+Return a newly-@code{malloc}ed @code{struct sockaddr} created from
+arguments like those taken by @code{scm_make_socket_address} above.
+
+The size (in bytes) of the @code{struct sockaddr} return is stored
+into @code{*@var{outsize}}.  An application must call @code{free} to
+release the returned structure when no longer required.
+@end deftypefn
+
+@deftypefn {C Function} SCM scm_from_sockaddr (const struct sockaddr *address, unsigned address_size)
+Return a Scheme socket address object from the C @var{address}
+structure.  @var{address_size} is the size in bytes of @var{address}.
+@end deftypefn
+
+@deftypefn {C Function} {struct sockaddr *} scm_to_sockaddr (SCM address, size_t *address_size)
+Return a newly-@code{malloc}ed @code{struct sockaddr} from a Scheme
+level socket address object.
+
+The size (in bytes) of the @code{struct sockaddr} return is stored
+into @code{*@var{outsize}}.  An application must call @code{free} to
+release the returned structure when no longer required.
+@end deftypefn
 
 
 @node Network Sockets and Communication
