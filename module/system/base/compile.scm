@@ -24,7 +24,8 @@
   :use-module (system base language)
   :use-module (system il compile)
   :use-module (system il glil)
-  :use-module (system vm core)
+  :use-module ((system vm core)
+	       #:select (the-vm vm-load))
   :use-module (system vm assemble)
   :use-module (ice-9 regex))
 
