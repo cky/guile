@@ -1,3 +1,19 @@
+2005-10-29  Kevin Ryde  <user42@zip.com.au>
+
+	* posix.texi (Network Socket Address): Add scm_make_socket_address,
+	scm_c_make_socket_address, scm_from_sockaddr, scm_to_sockaddr.  This
+	change by Ludovic Courtès and revised a bit by me.
+
+2005-10-27  Kevin Ryde  <user42@zip.com.au>
+
+	* posix.texi (Network Address Conversion): Move INADDR_ANY to here.
+	(Network Socket Address): New section, move sockaddr bits to here, add
+	new make-socket-address.
+	(Network Sockets and Communication): In connect, bind, and sendto, now
+	take socket address object.  In bind, leave INADDR constants for
+	"Network Address Conversion" node.  In those plus accept, getsockname,
+	getpeername, reword a bit for clarity.
+
 2005-10-24  Kevin Ryde  <user42@zip.com.au>
 
 	* posix.texi (Network Sockets and Communication): Combine and revise
