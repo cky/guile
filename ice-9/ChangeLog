@@ -1,3 +1,7 @@
+2005-10-27  Ludovic Courtès  <ludovic.courtes@laas.fr>
+
+	* networking.scm (sockaddr:flowinfo, sockaddr:scopeid): New functions.
+
 2005-09-01  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* debugger/utils.scm: Export write-frame-long.
