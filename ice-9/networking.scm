@@ -1,6 +1,6 @@
 ;;; installed-scm-file
 
-;;;; Copyright (C) 1999 Free Software Foundation, Inc.
+;;;; Copyright (C) 1999, 2005 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -80,3 +80,5 @@
 (define (sockaddr:path obj) (vector-ref obj 1))
 (define (sockaddr:addr obj) (vector-ref obj 1))
 (define (sockaddr:port obj) (vector-ref obj 2))
+(define (sockaddr:flowinfo obj) (vector-ref obj 3))
+(define (sockaddr:scopeid obj) (vector-ref obj 4))
