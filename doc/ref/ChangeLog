@@ -1,3 +1,7 @@
+2005-11-01  Kevin Ryde  <user42@zip.com.au>
+
+	* posix.texi (Time): In strftime, note systems vary for %Z.
+
 2005-10-29  Kevin Ryde  <user42@zip.com.au>
 
 	* posix.texi (Network Socket Address): Add scm_make_socket_address,
