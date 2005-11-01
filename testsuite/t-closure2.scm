@@ -6,3 +6,5 @@
 		     (set! x x++)
 		     x++))))
     (do-uid)))
+
+(list (uid) (uid) (uid))

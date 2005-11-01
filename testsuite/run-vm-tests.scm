@@ -1,14 +1,33 @@
-;;; A simple test-running script.
+;;; run-vm-tests.scm -- Run Guile-VM's test suite.
+;;;
+;;; Copyright 2005  Ludovic Courtès <ludovic.courtes@laas.fr>
+;;;
+;;;
+;;; This program is free software; you can redistribute it and/or modify
+;;; it under the terms of the GNU General Public License as published by
+;;; the Free Software Foundation; either version 2 of the License, or
+;;; (at your option) any later version.
+;;;
+;;; This program is distributed in the hope that it will be useful,
+;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;;; GNU General Public License for more details.
+;;;
+;;; You should have received a copy of the GNU General Public License
+;;; along with this program; if not, write to the Free Software
+;;; Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
+
 
 (use-modules (system vm core)
 	     (system vm disasm)
 	     (system base compile)
 	     (system base language)
 
-	     (srfi srfi-1))
+	     (srfi srfi-1)
+	     (ice-9 r5rs))
 
 
-(define *scheme* (lookup-language 'scheme))
+(define %scheme (lookup-language 'scheme))
 
 (define (fetch-sexp-from-file file)
   (with-input-from-file file
@@ -21,13 +40,13 @@
 
 (define (compile-to-objcode sexp)
   "Compile the expression @var{sexp} into a VM program and return it."
-  (compile-in sexp (current-module) *scheme*))
+  (compile-in sexp (current-module) %scheme))
 
 (define (run-vm-program objcode)
   "Run VM program contained into @var{objcode}."
   (vm-load (the-vm) objcode))
 
-(define (run-test-from-file file)
+(define (compile/run-test-from-file file)
   "Run test from source file @var{file} and return a value indicating whether
 it succeeded."
   (run-vm-program (compile-to-objcode (fetch-sexp-from-file file))))
@@ -48,11 +67,16 @@ it succeeded."
 ;; The program.
 
 (define (run-vm-tests files)
+  "For each file listed in @var{files}, load it and run it through both the
+interpreter and the VM (after having it compiled).  Both results must be
+equal in the sense of @var{equal?}."
   (let* ((res (map (lambda (file)
 		     (format #t "running `~a'...  " file)
 		     (if (catch #t
 				(lambda ()
-				  (run-test-from-file file))
+				  (equal? (compile/run-test-from-file file)
+					  (eval (fetch-sexp-from-file file)
+						(interaction-environment))))
 				(lambda (key . args)
 				  (format #t "[~a/~a] " key args)
 				  #f))

@@ -1,2 +1,1 @@
-texi_TEXINFOS = guile-vm.texi
-MAINTAINERCLEANFILES = Makefile.in
+info_TEXINFOS = guile-vm.texi

@@ -205,7 +205,7 @@ SCM_DEFINE (scm_program_bytecode, "program-bytecode", 1, 0, 0,
 #define FUNC_NAME s_scm_program_bytecode
 {
   size_t size;
-  char *c_bytecode;
+  scm_t_uint8 *c_bytecode;
 
   SCM_VALIDATE_PROGRAM (1, program);
 

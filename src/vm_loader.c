@@ -63,7 +63,7 @@ VM_DEFINE_LOADER (load_number, "load-number")
   size_t len;
 
   FETCH_LENGTH (len);
-  PUSH (scm_string_to_number (scm_from_locale_stringn (ip, len),
+  PUSH (scm_string_to_number (scm_from_locale_stringn ((char *)ip, len),
 			      SCM_UNSPECIFIED /* radix = 10 */));
   /* Was: scm_istring2number (ip, len, 10)); */
   ip += len;
@@ -74,7 +74,7 @@ VM_DEFINE_LOADER (load_string, "load-string")
 {
   size_t len;
   FETCH_LENGTH (len);
-  PUSH (scm_from_locale_stringn (ip, len));
+  PUSH (scm_from_locale_stringn ((char *)ip, len));
   /* Was: scm_makfromstr (ip, len, 0) */
   ip += len;
   NEXT;
@@ -84,7 +84,7 @@ VM_DEFINE_LOADER (load_symbol, "load-symbol")
 {
   size_t len;
   FETCH_LENGTH (len);
-  PUSH (scm_from_locale_symboln (ip, len));
+  PUSH (scm_from_locale_symboln ((char *)ip, len));
   ip += len;
   NEXT;
 }
@@ -94,7 +94,7 @@ VM_DEFINE_LOADER (load_keyword, "load-keyword")
   SCM sym;
   size_t len;
   FETCH_LENGTH (len);
-  sym = scm_from_locale_symboln (ip, len);
+  sym = scm_from_locale_symboln ((char *)ip, len);
   PUSH (scm_make_keyword_from_dash_symbol (sym));
   ip += len;
   NEXT;
@@ -104,7 +104,7 @@ VM_DEFINE_LOADER (load_module, "load-module")
 {
   size_t len;
   FETCH_LENGTH (len);
-  PUSH (scm_c_lookup_env (scm_from_locale_symboln (ip, len)));
+  PUSH (scm_c_lookup_env (scm_from_locale_symboln ((char *)ip, len)));
   ip += len;
   NEXT;
 }
@@ -184,7 +184,7 @@ VM_DEFINE_LOADER (link, "link")
   size_t len;
 
   FETCH_LENGTH (len);
-  sym = scm_from_locale_symboln (ip, len);
+  sym = scm_from_locale_symboln ((char *)ip, len);
   ip += len;
 
 #if 0

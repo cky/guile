@@ -43,13 +43,13 @@
   (cond ((pair? x)
 	 (let ((y (macroexpand x)))
 	   (if (eq? x y)
-	     (trans-pair e (or (location x) l) (car x) (cdr x))
-	     (trans e l y))))
+	       (trans-pair e (or (location x) l) (car x) (cdr x))
+	       (trans e l y))))
 	((symbol? x)
 	 (let ((y (symbol-expand x)))
 	   (if (symbol? y)
-	     (<ghil-ref> e l (ghil-lookup e y))
-	     (trans e l y))))
+	       (<ghil-ref> e l (ghil-lookup e y))
+	       (trans e l y))))
 	(else (<ghil-quote> e l x))))
 
 (define (symbol-expand x)
@@ -109,7 +109,7 @@
        ;; (set! (NAME ARGS...) VAL)
        ((((? symbol? name) . args) val)
 	;; -> ((setter NAME) ARGS... VAL)
-	(trans:pair `((setter ,name) (,@args ,val))))
+	(trans:pair `((setter ,name) . (,@args ,val))))
 
        (else (bad-syntax))))
 

@@ -183,7 +183,7 @@ SCM_DEFINE (scm_bytecode_to_objcode, "bytecode->objcode", 3, 0, 0,
   ssize_t increment;
   scm_t_array_handle handle;
   char *base;
-  const char *c_bytecode;
+  const scm_t_uint8 *c_bytecode;
   SCM objcode;
 
   if (scm_u8vector_p (bytecode) != SCM_BOOL_T)
@@ -235,7 +235,7 @@ SCM_DEFINE (scm_objcode_to_u8vector, "objcode->u8vector", 1, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_objcode_to_u8vector
 {
-  char *u8vector;
+  scm_t_uint8 *u8vector;
   size_t size;
 
   SCM_VALIDATE_OBJCODE (1, objcode);

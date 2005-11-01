@@ -175,7 +175,7 @@ vm_heapify_frames_1 (struct scm_vm *vp, SCM *fp, SCM *sp, SCM **destp)
       frame = scm_c_make_heap_frame (fp);
       fp = SCM_HEAP_FRAME_POINTER (frame);
       SCM_FRAME_HEAP_LINK (fp)    = link;
-      SCM_FRAME_DYNAMIC_LINK (fp) = SCM_HEAP_FRAME_POINTER (link);
+      SCM_FRAME_SET_DYNAMIC_LINK (fp, SCM_HEAP_FRAME_POINTER (link));
     }
 
   /* Move stack data */

@@ -102,7 +102,7 @@
 		(def (if (pair? slot) (cdr slot) *unbound*))
 		(val (get-key args (symbol->keyword key) def)))
 	   (if (eq? val *unbound*)
-	     (error "Slot unbound:" key)
+	     (error "slot unbound" key)
 	     (cons key val))))
        slots))
 
@@ -116,14 +116,15 @@
    (lambda (struct name)
      (let ((data (assq name (vector-ref struct 1))))
        (cond ((not data)
-	      (error "Unknown slot:" name))
+	      (error "unknown slot" name))
 	     (else (cdr data)))))
    (lambda (struct name val)
      (let ((data (assq name (vector-ref struct 1))))
        (cond ((not data)
-	      (error "Unknown slot:" name))
+	      (error "unknown slot" name))
 	     (else (set-cdr! data val)))))))
 
+
 ;;;
 ;;; Variants
 ;;;

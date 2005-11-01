@@ -12,3 +12,9 @@
        ((first)  (vector-set! struct 0 val))
        ((second) (vector-set! struct 1 val))
        (else     #f)))))
+
+(and (eq? (vector-ref the-struct 0) (get/set the-struct 'first))
+     (eq? (vector-ref the-struct 1) (get/set the-struct 'second))
+     (begin
+       (set! (get/set the-struct 'second) 77)
+       (eq? (vector-ref the-struct 1) (get/set the-struct 'second))))

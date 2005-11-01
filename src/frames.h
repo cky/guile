@@ -51,21 +51,26 @@
  * VM frames
  */
 
-/* 
+/* VM Frame Layout
+   ---------------
+
    |                  | <- fp + bp->nargs + bp->nlocs + 4
    +------------------+    = SCM_FRAME_UPPER_ADDRESS (fp)
    | Return address   |
    | Dynamic link     |
    | Heap link        |
    | External link    | <- fp + bp->nargs + bp->nlocs
-   | Local varialbe 1 |    = SCM_FRAME_DATA_ADDRESS (fp)
+   | Local variable 1 |    = SCM_FRAME_DATA_ADDRESS (fp)
    | Local variable 0 | <- fp + bp->nargs
    | Argument 1       |
    | Argument 0       | <- fp
    | Program          | <- fp - 1
    +------------------+    = SCM_FRAME_LOWER_ADDRESS (fp)
    |                  |
-*/
+
+   As can be inferred from this drawing, it is assumed that
+   `sizeof (SCM *) == sizeof (SCM)', since pointers (the `link' parts) are
+   assumed to be as long as SCM objects.  */
 
 #define SCM_FRAME_DATA_ADDRESS(fp)				\
   (fp + SCM_PROGRAM_DATA (SCM_FRAME_PROGRAM (fp))->nargs	\
@@ -76,10 +81,14 @@
 #define SCM_FRAME_BYTE_CAST(x)		((scm_byte_t *) SCM_UNPACK (x))
 #define SCM_FRAME_STACK_CAST(x)		((SCM *) SCM_UNPACK (x))
 
-#define SCM_FRAME_RETURN_ADDRESS(fp)	SCM_FRAME_BYTE_CAST (SCM_FRAME_DATA_ADDRESS (fp)[3])
-#define SCM_FRAME_DYNAMIC_LINK(fp)	SCM_FRAME_STACK_CAST (SCM_FRAME_DATA_ADDRESS (fp)[2])
-#define SCM_FRAME_HEAP_LINK(fp)		SCM_FRAME_DATA_ADDRESS (fp)[1]
-#define SCM_FRAME_EXTERNAL_LINK(fp)	SCM_FRAME_DATA_ADDRESS (fp)[0]
+#define SCM_FRAME_RETURN_ADDRESS(fp)				\
+  (SCM_FRAME_BYTE_CAST (SCM_FRAME_DATA_ADDRESS (fp)[3]))
+#define SCM_FRAME_DYNAMIC_LINK(fp)				\
+  (SCM_FRAME_STACK_CAST (SCM_FRAME_DATA_ADDRESS (fp)[2]))
+#define SCM_FRAME_SET_DYNAMIC_LINK(fp, dl)		\
+  ((SCM_FRAME_DATA_ADDRESS (fp)[2])) = (SCM)(dl);
+#define SCM_FRAME_HEAP_LINK(fp)		(SCM_FRAME_DATA_ADDRESS (fp)[1])
+#define SCM_FRAME_EXTERNAL_LINK(fp)	(SCM_FRAME_DATA_ADDRESS (fp)[0])
 #define SCM_FRAME_VARIABLE(fp,i)	fp[i]
 #define SCM_FRAME_PROGRAM(fp)		fp[-1]
 
@@ -92,7 +101,7 @@ extern scm_t_bits scm_tc16_heap_frame;
 
 #define SCM_HEAP_FRAME_P(x)	SCM_SMOB_PREDICATE (scm_tc16_heap_frame, x)
 #define SCM_HEAP_FRAME_DATA(f)		((SCM *) SCM_SMOB_DATA (f))
-#define SCM_HEAP_FRAME_SELF(f)		(SCM_HEAP_FRAME_DATA (f)[0])
+#define SCM_HEAP_FRAME_SELF(f)		(SCM_HEAP_FRAME_DATA (f) + 0)
 #define SCM_HEAP_FRAME_POINTER(f)	(SCM_HEAP_FRAME_DATA (f) + 2)
 #define SCM_VALIDATE_HEAP_FRAME(p,x)	SCM_MAKE_VALIDATE (p, x, HEAP_FRAME_P)
 

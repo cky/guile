@@ -25,7 +25,7 @@
   :use-module (system il compile)
   :use-module (system il glil)
   :use-module ((system vm core)
-	       #:select (the-vm vm-load))
+	       #:select (the-vm vm-load objcode->u8vector))
   :use-module (system vm assemble)
   :use-module (ice-9 regex))
 
@@ -68,9 +68,9 @@
 		 (if (memq :c opts)
 		   (pprint-glil objcode port)
 		   (uniform-vector-write (objcode->u8vector objcode) port)))))
-	   (format #t "Wrote ~A\n" comp))
+	   (format #t "wrote ~A\n" comp))
       (lambda (key . args)
-	(format #t "ERROR: During compiling ~A:\n" file)
+	(format #t "ERROR: during compilation of ~A:\n" file)
 	(display "ERROR: ")
 	(apply format #t (cadr args) (caddr args))
 	(newline)
@@ -128,7 +128,7 @@
     (lambda (key val) val)))
 
 ;;;
-;;; 
+;;;
 ;;;
 
 (define (compile-and-load file . opts)

@@ -50,26 +50,18 @@
 ;;;
 
 (define (preprocess x e)
-;  (format #t "entering~%")
   (match x
     (($ <glil-asm> vars body)
-;     (format #t "preparing to recurse~%")
      (let* ((venv (<venv> :parent e :nexts (slot vars 'nexts) :closure? #f))
 	    (body (map (lambda (x) (preprocess x venv)) body)))
        (<vm-asm> :venv venv :glil x :body body)))
     (($ <glil-external> op depth index)
-;     (format #t "preparing to return due to external: ~a ~a ~a [e=~a]~%"
-;	     op depth index e)
      (do ((d depth (- d 1))
-	  (e e (slot e 'parent)))
-	 ((= d 0))
+ 	  (e e (slot e 'parent)))
+ 	 ((= d 0))
        (set! (slot e 'closure?) #t))
-;     (format #t "returning due to external~%")
      x)
-    (else
-     (begin
-;       (format #t "returning~%")
-       x))))
+    (else x)))
 
 
 ;;;

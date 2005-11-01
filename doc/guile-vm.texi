@@ -102,6 +102,9 @@ However, be warned that important parts still correspond to version
 * Variable Management::         
 * Instruction Set::             
 * The Compiler::                
+* Concept Index::               
+* Function and Instruction Index::  
+* Command and Variable Index::  
 
 @detailmenu
  --- The Detailed Node Listing ---
@@ -528,7 +531,7 @@ itself, in the environment in which it will evaluate at run-time.  In
 a sense, a program's environment and its bindings are an implicit
 parameter of every program.
 
-@cindex Object table
+@cindex object table
 In order to handle such bindings, each program has an @dfn{object
 table} associated to it.  This table (actually a Scheme vector)
 contains all constant objects referenced by the program.  The object
@@ -723,7 +726,7 @@ Push @code{#t} onto the stack.
 
 
 
-@node The Compiler,  , Instruction Set, Top
+@node The Compiler, Concept Index, Instruction Set, Top
 @chapter The Compiler
 
 This section describes Guile-VM's compiler and the compilation process
@@ -743,6 +746,13 @@ Set}).
 
 Compilation in Guile-VM is a three-stage process:
 
+@cindex intermediate language
+@cindex assembler
+@cindex compiler
+@cindex GHIL
+@cindex GLIL
+@cindex bytecode
+
 @enumerate
 @item the source programming language (e.g. R5RS Scheme) is read and
 translated into GHIL, @dfn{Guile's High-Level Intermediate Language};
@@ -756,6 +766,8 @@ The use of two separate intermediate languages eases the
 implementation of front-ends since the gap between high-level
 languages like Scheme and GHIL is relatively small.
 
+@findex compile-file
+@vindex guilec
 From an end-user viewpoint, compiling a Guile program into bytecode
 can be done either by using the @command{guilec} command-line tool, or
 by using the @code{compile-file} procedure exported by the
@@ -804,9 +816,9 @@ represents a particular language feature.  These records are all
 defined in the @code{(system il ghil)} module and are named
 @code{<ghil-*>}.
 
-Each GHIL record has at least two fields:  one containing the
+Each GHIL record has at least two fields: one containing the
 environment (Guile module) in which it is considered, and one
-containing its location [FIXME:  currently seems to be unused].  Below
+containing its location [FIXME: currently seems to be unused].  Below
 is a list of the main GHIL object types and their fields:
 
 @example
@@ -899,6 +911,8 @@ This is not unlike the VM's assembly language described in
 @node The Assembler,  , GLIL, The Compiler
 @section The Assembler
 
+@findex code->bytes
+
 The final compilation step consists in converting the GLIL instruction
 sequence into VM bytecode.  This is what the @code{assemble} procedure
 defined in the @code{(system vm assemble)} module is for.  It relies
@@ -917,25 +931,24 @@ form of an SRFI-4 @code{u8vector} or a @code{<bytespec>} object.
 @end deffn
 
 
-
+
 @c *********************************************************************
-@c @node Concept Index, Command Index, Related Information, Top
-@c @unnumbered Concept Index
-@c @printindex cp
+@node Concept Index, Function and Instruction Index, The Compiler, Top
+@unnumbered Concept Index
+@printindex cp
 
-@c @node Command Index, Variable Index, Concept Index, Top
-@c @unnumbered Command Index
-@c @printindex fn
+@node Function and Instruction Index, Command and Variable Index, Concept Index, Top
+@unnumbered Function and Instruction Index
+@printindex fn
 
-@c @node Variable Index,  , Command Index, Top
-@c @unnumbered Variable Index
-@c @printindex vr
+@node Command and Variable Index,  , Function and Instruction Index, Top
+@unnumbered Command and Variable Index
+@printindex vr
 
 @bye
-
+
 @c Local Variables:
-@c mode:outline-minor
-@c outline-regexp:"@\\(ch\\|sec\\|subs\\)"
+@c ispell-local-dictionary: "american";
 @c End:
 
 @c  LocalWords:  bytecode
