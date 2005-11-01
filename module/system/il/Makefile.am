@@ -1,12 +1,14 @@
-SOURCES = glil.scm ghil.scm macros.scm compile.scm
-OBJECTS = glil.go  ghil.go  macros.go  compile.go
+SOURCES = glil.scm macros.scm
+## FIXME: There's a bug showing up when compiling `ghil.scm' and
+## `compile.scm'!
+GOBJECTS = $(SOURCES:%.scm=%.go)
 
 vmdir = $(guiledir)/system/il
-vm_DATA = $(SOURCES) $(OBJECTS)
+vm_DATA = $(SOURCES) $(GOBJECTS)
 
-DISTCLEANFILES = $(OBJECTS)
+CLEANFILES = $(GOBJECTS)
 MAINTAINERCLEANFILES = Makefile.in
 
 SUFFIXES = .scm .go
-.scm.go:
+%.go: %.scm
 	$(GUILEC) $<

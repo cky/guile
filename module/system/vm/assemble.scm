@@ -22,7 +22,10 @@
 (define-module (system vm assemble)
   :use-syntax (system base syntax)
   :use-module (system il glil)
-  :use-module (system vm core)
+  :use-module ((system vm core)
+	       :select (instruction? instruction-pops
+		        make-binding
+			bytecode->objcode))
   :use-module (system vm conv)
   :use-module (ice-9 match)
   :use-module (ice-9 regex)
@@ -275,4 +278,4 @@
 	 (for-each dump! (vector->list x))
 	 (push-code! `(vector ,(vector-length x))))
 	(else
-	 (error "Cannot dump:" x)))))))
+	 (error "assemble: unrecognized object" x)))))))

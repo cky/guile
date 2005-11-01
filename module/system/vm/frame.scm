@@ -1,26 +1,26 @@
 ;;; Guile VM frame functions
 
-;; Copyright (C) 2001 Free Software Foundation, Inc.
-
-;; This program is free software; you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
-;; any later version.
-;; 
-;; This program is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;; GNU General Public License for more details.
-;; 
-;; You should have received a copy of the GNU General Public License
-;; along with this program; see the file COPYING.  If not, write to
-;; the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;;; Copyright (C) 2001 Free Software Foundation, Inc.
+;;; Copyright (C) 2005 Ludovic Courtès  <ludovic.courtes@laas.fr>
+;;;
+;;; This program is free software; you can redistribute it and/or modify
+;;; it under the terms of the GNU General Public License as published by
+;;; the Free Software Foundation; either version 2 of the License, or
+;;; (at your option) any later version.
+;;;
+;;; This program is distributed in the hope that it will be useful,
+;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;;; GNU General Public License for more details.
+;;;
+;;; You should have received a copy of the GNU General Public License
+;;; along with this program; if not, write to the Free Software
+;;; Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
 
 ;;; Code:
 
 (define-module (system vm frame)
-  :use-module (system vm core))
+  :use-module ((system vm core) :renamer (symbol-prefix-proc 'vm:)))
 
 
 ;;;
@@ -31,19 +31,20 @@
 (define-public frame-address (make-object-property))
 
 (define-public (vm-current-frame-chain vm)
-  (make-frame-chain (vm-this-frame vm) (vm:ip vm)))
+  (make-frame-chain (vm:vm-this-frame vm) (vm:vm:ip vm)))
 
 (define-public (vm-last-frame-chain vm)
-  (make-frame-chain (vm-last-frame vm) (vm:ip vm)))
+  (make-frame-chain (vm:vm-last-frame vm) (vm:vm:ip vm)))
 
 (define (make-frame-chain frame addr)
-  (let* ((link (frame-dynamic-link frame))
+  (let* ((link (vm:frame-dynamic-link frame))
 	 (chain (if (eq? link #t)
 		  '()
-		  (cons frame (make-frame-chain
-			       link (frame-return-address frame))))))
-    (set! (frame-number frame) (length chain))
-    (set! (frame-address frame) (- addr (program-base (frame-program frame))))
+		  (cons frame (vm:make-frame-chain
+			       link (vm:frame-return-address frame))))))
+    (set! (vm:frame-number frame) (length chain))
+    (set! (vm:frame-address frame)
+	  (- addr (program-base (vm:frame-program frame))))
     chain))
 
 
@@ -52,7 +53,7 @@
 ;;;
 
 (define-public (print-frame frame)
-  (format #t "#~A " (frame-number frame))
+  (format #t "#~A " (vm:frame-number frame))
   (print-frame-call frame)
   (newline))
 
@@ -67,12 +68,13 @@
 			 ((1) (vector (abbrev (vector-ref x 0))))
 			 (else (vector (abbrev (vector-ref x 0)) '...))))
 	  (else x)))
-  (write (abbrev (cons (program-name frame) (frame-arguments frame)))))
+  (write (abbrev (cons (program-name frame)
+		       (vm:frame-arguments frame)))))
 
 (define (program-name frame)
-  (let ((prog (frame-program frame))
-	(link (frame-dynamic-link frame)))
+  (let ((prog (vm:frame-program frame))
+	(link (vm:frame-dynamic-link frame)))
     (or (object-property prog 'name)
-	(frame-object-name link (1- (frame-address link)) prog)
+	(vm:frame-object-name link (1- (vm:frame-address link)) prog)
 	(hash-fold (lambda (s v d) (if (eq? prog (variable-ref v)) s d))
 		   prog (module-obarray (current-module))))))

@@ -1,12 +1,13 @@
-SOURCES = syntax.scm language.scm compile.scm
-OBJECTS = syntax.go  language.go  compile.go
+SOURCES = compile.scm language.scm module.scm
+## syntax.scm
+GOBJECTS = $(SOURCES:%.scm=%.go)
 
 vmdir = $(guiledir)/system/vm
-vm_DATA = $(SOURCES) $(OBJECTS)
+vm_DATA = $(SOURCES) $(GOBJECTS)
 
-DISTCLEANFILES = $(OBJECTS)
+CLEANFILES = $(GOBJECTS)
 MAINTAINERCLEANFILES = Makefile.in
 
 SUFFIXES = .scm .go
-.scm.go:
+%.go: %.scm
 	$(GUILEC) $<

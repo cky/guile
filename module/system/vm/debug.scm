@@ -21,7 +21,8 @@
 
 (define-module (system vm debug)
   :use-syntax (system base syntax)
-  :use-module (system vm core)
+;;  :use-module ((system vm core)
+;;	       :select (vm-last-frame-chain vm-backtrace))
   :use-module (system vm frame)
   :use-module (ice-9 format)
   :export (vm-debugger vm-backtrace))

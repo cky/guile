@@ -68,7 +68,7 @@
 		 (if (memq :c opts)
 		   (pprint-glil objcode port)
 		   (uniform-vector-write (objcode->u8vector objcode) port)))))
-	   (format #t "wrote ~A\n" comp))
+	   (format #t "wrote `~A'\n" comp))
       (lambda (key . args)
 	(format #t "ERROR: during compilation of ~A:\n" file)
 	(display "ERROR: ")

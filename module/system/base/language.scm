@@ -42,4 +42,4 @@
   (let ((m (resolve-module `(language ,name spec))))
     (if (module-bound? m name)
 	(module-ref m name)
-	(error "No such language:" name))))
+	(error "no such language" name))))

@@ -1,12 +1,19 @@
-AC_INIT(src/guile-vm.c)
-AM_INIT_AUTOMAKE(guile-vm, 0.5)
-AM_CONFIG_HEADER(src/config.h)
+# Guile-VM.
 
+AC_PREREQ(2.59)
+AC_INIT(guile-vm, 0.6, ludovic.courtes@laas.fr)
+AM_INIT_AUTOMAKE(guile-vm, 0.6)
+
+AC_CONFIG_SRCDIR(src/guile-vm.c)
+AC_CONFIG_HEADER(src/config.h)
+
+# Guile.
 GUILE_FLAGS
-if test "`guile -c '(display (string>=? (version) "1.4.1"))'`" != "#t"; then
-  AC_MSG_ERROR([Your Guile is too old.  You need guile-1.4.1 or later.])
+if test "`guile -c '(display (string>=? (version) "1.7"))'`" != "#t"; then
+  AC_MSG_ERROR([Your Guile is too old.  You need Guile 1.7.2 or later.])
 fi
 
+# C Compiler.
 AC_PROG_CC
 AC_PROG_LN_S
 AM_PROG_LIBTOOL
@@ -21,7 +28,8 @@ GUILEC="GUILE_LOAD_PATH=\$(top_srcdir)/module \
 AC_SUBST(GUILEC)
 
 AC_OUTPUT(Makefile src/Makefile doc/Makefile module/Makefile
-  module/system/Makefile module/system/base/Makefile
-  module/system/vm/Makefile module/system/il/Makefile
-  module/system/repl/Makefile
-  testsuite/Makefile)
+	  module/system/Makefile module/system/base/Makefile
+	  module/system/vm/Makefile module/system/il/Makefile
+	  module/system/repl/Makefile
+	  module/language/Makefile module/language/scheme/Makefile
+	  testsuite/Makefile)

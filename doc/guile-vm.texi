@@ -766,13 +766,32 @@ The use of two separate intermediate languages eases the
 implementation of front-ends since the gap between high-level
 languages like Scheme and GHIL is relatively small.
 
-@findex compile-file
 @vindex guilec
 From an end-user viewpoint, compiling a Guile program into bytecode
 can be done either by using the @command{guilec} command-line tool, or
 by using the @code{compile-file} procedure exported by the
 @code{(system base compile)} module.
 
+@deffn @scmproc{} compile-file file . opts
+Compile Scheme source code from file @var{file} using compilation
+options @var{opts}.  The resulting file, a Guile object file, will be
+name according the application of the @code{compiled-file-name}
+procedure to @var{file}.  The possible values for @var{opts} are the
+same as for the @code{compile-in} procedure (see below, @pxref{The Language
+Front-Ends}).
+@end deffn
+
+@deffn @scmproc{} compiled-file-name file
+Given source file name @var{file} (a string), return a string that
+denotes the name of the Guile object file corresponding to
+@var{file}.  By default, the file name returned is @var{file} minus
+its extension and plus the @code{.go} file extension.
+@end deffn
+
+@cindex self-hosting
+It is worth noting, as you might have already guessed, that Guile-VM's
+compiler is written in Guile Scheme and is @dfn{self-hosted}: it can
+compile itself.
 
 @node The Language Front-Ends, GHIL, Overview, The Compiler
 @section The Language Front-Ends
@@ -802,6 +821,34 @@ Look for a language front-end named @var{symbol} and return the
 doesn't denote a language front-end, an error is raised.  Note that
 this procedure assumes that language @var{symbol} exists if there
 exist a @code{(language @var{symbol} spec)} module.
+@end deffn
+
+The @code{(system base compile)} module defines a procedure similar to
+@code{compile-file} but that is not limited to the Scheme language:
+
+@deffn @scmproc{} compile-in expr env lang . opts
+Compile expression @var{expr}, which is written in language @var{lang}
+(a @code{<language>} object), using compilation options @var{opts},
+and return bytecode as produced by the assembler (@pxref{The
+Assembler}).
+
+Options @var{opts} may contain the following keywords:
+
+@table @code
+@item :e
+compilation will stop after the code expansion phase.
+@item :t
+compilation will stop after the code translation phase, i.e. after
+code in the source language @var{lang} has been translated into GHIL
+(@pxref{GHIL}).
+@item :c
+compilation will stop after the compilation phase and before the
+assembly phase, i.e. once GHIL has been translated into GLIL
+(@pxref{GLIL}).
+@end table
+
+Additionally, @var{opts} may contain any option understood by the
+GHIL-to-GLIL compiler described in @xref{GLIL}.
 @end deffn
 
 
@@ -874,6 +921,10 @@ instruction sequence.  The option list @var{opts} may be either the
 empty list or a list containing the @code{:O} keyword in which case
 @code{compile} will first go through an optimization stage of
 @var{ghil}.
+
+Note that the @code{:O} option may be passed at a higher-level to the
+@code{compile-file} and @code{compile-in} procedures (@pxref{The
+Language Front-Ends}).
 @end deffn
 
 @deffn @scmproc{} pprint-glil glil . port

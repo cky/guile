@@ -1,12 +1,13 @@
-SOURCES = assemble.scm conv.scm core.scm disasm.scm profile.scm trace.scm
-OBJECTS = assemble.go  conv.go  core.go  disasm.go  profile.go  trace.go
+SOURCES = assemble.scm conv.scm core.scm debug.scm \
+	  disasm.scm frame.scm profile.scm trace.scm
+GOBJECTS = $(SOURCES:%.scm=%.go)
 
 vmdir = $(guiledir)/system/vm
-vm_DATA = $(SOURCES) $(OBJECTS)
+vm_DATA = $(SOURCES) $(GOBJECTS)
 
-DISTCLEANFILES = $(OBJECTS)
+CLEANFILES = $(GOBJECTS)
 MAINTAINERCLEANFILES = Makefile.in
 
 SUFFIXES = .scm .go
-.scm.go:
+%.go: %.scm
 	$(GUILEC) $<
