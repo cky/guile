@@ -44,7 +44,6 @@
 
 SCM_API scm_t_option scm_debug_opts[];
 
-#define SCM_CHEAPTRAPS_P	scm_debug_opts[0].val
 #define SCM_BREAKPOINTS_P	scm_debug_opts[1].val
 #define SCM_TRACE_P		scm_debug_opts[2].val
 #define SCM_REC_PROCNAMES_P	scm_debug_opts[3].val

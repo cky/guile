@@ -2537,6 +2537,7 @@ SCM_GLOBAL_SYMBOL (scm_sym_enter_frame, "enter-frame");
 SCM_GLOBAL_SYMBOL (scm_sym_apply_frame, "apply-frame");
 SCM_GLOBAL_SYMBOL (scm_sym_exit_frame, "exit-frame");
 SCM_GLOBAL_SYMBOL (scm_sym_trace, "trace");
+SCM_SYMBOL (sym_instead, "instead");
 
 /* A function object to implement "apply" for non-closure functions.  */
 static SCM f_apply;
@@ -3008,18 +3009,8 @@ do { \
 	SCM tmp, tail = scm_from_bool(SCM_TRACED_FRAME_P (debug)); \
 	SCM_SET_TRACED_FRAME (debug); \
 	SCM_TRAPS_P = 0;\
-	if (SCM_CHEAPTRAPS_P)\
-	  {\
-	    tmp = scm_make_debugobj (&debug);\
-	    scm_call_3 (SCM_APPLY_FRAME_HDLR, scm_sym_apply_frame, tmp, tail);\
- 	  }\
-	else\
-	  {\
-            int first;\
-	    tmp = scm_make_continuation (&first);\
-	    if (first)\
-	      scm_call_3 (SCM_APPLY_FRAME_HDLR, scm_sym_apply_frame, tmp, tail);\
-	  }\
+        tmp = scm_make_debugobj (&debug);\
+	scm_call_3 (SCM_APPLY_FRAME_HDLR, scm_sym_apply_frame, tmp, tail);\
 	SCM_TRAPS_P = 1;\
       }\
 } while (0)
@@ -3059,7 +3050,7 @@ scm_t_option scm_eval_opts[] = {
 
 scm_t_option scm_debug_opts[] = {
   { SCM_OPTION_BOOLEAN, "cheap", 1,
-    "*Flyweight representation of the stack at traps." },
+    "*This option is now obsolete.  Setting it has no effect." },
   { SCM_OPTION_BOOLEAN, "breakpoints", 0, "*Check for breakpoints." },
   { SCM_OPTION_BOOLEAN, "trace", 0, "*Trace mode." },
   { SCM_OPTION_BOOLEAN, "procnames", 1,
@@ -3287,33 +3278,23 @@ start:
 	  SCM stackrep;
 	  SCM tail = scm_from_bool (SCM_TAILRECP (debug));
 	  SCM_SET_TAILREC (debug);
-	  if (SCM_CHEAPTRAPS_P)
-	    stackrep = scm_make_debugobj (&debug);
-	  else
-	    {
-	      int first;
-	      SCM val = scm_make_continuation (&first);
-
-	      if (first)
-		stackrep = val;
-	      else
-		{
-		  x = val;
-		  if (SCM_IMP (x))
-		    RETURN (x);
-		  else
-		    /* This gives the possibility for the debugger to
-		       modify the source expression before evaluation. */
-		    goto dispatch;
-		}
-	    }
+	  stackrep = scm_make_debugobj (&debug);
 	  SCM_TRAPS_P = 0;
-	  scm_call_4 (SCM_ENTER_FRAME_HDLR,
-		      scm_sym_enter_frame,
-		      stackrep,
-		      tail,
-		      unmemoize_expression (x, env));
+	  stackrep = scm_call_4 (SCM_ENTER_FRAME_HDLR,
+				 scm_sym_enter_frame,
+				 stackrep,
+				 tail,
+				 unmemoize_expression (x, env));
 	  SCM_TRAPS_P = 1;
+	  if (scm_is_pair (stackrep) &&
+	      scm_is_eq (SCM_CAR (stackrep), sym_instead))
+	    {
+	      /* This gives the possibility for the debugger to modify
+		 the source expression before evaluation. */
+	      x = SCM_CDR (stackrep);
+	      if (SCM_IMP (x))
+		RETURN (x);
+	    }
 	}
     }
 #endif
@@ -4596,26 +4577,13 @@ exit:
     if (SCM_EXIT_FRAME_P || (SCM_TRACE_P && SCM_TRACED_FRAME_P (debug)))
       {
 	SCM_CLEAR_TRACED_FRAME (debug);
-	if (SCM_CHEAPTRAPS_P)
-	  arg1 = scm_make_debugobj (&debug);
-	else
-	  {
-	    int first;
-	    SCM val = scm_make_continuation (&first);
-
-	    if (first)
-	      arg1 = val;
-	    else
-	      {
-		proc = val;
-		goto ret;
-	      }
-	  }
+	arg1 = scm_make_debugobj (&debug);
 	SCM_TRAPS_P = 0;
-	scm_call_3 (SCM_EXIT_FRAME_HDLR, scm_sym_exit_frame, arg1, proc);
+	arg1 = scm_call_3 (SCM_EXIT_FRAME_HDLR, scm_sym_exit_frame, arg1, proc);
 	SCM_TRAPS_P = 1;
+	if (scm_is_pair (arg1) && scm_is_eq (SCM_CAR (arg1), sym_instead))
+	  proc = SCM_CDR (arg1);
       }
-ret:
   scm_i_set_last_debug_frame (debug.prev);
   return proc;
 #endif
@@ -4825,22 +4793,11 @@ SCM_APPLY (SCM proc, SCM arg1, SCM args)
 #ifdef DEVAL
   if (SCM_ENTER_FRAME_P && SCM_TRAPS_P)
     {
-      SCM tmp;
-      if (SCM_CHEAPTRAPS_P)
-	tmp = scm_make_debugobj (&debug);
-      else
-	{
-	  int first;
-
-	  tmp = scm_make_continuation (&first);
-	  if (!first)
-	    goto entap;
-	}
+      SCM tmp = scm_make_debugobj (&debug);
       SCM_TRAPS_P = 0;
       scm_call_2 (SCM_ENTER_FRAME_HDLR, scm_sym_enter_frame, tmp);
       SCM_TRAPS_P = 1;
     }
-entap:
   ENTER_APPLY;
 #endif
 tail:
@@ -5056,26 +5013,13 @@ exit:
     if (SCM_EXIT_FRAME_P || (SCM_TRACE_P && SCM_TRACED_FRAME_P (debug)))
       {
 	SCM_CLEAR_TRACED_FRAME (debug);
-	if (SCM_CHEAPTRAPS_P)
-	  arg1 = scm_make_debugobj (&debug);
-	else
-	  {
-	    int first;
-	    SCM val = scm_make_continuation (&first);
-
-	    if (first)
-	      arg1 = val;
-	    else
-	      {
-		proc = val;
-		goto ret;
-	      }
-	  }
+	arg1 = scm_make_debugobj (&debug);
 	SCM_TRAPS_P = 0;
-	scm_call_3 (SCM_EXIT_FRAME_HDLR, scm_sym_exit_frame, arg1, proc);
+	arg1 = scm_call_3 (SCM_EXIT_FRAME_HDLR, scm_sym_exit_frame, arg1, proc);
 	SCM_TRAPS_P = 1;
+	if (scm_is_pair (arg1) && scm_is_eq (SCM_CAR (arg1), sym_instead))
+	  proc = SCM_CDR (arg1);
       }
-ret:
   scm_i_set_last_debug_frame (debug.prev);
   return proc;
 #endif

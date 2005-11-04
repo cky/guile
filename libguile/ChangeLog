@@ -1,3 +1,17 @@
+2005-11-04  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* eval.c (sym_instead): New symbol.
+	(ENTER_APPLY): Remove optional use of a continuation when making
+	trap call.
+	(scm_debug_opts): Change doc for 'cheap option to make clear that
+	it is now obsolete.
+	(CEVAL, SCM_APPLY): Remove optional use of a continuation when
+	making trap calls, and implement substitution of eval expressions
+	and return values using the values that the trap call handlers
+	return.
+
+	* debug.h (SCM_CHEAPTRAPS_P): Removed.
+
 2005-10-27  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
 	* socket.c (scm_fill_sockaddr): No need to check NULL from scm_malloc.
