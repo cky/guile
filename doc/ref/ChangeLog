@@ -1,3 +1,10 @@
+2005-11-06  Kevin Ryde  <user42@zip.com.au>
+
+	From Ludovic Courtès, partial rework by me:
+	* doc/ref/api-modules.texi (Creating Guile Modules): In define-module,
+	describe #:re-export, #:export-syntax, #:re-export-syntax, #:replace
+	and #:duplicates.  Add re-export.
+
 2005-11-01  Kevin Ryde  <user42@zip.com.au>
 
 	* posix.texi (Time): In strftime, note systems vary for %Z.
