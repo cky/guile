@@ -240,6 +240,7 @@ is a second variation of interface specification that not only names a
 module to be accessed, but also selects bindings from it and renames
 them to suit the current module's needs.  For example:
 
+@cindex binding renamer
 @smalllisp
 (use-modules ((ice-9 popen)
               :select ((open-pipe . pipe-open) close-pipe)
@@ -305,6 +306,7 @@ whose public interface is found and used.
 
 @var{spec} can also be of the form:
 
+@cindex binding renamer
 @smalllisp
  (MODULE-NAME [:select SELECTION] [:renamer RENAMER])
 @end smalllisp
@@ -419,8 +421,114 @@ the module is used.
 
 @item #:export @var{list}
 @cindex export
-Export all identifiers in @var{list}, which must be a list of symbols.
+Export all identifiers in @var{list} which must be a list of symbols.
 This is equivalent to @code{(export @var{list})} in the module body.
+
+@item #:re-export @var{list}
+@cindex re-export
+Re-export all identifiers in @var{list} which must be a list of
+symbols.  The symbols in @var{list} must be imported by the current
+module from other modules.  This is equivalent to @code{re-export}
+below.
+
+@item #:export-syntax @var{list}
+@cindex export-syntax
+Export all identifiers in @var{list} which must be a list of symbols.
+The identifiers in @var{list} must refer to macros (@pxref{Macros})
+defined in the current module.  This is equivalent to
+@code{(export-syntax @var{list})} in the module body.
+
+@item #:re-export-syntax @var{list}
+@cindex re-export-syntax
+Re-export all identifiers in @var{list} which must be a list of
+symbols.  The symbols in @var{list} must refer to macros imported by
+the current module from other modules.  This is equivalent to
+@code{(re-export-syntax @var{list})} in the module body. 
+
+@item #:replace @var{list}
+@cindex replace
+@cindex replacing binding
+@cindex overriding binding
+@cindex duplicate binding
+Export all identifiers in @var{list} (a list of symbols) and mark them
+as @dfn{replacing bindings}.  In the module user's name space, this
+will have the effect of replacing any binding with the same name that
+is not also ``replacing''.  Normally a replacement results in an
+``override'' warning message, @code{#:replace} avoids that.
+
+This can be used by a module extending a core function in an upwardly
+compatible way, like SRFI-39 @code{current-input-port}
+(@pxref{SRFI-39}).
+
+Or it can be used by a module which is intentionally producing a new
+special kind of environment and should override any core or other
+bindings already in scope.  For example perhaps a logic processing
+environment where @code{<=} is an inference instead of a comparison.
+
+@code{#:duplicates} below provides fine-grain control about duplicate
+binding handling on the module-user side.
+
+@item #:duplicates @var{list}
+@cindex duplicate binding handlers
+@cindex duplicate binding
+@cindex overriding binding
+Tell Guile to handle duplicate bindings for the bindings imported by
+the current module according to the policy defined by @var{list}, a
+list of symbols.  @var{list} must contain symbols representing a
+duplicate binding handling policy chosen among the following:
+
+@table @code
+@item check
+Raises an error when a binding is imported from more than one place.
+@item warn
+Issue a warning when a binding is imported from more than one place
+and leave the responsibility of actually handling the duplication to
+the next duplicate binding handler.
+@item replace
+When a new binding is imported that has the same name as a previously
+imported binding, then do the following:
+
+@enumerate
+@item
+@cindex replacing binding
+If the old binding was said to be @dfn{replacing} (via the
+@code{#:replace} option above) and the new binding is not replacing,
+the keep the old binding.
+@item
+If the old binding was not said to be replacing and the new binding is
+replacing, then replace the old binding with the new one.
+@item
+If neither the old nor the new binding is replacing, then keep the old
+one.
+@end enumerate
+
+@item warn-override-core
+Issue a warning when a core binding is being overwritten and actually
+override the core binding with the new one.
+@item first
+In case of duplicate bindings, the firstly imported binding is always
+the one which is kept.
+@item last
+In case of duplicate bindings, the lastly imported binding is always
+the one which is kept.
+@item noop
+In case of duplicate bindings, leave the responsibility to the next
+duplicate handler.
+@end table
+
+If @var{list} contains more than one symbol, then the duplicate
+binding handlers which appear first will be used first when resolving
+a duplicate binding situation.  As mentioned above, some resolution
+policies may explicitly leave the responsibility of handling the
+duplication to the next handler in @var{list}.
+
+@findex default-duplicate-binding-handler
+The default duplicate binding resolution policy is given by the
+@code{default-duplicate-binding-handler} procedure, and is
+
+@smalllisp
+(replace warn-override-core warn last)
+@end smalllisp
 
 @item #:no-backtrace
 @cindex no backtrace
@@ -448,6 +556,12 @@ bindings of the current module.
 Equivalent to @code{(begin (define foo ...) (export foo))}.
 @end deffn
 @c end
+
+@deffn syntax re-export variable @dots{}
+Add all @var{variable}s (which must be symbols) to the list of
+re-exported bindings of the current module.  Re-exported bindings must
+be imported by the current module from some other module.
+@end deffn
 
 @node Module System Reflection
 @subsubsection Module System Reflection
