@@ -1,3 +1,9 @@
+2005-11-07  Marius Vollmer  <mvo@zagadka.de>
+
+	* stime.c (scm_mktime): Use scm_frame_critical_section instead of
+	SCM_CRITICAL_SECTION_START/END since the code inside the critical
+	section might exit non-locally.
+
 2005-11-04  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* eval.c (sym_instead): New symbol.
