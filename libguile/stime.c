@@ -532,7 +532,8 @@ SCM_DEFINE (scm_mktime, "mktime", 1, 1, 0,
   scm_frame_free ((char *)lt.tm_zone);
 #endif
 
-  SCM_CRITICAL_SECTION_START;
+  scm_frame_critical_section (SCM_BOOL_F);
+
   oldenv = setzone (zone, SCM_ARG2, FUNC_NAME);
 #ifdef LOCALTIME_CACHE
   tzset ();
@@ -585,7 +586,6 @@ SCM_DEFINE (scm_mktime, "mktime", 1, 1, 0,
 
   result = scm_cons (scm_from_long (itime),
 		     filltime (&lt, zoff, zname));
-  SCM_CRITICAL_SECTION_END;
   if (zname)
     free (zname);
 
