@@ -626,7 +626,8 @@ SCM_DEFINE (scm_setsockopt, "setsockopt", 4, 0, 0,
 	    "dropped from the interface @var{INTERFACEADDR}.\n"
 	    "@var{INTERFACEADDR} can be @code{INADDR_ANY} to have the system\n"
 	    "select the interface.  @var{INTERFACEADDR} can also be an\n"
-	    "interface index number, on systems supporting that.")
+	    "interface index number, on systems supporting that.\n"
+	    "@end defvar")
 #define FUNC_NAME s_scm_setsockopt
 {
   int fd;
