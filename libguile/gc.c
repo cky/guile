@@ -210,11 +210,6 @@ SCM_DEFINE (scm_set_debug_cell_accesses_x, "set-debug-cell-accesses!", 1, 0, 0,
  */
 unsigned long scm_mtrigger;
 
-/* During collection, this accumulates objects holding
- * weak references.
- */
-SCM scm_weak_vectors;
-
 /* GC Statistics Keeping
  */
 unsigned long scm_cells_allocated = 0;

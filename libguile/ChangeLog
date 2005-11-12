@@ -1,3 +1,7 @@
+2005-11-12  Ludovic Courtès  <ludovic.courtes@laas.fr>
+
+	* gc.c (scm_weak_vectors): Removed.
+
 2005-11-07  Marius Vollmer  <mvo@zagadka.de>
 
 	* stime.c (scm_mktime): Use scm_frame_critical_section instead of
