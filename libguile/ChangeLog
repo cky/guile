@@ -1,3 +1,11 @@
+2005-11-17  Ludovic Courtès  <ludovic.courtes@laas.fr>
+
+	* print.c (EXIT_NESTED_DATA): Before popping from the stack, reset
+	the value at its top.  This fixes a reference leak.
+	(PUSH_REF): Perform `pstate->top++' after calling
+	`PSTATE_STACK_SET ()' in order to avoid undesired potential side
+	effects.
+
 2005-11-12  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
 	* gc.c (scm_weak_vectors): Removed.

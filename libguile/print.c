@@ -112,31 +112,40 @@ SCM_DEFINE (scm_print_options, "print-options-interface", 0, 1, 0,
  * time complexity (O (depth * N)), The printer code can be
  * rewritten to be O(N).
  */
-#define PUSH_REF(pstate, obj) \
-do { \
-  PSTATE_STACK_SET (pstate, pstate->top++, obj); \
-  if (pstate->top == pstate->ceiling) \
-    grow_ref_stack (pstate); \
+#define PUSH_REF(pstate, obj)			\
+do						\
+{						\
+  PSTATE_STACK_SET (pstate, pstate->top, obj);	\
+  pstate->top++;				\
+  if (pstate->top == pstate->ceiling)		\
+    grow_ref_stack (pstate);			\
 } while(0)
 
-#define ENTER_NESTED_DATA(pstate, obj, label) \
-do { \
-  register unsigned long i; \
-  for (i = 0; i < pstate->top; ++i) \
-    if (scm_is_eq (PSTATE_STACK_REF (pstate, i), (obj))) \
-      goto label; \
-  if (pstate->fancyp) \
-    { \
-      if (pstate->top - pstate->list_offset >= pstate->level) \
-	{ \
-	  scm_putc ('#', port); \
-	  return; \
-	} \
-    } \
-  PUSH_REF(pstate, obj); \
+#define ENTER_NESTED_DATA(pstate, obj, label)			\
+do								\
+{								\
+  register unsigned long i;					\
+  for (i = 0; i < pstate->top; ++i)				\
+    if (scm_is_eq (PSTATE_STACK_REF (pstate, i), (obj)))	\
+      goto label;						\
+  if (pstate->fancyp)						\
+    {								\
+      if (pstate->top - pstate->list_offset >= pstate->level)	\
+	{							\
+	  scm_putc ('#', port);					\
+	  return;						\
+	}							\
+    }								\
+  PUSH_REF(pstate, obj);					\
 } while(0)
 
-#define EXIT_NESTED_DATA(pstate) { --pstate->top; }
+#define EXIT_NESTED_DATA(pstate)				\
+do								\
+{								\
+  --pstate->top;						\
+  PSTATE_STACK_SET (pstate, pstate->top, SCM_UNDEFINED);	\
+}								\
+while (0)
 
 SCM scm_print_state_vtable = SCM_BOOL_F;
 static SCM print_state_pool = SCM_EOL;
