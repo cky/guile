@@ -3240,11 +3240,10 @@ association list.
 @rnindex assv
 @rnindex assoc
 
-@code{assq}, @code{assv} and @code{assoc} take an alist and a key as
-arguments and return the entry for that key if an entry exists, or
-@code{#f} if there is no entry for that key.  Note that, in the cases
-where an entry exists, these procedures return the complete entry, that
-is @code{(KEY . VALUE)}, not just the value.
+@code{assq}, @code{assv} and @code{assoc} find the entry in an alist
+for a given key, and return the @code{(@var{key} . @var{value})} pair.
+@code{assq-ref}, @code{assv-ref} and @code{assoc-ref} do a similar
+lookup, but return just the @var{value}.
 
 @deffn {Scheme Procedure} assq key alist
 @deffnx {Scheme Procedure} assv key alist
@@ -3252,26 +3251,13 @@ is @code{(KEY . VALUE)}, not just the value.
 @deffnx {C Function} scm_assq (key, alist)
 @deffnx {C Function} scm_assv (key, alist)
 @deffnx {C Function} scm_assoc (key, alist)
-Fetch the entry in @var{alist} that is associated with @var{key}.  To
-decide whether the argument @var{key} matches a particular entry in
-@var{alist}, @code{assq} compares keys with @code{eq?}, @code{assv}
-uses @code{eqv?} and @code{assoc} uses @code{equal?}.  If @var{key}
-cannot be found in @var{alist} (according to whichever equality
-predicate is in use), then return @code{#f}.  These functions
-return the entire alist entry found (i.e. both the key and the value).
+Return the first entry in @var{alist} with the given @var{key}.  The
+return is the pair @code{(KEY . VALUE)} from @var{alist}.  If there's
+no matching entry the return is @code{#f}.
+
+@code{assq} compares keys with @code{eq?}, @code{assv} uses
+@code{eqv?} and @code{assoc} uses @code{equal?}.
 @end deffn
-
-@code{assq-ref}, @code{assv-ref} and @code{assoc-ref}, on the other
-hand, take an alist and a key and return @emph{just the value} for that
-key, if an entry exists.  If there is no entry for the specified key,
-these procedures return @code{#f}.
-
-This creates an ambiguity: if the return value is @code{#f}, it means
-either that there is no entry with the specified key, or that there
-@emph{is} an entry for the specified key, with value @code{#f}.
-Consequently, @code{assq-ref} and friends should only be used where it
-is known that an entry exists, or where the ambiguity doesn't matter
-for some other reason.
 
 @deffn {Scheme Procedure} assq-ref alist key
 @deffnx {Scheme Procedure} assv-ref alist key
@@ -3279,17 +3265,21 @@ for some other reason.
 @deffnx {C Function} scm_assq_ref (alist, key)
 @deffnx {C Function} scm_assv_ref (alist, key)
 @deffnx {C Function} scm_assoc_ref (alist, key)
-Like @code{assq}, @code{assv} and @code{assoc}, except that only the
-value associated with @var{key} in @var{alist} is returned.  These
-functions are equivalent to
+Return the value from the first entry in @var{alist} with the given
+@var{key}, or @code{#f} if there's no such entry.
 
-@lisp
-(let ((ent (@var{associator} @var{key} @var{alist})))
-  (and ent (cdr ent)))
-@end lisp
+@code{assq-ref} compares keys with @code{eq?}, @code{assv-ref} uses
+@code{eqv?} and @code{assoc-ref} uses @code{equal?}.
 
-where @var{associator} is one of @code{assq}, @code{assv} or @code{assoc}.
+Notice these functions have the @var{key} argument last, like other
+@code{-ref} functions, but this is opposite to what what @code{assq}
+etc above use.
+
+When the return is @code{#f} it can be either @var{key} not found, or
+an entry which happens to have value @code{#f} in the @code{cdr}.  Use
+@code{assq} etc above if you need to differentiate these cases.
 @end deffn
+
 
 @node Removing Alist Entries
 @subsubsection Removing Alist Entries
