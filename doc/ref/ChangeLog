@@ -1,3 +1,8 @@
+2005-11-19  Kevin Ryde  <user42@zip.com.au>
+
+	* api-compound.texi (Retrieving Alist Entries): Revise for clarity and
+	brevity.
+
 2005-11-06  Kevin Ryde  <user42@zip.com.au>
 
 	From Ludovic Courtès, partial rework by me:
