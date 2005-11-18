@@ -10,6 +10,11 @@
 
 	* gc.c (scm_weak_vectors): Removed.
 
+2005-11-12  Kevin Ryde  <user42@zip.com.au>
+
+	* socket.c (scm_setsockopt): Missing @defvar in docstring.  Reported
+	by Ludovic Courtès.
+
 2005-11-07  Marius Vollmer  <mvo@zagadka.de>
 
 	* stime.c (scm_mktime): Use scm_frame_critical_section instead of
