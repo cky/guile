@@ -588,9 +588,6 @@
 (define (lset-intersection! = list1 . rest)
   (apply lset-intersection = list1 rest)) ; XXX:optimize
 
-(define (lset-difference! = list1 . rest)
-  (apply lset-difference = list1 rest))	; XXX:optimize
-
 (define (lset-xor! = . rest)
   (apply lset-xor = rest))		; XXX:optimize
 

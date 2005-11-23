@@ -1208,6 +1208,67 @@ SCM_DEFINE (scm_srfi1_lset_adjoin, "lset-adjoin", 2, 0, 1,
 #undef FUNC_NAME
 
 
+SCM_DEFINE (scm_srfi1_lset_difference_x, "lset-difference!", 2, 0, 1,
+            (SCM equal, SCM lst, SCM rest),
+	    "Return @var{lst} with any elements in the lists in @var{rest}\n"
+	    "removed (ie.@: subtracted).  For only one @var{lst} argument,\n"
+	    "just that list is returned.\n"
+	    "\n"
+	    "The given @var{equal} procedure is used for comparing elements,\n"
+	    "called as @code{(@var{equal} elem1 elemN)}.  The first argument\n"
+	    "is from @var{lst} and the second from one of the subsequent\n"
+	    "lists.  But exactly which calls are made and in what order is\n"
+	    "unspecified.\n"
+	    "\n"
+	    "@example\n"
+	    "(lset-difference! eqv? (list 'x 'y))           @result{} (x y)\n"
+	    "(lset-difference! eqv? (list 1 2 3) '(3 1))    @result{} (2)\n"
+	    "(lset-difference! eqv? (list 1 2 3) '(3) '(2)) @result{} (1)\n"
+	    "@end example\n"
+	    "\n"
+	    "@code{lset-difference!} may modify @var{lst} to form its\n"
+	    "result.")
+#define FUNC_NAME s_scm_srfi1_lset_difference_x
+{
+  scm_t_trampoline_2 equal_tramp = scm_trampoline_2 (equal);
+  SCM ret, *pos, elem, r, b;
+  int argnum;
+
+  SCM_ASSERT (equal_tramp, equal, SCM_ARG1, FUNC_NAME);
+  SCM_VALIDATE_REST_ARGUMENT (rest);
+
+  ret = SCM_EOL;
+  pos = &ret;
+  for ( ; scm_is_pair (lst); lst = SCM_CDR (lst))
+    {
+      elem = SCM_CAR (lst);
+
+      for (r = rest, argnum = SCM_ARG3;
+           scm_is_pair (r);
+           r = SCM_CDR (r), argnum++)
+        {
+          for (b = SCM_CAR (r); scm_is_pair (b); b = SCM_CDR (b))
+            if (scm_is_true (equal_tramp (equal, elem, SCM_CAR (b))))
+              goto next_elem; /* equal to elem, so drop that elem */
+
+          SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P (b), b, argnum, FUNC_NAME,"list");
+        }
+
+      /* elem not equal to anything in later lists, so keep it */
+      *pos = lst;
+      pos = SCM_CDRLOC (lst);
+
+    next_elem:
+      ;
+    }
+  SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P (lst), lst, SCM_ARG2, FUNC_NAME, "list");
+
+  *pos = SCM_EOL;
+  return ret;
+}
+#undef FUNC_NAME
+
+
 /* Typechecking for multi-argument MAP and FOR-EACH.
 
    Verify that each element of the vector ARGV, except for the first,

@@ -55,6 +55,7 @@ SCM_SRFI1_API SCM scm_srfi1_fold (SCM proc, SCM init, SCM list1, SCM rest);
 SCM_SRFI1_API SCM scm_srfi1_last (SCM lst);
 SCM_SRFI1_API SCM scm_srfi1_length_plus (SCM lst);
 SCM_SRFI1_API SCM scm_srfi1_lset_adjoin (SCM equal, SCM lst, SCM rest);
+SCM_SRFI1_API SCM scm_srfi1_lset_difference_x (SCM equal, SCM lst, SCM rest);
 SCM_SRFI1_API SCM scm_srfi1_list_copy (SCM lst);
 SCM_SRFI1_API SCM scm_srfi1_list_index (SCM pred, SCM list1, SCM rest);
 SCM_SRFI1_API SCM scm_srfi1_list_tabulate (SCM n, SCM proc);
