@@ -1608,7 +1608,7 @@
 ;; lset-difference!
 ;;
 
-(with-test-prefix "lset-difference"
+(with-test-prefix "lset-difference!"
 
   (pass-if "called arg order"
     (let ((good #f))
