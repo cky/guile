@@ -1,3 +1,7 @@
+2005-11-24  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/srfi-1.test (lset-difference!): More tests.
+
 2005-10-27  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
 	* tests/socket.test (make-socket-address): New tests.
