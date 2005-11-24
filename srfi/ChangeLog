@@ -1,3 +1,7 @@
+2005-11-24  Kevin Ryde  <user42@zip.com.au>
+
+	* srfi-1.scm, srfi-1.c, srfi-1.h (lset-difference!): Rewrite in C.
+
 2005-08-19  Kevin Ryde  <user42@zip.com.au>
 
 	* srfi-19.scm (priv:leap-second-table): Add new 2005 leap second.
