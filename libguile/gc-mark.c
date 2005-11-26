@@ -138,7 +138,7 @@ scm_mark_all (void)
       break;
     }
 
-  //fprintf (stderr, "%d loops\n", loops);
+  /* fprintf (stderr, "%d loops\n", loops); */
 
   /* Remove all unmarked entries from the weak vectors.
    */
