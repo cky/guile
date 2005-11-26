@@ -754,7 +754,7 @@ SCM_DEFINE (scm_shutdown, "shutdown", 2, 0, 0,
    proc is the name of the original procedure.
    size returns the size of the structure allocated.  */
 
-static SCM_C_INLINE_KEYWORD struct sockaddr *
+static struct sockaddr *
 scm_fill_sockaddr (int fam, SCM address, SCM *args, int which_arg,
 		   const char *proc, size_t *size)
 #define FUNC_NAME proc
