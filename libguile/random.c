@@ -1,4 +1,4 @@
-/* Copyright (C) 1999,2000,2001, 2003 Free Software Foundation, Inc.
+/* Copyright (C) 1999,2000,2001, 2003, 2005 Free Software Foundation, Inc.
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -143,8 +143,6 @@ scm_t_i_rstate *
 scm_i_copy_rstate (scm_t_i_rstate *state)
 {
   scm_t_rstate *new_state = scm_malloc (scm_the_rng.rstate_size);
-  if (new_state == 0)
-    scm_memory_error ("rstate");
   return memcpy (new_state, state, scm_the_rng.rstate_size);
 }
 
@@ -157,8 +155,6 @@ scm_t_rstate *
 scm_c_make_rstate (const char *seed, int n)
 {
   scm_t_rstate *state = scm_malloc (scm_the_rng.rstate_size);
-  if (state == 0)
-    scm_memory_error ("rstate");
   state->reserved0 = 0;
   scm_the_rng.init_rstate (state, seed, n);
   return state;
