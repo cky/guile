@@ -1,4 +1,4 @@
-/* Copyright (C) 1991, 2000, 2001, 2004 Free Software Foundation, Inc.
+/* Copyright (C) 1991, 2000, 2001, 2004, 2005 Free Software Foundation, Inc.
 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -105,8 +105,6 @@ putenv (const char *string)
     {
       static char **last_environ = NULL;
       char **new_environ = (char **) scm_malloc ((size + 2) * sizeof (char *));
-      if (new_environ == NULL)
-	return -1;
       memcpy ((char *) new_environ, (char *) environ, size * sizeof (char *));
       new_environ[size] = (char *) string;
       new_environ[size + 1] = NULL;
