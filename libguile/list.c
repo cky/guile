@@ -566,7 +566,7 @@ SCM_DEFINE (scm_list_copy, "list-copy", 1, 0, 0,
 
 
 SCM_PROC (s_list, "list", 0, 0, 1, scm_list_copy);
-SCM_SNARF_DOCS (register, scm_list_copy, "list", (SCM objs), 0, 0, 1,
+SCM_SNARF_DOCS (primitive, scm_list_copy, "list", (SCM objs), 0, 0, 1,
                 "Return a list containing @var{objs}, the arguments to\n"
                 "@code{list}.")
 
