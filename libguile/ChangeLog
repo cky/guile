@@ -1,3 +1,18 @@
+2005-11-26  Kevin Ryde  <user42@zip.com.au>
+
+	* gc-mark.c (scm_mark_all): Change C++ comment to C comment.  Reported
+	by Ludovic Courtès.
+
+	* list.c (list): Should be "primitive" in SCM_SNARF_DOCS, not
+	"register".
+
+	* random.c (scm_i_copy_rstate, scm_c_make_rstate): Don't test for
+	scm_malloc returning NULL, it never does that.
+	* putenv.c (putenv): Likewise.
+
+	* socket.c (scm_fill_sockaddr): Remove SCM_C_INLINE_KEYWORD, this is
+	much too big to want to inline.
+
 2005-11-17  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
 	* print.c (EXIT_NESTED_DATA): Before popping from the stack, reset
