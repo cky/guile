@@ -125,6 +125,50 @@
       (string-any char-upper-case? "abCDE" 1 4))))
 
 ;;;
+;;; string-append/shared
+;;;
+
+(with-test-prefix "string-append/shared"
+
+  (pass-if "no args"
+    (string=? "" (string-append/shared)))
+
+  (with-test-prefix "one arg"
+    (pass-if "empty"
+      (string=? "" (string-append/shared "")))
+    (pass-if "non-empty"
+      (string=? "xyz" (string-append/shared "xyz"))))
+
+  (with-test-prefix "two args"
+    (pass-if (string=? ""       (string-append/shared ""    "")))
+    (pass-if (string=? "xyz"    (string-append/shared "xyz" "")))
+    (pass-if (string=? "xyz"    (string-append/shared ""    "xyz")))
+    (pass-if (string=? "abcxyz" (string-append/shared "abc" "xyz"))))
+
+  (with-test-prefix "three args"
+    (pass-if (string=? ""   	(string-append/shared ""   ""   "")))
+    (pass-if (string=? "xy" 	(string-append/shared "xy" ""   "")))
+    (pass-if (string=? "xy" 	(string-append/shared ""   "xy" "")))
+    (pass-if (string=? "abxy"   (string-append/shared "ab" "xy" "")))
+    (pass-if (string=? "ab"     (string-append/shared ""   ""   "ab")))
+    (pass-if (string=? "xyab"   (string-append/shared "xy" ""   "ab")))
+    (pass-if (string=? "xyab"   (string-append/shared ""   "xy" "ab")))
+    (pass-if (string=? "ghxyab" (string-append/shared "gh" "xy" "ab"))))
+
+  (with-test-prefix "four args"
+    (pass-if (string=? ""   	(string-append/shared ""   ""   ""   "")))
+    (pass-if (string=? "xy" 	(string-append/shared "xy" ""   ""   "")))
+    (pass-if (string=? "xy" 	(string-append/shared ""   "xy" ""   "")))
+    (pass-if (string=? "xy" 	(string-append/shared ""   ""   "xy" "")))
+    (pass-if (string=? "xy" 	(string-append/shared ""   ""   ""   "xy")))
+
+    (pass-if (string=? "abxy"   (string-append/shared "ab" "xy" ""   "")))
+    (pass-if (string=? "abxy"   (string-append/shared "ab" ""   "xy" "")))
+    (pass-if (string=? "abxy"   (string-append/shared "ab" ""   ""   "xy")))
+    (pass-if (string=? "abxy"   (string-append/shared ""   "ab" ""   "xy")))
+    (pass-if (string=? "abxy"   (string-append/shared ""   ""   "ab" "xy")))))
+
+;;;
 ;;; string-concatenate
 ;;;
 
