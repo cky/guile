@@ -1,3 +1,8 @@
+2005-11-30  Kevin Ryde  <user42@zip.com.au>
+
+	* srfi-13.c (scm_string_append_shared): No copying if just one
+	non-empty string in args.
+
 2005-11-26  Kevin Ryde  <user42@zip.com.au>
 
 	* gc-mark.c (scm_mark_all): Change C++ comment to C comment.  Reported
