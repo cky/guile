@@ -1,3 +1,7 @@
+2005-11-30  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/srfi-13.test (string-append/shared): New tests.
+
 2005-11-24  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/srfi-1.test (lset-difference!): More tests.
