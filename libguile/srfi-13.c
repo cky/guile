@@ -2651,21 +2651,35 @@ SCM_DEFINE (scm_string_reverse_x, "string-reverse!", 1, 2, 0,
 
 
 SCM_DEFINE (scm_string_append_shared, "string-append/shared", 0, 0, 1,
-            (SCM ls),
+            (SCM rest),
 	    "Like @code{string-append}, but the result may share memory\n"
 	    "with the argument strings.")
 #define FUNC_NAME s_scm_string_append_shared
 {
-  long i;
+  /* If "rest" contains just one non-empty string, return that.
+     If it's entirely empty strings, then return scm_nullstr.
+     Otherwise use scm_string_concatenate.  */
 
-  SCM_VALIDATE_REST_ARGUMENT (ls);
+  SCM ret = scm_nullstr;
+  int seen_nonempty = 0;
+  SCM l, s;
 
-  /* Optimize the one-argument case.  */
-  i = scm_ilength (ls);
-  if (i == 1)
-    return SCM_CAR (ls);
-  else
-    return scm_string_append (ls);
+  SCM_VALIDATE_REST_ARGUMENT (rest);
+
+  for (l = rest; scm_is_pair (l); l = SCM_CDR (l))
+    {
+      s = SCM_CAR (l);
+      if (scm_c_string_length (s) != 0)
+        {
+          if (seen_nonempty)
+            /* two or more non-empty strings, need full concat */
+            return scm_string_append (rest);
+
+          seen_nonempty = 1;
+          ret = s;
+        }
+    }
+  return ret;
 }
 #undef FUNC_NAME
 
