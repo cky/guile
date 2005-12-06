@@ -1,5 +1,9 @@
 2005-12-06  Marius Vollmer  <mvo@zagadka.de>
 
+	* srfi-4.h, srfi-4.c, srfi-4.i.c (take_uvec): Make BASE pointer
+	non-const.
+	(scm_take_u8vector, etc): Likewise.  Thanks to Ludovic Courtès!
+	
 	* threads.h, threads.c (scm_t_guile_ticket, scm_leave_guile,
 	scm_enter_guile): Removed from public API.  See comment at
 	scm_without_guile for the rationale.
