@@ -1096,6 +1096,15 @@ scm_m_cond (SCM expr, SCM env)
           ASSERT_SYNTAX_2 (length == 3, s_extra_expression, clause, expr);
           SCM_SETCAR (SCM_CDR (clause), SCM_IM_ARROW);
 	}
+      /* SRFI 61 extended cond */
+      else if (length >= 3
+	       && scm_is_eq (SCM_CADDR (clause), scm_sym_arrow)
+	       && arrow_literal_p)
+	{
+	  ASSERT_SYNTAX_2 (length > 3, s_missing_recipient, clause, expr);
+	  ASSERT_SYNTAX_2 (length == 4, s_extra_expression, clause, expr);
+	  SCM_SETCAR (SCM_CDDR (clause), SCM_IM_ARROW);
+	}
     }
 
   SCM_SETCAR (expr, SCM_IM_COND);
@@ -3433,7 +3442,29 @@ dispatch:
               else
                 {
                   arg1 = EVALCAR (clause, env);
-                  if (scm_is_true (arg1) && !SCM_NILP (arg1))
+		  /* SRFI 61 extended cond */
+		  if (!scm_is_null (SCM_CDR (clause))
+		      && !scm_is_null (SCM_CDDR (clause))
+		      && scm_is_eq (SCM_CADDR (clause), SCM_IM_ARROW))
+		    {
+		      SCM xx, guard_result;
+		      if (SCM_VALUESP (arg1))
+			arg1 = scm_struct_ref (arg1, SCM_INUM0);
+		      else
+			arg1 = scm_list_1 (arg1);
+		      xx = SCM_CDR (clause);
+		      proc = EVALCAR (xx, env);
+		      guard_result = SCM_APPLY (proc, arg1, SCM_EOL);
+		      if (scm_is_true (guard_result)
+			  && !SCM_NILP (guard_result))
+			{
+			  proc = SCM_CDDR (xx);
+			  proc = EVALCAR (proc, env);
+			  PREP_APPLY (proc, arg1);
+			  goto apply_proc;
+			}
+		    }
+                  else if (scm_is_true (arg1) && !SCM_NILP (arg1))
                     {
                       x = SCM_CDR (clause);
                       if (scm_is_null (x))
