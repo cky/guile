@@ -429,19 +429,19 @@ global data structure until they are no longer needed for finalizing
 other objects.
 
 Being an element in a weak vector, a key in a hash table with weak
-keys, or a value in a hash table with weak value does not prevent an
+keys, or a value in a hash table with weak values does not prevent an
 object from being returned by a guardian.  But as long as an object
 can be returned from a guardian it will not be removed from such a
 weak vector or hash table.  In other words, a weak link does not
 prevent an object from being considered collectable, but being inside
 a guardian prevents a weak link from being broken.
 
-A key in a weak key hash table can be though of as having a strong
+A key in a weak key hash table can be thought of as having a strong
 reference to its associated value as long as the key is accessible.
-Consequently, when the key only accessible from within a guardian, the
-reference from the key to the value is also considered to be coming
-from within a guardian.  Thus, if there is no other reference to the
-value, it is eligible to be returned from a guardian.
+Consequently, when the key is only accessible from within a guardian,
+the reference from the key to the value is also considered to be
+coming from within a guardian.  Thus, if there is no other reference
+to the value, it is eligible to be returned from a guardian.
 @end deffn
 
 
