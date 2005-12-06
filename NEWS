@@ -121,6 +121,11 @@ form around the code performing the heavy computations (typically a
 C code primitive), enabling the computations to run in parallel
 while the scripting code runs single-threadedly.
 
+** Support for SRFI 61, extended cond syntax for multiple valuesm has
+   been added.
+
+This SRFI is always available.
+
 ** Support for require-extension, SRFI-55, has been added.
 
 The SRFI-55 special form `require-extension' has been added.  It is
