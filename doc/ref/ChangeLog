@@ -1,3 +1,9 @@
+2005-12-06  Marius Vollmer  <mvo@zagadka.de>
+
+	* api-init.texi, api-scheduling.texi, libguile-concepts.texi:
+	Removed scm_leave_guile, scm_enter_guile and all references to
+	them since they are no longer in the API.
+
 2005-11-19  Kevin Ryde  <user42@zip.com.au>
 
 	* api-compound.texi (Retrieving Alist Entries): Revise for clarity and
