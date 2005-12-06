@@ -3223,7 +3223,7 @@
 ;;;
 ;;; Currently, the following feature identifiers are supported:
 ;;;
-;;;   guile r5rs srfi-0 srfi-4 srfi-6 srfi-13 srfi-14
+;;;   guile r5rs srfi-0 srfi-4 srfi-6 srfi-13 srfi-14 srfi-55 srfi-61
 ;;;
 ;;; Remember to update the features list when adding more SRFIs.
 ;;;
@@ -3238,6 +3238,7 @@
     srfi-13  ;; string library
     srfi-14  ;; character sets
     srfi-55  ;; require-extension
+    srfi-61  ;; general cond clause
     ))
 
 ;; This table maps module public interfaces to the list of features.
