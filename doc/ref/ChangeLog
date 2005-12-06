@@ -4,6 +4,13 @@
 	Removed scm_leave_guile, scm_enter_guile and all references to
 	them since they are no longer in the API.
 
+	From Stephen Compall:
+
+	* api-control.texi (if cond case): Describe SRFI 61 cond.
+
+	* srfi-modules.texi (SRFI-61): New section.
+	(SRFI Support): Add SRFI-61 to menu.
+
 2005-11-19  Kevin Ryde  <user42@zip.com.au>
 
 	* api-compound.texi (Retrieving Alist Entries): Revise for clarity and

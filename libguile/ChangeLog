@@ -8,6 +8,11 @@
 	(signal_delivery_thread): Use it instead of
 	scm_leave_guile/read/scm_enter_guile.
 
+	From Stephen Compall:
+
+	* eval.c (scm_m_cond): Recognize SRFI 61 cond syntax.
+	(CEVAL): Evaluate SRFI 61 cond clauses.
+
 2005-12-06  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
 	* gc-card.c (scm_i_card_statistics): Return if BITVEC is NULL.
