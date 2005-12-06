@@ -1,3 +1,13 @@
+2005-12-06  Marius Vollmer  <mvo@zagadka.de>
+
+	* threads.h, threads.c (scm_t_guile_ticket, scm_leave_guile,
+	scm_enter_guile): Removed from public API.  See comment at
+	scm_without_guile for the rationale.
+
+	* scmsigs.c (read_without_guile): New.
+	(signal_delivery_thread): Use it instead of
+	scm_leave_guile/read/scm_enter_guile.
+
 2005-12-06  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
 	* gc-card.c (scm_i_card_statistics): Return if BITVEC is NULL.
