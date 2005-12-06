@@ -306,6 +306,10 @@ scm_i_card_statistics (scm_t_cell *p, SCM hashtab, scm_t_heap_segment *seg)
   int span = seg->span;
   int offset = SCM_MAX (SCM_GC_CARD_N_HEADER_CELLS, span);
 
+  if (!bitvec)
+    /* Card P hasn't been initialized yet by `scm_i_init_card_freelist ()'. */
+    return;
+
   for (p += offset; p < end; p += span, offset += span)
     {
       scm_t_bits tag = -1;

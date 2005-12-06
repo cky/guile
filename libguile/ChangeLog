@@ -1,3 +1,9 @@
+2005-12-06  Ludovic Courtès  <ludovic.courtes@laas.fr>
+
+	* gc-card.c (scm_i_card_statistics): Return if BITVEC is NULL.
+	This was typically hit when running `gc-live-object-stats' right
+	after starting Guile.
+
 2005-11-30  Kevin Ryde  <user42@zip.com.au>
 
 	* srfi-13.c (scm_string_append_shared): No copying if just one
