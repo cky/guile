@@ -123,12 +123,9 @@ typedef struct scm_i_thread {
 SCM_API SCM scm_spawn_thread (scm_t_catch_body body, void *body_data,
 			      scm_t_catch_handler handler, void *handler_data);
 
-typedef void *scm_t_guile_ticket;
-SCM_API void scm_enter_guile (scm_t_guile_ticket ticket);
-SCM_API scm_t_guile_ticket scm_leave_guile (void);
 SCM_API void *scm_without_guile (void *(*func)(void *), void *data);
-
 SCM_API void *scm_with_guile (void *(*func)(void *), void *data);
+
 SCM_API void *scm_i_with_guile_and_parent (void *(*func)(void *), void *data,
 					   SCM parent);
 

@@ -229,6 +229,99 @@ unblock_from_queue (SCM queue)
 /* Getting into and out of guile mode.
  */
 
+/* Ken Raeburn observes that the implementation of suspend and resume
+   (and the things that build on top of them) are very likely not
+   correct (see below).  We will need fix this eventually, and that's
+   why scm_leave_guile/scm_enter_guile are not exported in the API.
+
+   Ken writes:
+
+   Consider this sequence:
+
+   Function foo, called in Guile mode, calls suspend (maybe indirectly
+   through scm_leave_guile), which does this:
+
+      // record top of stack for the GC
+      t->top = SCM_STACK_PTR (&t);     // just takes address of automatic
+      var 't'
+      // save registers.
+      SCM_FLUSH_REGISTER_WINDOWS;      // sparc only
+      setjmp (t->regs);                // here's most of the magic
+
+   ... and returns.
+
+   Function foo has a SCM value X, a handle on a non-immediate object, in
+   a caller-saved register R, and it's the only reference to the object
+   currently.
+
+   The compiler wants to use R in suspend, so it pushes the current
+   value, X, into a stack slot which will be reloaded on exit from
+   suspend; then it loads stuff into R and goes about its business.  The
+   setjmp call saves (some of) the current registers, including R, which
+   no longer contains X.  (This isn't a problem for a normal
+   setjmp/longjmp situation, where longjmp would be called before
+   setjmp's caller returns; the old value for X would be loaded back from
+   the stack after the longjmp, before the function returned.)
+
+   So, suspend returns, loading X back into R (and invalidating the jump
+   buffer) in the process.  The caller foo then goes off and calls a
+   bunch of other functions out of Guile mode, occasionally storing X on
+   the stack again, but, say, much deeper on the stack than suspend's
+   stack frame went, and the stack slot where suspend had written X has
+   long since been overwritten with other values.
+
+   Okay, nothing actively broken so far.  Now, let garbage collection
+   run, triggered by another thread.
+
+   The thread calling foo is out of Guile mode at the time, so the
+   garbage collector just scans a range of stack addresses.  Too bad that
+   X isn't stored there.  So the pointed-to storage goes onto the free
+   list, and I think you can see where things go from there.
+
+   Is there anything I'm missing that'll prevent this scenario from
+   happening?  I mean, aside from, "well, suspend and scm_leave_guile
+   don't have many local variables, so they probably won't need to save
+   any registers on most systems, so we hope everything will wind up in
+   the jump buffer and we'll just get away with it"?
+
+   (And, going the other direction, if scm_leave_guile and suspend push
+   the stack pointer over onto a new page, and foo doesn't make further
+   function calls and thus the stack pointer no longer includes that
+   page, are we guaranteed that the kernel cannot release the now-unused
+   stack page that contains the top-of-stack pointer we just saved?  I
+   don't know if any OS actually does that.  If it does, we could get
+   faults in garbage collection.)
+
+   I don't think scm_without_guile has to have this problem, as it gets
+   more control over the stack handling -- but it should call setjmp
+   itself.  I'd probably try something like:
+
+      // record top of stack for the GC
+      t->top = SCM_STACK_PTR (&t);
+      // save registers.
+      SCM_FLUSH_REGISTER_WINDOWS;
+      setjmp (t->regs);
+      res = func(data);
+      scm_enter_guile (t);
+
+   ... though even that's making some assumptions about the stack
+   ordering of local variables versus caller-saved registers.
+
+   For something like scm_leave_guile to work, I don't think it can just
+   rely on invalidated jump buffers.  A valid jump buffer, and a handle
+   on the stack state at the point when the jump buffer was initialized,
+   together, would work fine, but I think then we're talking about macros
+   invoking setjmp in the caller's stack frame, and requiring that the
+   caller of scm_leave_guile also call scm_enter_guile before returning,
+   kind of like pthread_cleanup_push/pop calls that have to be paired up
+   in a function.  (In fact, the pthread ones have to be paired up
+   syntactically, as if they might expand to a compound statement
+   incorporating the user's code, and invoking a compiler's
+   exception-handling primitives.  Which might be something to think
+   about for cases where Guile is used with C++ exceptions or
+   pthread_cancel.)
+*/
+
 scm_i_pthread_key_t scm_i_thread_key;
 
 static void
@@ -243,7 +336,9 @@ resume (scm_i_thread *t)
     }
 }
 
-void
+typedef void* scm_t_guile_ticket;
+
+static void
 scm_enter_guile (scm_t_guile_ticket ticket)
 {
   scm_i_thread *t = (scm_i_thread *)ticket;
@@ -267,7 +362,7 @@ suspend (void)
   return t;
 }
 
-scm_t_guile_ticket
+static scm_t_guile_ticket
 scm_leave_guile ()
 {
   scm_i_thread *t = suspend ();
