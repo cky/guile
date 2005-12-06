@@ -40,6 +40,7 @@ get the relevant SRFI documents from the SRFI home page
 * SRFI-39::                     Parameter objects
 * SRFI-55::                     Requiring Features.
 * SRFI-60::                     Integers as bits.
+* SRFI-61::                     A more general `cond' clause
 @end menu
 
 
@@ -2683,6 +2684,16 @@ element becomes the most significant bit in the return.
 (list->integer '(#t #f #t #f)) @result{} 10
 @end example
 @end defun
+
+
+@node SRFI-61
+@subsection SRFI-61 - A more general @code{cond} clause
+
+This SRFI extends RnRS @code{cond} to support test expressions that
+return multiple values, as well as arbitrary definitions of test
+success.  SRFI 61 is implemented in the Guile core; there's no module
+needed to get SRFI-61 itself.  Extended @code{cond} is documented in
+@ref{if cond case,, Simple Conditional Evaluation}.
 
 
 @c srfi-modules.texi ends here

@@ -108,6 +108,26 @@ the @code{cond}-expression.  For the @code{=>} clause type,
 the value of @var{test}.  The result of this procedure application is
 then the result of the @code{cond}-expression.
 
+@cindex SRFI-61
+@cindex general cond clause
+@cindex multiple values and cond
+One additional @code{cond}-clause is available as an extension to
+standard Scheme:
+
+@lisp
+(@var{test} @var{guard} => @var{expression})
+@end lisp
+
+where @var{guard} and @var{expression} must evaluate to procedures.
+For this clause type, @var{test} may return multiple values, and
+@code{cond} ignores its boolean state; instead, @code{cond} evaluates
+@var{guard} and applies the resulting procedure to the value(s) of
+@var{test}, as if @var{guard} were the @var{consumer} argument of
+@code{call-with-values}.  Iff the result of that procedure call is a
+true value, it evaluates @var{expression} and applies the resulting
+procedure to the value(s) of @var{test}, in the same manner as the
+@var{guard} was called.
+
 The @var{test} of the last @var{clause} may be the symbol @code{else}.
 Then, if none of the preceding @var{test}s is true, the
 @var{expression}s following the @code{else} are evaluated to produce the
