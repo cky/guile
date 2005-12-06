@@ -304,7 +304,7 @@ uvec_assert (int type, SCM obj)
 }
 
 static SCM
-take_uvec (int type, const void *base, size_t len)
+take_uvec (int type, void *base, size_t len)
 {
   SCM_RETURN_NEWSMOB3 (scm_tc16_uvec, type, len, (scm_t_bits) base);
 }

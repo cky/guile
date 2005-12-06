@@ -135,7 +135,7 @@ SCM_DEFINE (F(scm_any_to_,TAG,vector), "any->"S(TAG)"vector", 1, 0, 0,
 #ifdef CTYPE
 
 SCM
-F(scm_take_,TAG,vector) (const CTYPE *data, size_t n)
+F(scm_take_,TAG,vector) (CTYPE *data, size_t n)
 {
   scm_gc_register_collectable_memory ((void *)data, n*uvec_sizes[TYPE],
 				      uvec_names[TYPE]);
