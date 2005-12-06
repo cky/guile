@@ -1,3 +1,10 @@
+2005-12-07  Marius Vollmer  <mvo@zagadka.de>
+
+	From Andy Wingo.
+	
+	* script.c (scm_find_executable): Compile fix -- fgetc returns an
+	unsigned char cast to an int, or -1 for EOS.
+	
 2005-12-06  Marius Vollmer  <mvo@zagadka.de>
 
 	* srfi-4.h, srfi-4.c, srfi-4.i.c (take_uvec): Make BASE pointer

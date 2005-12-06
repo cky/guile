@@ -120,7 +120,7 @@ char *
 scm_find_executable (const char *name)
 {
   char tbuf[MAXPATHLEN];
-  int i = 0;
+  int i = 0, c;
   FILE *f;
 
   /* fprintf(stderr, "s_f_e checking access %s ->%d\n", name, access(name, X_OK)); fflush(stderr); */
@@ -132,16 +132,19 @@ scm_find_executable (const char *name)
   if ((fgetc (f) == '#') && (fgetc (f) == '!'))
     {
       while (1)
-	switch (tbuf[i++] = fgetc (f))
+	switch (c = fgetc (f))
 	  {
 	  case /*WHITE_SPACES */ ' ':
 	  case '\t':
 	  case '\r':
 	  case '\f':
 	  case EOF:
-	    tbuf[--i] = 0;
+	    tbuf[i] = 0;
 	    fclose (f);
 	    return scm_cat_path (0L, tbuf, 0L);
+	  default:
+	    tbuf[i++] = c;
+	    break;
 	  }
     }
   fclose (f);
