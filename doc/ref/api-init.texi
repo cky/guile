@@ -13,9 +13,9 @@ put itself into guile mode with either @code{scm_with_guile} or
 @code{scm_init_guile}.  The global state of Guile is initialized
 automatically when the first thread enters guile mode.
 
-When a thread wants to block outside of a Guile API function, it should
-leave guile mode temporarily with either @code{scm_without_guile} or
-@code{scm_leave_guile}, @xref{Blocking}.
+When a thread wants to block outside of a Guile API function, it
+should leave guile mode temporarily with @code{scm_without_guile},
+@xref{Blocking}.
 
 Threads that are created by @code{call-with-new-thread} or
 @code{scm_spawn_thread} start out in guile mode so you don't need to
@@ -51,8 +51,8 @@ See @code{scm_init_guile} for another approach at initializing Guile
 that does not have this restriction.
 
 It is OK to call @code{scm_with_guile} while a thread has temporarily
-left guile mode via @code{scm_without_guile} or @code{scm_leave_guile}.
-It will then simply temporarily enter guile mode again.
+left guile mode via @code{scm_without_guile}.  It will then simply
+temporarily enter guile mode again.
 @end deftypefn
 
 @deftypefn {C Function} void scm_init_guile ()

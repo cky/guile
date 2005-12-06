@@ -451,17 +451,16 @@ that are stored in local variables.  When a thread puts itself into
 guile mode for the first time, it gets a Scheme representation and is
 listed by @code{all-threads}, for example.
 
-While in guile mode, a thread promises to reach a safe point reasonably
-frequently (@pxref{Asynchronous Signals}).  In addition to running
-signal handlers, these points are also potential rendezvous points of
-all guile mode threads where Guile can orchestrate global things like
-garbage collection.  Consequently, when a thread in guile mode blocks
-and does no longer frequent safe points, it might cause all other guile
-mode threads to block as well.  To prevent this from happening, a guile
-mode thread should either only block in libguile functions (who know how
-to do it right), or should temporarily leave guile mode with
-@code{scm_without_guile} or
-@code{scm_leave_guile}/@code{scm_enter_guile}.
+While in guile mode, a thread promises to reach a safe point
+reasonably frequently (@pxref{Asynchronous Signals}).  In addition to
+running signal handlers, these points are also potential rendezvous
+points of all guile mode threads where Guile can orchestrate global
+things like garbage collection.  Consequently, when a thread in guile
+mode blocks and does no longer frequent safe points, it might cause
+all other guile mode threads to block as well.  To prevent this from
+happening, a guile mode thread should either only block in libguile
+functions (who know how to do it right), or should temporarily leave
+guile mode with @code{scm_without_guile}.
 
 For some common blocking operations, Guile provides convenience
 functions.  For example, if you want to lock a pthread mutex while in

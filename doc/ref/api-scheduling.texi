@@ -452,30 +452,20 @@ guile mode.  The following functions can be used to temporily leave
 guile mode or to perform some common blocking operations in a supported
 way.
 
-@deftypefn  {C Function} scm_t_guile_ticket scm_leave_guile ()
-@deftypefnx {C Function} void scm_enter_guile (scm_t_guile_ticket ticket)
-These two functions must be called as a pair and can be used to leave
-guile mode temporarily.  The call to @code{scm_leave_guile} returns a
-ticket that must be used with @code{scm_enter_guile} to match up the two
-calls.
+@deftypefn {C Function} {void *} scm_without_guile (void *(*func) (void *), void *data)
+Leave guile mode, call @var{func} on @var{data}, enter guile mode and
+return the result of calling @var{func}.
 
 While a thread has left guile mode, it must not call any libguile
-functions except @code{scm_enter_guile}, @code{scm_with_guile},
-@code{scm_without_guile} or @code{scm_leave_guile} and must not use any
-libguile macros.  Also, local variables of type @code{SCM} that are
-allocated while not in guile mode are not protected from the garbage
-collector.
+functions except @code{scm_with_guile} or @code{scm_without_guile} and
+must not use any libguile macros.  Also, local variables of type
+@code{SCM} that are allocated while not in guile mode are not
+protected from the garbage collector.
 
-When used from non-guile mode, a pair of calls to @code{scm_leave_guile}
-and @code{scm_enter_guile} do nothing.  In that way, you can leave guile
-mode without having to know whether the current thread is in guile mode
-or not.
-@end deftypefn
-
-@deftypefn {C Function} {void *} scm_without_guile (void *(*func) (void *), void *data)
-Leave guile mode as with @code{scm_leave_guile}, call @var{func} on
-@var{data}, enter guile mode as with @code{scm_enter_guile} and return
-the result of calling @var{func}.
+When used from non-guile mode, calling @code{scm_without_guile} is
+still allowed: it simply calls @var{func}.  In that way, you can leave
+guile mode without having to know whether the current thread is in
+guile mode or not.
 @end deftypefn
 
 @deftypefn {C Function} int scm_pthread_mutex_lock (pthread_mutex_t *mutex)
