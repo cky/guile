@@ -120,11 +120,36 @@ take_signal (int signum)
 #endif
 }
 
+typedef struct {
+  ssize_t res;
+  int fd;
+  char *buf;
+  size_t n;
+} read_without_guile_data;
+
+static void *
+do_read_without_guile (void *raw_data)
+{
+  read_without_guile_data *data = (read_without_guile_data *)data;
+  data->res = read (data->fd, data->buf, data->n);
+  return NULL;
+}
+
+static ssize_t
+read_without_guile (int fd, char *buf, size_t n)
+{
+  read_without_guile_data data;
+  data.fd = fd;
+  data.buf = buf;
+  data.n = n;
+  scm_without_guile (do_read_without_guile, &data);
+  return data.res;
+}
+
 static SCM
 signal_delivery_thread (void *data)
 {
   sigset_t all_sigs;
-  scm_t_guile_ticket ticket;
   int n, sig;
   char sigbyte;
 
@@ -133,10 +158,8 @@ signal_delivery_thread (void *data)
 
   while (1)
     {
-      ticket = scm_leave_guile ();
-      n = read (signal_pipe[0], &sigbyte, 1);
+      n = read_without_guile (signal_pipe[0], &sigbyte, 1);
       sig = sigbyte;
-      scm_enter_guile (ticket);
       if (n == 1 && sig >= 0 && sig < NSIG)
 	{
 	  SCM h, t;
