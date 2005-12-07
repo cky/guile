@@ -339,6 +339,7 @@ static void *invoke_main_func(void *body_data);
 void
 scm_boot_guile (int argc, char ** argv, void (*main_func) (), void *closure)
 {
+  void *res;
   struct main_func_closure c;
 
   c.main_func = main_func;
@@ -346,7 +347,15 @@ scm_boot_guile (int argc, char ** argv, void (*main_func) (), void *closure)
   c.argc = argc;
   c.argv = argv;
 
-  scm_with_guile (invoke_main_func, &c);
+  res = scm_with_guile (invoke_main_func, &c);
+
+  /* If the caller doesn't want this, they should exit from main_func
+     themselves.
+  */
+  if (res == NULL)
+    exit (EXIT_FAILURE);
+  else
+    exit (0);
 }
 
 static void *
@@ -365,13 +374,9 @@ invoke_main_func (void *body_data)
    */
   SCM_ASYNC_TICK;
 
-  /* If the caller doesn't want this, they should exit from main_func
-     themselves.
-  */
-  exit (0);
-
-  /* never reached */
-  return NULL;
+  /* Indicate success by returning non-NULL.
+   */
+  return (void *)1;
 }
 
 scm_i_pthread_mutex_t scm_i_init_mutex = SCM_I_PTHREAD_MUTEX_INITIALIZER;
