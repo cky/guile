@@ -1,6 +1,14 @@
 2005-12-07  Marius Vollmer  <mvo@zagadka.de>
 
-	From Andy Wingo.
+	Reported by Bruce Korb:
+	
+	* init.c (invoke_main_func): Don't call exit here.  Throws that
+	are only caught by scm_with_guile will bypass us and would cause
+	scm_boot_guile to return erroneously.
+	(scm_boot_guile): Expect scm_with_guile to return and call exit
+	here, passing it an appropriate exit code.
+
+	From Andy Wingo:
 	
 	* script.c (scm_find_executable): Compile fix -- fgetc returns an
 	unsigned char cast to an int, or -1 for EOS.
