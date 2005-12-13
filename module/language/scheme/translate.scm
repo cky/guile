@@ -24,6 +24,7 @@
   :use-module (system il ghil)
   :use-module (ice-9 match)
   :use-module (ice-9 receive)
+  :use-module ((system base compile) :select (syntax-error))
   :export (translate))
 
 (define (translate x e)
@@ -41,10 +42,12 @@
 
 (define (trans e l x)
   (cond ((pair? x)
-	 (let ((y (macroexpand x)))
-	   (if (eq? x y)
-	       (trans-pair e (or (location x) l) (car x) (cdr x))
-	       (trans e l y))))
+	 (let ((y (false-if-exception (macroexpand x))))
+	   (if (not y)
+	       (syntax-error l "failed to expand macro" x)
+	       (if (eq? x y)
+		   (trans-pair e (or (location x) l) (car x) (cdr x))
+		   (trans e l y)))))
 	((symbol? x)
 	 (let ((y (symbol-expand x)))
 	   (if (symbol? y)
@@ -240,8 +243,15 @@
 
     (else
      (if (memq head scheme-primitives)
-       (<ghil-inline> e l head (map trans:x tail))
-       (<ghil-call> e l (trans:x head) (map trans:x tail))))))
+	 (<ghil-inline> e l head (map trans:x tail))
+	 (if (eq? head 'procedure->memoizing-macro)
+	     ;;; XXX: `procedure->memoizing-macro' is evil because it crosses
+	     ;;; the compilation boundary.  One solution might be to evaluate
+	     ;;; calls to `procedure->memoizing-macro' at compilation time,
+	     ;;; but it may be more compicated than that.
+	     (syntax-error l "`procedure->memoizing-macro' is forbidden"
+			   (cons head tail))
+	     (<ghil-call> e l (trans:x head) (map trans:x tail)))))))
 
 (define (trans-quasiquote e l x)
   (cond ((not (pair? x)) x)

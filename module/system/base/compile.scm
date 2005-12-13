@@ -25,7 +25,7 @@
   :use-module (system il compile)
   :use-module (system il glil)
   :use-module ((system vm core)
-	       #:select (the-vm vm-load objcode->u8vector))
+	       :select (the-vm vm-load objcode->u8vector))
   :use-module (system vm assemble)
   :use-module (ice-9 regex))
 
@@ -41,11 +41,14 @@
 (define-public (syntax-error loc msg exp)
   (throw 'syntax-error loc msg exp))
 
-(define-public (call-with-compile-error-catch thunk)
-  (catch 'syntax-error
-	 (thunk)
+(define-macro (call-with-compile-error-catch thunk)
+  `(catch 'syntax-error
+	 ,thunk
 	 (lambda (key loc msg exp)
-	   (format #t "~A:~A: ~A: ~A" (car loc) (cdr loc) msg exp))))
+	   (format #t "~A:~A: ~A: ~A~%" (car loc) (cdr loc) msg exp))))
+
+(export-syntax  call-with-compile-error-catch)
+
 
 
 ;;;
@@ -56,10 +59,10 @@
 
 (define-public (compile-file file . opts)
   (let ((comp (compiled-file-name file)))
-    (catch #t
+    (catch 'nothing-at-all
       (lambda ()
-;	(call-with-compile-error-catch
-;	 (lambda ()
+	(call-with-compile-error-catch
+	 (lambda ()
 	   (call-with-output-file comp
 	     (lambda (port)
 	       (let* ((source (read-file-in file scheme))
@@ -68,7 +71,7 @@
 		 (if (memq :c opts)
 		   (pprint-glil objcode port)
 		   (uniform-vector-write (objcode->u8vector objcode) port)))))
-	   (format #t "wrote `~A'\n" comp))
+	   (format #t "wrote `~A'\n" comp))))
       (lambda (key . args)
 	(format #t "ERROR: during compilation of ~A:\n" file)
 	(display "ERROR: ")
@@ -120,6 +123,7 @@
       ;; translate
       (set! x (lang.translator x e))
       (if (memq :t opts) (throw 'result x))
+      (format #t "transed~%")
       ;; compile
       (set! x (apply compile x e opts))
       (if (memq :c opts) (throw 'result x))
