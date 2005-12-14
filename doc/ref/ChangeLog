@@ -1,3 +1,11 @@
+2005-12-15  Kevin Ryde  <user42@zip.com.au>
+
+	* api-evaluation.texi (Fly Evaluation): Add scm_call_4, suggested by
+	Bruce Korb.
+
+	* misc-modules.texi (Streams): In stream->list&length and
+	stream->reversed-list&length, make the two values clearer.
+
 2005-12-14  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* api-options.texi (Evaluator trap options): Trap calls now always
