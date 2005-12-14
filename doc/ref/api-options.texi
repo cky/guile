@@ -574,8 +574,10 @@ called has the trace property enabled.
 @end itemize
 @end itemize
 
-If cheap traps are enabled [debug-options interface], @var{cont} is a
-debug object, otherwise it is a restartable continuation.
+@var{cont} is a ``debug object'', which means that it can be passed to
+@code{make-stack} to discover the stack at the point of the trap.  The
+apply frame handler's code can capture a restartable continuation if it
+wants to by using @code{call-with-current-continuation} in the usual way.
 
 @var{tailp} is true if this is a tail call
 @end deffn
@@ -599,8 +601,11 @@ called has the trace property enabled.
 @end itemize
 @end itemize
 
-If cheap traps are enabled [debug-options interface], @var{cont} is a
-debug object, otherwise it is a restartable continuation.
+@var{cont} is a ``debug object'', which means that it can be passed to
+@code{make-stack} to discover the stack at the point of the trap.  The
+exit frame handler's code can capture a restartable continuation if it
+wants to by using @code{call-with-current-continuation} in the usual
+way.
 
 @var{retval} is the return value.
 @end deffn
@@ -624,7 +629,7 @@ backwards       no      Display backtrace in anti-chronological order.
 procnames       yes     Record procedure names at definition.
 trace           no      *Trace mode.
 breakpoints     no      *Check for breakpoints.
-cheap           yes     *Flyweight representation of the stack at traps.
+cheap           yes     *This option is now obsolete.  Setting it has no effect.
 @end smallexample
 
 @subsubheading Stack overflow
@@ -714,7 +719,7 @@ backwards	no	Display backtrace in anti-chronological order.
 procnames	yes	Record procedure names at definition.
 trace		no	*Trace mode.
 breakpoints	no	*Check for breakpoints.
-cheap		yes	*Flyweight representation of the stack at traps.
+cheap		yes	*This option is now obsolete.  Setting it has no effect.
 guile> (read-enable 'case-insensitive)
 (keywords #f case-insensitive positions)
 guile> aBc
