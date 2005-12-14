@@ -1415,15 +1415,15 @@ reverse order.
 @end defun
 
 @defun stream->list&length stream
-Return two values (@pxref{Multiple Values}) being a list which is the
-entire contents of @var{stream}, and the number of elements in that
-list.
+Return two values (@pxref{Multiple Values}), being firstly a list
+which is the entire contents of @var{stream}, and secondly the number
+of elements in that list.
 @end defun
 
 @defun stream->reversed-list&length stream
-Return two values (@pxref{Multiple Values}) being a list which is the
-entire contents of @var{stream}, but in reverse order, and the number
-of elements in that list.
+Return two values (@pxref{Multiple Values}) being firstly a list which
+is the entire contents of @var{stream}, but in reverse order, and
+secondly the number of elements in that list.
 @end defun
 
 @defun stream->vector stream
@@ -1457,7 +1457,7 @@ elements of the given @var{stream}s.
 
 Each call is @code{(@var{proc} elem0 @dots{} elemN)}, where each
 @var{elem} is from the corresponding @var{stream}.  The new stream
-ends when the end of teh shortest given @var{stream} is reached.
+ends when the end of the shortest given @var{stream} is reached.
 @end defun
 
 
