@@ -130,7 +130,7 @@ typedef struct {
 static void *
 do_read_without_guile (void *raw_data)
 {
-  read_without_guile_data *data = (read_without_guile_data *)data;
+  read_without_guile_data *data = (read_without_guile_data *)raw_data;
   data->res = read (data->fd, data->buf, data->n);
   return NULL;
 }

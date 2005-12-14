@@ -1,3 +1,8 @@
+2005-12-14  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scmsigs.c (do_read_without_guile): Use the "raw_data" passed in
+	(rather than an uninitialized pointer on the stack).
+
 2005-12-07  Marius Vollmer  <mvo@zagadka.de>
 
 	Reported by Bruce Korb:
