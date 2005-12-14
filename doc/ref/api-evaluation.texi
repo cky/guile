@@ -383,6 +383,7 @@ then there's no @var{arg1}@dots{}@var{argN} and @var{arg} is the
 @deffnx {C Function} scm_call_1 (proc, arg1)
 @deffnx {C Function} scm_call_2 (proc, arg1, arg2)
 @deffnx {C Function} scm_call_3 (proc, arg1, arg2, arg3)
+@deffnx {C Function} scm_call_4 (proc, arg1, arg2, arg3, arg4)
 Call @var{proc} with the given arguments.
 @end deffn
 
