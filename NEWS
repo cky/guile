@@ -724,17 +724,12 @@ element is interpreted as an `input-waiting' thunk -- i.e. a thunk
 that returns the number of characters that can be read immediately
 without the soft port blocking.
 
-** New debugging feature: breakpoints.
-
-Guile now has breakpoints.  For details see the `Debugging Features'
-chapter in the reference manual.
-
 ** Deprecated: undefine
 
 There is no replacement for undefine.
 
-* The functions make-keyword-from-dash-symbol and keyword-dash-symbol
-  have been discouraged.
+** The functions make-keyword-from-dash-symbol and keyword-dash-symbol
+   have been discouraged.
 
 They are relics from a time where a keyword like #:foo was used
 directly as a Tcl option "-foo" and thus keywords were internally
@@ -743,6 +738,26 @@ without the dash.
 
 Use symbol->keyword and keyword->symbol instead.
 
+** The `cheap' debug option is now obsolete
+
+Evaluator trap calls are now unconditionally "cheap" - in other words,
+they pass a debug object to the trap handler rather than a full
+continuation.  The trap handler code can capture a full continuation
+by using `call-with-current-continuation' in the usual way, if it so
+desires.
+
+The `cheap' option is retained for now so as not to break existing
+code which gets or sets it, but setting it now has no effect.  It will
+be removed in the next major Guile release.
+
+** Evaluator trap calls now support `tweaking'
+
+`Tweaking' means that the trap handler code can modify the Scheme
+expression that is about to be evaluated (in the case of an
+enter-frame trap) or the value that is being returned (in the case of
+an exit-frame trap).  The trap handler code indicates that it wants to
+do this by returning a pair whose car is the symbol 'instead and whose
+cdr is the modified expression or return value.
 
 * Changes to the C interface
 

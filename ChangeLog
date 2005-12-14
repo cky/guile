@@ -1,3 +1,11 @@
+2005-12-14  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* NEWS: Remove entry claiming that breakpoints have been added,
+	because breakpoints are now implemented outside the core distro.
+	Add entries on obsolescence of the 'cheap option and on tweaking
+	support in evaluator trap calls.  Finally, correct outline level
+	of item about make-keyword-from-dash-symbol.
+
 2005-07-09  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* configure.in (AC_CONFIG_FILES): Removed emacs/Makefile and
