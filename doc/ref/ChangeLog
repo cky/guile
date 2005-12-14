@@ -1,3 +1,7 @@
+2005-12-14  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* api-evaluation.texi (Loading): Document custom reader.
+
 2005-12-06  Marius Vollmer  <mvo@zagadka.de>
 
 	* api-init.texi, api-scheduling.texi, libguile-concepts.texi:

@@ -409,12 +409,24 @@ the current module.
 @subsection Loading Scheme Code from File
 
 @rnindex load
-@deffn {Scheme Procedure} load filename
+@deffn {Scheme Procedure} load filename [reader]
 Load @var{filename} and evaluate its contents in the top-level
-environment.  The load paths are not searched.  If the variable
-@code{%load-hook} is defined, it should be bound to a procedure that
-will be called before any code is loaded.  See documentation for
-@code{%load-hook} later in this section.
+environment.  The load paths are not searched.
+
+@var{reader} if provided should be either @code{#f}, or a procedure with
+the signature @code{(lambda (port) @dots{})} which reads the next
+expression from @var{port}.  If @var{reader} is @code{#f} or absent,
+Guile's built-in @code{read} procedure is used (@pxref{Scheme Read}).
+
+The @var{reader} argument takes effect by setting the value of the
+@code{current-reader} fluid (see below) before loading the file, and
+restoring its previous value when loading is complete.  The Scheme code
+inside @var{filename} can itself change the current reader procedure on
+the fly by setting @code{current-reader} fluid.
+
+If the variable @code{%load-hook} is defined, it should be bound to a
+procedure that will be called before any code is loaded.  See
+documentation for @code{%load-hook} later in this section.
 @end deffn
 
 @deffn {Scheme Procedure} load-from-path filename
@@ -451,6 +463,15 @@ pathname, return its full pathname.  Otherwise, return
 in the @code{%load-extensions} list; @code{%search-load-path}
 will try each extension automatically.
 @end deffn
+
+@defvar current-reader
+@code{current-reader} holds the read procedure that is currently being
+used by the above loading procedures to read expressions (from the file
+that they are loading).  @code{current-reader} is a fluid, so it has an
+independent value in each dynamic root and should be read and set using
+@code{fluid-ref} and @code{fluid-set!} (@pxref{Fluids and Dynamic
+States}).
+@end defvar
 
 @defvar %load-hook
 A procedure to be called @code{(%load-hook @var{filename})} whenever a

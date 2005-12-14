@@ -42,6 +42,7 @@
 
 #include "libguile/validate.h"
 #include "libguile/load.h"
+#include "libguile/fluids.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -60,6 +61,10 @@
 /* Hook to run when we load a file, perhaps to announce the fact somewhere.
    Applied to the full name of the file.  */
 static SCM *scm_loc_load_hook;
+
+/* The current reader (a fluid).  */
+static SCM the_reader = SCM_BOOL_F;
+static size_t the_reader_fluid_num = 0;
 
 SCM_DEFINE (scm_primitive_load, "primitive-load", 1, 0, 0, 
            (SCM filename),
@@ -88,9 +93,19 @@ SCM_DEFINE (scm_primitive_load, "primitive-load", 1, 0, 0,
 
     while (1)
       {
-	SCM form = scm_read (port);
+	SCM reader, form;
+
+	/* Lookup and use the current reader to read the next
+	   expression. */
+	reader = SCM_FAST_FLUID_REF (the_reader_fluid_num);
+	if (reader == SCM_BOOL_F)
+	  form = scm_read (port);
+	else
+	  form = scm_call_1 (reader, port);
+
 	if (SCM_EOF_OBJECT_P (form))
 	  break;
+
 	scm_primitive_eval_x (form);
       }
 
@@ -500,6 +515,11 @@ scm_init_load ()
 				      scm_list_2 (scm_from_locale_string (".scm"),
 						  scm_nullstr)));
   scm_loc_load_hook = SCM_VARIABLE_LOC (scm_c_define ("%load-hook", SCM_BOOL_F));
+
+  the_reader = scm_make_fluid ();
+  the_reader_fluid_num = SCM_FLUID_NUM (the_reader);
+  SCM_FAST_FLUID_SET_X (the_reader_fluid_num, SCM_BOOL_F);
+  scm_c_define("current-reader", the_reader);
 
   init_build_info ();
 

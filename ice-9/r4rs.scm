@@ -206,6 +206,8 @@ procedures, their behavior is implementation dependent."
 
 (set! %load-hook %load-announce)
 
-(define (load name)
-  (start-stack 'load-stack
-	       (primitive-load name)))
+(define (load name . reader)
+  (with-fluid* current-reader (and (pair? reader) (car reader))
+    (lambda ()
+      (start-stack 'load-stack
+		   (primitive-load name)))))

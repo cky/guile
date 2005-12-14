@@ -1,5 +1,10 @@
 2005-12-14  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* load.c (the_reader, the_reader_fluid_num): New.
+	(scm_primitive_load): Support custom reader.
+	(scm_init_load): Init the_reader and the_reader_fluid_num; export
+	the_reader as `current-reader'.
+
 	* scmsigs.c (do_read_without_guile): Use the "raw_data" passed in
 	(rather than an uninitialized pointer on the stack).
 

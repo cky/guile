@@ -1,3 +1,11 @@
+2005-12-14  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* boot-9.scm (load-module): Support an optional custom reader arg,
+	implemented by passing on to r4rs's load.
+
+	* r4rs.scm (load): Support an optional custom reader arg,
+	implemented by passing on to primitive-load.
+
 2005-12-06  Marius Vollmer  <mvo@zagadka.de>
 
 	From Stephen Compall.
