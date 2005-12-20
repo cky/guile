@@ -10,6 +10,7 @@ vm_test_files =					\
       t-closure3.scm				\
       t-do-loop.scm				\
       t-macros.scm				\
+      t-macros2.scm				\
       t-proc-with-setter.scm			\
       t-values.scm				\
       t-records.scm				\

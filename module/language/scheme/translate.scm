@@ -6,12 +6,12 @@
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
-;; 
+;;
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
@@ -24,25 +24,67 @@
   :use-module (system il ghil)
   :use-module (ice-9 match)
   :use-module (ice-9 receive)
+  :use-module (srfi srfi-39)
   :use-module ((system base compile) :select (syntax-error))
   :export (translate))
 
+
+;; Hash table containing the macros currently defined.
+(define &current-macros (make-parameter #f))
+
 (define (translate x e)
-  (call-with-ghil-environment (make-ghil-mod e) '()
-    (lambda (env vars)
-      (<ghil-lambda> env #f vars #f (trans env #f x)))))
+  (parameterize ((&current-macros (make-hash-table)))
+    (call-with-ghil-environment (make-ghil-mod e) '()
+      (lambda (env vars)
+	(<ghil-lambda> env #f vars #f (trans env #f x))))))
+
+
+;;;
+;;; Macro tricks
+;;;
+
+(define (expand-macro e)
+  ;; Similar to `macroexpand' in `boot-9.scm' except that it does not expand
+  ;; `define-macro' and `defmacro'.
+  (cond
+   ((pair? e)
+    (let* ((head (car e))
+	   (val (and (symbol? head) (local-ref (list head)))))
+      (case head
+	((defmacro define-macro)
+	 ;; Normally, these are expanded as `defmacro:transformer' but we
+	 ;; don't want it to happen.
+	 e)
+	(else
+	 (if (defmacro? val) ;; built-in macro?
+	     (expand-macro (apply (defmacro-transformer val) (cdr e)))
+	     (let ((local-macro (hashq-ref (&current-macros) head)))
+	       (if (not local-macro)
+		   e
+		   (if (procedure? local-macro)
+		       (expand-macro (apply local-macro (cdr e)))
+		       (syntax-error #f (format #f "~a: invalid macro" head)
+				     local-macro)))))))))
+   (#t e)))
 
 
 ;;;
 ;;; Translator
 ;;;
 
-(define scheme-primitives
+(define %scheme-primitives
   '(not null? eq? eqv? equal? pair? list? cons car cdr set-car! set-cdr!))
+
+(define %forbidden-primitives
+  ;; Guile's `procedure->macro' family is evil because it crosses the
+  ;; compilation boundary.  One solution might be to evaluate calls to
+  ;; `procedure->memoizing-macro' at compilation time, but it may be more
+  ;; compicated than that.
+  '(procedure->syntax procedure->macro procedure->memoizing-macro))
 
 (define (trans e l x)
   (cond ((pair? x)
-	 (let ((y (false-if-exception (macroexpand x))))
+	 (let ((y (false-if-exception (expand-macro x))))
 	   (if (not y)
 	       (syntax-error l "failed to expand macro" x)
 	       (if (eq? x y)
@@ -102,6 +144,22 @@
 	  (<ghil-define> e l (ghil-lookup e name) val)))
 
        (else (bad-syntax))))
+
+    ;; simple macros
+    ((defmacro define-macro)
+     (let* ((shortcut? (eq? head 'defmacro))
+	    (macro-name (if shortcut? (car tail) (caar tail)))
+	    (formal-args (if shortcut? (cadr tail) (cdar tail)))
+	    (body (if shortcut? (cddr tail) (cdr tail))))
+
+       (hashq-set! (&current-macros) macro-name
+		   ;; FIXME: The lambda is evaluated in the current module.
+		   (primitive-eval `(lambda ,formal-args ,@body)))
+
+;        (format (current-error-port) "macro `~a': ~a~%"
+; 	       macro-name (hashq-ref (&current-macros) macro-name))
+
+       (make:void)))
 
     ((set!)
      (match tail
@@ -242,14 +300,10 @@
 	 (else (bad-syntax)))))
 
     (else
-     (if (memq head scheme-primitives)
+     (if (memq head %scheme-primitives)
 	 (<ghil-inline> e l head (map trans:x tail))
-	 (if (eq? head 'procedure->memoizing-macro)
-	     ;;; XXX: `procedure->memoizing-macro' is evil because it crosses
-	     ;;; the compilation boundary.  One solution might be to evaluate
-	     ;;; calls to `procedure->memoizing-macro' at compilation time,
-	     ;;; but it may be more compicated than that.
-	     (syntax-error l "`procedure->memoizing-macro' is forbidden"
+	 (if (member head %forbidden-primitives)
+	     (syntax-error l (format #f "`~a' is forbidden" head)
 			   (cons head tail))
 	     (<ghil-call> e l (trans:x head) (map trans:x tail)))))))
 

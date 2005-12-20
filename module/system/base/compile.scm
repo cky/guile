@@ -45,7 +45,9 @@
   `(catch 'syntax-error
 	 ,thunk
 	 (lambda (key loc msg exp)
-	   (format #t "~A:~A: ~A: ~A~%" (car loc) (cdr loc) msg exp))))
+	   (if (pair? loc)
+	       (format #t "~A:~A: ~A: ~A~%" (car loc) (cdr loc) msg exp)
+	       (format #t "unknown location: ~A: ~A~%" msg exp)))))
 
 (export-syntax  call-with-compile-error-catch)
 
@@ -123,7 +125,6 @@
       ;; translate
       (set! x (lang.translator x e))
       (if (memq :t opts) (throw 'result x))
-      (format #t "transed~%")
       ;; compile
       (set! x (apply compile x e opts))
       (if (memq :c opts) (throw 'result x))
