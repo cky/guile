@@ -22,7 +22,7 @@
 (define-module (system vm conv)
   :use-module ((system vm core)
 	       :select (instruction? instruction-length
-			instruction->opcode))
+			instruction->opcode opcode->instruction))
   :use-module (ice-9 match)
   :use-module (ice-9 regex)
   :use-module (srfi srfi-4)
