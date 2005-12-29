@@ -1,3 +1,8 @@
+2005-12-29  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* fluids.c (next_fluid_num): [From Ludovic Courtès:] Don't trigger
+	the GC when allocated_fluids_len is zero.
+
 2005-12-14  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* load.c (the_reader, the_reader_fluid_num): New.

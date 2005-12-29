@@ -202,7 +202,8 @@ next_fluid_num ()
   scm_frame_begin (0);
   scm_i_frame_pthread_mutex_lock (&fluid_admin_mutex);
 
-  if (allocated_fluids_num == allocated_fluids_len)
+  if ((allocated_fluids_len > 0) &&
+      (allocated_fluids_num == allocated_fluids_len))
     {
       /* All fluid numbers are in use.  Run a GC to try to free some
 	 up.
