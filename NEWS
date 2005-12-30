@@ -1283,6 +1283,16 @@ SCM_NECONSP, SCM_GLOC_VAR, SCM_GLOC_VAL, SCM_GLOC_SET_VAL,
 SCM_GLOC_VAL_LOC, scm_make_gloc, scm_gloc_p, scm_tc16_variable,
 SCM_CHARS, SCM_LENGTH, SCM_SET_STRING_CHARS, SCM_SET_STRING_LENGTH.
 
+* Changes to bundled modules
+
+** (ice-9 debug)
+
+Using the (ice-9 debug) module no longer automatically switches Guile
+to use the debugging evaluator.  If you want to switch to the
+debugging evaluator (which is needed for backtrace information if you
+hit an error), please add an explicit "(debug-enable 'debug)" to your
+code just after the code to use (ice-9 debug).
+
 
 Changes since Guile 1.4:
 
