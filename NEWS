@@ -662,7 +662,7 @@ equal to a floating point number.  For example:
     (inexact->exact 1.234)
     => 694680242521899/562949953421312
 
-When you want the old behavior, use 'round' explicitely:
+When you want the old behavior, use 'round' explicitly:
 
     (inexact->exact (round 1.234))
     => 1
@@ -1015,7 +1015,7 @@ prevent a potential memory leak:
     scm_frame_begin (0);
 
     mem = scm_malloc (100);
-    scm_frame_unwind_handler (free, mem, SCM_F_WIND_EXPLICITELY);
+    scm_frame_unwind_handler (free, mem, SCM_F_WIND_EXPLICITLY);
 
     /* MEM would leak if BAR throws an error.
        SCM_FRAME_UNWIND_HANDLER frees it nevertheless.  
@@ -1025,7 +1025,7 @@ prevent a potential memory leak:
   
     scm_frame_end ();
 
-    /* Because of SCM_F_WIND_EXPLICITELY, MEM will be freed by 
+    /* Because of SCM_F_WIND_EXPLICITLY, MEM will be freed by 
        SCM_FRAME_END as well. 
     */
   }
@@ -1615,7 +1615,7 @@ load path of Guile.
 This has been found to be too tricky, and is no longer supported.  The
 shared libraries are now called "extensions".  You should now write a
 small Scheme file that calls `load-extension' to load the shared
-library and initialize it explicitely.
+library and initialize it explicitly.
 
 The shared libraries themselves should be installed in the usual
 places for shared libraries, with names like "libguile-foo-bar".
