@@ -187,7 +187,8 @@ SCM_DEFINE (scm_make_regexp, "make-regexp", 1, 0, 1,
 		     scm_from_locale_string (FUNC_NAME),
 		     errmsg,
 		     SCM_BOOL_F,
-		     SCM_BOOL_F);
+		     scm_list_1 (pat));
+      
       /* never returns */
     }
   SCM_RETURN_NEWSMOB (scm_tc16_regex, rx);
@@ -274,8 +275,7 @@ SCM_DEFINE (scm_regexp_exec, "regexp-exec", 2, 2, 0,
     scm_error_scm (scm_regexp_error_key,
 		   scm_from_locale_string (FUNC_NAME),
 		   scm_regexp_error_msg (status, SCM_RGX (rx)),
-		   SCM_BOOL_F,
-		   SCM_BOOL_F);
+		   SCM_BOOL_F, SCM_BOOL_F);
   return mvec;
 }
 #undef FUNC_NAME

@@ -1,3 +1,8 @@
+2005-11-29  Han-Wen Nienhuys  <hanwen@xs4all.nl>
+
+	* regex-posix.c (s_scm_regexp_exec): list the offending pattern
+	upon error
+
 2005-12-29  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* fluids.c (next_fluid_num): [From Ludovic Courtès:] Don't trigger
