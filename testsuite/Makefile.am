@@ -4,6 +4,7 @@
 GUILE_VM = $(top_srcdir)/src/guile-vm
 
 vm_test_files =					\
+      t-basic-contructs.scm			\
       t-global-bindings.scm			\
       t-closure.scm				\
       t-closure2.scm				\

@@ -213,9 +213,12 @@
 ;;; Object dump
 ;;;
 
-;; NOTE: undumpped in vm_load.c.
+;; NOTE: undumpped in vm_system.c
 
 (define (dump-object! push-code! x)
+  (define (too-long x)
+    (error (string-append x " too long")))
+
   (let dump! ((x x))
     (cond
      ((object->code x) => push-code!)
@@ -269,13 +272,17 @@
 		       ,(symbol->string (keyword-dash-symbol x)))))
 	(($ list)
 	 (for-each dump! x)
-	 (push-code! `(list ,(length x))))
+	 (let ((len (length x)))
+	   (if (>= len 65536) (too-long 'list))
+	   (push-code! `(list ,(quotient len 256) ,(modulo len 256)))))
 	(($ pair)
 	 (dump! (car x))
 	 (dump! (cdr x))
 	 (push-code! `(cons)))
 	(($ vector)
 	 (for-each dump! (vector->list x))
-	 (push-code! `(vector ,(vector-length x))))
+	 (let ((len (vector-length x)))
+	   (if (>= len 65536) (too-long 'vector))
+	   (push-code! `(vector ,(quotient len 256) ,(modulo len 256)))))
 	(else
 	 (error "assemble: unrecognized object" x)))))))

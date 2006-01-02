@@ -163,4 +163,6 @@
 (define-public (vm-load vm objcode)
   (vm (objcode->program objcode)))
 
+;; `load-compiled' is referred to by `boot-9.scm' and used by `use-modules'
+;; and friends.
 (set! load-compiled (lambda (file) (vm-load (the-vm) (load-objcode file))))

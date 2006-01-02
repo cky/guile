@@ -149,17 +149,21 @@ VM_DEFINE_INSTRUCTION (make_char8, "make-char8", 1, 0, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (list, "list", 1, -1, 1)
+VM_DEFINE_INSTRUCTION (list, "list", 2, -1, 1)
 {
-  int n = FETCH ();
-  POP_LIST (n);
+  unsigned h = FETCH ();
+  unsigned l = FETCH ();
+  unsigned len = ((h << 8) + l);
+  POP_LIST (len);
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (vector, "vector", 1, -1, 1)
+VM_DEFINE_INSTRUCTION (vector, "vector", 2, -1, 1)
 {
-  int n = FETCH ();
-  POP_LIST (n);
+  unsigned h = FETCH ();
+  unsigned l = FETCH ();
+  unsigned len = ((h << 8) + l);
+  POP_LIST (len);
   *sp = scm_vector (*sp);
   NEXT;
 }
