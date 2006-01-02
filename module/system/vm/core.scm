@@ -25,7 +25,7 @@
 ;;; Core procedures
 ;;;
 
-(dynamic-call "scm_init_vm" (dynamic-link "libguilevm.so"))
+(dynamic-call "scm_init_vm" (dynamic-link "libguile-vm"))
 
 (module-export! (current-module)
 		(delq! '%module-public-interface

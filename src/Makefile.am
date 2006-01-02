@@ -1,19 +1,19 @@
 bin_PROGRAMS = guile-vm
 bin_SCRIPTS = guilec guile-disasm
 guile_vm_SOURCES = guile-vm.c
-guile_vm_LDADD = libguilevm.la 
+guile_vm_LDADD = libguile-vm.la 
 guile_vm_LDFLAGS = $(GUILE_LDFLAGS)
 
 AM_CFLAGS = -Wall -g -pg
 guile_vm_LDFLAGS += -pg
 
-lib_LTLIBRARIES = libguilevm.la
-libguilevm_la_SOURCES =							\
+lib_LTLIBRARIES = libguile-vm.la
+libguile_vm_la_SOURCES =						\
 	envs.c frames.c instructions.c objcodes.c programs.c vm.c	\
 	envs.h frames.h instructions.h objcodes.h programs.h vm.h	\
 	vm_engine.h vm_expand.h
-libguilevm_la_LDFLAGS = -version-info 0:0:0 -export-dynamic
-libguilevm_la_LDFLAGS += -pg
+libguile_vm_la_LDFLAGS = -version-info 0:0:0 -export-dynamic
+libguile_vm_la_LDFLAGS += -pg
 EXTRA_DIST = vm_engine.c vm_system.c vm_scheme.c vm_loader.c \
              guilec.in guile-disasm.in
 BUILT_SOURCES = vm_system.i vm_scheme.i vm_loader.i \
