@@ -62,7 +62,13 @@ Report bugs to <guile-user@gnu.org>.~%")
 	(for-each (lambda (file)
 		    (apply compile-file (cons file compile-opts)))
 		  (option-ref options '() '())))
-      (lambda ()
+      (lambda (key . args)
+	(format (current-error-port) "exception `~a' caught~a~%" key
+		(if (null? args) ""
+		    (if (string? (car args))
+			(string-append " in subr `" (car args) "'")
+			"")))
+
 	(format (current-error-port) "removing compiled files due to errors~%")
 	(false-if-exception
 	 (for-each unlink (map compiled-file-name files)))
