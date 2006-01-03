@@ -121,6 +121,7 @@ The Compiler
 * Overview::                    
 * The Language Front-Ends::     
 * GHIL::                        
+* Compiling Scheme Code::       
 * GLIL::                        
 * The Assembler::               
 
@@ -737,6 +738,7 @@ Set}).
 * Overview::                    
 * The Language Front-Ends::     
 * GHIL::                        
+* Compiling Scheme Code::       
 * GLIL::                        
 * The Assembler::               
 @end menu
@@ -815,12 +817,13 @@ the compiler to handle source written in that language.  Of particular
 interest is the @code{translator} slot (@pxref{GHIL}).
 @end deftp
 
-@deffn @scmproc{} lookup-language symbol
-Look for a language front-end named @var{symbol} and return the
-@code{<language>} record describing it if found.  If @var{symbol}
-doesn't denote a language front-end, an error is raised.  Note that
-this procedure assumes that language @var{symbol} exists if there
-exist a @code{(language @var{symbol} spec)} module.
+@deffn @scmproc{} lookup-language lang
+Look for a language front-end named @var{lang}, a symbol (e.g,
+@code{scheme}), and return the @code{<language>} record describing it
+if found.  If @var{lang} does not denote a language front-end, an
+error is raised.  Note that this procedure assumes that language
+@var{lang} exists if there exist a @code{(language @var{lang} spec)}
+module.
 @end deffn
 
 The @code{(system base compile)} module defines a procedure similar to
@@ -852,7 +855,7 @@ GHIL-to-GLIL compiler described in @xref{GLIL}.
 @end deffn
 
 
-@node GHIL, GLIL, The Language Front-Ends, The Compiler
+@node GHIL, Compiling Scheme Code, The Language Front-Ends, The Compiler
 @section Guile's High-Level Intermediate Language
 
 GHIL has constructs almost equivalent to those found in Scheme.
@@ -895,11 +898,45 @@ close to the fundamental primitives of Scheme.
 
 It is the role of front-end language translators (@pxref{The Language
 Front-Ends}) to produce a sequence of GHIL objects from the
-human-readable, source programming language.
+human-readable, source programming language.  The next section
+describes the translator for the Scheme language.
 
-[FIXME:  Describe more.]
+@node Compiling Scheme Code, GLIL, GHIL, The Compiler
+@section Compiling Scheme Code
 
-@node GLIL, The Assembler, GHIL, The Compiler
+The language object for Scheme, as returned by @code{(lookup-language
+'scheme)} (@pxref{The Language Front-Ends}), defines a translator
+procedure that returns a sequence of GHIL objects given Scheme code.
+Before actually performing this operation, the Scheme translator
+expands macros in the original source code.
+
+The macros that may be expanded can come from different sources:
+
+@itemize
+@item core Guile macros, such as @code{false-if-exception};
+@item macros defined in modules used by the module being compiled,
+e.g., @code{receive} in @code{(ice-9 receive)};
+@item macros defined within the module being compiled.
+@end itemize
+
+@cindex macro
+@cindex syntax transformer
+@findex define-macro
+@findex defmacro
+The main complexity in handling macros at compilation time is that
+Guile's macros are first-class objects.  For instance, when using
+@code{define-macro}, one actually defines a @emph{procedure} that
+returns code; of course, unlike a ``regular'' procedure, it is
+executed when an S-exp is @dfn{memoized} by the evaluator, i.e.,
+before the actual evaluation takes place.  Worse, it is possible to
+turn a procedure into a macro, or @dfn{syntax transformer}, thus
+removing, to some extent, the boundary between the macro expansion and
+evaluation phases, @inforef{Internal Macros, , guile}.
+
+[FIXME: explain limitations, etc.]
+
+
+@node GLIL, The Assembler, Compiling Scheme Code, The Compiler
 @section Guile's Low-Level Intermediate Language
 
 A GHIL instruction sequence can be compiled into GLIL using the

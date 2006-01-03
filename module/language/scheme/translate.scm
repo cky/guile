@@ -32,8 +32,16 @@
 ;; Hash table containing the macros currently defined.
 (define &current-macros (make-parameter #f))
 
+;; Module in which macros are evaluated.
+(define &current-macro-module (make-parameter #f))
+
 (define (translate x e)
-  (parameterize ((&current-macros (make-hash-table)))
+  (parameterize ((&current-macros (make-hash-table))
+		 (&current-macro-module (make-module)))
+
+    ;; Import only core bindings in the macro module.
+    (module-use! (&current-macro-module) (resolve-module '(guile-user)))
+
     (call-with-ghil-environment (make-ghil-mod e) '()
       (lambda (env vars)
 	(<ghil-lambda> env #f vars #f (trans env #f x))))))
@@ -46,10 +54,15 @@
 (define (expand-macro e)
   ;; Similar to `macroexpand' in `boot-9.scm' except that it does not expand
   ;; `define-macro' and `defmacro'.
+
+  ;; FIXME: This does not handle macros defined in modules used by the
+  ;; module being compiled.
   (cond
    ((pair? e)
     (let* ((head (car e))
-	   (val (and (symbol? head) (local-ref (list head)))))
+	   (val (and (symbol? head)
+		     (false-if-exception
+		      (module-ref (&current-macro-module) head)))))
       (case head
 	((defmacro define-macro)
 	 ;; Normally, these are expanded as `defmacro:transformer' but we
@@ -62,7 +75,11 @@
 	       (if (not local-macro)
 		   e
 		   (if (procedure? local-macro)
-		       (expand-macro (apply local-macro (cdr e)))
+		       (expand-macro
+			(save-module-excursion
+                          (lambda ()
+			    (set-current-module (&current-macro-module))
+			    (apply local-macro (cdr e)))))
 		       (syntax-error #f (format #f "~a: invalid macro" head)
 				     local-macro)))))))))
    (#t e)))
@@ -152,12 +169,17 @@
 	    (formal-args (if shortcut? (cadr tail) (cdar tail)))
 	    (body (if shortcut? (cddr tail) (cdr tail))))
 
+       ;; Evaluate the macro in the current macro module.
        (hashq-set! (&current-macros) macro-name
-		   ;; FIXME: The lambda is evaluated in the current module.
-		   (primitive-eval `(lambda ,formal-args ,@body)))
-
-;        (format (current-error-port) "macro `~a': ~a~%"
-; 	       macro-name (hashq-ref (&current-macros) macro-name))
+		   (catch #t
+		     (lambda ()
+		       (eval `(lambda ,formal-args ,@body)
+			     (&current-macro-module)))
+		     (lambda (key . args)
+		       (syntax-error l (string-append "failed to evaluate "
+						      "macro `" macro-name
+						      "'")
+				     (cons key args)))))
 
        (make:void)))
 
