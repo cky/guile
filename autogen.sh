@@ -11,6 +11,7 @@ else
   fi
 fi
 
-autoheader
-automake -a
+libtoolize &&  \
+autoheader &&  \
+automake -a && \
 autoconf

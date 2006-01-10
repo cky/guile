@@ -1,4 +1,7 @@
-SUBDIRS = src doc module testsuite
+SUBDIRS = src doc testsuite
+
+# FIXME: The `module' directory is removed from `SUBDIRS' until it can
+# actually be built.
 
 EXTRA_DIST = acconfig.h
 
