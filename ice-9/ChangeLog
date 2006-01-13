@@ -1,3 +1,8 @@
+2006-01-13  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* boot-9.scm (repl-reader): Use value of current-reader fluid to
+	do the read, if set.  (Thanks to Ludovic Courtès for the patch.)
+
 2005-12-14  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* boot-9.scm (load-module): Support an optional custom reader arg,

@@ -2540,7 +2540,7 @@
     (display prompt)
     (force-output)
     (run-hook before-read-hook)
-    (read (current-input-port))))
+    ((or (fluid-ref current-reader) read) (current-input-port))))
 
 (define (scm-style-repl)
 
