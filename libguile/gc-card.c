@@ -215,6 +215,7 @@ scm_i_sweep_card (scm_t_cell *  p, SCM *free_list, scm_t_heap_segment*seg)
 	  switch SCM_TYP16 (scmptr)
 	    {
 	    case scm_tc_free_cell:
+	      free_count --;
 	      break;
 	    default:
 	      {
