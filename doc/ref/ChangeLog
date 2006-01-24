@@ -1,3 +1,10 @@
+
+2005-12-19  Ludovic Courtès  <ludovic.courtes@laas.fr>
+
+        * api-data.texi (Operations Related to Symbols):
+        Documented `scm_take_locale_symbol ()'.
+
+	
 2005-12-15  Kevin Ryde  <user42@zip.com.au>
 
 	* api-evaluation.texi (Fly Evaluation): Add scm_call_4, suggested by

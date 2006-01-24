@@ -4551,6 +4551,16 @@ terminated; for @code{scm_from_locale_symboln} the length of @var{name} is
 specified explicitly by @var{len}.
 @end deffn
 
+@deftypefn  {C Function} SCM scm_take_locale_symbol (char *str)
+@deftypefnx {C Function} SCM scm_take_locale_symboln (char *str, size_t len)
+Like @code{scm_from_locale_symbol} and @code{scm_from_locale_symboln},
+respectively, but also frees @var{str} with @code{free} eventually.
+Thus, you can use this function when you would free @var{str} anyway
+immediately after creating the Scheme string.  In certain cases, Guile
+can then use @var{str} directly as its internal representation.
+@end deftypefn
+
+
 Finally, some applications, especially those that generate new Scheme
 code dynamically, need to generate symbols for use in the generated
 code.  The @code{gensym} primitive meets this need:

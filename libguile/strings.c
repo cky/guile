@@ -122,6 +122,17 @@ make_stringbuf (size_t len)
     }
 }
 
+/* Return a new stringbuf whose underlying storage consists of the LEN octets
+   pointed to by STR.  */
+SCM_C_INLINE SCM
+scm_i_take_stringbufn (char *str, size_t len)
+{
+  scm_gc_register_collectable_memory (str, len, "stringbuf");
+
+  return scm_double_cell (STRINGBUF_TAG, (scm_t_bits) str,
+			  (scm_t_bits) len, (scm_t_bits) 0);
+}
+
 SCM
 scm_i_stringbuf_mark (SCM buf)
 {
@@ -408,6 +419,29 @@ scm_i_make_symbol (SCM name, scm_t_bits flags,
 	      STRINGBUF_CHARS (buf) + start, length);
       buf = new_buf;
     }
+  return scm_double_cell (scm_tc7_symbol | flags, SCM_UNPACK (buf),
+			  (scm_t_bits) hash, SCM_UNPACK (props));
+}
+
+SCM
+scm_i_c_make_symbol (const char *name, size_t len,
+		     scm_t_bits flags, unsigned long hash, SCM props)
+{
+  SCM buf = make_stringbuf (len);
+  memcpy (STRINGBUF_CHARS (buf), name, len);
+
+  return scm_double_cell (scm_tc7_symbol | flags, SCM_UNPACK (buf),
+			  (scm_t_bits) hash, SCM_UNPACK (props));
+}
+
+/* Return a new symbol that uses the LEN bytes pointed to by NAME as its
+   underlying storage.  */
+SCM
+scm_i_c_take_symbol (char *name, size_t len,
+		     scm_t_bits flags, unsigned long hash, SCM props)
+{
+  SCM buf = scm_i_take_stringbufn (name, len);
+
   return scm_double_cell (scm_tc7_symbol | flags, SCM_UNPACK (buf),
 			  (scm_t_bits) hash, SCM_UNPACK (props));
 }
@@ -842,12 +876,10 @@ scm_take_locale_stringn (char *str, size_t len)
       str[len] = '\0';
     }
 
-  buf = scm_double_cell (STRINGBUF_TAG, (scm_t_bits) str,
-                         (scm_t_bits) len, (scm_t_bits) 0);
+  buf = scm_i_take_stringbufn (str, len);
   res = scm_double_cell (STRING_TAG,
                          SCM_UNPACK (buf),
                          (scm_t_bits) 0, (scm_t_bits) len);
-  scm_gc_register_collectable_memory (str, len+1, "string");
   return res;
 }
 

@@ -1,3 +1,24 @@
+2005-12-19  Ludovic Courtès  <ludovic.courtes@laas.fr>
+
+        * strings.c (scm_i_take_stringbufn): New.
+        (scm_i_c_take_symbol): New.
+        (scm_take_locale_stringn): Use `scm_i_take_stringbufn ()'.
+
+        * strings.h (scm_i_c_take_symbol): New.
+        (scm_i_take_stringbufn): New.
+
+        * symbols.c  (lookup_interned_symbol): New function.
+        (scm_i_c_mem2symbol): New function.
+        (scm_i_mem2symbol): Use `lookup_symbol ()'.
+        (scm_from_locale_symbol): Use `scm_i_c_mem2symbol ()'.  This avoids
+        creating a new Scheme string.
+        (scm_from_locale_symboln): Likewise.
+        (scm_take_locale_symbol): New.
+        (scm_take_locale_symboln): New.
+
+        * symbols.h (scm_take_locale_symbol): New.
+        (scm_take_locale_symboln): New.
+
 2006-01-18  Han-Wen Nienhuys  <hanwen@xs4all.nl>
 
 	* gc-card.c ("sweep_card"): don't count scm_tc_free_cell for

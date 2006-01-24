@@ -56,6 +56,8 @@ SCM_API SCM scm_gensym (SCM prefix);
 
 SCM_API SCM scm_from_locale_symbol (const char *str);
 SCM_API SCM scm_from_locale_symboln (const char *str, size_t len);
+SCM_API SCM scm_take_locale_symbol (char *sym);
+SCM_API SCM scm_take_locale_symboln (char *sym, size_t len);
 
 /* internal functions. */
 
