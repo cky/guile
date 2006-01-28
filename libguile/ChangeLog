@@ -1,3 +1,8 @@
+2006-01-28  Marius Vollmer  <mvo@zagadka.de>
+
+	* inline.h, pairs.c (scm_is_pair): Moved scm_is_pair from pairs.c
+	to inline.h to make it inline.
+
 2005-12-19  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
         * strings.c (scm_i_take_stringbufn): New.
