@@ -78,12 +78,6 @@ SCM_DEFINE (scm_pair_p, "pair?", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-int
-scm_is_pair (SCM x)
-{
-  return SCM_I_CONSP (x);
-}
-
 SCM
 scm_car (SCM pair)
 {

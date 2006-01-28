@@ -35,6 +35,7 @@
 #include "libguile/gc.h"
 #include "libguile/threads.h"
 #include "libguile/unif.h"
+#include "libguile/pairs.h"
 
 
 SCM_API SCM scm_cell (scm_t_bits car, scm_t_bits cdr);
@@ -233,6 +234,21 @@ void
 scm_array_handle_set (scm_t_array_handle *h, ssize_t p, SCM v)
 {
   h->set (h, p, v);
+}
+
+#if defined SCM_C_INLINE && ! defined SCM_INLINE_C_INCLUDING_INLINE_H
+/* definitely inlining */
+#ifdef __GNUC__
+extern
+#else
+static
+#endif
+SCM_C_INLINE
+#endif
+int
+scm_is_pair (SCM x)
+{
+  return SCM_I_CONSP (x);
 }
 
 #endif
