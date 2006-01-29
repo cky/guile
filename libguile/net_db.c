@@ -351,10 +351,10 @@ SCM_DEFINE (scm_getserv, "getserv", 0, 2, 0,
       return scm_return_entry (entry);
     }
 
-  scm_frame_begin (0);
+  scm_dynwind_begin (0);
 
   protoname = scm_to_locale_string (protocol);
-  scm_frame_free (protoname);
+  scm_dynwind_free (protoname);
 
   if (scm_is_string (name))
     {
@@ -372,7 +372,7 @@ SCM_DEFINE (scm_getserv, "getserv", 0, 2, 0,
   if (!entry)
     SCM_SYSERROR_MSG("no such service ~A", scm_list_1 (name), eno);
 
-  scm_frame_end ();
+  scm_dynwind_end ();
   return scm_return_entry (entry);
 }
 #undef FUNC_NAME

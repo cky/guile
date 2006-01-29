@@ -48,8 +48,8 @@ SCM_API SCM scm_call_with_blocked_asyncs (SCM proc);
 SCM_API SCM scm_call_with_unblocked_asyncs (SCM proc);
 void *scm_c_call_with_blocked_asyncs (void *(*p) (void *d), void *d);
 void *scm_c_call_with_unblocked_asyncs (void *(*p) (void *d), void *d);
-void scm_frame_block_asyncs (void);
-void scm_frame_unblock_asyncs (void);
+void scm_dynwind_block_asyncs (void);
+void scm_dynwind_unblock_asyncs (void);
 
 /* Critical sections */
 

@@ -158,7 +158,7 @@ SCM_API SCM scm_join_thread (SCM t);
 SCM_API SCM scm_make_mutex (void);
 SCM_API SCM scm_make_recursive_mutex (void);
 SCM_API SCM scm_lock_mutex (SCM m);
-SCM_API void scm_frame_lock_mutex (SCM mutex);
+SCM_API void scm_dynwind_lock_mutex (SCM mutex);
 SCM_API SCM scm_try_mutex (SCM m);
 SCM_API SCM scm_unlock_mutex (SCM m);
 
@@ -175,7 +175,7 @@ SCM_API SCM scm_all_threads (void);
 SCM_API int scm_c_thread_exited_p (SCM thread);
 SCM_API SCM scm_thread_exited_p (SCM thread);
 
-SCM_API void scm_frame_critical_section (SCM mutex);
+SCM_API void scm_dynwind_critical_section (SCM mutex);
 
 #define SCM_I_CURRENT_THREAD \
   ((scm_i_thread *) scm_i_pthread_getspecific (scm_i_thread_key))
@@ -195,7 +195,7 @@ SCM_API scm_i_pthread_mutex_t scm_i_misc_mutex;
 
 #if SCM_USE_PTHREAD_THREADS
 SCM_API int scm_pthread_mutex_lock (pthread_mutex_t *mutex);
-SCM_API void scm_frame_pthread_mutex_lock (pthread_mutex_t *mutex);
+SCM_API void scm_dynwind_pthread_mutex_lock (pthread_mutex_t *mutex);
 SCM_API int scm_pthread_cond_wait (pthread_cond_t *cond,
 				   pthread_mutex_t *mutex);
 SCM_API int scm_pthread_cond_timedwait (pthread_cond_t *cond,

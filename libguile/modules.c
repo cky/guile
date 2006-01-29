@@ -92,9 +92,9 @@ scm_c_call_with_current_module (SCM module,
 }
 
 void
-scm_frame_current_module (SCM module)
+scm_dynwind_current_module (SCM module)
 {
-  scm_frame_fluid (the_module, module);
+  scm_dynwind_fluid (the_module, module);
 }
 
 /*

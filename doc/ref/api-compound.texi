@@ -2326,21 +2326,22 @@ error is signalled.
 the danger of a deadlock.  In a multi-threaded program, you will need
 additional synchronization to avoid modifying reserved arrays.)
 
-You must take care to always unreserve an array after reserving it, also
-in the presence of non-local exits.  To simplify this, reserving and
-unreserving work like a frame (@pxref{Frames}): a call to
-@code{scm_array_get_handle} can be thought of as beginning a frame and
-@code{scm_array_handle_release} as ending it.  When a non-local exit
-happens between these two calls, the array is implicitely unreserved.
+You must take care to always unreserve an array after reserving it,
+also in the presence of non-local exits.  To simplify this, reserving
+and unreserving work like a dynwind context (@pxref{Dynamic Wind}): a
+call to @code{scm_array_get_handle} can be thought of as beginning a
+dynwind context and @code{scm_array_handle_release} as ending it.
+When a non-local exit happens between these two calls, the array is
+implicitely unreserved.
 
 That is, you need to properly pair reserving and unreserving in your
 code, but you don't need to worry about non-local exits.
 
-These calls and other pairs of calls that establish dynamic contexts
-need to be properly nested.  If you begin a frame prior to reserving an
-array, you need to unreserve the array before ending the frame.
-Likewise, when reserving two or more arrays in a certain order, you need
-to unreserve them in the opposite order.
+These calls and other pairs of calls that establish dynwind contexts
+need to be properly nested.  If you begin a context prior to reserving
+an array, you need to unreserve the array before ending the context.
+Likewise, when reserving two or more arrays in a certain order, you
+need to unreserve them in the opposite order.
 
 Once you have reserved an array and have retrieved the pointer to its
 elements, you must figure out the layout of the elements in memory.
@@ -2356,11 +2357,11 @@ indices.  The scalar position then is the offset of the element with the
 given indices from the start of the storage block of the array.
 
 In Guile, this mapping function is restricted to be @dfn{affine}: all
-mapping function of Guile arrays can be written as @code{p = b +
+mapping functions of Guile arrays can be written as @code{p = b +
 c[0]*i[0] + c[1]*i[1] + ... + c[n-1]*i[n-1]} where @code{i[k]} is the
-@nicode{k}th index and @code{n} is the rank of the array.  For example,
-a matrix of size 3x3 would have @code{b == 0}, @code{c[0] == 3} and
-@code{c[1] == 1}.  When you transpose this matrix (with
+@nicode{k}th index and @code{n} is the rank of the array.  For
+example, a matrix of size 3x3 would have @code{b == 0}, @code{c[0] ==
+3} and @code{c[1] == 1}.  When you transpose this matrix (with
 @code{transpose-array}, say), you will get an array whose mapping
 function has @code{b == 0}, @code{c[0] == 1} and @code{c[1] == 3}.
 

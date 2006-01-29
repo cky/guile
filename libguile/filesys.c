@@ -194,13 +194,13 @@
   do {                                               \
     int eno;                                         \
     char *cstr1, *cstr2;                             \
-    scm_frame_begin (0);                             \
+    scm_dynwind_begin (0);                             \
     cstr1 = scm_to_locale_string (str1);             \
-    scm_frame_free (cstr1);                          \
+    scm_dynwind_free (cstr1);                          \
     cstr2 = scm_to_locale_string (str2);             \
-    scm_frame_free (cstr2);                          \
+    scm_dynwind_free (cstr2);                          \
     SCM_SYSCALL (code);                              \
-    eno = errno; scm_frame_end (); errno = eno;      \
+    eno = errno; scm_dynwind_end (); errno = eno;      \
   } while (0)
 
 
@@ -1384,10 +1384,10 @@ SCM_DEFINE (scm_readlink, "readlink", 1, 0, 0,
   SCM result;
   char *c_path;
   
-  scm_frame_begin (0);
+  scm_dynwind_begin (0);
 
   c_path = scm_to_locale_string (path);
-  scm_frame_free (c_path);
+  scm_dynwind_free (c_path);
 
   buf = scm_malloc (size);
 
@@ -1406,7 +1406,7 @@ SCM_DEFINE (scm_readlink, "readlink", 1, 0, 0,
     }
   result = scm_take_locale_stringn (buf, rv);
 
-  scm_frame_end ();
+  scm_dynwind_end ();
   return result;
 }
 #undef FUNC_NAME
@@ -1449,12 +1449,12 @@ SCM_DEFINE (scm_copy_file, "copy-file", 2, 0, 0,
   char buf[BUFSIZ];
   struct stat oldstat;
 
-  scm_frame_begin (0);
+  scm_dynwind_begin (0);
   
   c_oldfile = scm_to_locale_string (oldfile);
-  scm_frame_free (c_oldfile);
+  scm_dynwind_free (c_oldfile);
   c_newfile = scm_to_locale_string (newfile);
-  scm_frame_free (c_newfile);
+  scm_dynwind_free (c_newfile);
 
   oldfd = open (c_oldfile, O_RDONLY);
   if (oldfd == -1)
@@ -1489,7 +1489,7 @@ SCM_DEFINE (scm_copy_file, "copy-file", 2, 0, 0,
   if (close (newfd) == -1)
     SCM_SYSERROR;
 
-  scm_frame_end ();
+  scm_dynwind_end ();
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME

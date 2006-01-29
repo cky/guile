@@ -436,38 +436,38 @@ SCM_DEFINE (scm_set_current_error_port, "set-current-error-port", 1, 0, 0,
 #undef FUNC_NAME
 
 void
-scm_frame_current_input_port (SCM port)
+scm_dynwind_current_input_port (SCM port)
 #define FUNC_NAME NULL
 {
   SCM_VALIDATE_OPINPORT (1, port);
-  scm_frame_fluid (cur_inport_fluid, port);
+  scm_dynwind_fluid (cur_inport_fluid, port);
 }
 #undef FUNC_NAME
 
 void
-scm_frame_current_output_port (SCM port)
+scm_dynwind_current_output_port (SCM port)
 #define FUNC_NAME NULL
 {
   port = SCM_COERCE_OUTPORT (port);
   SCM_VALIDATE_OPOUTPORT (1, port);
-  scm_frame_fluid (cur_outport_fluid, port);
+  scm_dynwind_fluid (cur_outport_fluid, port);
 }
 #undef FUNC_NAME
 
 void
-scm_frame_current_error_port (SCM port)
+scm_dynwind_current_error_port (SCM port)
 #define FUNC_NAME NULL
 {
   port = SCM_COERCE_OUTPORT (port);
   SCM_VALIDATE_OPOUTPORT (1, port);
-  scm_frame_fluid (cur_errport_fluid, port);
+  scm_dynwind_fluid (cur_errport_fluid, port);
 }
 #undef FUNC_NAME
 
 void
-scm_i_frame_current_load_port (SCM port)
+scm_i_dynwind_current_load_port (SCM port)
 {
-  scm_frame_fluid (cur_loadport_fluid, port);
+  scm_dynwind_fluid (cur_loadport_fluid, port);
 }
 
 

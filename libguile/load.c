@@ -88,8 +88,8 @@ SCM_DEFINE (scm_primitive_load, "primitive-load", 1, 0, 0,
 
   { /* scope */
     SCM port = scm_open_file (filename, scm_from_locale_string ("r"));
-    scm_frame_begin (SCM_F_FRAME_REWINDABLE);
-    scm_i_frame_current_load_port (port);
+    scm_dynwind_begin (SCM_F_DYNWIND_REWINDABLE);
+    scm_i_dynwind_current_load_port (port);
 
     while (1)
       {
@@ -109,7 +109,7 @@ SCM_DEFINE (scm_primitive_load, "primitive-load", 1, 0, 0,
 	scm_primitive_eval_x (form);
       }
 
-    scm_frame_end ();
+    scm_dynwind_end ();
     scm_close_port (port);
   }
   return SCM_UNSPECIFIED;
@@ -316,11 +316,11 @@ SCM_DEFINE (scm_search_path, "search-path", 2, 1, 0,
   if (SCM_UNBNDP (extensions))
     extensions = SCM_EOL;
 
-  scm_frame_begin (0);
+  scm_dynwind_begin (0);
 
   filename_chars = scm_to_locale_string (filename);
   filename_len = strlen (filename_chars);
-  scm_frame_free (filename_chars);
+  scm_dynwind_free (filename_chars);
 
   /* If FILENAME is absolute, return it unchanged.  */
 #ifdef __MINGW32__
@@ -334,7 +334,7 @@ SCM_DEFINE (scm_search_path, "search-path", 2, 1, 0,
   if (filename_len >= 1 && filename_chars[0] == '/')
 #endif
     {
-      scm_frame_end ();
+      scm_dynwind_end ();
       return filename;
     }
 
@@ -371,7 +371,7 @@ SCM_DEFINE (scm_search_path, "search-path", 2, 1, 0,
 
   buf.buf_len = 512;
   buf.buf = scm_malloc (buf.buf_len);
-  scm_frame_unwind_handler (stringbuf_free, &buf, SCM_F_WIND_EXPLICITLY);
+  scm_dynwind_unwind_handler (stringbuf_free, &buf, SCM_F_WIND_EXPLICITLY);
 
   /* Try every path element.
    */
@@ -424,7 +424,7 @@ SCM_DEFINE (scm_search_path, "search-path", 2, 1, 0,
     scm_wrong_type_arg_msg (NULL, 0, path, "proper list");
 
  end:
-  scm_frame_end ();
+  scm_dynwind_end ();
   return result;
 }
 #undef FUNC_NAME

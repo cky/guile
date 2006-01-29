@@ -77,12 +77,12 @@ load_extension (SCM lib, SCM init)
       extension_t *ext;
       char *clib, *cinit;
 
-      scm_frame_begin (0);
+      scm_dynwind_begin (0);
 
       clib = scm_to_locale_string (lib);
-      scm_frame_free (clib);
+      scm_dynwind_free (clib);
       cinit = scm_to_locale_string (init);
-      scm_frame_free (cinit);
+      scm_dynwind_free (cinit);
 
       for (ext = registered_extensions; ext; ext = ext->next)
 	if ((ext->lib == NULL || !strcmp (ext->lib, clib))
@@ -92,7 +92,7 @@ load_extension (SCM lib, SCM init)
 	    break;
 	  }
 
-      scm_frame_end ();
+      scm_dynwind_end ();
     }
 
   /* Dynamically link the library. */

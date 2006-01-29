@@ -94,10 +94,10 @@ SCM_DEFINE (scm_gettext, "gettext", 1, 2, 0,
   char const *c_result;
   SCM result;
 
-  scm_frame_begin (0);
+  scm_dynwind_begin (0);
 
   c_msgid = scm_to_locale_string (msgid);
-  scm_frame_free (c_msgid);
+  scm_dynwind_free (c_msgid);
 
   if (SCM_UNBNDP (domain))
     {
@@ -109,7 +109,7 @@ SCM_DEFINE (scm_gettext, "gettext", 1, 2, 0,
       char *c_domain;
 
       c_domain = scm_to_locale_string (domain);
-      scm_frame_free (c_domain);
+      scm_dynwind_free (c_domain);
 
       if (SCM_UNBNDP (category))
 	{
@@ -131,7 +131,7 @@ SCM_DEFINE (scm_gettext, "gettext", 1, 2, 0,
   else
     result = scm_from_locale_string (c_result);
 
-  scm_frame_end ();
+  scm_dynwind_end ();
   return result;
 }
 #undef FUNC_NAME
@@ -152,13 +152,13 @@ SCM_DEFINE (scm_ngettext, "ngettext", 3, 2, 0,
   const char *c_result;
   SCM result;
 
-  scm_frame_begin (0);
+  scm_dynwind_begin (0);
 
   c_msgid = scm_to_locale_string (msgid);
-  scm_frame_free (c_msgid);
+  scm_dynwind_free (c_msgid);
 
   c_msgid_plural = scm_to_locale_string (msgid_plural);
-  scm_frame_free (c_msgid_plural);
+  scm_dynwind_free (c_msgid_plural);
 
   c_n = scm_to_ulong (n);
 
@@ -172,7 +172,7 @@ SCM_DEFINE (scm_ngettext, "ngettext", 3, 2, 0,
       char *c_domain;
 
       c_domain = scm_to_locale_string (domain);
-      scm_frame_free (c_domain);
+      scm_dynwind_free (c_domain);
 
       if (SCM_UNBNDP (category))
 	{
@@ -197,7 +197,7 @@ SCM_DEFINE (scm_ngettext, "ngettext", 3, 2, 0,
   else
     result = scm_from_locale_string (c_result);
   
-  scm_frame_end ();
+  scm_dynwind_end ();
   return result;
 }
 #undef FUNC_NAME
@@ -213,14 +213,14 @@ SCM_DEFINE (scm_textdomain, "textdomain", 0, 1, 0,
   char *c_domain;
   SCM result = SCM_BOOL_F;
 
-  scm_frame_begin (0);
+  scm_dynwind_begin (0);
 
   if (SCM_UNBNDP (domainname))
     c_domain = NULL;
   else
     {
       c_domain = scm_to_locale_string (domainname);
-      scm_frame_free (c_domain);
+      scm_dynwind_free (c_domain);
     }
 
   c_result = textdomain (c_domain);
@@ -229,7 +229,7 @@ SCM_DEFINE (scm_textdomain, "textdomain", 0, 1, 0,
   else if (!SCM_UNBNDP (domainname))
     SCM_SYSERROR;
 
-  scm_frame_end ();
+  scm_dynwind_end ();
   return result;
 }
 #undef FUNC_NAME
@@ -246,18 +246,18 @@ SCM_DEFINE (scm_bindtextdomain, "bindtextdomain", 1, 1, 0,
   char const *c_result;
   SCM result;
 
-  scm_frame_begin (0);
+  scm_dynwind_begin (0);
 
   if (SCM_UNBNDP (directory))
     c_directory = NULL;
   else
     {
       c_directory = scm_to_locale_string (directory);
-      scm_frame_free (c_directory);
+      scm_dynwind_free (c_directory);
     }
 
   c_domain = scm_to_locale_string (domainname);
-  scm_frame_free (c_domain);
+  scm_dynwind_free (c_domain);
 
   c_result = bindtextdomain (c_domain, c_directory);
 
@@ -268,7 +268,7 @@ SCM_DEFINE (scm_bindtextdomain, "bindtextdomain", 1, 1, 0,
   else
     result = SCM_BOOL_F;
 
-  scm_frame_end ();
+  scm_dynwind_end ();
   return result;
 }
 #undef FUNC_NAME
@@ -285,18 +285,18 @@ SCM_DEFINE (scm_bind_textdomain_codeset, "bind-textdomain-codeset", 1, 1, 0,
   char const *c_result;
   SCM result;
 
-  scm_frame_begin (0);
+  scm_dynwind_begin (0);
 
   if (SCM_UNBNDP (encoding))
     c_encoding = NULL;
   else
     {
       c_encoding = scm_to_locale_string (encoding);
-      scm_frame_free (c_encoding);
+      scm_dynwind_free (c_encoding);
     }
 
   c_domain = scm_to_locale_string (domainname);
-  scm_frame_free (c_domain);
+  scm_dynwind_free (c_domain);
 
   c_result = bind_textdomain_codeset (c_domain, c_encoding);
 
@@ -307,7 +307,7 @@ SCM_DEFINE (scm_bind_textdomain_codeset, "bind-textdomain-codeset", 1, 1, 0,
   else
     result = SCM_BOOL_F;
 
-  scm_frame_end ();
+  scm_dynwind_end ();
   return result;
 }
 #undef FUNC_NAME

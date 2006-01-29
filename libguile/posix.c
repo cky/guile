@@ -933,20 +933,20 @@ SCM_DEFINE (scm_execl, "execl", 1, 0, 1,
   char *exec_file;
   char **exec_argv;
 
-  scm_frame_begin (0);
+  scm_dynwind_begin (0);
 
   exec_file = scm_to_locale_string (filename);
-  scm_frame_free (exec_file);
+  scm_dynwind_free (exec_file);
 
   exec_argv = scm_i_allocate_string_pointers (args);
-  scm_frame_unwind_handler (free_string_pointers, exec_argv, 
+  scm_dynwind_unwind_handler (free_string_pointers, exec_argv, 
 			    SCM_F_WIND_EXPLICITLY);
 
   execv (exec_file, exec_argv);
   SCM_SYSERROR;
 
   /* not reached.  */
-  scm_frame_end ();
+  scm_dynwind_end ();
   return SCM_BOOL_F;
 }
 #undef FUNC_NAME
@@ -964,20 +964,20 @@ SCM_DEFINE (scm_execlp, "execlp", 1, 0, 1,
   char *exec_file;
   char **exec_argv;
 
-  scm_frame_begin (0);
+  scm_dynwind_begin (0);
 
   exec_file = scm_to_locale_string (filename);
-  scm_frame_free (exec_file);
+  scm_dynwind_free (exec_file);
 
   exec_argv = scm_i_allocate_string_pointers (args);
-  scm_frame_unwind_handler (free_string_pointers, exec_argv, 
+  scm_dynwind_unwind_handler (free_string_pointers, exec_argv, 
 			    SCM_F_WIND_EXPLICITLY);
 
   execvp (exec_file, exec_argv);
   SCM_SYSERROR;
 
   /* not reached.  */
-  scm_frame_end ();
+  scm_dynwind_end ();
   return SCM_BOOL_F;
 }
 #undef FUNC_NAME
@@ -999,24 +999,24 @@ SCM_DEFINE (scm_execle, "execle", 2, 0, 1,
   char **exec_env;
   char *exec_file;
 
-  scm_frame_begin (0);
+  scm_dynwind_begin (0);
 
   exec_file = scm_to_locale_string (filename);
-  scm_frame_free (exec_file);
+  scm_dynwind_free (exec_file);
 
   exec_argv = scm_i_allocate_string_pointers (args);
-  scm_frame_unwind_handler (free_string_pointers, exec_argv,
+  scm_dynwind_unwind_handler (free_string_pointers, exec_argv,
 			    SCM_F_WIND_EXPLICITLY);
 
   exec_env = scm_i_allocate_string_pointers (env);
-  scm_frame_unwind_handler (free_string_pointers, exec_env,
+  scm_dynwind_unwind_handler (free_string_pointers, exec_env,
 			    SCM_F_WIND_EXPLICITLY);
 
   execve (exec_file, exec_argv, exec_env);
   SCM_SYSERROR;
 
   /* not reached.  */
-  scm_frame_end ();
+  scm_dynwind_end ();
   return SCM_BOOL_F;
 }
 #undef FUNC_NAME
@@ -1147,10 +1147,10 @@ SCM_DEFINE (scm_mkstemp, "mkstemp!", 1, 0, 0,
   char *c_tmpl;
   int rv;
   
-  scm_frame_begin (0);
+  scm_dynwind_begin (0);
 
   c_tmpl = scm_to_locale_string (tmpl);
-  scm_frame_free (c_tmpl);
+  scm_dynwind_free (c_tmpl);
 
   SCM_SYSCALL (rv = mkstemp (c_tmpl));
   if (rv == -1)
@@ -1160,7 +1160,7 @@ SCM_DEFINE (scm_mkstemp, "mkstemp!", 1, 0, 0,
 			SCM_INUM0, scm_string_length (tmpl),
 			tmpl, SCM_INUM0);
 
-  scm_frame_end ();
+  scm_dynwind_end ();
   return scm_fdes_to_port (rv, "w+", tmpl);
 }
 #undef FUNC_NAME
@@ -1361,7 +1361,7 @@ SCM_DEFINE (scm_setlocale, "setlocale", 1, 1, 0,
   char *clocale;
   char *rv;
 
-  scm_frame_begin (0);
+  scm_dynwind_begin (0);
 
   if (SCM_UNBNDP (locale))
     {
@@ -1370,7 +1370,7 @@ SCM_DEFINE (scm_setlocale, "setlocale", 1, 1, 0,
   else
     {
       clocale = scm_to_locale_string (locale);
-      scm_frame_free (clocale);
+      scm_dynwind_free (clocale);
     }
 
   rv = setlocale (scm_i_to_lc_category (category, 1), clocale);
@@ -1383,7 +1383,7 @@ SCM_DEFINE (scm_setlocale, "setlocale", 1, 1, 0,
       SCM_SYSERROR;
     }
 
-  scm_frame_end ();
+  scm_dynwind_end ();
   return scm_from_locale_string (rv);
 }
 #undef FUNC_NAME
@@ -1505,17 +1505,17 @@ SCM_DEFINE (scm_crypt, "crypt", 2, 0, 0,
   SCM ret;
   char *c_key, *c_salt;
 
-  scm_frame_begin (0);
-  scm_i_frame_pthread_mutex_lock (&scm_i_misc_mutex);
+  scm_dynwind_begin (0);
+  scm_i_dynwind_pthread_mutex_lock (&scm_i_misc_mutex);
 
   c_key = scm_to_locale_string (key);
-  scm_frame_free (c_key);
+  scm_dynwind_free (c_key);
   c_salt = scm_to_locale_string (salt);
-  scm_frame_free (c_salt);
+  scm_dynwind_free (c_salt);
 
   ret = scm_from_locale_string (crypt (c_key, c_salt));
 
-  scm_frame_end ();
+  scm_dynwind_end ();
   return ret;
 }
 #undef FUNC_NAME
@@ -1831,8 +1831,8 @@ SCM_DEFINE (scm_gethostname, "gethostname", 0, 0, 0,
   char *const p = scm_malloc (len);
   const int res = gethostname (p, len);
 
-  scm_frame_begin (0);
-  scm_frame_unwind_handler (free, p, 0);
+  scm_dynwind_begin (0);
+  scm_dynwind_unwind_handler (free, p, 0);
 
 #else
 
@@ -1858,8 +1858,8 @@ SCM_DEFINE (scm_gethostname, "gethostname", 0, 0, 0,
 
   p = scm_malloc (len);
 
-  scm_frame_begin (0);
-  scm_frame_unwind_handler (free, p, 0);
+  scm_dynwind_begin (0);
+  scm_dynwind_unwind_handler (free, p, 0);
 
   res = gethostname (p, len);
   while (res == -1 && errno == ENAMETOOLONG)
@@ -1878,7 +1878,7 @@ SCM_DEFINE (scm_gethostname, "gethostname", 0, 0, 0,
       const int save_errno = errno;
 
       // No guile exceptions can occur before we have freed p's memory.
-      scm_frame_end ();
+      scm_dynwind_end ();
       free (p);
 
       errno = save_errno;
@@ -1890,7 +1890,7 @@ SCM_DEFINE (scm_gethostname, "gethostname", 0, 0, 0,
       const SCM name = scm_from_locale_string (p);
 
       // No guile exceptions can occur before we have freed p's memory.
-      scm_frame_end ();
+      scm_dynwind_end ();
       free (p);
 
       return name;

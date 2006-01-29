@@ -454,22 +454,22 @@ scm_c_call_with_unblocked_asyncs (void *(*proc) (void *data), void *data)
 }
 
 void
-scm_frame_block_asyncs ()
+scm_dynwind_block_asyncs ()
 {
   scm_i_thread *t = SCM_I_CURRENT_THREAD;
-  scm_frame_rewind_handler (increase_block, t, SCM_F_WIND_EXPLICITLY);
-  scm_frame_unwind_handler (decrease_block, t, SCM_F_WIND_EXPLICITLY);
+  scm_dynwind_rewind_handler (increase_block, t, SCM_F_WIND_EXPLICITLY);
+  scm_dynwind_unwind_handler (decrease_block, t, SCM_F_WIND_EXPLICITLY);
 }
 
 void
-scm_frame_unblock_asyncs ()
+scm_dynwind_unblock_asyncs ()
 {
   scm_i_thread *t = SCM_I_CURRENT_THREAD;
   if (t->block_asyncs == 0)
     scm_misc_error ("scm_with_unblocked_asyncs", 
 		    "asyncs already unblocked", SCM_EOL);
-  scm_frame_rewind_handler (decrease_block, t, SCM_F_WIND_EXPLICITLY);
-  scm_frame_unwind_handler (increase_block, t, SCM_F_WIND_EXPLICITLY);
+  scm_dynwind_rewind_handler (decrease_block, t, SCM_F_WIND_EXPLICITLY);
+  scm_dynwind_unwind_handler (increase_block, t, SCM_F_WIND_EXPLICITLY);
 }
 
 

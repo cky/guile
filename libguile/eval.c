@@ -3099,14 +3099,14 @@ SCM_DEFINE (scm_eval_options_interface, "eval-options-interface", 0, 1, 0,
 {
   SCM ans;
   
-  scm_frame_begin (0);
-  scm_frame_critical_section (SCM_BOOL_F);
+  scm_dynwind_begin (0);
+  scm_dynwind_critical_section (SCM_BOOL_F);
   ans = scm_options (setting,
 		     scm_eval_opts,
 		     SCM_N_EVAL_OPTIONS,
 		     FUNC_NAME);
   scm_eval_stack = SCM_EVAL_STACK * sizeof (void *);
-  scm_frame_end ();
+  scm_dynwind_end ();
 
   return ans;
 }
@@ -5908,15 +5908,15 @@ scm_eval_x (SCM exp, SCM module_or_state)
 {
   SCM res;
 
-  scm_frame_begin (SCM_F_FRAME_REWINDABLE);
+  scm_dynwind_begin (SCM_F_DYNWIND_REWINDABLE);
   if (scm_is_dynamic_state (module_or_state))
-    scm_frame_current_dynamic_state (module_or_state);
+    scm_dynwind_current_dynamic_state (module_or_state);
   else
-    scm_frame_current_module (module_or_state);
+    scm_dynwind_current_module (module_or_state);
 
   res = scm_primitive_eval_x (exp);
 
-  scm_frame_end ();
+  scm_dynwind_end ();
   return res;
 }
 
@@ -5934,15 +5934,15 @@ SCM_DEFINE (scm_eval, "eval", 2, 0, 0,
 {
   SCM res;
 
-  scm_frame_begin (SCM_F_FRAME_REWINDABLE);
+  scm_dynwind_begin (SCM_F_DYNWIND_REWINDABLE);
   if (scm_is_dynamic_state (module_or_state))
-    scm_frame_current_dynamic_state (module_or_state);
+    scm_dynwind_current_dynamic_state (module_or_state);
   else
-    scm_frame_current_module (module_or_state);
+    scm_dynwind_current_module (module_or_state);
 
   res = scm_primitive_eval (exp);
 
-  scm_frame_end ();
+  scm_dynwind_end ();
   return res;
 }
 #undef FUNC_NAME

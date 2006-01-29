@@ -199,8 +199,8 @@ next_fluid_num ()
 {
   size_t n;
 
-  scm_frame_begin (0);
-  scm_i_frame_pthread_mutex_lock (&fluid_admin_mutex);
+  scm_dynwind_begin (0);
+  scm_i_dynwind_pthread_mutex_lock (&fluid_admin_mutex);
 
   if ((allocated_fluids_len > 0) &&
       (allocated_fluids_num == allocated_fluids_len))
@@ -248,7 +248,7 @@ next_fluid_num ()
   allocated_fluids_num += 1;
   allocated_fluids[n] = 1;
   
-  scm_frame_end ();
+  scm_dynwind_end ();
   return n;
 }
 
@@ -420,13 +420,13 @@ scm_c_with_fluids (SCM fluids, SCM values, SCM (*cproc) (), void *cdata)
 			     cproc, cdata);
   
   data = scm_cons (fluids, values);
-  scm_frame_begin (SCM_F_FRAME_REWINDABLE);
-  scm_frame_rewind_handler_with_scm (swap_fluids, data,
+  scm_dynwind_begin (SCM_F_DYNWIND_REWINDABLE);
+  scm_dynwind_rewind_handler_with_scm (swap_fluids, data,
 				     SCM_F_WIND_EXPLICITLY);
-  scm_frame_unwind_handler_with_scm (swap_fluids_reverse, data,
+  scm_dynwind_unwind_handler_with_scm (swap_fluids_reverse, data,
 				     SCM_F_WIND_EXPLICITLY);
   ans = cproc (cdata);
-  scm_frame_end ();
+  scm_dynwind_end ();
   return ans;
 }
 #undef FUNC_NAME
@@ -448,10 +448,10 @@ scm_c_with_fluid (SCM fluid, SCM value, SCM (*cproc) (), void *cdata)
 {
   SCM ans;
 
-  scm_frame_begin (SCM_F_FRAME_REWINDABLE);
-  scm_frame_fluid (fluid, value);
+  scm_dynwind_begin (SCM_F_DYNWIND_REWINDABLE);
+  scm_dynwind_fluid (fluid, value);
   ans = cproc (cdata);
-  scm_frame_end ();
+  scm_dynwind_end ();
   return ans;
 }
 #undef FUNC_NAME
@@ -466,11 +466,11 @@ swap_fluid (SCM data)
 }
 
 void
-scm_frame_fluid (SCM fluid, SCM value)
+scm_dynwind_fluid (SCM fluid, SCM value)
 {
   SCM data = scm_cons (fluid, value);
-  scm_frame_rewind_handler_with_scm (swap_fluid, data, SCM_F_WIND_EXPLICITLY);
-  scm_frame_unwind_handler_with_scm (swap_fluid, data, SCM_F_WIND_EXPLICITLY);
+  scm_dynwind_rewind_handler_with_scm (swap_fluid, data, SCM_F_WIND_EXPLICITLY);
+  scm_dynwind_unwind_handler_with_scm (swap_fluid, data, SCM_F_WIND_EXPLICITLY);
 }
 
 SCM
@@ -558,13 +558,13 @@ swap_dynamic_state (SCM loc)
 }
 
 void
-scm_frame_current_dynamic_state (SCM state)
+scm_dynwind_current_dynamic_state (SCM state)
 {
   SCM loc = scm_cons (state, SCM_EOL);
   scm_assert_smob_type (tc16_dynamic_state, state);
-  scm_frame_rewind_handler_with_scm (swap_dynamic_state, loc,
+  scm_dynwind_rewind_handler_with_scm (swap_dynamic_state, loc,
 				     SCM_F_WIND_EXPLICITLY);
-  scm_frame_unwind_handler_with_scm (swap_dynamic_state, loc,
+  scm_dynwind_unwind_handler_with_scm (swap_dynamic_state, loc,
 				     SCM_F_WIND_EXPLICITLY);
 }
 
@@ -572,10 +572,10 @@ void *
 scm_c_with_dynamic_state (SCM state, void *(*func)(void *), void *data)
 {
   void *result;
-  scm_frame_begin (SCM_F_FRAME_REWINDABLE);
-  scm_frame_current_dynamic_state (state);
+  scm_dynwind_begin (SCM_F_DYNWIND_REWINDABLE);
+  scm_dynwind_current_dynamic_state (state);
   result = func (data);
-  scm_frame_end ();
+  scm_dynwind_end ();
   return result;
 }
 
@@ -586,10 +586,10 @@ SCM_DEFINE (scm_with_dynamic_state, "with-dynamic-state", 2, 0, 0,
 #define FUNC_NAME s_scm_with_dynamic_state
 {
   SCM result;
-  scm_frame_begin (SCM_F_FRAME_REWINDABLE);
-  scm_frame_current_dynamic_state (state);
+  scm_dynwind_begin (SCM_F_DYNWIND_REWINDABLE);
+  scm_dynwind_current_dynamic_state (state);
   result = scm_call_0 (proc);
-  scm_frame_end ();
+  scm_dynwind_end ();
   return result;
 }
 #undef FUNC_NAME

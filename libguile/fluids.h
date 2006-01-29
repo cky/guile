@@ -70,14 +70,14 @@ SCM_API SCM scm_c_with_fluid (SCM fluid, SCM val,
 SCM_API SCM scm_with_fluids (SCM fluids, SCM vals, SCM thunk);
 SCM_API SCM scm_with_fluid (SCM fluid, SCM val, SCM thunk);
 
-SCM_API void scm_frame_fluid (SCM fluid, SCM value);
+SCM_API void scm_dynwind_fluid (SCM fluid, SCM value);
 
 SCM_API SCM scm_make_dynamic_state (SCM parent);
 SCM_API SCM scm_dynamic_state_p (SCM obj);
 SCM_API int scm_is_dynamic_state (SCM obj);
 SCM_API SCM scm_current_dynamic_state (void);
 SCM_API SCM scm_set_current_dynamic_state (SCM state);
-SCM_API void scm_frame_current_dynamic_state (SCM state);
+SCM_API void scm_dynwind_current_dynamic_state (SCM state);
 SCM_API void *scm_c_with_dynamic_state (SCM state, 
 					void *(*func)(void *), void *data);
 SCM_API SCM scm_with_dynamic_state (SCM state, SCM proc);

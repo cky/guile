@@ -43,27 +43,27 @@ SCM_API void scm_init_dynwind (void);
 SCM_API void scm_swap_bindings (SCM vars, SCM vals);
 
 typedef enum {
-  SCM_F_FRAME_REWINDABLE = (1 << 0)
-} scm_t_frame_flags;
+  SCM_F_DYNWIND_REWINDABLE = (1 << 0)
+} scm_t_dynwind_flags;
 
 typedef enum {
   SCM_F_WIND_EXPLICITLY = (1 << 0)
 } scm_t_wind_flags;
 
-SCM_API void scm_frame_begin (scm_t_frame_flags);
-SCM_API void scm_frame_end (void);
+SCM_API void scm_dynwind_begin (scm_t_dynwind_flags);
+SCM_API void scm_dynwind_end (void);
 
-SCM_API void scm_frame_unwind_handler (void (*func) (void *), void *data,
-				       scm_t_wind_flags);
-SCM_API void scm_frame_rewind_handler (void (*func) (void *), void *data,
-				       scm_t_wind_flags);
+SCM_API void scm_dynwind_unwind_handler (void (*func) (void *), void *data,
+					 scm_t_wind_flags);
+SCM_API void scm_dynwind_rewind_handler (void (*func) (void *), void *data,
+					 scm_t_wind_flags);
 
-SCM_API void scm_frame_unwind_handler_with_scm (void (*func) (SCM), SCM data,
-						scm_t_wind_flags);
-SCM_API void scm_frame_rewind_handler_with_scm (void (*func) (SCM), SCM data,
-						scm_t_wind_flags);
+SCM_API void scm_dynwind_unwind_handler_with_scm (void (*func) (SCM), SCM data,
+						  scm_t_wind_flags);
+SCM_API void scm_dynwind_rewind_handler_with_scm (void (*func) (SCM), SCM data,
+						  scm_t_wind_flags);
 
-SCM_API void scm_frame_free (void *mem);
+SCM_API void scm_dynwind_free (void *mem);
 
 #ifdef GUILE_DEBUG
 SCM_API SCM scm_wind_chain (void);

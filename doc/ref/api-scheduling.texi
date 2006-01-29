@@ -115,9 +115,9 @@ them temporarily.
 
 In addition to the C versions of @code{call-with-blocked-asyncs} and
 @code{call-with-unblocked-asyncs}, C code can use
-@code{scm_frame_block_asyncs} and @code{scm_frame_unblock_asyncs}
-inside a @dfn{frame} (@pxref{Frames}) to block or unblock system asyncs
-temporarily.
+@code{scm_dynwind_block_asyncs} and @code{scm_dynwind_unblock_asyncs}
+inside a @dfn{dynamic context} (@pxref{Dynamic Wind}) to block or
+unblock system asyncs temporarily.
 
 @deffn {Scheme Procedure} system-async-mark proc [thread]
 @deffnx {C Function} scm_system_async_mark (proc)
@@ -159,16 +159,16 @@ returned by @var{proc}.  For the first two variants, call @var{proc}
 with no arguments; for the third, call it with @var{data}.
 @end deffn
 
-@deftypefn {C Function} void scm_frame_block_asyncs ()
+@deftypefn {C Function} void scm_dynwind_block_asyncs ()
 This function must be used inside a pair of calls to
-@code{scm_frame_begin} and @code{scm_frame_end} (@pxref{Frames}).
-During the dynamic extent of the frame, asyncs are blocked by one level.
+@code{scm_dynwind_begin} and @code{scm_dynwind_end} (@pxref{Dynamic
+Wind}).  During the dynwind context, asyncs are blocked by one level.
 @end deftypefn
 
-@deftypefn {C Function} void scm_frame_unblock_asyncs ()
+@deftypefn {C Function} void scm_dynwind_unblock_asyncs ()
 This function must be used inside a pair of calls to
-@code{scm_frame_begin} and @code{scm_frame_end} (@pxref{Frames}).
-During the dynamic extent of the frame, asyncs are unblocked by one
+@code{scm_dynwind_begin} and @code{scm_dynwind_end} (@pxref{Dynamic
+Wind}).  During the dynwind context, asyncs are unblocked by one
 level.
 @end deftypefn
 
@@ -355,9 +355,9 @@ blocked in @code{lock-mutex}, the wait is interrupted and the async is
 executed.  When the async returns, the wait resumes.
 @end deffn
 
-@deftypefn {C Function} void scm_frame_lock_mutex (SCM mutex)
-Arrange for @var{mutex} to be locked whenever the current frame is
-entered and to be unlocked when it is exited.
+@deftypefn {C Function} void scm_dynwind_lock_mutex (SCM mutex)
+Arrange for @var{mutex} to be locked whenever the current dynwind
+context is entered and to be unlocked when it is exited.
 @end deftypefn
 
 @deffn {Scheme Procedure} try-mutex mx
@@ -523,16 +523,16 @@ This means that no non-local exit (such as a signalled error) might
 happen, for example.
 @end deffn
 
-@deftypefn {C Function} void scm_frame_critical_section (SCM mutex)
-Call @code{scm_frame_lock_mutex} on @var{mutex} and call
-@code{scm_frame_block_asyncs}.  When @var{mutex} is false, a recursive
+@deftypefn {C Function} void scm_dynwind_critical_section (SCM mutex)
+Call @code{scm_dynwind_lock_mutex} on @var{mutex} and call
+@code{scm_dynwind_block_asyncs}.  When @var{mutex} is false, a recursive
 mutex provided by Guile is used instead.
 
-The effect of a call to @code{scm_frame_critical_section} is that the
-current frame (@pxref{Frames}) turns into a critical section.  Because
-of the locked mutex, no second thread can enter it concurrently and
-because of the blocked asyncs, no system async can reenter it from the
-current thread.
+The effect of a call to @code{scm_dynwind_critical_section} is that
+the current dynwind context (@pxref{Dynamic Wind}) turns into a
+critical section.  Because of the locked mutex, no second thread can
+enter it concurrently and because of the blocked asyncs, no system
+async can reenter it from the current thread.
 
 When the current thread reenters the critical section anyway, the kind
 of @var{mutex} determines what happens: When @var{mutex} is recursive,
@@ -633,15 +633,15 @@ The function @code{scm_c_with_fluid} is similar but only allows one
 fluid to be set instead of a list.
 @end deftypefn
 
-@deftypefn {C Function} void scm_frame_fluid (SCM fluid, SCM val)
+@deftypefn {C Function} void scm_dynwind_fluid (SCM fluid, SCM val)
 This function must be used inside a pair of calls to
-@code{scm_frame_begin} and @code{scm_frame_end} (@pxref{Frames}).
-During the dynamic extent of the frame, the fluid @var{fluid} is set
-to @var{val}.
+@code{scm_dynwind_begin} and @code{scm_dynwind_end} (@pxref{Dynamic
+Wind}).  During the dynwind context, the fluid @var{fluid} is set to
+@var{val}.
 
 More precisely, the value of the fluid is swapped with a `backup'
-value whenever the frame is entered or left.  The backup value is
-initialized with the @var{val} argument.
+value whenever the dynwind context is entered or left.  The backup
+value is initialized with the @var{val} argument.
 @end deftypefn
 
 @deffn {Scheme Procedure} make-dynamic-state [parent]
@@ -678,9 +678,9 @@ Call @var{proc} while @var{state} is the current dynamic
 state object.
 @end deffn
 
-@deftypefn {C Procedure} void scm_frame_current_dynamic_state (SCM state)
-Set the current dynamic state to @var{state} for the dynamic extent of
-the current frame.
+@deftypefn {C Procedure} void scm_dynwind_current_dynamic_state (SCM state)
+Set the current dynamic state to @var{state} for the current dynwind
+context.
 @end deftypefn
 
 @deftypefn {C Procedure} {void *} scm_c_with_dynamic_state (SCM state, void *(*func)(void *), void *data)

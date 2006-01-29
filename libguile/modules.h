@@ -69,7 +69,7 @@ SCM_API SCM scm_set_current_module (SCM module);
 
 SCM_API SCM scm_c_call_with_current_module (SCM module,
 					    SCM (*func)(void *), void *data);
-SCM_API void scm_frame_current_module (SCM module);
+SCM_API void scm_dynwind_current_module (SCM module);
 
 SCM_API SCM scm_c_lookup (const char *name);
 SCM_API SCM scm_c_define (const char *name, SCM val);

@@ -103,7 +103,7 @@ SCM_DEFINE (scm_make_list, "make-list", 1, 1, 0,
 	    "Create a list containing of @var{n} elements, where each\n"
 	    "element is initialized to @var{init}.  @var{init} defaults to\n"
 	    "the empty list @code{()} if not given.")
-#define FUNC_NAME s_scm_srfi1_count
+#define FUNC_NAME s_scm_make_list
 {
   unsigned nn = scm_to_uint (n);
   unsigned i;

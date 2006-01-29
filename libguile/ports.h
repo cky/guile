@@ -237,9 +237,9 @@ SCM_API SCM scm_current_load_port (void);
 SCM_API SCM scm_set_current_input_port (SCM port);
 SCM_API SCM scm_set_current_output_port (SCM port);
 SCM_API SCM scm_set_current_error_port (SCM port);
-SCM_API void scm_frame_current_input_port (SCM port);
-SCM_API void scm_frame_current_output_port (SCM port);
-SCM_API void scm_frame_current_error_port (SCM port);
+SCM_API void scm_dynwind_current_input_port (SCM port);
+SCM_API void scm_dynwind_current_output_port (SCM port);
+SCM_API void scm_dynwind_current_error_port (SCM port);
 SCM_API SCM scm_new_port_table_entry (scm_t_bits tag);
 SCM_API void scm_remove_from_port_table (SCM port);
 SCM_API void scm_grow_port_cbuf (SCM port, size_t requested);
@@ -306,7 +306,7 @@ SCM_API SCM scm_pt_member (SCM member);
 /* internal */
 
 SCM_API long scm_i_mode_bits (SCM modes);
-SCM_API void scm_i_frame_current_load_port (SCM port);
+SCM_API void scm_i_dynwind_current_load_port (SCM port);
 
 
 #endif  /* SCM_PORTS_H */

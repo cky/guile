@@ -93,7 +93,7 @@ SCM_API int scm_i_pthread_key_create (scm_i_pthread_key_t *key,
 /* Convenience functions
  */
 #define scm_i_scm_pthread_mutex_lock        scm_i_pthread_mutex_lock
-#define scm_i_frame_pthread_mutex_lock      scm_i_pthread_mutex_lock
+#define scm_i_dynwind_pthread_mutex_lock    scm_i_pthread_mutex_lock
 #define scm_i_scm_pthread_cond_wait         scm_i_pthread_cond_wait
 #define scm_i_scm_pthread_cond_timedwait    scm_i_pthread_cond_timedwait
 

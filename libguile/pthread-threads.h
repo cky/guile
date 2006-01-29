@@ -79,7 +79,7 @@ extern pthread_mutexattr_t scm_i_pthread_mutexattr_recursive[1];
 /* Convenience functions
  */
 #define scm_i_scm_pthread_mutex_lock        scm_pthread_mutex_lock
-#define scm_i_frame_pthread_mutex_lock      scm_frame_pthread_mutex_lock
+#define scm_i_dynwind_pthread_mutex_lock    scm_dynwind_pthread_mutex_lock
 #define scm_i_scm_pthread_cond_wait         scm_pthread_cond_wait
 #define scm_i_scm_pthread_cond_timedwait    scm_pthread_cond_timedwait
 

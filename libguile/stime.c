@@ -525,14 +525,14 @@ SCM_DEFINE (scm_mktime, "mktime", 1, 1, 0,
   char **oldenv;
   int err;
 
-  scm_frame_begin (0);
+  scm_dynwind_begin (0);
 
   bdtime2c (sbd_time, &lt, SCM_ARG1, FUNC_NAME);
 #if HAVE_STRUCT_TM_TM_ZONE
-  scm_frame_free ((char *)lt.tm_zone);
+  scm_dynwind_free ((char *)lt.tm_zone);
 #endif
 
-  scm_frame_critical_section (SCM_BOOL_F);
+  scm_dynwind_critical_section (SCM_BOOL_F);
 
   oldenv = setzone (zone, SCM_ARG2, FUNC_NAME);
 #ifdef LOCALTIME_CACHE
@@ -589,7 +589,7 @@ SCM_DEFINE (scm_mktime, "mktime", 1, 1, 0,
   if (zname)
     free (zname);
 
-  scm_frame_end ();
+  scm_dynwind_end ();
   return result;
 }
 #undef FUNC_NAME

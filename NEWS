@@ -1012,50 +1012,51 @@ prevent a potential memory leak:
   {
     char *mem;
 
-    scm_frame_begin (0);
+    scm_dynwind_begin (0);
 
     mem = scm_malloc (100);
-    scm_frame_unwind_handler (free, mem, SCM_F_WIND_EXPLICITLY);
+    scm_dynwind_unwind_handler (free, mem, SCM_F_WIND_EXPLICITLY);
 
     /* MEM would leak if BAR throws an error.
-       SCM_FRAME_UNWIND_HANDLER frees it nevertheless.  
+       SCM_DYNWIND_UNWIND_HANDLER frees it nevertheless.  
      */
 
     bar ();
   
-    scm_frame_end ();
+    scm_dynwind_end ();
 
     /* Because of SCM_F_WIND_EXPLICITLY, MEM will be freed by 
-       SCM_FRAME_END as well. 
+       SCM_DYNWIND_END as well. 
     */
   }
 
-For full documentation, see the node "Frames" in the manual.
+For full documentation, see the node "Dynamic Wind" in the manual.
 
-** New function scm_frame_free
+** New function scm_dynwind_free
 
-This function calls 'free' on a given pointer when a frame is left.
-Thus the call to scm_frame_unwind_handler above could be replaced with
-simply scm_frame_free (mem).
+This function calls 'free' on a given pointer when a dynwind context
+is left.  Thus the call to scm_dynwind_unwind_handler above could be
+replaced with simply scm_dynwind_free (mem).
 
 ** New functions scm_c_call_with_blocked_asyncs and
    scm_c_call_with_unblocked_asyncs
 
 Like scm_call_with_blocked_asyncs etc. but for C functions.
 
-** New functions scm_frame_block_asyncs and scm_frame_unblock_asyncs
+** New functions scm_dynwind_block_asyncs and scm_dynwind_unblock_asyncs
 
 In addition to scm_c_call_with_blocked_asyncs you can now also use
-scm_frame_block_asyncs in a 'frame' (see above).  Likewise for
-scm_c_call_with_unblocked_asyncs and scm_frame_unblock_asyncs.
+scm_dynwind_block_asyncs in a 'dynwind context' (see above).  Likewise for
+scm_c_call_with_unblocked_asyncs and scm_dynwind_unblock_asyncs.
 
 ** The macros SCM_DEFER_INTS, SCM_ALLOW_INTS, SCM_REDEFER_INTS,
    SCM_REALLOW_INTS have been deprecated.
 
 They do no longer fulfill their original role of blocking signal
 delivery.  Depending on what you want to achieve, replace a pair of
-SCM_DEFER_INTS and SCM_ALLOW_INTS with a frame that locks a mutex,
-blocks asyncs, or both.  See node "Critical Sections" in the manual.
+SCM_DEFER_INTS and SCM_ALLOW_INTS with a dynwind context that locks a
+mutex, blocks asyncs, or both.  See node "Critical Sections" in the
+manual.
 
 ** The value 'scm_mask_ints' is no longer writable.
 
@@ -1065,12 +1066,12 @@ scm_c_call_with_unblocked_asyncs instead.
 
 ** New way to temporarily set the current input, output or error ports
 
-C code can now use scm_frame_current_<foo>_port in a 'frame' (see
-above).  <foo> is one of "input", "output" or "error".
+C code can now use scm_dynwind_current_<foo>_port in a 'dynwind
+conetxt' (see above).  <foo> is one of "input", "output" or "error".
 
 ** New way to temporarily set fluids
 
-C code can now use scm_frame_fluid in a 'frame' (see
+C code can now use scm_dynwind_fluid in a 'dynwind context' (see
 above) to temporarily set the value of a fluid.
 
 ** New types scm_t_intmax and scm_t_uintmax.

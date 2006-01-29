@@ -998,12 +998,12 @@ SCM_DEFINE (scm_lock_mutex, "lock-mutex", 1, 0, 0,
 #undef FUNC_NAME
 
 void
-scm_frame_lock_mutex (SCM mutex)
+scm_dynwind_lock_mutex (SCM mutex)
 {
-  scm_frame_unwind_handler_with_scm ((void(*)(SCM))scm_unlock_mutex, mutex,
-				     SCM_F_WIND_EXPLICITLY);
-  scm_frame_rewind_handler_with_scm ((void(*)(SCM))scm_lock_mutex, mutex,
-				     SCM_F_WIND_EXPLICITLY);
+  scm_dynwind_unwind_handler_with_scm ((void(*)(SCM))scm_unlock_mutex, mutex,
+				       SCM_F_WIND_EXPLICITLY);
+  scm_dynwind_rewind_handler_with_scm ((void(*)(SCM))scm_lock_mutex, mutex,
+				       SCM_F_WIND_EXPLICITLY);
 }
 
 static char *
@@ -1403,10 +1403,10 @@ unlock (void *data)
 }
 
 void
-scm_frame_pthread_mutex_lock (scm_i_pthread_mutex_t *mutex)
+scm_dynwind_pthread_mutex_lock (scm_i_pthread_mutex_t *mutex)
 {
   scm_i_scm_pthread_mutex_lock (mutex);
-  scm_frame_unwind_handler (unlock, mutex, SCM_F_WIND_EXPLICITLY);
+  scm_dynwind_unwind_handler (unlock, mutex, SCM_F_WIND_EXPLICITLY);
 }
 
 int
@@ -1579,15 +1579,15 @@ scm_i_thread_sleep_for_gc ()
 scm_i_pthread_mutex_t scm_i_critical_section_mutex;
 int scm_i_critical_section_level = 0;
 
-static SCM framed_critical_section_mutex;
+static SCM dynwind_critical_section_mutex;
 
 void
-scm_frame_critical_section (SCM mutex)
+scm_dynwind_critical_section (SCM mutex)
 {
   if (scm_is_false (mutex))
-    mutex = framed_critical_section_mutex;
-  scm_frame_lock_mutex (mutex);
-  scm_frame_block_asyncs ();
+    mutex = dynwind_critical_section_mutex;
+  scm_dynwind_lock_mutex (mutex);
+  scm_dynwind_block_asyncs ();
 }
 
 /*** Initialization */
@@ -1645,7 +1645,7 @@ scm_init_threads ()
   guilify_self_2 (SCM_BOOL_F);
   threads_initialized_p = 1;
 
-  framed_critical_section_mutex =
+  dynwind_critical_section_mutex =
     scm_permanent_object (scm_make_recursive_mutex ());
 }
 

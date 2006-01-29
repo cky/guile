@@ -828,10 +828,10 @@ scm_fill_sockaddr (int fam, SCM address, SCM *args, int which_arg,
 	int addr_size;
 	char *c_address;
 
-	scm_frame_begin (0);
+	scm_dynwind_begin (0);
 
 	c_address = scm_to_locale_string (address);
-	scm_frame_free (c_address);
+	scm_dynwind_free (c_address);
 
 	/* the static buffer size in sockaddr_un seems to be arbitrary
 	   and not necessarily a hard limit.  e.g., the glibc manual
@@ -847,7 +847,7 @@ scm_fill_sockaddr (int fam, SCM address, SCM *args, int which_arg,
 	strcpy (soka->sun_path, c_address);
 	*size = SUN_LEN (soka);
 
-	scm_frame_end ();
+	scm_dynwind_end ();
 	return (struct sockaddr *) soka;
       }
 #endif

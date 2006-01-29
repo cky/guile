@@ -1,3 +1,9 @@
+2006-01-29  Marius Vollmer  <mvo@zagadka.de>
+
+	Renamed the "frames" that are related to dynamic-wind to "dynamic
+	contexts.  Renamed all functions from scm_frame_ to scm_dynwind_.
+	Updated documentation.
+
 2006-01-28  Marius Vollmer  <mvo@zagadka.de>
 
 	* inline.h, pairs.c (scm_is_pair): Moved scm_is_pair from pairs.c

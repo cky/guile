@@ -153,11 +153,11 @@ SCM_DEFINE (scm_dynamic_link, "dynamic-link", 1, 0, 0,
   void *handle;
   char *file;
 
-  scm_frame_begin (0);
+  scm_dynwind_begin (0);
   file = scm_to_locale_string (filename);
-  scm_frame_free (file);
+  scm_dynwind_free (file);
   handle = sysdep_dynl_link (file, FUNC_NAME);
-  scm_frame_end ();
+  scm_dynwind_end ();
   SCM_RETURN_NEWSMOB2 (scm_tc16_dynamic_obj, SCM_UNPACK (filename), handle);
 }
 #undef FUNC_NAME
@@ -222,12 +222,12 @@ SCM_DEFINE (scm_dynamic_func, "dynamic-func", 2, 0, 0,
   } else {
     char *chars;
 
-    scm_frame_begin (0);
+    scm_dynwind_begin (0);
     chars = scm_to_locale_string (name);
-    scm_frame_free (chars);
+    scm_dynwind_free (chars);
     func = (void (*) ()) sysdep_dynl_func (chars, DYNL_HANDLE (dobj), 
 					   FUNC_NAME);
-    scm_frame_end ();
+    scm_dynwind_end ();
     return scm_from_ulong ((unsigned long) func);
   }
 }
@@ -290,7 +290,7 @@ SCM_DEFINE (scm_dynamic_args_call, "dynamic-args-call", 3, 0, 0,
   int result, argc;
   char **argv;
 
-  scm_frame_begin (0);
+  scm_dynwind_begin (0);
 
   if (scm_is_string (func))
     func = scm_dynamic_func (func, dobj);
@@ -298,13 +298,13 @@ SCM_DEFINE (scm_dynamic_args_call, "dynamic-args-call", 3, 0, 0,
   fptr = (int (*) (int, char **)) scm_to_ulong (func);
 
   argv = scm_i_allocate_string_pointers (args);
-  scm_frame_unwind_handler (free_string_pointers, argv,
-			    SCM_F_WIND_EXPLICITLY);
+  scm_dynwind_unwind_handler (free_string_pointers, argv,
+			      SCM_F_WIND_EXPLICITLY);
   for (argc = 0; argv[argc]; argc++)
     ;
   result = (*fptr) (argc, argv);
 
-  scm_frame_end ();
+  scm_dynwind_end ();
   return scm_from_int (result);
 }
 #undef FUNC_NAME

@@ -670,16 +670,16 @@ Change the ports returned by @code{current-input-port},
 so that they use the supplied @var{port} for input or output.
 @end deffn
 
-@deftypefn {C Function} void scm_frame_current_input_port (SCM port)
-@deftypefnx {C Function} void scm_frame_current_output_port (SCM port)
-@deftypefnx {C Function} void scm_frame_current_error_port (SCM port)
+@deftypefn {C Function} void scm_dynwind_current_input_port (SCM port)
+@deftypefnx {C Function} void scm_dynwind_current_output_port (SCM port)
+@deftypefnx {C Function} void scm_dynwind_current_error_port (SCM port)
 These functions must be used inside a pair of calls to
-@code{scm_frame_begin} and @code{scm_frame_end} (@pxref{Frames}).
-During the dynamic extent of the frame, the indicated port is set to
+@code{scm_dynwind_begin} and @code{scm_dynwind_end} (@pxref{Dynamic
+Wind}).  During the dynwind context, the indicated port is set to
 @var{port}.
 
 More precisely, the current port is swapped with a `backup' value
-whenever the frame is entered or left.  The backup value is
+whenever the dynwind context is entered or left.  The backup value is
 initialized with the @var{port} argument.
 @end deftypefn
 

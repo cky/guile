@@ -56,8 +56,8 @@ SCM_DEFINE (scm_debug_options, "debug-options-interface", 0, 1, 0,
 {
   SCM ans;
 
-  scm_frame_begin (0);
-  scm_frame_critical_section (SCM_BOOL_F);
+  scm_dynwind_begin (0);
+  scm_dynwind_critical_section (SCM_BOOL_F);
 
   ans = scm_options (setting, scm_debug_opts, SCM_N_DEBUG_OPTIONS, FUNC_NAME);
   if (!(1 <= SCM_N_FRAMES && SCM_N_FRAMES <= SCM_MAX_FRAME_SIZE))
@@ -69,7 +69,7 @@ SCM_DEFINE (scm_debug_options, "debug-options-interface", 0, 1, 0,
   scm_stack_checking_enabled_p = SCM_STACK_CHECKING_P;
   scm_debug_eframe_size = 2 * SCM_N_FRAMES;
 
-  scm_frame_end ();
+  scm_dynwind_end ();
   return ans;
 }
 #undef FUNC_NAME

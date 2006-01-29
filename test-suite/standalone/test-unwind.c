@@ -33,10 +33,10 @@ set_flag (void *data)
 void
 func1 ()
 {
-  scm_frame_begin (0);
+  scm_dynwind_begin (0);
   flag1 = 0;
-  scm_frame_unwind_handler (set_flag, &flag1, 0);
-  scm_frame_end ();
+  scm_dynwind_unwind_handler (set_flag, &flag1, 0);
+  scm_dynwind_end ();
 }
 
 /* FUNC2 should set flag1.
@@ -45,10 +45,10 @@ func1 ()
 void
 func2 ()
 {
-  scm_frame_begin (0);
+  scm_dynwind_begin (0);
   flag1 = 0;
-  scm_frame_unwind_handler (set_flag, &flag1, SCM_F_WIND_EXPLICITLY);
-  scm_frame_end ();
+  scm_dynwind_unwind_handler (set_flag, &flag1, SCM_F_WIND_EXPLICITLY);
+  scm_dynwind_end ();
 }
 
 /* FUNC3 should set flag1.
@@ -57,11 +57,11 @@ func2 ()
 void
 func3 ()
 {
-  scm_frame_begin (0);
+  scm_dynwind_begin (0);
   flag1 = 0;
-  scm_frame_unwind_handler (set_flag, &flag1, 0);
+  scm_dynwind_unwind_handler (set_flag, &flag1, 0);
   scm_misc_error ("func3", "gratuitous error", SCM_EOL);
-  scm_frame_end ();
+  scm_dynwind_end ();
 }
 
 /* FUNC4 should set flag1.
@@ -70,11 +70,11 @@ func3 ()
 void
 func4 ()
 {
-  scm_frame_begin (0);
+  scm_dynwind_begin (0);
   flag1 = 0;
-  scm_frame_unwind_handler (set_flag, &flag1, SCM_F_WIND_EXPLICITLY);
+  scm_dynwind_unwind_handler (set_flag, &flag1, SCM_F_WIND_EXPLICITLY);
   scm_misc_error ("func4", "gratuitous error", SCM_EOL);
-  scm_frame_end ();
+  scm_dynwind_end ();
 }
 
 SCM
@@ -107,14 +107,14 @@ check_flag1 (const char *tag, void (*func)(void), int val)
 SCM
 check_cont_body (void *data)
 {
-  scm_t_frame_flags flags = (data? SCM_F_FRAME_REWINDABLE : 0);
+  scm_t_dynwind_flags flags = (data? SCM_F_DYNWIND_REWINDABLE : 0);
   int first;
   SCM val;
 
-  scm_frame_begin (flags);
+  scm_dynwind_begin (flags);
 
   val = scm_make_continuation (&first);
-  scm_frame_end ();
+  scm_dynwind_end ();
   return val;
 }
 
@@ -138,7 +138,7 @@ check_cont (int rewindable)
     }
   else if (scm_is_false (res))
     {
-      /* the result of invoking the continuation, frame must be
+      /* the result of invoking the continuation, dynwind must be
 	 rewindable */
       if (rewindable)
 	return;
@@ -147,7 +147,7 @@ check_cont (int rewindable)
     }
   else
     {
-      /* the catch tag, frame must not have been rewindable. */
+      /* the catch tag, dynwind must not have been rewindable. */
       if (!rewindable)
 	return;
       printf ("continuation didn't work\n");
@@ -175,28 +175,28 @@ check_ports ()
   if (mktemp (filename) == NULL)
     exit (1);
 
-  scm_frame_begin (0);
+  scm_dynwind_begin (0);
   {
     SCM port = scm_open_file (scm_from_locale_string (filename),
 			      scm_from_locale_string ("w"));
-    scm_frame_unwind_handler_with_scm (close_port, port,
+    scm_dynwind_unwind_handler_with_scm (close_port, port,
 				       SCM_F_WIND_EXPLICITLY);
 
-    scm_frame_current_output_port (port);
+    scm_dynwind_current_output_port (port);
     scm_write (scm_version (), SCM_UNDEFINED);
   }
-  scm_frame_end ();
+  scm_dynwind_end ();
 
-  scm_frame_begin (0);
+  scm_dynwind_begin (0);
   {
     SCM port = scm_open_file (scm_from_locale_string (filename),
 			      scm_from_locale_string ("r"));
     SCM res;
-    scm_frame_unwind_handler_with_scm (close_port, port,
+    scm_dynwind_unwind_handler_with_scm (close_port, port,
 				       SCM_F_WIND_EXPLICITLY);
-    scm_frame_unwind_handler (delete_file, filename, SCM_F_WIND_EXPLICITLY);
+    scm_dynwind_unwind_handler (delete_file, filename, SCM_F_WIND_EXPLICITLY);
 
-    scm_frame_current_input_port (port);
+    scm_dynwind_current_input_port (port);
     res = scm_read (SCM_UNDEFINED);
     if (scm_is_false (scm_equal_p (res, scm_version ())))
       {
@@ -204,7 +204,7 @@ check_ports ()
 	exit (1);
       }
   }
-  scm_frame_end ();
+  scm_dynwind_end ();
 }
 
 void
@@ -215,10 +215,10 @@ check_fluid ()
 
   scm_fluid_set_x (f, scm_from_int (12));
 
-  scm_frame_begin (0);
-  scm_frame_fluid (f, scm_from_int (13));
+  scm_dynwind_begin (0);
+  scm_dynwind_fluid (f, scm_from_int (13));
   x = scm_fluid_ref (f);
-  scm_frame_end ();
+  scm_dynwind_end ();
 
   if (!scm_is_eq (x, scm_from_int (13)))
     {

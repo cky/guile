@@ -377,11 +377,11 @@ its previous value when @code{with-output-to-port} returns normally or
 when it is exited non-locally.  Likewise, the port needs to be set again
 when control enters non-locally.
 
-Scheme code can use the @code{dynamic-wind} function to arrange for the
-setting and resetting of the global state.  C code could use the
-corresponding @code{scm_internal_dynamic_wind} function, but it might
-prefer to use the @dfn{frames} concept that is more natural for C code,
-(@pxref{Frames}).
+Scheme code can use the @code{dynamic-wind} function to arrange for
+the setting and resetting of the global state.  C code can use the
+corresponding @code{scm_internal_dynamic_wind} function, or a
+@code{scm_dynwind_begin}/@code{scm_dynwind_end} pair together with
+suitable 'dynwind actions' (@pxref{Dynamic Wind}).
 
 Instead of coping with non-local control flow, you can also prevent it
 by erecting a @emph{continuation barrier}, @xref{Continuation
@@ -407,7 +407,7 @@ including a non-local exit although @code{scm_cons} would not ordinarily
 do such a thing on its own.
 
 If you do not want to allow the running of asynchronous signal handlers,
-you can block them temporarily with @code{scm_frame_block_asyncs}, for
+you can block them temporarily with @code{scm_dynwind_block_asyncs}, for
 example.  See @xref{System asyncs}.
 
 Since signal handling in Guile relies on safe points, you need to make
@@ -602,8 +602,8 @@ section via recursive function calls.
 Guile provides two mechanisms to support critical sections as outlined
 above.  You can either use the macros
 @code{SCM_CRITICAL_SECTION_START} and @code{SCM_CRITICAL_SECTION_END}
-for very simple sections; or use a frame together with a call to
-@code{scm_frame_critical_section}.
+for very simple sections; or use a dynwind context together with a
+call to @code{scm_dynwind_critical_section}.
 
 The macros only work reliably for critical sections that are
 guaranteed to not cause a non-local exit.  They also do not detect an
@@ -612,7 +612,7 @@ only use them to delimit critical sections that do not contain calls
 to libguile functions or to other external functions that might do
 complicated things.
 
-The function @code{scm_frame_critical_section}, on the other hand,
-will correctly deal with non-local exits because it requires a frame.
-Also, by using a separate mutex for each critical section, it can
-detect accidental reentries.
+The function @code{scm_dynwind_critical_section}, on the other hand,
+will correctly deal with non-local exits because it requires a dynwind
+context.  Also, by using a separate mutex for each critical section,
+it can detect accidental reentries.

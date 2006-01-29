@@ -20,8 +20,7 @@ flow of Scheme affects C code.
 * Multiple Values::             Returning and accepting multiple values.
 * Exceptions::                  Throwing and catching exceptions.
 * Error Reporting::             Procedures for signaling errors.
-* Dynamic Wind::                Guarding against non-local entrance/exit.
-* Frames::                      Another way to handle non-localness
+* Dynamic Wind::                Dealing with non-local entrance/exit.
 * Handling Errors::             How to handle errors in C code.
 @end menu
 
@@ -463,8 +462,7 @@ flow going on as normal.
 
 @code{dynamic-wind} (@pxref{Dynamic Wind}) can be used to ensure setup
 and cleanup code is run when a program locus is resumed or abandoned
-through the continuation mechanism.  C code can use @dfn{frames}
-(@pxref{Frames}).
+through the continuation mechanism.
 
 @sp 1
 Continuations are a powerful mechanism, and can be used to implement
@@ -1013,6 +1011,71 @@ if an exception occurs then @code{#f} is returned instead.
 @node Dynamic Wind
 @subsection Dynamic Wind
 
+For Scheme code, the fundamental procedure to react to non-local entry
+and exits of dynamic contexts is @code{dynamic-wind}.  C code could
+use @code{scm_internal_dynamic_wind}, but since C does not allow the
+convenient construction of anonymous procedures that close over
+lexical variables, this will be, well, inconvenient.
+
+Therefore, Guile offers the functions @code{scm_dynwind_begin} and
+@code{scm_dynwind_end} to delimit a dynamic extent.  Within this
+dynamic extent, which is calles a @dfn{dynwind context}, you can
+perform various @dfn{dynwind actions} that control what happens when
+the dynwind context is entered or left.  For example, you can register
+a cleanup routine with @code{scm_dynwind_unwind_handler} that is
+executed when the context is left.  There are several other more
+specialized dynwind actions as well, for example to temporarily block
+the execution of asyncs or to temporarily change the current output
+port.  They are described elsewhere in this manual.
+
+Here is an example that shows how to prevent memory leaks.
+
+@example
+
+/* Suppose there is a function called FOO in some library that you
+   would like to make available to Scheme code (or to C code that
+   follows the Scheme conventions).
+
+   FOO takes two C strings and returns a new string.  When an error has
+   occurred in FOO, it returns NULL.
+*/
+
+char *foo (char *s1, char *s2);
+
+/* SCM_FOO interfaces the C function FOO to the Scheme way of life.
+   It takes care to free up all temporary strings in the case of
+   non-local exits.
+ */
+
+SCM
+scm_foo (SCM s1, SCM s2)
+@{
+  char *c_s1, *c_s2, *c_res;
+
+  scm_dynwind_begin (0);
+
+  c_s1 = scm_to_locale_string (s1);
+
+  /* Call 'free (c_s1)' when the dynwind context is left. 
+  */
+  scm_dynwind_unwind_handler (free, c_s1, SCM_F_WIND_EXPLICITLY);
+
+  c_s2 = scm_to_locale_string (s2);
+  
+  /* Same as above, but more concisely.
+  */
+  scm_dynwind_free (c_s2);
+
+  c_res = foo (c_s1, c_s2);
+  if (c_res == NULL)
+    scm_memory_error ("foo");
+
+  scm_dynwind_end ();
+
+  return scm_take_locale_string (res);
+@}
+@end example
+
 @rnindex dynamic-wind
 @deffn {Scheme Procedure} dynamic-wind in_guard thunk out_guard
 @deffnx {C Function} scm_dynamic_wind (in_guard, thunk, out_guard)
@@ -1066,95 +1129,29 @@ a-cont
 @end lisp
 @end deffn
 
-@node Frames
-@subsection Frames
-
-For Scheme code, the fundamental procedure to react to non-local entry
-and exits of dynamic contexts is @code{dynamic-wind}.  C code could use
-@code{scm_internal_dynamic_wind}, but since C does not allow the
-convenient construction of anonymous procedures that close over lexical
-variables, this will be, well, inconvenient.  Instead, C code can use
-@dfn{frames}.
-
-Guile offers the functions @code{scm_frame_begin} and
-@code{scm_frame_end} to delimit a dynamic extent.  Within this dynamic
-extent, which is called a @dfn{frame}, you can perform various
-@dfn{frame actions} that control what happens when the frame is entered
-or left.  For example, you can register a cleanup routine with
-@code{scm_frame_unwind} that is executed when the frame is left.  There are
-several other more specialized frame actions as well, for example to
-temporarily block the execution of asyncs or to temporarily change the
-current output port.  They are described elsewhere in this manual.
-
-Here is an example that shows how to prevent memory leaks.
-
-@example
-
-/* Suppose there is a function called FOO in some library that you
-   would like to make available to Scheme code (or to C code that
-   follows the Scheme conventions).
-
-   FOO takes two C strings and returns a new string.  When an error has
-   occurred in FOO, it returns NULL.
-*/
-
-char *foo (char *s1, char *s2);
-
-/* SCM_FOO interfaces the C function FOO to the Scheme way of life.
-   It takes care to free up all temporary strings in the case of
-   non-local exits.
- */
-
-SCM
-scm_foo (SCM s1, SCM s2)
-@{
-  char *c_s1, *c_s2, *c_res;
-
-  scm_frame_begin (0);
-
-  c_s1 = scm_to_locale_string (s1);
-
-  /* Call 'free (c_s1)' when the frame is left. 
-  */
-  scm_frame_unwind_handler (free, c_s1, SCM_F_WIND_EXPLICITLY);
-
-  c_s2 = scm_to_locale_string (s2);
-  
-  /* Same as above, but more concisely.
-  */
-  scm_frame_free (c_s2);
-
-  c_res = foo (c_s1, c_s2);
-  if (c_res == NULL)
-    scm_memory_error ("foo");
-
-  scm_frame_end ();
-
-  return scm_take_locale_string (res);
-@}
-@end example
-
-@deftp {C Type} scm_t_frame_flags
+@deftp {C Type} scm_t_dynwind_flags
 This is an enumeration of several flags that modify the behavior of
-@code{scm_begin_frame}.  The flags are listed in the following table.
+@code{scm_dynwind_begin}.  The flags are listed in the following
+table.
 
 @table @code
-@item SCM_F_FRAME_REWINDABLE
-The frame is @dfn{rewindable}.  This means that it can be reentered
-non-locally (via the invokation of a continuation).  The default is that
-a frame can not be reentered non-locally.
+@item SCM_F_DYNWIND_REWINDABLE
+The dynamic context is @dfn{rewindable}.  This means that it can be
+reentered non-locally (via the invokation of a continuation).  The
+default is that a dynwind context can not be reentered non-locally.
 @end table
 
 @end deftp
 
-@deftypefn {C Function} void scm_frame_begin (scm_t_frame_flags flags)
-The function @code{scm_begin_frame} starts a new frame and makes it the
-`current' one.  
+@deftypefn {C Function} void scm_dynwind_begin (scm_t_dynwind_flags flags)
+The function @code{scm_dynwind_begin} starts a new dynamic context and
+makes it the `current' one.
 
-The @var{flags} argument determines the default behavior of the frame.
-For normal frames, use 0.  This will result in a frame that can not be
-reentered with a captured continuation.  When you are prepared to handle
-reentries, include @code{SCM_F_FRAME_REWINDABLE} in @var{flags}.
+The @var{flags} argument determines the default behavior of the
+context.  Normally, use 0.  This will result in a context that can not
+be reentered with a captured continuation.  When you are prepared to
+handle reentries, include @code{SCM_F_DYNWIND_REWINDABLE} in
+@var{flags}.
 
 Being prepared for reentry means that the effects of unwind handlers
 can be undone on reentry.  In the example above, we want to prevent a
@@ -1163,51 +1160,54 @@ frees the memory.  But once the memory is freed, we can not get it
 back on reentry.  Thus reentry can not be allowed.
 
 The consequence is that continuations become less useful when
-non-reenterable frames are captured, but you don't need to worry about
-that too much.
+non-reenterable contexts are captured, but you don't need to worry
+about that too much.
 
-The frame is ended either implicitly when a non-local exit happens, or
-explicitly with @code{scm_end_frame}.  You must make sure that a frame
-is indeed ended properly.  If you fail to call @code{scm_end_frame}
-for each @code{scm_begin_frame}, the behavior is undefined.
+The context is ended either implicitly when a non-local exit happens,
+or explicitly with @code{scm_dynwind_end}.  You must make sure that a
+dynwind context is indeed ended properly.  If you fail to call
+@code{scm_dynwind_end} for each @code{scm_dynwind_begin}, the behavior
+is undefined.
 @end deftypefn
 
-@deftypefn {C Function} void scm_frame_end ()
-End the current frame explicitly and make the previous frame current.
+@deftypefn {C Function} void scm_dynwind_end ()
+End the current dynamic context explicitly and make the previous one
+current.
 @end deftypefn
 
 @deftp {C Type} scm_t_wind_flags
 This is an enumeration of several flags that modify the behavior of
-@code{scm_on_unwind_handler} and @code{scm_on_rewind_handler}.  The
-flags are listed in the following table.
+@code{scm_dynwind_unwind_handler} and
+@code{scm_dynwind_rewind_handler}.  The flags are listed in the
+following table.
 
 @table @code
 @item SCM_F_WIND_EXPLICITLY
 @vindex SCM_F_WIND_EXPLICITLY
-The registered action is also carried out when the frame is entered or
-left locally.
+The registered action is also carried out when the dynwind context is
+entered or left locally.
 @end table
 @end deftp
 
-@deftypefn {C Function} void scm_frame_unwind_handler (void (*func)(void *), void *data, scm_t_wind_flags flags)
-@deftypefnx {C Function} void scm_frame_unwind_handler_with_scm (void (*func)(SCM), SCM data, scm_t_wind_flags flags)
+@deftypefn {C Function} void scm_dynwind_unwind_handler (void (*func)(void *), void *data, scm_t_wind_flags flags)
+@deftypefnx {C Function} void scm_dynwind_unwind_handler_with_scm (void (*func)(SCM), SCM data, scm_t_wind_flags flags)
 Arranges for @var{func} to be called with @var{data} as its arguments
-when the current frame ends implicitly.  If @var{flags} contains
-@code{SCM_F_WIND_EXPLICITLY}, @var{func} is also called when the frame
-ends explicitly with @code{scm_frame_end}.
+when the current context ends implicitly.  If @var{flags} contains
+@code{SCM_F_WIND_EXPLICITLY}, @var{func} is also called when the
+context ends explicitly with @code{scm_dynwind_end}.
 
-The function @code{scm_frame_unwind_handler_with_scm} takes care that
+The function @code{scm_dynwind_unwind_handler_with_scm} takes care that
 @var{data} is protected from garbage collection.
 @end deftypefn
 
-@deftypefn {C Function} void scm_frame_rewind_handler (void (*func)(void *), void *data, scm_t_wind_flags flags)
-@deftypefnx {C Function} void scm_frame_rewind_handler_with_scm (void (*func)(SCM), SCM data, scm_t_wind_flags flags)
+@deftypefn {C Function} void scm_dynwind_rewind_handler (void (*func)(void *), void *data, scm_t_wind_flags flags)
+@deftypefnx {C Function} void scm_dynwind_rewind_handler_with_scm (void (*func)(SCM), SCM data, scm_t_wind_flags flags)
 Arrange for @var{func} to be called with @var{data} as its argument when
-the current frame is restarted by rewinding the stack.  When @var{flags}
+the current context is restarted by rewinding the stack.  When @var{flags}
 contains @code{SCM_F_WIND_EXPLICITLY}, @var{func} is called immediately
 as well.
 
-The function @code{scm_frame_rewind_handler_with_scm} takes care that
+The function @code{scm_dynwind_rewind_handler_with_scm} takes care that
 @var{data} is protected from garbage collection.
 @end deftypefn
 

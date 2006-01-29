@@ -308,10 +308,10 @@ scm_ramapc (int (*cproc)(), SCM data, SCM ra0, SCM lra, const char *what)
 	plvra = SCM_CDRLOC (*plvra);
       }
 
-    scm_frame_begin (0);
+    scm_dynwind_begin (0);
 
     vinds = scm_malloc (sizeof(long) * SCM_I_ARRAY_NDIM (ra0));
-    scm_frame_free (vinds);
+    scm_dynwind_free (vinds);
 
     for (k = 0; k <= kmax; k++)
       vinds[k] = SCM_I_ARRAY_DIMS (ra0)[k].lbnd;
@@ -340,7 +340,7 @@ scm_ramapc (int (*cproc)(), SCM data, SCM ra0, SCM lra, const char *what)
       }
     while (k >= 0);
 
-    scm_frame_end ();
+    scm_dynwind_end ();
     return 1;
     }
 }
@@ -1011,10 +1011,10 @@ SCM_DEFINE (scm_array_index_map_x, "array-index-map!", 2, 0, 0,
       if (kmax < 0)
 	return scm_array_set_x (ra, scm_call_0 (proc), SCM_EOL);
 
-      scm_frame_begin (0);
+      scm_dynwind_begin (0);
 
       vinds = scm_malloc (sizeof(long) * SCM_I_ARRAY_NDIM (ra));
-      scm_frame_free (vinds);
+      scm_dynwind_free (vinds);
 
       for (k = 0; k <= kmax; k++)
 	vinds[k] = SCM_I_ARRAY_DIMS (ra)[k].lbnd;
@@ -1046,7 +1046,7 @@ SCM_DEFINE (scm_array_index_map_x, "array-index-map!", 2, 0, 0,
 	}
       while (k >= 0);
 
-      scm_frame_end ();
+      scm_dynwind_end ();
       return SCM_UNSPECIFIED;
     }
   else if (scm_is_generalized_vector (ra))

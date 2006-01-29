@@ -116,14 +116,14 @@ scm_internal_cwdr (scm_t_catch_body body, void *body_data,
   old_winds = scm_i_dynwinds ();
   scm_dowinds (SCM_EOL, scm_ilength (old_winds));
 
-  scm_frame_begin (SCM_F_FRAME_REWINDABLE);
-  scm_frame_current_dynamic_state (scm_make_dynamic_state (SCM_UNDEFINED));
+  scm_dynwind_begin (SCM_F_DYNWIND_REWINDABLE);
+  scm_dynwind_current_dynamic_state (scm_make_dynamic_state (SCM_UNDEFINED));
 
   my_handler_data.run_handler = 0;
   answer = scm_i_with_continuation_barrier (body, body_data,
 					    cwdr_handler, &my_handler_data);
 
-  scm_frame_end ();
+  scm_dynwind_end ();
 
   /* Enter caller's dynamic state.
    */

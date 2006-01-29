@@ -1,9 +1,13 @@
+2006-01-29  Marius Vollmer  <mvo@zagadka.de>
+
+	Renamed the "frames" that are related to dynamic-wind to "dynamic
+	contexts.  Renamed all functions from scm_frame_ to scm_dynwind_.
+	Updated documentation.
 
 2005-12-19  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
         * api-data.texi (Operations Related to Symbols):
         Documented `scm_take_locale_symbol ()'.
-
 	
 2005-12-15  Kevin Ryde  <user42@zip.com.au>
 

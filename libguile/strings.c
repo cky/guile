@@ -964,11 +964,11 @@ scm_i_allocate_string_pointers (SCM list)
   if (len < 0)
     scm_wrong_type_arg_msg (NULL, 0, list, "proper list");
 
-  scm_frame_begin (0);
+  scm_dynwind_begin (0);
 
   result = (char **) scm_malloc ((len + 1) * sizeof (char *));
   result[len] = NULL;
-  scm_frame_unwind_handler (free, result, 0);
+  scm_dynwind_unwind_handler (free, result, 0);
 
   /* The list might be have been modified in another thread, so
      we check LIST before each access.
@@ -979,7 +979,7 @@ scm_i_allocate_string_pointers (SCM list)
       list = SCM_CDR (list);
     }
 
-  scm_frame_end ();
+  scm_dynwind_end ();
   return result;
 }
 

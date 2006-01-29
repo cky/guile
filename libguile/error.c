@@ -130,12 +130,12 @@ SCM_DEFINE (scm_strerror, "strerror", 1, 0, 0,
 #define FUNC_NAME s_scm_strerror
 {
   SCM ret;
-  scm_frame_begin (0);
-  scm_i_frame_pthread_mutex_lock (&scm_i_misc_mutex);
+  scm_dynwind_begin (0);
+  scm_i_dynwind_pthread_mutex_lock (&scm_i_misc_mutex);
 
   ret = scm_from_locale_string (SCM_I_STRERROR (scm_to_int (err)));
 
-  scm_frame_end ();
+  scm_dynwind_end ();
   return ret;
 }
 #undef FUNC_NAME

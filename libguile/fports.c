@@ -293,13 +293,13 @@ SCM_DEFINE (scm_open_file, "open-file", 2, 0, 0,
   char *md;
   char *ptr;
 
-  scm_frame_begin (0);
+  scm_dynwind_begin (0);
 
   file = scm_to_locale_string (filename);
-  scm_frame_free (file);
+  scm_dynwind_free (file);
 
   md = scm_to_locale_string (mode);
-  scm_frame_free (md);
+  scm_dynwind_free (md);
 
   switch (*md)
     {
@@ -347,7 +347,7 @@ SCM_DEFINE (scm_open_file, "open-file", 2, 0, 0,
     }
   port = scm_i_fdes_to_port (fdes, scm_i_mode_bits (mode), filename);
 
-  scm_frame_end ();
+  scm_dynwind_end ();
 
   return port;
 }
