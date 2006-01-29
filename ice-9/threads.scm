@@ -36,7 +36,8 @@
 	   par-for-each
 	   n-par-map
 	   n-par-for-each
-	   n-for-each-par-map)
+	   n-for-each-par-map
+	   %thread-handler)
   :export-syntax (begin-thread
 		  parallel
 		  letpar
@@ -47,7 +48,7 @@
 
 
 (define ((par-mapper mapper)  proc . arglists)
-  (mapper thread-join
+  (mapper join-thread
 	  (apply map
 		 (lambda args
 		   (begin-thread (apply proc args)))
@@ -63,7 +64,7 @@
 	 (result results))
     (do ((i 0 (+ 1 i)))
 	((= i n)
-	 (for-each thread-join threads)
+	 (for-each join-thread threads)
 	 results)
       (set! threads
 	    (cons (begin-thread
@@ -85,7 +86,7 @@
 	(threads '()))
     (do ((i 0 (+ 1 i)))
 	((= i n)
-	 (for-each thread-join futures))
+	 (for-each join-thread futures))
       (set! threads
 	    (cons (begin-thread
 		   (let loop ()
@@ -114,7 +115,7 @@ of applying P-PROC on ARGLISTS."
 	 (result results))
     (do ((i 0 (+ 1 i)))
 	((= i n)
-	 (for-each thread-join futures))
+	 (for-each join-thread futures))
       (set! threads
 	    (cons (begin-thread
 		   (let loop ()
@@ -187,7 +188,7 @@ of applying P-PROC on ARGLISTS."
 			    (make-symbol "f"))
 			  forms)))
 	   `((lambda ,vars
-	       (values ,@(map (lambda (v) `(thread-join ,v)) vars)))
+	       (values ,@(map (lambda (v) `(join-thread ,v)) vars)))
 	     ,@(map (lambda (form) `(begin-thread ,form)) forms))))))
 
 (define-macro (letpar bindings . body)
@@ -197,7 +198,7 @@ of applying P-PROC on ARGLISTS."
 	 (let ((vars (map car bindings)))
 	   `((lambda ,vars
 	       ((lambda ,vars ,@body)
-		,@(map (lambda (v) `(thread-join ,v)) vars)))
+		,@(map (lambda (v) `(join-thread ,v)) vars)))
 	     ,@(map (lambda (b) `(begin-thread ,(cadr b))) bindings))))))
 
 (define-macro (make-thread proc . args)
