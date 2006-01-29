@@ -1,3 +1,7 @@
+2006-01-29  Marius Vollmer  <mvo@zagadka.de>
+
+	* threads.scm: Replaced 'futures' with threads.
+
 2006-01-13  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* boot-9.scm (repl-reader): Use value of current-reader fluid to

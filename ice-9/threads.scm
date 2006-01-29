@@ -37,22 +37,20 @@
 	   n-par-map
 	   n-par-for-each
 	   n-for-each-par-map)
-  :re-export (future-ref)
   :export-syntax (begin-thread
 		  parallel
 		  letpar
 		  make-thread
 		  with-mutex
-		  monitor)
-  :re-export-syntax (future))
+		  monitor))
 
 
 
 (define ((par-mapper mapper)  proc . arglists)
-  (mapper future-ref
+  (mapper thread-join
 	  (apply map
 		 (lambda args
-		   (future (apply proc args)))
+		   (begin-thread (apply proc args)))
 		 arglists)))
 
 (define par-map (par-mapper map))
@@ -60,15 +58,15 @@
 
 (define (n-par-map n proc . arglists)
   (let* ((m (make-mutex))
-	 (futures '())
+	 (threads '())
 	 (results (make-list (length (car arglists))))
 	 (result results))
     (do ((i 0 (+ 1 i)))
 	((= i n)
-	 (for-each future-ref futures)
+	 (for-each thread-join threads)
 	 results)
-      (set! futures
-	    (cons (future
+      (set! threads
+	    (cons (begin-thread
 		   (let loop ()
 		     (lock-mutex m)
 		     (if (null? result)
@@ -80,16 +78,16 @@
 			   (unlock-mutex m)
 			   (set-car! my-result (apply proc args))
 			   (loop)))))
-		  futures)))))
+		  threads)))))
 
 (define (n-par-for-each n proc . arglists)
   (let ((m (make-mutex))
-	(futures '()))
+	(threads '()))
     (do ((i 0 (+ 1 i)))
 	((= i n)
-	 (for-each future-ref futures))
-      (set! futures
-	    (cons (future
+	 (for-each thread-join futures))
+      (set! threads
+	    (cons (begin-thread
 		   (let loop ()
 		     (lock-mutex m)
 		     (if (null? (car arglists))
@@ -99,7 +97,7 @@
 			   (unlock-mutex m)
 			   (apply proc args)
 			   (loop)))))
-		  futures)))))
+		  threads)))))
 
 ;;; The following procedure is motivated by the common and important
 ;;; case where a lot of work should be done, (not too much) in parallel,
@@ -110,15 +108,15 @@
   "Using N parallel processes, apply S-PROC in serial order on the results
 of applying P-PROC on ARGLISTS."
   (let* ((m (make-mutex))
-	 (futures '())
+	 (threads '())
 	 (no-result '(no-value))
 	 (results (make-list (length (car arglists)) no-result))
 	 (result results))
     (do ((i 0 (+ 1 i)))
 	((= i n)
-	 (for-each future-ref futures))
-      (set! futures
-	    (cons (future
+	 (for-each thread-join futures))
+      (set! threads
+	    (cons (begin-thread
 		   (let loop ()
 		     (lock-mutex m)
 		     (cond ((null? results)
@@ -143,7 +141,7 @@ of applying P-PROC on ARGLISTS."
 			      (unlock-mutex m)
 			      (set-car! my-result (apply p-proc args))
 			      (loop))))))
-		  futures)))))
+		  threads)))))
 
 (define (thread-handler tag . args)
   (fluid-set! the-last-stack #f)
@@ -169,7 +167,7 @@ of applying P-PROC on ARGLISTS."
     #f))
 
 ;;; Set system thread handler
-(set! %thread-handler thread-handler)
+(define %thread-handler thread-handler)
 
 ; --- MACROS -------------------------------------------------------
 
@@ -189,8 +187,8 @@ of applying P-PROC on ARGLISTS."
 			    (make-symbol "f"))
 			  forms)))
 	   `((lambda ,vars
-	       (values ,@(map (lambda (v) `(future-ref ,v)) vars)))
-	     ,@(map (lambda (form) `(future ,form)) forms))))))
+	       (values ,@(map (lambda (v) `(thread-join ,v)) vars)))
+	     ,@(map (lambda (form) `(begin-thread ,form)) forms))))))
 
 (define-macro (letpar bindings . body)
   (cond ((or (null? bindings) (null? (cdr bindings)))
@@ -199,8 +197,8 @@ of applying P-PROC on ARGLISTS."
 	 (let ((vars (map car bindings)))
 	   `((lambda ,vars
 	       ((lambda ,vars ,@body)
-		,@(map (lambda (v) `(future-ref ,v)) vars)))
-	     ,@(map (lambda (b) `(future ,(cadr b))) bindings))))))
+		,@(map (lambda (v) `(thread-join ,v)) vars)))
+	     ,@(map (lambda (b) `(begin-thread ,(cadr b))) bindings))))))
 
 (define-macro (make-thread proc . args)
   `(call-with-new-thread

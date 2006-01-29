@@ -1,3 +1,7 @@
+2006-01-29  Marius Vollmer  <mvo@zagadka.de>
+
+	* tests/time.test: Replaced 'futures' with threads.
+
 2005-11-30  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/srfi-13.test (string-append/shared): New tests.

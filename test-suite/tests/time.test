@@ -40,9 +40,9 @@
 
 		(alarm 5)
 		(false-if-exception (gmtime t))
-		(future-ref (future (catch 'out-of-range
-				      (lambda () (gmtime t))
-				      (lambda args #f))))
+		(thread-join (begin-thread (catch 'out-of-range
+						  (lambda () (gmtime t))
+						  (lambda args #f))))
 		(alarm 0)
 		#t))
 
@@ -118,6 +118,6 @@
     (alarm 5)
     (false-if-exception
      (strptime "%a" "nosuchday"))
-    (future-ref (future (strptime "%d" "1")))
+    (thread-join (begin-thread (strptime "%d" "1")))
     (alarm 0)
     #t))
