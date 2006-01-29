@@ -1,5 +1,7 @@
 2006-01-29  Marius Vollmer  <mvo@zagadka.de>
 
+	* api-scheduling.texi: Removed "Futures" node.
+
 	Renamed the "frames" that are related to dynamic-wind to "dynamic
 	contexts.  Renamed all functions from scm_frame_ to scm_dynwind_.
 	Updated documentation.

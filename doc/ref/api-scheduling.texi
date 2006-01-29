@@ -21,7 +21,6 @@ reviewed and largely reorganized.]
 * Blocking::                    How to block properly in guile mode.
 * Critical Sections::           Avoiding concurrency and reentries.
 * Fluids and Dynamic States::   Thread-local variables, etc.
-* Futures::                     Delayed execution in new threads.
 * Parallel Forms::              Parallel execution of forms.
 @end menu
 
@@ -688,34 +687,37 @@ Like @code{scm_with_dynamic_state}, but call @var{func} with
 @var{data}.
 @end deftypefn
 
-@node Futures
-@subsection Futures
-@cindex futures
+@c @node Futures
+@c @subsection Futures
+@c @cindex futures
 
-Futures are a convenient way to run a calculation in a new thread, and
-only wait for the result when it's actually needed.
+@c -- Futures are disabled for the time being, see futures.h for an
+@c -- explanation.
 
-Futures are similar to promises (@pxref{Delayed Evaluation}), in that
-they allow mainline code to continue immediately.  But @code{delay}
-doesn't evaluate at all until forced, whereas @code{future} starts
-immediately in a new thread.
+@c Futures are a convenient way to run a calculation in a new thread, and
+@c only wait for the result when it's actually needed.
 
-@deffn {syntax} future expr
-Begin evaluating @var{expr} in a new thread, and return a ``future''
-object representing the calculation.
-@end deffn
+@c Futures are similar to promises (@pxref{Delayed Evaluation}), in that
+@c they allow mainline code to continue immediately.  But @code{delay}
+@c doesn't evaluate at all until forced, whereas @code{future} starts
+@c immediately in a new thread.
 
-@deffn {Scheme Procedure} make-future thunk
-@deffnx {C Function} scm_make_future (thunk)
-Begin evaluating the call @code{(@var{thunk})} in a new thread, and
-return a ``future'' object representing the calculation.
-@end deffn
+@c @deffn {syntax} future expr
+@c Begin evaluating @var{expr} in a new thread, and return a ``future''
+@c object representing the calculation.
+@c @end deffn
 
-@deffn {Scheme Procedure} future-ref f
-@deffnx {C Function} scm_future_ref (f)
-Return the value computed by the future @var{f}.  If @var{f} has not
-yet finished executing then wait for it to do so.
-@end deffn
+@c @deffn {Scheme Procedure} make-future thunk
+@c @deffnx {C Function} scm_make_future (thunk)
+@c Begin evaluating the call @code{(@var{thunk})} in a new thread, and
+@c return a ``future'' object representing the calculation.
+@c @end deffn
+
+@c @deffn {Scheme Procedure} future-ref f
+@c @deffnx {C Function} scm_future_ref (f)
+@c Return the value computed by the future @var{f}.  If @var{f} has not
+@c yet finished executing then wait for it to do so.
+@c @end deffn
 
 
 @node Parallel Forms
