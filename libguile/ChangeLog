@@ -1,3 +1,9 @@
+2006-01-30  Marius Vollmer  <mvo@zagadka.de>
+
+	* eval.c (scm_eval_body): Lock source_mutex with a dynwind context
+	so that it gets unlocked in all cases.
+	(SCM_APPLY, CEVAL): Likewise.
+
 2006-01-29  Marius Vollmer  <mvo@zagadka.de>
 
 	* ramap.c: (scm_array_map_x): Don't use scm_array_p, use
