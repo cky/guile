@@ -4,6 +4,11 @@
 	contexts.  Renamed all functions from scm_frame_ to scm_dynwind_.
 	Updated documentation.
 
+	Disabled "futures":
+
+	* futures.h, futures.c: Wrap whole contents in "#if 0"/"#endif".
+	* eval.c, init.c: Comment out all 'future' related things.
+
 2006-01-28  Marius Vollmer  <mvo@zagadka.de>
 
 	* inline.h, pairs.c (scm_is_pair): Moved scm_is_pair from pairs.c
