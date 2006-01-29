@@ -2102,6 +2102,10 @@ unmemoize_at_call_with_values (const SCM expr, const SCM env)
                      unmemoize_exprs (SCM_CDR (expr), env));
 }
 
+#if 0
+
+/* See futures.h for a comment why futures are not enabled.
+ */
 
 SCM_SYNTAX (s_future, "future", scm_i_makbimacro, scm_m_future);
 SCM_GLOBAL_SYMBOL (scm_sym_future, s_future);
@@ -2126,6 +2130,7 @@ unmemoize_future (const SCM expr, const SCM env)
   return scm_list_2 (scm_sym_future, unmemoize_expression (thunk_expr, env));
 }
 
+#endif
 
 SCM_SYNTAX (s_gset_x, "set!", scm_i_makbimacro, scm_m_generalized_set_x);
 SCM_SYMBOL (scm_sym_setter, "setter");
@@ -2393,8 +2398,12 @@ unmemoize_builtin_macro (const SCM expr, const SCM env)
     case (ISYMNUM (SCM_IM_CALL_WITH_VALUES)):
       return unmemoize_at_call_with_values (expr, env);
 
+#if 0
+    /* See futures.h for a comment why futures are not enabled.
+     */
     case (ISYMNUM (SCM_IM_FUTURE)):
       return unmemoize_future (expr, env);
+#endif
 
     case (ISYMNUM (SCM_IM_SLOT_REF)):
       return unmemoize_atslot_ref (expr, env);
@@ -3748,10 +3757,12 @@ dispatch:
 	case (ISYMNUM (SCM_IM_DELAY)):
 	  RETURN (scm_makprom (scm_closure (SCM_CDR (x), env)));
 
-
+#if 0
+	  /* See futures.h for a comment why futures are not enabled.
+	   */
 	case (ISYMNUM (SCM_IM_FUTURE)):
 	  RETURN (scm_i_make_future (scm_closure (SCM_CDR (x), env)));
-
+#endif
 
 	  /* PLACEHOLDER for case (ISYMNUM (SCM_IM_DISPATCH)): The following
 	     code (type_dispatch) is intended to be the tail of the case

@@ -18,6 +18,12 @@
 
 
 
+#if 0
+
+/* This whole file is not being compiled.  See futures.h for the
+   reason.
+*/
+
 #include "libguile/_scm.h"
 #include "libguile/eval.h"
 #include "libguile/ports.h"
@@ -359,6 +365,8 @@ scm_init_futures ()
   scm_c_hook_add (&scm_before_sweep_c_hook, scan_futures, 0, 0);
 #include "libguile/futures.x"
 }
+
+#endif
 
 /*
   Local Variables:

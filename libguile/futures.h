@@ -22,6 +22,18 @@
 
 
 
+#if 0
+
+/* Futures have the following known bugs, which should be fixed before
+   including them in Guile:
+
+   - The implementation of the thread cache needs to be better so that
+     it behaves reasonable under heavy use.
+
+   - The dynamic state of a thread needs to be properly initialized
+     when it is retrieved from the cache.
+*/
+
 #include "libguile/__scm.h"
 #include "libguile/threads.h"
 
@@ -66,6 +78,8 @@ SCM_API SCM scm_make_future (SCM thunk);
 SCM_API SCM scm_future_ref (SCM future);
 
 void scm_init_futures (void);
+
+#endif  /* Futures are disabled for now. */
 
 #endif  /* SCM_FUTURES_H */
 
