@@ -521,11 +521,6 @@ Returns the "effective" version number.  This is just the normal full
 version string without the final micro-version number.  See "Changes
 to the distribution" above.
 
-** New feature, 'futures': future, make-future, future-ref
-
-Futures are like promises, but begin execution immediately in a new
-thread.  See the "Futures" section in the reference manual.
-
 ** New threading functions: parallel, letpar, par-map, and friends
 
 These are convenient ways to run calculations in parallel in new
