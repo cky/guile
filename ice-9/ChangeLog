@@ -1,3 +1,7 @@
+2006-01-30  Marius Vollmer  <mvo@zagadka.de>
+
+	* threads.scm (ice-9): Export %thread-handler.
+
 2006-01-29  Marius Vollmer  <mvo@zagadka.de>
 
 	* threads.scm: Replaced 'futures' with threads.
