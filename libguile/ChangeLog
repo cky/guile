@@ -1,5 +1,8 @@
 2006-01-29  Marius Vollmer  <mvo@zagadka.de>
 
+	* ramap.c: (scm_array_map_x): Don't use scm_array_p, use
+	scm_is_typed_array instead.
+
 	Renamed the "frames" that are related to dynamic-wind to "dynamic
 	contexts.  Renamed all functions from scm_frame_ to scm_dynwind_.
 	Updated documentation.
