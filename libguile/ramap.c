@@ -813,6 +813,7 @@ ramap_a (SCM ra0, SCM proc, SCM ras)
 
 SCM_REGISTER_PROC(s_array_map_in_order_x, "array-map-in-order!", 2, 0, 1, scm_array_map_x);
 
+SCM_SYMBOL (sym_b, "b");
 
 SCM_DEFINE (scm_array_map_x, "array-map!", 2, 0, 1,
 	    (SCM ra0, SCM proc, SCM lra),
@@ -857,7 +858,7 @@ SCM_DEFINE (scm_array_map_x, "array-map!", 2, 0, 1,
     case scm_tc7_rpsubr:
       {
 	ra_iproc *p;
-	if (scm_is_false (scm_array_p (ra0, SCM_BOOL_T)))
+	if (!scm_is_typed_array (ra0, sym_b))
 	  goto gencase;
 	scm_array_fill_x (ra0, SCM_BOOL_T);
 	for (p = ra_rpsubrs; p->name; p++)
