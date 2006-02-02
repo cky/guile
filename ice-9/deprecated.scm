@@ -1,4 +1,4 @@
-;;;; Copyright (C) 2003 Free Software Foundation, Inc.
+;;;; Copyright (C) 2003, 2006 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -173,8 +173,8 @@
 
 (define make-uniform-vector dimensions->uniform-array)
 
-(define (make-uniform-array prot . args)
-  (dimensions->uniform-array args prot))
+(define (make-uniform-array prot . bounds)
+  (dimensions->uniform-array bounds prot prot))
  
 (define (list->uniform-vector prot lst)
   (list->uniform-array 1 prot lst))
