@@ -1,3 +1,8 @@
+2006-02-01  Ludovic Courtès  <ludovic.courtes@laas.fr>
+
+        * deprecated.scm (make-uniform-array): Fill the returned vector with
+	PROT, per guile 1.6 behaviour.
+
 2006-01-30  Marius Vollmer  <mvo@zagadka.de>
 
 	* threads.scm (ice-9): Export %thread-handler.
