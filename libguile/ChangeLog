@@ -1,3 +1,8 @@
+2006-02-03  Kevin Ryde  <user42@zip.com.au>
+
+	* list.c, list.h (scm_list): Restore this function for use from C.
+	It's a complete no-op but in theory might used by someone.
+
 2006-01-30  Marius Vollmer  <mvo@zagadka.de>
 
 	* eval.c (scm_eval_body): Lock source_mutex with a dynwind context
