@@ -3,7 +3,7 @@
 #ifndef SCM_LIST_H
 #define SCM_LIST_H
 
-/* Copyright (C) 1995,1996,1997,2000,2001,2003,2004
+/* Copyright (C) 1995,1996,1997,2000,2001,2003,2004,2006
  * Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -33,6 +33,7 @@ SCM_API SCM scm_list_3 (SCM e1, SCM e2, SCM e3);
 SCM_API SCM scm_list_4 (SCM e1, SCM e2, SCM e3, SCM e4);
 SCM_API SCM scm_list_5 (SCM e1, SCM e2, SCM e3, SCM e4, SCM e5);
 SCM_API SCM scm_list_n (SCM elt, ...);
+SCM_API SCM scm_list (SCM objs);
 SCM_API SCM scm_list_head (SCM lst, SCM k);
 SCM_API SCM scm_make_list (SCM n, SCM init);
 SCM_API SCM scm_cons_star (SCM arg, SCM objs);
