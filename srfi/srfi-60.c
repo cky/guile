@@ -1,6 +1,6 @@
 /* srfi-60.c --- Integers as Bits
  *
- * Copyright (C) 2005 Free Software Foundation, Inc.
+ * Copyright (C) 2005, 2006 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -403,8 +403,9 @@ SCM_DEFINE (scm_srfi60_list_to_integer, "list->integer", 1, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_REGISTER_PROC (s_srfi60_booleans_to_integer, "booleans->integer", 0, 0, 1,
-                   scm_srfi60_list_to_integer);
+/* note: don't put "scm_srfi60_list_to_integer" arg on its own line, a
+   newline breaks the snarfer */
+SCM_REGISTER_PROC (s_srfi60_booleans_to_integer, "booleans->integer", 0, 0, 1, scm_srfi60_list_to_integer);
 
 
 void
