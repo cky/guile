@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2006
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -266,8 +266,8 @@ how to do it on GNU/Linux:
 gcc -shared -o libguile-bessel.so -fPIC bessel.c
 @end smallexample
 
-For creating shared libraries portably, we recommend the use of
-@code{GNU Libtool}.
+For creating shared libraries portably, we recommend the use of GNU
+Libtool (@pxref{Top, , Introduction, libtool, GNU Libtool}).
 
 A shared library can be loaded into a running Guile process with the
 function @code{load-extension}.  The @code{j0} is then immediately
