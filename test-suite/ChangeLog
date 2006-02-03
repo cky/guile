@@ -1,3 +1,8 @@
+2006-02-04  Kevin Ryde  <user42@zip.com.au>
+
+	* standalone/test-list.c: New file.
+	* standalone/Makefile.am: Add test-list.c
+
 2006-01-29  Marius Vollmer  <mvo@zagadka.de>
 
 	* tests/time.test: Replaced 'futures' with threads.
