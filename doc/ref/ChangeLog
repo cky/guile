@@ -7,6 +7,10 @@
 
 	* api-modules.texi (Compiled Code Installation): New section.
 
+	* posix.texi (Network Address Conversion, Network Databases)
+	(Network Sockets and Communication, Internet Socket Examples): Misc
+	tweaks.
+
 2006-01-29  Marius Vollmer  <mvo@zagadka.de>
 
 	* api-scheduling.texi: Removed "Futures" node.
