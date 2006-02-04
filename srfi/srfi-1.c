@@ -1,8 +1,8 @@
 /* srfi-1.c --- SRFI-1 procedures for Guile
  *
- * 	Copyright (C) 1995, 1996, 1997, 2000, 2001, 2002, 2003 Free Software
- * 	Foundation, Inc.
- * 
+ * 	Copyright (C) 1995, 1996, 1997, 2000, 2001, 2002, 2003, 2005, 2006
+ *   	Free Software Foundation, Inc.
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -61,6 +61,33 @@ equal_trampoline (SCM proc, SCM arg1, SCM arg2)
 {
   return scm_equal_p (arg1, arg2);
 }
+
+/* list_copy_part() copies the first COUNT cells of LST, puts the result at
+   *dst, and returns the SCM_CDRLOC of the last cell in that new list.
+
+   This function is designed to be careful about LST possibly having changed
+   in between the caller deciding what to copy, and the copy actually being
+   done here.  The COUNT ensures we terminate if LST has become circular,
+   SCM_VALIDATE_CONS guards against a cdr in the list changed to some
+   non-pair object.  */
+
+#include <stdio.h>
+static SCM *
+list_copy_part (SCM lst, int count, SCM *dst)
+#define FUNC_NAME "list_copy_part"
+{
+  SCM c;
+  for ( ; count > 0; count--)
+    {
+      SCM_VALIDATE_CONS (SCM_ARGn, lst);
+      c = scm_cons (SCM_CAR (lst), SCM_EOL);
+      *dst = c;
+      dst = SCM_CDRLOC (c);
+      lst = SCM_CDR (lst);
+    }
+  return dst;
+}
+#undef FUNC_NAME
 
 
 SCM_DEFINE (scm_srfi1_alist_copy, "alist-copy", 1, 0, 0,
@@ -337,6 +364,7 @@ SCM_DEFINE (scm_srfi1_delete, "delete", 2, 1, 0,
 {
   scm_t_trampoline_2 equal_p;
   SCM  ret, *p, keeplst;
+  int  count;
 
   if (SCM_UNBNDP (pred))
     return scm_delete (x, lst);
@@ -349,30 +377,28 @@ SCM_DEFINE (scm_srfi1_delete, "delete", 2, 1, 0,
      elements are considered.
 
      Elements to be retained are not immediately copied, instead keeplst is
-     the last pair in lst which is to be retained but not yet copied.  When
-     there's no more deletions, *p can be set to keeplst to share the
-     remainder of the original lst.  (The entire original lst if there's no
-     deletions at all.)  */
+     the last pair in lst which is to be retained but not yet copied, count
+     is how many from there are wanted.  When there's no more deletions, *p
+     can be set to keeplst to share the remainder of the original lst.  (The
+     entire original lst if there's no deletions at all.)  */
 
   keeplst = lst;
-  ret = SCM_EOL;
+  count = 0;
   p = &ret;
 
   for ( ; scm_is_pair (lst); lst = SCM_CDR (lst))
     {
       if (scm_is_true (equal_p (pred, x, SCM_CAR (lst))))
         {
-          /* delete this element, so copy from keeplst (inclusive) to lst
-             (exclusive) onto ret */
-          while (! scm_is_eq (keeplst, lst))
-            {
-              SCM c = scm_cons (SCM_CAR (keeplst), SCM_EOL);
-              *p = c;
-              p = SCM_CDRLOC (c);
-              keeplst = SCM_CDR (keeplst);
-            }
-
+          /* delete this element, so copy those at keeplst */
+          p = list_copy_part (keeplst, count, p);
           keeplst = SCM_CDR (lst);
+          count = 0;
+        }
+      else
+        {
+          /* keep this element */
+          count++;
         }
     }
 
@@ -459,6 +485,7 @@ SCM_DEFINE (scm_srfi1_delete_duplicates, "delete-duplicates", 1, 1, 0,
 {
   scm_t_trampoline_2 equal_p;
   SCM  ret, *p, keeplst, item, l;
+  int  count, i;
 
   /* ret is the new list constructed.  p is where to append, initially &ret
      then SCM_CDRLOC of the last pair.  lst is advanced as each element is
@@ -479,53 +506,57 @@ SCM_DEFINE (scm_srfi1_delete_duplicates, "delete-duplicates", 1, 1, 0,
      deletions.)  */
 
   /* skip to end if an empty list (or something invalid) */
-  ret = lst;
-  if (scm_is_pair (lst))
+  ret = SCM_EOL;
+
+  if (SCM_UNBNDP (pred))
+    equal_p = equal_trampoline;
+  else
     {
-      if (SCM_UNBNDP (pred))
-        equal_p = equal_trampoline;
-      else
-        {
-          equal_p = scm_trampoline_2 (pred);
-          SCM_ASSERT (equal_p, pred, SCM_ARG2, FUNC_NAME);
-        }
-
-      keeplst = lst;
-      p = &ret;
-
-      /* loop over lst elements starting from second */
-      for (;;)
-        {
-          lst = SCM_CDR (lst);
-          if (! scm_is_pair (lst))
-            break;
-          item = SCM_CAR (lst);
-
-          /* loop searching ret upto lst */
-          for (l = ret; ! scm_is_eq (l, lst); l = SCM_CDR (l))
-            {
-              if (scm_is_true (equal_p (pred, SCM_CAR (l), item)))
-                {
-                  /* duplicate, don't want this element, so copy keeplst
-                     (inclusive) to lst (exclusive) onto ret */
-                  while (! scm_is_eq (keeplst, lst))
-                    {
-                      SCM c = scm_cons (SCM_CAR (keeplst), SCM_EOL);
-                      *p = c;
-                      p = SCM_CDRLOC (c);
-                      keeplst = SCM_CDR (keeplst);
-                    }
-
-                  keeplst = SCM_CDR (lst);  /* elem after the one deleted */
-                  *p = keeplst;
-                  break;
-                }
-            }
-        }
+      equal_p = scm_trampoline_2 (pred);
+      SCM_ASSERT (equal_p, pred, SCM_ARG2, FUNC_NAME);
     }
 
-  /* demand that lst was a proper list */
+  keeplst = lst;
+  count = 0;
+  p = &ret;
+
+  for ( ; scm_is_pair (lst); lst = SCM_CDR (lst))
+    {
+      item = SCM_CAR (lst);
+
+      /* look for item in "ret" list */
+      for (l = ret; scm_is_pair (l); l = SCM_CDR (l))
+        {
+          if (scm_is_true (equal_p (pred, SCM_CAR (l), item)))
+            {
+              /* "item" is a duplicate, so copy keeplst onto ret */
+            duplicate:
+              p = list_copy_part (keeplst, count, p);
+
+              keeplst = SCM_CDR (lst);  /* elem after the one deleted */
+              count = 0;
+              goto next_elem;
+            }
+        }
+
+      /* look for item in "keeplst" list
+         be careful traversing, in case nasty code changed the cdrs */
+      for (i = 0,       l = keeplst;
+           i < count && scm_is_pair (l);
+           i++,         l = SCM_CDR (l))
+        if (scm_is_true (equal_p (pred, SCM_CAR (l), item)))
+          goto duplicate;
+
+      /* keep this element */
+      count++;
+
+    next_elem:
+      ;
+    }
   SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P (lst), lst, SCM_ARG1, FUNC_NAME, "list");
+
+  /* share tail of keeplst items */
+  *p = keeplst;
 
   return ret;
 }
