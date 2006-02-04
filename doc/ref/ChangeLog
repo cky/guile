@@ -1,3 +1,10 @@
+2006-02-04  Kevin Ryde  <user42@zip.com.au>
+
+	* api-options.texi (Build Config): pxref libtool on libguileinterface
+	version info.
+	* intro.texi (Writing Guile Extensions), libguile-extensions.texi (A
+	Sample Guile Extension): pxref libtool manual.
+
 2006-01-29  Marius Vollmer  <mvo@zagadka.de>
 
 	* api-scheduling.texi: Removed "Futures" node.
