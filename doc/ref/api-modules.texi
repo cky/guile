@@ -1303,8 +1303,6 @@ augment that path when installing Guile modules in non-default
 locations.  But having reached the Scheme code, that code should take
 care of hitting any of its own private files etc.
 
-@subsection Other matters
-
 Presently there's no convention for having a Guile version number in
 module C code filenames or directories.  This is primarily because
 there's no established principles for two versions of Guile to be
