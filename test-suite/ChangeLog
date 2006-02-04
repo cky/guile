@@ -3,6 +3,10 @@
 	* standalone/test-list.c: New file.
 	* standalone/Makefile.am: Add test-list.c
 
+	* tests/srfi-1.test: Use the equal proc argument, so we exercise the
+	srfi-1 version of the code.  Without such an argument srfi-1.c passes
+	the job to the core scm_delete.
+
 2006-01-29  Marius Vollmer  <mvo@zagadka.de>
 
 	* tests/time.test: Replaced 'futures' with threads.

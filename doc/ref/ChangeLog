@@ -5,6 +5,8 @@
 	* intro.texi (Writing Guile Extensions), libguile-extensions.texi (A
 	Sample Guile Extension): pxref libtool manual.
 
+	* api-modules.texi (Compiled Code Installation): New section.
+
 2006-01-29  Marius Vollmer  <mvo@zagadka.de>
 
 	* api-scheduling.texi: Removed "Futures" node.
