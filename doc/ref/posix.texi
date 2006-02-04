@@ -2078,8 +2078,12 @@ between numeric and string formats.
 @cindex IPv4
 
 An IPv4 Internet address is a 4-byte value, represented in Guile as an
-integer in network byte order (meaning the first byte is the most
-significant in the number).
+integer in host byte order, so that say ``0.0.0.1'' is 1, or
+``1.0.0.0'' is 16777216.
+
+Some underlying C functions use network byte order for addresses,
+Guile converts as necessary so that at the Scheme level its host byte
+order everywhere.
 
 @defvar INADDR_ANY
 For a server, this can be used with @code{bind} (@pxref{Network
@@ -2161,11 +2165,12 @@ Make an IPv4 Internet address by combining the network number
 @subsubheading IPv6 Address Conversion
 @cindex IPv6
 
+An IPv6 Internet address is a 16-byte value, represented in Guile as
+an integer in host byte order, so that say ``::1'' is 1.
+
 @deffn {Scheme Procedure} inet-ntop family address
 @deffnx {C Function} scm_inet_ntop (family, address)
-Convert a network address into a printable string.
-Note that unlike the C version of this function,
-the input is an integer with normal host byte ordering.
+Convert a network address from an integer to a printable string.
 @var{family} can be @code{AF_INET} or @code{AF_INET6}.  E.g.,
 
 @lisp
@@ -2177,11 +2182,9 @@ ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff
 
 @deffn {Scheme Procedure} inet-pton family address
 @deffnx {C Function} scm_inet_pton (family, address)
-Convert a string containing a printable network address to
-an integer address.  Note that unlike the C version of this
-function,
-the result is an integer with normal host byte ordering.
-@var{family} can be @code{AF_INET} or @code{AF_INET6}.  E.g.,
+Convert a string containing a printable network address to an integer
+address.  @var{family} can be @code{AF_INET} or @code{AF_INET6}.
+E.g.,
 
 @lisp
 (inet-pton AF_INET "127.0.0.1") @result{} 2130706433
@@ -2216,14 +2219,16 @@ The ``official'' hostname for @var{host}.
 A list of aliases for @var{host}.
 @end deffn
 @deffn {Scheme Procedure} hostent:addrtype host
-The host address type.  For hosts with Internet addresses, this will
-return @code{AF_INET}.
+The host address type, one of the @code{AF} constants, such as
+@code{AF_INET} or @code{AF_INET6}.
 @end deffn
 @deffn {Scheme Procedure} hostent:length host
 The length of each address for @var{host}, in bytes.
 @end deffn
 @deffn {Scheme Procedure} hostent:addr-list host
-The list of network addresses associated with @var{host}.
+The list of network addresses associated with @var{host}.  For
+@code{AF_INET} these are integer IPv4 address (@pxref{Network Address
+Conversion}).
 @end deffn
 
 The following procedures are used to search the host database:
@@ -2593,11 +2598,10 @@ Most systems have limits on how many files and sockets can be open, so
 it's strongly recommended that socket ports be closed explicitly when
 no longer required (@pxref{Ports}).
 
-The convention used for ``host'' vs.@: ``network'' addresses is that
-addresses are always held in host order at the Scheme level.  The
-procedures in this section automatically convert between host and
-network order when required.  The arguments and return values are thus
-in host order.
+Some of the underlying C functions take values in network byte order,
+but the convention in Guile is that at the Scheme level everything is
+ordinary host byte order and conversions are made automatically where
+necessary.
 
 @deffn {Scheme Procedure} socket family style proto
 @deffnx {C Function} scm_socket (family, style, proto)
@@ -2702,7 +2706,7 @@ they mean.
 @defvarx IP_DROP_MEMBERSHIP
 These can be used only with @code{setsockopt}, not @code{getsockopt}.
 @var{value} is a pair @code{(@var{MULTIADDR} . @var{INTERFACEADDR})}
-of IPv4 addresses (@pxref{Network Address Conversion}).
+of integer IPv4 addresses (@pxref{Network Address Conversion}).
 @var{MULTIADDR} is a multicast address to be added to or dropped from
 the interface @var{INTERFACEADDR}.  @var{INTERFACEADDR} can be
 @code{INADDR_ANY} to have the system select the interface.
@@ -2713,14 +2717,14 @@ supporting that.
 
 @deffn {Scheme Procedure} shutdown sock how
 @deffnx {C Function} scm_shutdown (sock, how)
-Sockets can be closed simply by using @code{close-port}. The
+Sockets can be closed simply by using @code{close-port}.  The
 @code{shutdown} procedure allows reception or transmission on a
 connection to be shut down individually, according to the parameter
 @var{how}:
 
 @table @asis
 @item 0
-Stop receiving data for this socket.  If further data arrives,  reject it.
+Stop receiving data for this socket.  If further data arrives, reject it.
 @item 1
 Stop trying to transmit data from this socket.  Discard any
 data waiting to be sent.  Stop looking for acknowledgement of
@@ -3013,19 +3017,19 @@ client.
   (newline)
 
   (while #t
-         (let* ((client-connection (accept s))
-                (client-details (cdr client-connection))
-                (client (car client-connection)))
-           (simple-format #t "Got new client connection: ~S"
-                          client-details)
-           (newline)
-           (simple-format #t "Client address: ~S"
-                          (gethostbyaddr
-                           (sockaddr:addr client-details)))
-           (newline)
-           ;; @r{Send back the greeting to the client port}
-           (display "Hello client\r\n" client)
-           (close client))))
+    (let* ((client-connection (accept s))
+           (client-details (cdr client-connection))
+           (client (car client-connection)))
+      (simple-format #t "Got new client connection: ~S"
+                     client-details)
+      (newline)
+      (simple-format #t "Client address: ~S"
+                     (gethostbyaddr
+                      (sockaddr:addr client-details)))
+      (newline)
+      ;; @r{Send back the greeting to the client port}
+      (display "Hello client\r\n" client)
+      (close client))))
 @end example
 
 
@@ -3042,7 +3046,7 @@ Return an object with some information about the computer
 system the program is running on.
 
 The following procedures accept an object as returned by @code{uname}
-and return a selected component.
+and return a selected component (all of which are strings).
 
 @deffn {Scheme Procedure} utsname:sysname un
 The name of the operating system.
