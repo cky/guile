@@ -1,5 +1,9 @@
 2006-02-04  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* boot-9.scm (try-module-autoload): Make sure that module code is
+	loaded with the default reader (current-reader #f).  Thanks to
+	Ludovic Courtès for pointing this problem out.
+
 	* stack-catch.scm (stack-catch): Use catch pre-unwind handler
 	instead of lazy-catch.
 

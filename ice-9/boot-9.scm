@@ -2180,7 +2180,8 @@
 			    (load-file load-compiled full)))
 		      ((%search-load-path file)
 		       => (lambda (full)
-			    (load-file primitive-load full))))))
+			    (with-fluids ((current-reader #f))
+			      (load-file primitive-load full)))))))
 	    (lambda () (set-autoloaded! dir-hint name didit)))
 	   didit))))
 
