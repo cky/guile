@@ -1,6 +1,6 @@
 ;;;; srfi-1.test --- Test suite for Guile's SRFI-1 functions. -*- scheme -*-
 ;;;;
-;;;; Copyright 2003, 2004, 2005 Free Software Foundation, Inc.
+;;;; Copyright 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 ;;;;
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -577,11 +577,11 @@
       (delete-proc 0 '() equal? 99))
     
     (pass-if "empty"
-      (eq? '() (delete-proc 0 '())))
+      (eq? '() (delete-proc 0 '() equal?)))
     
-    (pass-if "equal? (the default)"
+    (pass-if "equal?"
       (equal? '((1) (3))
-	      (delete-proc '(2) '((1) (2) (3)))))
+	      (delete-proc '(2) '((1) (2) (3)) equal?)))
     
     (pass-if "eq?"
       (equal? '((1) (2) (3))
@@ -599,8 +599,8 @@
        (let ((lst-copy (list-copy lst)))
 	 (with-test-prefix lst-copy
 	   (pass-if "result"
-	     (equal? (delete     #f lst)
-		     (ref-delete #f lst)))
+	     (equal? (delete     #f lst equal?)
+		     (ref-delete #f lst equal?)))
 	   (pass-if "non-destructive"
 	     (equal? lst-copy lst)))))))  
   
