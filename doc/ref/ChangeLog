@@ -1,3 +1,14 @@
+2006-02-04  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* api-control.texi (Throw Handlers): New node.
+	(Throw): Moved to after the Lazy Catch node.
+	(Catch): Enhance to cover the optional pre-unwind handler, and new
+	APIs scm_c_catch, scm_catch_with_pre_unwind_handler.
+	(Lazy Catch): Describe relationship to with-throw-handler.
+	Document that the handler may return, and what happens if it does.
+	(Throw): Mention that a throw can be handled by a throw handler as
+	well as by a catch.
+
 2006-02-04  Kevin Ryde  <user42@zip.com.au>
 
 	* api-options.texi (Build Config): pxref libtool on libguileinterface
