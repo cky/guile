@@ -1,3 +1,11 @@
+2006-02-04  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* stack-catch.scm (stack-catch): Use catch pre-unwind handler
+	instead of lazy-catch.
+
+	* boot-9.scm (error-catching-loop): Use catch pre-unwind handler
+	instead of lazy-catch.
+
 2006-02-01  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
         * deprecated.scm (make-uniform-array): Fill the returned vector with

@@ -27,7 +27,7 @@ current stack state in the @var{the-last-stack} fluid, for the purpose
 of debugging or re-throwing of an error.  If thunk throws to the
 symbol @var{key}, then @var{handler} is invoked this way:\n
 @example
-(handler key args ...)
+ (handler key args ...)
 @end example\n
 @var{key} is a symbol or #t.\n
 @var{thunk} takes no arguments.  If @var{thunk} returns normally, that
@@ -38,8 +38,6 @@ up the call chain is invoked.\n
 If the key is @code{#t}, then a throw to @emph{any} symbol will match
 this call to @code{catch}."
   (catch key
-	 (lambda ()
-	   (lazy-catch key
-		       thunk
-		       lazy-handler-dispatch))
-	 handler))
+	 thunk
+	 handler
+	 lazy-handler-dispatch))

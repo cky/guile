@@ -2353,36 +2353,20 @@
 	     (catch #t
 
 		    (lambda ()
-		      (lazy-catch #t
-				  (lambda ()
-				    (call-with-unblocked-asyncs
-				     (lambda ()
-				       (with-traps
-					(lambda ()
-					  (first)
+		      (call-with-unblocked-asyncs
+		       (lambda ()
+			 (with-traps
+			  (lambda ()
+			    (first)
 
-					  ;; This line is needed because mark
-					  ;; doesn't do closures quite right.
-					  ;; Unreferenced locals should be
-					  ;; collected.
-					  ;;
-					  (set! first #f)
-					  (let loop ((v (thunk)))
-					    (loop (thunk)))
-					  #f)))))
-
-				  ;; Note that having just
-				  ;; `lazy-handler-dispatch' here is
-				  ;; connected with the mechanism that
-				  ;; produces a nice backtrace upon
-				  ;; error.  If, for example, this is
-				  ;; replaced with (lambda args (apply
-				  ;; lazy-handler-dispatch args)), the
-				  ;; stack cutting (in save-stack)
-				  ;; goes wrong and ends up saving no
-				  ;; stack at all, so there is no
-				  ;; backtrace.
-				  lazy-handler-dispatch))
+			    ;; This line is needed because mark
+			    ;; doesn't do closures quite right.
+			    ;; Unreferenced locals should be
+			    ;; collected.
+			    (set! first #f)
+			    (let loop ((v (thunk)))
+			      (loop (thunk)))
+			    #f)))))
 
 		    (lambda (key . args)
 		      (case key
@@ -2427,7 +2411,18 @@
 			   (cond ((= (length args) 4)
 				  (apply handle-system-error key args))
 				 (else
-				  (apply bad-throw key args))))))))))
+				  (apply bad-throw key args)))))))
+
+		    ;; Note that having just `lazy-handler-dispatch'
+		    ;; here is connected with the mechanism that
+		    ;; produces a nice backtrace upon error.  If, for
+		    ;; example, this is replaced with (lambda args
+		    ;; (apply lazy-handler-dispatch args)), the stack
+		    ;; cutting (in save-stack) goes wrong and ends up
+		    ;; saving no stack at all, so there is no
+		    ;; backtrace.
+		    lazy-handler-dispatch)))
+
 	(if next (loop next) status)))
     (set! set-batch-mode?! (lambda (arg)
 			     (cond (arg
