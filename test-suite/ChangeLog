@@ -1,3 +1,8 @@
+2006-02-04  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* tests/exceptions.test: 19 new test cases.
+	(throw-test): New macro for testing catches and throw handlers.
+
 2006-02-04  Kevin Ryde  <user42@zip.com.au>
 
 	* standalone/test-list.c: New file.
