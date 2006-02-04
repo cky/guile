@@ -121,7 +121,8 @@ scm_internal_cwdr (scm_t_catch_body body, void *body_data,
 
   my_handler_data.run_handler = 0;
   answer = scm_i_with_continuation_barrier (body, body_data,
-					    cwdr_handler, &my_handler_data);
+					    cwdr_handler, &my_handler_data,
+					    NULL, NULL);
 
   scm_dynwind_end ();
 

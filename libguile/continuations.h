@@ -95,7 +95,9 @@ SCM_API SCM scm_with_continuation_barrier (SCM proc);
 SCM_API SCM scm_i_with_continuation_barrier (scm_t_catch_body body,
 					     void *body_data,
 					     scm_t_catch_handler handler,
-					     void *handler_data);
+					     void *handler_data,
+					     scm_t_catch_handler pre_unwind_handler,
+					     void *pre_unwind_handler_data);
 
 SCM_API void scm_init_continuations (void);
 

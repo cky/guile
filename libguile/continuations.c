@@ -312,7 +312,9 @@ SCM
 scm_i_with_continuation_barrier (scm_t_catch_body body,
 				 void *body_data,
 				 scm_t_catch_handler handler,
-				 void *handler_data)
+				 void *handler_data,
+				 scm_t_catch_handler pre_unwind_handler,
+				 void *pre_unwind_handler_data)
 {
   SCM_STACKITEM stack_item;
   scm_i_thread *thread = SCM_I_CURRENT_THREAD;
@@ -333,9 +335,10 @@ scm_i_with_continuation_barrier (scm_t_catch_body body,
   /* Call FUNC inside a catch all.  This is now guaranteed to return
      directly and exactly once.
   */
-  result = scm_internal_catch (SCM_BOOL_T,
-			       body, body_data,
-			       handler, handler_data);
+  result = scm_c_catch (SCM_BOOL_T,
+			body, body_data,
+			handler, handler_data,
+			pre_unwind_handler, pre_unwind_handler_data);
 
   /* Return to old continuation root.
    */
@@ -364,7 +367,6 @@ static SCM
 c_handler (void *d, SCM tag, SCM args)
 {
   struct c_data *data = (struct c_data *)d;
-  scm_handle_by_message_noexit (NULL, tag, args);
   data->result = NULL;
   return SCM_UNSPECIFIED;
 }
@@ -376,7 +378,8 @@ scm_c_with_continuation_barrier (void *(*func) (void *), void *data)
   c_data.func = func;
   c_data.data = data;
   scm_i_with_continuation_barrier (c_body, &c_data,
-				   c_handler, &c_data);
+				   c_handler, &c_data,
+				   scm_handle_by_message_noexit, NULL);
   return c_data.result;
 }
 
@@ -394,7 +397,6 @@ scm_body (void *d)
 static SCM
 scm_handler (void *d, SCM tag, SCM args)
 {
-  scm_handle_by_message_noexit (NULL, tag, args);
   return SCM_BOOL_F;
 }
 
@@ -415,7 +417,8 @@ SCM_DEFINE (scm_with_continuation_barrier, "with-continuation-barrier", 1,0,0,
   struct scm_data scm_data;
   scm_data.proc = proc;
   return scm_i_with_continuation_barrier (scm_body, &scm_data,
-					  scm_handler, &scm_data);
+					  scm_handler, &scm_data,
+					  scm_handle_by_message_noexit, NULL);
 }
 #undef FUNC_NAME
 

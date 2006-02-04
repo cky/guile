@@ -38,7 +38,7 @@
    #<winder>
    (enter-proc . leave-proc)     dynamic-wind
    (tag . jmpbuf)                catch
-   (tag . lazy-catch)            lazy-catch
+   (tag . pre-unwind-data)       throw-handler / lazy-catch
      tag is either a symbol or a boolean
 
 */

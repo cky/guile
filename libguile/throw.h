@@ -30,6 +30,21 @@ typedef SCM (*scm_t_catch_body) (void *data);
 typedef SCM (*scm_t_catch_handler) (void *data,
                                     SCM tag, SCM throw_args);
 
+SCM_API SCM scm_c_catch (SCM tag,
+			 scm_t_catch_body body,
+			 void *body_data,
+			 scm_t_catch_handler handler,
+			 void *handler_data,
+			 scm_t_catch_handler pre_unwind_handler,
+			 void *pre_unwind_handler_data);
+
+SCM_API SCM scm_c_with_throw_handler (SCM tag,
+				      scm_t_catch_body body,
+				      void *body_data,
+				      scm_t_catch_handler handler,
+				      void *handler_data,
+				      int lazy_catch_p);
+
 SCM_API SCM scm_internal_catch (SCM tag,
 				scm_t_catch_body body,
 				void *body_data,
@@ -72,7 +87,9 @@ SCM_API SCM scm_handle_by_message_noexit (void *, SCM, SCM);
 SCM_API SCM scm_handle_by_throw (void *, SCM, SCM);
 SCM_API int scm_exit_status (SCM args);
 
+SCM_API SCM scm_catch_with_pre_unwind_handler (SCM tag, SCM thunk, SCM handler, SCM lazy_handler);
 SCM_API SCM scm_catch (SCM tag, SCM thunk, SCM handler);
+SCM_API SCM scm_with_throw_handler (SCM tag, SCM thunk, SCM handler);
 SCM_API SCM scm_lazy_catch (SCM tag, SCM thunk, SCM handler);
 SCM_API SCM scm_ithrow (SCM key, SCM args, int noreturn);
 

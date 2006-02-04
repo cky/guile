@@ -1,3 +1,58 @@
+2006-02-04  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* throw.h (scm_c_catch, scm_c_with_throw_handler,
+	scm_catch_with_pre_unwind_handler, scm_with_throw_handler): New.
+
+	* throw.c (SCM_JBPREUNWIND, SCM_SETJBPREUNWIND): New.
+	(struct pre_unwind_data): New, replaces struct lazy_catch.
+	(scm_c_catch): New, replaces scm_internal_catch as the primary
+	catch API for C code; adds pre-unwind handler support.
+	(scm_internal_catch): Now just a wrapper for scm_c_catch, for back
+	compatibility.
+	(tc16_pre_unwind_data, pre_unwind_data_print,
+	make_pre_unwind_data, SCM_PRE_UNWIND_DATA_P): Renamed from
+	"lazy_catch" equivalents.
+	(scm_c_with_throw_handler): New, replaces scm_internal_lazy_catch
+	as the primary C API for a "lazy" catch.
+	(scm_internal_lazy_catch): Now just a wrapper for
+	scm_c_with_throw_handler, for back compatibility.
+	(scm_catch_with_pre_unwind_handler): Renamed from scm_catch; adds
+	pre-unwind handler support.
+	(scm_catch): Now just a wrapper for
+	scm_catch_with_pre_unwind_handler, for back compatibility.
+	(scm_with_throw_handler): New.
+	(scm_lazy_catch): Update comment to say that the handler can
+	return, and what happens if it does.
+	(toggle_pre_unwind_running): New.
+	(scm_ithrow): When identifying the throw target, take running
+	flags into account.  In general, change naming of things from
+	"lazy_catch" to "pre_unwind".  When throwing to a throw handler,
+	don't unwind the dynamic context first.  Add dynwind framing to
+	manage the running flag of a throw handler.  If a lazy catch or
+	throw handler returns, rethrow the same exception again.  Add
+	pre-unwind support to the normal catch case (SCM_JMPBUFP).
+
+	* root.c (scm_internal_cwdr): Add NULL args to
+	scm_i_with_continuation_barrier call.
+
+	* dynwind.c: Change comment mentioning lazy-catch to mention
+	pre-unwind data and throw handler also.
+
+	* continuations.h (scm_i_with_continuation_barrier): Add
+	pre-unwind handler args.
+
+	* continuations.c (scm_i_with_continuation_barrier): Add
+	pre-unwind handler args, and pass on to scm_c_catch (changed from
+	scm_internal_catch).
+	(c_handler): Remove scm_handle_by_message_noexit call.
+	(scm_c_with_continuation_barrier): Call
+	scm_i_with_continuation_barrier with scm_handle_by_message_noexit
+	as the pre-unwind handler.
+	(scm_handler): Remove scm_handle_by_message_noexit call.
+	(s_scm_with_continuation_barrier): Call
+	scm_i_with_continuation_barrier with scm_handle_by_message_noexit
+	as the pre-unwind handler.
+
 2006-02-03  Kevin Ryde  <user42@zip.com.au>
 
 	* list.c, list.h (scm_list): Restore this function for use from C.
