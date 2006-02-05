@@ -1541,6 +1541,67 @@ including an existing generic function or accessor, is overwritten by
 the new definition.
 @end deffn
 
+It is sometimes tempting to use GOOPS accessors with short names.  For
+example, it is tempting to use the name @code{x} for the x-coordinate
+in vector packages.
+
+Assume that we work with a graphical package which needs to use two
+independent vector packages for 2D and 3D vectors respectively.  If
+both packages export @code{x} we will encounter a name collision.
+
+This can be resolved automagically with the duplicates handler
+@code{merge-generics} which gives the module system license to merge
+all generic functions sharing a common name:
+
+@smalllisp
+(define-module (math 2D-vectors)
+  :use-module (oop goops)
+  :export (x y ...))
+		  
+(define-module (math 3D-vectors)
+  :use-module (oop goops)
+  :export (x y z ...))
+
+(define-module (my-module)
+  :use-module (math 2D-vectors)
+  :use-module (math 3D-vectors)
+  :duplicates merge-generics)
+@end smalllisp
+
+The generic function @code{x} in @code{(my-module)} will now share
+methods with @code{x} in both imported modules.
+
+There will, in fact, now be three distinct generic functions named
+@code{x}: @code{x} in @code{(2D-vectors)}, @code{x} in
+@code{(3D-vectors)}, and @code{x} in @code{(my-module)}.  The last
+function will be an @code{<extended-generic>}, extending the previous
+two functions.
+
+Let's call the imported generic functions the "ancestor functions".
+The generic function @code{x} in @code{(my-module)} is, in turn, a
+"descendant function" of the imported functions, extending its
+ancestors.
+
+For any generic function G, the applicable methods are selected from
+the union of the methods of the descendant functions, the methods of G
+itself and the methods of the ancestor functions.
+
+This, ancestor functions share methods with their descendants and vice
+versa.  This implies that @code{x} in @code{(math 2D-vectors)} will
+share the methods of @code{x} in @code{(my-module)} and vice versa,
+while @code{x} in @code{(math 2D-vectors)} doesn't share the methods
+of @code{x} in @code{(math 3D-vectors)}, thus preserving modularity.
+
+Sharing is dynamic, so that adding new methods to a descendant implies
+adding it to the ancestor.
+
+If duplicates checking is desired in the above example, the following
+form of the @code{:duplicates} option can be used instead:
+
+@smalllisp
+  :duplicates (merge-generics check)
+@end smalllisp
+
 @node Generic Function Internals
 @subsection Generic Function Internals
 
