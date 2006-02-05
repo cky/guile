@@ -1,3 +1,7 @@
+2006-02-06  Marius Vollmer  <mvo@zagadka.de>
+
+	* LIBGUILEREADLINE-VERSION: Bumped versions for 1.9 series.
+
 2005-03-02  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* readline.c: Use scm_current_input_port instead of scm_cur_inp.
