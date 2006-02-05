@@ -1,3 +1,9 @@
+2006-02-06  Marius Vollmer  <mvo@zagadka.de>
+
+	* GUILE-VERSION: Bumped versions for 1.9 series.
+
+	* configure.in: Removed --enable-arrays option.
+
 2005-12-14  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* NEWS: Remove entry claiming that breakpoints have been added,

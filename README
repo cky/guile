@@ -3,18 +3,18 @@ anonymous CVS or as a nightly snapshot at some random time after the
 Guile 1.6 release.  If this were a Guile release, you would not see
 this message. !!!  [fixme: zonk on release]
 
-This is a 1.7 development version of Guile, Project GNU's extension
+This is a 1.9 development version of Guile, Project GNU's extension
 language library.  Guile is an interpreter for Scheme, packaged as a
 library that you can link into your applications to give them their
 own scripting language.  Guile will eventually support other languages
 as well, giving users of Guile-based applications a choice of
 languages.
 
-Guile versions with an odd middle number, i.e. 1.7.* are unstable
+Guile versions with an odd middle number, i.e. 1.9.* are unstable
 development versions.  Even middle numbers indicate stable versions.
 This has been the case since the 1.3.* series.
 
-The next stable release will be version 1.8.0.
+The next stable release will likely be version 1.10.0.
 
 Please send bug reports to bug-guile@gnu.org.
 
@@ -357,11 +357,6 @@ libguile:
 ice-9:  Guile's module system, initialization code, and other infrastructure.
 guile-config:
 	Source for the guile-config script.
-qt: 	A cooperative threads package from the University of Washington,
-	which Guile can use.  If you configure Guile with the
-        --with-threads flag, you will need to link against the -lqt
-        library, found in this directory.  Qt is under a separate
-        copyright; see `qt/README' for more details.
 guile-readline:
         The glue code for using GNU readline with Guile.  This
         will be build when configure can find a recent enough readline
@@ -379,15 +374,3 @@ Guile CVS repository, you can subscribe to guile-cvs@gnu.org by the
 Mailman mailing list interface at
 
   <http://mail.gnu.org/mailman/listinfo/guile-cvs>
-
-
-Obtaining Guile ======================================================
-
-The latest official Guile release is available via anonymous FTP from
-
-ftp://ftp.gnu.org/pub/gnu/guile/guile-1.4.tar.gz
-
-The mailing list `guile-user@gnu.org' carries discussions, questions,
-and often answers, about Guile.  To subscribe, use the Mailman mailing
-list interface at <http://mail.gnu.org/mailman/listinfo/guile-user>
-Of course, please send bug reports (and fixes!) to bug-guile@gnu.org.

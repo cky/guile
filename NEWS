@@ -84,44 +84,7 @@ the '--disable-discouraged' option.
 (debug-enable 'warn-deprecated) switches them on and (debug-disable
 'warn-deprecated) switches them off.
  
-** New module (ice-9 serialize):
-
-(serialize FORM1 ...) and (parallelize FORM1 ...) are useful when
-you don't trust the thread safety of most of your program, but
-where you have some section(s) of code which you consider can run
-in parallel to other sections.
-
-### move rest to manual
-
-They "flag" (with dynamic extent) sections of code to be of
-"serial" or "parallel" nature and have the single effect of
-preventing a serial section from being run in parallel with any
-serial section (including itself).
-
-Both serialize and parallelize can be nested.  If so, the
-inner-most construct is in effect.
-
-NOTE 1: A serial section can run in parallel with a parallel
-section.
-
-NOTE 2: If a serial section S is "interrupted" by a parallel
-section P in the following manner: S = S1 P S2, S2 is not
-guaranteed to be resumed by the same thread that previously
-executed S1.
-
-WARNING: Spawning new threads within a serial section have
-undefined effects.  It is OK, though, to spawn threads in unflagged
-sections of code where neither serialize or parallelize is in
-effect.
-
-A typical usage is when Guile is used as scripting language in some
-application doing heavy computations.  If each thread is
-encapsulated with a serialize form, you can then put a parallelize
-form around the code performing the heavy computations (typically a
-C code primitive), enabling the computations to run in parallel
-while the scripting code runs single-threadedly.
-
-** Support for SRFI 61, extended cond syntax for multiple valuesm has
+** Support for SRFI 61, extended cond syntax for multiple values has
    been added.
 
 This SRFI is always available.
@@ -160,6 +123,13 @@ The official version is good enough now.
 
 Support for translating the documentation into HTML is now always
 provided.  Use 'make html'.
+
+** New module (ice-9 serialize):
+
+(serialize FORM1 ...) and (parallelize FORM1 ...) are useful when you
+don't trust the thread safety of most of your program, but where you
+have some section(s) of code which you consider can run in parallel to
+other sections.  See ice-9/serialize.scm for more information.
 
 ** The configure option '--disable-arrays' has been removed.
 
@@ -244,7 +214,8 @@ array creation has been deprecated.  See the manual for more details.
 
 Some non-compatible changes have been made: 
  - characters can no longer be stored into byte arrays.
- - strings and bit vectors are no longer considered to be uniform vectors.
+ - strings and bit vectors are no longer considered to be uniform numeric 
+   vectors.
  - array-rank throws an error for non-arrays instead of returning zero.
  - array-ref does no longer accept non-arrays when no indices are given.
 
@@ -398,41 +369,6 @@ can add the line:
 
 to your .guile init file.
 
-### move rest to manual
-
-The syntax for the :duplicates option is:
-
-  :duplicates HANDLER-NAME | (HANDLER1-NAME HANDLER2-NAME ...)
-
-Specifying multiple handlers is useful since some handlers (such as
-replace) can defer conflict resolution to others.  Each handler is
-tried until a binding is selected.
-
-Currently available duplicates handlers are:
-
-  check		     report an error for bindings with a common name
-  warn		     issue a warning for bindings with a common name
-  replace	     replace bindings which have an imported replacement
-  warn-override-core issue a warning for imports which override core bindings
-		     and accept the override
-  first		     select the first encountered binding (override)
-  last		     select the last encountered binding (override)
-
-These two are provided by the (oop goops) module:
-  
-  merge-generics     merge generic functions with a common name
-		     into an <extended-generic>
-  merge-accessors    merge accessors with a common name
-
-The default duplicates handler is:
-
-  (replace warn-override-core warn last)
-
-A recommended handler (which is likely to correspond to future Guile
-behavior) can be installed with:
-
-  (default-duplicate-binding-handler '(replace warn-override-core check))
-
 ** New define-module option: :replace
 
 :replace works as :export, but, in addition, marks the binding as a
@@ -458,63 +394,6 @@ When two imported bindings conflict and they are both generic
 functions, the two functions can now be merged automatically.  This is
 activated with the 'duplicates' handler 'merge-generics'.
 
-### move the rest to the manual
-
-It is sometimes tempting to use GOOPS accessors with short names.
-For example, it is tempting to use the name `x' for the x-coordinate
-in vector packages.
-
-Assume that we work with a graphical package which needs to use two
-independent vector packages for 2D and 3D vectors respectively.  If
-both packages export `x' we will encounter a name collision.
-
-This can now be resolved automagically with the duplicates handler
-`merge-generics' which gives the module system license to merge all
-generic functions sharing a common name:
-
-(define-module (math 2D-vectors)
-  :use-module (oop goops)
-  :export (x y ...))
-		  
-(define-module (math 3D-vectors)
-  :use-module (oop goops)
-  :export (x y z ...))
-
-(define-module (my-module)
-  :use-module (math 2D-vectors)
-  :use-module (math 3D-vectors)
-  :duplicates merge-generics)
-
-x in (my-module) will now share methods with x in both imported
-modules.
-
-There will, in fact, now be three distinct generic functions named
-`x': x in (2D-vectors), x in (3D-vectors), and x in (my-module).  The
-last function will be an <extended-generic>, extending the previous
-two functions.
-
-Let's call the imported generic functions the "ancestor functions".  x
-in (my-module) is, in turn, a "descendant function" of the imported
-functions, extending its ancestors.
-
-For any generic function G, the applicable methods are selected from
-the union of the methods of the descendant functions, the methods of G
-itself and the methods of the ancestor functions.
-
-This, ancestor functions share methods with their descendants and vice
-versa.  This implies that x in (math 2D-vectors) can will share the
-methods of x in (my-module) and vice versa, while x in (math 2D-vectors)
-doesn't share the methods of x in (math 3D-vectors), thus preserving
-modularity.
-
-Sharing is dynamic, so that adding new methods to a descendant implies
-adding it to the ancestor.
-
-If duplicates checking is desired in the above example, the following
-form of the :duplicates option can be used instead:
-
-  :duplicates (merge-generics check)
-
 ** New function: effective-version
 
 Returns the "effective" version number.  This is just the normal full
@@ -529,11 +408,11 @@ threads.  See "Parallel forms" in the manual for details.
 ** New function 'try-mutex'.
 
 This function will attempt to lock a mutex but will return immediately
-instead if blocking and indicate failure.
+instead of blocking and indicate failure.
 
 ** Waiting on a condition variable can have a timeout.
 
-The funtion 'wait-condition-variable' now takes a third, optional
+The function 'wait-condition-variable' now takes a third, optional
 argument that specifies the point in time where the waiting should be
 aborted.
 
@@ -1062,7 +941,7 @@ scm_c_call_with_unblocked_asyncs instead.
 ** New way to temporarily set the current input, output or error ports
 
 C code can now use scm_dynwind_current_<foo>_port in a 'dynwind
-conetxt' (see above).  <foo> is one of "input", "output" or "error".
+context' (see above).  <foo> is one of "input", "output" or "error".
 
 ** New way to temporarily set fluids
 

@@ -1,3 +1,8 @@
+2006-02-06  Marius Vollmer  <mvo@zagadka.de>
+
+	* srfi-1.scm, srfi-60.scm: Updated versions in library name to
+	match GUILE-VERSION.
+
 2006-02-04  Kevin Ryde  <user42@zip.com.au>
 
 	* srfi-1.c (scm_srfi1_delete, scm_srfi1_delete_duplicates): Use a

@@ -44,7 +44,7 @@
 	       logbit?
 	       ash))
 
-(load-extension "libguile-srfi-srfi-60-v-1" "scm_init_srfi_60")
+(load-extension "libguile-srfi-srfi-60-v-3" "scm_init_srfi_60")
 
 (define bitwise-and logand)
 (define bitwise-ior logior)
