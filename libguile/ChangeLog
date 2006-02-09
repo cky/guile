@@ -1,3 +1,8 @@
+2006-02-09  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* socket.c (scm_c_make_socket_address): Pass address_size pointer
+	on to scm_fill_sockaddr call.
+
 2006-02-04  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* throw.h (scm_c_catch, scm_c_with_throw_handler,

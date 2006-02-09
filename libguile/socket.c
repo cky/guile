@@ -1238,11 +1238,10 @@ struct sockaddr *
 scm_c_make_socket_address (SCM family, SCM address, SCM args,
 			   size_t *address_size)
 {
-  size_t size;
   struct sockaddr *soka;
 
   soka = scm_fill_sockaddr (scm_to_ushort (family), address, &args, 1,
-			    "scm_c_make_socket_address", &size);
+			    "scm_c_make_socket_address", address_size);
 
   return soka;
 }
