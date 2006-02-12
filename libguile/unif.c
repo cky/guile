@@ -796,6 +796,18 @@ SCM_DEFINE (scm_dimensions_to_uniform_array, "dimensions->uniform-array", 2, 1, 
 
   if (scm_is_integer (dims))
     dims = scm_list_1 (dims);
+
+  if (SCM_UNBNDP (fill))
+    {
+      /* Using #\nul as the prototype yields a s8 array, but numeric
+	 arrays can't store characters, so we have to special case this.
+      */
+      if (scm_is_eq (prot, SCM_MAKE_CHAR (0)))
+	fill = scm_from_int (0);
+      else
+	fill = prot;
+    }
+
   return scm_make_typed_array (prototype_to_type (prot), fill, dims);
 }
 #undef FUNC_NAME

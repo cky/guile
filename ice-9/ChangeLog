@@ -1,3 +1,10 @@
+2006-02-12  Marius Vollmer  <mvo@zagadka.de>
+
+	* deprecated.scm (make-uniform-array): Don't pass the prototype as
+	the fill value, dimensions->uniform-array will do the right thing
+	now.  See scm_dimensions_to_uniform_array why we need to be tricky
+	about the fill value.
+
 2006-02-04  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* boot-9.scm (try-module-autoload): Make sure that module code is

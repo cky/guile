@@ -1,3 +1,10 @@
+2006-02-12  Marius Vollmer  <mvo@zagadka.de>
+
+	* unif.c (scm_dimensions_to_uniform_array): Use the prototype for
+	filling when the fill parameter is omitted, as documented, but
+	turn #\nul into 0 since s8 arrays (signified by a #\nul prototype)
+	can not store characters.
+
 2006-02-09  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* socket.c (scm_c_make_socket_address): Pass address_size pointer

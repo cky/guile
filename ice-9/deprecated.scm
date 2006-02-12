@@ -174,7 +174,7 @@
 (define make-uniform-vector dimensions->uniform-array)
 
 (define (make-uniform-array prot . bounds)
-  (dimensions->uniform-array bounds prot prot))
+  (dimensions->uniform-array bounds prot))
  
 (define (list->uniform-vector prot lst)
   (list->uniform-array 1 prot lst))
