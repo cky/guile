@@ -181,13 +181,6 @@ Scheme object even though that object does not have a dedicated slot
 available in which the additional information could be stored.  Object
 properties allow you to do just that.
 
-An object property is most commonly used to associate one kind of
-additional information with each instance of a class of similar Scheme
-objects.  For example, all procedures have a `name' property, which
-stores the name of the variable in which the procedure was stored by a
-@code{define} expression, or @code{#f} if the procedure wasn't created
-by that kind of expression.
-
 Guile's representation of an object property is a procedure-with-setter
 (@pxref{Procedures with Setters}) that can be used with the generalized
 form of @code{set!} (REFFIXME) to set and retrieve that property for any
