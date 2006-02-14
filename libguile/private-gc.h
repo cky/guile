@@ -118,11 +118,40 @@ typedef struct scm_t_cell_type_statistics {
 } scm_t_cell_type_statistics;
 
 
+/* Sweep statistics.  */
+typedef struct scm_sweep_statistics
+{
+  /* Number of cells "swept", i.e., visited during the sweep operation.  */
+  unsigned swept;
+
+  /* Number of cells collected during the sweep operation.  This number must
+     alsways be lower than or equal to SWEPT.  */
+  unsigned collected;
+} scm_t_sweep_statistics;
+
+#define scm_i_sweep_statistics_init(_stats)	\
+  do						\
+   {						\
+     (_stats)->swept = (_stats)->collected = 0;	\
+   }						\
+  while (0)
+
+#define scm_i_sweep_statistics_sum(_sum, _addition)	\
+  do							\
+   {							\
+     (_sum)->swept += (_addition).swept;		\
+     (_sum)->collected += (_addition).collected;	\
+   }							\
+  while (0)
+
+
+
 extern scm_t_cell_type_statistics scm_i_master_freelist;
 extern scm_t_cell_type_statistics scm_i_master_freelist2;
 extern unsigned long scm_gc_cells_collected_1;
 
-void scm_i_adjust_min_yield (scm_t_cell_type_statistics *freelist);
+void scm_i_adjust_min_yield (scm_t_cell_type_statistics *freelist,
+			     scm_t_sweep_statistics sweep_stats);
 void scm_i_gc_sweep_freelist_reset (scm_t_cell_type_statistics *freelist);
 int scm_i_gc_grow_heap_p (scm_t_cell_type_statistics * freelist);
 
@@ -221,8 +250,10 @@ int scm_i_segment_cell_count (scm_t_heap_segment * seg);
 
 void scm_i_clear_segment_mark_space (scm_t_heap_segment *seg);
 scm_t_heap_segment * scm_i_make_empty_heap_segment (scm_t_cell_type_statistics*);
-SCM scm_i_sweep_some_cards (scm_t_heap_segment *seg);
-void scm_i_sweep_segment (scm_t_heap_segment * seg);
+SCM scm_i_sweep_some_cards (scm_t_heap_segment *seg,
+			    scm_t_sweep_statistics *sweep_stats);
+void scm_i_sweep_segment (scm_t_heap_segment *seg,
+			  scm_t_sweep_statistics *sweep_stats);
 
 void scm_i_heap_segment_statistics (scm_t_heap_segment *seg, SCM tab);
 
@@ -232,9 +263,11 @@ long int scm_i_find_heap_segment_containing_object (SCM obj);
 int scm_i_get_new_heap_segment (scm_t_cell_type_statistics *, policy_on_error);
 void scm_i_clear_mark_space (void);
 void scm_i_sweep_segments (void);
-SCM scm_i_sweep_some_segments (scm_t_cell_type_statistics * fl);
+SCM scm_i_sweep_some_segments (scm_t_cell_type_statistics *fl,
+			       scm_t_sweep_statistics *sweep_stats);
 void scm_i_reset_segments (void);
-void scm_i_sweep_all_segments (char const *reason);
+void scm_i_sweep_all_segments (char const *reason,
+			       scm_t_sweep_statistics *sweep_stats);
 SCM scm_i_all_segments_statistics (SCM hashtab);
 void scm_i_make_initial_segment (int init_heap_size, scm_t_cell_type_statistics *freelist);
 

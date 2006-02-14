@@ -403,30 +403,31 @@ gc_start_stats (const char *what SCM_UNUSED)
 {
   t_before_gc = scm_c_get_internal_run_time ();
 
-  scm_gc_cells_marked_acc += (double) scm_gc_cells_swept
-    - (double) scm_gc_cells_collected;
-  scm_gc_cells_swept_acc += (double) scm_gc_cells_swept;
-
-  scm_gc_cell_yield_percentage = ( scm_gc_cells_collected * 100 ) / SCM_HEAP_SIZE; 
-  
-  scm_gc_cells_swept = 0;
-  scm_gc_cells_collected_1 = scm_gc_cells_collected;
-
-  /*
-    CELLS SWEPT is another word for the number of cells that were
-    examined during GC. YIELD is the number that we cleaned
-    out. MARKED is the number that weren't cleaned. 
-   */
-  scm_gc_cells_collected = 0;
   scm_gc_malloc_collected = 0;
   scm_gc_ports_collected = 0;
 }
 
 static void
-gc_end_stats ()
+gc_end_stats (scm_t_sweep_statistics sweep_stats)
 {
   unsigned long t = scm_c_get_internal_run_time ();
   scm_gc_time_taken += (t - t_before_gc);
+
+  /*
+    CELLS SWEPT is another word for the number of cells that were
+    examined during GC. YIELD is the number that we cleaned
+    out. MARKED is the number that weren't cleaned.
+   */
+  scm_gc_cells_marked_acc += (double) sweep_stats.swept
+    - (double) scm_gc_cells_collected;
+  scm_gc_cells_swept_acc += (double) sweep_stats.swept;
+
+  scm_gc_cell_yield_percentage = (sweep_stats.collected * 100) / SCM_HEAP_SIZE;
+
+  scm_gc_cells_swept = sweep_stats.swept;
+  scm_gc_cells_collected_1 = scm_gc_cells_collected;
+  scm_gc_cells_collected = sweep_stats.collected;
+  scm_cells_allocated -= sweep_stats.collected;
 
   ++scm_gc_times;
 }
@@ -478,15 +479,19 @@ scm_gc_for_newcell (scm_t_cell_type_statistics *freelist, SCM *free_cells)
 {
   SCM cell;
   int did_gc = 0;
- 
+  scm_t_sweep_statistics sweep_stats;
+
   scm_i_scm_pthread_mutex_lock (&scm_i_sweep_mutex);
   scm_gc_running_p = 1;
 
-  *free_cells = scm_i_sweep_some_segments (freelist);
+  *free_cells = scm_i_sweep_some_segments (freelist, &sweep_stats);
+  scm_cells_allocated -= sweep_stats.collected;
+
   if (*free_cells == SCM_EOL && scm_i_gc_grow_heap_p (freelist))
     {
       freelist->heap_segment_idx = scm_i_get_new_heap_segment (freelist, abort_on_error);
-      *free_cells = scm_i_sweep_some_segments (freelist);
+      *free_cells = scm_i_sweep_some_segments (freelist, &sweep_stats);
+      scm_cells_allocated -= sweep_stats.collected;
     }
 
   if (*free_cells == SCM_EOL)
@@ -495,7 +500,7 @@ scm_gc_for_newcell (scm_t_cell_type_statistics *freelist, SCM *free_cells)
 	with the advent of lazy sweep, GC yield is only known just
 	before doing the GC.
       */
-      scm_i_adjust_min_yield (freelist);
+      scm_i_adjust_min_yield (freelist, sweep_stats);
 
       /*
 	out of fresh cells. Try to get some new ones.
@@ -504,7 +509,8 @@ scm_gc_for_newcell (scm_t_cell_type_statistics *freelist, SCM *free_cells)
       did_gc = 1;
       scm_i_gc ("cells");
 
-      *free_cells = scm_i_sweep_some_segments (freelist);
+      *free_cells = scm_i_sweep_some_segments (freelist, &sweep_stats);
+      scm_cells_allocated -= sweep_stats.collected;
     }
   
   if (*free_cells == SCM_EOL)
@@ -513,7 +519,8 @@ scm_gc_for_newcell (scm_t_cell_type_statistics *freelist, SCM *free_cells)
 	failed getting new cells. Get new juice or die.
        */
       freelist->heap_segment_idx = scm_i_get_new_heap_segment (freelist, abort_on_error);
-      *free_cells = scm_i_sweep_some_segments (freelist);
+      *free_cells = scm_i_sweep_some_segments (freelist, &sweep_stats);
+      scm_cells_allocated -= sweep_stats.collected;
     }
   
   if (*free_cells == SCM_EOL)
@@ -545,6 +552,8 @@ scm_t_c_hook scm_after_gc_c_hook;
 void
 scm_i_gc (const char *what)
 {
+  scm_t_sweep_statistics sweep_stats;
+
   scm_i_thread_put_to_sleep ();
 
   scm_c_hook_run (&scm_before_gc_c_hook, 0);
@@ -571,7 +580,12 @@ scm_i_gc (const char *what)
     Let's finish the sweep. The conservative GC might point into the
     garbage, and marking that would create a mess.
    */
-  scm_i_sweep_all_segments("GC");
+  scm_i_sweep_all_segments ("GC", &sweep_stats);
+
+  /* Invariant: the number of cells collected (i.e., freed) must always be
+     lower than or equal to the number of cells "swept" (i.e., visited).  */
+  assert (sweep_stats.collected <= sweep_stats.swept);
+
   if (scm_mallocated < scm_i_deprecated_memory_return)
     {
       /* The byte count of allocated objects has underflowed.  This is
@@ -624,7 +638,7 @@ scm_i_gc (const char *what)
   scm_gc_sweep ();
   scm_c_hook_run (&scm_after_sweep_c_hook, 0);
 
-  gc_end_stats ();
+  gc_end_stats (sweep_stats);
 
   scm_i_thread_wake_up ();
 
@@ -634,6 +648,7 @@ scm_i_gc (const char *what)
     cell aren't left to analyse.
    */
 }
+
 
 
 /* {GC Protection Helper Functions}

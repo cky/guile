@@ -1,3 +1,36 @@
+2006-01-04  Ludovic Court<E8>s  <ludovic.courtes@laas.fr>
+
+        * gc-segment.c (scm_i_sweep_some_cards): Take a SWEEP_STATS
+        argument.  Don't refer to SCM_GC_CELLS_COLLECTED and
+        SCM_CELLS_ALLOCATED.  If SEG->FIRST_TIME, let CELLS_COLLECTED as zero.
+        Take into account SEG->SPAN when computing CELLS_SWEPT.
+        (scm_i_sweep_segment): Take one more argument, similarly.
+        (scm_i_sweep_all_segments): Likewise.
+        (scm_i_sweep_some_segments): Likewise.
+        (scm_i_adjust_min_yield): Change the way MIN_CELLS is computed: do not
+        refer to SCM_GC_CELLS_COLLECTED.
+
+        * gc-freelist.c (scm_i_adjust_min_yield): Take one more
+        argument, an `scm_i_sweep_statistics' object.
+        Change the way DELTA is collected: don't take into account
+        SCM_GC_CELLS_COLLECTED_1, only SWEEP_STATS.COLLECTED.
+
+        * gc-malloc.c (scm_realloc): Pass an extra argument
+        to `scm_i_sweep_all_segments ()'.
+
+        * gc.c (gc_start_stats): Updated accordingly.
+        (gc_end_stats): Take an additional SWEEP_STATS argument.
+        Decrement SCM_CELLS_ALLOCATED after calls to `scm_i_sweep_* ()'.
+        (scm_gc_for_newcell): Updated callers of `scm_i_sweep_*'.
+        Decrement SCM_CELLS_ALLOCATED.
+        (scm_i_gc): Likewise.
+
+        * private-gc.h (scm_i_sweep_*): Updated function
+        prototypes accordingly.
+        (scm_t_sweep_statistics): New type.
+        (scm_i_sweep_statistics_init): New macro.
+        (scm_i_sweep_statistics_sum): New macro
+
 2006-02-12  Marius Vollmer  <mvo@zagadka.de>
 
 	* unif.c (scm_dimensions_to_uniform_array): Use the prototype for

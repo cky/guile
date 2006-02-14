@@ -105,6 +105,7 @@ void *
 scm_realloc (void *mem, size_t size)
 {
   void *ptr;
+  scm_t_sweep_statistics sweep_stats;
 
   SCM_SYSCALL (ptr = realloc (mem, size));
   if (ptr)
@@ -113,7 +114,7 @@ scm_realloc (void *mem, size_t size)
   scm_i_scm_pthread_mutex_lock (&scm_i_sweep_mutex);
   scm_gc_running_p = 1;
 
-  scm_i_sweep_all_segments ("realloc");
+  scm_i_sweep_all_segments ("realloc", &sweep_stats);
   
   SCM_SYSCALL (ptr = realloc (mem, size));
   if (ptr)
@@ -124,7 +125,7 @@ scm_realloc (void *mem, size_t size)
     }
 
   scm_i_gc ("realloc");
-  scm_i_sweep_all_segments ("realloc");
+  scm_i_sweep_all_segments ("realloc", &sweep_stats);
   
   scm_gc_running_p = 0;
   scm_i_pthread_mutex_unlock (&scm_i_sweep_mutex);
@@ -220,13 +221,14 @@ increase_mtrigger (size_t size, const char *what)
     {
       unsigned long prev_alloced;
       float yield;
-      
+      scm_t_sweep_statistics sweep_stats;
+
       scm_i_scm_pthread_mutex_lock (&scm_i_sweep_mutex);
       scm_gc_running_p = 1;
       
       prev_alloced  = mallocated;
       scm_i_gc (what);
-      scm_i_sweep_all_segments ("mtrigger");
+      scm_i_sweep_all_segments ("mtrigger", &sweep_stats);
 
       yield = (((float) prev_alloced - (float) scm_mallocated)
 	       / (float) prev_alloced);

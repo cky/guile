@@ -78,7 +78,8 @@ SCM_DEFINE (scm_gc_set_debug_check_freelist_x, "gc-set-debug-check-freelist!", 1
  */
 
 void
-scm_i_adjust_min_yield (scm_t_cell_type_statistics *freelist)
+scm_i_adjust_min_yield (scm_t_cell_type_statistics *freelist,
+			scm_t_sweep_statistics sweep_stats)
 {
   /* min yield is adjusted upwards so that next predicted total yield
    * (allocated cells actually freed by GC) becomes
@@ -98,7 +99,7 @@ scm_i_adjust_min_yield (scm_t_cell_type_statistics *freelist)
     {
       /* Pick largest of last two yields. */
       long delta = ((SCM_HEAP_SIZE * freelist->min_yield_fraction / 100)
-		   - (long) SCM_MAX (scm_gc_cells_collected_1, scm_gc_cells_collected));
+		   - (long) sweep_stats.collected);
 #ifdef DEBUGINFO
       fprintf (stderr, " after GC = %lu, delta = %ld\n",
 	       (unsigned long) scm_cells_allocated,
