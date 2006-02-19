@@ -75,13 +75,13 @@ scm_t_rng scm_the_rng;
 #define M_PI 3.14159265359
 #endif
 
-#if SCM_HAVE_T_INT64
+#if SCM_HAVE_T_UINT64
 
 unsigned long
 scm_i_uniform32 (scm_t_i_rstate *state)
 {
-  scm_t_int64 x = (scm_t_int64) A * state->w + state->c;
-  scm_t_int32 w = x & 0xffffffffUL;
+  scm_t_uint64 x = (scm_t_uint64) A * state->w + state->c;
+  scm_t_uint32 w = x & 0xffffffffUL;
   state->w = w;
   state->c = x >> 32L;
   return w;
@@ -106,12 +106,12 @@ scm_i_uniform32 (scm_t_i_rstate *state)
 unsigned long
 scm_i_uniform32 (scm_t_i_rstate *state)
 {
-  scm_t_int32 x1 = L (A) * L (state->w);
-  scm_t_int32 x2 = L (A) * H (state->w);
-  scm_t_int32 x3 = H (A) * L (state->w);
-  scm_t_int32 w = L (x1) + L (state->c);
-  scm_t_int32 m = H (x1) + L (x2) + L (x3) + H (state->c) + H (w);
-  scm_t_int32 x4 = H (A) * H (state->w);
+  scm_t_uint32 x1 = L (A) * L (state->w);
+  scm_t_uint32 x2 = L (A) * H (state->w);
+  scm_t_uint32 x3 = H (A) * L (state->w);
+  scm_t_uint32 w = L (x1) + L (state->c);
+  scm_t_uint32 m = H (x1) + L (x2) + L (x3) + H (state->c) + H (w);
+  scm_t_uint32 x4 = H (A) * H (state->w);
   state->w = w = (L (m) << 16) + L (w);
   state->c = H (x2) + H (x3) + x4 + H (m);
   return w;
@@ -122,8 +122,8 @@ scm_i_uniform32 (scm_t_i_rstate *state)
 void
 scm_i_init_rstate (scm_t_i_rstate *state, const char *seed, int n)
 {
-  scm_t_int32 w = 0L;
-  scm_t_int32 c = 0L;
+  scm_t_uint32 w = 0L;
+  scm_t_uint32 c = 0L;
   int i, m;
   for (i = 0; i < n; ++i)
     {

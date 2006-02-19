@@ -1,3 +1,11 @@
+2006-02-19  Mikael Djurfeldt  <mdj@neurologic.cc>
+
+	* random.c: Test for SCM_HAVE_T_UINT64 instead of
+	SCM_HAVE_T_INT64.
+	(scm_i_uniform32, scm_i_uniform32, scm_i_init_rstate): Use
+	scm_t_uint64 and scm_t_uint32 instead of scm_t_int64 and
+	scm_t_int32.
+
 2006-01-04  Ludovic Court<E8>s  <ludovic.courtes@laas.fr>
 
         * gc-segment.c (scm_i_sweep_some_cards): Take a SWEEP_STATS
