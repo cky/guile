@@ -215,7 +215,8 @@ hashtable_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
   return 1;
 }
 
-#define UNMARKED_CELL_P(x) (SCM_NIMP(x) && !SCM_GC_MARK_P (x))
+/* FIXME */
+#define UNMARKED_CELL_P(x) 0 /* (SCM_NIMP(x) && !SCM_GC_MARK_P (x)) */
 
 /* keep track of hash tables that need to shrink after scan */
 static SCM to_rehash = SCM_EOL;
@@ -224,6 +225,7 @@ static SCM to_rehash = SCM_EOL;
 void
 scm_i_scan_weak_hashtables ()
 {
+#if 0 /* FIXME */
   SCM *next = &weak_hashtables;
   SCM h = *next;
   while (!scm_is_null (h))
@@ -252,6 +254,7 @@ scm_i_scan_weak_hashtables ()
 	    }
 	}
     }
+#endif
 }
 
 static void *

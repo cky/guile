@@ -350,11 +350,17 @@ scm_struct_gc_init (void *dummy1 SCM_UNUSED,
   return 0;
 }
 
+
+/* During collection, this accumulates structures which are to be freed.
+ */
+SCM scm_i_structs_to_free;
+
 static void *
 scm_free_structs (void *dummy1 SCM_UNUSED,
 		  void *dummy2 SCM_UNUSED,
 		  void *dummy3 SCM_UNUSED)
 {
+#if 0
   SCM newchain = scm_i_structs_to_free;
   do
     {
@@ -393,6 +399,7 @@ scm_free_structs (void *dummy1 SCM_UNUSED,
     }
   while (!scm_is_null (newchain));
   return 0;
+#endif
 }
 
 SCM_DEFINE (scm_make_struct, "make-struct", 2, 0, 1, 

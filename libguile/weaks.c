@@ -203,7 +203,8 @@ SCM_DEFINE (scm_doubly_weak_alist_vector_p, "doubly-weak-alist-vector?", 1, 0, 0
 }
 #undef FUNC_NAME
 
-#define UNMARKED_CELL_P(x) (SCM_NIMP(x) && !SCM_GC_MARK_P (x))
+#define UNMARKED_CELL_P(x) 1 /* (SCM_NIMP(x) && !SCM_GC_MARK_P (x)) *//*
+									FIXME */
 
 static SCM weak_vectors;
 
@@ -321,6 +322,8 @@ scm_i_mark_weak_vectors_non_weaks ()
 static void
 scm_i_remove_weaks (SCM w)
 {
+  return;  /* FIXME */
+#if 0
   SCM *ptr = SCM_I_WVECT_GC_WVELTS (w);
   size_t n = SCM_I_WVECT_LENGTH (w);
   size_t i;
@@ -362,6 +365,7 @@ scm_i_remove_weaks (SCM w)
 #endif
       SCM_I_SET_WVECT_DELTA (w, delta);
     }
+#endif
 }
 
 void

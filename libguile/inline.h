@@ -38,6 +38,9 @@
 #include "libguile/pairs.h"
 
 
+#include <gc/gc.h>
+
+
 SCM_API SCM scm_cell (scm_t_bits car, scm_t_bits cdr);
 SCM_API SCM scm_double_cell (scm_t_bits car, scm_t_bits cbr,
 			     scm_t_bits ccr, scm_t_bits cdr);
@@ -64,71 +67,16 @@ static
 #endif
 SCM_C_INLINE
 #endif
+
 SCM
 scm_cell (scm_t_bits car, scm_t_bits cdr)
 {
-  SCM z;
-  SCM *freelist = SCM_FREELIST_LOC (scm_i_freelist);
+  SCM cell = SCM_PACK ((scm_t_bits) (GC_malloc (sizeof (scm_t_cell))));
 
-  if (scm_is_null (*freelist))
-    z = scm_gc_for_newcell (&scm_i_master_freelist, freelist);
-  else
-    {
-      z = *freelist;
-      *freelist = SCM_FREE_CELL_CDR (*freelist);
-    }
+  SCM_GC_SET_CELL_WORD (cell, 0, car);
+  SCM_GC_SET_CELL_WORD (cell, 1, cdr);
 
-  /*
-    We update scm_cells_allocated from this function. If we don't
-    update this explicitly, we will have to walk a freelist somewhere
-    later on, which seems a lot more expensive.
-   */
-  scm_cells_allocated += 1;  
-
-#if (SCM_DEBUG_CELL_ACCESSES == 1)
-    if (scm_debug_cell_accesses_p)
-      {
-	if (SCM_GC_MARK_P (z))
-	  {
-	    fprintf(stderr, "scm_cell tried to allocate a marked cell.\n");
-	    abort();
-	  }
-	else if (SCM_GC_CELL_WORD(z, 0) != scm_tc_free_cell)
-	  {
-	    fprintf(stderr, "cell from freelist is not a free cell.\n");
-	    abort();
-	  }
-      }
-
-    /*
-      Always set mark. Otherwise cells that are alloced before
-      scm_debug_cell_accesses_p is toggled seem invalid.
-    */
-    SCM_SET_GC_MARK (z);
-
-    /*
-      TODO: figure out if this use of mark bits is valid with
-      threading. What if another thread is doing GC at this point
-      ... ?
-     */
-      
-#endif
-
-  
-  /* Initialize the type slot last so that the cell is ignored by the
-     GC until it is completely initialized.  This is only relevant
-     when the GC can actually run during this code, which it can't
-     since the GC only runs when all other threads are stopped.
-  */
-  SCM_GC_SET_CELL_WORD (z, 1, cdr);
-  SCM_GC_SET_CELL_WORD (z, 0, car);
-
-#if (SCM_DEBUG_CELL_ACCESSES == 1)
-  if (scm_expensive_debug_cell_accesses_p )
-    scm_i_expensive_validation_check (z);
-#endif
-  
-  return z;
+  return cell;
 }
 
 #if defined SCM_C_INLINE && ! defined SCM_INLINE_C_INCLUDING_INLINE_H
@@ -145,18 +93,8 @@ scm_double_cell (scm_t_bits car, scm_t_bits cbr,
 		 scm_t_bits ccr, scm_t_bits cdr)
 {
   SCM z;
-  SCM *freelist = SCM_FREELIST_LOC (scm_i_freelist2);
 
-  if (scm_is_null (*freelist))
-    z = scm_gc_for_newcell (&scm_i_master_freelist2, freelist);
-  else
-    {
-      z = *freelist;
-      *freelist = SCM_FREE_CELL_CDR (*freelist);
-    }
-
-  scm_cells_allocated += 2;
-
+  z = SCM_PACK ((scm_t_bits) (GC_malloc (2 * sizeof (scm_t_cell))));
   /* Initialize the type slot last so that the cell is ignored by the
      GC until it is completely initialized.  This is only relevant
      when the GC can actually run during this code, which it can't
@@ -166,22 +104,6 @@ scm_double_cell (scm_t_bits car, scm_t_bits cbr,
   SCM_GC_SET_CELL_WORD (z, 2, ccr);
   SCM_GC_SET_CELL_WORD (z, 3, cdr);
   SCM_GC_SET_CELL_WORD (z, 0, car);
-
-#if (SCM_DEBUG_CELL_ACCESSES == 1)
-  if (scm_debug_cell_accesses_p)
-    {
-      if (SCM_GC_MARK_P (z))
-	{
-	  fprintf(stderr,
-		  "scm_double_cell tried to allocate a marked cell.\n");
-	  abort();
-	}
-    }
-
-  /* see above. */
-  SCM_SET_GC_MARK (z);
-
-#endif
 
   /* When this function is inlined, it's possible that the last
      SCM_GC_SET_CELL_WORD above will be adjacent to a following

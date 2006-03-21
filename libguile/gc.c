@@ -203,6 +203,12 @@ SCM_DEFINE (scm_set_debug_cell_accesses_x, "set-debug-cell-accesses!", 1, 0, 0,
 #endif  /* SCM_DEBUG_CELL_ACCESSES == 1 */
 
 
+/* Hooks.  */
+scm_t_c_hook scm_before_gc_c_hook;
+scm_t_c_hook scm_before_mark_c_hook;
+scm_t_c_hook scm_before_sweep_c_hook;
+scm_t_c_hook scm_after_sweep_c_hook;
+scm_t_c_hook scm_after_gc_c_hook;
 
 
 /* scm_mtrigger
@@ -285,8 +291,6 @@ SCM_DEFINE (scm_gc_live_object_stats, "gc-live-object-stats", 0, 0, 0,
   SCM tab = scm_make_hash_table (scm_from_int (57));
   SCM alist;
 
-  scm_i_all_segments_statistics (tab);
-  
   alist
     = scm_internal_hash_fold (&tag_table_to_type_alist, NULL, SCM_EOL, tab);
   
@@ -317,29 +321,25 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
   double local_scm_gc_cells_marked;
   SCM answer;
   unsigned long *bounds = 0;
-  int table_size = scm_i_heap_segment_table_size;  
   SCM_CRITICAL_SECTION_START;
 
   /*
     temporarily store the numbers, so as not to cause GC.
    */
- 
+#if 0
   bounds = malloc (sizeof (unsigned long)  * table_size * 2);
   if (!bounds)
     abort();
-  for (i = table_size; i--; )
-    {
-      bounds[2*i] = (unsigned long)scm_i_heap_segment_table[i]->bounds[0];
-      bounds[2*i+1] = (unsigned long)scm_i_heap_segment_table[i]->bounds[1];
-    }
+#endif
 
-
+  return SCM_EOL;  /* FIXME */
+#if 0
   /* Below, we cons to produce the resulting list.  We want a snapshot of
    * the heap situation before consing.
    */
   local_scm_mtrigger = scm_mtrigger;
   local_scm_mallocated = scm_mallocated;
-  local_scm_heap_size = SCM_HEAP_SIZE;
+  local_scm_heap_size = 0; /* SCM_HEAP_SIZE; */ /* FIXME */
 
   local_scm_cells_allocated = scm_cells_allocated;
   
@@ -395,42 +395,11 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
   
   free (bounds);
   return answer;
+#endif
 }
 #undef FUNC_NAME
 
-static void
-gc_start_stats (const char *what SCM_UNUSED)
-{
-  t_before_gc = scm_c_get_internal_run_time ();
 
-  scm_gc_malloc_collected = 0;
-  scm_gc_ports_collected = 0;
-}
-
-static void
-gc_end_stats (scm_t_sweep_statistics sweep_stats)
-{
-  unsigned long t = scm_c_get_internal_run_time ();
-  scm_gc_time_taken += (t - t_before_gc);
-
-  /*
-    CELLS SWEPT is another word for the number of cells that were
-    examined during GC. YIELD is the number that we cleaned
-    out. MARKED is the number that weren't cleaned.
-   */
-  scm_gc_cells_marked_acc += (double) sweep_stats.swept
-    - (double) scm_gc_cells_collected;
-  scm_gc_cells_swept_acc += (double) sweep_stats.swept;
-
-  scm_gc_cell_yield_percentage = (sweep_stats.collected * 100) / SCM_HEAP_SIZE;
-
-  scm_gc_cells_swept = sweep_stats.swept;
-  scm_gc_cells_collected_1 = scm_gc_cells_collected;
-  scm_gc_cells_collected = sweep_stats.collected;
-  scm_cells_allocated -= sweep_stats.collected;
-
-  ++scm_gc_times;
-}
 
 
 SCM_DEFINE (scm_object_address, "object-address", 1, 0, 0,
@@ -467,186 +436,10 @@ SCM_DEFINE (scm_gc, "gc", 0, 0, 0,
 }
 #undef FUNC_NAME
 
-
-
-
-/* The master is global and common while the freelist will be
- * individual for each thread.
- */
-
-SCM
-scm_gc_for_newcell (scm_t_cell_type_statistics *freelist, SCM *free_cells)
-{
-  SCM cell;
-  int did_gc = 0;
-  scm_t_sweep_statistics sweep_stats;
-
-  scm_i_scm_pthread_mutex_lock (&scm_i_sweep_mutex);
-  scm_gc_running_p = 1;
-
-  *free_cells = scm_i_sweep_some_segments (freelist, &sweep_stats);
-  scm_cells_allocated -= sweep_stats.collected;
-
-  if (*free_cells == SCM_EOL && scm_i_gc_grow_heap_p (freelist))
-    {
-      freelist->heap_segment_idx = scm_i_get_new_heap_segment (freelist, abort_on_error);
-      *free_cells = scm_i_sweep_some_segments (freelist, &sweep_stats);
-      scm_cells_allocated -= sweep_stats.collected;
-    }
-
-  if (*free_cells == SCM_EOL)
-    {
-      /*
-	with the advent of lazy sweep, GC yield is only known just
-	before doing the GC.
-      */
-      scm_i_adjust_min_yield (freelist, sweep_stats);
-
-      /*
-	out of fresh cells. Try to get some new ones.
-       */
-
-      did_gc = 1;
-      scm_i_gc ("cells");
-
-      *free_cells = scm_i_sweep_some_segments (freelist, &sweep_stats);
-      scm_cells_allocated -= sweep_stats.collected;
-    }
-  
-  if (*free_cells == SCM_EOL)
-    {
-      /*
-	failed getting new cells. Get new juice or die.
-       */
-      freelist->heap_segment_idx = scm_i_get_new_heap_segment (freelist, abort_on_error);
-      *free_cells = scm_i_sweep_some_segments (freelist, &sweep_stats);
-      scm_cells_allocated -= sweep_stats.collected;
-    }
-  
-  if (*free_cells == SCM_EOL)
-    abort ();
-
-  cell = *free_cells;
-
-  *free_cells = SCM_FREE_CELL_CDR (cell);
-
-  scm_gc_running_p = 0;
-  scm_i_pthread_mutex_unlock (&scm_i_sweep_mutex);
-
-  if (did_gc)
-    scm_c_hook_run (&scm_after_gc_c_hook, 0);
-
-  return cell;
-}
-
-
-scm_t_c_hook scm_before_gc_c_hook;
-scm_t_c_hook scm_before_mark_c_hook;
-scm_t_c_hook scm_before_sweep_c_hook;
-scm_t_c_hook scm_after_sweep_c_hook;
-scm_t_c_hook scm_after_gc_c_hook;
-
-/* Must be called while holding scm_i_sweep_mutex.
- */
-
 void
 scm_i_gc (const char *what)
 {
-  scm_t_sweep_statistics sweep_stats;
-
-  scm_i_thread_put_to_sleep ();
-
-  scm_c_hook_run (&scm_before_gc_c_hook, 0);
-
-#ifdef DEBUGINFO
-  fprintf (stderr,"gc reason %s\n", what);
-  
-  fprintf (stderr,
-	   scm_is_null (*SCM_FREELIST_LOC (scm_i_freelist))
-	   ? "*"
-	   : (scm_is_null (*SCM_FREELIST_LOC (scm_i_freelist2)) ? "o" : "m"));
-#endif
-
-  gc_start_stats (what);
-
-  /*
-    Set freelists to NULL so scm_cons() always triggers gc, causing
-    the assertion above to fail.
-  */
-  *SCM_FREELIST_LOC (scm_i_freelist) = SCM_EOL;
-  *SCM_FREELIST_LOC (scm_i_freelist2) = SCM_EOL;
-  
-  /*
-    Let's finish the sweep. The conservative GC might point into the
-    garbage, and marking that would create a mess.
-   */
-  scm_i_sweep_all_segments ("GC", &sweep_stats);
-
-  /* Invariant: the number of cells collected (i.e., freed) must always be
-     lower than or equal to the number of cells "swept" (i.e., visited).  */
-  assert (sweep_stats.collected <= sweep_stats.swept);
-
-  if (scm_mallocated < scm_i_deprecated_memory_return)
-    {
-      /* The byte count of allocated objects has underflowed.  This is
-	 probably because you forgot to report the sizes of objects you
-	 have allocated, by calling scm_done_malloc or some such.  When
-	 the GC freed them, it subtracted their size from
-	 scm_mallocated, which underflowed.  */
-      fprintf (stderr,
-	       "scm_gc_sweep: Byte count of allocated objects has underflowed.\n"
-	       "This is probably because the GC hasn't been correctly informed\n"
-	       "about object sizes\n");
-      abort ();
-    }
-  scm_mallocated -= scm_i_deprecated_memory_return;
-
-  
-  /* Mark */
-
-  scm_c_hook_run (&scm_before_mark_c_hook, 0);
-  scm_mark_all ();
-  scm_gc_mark_time_taken += (scm_c_get_internal_run_time () - t_before_gc);
-
-  /* Sweep
-
-    TODO: the after_sweep hook should probably be moved to just before
-    the mark, since that's where the sweep is finished in lazy
-    sweeping.
-
-    MDJ 030219 <djurfeldt@nada.kth.se>: No, probably not.  The
-    original meaning implied at least two things: that it would be
-    called when
-
-      1. the freelist is re-initialized (no evaluation possible, though)
-      
-    and
-    
-      2. the heap is "fresh"
-         (it is well-defined what data is used and what is not)
-
-    Neither of these conditions would hold just before the mark phase.
-    
-    Of course, the lazy sweeping has muddled the distinction between
-    scm_before_sweep_c_hook and scm_after_sweep_c_hook, but even if
-    there were no difference, it would still be useful to have two
-    distinct classes of hook functions since this can prevent some
-    bad interference when several modules adds gc hooks.
-   */
-
-  scm_c_hook_run (&scm_before_sweep_c_hook, 0);
-  scm_gc_sweep ();
-  scm_c_hook_run (&scm_after_sweep_c_hook, 0);
-
-  gc_end_stats (sweep_stats);
-
-  scm_i_thread_wake_up ();
-
-  /*
-    For debugging purposes, you could do
-    scm_i_sweep_all_segments("debug"), but then the remains of the
-    cell aren't left to analyse.
-   */
+  GC_gcollect ();
 }
 
 
@@ -923,12 +716,8 @@ scm_init_storage ()
   while (j)
     scm_sys_protects[--j] = SCM_BOOL_F;
 
-  scm_gc_init_freelist();
-  scm_gc_init_malloc ();
-
   j = SCM_HEAP_SEG_SIZE;
 
-  
   /* Initialise the list of ports.  */
   scm_i_port_table = (scm_t_port **)
     malloc (sizeof (scm_t_port *) * scm_i_port_table_room);
@@ -1020,10 +809,109 @@ mark_gc_async (void * hook_data SCM_UNUSED,
   return NULL;
 }
 
+char const *
+scm_i_tag_name (scm_t_bits tag)
+{
+  if (tag >= 255)
+    {
+      if (tag == scm_tc_free_cell)
+	return "free cell";
+
+      {
+	int k = 0xff & (tag >> 8);
+	return (scm_smobs[k].name);
+      }
+    }
+  
+  switch (tag) /* 7 bits */
+    {
+    case scm_tcs_struct:
+      return "struct";
+    case scm_tcs_cons_imcar:
+      return "cons (immediate car)";
+    case scm_tcs_cons_nimcar:
+      return "cons (non-immediate car)";
+    case scm_tcs_closures:
+      return "closures";
+    case scm_tc7_pws:
+      return "pws";
+    case scm_tc7_wvect:
+      return "weak vector";
+    case scm_tc7_vector:
+      return "vector";
+#ifdef CCLO
+    case scm_tc7_cclo:
+      return "compiled closure";
+#endif
+    case scm_tc7_number:
+      switch (tag)
+	{
+	case scm_tc16_real:
+	  return "real";
+	  break;
+	case scm_tc16_big:
+	  return "bignum";
+	  break;
+	case scm_tc16_complex:
+	  return "complex number";
+	  break;
+	case scm_tc16_fraction:
+	  return "fraction";
+	  break;
+	}
+      break;
+    case scm_tc7_string:
+      return "string";
+      break;
+    case scm_tc7_stringbuf:
+      return "string buffer";
+      break;
+    case scm_tc7_symbol:
+      return "symbol";
+      break;
+    case scm_tc7_variable:
+      return "variable";
+      break;
+    case scm_tcs_subrs:
+      return "subrs";
+      break;
+    case scm_tc7_port:
+      return "port";
+      break;
+    case scm_tc7_smob:
+      return "smob";		/* should not occur. */
+      break; 
+    }
+
+  return NULL;
+}
+
+
+/*
+   FIXME: Unimplemented procs!
+
+*/
+
+void
+scm_gc_mark (SCM o)
+{
+}
+
+void
+scm_gc_mark_dependencies (SCM o)
+{
+}
+
+void
+scm_mark_locations (SCM_STACKITEM x[], unsigned long n)
+{
+}
+
+
 void
 scm_init_gc ()
 {
-  scm_gc_init_mark ();
+  GC_init ();
 
   scm_after_gc_hook = scm_permanent_object (scm_make_hook (SCM_INUM0));
   scm_c_define ("after-gc-hook", scm_after_gc_hook);
@@ -1041,21 +929,8 @@ void
 scm_gc_sweep (void)
 #define FUNC_NAME "scm_gc_sweep"
 {
-  scm_i_deprecated_memory_return = 0;
-
-  scm_i_gc_sweep_freelist_reset (&scm_i_master_freelist);
-  scm_i_gc_sweep_freelist_reset (&scm_i_master_freelist2);
-
-  /*
-    NOTHING HERE: LAZY SWEEPING ! 
-   */
-  scm_i_reset_segments ();
-  
-  *SCM_FREELIST_LOC (scm_i_freelist) = SCM_EOL;
-  *SCM_FREELIST_LOC (scm_i_freelist2) = SCM_EOL;
-
-  /* Invalidate the freelists of other threads. */
-  scm_i_thread_invalidate_freelists ();
+  /* FIXME */
+  fprintf (stderr, "%s: doing nothing\n", __FUNCTION__);
 }
 
 #undef FUNC_NAME

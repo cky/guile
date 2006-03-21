@@ -105,31 +105,14 @@ void *
 scm_realloc (void *mem, size_t size)
 {
   void *ptr;
-  scm_t_sweep_statistics sweep_stats;
 
   SCM_SYSCALL (ptr = realloc (mem, size));
   if (ptr)
     return ptr;
 
-  scm_i_scm_pthread_mutex_lock (&scm_i_sweep_mutex);
-  scm_gc_running_p = 1;
+  /* Time is hard: trigger a full, ``stop-the-world'' GC, and try again.  */
+  GC_gcollect ();
 
-  scm_i_sweep_all_segments ("realloc", &sweep_stats);
-  
-  SCM_SYSCALL (ptr = realloc (mem, size));
-  if (ptr)
-    { 
-      scm_gc_running_p = 0;
-      scm_i_pthread_mutex_unlock (&scm_i_sweep_mutex);
-      return ptr;
-    }
-
-  scm_i_gc ("realloc");
-  scm_i_sweep_all_segments ("realloc", &sweep_stats);
-  
-  scm_gc_running_p = 0;
-  scm_i_pthread_mutex_unlock (&scm_i_sweep_mutex);
-  
   SCM_SYSCALL (ptr = realloc (mem, size));
   if (ptr)
     return ptr;
@@ -159,7 +142,7 @@ scm_calloc (size_t sz)
   SCM_SYSCALL (ptr = calloc (sz, 1));
   if (ptr)
     return ptr;
-  
+
   ptr = scm_realloc (NULL, sz);
   memset (ptr, 0x0, sz);
   return ptr;
@@ -181,124 +164,22 @@ scm_strdup (const char *str)
   return scm_strndup (str, strlen (str));
 }
 
-static void
-decrease_mtrigger (size_t size, const char * what)
-{
-  scm_i_pthread_mutex_lock (&scm_i_gc_admin_mutex);
 
-  if (size > scm_mallocated)
-    {
-      fprintf (stderr, "`scm_mallocated' underflow.  This means that more "
-	       "memory was unregistered\n"
-	       "via `scm_gc_unregister_collectable_memory ()' than "
-	       "registered.\n");
-      abort ();
-    }
-
-  scm_mallocated -= size;
-  scm_gc_malloc_collected += size;
-  scm_i_pthread_mutex_unlock (&scm_i_gc_admin_mutex);
-}
-
-static void
-increase_mtrigger (size_t size, const char *what)
-{
-  size_t mallocated = 0;
-  int overflow = 0, triggered = 0;
-
-  scm_i_pthread_mutex_lock (&scm_i_gc_admin_mutex);
-  if (ULONG_MAX - size < scm_mallocated)
-    overflow = 1;
-  else
-    {
-      scm_mallocated += size;
-      mallocated = scm_mallocated;
-      if (scm_mallocated > scm_mtrigger)
-	triggered = 1;
-    }
-  scm_i_pthread_mutex_unlock (&scm_i_gc_admin_mutex);
-
-  if (overflow)
-    scm_memory_error ("Overflow of scm_mallocated: too much memory in use.");
-
-  /*
-    A program that uses a lot of malloced collectable memory (vectors,
-    strings), will use a lot of memory off the cell-heap; it needs to
-    do GC more often (before cells are exhausted), otherwise swapping
-    and malloc management will tie it down.
-   */
-  if (triggered)
-    {
-      unsigned long prev_alloced;
-      float yield;
-      scm_t_sweep_statistics sweep_stats;
-
-      scm_i_scm_pthread_mutex_lock (&scm_i_sweep_mutex);
-      scm_gc_running_p = 1;
-      
-      prev_alloced  = mallocated;
-      scm_i_gc (what);
-      scm_i_sweep_all_segments ("mtrigger", &sweep_stats);
-
-      yield = (((float) prev_alloced - (float) scm_mallocated)
-	       / (float) prev_alloced);
-      
-      scm_gc_malloc_yield_percentage = (int) (100  * yield);
-
-#ifdef DEBUGINFO
-      fprintf (stderr,  "prev %lud , now %lud, yield %4.2lf, want %d",
-	       prev_alloced,
-	       scm_mallocated,
-	       100.0 * yield,
-	       scm_i_minyield_malloc);
-#endif
-      
-      if (yield < scm_i_minyield_malloc /  100.0)
-	{
-	  /*
-	    We make the trigger a little larger, even; If you have a
-	    program that builds up a lot of data in strings, then the
-	    desired yield will never be satisfied.
-
-	    Instead of getting bogged down, we let the mtrigger grow
-	    strongly with it.
-	   */
-	  float no_overflow_trigger = scm_mallocated * 110.0;
-
-	  no_overflow_trigger /= (float)  (100.0 - scm_i_minyield_malloc);
-
-	  
-	  if (no_overflow_trigger >= (float) ULONG_MAX)
-	    scm_mtrigger = ULONG_MAX;
-	  else
-	    scm_mtrigger =  (unsigned long) no_overflow_trigger;
-	  
-#ifdef DEBUGINFO
-	  fprintf (stderr, "Mtrigger sweep: ineffective. New trigger %d\n",
-		   scm_mtrigger);
-#endif
-	}
-
-      scm_gc_running_p = 0;
-      scm_i_pthread_mutex_unlock (&scm_i_sweep_mutex);
-    }
-}
 
 void
 scm_gc_register_collectable_memory (void *mem, size_t size, const char *what)
 {
-  increase_mtrigger (size, what); 
 #ifdef GUILE_DEBUG_MALLOC
   if (mem)
-    scm_malloc_register (mem, what);
+    scm_malloc_register (mem);
 #endif
+  fprintf (stderr, "%s: nothing done\n", __FUNCTION__); /* FIXME: What to do? */
 }
 
 
 void
 scm_gc_unregister_collectable_memory (void *mem, size_t size, const char *what)
 {
-  decrease_mtrigger (size, what);
 #ifdef GUILE_DEBUG_MALLOC
   if (mem)
     scm_malloc_unregister (mem);
@@ -319,8 +200,7 @@ scm_gc_malloc (size_t size, const char *what)
      to write it the program is killed with signal 11. --hwn
   */
 
-  void *ptr = scm_malloc (size);
-  scm_gc_register_collectable_memory (ptr, size, what);
+  void *ptr = GC_MALLOC (size);
   return ptr;
 }
 
@@ -338,26 +218,13 @@ scm_gc_realloc (void *mem, size_t old_size, size_t new_size, const char *what)
 {
   void *ptr;
 
-  /* XXX - see scm_gc_malloc. */
-
-
-  /*    
-  scm_realloc() may invalidate the block pointed to by WHERE, eg. by
-  unmapping it from memory or altering the contents.  Since
-  increase_mtrigger() might trigger a GC that would scan
-  MEM, it is crucial that this call precedes realloc().
-  */
-
-  decrease_mtrigger (old_size, what);
-  increase_mtrigger (new_size, what);
-
-  ptr = scm_realloc (mem, new_size);
+  ptr = GC_REALLOC (mem, new_size);
 
 #ifdef GUILE_DEBUG_MALLOC
   if (mem)
     scm_malloc_reregister (mem, ptr, what);
 #endif
-  
+
   return ptr;
 }
 
@@ -365,13 +232,13 @@ void
 scm_gc_free (void *mem, size_t size, const char *what)
 {
   scm_gc_unregister_collectable_memory (mem, size, what);
-  free (mem);
+  GC_FREE (mem);
 }
 
 char *
 scm_gc_strndup (const char *str, size_t n, const char *what)
 {
-  char *dst = scm_gc_malloc (n+1, what);
+  char *dst = GC_MALLOC (n+1);
   memcpy (dst, str, n);
   dst[n] = 0;
   return dst;

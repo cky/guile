@@ -791,7 +791,7 @@ scm_ipruk (char *hdr, SCM ptr, SCM port)
 {
   scm_puts ("#<unknown-", port);
   scm_puts (hdr, port);
-  if (scm_in_heap_p (ptr))
+  if (1) /* (scm_in_heap_p (ptr)) */ /* FIXME */
     {
       scm_puts (" (0x", port);
       scm_uintprint (SCM_CELL_WORD_0 (ptr), 16, port);

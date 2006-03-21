@@ -16,6 +16,7 @@
  */
 
 
+#if 0 /* FIXME: Not re-implemented for Boehm's GC.  */
 
 /* This is an implementation of guardians as described in
  * R. Kent Dybvig, Carl Bruggeman, and David Eby (1993) "Guardians in
@@ -351,3 +352,5 @@ scm_init_guardians ()
   c-file-style: "gnu"
   End:
 */
+
+#endif

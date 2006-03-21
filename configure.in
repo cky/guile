@@ -947,6 +947,18 @@ AC_TRY_RUN(aux (l) unsigned long l;
 	   [],
            [AC_MSG_WARN(Guessing that stack grows down -- see scmconfig.h)])
 
+#--------------------------------------------------------------------
+#
+# Boehm's GC library
+#
+#--------------------------------------------------------------------
+AC_CHECK_LIB([gc], [GC_collect_a_little],
+  [LIBS="-lgc $LIBS"],
+  [AC_MSG_ERROR([`libgc' (Boehm's GC library) not found.])])
+AC_CHECK_HEADER([gc/gc.h], [],
+  [AC_MSG_ERROR([`libgc' (Boehm's GC library) header files not found.])])
+
+
 AC_CHECK_SIZEOF(float)
 if test "$ac_cv_sizeof_float" -le "$ac_cv_sizeof_long"; then
     AC_DEFINE(SCM_SINGLES, 1, 

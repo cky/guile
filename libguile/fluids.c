@@ -133,6 +133,8 @@ scan_dynamic_states_and_fluids (void *dummy1 SCM_UNUSED,
 				void *dummy2 SCM_UNUSED,
 				void *dummy3 SCM_UNUSED)
 {
+  /* FIXME: What to do here? */
+#if 0
   SCM *statep, *fluidp;
 
   /* Scan all fluids and deallocate the unmarked ones.
@@ -172,6 +174,7 @@ scan_dynamic_states_and_fluids (void *dummy1 SCM_UNUSED,
 	}
     }
 
+#endif
   return NULL;
 }
 

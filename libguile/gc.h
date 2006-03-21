@@ -28,53 +28,11 @@
 #include "libguile/threads.h"
 
 
-
-/* Cell allocation and garbage collection work rouhgly in the
-   following manner:
-
-   Each thread has a 'freelist', which is a list of available cells.
-   (It actually has two freelists, one for single cells and one for
-   double cells.  Everything works analogous for double cells.)
-
-   When a thread wants to allocate a cell and the freelist is empty,
-   it refers to a global list of unswept 'cards'.  A card is a small
-   block of cells that are contigous in memory, together with the
-   corresponding mark bits.  A unswept card is one where the mark bits
-   are set for cells that have been in use during the last global mark
-   phase, but the unmarked cells of the card have not been scanned and
-   freed yet.
-
-   The thread takes one of the unswept cards and sweeps it, thereby
-   building a new freelist that it then uses.  Sweeping a card will
-   call the smob free functions of unmarked cells, for example, and
-   thus, these free functions can run at any time, in any thread.
-
-   When there are no more unswept cards available, the thread performs
-   a global garbage collection.  For this, all other threads are
-   stopped.  A global mark is performed and all cards are put into the
-   global list of unswept cards.  Whennecessary, new cards are
-   allocated and initialized at this time.  The other threads are then
-   started again.
-*/
-
 typedef struct scm_t_cell
 {
   SCM word_0;
   SCM word_1;
 } scm_t_cell;
-
-/*
-  CARDS
-
-  A card is a small `page' of memory; it will be the unit for lazy
-  sweeping, generations, etc. The first cell of a card contains a
-  pointer to the mark bitvector, so that we can find the bitvector
-  efficiently: we knock off some lowerorder bits.
-
-  The size on a 32 bit machine is 256 cells = 2kb. The card [XXX]
-*/
-
-
 
 /* Cray machines have pointers that are incremented once for each
  * word, rather than each byte, the 3 most significant bits encode the
@@ -92,71 +50,6 @@ typedef struct scm_t_cell
 #endif /* def _UNICOS */
 
 
-#define SCM_GC_CARD_N_HEADER_CELLS 1
-#define SCM_GC_CARD_N_CELLS        256
-#define SCM_GC_SIZEOF_CARD 	   SCM_GC_CARD_N_CELLS * sizeof (scm_t_cell)
-
-#define SCM_GC_CARD_BVEC(card)  ((scm_t_c_bvec_long *) ((card)->word_0))
-#define SCM_GC_SET_CARD_BVEC(card, bvec) \
-    ((card)->word_0 = (SCM) (bvec))
-#define SCM_GC_GET_CARD_FLAGS(card) ((long) ((card)->word_1))
-#define SCM_GC_SET_CARD_FLAGS(card, flags) \
-    ((card)->word_1 = (SCM) (flags))
-
-#define SCM_GC_GET_CARD_FLAG(card, shift) \
- (SCM_GC_GET_CARD_FLAGS (card) & (1L << (shift)))
-#define SCM_GC_SET_CARD_FLAG(card, shift) \
- (SCM_GC_SET_CARD_FLAGS (card, SCM_GC_GET_CARD_FLAGS(card) | (1L << (shift))))
-#define SCM_GC_CLEAR_CARD_FLAG(card, shift) \
- (SCM_GC_SET_CARD_FLAGS (card, SCM_GC_GET_CARD_FLAGS(card) & ~(1L << (shift))))
-
-/*
-  Remove card flags. They hamper lazy initialization, and aren't used
-  anyways.
- */
-
-/* card addressing. for efficiency, cards are *always* aligned to
-   SCM_GC_CARD_SIZE. */
-
-#define SCM_GC_CARD_SIZE_MASK  (SCM_GC_SIZEOF_CARD-1)
-#define SCM_GC_CARD_ADDR_MASK  (~SCM_GC_CARD_SIZE_MASK)
-
-#define SCM_GC_CELL_CARD(x)    ((scm_t_cell *) ((long) (x) & SCM_GC_CARD_ADDR_MASK))
-#define SCM_GC_CELL_OFFSET(x)  (((long) (x) & SCM_GC_CARD_SIZE_MASK) >> SCM_CELL_SIZE_SHIFT)
-#define SCM_GC_CELL_BVEC(x)    SCM_GC_CARD_BVEC (SCM_GC_CELL_CARD (x))
-#define SCM_GC_SET_CELL_BVEC(x, bvec)    SCM_GC_SET_CARD_BVEC (SCM_GC_CELL_CARD (x), bvec)
-#define SCM_GC_CELL_GET_BIT(x) SCM_C_BVEC_GET (SCM_GC_CELL_BVEC (x), SCM_GC_CELL_OFFSET (x))
-#define SCM_GC_CELL_SET_BIT(x) SCM_C_BVEC_SET (SCM_GC_CELL_BVEC (x), SCM_GC_CELL_OFFSET (x))
-#define SCM_GC_CELL_CLEAR_BIT(x) SCM_C_BVEC_CLEAR (SCM_GC_CELL_BVEC (x), SCM_GC_CELL_OFFSET (x))
-
-#define SCM_GC_CARD_UP(x)      SCM_GC_CELL_CARD ((char *) (x) + SCM_GC_SIZEOF_CARD - 1)
-#define SCM_GC_CARD_DOWN       SCM_GC_CELL_CARD
-
-/* low level bit banging aids */
-typedef unsigned long scm_t_c_bvec_long;
-
-#if (SCM_SIZEOF_UNSIGNED_LONG == 8)
-#       define SCM_C_BVEC_LONG_BITS    64
-#       define SCM_C_BVEC_OFFSET_SHIFT 6
-#       define SCM_C_BVEC_POS_MASK     63
-#       define SCM_CELL_SIZE_SHIFT     4
-#else
-#       define SCM_C_BVEC_LONG_BITS    32
-#       define SCM_C_BVEC_OFFSET_SHIFT 5
-#       define SCM_C_BVEC_POS_MASK     31
-#       define SCM_CELL_SIZE_SHIFT     3
-#endif
-
-#define SCM_C_BVEC_OFFSET(pos) (pos >> SCM_C_BVEC_OFFSET_SHIFT)
-
-#define SCM_C_BVEC_GET(bvec, pos) (bvec[SCM_C_BVEC_OFFSET (pos)] & (1L << (pos & SCM_C_BVEC_POS_MASK)))
-#define SCM_C_BVEC_SET(bvec, pos) (bvec[SCM_C_BVEC_OFFSET (pos)] |= (1L << (pos & SCM_C_BVEC_POS_MASK)))
-#define SCM_C_BVEC_CLEAR(bvec, pos) (bvec[SCM_C_BVEC_OFFSET (pos)] &= ~(1L << (pos & SCM_C_BVEC_POS_MASK)))
-
-/* testing and changing GC marks */
-#define SCM_GC_MARK_P(x)   SCM_GC_CELL_GET_BIT (x)
-#define SCM_SET_GC_MARK(x) SCM_GC_CELL_SET_BIT (x)
-#define SCM_CLEAR_GC_MARK(x) SCM_GC_CELL_CLEAR_BIT (x)
 
 /* Low level cell data accessing macros.  These macros should only be used
  * from within code related to garbage collection issues, since they will

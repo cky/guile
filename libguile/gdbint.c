@@ -112,6 +112,7 @@ static SCM gdb_output_port;
 static void
 unmark_port (SCM port)
 {
+#if 0
   SCM stream, string;
   port_mark_p = SCM_GC_MARK_P (port);
   SCM_CLEAR_GC_MARK (port);
@@ -121,12 +122,16 @@ unmark_port (SCM port)
   string = SCM_CDR (stream);
   string_mark_p = SCM_GC_MARK_P (string);
   SCM_CLEAR_GC_MARK (string);
+#else
+  abort (); /* FIXME */
+#endif
 }
 
 
 static void
 remark_port (SCM port)
 {
+#if 0
   SCM stream = SCM_PACK (SCM_STREAM (port));
   SCM string = SCM_CDR (stream);
   if (string_mark_p)
@@ -135,24 +140,29 @@ remark_port (SCM port)
     SCM_SET_GC_MARK (stream);
   if (port_mark_p)
     SCM_SET_GC_MARK (port);
+#else
+  abort (); /* FIXME */
+#endif
 }
 
 
 int
 gdb_maybe_valid_type_p (SCM value)
 {
-  return SCM_IMP (value) || scm_in_heap_p (value);
+  return SCM_IMP (value); /*  || scm_in_heap_p (value); */ /* FIXME: What to
+							      do? */
 }
 
 
 int
 gdb_read (char *str)
 {
+#if 0
   SCM ans;
   int status = 0;
   RESET_STRING;
   /* Need to be restrictive about what to read? */
-  if (SCM_GC_P)
+  if (1)  /* (SCM_GC_P) */ /* FIXME */
     {
       char *p;
       for (p = str; *p != '\0'; ++p)
@@ -207,6 +217,9 @@ exit:
   remark_port (gdb_input_port);
   SCM_END_FOREIGN_BLOCK;
   return status;
+#else
+  abort ();
+#endif
 }
 
 
