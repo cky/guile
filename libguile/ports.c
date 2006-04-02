@@ -28,6 +28,8 @@
 #include <stdio.h>
 #include <errno.h>
 
+#include <assert.h>
+
 #include "libguile/_scm.h"
 #include "libguile/async.h"
 #include "libguile/eval.h"
@@ -48,10 +50,6 @@
 
 #ifdef HAVE_STRING_H
 #include <string.h>
-#endif
-
-#ifdef HAVE_MALLOC_H
-#include <malloc.h>
 #endif
 
 #ifdef HAVE_IO_H
@@ -126,9 +124,11 @@ scm_make_port_type (char *name,
   if (255 <= scm_numptob)
     goto ptoberr;
   SCM_CRITICAL_SECTION_START;
-  SCM_SYSCALL (tmp = (char *) realloc ((char *) scm_ptobs,
-				       (1 + scm_numptob)
-				       * sizeof (scm_t_ptob_descriptor)));
+  tmp = (char *) scm_gc_realloc ((char *) scm_ptobs,
+				 scm_numptob * sizeof (scm_t_ptob_descriptor),
+				 (1 + scm_numptob)
+				 * sizeof (scm_t_ptob_descriptor),
+				 "port-type");
   if (tmp)
     {
       scm_ptobs = (scm_t_ptob_descriptor *) tmp;
@@ -475,10 +475,10 @@ scm_i_dynwind_current_load_port (SCM port)
 
 /* The port table --- an array of pointers to ports.  */
 
-scm_t_port **scm_i_port_table;
+scm_t_port **scm_i_port_table = NULL;
 
-long scm_i_port_table_size = 0;	/* Number of ports in scm_i_port_table.  */
-long scm_i_port_table_room = 20;	/* Size of the array.  */
+long scm_i_port_table_size = 0;	  /* Number of ports in SCM_I_PORT_TABLE.  */
+long scm_i_port_table_room = 20;  /* Actual size of the array.  */
 
 scm_i_pthread_mutex_t scm_i_port_table_mutex = SCM_I_PTHREAD_MUTEX_INITIALIZER;
 
@@ -499,9 +499,12 @@ scm_new_port_table_entry (scm_t_bits tag)
     {
       /* initial malloc is in gc.c.  this doesn't use scm_gc_malloc etc.,
 	 since it can never be freed during gc.  */
-      void *newt = scm_realloc ((char *) scm_i_port_table,
-				(size_t) (sizeof (scm_t_port *)
-					  * scm_i_port_table_room * 2));
+      /* XXX (Ludo): Why not do it actually?  */
+      void *newt = scm_gc_realloc ((char *) scm_i_port_table,
+				   scm_i_port_table_room * sizeof (scm_t_port *),
+				   (size_t) (sizeof (scm_t_port *)
+					     * scm_i_port_table_room * 2),
+				   "port-table");
       scm_i_port_table = (scm_t_port **) newt;
       scm_i_port_table_room *= 2;
     }
@@ -1152,10 +1155,11 @@ scm_c_write (SCM port, const void *ptr, size_t size)
     pt->rw_active = SCM_PORT_WRITE;
 }
 
-void 
+void
 scm_flush (SCM port)
 {
   long i = SCM_PTOBNUM (port);
+  assert ((i >= 0) && (i < scm_i_port_table_size));
   (scm_ptobs[i].flush) (port);
 }
 
@@ -1610,7 +1614,11 @@ void
 scm_ports_prehistory ()
 {
   scm_numptob = 0;
-  scm_ptobs = (scm_t_ptob_descriptor *) scm_malloc (sizeof (scm_t_ptob_descriptor));
+  scm_ptobs = NULL;
+
+  scm_i_port_table = scm_gc_malloc (scm_i_port_table_room
+				    * sizeof (scm_t_port *),
+				    "port-table");
 }
 
 

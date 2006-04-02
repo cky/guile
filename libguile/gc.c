@@ -332,17 +332,15 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
     abort();
 #endif
 
-  return SCM_EOL;  /* FIXME */
-#if 0
   /* Below, we cons to produce the resulting list.  We want a snapshot of
    * the heap situation before consing.
    */
   local_scm_mtrigger = scm_mtrigger;
   local_scm_mallocated = scm_mallocated;
-  local_scm_heap_size = 0; /* SCM_HEAP_SIZE; */ /* FIXME */
+  local_scm_heap_size = GC_get_heap_size ();
 
   local_scm_cells_allocated = scm_cells_allocated;
-  
+
   local_scm_gc_time_taken = scm_gc_time_taken;
   local_scm_gc_mark_time_taken = scm_gc_mark_time_taken;
   local_scm_gc_times = scm_gc_times;
@@ -356,12 +354,17 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
     +(double) scm_gc_cells_swept 
     -(double) scm_gc_cells_collected;
 
+#if 0
   for (i = table_size; i--;)
     {
       heap_segs = scm_cons (scm_cons (scm_from_ulong (bounds[2*i]),
 				      scm_from_ulong (bounds[2*i+1])),
 			    heap_segs);
     }
+#else
+  heap_segs = scm_list (SCM_INUM0); /* FIXME */
+#endif
+
   /* njrev: can any of these scm_cons's or scm_list_n signal a memory
      error?  If so we need a frame here. */
   answer =
@@ -392,10 +395,9 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
 		scm_cons (sym_heap_segments, heap_segs),
 		SCM_UNDEFINED);
   SCM_CRITICAL_SECTION_END;
-  
-  free (bounds);
+
+/*   free (bounds); */
   return answer;
-#endif
 }
 #undef FUNC_NAME
 
