@@ -720,12 +720,6 @@ scm_init_storage ()
 
   j = SCM_HEAP_SEG_SIZE;
 
-  /* Initialise the list of ports.  */
-  scm_i_port_table = (scm_t_port **)
-    malloc (sizeof (scm_t_port *) * scm_i_port_table_room);
-  if (!scm_i_port_table)
-    return 1;
-
 #if 0
   /* We can't have a cleanup handler since we have no thread to run it
      in. */

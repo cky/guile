@@ -500,13 +500,13 @@ scm_new_port_table_entry (scm_t_bits tag)
       /* initial malloc is in gc.c.  this doesn't use scm_gc_malloc etc.,
 	 since it can never be freed during gc.  */
       /* XXX (Ludo): Why not do it actually?  */
+      size_t new_size = scm_i_port_table_room * 2;
       void *newt = scm_gc_realloc ((char *) scm_i_port_table,
 				   scm_i_port_table_room * sizeof (scm_t_port *),
-				   (size_t) (sizeof (scm_t_port *)
-					     * scm_i_port_table_room * 2),
+				   new_size * sizeof (scm_t_port *),
 				   "port-table");
       scm_i_port_table = (scm_t_port **) newt;
-      scm_i_port_table_room *= 2;
+      scm_i_port_table_room = new_size;
     }
 
   entry->entry = scm_i_port_table_size;
