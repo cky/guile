@@ -73,8 +73,12 @@ scm_cell (scm_t_bits car, scm_t_bits cdr)
 {
   SCM cell = SCM_PACK ((scm_t_bits) (GC_malloc (sizeof (scm_t_cell))));
 
-  SCM_GC_SET_CELL_WORD (cell, 0, car);
+  /* Initialize the type slot last so that the cell is ignored by the GC
+     until it is completely initialized.  This is only relevant when the GC
+     can actually run during this code, which it can't since the GC only runs
+     when all other threads are stopped.  */
   SCM_GC_SET_CELL_WORD (cell, 1, cdr);
+  SCM_GC_SET_CELL_WORD (cell, 0, car);
 
   return cell;
 }

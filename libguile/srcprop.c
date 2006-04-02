@@ -112,11 +112,10 @@ scm_make_srcprops (long line, int col, SCM filename, SCM copy, SCM plist)
       scm_t_srcprops_chunk *mem;
       size_t n = sizeof (scm_t_srcprops_chunk)
 	            + sizeof (scm_t_srcprops) * (SRCPROPS_CHUNKSIZE - 1);
-      SCM_SYSCALL (mem = (scm_t_srcprops_chunk *) scm_malloc (n));
+      mem = scm_gc_malloc (n, "srcprops");
       if (mem == NULL)
 	scm_memory_error ("srcprops");
-      scm_gc_register_collectable_memory (mem, n, "srcprops");
-      
+
       mem->next = srcprops_chunklist;
       srcprops_chunklist = mem;
       ptr = &mem->srcprops[0];

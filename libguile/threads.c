@@ -382,7 +382,7 @@ static SCM scm_i_default_dynamic_state;
 static void
 guilify_self_1 (SCM_STACKITEM *base)
 {
-  scm_i_thread *t = malloc (sizeof (scm_i_thread));
+  scm_i_thread *t = scm_gc_malloc (sizeof (scm_i_thread), "thread");
 
   t->pthread = scm_i_pthread_self ();
   t->handle = SCM_BOOL_F;
@@ -432,7 +432,7 @@ guilify_self_2 (SCM parent)
   scm_i_thread *t = SCM_I_CURRENT_THREAD;
 
   SCM_NEWSMOB (t->handle, scm_tc16_thread, t);
-  scm_gc_register_collectable_memory (t, sizeof (scm_i_thread), "thread");
+
   t->continuation_root = scm_cons (t->handle, SCM_EOL);
   t->continuation_base = t->base;
 
