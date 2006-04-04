@@ -96,7 +96,18 @@ lookup_interned_symbol (const char *name, size_t len,
        !scm_is_null (l);
        l = SCM_CDR (l))
     {
-      SCM sym = SCM_CAAR (l);
+      SCM pair, sym;
+
+      pair = SCM_CAR (l);
+      if (!scm_is_pair (pair))
+	abort ();
+      if (SCM_UNPACK (SCM_CAR (pair)) == NULL)
+	/* Weak pointer.  Ignore it.  */
+	/* FIXME: Should we as well remove it, as in `scm_fixup_weak_alist'? */
+	continue;
+
+      sym = SCM_CAR (pair);
+
       if (scm_i_symbol_hash (sym) == raw_hash
 	  && scm_i_symbol_length (sym) == len)
 	{

@@ -127,6 +127,10 @@ SCM_DEFINE (scm_weak_vector_p, "weak-vector?", 1, 0, 0,
 #undef FUNC_NAME
 
 
+/* Weak alist vectors, i.e., vectors of alists.
+
+   The alist vector themselves are _not_ weak.  The `car' (or `cdr', or both)
+   of the pairs within it are weak.  See `hashtab.c' for details.  */
 
 SCM_DEFINE (scm_make_weak_key_alist_vector, "make-weak-key-alist-vector", 0, 1, 0, 
 	    (SCM size),
@@ -140,8 +144,7 @@ SCM_DEFINE (scm_make_weak_key_alist_vector, "make-weak-key-alist-vector", 0, 1, 
 	    "would modify regular hash tables. (@pxref{Hash Tables})")
 #define FUNC_NAME s_scm_make_weak_key_alist_vector
 {
-  return scm_i_allocate_weak_vector
-    (1, SCM_UNBNDP (size) ? scm_from_int (31) : size, SCM_EOL);
+  return scm_make_vector (size, SCM_EOL);
 }
 #undef FUNC_NAME
 
@@ -152,8 +155,7 @@ SCM_DEFINE (scm_make_weak_value_alist_vector, "make-weak-value-alist-vector", 0,
 	    "(@pxref{Hash Tables})")
 #define FUNC_NAME s_scm_make_weak_value_alist_vector
 {
-  return scm_i_allocate_weak_vector
-    (2, SCM_UNBNDP (size) ? scm_from_int (31) : size, SCM_EOL);
+  return scm_make_vector (size, SCM_EOL);
 }
 #undef FUNC_NAME
 
@@ -164,8 +166,7 @@ SCM_DEFINE (scm_make_doubly_weak_alist_vector, "make-doubly-weak-alist-vector", 
 	    "buckets.  (@pxref{Hash Tables})")
 #define FUNC_NAME s_scm_make_doubly_weak_alist_vector
 {
-  return scm_i_allocate_weak_vector
-    (3, SCM_UNBNDP (size) ? scm_from_int (31) : size, SCM_EOL);
+  return scm_make_vector (size, SCM_EOL);
 }
 #undef FUNC_NAME
 
@@ -206,118 +207,6 @@ SCM_DEFINE (scm_doubly_weak_alist_vector_p, "doubly-weak-alist-vector?", 1, 0, 0
 #define UNMARKED_CELL_P(x) 1 /* (SCM_NIMP(x) && !SCM_GC_MARK_P (x)) *//*
 									FIXME */
 
-static SCM weak_vectors;
-
-void
-scm_i_init_weak_vectors_for_gc ()
-{
-  weak_vectors = SCM_EOL;
-}
-
-void
-scm_i_mark_weak_vector (SCM w)
-{
-  SCM_I_SET_WVECT_GC_CHAIN (w, weak_vectors);
-  weak_vectors = w;
-}
-
-static int
-scm_i_mark_weak_vector_non_weaks (SCM w)
-{
-  int again = 0;
-
-  if (SCM_IS_WHVEC_ANY (w))
-    {
-      SCM *ptr;
-      long n = SCM_I_WVECT_LENGTH (w);
-      long j;
-      int weak_keys = SCM_IS_WHVEC (w) || SCM_IS_WHVEC_B (w);
-      int weak_values = SCM_IS_WHVEC_V (w) || SCM_IS_WHVEC_B (w);
-
-      ptr = SCM_I_WVECT_GC_WVELTS (w);
-
-      for (j = 0; j < n; ++j)
-	{
-	  SCM alist, slow_alist;
-	  int slow_toggle = 0;
-
-	  /* We do not set the mark bits of the alist spine cells here
-	     since we do not want to ever create the situation where a
-	     marked cell references an unmarked cell (except in
-	     scm_gc_mark, where the referenced cells will be marked
-	     immediately).  Thus, we can not use mark bits to stop us
-	     from looping indefinitely over a cyclic alist.  Instead,
-	     we use the standard tortoise and hare trick to catch
-	     cycles.  The fast walker does the work, and stops when it
-	     catches the slow walker to ensure that the whole cycle
-	     has been worked on.
-	  */
-
-	  alist = slow_alist = ptr[j];
-
-	  while (scm_is_pair (alist))
-	    {
-	      SCM elt = SCM_CAR (alist);
-
-	      if (UNMARKED_CELL_P (elt))
-		{
-		  if (scm_is_pair (elt))
-		    {
-		      SCM key = SCM_CAR (elt);
-		      SCM value = SCM_CDR (elt);
-		  
-		      if (!((weak_keys && UNMARKED_CELL_P (key))
-			    || (weak_values && UNMARKED_CELL_P (value))))
-			{
-			  /* The item should be kept.  We need to mark it
-			     recursively.
-			  */ 
-			  scm_gc_mark (elt);
-			  again = 1;
-			}
-		    }
-		  else
-		    {
-		      /* A non-pair cell element.  This should not
-			 appear in a real alist, but when it does, we
-			 need to keep it.
-		      */
-		      scm_gc_mark (elt);
-		      again = 1;
-		    }
-		}
-
-	      alist = SCM_CDR (alist);
-
-	      if (slow_toggle && scm_is_pair (slow_alist))
-		{
-		  slow_alist = SCM_CDR (slow_alist);
-		  slow_toggle = !slow_toggle;
-		  if (scm_is_eq (slow_alist, alist))
-		    break;
-		}
-	    }
-	  if (!scm_is_pair (alist))
-	    scm_gc_mark (alist);
-	}
-    }
-
-  return again;
-}
-
-int
-scm_i_mark_weak_vectors_non_weaks ()
-{
-  int again = 0;
-  SCM w = weak_vectors;
-  while (!scm_is_null (w))
-    {
-      if (scm_i_mark_weak_vector_non_weaks (w))
-	again = 1;
-      w = SCM_I_WVECT_GC_CHAIN (w);
-    }
-  return again;
-}
 
 static void
 scm_i_remove_weaks (SCM w)
@@ -368,6 +257,7 @@ scm_i_remove_weaks (SCM w)
 #endif
 }
 
+#if 0
 void
 scm_i_remove_weaks_from_weak_vectors ()
 {
@@ -378,6 +268,7 @@ scm_i_remove_weaks_from_weak_vectors ()
       w = SCM_I_WVECT_GC_CHAIN (w);
     }
 }
+#endif
 
 
 

@@ -34,6 +34,9 @@
 #include "libguile/dynwind.h"
 #include "libguile/deprecation.h"
 
+#include <gc/gc.h> /* disappearing links (aka. weak pointers) */
+
+
 
 
 #define VECTOR_MAX_LENGTH (SCM_T_BITS_MAX >> 8)
@@ -61,6 +64,11 @@ const SCM *
 scm_vector_elements (SCM vec, scm_t_array_handle *h,
 		     size_t *lenp, ssize_t *incp)
 {
+  if (SCM_I_WVECTP (vec))
+    /* FIXME: We should check each (weak) element of the vector for NULL and
+       convert it to SCM_BOOL_F.  */
+    abort ();
+
   scm_generalized_vector_get_handle (vec, h);
   if (lenp)
     {
@@ -75,6 +83,11 @@ SCM *
 scm_vector_writable_elements (SCM vec, scm_t_array_handle *h,
 			      size_t *lenp, ssize_t *incp)
 {
+  if (SCM_I_WVECTP (vec))
+    /* FIXME: We should check each (weak) element of the vector for NULL and
+       convert it to SCM_BOOL_F.  */
+    abort ();
+
   scm_generalized_vector_get_handle (vec, h);
   if (lenp)
     {
@@ -192,9 +205,17 @@ scm_c_vector_ref (SCM v, size_t k)
 {
   if (SCM_I_IS_VECTOR (v))
     {
+      register SCM elt;
+
       if (k >= SCM_I_VECTOR_LENGTH (v))
-	scm_out_of_range (NULL, scm_from_size_t (k)); 
-      return (SCM_I_VECTOR_ELTS(v))[k];
+	scm_out_of_range (NULL, scm_from_size_t (k));
+      elt = (SCM_I_VECTOR_ELTS(v))[k];
+
+      if ((elt == SCM_PACK (NULL)) && SCM_I_WVECTP (v))
+	/* ELT was a weak pointer and got nullified by the GC.  */
+	return SCM_BOOL_F;
+
+      return elt;
     }
   else if (SCM_I_ARRAYP (v) && SCM_I_ARRAY_NDIM (v) == 1)
     {
@@ -202,10 +223,18 @@ scm_c_vector_ref (SCM v, size_t k)
       SCM vv = SCM_I_ARRAY_V (v);
       if (SCM_I_IS_VECTOR (vv))
 	{
+	  register SCM elt;
+
 	  if (k >= dim->ubnd - dim->lbnd + 1)
 	    scm_out_of_range (NULL, scm_from_size_t (k));
 	  k = SCM_I_ARRAY_BASE (v) + k*dim->inc;
-	  return (SCM_I_VECTOR_ELTS (vv))[k];
+	  elt = (SCM_I_VECTOR_ELTS (vv))[k];
+
+	  if ((elt == SCM_PACK (NULL)) && (SCM_I_WVECTP (vv)))
+	    /* ELT was a weak pointer and got nullified by the GC.  */
+	    return SCM_BOOL_F;
+
+	  return elt;
 	}
       scm_wrong_type_arg_msg (NULL, 0, v, "non-uniform vector");
     }
@@ -243,6 +272,12 @@ scm_c_vector_set_x (SCM v, size_t k, SCM obj)
       if (k >= SCM_I_VECTOR_LENGTH (v))
 	scm_out_of_range (NULL, scm_from_size_t (k)); 
       (SCM_I_VECTOR_WELTS(v))[k] = obj;
+      if (SCM_I_WVECTP (v))
+	{
+	  /* Make it a weak pointer.  */
+	  GC_PTR link = (GC_PTR) & ((SCM_I_VECTOR_WELTS (v))[k]);
+	  GC_GENERAL_REGISTER_DISAPPEARING_LINK (link, obj);
+	}
     }
   else if (SCM_I_ARRAYP (v) && SCM_I_ARRAY_NDIM (v) == 1)
     {
@@ -254,6 +289,13 @@ scm_c_vector_set_x (SCM v, size_t k, SCM obj)
 	    scm_out_of_range (NULL, scm_from_size_t (k));
 	  k = SCM_I_ARRAY_BASE (v) + k*dim->inc;
 	  (SCM_I_VECTOR_WELTS (vv))[k] = obj;
+
+	  if (SCM_I_WVECTP (vv))
+	    {
+	      /* Make it a weak pointer.  */
+	      GC_PTR link = (GC_PTR) & ((SCM_I_VECTOR_WELTS (vv))[k]);
+	      GC_GENERAL_REGISTER_DISAPPEARING_LINK (link, obj);
+	    }
 	}
       else
 	scm_wrong_type_arg_msg (NULL, 0, v, "non-uniform vector");
@@ -359,11 +401,13 @@ scm_i_allocate_weak_vector (scm_t_bits type, SCM size, SCM fill)
   if (c_size > 0)
     {
       size_t j;
-      
+
       if (SCM_UNBNDP (fill))
 	fill = SCM_UNSPECIFIED;
-      
-      base = scm_gc_malloc (c_size * sizeof (SCM), "weak vector");
+
+      /* The base itself should not be scanned for pointers otherwise those
+	 pointers will always be reachable.  */
+      base = scm_gc_malloc_pointerless (c_size * sizeof (SCM), "weak vector");
       for (j = 0; j != c_size; ++j)
 	base[j] = fill;
     }

@@ -80,6 +80,121 @@ static char *s_hashtable = "hashtable";
 
 SCM weak_hashtables = SCM_EOL;
 
+
+/* Weak cells for use in weak alist vectors (aka. weak hash tables).  */
+
+static SCM
+scm_weak_car_cell (SCM car, SCM cdr)
+{
+  scm_t_cell *cell = (scm_t_cell *)scm_gc_malloc_pointerless (sizeof (*cell),
+							      "weak cell");
+
+  cell->word_0 = car;
+  cell->word_1 = cdr;
+
+  if (SCM_NIMP (car))
+    {
+      /* Weak car cells make sense iff the car is non-immediate.  */
+      GC_GENERAL_REGISTER_DISAPPEARING_LINK ((GC_PTR)&cell->word_0,
+					     (GC_PTR)SCM_UNPACK (car));
+    }
+
+  return (SCM_PACK (cell));
+}
+
+static SCM
+scm_weak_cdr_cell (SCM car, SCM cdr)
+{
+  scm_t_cell *cell = (scm_t_cell *)scm_gc_malloc_pointerless (sizeof (*cell),
+							      "weak cell");
+
+  cell->word_0 = car;
+  cell->word_1 = cdr;
+
+  if (SCM_NIMP (cdr))
+    {
+      /* Weak cdr cells make sense iff the cdr is non-immediate.  */
+      GC_GENERAL_REGISTER_DISAPPEARING_LINK ((GC_PTR)&cell->word_1,
+					     (GC_PTR)SCM_UNPACK (cdr));
+    }
+
+  return (SCM_PACK (cell));
+}
+
+static SCM
+scm_doubly_weak_cell (SCM car, SCM cdr)
+{
+  scm_t_cell *cell = (scm_t_cell *)scm_gc_malloc_pointerless (sizeof (*cell),
+							      "weak cell");
+
+  cell->word_0 = car;
+  cell->word_1 = cdr;
+
+  if (SCM_NIMP (car))
+    {
+      GC_GENERAL_REGISTER_DISAPPEARING_LINK ((GC_PTR)&cell->word_0,
+					     (GC_PTR)SCM_UNPACK (car));
+    }
+  if (SCM_NIMP (cdr))
+    {
+      GC_GENERAL_REGISTER_DISAPPEARING_LINK ((GC_PTR)&cell->word_1,
+					     (GC_PTR)SCM_UNPACK (cdr));
+    }
+
+  return (SCM_PACK (cell));
+}
+
+/* Testing the weak component(s) of a cell for reachability.  */
+#define SCM_WEAK_CELL_WORD_DELETED_P(_cell, _word)		\
+  (SCM_CELL_WORD ((_cell), (_word)) == SCM_PACK (NULL))
+#define SCM_WEAK_CELL_CAR_DELETED_P(_cell)	\
+  (SCM_WEAK_CELL_WORD_DELETED_P ((_cell), 0))
+#define SCM_WEAK_CELL_CDR_DELETED_P(_cell)	\
+  (SCM_WEAK_CELL_WORD_DELETED_P ((_cell), 1))
+
+/* Accessing the components of a weak cell.  */
+#define SCM_WEAK_CELL_WORD(_cell, _word)		\
+  ((SCM_WEAK_CELL_WORD_DELETED_P ((_cell), (_word)))	\
+   ? SCM_BOOL_F : SCM_CAR (pair))
+#define SCM_WEAK_CELL_CAR(_cell)  (SCM_WEAK_CELL_WORD ((_cell), 0))
+#define SCM_WEAK_CELL_CDR(_cell)  (SCM_WEAK_CELL_WORD ((_cell), 1))
+
+
+/* Return a ``usable'' version of ALIST, an alist of weak pairs.  By
+   ``usable'', we mean that it contains only valid Scheme objects.  */
+static SCM
+scm_fixup_weak_alist (SCM alist)
+{
+  SCM result;
+  SCM prev = SCM_EOL;
+
+  for (result = alist;
+       scm_is_pair (alist);
+       prev = alist, alist = SCM_CDR (alist))
+    {
+      SCM pair = SCM_CAR (alist);
+
+      if (scm_is_pair (pair))
+	{
+	  if ((SCM_WEAK_CELL_CAR_DELETED_P (pair))
+	      || (SCM_WEAK_CELL_CDR_DELETED_P (pair)))
+	    {
+	      /* Remove from ALIST weak pair PAIR whose car/cdr has been
+		 nullified by the GC.  */
+	      if (prev == SCM_EOL)
+		result = alist;
+	      else
+		SCM_SETCDR (prev, SCM_CDR (alist));
+
+	      continue;
+	    }
+	}
+    }
+
+  return result;
+}
+
+
 static SCM
 make_hash_table (int flags, unsigned long k, const char *func_name) 
 {
@@ -89,11 +204,13 @@ make_hash_table (int flags, unsigned long k, const char *func_name)
   while (i < HASHTABLE_SIZE_N && n > hashtable_size[i])
     ++i;
   n = hashtable_size[i];
-  if (flags)
-    vector = scm_i_allocate_weak_vector (flags, scm_from_int (n), SCM_EOL);
-  else
-    vector = scm_c_make_vector (n, SCM_EOL);
-  t = scm_gc_malloc (sizeof (*t), s_hashtable);
+
+  /* In both cases, i.e., regardless of whether we are creating a weak hash
+     table, we return a non-weak vector.  This is because the vector itself
+     is not weak in the case of a weak hash table: the alist pairs are.  */
+  vector = scm_c_make_vector (n, SCM_EOL);
+
+  t = scm_gc_malloc_pointerless (sizeof (*t), s_hashtable);
   t->min_size_index = t->size_index = i;
   t->n_items = 0;
   t->lower = 0;
@@ -102,6 +219,7 @@ make_hash_table (int flags, unsigned long k, const char *func_name)
   t->hash_fn = NULL;
   if (flags)
     {
+      /* FIXME: We should eventually remove WEAK_HASHTABLES.  */
       SCM_NEWSMOB3 (table, scm_tc16_hashtable, vector, t, weak_hashtables);
       weak_hashtables = table;
     }
@@ -153,13 +271,8 @@ scm_i_rehash (SCM table,
     SCM_HASHTABLE (table)->lower = new_size / 4;
   SCM_HASHTABLE (table)->upper = 9 * new_size / 10;
   buckets = SCM_HASHTABLE_VECTOR (table);
-  
-  if (SCM_HASHTABLE_WEAK_P (table))
-    new_buckets = scm_i_allocate_weak_vector (SCM_HASHTABLE_FLAGS (table),
-					      scm_from_ulong (new_size),
-					      SCM_EOL);
-  else
-    new_buckets = scm_c_make_vector (new_size, SCM_EOL);
+
+  new_buckets = scm_c_make_vector (new_size, SCM_EOL);
 
   /* When this is a weak hashtable, running the GC might change it.
      We need to cope with this while rehashing its elements.  We do
@@ -417,7 +530,7 @@ scm_hash_fn_get_handle (SCM table, SCM obj, unsigned long (*hash_fn)(), SCM (*as
 #define FUNC_NAME "scm_hash_fn_get_handle"
 {
   unsigned long k;
-  SCM h;
+  SCM alist, h;
 
   if (SCM_HASHTABLE_P (table))
     table = SCM_HASHTABLE_VECTOR (table);
@@ -428,7 +541,17 @@ scm_hash_fn_get_handle (SCM table, SCM obj, unsigned long (*hash_fn)(), SCM (*as
   k = hash_fn (obj, SCM_SIMPLE_VECTOR_LENGTH (table), closure);
   if (k >= SCM_SIMPLE_VECTOR_LENGTH (table))
     scm_out_of_range ("hash_fn_get_handle", scm_from_ulong (k));
-  h = assoc_fn (obj, SCM_SIMPLE_VECTOR_REF (table, k), closure);
+
+  alist = SCM_SIMPLE_VECTOR_REF (table, k);
+
+  /* XXX: We assume that if TABLE is a vector, then it's a weak vector.  */
+  if ((SCM_HASHTABLE_P (table) && (SCM_HASHTABLE_WEAK_P (table)))
+      || (SCM_I_IS_VECTOR (table)))
+    /* FIXME: We could maybe trigger a rehash here depending on whether
+       `scm_fixup_weak_alist ()' noticed some change.  */
+    alist = scm_fixup_weak_alist (alist);
+
+  h = assoc_fn (obj, alist, closure);
   return h;
 }
 #undef FUNC_NAME
@@ -440,7 +563,7 @@ scm_hash_fn_create_handle_x (SCM table, SCM obj, SCM init, unsigned long (*hash_
 #define FUNC_NAME "scm_hash_fn_create_handle_x"
 {
   unsigned long k;
-  SCM buckets, it;
+  SCM buckets, alist, it;
 
   if (SCM_HASHTABLE_P (table))
     buckets = SCM_HASHTABLE_VECTOR (table);
@@ -456,7 +579,13 @@ scm_hash_fn_create_handle_x (SCM table, SCM obj, SCM init, unsigned long (*hash_
   k = hash_fn (obj, SCM_SIMPLE_VECTOR_LENGTH (buckets), closure);
   if (k >= SCM_SIMPLE_VECTOR_LENGTH (buckets))
     scm_out_of_range ("hash_fn_create_handle_x", scm_from_ulong (k));
-  it = assoc_fn (obj, SCM_SIMPLE_VECTOR_REF (buckets, k), closure);
+
+  alist = SCM_SIMPLE_VECTOR_REF (buckets, k);
+  if ((SCM_HASHTABLE_P (table) && (SCM_HASHTABLE_WEAK_P (table)))
+      || (SCM_I_IS_VECTOR (table)))
+    alist = scm_fixup_weak_alist (alist);
+
+  it = assoc_fn (obj, alist, closure);
   if (scm_is_true (it))
     return it;
   else
@@ -467,7 +596,25 @@ scm_hash_fn_create_handle_x (SCM table, SCM obj, SCM init, unsigned long (*hash_
 	 again since the hashtable might have been rehashed.  This
 	 necessitates a new hash value as well.
       */
-      SCM new_bucket = scm_acons (obj, init, SCM_EOL);
+      SCM handle, new_bucket;
+
+      if ((SCM_HASHTABLE_P (table) && (SCM_HASHTABLE_WEAK_P (table)))
+	  || (SCM_I_IS_VECTOR (table)))
+	{
+	  /* Use a weak cell.  */
+	  if (SCM_HASHTABLE_DOUBLY_WEAK_P (table))
+	    handle = scm_doubly_weak_cell (obj, init);
+	  else if (SCM_HASHTABLE_WEAK_KEY_P (table))
+	    handle = scm_weak_car_cell (obj, init);
+	  else
+	    handle = scm_weak_cdr_cell (obj, init);
+	}
+      else
+	/* Use a regular, non-weak cell.  */
+	handle = scm_cons (obj, init);
+
+      new_bucket = scm_cons (handle, SCM_EOL);
+
       if (!scm_is_eq (table, buckets)
 	  && !scm_is_eq (SCM_HASHTABLE_VECTOR (table), buckets))
 	{
@@ -529,7 +676,7 @@ scm_hash_fn_remove_x (SCM table, SCM obj,
                       void *closure)
 {
   unsigned long k;
-  SCM buckets, h;
+  SCM buckets, alist, h;
 
   if (SCM_HASHTABLE_P (table))
     buckets = SCM_HASHTABLE_VECTOR (table);
@@ -545,7 +692,13 @@ scm_hash_fn_remove_x (SCM table, SCM obj,
   k = hash_fn (obj, SCM_SIMPLE_VECTOR_LENGTH (buckets), closure);
   if (k >= SCM_SIMPLE_VECTOR_LENGTH (buckets))
     scm_out_of_range ("hash_fn_remove_x", scm_from_ulong (k));
-  h = assoc_fn (obj, SCM_SIMPLE_VECTOR_REF (buckets, k), closure);
+
+  alist = SCM_SIMPLE_VECTOR_REF (buckets, k);
+  if ((SCM_HASHTABLE_P (table) && (SCM_HASHTABLE_WEAK_P (table)))
+      || (SCM_I_IS_VECTOR (table)))
+    alist = scm_fixup_weak_alist (alist);
+
+  h = assoc_fn (obj, alist, closure);
   if (scm_is_true (h))
     {
       SCM_SIMPLE_VECTOR_SET 
