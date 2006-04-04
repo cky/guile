@@ -55,6 +55,8 @@ extern unsigned long * __libc_ia64_register_backing_store_base;
 #include "libguile/gc.h"
 #include "libguile/dynwind.h"
 
+#include <gc/gc.h>
+
 #ifdef GUILE_DEBUG_MALLOC
 #include "libguile/debug-malloc.h"
 #endif
@@ -700,6 +702,10 @@ scm_getenv_int (const char *var, int def)
 void
 scm_storage_prehistory ()
 {
+  GC_INIT ();
+  GC_add_roots ((char *)scm_sys_protects,
+		(char *)(scm_sys_protects + SCM_NUM_PROTECTS));
+
   scm_c_hook_init (&scm_before_gc_c_hook, 0, SCM_C_HOOK_NORMAL);
   scm_c_hook_init (&scm_before_mark_c_hook, 0, SCM_C_HOOK_NORMAL);
   scm_c_hook_init (&scm_before_sweep_c_hook, 0, SCM_C_HOOK_NORMAL);
@@ -907,7 +913,7 @@ scm_mark_locations (SCM_STACKITEM x[], unsigned long n)
 void
 scm_init_gc ()
 {
-  GC_init ();
+  /* `GC_INIT ()' was invoked in `scm_storage_prehistory ()'.  */
 
   scm_after_gc_hook = scm_permanent_object (scm_make_hook (SCM_INUM0));
   scm_c_define ("after-gc-hook", scm_after_gc_hook);
