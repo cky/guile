@@ -115,8 +115,7 @@ make_stringbuf (size_t len)
     }
   else
     {
-      /* FIXME: Create an `scm_gc' equivalent to `GC_MALLOC_ATOMIC ()'.  */
-      char *mem = GC_MALLOC_ATOMIC (len + 1);/* scm_gc_malloc (len+1, "string"); */
+      char *mem = scm_gc_malloc_pointerless (len + 1, "string");
       mem[len] = '\0';
       return scm_double_cell (STRINGBUF_TAG, (scm_t_bits) mem,
 			      (scm_t_bits) len, (scm_t_bits) 0);

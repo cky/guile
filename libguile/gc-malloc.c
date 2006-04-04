@@ -169,21 +169,30 @@ scm_strdup (const char *str)
 void
 scm_gc_register_collectable_memory (void *mem, size_t size, const char *what)
 {
+  /* Nothing to do.  */
 #ifdef GUILE_DEBUG_MALLOC
   if (mem)
     scm_malloc_register (mem);
 #endif
-  fprintf (stderr, "%s: nothing done\n", __FUNCTION__); /* FIXME: What to do? */
 }
 
 
 void
 scm_gc_unregister_collectable_memory (void *mem, size_t size, const char *what)
 {
+  /* Nothing to do.  */
 #ifdef GUILE_DEBUG_MALLOC
   if (mem)
     scm_malloc_unregister (mem);
 #endif
+}
+
+/* Allocate SIZE bytes of memory whose contents should not be scanned for
+   pointers (useful, e.g., for strings).  */
+void *
+scm_gc_malloc_pointerless (size_t size, const char *what)
+{
+  return GC_MALLOC_ATOMIC (size);
 }
 
 void *
