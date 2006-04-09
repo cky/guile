@@ -30,6 +30,11 @@
 
 #include "libguile/validate.h"
 #include "libguile/hashtab.h"
+
+#include <gc/gc.h>
+#include <gc/gc_typed.h>
+
+
 
 
 /* NOTES
@@ -80,14 +85,29 @@ static char *s_hashtable = "hashtable";
 
 SCM weak_hashtables = SCM_EOL;
 
+
 
-/* Weak cells for use in weak alist vectors (aka. weak hash tables).  */
+/* Weak cells for use in weak alist vectors (aka. weak hash tables).
+
+   We have weal-car cells, weak-cdr cells, and doubly weak cells.  In weak
+   cells, the weak component(s) are not scanned for pointers and are
+   registered as disapperaring links; therefore, the weak component may be
+   set to NULL by the garbage collector when no other reference to that word
+   exist.  Thus, we use `scm_fixup_weak_alist ()' to check for nullified weak
+   cells and remove them.  */
+
+
+/* Type descriptors for weak-c[ad]r cells.  */
+static GC_descr wcar_cell_descr, wcdr_cell_descr;
+
 
 static SCM
 scm_weak_car_cell (SCM car, SCM cdr)
 {
-  scm_t_cell *cell = (scm_t_cell *)scm_gc_malloc_pointerless (sizeof (*cell),
-							      "weak cell");
+  scm_t_cell *cell;
+
+  cell = (scm_t_cell *)GC_malloc_explicitly_typed (sizeof (*cell),
+						   wcar_cell_descr);
 
   cell->word_0 = car;
   cell->word_1 = cdr;
@@ -105,8 +125,10 @@ scm_weak_car_cell (SCM car, SCM cdr)
 static SCM
 scm_weak_cdr_cell (SCM car, SCM cdr)
 {
-  scm_t_cell *cell = (scm_t_cell *)scm_gc_malloc_pointerless (sizeof (*cell),
-							      "weak cell");
+  scm_t_cell *cell;
+
+  cell = (scm_t_cell *)GC_malloc_explicitly_typed (sizeof (*cell),
+						   wcdr_cell_descr);
 
   cell->word_0 = car;
   cell->word_1 = cdr;
@@ -124,6 +146,7 @@ scm_weak_cdr_cell (SCM car, SCM cdr)
 static SCM
 scm_doubly_weak_cell (SCM car, SCM cdr)
 {
+  /* Doubly weak cells shall not be scanned at all for pointers.  */
   scm_t_cell *cell = (scm_t_cell *)scm_gc_malloc_pointerless (sizeof (*cell),
 							      "weak cell");
 
@@ -146,7 +169,7 @@ scm_doubly_weak_cell (SCM car, SCM cdr)
 
 /* Testing the weak component(s) of a cell for reachability.  */
 #define SCM_WEAK_CELL_WORD_DELETED_P(_cell, _word)		\
-  (SCM_CELL_WORD ((_cell), (_word)) == SCM_PACK (NULL))
+  (SCM_CELL_OBJECT ((_cell), (_word)) == SCM_PACK (NULL))
 #define SCM_WEAK_CELL_CAR_DELETED_P(_cell)	\
   (SCM_WEAK_CELL_WORD_DELETED_P ((_cell), 0))
 #define SCM_WEAK_CELL_CDR_DELETED_P(_cell)	\
@@ -529,6 +552,7 @@ SCM
 scm_hash_fn_get_handle (SCM table, SCM obj, unsigned long (*hash_fn)(), SCM (*assoc_fn)(), void * closure)
 #define FUNC_NAME "scm_hash_fn_get_handle"
 {
+  int weak = 0;
   unsigned long k;
   SCM alist, h;
 
@@ -547,11 +571,20 @@ scm_hash_fn_get_handle (SCM table, SCM obj, unsigned long (*hash_fn)(), SCM (*as
   /* XXX: We assume that if TABLE is a vector, then it's a weak vector.  */
   if ((SCM_HASHTABLE_P (table) && (SCM_HASHTABLE_WEAK_P (table)))
       || (SCM_I_IS_VECTOR (table)))
-    /* FIXME: We could maybe trigger a rehash here depending on whether
-       `scm_fixup_weak_alist ()' noticed some change.  */
-    alist = scm_fixup_weak_alist (alist);
+    {
+      /* Disable the GC so that ALIST remains valid until ASSOC_FN has
+	 returned.  */
+      /* FIXME: We could maybe trigger a rehash here depending on whether
+	 `scm_fixup_weak_alist ()' noticed some change.  */
+      GC_disable ();
+      weak = 1;
+      alist = scm_fixup_weak_alist (alist);
+    }
 
   h = assoc_fn (obj, alist, closure);
+  if (weak)
+    GC_enable ();
+
   return h;
 }
 #undef FUNC_NAME
@@ -562,6 +595,7 @@ scm_hash_fn_create_handle_x (SCM table, SCM obj, SCM init, unsigned long (*hash_
                              SCM (*assoc_fn)(), void * closure)
 #define FUNC_NAME "scm_hash_fn_create_handle_x"
 {
+  int weak = 0;
   unsigned long k;
   SCM buckets, alist, it;
 
@@ -583,9 +617,16 @@ scm_hash_fn_create_handle_x (SCM table, SCM obj, SCM init, unsigned long (*hash_
   alist = SCM_SIMPLE_VECTOR_REF (buckets, k);
   if ((SCM_HASHTABLE_P (table) && (SCM_HASHTABLE_WEAK_P (table)))
       || (SCM_I_IS_VECTOR (table)))
-    alist = scm_fixup_weak_alist (alist);
+    {
+      GC_disable ();
+      weak = 1;
+      alist = scm_fixup_weak_alist (alist);
+    }
 
   it = assoc_fn (obj, alist, closure);
+  if (weak)
+    GC_enable ();
+
   if (scm_is_true (it))
     return it;
   else
@@ -675,6 +716,7 @@ scm_hash_fn_remove_x (SCM table, SCM obj,
 		      SCM (*assoc_fn)(),
                       void *closure)
 {
+  int weak = 0;
   unsigned long k;
   SCM buckets, alist, h;
 
@@ -696,9 +738,16 @@ scm_hash_fn_remove_x (SCM table, SCM obj,
   alist = SCM_SIMPLE_VECTOR_REF (buckets, k);
   if ((SCM_HASHTABLE_P (table) && (SCM_HASHTABLE_WEAK_P (table)))
       || (SCM_I_IS_VECTOR (table)))
-    alist = scm_fixup_weak_alist (alist);
+    {
+      GC_disable ();
+      weak = 1;
+      alist = scm_fixup_weak_alist (alist);
+    }
 
   h = assoc_fn (obj, alist, closure);
+  if (weak)
+    GC_enable ();
+
   if (scm_is_true (h))
     {
       SCM_SIMPLE_VECTOR_SET 
@@ -1222,6 +1271,24 @@ SCM_DEFINE (scm_hash_map_to_list, "hash-map->list", 2, 0, 0,
 void
 scm_hashtab_prehistory ()
 {
+  /* Initialize weak cells.  */
+  GC_word wcar_cell_bitmap[GC_BITMAP_SIZE (scm_t_cell)] = { 0 };
+  GC_word wcdr_cell_bitmap[GC_BITMAP_SIZE (scm_t_cell)] = { 0 };
+
+  /* In a weak-car cell, only the second word must be scanned for
+     pointers.  */
+  GC_set_bit (wcar_cell_bitmap, GC_WORD_OFFSET (scm_t_cell, word_1));
+  wcar_cell_descr = GC_make_descriptor (wcar_cell_bitmap,
+					GC_WORD_LEN (scm_t_cell));
+
+  /* Conversely, in a weak-cdr cell, only the first word must be scanned for
+     pointers.  */
+  GC_set_bit (wcdr_cell_bitmap, GC_WORD_OFFSET (scm_t_cell, word_0));
+  wcdr_cell_descr = GC_make_descriptor (wcdr_cell_bitmap,
+					GC_WORD_LEN (scm_t_cell));
+
+
+  /* Initialize the hashtab SMOB type.  */
   scm_tc16_hashtable = scm_make_smob_type (s_hashtable, 0);
   scm_set_smob_mark (scm_tc16_hashtable, scm_markcdr);
   scm_set_smob_print (scm_tc16_hashtable, hashtable_print);
