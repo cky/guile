@@ -26,7 +26,7 @@ Guile
 @ifinfo
 This file documents GOOPS, an object oriented extension for Guile.
 
-Copyright (C) 1999, 2000, 2001, 2003 Free Software Foundation
+Copyright (C) 1999, 2000, 2001, 2003, 2006 Free Software Foundation
 
 Permission is granted to make and distribute verbatim copies of
 this manual provided the copyright notice and this permission notice
@@ -61,7 +61,7 @@ are preserved on all copies.
 @c  start the copyright page.
 @page
 @vskip 0pt plus 1filll
-Copyright @copyright{} 1999 Free Software Foundation
+Copyright @copyright{} 1999, 2006 Free Software Foundation
 
 Permission is granted to make and distribute verbatim copies of
 this manual provided the copyright notice and this permission notice
@@ -833,7 +833,8 @@ ensure-generic}.
 @deffnx {slot option} #:init-keyword init-keyword
 These options provide various ways to specify how to initialize the
 slot's value at instance creation time.  @var{init-value} is a fixed
-value.  @var{init-thunk} is a procedure of no arguments that is called
+value (shared across all new instances of the class).
+@var{init-thunk} is a procedure of no arguments that is called
 when a new instance is created and should return the desired initial
 slot value.  @var{init-form} is an unevaluated expression that gets
 evaluated when a new instance is created and should return the desired
