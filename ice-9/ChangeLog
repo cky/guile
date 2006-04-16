@@ -1,3 +1,14 @@
+2006-03-04  Ludovic Courtès  <ludovic.courtes@laas.fr>
+
+	* ice-9/boot-9.scm (make-autoload-interface): Don't call `set-car!' if
+	the autoload interface has already been removed from MODULE's uses.
+	This bug showed up when using a given module both with `autoload' and
+	`use-module'.
+
+2006-02-21  Kevin Ryde  <user42@zip.com.au>
+
+	* format.scm (format:out-dollar): Use format:out-inf-nan per ~f etc.
+
 2006-02-12  Marius Vollmer  <mvo@zagadka.de>
 
 	* deprecated.scm (make-uniform-array): Don't pass the prototype as

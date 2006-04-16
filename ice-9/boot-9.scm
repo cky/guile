@@ -1,6 +1,6 @@
 ;;; installed-scm-file
 
-;;;; Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005
+;;;; Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006
 ;;;; Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
@@ -2136,8 +2136,11 @@
 		  (let ((i (module-public-interface (resolve-module name))))
 		    (if (not i)
 			(error "missing interface for module" name))
-		    ;; Replace autoload-interface with interface
-		    (set-car! (memq a (module-uses module)) i)
+		    (let ((autoload (memq a (module-uses module))))
+		      ;; Replace autoload-interface with actual interface if
+		      ;; that has not happened yet.
+		      (if (pair? autoload)
+			  (set-car! autoload i)))
 		    (module-local-variable i sym))))))
     (module-constructor (make-hash-table 0) '() b #f #f name 'autoload #f #f
 			'() (make-weak-value-hash-table 31) 0)))
