@@ -1247,48 +1247,51 @@ The simplest way to write a module using compiled C code is
 @end example
 
 When loaded with @code{(use-modules (foo bar))}, the
-@code{load-extension} call looks for the @file{foobar-c-code.so}
+@code{load-extension} call looks for the @file{foobar-c-code.so} (etc)
 object file in the standard system locations, such as @file{/usr/lib}
 or @file{/usr/local/lib}.
 
 If someone installs your module to a non-standard location then the
 object file won't be found.  You can address this by inserting the
 install location in the @file{foo/bar.scm} file.  This is convenient
-for the user and also guarantees the intended object file is read,
-even if stray older or newer versions are in the loader's path.
+for the user and also guarantees the intended object is read, even if
+stray older or newer versions are in the loader's path.
 
 The usual way to specify an install location is with a @code{prefix}
 at the configure stage, for instance @samp{./configure prefix=/opt}
-results in library object code like @file{foobar-c-code.so} going
-under @file{/opt/lib/foobar-c-code.so}.  When using Autoconf
-(@pxref{Top, , Introduction, autoconf, The GNU Autoconf Manual}), the
-library location is in a @code{libdir} variable and it can be inserted
-automatically by writing the scheme code as a @file{bar.scm.in},
+results in library files as say @file{/opt/lib/foobar-c-code.so}.
+When using Autoconf (@pxref{Top, , Introduction, autoconf, The GNU
+Autoconf Manual}), the library location is in a @code{libdir}
+variable.  Its value is intended to be expanded by @command{make}, and
+can by substituted into a source file like @file{foo.scm.in}
 
 @example
 (define-module (foo bar))
-(load-extension "@@libdir@@/foobar-c-code" "foo_bar_init")
+(load-extension "XXlibdirXX/foobar-c-code" "foo_bar_init")
 @end example
 
-The Autoconf manual describes how this is processed to make the actual
-@file{bar.scm} which is installed (@pxref{Configuration Files, ,
-Creating Configuration Files, autoconf, The GNU Autoconf Manual}).  A
-substitution can also be done explicitly in a @file{Makefile} with a
-simple @code{sed} (@pxref{Top, , Introduction, sed, SED, A Stream
-Editor}).
+@noindent
+with the following in a @file{Makefile}, using @command{sed}
+(@pxref{Top, , Introduction, sed, SED, A Stream Editor}),
 
-If several modules need this, it can be easier to create one
-@file{foo/config.scm} with a define of the @code{libdir} location, and
-use that as required.
+@example
+foo.scm: foo.scm.in
+        sed 's|XXlibdirXX|$(libdir)|' <foo.scm.in >foo.scm
+@end example
+
+The actual pattern @code{XXlibdirXX} is arbitrary, it's only something
+which doesn't otherwise occur.  If several modules need the value, it
+can be easier to create one @file{foo/config.scm} with a define of the
+@code{libdir} location, and use that as required.
 
 @example
 (define-module (foo config))
-(define-public foo-config-libdir "@@libdir@@"")
+(define-public foo-config-libdir "XXlibdirXX"")
 @end example
 
-Such a file might have other locations too, for instance a configured
-data directory for auxiliary files, or @code{localedir} if the module
-has its own @code{gettext} message catalogue
+Such a file might have other locations too, for instance a data
+directory for auxiliary files, or @code{localedir} if the module has
+its own @code{gettext} message catalogue
 (@pxref{Internationalization}).
 
 When installing multiple C code objects, it can be convenient to put
@@ -1296,12 +1299,12 @@ them in a subdirectory of @code{libdir}, thus giving for example
 @code{/usr/lib/foo/some-obj.so}.  If the objects are only meant to be
 used through the module, then a subdirectory keeps them out of sight.
 
-It will be noted all of the above requires that the Scheme code
-modules can be found in @code{%load-path} (@pxref{Build Config}).
-Presently it's left up to the system administrator or each user to
-augment that path when installing Guile modules in non-default
-locations.  But having reached the Scheme code, that code should take
-care of hitting any of its own private files etc.
+It will be noted all of the above requires that the Scheme code to be
+found in @code{%load-path} (@pxref{Build Config}).  Presently it's
+left up to the system administrator or each user to augment that path
+when installing Guile modules in non-default locations.  But having
+reached the Scheme code, that code should take care of hitting any of
+its own private files etc.
 
 Presently there's no convention for having a Guile version number in
 module C code filenames or directories.  This is primarily because

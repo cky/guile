@@ -474,36 +474,49 @@ If @var{size} is omitted, a default size will be used.
 
 @deffn {Scheme Procedure} fcntl object cmd [value]
 @deffnx {C Function} scm_fcntl (object, cmd, value)
-Apply @var{command} to the specified file descriptor or the underlying
-file descriptor of the specified port.  @var{value} is an optional
-integer argument.
+Apply @var{cmd} on @var{object}, either a port or file descriptor.
+The @var{value} is an integer argument, for the @code{SET} commands.
 
-Values for @var{command} are:
+Values for @var{cmd} are:
 
 @defvar F_DUPFD
-Duplicate a file descriptor
+Duplicate the file descriptor, the same as @code{dup->fdes} above
+does.
 @end defvar
+
 @defvar F_GETFD
-Get flags associated with the file descriptor.
-@end defvar
-@defvar F_SETFD
-Set flags associated with the file descriptor to @var{value}.
-@end defvar
-@defvar F_GETFL
-Get flags associated with the open file.
-@end defvar
-@defvar F_SETFL
-Set flags associated with the open file to @var{value}
-@end defvar
-@defvar F_GETOWN
-Get the process ID of a socket's owner, for @code{SIGIO} signals.
-@end defvar
-@defvar F_SETOWN
-Set the process that owns a socket to @var{value}, for @code{SIGIO} signals.
-@end defvar
+@defvarx F_SETFD
+Get or set flags associated with the file descriptor.  The only flag
+is the following,
+
 @defvar FD_CLOEXEC
-The value used to indicate the ``close on exec'' flag with @code{F_GETFL} or
-@code{F_SETFL}.
+``Close on exec'', meaning the file descriptor will be closed on an
+@code{exec} call (a successful such call).  For example to set that
+flag,
+
+@example
+(fcntl port F_SETFD FD_CLOEXEC)
+@end example
+@end defvar
+@end defvar
+
+@defvar F_GETFL
+@defvarx F_SETFL
+Get or set flags associated with the open file.  These flags are
+@code{O_RDONLY} etc described under @code{open} above.
+
+A common use is to set @code{O_NONBLOCK} on a network socket.  The
+following sets that flag, and leaves other flags unchanged.
+
+@example
+(fcntl sock F_SETFL
+       (logior (fcntl sock F_GETFL) O_NONBLOCK))
+@end example
+@end defvar
+
+@defvar F_GETOWN
+@defvarx F_SETOWN
+Get or set the process ID of a socket's owner, for @code{SIGIO} signals.
 @end defvar
 @end deffn
 
@@ -2789,8 +2802,9 @@ The return value is unspecified.
 @deffnx {C Function} scm_accept (sock)
 Accept a connection from socket port @var{sock} which has been enabled
 for listening with @code{listen} above.  If there are no incoming
-connections in the queue, wait until one is available (unless the
-non-blocking option has been set on the socket).
+connections in the queue, wait until one is available (unless
+@code{O_NONBLOCK} has been set on the socket, @pxref{Ports and File
+Descriptors,@code{fcntl}}).
 
 The return value is a pair.  The @code{car} is a new socket port,
 connected and ready to communicate.  The @code{cdr} is a socket

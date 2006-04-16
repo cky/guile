@@ -1,7 +1,40 @@
+2006-04-15  Kevin Ryde  <user42@zip.com.au>
+
+	* api-scheduling.texi (System asyncs): "{void *}" in @deffnx to keep
+	the "*" out of the name in the index.
+
+2006-04-06  Kevin Ryde  <user42@zip.com.au>
+
+	* posix.texi (Ports and File Descriptors): Clarify fcntl a bit,
+	and correction FD_CLOEXEC goes with FD_SETFD not FD_SETFL.
+	(Network Sockets and Communication): In accept, cross-reference to
+	fcntl on O_NONBLOCK.
+
+2006-03-28  Kevin Ryde  <user42@zip.com.au>
+
+	* api-compound.texi (Vector Accessing from C): Show
+	SCM_SIMPLE_VECTOR_SET not SCM_SIMPLE_VECTOR_SET_X, the former is
+	what's in vector.h.
+
+2006-03-21  Ludovic Courtès  <ludovic.courtes@laas.fr>
+
+	* api-data.texi (Conversion): Add scm_c_locale_stringn_to_number.
+
+2006-03-05  Kevin Ryde  <user42@zip.com.au>
+
+	* api-compound.texi (Array Procedures): @pxref for `equal?'.
+	(Shared Arrays): Correction to make-shared-array stride example, need
+	`list' on the mapper return value.
+
 2006-02-13  Marius Vollmer  <mvo@zagadka.de>
 
 	* api-utility.texi (Object Properties): Removed confusing
 	paragraph about 'name' property.
+
+2006-02-07  Kevin Ryde  <user42@zip.com.au>
+
+	* api-modules.texi (Compiled Code Installation): Revise, in particular
+	@libdir@ needs to go via the makefile.
 
 2006-02-04  Neil Jerram  <neil@ossau.uklinux.net>
 

@@ -24,7 +24,7 @@
 @c essay @ifinfo
 @c essay Data Representation in Guile
 
-@c essay Copyright (C) 1998, 1999, 2000, 2003 Free Software Foundation
+@c essay Copyright (C) 1998, 1999, 2000, 2003, 2006 Free Software Foundation
 
 @c essay Permission is granted to make and distribute verbatim copies of
 @c essay this manual provided the copyright notice and this permission notice
@@ -52,7 +52,7 @@
 @c essay @sp 10
 @c essay @comment The title is printed in a large font.
 @c essay @title Data Representation in Guile
-@c essay @subtitle $Id: data-rep.texi,v 1.19 2005-04-22 23:16:43 kryde Exp $
+@c essay @subtitle $Id: data-rep.texi,v 1.20 2006-04-16 23:11:15 kryde Exp $
 @c essay @subtitle For use with Guile @value{VERSION}
 @c essay @author Jim Blandy
 @c essay @author Free Software Foundation
@@ -61,7 +61,7 @@
 @c essay @page
 @c essay @vskip 0pt plus 1filll
 @c essay @vskip 0pt plus 1filll
-@c essay Copyright @copyright{} 1998 Free Software Foundation
+@c essay Copyright @copyright{} 1998, 2006 Free Software Foundation
 
 @c essay Permission is granted to make and distribute verbatim copies of
 @c essay this manual provided the copyright notice and this permission notice

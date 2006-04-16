@@ -34,7 +34,7 @@
 
 @page
 @vskip 0pt plus 1filll
-Copyright @copyright{} 1997, 1998, 2004 Free Software Foundation
+Copyright @copyright{} 1997, 1998, 2004, 2006 Free Software Foundation
 
 Permission is granted to make and distribute verbatim copies of
 this manual provided the copyright notice and this permission notice
@@ -60,7 +60,7 @@ by the author.
 @ifinfo
 This file gives a tutorial introduction to Guile.
 
-Copyright (C) 1997, 2004 Free Software Foundation
+Copyright (C) 1997, 2004, 2006 Free Software Foundation
 
 Permission is granted to make and distribute verbatim copies of
 this manual provided the copyright notice and this permission notice

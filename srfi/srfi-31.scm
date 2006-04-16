@@ -1,6 +1,6 @@
 ;;; srfi-31.scm --- special form for recursive evaluation
 
-;; 	Copyright (C) 2004 Free Software Foundation, Inc.
+;; 	Copyright (C) 2004, 2006 Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public

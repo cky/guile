@@ -1,6 +1,6 @@
 ;;;; readline.scm --- support functions for command-line editing
 ;;;;
-;;;; 	Copyright (C) 1997, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1997, 1999, 2000, 2001, 2002, 2006 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -35,7 +35,7 @@
 ;;; but only when it isn't already present.
 
 (if (not (provided? 'readline))
-    (load-extension "libguilereadline-v-16" "scm_init_readline"))
+    (load-extension "libguilereadline-v-17" "scm_init_readline"))
 
 (if (not (provided? 'readline))
     (scm-error 'misc-error
@@ -216,3 +216,27 @@
 		      (set-readline-prompt! "" "")
 		      (set-readline-read-hook! #f)))))
 	(set! (using-readline?) #t))))
+
+(define-public (make-completion-function strings)
+  "Construct and return a completion function for a list of strings.
+The returned function is suitable for passing to
+@code{with-readline-completion-function.  The argument @var{strings}
+should be a list of strings, where each string is one of the possible
+completions."
+  (letrec ((strs '())
+	   (regexp #f)
+	   (completer (lambda (text continue?)
+			(if continue?
+			    (if (null? strs)
+				#f
+				(let ((str (car strs)))
+				  (set! strs (cdr strs))
+				  (if (string-match regexp str)
+				      str
+				      (completer text #t))))
+			    (begin
+			      (set! strs strings)
+			      (set! regexp
+				    (string-append "^" (regexp-quote text)))
+			      (completer text #t))))))
+    completer))

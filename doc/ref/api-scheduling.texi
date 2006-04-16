@@ -140,7 +140,7 @@ signal handlers.
 
 @deffn {Scheme Procedure} call-with-blocked-asyncs proc
 @deffnx {C Function} scm_call_with_blocked_asyncs (proc)
-@deffnx {C Function} void *scm_c_call_with_blocked_asyncs (void * (*proc) (void *data), void *data)
+@deffnx {C Function} {void *} scm_c_call_with_blocked_asyncs (void * (*proc) (void *data), void *data)
 @findex scm_c_call_with_blocked_asyncs
 Call @var{proc} and block the execution of system asyncs by one level
 for the current thread while it is running.  Return the value returned
@@ -150,7 +150,7 @@ arguments; for the third, call it with @var{data}.
 
 @deffn {Scheme Procedure} call-with-unblocked-asyncs proc
 @deffnx {C Function} scm_call_with_unblocked_asyncs (proc)
-@deffnx {C Function} void *scm_c_call_with_unblocked_asyncs (void *(*p) (void *d), void *d)
+@deffnx {C Function} {void *} scm_c_call_with_unblocked_asyncs (void *(*p) (void *d), void *d)
 @findex scm_c_call_with_unblocked_asyncs
 Call @var{proc} and unblock the execution of system asyncs by one
 level for the current thread while it is running.  Return the value

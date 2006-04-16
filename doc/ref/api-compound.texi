@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2006
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -885,7 +885,7 @@ Evaluates to the element at position @var{idx} in the simple vector
 @var{vec}.  No type or range checking is done.
 @end deftypefn
 
-@deftypefn {C Macro} void SCM_SIMPLE_VECTOR_SET_X (SCM vec, size_t idx, SCM val)
+@deftypefn {C Macro} void SCM_SIMPLE_VECTOR_SET (SCM vec, size_t idx, SCM val)
 Sets the element at position @var{idx} in the simple vector
 @var{vec} to @var{val}.  No type or range checking is done.
 @end deftypefn
@@ -2038,8 +2038,9 @@ is unspecified.
 Return @code{#t} if all arguments are arrays with the same shape, the
 same type, and have corresponding elements which are either
 @code{equal?} or @code{array-equal?}.  This function differs from
-@code{equal?} in that a one dimensional shared array may be
-@var{array-equal?} but not @var{equal?} to a vector or uniform vector.
+@code{equal?} (@pxref{Equality}) in that a one dimensional shared
+array may be @code{array-equal?} but not @code{equal?} to a vector or
+uniform vector.
 @end deffn
 
 @c  FIXME: array-map! accepts no source arrays at all, and in that
@@ -2237,7 +2238,7 @@ taken.  The following is every third element,
 
 @example
 (make-shared-array #1(a b c d e f g h i j k l)
-                   (lambda (i) (* i 3))
+                   (lambda (i) (list (* i 3)))
                    4)
 @result{} #1(a d g j)
 @end example

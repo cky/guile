@@ -1031,6 +1031,13 @@ syntactically valid notation for a number, then
 @code{string->number} returns @code{#f}.
 @end deffn
 
+@deftypefn {C Function} SCM scm_c_locale_stringn_to_number (const char *string, size_t len, unsigned radix)
+As per @code{string->number} above, but taking a C string, as pointer
+and length.  The string characters should be in the current locale
+encoding (@code{locale} in the name refers only to that, there's no
+locale-dependent parsing).
+@end deftypefn
+
 
 @node Complex
 @subsubsection Complex Number Operations

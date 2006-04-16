@@ -1,6 +1,14 @@
+2006-03-12  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* ice-9/readline.scm (make-completion-function): New.
+
 2006-02-06  Marius Vollmer  <mvo@zagadka.de>
 
 	* LIBGUILEREADLINE-VERSION: Bumped versions for 1.9 series.
+
+2006-02-06  Marius Vollmer  <mvo@zagadka.de>
+
+	* LIBGUILEREADLINE-VERSION: Bumped versions for 1.8. 
 
 2005-03-02  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
