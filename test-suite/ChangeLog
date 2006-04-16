@@ -1,3 +1,45 @@
+2006-04-16  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/filesys.test (lstat, stat): New tests.
+	* tests/ports.test (truncate-file): New tests.
+
+2006-03-28  Kevin Ryde  <user42@zip.com.au>
+
+	* Makefile.am (SCM_TESTS): Remove slib.test, it fails with current
+	slib and the ice-9 slib module is due for revision soon.
+
+2006-03-19  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/unif.test (make-shared-array): Another test which failed in
+	1.8.0 but is ok now.
+
+2006-03-05  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/unif.test (make-shared-array): Add example usages from the
+	manual, two of which currently fail.
+
+2006-03-04  Ludovic Courtès  <ludovic.courtes@laas.fr>
+
+	* test-suite/tests/modules.test: New file.
+	* test-suite/Makefile.am (SCM_TESTS): Added it.
+
+2006-02-26  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/filesys.test (opendir etc): Exercise a little.
+
+	* tests/strings.test (string<?, string-ci<?, string<=?, string-ci<=?,
+	string>?, string-ci>?, string>=?, string-ci>=?): Check ordering is the
+	same as char<? etc.  Use a define-module to keep private test bits
+	private.
+	* tests/srfi-13.test (string-compare, string-compare-ci): Ditto.
+
+	* tests/unif.test (array-set!): Exercise bitvector case, which had
+	been seg faulting.
+
+2006-02-07  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/poe.test (pure-funcq): New tests.
+
 2006-02-04  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* tests/exceptions.test: 19 new test cases.

@@ -1,6 +1,6 @@
 ;;;; unif.test --- tests guile's uniform arrays     -*- scheme -*-
 ;;;;
-;;;; Copyright 2004 Free Software Foundation, Inc.
+;;;; Copyright 2004, 2006 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -325,6 +325,20 @@
 
 (with-test-prefix "array-set!"
 
+  (with-test-prefix "bitvector"
+
+    ;; in Guile 1.8.0 a bug in bitvector_set() caused a segv in array-set!
+    ;; on a bitvector like the following
+    (let ((a (make-bitvector 1)))
+      (pass-if "one elem set #t"
+	(begin
+	  (array-set! a #t 0)
+	  (eq? #t (array-ref a 0))))
+      (pass-if "one elem set #f"
+	(begin
+	  (array-set! a #f 0)
+	  (eq? #f (array-ref a 0))))))
+
   (with-test-prefix "byte"
 
     (let ((a (make-s8vector 1)))
@@ -406,7 +420,68 @@
 ;;; make-shared-array
 ;;;
 
+(define exception:mapping-out-of-range
+  (cons 'misc-error "^mapping out of range"))  ;; per scm_make_shared_array
+
 (with-test-prefix "make-shared-array"
+
+  ;; this failed in guile 1.8.0
+  (pass-if "vector unchanged"
+    (let* ((a (make-array #f '(0 7)))
+	   (s (make-shared-array a list '(0 7))))
+      (array-equal? a s)))
+
+  (pass-if-exception "vector, high too big" exception:mapping-out-of-range
+    (let* ((a (make-array #f '(0 7))))
+      (make-shared-array a list '(0 8))))
+
+  (pass-if-exception "vector, low too big" exception:out-of-range
+    (let* ((a (make-array #f '(0 7))))
+      (make-shared-array a list '(-1 7))))
+
+  (pass-if "truncate columns"
+    (array-equal? (make-shared-array #2((a b c) (d e f) (g h i)) list 3 2)
+		  #2((a b) (d e) (g h))))
+
+  (pass-if "pick one column"
+    (array-equal? (make-shared-array #2((a b c) (d e f) (g h i))
+				     (lambda (i) (list i 2))
+				     '(0 2))
+		  #(c f i)))
+
+  (pass-if "diagonal"
+    (array-equal? (make-shared-array #2((a b c) (d e f) (g h i))
+				     (lambda (i) (list i i))
+				     '(0 2))
+		  #(a e i)))
+
+  ;; this failed in guile 1.8.0
+  (pass-if "2 dims from 1 dim"
+    (array-equal? (make-shared-array #1(a b c d e f g h i j k l)
+				     (lambda (i j) (list (+ (* i 3) j)))
+				     4 3)
+		  #2((a b c) (d e f) (g h i) (j k l))))
+
+  (pass-if "reverse columns"
+    (array-equal? (make-shared-array #2((a b c) (d e f) (g h i))
+				     (lambda (i j) (list i (- 2 j)))
+				     3 3)
+		  #2((c b a) (f e d) (i h g))))
+
+  (pass-if "fixed offset, 0 based becomes 1 based"
+    (let* ((x #2((a b c) (d e f) (g h i)))
+	   (y (make-shared-array x
+				 (lambda (i j) (list (1- i) (1- j)))
+				 '(1 3) '(1 3))))
+      (and (eq? (array-ref x 0 0) 'a)
+	   (eq? (array-ref y 1 1) 'a))))
+
+  ;; this failed in guile 1.8.0
+  (pass-if "stride every third element"
+    (array-equal? (make-shared-array #1(a b c d e f g h i j k l)
+				     (lambda (i) (list (* i 3)))
+				     4)
+		  #1(a d g j)))
 
   (pass-if "shared of shared"
     (let* ((a  #2((1 2 3) (4 5 6) (7 8 9)))

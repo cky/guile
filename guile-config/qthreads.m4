@@ -1,7 +1,7 @@
 dnl   Autoconf macros for configuring the QuickThreads package
 dnl   Jim Blandy <jimb@red-bean.com> --- July 1998
 dnl
-dnl  	Copyright (C) 1998, 1999 Free Software Foundation, Inc.
+dnl  	Copyright (C) 1998, 1999, 2006 Free Software Foundation, Inc.
 dnl
 dnl   This file is part of GUILE.
 dnl

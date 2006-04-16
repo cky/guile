@@ -1,7 +1,7 @@
 ;;;; c-api.test --- complementary test suite for the c-api     -*- scheme -*-
 ;;;; MDJ 990915 <djurfeldt@nada.kth.se>
 ;;;;
-;;;; 	Copyright (C) 1999 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1999, 2006 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by

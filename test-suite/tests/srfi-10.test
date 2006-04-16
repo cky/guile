@@ -1,7 +1,7 @@
 ;;;; srfi-10.test --- Test suite for Guile's SRFI-10 functions. -*- scheme -*-
 ;;;; Martin Grabmueller, 2001-05-10
 ;;;;
-;;;; Copyright (C) 2001 Free Software Foundation, Inc.
+;;;; Copyright (C) 2001, 2006 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by

@@ -1,6 +1,6 @@
 ;;;; poe.test --- exercise ice-9/poe.scm      -*- scheme -*-
 ;;;;
-;;;; Copyright 2003 Free Software Foundation, Inc.
+;;;; Copyright 2003, 2006 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -25,6 +25,64 @@
 ;; pure-funcq
 ;;
 
+(with-test-prefix "pure-funcq"
+
+  (with-test-prefix "no args"
+    (define obj (vector 123))  ;; not gc'ed
+    (define called #f)
+    (define (foo)
+      (set! called #t)
+      obj)
+
+    (let ((func (pure-funcq foo)))
+
+      (pass-if "called first"
+	(set! called #f)
+	(and (eq? obj (func))
+	     called))
+
+      (pass-if "not called second"
+	(set! called #f)
+	(and (eq? obj (func))
+	     (not called)))))
+
+  (with-test-prefix "1 arg"
+    (define obj1 (vector 123))  ;; not gc'ed
+    (define obj2 (vector 456))  ;; not gc'ed
+    (define called #f)
+    (define (foo sym)
+      (set! called #t)
+      (case sym
+	((x) obj1)
+	((y) obj2)
+	(else (error "oops"))))
+
+    (let ((func (pure-funcq foo)))
+
+      (pass-if "called first x"
+	(set! called #f)
+	(and (eq? obj1 (func 'x))
+	     called))
+
+      (pass-if "not called second x"
+	(set! called #f)
+	(and (eq? obj1 (func 'x))
+	     (not called)))
+
+      (pass-if "called first y"
+	(set! called #f)
+	(and (eq? obj2 (func 'y))
+	     called))
+
+      (pass-if "not called second y"
+	(set! called #f)
+	(and (eq? obj2 (func 'y))
+	     (not called)))
+
+      (pass-if "not called third x"
+	(set! called #f)
+	(and (eq? obj1 (func 'x))
+	     (not called))))))
 
 ;;
 ;; perfect-funcq

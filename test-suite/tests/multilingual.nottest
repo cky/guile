@@ -2,7 +2,7 @@
 ;;;; Jim Blandy <jimb@red-bean.com> --- September 1999
 ;;;; This isn't a test yet, because we don't have multilingual support yet.
 ;;;;
-;;;; 	Copyright (C) 1999 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1999, 2006 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by

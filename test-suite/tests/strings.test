@@ -1,7 +1,7 @@
 ;;;; strings.test --- test suite for Guile's string functions    -*- scheme -*-
 ;;;; Jim Blandy <jimb@red-bean.com> --- August 1999
 ;;;;
-;;;; Copyright (C) 1999, 2001, 2004, 2005 Free Software Foundation, Inc.
+;;;; Copyright (C) 1999, 2001, 2004, 2005, 2006 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -18,10 +18,21 @@
 ;;;; the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;;;; Boston, MA 02110-1301 USA
 
-(use-modules (test-suite lib))
+(define-module (test-strings)
+  #:use-module (test-suite lib))
+
 
 (define exception:read-only-string
   (cons 'misc-error "^string is read-only"))
+
+;; Create a string from integer char values, eg. (string-ints 65) => "A"
+(define (string-ints . args)
+  (apply string (map integer->char args)))
+
+
+;;
+;; string=?
+;;
 
 (with-test-prefix "string=?"
 
@@ -41,6 +52,10 @@
       exception:wrong-type-arg
       (string=? "a" 'b))))
 
+;;
+;; string<?
+;;
+
 (with-test-prefix "string<?"
 
   (pass-if "respects string length"
@@ -55,7 +70,15 @@
 
     (pass-if-exception "2nd argument symbol"
       exception:wrong-type-arg
-      (string<? "a" 'b))))
+      (string<? "a" 'b)))
+
+  (pass-if "same as char<?"
+    (eq? (char<? (integer->char 0) (integer->char 255))
+	 (string<? (string-ints 0) (string-ints 255)))))
+
+;;
+;; string-ci<?
+;;
 
 (with-test-prefix "string-ci<?"
 
@@ -71,7 +94,75 @@
 
     (pass-if-exception "2nd argument symbol"
       exception:wrong-type-arg
-      (string-ci<? "a" 'b))))
+      (string-ci<? "a" 'b)))
+
+  (pass-if "same as char-ci<?"
+    (eq? (char-ci<? (integer->char 0) (integer->char 255))
+	 (string-ci<? (string-ints 0) (string-ints 255)))))
+
+;;
+;; string<=?
+;;
+
+(with-test-prefix "string<=?"
+
+  (pass-if "same as char<=?"
+    (eq? (char<=? (integer->char 0) (integer->char 255))
+	 (string<=? (string-ints 0) (string-ints 255)))))
+
+;;
+;; string-ci<=?
+;;
+
+(with-test-prefix "string-ci<=?"
+
+  (pass-if "same as char-ci<=?"
+    (eq? (char-ci<=? (integer->char 0) (integer->char 255))
+	 (string-ci<=? (string-ints 0) (string-ints 255)))))
+
+;;
+;; string>?
+;;
+
+(with-test-prefix "string>?"
+
+  (pass-if "same as char>?"
+    (eq? (char>? (integer->char 0) (integer->char 255))
+	 (string>? (string-ints 0) (string-ints 255)))))
+
+;;
+;; string-ci>?
+;;
+
+(with-test-prefix "string-ci>?"
+
+  (pass-if "same as char-ci>?"
+    (eq? (char-ci>? (integer->char 0) (integer->char 255))
+	 (string-ci>? (string-ints 0) (string-ints 255)))))
+
+;;
+;; string>=?
+;;
+
+(with-test-prefix "string>=?"
+
+  (pass-if "same as char>=?"
+    (eq? (char>=? (integer->char 0) (integer->char 255))
+	 (string>=? (string-ints 0) (string-ints 255)))))
+
+;;
+;; string-ci>=?
+;;
+
+(with-test-prefix "string-ci>=?"
+
+  (pass-if "same as char-ci>=?"
+    (eq? (char-ci>=? (integer->char 0) (integer->char 255))
+	 (string-ci>=? (string-ints 0) (string-ints 255)))))
+
+;;
+;; string-set!
+;;
 
 (with-test-prefix "string-set!"
 

@@ -1,7 +1,7 @@
 ;;;; ports.test --- test suite for Guile I/O ports     -*- scheme -*-
 ;;;; Jim Blandy <jimb@red-bean.com> --- May 1999
 ;;;;
-;;;; 	Copyright (C) 1999, 2001, 2004 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1999, 2001, 2004, 2006 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -537,6 +537,42 @@
       (let ((port (open-input-string "x\t")))
 	(while (not (eof-object? (read-char port))))
 	(= 8 (port-column port))))))
+
+;;;
+;;; truncate-file
+;;;
+
+(with-test-prefix "truncate-file"
+
+  (with-test-prefix "filename"
+
+    (pass-if "shorten"
+      (call-with-output-file (test-file)
+	(lambda (port)
+	  (display "hello" port)))
+      (truncate-file (test-file) 1)
+      (eqv? 1 (stat:size (stat (test-file))))))
+
+  (with-test-prefix "file descriptor"
+
+    (pass-if "shorten"
+      (call-with-output-file (test-file)
+	(lambda (port)
+	  (display "hello" port)))
+      (let ((fd (open-fdes (test-file) O_RDWR)))
+	(truncate-file fd 1)
+	(close-fdes fd))
+      (eqv? 1 (stat:size (stat (test-file))))))
+
+  (with-test-prefix "file port"
+
+    (pass-if "shorten"
+      (call-with-output-file (test-file)
+	(lambda (port)
+	  (display "hello" port)))
+      (let ((port (open-file (test-file) "r+")))
+	(truncate-file port 1))
+      (eqv? 1 (stat:size (stat (test-file)))))))
 
 
 ;;;; testing read-delimited and friends

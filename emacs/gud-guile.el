@@ -1,6 +1,6 @@
 ;;; gud-guile.el --- Support for debugging guile internals
 
-;; Copyright (C) 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2006 Free Software Foundation, Inc.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by

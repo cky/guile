@@ -2,7 +2,7 @@
 
 ;;
 ;; QuickThreads -- Threads-building toolkit.
-;; Copyright (c) 2001 Free Software Foundation, Inc.
+;; Copyright (c) 2001, 2006 Free Software Foundation, Inc.
 ;;
 ;; Permission to use, copy, modify and distribute this software and
 ;; its documentation for any purpose and without fee is hereby

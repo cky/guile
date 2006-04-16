@@ -1,7 +1,7 @@
 ;;;; srfi-13.test --- Test suite for Guile's SRFI-13 functions. -*- scheme -*-
 ;;;; Martin Grabmueller, 2001-05-07
 ;;;;
-;;;; Copyright (C) 2001, 2004, 2005 Free Software Foundation, Inc.
+;;;; Copyright (C) 2001, 2004, 2005, 2006 Free Software Foundation, Inc.
 ;;;;
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -18,10 +18,19 @@
 ;;;; the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;;;; Boston, MA 02110-1301 USA
 
-(use-modules (srfi srfi-13) (srfi srfi-14) (test-suite lib))
+(define-module (test-strings)
+  #:use-module (test-suite lib)
+  #:use-module (srfi srfi-13)
+  #:use-module (srfi srfi-14))
+
 
 (define exception:strict-infix-grammar
   (cons 'misc-error "^strict-infix"))
+
+;; Create a string from integer char values, eg. (string-ints 65) => "A"
+(define (string-ints . args)
+  (apply string (map integer->char args)))
+
 
 ;;;
 ;;; string-any
@@ -184,6 +193,32 @@
     (string-concatenate '("a" . "b")))
 
   (pass-if (equal? "abc" (string-concatenate '("a" "b" "c")))))
+
+;;
+;; string-compare
+;;
+
+(with-test-prefix "string-compare"
+
+  (pass-if "same as char<?"
+    (eq? (char<? (integer->char 0) (integer->char 255))
+	 (string-compare (string-ints 0) (string-ints 255)
+			 (lambda (pos) #t)     ;; lt
+			 (lambda (pos) #f)     ;; eq
+			 (lambda (pos) #f))))) ;; gt
+
+;;
+;; string-compare-ci
+;;
+
+(with-test-prefix "string-compare-ci"
+
+  (pass-if "same as char-ci<?"
+    (eq? (char-ci<? (integer->char 0) (integer->char 255))
+	 (string-compare-ci (string-ints 0) (string-ints 255)
+			 (lambda (pos) #t)     ;; lt
+			 (lambda (pos) #f)     ;; eq
+			 (lambda (pos) #f))))) ;; gt
 
 ;;;
 ;;; string-concatenate/shared
