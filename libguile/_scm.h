@@ -160,13 +160,10 @@
 #if SIZEOF_OFF_T == 4
 #define scm_to_off_t    scm_to_int32
 #define scm_from_off_t  scm_from_int32
-#else
+#endif
 #if SIZEOF_OFF_T == 8
 #define scm_to_off_t    scm_to_int64
 #define scm_from_off_t  scm_from_int64
-#else
-#error sizeof(off_t) is not 4 or 8.
-#endif
 #endif
 
 
