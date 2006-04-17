@@ -28,8 +28,6 @@
 
 	* GUILE-VERSION: Bumped versions for 1.9 series.
 
-	* configure.in: Removed --enable-arrays option.
-
 2006-02-06  Marius Vollmer  <mvo@zagadka.de>
 
 	Branched for 1.8 series.
