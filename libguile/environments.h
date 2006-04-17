@@ -3,7 +3,7 @@
 #ifndef SCM_ENVIRONMENTS_H
 #define SCM_ENVIRONMENTS_H
 
-/* Copyright (C) 1999,2000 Free Software Foundation, Inc.
+/* Copyright (C) 1999,2000, 2006 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public

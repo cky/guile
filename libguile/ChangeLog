@@ -1,3 +1,79 @@
+2006-04-16  Kevin Ryde  <user42@zip.com.au>
+
+	* filesys.c (scm_stat2scm, scm_stat, scm_lstat): Use stat or stat64.
+	(scm_readdir): Use readdir64.
+	(scm_copy_file): Use open64 and fstat64, to cope with >2Gb files.
+	* ports.c (scm_truncate_file): Use truncate64.  Correction truncate
+	and ftruncate take off_t not size_t.
+	* _scm.h (stat_or_stat64 etc): Macros for selecting LFS64 when
+	available.
+
+2006-04-06  Kevin Ryde  <user42@zip.com.au>
+
+	* fports.c (scm_setvbuf): Fix for not _IOLBF, clear SCM_BUFLINE
+	instead of toggling it.  Reported by Ludovic Courtès.
+	
+2006-03-26  Marius Vollmer  <mvo@zagadka.de>
+
+	* threads.c (get_thread_stack_base): Use scm_get_stack_base
+	instead of accessing __libc_stack_end directly, and only do this
+	when pthread_attr_getstack is known not to work for the main
+	thread or when not using pthreads at all.
+
+	* gc_os_dep.c (scm_get_stack_base): Abort when the machine type is
+	unknown instead of returning NULL.
+
+2006-03-21  Ludovic Courtès  <ludovic.courtes@laas.fr>
+
+        * numbers.c (scm_i_mem2number): Renamed to
+	scm_c_locale_stringn_to_number.
+	* numbers.c, print.c, read.c: Updated callers.
+        * numbers.h: Update function declaration.
+
+2006-03-11  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* unif.c (string_set): Don't return in a void function.  (Reported
+	by Mike Gran.)
+
+	* srfi-4.c (scm_uniform_vector_read_x): Declare base as char*
+	rather than void*, so we can do pointer arithmetic on it.
+	(Reported by Mike Gran.)
+	(s_scm_uniform_vector_write): Ditto.
+
+2006-03-10  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* unif.c (scm_make_shared_array): Don't use SCM_I_ARRAY_BASE when
+	oldra is not an array.  (Reported by Steve Juranich.)
+
+	* threads.c (do_unlock): Renamed from "unlock", which is defined
+	in unistd.h on QNX.  (Reported by Matt Kraai.)
+
+2006-03-04  Kevin Ryde  <user42@zip.com.au>
+
+	* deprecated.c (scm_i_defer_ints_etc): Show SCM_DEFER_INTS in message,
+	not SCM_CRITICAL_SECTION_START.
+
+	* eval.c, posix.c: Change comments from C++ to C style.  Reported by
+	Mike Gran.
+
+2006-02-28  Kevin Ryde  <user42@zip.com.au>
+
+	* unif.c (bitvector_set): Use h->writable_elements not h->elements.
+
+2006-02-26  Kevin Ryde  <user42@zip.com.au>
+
+	* filesys.c (scm_readdir): Use fpathconf for the dirent size when
+	NAME_MAX is not available, which is so on Solaris 10.  Report and help
+	by Bill Schottstaedt.
+
+	* srfi-13.c (MY_VALIDATE_SUBSTRING_SPEC_UCOPY): New macro.
+	(scm_string_compare, scm_string_compare_ci, scm_string_lt,
+	scm_string_gt, scm_string_le, scm_string_ge, scm_string_ci_lt,
+	scm_string_ci_gt, scm_string_ci_le, scm_string_ci_ge): In comparisons
+	use "unsigned char", not signed char.  This ensures comparisons are
+	the same as `char<?' etc, and is also the same as guile 1.6 did.
+	Reported by Sven Hartrumpf.
+
 2006-02-19  Mikael Djurfeldt  <mdj@neurologic.cc>
 
 	* random.c: Test for SCM_HAVE_T_UINT64 instead of
@@ -38,6 +114,23 @@
         (scm_t_sweep_statistics): New type.
         (scm_i_sweep_statistics_init): New macro.
         (scm_i_sweep_statistics_sum): New macro
+
+2006-02-14  Ludovic Courtès  <ludovic.courtes@laas.fr>
+
+        * strings.c (scm_i_take_stringbufn): Register LEN+1 bytes instead of
+	LEN.  Without this, too much collectable memory gets unregistered,
+	which results in an underflow of SCM_MALLOCATED in
+	`decrease_mtrigger()'.
+
+        * gc-malloc.c (decrease_mtrigger): Make sure SIZE is lower than or
+	equal to SCM_MALLOCATED.
+
+2006-02-13  Marius Vollmer  <mvo@zagadka.de>
+
+	* eval.c (scm_eval_body): Use scm_i_dynwind_pthread_mutex_lock
+	oinstead of scm_dynwind_pthread_mutex_lock so that it works when
+	configured --without-threads.
+	(SCM_APPLY, CEVAL): Likewise.  Thanks to Han-Wen Nienhuys!
 
 2006-02-12  Marius Vollmer  <mvo@zagadka.de>
 
@@ -105,6 +198,10 @@
 	(s_scm_with_continuation_barrier): Call
 	scm_i_with_continuation_barrier with scm_handle_by_message_noexit
 	as the pre-unwind handler.
+
+2006-02-04  Kevin Ryde  <user42@zip.com.au>
+
+	* gc-mark.c (scm_mark_all): Fix c99-isms "loops" and "again" variables.
 
 2006-02-03  Kevin Ryde  <user42@zip.com.au>
 

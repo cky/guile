@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+/*	Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2006 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -16,7 +16,7 @@
  */
 
 
-/* $Id: coop.c,v 1.38 2005-05-23 19:57:20 mvo Exp $ */
+/* $Id: coop.c,v 1.39 2006-04-17 00:05:38 kryde Exp $ */
 
 /* Cooperative thread library, based on QuickThreads */
 

@@ -1,6 +1,6 @@
 /* srfi-13.c --- SRFI-13 procedures for Guile
  *
- * Copyright (C) 2001, 2004, 2005 Free Software Foundation, Inc.
+ * Copyright (C) 2001, 2004, 2005, 2006 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -40,6 +40,18 @@
     c_str = scm_i_string_chars (str);                               \
     scm_i_get_substring_spec (scm_i_string_length (str),            \
 			      start, &c_start, end, &c_end);        \
+  } while (0)
+
+/* Expecting "unsigned char *c_str" */
+#define MY_VALIDATE_SUBSTRING_SPEC_UCOPY(pos_str, str, c_str,           \
+                                         pos_start, start, c_start,     \
+                                         pos_end, end, c_end)           \
+  do {                                                                  \
+    const char *signed_c_str;                                           \
+    MY_VALIDATE_SUBSTRING_SPEC_COPY(pos_str, str, signed_c_str,         \
+                                    pos_start, start, c_start,          \
+                                    pos_end, end, c_end);               \
+    c_str = (unsigned char *) signed_c_str;                             \
   } while (0)
 
 #define MY_VALIDATE_SUBSTRING_SPEC(pos_str, str,              \
@@ -994,16 +1006,16 @@ SCM_DEFINE (scm_string_compare, "string-compare", 5, 4, 0,
 	    "@var{i} is the first position that does not match.")
 #define FUNC_NAME s_scm_string_compare
 {
-  const char *cstr1, *cstr2;
+  const unsigned char *cstr1, *cstr2;
   size_t cstart1, cend1, cstart2, cend2;
   SCM proc;
 
-  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
-				   6, start1, cstart1,
-				   7, end1, cend1);
-  MY_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
-				   8, start2, cstart2,
-				   9, end2, cend2);
+  MY_VALIDATE_SUBSTRING_SPEC_UCOPY (1, s1, cstr1,
+                                    6, start1, cstart1,
+                                    7, end1, cend1);
+  MY_VALIDATE_SUBSTRING_SPEC_UCOPY (2, s2, cstr2,
+                                    8, start2, cstart2,
+                                    9, end2, cend2);
   SCM_VALIDATE_PROC (3, proc_lt);
   SCM_VALIDATE_PROC (4, proc_eq);
   SCM_VALIDATE_PROC (5, proc_gt);
@@ -1048,16 +1060,16 @@ SCM_DEFINE (scm_string_compare_ci, "string-compare-ci", 5, 4, 0,
 	    "character comparison is done case-insensitively.")
 #define FUNC_NAME s_scm_string_compare_ci
 {
-  const char *cstr1, *cstr2;
+  const unsigned char *cstr1, *cstr2;
   size_t cstart1, cend1, cstart2, cend2;
   SCM proc;
 
-  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
-				   6, start1, cstart1,
-				   7, end1, cend1);
-  MY_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
-				   8, start2, cstart2,
-				   9, end2, cend2);
+  MY_VALIDATE_SUBSTRING_SPEC_UCOPY (1, s1, cstr1,
+                                    6, start1, cstart1,
+                                    7, end1, cend1);
+  MY_VALIDATE_SUBSTRING_SPEC_UCOPY (2, s2, cstr2,
+                                    8, start2, cstart2,
+                                    9, end2, cend2);
   SCM_VALIDATE_PROC (3, proc_lt);
   SCM_VALIDATE_PROC (4, proc_eq);
   SCM_VALIDATE_PROC (5, proc_gt);
@@ -1181,15 +1193,15 @@ SCM_DEFINE (scm_string_lt, "string<", 2, 4, 0,
 	    "true value otherwise.")
 #define FUNC_NAME s_scm_string_lt
 {
-  const char *cstr1, *cstr2;
+  const unsigned char *cstr1, *cstr2;
   size_t cstart1, cend1, cstart2, cend2;
 
-  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
-				   3, start1, cstart1,
-				   4, end1, cend1);
-  MY_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
-				   5, start2, cstart2,
-				   6, end2, cend2);
+  MY_VALIDATE_SUBSTRING_SPEC_UCOPY (1, s1, cstr1,
+                                    3, start1, cstart1,
+                                    4, end1, cend1);
+  MY_VALIDATE_SUBSTRING_SPEC_UCOPY (2, s2, cstr2,
+                                    5, start2, cstart2,
+                                    6, end2, cend2);
 
   while (cstart1 < cend1 && cstart2 < cend2)
     {
@@ -1224,15 +1236,15 @@ SCM_DEFINE (scm_string_gt, "string>", 2, 4, 0,
 	    "true value otherwise.")
 #define FUNC_NAME s_scm_string_gt
 {
-  const char *cstr1, *cstr2;
+  const unsigned char *cstr1, *cstr2;
   size_t cstart1, cend1, cstart2, cend2;
 
-  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
-				   3, start1, cstart1,
-				   4, end1, cend1);
-  MY_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
-				   5, start2, cstart2,
-				   6, end2, cend2);
+  MY_VALIDATE_SUBSTRING_SPEC_UCOPY (1, s1, cstr1,
+                                    3, start1, cstart1,
+                                    4, end1, cend1);
+  MY_VALIDATE_SUBSTRING_SPEC_UCOPY (2, s2, cstr2,
+                                    5, start2, cstart2,
+                                    6, end2, cend2);
 
   while (cstart1 < cend1 && cstart2 < cend2)
     {
@@ -1267,15 +1279,15 @@ SCM_DEFINE (scm_string_le, "string<=", 2, 4, 0,
 	    "value otherwise.")
 #define FUNC_NAME s_scm_string_le
 {
-  const char *cstr1, *cstr2;
+  const unsigned char *cstr1, *cstr2;
   size_t cstart1, cend1, cstart2, cend2;
 
-  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
-				   3, start1, cstart1,
-				   4, end1, cend1);
-  MY_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
-				   5, start2, cstart2,
-				   6, end2, cend2);
+  MY_VALIDATE_SUBSTRING_SPEC_UCOPY (1, s1, cstr1,
+                                    3, start1, cstart1,
+                                    4, end1, cend1);
+  MY_VALIDATE_SUBSTRING_SPEC_UCOPY (2, s2, cstr2,
+                                    5, start2, cstart2,
+                                    6, end2, cend2);
 
   while (cstart1 < cend1 && cstart2 < cend2)
     {
@@ -1310,15 +1322,15 @@ SCM_DEFINE (scm_string_ge, "string>=", 2, 4, 0,
 	    "otherwise.")
 #define FUNC_NAME s_scm_string_ge
 {
-  const char *cstr1, *cstr2;
+  const unsigned char *cstr1, *cstr2;
   size_t cstart1, cend1, cstart2, cend2;
 
-  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
-				   3, start1, cstart1,
-				   4, end1, cend1);
-  MY_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
-				   5, start2, cstart2,
-				   6, end2, cend2);
+  MY_VALIDATE_SUBSTRING_SPEC_UCOPY (1, s1, cstr1,
+                                    3, start1, cstart1,
+                                    4, end1, cend1);
+  MY_VALIDATE_SUBSTRING_SPEC_UCOPY (2, s2, cstr2,
+                                    5, start2, cstart2,
+                                    6, end2, cend2);
 
   while (cstart1 < cend1 && cstart2 < cend2)
     {
@@ -1442,15 +1454,15 @@ SCM_DEFINE (scm_string_ci_lt, "string-ci<", 2, 4, 0,
 	    "case-insensitively.")
 #define FUNC_NAME s_scm_string_ci_lt
 {
-  const char *cstr1, *cstr2;
+  const unsigned char *cstr1, *cstr2;
   size_t cstart1, cend1, cstart2, cend2;
 
-  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
-				   3, start1, cstart1,
-				   4, end1, cend1);
-  MY_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
-				   5, start2, cstart2,
-				   6, end2, cend2);
+  MY_VALIDATE_SUBSTRING_SPEC_UCOPY (1, s1, cstr1,
+                                    3, start1, cstart1,
+                                    4, end1, cend1);
+  MY_VALIDATE_SUBSTRING_SPEC_UCOPY (2, s2, cstr2,
+                                    5, start2, cstart2,
+                                    6, end2, cend2);
 
   while (cstart1 < cend1 && cstart2 < cend2)
     {
@@ -1486,15 +1498,15 @@ SCM_DEFINE (scm_string_ci_gt, "string-ci>", 2, 4, 0,
 	    "case-insensitively.")
 #define FUNC_NAME s_scm_string_ci_gt
 {
-  const char *cstr1, *cstr2;
+  const unsigned char *cstr1, *cstr2;
   size_t cstart1, cend1, cstart2, cend2;
 
-  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
-				   3, start1, cstart1,
-				   4, end1, cend1);
-  MY_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
-				   5, start2, cstart2,
-				   6, end2, cend2);
+  MY_VALIDATE_SUBSTRING_SPEC_UCOPY (1, s1, cstr1,
+                                    3, start1, cstart1,
+                                    4, end1, cend1);
+  MY_VALIDATE_SUBSTRING_SPEC_UCOPY (2, s2, cstr2,
+                                    5, start2, cstart2,
+                                    6, end2, cend2);
 
   while (cstart1 < cend1 && cstart2 < cend2)
     {
@@ -1530,15 +1542,15 @@ SCM_DEFINE (scm_string_ci_le, "string-ci<=", 2, 4, 0,
 	    "case-insensitively.")
 #define FUNC_NAME s_scm_string_ci_le
 {
-  const char *cstr1, *cstr2;
+  const unsigned char *cstr1, *cstr2;
   size_t cstart1, cend1, cstart2, cend2;
 
-  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
-				   3, start1, cstart1,
-				   4, end1, cend1);
-  MY_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
-				   5, start2, cstart2,
-				   6, end2, cend2);
+  MY_VALIDATE_SUBSTRING_SPEC_UCOPY (1, s1, cstr1,
+                                    3, start1, cstart1,
+                                    4, end1, cend1);
+  MY_VALIDATE_SUBSTRING_SPEC_UCOPY (2, s2, cstr2,
+                                    5, start2, cstart2,
+                                    6, end2, cend2);
 
   while (cstart1 < cend1 && cstart2 < cend2)
     {
@@ -1574,15 +1586,15 @@ SCM_DEFINE (scm_string_ci_ge, "string-ci>=", 2, 4, 0,
 	    "case-insensitively.")
 #define FUNC_NAME s_scm_string_ci_ge
 {
-  const char *cstr1, *cstr2;
+  const unsigned char *cstr1, *cstr2;
   size_t cstart1, cend1, cstart2, cend2;
 
-  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
-				   3, start1, cstart1,
-				   4, end1, cend1);
-  MY_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
-				   5, start2, cstart2,
-				   6, end2, cend2);
+  MY_VALIDATE_SUBSTRING_SPEC_UCOPY (1, s1, cstr1,
+                                    3, start1, cstart1,
+                                    4, end1, cend1);
+  MY_VALIDATE_SUBSTRING_SPEC_UCOPY (2, s2, cstr2,
+                                    5, start2, cstart2,
+                                    6, end2, cend2);
 
   while (cstart1 < cend1 && cstart2 < cend2)
     {

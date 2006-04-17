@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005, 2006 Free Software Foundation, Inc.
  *
  * Portions Copyright 1990, 1991, 1992, 1993 by AT&T Bell Laboratories
  * and Bellcore.  See scm_divide.
@@ -2937,7 +2937,8 @@ mem2complex (const char* mem, size_t len, unsigned int idx,
 enum t_radix {NO_RADIX=0, DUAL=2, OCT=8, DEC=10, HEX=16};
 
 SCM
-scm_i_mem2number (const char* mem, size_t len, unsigned int default_radix)
+scm_c_locale_stringn_to_number (const char* mem, size_t len,
+				unsigned int default_radix)
 {
   unsigned int idx = 0;
   unsigned int radix = NO_RADIX;
@@ -3043,9 +3044,9 @@ SCM_DEFINE (scm_string_to_number, "string->number", 1, 1, 0,
   else
     base = scm_to_unsigned_integer (radix, 2, INT_MAX);
 
-  answer = scm_i_mem2number (scm_i_string_chars (string),
-			     scm_i_string_length (string),
-			     base);
+  answer = scm_c_locale_stringn_to_number (scm_i_string_chars (string),
+					   scm_i_string_length (string),
+					   base);
   scm_remember_upto_here_1 (string);
   return answer;
 }

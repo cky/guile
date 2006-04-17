@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1999,2000,2001,2003, 2004 Free Software
+/* Copyright (C) 1995,1996,1997,1999,2000,2001,2003, 2004, 2006 Free Software
  * Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
@@ -506,7 +506,8 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
 	       * does only consist of octal digits.  Finally, it should be
 	       * checked whether the resulting fixnum is in the range of
 	       * characters.  */
-	      p = scm_i_mem2number (scm_i_string_chars (*tok_buf), j, 8);
+	      p = scm_c_locale_stringn_to_number (scm_i_string_chars (*tok_buf),
+						  j, 8);
 	      if (SCM_I_INUMP (p))
 		return SCM_MAKE_CHAR (SCM_I_INUM (p));
 	    }
@@ -644,7 +645,7 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
 	/* Shortcut:  Detected symbol '+ or '- */
 	goto tok;
 
-      p = scm_i_mem2number (scm_i_string_chars (*tok_buf), j, 10);
+      p = scm_c_locale_stringn_to_number (scm_i_string_chars (*tok_buf), j, 10);
       if (scm_is_true (p))
 	return p;
       if (c == '#')

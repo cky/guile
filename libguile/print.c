@@ -1,4 +1,4 @@
-/* Copyright (C) 1995-1999,2000,2001, 2002, 2003, 2004 Free Software Foundation, Inc.
+/* Copyright (C) 1995-1999,2000,2001, 2002, 2003, 2004, 2006 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -327,7 +327,7 @@ scm_print_symbol_name (const char *str, size_t len, SCM port)
   if (len == 0 || str[0] == '\'' || str[0] == '`' || str[0] == ','
       || quote_keywordish_symbol (str, len)
       || (str[0] == '.' && len == 1)
-      || scm_is_true (scm_i_mem2number(str, len, 10)))
+      || scm_is_true (scm_c_locale_stringn_to_number (str, len, 10)))
     {
       scm_lfwrite ("#{", 2, port);
       weird = 1;

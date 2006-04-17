@@ -3,7 +3,7 @@
 #ifndef GDB_INTERFACE_H
 #define GDB_INTERFACE_H
 /* Simple interpreter interface for GDB, the GNU debugger.
-   Copyright (C) 1996, 2000, 2001 Free Software Foundation
+   Copyright (C) 1996, 2000, 2001, 2006 Free Software Foundation
 
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public

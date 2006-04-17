@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2003, 2004 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2003, 2004, 2006 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,6 +18,8 @@
 
 
 /* Headers.  */
+
+#define _LARGEFILE64_SOURCE      /* ask for stat64 etc */
 
 #if HAVE_CONFIG_H
 #  include <config.h>
@@ -1429,9 +1431,12 @@ SCM_DEFINE (scm_truncate_file, "truncate-file", 1, 1, 0,
 #define FUNC_NAME s_scm_truncate_file
 {
   int rv;
-  off_t c_length;
 
-  /* object can be a port, fdes or filename.  */
+  /* "object" can be a port, fdes or filename.
+
+     Negative "length" makes no sense, but it's left to truncate() or
+     ftruncate() to give back an error for that (normally EINVAL).
+     */
 
   if (SCM_UNBNDP (length))
     {
@@ -1441,15 +1446,16 @@ SCM_DEFINE (scm_truncate_file, "truncate-file", 1, 1, 0,
       
       length = scm_seek (object, SCM_INUM0, scm_from_int (SEEK_CUR));
     }
-  c_length = scm_to_size_t (length);
 
   object = SCM_COERCE_OUTPORT (object);
   if (scm_is_integer (object))
     {
+      off_t c_length = scm_to_off_t (length);
       SCM_SYSCALL (rv = ftruncate (scm_to_int (object), c_length));
     }
   else if (SCM_OPOUTPORTP (object))
     {
+      off_t c_length = scm_to_off_t (length);
       scm_t_port *pt = SCM_PTAB_ENTRY (object);
       scm_t_ptob_descriptor *ptob = scm_ptobs + SCM_PTOBNUM (object);
       
@@ -1465,9 +1471,10 @@ SCM_DEFINE (scm_truncate_file, "truncate-file", 1, 1, 0,
     }
   else
     {
+      off_t_or_off64_t c_length = scm_to_off_t_or_off64_t (length);
       char *str = scm_to_locale_string (object);
       int eno;
-      SCM_SYSCALL (rv = truncate (str, c_length));
+      SCM_SYSCALL (rv = truncate_or_truncate64 (str, c_length));
       eno = errno;
       free (str);
       errno = eno;

@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006
  * Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
@@ -2970,7 +2970,7 @@ scm_eval_body (SCM code, SCM env)
 	  if (SCM_ISYMP (SCM_CAR (code)))
 	    {
 	      scm_dynwind_begin (0);
-	      scm_dynwind_pthread_mutex_lock (&source_mutex);
+	      scm_i_dynwind_pthread_mutex_lock (&source_mutex);
 	      /* check for race condition */
 	      if (SCM_ISYMP (SCM_CAR (code)))
 		m_expand_body (code, env);
@@ -3369,7 +3369,7 @@ dispatch:
                   if (SCM_ISYMP (form))
                     {
 		      scm_dynwind_begin (0);
-		      scm_dynwind_pthread_mutex_lock (&source_mutex);
+		      scm_i_dynwind_pthread_mutex_lock (&source_mutex);
                       /* check for race condition */
                       if (SCM_ISYMP (SCM_CAR (x)))
                         m_expand_body (x, env);
@@ -4969,7 +4969,7 @@ tail:
 	      if (SCM_ISYMP (SCM_CAR (proc)))
 		{
 		  scm_dynwind_begin (0);
-		  scm_dynwind_pthread_mutex_lock (&source_mutex);
+		  scm_i_dynwind_pthread_mutex_lock (&source_mutex);
 		  /* check for race condition */
 		  if (SCM_ISYMP (SCM_CAR (proc)))
 		    m_expand_body (proc, args);
@@ -5695,8 +5695,8 @@ SCM_DEFINE (scm_cons_source, "cons-source", 3, 0, 0,
  * hare-and-tortoise implementation, found several times in guile.  */
 
 struct t_trace {
-  struct t_trace *trace;  // These pointers form a trace along the stack.
-  SCM obj;                // The object handled at the respective stack frame.
+  struct t_trace *trace; /* These pointers form a trace along the stack. */
+  SCM obj;               /* The object handled at the respective stack frame.*/
 };
 
 static SCM
@@ -5751,7 +5751,7 @@ copy_tree (
 
           return new_vector;
         }
-      else // scm_is_pair (hare->obj)
+      else /* scm_is_pair (hare->obj) */
         {
           SCM result;
           SCM tail;

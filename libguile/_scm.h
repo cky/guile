@@ -3,7 +3,7 @@
 #ifndef SCM__SCM_H
 #define SCM__SCM_H
 
-/* Copyright (C) 1995,1996,2000,2001, 2002 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,2000,2001, 2002, 2006 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -132,6 +132,43 @@
 #ifndef max
 #define max(A, B) ((A) >= (B) ? (A) : (B))
 #endif
+
+
+
+#if HAVE_STAT64
+#define CHOOSE_LARGEFILE(foo,foo64)     foo64
+#else
+#define CHOOSE_LARGEFILE(foo,foo64)     foo
+#endif
+
+/* These names are a bit long, but they make it clear what they represent. */
+#define dirent_or_dirent64              CHOOSE_LARGEFILE(dirent,dirent64)
+#define fstat_or_fstat64                CHOOSE_LARGEFILE(fstat,fstat64)
+#define ftruncate_or_ftruncate64        CHOOSE_LARGEFILE(ftruncate,ftruncate64)
+#define lstat_or_lstat64                CHOOSE_LARGEFILE(lstat,lstat64)
+#define off_t_or_off64_t                CHOOSE_LARGEFILE(off_t,off64_t)
+#define open_or_open64                  CHOOSE_LARGEFILE(open,open64)
+#define readdir_or_readdir64            CHOOSE_LARGEFILE(readdir,readdir64)
+#define readdir_r_or_readdir64_r        CHOOSE_LARGEFILE(readdir_r,readdir64_r)
+#define stat_or_stat64                  CHOOSE_LARGEFILE(stat,stat64)
+#define truncate_or_truncate64          CHOOSE_LARGEFILE(truncate,truncate64)
+#define scm_from_off_t_or_off64_t       CHOOSE_LARGEFILE(scm_from_off_t,scm_from_int64)
+#define scm_from_ino_t_or_ino64_t       CHOOSE_LARGEFILE(scm_from_ulong,scm_from_uint64)
+#define scm_from_blkcnt_t_or_blkcnt64_t CHOOSE_LARGEFILE(scm_from_ulong,scm_from_uint64)
+#define scm_to_off_t_or_off64_t         CHOOSE_LARGEFILE(scm_to_off_t,scm_to_int64)
+
+#if SIZEOF_OFF_T == 4
+#define scm_to_off_t    scm_to_int32
+#define scm_from_off_t  scm_from_int32
+#else
+#if SIZEOF_OFF_T == 8
+#define scm_to_off_t    scm_to_int64
+#define scm_from_off_t  scm_from_int64
+#else
+#error sizeof(off_t) is not 4 or 8.
+#endif
+#endif
+
 
 #endif  /* SCM__SCM_H */
 

@@ -1,4 +1,4 @@
-/* Copyright (C) 1996,1997,1998,1999,2000,2001, 2002, 2004 Free Software Foundation, Inc.
+/* Copyright (C) 1996,1997,1998,1999,2000,2001, 2002, 2004, 2006 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -20,12 +20,30 @@
 
 /* See stime.c for comments on why _POSIX_C_SOURCE is not always defined. */
 #define _GNU_SOURCE              /* ask glibc for everything */
+#define _LARGEFILE64_SOURCE      /* ask for stat64 etc */
 #ifdef __hpux
 #define _POSIX_C_SOURCE 199506L  /* for readdir_r */
 #endif
 
 #if HAVE_CONFIG_H
 #  include <config.h>
+#endif
+
+/* AIX requires this to be the first thing in the file.  The #pragma
+   directive is indented so pre-ANSI compilers will ignore it, rather
+   than choke on it.  */
+#ifndef __GNUC__
+# if HAVE_ALLOCA_H
+#  include <alloca.h>
+# else
+#  ifdef _AIX
+#   pragma alloca
+#  else
+#   ifndef alloca /* predefined by HP cc +Olibcalls */
+char *alloca ();
+#   endif
+#  endif
+# endif
 #endif
 
 #include <stdio.h>
@@ -35,6 +53,7 @@
 #include "libguile/smob.h"
 #include "libguile/feature.h"
 #include "libguile/fports.h"
+#include "libguile/private-gc.h"  /* for SCM_MAX */
 #include "libguile/iselect.h"
 #include "libguile/strings.h"
 #include "libguile/vectors.h"
@@ -92,6 +111,7 @@
 #if defined (__MINGW32__) || defined (_MSC_VER) || defined (__BORLANDC__)
 # include "win32-dirent.h"
 # define NAMLEN(dirent) strlen((dirent)->d_name)
+/* The following bits are per AC_HEADER_DIRENT doco in the autoconf manual */
 #elif HAVE_DIRENT_H
 # include <dirent.h>
 # define NAMLEN(dirent) strlen((dirent)->d_name)
@@ -178,6 +198,13 @@
 # define fsync(fd) _commit (fd)
 # define fchmod(fd, mode) (-1)
 #endif /* __MINGW32__ */
+
+/* This definition is for Solaris 10, it's probably not right elsewhere, but
+   that's ok, it shouldn't be used elsewhere.  */
+#if ! HAVE_DIRFD
+#define dirfd(dirstream) (dirstream->dd_fd)
+#endif
+
 
 
 /* Two helper macros for an often used pattern */
@@ -449,12 +476,12 @@ SCM_SYMBOL (scm_sym_sock, "socket");
 SCM_SYMBOL (scm_sym_unknown, "unknown");
 
 static SCM 
-scm_stat2scm (struct stat *stat_temp)
+scm_stat2scm (struct stat_or_stat64 *stat_temp)
 {
   SCM ans = scm_c_make_vector (15, SCM_UNSPECIFIED);
   
   SCM_SIMPLE_VECTOR_SET(ans, 0, scm_from_ulong (stat_temp->st_dev));
-  SCM_SIMPLE_VECTOR_SET(ans, 1, scm_from_ulong (stat_temp->st_ino));
+  SCM_SIMPLE_VECTOR_SET(ans, 1, scm_from_ino_t_or_ino64_t (stat_temp->st_ino));
   SCM_SIMPLE_VECTOR_SET(ans, 2, scm_from_ulong (stat_temp->st_mode));
   SCM_SIMPLE_VECTOR_SET(ans, 3, scm_from_ulong (stat_temp->st_nlink));
   SCM_SIMPLE_VECTOR_SET(ans, 4, scm_from_ulong (stat_temp->st_uid));
@@ -464,7 +491,7 @@ scm_stat2scm (struct stat *stat_temp)
 #else
   SCM_SIMPLE_VECTOR_SET(ans, 6, SCM_BOOL_F);
 #endif
-  SCM_SIMPLE_VECTOR_SET(ans, 7, scm_from_ulong (stat_temp->st_size));
+  SCM_SIMPLE_VECTOR_SET(ans, 7, scm_from_off_t_or_off64_t (stat_temp->st_size));
   SCM_SIMPLE_VECTOR_SET(ans, 8, scm_from_ulong (stat_temp->st_atime));
   SCM_SIMPLE_VECTOR_SET(ans, 9, scm_from_ulong (stat_temp->st_mtime));
   SCM_SIMPLE_VECTOR_SET(ans, 10, scm_from_ulong (stat_temp->st_ctime));
@@ -474,7 +501,7 @@ scm_stat2scm (struct stat *stat_temp)
   SCM_SIMPLE_VECTOR_SET(ans, 11, scm_from_ulong (4096L));
 #endif
 #ifdef HAVE_STRUCT_STAT_ST_BLOCKS
-  SCM_SIMPLE_VECTOR_SET(ans, 12, scm_from_ulong (stat_temp->st_blocks));
+  SCM_SIMPLE_VECTOR_SET(ans, 12, scm_from_blkcnt_t_or_blkcnt64_t (stat_temp->st_blocks));
 #else
   SCM_SIMPLE_VECTOR_SET(ans, 12, SCM_BOOL_F);
 #endif
@@ -626,14 +653,14 @@ SCM_DEFINE (scm_stat, "stat", 1, 0, 0,
 {
   int rv;
   int fdes;
-  struct stat stat_temp;
+  struct stat_or_stat64 stat_temp;
 
   if (scm_is_integer (object))
     {
 #ifdef __MINGW32__
       SCM_SYSCALL (rv = fstat_Win32 (scm_to_int (object), &stat_temp));
 #else
-      SCM_SYSCALL (rv = fstat (scm_to_int (object), &stat_temp));
+      SCM_SYSCALL (rv = fstat_or_fstat64 (scm_to_int (object), &stat_temp));
 #endif
     }
   else if (scm_is_string (object))
@@ -645,7 +672,7 @@ SCM_DEFINE (scm_stat, "stat", 1, 0, 0,
       while (p > file && (*p == '/' || *p == '\\'))
 	*p-- = '\0';
 #endif
-      SCM_SYSCALL (rv = stat (file, &stat_temp));
+      SCM_SYSCALL (rv = stat_or_stat64 (file, &stat_temp));
       free (file);
     }
   else
@@ -656,7 +683,7 @@ SCM_DEFINE (scm_stat, "stat", 1, 0, 0,
 #ifdef __MINGW32__
       SCM_SYSCALL (rv = fstat_Win32 (fdes, &stat_temp));
 #else
-      SCM_SYSCALL (rv = fstat (fdes, &stat_temp));
+      SCM_SYSCALL (rv = fstat_or_fstat64 (fdes, &stat_temp));
 #endif
     }
 
@@ -831,8 +858,9 @@ SCM_DEFINE (scm_opendir, "opendir", 1, 0, 0,
 
 /* FIXME: The glibc manual has a portability note that readdir_r may not
    null-terminate its return string.  The circumstances outlined for this
-   are not clear, nor is it clear what should be done about it.  Lets worry
-   about this if/when someone can figure it out.  */
+   are not clear, nor is it clear what should be done about it.  Lets use
+   NAMLEN and worry about what else should be done if/when someone can
+   figure it out.  */
 
 SCM_DEFINE (scm_readdir, "readdir", 1, 0, 0, 
             (SCM port),
@@ -841,35 +869,73 @@ SCM_DEFINE (scm_readdir, "readdir", 1, 0, 0,
 	    "end of file object is returned.")
 #define FUNC_NAME s_scm_readdir
 {
-  struct dirent *rdent;
+  struct dirent_or_dirent64 *rdent;
 
   SCM_VALIDATE_DIR (1, port);
   if (!SCM_DIR_OPEN_P (port))
     SCM_MISC_ERROR ("Directory ~S is not open.", scm_list_1 (port));
 
-  errno = 0;
-  {
 #if HAVE_READDIR_R
-    /* On Solaris 2.7, struct dirent only contains "char d_name[1]" and one is
-       expected to provide a buffer of "sizeof(struct dirent) + NAME_MAX"
-       bytes.  The glibc 2.3.2 manual notes this sort of thing too, and
-       advises "offsetof(struct dirent,d_name) + NAME_MAX + 1".  Either should
-       suffice, we give both to be certain.  */
-    union {
-      struct dirent ent;
-      char pad1 [sizeof(struct dirent) + NAME_MAX];
-      char pad2 [offsetof (struct dirent, d_name) + NAME_MAX + 1];
-    } u;
-    SCM_SYSCALL (readdir_r ((DIR *) SCM_CELL_WORD_1 (port), &u.ent, &rdent));
+  /* As noted in the glibc manual, on various systems (such as Solaris) the
+     d_name[] field is only 1 char and you're expected to size the dirent
+     buffer for readdir_r based on NAME_MAX.  The SCM_MAX expressions below
+     effectively give either sizeof(d_name) or NAME_MAX+1, whichever is
+     bigger.
+
+     On solaris 10 there's no NAME_MAX constant, it's necessary to use
+     pathconf().  We prefer NAME_MAX though, since it should be a constant
+     and will therefore save a system call.  We also prefer it since dirfd()
+     is not available everywhere.
+
+     An alternative to dirfd() would be to open() the directory and then use
+     fdopendir(), if the latter is available.  That'd let us hold the fd
+     somewhere in the smob, or just the dirent size calculated once.  */
+  {
+    struct dirent_or_dirent64 de; /* just for sizeof */
+    DIR    *ds = (DIR *) SCM_CELL_WORD_1 (port);
+    size_t namlen;
+#ifdef NAME_MAX
+    char   buf [SCM_MAX (sizeof (de),
+                         sizeof (de) - sizeof (de.d_name) + NAME_MAX + 1)];
 #else
-    SCM_SYSCALL (rdent = readdir ((DIR *) SCM_CELL_WORD_1 (port)));
+    char   *buf;
+    long   name_max = fpathconf (dirfd (ds), _PC_NAME_MAX);
+    if (name_max == -1)
+      SCM_SYSERROR;
+    buf = alloca (SCM_MAX (sizeof (de),
+                           sizeof (de) - sizeof (de.d_name) + name_max + 1));
 #endif
+
+    errno = 0;
+    SCM_SYSCALL (readdir_r_or_readdir64_r (ds, (struct dirent_or_dirent64 *) buf, &rdent));
     if (errno != 0)
       SCM_SYSERROR;
+    if (! rdent)
+      return SCM_EOF_VAL;
+
+    namlen = NAMLEN (rdent);
 
     return (rdent ? scm_from_locale_stringn (rdent->d_name, NAMLEN (rdent))
             : SCM_EOF_VAL);
   }
+#else
+  {
+    SCM ret;
+    scm_dynwind_begin (0);
+    scm_i_dynwind_pthread_mutex_lock (&scm_i_misc_mutex);
+
+    errno = 0;
+    SCM_SYSCALL (rdent = readdir_or_readdir64 ((DIR *) SCM_CELL_WORD_1 (port)));
+    if (errno != 0)
+      SCM_SYSERROR;
+
+    ret = (rdent ? scm_from_locale_stringn (rdent->d_name, NAMLEN (rdent))
+           : SCM_EOF_VAL);
+
+    scm_dynwind_end ();
+    return ret;
+  }
+#endif
 }
 #undef FUNC_NAME
 
@@ -1421,9 +1487,9 @@ SCM_DEFINE (scm_lstat, "lstat", 1, 0, 0,
 #define FUNC_NAME s_scm_lstat
 {
   int rv;
-  struct stat stat_temp;
+  struct stat_or_stat64 stat_temp;
 
-  STRING_SYSCALL (str, c_str, rv = lstat (c_str, &stat_temp));
+  STRING_SYSCALL (str, c_str, rv = lstat_or_lstat64 (c_str, &stat_temp));
   if (rv != 0)
     {
       int en = errno;
@@ -1447,7 +1513,7 @@ SCM_DEFINE (scm_copy_file, "copy-file", 2, 0, 0,
   int oldfd, newfd;
   int n, rv;
   char buf[BUFSIZ];
-  struct stat oldstat;
+  struct stat_or_stat64 oldstat;
 
   scm_dynwind_begin (0);
   
@@ -1456,21 +1522,21 @@ SCM_DEFINE (scm_copy_file, "copy-file", 2, 0, 0,
   c_newfile = scm_to_locale_string (newfile);
   scm_dynwind_free (c_newfile);
 
-  oldfd = open (c_oldfile, O_RDONLY);
+  oldfd = open_or_open64 (c_oldfile, O_RDONLY);
   if (oldfd == -1)
     SCM_SYSERROR;
 
 #ifdef __MINGW32__
   SCM_SYSCALL (rv = fstat_Win32 (oldfd, &oldstat));
 #else
-  SCM_SYSCALL (rv = fstat (oldfd, &oldstat));
+  SCM_SYSCALL (rv = fstat_or_fstat64 (oldfd, &oldstat));
 #endif
   if (rv == -1)
     goto err_close_oldfd;
 
   /* use POSIX flags instead of 07777?.  */
-  newfd = open (c_newfile, O_WRONLY | O_CREAT | O_TRUNC,
-		oldstat.st_mode & 07777);
+  newfd = open_or_open64 (c_newfile, O_WRONLY | O_CREAT | O_TRUNC,
+                          oldstat.st_mode & 07777);
   if (newfd == -1)
     {
     err_close_oldfd:

@@ -1,6 +1,6 @@
 /* srfi-4.c --- Uniform numeric vector datatypes.
  *
- * 	Copyright (C) 2001, 2004 Free Software Foundation, Inc.
+ * 	Copyright (C) 2001, 2004, 2006 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -850,7 +850,7 @@ SCM_DEFINE (scm_uniform_vector_read_x, "uniform-vector-read!", 1, 3, 0,
   ssize_t inc;
   size_t cstart, cend;
   size_t remaining, off;
-  void *base;
+  char *base;
 
   if (SCM_UNBNDP (port_or_fd))
     port_or_fd = scm_current_input_port ();
@@ -963,7 +963,7 @@ SCM_DEFINE (scm_uniform_vector_write, "uniform-vector-write", 1, 3, 0,
   ssize_t inc;
   size_t cstart, cend;
   size_t amount, off;
-  const void *base;
+  const char *base;
 
   port_or_fd = SCM_COERCE_OUTPORT (port_or_fd);
 

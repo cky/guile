@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2004 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2004, 2006 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -185,6 +185,16 @@ static void
 decrease_mtrigger (size_t size, const char * what)
 {
   scm_i_pthread_mutex_lock (&scm_i_gc_admin_mutex);
+
+  if (size > scm_mallocated)
+    {
+      fprintf (stderr, "`scm_mallocated' underflow.  This means that more "
+	       "memory was unregistered\n"
+	       "via `scm_gc_unregister_collectable_memory ()' than "
+	       "registered.\n");
+      abort ();
+    }
+
   scm_mallocated -= size;
   scm_gc_malloc_collected += size;
   scm_i_pthread_mutex_unlock (&scm_i_gc_admin_mutex);

@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -41,6 +41,7 @@
 #include "libguile/iselect.h"
 #include "libguile/fluids.h"
 #include "libguile/continuations.h"
+#include "libguile/gc.h"
 #include "libguile/init.h"
 
 #ifdef __MINGW32__
@@ -564,10 +565,6 @@ scm_i_init_thread_for_guile (SCM_STACKITEM *base, SCM parent)
     }
 }
 
-#ifdef HAVE_LIBC_STACK_END
-
-extern void *__libc_stack_end;
-
 #if SCM_USE_PTHREAD_THREADS
 #ifdef HAVE_PTHREAD_ATTR_GETSTACK
 
@@ -580,18 +577,20 @@ get_thread_stack_base ()
   void *start, *end;
   size_t size;
 
-  /* XXX - pthread_getattr_np from LinuxThreads does not seem to work
-     for the main thread, but we can use __libc_stack_end in that
-     case.
-  */
-
   pthread_getattr_np (pthread_self (), &attr);
   pthread_attr_getstack (&attr, &start, &size);
   end = (char *)start + size;
 
+  /* XXX - pthread_getattr_np from LinuxThreads does not seem to work
+     for the main thread, but we can use scm_get_stack_base in that
+     case.
+  */
+
+#ifndef PTHREAD_ATTR_GETSTACK_WORKS
   if ((void *)&attr < start || (void *)&attr >= end)
-    return __libc_stack_end;
+    return scm_get_stack_base ();
   else
+#endif
     {
 #if SCM_STACK_GROWS_UP
       return start;
@@ -610,11 +609,10 @@ get_thread_stack_base ()
 static SCM_STACKITEM *
 get_thread_stack_base ()
 {
-  return __libc_stack_end;
+  return scm_get_stack_base ();
 }
 
 #endif /* !SCM_USE_PTHREAD_THREADS */
-#endif /* HAVE_LIBC_STACK_END */
 
 #ifdef HAVE_GET_THREAD_STACK_BASE
 
@@ -1397,7 +1395,7 @@ scm_pthread_mutex_lock (scm_i_pthread_mutex_t *mutex)
 }
 
 static void
-unlock (void *data)
+do_unlock (void *data)
 {
   scm_i_pthread_mutex_unlock ((scm_i_pthread_mutex_t *)data);
 }
@@ -1406,7 +1404,7 @@ void
 scm_dynwind_pthread_mutex_lock (scm_i_pthread_mutex_t *mutex)
 {
   scm_i_scm_pthread_mutex_lock (mutex);
-  scm_dynwind_unwind_handler (unlock, mutex, SCM_F_WIND_EXPLICITLY);
+  scm_dynwind_unwind_handler (do_unlock, mutex, SCM_F_WIND_EXPLICITLY);
 }
 
 int

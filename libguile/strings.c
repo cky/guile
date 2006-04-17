@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,2000,2001, 2004 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,2000,2001, 2004, 2006 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -122,12 +122,12 @@ make_stringbuf (size_t len)
     }
 }
 
-/* Return a new stringbuf whose underlying storage consists of the LEN octets
-   pointed to by STR.  */
+/* Return a new stringbuf whose underlying storage consists of the LEN+1
+   octets pointed to by STR (the last octet is zero).  */
 SCM_C_INLINE SCM
 scm_i_take_stringbufn (char *str, size_t len)
 {
-  scm_gc_register_collectable_memory (str, len, "stringbuf");
+  scm_gc_register_collectable_memory (str, len + 1, "stringbuf");
 
   return scm_double_cell (STRINGBUF_TAG, (scm_t_bits) str,
 			  (scm_t_bits) len, (scm_t_bits) 0);

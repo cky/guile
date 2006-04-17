@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2004 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2004, 2006 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -155,7 +155,7 @@ SCM_DEFINE (scm_setvbuf, "setvbuf", 2, 1, 0,
     }
   else
     {
-      SCM_SET_CELL_WORD_0 (port, SCM_CELL_WORD_0 (port) ^ SCM_BUFLINE);
+      SCM_SET_CELL_WORD_0 (port, SCM_CELL_WORD_0 (port) & ~(scm_t_bits)SCM_BUFLINE);
     }
 
   if (SCM_UNBNDP (size))

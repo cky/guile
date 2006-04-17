@@ -1,7 +1,7 @@
 #!/bin/sh
 # Extract the initialization actions from source files.
 #
-#  Copyright (C) 1996, 97, 98, 99, 2000, 2001, 2002, 2004 Free Software Foundation, Inc.
+#  Copyright (C) 1996, 97, 98, 99, 2000, 2001, 2002, 2004, 2006 Free Software Foundation, Inc.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
