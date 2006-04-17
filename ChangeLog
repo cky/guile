@@ -24,8 +24,6 @@
 
 	* GUILE-VERSION: Set version.
 
-2006-02-06  Marius Vollmer  <mvo@zagadka.de>
-
 	* GUILE-VERSION: Bumped versions for 1.9 series.
 
 2006-02-06  Marius Vollmer  <mvo@zagadka.de>
