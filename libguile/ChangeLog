@@ -1,3 +1,8 @@
+2006-04-17  Kevin Ryde  <user42@zip.com.au>
+
+	* _scm.h (scm_to_off_t, scm_from_off_t): No error if unknown off_t
+	size, to help the guile-readline build where off_t is unused.
+
 2006-04-16  Kevin Ryde  <user42@zip.com.au>
 
 	* filesys.c (scm_stat2scm, scm_stat, scm_lstat): Use stat or stat64.
