@@ -1,3 +1,8 @@
+2006-04-17  Kevin Ryde  <user42@zip.com.au>
+
+	* ice-9/readline.scm: Bump lib file version to libguilereadline-v-18,
+	matching LIBGUILEREADLINE-VERSION.
+
 2006-03-12  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* ice-9/readline.scm (make-completion-function): New.
