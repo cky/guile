@@ -60,7 +60,7 @@
   (call-with-output-file (test-file)
     (lambda (port)
       (display "hello" port)))
-  (delete-file (test-symlink))
+  (false-if-exception (delete-file (test-symlink)))
   (if (not (false-if-exception
 	    (begin (symlink (test-file) (test-symlink)) #t)))
       (display "cannot create symlink, lstat test skipped\n")
