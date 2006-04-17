@@ -1,6 +1,6 @@
 !!! This is not a Guile release; it is a source tree retrieved via
 anonymous CVS or as a nightly snapshot at some random time after the
-Guile 1.6 release.  If this were a Guile release, you would not see
+Guile 1.8 release.  If this were a Guile release, you would not see
 this message. !!!  [fixme: zonk on release]
 
 This is a 1.9 development version of Guile, Project GNU's extension
