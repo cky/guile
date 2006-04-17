@@ -1,5 +1,5 @@
 Guile NEWS --- history of user-visible changes.
-Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 See the end for copying conditions.
 
 Please send Guile bug reports to bug-guile@gnu.org.
@@ -10,6 +10,13 @@ Each release reports the NEWS in the following sections:
 * Changes to the stand-alone interpreter
 * Changes to Scheme functions and syntax
 * Changes to the C interface 
+
+
+Changes in 1.8.1:
+
+* Bug fixes.
+** array-set! with bit vector.
+** string<? and friends follow char<? etc order on 8-bit chars.
 
 
 Changes since the 1.6.x series:
@@ -7049,7 +7056,7 @@ Until then, gtcltk-lib provides trivial, low-maintenance functionality.
 
 Copyright information:
 
-Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
+Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2006 Free Software Foundation, Inc.
 
    Permission is granted to anyone to make or distribute verbatim copies
    of this document as received, in any medium, provided that the

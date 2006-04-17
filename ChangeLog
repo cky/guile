@@ -1,7 +1,41 @@
+2006-04-16  Kevin Ryde  <user42@zip.com.au>
+
+	* configure.in (stat64, off_t): New tests.
+
+2006-03-31  Kevin Ryde  <user42@zip.com.au>
+
+	* configure.in (socklen_t): Enhance test for this type, coping with
+	need for <sys/socket.h> on MacOS X.  Reported by Michael Tuexen and
+	Jay Cotton.
+
+2006-03-26  Marius Vollmer  <mvo@zagadka.de>
+
+	* configure.in: Added check that defines
+	PTHREAD_ATTR_GETSTACK_WORKS when pthread_attr_getstack works for
+	the main thread.
+
+2006-02-26  Kevin Ryde  <user42@zip.com.au>
+
+	* configure.in (AC_CHECK_FUNCS): Add dirfd.
+
+2006-02-20  Marius Vollmer  <mvo@zagadka.de>
+
+	Released 1.8.0.
+
+	* GUILE-VERSION: Set version.
+
 2006-02-06  Marius Vollmer  <mvo@zagadka.de>
 
 	* GUILE-VERSION: Bumped versions for 1.9 series.
 
+	* configure.in: Removed --enable-arrays option.
+
+2006-02-06  Marius Vollmer  <mvo@zagadka.de>
+
+	Branched for 1.8 series.
+
+	* GUILE-VERSION: Bumped version numbers.
+	
 	* configure.in: Removed --enable-arrays option.
 
 2005-12-14  Neil Jerram  <neil@ossau.uklinux.net>

@@ -1,6 +1,6 @@
 ## Process this file with Automake to create Makefile.in
 ##
-##  	Copyright (C) 2002 Free Software Foundation, Inc.
+##  	Copyright (C) 2002, 2006 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##

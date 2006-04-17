@@ -4,7 +4,7 @@ dnl
 
 define(GUILE_CONFIGURE_COPYRIGHT,[[
 
-Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 This file is part of GUILE
 
@@ -241,6 +241,7 @@ AC_CHECK_SIZEOF(intptr_t)
 AC_CHECK_SIZEOF(uintptr_t)
 AC_CHECK_SIZEOF(ptrdiff_t)
 AC_CHECK_SIZEOF(size_t)
+AC_CHECK_SIZEOF(off_t)
 
 if test "$ac_cv_sizeof_long" -ne "$ac_cv_sizeof_void_p"; then
   AC_MSG_ERROR(sizes of long and void* are not identical)
@@ -515,9 +516,6 @@ AC_SUBST([SCM_I_GSC_T_UINTMAX])
 AC_SUBST([SCM_I_GSC_NEEDS_STDINT_H])
 AC_SUBST([SCM_I_GSC_NEEDS_INTTYPES_H])
 
-AC_CHECK_TYPE(socklen_t, int)
-AC_CHECK_TYPE(struct ip_mreq)
-
 AC_HEADER_STDC
 AC_HEADER_DIRENT
 AC_HEADER_TIME
@@ -531,6 +529,18 @@ regex.h rxposix.h rx/rxposix.h sys/dir.h sys/ioctl.h sys/select.h \
 sys/time.h sys/timeb.h sys/times.h sys/stdtypes.h sys/types.h \
 sys/utime.h time.h unistd.h utime.h pwd.h grp.h sys/utsname.h \
 direct.h])
+
+# On MacOS X <sys/socklen.h> contains socklen_t, so must include that
+# when testing.
+AC_CHECK_TYPE(socklen_t, ,
+  [AC_DEFINE_UNQUOTED(socklen_t, int,
+                      [Define to `int' if <sys/socket.h> does not define.])],
+  [#if HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+#include <sys/socket.h>
+])
+AC_CHECK_TYPE(struct ip_mreq)
 
 GUILE_HEADER_LIBC_WITH_UNISTD
 
@@ -584,10 +594,11 @@ AC_CHECK_HEADERS([assert.h crt_externs.h])
 #   fesetround - available in C99, but not older systems
 #   gmtime_r - recent posix, not on old systems
 #   readdir_r - recent posix, not on old systems
+#   stat64 - SuS largefile stuff, not on old systems
 #   sysconf - not on old systems
 #   _NSGetEnviron - Darwin specific
 #
-AC_CHECK_FUNCS([DINFINITY DQNAN ctermid fesetround ftime fchown getcwd geteuid gettimeofday gmtime_r lstat mkdir mknod nice readdir_r readlink rename rmdir select setegid seteuid setlocale setpgid setsid sigaction siginterrupt strftime strptime symlink sync sysconf tcgetpgrp tcsetpgrp times uname waitpid strdup system usleep atexit on_exit chown link fcntl ttyname getpwent getgrent kill getppid getpgrp fork setitimer getitimer strchr strcmp index bcopy memcpy rindex unsetenv _NSGetEnviron])
+AC_CHECK_FUNCS([DINFINITY DQNAN ctermid fesetround ftime fchown getcwd geteuid gettimeofday gmtime_r lstat mkdir mknod nice readdir_r readlink rename rmdir select setegid seteuid setlocale setpgid setsid sigaction siginterrupt stat64 strftime strptime symlink sync sysconf tcgetpgrp tcsetpgrp times uname waitpid strdup system usleep atexit on_exit chown link fcntl ttyname getpwent getgrent kill getppid getpgrp fork setitimer getitimer strchr strcmp index bcopy memcpy rindex unsetenv _NSGetEnviron])
 
 # Reasons for testing:
 #   netdb.h - not in mingw
@@ -864,9 +875,10 @@ AC_CHECK_HEADERS(floatingpoint.h ieeefp.h nan.h)
 # Reasons for testing:
 #   asinh, acosh, atanh, trunc - C99 standard, generally not available on
 #                                older systems
+#   dirfd - mainly BSD derived, not in older systems
 #   sincos - GLIBC extension
 #
-AC_CHECK_FUNCS(asinh acosh atanh copysign finite sincos trunc)
+AC_CHECK_FUNCS(asinh acosh atanh copysign dirfd finite sincos trunc)
 
 # C99 specifies isinf and isnan as macros.
 # HP-UX provides only macros, no functions.
@@ -1024,6 +1036,44 @@ esac
 
 AC_MSG_CHECKING(what kind of threads to support)
 AC_MSG_RESULT($with_threads)
+
+## Check whether pthread_attr_getstack works for the main thread
+
+AC_MSG_CHECKING(whether pthread_attr_getstack works for the main thread)
+old_CFLAGS="$CFLAGS"
+CFLAGS="$PTHREAD_CFLAGS $CFLAGS"
+AC_TRY_RUN(
+[
+#if HAVE_PTHREAD_ATTR_GETSTACK
+#include <pthread.h>
+
+int main ()
+{
+  pthread_attr_t attr;
+  void *start, *end;
+  size_t size;
+
+  pthread_getattr_np (pthread_self (), &attr);
+  pthread_attr_getstack (&attr, &start, &size);
+  end = (char *)start + size;
+
+  if ((void *)&attr < start || (void *)&attr >= end)
+    return 1;
+  else
+    return 0;
+}
+#else
+int main ()
+{
+  return 1;
+}
+#endif
+],
+[works=yes
+AC_DEFINE(PTHREAD_ATTR_GETSTACK_WORKS, [1], [Define when pthread_att_get_stack works for the main thread])],
+[works=no])
+CFLAGS="$old_CFLAGS"
+AC_MSG_RESULT($works)
 
 ## Cross building	
 if test "$cross_compiling" = "yes"; then
