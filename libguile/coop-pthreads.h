@@ -29,6 +29,9 @@
 
 #include <pthread.h>
 
+#define GC_THREADS 1
+#include <gc/gc.h>
+
 #include "libguile/iselect.h"
 
 #if (SCM_ENABLE_DEPRECATED == 1)

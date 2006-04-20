@@ -30,7 +30,10 @@
 #endif
 
 #ifdef GUILE_PTHREAD_COMPAT
-#include <pthread.h>
+# include <pthread.h>
+
+# define GC_THREADS 1
+# include <gc/gc.h>
 #endif
 
 /* This file is included by threads.h, which, in turn, is included by
