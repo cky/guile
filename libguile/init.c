@@ -517,7 +517,7 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_init_vectors ();
   scm_init_version ();
   scm_init_weaks ();
-/*   scm_init_guardians (); */
+  scm_init_guardians ();
   scm_init_vports ();
   scm_init_eval ();
   scm_init_evalext ();
