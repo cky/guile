@@ -41,10 +41,10 @@ headers.
 Guile now provides scm_effective_version and effective-version
 functions which return the "effective" version number.  This is just
 the normal full version string without the final micro-version number,
-so the current effective-version is "1.7".  The effective version
+so the current effective-version is "1.10".  The effective version
 should remain unchanged during a stable series, and should be used for
 items like the versioned share directory name
-i.e. /usr/share/guile/1.7.
+i.e. /usr/share/guile/1.10.
 
 Providing an unchanging version number during a stable release for
 things like the versioned share directory can be particularly
