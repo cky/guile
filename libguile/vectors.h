@@ -99,7 +99,8 @@ SCM_API SCM  scm_i_vector_equal_p (SCM x, SCM y);
 #define SCM_I_WVECT_GC_CHAIN(x)         (SCM_CELL_OBJECT_3 (x))
 #define SCM_I_SET_WVECT_GC_CHAIN(x, o)  (SCM_SET_CELL_OBJECT_3 ((x), (o)))
 
-SCM_API SCM scm_i_allocate_weak_vector (scm_t_bits type, SCM size, SCM fill);
+SCM_API SCM scm_i_make_weak_vector (scm_t_bits type, SCM size, SCM fill);
+SCM_API SCM scm_i_make_weak_vector_from_list (scm_t_bits type, SCM lst);
 
 SCM_API void scm_init_vectors (void);
 

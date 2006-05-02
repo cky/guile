@@ -384,45 +384,85 @@ scm_i_vector_free (SCM vec)
 	       "vector");
 }
 
-/* Allocate memory for a weak vector on behalf of the caller.  The allocated
- * vector will be of the given weak vector subtype.  It will contain size
- * elements which are initialized with the 'fill' object, or, if 'fill' is
- * undefined, with an unspecified object.
- */
-SCM
-scm_i_allocate_weak_vector (scm_t_bits type, SCM size, SCM fill)
-{
-  size_t c_size;
-  SCM *base;
-  SCM v;
+
+/* Weak vectors.  */
 
-  c_size = scm_to_unsigned_integer (size, 0, VECTOR_MAX_LENGTH);
+
+/* Initialize RET as a weak vector of type TYPE of SIZE elements pointed to
+   by BASE.  */
+#define MAKE_WEAK_VECTOR(_ret, _type, _size, _base)		\
+  (_ret) = scm_double_cell ((_size << 8) | scm_tc7_wvect,	\
+			    (scm_t_bits) (_base),		\
+			    (_type),				\
+			    SCM_UNPACK (SCM_EOL));
+
+
+/* Allocate memory for the elements of a weak vector on behalf of the
+   caller.  */
+static SCM *
+allocate_weak_vector (scm_t_bits type, size_t c_size)
+{
+  SCM *base;
 
   if (c_size > 0)
-    {
-      size_t j;
-
-      if (SCM_UNBNDP (fill))
-	fill = SCM_UNSPECIFIED;
-
-      /* The base itself should not be scanned for pointers otherwise those
-	 pointers will always be reachable.  */
-      base = scm_gc_malloc_pointerless (c_size * sizeof (SCM), "weak vector");
-      for (j = 0; j != c_size; ++j)
-	base[j] = fill;
-    }
+    /* The base itself should not be scanned for pointers otherwise those
+       pointers will always be reachable.  */
+    base = scm_gc_malloc_pointerless (c_size * sizeof (SCM), "weak vector");
   else
     base = NULL;
 
-  v = scm_double_cell ((c_size << 8) | scm_tc7_wvect,
-		       (scm_t_bits) base,
-		       type,
-		       SCM_UNPACK (SCM_EOL));
-  scm_remember_upto_here_1 (fill);
-
-  return v;
+  return base;
 }
 
+/* Return a new weak vector.  The allocated vector will be of the given weak
+   vector subtype.  It will contain SIZE elements which are initialized with
+   the FILL object, or, if FILL is undefined, with an unspecified object.  */
+SCM
+scm_i_make_weak_vector (scm_t_bits type, SCM size, SCM fill)
+{
+  SCM wv, *base;
+  size_t c_size, j;
+
+  if (SCM_UNBNDP (fill))
+    fill = SCM_UNSPECIFIED;
+
+  c_size = scm_to_unsigned_integer (size, 0, VECTOR_MAX_LENGTH);
+  base = allocate_weak_vector (type, c_size);
+
+  for (j = 0; j != c_size; ++j)
+    base[j] = fill;
+
+  MAKE_WEAK_VECTOR (wv, type, c_size, base);
+
+  return wv;
+}
+
+/* Return a new weak vector with type TYPE and whose content are taken from
+   list LST.  */
+SCM
+scm_i_make_weak_vector_from_list (scm_t_bits type, SCM lst)
+{
+  SCM wv, *base, *elt;
+  long c_size;
+
+  c_size = scm_ilength (lst);
+  SCM_ASSERT (c_size >= 0, lst, SCM_ARG2, "scm_i_make_weak_vector_from_list");
+
+  base = allocate_weak_vector (type, (size_t)c_size);
+  for (elt = base;
+       scm_is_pair (lst);
+       lst = SCM_CDR (lst), elt++)
+    {
+      *elt = SCM_CAR (lst);
+    }
+
+  MAKE_WEAK_VECTOR (wv, type, (size_t)c_size, base);
+
+  return wv;
+}
+
+
+
 SCM_DEFINE (scm_vector_to_list, "vector->list", 1, 0, 0, 
 	    (SCM v),
 	    "Return a newly allocated list composed of the elements of @var{v}.\n"

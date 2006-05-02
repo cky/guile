@@ -76,7 +76,7 @@ SCM_DEFINE (scm_make_weak_vector, "make-weak-vector", 1, 1, 0,
 	    "empty list.")
 #define FUNC_NAME s_scm_make_weak_vector
 {
-  return scm_i_allocate_weak_vector (0, size, fill);
+  return scm_i_make_weak_vector (0, size, fill);
 }
 #undef FUNC_NAME
 
@@ -92,26 +92,7 @@ SCM_DEFINE (scm_weak_vector, "weak-vector", 0, 0, 1,
 	    "the same way @code{list->vector} would.")
 #define FUNC_NAME s_scm_weak_vector
 {
-  scm_t_array_handle handle;
-  SCM res, *data;
-  long i;
-
-  i = scm_ilength (l);
-  SCM_ASSERT (i >= 0, l, SCM_ARG1, FUNC_NAME);
-
-  res = scm_make_weak_vector (scm_from_int (i), SCM_UNSPECIFIED);
-  data = scm_vector_writable_elements (res, &handle, NULL, NULL);
-
-  while (scm_is_pair (l) && i > 0)
-    {
-      *data++ = SCM_CAR (l);
-      l = SCM_CDR (l);
-      i--;
-    }
-
-  scm_array_handle_release (&handle);
-
-  return res;
+  return scm_i_make_weak_vector_from_list (0, l);
 }
 #undef FUNC_NAME
 
