@@ -153,7 +153,7 @@ SCM_DEFINE (scm_make_doubly_weak_alist_vector, "make-doubly-weak-alist-vector", 
 	    "buckets.  (@pxref{Hash Tables})")
 #define FUNC_NAME s_scm_make_doubly_weak_alist_vector
 {
-  return scm_make_doubly_weak_alist_vector (size);
+  return scm_make_doubly_weak_hash_table (size);
 }
 #undef FUNC_NAME
 
