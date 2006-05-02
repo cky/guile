@@ -625,16 +625,30 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 		last = pstate->length - 1;
 		cutp = 1;
 	      }
-	    for (i = 0; i < last; ++i)
+	    if (SCM_I_WVECTP (exp))
 	      {
-		/* CHECK_INTS; */
-		scm_iprin1 (SCM_SIMPLE_VECTOR_REF (exp, i), port, pstate);
-		scm_putc (' ', port);
+		/* Elements of weak vectors may not be accessed via the
+		   `SIMPLE_VECTOR_REF ()' macro.  */
+		for (i = 0; i < last; ++i)
+		  {
+		    scm_iprin1 (scm_c_vector_ref (exp, i),
+				port, pstate);
+		    scm_putc (' ', port);
+		  }
 	      }
+	    else
+	      {
+		for (i = 0; i < last; ++i)
+		  {
+		    scm_iprin1 (SCM_SIMPLE_VECTOR_REF (exp, i), port, pstate);
+		    scm_putc (' ', port);
+		  }
+	      }
+
 	    if (i == last)
 	      {
 		/* CHECK_INTS; */
-		scm_iprin1 (SCM_SIMPLE_VECTOR_REF (exp, i), port, pstate);
+		scm_iprin1 (scm_c_vector_ref (exp, i), port, pstate);
 	      }
 	    if (cutp)
 	      scm_puts (" ...", port);
