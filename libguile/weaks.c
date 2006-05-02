@@ -132,6 +132,12 @@ SCM_DEFINE (scm_weak_vector_p, "weak-vector?", 1, 0, 0,
    The alist vector themselves are _not_ weak.  The `car' (or `cdr', or both)
    of the pairs within it are weak.  See `hashtab.c' for details.  */
 
+
+/* FIXME: We used to have two implementations of weak hash tables: the one in
+   here and the one in `hashtab.c'.  The difference is that weak alist
+   vectors could be used as vectors while (weak) hash tables can't.  We need
+   to unify that.  */
+
 SCM_DEFINE (scm_make_weak_key_alist_vector, "make-weak-key-alist-vector", 0, 1, 0, 
 	    (SCM size),
 	    "@deffnx {Scheme Procedure} make-weak-value-alist-vector size\n"
@@ -144,7 +150,7 @@ SCM_DEFINE (scm_make_weak_key_alist_vector, "make-weak-key-alist-vector", 0, 1, 
 	    "would modify regular hash tables. (@pxref{Hash Tables})")
 #define FUNC_NAME s_scm_make_weak_key_alist_vector
 {
-  return scm_make_vector (size, SCM_EOL);
+  return scm_make_weak_key_hash_table (size);
 }
 #undef FUNC_NAME
 
@@ -155,7 +161,7 @@ SCM_DEFINE (scm_make_weak_value_alist_vector, "make-weak-value-alist-vector", 0,
 	    "(@pxref{Hash Tables})")
 #define FUNC_NAME s_scm_make_weak_value_alist_vector
 {
-  return scm_make_vector (size, SCM_EOL);
+  return scm_make_weak_value_hash_table (size);
 }
 #undef FUNC_NAME
 
@@ -166,7 +172,7 @@ SCM_DEFINE (scm_make_doubly_weak_alist_vector, "make-doubly-weak-alist-vector", 
 	    "buckets.  (@pxref{Hash Tables})")
 #define FUNC_NAME s_scm_make_doubly_weak_alist_vector
 {
-  return scm_make_vector (size, SCM_EOL);
+  return scm_make_doubly_weak_alist_vector (size);
 }
 #undef FUNC_NAME
 
