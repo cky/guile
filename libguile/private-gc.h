@@ -163,7 +163,17 @@ int scm_i_gc_grow_heap_p (scm_t_cell_type_statistics * freelist);
 #define SCM_MAX(A, B) ((A) > (B) ? (A) : (B))
 #define SCM_MIN(A, B) ((A) < (B) ? (A) : (B))
 
-#define CELL_P(x)  (SCM_ITAG3 (x) == scm_tc3_cons)
+/* CELL_P checks a random word whether it has the right form for a
+   pointer to a cell.  Use scm_i_find_heap_segment_containing_object
+   to find out whether it actually points to a real cell.
+
+   The right form for a cell pointer is this: the low three bits must
+   be scm_tc3_cons, and when the scm_tc3_cons tag is stripped, the
+   resulting pointer must be correctly aligned.
+   scm_i_initialize_heap_segment_data guarantees that the test below
+   works.
+*/
+#define CELL_P(x)  ((SCM_UNPACK(x) & (sizeof(scm_t_cell)-1)) == scm_tc3_cons)
 
 /*
   gc-mark
