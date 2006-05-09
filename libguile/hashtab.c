@@ -226,21 +226,22 @@ scm_fixup_weak_alist (SCM alist, size_t *removed_items)
 
 /* Return true if OBJ is either a weak hash table or a weak alist vector (as
    defined in `weaks.[ch]').
-   FIXME: We should eventually keep only weah hash tables.  */
-/* XXX: We assume that if OBJ is a vector, then it's a _weak_ vector.  */
+   FIXME: We should eventually keep only weah hash tables.  Actually, the
+   procs in `weaks.c' already no longer return vectors.  */
+/* XXX: We assume that if OBJ is a vector, then it's a _weak_ alist vector.  */
 #define IS_WEAK_THING(_obj)					\
   ((SCM_HASHTABLE_P (table) && (SCM_HASHTABLE_WEAK_P (table)))	\
    || (SCM_I_IS_VECTOR (table)))
 
 /* Fixup BUCKET, an alist part of weak hash table OBJ.  BUCKETS is the full
    bucket vector for OBJ and IDX is the index of BUCKET within this
-   vector.  */
+   vector.  See also `scm_internal_hash_fold ()'.  */
 #define START_WEAK_BUCKET_FIXUP(_obj, _buckets, _idx, _bucket)		   \
 do									   \
   {									   \
     size_t _removed;							   \
 									   \
-    /* Disable the GC so that ALIST remains valid until ASSOC_FN has	   \
+    /* Disable the GC so that BUCKET remains valid until ASSOC_FN has	   \
        returned.  */							   \
     /* FIXME: We could maybe trigger a rehash here depending on whether	   \
        `scm_fixup_weak_alist ()' noticed some change.  */		   \
@@ -303,6 +304,12 @@ scm_i_rehash (SCM table,
   int i;
   unsigned long old_size;
   unsigned long new_size;
+
+  if (SCM_HASHTABLE_P (table) && SCM_HASHTABLE_WEAK_P (table))
+    /* FIXME: We don't currently support weak hash table rehashing.  In order
+       to support it, we need to pay attention to NULL pairs, as in
+       `scm_internal_hash_fold ()', `START_WEAK_BUCKET_FIXUP ()', et al.  */
+    return;
 
   if (SCM_HASHTABLE_N_ITEMS (table) < SCM_HASHTABLE_LOWER (table))
     {
@@ -672,9 +679,9 @@ scm_hash_fn_create_handle_x (SCM table, SCM obj, SCM init, unsigned long (*hash_
       */
       SCM handle, new_bucket;
 
-      if ((SCM_HASHTABLE_P (table) && (SCM_HASHTABLE_WEAK_P (table)))
-	  || (SCM_I_IS_VECTOR (table)))
+      if ((SCM_HASHTABLE_P (table)) && (SCM_HASHTABLE_WEAK_P (table)))
 	{
+	  /* FIXME: We don't support weak alist vectors.  */
 	  /* Use a weak cell.  */
 	  if (SCM_HASHTABLE_DOUBLY_WEAK_P (table))
 	    handle = scm_doubly_weak_cell (obj, init);
@@ -1151,21 +1158,54 @@ scm_internal_hash_fold (SCM (*fn) (), void *closure, SCM init, SCM table)
   if (SCM_HASHTABLE_P (table))
     buckets = SCM_HASHTABLE_VECTOR (table);
   else
+    /* Weak alist vector.  */
     buckets = table;
   
   n = SCM_SIMPLE_VECTOR_LENGTH (buckets);
   for (i = 0; i < n; ++i)
     {
-      SCM ls = SCM_SIMPLE_VECTOR_REF (buckets, i), handle;
-      while (!scm_is_null (ls))
+      SCM prev, ls;
+
+      for (prev = SCM_BOOL_F, ls = SCM_SIMPLE_VECTOR_REF (buckets, i);
+	   !scm_is_null (ls);
+	   prev = ls, ls = SCM_CDR (ls))
 	{
+	  SCM handle;
+
 	  if (!scm_is_pair (ls))
 	    scm_wrong_type_arg (s_scm_hash_fold, SCM_ARG3, buckets);
+
 	  handle = SCM_CAR (ls);
 	  if (!scm_is_pair (handle))
 	    scm_wrong_type_arg (s_scm_hash_fold, SCM_ARG3, buckets);
+
+	  if (IS_WEAK_THING (table))
+	    {
+	      if ((SCM_CAR (handle) == SCM_PACK (NULL))
+		  || (SCM_CDR (handle) == SCM_PACK (NULL)))
+		{
+		  /* We hit a weak pair whose car/cdr has become
+		     unreachable: unlink it from the bucket.  */
+		  if (prev != SCM_BOOL_F)
+		    SCM_SETCDR (prev, SCM_CDR (ls));
+		  else
+		    SCM_SIMPLE_VECTOR_SET (buckets, i, SCM_CDR (ls));
+
+		  if (SCM_HASHTABLE_P (table))
+		    {
+		      /* Update the item count.  */
+		      unsigned long items = SCM_HASHTABLE_N_ITEMS (table);
+
+		      if (items <= 0)
+			abort ();
+		      SCM_SET_HASHTABLE_N_ITEMS (table, items - 1);
+		    }
+
+		  continue;
+		}
+	    }
+
 	  result = fn (closure, SCM_CAR (handle), SCM_CDR (handle), result);
-	  ls = SCM_CDR (ls);
 	}
     }
 

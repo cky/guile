@@ -587,8 +587,18 @@ scm_module_reverse_lookup (SCM module, SCM variable)
       while (!scm_is_null (ls))
 	{
 	  handle = SCM_CAR (ls);
-	  if (SCM_CDR (handle) == variable)
-	    return SCM_CAR (handle);
+
+	  if (SCM_CAR (handle) == SCM_PACK (NULL))
+	    {
+	      /* FIXME: We hit a weak pair whose car has become unreachable.
+		 We should remove the pair in question or something.  */
+	    }
+	  else
+	    {
+	      if (SCM_CDR (handle) == variable)
+		return SCM_CAR (handle);
+	    }
+
 	  ls = SCM_CDR (ls);
 	}
     }
