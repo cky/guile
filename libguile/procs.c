@@ -109,20 +109,6 @@ scm_c_define_subr_with_generic (const char *name,
   return subr;
 }
 
-void
-scm_mark_subr_table ()
-{
-  long i;
-  for (i = 0; i < scm_subr_table_size; ++i)
-    {
-      scm_gc_mark (scm_subr_table[i].name);
-      if (scm_subr_table[i].generic && *scm_subr_table[i].generic)
-	scm_gc_mark (*scm_subr_table[i].generic);
-      if (SCM_NIMP (scm_subr_table[i].properties))
-	scm_gc_mark (scm_subr_table[i].properties);
-    }
-}
-
 
 #ifdef CCLO
 SCM 

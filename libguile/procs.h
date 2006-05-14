@@ -136,7 +136,6 @@ SCM_API long scm_subr_table_room;
 
 
 
-SCM_API void scm_mark_subr_table (void);
 SCM_API void scm_free_subr_entry (SCM subr);
 SCM_API SCM scm_c_make_subr (const char *name, long type, SCM (*fcn)());
 SCM_API SCM scm_c_make_subr_with_generic (const char *name, long type,

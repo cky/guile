@@ -191,74 +191,9 @@ SCM_DEFINE (scm_doubly_weak_alist_vector_p, "doubly-weak-alist-vector?", 1, 0, 0
 }
 #undef FUNC_NAME
 
-#define UNMARKED_CELL_P(x) 1 /* (SCM_NIMP(x) && !SCM_GC_MARK_P (x)) *//*
-									FIXME */
 
-
-static void
-scm_i_remove_weaks (SCM w)
-{
-  return;  /* FIXME */
-#if 0
-  SCM *ptr = SCM_I_WVECT_GC_WVELTS (w);
-  size_t n = SCM_I_WVECT_LENGTH (w);
-  size_t i;
-
-  if (!SCM_IS_WHVEC_ANY (w))
-    {
-      for (i = 0; i < n; ++i)
-	if (UNMARKED_CELL_P (ptr[i]))
-	  ptr[i] = SCM_BOOL_F;
-    }
-  else
-    {
-      size_t delta = 0;
-
-      for (i = 0; i < n; ++i)
-	{
-	  SCM alist, *fixup;
-
-	  fixup = ptr + i;
-	  alist = *fixup;
-	  while (scm_is_pair (alist) && !SCM_GC_MARK_P (alist))
-	    {
-	      if (UNMARKED_CELL_P (SCM_CAR (alist)))
-		{
-		  *fixup = SCM_CDR (alist);
-		  delta++;
-		}
-	      else
-		{
-		  SCM_SET_GC_MARK (alist);
-		  fixup = SCM_CDRLOC (alist);
-		}
-	      alist = *fixup;
-	    }
-	}
-#if 0
-      if (delta)
-	fprintf (stderr, "vector %p, delta %d\n", w, delta);
-#endif
-      SCM_I_SET_WVECT_DELTA (w, delta);
-    }
-#endif
-}
-
-#if 0
-void
-scm_i_remove_weaks_from_weak_vectors ()
-{
-  SCM w = weak_vectors;
-  while (!scm_is_null (w))
-    {
-      scm_i_remove_weaks (w);
-      w = SCM_I_WVECT_GC_CHAIN (w);
-    }
-}
-#endif
 
 
-
 SCM
 scm_init_weaks_builtins ()
 {

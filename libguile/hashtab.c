@@ -400,47 +400,9 @@ hashtable_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
   return 1;
 }
 
-/* FIXME */
-#define UNMARKED_CELL_P(x) 0 /* (SCM_NIMP(x) && !SCM_GC_MARK_P (x)) */
-
 /* keep track of hash tables that need to shrink after scan */
 static SCM to_rehash = SCM_EOL;
 
-/* scan hash tables and update hash tables item count */
-void
-scm_i_scan_weak_hashtables ()
-{
-#if 0 /* FIXME */
-  SCM *next = &weak_hashtables;
-  SCM h = *next;
-  while (!scm_is_null (h))
-    {
-      if (!SCM_GC_MARK_P (h))
-	*next = h = SCM_HASHTABLE_NEXT (h);
-      else
-	{
-	  SCM vec = SCM_HASHTABLE_VECTOR (h);
-	  size_t delta = SCM_I_WVECT_DELTA (vec);
-	  SCM_I_SET_WVECT_DELTA (vec, 0);
-	  SCM_SET_HASHTABLE_N_ITEMS (h, SCM_HASHTABLE_N_ITEMS (h) - delta);
-
-	  if (SCM_HASHTABLE_N_ITEMS (h) < SCM_HASHTABLE_LOWER (h))
-	    {
-	      SCM tmp = SCM_HASHTABLE_NEXT (h);
-	      /* temporarily move table from weak_hashtables to to_rehash */
-	      SCM_SET_HASHTABLE_NEXT (h, to_rehash);
-	      to_rehash = h;
-	      *next = h = tmp;
-	    }
-	  else
-	    {
-	      next = SCM_HASHTABLE_NEXTLOC (h);
-	      h = SCM_HASHTABLE_NEXT (h);
-	    }
-	}
-    }
-#endif
-}
 
 static void *
 rehash_after_gc (void *dummy1 SCM_UNUSED,
