@@ -139,7 +139,7 @@ void scm_i_thread_sleep_for_gc (void);
 
 void scm_threads_prehistory (SCM_STACKITEM *);
 void scm_threads_init_first_thread (void);
-SCM_API void scm_threads_mark_stacks (void);
+
 SCM_API void scm_init_threads (void);
 SCM_API void scm_init_thread_procs (void);
 SCM_API void scm_init_threads_default_dynamic_state (void);

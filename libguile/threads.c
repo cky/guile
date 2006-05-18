@@ -1305,30 +1305,7 @@ SCM_DEFINE (scm_broadcast_condition_variable, "broadcast-condition-variable", 1,
 # define SCM_MARK_BACKING_STORE()
 #endif
 
-void
-scm_threads_mark_stacks (void)
-{
-  scm_i_thread *t;
-  for (t = all_threads; t; t = t->next_thread)
-    {
-      /* Check that thread has indeed been suspended.
-       */
-      assert (t->top);
 
-      scm_gc_mark (t->handle);
-
-#if SCM_STACK_GROWS_UP
-      scm_mark_locations (t->base, t->top - t->base);
-#else
-      scm_mark_locations (t->top, t->base - t->top);
-#endif
-      scm_mark_locations ((SCM_STACKITEM *) t->regs,
-			  ((size_t) sizeof(t->regs)
-			   / sizeof (SCM_STACKITEM)));
-    }
-
-  SCM_MARK_BACKING_STORE ();
-}
 
 /*** Select */
 

@@ -43,41 +43,6 @@
 
 scm_t_bits scm_tc16_continuation;
 
-static SCM
-continuation_mark (SCM obj)
-{
-  scm_t_contregs *continuation = SCM_CONTREGS (obj);
-
-  scm_gc_mark (continuation->root);
-  scm_gc_mark (continuation->throw_value);
-  scm_mark_locations (continuation->stack, continuation->num_stack_items);
-#ifdef __ia64__
-  if (continuation->backing_store)
-    scm_mark_locations (continuation->backing_store, 
-                        continuation->backing_store_size / 
-                        sizeof (SCM_STACKITEM));
-#endif /* __ia64__ */
-  return continuation->dynenv;
-}
-
-static size_t
-continuation_free (SCM obj)
-{
-  scm_t_contregs *continuation = SCM_CONTREGS (obj);
-  /* stack array size is 1 if num_stack_items is 0.  */
-  size_t extra_items = (continuation->num_stack_items > 0)
-    ? (continuation->num_stack_items - 1)
-    : 0;
-  size_t bytes_free = sizeof (scm_t_contregs)
-    + extra_items * sizeof (SCM_STACKITEM);
-
-#ifdef __ia64__
-  scm_gc_free (continuation->backing_store, continuation->backing_store_size,
-	       "continuation backing store");
-#endif /* __ia64__ */ 
-  scm_gc_free (continuation, bytes_free, "continuation");
-  return 0;
-}
 
 static int
 continuation_print (SCM obj, SCM port, scm_print_state *state SCM_UNUSED)
@@ -430,8 +395,6 @@ void
 scm_init_continuations ()
 {
   scm_tc16_continuation = scm_make_smob_type ("continuation", 0);
-  scm_set_smob_mark (scm_tc16_continuation, continuation_mark);
-  scm_set_smob_free (scm_tc16_continuation, continuation_free);
   scm_set_smob_print (scm_tc16_continuation, continuation_print);
   scm_set_smob_apply (scm_tc16_continuation, continuation_apply, 0, 0, 1);
 #include "libguile/continuations.x"
