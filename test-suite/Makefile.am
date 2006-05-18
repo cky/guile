@@ -30,7 +30,6 @@ SCM_TESTS = tests/alist.test			\
 	    tests/common-list.test		\
 	    tests/continuations.test		\
 	    tests/elisp.test			\
-	    tests/environments.test		\
 	    tests/eval.test			\
 	    tests/exceptions.test		\
 	    tests/filesys.test			\
