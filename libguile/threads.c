@@ -406,6 +406,8 @@ guilify_self_1 (SCM_STACKITEM *base)
   scm_i_pthread_mutex_init (&t->heap_mutex, NULL);
   t->clear_freelists_p = 0;
   t->gc_running_p = 0;
+  t->current_mark_stack_ptr = NULL;
+  t->current_mark_stack_limit = NULL;
   t->exited = 0;
 
   t->freelist = SCM_EOL;

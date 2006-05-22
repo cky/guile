@@ -71,7 +71,7 @@ SCM_C_INLINE
 SCM
 scm_cell (scm_t_bits car, scm_t_bits cdr)
 {
-  SCM cell = SCM_PACK ((scm_t_bits) (GC_malloc (sizeof (scm_t_cell))));
+  SCM cell = SCM_PACK ((scm_t_bits) (GC_MALLOC (sizeof (scm_t_cell))));
 
   /* Initialize the type slot last so that the cell is ignored by the GC
      until it is completely initialized.  This is only relevant when the GC

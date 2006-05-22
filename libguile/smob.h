@@ -44,40 +44,55 @@ typedef struct scm_smob_descriptor
   int gsubr_type; /* Used in procprop.c */
 } scm_smob_descriptor;
 
+
 
+SCM_API SCM scm_i_new_smob_with_mark_proc (scm_t_bits tc,
+					   scm_t_bits, scm_t_bits, scm_t_bits);
 
-#define SCM_NEWSMOB(z, tc, data) \
-do { \
-  z = scm_cell ((tc), (scm_t_bits) (data)); \
-} while (0)
 
-#define SCM_RETURN_NEWSMOB(tc, data) \
-  do { SCM __SCM_smob_answer; \
-       SCM_NEWSMOB (__SCM_smob_answer, (tc), (data)); \
-       return __SCM_smob_answer; \
+
+#define SCM_NEWSMOB(z, tc, data)					\
+do									\
+  {									\
+    z = (scm_smobs[SCM_TC2SMOBNUM (tc)].mark				\
+	 ? scm_i_new_smob_with_mark_proc ((tc), (scm_t_bits)(data),	\
+					  0, 0)				\
+	 : scm_cell (tc, (scm_t_bits)(data)));				\
+  }									\
+while (0)
+
+#define SCM_RETURN_NEWSMOB(tc, data)			\
+  do { SCM __SCM_smob_answer;				\
+       SCM_NEWSMOB (__SCM_smob_answer, (tc), (data));	\
+       return __SCM_smob_answer;			\
   } while (0)
 
-#define SCM_NEWSMOB2(z, tc, data1, data2) \
-do { \
-  z = scm_double_cell ((tc), (scm_t_bits)(data1), (scm_t_bits)(data2), 0); \
-} while (0)
+#define SCM_NEWSMOB2(z, tc, data1, data2)	\
+  SCM_NEWSMOB3 (z, tc, data1, data2, 0)
 
-#define SCM_RETURN_NEWSMOB2(tc, data1, data2) \
-  do { SCM __SCM_smob_answer; \
-       SCM_NEWSMOB2 (__SCM_smob_answer, (tc), (data1), (data2)); \
-       return __SCM_smob_answer; \
+#define SCM_RETURN_NEWSMOB2(tc, data1, data2)				\
+  do { SCM __SCM_smob_answer;						\
+       SCM_NEWSMOB2 (__SCM_smob_answer, (tc), (data1), (data2));	\
+       return __SCM_smob_answer;					\
   } while (0)
 
-#define SCM_NEWSMOB3(z, tc, data1, data2, data3) \
-do { \
-  z = scm_double_cell ((tc), (scm_t_bits)(data1), \
-                       (scm_t_bits)(data2), (scm_t_bits)(data3)); \
-} while (0)
+#define SCM_NEWSMOB3(z, tc, data1, data2, data3)			\
+do									\
+  {									\
+    z = (scm_smobs[SCM_TC2SMOBNUM (tc)].mark				\
+	 ? scm_i_new_smob_with_mark_proc (tc, (scm_t_bits)(data1),	\
+					  (scm_t_bits)(data2),		\
+					  (scm_t_bits)(data3))		\
+	 : scm_double_cell ((tc), (scm_t_bits)(data1),			\
+			    (scm_t_bits)(data2),			\
+			    (scm_t_bits)(data3)));			\
+  }									\
+while (0)
 
-#define SCM_RETURN_NEWSMOB3(tc, data1, data2, data3) \
-  do { SCM __SCM_smob_answer; \
-       SCM_NEWSMOB3 (__SCM_smob_answer, (tc), (data1), (data2), (data3)); \
-       return __SCM_smob_answer; \
+#define SCM_RETURN_NEWSMOB3(tc, data1, data2, data3)			    \
+  do { SCM __SCM_smob_answer;						    \
+       SCM_NEWSMOB3 (__SCM_smob_answer, (tc), (data1), (data2), (data3));   \
+       return __SCM_smob_answer;					    \
   } while (0)
 
 

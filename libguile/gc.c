@@ -889,25 +889,6 @@ scm_i_tag_name (scm_t_bits tag)
 }
 
 
-/*
-   FIXME: Unimplemented procs!
-
-*/
-
-void
-scm_gc_mark (SCM o)
-{
-}
-
-void
-scm_gc_mark_dependencies (SCM o)
-{
-}
-
-void
-scm_mark_locations (SCM_STACKITEM x[], unsigned long n)
-{
-}
 
 
 void

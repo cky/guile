@@ -72,6 +72,11 @@ typedef struct scm_i_thread {
   int gc_running_p;      /* non-zero while this thread does GC or a
 			    sweep. */
 
+  /* Information about the Boehm-GC mark stack during the mark phase.  This
+     is used by `scm_gc_mark ()'.  */
+  void *current_mark_stack_ptr;
+  void *current_mark_stack_limit;
+
   /* Other thread local things.
    */
   SCM dynamic_state;

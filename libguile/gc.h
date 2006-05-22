@@ -215,8 +215,6 @@ SCM_API void scm_gc_for_alloc (struct scm_t_cell_type_statistics *freelist);
 SCM_API SCM scm_gc_for_newcell (struct scm_t_cell_type_statistics *master, SCM *freelist);
 SCM_API void scm_i_gc (const char *what);
 SCM_API void scm_gc_mark (SCM p);
-SCM_API void scm_gc_mark_dependencies (SCM p);
-SCM_API void scm_mark_locations (SCM_STACKITEM x[], unsigned long n);
 SCM_API int scm_in_heap_p (SCM value);
 SCM_API void scm_gc_sweep (void);
 

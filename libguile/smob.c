@@ -485,11 +485,132 @@ free_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
   return 1;
 }
 
+
+/* Marking SMOBs using user-supplied mark procedures.  */
+
+#include <gc/gc.h>
+#include <gc/gc_mark.h>
+
+/* The freelist and GC kind used for SMOB types that provide a custom mark
+   procedure.  */
+static void **smob_freelist = NULL;
+static int    smob_gc_kind = 0;
+
+#define CURRENT_MARK_PTR							\
+  ((struct GC_ms_entry *)(SCM_I_CURRENT_THREAD->current_mark_stack_ptr))
+#define CURRENT_MARK_LIMIT							\
+  ((struct GC_ms_entry *)(SCM_I_CURRENT_THREAD->current_mark_stack_limit))
+
+
+/* The generic SMOB mark procedure that gets called for SMOBs allocated with
+   `scm_i_new_smob_with_mark_proc ()'.  */
+static struct GC_ms_entry *
+smob_mark (GC_word *addr, struct GC_ms_entry *mark_stack_ptr,
+	   struct GC_ms_entry *mark_stack_limit, GC_word env)
+{
+  register SCM cell;
+  scm_t_bits tc, smobnum;
+
+  cell = SCM_PACK ((scm_t_bits)addr);
+  tc = SCM_CELL_WORD_0 (cell);
+  smobnum = SCM_TC2SMOBNUM (tc);
+
+  if (smobnum >= scm_numsmob)
+    abort ();
+
+  mark_stack_ptr = GC_MARK_AND_PUSH (addr, mark_stack_ptr,
+				     mark_stack_limit, NULL);
+
+  mark_stack_ptr = GC_MARK_AND_PUSH (SCM2PTR (SCM_CELL_OBJECT_1 (cell)),
+				     mark_stack_ptr,
+				     mark_stack_limit, NULL);
+  mark_stack_ptr = GC_MARK_AND_PUSH (SCM2PTR (SCM_CELL_OBJECT_2 (cell)),
+				     mark_stack_ptr,
+				     mark_stack_limit, NULL);
+  mark_stack_ptr = GC_MARK_AND_PUSH (SCM2PTR (SCM_CELL_OBJECT_3 (cell)),
+				     mark_stack_ptr,
+				     mark_stack_limit, NULL);
+
+  if (scm_smobs[smobnum].mark)
+    {
+      SCM obj;
+
+      SCM_I_CURRENT_THREAD->current_mark_stack_ptr = mark_stack_ptr;
+      SCM_I_CURRENT_THREAD->current_mark_stack_limit = mark_stack_limit;
+
+      /* Invoke the SMOB's mark procedure, which will in turn invoke
+	 `scm_gc_mark ()', which may modify `current_mark_stack_ptr'.  */
+      obj = scm_smobs[smobnum].mark (cell);
+
+      mark_stack_ptr = SCM_I_CURRENT_THREAD->current_mark_stack_ptr;
+
+      if (SCM_NIMP (obj))
+	/* Mark the returned object.  */
+	mark_stack_ptr = GC_MARK_AND_PUSH (SCM2PTR (obj),
+					   mark_stack_ptr,
+					   mark_stack_limit, NULL);
+
+      SCM_I_CURRENT_THREAD->current_mark_stack_limit = NULL;
+      SCM_I_CURRENT_THREAD->current_mark_stack_ptr = NULL;
+    }
+
+  return mark_stack_ptr;
+
+}
+
+/* Mark object O.  We assume that this function is only called during the
+   mark phase, i.e., from within `smob_mark ()' or one of its
+   descendents.  */
+void
+scm_gc_mark (SCM o)
+{
+  if (SCM_NIMP (o))
+    {
+      /* At this point, the `current_mark_*' fields of the current thread
+	 must be defined (they are set in `smob_mark ()').  */
+      register struct GC_ms_entry *mark_stack_ptr;
+
+      if (!CURRENT_MARK_PTR)
+	/* The function was not called from a mark procedure.  */
+	abort ();
+
+      mark_stack_ptr = GC_MARK_AND_PUSH (SCM2PTR (o),
+					 CURRENT_MARK_PTR, CURRENT_MARK_LIMIT,
+					 NULL);
+      SCM_I_CURRENT_THREAD->current_mark_stack_ptr = mark_stack_ptr;
+    }
+}
+
+/* Return a SMOB with typecode TC.  The SMOB type corresponding to TC may
+   provide a custom mark procedure and it will be honored.  */
+SCM
+scm_i_new_smob_with_mark_proc (scm_t_bits tc, scm_t_bits data1,
+			       scm_t_bits data2, scm_t_bits data3)
+{
+  /* Return a double cell.  */
+  SCM cell = SCM_PACK (GC_generic_malloc (2 * sizeof (scm_t_cell),
+					  smob_gc_kind));
+
+  SCM_SET_CELL_WORD_3 (cell, data3);
+  SCM_SET_CELL_WORD_2 (cell, data2);
+  SCM_SET_CELL_WORD_1 (cell, data1);
+  SCM_SET_CELL_WORD_0 (cell, tc);
+
+  return cell;
+}
+
+
+
 void
 scm_smob_prehistory ()
 {
   long i;
   scm_t_bits tc;
+
+  smob_freelist = GC_new_free_list ();
+  smob_gc_kind = GC_new_kind ((void **)smob_freelist,
+			      GC_MAKE_PROC (GC_new_proc (smob_mark), 0),
+			      0, 0);
 
   scm_numsmob = 0;
   for (i = 0; i < MAX_SMOB_COUNT; ++i)
