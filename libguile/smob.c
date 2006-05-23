@@ -460,12 +460,13 @@ scm_set_smob_apply (scm_t_bits tc, SCM (*apply) (),
 SCM
 scm_make_smob (scm_t_bits tc)
 {
-  long n = SCM_TC2SMOBNUM (tc);
+  scm_t_bits n = SCM_TC2SMOBNUM (tc);
   size_t size = scm_smobs[n].size;
   scm_t_bits data = (size > 0
 		     ? (scm_t_bits) scm_gc_malloc (size, SCM_SMOBNAME (n))
 		     : 0);
-  return scm_cell (tc, data);
+
+  SCM_RETURN_NEWSMOB (tc, data);
 }
 
 
