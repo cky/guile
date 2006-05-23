@@ -203,10 +203,6 @@ scm_i_make_future (SCM thunk)
   return future;
 }
 
-static SCM
-future_mark (SCM ptr) {
-  return SCM_FUTURE_DATA (ptr);
-}
 
 static int 
 future_print (SCM exp, SCM port, scm_print_state *pstate)
@@ -359,7 +355,6 @@ scm_init_futures ()
     = SCM_VARIABLE_LOC (scm_c_define ("%thread-handler", SCM_BOOL_F));
 
   scm_tc16_future = scm_make_smob_type ("future", 0);
-  scm_set_smob_mark (scm_tc16_future, future_mark);
   scm_set_smob_print (scm_tc16_future, future_print);
 
   scm_c_hook_add (&scm_before_sweep_c_hook, scan_futures, 0, 0);

@@ -121,17 +121,6 @@ dequeue (SCM q)
 
 /*** Thread smob routines */
 
-static SCM
-thread_mark (SCM obj)
-{
-  scm_i_thread *t = SCM_I_THREAD_DATA (obj);
-  scm_gc_mark (t->result);
-  scm_gc_mark (t->join_queue);
-  scm_gc_mark (t->dynwinds);
-  scm_gc_mark (t->active_asyncs);
-  scm_gc_mark (t->continuation_root);
-  return t->dynamic_state;
-}
 
 static int
 thread_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
@@ -884,13 +873,6 @@ typedef struct {
 #define SCM_MUTEXP(x)         SCM_SMOB_PREDICATE (scm_tc16_mutex, x)
 #define SCM_MUTEX_DATA(x)     ((fat_mutex *) SCM_SMOB_DATA (x))
 
-static SCM
-fat_mutex_mark (SCM mx)
-{
-  fat_mutex *m = SCM_MUTEX_DATA (mx);
-  scm_gc_mark (m->owner);
-  return m->waiting;
-}
 
 static size_t
 fat_mutex_free (SCM mx)
@@ -1124,13 +1106,6 @@ typedef struct {
 
 #define SCM_CONDVARP(x)       SCM_SMOB_PREDICATE (scm_tc16_condvar, x)
 #define SCM_CONDVAR_DATA(x)   ((fat_cond *) SCM_SMOB_DATA (x))
-
-static SCM
-fat_cond_mark (SCM cv)
-{
-  fat_cond *c = SCM_CONDVAR_DATA (cv);
-  return c->waiting;
-}
 
 static size_t
 fat_cond_free (SCM mx)
@@ -1603,18 +1578,15 @@ void
 scm_init_threads ()
 {
   scm_tc16_thread = scm_make_smob_type ("thread", sizeof (scm_i_thread));
-  scm_set_smob_mark (scm_tc16_thread, thread_mark);
   scm_set_smob_print (scm_tc16_thread, thread_print);
-  scm_set_smob_free (scm_tc16_thread, thread_free);
+  scm_set_smob_free (scm_tc16_thread, thread_free); /* XXX: Could be removed */
 
   scm_tc16_mutex = scm_make_smob_type ("mutex", sizeof (fat_mutex));
-  scm_set_smob_mark (scm_tc16_mutex, fat_mutex_mark);
   scm_set_smob_print (scm_tc16_mutex, fat_mutex_print);
   scm_set_smob_free (scm_tc16_mutex, fat_mutex_free);
 
   scm_tc16_condvar = scm_make_smob_type ("condition-variable",
 					 sizeof (fat_cond));
-  scm_set_smob_mark (scm_tc16_condvar, fat_cond_mark);
   scm_set_smob_print (scm_tc16_condvar, fat_cond_print);
   scm_set_smob_free (scm_tc16_condvar, fat_cond_free);
 

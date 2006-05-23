@@ -1191,7 +1191,6 @@ scm_init_print ()
 
   /* Don't want to bind a wrapper class in GOOPS, so pass 0 as arg1. */
   scm_tc16_port_with_ps = scm_make_smob_type (0, 0);
-  scm_set_smob_mark (scm_tc16_port_with_ps, scm_markcdr);
   scm_set_smob_print (scm_tc16_port_with_ps, port_with_ps_print);
 
 #include "libguile/print.x"

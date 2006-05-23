@@ -529,7 +529,6 @@ scm_init_debug ()
   scm_init_opts (scm_debug_options, scm_debug_opts, SCM_N_DEBUG_OPTIONS);
 
   scm_tc16_memoized = scm_make_smob_type ("memoized", 0);
-  scm_set_smob_mark (scm_tc16_memoized, scm_markcdr);
   scm_set_smob_print (scm_tc16_memoized, memoized_print);
 
   scm_tc16_debugobj = scm_make_smob_type ("debug-object", 0);

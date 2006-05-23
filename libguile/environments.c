@@ -443,20 +443,6 @@ SCM_DEFINE (scm_environment_unobserve, "environment-unobserve", 1, 0, 0,
 #undef FUNC_NAME
 
 
-static SCM
-environment_mark (SCM env)
-{
-  return (*(SCM_ENVIRONMENT_FUNCS (env)->mark)) (env);
-}
-
-
-static size_t
-environment_free (SCM env)
-{
-  (*(SCM_ENVIRONMENT_FUNCS (env)->free)) (env);
-  return 0;
-}
-
 
 static int
 environment_print (SCM env, SCM port, scm_print_state *pstate)
@@ -467,14 +453,6 @@ environment_print (SCM env, SCM port, scm_print_state *pstate)
 
 
 /* observers */
-
-static SCM
-observer_mark (SCM observer)
-{
-  scm_gc_mark (SCM_OBSERVER_ENVIRONMENT (observer));
-  scm_gc_mark (SCM_OBSERVER_DATA (observer));
-  return SCM_BOOL_F;
-}
 
 
 static int
@@ -720,20 +698,6 @@ core_environments_unobserve (SCM env, SCM observer)
 }
 
 
-static SCM
-core_environments_mark (SCM env)
-{
-  scm_gc_mark (CORE_ENVIRONMENT_OBSERVERS (env));
-  return CORE_ENVIRONMENT_WEAK_OBSERVER_VECTOR (env);
-}
-
-
-static void
-core_environments_finalize (SCM env SCM_UNUSED)
-{
-}
-
-
 static void
 core_environments_preinit (struct core_environments_base *body)
 {
@@ -963,22 +927,6 @@ leaf_environment_cell (SCM env, SCM sym, int for_write SCM_UNUSED)
 }
 
 
-static SCM
-leaf_environment_mark (SCM env)
-{
-  scm_gc_mark (LEAF_ENVIRONMENT (env)->obarray);
-  return core_environments_mark (env);
-}
-
-
-static void
-leaf_environment_free (SCM env)
-{
-  core_environments_finalize (env);
-  scm_gc_free (LEAF_ENVIRONMENT (env), sizeof (struct leaf_environment),
-	       "leaf environment");
-}
-
 
 static int
 leaf_environment_print (SCM type, SCM port, scm_print_state *pstate SCM_UNUSED)
@@ -1003,8 +951,6 @@ static struct scm_environment_funcs leaf_environment_funcs = {
   leaf_environment_cell,
   core_environments_observe,
   core_environments_unobserve,
-  leaf_environment_mark,
-  leaf_environment_free,
   leaf_environment_print
 };
 
@@ -1316,29 +1262,6 @@ eval_environment_cell (SCM env, SCM sym, int for_write)
 #undef FUNC_NAME
 
 
-static SCM
-eval_environment_mark (SCM env)
-{
-  struct eval_environment *body = EVAL_ENVIRONMENT (env);
-
-  scm_gc_mark (body->obarray);
-  scm_gc_mark (body->imported);
-  scm_gc_mark (body->imported_observer);
-  scm_gc_mark (body->local);
-  scm_gc_mark (body->local_observer);
-
-  return core_environments_mark (env);
-}
-
-
-static void
-eval_environment_free (SCM env)
-{
-  core_environments_finalize (env);
-  scm_gc_free (EVAL_ENVIRONMENT (env), sizeof (struct eval_environment),
-	       "eval environment");
-}
-
 
 static int
 eval_environment_print (SCM type, SCM port, scm_print_state *pstate SCM_UNUSED)
@@ -1363,8 +1286,6 @@ static struct scm_environment_funcs eval_environment_funcs = {
     eval_environment_cell,
     core_environments_observe,
     core_environments_unobserve,
-    eval_environment_mark,
-    eval_environment_free,
     eval_environment_print
 };
 
@@ -1739,24 +1660,6 @@ import_environment_cell (SCM env, SCM sym, int for_write)
 #undef FUNC_NAME
 
 
-static SCM
-import_environment_mark (SCM env)
-{
-  scm_gc_mark (IMPORT_ENVIRONMENT (env)->imports);
-  scm_gc_mark (IMPORT_ENVIRONMENT (env)->import_observers);
-  scm_gc_mark (IMPORT_ENVIRONMENT (env)->conflict_proc);
-  return core_environments_mark (env);
-}
-
-
-static void
-import_environment_free (SCM env)
-{
-  core_environments_finalize (env);
-  scm_gc_free (IMPORT_ENVIRONMENT (env), sizeof (struct import_environment),
-	       "import environment");
-}
-
 
 static int
 import_environment_print (SCM type, SCM port, 
@@ -1782,8 +1685,6 @@ static struct scm_environment_funcs import_environment_funcs = {
   import_environment_cell,
   core_environments_observe,
   core_environments_unobserve,
-  import_environment_mark,
-  import_environment_free,
   import_environment_print
 };
 
@@ -2041,27 +1942,6 @@ export_environment_cell (SCM env, SCM sym, int for_write)
 #undef FUNC_NAME
 
 
-static SCM
-export_environment_mark (SCM env)
-{
-  struct export_environment *body = EXPORT_ENVIRONMENT (env);
-
-  scm_gc_mark (body->private);
-  scm_gc_mark (body->private_observer);
-  scm_gc_mark (body->signature);
-
-  return core_environments_mark (env);
-}
-
-
-static void
-export_environment_free (SCM env)
-{
-  core_environments_finalize (env);
-  scm_gc_free (EXPORT_ENVIRONMENT (env), sizeof (struct export_environment),
-	       "export environment");
-}
-
 
 static int
 export_environment_print (SCM type, SCM port,
@@ -2087,8 +1967,6 @@ static struct scm_environment_funcs export_environment_funcs = {
   export_environment_cell,
   core_environments_observe,
   core_environments_unobserve,
-  export_environment_mark,
-  export_environment_free,
   export_environment_print
 };
 
@@ -2318,13 +2196,10 @@ scm_environments_prehistory ()
 {
   /* create environment smob */
   scm_tc16_environment = scm_make_smob_type ("environment", 0);
-  scm_set_smob_mark (scm_tc16_environment, environment_mark);
-  scm_set_smob_free (scm_tc16_environment, environment_free);
   scm_set_smob_print (scm_tc16_environment, environment_print);
 
   /* create observer smob */
   scm_tc16_observer = scm_make_smob_type ("observer", 0);
-  scm_set_smob_mark (scm_tc16_observer, observer_mark);
   scm_set_smob_print (scm_tc16_observer, observer_print);
 
   /* create system environment */

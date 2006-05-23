@@ -142,7 +142,8 @@ scm_i_init_rstate (scm_t_i_rstate *state, const char *seed, int n)
 scm_t_i_rstate *
 scm_i_copy_rstate (scm_t_i_rstate *state)
 {
-  scm_t_rstate *new_state = scm_malloc (scm_the_rng.rstate_size);
+  scm_t_rstate *new_state = scm_gc_malloc (scm_the_rng.rstate_size,
+					   "random-state");
   return memcpy (new_state, state, scm_the_rng.rstate_size);
 }
 
@@ -154,7 +155,8 @@ scm_i_copy_rstate (scm_t_i_rstate *state)
 scm_t_rstate *
 scm_c_make_rstate (const char *seed, int n)
 {
-  scm_t_rstate *state = scm_malloc (scm_the_rng.rstate_size);
+  scm_t_rstate *state = scm_gc_malloc (scm_the_rng.rstate_size,
+				       "random-state");
   state->reserved0 = 0;
   scm_the_rng.init_rstate (state, seed, n);
   return state;
@@ -314,12 +316,6 @@ make_rstate (scm_t_rstate *state)
   SCM_RETURN_NEWSMOB (scm_tc16_rstate, state);
 }
 
-static size_t
-rstate_free (SCM rstate)
-{
-  free (SCM_RSTATE (rstate));
-  return 0;
-}
 
 /*
  * Scheme level interface.
@@ -595,7 +591,6 @@ scm_init_random ()
   scm_the_rng = rng;
   
   scm_tc16_rstate = scm_make_smob_type ("random-state", 0);
-  scm_set_smob_free (scm_tc16_rstate, rstate_free);
 
   for (m = 1; m <= 0x100; m <<= 1)
     for (i = m >> 1; i < m; ++i)

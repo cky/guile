@@ -244,34 +244,6 @@ uvec_equalp (SCM a, SCM b)
   return result;
 }
 
-/* Mark hook.  Only used when U64 and S64 are implemented as SCMs. */
-
-#if SCM_HAVE_T_INT64 == 0
-static SCM
-uvec_mark (SCM uvec)
-{
-  if (SCM_UVEC_TYPE (uvec) == SCM_UVEC_U64
-      || SCM_UVEC_TYPE (uvec) == SCM_UVEC_S64)
-    {
-      SCM *ptr = (SCM *)SCM_UVEC_BASE (uvec);
-      size_t len = SCM_UVEC_LENGTH (uvec), i;
-      for (i = 0; i < len; i++)
-	scm_gc_mark (*ptr++);
-    }
-  return SCM_BOOL_F;
-}
-#endif
-
-/* Smob free hook for uniform numeric vectors. */
-static size_t
-uvec_free (SCM uvec)
-{
-  int type = SCM_UVEC_TYPE (uvec);
-  scm_gc_free (SCM_UVEC_BASE (uvec),
-	       SCM_UVEC_LENGTH (uvec) * uvec_sizes[type],
-	       uvec_names[type]);
-  return 0;
-}
 
 /* ================================================================ */
 /* Utility procedures.                                              */
@@ -1121,10 +1093,6 @@ scm_init_srfi_4 (void)
 {
   scm_tc16_uvec = scm_make_smob_type ("uvec", 0);
   scm_set_smob_equalp (scm_tc16_uvec, uvec_equalp);
-#if SCM_HAVE_T_INT64 == 0
-  scm_set_smob_mark (scm_tc16_uvec, uvec_mark);
-#endif
-  scm_set_smob_free (scm_tc16_uvec, uvec_free);
   scm_set_smob_print (scm_tc16_uvec, uvec_print);
 
 #if SCM_HAVE_T_INT64 == 0

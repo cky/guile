@@ -659,7 +659,6 @@ scm_init_modules ()
   module_make_local_var_x_var = scm_c_define ("module-make-local-var!",
 					    SCM_UNDEFINED);
   scm_tc16_eval_closure = scm_make_smob_type ("eval-closure", 0);
-  scm_set_smob_mark (scm_tc16_eval_closure, scm_markcdr);
   scm_set_smob_apply (scm_tc16_eval_closure, scm_eval_closure_lookup, 2, 0, 0);
 
   the_module = scm_permanent_object (scm_make_fluid ());

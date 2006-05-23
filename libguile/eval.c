@@ -5593,18 +5593,6 @@ scm_makprom (SCM code)
 		       scm_make_recursive_mutex ());
 }
 
-static SCM
-promise_mark (SCM promise)
-{
-  scm_gc_mark (SCM_PROMISE_MUTEX (promise));
-  return SCM_PROMISE_DATA (promise);
-}
-
-static size_t
-promise_free (SCM promise)
-{
-  return 0;
-}
 
 static int 
 promise_print (SCM exp, SCM port, scm_print_state *pstate)
@@ -6025,8 +6013,6 @@ scm_init_eval ()
 		 SCM_N_EVAL_OPTIONS);
   
   scm_tc16_promise = scm_make_smob_type ("promise", 0);
-  scm_set_smob_mark (scm_tc16_promise, promise_mark);
-  scm_set_smob_free (scm_tc16_promise, promise_free);
   scm_set_smob_print (scm_tc16_promise, promise_print);
 
   undefineds = scm_list_1 (SCM_UNDEFINED);

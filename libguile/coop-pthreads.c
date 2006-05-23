@@ -128,15 +128,6 @@ init_thread_creatant (SCM thread, SCM_STACKITEM *base)
   t->top = NULL;
 }
 
-static SCM
-thread_mark (SCM obj)
-{
-  scm_copt_thread *t = SCM_THREAD_DATA (obj);
-  scm_gc_mark (t->result);
-  scm_gc_mark (t->joining_threads);
-  return t->root->handle;
-}
-
 static int
 thread_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
@@ -516,7 +507,7 @@ create_thread (scm_t_catch_body body, void *body_data,
 
     /* Allocate thread locals. */
     root = scm_make_root (scm_root->handle);
-    data = scm_malloc (sizeof (launch_data));
+    data = scm_gc_malloc (sizeof (launch_data));
 
     /* Make thread. */
     thread = make_thread (protects);
@@ -595,13 +586,6 @@ typedef struct scm_copt_mutex {
   SCM waiting;
 } scm_copt_mutex;
 
-static SCM
-mutex_mark (SCM mx)
-{
-  scm_copt_mutex *m = SCM_MUTEX_DATA (mx);
-  scm_gc_mark (m->owner);
-  return m->waiting;
-}
 
 SCM
 scm_make_mutex ()
@@ -825,13 +809,7 @@ scm_threads_init (SCM_STACKITEM *base)
   scm_gc_register_root (&all_threads);
   all_threads = scm_cons (cur_thread, SCM_EOL);
 
-  scm_set_smob_mark (scm_tc16_thread, thread_mark);
   scm_set_smob_print (scm_tc16_thread, thread_print);
-  scm_set_smob_free (scm_tc16_thread, thread_free);
-
-  scm_set_smob_mark (scm_tc16_mutex, mutex_mark);
-
-  scm_set_smob_mark (scm_tc16_condvar, cond_mark);
 }
 
 /*** Marking stacks */

@@ -111,7 +111,6 @@ void
 scm_init_keywords ()
 {
   scm_tc16_keyword = scm_make_smob_type ("keyword", 0);
-  scm_set_smob_mark (scm_tc16_keyword, scm_markcdr);
   scm_set_smob_print (scm_tc16_keyword, keyword_print);
 
   scm_keyword_obarray = scm_c_make_hash_table (0);

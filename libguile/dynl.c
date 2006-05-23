@@ -118,12 +118,6 @@ scm_t_bits scm_tc16_dynamic_obj;
 #define SET_DYNL_HANDLE(x, v) (SCM_SET_SMOB_DATA_2 ((x), (scm_t_bits) (v)))
 
 
-static SCM
-dynl_obj_mark (SCM ptr)
-{
-  return DYNL_FILENAME (ptr);
-}
-
 
 static int
 dynl_obj_print (SCM exp, SCM port, scm_print_state *pstate)
@@ -313,7 +307,6 @@ void
 scm_init_dynamic_linking ()
 {
   scm_tc16_dynamic_obj = scm_make_smob_type ("dynamic-object", 0);
-  scm_set_smob_mark (scm_tc16_dynamic_obj, dynl_obj_mark);
   scm_set_smob_print (scm_tc16_dynamic_obj, dynl_obj_print);
   sysdep_dynl_init ();
 #include "libguile/dynl.x"

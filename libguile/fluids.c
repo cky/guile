@@ -178,16 +178,6 @@ scan_dynamic_states_and_fluids (void *dummy1 SCM_UNUSED,
   return NULL;
 }
 
-static size_t
-fluid_free (SCM fluid)
-{
-  /* The real work is done in scan_dynamic_states_and_fluids.  We can
-     not touch allocated_fluids etc here since a smob free routine can
-     be run at any time, in any thread.
-  */
-  return 0;
-}
-
 static int
 fluid_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
@@ -601,11 +591,9 @@ void
 scm_fluids_prehistory ()
 {
   tc16_fluid = scm_make_smob_type ("fluid", 0);
-  scm_set_smob_free (tc16_fluid, fluid_free);
   scm_set_smob_print (tc16_fluid, fluid_print);
 
   tc16_dynamic_state = scm_make_smob_type ("dynamic-state", 0);
-  scm_set_smob_mark (tc16_dynamic_state, scm_markcdr);
 
   scm_c_hook_add (&scm_after_sweep_c_hook, scan_dynamic_states_and_fluids,
 		  0, 0);

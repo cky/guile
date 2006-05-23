@@ -86,11 +86,6 @@ static scm_t_bits tc16_async;
 #define SET_ASYNC_GOT_IT(X, V) (SCM_SET_CELL_WORD_0 ((X), SCM_TYP16 (X) | ((V) << 16)))
 #define ASYNC_THUNK(X)         SCM_CELL_OBJECT_1 (X)
 
-static SCM
-async_gc_mark (SCM obj)
-{
-  return ASYNC_THUNK (obj);
-}
 
 SCM_DEFINE (scm_async, "async", 1, 0, 0,
 	    (SCM thunk),
@@ -480,7 +475,6 @@ scm_init_async ()
 {
   scm_asyncs = SCM_EOL;
   tc16_async = scm_make_smob_type ("async", 0);
-  scm_set_smob_mark (tc16_async, async_gc_mark);
 
 #include "libguile/async.x"
 }

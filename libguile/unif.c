@@ -1470,14 +1470,6 @@ static scm_t_bits scm_tc16_bitvector;
 #define BITVECTOR_BITS(obj)     ((scm_t_uint32 *)SCM_SMOB_DATA(obj))
 #define BITVECTOR_LENGTH(obj)   ((size_t)SCM_SMOB_DATA_2(obj))
 
-static size_t
-bitvector_free (SCM vec)
-{
-  scm_gc_free (BITVECTOR_BITS (vec),
-	       sizeof (scm_t_uint32) * ((BITVECTOR_LENGTH (vec)+31)/32),
-	       "bitvector");
-  return 0;
-}
 
 static int
 bitvector_print (SCM vec, SCM port, scm_print_state *pstate)
@@ -2838,21 +2830,6 @@ SCM_DEFINE (scm_array_prototype, "array-prototype", 1, 0, 0,
 
 #endif
 
-static SCM
-array_mark (SCM ptr)
-{
-  return SCM_I_ARRAY_V (ptr);
-}
-
-static size_t
-array_free (SCM ptr)
-{
-  scm_gc_free (SCM_I_ARRAY_MEM (ptr),
-	       (sizeof (scm_i_t_array) 
-		+ SCM_I_ARRAY_NDIM (ptr) * sizeof (scm_t_array_dim)),
-	       "array");
-  return 0;
-}
 
 #if SCM_ENABLE_DEPRECATED
 
@@ -2922,21 +2899,16 @@ void
 scm_init_unif ()
 {
   scm_i_tc16_array = scm_make_smob_type ("array", 0);
-  scm_set_smob_mark (scm_i_tc16_array, array_mark);
-  scm_set_smob_free (scm_i_tc16_array, array_free);
   scm_set_smob_print (scm_i_tc16_array, scm_i_print_array);
   scm_set_smob_equalp (scm_i_tc16_array, scm_array_equal_p);
 
   scm_i_tc16_enclosed_array = scm_make_smob_type ("enclosed-array", 0);
-  scm_set_smob_mark (scm_i_tc16_enclosed_array, array_mark);
-  scm_set_smob_free (scm_i_tc16_enclosed_array, array_free);
   scm_set_smob_print (scm_i_tc16_enclosed_array, scm_i_print_enclosed_array);
   scm_set_smob_equalp (scm_i_tc16_enclosed_array, scm_array_equal_p);
 
   scm_add_feature ("array");
 
   scm_tc16_bitvector = scm_make_smob_type ("bitvector", 0);
-  scm_set_smob_free (scm_tc16_bitvector, bitvector_free);
   scm_set_smob_print (scm_tc16_bitvector, bitvector_print);
   scm_set_smob_equalp (scm_tc16_bitvector, bitvector_equalp);
 

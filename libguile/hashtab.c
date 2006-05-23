@@ -433,13 +433,6 @@ rehash_after_gc (void *dummy1 SCM_UNUSED,
   return 0;
 }
 
-static size_t
-hashtable_free (SCM obj)
-{
-  scm_gc_free (SCM_HASHTABLE (obj), sizeof (scm_t_hashtable), s_hashtable);
-  return 0;
-}
-
 
 SCM
 scm_c_make_hash_table (unsigned long k)
@@ -1321,9 +1314,7 @@ scm_hashtab_prehistory ()
 
   /* Initialize the hashtab SMOB type.  */
   scm_tc16_hashtable = scm_make_smob_type (s_hashtable, 0);
-  scm_set_smob_mark (scm_tc16_hashtable, scm_markcdr);
   scm_set_smob_print (scm_tc16_hashtable, hashtable_print);
-  scm_set_smob_free (scm_tc16_hashtable, hashtable_free);
   scm_c_hook_add (&scm_after_gc_c_hook, rehash_after_gc, 0, 0);
 }
 

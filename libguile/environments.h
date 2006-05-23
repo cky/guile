@@ -51,8 +51,6 @@ struct scm_environment_funcs {
   SCM (*observe) (SCM self, scm_environment_observer proc, SCM data, int weak_p);
   void (*unobserve) (SCM self, SCM token);
 
-  SCM (*mark) (SCM self);
-  void (*free) (SCM self);
   int (*print) (SCM self, SCM port, scm_print_state *pstate);
 };
 

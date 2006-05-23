@@ -60,14 +60,6 @@ static scm_t_srcprops_chunk *srcprops_chunklist = 0;
 static scm_t_srcprops *srcprops_freelist = 0;
 
 
-static SCM
-srcprops_mark (SCM obj)
-{
-  scm_gc_mark (SRCPROPFNAME (obj));
-  scm_gc_mark (SRCPROPCOPY (obj));
-  return SRCPROPPLIST (obj);
-}
-
 
 static size_t
 srcprops_free (SCM obj)
@@ -306,7 +298,6 @@ void
 scm_init_srcprop ()
 {
   scm_tc16_srcprops = scm_make_smob_type ("srcprops", 0);
-  scm_set_smob_mark (scm_tc16_srcprops, srcprops_mark);
   scm_set_smob_free (scm_tc16_srcprops, srcprops_free);
   scm_set_smob_print (scm_tc16_srcprops, srcprops_print);
 

@@ -69,13 +69,6 @@ charset_print (SCM charset, SCM port, scm_print_state *pstate SCM_UNUSED)
 }
 
 
-/* Smob free hook for character sets. */
-static size_t
-charset_free (SCM charset)
-{
-  return scm_smob_free (charset);
-}
-
 
 /* Create a new, empty character set.  */
 static SCM
@@ -1546,7 +1539,6 @@ scm_init_srfi_14 (void)
 {
   scm_tc16_charset = scm_make_smob_type ("character-set",
 					 BYTES_PER_CHARSET);
-  scm_set_smob_free (scm_tc16_charset, charset_free);
   scm_set_smob_print (scm_tc16_charset, charset_print);
 
   scm_char_set_upper_case = define_charset ("char-set:upper-case");
