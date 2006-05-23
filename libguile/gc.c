@@ -690,9 +690,11 @@ finalizer_trampoline (GC_PTR ptr, GC_PTR data)
        scm_is_pair (finalizers);
        finalizers = SCM_CDR (finalizers))
     {
+      SCM (* finalize) (SCM, SCM);
       SCM f = SCM_CAR (finalizers);
 
-      scm_call_2 (SCM_CAR (f), obj, SCM_CDR (f));
+      finalize = (SCM (*) (SCM, SCM)) SCM2PTR (SCM_CAR (f));
+      finalize (obj, SCM_CDR (f));
     }
 }
 
@@ -717,8 +719,10 @@ scm_gc_register_finalizer (SCM obj, SCM (*finalizer) (SCM, SCM),
   GC_finalization_proc old_finalizer;
   GC_PTR old_finalization_data;
 
-  finalization_subr = scm_c_make_gsubr ("%%finalizer", 2, 0, 0,
-					finalizer);
+  /* XXX: We don't use real `subrs' here because (i) it would add unnecessary
+     overhead and (ii) it creates a bootstrap problem (because SMOBs may rely
+     on this, and SMOBs are initialized before `gsubrs').  */
+  finalization_subr = PTR2SCM (finalizer);
   finalization_data = scm_cons (scm_cons (finalization_subr, data),
 				SCM_EOL);
   if (ordered)
