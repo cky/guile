@@ -96,14 +96,14 @@ guardian_print (SCM guardian, SCM port, scm_print_state *pstate SCM_UNUSED)
 
 /* Handle finalization of OBJ which is guarded by the guardians listed in
    GUARDIAN_LIST.  */
-static void
-finalize_guarded (GC_PTR obj, GC_PTR guardian_list)
+static SCM
+finalize_guarded (SCM obj, SCM guardian_list)
 {
   SCM cell_pool;
 
 #if 0
   printf ("finalizing guarded %p (%u guardians)\n",
-	  obj, scm_to_uint (scm_length (guardian_list)));
+	  SCM2PTR (obj), scm_to_uint (scm_length (guardian_list)));
   scm_write (guardian_list, scm_current_output_port ());
 #endif
 
@@ -130,7 +130,7 @@ finalize_guarded (GC_PTR obj, GC_PTR guardian_list)
       cell_pool = SCM_CDR (cell_pool);
 
       /* Compute and update G's zombie list.  */
-      SCM_SETCAR (zombies, SCM_PACK (obj));
+      SCM_SETCAR (zombies, obj);
       SCM_SETCDR (zombies, g->zombies);
       g->zombies = zombies;
 
@@ -139,8 +139,10 @@ finalize_guarded (GC_PTR obj, GC_PTR guardian_list)
     }
 
 #if 0
-  printf ("end of finalize (%p)\n", obj);
+  printf ("end of finalize (%p)\n", SCM2PTR (obj));
 #endif
+
+  return SCM_UNSPECIFIED;
 }
 
 /* Add OBJ as a guarded object of GUARDIAN.  */
@@ -153,28 +155,18 @@ scm_i_guard (SCM guardian, SCM obj)
     {
       /* Register a finalizer and pass a list of guardians interested in OBJ
 	 as the ``client data'' argument.  */
-      GC_finalization_proc prev_finalizer;
-      GC_PTR prev_data;
-      SCM guardians_for_obj;
+      SCM guardians_for_obj, prev_guardians_for_obj;
 
       g->live++;
       guardians_for_obj = scm_cons (guardian, SCM_EOL);
 
-      GC_REGISTER_FINALIZER_NO_ORDER ((GC_PTR)obj, finalize_guarded,
-				      (GC_PTR)guardians_for_obj,
-				      &prev_finalizer, &prev_data);
+      prev_guardians_for_obj =
+	scm_gc_register_finalizer (obj, finalize_guarded,
+				   guardians_for_obj, 0);
 
-      if ((prev_finalizer == finalize_guarded) && (prev_data != NULL))
-	{
-	  /* OBJ is already guarded by another guardian: add GUARDIAN to its
-	     list of guardians.  */
-	  SCM prev_guardian_list = SCM_PACK (prev_data);
-
-	  if (!scm_is_pair (prev_guardian_list))
-	    abort ();
-
-	  SCM_SETCDR (guardians_for_obj, prev_guardian_list);
-	}
+      if (scm_is_pair (prev_guardians_for_obj))
+	/* Concatenate the previous list of guardians for OBJ.  */
+	SCM_SETCDR (guardians_for_obj, prev_guardians_for_obj);
     }
 }
 
