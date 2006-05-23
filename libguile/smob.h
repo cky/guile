@@ -54,10 +54,14 @@ SCM_API SCM scm_i_new_smob_with_mark_proc (scm_t_bits tc,
 #define SCM_NEWSMOB(z, tc, data)					\
 do									\
   {									\
-    z = (scm_smobs[SCM_TC2SMOBNUM (tc)].mark				\
+    register scm_t_bits _smobnum = SCM_TC2SMOBNUM (tc);			\
+    z = (scm_smobs[_smobnum].mark					\
 	 ? scm_i_new_smob_with_mark_proc ((tc), (scm_t_bits)(data),	\
 					  0, 0)				\
 	 : scm_cell (tc, (scm_t_bits)(data)));				\
+    if (scm_smobs[_smobnum].free)					\
+      scm_gc_register_finalizer ((z), scm_i_finalize_smob,		\
+				 SCM_BOOL_F, 0);			\
   }									\
 while (0)
 
@@ -79,13 +83,17 @@ while (0)
 #define SCM_NEWSMOB3(z, tc, data1, data2, data3)			\
 do									\
   {									\
-    z = (scm_smobs[SCM_TC2SMOBNUM (tc)].mark				\
+    register scm_t_bits _smobnum = SCM_TC2SMOBNUM (tc);			\
+    z = (scm_smobs[_smobnum].mark					\
 	 ? scm_i_new_smob_with_mark_proc (tc, (scm_t_bits)(data1),	\
 					  (scm_t_bits)(data2),		\
 					  (scm_t_bits)(data3))		\
 	 : scm_double_cell ((tc), (scm_t_bits)(data1),			\
 			    (scm_t_bits)(data2),			\
 			    (scm_t_bits)(data3)));			\
+    if (scm_smobs[_smobnum].free)					\
+      scm_gc_register_finalizer ((z), scm_i_finalize_smob,		\
+				 SCM_BOOL_F, 0);			\
   }									\
 while (0)
 
@@ -131,6 +139,7 @@ SCM_API long scm_numsmob;
 SCM_API scm_smob_descriptor scm_smobs[];
 
 SCM_API void scm_i_set_smob_flags (SCM x, scm_t_bits data);
+SCM_API SCM scm_i_finalize_smob (SCM smob, SCM data);
 
 
 

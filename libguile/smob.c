@@ -37,6 +37,10 @@
 
 #include "libguile/smob.h"
 
+#include <gc/gc.h>
+#include <gc/gc_mark.h>
+
+
 
 
 /* scm_smobs scm_numsmob
@@ -488,8 +492,6 @@ free_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
 
 /* Marking SMOBs using user-supplied mark procedures.  */
 
-#include <gc/gc.h>
-#include <gc/gc_mark.h>
 
 /* The freelist and GC kind used for SMOB types that provide a custom mark
    procedure.  */
@@ -599,6 +601,19 @@ scm_i_new_smob_with_mark_proc (scm_t_bits tc, scm_t_bits data1,
   return cell;
 }
 
+
+/* Finalize SMOB by calling its SMOB type's free function, if any.  */
+SCM
+scm_i_finalize_smob (SCM smob, SCM data)
+{
+  size_t (* free_smob) (SCM);
+
+  free_smob = scm_smobs[SCM_SMOBNUM (smob)].free;
+  if (free_smob)
+    free_smob (smob);
+
+  return SCM_UNSPECIFIED;
+}
 
 
 void
