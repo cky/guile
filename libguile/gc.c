@@ -678,100 +678,8 @@ scm_gc_unregister_roots (SCM *b, unsigned long n)
 int scm_i_terminating;
 
 
-/* Finalizers.  */
-
-static void
-finalizer_trampoline (GC_PTR ptr, GC_PTR data)
-{
-  register SCM obj, finalizers;
-
-  obj = PTR2SCM (ptr);
-  for (finalizers = PTR2SCM (data);
-       scm_is_pair (finalizers);
-       finalizers = SCM_CDR (finalizers))
-    {
-      SCM (* finalize) (SCM, SCM);
-      SCM f = SCM_CAR (finalizers);
-
-      finalize = (SCM (*) (SCM, SCM)) SCM2PTR (SCM_CAR (f));
-      finalize (obj, SCM_CDR (f));
-    }
-}
 
 
-/* Register FINALIZER as a finalization procedure for OBJ.  FINALIZER will be
-   invoked when storage for OBJ is to be reclaimed and will be passed OBJ and
-   DATA.  If ORDERED is non-zero, finalization will be "ordered" (see the
-   Boehm-GC doc for details).  The function returns the data previously
-   registered for OBJ and FINALIZER, or `#f' if FINALIZER had not been
-   registered for OBJ before.
-
-   Note that finalizers in general are known to be problematic.  As such,
-   this function should only be used internally, and only to implement
-   functionalities that could not be implemented otherwise (e.g., guardians,
-   SMOB's free procedures).  */
-SCM
-scm_gc_register_finalizer (SCM obj, SCM (*finalizer) (SCM, SCM),
-			   SCM data, int ordered)
-{
-  SCM prev_data = SCM_BOOL_F;
-  SCM finalization_data, finalization_subr;
-  GC_finalization_proc old_finalizer;
-  GC_PTR old_finalization_data;
-
-  /* XXX: We don't use real `subrs' here because (i) it would add unnecessary
-     overhead and (ii) it creates a bootstrap problem (because SMOBs may rely
-     on this, and SMOBs are initialized before `gsubrs').  */
-  finalization_subr = PTR2SCM (finalizer);
-  finalization_data = scm_cons (scm_cons (finalization_subr, data),
-				SCM_EOL);
-  if (ordered)
-    GC_REGISTER_FINALIZER (SCM2PTR (obj), finalizer_trampoline,
-			   SCM2PTR (finalization_data),
-			   &old_finalizer, &old_finalization_data);
-  else
-    GC_REGISTER_FINALIZER_NO_ORDER (SCM2PTR (obj), finalizer_trampoline,
-				    SCM2PTR (finalization_data),
-				    &old_finalizer, &old_finalization_data);
-
-  if ((old_finalizer != NULL) && (old_finalizer != finalizer_trampoline))
-    /* Inconsistent use of the mechanism.  */
-    abort ();
-
-  if (old_finalization_data != NULL)
-    {
-      SCM f, prev, old_finalizer_list = PTR2SCM (old_finalization_data);
-
-      if (!scm_is_pair (old_finalizer_list))
-	abort ();
-
-      /* Look for FINALIZER among the previously-installed finalizers.  */
-      for (f = old_finalizer_list, prev = SCM_BOOL_F;
-	   scm_is_pair (f);
-	   prev = f, f = SCM_CDR (f))
-	{
-	  if (SCM_SUBRF (SCM_CAR (f)) == finalizer)
-	    break;
-	}
-
-      if (scm_is_pair (f))
-	{
-	  prev_data = SCM_CDAR (f);
-	  if (prev != SCM_BOOL_F)
-	    SCM_SETCDR (prev, SCM_CDR (f));
-	  else
-	    old_finalizer_list = SCM_CDR (old_finalizer_list);
-	}
-
-      /* Concatenate the new finalizer list with the old one.  */
-      SCM_SETCDR (finalization_data, old_finalizer_list);
-    }
-
-  return prev_data;
-}
-
-
-
 /*
   MOVE THIS FUNCTION. IT DOES NOT HAVE ANYTHING TODO WITH GC.
  */

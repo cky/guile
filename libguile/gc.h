@@ -235,8 +235,6 @@ SCM_API void *scm_gc_realloc (void *mem, size_t old_size,
 SCM_API void scm_gc_free (void *mem, size_t size, const char *what);
 SCM_API char *scm_gc_strdup (const char *str, const char *what);
 SCM_API char *scm_gc_strndup (const char *str, size_t n, const char *what);
-SCM_API SCM scm_gc_register_finalizer (SCM obj, SCM (*finalizer) (SCM, SCM),
-				       SCM data, int ordered);
 
 SCM_API void scm_remember_upto_here_1 (SCM obj);
 SCM_API void scm_remember_upto_here_2 (SCM obj1, SCM obj2);

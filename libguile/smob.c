@@ -604,16 +604,21 @@ scm_i_new_smob_with_mark_proc (scm_t_bits tc, scm_t_bits data1,
 
 
 /* Finalize SMOB by calling its SMOB type's free function, if any.  */
-SCM
-scm_i_finalize_smob (SCM smob, SCM data)
+void
+scm_i_finalize_smob (GC_PTR ptr, GC_PTR data)
 {
+  SCM smob;
   size_t (* free_smob) (SCM);
+
+  smob = PTR2SCM (ptr);
+#if 0
+  printf ("finalizing SMOB %p (smobnum: %u)\n",
+	  ptr, SCM_SMOBNUM (smob));
+#endif
 
   free_smob = scm_smobs[SCM_SMOBNUM (smob)].free;
   if (free_smob)
     free_smob (smob);
-
-  return SCM_UNSPECIFIED;
 }
 
 
