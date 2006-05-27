@@ -277,7 +277,7 @@ uvec_free (SCM uvec)
 /* Utility procedures.                                              */
 /* ================================================================ */
 
-static SCM_C_INLINE int
+static SCM_C_INLINE_KEYWORD int
 is_uvec (int type, SCM obj)
 {
   if (SCM_IS_UVEC (obj))
@@ -290,13 +290,13 @@ is_uvec (int type, SCM obj)
   return 0;
 }
 
-static SCM_C_INLINE SCM
+static SCM_C_INLINE_KEYWORD SCM
 uvec_p (int type, SCM obj)
 {
   return scm_from_bool (is_uvec (type, obj));
 }
 
-static SCM_C_INLINE void
+static SCM_C_INLINE_KEYWORD void
 uvec_assert (int type, SCM obj)
 {
   if (!is_uvec (type, obj))
@@ -334,7 +334,7 @@ alloc_uvec (int type, size_t len)
    so we use a big 'if' in the next two functions.
 */
 
-static SCM_C_INLINE SCM
+static SCM_C_INLINE_KEYWORD SCM
 uvec_fast_ref (int type, const void *base, size_t c_idx)
 {
   if (type == SCM_UVEC_U8)
@@ -390,7 +390,7 @@ assert_exact_integer_range (SCM val, SCM min, SCM max)
 }
 #endif
 
-static SCM_C_INLINE void
+static SCM_C_INLINE_KEYWORD void
 uvec_fast_set_x (int type, void *base, size_t c_idx, SCM val)
 {
   if (type == SCM_UVEC_U8)
@@ -438,7 +438,7 @@ uvec_fast_set_x (int type, void *base, size_t c_idx, SCM val)
     }
 }
 
-static SCM_C_INLINE SCM
+static SCM_C_INLINE_KEYWORD SCM
 make_uvec (int type, SCM len, SCM fill)
 {
   size_t c_len = scm_to_size_t (len);
@@ -453,7 +453,7 @@ make_uvec (int type, SCM len, SCM fill)
   return uvec;
 }
 
-static SCM_C_INLINE void *
+static SCM_C_INLINE_KEYWORD void *
 uvec_writable_elements (int type, SCM uvec, scm_t_array_handle *handle,
 			size_t *lenp, ssize_t *incp)
 {
@@ -468,7 +468,7 @@ uvec_writable_elements (int type, SCM uvec, scm_t_array_handle *handle,
   return scm_uniform_vector_writable_elements (uvec, handle, lenp, incp);
 }
 
-static SCM_C_INLINE const void *
+static SCM_C_INLINE_KEYWORD const void *
 uvec_elements (int type, SCM uvec, scm_t_array_handle *handle,
 	       size_t *lenp, ssize_t *incp)
 {
@@ -503,7 +503,7 @@ uvec_to_list (int type, SCM uvec)
   return res;
 }
 
-static SCM_C_INLINE SCM
+static SCM_C_INLINE_KEYWORD SCM
 uvec_length (int type, SCM uvec)
 {
   scm_t_array_handle handle;
@@ -514,7 +514,7 @@ uvec_length (int type, SCM uvec)
   return scm_from_size_t (len);
 }
 
-static SCM_C_INLINE SCM
+static SCM_C_INLINE_KEYWORD SCM
 uvec_ref (int type, SCM uvec, SCM idx)
 {
   scm_t_array_handle handle;
@@ -532,7 +532,7 @@ uvec_ref (int type, SCM uvec, SCM idx)
   return res;
 }
 
-static SCM_C_INLINE SCM
+static SCM_C_INLINE_KEYWORD SCM
 uvec_set_x (int type, SCM uvec, SCM idx, SCM val)
 {
   scm_t_array_handle handle;
@@ -549,7 +549,7 @@ uvec_set_x (int type, SCM uvec, SCM idx, SCM val)
   return SCM_UNSPECIFIED;
 }
 
-static SCM_C_INLINE SCM
+static SCM_C_INLINE_KEYWORD SCM
 list_to_uvec (int type, SCM list)
 {
   SCM uvec;

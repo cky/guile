@@ -124,7 +124,7 @@ make_stringbuf (size_t len)
 
 /* Return a new stringbuf whose underlying storage consists of the LEN+1
    octets pointed to by STR (the last octet is zero).  */
-SCM_C_INLINE SCM
+SCM_C_INLINE_KEYWORD SCM
 scm_i_take_stringbufn (char *str, size_t len)
 {
   scm_gc_register_collectable_memory (str, len + 1, "stringbuf");

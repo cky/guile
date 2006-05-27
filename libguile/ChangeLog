@@ -1,3 +1,8 @@
+2006-05-28  Marius Vollmer  <mvo@zagadka.de>
+
+	* srfi-4.c, strings.c: Replace SCM_C_INLINE with
+	SCM_C_INLINE_KEYWORD.  Thanks to Mark Gran!
+
 2006-05-08  Marius Vollmer  <mvo@zagadka.de>
 
 	* private-gc.h (CELL_P): Also check that the potential pointer is
