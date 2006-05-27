@@ -125,3 +125,5 @@
 	(close-port port)
 	(eqv? 5 (stat:size st))))))
 
+(delete-file (test-file))
+(delete-file (test-symlink))

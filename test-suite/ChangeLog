@@ -1,3 +1,8 @@
+2006-05-28  Marius Vollmer  <mvo@zagadka.de>
+
+	* tests/ports.test, tests/filesys.test: Delete test file after all
+	tests have run in order to make "make distcheck" work.
+
 2006-04-17  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/filesys.test (lstat): Allow for test-symlink not existing yet.

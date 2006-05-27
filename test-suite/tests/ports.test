@@ -626,3 +626,5 @@
 		    (procedure)))))
 	    (list read read-char read-line)
 	    '("read" "read-char" "read-line")))
+
+(delete-file (test-file))
