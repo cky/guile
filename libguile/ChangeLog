@@ -1,3 +1,8 @@
+2006-05-08  Marius Vollmer  <mvo@zagadka.de>
+
+	* private-gc.h (CELL_P): Also check that the potential pointer is
+	correctly aligned for a cell.  Thanks to Miroslav Lichvar!
+
 2006-04-17  Kevin Ryde  <user42@zip.com.au>
 
 	* _scm.h (scm_to_off_t, scm_from_off_t): No error if unknown off_t
