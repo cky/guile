@@ -499,11 +499,6 @@ free_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
 static void **smob_freelist = NULL;
 static int    smob_gc_kind = 0;
 
-#define CURRENT_MARK_PTR							\
-  ((struct GC_ms_entry *)(SCM_I_CURRENT_THREAD->current_mark_stack_ptr))
-#define CURRENT_MARK_LIMIT							\
-  ((struct GC_ms_entry *)(SCM_I_CURRENT_THREAD->current_mark_stack_limit))
-
 
 /* The generic SMOB mark procedure that gets called for SMOBs allocated with
    `scm_i_new_smob_with_mark_proc ()'.  */
@@ -512,17 +507,21 @@ smob_mark (GC_word *addr, struct GC_ms_entry *mark_stack_ptr,
 	   struct GC_ms_entry *mark_stack_limit, GC_word env)
 {
   register SCM cell;
-  scm_t_bits tc, smobnum;
+  register scm_t_bits tc, smobnum;
 
-  cell = SCM_PACK ((scm_t_bits)addr);
+  cell = PTR2SCM (addr);
+
+  if (SCM_TYP7 (cell) != scm_tc7_smob)
+    /* It is likely that the GC passed us a pointer to a free-list element
+       which we must ignore (see warning in `gc/gc_mark.h').  */
+    return mark_stack_ptr;
+
   tc = SCM_CELL_WORD_0 (cell);
   smobnum = SCM_TC2SMOBNUM (tc);
 
   if (smobnum >= scm_numsmob)
+    /* The first word looks corrupt.  */
     abort ();
-
-  mark_stack_ptr = GC_MARK_AND_PUSH (addr, mark_stack_ptr,
-				     mark_stack_limit, NULL);
 
   mark_stack_ptr = GC_MARK_AND_PUSH (SCM2PTR (SCM_CELL_OBJECT_1 (cell)),
 				     mark_stack_ptr,
@@ -567,6 +566,11 @@ smob_mark (GC_word *addr, struct GC_ms_entry *mark_stack_ptr,
 void
 scm_gc_mark (SCM o)
 {
+#define CURRENT_MARK_PTR						 \
+  ((struct GC_ms_entry *)(SCM_I_CURRENT_THREAD->current_mark_stack_ptr))
+#define CURRENT_MARK_LIMIT						   \
+  ((struct GC_ms_entry *)(SCM_I_CURRENT_THREAD->current_mark_stack_limit))
+
   if (SCM_NIMP (o))
     {
       /* At this point, the `current_mark_*' fields of the current thread
@@ -582,6 +586,8 @@ scm_gc_mark (SCM o)
 					 NULL);
       SCM_I_CURRENT_THREAD->current_mark_stack_ptr = mark_stack_ptr;
     }
+#undef CURRENT_MARK_PTR
+#undef CURRENT_MARK_LIMIT
 }
 
 /* Return a SMOB with typecode TC.  The SMOB type corresponding to TC may
