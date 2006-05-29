@@ -1,3 +1,9 @@
+2006-05-29  Marius Vollmer  <mvo@zagadka.de>
+
+	* throw.c (scm_ithrow): When looking for the jmpbuf, first test
+	that we have a pair before accessing its cdr.  Thanks to Bill
+	Schottstaedt!
+
 2006-05-28  Marius Vollmer  <mvo@zagadka.de>
 
 	* srfi-4.c, strings.c: Replace SCM_C_INLINE with

@@ -736,7 +736,8 @@ scm_ithrow (SCM key, SCM args, int noreturn SCM_UNUSED)
     abort ();
   
   for (wind_goal = scm_i_dynwinds ();
-       !scm_is_eq (SCM_CDAR (wind_goal), jmpbuf);
+       (!scm_is_pair (SCM_CAR (wind_goal))
+	|| !scm_is_eq (SCM_CDAR (wind_goal), jmpbuf));
        wind_goal = SCM_CDR (wind_goal))
     ;
 
