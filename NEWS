@@ -14,6 +14,10 @@ Each release reports the NEWS in the following sections:
 
 Changes in 1.8.1:
 
+* Changes to Scheme functions and syntax
+
+** A one-dimenisonal array can now be 'equal?' to a vector.
+
 * Bug fixes.
 ** array-set! with bit vector.
 ** string<? and friends follow char<? etc order on 8-bit chars.

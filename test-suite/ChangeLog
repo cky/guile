@@ -1,3 +1,7 @@
+2006-05-30  Marius Vollmer  <mvo@zagadka.de>
+
+	* tests/unif.test ("vector equal? one-dimensional array"): New.
+
 2006-05-28  Marius Vollmer  <mvo@zagadka.de>
 
 	* tests/ports.test, tests/filesys.test: Delete test file after all

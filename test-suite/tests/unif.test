@@ -512,3 +512,11 @@
 	(begin
 	  (array-set! a -128 0)
 	  (= -128 (uniform-vector-ref a 0)))))))
+
+;;; equal? with vector and one-dimensional array
+
+(pass-if "vector equal? one-dimensional array"
+  (equal? (make-shared-array #2((a b c) (d e f) (g h i))
+			     (lambda (i) (list i i))
+			     '(0 2))
+	  #(a e i)))

@@ -257,6 +257,11 @@ SCM_PRIMITIVE_GENERIC_1 (scm_equal_p, "equal?", scm_tc7_rpsubr,
 			     && SCM_COMPLEX_IMAG (x) == 0.0);
 	}
 
+      /* Vectors can be equal to one-dimensional arrays.
+       */
+      if (SCM_I_ARRAYP (x) || SCM_I_ARRAYP (y))
+	return scm_array_equal_p (x, y);
+
       return SCM_BOOL_F;
     }
   switch (SCM_TYP7 (x))

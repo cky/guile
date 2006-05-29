@@ -1,3 +1,9 @@
+2006-05-30  Marius Vollmer  <mvo@zagadka.de>
+
+	* eq.c (scm_equal_p): Use scm_array_equal_p explicitely when one
+	of the arguments is a array.  This allows vectors to be equal to
+	one-dimensional arrays.
+
 2006-05-29  Marius Vollmer  <mvo@zagadka.de>
 
 	* throw.c (scm_ithrow): When looking for the jmpbuf, first test
