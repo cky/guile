@@ -346,7 +346,6 @@ scm_init_objects ()
   scm_c_define ("<operator-class>", ot);
   scm_metaclass_operator = ot;
   SCM_SET_CLASS_FLAGS (et, SCM_CLASSF_OPERATOR | SCM_CLASSF_ENTITY);
-  SCM_SET_CLASS_DESTRUCTOR (et, scm_struct_free_entity);
   scm_c_define ("<entity>", et);
 
 #include "libguile/objects.x"
