@@ -39,6 +39,8 @@
 #include <string.h>
 #endif
 
+#include <gc/gc.h>
+
 
 
 static SCM required_vtable_fields = SCM_BOOL_F;
@@ -312,6 +314,38 @@ scm_alloc_struct (int n_words, int n_extra, const char *what)
   return p;
 }
 
+
+/* Finalization.  */
+
+
+/* Invoke the finalizer of the struct pointed to by PTR.  */
+static void
+struct_finalizer_trampoline (GC_PTR ptr, GC_PTR unused_data)
+{
+  SCM obj = PTR2SCM (ptr);
+
+  /* XXX - use less explicit code. */
+  scm_t_bits word0 = SCM_CELL_WORD_0 (obj) - scm_tc3_struct;
+  scm_t_bits *vtable_data = (scm_t_bits *) word0;
+  scm_t_bits *data = SCM_STRUCT_DATA (obj);
+  scm_t_struct_free free_struct_data
+    = ((scm_t_struct_free) vtable_data[scm_struct_i_free]);
+
+  SCM_SET_CELL_TYPE (obj, scm_tc_free_cell);
+
+#if 0
+  /* A sanity check.  However, this check can fail if the free function
+     changed between the `make-struct' time and now.  */
+  if (free_struct_data != (scm_t_struct_free)unused_data)
+    abort ();
+#endif
+
+  if (free_struct_data)
+    free_struct_data (vtable_data, data);
+}
+
+
+
 void
 scm_struct_free_0 (scm_t_bits * vtable SCM_UNUSED,
 		   scm_t_bits * data SCM_UNUSED)
@@ -341,67 +375,8 @@ scm_struct_free_entity (scm_t_bits * vtable SCM_UNUSED, scm_t_bits * data)
   scm_gc_free ((void *) data[scm_struct_i_ptr], n, "entity struct");
 }
 
-static void *
-scm_struct_gc_init (void *dummy1 SCM_UNUSED,
-		    void *dummy2 SCM_UNUSED,
-		    void *dummy3 SCM_UNUSED)
-{
-  scm_i_structs_to_free = SCM_EOL;
-  return 0;
-}
 
-
-/* During collection, this accumulates structures which are to be freed.
- */
-SCM scm_i_structs_to_free;
-
-static void *
-scm_free_structs (void *dummy1 SCM_UNUSED,
-		  void *dummy2 SCM_UNUSED,
-		  void *dummy3 SCM_UNUSED)
-{
-#if 0
-  SCM newchain = scm_i_structs_to_free;
-  do
-    {
-      /* Mark vtables in GC chain.  GC mark set means delay freeing. */
-      SCM chain = newchain;
-      while (!scm_is_null (chain))
-	{
-	  SCM vtable = SCM_STRUCT_VTABLE (chain);
-	  if (SCM_STRUCT_GC_CHAIN (vtable) != 0 && vtable != chain)
-	    SCM_SET_GC_MARK (vtable);
-	  chain = SCM_STRUCT_GC_CHAIN (chain);
-	}
-      /* Free unmarked structs.  */
-      chain = newchain;
-      newchain = SCM_EOL;
-      while (!scm_is_null (chain))
-	{
-	  SCM obj = chain;
-	  chain = SCM_STRUCT_GC_CHAIN (chain);
-	  if (SCM_GC_MARK_P (obj))
-	    {
-	      SCM_CLEAR_GC_MARK (obj);
-	      SCM_SET_STRUCT_GC_CHAIN (obj, newchain);
-	      newchain = obj;
-	    }
-	  else
-	    {
-	      scm_t_bits * vtable_data = SCM_STRUCT_VTABLE_DATA (obj);
-	      scm_t_bits * data = SCM_STRUCT_DATA (obj);
-	      scm_t_struct_free free_struct_data
-		= ((scm_t_struct_free) vtable_data[scm_struct_i_free]);
-	      SCM_SET_CELL_TYPE (obj, scm_tc_free_cell);
-	      free_struct_data (vtable_data, data);
-	    }
-	}
-    }
-  while (!scm_is_null (newchain));
-  return 0;
-#endif
-}
-
+
 SCM_DEFINE (scm_make_struct, "make-struct", 2, 0, 1, 
             (SCM vtable, SCM tail_array_size, SCM init),
 	    "Create a new structure.\n\n"
@@ -428,17 +403,19 @@ SCM_DEFINE (scm_make_struct, "make-struct", 2, 0, 1,
   SCM layout;
   size_t basic_size;
   size_t tail_elts;
-  scm_t_bits * data;
+  scm_t_bits *data, *c_vtable;
   SCM handle;
 
   SCM_VALIDATE_VTABLE (1, vtable);
   SCM_VALIDATE_REST_ARGUMENT (init);
 
-  layout = SCM_PACK (SCM_STRUCT_DATA (vtable) [scm_vtable_index_layout]);
+  c_vtable = SCM_STRUCT_DATA (vtable);
+
+  layout = SCM_PACK (c_vtable [scm_vtable_index_layout]);
   basic_size = scm_i_symbol_length (layout) / 2;
   tail_elts = scm_to_size_t (tail_array_size);
   SCM_CRITICAL_SECTION_START;
-  if (SCM_STRUCT_DATA (vtable)[scm_struct_i_flags] & SCM_STRUCTF_ENTITY)
+  if (c_vtable[scm_struct_i_flags] & SCM_STRUCTF_ENTITY)
     {
       data = scm_alloc_struct (basic_size + tail_elts,
 			       scm_struct_entity_n_extra_words,
@@ -450,10 +427,26 @@ SCM_DEFINE (scm_make_struct, "make-struct", 2, 0, 1,
     data = scm_alloc_struct (basic_size + tail_elts,
 			     scm_struct_n_extra_words,
 			     "struct");
-  handle = scm_double_cell ((((scm_t_bits) SCM_STRUCT_DATA (vtable))
+  handle = scm_double_cell ((((scm_t_bits) c_vtable)
 			     + scm_tc3_struct),
 			    (scm_t_bits) data, 0, 0);
   scm_struct_init (handle, layout, data, tail_elts, init);
+
+  if (c_vtable[scm_struct_i_free])
+    {
+      /* Register a finalizer for the newly created instance.  */
+      GC_finalization_proc prev_finalizer;
+      GC_PTR prev_finalizer_data;
+      scm_t_struct_free free_struct =
+	(scm_t_struct_free)c_vtable[scm_struct_i_free];
+
+      GC_REGISTER_FINALIZER_NO_ORDER (SCM2PTR (handle),
+				      struct_finalizer_trampoline,
+				      free_struct,
+				      &prev_finalizer,
+				      &prev_finalizer_data);
+    }
+
   SCM_CRITICAL_SECTION_END;
   return handle;
 }
@@ -838,11 +831,7 @@ scm_print_struct (SCM exp, SCM port, scm_print_state *pstate)
 void
 scm_struct_prehistory ()
 {
-  scm_i_structs_to_free = SCM_EOL;
-  scm_c_hook_add (&scm_before_sweep_c_hook, scm_struct_gc_init, 0, 0);
-  /* With the new lazy sweep GC, the point at which the entire heap is
-     swept is just before the mark phase. */
-  scm_c_hook_add (&scm_before_mark_c_hook, scm_free_structs, 0, 0);
+  /* Empty.  */
 }
 
 void
