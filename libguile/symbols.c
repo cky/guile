@@ -101,7 +101,7 @@ lookup_interned_symbol (const char *name, size_t len,
       pair = SCM_CAR (l);
       if (!scm_is_pair (pair))
 	abort ();
-      if (SCM_UNPACK (SCM_CAR (pair)) == NULL)
+      if (SCM2PTR (SCM_CAR (pair)) == NULL)
 	/* Weak pointer.  Ignore it.  */
 	/* FIXME: Should we as well remove it, as in `scm_fixup_weak_alist'? */
 	continue;
