@@ -31,6 +31,7 @@
 #include "libguile/eval.h"
 #include "libguile/async.h"
 #include "libguile/ports.h"
+#include "libguile/smob.h"
 
 #undef DEBUG
 
@@ -100,7 +101,8 @@ make_thread (SCM creation_protects)
 {
   SCM z;
   scm_copt_thread *t = scm_gc_malloc (sizeof(*t), "thread");
-  z = scm_cell (scm_tc16_thread, (scm_t_bits)t);
+
+  SCM_NEWSMOB (z, t);
   t->handle = z;
   t->result = creation_protects;
   t->base = NULL;
