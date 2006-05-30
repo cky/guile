@@ -306,7 +306,7 @@ scm_alloc_struct (int n_words, int n_extra, const char *what)
   p = (scm_t_bits *) (((scm_t_bits) p + 7) & ~7);
 
   /* Initialize a few fields as described above.  */
-  p[scm_struct_i_free] = (scm_t_bits) scm_struct_free_standard;
+  p[scm_struct_i_free] = (scm_t_bits) 0;
   p[scm_struct_i_ptr] = (scm_t_bits) block;
   p[scm_struct_i_n_words] = n_words;
   p[scm_struct_i_flags] = 0;
@@ -344,36 +344,6 @@ struct_finalizer_trampoline (GC_PTR ptr, GC_PTR unused_data)
     free_struct_data (vtable_data, data);
 }
 
-
-
-void
-scm_struct_free_0 (scm_t_bits * vtable SCM_UNUSED,
-		   scm_t_bits * data SCM_UNUSED)
-{
-}
-
-void
-scm_struct_free_light (scm_t_bits * vtable, scm_t_bits * data)
-{
-  size_t n = vtable [scm_struct_i_size] & ~SCM_STRUCTF_MASK;
-  scm_gc_free (data, n, "struct");
-}
-
-void
-scm_struct_free_standard (scm_t_bits * vtable SCM_UNUSED, scm_t_bits * data)
-{
-  size_t n = (data[scm_struct_i_n_words] + scm_struct_n_extra_words)
-	     * sizeof (scm_t_bits) + 7;
-  scm_gc_free ((void *) data[scm_struct_i_ptr], n, "heavy struct");
-}
-
-void
-scm_struct_free_entity (scm_t_bits * vtable SCM_UNUSED, scm_t_bits * data)
-{
-  size_t n = (data[scm_struct_i_n_words] + scm_struct_entity_n_extra_words)
-	     * sizeof (scm_t_bits) + 7;
-  scm_gc_free ((void *) data[scm_struct_i_ptr], n, "entity struct");
-}
 
 
 

@@ -84,10 +84,6 @@ SCM_API SCM scm_struct_table;
 
 SCM_API scm_t_bits * scm_alloc_struct (int n_words, int n_extra,
 				       const char *what);
-SCM_API void scm_struct_free_0 (scm_t_bits * vtable, scm_t_bits * data);
-SCM_API void scm_struct_free_light (scm_t_bits * vtable, scm_t_bits * data);
-SCM_API void scm_struct_free_standard (scm_t_bits * vtable, scm_t_bits * data);
-SCM_API void scm_struct_free_entity (scm_t_bits * vtable, scm_t_bits * data);
 SCM_API SCM scm_make_struct_layout (SCM fields);
 SCM_API SCM scm_struct_p (SCM x);
 SCM_API SCM scm_struct_vtable_p (SCM x);
