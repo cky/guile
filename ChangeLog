@@ -1,3 +1,9 @@
+2006-06-06  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* acinclude.m4 (ACX_PTHREAD): Update to latest definition from
+	autoconf macro archive, to fix pthread linking problem on Solaris
+	10, reported by Charles Gagnon.
+
 2006-04-16  Kevin Ryde  <user42@zip.com.au>
 
 	* configure.in (stat64, off_t): New tests.
