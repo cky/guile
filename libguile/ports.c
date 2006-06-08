@@ -1201,6 +1201,8 @@ scm_ungetc (int c, SCM port)
 	{
 	  size_t new_size = pt->read_buf_size * 2;
 	  unsigned char *tmp = (unsigned char *)
+	    /* XXX: Can we use `GC_REALLOC' with `GC_MALLOC_ATOMIC'-allocated
+	       data?  (Ludo)  */
 	    scm_gc_realloc (pt->putback_buf, pt->read_buf_size, new_size,
 			    "putback buffer");
 
@@ -1228,8 +1230,8 @@ scm_ungetc (int c, SCM port)
       if (pt->putback_buf == NULL)
 	{
 	  pt->putback_buf
-	    = (unsigned char *) scm_gc_malloc (SCM_INITIAL_PUTBACK_BUF_SIZE,
-					       "putback buffer");
+	    = (unsigned char *) scm_gc_malloc_pointerless
+	    (SCM_INITIAL_PUTBACK_BUF_SIZE, "putback buffer");
 	  pt->putback_buf_size = SCM_INITIAL_PUTBACK_BUF_SIZE;
 	}
 

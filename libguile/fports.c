@@ -91,7 +91,7 @@ scm_fport_buffer_add (SCM port, long read_size, int write_size)
 
   if (SCM_INPUT_PORT_P (port) && read_size > 0)
     {
-      pt->read_buf = scm_gc_malloc (read_size, "port buffer");
+      pt->read_buf = scm_gc_malloc_pointerless (read_size, "port buffer");
       pt->read_pos = pt->read_end = pt->read_buf;
       pt->read_buf_size = read_size;
     }
@@ -103,7 +103,7 @@ scm_fport_buffer_add (SCM port, long read_size, int write_size)
 
   if (SCM_OUTPUT_PORT_P (port) && write_size > 0)
     {
-      pt->write_buf = scm_gc_malloc (write_size, "port buffer");
+      pt->write_buf = scm_gc_malloc_pointerless (write_size, "port buffer");
       pt->write_pos = pt->write_buf;
       pt->write_buf_size = write_size;
     }
@@ -432,7 +432,8 @@ scm_i_fdes_to_port (int fdes, long mode_bits, SCM name)
   pt = SCM_PTAB_ENTRY(port);
   {
     scm_t_fport *fp
-      = (scm_t_fport *) scm_gc_malloc (sizeof (scm_t_fport), "file port");
+      = (scm_t_fport *) scm_gc_malloc_pointerless (sizeof (scm_t_fport),
+						   "file port");
 
     fp->fdes = fdes;
     pt->rw_random = SCM_FDES_RANDOM_P (fdes);

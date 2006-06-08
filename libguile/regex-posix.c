@@ -172,7 +172,7 @@ SCM_DEFINE (scm_make_regexp, "make-regexp", 1, 0, 1,
       flag = SCM_CDR (flag);
     }
 
-  rx = scm_gc_malloc (sizeof(regex_t), "regex");
+  rx = scm_gc_malloc_pointerless (sizeof (regex_t), "regex");
   c_pat = scm_to_locale_string (pat);
   status = regcomp (rx, c_pat,
 		    /* Make sure they're not passing REG_NOSUB;
