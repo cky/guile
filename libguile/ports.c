@@ -482,8 +482,70 @@ long scm_i_port_table_room = 20;  /* Actual size of the array.  */
 
 scm_i_pthread_mutex_t scm_i_port_table_mutex = SCM_I_PTHREAD_MUTEX_INITIALIZER;
 
-/* This function is not and should not be thread safe. */
+
+/* Port finalization.  */
 
+
+static void finalize_port (GC_PTR, GC_PTR);
+
+/* Register a finalizer for PORT, if needed by its port type.  */
+static SCM_C_INLINE_KEYWORD void
+register_finalizer_for_port (SCM port)
+{
+  long port_type;
+
+  port_type = SCM_TC2PTOBNUM (SCM_CELL_TYPE (port));
+  if (scm_ptobs[port_type].free)
+    {
+      GC_finalization_proc prev_finalizer;
+      GC_PTR prev_finalization_data;
+
+      GC_REGISTER_FINALIZER_NO_ORDER (SCM2PTR (port), finalize_port, 0,
+				      &prev_finalizer,
+				      &prev_finalization_data);
+    }
+}
+
+/* Finalize the object (a port) pointed to by PTR.  */
+static void
+finalize_port (GC_PTR ptr, GC_PTR data)
+{
+  long port_type;
+  SCM port = PTR2SCM (ptr);
+
+  if (!SCM_PORTP (port))
+    abort ();
+
+  if (SCM_OPENP (port))
+    {
+      if (SCM_REVEALED (port) > 0)
+	/* Keep "revealed" ports alive and re-register a finalizer.  */
+	register_finalizer_for_port (port);
+      else
+	{
+	  port_type = SCM_TC2PTOBNUM (SCM_CELL_TYPE (port));
+	  if (port_type >= scm_numptob)
+	    abort ();
+
+	  if (scm_ptobs[port_type].free)
+	    /* Yes, I really do mean `.free' rather than `.close'.  `.close'
+	       is for explicit `close-port' by user.  */
+	    scm_ptobs[port_type].free (port);
+
+	  SCM_SETSTREAM (port, 0);
+	  SCM_CLR_PORT_OPEN_FLAG (port);
+	  scm_remove_from_port_table (port);
+
+	  scm_gc_ports_collected++;
+	}
+    }
+}
+
+
+
+
+
+/* This function is not and should not be thread safe. */
 SCM
 scm_new_port_table_entry (scm_t_bits tag)
 #define FUNC_NAME "scm_new_port_table_entry"
@@ -501,6 +563,8 @@ scm_new_port_table_entry (scm_t_bits tag)
 	 since it can never be freed during gc.  */
       /* XXX (Ludo): Why not do it actually?  */
       size_t new_size = scm_i_port_table_room * 2;
+      /* XXX (Ludo): Can we use `GC_REALLOC' with
+	 `GC_MALLOC_ATOMIC'-allocated data?  */
       void *newt = scm_gc_realloc ((char *) scm_i_port_table,
 				   scm_i_port_table_room * sizeof (scm_t_port *),
 				   new_size * sizeof (scm_t_port *),
@@ -520,7 +584,11 @@ scm_new_port_table_entry (scm_t_bits tag)
   entry->port = z;
   SCM_SET_CELL_TYPE(z, tag);
   SCM_SETPTAB_ENTRY(z, entry);
-  
+
+  /* For each new port, register a finalizer so that it port type's free
+     function can be invoked eventually.  */
+  register_finalizer_for_port (z);
+
   return z;
 }
 #undef FUNC_NAME
@@ -1618,9 +1686,12 @@ scm_ports_prehistory ()
   scm_numptob = 0;
   scm_ptobs = NULL;
 
-  scm_i_port_table = scm_gc_malloc (scm_i_port_table_room
-				    * sizeof (scm_t_port *),
-				    "port-table");
+  /* In order for the ports to be collectable, the port table must not be
+     scanned by the GC.  */
+  scm_i_port_table =
+    scm_gc_malloc_pointerless (scm_i_port_table_room
+			       * sizeof (scm_t_port *),
+			       "port-table");
 }
 
 
