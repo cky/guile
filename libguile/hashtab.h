@@ -39,9 +39,6 @@ SCM_API scm_t_bits scm_tc16_hashtable;
 #define SCM_HASHTABLE_VECTOR(h)  SCM_SMOB_OBJECT (h)
 #define SCM_SET_HASHTABLE_VECTOR(x, v) SCM_SET_SMOB_OBJECT ((x), (v))
 #define SCM_HASHTABLE(x)	   ((scm_t_hashtable *) SCM_SMOB_DATA_2 (x))
-#define SCM_HASHTABLE_NEXT(x)	   SCM_SMOB_OBJECT_3 (x)
-#define SCM_HASHTABLE_NEXTLOC(x)   SCM_SMOB_OBJECT_3_LOC (x)
-#define SCM_SET_HASHTABLE_NEXT(x, n) SCM_SET_SMOB_OBJECT_3 ((x), (n))
 #define SCM_HASHTABLE_FLAGS(x)	   (SCM_HASHTABLE (x)->flags)
 #define SCM_HASHTABLE_WEAK_KEY_P(x) \
   (SCM_HASHTABLE_FLAGS (x) & SCM_HASHTABLEF_WEAK_CAR)

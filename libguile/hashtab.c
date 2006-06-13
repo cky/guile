@@ -83,8 +83,6 @@ static unsigned long hashtable_size[] = {
 
 static char *s_hashtable = "hashtable";
 
-SCM weak_hashtables = SCM_EOL;
-
 
 
 /* Weak cells for use in weak alist vectors (aka. weak hash tables).
@@ -175,6 +173,10 @@ scm_doubly_weak_cell (SCM car, SCM cdr)
 #define SCM_WEAK_CELL_CDR_DELETED_P(_cell)	\
   (SCM_WEAK_CELL_WORD_DELETED_P ((_cell), 1))
 
+#define SCM_WEAK_CELL_DELETED_P(_cell)		\
+  ((SCM_WEAK_CELL_CAR_DELETED_P (_cell))	\
+   || (SCM_WEAK_CELL_CDR_DELETED_P (_cell)))
+
 /* Accessing the components of a weak cell.  */
 #define SCM_WEAK_CELL_WORD(_cell, _word)		\
   ((SCM_WEAK_CELL_WORD_DELETED_P ((_cell), (_word)))	\
@@ -233,30 +235,36 @@ scm_fixup_weak_alist (SCM alist, size_t *removed_items)
   ((SCM_HASHTABLE_P (table) && (SCM_HASHTABLE_WEAK_P (table)))	\
    || (SCM_I_IS_VECTOR (table)))
 
+
+
 /* Fixup BUCKET, an alist part of weak hash table OBJ.  BUCKETS is the full
    bucket vector for OBJ and IDX is the index of BUCKET within this
    vector.  See also `scm_internal_hash_fold ()'.  */
-#define START_WEAK_BUCKET_FIXUP(_obj, _buckets, _idx, _bucket)		   \
-do									   \
-  {									   \
-    size_t _removed;							   \
-									   \
-    /* Disable the GC so that BUCKET remains valid until ASSOC_FN has	   \
-       returned.  */							   \
-    /* FIXME: We could maybe trigger a rehash here depending on whether	   \
-       `scm_fixup_weak_alist ()' noticed some change.  */		   \
-    GC_disable ();							   \
-    (_bucket) = scm_fixup_weak_alist ((_bucket), &_removed);		   \
-    SCM_SIMPLE_VECTOR_SET ((_buckets), (_idx), (_bucket));		   \
-									   \
-    if ((_removed) && (SCM_HASHTABLE_P (_obj)))				   \
-      SCM_SET_HASHTABLE_N_ITEMS ((_obj),				   \
-				 SCM_HASHTABLE_N_ITEMS (_obj) - _removed); \
-  }									   \
+#define START_WEAK_BUCKET_FIXUP(_obj, _buckets, _idx, _bucket, _hashfn)	     \
+do									     \
+  {									     \
+    size_t _removed;							     \
+									     \
+    /* Disable the GC so that BUCKET remains valid until ASSOC_FN has	     \
+       returned.  */							     \
+    /* FIXME: We could maybe trigger a rehash here depending on whether	     \
+       `scm_fixup_weak_alist ()' noticed some change.  */		     \
+    GC_disable ();							     \
+    (_bucket) = scm_fixup_weak_alist ((_bucket), &_removed);		     \
+    SCM_SIMPLE_VECTOR_SET ((_buckets), (_idx), (_bucket));		     \
+									     \
+    if ((_removed) && (SCM_HASHTABLE_P (_obj)))				     \
+      {									     \
+	SCM_SET_HASHTABLE_N_ITEMS ((_obj),				     \
+				   SCM_HASHTABLE_N_ITEMS (_obj) - _removed); \
+	scm_i_rehash ((_obj), (_hashfn),				     \
+		      NULL, "START_WEAK_BUCKET_FIXUP");			     \
+      }									     \
+  }									     \
 while (0)
 
 /* Terminate a weak bucket fixup phase.  */
-#define END_WEAK_BUCKET_FIXUP(_obj, _buckets, _idx, _bucket)	\
+#define END_WEAK_BUCKET_FIXUP(_obj, _buckets, _idx, _bucket, _hashfn)	\
   do { GC_enable (); } while (0)
 
 
@@ -283,14 +291,9 @@ make_hash_table (int flags, unsigned long k, const char *func_name)
   t->upper = 9 * n / 10;
   t->flags = flags;
   t->hash_fn = NULL;
-  if (flags)
-    {
-      /* FIXME: We should eventually remove WEAK_HASHTABLES.  */
-      SCM_NEWSMOB3 (table, scm_tc16_hashtable, vector, t, weak_hashtables);
-      weak_hashtables = table;
-    }
-  else
-    SCM_NEWSMOB3 (table, scm_tc16_hashtable, vector, t, SCM_EOL);
+
+  SCM_NEWSMOB2 (table, scm_tc16_hashtable, vector, t);
+
   return table;
 }
 
@@ -304,12 +307,6 @@ scm_i_rehash (SCM table,
   int i;
   unsigned long old_size;
   unsigned long new_size;
-
-  if (SCM_HASHTABLE_P (table) && SCM_HASHTABLE_WEAK_P (table))
-    /* FIXME: We don't currently support weak hash table rehashing.  In order
-       to support it, we need to pay attention to NULL pairs, as in
-       `scm_internal_hash_fold ()', `START_WEAK_BUCKET_FIXUP ()', et al.  */
-    return;
 
   if (SCM_HASHTABLE_N_ITEMS (table) < SCM_HASHTABLE_LOWER (table))
     {
@@ -367,9 +364,15 @@ scm_i_rehash (SCM table,
       while (scm_is_pair (ls))
 	{
 	  unsigned long h;
+
 	  cell = ls;
 	  handle = SCM_CAR (cell);
 	  ls = SCM_CDR (ls);
+
+	  if (SCM_WEAK_CELL_DELETED_P (handle))
+	    /* HANDLE is a nullified weak pair: skip it.  */
+	    continue;
+
 	  h = hash_fn (SCM_CAR (handle), new_size, closure);
 	  if (h >= new_size)
 	    scm_out_of_range (func_name, scm_from_ulong (h));
@@ -398,39 +401,6 @@ hashtable_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
 		 10, port);
   scm_puts (">", port);
   return 1;
-}
-
-/* keep track of hash tables that need to shrink after scan */
-static SCM to_rehash = SCM_EOL;
-
-
-static void *
-rehash_after_gc (void *dummy1 SCM_UNUSED,
-		 void *dummy2 SCM_UNUSED,
-		 void *dummy3 SCM_UNUSED)
-{
-  if (!scm_is_null (to_rehash))
-    {
-      SCM first = to_rehash, last, h;
-      /* important to clear to_rehash here so that we don't get stuck
-	 in an infinite loop if scm_i_rehash causes GC */
-      to_rehash = SCM_EOL;
-      h = first;
-      do
-	{
-	  /* Rehash only when we have a hash_fn.
-	   */
-	  if (SCM_HASHTABLE (h)->hash_fn)
-	    scm_i_rehash (h, SCM_HASHTABLE (h)->hash_fn, NULL,
-			  "rehash_after_gc");
-	  last = h;
-	  h = SCM_HASHTABLE_NEXT (h);
-	} while (!scm_is_null (h));
-      /* move tables back to weak_hashtables */
-      SCM_SET_HASHTABLE_NEXT (last, weak_hashtables);
-      weak_hashtables = first;
-    }
-  return 0;
 }
 
 
@@ -578,11 +548,11 @@ scm_hash_fn_get_handle (SCM table, SCM obj, unsigned long (*hash_fn)(), SCM (*as
   alist = SCM_SIMPLE_VECTOR_REF (buckets, k);
 
   if (weak)
-    START_WEAK_BUCKET_FIXUP (table, buckets, k, alist);
+    START_WEAK_BUCKET_FIXUP (table, buckets, k, alist, hash_fn);
 
   h = assoc_fn (obj, alist, closure);
   if (weak)
-    END_WEAK_BUCKET_FIXUP (table, buckets, k, alist);
+    END_WEAK_BUCKET_FIXUP (table, buckets, k, alist, hash_fn);
 
   return h;
 }
@@ -616,11 +586,11 @@ scm_hash_fn_create_handle_x (SCM table, SCM obj, SCM init, unsigned long (*hash_
   weak = IS_WEAK_THING (table);
   alist = SCM_SIMPLE_VECTOR_REF (buckets, k);
   if (weak)
-    START_WEAK_BUCKET_FIXUP (table, buckets, k, alist);
+    START_WEAK_BUCKET_FIXUP (table, buckets, k, alist, hash_fn);
 
   it = assoc_fn (obj, alist, closure);
   if (weak)
-    END_WEAK_BUCKET_FIXUP (table, buckets, k, alist);
+    END_WEAK_BUCKET_FIXUP (table, buckets, k, alist, hash_fn);
 
   if (scm_is_true (it))
     return it;
@@ -733,11 +703,11 @@ scm_hash_fn_remove_x (SCM table, SCM obj,
   weak = IS_WEAK_THING (table);
   alist = SCM_SIMPLE_VECTOR_REF (buckets, k);
   if (weak)
-    START_WEAK_BUCKET_FIXUP (table, buckets, k, alist);
+    START_WEAK_BUCKET_FIXUP (table, buckets, k, alist, hash_fn);
 
   h = assoc_fn (obj, alist, closure);
   if (weak)
-    END_WEAK_BUCKET_FIXUP (table, buckets, k, alist);
+    END_WEAK_BUCKET_FIXUP (table, buckets, k, alist, hash_fn);
 
   if (scm_is_true (h))
     {
@@ -1136,8 +1106,7 @@ scm_internal_hash_fold (SCM (*fn) (), void *closure, SCM init, SCM table)
 
 	  if (IS_WEAK_THING (table))
 	    {
-	      if ((SCM_CAR (handle) == SCM_PACK (NULL))
-		  || (SCM_CDR (handle) == SCM_PACK (NULL)))
+	      if (SCM_WEAK_CELL_DELETED_P (handle))
 		{
 		  /* We hit a weak pair whose car/cdr has become
 		     unreachable: unlink it from the bucket.  */
@@ -1315,7 +1284,6 @@ scm_hashtab_prehistory ()
   /* Initialize the hashtab SMOB type.  */
   scm_tc16_hashtable = scm_make_smob_type (s_hashtable, 0);
   scm_set_smob_print (scm_tc16_hashtable, hashtable_print);
-  scm_c_hook_add (&scm_after_gc_c_hook, rehash_after_gc, 0, 0);
 }
 
 void
