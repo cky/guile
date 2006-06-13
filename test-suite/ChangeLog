@@ -1,3 +1,10 @@
+2006-06-13  Ludovic Courtès  <ludovic.courtes@laas.fr>
+
+	* Makefile.am (SCM_TESTS): Added `tests/structs.test'.
+	* tests/structs.test: New file.
+	* lib.scm (exception:struct-set!-denied): New.
+	(exception:miscellaneous-error): New.
+
 2006-05-30  Marius Vollmer  <mvo@zagadka.de>
 
 	* tests/unif.test ("vector equal? one-dimensional array"): New.

@@ -30,6 +30,10 @@
 #include "libguile/unif.h"
 #include "libguile/vectors.h"
 
+#include "libguile/struct.h"
+#include "libguile/goops.h"
+#include "libguile/objects.h"
+
 #include "libguile/validate.h"
 #include "libguile/eq.h"
 
@@ -284,6 +288,13 @@ SCM_PRIMITIVE_GENERIC_1 (scm_equal_p, "equal?", scm_tc7_rpsubr,
     case scm_tc7_wvect:
       return scm_i_vector_equal_p (x, y);
     }
+
+  /* Check equality between structs of equal type (see cell-type test above)
+     that are not GOOPS instances.  GOOPS instances are treated via the
+     generic function.  */
+  if ((SCM_STRUCTP (x)) && (!SCM_INSTANCEP (x)))
+    return scm_i_struct_equalp (x, y);
+
  generic_equal:
   if (SCM_UNPACK (g_scm_equal_p))
     return scm_call_generic_2 (g_scm_equal_p, x, y);

@@ -79,6 +79,7 @@ SCM_TESTS = tests/alist.test			\
 	    tests/srfi-4.test			\
 	    tests/srfi-9.test			\
 	    tests/strings.test			\
+	    tests/structs.test			\
 	    tests/symbols.test			\
 	    tests/syncase.test			\
 	    tests/syntax.test			\

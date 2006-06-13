@@ -94,6 +94,7 @@ SCM_API SCM scm_struct_p (SCM x);
 SCM_API SCM scm_struct_vtable_p (SCM x);
 SCM_API SCM scm_make_struct (SCM vtable, SCM tail_array_size, SCM init);
 SCM_API SCM scm_make_vtable_vtable (SCM extra_fields, SCM tail_array_size, SCM init);
+SCM_API SCM scm_i_struct_equalp (SCM s1, SCM s2);
 SCM_API SCM scm_struct_ref (SCM handle, SCM pos);
 SCM_API SCM scm_struct_set_x (SCM handle, SCM pos, SCM val);
 SCM_API SCM scm_struct_vtable (SCM handle);

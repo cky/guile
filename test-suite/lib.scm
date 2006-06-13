@@ -28,6 +28,8 @@
  exception:used-before-defined
  exception:wrong-num-args exception:wrong-type-arg
  exception:numerical-overflow
+ exception:struct-set!-denied
+ exception:miscellaneous-error
 
  ;; Reporting passes and failures.
  run-test
@@ -252,6 +254,10 @@
   (cons 'wrong-type-arg "^Wrong type"))
 (define exception:numerical-overflow
   (cons 'numerical-overflow "^Numerical overflow"))
+(define exception:struct-set!-denied
+  (cons 'misc-error "^set! denied for field"))
+(define exception:miscellaneous-error
+  (cons 'misc-error "^.*"))
 
 ;;; Display all parameters to the default output port, followed by a newline.
 (define (display-line . objs)

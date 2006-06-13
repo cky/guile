@@ -33,6 +33,8 @@
 #include "libguile/validate.h"
 #include "libguile/struct.h"
 
+#include "libguile/eq.h"
+
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
@@ -380,9 +382,7 @@ scm_free_structs (void *dummy1 SCM_UNUSED,
 	    }
 	  else
 	    {
-	      /* XXX - use less explicit code. */
-	      scm_t_bits word0 = SCM_CELL_WORD_0 (obj) - scm_tc3_struct;
-	      scm_t_bits * vtable_data = (scm_t_bits *) word0;
+	      scm_t_bits * vtable_data = SCM_STRUCT_VTABLE_DATA (obj);
 	      scm_t_bits * data = SCM_STRUCT_DATA (obj);
 	      scm_t_struct_free free_struct_data
 		= ((scm_t_struct_free) vtable_data[scm_struct_i_free]);
@@ -529,6 +529,49 @@ SCM_DEFINE (scm_make_vtable_vtable, "make-vtable-vtable", 2, 0, 1,
   return handle;
 }
 #undef FUNC_NAME
+
+
+/* Return true if S1 and S2 are equal structures, i.e., if their vtable and
+   contents are the same.  Field protections are honored.  Thus, it is an
+   error to test the equality of structures that contain opaque fields.  */
+SCM
+scm_i_struct_equalp (SCM s1, SCM s2)
+#define FUNC_NAME "scm_i_struct_equalp"
+{
+  SCM vtable1, vtable2, layout;
+  size_t struct_size, field_num;
+
+  SCM_VALIDATE_STRUCT (1, s1);
+  SCM_VALIDATE_STRUCT (2, s2);
+
+  vtable1 = SCM_STRUCT_VTABLE (s1);
+  vtable2 = SCM_STRUCT_VTABLE (s2);
+
+  if (!scm_is_eq (vtable1, vtable2))
+    return SCM_BOOL_F;
+
+  layout = SCM_STRUCT_LAYOUT (s1);
+  struct_size = scm_i_symbol_length (layout) / 2;
+
+  for (field_num = 0; field_num < struct_size; field_num++)
+    {
+      SCM s_field_num;
+      SCM field1, field2;
+
+      /* We have to use `scm_struct_ref ()' here so that fields are accessed
+	 consistently, notably wrt. field types and access rights.  */
+      s_field_num = scm_from_size_t (field_num);
+      field1 = scm_struct_ref (s1, s_field_num);
+      field2 = scm_struct_ref (s2, s_field_num);
+
+      if (scm_is_false (scm_equal_p (field1, field2)))
+	return SCM_BOOL_F;
+    }
+
+  return SCM_BOOL_T;
+}
+#undef FUNC_NAME
+
 
 
 

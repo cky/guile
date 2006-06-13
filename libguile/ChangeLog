@@ -1,3 +1,14 @@
+2006-06-13  Ludovic Courtès <ludovic.courtes@laas.fr>
+
+	* eq.c: Include "struct.h", "goops.h" and "objects.h".
+	(scm_equal_p): Invoke `scm_i_struct_equalp ()' on structures that
+	are not GOOPS instances.
+	* struct.c: Include "eq.h".
+	(scm_free_structs): Use `SCM_STRUCT_VTABLE_DATA ()' instead of
+	hand-written code.
+	(scm_i_struct_equalp): New.
+	* struct.h (scm_i_struct_equalp): New declaration.
+
 2006-05-30  Marius Vollmer  <mvo@zagadka.de>
 
 	* eq.c (scm_equal_p): Use scm_array_equal_p explicitely when one
