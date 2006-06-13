@@ -17,6 +17,7 @@ Changes in 1.8.1:
 * Changes to Scheme functions and syntax
 
 ** A one-dimenisonal array can now be 'equal?' to a vector.
+** Structures, records, and SRFI-9 records can now be compared with `equal?'.
 
 * Bug fixes.
 ** array-set! with bit vector.

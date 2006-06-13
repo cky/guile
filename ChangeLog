@@ -1,3 +1,7 @@
+2006-06-13  Ludovic Courtès  <ludovic.courtes@laas.fr>
+
+	* NEWS: Mentioned the new behavior of `equal?' for structures.
+
 2006-06-06  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* acinclude.m4 (ACX_PTHREAD): Update to latest definition from

@@ -2705,6 +2705,10 @@ memory, private to the structure, divided up into typed fields.  A
 vtable is another structure used to hold type-specific data.  Multiple
 structures can share a common vtable.
 
+When applied to structures, the @code{equal?} predicate
+(@pxref{Equality}) returns @code{#t} if the two structures share a
+common vtable @emph{and} all their fields satisfy @code{equal?}.
+
 Three concepts are key to understanding structures.
 
 @itemize @bullet{}
