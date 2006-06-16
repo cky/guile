@@ -137,7 +137,7 @@ inexact number (even if their value is the same).
 Return @code{#t} if @var{x} and @var{y} are the same type, and their
 contents or value are equal.
 
-For a pair, string, vector or array, @code{equal?} compares the
+For a pair, string, vector, array or structure, @code{equal?} compares the
 contents, and does so using using the same @code{equal?} recursively,
 so a deep structure can be traversed.
 
