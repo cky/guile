@@ -33,6 +33,8 @@
 #endif
 
 SCM_SRFI1_API SCM scm_srfi1_alist_copy (SCM alist);
+SCM_SRFI1_API SCM scm_srfi1_append_reverse (SCM revhead, SCM tail);
+SCM_SRFI1_API SCM scm_srfi1_append_reverse_x (SCM revhead, SCM tail);
 SCM_SRFI1_API SCM scm_srfi1_break (SCM pred, SCM lst);
 SCM_SRFI1_API SCM scm_srfi1_break_x (SCM pred, SCM lst);
 SCM_SRFI1_API SCM scm_srfi1_car_plus_cdr (SCM pair);

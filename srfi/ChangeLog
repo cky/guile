@@ -1,3 +1,13 @@
+2006-05-28  Kevin Ryde  <user42@zip.com.au>
+
+	* srfi-1.scm, srfi-1.c, srfi-1.h (append-reverse, append-reverse!):
+	Rewrite in C.
+
+2006-05-20  Kevin Ryde  <user42@zip.com.au>
+
+	* srfi-1.c (scm_srfi1_assoc): Correction to comparison procedure
+	argument order, SRFI-1 specifies given key is first.
+
 2006-02-06  Marius Vollmer  <mvo@zagadka.de>
 
 	* srfi-1.scm, srfi-60.scm: Updated versions in library name to

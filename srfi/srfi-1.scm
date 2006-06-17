@@ -324,15 +324,6 @@
 
 ;;; Miscelleneous: length, append, concatenate, reverse, zip & count
 
-(define (append-reverse rev-head tail)
-  (let lp ((l rev-head) (acc tail))
-    (if (null? l)
-      acc
-      (lp (cdr l) (cons (car l) acc)))))
-
-(define (append-reverse! rev-head tail)
-  (append-reverse rev-head tail))	; XXX:optimize
-
 (define (zip clist1 . rest)
   (let lp ((l (cons clist1 rest)) (acc '()))
     (if (any null? l)

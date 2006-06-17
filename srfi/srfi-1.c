@@ -124,6 +124,65 @@ SCM_DEFINE (scm_srfi1_alist_copy, "alist-copy", 1, 0, 0,
 #undef FUNC_NAME
 
 
+
+SCM_DEFINE (scm_srfi1_append_reverse, "append-reverse", 2, 0, 0,
+            (SCM revhead, SCM tail),
+	    "Reverse @var{rev-head}, append @var{tail} to it, and return the\n"
+	    "result.  This is equivalent to @code{(append (reverse\n"
+	    "@var{rev-head}) @var{tail})}, but its implementation is more\n"
+	    "efficient.\n"
+	    "\n"
+	    "@example\n"
+	    "(append-reverse '(1 2 3) '(4 5 6)) @result{} (3 2 1 4 5 6)\n"
+	    "@end example")
+#define FUNC_NAME s_scm_srfi1_append_reverse
+{
+  while (scm_is_pair (revhead))
+    {
+      /* copy first element of revhead onto front of tail */
+      tail = scm_cons (SCM_CAR (revhead), tail);
+      revhead = SCM_CDR (revhead);
+    }
+  SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P (revhead), revhead, SCM_ARG1, FUNC_NAME,
+                   "list");
+  return tail;
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_srfi1_append_reverse_x, "append-reverse!", 2, 0, 0,
+            (SCM revhead, SCM tail),
+	    "Reverse @var{rev-head}, append @var{tail} to it, and return the\n"
+	    "result.  This is equivalent to @code{(append! (reverse!\n"
+	    "@var{rev-head}) @var{tail})}, but its implementation is more\n"
+	    "efficient.\n"
+	    "\n"
+	    "@example\n"
+	    "(append-reverse! (list 1 2 3) '(4 5 6)) @result{} (3 2 1 4 5 6)\n"
+	    "@end example\n"
+	    "\n"
+	    "@var{rev-head} may be modified in order to produce the result.")
+#define FUNC_NAME s_scm_srfi1_append_reverse_x
+{
+  SCM newtail;
+
+  while (scm_is_pair (revhead))
+    {
+      /* take the first cons cell from revhead */
+      newtail = revhead;
+      revhead = SCM_CDR (revhead);
+
+      /* make it the new start of tail, appending the previous */
+      SCM_SETCDR (newtail, tail);
+      tail = newtail;
+    }
+  SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P (revhead), revhead, SCM_ARG1, FUNC_NAME,
+                   "list");
+  return tail;
+}
+#undef FUNC_NAME
+
+
 SCM_DEFINE (scm_srfi1_break, "break", 2, 0, 0,
             (SCM pred, SCM lst),
 	    "Return two values, the longest initial prefix of @var{lst}\n"
@@ -1557,7 +1616,7 @@ SCM_DEFINE (scm_srfi1_assoc, "assoc", 2, 1, 0,
       SCM tmp = SCM_CAR (ls);
       SCM_ASSERT_TYPE (scm_is_pair (tmp), alist, SCM_ARG2, FUNC_NAME,
 		       "association list");
-      if (scm_is_true (equal_p (pred, SCM_CAR (tmp), key)))
+      if (scm_is_true (equal_p (pred, key, SCM_CAR (tmp))))
 	return tmp;
     }
   SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P (ls), alist, SCM_ARG2, FUNC_NAME,
