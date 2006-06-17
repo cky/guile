@@ -9,6 +9,35 @@
 	(scm_i_struct_equalp): New.
 	* struct.h (scm_i_struct_equalp): New declaration.
 
+2006-06-06  Kevin Ryde  <user42@zip.com.au>
+
+	* Makefile.am (BUILT_SOURCES): Remove guile.texi, only used by
+	maintainers (with doc/maint/docstring.el).  Fixes parallel "make -j2"
+	reported by Mattias Holm.
+	
+2006-06-03  Kevin Ryde  <user42@zip.com.au>
+
+	* read.c (s_vector): Conditionalize on SCM_ENABLE_ELISP, to avoid
+	unused variable warning when elisp disabled.  Reported by Ryan
+	VanderBijl.
+
+	* throw.c (scm_handle_by_message): Add dummy return value to avoid
+	compiler warning on cygwin.  Reported by Ryan VanderBijl.
+	
+	* Makefile.am (EXTRA_DOT_X_FILES): Typo in dependency rule, was a
+	duplicate of EXTRA_DOT_DOC_FILES.
+	(DOT_X_FILES, EXTRA_DOT_X_FILES, DOT_DOC_FILES, EXTRA_DOT_DOC_FILES):
+	Add scmconfig.h to dependencies, since these all run cpp.  Helps a
+	parallel "make -j2".  Reported by Mattias Holm.
+
+2006-05-30  Kevin Ryde  <user42@zip.com.au>
+
+	* ports.c, ports.h (scm_set_port_mark, scm_set_port_free,
+	scm_set_port_print, scm_set_port_equalp, scm_set_port_flush,
+	scm_set_port_end_input, scm_set_port_close, scm_set_port_seek,
+	scm_set_port_truncate, scm_set_port_input_waiting): Use scm_t_bits for
+	port type descriptor, same as scm_make_port_type return value.
+
 2006-05-30  Marius Vollmer  <mvo@zagadka.de>
 
 	* eq.c (scm_equal_p): Use scm_array_equal_p explicitely when one
@@ -21,15 +50,73 @@
 	that we have a pair before accessing its cdr.  Thanks to Bill
 	Schottstaedt!
 
-2006-05-28  Marius Vollmer  <mvo@zagadka.de>
+2006-05-28  Kevin Ryde  <user42@zip.com.au>
+
+	* eval.c, filesys.c: Add malloc.h to get alloca() on mingw.  Reported
+	by "The Senator".
+
+2006-05-27  Marius Vollmer  <mvo@zagadka.de>
 
 	* srfi-4.c, strings.c: Replace SCM_C_INLINE with
 	SCM_C_INLINE_KEYWORD.  Thanks to Mark Gran!
+
+2006-05-26  Kevin Ryde  <user42@zip.com.au>
+
+	* fports.c (fport_input_waiting): For ioctl, check HAVE_IOCTL as well
+	as defined(FIONREAD), since mingw has FIONREAD but not ioctl().
+	Reported by "The Senator".
+	For select and ioctl, move fdes into those conditionals, to avoid
+	unused variable warning when neither of those used.
+
+2006-05-23  Kevin Ryde  <user42@zip.com.au>
+
+	* fports.c: Remove "fwrite" declaration under "! HAVE_UNISTD_H".
+	It's unused and will be in stdio.h anyway (if it's anywhere).
+
+2006-05-20  Kevin Ryde  <user42@zip.com.au>
+
+	* filesys.c (scm_stat2scm): Test #ifdef S_ISLNK directly, rather than
+	HAVE_S_ISLNK from configure (it was only a #ifdef test anyway).
+
+	* posix.c (scm_mknod): Test #ifdef S_IFLNK before using that (for
+	symlink).  Probably can't create symlinks with mknod anyway though.
+
+	* inline.h (scm_is_pair): Add a workaround for i386 gcc 2.95 bad code
+	generation.
+
+2006-05-15  Kevin Ryde  <user42@zip.com.au>
+
+	* simpos.c, simpos.h (scm_primitive__exit): New function.
+	(scm_primitive_exit): Update docstring, no longer the best exit after
+	a fork.
+
+2006-05-09  Kevin Ryde  <user42@zip.com.au>
+
+	* numbers.c (scm_i_divide): For big/big wanting inexact, use mpq_get_d
+	rather than converting to doubles, to avoid inf or nan when the inputs
+	are too big for a double but the quotient does fit.  This affects
+	conversions exact->inexact of big fractions.
+
+	* filesys.c (scm_open_fdes): Use open64.
+	(scm_init_filesys): Add O_LARGEFILE.
+
+	* ports.c (scm_seek): Use lseek64.
+	(scm_truncate_file): Use ftruncate64.
 
 2006-05-08  Marius Vollmer  <mvo@zagadka.de>
 
 	* private-gc.h (CELL_P): Also check that the potential pointer is
 	correctly aligned for a cell.  Thanks to Miroslav Lichvar!
+
+2006-04-18  Rob Browning  <rlb@defaultvalue.org>
+
+	* _scm.h: Add back error if the size of off_t is unknown.  The bug
+	was actually in guile-readline's configuration.
+
+2006-04-18  Kevin Ryde  <user42@zip.com.au>
+
+	* posix.c (scm_mkstemp): Update docstring from the manual, in
+	particular file mode 0600 is not guaranteed.
 
 2006-04-17  Kevin Ryde  <user42@zip.com.au>
 
