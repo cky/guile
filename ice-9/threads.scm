@@ -86,7 +86,7 @@
 	(threads '()))
     (do ((i 0 (+ 1 i)))
 	((= i n)
-	 (for-each join-thread futures))
+	 (for-each join-thread threads))
       (set! threads
 	    (cons (begin-thread
 		   (let loop ()
@@ -115,7 +115,7 @@ of applying P-PROC on ARGLISTS."
 	 (result results))
     (do ((i 0 (+ 1 i)))
 	((= i n)
-	 (for-each join-thread futures))
+	 (for-each join-thread threads))
       (set! threads
 	    (cons (begin-thread
 		   (let loop ()

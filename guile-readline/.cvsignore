@@ -14,8 +14,11 @@ config.status
 config.sub
 configure
 depcomp
+guile-readline-config.h
+guile-readline-config.h.in
 install-sh
 libtool
 ltmain.sh
 missing
 mkinstalldirs
+stamp-h1

@@ -90,14 +90,21 @@
 ;;
 ;; commentary extraction
 ;;
-(define default-in-line-re (make-regexp "^;;; Commentary:"))
-(define default-after-line-re (make-regexp "^;;; Code:"))
-(define default-scrub (let ((dirt (make-regexp "^;+")))
-                        (lambda (line)
-                          (let ((m (regexp-exec dirt line)))
-                            (if m (match:suffix m) line)))))
 
 (define (file-commentary filename . cust) ; (IN-LINE-RE AFTER-LINE-RE SCRUB)
+   
+  ;; These are constants but are not at the top level because the repl in
+  ;; boot-9.scm loads session.scm which in turn loads this file, and we want
+  ;; that to work even even when regexps are not available (ie. make-regexp
+  ;; doesn't exist), as for instance is the case on mingw.
+  ;;
+  (define default-in-line-re (make-regexp "^;;; Commentary:"))
+  (define default-after-line-re (make-regexp "^;;; Code:"))
+  (define default-scrub (let ((dirt (make-regexp "^;+")))
+			  (lambda (line)
+			    (let ((m (regexp-exec dirt line)))
+			      (if m (match:suffix m) line)))))
+       
   ;; fixme: might be cleaner to use optargs here...
   (let ((in-line-re (if (> 1 (length cust))
                         default-in-line-re

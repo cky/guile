@@ -1,3 +1,15 @@
+2006-05-28  Kevin Ryde  <user42@zip.com.au>
+
+	* documentation.scm (file-commentary): Move make-regexp into
+	file-commentary so that it's possible to get to the repl prompt when
+	regexps are not available.
+
+2006-05-09  Kevin Ryde  <user42@zip.com.au>
+
+	* threads.scm (n-par-for-each, n-for-each-par-map): Two more spots
+	where `futures' should become `threads' from Marius' change of
+	2006-01-29.
+
 2006-03-04  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
 	* ice-9/boot-9.scm (make-autoload-interface): Don't call `set-car!' if

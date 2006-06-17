@@ -26,7 +26,7 @@ DEFS = @DEFS@ @EXTRA_DEFS@
 ## Check for headers in $(srcdir)/.., so that #include
 ## <libguile/MUMBLE.h> will find MUMBLE.h in this dir when we're
 ## building.
-INCLUDES = -I.. -I$(srcdir)/..
+INCLUDES = -I. -I.. -I$(srcdir)/..
 
 GUILE_SNARF = ../libguile/guile-snarf
 

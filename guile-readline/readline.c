@@ -22,11 +22,9 @@
 
 
 
-#if HAVE_CONFIG_H
-#  include <config.h>
-#endif
+/* Include private, configure generated header (i.e. config.h). */
+#include "guile-readline-config.h"
 
-#include "libguile/_scm.h"
 #ifdef HAVE_RL_GETC_FUNCTION
 #include "libguile.h"
 #include "libguile/gh.h"

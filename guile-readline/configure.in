@@ -2,7 +2,9 @@ AC_PREREQ(2.50)
 
 AC_INIT(guile-readline,
         m4_esyscmd(. ../GUILE-VERSION && echo -n ${GUILE_VERSION}))
+AC_CONFIG_AUX_DIR([.])
 AC_CONFIG_SRCDIR(readline.c)
+AM_CONFIG_HEADER([guile-readline-config.h])
 AM_INIT_AUTOMAKE([foreign no-define])
 
 . $srcdir/../GUILE-VERSION
@@ -58,7 +60,8 @@ ac_cv_var_rl_pre_input_hook=yes,
 ac_cv_var_rl_pre_input_hook=no)])
 AC_MSG_RESULT($ac_cv_var_rl_pre_input_hook)
 if test $ac_cv_var_rl_pre_input_hook = yes; then
-  AC_DEFINE(HAVE_RL_PRE_INPUT_HOOK)
+  AC_DEFINE(HAVE_RL_PRE_INPUT_HOOK,1,
+            [Define if rl_pre_input_hook is available.])
 fi
 
 
@@ -107,7 +110,8 @@ guile_cv_sigwinch_sa_restart_cleared=no,
 guile_cv_sigwinch_sa_restart_cleared=yes))
 AC_MSG_RESULT($guile_cv_sigwinch_sa_restart_cleared)
 if test $guile_cv_sigwinch_sa_restart_cleared = yes; then
-  AC_DEFINE(GUILE_SIGWINCH_SA_RESTART_CLEARED)
+  AC_DEFINE(GUILE_SIGWINCH_SA_RESTART_CLEARED, 1,
+    [Define if readline disables SA_RESTART.])
 fi
 
 AC_CACHE_CHECK([for rl_getc_function pointer in readline],
