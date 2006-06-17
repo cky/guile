@@ -12,16 +12,40 @@ Each release reports the NEWS in the following sections:
 * Changes to the C interface 
 
 
-Changes in 1.8.1:
+Changes in 1.9.XXXXXXXX:
+
+* Changes to the distribution
+* Changes to the stand-alone interpreter
+* Changes to Scheme functions and syntax
+* Changes to the C interface 
+
+
+Changes in 1.8.1 (since 1.8.0):
+
+* Changes to the distribution
+
+** New primitive-_exit giving the _exit() system call.
 
 * Changes to Scheme functions and syntax
 
 ** A one-dimenisonal array can now be 'equal?' to a vector.
 ** Structures, records, and SRFI-9 records can now be compared with `equal?'.
 
+* Changes to the C interface 
+
+** New function scm_c_locale_stringn_to_number.
+
 * Bug fixes.
+
 ** array-set! with bit vector.
+** make-shared-array fixes, including examples in the manual which failed.
 ** string<? and friends follow char<? etc order on 8-bit chars.
+** n-par-for-each, n-for-each-par-map for "futures" variable.
+** module autoload and explicit use-modules cooperate.
+** ice-9 format ~f with infs and nans.
+** exact->inexact overflows on fractions with big num/den but small result.
+** srfi-1 assoc "=" procedure argument order.
+** Build problems on MacOS, SunOS, QNX.
 
 
 Changes since the 1.6.x series:
@@ -46,10 +70,10 @@ headers.
 Guile now provides scm_effective_version and effective-version
 functions which return the "effective" version number.  This is just
 the normal full version string without the final micro-version number,
-so the current effective-version is "1.10".  The effective version
+so the current effective-version is "1.8".  The effective version
 should remain unchanged during a stable series, and should be used for
 items like the versioned share directory name
-i.e. /usr/share/guile/1.10.
+i.e. /usr/share/guile/1.8.
 
 Providing an unchanging version number during a stable release for
 things like the versioned share directory can be particularly
