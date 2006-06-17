@@ -1132,16 +1132,25 @@ extern int mkstemp (char *);
 
 SCM_DEFINE (scm_mkstemp, "mkstemp!", 1, 0, 0,
 	    (SCM tmpl),
-	    "Create a new unique file in the file system and returns a new\n"
+	    "Create a new unique file in the file system and return a new\n"
 	    "buffered port open for reading and writing to the file.\n"
 	    "\n"
 	    "@var{tmpl} is a string specifying where the file should be\n"
-	    "created: it must end with @samp{XXXXXX} and will be changed in\n"
-	    "place to return the name of the temporary file.\n"
+	    "created: it must end with @samp{XXXXXX} and those @samp{X}s\n"
+	    "will be changed in the string to return the name of the file.\n"
+	    "(@code{port-filename} on the port also gives the name.)\n"
 	    "\n"
-	    "The file is created with mode @code{0600}, which means read and\n"
-	    "write for the owner only.  @code{chmod} can be used to change\n"
-	    "this.")
+	    "POSIX doesn't specify the permissions mode of the file, on GNU\n"
+	    "and most systems it's @code{#o600}.  An application can use\n"
+	    "@code{chmod} to relax that if desired.  For example\n"
+	    "@code{#o666} less @code{umask}, which is usual for ordinary\n"
+	    "file creation,\n"
+	    "\n"
+	    "@example\n"
+	    "(let ((port (mkstemp! (string-copy \"/tmp/myfile-XXXXXX\"))))\n"
+	    "  (chmod port (logand #o666 (lognot (umask))))\n"
+	    "  ...)\n"
+	    "@end example")
 #define FUNC_NAME s_scm_mkstemp
 {
   char *c_tmpl;
@@ -1419,8 +1428,11 @@ SCM_DEFINE (scm_mknod, "mknod", 4, 0, 0,
     ctype = S_IFREG;
   else if (strcmp (p, "directory") == 0)
     ctype = S_IFDIR;
+#ifdef S_IFLNK
+  /* systems without symlinks probably don't have S_IFLNK defined */
   else if (strcmp (p, "symlink") == 0)
     ctype = S_IFLNK;
+#endif
   else if (strcmp (p, "block-special") == 0)
     ctype = S_IFBLK;
   else if (strcmp (p, "char-special") == 0)

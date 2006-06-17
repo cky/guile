@@ -18,6 +18,7 @@
 ;;;; Boston, MA 02110-1301 USA
 
 (define-module (test-srfi-60)
+  #:duplicates (last)  ;; avoid warning about srfi-60 replacing `bit-count'
   #:use-module (test-suite lib)
   #:use-module (srfi srfi-60))
 

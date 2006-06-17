@@ -37,8 +37,6 @@
 #endif
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#else
-size_t fwrite ();
 #endif
 #ifdef HAVE_IO_H
 #include <io.h>
@@ -460,9 +458,8 @@ scm_fdes_to_port (int fdes, char *mode, SCM name)
 static int
 fport_input_waiting (SCM port)
 {
-  int fdes = SCM_FSTREAM (port)->fdes;
-
 #ifdef HAVE_SELECT
+  int fdes = SCM_FSTREAM (port)->fdes;
   struct timeval timeout;
   SELECT_TYPE read_set;
   SELECT_TYPE write_set;
@@ -482,10 +479,15 @@ fport_input_waiting (SCM port)
       < 0)
     scm_syserror ("fport_input_waiting");
   return FD_ISSET (fdes, &read_set) ? 1 : 0;
-#elif defined (FIONREAD)
+
+#elif HAVE_IOCTL && defined (FIONREAD)
+  /* Note: cannot test just defined(FIONREAD) here, since mingw has FIONREAD
+     (for use with winsock ioctlsocket()) but not ioctl().  */
+  int fdes = SCM_FSTREAM (port)->fdes;
   int remir;
   ioctl(fdes, FIONREAD, &remir);
   return remir;
+
 #else    
   scm_misc_error ("fport_input_waiting",
 		  "Not fully implemented on this platform",

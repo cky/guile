@@ -472,10 +472,11 @@ If @var{size} is omitted, a default size will be used.
 @end defvar
 @end deffn
 
-@deffn {Scheme Procedure} fcntl object cmd [value]
+@deffn {Scheme Procedure} fcntl port/fd cmd [value]
 @deffnx {C Function} scm_fcntl (object, cmd, value)
-Apply @var{cmd} on @var{object}, either a port or file descriptor.
-The @var{value} is an integer argument, for the @code{SET} commands.
+Apply @var{cmd} on @var{port/fd}, either a port or file descriptor.
+The @var{value} argument is used by the @code{SET} commands described
+below, it's an integer value.
 
 Values for @var{cmd} are:
 
@@ -497,6 +498,13 @@ flag,
 @example
 (fcntl port F_SETFD FD_CLOEXEC)
 @end example
+
+Or better, set it but leave any other possible future flags unchanged,
+
+@example
+(fcntl port F_SETFD (logior FD_CLOEXEC
+                            (fcntl port F_GETFD)))
+@end example
 @end defvar
 @end defvar
 
@@ -509,8 +517,8 @@ A common use is to set @code{O_NONBLOCK} on a network socket.  The
 following sets that flag, and leaves other flags unchanged.
 
 @example
-(fcntl sock F_SETFL
-       (logior (fcntl sock F_GETFL) O_NONBLOCK))
+(fcntl sock F_SETFL (logior O_NONBLOCK
+                            (fcntl sock F_GETFL)))
 @end example
 @end defvar
 
@@ -1644,10 +1652,28 @@ Example: (system* "echo" "foo" "bar")
 @end deffn
 
 @deffn {Scheme Procedure} primitive-exit [status]
+@deffnx {Scheme Procedure} primitive-_exit [status]
 @deffnx {C Function} scm_primitive_exit (status)
-Terminate the current process without unwinding the Scheme stack.
-This is would typically be useful after a fork.  The exit status
-is @var{status} if supplied, otherwise zero.
+@deffnx {C Function} scm_primitive__exit (status)
+Terminate the current process without unwinding the Scheme stack.  The
+exit status is @var{status} if supplied, otherwise zero.
+
+@code{primitive-exit} uses the C @code{exit} function and hence runs
+usual C level cleanups (flush output streams, call @code{atexit}
+functions, etc, see @ref{Normal Termination,,, libc, The GNU C Library
+Reference Manual})).
+
+@code{primitive-_exit} is the @code{_exit} system call
+(@pxref{Termination Internals,,, libc, The GNU C Library Reference
+Manual}).  This terminates the program immediately, with neither
+Scheme-level nor C-level cleanups.
+
+The typical use for @code{primitive-_exit} is from a child process
+created with @code{primitive-fork}.  For example in a Gdk program the
+child process inherits the X server connection and a C-level
+@code{atexit} cleanup which will close that connection.  But closing
+in the child would upset the protocol in the parent, so
+@code{primitive-_exit} should be used to exit without that.
 @end deffn
 
 @deffn {Scheme Procedure} execl filename . args

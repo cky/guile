@@ -9,10 +9,33 @@
 
 	* tests/unif.test ("vector equal? one-dimensional array"): New.
 
+2006-05-28  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/numbers.test (number->string): Disable 11.333 and 1.324e44
+	tests, as these can't be expected to come out precisely in the current
+	implementation, and in fact don't under gcc 4.  Reported by Hector
+	Herrera.
+
+	* tests/srfi-1.test (append-reverse, append-reverse!): New tests.
+
 2006-05-28  Marius Vollmer  <mvo@zagadka.de>
 
 	* tests/ports.test, tests/filesys.test: Delete test file after all
 	tests have run in order to make "make distcheck" work.
+
+2006-05-20  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/srfi-1.test (assoc): A few tests, in particular "=" argument
+	order which had been wrong.
+
+	* tests/srfi-60.test (test-srfi-60): Use #:duplicates (last) to
+	suppress warning about replacing bit-count.
+
+2006-05-09  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/numbers.test (exact->inexact): Test fractions big/big.
+
+	* tests/threads.test (n-par-for-each, n-for-each-par-map): New tests.
 
 2006-04-17  Kevin Ryde  <user42@zip.com.au>
 

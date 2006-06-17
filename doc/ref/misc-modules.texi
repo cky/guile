@@ -1212,7 +1212,7 @@ This module implements queues holding arbitrary scheme objects and
 designed for efficient first-in / first-out operations.
 
 @code{make-q} creates a queue, and objects are entered and removed
-with @code{enq!} and @code{deq!}.  @code{q-push!}  and @code{q-pop!}
+with @code{enq!} and @code{deq!}.  @code{q-push!} and @code{q-pop!}
 can be used too, treating the front of the queue like a stack.
 
 @sp 1

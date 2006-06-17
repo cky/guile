@@ -544,20 +544,34 @@ of the call to @code{call-with-values}.
 @end deffn
 
 In addition to the fundamental procedures described above, Guile has a
-module which exports a syntax called @code{receive}, which is much more
-convenient.  If you want to use it in your programs, you have to load
-the module @code{(ice-9 receive)} with the statement
+module which exports a syntax called @code{receive}, which is much
+more convenient.  This is in the @code{(ice-9 receive)} and is the
+same as specified by SRFI-8 (@pxref{SRFI-8}).
 
 @lisp
 (use-modules (ice-9 receive))
 @end lisp
 
 @deffn {library syntax} receive formals expr body @dots{}
-Evaluate the expression @var{expr}, and bind the result values (zero or
-more) to the formal arguments in the formal argument list @var{formals}.
-@var{formals} must have the same syntax like the formal argument list
-used in @code{lambda} (@pxref{Lambda}).  After binding the variables,
-the expressions in @var{body} @dots{} are evaluated in order.
+Evaluate the expression @var{expr}, and bind the result values (zero
+or more) to the formal arguments in @var{formals}.  @var{formals} is a
+list of symbols, like the argument list in a @code{lambda}
+(@pxref{Lambda}).  After binding the variables, the expressions in
+@var{body} @dots{} are evaluated in order, the return value is the
+result from the last expression.
+
+For example getting results from @code{partition} in SRFI-1
+(@pxref{SRFI-1}),
+
+@example
+(receive (odds evens)
+    (partition odd? '(7 4 2 8 3))
+  (display odds)
+  (display " and ")
+  (display evens))
+@print{} (7 3) and (4 2 8)
+@end example
+
 @end deffn
 
 

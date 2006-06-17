@@ -414,9 +414,13 @@ have a limit on the number of arguments a function takes, which the
 
 @deffn {Scheme Procedure} append-reverse rev-head tail
 @deffnx {Scheme Procedure} append-reverse! rev-head tail
-Reverse @var{rev-head}, append @var{tail} and return the result.  This
-is equivalent to @code{(append (reverse @var{rev-head}) @var{tail})},
-but more efficient.
+Reverse @var{rev-head}, append @var{tail} to it, and return the
+result.  This is equivalent to @code{(append (reverse @var{rev-head})
+@var{tail})}, but its implementation is more efficient.
+
+@example
+(append-reverse '(1 2 3) '(4 5 6)) @result{} (3 2 1 4 5 6)
+@end example
 
 @code{append-reverse!} may modify @var{rev-head} in order to produce
 the result.
@@ -937,12 +941,21 @@ Lists}.  The present section only documents the additional procedures
 for dealing with association lists defined by SRFI-1.
 
 @deffn {Scheme Procedure} assoc key alist [=]
-Return the pair from @var{alist} which matches @var{key}.  Equality is
-determined by @var{=}, which defaults to @code{equal?} if not given.
-@var{alist} must be an association lists---a list of pairs.
+Return the pair from @var{alist} which matches @var{key}.  This
+extends the core @code{assoc} (@pxref{Retrieving Alist Entries}) by
+taking an optional @var{=} comparison procedure.
 
-This function extends the core @code{assoc} by accepting an equality
-predicate.  (@pxref{Association Lists})
+The default comparison is @code{equal?}.  If an @var{=} parameter is
+given it's called @code{(@var{=} @var{key} @var{alistcar})}, ie. the
+given target @var{key} is the first argument, and a @code{car} from
+@var{alist} is second.
+
+For example a case-insensitive string lookup,
+
+@example
+(assoc "yy" '(("XX" . 1) ("YY" . 2)) string-ci=?)
+@result{} ("YY" . 2)
+@end example
 @end deffn
 
 @deffn {Scheme Procedure} alist-cons key datum alist

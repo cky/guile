@@ -195,9 +195,9 @@ SCM_DEFINE (scm_getenv, "getenv", 1, 0, 0,
 /* simple exit, without unwinding the scheme stack or flushing ports.  */
 SCM_DEFINE (scm_primitive_exit, "primitive-exit", 0, 1, 0, 
             (SCM status),
-	    "Terminate the current process without unwinding the Scheme stack.\n"
-	    "This is would typically be useful after a fork.  The exit status\n"
-	    "is @var{status} if supplied, otherwise zero.")
+	    "Terminate the current process without unwinding the Scheme\n"
+	    "stack.  The exit status is @var{status} if supplied, otherwise\n"
+	    "zero.")
 #define FUNC_NAME s_scm_primitive_exit
 {
   int cstatus = 0;
@@ -206,6 +206,25 @@ SCM_DEFINE (scm_primitive_exit, "primitive-exit", 0, 1, 0,
   exit (cstatus);
 }
 #undef FUNC_NAME
+
+SCM_DEFINE (scm_primitive__exit, "primitive-_exit", 0, 1, 0,
+            (SCM status),
+	    "Terminate the current process using the _exit() system call and\n"
+	    "without unwinding the Scheme stack.  The exit status is\n"
+	    "@var{status} if supplied, otherwise zero.\n"
+	    "\n"
+	    "This function is typically useful after a fork, to ensure no\n"
+	    "Scheme cleanups or @code{atexit} handlers are run (those\n"
+	    "usually belonging in the parent rather than the child).")
+#define FUNC_NAME s_scm_primitive__exit
+{
+  int cstatus = 0;
+  if (!SCM_UNBNDP (status))
+    cstatus = scm_to_int (status);
+  _exit (cstatus);
+}
+#undef FUNC_NAME
+
 
 
 void

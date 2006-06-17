@@ -4779,28 +4779,33 @@ scm_i_divide (SCM x, SCM y, int inexact)
 	  else
 	    {
 	      /* big_x / big_y */
-	      int divisible_p = mpz_divisible_p (SCM_I_BIG_MPZ (x),
-						 SCM_I_BIG_MPZ (y));
-	      if (divisible_p)
-		{
-		  SCM result = scm_i_mkbig ();
-		  mpz_divexact (SCM_I_BIG_MPZ (result),
-				SCM_I_BIG_MPZ (x),
-				SCM_I_BIG_MPZ (y));
-		  scm_remember_upto_here_2 (x, y);
-		  return scm_i_normbig (result);
-		}
-	      else
-		{
-		  if (inexact)
-		    {
-		      double dbx = mpz_get_d (SCM_I_BIG_MPZ (x));
-		      double dby = mpz_get_d (SCM_I_BIG_MPZ (y));
-		      scm_remember_upto_here_2 (x, y);
-		      return scm_from_double (dbx / dby);
-		    }
-		  else return scm_i_make_ratio (x, y);
-		}
+              if (inexact)
+                {
+                  /* It's easily possible for the ratio x/y to fit a double
+                     but one or both x and y be too big to fit a double,
+                     hence the use of mpq_get_d rather than converting and
+                     dividing.  */
+                  mpq_t q;
+                  *mpq_numref(q) = *SCM_I_BIG_MPZ (x);
+                  *mpq_denref(q) = *SCM_I_BIG_MPZ (y);
+                  return scm_from_double (mpq_get_d (q));
+                }
+              else
+                {
+                  int divisible_p = mpz_divisible_p (SCM_I_BIG_MPZ (x),
+                                                     SCM_I_BIG_MPZ (y));
+                  if (divisible_p)
+                    {
+                      SCM result = scm_i_mkbig ();
+                      mpz_divexact (SCM_I_BIG_MPZ (result),
+                                    SCM_I_BIG_MPZ (x),
+                                    SCM_I_BIG_MPZ (y));
+                      scm_remember_upto_here_2 (x, y);
+                      return scm_i_normbig (result);
+                    }
+                  else
+                    return scm_i_make_ratio (x, y);
+                }
 	    }
 	}
       else if (SCM_REALP (y))

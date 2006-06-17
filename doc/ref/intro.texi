@@ -193,7 +193,11 @@ functions provided by Guile, it will also offer the function
 static SCM
 my_hostname (void)
 @{
-  return scm_str2string (getenv ("HOSTNAME"));
+  char *s = getenv ("HOSTNAME");
+  if (s == NULL)
+    return SCM_BOOL_F;
+  else
+    return scm_from_locale_string (s);
 @}
 
 static void

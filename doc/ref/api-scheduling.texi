@@ -240,7 +240,7 @@ Return the thread that called this function.
 @end deffn
 
 @c begin (texi-doc-string "guile" "call-with-new-thread")
-@deffn {Scheme Procedure} call-with-new-thread thunk handler
+@deffn {Scheme Procedure} call-with-new-thread thunk [handler]
 Call @code{thunk} in a new thread and with a new dynamic state,
 returning the new thread.  The procedure @var{thunk} is called via
 @code{with-continuation-barrier}.

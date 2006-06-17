@@ -53,6 +53,9 @@ char *alloca ();
 #  endif
 # endif
 #endif
+#if HAVE_MALLOC_H
+#include <malloc.h> /* alloca on mingw */
+#endif
 
 #include <assert.h>
 #include "libguile/_scm.h"

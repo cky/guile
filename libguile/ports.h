@@ -205,28 +205,28 @@ SCM_API scm_t_bits scm_make_port_type (char *name,
 				       void (*write) (SCM port, 
 						      const void *data,
 						      size_t size));
-SCM_API void scm_set_port_mark (long tc, SCM (*mark) (SCM));
-SCM_API void scm_set_port_free (long tc, size_t (*free) (SCM));
-SCM_API void scm_set_port_print (long tc,
+SCM_API void scm_set_port_mark (scm_t_bits tc, SCM (*mark) (SCM));
+SCM_API void scm_set_port_free (scm_t_bits tc, size_t (*free) (SCM));
+SCM_API void scm_set_port_print (scm_t_bits tc,
 				 int (*print) (SCM exp,
 					       SCM port,
 					       scm_print_state *pstate));
-SCM_API void scm_set_port_equalp (long tc, SCM (*equalp) (SCM, SCM));
-SCM_API void scm_set_port_close (long tc, int (*close) (SCM));
+SCM_API void scm_set_port_equalp (scm_t_bits tc, SCM (*equalp) (SCM, SCM));
+SCM_API void scm_set_port_close (scm_t_bits tc, int (*close) (SCM));
 
-SCM_API void scm_set_port_flush (long tc, 
+SCM_API void scm_set_port_flush (scm_t_bits tc, 
 				 void (*flush) (SCM port));
-SCM_API void scm_set_port_end_input (long tc,
+SCM_API void scm_set_port_end_input (scm_t_bits tc,
 				     void (*end_input) (SCM port,
 							int offset));
-SCM_API void scm_set_port_seek (long tc,
+SCM_API void scm_set_port_seek (scm_t_bits tc,
 				off_t (*seek) (SCM port,
 					       off_t OFFSET,
 					       int WHENCE));
-SCM_API void scm_set_port_truncate (long tc,
+SCM_API void scm_set_port_truncate (scm_t_bits tc,
 				    void (*truncate) (SCM port,
 						      off_t length));
-SCM_API void scm_set_port_input_waiting (long tc, int (*input_waiting) (SCM));
+SCM_API void scm_set_port_input_waiting (scm_t_bits tc, int (*input_waiting) (SCM));
 SCM_API SCM scm_char_ready_p (SCM port);
 size_t scm_take_from_input_buffers (SCM port, char *dest, size_t read_len);
 SCM_API SCM scm_drain_input (SCM port);

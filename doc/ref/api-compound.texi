@@ -189,6 +189,11 @@ for example @code{caddr} could be defined by
 @lisp
 (define caddr (lambda (x) (car (cdr (cdr x)))))
 @end lisp
+
+@code{cadr}, @code{caddr} and @code{cadddr} pick out the second, third
+or fourth elements of a list, respectively.  SRFI-1 provides the same
+under the names @code{second}, @code{third} and @code{fourth}
+(@pxref{SRFI-1 Selectors}).
 @end deffn
 
 @rnindex set-car!
@@ -498,7 +503,7 @@ Return a newly-created copy of @var{lst} with elements
 @deffn {Scheme Procedure} delv item lst
 @deffnx {C Function} scm_delv (item, lst)
 Return a newly-created copy of @var{lst} with elements
-@code{eqv?}  to @var{item} removed.  This procedure mirrors
+@code{eqv?} to @var{item} removed.  This procedure mirrors
 @code{memv}: @code{delv} compares elements of @var{lst} against
 @var{item} with @code{eqv?}.
 @end deffn
@@ -506,9 +511,13 @@ Return a newly-created copy of @var{lst} with elements
 @deffn {Scheme Procedure} delete item lst
 @deffnx {C Function} scm_delete (item, lst)
 Return a newly-created copy of @var{lst} with elements
-@code{equal?}  to @var{item} removed.  This procedure mirrors
+@code{equal?} to @var{item} removed.  This procedure mirrors
 @code{member}: @code{delete} compares elements of @var{lst}
 against @var{item} with @code{equal?}.
+
+See also SRFI-1 which has an extended @code{delete} (@ref{SRFI-1
+Deleting}), and also an @code{lset-difference} which can delete
+multiple @var{item}s in one call (@ref{SRFI-1 Set Operations}).
 @end deffn
 
 @deffn {Scheme Procedure} delq! item lst
@@ -598,6 +607,9 @@ the non-empty lists returned by @code{(list-tail @var{lst}
 @var{k})} for @var{k} less than the length of @var{lst}.  If
 @var{x} does not occur in @var{lst}, then @code{#f} (not the
 empty list) is returned.
+
+See also SRFI-1 which has an extended @code{member} function
+(@ref{SRFI-1 Searching}).
 @end deffn
 
 
@@ -633,6 +645,8 @@ and the result(s) of the procedure applications are thrown away.  The
 return value is not specified.
 @end deffn
 
+See also SRFI-1 which extends these functions to take lists of unequal
+lengths (@ref{SRFI-1 Fold and Map}).
 
 @node Vectors
 @subsection Vectors
@@ -3262,7 +3276,8 @@ return is the pair @code{(KEY . VALUE)} from @var{alist}.  If there's
 no matching entry the return is @code{#f}.
 
 @code{assq} compares keys with @code{eq?}, @code{assv} uses
-@code{eqv?} and @code{assoc} uses @code{equal?}.
+@code{eqv?} and @code{assoc} uses @code{equal?}.  See also SRFI-1
+which has an extended @code{assoc} (@ref{SRFI-1 Association Lists}).
 @end deffn
 
 @deffn {Scheme Procedure} assq-ref alist key

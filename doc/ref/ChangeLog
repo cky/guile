@@ -8,6 +8,50 @@
 	* api-compound.texi (Structure Concepts): Mentioned the behavior
 	of `equal?' for structures.
 
+2006-05-28  Kevin Ryde  <user42@zip.com.au>
+
+	* srfi-modules.texi (SRFI-1 Length Append etc): Add an append-reverse
+	example.
+
+2006-05-20  Kevin Ryde  <user42@zip.com.au>
+
+	* api-compound.texi (Pairs): Cross reference SRFI-1 second, third,
+	fourth.
+	(List Modification): Cross reference SRFI-1 delete and lset-difference.
+	(List Searching): Cross reference SRFI-1 member.
+	(List Mapping): Cross reference SRFI-1 map etc.
+	(Retrieving Alist Entries): Cross reference SRFI-1 assoc.
+
+	* srfi-modules.texi (SRFI-1 Association Lists): Describe argument
+	order for "=" procedure.
+
+2006-05-15  Kevin Ryde  <user42@zip.com.au>
+
+	* posix.texi (Processes): Add primitive-_exit.
+
+2006-05-10  Kevin Ryde  <user42@zip.com.au>
+
+	* intro.texi (Linking Guile into Programs): Enhance example program,
+	change scm_str2string to scm_from_locale_string, since scm_str2string
+	is "discouraged".  And check for NULL from getenv since neither
+	scm_str2string nor scm_from_locale_string can cope with that.
+	Reported by Frithjof.
+
+2006-05-09  Kevin Ryde  <user42@zip.com.au>
+
+	* api-control.texi (Multiple Values): In `receive', add an example,
+	cross ref SRFI-8, tweak wording.
+
+	* api-io.texi (Port Implementation): @defun style for
+	scm_make_port_type and the various set functions.
+
+	* posix.texi (Ports and File Descriptors): Tweaks to fcntl.
+
+2006-04-29  Kevin Ryde  <user42@zip.com.au>
+
+	* api-scheduling.texi (Threads): In call-with-new-thread, handler arg
+	is optional (as of 1.8.0).
+
 2006-04-15  Kevin Ryde  <user42@zip.com.au>
 
 	* api-scheduling.texi (System asyncs): "{void *}" in @deffnx to keep

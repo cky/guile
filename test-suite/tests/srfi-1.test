@@ -200,7 +200,115 @@
 
     (pass-if "(1) (2) / 9 9"
       (equal? '(1 2) (append-map noop '((1) (2)) '(9 9))))))
-  
+
+;;
+;; append-reverse
+;;
+
+(with-test-prefix "append-reverse"
+
+  ;; return a list which is the cars and cdrs of LST
+  (define (list-contents lst)
+    (if (null? lst)
+	'()
+	(cons* (car lst) (cdr lst) (list-contents (cdr lst)))))
+
+  (define (valid-append-reverse revhead tail want)
+    (let ((revhead-contents (list-contents revhead))
+	  (got              (append-reverse revhead tail)))
+      (and (equal? got want)
+	   ;; revhead unchanged
+	   (equal? revhead-contents (list-contents revhead)))))
+
+  (pass-if-exception "too few args (0)" exception:wrong-num-args
+    (append-reverse))
+
+  (pass-if-exception "too few args (1)" exception:wrong-num-args
+    (append-reverse '(x)))
+
+  (pass-if-exception "too many args (3)" exception:wrong-num-args
+    (append-reverse '() '() #f))
+
+  (pass-if (valid-append-reverse '() '()      '()))
+  (pass-if (valid-append-reverse '() '(1 2 3) '(1 2 3)))
+
+  (pass-if (valid-append-reverse '(1) '()    '(1)))
+  (pass-if (valid-append-reverse '(1) '(2)   '(1 2)))
+  (pass-if (valid-append-reverse '(1) '(2 3) '(1 2 3)))
+
+  (pass-if (valid-append-reverse '(1 2) '()    '(2 1)))
+  (pass-if (valid-append-reverse '(1 2) '(3)   '(2 1 3)))
+  (pass-if (valid-append-reverse '(1 2) '(3 4) '(2 1 3 4)))
+
+  (pass-if (valid-append-reverse '(1 2 3) '()    '(3 2 1)))
+  (pass-if (valid-append-reverse '(1 2 3) '(4)   '(3 2 1 4)))
+  (pass-if (valid-append-reverse '(1 2 3) '(4 5) '(3 2 1 4 5))))
+
+;;
+;; append-reverse!
+;;
+
+(with-test-prefix "append-reverse!"
+
+  (pass-if-exception "too few args (0)" exception:wrong-num-args
+    (append-reverse!))
+
+  (pass-if-exception "too few args (1)" exception:wrong-num-args
+    (append-reverse! '(x)))
+
+  (pass-if-exception "too many args (3)" exception:wrong-num-args
+    (append-reverse! '() '() #f))
+
+  (pass-if (equal? '()      (append-reverse! '() '())))
+  (pass-if (equal? '(1 2 3) (append-reverse! '() '(1 2 3))))
+
+  (pass-if (equal? '(1)     (append-reverse! '(1) '())))
+  (pass-if (equal? '(1 2)   (append-reverse! '(1) '(2))))
+  (pass-if (equal? '(1 2 3) (append-reverse! '(1) '(2 3))))
+
+  (pass-if (equal? '(2 1)     (append-reverse! '(1 2) '())))
+  (pass-if (equal? '(2 1 3)   (append-reverse! '(1 2) '(3))))
+  (pass-if (equal? '(2 1 3 4) (append-reverse! '(1 2) '(3 4))))
+
+  (pass-if (equal? '(3 2 1)     (append-reverse! '(1 2 3) '())))
+  (pass-if (equal? '(3 2 1 4)   (append-reverse! '(1 2 3) '(4))))
+  (pass-if (equal? '(3 2 1 4 5) (append-reverse! '(1 2 3) '(4 5)))))
+
+;;
+;; assoc
+;;
+
+(with-test-prefix "assoc"
+
+  (pass-if "not found"
+    (let ((alist '((a . 1)
+		   (b . 2)
+		   (c . 3))))
+      (eqv? #f (assoc 'z alist))))
+
+  (pass-if "found"
+    (let ((alist '((a . 1)
+		   (b . 2)
+		   (c . 3))))
+      (eqv? (second alist) (assoc 'b alist))))
+
+  ;; this was wrong in guile 1.8.0 (a gremlin newly introduced in the 1.8
+  ;; series, 1.6.x and earlier was ok)
+  (pass-if "= arg order"
+    (let ((alist '((b . 1)))
+	  (good  #f))
+      (assoc 'a alist (lambda (x y)
+			(set! good (and (eq? x 'a)
+					(eq? y 'b)))))
+      good))
+
+  ;; likewise this one bad in guile 1.8.0
+  (pass-if "srfi-1 example <"
+    (let ((alist '((1 . a)
+		   (5 . b)
+		   (6 . c))))
+      (eq? (third alist) (assoc 5 alist <)))))
+
 ;;
 ;; break
 ;;

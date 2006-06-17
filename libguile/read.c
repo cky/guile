@@ -329,7 +329,9 @@ static SCM scm_get_hash_procedure(int c);
 static SCM scm_i_lreadparen (SCM *, SCM, char *, SCM *, char);
 
 static char s_list[]="list";
+#if SCM_ENABLE_ELISP
 static char s_vector[]="vector";
+#endif
 
 SCM 
 scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)

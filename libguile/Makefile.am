@@ -147,7 +147,7 @@ EXTRA_DOT_DOC_FILES = @EXTRA_DOT_DOC_FILES@
 
 BUILT_SOURCES = cpp_err_symbols.c cpp_sig_symbols.c libpath.h \
     version.h scmconfig.h \
-    $(DOT_X_FILES) $(EXTRA_DOT_X_FILES) guile.texi
+    $(DOT_X_FILES) $(EXTRA_DOT_X_FILES)
 
 EXTRA_libguile_la_SOURCES = _scm.h		\
     inet_aton.c memmove.c putenv.c strerror.c	\
@@ -274,9 +274,9 @@ SUFFIXES = .x .doc
 	(./guile-snarf-docs $(snarfcppopts) $< | \
 	./guile_filter_doc_snarfage$(EXEEXT) --filter-snarfage) > $@ || { rm $@; false; }
 
-$(DOT_X_FILES) $(EXTRA_DOT_DOC_FILES): snarf.h guile-snarf.in
+$(DOT_X_FILES) $(EXTRA_DOT_X_FILES): scmconfig.h snarf.h guile-snarf.in
 
-$(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES): snarf.h guile-snarf-docs.in guile_filter_doc_snarfage$(EXEEXT)
+$(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES): scmconfig.h snarf.h guile-snarf-docs.in guile_filter_doc_snarfage$(EXEEXT)
 
 error.x: cpp_err_symbols.c
 posix.x: cpp_sig_symbols.c

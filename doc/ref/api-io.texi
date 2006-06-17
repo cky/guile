@@ -1118,14 +1118,16 @@ As described in the previous section, a port type object (ptob) is
 a structure of type @code{scm_ptob_descriptor}.  A ptob is created by
 calling @code{scm_make_port_type}.
 
+@deftypefun scm_t_bits scm_make_port_type (char *name, int (*fill_input) (SCM port), void (*write) (SCM port, const void *data, size_t size))
+Return a new port type object.  The @var{name}, @var{fill_input} and
+@var{write} parameters are initial values for those port type fields,
+as described below.  The other fields are initialized with default
+values and can be changed later.
+@end deftypefun
+
 All of the elements of the ptob, apart from @code{name}, are procedures
 which collectively implement the port behaviour.  Creating a new port
 type mostly involves writing these procedures.
-
-@code{scm_make_port_type} initializes three elements of the structure
-(@code{name}, @code{fill_input} and @code{write}) from its arguments.
-The remaining elements are initialized with default values and can be
-set later if required.
 
 @table @code
 @item name
@@ -1136,25 +1138,42 @@ a procedure.  Set via the first argument to @code{scm_make_port_type}.
 @item mark
 Called during garbage collection to mark any SCM objects that a port
 object may contain.  It doesn't need to be set unless the port has
-@code{SCM} components.  Set using @code{scm_set_port_mark}.
+@code{SCM} components.  Set using
+
+@deftypefun void scm_set_port_mark (scm_t_bits tc, SCM (*mark) (SCM port))
+@end deftypefun
 
 @item free
 Called when the port is collected during gc.  It
 should free any resources used by the port.
-Set using @code{scm_set_port_free}.
+Set using
+
+@deftypefun void scm_set_port_free (scm_t_bits tc, size_t (*free) (SCM port))
+@end deftypefun
 
 @item print
 Called when @code{write} is called on the port object, to print a
-port description.  e.g., for an fport it may produce something like:
-@code{#<input: /etc/passwd 3>}.   Set using @code{scm_set_port_print}.
+port description.  E.g., for an fport it may produce something like:
+@code{#<input: /etc/passwd 3>}.   Set using
+
+@deftypefun void scm_set_port_print (scm_t_bits tc, int (*print) (SCM port, SCM dest_port, scm_print_state *pstate))
+The first argument @var{port} is the object being printed, the second
+argument @var{dest_port} is where its description should go.
+@end deftypefun
 
 @item equalp
-Not used at present.  Set using @code{scm_set_port_equalp}.
+Not used at present.  Set using
+
+@deftypefun void scm_set_port_equalp (scm_t_bits tc, SCM (*equalp) (SCM, SCM))
+@end deftypefun
 
 @item close
 Called when the port is closed, unless it was collected during gc.  It
 should free any resources used by the port.
-Set using @code{scm_set_port_close}.
+Set using
+
+@deftypefun void scm_set_port_close (scm_t_bits tc, int (*close) (SCM port))
+@end deftypefun
 
 @item write
 Accept data which is to be written using the port.  The port implementation
@@ -1164,12 +1183,18 @@ Set via the third argument to @code{scm_make_port_type}.
 @item flush
 Complete the processing of buffered output data.  Reset the value of
 @code{rw_active} to @code{SCM_PORT_NEITHER}.
-Set using @code{scm_set_port_flush}.
+Set using
+
+@deftypefun void scm_set_port_flush (scm_t_bits tc, void (*flush) (SCM port))
+@end deftypefun
 
 @item end_input
 Perform any synchronization required when switching from input to output
 on the port.  Reset the value of @code{rw_active} to @code{SCM_PORT_NEITHER}.
-Set using @code{scm_set_port_end_input}.
+Set using
+
+@deftypefun void scm_set_port_end_input (scm_t_bits tc, void (*end_input) (SCM port, int offset))
+@end deftypefun
 
 @item fill_input
 Read new data into the read buffer and return the first character.  It
@@ -1180,7 +1205,10 @@ Set via the second argument to @code{scm_make_port_type}.
 Return a lower bound on the number of bytes that could be read from the
 port without blocking.  It can be assumed that the current state of
 @code{rw_active} is @code{SCM_PORT_NEITHER}.
-Set using @code{scm_set_port_input_waiting}.
+Set using
+
+@deftypefun void scm_set_port_input_waiting (scm_t_bits tc, int (*input_waiting) (SCM port))
+@end deftypefun
 
 @item seek
 Set the current position of the port.  The procedure can not make
@@ -1189,10 +1217,10 @@ called.  It can reset the buffers first if desired by using something
 like:
 
 @example
-      if (pt->rw_active == SCM_PORT_READ)
-	scm_end_input (object);
-      else if (pt->rw_active == SCM_PORT_WRITE)
-	ptob->flush (object);
+if (pt->rw_active == SCM_PORT_READ)
+  scm_end_input (port);
+else if (pt->rw_active == SCM_PORT_WRITE)
+  ptob->flush (port);
 @end example
 
 However note that this will have the side effect of discarding any data
@@ -1202,12 +1230,18 @@ when seek is called to measure the current position of the port, i.e.,
 @code{(seek p 0 SEEK_CUR)}.  The libguile fport and string port
 implementations take care to avoid this problem.
 
-The procedure is set using @code{scm_set_port_seek}.
+The procedure is set using
+
+@deftypefun void scm_set_port_seek (scm_t_bits tc, off_t (*seek) (SCM port, off_t offset, int whence))
+@end deftypefun
 
 @item truncate
 Truncate the port data to be specified length.  It can be assumed that the
 current state of @code{rw_active} is @code{SCM_PORT_NEITHER}.
-Set using @code{scm_set_port_truncate}.
+Set using
+
+@deftypefun void scm_set_port_truncate (scm_t_bits tc, void (*truncate) (SCM port, off_t length))
+@end deftypefun
 
 @end table
 

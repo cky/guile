@@ -45,6 +45,9 @@ char *alloca ();
 #  endif
 # endif
 #endif
+#if HAVE_MALLOC_H
+#include <malloc.h> /* alloca on mingw, though its not used on that system */
+#endif
 
 #include <stdio.h>
 #include <errno.h>
@@ -349,7 +352,7 @@ SCM_DEFINE (scm_open_fdes, "open-fdes", 2, 1, 0,
 
   iflags = SCM_NUM2INT (2, flags);
   imode = SCM_NUM2INT_DEF (3, mode, 0666);
-  STRING_SYSCALL (path, c_path, fd = open (c_path, iflags, imode));
+  STRING_SYSCALL (path, c_path, fd = open_or_open64 (c_path, iflags, imode));
   if (fd == -1)
     SCM_SYSERROR;
   return scm_from_int (fd);
@@ -466,7 +469,7 @@ SCM_DEFINE (scm_close_fdes, "close-fdes", 1, 0, 0,
 
 SCM_SYMBOL (scm_sym_regular, "regular");
 SCM_SYMBOL (scm_sym_directory, "directory");
-#ifdef HAVE_S_ISLNK
+#ifdef S_ISLNK
 SCM_SYMBOL (scm_sym_symlink, "symlink");
 #endif
 SCM_SYMBOL (scm_sym_block_special, "block-special");
@@ -512,7 +515,8 @@ scm_stat2scm (struct stat_or_stat64 *stat_temp)
       SCM_SIMPLE_VECTOR_SET(ans, 13, scm_sym_regular);
     else if (S_ISDIR (mode))
       SCM_SIMPLE_VECTOR_SET(ans, 13, scm_sym_directory);
-#ifdef HAVE_S_ISLNK
+#ifdef S_ISLNK
+    /* systems without symlinks probably don't have S_ISLNK */
     else if (S_ISLNK (mode))
       SCM_SIMPLE_VECTOR_SET(ans, 13, scm_sym_symlink);
 #endif
@@ -1706,6 +1710,9 @@ scm_init_filesys ()
 #endif 	       
 #ifdef O_SYNC  
   scm_c_define ("O_SYNC", scm_from_long (O_SYNC));
+#endif 
+#ifdef O_LARGEFILE  
+  scm_c_define ("O_LARGEFILE", scm_from_long (O_LARGEFILE));
 #endif 
 
 #ifdef F_DUPFD  

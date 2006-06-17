@@ -1,3 +1,9 @@
+2006-04-21  Kevin Ryde  <user42@zip.com.au>
+
+	* hierarchy.pdf: New file, converted from hierarchy.eps using
+	epstopdf, to let "make pdf" work.
+	* Makefile.am: (goops_TEXINFOS): Add it.
+
 2006-03-08  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
 	* goops.texi (Slot Options): Note init-value is shared.

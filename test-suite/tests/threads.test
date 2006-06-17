@@ -21,34 +21,116 @@
 	     (test-suite lib))
 
 (if (provided? 'threads)
-    (with-test-prefix "parallel"
-      (pass-if "no forms"
-	(call-with-values
-	    (lambda ()
-	      (parallel))
-	  (lambda ()
-	    #t)))
+    (begin
 
-      (pass-if "1"
-	(call-with-values
+      (with-test-prefix "parallel"
+	(pass-if "no forms"
+	  (call-with-values
+	      (lambda ()
+		(parallel))
 	    (lambda ()
-	      (parallel 1))
-	  (lambda (x)
-	    (equal? x 1))))
+	      #t)))
 
-      (pass-if "1 2"
-	(call-with-values
-	    (lambda ()
-	      (parallel 1 2))
-	  (lambda (x y)
-	    (and (equal? x 1)
-		 (equal? y 2)))))
+	(pass-if "1"
+	  (call-with-values
+	      (lambda ()
+		(parallel 1))
+	    (lambda (x)
+	      (equal? x 1))))
 
-      (pass-if "1 2 3"
-	(call-with-values
-	    (lambda ()
-	      (parallel 1 2 3))
-	  (lambda (x y z)
-	    (and (equal? x 1)
-		 (equal? y 2)
-		 (equal? z 3)))))))
+	(pass-if "1 2"
+	  (call-with-values
+	      (lambda ()
+		(parallel 1 2))
+	    (lambda (x y)
+	      (and (equal? x 1)
+		   (equal? y 2)))))
+
+	(pass-if "1 2 3"
+	  (call-with-values
+	      (lambda ()
+		(parallel 1 2 3))
+	    (lambda (x y z)
+	      (and (equal? x 1)
+		   (equal? y 2)
+		   (equal? z 3))))))
+
+      ;;
+      ;; n-par-for-each
+      ;;
+
+      (with-test-prefix "n-par-for-each"
+
+	(pass-if "0 in limit 10"
+	  (n-par-for-each 10 noop '())
+	  #t)
+
+	(pass-if "6 in limit 10"
+	  (let ((v (make-vector 6 #f)))
+	    (n-par-for-each 10 (lambda (n)
+				 (vector-set! v n #t))
+			    '(0 1 2 3 4 5))
+	    (equal? v '#(#t #t #t #t #t #t))))
+
+	(pass-if "6 in limit 1"
+	  (let ((v (make-vector 6 #f)))
+	    (n-par-for-each 1 (lambda (n)
+				(vector-set! v n #t))
+			    '(0 1 2 3 4 5))
+	    (equal? v '#(#t #t #t #t #t #t))))
+
+	(pass-if "6 in limit 2"
+	  (let ((v (make-vector 6 #f)))
+	    (n-par-for-each 2 (lambda (n)
+				(vector-set! v n #t))
+			    '(0 1 2 3 4 5))
+	    (equal? v '#(#t #t #t #t #t #t))))
+
+	(pass-if "6 in limit 3"
+	  (let ((v (make-vector 6 #f)))
+	    (n-par-for-each 3 (lambda (n)
+				(vector-set! v n #t))
+			    '(0 1 2 3 4 5))
+	    (equal? v '#(#t #t #t #t #t #t)))))
+
+      ;;
+      ;; n-for-each-par-map
+      ;;
+
+      (with-test-prefix "n-for-each-par-map"
+
+	(pass-if "0 in limit 10"
+	  (n-for-each-par-map 10 noop noop '())
+	  #t)
+
+	(pass-if "6 in limit 10"
+	  (let ((result '()))
+	    (n-for-each-par-map 10
+				(lambda (n) (set! result (cons n result)))
+				(lambda (n) (* 2 n))
+				'(0 1 2 3 4 5))
+	    (equal? result '(10 8 6 4 2 0))))
+
+	(pass-if "6 in limit 1"
+	  (let ((result '()))
+	    (n-for-each-par-map 1
+				(lambda (n) (set! result (cons n result)))
+				(lambda (n) (* 2 n))
+				'(0 1 2 3 4 5))
+	    (equal? result '(10 8 6 4 2 0))))
+
+	(pass-if "6 in limit 2"
+	  (let ((result '()))
+	    (n-for-each-par-map 2
+				(lambda (n) (set! result (cons n result)))
+				(lambda (n) (* 2 n))
+				'(0 1 2 3 4 5))
+	    (equal? result '(10 8 6 4 2 0))))
+
+	(pass-if "6 in limit 3"
+	  (let ((result '()))
+	    (n-for-each-par-map 3
+				(lambda (n) (set! result (cons n result)))
+				(lambda (n) (* 2 n))
+				'(0 1 2 3 4 5))
+	    (equal? result '(10 8 6 4 2 0)))))))

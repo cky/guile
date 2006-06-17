@@ -499,6 +499,11 @@ scm_handle_by_message (void *handler_data, SCM tag, SCM args)
 
   handler_message (handler_data, tag, args);
   scm_i_pthread_exit (NULL);
+
+  /* this point not reached, but suppress gcc warning about no return value
+     in case scm_i_pthread_exit isn't marked as "noreturn" (which seemed not
+     to be the case on cygwin for instance) */
+  return SCM_BOOL_F;
 }
 
 

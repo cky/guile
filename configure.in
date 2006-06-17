@@ -29,6 +29,7 @@ AC_PREREQ(2.53)
 
 AC_INIT(m4_esyscmd(. ./GUILE-VERSION && echo -n ${PACKAGE}),
         m4_esyscmd(. ./GUILE-VERSION && echo -n ${GUILE_VERSION}))
+AC_CONFIG_AUX_DIR([.])
 AC_CONFIG_SRCDIR(GUILE-VERSION)
 AM_INIT_AUTOMAKE([no-define])
 
@@ -592,13 +593,14 @@ AC_CHECK_HEADERS([assert.h crt_externs.h])
 #   DQNAN - OSF specific
 #       (DINFINITY and DQNAN are actually global variables, not functions)
 #   fesetround - available in C99, but not older systems
+#   ioctl - not in mingw.
 #   gmtime_r - recent posix, not on old systems
 #   readdir_r - recent posix, not on old systems
 #   stat64 - SuS largefile stuff, not on old systems
 #   sysconf - not on old systems
 #   _NSGetEnviron - Darwin specific
 #
-AC_CHECK_FUNCS([DINFINITY DQNAN ctermid fesetround ftime fchown getcwd geteuid gettimeofday gmtime_r lstat mkdir mknod nice readdir_r readlink rename rmdir select setegid seteuid setlocale setpgid setsid sigaction siginterrupt stat64 strftime strptime symlink sync sysconf tcgetpgrp tcsetpgrp times uname waitpid strdup system usleep atexit on_exit chown link fcntl ttyname getpwent getgrent kill getppid getpgrp fork setitimer getitimer strchr strcmp index bcopy memcpy rindex unsetenv _NSGetEnviron])
+AC_CHECK_FUNCS([DINFINITY DQNAN ctermid fesetround ftime fchown getcwd geteuid gettimeofday gmtime_r ioctl lstat mkdir mknod nice readdir_r readlink rename rmdir select setegid seteuid setlocale setpgid setsid sigaction siginterrupt stat64 strftime strptime symlink sync sysconf tcgetpgrp tcsetpgrp times uname waitpid strdup system usleep atexit on_exit chown link fcntl ttyname getpwent getgrent kill getppid getpgrp fork setitimer getitimer strchr strcmp index bcopy memcpy rindex unsetenv _NSGetEnviron])
 
 # Reasons for testing:
 #   netdb.h - not in mingw
@@ -900,9 +902,6 @@ int main () { return (isinf(0.0) != 0); }],
 AC_MSG_CHECKING([for isnan])
 AC_LINK_IFELSE(
 [#include <math.h>
-#ifdef __MINGW32__
-#define isnan _isnan
-#endif
 int main () { return (isnan(0.0) != 0); }],
   [AC_MSG_RESULT([yes])
    AC_DEFINE(HAVE_ISNAN, 1,
@@ -919,22 +918,16 @@ then
   AC_ERROR([No native alloca found.])
 fi
 
-AC_CHECK_MEMBERS([struct stat.st_rdev])
-AC_CHECK_MEMBERS([struct stat.st_blksize])
-
-AC_STRUCT_ST_BLOCKS
-
-AC_CACHE_CHECK([for S_ISLNK in sys/stat.h], ac_cv_macro_S_ISLNK,
-  [AC_TRY_CPP([#include <sys/stat.h>
-               #ifndef S_ISLNK
-               #error no S_ISLNK
-               #endif],
-               ac_cv_macro_S_ISLNK=yes,
-               ac_cv_macro_S_ISLNK=no)])
-if test $ac_cv_macro_S_ISLNK = yes; then
-  AC_DEFINE(HAVE_S_ISLNK, 1,
-    [Define this if your system defines S_ISLNK in sys/stat.h.])
-fi
+# Reasons for checking:
+#
+#     st_rdev
+#     st_blksize
+#     st_blocks   not in mingw
+#
+# Note AC_STRUCT_ST_BLOCKS is not used here because we don't want the
+# AC_LIBOBJ(fileblocks) replacement which that macro gives.
+#
+AC_CHECK_MEMBERS([struct stat.st_rdev, struct stat.st_blksize, struct stat.st_blocks])
 
 AC_STRUCT_TIMEZONE
 GUILE_STRUCT_UTIMBUF
@@ -1039,6 +1032,8 @@ AC_MSG_RESULT($with_threads)
 
 ## Check whether pthread_attr_getstack works for the main thread
 
+if test "$with_threads" = pthreads; then
+
 AC_MSG_CHECKING(whether pthread_attr_getstack works for the main thread)
 old_CFLAGS="$CFLAGS"
 CFLAGS="$PTHREAD_CFLAGS $CFLAGS"
@@ -1074,6 +1069,9 @@ AC_DEFINE(PTHREAD_ATTR_GETSTACK_WORKS, [1], [Define when pthread_att_get_stack w
 [works=no])
 CFLAGS="$old_CFLAGS"
 AC_MSG_RESULT($works)
+
+fi # with_threads=pthreads
+
 
 ## Cross building	
 if test "$cross_compiling" = "yes"; then
@@ -1136,15 +1134,6 @@ case "$GCC" in
     fi
     ;;
 esac
-
-## NOTE the code below sets LIBOBJS directly and so is now forbidden
-## -- I'm disabling it for now in the hopes that the newer autoconf
-## will DTRT -- if not, we need to fix up the sed command to match the
-## others...
-##
-## Remove fileblocks.o from the object list.  This file gets added by
-## the Autoconf macro AC_STRUCT_ST_BLOCKS.  But there is no need.
-#LIBOBJS="`echo ${LIBOBJS} | sed 's/fileblocks\.o//g'`"
 
 ## If we're creating a shared library (using libtool!), then we'll
 ## need to generate a list of .lo files corresponding to the .o files
