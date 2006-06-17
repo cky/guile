@@ -145,6 +145,7 @@
 #define dirent_or_dirent64              CHOOSE_LARGEFILE(dirent,dirent64)
 #define fstat_or_fstat64                CHOOSE_LARGEFILE(fstat,fstat64)
 #define ftruncate_or_ftruncate64        CHOOSE_LARGEFILE(ftruncate,ftruncate64)
+#define lseek_or_lseek64                CHOOSE_LARGEFILE(lseek,lseek64)
 #define lstat_or_lstat64                CHOOSE_LARGEFILE(lstat,lstat64)
 #define off_t_or_off64_t                CHOOSE_LARGEFILE(off_t,off64_t)
 #define open_or_open64                  CHOOSE_LARGEFILE(open,open64)
@@ -158,12 +159,13 @@
 #define scm_to_off_t_or_off64_t         CHOOSE_LARGEFILE(scm_to_off_t,scm_to_int64)
 
 #if SIZEOF_OFF_T == 4
-#define scm_to_off_t    scm_to_int32
-#define scm_from_off_t  scm_from_int32
-#endif
-#if SIZEOF_OFF_T == 8
-#define scm_to_off_t    scm_to_int64
-#define scm_from_off_t  scm_from_int64
+#  define scm_to_off_t    scm_to_int32
+#  define scm_from_off_t  scm_from_int32
+#elif SIZEOF_OFF_T == 8
+#  define scm_to_off_t    scm_to_int64
+#  define scm_from_off_t  scm_from_int64
+#else
+#  error sizeof(off_t) is not 4 or 8.
 #endif
 
 

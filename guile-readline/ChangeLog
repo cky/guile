@@ -3,6 +3,26 @@
 	* ice-9/readline.scm: Bump lib file version to libguilereadline-v-18,
 	matching LIBGUILEREADLINE-VERSION.
 
+2006-05-15  Kevin Ryde  <user42@zip.com.au>
+
+	* Makefile.am (INCLUDES): Add "-I." to pick up guile-readline-config.h
+	in snarfer.
+
+2006-04-18  Rob Browning  <rlb@defaultvalue.org>
+
+	* .cvsignore: Add guile-readline-config.h and
+	guile-readline-config.h.in.
+
+	* readline.c: Don't include Guile private header _scm.h.
+	Include new guile-readline-config.h private header.
+
+	* configure.in: Add AC_CONFIG_AUX_DIR([.]) as suggested in the
+	autotools documentation.  Add
+	AM_CONFIG_HEADER([guile-readline-config.h]) so that guile-readline
+	will have its own configure-based config.h equivalent.
+	(HAVE_RL_PRE_INPUT_HOOK): Add documentation template.
+	(GUILE_SIGWINCH_SA_RESTART_CLEARED): Add documentation template.
+
 2006-03-12  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* ice-9/readline.scm (make-completion-function): New.
