@@ -1,3 +1,9 @@
+2006-06-19  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* Makefile.am (ice9_sources): Add new files.
+
+	* gds-client.scm, gds-server.scm: New files.
+
 2006-05-28  Kevin Ryde  <user42@zip.com.au>
 
 	* documentation.scm (file-commentary): Move make-regexp into
