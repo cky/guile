@@ -1,3 +1,9 @@
+2006-06-19  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* Makefile.am: New file.
+
+	* gds.el, gds-scheme.el, gds-server.el: New files.
+
 2005-07-09  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* Makefile.am, REAME.GDS, gds-client.scm, gds-problems.txt,
