@@ -41,11 +41,18 @@
 (gc)
 
 ;;; Who guards the guardian?
+
+;;; Note: We use strings rather than symbols because symbols are usually
+;;; ``interned'', i.e., kept in a weakly-keyed hash table, thus making them
+;;; inappropriate for the tests below.  Furthermore, we use `string-copy' in
+;;; order to make sure that no string is kept around in the interpreter
+;;; unwillingly (e.g., in the source-property weak hash table).
+
 (gc)
 (define g2 (make-guardian))
-(g2 (list 'g2-garbage))
+(g2 (list (string-copy "g2-garbage")))
 (define g3 (make-guardian))
-(g3 (list 'g3-garbage))
+(g3 (list (string-copy "g3-garbage")))
 (g3 g2)
 (pass-if "g2-garbage not collected yet" (equal? (g2) #f))
 (pass-if "g3-garbage not collected yet" (equal? (g3) #f))
@@ -59,15 +66,18 @@
       (if saved
 	  (begin
 	    (cond
-	     ((equal? saved '(g3-garbage)) (set! seen-g3-garbage #t))
+	     ((equal? saved (list (string-copy "g3-garbage")))
+	      (set! seen-g3-garbage #t))
 	     ((procedure? saved) (set! seen-g2 saved))
-	     (else (pk saved) (set! seen-something-else #t)))
+	     (else (pk 'junk saved) (set! seen-something-else #t)))
 	    (loop)))))
   (pass-if "g3-garbage saved" (or seen-g3-garbage (throw 'unresolved)))
   (pass-if "g2-saved" (or (procedure? seen-g2) (throw 'unresolved)))
   (pass-if "nothing else saved" (not seen-something-else))
   (pass-if "g2-garbage saved" (or (and (procedure? seen-g2)
-				       (equal? (seen-g2) '(g2-garbage)))
+				       (equal? (seen-g2)
+					       (list (string-copy
+						      "g2-garbage"))))
 				  (throw 'unresolved))))
 
 (with-test-prefix "standard guardian functionality"
