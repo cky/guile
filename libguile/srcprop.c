@@ -30,6 +30,7 @@
 #include "libguile/ports.h"
 #include "libguile/root.h"
 #include "libguile/weaks.h"
+#include "libguile/gc.h"
 
 #include "libguile/validate.h"
 #include "libguile/srcprop.h"
@@ -56,18 +57,6 @@ SCM_GLOBAL_SYMBOL (scm_sym_column, "column");
 SCM_GLOBAL_SYMBOL (scm_sym_breakpoint, "breakpoint");
 
 scm_t_bits scm_tc16_srcprops;
-static scm_t_srcprops_chunk *srcprops_chunklist = 0;
-static scm_t_srcprops *srcprops_freelist = 0;
-
-
-
-static size_t
-srcprops_free (SCM obj)
-{
-  *((scm_t_srcprops **) SCM_SMOB_DATA (obj)) = srcprops_freelist;
-  srcprops_freelist = (scm_t_srcprops *) SCM_SMOB_DATA (obj);
-  return 0; /* srcprops_chunks are not freed until leaving guile */
-}
 
 
 static int
@@ -95,32 +84,14 @@ SCM
 scm_make_srcprops (long line, int col, SCM filename, SCM copy, SCM plist)
 {
   register scm_t_srcprops *ptr;
-  SCM_CRITICAL_SECTION_START;
-  if ((ptr = srcprops_freelist) != NULL)
-    srcprops_freelist = *(scm_t_srcprops **)ptr;
-  else
-    {
-      size_t i;
-      scm_t_srcprops_chunk *mem;
-      size_t n = sizeof (scm_t_srcprops_chunk)
-	            + sizeof (scm_t_srcprops) * (SRCPROPS_CHUNKSIZE - 1);
-      mem = scm_gc_malloc (n, "srcprops");
-      if (mem == NULL)
-	scm_memory_error ("srcprops");
 
-      mem->next = srcprops_chunklist;
-      srcprops_chunklist = mem;
-      ptr = &mem->srcprops[0];
-      for (i = 1; i < SRCPROPS_CHUNKSIZE - 1; ++i)
-	*(scm_t_srcprops **)&ptr[i] = &ptr[i + 1];
-      *(scm_t_srcprops **)&ptr[SRCPROPS_CHUNKSIZE - 1] = 0;
-      srcprops_freelist = (scm_t_srcprops *) &ptr[1];
-    }
+  ptr = scm_gc_malloc (sizeof (*ptr), "srcprop");
+
   ptr->pos = SRCPROPMAKPOS (line, col);
   ptr->fname = filename;
   ptr->copy = copy;
   ptr->plist = plist;
-  SCM_CRITICAL_SECTION_END;
+
   SCM_RETURN_NEWSMOB (scm_tc16_srcprops, ptr);
 }
 
@@ -174,7 +145,7 @@ SCM_DEFINE (scm_set_source_properties_x, "set-source-properties!", 2, 0, 0,
   else if (!scm_is_pair (obj))
     SCM_WRONG_TYPE_ARG(1, obj);
   handle = scm_hashq_create_handle_x (scm_source_whash, obj, plist);
-  SCM_SETCDR (handle, plist);
+
   return plist;
 }
 #undef FUNC_NAME
@@ -298,7 +269,6 @@ void
 scm_init_srcprop ()
 {
   scm_tc16_srcprops = scm_make_smob_type ("srcprops", 0);
-  scm_set_smob_free (scm_tc16_srcprops, srcprops_free);
   scm_set_smob_print (scm_tc16_srcprops, srcprops_print);
 
   scm_source_whash = scm_make_weak_key_hash_table (scm_from_int (2047));
@@ -310,16 +280,7 @@ scm_init_srcprop ()
 void
 scm_finish_srcprop ()
 {
-  register scm_t_srcprops_chunk *ptr = srcprops_chunklist, *next;
-  size_t n= sizeof (scm_t_srcprops_chunk)
-    + sizeof (scm_t_srcprops) * (SRCPROPS_CHUNKSIZE - 1);
-  while (ptr)
-    {
-      next = ptr->next;
-      scm_gc_unregister_collectable_memory (ptr, n, "srcprops");
-      free ((char *) ptr);
-      ptr = next;
-    }
+  /* Nothing to do.  */
 }
 
 /*

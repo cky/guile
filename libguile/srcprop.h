@@ -60,12 +60,6 @@ typedef struct scm_t_srcprops
   SCM plist;
 } scm_t_srcprops;
 
-#define SRCPROPS_CHUNKSIZE 2047 /* Number of srcprops per chunk */
-typedef struct scm_t_srcprops_chunk
-{
-  struct scm_t_srcprops_chunk *next;
-  scm_t_srcprops srcprops[1];
-} scm_t_srcprops_chunk;
 
 #define SCM_SOURCE_PROPERTY_FLAG_BREAK 1
 
