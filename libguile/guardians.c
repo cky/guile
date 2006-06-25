@@ -124,8 +124,13 @@ finalize_guarded (GC_PTR ptr, GC_PTR finalizer_data)
        guardian_list = SCM_CDR (guardian_list))
     {
       SCM zombies;
-      t_guardian *g = GUARDIAN_DATA (SCM_CAR (guardian_list));
+      t_guardian *g;
 
+      if (SCM_WEAK_PAIR_CAR_DELETED_P (guardian_list))
+	/* The guardian itself vanished in the meantime.  */
+	continue;
+
+      g = GUARDIAN_DATA (SCM_CAR (guardian_list));
       if (g->live == 0)
 	abort ();
 
@@ -191,7 +196,10 @@ scm_i_guard (SCM guardian, SCM obj)
       SCM guardians_for_obj, finalizer_data;
 
       g->live++;
-      guardians_for_obj = scm_cons (guardian, SCM_EOL);
+
+      /* Note: GUARDIANS_FOR_OBJ is a weak list so that a guardian can be
+	 collected before the objects it guards (see `guardians.test').  */
+      guardians_for_obj = scm_weak_car_pair (guardian, SCM_EOL);
       finalizer_data = scm_cons (SCM_BOOL_F, guardians_for_obj);
 
       GC_REGISTER_FINALIZER_NO_ORDER (SCM2PTR (obj), finalize_guarded,
