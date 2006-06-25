@@ -274,11 +274,8 @@ scm_i_rehash (SCM table,
 	  ls = SCM_CDR (ls);
 
 	  if (SCM_WEAK_PAIR_DELETED_P (handle))
-	    {
-	      /* HANDLE is a nullified weak pair: skip it.  */
-	      SCM_HASHTABLE_DECREMENT (table);
-	      continue;
-	    }
+	    /* HANDLE is a nullified weak pair: skip it.  */
+	    continue;
 
 	  h = hash_fn (SCM_CAR (handle), new_size, closure);
 	  if (h >= new_size)
