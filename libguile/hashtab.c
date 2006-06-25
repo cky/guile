@@ -109,8 +109,7 @@ scm_fixup_weak_alist (SCM alist, size_t *removed_items)
 
       if (scm_is_pair (pair))
 	{
-	  if ((SCM_WEAK_PAIR_CAR_DELETED_P (pair))
-	      || (SCM_WEAK_PAIR_CDR_DELETED_P (pair)))
+	  if (SCM_WEAK_PAIR_DELETED_P (pair))
 	    {
 	      /* Remove from ALIST weak pair PAIR whose car/cdr has been
 		 nullified by the GC.  */
@@ -275,8 +274,11 @@ scm_i_rehash (SCM table,
 	  ls = SCM_CDR (ls);
 
 	  if (SCM_WEAK_PAIR_DELETED_P (handle))
-	    /* HANDLE is a nullified weak pair: skip it.  */
-	    continue;
+	    {
+	      /* HANDLE is a nullified weak pair: skip it.  */
+	      SCM_HASHTABLE_DECREMENT (table);
+	      continue;
+	    }
 
 	  h = hash_fn (SCM_CAR (handle), new_size, closure);
 	  if (h >= new_size)
@@ -1021,14 +1023,8 @@ scm_internal_hash_fold (SCM (*fn) (), void *closure, SCM init, SCM table)
 		    SCM_SIMPLE_VECTOR_SET (buckets, i, SCM_CDR (ls));
 
 		  if (SCM_HASHTABLE_P (table))
-		    {
-		      /* Update the item count.  */
-		      unsigned long items = SCM_HASHTABLE_N_ITEMS (table);
-
-		      if (items <= 0)
-			abort ();
-		      SCM_SET_HASHTABLE_N_ITEMS (table, items - 1);
-		    }
+		    /* Update the item count.  */
+		    SCM_HASHTABLE_DECREMENT (table);
 
 		  continue;
 		}
