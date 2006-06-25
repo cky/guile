@@ -31,9 +31,6 @@
 #include "libguile/validate.h"
 #include "libguile/hashtab.h"
 
-#include <gc/gc.h>
-#include <gc/gc_typed.h>
-
 
 
 
@@ -85,104 +82,12 @@ static char *s_hashtable = "hashtable";
 
 
 
-/* Weak cells for use in weak alist vectors (aka. weak hash tables).
+/* Helper functions and macros to deal with weak pairs.
 
-   We have weal-car cells, weak-cdr cells, and doubly weak cells.  In weak
-   cells, the weak component(s) are not scanned for pointers and are
-   registered as disapperaring links; therefore, the weak component may be
-   set to NULL by the garbage collector when no other reference to that word
-   exist.  Thus, we use `scm_fixup_weak_alist ()' to check for nullified weak
-   cells and remove them.  */
-
-
-/* Type descriptors for weak-c[ad]r cells.  */
-static GC_descr wcar_cell_descr, wcdr_cell_descr;
-
-
-static SCM
-scm_weak_car_cell (SCM car, SCM cdr)
-{
-  scm_t_cell *cell;
-
-  cell = (scm_t_cell *)GC_malloc_explicitly_typed (sizeof (*cell),
-						   wcar_cell_descr);
-
-  cell->word_0 = car;
-  cell->word_1 = cdr;
-
-  if (SCM_NIMP (car))
-    {
-      /* Weak car cells make sense iff the car is non-immediate.  */
-      GC_GENERAL_REGISTER_DISAPPEARING_LINK ((GC_PTR)&cell->word_0,
-					     (GC_PTR)SCM_UNPACK (car));
-    }
-
-  return (SCM_PACK (cell));
-}
-
-static SCM
-scm_weak_cdr_cell (SCM car, SCM cdr)
-{
-  scm_t_cell *cell;
-
-  cell = (scm_t_cell *)GC_malloc_explicitly_typed (sizeof (*cell),
-						   wcdr_cell_descr);
-
-  cell->word_0 = car;
-  cell->word_1 = cdr;
-
-  if (SCM_NIMP (cdr))
-    {
-      /* Weak cdr cells make sense iff the cdr is non-immediate.  */
-      GC_GENERAL_REGISTER_DISAPPEARING_LINK ((GC_PTR)&cell->word_1,
-					     (GC_PTR)SCM_UNPACK (cdr));
-    }
-
-  return (SCM_PACK (cell));
-}
-
-static SCM
-scm_doubly_weak_cell (SCM car, SCM cdr)
-{
-  /* Doubly weak cells shall not be scanned at all for pointers.  */
-  scm_t_cell *cell = (scm_t_cell *)scm_gc_malloc_pointerless (sizeof (*cell),
-							      "weak cell");
-
-  cell->word_0 = car;
-  cell->word_1 = cdr;
-
-  if (SCM_NIMP (car))
-    {
-      GC_GENERAL_REGISTER_DISAPPEARING_LINK ((GC_PTR)&cell->word_0,
-					     (GC_PTR)SCM_UNPACK (car));
-    }
-  if (SCM_NIMP (cdr))
-    {
-      GC_GENERAL_REGISTER_DISAPPEARING_LINK ((GC_PTR)&cell->word_1,
-					     (GC_PTR)SCM_UNPACK (cdr));
-    }
-
-  return (SCM_PACK (cell));
-}
-
-/* Testing the weak component(s) of a cell for reachability.  */
-#define SCM_WEAK_CELL_WORD_DELETED_P(_cell, _word)		\
-  (SCM_CELL_OBJECT ((_cell), (_word)) == SCM_PACK (NULL))
-#define SCM_WEAK_CELL_CAR_DELETED_P(_cell)	\
-  (SCM_WEAK_CELL_WORD_DELETED_P ((_cell), 0))
-#define SCM_WEAK_CELL_CDR_DELETED_P(_cell)	\
-  (SCM_WEAK_CELL_WORD_DELETED_P ((_cell), 1))
-
-#define SCM_WEAK_CELL_DELETED_P(_cell)		\
-  ((SCM_WEAK_CELL_CAR_DELETED_P (_cell))	\
-   || (SCM_WEAK_CELL_CDR_DELETED_P (_cell)))
-
-/* Accessing the components of a weak cell.  */
-#define SCM_WEAK_CELL_WORD(_cell, _word)		\
-  ((SCM_WEAK_CELL_WORD_DELETED_P ((_cell), (_word)))	\
-   ? SCM_BOOL_F : SCM_CAR (pair))
-#define SCM_WEAK_CELL_CAR(_cell)  (SCM_WEAK_CELL_WORD ((_cell), 0))
-#define SCM_WEAK_CELL_CDR(_cell)  (SCM_WEAK_CELL_WORD ((_cell), 1))
+   Weak pairs need to be accessed very carefully since their components can
+   be nullified by the GC when the object they refer to becomes unreachable.
+   Hence the macros and functions below that detect such weak pairs within
+   buckets and remove them.  */
 
 
 /* Return a ``usable'' version of ALIST, an alist of weak pairs.  By
@@ -204,8 +109,8 @@ scm_fixup_weak_alist (SCM alist, size_t *removed_items)
 
       if (scm_is_pair (pair))
 	{
-	  if ((SCM_WEAK_CELL_CAR_DELETED_P (pair))
-	      || (SCM_WEAK_CELL_CDR_DELETED_P (pair)))
+	  if ((SCM_WEAK_PAIR_CAR_DELETED_P (pair))
+	      || (SCM_WEAK_PAIR_CDR_DELETED_P (pair)))
 	    {
 	      /* Remove from ALIST weak pair PAIR whose car/cdr has been
 		 nullified by the GC.  */
@@ -369,7 +274,7 @@ scm_i_rehash (SCM table,
 	  handle = SCM_CAR (cell);
 	  ls = SCM_CDR (ls);
 
-	  if (SCM_WEAK_CELL_DELETED_P (handle))
+	  if (SCM_WEAK_PAIR_DELETED_P (handle))
 	    /* HANDLE is a nullified weak pair: skip it.  */
 	    continue;
 
@@ -609,11 +514,11 @@ scm_hash_fn_create_handle_x (SCM table, SCM obj, SCM init, unsigned long (*hash_
 	  /* FIXME: We don't support weak alist vectors.  */
 	  /* Use a weak cell.  */
 	  if (SCM_HASHTABLE_DOUBLY_WEAK_P (table))
-	    handle = scm_doubly_weak_cell (obj, init);
+	    handle = scm_doubly_weak_pair (obj, init);
 	  else if (SCM_HASHTABLE_WEAK_KEY_P (table))
-	    handle = scm_weak_car_cell (obj, init);
+	    handle = scm_weak_car_pair (obj, init);
 	  else
-	    handle = scm_weak_cdr_cell (obj, init);
+	    handle = scm_weak_cdr_pair (obj, init);
 	}
       else
 	/* Use a regular, non-weak cell.  */
@@ -1106,7 +1011,7 @@ scm_internal_hash_fold (SCM (*fn) (), void *closure, SCM init, SCM table)
 
 	  if (IS_WEAK_THING (table))
 	    {
-	      if (SCM_WEAK_CELL_DELETED_P (handle))
+	      if (SCM_WEAK_PAIR_DELETED_P (handle))
 		{
 		  /* We hit a weak pair whose car/cdr has become
 		     unreachable: unlink it from the bucket.  */
@@ -1264,23 +1169,6 @@ SCM_DEFINE (scm_hash_map_to_list, "hash-map->list", 2, 0, 0,
 void
 scm_hashtab_prehistory ()
 {
-  /* Initialize weak cells.  */
-  GC_word wcar_cell_bitmap[GC_BITMAP_SIZE (scm_t_cell)] = { 0 };
-  GC_word wcdr_cell_bitmap[GC_BITMAP_SIZE (scm_t_cell)] = { 0 };
-
-  /* In a weak-car cell, only the second word must be scanned for
-     pointers.  */
-  GC_set_bit (wcar_cell_bitmap, GC_WORD_OFFSET (scm_t_cell, word_1));
-  wcar_cell_descr = GC_make_descriptor (wcar_cell_bitmap,
-					GC_WORD_LEN (scm_t_cell));
-
-  /* Conversely, in a weak-cdr cell, only the first word must be scanned for
-     pointers.  */
-  GC_set_bit (wcdr_cell_bitmap, GC_WORD_OFFSET (scm_t_cell, word_0));
-  wcdr_cell_descr = GC_make_descriptor (wcdr_cell_bitmap,
-					GC_WORD_LEN (scm_t_cell));
-
-
   /* Initialize the hashtab SMOB type.  */
   scm_tc16_hashtable = scm_make_smob_type (s_hashtable, 0);
   scm_set_smob_print (scm_tc16_hashtable, hashtable_print);

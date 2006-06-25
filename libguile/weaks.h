@@ -52,6 +52,34 @@
 #define SCM_IS_WHVEC_ANY(X)       (SCM_I_WVECT_TYPE (X) != 0)
 
 
+/* Weak pairs.  */
+
+SCM_API SCM scm_weak_car_pair (SCM car, SCM cdr);
+SCM_API SCM scm_weak_cdr_pair (SCM car, SCM cdr);
+SCM_API SCM scm_doubly_weak_pair (SCM car, SCM cdr);
+
+/* Testing the weak component(s) of a cell for reachability.  */
+#define SCM_WEAK_PAIR_WORD_DELETED_P(_cell, _word)		\
+  (SCM_CELL_OBJECT ((_cell), (_word)) == SCM_PACK (NULL))
+#define SCM_WEAK_PAIR_CAR_DELETED_P(_cell)	\
+  (SCM_WEAK_PAIR_WORD_DELETED_P ((_cell), 0))
+#define SCM_WEAK_PAIR_CDR_DELETED_P(_cell)	\
+  (SCM_WEAK_PAIR_WORD_DELETED_P ((_cell), 1))
+
+#define SCM_WEAK_PAIR_DELETED_P(_cell)		\
+  ((SCM_WEAK_PAIR_CAR_DELETED_P (_cell))	\
+   || (SCM_WEAK_PAIR_CDR_DELETED_P (_cell)))
+
+/* Accessing the components of a weak cell.  */
+#define SCM_WEAK_PAIR_WORD(_cell, _word)		\
+  ((SCM_WEAK_PAIR_WORD_DELETED_P ((_cell), (_word)))	\
+   ? SCM_BOOL_F : SCM_CAR (pair))
+#define SCM_WEAK_PAIR_CAR(_cell)  (SCM_WEAK_PAIR_WORD ((_cell), 0))
+#define SCM_WEAK_PAIR_CDR(_cell)  (SCM_WEAK_PAIR_WORD ((_cell), 1))
+
+
+
+/* Weak vectors and weak hash tables.  */
 
 SCM_API SCM scm_make_weak_vector (SCM k, SCM fill);
 SCM_API SCM scm_weak_vector (SCM l);
@@ -63,6 +91,7 @@ SCM_API SCM scm_weak_key_alist_vector_p (SCM x);
 SCM_API SCM scm_weak_value_alist_vector_p (SCM x);
 SCM_API SCM scm_doubly_weak_alist_vector_p (SCM x);
 SCM_API SCM scm_init_weaks_builtins (void);
+SCM_API void scm_weaks_prehistory (void);
 SCM_API void scm_init_weaks (void);
 
 SCM_API void scm_i_init_weak_vectors_for_gc (void);

@@ -422,7 +422,9 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_ports_prehistory ();
   scm_smob_prehistory ();
   scm_fluids_prehistory ();
-  scm_hashtab_prehistory ();	/* requires storage_prehistory */
+  scm_weaks_prehistory ();
+  scm_hashtab_prehistory ();	/* requires storage_prehistory, and
+				   weaks_prehistory */
 #ifdef GUILE_DEBUG_MALLOC
   scm_debug_malloc_prehistory ();
 #endif

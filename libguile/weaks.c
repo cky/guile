@@ -52,6 +52,92 @@
 #include "libguile/validate.h"
 #include "libguile/weaks.h"
 
+#include <gc/gc.h>
+#include <gc/gc_typed.h>
+
+
+
+/* Weak pairs for use in weak alist vectors and weak hash tables.
+
+   We have weal-car pairs, weak-cdr pairs, and doubly weak pairs.  In weak
+   pairs, the weak component(s) are not scanned for pointers and are
+   registered as disapperaring links; therefore, the weak component may be
+   set to NULL by the garbage collector when no other reference to that word
+   exist.  Thus, users should only access weak pairs via the
+   `SCM_WEAK_PAIR_C[AD]R ()' macros.  See also `scm_fixup_weak_alist ()' in
+   `hashtab.c'.  */
+
+/* Type descriptors for weak-c[ad]r pairs.  */
+static GC_descr wcar_pair_descr, wcdr_pair_descr;
+
+
+SCM
+scm_weak_car_pair (SCM car, SCM cdr)
+{
+  scm_t_cell *cell;
+
+  cell = (scm_t_cell *)GC_malloc_explicitly_typed (sizeof (*cell),
+						   wcar_pair_descr);
+
+  cell->word_0 = car;
+  cell->word_1 = cdr;
+
+  if (SCM_NIMP (car))
+    {
+      /* Weak car cells make sense iff the car is non-immediate.  */
+      GC_GENERAL_REGISTER_DISAPPEARING_LINK ((GC_PTR)&cell->word_0,
+					     (GC_PTR)SCM_UNPACK (car));
+    }
+
+  return (SCM_PACK (cell));
+}
+
+SCM
+scm_weak_cdr_pair (SCM car, SCM cdr)
+{
+  scm_t_cell *cell;
+
+  cell = (scm_t_cell *)GC_malloc_explicitly_typed (sizeof (*cell),
+						   wcdr_pair_descr);
+
+  cell->word_0 = car;
+  cell->word_1 = cdr;
+
+  if (SCM_NIMP (cdr))
+    {
+      /* Weak cdr cells make sense iff the cdr is non-immediate.  */
+      GC_GENERAL_REGISTER_DISAPPEARING_LINK ((GC_PTR)&cell->word_1,
+					     (GC_PTR)SCM_UNPACK (cdr));
+    }
+
+  return (SCM_PACK (cell));
+}
+
+SCM
+scm_doubly_weak_pair (SCM car, SCM cdr)
+{
+  /* Doubly weak cells shall not be scanned at all for pointers.  */
+  scm_t_cell *cell = (scm_t_cell *)scm_gc_malloc_pointerless (sizeof (*cell),
+							      "weak cell");
+
+  cell->word_0 = car;
+  cell->word_1 = cdr;
+
+  if (SCM_NIMP (car))
+    {
+      GC_GENERAL_REGISTER_DISAPPEARING_LINK ((GC_PTR)&cell->word_0,
+					     (GC_PTR)SCM_UNPACK (car));
+    }
+  if (SCM_NIMP (cdr))
+    {
+      GC_GENERAL_REGISTER_DISAPPEARING_LINK ((GC_PTR)&cell->word_1,
+					     (GC_PTR)SCM_UNPACK (cdr));
+    }
+
+  return (SCM_PACK (cell));
+}
+
+
 
 
 /* 1. The current hash table implementation in hashtab.c uses weak alist
@@ -199,6 +285,27 @@ scm_init_weaks_builtins ()
 {
 #include "libguile/weaks.x"
   return SCM_UNSPECIFIED;
+}
+
+void
+scm_weaks_prehistory ()
+{
+  /* Initialize weak pairs.  */
+  GC_word wcar_pair_bitmap[GC_BITMAP_SIZE (scm_t_cell)] = { 0 };
+  GC_word wcdr_pair_bitmap[GC_BITMAP_SIZE (scm_t_cell)] = { 0 };
+
+  /* In a weak-car pair, only the second word must be scanned for
+     pointers.  */
+  GC_set_bit (wcar_pair_bitmap, GC_WORD_OFFSET (scm_t_cell, word_1));
+  wcar_pair_descr = GC_make_descriptor (wcar_pair_bitmap,
+					GC_WORD_LEN (scm_t_cell));
+
+  /* Conversely, in a weak-cdr pair, only the first word must be scanned for
+     pointers.  */
+  GC_set_bit (wcdr_pair_bitmap, GC_WORD_OFFSET (scm_t_cell, word_0));
+  wcdr_pair_descr = GC_make_descriptor (wcdr_pair_bitmap,
+					GC_WORD_LEN (scm_t_cell));
+
 }
 
 void
