@@ -89,22 +89,37 @@ lookup_interned_symbol (const char *name, size_t len,
 			unsigned long raw_hash)
 {
   /* Try to find the symbol in the symbols table */
-  SCM l;
+  SCM result = SCM_BOOL_F;
+  SCM bucket, elt, previous_elt;
   unsigned long hash = raw_hash % SCM_HASHTABLE_N_BUCKETS (symbols);
 
-  for (l = SCM_HASHTABLE_BUCKET (symbols, hash);
-       !scm_is_null (l);
-       l = SCM_CDR (l))
+  bucket = SCM_HASHTABLE_BUCKET (symbols, hash);
+  for (elt = bucket, previous_elt = SCM_BOOL_F;
+       !scm_is_null (elt);
+       previous_elt = elt, elt = SCM_CDR (elt))
     {
       SCM pair, sym;
 
-      pair = SCM_CAR (l);
+      pair = SCM_CAR (elt);
       if (!scm_is_pair (pair))
 	abort ();
-      if (SCM2PTR (SCM_CAR (pair)) == NULL)
-	/* Weak pointer.  Ignore it.  */
-	/* FIXME: Should we as well remove it, as in `scm_fixup_weak_alist'? */
-	continue;
+
+      if (SCM_WEAK_PAIR_CAR_DELETED_P (pair))
+	{
+	  /* PAIR is a weak pair whose key got nullified: remove it from
+	     BUCKET.  */
+	  /* FIXME: Since this is done lazily, i.e., only when a new symbol
+	     is to be inserted in a bucket containing deleted symbols, the
+	     number of items in the hash table may remain erroneous for some
+	     time, thus precluding proper rehashing.  */
+	  if (previous_elt != SCM_BOOL_F)
+	    SCM_SETCDR (previous_elt, SCM_CDR (elt));
+	  else
+	    bucket = SCM_CDR (elt);
+
+	  SCM_HASHTABLE_DECREMENT (symbols);
+	  continue;
+	}
 
       sym = SCM_CAR (pair);
 
@@ -121,13 +136,19 @@ lookup_interned_symbol (const char *name, size_t len,
 		goto next_symbol;
 	    }
 
-	  return sym;
+	  /* We found it.  */
+	  result = sym;
+	  break;
 	}
     next_symbol:
       ;
     }
 
-  return SCM_BOOL_F;
+  if (SCM_HASHTABLE_N_ITEMS (symbols) < SCM_HASHTABLE_LOWER (symbols))
+    /* We removed many symbols in this pass so trigger a rehashing.  */
+    scm_i_rehash (symbols, scm_i_hash_symbol, 0, "lookup_interned_symbol");
+
+  return result;
 }
 
 static SCM
@@ -147,7 +168,7 @@ scm_i_c_mem2symbol (const char *name, size_t len)
 				      scm_cons (SCM_BOOL_F, SCM_EOL));
 
     SCM slot = SCM_HASHTABLE_BUCKET (symbols, hash);
-    SCM cell = scm_cons (symbol, SCM_UNDEFINED);
+    SCM cell = scm_weak_car_pair (symbol, SCM_UNDEFINED);
     SCM_SET_HASHTABLE_BUCKET (symbols, hash, scm_cons (cell, slot));
     SCM_HASHTABLE_INCREMENT (symbols);
     if (SCM_HASHTABLE_N_ITEMS (symbols) > SCM_HASHTABLE_UPPER (symbols))
@@ -176,7 +197,7 @@ scm_i_mem2symbol (SCM str)
 				    scm_cons (SCM_BOOL_F, SCM_EOL));
 
     SCM slot = SCM_HASHTABLE_BUCKET (symbols, hash);
-    SCM cell = scm_cons (symbol, SCM_UNDEFINED);
+    SCM cell = scm_weak_car_pair (symbol, SCM_UNDEFINED);
     SCM_SET_HASHTABLE_BUCKET (symbols, hash, scm_cons (cell, slot));
     SCM_HASHTABLE_INCREMENT (symbols);
     if (SCM_HASHTABLE_N_ITEMS (symbols) > SCM_HASHTABLE_UPPER (symbols))
@@ -446,7 +467,6 @@ void
 scm_symbols_prehistory ()
 {
   symbols = scm_make_weak_key_hash_table (scm_from_int (2139));
-  scm_permanent_object (symbols);
 }
 
 
