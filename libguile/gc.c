@@ -235,11 +235,14 @@ double scm_gc_cells_marked_acc = 0.;
 double scm_gc_cells_swept_acc = 0.;
 int scm_gc_cell_yield_percentage =0;
 int scm_gc_malloc_yield_percentage = 0;
-unsigned long protected_obj_count = 0;
+
+static unsigned long protected_obj_count = 0;
 
 
 SCM_SYMBOL (sym_cells_allocated, "cells-allocated");
-SCM_SYMBOL (sym_heap_size, "cell-heap-size");
+SCM_SYMBOL (sym_heap_size, "heap-size");
+SCM_SYMBOL (sym_heap_free_size, "heap-free-size");
+SCM_SYMBOL (sym_heap_total_allocated, "heap-total-allocated");
 SCM_SYMBOL (sym_mallocated, "bytes-malloced");
 SCM_SYMBOL (sym_mtrigger, "gc-malloc-threshold");
 SCM_SYMBOL (sym_heap_segments, "cell-heap-segments");
@@ -307,81 +310,27 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
 	    "use of storage.\n")
 #define FUNC_NAME s_scm_gc_stats
 {
-  long i = 0;
-  SCM heap_segs = SCM_EOL ;
-  unsigned long int local_scm_mtrigger;
-  unsigned long int local_scm_mallocated;
-  unsigned long int local_scm_heap_size;
-  int local_scm_gc_cell_yield_percentage;
-  int local_scm_gc_malloc_yield_percentage;
-  unsigned long int local_scm_cells_allocated;
-  unsigned long int local_scm_gc_time_taken;
-  unsigned long int local_scm_gc_times;
-  unsigned long int local_scm_gc_mark_time_taken;
-  unsigned long int local_protected_obj_count;
-  double local_scm_gc_cells_swept;
-  double local_scm_gc_cells_marked;
   SCM answer;
-  unsigned long *bounds = 0;
-  SCM_CRITICAL_SECTION_START;
+  size_t heap_size, free_bytes, bytes_since_gc, total_bytes;
+  size_t gc_times;
 
-  /*
-    temporarily store the numbers, so as not to cause GC.
-   */
-#if 0
-  bounds = malloc (sizeof (unsigned long)  * table_size * 2);
-  if (!bounds)
-    abort();
-#endif
-
-  /* Below, we cons to produce the resulting list.  We want a snapshot of
-   * the heap situation before consing.
-   */
-  local_scm_mtrigger = scm_mtrigger;
-  local_scm_mallocated = scm_mallocated;
-  local_scm_heap_size = GC_get_heap_size ();
-
-  local_scm_cells_allocated = scm_cells_allocated;
-
-  local_scm_gc_time_taken = scm_gc_time_taken;
-  local_scm_gc_mark_time_taken = scm_gc_mark_time_taken;
-  local_scm_gc_times = scm_gc_times;
-  local_scm_gc_malloc_yield_percentage = scm_gc_malloc_yield_percentage;
-  local_scm_gc_cell_yield_percentage=  scm_gc_cell_yield_percentage;
-  local_protected_obj_count = protected_obj_count;
-  local_scm_gc_cells_swept =
-    (double) scm_gc_cells_swept_acc
-    + (double) scm_gc_cells_swept;
-  local_scm_gc_cells_marked = scm_gc_cells_marked_acc 
-    +(double) scm_gc_cells_swept 
-    -(double) scm_gc_cells_collected;
-
-#if 0
-  for (i = table_size; i--;)
-    {
-      heap_segs = scm_cons (scm_cons (scm_from_ulong (bounds[2*i]),
-				      scm_from_ulong (bounds[2*i+1])),
-			    heap_segs);
-    }
-#else
-  heap_segs = scm_list (SCM_INUM0); /* FIXME */
-#endif
+  heap_size      = GC_get_heap_size ();
+  free_bytes     = GC_get_free_bytes ();
+  bytes_since_gc = GC_get_bytes_since_gc ();
+  total_bytes    = GC_get_total_bytes ();
+  gc_times       = GC_gc_no;
 
   /* njrev: can any of these scm_cons's or scm_list_n signal a memory
      error?  If so we need a frame here. */
   answer =
-    scm_list_n (scm_cons (sym_gc_time_taken,
-			  scm_from_ulong (local_scm_gc_time_taken)),
+    scm_list_n (scm_cons (sym_gc_time_taken, SCM_INUM0),
+#if 0
 		scm_cons (sym_cells_allocated,
 			  scm_from_ulong (local_scm_cells_allocated)),
-		scm_cons (sym_heap_size,
-			  scm_from_ulong (local_scm_heap_size)),
 		scm_cons (sym_mallocated,
 			  scm_from_ulong (local_scm_mallocated)),
 		scm_cons (sym_mtrigger,
 			  scm_from_ulong (local_scm_mtrigger)),
-		scm_cons (sym_times,
-			  scm_from_ulong (local_scm_gc_times)),
 		scm_cons (sym_gc_mark_time_taken,
 			  scm_from_ulong (local_scm_gc_mark_time_taken)),
 		scm_cons (sym_cells_marked,
@@ -392,13 +341,17 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
 			  scm_from_long(local_scm_gc_malloc_yield_percentage)),
 		scm_cons (sym_cell_yield,
 			  scm_from_long (local_scm_gc_cell_yield_percentage)),
-		scm_cons (sym_protected_objects,
-			  scm_from_ulong (local_protected_obj_count)),
 		scm_cons (sym_heap_segments, heap_segs),
+#endif
+		scm_cons (sym_heap_size, scm_from_size_t (heap_size)),
+		scm_cons (sym_heap_free_size, scm_from_size_t (free_bytes)),
+		scm_cons (sym_heap_total_allocated,
+			  scm_from_size_t (total_bytes)),
+		scm_cons (sym_protected_objects,
+			  scm_from_ulong (protected_obj_count)),
+		scm_cons (sym_times, scm_from_size_t (gc_times)),
 		SCM_UNDEFINED);
-  SCM_CRITICAL_SECTION_END;
 
-/*   free (bounds); */
   return answer;
 }
 #undef FUNC_NAME
@@ -413,6 +366,29 @@ SCM_DEFINE (scm_object_address, "object-address", 1, 0, 0,
 #define FUNC_NAME s_scm_object_address
 {
   return scm_from_ulong (SCM_UNPACK (obj));
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_gc_disable, "gc-disable", 0, 0, 0,
+	    (),
+	    "Disables the garbage collector.  Nested calls are permitted.  "
+	    "GC is re-enabled once @code{gc-enable} has been called the "
+	    "same number of times @code{gc-disable} was called.")
+#define FUNC_NAME s_scm_gc_disable
+{
+  GC_disable ();
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_gc_enable, "gc-enable", 0, 0, 0,
+	    (),
+	    "Enables the garbage collector.")
+#define FUNC_NAME s_scm_gc_enable
+{
+  GC_enable ();
+  return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
 
@@ -703,8 +679,10 @@ void
 scm_storage_prehistory ()
 {
   GC_INIT ();
-  GC_add_roots ((char *)scm_sys_protects,
-		(char *)(scm_sys_protects + SCM_NUM_PROTECTS));
+
+  /* Sanity check.  */
+  if (!GC_is_visible (scm_sys_protects))
+    abort ();
 
   scm_c_hook_init (&scm_before_gc_c_hook, 0, SCM_C_HOOK_NORMAL);
   scm_c_hook_init (&scm_before_mark_c_hook, 0, SCM_C_HOOK_NORMAL);
