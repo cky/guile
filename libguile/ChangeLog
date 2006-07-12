@@ -1,3 +1,8 @@
+2006-07-12  Ludovic Courtès <ludovic.courtes@laas.fr>
+
+	* numbers.c (guile_ieee_init): Use regular ANSI C casts rather
+	than C++-style `X_CAST ()'.  Patch posted by by Mike Gran.
+
 2006-06-13  Ludovic Courtès <ludovic.courtes@laas.fr>
 
 	* eq.c: Include "struct.h", "goops.h" and "objects.h".

@@ -598,7 +598,7 @@ guile_ieee_init (void)
 #elif HAVE_DINFINITY
   /* OSF */
   extern unsigned int DINFINITY[2];
-  guile_Inf = (*(X_CAST(double *, DINFINITY)));
+  guile_Inf = (*((double *) (DINFINITY)));
 #else
   double tmp = 1e+10;
   guile_Inf = tmp;
@@ -619,9 +619,11 @@ guile_ieee_init (void)
   /* C99 NAN, when available */
   guile_NaN = NAN;
 #elif HAVE_DQNAN
-  /* OSF */
-  extern unsigned int DQNAN[2];
-  guile_NaN =  (*(X_CAST(double *, DQNAN)));
+  {
+    /* OSF */
+    extern unsigned int DQNAN[2];
+    guile_NaN = (*((double *)(DQNAN)));
+  }
 #else
   guile_NaN = guile_Inf / guile_Inf;
 #endif
