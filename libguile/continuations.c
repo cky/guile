@@ -101,6 +101,10 @@ struct rv
   long retval;
   long first_return;
 };
+
+#ifdef __GNUC__
+__attribute__ ((returns_twice))
+#endif /* __GNUC__ */
 extern struct rv ia64_getcontext (ucontext_t *) __asm__ ("getcontext");
 #endif /* __ia64__ */
 
