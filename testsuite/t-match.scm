@@ -1,5 +1,9 @@
-(use-modules (ice-9 match)
-	     (srfi srfi-9))  ;; record type
+;;; Pattern matching with `(ice-9 match)'.
+;;;
+
+;; Both modules are compile-time dependencies, hence `use-syntax'.
+(use-syntax (ice-9 match))
+(use-syntax (srfi srfi-9))  ;; record type (FIXME: See `t-records.scm')
 
 (define-record-type <stuff>
   (%make-stuff chbouib)

@@ -29,18 +29,26 @@
   :export (translate))
 
 
-;; Hash table containing the macros currently defined.
-(define &current-macros (make-parameter #f))
+;; Module in which compile-time code (macros) is evaluated.
+(define &compile-time-module (make-parameter #f))
 
-;; Module in which macros are evaluated.
-(define &current-macro-module (make-parameter #f))
+(define (eval-at-compile-time exp)
+  "Evaluate @var{exp} in the current compile-time module."
+  (catch #t
+    (lambda ()
+      (save-module-excursion
+       (lambda ()
+	 (eval exp (&compile-time-module)))))
+    (lambda (key . args)
+      (syntax-error #f
+		    (format #f "~a: compile-time evaluation failed" exp)
+		    (cons key args)))))
 
 (define (translate x e)
-  (parameterize ((&current-macros (make-hash-table))
-		 (&current-macro-module (make-module)))
+  (parameterize ((&compile-time-module (make-module)))
 
     ;; Import only core bindings in the macro module.
-    (module-use! (&current-macro-module) (resolve-module '(guile-user)))
+    (module-use! (&compile-time-module) the-root-module)
 
     (call-with-ghil-environment (make-ghil-mod e) '()
       (lambda (env vars)
@@ -54,34 +62,57 @@
 (define (expand-macro e)
   ;; Similar to `macroexpand' in `boot-9.scm' except that it does not expand
   ;; `define-macro' and `defmacro'.
-
-  ;; FIXME: This does not handle macros defined in modules used by the
-  ;; module being compiled.
   (cond
    ((pair? e)
     (let* ((head (car e))
 	   (val (and (symbol? head)
 		     (false-if-exception
-		      (module-ref (&current-macro-module) head)))))
+		      (module-ref (&compile-time-module) head)))))
       (case head
 	((defmacro define-macro)
 	 ;; Normally, these are expanded as `defmacro:transformer' but we
-	 ;; don't want it to happen.
+	 ;; don't want it to happen since they are handled by `trans-pair'.
 	 e)
+
+	((use-syntax)
+	 ;; `use-syntax' is used to express a compile-time dependency
+	 ;; (because we use a macro from that module, or because one of our
+	 ;; macros uses bindings from that module).  Thus, we arrange to get
+	 ;; the current compile-time module to use it.
+	 (let* ((module-name (cadr e))
+		(module (false-if-exception (resolve-module module-name))))
+	   (if (module? module)
+	       (let ((public-if (module-public-interface module)))
+		 (module-use! (&compile-time-module) public-if))
+	       (syntax-error #f "invalid `use-syntax' form" e)))
+	 '(void))
+
+	((begin let let* letrec lambda quote quasiquote if and or
+		set! cond case eval-case define do)
+	 ;; All these built-in macros should not be expanded.
+	 e)
+
 	(else
-	 (if (defmacro? val) ;; built-in macro?
-	     (expand-macro (apply (defmacro-transformer val) (cdr e)))
-	     (let ((local-macro (hashq-ref (&current-macros) head)))
-	       (if (not local-macro)
-		   e
-		   (if (procedure? local-macro)
-		       (expand-macro
-			(save-module-excursion
-                          (lambda ()
-			    (set-current-module (&current-macro-module))
-			    (apply local-macro (cdr e)))))
-		       (syntax-error #f (format #f "~a: invalid macro" head)
-				     local-macro)))))))))
+	 ;; Look for a macro.
+	 (let ((ref (false-if-exception
+		     (module-ref (&compile-time-module) head))))
+	   (if (macro? ref)
+	       (expand-macro
+		(save-module-excursion
+		 (lambda ()
+		   (let ((transformer (macro-transformer ref))
+			 (syntax-error syntax-error))
+		     (set-current-module (&compile-time-module))
+		     (catch #t
+		       (lambda ()
+			 (transformer (copy-tree e) (current-module)))
+		       (lambda (key . args)
+			 (syntax-error #f
+				       (format #f "~a: macro transformer failed"
+					       head)
+				       (cons key args))))))))
+	       e))))))
+
    (#t e)))
 
 
@@ -101,12 +132,10 @@
 
 (define (trans e l x)
   (cond ((pair? x)
-	 (let ((y (false-if-exception (expand-macro x))))
-	   (if (not y)
-	       (syntax-error l "failed to expand macro" x)
-	       (if (eq? x y)
-		   (trans-pair e (or (location x) l) (car x) (cdr x))
-		   (trans e l y)))))
+	 (let ((y (expand-macro x)))
+	   (if (eq? x y)
+	       (trans-pair e (or (location x) l) (car x) (cdr x))
+	       (trans e l y))))
 	((symbol? x)
 	 (let ((y (symbol-expand x)))
 	   (if (symbol? y)
@@ -164,24 +193,11 @@
 
     ;; simple macros
     ((defmacro define-macro)
-     (let* ((shortcut? (eq? head 'defmacro))
-	    (macro-name (if shortcut? (car tail) (caar tail)))
-	    (formal-args (if shortcut? (cadr tail) (cdar tail)))
-	    (body (if shortcut? (cddr tail) (cdr tail))))
+     ;; Evaluate the macro definition in the current compile-time module.
+     (eval-at-compile-time (cons head tail))
 
-       ;; Evaluate the macro in the current macro module.
-       (hashq-set! (&current-macros) macro-name
-		   (catch #t
-		     (lambda ()
-		       (eval `(lambda ,formal-args ,@body)
-			     (&current-macro-module)))
-		     (lambda (key . args)
-		       (syntax-error l (string-append "failed to evaluate "
-						      "macro `" macro-name
-						      "'")
-				     (cons key args)))))
-
-       (make:void)))
+     ;; FIXME: We need to evaluate them in the runtime module as well.
+     (make:void))
 
     ((set!)
      (match tail
@@ -324,7 +340,7 @@
     (else
      (if (memq head %scheme-primitives)
 	 (<ghil-inline> e l head (map trans:x tail))
-	 (if (member head %forbidden-primitives)
+	 (if (memq head %forbidden-primitives)
 	     (syntax-error l (format #f "`~a' is forbidden" head)
 			   (cons head tail))
 	     (<ghil-call> e l (trans:x head) (map trans:x tail)))))))
