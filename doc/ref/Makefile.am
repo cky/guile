@@ -56,6 +56,7 @@ guile_TEXINFOS = preface.texi			\
 		 gh.texi			\
 		 api-overview.texi		\
 		 scheme-debugging.texi		\
+		 scheme-using.texi		\
 		 indices.texi			\
 		 script-getopt.texi		\
 		 data-rep.texi			\

@@ -1,0 +1,411 @@
+@c -*-texinfo-*-
+@c This is part of the GNU Guile Reference Manual.
+@c Copyright (C) 2006
+@c   Free Software Foundation, Inc.
+@c See the file guile.texi for copying conditions.
+
+@node Using Guile Interactively
+@section Using Guile Interactively
+
+When you start up Guile by typing just @code{guile}, without a
+@code{-c} argument or the name of a script to execute, you get an
+interactive interpreter where you can enter Scheme expressions, and
+Guile will evaluate them and print the results for you.  Here are some
+simple examples.
+
+@lisp
+guile> (+ 3 4 5)
+12
+guile> (display "Hello world!\n")
+Hello world!
+guile> (values 'a 'b)
+a
+b
+@end lisp
+
+@noindent
+This mode of use is called a @dfn{REPL}, which is short for
+``Read-Eval-Print Loop'', because the Guile interpreter first reads the
+expression that you have typed, then evaluates it, and then prints the
+result.
+
+@menu
+* Readline::
+* Value Historyx::
+* Error Handling::
+* Interactive Debugger::        Using the interactive debugger.
+@end menu
+
+
+@node Readline
+@subsection Readline
+
+To make it easier for you to repeat and vary previously entered
+expressions, or to edit the expression that you're typing in, Guile
+can use the GNU Readline library.  This is not enabled by default
+because of licensing reasons, but all you need to activate Readline is
+the following pair of lines.
+
+@lisp
+guile> (use-modules (ice-9 readline))
+guile> (activate-readline)
+@end lisp
+
+It's a good idea to put these two lines (without the ``guile>''
+prompts) in your @file{.guile} file.  Guile reads this file when it
+starts up interactively, so anything in this file has the same effect
+as if you type it in by hand at the ``guile>'' prompt.
+
+
+@node Value Historyx
+@subsection Value History
+
+Just as Readline helps you to reuse a previous input line, @dfn{value
+history} allows you to use the @emph{result} of a previous evaluation
+in a new expression.  When value history is enabled, each evaluation
+result is automatically assigned to the next in the sequence of
+variables @code{$1}, @code{$2}, @dots{}, and you can then use these
+variables in subsequent expressions.
+
+@lisp
+guile> (iota 10)
+$1 = (0 1 2 3 4 5 6 7 8 9)
+guile> (apply * (cdr $1))
+$2 = 362880
+guile> (sqrt $2)
+$3 = 602.3952191045344
+guile> (cons $2 $1)
+$4 = (362880 0 1 2 3 4 5 6 7 8 9)
+@end lisp
+
+To enable value history, type @code{(use-modules (ice-9 history))} at
+the Guile prompt, or add this to your @file{.guile} file.  (It is not
+enabled by default, to avoid the possibility of conflicting with some
+other use you may have for the variables @code{$1}, @code{$2},
+@dots{}, and also because it prevents the stored evaluation results
+from being garbage collected, which some people may not want.)
+
+
+@node Error Handling
+@subsection Error Handling
+
+When code being evaluated from the REPL hits an error, Guile remembers
+the execution context where the error occurred and can give you three
+levels of information about what the error was and exactly where it
+occurred.
+
+By default, Guile then displays only the first level, which is the most
+immediate information about where and why the error occurred, for
+example:
+
+@lisp
+(make-string (* 4 (+ 3 #\s)) #\space)
+@print{}
+standard input:2:19: In procedure + in expression (+ 3 #\s):
+standard input:2:19: Wrong type argument: #\s
+ABORT: (wrong-type-arg)
+
+Type "(backtrace)" to get more information or "(debug)" to enter the debugger.
+@end lisp
+
+@noindent
+However, as the message above says, you can obtain more information
+about the context of the error by typing @code{(backtrace)} or
+@code{(debug)}.
+
+@code{(backtrace)} displays the Scheme call stack at the point where the
+error occurred:
+
+@lisp
+(backtrace)
+@print{}
+Backtrace:
+In standard input:
+   2: 0* [make-string ...
+   2: 1*  [* 4 ...
+   2: 2*   [+ 3 #\s]
+
+Type "(debug-enable 'backtrace)" if you would like a backtrace
+automatically if an error occurs in the future.
+@end lisp
+
+@noindent
+In a more complex scenario than this one, this can be extremely useful
+for understanding where and why the error occurred.  You can make Guile
+show the backtrace automatically by adding @code{(debug-enable
+'backtrace)} to your @file{.guile}.
+
+@code{(debug)} takes you into Guile's interactive debugger, which
+provides commands that allow you to
+
+@itemize @bullet
+@item
+display the Scheme call stack at the point where the error occurred
+(the @code{backtrace} command --- see @ref{Display Backtrace})
+
+@item
+move up and down the call stack, to see in detail the expression being
+evaluated, or the procedure being applied, in each @dfn{frame} (the
+@code{up}, @code{down}, @code{frame}, @code{position}, @code{info args}
+and @code{info frame} commands --- see @ref{Frame Selection} and
+@ref{Frame Information})
+
+@item
+examine the values of variables and expressions in the context of each
+frame (the @code{evaluate} command --- see @ref{Frame Evaluation}).
+@end itemize
+
+@noindent
+This is documented further in the following section.
+
+
+@node Interactive Debugger
+@subsection Using the Interactive Debugger
+
+Guile's interactive debugger is a command line application that accepts
+commands from you for examining the stack and, if at a breakpoint, for
+continuing program execution in various ways.  Unlike in the normal
+Guile REPL, commands are typed mostly without parentheses.
+
+When you first enter the debugger, it introduces itself with a message
+like this:
+
+@lisp
+This is the Guile debugger -- for help, type `help'.
+There are 3 frames on the stack.
+
+Frame 2 at standard input:36:19
+        [+ 3 #\s]
+debug> 
+@end lisp
+
+@noindent
+``debug>'' is the debugger's prompt, and a reminder that you are not in
+the normal Guile REPL.  The available commands are described in the
+following subsections.
+
+@menu
+* Display Backtrace::           backtrace.
+* Frame Selection::             up, down, frame.
+* Frame Information::           info args, info frame, position.
+* Frame Evaluation::            evaluate.
+* Single Stepping::             step, next.
+* Run To Frame Exit::           finish, trace-finish.
+* Continue Execution::          continue.
+* Leave Debugger::              quit.
+@end menu
+
+
+@node Display Backtrace
+@subsubsection Display Backtrace
+
+The @code{backtrace} command, which can also be invoked as @code{bt} or
+@code{where}, displays the call stack (aka backtrace) at the point where
+the debugger was entered:
+
+@lisp
+debug> bt
+In standard input:
+  36: 0* [make-string ...
+  36: 1*  [* 4 ...
+  36: 2*   [+ 3 #\s]
+@end lisp
+
+@deffn {Debugger Command} backtrace [count]
+@deffnx {Debugger Command} bt [count]
+@deffnx {Debugger Command} where [count]
+Print backtrace of all stack frames, or of the innermost @var{count}
+frames.  With a negative argument, print the outermost -@var{count}
+frames.  If the number of frames isn't explicitly given, the debug
+option @code{depth} determines the maximum number of frames printed.
+@end deffn
+
+The format of the displayed backtrace is the same as for the
+@code{backtrace} procedure.
+
+
+@node Frame Selection
+@subsubsection Frame Selection
+
+A call stack consists of a sequence of stack @dfn{frames}, with each
+frame describing one level of the nested evaluations and applications
+that the program was executing when it hit a breakpoint or an error.
+Frames are numbered such that frame 0 is the outermost --- i.e. the
+operation on the call stack that began least recently --- and frame N-1
+the innermost (where N is the total number of frames on the stack).
+
+When you enter the debugger, the innermost frame is selected, which
+means that the commands for getting information about the ``current''
+frame, or for evaluating expressions in the context of the current
+frame, will do so by default with respect to the innermost frame.  To
+select a different frame, so that these operations will apply to it
+instead, use the @code{up}, @code{down} and @code{frame} commands like
+this:
+
+@lisp
+debug> up
+Frame 1 at standard input:36:14
+        [* 4 ...
+debug> frame 0
+Frame 0 at standard input:36:1
+        [make-string ...
+debug> down
+Frame 1 at standard input:36:14
+        [* 4 ...
+@end lisp
+
+@deffn {Debugger Command} up [n]
+Move @var{n} frames up the stack.  For positive @var{n}, this
+advances toward the outermost frame, to higher frame numbers, to
+frames that have existed longer.  @var{n} defaults to one.
+@end deffn
+
+@deffn {Debugger Command} down [n]
+Move @var{n} frames down the stack.  For positive @var{n}, this
+advances toward the innermost frame, to lower frame numbers, to frames
+that were created more recently.  @var{n} defaults to one.
+@end deffn
+
+@deffn {Debugger Command} frame [n]
+Select and print a stack frame.  With no argument, print the selected
+stack frame.  (See also ``info frame''.)  An argument specifies the
+frame to select; it must be a stack-frame number.
+@end deffn
+
+
+@node Frame Information
+@subsubsection Frame Information
+
+[to be completed]
+
+@deffn {Debugger Command} {info frame}
+All about selected stack frame.
+@end deffn
+
+@deffn {Debugger Command} {info args}
+Argument variables of current stack frame.
+@end deffn
+
+@deffn {Debugger Command} position
+Display the position of the current expression.
+@end deffn
+
+
+@node Frame Evaluation
+@subsubsection Frame Evaluation
+
+[to be completed]
+
+@deffn {Debugger Command} evaluate expression
+Evaluate an expression.
+The expression must appear on the same line as the command,
+however it may be continued over multiple lines.
+@end deffn
+
+
+@node Single Stepping
+@subsubsection Single Stepping
+
+[to be completed]
+
+@deffn {Debugger Command} step [n]
+Continue until entry to @var{n}th next frame.
+@end deffn
+
+@deffn {Debugger Command} next [n]
+Continue until entry to @var{n}th next frame in same file.
+@end deffn
+
+
+@node Run To Frame Exit
+@subsubsection Run To Frame Exit
+
+[to be completed]
+
+@deffn {Debugger Command} finish
+Continue until evaluation of the current frame is complete, and
+print the result obtained.
+@end deffn
+
+@deffn {Debugger Command} trace-finish
+Trace until evaluation of the current frame is complete.
+@end deffn
+
+
+@node Continue Execution
+@subsubsection Continue Execution
+
+[to be completed]
+
+@deffn {Debugger Command} continue
+Continue program execution.
+@end deffn
+
+
+@node Leave Debugger
+@subsubsection Leave Debugger
+
+[to be completed]
+
+@deffn {Debugger Command} quit
+Exit the debugger.
+@end deffn
+
+
+@node Using Guile in Emacs
+@section Using Guile in Emacs
+
+The Guile distribution includes a rich environment for working on Guile
+Scheme code within Emacs.  The idea of this environment is to allow you
+to work on Guile Scheme code in the same kind of way that Emacs allows
+you to work on Emacs Lisp code: providing easy access to help,
+evaluating arbitrary fragments of code, a nice debugging interface, and
+so on.@footnote{You can also, of course, run a Guile session in Emacs
+simply by typing ``guile'' in a @code{*shell*} buffer.  The environment
+described here provides a much better integration than that, though.}
+
+The thinking behind this environment is that you will usually be doing
+one of two things.
+
+@enumerate
+@item
+Writing or editing code.  The code will be in a normal Emacs Scheme
+mode buffer, and the Guile/Emacs environment extends Scheme mode to
+add keystrokes and menu items for the things that are likely to be
+useful to you when working on code:
+
+@itemize
+@item
+completing the identifier at point
+@item
+accessing Guile's built in help
+@item
+evaluating fragments of code to check what they do.
+@end itemize
+
+@item
+Debugging a Guile Scheme program.  When your program hits an error or
+a breakpoint, the Guile/Emacs environment shows you the relevant code
+and the Scheme stack, and makes it easy to
+
+@itemize
+@item
+look at the values of local variables
+@item
+see what is happening at all levels of the Scheme stack
+@item
+continue execution, either normally or step by step.
+@end itemize
+@end enumerate
+
+Combinations of these work well too.  You can evaluate a fragment of
+code (in a Scheme buffer) that contains a breakpoint, then use the
+debugging interface to step through the code at the breakpoint.  You
+can also run a program until it hits a breakpoint, then examine,
+modify and reevaluate some of the relevant code, and then tell the
+program to continue running.
+
+
+@c Local Variables:
+@c TeX-master: "guile.texi"
+@c End:

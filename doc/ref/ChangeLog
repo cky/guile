@@ -1,3 +1,19 @@
+2006-08-01  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scheme-debugging.texi (Debug Last Error, Interactive Debugger):
+	Moved/merged to scheme-using.texi, as REPL features.
+	(Examples): New.
+	(Intro to Breakpoints): New introductory text here.  Removed all
+	subnodes except for Breakpoints Overview.
+
+	* scheme-using.texi: New.
+
+	* guile.texi (Programming in Scheme): Include new
+	scheme-using.texi file.
+
+	* Makefile.am (guile_TEXINFOS): Include new scheme-using.texi
+	file.
+
 2006-06-16  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
 	* api-utility.texi (Equality): Mentioned the behavior of `equal?'

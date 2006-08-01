@@ -137,7 +137,7 @@ x
 @comment The title is printed in a large font.
 @title Guile Reference Manual
 @subtitle Edition @value{MANUAL-EDITION}, for use with Guile @value{VERSION}
-@c @subtitle $Id: guile.texi,v 1.44 2005-06-22 23:42:23 kryde Exp $
+@c @subtitle $Id: guile.texi,v 1.45 2006-08-01 21:33:17 ossau Exp $
 
 @c See preface.texi for the list of authors
 @author The Guile Developers
@@ -219,6 +219,8 @@ etc. that make up Guile's application programming interface (API),
 * Basic Ideas::                 Basic ideas in Scheme.
 * Guile Scheme::                Guile's implementation of Scheme.
 * Guile Scripting::             How to write Guile scripts.
+* Using Guile Interactively::   Guile's REPL features.
+* Using Guile in Emacs::        Guile and Emacs.
 * Debugging Features::          Features for finding errors.
 * Further Reading::             Where to find out more about Scheme.
 @end menu
@@ -226,6 +228,7 @@ etc. that make up Guile's application programming interface (API),
 @include scheme-ideas.texi
 @include scheme-intro.texi
 @include scheme-scripts.texi
+@include scheme-using.texi
 @include scheme-debugging.texi
 @include scheme-reading.texi
 
