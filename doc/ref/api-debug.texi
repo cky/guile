@@ -10,7 +10,6 @@
 
 @menu
 * Interactive Debugging::       Functions intended for interactive use.
-* Breakpoints::
 * Source Properties::           Remembering the source of an expression.
 * Using Traps::
 * Capturing the Stack or Innermost Stack Frame::
@@ -34,86 +33,6 @@ the backtrace.
 
 @deffn {Scheme Procedure} debug
 Invoke the Guile debugger to explore the context of the last error.
-@end deffn
-
-@node Breakpoints
-@subsection Breakpoints
-
-@deffn {Generic Function} set-breakpoint! behaviour . location-args
-Set a breakpoint with behaviour @var{behaviour} at the location
-specified by @var{location-args}.
-
-The form of the @var{location-args} depends upon what methods for
-@code{set-breakpoint!} have been provided by the implementations of
-subclasses of the @code{<breakpoint>} base class.
-@end deffn
-
-@deffn {Generic Function} get-breakpoint . location-args
-Find and return the breakpoint instance at the location specified by
-@var{location-args}.
-
-The form of the @var{location-args} depends upon what methods for
-@code{get-breakpoint} have been provided by the implementations of
-subclasses of the @code{<breakpoint>} base class.
-@end deffn
-
-@deffn {Method} set-breakpoint! behaviour (proc <procedure>)
-Set a breakpoint with behaviour @var{behaviour} before applications of
-the procedure @var{proc}.
-@end deffn
-
-@deffn {Method} set-breakpoint! behaviour x-as-read (x-pairified <pair>)
-Set a breakpoint with behaviour @var{behaviour} on the source expression
-@var{x-pairified}, storing @var{x-as-read} for use in messages
-describing the breakpoint.
-@end deffn
-
-@deffn {Method} set-breakpoint! behaviour (number <integer>)
-Change the behaviour of existing breakpoint number @var{number} to
-@var{behaviour}.
-@end deffn
-
-@deffn {Accessor} bp-behaviour breakpoint
-Get or set the behaviour of the breakpoint instance @var{breakpoint}.
-@end deffn
-
-@deffn {Accessor} bp-enabled? breakpoint
-Get or set the enabled state of the specified @var{breakpoint}.
-@end deffn
-
-@deffn {Procedure} enable-breakpoint! . location-args
-@deffnx {Procedure} disable-breakpoint! . location-args
-Enable or disable the breakpoint at the location specified by
-@var{location-args}.
-@end deffn
-
-@deffn {Generic Function} bp-delete! breakpoint
-Delete breakpoint @var{breakpoint}.  This means (1) doing whatever is
-needed to prevent the breakpoint from triggering again, and (2) removing
-it from the global list of current breakpoints.
-@end deffn
-
-@deffn {Procedure} delete-breakpoint! . location-args
-Delete the breakpoint at the location specified by @var{location-args}.
-@end deffn
-
-@deffn {Generic Function} bp-describe breakpoint port
-Print a description of @var{breakpoint} to the specified @var{port}.
-@var{port} can be @code{#t} for standard output, or else any output
-port.
-@end deffn
-
-@deffn {Procedure} describe-breakpoint . location-args
-Print (to standard output) a description of the breakpoint at location
-specified by @var{location-args}.
-@end deffn
-
-@deffn {Procedure} all-breakpoints
-Return a list of all current breakpoints, ordered by breakpoint number.
-@end deffn
-
-@deffn {Procedure} describe-all-breakpoints
-Print a description of all current breakpoints to standard output.
 @end deffn
 
 

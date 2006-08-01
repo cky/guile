@@ -137,7 +137,7 @@ x
 @comment The title is printed in a large font.
 @title Guile Reference Manual
 @subtitle Edition @value{MANUAL-EDITION}, for use with Guile @value{VERSION}
-@c @subtitle $Id: guile.texi,v 1.45 2006-08-01 21:33:17 ossau Exp $
+@c @subtitle $Id: guile.texi,v 1.46 2006-08-01 21:51:12 ossau Exp $
 
 @c See preface.texi for the list of authors
 @author The Guile Developers
@@ -305,7 +305,7 @@ available through both Scheme and C interfaces.
 * Options and Config::          Configuration, features and runtime options.
 * Translation::                 Support for translating other languages.
 * Internationalization::        Support for gettext, etc.
-* Debugging::                   Internal debugging interface.
+* Debugging::                   Debugging infrastructure and Scheme interface.
 * GH::                          The deprecated GH interface.
 @end menu
 

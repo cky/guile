@@ -1,5 +1,10 @@
 2006-08-01  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* api-debug.texi (Breakpoints): Removed (all wrong).
+
+	* guile.texi (API Reference): Improved summary for "Debugging"
+	menu item.
+
 	* scheme-debugging.texi (Debug Last Error, Interactive Debugger):
 	Moved/merged to scheme-using.texi, as REPL features.
 	(Examples): New.
