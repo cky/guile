@@ -1,5 +1,22 @@
 2006-08-11  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* scheme-using.texi (Run To Frame Exit): Improved doc for finish.
+	(Continue Execution): Improved doc for continue.
+	(Using Guile in Emacs): Lots of new docs about the Emacs
+	interface.
+
+	* api-debug.texi (Low Level Trap Calls): New.
+	(Using Traps): Removed, material incorporated into Low Level Trap
+	Calls.
+	(High Level Traps): New.
+	(Breakpoints): New.
+
+	* scheme-using.texi (Single Stepping): Improve doc for step and
+	next.
+
+	* api-debug.texi (Debug on Error): Note need to handling of errors
+	in C.
+	
 	* api-debug.texi (Debugging): New intro text.  New subsection
 	"Evaluation Model".  Moved existing subsections "Capturing the
 	Stack or Innermost Stack Frame", "Examining the Stack", "Examining
