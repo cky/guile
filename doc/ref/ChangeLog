@@ -1,3 +1,14 @@
+2006-08-11  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* api-debug.texi (Debugging): New intro text.  New subsection
+	"Evaluation Model".  Moved existing subsections "Capturing the
+	Stack or Innermost Stack Frame", "Examining the Stack", "Examining
+	Stack Frames", "Source Properties", "Decoding Memoized Source
+	Expressions" and "Starting a New Stack" under "Evaluation Model".
+	(Capturing the Stack or Innermost Stack Frame): Some new text, and
+	correction to doc for last-stack-frame.
+	(Debug on Error): Renamed from "Interactive Debugging".
+
 2006-08-01  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* api-debug.texi (Breakpoints): Removed (all wrong).
