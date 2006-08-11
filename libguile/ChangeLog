@@ -1,3 +1,8 @@
+2006-08-11  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* stacks.c (scm_last_stack_frame): Correct docstring (returns a
+	frame, not a stack).
+
 2006-07-18  Rob Browning  <rlb@defaultvalue.org>
 
 	* continuations.c: Add __attribute__ ((returns_twice)) to the

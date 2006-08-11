@@ -581,9 +581,8 @@ SCM_DEFINE (scm_frame_p, "frame?", 1, 0, 0,
 
 SCM_DEFINE (scm_last_stack_frame, "last-stack-frame", 1, 0, 0, 
 	    (SCM obj),
-	    "Return a stack which consists of a single frame, which is the\n"
-	    "last stack frame for @var{obj}. @var{obj} must be either a\n"
-	    "debug object or a continuation.")
+	    "Return the last (innermost) frame of @var{obj}, which must be\n"
+	    "either a debug object or a continuation.")
 #define FUNC_NAME s_scm_last_stack_frame
 {
   scm_t_debug_frame *dframe;
