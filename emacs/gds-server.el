@@ -26,7 +26,7 @@
   :group 'scheme)
 
 
-;;;; Communication with the (ossau gds-server) subprocess.
+;;;; Communication with the (ice-9 gds-server) subprocess.
 
 ;; Subprocess output goes into the `*GDS Process*' buffer, and
 ;; is then read from there one form at a time.  `gds-read-cursor' is
@@ -54,7 +54,7 @@ the same as the process name."
     (erase-buffer)
     (let* ((code (format "(begin
                             %s
-                            (use-modules (ossau gds-server))
+                            (use-modules (ice-9 gds-server))
                             (run-server %d))"
 			 (if gds-scheme-directory
 			     (concat "(set! %load-path (cons "

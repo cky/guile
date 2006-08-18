@@ -194,7 +194,7 @@ Emacs to display an error or trap so that the user can debug it."
   (let* ((procname (format "gds-util[%d]" gds-last-utility-number))
          (code (format "(begin
                           %s
-                          (use-modules (ossau gds-client))
+                          (use-modules (ice-9 gds-client))
                           (run-utility))"
 		       (if gds-scheme-directory
 			   (concat "(set! %load-path (cons "

@@ -1,3 +1,10 @@
+2006-08-18  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* gds-server.el (gds-start-server): Change "ossau" to "ice-9".
+
+	* gds-scheme.el (gds-start-utility-guile): Change "ossau" to
+	"ice-9".
+
 2006-06-19  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* Makefile.am: New file.
