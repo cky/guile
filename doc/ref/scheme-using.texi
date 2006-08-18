@@ -411,7 +411,6 @@ can also run a program until it hits a breakpoint, then examine,
 modify and reevaluate some of the relevant code, and then tell the
 program to continue running.
 
-@ignore
 GDS is a user interface for working on Guile Scheme programs in Emacs.
 It aims to provide whatever facilities are needed to make the writing,
 debugging and maintenance of Scheme code in Emacs as fluid and
@@ -487,7 +486,6 @@ Communication between the Guile client program and GDS uses a TCP
 socket, which means that it is orthogonal to any other interfaces that
 the client program has.  In particular GDS does not interfere with a
 program's standard input and output.
-@end ignore
 
 @menu
 * GDS Setup::

@@ -1,3 +1,9 @@
+2006-08-18  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scheme-using.texi (Using Guile in Emacs): Unignore extra GDS
+	intro text.  (I will edit this down later.  For now it's
+	convenient to have it all appearing, so it's visible on paper.)
+
 2006-08-11  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* scheme-using.texi (Run To Frame Exit): Improved doc for finish.
