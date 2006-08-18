@@ -1220,6 +1220,7 @@ AC_CONFIG_FILES([
   doc/r5rs/Makefile
   doc/ref/Makefile
   doc/tutorial/Makefile
+  emacs/Makefile
   examples/Makefile
   examples/box-dynamic-module/Makefile
   examples/box-dynamic/Makefile

@@ -1,6 +1,10 @@
 2006-08-18  Neil Jerram  <neil@ossau.uklinux.net>
 
-	* configure.in: Generate Makefile for ice-9/debugging.
+	* configure.in: Generate Makefile for emacs subdir.
+
+	* Makefile.am (SUBDIRS): Add emacs subdir.
+
+	* configure.in: Generate Makefile for ice-9/debugging subdir.
 
 2006-06-13  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
