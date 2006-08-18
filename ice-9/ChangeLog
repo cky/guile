@@ -1,3 +1,25 @@
+2006-08-18  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* debugging/trc.scm: New file.
+
+	* debugging/traps.scm: New file.
+
+	* debugging/trace.scm: New file.
+
+	* debugging/steps.scm: New file.
+
+	* debugging/load-hooks.scm: New file.
+
+	* debugging/ice-9-debugger-extensions.scm: New file.
+
+	* debugging/example-fns.scm: New file.
+
+	* debugging/breakpoints.scm: New file.
+
+	* debugging/Makefile.am: New.
+
+	* Makefile.am (SUBDIRS): Add debugging.
+
 2006-06-19  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* Makefile.am (ice9_sources): Add new files.

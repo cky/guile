@@ -21,7 +21,7 @@
 
 AUTOMAKE_OPTIONS = gnu
 
-SUBDIRS = debugger
+SUBDIRS = debugger debugging
 
 # These should be installed and distributed.
 ice9_sources =								   \

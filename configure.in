@@ -1231,6 +1231,7 @@ AC_CONFIG_FILES([
   guile-config/Makefile
   ice-9/Makefile
   ice-9/debugger/Makefile
+  ice-9/debugging/Makefile
   lang/Makefile
   lang/elisp/Makefile
   lang/elisp/internals/Makefile
