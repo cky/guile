@@ -361,24 +361,121 @@ Exit the debugger.
 @node Using Guile in Emacs
 @section Using Guile in Emacs
 
-The Guile distribution includes a rich environment for working on Guile
-Scheme code within Emacs.  The idea of this environment is to allow you
-to work on Guile Scheme code in the same kind of way that Emacs allows
-you to work on Emacs Lisp code: providing easy access to help,
-evaluating arbitrary fragments of code, a nice debugging interface, and
-so on.@footnote{You can also, of course, run a Guile session in Emacs
-simply by typing ``guile'' in a @code{*shell*} buffer.  The environment
-described here provides a much better integration than that, though.}
+There are quite a few options for working on Guile Scheme code in
+Emacs.  The simplest options are to use Emacs's standard
+@code{scheme-mode} for editing code, and to run the interpreter when you
+need it by typing ``guile'' at the prompt of a @code{*shell*} buffer,
+but there are Emacs libraries available which add various bells and
+whistles to this.  The following diagram shows these libraries and how
+they relate to each other, with the arrows indicating ``builds on'' or
+``extends''.  For example, the Quack library builds on cmuscheme, which
+in turn builds on the standard scheme mode.
 
-The thinking behind this environment is that you will usually be doing
-one of two things.
+@example
+            scheme
+               ^
+               |
+         .-----+-----.
+         |           |
+     cmuscheme    xscheme
+         ^
+         |
+   .-----+-----.
+   |           |
+ Quack        GDS
+@end example
+
+@dfn{scheme}, written by Bill Rozas and Dave Love, is Emacs's standard
+mode for Scheme code files.  It provides Scheme-sensitive syntax
+highlighting, parenthesis matching, indentation and so on.
+
+@dfn{cmuscheme}, written by Olin Shivers, provides a comint-based Scheme
+interaction buffer, so that you can run an interpreter more directly
+than with the @code{*shell*} buffer approach by typing @kbd{@key{M-x}
+run-scheme}.  It also extends @code{scheme-mode} so that there are key
+presses for sending selected bits of code from a Scheme buffer to this
+interpreter.  This means that when you are writing some code and want to
+check what an expression evaluates to, you can easily select that code
+and send it to the interpreter for evaluation, then switch to the
+interpreter to see what the result is.  cmuscheme is included in the
+standard Emacs distribution.
+
+@dfn{Quack}, written by Neil Van Dyke, adds a number of incremental
+improvements to the scheme/cmuscheme combination: convenient menu
+entries for looking up Scheme-related references (such as the SRFIs);
+enhanced indentation rules that are customized for particular Scheme
+interpreters, including Guile; an enhanced version of the
+@code{run-scheme} command that knows the names of the common Scheme
+interpreters and remembers which one you used last time; and so on.
+Quack is available from @uref{http://www.neilvandyke.org/quack}.
+
+@dfn{GDS}, written by Neil Jerram, also builds on the scheme/cmuscheme
+combination, but with a fundamental change to the way that Scheme code
+fragments are sent to the interpreter for evaluation.  cmuscheme and
+Quack send code fragments to the interpreter's standard input, on the
+assumption that the interpreter is expecting to read Scheme expressions
+there, and then monitor the interpreter's standard output to infer what
+the result of the evaluation is.  GDS doesn't use standard input and
+output like this.  Instead, it sets up a socket connection between the
+Scheme interpreter and Emacs, and sends and receives messages using a
+simple protocol through this socket.  The messages include requests to
+evaluate Scheme code, and responses conveying the results of an
+evaluation, thus providing similar function to cmuscheme or Quack; they
+also include requests for setting breakpoints, stack exploration and
+debugging, which go beyond what cmuscheme or Quack can do.  The price of
+this extra power, however, is that GDS is Guile-specific.  GDS requires
+the Scheme interpreter, or any program that GDS is debugging, to run
+some GDS-specific library code; currently this code is written as a
+Guile module and uses a lot of debugging-related features that are
+specific to Guile.  GDS is now included in the Guile distribution; for
+previous Guile releases (1.8.x and earlier) it can be obtained as part
+of the @code{guile-debugging} package from
+@uref{http://www.ossau.uklinux.net/guile}.
+
+Finally, @dfn{xscheme} is similar to cmuscheme -- in that it starts up a
+Scheme interaction process and sends commands to that process's standard
+input -- and to GDS -- in that it has support beyond cmuscheme or Quack
+for exploring the Scheme stack when an error has occurred -- but is
+implemented specifically for MIT/GNU Scheme.  Hence it isn't really
+relevant to Guile work in Emacs, except as a reference for useful
+features that could be implemented in one of the other libraries
+mentioned here.
+
+In summary, the ``best'' current choice for working on Guile code in
+Emacs is either Quack or GDS, depending on which of these libraries'
+features you find most important.  For more information on Quack, please
+see the website referenced above.  GDS is documented further in the rest
+of this section.
+
+@menu
+* GDS Introduction::
+* GDS Getting Started::
+* How To Use GDS::
+* Displaying the Scheme Stack::
+* Continuing Execution::
+* Evaluating Scheme Code::
+* Setting and Managing Breakpoints::
+* Access to Guile Help and Completion::
+* Associating Buffers with Clients::
+* An Example GDS Session::
+* GDS Architecture::
+@end menu
+
+
+@node GDS Introduction
+@subsection GDS Introduction
+
+GDS aims to allow you to work on Guile Scheme code in the same kind of
+way that Emacs allows you to work on Emacs Lisp code: providing easy
+access to help, evaluating arbitrary fragments of code, a nice debugging
+interface, and so on.  The thinking behind this environment is that you
+will usually be doing one of two things.
 
 @enumerate
 @item
-Writing or editing code.  The code will be in a normal Emacs Scheme
-mode buffer, and the Guile/Emacs environment extends Scheme mode to
-add keystrokes and menu items for the things that are likely to be
-useful to you when working on code:
+Writing or editing code.  The code will be in a normal Emacs Scheme mode
+buffer, and GDS extends Scheme mode to add keystrokes and menu items for
+the things that are likely to be useful to you when working on code:
 
 @itemize
 @item
@@ -390,9 +487,9 @@ evaluating fragments of code to check what they do.
 @end itemize
 
 @item
-Debugging a Guile Scheme program.  When your program hits an error or
-a breakpoint, the Guile/Emacs environment shows you the relevant code
-and the Scheme stack, and makes it easy to
+Debugging a Guile Scheme program.  When your program hits an error or a
+breakpoint, GDS can show you the relevant code and the Scheme stack, and
+make it easy to
 
 @itemize
 @item
@@ -411,11 +508,10 @@ can also run a program until it hits a breakpoint, then examine,
 modify and reevaluate some of the relevant code, and then tell the
 program to continue running.
 
-GDS is a user interface for working on Guile Scheme programs in Emacs.
-It aims to provide whatever facilities are needed to make the writing,
-debugging and maintenance of Scheme code in Emacs as fluid and
-productive as possible.  These facilities currently include the
-following.
+In other words, we could say that GDS provides a set of facilities which
+aim to make the writing, debugging and maintenance of Scheme code in
+Emacs as fluid and productive as possible.  In a bit more detail, these
+facilities are currently as follows.
 
 @table @asis
 @item Displaying the Scheme stack
@@ -441,11 +537,12 @@ up in a temporary Emacs window.
 
 @item Setting breakpoints in Scheme code
 GDS makes it easy to set breakpoints in Scheme code from within Emacs.
-Deep down this uses the traps described in previous chapters, but GDS
-makes the practicalities as simple as typing @kbd{C-x @key{SPC}}.  When
-a GDS breakpoint is hit, the stack at that point is popped up in Emacs.
-GDS also remembers your breakpoints between editing sessions, so you
-don't have to set them again when you visit the relevant files.
+Deep down this uses Guile's trap and breakpoint infrastructure described
+elsewhere in this manual, but GDS makes the practicalities as simple as
+typing @kbd{C-x @key{SPC}}.  When a GDS breakpoint is hit, the stack at
+that point is popped up in Emacs.  GDS also remembers your breakpoints
+between editing sessions, so you don't have to set them again when you
+visit the relevant files.
 
 @item Access to Guile's built in help system
 GDS makes it easy to query Guile's ``help'' and ``apropos'' commands,
@@ -455,10 +552,6 @@ and pops up the results in a temporary Emacs window.
 GDS provides a keystroke which tries to complete a partially entered
 symbol by asking Guile to match it against all the accessible bindings.
 @end table
-
-(For a hands-on, tutorial introduction to using GDS, use Emacs to open
-the file @file{gds-tutorial.txt}, which is included with the
-guile-debugging distribution, and then follow the steps in that file.)
 
 GDS can provide these facilities for any number of Guile Scheme programs
 (which we often call ``clients'') at once, and these programs can be
@@ -487,27 +580,13 @@ socket, which means that it is orthogonal to any other interfaces that
 the client program has.  In particular GDS does not interfere with a
 program's standard input and output.
 
-@menu
-* GDS Setup::
-* How To Use GDS::
-* Displaying the Scheme Stack::
-* Continuing Execution::
-* Evaluating Scheme Code::
-* Setting and Managing Breakpoints::
-* Access to Guile Help and Completion::
-* Associating Buffers with Clients::
-* An Example GDS Session::
-* GDS Architecture::
-@end menu
 
+@node GDS Getting Started
+@subsection Getting Started with GDS
 
-@node GDS Setup
-@subsection GDS Setup
-
-GDS's Scheme and Emacs Lisp files will have been installed in
-the correct places system-wide when the @code{guile-debugging} package
-as a whole was installed.  To enable the use of GDS in your own Emacs
-sessions, simply add
+GDS's Scheme and Emacs Lisp files will have been installed in the
+correct places system-wide when Guile as a whole was installed.  To
+enable the use of GDS in your own Emacs sessions, simply add
 
 @lisp
 (require 'gds)
@@ -515,6 +594,11 @@ sessions, simply add
 
 @noindent
 somewhere in your @file{.emacs} file.
+
+For a hands-on, tutorial introduction to using GDS, you may then like to
+use Emacs to open the file @file{gds-tutorial.txt} (which should have
+been installed as part of Guile, perhaps under
+@file{/usr/share/doc/guile}), and then follow the steps in that file.
 
 
 @node How To Use GDS
@@ -1066,8 +1150,8 @@ Calling procedure:
 
 GDS's most compelling feature is its single-stepping.  To get an
 immediate feel for what this is like, make sure your Emacs is prepared
-as described in @ref{GDS Setup}, then type the following code into an
-interactive Guile session.
+as described in @ref{GDS Getting Started}, then type the following code
+into an interactive Guile session.
 
 @lisp
 (fact1 4)
