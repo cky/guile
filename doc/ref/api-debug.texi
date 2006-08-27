@@ -369,6 +369,99 @@ a convenience to the user.
 @node Debug on Error
 @subsection Debugging when an error occurs
 
+A common requirement is to be able to show as much useful context as
+possible when a Scheme program hits an error.  The most immediate
+information about an error is the kind of error that it is -- such as
+``division by zero'' -- and any parameters that the code which signalled
+the error chose explicitly to provide.  This information originates with
+the @code{error} or @code{throw} call (or their C code equivalents, if
+the error is detected by C code) that signals the error, and is passed
+automatically to the handler procedure of the innermost applicable
+@code{catch}, @code{lazy-catch} or @code{with-throw-handler} expression.
+
+@subsubsection Intercepting basic error information
+
+Therefore, to catch errors that occur within a chunk of Scheme code, and
+to intercept basic information about those errors, you need to execute
+that code inside the dynamic context of a @code{catch},
+@code{lazy-catch} or @code{with-throw-handler} expression, or the
+equivalent in C.  In Scheme, this means you need something like this:
+
+@lisp
+(catch #t
+       (lambda ()
+         ;; Execute the code in which
+         ;; you want to catch errors here.
+         ...)
+       (lambda (key . parameters)
+         ;; Put the code which you want
+         ;; to handle an error here.
+         ...))
+@end lisp
+
+@noindent
+The @code{catch} here can also be @code{lazy-catch} or
+@code{with-throw-handler}; see @ref{Throw Handlers} and @ref{Lazy Catch}
+for the details of how these differ from @code{catch}.  The @code{#t}
+means that the catch is applicable to all kinds of error; if you want to
+restrict your catch to just one kind of error, you can put the symbol
+for that kind of error instead of @code{#t}.  The equivalent to this in
+C would be something like this:
+
+@lisp
+SCM my_body_proc (void *body_data)
+@{
+  /* Execute the code in which
+     you want to catch errors here. */
+  ...
+@}
+
+SCM my_handler_proc (void *handler_data, SCM key, SCM parameters)
+@{
+  /* Put the code which you want
+     to handle an error here. */
+  ...
+@}
+
+@{
+  ...
+  scm_c_catch (SCM_BOOL_T,
+               my_body_proc, body_data,
+               my_handler_proc, handler_data,
+               NULL, NULL);
+  ...
+@}
+@end lisp
+
+@noindent
+Again, as with the Scheme version, @code{scm_c_catch} could be replaced
+by @code{scm_internal_lazy_catch} or @code{scm_c_with_throw_handler},
+and @code{SCM_BOOL_T} could instead be the symbol for a particular kind
+of error.
+
+@subsubsection Capturing the full error stack
+
+The other interesting information about an error is the full Scheme
+stack at the point where the error occurred; in other words what
+innermost expression was being evaluated, what was the expression that
+called that one, and so on.  If you want to write your code so that it
+captures and can display this information as well, there are two
+important things to understand.
+
+Firstly, the stack at the point of the error needs to be explicitly
+captured by a @code{make-stack} call (or the C equivalent
+@code{scm_make_stack}).  The Guile library does not, in general, do this
+``automatically'' for you, so you will need to write code with a
+@code{make-stack} or @code{scm_make_stack} call yourself.  (We emphasise
+this point because some people are misled by the fact that the Guile
+interactive REPL code @emph{does} capture and display the stack
+automatically.  But the Guile interactive REPL is itself a Scheme
+program@footnote{In effect, it is the default program which is run when
+no commands or script file are specified on the Guile command line.}
+running on top of the Guile library, and which uses @code{catch} and
+@code{make-stack} in the way we are about to describe to capture the
+stack when an error occurs.)
+
 @deffn {Scheme Procedure} backtrace [highlights]
 @deffnx {C Function} scm_backtrace_with_highlights (highlights)
 @deffnx {C Function} scm_backtrace ()

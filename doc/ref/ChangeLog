@@ -1,3 +1,8 @@
+2006-08-27  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* api-debug.texi (Debug on Error): New text on how to catch errors
+	and the error stack.
+
 2006-08-23  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* scheme-using.texi (Using Guile in Emacs): New text about
