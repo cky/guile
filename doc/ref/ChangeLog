@@ -1,3 +1,9 @@
+2006-08-28  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* api-debug.texi (Examining the Stack): Minor improvements to
+	display-backtrace doc.
+	(Debug on Error): More new text on catching the error stack.
+
 2006-08-27  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* api-debug.texi (Debug on Error): New text on how to catch errors

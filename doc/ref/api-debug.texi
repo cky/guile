@@ -156,14 +156,14 @@ Return the @var{index}'th frame from @var{stack}.
 @deffn {Scheme Procedure} display-backtrace stack port [first [depth [highlights]]]
 @deffnx {C Function} scm_display_backtrace_with_highlights (stack, port, first, depth, highlights)
 @deffnx {C Function} scm_display_backtrace (stack, port, first, depth)
-Display a backtrace to the output port @var{port}. @var{stack}
+Display a backtrace to the output port @var{port}.  @var{stack}
 is the stack to take the backtrace from, @var{first} specifies
-where in the stack to start and @var{depth} how much frames
-to display. Both @var{first} and @var{depth} can be @code{#f},
+where in the stack to start and @var{depth} how many frames
+to display.  @var{first} and @var{depth} can be @code{#f},
 which means that default values will be used.
-When @var{highlights} is given,
-it should be a list and all members of it are highligthed in
-the backtrace.
+If @var{highlights} is given it should be a list; the elements
+of this list will be highlighted wherever they appear in the
+backtrace.
 @end deffn
 
 
@@ -416,7 +416,9 @@ SCM my_body_proc (void *body_data)
   ...
 @}
 
-SCM my_handler_proc (void *handler_data, SCM key, SCM parameters)
+SCM my_handler_proc (void *handler_data,
+                     SCM key,
+                     SCM parameters)
 @{
   /* Put the code which you want
      to handle an error here. */
@@ -450,7 +452,7 @@ important things to understand.
 
 Firstly, the stack at the point of the error needs to be explicitly
 captured by a @code{make-stack} call (or the C equivalent
-@code{scm_make_stack}).  The Guile library does not, in general, do this
+@code{scm_make_stack}).  The Guile library does not do this
 ``automatically'' for you, so you will need to write code with a
 @code{make-stack} or @code{scm_make_stack} call yourself.  (We emphasise
 this point because some people are misled by the fact that the Guile
@@ -462,21 +464,130 @@ running on top of the Guile library, and which uses @code{catch} and
 @code{make-stack} in the way we are about to describe to capture the
 stack when an error occurs.)
 
+Secondly, in order to capture the stack effectively at the point where
+the error occurred, the @code{make-stack} call must be made before Guile
+unwinds the stack back to the location of the prevailing catch
+expression.  This means that the @code{make-stack} call must be made
+within the handler of a @code{lazy-catch} or @code{with-throw-handler}
+expression, or the optional "pre-unwind" handler of a @code{catch}.
+(For the full story of how these alternatives differ from each other,
+see @ref{Exceptions}.  The main difference is that @code{catch}
+terminates the error, whereas @code{lazy-catch} and
+@code{with-throw-handler} only intercept it temporarily and then allow
+it to continue propagating up to the next innermost handler.)
+
+So, here are some examples of how to do all this in Scheme and in C.
+For the purpose of these examples we assume that the captured stack
+should be stored in a variable, so that it can be displayed or
+arbitrarily processed later on.  In Scheme:
+
+@lisp
+(let ((captured-stack #f))
+  (catch #t
+         (lambda ()
+           ;; Execute the code in which
+           ;; you want to catch errors here.
+           ...)
+         (lambda (key . parameters)
+           ;; Put the code which you want
+           ;; to handle an error after the
+           ;; stack has been unwound here.
+           ...)
+         (lambda (key . parameters)
+           ;; Capture the stack here:
+           (set! captured-stack (make-stack #t))))
+  ...
+  (if captured-stack
+      (begin
+        ;; Display or process the captured stack.
+        ...))
+  ...)
+@end lisp
+
+@noindent
+And in C:
+
+@lisp
+SCM my_body_proc (void *body_data)
+@{
+  /* Execute the code in which
+     you want to catch errors here. */
+  ...
+@}
+
+SCM my_handler_proc (void *handler_data,
+                     SCM key,
+                     SCM parameters)
+@{
+  /* Put the code which you want
+     to handle an error after the
+     stack has been unwound here. */
+  ...
+@}
+
+SCM my_preunwind_proc (void *handler_data,
+                       SCM key,
+                       SCM parameters)
+@{
+  /* Capture the stack here: */
+  *(SCM *)handler_data = scm_make_stack (SCM_BOOL_T, SCM_EOL);
+@}
+
+@{
+  SCM captured_stack = SCM_BOOL_F;
+  ...
+  scm_c_catch (SCM_BOOL_T,
+               my_body_proc, body_data,
+               my_handler_proc, handler_data,
+               my_preunwind_proc, &captured_stack);
+  ...
+  if (captured_stack != SCM_BOOL_F)
+  @{
+    /* Display or process the captured stack. */
+    ...
+  @}
+  ...
+@}
+@end lisp
+
+@noindent
+Note that you don't have to wait until after the @code{catch} or
+@code{scm_c_catch} has returned.  You can also do whatever you like with
+the stack immediately after it has been captured in the pre-unwind
+handler, or in the normal (post-unwind) handler.  (Except that for the
+latter case in C you will need to change @code{handler_data} in the
+@code{scm_c_catch(@dots{})} call to @code{&captured_stack}, so that
+@code{my_handler_proc} has access to the captured stack.)
+
+@subsubsection Displaying or interrogating the captured stack
+
+Once you have a captured stack, you can interrogate and display its
+details in any way that you want, using the @code{stack-@dots{}} and
+@code{frame-@dots{}} API described in @ref{Examining the Stack} and
+@ref{Examining Stack Frames}.
+
+If you want to print out a backtrace in the same format that the Guile
+REPL does, you can use the @code{display-backtrace} procedure to do so.
+You can also use @code{display-application} to display an individual
+application frame -- that is, a frame that satisfies the
+@code{frame-procedure?} predicate -- in the Guile REPL format.
+
+@subsubsection What the Guile REPL does
+
+[To be completed]
+
 @deffn {Scheme Procedure} backtrace [highlights]
 @deffnx {C Function} scm_backtrace_with_highlights (highlights)
 @deffnx {C Function} scm_backtrace ()
 Display a backtrace of the stack saved by the last error
-to the current output port.  When @var{highlights} is given,
-it should be a list and all members of it are highligthed in
-the backtrace.
+to the current output port.  If @var{highlights} is given
+it should be a list; the elements of this list will be
+highlighted wherever they appear in the backtrace.
 @end deffn
 
 @deffn {Scheme Procedure} debug
 Invoke the Guile debugger to explore the context of the last error.
 @end deffn
-
-[Should also cover how to catch and debug errors from C, including
-discussion of lazy/pre-unwind handlers.]
 
 
 @node Low Level Trap Calls
