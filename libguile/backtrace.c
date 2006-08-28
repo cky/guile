@@ -730,14 +730,14 @@ display_backtrace_body (struct display_backtrace_args *a)
 
 SCM_DEFINE (scm_display_backtrace_with_highlights, "display-backtrace", 2, 3, 0, 
 	    (SCM stack, SCM port, SCM first, SCM depth, SCM highlights),
-	    "Display a backtrace to the output port @var{port}. @var{stack}\n"
+	    "Display a backtrace to the output port @var{port}.  @var{stack}\n"
 	    "is the stack to take the backtrace from, @var{first} specifies\n"
-	    "where in the stack to start and @var{depth} how much frames\n"
-	    "to display. Both @var{first} and @var{depth} can be @code{#f},\n"
+	    "where in the stack to start and @var{depth} how many frames\n"
+	    "to display.  @var{first} and @var{depth} can be @code{#f},\n"
 	    "which means that default values will be used.\n"
-	    "When @var{highlights} is given,\n"
-	    "it should be a list and all members of it are highligthed in\n"
-	    "the backtrace.")
+	    "If @var{highlights} is given it should be a list; the elements\n"
+	    "of this list will be highlighted wherever they appear in the\n"
+	    "backtrace.")
 #define FUNC_NAME s_scm_display_backtrace_with_highlights
 {
   struct display_backtrace_args a;
@@ -771,9 +771,9 @@ SCM_VARIABLE (scm_has_shown_backtrace_hint_p_var, "has-shown-backtrace-hint?");
 SCM_DEFINE (scm_backtrace_with_highlights, "backtrace", 0, 1, 0, 
 	    (SCM highlights),
 	    "Display a backtrace of the stack saved by the last error\n"
-	    "to the current output port.  When @var{highlights} is given,\n"
-	    "it should be a list and all members of it are highligthed in\n"
-	    "the backtrace.")
+	    "to the current output port.  If @var{highlights} is given\n"
+	    "it should be a list; the elements of this list will be\n"
+	    "highlighted wherever they appear in the backtrace.")
 #define FUNC_NAME s_scm_backtrace_with_highlights
 {
   SCM port = scm_current_output_port ();

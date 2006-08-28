@@ -1,3 +1,9 @@
+2006-08-28  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* backtrace.c (scm_display_backtrace_with_highlights): Minor
+	improvements to docstring.
+	(scm_backtrace_with_highlights): Analogous improvements.
+
 2006-08-11  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* stacks.c (scm_last_stack_frame): Correct docstring (returns a
