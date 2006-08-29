@@ -1,3 +1,8 @@
+2006-08-29  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* api-debug.texi (Debug on Error): Added paragraph on need to use
+	debugging evaluator.  Added text on what the Guile REPL code does.
+
 2006-08-28  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* api-debug.texi (Examining the Stack): Minor improvements to

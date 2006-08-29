@@ -447,10 +447,19 @@ The other interesting information about an error is the full Scheme
 stack at the point where the error occurred; in other words what
 innermost expression was being evaluated, what was the expression that
 called that one, and so on.  If you want to write your code so that it
-captures and can display this information as well, there are two
+captures and can display this information as well, there are three
 important things to understand.
 
-Firstly, the stack at the point of the error needs to be explicitly
+Firstly, the code in question must be executed using the debugging
+version of the evaluator, because information about the Scheme stack is
+only available at all from the debugging evaluator.  Using the debugging
+evaluator means that the debugger option (@pxref{Debugger options})
+called @code{debug} must be enabled; this can be done by running
+@code{(debug-enable 'debug)} or @code{(turn-on-debugging)} at the top
+level of your program; or by running guile with the @code{--debug}
+command line option, if your program begins life as a Scheme script.
+
+Secondly, the stack at the point of the error needs to be explicitly
 captured by a @code{make-stack} call (or the C equivalent
 @code{scm_make_stack}).  The Guile library does not do this
 ``automatically'' for you, so you will need to write code with a
@@ -464,7 +473,7 @@ running on top of the Guile library, and which uses @code{catch} and
 @code{make-stack} in the way we are about to describe to capture the
 stack when an error occurs.)
 
-Secondly, in order to capture the stack effectively at the point where
+Thirdly, in order to capture the stack effectively at the point where
 the error occurred, the @code{make-stack} call must be made before Guile
 unwinds the stack back to the location of the prevailing catch
 expression.  This means that the @code{make-stack} call must be made
@@ -574,7 +583,14 @@ application frame -- that is, a frame that satisfies the
 
 @subsubsection What the Guile REPL does
 
-[To be completed]
+The Guile REPL code (in @file{ice-9/boot-9.scm}) uses a @code{catch}
+with a pre-unwind handler to capture the stack when an error occurs in
+an expression that was typed into the REPL, and saves the captured stack
+in a fluid (@pxref{Fluids and Dynamic States}) called
+@code{the-last-stack}.  You can then use the @code{(backtrace)} command,
+which is basically equivalent to @code{(display-backtrace (fluid-ref
+the-last-stack))}, to print out this stack at any time until it is
+overwritten by the next error that occurs.
 
 @deffn {Scheme Procedure} backtrace [highlights]
 @deffnx {C Function} scm_backtrace_with_highlights (highlights)
@@ -584,6 +600,10 @@ to the current output port.  If @var{highlights} is given
 it should be a list; the elements of this list will be
 highlighted wherever they appear in the backtrace.
 @end deffn
+
+You can also use the @code{(debug)} command to explore the saved stack
+using an interactive command-line-driven debugger.  See @ref{Interactive
+Debugger} for more information about this.
 
 @deffn {Scheme Procedure} debug
 Invoke the Guile debugger to explore the context of the last error.
