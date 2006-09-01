@@ -817,6 +817,8 @@ scm_c_port_for_each (void (*proc)(void *data, SCM p), void *data)
 
   for (i = 0; i < n; i++)
     proc (data, SCM_SIMPLE_VECTOR_REF (ports, i));
+
+  scm_remember_upto_here_1 (ports);
 }
 
 SCM_DEFINE (scm_port_for_each, "port-for-each", 1, 0, 0,
