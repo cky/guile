@@ -1,3 +1,9 @@
+2006-08-31  Rob Browning  <rlb@defaultvalue.org>
+
+	* ports.c (scm_c_port_for_each): Add a
+	scm_remember_upto_here_1(ports) at the end of the function to fix
+	a GC bug.
+
 2006-08-28  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* backtrace.c (scm_display_backtrace_with_highlights): Minor
