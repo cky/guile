@@ -1,3 +1,11 @@
+2006-09-04  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* api-control.texi (Dynamic Wind): Doc for scm_dynwind_free.
+
+	* api-modules.texi (The Guile module system), api-data.texi
+	(Integers, Numerical Tower), api-compound.texi (Uniform Numeric
+	Vectors): Fix typos.  (Patch sent in by Marco Maggi.)
+
 2006-08-29  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* api-debug.texi (Debug on Error): Added paragraph on need to use

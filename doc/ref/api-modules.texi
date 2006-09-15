@@ -133,7 +133,7 @@ sets of bindings.
 
 In 1996 Tom Lord implemented a full-featured module system for Guile which
 allows loading Scheme source files into a private name space.  This system has
-been in available since at least Guile version 1.1.
+been available since at least Guile version 1.1.
 
 For Guile version 1.5.0 and later, the system has been improved to have better
 integration from C code, more fine-grained user control over interfaces, and

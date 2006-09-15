@@ -1356,6 +1356,13 @@ The function @code{scm_dynwind_rewind_handler_with_scm} takes care that
 @var{data} is protected from garbage collection.
 @end deftypefn
 
+@deftypefn {C Function} void scm_dynwind_free (void *mem)
+Arrange for @var{mem} to be freed automatically whenever the current
+context is exited, whether normally or non-locally.
+@code{scm_dynwind_free (mem)} is an equivalent shorthand for
+@code{scm_dynwind_unwind_handler (free, mem, SCM_F_WIND_EXPLICITLY)}.
+@end deftypefn
+
 
 @node Handling Errors
 @subsection How to Handle Errors

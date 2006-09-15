@@ -1057,7 +1057,7 @@ being a @code{double}
 
 The external representation (ie.@: read syntax) for these vectors is
 similar to normal Scheme vectors, but with an additional tag from the
-tabel above indiciating the vector's type.  For example,
+table above indiciating the vector's type.  For example,
 
 @lisp
 #u16(1 2 3)
