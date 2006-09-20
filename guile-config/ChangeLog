@@ -1,3 +1,8 @@
+2006-09-19  Rob Browning  <rlb@defaultvalue.org>
+
+	* guile-config.in (build-link): Restore the removal of "/usr/lib"
+	(in addition to "/usr/lib/" from any -L arguments).
+
 2005-02-10  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* guile-config.in (build-link): Replaced -lguile-ltdl with -lltdl.
