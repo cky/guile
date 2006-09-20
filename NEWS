@@ -30,6 +30,7 @@ Changes in 1.8.1 (since 1.8.0):
 
 ** A one-dimenisonal array can now be 'equal?' to a vector.
 ** Structures, records, and SRFI-9 records can now be compared with `equal?'.
+** SRFI-14 standard char sets are now recomputed upon successful `setlocale'.
 
 * Changes to the C interface 
 

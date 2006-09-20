@@ -17,6 +17,12 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+#ifdef HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
+
+#define _GNU_SOURCE  /* Ask for `isblank ()'.  */
 
 #include <string.h>
 #include <ctype.h>
@@ -25,9 +31,13 @@
 #include "libguile/srfi-14.h"
 
 
-#define SCM_CHARSET_SET(cs, idx) \
-  (((long *) SCM_SMOB_DATA (cs))[(idx) / SCM_BITS_PER_LONG] |= \
+#define SCM_CHARSET_SET(cs, idx)				\
+  (((long *) SCM_SMOB_DATA (cs))[(idx) / SCM_BITS_PER_LONG] |=	\
     (1L << ((idx) % SCM_BITS_PER_LONG)))
+
+#define SCM_CHARSET_UNSET(cs, idx)				\
+  (((long *) SCM_SMOB_DATA (cs))[(idx) / SCM_BITS_PER_LONG] &=	\
+    (~(1L << ((idx) % SCM_BITS_PER_LONG))))
 
 #define BYTES_PER_CHARSET (SCM_CHARSET_SIZE / 8)
 #define LONGS_PER_CHARSET (SCM_CHARSET_SIZE / SCM_BITS_PER_LONG)
@@ -1393,6 +1403,9 @@ SCM_DEFINE (scm_char_set_diff_plus_intersection_x, "char-set-diff+intersection!"
 }
 #undef FUNC_NAME
 
+
+/* Standard character sets.  */
+
 SCM scm_char_set_lower_case;
 SCM scm_char_set_upper_case;
 SCM scm_char_set_title_case;
@@ -1411,48 +1424,123 @@ SCM scm_char_set_ascii;
 SCM scm_char_set_empty;
 SCM scm_char_set_full;
 
-static SCM
-make_predset (int (*pred) (int))
+
+/* Create an empty character set and return it after binding it to NAME.  */
+static inline SCM
+define_charset (const char *name)
 {
-  int ch;
   SCM cs = make_char_set (NULL);
+  scm_c_define (name, cs);
+  return scm_permanent_object (cs);
+}
+
+/* Membership predicates for the various char sets.
+
+   XXX: The `punctuation' and `symbol' char sets have no direct equivalent in
+   <ctype.h>.  Thus, the predicates below yield correct results for ASCII,
+   but they do not provide the result described by the SRFI for Latin-1.  The
+   correct Latin-1 result could only be obtained by hard-coding the
+   characters listed by the SRFI, but the problem would remain for other
+   8-bit charsets.
+
+   Similarly, character 0xA0 in Latin-1 (unbreakable space, `#\0240') should
+   be part of `char-set:blank'.  However, glibc's current (2006/09) Latin-1
+   locales (which use the ISO 14652 "i18n" FDCC-set) do not consider it
+   `blank' so it ends up in `char-set:punctuation'.  */
+#ifdef HAVE_ISBLANK
+# define CSET_BLANK_PRED(c)  (isblank (c))
+#else
+# define CSET_BLANK_PRED(c)			\
+   (((c) == ' ') || ((c) == '\t'))
+#endif
+
+#define CSET_SYMBOL_PRED(c)					\
+  (((c) != '\0') && (strchr ("$+<=>^`|~", (c)) != NULL))
+#define CSET_PUNCT_PRED(c)					\
+  ((ispunct (c)) && (!CSET_SYMBOL_PRED (c)))
+
+#define CSET_LOWER_PRED(c)       (islower (c))
+#define CSET_UPPER_PRED(c)       (isupper (c))
+#define CSET_LETTER_PRED(c)      (isalpha (c))
+#define CSET_DIGIT_PRED(c)       (isdigit (c))
+#define CSET_WHITESPACE_PRED(c)  (isspace (c))
+#define CSET_CONTROL_PRED(c)     (iscntrl (c))
+#define CSET_HEX_DIGIT_PRED(c)   (isxdigit (c))
+#define CSET_ASCII_PRED(c)       (isascii (c))
+
+/* Some char sets are explicitly defined by the SRFI as a union of other char
+   sets so we try to follow this closely.  */
+
+#define CSET_LETTER_AND_DIGIT_PRED(c)		\
+  (CSET_LETTER_PRED (c) || CSET_DIGIT_PRED (c))
+
+#define CSET_GRAPHIC_PRED(c)				\
+  (CSET_LETTER_PRED (c) || CSET_DIGIT_PRED (c)		\
+   || CSET_PUNCT_PRED (c) || CSET_SYMBOL_PRED (c))
+
+#define CSET_PRINTING_PRED(c)				\
+  (CSET_GRAPHIC_PRED (c) || CSET_WHITESPACE_PRED (c))
+
+/* False and true predicates.  */
+#define CSET_TRUE_PRED(c)    (1)
+#define CSET_FALSE_PRED(c)   (0)
+
+
+/* Compute the contents of all the standard character sets.  Computation may
+   need to be re-done at `setlocale'-time because some char sets (e.g.,
+   `char-set:letter') need to reflect the character set supported by Guile.
+
+   For instance, at startup time, the "C" locale is used, thus Guile supports
+   only ASCII; therefore, `char-set:letter' only contains English letters.
+   The user can change this by invoking `setlocale' and specifying a locale
+   with an 8-bit charset, thereby augmenting some of the SRFI-14 standard
+   character sets.
+
+   This works because some of the predicates used below to construct
+   character sets (e.g., `isalpha(3)') are locale-dependent (so
+   charset-dependent, though generally not language-dependent).  For details,
+   please see the `guile-devel' mailing list archive of September 2006.  */
+void
+scm_srfi_14_compute_char_sets (void)
+{
+#define UPDATE_CSET(c, cset, pred)		\
+  do						\
+    {						\
+      if (pred (c))				\
+	SCM_CHARSET_SET ((cset), (c));		\
+      else					\
+	SCM_CHARSET_UNSET ((cset), (c));	\
+    }						\
+  while (0)
+
+  register int ch;
+
   for (ch = 0; ch < 256; ch++)
-    if (pred (ch))
-      SCM_CHARSET_SET (cs, ch);
-  return cs;
-}
-
-static SCM
-define_predset (const char *name, int (*pred) (int))
-{
-  SCM cs = make_predset (pred);
-  scm_c_define (name, cs);
-  return scm_permanent_object (cs);
-}
-
-static SCM
-make_strset (const char *str)
-{
-  SCM cs = make_char_set (NULL);
-  while (*str)
     {
-      SCM_CHARSET_SET (cs, *str);
-      str++;
+      UPDATE_CSET (ch, scm_char_set_upper_case, CSET_UPPER_PRED);
+      UPDATE_CSET (ch, scm_char_set_lower_case, CSET_LOWER_PRED);
+      UPDATE_CSET (ch, scm_char_set_title_case, CSET_FALSE_PRED);
+      UPDATE_CSET (ch, scm_char_set_letter, CSET_LETTER_PRED);
+      UPDATE_CSET (ch, scm_char_set_digit, CSET_DIGIT_PRED);
+      UPDATE_CSET (ch, scm_char_set_letter_and_digit,
+		   CSET_LETTER_AND_DIGIT_PRED);
+      UPDATE_CSET (ch, scm_char_set_graphic, CSET_GRAPHIC_PRED);
+      UPDATE_CSET (ch, scm_char_set_printing, CSET_PRINTING_PRED);
+      UPDATE_CSET (ch, scm_char_set_whitespace, CSET_WHITESPACE_PRED);
+      UPDATE_CSET (ch, scm_char_set_iso_control, CSET_CONTROL_PRED);
+      UPDATE_CSET (ch, scm_char_set_punctuation, CSET_PUNCT_PRED);
+      UPDATE_CSET (ch, scm_char_set_symbol, CSET_SYMBOL_PRED);
+      UPDATE_CSET (ch, scm_char_set_hex_digit, CSET_HEX_DIGIT_PRED);
+      UPDATE_CSET (ch, scm_char_set_blank, CSET_BLANK_PRED);
+      UPDATE_CSET (ch, scm_char_set_ascii, CSET_ASCII_PRED);
+      UPDATE_CSET (ch, scm_char_set_empty, CSET_FALSE_PRED);
+      UPDATE_CSET (ch, scm_char_set_full, CSET_TRUE_PRED);
     }
-  return cs;
+
+#undef UPDATE_CSET
 }
 
-static SCM
-define_strset (const char *name, const char *str)
-{
-  SCM cs = make_strset (str);
-  scm_c_define (name, cs);
-  return scm_permanent_object (cs);
-}
-
-static int false (int ch) { return 0; }
-static int true (int ch) { return 1; }
-
+
 void
 scm_init_srfi_14 (void)
 {
@@ -1461,24 +1549,25 @@ scm_init_srfi_14 (void)
   scm_set_smob_free (scm_tc16_charset, charset_free);
   scm_set_smob_print (scm_tc16_charset, charset_print);
 
-  scm_char_set_upper_case = define_predset ("char-set:upper-case", isupper);
-  scm_char_set_lower_case = define_predset ("char-set:lower-case", islower);
-  scm_char_set_title_case = define_predset ("char-set:title-case", false);
-  scm_char_set_letter = define_predset ("char-set:letter", isalpha);
-  scm_char_set_digit = define_predset ("char-set:digit", isdigit);
-  scm_char_set_letter_and_digit = define_predset ("char-set:letter+digit",
-						  isalnum);
-  scm_char_set_graphic = define_predset ("char-set:graphic", isgraph);
-  scm_char_set_printing = define_predset ("char-set:printing", isprint);
-  scm_char_set_whitespace = define_predset ("char-set:whitespace", isspace);
-  scm_char_set_iso_control = define_predset ("char-set:iso-control", iscntrl);
-  scm_char_set_punctuation = define_predset ("char-set:punctuation", ispunct);
-  scm_char_set_symbol = define_strset ("char-set:symbol", "$+<=>^`|~");
-  scm_char_set_hex_digit = define_predset ("char-set:hex-digit", isxdigit);
-  scm_char_set_blank = define_strset ("char-set:blank", " \t");
-  scm_char_set_ascii = define_predset ("char-set:ascii", isascii);
-  scm_char_set_empty = define_predset ("char-set:empty", false);
-  scm_char_set_full = define_predset ("char-set:full", true);
+  scm_char_set_upper_case = define_charset ("char-set:upper-case");
+  scm_char_set_lower_case = define_charset ("char-set:lower-case");
+  scm_char_set_title_case = define_charset ("char-set:title-case");
+  scm_char_set_letter = define_charset ("char-set:letter");
+  scm_char_set_digit = define_charset ("char-set:digit");
+  scm_char_set_letter_and_digit = define_charset ("char-set:letter+digit");
+  scm_char_set_graphic = define_charset ("char-set:graphic");
+  scm_char_set_printing = define_charset ("char-set:printing");
+  scm_char_set_whitespace = define_charset ("char-set:whitespace");
+  scm_char_set_iso_control = define_charset ("char-set:iso-control");
+  scm_char_set_punctuation = define_charset ("char-set:punctuation");
+  scm_char_set_symbol = define_charset ("char-set:symbol");
+  scm_char_set_hex_digit = define_charset ("char-set:hex-digit");
+  scm_char_set_blank = define_charset ("char-set:blank");
+  scm_char_set_ascii = define_charset ("char-set:ascii");
+  scm_char_set_empty = define_charset ("char-set:empty");
+  scm_char_set_full = define_charset ("char-set:full");
+
+  scm_srfi_14_compute_char_sets ();
 
 #include "libguile/srfi-14.x"
 }

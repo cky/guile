@@ -106,7 +106,7 @@ SCM_API SCM scm_char_set_ascii;
 SCM_API SCM scm_char_set_empty;
 SCM_API SCM scm_char_set_full;
 
-SCM_API void scm_c_init_srfi_14 (void);
+SCM_API void scm_srfi_14_compute_char_sets (void);
 SCM_API void scm_init_srfi_14 (void);
 
 #endif /* SCM_SRFI_14_H */

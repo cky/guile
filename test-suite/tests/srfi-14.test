@@ -1,4 +1,4 @@
-;;;; srfi-14.test --- Test suite for Guile's SRFI-14 functions. -*- scheme -*-
+;;;; srfi-14.test --- Test suite for Guile's SRFI-14 functions.
 ;;;; Martin Grabmueller, 2001-07-16
 ;;;;
 ;;;; Copyright (C) 2001, 2006 Free Software Foundation, Inc.
@@ -18,7 +18,11 @@
 ;;;; the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;;;; Boston, MA 02110-1301 USA
 
-(use-modules (srfi srfi-14))
+(define-module (test-suite test-srfi-14)
+  :use-module (srfi srfi-14)
+  :use-module (srfi srfi-1) ;; `every'
+  :use-module (test-suite lib))
+
 
 (define exception:invalid-char-set-cursor
   (cons 'misc-error "^invalid character set cursor"))
@@ -186,3 +190,128 @@
   (pass-if "upper case char set"
      (char-set= (char-set-map char-upcase char-set:lower-case)
 		char-set:upper-case)))
+
+(with-test-prefix "string->char-set"
+
+  (pass-if "some char set"
+     (let ((chars '(#\g #\u #\i #\l #\e)))
+       (char-set= (list->char-set chars)
+		  (string->char-set (apply string chars))))))
+
+;; Make sure we get an ASCII charset and character classification.
+(if (defined? 'setlocale) (setlocale LC_CTYPE "C"))
+
+(with-test-prefix "standard char sets (ASCII)"
+
+  (pass-if "char-set:letter"
+     (char-set= (string->char-set
+		 (string-append "abcdefghijklmnopqrstuvwxyz"
+				"ABCDEFGHIJKLMNOPQRSTUVWXYZ"))
+		char-set:letter))
+
+  (pass-if "char-set:punctuation"
+     (char-set= (string->char-set "!\"#%&'()*,-./:;?@[\\]_{}")
+		char-set:punctuation))
+
+  (pass-if "char-set:symbol"
+     (char-set= (string->char-set "$+<=>^`|~")
+		char-set:symbol))
+
+  (pass-if "char-set:letter+digit"
+     (char-set= char-set:letter+digit
+                (char-set-union char-set:letter char-set:digit)))
+
+  (pass-if "char-set:graphic"
+     (char-set= char-set:graphic
+                (char-set-union char-set:letter char-set:digit
+                                char-set:punctuation char-set:symbol)))
+
+  (pass-if "char-set:printing"
+      (char-set= char-set:printing
+                 (char-set-union char-set:whitespace char-set:graphic))))
+
+
+
+;;;
+;;; 8-bit charsets.
+;;;
+;;; Here, we only test ISO-8859-1 (Latin-1), notably because behavior of
+;;; SRFI-14 for implementations supporting this charset is well-defined.
+;;;
+
+(define (every? pred lst)
+  (not (not (every pred lst))))
+
+(define (find-latin1-locale)
+  ;; Try to find and install an ISO-8859-1 locale.  Return `#f' on failure.
+  (if (defined? 'setlocale)
+      (let loop ((locales (map (lambda (lang)
+				 (string-append lang ".iso88591"))
+			       '("de_DE" "en_GB" "en_US" "es_ES"
+				 "fr_FR" "it_IT"))))
+	(if (null? locales)
+	    #f
+	    (if (false-if-exception (setlocale LC_CTYPE (car locales)))
+		(car locales)
+		(loop (cdr locales)))))
+      #f))
+
+
+(define %latin1 (find-latin1-locale))
+
+(with-test-prefix "Latin-1 (8-bit charset)"
+
+  ;; Note: the membership tests below are not exhaustive.
+
+  (pass-if "char-set:letter (membership)"
+     (if (not %latin1)
+	 (throw 'unresolved)
+	 (let ((letters (char-set->list char-set:letter)))
+	   (every? (lambda (8-bit-char)
+		     (memq 8-bit-char letters))
+		   (append '(#\a #\b #\c)             ;; ASCII
+			   (string->list "çéèâùÉÀÈÊ") ;; French
+			   (string->list "øñÑíßåæðþ"))))))
+
+  (pass-if "char-set:letter (size)"
+     (if (not %latin1)
+	 (throw 'unresolved)
+	 (= (char-set-size char-set:letter) 117)))
+
+  (pass-if "char-set:lower-case (size)"
+     (if (not %latin1)
+	 (throw 'unresolved)
+	 (= (char-set-size char-set:lower-case) (+ 26 33))))
+
+  (pass-if "char-set:upper-case (size)"
+     (if (not %latin1)
+	 (throw 'unresolved)
+	 (= (char-set-size char-set:upper-case) (+ 26 30))))
+
+  (pass-if "char-set:punctuation (membership)"
+     (if (not %latin1)
+	 (thrown 'unresolved)
+	 (let ((punctuation (char-set->list char-set:punctuation)))
+	   (every? (lambda (8-bit-char)
+		     (memq 8-bit-char punctuation))
+		   (append '(#\! #\. #\?)            ;; ASCII
+			   (string->list "¡¿")       ;; Castellano
+			   (string->list "«»"))))))  ;; French
+
+  (pass-if "char-set:letter+digit"
+     (char-set= char-set:letter+digit
+                (char-set-union char-set:letter char-set:digit)))
+
+  (pass-if "char-set:graphic"
+     (char-set= char-set:graphic
+                (char-set-union char-set:letter char-set:digit
+                                char-set:punctuation char-set:symbol)))
+
+  (pass-if "char-set:printing"
+     (char-set= char-set:printing
+                (char-set-union char-set:whitespace char-set:graphic))))
+
+;; Local Variables:
+;; mode: scheme
+;; coding: latin-1
+;; End:

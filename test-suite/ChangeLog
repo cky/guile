@@ -1,3 +1,12 @@
+2006-09-20  Ludovic Courtès  <ludovic.courtes@laas.fr>
+
+	* tests/srfi-14.test: Use `define-module'.  Use modules `(srfi
+	srfi-1)' and `(test-suite lib)'.
+	(string->char-set, standard char sets (ASCII), Latin-1 (8-bit
+	charset)): New test prefixes.
+	(every?, find-latin1-locale): New procedures.
+	(%latin1): New variable.
+
 2006-06-13  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
 	* Makefile.am (SCM_TESTS): Added `tests/structs.test'.

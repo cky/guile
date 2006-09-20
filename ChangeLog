@@ -1,3 +1,10 @@
+2006-09-20  Ludovic Courtès  <ludovic.courtes@laas.fr>
+
+	* configure.in: Check for `isblank ()'.
+
+	* NEWS: Mentioned the interaction between `setlocale' and SRFI-14
+	standard char sets.
+	
 2006-08-18  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* configure.in: Generate Makefile for emacs subdir.

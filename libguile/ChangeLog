@@ -1,3 +1,25 @@
+2006-09-20  Ludovic Courtès  <ludovic.courtes@laas.fr>
+
+	* srfi-14.c: Include <config.h>.  Define `_GNU_SOURCE'.
+	(make_predset, define_predset, make_strset, define_strset, false,
+	true): Removed.
+	(SCM_CHARSET_UNSET, CSET_BLANK_PRED, CSET_SYMBOL_PRED,
+	CSET_PUNCT_PRED, CSET_LOWER_PRED, CSET_UPPER_PRED,
+	CSET_LETTER_PRED, CSET_DIGIT_PRED, CSET_WHITESPACE_PRED,
+	CSET_CONTROL_PRED, CSET_HEX_DIGIT_PRED, CSET_ASCII_PRED,
+	CSET_LETTER_AND_DIGIT_PRED, CSET_GRAPHIC_PRED, CSET_PRINTING_PRED,
+	CSET_TRUE_PRED, CSET_FALSE_PRED, UPDATE_CSET): New macros.
+	(define_charset, scm_srfi_14_compute_char_sets): New functions.
+	(scm_init_srfi_14): Use `define_charset ()' instead of
+	`define_predset ()' and `define_strset ()'.
+
+	* srfi-14.h (scm_c_init_srfi_14): Removed.
+	(scm_srfi_14_compute_char_sets): New declaration.
+
+	* posix.h: Include "srfi-14.h".
+	(scm_setlocale): Invoke `scm_srfi_14_compute_char_sets ()' after a
+	successful `setlocale ()' call.
+
 2006-08-31  Rob Browning  <rlb@defaultvalue.org>
 
 	* ports.c (scm_c_port_for_each): Add a

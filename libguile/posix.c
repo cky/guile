@@ -34,6 +34,7 @@
 #include "libguile/feature.h"
 #include "libguile/strings.h"
 #include "libguile/srfi-13.h"
+#include "libguile/srfi-14.h"
 #include "libguile/vectors.h"
 #include "libguile/lang.h"
 
@@ -1391,6 +1392,10 @@ SCM_DEFINE (scm_setlocale, "setlocale", 1, 1, 0,
       errno = EINVAL;
       SCM_SYSERROR;
     }
+
+  /* Recompute the standard SRFI-14 character sets in a locale-dependent
+     (actually charset-dependent) way.  */
+  scm_srfi_14_compute_char_sets ();
 
   scm_dynwind_end ();
   return scm_from_locale_string (rv);
