@@ -152,7 +152,8 @@
 	      (list
 	       (get-build-info 'CFLAGS)
 	       "-lguile -lltdl" 
-	       (if (string=? libdir "/usr/lib/")
+               (if (or (string=? libdir "/usr/lib")
+                       (string=? libdir "/usr/lib/"))
 		   ""
 		   (string-append "-L" (get-build-info 'libdir)))
 	       (string-join other-flags)
