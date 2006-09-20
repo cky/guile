@@ -2299,6 +2299,17 @@ character sets.
 In order to make the use of the character set data type and procedures
 useful, several predefined character set variables exist.
 
+@cindex codeset
+@cindex charset
+@cindex locale
+
+Currently, the contents of these character sets are recomputed upon a
+successful @code{setlocale} call (@pxref{Locales}) in order to reflect
+the characters available in the current locale's codeset.  For
+instance, @code{char-set:letter} contains 52 characters under an ASCII
+locale (e.g., the default @code{C} locale) and 117 characters under an
+ISO-8859-1 (``Latin-1'') locale.
+
 @defvr {Scheme Variable} char-set:lower-case
 @defvrx {C Variable} scm_char_set_lower_case
 All lower-case characters.
