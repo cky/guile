@@ -1,3 +1,15 @@
+2006-09-25  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scheme-using.texi (Error Handling, Interactive Debugger): Minor
+	editorial improvements.
+	(Leave Debugger): Removed.
+	(Display Backtrace): Minor updates.
+	(Frame Selection, Frame Information, Frame Evaluation) : Minor
+	editorial improvements.
+	(Stepping and Continuing): Merged from three previous nodes; plus
+	minor improvements.  Removed doc for `trace-finish', which no
+	longer exists.
+
 2006-09-20  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
 	* api-data.texi (Standard Character Sets): Documented the

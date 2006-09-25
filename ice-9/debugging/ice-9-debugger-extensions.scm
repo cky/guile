@@ -45,7 +45,10 @@
       (user-error "This debug session is not continuable.")))
 
 (define (debugger:continue state)
-  "Continue program execution."
+  "Tell the program being debugged to continue running.  (In fact this is
+the same as the @code{quit} command, because it exits the debugger
+command loop and so allows whatever code it was that invoked the
+debugger to continue.)"
   (assert-continuable state)
   (throw 'exit-debugger))
 
@@ -59,13 +62,20 @@ print the result obtained."
   (debugger:continue state))
 
 (define (debugger:step state n)
-  "Continue until entry to @var{n}th next frame."
+  "Tell the debugged program to do @var{n} more steps from its current
+position.  One @dfn{step} means executing until the next frame entry
+or exit of any kind.  @var{n} defaults to 1."
   (assert-continuable state)
   (at-step debug-trap (or n 1))
   (debugger:continue state))
 
 (define (debugger:next state n)
-  "Continue until entry to @var{n}th next frame in same file."
+  "Tell the debugged program to do @var{n} more steps from its current
+position, but only counting frame entries and exits where the
+corresponding source code comes from the same file as the current
+stack frame.  (See @ref{Step Traps} for the details of how this
+works.)  If the current stack frame has no source code, the effect of
+this command is the same as of @code{step}.  @var{n} defaults to 1."
   (assert-continuable state)
   (at-step debug-trap
 	   (or n 1)

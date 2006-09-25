@@ -67,9 +67,9 @@ If the number of frames isn't explicitly given, the debug option
   (throw 'continue))
 
 (define (evaluate state expression)
-  "Evaluate an expression.
-The expression must appear on the same line as the command,
-however it may be continued over multiple lines."
+  "Evaluate an expression in the environment of the selected stack frame.
+The expression must appear on the same line as the command, however it
+may be continued over multiple lines."
   (let ((source (frame-source (stack-ref (state-stack state)
 					 (state-index state)))))
     (if (not source)
@@ -100,18 +100,26 @@ however it may be continued over multiple lines."
 	       (lambda args args)))))
 
 (define (info-args state)
-  "Argument variables of current stack frame."
+  "Display the argument variables of the current stack frame.
+Arguments can also be seen in the backtrace, but are presented more
+clearly by this command."
   (let ((index (state-index state)))
     (let ((frame (stack-ref (state-stack state) index)))
       (write-frame-index-long frame)
       (write-frame-args-long frame))))
 
 (define (info-frame state)
-  "All about selected stack frame."
+  "Display a verbose description of the selected frame.  The
+information that this command provides is equivalent to what can be
+deduced from the one line summary for the frame that appears in a
+backtrace, but is presented and explained more clearly."
   (write-state-long state))
 
 (define (position state)
-  "Display the position of the current expression."
+  "Display the name of the source file that the current expression
+comes from, and the line and column number of the expression's opening
+parenthesis within that file.  This information is only available when
+the 'positions read option is enabled."
   (let* ((frame (stack-ref (state-stack state) (state-index state)))
 	 (source (frame-source frame)))
     (if (not source)
@@ -124,14 +132,14 @@ however it may be continued over multiple lines."
 
 (define (up state n)
   "Move @var{n} frames up the stack.  For positive @var{n}, this
-advances toward the outermost frame, to higher frame numbers, to
+advances toward the outermost frame, to lower frame numbers, to
 frames that have existed longer.  @var{n} defaults to one."
   (set-stack-index! state (+ (state-index state) (or n 1)))
   (write-state-short state))
 
 (define (down state n)
   "Move @var{n} frames down the stack.  For positive @var{n}, this
-advances toward the innermost frame, to lower frame numbers, to frames
+advances toward the innermost frame, to higher frame numbers, to frames
 that were created more recently.  @var{n} defaults to one."
   (set-stack-index! state (- (state-index state) (or n 1)))
   (write-state-short state))

@@ -94,7 +94,7 @@ the execution context where the error occurred and can give you three
 levels of information about what the error was and exactly where it
 occurred.
 
-By default, Guile then displays only the first level, which is the most
+By default, Guile displays only the first level, which is the most
 immediate information about where and why the error occurred, for
 example:
 
@@ -105,7 +105,8 @@ standard input:2:19: In procedure + in expression (+ 3 #\s):
 standard input:2:19: Wrong type argument: #\s
 ABORT: (wrong-type-arg)
 
-Type "(backtrace)" to get more information or "(debug)" to enter the debugger.
+Type "(backtrace)" to get more information
+or "(debug)" to enter the debugger.
 @end lisp
 
 @noindent
@@ -156,7 +157,7 @@ frame (the @code{evaluate} command --- see @ref{Frame Evaluation}).
 @end itemize
 
 @noindent
-This is documented further in the following section.
+The interactive debugger is documented further in the following section.
 
 
 @node Interactive Debugger
@@ -181,18 +182,21 @@ debug>
 
 @noindent
 ``debug>'' is the debugger's prompt, and a reminder that you are not in
-the normal Guile REPL.  The available commands are described in the
-following subsections.
+the normal Guile REPL.  In case you find yourself in the debugger by
+mistake, the @code{quit} command will return you to the REPL.  
+
+@deffn {Debugger Command} quit
+Exit the debugger.
+@end deffn
+
+The other available commands are described in the following subsections.
 
 @menu
 * Display Backtrace::           backtrace.
 * Frame Selection::             up, down, frame.
 * Frame Information::           info args, info frame, position.
 * Frame Evaluation::            evaluate.
-* Single Stepping::             step, next.
-* Run To Frame Exit::           finish, trace-finish.
-* Continue Execution::          continue.
-* Leave Debugger::              quit.
+* Stepping and Continuing::     step, next, (trace-)finish, continue.
 @end menu
 
 
@@ -221,7 +225,7 @@ option @code{depth} determines the maximum number of frames printed.
 @end deffn
 
 The format of the displayed backtrace is the same as for the
-@code{backtrace} procedure.
+@code{display-backtrace} procedure (@pxref{Examining the Stack}).
 
 
 @node Frame Selection
@@ -256,13 +260,13 @@ Frame 1 at standard input:36:14
 
 @deffn {Debugger Command} up [n]
 Move @var{n} frames up the stack.  For positive @var{n}, this
-advances toward the outermost frame, to higher frame numbers, to
+advances toward the outermost frame, to lower frame numbers, to
 frames that have existed longer.  @var{n} defaults to one.
 @end deffn
 
 @deffn {Debugger Command} down [n]
 Move @var{n} frames down the stack.  For positive @var{n}, this
-advances toward the innermost frame, to lower frame numbers, to frames
+advances toward the innermost frame, to higher frame numbers, to frames
 that were created more recently.  @var{n} defaults to one.
 @end deffn
 
@@ -276,85 +280,79 @@ frame to select; it must be a stack-frame number.
 @node Frame Information
 @subsubsection Frame Information
 
-[to be completed]
+The following commands return detailed information about the currently
+selected frame.
 
 @deffn {Debugger Command} {info frame}
-All about selected stack frame.
+Display a verbose description of the selected frame.  The information
+that this command provides is equivalent to what can be deduced from the
+one line summary for the frame that appears in a backtrace, but is
+presented and explained more clearly.
 @end deffn
 
 @deffn {Debugger Command} {info args}
-Argument variables of current stack frame.
+Display the argument variables of the current stack frame.  Arguments
+can also be seen in the backtrace, but are presented more clearly by
+this command.
 @end deffn
 
 @deffn {Debugger Command} position
-Display the position of the current expression.
+Display the name of the source file that the current expression comes
+from, and the line and column number of the expression's opening
+parenthesis within that file.  This information is only available when
+the @code{positions} read option is enabled (@pxref{Reader options}).
 @end deffn
 
 
 @node Frame Evaluation
 @subsubsection Frame Evaluation
 
-[to be completed]
+The @code{evaluate} command is most useful for querying the value of a
+variable, either global or local, in the environment of the selected
+stack frame, but it can be used more generally to evaluate any
+expression.
 
 @deffn {Debugger Command} evaluate expression
-Evaluate an expression.
-The expression must appear on the same line as the command,
-however it may be continued over multiple lines.
+Evaluate an expression in the environment of the selected stack frame.
+The expression must appear on the same line as the command, however it
+may be continued over multiple lines.
 @end deffn
 
 
-@node Single Stepping
-@subsubsection Single Stepping
+@node Stepping and Continuing
+@subsubsection Single Stepping and Continuing Execution
 
-[to be completed]
+The commands in this subsection all apply only when the stack is
+@dfn{continuable} --- in other words when it makes sense for the program
+that the stack comes from to continue running.  Usually this means that
+the program stopped because of a trap or a breakpoint.
 
 @deffn {Debugger Command} step [n]
-Tell the debugged program to do @var{n} single-steps to the next frame
-entry or exit of any kind.  @var{n} defaults to 1.
+Tell the debugged program to do @var{n} more steps from its current
+position.  One @dfn{step} means executing until the next frame entry or
+exit of any kind.  @var{n} defaults to 1.
 @end deffn
 
 @deffn {Debugger Command} next [n]
-Tell the debugged program to do @var{n} single-steps to the entry or
-exit of a frame whose code comes from the same source file as the
-selected stack frame.  (See @ref{Step Traps} for the details of how
-this works.)  If the selected stack frame has no source, the effect of
-this command is the same as of @code{step}.  @var{n} defaults to 1.
+Tell the debugged program to do @var{n} more steps from its current
+position, but only counting frame entries and exits where the
+corresponding source code comes from the same file as the current stack
+frame.  (See @ref{Step Traps} for the details of how this works.)  If
+the current stack frame has no source code, the effect of this command
+is the same as of @code{step}.  @var{n} defaults to 1.
 @end deffn
-
-
-@node Run To Frame Exit
-@subsubsection Run To Frame Exit
-
-[to be completed]
 
 @deffn {Debugger Command} finish
-Tell the program being debugged to continue running until the
-completion of the selected stack frame, and at that time to print the
-result and reenter the command line debugger.
+Tell the program being debugged to continue running until the completion
+of the current stack frame, and at that time to print the result and
+reenter the command line debugger.
 @end deffn
-
-@deffn {Debugger Command} trace-finish
-Trace until evaluation of the current frame is complete.
-@end deffn
-
-
-@node Continue Execution
-@subsubsection Continue Execution
-
-[to be completed]
 
 @deffn {Debugger Command} continue
-Tell the program being debugged to continue running.
-@end deffn
-
-
-@node Leave Debugger
-@subsubsection Leave Debugger
-
-[to be completed]
-
-@deffn {Debugger Command} quit
-Exit the debugger.
+Tell the program being debugged to continue running.  (In fact this is
+the same as the @code{quit} command, because it exits the debugger
+command loop and so allows whatever code it was that invoked the
+debugger to continue.)
 @end deffn
 
 

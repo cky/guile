@@ -1,3 +1,14 @@
+2006-09-25  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* debugging/ice-9-debugger-extensions.scm (debugger:step):
+	Docstring improvements.
+	(debugger:next): Docstring improvements.
+	(debugger:continue): Docstring improvements.
+
+	* debugger/commands.scm (up, down): Docstring corrections.
+	(info-args, info-frame, position, evaluate): Docstring
+	improvements.
+
 2006-08-18  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* debugging/trc.scm: New file.
