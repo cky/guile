@@ -389,7 +389,7 @@ highlighting, parenthesis matching, indentation and so on.
 
 @dfn{cmuscheme}, written by Olin Shivers, provides a comint-based Scheme
 interaction buffer, so that you can run an interpreter more directly
-than with the @code{*shell*} buffer approach by typing @kbd{@key{M-x}
+than with the @code{*shell*} buffer approach by typing @kbd{M-x
 run-scheme}.  It also extends @code{scheme-mode} so that there are key
 presses for sending selected bits of code from a Scheme buffer to this
 interpreter.  This means that when you are writing some code and want to
@@ -418,7 +418,7 @@ output like this.  Instead, it sets up a socket connection between the
 Scheme interpreter and Emacs, and sends and receives messages using a
 simple protocol through this socket.  The messages include requests to
 evaluate Scheme code, and responses conveying the results of an
-evaluation, thus providing similar function to cmuscheme or Quack; they
+evaluation, thus providing similar function to cmuscheme or Quack.  They
 also include requests for setting breakpoints, stack exploration and
 debugging, which go beyond what cmuscheme or Quack can do.  The price of
 this extra power, however, is that GDS is Guile-specific.  GDS requires
@@ -430,25 +430,25 @@ previous Guile releases (1.8.x and earlier) it can be obtained as part
 of the @code{guile-debugging} package from
 @uref{http://www.ossau.uklinux.net/guile}.
 
-Finally, @dfn{xscheme} is similar to cmuscheme -- in that it starts up a
-Scheme interaction process and sends commands to that process's standard
-input -- and to GDS -- in that it has support beyond cmuscheme or Quack
-for exploring the Scheme stack when an error has occurred -- but is
-implemented specifically for MIT/GNU Scheme.  Hence it isn't really
-relevant to Guile work in Emacs, except as a reference for useful
-features that could be implemented in one of the other libraries
-mentioned here.
+Finally, @dfn{xscheme} is similar to cmuscheme --- in that it starts up
+a Scheme interaction process and sends commands to that process's
+standard input --- and to GDS --- in that it has support beyond
+cmuscheme or Quack for exploring the Scheme stack when an error has
+occurred --- but is implemented specifically for MIT/GNU Scheme.  Hence
+it isn't really relevant to Guile work in Emacs, except as a reference
+for useful features that could be implemented in one of the other
+libraries mentioned here.
 
-In summary, the ``best'' current choice for working on Guile code in
-Emacs is either Quack or GDS, depending on which of these libraries'
-features you find most important.  For more information on Quack, please
-see the website referenced above.  GDS is documented further in the rest
-of this section.
+In summary, the best current choice for working on Guile code in Emacs
+is either Quack or GDS, depending on which of these libraries' features
+you find most important.  For more information on Quack, please see the
+website referenced above.  GDS is documented further in the rest of this
+section.
 
 @menu
 * GDS Introduction::
+* GDS Architecture::
 * GDS Getting Started::
-* How To Use GDS::
 * Displaying the Scheme Stack::
 * Continuing Execution::
 * Evaluating Scheme Code::
@@ -456,7 +456,6 @@ of this section.
 * Access to Guile Help and Completion::
 * Associating Buffers with Clients::
 * An Example GDS Session::
-* GDS Architecture::
 @end menu
 
 
@@ -466,7 +465,7 @@ of this section.
 GDS aims to allow you to work on Guile Scheme code in the same kind of
 way that Emacs allows you to work on Emacs Lisp code: providing easy
 access to help, evaluating arbitrary fragments of code, a nice debugging
-interface, and so on.  The thinking behind this environment is that you
+interface, and so on.  The thinking behind the GDS library is that you
 will usually be doing one of two things.
 
 @enumerate
@@ -477,17 +476,19 @@ the things that are likely to be useful to you when working on code:
 
 @itemize
 @item
-completing the identifier at point
+completing the identifier at point, with respect to the set of variable
+names that are known to the associated Guile process
 @item
-accessing Guile's built in help
+accessing Guile's built in ``help'' and ``apropos'' commands
 @item
-evaluating fragments of code to check what they do.
+evaluating fragments of code to check what they do, with the results
+popping up in a temporary Emacs window.
 @end itemize
 
 @item
 Debugging a Guile Scheme program.  When your program hits an error or a
-breakpoint, GDS can show you the relevant code and the Scheme stack, and
-make it easy to
+breakpoint, GDS shows you the relevant code and the Scheme stack, and
+makes it easy to
 
 @itemize
 @item
@@ -495,156 +496,192 @@ look at the values of local variables
 @item
 see what is happening at all levels of the Scheme stack
 @item
+set new breakpoints (by simply typing @kbd{C-x @key{SPC}}) or modify
+existing ones
+@item
 continue execution, either normally or step by step.
 @end itemize
 @end enumerate
 
-Combinations of these work well too.  You can evaluate a fragment of
+The presentation makes it very easy to move up and down the stack,
+showing whenever possible the source code for each frame in another
+Emacs buffer.  It also provides convenient keystrokes for telling Guile
+what to do next; for example, you can select a stack frame and tell
+Guile to run until that frame completes, at which point GDS will display
+the frame's return value.
+
+Combinations of the above work well too.  You can evaluate a fragment of
 code (in a Scheme buffer) that contains a breakpoint, then use the
-debugging interface to step through the code at the breakpoint.  You
-can also run a program until it hits a breakpoint, then examine,
-modify and reevaluate some of the relevant code, and then tell the
-program to continue running.
-
-In other words, we could say that GDS provides a set of facilities which
-aim to make the writing, debugging and maintenance of Scheme code in
-Emacs as fluid and productive as possible.  In a bit more detail, these
-facilities are currently as follows.
-
-@table @asis
-@item Displaying the Scheme stack
-When running Scheme code hits a trap or throws an exception, GDS can
-display the stack at the point of the trap or exception.  The
-presentation makes it very easy to move up and down the stack, showing
-whenever possible the source code for each frame in another Emacs
-buffer, and allowing you to evaluate test expressions in the context of
-the selected frame.
-
-@item Continuing execution from a trap
-When GDS is showing the stack for code that has hit a trap, it also
-allows you to control how execution continues from that point.  For
-example you can select a stack frame and tell Guile to run until that
-frame completes, at which point GDS will display the frame's return
-value.
-
-@item Evaluating Scheme code
-GDS allows you to select a region of a Scheme buffer and send it to
-Guile for evaluation, or to enter a Scheme expression to be evaluated in
-the Emacs minibuffer.  In both cases the evaluation results are popped
-up in a temporary Emacs window.
-
-@item Setting breakpoints in Scheme code
-GDS makes it easy to set breakpoints in Scheme code from within Emacs.
-Deep down this uses Guile's trap and breakpoint infrastructure described
-elsewhere in this manual, but GDS makes the practicalities as simple as
-typing @kbd{C-x @key{SPC}}.  When a GDS breakpoint is hit, the stack at
-that point is popped up in Emacs.  GDS also remembers your breakpoints
-between editing sessions, so you don't have to set them again when you
-visit the relevant files.
-
-@item Access to Guile's built in help system
-GDS makes it easy to query Guile's ``help'' and ``apropos'' commands,
-and pops up the results in a temporary Emacs window.
-
-@item Symbol completion
-GDS provides a keystroke which tries to complete a partially entered
-symbol by asking Guile to match it against all the accessible bindings.
-@end table
+debugging interface to step through the code at the breakpoint.  You can
+also run a program until it hits a breakpoint, then examine, modify and
+reevaluate some of the relevant code, and then tell the program to
+continue running.
 
 GDS can provide these facilities for any number of Guile Scheme programs
-(which we often call ``clients'') at once, and these programs can be
-started either completely independently of GDS, including outside Emacs,
-or specifically @emph{by} GDS.  The two common cases are:
+(which we often refer to as ``clients'') at once, and these programs can
+be started either independently of GDS, including outside Emacs, or
+specifically @emph{by} GDS.
 
-@itemize
-@item
-a Guile application, such as @uref{http://www.gnucash.org, GnuCash},
-which is started from your desktop, and which connects to GDS as a
-result of some incantation added to its startup code
-
-@item
-a ``utility'' Guile process which is run by GDS to provide help,
-completion and evaluation for Scheme code that you are working on in
-Emacs.
-@end itemize
-
-@noindent
-The user experience --- in other words the ways that the GDS front end
-allows you to interact with the client --- is much the same in all
-cases.
-
-Communication between the Guile client program and GDS uses a TCP
+Communication between each Guile client program and GDS uses a TCP
 socket, which means that it is orthogonal to any other interfaces that
 the client program has.  In particular GDS does not interfere with a
 program's standard input and output.
 
 
+@node GDS Architecture
+@subsection GDS Architecture
+
+In order to understand the following documentation fully it will help to
+have a picture in mind of how GDS works, so we briefly describe that
+here.  GDS consists of three components.
+
+@itemize
+@item
+The GDS @dfn{interface} code is written in Emacs Lisp and runs inside
+Emacs.  This code, consisting of the installed files @file{gds.el} and
+@file{gds-server.el}, is responsible for displaying information from
+Guile in Emacs windows, and for responding to Emacs commands and
+keystrokes by sending instructions back to the Guile program being
+debugged.
+
+@item
+The GDS @dfn{server} code is written in Scheme and runs as an Emacs
+inferior process.  It acts as a multiplexer between the (possibly
+multiple) Guile programs being debugged and the interface code running
+in Emacs.  The server code is the installed file
+@file{gds-server.scm}.
+
+@item
+The GDS @dfn{client} code is written in Scheme (installed file
+@file{gds-client.scm}), and must be loaded as a module by each Guile
+program that wants to use GDS in any way.
+@end itemize
+
+@noindent
+The following diagram shows how these components are connected to each
+other.
+
+@example
++----------------+
+| Program #1     |
+|                |
+| +------------+ |
+| | GDS Client |-_
+| +------------+ |-_                       +-------------------+
++----------------+  -_TCP                  | Emacs             |
+                      -_                   |                   |
+                        -_+------------+   | +---------------+ |
+                         _| GDS Server |-----| GDS Interface | |
++----------------+     _- +------------+   | +---------------+ |
+| Program #2     |   _-                    +-------------------+
+|                | _- TCP
+| +------------+ _-
+| | GDS Client |-|
+| +------------+ |
++----------------+
+@end example
+
+@cindex TCP, use of
+The data exchanged between client and server components, and between
+server and interface, is a sequence of sexps (parenthesised expressions)
+that are designed so as to be directly readable by both Scheme and Emacs
+Lisp.  The use of a TCP connection means that the server and Emacs
+interface can theoretically be on a different computer from the programs
+being debugged, but in practice there are currently two problems with
+this.  Firstly the GDS API doesn't provide any way of specifying a
+non-local server to connect to, and secondly there is no security or
+authentication mechanism in the GDS protocol.  These are issues that
+should be addressed in the near future.
+
+      
 @node GDS Getting Started
 @subsection Getting Started with GDS
 
-GDS's Scheme and Emacs Lisp files will have been installed in the
-correct places system-wide when Guile as a whole was installed.  To
-enable the use of GDS in your own Emacs sessions, simply add
+To enable the use of GDS in your own Emacs sessions, simply add
 
 @lisp
 (require 'gds)
 @end lisp
 
 @noindent
-somewhere in your @file{.emacs} file.
+somewhere in your @file{.emacs} file.  This will cause Emacs to load the
+GDS Emacs Lisp code when starting up, and to start the inferior GDS
+server process so that it is ready and waiting for any Guile programs
+that want to use GDS.
 
-For a hands-on, tutorial introduction to using GDS, you may then like to
-use Emacs to open the file @file{gds-tutorial.txt} (which should have
-been installed as part of Guile, perhaps under
-@file{/usr/share/doc/guile}), and then follow the steps in that file.
+(If GDS's Scheme code is not installed in one of the locations in
+Guile's load path, you may find that the server process fails to start.
+When this happens you will see an error message from Emacs:
 
+@lisp
+error in process filter: Wrong type argument: listp, Backtrace:
+@end lisp
 
-@node How To Use GDS
-@subsection How To Use GDS
+@noindent
+and the @code{gds-debug} buffer will contain a Scheme backtrace ending
+with the message:
 
-There are lots of ways to use GDS, but they boil down to two overall
-approaches.
+@lisp
+no code for module (ossau gds-server)
+@end lisp
 
-@enumerate
-@item
-When you are writing Scheme code in Emacs, you can use GDS while you are
-writing to help with things like name completion, looking up help, and
-evaluating fragments of code to check that they do what you expect.
+@noindent
+The solution for this is to customize the Emacs variable
+@code{gds-scheme-directory} so that it specifies where the GDS Scheme
+code is installed.  Then either restart Emacs or type @kbd{M-x
+gds-run-debug-server} to try starting the GDS server process again.)
 
-The first time you do something that needs a running Guile process, GDS
-will automatically create one as an Emacs subprocess.  This Guile
-program does nothing but wait for and act on instructions from GDS, and
-we refer to it as a @dfn{utility} Guile client.
+For evaluations, help and completion from Scheme code buffers that you
+are working on, this is all you need.  The first time you do any of
+these things, GDS will automatically start a new Guile client program as
+an Emacs subprocess.  This Guile program does nothing but wait for and
+act on instructions from GDS, and we refer to it as a @dfn{utility}
+Guile client.  Over time this utility client will accumulate the code
+that you ask it to evaluate, and you can also tell it to load complete
+files or modules by sending it @code{load} or @code{use-modules}
+expressions.  You can set breakpoints and evaluate code which hits those
+breakpoints, and GDS will pop up the stack at the breakpoint so you can
+explore your code by single-stepping and evaluating test expressions.
 
-Over time this utility Guile will accumulate the code that you ask it to
-evaluate, and you can also tell it to load complete files or modules by
-sending it @code{load} or @code{use-modules} expressions.  You can set
-breakpoints and evaluate code which hits those breakpoints, and GDS will
-pop up the stack at the breakpoint so you can explore your code by
-single-stepping and evaluating test expressions.
+For a hands-on, tutorial introduction to using GDS in this way, use
+Emacs to open the file @file{gds-tutorial.txt} (which should have been
+installed as part of Guile, perhaps under @file{/usr/share/doc/guile}),
+and then follow the steps in that file.
 
-@item
-Alternatively, you can use GDS to explore and debug a Guile program or
-script which is started independently of GDS.  This could be a script
-that you invoke from the command line, or a graphical Guile-using
-application which is launched from your desktop's start menu.
+When you want to use GDS to explore or debug an independent Guile
+application, you need to add something to that application's Scheme code
+to cause it to connect to and interact with GDS at the right times.  The
+following subsections describe the various ways of doing this.
 
-In this case the program has to put something in its startup code to
-cause it to connect to GDS at some point: either immediately during the
-startup processing, or later when an error occurs or a trap is hit.
-Several possibilities for this are described below.
+@subsubsection Setting Specific Breakpoints
 
-Under certain conditions, then, the program will stop, pass its current
-Scheme stack to GDS, and then wait for instruction before continuing
-execution.  At such points you can use GDS to explore the stack,
-obviously, but also to set or delete other breakpoints, modify the
-program's code (by editing and then reevaluating it from Emacs), and use
-the help and completion facilities, before eventually telling the
-program to single-step or to continue running normally.
-@end enumerate
+@lisp
+(use-modules (ice-9 debugging breakpoints)
+             (ice-9 gds-client))
 
-Here are some of the ways that a Guile program or script can arrange in
-its startup code to use GDS.
+(break-in 'fact2 "ice-9/debugging/example-fns"
+          #:behaviour gds-debug-trap)
+@end lisp
+
+In this example, the program chooses to define its breakpoint explicitly
+in its code, rather than downloading definitions from GDS, but it still
+uses GDS to control what happens when the breakpoint is hit, by
+specifying @code{gds-debug-trap} as the breakpoint behaviour.
+
+@subsubsection Setting GDS-managed Breakpoints
+
+@lisp
+(use-modules (ice-9 gds-client))
+(set-gds-breakpoints)
+@end lisp
+
+These lines tell the program to connect to GDS immediately and download
+a set of breakpoint definitions.  The program sets those breakpoints in
+its code, then continues running.
+
+When the program later hits one of the breakpoints, it will use GDS to
+display the stack and wait for instruction on what to do next, as
+described above.
 
 @subsubsection Invoking GDS when an Exception Occurs
 
@@ -667,36 +704,6 @@ also used by the standard Guile REPL, when you run Guile interactively,
 so you can add the above lines to your @file{.guile} file if you want to
 use GDS whenever something that you type into the REPL throws an
 exception.
-
-@subsubsection Setting GDS-managed Breakpoints
-
-@lisp
-(use-modules (ice-9 gds-client))
-(set-gds-breakpoints)
-@end lisp
-
-These lines tell the program to connect to GDS immediately and download
-a set of breakpoint definitions.  The program sets those breakpoints in
-its code, then continues running.
-
-When the program later hits one of the breakpoints, it will use GDS to
-display the stack and wait for instruction on what to do next, as
-described above.
-
-@subsubsection Setting Specific Breakpoints
-
-@lisp
-(use-modules (ice-9 debugging breakpoints)
-             (ice-9 gds-client))
-
-(break-in 'fact2 "ice-9/debugging/example-fns"
-          #:behaviour gds-debug-trap)
-@end lisp
-
-In this example, the program chooses to define its breakpoint explicitly
-in its code, rather than downloading definitions from GDS, but it still
-uses GDS to control what happens when the breakpoint is hit, by
-specifying @code{gds-debug-trap} as the breakpoint behaviour.
 
 @subsubsection Accepting GDS Instructions at Any Time
 
@@ -1075,8 +1082,8 @@ Now select all of this code and type @kbd{C-c C-r} to send the selected
 region to Guile for evaluation.  GDS will ask you which Guile process to
 use; unless you know that you already have another Guile application
 running and connected to GDS, choose the ``Start a new Guile'' option,
-which starts one of the ``utility'' processes described in @ref{How To
-Use GDS}.
+which starts one of the ``utility'' processes described in @ref{GDS
+Getting Started}.
 
 The results of the evaluation pop up in a window like this:
 
@@ -1176,89 +1183,6 @@ pressing of @kbd{@key{SPC}} successfully single-steps through this
 file.)
 
 
-@node GDS Architecture
-@subsection GDS Architecture
-
-Ths following information may be of interest to readers who would like
-to know how GDS works.  Please note that understanding the details of
-this subsection is completely optional so far as just using GDS is
-concerned!
-
-GDS consists of three components.
-
-@itemize
-@item
-The GDS @dfn{interface} code is written in Emacs Lisp and runs inside
-Emacs.  This code, consisting of the installed files @file{gds.el} and
-@file{gds-server.el}, is responsible for displaying information from
-Guile in Emacs windows, and for responding to Emacs commands and
-keystrokes by sending instructions back to the Guile program being
-debugged.
-
-@item
-The GDS @dfn{server} code is written in Scheme and runs as an Emacs
-inferior process.  It acts as a multiplexer between the (possibly
-multiple) Guile programs being debugged and the interface code running
-in Emacs.  The server code is the installed file
-@file{gds-server.scm}.
-
-@item
-The GDS @dfn{client} code is written in Scheme (installed file
-@file{gds-client.scm}), and is loaded as a module by each Guile
-program that wants to use GDS for debugging.  When a trap occurs whose
-behaviour is @code{gds-debug-trap}, it feeds information about the
-trap context through the server to Emacs, then waits for instruction
-back from the Emacs interface on what to do next.
-@end itemize
-
-@noindent
-Summarized in glorious ASCII art, this looks as follows.
-
-@example
-+------------+
-| Program #1 |
-|            |
-| +--------+ |
-| | Client |-_
-| +--------+ |-_                   +---------------+
-+------------+  -_TCP              | Emacs         |
-                  -_               |               |
-                    -_+--------+   | +-----------+ |
-                     _| Server |-----| Interface | |
-+------------+     _- +--------+   | +-----------+ |
-| Program #2 |   _-                +---------------+
-|            | _- TCP
-| +--------+ _-
-| | Client |-|
-| +--------+ |
-+------------+
-@end example
-
-@noindent
-@cindex TCP, use of
-The communication between the client and server components is over a
-TCP connection, which has two implications.  Firstly, that GDS is
-independent of whatever other interfaces the programs being debugged
-have, whether graphical or through standard input and output.
-Secondly, that the server and Emacs interface can be on a different
-computer from the programs being debugged (only theoretically, though,
-because GDS doesn't yet provide an interface to connect to any server
-other than the default, on localhost at TCP port 8333).  The data
-exchanged between client and server components, and between server and
-interface components, is in the form of sexps that are organized so as
-to be directly readable by both Scheme and Emacs Lisp.
-
-
-@subsubsection Security Note
-
-@cindex Security
-GDS currently has no authentication between its client and server
-components, so in an untrusted environment the use of TCP probably
-raises important security issues.  If you are thinking of using GDS in
-such an environment, please consider any such issues carefully before
-proceeding!
-
-      
 @c Local Variables:
 @c TeX-master: "guile.texi"
 @c End:
