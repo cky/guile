@@ -838,8 +838,40 @@ value (shared across all new instances of the class).
 when a new instance is created and should return the desired initial
 slot value.  @var{init-form} is an unevaluated expression that gets
 evaluated when a new instance is created and should return the desired
-initial slot value.  @var{init-keyword} is a keyword that can be used to
-pass an initial slot value to @code{make} when creating a new instance.
+initial slot value.  @var{init-keyword} is a keyword that can be used
+to pass an initial slot value to @code{make} when creating a new
+instance.
+
+Note that, since an @code{init-value} value is shared across all
+instances of a class, you should only use it when the initial value is
+an immutable value, like a constant.  If you want to initialize a slot
+with a fresh, independently mutable value, you should use
+@code{init-thunk} or @code{init-form} instead.  Consider the following
+example.
+
+@example
+(define-class <chbouib> ()
+  (hashtab #:init-value (make-hash-table)))
+@end example
+
+@noindent
+Here only one hash table is created and all instances of
+@code{<chbouib>} have their @code{hashtab} slot refer to it.  In order
+to have each instance of @code{<chbouib>} refer to a new hash table, you
+should instead write:
+
+@example
+(define-class <chbouib> ()
+  (hashtab #:init-thunk make-hash-table))
+@end example
+
+@noindent
+or:
+
+@example
+(define-class <chbouib> ()
+  (hashtab #:init-form (make-hash-table)))
+@end example
 
 If more than one of these options is specified for the same slot, the
 order of precedence, highest first is

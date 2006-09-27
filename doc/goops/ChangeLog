@@ -1,3 +1,8 @@
+2006-09-27  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* goops.texi (Slot Options): Added example from Ludovic Courtès
+	about difference between init-value, -form and -thunk.
+
 2006-04-21  Kevin Ryde  <user42@zip.com.au>
 
 	* hierarchy.pdf: New file, converted from hierarchy.eps using
