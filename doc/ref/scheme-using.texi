@@ -501,7 +501,6 @@ existing ones
 @item
 continue execution, either normally or step by step.
 @end itemize
-@end enumerate
 
 The presentation makes it very easy to move up and down the stack,
 showing whenever possible the source code for each frame in another
@@ -509,11 +508,12 @@ Emacs buffer.  It also provides convenient keystrokes for telling Guile
 what to do next; for example, you can select a stack frame and tell
 Guile to run until that frame completes, at which point GDS will display
 the frame's return value.
+@end enumerate
 
-Combinations of the above work well too.  You can evaluate a fragment of
-code (in a Scheme buffer) that contains a breakpoint, then use the
-debugging interface to step through the code at the breakpoint.  You can
-also run a program until it hits a breakpoint, then examine, modify and
+Combinations of these well too.  You can evaluate a fragment of code (in
+a Scheme buffer) that contains a breakpoint, then use the debugging
+interface to step through the code at the breakpoint.  You can also run
+a program until it hits a breakpoint, then examine, modify and
 reevaluate some of the relevant code, and then tell the program to
 continue running.
 
@@ -642,7 +642,6 @@ files or modules by sending it @code{load} or @code{use-modules}
 expressions.  You can set breakpoints and evaluate code which hits those
 breakpoints, and GDS will pop up the stack at the breakpoint so you can
 explore your code by single-stepping and evaluating test expressions.
-
 For a hands-on, tutorial introduction to using GDS in this way, use
 Emacs to open the file @file{gds-tutorial.txt} (which should have been
 installed as part of Guile, perhaps under @file{/usr/share/doc/guile}),
