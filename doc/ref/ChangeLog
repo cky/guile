@@ -1,3 +1,8 @@
+2006-09-28  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* api-data.texi (Symbol Props): Remove unnecessarily specific
+	parenthesis about Guile 1.6's use of extra symbol slots.
+
 2006-09-26  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* scheme-using.texi (Using Guile in Emacs, GDS Introduction):

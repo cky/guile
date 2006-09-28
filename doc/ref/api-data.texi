@@ -4674,10 +4674,8 @@ see @code{symbol-property}.
 @end deffn
 
 Support for these extra slots may be removed in a future release, and it
-is probably better to avoid using them.  (In release 1.6, Guile itself
-uses the property list slot sparingly, and the function slot not at
-all.)  For a more modern and Schemely approach to properties, see
-@ref{Object Properties}.
+is probably better to avoid using them.  For a more modern and Schemely
+approach to properties, see @ref{Object Properties}.
 
 
 @node Symbol Read Syntax
