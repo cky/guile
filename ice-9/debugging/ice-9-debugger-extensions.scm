@@ -121,6 +121,11 @@ print the result obtained."
 
 (define *not-yet-introduced* #t)
 
+(cond ((string>=? (version) "1.7"))
+      (else
+       (define (debugger-command-loop state)
+	 (read-and-dispatch-commands state (current-input-port)))))
+
 (define-public (debug-trap trap-context)
   "Invoke the Guile debugger to explore the stack at the specified @var{trap}."
   (start-stack 'debugger
@@ -144,7 +149,7 @@ print the result obtained."
 			   (display "There is 1 frame on the stack.\n\n")
 			   (format #t "There are ~A frames on the stack.\n\n" ssize))))
 		 (write-state-short-with-source-location state)
-		 (read-and-dispatch-commands state (current-input-port)))))
+		 (debugger-command-loop state))))
 
 (define write-state-short-with-source-location
   (cond ((string>=? (version) "1.7")

@@ -1,3 +1,11 @@
+2006-09-30  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* debugging/ice-9-debugger-extensions.scm (debug-trap): Use
+	`debugger-command-loop' instead of `read-and-dispatch-commands',
+	which isn't actually available.  Thanks to Carlos Pita for
+	reporting this.
+	(debugger-command-loop): Define here for 1.6.x.
+
 2006-09-25  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* debugging/ice-9-debugger-extensions.scm (debugger:step):
