@@ -654,20 +654,32 @@ following subsections describe the various ways of doing this.
 
 @subsubsection Setting Specific Breakpoints
 
+The first option is to use @code{break-in} or @code{break-at} to set
+specific breakpoints in the application's code.  This requires code like
+the following.
+
 @lisp
 (use-modules (ice-9 debugging breakpoints)
              (ice-9 gds-client))
 
 (break-in 'fact2 "ice-9/debugging/example-fns"
           #:behaviour gds-debug-trap)
+(break-in 'facti "ice-9/debugging/example-fns"
+          #:behaviour gds-debug-trap)
 @end lisp
 
-In this example, the program chooses to define its breakpoint explicitly
-in its code, rather than downloading definitions from GDS, but it still
-uses GDS to control what happens when the breakpoint is hit, by
-specifying @code{gds-debug-trap} as the breakpoint behaviour.
+@noindent
+The @code{#:behaviour gds-debug-trap} clauses mean to use GDS to display
+the stack when one of these breakpoints is hit.  For more on
+breakpoints, @code{break-in} and @code{break-at}, see @ref{Intro to
+Breakpoints}.
 
 @subsubsection Setting GDS-managed Breakpoints
+
+Instead of listing specific breakpoints in application code, you can use
+GDS to manage the set of breakpoints that you want from Emacs, and tell
+the application to download the breakpoints that it should set from
+GDS.  The code for this is:
 
 @lisp
 (use-modules (ice-9 gds-client))
@@ -679,10 +691,50 @@ a set of breakpoint definitions.  The program sets those breakpoints in
 its code, then continues running.
 
 When the program later hits one of the breakpoints, it will use GDS to
-display the stack and wait for instruction on what to do next, as
-described above.
+display the stack and wait for instruction on what to do next.
 
 @subsubsection Invoking GDS when an Exception Occurs
+
+Another option is to use GDS to catch and display any exceptions that
+are thrown by the application's code.  If you already have a
+@code{lazy-catch} or @code{with-throw-handler} around the area of code
+that you want to monitor, you just need to add the following to the
+handler code:
+
+@lisp
+(gds-debug-trap (throw->trap-context key args))
+@end lisp
+
+@noindent
+where @code{key} and @code{args} are the first and rest arguments that
+Guile passes to the handler.  (In other words, they assume the handler
+signature @code{(lambda (key . args) @dots{})}.)  With Guile 1.8 or
+later, you can also do this with a @code{catch}, by adding this same
+code to the catch's optional pre-unwind handler.
+
+If you don't already have any of these, insert a whole
+@code{with-throw-handler} expression around the code of interest like
+this:
+
+@lisp
+(with-throw-handler #t
+  (lambda ()
+    ;; Protected code here.
+    )
+  (lambda (key . args)
+    (gds-debug-trap (throw->trap-context key args))))
+@end lisp
+
+In all cases you will need to use the @code{(ice-9 gds-client)} and
+@code{(ice-9 debugging traps)} modules.
+
+Two special cases of this are the lazy-catch that the Guile REPL code
+uses to catch exceptions in user code, and the lazy-catch inside the
+@code{stack-catch} utility procedure that is provided by the
+@code{(ice-9 stack-catch)} module.  Both of these use a handler called
+@code{lazy-handler-dispatch}, which you can modify automatically so that
+it calls GDS to display the stack when an exception occurs.  To do this,
+use the @code{on-lazy-handler-dispatch} procedure as follows.
 
 @lisp
 (use-modules (ice-9 gds-client)
@@ -691,18 +743,10 @@ described above.
 (on-lazy-handler-dispatch gds-debug-trap)
 @end lisp
 
-This means that the program will use GDS to display the stack whenever
-it hits an exception that is protected by a @code{lazy-catch} using
-Guile's standard @code{lazy-catch-handler} (defined in
-@file{boot-9.scm}).
-
-@code{lazy-catch-handler} is used by the @code{stack-catch} procedure,
-provided by the @code{(ice-9 stack-catch)} module, so this will include
-exceptions within a @code{stack-catch}.  @code{lazy-catch-handler} is
-also used by the standard Guile REPL, when you run Guile interactively,
-so you can add the above lines to your @file{.guile} file if you want to
-use GDS whenever something that you type into the REPL throws an
-exception.
+@noindent
+After this the program will use GDS to display the stack whenever it
+hits an exception that is protected by a @code{lazy-catch} using
+@code{lazy-catch-handler} (defined in @file{boot-9.scm}).
 
 @subsubsection Accepting GDS Instructions at Any Time
 
@@ -744,14 +788,11 @@ This approach is not yet implemented, though.
 
 @subsubsection Utility Guile Implementation
 
-We bring this subsection full circle by noting that the ``utility'' Guile
-client, which GDS starts automatically when you use GDS as described
-under approach 1 above, is really just a special case of ``a Guile
-program or script which is started independently'' (approach 2), and
-provides the services that the GDS front end needs by a simple
-combination of some of the code fragments just described.
+We conclude this subsection with an aside, by noting that the
+``utility'' Guile client described above is nothing more than a
+combination of the previous options.
 
-To be precise, the code for the utility Guile client is essentially
+To be precise, the code for the utility Guile client is essentially just
 this:
 
 @lisp
@@ -764,12 +805,11 @@ this:
 
 @code{set-gds-breakpoints} works as already described.  The
 @code{named-module-use!} line ensures that the client can process
-@code{help} and @code{apropos} expressions, which is what the front end
-sends to implement lookups in Guile's online help.  The @code{#f}
-parameter to @code{gds-accept-input} means that the @code{continue}
-instruction will not cause the instruction loop to exit, which makes
-sense here because the utility client has nothing to do except to
-process GDS instructions.
+@code{help} and @code{apropos} expressions, to implement lookups in
+Guile's online help.  The @code{#f} parameter to @code{gds-accept-input}
+means that the @code{continue} instruction will not cause the
+instruction loop to exit, which makes sense here because the utility
+client has nothing to do except to process GDS instructions.
 
 (The utility client does not use @code{on-lazy-handler-dispatch},
 because it has its own mechanism for catching and reporting exceptions
