@@ -1,3 +1,8 @@
+2006-10-03  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* gds-client.scm (run-utility): Remove unnecessary
+	`connect-to-gds' call.
+
 2006-09-30  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* debugging/ice-9-debugger-extensions.scm (debug-trap): Use

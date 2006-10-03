@@ -562,7 +562,6 @@ Thanks!\n\n"
   (apply throw key args))
 
 (define (run-utility)
-  (connect-to-gds)
   (set-gds-breakpoints)
   (write (getpid))
   (newline)
