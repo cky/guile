@@ -68,8 +68,8 @@
 ;;; Dirk:FIXME:: If the-readline-port, input-port or output-port are closed,
 ;;; guile will enter an endless loop or crash.
 
-(define prompt "")
-(define prompt2 "")
+(define new-input-prompt "")
+(define continuation-prompt "")
 (define input-port (current-input-port))
 (define output-port (current-output-port))
 (define read-hook #f)
@@ -77,8 +77,8 @@
 (define (make-readline-port)
   (make-line-buffered-input-port (lambda (continuation?)
                                    (let* ((prompt (if continuation?
-                                                      prompt2
-                                                      prompt))
+                                                      continuation-prompt
+                                                      new-input-prompt))
                                           (str (%readline (if (string? prompt)
                                                               prompt
                                                               (prompt))
@@ -125,7 +125,7 @@
 ;;; %readline is the low-level readline procedure.
 
 (define-public (readline . args)
-  (let ((prompt prompt)
+  (let ((prompt new-input-prompt)
 	(inp input-port))
     (cond ((not (null? args))
 	   (set! prompt (car args))
@@ -141,9 +141,9 @@
 	   args)))
 
 (define-public (set-readline-prompt! p . rest)
-  (set! prompt p)
+  (set! new-input-prompt p)
   (if (not (null? rest))
-      (set! prompt2 (car rest))))
+      (set! continuation-prompt (car rest))))
 
 (define-public (set-readline-input-port! p)
   (cond ((or (not (file-port? p)) (not (input-port? p)))
@@ -202,19 +202,22 @@
 	   (not (let ((guile-user-module (resolve-module '(guile-user))))
 		  (and (module-defined? guile-user-module 'use-emacs-interface)
 		       (module-ref guile-user-module 'use-emacs-interface)))))
-      (let ((read-hook (lambda () (run-hook before-read-hook))))
+      (let ((repl-read-hook (lambda () (run-hook before-read-hook))))
 	(set-current-input-port (readline-port))
 	(set! repl-reader
-	      (lambda (prompt)
-		(dynamic-wind
-		    (lambda ()
-                      (set-buffered-input-continuation?! (readline-port) #f)
-		      (set-readline-prompt! prompt "... ")
-		      (set-readline-read-hook! read-hook))
-		    (lambda () (read))
-		    (lambda ()
-		      (set-readline-prompt! "" "")
-		      (set-readline-read-hook! #f)))))
+	      (lambda (repl-prompt)
+		(let ((outer-new-input-prompt new-input-prompt)
+		      (outer-continuation-prompt continuation-prompt)
+		      (outer-read-hook read-hook))
+		  (dynamic-wind
+		      (lambda ()
+			(set-buffered-input-continuation?! (readline-port) #f)
+			(set-readline-prompt! repl-prompt "... ")
+			(set-readline-read-hook! repl-read-hook))
+		      (lambda () (read))
+		      (lambda ()
+			(set-readline-prompt! outer-new-input-prompt outer-continuation-prompt)
+			(set-readline-read-hook! outer-read-hook))))))
 	(set! (using-readline?) #t))))
 
 (define-public (make-completion-function strings)

@@ -1,3 +1,14 @@
+2006-10-06  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* ice-9/readline.scm (new-input-prompt): Renamed from "prompt".
+	(continuation-prompt): Renamed from "prompt2".
+	(make-readline-port, readline, set-readline-prompt!): Reflect
+	above renamings.
+	(activate-readline): Rename locals "read-hook" and "prompt" to
+	"repl-read-hook" and "repl-prompt", to disambiguate them from
+	globals.  Save and restore the new-input- and continuation-
+	prompts around the REPL read call.
+
 2006-04-17  Kevin Ryde  <user42@zip.com.au>
 
 	* ice-9/readline.scm: Bump lib file version to libguilereadline-v-18,
