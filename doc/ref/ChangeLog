@@ -1,3 +1,12 @@
+2006-10-06  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scheme-using.texi (Using Guile in Emacs): Subnodes reordered,
+	from (Displaying the Scheme Stack, Continuing Execution,
+	Evaluating Scheme Code, Setting and Managing Breakpoints, Access
+	to Guile Help and Completion) to (Access to Guile Help and
+	Completion, Setting and Managing Breakpoints, Evaluating Scheme
+	Code, Displaying the Scheme Stack, Continuing Execution).
+
 2006-10-03  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* scheme-using.texi (GDS Getting Started): Editorial updates.

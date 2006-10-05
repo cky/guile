@@ -449,11 +449,11 @@ section.
 * GDS Introduction::
 * GDS Architecture::
 * GDS Getting Started::
+* Access to Guile Help and Completion::
+* Setting and Managing Breakpoints::
+* Evaluating Scheme Code::
 * Displaying the Scheme Stack::
 * Continuing Execution::
-* Evaluating Scheme Code::
-* Setting and Managing Breakpoints::
-* Access to Guile Help and Completion::
 * Associating Buffers with Clients::
 * An Example GDS Session::
 @end menu
@@ -819,6 +819,117 @@ stack, so the end result is very similar to what
 @code{on-lazy-handler-dispatch} provides.)
 
 
+@node Access to Guile Help and Completion
+@subsection Access to Guile Help and Completion
+
+The following keystrokes provide fast and convenient access to Guile's
+built in help, and to completion with respect to the set of defined and
+accessible symbols.
+
+@table @kbd
+@item C-h g
+@findex gds-help-symbol
+Get Guile help for a particular symbol, with the same results as if
+you had typed @code{(help SYMBOL)} into the Guile REPL
+(@code{gds-help-symbol}).  The symbol to query defaults to the word at
+or before the cursor but can also be entered or edited in the
+minibuffer.  The available help is popped up in a temporary Emacs
+window.
+
+@item C-h C-g
+@findex gds-apropos
+List all accessible Guile symbols matching a given regular expression,
+with the same results as if you had typed @code{(apropos REGEXP)} into
+the Guile REPL (@code{gds-apropos}).  The regexp to query defaults to
+the word at or before the cursor but can also be entered or edited in
+the minibuffer.  The list of matching symbols is popped up in a
+temporary Emacs window.
+
+@item M-@key{TAB}
+@findex gds-complete-symbol
+Try to complete the symbol at the cursor by matching it against the
+set of all defined and accessible bindings in the associated Guile
+process (@code{gds-complete-symbol}).  If there are any extra
+characters that can be definitively added to the symbol at point, they
+are inserted.  Otherwise, if there are any completions available, they
+are popped up in a temporary Emacs window, where one of them can be
+selected using either @kbd{@key{RET}} or the mouse.
+@end table
+
+
+@node Setting and Managing Breakpoints
+@subsection Setting and Managing Breakpoints
+
+You can create a breakpoint in GDS by typing @kbd{C-x @key{SPC}} in a
+Scheme mode buffer.  To create a breakpoint on calls to a procedure
+--- i.e. the equivalent of calling @code{break-in} --- place the
+cursor on the procedure's name and type @kbd{C-x @key{SPC}}.  To
+create breakpoints on a particular expression, or on the series of
+expressions in a particular region --- i.e. as with @code{break-at}
+--- select the expression or region in the usual way and type @kbd{C-x
+@key{SPC}}.  In general, GDS assumes that you want a @code{break-at}
+breakpoint if there is an active region, and a @code{break-in}
+breakpoint otherwise.
+
+When you create a breakpoint like this, two things happen.  Firstly,
+if the current buffer is associated with a Guile client program, the
+new breakpoint definition is immediately sent to that client (or, if
+the client cannot accept input immediately, it is held in readiness to
+pass to the client at the next possible opportunity).  This allows the
+new breakpoint to take effect as soon as possible in the relevant
+client program.
+
+Secondly, it is added to GDS's @emph{global} list of all breakpoints.
+This list holds the breakpoint information that will be given to any
+client program that asks for it by calling @code{set-gds-breakpoints}.
+The fact that this list is global, rather than client-specific, means
+that the breakpoints you have set will automatically be recreated if
+the program you are debugging has to be stopped and restarted ---
+which in my experience happens often.@footnote{An important point here
+is that there is nothing that unambiguously relates two subsequent
+runs of the same client program, which might allow GDS to pass on
+breakpoint settings more precisely.}
+
+(The only possible downside of this last point is that if you are
+debugging two programs in parallel, which have some code in common,
+you might not want a common code breakpoint in one program to be set
+in the other program as well.  But this feels like a small concern in
+comparison to the benefit of breakpoints persisting as just described.)
+
+
+@node Evaluating Scheme Code
+@subsection Evaluating Scheme Code
+
+The following keystrokes and commands provide various ways of sending
+code to a Guile client process for evaluation.
+
+@table @kbd
+@item M-C-x
+@findex gds-eval-defun
+Evaluate the ``top level defun'' that the cursor is in, in other words
+the smallest balanced expression which includes the cursor and whose
+opening parenthesis is in column 0 (@code{gds-eval-defun}).
+
+@item C-x C-e
+@findex gds-eval-last-sexp
+Evaluate the expression that ends just before the cursor
+(@code{gds-eval-last-sexp}).  This is designed so that it is easy to
+evaluate an expression that you have just finished typing.
+
+@item C-c C-e
+@findex gds-eval-expression
+Read a Scheme expression using the minibuffer, and evaluate that
+expression (@code{gds-eval-expression}).
+
+@item C-c C-r
+@findex gds-eval-region
+Evaluate the Scheme code in the marked region of the current buffer
+(@code{gds-eval-region}).  Note that GDS does not check whether the
+region contains a balanced expression, or try to expand the region so
+that it does; it uses the region exactly as it is.
+@end table
+
+
 @node Displaying the Scheme Stack
 @subsection Displaying the Scheme Stack
 
@@ -938,117 +1049,6 @@ frame completes, and then to display its result (@code{gds-step-over}).
 Note that the program may stop before then if it hits another trap; in
 this case the trap telling it to stop when the marked frame completes
 remains in place and so will still fire at the appropriate point.
-@end table
-
-
-@node Evaluating Scheme Code
-@subsection Evaluating Scheme Code
-
-The following keystrokes and commands provide various ways of sending
-code to a Guile client process for evaluation.
-
-@table @kbd
-@item M-C-x
-@findex gds-eval-defun
-Evaluate the ``top level defun'' that the cursor is in, in other words
-the smallest balanced expression which includes the cursor and whose
-opening parenthesis is in column 0 (@code{gds-eval-defun}).
-
-@item C-x C-e
-@findex gds-eval-last-sexp
-Evaluate the expression that ends just before the cursor
-(@code{gds-eval-last-sexp}).  This is designed so that it is easy to
-evaluate an expression that you have just finished typing.
-
-@item C-c C-e
-@findex gds-eval-expression
-Read a Scheme expression using the minibuffer, and evaluate that
-expression (@code{gds-eval-expression}).
-
-@item C-c C-r
-@findex gds-eval-region
-Evaluate the Scheme code in the marked region of the current buffer
-(@code{gds-eval-region}).  Note that GDS does not check whether the
-region contains a balanced expression, or try to expand the region so
-that it does; it uses the region exactly as it is.
-@end table
-
-
-@node Setting and Managing Breakpoints
-@subsection Setting and Managing Breakpoints
-
-You can create a breakpoint in GDS by typing @kbd{C-x @key{SPC}} in a
-Scheme mode buffer.  To create a breakpoint on calls to a procedure
---- i.e. the equivalent of calling @code{break-in} --- place the
-cursor on the procedure's name and type @kbd{C-x @key{SPC}}.  To
-create breakpoints on a particular expression, or on the series of
-expressions in a particular region --- i.e. as with @code{break-at}
---- select the expression or region in the usual way and type @kbd{C-x
-@key{SPC}}.  In general, GDS assumes that you want a @code{break-at}
-breakpoint if there is an active region, and a @code{break-in}
-breakpoint otherwise.
-
-When you create a breakpoint like this, two things happen.  Firstly,
-if the current buffer is associated with a Guile client program, the
-new breakpoint definition is immediately sent to that client (or, if
-the client cannot accept input immediately, it is held in readiness to
-pass to the client at the next possible opportunity).  This allows the
-new breakpoint to take effect as soon as possible in the relevant
-client program.
-
-Secondly, it is added to GDS's @emph{global} list of all breakpoints.
-This list holds the breakpoint information that will be given to any
-client program that asks for it by calling @code{set-gds-breakpoints}.
-The fact that this list is global, rather than client-specific, means
-that the breakpoints you have set will automatically be recreated if
-the program you are debugging has to be stopped and restarted ---
-which in my experience happens often.@footnote{An important point here
-is that there is nothing that unambiguously relates two subsequent
-runs of the same client program, which might allow GDS to pass on
-breakpoint settings more precisely.}
-
-(The only possible downside of this last point is that if you are
-debugging two programs in parallel, which have some code in common,
-you might not want a common code breakpoint in one program to be set
-in the other program as well.  But this feels like a small concern in
-comparison to the benefit of breakpoints persisting as just described.)
-
-
-@node Access to Guile Help and Completion
-@subsection Access to Guile Help and Completion
-
-The following keystrokes provide fast and convenient access to Guile's
-built in help, and to completion with respect to the set of defined and
-accessible symbols.
-
-@table @kbd
-@item C-h g
-@findex gds-help-symbol
-Get Guile help for a particular symbol, with the same results as if
-you had typed @code{(help SYMBOL)} into the Guile REPL
-(@code{gds-help-symbol}).  The symbol to query defaults to the word at
-or before the cursor but can also be entered or edited in the
-minibuffer.  The available help is popped up in a temporary Emacs
-window.
-
-@item C-h C-g
-@findex gds-apropos
-List all accessible Guile symbols matching a given regular expression,
-with the same results as if you had typed @code{(apropos REGEXP)} into
-the Guile REPL (@code{gds-apropos}).  The regexp to query defaults to
-the word at or before the cursor but can also be entered or edited in
-the minibuffer.  The list of matching symbols is popped up in a
-temporary Emacs window.
-
-@item M-@key{TAB}
-@findex gds-complete-symbol
-Try to complete the symbol at the cursor by matching it against the
-set of all defined and accessible bindings in the associated Guile
-process (@code{gds-complete-symbol}).  If there are any extra
-characters that can be definitively added to the symbol at point, they
-are inserted.  Otherwise, if there are any completions available, they
-are popped up in a temporary Emacs window, where one of them can be
-selected using either @kbd{@key{RET}} or the mouse.
 @end table
 
 
