@@ -824,7 +824,7 @@ stack, so the end result is very similar to what
 
 The following keystrokes provide fast and convenient access to Guile's
 built in help, and to completion with respect to the set of defined and
-accessible symbols.
+accessible symbols.  They are defined in all @code{scheme-mode} buffers.
 
 @table @kbd
 @item C-h g
@@ -861,15 +861,34 @@ selected using either @kbd{@key{RET}} or the mouse.
 @subsection Setting and Managing Breakpoints
 
 You can create a breakpoint in GDS by typing @kbd{C-x @key{SPC}} in a
-Scheme mode buffer.  To create a breakpoint on calls to a procedure
---- i.e. the equivalent of calling @code{break-in} --- place the
-cursor on the procedure's name and type @kbd{C-x @key{SPC}}.  To
-create breakpoints on a particular expression, or on the series of
-expressions in a particular region --- i.e. as with @code{break-at}
---- select the expression or region in the usual way and type @kbd{C-x
-@key{SPC}}.  In general, GDS assumes that you want a @code{break-at}
-breakpoint if there is an active region, and a @code{break-in}
-breakpoint otherwise.
+Scheme mode buffer.  To create a breakpoint on calls to a procedure ---
+i.e. the equivalent of calling @code{break-in} --- place the cursor
+anywhere within the procedure's definition, make sure that the region is
+unset, and type @kbd{C-x @key{SPC}}.  To create breakpoints on a
+particular expression, or on the series of expressions in a particular
+region --- i.e. as with @code{break-at} --- select a region containing
+the open parentheses of the expressions where you want breakpoints, and
+type @kbd{C-x @key{SPC}}.  In other words, GDS assumes that you want a
+@code{break-at} breakpoint if there is an active region, and a
+@code{break-in} breakpoint otherwise.
+
+There are three supported breakpoint behaviours, known as @code{debug},
+@code{trace} and @code{trace-subtree}.  @code{debug} means that GDS will
+display the stack and wait for instruction when the breakpoint is hit.
+@code{trace} means that a line will be written to the trace output
+buffer (@code{*GDS Trace*}) when the breakpoint is hit, and when the
+relevant expression or procedure call returns.  @code{trace-subtree}
+means that a line is written to the trace output buffer for every
+evaluation step between when the breakpoint is hit and when the
+expression or procedure returns.
+
+@kbd{C-x @key{SPC}} creates a breakpoint with behaviour according to the
+@code{gds-default-breakpoint-type} variable, which by default is
+@code{debug}; you can customize this if you prefer a different default.
+You can also create a breakpoint with behaviour other than the current
+default by using the alternative key sequences @kbd{C-c C-b d} (for
+@code{debug}), @kbd{C-c C-b t} (@code{trace}) and @kbd{C-c C-b T}
+(@code{trace-subtree}).
 
 When you create a breakpoint like this, two things happen.  Firstly,
 if the current buffer is associated with a Guile client program, the
@@ -883,12 +902,11 @@ Secondly, it is added to GDS's @emph{global} list of all breakpoints.
 This list holds the breakpoint information that will be given to any
 client program that asks for it by calling @code{set-gds-breakpoints}.
 The fact that this list is global, rather than client-specific, means
-that the breakpoints you have set will automatically be recreated if
-the program you are debugging has to be stopped and restarted ---
-which in my experience happens often.@footnote{An important point here
-is that there is nothing that unambiguously relates two subsequent
-runs of the same client program, which might allow GDS to pass on
-breakpoint settings more precisely.}
+that the breakpoints you have set will automatically be recreated if the
+program you are debugging has to be stopped and restarted.@footnote{An
+important point here is that there is nothing that unambiguously relates
+two subsequent runs of the same client program, which might allow GDS to
+pass on breakpoint settings more precisely.}
 
 (The only possible downside of this last point is that if you are
 debugging two programs in parallel, which have some code in common,

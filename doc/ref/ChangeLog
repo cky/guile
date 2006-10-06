@@ -6,6 +6,10 @@
 	to Guile Help and Completion) to (Access to Guile Help and
 	Completion, Setting and Managing Breakpoints, Evaluating Scheme
 	Code, Displaying the Scheme Stack, Continuing Execution).
+	(Access to Guile Help and Completion): Mention where keys are
+	defined.
+	(Setting and Managing Breakpoints): Update text on how to set
+	breakpoints.
 
 2006-10-03  Neil Jerram  <neil@ossau.uklinux.net>
 
