@@ -449,9 +449,7 @@ section.
 * GDS Introduction::
 * GDS Architecture::
 * GDS Getting Started::
-* Access to Guile Help and Completion::
-* Setting and Managing Breakpoints::
-* Evaluating Scheme Code::
+* Working with GDS in Scheme Buffers::
 * Displaying the Scheme Stack::
 * Continuing Execution::
 * Associating Buffers with Clients::
@@ -819,12 +817,25 @@ stack, so the end result is very similar to what
 @code{on-lazy-handler-dispatch} provides.)
 
 
+@node Working with GDS in Scheme Buffers
+@subsection Working with GDS in Scheme Buffers
+
+The following subsections describe the facilities and key sequences that
+GDS provides for working on code in @code{scheme-mode} buffers.
+
+@menu
+* Access to Guile Help and Completion::
+* Setting and Managing Breakpoints::
+* Evaluating Scheme Code::
+@end menu
+
+
 @node Access to Guile Help and Completion
-@subsection Access to Guile Help and Completion
+@subsubsection Access to Guile Help and Completion
 
 The following keystrokes provide fast and convenient access to Guile's
 built in help, and to completion with respect to the set of defined and
-accessible symbols.  They are defined in all @code{scheme-mode} buffers.
+accessible symbols.
 
 @table @kbd
 @item C-h g
@@ -858,7 +869,7 @@ selected using either @kbd{@key{RET}} or the mouse.
 
 
 @node Setting and Managing Breakpoints
-@subsection Setting and Managing Breakpoints
+@subsubsection Setting and Managing Breakpoints
 
 You can create a breakpoint in GDS by typing @kbd{C-x @key{SPC}} in a
 Scheme mode buffer.  To create a breakpoint on calls to a procedure ---
@@ -887,8 +898,8 @@ expression or procedure returns.
 @code{debug}; you can customize this if you prefer a different default.
 You can also create a breakpoint with behaviour other than the current
 default by using the alternative key sequences @kbd{C-c C-b d} (for
-@code{debug}), @kbd{C-c C-b t} (@code{trace}) and @kbd{C-c C-b T}
-(@code{trace-subtree}).
+@code{debug}), @kbd{C-c C-b t} (for @code{trace}) and @kbd{C-c C-b T}
+(for @code{trace-subtree}).
 
 When you create a breakpoint like this, two things happen.  Firstly,
 if the current buffer is associated with a Guile client program, the
@@ -916,7 +927,7 @@ comparison to the benefit of breakpoints persisting as just described.)
 
 
 @node Evaluating Scheme Code
-@subsection Evaluating Scheme Code
+@subsubsection Evaluating Scheme Code
 
 The following keystrokes and commands provide various ways of sending
 code to a Guile client process for evaluation.
