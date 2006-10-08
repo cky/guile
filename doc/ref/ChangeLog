@@ -3,6 +3,7 @@
 	* scheme-using.texi (Working with GDS in Scheme Buffers): New
 	subsection, to group (Access to Guile Help and Completion, Setting
 	and Managing Breakpoints, Evaluating Scheme Code) together.
+	(GDS Getting Started): Editorial updates.
 
 2006-10-06  Neil Jerram  <neil@ossau.uklinux.net>
 

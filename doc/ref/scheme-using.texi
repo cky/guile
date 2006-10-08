@@ -708,11 +708,11 @@ where @code{key} and @code{args} are the first and rest arguments that
 Guile passes to the handler.  (In other words, they assume the handler
 signature @code{(lambda (key . args) @dots{})}.)  With Guile 1.8 or
 later, you can also do this with a @code{catch}, by adding this same
-code to the catch's optional pre-unwind handler.
+code to the catch's pre-unwind handler.
 
 If you don't already have any of these, insert a whole
-@code{with-throw-handler} expression around the code of interest like
-this:
+@code{with-throw-handler} expression (or @code{lazy-catch} if your Guile
+is pre-1.8) around the code of interest like this:
 
 @lisp
 (with-throw-handler #t
@@ -730,9 +730,10 @@ Two special cases of this are the lazy-catch that the Guile REPL code
 uses to catch exceptions in user code, and the lazy-catch inside the
 @code{stack-catch} utility procedure that is provided by the
 @code{(ice-9 stack-catch)} module.  Both of these use a handler called
-@code{lazy-handler-dispatch}, which you can modify automatically so that
-it calls GDS to display the stack when an exception occurs.  To do this,
-use the @code{on-lazy-handler-dispatch} procedure as follows.
+@code{lazy-handler-dispatch} (defined in @file{boot-9.scm}), which you
+can hook into such that it calls GDS to display the stack when an
+exception occurs.  To do this, use the @code{on-lazy-handler-dispatch}
+procedure as follows.
 
 @lisp
 (use-modules (ice-9 gds-client)
@@ -744,7 +745,7 @@ use the @code{on-lazy-handler-dispatch} procedure as follows.
 @noindent
 After this the program will use GDS to display the stack whenever it
 hits an exception that is protected by a @code{lazy-catch} using
-@code{lazy-catch-handler} (defined in @file{boot-9.scm}).
+@code{lazy-handler-dispatch}.
 
 @subsubsection Accepting GDS Instructions at Any Time
 
