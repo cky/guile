@@ -18,6 +18,19 @@
 	(Setting and Managing Breakpoints): Update text on how to set
 	breakpoints.
 
+2006-10-05  Kevin Ryde  <user42@zip.com.au>
+
+	* misc-modules.texi (File Tree Walk): Corrections to BASE parameter
+	and symlink vs stale-symlink types in nftw.
+	* misc-modules.texi, guile.texi (Buffered Input): New section,
+	describing (ice-9 buffered-input).
+
+	* posix.texi (User Information): Clarify getpwent returns #f at end of
+	file.
+
+	* repl-modules.texi (Readline Functions): New section on how to call
+	readline from scheme code.
+
 2006-10-03  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* scheme-using.texi (GDS Getting Started): Editorial updates.
@@ -39,6 +52,12 @@
 	(GDS Getting Started, How to Use GDS): Merged; editorial updates;
 	subsections reordered.
 
+2006-09-26  Kevin Ryde  <user42@zip.com.au>
+
+	* api-io.texi (Random Access): In truncate-file, tweak wording for
+	clarity, note cannot always extend file this way.
+	(Ports): File access uses LFS.
+
 2006-09-25  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* scheme-using.texi (Error Handling, Interactive Debugger): Minor
@@ -51,10 +70,30 @@
 	minor improvements.  Removed doc for `trace-finish', which no
 	longer exists.
 
+2006-09-22  Kevin Ryde  <user42@zip.com.au>
+
+	* api-data.texi (Scientific): In sqrt, note it's the positive root
+	which is returned (as per R5RS).
+
 2006-09-20  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
 	* api-data.texi (Standard Character Sets): Documented the
 	charset recomputation upon successful `setlocale'.
+
+2006-09-08  Kevin Ryde  <user42@zip.com.au>
+
+	* misc-modules.texi (Formatted Output): Show ":@" rather than "@:",
+	because ":@" is traditional common lisp, though either way works.
+	Break a couple of example lines to avoid overflowing DVI page width.
+
+	* scheme-debugging.texi (Debug Last Error): Line break in "Type
+	(backtrace) to get ..." which overflowed the line in both info and
+	DVI.  Reported by Percy Tiglao.
+
+2006-09-05  Kevin Ryde  <user42@zip.com.au>
+
+	* posix.texi (Network Sockets and Communication): Tweak description,
+	note not multi-threading.
 
 2006-09-04  Neil Jerram  <neil@ossau.uklinux.net>
 
@@ -68,6 +107,11 @@
 
 	* api-debug.texi (Debug on Error): Added paragraph on need to use
 	debugging evaluator.  Added text on what the Guile REPL code does.
+
+2006-08-29  Kevin Ryde  <user42@zip.com.au>
+
+	* api-control.texi (Dynamic Wind): Reformat example a bit to avoid
+	going off the right edge of the paper.  Reported by Percy Tiglao.
 
 2006-08-28  Neil Jerram  <neil@ossau.uklinux.net>
 
@@ -86,6 +130,11 @@
 	available Emacs libraries.
 	(GDS Introduction): New node, containing GDS-specific introductory
 	text.
+
+2006-08-22  Kevin Ryde  <user42@zip.com.au>
+
+	* api-i18n.texi (Internationalization): Cross reference gettext manual
+	on plural forms.
 
 2006-08-18  Neil Jerram  <neil@ossau.uklinux.net>
 
@@ -141,6 +190,17 @@
 
 	* Makefile.am (guile_TEXINFOS): Include new scheme-using.texi
 	file.
+
+2006-07-24  Kevin Ryde  <user42@zip.com.au>
+
+	* api-evaluation.texi (Fly Evaluation): Add scm_c_eval_string.
+	(Loading): Add scm_c_primitive_load.
+	Reported by Jon Wilson.
+	
+2006-06-25  Kevin Ryde  <user42@zip.com.au>
+
+	* posix.texi (Time): In tm:gmtoff, give example values, note not the
+	same as C tm_gmtoff.
 
 2006-06-16  Ludovic Courtès  <ludovic.courtes@laas.fr>
 

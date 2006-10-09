@@ -1234,28 +1234,29 @@ non-locally, @var{out_guard} is called.  If the dynamic extent of
 the dynamic-wind is re-entered, @var{in_guard} is called.  Thus
 @var{in_guard} and @var{out_guard} may be called any number of
 times.
+
 @lisp
 (define x 'normal-binding)
 @result{} x
-(define a-cont  (call-with-current-continuation
-                  (lambda (escape)
-                     (let ((old-x x))
-                       (dynamic-wind
-                          ;; in-guard:
-                          ;;
-                          (lambda () (set! x 'special-binding))
+(define a-cont
+  (call-with-current-continuation
+   (lambda (escape)
+     (let ((old-x x))
+       (dynamic-wind
+           ;; in-guard:
+           ;;
+           (lambda () (set! x 'special-binding))
 
-                          ;; thunk
-                          ;;
-                          (lambda () (display x) (newline)
-                                     (call-with-current-continuation escape)
-                                     (display x) (newline)
-                                     x)
+           ;; thunk
+           ;;
+           (lambda () (display x) (newline)
+                      (call-with-current-continuation escape)
+                      (display x) (newline)
+                      x)
 
-                          ;; out-guard:
-                          ;;
-                          (lambda () (set! x old-x)))))))
-
+           ;; out-guard:
+           ;;
+           (lambda () (set! x old-x)))))))
 ;; Prints:
 special-binding
 ;; Evaluates to:

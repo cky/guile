@@ -85,7 +85,8 @@ example,
 It's important to use @code{ngettext} rather than plain @code{gettext}
 for plurals, since the rules for singular and plural forms in English
 are not the same in other languages.  Only @code{ngettext} will allow
-translators to give correct forms.
+translators to give correct forms (@pxref{Plural forms,, Additional
+functions for plural forms, gettext, GNU @code{gettext} utilities}).
 @end deffn
 
 @deffn {Scheme Procedure} textdomain [domain]

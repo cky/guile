@@ -64,6 +64,10 @@ rely on that to keep it away from system limits.  An explicit call to
 If program flow makes it hard to be certain when to close then this
 may be an acceptable way to control resource usage.
 
+All file access uses the ``LFS'' large file support functions when
+available, so files bigger than 2 Gbytes (@math{2^31} bytes) can be
+read and written on a 32-bit system.
+
 @rnindex input-port?
 @deffn {Scheme Procedure} input-port? x
 @deffnx {C Function} scm_input_port_p (x)
@@ -390,14 +394,18 @@ Return an integer representing the current position of
 
 @findex truncate
 @findex ftruncate
-@deffn {Scheme Procedure} truncate-file object [length]
-@deffnx {C Function} scm_truncate_file (object, length)
-Truncates the object referred to by @var{object} to at most
-@var{length} bytes.  @var{object} can be a string containing a
-file name or an integer file descriptor or a port.
-@var{length} may be omitted if @var{object} is not a file name,
-in which case the truncation occurs at the current port
-position.  The return value is unspecified.
+@deffn {Scheme Procedure} truncate-file file [length]
+@deffnx {C Function} scm_truncate_file (file, length)
+Truncate @var{file} to @var{length} bytes.  @var{file} can be a
+filename string, a port object, or an integer file descriptor.  The
+return value is unspecified.
+
+For a port or file descriptor @var{length} can be omitted, in which
+case the file is truncated at the current position (per @code{ftell}
+above).
+
+On most systems a file can be extended by giving a length greater than
+the current size, but this is not mandatory in the POSIX standard.
 @end deffn
 
 @node Line/Delimited

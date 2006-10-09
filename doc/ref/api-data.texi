@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2006
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -1214,7 +1214,16 @@ including complex numbers.
 @rnindex sqrt
 @c begin (texi-doc-string "guile" "sqrt")
 @deffn {Scheme Procedure} sqrt z
-Return the square root of @var{z}.
+Return the square root of @var{z}.  Of the two possible roots
+(positive and negative), the one with the a positive real part is
+returned, or if that's zero then a positive imaginary part.  Thus,
+
+@example
+(sqrt 9.0)       @result{} 3.0
+(sqrt -9.0)      @result{} 0.0+3.0i
+(sqrt 1.0+1.0i)  @result{} 1.09868411346781+0.455089860562227i
+(sqrt -1.0-1.0i) @result{} 0.455089860562227-1.09868411346781i
+@end example
 @end deffn
 
 @rnindex expt

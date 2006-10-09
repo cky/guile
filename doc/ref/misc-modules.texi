@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2006
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -270,13 +270,13 @@ With no parameters output is in words as a cardinal like ``ten'', or
 @end example
 
 And also with no parameters, @nicode{~@@r} gives roman numerals and
-@nicode{~@@:r} gives old roman numerals.  In old roman numerals
+@nicode{~:@@r} gives old roman numerals.  In old roman numerals
 there's no ``subtraction'', so 9 is @nicode{VIIII} instead of
 @nicode{IX}.  In both cases only positive numbers can be output.
 
 @example
 (format #t "~@@r" 89)  @print{} LXXXIX     ;; roman
-(format #t "~@@:r" 89) @print{} LXXXVIIII  ;; old roman
+(format #t "~:@@r" 89) @print{} LXXXVIIII  ;; old roman
 @end example
 
 When a parameter is given it means numeric output in the specified
@@ -507,7 +507,7 @@ puts the padding after the sign.
 @example
 (format #f "~,,8$" -1.5)   @result{} "   -1.50"
 (format #f "~,,8:$" -1.5)  @result{} "-   1.50"
-(format #f "~,,8,'.@@:$" 3) @result{} "+...3.00"
+(format #f "~,,8,'.:@@$" 3) @result{} "+...3.00"
 @end example
 
 Note that floating point for dollar amounts is generally not a good
@@ -567,7 +567,7 @@ one, which can be convenient when printing some sort of count.
 
 @example
 (format #t "~d cat~:p" 9)   @print{} 9 cats
-(format #t "~d pupp~@@:p" 5) @print{} 5 puppies
+(format #t "~d pupp~:@@p" 5) @print{} 5 puppies
 @end example
 
 @nicode{~p} is designed for English plurals and there's no attempt to
@@ -777,14 +777,14 @@ The modifiers on @nicode{~(} control the conversion.
 @c  rest lower case.
 @c
 @item
-@nicode{~@@:(} --- upper case.
+@nicode{~:@@(} --- upper case.
 @end itemize
 
 For example,
 
 @example
 (format #t "~(Hello~)")   @print{} hello
-(format #t "~@@:(Hello~)") @print{} HELLO
+(format #t "~:@@(Hello~)") @print{} HELLO
 @end example
 
 In the future it's intended the modifiers @nicode{:} and @nicode{@@}
@@ -813,8 +813,10 @@ elements from it.  This is a convenient way to output a whole list.
 @nicode{~:@{} takes a single argument which is a list of lists, each
 of those contained lists gives the arguments for the iterated format.
 
+@c  @print{} on a new line here to avoid overflowing page width in DVI
 @example
-(format #t "~:@{~dx~d ~@}" '((1 2) (3 4) (5 6))) @print{} 1x2 3x4 5x6
+(format #t "~:@{~dx~d ~@}" '((1 2) (3 4) (5 6)))
+@print{} 1x2 3x4 5x6
 @end example
 
 @nicode{~@@@{} takes arguments directly, with each iteration
@@ -825,11 +827,13 @@ successively consuming arguments.
 (format #t "~@@@{~s=~d ~@}" "x" 1 "y" 2) @print{} "x"=1 "y"=2
 @end example
 
-@nicode{~@@:@{} takes list arguments, one argument for each iteration,
+@nicode{~:@@@{} takes list arguments, one argument for each iteration,
 using that list for the format.
 
+@c  @print{} on a new line here to avoid overflowing page width in DVI
 @example
-(format #t "~@@:@{~dx~d ~@}" '(1 2) '(3 4) '(5 6)) @print{} 1x2 3x4 5x6
+(format #t "~:@@@{~dx~d ~@}" '(1 2) '(3 4) '(5 6))
+@print{} 1x2 3x4 5x6
 @end example
 
 Iterating stops when there are no more arguments or when the
@@ -1094,27 +1098,28 @@ Walk the filesystem tree starting at @var{startname}, calling
 @var{proc} for each file and directory.  @code{nftw} has extra
 features over the basic @code{ftw} described above.
 
-Hard links and symbolic links are followed, but a file or directory is
-reported to @var{proc} only once, and skipped if seen again in another
-place.  One consequence of this is that @code{nftw} is safe against
-circular linked directory structures.
+Like @code{ftw}, hard links and symbolic links are followed.  A file
+or directory is reported to @var{proc} only once, and skipped if seen
+again in another place.  One consequence of this is that @code{nftw}
+is safe against circular linked directory structures.
 
 Each @var{proc} call is @code{(@var{proc} filename statinfo flag
-basename level)} and it should return @code{#t} to continue, or any
+base level)} and it should return @code{#t} to continue, or any
 other value to stop.
 
 @var{filename} is the item visited, being @var{startname} plus a
 further path and the name of the item.  @var{statinfo} is the return
-from @code{stat} on @var{filename} (@pxref{File System}).
-@var{basename} it the item name without any path.  @var{level} is an
-integer giving the directory nesting level, starting from 0 for the
-contents of @var{startname} (or that item itself if it's a file).
-@var{flag} is one of the following symbols,
+from @code{stat} on @var{filename} (@pxref{File System}).  @var{base}
+is an integer offset into @var{filename} which is where the basename
+for this item begins.  @var{level} is an integer giving the directory
+nesting level, starting from 0 for the contents of @var{startname} (or
+that item itself if it's a file).  @var{flag} is one of the following
+symbols,
 
 @table @code
 @item regular
-@var{filename} is a file, this includes special files like devices,
-named pipes, etc.
+@var{filename} is a file, including special files like devices, named
+pipes, etc.
 
 @item directory
 @var{filename} is a directory.
@@ -1132,19 +1137,15 @@ nothing is known about it.  @var{statinfo} is @code{#f} in this case.
 @var{filename} is a directory, but one which cannot be read and hence
 won't be recursed into.
 
-@item symlink
-@var{filename} is a dangling symbolic link.  Symbolic links are
-normally followed and their target reported, the link itself is
-reported if the target does not exist.
-
-Under the @code{physical} option described below, @code{symlink} is
-instead given for symbolic links whose target does exist.
-
 @item stale-symlink
-Under the @code{physical} option described below, this indicates
-@var{filename} is a dangling symbolic link, meaning its target does
-not exist.  Without the @code{physical} option plain @code{symlink}
-indicates this.
+@var{filename} is a dangling symbolic link.  Links are normally
+followed and their target reported, the link itself is reported if its
+target does not exist.
+
+@item symlink
+When the @code{physical} option described below is used, this
+indicates @var{filename} is a symbolic link whose target exists (and
+is not being followed).
 @end table
 
 The following optional arguments can be given to modify the way
@@ -1156,10 +1157,11 @@ takes a following integer value).
 Change to the directory containing the item before calling @var{proc}.
 When @code{nftw} returns the original current directory is restored.
 
-Under this option, generally the @var{basename} parameter should be
-used to access the item in each @var{proc} call.  The @var{filename}
-parameter still has a path as normal and this will only be valid if
-the @var{startname} directory was absolute.
+Under this option, generally the @var{base} parameter to each
+@var{proc} call should be used to pick out the base part of the
+@var{filename}.  The @var{filename} is still a path but with a changed
+directory it won't be valid (unless the @var{startname} directory was
+absolute).
 
 @item @code{depth}
 Visit files ``depth first'', meaning @var{proc} is called for the
@@ -1175,11 +1177,12 @@ Set the size of the hash table used to track items already visited.
 
 @item @code{mount}
 Don't cross a mount point, meaning only visit items on the same
-filesystem as @var{startname}.  (Ie.@: the same @code{stat:dev}.)
+filesystem as @var{startname} (ie.@: the same @code{stat:dev}).
 
 @item @code{physical}
 Don't follow symbolic links, instead report them to @var{proc} as
-@code{symlink}, and report dangling links as @code{stale-symlink}.
+@code{symlink}.  Dangling links (those whose target doesn't exist) are
+still reported as @code{stale-symlink}.
 @end table
 
 The return value from @code{nftw} is @code{#t} if it ran to
@@ -1458,6 +1461,69 @@ elements of the given @var{stream}s.
 Each call is @code{(@var{proc} elem0 @dots{} elemN)}, where each
 @var{elem} is from the corresponding @var{stream}.  The new stream
 ends when the end of the shortest given @var{stream} is reached.
+@end defun
+
+
+@node Buffered Input
+@section Buffered Input
+@cindex Buffered input
+@cindex Line continuation
+
+The following functions are provided by
+
+@example
+(use-modules (ice-9 buffered-input))
+@end example
+
+A buffered input port allows a reader function to return chunks of
+characters which are to be handed out on reading the port.  A notion
+of further input for an application level logical expression is
+maintained too, and passed through to the reader.
+
+@defun make-buffered-input-port reader
+Create an input port which returns characters obtained from the given
+@var{reader} function.  @var{reader} is called (@var{reader} cont),
+and should return a string or an EOF object.
+
+The new port gives precisely the characters returned by @var{reader},
+nothing is added, so if any newline characters or other separators are
+desired they must come from the reader function.
+
+The @var{cont} parameter to @var{reader} is @code{#f} for initial
+input, or @code{#t} when continuing an expression.  This is an
+application level notion, set with
+@code{set-buffered-input-continuation?!} below.  If the user has
+entered a partial expression then it allows @var{reader} for instance
+to give a different prompt to show more is required.
+@end defun
+
+@defun make-line-buffered-input-port reader
+@cindex Line buffered input
+Create an input port which returns characters obtained from the
+specified @var{reader} function, similar to
+@code{make-buffered-input-port} above, but where @var{reader} is
+expected to be a line-oriented.
+
+@var{reader} is called (@var{reader} cont), and should return a string
+or an EOF object as above.  Each string is a line of input without a
+newline character, the port code inserts a newline after each string.
+@end defun
+
+@defun set-buffered-input-continuation?! port cont
+Set the input continuation flag for a given buffered input
+@var{port}.
+
+An application uses this by calling with a @var{cont} flag of
+@code{#f} when beginning to read a new logical expression.  For
+example with the Scheme @code{read} function (@pxref{Scheme Read}),
+
+@example
+(define my-port (make-buffered-input-port my-reader))
+
+(set-buffered-input-continuation?! my-port #f)
+(let ((obj (read my-port)))
+  ...
+@end example
 @end defun
 
 

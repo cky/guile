@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2006
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -357,6 +357,11 @@ While the code is evaluated, the given module is made the current one.
 The current module is restored when this procedure returns.
 @end deffn
 
+@deftypefn {C Function} SCM scm_c_eval_string (const char *string)
+@code{scm_eval_string}, but taking a C string instead of an
+@code{SCM}.
+@end deftypefn
+
 @deffn {Scheme Procedure} apply proc arg1 @dots{} argN arglst
 @deffnx {C Function} scm_apply_0 (proc, arglst)
 @deffnx {C Function} scm_apply_1 (proc, arg1, arglst)
@@ -445,6 +450,11 @@ relative to the current directory.  If the  variable
 that will be called before any code is loaded.  See the
 documentation for @code{%load-hook} later in this section.
 @end deffn
+
+@deftypefn {C Function} SCM scm_c_primitive_load (const char *filename)
+@code{scm_primitive_load}, but taking a C string instead of an
+@code{SCM}.
+@end deftypefn
 
 @deffn {Scheme Procedure} primitive-load-path filename
 @deffnx {C Function} scm_primitive_load_path (filename)

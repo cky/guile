@@ -1008,8 +1008,8 @@ return value is unspecified.
 @end deffn
 
 @deffn {Scheme Procedure} getpwent
-Return the next entry in the user database, using the stream set by
-@code{setpwent}.
+Read the next entry in the user database stream.  The return is a
+passwd user object as above, or @code{#f} when no more entries.
 @end deffn
 
 @deffn {Scheme Procedure} endpwent
@@ -1170,6 +1170,13 @@ Daylight saving indicator (0 for ``no'', greater than 0 for ``yes'', less than
 @deffn {Scheme Procedure} tm:gmtoff tm
 @deffnx {Scheme Procedure} set-tm:gmtoff tm val
 Time zone offset in seconds west of @acronym{UTC} (-46800 to 43200).
+For example on East coast USA (zone @samp{EST+5}) this would be 18000
+(ie.@: @m{5\times60\times60,5*60*60}) in winter, or 14400
+(ie.@: @m{4\times60\times60,4*60*60}) during daylight savings.
+
+Note @code{tm:gmtoff} is not the same as @code{tm_gmtoff} in the C
+@code{tm} structure.  @code{tm_gmtoff} is seconds east and hence the
+negative of the value here.
 @end deffn
 @deffn {Scheme Procedure} tm:zone tm
 @deffnx {Scheme Procedure} set-tm:zone tm val
@@ -2909,32 +2916,37 @@ any unflushed buffered port data is ignored.
 
 @deffn {Scheme Procedure} recvfrom! sock str [flags [start [end]]]
 @deffnx {C Function} scm_recvfrom (sock, str, flags, start, end)
-Return data from the socket port @var{sock} and also
-information about where the data was received from.
-@var{sock} must already be bound to the address from which
-data is to be received.  @code{str}, is a string into which the
-data will be written.  The size of @var{str} limits the amount
-of data which can be received: in the case of packet protocols,
-if a packet larger than this limit is encountered then some
-data will be irrevocably lost.
+Receive data from socket port @var{sock}, returning the originating
+address as well as the data.  This function is usually for datagram
+sockets, but can be used on stream-oriented sockets too.
+
+The data received is stored in the given @var{str}, the whole string
+or just the region between the optional @var{start} and @var{end}
+positions.  The size of @var{str} limits the amount of data which can
+be received.  For datagram protocols if a packet larger than this is
+received then excess bytes are irrevocably lost.
+
+The return value is a pair.  The @code{car} is the number of bytes
+read.  The @code{cdr} is a socket address object (@pxref{Network
+Socket Address}) which is where the data came from, or @code{#f} if
+the origin is unknown.
 
 @vindex MSG_OOB
 @vindex MSG_PEEK
 @vindex MSG_DONTROUTE
-The optional @var{flags} argument is a value or bitwise OR of
-@code{MSG_OOB}, @code{MSG_PEEK}, @code{MSG_DONTROUTE} etc.
+The optional @var{flags} argument is a or bitwise-OR (@code{logior})
+of @code{MSG_OOB}, @code{MSG_PEEK}, @code{MSG_DONTROUTE} etc.
 
-The value returned is a pair: the @acronym{CAR} is the number of
-bytes read from the socket and the @acronym{CDR} an address object
-in the same form as returned by @code{accept}.  The address
-will given as @code{#f} if not available, as is usually the
-case for stream sockets.
+Data is read directly from the socket file descriptor, any buffered
+port data is ignored.
 
-The @var{start} and @var{end} arguments specify a substring of
-@var{str} to which the data should be written.
-
-Note that the data is read directly from the socket file
-descriptor: any unread buffered port data is ignored.
+@c  This was linux kernel 2.6.15 and glibc 2.3.6, not sure what any
+@c  specs are supposed to say about recvfrom threading.
+@c
+On a GNU/Linux system @code{recvfrom!} is not multi-threading, all
+threads stop while a @code{recvfrom!} call is in progress.  An
+application may need to use @code{select}, @code{O_NONBLOCK} or
+@code{MSG_DONTWAIT} to avoid this.
 @end deffn
 
 @deffn {Scheme Procedure} sendto sock message sockaddr [flags]

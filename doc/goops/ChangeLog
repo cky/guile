@@ -1,4 +1,4 @@
-2006-09-27  Neil Jerram  <neil@ossau.uklinux.net>
+2006-09-28  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* goops.texi (Slot Options): Added example from Ludovic Courtès
 	about difference between init-value, -form and -thunk.
