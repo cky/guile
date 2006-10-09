@@ -378,6 +378,10 @@ main (int argc, char *argv[])
   pf ("#define SCM_USE_NULL_THREADS %d /* 0 or 1 */\n",
       SCM_I_GSC_USE_NULL_THREADS);
 
+  pf ("/* Define to 1 if need braces around PTHREAD_ONCE_INIT (for Solaris). */\n");
+  pf ("#define SCM_NEED_BRACES_ON_PTHREAD_ONCE_INIT %d /* 0 or 1 */\n",
+      SCM_I_GSC_NEED_BRACES_ON_PTHREAD_ONCE_INIT);
+
 #if USE_DLL_IMPORT
   pf ("\n");
   pf ("/* Define some additional CPP macros on Win32 platforms. */\n");

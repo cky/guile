@@ -18,8 +18,10 @@
 ;;;; the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;;;; Boston, MA 02110-1301 USA
 
-(use-modules (test-suite lib)
-	     (ice-9 format))
+(define-module (test-format)
+  #:use-module (test-suite lib)
+  #:use-module (ice-9 format))
+
 
 ;;; FORMAT Basic Output
 
@@ -71,6 +73,20 @@
 
     (pass-if "+1"
       (string=? (format #f "~@d" 1) "+1"))))
+
+;;;
+;;; ~f
+;;;
+
+(with-test-prefix "~f fixed-point"
+
+  (pass-if "1.5"
+    (string=? "1.5" (format #f "~f" 1.5)))
+  
+  ;; in guile prior to 1.6.9 and 1.8.1, leading zeros were incorrectly
+  ;; stripped, moving the decimal point and giving "25.0" here
+  (pass-if "string 02.5"
+    (string=? "2.5" (format #f "~f" "02.5"))))
 
 ;;;
 ;;; ~{

@@ -113,10 +113,15 @@ test_scm_c_round ()
     }
 }
 
+static void
+tests (void *data, int argc, char **argv)
+{
+  test_scm_c_round ();
+}
+
 int
 main (int argc, char *argv[])
 {
-  scm_init_guile();
-  test_scm_c_round ();
+  scm_boot_guile (argc, argv, tests, NULL);
   return 0;
 }

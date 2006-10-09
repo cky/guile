@@ -32,15 +32,9 @@
 	      (pass-if (list "in another thread after error" t)
 		(or (provided? 'threads) (throw 'unsupported))
 
-		;; actually this test is perfectly good, but the "internal
-		;; define - missing body expression" in syntax.test somehow
-		;; ends up leaving SCM_DEFER_INTS, making the test here hang
-		;;
-		(throw 'unresolved)
-
 		(alarm 5)
 		(false-if-exception (gmtime t))
-		(thread-join (begin-thread (catch 'out-of-range
+		(join-thread (begin-thread (catch 'out-of-range
 						  (lambda () (gmtime t))
 						  (lambda args #f))))
 		(alarm 0)
@@ -74,30 +68,186 @@
 	    (* 2 internal-time-units-per-second))))))
 
 ;;;
+;;; localtime
+;;;
+
+(with-test-prefix "localtime"
+
+  ;; gmtoff is calculated with some explicit code, try to exercise that
+  ;; here, looking at cases where the localtime and gmtime are within the same
+  ;; day, or crossing midnight, or crossing new year
+
+  (pass-if "gmtoff of EST+5 at GMT 10:00am on 10 Jan 2000"
+    (let ((tm (gmtime 0)))
+      (set-tm:hour tm 10)
+      (set-tm:mday tm 10)
+      (set-tm:mon  tm 0)
+      (set-tm:year tm 100)
+      (let* ((t  (car (mktime tm "GMT")))
+	     (tm (localtime t "EST+5")))
+	(eqv? (* 5 3600) (tm:gmtoff tm)))))
+
+  ;; crossing forward over day boundary
+  (pass-if "gmtoff of EST+5 at GMT 3am on 10 Jan 2000"
+    (let ((tm (gmtime 0)))
+      (set-tm:hour tm 3)
+      (set-tm:mday tm 10)
+      (set-tm:mon  tm 0)
+      (set-tm:year tm 100)
+      (let* ((t  (car (mktime tm "GMT")))
+	     (tm (localtime t "EST+5")))
+	(eqv? (* 5 3600) (tm:gmtoff tm)))))
+
+  ;; crossing backward over day boundary
+  (pass-if "gmtoff of AST-10 at GMT 10pm on 10 Jan 2000"
+    (let ((tm (gmtime 0)))
+      (set-tm:hour tm 22)
+      (set-tm:mday tm 10)
+      (set-tm:mon  tm 0)
+      (set-tm:year tm 100)
+      (let* ((t  (car (mktime tm "GMT")))
+	     (tm (localtime t "AST-10")))
+	(eqv? (* -10 3600) (tm:gmtoff tm)))))
+
+  ;; crossing forward over year boundary
+  (pass-if "gmtoff of EST+5 at GMT 3am on 1 Jan 2000"
+    (let ((tm (gmtime 0)))
+      (set-tm:hour tm 3)
+      (set-tm:mday tm 1)
+      (set-tm:mon  tm 0)
+      (set-tm:year tm 100)
+      (let* ((t  (car (mktime tm "GMT")))
+	     (tm (localtime t "EST+5")))
+	(eqv? (* 5 3600) (tm:gmtoff tm)))))
+
+  ;; crossing backward over day boundary
+  (pass-if "gmtoff of AST-10 at GMT 10pm on 31 Dec 2000"
+    (let ((tm (gmtime 0)))
+      (set-tm:hour tm 22)
+      (set-tm:mday tm 31)
+      (set-tm:mon  tm 11)
+      (set-tm:year tm 100)
+      (let* ((t  (car (mktime tm "GMT")))
+	     (tm (localtime t "AST-10")))
+	(eqv? (* -10 3600) (tm:gmtoff tm))))))
+
+;;;
+;;; mktime
+;;;
+
+(with-test-prefix "mktime"
+
+  ;; gmtoff is calculated with some explicit code, try to exercise that
+  ;; here, looking at cases where the mktime and gmtime are within the same
+  ;; day, or crossing midnight, or crossing new year
+
+  (pass-if "gmtoff of EST+5 at 10:00am on 10 Jan 2000"
+    (let ((tm (gmtime 0)))
+      (set-tm:hour tm 10)
+      (set-tm:mday tm 10)
+      (set-tm:mon  tm 0)
+      (set-tm:year tm 100)
+      (let ((tm (cdr (mktime tm "EST+5"))))
+	(eqv? (* 5 3600) (tm:gmtoff tm)))))
+
+  ;; crossing forward over day boundary
+  (pass-if "gmtoff of EST+5 at 10:00pm on 10 Jan 2000"
+    (let ((tm (gmtime 0)))
+      (set-tm:hour tm 22)
+      (set-tm:mday tm 10)
+      (set-tm:mon  tm 0)
+      (set-tm:year tm 100)
+      (let ((tm (cdr (mktime tm "EST+5"))))
+	(eqv? (* 5 3600) (tm:gmtoff tm)))))
+
+  ;; crossing backward over day boundary
+  (pass-if "gmtoff of AST-10 at 3:00am on 10 Jan 2000"
+    (let ((tm (gmtime 0)))
+      (set-tm:hour tm 3)
+      (set-tm:mday tm 10)
+      (set-tm:mon  tm 0)
+      (set-tm:year tm 100)
+      (let ((tm (cdr (mktime tm "AST-10"))))
+	(eqv? (* -10 3600) (tm:gmtoff tm)))))
+
+  ;; crossing forward over year boundary
+  (pass-if "gmtoff of EST+5 at 10:00pm on 31 Dec 2000"
+    (let ((tm (gmtime 0)))
+      (set-tm:hour tm 22)
+      (set-tm:mday tm 31)
+      (set-tm:mon  tm 11)
+      (set-tm:year tm 100)
+      (let ((tm (cdr (mktime tm "EST+5"))))
+	(eqv? (* 5 3600) (tm:gmtoff tm)))))
+
+  ;; crossing backward over day boundary
+  (pass-if "gmtoff of AST-10 at 3:00am on 1 Jan 2000"
+    (let ((tm (gmtime 0)))
+      (set-tm:hour tm 3)
+      (set-tm:mday tm 1)
+      (set-tm:mon  tm 0)
+      (set-tm:year tm 100)
+      (let ((tm (cdr (mktime tm "AST-10"))))
+	(eqv? (* -10 3600) (tm:gmtoff tm))))))
+
+;;;
 ;;; strftime
 ;;;
 
-;; Note we must force isdst to get the ZOW zone name out of %Z on HP-UX.
-;; If localtime is in daylight savings then it will decide there's no
-;; daylight savings zone name for the fake ZOW, and come back empty.
-;;
-;; This test is disabled because on NetBSD %Z doesn't look at the tm_zone
-;; field in struct tm passed by guile.  That behaviour is reasonable enough
-;; since that field is not in C99 so a C99 program won't know it has to be
-;; set.  For the details on that see
-;;
-;;     http://www.netbsd.org/cgi-bin/query-pr-single.pl?number=21722
-;;
-;; Not sure what to do about this in guile, it'd be nice for %Z to look at
-;; tm:zone everywhere.
-;;
-;;
-;; (pass-if "strftime %Z doesn't return garbage"
-;; 	 (let ((t (localtime (current-time))))
-;; 	   (set-tm:zone t "ZOW")
-;; 	   (set-tm:isdst t 0)
-;; 	   (string=? (strftime "%Z" t)
-;; 		     "ZOW")))
+(with-test-prefix "strftime"
+
+  ;; Note we must force isdst to get the ZOW zone name out of %Z on HP-UX.
+  ;; If localtime is in daylight savings then it will decide there's no
+  ;; daylight savings zone name for the fake ZOW, and come back empty.
+  ;;
+  ;; This test is disabled because on NetBSD %Z doesn't look at the tm_zone
+  ;; field in struct tm passed by guile.  That behaviour is reasonable
+  ;; enough since that field is not in C99 so a C99 program won't know it
+  ;; has to be set.  For the details on that see
+  ;;
+  ;;     http://www.netbsd.org/cgi-bin/query-pr-single.pl?number=21722
+  ;;
+  ;; Not sure what to do about this in guile, it'd be nice for %Z to look at
+  ;; tm:zone everywhere.
+  ;;
+  ;;
+  ;; (pass-if "strftime %Z doesn't return garbage"
+  ;; 	 (let ((t (localtime (current-time))))
+  ;; 	   (set-tm:zone t "ZOW")
+  ;; 	   (set-tm:isdst t 0)
+  ;; 	   (string=? (strftime "%Z" t)
+  ;; 		     "ZOW")))
+
+  (with-test-prefix "C99 %z format"
+
+    ;; C99 spec is empty string if no zone determinable
+    ;;
+    ;; on pre-C99 systems not sure what to expect if %z unsupported, probably
+    ;; "%z" unchanged in C99 if timezone
+    ;;
+    (define have-strftime-%z
+      (not (member (strftime "%z" (gmtime 0))
+		   '("" "%z"))))
+
+    ;; %z here is quite possibly affected by the same tm:gmtoff vs current
+    ;; zone as %Z above is, so in the following tests we make them the same.
+
+    (pass-if "GMT"
+      (or have-strftime-%z (throw 'unsupported))
+      (putenv "TZ=GMT+0")
+      (tzset)
+      (let ((tm (localtime 86400)))
+	(string=? "+0000" (strftime "%z" tm))))
+
+    ;; prior to guile 1.6.9 and 1.8.1 this test failed, getting "+0500",
+    ;; because we didn't adjust for tm:gmtoff being west of Greenwich versus
+    ;; tm_gmtoff being east of Greenwich
+    (pass-if "EST+5"
+      (or have-strftime-%z (throw 'unsupported))
+      (putenv "TZ=EST+5")
+      (tzset)
+      (let ((tm (localtime 86400)))
+	(string=? "-0500" (strftime "%z" tm))))))
 
 ;;;
 ;;; strptime
@@ -109,15 +259,31 @@
     (or (defined? 'strptime) (throw 'unsupported))
     (or (provided? 'threads) (throw 'unsupported))
 
-    ;; actually this test is perfectly good, but the "internal define -
-    ;; missing body expression" in syntax.test somehow ends up leaving
-    ;; SCM_DEFER_INTS, making the test here hang
-    ;;
-    (throw 'unresolved)
-
     (alarm 5)
     (false-if-exception
      (strptime "%a" "nosuchday"))
-    (thread-join (begin-thread (strptime "%d" "1")))
+    (join-thread (begin-thread (strptime "%d" "1")))
     (alarm 0)
-    #t))
+    #t)
+
+  (with-test-prefix "GNU %s format"
+
+    ;; "%s" to parse a count of seconds since 1970 is a GNU extension
+    (define have-strptime-%s
+      (false-if-exception (strptime "%s" "0")))
+
+    (pass-if "gmtoff on GMT"
+      (or have-strptime-%s (throw 'unsupported))
+      (putenv "TZ=GMT+0")
+      (tzset)
+      (let ((tm (car (strptime "%s" "86400"))))
+	(eqv? 0 (tm:gmtoff tm))))
+
+    ;; prior to guile 1.6.9 and 1.8.1 we didn't pass tm_gmtoff back from
+    ;; strptime
+    (pass-if "gmtoff on EST+5"
+      (or have-strptime-%s (throw 'unsupported))
+      (putenv "TZ=EST+5")
+      (tzset)
+      (let ((tm (car (strptime "%s" "86400"))))
+	(eqv? (* 5 3600) (tm:gmtoff tm))))))

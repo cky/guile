@@ -40,7 +40,7 @@
 
  */
 
-/* tell glibc (2.3) to give prototype for C99 trunc() */
+/* tell glibc (2.3) to give prototype for C99 trunc(), csqrt(), etc */
 #define _GNU_SOURCE
 
 #if HAVE_CONFIG_H
@@ -50,6 +50,10 @@
 #include <math.h>
 #include <ctype.h>
 #include <string.h>
+
+#if HAVE_COMPLEX_H
+#include <complex.h>
+#endif
 
 #include "libguile/_scm.h"
 #include "libguile/feature.h"
@@ -65,6 +69,14 @@
 #include "libguile/eq.h"
 
 #include "libguile/discouraged.h"
+
+/* values per glibc, if not already defined */
+#ifndef M_LOG10E
+#define M_LOG10E   0.43429448190325182765
+#endif
+#ifndef M_PI
+#define M_PI       3.14159265358979323846
+#endif
 
 
 
@@ -149,6 +161,21 @@ xisnan (double x)
   return 0;
 #endif
 }
+
+
+/* For an SCM object Z which is a complex number (ie. satisfies
+   SCM_COMPLEXP), return its value as a C level "complex double". */
+#define SCM_COMPLEX_VALUE(z)                                    \
+  (SCM_COMPLEX_REAL (z) + _Complex_I * SCM_COMPLEX_IMAG (z))
+
+/* Convert a C "complex double" to an SCM value. */
+#if HAVE_COMPLEX_DOUBLE
+static SCM
+scm_from_complex_double (complex double z)
+{
+  return scm_c_make_rectangular (creal (z), cimag (z));
+}
+#endif /* HAVE_COMPLEX_DOUBLE */
 
 
 
@@ -5976,6 +6003,142 @@ scm_is_number (SCM z)
 {
   return scm_is_true (scm_number_p (z));
 }
+
+
+/* In the following functions we dispatch to the real-arg funcs like log()
+   when we know the arg is real, instead of just handing everything to
+   clog() for instance.  This is in case clog() doesn't optimize for a
+   real-only case, and because we have to test SCM_COMPLEXP anyway so may as
+   well use it to go straight to the applicable C func.  */
+
+SCM_DEFINE (scm_log, "log", 1, 0, 0,
+            (SCM z),
+	    "Return the natural logarithm of @var{z}.")
+#define FUNC_NAME s_scm_log
+{
+  if (SCM_COMPLEXP (z))
+    {
+#if HAVE_COMPLEX_DOUBLE
+      return scm_from_complex_double (clog (SCM_COMPLEX_VALUE (z)));
+#else
+      double re = SCM_COMPLEX_REAL (z);
+      double im = SCM_COMPLEX_IMAG (z);
+      return scm_c_make_rectangular (log (hypot (re, im)),
+                                     atan2 (im, re));
+#endif
+    }
+  else
+    {
+      /* ENHANCE-ME: When z is a bignum the logarithm will fit a double
+         although the value itself overflows.  */
+      double re = scm_to_double (z);
+      double l = log (fabs (re));
+      if (re >= 0.0)
+        return scm_from_double (l);
+      else
+        return scm_c_make_rectangular (l, M_PI);
+    }
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_log10, "log10", 1, 0, 0,
+            (SCM z),
+	    "Return the base 10 logarithm of @var{z}.")
+#define FUNC_NAME s_scm_log10
+{
+  if (SCM_COMPLEXP (z))
+    {
+      /* Mingw has clog() but not clog10().  (Maybe it'd be worth using
+         clog() and a multiply by M_LOG10E, rather than the fallback
+         log10+hypot+atan2.)  */
+#if HAVE_COMPLEX_DOUBLE && HAVE_CLOG10
+      return scm_from_complex_double (clog10 (SCM_COMPLEX_VALUE (z)));
+#else
+      double re = SCM_COMPLEX_REAL (z);
+      double im = SCM_COMPLEX_IMAG (z);
+      return scm_c_make_rectangular (log10 (hypot (re, im)),
+                                     M_LOG10E * atan2 (im, re));
+#endif
+    }
+  else
+    {
+      /* ENHANCE-ME: When z is a bignum the logarithm will fit a double
+         although the value itself overflows.  */
+      double re = scm_to_double (z);
+      double l = log10 (fabs (re));
+      if (re >= 0.0)
+        return scm_from_double (l);
+      else
+        return scm_c_make_rectangular (l, M_LOG10E * M_PI);
+    }
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_exp, "exp", 1, 0, 0,
+            (SCM z),
+	    "Return @math{e} to the power of @var{z}, where @math{e} is the\n"
+	    "base of natural logarithms (2.71828@dots{}).")
+#define FUNC_NAME s_scm_exp
+{
+  if (SCM_COMPLEXP (z))
+    {
+#if HAVE_COMPLEX_DOUBLE
+      return scm_from_complex_double (cexp (SCM_COMPLEX_VALUE (z)));
+#else
+      return scm_c_make_polar (exp (SCM_COMPLEX_REAL (z)),
+                               SCM_COMPLEX_IMAG (z));
+#endif
+    }
+  else
+    {
+      /* When z is a negative bignum the conversion to double overflows,
+         giving -infinity, but that's ok, the exp is still 0.0.  */
+      return scm_from_double (exp (scm_to_double (z)));
+    }
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_sqrt, "sqrt", 1, 0, 0,
+            (SCM x),
+	    "Return the square root of @var{z}.  Of the two possible roots\n"
+	    "(positive and negative), the one with the a positive real part\n"
+	    "is returned, or if that's zero then a positive imaginary part.\n"
+	    "Thus,\n"
+	    "\n"
+	    "@example\n"
+	    "(sqrt 9.0)       @result{} 3.0\n"
+	    "(sqrt -9.0)      @result{} 0.0+3.0i\n"
+	    "(sqrt 1.0+1.0i)  @result{} 1.09868411346781+0.455089860562227i\n"
+	    "(sqrt -1.0-1.0i) @result{} 0.455089860562227-1.09868411346781i\n"
+	    "@end example")
+#define FUNC_NAME s_scm_sqrt
+{
+  if (SCM_COMPLEXP (x))
+    {
+#if HAVE_COMPLEX_DOUBLE && HAVE_USABLE_CSQRT
+      return scm_from_complex_double (csqrt (SCM_COMPLEX_VALUE (x)));
+#else
+      double re = SCM_COMPLEX_REAL (x);
+      double im = SCM_COMPLEX_IMAG (x);
+      return scm_c_make_polar (sqrt (hypot (re, im)),
+                               0.5 * atan2 (im, re));
+#endif
+    }
+  else
+    {
+      double xx = scm_to_double (x);
+      if (xx < 0)
+        return scm_c_make_rectangular (0.0, sqrt (-xx));
+      else
+        return scm_from_double (sqrt (xx));
+    }
+}
+#undef FUNC_NAME
+
+
 
 void
 scm_init_numbers ()

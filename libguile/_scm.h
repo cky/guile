@@ -167,6 +167,8 @@
 #else
 #  error sizeof(off_t) is not 4 or 8.
 #endif
+#define scm_to_off64_t    scm_to_int64
+#define scm_from_off64_t  scm_from_int64
 
 
 #endif  /* SCM__SCM_H */

@@ -157,6 +157,12 @@ extern char ** environ;
 #define F_OK 0
 #endif
 
+/* No prototype for this on Solaris 10.  The man page says it's in
+   <unistd.h> ... but it lies. */
+#if ! HAVE_DECL_SETHOSTNAME
+int sethostname (char *name, size_t namelen);
+#endif
+
 /* On NextStep, <utime.h> doesn't define struct utime, unless we
    #define _POSIX_SOURCE before #including it.  I think this is less
    of a kludge than defining struct utimbuf ourselves.  */
@@ -943,7 +949,12 @@ SCM_DEFINE (scm_execl, "execl", 1, 0, 1,
   scm_dynwind_unwind_handler (free_string_pointers, exec_argv, 
 			    SCM_F_WIND_EXPLICITLY);
 
-  execv (exec_file, exec_argv);
+  execv (exec_file,
+#ifdef __MINGW32__
+         /* extra "const" in mingw formals, provokes warning from gcc */
+         (const char * const *)
+#endif
+         exec_argv);
   SCM_SYSERROR;
 
   /* not reached.  */
@@ -974,7 +985,12 @@ SCM_DEFINE (scm_execlp, "execlp", 1, 0, 1,
   scm_dynwind_unwind_handler (free_string_pointers, exec_argv, 
 			    SCM_F_WIND_EXPLICITLY);
 
-  execvp (exec_file, exec_argv);
+  execvp (exec_file,
+#ifdef __MINGW32__
+          /* extra "const" in mingw formals, provokes warning from gcc */
+          (const char * const *)
+#endif
+          exec_argv);
   SCM_SYSERROR;
 
   /* not reached.  */
@@ -1013,7 +1029,17 @@ SCM_DEFINE (scm_execle, "execle", 2, 0, 1,
   scm_dynwind_unwind_handler (free_string_pointers, exec_env,
 			    SCM_F_WIND_EXPLICITLY);
 
-  execve (exec_file, exec_argv, exec_env);
+  execve (exec_file,
+#ifdef __MINGW32__
+          /* extra "const" in mingw formals, provokes warning from gcc */
+          (const char * const *)
+#endif
+          exec_argv,
+#ifdef __MINGW32__
+          /* extra "const" in mingw formals, provokes warning from gcc */
+          (const char * const *)
+#endif
+          exec_env);
   SCM_SYSERROR;
 
   /* not reached.  */

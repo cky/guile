@@ -22,34 +22,73 @@ Changes in 1.9.XXXXXXXX:
 
 Changes in 1.8.1 (since 1.8.0):
 
-* Changes to the distribution
+* LFS functions are now used to access 64-bit files on 32-bit systems.
 
-** New primitive-_exit giving the _exit() system call.
+* New procedures (see the manual for details)
 
-* Changes to Scheme functions and syntax
+** primitive-_exit - [Scheme] the-root-module
+** scm_primitive__exit - [C]
+** make-completion-function - [Scheme] (ice-9 readline)
+** scm_c_locale_stringn_to_number - [C]
+** scm_srfi1_append_reverse [C]
+** scm_srfi1_append_reverse_x [C]
+** scm_log - [C]
+** scm_log10 - [C]
+** scm_exp - [C]
+** scm_sqrt - [C]
+
+* Bugs fixed
+
+** Build problems have been fixed on MacOS, SunOS, and QNX.
 
 ** A one-dimensional array can now be 'equal?' to a vector.
+
 ** Structures, records, and SRFI-9 records can now be compared with `equal?'.
-** SRFI-14 standard char sets are now recomputed upon successful `setlocale'.
 
-* Changes to the C interface 
+** SRFI-14 standard char sets are recomputed upon a successful `setlocale'.
 
-** New function scm_c_locale_stringn_to_number.
+** `record-accessor' and `record-modifier' now have strict type checks.
 
-* Bug fixes.
+Record accessor and modifier procedures now throw an error if the
+record type of the record they're given is not the type expected.
+(Previously accessors returned #f and modifiers silently did nothing).
 
-** array-set! with bit vector.
-** make-shared-array fixes, including examples in the manual which failed.
-** string<? and friends follow char<? etc order on 8-bit chars.
-** n-par-for-each, n-for-each-par-map for "futures" variable.
-** module autoload and explicit use-modules cooperate.
-** ice-9 format ~f with infs and nans.
-** exact->inexact overflows on fractions with big num/den but small result.
-** srfi-1 assoc "=" procedure argument order.
-** Build problems on MacOS, SunOS, QNX.
+** It is now OK to use both autoload and use-modules on a given module.
+
+** `apply' checks the number of arguments more carefully on "0 or 1" funcs.
+
+Previously there was no checking on primatives like make-vector that
+accept "one or two" arguments.  Now there is.
+
+** The srfi-1 assoc function now calls its equality predicate properly.
+
+Previously srfi-1 assoc would call the equality predicate with the key
+last.  According to the SRFI, the key should be first.
+
+** A bug in n-par-for-each and n-for-each-par-map has been fixed.
+
+** The array-set! procedure no longer segfaults when given a bit vector.
+
+** Bugs in make-shared-array have been fixed.
+
+** string<? and friends now follow char<? etc order on 8-bit chars.
+
+** The format procedure now handles inf and nan values for ~f correctly.
+
+** exact->inexact should no longer overflow when given certain large fractions.
+
+** srfi-9 accessor and modifier procedures now have strict record type checks.
+
+This matches the srfi-9 specification.
+
+** (ice-9 ftw) procedures won't ignore different files with same inode number.
+
+Previously the (ice-9 ftw) procedures would ignore any file that had
+the same inode number as a file they had already seen, even if that
+file was on a different device.
 
 
-Changes since the 1.6.x series:
+Changes in 1.8.0 (changes since the 1.6.x series):
 
 * Changes to the distribution
 

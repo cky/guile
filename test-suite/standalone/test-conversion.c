@@ -1010,10 +1010,9 @@ test_locale_strings ()
   test_11 ("(string #\\f #\\nul)", NULL, 1, 0);
 }
 
-int
-main (int argc, char *argv[])
+static void
+tests (void *data, int argc, char **argv)
 {
-  scm_init_guile();
   test_is_signed_integer ();
   test_is_unsigned_integer ();
   test_to_signed_integer ();
@@ -1024,5 +1023,11 @@ main (int argc, char *argv[])
   test_from_double ();
   test_to_double ();
   test_locale_strings ();
+}
+
+int
+main (int argc, char *argv[])
+{
+  scm_boot_guile (argc, argv, tests, NULL);
   return 0;
 }

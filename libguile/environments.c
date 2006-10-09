@@ -687,9 +687,10 @@ core_environments_unobserve (SCM env, SCM observer)
 	  if (scm_is_eq (first, observer))
 	    {
 	      /* Remove the first observer */
-	      handling_weaks
-		? SCM_SET_CORE_ENVIRONMENT_WEAK_OBSERVERS (env, rest)
-		: SCM_SET_CORE_ENVIRONMENT_OBSERVERS (env, rest);
+	      if (handling_weaks)
+		SCM_SET_CORE_ENVIRONMENT_WEAK_OBSERVERS (env, rest);
+              else
+                SCM_SET_CORE_ENVIRONMENT_OBSERVERS (env, rest);
 	      return;
 	    }
 

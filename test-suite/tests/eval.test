@@ -99,10 +99,10 @@
     ))
 
 ;;;
-;;; apply
+;;; call
 ;;;
 
-(with-test-prefix "application"
+(with-test-prefix "call"
 
   (with-test-prefix "wrong number of arguments"
 
@@ -141,6 +141,30 @@
     (pass-if-exception "((lambda (x y . rest) #f) 1)"
       exception:wrong-num-args
       ((lambda (x y . rest) #f) 1))))
+
+;;;
+;;; apply
+;;;
+
+(with-test-prefix "apply"
+
+  (with-test-prefix "scm_tc7_subr_2o"
+
+    ;; prior to guile 1.6.9 and 1.8.1 this called the function with
+    ;; SCM_UNDEFIEND, which in the case of make-vector resulted in
+    ;; wrong-type-arg, instead of the intended wrong-num-args
+    (pass-if-exception "0 args" exception:wrong-num-args
+      (apply make-vector '()))
+
+    (pass-if "1 arg"
+      (vector? (apply make-vector '(1))))
+
+    (pass-if "2 args"
+      (vector? (apply make-vector '(1 2))))
+
+    ;; prior to guile 1.6.9 and 1.8.1 this error wasn't detected
+    (pass-if-exception "3 args" exception:wrong-num-args
+      (apply make-vector '(1 2 3)))))
 
 ;;;
 ;;; map

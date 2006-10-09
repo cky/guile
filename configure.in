@@ -523,13 +523,21 @@ AC_HEADER_TIME
 AC_HEADER_SYS_WAIT
 
 # Reasons for testing:
+#   complex.h - new in C99
 #   fenv.h - available in C99, but not older systems
 #
-AC_CHECK_HEADERS([fenv.h io.h libc.h limits.h malloc.h memory.h string.h \
+AC_CHECK_HEADERS([complex.h fenv.h io.h libc.h limits.h malloc.h memory.h string.h \
 regex.h rxposix.h rx/rxposix.h sys/dir.h sys/ioctl.h sys/select.h \
 sys/time.h sys/timeb.h sys/times.h sys/stdtypes.h sys/types.h \
 sys/utime.h time.h unistd.h utime.h pwd.h grp.h sys/utsname.h \
 direct.h])
+
+# "complex double" is new in C99, and "complex" is only a keyword if
+# <complex.h> is included
+AC_CHECK_TYPES(complex double,,,
+[#if HAVE_COMPLEX_H
+#include <complex.h>
+#endif])
 
 # On MacOS X <sys/socklen.h> contains socklen_t, so must include that
 # when testing.
@@ -592,23 +600,31 @@ AC_CHECK_HEADERS([assert.h crt_externs.h])
 #   DINFINITY - OSF specific
 #   DQNAN - OSF specific
 #       (DINFINITY and DQNAN are actually global variables, not functions)
+#   chsize - an MS-DOS-ism, found in mingw
+#   clog10 - not in mingw (though others like clog and csqrt are)
 #   fesetround - available in C99, but not older systems
+#   ftruncate - posix, but probably not older systems (current mingw
+#               has it as an inline for chsize)
 #   ioctl - not in mingw.
 #   gmtime_r - recent posix, not on old systems
 #   readdir_r - recent posix, not on old systems
 #   stat64 - SuS largefile stuff, not on old systems
 #   sysconf - not on old systems
+#   truncate - not in mingw
 #   isblank - available as a GNU extension or in C99
 #   _NSGetEnviron - Darwin specific
 #
-AC_CHECK_FUNCS([DINFINITY DQNAN ctermid fesetround ftime fchown getcwd geteuid gettimeofday gmtime_r ioctl lstat mkdir mknod nice readdir_r readlink rename rmdir select setegid seteuid setlocale setpgid setsid sigaction siginterrupt stat64 strftime strptime symlink sync sysconf tcgetpgrp tcsetpgrp times uname waitpid strdup system usleep atexit on_exit chown link fcntl ttyname getpwent getgrent kill getppid getpgrp fork setitimer getitimer strchr strcmp index bcopy memcpy rindex unsetenv isblank _NSGetEnviron])
+AC_CHECK_FUNCS([DINFINITY DQNAN chsize clog10 ctermid fesetround ftime ftruncate fchown getcwd geteuid gettimeofday gmtime_r ioctl lstat mkdir mknod nice readdir_r readlink rename rmdir select setegid seteuid setlocale setpgid setsid sigaction siginterrupt stat64 strftime strptime symlink sync sysconf tcgetpgrp tcsetpgrp times uname waitpid strdup system usleep atexit on_exit chown link fcntl ttyname getpwent getgrent kill getppid getpgrp fork setitimer getitimer strchr strcmp index bcopy memcpy rindex truncate unsetenv isblank _NSGetEnviron])
 
 # Reasons for testing:
 #   netdb.h - not in mingw
 #   sys/param.h - not in mingw
+#   sethostname - the function itself check because it's not in mingw,
+#       the DECL is checked because Solaris 10 doens't have in any header
 #
 AC_CHECK_HEADERS(crypt.h netdb.h sys/param.h sys/resource.h sys/file.h)
 AC_CHECK_FUNCS(chroot flock getlogin cuserid getpriority setpriority getpass sethostname gethostname)
+AC_CHECK_DECLS([sethostname])
 
 # crypt() may or may not be available, for instance in some countries there
 # are restrictions on cryptography.
@@ -626,6 +642,38 @@ AC_CHECK_FUNCS(chroot flock getlogin cuserid getpriority setpriority getpass set
 AC_SEARCH_LIBS(crypt, crypt,
   [AC_DEFINE(HAVE_CRYPT,1,
              [Define to 1 if you have the `crypt' function.])])
+
+# glibc 2.3.6 (circa 2006) and various prior versions had a bug where
+# csqrt(-i) returned a negative real part, when it should be positive
+# for the principal root.
+#
+if test "$ac_cv_type_complex_double" = yes; then
+  AC_CACHE_CHECK([whether csqrt is usable],
+    guile_cv_use_csqrt,
+    [AC_TRY_RUN([
+#include <complex.h>
+/* "volatile" is meant to prevent gcc from calculating the sqrt as a
+   constant, we want to test libc. */
+volatile complex double z = - _Complex_I;
+int
+main (void)
+{
+  z = csqrt (z);	
+  if (creal (z) > 0.0)
+    return 0;  /* good */
+  else
+    return 1;  /* bad */
+}],
+    [guile_cv_use_csqrt=yes],
+    [guile_cv_use_csqrt="no, glibc 2.3 bug"],
+    [guile_cv_use_csqrt="yes, hopefully (cross-compiling)"])])
+  case $guile_cv_use_csqrt in
+    yes*)
+      AC_DEFINE(HAVE_USABLE_CSQRT, 1, [Define to 1 if csqrt is bug-free])
+      ;;
+  esac
+fi
+
 
 dnl GMP tests
 AC_CHECK_LIB([gmp], [__gmpz_init], ,
@@ -878,10 +926,9 @@ AC_CHECK_HEADERS(floatingpoint.h ieeefp.h nan.h)
 # Reasons for testing:
 #   asinh, acosh, atanh, trunc - C99 standard, generally not available on
 #                                older systems
-#   dirfd - mainly BSD derived, not in older systems
 #   sincos - GLIBC extension
 #
-AC_CHECK_FUNCS(asinh acosh atanh copysign dirfd finite sincos trunc)
+AC_CHECK_FUNCS(asinh acosh atanh copysign finite sincos trunc)
 
 # C99 specifies isinf and isnan as macros.
 # HP-UX provides only macros, no functions.
@@ -924,6 +971,7 @@ fi
 #     st_rdev
 #     st_blksize
 #     st_blocks   not in mingw
+#     tm_gmtoff   BSD+GNU, not in C99
 #
 # Note AC_STRUCT_ST_BLOCKS is not used here because we don't want the
 # AC_LIBOBJ(fileblocks) replacement which that macro gives.
@@ -931,7 +979,21 @@ fi
 AC_CHECK_MEMBERS([struct stat.st_rdev, struct stat.st_blksize, struct stat.st_blocks])
 
 AC_STRUCT_TIMEZONE
+AC_CHECK_MEMBERS([struct tm.tm_gmtoff],,,
+[#include <time.h>
+#ifdef TIME_WITH_SYS_TIME
+# include <sys/time.h>
+# include <time.h>
+#else
+# if HAVE_SYS_TIME_H
+#  include <sys/time.h>
+# else
+#  include <time.h>
+# endif
+#endif
+])
 GUILE_STRUCT_UTIMBUF
+
 
 #--------------------------------------------------------------------
 #
@@ -997,6 +1059,8 @@ AC_SUBST([SCM_I_GSC_USE_NULL_THREADS])
 AC_ARG_WITH(threads, [  --with-threads          thread interface],
             , with_threads=yes)
 
+AC_SUBST(SCM_I_GSC_NEED_BRACES_ON_PTHREAD_ONCE_INIT, 0)
+
 case "$with_threads" in
   "yes" | "pthread" | "pthreads" | "pthread-threads" | "")
     ACX_PTHREAD(CC="$PTHREAD_CC"
@@ -1007,7 +1071,32 @@ case "$with_threads" in
 
     old_CFLAGS="$CFLAGS"
     CFLAGS="$PTHREAD_CFLAGS $CFLAGS"
-    AC_CHECK_FUNCS(pthread_attr_getstack)
+
+    # Reasons for testing:
+    #     pthread_getattr_np - "np" meaning "non portable" says it
+    #         all; not present on MacOS X or Solaris 10
+    #
+    AC_CHECK_FUNCS(pthread_attr_getstack pthread_getattr_np)
+
+    # On past versions of Solaris, believe 8 through 10 at least, you
+    # had to write "pthread_once_t foo = { PTHREAD_ONCE_INIT };".
+    # This is contrary to posix:
+    # http://www.opengroup.org/onlinepubs/000095399/functions/pthread_once.html
+    # Check here if this style is required.
+    #
+    # glibc (2.3.6 at least) works both with or without braces, so the
+    # test checks whether it works without.
+    #
+    AC_CACHE_CHECK([whether PTHREAD_ONCE_INIT needs braces],
+      guile_cv_need_braces_on_pthread_once_init,
+      [AC_TRY_COMPILE([#include <pthread.h>],
+        [pthread_once_t foo = PTHREAD_ONCE_INIT;],
+        [guile_cv_need_braces_on_pthread_once_init=no],
+        [guile_cv_need_braces_on_pthread_once_init=yes])])
+    if test "$guile_cv_need_braces_on_pthread_once_init" = yes; then
+      SCM_I_GSC_NEED_BRACES_ON_PTHREAD_ONCE_INIT=1
+    fi
+
     CFLAGS="$old_CFLAGS"
 
     # On Solaris, sched_yield lives in -lrt.

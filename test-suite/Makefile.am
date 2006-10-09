@@ -36,6 +36,7 @@ SCM_TESTS = tests/alist.test			\
 	    tests/filesys.test			\
 	    tests/format.test			\
 	    tests/fractions.test		\
+	    tests/ftw.test			\
 	    tests/gc.test			\
 	    tests/getopt-long.test		\
 	    tests/goops.test			\

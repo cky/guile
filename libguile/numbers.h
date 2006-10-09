@@ -263,6 +263,10 @@ SCM_API SCM scm_angle (SCM z);
 SCM_API SCM scm_exact_to_inexact (SCM z);
 SCM_API SCM scm_inexact_to_exact (SCM z);
 SCM_API SCM scm_trunc (SCM x);
+SCM_API SCM scm_log (SCM z);
+SCM_API SCM scm_log10 (SCM z);
+SCM_API SCM scm_exp (SCM z);
+SCM_API SCM scm_sqrt (SCM z);
 
 /* bignum internal functions */
 SCM_API SCM scm_i_mkbig (void);

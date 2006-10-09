@@ -46,10 +46,15 @@ test_scm_list (void)
   }
 }
 
-int
-main (int argc, char **argv)
+static void
+tests (void *data, int argc, char **argv)
 {
-  scm_init_guile();
   test_scm_list ();
+}
+
+int
+main (int argc, char *argv[])
+{
+  scm_boot_guile (argc, argv, tests, NULL);
   return 0;
 }

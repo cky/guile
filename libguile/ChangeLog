@@ -1,3 +1,50 @@
+2006-10-03  Kevin Ryde  <user42@zip.com.au>
+
+	* eval.c (SCM_APPLY): For scm_tc7_subr_2o, throw wrong-num-args on 0
+	arguments or 3 or more arguments.  Previously 0 called proc with
+	SCM_UNDEFINED, and 3 or more silently used just the first 2.
+
+2006-09-28  Kevin Ryde  <user42@zip.com.au>
+
+	* fports.c, ports.c (ftruncate): Use "HAVE_CHSIZE && ! HAVE_FTRUNCATE"
+	for chsize fallback, instead of hard-coding mingw.  Mingw in fact
+	supplies ftruncate itself these days.
+
+	* ports.c (fcntl.h): Can include this unconditionally, no need for
+	__MINGW32__.
+
+	* ports.c (truncate): Conditionalize on "HAVE_FTRUNCATE && !
+	HAVE_TRUNCATE" so as not to hard-code mingw.  Use "const char *" and
+	"off_t" for parameters, per usual definition of this function, rather
+	than "char *" and "int".  Use ftruncate instead of chsize.  Check for
+	error on final close.
+
+2006-09-27  Kevin Ryde  <user42@zip.com.au>
+
+	* numbers.c (scm_log10): Check HAVE_CLOG10, clog10() is not available
+	in mingw.
+
+	* posix.c (scm_execl, scm_execlp, scm_execle): Cast "const char *
+	const *" for mingw to suppress warnings from gcc (which are errors
+	under the configure default -Werror).  Reported by Nils Durner.
+
+2006-09-26  Kevin Ryde  <user42@zip.com.au>
+
+	* _scm.h (scm_to_off64_t, scm_from_off64_t): New macros.
+	* fports.c (scm_open_file): Use open_or_open64.
+	(fport_seek_or_seek64): New function, adapting fport_seek.
+	* fports.c, fports.h (scm_i_fport_seek, scm_i_fport_truncate): New
+	functions.
+	* ports.c (scm_seek, scm_truncate_file): Use scm_i_fport_seek and
+	scm_i_fport_truncate to allow 64-bit seeks and truncates on fports.
+
+	* ports.c (scm_truncate_file): Update docstring per manual.
+
+2006-09-23  Kevin Ryde  <user42@zip.com.au>
+
+	* numbers.c, numbers.h (scm_log, scm_log10, scm_exp, scm_sqrt): New
+	functions.
+
 2006-09-20  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
 	* srfi-14.c: Include <config.h>.  Define `_GNU_SOURCE'.
@@ -20,6 +67,11 @@
 	(scm_setlocale): Invoke `scm_srfi_14_compute_char_sets ()' after a
 	successful `setlocale ()' call.
 
+2006-09-08  Kevin Ryde  <user42@zip.com.au>
+
+	* socket.c (scm_init_socket): Add MSG_DONTWAIT.
+	(scm_recvfrom): Update docstring from manual.
+
 2006-08-31  Rob Browning  <rlb@defaultvalue.org>
 
 	* ports.c (scm_c_port_for_each): Add a
@@ -32,10 +84,46 @@
 	improvements to docstring.
 	(scm_backtrace_with_highlights): Analogous improvements.
 
+2006-08-12  Kevin Ryde  <user42@zip.com.au>
+
+	* gen-scmconfig.h.in (SCM_I_GSC_NEED_BRACES_ON_PTHREAD_ONCE_INIT):
+	New, set from configure.
+	* gen-scmconfig.c (SCM_NEED_BRACES_ON_PTHREAD_ONCE_INIT): New output
+	to scmconfig.h.
+	* pthread-threads.h (SCM_I_PTHREAD_ONCE_INIT): Use
+	SCM_NEED_BRACES_ON_PTHREAD_ONCE_INIT to cope with Solaris.
+	Reported by Claes Wallin.
+
 2006-08-11  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* stacks.c (scm_last_stack_frame): Correct docstring (returns a
 	frame, not a stack).
+
+2006-07-25  Kevin Ryde  <user42@zip.com.au>
+
+	* threads.c (get_thread_stack_base): Restrict HAVE_PTHREAD_GETATTR_NP
+	on pthreads version, since pthread_getattr_np not available on solaris
+	and macos.  Reported by Claes Wallin.
+
+2006-07-24  Kevin Ryde  <user42@zip.com.au>
+
+	* filesys.c (dirfd): Test with #ifndef rather than HAVE_DIRFD, since
+	it's a macro on MacOS X.  Reported by Claes Wallin.
+
+	* posix.c (sethostname): Give prototype if not HAVE_DECL_SETHOSTNAME,
+	for the benefit of Solaris 10.  Reported by Claes Wallin.
+
+	* socket.c (scm_htonl, scm_ntohl): Use scm_to_uint32 rather than
+	NUM2ULONG, to enforce 32-bit range check on systems with 64-bit long.
+
+2006-07-21  Kevin Ryde  <user42@zip.com.au>
+
+	* eval.c, filesys.c (alloca): Update <alloca.h> etc blob, per current
+	autoconf recommendation.  Should fix Solaris 10 reported by Claes
+	Wallin.
+
+	* threads.c: Include <string.h>, needed for memset() which is used by
+	FD_ZERO() on Solaris 10.  Reported by Claes Wallin.
 
 2006-07-18  Rob Browning  <rlb@defaultvalue.org>
 
@@ -49,6 +137,25 @@
 	* numbers.c (guile_ieee_init): Use regular ANSI C casts rather
 	than C++-style `X_CAST ()'.  Patch posted by by Mike Gran.
 
+2006-07-08  Kevin Ryde  <user42@zip.com.au>
+
+	* environments.c (core_environments_unobserve): Use if/else rather
+	than ?: for "SET" bits, avoiding complaints from AIX xlc compiler
+	about them not being rvalues.  Reported by Mike Gran.
+
+	* Makefile.am (version.h): Don't use $< in an explicit rule, it's not
+	portable and in particular fails on OpenBSD and AIX (see autoconf
+	manual too).  Reported by Mike Gran.
+
+2006-06-25  Kevin Ryde  <user42@zip.com.au>
+
+	* stime.c (bdtime2c): tm_gmtoff is seconds East, so take negative of
+	tm:gmtoff which is seconds West.  Reported by Aaron VanDevender.
+	(bdtime2c): Test HAVE_STRUCT_TM_TM_GMTOFF for tm_gmtoff, rather than
+	HAVE_TM_ZONE.
+	(scm_strptime): Use tm_gmtoff from the strptime result when that field
+	exists, it's set by glibc strptime "%s".
+	
 2006-06-13  Ludovic Courtès <ludovic.courtes@laas.fr>
 
 	* eq.c: Include "struct.h", "goops.h" and "objects.h".

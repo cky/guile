@@ -497,8 +497,10 @@ bdtime2c (SCM sbd_time, struct tm *lt, int pos, const char *subr)
   lt->tm_wday = scm_to_int (SCM_SIMPLE_VECTOR_REF (sbd_time, 6));
   lt->tm_yday = scm_to_int (SCM_SIMPLE_VECTOR_REF (sbd_time, 7));
   lt->tm_isdst = scm_to_int (SCM_SIMPLE_VECTOR_REF (sbd_time, 8));
+#if HAVE_STRUCT_TM_TM_GMTOFF
+  lt->tm_gmtoff = - scm_to_int (SCM_SIMPLE_VECTOR_REF (sbd_time, 9));
+#endif
 #ifdef HAVE_TM_ZONE
-  lt->tm_gmtoff = scm_to_int (SCM_SIMPLE_VECTOR_REF (sbd_time, 9));
   if (scm_is_false (SCM_SIMPLE_VECTOR_REF (sbd_time, 10)))
     lt->tm_zone = NULL;
   else
@@ -731,6 +733,7 @@ SCM_DEFINE (scm_strptime, "strptime", 2, 0, 0,
 {
   struct tm t;
   const char *fmt, *str, *rest;
+  long zoff;
 
   SCM_VALIDATE_STRING (1, format);
   SCM_VALIDATE_STRING (2, string);
@@ -748,6 +751,9 @@ SCM_DEFINE (scm_strptime, "strptime", 2, 0, 0,
   tm_init (tm_year);
   tm_init (tm_wday);
   tm_init (tm_yday);
+#if HAVE_STRUCT_TM_TM_GMTOFF
+  tm_init (tm_gmtoff);
+#endif
 #undef tm_init
 
   /* GNU glibc strptime() "%s" is affected by the current timezone, since it
@@ -766,7 +772,15 @@ SCM_DEFINE (scm_strptime, "strptime", 2, 0, 0,
       SCM_SYSERROR;
     }
 
-  return scm_cons (filltime (&t, 0, NULL),
+  /* tm_gmtoff is set by GNU glibc strptime "%s", so capture it when
+     available */
+#if HAVE_STRUCT_TM_TM_GMTOFF
+  zoff = - t.tm_gmtoff;  /* seconds west, not east */
+#else
+  zoff = 0;
+#endif
+
+  return scm_cons (filltime (&t, zoff, NULL),
 		   scm_from_signed_integer (rest - str));
 }
 #undef FUNC_NAME

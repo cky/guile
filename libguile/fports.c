@@ -17,6 +17,8 @@
 
 
 
+#define _LARGEFILE64_SOURCE      /* ask for stat64 etc */
+
 #if HAVE_CONFIG_H
 #  include <config.h>
 #endif
@@ -46,6 +48,7 @@
 #endif
 
 #include <errno.h>
+#include <sys/types.h>
 
 #include "libguile/iselect.h"
 
@@ -53,9 +56,33 @@
 #ifdef __MINGW32__
 # include <sys/stat.h>
 # include <winsock2.h>
-# define ftruncate(fd, size) chsize (fd, size)
 #endif /* __MINGW32__ */
 
+/* Mingw (version 3.4.5, circa 2006) has ftruncate as an alias for chsize
+   already, but have this code here in case that wasn't so in past versions,
+   or perhaps to help other minimal DOS environments.
+
+   gnulib ftruncate.c has code using fcntl F_CHSIZE and F_FREESP, which
+   might be possibilities if we've got other systems without ftruncate.  */
+
+#if HAVE_CHSIZE && ! HAVE_FTRUNCATE
+# define ftruncate(fd, size) chsize (fd, size)
+#undef HAVE_FTRUNCATE
+#define HAVE_FTRUNCATE 1
+#endif
+
+#if SIZEOF_OFF_T == SIZEOF_INT
+#define OFF_T_MAX  INT_MAX
+#define OFF_T_MIN  INT_MIN
+#elif SIZEOF_OFF_T == SIZEOF_LONG
+#define OFF_T_MAX  LONG_MAX
+#define OFF_T_MIN  LONG_MIN
+#elif SIZEOF_OFF_T == SIZEOF_LONG_LONG
+#define OFF_T_MAX  LONG_LONG_MAX
+#define OFF_T_MIN  LONG_LONG_MIN
+#else
+#error Oops, unknown OFF_T size
+#endif
 
 scm_t_bits scm_tc16_fport;
 
@@ -334,7 +361,7 @@ SCM_DEFINE (scm_open_file, "open-file", 2, 0, 0,
 	}
       ptr++;
     }
-  SCM_SYSCALL (fdes = open (file, flags, 0666));
+  SCM_SYSCALL (fdes = open_or_open64 (file, flags, 0666));
   if (fdes == -1)
     {
       int en = errno;
@@ -583,25 +610,25 @@ fport_fill_input (SCM port)
     }
 }
 
-static off_t
-fport_seek (SCM port, off_t offset, int whence)
+static off_t_or_off64_t
+fport_seek_or_seek64 (SCM port, off_t_or_off64_t offset, int whence)
 {
   scm_t_port *pt = SCM_PTAB_ENTRY (port);
   scm_t_fport *fp = SCM_FSTREAM (port);
-  off_t rv;
-  off_t result;
+  off_t_or_off64_t rv;
+  off_t_or_off64_t result;
 
   if (pt->rw_active == SCM_PORT_WRITE)
     {
       if (offset != 0 || whence != SEEK_CUR)
 	{
 	  fport_flush (port);
-	  result = rv = lseek (fp->fdes, offset, whence);
+	  result = rv = lseek_or_lseek64 (fp->fdes, offset, whence);
 	}
       else
 	{
 	  /* read current position without disturbing the buffer.  */
-	  rv = lseek (fp->fdes, offset, whence);
+	  rv = lseek_or_lseek64 (fp->fdes, offset, whence);
 	  result = rv + (pt->write_pos - pt->write_buf);
 	}
     }
@@ -611,13 +638,13 @@ fport_seek (SCM port, off_t offset, int whence)
 	{
 	  /* could expand to avoid a second seek.  */
 	  scm_end_input (port);
-	  result = rv = lseek (fp->fdes, offset, whence);
+	  result = rv = lseek_or_lseek64 (fp->fdes, offset, whence);
 	}
       else
 	{
 	  /* read current position without disturbing the buffer
 	     (particularly the unread-char buffer).  */
-	  rv = lseek (fp->fdes, offset, whence);
+	  rv = lseek_or_lseek64 (fp->fdes, offset, whence);
 	  result = rv - (pt->read_end - pt->read_pos);
 
 	  if (pt->read_buf == pt->putback_buf)
@@ -626,13 +653,46 @@ fport_seek (SCM port, off_t offset, int whence)
     }
   else /* SCM_PORT_NEITHER */
     {
-      result = rv = lseek (fp->fdes, offset, whence);      
+      result = rv = lseek_or_lseek64 (fp->fdes, offset, whence);
     }
 
   if (rv == -1)
     scm_syserror ("fport_seek");
 
   return result;
+}
+
+/* If we've got largefile and off_t isn't already off64_t then
+   fport_seek_or_seek64 needs a range checking wrapper to be fport_seek in
+   the port descriptor.
+
+   Otherwise if no largefile, or off_t is the same as off64_t (which is the
+   case on NetBSD apparently), then fport_seek_or_seek64 is right to be
+   fport_seek already.  */
+
+#if HAVE_STAT64 && SIZEOF_OFF_T != SIZEOF_OFF64_T
+static off_t
+fport_seek (SCM port, off_t offset, int whence)
+{
+  off64_t rv = fport_seek_or_seek64 (port, (off64_t) offset, whence);
+  if (rv > OFF_T_MAX || rv < OFF_T_MIN)
+    {
+      errno = EOVERFLOW;
+      scm_syserror ("fport_seek");
+    }
+  return (off_t) rv;
+
+}
+#else
+#define fport_seek   fport_seek_or_seek64
+#endif
+
+/* `how' has been validated and is one of SEEK_SET, SEEK_CUR or SEEK_END */
+SCM
+scm_i_fport_seek (SCM port, SCM offset, int how)
+{
+  return scm_from_off_t_or_off64_t
+    (fport_seek_or_seek64 (port, scm_to_off_t_or_off64_t (offset), how));
 }
 
 static void
@@ -642,6 +702,13 @@ fport_truncate (SCM port, off_t length)
 
   if (ftruncate (fp->fdes, length) == -1)
     scm_syserror ("ftruncate");
+}
+
+int
+scm_i_fport_truncate (SCM port, SCM length)
+{
+  scm_t_fport *fp = SCM_FSTREAM (port);
+  return ftruncate_or_ftruncate64 (fp->fdes, scm_to_off_t_or_off64_t (length));
 }
 
 /* helper for fport_write: try to write data, using multiple system

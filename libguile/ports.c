@@ -27,10 +27,12 @@
 
 #include <stdio.h>
 #include <errno.h>
+#include <fcntl.h>  /* for chsize on mingw */
 
 #include "libguile/_scm.h"
 #include "libguile/async.h"
 #include "libguile/eval.h"
+#include "libguile/fports.h"  /* direct access for seek and truncate */
 #include "libguile/objects.h"
 #include "libguile/goops.h"
 #include "libguile/smob.h"
@@ -66,9 +68,17 @@
 #include <sys/ioctl.h>
 #endif
 
-#ifdef __MINGW32__
-#include <fcntl.h>
+/* Mingw (version 3.4.5, circa 2006) has ftruncate as an alias for chsize
+   already, but have this code here in case that wasn't so in past versions,
+   or perhaps to help other minimal DOS environments.
+
+   gnulib ftruncate.c has code using fcntl F_CHSIZE and F_FREESP, which
+   might be possibilities if we've got other systems without ftruncate.  */
+
+#if HAVE_CHSIZE && ! HAVE_FTRUNCATE
 #define ftruncate(fd, size) chsize (fd, size)
+#undef HAVE_FTRUNCATE
+#define HAVE_FTRUNCATE 1
 #endif
 
 
@@ -1382,7 +1392,12 @@ SCM_DEFINE (scm_seek, "seek", 3, 0, 0,
   if (how != SEEK_SET && how != SEEK_CUR && how != SEEK_END)
     SCM_OUT_OF_RANGE (3, whence);
 
-  if (SCM_OPPORTP (fd_port))
+  if (SCM_OPFPORTP (fd_port))
+    {
+      /* go direct to fport code to allow 64-bit offsets */
+      return scm_i_fport_seek (fd_port, offset, how);
+    }
+  else if (SCM_OPPORTP (fd_port))
     {
       scm_t_ptob_descriptor *ptob = scm_ptobs + SCM_PTOBNUM (fd_port);
       off_t off = scm_to_off_t (offset);
@@ -1407,28 +1422,48 @@ SCM_DEFINE (scm_seek, "seek", 3, 0, 0,
 }
 #undef FUNC_NAME
 
-#ifdef __MINGW32__
-/* Define this function since it is not supported under Windows. */
-static int truncate (char *file, int length)
+#ifndef O_BINARY
+#define O_BINARY 0
+#endif
+
+/* Mingw has ftruncate(), perhaps implemented above using chsize, but
+   doesn't have the filename version truncate(), hence this code.  */
+#if HAVE_FTRUNCATE && ! HAVE_TRUNCATE
+static int
+truncate (const char *file, off_t length)
 {
-  int ret = -1, fdes;
-  if ((fdes = open (file, O_BINARY | O_WRONLY)) != -1)
+  int ret, fdes;
+
+  fdes = open (file, O_BINARY | O_WRONLY);
+  if (fdes == -1)
+    return -1;
+
+  ret = ftruncate (fdes, length);
+  if (ret == -1)
     {
-      ret = chsize (fdes, length);
+      int save_errno = errno;
       close (fdes);
+      errno = save_errno;
+      return -1;
     }
-  return ret;
+
+  return close (fdes);
 }
-#endif /* __MINGW32__ */
+#endif /* HAVE_FTRUNCATE && ! HAVE_TRUNCATE */
 
 SCM_DEFINE (scm_truncate_file, "truncate-file", 1, 1, 0,
             (SCM object, SCM length),
-	    "Truncates the object referred to by @var{object} to at most\n"
-	    "@var{length} bytes.  @var{object} can be a string containing a\n"
-	    "file name or an integer file descriptor or a port.\n"
-	    "@var{length} may be omitted if @var{object} is not a file name,\n"
-	    "in which case the truncation occurs at the current port\n"
-	    "position.  The return value is unspecified.")
+	    "Truncate @var{file} to @var{length} bytes.  @var{file} can be a\n"
+	    "filename string, a port object, or an integer file descriptor.\n"
+	    "The return value is unspecified.\n"
+	    "\n"
+	    "For a port or file descriptor @var{length} can be omitted, in\n"
+	    "which case the file is truncated at the current position (per\n"
+	    "@code{ftell} above).\n"
+	    "\n"
+	    "On most systems a file can be extended by giving a length\n"
+	    "greater than the current size, but this is not mandatory in the\n"
+	    "POSIX standard.")
 #define FUNC_NAME s_scm_truncate_file
 {
   int rv;
@@ -1454,6 +1489,11 @@ SCM_DEFINE (scm_truncate_file, "truncate-file", 1, 1, 0,
       off_t_or_off64_t c_length = scm_to_off_t_or_off64_t (length);
       SCM_SYSCALL (rv = ftruncate_or_ftruncate64 (scm_to_int (object),
                                                   c_length));
+    }
+  else if (SCM_OPOUTFPORTP (object))
+    {
+      /* go direct to fport code to allow 64-bit offsets */
+      rv = scm_i_fport_truncate (object, length);
     }
   else if (SCM_OPOUTPORTP (object))
     {

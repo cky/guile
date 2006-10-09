@@ -1,3 +1,28 @@
+2006-10-06  Rob Browning  <rlb@defaultvalue.org>
+
+	Guile 1.8.1 released.
+
+	* GUILE-VERSION (GUILE_MICRO_VERSION): Increment for release.
+	(LIBGUILE_INTERFACE_REVISION): Increment for release.
+	(LIBGUILE_SRFI_SRFI_1_INTERFACE_REVISION): Increment for release.
+	(LIBGUILE_SRFI_SRFI_4_INTERFACE_REVISION): Increment for release.
+	(LIBGUILE_SRFI_SRFI_13_14_INTERFACE_REVISION): Increment for release.
+	(LIBGUILE_SRFI_SRFI_60_INTERFACE_REVISION): Increment for release.
+
+	* Makefile.am (EXTRA_DIST): Add LICENSE.
+
+2006-09-28  Kevin Ryde  <user42@zip.com.au>
+
+	* configure.in (chsize, ftruncate, truncate): New tests, for mingw.
+
+2006-09-27  Kevin Ryde  <user42@zip.com.au>
+
+	* configure.in (clog10): New test, not in mingw.
+
+2006-09-23  Kevin Ryde  <user42@zip.com.au>
+
+	* configure.in (complex.h, complex double, csqrt): New tests.
+
 2006-09-20  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
 	* configure.in: Check for `isblank ()'.
@@ -5,6 +30,11 @@
 	* NEWS: Mentioned the interaction between `setlocale' and SRFI-14
 	standard char sets.
 	
+2006-08-22  Kevin Ryde  <user42@zip.com.au>
+
+	* configure.in: Test if need braces around PTHREAD_ONCE_INIT, set
+	AC_OUTPUT of SCM_I_GSC_NEED_BRACES_ON_PTHREAD_ONCE_INIT.
+
 2006-08-18  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* configure.in: Generate Makefile for emacs subdir.
@@ -12,6 +42,20 @@
 	* Makefile.am (SUBDIRS): Add emacs subdir.
 
 	* configure.in: Generate Makefile for ice-9/debugging subdir.
+
+2006-07-25  Kevin Ryde  <user42@zip.com.au>
+
+	* configure.in (AC_CHECK_FUNCS): Add pthread_getattr_np.
+
+2006-07-24  Kevin Ryde  <user42@zip.com.au>
+
+	* configure.in (AC_CHECK_DECLS): Add sethostname for Solaris 10.
+	(AC_CHECK_FUNCS): Remove dirfd, it's a macro.
+	Reported by Claes Wallin.
+	
+2006-06-25  Kevin Ryde  <user42@zip.com.au>
+
+	* configure.in (AC_CHECK_MEMBERS): Test struct tm.tm_gmtoff.
 
 2006-06-13  Ludovic Courtès  <ludovic.courtes@laas.fr>
 

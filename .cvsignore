@@ -27,6 +27,7 @@ install-sh
 libtool
 ltconfig
 ltmain.sh
+mdate-sh
 missing
 mkinstalldirs
 pre-inst-guile

@@ -1,3 +1,29 @@
+2006-10-05  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/ftw.test: New file.
+	* Makefile.am (SCM_TESTS): Add it.
+
+2006-10-03  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/eval.test (apply): New tests, exercising scm_tc7_subr_2o which
+	had lacked some arg count checking.
+
+2006-09-26  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/ports.test (seek): New tests.
+	(truncate-file): More tests.
+
+2006-09-23  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/numbers.test (exp, log, log10, sqrt): New tests.
+
+	* tests/format.test, tests/srfi-1.test: Use define-module to prevent
+	redefined funcs in those modules extending on to subsequent tests.
+
+	* tests/time.test (gmtime, strptime): Remove the "unresolved" throws,
+	the error+thread tests seem ok now (previously were upset by something
+	leaking out of syntax.test).
+
 2006-09-20  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
 	* tests/srfi-14.test: Use `define-module'.  Use modules `(srfi
@@ -6,6 +32,42 @@
 	charset)): New test prefixes.
 	(every?, find-latin1-locale): New procedures.
 	(%latin1): New variable.
+
+2006-09-08  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/format.test (~f): Test leading zeros bugfix.
+
+2006-08-25  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/popen.test (open-input-pipe, open-output-pipe): In the "no
+	duplicate" tests, close parent side of signalling pipe, to hopefully
+	generate an error instead of a hang if something bad in the child
+	means it doesn't write anything.
+
+2006-08-22  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/srfi-9.test: More tests, in particular check for exceptions on
+	wrong record types passed to accessor and modifier funcs.
+
+2006-07-25  Kevin Ryde  <user42@zip.com.au>
+
+	* standalone/test-conversion.c, standalone/test-gh.c,
+	standalone/test-list.c, standalone/test-num2integral.c,
+	standalone/test-round.c: Use scm_boot_guile rather than
+	scm_init_guile, for the benefit of those systems where we can't
+	implement the latter.  Reported by Claes Wallin.
+
+	* standalone/test-require-extension: Use "&& exit 1" instead of "!" to
+	invert the sense of exit statuses, as the latter doesn't work on
+	Solaris 10.  Reported by Claes Wallin.
+
+2006-07-24  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/socket.test (htonl, ntohl): New tests.
+
+2006-07-06  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/time.test (localtime, mktime, strptime): More tests.
 
 2006-06-13  Ludovic Courtès  <ludovic.courtes@laas.fr>
 

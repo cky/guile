@@ -66,8 +66,12 @@ extern pthread_mutexattr_t scm_i_pthread_mutexattr_recursive[1];
 /* Onces
  */
 #define scm_i_pthread_once_t                pthread_once_t
-#define SCM_I_PTHREAD_ONCE_INIT             PTHREAD_ONCE_INIT
 #define scm_i_pthread_once                  pthread_once
+#if SCM_NEED_BRACES_ON_PTHREAD_ONCE_INIT
+#define SCM_I_PTHREAD_ONCE_INIT             { PTHREAD_ONCE_INIT }
+#else
+#define SCM_I_PTHREAD_ONCE_INIT             PTHREAD_ONCE_INIT
+#endif
 
 /* Thread specific storage
  */
