@@ -27,7 +27,8 @@
   :use-module (ice-9 session)
   :use-module (ice-9 regex)
   :use-module (ice-9 buffered-input)
-  :no-backtrace)
+  :no-backtrace
+  :export (filename-completion-function))
 
 
 

@@ -429,13 +429,20 @@
 (define (record-predicate rtd)
   (lambda (obj) (and (struct? obj) (eq? rtd (struct-vtable obj)))))
 
+(define (%record-type-check rtd obj)  ;; private helper
+  (or (eq? rtd (record-type-descriptor obj))
+      (scm-error 'wrong-type-arg "%record-type-check"
+		 "Wrong type record (want `~S'): ~S"
+		 (list (record-type-name rtd) obj)
+		 #f)))
+
 (define (record-accessor rtd field-name)
   (let* ((pos (list-index (record-type-fields rtd) field-name)))
     (if (not pos)
 	(error 'no-such-field field-name))
     (local-eval `(lambda (obj)
-		   (and (eq? ',rtd (record-type-descriptor obj))
-			(struct-ref obj ,pos)))
+		   (%record-type-check ',rtd obj)
+		   (struct-ref obj ,pos))
 		the-root-environment)))
 
 (define (record-modifier rtd field-name)
@@ -443,8 +450,8 @@
     (if (not pos)
 	(error 'no-such-field field-name))
     (local-eval `(lambda (obj val)
-		   (and (eq? ',rtd (record-type-descriptor obj))
-			(struct-set! obj ,pos val)))
+		   (%record-type-check ',rtd obj)
+		   (struct-set! obj ,pos val))
 		the-root-environment)))
 
 
@@ -779,21 +786,6 @@
 ;;; See the file `COPYING' for terms applying to this program.
 ;;;
 
-(define (exp z)
-  (if (real? z) ($exp z)
-      (make-polar ($exp (real-part z)) (imag-part z))))
-
-(define (log z)
-  (if (and (real? z) (>= z 0))
-      ($log z)
-      (make-rectangular ($log (magnitude z)) (angle z))))
-
-(define (sqrt z)
-  (if (real? z)
-      (if (negative? z) (make-rectangular 0 ($sqrt (- z)))
-          ($sqrt z))
-      (make-polar ($sqrt (magnitude z)) (/ (angle z) 2))))
-
 (define expt
   (let ((integer-expt integer-expt))
     (lambda (z1 z2)
@@ -867,9 +859,6 @@
       (if (real? z) ($atan z)
 	  (/ (log (/ (- +i z) (+ +i z))) +2i))
       ($atan2 z (car y))))
-
-(define (log10 arg)
-  (/ (log arg) (log 10)))
 
 
 

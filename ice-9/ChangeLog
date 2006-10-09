@@ -1,3 +1,11 @@
+2006-10-05  Kevin Ryde  <user42@zip.com.au>
+
+	* ftw.scm (visited?-proc): Use hashv since we know we're getting
+	numbers.  Incorporate stat:dev, since stat:ino is only unique within a
+	single device.  This fixes a bug where if two files with the same
+	inode on different devices where seen only the first would be returned
+	by ftw (and nftw).
+
 2006-10-03  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* gds-client.scm (run-utility): Remove unnecessary
@@ -22,6 +30,18 @@
 	(info-args, info-frame, position, evaluate): Docstring
 	improvements.
 
+2006-09-23  Kevin Ryde  <user42@zip.com.au>
+
+	* boot-9.scm (log, log10, exp, sqrt): Remove, now in
+	libguile/numbers.c.
+
+2006-09-07  Kevin Ryde  <user42@zip.com.au>
+
+	* format.scm: Module "(ice-9 threads)" no longer used, now no mutex.
+	(format:parse-float): Fix normalization of leading zeros like "02.5"
+	to "2.5".  left-zeros was zeroed before adjusting format:fn-dot,
+	resulting in the latter being unchanged.
+
 2006-08-18  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* debugging/trc.scm: New file.
@@ -43,6 +63,13 @@
 	* debugging/Makefile.am: New.
 
 	* Makefile.am (SUBDIRS): Add debugging.
+
+2006-08-02  Kevin Ryde  <user42@zip.com.au>
+
+	* boot-9.scm (%record-type-check): New function.
+	(record-accessor, record-modifier): Use it for a strict type check of
+	the given record.  Previously an accessor returned #f on a wrong
+	record type, and modifier silently did nothing.
 
 2006-06-19  Neil Jerram  <neil@ossau.uklinux.net>
 

@@ -217,14 +217,33 @@
 (define (abs? filename)
   (char=? #\/ (string-ref filename 0)))
 
+;; `visited?-proc' returns a test procedure VISITED? which when called as
+;; (VISITED? stat-obj) returns #f the first time a distinct file is seen,
+;; then #t on any subsequent sighting of it.
+;;
+;; stat:dev and stat:ino together uniquely identify a file (see "Attribute
+;; Meanings" in the glibc manual).  Often there'll be just one dev, and
+;; usually there's just a handful mounted, so the strategy here is a small
+;; hash table indexed by dev, containing hash tables indexed by ino.
+;;
+;; It'd be possible to make a pair (dev . ino) and use that as the key to a
+;; single hash table.  It'd use an extra pair for every file visited, but
+;; might be a little faster if it meant less scheme code.
+;;
 (define (visited?-proc size)
-  (let ((visited (make-hash-table size)))
+  (let ((dev-hash (make-hash-table 7)))
     (lambda (s)
-      (and s (let ((ino (stat:ino s)))
-               (or (hash-ref visited ino)
-                   (begin
-                     (hash-set! visited ino #t)
-                     #f)))))))
+      (and s
+	   (let ((ino-hash (hashv-ref dev-hash (stat:dev s)))
+		 (ino      (stat:ino s)))
+	     (or ino-hash
+		 (begin
+		   (set! ino-hash (make-hash-table size))
+		   (hashv-set! dev-hash (stat:dev s) ino-hash)))
+	     (or (hashv-ref ino-hash ino)
+		 (begin
+		   (hashv-set! ino-hash ino #t)
+		   #f)))))))
 
 (define (stat-dir-readable?-proc uid gid)
   (let ((uid (getuid))

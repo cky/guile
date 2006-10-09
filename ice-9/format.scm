@@ -13,7 +13,6 @@
 
 (define-module (ice-9 format)
   :use-module (ice-9 and-let-star)
-  :use-module (ice-9 threads)
   :autoload (ice-9 pretty-print) (pretty-print)
   :replace (format)
   :export (format:symbol-case-conv
@@ -1461,8 +1460,8 @@
 				(if (> format:fn-dot left-zeros) 
 				    (begin		; norm 0{0}nn.mm to nn.mm
 				      (format:fn-shiftleft left-zeros)
-				      (set! left-zeros 0)
-				      (set! format:fn-dot (- format:fn-dot left-zeros)))
+				      (set! format:fn-dot (- format:fn-dot left-zeros))
+				      (set! left-zeros 0))
 				    (begin		; normalize 0{0}.nnn to .nnn
 				      (format:fn-shiftleft format:fn-dot)
 				      (set! left-zeros (- left-zeros format:fn-dot))
