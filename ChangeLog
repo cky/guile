@@ -29,7 +29,7 @@
 
 	* NEWS: Mentioned the interaction between `setlocale' and SRFI-14
 	standard char sets.
-	
+
 2006-08-22  Kevin Ryde  <user42@zip.com.au>
 
 	* configure.in: Test if need braces around PTHREAD_ONCE_INIT, set
