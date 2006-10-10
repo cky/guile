@@ -827,6 +827,8 @@ GDS provides for working on code in @code{scheme-mode} buffers.
 @menu
 * Access to Guile Help and Completion::
 * Setting and Managing Breakpoints::
+* Listing and Deleting Breakpoints::
+* Moving and Losing Breakpoints::
 * Evaluating Scheme Code::
 @end menu
 
@@ -902,29 +904,55 @@ default by using the alternative key sequences @kbd{C-c C-b d} (for
 @code{debug}), @kbd{C-c C-b t} (for @code{trace}) and @kbd{C-c C-b T}
 (for @code{trace-subtree}).
 
-When you create a breakpoint like this, two things happen.  Firstly,
-if the current buffer is associated with a Guile client program, the
-new breakpoint definition is immediately sent to that client (or, if
-the client cannot accept input immediately, it is held in readiness to
-pass to the client at the next possible opportunity).  This allows the
-new breakpoint to take effect as soon as possible in the relevant
-client program.
+GDS keeps all the breakpoints that you create in a single list, and
+tries to set them in every Guile program that connects to GDS and calls
+@code{set-gds-breakpoints}.  That may sound surprising, because you are
+probably thinking of one particular program when you create a
+breakpoint; but GDS assumes that you would want the breakpoint to continue
+taking effect if you stop and restart that program, and this is
+currently achieved by giving all breakpoints to every program that asks
+for them.  In practice it doesn't matter if a program gets a breakpoint
+definition --- such as ``break in procedure @code{foo}'' --- that it
+can't actually map to any of its code.
 
-Secondly, it is added to GDS's @emph{global} list of all breakpoints.
-This list holds the breakpoint information that will be given to any
-client program that asks for it by calling @code{set-gds-breakpoints}.
-The fact that this list is global, rather than client-specific, means
-that the breakpoints you have set will automatically be recreated if the
-program you are debugging has to be stopped and restarted.@footnote{An
-important point here is that there is nothing that unambiguously relates
-two subsequent runs of the same client program, which might allow GDS to
-pass on breakpoint settings more precisely.}
+If there are already Guile programs connected to GDS when you create a
+new breakpoint, GDS also tries to set the new breakpoint in each of
+those programs at the earliest opportunity, which is usually when they
+decide to stop and talk to GDS for some other reason.
 
-(The only possible downside of this last point is that if you are
-debugging two programs in parallel, which have some code in common,
-you might not want a common code breakpoint in one program to be set
-in the other program as well.  But this feels like a small concern in
-comparison to the benefit of breakpoints persisting as just described.)
+
+@node Listing and Deleting Breakpoints
+@subsubsection Listing and Deleting Breakpoints
+
+To see a list of all breakpoints, type @kbd{C-c C-b ?} (or @kbd{M-x
+gds-describe-breakpoints}).  GDS will then pop up a buffer that
+describes each breakpoint and reports whether it is actually set in each
+of the Guile programs connected to GDS.
+
+To delete a breakpoint, type @kbd{C-c C-b @key{backspace}}.  If the
+region is active when you do this, GDS will delete all of the
+breakpoints in the region.  If the region is not active, GDS tries to
+delete a ``break-in'' breakpoint for the procedure whose definition
+contains point (the Emacs cursor).  In either case, deletion means that
+the breakpoint is removed both from GDS's global list and from all of
+the connected Guile programs that had previously managed to set it.
+
+
+@node Moving and Losing Breakpoints
+@subsubsection Moving and Losing Breakpoints
+
+Imagine that you set a breakpoint at line 80 of a Scheme code file, and
+execute some code that hits this breakpoint; then you add some new code
+at line 40, or delete some code that is no longer needed, and save the
+file.  Now the breakpoint will have moved up or down from line 80, and
+any attached Guile program needs to be told about the new line number.
+Otherwise, when a program loads this file again, it will try incorrectly
+to set a breakpoint on whatever code is now at line 80, and will
+@emph{not} set a breakpoint on the code where you want it.
+
+For this reason, GDS checks all breakpoint positions whenever you save a
+Scheme file, and sends the new position to connected Guile programs for
+any breakpoints that have moved.  @dots{} [to be continued]
 
 
 @node Evaluating Scheme Code
