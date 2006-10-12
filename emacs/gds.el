@@ -42,7 +42,9 @@
   (interactive)
   (if gds-debug-server (gds-kill-debug-server))
   (setq gds-debug-server
-        (gds-start-server "gds-debug" 8333 'gds-debug-protocol))
+        (gds-start-server "gds-debug"
+			  gds-server-port-or-path
+			  'gds-debug-protocol))
   (process-kill-without-query gds-debug-server))
 
 (defun gds-kill-debug-server ()
@@ -602,6 +604,11 @@ you would add an element to this alist to transform
   :type 'boolean
   :group 'gds)
 
+(defcustom gds-server-port-or-path 8333
+  "TCP port number or Unix domain socket path for the server to listen on."
+  :group 'gds
+  :type '(choice (integer :tag "TCP port number")
+		 (file :tag "Unix domain socket path")))
 
 ;;;; If requested, autostart the server after loading.
 

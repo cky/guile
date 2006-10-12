@@ -36,13 +36,29 @@
 
 (define connection->id (make-object-property))
 
-(define (run-server port)
+(define (run-server port-or-path)
 
-  (let ((server (socket PF_INET SOCK_STREAM 0)))
+  (or (integer? port-or-path)
+      (string? port-or-path)
+      (error "port-or-path should be an integer (port number) or a string (file name)"
+	     port-or-path))
+
+  (let ((server (socket (if (integer? port-or-path) PF_INET PF_UNIX)
+			SOCK_STREAM
+			0)))
 
     ;; Initialize server socket.
-    (setsockopt server SOL_SOCKET SO_REUSEADDR 1)
-    (bind server AF_INET INADDR_ANY port)
+    (if (integer? port-or-path)
+	(begin
+	  (setsockopt server SOL_SOCKET SO_REUSEADDR 1)
+	  (bind server AF_INET INADDR_ANY port-or-path))
+	(begin
+	  (catch #t
+		 (lambda () (delete-file port-or-path))
+		 (lambda _ #f))
+	  (bind server AF_UNIX port-or-path)))
+
+    ;; Start listening.
     (listen server 5)
 
     (let loop ((clients '()) (readable-sockets '()))

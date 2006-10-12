@@ -1,3 +1,12 @@
+2006-10-13  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* gds.el (gds-run-debug-server): Use variable
+	gds-server-port-or-path instead of hardcoded 8333.
+	(gds-server-port-or-path): New.
+
+	* gds-server.el (gds-start-server): Change port arg to
+	port-or-path, to support Unix domain sockets.
+
 2006-08-18  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* gds-server.el (gds-start-server): Change "ossau" to "ice-9".
