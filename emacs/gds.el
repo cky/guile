@@ -37,13 +37,19 @@
 ;; The subprocess object for the debug server.
 (defvar gds-debug-server nil)
 
+(defvar gds-socket-type-alist '((tcp . 8333)
+				(unix . "/tmp/.gds_socket"))
+  "Maps each of the possible socket types that the GDS server can
+listen on to the path that it should bind to for each one.")
+
 (defun gds-run-debug-server ()
   "Start (or restart, if already running) the GDS debug server process."
   (interactive)
   (if gds-debug-server (gds-kill-debug-server))
   (setq gds-debug-server
         (gds-start-server "gds-debug"
-			  gds-server-port-or-path
+			  (cdr (assq gds-server-socket-type
+				     gds-socket-type-alist))
 			  'gds-debug-protocol))
   (process-kill-without-query gds-debug-server))
 
@@ -604,11 +610,11 @@ you would add an element to this alist to transform
   :type 'boolean
   :group 'gds)
 
-(defcustom gds-server-port-or-path 8333
-  "TCP port number or Unix domain socket path for the server to listen on."
+(defcustom gds-server-socket-type 'tcp
+  "What kind of socket the GDS server should listen on."
   :group 'gds
-  :type '(choice (integer :tag "TCP port number")
-		 (file :tag "Unix domain socket path")))
+  :type '(choice (const :tag "TCP" tcp)
+		 (const :tag "Unix" unix)))
 
 ;;;; If requested, autostart the server after loading.
 

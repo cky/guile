@@ -1,3 +1,10 @@
+2006-10-14  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* gds.el (gds-socket-type-alist): New.
+	(gds-run-debug-server): Use gds-server-socket-type and
+	gds-socket-type-alist instead of gds-server-port-or-path.
+	(gds-server-socket-type): New, replacing gds-server-port-or-path.
+
 2006-10-13  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* gds.el (gds-run-debug-server): Use variable
