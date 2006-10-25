@@ -1,3 +1,9 @@
+2006-10-25  Neil Jerram  <neil@ossau.uklinux.net>
+
+	IA64 HP-UX patch from Hrvoje NikÅ¡iÄ‡.  (Thanks!)
+	
+	* configure.in: New check for uca lib (needed for IA64 on HP-UX).
+
 2006-10-06  Rob Browning  <rlb@defaultvalue.org>
 
 	Guile 1.8.1 released.
@@ -23,7 +29,7 @@
 
 	* configure.in (complex.h, complex double, csqrt): New tests.
 
-2006-09-20  Ludovic Courtès  <ludovic.courtes@laas.fr>
+2006-09-20  Ludovic CourtÃ¨s  <ludovic.courtes@laas.fr>
 
 	* configure.in: Check for `isblank ()'.
 
@@ -57,7 +63,7 @@
 
 	* configure.in (AC_CHECK_MEMBERS): Test struct tm.tm_gmtoff.
 
-2006-06-13  Ludovic Courtès  <ludovic.courtes@laas.fr>
+2006-06-13  Ludovic CourtÃ¨s  <ludovic.courtes@laas.fr>
 
 	* NEWS: Mentioned the new behavior of `equal?' for structures.
 
@@ -260,7 +266,7 @@
 
 	* acinclude.m4 (ACX_PTHREAD): New.
 	* configure.in: Use it instead of simply looking for -lpthread.
-	Thanks to Andreas Vögele!
+	Thanks to Andreas VÃ¶gele!
 	
 2004-09-08  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
@@ -313,7 +319,7 @@
 2004-07-09  Marius Vollmer  <mvo@zagadka.de>
 
 	* configure.in: Bugfix: set SCM_I_GSC_T_UINTMAX, not
-	SCM_I_GSC_T_INTMAX in two places.  Thanks to Andreas Vögele!
+	SCM_I_GSC_T_INTMAX in two places.  Thanks to Andreas VÃ¶gele!
 
 2004-07-07  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
@@ -2032,7 +2038,7 @@ Tue Dec 14 09:12:22 1999  Greg J. Badros  <gjb@cs.washington.edu>
 
 1999-07-19  Jim Blandy  <jimb@savonarola.red-bean.com>
 
-	Fixes for EMX from Mikael Ståldal.
+	Fixes for EMX from Mikael StÃ¥ldal.
 
 	* configure.in: Check for <io.h>.
 	* configure: Regenerated.

@@ -54,6 +54,9 @@
  and differences between _scm.h and __scm.h.
  **********************************************************************/
 
+#if defined(__ia64) && !defined(__ia64__)
+# define __ia64__
+#endif
 
 #if HAVE_CONFIG_H
 #  include <config.h>

@@ -31,6 +31,7 @@
 #include "libguile/eval.h"
 #include "libguile/async.h"
 #include "libguile/ports.h"
+#include "libguile/gc.h"
 
 #undef DEBUG
 
@@ -847,8 +848,8 @@ scm_threads_init (SCM_STACKITEM *base)
     scm_mark_locations ((SCM_STACKITEM *) &ctx.uc_mcontext,           \
       ((size_t) (sizeof (SCM_STACKITEM) - 1 + sizeof ctx.uc_mcontext) \
        / sizeof (SCM_STACKITEM)));                                    \
-    bot = (SCM_STACKITEM *) __libc_ia64_register_backing_store_base;  \
-    top = (SCM_STACKITEM *) ctx.uc_mcontext.sc_ar_bsp;                \
+    bot = (SCM_STACKITEM *) scm_ia64_register_backing_store_base ();  \
+    top = (SCM_STACKITEM *) scm_ia64_ar_bsp (&ctx);                   \
     scm_mark_locations (bot, top - bot); } while (0)
 #else
 # define SCM_MARK_BACKING_STORE()

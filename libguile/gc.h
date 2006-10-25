@@ -246,6 +246,11 @@ SCM_API scm_i_pthread_mutex_t scm_i_gc_admin_mutex;
 #define scm_gc_running_p (SCM_I_CURRENT_THREAD->gc_running_p)
 SCM_API scm_i_pthread_mutex_t scm_i_sweep_mutex;
 
+#ifdef __ia64__
+void *scm_ia64_register_backing_store_base (void);
+void *scm_ia64_ar_bsp (const void *);
+#endif
+
 
 
 #if (SCM_ENABLE_DEPRECATED == 1)

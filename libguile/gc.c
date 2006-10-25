@@ -28,11 +28,6 @@
 #include <string.h>
 #include <assert.h>
 
-#ifdef __ia64__
-#include <ucontext.h>
-extern unsigned long * __libc_ia64_register_backing_store_base;
-#endif
-
 #include "libguile/_scm.h"
 #include "libguile/eval.h"
 #include "libguile/stime.h"
@@ -1036,6 +1031,44 @@ scm_init_gc ()
 #include "libguile/gc.x"
 }
 
+#ifdef __ia64__
+# ifdef __hpux
+#  include <sys/param.h>
+#  include <sys/pstat.h>
+void *
+scm_ia64_register_backing_store_base (void)
+{
+  struct pst_vm_status vm_status;
+  int i = 0;
+  while (pstat_getprocvm (&vm_status, sizeof (vm_status), 0, i++) == 1)
+    if (vm_status.pst_type == PS_RSESTACK)
+      return (void *) vm_status.pst_vaddr;
+  abort ();
+}
+void *
+scm_ia64_ar_bsp (const void *ctx)
+{
+  uint64_t bsp;
+  __uc_get_ar_bsp(ctx, &bsp);
+  return (void *) bsp;
+}
+# endif /* hpux */
+# ifdef linux
+#  include <ucontext.h>
+void *
+scm_ia64_register_backing_store_base (void)
+{
+  extern void *__libc_ia64_register_backing_store_base;
+  return __libc_ia64_register_backing_store_base;
+}
+void *
+scm_ia64_ar_bsp (const void *opaque)
+{
+  ucontext_t *ctx = opaque;
+  return (void *) ctx->uc_mcontext.sc_ar_bsp;
+}
+# endif	/* linux */
+#endif /* __ia64__ */
 
 void
 scm_gc_sweep (void)

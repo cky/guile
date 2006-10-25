@@ -212,6 +212,7 @@ if test "$enable_elisp" = yes; then
 else
   SCM_I_GSC_ENABLE_ELISP=0
 fi
+AC_CHECK_LIB(uca, __uc_get_ar_bsp)
 
 AC_C_CONST
 
@@ -221,6 +222,7 @@ if test "$ac_cv_c_inline" != no; then
 else
   SCM_I_GSC_C_INLINE=NULL
 fi
+AC_CHECK_LIB(uca, __uc_get_ar_bsp)
 
 AC_C_BIGENDIAN
 

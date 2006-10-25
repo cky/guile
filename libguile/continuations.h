@@ -27,7 +27,6 @@
 #ifdef __ia64__
 #include <signal.h>
 #include <ucontext.h>
-extern unsigned long * __libc_ia64_register_backing_store_base;
 #endif /* __ia64__ */
 
 
@@ -48,6 +47,7 @@ typedef struct
   SCM dynenv;
 #ifdef __ia64__
   ucontext_t ctx;
+  int fresh;
   void *backing_store;
   unsigned long backing_store_size;
 #endif /* __ia64__ */
