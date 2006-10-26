@@ -290,7 +290,7 @@
 
   (pass-if "char-set:punctuation (membership)"
      (if (not %latin1)
-	 (thrown 'unresolved)
+	 (throw 'unresolved)
 	 (let ((punctuation (char-set->list char-set:punctuation)))
 	   (every? (lambda (8-bit-char)
 		     (memq 8-bit-char punctuation))

@@ -1,3 +1,8 @@
+2006-10-26  Ludovic Courtès  <ludovic.courtes@laas.fr>
+
+	* tests/srfi-14.test (Latin-1)[char-set:punctuation]: Fixed a
+	typo: `thrown' instead of `throw'.
+
 2006-10-05  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/ftw.test: New file.
