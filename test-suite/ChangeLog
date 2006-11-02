@@ -1,3 +1,7 @@
+2006-11-02  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* tests/environments.test: Comment out all tests in this file.
+
 2006-10-26  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
 	* tests/srfi-14.test (Latin-1)[char-set:punctuation]: Fixed a

@@ -1,3 +1,17 @@
+2006-11-02  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* modules.c: Correct comment saying that low-level environments
+	will be used "in the next release".
+
+	* init.c: Comment out #include of environments.h.
+	(scm_i_init_guile): Comment out scm_environments_prehistory() and
+	scm_init_environments() calls.
+
+	* Makefile.am (libguile_la_SOURCES): Remove environments.c.
+	(DOT_X_FILES): Remove environments.x.
+	(DOT_DOC_FILES): Remove environments.doc.
+	(modinclude_HEADERS): Remove environments.h.
+
 2006-10-25  Neil Jerram  <neil@ossau.uklinux.net>
 
 	IA64 HP-UX GC patch from Hrvoje Nikšić.  (Thanks!)
