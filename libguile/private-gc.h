@@ -144,14 +144,13 @@ typedef struct scm_sweep_statistics
    }							\
   while (0)
 
-
 
 extern scm_t_cell_type_statistics scm_i_master_freelist;
 extern scm_t_cell_type_statistics scm_i_master_freelist2;
-extern unsigned long scm_gc_cells_collected_1;
 
 void scm_i_adjust_min_yield (scm_t_cell_type_statistics *freelist,
-			     scm_t_sweep_statistics sweep_stats);
+			     scm_t_sweep_statistics sweep_stats,
+			     scm_t_sweep_statistics sweep_stats_1);
 void scm_i_gc_sweep_freelist_reset (scm_t_cell_type_statistics *freelist);
 int scm_i_gc_grow_heap_p (scm_t_cell_type_statistics * freelist);
 
@@ -270,7 +269,9 @@ void scm_i_heap_segment_statistics (scm_t_heap_segment *seg, SCM tab);
      
 int scm_i_insert_segment (scm_t_heap_segment * seg);
 long int scm_i_find_heap_segment_containing_object (SCM obj);
-int scm_i_get_new_heap_segment (scm_t_cell_type_statistics *, policy_on_error);
+int scm_i_get_new_heap_segment (scm_t_cell_type_statistics *,
+				scm_t_sweep_statistics,
+				policy_on_error);
 void scm_i_clear_mark_space (void);
 void scm_i_sweep_segments (void);
 SCM scm_i_sweep_some_segments (scm_t_cell_type_statistics *fl,

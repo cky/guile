@@ -1,3 +1,38 @@
+2006-11-08  Ludovic Courtès  <ludovic.courtes@laas.fr>
+	
+	* libguile/gc-freelist.c (scm_i_adjust_min_yield): Take two
+	"sweep_stats" arguments; use them instead of accessing the global
+	variables `scm_gc_cells_collected' and `scm_gc_cells_collected_1'.
+
+	* libguile/gc-segment.c (scm_i_sweep_some_cards): Reset SWEEP
+	before each iteration of the loop.
+	(scm_i_sweep_some_segments): Reset SWEEP at each iteration.
+	(scm_i_get_new_heap_segment): Take an additional argument
+	SWEEP_STATS.  Compute MIN_CELLS as a function of it.
+
+	* libguile/gc.c (scm_gc_cells_collected,
+	scm_gc_cells_collected_1): Removed.
+	(scm_i_gc_sweep_stats, scm_i_gc_sweep_stats_1): New.
+	(scm_gc_cells_marked_acc, scm_gc_cells_swept_acc,
+	scm_gc_time_taken, scm_gc_mark_time_taken, scm_gc_times,
+	scm_gc_cell_yield_percentage, protected_obj_count): Made `static'.
+	(scm_gc_stats): Use `scm_i_gc_sweep_stats' instead of
+	`scm_gc_cells_(collected|swept)'.
+	(gc_update_stats): New.
+	(gc_end_stats): Use `scm_i_gc_sweep_stats' and
+	`scm_i_gc_sweep_stats_1' instead of the former globals.
+	(scm_gc_for_newcell): Invoke `gc_update_stats ()' after each
+	`scm_i_sweep_some_segments' call.  This fixes a bug where the GC
+	would keep allocating new segments instead of re-using collected
+	cells (because `scm_gc_cells_collected' would remain zero).
+
+	* libguile/gc.h (scm_gc_cells_swept, scm_gc_cells_collected,
+	scm_gc_cell_yield_percentage): Removed.
+
+	* libguile/private-gc.h (scm_gc_cells_collected_1): Removed.
+	(scm_i_adjust_min_yield): Updated.
+	(scm_i_get_new_heap_segment): Updated.
+
 2006-11-02  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* modules.c: Correct comment saying that low-level environments
@@ -13546,3 +13581,7 @@
 	(write_all): new helper procedure.
 
 The ChangeLog continues in the file: "ChangeLog-2000"
+
+;; Local Variables:
+;; coding: utf-8
+;; End:

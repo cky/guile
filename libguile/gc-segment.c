@@ -141,9 +141,8 @@ scm_i_clear_segment_mark_space (scm_t_heap_segment *seg)
 }
 
 /* Sweep cards from SEG until we've gathered THRESHOLD cells.  On return,
-   *CELLS_SWEPT contains the number of cells that have been visited and
-   *CELLS_COLLECTED contains the number of cells actually collected.  A
-   freelist is returned, potentially empty.  */
+   SWEEP_STATS contains the number of cells that have been visited and
+   collected.  A freelist is returned, potentially empty.  */
 SCM
 scm_i_sweep_some_cards (scm_t_heap_segment *seg,
 			scm_t_sweep_statistics *sweep_stats)
@@ -206,8 +205,12 @@ scm_i_sweep_segment (scm_t_heap_segment *seg,
 
   scm_i_sweep_statistics_init (sweep_stats);
 
+  scm_i_sweep_statistics_init (&sweep);
   while (scm_i_sweep_some_cards (seg, &sweep) != SCM_EOL)
-    scm_i_sweep_statistics_sum (sweep_stats, sweep);
+    {
+      scm_i_sweep_statistics_sum (sweep_stats, sweep);
+      scm_i_sweep_statistics_init (&sweep);
+    }
 
   seg->next_free_card =p;
 }
@@ -339,6 +342,7 @@ scm_i_sweep_some_segments (scm_t_cell_type_statistics *fl,
       if (scm_i_heap_segment_table[i]->freelist != fl)
 	continue;
 
+      scm_i_sweep_statistics_init (&sweep);
       collected = scm_i_sweep_some_cards (scm_i_heap_segment_table[i],
 					  &sweep);
 
@@ -461,14 +465,12 @@ scm_i_find_heap_segment_containing_object (SCM obj)
 }
 
 
-/*
-  Important entry point: try to grab some memory, and make it into a
-  segment.
-
-  RETURN: the index of the segment.
- */
-int 
+/* Important entry point: try to grab some memory, and make it into a
+   segment; return the index of the segment.  SWEEP_STATS should contain
+   global GC sweep statistics collected since the last full GC.  */
+int
 scm_i_get_new_heap_segment (scm_t_cell_type_statistics *freelist,
+			    scm_t_sweep_statistics sweep_stats,
 			    policy_on_error error_policy)
 {
   size_t len;
@@ -489,7 +491,7 @@ scm_i_get_new_heap_segment (scm_t_cell_type_statistics *freelist,
      */
     float f = freelist->min_yield_fraction / 100.0;
     float h = SCM_HEAP_SIZE;
-    float min_cells = (f * h - scm_gc_cells_collected) / (1.0 - f);
+    float min_cells = (f * h - sweep_stats.collected) / (1.0 - f);
 
     /* Make heap grow with factor 1.5 */
     len =  freelist->heap_size / 2;
