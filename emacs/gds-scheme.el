@@ -158,7 +158,7 @@ Emacs to display an error or trap so that the user can debug it."
         (default nil))
     ;; Prepare a table containing all current clients.
     (mapcar (lambda (client-info)
-               (setq table (cons (cons (cadr (assq 'name client-info))
+               (setq table (cons (cons (cadr (memq 'name client-info))
 				       (car client-info))
 				 table)))
              gds-client-info)
