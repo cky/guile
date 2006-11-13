@@ -339,7 +339,7 @@
 
 (define (environment-module env)
   (let ((closure (and (pair? env) (car (last-pair env)))))
-    (and closure (eval-closure-module closure))))
+    (and closure (procedure-property closure 'module))))
 
 
 

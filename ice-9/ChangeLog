@@ -1,3 +1,10 @@
+2006-11-13  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* boot-9.scm (environment-module): Change eval-closure-module call
+	back to procedure-property lookup.  (This completes the reversion
+	of the change made on 2005-06-10, which was only partially undone
+	by the change on 2005-08-01.)
+
 2006-10-13  Neil Jerram  <neil@ossau.uklinux.net>
 
 	Integration of Unix domain socket patch from William Xu:
