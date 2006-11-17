@@ -12,7 +12,9 @@ You can reference the file `lib.scm' from your own code as the module
 (benchmark-suite lib); it also has comments at the top and before each
 function explaining what's going on.
 
-Please write more Guile benchmarks, and send them to bug-guile@gnu.org.
-We'll merge them into the distribution.  All benchmark suites must be
-licensed for our use under the GPL, but I don't think we're going to
-collect assignment papers for them.
+Please write more Guile benchmarks, and send them to
+bug-guile@gnu.org.  (Note that you must be subscribed to this list
+first, in order to successfully send a message to it.)  We'll merge
+them into the distribution.  All benchmark suites must be licensed for
+our use under the GPL, but I don't think we're going to collect
+assignment papers for them.

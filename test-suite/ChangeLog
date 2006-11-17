@@ -1,3 +1,7 @@
+2006-11-17  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* README: Note need for subscription to bug-guile@gnu.org.
+
 2006-11-02  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* tests/environments.test: Comment out all tests in this file.
