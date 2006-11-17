@@ -16,7 +16,9 @@ This has been the case since the 1.3.* series.
 
 The next stable release will likely be version 1.10.0.
 
-Please send bug reports to bug-guile@gnu.org.
+Please send bug reports to bug-guile@gnu.org.  Note that you must be
+subscribed to this list first, in order to successfully send a report
+to it.
 
 See the LICENSE file for the specific terms that apply to Guile.
 
