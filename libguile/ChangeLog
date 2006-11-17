@@ -1,3 +1,7 @@
+2006-11-17  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* script.c (scm_shell_usage): Note need for subscription to bug-guile@gnu.org.
+
 2006-11-08  Ludovic Courtès  <ludovic.courtes@laas.fr>
 	
 	* libguile/gc-freelist.c (scm_i_adjust_min_yield): Take two

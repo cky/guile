@@ -381,7 +381,9 @@ scm_shell_usage (int fatal, char *message)
            "  -v, --version  display version information and exit\n"
 	   "  \\              read arguments from following script lines\n"
            "\n"
-	   "Please report bugs to bug-guile@gnu.org\n",
+	   "Please report bugs to bug-guile@gnu.org.  (Note that you must\n"
+	   "be subscribed to this list first, in order to successfully send\n"
+	   "a report to it).\n",
            scm_usage_name);
 
   if (fatal)
