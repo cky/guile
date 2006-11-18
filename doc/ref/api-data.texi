@@ -1012,6 +1012,12 @@ zero.
 @rnindex number->string
 @rnindex string->number
 
+The following procedures read and write numbers according to their
+external representation as defined by R5RS (@pxref{Lexical structure,
+R5RS Lexical Structure,, r5rs, The Revised^5 Report on the Algorithmic
+Language Scheme}).  @xref{The ice-9 i18n Module, the @code{(ice-9
+i18n)} module}, for locale-dependent number parsing.
+
 @deffn {Scheme Procedure} number->string n [radix]
 @deffnx {C Function} scm_number_to_string (n, radix)
 Return a string holding the external representation of the
@@ -2943,7 +2949,8 @@ predicates (@pxref{Characters}), but are defined on character sequences.
 The first set is specified in R5RS and has names that end in @code{?}.
 The second set is specified in SRFI-13 and the names have no ending
 @code{?}.  The predicates ending in @code{-ci} ignore the character case
-when comparing strings.
+when comparing strings.  @xref{The ice-9 i18n Module, the @code{(ice-9
+i18n)} module}, for locale-dependent string comparison.
 
 @rnindex string=?
 @deffn {Scheme Procedure} string=? s1 s2

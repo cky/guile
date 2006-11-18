@@ -7,6 +7,7 @@
 @set MANUAL-EDITION 1.1
 @c %**end of header
 @include version.texi
+@include lib-version.texi
 
 @copying
 This reference manual documents Guile, GNU's Ubiquitous Intelligent
@@ -137,7 +138,7 @@ x
 @comment The title is printed in a large font.
 @title Guile Reference Manual
 @subtitle Edition @value{MANUAL-EDITION}, for use with Guile @value{VERSION}
-@c @subtitle $Id: guile.texi,v 1.47 2006-10-09 22:45:02 kryde Exp $
+@c @subtitle $Id: guile.texi,v 1.48 2006-11-18 18:14:55 civodul Exp $
 
 @c See preface.texi for the list of authors
 @author The Guile Developers

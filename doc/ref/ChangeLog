@@ -1,3 +1,23 @@
+2006-11-18  Ludovic Court√®s  <ludovic.courtes@laas.fr>
+
+	* Makefile.am (BUILT_SOURCES): New variable.
+	(lib-version.texi): New target.
+
+	* guile.texi: Include `lib-version.texi'.
+	
+	* api-data.texi (Conversion): Link to `The ice-9 i18n Module' when
+	describing `string->number'.
+	(String Comparison): Likewise.
+
+	* api-i18n.texi (Internationalization)[The ice-9 i18n Module]: New
+	node.
+	[Gettext Support]: New node; contains text formerly in
+	`Internationalization'.
+
+	* posix.texi (Locales): Added a link to the glibc manual
+	describing the various locale categories.  Mention locale objects
+	and link to `The ice-9 i18n Module' when describing `setlocale'.
+
 2006-11-17  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* intro.texi (Reporting Bugs): Note need for subscription to
@@ -87,7 +107,7 @@
 	* api-data.texi (Scientific): In sqrt, note it's the positive root
 	which is returned (as per R5RS).
 
-2006-09-20  Ludovic CourtËs  <ludovic.courtes@laas.fr>
+2006-09-20  Ludovic Court√®s  <ludovic.courtes@laas.fr>
 
 	* api-data.texi (Standard Character Sets): Documented the
 	charset recomputation upon successful `setlocale'.
@@ -214,12 +234,12 @@
 	* posix.texi (Time): In tm:gmtoff, give example values, note not the
 	same as C tm_gmtoff.
 
-2006-06-16  Ludovic CourtËs  <ludovic.courtes@laas.fr>
+2006-06-16  Ludovic Court√®s  <ludovic.courtes@laas.fr>
 
 	* api-utility.texi (Equality): Mentioned the behavior of `equal?'
 	for structures (as suggested by Kevin Ryde).
 
-2006-06-13  Ludovic CourtËs  <ludovic.courtes@laas.fr>
+2006-06-13  Ludovic Court√®s  <ludovic.courtes@laas.fr>
 
 	* api-compound.texi (Structure Concepts): Mentioned the behavior
 	of `equal?' for structures.
@@ -286,7 +306,7 @@
 	SCM_SIMPLE_VECTOR_SET not SCM_SIMPLE_VECTOR_SET_X, the former is
 	what's in vector.h.
 
-2006-03-21  Ludovic CourtËs  <ludovic.courtes@laas.fr>
+2006-03-21  Ludovic Court√®s  <ludovic.courtes@laas.fr>
 
 	* api-data.texi (Conversion): Add scm_c_locale_stringn_to_number.
 
@@ -338,7 +358,7 @@
 	contexts.  Renamed all functions from scm_frame_ to scm_dynwind_.
 	Updated documentation.
 
-2005-12-19  Ludovic CourtËs  <ludovic.courtes@laas.fr>
+2005-12-19  Ludovic Court√®s  <ludovic.courtes@laas.fr>
 
         * api-data.texi (Operations Related to Symbols):
         Documented `scm_take_locale_symbol ()'.
@@ -380,7 +400,7 @@
 
 2005-11-06  Kevin Ryde  <user42@zip.com.au>
 
-	From Ludovic CourtËs, partial rework by me:
+	From Ludovic Court√®s, partial rework by me:
 	* doc/ref/api-modules.texi (Creating Guile Modules): In define-module,
 	describe #:re-export, #:export-syntax, #:re-export-syntax, #:replace
 	and #:duplicates.  Add re-export.
@@ -393,7 +413,7 @@
 
 	* posix.texi (Network Socket Address): Add scm_make_socket_address,
 	scm_c_make_socket_address, scm_from_sockaddr, scm_to_sockaddr.  This
-	change by Ludovic CourtËs and revised a bit by me.
+	change by Ludovic Court√®s and revised a bit by me.
 
 2005-10-27  Kevin Ryde  <user42@zip.com.au>
 
@@ -2499,3 +2519,8 @@
 	The change log for files in this directory continues backwards
 	from 2001-08-27 in ../ChangeLog, as all the Guile documentation
 	prior to this date was contained in a single directory.
+
+
+;; Local Variables:
+;; coding: utf-8
+;; End:

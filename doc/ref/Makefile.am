@@ -21,6 +21,9 @@
 
 AUTOMAKE_OPTIONS = gnu
 
+BUILT_SOURCES = lib-version.texi
+
+
 info_TEXINFOS = guile.texi
 
 guile_TEXINFOS = preface.texi			\
@@ -85,5 +88,11 @@ include $(top_srcdir)/am/pre-inst-guile
 autoconf.texi: autoconf-macros.texi
 autoconf-macros.texi: $(top_srcdir)/guile-config/guile.m4
 	$(preinstguiletool)/snarf-guile-m4-docs $< > $(srcdir)/$@
+
+lib-version.texi: $(top_srcdir)/GUILE-VERSION
+	cat "$^" | grep '^LIBGUILE_.*_MAJOR' |				\
+	sed 's/^LIBGUILE_\([A-Z0-9_]*\)_MAJOR=\([0-9]\+\)/@set LIBGUILE_\1_MAJOR \2/'	\
+	> "$@"
+
 
 MAINTAINERCLEANFILES = autoconf-macros.texi

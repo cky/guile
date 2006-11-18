@@ -1,3 +1,9 @@
+2006-11-18  Ludovic CourtÃ¨s  <ludovic.courtes@laas.fr>
+
+	* Makefile.am (SCM_TESTS): Added `tests/i18n.test'.
+
+	* tests/i18n.test: New file.
+
 2006-11-17  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* README: Note need for subscription to bug-guile@gnu.org.
@@ -6,7 +12,7 @@
 
 	* tests/environments.test: Comment out all tests in this file.
 
-2006-10-26  Ludovic Courtès  <ludovic.courtes@laas.fr>
+2006-10-26  Ludovic CourtÃ¨s  <ludovic.courtes@laas.fr>
 
 	* tests/srfi-14.test (Latin-1)[char-set:punctuation]: Fixed a
 	typo: `thrown' instead of `throw'.
@@ -37,7 +43,7 @@
 	the error+thread tests seem ok now (previously were upset by something
 	leaking out of syntax.test).
 
-2006-09-20  Ludovic Courtès  <ludovic.courtes@laas.fr>
+2006-09-20  Ludovic CourtÃ¨s  <ludovic.courtes@laas.fr>
 
 	* tests/srfi-14.test: Use `define-module'.  Use modules `(srfi
 	srfi-1)' and `(test-suite lib)'.
@@ -82,7 +88,7 @@
 
 	* tests/time.test (localtime, mktime, strptime): More tests.
 
-2006-06-13  Ludovic Courtès  <ludovic.courtes@laas.fr>
+2006-06-13  Ludovic CourtÃ¨s  <ludovic.courtes@laas.fr>
 
 	* Makefile.am (SCM_TESTS): Added `tests/structs.test'.
 	* tests/structs.test: New file.
@@ -145,7 +151,7 @@
 	* tests/unif.test (make-shared-array): Add example usages from the
 	manual, two of which currently fail.
 
-2006-03-04  Ludovic Courtès  <ludovic.courtes@laas.fr>
+2006-03-04  Ludovic CourtÃ¨s  <ludovic.courtes@laas.fr>
 
 	* test-suite/tests/modules.test: New file.
 	* test-suite/Makefile.am (SCM_TESTS): Added it.
@@ -193,7 +199,7 @@
 
 	* tests/srfi-1.test (lset-difference!): More tests.
 
-2005-10-27  Ludovic Courtès  <ludovic.courtes@laas.fr>
+2005-10-27  Ludovic CourtÃ¨s  <ludovic.courtes@laas.fr>
 
 	* tests/socket.test (make-socket-address): New tests.
 	(connect, bind, sendto): Exercise sockaddr object.
@@ -724,7 +730,7 @@
 	* lib.scm (exception:numerical-overflow): New define.
 	* tests/numbers.test (modulo-expt): Use it and
 	exception:wrong-type-arg, avoiding empty "" regexp which is invalid on
-	BSD.  Reported by Andreas Vögele.
+	BSD.  Reported by Andreas VÃ¶gele.
 
 2004-05-29  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
 
@@ -749,12 +755,12 @@
 
 	* tests/srfi-19.test (test-dst, string->date local DST): Test with
 	"EST5EDT" instead of "CET", since HP-UX doesn't know CET.  Reported by
-	Andreas Vögele.
+	Andreas VÃ¶gele.
 
 2004-05-03  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/time.test (strftime): Force tm:isdst to 0 for the test, for
-	the benefit of HP-UX.  Reported by Andreas Vögele.
+	the benefit of HP-UX.  Reported by Andreas VÃ¶gele.
 	Use set-tm:zone rather than a hard coded vector offset.
 
 2004-04-29  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
@@ -1695,7 +1701,7 @@
 
 2001-06-16  Marius Vollmer  <mvo@zagadka.ping.de>
 
-        Thanks to Matthias Köppe!
+        Thanks to Matthias KÃ¶ppe!
 
 	* tests/ports.test: New test for output port line counts.
 	* tests/format.test, tests/optargs.test, tests/srfi-19.test: New
@@ -2289,3 +2295,7 @@ Fri Dec 17 12:14:10 1999  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* lib.scm, guile-test, paths.scm: Log begins.
 
+
+;; Local Variables:
+;; coding: utf-8
+;; End:

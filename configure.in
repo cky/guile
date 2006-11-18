@@ -616,8 +616,9 @@ AC_CHECK_HEADERS([assert.h crt_externs.h])
 #   truncate - not in mingw
 #   isblank - available as a GNU extension or in C99
 #   _NSGetEnviron - Darwin specific
+#   strcoll_l, newlocale - GNU extensions (glibc)
 #
-AC_CHECK_FUNCS([DINFINITY DQNAN chsize clog10 ctermid fesetround ftime ftruncate fchown getcwd geteuid gettimeofday gmtime_r ioctl lstat mkdir mknod nice readdir_r readlink rename rmdir select setegid seteuid setlocale setpgid setsid sigaction siginterrupt stat64 strftime strptime symlink sync sysconf tcgetpgrp tcsetpgrp times uname waitpid strdup system usleep atexit on_exit chown link fcntl ttyname getpwent getgrent kill getppid getpgrp fork setitimer getitimer strchr strcmp index bcopy memcpy rindex truncate unsetenv isblank _NSGetEnviron])
+AC_CHECK_FUNCS([DINFINITY DQNAN chsize clog10 ctermid fesetround ftime ftruncate fchown getcwd geteuid gettimeofday gmtime_r ioctl lstat mkdir mknod nice readdir_r readlink rename rmdir select setegid seteuid setlocale setpgid setsid sigaction siginterrupt stat64 strftime strptime symlink sync sysconf tcgetpgrp tcsetpgrp times uname waitpid strdup system usleep atexit on_exit chown link fcntl ttyname getpwent getgrent kill getppid getpgrp fork setitimer getitimer strchr strcmp index bcopy memcpy rindex truncate unsetenv isblank _NSGetEnviron strcoll strcoll_l newlocale])
 
 # Reasons for testing:
 #   netdb.h - not in mingw
@@ -1274,6 +1275,13 @@ AC_SUBST(LIBGUILE_SRFI_SRFI_60_INTERFACE_CURRENT)
 AC_SUBST(LIBGUILE_SRFI_SRFI_60_INTERFACE_REVISION)
 AC_SUBST(LIBGUILE_SRFI_SRFI_60_INTERFACE_AGE)
 AC_SUBST(LIBGUILE_SRFI_SRFI_60_INTERFACE)
+
+AC_SUBST(LIBGUILE_I18N_MAJOR)
+AC_SUBST(LIBGUILE_I18N_INTERFACE_CURRENT)
+AC_SUBST(LIBGUILE_I18N_INTERFACE_REVISION)
+AC_SUBST(LIBGUILE_I18N_INTERFACE_AGE)
+AC_SUBST(LIBGUILE_I18N_INTERFACE)
+
 
 #######################################################################
 

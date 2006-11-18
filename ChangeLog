@@ -1,3 +1,12 @@
+2006-11-18  Ludovic Courtès  <ludovic.courtes@laas.fr>
+
+	* GUILE-VERSION: Added `LIBGUILE_I18N_*'.
+
+	* configure.in: Look for `strcoll_l ()' and `newlocale ()'.
+	Substitute the `LIBGUILE_I18N_' variables.
+	
+	* NEWS: Mention `(ice-9 i18n)'.
+
 2006-11-17  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* README: Note need for subscription to bug-guile@gnu.org.

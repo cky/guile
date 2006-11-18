@@ -43,6 +43,7 @@ SCM_TESTS = tests/alist.test			\
 	    tests/guardians.test		\
 	    tests/hash.test			\
 	    tests/hooks.test			\
+	    tests/i18n.test			\
 	    tests/import.test			\
 	    tests/interp.test			\
 	    tests/list.test			\

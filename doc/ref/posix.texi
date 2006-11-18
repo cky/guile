@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2006
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -3139,10 +3139,11 @@ specified.
 Get or set the current locale, used for various internationalizations.
 Locales are strings, such as @samp{sv_SE}.
 
-If @var{locale} is given then the locale for the given @var{category} is set
-and the new value returned.  If @var{locale} is not given then the
-current value is returned.  @var{category} should be one of the
-following values
+If @var{locale} is given then the locale for the given @var{category}
+is set and the new value returned.  If @var{locale} is not given then
+the current value is returned.  @var{category} should be one of the
+following values (@pxref{Locale Categories, Categories of Activities
+that Locales Affect,, libc, The GNU C Library Reference Manual}):
 
 @defvar LC_ALL
 @defvarx LC_COLLATE
@@ -3159,6 +3160,10 @@ categories based on standard environment variables (@code{LANG} etc).
 For full details on categories and locale names @pxref{Locales,,
 Locales and Internationalization, libc, The GNU C Library Reference
 Manual}.
+
+Note that @code{setlocale} affects locale settings for the whole
+process.  @xref{The ice-9 i18n Module, locale objects and
+@code{make-locale}}, for a thread-safe alternative.
 @end deffn
 
 @node Encryption

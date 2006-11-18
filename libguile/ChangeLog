@@ -1,3 +1,40 @@
+2006-11-18  Ludovic Courtès  <ludovic.courtes@laas.fr>
+
+	* Makefile.am (lib_LTLIBRARIES): Added `libguile-i18n-v-XX.la'.
+	(libguile_la_SOURCES): Added `gettext.c', removed `i18n.c'.
+	(libguile_i18n_v_XX_la_SOURCES, libguile_i18n_v_XX_la_CFLAGS,
+	libguile_i18n_v_XX_la_LIBADD, libguile_i18n_v_XX_la_LDFLAGS): New.
+	(DOT_X_FILES): Added `gettext.x'.
+	(DOT_DOC_FILES): Likewise.
+	(EXTRA_libguile_la_SOURCES): Added `locale-categories.h'.
+	(modinclude_HEADERS): Added `gettext.h'.
+	(EXTRA_DIST): Added `libgettext.h'.
+
+	* gettext.h: Renamed to...
+	* libgettext.h: New file.
+
+	* i18n.c: Renamed to...
+	* gettext.c: New file.
+
+	* i18n.h: Renamed to...
+	* gettext.h: New file.
+
+	* i18n.c, i18n.h, locale-categories.h: New files.
+
+	* init.c: Include "libguile/gettext.h" instead of
+	"libguile/i18n.h".
+	(scm_i_init_guile): Invoke `scm_init_gettext ()' instead of
+	`scm_init_i18n ()'.
+
+	* posix.c: Include "libguile/gettext.h" instead of
+	"libguile/i18n.h"  Test `HAVE_NEWLOCALE' and `HAVE_STRCOLL_L'.
+	(USE_GNU_LOCALE_API): New macro.
+	(scm_i_locale_mutex): New variable.
+	(scm_setlocale): Lock and unlock it around `setlocale ()' calls.
+
+	* posix.h: Include "libguile/threads.h".
+	(scm_i_locale_mutex): New declaration.
+
 2006-11-17  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* script.c (scm_shell_usage): Note need for subscription to bug-guile@gnu.org.

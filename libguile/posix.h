@@ -23,8 +23,7 @@
 
 
 #include "libguile/__scm.h"
-
-
+#include "libguile/threads.h"
 
 
 
@@ -86,6 +85,8 @@ SCM_API SCM scm_flock (SCM file, SCM operation);
 SCM_API SCM scm_sethostname (SCM name);
 SCM_API SCM scm_gethostname (void);
 SCM_API void scm_init_posix (void);
+
+SCM_API scm_i_pthread_mutex_t scm_i_locale_mutex;
 
 #endif  /* SCM_POSIX_H */
 

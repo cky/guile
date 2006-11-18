@@ -39,6 +39,8 @@ Changes in 1.8.1 (since 1.8.0):
 ** scm_exp - [C]
 ** scm_sqrt - [C]
 
+* New `(ice-9 i18n)' module (see the manual for details)
+
 * Bugs fixed
 
 ** Build problems have been fixed on MacOS, SunOS, and QNX.
