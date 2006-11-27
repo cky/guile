@@ -681,6 +681,7 @@ scm_storage_prehistory ()
   GC_all_interior_pointers = 0;
 
   GC_INIT ();
+  GC_expand_hp (SCM_DEFAULT_INIT_HEAP_SIZE_2);
 
   /* We only need to register a displacement for those types for which the
      higher bits of the type tag are used to store a pointer (that is, a
