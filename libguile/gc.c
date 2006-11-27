@@ -501,12 +501,7 @@ scm_return_first_int (int i, ...)
 SCM
 scm_permanent_object (SCM obj)
 {
-  SCM cell = scm_cons (obj, SCM_EOL);
-  SCM_CRITICAL_SECTION_START;
-  SCM_SETCDR (cell, scm_permobjs);
-  scm_permobjs = cell;
-  SCM_CRITICAL_SECTION_END;
-  return obj;
+  return (scm_gc_protect_object (obj));
 }
 
 
@@ -591,48 +586,13 @@ scm_gc_unprotect_object (SCM obj)
 void
 scm_gc_register_root (SCM *p)
 {
-  SCM handle;
-  SCM key = scm_from_ulong ((unsigned long) p);
-
-  /* This critical section barrier will be replaced by a mutex. */
-  /* njrev: and again. */
-  SCM_CRITICAL_SECTION_START;
-
-  handle = scm_hashv_create_handle_x (scm_gc_registered_roots, key,
-				      scm_from_int (0));
-  /* njrev: note also that the above can probably signal an error */
-  SCM_SETCDR (handle, scm_sum (SCM_CDR (handle), scm_from_int (1)));
-
-  SCM_CRITICAL_SECTION_END;
+  /* Nothing.  */
 }
 
 void
 scm_gc_unregister_root (SCM *p)
 {
-  SCM handle;
-  SCM key = scm_from_ulong ((unsigned long) p);
-
-  /* This critical section barrier will be replaced by a mutex. */
-  /* njrev: and again. */
-  SCM_CRITICAL_SECTION_START;
-
-  handle = scm_hashv_get_handle (scm_gc_registered_roots, key);
-
-  if (scm_is_false (handle))
-    {
-      fprintf (stderr, "scm_gc_unregister_root called on unregistered root\n");
-      abort ();
-    }
-  else
-    {
-      SCM count = scm_difference (SCM_CDR (handle), scm_from_int (1));
-      if (scm_is_eq (count, scm_from_int (0)))
-	scm_hashv_remove_x (scm_gc_registered_roots, key);
-      else
-	SCM_SETCDR (handle, count);
-    }
-
-  SCM_CRITICAL_SECTION_END;
+  /* Nothing.  */
 }
 
 void
@@ -729,9 +689,7 @@ scm_init_storage ()
 #endif
 
   scm_stand_in_procs = scm_make_weak_key_hash_table (scm_from_int (257));
-  scm_permobjs = SCM_EOL;
   scm_protects = scm_c_make_hash_table (31);
-  scm_gc_registered_roots = scm_c_make_hash_table (31);
 
   return 0;
 }
