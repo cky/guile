@@ -678,7 +678,16 @@ scm_getenv_int (const char *var, int def)
 void
 scm_storage_prehistory ()
 {
+  GC_all_interior_pointers = 0;
+
   GC_INIT ();
+
+  /* We only need to register a displacement for those types for which the
+     higher bits of the type tag are used to store a pointer (that is, a
+     pointer to an 8-octet aligned region).  For `scm_tc3_struct', this is
+     handled in `scm_alloc_struct ()'.  */
+  GC_REGISTER_DISPLACEMENT (scm_tc3_cons);
+  GC_REGISTER_DISPLACEMENT (scm_tc3_closure);
 
   /* Sanity check.  */
   if (!GC_is_visible (scm_sys_protects))

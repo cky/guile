@@ -311,6 +311,12 @@ scm_alloc_struct (int n_words, int n_extra, const char *what)
   p[scm_struct_i_n_words] = n_words;
   p[scm_struct_i_flags] = 0;
 
+  /* Since `SCM' objects will record either P or P + SCM_TC3_STRUCT, we need
+     to register them as valid displacements.  Fortunately, only a handful of
+     N_EXTRA values are used in core Guile.  */
+  GC_REGISTER_DISPLACEMENT ((char *)p - (char *)block);
+  GC_REGISTER_DISPLACEMENT ((char *)p - (char *)block + scm_tc3_struct);
+
   return p;
 }
 
