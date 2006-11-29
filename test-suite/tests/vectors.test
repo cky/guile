@@ -17,6 +17,8 @@
 ;;;; the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;;;; Boston, MA 02110-1301 USA
 
+(define-module (test-suite vectors)
+  :use-module (test-suite lib))
 
 ;; FIXME:  As soon as guile supports immutable vectors, this has to be
 ;; replaced with the appropriate error type and message.
@@ -29,3 +31,13 @@
   (expect-fail-exception "vector constant"
     exception:immutable-vector
     (vector-set! '#(1 2 3) 0 4)))
+
+(with-test-prefix "vector->list"
+
+  (pass-if "simple vector"
+    (equal? '(1 2 3) (vector->list #(1 2 3))))
+
+  (pass-if "shared array"
+    (let ((b (make-shared-array #(1) (lambda (x) '(0)) 2)))
+      (equal? b (list->vector (vector->list b))))))
+

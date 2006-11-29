@@ -392,15 +392,15 @@ SCM_DEFINE (scm_vector_to_list, "vector->list", 1, 0, 0,
   SCM res = SCM_EOL;
   const SCM *data;
   scm_t_array_handle handle;
-  size_t i, len;
+  size_t i, count, len;
   ssize_t inc;
 
   data = scm_vector_elements (v, &handle, &len, &inc);
-  for (i = len*inc; i > 0;)
-    {
-      i -= inc;
-      res = scm_cons (data[i], res);
-    }
+  for (i = (len - 1) * inc, count = 0;
+       count < len;
+       i -= inc, count++)
+    res = scm_cons (data[i], res);
+
   scm_array_handle_release (&handle);
   return res;
 }

@@ -1,3 +1,9 @@
+2006-11-29  Ludovic Courtès  <ludovic.courtes@laas.fr>
+
+	* test-suite/tests/vectors.test: Use `define-module'.
+	(vector->list): New test prefix.  "Shared array" test contributed
+	by Szavai Gyula.
+
 2006-11-18  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
 	* Makefile.am (SCM_TESTS): Added `tests/i18n.test'.

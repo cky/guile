@@ -1,3 +1,10 @@
+2006-11-29  Ludovic Courtès  <ludovic.courtes@laas.fr>
+
+	* libguile/vectors.c (scm_vector_to_list): Fixed list
+	construction: elements were not copied when INC is zero (see
+	"shared array" example in `vectors.test').  Reported by
+	Szavai Gyula.
+
 2006-11-18  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
 	* Makefile.am (lib_LTLIBRARIES): Added `libguile-i18n-v-XX.la'.
