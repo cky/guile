@@ -31,10 +31,9 @@
 
 #ifdef GUILE_PTHREAD_COMPAT
 # include <pthread.h>
-
-# define GC_THREADS 1
-# include <gc/gc.h>
 #endif
+
+#include "libguile/boehm-gc.h"
 
 /* This file is included by threads.h, which, in turn, is included by
    libguile.h while coop-threads.h only is included by

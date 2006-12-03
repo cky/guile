@@ -37,7 +37,7 @@
 
 #include "libguile/smob.h"
 
-#include <gc/gc.h>
+#include "libguile/boehm-gc.h"
 #include <gc/gc_mark.h>
 
 

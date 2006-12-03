@@ -183,6 +183,7 @@ pkginclude_HEADERS = gh.h
 # These are headers visible as <libguile/mumble.h>.
 modincludedir = $(includedir)/libguile
 modinclude_HEADERS = __scm.h alist.h arbiters.h async.h backtrace.h	\
+    boehm-gc.h								\
     boolean.h chars.h continuations.h convert.h debug.h debug-malloc.h	\
     deprecation.h deprecated.h discouraged.h dynl.h dynwind.h		\
     environments.h eq.h error.h eval.h evalext.h extensions.h		\

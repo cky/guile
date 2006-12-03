@@ -29,8 +29,7 @@
 #include <sched.h>
 
 /* `libgc' intercepts pthread calls by defining wrapping macros.  */
-#define GC_THREADS 1
-#include <gc/gc.h>
+#include "libguile/boehm-gc.h"
 
 /* Threads 
 */

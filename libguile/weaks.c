@@ -52,7 +52,7 @@
 #include "libguile/validate.h"
 #include "libguile/weaks.h"
 
-#include <gc/gc.h>
+#include "libguile/boehm-gc.h"
 #include <gc/gc_typed.h>
 
 

@@ -55,7 +55,7 @@
 #include "libguile/eval.h"
 
 #include "libguile/guardians.h"
-#include <gc/gc.h>
+#include "libguile/boehm-gc.h"
 
 
 

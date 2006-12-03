@@ -23,6 +23,8 @@
 #  include <config.h>
 #endif
 
+#include "libguile/gen-scmconfig.h"
+
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
@@ -55,7 +57,7 @@ extern unsigned long * __libc_ia64_register_backing_store_base;
 #include "libguile/gc.h"
 #include "libguile/dynwind.h"
 
-#include <gc/gc.h>
+#include "libguile/boehm-gc.h"
 
 #ifdef GUILE_DEBUG_MALLOC
 #include "libguile/debug-malloc.h"
@@ -641,6 +643,13 @@ scm_storage_prehistory ()
   GC_all_interior_pointers = 0;
 
   GC_INIT ();
+
+#ifdef SCM_I_GSC_USE_PTHREAD_THREADS
+  /* When using GC 6.8, this call is required to initialize thread-local
+     freelists (shouldn't be necessary with GC 7.0).  */
+  GC_init ();
+#endif
+
   GC_expand_hp (SCM_DEFAULT_INIT_HEAP_SIZE_2);
 
   /* We only need to register a displacement for those types for which the

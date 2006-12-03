@@ -25,7 +25,7 @@
 #include "libguile/__scm.h"
 #include "libguile/print.h"
 
-#include <gc/gc.h>
+#include "libguile/boehm-gc.h"
 
 
 

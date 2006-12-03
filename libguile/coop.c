@@ -511,6 +511,8 @@ coop_condition_variable_destroy (coop_c *c)
 
 #ifdef GUILE_PTHREAD_COMPAT
 
+#include "libguile/boehm-gc.h"
+
 /* 1K room for the cond wait routine */
 #if SCM_STACK_GROWS_UP
 # define COOP_STACK_ROOM (256)

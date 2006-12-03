@@ -39,7 +39,7 @@
 #include <string.h>
 #endif
 
-#include <gc/gc.h>
+#include "libguile/boehm-gc.h"
 
 
 

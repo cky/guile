@@ -38,7 +38,7 @@
 #include "libguile/pairs.h"
 
 
-#include <gc/gc.h>
+#include "libguile/boehm-gc.h"
 
 
 SCM_API SCM scm_cell (scm_t_bits car, scm_t_bits cdr);
@@ -98,7 +98,7 @@ scm_double_cell (scm_t_bits car, scm_t_bits cbr,
 {
   SCM z;
 
-  z = SCM_PACK ((scm_t_bits) (GC_malloc (2 * sizeof (scm_t_cell))));
+  z = SCM_PACK ((scm_t_bits) (GC_MALLOC (2 * sizeof (scm_t_cell))));
   /* Initialize the type slot last so that the cell is ignored by the
      GC until it is completely initialized.  This is only relevant
      when the GC can actually run during this code, which it can't

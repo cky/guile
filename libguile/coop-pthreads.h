@@ -29,8 +29,7 @@
 
 #include <pthread.h>
 
-#define GC_THREADS 1
-#include <gc/gc.h>
+#include "libguile/boehm-gc.h"
 
 #include "libguile/iselect.h"
 

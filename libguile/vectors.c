@@ -34,7 +34,7 @@
 #include "libguile/dynwind.h"
 #include "libguile/deprecation.h"
 
-#include <gc/gc.h> /* disappearing links (aka. weak pointers) */
+#include "libguile/boehm-gc.h"
 
 
 
