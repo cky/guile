@@ -1,3 +1,16 @@
+2006-12-12  Ludovic Courtès  <ludovic.courtes@laas.fr>
+
+	* libguile/unif.c (read_decimal_integer): Let RESP be SIGN * RES
+	instead of RES (reported by Gyula Szavai).  This allows the use of
+	negative lower bounds.
+	(scm_i_read_array): Make sure LEN is non-negative (reported by
+	Gyula Szavai).
+
+	(scm_array_in_bounds_p): Iterate over S instead of always
+	comparing indices with the bounds of S[0].  This fixes
+	`array-in-bounds?' for arrays with a rank greater than one and
+	with different lower bounds for each dimension.
+
 2006-11-29  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
 	* libguile/vectors.c (scm_vector_to_list): Fixed list

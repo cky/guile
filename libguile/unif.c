@@ -1150,10 +1150,10 @@ SCM_DEFINE (scm_array_in_bounds_p, "array-in-bounds?", 1, 0, 1,
 
   if (SCM_I_ARRAYP (v) || SCM_I_ENCLOSED_ARRAYP (v))
     {
-      size_t k = SCM_I_ARRAY_NDIM (v);
+      size_t k, ndim = SCM_I_ARRAY_NDIM (v);
       scm_t_array_dim *s = SCM_I_ARRAY_DIMS (v);
 
-      while (k > 0)
+      for (k = 0; k < ndim; k++)
 	{
 	  long ind;
 
@@ -1161,9 +1161,8 @@ SCM_DEFINE (scm_array_in_bounds_p, "array-in-bounds?", 1, 0, 1,
 	    SCM_WRONG_NUM_ARGS ();
 	  ind = scm_to_long (SCM_CAR (args));
 	  args = SCM_CDR (args);
-	  k -= 1;
 
-	  if (ind < s->lbnd || ind > s->ubnd)
+	  if (ind < s[k].lbnd || ind > s[k].ubnd)
 	    {
 	      res = SCM_BOOL_F;
 	      /* We do not stop the checking after finding a violation
@@ -2669,7 +2668,7 @@ read_decimal_integer (SCM port, int c, ssize_t *resp)
     }
 
   if (got_it)
-    *resp = res;
+    *resp = sign * res;
   return c;
 }
 
@@ -2753,6 +2752,11 @@ scm_i_read_array (SCM port, int c)
 	    {
 	      c = scm_getc (port);
 	      c = read_decimal_integer (port, c, &len);
+	      if (len < 0)
+		scm_i_input_error (NULL, port,
+				   "array length must be non-negative",
+				   SCM_EOL);
+
 	      s = scm_list_2 (s, scm_from_ssize_t (lbnd+len-1));
 	    }
 
