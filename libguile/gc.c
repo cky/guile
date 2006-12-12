@@ -30,6 +30,11 @@
 #include <string.h>
 #include <assert.h>
 
+#ifdef __ia64__
+#include <ucontext.h>
+extern unsigned long * __libc_ia64_register_backing_store_base;
+#endif
+
 #include "libguile/_scm.h"
 #include "libguile/eval.h"
 #include "libguile/stime.h"
@@ -219,25 +224,18 @@ unsigned long scm_mtrigger;
  */
 unsigned long scm_cells_allocated = 0;
 unsigned long scm_mallocated = 0;
-
-/* Global GC sweep statistics since the last full GC.  */
-static scm_t_sweep_statistics scm_i_gc_sweep_stats = { 0, 0 };
-static scm_t_sweep_statistics scm_i_gc_sweep_stats_1 = { 0, 0 };
-
-/* Total count of cells marked/swept.  */
-static double scm_gc_cells_marked_acc = 0.;
-static double scm_gc_cells_swept_acc = 0.;
-
-static unsigned long scm_gc_time_taken = 0;
+unsigned long scm_gc_cells_collected;
+unsigned long scm_gc_cells_collected_1 = 0; /* previous GC yield */
+unsigned long scm_gc_malloc_collected;
+unsigned long scm_gc_ports_collected;
+unsigned long scm_gc_time_taken = 0;
 static unsigned long t_before_gc;
-static unsigned long scm_gc_mark_time_taken = 0;
-
-static unsigned long scm_gc_times = 0;
-
-static int scm_gc_cell_yield_percentage = 0;
-static unsigned long protected_obj_count = 0;
-
-/* The following are accessed from `gc-malloc.c' and `gc-card.c'.  */
+unsigned long scm_gc_mark_time_taken = 0;
+unsigned long scm_gc_times = 0;
+unsigned long scm_gc_cells_swept = 0;
+double scm_gc_cells_marked_acc = 0.;
+double scm_gc_cells_swept_acc = 0.;
+int scm_gc_cell_yield_percentage =0;
 int scm_gc_malloc_yield_percentage = 0;
 
 static unsigned long protected_obj_count = 0;
@@ -864,44 +862,6 @@ scm_init_gc ()
 #include "libguile/gc.x"
 }
 
-#ifdef __ia64__
-# ifdef __hpux
-#  include <sys/param.h>
-#  include <sys/pstat.h>
-void *
-scm_ia64_register_backing_store_base (void)
-{
-  struct pst_vm_status vm_status;
-  int i = 0;
-  while (pstat_getprocvm (&vm_status, sizeof (vm_status), 0, i++) == 1)
-    if (vm_status.pst_type == PS_RSESTACK)
-      return (void *) vm_status.pst_vaddr;
-  abort ();
-}
-void *
-scm_ia64_ar_bsp (const void *ctx)
-{
-  uint64_t bsp;
-  __uc_get_ar_bsp(ctx, &bsp);
-  return (void *) bsp;
-}
-# endif /* hpux */
-# ifdef linux
-#  include <ucontext.h>
-void *
-scm_ia64_register_backing_store_base (void)
-{
-  extern void *__libc_ia64_register_backing_store_base;
-  return __libc_ia64_register_backing_store_base;
-}
-void *
-scm_ia64_ar_bsp (const void *opaque)
-{
-  ucontext_t *ctx = opaque;
-  return (void *) ctx->uc_mcontext.sc_ar_bsp;
-}
-# endif	/* linux */
-#endif /* __ia64__ */
 
 void
 scm_gc_sweep (void)
