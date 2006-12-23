@@ -452,27 +452,20 @@ scm_i_make_ratio (SCM numerator, SCM denominator)
 
   /* No, it's a proper fraction.
    */
-  return scm_double_cell (scm_tc16_fraction,
-			  SCM_UNPACK (numerator),
-			  SCM_UNPACK (denominator), 0);
+  {
+    SCM divisor = scm_gcd (numerator, denominator);
+    if (!(scm_is_eq (divisor, SCM_I_MAKINUM(1))))
+      {
+	numerator = scm_divide (numerator, divisor);
+	denominator = scm_divide (denominator, divisor);
+      }
+      
+    return scm_double_cell (scm_tc16_fraction,
+			    SCM_UNPACK (numerator),
+			    SCM_UNPACK (denominator), 0);
+  }
 }
 #undef FUNC_NAME
-
-static void scm_i_fraction_reduce (SCM z)
-{
-  if (!(SCM_FRACTION_REDUCED (z)))
-    {
-      SCM divisor;
-      divisor = scm_gcd (SCM_FRACTION_NUMERATOR (z), SCM_FRACTION_DENOMINATOR (z));
-      if (!(scm_is_eq (divisor, SCM_I_MAKINUM(1))))
-	{
-	  /* is this safe? */
-	  SCM_FRACTION_SET_NUMERATOR (z, scm_divide (SCM_FRACTION_NUMERATOR (z), divisor));
-	  SCM_FRACTION_SET_DENOMINATOR (z, scm_divide (SCM_FRACTION_DENOMINATOR (z), divisor));
-	}
-      SCM_FRACTION_REDUCED_SET (z);
-    }
-}
 
 double
 scm_i_fraction2double (SCM z)
@@ -2387,7 +2380,6 @@ SCM_DEFINE (scm_number_to_string, "number->string", 1, 1, 0,
     }
   else if (SCM_FRACTIONP (n))
     {
-      scm_i_fraction_reduce (n);
       return scm_string_append (scm_list_3 (scm_number_to_string (SCM_FRACTION_NUMERATOR (n), radix),
 					    scm_from_locale_string ("/"), 
 					    scm_number_to_string (SCM_FRACTION_DENOMINATOR (n), radix)));
@@ -2441,7 +2433,6 @@ int
 scm_i_print_fraction (SCM sexp, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
   SCM str;
-  scm_i_fraction_reduce (sexp);
   str = scm_number_to_string (sexp, SCM_UNDEFINED);
   scm_lfwrite (scm_i_string_chars (str), scm_i_string_length (str), port);
   scm_remember_upto_here_1 (str);
@@ -3109,8 +3100,6 @@ scm_complex_equalp (SCM x, SCM y)
 SCM
 scm_i_fraction_equalp (SCM x, SCM y)
 {
-  scm_i_fraction_reduce (x);
-  scm_i_fraction_reduce (y);
   if (scm_is_false (scm_equal_p (SCM_FRACTION_NUMERATOR (x),
 			       SCM_FRACTION_NUMERATOR (y)))
       || scm_is_false (scm_equal_p (SCM_FRACTION_DENOMINATOR (x),
@@ -5424,10 +5413,7 @@ scm_numerator (SCM z)
   else if (SCM_BIGP (z))
     return z;
   else if (SCM_FRACTIONP (z))
-    {
-      scm_i_fraction_reduce (z);
-      return SCM_FRACTION_NUMERATOR (z);
-    }
+    return SCM_FRACTION_NUMERATOR (z);
   else if (SCM_REALP (z))
     return scm_exact_to_inexact (scm_numerator (scm_inexact_to_exact (z)));
   else
@@ -5446,10 +5432,7 @@ scm_denominator (SCM z)
   else if (SCM_BIGP (z)) 
     return SCM_I_MAKINUM (1);
   else if (SCM_FRACTIONP (z))
-    {
-      scm_i_fraction_reduce (z);
-      return SCM_FRACTION_DENOMINATOR (z);
-    }
+    return SCM_FRACTION_DENOMINATOR (z);
   else if (SCM_REALP (z))
     return scm_exact_to_inexact (scm_denominator (scm_inexact_to_exact (z)));
   else
