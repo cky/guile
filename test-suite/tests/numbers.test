@@ -3180,3 +3180,15 @@
   (pass-if "-100i swings back to 45deg down"
     (eqv-loosely? +7.071-7.071i (sqrt -100.0i))))
 
+
+;;
+;; equal? 
+;; 
+
+
+(with-test-prefix "equal?"
+  (pass-if
+
+   ;; lazy reduction bit for rationals should not affect equal?
+   (equal? 1/2 ((lambda (x) (denominator x) x) 1/2))))
+   
