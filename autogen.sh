@@ -31,8 +31,10 @@ ln -s $workbook/build/dist-files/.gdbinit examples/example.gdbinit
 
 # TODO: This should be moved to dist-guile
 mscripts=../guile-scripts
-rm -f BUGS
-$mscripts/render-bugs > BUGS
+if test -x $mscripts/render-bugs ; then
+  rm -f BUGS
+  $mscripts/render-bugs > BUGS
+fi
 
 ######################################################################
 ### update infrastructure

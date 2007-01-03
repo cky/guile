@@ -1,3 +1,7 @@
+2007-01-03  Han-Wen Nienhuys  <hanwen@lilypond.org>
+
+	* autogen.sh (Module): only try to run render-bugs if it exists.
+
 2006-11-18  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
 	* GUILE-VERSION: Added `LIBGUILE_I18N_*'.
