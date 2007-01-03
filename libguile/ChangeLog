@@ -1,3 +1,9 @@
+2007-01-03  Han-Wen Nienhuys  <hanwen@lilypond.org>
+
+	* gc.c (s_scm_gc_stats): return an entry for total-cells-allocated
+	too.
+	(gc_update_stats): update scm_gc_cells_allocated_acc too.
+
 2006-12-23  Han-Wen Nienhuys  <hanwen@lilypond.org>
 
 	* numbers.c (scm_i_fraction_reduce): move logic into
