@@ -898,7 +898,9 @@ SCM_DEFINE (scm_read_hash_extend, "read-hash-extend", 2, 0, 0,
 	    "starting with the character sequence @code{#} and @var{chr}.\n"
 	    "@var{proc} will be called with two arguments:  the character\n"
 	    "@var{chr} and the port to read further data from. The object\n"
-	    "returned will be the return value of @code{read}.")
+	    "returned will be the return value of @code{read}. \n"
+	    "Passing @code{#f} for @var{proc} will remove a previous setting. \n"
+	    )
 #define FUNC_NAME s_scm_read_hash_extend
 {
   SCM this;

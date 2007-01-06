@@ -1,3 +1,8 @@
+2007-01-06  Han-Wen Nienhuys  <hanwen@lilypond.org>
+
+	* read.c (s_scm_read_hash_extend): document #f argument to
+	read-hash-extend.
+
 2007-01-03  Han-Wen Nienhuys  <hanwen@lilypond.org>
 
 	* gc.c (s_scm_gc_stats): return an entry for total-cells-allocated
