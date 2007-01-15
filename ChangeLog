@@ -2,6 +2,45 @@
 
 	* autogen.sh (Module): only try to run render-bugs if it exists.
 
+2006-12-27  Kevin Ryde  <user42@zip.com.au>
+
+	* configure.in (pthread_get_stackaddr_np, pthread_sigmask): New tests.
+
+2006-12-24  Han-Wen Nienhuys  <hanwen@lilypond.org>
+
+	* autogen.sh (mscripts): only execute render-bugs if it exists.
+
+2006-12-23  Kevin Ryde  <user42@zip.com.au>
+
+	* configure.in (-lm): No need to suppress libm on mingw, it's not
+	needed because it's empty, but including it does no harm.
+	(-lm): Look for "cos" instead of "main", since cos and friends are the
+	purpose of looking for libm.
+	(winsock etc): Test $host = *-*-mingw* rather than $MINGW32, autoconf
+	regards the latter as obsolete.
+	(AC_MINGW32): Remove test, $MINGW32 now unused.
+	(uint32_t): Look at HAVE_NETDB_H rather than hard-coding __MINGW32__
+	in the test program.
+
+2006-12-15  Kevin Ryde  <user42@zip.com.au>
+
+	* configure.in (process.h, pipe, _pipe): New checks.
+
+2006-12-14  Kevin Ryde  <user42@zip.com.au>
+
+	* configure.in (struct timespec, pthread.h): Look for struct timespec
+	in <pthread.h> as well as <time.h>, it's in pthread.h on mingw.
+	Reported by Nils Durner.
+
+2006-12-03  Kevin Ryde  <user42@zip.com.au>
+
+	* Makefile.am (AUTOMAKE_OPTIONS): Bump to automake 1.10 required, so
+	that config.rpath from gettext will go into the dist (and give an
+	error if not).
+
+	* configure.in (AM_PROG_CC_C_O): New macro, needed by automake 1.10
+	for per-target cflags in libguile/Makefile.am.
+
 2006-11-18  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
 	* GUILE-VERSION: Added `LIBGUILE_I18N_*'.
