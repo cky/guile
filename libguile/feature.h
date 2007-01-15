@@ -27,6 +27,7 @@
 SCM_API void scm_add_feature (const char* str);
 SCM_API SCM scm_program_arguments (void);
 SCM_API void scm_set_program_arguments (int argc, char **argv, char *first);
+SCM_API SCM scm_set_program_arguments_scm (SCM lst);
 SCM_API void scm_init_feature (void);
 
 #endif  /* SCM_FEATURE_H */

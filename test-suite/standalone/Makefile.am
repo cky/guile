@@ -29,7 +29,7 @@ BUILT_SOURCES =
 
 TESTS_ENVIRONMENT = "${top_builddir}/pre-inst-guile-env"
 
-test_cflags := \
+test_cflags = \
   -I$(top_srcdir)/test-suite/standalone \
   -I$(top_srcdir) \
   -I$(top_srcdir)/libguile-ltdl $(EXTRA_DEFS) $(GUILE_CFLAGS)
@@ -38,7 +38,8 @@ AM_LDFLAGS = $(GUILE_CFLAGS)
 
 snarfcppopts = \
   $(DEFS) $(DEFAULT_INCLUDES) $(CPPFLAGS) $(CFLAGS) -I$(top_srcdir)
-%.x: %.c
+SUFFIXES = .x
+.c.x:
 	${top_builddir}/libguile/guile-snarf -o $@ $< $(snarfcppopts)
 
 CLEANFILES = *.x
@@ -101,6 +102,9 @@ test_conversion_CFLAGS = ${test_cflags}
 test_conversion_LDADD = ${top_builddir}/libguile/libguile.la
 check_PROGRAMS += test-conversion
 TESTS += test-conversion
+
+# test-use-srfi
+TESTS += test-use-srfi
 
 all-local:
 	cd ${srcdir} && chmod u+x ${check_SCRIPTS}

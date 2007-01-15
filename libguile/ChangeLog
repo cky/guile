@@ -1,3 +1,33 @@
+<<<<<<< ChangeLog
+2007-01-16  Kevin Ryde  <user42@zip.com.au>
+
+	* feature.c, feature.h (scm_set_program_arguments_scm): New function,
+	implementing `set-program-arguments'.
+
+	* filesys.c (scm_init_filesys): Use scm_from_int rather than
+	scm_from_long for O_RDONLY, O_WRONLY, O_RDWR, O_CREAT, O_EXCL,
+	O_NOCTTY, O_TRUNC, O_APPEND, O_NONBLOCK, O_NDELAY, O_SYNC and
+	O_LARGEFILE.  These are all int not long, per arg to open().
+	(scm_init_filesys): Use scm_from_int rather than scm_from_long for
+	F_DUPFD, F_GETFD, F_SETFD, F_GETFL, F_SETFL, F_GETOWN, F_SETOWN, these
+	are all ints (per command arg to fcntl).  Likewise FD_CLOEXEC which is
+	an int arg to fcntl.
+
+	* posix.c (scm_putenv): Correction to "len" variable, was defined only
+	for __MINGW32__ but used under any !HAVE_UNSETENV (such as solaris).
+	Move it to where it's used.  Reported by Hugh Sasse.
+
+	* regex-posix.c (scm_regexp_exec): Remove SCM_CRITICAL_SECTION_START
+	and SCM_CRITICAL_SECTION_END, believe not needed.  Their placement
+	meant #\nul in the input (detected by scm_to_locale_string) and a bad
+	flags arg (detected by scm_to_int) would throw from a critical
+	section, causing an abort().
+
+	* regex-posix.c (scm_init_regex_posix): Use scm_from_int for
+	REG_BASIC, REG_EXTENDED, REG_ICASE, REG_NEWLINE, REG_NOTBOL,
+	REG_NOTEOL; they're all ints not longs (per args to regcomp and
+	regexec).
+
 2007-01-10  Han-Wen Nienhuys  <hanwen@lilypond.org>
 
 	* throw.c (scm_ithrow): print out key symbol and string arguments
@@ -8,11 +38,43 @@
 	* read.c (s_scm_read_hash_extend): document #f argument to
 	read-hash-extend.
 
+2007-01-04  Kevin Ryde  <user42@zip.com.au>
+
+	* deprecated.h (scm_create_hook), version.h.in (scm_major_version,
+	scm_minor_version, scm_micro_version, scm_effective_version,
+	scm_version, scm_init_version): Use SCM_API instead of just extern,
+	for the benefit of mingw.  Reported by Cesar Strauss.
+
 2007-01-03  Han-Wen Nienhuys  <hanwen@lilypond.org>
 
 	* gc.c (s_scm_gc_stats): return an entry for total-cells-allocated
 	too.
 	(gc_update_stats): update scm_gc_cells_allocated_acc too.
+
+2006-12-27  Kevin Ryde  <user42@zip.com.au>
+
+	* threads.c (get_thread_stack_base): In mingw with pthreads we can use
+	the basic scm_get_stack_base.  As advised by Nils Durner.
+
+	* threads.c (get_thread_stack_base): Add a version using
+	pthread_get_stackaddr_np (when available), for the benefit of MacOS.
+	As advised by Heikki Lindholm.
+
+	* scmsigs.c (signal_delivery_thread): Restrict scm_i_pthread_sigmask
+	to HAVE_PTHREAD_SIGMASK, it doesn't exist on mingw.  Reported by Nils
+	Durner.
+
+2006-12-24  Kevin Ryde  <user42@zip.com.au>
+
+	* posix.c (scm_kill): When only raise() is available, throw an ENOSYS
+	error if pid is not our own process, instead of silently doing nothing.
+
+	* print.c (scm_write, scm_display, scm_write_char): Disable port close
+	on EPIPE.  This was previously disabled but introduction of HAVE_PIPE
+	check in configure.in unintentionally enabled it.  Believe that
+	testing errno after scm_prin1 or scm_putc is bogus, a long ago error
+	can leave errno in that state.  popen.test "no duplicates" output test
+	provoked that.
 
 2006-12-23  Han-Wen Nienhuys  <hanwen@lilypond.org>
 
@@ -30,7 +92,35 @@
 	SCM_FRACTION_REDUCED_SET, SCM_FRACTION_REDUCED_CLEAR,
 	SCM_FRACTION_REDUCED.
 
-	
+2006-12-16  Kevin Ryde  <user42@zip.com.au>
+
+	* scmsigs.c (scm_raise): Use raise() rather than kill(), as this is
+	more direct for a procedure called raise.
+	(kill): Remove mingw fake fallback.
+
+2006-12-15  Kevin Ryde  <user42@zip.com.au>
+
+	* scmsigs.c: Conditionalize process.h, add io.h believe needed for
+	_pipe on mingw.
+
+2006-12-14  Kevin Ryde  <user42@zip.com.au>
+
+	* threads.c (thread_print): Cope with the case where pthread_t is a
+	struct, as found on mingw.  Can't just cast to size_t for printing.
+	Reported by Nils Durner.
+
+	* scmsigs.c: Add <fcntl.h> and <process.h> needed by mingw.  Copy the
+	fallback pipe() using _pipe() from posix.c.  Reported by Nils Durner.
+
+2006-12-13  Kevin Ryde  <user42@zip.com.au>
+
+	* eval.c (scm_m_define): Set 'name procedure property on any
+	scm_procedure_p, not just SCM_CLOSUREP.  In particular this picks up
+	procedures with setters as used in srfi-17.
+
+	* posix.c (scm_crypt): Check for NULL return from crypt(), which the
+	linux man page says is a possibility.
+
 2006-12-12  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
 	* libguile/unif.c (read_decimal_integer): Let RESP be SIGN * RES
@@ -43,6 +133,20 @@
 	comparing indices with the bounds of S[0].  This fixes
 	`array-in-bounds?' for arrays with a rank greater than one and
 	with different lower bounds for each dimension.
+
+2006-12-05  Kevin Ryde  <user42@zip.com.au>
+
+	* numbers.c (scm_product): For flonum*inum and complex*inum, return
+	exact 0 if inum==0.  Already done for inum*flonum and inum*complex,
+	and as per R5RS section "Exactness".
+
+2006-12-03  Kevin Ryde  <user42@zip.com.au>
+
+	* Makefile.am (.c.doc): Remove the "test -n" apparently attempting to
+	allow $AWK from the environment to override.  It had syntax gremlins,
+	and the presence of a $(AWK) variable set by AC_PROG_AWK in the
+	Makefile stopped it having any effect.  Use just $(AWK), which can be
+	overridden with "make AWK=xxx" in the usual way if desired.
 
 2006-11-29  Ludovic Courtès  <ludovic.courtes@laas.fr>
 

@@ -926,11 +926,13 @@ scm_write (SCM obj, SCM port)
   SCM_ASSERT (scm_valid_oport_value_p (port), port, SCM_ARG2, s_write);
 
   scm_prin1 (obj, port, 1);
+#if 0
 #ifdef HAVE_PIPE
 # ifdef EPIPE
   if (EPIPE == errno)
     scm_close_port (port);
 # endif
+#endif
 #endif
   return SCM_UNSPECIFIED;
 }
@@ -947,11 +949,13 @@ scm_display (SCM obj, SCM port)
   SCM_ASSERT (scm_valid_oport_value_p (port), port, SCM_ARG2, s_display);
 
   scm_prin1 (obj, port, 0);
+#if 0
 #ifdef HAVE_PIPE
 # ifdef EPIPE
   if (EPIPE == errno)
     scm_close_port (port);
 # endif
+#endif
 #endif
   return SCM_UNSPECIFIED;
 }
@@ -1084,11 +1088,13 @@ SCM_DEFINE (scm_write_char, "write-char", 1, 1, 0,
   SCM_VALIDATE_OPORT_VALUE (2, port);
 
   scm_putc ((int) SCM_CHAR (chr), SCM_COERCE_OUTPORT (port));
+#if 0
 #ifdef HAVE_PIPE
 # ifdef EPIPE
   if (EPIPE == errno)
     scm_close_port (port);
 # endif
+#endif
 #endif
   return SCM_UNSPECIFIED;
 }

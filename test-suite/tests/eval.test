@@ -202,6 +202,33 @@
     )))
 
 ;;;
+;;; define with procedure-name
+;;;
+
+(define old-procnames-flag (memq 'procnames (debug-options)))
+(debug-enable 'procnames)
+
+;; names are only set on top-level procedures (currently), so these can't be
+;; hidden in a let
+;;
+(define foo-closure (lambda () "hello"))
+(define bar-closure foo-closure)
+(define foo-pws (make-procedure-with-setter car set-car!))
+(define bar-pws foo-pws)
+
+(with-test-prefix "define set procedure-name"
+
+  (pass-if "closure"
+    (eq? 'foo-closure (procedure-name bar-closure)))
+
+  (pass-if "procedure-with-setter"
+    (eq? 'foo-pws (pk (procedure-name bar-pws)))))
+
+(if old-procnames-flag
+    (debug-enable 'procnames)
+    (debug-disable 'procnames))
+
+;;;
 ;;; promises
 ;;;
 

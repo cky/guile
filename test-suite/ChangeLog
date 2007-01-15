@@ -1,15 +1,48 @@
+2007-01-16  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/regexp.test (regexp-exec): Further tests, in particular #\nul
+	in input and bad flags args which had been provoking abort()s.
+
 2006-12-24  Han-Wen Nienhuys  <hanwen@lilypond.org>
 
 	* tests/numbers.test ("equal?"): add case for reduction of
 	rational numbers. 
 
-2006-12-12  Ludovic CourtÃ¨s  <ludovic.courtes@laas.fr>
+2006-12-13  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/eval.test: Exercise top-level define setting procedure-name.
+	* tests/srfi-17.test (car): Check procedure-name property.
+
+	* tests/numbers.test (*): Exercise multiply by exact 0 giving exact 0.
+
+2006-12-12  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
 	* tests/unif.test (syntax): New test prefix.  Check syntax for
 	negative lower bounds and negative lengths (reported by Gyula
 	Szavai) as well as `array-in-bounds?'.
 
-2006-11-29  Ludovic CourtÃ¨s  <ludovic.courtes@laas.fr>
+2006-12-09  Kevin Ryde  <user42@zip.com.au>
+
+	* standalone/test-use-srfi: New test.
+	* standalone/Makefile.am (TESTS): Add it.
+
+2006-12-03  Kevin Ryde  <user42@zip.com.au>
+
+	* standalone/Makefile.am (.x): Change from %.c %.x style to .c.x style
+	since the former is a GNU make extension.  (Rule now as per
+	libguile/Makefile.am.)
+
+	* standalone/Makefile.am (test_cflags): Change from := to plain =, as
+	the former is not portable (according to automake).
+
+2006-12-02  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/numbers.test (min, max): Correction to big/real and real/big
+	tests, `big*5' will round on a 64-bit system.  And use `eqv?' to
+	ensure intended exact vs inexact is checked.  Reported by Aaron
+	M. Ucko, Debian bug 396119.
+
+2006-11-29  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
 	* test-suite/tests/vectors.test: Use `define-module'.
 	(vector->list): New test prefix.  "Shared array" test contributed
@@ -29,7 +62,7 @@
 
 	* tests/environments.test: Comment out all tests in this file.
 
-2006-10-26  Ludovic CourtÃ¨s  <ludovic.courtes@laas.fr>
+2006-10-26  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
 	* tests/srfi-14.test (Latin-1)[char-set:punctuation]: Fixed a
 	typo: `thrown' instead of `throw'.

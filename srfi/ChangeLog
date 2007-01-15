@@ -1,3 +1,9 @@
+2006-12-02  Kevin Ryde  <user42@zip.com.au>
+
+	* srfi-60.c (scm_srfi60_copy_bit): Should be long not int for fixnum
+	bitshift, fixes 64-bit systems setting a bit between 32 and 63.
+	Reported by Aaron M. Ucko, Debian bug 396119.
+
 2006-05-28  Kevin Ryde  <user42@zip.com.au>
 
 	* srfi-1.scm, srfi-1.c, srfi-1.h (append-reverse, append-reverse!):

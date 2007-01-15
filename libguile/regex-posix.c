@@ -1,4 +1,4 @@
-/*	Copyright (C) 1997, 1998, 1999, 2000, 2001, 2004, 2006 Free Software Foundation, Inc.
+/*	Copyright (C) 1997, 1998, 1999, 2000, 2001, 2004, 2006, 2007 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -218,6 +218,17 @@ SCM_DEFINE (scm_regexp_exec, "regexp-exec", 2, 2, 0,
             "@end table")
 #define FUNC_NAME s_scm_regexp_exec
 {
+  /* We used to have an SCM_DEFER_INTS, and then later an
+     SCM_CRITICAL_SECTION_START, around the regexec() call.  Can't quite
+     remember what defer ints was for, but a critical section would only be
+     wanted now if we think regexec() is not thread-safe.  The posix spec
+
+     http://www.opengroup.org/onlinepubs/009695399/functions/regcomp.html
+
+     reads like regexec is meant to be both thread safe and reentrant
+     (mentioning simultaneous use in threads, and in signal handlers).  So
+     for now believe no protection needed.  */
+
   int status, nmatches, offset;
   regmatch_t *matches;
   char *c_str;
@@ -245,7 +256,6 @@ SCM_DEFINE (scm_regexp_exec, "regexp-exec", 2, 2, 0,
      whole regexp, so add 1 to nmatches. */
 
   nmatches = SCM_RGX(rx)->re_nsub + 1;
-  SCM_CRITICAL_SECTION_START;
   matches = scm_malloc (sizeof (regmatch_t) * nmatches);
   c_str = scm_to_locale_string (substr);
   status = regexec (SCM_RGX (rx), c_str, nmatches, matches,
@@ -269,7 +279,6 @@ SCM_DEFINE (scm_regexp_exec, "regexp-exec", 2, 2, 0,
 				   scm_from_long (matches[i].rm_eo + offset)));
     }
   free (matches);
-  SCM_CRITICAL_SECTION_END;
 
   if (status != 0 && status != REG_NOMATCH)
     scm_error_scm (scm_regexp_error_key,
@@ -287,14 +296,14 @@ scm_init_regex_posix ()
   scm_set_smob_free (scm_tc16_regex, regex_free);
 
   /* Compilation flags.  */
-  scm_c_define ("regexp/basic", scm_from_long (REG_BASIC));
-  scm_c_define ("regexp/extended", scm_from_long (REG_EXTENDED));
-  scm_c_define ("regexp/icase", scm_from_long (REG_ICASE));
-  scm_c_define ("regexp/newline", scm_from_long (REG_NEWLINE));
+  scm_c_define ("regexp/basic",    scm_from_int (REG_BASIC));
+  scm_c_define ("regexp/extended", scm_from_int (REG_EXTENDED));
+  scm_c_define ("regexp/icase",    scm_from_int (REG_ICASE));
+  scm_c_define ("regexp/newline",  scm_from_int (REG_NEWLINE));
 
   /* Execution flags.  */
-  scm_c_define ("regexp/notbol", scm_from_long (REG_NOTBOL));
-  scm_c_define ("regexp/noteol", scm_from_long (REG_NOTEOL));
+  scm_c_define ("regexp/notbol", scm_from_int (REG_NOTBOL));
+  scm_c_define ("regexp/noteol", scm_from_int (REG_NOTEOL));
 
 #include "libguile/regex-posix.x"
 

@@ -4481,7 +4481,12 @@ scm_product (SCM x, SCM y)
   else if (SCM_REALP (x))
     {
       if (SCM_I_INUMP (y))
-	return scm_from_double (SCM_I_INUM (y) * SCM_REAL_VALUE (x));
+        {
+          /* inexact*exact0 => exact 0, per R5RS "Exactness" section */
+          if (scm_is_eq (y, SCM_INUM0))
+            return y;
+          return scm_from_double (SCM_I_INUM (y) * SCM_REAL_VALUE (x));
+        }
       else if (SCM_BIGP (y))
 	{
 	  double result = mpz_get_d (SCM_I_BIG_MPZ (y)) * SCM_REAL_VALUE (x);
@@ -4501,8 +4506,13 @@ scm_product (SCM x, SCM y)
   else if (SCM_COMPLEXP (x))
     {
       if (SCM_I_INUMP (y))
-	return scm_c_make_rectangular (SCM_I_INUM (y) * SCM_COMPLEX_REAL (x),
-				 SCM_I_INUM (y) * SCM_COMPLEX_IMAG (x));
+        {
+          /* inexact*exact0 => exact 0, per R5RS "Exactness" section */
+          if (scm_is_eq (y, SCM_INUM0))
+            return y;
+          return scm_c_make_rectangular (SCM_I_INUM (y) * SCM_COMPLEX_REAL (x),
+                                         SCM_I_INUM (y) * SCM_COMPLEX_IMAG (x));
+        }
       else if (SCM_BIGP (y))
 	{
 	  double z = mpz_get_d (SCM_I_BIG_MPZ (y));

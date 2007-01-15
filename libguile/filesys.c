@@ -1681,65 +1681,65 @@ scm_init_filesys ()
   scm_dot_string = scm_permanent_object (scm_from_locale_string ("."));
   
 #ifdef O_RDONLY
-  scm_c_define ("O_RDONLY", scm_from_long (O_RDONLY));
+  scm_c_define ("O_RDONLY", scm_from_int (O_RDONLY));
 #endif 	       
 #ifdef O_WRONLY
-  scm_c_define ("O_WRONLY", scm_from_long (O_WRONLY));
+  scm_c_define ("O_WRONLY", scm_from_int (O_WRONLY));
 #endif 	       
 #ifdef O_RDWR
-  scm_c_define ("O_RDWR", scm_from_long (O_RDWR));
+  scm_c_define ("O_RDWR", scm_from_int (O_RDWR));
 #endif 	       
 #ifdef O_CREAT
-  scm_c_define ("O_CREAT", scm_from_long (O_CREAT));
+  scm_c_define ("O_CREAT", scm_from_int (O_CREAT));
 #endif 	       
 #ifdef O_EXCL  
-  scm_c_define ("O_EXCL", scm_from_long (O_EXCL));
+  scm_c_define ("O_EXCL", scm_from_int (O_EXCL));
 #endif 	       
 #ifdef O_NOCTTY
-  scm_c_define ("O_NOCTTY", scm_from_long (O_NOCTTY));
+  scm_c_define ("O_NOCTTY", scm_from_int (O_NOCTTY));
 #endif 	       
 #ifdef O_TRUNC 
-  scm_c_define ("O_TRUNC", scm_from_long (O_TRUNC));
+  scm_c_define ("O_TRUNC", scm_from_int (O_TRUNC));
 #endif 	       
 #ifdef O_APPEND
-  scm_c_define ("O_APPEND", scm_from_long (O_APPEND));
+  scm_c_define ("O_APPEND", scm_from_int (O_APPEND));
 #endif 	       
 #ifdef O_NONBLOCK
-  scm_c_define ("O_NONBLOCK", scm_from_long (O_NONBLOCK));
+  scm_c_define ("O_NONBLOCK", scm_from_int (O_NONBLOCK));
 #endif 	       
 #ifdef O_NDELAY
-  scm_c_define ("O_NDELAY", scm_from_long (O_NDELAY));
+  scm_c_define ("O_NDELAY", scm_from_int (O_NDELAY));
 #endif 	       
 #ifdef O_SYNC  
-  scm_c_define ("O_SYNC", scm_from_long (O_SYNC));
+  scm_c_define ("O_SYNC", scm_from_int (O_SYNC));
 #endif 
 #ifdef O_LARGEFILE  
-  scm_c_define ("O_LARGEFILE", scm_from_long (O_LARGEFILE));
+  scm_c_define ("O_LARGEFILE", scm_from_int (O_LARGEFILE));
 #endif 
 
 #ifdef F_DUPFD  
-  scm_c_define ("F_DUPFD", scm_from_long (F_DUPFD));
+  scm_c_define ("F_DUPFD", scm_from_int (F_DUPFD));
 #endif 
 #ifdef F_GETFD  
-  scm_c_define ("F_GETFD", scm_from_long (F_GETFD));
+  scm_c_define ("F_GETFD", scm_from_int (F_GETFD));
 #endif 
 #ifdef F_SETFD  
-  scm_c_define ("F_SETFD", scm_from_long (F_SETFD));
+  scm_c_define ("F_SETFD", scm_from_int (F_SETFD));
 #endif 
 #ifdef F_GETFL  
-  scm_c_define ("F_GETFL", scm_from_long (F_GETFL));
+  scm_c_define ("F_GETFL", scm_from_int (F_GETFL));
 #endif 
 #ifdef F_SETFL  
-  scm_c_define ("F_SETFL", scm_from_long (F_SETFL));
+  scm_c_define ("F_SETFL", scm_from_int (F_SETFL));
 #endif 
 #ifdef F_GETOWN  
-  scm_c_define ("F_GETOWN", scm_from_long (F_GETOWN));
+  scm_c_define ("F_GETOWN", scm_from_int (F_GETOWN));
 #endif 
 #ifdef F_SETOWN  
-  scm_c_define ("F_SETOWN", scm_from_long (F_SETOWN));
+  scm_c_define ("F_SETOWN", scm_from_int (F_SETOWN));
 #endif 
 #ifdef FD_CLOEXEC  
-  scm_c_define ("FD_CLOEXEC", scm_from_long (FD_CLOEXEC));
+  scm_c_define ("FD_CLOEXEC", scm_from_int (FD_CLOEXEC));
 #endif
 
 #include "libguile/filesys.x"

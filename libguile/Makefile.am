@@ -285,7 +285,7 @@ SUFFIXES = .x .doc
 .c.x:
 	./guile-snarf -o $@ $< $(snarfcppopts)
 .c.doc:
-	-(test -n "${AWK+set}" || AWK="@AWK@"; ${AWK} -f ./guile-func-name-check $<)
+	-$(AWK) -f ./guile-func-name-check $<
 	(./guile-snarf-docs $(snarfcppopts) $< | \
 	./guile_filter_doc_snarfage$(EXEEXT) --filter-snarfage) > $@ || { rm $@; false; }
 

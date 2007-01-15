@@ -1235,7 +1235,7 @@ scm_m_define (SCM expr, SCM env)
         SCM tmp = value;
         while (SCM_MACROP (tmp))
           tmp = SCM_MACRO_CODE (tmp);
-        if (SCM_CLOSUREP (tmp)
+        if (scm_is_true (scm_procedure_p (tmp))
             /* Only the first definition determines the name. */
             && scm_is_false (scm_procedure_property (tmp, scm_sym_name)))
           scm_set_procedure_property_x (tmp, scm_sym_name, variable);

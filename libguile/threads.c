@@ -141,9 +141,32 @@ thread_mark (SCM obj)
 static int
 thread_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
+  /* On a Gnu system pthread_t is an unsigned long, but on mingw it's a
+     struct.  A cast like "(unsigned long) t->pthread" is a syntax error in
+     the struct case, hence we go via a union, and extract according to the
+     size of pthread_t.  */
+  union {
+    scm_i_pthread_t p;
+    unsigned short us;
+    unsigned int   ui;
+    unsigned long  ul;
+    scm_t_uintmax  um;
+  } u;
   scm_i_thread *t = SCM_I_THREAD_DATA (exp);
+  scm_i_pthread_t p = t->pthread;
+  scm_t_uintmax id;
+  u.p = p;
+  if (sizeof (p) == sizeof (unsigned short))
+    id = u.us;
+  else if (sizeof (p) == sizeof (unsigned int))
+    id = u.ui;
+  else if (sizeof (p) == sizeof (unsigned long))
+    id = u.ul;
+  else
+    id = u.um;
+
   scm_puts ("#<thread ", port);
-  scm_uintprint ((size_t)t->pthread, 10, port);
+  scm_uintprint (id, 10, port);
   scm_puts (" (", port);
   scm_uintprint ((scm_t_bits)t, 16, port);
   scm_puts (")>", port);
@@ -571,9 +594,11 @@ scm_i_init_thread_for_guile (SCM_STACKITEM *base, SCM parent)
 }
 
 #if SCM_USE_PTHREAD_THREADS
-/* pthread_getattr_np not available on MacOS X and Solaris 10. */
-#if HAVE_PTHREAD_ATTR_GETSTACK && HAVE_PTHREAD_GETATTR_NP
 
+#if HAVE_PTHREAD_ATTR_GETSTACK && HAVE_PTHREAD_GETATTR_NP
+/* This method for GNU/Linux and perhaps some other systems.
+   It's not for MacOS X or Solaris 10, since pthread_getattr_np is not
+   available on them.  */
 #define HAVE_GET_THREAD_STACK_BASE
 
 static SCM_STACKITEM *
@@ -606,7 +631,30 @@ get_thread_stack_base ()
     }
 }
 
-#endif /* HAVE_PTHREAD_ATTR_GETSTACK && HAVE_PTHREAD_GETATTR_NP */
+#elif HAVE_PTHREAD_GET_STACKADDR_NP
+/* This method for MacOS X.
+   It'd be nice if there was some documentation on pthread_get_stackaddr_np,
+   but as of 2006 there's nothing obvious at apple.com.  */
+#define HAVE_GET_THREAD_STACK_BASE
+static SCM_STACKITEM *
+get_thread_stack_base ()
+{
+  return pthread_get_stackaddr_np (pthread_self ());
+}
+
+#elif defined (__MINGW32__)
+/* This method for mingw.  In mingw the basic scm_get_stack_base can be used
+   in any thread.  We don't like hard-coding the name of a system, but there
+   doesn't seem to be a cleaner way of knowing scm_get_stack_base can
+   work.  */
+#define HAVE_GET_THREAD_STACK_BASE
+static SCM_STACKITEM *
+get_thread_stack_base ()
+{
+  return scm_get_stack_base ();
+}
+
+#endif /* pthread methods of get_thread_stack_base */
 
 #else /* !SCM_USE_PTHREAD_THREADS */
 

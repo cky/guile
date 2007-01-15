@@ -86,7 +86,7 @@ SCM_DEFINE (scm_srfi60_copy_bit, "copy-bit", 3, 0, 0,
       if (ii < SCM_LONG_BIT-1)
         {
           nn &= ~(1L << ii);  /* zap bit at index */
-          nn |= (bb << ii);   /* insert desired bit */
+          nn |= ((long) bb << ii);   /* insert desired bit */
           return scm_from_long (nn);
         }
       else
