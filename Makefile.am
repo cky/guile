@@ -19,7 +19,10 @@
 ##   to the Free Software Foundation, Inc., 51 Franklin Street, Fifth
 ##   Floor, Boston, MA 02110-1301 USA
 
-AUTOMAKE_OPTIONS = 1.5
+# want automake 1.10 or higher so that AM_GNU_GETTEXT can tell automake that
+# config.rpath is needed
+#
+AUTOMAKE_OPTIONS = 1.10
 
 SUBDIRS = oop libguile ice-9 guile-config guile-readline emacs \
 	  scripts srfi doc examples test-suite benchmark-suite lang am
