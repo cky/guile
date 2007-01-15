@@ -55,7 +55,6 @@ AC_CONFIG_SUBDIRS(guile-readline)
 
 dnl Some more checks for Win32
 AC_CYGWIN
-AC_MINGW32
 AC_LIBTOOL_WIN32_DLL
 
 AC_PROG_INSTALL
@@ -68,6 +67,8 @@ AC_ISC_POSIX
 AC_MINIX
 
 AM_PROG_CC_STDC
+# for per-target cflags in the libguile subdir
+AM_PROG_CC_C_O
 
 AC_LIBTOOL_DLOPEN
 AC_PROG_LIBTOOL
@@ -528,8 +529,9 @@ AC_HEADER_SYS_WAIT
 # Reasons for testing:
 #   complex.h - new in C99
 #   fenv.h - available in C99, but not older systems
+#   process.h - mingw specific
 #
-AC_CHECK_HEADERS([complex.h fenv.h io.h libc.h limits.h malloc.h memory.h string.h \
+AC_CHECK_HEADERS([complex.h fenv.h io.h libc.h limits.h malloc.h memory.h process.h string.h \
 regex.h rxposix.h rx/rxposix.h sys/dir.h sys/ioctl.h sys/select.h \
 sys/time.h sys/timeb.h sys/times.h sys/stdtypes.h sys/types.h \
 sys/utime.h time.h unistd.h utime.h pwd.h grp.h sys/utsname.h \
@@ -560,9 +562,11 @@ AC_TYPE_GETGROUPS
 AC_TYPE_SIGNAL
 AC_TYPE_MODE_T
 
-if test $MINGW32 = no; then
-	AC_CHECK_LIB(m, main)
-fi
+# On mingw -lm is empty, so this test is unnecessary, but it's
+# harmless so we don't hard-code to suppress it.
+#
+AC_CHECK_LIB(m, cos)
+
 AC_CHECK_FUNCS(gethostbyname)
 if test $ac_cv_func_gethostbyname = no; then
     AC_CHECK_LIB(nsl, gethostbyname)
@@ -577,7 +581,8 @@ dnl
 dnl Check for Winsock and other functionality on Win32 (*not* CygWin)
 dnl
 EXTRA_DEFS=""
-if test "$MINGW32" = "yes" ; then
+case $host in
+  *-*-mingw*)
     AC_CHECK_HEADER(winsock2.h, [AC_DEFINE([HAVE_WINSOCK2_H], 1,
       [Define if you have the <winsock2.h> header file.])])
     AC_CHECK_LIB(ws2_32, main)
@@ -591,7 +596,8 @@ if test "$MINGW32" = "yes" ; then
       AC_DEFINE(USE_DLL_IMPORT, 1,
         [Define if you need additional CPP macros on Win32 platforms.])
     fi
-fi
+    ;;
+esac
 AC_SUBST(EXTRA_DEFS)
 
 # Reasons for testing:
@@ -610,6 +616,8 @@ AC_CHECK_HEADERS([assert.h crt_externs.h])
 #               has it as an inline for chsize)
 #   ioctl - not in mingw.
 #   gmtime_r - recent posix, not on old systems
+#   pipe - not in mingw
+#   _pipe - specific to mingw, taking 3 args
 #   readdir_r - recent posix, not on old systems
 #   stat64 - SuS largefile stuff, not on old systems
 #   sysconf - not on old systems
@@ -618,15 +626,17 @@ AC_CHECK_HEADERS([assert.h crt_externs.h])
 #   _NSGetEnviron - Darwin specific
 #   strcoll_l, newlocale - GNU extensions (glibc)
 #
-AC_CHECK_FUNCS([DINFINITY DQNAN chsize clog10 ctermid fesetround ftime ftruncate fchown getcwd geteuid gettimeofday gmtime_r ioctl lstat mkdir mknod nice readdir_r readlink rename rmdir select setegid seteuid setlocale setpgid setsid sigaction siginterrupt stat64 strftime strptime symlink sync sysconf tcgetpgrp tcsetpgrp times uname waitpid strdup system usleep atexit on_exit chown link fcntl ttyname getpwent getgrent kill getppid getpgrp fork setitimer getitimer strchr strcmp index bcopy memcpy rindex truncate unsetenv isblank _NSGetEnviron strcoll strcoll_l newlocale])
+AC_CHECK_FUNCS([DINFINITY DQNAN chsize clog10 ctermid fesetround ftime ftruncate fchown getcwd geteuid gettimeofday gmtime_r ioctl lstat mkdir mknod nice pipe _pipe readdir_r readlink rename rmdir select setegid seteuid setlocale setpgid setsid sigaction siginterrupt stat64 strftime strptime symlink sync sysconf tcgetpgrp tcsetpgrp times uname waitpid strdup system usleep atexit on_exit chown link fcntl ttyname getpwent getgrent kill getppid getpgrp fork setitimer getitimer strchr strcmp index bcopy memcpy rindex truncate unsetenv isblank _NSGetEnviron strcoll strcoll_l newlocale])
 
 # Reasons for testing:
 #   netdb.h - not in mingw
 #   sys/param.h - not in mingw
+#   pthread.h - only available with pthreads.  ACX_PTHREAD doesn't
+#       check this specifically, we need it for the timespec test below.
 #   sethostname - the function itself check because it's not in mingw,
 #       the DECL is checked because Solaris 10 doens't have in any header
 #
-AC_CHECK_HEADERS(crypt.h netdb.h sys/param.h sys/resource.h sys/file.h)
+AC_CHECK_HEADERS(crypt.h netdb.h pthread.h sys/param.h sys/resource.h sys/file.h)
 AC_CHECK_FUNCS(chroot flock getlogin cuserid getpriority setpriority getpass sethostname gethostname)
 AC_CHECK_DECLS([sethostname])
 
@@ -794,7 +804,7 @@ AC_CACHE_VAL(guile_cv_have_uint32_t,
 		   #if HAVE_STDINT_H
 		   #include <stdint.h>
                    #endif
-		   #ifndef __MINGW32__
+		   #ifndef HAVE_NETDB_H
 	           #include <netdb.h>
 		   #endif],
 		  [uint32_t a;],
@@ -1035,17 +1045,22 @@ if test $scm_cv_struct_linger = yes; then
 fi
 
 
+# On mingw, struct timespec is in <pthread.h>.
+#
 AC_MSG_CHECKING(for struct timespec)
 AC_CACHE_VAL(scm_cv_struct_timespec,
 	AC_TRY_COMPILE([
-#include <time.h>],
+#include <time.h>
+#if HAVE_PTHREAD_H
+#include <pthread.h>
+#endif],
 			[struct timespec t;  t.tv_nsec = 100],
 			scm_cv_struct_timespec="yes",
 			scm_cv_struct_timespec="no"))
 AC_MSG_RESULT($scm_cv_struct_timespec)
 if test $scm_cv_struct_timespec = yes; then
   AC_DEFINE(HAVE_STRUCT_TIMESPEC, 1,
-    [Define this if your system defines struct timespec via <time.h>.])
+    [Define this if your system defines struct timespec via either <time.h> or <pthread.h>.])
 fi
 
 #--------------------------------------------------------------------
@@ -1079,8 +1094,11 @@ case "$with_threads" in
     # Reasons for testing:
     #     pthread_getattr_np - "np" meaning "non portable" says it
     #         all; not present on MacOS X or Solaris 10
+    #     pthread_get_stackaddr_np - "np" meaning "non portable" says it
+    #         all; specific to MacOS X
+    #     pthread_sigmask - not available on mingw
     #
-    AC_CHECK_FUNCS(pthread_attr_getstack pthread_getattr_np)
+    AC_CHECK_FUNCS(pthread_attr_getstack pthread_getattr_np pthread_get_stackaddr_np pthread_sigmask)
 
     # On past versions of Solaris, believe 8 through 10 at least, you
     # had to write "pthread_once_t foo = { PTHREAD_ONCE_INIT };".

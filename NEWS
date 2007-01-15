@@ -22,6 +22,32 @@ Changes in 1.9.XXXXXXXX:
 * Changes to the C interface 
 
 
+Changes in 1.8.2 (since 1.8.1):
+
+* New procedures (see the manual for details)
+
+** set-program-arguments
+
+* Bugs fixed
+
+** Fractions were not `equal?' if stored in unreduced form.
+(A subtle problem, since printing a value reduced it, making it work.)
+** srfi-60 `copy-bit' failed on 64-bit systems
+** "guile --use-srfi" option at the REPL can replace core functions
+(Programs run with that option were ok, but in the interactive REPL
+the core bindings got priority, preventing SRFI replacements or
+extensions.)
+** `regexp-exec' doesn't abort() on #\nul in the input or bad flags arg
+** `kill' on mingw throws an error for a pid other than oneself
+** Procedure names are attached to procedure-with-setters
+** Array read syntax works with negative lower bound
+** `array-in-bounds?' fix if an array has different lower bounds on each index
+** `*' returns exact 0 for "(* inexact 0)"
+This follows what it always did for "(* 0 inexact)".
+** Build problems on Solaris fixed
+** Build problems on Mingw fixed
+
+
 Changes in 1.8.1 (since 1.8.0):
 
 * LFS functions are now used to access 64-bit files on 32-bit systems.
