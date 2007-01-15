@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2006
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2006, 2007
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -3525,7 +3525,7 @@ string.
 @item @var{make_final} is applied to the terminal seed
 value (on which @var{p} returns true) to produce
 the final/rightmost portion of the constructed string.
-It defaults to @code{(lambda (x) )}.
+The default is nothing extra.
 @end itemize
 @end deffn
 

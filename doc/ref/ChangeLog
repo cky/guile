@@ -1,3 +1,32 @@
+2007-01-16  Kevin Ryde  <user42@zip.com.au>
+
+	* api-data.texi (Mapping Folding and Unfolding): In string-unfold,
+	ssay make_final default is nothing extra.  The `(lambda (x) )' shown
+	was not quite right, it would have been `(lambda (x) "")' if anything.
+
+	* api-init.texi (Initialization): Cross reference Runtime Environment
+	for scm_set_program_arguments.
+
+	* posix.texi (Runtime Environment): Expand program-arguments
+	description, add set-program-arguments, add scm_set_program_arguments,
+	note args are per-thread.
+
+2006-12-14  Kevin Ryde  <user42@zip.com.au>
+
+	* api-procedures.texi (let-keywords Reference): Expand variously to
+	make it clear what's actually taken and done.  Shortfalls reported by
+	Han-Wen Nienhuys.
+
+2006-12-13  Kevin Ryde  <user42@zip.com.au>
+
+	* api-control.texi (Handling Errors): Cross reference "Error
+	Reporting" for `scm-error', not just "above".
+
+	* posix.texi (Encryption): Cross reference crypt in the glibc manual.
+	Clarify that key and salt are strings.
+
+	* srfi-modules.texi (SRFI-17): Expand variously.
+
 2006-11-18  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
 	* Makefile.am (BUILT_SOURCES): New variable.

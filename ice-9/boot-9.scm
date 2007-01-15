@@ -1,6 +1,6 @@
 ;;; installed-scm-file
 
-;;;; Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006
+;;;; Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007
 ;;;; Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
@@ -3313,13 +3313,11 @@
 ;; numbers, which are the numbers of the SRFIs to be loaded on startup.
 ;;
 (define (use-srfis srfis)
-  (let lp ((s srfis))
-    (if (pair? s)
-        (let* ((srfi (string->symbol
-                      (string-append "srfi-" (number->string (car s)))))
-               (mod-i (resolve-interface (list 'srfi srfi))))
-          (module-use! (current-module) mod-i)
-          (lp (cdr s))))))
+  (process-use-modules
+   (map (lambda (num)
+	  (list (list 'srfi (string->symbol
+			     (string-append "srfi-" (number->string num))))))
+	srfis)))
 
 
 
@@ -3387,30 +3385,38 @@
 
     ;; Use some convenient modules (in reverse order)
 
-    (if (provided? 'regex)
-	(module-use! guile-user-module (resolve-interface '(ice-9 regex))))
-    (if (provided? 'threads)
-	(module-use! guile-user-module (resolve-interface '(ice-9 threads))))
+    (set-current-module guile-user-module)
+    (process-use-modules 
+     (append
+      '(((ice-9 r5rs))
+	((ice-9 session))
+	((ice-9 debug)))
+      (if (provided? 'regex)
+	  '(((ice-9 regex)))
+	  '())
+      (if (provided? 'threads)
+	  '(((ice-9 threads)))
+	  '())))
     ;; load debugger on demand
     (module-use! guile-user-module
 		 (make-autoload-interface guile-user-module
 					  '(ice-9 debugger) '(debug)))
-    (module-use! guile-user-module (resolve-interface '(ice-9 session)))
-    (module-use! guile-user-module (resolve-interface '(ice-9 debug)))
-    ;; so that builtin bindings will be checked first
-    (module-use! guile-user-module (resolve-interface '(ice-9 r5rs)))
-    (module-use! guile-user-module (resolve-interface '(guile)))
 
-    (set-current-module guile-user-module)
 
+    ;; Note: SIGFPE, SIGSEGV and SIGBUS are actually "query-only" (see
+    ;; scmsigs.c scm_sigaction_for_thread), so the handlers setup here have
+    ;; no effect.
     (let ((old-handlers #f)
 	  (signals (if (provided? 'posix)
 		       `((,SIGINT . "User interrupt")
 			 (,SIGFPE . "Arithmetic error")
-			 (,SIGBUS . "Bad memory access (bus error)")
 			 (,SIGSEGV
 			  . "Bad memory access (Segmentation violation)"))
 		       '())))
+      ;; no SIGBUS on mingw
+      (if (defined? 'SIGBUS)
+	  (set! signals (acons SIGBUS "Bad memory access (bus error)"
+			       signals)))
 
       (dynamic-wind
 

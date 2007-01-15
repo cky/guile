@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2006
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2006, 2007
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -1348,14 +1348,71 @@ included but subprocesses are not.
 
 @deffn {Scheme Procedure} program-arguments
 @deffnx {Scheme Procedure} command-line
+@deffnx {Scheme Procedure} set-program-arguments
 @deffnx {C Function} scm_program_arguments ()
+@deffnx {C Function} scm_set_program_arguments_scm (lst)
 @cindex command line
 @cindex program arguments
-Return the list of command line arguments passed to Guile, as a list of
-strings.  The list includes the invoked program name, which is usually
-@code{"guile"}, but excludes switches and parameters for command line
-options like @code{-e} and @code{-l}.
+Get the command line arguments passed to Guile, or set new arguments.
+
+The arguments are a list of strings, the first of which is the invoked
+program name.  This is just @nicode{"guile"} (or the executable path)
+when run interactively, or it's the script name when running a script
+with @option{-s} (@pxref{Invoking Guile}).
+
+@example
+guile -L /my/extra/dir -s foo.scm abc def
+
+(program-arguments) @result{} ("foo.scm" "abc" "def")
+@end example
+
+@code{set-program-arguments} allows a library module or similar to
+modify the arguments, for example to strip options it recognises,
+leaving the rest for the mainline.
+
+The argument list is held in a fluid, which means it's separate for
+each thread.  Neither the list nor the strings within it are copied at
+any point and normally should not be mutated.
+
+The two names @code{program-arguments} and @code{command-line} are an
+historical accident, they both do exactly the same thing.  The name
+@code{scm_set_program_arguments_scm} has an extra @code{_scm} on the
+end to avoid clashing with the C function below.
 @end deffn
+
+@deftypefn {C Function} void scm_set_program_arguments (int argc, char **argv, char *first)
+@cindex command line
+@cindex program arguments
+Set the list of command line arguments for @code{program-arguments}
+and @code{command-line} above.
+
+@var{argv} is an array of null-terminated strings, as in a C
+@code{main} function.  @var{argc} is the number of strings in
+@var{argv}, or if it's negative then a @code{NULL} entry in @var{argv}
+marks its end.
+
+@var{first} is an extra string put at the start of the arguments, or
+@code{NULL} for no such extra.  This is a convenient way to pass the
+program name after advancing @var{argv} to strip option arguments.
+
+@example
+@{
+  char *progname = argv[0];
+  int i;
+  for (argv++; argv[0] != NULL && argv[0][0] == '-'; argv++)
+    @{
+      /* munch option ... */
+    @}
+  /* remaining args for scheme level use */
+  scm_set_program_arguments (-1, argv, progname);
+@}
+@end example
+
+This sort of thing is often done at startup under
+@code{scm_boot_guile} with any options handled at the C level removed.
+The given strings are all copied, so the C data is not accessed again
+once @code{scm_set_program_arguments} returns.
+@end deftypefn
 
 @deffn {Scheme Procedure} getenv nam
 @deffnx {C Function} scm_getenv (nam)
@@ -3174,12 +3231,13 @@ Please note that the procedures in this section are not suited for
 strong encryption, they are only interfaces to the well-known and
 common system library functions of the same name.  They are just as good
 (or bad) as the underlying functions, so you should refer to your system
-documentation before using them.
+documentation before using them (@pxref{crypt,, Encrypting Passwords,
+libc, The GNU C Library Reference Manual}).
 
 @deffn {Scheme Procedure} crypt key salt
 @deffnx {C Function} scm_crypt (key, salt)
-Encrypt @var{key} using @var{salt} as the salt value to the
-crypt(3) library call.
+Encrypt @var{key}, with the addition of @var{salt} (both strings),
+using the @code{crypt} C library call.
 @end deffn
 
 Although @code{getpass} is not an encryption procedure per se, it

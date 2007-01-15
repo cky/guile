@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2006, 2007
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -1616,24 +1616,61 @@ applied to zero arguments, yields 1.
 @subsection SRFI-17 - Generalized set!
 @cindex SRFI-17
 
-This is an implementation of SRFI-17: Generalized set!
+This SRFI implements a generalized @code{set!}, allowing some
+``referencing'' functions to be used as the target location of a
+@code{set!}.  This feature is available from
 
-@findex getter-with-setter
-It exports the Guile procedure @code{make-procedure-with-setter} under
-the SRFI name @code{getter-with-setter} and exports the standard
-procedures @code{car}, @code{cdr}, @dots{}, @code{cdddr},
-@code{string-ref} and @code{vector-ref} as procedures with setters, as
-required by the SRFI.
+@example
+(use-modules (srfi srfi-17))
+@end example
 
-SRFI-17 was heavily criticized during its discussion period but it was
-finalized anyway.  One issue was its concept of globally associating
-setter @dfn{properties} with (procedure) values, which is non-Schemy.
-For this reason, this implementation chooses not to provide a way to set
-the setter of a procedure.  In fact, @code{(set!  (setter @var{proc})
-@var{setter})} signals an error.  The only way to attach a setter to a
-procedure is to create a new object (a @dfn{procedure with setter}) via
-the @code{getter-with-setter} procedure. This procedure is also
-specified in the SRFI.  Using it avoids the described problems.
+@noindent
+For example @code{vector-ref} is extended so that
+
+@example
+(set! (vector-ref vec idx) new-value)
+@end example
+
+@noindent
+is equivalent to
+
+@example
+(vector-set! vec idx new-value)
+@end example
+
+The idea is that a @code{vector-ref} expression identifies a location,
+which may be either fetched or stored.  The same form is used for the
+location in both cases, encouraging visual clarity.  This is similar
+to the idea of an ``lvalue'' in C.
+
+The mechanism for this kind of @code{set!} is in the Guile core
+(@pxref{Procedures with Setters}).  This module adds definitions of
+the following functions as procedures with setters, allowing them to
+be targets of a @code{set!},
+
+@quotation
+@nicode{car}, @nicode{cdr}, @nicode{caar}, @nicode{cadr},
+@nicode{cdar}, @nicode{cddr}, @nicode{caaar}, @nicode{caadr},
+@nicode{cadar}, @nicode{caddr}, @nicode{cdaar}, @nicode{cdadr},
+@nicode{cddar}, @nicode{cdddr}, @nicode{caaaar}, @nicode{caaadr},
+@nicode{caadar}, @nicode{caaddr}, @nicode{cadaar}, @nicode{cadadr},
+@nicode{caddar}, @nicode{cadddr}, @nicode{cdaaar}, @nicode{cdaadr},
+@nicode{cdadar}, @nicode{cdaddr}, @nicode{cddaar}, @nicode{cddadr},
+@nicode{cdddar}, @nicode{cddddr}
+
+@nicode{string-ref}, @nicode{vector-ref}
+@end quotation
+
+The SRFI specifies @code{setter} (@pxref{Procedures with Setters}) as
+a procedure with setter, allowing the setter for a procedure to be
+changed, eg.@: @code{(set! (setter foo) my-new-setter-handler)}.
+Currently Guile does not implement this, a setter can only be
+specified on creation (@code{getter-with-setter} below).
+
+@defun getter-with-setter
+The same as the Guile core @code{make-procedure-with-setter}
+(@pxref{Procedures with Setters}).
+@end defun
 
 
 @node SRFI-19

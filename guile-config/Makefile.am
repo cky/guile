@@ -1,7 +1,7 @@
 ## Process this file with Automake to create Makefile.in
 ## Jim Blandy <jimb@red-bean.com> --- September 1997
 ##
-##  	Copyright (C) 1998, 1999, 2001, 2006 Free Software Foundation, Inc.
+##  	Copyright (C) 1998, 1999, 2001, 2006, 2007 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##   
@@ -35,7 +35,7 @@ aclocal_DATA = guile.m4
 guile-config: guile-config.in ${top_builddir}/libguile/libpath.h
 	rm -f guile-config.tmp
 	sed < ${srcdir}/guile-config.in > guile-config.tmp \
-	    -e s:@-bindir-@:${bindir}: \
+	    -e 's|@-bindir-@|${bindir}|' \
 	    -e s:@-GUILE_VERSION-@:${GUILE_VERSION}:
 	chmod +x guile-config.tmp
 	mv guile-config.tmp guile-config
