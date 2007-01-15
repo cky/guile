@@ -2,7 +2,7 @@
 
 	* Makefile.am (guile-config): Use "|" as the sed delimiter, for the
 	benefit of DOS systems where $(bindir) might include a drive letter
-	like "c:".
+	like "c:".  Reported by Cesar Strauss.
 
 2006-09-19  Rob Browning  <rlb@defaultvalue.org>
 
