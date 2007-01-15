@@ -1,7 +1,7 @@
 ;;;; regexp.test --- test Guile's regular expression functions -*- scheme -*-
 ;;;; Jim Blandy <jimb@red-bean.com> --- September 1999
 ;;;;
-;;;; 	Copyright (C) 1999, 2004, 2006 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1999, 2004, 2006, 2007 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -69,6 +69,38 @@
 
   (pass-if "foo offset 1"
     (string=? "foo" (match:string (string-match ".*" "foo" 1)))))
+
+;;;
+;;; regexp-exec
+;;;
+
+(with-test-prefix "regexp-exec"
+
+  (pass-if-exception "non-integer offset" exception:wrong-type-arg
+    (let ((re (make-regexp "ab+")))
+      (regexp-exec re "aaaabbbb" 1.5 'bogus-flags-arg)))
+
+  (pass-if-exception "non-string input" exception:wrong-type-arg
+    (let ((re (make-regexp "ab+")))
+      (regexp-exec re 'not-a-string)))
+
+  (pass-if-exception "non-string input, with offset" exception:wrong-type-arg
+    (let ((re (make-regexp "ab+")))
+      (regexp-exec re 'not-a-string 5)))
+
+  ;; in guile 1.8.1 and earlier, a #\nul character in the input string was
+  ;; only detected in a critical section, and the resulting error throw
+  ;; abort()ed the program
+  (pass-if-exception "nul in input" exception:string-contains-nul
+    (let ((re (make-regexp "ab+")))
+      (regexp-exec re (string #\a #\b (integer->char 0)))))
+
+  ;; in guile 1.8.1 and earlier, a bogus flags argument was only detected
+  ;; inside a critical section, and the resulting error throw abort()ed the
+  ;; program
+  (pass-if-exception "non-integer flags" exception:wrong-type-arg
+    (let ((re (make-regexp "ab+")))
+      (regexp-exec re "aaaabbbb" 0 'bogus-flags-arg))))      
 
 ;;;
 ;;; regexp-quote

@@ -1,4 +1,3 @@
-<<<<<<< ChangeLog
 2007-01-16  Kevin Ryde  <user42@zip.com.au>
 
 	* feature.c, feature.h (scm_set_program_arguments_scm): New function,

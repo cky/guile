@@ -32,6 +32,13 @@
 
 (with-test-prefix "car"
 
+  ;; this test failed in guile 1.8.1 and 1.6.8 and earlier, since `define'
+  ;; didn't set a name on a procedure-with-setter
+  (pass-if "procedure-name"
+    (if (memq 'procnames (debug-options)) ;; enabled by default
+	(eq? 'car (procedure-name car))
+	(throw 'unsupported)))
+
   (pass-if "set! (car x)"
     (let ((lst (list 1)))
       (set! (car lst) 2)
