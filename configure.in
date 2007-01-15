@@ -29,7 +29,7 @@ AC_PREREQ(2.53)
 
 AC_INIT(m4_esyscmd(. ./GUILE-VERSION && echo -n ${PACKAGE}),
         m4_esyscmd(. ./GUILE-VERSION && echo -n ${GUILE_VERSION}),
-	[bug-guile@gnu.org])
+        [bug-guile@gnu.org])
 AC_CONFIG_AUX_DIR([.])
 AC_CONFIG_SRCDIR(GUILE-VERSION)
 AM_INIT_AUTOMAKE([no-define])
