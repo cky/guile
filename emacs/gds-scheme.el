@@ -404,6 +404,7 @@ region's code."
             (let ((beg (point))
                   (map (make-sparse-keymap)))
               (define-key map [mouse-1] 'gds-show-last-stack)
+              (define-key map "\C-m" 'gds-show-last-stack)
               (insert "[click here to show error stack]")
               (add-text-properties beg (point)
                                    (list 'keymap map
@@ -1007,6 +1008,8 @@ return the one that they chose."
 (define-key scheme-mode-map "\C-c\C-r" 'gds-eval-region)
 (define-key scheme-mode-map "\C-hg" 'gds-help-symbol)
 (define-key scheme-mode-map "\C-h\C-g" 'gds-apropos)
+(define-key scheme-mode-map "\C-hG" 'gds-apropos)
+(define-key scheme-mode-map "\C-hS" 'gds-show-last-stack)
 (define-key scheme-mode-map "\e\t" 'gds-complete-symbol)
 (define-key scheme-mode-map "\C-x " 'gds-set-breakpoint)
 

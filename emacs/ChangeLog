@@ -1,3 +1,11 @@
+2007-01-17  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* gds-scheme.el (gds-display-results): Add another binding for
+	gds-show-last-stack (RET).
+	(scheme-mode-map): And another: C-h S.
+	(scheme-mode-map): And an alternative C-h G binding for
+	gds-apropos, as we probably should not be using C-h C-g.
+
 2006-11-02  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* gds-scheme.el (gds-choose-client): Change assq to memq, so that
