@@ -711,9 +711,16 @@ scm_ithrow (SCM key, SCM args, int noreturn SCM_UNUSED)
 
       
       for (; scm_is_pair (s); s = scm_cdr (s), i++)
-	if (scm_is_string (scm_car (s)))
-	  fprintf (stderr, "argument %d: %s\n", i, scm_i_string_chars (scm_car (s)));
-      
+	{
+	  char const *str = NULL;
+	  if (scm_is_string (scm_car (s)))
+	    str = scm_i_string_chars (scm_car (s));
+	  else if (scm_is_symbol (scm_car (s)))
+	    str = scm_i_symbol_chars (scm_car (s));
+	  
+	  if (str != NULL)
+	    fprintf (stderr, "argument %d: %s\n", i, str);
+	}
       abort ();
     }
 
