@@ -1,5 +1,5 @@
 ;;;; test-suite/lib.scm --- generic support for testing
-;;;; Copyright (C) 1999, 2000, 2001, 2004, 2006 Free Software Foundation, Inc.
+;;;; Copyright (C) 1999, 2000, 2001, 2004, 2006, 2007 Free Software Foundation, Inc.
 ;;;;
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -30,6 +30,7 @@
  exception:numerical-overflow
  exception:struct-set!-denied
  exception:miscellaneous-error
+ exception:string-contains-nul
 
  ;; Reporting passes and failures.
  run-test
@@ -258,6 +259,11 @@
   (cons 'misc-error "^set! denied for field"))
 (define exception:miscellaneous-error
   (cons 'misc-error "^.*"))
+
+;; as per throw in scm_to_locale_stringn()
+(define exception:string-contains-nul
+  (cons 'misc-error "^string contains #\\\\nul character"))
+
 
 ;;; Display all parameters to the default output port, followed by a newline.
 (define (display-line . objs)
