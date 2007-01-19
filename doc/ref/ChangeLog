@@ -1,3 +1,11 @@
+2007-01-19  Han-Wen Nienhuys  <hanwen@lilypond.org>
+
+	* api-options.texi (Evaluator trap options): document
+	memoize-symbol-handler
+
+	* api-evaluation.texi (Evaluator Behaviour): link to the Evaluator
+	trap options node in trap-enable/trap-set! doco.
+
 2007-01-16  Kevin Ryde  <user42@zip.com.au>
 
 	* api-data.texi (Mapping Folding and Unfolding): In string-unfold,
