@@ -1,3 +1,14 @@
+2007-01-19  Han-Wen Nienhuys  <hanwen@lilypond.org>
+
+	* read.c: idem.
+
+	* print.c: idem.
+
+	* eval.c: terminate option lists with 0.
+
+	* options.c: remove n (for length) from scm_option_X
+	functions. Detect option list length by looking for NULL name.
+
 2007-01-19  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
 	* struct.c (scm_i_struct_equalp): Skip comparison if both FIELD1

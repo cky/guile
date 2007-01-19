@@ -52,7 +52,8 @@ scm_t_option scm_readline_opts[] = {
   { SCM_OPTION_INTEGER, "history-length", 200,
     "History length." },
   { SCM_OPTION_INTEGER, "bounce-parens", 500,
-    "Time (ms) to show matching opening parenthesis (0 = off)."}
+    "Time (ms) to show matching opening parenthesis (0 = off)."},
+  { 0 }
 };
 
 extern void stifle_history (int max);

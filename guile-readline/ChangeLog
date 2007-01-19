@@ -1,3 +1,7 @@
+2007-01-19  Han-Wen Nienhuys  <hanwen@lilypond.org>
+
+	* readline.c: terminate option list with NULL.
+
 2006-10-06  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* ice-9/readline.scm (new-input-prompt): Renamed from "prompt".

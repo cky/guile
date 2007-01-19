@@ -83,7 +83,9 @@ scm_t_option scm_print_opts[] = {
     "How to print symbols that have a colon as their first or last character. "
     "The value '#f' does not quote the colons; '#t' quotes them; "
     "'reader' quotes them when the reader option 'keywords' is not '#f'." 
-  }
+  },
+  { 0 },
+  
 };
 
 SCM_DEFINE (scm_print_options, "print-options-interface", 0, 1, 0, 
@@ -96,7 +98,6 @@ SCM_DEFINE (scm_print_options, "print-options-interface", 0, 1, 0,
 {
   SCM ans = scm_options (setting,
 			 scm_print_opts,
-			 SCM_N_PRINT_OPTIONS,
 			 FUNC_NAME);
   return ans;
 }
@@ -1165,7 +1166,7 @@ scm_init_print ()
 {
   SCM vtable, layout, type;
 
-  scm_init_opts (scm_print_options, scm_print_opts, SCM_N_PRINT_OPTIONS);
+  scm_init_opts (scm_print_options, scm_print_opts);
 
   scm_print_options (scm_list_4 (scm_from_locale_symbol ("highlight-prefix"),
 				 scm_from_locale_string ("{"),

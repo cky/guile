@@ -19,7 +19,10 @@ Changes in 1.9.XXXXXXXX:
 * Changes to the distribution
 * Changes to the stand-alone interpreter
 * Changes to Scheme functions and syntax
-* Changes to the C interface 
+* Changes to the C interface
+
+** Functions for handling scm_option now no longer require an argument
+   indicating length of the scm_t_option array.
 
 
 Changes in 1.8.2 (since 1.8.1):

@@ -59,10 +59,10 @@ SCM_DEFINE (scm_debug_options, "debug-options-interface", 0, 1, 0,
   scm_dynwind_begin (0);
   scm_dynwind_critical_section (SCM_BOOL_F);
 
-  ans = scm_options (setting, scm_debug_opts, SCM_N_DEBUG_OPTIONS, FUNC_NAME);
+  ans = scm_options (setting, scm_debug_opts, FUNC_NAME);
   if (!(1 <= SCM_N_FRAMES && SCM_N_FRAMES <= SCM_MAX_FRAME_SIZE))
     {
-      scm_options (ans, scm_debug_opts, SCM_N_DEBUG_OPTIONS, FUNC_NAME);
+      scm_options (ans, scm_debug_opts, FUNC_NAME);
       SCM_OUT_OF_RANGE (1, setting);
     }
   SCM_RESET_DEBUG_MODE;
@@ -526,7 +526,7 @@ SCM_DEFINE (scm_debug_hang, "debug-hang", 0, 1, 0,
 void
 scm_init_debug ()
 {
-  scm_init_opts (scm_debug_options, scm_debug_opts, SCM_N_DEBUG_OPTIONS);
+  scm_init_opts (scm_debug_options, scm_debug_opts);
 
   scm_tc16_memoized = scm_make_smob_type ("memoized", 0);
   scm_set_smob_mark (scm_tc16_memoized, scm_markcdr);

@@ -3065,7 +3065,8 @@ int scm_check_exit_p;
 long scm_eval_stack;
 
 scm_t_option scm_eval_opts[] = {
-  { SCM_OPTION_INTEGER, "stack", 22000, "Size of thread stacks (in machine words)." }
+  { SCM_OPTION_INTEGER, "stack", 22000, "Size of thread stacks (in machine words)." },
+  { 0 }
 };
 
 scm_t_option scm_debug_opts[] = {
@@ -3088,17 +3089,21 @@ scm_t_option scm_debug_opts[] = {
   { SCM_OPTION_BOOLEAN, "debug", 0, "Use the debugging evaluator." },
   { SCM_OPTION_INTEGER, "stack", 20000, "Stack size limit (measured in words; 0 = no check)." },
   { SCM_OPTION_SCM, "show-file-name", (unsigned long)SCM_BOOL_T, "Show file names and line numbers in backtraces when not `#f'.  A value of `base' displays only base names, while `#t' displays full names."},
-  { SCM_OPTION_BOOLEAN, "warn-deprecated", 0, "Warn when deprecated features are used." }
+  { SCM_OPTION_BOOLEAN, "warn-deprecated", 0, "Warn when deprecated features are used." },
+  { 0 }, 
 };
+
+
 
 scm_t_option scm_evaluator_trap_table[] = {
   { SCM_OPTION_BOOLEAN, "traps", 0, "Enable evaluator traps." },
   { SCM_OPTION_BOOLEAN, "enter-frame", 0, "Trap when eval enters new frame." },
-  { SCM_OPTION_BOOLEAN, "apply-frame", 0, "Trap when entering apply." },
-  { SCM_OPTION_BOOLEAN, "exit-frame", 0, "Trap when exiting eval or apply." },
   { SCM_OPTION_SCM, "enter-frame-handler", (unsigned long)SCM_BOOL_F, "Handler for enter-frame traps." },
+  { SCM_OPTION_BOOLEAN, "apply-frame", 0, "Trap when entering apply." },
   { SCM_OPTION_SCM, "apply-frame-handler", (unsigned long)SCM_BOOL_F, "Handler for apply-frame traps." },
-  { SCM_OPTION_SCM, "exit-frame-handler", (unsigned long)SCM_BOOL_F, "Handler for exit-frame traps." }
+  { SCM_OPTION_BOOLEAN, "exit-frame", 0, "Trap when exiting eval or apply." },
+  { SCM_OPTION_SCM, "exit-frame-handler", (unsigned long)SCM_BOOL_F, "Handler for exit-frame traps." },
+  { 0 }
 };
 
 SCM_DEFINE (scm_eval_options_interface, "eval-options-interface", 0, 1, 0, 
@@ -3114,7 +3119,6 @@ SCM_DEFINE (scm_eval_options_interface, "eval-options-interface", 0, 1, 0,
   scm_dynwind_critical_section (SCM_BOOL_F);
   ans = scm_options (setting,
 		     scm_eval_opts,
-		     SCM_N_EVAL_OPTIONS,
 		     FUNC_NAME);
   scm_eval_stack = SCM_EVAL_STACK * sizeof (void *);
   scm_dynwind_end ();
@@ -3133,7 +3137,6 @@ SCM_DEFINE (scm_evaluator_traps, "evaluator-traps-interface", 0, 1, 0,
   SCM_CRITICAL_SECTION_START;
   ans = scm_options (setting,
 		     scm_evaluator_trap_table,
-		     SCM_N_EVALUATOR_TRAPS,
 		     FUNC_NAME);
   /* njrev: same again. */
   SCM_RESET_DEBUG_MODE;
@@ -6025,11 +6028,9 @@ scm_init_eval ()
 			    scm_i_pthread_mutexattr_recursive);
 
   scm_init_opts (scm_evaluator_traps,
-		 scm_evaluator_trap_table,
-		 SCM_N_EVALUATOR_TRAPS);
+		 scm_evaluator_trap_table);
   scm_init_opts (scm_eval_options_interface,
-		 scm_eval_opts,
-		 SCM_N_EVAL_OPTIONS);
+		 scm_eval_opts);
   
   scm_tc16_promise = scm_make_smob_type ("promise", 0);
   scm_set_smob_mark (scm_tc16_promise, promise_mark);
@@ -6057,3 +6058,4 @@ scm_init_eval ()
   c-file-style: "gnu"
   End:
 */
+

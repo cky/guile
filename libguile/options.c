@@ -95,11 +95,11 @@ static SCM protected_objects = SCM_EOL;
 /* Return a list of the current option setting.  The format of an
  * option setting is described in the above documentation.  */
 static SCM
-get_option_setting (const scm_t_option options[], unsigned int n)
+get_option_setting (const scm_t_option options[])
 {
   unsigned int i;
   SCM ls = SCM_EOL;
-  for (i = 0; i != n; ++i)
+  for (i = 0; options[i].name; ++i)
     {
       switch (options[i].type)
 	{
@@ -123,12 +123,12 @@ get_option_setting (const scm_t_option options[], unsigned int n)
 /* Return a list of sublists, where each sublist contains option name, value
  * and documentation string.  */
 static SCM
-get_documented_option_setting (const scm_t_option options[], unsigned int n)
+get_documented_option_setting (const scm_t_option options[])
 {
   SCM ans = SCM_EOL;
   unsigned int i;
 
-  for (i = 0; i != n; ++i)
+  for (i = 0; options[i].name; ++i)
     {
       SCM ls = scm_cons (scm_from_locale_string (options[i].doc), SCM_EOL);
       switch (options[i].type)
@@ -149,6 +149,16 @@ get_documented_option_setting (const scm_t_option options[], unsigned int n)
 }
 
 
+static int
+options_length (scm_t_option options[])
+{
+  unsigned int i = 0;
+  for (; options[i].name != NULL; ++i)
+    ;
+
+  return i;
+}
+
 /* Alters options according to the given option setting 'args'.  The value of
  * args is known to be a list, but it is not known whether the list is a well
  * formed option setting, i. e. if for every non-boolean option a value is
@@ -156,14 +166,14 @@ get_documented_option_setting (const scm_t_option options[], unsigned int n)
  * original setting in memory.  Only if 'args' was successfully processed,
  * the new setting will overwrite the old one.  */
 static void
-change_option_setting (SCM args, scm_t_option options[], unsigned int n, const char *s)
+change_option_setting (SCM args, scm_t_option options[], const char *s)
 {
   unsigned int i;
   SCM locally_protected_args = args;
-  SCM malloc_obj = scm_malloc_obj (n * sizeof (scm_t_bits));
+  SCM malloc_obj = scm_malloc_obj (options_length (options) * sizeof (scm_t_bits));
   scm_t_bits *flags = (scm_t_bits *) SCM_MALLOCDATA (malloc_obj);
 
-  for (i = 0; i != n; ++i)
+  for (i = 0; options[i].name; ++i)
     {
       if (options[i].type == SCM_OPTION_BOOLEAN)
 	flags[i] = 0;
@@ -176,7 +186,7 @@ change_option_setting (SCM args, scm_t_option options[], unsigned int n, const c
       SCM name = SCM_CAR (args);
       int found = 0;
 
-      for (i = 0; i != n && !found; ++i)
+      for (i = 0; options[i].name && !found; ++i)
 	{
 	  if (scm_is_eq (name, SCM_PACK (options[i].name)))
 	    {
@@ -204,7 +214,7 @@ change_option_setting (SCM args, scm_t_option options[], unsigned int n, const c
       args = SCM_CDR (args);
     }
 
-  for (i = 0; i != n; ++i)
+  for (i = 0; options[i].name; ++i)
     {
       if (options[i].type == SCM_OPTION_SCM)
 	{
@@ -223,32 +233,32 @@ change_option_setting (SCM args, scm_t_option options[], unsigned int n, const c
 
 
 SCM
-scm_options (SCM args, scm_t_option options[], unsigned int n, const char *s)
+scm_options (SCM args, scm_t_option options[], const char *s)
 {
   if (SCM_UNBNDP (args))
-    return get_option_setting (options, n);
+    return get_option_setting (options);
   else if (!SCM_NULL_OR_NIL_P (args) && !scm_is_pair (args))
     /* Dirk:FIXME:: This criterion should be improved.  IMO it is better to
      * demand that args is #t if documentation should be shown than to say
      * that every argument except a list will print out documentation.  */
-    return get_documented_option_setting (options, n);
+    return get_documented_option_setting (options);
   else
     {
       SCM old_setting;
       SCM_ASSERT (scm_is_true (scm_list_p (args)), args, 1, s);
-      old_setting = get_option_setting (options, n);
-      change_option_setting (args, options, n, s);
+      old_setting = get_option_setting (options);
+      change_option_setting (args, options, s);
       return old_setting;
     }
 }
 
 
 void
-scm_init_opts (SCM (*func) (SCM), scm_t_option options[], unsigned int n)
+scm_init_opts (SCM (*func) (SCM), scm_t_option options[])
 {
   unsigned int i;
 
-  for (i = 0; i != n; ++i)
+  for (i = 0; options[i].name; ++i)
     {
       SCM name = scm_from_locale_symbol (options[i].name);
       options[i].name =	(char *) SCM_UNPACK (name);
