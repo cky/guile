@@ -43,13 +43,16 @@ SCM_API scm_t_option scm_evaluator_trap_table[];
 
 SCM_API SCM scm_eval_options_interface (SCM setting);
 
-#define SCM_TRAPS_P	       scm_evaluator_trap_table[0].val
+
+#define SCM_TRAPS_P            scm_evaluator_trap_table[0].val
 #define SCM_ENTER_FRAME_P      scm_evaluator_trap_table[1].val
-#define SCM_ENTER_FRAME_HDLR   (SCM_PACK (scm_evaluator_trap_table[2].val))
-#define SCM_APPLY_FRAME_P      scm_evaluator_trap_table[3].val
-#define SCM_APPLY_FRAME_HDLR   (SCM_PACK (scm_evaluator_trap_table[4].val))
-#define SCM_EXIT_FRAME_P       scm_evaluator_trap_table[5].val
+#define SCM_APPLY_FRAME_P      scm_evaluator_trap_table[2].val
+#define SCM_EXIT_FRAME_P       scm_evaluator_trap_table[3].val
+#define SCM_ENTER_FRAME_HDLR   (SCM_PACK (scm_evaluator_trap_table[4].val))
+#define SCM_APPLY_FRAME_HDLR   (SCM_PACK (scm_evaluator_trap_table[5].val))
 #define SCM_EXIT_FRAME_HDLR    (SCM_PACK (scm_evaluator_trap_table[6].val))
+#define SCM_MEMOIZE_P       scm_evaluator_trap_table[7].val
+#define SCM_MEMOIZE_HDLR    (SCM_PACK (scm_evaluator_trap_table[8].val))
 
 
 

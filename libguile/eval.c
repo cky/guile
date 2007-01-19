@@ -99,6 +99,7 @@ static SCM *scm_lookupcar1 (SCM vloc, SCM genv, int check);
 static SCM unmemoize_builtin_macro (SCM expr, SCM env);
 static void eval_letrec_inits (SCM env, SCM init_forms, SCM **init_values_eol);
 
+
 
 
 /* {Syntax Errors}
@@ -2555,6 +2556,7 @@ scm_unmemocar (SCM form, SCM env)
 SCM_GLOBAL_SYMBOL (scm_sym_enter_frame, "enter-frame");
 SCM_GLOBAL_SYMBOL (scm_sym_apply_frame, "apply-frame");
 SCM_GLOBAL_SYMBOL (scm_sym_exit_frame, "exit-frame");
+SCM_GLOBAL_SYMBOL (scm_sym_memoize_symbol, "memoize-symbol");
 SCM_GLOBAL_SYMBOL (scm_sym_trace, "trace");
 SCM_SYMBOL (sym_instead, "instead");
 
@@ -3061,6 +3063,7 @@ int scm_debug_mode_p;
 int scm_check_entry_p;
 int scm_check_apply_p;
 int scm_check_exit_p;
+int scm_check_memoize_p;
 
 long scm_eval_stack;
 
@@ -3094,17 +3097,23 @@ scm_t_option scm_debug_opts[] = {
 };
 
 
-
+/*
+  this ordering is awkward and illogical, but we maintain it for
+  compatibility. --hwn
+*/
 scm_t_option scm_evaluator_trap_table[] = {
   { SCM_OPTION_BOOLEAN, "traps", 0, "Enable evaluator traps." },
   { SCM_OPTION_BOOLEAN, "enter-frame", 0, "Trap when eval enters new frame." },
-  { SCM_OPTION_SCM, "enter-frame-handler", (unsigned long)SCM_BOOL_F, "Handler for enter-frame traps." },
   { SCM_OPTION_BOOLEAN, "apply-frame", 0, "Trap when entering apply." },
-  { SCM_OPTION_SCM, "apply-frame-handler", (unsigned long)SCM_BOOL_F, "Handler for apply-frame traps." },
   { SCM_OPTION_BOOLEAN, "exit-frame", 0, "Trap when exiting eval or apply." },
+  { SCM_OPTION_SCM, "enter-frame-handler", (unsigned long)SCM_BOOL_F, "Handler for enter-frame traps." },
+  { SCM_OPTION_SCM, "apply-frame-handler", (unsigned long)SCM_BOOL_F, "Handler for apply-frame traps." },
   { SCM_OPTION_SCM, "exit-frame-handler", (unsigned long)SCM_BOOL_F, "Handler for exit-frame traps." },
+  { SCM_OPTION_BOOLEAN, "memoize-symbol", 0, "Trap when memoizing a symbol." },
+  { SCM_OPTION_SCM, "memoize-symbol-handler", (unsigned long)SCM_BOOL_F, "The handler for memoization." },
   { 0 }
 };
+
 
 SCM_DEFINE (scm_eval_options_interface, "eval-options-interface", 0, 1, 0, 
             (SCM setting),
@@ -3134,10 +3143,16 @@ SCM_DEFINE (scm_evaluator_traps, "evaluator-traps-interface", 0, 1, 0,
 #define FUNC_NAME s_scm_evaluator_traps
 {
   SCM ans;
+
+  
+  scm_options_try (setting,
+		   scm_evaluator_trap_table,
+		   FUNC_NAME, 1);
   SCM_CRITICAL_SECTION_START;
   ans = scm_options (setting,
 		     scm_evaluator_trap_table,
 		     FUNC_NAME);
+
   /* njrev: same again. */
   SCM_RESET_DEBUG_MODE;
   SCM_CRITICAL_SECTION_END;
@@ -3404,7 +3419,7 @@ dispatch:
             else if (SCM_VARIABLEP (last_form))
               RETURN (SCM_VARIABLE_REF (last_form));
             else if (scm_is_symbol (last_form))
-              RETURN (*scm_lookupcar (x, env, 1));
+	      RETURN (*scm_lookupcar (x, env, 1));
             else
               RETURN (last_form);
           }
@@ -4034,6 +4049,23 @@ dispatch:
 		goto dispatch;
 	      }
 	    proc = *location;
+#ifdef DEVAL
+	    if (scm_check_memoize_p && SCM_TRAPS_P)
+	      {
+		SCM_CLEAR_TRACED_FRAME (debug);
+		SCM arg1 = scm_make_debugobj (&debug);
+		SCM retval = SCM_BOOL_T;
+		SCM_TRAPS_P = 0;
+		retval = scm_call_4 (SCM_MEMOIZE_HDLR,
+				     scm_sym_memoize_symbol,
+				     arg1, x, env);
+
+		/*
+		  do something with retval? 
+		 */
+		SCM_TRAPS_P = 1;
+	      }
+#endif
 	  }
 
 	  if (SCM_MACROP (proc))
@@ -4098,7 +4130,7 @@ dispatch:
 	    }
 	}
       else
-        proc = SCM_CAR (x);
+	proc = SCM_CAR (x);
 
       if (SCM_MACROP (proc))
 	goto handle_a_macro;
@@ -4114,6 +4146,7 @@ dispatch:
    * level.  If the number of arguments does not match the number of arguments
    * that are allowed to be passed to proc, also an error on the scheme level
    * will be signalled.  */
+
   PREP_APPLY (proc, SCM_EOL);
   if (scm_is_null (SCM_CDR (x))) {
     ENTER_APPLY;

@@ -64,6 +64,7 @@ SCM_API int scm_debug_mode_p;
 SCM_API int scm_check_entry_p;
 SCM_API int scm_check_apply_p;
 SCM_API int scm_check_exit_p;
+SCM_API int scm_check_memoize_p;
 
 #define SCM_RESET_DEBUG_MODE \
 do {\
@@ -73,8 +74,10 @@ do {\
     && scm_is_true (SCM_APPLY_FRAME_HDLR);\
   scm_check_exit_p = (SCM_EXIT_FRAME_P || SCM_TRACE_P)\
     && scm_is_true (SCM_EXIT_FRAME_HDLR);\
+  scm_check_memoize_p = (SCM_MEMOIZE_P)\
+    && scm_is_true (SCM_MEMOIZE_HDLR);\
   scm_debug_mode_p = SCM_DEVAL_P\
-    || scm_check_entry_p || scm_check_apply_p || scm_check_exit_p;\
+    || scm_check_memoize_p || scm_check_entry_p || scm_check_apply_p || scm_check_exit_p;\
 } while (0)
 
 /* {Evaluator}
