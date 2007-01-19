@@ -3024,7 +3024,7 @@ scm_eval_body (SCM code, SCM env)
 do { \
   SCM_SET_ARGSREADY (debug);\
   if (scm_check_apply_p && SCM_TRAPS_P)\
-    if (SCM_APPLY_FRAME_P || (SCM_TRACE_P && PROCTRACEP (proc)))\
+    if (SCM_APPLY_FRAME_P || (SCM_TRACE_P && SCM_PROCTRACEP (proc)))\
       {\
 	SCM tmp, tail = scm_from_bool(SCM_TRACED_FRAME_P (debug)); \
 	SCM_SET_TRACED_FRAME (debug); \

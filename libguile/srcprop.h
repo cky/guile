@@ -49,46 +49,10 @@ do { \
 
 /* {Source properties}
  */
-
-SCM_API scm_t_bits scm_tc16_srcprops;
-
-typedef struct scm_t_srcprops
-{
-  unsigned long pos;
-  SCM fname;
-  SCM copy;
-  SCM plist;
-} scm_t_srcprops;
-
-#define SRCPROPS_CHUNKSIZE 2047 /* Number of srcprops per chunk */
-typedef struct scm_t_srcprops_chunk
-{
-  struct scm_t_srcprops_chunk *next;
-  scm_t_srcprops srcprops[1];
-} scm_t_srcprops_chunk;
-
+#define SCM_PROCTRACEP(x) (scm_is_true (scm_procedure_property (x, scm_sym_trace)))
 #define SCM_SOURCE_PROPERTY_FLAG_BREAK 1
 
-#define SRCPROPSP(p) (SCM_SMOB_PREDICATE (scm_tc16_srcprops, (p)))
-#define SRCPROPBRK(p) (SCM_SMOB_FLAGS (p) & SCM_SOURCE_PROPERTY_FLAG_BREAK)
-#define SRCPROPPOS(p) ((scm_t_srcprops *) SCM_SMOB_DATA (p))->pos
-#define SRCPROPLINE(p) (SRCPROPPOS(p) >> 12)
-#define SRCPROPCOL(p) (SRCPROPPOS(p) & 0x0fffL)
-#define SRCPROPFNAME(p) ((scm_t_srcprops *) SCM_SMOB_DATA (p))->fname
-#define SRCPROPCOPY(p) ((scm_t_srcprops *) SCM_SMOB_DATA (p))->copy
-#define SRCPROPPLIST(p) ((scm_t_srcprops *) SCM_SMOB_DATA (p))->plist
-#define SETSRCPROPBRK(p) \
- (SCM_SET_SMOB_FLAGS ((p), \
-                      SCM_SMOB_FLAGS (p) | SCM_SOURCE_PROPERTY_FLAG_BREAK))
-#define CLEARSRCPROPBRK(p)  \
- (SCM_SET_SMOB_FLAGS ((p), \
-                      SCM_SMOB_FLAGS (p) & ~SCM_SOURCE_PROPERTY_FLAG_BREAK))
-#define SRCPROPMAKPOS(l, c) (((l) << 12) + (c))
-#define SETSRCPROPPOS(p, l, c) (SRCPROPPOS (p) = SRCPROPMAKPOS (l, c))
-#define SETSRCPROPLINE(p, l) SETSRCPROPPOS (p, l, SRCPROPCOL (p))
-#define SETSRCPROPCOL(p, c) SETSRCPROPPOS (p, SRCPROPLINE (p), c)
-
-#define PROCTRACEP(x) (scm_is_true (scm_procedure_property (x, scm_sym_trace)))
+SCM_API scm_t_bits scm_tc16_srcprops;
 
 SCM_API SCM scm_sym_filename;
 SCM_API SCM scm_sym_copy;

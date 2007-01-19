@@ -37,7 +37,7 @@
 /* {Source Properties}
  *
  * Properties of source list expressions.
- * Five of these have special meaning and optimized storage:
+ * Five of these have special meaning:
  *
  * filename    string   The name of the source file.
  * copy        list     A copy of the list expression.
@@ -55,28 +55,45 @@ SCM_GLOBAL_SYMBOL (scm_sym_line, "line");
 SCM_GLOBAL_SYMBOL (scm_sym_column, "column");
 SCM_GLOBAL_SYMBOL (scm_sym_breakpoint, "breakpoint");
 
-scm_t_bits scm_tc16_srcprops;
-static scm_t_srcprops_chunk *srcprops_chunklist = 0;
-static scm_t_srcprops *srcprops_freelist = 0;
 
+
+/*
+  layout:
+  
+  car = tag
+  cbr = pos
+  ccr = copy
+  cdr = plist 
+*/
+
+#define SRCPROPSP(p) (SCM_SMOB_PREDICATE (scm_tc16_srcprops, (p)))
+#define SRCPROPBRK(p) (SCM_SMOB_FLAGS (p) & SCM_SOURCE_PROPERTY_FLAG_BREAK)
+#define SRCPROPPOS(p) (SCM_CELL_WORD(p,1))
+#define SRCPROPLINE(p) (SRCPROPPOS(p) >> 12)
+#define SRCPROPCOL(p) (SRCPROPPOS(p) & 0x0fffL)
+#define SRCPROPCOPY(p) (SCM_CELL_OBJECT(p,2))
+#define SRCPROPPLIST(p) (SCM_CELL_OBJECT_3(p))
+#define SETSRCPROPBRK(p) \
+ (SCM_SET_SMOB_FLAGS ((p), \
+                      SCM_SMOB_FLAGS (p) | SCM_SOURCE_PROPERTY_FLAG_BREAK))
+#define CLEARSRCPROPBRK(p)  \
+ (SCM_SET_SMOB_FLAGS ((p), \
+                      SCM_SMOB_FLAGS (p) & ~SCM_SOURCE_PROPERTY_FLAG_BREAK))
+#define SRCPROPMAKPOS(l, c) (((l) << 12) + (c))
+#define SETSRCPROPPOS(p, l, c) (SCM_SET_CELL_WORD(p,1, SRCPROPMAKPOS (l, c)))
+#define SETSRCPROPLINE(p, l) SETSRCPROPPOS (p, l, SRCPROPCOL (p))
+#define SETSRCPROPCOL(p, c) SETSRCPROPPOS (p, SRCPROPLINE (p), c)
+
+
+
+scm_t_bits scm_tc16_srcprops;
 
 static SCM
 srcprops_mark (SCM obj)
 {
-  scm_gc_mark (SRCPROPFNAME (obj));
   scm_gc_mark (SRCPROPCOPY (obj));
   return SRCPROPPLIST (obj);
 }
-
-
-static size_t
-srcprops_free (SCM obj)
-{
-  *((scm_t_srcprops **) SCM_SMOB_DATA (obj)) = srcprops_freelist;
-  srcprops_freelist = (scm_t_srcprops *) SCM_SMOB_DATA (obj);
-  return 0; /* srcprops_chunks are not freed until leaving guile */
-}
-
 
 static int
 srcprops_print (SCM obj, SCM port, scm_print_state *pstate)
@@ -99,38 +116,44 @@ scm_c_source_property_breakpoint_p (SCM form)
 }
 
 
+/*
+  A protected cells whose cdr contains the last plist
+  used if plist contains only the filename.
+
+  This works because scm_set_source_property_x does
+  not use assoc-set! for modifying the plist.
+ */
+static SCM scm_last_plist_filename;
+
 SCM
 scm_make_srcprops (long line, int col, SCM filename, SCM copy, SCM plist)
 {
-  register scm_t_srcprops *ptr;
-  SCM_CRITICAL_SECTION_START;
-  if ((ptr = srcprops_freelist) != NULL)
-    srcprops_freelist = *(scm_t_srcprops **)ptr;
-  else
+  if (!SCM_UNBNDP (filename))
     {
-      size_t i;
-      scm_t_srcprops_chunk *mem;
-      size_t n = sizeof (scm_t_srcprops_chunk)
-	            + sizeof (scm_t_srcprops) * (SRCPROPS_CHUNKSIZE - 1);
-      SCM_SYSCALL (mem = (scm_t_srcprops_chunk *) scm_malloc (n));
-      if (mem == NULL)
-	scm_memory_error ("srcprops");
-      scm_gc_register_collectable_memory (mem, n, "srcprops");
-      
-      mem->next = srcprops_chunklist;
-      srcprops_chunklist = mem;
-      ptr = &mem->srcprops[0];
-      for (i = 1; i < SRCPROPS_CHUNKSIZE - 1; ++i)
-	*(scm_t_srcprops **)&ptr[i] = &ptr[i + 1];
-      *(scm_t_srcprops **)&ptr[SRCPROPS_CHUNKSIZE - 1] = 0;
-      srcprops_freelist = (scm_t_srcprops *) &ptr[1];
+      SCM old_plist = plist;
+
+      /*
+	have to extract the acons, and operate on that, for
+	thread safety.
+       */
+      SCM last_acons = SCM_CDR (scm_last_plist_filename);
+      if (old_plist == SCM_EOL
+	  && SCM_CDAR (last_acons) == filename)
+	{
+	  plist = last_acons;
+	}
+      else
+	{
+	  plist = scm_acons (scm_sym_filename, filename, plist);
+	  if (old_plist == SCM_EOL)
+	    SCM_SETCDR (scm_last_plist_filename, plist);
+	}
     }
-  ptr->pos = SRCPROPMAKPOS (line, col);
-  ptr->fname = filename;
-  ptr->copy = copy;
-  ptr->plist = plist;
-  SCM_CRITICAL_SECTION_END;
-  SCM_RETURN_NEWSMOB (scm_tc16_srcprops, ptr);
+  
+  SCM_RETURN_NEWSMOB3 (scm_tc16_srcprops,
+		       SRCPROPMAKPOS (line, col),
+		       copy,
+		       plist);
 }
 
 
@@ -140,8 +163,6 @@ scm_srcprops_to_plist (SCM obj)
   SCM plist = SRCPROPPLIST (obj);
   if (!SCM_UNBNDP (SRCPROPCOPY (obj)))
     plist = scm_acons (scm_sym_copy, SRCPROPCOPY (obj), plist);
-  if (!SCM_UNBNDP (SRCPROPFNAME (obj)))
-    plist = scm_acons (scm_sym_filename, SRCPROPFNAME (obj), plist);
   plist = scm_acons (scm_sym_column, scm_from_int (SRCPROPCOL (obj)), plist);
   plist = scm_acons (scm_sym_line, scm_from_int (SRCPROPLINE (obj)), plist);
   plist = scm_acons (scm_sym_breakpoint, scm_from_bool (SRCPROPBRK (obj)), plist);
@@ -206,7 +227,6 @@ SCM_DEFINE (scm_source_property, "source-property", 2, 0, 0,
   if      (scm_is_eq (scm_sym_breakpoint, key)) p = scm_from_bool (SRCPROPBRK (p));
   else if (scm_is_eq (scm_sym_line,       key)) p = scm_from_int (SRCPROPLINE (p));
   else if (scm_is_eq (scm_sym_column,     key)) p = scm_from_int (SRCPROPCOL (p));
-  else if (scm_is_eq (scm_sym_filename,   key)) p = SRCPROPFNAME (p);
   else if (scm_is_eq (scm_sym_copy,       key)) p = SRCPROPCOPY (p);
   else
     {
@@ -277,13 +297,6 @@ SCM_DEFINE (scm_set_source_property_x, "set-source-property!", 3, 0, 0,
 		      scm_make_srcprops (0, scm_to_int (datum),
 					 SCM_UNDEFINED, SCM_UNDEFINED, p));
     }
-  else if (scm_is_eq (scm_sym_filename, key))
-    {
-      if (SRCPROPSP (p))
-	SRCPROPFNAME (p) = datum;
-      else
-	SCM_WHASHSET (scm_source_whash, h, scm_make_srcprops (0, 0, datum, SCM_UNDEFINED, p));
-    }
   else if (scm_is_eq (scm_sym_copy, key))
     {
       if (SRCPROPSP (p))
@@ -308,29 +321,18 @@ scm_init_srcprop ()
 {
   scm_tc16_srcprops = scm_make_smob_type ("srcprops", 0);
   scm_set_smob_mark (scm_tc16_srcprops, srcprops_mark);
-  scm_set_smob_free (scm_tc16_srcprops, srcprops_free);
   scm_set_smob_print (scm_tc16_srcprops, srcprops_print);
 
   scm_source_whash = scm_make_weak_key_hash_table (scm_from_int (2047));
   scm_c_define ("source-whash", scm_source_whash);
 
+  scm_last_plist_filename
+    = scm_permanent_object (scm_cons (SCM_EOL,
+				      scm_acons (SCM_EOL, SCM_EOL, SCM_EOL)));
+
 #include "libguile/srcprop.x"
 }
 
-void
-scm_finish_srcprop ()
-{
-  register scm_t_srcprops_chunk *ptr = srcprops_chunklist, *next;
-  size_t n= sizeof (scm_t_srcprops_chunk)
-    + sizeof (scm_t_srcprops) * (SRCPROPS_CHUNKSIZE - 1);
-  while (ptr)
-    {
-      next = ptr->next;
-      scm_gc_unregister_collectable_memory (ptr, n, "srcprops");
-      free ((char *) ptr);
-      ptr = next;
-    }
-}
 
 /*
   Local Variables:

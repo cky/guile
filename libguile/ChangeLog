@@ -1,5 +1,12 @@
 2007-01-19  Han-Wen Nienhuys  <hanwen@lilypond.org>
 
+	* srcprop.c: use double cell for storing source-properties.  Put
+	filename in the plist, and share between srcprops if possible.
+	Remove specialized storage.
+
+	* srcprop.h: remove macros without SCM_ prefix from
+	interface. Remove specialized storage/type definitions.
+
 	* read.c: idem.
 
 	* print.c: idem.
