@@ -564,9 +564,14 @@ scm_i_struct_equalp (SCM s1, SCM s2)
       field1 = scm_struct_ref (s1, s_field_num);
       field2 = scm_struct_ref (s2, s_field_num);
 
-      if (scm_is_false (scm_equal_p (field1, field2)))
-	return SCM_BOOL_F;
+      /* Self-referencing fields (type `s') must be skipped to avoid infinite
+	 recursion.  */
+      if (!(scm_is_eq (field1, s1) && (scm_is_eq (field2, s2))))
+	if (scm_is_false (scm_equal_p (field1, field2)))
+	  return SCM_BOOL_F;
     }
+
+  /* FIXME: Tail elements should be tested for equality.  */
 
   return SCM_BOOL_T;
 }

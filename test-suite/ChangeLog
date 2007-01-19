@@ -1,3 +1,11 @@
+2007-01-19  Ludovic Courtès  <ludovic.courtes@laas.fr>
+
+	* tests/eval.test (values): New test prefix.  Values are structs,
+	and `equal?' on structs with `s' fields used to yield infinite
+	recursion.
+	* tests/structs.test (equal?): New test prefix.  Added tests that
+	used to show the infinite recursion problem.
+
 2007-01-16  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/regexp.test (regexp-exec): Further tests, in particular #\nul

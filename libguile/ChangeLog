@@ -1,3 +1,10 @@
+2007-01-19  Ludovic Courtès  <ludovic.courtes@laas.fr>
+
+	* struct.c (scm_i_struct_equalp): Skip comparison if both FIELD1
+	is equal to S1 and FIELD2 is equal to S2.  This avoids infinite
+	recursion when comparing `s' fields, as the REQUIRED_VTABLE_FIELDS
+	added by `make-vtable-vtable'.  Reported by Marco Maggi.
+	
 2007-01-18  Han-Wen Nienhuys  <hanwen@lilypond.org>
 
 	* throw.c (scm_ithrow): more refined error message: print symbols
@@ -128,10 +135,10 @@
 2006-12-12  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
 	* libguile/unif.c (read_decimal_integer): Let RESP be SIGN * RES
-	instead of RES (reported by Gyula Szavai).  This allows the use of
+	instead of RES (reported by Szavai Gyula).  This allows the use of
 	negative lower bounds.
 	(scm_i_read_array): Make sure LEN is non-negative (reported by
-	Gyula Szavai).
+	Szavai Gyula).
 
 	(scm_array_in_bounds_p): Iterate over S instead of always
 	comparing indices with the bounds of S[0].  This fixes

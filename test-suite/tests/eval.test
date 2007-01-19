@@ -1,5 +1,5 @@
 ;;;; eval.test --- tests guile's evaluator     -*- scheme -*-
-;;;; Copyright (C) 2000, 2001, 2006 Free Software Foundation, Inc.
+;;;; Copyright (C) 2000, 2001, 2006, 2007 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -315,5 +315,20 @@
 	    '(a b c d e f g h i j k l m
 	      n o p q r s t u v w x y z))))
 
+;;;
+;;; values
+;;;
+
+(with-test-prefix "values"
+
+  (pass-if "single value"
+    (equal? 1 (values 1)))
+
+  (pass-if "call-with-values"
+    (equal? (call-with-values (lambda () (values 1 2 3 4)) list)
+            '(1 2 3 4)))
+
+  (pass-if "equal?"
+    (equal? (values 1 2 3 4) (values 1 2 3 4))))
 
 ;;; eval.test ends here
