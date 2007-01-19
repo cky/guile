@@ -164,9 +164,14 @@ options_length (scm_t_option options[])
  * formed option setting, i. e. if for every non-boolean option a value is
  * given.  For this reason, the function applies all changes to a copy of the
  * original setting in memory.  Only if 'args' was successfully processed,
- * the new setting will overwrite the old one.  */
+ * the new setting will overwrite the old one.
+ *
+ * If DRY_RUN is set, don't change anything. This is useful for trying out an option
+ * before entering a critical section.
+ */
 static void
-change_option_setting (SCM args, scm_t_option options[], const char *s)
+change_option_setting (SCM args, scm_t_option options[], const char *s,
+		       int dry_run)
 {
   unsigned int i;
   SCM locally_protected_args = args;
@@ -214,6 +219,9 @@ change_option_setting (SCM args, scm_t_option options[], const char *s)
       args = SCM_CDR (args);
     }
 
+  if (dry_run)
+    return;
+  
   for (i = 0; options[i].name; ++i)
     {
       if (options[i].type == SCM_OPTION_SCM)
@@ -235,6 +243,13 @@ change_option_setting (SCM args, scm_t_option options[], const char *s)
 SCM
 scm_options (SCM args, scm_t_option options[], const char *s)
 {
+  return scm_options_try (args, options, s, 0);
+}
+	
+SCM
+scm_options_try (SCM args, scm_t_option options[], const char *s,
+		 int dry_run)
+{
   if (SCM_UNBNDP (args))
     return get_option_setting (options);
   else if (!SCM_NULL_OR_NIL_P (args) && !scm_is_pair (args))
@@ -247,7 +262,7 @@ scm_options (SCM args, scm_t_option options[], const char *s)
       SCM old_setting;
       SCM_ASSERT (scm_is_true (scm_list_p (args)), args, 1, s);
       old_setting = get_option_setting (options);
-      change_option_setting (args, options, s);
+      change_option_setting (args, options, s, dry_run);
       return old_setting;
     }
 }

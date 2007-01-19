@@ -1,5 +1,8 @@
 2007-01-19  Han-Wen Nienhuys  <hanwen@lilypond.org>
 
+	* options.c (scm_options_try): new function. This allows error
+	reporting before changing options in a critical section.
+
 	* srcprop.c: use double cell for storing source-properties.  Put
 	filename in the plist, and share between srcprops if possible.
 	Remove specialized storage.
