@@ -19,10 +19,14 @@ Changes in 1.9.XXXXXXXX:
 * Changes to the distribution
 * Changes to the stand-alone interpreter
 * Changes to Scheme functions and syntax
+
+** A new 'memoize-symbol evaluator trap has been added. This trap can
+be used for efficiently implementing a Scheme code coverage.
+
 * Changes to the C interface
 
 ** Functions for handling scm_option now no longer require an argument
-   indicating length of the scm_t_option array.
+indicating length of the scm_t_option array.
 
 
 Changes in 1.8.2 (since 1.8.1):
