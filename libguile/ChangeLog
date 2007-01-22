@@ -1,3 +1,7 @@
+2007-01-22  Han-Wen Nienhuys  <hanwen@lilypond.org>
+
+	* private-gc.h: add FSF header.
+
 2007-01-19  Han-Wen Nienhuys  <hanwen@lilypond.org>
 
 	* debug.h (SCM_RESET_DEBUG_MODE): switch to debugging if
