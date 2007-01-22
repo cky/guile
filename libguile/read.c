@@ -38,6 +38,8 @@
 #include "libguile/srfi-4.h"
 
 #include "libguile/read.h"
+#include "libguile/private-options.h"
+
 
 
 

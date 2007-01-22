@@ -42,7 +42,10 @@
 
 #include "libguile/validate.h"
 #include "libguile/debug.h"
+
+#include "libguile/private-options.h"
 
+
 
 /* {Run time control of the debugging evaluator}
  */
@@ -73,6 +76,7 @@ SCM_DEFINE (scm_debug_options, "debug-options-interface", 0, 1, 0,
   return ans;
 }
 #undef FUNC_NAME
+
 
 static void
 with_traps_before (void *data)
@@ -112,7 +116,6 @@ SCM_DEFINE (scm_with_traps, "with-traps", 1, 0, 0,
 #undef FUNC_NAME
 
 
-
 SCM_SYMBOL (scm_sym_procname, "procname");
 SCM_SYMBOL (scm_sym_dots, "...");
 SCM_SYMBOL (scm_sym_source, "source");

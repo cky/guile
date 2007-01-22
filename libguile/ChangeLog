@@ -1,5 +1,12 @@
 2007-01-22  Han-Wen Nienhuys  <hanwen@lilypond.org>
 
+	* backtrace.c, debug.c, debug.h, deprecation.c, eq.c, eval.c
+	eval.h, gsubr.c, init.c, macros.c, print.c, print.h, read.c,
+	read.h, stacks.c, symbols.c, throw.c: use private-options.h
+
+	* private-options.h: new file: contain hardcoded option
+	definitions.
+
 	* private-gc.h: add FSF header.
 
 2007-01-19  Han-Wen Nienhuys  <hanwen@lilypond.org>

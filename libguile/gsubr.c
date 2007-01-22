@@ -24,6 +24,8 @@
 
 #include "libguile/gsubr.h"
 #include "libguile/deprecation.h"
+
+#include "libguile/private-options.h"
 
 /*
  * gsubr.c

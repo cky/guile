@@ -36,6 +36,9 @@
 
 #include "libguile/validate.h"
 #include "libguile/eq.h"
+
+#include "libguile/private-options.h"
+
 
 
 #ifdef HAVE_STRING_H

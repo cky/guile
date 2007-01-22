@@ -42,23 +42,7 @@
 /* scm_debug_opts is  defined in eval.c.
  */
 
-SCM_API scm_t_option scm_debug_opts[];
 
-#define SCM_BREAKPOINTS_P	scm_debug_opts[1].val
-#define SCM_TRACE_P		scm_debug_opts[2].val
-#define SCM_REC_PROCNAMES_P	scm_debug_opts[3].val
-#define SCM_BACKWARDS_P		scm_debug_opts[4].val
-#define SCM_BACKTRACE_WIDTH   	scm_debug_opts[5].val
-#define SCM_BACKTRACE_INDENT   	scm_debug_opts[6].val
-#define SCM_N_FRAMES		scm_debug_opts[7].val
-#define SCM_BACKTRACE_MAXDEPTH	scm_debug_opts[8].val
-#define SCM_BACKTRACE_DEPTH	scm_debug_opts[9].val
-#define SCM_BACKTRACE_P		scm_debug_opts[10].val
-#define SCM_DEVAL_P		scm_debug_opts[11].val
-#define SCM_STACK_LIMIT		scm_debug_opts[12].val
-#define SCM_SHOW_FILE_NAME	scm_debug_opts[13].val
-#define SCM_WARN_DEPRECATED	scm_debug_opts[14].val
-#define SCM_N_DEBUG_OPTIONS 15
 
 SCM_API int scm_debug_mode_p;
 SCM_API int scm_check_entry_p;

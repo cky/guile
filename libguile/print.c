@@ -43,6 +43,9 @@
 
 #include "libguile/validate.h"
 #include "libguile/print.h"
+
+#include "libguile/private-options.h"
+
 
 
 /* {Names of immediate symbols}

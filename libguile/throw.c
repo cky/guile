@@ -39,6 +39,9 @@
 #include "libguile/init.h"
 #include "libguile/strings.h"
 
+#include "libguile/private-options.h"
+
+
 
 /* the jump buffer data structure */
 static scm_t_bits tc16_jmpbuffer;

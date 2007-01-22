@@ -31,6 +31,9 @@
 #include "libguile/strings.h"
 #include "libguile/ports.h"
 
+#include "libguile/private-options.h"
+
+
 /* Windows defines. */
 #ifdef __MINGW32__
 #define vsnprintf _vsnprintf

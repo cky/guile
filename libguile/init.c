@@ -127,6 +127,7 @@
 #include "libguile/deprecated.h"
 
 #include "libguile/init.h"
+#include "libguile/private-options.h"
 
 #ifdef HAVE_STRING_H
 #include <string.h>
