@@ -58,13 +58,14 @@ SCM_GLOBAL_SYMBOL (scm_sym_breakpoint, "breakpoint");
 
 
 /*
-  layout:
+ *  Source properties are stored as double cells with the
+ *  following layout:
   
-  car = tag
-  cbr = pos
-  ccr = copy
-  cdr = plist 
-*/
+ * car = tag
+ * cbr = pos
+ * ccr = copy
+ * cdr = plist 
+ */
 
 #define SRCPROPSP(p) (SCM_SMOB_PREDICATE (scm_tc16_srcprops, (p)))
 #define SRCPROPBRK(p) (SCM_SMOB_FLAGS (p) & SCM_SOURCE_PROPERTY_FLAG_BREAK)
@@ -117,11 +118,12 @@ scm_c_source_property_breakpoint_p (SCM form)
 
 
 /*
-  A protected cells whose cdr contains the last plist
-  used if plist contains only the filename.
-
-  This works because scm_set_source_property_x does
-  not use assoc-set! for modifying the plist.
+ * We remember the last file name settings, so we can share that plist
+ * entry.  This works because scm_set_source_property_x does not use
+ * assoc-set! for modifying the plist.
+ *
+ * This variable contains a protected cons, whose cdr is the cached
+ * plist
  */
 static SCM scm_last_plist_filename;
 
