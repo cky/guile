@@ -1,5 +1,10 @@
 2007-01-22  Han-Wen Nienhuys  <hanwen@lilypond.org>
 
+	* eval.c: distangle. move duplicate code to eval.i.c and include
+	twice.
+
+	* eval.i.c: new file.
+
 	* backtrace.c, debug.c, debug.h, deprecation.c, eq.c, eval.c
 	eval.h, gsubr.c, init.c, macros.c, print.c, print.h, read.c,
 	read.h, stacks.c, symbols.c, throw.c: use private-options.h
