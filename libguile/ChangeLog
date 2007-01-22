@@ -1,5 +1,9 @@
 2007-01-22  Han-Wen Nienhuys  <hanwen@lilypond.org>
 
+	* private-options.h: idem.
+
+	* eval.i.c: copyright nitpicking.
+
 	* eval.c: distangle. move duplicate code to eval.i.c and include
 	twice.
 
