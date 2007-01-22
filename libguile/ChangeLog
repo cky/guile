@@ -1,5 +1,7 @@
 2007-01-22  Han-Wen Nienhuys  <hanwen@lilypond.org>
 
+	* vectors.c (s_scm_vector_move_right_x): complain about naming.
+
 	* srcprop.c: regularize comments.
 
 	* eval.c: remove superfluous ifndef DEVAL.

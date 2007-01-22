@@ -439,6 +439,10 @@ scm_i_vector_equal_p (SCM x, SCM y)
 }
 
 
+/*
+ * Naming is inconsistent: this routine modifies its 3rd argument,
+ * rather than 1st. --hwn
+ */
 SCM_DEFINE (scm_vector_move_left_x, "vector-move-left!", 5, 0, 0, 
             (SCM vec1, SCM start1, SCM end1, SCM vec2, SCM start2),
 	    "Copy elements from @var{vec1}, positions @var{start1} to @var{end1},\n"
@@ -477,6 +481,9 @@ SCM_DEFINE (scm_vector_move_left_x, "vector-move-left!", 5, 0, 0,
 }
 #undef FUNC_NAME
 
+/*
+ * See previous naming comment. --hwn 
+ */
 SCM_DEFINE (scm_vector_move_right_x, "vector-move-right!", 5, 0, 0, 
             (SCM vec1, SCM start1, SCM end1, SCM vec2, SCM start2),
 	    "Copy elements from @var{vec1}, positions @var{start1} to @var{end1},\n"
