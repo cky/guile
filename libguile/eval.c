@@ -3162,8 +3162,6 @@ SCM_DEFINE (scm_nconc2last, "apply:nconc2last", 1, 0, 0,
 /* SECTION: The rest of this file is only read once.
  */
 
-#ifndef DEVAL
-
 /* Trampolines
  *  
  * Trampolines make it possible to move procedure application dispatch
@@ -4088,8 +4086,6 @@ scm_init_eval ()
 
   scm_add_feature ("delay");
 }
-
-#endif /* !DEVAL */
 
 /*
   Local Variables:

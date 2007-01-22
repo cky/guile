@@ -1,5 +1,7 @@
 2007-01-22  Han-Wen Nienhuys  <hanwen@lilypond.org>
 
+	* eval.c: remove superfluous ifndef DEVAL.
+
 	* private-options.h: idem.
 
 	* eval.i.c: copyright nitpicking.
