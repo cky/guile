@@ -1,3 +1,7 @@
+2007-01-22  Han-Wen Nienhuys  <hanwen@lilypond.org>
+
+	* .gitignore: new file. Make using git easier.
+
 2007-01-03  Han-Wen Nienhuys  <hanwen@lilypond.org>
 
 	* autogen.sh (Module): only try to run render-bugs if it exists.
