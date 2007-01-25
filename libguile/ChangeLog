@@ -1,3 +1,7 @@
+2007-01-25  Han-Wen Nienhuys  <hanwen@lilypond.org>
+
+	* vector.c: remove comment as per kryde's request.
+
 2007-01-22  Han-Wen Nienhuys  <hanwen@lilypond.org>
 
 	* vectors.c (s_scm_vector_move_right_x): complain about naming.
