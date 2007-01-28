@@ -308,3 +308,5 @@ else
 fi
 AC_LANG_RESTORE
 ])dnl ACX_PTHREAD
+
+AC_DEFUN([AM_INTL_SUBDIR], [])dnl
