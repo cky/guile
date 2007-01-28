@@ -1,3 +1,7 @@
+2007-01-28  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* ABOUT-NLS: New upstream version.
+
 2007-01-22  Han-Wen Nienhuys  <hanwen@lilypond.org>
 
 	* .gitignore: new file. Make using git easier.
