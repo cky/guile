@@ -3219,7 +3219,7 @@ Locales and Internationalization, libc, The GNU C Library Reference
 Manual}.
 
 Note that @code{setlocale} affects locale settings for the whole
-process.  @xref{The ice-9 i18n Module, locale objects and
+process.  @xref{i18n Introduction, locale objects and
 @code{make-locale}}, for a thread-safe alternative.
 @end deffn
 

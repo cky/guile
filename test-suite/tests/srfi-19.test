@@ -27,6 +27,9 @@
   :use-module (srfi srfi-19)
   :use-module (ice-9 format))
 
+;; Make sure we use the default locale.
+(setlocale LC_ALL "C")
+
 (define (with-tz* tz thunk)
   "Temporarily set the TZ environment variable to the passed string
 value and call THUNK."
@@ -142,6 +145,19 @@ incomplete numerical tower implementation.)"
 		      (string->date "2001-06-01@08:00" "~Y-~m-~d@~H:~M")))
 		   (date->time-utc
 		    (make-date 0 0 0 12 1 6 2001 0))))
+  (pass-if "string->date understands days and months"
+           (time=? (let ((d (string->date "Saturday, December 9, 2006"
+                                          "~A, ~B ~d, ~Y")))
+                     (date->time-utc (make-date (date-nanosecond d)
+                                                (date-second d)
+                                                (date-minute d)
+                                                (date-hour d)
+                                                (date-day d)
+                                                (date-month d)
+                                                (date-year d)
+                                                0)))
+                   (date->time-utc
+                    (make-date 0 0 0 0 9 12 2006 0))))
   ;; check time comparison procedures
   (let* ((time1 (make-time time-monotonic 0 0))
          (time2 (make-time time-monotonic 0 0))

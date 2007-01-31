@@ -1,3 +1,38 @@
+2007-01-31  Ludovic Courtès  <ludovic.courtes@laas.fr>
+
+	* i18n.c: Include "libguile/threads.h" and "libguile/posix.h"
+	unconditionally.  Include <langinfo.h> and <nl_types.h> when
+	available.
+	(SCM_I18N_STRINGIFY, SCM_LOCALE_CATEGORY_MASK,
+	SCM_LIST_OR_INTEGER_P): New macros.
+	(LC_*_MASK): When `USE_GNU_LOCALE_API' is undefined, define them
+	as powers of two instead of `(1 << LC_*)'.
+	(scm_i_locale_free): New function/macro.
+	(scm_global_locale): New global variable.
+	(smob_locale_free): Use `scm_i_locale_free ()'.
+	(smob_locale_mark): Check whether the SMOB is `%global-locale'.
+	(get_current_locale_settings): Return `EINVAL' instead of `errno'
+	when `setlocale' fails.
+	(restore_locale_settings): Likewise.
+	(install_locale_categories): Likewise.
+	(install_locale): Likewise.  Stop the locale stack traversal when
+	all categories have been handled.
+	(get_current_locale, category_to_category_mask,
+	category_list_to_category_mask): New function.
+	(scm_make_locale): Use them.  Accept both lists of `LC_*' values
+	and single `LC_*' values as the first argument.  Handle the case
+	where BASE_LOCALE is `%global-locale'.  When `USE_GNU_LOCALE_API',
+	duplicate C_BASE_LOCALE before using it.
+	(scm_nl_langinfo, define_langinfo_items): New functions.
+	(scm_init_i18n): When `HAVE_NL_LANGINFO', add feature
+	`nl-langinfo' and invoke `define_langinfo_items ()'.
+	* i18n.h (scm_global_locale, scm_nl_langinfo): New declarations.
+	* posix.c: Include <xlocale.h> when available.
+	(scm_i_locale_mutex): Always define it.  Statically initialized.
+	(scm_set_locale): Invoke `scm_i_to_lc_category ()' before
+	acquiring the locale mutex.
+	(scm_init_posix): No longer initialize SCM_I_LOCALE_MUTEX here.
+
 2007-01-25  Han-Wen Nienhuys  <hanwen@lilypond.org>
 
 	* vector.c: remove comment as per kryde's request.

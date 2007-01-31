@@ -1,6 +1,6 @@
 ;;;; i18n.test --- Exercise the i18n API.
 ;;;;
-;;;; Copyright (C) 2006 Free Software Foundation, Inc.
+;;;; Copyright (C) 2006, 2007 Free Software Foundation, Inc.
 ;;;; Ludovic Courtès
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
@@ -19,25 +19,41 @@
 
 (define-module (test-suite i18n)
   :use-module (ice-9 i18n)
+  :use-module (srfi srfi-1)
   :use-module (test-suite lib))
 
 ;; Start from a pristine locale state.
 (setlocale LC_ALL "C")
 
+(define exception:locale-error
+  (cons 'system-error "Failed to install locale"))
+
+
 
 (with-test-prefix "locale objects"
 
   (pass-if "make-locale (2 args)"
-    (not (not (make-locale LC_ALL_MASK "C"))))
+    (not (not (make-locale LC_ALL "C"))))
+
+  (pass-if "make-locale (2 args, list)"
+    (not (not (make-locale (list LC_COLLATE LC_MESSAGES) "C"))))
 
   (pass-if "make-locale (3 args)"
-    (not (not (make-locale LC_COLLATE_MASK "C"
-                           (make-locale LC_MESSAGES_MASK "C")))))
+    (not (not (make-locale (list LC_COLLATE) "C"
+                           (make-locale (list LC_MESSAGES) "C")))))
+
+  (pass-if-exception "make-locale with unknown locale" exception:locale-error
+    (make-locale LC_ALL "does-not-exist"))
 
   (pass-if "locale?"
-    (and (locale? (make-locale LC_ALL_MASK "C"))
-         (locale? (make-locale (logior LC_MESSAGES_MASK LC_NUMERIC_MASK) "C"
-                               (make-locale LC_CTYPE_MASK "C"))))))
+    (and (locale? (make-locale (list LC_ALL) "C"))
+         (locale? (make-locale (list LC_MESSAGES LC_NUMERIC) "C"
+                               (make-locale (list LC_CTYPE) "C")))))
+
+  (pass-if "%global-locale"
+    (and (locale? %global-locale))
+         (locale? (make-locale (list LC_MONETARY) "C"
+                               %global-locale))))
 
 
 
@@ -46,27 +62,30 @@
   (pass-if "string-locale<?"
     (and (string-locale<? "hello" "world")
          (string-locale<? "hello" "world"
-                          (make-locale LC_COLLATE_MASK "C"))))
+                          (make-locale (list LC_COLLATE) "C"))))
 
   (pass-if "char-locale<?"
     (and (char-locale<? #\a #\b)
-         (char-locale<? #\a #\b (make-locale LC_COLLATE_MASK "C"))))
+         (char-locale<? #\a #\b (make-locale (list LC_COLLATE) "C"))))
 
   (pass-if "string-locale-ci=?"
     (and (string-locale-ci=? "Hello" "HELLO")
          (string-locale-ci=? "Hello" "HELLO"
-                             (make-locale LC_COLLATE_MASK "C"))))
+                             (make-locale (list LC_COLLATE) "C"))))
 
   (pass-if "string-locale-ci<?"
     (and (string-locale-ci<? "hello" "WORLD")
          (string-locale-ci<? "hello" "WORLD"
-                             (make-locale LC_COLLATE_MASK "C")))))
+                             (make-locale (list LC_COLLATE) "C")))))
 
 
+(define %french-locale-name
+  "fr_FR.ISO-8859-1")
+
 (define %french-locale
   (false-if-exception
-   (make-locale (logior LC_CTYPE_MASK LC_COLLATE_MASK)
-                "fr_FR.ISO-8859-1")))
+   (make-locale (list LC_CTYPE LC_COLLATE LC_NUMERIC LC_TIME)
+                %french-locale-name)))
 
 (define (under-french-locale-or-unresolved thunk)
   ;; On non-GNU systems, an exception may be raised only when the locale is
@@ -112,11 +131,11 @@
 
   (pass-if "char-locale-downcase"
     (and (eq? #\a (char-locale-downcase #\A))
-         (eq? #\a (char-locale-downcase #\A (make-locale LC_ALL_MASK "C")))))
+         (eq? #\a (char-locale-downcase #\A (make-locale LC_ALL "C")))))
 
   (pass-if "char-locale-upcase"
     (and (eq? #\Z (char-locale-upcase #\z))
-         (eq? #\Z (char-locale-upcase #\z (make-locale LC_ALL_MASK "C"))))))
+         (eq? #\Z (char-locale-upcase #\z (make-locale LC_ALL "C"))))))
 
 
 (with-test-prefix "number parsing"
@@ -131,10 +150,98 @@
     (call-with-values
         (lambda ()
           (locale-string->inexact "123.456"
-                                  (make-locale LC_NUMERIC_MASK "C")))
+                                  (make-locale (list LC_NUMERIC) "C")))
       (lambda (result char-count)
         (and (equal? result 123.456)
-             (equal? char-count 7))))))
+             (equal? char-count 7)))))
+
+  (pass-if "locale-string->inexact (French)"
+    (under-french-locale-or-unresolved
+     (lambda ()
+       (call-with-values
+           (lambda ()
+             (locale-string->inexact "123,456" %french-locale))
+         (lambda (result char-count)
+           (and (equal? result 123.456)
+                (equal? char-count 7))))))))
+
+
+;;;
+;;; `nl-langinfo'
+;;;
+
+(setlocale LC_ALL "C")
+(define %c-locale (make-locale LC_ALL "C"))
+
+(define %english-days
+  '("Sunday" "Monday" "Tuesday" "Wednesday" "Thursday" "Friday" "Saturday"))
+
+(define (every? . args)
+  (not (not (apply every args))))
+
+
+(with-test-prefix "nl-langinfo et al."
+
+  (pass-if "locale-day (1 arg)"
+    (every? equal?
+            %english-days
+            (map locale-day (map 1+ (iota 7)))))
+
+  (pass-if "locale-day (2 args)"
+    (every? equal?
+            %english-days
+            (map (lambda (day)
+                   (locale-day day %c-locale))
+                 (map 1+ (iota 7)))))
+
+  (pass-if "locale-day (2 args, using `%global-locale')"
+    (every? equal?
+            %english-days
+            (map (lambda (day)
+                   (locale-day day %global-locale))
+                 (map 1+ (iota 7)))))
+
+  (pass-if "locale-day (French)"
+    (under-french-locale-or-unresolved
+     (lambda ()
+       (let ((result (locale-day 3 %french-locale)))
+         (and (string? result)
+              (string-ci=? result "mardi"))))))
+
+  (pass-if "locale-day (French, using `%global-locale')"
+    ;; Make sure `%global-locale' captures the current locale settings as
+    ;; installed using `setlocale'.
+    (under-french-locale-or-unresolved
+     (lambda ()
+       (dynamic-wind
+           (lambda ()
+             (setlocale LC_TIME %french-locale-name))
+           (lambda ()
+             (let* ((fr (make-locale (list LC_MONETARY) "C" %global-locale))
+                    (result (locale-day 3 fr)))
+               (setlocale LC_ALL "C")
+               (and (string? result)
+                    (string-ci=? result "mardi"))))
+           (lambda ()
+             (setlocale LC_ALL "C"))))))
+
+  (pass-if "default locale"
+    ;; Make sure the default locale does not capture the current locale
+    ;; settings as installed using `setlocale'.  The default locale should be
+    ;; "C".
+    (under-french-locale-or-unresolved
+     (lambda ()
+       (dynamic-wind
+           (lambda ()
+             (setlocale LC_ALL %french-locale-name))
+           (lambda ()
+             (let* ((locale (make-locale (list LC_MONETARY) "C"))
+                    (result (locale-day 3 locale)))
+               (setlocale LC_ALL "C")
+               (and (string? result)
+                    (string-ci=? result "Tuesday"))))
+           (lambda ()
+             (setlocale LC_ALL "C")))))))
 
 
 ;;; Local Variables:

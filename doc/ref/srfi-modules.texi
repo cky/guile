@@ -2132,10 +2132,10 @@ Conversions @samp{~D}, @samp{~x} and @samp{~X} are not currently
 described here, since the specification and reference implementation
 differ.
 
-Currently Guile doesn't implement any localizations for the above, all
-outputs are in English, and the @samp{~c} conversion is POSIX
-@code{ctime} style @samp{~a ~b ~d ~H:~M:~S~z ~Y}.  This may change in
-the future.
+Conversion is locale-dependent on systems that support it
+(@pxref{Accessing Locale Information}).  @xref{Locales,
+@code{setlocale}}, for information on how to change the current
+locale.
 
 
 @node SRFI-19 String to date
@@ -2256,9 +2256,10 @@ Notice that the weekday matching forms don't affect the date object
 returned, instead the weekday will be derived from the day, month and
 year.
 
-Currently Guile doesn't implement any localizations for the above,
-month and weekday names are always expected in English.  This may
-change in the future.
+Conversion is locale-dependent on systems that support it
+(@pxref{Accessing Locale Information}).  @xref{Locales,
+@code{setlocale}}, for information on how to change the current
+locale.
 @end defun
 
 

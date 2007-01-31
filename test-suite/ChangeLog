@@ -1,3 +1,18 @@
+2007-01-31  Ludovic Courtès  <ludovic.courtes@laas.fr>
+
+	* tests/i18n.test: Use `(srfi srfi-1)'.
+	(exception:locale-error): New.
+	(locale objects): Test `make-locale' with both lists of `LC_*'
+	values and single `LC_*' values (instead of `LC_*_MASK' values).
+	[%global-locale]: New test.
+	(number parsing)[locale-string->inexact (French)]: New test.
+	(%c-locale, %english-days, every?): New top-level variables.
+	(nl-langinfo et al.): New test prefix.
+
+	* tests/srfi-19.test: Install the C locale.
+	(SRFI date/time library)[string->date understands days and
+	months]: New test.
+
 2007-01-19  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
 	* tests/eval.test (values): New test prefix.  Values are structs,

@@ -1,3 +1,20 @@
+2007-01-31  Ludovic CourtÃ¨s  <ludovic.courtes@laas.fr>
+
+	* srfi-19.scm: Use `(ice-9 i18n)'.
+	(priv:locale-abbr-weekday-vector, priv:locale-long-weekday-vector,
+	priv:locale-abbr-month-vector, priv:locale-long-month-vector):
+	Removed.
+	(priv:locale-number-separator, priv:locale-pm, priv:locale-am,
+	priv:locale-abbr-weekday, priv:locale-long-weekday,
+	priv:locale-abbr-month, priv:locale-long-month): Aliases for their
+	respective `(ice-9 i18n)' equivalent.
+	(priv:vector-find): Removed, replaced by...
+	(priv:date-reverse-lookup): New procedure.  Updated callers.
+	(priv:locale-am/pm): Use `priv:locale-pm' and `priv:locale-am' as
+	procedures.
+	(priv:directives): Use `priv:locale-number-separator' as a
+	procedure.
+
 2006-12-02  Kevin Ryde  <user42@zip.com.au>
 
 	* srfi-60.c (scm_srfi60_copy_bit): Should be long not int for fixnum
@@ -288,7 +305,7 @@
 2004-08-02  Kevin Ryde  <user42@zip.com.au>
 
 	* srfi-13.c (scm_string_every): Correction to initial "res" value,
-	return should be #t for an empty string.  Reported by Andreas Vögele.
+	return should be #t for an empty string.  Reported by Andreas VÃ¶gele.
 
 2004-07-10  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
@@ -511,7 +528,7 @@
 
 	* srfi-14.h (SCM_CHARSET_GET): Cast IDX to unsigned char so that
 	it works for 8-bit characters.  Thanks to Matthias Koeppe!  No,
-	make that "Köppe".
+	make that "KÃ¶ppe".
 
 2002-04-24  Marius Vollmer  <mvo@zagadka.ping.de>
 
@@ -564,7 +581,7 @@
 2002-02-22  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* srfi-19.scm (priv:year-day): Index into priv:month-assoc using
-	month number, not day number.  (Thanks to Sébastien de Menten de
+	month number, not day number.  (Thanks to SÃ©bastien de Menten de
 	Horne for reporting the problem.)
 
 2002-02-11  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
@@ -983,7 +1000,7 @@
 2001-05-28  Michael Livshin  <mlivshin@bigfoot.com>
 
 	* srfi-19.scm: removed a stray open parenthesis. (thanks to
-	Matthias Köppe for the report).
+	Matthias KÃ¶ppe for the report).
 
 2001-05-23  Rob Browning  <rlb@cs.utexas.edu>
 
@@ -1239,3 +1256,7 @@
 
 	* Started guile-srfi-13 package.  Files are copied from the
 	guile-gdbm and slightly modified.
+
+;; Local Variables:
+;; coding: utf-8
+;; End:

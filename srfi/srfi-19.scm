@@ -41,7 +41,8 @@
 (define-module (srfi srfi-19)
   :use-module (srfi srfi-6)
   :use-module (srfi srfi-8)
-  :use-module (srfi srfi-9))
+  :use-module (srfi srfi-9)
+  :use-module (ice-9 i18n))
 
 (begin-deprecated
  ;; Prevent `export' from re-exporting core bindings.  This behaviour
@@ -150,48 +151,9 @@
 
 ;;-- LOCALE dependent constants
 
-(define priv:locale-number-separator ".")
-
-(define priv:locale-abbr-weekday-vector
-  (vector "Sun" "Mon" "Tue" "Wed" "Thu" "Fri" "Sat"))
-
-(define priv:locale-long-weekday-vector
-  (vector
-   "Sunday" "Monday" "Tuesday" "Wednesday" "Thursday" "Friday" "Saturday"))
-
-;; note empty string in 0th place.
-(define priv:locale-abbr-month-vector
-  (vector ""
-          "Jan"
-          "Feb"
-          "Mar"
-          "Apr"
-          "May"
-          "Jun"
-          "Jul"
-          "Aug"
-          "Sep"
-          "Oct"
-          "Nov"
-          "Dec"))
-
-(define priv:locale-long-month-vector
-  (vector ""
-          "January"
-          "February"
-          "March"
-          "April"
-          "May"
-          "June"
-          "July"
-          "August"
-          "September"
-          "October"
-          "November"
-          "December"))
-
-(define priv:locale-pm "PM")
-(define priv:locale-am "AM")
+(define priv:locale-number-separator locale-decimal-point)
+(define priv:locale-pm               locale-pm-string)
+(define priv:locale-am               locale-am-string)
 
 ;; See date->string
 (define priv:locale-date-time-format "~a ~b ~d ~H:~M:~S~z ~Y")
@@ -964,38 +926,33 @@
 (define (priv:last-n-digits i n)
   (abs (remainder i (expt 10 n))))
 
-(define (priv:locale-abbr-weekday n)
-  (vector-ref priv:locale-abbr-weekday-vector n))
+(define priv:locale-abbr-weekday locale-day-short)
+(define priv:locale-long-weekday locale-day)
+(define priv:locale-abbr-month   locale-month-short)
+(define priv:locale-long-month   locale-month)
 
-(define (priv:locale-long-weekday n)
-  (vector-ref priv:locale-long-weekday-vector n))
-
-(define (priv:locale-abbr-month n)
-  (vector-ref priv:locale-abbr-month-vector n))
-
-(define (priv:locale-long-month n)
-  (vector-ref priv:locale-long-month-vector n))
-
-(define (priv:vector-find needle haystack comparator)
-  (let ((len (vector-length haystack)))
-    (define (priv:vector-find-int index)
-      (cond
-       ((>= index len) #f)
-       ((comparator needle (vector-ref haystack index)) index)
-       (else (priv:vector-find-int (+ index 1)))))
-    (priv:vector-find-int 0)))
+(define (priv:date-reverse-lookup needle haystack-ref haystack-len
+                                  same?)
+  ;; Lookup NEEDLE (a string) using HAYSTACK-REF (a one argument procedure
+  ;; that returns a string corresponding to the given index) by passing it
+  ;; indices lower than HAYSTACK-LEN.
+  (let loop ((index 1))
+    (cond ((> index haystack-len) #f)
+          ((same? needle (haystack-ref index))
+           index)
+          (else (loop (+ index 1))))))
 
 (define (priv:locale-abbr-weekday->index string)
-  (priv:vector-find string priv:locale-abbr-weekday-vector string=?))
+  (priv:date-reverse-lookup string priv:locale-abbr-weekday 7 string=?))
 
 (define (priv:locale-long-weekday->index string)
-  (priv:vector-find string priv:locale-long-weekday-vector string=?))
+  (priv:date-reverse-lookup string priv:locale-long-weekday 7 string=?))
 
 (define (priv:locale-abbr-month->index string)
-  (priv:vector-find string priv:locale-abbr-month-vector string=?))
+  (priv:date-reverse-lookup string priv:locale-abbr-month  12 string=?))
 
 (define (priv:locale-long-month->index string)
-  (priv:vector-find string priv:locale-long-month-vector string=?))
+  (priv:date-reverse-lookup string priv:locale-long-month  12 string=?))
 
 
 ;; FIXME: mkoeppe: Put a symbolic time zone in the date structs.
@@ -1003,10 +960,8 @@
 (define (priv:locale-print-time-zone date port)
   (priv:tz-printer (date-zone-offset date) port))
 
-;; FIXME: we should use strftime to determine this dynamically if possible.
-;; Again, locale specific.
 (define (priv:locale-am/pm hr)
-  (if (> hr 11) priv:locale-pm priv:locale-am))
+  (if (> hr 11) (priv:locale-pm) (priv:locale-am)))
 
 (define (priv:tz-printer offset port)
   (cond
@@ -1069,7 +1024,7 @@
                                (le (string-length ns)))
                           (if (> le 2)
                               (begin
-                                (display priv:locale-number-separator port)
+                                (display (priv:locale-number-separator) port)
                                 (display (substring ns 2 le) port)))))))
    (cons #\h (lambda (date pad-with port)
                (display (date->string date "~b") port)))

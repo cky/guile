@@ -1,3 +1,8 @@
+2007-01-31  Ludovic Courtès  <ludovic.courtes@laas.fr>
+
+	* configure.in: Look for `langinfo.h', `nl_types.h', `xlocale.h'
+	and `nl_langinfo'.
+
 2007-01-28  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* configure.in: Do AM_GNU_GETTEXT_VERSION, so that autoreconf will

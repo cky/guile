@@ -1,3 +1,31 @@
+2007-01-31  Ludovic CourtÃ¨s  <ludovic.courtes@laas.fr>
+
+	* i18n.scm: Use `(ice-9 optargs)'.  Don't export `LC_*_MASK'
+	variables.  Added new exports.
+	(locale-encoding, locale-day-short, locale-day,
+	locale-month-short, locale-month, locale-am-string,
+	locale-pm-string, locale-date+time-format, locale-date-format,
+	locale-time-format, locale-time+am/pm-format, locale-era,
+	locale-era-year, locale-era-date+time-format,
+	locale-era-date-format, locale-era-time-format,
+	locale-currency-symbol, locale-monetary-fractional-digits,
+	locale-monetary-positive-sign, locale-monetary-negative-sign,
+	locale-monetary-decimal-point,
+	locale-monetary-thousands-separator,
+	locale-monetary-digit-grouping,
+	locale-currency-symbol-precedes-positive?,
+	locale-currency-symbol-precedes-negative?,
+	locale-positive-separated-by-space?,
+	locale-negative-separated-by-space?,
+	locale-positive-sign-position, locale-negative-sign-position,
+	%number-integer-part, add-monetary-sign+currency,
+	monetary-amount->locale-string, locale-digit-grouping,
+	locale-decimal-point, locale-thousands-separator,
+	number->locale-string, locale-yes-regexp, locale-no-regexp): New
+	procedures.
+	(define-vector-langinfo-mapping, define-simple-langinfo-mapping,
+	define-monetary-langinfo-mapping): New macros.
+
 2007-01-04  Kevin Ryde  <user42@zip.com.au>
 
 	* boot-9.scm (top-repl): Check (defined? 'SIGBUS) before using that
@@ -124,7 +152,7 @@
 	where `futures' should become `threads' from Marius' change of
 	2006-01-29.
 
-2006-03-04  Ludovic Courtès  <ludovic.courtes@laas.fr>
+2006-03-04  Ludovic CourtÃ¨s  <ludovic.courtes@laas.fr>
 
 	* ice-9/boot-9.scm (make-autoload-interface): Don't call `set-car!' if
 	the autoload interface has already been removed from MODULE's uses.
@@ -146,7 +174,7 @@
 
 	* boot-9.scm (try-module-autoload): Make sure that module code is
 	loaded with the default reader (current-reader #f).  Thanks to
-	Ludovic Courtès for pointing this problem out.
+	Ludovic CourtÃ¨s for pointing this problem out.
 
 	* stack-catch.scm (stack-catch): Use catch pre-unwind handler
 	instead of lazy-catch.
@@ -154,7 +182,7 @@
 	* boot-9.scm (error-catching-loop): Use catch pre-unwind handler
 	instead of lazy-catch.
 
-2006-02-01  Ludovic Courtès  <ludovic.courtes@laas.fr>
+2006-02-01  Ludovic CourtÃ¨s  <ludovic.courtes@laas.fr>
 
         * deprecated.scm (make-uniform-array): Fill the returned vector with
 	PROT, per guile 1.6 behaviour.
@@ -170,7 +198,7 @@
 2006-01-13  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* boot-9.scm (repl-reader): Use value of current-reader fluid to
-	do the read, if set.  (Thanks to Ludovic Courtès for the patch.)
+	do the read, if set.  (Thanks to Ludovic CourtÃ¨s for the patch.)
 
 2005-12-14  Neil Jerram  <neil@ossau.uklinux.net>
 
@@ -186,7 +214,7 @@
 	
  	* boot-9.scm (%cond-expand-features): Add srfi-61.
 
-2005-10-27  Ludovic Courtès  <ludovic.courtes@laas.fr>
+2005-10-27  Ludovic CourtÃ¨s  <ludovic.courtes@laas.fr>
 
 	* networking.scm (sockaddr:flowinfo, sockaddr:scopeid): New functions.
 
@@ -1215,7 +1243,7 @@
 
 2002-01-12  Marius Vollmer  <mvo@zagadka.ping.de>
 
-	More options for pretty-print.  Thanks to Matthias Köppe!
+	More options for pretty-print.  Thanks to Matthias KÃ¶ppe!
 
 	* pretty-print.scm (generic-write): New per-line-prefix argument.
 	(pretty-print): Check whether the new keyword argument style is
@@ -1292,7 +1320,7 @@
 	* session.scm (arity): Use new `arglist' procedure property to
 	present a more detailed argument list.
 
-	Thanks to Matthias Köppe!
+	Thanks to Matthias KÃ¶ppe!
 
 2001-09-07  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
@@ -1511,12 +1539,12 @@
 
 	* optargs.scm (lambda*): Make sure that BODY is always put into a
 	real body context so that it can contain internal definitions.
-	Thanks to Matthias Köppe!
+	Thanks to Matthias KÃ¶ppe!
 
 	* format.scm: Use (ice-9 and-let-star).
 	(format:out): Initialize format:output-col with current column of
 	`port', if it has one.  Else leave it alone.  Thanks to Matthias
-	Köppe!
+	KÃ¶ppe!
 
 2001-06-05  Marius Vollmer  <mvo@zagadka.ping.de>
 
@@ -1621,7 +1649,7 @@
 
 	* boot-9.scm (define-module): Return the new module.
 	(process-define-module): Use `spec' instead of `module-name' when
-	getting the syntax transformer.  Thanks to Matthias Köppe!
+	getting the syntax transformer.  Thanks to Matthias KÃ¶ppe!
 
 2001-05-21  Marius Vollmer  <mvo@zagadka.ping.de>
 
@@ -1731,7 +1759,7 @@
 
 	* boot-9.scm (error-catching-repl): Call the E
 	("eval'er") procedure via call-with-values and call the P
-	("printer") for each produced value.  Thanks to Matthias Köppe!
+	("printer") for each produced value.  Thanks to Matthias KÃ¶ppe!
 
 2001-05-14  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
@@ -2252,7 +2280,7 @@
 2000-08-14  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* format.scm (format:obj->str): Made tail-recursive.  (Thanks to
-	Matthias Köppe.)
+	Matthias KÃ¶ppe.)
 
 2000-08-13  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
 
@@ -2351,7 +2379,7 @@
 2000-06-20  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* session.scm (make-fold-modules): Detect circular references in
-	module graph.  (Thanks to Matthias Köppe.)
+	module graph.  (Thanks to Matthias KÃ¶ppe.)
 
 2000-06-20  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
@@ -4813,3 +4841,6 @@ Fri Apr 19 13:53:08 1996  Tom Lord  <lord@beehive>
 	* The more things change...
 
 
+;; Local Variables:
+;; coding: utf-8
+;; End:

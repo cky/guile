@@ -1,3 +1,18 @@
+2007-01-31  Ludovic Courtès  <ludovic.courtes@laas.fr>
+
+	* api-data.texi (Conversion): Made cross refs point to `Number
+	Input and Output' rather than `The ice-9 i18n Module'.
+	(String Comparison): Likewise for `Text Collation'.
+	* api-i18n.texi (Internationalization): Re-organized the whole
+	section, documented new i18n features.  Added the following
+	subsections: `i18n Introduction', `Text Collation', `Character
+	Case Mapping', `Number Input and Output', `Accessing Locale
+	Information'.  Removed `The ice-9 i18n Module'.
+	* posix.texi (Locales): Updated cross-ref formerly pointing to
+	`The ice-9 i18n Module'.
+	* srfi-modules.texi (SRFI-19 String to date): Mention the
+	internationalization of `string->date'.
+
 2007-01-19  Han-Wen Nienhuys  <hanwen@lilypond.org>
 
 	* api-options.texi (Evaluator trap options): document
