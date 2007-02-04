@@ -926,10 +926,10 @@
 (define (priv:last-n-digits i n)
   (abs (remainder i (expt 10 n))))
 
-(define priv:locale-abbr-weekday locale-day-short)
-(define priv:locale-long-weekday locale-day)
-(define priv:locale-abbr-month   locale-month-short)
-(define priv:locale-long-month   locale-month)
+(define (priv:locale-abbr-weekday n) (locale-day-short (+ 1 n)))
+(define (priv:locale-long-weekday n) (locale-day (+ 1 n)))
+(define priv:locale-abbr-month       locale-month-short)
+(define priv:locale-long-month       locale-month)
 
 (define (priv:date-reverse-lookup needle haystack-ref haystack-len
                                   same?)
