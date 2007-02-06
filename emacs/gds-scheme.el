@@ -382,39 +382,39 @@ region's code."
                                '(nil . "*Guile Evaluation*"))))
          (helpp (car helpp+bufname)))
     (let ((buf (get-buffer-create (cdr helpp+bufname))))
-      (save-excursion
-        (set-buffer buf)
-	(gds-dissociate-buffer)
-        (erase-buffer)
-        (scheme-mode)
-        (insert (cdr correlator) "\n\n")
-        (while results
-          (insert (car results))
-          (or (bolp) (insert "\\\n"))
-          (if helpp
-              nil
-            (if (cadr results)
-                (mapcar (function (lambda (value)
-                                    (insert " => " value "\n")))
-                        (cadr results))
-              (insert " => no (or unspecified) value\n"))
-            (insert "\n"))
-          (setq results (cddr results)))
-        (if stack-available
-            (let ((beg (point))
-                  (map (make-sparse-keymap)))
-              (define-key map [mouse-1] 'gds-show-last-stack)
-              (define-key map "\C-m" 'gds-show-last-stack)
-              (insert "[click here to show error stack]")
-              (add-text-properties beg (point)
-                                   (list 'keymap map
-                                         'mouse-face 'highlight))
-              (insert "\n")))
-        (goto-char (point-min))
-        (gds-associate-buffer client))
-      (pop-to-buffer buf)
-      (run-hooks 'temp-buffer-show-hook)
-      (other-window 1))))
+      (save-selected-window
+	(save-excursion
+	  (set-buffer buf)
+	  (gds-dissociate-buffer)
+	  (erase-buffer)
+	  (scheme-mode)
+	  (insert (cdr correlator) "\n\n")
+	  (while results
+	    (insert (car results))
+	    (or (bolp) (insert "\\\n"))
+	    (if helpp
+		nil
+	      (if (cadr results)
+		  (mapcar (function (lambda (value)
+				      (insert " => " value "\n")))
+			  (cadr results))
+		(insert " => no (or unspecified) value\n"))
+	      (insert "\n"))
+	    (setq results (cddr results)))
+	  (if stack-available
+	      (let ((beg (point))
+		    (map (make-sparse-keymap)))
+		(define-key map [mouse-1] 'gds-show-last-stack)
+		(define-key map "\C-m" 'gds-show-last-stack)
+		(insert "[click here to show error stack]")
+		(add-text-properties beg (point)
+				     (list 'keymap map
+					   'mouse-face 'highlight))
+		(insert "\n")))
+	  (goto-char (point-min))
+	  (gds-associate-buffer client))
+	(pop-to-buffer buf)
+	(run-hooks 'temp-buffer-show-hook)))))
 
 (defun gds-show-last-stack ()
   "Show stack of the most recent error."

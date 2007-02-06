@@ -1,3 +1,9 @@
+2007-02-06  Clinton Ebadi  <clinton@unknownlamer.org>
+
+        * gds-scheme.el (gds-display-results): Use save-selected-window
+        instead of switching to other-window in order to return to the
+        proper window in frames with more than two windows.
+
 2007-01-17  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* gds-scheme.el (gds-display-results): Add another binding for
