@@ -170,7 +170,7 @@
                       (safely-handle-nondebug-protocol protocol)
                       (loop (gds-debug-read))))))))
 
-(define (connect-to-gds)
+(define (connect-to-gds . application-name)
   (or gds-port
       (begin
         (set! gds-port
@@ -190,7 +190,19 @@
 			     s)
 			   (lambda _ #f)))
 		  (error "Couldn't connect to GDS by TCP or Unix domain socket")))
-        (write-form (list 'name (getpid) (format #f "PID ~A" (getpid)))))))
+        (write-form (list 'name (getpid) (apply client-name application-name))))))
+
+(define (client-name . application-name)
+  (let loop ((args (append application-name (program-arguments))))
+    (if (null? args)
+	(format #f "PID ~A" (getpid))
+	(let ((arg (car args)))
+	  (cond ((string-match "^(.*[/\\])?guile(\\..*)?$" arg)
+		 (loop (cdr args)))
+		((string-match "^-" arg)
+		 (loop (cdr args)))
+		(else
+		 (format #f "~A (PID ~A)" arg (getpid))))))))
 
 (if (not (defined? 'make-mutex))
     (begin
