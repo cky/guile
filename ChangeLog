@@ -1,5 +1,7 @@
 2007-02-18  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* acinclude.m4 (AM_INTL_SUBDIR): Remove unnecessary dnl.
+
 	* configure.in: Remove AM_GNU_GETTEXT_VERSION again.
 
 	* Makefile.am (EXTRA_DIST): Add config.rpath.
