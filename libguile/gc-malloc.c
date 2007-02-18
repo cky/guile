@@ -209,7 +209,14 @@ scm_gc_malloc (size_t size, const char *what)
      to write it the program is killed with signal 11. --hwn
   */
 
-  void *ptr = GC_MALLOC (size);
+  void *ptr;
+
+  if (size == 0)
+    /* `GC_MALLOC ()' doesn't handle zero.  */
+    size = sizeof (void *);
+
+  ptr = GC_MALLOC (size);
+
   return ptr;
 }
 
