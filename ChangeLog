@@ -1,3 +1,11 @@
+2007-02-18  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* configure.in: Remove AM_GNU_GETTEXT_VERSION again.
+
+	* Makefile.am (EXTRA_DIST): Add config.rpath.
+
+	* config.rpath (Module): New (from gettext package).
+
 2007-01-31  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
 	* configure.in: Look for `langinfo.h', `nl_types.h', `xlocale.h'
