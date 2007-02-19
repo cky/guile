@@ -1,3 +1,8 @@
+2007-02-19  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* Makefile.am (noinst_HEADERS): Add private-options.h, so that it
+	is included in the distribution.
+
 2007-01-31  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
 	* i18n.c: Include "libguile/threads.h" and "libguile/posix.h"

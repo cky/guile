@@ -185,7 +185,7 @@ noinst_HEADERS = convert.i.c					\
                  srfi-4.i.c					\
                  quicksort.i.c                                  \
                  win32-uname.h win32-dirent.h win32-socket.h	\
-	         private-gc.h
+	         private-gc.h private-options.h
 
 libguile_la_DEPENDENCIES = @LIBLOBJS@
 libguile_la_LIBADD = @LIBLOBJS@
