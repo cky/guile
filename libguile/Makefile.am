@@ -182,6 +182,7 @@ install-exec-hook:
 ## working.
 noinst_HEADERS = convert.i.c					\
                  conv-integer.i.c conv-uinteger.i.c		\
+                 eval.i.c					\
                  srfi-4.i.c					\
                  quicksort.i.c                                  \
                  win32-uname.h win32-dirent.h win32-socket.h	\

@@ -2,6 +2,7 @@
 
 	* Makefile.am (noinst_HEADERS): Add private-options.h, so that it
 	is included in the distribution.
+	(noinst_HEADERS): And the same for eval.i.c.
 
 2007-01-31  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
