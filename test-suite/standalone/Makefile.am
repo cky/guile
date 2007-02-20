@@ -104,6 +104,7 @@ check_PROGRAMS += test-conversion
 TESTS += test-conversion
 
 # test-use-srfi
+check_SCRIPTS += test-use-srfi
 TESTS += test-use-srfi
 
 all-local:

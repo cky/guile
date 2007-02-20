@@ -1,3 +1,8 @@
+2007-02-19  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* standalone/Makefile.am (check_SCRIPTS): Add test-use-srfi, so
+	that it gets into the distribution.
+
 2007-01-31  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
 	* tests/i18n.test: Use `(srfi srfi-1)'.
