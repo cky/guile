@@ -23,7 +23,6 @@ AUTOMAKE_OPTIONS = gnu
 
 BUILT_SOURCES = lib-version.texi
 
-
 info_TEXINFOS = guile.texi
 
 guile_TEXINFOS = preface.texi			\
@@ -94,5 +93,12 @@ lib-version.texi: $(top_srcdir)/GUILE-VERSION
 	sed 's/^LIBGUILE_\([A-Z0-9_]*\)_MAJOR=\([0-9]\+\)/@set LIBGUILE_\1_MAJOR \2/'	\
 	> "$@"
 
-
 MAINTAINERCLEANFILES = autoconf-macros.texi
+
+# To allow "make distcheck" to succeed, lib-version.texi must either
+# be cleaned or be included in the distribution.  There's no point
+# forcing a distribution build to regenerate lib-version.texi, because
+# it can't possibly be different on the build machine than where the
+# distribution was generated, so we might as well include it in the
+# distribution.
+EXTRA_DIST = lib-version.texi
