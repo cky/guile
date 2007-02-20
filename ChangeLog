@@ -1,11 +1,5 @@
 2007-02-18  Neil Jerram  <neil@ossau.uklinux.net>
 
-	* acinclude.m4 (AM_INTL_SUBDIR): Remove unnecessary dnl.
-
-	* configure.in: Remove AM_GNU_GETTEXT_VERSION again.
-
-	* Makefile.am (EXTRA_DIST): Add config.rpath.
-
 	* config.rpath (Module): New (from gettext package).
 
 2007-01-31  Ludovic Courtès  <ludovic.courtes@laas.fr>
@@ -14,12 +8,6 @@
 	and `nl_langinfo'.
 
 2007-01-28  Neil Jerram  <neil@ossau.uklinux.net>
-
-	* configure.in: Do AM_GNU_GETTEXT_VERSION, so that autoreconf will
-	run autopoint.
-
-	* acinclude.m4 (AM_INTL_SUBDIR): Provide dummy definition, to work
-	around current autoconf/automake/gettext bug.
 
 	* INSTALL: New upstream version.
 
