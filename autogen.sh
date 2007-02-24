@@ -37,6 +37,18 @@ if test -x $mscripts/render-bugs ; then
 fi
 
 ######################################################################
+### announce build tool versions
+echo ""
+autoconf --version
+echo ""
+automake --version
+echo ""
+libtool --version
+echo ""
+${M4:-/usr/bin/m4} --version
+echo ""
+
+######################################################################
 ### update infrastructure
 
 autoreconf -i --force --verbose

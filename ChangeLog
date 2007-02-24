@@ -1,5 +1,8 @@
 2007-02-24  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* autogen.sh: Announce versions of autoconf, automake, libtool and
+	m4.
+
 	* pre-inst-guile.in (subdirs_with_ltlibs): Add libguile.
 
 2007-02-18  Neil Jerram  <neil@ossau.uklinux.net>
