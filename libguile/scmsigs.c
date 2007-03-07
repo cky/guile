@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2004, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2004, 2006, 2007 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -610,7 +610,9 @@ SCM_DEFINE (scm_sleep, "sleep", 1, 0, 0,
            (SCM i),
 	    "Wait for the given number of seconds (an integer) or until a signal\n"
 	    "arrives.  The return value is zero if the time elapses or the number\n"
-	    "of seconds remaining otherwise.")
+	    "of seconds remaining otherwise.\n"
+	    "\n"
+	    "See also @code{usleep}.")
 #define FUNC_NAME s_scm_sleep
 {
   return scm_from_uint (scm_std_sleep (scm_to_uint (i)));
@@ -619,7 +621,17 @@ SCM_DEFINE (scm_sleep, "sleep", 1, 0, 0,
 
 SCM_DEFINE (scm_usleep, "usleep", 1, 0, 0,
            (SCM i),
-	    "Sleep for @var{i} microseconds.")
+	    "Wait the given period @var{usecs} microseconds (an integer).\n"
+	    "If a signal arrives the wait stops and the return value is the\n"
+	    "time remaining, in microseconds.  If the period elapses with no\n"
+	    "signal the return is zero.\n"
+	    "\n"
+	    "On most systems the process scheduler is not microsecond accurate and\n"
+	    "the actual period slept by @code{usleep} may be rounded to a system\n"
+	    "clock tick boundary.  Traditionally such ticks were 10 milliseconds\n"
+	    "apart, and that interval is often still used.\n"
+	    "\n"
+	    "See also @code{sleep}.")
 #define FUNC_NAME s_scm_usleep
 {
   return scm_from_ulong (scm_std_usleep (scm_to_ulong (i)));

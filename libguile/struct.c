@@ -1,4 +1,4 @@
-/* Copyright (C) 1996,1997,1998,1999,2000,2001, 2003, 2004, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1996,1997,1998,1999,2000,2001, 2003, 2004, 2006, 2007 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -430,6 +430,26 @@ SCM_DEFINE (scm_make_struct, "make-struct", 2, 0, 1,
   layout = SCM_PACK (SCM_STRUCT_DATA (vtable) [scm_vtable_index_layout]);
   basic_size = scm_i_symbol_length (layout) / 2;
   tail_elts = scm_to_size_t (tail_array_size);
+
+  /* A tail array is only allowed if the layout fields string ends in "R",
+     "W" or "O". */
+  if (tail_elts != 0)
+    {
+      SCM layout_str, last_char;
+      
+      if (basic_size == 0)
+        {
+        bad_tail: 
+          SCM_MISC_ERROR ("tail array not allowed unless layout ends R, W, or O", SCM_EOL);
+        }
+
+      layout_str = scm_symbol_to_string (layout);
+      last_char = scm_string_ref (layout_str,
+                                  scm_from_size_t (2 * basic_size - 1));
+      if (! SCM_LAYOUT_TAILP (SCM_CHAR (last_char)))
+        goto bad_tail;
+    }
+    
   SCM_CRITICAL_SECTION_START;
   if (SCM_STRUCT_DATA (vtable)[scm_struct_i_flags] & SCM_STRUCTF_ENTITY)
     {
@@ -446,8 +466,17 @@ SCM_DEFINE (scm_make_struct, "make-struct", 2, 0, 1,
   handle = scm_double_cell ((((scm_t_bits) SCM_STRUCT_DATA (vtable))
 			     + scm_tc3_struct),
 			    (scm_t_bits) data, 0, 0);
-  scm_struct_init (handle, layout, data, tail_elts, init);
   SCM_CRITICAL_SECTION_END;
+
+  /* In guile 1.8.1 and earlier, the SCM_CRITICAL_SECTION_END above covered
+     also the following scm_struct_init.  But that meant if scm_struct_init
+     finds an invalid type for a "u" field then there's an error throw in a
+     critical section, which results in an abort().  Not sure if we need any
+     protection across scm_struct_init.  The data array contains garbage at
+     this point, but until we return it's not visible to anyone except
+     `gc'.  */
+  scm_struct_init (handle, layout, data, tail_elts, init);
+
   return handle;
 }
 #undef FUNC_NAME
@@ -527,6 +556,28 @@ SCM_DEFINE (scm_make_vtable_vtable, "make-vtable-vtable", 2, 0, 1,
   scm_struct_init (handle, layout, data, tail_elts, scm_cons (layout, init));
   SCM_CRITICAL_SECTION_END;
   return handle;
+}
+#undef FUNC_NAME
+
+
+static SCM scm_i_vtable_vtable_no_extra_fields;
+
+SCM_DEFINE (scm_make_vtable, "make-vtable", 1, 1, 0,
+            (SCM fields, SCM printer),
+	    "Create a vtable, for creating structures with the given\n"
+	    "@var{fields}.\n"
+	    "\n"
+	    "The optional @var{printer} argument is a function to be called\n"
+	    "@code{(@var{printer} struct port)} on the structures created.\n"
+	    "It should look at @var{struct} and write to @var{port}.")
+#define FUNC_NAME s_scm_make_vtable
+{
+  if (SCM_UNBNDP (printer))
+    printer = SCM_BOOL_F;
+
+  return scm_make_struct (scm_i_vtable_vtable_no_extra_fields, SCM_INUM0,
+                          scm_list_2 (scm_make_struct_layout (fields),
+                                      printer));
 }
 #undef FUNC_NAME
 
@@ -850,6 +901,11 @@ scm_init_struct ()
     = scm_permanent_object (scm_make_weak_key_hash_table (scm_from_int (31)));
   required_vtable_fields = scm_from_locale_string ("prsrpw");
   scm_permanent_object (required_vtable_fields);
+
+  scm_i_vtable_vtable_no_extra_fields =
+    scm_permanent_object
+    (scm_make_vtable_vtable (scm_nullstr, SCM_INUM0, SCM_EOL));
+
   scm_c_define ("vtable-index-layout", scm_from_int (scm_vtable_index_layout));
   scm_c_define ("vtable-index-vtable", scm_from_int (scm_vtable_index_vtable));
   scm_c_define ("vtable-index-printer",
