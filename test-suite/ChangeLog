@@ -1,3 +1,19 @@
+2007-03-08  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/structs.test (make-struct): Exercise the error check on tail
+	array size != 0 when layout spec doesn't have tail array.
+	(make-vtable): Exercise this.
+
+2007-02-22  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/structs.test (make-struct): New test of type check on a "u"
+	field, which had been causing an abort().
+
+2007-02-20  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* standalone/Makefile.am (check_SCRIPTS): Add test-use-srfi, so
+	that it gets into the distribution.
+
 2007-02-19  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* standalone/Makefile.am (check_SCRIPTS): Add test-use-srfi, so
@@ -17,6 +33,20 @@
 	* tests/srfi-19.test: Install the C locale.
 	(SRFI date/time library)[string->date understands days and
 	months]: New test.
+
+2007-01-27  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/ports.test (port-line): Check not truncated to "int" on 64-bit
+	systems.
+
+2007-01-25  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/sort.test (stable-sort): New test, exercising empty list
+	input.  As reported by Ales Hvezda.
+
+	* tests/time.test (gmtime in another thread): Catch #t all errors from
+	gmtime in the thread, since it can be a system error not a scheme
+	out-of-range on 64-bit systems.  Reported by Marijn Schouten.
 
 2007-01-19  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
