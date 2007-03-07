@@ -4,7 +4,7 @@ dnl
 
 define(GUILE_CONFIGURE_COPYRIGHT,[[
 
-Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 
 This file is part of GUILE
 
@@ -27,8 +27,15 @@ Boston, MA 02110-1301, USA.
 
 AC_PREREQ(2.53)
 
-AC_INIT(m4_esyscmd(. ./GUILE-VERSION && echo -n ${PACKAGE}),
-        m4_esyscmd(. ./GUILE-VERSION && echo -n ${GUILE_VERSION}),
+dnl  `patsubst' here deletes the newline which "echo" prints.  We can't use
+dnl  "echo -n" since -n is not portable (see autoconf manual "Limitations of
+dnl  Builtins"), in particular on solaris it results in a literal "-n" in
+dnl  the output.
+dnl
+AC_INIT(patsubst(m4_esyscmd(. ./GUILE-VERSION && echo ${PACKAGE}),[
+]),
+        patsubst(m4_esyscmd(. ./GUILE-VERSION && echo ${GUILE_VERSION}),[
+]),
         [bug-guile@gnu.org])
 AC_CONFIG_AUX_DIR([.])
 AC_CONFIG_SRCDIR(GUILE-VERSION)
@@ -217,6 +224,9 @@ fi
 AC_CHECK_LIB(uca, __uc_get_ar_bsp)
 
 AC_C_CONST
+
+# "volatile" is used in a couple of tests below.
+AC_C_VOLATILE
 
 AC_C_INLINE
 if test "$ac_cv_c_inline" != no; then
@@ -957,17 +967,19 @@ AC_CHECK_FUNCS(asinh acosh atanh copysign finite sincos trunc)
 # use <math.h> so doesn't detect on macro-only systems like HP-UX.
 #
 AC_MSG_CHECKING([for isinf])
-AC_LINK_IFELSE(
-[#include <math.h>
-int main () { return (isinf(0.0) != 0); }],
+AC_LINK_IFELSE(AC_LANG_SOURCE(
+[[#include <math.h>
+volatile double x = 0.0;
+int main () { return (isinf(x) != 0); }]]),
   [AC_MSG_RESULT([yes])
    AC_DEFINE(HAVE_ISINF, 1,
              [Define to 1 if you have the `isinf' macro or function.])],
   [AC_MSG_RESULT([no])])
 AC_MSG_CHECKING([for isnan])
-AC_LINK_IFELSE(
-[#include <math.h>
-int main () { return (isnan(0.0) != 0); }],
+AC_LINK_IFELSE(AC_LANG_SOURCE(
+[[#include <math.h>
+volatile double x = 0.0;
+int main () { return (isnan(x) != 0); }]]),
   [AC_MSG_RESULT([yes])
    AC_DEFINE(HAVE_ISNAN, 1,
              [Define to 1 if you have the `isnan' macro or function.])],

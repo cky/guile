@@ -1,3 +1,26 @@
+2007-03-08  Kevin Ryde  <user42@zip.com.au>
+
+	* struct.c, struct.h (scm_make_vtable): New function, providing
+	`make-vtable'.
+	* stacks.c (scm_init_stacks): Use it.
+
+2007-03-06  Kevin Ryde  <user42@zip.com.au>
+
+	* struct.c (scm_make_struct): Check for R,W,O at end of layout when
+	allocating a tail array.  If there's no such then those tail fields
+	are uninitialized and garbage SCMs there can cause a segv if printed
+	(after fetching with struct-ref).
+
+2007-02-22  Kevin Ryde  <user42@zip.com.au>
+
+	* scmsigs.c (scm_sleep): In docstring, cross refence usleep.
+	(scm_usleep): Update docstring per manual, cross reference sleep.
+
+	* struct.c (scm_make_struct): Move SCM_CRITICAL_SECTION_END up so that
+	scm_struct_init is not within that section.  scm_struct_init can
+	thrown an error, which within a critical section results in an
+	abort().
+
 2007-02-19  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* Makefile.am (noinst_HEADERS): Add private-options.h, so that it
@@ -39,9 +62,23 @@
 	acquiring the locale mutex.
 	(scm_init_posix): No longer initialize SCM_I_LOCALE_MUTEX here.
 
+2007-01-27  Kevin Ryde  <user42@zip.com.au>
+
+	* ports.c (scm_port_line, scm_set_port_line_x), read.c
+	(scm_i_input_error, scm_lreadr, scm_lreadrecparen): Corrections to
+	port line number type, should be "long" not "int", as per line_number
+	field of scm_t_port.  (Makes a difference only on 64-bit systems, and
+	only then for a linenum above 2Gig.)
+
 2007-01-25  Han-Wen Nienhuys  <hanwen@lilypond.org>
 
 	* vector.c: remove comment as per kryde's request.
+
+2007-01-25  Kevin Ryde  <user42@zip.com.au>
+
+	* sort.c (scm_stable_sort): Return empty list for input empty list, as
+	done in guile 1.6 and as always done by plain `sort'.  Was falling
+	through to SCM_WRONG_TYPE_ARG.  Reported by Ales Hvezda.
 
 2007-01-22  Han-Wen Nienhuys  <hanwen@lilypond.org>
 

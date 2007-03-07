@@ -34,6 +34,7 @@ Changes in 1.8.2 (since 1.8.1):
 * New procedures (see the manual for details)
 
 ** set-program-arguments
+** make-vtable
 
 * Bugs fixed
 
@@ -77,6 +78,8 @@ Changes in 1.8.1 (since 1.8.0):
 * Bugs fixed
 
 ** Build problems have been fixed on MacOS, SunOS, and QNX.
+
+** `strftime' fix sign of %z timezone offset.
 
 ** A one-dimensional array can now be 'equal?' to a vector.
 

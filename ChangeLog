@@ -20,9 +20,24 @@
 
 	* ABOUT-NLS: New upstream version.
 
+2007-01-23  Kevin Ryde  <user42@zip.com.au>
+
+	* configure.in (isinf, isnan): Use a volatile global to stop gcc
+	optimizing out the test.  In particular this fixes solaris where there
+	isn't an isinf or isnan (though gcc still optimizes as if there is).
+	Reported by Hugh Sasse.
+	(AC_C_VOLATILE): New.
+
 2007-01-22  Han-Wen Nienhuys  <hanwen@lilypond.org>
 
 	* .gitignore: new file. Make using git easier.
+
+2007-01-22  Kevin Ryde  <user42@zip.com.au>
+
+	* configure.in (AC_INIT): Don't use "echo -n", it's not portable and
+	in particular fails on solaris (resulting in literal "-n"s going into
+	the output, making the resulting configure unusable).  Reported by
+	Hugh Sasse.
 
 2007-01-03  Han-Wen Nienhuys  <hanwen@lilypond.org>
 
