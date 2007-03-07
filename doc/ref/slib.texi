@@ -27,41 +27,11 @@ slib, The SLIB Manual}).  For example,
 @result{} #t
 @end example
 
-Note that the following Guile core functions are overridden by
-@code{(ice-9 slib)}, to implement SLIB specified semantics.
-
-@table @code
-@item delete-file
-@findex delete-file
-Returns @code{#t} for success or @code{#f} for failure
-(@pxref{Input/Output,,, slib, The SLIB Manual}), as opposed to the
-Guile core version unspecified for success and throwing an error for
-failure (@pxref{File System}).
-
-@c  `provide' is also exported by ice-9 slib, but its definition in
-@c  slib require.scm is the same as guile boot-9.scm, so believe
-@c  nothing needs to be said about that.
-
-@item provided?
-@findex provided?
-Accepts a feature specification containing @code{and} and @code{or}
-forms combining symbols (@pxref{Feature,,, slib, The SLIB Manual}), as
-opposed to the Guile core taking only plain symbols (@pxref{Feature
-Manipulation}).
-
-@item open-file
-@findex open-file
-Takes a symbol @code{r}, @code{rb}, @code{w} or @code{wb} for the open
-mode (@pxref{Input/Output,,, slib, The SLIB Manual}), as opposed to
-the Guile core version taking a string (@pxref{File Ports}).
-
-@item system
-@findex system
-Returns a plain exit code 0 to 255 (@pxref{System Interface,,, slib,
-The SLIB Manual}), as opposed to the Guile core version returning a
-wait status that must be examined with @code{status:exit-val} etc
-(@pxref{Processes}).
-@end table
+A few Guile core functions are overridden by the SLIB setups; for
+example the SLIB version of @code{delete-file} returns a boolean
+indicating success or failure, whereas the Guile core version throws
+an error for failure.  In general (and as might be expected) when SLIB
+is loaded it's the SLIB specifications which are followed.
 
 @menu
 * SLIB installation::

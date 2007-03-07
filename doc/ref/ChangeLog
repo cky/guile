@@ -1,7 +1,35 @@
+2007-03-08  Kevin Ryde  <user42@zip.com.au>
+
+	* api-compound.texi (Structures): Revise and expand variously, add
+	make-vtable.
+
+	* api-io.texi: Add various @cindex entries.
+
+	* slib.texi (SLIB): Shorten the bit about core funcs overridden.
+	Don't want to duplicate the SLIB specs, and the set of modified bits
+	is likely to change over time and don't want to have to keep up with
+	that.
+
+2007-02-22  Kevin Ryde  <user42@zip.com.au>
+
+	* posix.texi (Signals): Merge sleep and usleep, note usleep not
+	actually microsecond accurate, remove warning usleep not always
+	available (guile has own code for it now, it's not the system call).
+	Cross reference scm_std_sleep / scm_std_usleep.
+
+	* posix.texi (Signals): Merge getitimer and setitimer, describe what
+	each timer does, use @defvar to get them indexed, caution may not
+	actually be microsecond accurate.
+
 2007-02-20  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* Makefile.am (EXTRA_DIST): Add lib-version.texi to the
 	distribution.
+
+2007-02-16  Kevin Ryde  <user42@zip.com.au>
+
+	* api-compound.texi (Records): In make-record-type, describe optional
+	print function argument.
 
 2007-01-31  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
@@ -17,6 +45,11 @@
 	`The ice-9 i18n Module'.
 	* srfi-modules.texi (SRFI-19 String to date): Mention the
 	internationalization of `string->date'.
+
+2007-01-25  Kevin Ryde  <user42@zip.com.au>
+
+	* posix.texi (Signals): Note signal handlers run via system async and
+	can hence be delayed quite a while.  Struck by William Xu.
 
 2007-01-19  Han-Wen Nienhuys  <hanwen@lilypond.org>
 

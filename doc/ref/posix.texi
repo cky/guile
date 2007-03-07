@@ -1388,17 +1388,17 @@ and @code{command-line} above.
 
 @var{argv} is an array of null-terminated strings, as in a C
 @code{main} function.  @var{argc} is the number of strings in
-@var{argv}, or if it's negative then a @code{NULL} entry in @var{argv}
-marks its end.
+@var{argv}, or if it's negative then a @code{NULL} in @var{argv} marks
+its end.
 
 @var{first} is an extra string put at the start of the arguments, or
 @code{NULL} for no such extra.  This is a convenient way to pass the
 program name after advancing @var{argv} to strip option arguments.
+Eg.@:
 
 @example
 @{
   char *progname = argv[0];
-  int i;
   for (argv++; argv[0] != NULL && argv[0][0] == '-'; argv++)
     @{
       /* munch option ... */
@@ -1409,7 +1409,7 @@ program name after advancing @var{argv} to strip option arguments.
 @end example
 
 This sort of thing is often done at startup under
-@code{scm_boot_guile} with any options handled at the C level removed.
+@code{scm_boot_guile} with options handled at the C level removed.
 The given strings are all copied, so the C data is not accessed again
 once @code{scm_set_program_arguments} returns.
 @end deftypefn
@@ -1836,7 +1836,13 @@ specified processes.
 @subsection Signals
 @cindex signal
 
-Procedures to raise, handle and wait for signals.
+The following procedures raise, handle and wait for signals.
+
+Scheme code signal handlers are run via a system async (@pxref{System
+asyncs}), so they're called in the handler's thread at the next safe
+opportunity.  Generally this is after any currently executing
+primitive procedure finishes (which could be a long time for
+primitives that wait for an external event).
 
 @deffn {Scheme Procedure} kill pid sig
 @deffnx {C Function} scm_kill (pid, sig)
@@ -1961,47 +1967,72 @@ action is to either terminate the current process or invoke a
 handler procedure.  The return value is unspecified.
 @end deffn
 
-@deffn {Scheme Procedure} sleep i
-@deffnx {C Function} scm_sleep (i)
-Wait for the given number of seconds (an integer) or until a signal
-arrives.  The return value is zero if the time elapses or the number
-of seconds remaining otherwise.
-@end deffn
+@deffn {Scheme Procedure} sleep secs
+@deffnx {Scheme Procedure} usleep usecs
+@deffnx {C Function} scm_sleep (secs)
+@deffnx {C Function} scm_usleep (usecs)
+Wait the given period @var{secs} seconds or @var{usecs} microseconds
+(both integers).  If a signal arrives the wait stops and the return
+value is the time remaining, in seconds or microseconds respectively.
+If the period elapses with no signal the return is zero.
 
-@deffn {Scheme Procedure} usleep i
-@deffnx {C Function} scm_usleep (i)
-Sleep for @var{i} microseconds.  @code{usleep} is not available on
-all platforms. [FIXME: so what happens when it isn't?]
-@end deffn
+On most systems the process scheduler is not microsecond accurate and
+the actual period slept by @code{usleep} might be rounded to a system
+clock tick boundary, which might be 10 milliseconds for instance.
 
-@deffn {Scheme Procedure} setitimer which_timer interval_seconds interval_microseconds value_seconds value_microseconds
-@deffnx {C Function} scm_setitimer (which_timer, interval_seconds, interval_microseconds, value_seconds, value_microseconds)
-Set the timer specified by @var{which_timer} according to the given
-@var{interval_seconds}, @var{interval_microseconds},
-@var{value_seconds}, and @var{value_microseconds} values.
-
-Return information about the timer's previous setting.
-
-The timers available are: @code{ITIMER_REAL}, @code{ITIMER_VIRTUAL},
-and @code{ITIMER_PROF}.
-
-The return value will be a list of two cons pairs representing the
-current state of the given timer.  The first pair is the seconds and
-microseconds of the timer @code{it_interval}, and the second pair is
-the seconds and microseconds of the timer @code{it_value}.
+See @code{scm_std_sleep} and @code{scm_std_usleep} for equivalents at
+the C level (@pxref{Blocking}).
 @end deffn
 
 @deffn {Scheme Procedure} getitimer which_timer
+@deffnx {Scheme Procedure} setitimer which_timer interval_seconds interval_microseconds periodic_seconds periodic_microseconds
 @deffnx {C Function} scm_getitimer (which_timer)
-Return information about the timer specified by @var{which_timer}.
+@deffnx {C Function} scm_setitimer (which_timer, interval_seconds, interval_microseconds, periodic_seconds, periodic_microseconds)
+Get or set the periods programmed in certain system timers.  These
+timers have a current interval value which counts down and on reaching
+zero raises a signal.  An optional periodic value can be set to
+restart from there each time, for periodic operation.
+@var{which_timer} is one of the following values
 
-The timers available are: @code{ITIMER_REAL}, @code{ITIMER_VIRTUAL},
-and @code{ITIMER_PROF}.
+@defvar ITIMER_REAL
+A real-time timer, counting down elapsed real time.  At zero it raises
+@code{SIGALRM}.  This is like @code{alarm} above, but with a higher
+resolution period.
+@end defvar 
 
-The return value will be a list of two cons pairs representing the
-current state of the given timer.  The first pair is the seconds and
-microseconds of the timer @code{it_interval}, and the second pair is
-the seconds and microseconds of the timer @code{it_value}.
+@defvar ITIMER_VIRTUAL
+A virtual-time timer, counting down while the current process is
+actually using CPU.  At zero it raises @code{SIGVTALRM}.
+@end defvar 
+
+@defvar ITIMER_PROF
+A profiling timer, counting down while the process is running (like
+@code{ITIMER_VIRTUAL}) and also while system calls are running on the
+process's behalf.  At zero it raises a @code{SIGPROF}.
+
+This timer is intended for profiling where a program is spending its
+time (by looking where it is when the timer goes off).
+@end defvar 
+
+@code{getitimer} returns the current timer value and its programmed
+restart value, as a list containing two pairs.  Each pair is a time in
+seconds and microseconds: @code{((@var{interval_secs}
+. @var{interval_usecs}) (@var{periodic_secs}
+. @var{periodic_usecs}))}.
+
+@code{setitimer} sets the timer values similarly, in seconds and
+microseconds (which must be integers).  The periodic value can be zero
+to have the timer run down just once.  The return value is the timer's
+previous setting, in the same form as @code{getitimer} returns.
+
+@example
+(setitimer ITIMER_REAL
+           5 500000     ;; first SIGALRM in 5.5 seconds time
+           2 0)         ;; then repeat every 2 seconds
+@end example
+
+Although the timers are programmed in microseconds, the actual
+accuracy might not be that high.
 @end deffn
 
 

@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2006
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -2611,14 +2611,22 @@ Note that @code{record?} may be true of any Scheme value; there is no
 promise that records are disjoint with other Scheme types.
 @end deffn
 
-@deffn {Scheme Procedure} make-record-type type-name field-names
-Return a @dfn{record-type descriptor}, a value representing a new data
-type disjoint from all others.  The @var{type-name} argument must be a
-string, but is only used for debugging purposes (such as the printed
-representation of a record of the new type).  The @var{field-names}
-argument is a list of symbols naming the @dfn{fields} of a record of the
-new type.  It is an error if the list contains any duplicates.  It is
-unspecified how record-type descriptors are represented.
+@deffn {Scheme Procedure} make-record-type type-name field-names [print]
+Create and return a new @dfn{record-type descriptor}.
+
+@var{type-name} is a string naming the type.  Currently it's only used
+in the printed representation of records, and in diagnostics.
+@var{field-names} is a list of symbols naming the fields of a record
+of the type.  Duplicates are not allowed among these symbols.
+
+@example
+(make-record-type "employee" '(name age salary))
+@end example
+
+The optional @var{print} argument is a function used by
+@code{display}, @code{write}, etc, for printing a record of the new
+type.  It's called as @code{(@var{print} record port)} and should look
+at @var{record} and write to @var{port}.
 @end deffn
 
 @deffn {Scheme Procedure} record-constructor rtd [field-names]
@@ -2692,296 +2700,369 @@ created the type represented by @var{rtd}.
 @subsection Structures
 @tpindex Structures
 
-[FIXME: this is pasted in from Tom Lord's original guile.texi and should
-be reviewed]
+A @dfn{structure} is a first class data type which holds Scheme values
+or C words in fields numbered 0 upwards.  A @dfn{vtable} represents a
+structure type, giving field types and permissions, and an optional
+print function for @code{write} etc.
 
-A @dfn{structure type} is a first class user-defined data type.  A
-@dfn{structure} is an instance of a structure type.  A structure type is
-itself a structure.
-
-Structures are less abstract and more general than traditional records.
-In fact, in Guile Scheme, records are implemented using structures.
+Structures are lower level than records (@pxref{Records}) but have
+some extra features.  The vtable system allows sets of types be
+constructed, with class data.  The uninterpreted words can
+inter-operate with C code, allowing arbitrary pointers or other values
+to be stored along side usual Scheme @code{SCM} values.
 
 @menu
-* Structure Concepts::          The structure of Structures
-* Structure Layout::            Defining the layout of structure types
-* Structure Basics::            make-, -ref and -set! procedures for structs
-* Vtables::                     Accessing type-specific data
+* Vtables::                     
+* Structure Basics::            
+* Vtable Contents::              
+* Vtable Vtables::              
 @end menu
 
-@node  Structure Concepts
-@subsubsection Structure Concepts
+@node Vtables, Structure Basics, Structures, Structures
+@subsubsection Vtables
 
-A structure object consists of a handle, structure data, and a vtable.
-The handle is a Scheme value which points to both the vtable and the
-structure's data.  Structure data is a dynamically allocated region of
-memory, private to the structure, divided up into typed fields.  A
-vtable is another structure used to hold type-specific data.  Multiple
-structures can share a common vtable.
+A vtable is a structure type, specifying its layout, and other
+information.  A vtable is actually itself a structure, but there's no
+need to worray about that initially (@pxref{Vtable Contents}.)
 
-When applied to structures, the @code{equal?} predicate
-(@pxref{Equality}) returns @code{#t} if the two structures share a
-common vtable @emph{and} all their fields satisfy @code{equal?}.
+@deffn {Scheme Procedure} make-vtable fields [print]
+Create a new vtable.
 
-Three concepts are key to understanding structures.
-
-@itemize @bullet{}
-@item @dfn{layout specifications}
-
-Layout specifications determine how memory allocated to structures is
-divided up into fields.  Programmers must write a layout specification
-whenever a new type of structure is defined.
-
-@item @dfn{structural accessors}
-
-Structure access is by field number.   There is only one set of
-accessors common to all structure objects.
-
-@item @dfn{vtables}
-
-Vtables, themselves structures, are first class representations of
-disjoint sub-types of structures in general.   In most cases, when a
-new structure is created, programmers must specify a vtable for the
-new structure.   Each vtable has a field describing the layout of its
-instances.   Vtables can have additional, user-defined fields as well.
-@end itemize
-
-
-
-@node  Structure Layout
-@subsubsection Structure Layout
-
-When a structure is created, a region of memory is allocated to hold its
-state.  The @dfn{layout} of the structure's type determines how that
-memory is divided into fields.
-
-Each field has a specified type.  There are only three types allowed, each
-corresponding to a one letter code.  The allowed types are:
+@var{fields} is a string describing the fields in the structures to be
+created.  Each field is represented by two characters, a type letter
+and a permissions letter, for example @code{"pw"}.  The types are as
+follows.
 
 @itemize @bullet{}
-@item 'u' -- unprotected
+@item
+@code{p} -- a Scheme value.  ``p'' stands for ``protected'' meaning
+it's protected against garbage collection.
 
-The field holds binary data that is not GC protected.
+@item
+@code{u} -- an arbitrary word of data (an @code{scm_t_bits}).  At the
+Scheme level it's read and written as an unsigned integer.  ``u''
+stands for ``uninterpreted'' (it's not treated as a Scheme value), or
+``unprotected'' (it's not marked during GC), or ``unsigned long'' (its
+size), or all of these things.
 
-@item 'p' -- protected
-
-The field holds a Scheme value and is GC protected.
-
-@item 's' -- self
-
-The field holds a Scheme value and is GC protected.  When a structure is
-created with this type of field, the field is initialized to refer to
-the structure's own handle.  This kind of field is mainly useful when
-mixing Scheme and C code in which the C code may need to compute a
-structure's handle given only the address of its malloc'd data.
+@item
+@code{s} -- a self-reference.  Such a field holds the @code{SCM} value
+of the structure itself (a circular reference).  This can be useful in
+C code where you might have a pointer to the data array, and want to
+get the Scheme @code{SCM} handle for the structure.  In Scheme code it
+has no use.
 @end itemize
 
-
-Each field also has an associated access protection.   There are only
-three kinds of protection, each corresponding to a one letter code.
-The allowed protections are:
+The second letter for each field is a permission code,
 
 @itemize @bullet{}
-@item 'w' -- writable
-
-The field can be read and written.
-
-@item 'r' -- readable
-
-The field can be read, but not written.
-
-@item 'o' -- opaque
-
-The field can be neither read nor written.   This kind
-of protection is for fields useful only to built-in routines.
+@item
+@code{w} -- writable, the field can be read and written.
+@item
+@code{r} -- read-only, the field can be read but not written.
+@item
+@code{o} -- opaque, the field can be neither read nor written at the
+Scheme level.  This can be used for fields which should only be used
+from C code.
+@item
+@code{W},@code{R},@code{O} -- a tail array, with permissions for the
+array fields as per @code{w},@code{r},@code{o}.
 @end itemize
 
-A layout specification is described by stringing together pairs
-of letters: one to specify a field type and one to specify a field
-protection.    For example, a traditional cons pair type object could
-be described as:
+A tail array is further fields at the end of a structure.  The last
+field in the layout string might be for instance @samp{pW} to have a
+tail of writable Scheme-valued fields.  The @samp{pW} field itself
+holds the tail size, and the tail fields come after it.
+
+Here are some examples.
 
 @example
-; cons pairs have two writable fields of Scheme data
-"pwpw"
+(make-vtable "pw")      ;; one writable field
+(make-vtable "prpw")    ;; one read-only and one writable
+(make-vtable "pwuwuw")  ;; one scheme and two uninterpreted
+
+(make-vtable "prpW")    ;; one fixed then a tail array
 @end example
 
-A pair object in which the first field is held constant could be:
+The optional @var{print} argument is a function called by
+@code{display} and @code{write} (etc) to give a printed representation
+of a structure created from this vtable.  It's called
+@code{(@var{print} struct port)} and should look at @var{struct} and
+write to @var{port}.  The default print merely gives a form like
+@samp{#<struct ADDR:ADDR>} with a pair of machine addresses.
+
+The following print function for example shows the two fields of its
+structure.
 
 @example
-"prpw"
+(make-vtable "prpw"
+             (lambda (struct port)
+               (display "#<")
+               (display (struct-ref 0))
+               (display " and ")
+               (display (struct-ref 1))
+               (display ">")))
 @end example
+@end deffn
 
-Binary fields, (fields of type "u"), hold one @dfn{word} each.  The
-size of a word is a machine dependent value defined to be equal to the
-value of the C expression: @code{sizeof (long)}.
 
-The last field of a structure layout may specify a tail array.
-A tail array is indicated by capitalizing the field's protection
-code ('W', 'R' or 'O').   A tail-array field is replaced by
-a read-only binary data field containing an array size.   The array
-size is determined at the time the structure is created.  It is followed
-by a corresponding number of fields of the type specified for the
-tail array.   For example, a conventional Scheme vector can be
-described as:
+@node Structure Basics, Vtable Contents, Vtables, Structures
+@subsubsection Structure Basics
+
+This section describes the basic procedures for working with
+structures.  @code{make-struct} creates a structure, and
+@code{struct-ref} and @code{struct-set!} access write fields.
+
+@deffn {Scheme Procedure} make-struct vtable tail-size [init...]
+@deffnx {C Function} scm_make_struct (vtable, tail_size, init_list)
+Create a new structure, with layout per the given @var{vtable}
+(@pxref{Vtables}).
+
+@var{tail-size} is the size of the tail array if @var{vtable}
+specifies a tail array.  @var{tail-size} should be 0 when @var{vtable}
+doesn't specify a tail array.
+
+The optional @var{init}@dots{} arguments are initial values for the
+fields of the structure (and the tail array).  This is the only way to
+put values in read-only fields.  If there are fewer @var{init}
+arguments than fields then the defaults are @code{#f} for a Scheme
+field (type @code{p}) or 0 for an uninterpreted field (type @code{u}).
+
+Type @code{s} self-reference fields, permission @code{o} opaque
+fields, and the count field of a tail array are all ignored for the
+@var{init} arguments, ie.@: an argument is not consumed by such a
+field.  An @code{s} is always set to the structure itself, an @code{o}
+is always set to @code{#f} or 0 (with the intention that C code will
+do something to it later), and the tail count is always the given
+@var{tail-size}.
+
+For example,
 
 @example
-; A vector is an arbitrary number of writable fields holding Scheme
-; values:
-"pW"
+(define v (make-vtable "prpwpw"))
+(define s (make-struct v 0 123 "abc" 456))
+(struct-ref s 0) @result{} 123
+(struct-ref s 1) @result{} "abc"
 @end example
-
-In the above example, field 0 contains the size of the vector and
-fields beginning at 1 contain the vector elements.
-
-A kind of tagged vector (a constant tag followed by conventional
-vector elements) might be:
 
 @example
-"prpW"
+(define v (make-vtable "prpW"))
+(define s (make-struct v 6 "fixed field" 'x 'y))
+(struct-ref s 0) @result{} "fixed field"
+(struct-ref s 1) @result{} 2    ;; tail size
+(struct-ref s 2) @result{} x    ;; tail array ...
+(struct-ref s 3) @result{} y
+(struct-ref s 4) @result{} #f
+@end example
+@end deffn
+
+@deffn {Scheme Procedure} struct? obj
+@deffnx {C Function} scm_struct_p (obj)
+Return @code{#t} if @var{obj} is a structure, or @code{#f} if not.
+@end deffn
+
+@deffn {Scheme Procedure} struct-ref struct n
+@deffnx {C Function} scm_struct_ref (struct, n)
+Return the contents of field number @var{n} in @var{struct}.  The
+first field is number 0.
+
+An error is thrown if @var{n} is out of range, or if the field cannot
+be read because it's @code{o} opaque.
+@end deffn
+
+@deffn {Scheme Procedure} struct-set! struct n value
+@deffnx {C Function} scm_struct_set_x (struct, n, value)
+Set field number @var{n} in @var{struct} to @var{value}.  The first
+field is number 0.
+
+An error is thrown if @var{n} is out of range, or if the field cannot
+be written because it's @code{r} read-only or @code{o} opaque.  
+@end deffn
+
+@deffn {Scheme Procedure} struct-vtable struct
+@deffnx {C Function} scm_struct_vtable (struct)
+Return the vtable used by @var{struct}.
+
+This can be used to examine the layout of an unknown structure, see
+@ref{Vtable Contents}.
+@end deffn
+
+
+@node Vtable Contents, Vtable Vtables, Structure Basics, Structures
+@subsubsection Vtable Contents
+
+A vtable is itself a structure, with particular fields that hold
+information about the structures to be created.  These include the
+fields of those structures, and the print function for them.  The
+variables below allow access to those fields.
+
+@deffn {Scheme Procedure} struct-vtable? obj
+@deffnx {C Function} scm_struct_vtable_p (obj)
+Return @code{#t} if @var{obj} is a vtable structure.
+
+Note that because vtables are simply structures with a particular
+layout, @code{struct-vtable?} can potentially return true on an
+application structure which merely happens to look like a vtable.
+@end deffn
+
+@defvr {Scheme Variable} vtable-index-layout
+@defvrx {C Macro} scm_vtable_index_layout
+The field number of the layout specification in a vtable.  The layout
+specification is a symbol like @code{pwpw} formed from the fields
+string passed to @code{make-vtable}, or created by
+@code{make-struct-layout} (@pxref{Vtable Vtables}).
+
+@example
+(define v (make-vtable "pwpw" 0))
+(struct-ref v vtable-index-layout) @result{} pwpw
 @end example
 
+This field is read-only, since the layout of structures using a vtable
+cannot be changed.
+@end defvr
 
-Structure layouts are represented by specially interned symbols whose
-name is a string of type and protection codes.  To create a new
-structure layout, use this procedure:
+@defvr {Scheme Variable} vtable-index-vtable
+@defvrx {C Macro} scm_vtable_index_vtable
+A self-reference to the vtable, ie.@: a type @code{s} field.  This is
+used by C code within Guile and has no use at the Scheme level.
+@end defvr
+
+@defvr {Scheme Variable} vtable-index-printer
+@defvrx {C Macro} scm_vtable_index_printer
+The field number of the printer function.  This field contains @code{#f}
+if the default print function should be used.
+
+@example
+(define (my-print-func struct port)
+  ...)
+(define v (make-vtable "pwpw" my-print-func))
+(struct-ref v vtable-index-printer) @result{} my-print-func
+@end example
+
+This field is writable, allowing the print function to be changed
+dynamically.
+@end defvr
+
+@deffn {Scheme Procedure} struct-vtable-name vtable
+@deffnx {Scheme Procedure} set-struct-vtable-name! vtable name
+@deffnx {C Function} scm_struct_vtable_name (vtable)
+@deffnx {C Function} scm_set_struct_vtable_name_x (vtable, name)
+Get or set the name of @var{vtable}.  @var{name} is a symbol and is
+used in the default print function when printing structures created
+from @var{vtable}.
+
+@example
+(define v (make-vtable "pw"))
+(set-struct-vtable-name! v 'my-name)
+
+(define s (make-struct v 0))
+(display s) @print{} #<my-name b7ab3ae0:b7ab3730>
+@end example
+@end deffn
+
+@deffn {Scheme Procedure} struct-vtable-tag vtable
+@deffnx {C Function} scm_struct_vtable_tag (vtable)
+Return the tag of the given @var{vtable}.
+@c
+@c FIXME: what can be said about what this means?
+@c
+@end deffn
+
+
+@node Vtable Vtables,  , Vtable Contents, Structures
+@subsubsection Vtable Vtables
+
+As noted above, a vtable is a structure and that structure is itself
+described by a vtable.  Such a ``vtable of a vtable'' can be created
+with @code{make-vtable-vtable} below.  This can be used to build sets
+of related vtables, possibly with extra application fields.
+
+This second level of vtable can be a little confusing.  The ball
+example below is a typical use, adding a ``class data'' field to the
+vtables, from which instance structures are created.  The current
+implementation of Guile's own records (@pxref{Records}) does something
+similar, a record type descriptor is a vtable with room to hold the
+field names of the records to be created from it.
+
+@deffn {Scheme Procedure} make-vtable-vtable user-fields tail-size [print]
+@deffnx {C Function} scm_make_vtable_vtable (user_fields, tail_size, print_and_init_list)
+Create a ``vtable-vtable'' which can be used to create vtables.  This
+vtable-vtable is also a vtable, and is self-describing, meaning its
+vtable is itself.  The following is a simple usage.
+
+@example
+(define vt-vt (make-vtable-vtable "" 0))
+(define vt    (make-struct vt-vt 0
+                           (make-struct-layout "pwpw"))
+(define s     (make-struct vt 0 123 456))
+
+(struct-ref s 0) @result{} 123
+@end example
+
+@code{make-struct} is used to create a vtable from the vtable-vtable.
+The first initializer is a layout object (field
+@code{vtable-index-layout}), usually obtained from
+@code{make-struct-layout} (below).  An optional second initializer is
+a printer function (field @code{vtable-index-printer}), used as
+described under @code{make-vtable} (@pxref{Vtables}).
+
+@sp 1
+@var{user-fields} is a layout string giving extra fields to have in
+the vtables.  A vtable starts with some base fields as per @ref{Vtable
+Contents}, and @var{user-fields} is appended.  The @var{user-fields}
+start at field number @code{vtable-offset-user} (below), and exist in
+both the vtable-vtable and in the vtables created from it.  Such
+fields provide space for ``class data''.  For example,
+
+@example
+(define vt-of-vt (make-vtable-vtable "pw" 0))
+(define vt       (make-struct vt-of-vt 0))
+(struct-set! vt vtable-offset-user "my class data")
+@end example
+
+@var{tail-size} is the size of the tail array in the vtable-vtable
+itself, if @var{user-fields} specifies a tail array.  This should be 0
+if nothing extra is required or the format has no tail array.  The
+tail array field such as @samp{pW} holds the tail array size, as
+usual, and is followed by the extra space.
+
+@example
+(define vt-vt (make-vtable-vtable "pW" 20))
+(define my-vt-tail-start (1+ vtable-offset-user))
+(struct-set! vt-vt (+ 3 my-vt-tail-start) "data in tail")
+@end example
+
+The optional @var{print} argument is used by @code{display} and
+@code{write} (etc) to print the vtable-vtable and any vtables created
+from it.  It's called as @code{(@var{print} vtable port)} and should
+look at @var{vtable} and write to @var{port}.  The default is the
+usual structure print function, which just gives machine addresses.
+@end deffn
 
 @deffn {Scheme Procedure} make-struct-layout fields
 @deffnx {C Function} scm_make_struct_layout (fields)
-Return a new structure layout object.
+Return a structure layout symbol, from a @var{fields} string.
+@var{fields} is as described under @code{make-vtable}
+(@pxref{Vtables}).  An invalid @var{fields} string is an error.
 
-@var{fields} must be a string made up of pairs of characters
-strung together.  The first character of each pair describes a field
-type, the second a field protection.  Allowed types are 'p' for
-GC-protected Scheme data, 'u' for unprotected binary data, and 's' for
-a field that points to the structure itself.    Allowed protections
-are 'w' for mutable fields, 'r' for read-only fields, and 'o' for opaque
-fields.  The last field protection specification may be capitalized to
-indicate that the field is a tail-array.
+@example
+(make-struct-layout "prpW") @result{} prpW
+(make-struct-layout "blah") @result{} ERROR
+@end example
 @end deffn
 
+@defvr {Scheme Variable} vtable-offset-user
+@defvrx {C Macro} scm_vtable_offset_user
+The first field in a vtable which is available for application use.
+Such fields only exist when specified by @var{user-fields} in
+@code{make-vtable-vtable} above.
+@end defvr
 
-
-@node Structure Basics
-@subsubsection Structure Basics
-
-This section describes the basic procedures for creating and accessing
-structures.
-
-@deffn {Scheme Procedure} make-struct vtable tail_array_size . init
-@deffnx {C Function} scm_make_struct (vtable, tail_array_size, init)
-Create a new structure.
-
-@var{type} must be a vtable structure (@pxref{Vtables}).
-
-@var{tail-elts} must be a non-negative integer.  If the layout
-specification indicated by @var{type} includes a tail-array,
-this is the number of elements allocated to that array.
-
-The @var{init1}, @dots{} are optional arguments describing how
-successive fields of the structure should be initialized.  Only fields
-with protection 'r' or 'w' can be initialized, except for fields of
-type 's', which are automatically initialized to point to the new
-structure itself; fields with protection 'o' can not be initialized by
-Scheme programs.
-
-If fewer optional arguments than initializable fields are supplied,
-fields of type 'p' get default value #f while fields of type 'u' are
-initialized to 0.
-
-Structs are currently the basic representation for record-like data
-structures in Guile.  The plan is to eventually replace them with a
-new representation which will at the same time be easier to use and
-more powerful.
-
-For more information, see the documentation for @code{make-vtable-vtable}.
-@end deffn
-
-@deffn {Scheme Procedure} struct? x
-@deffnx {C Function} scm_struct_p (x)
-Return @code{#t} iff @var{x} is a structure object, else
-@code{#f}.
-@end deffn
-
-
-@deffn {Scheme Procedure} struct-ref handle pos
-@deffnx {Scheme Procedure} struct-set! struct n value
-@deffnx {C Function} scm_struct_ref (handle, pos)
-@deffnx {C Function} scm_struct_set_x (struct, n, value)
-Access (or modify) the @var{n}th field of @var{struct}.
-
-If the field is of type 'p', then it can be set to an arbitrary value.
-
-If the field is of type 'u', then it can only be set to a non-negative
-integer value small enough to fit in one machine word.
-@end deffn
-
-
-
-@node  Vtables
-@subsubsection Vtables
-
-Vtables are structures that are used to represent structure types.  Each
-vtable contains a layout specification in field
-@code{vtable-index-layout} -- instances of the type are laid out
-according to that specification.  Vtables contain additional fields
-which are used only internally to libguile.  The variable
-@code{vtable-offset-user} is bound to a field number.  Vtable fields
-at that position or greater are user definable.
-
-@deffn {Scheme Procedure} struct-vtable handle
-@deffnx {C Function} scm_struct_vtable (handle)
-Return the vtable structure that describes the type of @var{struct}.
-@end deffn
-
-@deffn {Scheme Procedure} struct-vtable? x
-@deffnx {C Function} scm_struct_vtable_p (x)
-Return @code{#t} iff @var{x} is a vtable structure.
-@end deffn
-
-If you have a vtable structure, @code{V}, you can create an instance of
-the type it describes by using @code{(make-struct V ...)}.  But where
-does @code{V} itself come from?  One possibility is that @code{V} is an
-instance of a user-defined vtable type, @code{V'}, so that @code{V} is
-created by using @code{(make-struct V' ...)}.  Another possibility is
-that @code{V} is an instance of the type it itself describes.  Vtable
-structures of the second sort are created by this procedure:
-
-@deffn {Scheme Procedure} make-vtable-vtable user_fields tail_array_size . init
-@deffnx {C Function} scm_make_vtable_vtable (user_fields, tail_array_size, init)
-Return a new, self-describing vtable structure.
-
-@var{user-fields} is a string describing user defined fields of the
-vtable beginning at index @code{vtable-offset-user}
-(see @code{make-struct-layout}).
-
-@var{tail-size} specifies the size of the tail-array (if any) of
-this vtable.
-
-@var{init1}, @dots{} are the optional initializers for the fields of
-the vtable.
-
-Vtables have one initializable system field---the struct printer.
-This field comes before the user fields in the initializers passed
-to @code{make-vtable-vtable} and @code{make-struct}, and thus works as
-a third optional argument to @code{make-vtable-vtable} and a fourth to
-@code{make-struct} when creating vtables:
-
-If the value is a procedure, it will be called instead of the standard
-printer whenever a struct described by this vtable is printed.
-The procedure will be called with arguments STRUCT and PORT.
-
-The structure of a struct is described by a vtable, so the vtable is
-in essence the type of the struct.  The vtable is itself a struct with
-a vtable.  This could go on forever if it weren't for the
-vtable-vtables which are self-describing vtables, and thus terminate
-the chain.
-
-There are several potential ways of using structs, but the standard
-one is to use three kinds of structs, together building up a type
-sub-system: one vtable-vtable working as the root and one or several
-"types", each with a set of "instances".  (The vtable-vtable should be
-compared to the class <class> which is the class of itself.)
+@sp 1
+Here's an extended vtable-vtable example, creating classes of
+``balls''.  Each class has a ``colour'', which is fixed.  Instances of
+those classes are created, and such each such ball has an ``owner'',
+which can be changed.
 
 @lisp
 (define ball-root (make-vtable-vtable "pr" 0))
@@ -3005,22 +3086,6 @@ compared to the class <class> which is the class of itself.)
 (define ball (make-ball green 'Nisse))
 ball @result{} #<a green ball owned by Nisse>
 @end lisp
-@end deffn
-
-@deffn {Scheme Procedure} struct-vtable-name vtable
-@deffnx {C Function} scm_struct_vtable_name (vtable)
-Return the name of the vtable @var{vtable}.
-@end deffn
-
-@deffn {Scheme Procedure} set-struct-vtable-name! vtable name
-@deffnx {C Function} scm_set_struct_vtable_name_x (vtable, name)
-Set the name of the vtable @var{vtable} to @var{name}.
-@end deffn
-
-@deffn {Scheme Procedure} struct-vtable-tag handle
-@deffnx {C Function} scm_struct_vtable_tag (handle)
-Return the vtable tag of the structure @var{handle}.
-@end deffn
 
 
 @node Dictionary Types
