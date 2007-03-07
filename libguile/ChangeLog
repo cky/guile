@@ -793,7 +793,7 @@
 	scm_t_uint64 and scm_t_uint32 instead of scm_t_int64 and
 	scm_t_int32.
 
-2006-01-04  Ludovic Court<E8>s  <ludovic.courtes@laas.fr>
+2006-01-04  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
         * gc-segment.c (scm_i_sweep_some_cards): Take a SWEEP_STATS
         argument.  Don't refer to SCM_GC_CELLS_COLLECTED and
