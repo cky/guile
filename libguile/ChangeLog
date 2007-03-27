@@ -1,3 +1,9 @@
+2007-03-12  Ludovic Courtès  <ludovic.courtes@laas.fr>
+
+	* i18n.c (scm_nl_langinfo): `#ifdef'd uses of `GROUPING',
+	`FRAC_DIGITS', etc., which are GNU extensions.  Reported by
+	Steven Wu.
+
 2007-03-08  Kevin Ryde  <user42@zip.com.au>
 
 	* struct.c, struct.h (scm_make_vtable): New function, providing
