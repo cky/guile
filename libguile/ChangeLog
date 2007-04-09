@@ -1,3 +1,8 @@
+2007-04-09  Han-Wen Nienhuys  <hanwen@lilypond.org>
+
+	* numbers.c (carg): provide carg, cexp, clog in case they are
+	missing.
+
 2007-03-12  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
 	* i18n.c (scm_nl_langinfo): `#ifdef'd uses of `GROUPING',

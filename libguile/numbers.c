@@ -5997,6 +5997,35 @@ scm_is_number (SCM z)
   return scm_is_true (scm_number_p (z));
 }
 
+#if HAVE_COMPLEX_DOUBLE
+#if !HAVE_CLOG
+complex double clog (complex double z);
+complex double
+clog (complex double z)
+{
+  return log(cabs(z))+I*carg(z);
+}
+#endif
+
+#if !HAVE_CEXP
+complex double cexp (complex double z);
+complex double
+cexp (complex double z)
+{
+  return exp (cabs (z)) * cos(carg (z) + I*sin(carg (z)));
+}
+#endif
+
+#if !HAVE_CARG
+double carg (complex double z);
+double
+carg (complex double z)
+{
+  return atan2 (cimag(z), creal(z));
+}
+#endif
+#endif HAVE_COMPLEX_DOUBLE
+
 
 /* In the following functions we dispatch to the real-arg funcs like log()
    when we know the arg is real, instead of just handing everything to

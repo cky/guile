@@ -675,6 +675,8 @@ AC_SEARCH_LIBS(crypt, crypt,
 # for the principal root.
 #
 if test "$ac_cv_type_complex_double" = yes; then
+
+  AC_CHECK_FUNCS(cexp clog carg)		         
   AC_CACHE_CHECK([whether csqrt is usable],
     guile_cv_use_csqrt,
     [AC_TRY_RUN([
@@ -1232,7 +1234,7 @@ if test "$cross_compiling" = "yes"; then
   AC_MSG_CHECKING(guile for build)
   GUILE_FOR_BUILD="${GUILE_FOR_BUILD-guile}"
 else
-  GUILE_FOR_BUILD='$(preinstguile)'
+  GUILE_FOR_BUILD='$(top_builddir_absolute)/$(preinstguile)'
 fi   
 
 ## AC_MSG_CHECKING("if we are cross compiling")
