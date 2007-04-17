@@ -1,3 +1,8 @@
+2007-04-17  Ludovic Courtès  <ludovic.courtes@laas.fr>
+
+	* numbers.c: Commented out trailing `HAVE_COMPLEX_DOUBLE' after
+	`#endif'.  Use `#ifndef HAVE_XXX' rather than `#if !HAVE_XXX'.
+
 2007-04-09  Han-Wen Nienhuys  <hanwen@lilypond.org>
 
 	* numbers.c (carg): provide carg, cexp, clog in case they are

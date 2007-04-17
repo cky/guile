@@ -1,3 +1,8 @@
+2007-04-17  Ludovic Courtès  <ludovic.courtes@laas.fr>
+
+	* configure.in (GUILE_FOR_BUILD): Reverted to `$(preinstguile)'
+	instead of `$(top_builddir_absolute)/$(preinstguile)'.
+	
 2007-04-09  Han-Wen Nienhuys  <hanwen@lilypond.org>
 
 	* configure.in (HAVE_CRYPT): check for cexp, clog, carg

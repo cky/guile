@@ -5997,8 +5997,8 @@ scm_is_number (SCM z)
   return scm_is_true (scm_number_p (z));
 }
 
-#if HAVE_COMPLEX_DOUBLE
-#if !HAVE_CLOG
+#ifdef HAVE_COMPLEX_DOUBLE
+#ifndef HAVE_CLOG
 complex double clog (complex double z);
 complex double
 clog (complex double z)
@@ -6007,7 +6007,7 @@ clog (complex double z)
 }
 #endif
 
-#if !HAVE_CEXP
+#ifndef HAVE_CEXP
 complex double cexp (complex double z);
 complex double
 cexp (complex double z)
@@ -6016,7 +6016,7 @@ cexp (complex double z)
 }
 #endif
 
-#if !HAVE_CARG
+#ifndef HAVE_CARG
 double carg (complex double z);
 double
 carg (complex double z)
@@ -6024,7 +6024,7 @@ carg (complex double z)
   return atan2 (cimag(z), creal(z));
 }
 #endif
-#endif HAVE_COMPLEX_DOUBLE
+#endif /* HAVE_COMPLEX_DOUBLE */
 
 
 /* In the following functions we dispatch to the real-arg funcs like log()
