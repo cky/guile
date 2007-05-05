@@ -1,3 +1,41 @@
+2007-05-05  Ludovic Courtès  <ludo@chbouib.org>
+
+	Implemented lazy duplicate binding handling.  Fixed the
+	`module-observe-weak' API.
+
+	* boot-9.scm: Updated the `module-type' documentation under "{Low
+	Level Modules}".
+	(module-type)[import-obarray]: New slot.
+	[duplicates-interface, observer-id]: Removed.
+	(make-module): Updated accordingly.  Use a weak-key hash table for
+	weak observers, so that observers aren't unregistered when the
+	observing closure gets GC'd.
+	(module-duplicates-interface, set-module-duplicates-interface!,
+	module-observer-id, set-module-observer-id!): Removed.
+	(module-import-obarray): New.
+	(module-observe-weak): Accept a new OBSERVER-ID argument allowing
+	callers control over when the observer will get unregistered.
+	(module-call-observers): Use `hash-for-each' rather than
+	`hash-fold'.
+	(module-local-variable, module-variable): Removed, now implemented
+	in C.
+	(module-make-local-var!): Simplified.  No need to check for the
+	value of a same-named imported binding since the newly created
+	variable is systematically assigned afterwards.
+	(module-use!): Check whether MODULE and INTERFACE are `eq?'.
+	(module-use-interfaces!): Simplified.  No longer calls
+	`process-duplicates'.
+	(beautify-user-module!): Use `module-use!' rather than
+	`set-module-uses!' when importing THE-SCM-MODULE.
+	(process-define-module): Added an AUTOLOADS local variable so that
+	autoloads are handled separately from regular interfaces.
+	(make-autoload-interface): Updated `module-constructor'
+	invocation.
+	(module-autoload!): New.
+	(make-duplicates-interface, process-duplicates): Removed.
+	(top-repl): Use `module-autoload!' rather than
+	`make-autoload-interface'.
+	
 2007-02-18  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* gds-client.scm (connect-to-gds): Break generation of client name

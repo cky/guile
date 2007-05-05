@@ -1,5 +1,5 @@
-/* Copyright (C) 1998,2000,2001,2002, 2003, 2004, 2006 Free Software Foundation, Inc.
- * 
+/* Copyright (C) 1998,2000,2001,2002,2003,2004,2006,2007 Free Software Foundation, Inc.
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -162,12 +162,8 @@ scm_c_use_module (const char *name)
 
 static SCM module_export_x_var;
 
-
-/*
-  TODO: should export this function? --hwn.
- */
-static SCM
-scm_export (SCM module, SCM namelist)
+SCM
+scm_module_export (SCM module, SCM namelist)
 {
   return scm_call_2 (SCM_VARIABLE_REF (module_export_x_var),
 		     module, namelist);
@@ -203,7 +199,7 @@ scm_c_export (const char *name, ...)
 	  tail = SCM_CDRLOC (*tail);
 	}
       va_end (ap);
-      scm_export (scm_current_module(), names);
+      scm_module_export (scm_current_module (), names);
     }
 }
 
@@ -278,42 +274,220 @@ SCM_DEFINE (scm_env_module, "env-module", 1, 0, 0,
  * release.
  */
 
-static SCM module_make_local_var_x_var;
+/* The `module-make-local-var!' variable.  */
+static SCM module_make_local_var_x_var = SCM_UNSPECIFIED;
 
-static SCM
-module_variable (SCM module, SCM sym)
+/* The `default-duplicate-binding-procedures' variable.  */
+static SCM default_duplicate_binding_procedures_var = SCM_UNSPECIFIED;
+
+/* Return the list of default duplicate binding handlers (procedures).  */
+static inline SCM
+default_duplicate_binding_handlers (void)
+{
+  SCM get_handlers;
+
+  get_handlers = SCM_VARIABLE_REF (default_duplicate_binding_procedures_var);
+
+  return (scm_call_0 (get_handlers));
+}
+
+/* Resolve the import of SYM in MODULE, where SYM is currently provided by
+   both IFACE1 as VAR1 and IFACE2 as VAR2.  Return the variable chosen by the
+   duplicate binding handlers or `#f'.  */
+static inline SCM
+resolve_duplicate_binding (SCM module, SCM sym,
+			   SCM iface1, SCM var1,
+			   SCM iface2, SCM var2)
+{
+  SCM result = SCM_BOOL_F;
+
+  if (!scm_is_eq (var1, var2))
+    {
+      SCM val1, val2;
+      SCM handlers, h, handler_args;
+
+      val1 = SCM_VARIABLE_REF (var1);
+      val2 = SCM_VARIABLE_REF (var2);
+
+      val1 = (val1 == SCM_UNSPECIFIED) ? SCM_BOOL_F : val1;
+      val2 = (val2 == SCM_UNSPECIFIED) ? SCM_BOOL_F : val2;
+
+      handlers = SCM_MODULE_DUPLICATE_HANDLERS (module);
+      if (scm_is_false (handlers))
+	handlers = default_duplicate_binding_handlers ();
+
+      handler_args = scm_list_n (module, sym,
+				 iface1, val1, iface2, val2,
+				 var1, val1,
+				 SCM_UNDEFINED);
+
+      for (h = handlers;
+	   scm_is_pair (h) && scm_is_false (result);
+	   h = SCM_CDR (h))
+	{
+	  result = scm_apply (SCM_CAR (h), handler_args, SCM_EOL);
+	}
+    }
+  else
+    result = var1;
+
+  return result;
+}
+
+/* Lookup SYM as an imported variable of MODULE.  */
+static inline SCM
+module_imported_variable (SCM module, SCM sym)
+{
+#define SCM_BOUND_THING_P scm_is_true
+  register SCM var, imports;
+
+  /* Search cached imported bindings.  */
+  imports = SCM_MODULE_IMPORT_OBARRAY (module);
+  var = scm_hashq_ref (imports, sym, SCM_UNDEFINED);
+  if (SCM_BOUND_THING_P (var))
+    return var;
+
+  {
+    /* Search the use list for yet uncached imported bindings, possibly
+       resolving duplicates as needed and caching the result in the import
+       obarray.  */
+    SCM uses;
+    SCM found_var = SCM_BOOL_F, found_iface = SCM_BOOL_F;
+
+    for (uses = SCM_MODULE_USES (module);
+	 scm_is_pair (uses);
+	 uses = SCM_CDR (uses))
+      {
+	SCM iface;
+
+	iface = SCM_CAR (uses);
+	var = scm_module_variable (iface, sym);
+
+	if (SCM_BOUND_THING_P (var))
+	  {
+	    if (SCM_BOUND_THING_P (found_var))
+	      {
+		/* SYM is a duplicate binding (imported more than once) so we
+		   need to resolve it.  */
+		found_var = resolve_duplicate_binding (module, sym,
+						       found_iface, found_var,
+						       iface, var);
+		if (scm_is_eq (found_var, var))
+		  found_iface = iface;
+	      }
+	    else
+	      /* Keep track of the variable we found and check for other
+		 occurences of SYM in the use list.  */
+	      found_var = var, found_iface = iface;
+	  }
+      }
+
+    if (SCM_BOUND_THING_P (found_var))
+      {
+	/* Save the lookup result for future reference.  */
+	(void) scm_hashq_set_x (imports, sym, found_var);
+	return found_var;
+      }
+  }
+
+  return SCM_BOOL_F;
+#undef SCM_BOUND_THING_P
+}
+
+SCM_DEFINE (scm_module_local_variable, "module-local-variable", 2, 0, 0,
+	    (SCM module, SCM sym),
+	    "Return the variable bound to @var{sym} in @var{module}.  Return "
+	    "@code{#f} is @var{sym} is not bound locally in @var{module}.")
+#define FUNC_NAME s_scm_module_local_variable
 {
 #define SCM_BOUND_THING_P(b) \
   (scm_is_true (b))
 
+  register SCM b;
+
+  /* SCM_MODULE_TAG is not initialized yet when `boot-9.scm' is being
+     evaluated.  */
+  if (scm_module_system_booted_p)
+    SCM_VALIDATE_MODULE (1, module);
+
+  SCM_VALIDATE_SYMBOL (2, sym);
+
+
   /* 1. Check module obarray */
-  SCM b = scm_hashq_ref (SCM_MODULE_OBARRAY (module), sym, SCM_UNDEFINED);
+  b = scm_hashq_ref (SCM_MODULE_OBARRAY (module), sym, SCM_UNDEFINED);
   if (SCM_BOUND_THING_P (b))
     return b;
+
+  /* 2. Search imported bindings.  In order to be consistent with
+     `module-variable', the binder gets called only when no imported binding
+     matches SYM.  */
+  b = module_imported_variable (module, sym);
+  if (SCM_BOUND_THING_P (b))
+    return SCM_BOOL_F;
+
   {
+    /* 3. Query the custom binder.  */
     SCM binder = SCM_MODULE_BINDER (module);
+
     if (scm_is_true (binder))
-      /* 2. Custom binder */
       {
 	b = scm_call_3 (binder, module, sym, SCM_BOOL_F);
 	if (SCM_BOUND_THING_P (b))
 	  return b;
       }
   }
-  {
-    /* 3. Search the use list */
-    SCM uses = SCM_MODULE_USES (module);
-    while (scm_is_pair (uses))
-      {
-	b = module_variable (SCM_CAR (uses), sym);
-	if (SCM_BOUND_THING_P (b))
-	  return b;
-	uses = SCM_CDR (uses);
-      }
-    return SCM_BOOL_F;
-  }
+
+  return SCM_BOOL_F;
+
 #undef SCM_BOUND_THING_P
 }
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_module_variable, "module-variable", 2, 0, 0,
+	    (SCM module, SCM sym),
+	    "Return the variable bound to @var{sym} in @var{module}.  This "
+	    "may be both a local variable or an imported variable.  Return "
+	    "@code{#f} is @var{sym} is not bound in @var{module}.")
+#define FUNC_NAME s_scm_module_variable
+{
+#define SCM_BOUND_THING_P(b) \
+  (scm_is_true (b))
+
+  register SCM var;
+
+  if (scm_module_system_booted_p)
+    SCM_VALIDATE_MODULE (1, module);
+
+  SCM_VALIDATE_SYMBOL (2, sym);
+
+  /* 1. Check module obarray */
+  var = scm_hashq_ref (SCM_MODULE_OBARRAY (module), sym, SCM_UNDEFINED);
+  if (SCM_BOUND_THING_P (var))
+    return var;
+
+  /* 2. Search among the imported variables.  */
+  var = module_imported_variable (module, sym);
+  if (SCM_BOUND_THING_P (var))
+    return var;
+
+  {
+    /* 3. Query the custom binder.  */
+    SCM binder;
+
+    binder = SCM_MODULE_BINDER (module);
+    if (scm_is_true (binder))
+      {
+	var = scm_call_3 (binder, module, sym, SCM_BOOL_F);
+	if (SCM_BOUND_THING_P (var))
+	  return var;
+      }
+  }
+
+  return SCM_BOOL_F;
+
+#undef SCM_BOUND_THING_P
+}
+#undef FUNC_NAME
 
 scm_t_bits scm_tc16_eval_closure;
 
@@ -335,7 +509,7 @@ scm_eval_closure_lookup (SCM eclo, SCM sym, SCM definep)
 			 module, sym);
     }
   else
-    return module_variable (module, sym);
+    return scm_module_variable (module, sym);
 }
 
 SCM_DEFINE (scm_standard_eval_closure, "standard-eval-closure", 1, 0, 0,
@@ -398,38 +572,44 @@ scm_current_module_transformer ()
 
 SCM_DEFINE (scm_module_import_interface, "module-import-interface", 2, 0, 0,
 	    (SCM module, SCM sym),
-	    "")
+	    "Return the module or interface from which @var{sym} is imported "
+	    "in @var{module}.  If @var{sym} is not imported (i.e., it is not "
+	    "defined in @var{module} or it is a module-local binding instead "
+	    "of an imported one), then @code{#f} is returned.")
 #define FUNC_NAME s_scm_module_import_interface
 {
-#define SCM_BOUND_THING_P(b) (scm_is_true (b))
-  SCM uses;
-  SCM_VALIDATE_MODULE (SCM_ARG1, module);
-  /* Search the use list */
-  uses = SCM_MODULE_USES (module);
-  while (scm_is_pair (uses))
+  SCM var, result = SCM_BOOL_F;
+
+  SCM_VALIDATE_MODULE (1, module);
+  SCM_VALIDATE_SYMBOL (2, sym);
+
+  var = scm_module_variable (module, sym);
+  if (scm_is_true (var))
     {
-      SCM _interface = SCM_CAR (uses);
-      /* 1. Check module obarray */
-      SCM b = scm_hashq_ref (SCM_MODULE_OBARRAY (_interface), sym, SCM_BOOL_F);
-      if (SCM_BOUND_THING_P (b))
-	return _interface;
-      {
-	SCM binder = SCM_MODULE_BINDER (_interface);
-	if (scm_is_true (binder))
-	  /* 2. Custom binder */
-	  {
-	    b = scm_call_3 (binder, _interface, sym, SCM_BOOL_F);
-	    if (SCM_BOUND_THING_P (b))
-	      return _interface;
-	  }
-      }
-      /* 3. Search use list recursively. */
-      _interface = scm_module_import_interface (_interface, sym);
-      if (scm_is_true (_interface))
-	return _interface;
-      uses = SCM_CDR (uses);
+      /* Look for the module that provides VAR.  */
+      SCM local_var;
+
+      local_var = scm_hashq_ref (SCM_MODULE_OBARRAY (module), sym,
+				 SCM_UNDEFINED);
+      if (scm_is_eq (local_var, var))
+	result = module;
+      else
+	{
+	  /* Look for VAR among the used modules.  */
+	  SCM uses, imported_var;
+
+	  for (uses = SCM_MODULE_USES (module);
+	       scm_is_pair (uses) && scm_is_false (result);
+	       uses = SCM_CDR (uses))
+	    {
+	      imported_var = scm_module_variable (SCM_CAR (uses), sym);
+	      if (scm_is_eq (imported_var, var))
+		result = SCM_CAR (uses);
+	    }
+	}
     }
-  return SCM_BOOL_F;
+
+  return result;
 }
 #undef FUNC_NAME
 
@@ -560,9 +740,13 @@ scm_define (SCM sym, SCM value)
   return var;
 }
 
-SCM
-scm_module_reverse_lookup (SCM module, SCM variable)
-#define FUNC_NAME "module-reverse-lookup"
+SCM_DEFINE (scm_module_reverse_lookup, "module-reverse-lookup", 2, 0, 0,
+	    (SCM module, SCM variable),
+	    "Return the symbol under which @var{variable} is bound in "
+	    "@var{module} or @var{#f} if @var{variable} is not visible "
+	    "from @var{module}.  If @var{module} is @code{#f}, then the "
+	    "pre-module obarray is used.")
+#define FUNC_NAME s_scm_module_reverse_lookup
 {
   SCM obarray;
   long i, n;
@@ -594,8 +778,7 @@ scm_module_reverse_lookup (SCM module, SCM variable)
 	}
     }
 
-  /* Try the `uses' list. 
-   */
+  /* Try the `uses' list.  */
   {
     SCM uses = SCM_MODULE_USES (module);
     while (scm_is_pair (uses))
@@ -669,6 +852,8 @@ scm_post_boot_init_modules ()
   process_use_modules_var = PERM (scm_c_lookup ("process-use-modules"));
   module_export_x_var = PERM (scm_c_lookup ("module-export!"));
   the_root_module_var = PERM (scm_c_lookup ("the-root-module"));
+  default_duplicate_binding_procedures_var =
+    PERM (scm_c_lookup ("default-duplicate-binding-procedures"));
 
   scm_module_system_booted_p = 1;
 }

@@ -1,3 +1,21 @@
+2007-05-05  Ludovic Courtès  <ludo@chbouib.org>
+
+	Implemented lazy duplicate binding handling.
+
+	* modules.c (scm_export): Renamed to...
+	(scm_module_export): This.  Now public.
+	(module_variable): Removed.
+	(default_duplicate_binding_procedures_var): New variable.
+	(default_duplicate_binding_handlers, resolve_duplicate_binding,
+	module_imported_variable, scm_module_local_variable,
+	scm_module_variable): New functions.
+	(scm_module_import_interface): Rewritten.
+	(scm_module_reverse_lookup): Exported as a Scheme function.
+	* modules.h (scm_module_index_duplicate_handlers,
+	scm_module_index_import_obarray): New macros.
+	(scm_module_variable, scm_module_local_variable,
+	scm_module_export): New declarations.
+
 2007-04-17  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
 	* numbers.c: Commented out trailing `HAVE_COMPLEX_DOUBLE' after

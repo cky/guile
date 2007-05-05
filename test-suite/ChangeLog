@@ -1,3 +1,10 @@
+2007-05-05  Ludovic Courtès  <ludo@chbouib.org>
+
+	* tests/modules.test: Use `define-module'.  Use `(srfi srfi-1)'.
+	(foundations, observers, duplicate bindings, lazy binder): New
+	test prefixes.
+	(autoload)[module-autoload!]: New test.
+
 2007-03-08  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/structs.test (make-struct): Exercise the error check on tail
