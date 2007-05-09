@@ -1,5 +1,5 @@
 Guile NEWS --- history of user-visible changes.
-Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 See the end for copying conditions.
 
 Please send Guile bug reports to bug-guile@gnu.org.  Note that you
@@ -52,6 +52,7 @@ extensions.)
 ** `array-in-bounds?' fix if an array has different lower bounds on each index
 ** `*' returns exact 0 for "(* inexact 0)"
 This follows what it always did for "(* 0 inexact)".
+** SRFI-19: Value returned by `(current-time time-process)' was incorrect
 ** Build problems on Solaris fixed
 ** Build problems on Mingw fixed
 
