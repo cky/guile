@@ -350,14 +350,6 @@
   (let ((run-time (get-internal-run-time)))
     (make-time
      time-process
-     (quotient run-time internal-time-units-per-second)
-     (* (remainder run-time internal-time-units-per-second)
-        priv:ns-per-guile-tick))))
-
-(define (priv:current-time-process)
-  (let ((run-time (get-internal-run-time)))
-    (list
-     'time-process
      (* (remainder run-time internal-time-units-per-second)
         priv:ns-per-guile-tick)
      (quotient run-time internal-time-units-per-second))))

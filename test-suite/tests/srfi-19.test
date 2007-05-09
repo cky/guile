@@ -109,7 +109,9 @@ incomplete numerical tower implementation.)"
 		add-duration
 		#t))
   (pass-if "(current-time time-tai) works"
-	   (begin (current-time time-tai) #t))
+	   (time? (current-time time-tai)))
+  (pass-if "(current-time time-process) works"
+           (time? (current-time time-process)))
   (test-time-conversion time-utc time-tai)
   (test-time-conversion time-utc time-monotonic)
   (test-time-conversion time-tai time-monotonic)

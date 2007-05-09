@@ -1,3 +1,9 @@
+2007-05-09  Ludovic Courtès  <ludo@chbouib.org>
+
+	* tests/srfi-19.test ((current-time time-tai) works): Use `time?'.
+	((current-time time-process) works): New test, catches a bug
+	reported by Scott Shedden.
+
 2007-05-05  Ludovic Courtès  <ludo@chbouib.org>
 
 	* tests/modules.test: Use `define-module'.  Use `(srfi srfi-1)'.

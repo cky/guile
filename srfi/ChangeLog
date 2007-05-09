@@ -1,3 +1,9 @@
+2007-05-09  Ludovic Courtès  <ludo@chbouib.org>
+
+	* srfi-19.scm (priv:current-time-process): Removed shadowing
+	definition that returned a list.  Use the right argument order to
+	`make-time'.  Reported by Scott Shedden.
+	
 2007-02-04  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
 	* srfi/srfi-19.scm (priv:locale-abbr-weekday): Add one to the day
