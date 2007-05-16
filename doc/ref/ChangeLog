@@ -1,3 +1,8 @@
+2007-05-16  Ludovic Courtès  <ludovic.courtes@laas.fr>
+
+	* posix.texi (Network Sockets and Communication): Fixed typo:
+	`make-socket-object' instead of `make-socket-address'.
+
 2007-03-08  Kevin Ryde  <user42@zip.com.au>
 
 	* api-compound.texi (Structures): Revise and expand variously, add

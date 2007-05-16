@@ -2903,7 +2903,7 @@ automatically, if not already bound.
 
 @example
 (bind sock AF_INET INADDR_ANY 12345)
-(bind sock (make-socket-object AF_INET INADDR_ANY 12345))
+(bind sock (make-socket-address AF_INET INADDR_ANY 12345))
 @end example
 @end deffn
 
