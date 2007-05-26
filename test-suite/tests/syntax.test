@@ -725,15 +725,16 @@
 
 (with-test-prefix "top-level define"
 
-  (pass-if "binding is created before expression is evaluated"
-    (= (eval '(begin
-                (define foo
-                  (begin
-                    (set! foo 1)
-                    (+ foo 1)))
-                foo)
-             (interaction-environment))
-       2))
+  (pass-if "redefinition"
+    (let ((m (make-module)))
+      (beautify-user-module! m)
+
+      ;; The previous value of `round' must still be visible at the time the
+      ;; new `round' is defined.  According to R5RS (Section 5.2.1), `define'
+      ;; should behave like `set!' in this case (except that in the case of
+      ;; Guile, we respect module boundaries).
+      (eval '(define round round) m)
+      (eq? (module-ref m 'round) round)))
 
   (with-test-prefix "currying"
 
@@ -779,6 +780,17 @@
                   (eq? 'b (a 1) (a 4))
                   (eq? 'c (a 2) (a 5))))
           (interaction-environment)))
+
+  (pass-if "binding is created before expression is evaluated"
+    ;; Internal defines are equivalent to `letrec' (R5RS, Section 5.2.2).
+    (= (eval '(let ()
+                (define foo
+                  (begin
+                    (set! foo 1)
+                    (+ foo 1)))
+                foo)
+             (interaction-environment))
+       2))
 
   (pass-if "internal defines with begin"
     (false-if-exception

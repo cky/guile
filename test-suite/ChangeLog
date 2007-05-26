@@ -1,3 +1,11 @@
+2007-05-26  Ludovic Courtès  <ludo@chbouib.org>
+
+	* tests/syntax.test (top-level define)[binding is created before
+	expression is evaluated]: Moved to "internal define", using `let'
+	instead of `begin'.  The test was not necessarily valid for
+	top-level defines, according to Section 5.2.1 or R5RS.
+	[redefinition]: New.
+
 2007-05-09  Ludovic Courtès  <ludo@chbouib.org>
 
 	* tests/srfi-19.test ((current-time time-tai) works): Use `time?'.

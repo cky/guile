@@ -1209,10 +1209,11 @@ canonicalize_define (const SCM expr)
   return expr;
 }
 
-/* According to section 5.2.1 of R5RS we first have to make sure that the
- * variable is bound, and then perform the (set! variable expression)
- * operation.  This means, that within the expression we may already assign
- * values to variable: (define foo (begin (set! foo 1) (+ foo 1)))  */
+/* According to Section 5.2.1 of R5RS we first have to make sure that the
+   variable is bound, and then perform the `(set! variable expression)'
+   operation.  However, EXPRESSION _can_ be evaluated before VARIABLE is
+   bound.  This means that EXPRESSION won't necessarily be able to assign
+   values to VARIABLE as in `(define foo (begin (set! foo 1) (+ foo 1)))'.  */
 SCM
 scm_m_define (SCM expr, SCM env)
 {
@@ -1222,9 +1223,9 @@ scm_m_define (SCM expr, SCM env)
     const SCM canonical_definition = canonicalize_define (expr);
     const SCM cdr_canonical_definition = SCM_CDR (canonical_definition);
     const SCM variable = SCM_CAR (cdr_canonical_definition);
+    const SCM value = scm_eval_car (SCM_CDR (cdr_canonical_definition), env);
     const SCM location
       = scm_sym2var (variable, scm_env_top_level (env), SCM_BOOL_T);
-    const SCM value = scm_eval_car (SCM_CDR (cdr_canonical_definition), env);
 
     if (SCM_REC_PROCNAMES_P)
       {

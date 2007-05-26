@@ -1,3 +1,9 @@
+2007-05-26  Ludovic Courtès  <ludo@chbouib.org>
+
+	* eval.c (scm_m_define): Updated comment.  Changed order for value
+	evaluation and `scm_sym2var ()' call, which is perfectly valid per
+	R5RS.  This reverts the change dated 2004-04-22 by Dirk Herrmann.
+
 2007-05-05  Ludovic Courtès  <ludo@chbouib.org>
 
 	Implemented lazy duplicate binding handling.
