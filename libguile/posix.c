@@ -842,7 +842,7 @@ SCM_DEFINE (scm_ttyname, "ttyname", 1, 0, 0,
 {
   char *result;
   int fd, err;
-  SCM ret;
+  SCM ret = SCM_BOOL_F;
 
   port = SCM_COERCE_OUTPORT (port);
   SCM_VALIDATE_OPPORT (1, port);
@@ -851,9 +851,12 @@ SCM_DEFINE (scm_ttyname, "ttyname", 1, 0, 0,
   fd = SCM_FPORT_FDES (port);
 
   scm_i_scm_pthread_mutex_lock (&scm_i_misc_mutex);
+
   SCM_SYSCALL (result = ttyname (fd));
   err = errno;
-  ret = scm_from_locale_string (result);
+  if (result != NULL)
+    result = strdup (result);
+
   scm_i_pthread_mutex_unlock (&scm_i_misc_mutex);
 
   if (!result)
@@ -861,6 +864,9 @@ SCM_DEFINE (scm_ttyname, "ttyname", 1, 0, 0,
       errno = err;
       SCM_SYSERROR;
     }
+  else
+    ret = scm_take_locale_string (result);
+
   return ret;
 }
 #undef FUNC_NAME

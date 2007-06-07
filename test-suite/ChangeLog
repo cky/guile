@@ -1,3 +1,10 @@
+2007-06-07  Ludovic Courtès  <ludovic.courtes@laas.fr>
+
+	* lib.scm (exception:system-error): New variable.
+
+	* tests/posix.test (ttyname): New test prefix.  Catches a bug
+	reported by Dan McMahill.
+
 2007-05-26  Ludovic Courtès  <ludo@chbouib.org>
 
 	* tests/syntax.test (top-level define)[binding is created before

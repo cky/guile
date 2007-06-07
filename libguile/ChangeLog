@@ -1,3 +1,9 @@
+2007-06-07  Ludovic Courtès  <ludovic.courtes@laas.fr>
+
+	* posix.c (scm_ttyname): Check whether RESULT is NULL before
+	making a string from it (reported by Dan McMahill).  Don't call
+	`scm_from_locale_string ()' before the mutex is released.
+
 2007-05-26  Ludovic Courtès  <ludo@chbouib.org>
 
 	* eval.c (scm_m_define): Updated comment.  Changed order for value

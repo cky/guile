@@ -1,6 +1,6 @@
 ;;;; posix.test --- Test suite for Guile POSIX functions. -*- scheme -*-
 ;;;;
-;;;; Copyright 2003, 2004, 2006 Free Software Foundation, Inc.
+;;;; Copyright 2003, 2004, 2006, 2007 Free Software Foundation, Inc.
 ;;;;
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -17,7 +17,8 @@
 ;;;; the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;;;; Boston, MA 02110-1301 USA
 
-(use-modules (test-suite lib))
+(define-module (test-suite test-posix)
+  :use-module (test-suite lib))
 
 
 ;; FIXME: The following exec tests are disabled since on an i386 debian with
@@ -145,3 +146,19 @@
     (putenv "FOO=")
     (unsetenv "FOO")
     (not (getenv "FOO"))))
+
+;;
+;; ttyname
+;;
+
+(with-test-prefix "ttyname"
+
+  (pass-if-exception "non-tty argument" exception:system-error
+    ;; This used to crash in 1.8.1 and earlier.
+    (let ((file (false-if-exception
+                 (open-output-file "/dev/null"))))
+      (if (not file)
+          (throw 'unsupported)
+          (ttyname file)))))
+
+

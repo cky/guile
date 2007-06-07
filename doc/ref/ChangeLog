@@ -1,3 +1,8 @@
+2007-06-07  Ludovic Courtès  <ludovic.courtes@laas.fr>
+
+	* api-control.texi (Dynamic Wind): Fixed typo.  Reported by
+	Norman Hardy.
+
 2007-05-16  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
 	* posix.texi (Network Sockets and Communication): Fixed typo:

@@ -53,6 +53,7 @@ extensions.)
 ** `*' returns exact 0 for "(* inexact 0)"
 This follows what it always did for "(* 0 inexact)".
 ** SRFI-19: Value returned by `(current-time time-process)' was incorrect
+** `ttyname' no longer crashes when passed a non-tty argument
 ** Build problems on Solaris fixed
 ** Build problems on Mingw fixed
 

@@ -1164,7 +1164,7 @@ lexical variables, this will be, well, inconvenient.
 
 Therefore, Guile offers the functions @code{scm_dynwind_begin} and
 @code{scm_dynwind_end} to delimit a dynamic extent.  Within this
-dynamic extent, which is calles a @dfn{dynwind context}, you can
+dynamic extent, which is called a @dfn{dynwind context}, you can
 perform various @dfn{dynwind actions} that control what happens when
 the dynwind context is entered or left.  For example, you can register
 a cleanup routine with @code{scm_dynwind_unwind_handler} that is
