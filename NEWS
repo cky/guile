@@ -54,6 +54,7 @@ extensions.)
 This follows what it always did for "(* 0 inexact)".
 ** SRFI-19: Value returned by `(current-time time-process)' was incorrect
 ** `ttyname' no longer crashes when passed a non-tty argument
+** `inet-ntop' no longer crashes on SPARC when passed an `AF_INET' address
 ** Build problems on Solaris fixed
 ** Build problems on Mingw fixed
 
