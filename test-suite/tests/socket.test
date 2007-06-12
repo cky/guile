@@ -1,6 +1,6 @@
 ;;;; socket.test --- test socket functions     -*- scheme -*-
 ;;;;
-;;;; Copyright (C) 2004, 2005, 2006 Free Software Foundation, Inc.
+;;;; Copyright (C) 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -16,7 +16,7 @@
 ;;;; License along with this library; if not, write to the Free Software
 ;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-(define-module (test-suite test-numbers)
+(define-module (test-suite test-socket)
   #:use-module (test-suite lib))
 
 
@@ -100,6 +100,22 @@
 	  (eqv? #xF0
 		(inet-pton AF_INET6
 			   "0000:0000:0000:0000:0000:0000:0000:00F0"))))))
+
+(if (defined? 'inet-ntop)
+    (with-test-prefix "inet-ntop"
+
+      (with-test-prefix "ipv4"
+	(pass-if "127.0.0.1"
+	  (equal? "127.0.0.1" (inet-ntop AF_INET INADDR_LOOPBACK))))
+
+      (if (defined? 'AF_INET6)
+	  (with-test-prefix "ipv6"
+	    (pass-if "FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF"
+	      (string-ci=? "FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF"
+			   (inet-ntop AF_INET6 (- (expt 2 128) 1))))
+
+	    (pass-if "::1"
+	      (equal? "::1" (inet-ntop AF_INET6 1)))))))
 
 
 ;;;

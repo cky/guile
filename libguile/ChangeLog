@@ -1,3 +1,9 @@
+2007-06-12  Ludovic Courtès  <ludo@chbouib.org>
+
+	* socket.c (scm_inet_ntop): In the `AF_INET' case, declare `addr4'
+	as an `scm_t_uint32' rather than re-using `addr6'.  This fixes a
+	bus error on SPARC (and possibly others) due to unaligned access.
+
 2007-06-07  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
 	* posix.c (scm_ttyname): Check whether RESULT is NULL before
