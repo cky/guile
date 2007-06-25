@@ -1,3 +1,8 @@
+2007-06-26  Ludovic Courtès  <ludo@gnu.org>
+
+	* readline.c (scm_add_history): Free S after invocation of
+	`add_history ()'.
+
 2007-01-19  Han-Wen Nienhuys  <hanwen@lilypond.org>
 
 	* readline.c: terminate option list with NULL.
@@ -315,7 +320,7 @@
 
 2001-06-14  Marius Vollmer  <mvo@zagadka.ping.de>
 
-	Thanks to Matthias K�ppe!
+	Thanks to Matthias Köppe!
 
 	* configure.in: Check for rl_filename_completion_function.
 	* readline.c (s_scm_filename_completion_function): Use
@@ -701,3 +706,7 @@ Sun Dec 12 19:56:52 1999  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* Started guile-readline package.  Files are copied from old
 	guile-core package and slightly modified.
+
+;; Local Variables:
+;; coding: utf-8
+;; End:

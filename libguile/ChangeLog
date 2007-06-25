@@ -1,3 +1,11 @@
+2007-06-26  Ludovic Courtès  <ludo@gnu.org>
+
+	* fluids.c (next_fluid_num): When growing ALLOCATED_FLUIDS, make
+	sure to free the previous array after the new one has been
+	installed.  This leak is made visible by running
+	"(define l (map (lambda (i) (make-fluid)) (iota 255)))"
+	from the REPL within Valgrind.
+
 2007-06-12  Ludovic Courtès  <ludo@chbouib.org>
 
 	* socket.c (scm_inet_ntop): In the `AF_INET' case, declare `addr4'

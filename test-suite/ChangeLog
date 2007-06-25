@@ -1,3 +1,9 @@
+2007-06-26  Ludovic Courtès  <ludo@gnu.org>
+
+	* tests/socket.test (htonl): Only executed if `htonl' is defined.
+	(ntohl): Likewise.  Reported by Marijn Schouten (hkBst)
+	<hkBst@gentoo.org>.
+
 2007-06-12  Ludovic Courtès  <ludo@chbouib.org>
 
 	* tests/socket.test: Renamed module to `(test-suite test-socket)'.

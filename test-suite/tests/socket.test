@@ -25,20 +25,21 @@
 ;;; htonl
 ;;;
 
-(with-test-prefix "htonl"
+(if (defined? 'htonl)
+    (with-test-prefix "htonl"
 
-  (pass-if "0" (eqv? 0 (htonl 0)))
+      (pass-if "0" (eqv? 0 (htonl 0)))
 
-  (pass-if-exception "-1" exception:out-of-range
-    (htonl -1))
+      (pass-if-exception "-1" exception:out-of-range
+        (htonl -1))
 
-  ;; prior to guile 1.6.9 and 1.8.1, systems with 64-bit longs didn't detect
-  ;; an overflow for values 2^32 <= x < 2^63
-  (pass-if-exception "2^32" exception:out-of-range
-    (htonl (ash 1 32)))
+      ;; prior to guile 1.6.9 and 1.8.1, systems with 64-bit longs didn't detect
+      ;; an overflow for values 2^32 <= x < 2^63
+      (pass-if-exception "2^32" exception:out-of-range
+        (htonl (ash 1 32)))
 
-  (pass-if-exception "2^1024" exception:out-of-range
-    (htonl (ash 1 1024))))
+      (pass-if-exception "2^1024" exception:out-of-range
+        (htonl (ash 1 1024)))))
 
 
 ;;;
@@ -151,20 +152,21 @@
 ;;; ntohl
 ;;;
 
-(with-test-prefix "ntohl"
+(if (defined? 'ntohl)
+    (with-test-prefix "ntohl"
 
-  (pass-if "0" (eqv? 0 (ntohl 0)))
+      (pass-if "0" (eqv? 0 (ntohl 0)))
 
-  (pass-if-exception "-1" exception:out-of-range
-    (ntohl -1))
+      (pass-if-exception "-1" exception:out-of-range
+        (ntohl -1))
 
-  ;; prior to guile 1.6.9 and 1.8.1, systems with 64-bit longs didn't detect
-  ;; an overflow for values 2^32 <= x < 2^63
-  (pass-if-exception "2^32" exception:out-of-range
-    (ntohl (ash 1 32)))
+      ;; prior to guile 1.6.9 and 1.8.1, systems with 64-bit longs didn't detect
+      ;; an overflow for values 2^32 <= x < 2^63
+      (pass-if-exception "2^32" exception:out-of-range
+        (ntohl (ash 1 32)))
 
-  (pass-if-exception "2^1024" exception:out-of-range
-    (ntohl (ash 1 1024))))
+      (pass-if-exception "2^1024" exception:out-of-range
+        (ntohl (ash 1 1024)))))
 
 
 

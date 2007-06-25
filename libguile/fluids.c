@@ -1,4 +1,4 @@
-/* Copyright (C) 1996,1997,2000,2001, 2004, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1996,1997,2000,2001, 2004, 2006, 2007 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -226,7 +226,8 @@ next_fluid_num ()
 	 no GC can run while updating these two variables.
       */
 
-      char *new_allocated_fluids = 
+      char *prev_allocated_fluids;
+      char *new_allocated_fluids =
 	scm_malloc (allocated_fluids_len + FLUID_GROW);
 
       /* Copy over old values and initialize rest.  GC can not run
@@ -236,9 +237,14 @@ next_fluid_num ()
       memcpy (new_allocated_fluids, allocated_fluids, allocated_fluids_len);
       memset (new_allocated_fluids + allocated_fluids_len, 0, FLUID_GROW);
       n = allocated_fluids_len;
+
+      prev_allocated_fluids = allocated_fluids;
       allocated_fluids = new_allocated_fluids;
       allocated_fluids_len += FLUID_GROW;
-      
+
+      if (prev_allocated_fluids != NULL)
+	free (prev_allocated_fluids);
+
       /* Now allocated_fluids and allocated_fluids_len are valid again
 	 and we can allow GCs to occur.
       */
