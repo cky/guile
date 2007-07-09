@@ -53,9 +53,10 @@ extensions.)
 ** `*' returns exact 0 for "(* inexact 0)"
 This follows what it always did for "(* 0 inexact)".
 ** SRFI-19: Value returned by `(current-time time-process)' was incorrect
+** SRFI-19: `date->julian-day' did not account for timezone offset
 ** `ttyname' no longer crashes when passed a non-tty argument
 ** `inet-ntop' no longer crashes on SPARC when passed an `AF_INET' address
-** Small memory leaks have been fixed in `make-fluids' and `add-history'
+** Small memory leaks have been fixed in `make-fluid' and `add-history'
 ** Build problems on Solaris fixed
 ** Build problems on Mingw fixed
 

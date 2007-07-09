@@ -1,3 +1,8 @@
+2007-07-09  Ludovic Courtès  <ludo@gnu.org>
+
+	* tests/srfi-19.test (`time-utc->julian-day' honors timezone):
+	New.  Suggested by Jon Wilson <j85wilson@fastmail.fm>.
+
 2007-06-26  Ludovic Courtès  <ludo@gnu.org>
 
 	* tests/socket.test (htonl): Only executed if `htonl' is defined.

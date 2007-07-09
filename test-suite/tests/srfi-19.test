@@ -141,6 +141,12 @@ incomplete numerical tower implementation.)"
   (test-dst time-monotonic->date date->time-monotonic)
   (test-dst julian-day->date date->julian-day)
   (test-dst modified-julian-day->date date->modified-julian-day)
+
+  (pass-if "`date->julian-day' honors timezone"
+    (let ((now (current-date -14400)))
+      (time=? (date->time-utc (julian-day->date (date->julian-day now)))
+              (date->time-utc now))))
+
   (pass-if "string->date respects local DST if no time zone is read"
 	   (time=? (date->time-utc
 		    (with-tz "EST5EDT"

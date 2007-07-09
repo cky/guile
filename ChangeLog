@@ -1,3 +1,7 @@
+2007-07-09  Ludovic Courtès  <ludo@gnu.org>
+
+	* NEWS: Mention SRFI-19 `date->julian-day' bug fix.
+
 2007-06-26  Ludovic Courtès  <ludo@gnu.org>
 
 	* NEWS: Mention fixed memory leaks.
