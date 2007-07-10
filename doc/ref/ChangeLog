@@ -1,3 +1,11 @@
+2007-07-10  Ludovic Courtès  <ludo@gnu.org>
+
+	* api-data.texi (Arithmetic): Documented `1+' and `1-'.
+	Suggested by Jon Wilson <j85wilson@fastmail.fm>.
+
+	* api-modules.texi (Module System Reflection): Documented
+	`save-module-excursion', by Jon Wilson <jsw@wilsonjc.us>.
+
 2007-06-07  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
 	* api-control.texi (Dynamic Wind): Fixed typo.  Reported by

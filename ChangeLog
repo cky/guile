@@ -1,3 +1,7 @@
+2007-07-11  Ludovic Courtès  <ludo@gnu.org>
+
+	* NEWS: Mention GOOPS `method-more-specific?' bug fix.
+
 2007-07-09  Ludovic Courtès  <ludo@gnu.org>
 
 	* NEWS: Mention SRFI-19 `date->julian-day' bug fix.

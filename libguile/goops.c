@@ -2315,29 +2315,36 @@ SCM_DEFINE (scm_find_method, "find-method", 0, 0, 1,
 
 SCM_DEFINE (scm_sys_method_more_specific_p, "%method-more-specific?", 3, 0, 0,
 	    (SCM m1, SCM m2, SCM targs),
-	    "")
+	    "Return true if method @var{m1} is more specific than @var{m2} "
+	    "given the argument types (classes) listed in @var{targs}.")
 #define FUNC_NAME s_scm_sys_method_more_specific_p
 {
   SCM l, v, result;
   SCM *v_elts;
-  long i, len;
+  long i, len, m1_specs, m2_specs;
   scm_t_array_handle handle;
 
   SCM_VALIDATE_METHOD (1, m1);
   SCM_VALIDATE_METHOD (2, m2);
-  SCM_ASSERT ((len = scm_ilength (targs)) != -1, targs, SCM_ARG3, FUNC_NAME);
 
-  /* Verify that all the arguments of targs are classes and place them
-     in a vector
-  */
+  len = scm_ilength (targs);
+  m1_specs = scm_ilength (SPEC_OF (m1));
+  m2_specs = scm_ilength (SPEC_OF (m2));
+  SCM_ASSERT ((len >= m1_specs) || (len >= m2_specs),
+	      targs, SCM_ARG3, FUNC_NAME);
+
+  /* Verify that all the arguments of TARGS are classes and place them
+     in a vector.  */
 
   v = scm_c_make_vector (len, SCM_EOL);
   v_elts = scm_vector_writable_elements (v, &handle, NULL, NULL);
 
-  for (i = 0, l = targs; i < len && scm_is_pair (l); i++, l = SCM_CDR (l))
+  for (i = 0, l = targs;
+       i < len && scm_is_pair (l);
+       i++, l = SCM_CDR (l))
     {
       SCM_ASSERT (SCM_CLASSP (SCM_CAR (l)), targs, SCM_ARG3, FUNC_NAME);
-      v_elts[i] = SCM_CAR(l);
+      v_elts[i] = SCM_CAR (l);
     }
   result = more_specificp (m1, m2, v_elts) ? SCM_BOOL_T: SCM_BOOL_F;
 

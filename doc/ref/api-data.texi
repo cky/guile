@@ -1117,6 +1117,8 @@ Returns the magnitude or angle of @var{z} as a @code{double}.
 @rnindex *
 @rnindex -
 @rnindex /
+@findex 1+
+@findex 1-
 @rnindex abs
 @rnindex floor
 @rnindex ceiling
@@ -1156,6 +1158,16 @@ returned.
 @deffnx {C Function} scm_divide (z1, z2)
 Divide the first argument by the product of the remaining arguments.  If
 called with one argument @var{z1}, 1/@var{z1} is returned.
+@end deffn
+
+@deffn {Scheme Procedure} 1+ z
+@deffnx {C Function} scm_oneplus (z)
+Return @math{@var{z} + 1}.
+@end deffn
+
+@deffn {Scheme Procedure} 1- z
+@deffnx {C function} scm_oneminus (z)
+Return @math{@var{z} - 1}.
 @end deffn
 
 @c begin (texi-doc-string "guile" "abs")

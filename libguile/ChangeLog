@@ -1,3 +1,11 @@
+2007-07-11  Ludovic Courtès  <ludo@gnu.org>
+
+	* goops.c (scm_sys_method_more_specific_p): Added docstring.
+	Make sure LEN is greater than or equal to the minimum length of
+	specializers of M1 and M2.  This fixes a segfault later on in
+	`more_specificp ()' if TARGS is too small.  Reported by Marco
+	Maggi <marco.maggi-ipsu@poste.it>.
+
 2007-06-26  Ludovic Courtès  <ludo@gnu.org>
 
 	* fluids.c (next_fluid_num): When growing ALLOCATED_FLUIDS, make
