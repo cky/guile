@@ -1,6 +1,7 @@
 Contributors since the last release:
 
 	    Rob Browning
+        Ludovic CourtÃ¨s
          Stefan Jahn
            Neil Jerram
         Antoine Mathys
@@ -24,11 +25,11 @@ For fixes or providing information which led to a fix:
          Adrian Bunk
         Michael Carmack
         Stephen Compall
-        Ludovic Courtès
           Brian Crowder
     Christopher Cramer
           Hyper Division
       Alexandre Duret-Lutz
+           Nils Durner
          John W Eaton
 	Clinton Ebadi
         Charles Gagnon
@@ -36,9 +37,11 @@ For fixes or providing information which led to a fix:
            Eric Gillespie, Jr
            John Goerzen
            Mike Gran
+         Szavai Gyula
 	   Sven Hartrumpf
 	   Eric Hanchrow
             Sam Hocevar
+           Ales Hvezda
           Peter Ivanyi
        Wolfgang Jaehrling
          Aubrey Jaffer
@@ -46,12 +49,15 @@ For fixes or providing information which led to a fix:
           Steve Juranich
         Richard Kim
           Bruce Korb
-       Matthias Köppe
+       Matthias KÃ¶ppe
            Matt Kraai
        Miroslav Lichvar
            Jeff Long
+	  Marco Maggi
+            Dan McMahill
         Han-Wen Nienhuys
             Jan Nieuwenhuizen
+         Hrvoje NikÅ¡iÄ‡
          Stefan Nordhausen
          Roland Orre
          Pieter Pareit
@@ -62,21 +68,30 @@ For fixes or providing information which led to a fix:
          Carlos Pita
             Ken Raeburn
         Andreas Rottmann
-	  Kevin Ryde
+           Hugh Sasse
          Werner Scheinast
 	   Bill Schottstaedt
+          Scott Shedden
            Alex Shinn
          Daniel Skarda
+          Cesar Strauss
         Richard Todd
           Issac Trotts
            Greg Troxel
+       Aaron M. Ucko
         Momchil Velikov
      Panagiotis Vossos
         Neil W. Van Dyke
           Aaron VanDevender
-	Andreas Vögele
+	Andreas VÃ¶gele
         Michael Talbot-Wilson
         Michael Tuexen
+            Jon Wilson
            Andy Wingo
           Keith Wright
         William Xu
+
+
+;; Local Variables:
+;; coding: utf-8
+;; End:

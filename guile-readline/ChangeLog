@@ -1,3 +1,8 @@
+2007-07-15  Ludovic Courtès  <ludo@gnu.org>
+
+	* LIBGUILEREADLINE-VERSION
+	(LIBGUILEREADLINE_INTERFACE_REVISION): Incremented for release.
+
 2007-06-26  Ludovic Courtès  <ludo@gnu.org>
 
 	* readline.c (scm_add_history): Free S after invocation of

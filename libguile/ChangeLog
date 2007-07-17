@@ -1,3 +1,7 @@
+2007-07-15  Ludovic Courtès  <ludo@gnu.org>
+
+	* script.c (scm_compile_shell_switches): Updated copyright year.
+
 2007-07-11  Ludovic Courtès  <ludo@gnu.org>
 
 	* goops.c (scm_sys_method_more_specific_p): Added docstring.

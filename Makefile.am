@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in.
 ##
-##  	Copyright (C) 1998, 1999, 2000, 2001, 2002, 2006 Free Software Foundation, Inc.
+##  	Copyright (C) 1998, 1999, 2000, 2001, 2002, 2006, 2007 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
@@ -33,7 +33,7 @@ include_HEADERS = libguile.h
 
 # automake sometimes forgets to distribute acconfig.h,
 # apparently depending on the phase of the moon.
-EXTRA_DIST = LICENSE HACKING GUILE-VERSION ANON-CVS SNAPSHOTS BUGS
+EXTRA_DIST = LICENSE HACKING GUILE-VERSION ANON-CVS SNAPSHOTS
 
 TESTS = check-guile
 

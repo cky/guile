@@ -46,7 +46,7 @@ Changes in 1.8.2 (since 1.8.1):
 the core bindings got priority, preventing SRFI replacements or
 extensions.)
 ** `regexp-exec' doesn't abort() on #\nul in the input or bad flags arg
-** `kill' on mingw throws an error for a pid other than oneself
+** `kill' on mingw throws an error for a PID other than oneself
 ** Procedure names are attached to procedure-with-setters
 ** Array read syntax works with negative lower bound
 ** `array-in-bounds?' fix if an array has different lower bounds on each index
@@ -59,7 +59,8 @@ This follows what it always did for "(* 0 inexact)".
 ** Small memory leaks have been fixed in `make-fluid' and `add-history'
 ** GOOPS: Fixed a bug in `method-more-specific?'
 ** Build problems on Solaris fixed
-** Build problems on Mingw fixed
+** Build problems on HP-UX IA64 fixed
+** Build problems on MinGW fixed
 
 
 Changes in 1.8.1 (since 1.8.0):

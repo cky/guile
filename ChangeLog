@@ -1,3 +1,29 @@
+2007-07-15  Ludovic Courtès  <ludo@gnu.org>
+
+	Guile 1.8.2 released.
+
+	* NEWS: Mention HP-UX/IA64 build fixes.
+
+	* THANKS: Added people who reported bugs or sent patches since
+	1.8.1.  Converted to UTF-8.
+
+	* README: Updated version number.
+
+	* Makefile.am (EXTRA_DIST): Removed `BUGS' (was outdated).
+
+	* ANON-CVS, HACKING, SNAPSHOTS: New, from the `workbook'
+	directory of the CVS repository.
+
+	* autogen.sh: Removed dependency on the `workbook' CVS
+	directory.
+
+	* GUILE-VERSION (GUILE_MICRO_VERSION): Set to 2.
+	(LIBGUILE_INTERFACE_CURRENT): Incremented due to new symbols.
+	(LIBGUILE_INTERFACE_REVISION): Set to 0.
+	(LIBGUILE_INTERFACE_AGE): Incremented.
+	(LIBGUILE_SRFI_SRFI_60_INTERFACE_REVISION): Incremented due to
+	bug fixes.
+
 2007-07-11  Ludovic Courtès  <ludo@gnu.org>
 
 	* NEWS: Mention GOOPS `method-more-specific?' bug fix.
