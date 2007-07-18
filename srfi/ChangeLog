@@ -1,3 +1,8 @@
+2007-07-18  Stephen Compall  <s11@member.fsf.org>
+
+	* srfi-37.scm: New file.
+	* Makefile.am: Add it.
+
 2007-07-09  Ludovic Courtès  <ludo@gnu.org>
 
 	* srfi-19.scm (date->julian-day): Take OFFSET into account.

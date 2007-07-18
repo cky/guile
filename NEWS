@@ -29,6 +29,13 @@ be used for efficiently implementing a Scheme code coverage.
 indicating length of the scm_t_option array.
 
 
+Changes in 1.8.3 (since 1.8.2)
+
+* New modules (see the manual for details)
+
+** `(srfi srfi-37)'
+
+
 Changes in 1.8.2 (since 1.8.1):
 
 * New procedures (see the manual for details)

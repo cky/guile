@@ -74,6 +74,7 @@ srfi_DATA = srfi-1.scm \
             srfi-26.scm \
             srfi-31.scm \
             srfi-34.scm \
+            srfi-37.scm \
             srfi-39.scm \
             srfi-60.scm
 
