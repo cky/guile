@@ -16,17 +16,24 @@ Each release reports the NEWS in the following sections:
 
 Changes in 1.9.XXXXXXXX:
 
+* New modules (see the manual for details)
+
+** The `(ice-9 i18n)' module provides internationalization support
+
 * Changes to the distribution
 * Changes to the stand-alone interpreter
 * Changes to Scheme functions and syntax
 
-** A new 'memoize-symbol evaluator trap has been added. This trap can
+** A new 'memoize-symbol evaluator trap has been added.  This trap can
 be used for efficiently implementing a Scheme code coverage.
+
+** Duplicate bindings among used modules are resolved lazily.
+This slightly improves program startup times.
 
 * Changes to the C interface
 
-** Functions for handling scm_option now no longer require an argument
-indicating length of the scm_t_option array.
+** Functions for handling `scm_option' now no longer require an argument
+indicating length of the `scm_t_option' array.
 
 
 Changes in 1.8.3 (since 1.8.2)

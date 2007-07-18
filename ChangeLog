@@ -1,3 +1,8 @@
+2007-07-19  Ludovic Courtès  <ludo@gnu.org>
+
+	* NEWS: Mention `(ice-9 i18n)' and lazy duplicate binding
+	resolution.
+
 2007-07-18  Ludovic Courtès  <ludo@gnu.org>
 
 	* NEWS: Mention SRFI-37.
