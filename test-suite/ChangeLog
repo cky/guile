@@ -1,3 +1,7 @@
+2007-07-18  Stephen Compall  <s11@member.fsf.org>
+
+	* tests/syntax.test: Add SRFI-61 `cond' tests.
+
 2007-07-11  Ludovic Courtès  <ludo@gnu.org>
 
 	* tests/goops.test (defining methods): New test prefix.

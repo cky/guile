@@ -557,6 +557,50 @@
         (let ((=> 'foo))
           (eq? (cond (else => identity)) identity)))))
 
+  (with-test-prefix "SRFI-61"
+
+    (pass-if "always available"
+      (cond-expand (srfi-61 #t) (else #f)))
+
+    (pass-if "single value consequent"
+      (eq? 'ok (cond (#t identity => (lambda (x) 'ok)) (else #f))))
+
+    (pass-if "single value alternate"
+      (eq? 'ok (cond (#t not => (lambda (x) #f)) (else 'ok))))
+
+    (pass-if-exception "doesn't affect standard =>"
+      exception:wrong-num-args
+      (cond ((values 1 2) => (lambda (x y) #t))))
+
+    (pass-if "multiple values consequent"
+      (equal? '(2 1) (cond ((values 1 2)
+			    (lambda (one two)
+			      (and (= 1 one) (= 2 two))) =>
+			    (lambda (one two) (list two one)))
+			   (else #f))))
+
+    (pass-if "multiple values alternate"
+      (eq? 'ok (cond ((values 2 3 4)
+		      (lambda args (equal? '(1 2 3) args)) =>
+		      (lambda (x y z) #f))
+		     (else 'ok))))
+
+    (pass-if "zero values"
+      (eq? 'ok (cond ((values) (lambda () #t) => (lambda () 'ok))
+		     (else #f))))
+
+    (pass-if "bound => is handled correctly"
+      (let ((=> 'ok))
+	(eq? 'ok (cond (#t identity =>) (else #f)))))
+
+    (pass-if-exception "missing recipient"
+      '(syntax-error . "Missing recipient")
+      (cond (#t identity =>)))
+
+    (pass-if-exception "extra recipient"
+      '(syntax-error . "Extra expression")
+      (cond (#t identity => identity identity))))
+
   (with-test-prefix "unmemoization"
 
     (pass-if "normal clauses"
