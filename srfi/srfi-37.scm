@@ -6,40 +6,43 @@
 ;; modify it under the terms of the GNU Lesser General Public
 ;; License as published by the Free Software Foundation; either
 ;; version 2.1 of the License, or (at your option) any later version.
-;; 
+;;
 ;; This library is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 ;; Lesser General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU Lesser General Public
 ;; License along with this library; if not, write to the Free Software
 ;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
 
-#! Commentary
+;;; Commentary:
+;;
+;; To use this module with Guile, use (cdr (program-arguments)) as
+;; the ARGS argument to `args-fold'.  Here is a short example:
+;;
+;;  (args-fold (cdr (program-arguments))
+;; 	    (let ((display-and-exit-proc
+;; 		   (lambda (msg)
+;; 		     (lambda (opt name arg)
+;; 		       (display msg) (quit) (values)))))
+;; 	      (list (option '(#\v "version") #f #f
+;; 			    (display-and-exit-proc "Foo version 42.0\n"))
+;; 		    (option '(#\h "help") #f #f
+;; 			    (display-and-exit-proc
+;; 			     "Usage: foo scheme-file ..."))))
+;; 	    (lambda (opt name arg)
+;; 	      (error "Unrecognized option `~A'" name))
+;; 	    (lambda (op) (load op) (values)))
+;;
+;;; Code:
 
-To use this module with Guile, use (cdr (program-arguments)) as
-the ARGS argument to `args-fold'.  Here is a short example:
-
- (args-fold (cdr (program-arguments))
-	    (let ((display-and-exit-proc
-		   (lambda (msg)
-		     (lambda (opt name arg)
-		       (display msg) (quit) (values)))))
-	      (list (option '(#\v "version") #f #f
-			    (display-and-exit-proc "Foo version 42.0\n"))
-		    (option '(#\h "help") #f #f
-			    (display-and-exit-proc
-			     "Usage: foo scheme-file ..."))))
-	    (lambda (opt name arg)
-	      (error "Unrecognized option `~A'" name))
-	    (lambda (op) (load op) (values)))
-!#
 
 ;;;; Module definition & exports
 (define-module (srfi srfi-37)
   #:use-module (srfi srfi-9)
-  #:export (option option-names option-required-arg? 
+  #:export (option option-names option-required-arg?
 	    option-optional-arg? option-processor
 	    args-fold))
 
