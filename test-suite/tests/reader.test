@@ -1,15 +1,55 @@
-;;;; reader.test --- test the Guile parser -*- scheme -*-
-;;;; Jim Blandy <jimb@red-bean.com> --- September 1999
+;;;; reader.test --- Exercise the reader.               -*- Scheme -*-
+;;;;
+;;;; Copyright (C) 1999, 2001, 2002, 2003, 2007 Free Software Foundation, Inc.
+;;;; Jim Blandy <jimb@red-bean.com>
+;;;;
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 2.1 of the License, or (at your option) any later version.
+;;;;
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;;
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+(define-module (test-suite reader)
+  :use-module (test-suite lib))
+
 
 (define exception:eof
   (cons 'read-error "end of file$"))
-
 (define exception:unexpected-rparen
   (cons 'read-error "unexpected \")\"$"))
+(define exception:unterminated-block-comment
+  (cons 'read-error "unterminated `#! ... !#' comment$"))
+(define exception:unknown-character-name
+  (cons 'read-error "unknown character name .*$"))
+(define exception:unknown-sharp-object
+  (cons 'read-error "Unknown # object: .*$"))
+(define exception:eof-in-string
+  (cons 'read-error "end of file in string constant$"))
+(define exception:illegal-escape
+  (cons 'read-error "illegal character in escape sequence: .*$"))
+
 
 (define (read-string s)
   (with-input-from-string s (lambda () (read))))
 
+(define (with-read-options opts thunk)
+  (let ((saved-options (read-options)))
+    (dynamic-wind
+        (lambda ()
+          (read-options opts))
+        thunk
+        (lambda ()
+          (read-options saved-options)))))
+
+
 (with-test-prefix "reading"
   (pass-if "0"
     (equal? (read-string "0") 0))
@@ -31,8 +71,18 @@
 	   (lambda (key subr message args rest)
 	     (apply format #f message args)
 	     ;; message and args are ok
-	     #t))))
+	     #t)))
 
+  (pass-if "block comment"
+    (equal? '(+ 1 2 3)
+            (read-string "(+ 1 #! this is a\ncomment !# 2 3)")))
+
+  (pass-if "unprintable symbol"
+    ;; The reader tolerates unprintable characters for symbols.
+    (equal? (string->symbol "\001\002\003")
+            (read-string "\001\002\003"))))
+
+
 (pass-if-exception "radix passed to number->string can't be zero"
   exception:out-of-range
   (number->string 10 0))
@@ -40,6 +90,7 @@
   exception:out-of-range
   (number->string 10 1))
 
+
 (with-test-prefix "mismatching parentheses"
   (pass-if-exception "opening parenthesis"
     exception:eof
@@ -53,3 +104,53 @@
   (pass-if-exception "closing parenthesis following mismatched vector opening"
      exception:unexpected-rparen
      (read-string ")")))
+
+
+(with-test-prefix "exceptions"
+
+  ;; Reader exceptions: although they are not documented, they may be relied
+  ;; on by some programs, hence these tests.
+
+  (pass-if-exception "unterminated block comment"
+    exception:unterminated-block-comment
+    (read-string "(+ 1 #! comment\n..."))
+  (pass-if-exception "unknown character name"
+    exception:unknown-character-name
+    (read-string "#\\theunknowncharacter"))
+  (pass-if-exception "unknown sharp object"
+    exception:unknown-sharp-object
+    (read-string "#?"))
+  (pass-if-exception "eof in string"
+    exception:eof-in-string
+    (read-string "\"the string that never ends"))
+  (pass-if-exception "illegal escape in string"
+    exception:illegal-escape
+    (read-string "\"some string \\???\"")))
+
+
+(with-test-prefix "read-options"
+  (pass-if "case-sensitive"
+    (not (eq? 'guile 'GuiLe)))
+  (pass-if "case-insensitive"
+    (eq? 'guile
+         (with-read-options '(case-insensitive)
+           (lambda ()
+             (read-string "GuiLe")))))
+  (pass-if "prefix keywords"
+    (eq? #:keyword
+         (with-read-options '(keywords prefix case-insensitive)
+           (lambda ()
+             (read-string ":KeyWord")))))
+  (pass-if "no positions"
+    (let ((sexp (with-read-options '()
+                  (lambda ()
+                    (read-string "(+ 1 2 3)")))))
+      (and (not (source-property sexp 'line))
+           (not (source-property sexp 'column)))))
+  (pass-if "positions"
+    (let ((sexp (with-read-options '(positions)
+                  (lambda ()
+                    (read-string "(+ 1 2 3)")))))
+      (and (equal? (source-property sexp 'line) 0)
+           (equal? (source-property sexp 'column) 0)))))
+

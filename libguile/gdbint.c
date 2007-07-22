@@ -103,9 +103,6 @@ int scm_print_carefully_p;
 static SCM gdb_input_port;
 static int port_mark_p, stream_mark_p, string_mark_p;
 
-static SCM tok_buf;
-static int tok_buf_mark_p;
-
 static SCM gdb_output_port;
 
 
@@ -184,10 +181,9 @@ gdb_read (char *str)
   scm_puts (str, gdb_input_port);
   scm_truncate_file (gdb_input_port, SCM_UNDEFINED);
   scm_seek (gdb_input_port, SCM_INUM0, scm_from_int (SEEK_SET));
+
   /* Read one object */
-  tok_buf_mark_p = SCM_GC_MARK_P (tok_buf);
-  SCM_CLEAR_GC_MARK (tok_buf);
-  ans = scm_lreadr (&tok_buf, gdb_input_port, &ans);
+  ans = scm_read (gdb_input_port);
   if (SCM_GC_P)
     {
       if (SCM_NIMP (ans))
@@ -202,8 +198,6 @@ gdb_read (char *str)
   if (SCM_NIMP (ans))
     scm_permanent_object (ans);
 exit:
-  if (tok_buf_mark_p)
-    SCM_SET_GC_MARK (tok_buf);
   remark_port (gdb_input_port);
   SCM_END_FOREIGN_BLOCK;
   return status;
@@ -292,8 +286,6 @@ scm_init_gdbint ()
 			SCM_OPN | SCM_RDNG | SCM_WRTNG,
 			s);
   gdb_input_port = scm_permanent_object (port);
-
-  tok_buf = scm_permanent_object (scm_c_make_string (30, SCM_UNDEFINED));
 }
 
 /*

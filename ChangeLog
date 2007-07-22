@@ -1,3 +1,7 @@
+2007-07-22  Ludovic Courtès  <ludo@gnu.org>
+
+	* configure.in: Check for <strings.h> and `strncasecmp ()'.
+
 2007-07-19  Ludovic Courtès  <ludo@gnu.org>
 
 	* NEWS: Mention `(ice-9 i18n)' and lazy duplicate binding

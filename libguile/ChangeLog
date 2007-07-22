@@ -1,3 +1,18 @@
+2007-07-22  Ludovic Courtès  <ludo@gnu.org>
+
+	Overhauled the reader, making it faster.
+
+	* gdbint.c (tok_buf, tok_buf_mark_p): Removed.
+	(gdb_read): Don't use a token buffer.  Use `scm_read ()' instead
+	of `scm_lreadr ()'.
+
+	* read.c: Overhauled.  No longer use a token buffer.  Use a
+	on-stack C buffer in the common case and use Scheme strings when
+	larger buffers are needed.
+	* read.h (scm_grow_tok_buf, scm_flush_ws, scm_casei_streq,
+	scm_lreadr, scm_lreadrecparen): Removed.
+	(scm_i_input_error): Marked as `SCM_NORETURN'.
+
 2007-07-15  Ludovic Courtès  <ludo@gnu.org>
 
 	* script.c (scm_compile_shell_switches): Updated copyright year.

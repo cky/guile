@@ -546,7 +546,7 @@ AC_CHECK_HEADERS([complex.h fenv.h io.h libc.h limits.h malloc.h memory.h proces
 regex.h rxposix.h rx/rxposix.h sys/dir.h sys/ioctl.h sys/select.h \
 sys/time.h sys/timeb.h sys/times.h sys/stdtypes.h sys/types.h \
 sys/utime.h time.h unistd.h utime.h pwd.h grp.h sys/utsname.h \
-direct.h langinfo.h nl_types.h])
+strings.h direct.h langinfo.h nl_types.h])
 
 # "complex double" is new in C99, and "complex" is only a keyword if
 # <complex.h> is included
@@ -638,7 +638,7 @@ AC_CHECK_HEADERS([assert.h crt_externs.h])
 #   strcoll_l, newlocale - GNU extensions (glibc), also available on Darwin
 #   nl_langinfo - X/Open, not available on Windows.
 #
-AC_CHECK_FUNCS([DINFINITY DQNAN chsize clog10 ctermid fesetround ftime ftruncate fchown getcwd geteuid gettimeofday gmtime_r ioctl lstat mkdir mknod nice pipe _pipe readdir_r readlink rename rmdir select setegid seteuid setlocale setpgid setsid sigaction siginterrupt stat64 strftime strptime symlink sync sysconf tcgetpgrp tcsetpgrp times uname waitpid strdup system usleep atexit on_exit chown link fcntl ttyname getpwent getgrent kill getppid getpgrp fork setitimer getitimer strchr strcmp index bcopy memcpy rindex truncate unsetenv isblank _NSGetEnviron strcoll strcoll_l newlocale nl_langinfo])
+AC_CHECK_FUNCS([DINFINITY DQNAN chsize clog10 ctermid fesetround ftime ftruncate fchown getcwd geteuid gettimeofday gmtime_r ioctl lstat mkdir mknod nice pipe _pipe readdir_r readlink rename rmdir select setegid seteuid setlocale setpgid setsid sigaction siginterrupt stat64 strftime strptime symlink sync sysconf tcgetpgrp tcsetpgrp times uname waitpid strdup system usleep atexit on_exit chown link fcntl ttyname getpwent getgrent kill getppid getpgrp fork setitimer getitimer strchr strcmp index bcopy memcpy rindex truncate unsetenv isblank _NSGetEnviron strncasecmp strcoll strcoll_l newlocale nl_langinfo])
 
 # Reasons for testing:
 #   netdb.h - not in mingw
