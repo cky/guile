@@ -101,46 +101,7 @@ int gdb_output_length;
 int scm_print_carefully_p;
 
 static SCM gdb_input_port;
-static int port_mark_p, stream_mark_p, string_mark_p;
-
 static SCM gdb_output_port;
-
-
-static void
-unmark_port (SCM port)
-{
-#if 0
-  SCM stream, string;
-  port_mark_p = SCM_GC_MARK_P (port);
-  SCM_CLEAR_GC_MARK (port);
-  stream = SCM_PACK (SCM_STREAM (port));
-  stream_mark_p = SCM_GC_MARK_P (stream);
-  SCM_CLEAR_GC_MARK (stream);
-  string = SCM_CDR (stream);
-  string_mark_p = SCM_GC_MARK_P (string);
-  SCM_CLEAR_GC_MARK (string);
-#else
-  abort (); /* FIXME */
-#endif
-}
-
-
-static void
-remark_port (SCM port)
-{
-#if 0
-  SCM stream = SCM_PACK (SCM_STREAM (port));
-  SCM string = SCM_CDR (stream);
-  if (string_mark_p)
-    SCM_SET_GC_MARK (string);
-  if (stream_mark_p)
-    SCM_SET_GC_MARK (stream);
-  if (port_mark_p)
-    SCM_SET_GC_MARK (port);
-#else
-  abort (); /* FIXME */
-#endif
-}
 
 
 int

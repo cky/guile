@@ -222,22 +222,9 @@ unsigned long scm_mtrigger;
 
 /* GC Statistics Keeping
  */
-unsigned long scm_cells_allocated = 0;
-unsigned long scm_last_cells_allocated = 0;
 unsigned long scm_mallocated = 0;
-unsigned long scm_gc_cells_collected;
-unsigned long scm_gc_cells_collected_1 = 0; /* previous GC yield */
-unsigned long scm_gc_malloc_collected;
-unsigned long scm_gc_ports_collected;
-unsigned long scm_gc_time_taken = 0;
-static unsigned long t_before_gc;
-unsigned long scm_gc_mark_time_taken = 0;
-unsigned long scm_gc_times = 0;
-unsigned long scm_gc_cells_swept = 0;
-double scm_gc_cells_marked_acc = 0.;
-double scm_gc_cells_swept_acc = 0.;
-int scm_gc_cell_yield_percentage =0;
-int scm_gc_malloc_yield_percentage = 0;
+unsigned long scm_gc_ports_collected = 0;
+
 
 static unsigned long protected_obj_count = 0;
 
