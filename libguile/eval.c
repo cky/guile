@@ -874,26 +874,29 @@ macroexp (SCM x, SCM env)
 
   SCM_SETCAR (x, orig_sym);  /* Undo memoizing effect of lookupcar */
   res = scm_call_2 (SCM_MACRO_CODE (proc), x, env);
-  
+
   if (scm_ilength (res) <= 0)
-    res = scm_list_2 (SCM_IM_BEGIN, res);
+    /* Result of expansion is not a list.  */
+    return (scm_list_2 (SCM_IM_BEGIN, res));
+  else
+    {
+      /* njrev: Several queries here: (1) I don't see how it can be
+	 correct that the SCM_SETCAR 2 lines below this comment needs
+	 protection, but the SCM_SETCAR 6 lines above does not, so
+	 something here is probably wrong.  (2) macroexp() is now only
+	 used in one place - scm_m_generalized_set_x - whereas all other
+	 macro expansion happens through expand_user_macros.  Therefore
+	 (2.1) perhaps macroexp() could be eliminated completely now?
+	 (2.2) Does expand_user_macros need any critical section
+	 protection? */
 
-  /* njrev: Several queries here: (1) I don't see how it can be
-     correct that the SCM_SETCAR 2 lines below this comment needs
-     protection, but the SCM_SETCAR 6 lines above does not, so
-     something here is probably wrong.  (2) macroexp() is now only
-     used in one place - scm_m_generalized_set_x - whereas all other
-     macro expansion happens through expand_user_macros.  Therefore
-     (2.1) perhaps macroexp() could be eliminated completely now?
-     (2.2) Does expand_user_macros need any critical section
-     protection? */
+      SCM_CRITICAL_SECTION_START;
+      SCM_SETCAR (x, SCM_CAR (res));
+      SCM_SETCDR (x, SCM_CDR (res));
+      SCM_CRITICAL_SECTION_END;
 
-  SCM_CRITICAL_SECTION_START;
-  SCM_SETCAR (x, SCM_CAR (res));
-  SCM_SETCDR (x, SCM_CDR (res));
-  SCM_CRITICAL_SECTION_END;
-
-  goto macro_tail;
+      goto macro_tail;
+    }
 }
 
 /* Start of the memoizers for the standard R5RS builtin macros.  */

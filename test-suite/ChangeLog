@@ -1,3 +1,10 @@
+2007-07-25  Ludovic Court√®s  <ludo@gnu.org>
+
+	* tests/srfi-17.test (%some-variable): New.
+	(set!)[target uses macro]: New test prefix.  The
+	"(set! (@@ ...) 1)" test is in accordance with Marius Vollmer's
+	change in `libguile' dated 2003-11-17.
+
 2007-07-22  Ludovic Court√®s  <ludo@gnu.org>
 
 	* tests/reader.test: Added a proper header and `define-module'.
@@ -140,7 +147,7 @@
 
 	* tests/numbers.test (*): Exercise multiply by exact 0 giving exact 0.
 
-2006-12-12  Ludovic CourtËs  <ludovic.courtes@laas.fr>
+2006-12-12  Ludovic Court√®s  <ludovic.courtes@laas.fr>
 
 	* tests/unif.test (syntax): New test prefix.  Check syntax for
 	negative lower bounds and negative lengths (reported by Gyula
@@ -167,7 +174,7 @@
 	ensure intended exact vs inexact is checked.  Reported by Aaron
 	M. Ucko, Debian bug 396119.
 
-2006-11-29  Ludovic CourtËs  <ludovic.courtes@laas.fr>
+2006-11-29  Ludovic Court√®s  <ludovic.courtes@laas.fr>
 
 	* test-suite/tests/vectors.test: Use `define-module'.
 	(vector->list): New test prefix.  "Shared array" test contributed
@@ -187,7 +194,7 @@
 
 	* tests/environments.test: Comment out all tests in this file.
 
-2006-10-26  Ludovic CourtËs  <ludovic.courtes@laas.fr>
+2006-10-26  Ludovic Court√®s  <ludovic.courtes@laas.fr>
 
 	* tests/srfi-14.test (Latin-1)[char-set:punctuation]: Fixed a
 	typo: `thrown' instead of `throw'.

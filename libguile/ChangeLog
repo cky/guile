@@ -1,3 +1,9 @@
+2007-07-25  Ludovic Courtès  <ludo@gnu.org>
+
+	* eval.c (macroexp): When `scm_ilength (res) <= 0', return
+	immediately.  This used to produce a circular memoized
+	expression, e.g., for `(set (quote x) #t)'.
+
 2007-07-22  Ludovic Courtès  <ludo@gnu.org>
 
 	Overhauled the reader, making it faster.
