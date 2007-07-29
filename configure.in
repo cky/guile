@@ -37,9 +37,11 @@ AC_INIT(patsubst(m4_esyscmd(. ./GUILE-VERSION && echo ${PACKAGE}),[
         patsubst(m4_esyscmd(. ./GUILE-VERSION && echo ${GUILE_VERSION}),[
 ]),
         [bug-guile@gnu.org])
-AC_CONFIG_AUX_DIR([.])
+AC_CONFIG_AUX_DIR([build-aux])
+AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR(GUILE-VERSION)
-AM_INIT_AUTOMAKE([no-define])
+
+AM_INIT_AUTOMAKE([gnu no-define check-news])
 
 AC_COPYRIGHT(GUILE_CONFIGURE_COPYRIGHT)
 AC_CONFIG_SRCDIR([GUILE-VERSION])

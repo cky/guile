@@ -1,3 +1,9 @@
+2007-07-29  Ludovic Courtès  <ludo@gnu.org>
+
+	* configure.in: Use `build-aux' as `AC_CONFIG_AUX_DIR', and `m4'
+	as `AC_CONFIG_MACRO_DIR'.  Use Automake's `gnu' and `check-news'
+	options.
+
 2007-07-25  Ludovic Courtès  <ludo@gnu.org>
 
 	* NEWS: Mention bug fix for "(set! 'x #f)".
