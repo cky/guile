@@ -6,6 +6,7 @@
 
 	* Makefile.am (SUBDIRS): Added `lib'.
 	(ACLOCAL_AMFLAGS): Added `-I m4'.
+	(EXTRA_DIST): Added `m4/ChangeLog'.
 
 	* NEWS: Comply with Automake's `check-news' option, i.e., have
 	the last "Changes in" line appear within the first 15 lines.
