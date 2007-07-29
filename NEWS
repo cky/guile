@@ -6,21 +6,17 @@ Please send Guile bug reports to bug-guile@gnu.org.  Note that you
 must be subscribed to this list first, in order to successfully send a
 report to it.
 
-Each release reports the NEWS in the following sections:
-
-* Changes to the distribution
-* Changes to the stand-alone interpreter
-* Changes to Scheme functions and syntax
-* Changes to the C interface 
-
 
-Changes in 1.9.XXXXXXXX:
+Changes in 1.9.0:
 
 * New modules (see the manual for details)
 
 ** The `(ice-9 i18n)' module provides internationalization support
 
 * Changes to the distribution
+
+** Guile now uses Gnulib as a portability aid
+
 * Changes to the stand-alone interpreter
 * Changes to Scheme functions and syntax
 

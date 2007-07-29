@@ -1,6 +1,6 @@
 ## Process this file with Automake to create Makefile.in
 ##
-##  	Copyright (C) 1998, 1999, 2000, 2001, 2004, 2006 Free Software Foundation, Inc.
+##  	Copyright (C) 1998, 1999, 2000, 2001, 2004, 2006, 2007 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
@@ -25,15 +25,17 @@ SUBDIRS = ice-9
 DEFS = @DEFS@ @EXTRA_DEFS@
 ## Check for headers in $(srcdir)/.., so that #include
 ## <libguile/MUMBLE.h> will find MUMBLE.h in this dir when we're
-## building.
-INCLUDES = -I. -I.. -I$(srcdir)/..
+## building.  Also look for Gnulib headers in `lib'.
+INCLUDES = -I. -I.. -I$(srcdir)/..			\
+	   -I$(top_srcdir)/lib -I$(top_builddir)/lib
 
 GUILE_SNARF = ../libguile/guile-snarf
 
 lib_LTLIBRARIES = libguilereadline-v-@LIBGUILEREADLINE_MAJOR@.la
 
 libguilereadline_v_@LIBGUILEREADLINE_MAJOR@_la_SOURCES = readline.c
-libguilereadline_v_@LIBGUILEREADLINE_MAJOR@_la_LIBADD = ../libguile/libguile.la
+libguilereadline_v_@LIBGUILEREADLINE_MAJOR@_la_LIBADD =	\
+   ../libguile/libguile.la ../lib/libgnu.la
 libguilereadline_v_@LIBGUILEREADLINE_MAJOR@_la_LDFLAGS = -version-info @LIBGUILEREADLINE_INTERFACE@ -export-dynamic -no-undefined
 
 

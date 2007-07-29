@@ -24,7 +24,7 @@
 #
 AUTOMAKE_OPTIONS = 1.10
 
-SUBDIRS = oop libguile ice-9 guile-config guile-readline emacs \
+SUBDIRS = lib oop libguile ice-9 guile-config guile-readline emacs \
 	  scripts srfi doc examples test-suite benchmark-suite lang am
 
 bin_SCRIPTS = guile-tools
@@ -37,7 +37,7 @@ EXTRA_DIST = LICENSE HACKING GUILE-VERSION ANON-CVS SNAPSHOTS
 
 TESTS = check-guile
 
-ACLOCAL_AMFLAGS = -I guile-config
+ACLOCAL_AMFLAGS = -I guile-config -I m4
 
 DISTCLEANFILES = check-guile.log
 

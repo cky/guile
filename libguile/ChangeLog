@@ -1,3 +1,15 @@
+2007-07-29  Ludovic Courtès  <ludo@gnu.org>
+
+	* Makefile.am (INCLUDES): Added Gnulib includes.
+	(gnulib_library): New.
+	(libguile_i18n_v_@LIBGUILE_I18N_MAJOR@_la_LIBADD): Added
+	`$(gnulib_library)'.
+	(libguile_la_LIBADD): Likewise.
+
+	* posix.c: Don't define `_GNU_SOURCE' since `gl_EARLY' arranges
+	to define it when available.
+	* srfi-14.c: Likewise.
+
 2007-07-25  Ludovic Courtès  <ludo@gnu.org>
 
 	* eval.c (macroexp): When `scm_ilength (res) <= 0', return

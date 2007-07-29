@@ -19,10 +19,13 @@ libtool --version
 echo ""
 ${M4:-/usr/bin/m4} --version
 echo ""
+gnulib-tool --version
+echo ""
 
 ######################################################################
 ### update infrastructure
 
+gnulib-tool --update &&				\
 autoreconf -i --force --verbose
 
 echo "guile-readline..."

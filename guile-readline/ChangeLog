@@ -1,3 +1,9 @@
+2007-07-29  Ludovic Courtès  <ludo@gnu.org>
+
+	* Makefile.am (INCLUDES): Add Gnulib includes.
+	(libguilereadline_v_@LIBGUILEREADLINE_MAJOR@_la_LIBADD): Added
+	`../lib/libgnu.la'.
+
 2007-07-15  Ludovic Courtès  <ludo@gnu.org>
 
 	* LIBGUILEREADLINE-VERSION

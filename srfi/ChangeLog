@@ -1,3 +1,15 @@
+2007-07-29  Ludovic Courtès  <ludo@gnu.org>
+
+	* Makefile.am (INCLUDES): Added Gnulib includes.
+	(libguile_srfi_srfi_1_v_@LIBGUILE_SRFI_SRFI_1_MAJOR@_la_LIBADD):
+	Added `../lib/libgnu.la'.
+	(libguile_srfi_srfi_4_v_@LIBGUILE_SRFI_SRFI_4_MAJOR@_la_LIBADD):
+	Likewise.
+	(libguile_srfi_srfi_13_14_v_@LIBGUILE_SRFI_SRFI_13_14_MAJOR@_la_LIBADD):
+	Likewise.
+	(libguile_srfi_srfi_60_v_@LIBGUILE_SRFI_SRFI_60_MAJOR@_la_LIBADD):
+	Likewise.
+
 2007-07-18  Stephen Compall  <s11@member.fsf.org>
 
 	* srfi-37.scm: New file.

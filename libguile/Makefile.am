@@ -1,6 +1,6 @@
 ## Process this file with Automake to create Makefile.in
 ##
-##  	Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2006 Free Software Foundation, Inc.
+##  	Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2006, 2007 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
@@ -25,8 +25,12 @@ AUTOMAKE_OPTIONS = gnu
 DEFS = @DEFS@
 ## Check for headers in $(srcdir)/.., so that #include
 ## <libguile/MUMBLE.h> will find MUMBLE.h in this dir when we're
-## building.
-INCLUDES = -I.. -I$(top_srcdir)
+## building.  Also look for Gnulib headers in `lib'.
+INCLUDES = -I.. -I$(top_srcdir)				\
+	   -I$(top_srcdir)/lib -I$(top_builddir)/lib
+
+## The Gnulib Libtool archive.
+gnulib_library = $(top_builddir)/lib/libgnu.la
 
 ETAGS_ARGS = --regex='/SCM_\(GLOBAL_\)?\(G?PROC\|G?PROC1\|SYMBOL\|VCELL\|CONST_LONG\).*\"\([^\"]\)*\"/\3/' \
    --regex='/[ \t]*SCM_[G]?DEFINE1?[ \t]*(\([^,]*\),[^,]*/\1/'
@@ -115,7 +119,7 @@ libguile_i18n_v_@LIBGUILE_I18N_MAJOR@_la_SOURCES = i18n.c
 libguile_i18n_v_@LIBGUILE_I18N_MAJOR@_la_CFLAGS =	\
    $(libguile_la_CFLAGS)
 libguile_i18n_v_@LIBGUILE_I18N_MAJOR@_la_LIBADD =	\
-   libguile.la
+   libguile.la $(gnulib_library)
 libguile_i18n_v_@LIBGUILE_I18N_MAJOR@_la_LDFLAGS =	\
    -module -L$(builddir) -lguile				\
    -version-info @LIBGUILE_I18N_INTERFACE@
@@ -189,7 +193,7 @@ noinst_HEADERS = convert.i.c					\
 	         private-gc.h private-options.h
 
 libguile_la_DEPENDENCIES = @LIBLOBJS@
-libguile_la_LIBADD = @LIBLOBJS@
+libguile_la_LIBADD = @LIBLOBJS@ $(gnulib_library)
 libguile_la_LDFLAGS = @LTLIBINTL@ -version-info @LIBGUILE_INTERFACE_CURRENT@:@LIBGUILE_INTERFACE_REVISION@:@LIBGUILE_INTERFACE_AGE@ -export-dynamic -no-undefined
 
 # These are headers visible as <guile/mumble.h>

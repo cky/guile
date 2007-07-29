@@ -1,8 +1,24 @@
 2007-07-29  Ludovic Courtès  <ludo@gnu.org>
 
+	Added Gnulib support.
+
+	* autogen.sh: Run `gnulib-tool --update'.
+
+	* Makefile.am (SUBDIRS): Added `lib'.
+	(ACLOCAL_AMFLAGS): Added `-I m4'.
+
+	* NEWS: Comply with Automake's `check-news' option, i.e., have
+	the last "Changes in" line appear within the first 15 lines.
+	Mention use of Gnulib.
+
 	* configure.in: Use `build-aux' as `AC_CONFIG_AUX_DIR', and `m4'
 	as `AC_CONFIG_MACRO_DIR'.  Use Automake's `gnu' and `check-news'
 	options.
+	Require Autoconf 2.59.  Invoke `gl_EARLY' and `gl_INIT', don't
+	run `AC_AIX', `AC_ISC_POSIX' and `AC_MINIX' since they are
+	implied by `gl_EARLY'.  Don't look for <strings.h> and
+	`strncasecmp'.  Don't invoke `AC_FUNC_ALLOCA'.  Produce
+	`lib/Makefile'.
 
 2007-07-25  Ludovic Courtès  <ludo@gnu.org>
 
