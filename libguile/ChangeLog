@@ -9,6 +9,12 @@
 	* posix.c: Don't define `_GNU_SOURCE' since `gl_EARLY' arranges
 	to define it when available.
 	* srfi-14.c: Likewise.
+	* i18n.c: Likewise.  Include Gnulib's <alloca.h>
+	* eval.c: Include Gnulib's <alloca.h>.
+	* filesys.c: Likewise.
+	* read.c: Don't include <strings.h> and don't provide an
+	`strncasecmp ()' replacement; use Gnulib's <string.h> and
+	`strncasecmp ()' instead.
 
 2007-07-25  Ludovic Courtès  <ludo@gnu.org>
 

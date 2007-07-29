@@ -15,28 +15,11 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#define _GNU_SOURCE /* Ask for glibc's `newlocale' API */
-
 #if HAVE_CONFIG_H
 # include <config.h>
 #endif
 
-#if HAVE_ALLOCA_H
-# include <alloca.h>
-#elif defined __GNUC__
-# define alloca __builtin_alloca
-#elif defined _AIX
-# define alloca __alloca
-#elif defined _MSC_VER
-# include <malloc.h>
-# define alloca _alloca
-#else
-# include <stddef.h>
-# ifdef  __cplusplus
-extern "C"
-# endif
-void *alloca (size_t);
-#endif
+#include <alloca.h>
 
 #include "libguile/_scm.h"
 #include "libguile/feature.h"

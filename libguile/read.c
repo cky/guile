@@ -26,9 +26,6 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
-#ifdef HAVE_STRINGS_H
-# include <strings.h>
-#endif
 
 #include "libguile/_scm.h"
 #include "libguile/chars.h"
@@ -180,30 +177,6 @@ static SCM *scm_read_hash_procedures;
 /* An inlinable version of `scm_c_downcase ()'.  */
 #define CHAR_DOWNCASE(_chr)				\
   (((_chr) <= UCHAR_MAX) ? tolower (_chr) : (_chr))
-
-
-#ifndef HAVE_STRNCASECMP
-/* XXX: Use Gnulib's `strncasecmp ()'.  */
-
-static int
-strncasecmp (const char *s1, const char *s2, size_t len2)
-{
-  while (*s1 && *s2 && len2 > 0)
-    {
-      int c1 = *s1, c2 = *s2;
-
-      if (CHAR_DOWNCASE (c1) != CHAR_DOWNCASE (c2))
-	return 0;
-      else
-	{
-	  ++s1;
-	  ++s2;
-	  --len2;
-	}
-    }
-  return !(*s1 || *s2 || len2 > 0);
-}
-#endif
 
 
 /* Helper function similar to `scm_read_token ()'.  Read from PORT until a
