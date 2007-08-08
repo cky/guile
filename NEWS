@@ -42,6 +42,11 @@ Changes in 1.8.3 (since 1.8.2)
 
 ** Expressions like "(set! 'x #t)" no longer yield a crash
 
+* Implementation improvements
+
+** Procedures returned by `record-accessor' and `record-modifier' are faster
+
+
 
 Changes in 1.8.2 (since 1.8.1):
 

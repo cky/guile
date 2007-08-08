@@ -1,3 +1,8 @@
+2007-08-08  Ludovic Courtès  <ludo@gnu.org>
+
+	* NEWS: Mention changes to `record-accessor' and
+	`record-modifier'.
+
 2007-07-29  Ludovic Courtès  <ludo@gnu.org>
 
 	Added Gnulib support.
