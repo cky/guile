@@ -1,3 +1,10 @@
+2007-08-08  Ludovic Courtès  <ludo@gnu.org>
+
+	* tests/srfi-9.test (exception:not-a-record): Removed.
+	(accessor)[get-x on number, get-y on number]: Expect
+	`exception:wrong-type-arg' instead of `exception:not-a-record'.
+	(modifier)[set-y! on number]: Likewise
+
 2007-07-25  Ludovic Courtès  <ludo@gnu.org>
 
 	* tests/srfi-17.test (%some-variable): New.

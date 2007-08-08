@@ -1,7 +1,7 @@
 ;;;; srfi-9.test --- Test suite for Guile's SRFI-9 functions. -*- scheme -*-
 ;;;; Martin Grabmueller, 2001-05-10
 ;;;;
-;;;; Copyright (C) 2001, 2006 Free Software Foundation, Inc.
+;;;; Copyright (C) 2001, 2006, 2007 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -21,10 +21,6 @@
 (define-module (test-suite test-numbers)
   #:use-module (test-suite lib)
   #:use-module (srfi srfi-9))
-
-
-(define exception:not-a-record
-  (cons 'misc-error "^not-a-record"))
 
 
 (define-record-type :foo (make-foo x) foo? 
@@ -61,9 +57,9 @@
   (pass-if "get-y"
      (= 2 (get-y f)))
 
-  (pass-if-exception "get-x on number" exception:not-a-record
+  (pass-if-exception "get-x on number" exception:wrong-type-arg
      (get-x 999))
-  (pass-if-exception "get-y on number" exception:not-a-record
+  (pass-if-exception "get-y on number" exception:wrong-type-arg
      (get-y 999))
 
   ;; prior to guile 1.6.9 and 1.8.1 this wan't enforced
@@ -78,7 +74,7 @@
      (set-y! f #t)
      (eq? #t (get-y f)))
 
-  (pass-if-exception "set-y! on number" exception:not-a-record
+  (pass-if-exception "set-y! on number" exception:wrong-type-arg
      (set-y! 999 #t))
 
   ;; prior to guile 1.6.9 and 1.8.1 this wan't enforced

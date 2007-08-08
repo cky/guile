@@ -1,3 +1,12 @@
+2007-08-08  Ludovic Courtès  <ludo@gnu.org>
+
+	* boot-9.scm (%record-type-check): Renamed to
+	`%record-type-error'.
+	(record-accessor): Directly use `struct-vtable' and
+	`struct-ref', thereby avoiding indirections and procedure-call
+	overhead.
+	(record-modifier): Likewise.
+
 2007-05-05  Ludovic Courtès  <ludo@chbouib.org>
 
 	Implemented lazy duplicate binding handling.  Fixed the
