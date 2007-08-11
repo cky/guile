@@ -1,6 +1,6 @@
 2007-08-11  Ludovic Courtès  <ludo@gnu.org>
 
-	* NEWS: Mention SRFI-35.
+	* NEWS: Mention SRFI-35 and the new reader.
 
 2007-08-08  Ludovic Courtès  <ludo@gnu.org>
 

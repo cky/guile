@@ -45,6 +45,7 @@ Changes in 1.8.3 (since 1.8.2)
 
 * Implementation improvements
 
+** The reader is now faster, which reduces startup time
 ** Procedures returned by `record-accessor' and `record-modifier' are faster
 
 
