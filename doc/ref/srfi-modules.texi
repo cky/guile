@@ -37,6 +37,8 @@ get the relevant SRFI documents from the SRFI home page
 * SRFI-19::                     Time/Date library.
 * SRFI-26::                     Specializing parameters
 * SRFI-31::                     A special form `rec' for recursive evaluation
+* SRFI-34::                     Exception handling.
+* SRFI-35::                     Conditions.
 * SRFI-37::                     args-fold program argument processor
 * SRFI-39::                     Parameter objects
 * SRFI-55::                     Requiring Features.
@@ -2400,6 +2402,196 @@ The second syntax can be used to create anonymous recursive functions:
   424242
   guile>
 @end lisp
+
+
+@node SRFI-34
+@subsection SRFI-34 - Exception handling for programs
+
+@cindex SRFI-34
+Guile provides an implementation of
+@uref{http://srfi.schemers.org/srfi-34/srfi-34.html, SRFI-34's exception
+handling mechanisms} as an alternative to its own built-in mechanisms
+(@pxref{Exceptions}).  It can be made available as follows:
+
+@lisp
+(use-modules (srfi srfi-34))
+@end lisp
+
+@c FIXME: Document it.
+
+
+@node SRFI-35
+@subsection SRFI-35 - Conditions
+
+@cindex SRFI-35
+@cindex conditions
+@cindex exceptions
+
+@uref{http://srfi.schemers.org/srfi-35/srfi-35.html, SRFI-35} implements
+@dfn{conditions}, a data structure akin to records designed to convey
+information about exceptional conditions between parts of a program.  It
+is normally used in conjunction with SRFI-34's @code{raise}:
+
+@lisp
+(raise (condition (&message
+                    (message "An error occurred"))))
+@end lisp
+
+Users can define @dfn{condition types} containing arbitrary information.
+Condition types may inherit from one another.  This allows the part of
+the program that handles (or ``catches'') conditions to get accurate
+information about the exceptional condition that arose.
+
+SRFI-35 conditions are made available using:
+
+@lisp
+(use-modules (srfi srfi-35))
+@end lisp
+
+The procedures available to manipulate condition types are the
+following:
+
+@deffn {Scheme Procedure} make-condition-type id parent field-names
+Return a new condition type named @var{id}, inheriting from
+@var{parent}, and with the fields whose names are listed in
+@var{field-names}.  @var{field-names} must be a list of symbols and must
+not contain names already used by @var{parent} or one of its supertypes.
+@end deffn
+
+@deffn {Scheme Procedure} condition-type? obj
+Return true if @var{obj} is a condition type.
+@end deffn
+
+Conditions can be created and accessed with the following procedures:
+
+@deffn {Scheme Procedure} make-condition type . field+value
+Return a new condition of type @var{type} with fields initialized as
+specified by @var{field+value}, a sequence of field names (symbols) and
+values as in the following example:
+
+@lisp
+(let* ((&ct (make-condition-type 'foo &condition '(a b c))))
+  (make-condition &ct 'a 1 'b 2 'c 3))
+@end lisp
+
+Note that all fields of @var{type} and its supertypes must be specified.
+@end deffn
+
+@deffn {Scheme Procedure} make-compound-condition . conditions
+Return a new compound condition composed of @var{conditions}.  The
+returned condition has the type of each condition of @var{conditions}
+(per @code{condition-has-type?}).
+@end deffn
+
+@deffn {Scheme Procedure} condition-has-type? c type
+Return true if condition @var{c} has type @var{type}.
+@end deffn
+
+@deffn {Scheme Procedure} condition-ref c field-name
+Return the value of the field named @var{field-name} from condition @var{c}.
+
+If @var{c} is a compound condition and several underlying condition
+types contain a field named @var{field-name}, then the value of the
+first such field is returned, using the order in which conditions were
+passed to @var{make-compound-condition}.
+@end deffn
+
+@deffn {Scheme Procedure} extract-condition c type
+Return a condition of condition type @var{type} with the field values
+specified by @var{c}.
+
+If @var{c} is a compound condition, extract the field values from the
+subcondition belonging to @var{type} that appeared first in the call to
+@code{make-compound-condition} that created the the condition.
+@end deffn
+
+Convenience macros are also available to create condition types and
+conditions.
+
+@deffn {library syntax} define-condition-type type supertype predicate field-spec...
+Define a new condition type named @var{type} that inherits from
+@var{supertype}.  In addition, bind @var{predicate} to a type predicate
+that returns true when passed a condition of type @var{type} or any of
+its subtypes.  @var{field-spec} must have the form @code{(field
+accessor)} where @var{field} is the name of field of @var{type} and
+@var{accessor} is the name of a procedure to access field @var{field} in
+conditions of type @var{type}.
+
+The example below defines condition type @code{&foo}, inheriting from
+@code{&condition} with fields @code{a}, @code{b} and @code{c}:
+
+@lisp
+(define-condition-type &foo &condition
+  foo-condition?
+  (a  foo-a)
+  (b  foo-b)
+  (c  foo-c))
+@end lisp
+@end deffn
+
+@deffn {library syntax} condition type-field-bindings...
+Return a new condition, or compound condition, initialized according to
+@var{type-field-bindings}.  Each @var{type-field-binding} must have the
+form @code{(type field-specs...)}, where @var{type} is the name of a
+variable bound to condition type; each @var{field-spec} must have the
+form @code{(field-name value)} where @var{field-name} is a symbol
+denoting the field being initialized to @var{value}.  As for
+@code{make-condition}, all fields must be specified.
+
+The following example returns a simple condition:
+
+@lisp
+(condition (&message (message "An error occurred")))
+@end lisp
+
+The one below returns a compound condition:
+
+@lisp
+(condition (&message (message "An error occurred"))
+           (&serious))
+@end lisp
+@end deffn
+
+Finally, SRFI-35 defines a several standard condition types.
+
+@defvar &condition
+This condition type is the root of all condition types.  It has no
+fields.
+@end defvar
+
+@defvar &message
+A condition type that carries a message describing the nature of the
+condition to humans.
+@end defvar
+
+@deffn {Scheme Procedure} message-condition? c
+Return true if @var{c} is of type @code{&message} or one of its
+subtypes.
+@end deffn
+
+@deffn {Scheme Procedure} condition-message c
+Return the message associated with message condition @var{c}.
+@end deffn
+
+@defvar &serious
+This type describes conditions serious enough that they cannot safely be
+ignored.  It has no fields.
+@end defvar
+
+@deffn {Scheme Procedure} serious-condition? c
+Return true if @var{c} is of type @code{&serious} or one of its
+subtypes.
+@end deffn
+
+@defvar &error
+This condition describes errors, typically caused by something that has
+gone wrong in the interaction of the program with the external world or
+the user.
+@end defvar
+
+@deffn {Scheme Procedure} error? c
+Return true if @var{c} is of type @code{&error} or one of its subtypes.
+@end deffn
 
 
 @node SRFI-37

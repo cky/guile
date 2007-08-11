@@ -1,3 +1,8 @@
+2007-08-11  Ludovic Courtès  <ludo@gnu.org>
+
+	* srfi-35.scm: New file.
+	* Makefile.am (srfi_DATA): Added `srfi-35.scm'.
+
 2007-07-29  Ludovic Courtès  <ludo@gnu.org>
 
 	* Makefile.am (INCLUDES): Added Gnulib includes.

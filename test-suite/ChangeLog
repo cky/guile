@@ -1,3 +1,8 @@
+2007-08-11  Ludovic Courtès  <ludo@gnu.org>
+
+	* tests/srfi-35.test: New file.
+	* Makefile.am (SCM_TESTS): Added `tests/srfi-35.test'.
+
 2007-08-08  Ludovic Courtès  <ludo@gnu.org>
 
 	* tests/srfi-9.test (exception:not-a-record): Removed.

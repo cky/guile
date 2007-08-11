@@ -1,3 +1,8 @@
+2007-08-11  Ludovic Courtès  <ludo@gnu.org>
+
+	* srfi-modules.texi (SRFI-34): New node.
+	(SRFI-35): New node.
+
 2007-07-18  Stephen Compall  <s11@member.fsf.org>
 
 	* srfi-modules.texi: Describe SRFI-37 in a new subsection.

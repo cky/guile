@@ -36,6 +36,7 @@ Changes in 1.8.3 (since 1.8.2)
 
 * New modules (see the manual for details)
 
+** `(srfi srfi-35)'
 ** `(srfi srfi-37)'
 
 * Bugs fixed
