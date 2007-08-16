@@ -1,3 +1,8 @@
+2007-08-17  Kevin Ryde  <user42@zip.com.au>
+
+	* stime.c: Add #define _REENTRANT, to get gmtime_r() prototype on
+	solaris 2.6.  Reported by anirkko.
+
 2007-07-29  Ludovic Courtès  <ludo@gnu.org>
 
 	* Makefile.am (INCLUDES): Added Gnulib includes.
