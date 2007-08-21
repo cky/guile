@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2004, 2005, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -320,8 +320,11 @@ scm_i_card_statistics (scm_t_cell *p, SCM hashtab, scm_t_heap_segment *seg)
         continue;
 
       tag = SCM_TYP7 (scmptr);
-      if (tag  == scm_tc7_smob)
+      if (tag == scm_tc7_smob || tag == scm_tc7_number)
 	{
+          /* Record smobs and numbers under 16 bits of the tag, so the
+             different smob objects are distinguished, and likewise the
+             different numbers big, real, complex and fraction. */
 	  tag = SCM_TYP16(scmptr);
 	}
       else
@@ -346,31 +349,21 @@ scm_i_card_statistics (scm_t_cell *p, SCM hashtab, scm_t_heap_segment *seg)
 	}
 
       {      
-	SCM tag_as_scm = scm_from_int (tag);
-	SCM current = scm_hashq_ref (hashtab, tag_as_scm, SCM_I_MAKINUM (0));
-
-	scm_hashq_set_x (hashtab, tag_as_scm,
-			 scm_from_int (scm_to_int (current) + 1));
+        SCM handle = scm_hashq_create_handle_x (hashtab,
+                                                scm_from_int (tag), SCM_INUM0);
+        SCM_SETCDR (handle, scm_from_int (scm_to_int (SCM_CDR (handle)) + 1));
       }
     }
 }
 
-
+/* TAG is the tag word of a cell, return a string which is its name, or NULL
+   if unknown.  Currently this is only used by gc-live-object-stats and the
+   distinctions between types are oriented towards what that code records
+   while scanning what's alive.  */
 char const *
 scm_i_tag_name (scm_t_bits tag)
 {
-  if (tag >= 255)
-    {
-      if (tag == scm_tc_free_cell)
-	return "free cell";
-
-      {
-	int k = 0xff & (tag >> 8);
-	return (scm_smobs[k].name);
-      }
-    }
-  
-  switch (tag) /* 7 bits */
+  switch (tag & 0x7F) /* 7 bits */
     {
     case scm_tcs_struct:
       return "struct";
@@ -395,39 +388,31 @@ scm_i_tag_name (scm_t_bits tag)
 	{
 	case scm_tc16_real:
 	  return "real";
-	  break;
 	case scm_tc16_big:
 	  return "bignum";
-	  break;
 	case scm_tc16_complex:
 	  return "complex number";
-	  break;
 	case scm_tc16_fraction:
 	  return "fraction";
-	  break;
 	}
-      break;
+      /* shouldn't reach here unless there's a new class of numbers */
+      return "number";
     case scm_tc7_string:
       return "string";
-      break;
     case scm_tc7_stringbuf:
       return "string buffer";
-      break;
     case scm_tc7_symbol:
       return "symbol";
-      break;
     case scm_tc7_variable:
       return "variable";
-      break;
     case scm_tcs_subrs:
       return "subrs";
-      break;
     case scm_tc7_port:
       return "port";
-      break;
     case scm_tc7_smob:
-      return "smob";		/* should not occur. */
-      break; 
+      /* scm_tc_free_cell is smob 0, the name field in that scm_smobs[]
+         entry should be ok for our return here */
+      return scm_smobs[SCM_TC2SMOBNUM(tag)].name;
     }
 
   return NULL;
