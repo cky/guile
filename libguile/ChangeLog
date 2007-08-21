@@ -1,3 +1,21 @@
+2007-08-21  Kevin Ryde  <user42@zip.com.au>
+
+	* gc-card.c (scm_i_card_statistics): Record scm_tc7_number types as
+	tc16 values so big, real, complex and fraction can be distinguished.
+
+	(scm_i_tag_name): Return "number" for scm_tc7_number, not NULL.  NULL
+	was making numbers come out as "type 23" in gc-live-object-stats.
+	Fix tests of the tc16 number types, they were checked under
+	scm_tc7_number, but the values went down the tag>=255 smob case.
+	Put smob case under scm_tc7_smob instead of using tag>=255, per
+	recommendation in comments with scm_tc7_smob to use symbolic values. 
+	Use SCM_TC2SMOBNUM to extract scm_smobs index, instead of explicit
+	code.  Lose some unnecessary "break" statements.
+
+	(scm_i_card_statistics): Use scm_hashq_create_handle_x and modify the
+	element returned, rather than two lookups scm_hashq_ref and
+	scm_hashq_set_x.
+
 2007-08-17  Kevin Ryde  <user42@zip.com.au>
 
 	* stime.c: Add #define _REENTRANT, to get gmtime_r() prototype on
