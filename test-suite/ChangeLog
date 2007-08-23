@@ -1,3 +1,8 @@
+2007-08-23  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/ports.test (port-for-each): New test for passing freed cell,
+	marked as unresolved since problem not yet fixed.
+
 2007-08-11  Ludovic Courtès  <ludo@gnu.org>
 
 	* tests/srfi-35.test: New file.
