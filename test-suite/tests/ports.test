@@ -550,6 +550,38 @@
       (eqv? n (port-line port)))))
 
 ;;;
+;;; port-for-each
+;;;
+
+(with-test-prefix "port-for-each"
+
+  ;; In guile 1.8.0 through 1.8.2, port-for-each could pass a freed cell to
+  ;; its iterator func if a port was inaccessible in the last gc mark but
+  ;; the lazy sweeping has not yet reached it to remove it from the port
+  ;; table (scm_i_port_table).  Provoking those gc conditions is a little
+  ;; tricky, but the following code made it happen in 1.8.2.
+  (pass-if "passing freed cell"
+    (throw 'unresolved)
+    (let ((lst '()))
+      ;; clear out the heap
+      (gc) (gc) (gc)
+      ;; allocate cells so the opened ports aren't at the start of the heap
+      (make-list 1000)
+      (open-input-file "/dev/null")
+      (make-list 1000)
+      (open-input-file "/dev/null")
+      ;; this gc leaves the above ports unmarked, ie. inaccessible
+      (gc)
+      ;; but they're still in the port table, so this sees them
+      (port-for-each (lambda (port)
+		       (set! lst (cons port lst))))
+      ;; this forces completion of the sweeping
+      (gc) (gc) (gc)
+      ;; and (if the bug is present) the cells accumulated in LST are now
+      ;; freed cells, which give #f from `port?'
+      (not (memq #f (map port? lst))))))
+
+;;;
 ;;; seek
 ;;;
 
