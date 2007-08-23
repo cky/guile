@@ -610,6 +610,8 @@ static SCM
 scm_read_quote (int chr, SCM port)
 {
   SCM p;
+  long line = SCM_LINUM (port);
+  int column = SCM_COL (port) - 1;
 
   switch (chr)
     {
@@ -643,6 +645,17 @@ scm_read_quote (int chr, SCM port)
     }
 
   p = scm_cons2 (p, scm_read_expression (port), SCM_EOL);
+  if (SCM_RECORD_POSITIONS_P)
+    scm_whash_insert (scm_source_whash, p,
+		      scm_make_srcprops (line, column,
+					 SCM_FILENAME (port),
+					 SCM_COPY_SOURCE_P
+					 ? (scm_cons2 (SCM_CAR (p),
+						       SCM_CAR (SCM_CDR (p)),
+						       SCM_EOL))
+					 : SCM_UNDEFINED,
+					 SCM_EOL));
+
 
   return p;
 }
