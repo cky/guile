@@ -42,6 +42,7 @@ Changes in 1.8.3 (since 1.8.2)
 * Bugs fixed
 
 ** Expressions like "(set! 'x #t)" no longer yield a crash
+** Build problems on Solaris fixed
 
 * Implementation improvements
 

@@ -32,7 +32,9 @@
    hard coding __hpux.  */
 
 #define _GNU_SOURCE  /* ask glibc for everything, in particular strptime */
-#define _REENTRANT   /* ask solaris for gmtime_r prototype */
+#ifndef _REENTRANT
+# define _REENTRANT   /* ask solaris for gmtime_r prototype */
+#endif
 #ifdef __hpux
 #define _POSIX_C_SOURCE 199506L  /* for gmtime_r prototype */
 #endif

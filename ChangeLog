@@ -1,3 +1,7 @@
+2007-08-23  Ludovic Courtès  <ludo@gnu.org>
+
+	* NEWS: Mention Solaris bug fixes.
+
 2007-08-11  Ludovic Courtès  <ludo@gnu.org>
 
 	* NEWS: Mention SRFI-35 and the new reader.
