@@ -395,6 +395,14 @@ really_cleanup_for_exit (void *unused)
 static void
 cleanup_for_exit ()
 {
+  if (scm_i_pthread_mutex_trylock (&scm_i_init_mutex) == 0)
+    scm_i_pthread_mutex_unlock (&scm_i_init_mutex);
+  else
+    {
+      fprintf (stderr, "Cannot exit gracefully when init is in progress; aborting.\n");
+      abort ();
+    }
+
   /* This function might be called in non-guile mode, so we need to
      enter it temporarily. 
   */
@@ -472,6 +480,7 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_init_backtrace ();	/* Requires fluids */
   scm_init_fports ();
   scm_init_strports ();
+  scm_init_ports ();
   scm_init_gdbint ();           /* Requires strports */
   scm_init_hash ();
   scm_init_hashtab ();
@@ -490,7 +499,6 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_init_numbers ();
   scm_init_options ();
   scm_init_pairs ();
-  scm_init_ports ();
 #ifdef HAVE_POSIX
   scm_init_filesys ();
   scm_init_posix ();
