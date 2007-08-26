@@ -70,6 +70,7 @@ SCM_API void scm_i_mark_weak_vector (SCM w);
 SCM_API int scm_i_mark_weak_vectors_non_weaks (void);
 SCM_API void scm_i_remove_weaks_from_weak_vectors (void);
 
+
 #endif  /* SCM_WEAKS_H */
 
 /*

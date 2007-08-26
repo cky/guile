@@ -26,13 +26,14 @@
 #include <errno.h>
 
 #include "libguile/_scm.h"
-#include "libguile/ioext.h"
-#include "libguile/fports.h"
+#include "libguile/dynwind.h"
 #include "libguile/feature.h"
+#include "libguile/fports.h"
+#include "libguile/hashtab.h"
+#include "libguile/ioext.h"
 #include "libguile/ports.h"
 #include "libguile/strings.h"
 #include "libguile/validate.h"
-#include "libguile/dynwind.h"
 
 #include <fcntl.h>
 
@@ -266,6 +267,19 @@ SCM_DEFINE (scm_primitive_move_to_fdes, "primitive-move->fdes", 2, 0, 0,
 }
 #undef FUNC_NAME
 
+static SCM
+get_matching_port (void *closure, SCM port, SCM val, SCM result)
+{
+  int fd = * (int *) closure;
+  scm_t_port *entry = SCM_PTAB_ENTRY (port);
+  
+  if (SCM_OPFPORTP (port)
+      && ((scm_t_fport *) entry->stream)->fdes == fd)
+    result = scm_cons (port, result);
+
+  return result;
+}
+
 /* Return a list of ports using a given file descriptor.  */
 SCM_DEFINE (scm_fdes_to_ports, "fdes->ports", 1, 0, 0, 
            (SCM fd),
@@ -275,18 +289,12 @@ SCM_DEFINE (scm_fdes_to_ports, "fdes->ports", 1, 0, 0,
 #define FUNC_NAME s_scm_fdes_to_ports
 {
   SCM result = SCM_EOL;
-  int int_fd;
-  long i;
-
-  int_fd = scm_to_int (fd);
+  int int_fd = scm_to_int (fd);
 
   scm_i_scm_pthread_mutex_lock (&scm_i_port_table_mutex);
-  for (i = 0; i < scm_i_port_table_size; i++)
-    {
-      if (SCM_OPFPORTP (scm_i_port_table[i]->port)
-	  && ((scm_t_fport *) scm_i_port_table[i]->stream)->fdes == int_fd)
-	result = scm_cons (scm_i_port_table[i]->port, result);
-    }
+  result = scm_internal_hash_fold (get_matching_port,
+				   (void*) &int_fd, result, 
+				   scm_i_port_weak_hash);
   scm_i_pthread_mutex_unlock (&scm_i_port_table_mutex);
   return result;
 }

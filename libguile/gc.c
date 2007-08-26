@@ -232,7 +232,6 @@ static unsigned long protected_obj_count = 0;
 /* The following are accessed from `gc-malloc.c' and `gc-card.c'.  */
 int scm_gc_malloc_yield_percentage = 0;
 unsigned long scm_gc_malloc_collected = 0;
-unsigned long scm_gc_ports_collected = 0;
 
 
 SCM_SYMBOL (sym_cells_allocated, "cells-allocated");
@@ -443,7 +442,6 @@ gc_start_stats (const char *what SCM_UNUSED)
   t_before_gc = scm_c_get_internal_run_time ();
 
   scm_gc_malloc_collected = 0;
-  scm_gc_ports_collected = 0;
 }
 
 static void
@@ -971,14 +969,7 @@ scm_init_storage ()
   scm_gc_init_malloc ();
 
   j = SCM_HEAP_SEG_SIZE;
-
   
-  /* Initialise the list of ports.  */
-  scm_i_port_table = (scm_t_port **)
-    malloc (sizeof (scm_t_port *) * scm_i_port_table_room);
-  if (!scm_i_port_table)
-    return 1;
-
 #if 0
   /* We can't have a cleanup handler since we have no thread to run it
      in. */

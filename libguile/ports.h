@@ -47,7 +47,6 @@ typedef enum scm_t_port_rw_active {
 typedef struct 
 {
   SCM port;			/* Link back to the port object.  */
-  long entry;			/* Index in port table. */
   int revealed;			/* 0 not revealed, > 1 revealed.
 				 * Revealed ports do not get GC'd.
 				 */
@@ -109,9 +108,10 @@ typedef struct
   size_t putback_buf_size;        /* allocated size of putback_buf.  */
 } scm_t_port;
 
-SCM_API scm_t_port **scm_i_port_table;
-SCM_API long scm_i_port_table_size; /* Number of ports in scm_i_port_table.  */
+
 SCM_API scm_i_pthread_mutex_t scm_i_port_table_mutex;
+SCM_API SCM scm_i_port_weak_hash;
+
 
 #define SCM_READ_BUFFER_EMPTY_P(c_port) (c_port->read_pos >= c_port->read_end)
 
@@ -241,7 +241,7 @@ SCM_API void scm_dynwind_current_input_port (SCM port);
 SCM_API void scm_dynwind_current_output_port (SCM port);
 SCM_API void scm_dynwind_current_error_port (SCM port);
 SCM_API SCM scm_new_port_table_entry (scm_t_bits tag);
-SCM_API void scm_remove_from_port_table (SCM port);
+SCM_API void scm_i_remove_port (SCM port);
 SCM_API void scm_grow_port_cbuf (SCM port, size_t requested);
 SCM_API SCM scm_pt_size (void);
 SCM_API SCM scm_pt_member (SCM member);

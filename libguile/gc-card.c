@@ -206,8 +206,7 @@ scm_i_sweep_card (scm_t_cell *  p, SCM *free_list, scm_t_heap_segment*seg)
 		}
 
 	      SCM_SETSTREAM (scmptr, 0);
-	      scm_remove_from_port_table (scmptr);
-	      scm_gc_ports_collected++;
+	      scm_i_remove_port (scmptr);
 	      SCM_CLR_PORT_OPEN_FLAG (scmptr);
 	    }
 	  break;

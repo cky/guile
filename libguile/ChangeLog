@@ -1,5 +1,10 @@
 2007-08-26  Han-Wen Nienhuys  <hanwen@lilypond.org>
 
+	* fports.c gc-card.c gc.c gc.h ioext.c ports.c ports.h weaks.h
+	gc.c: replace port table with weak hash table. This simplifies
+	memory management, and fixes freed cells appearing in
+	port-for-each output.
+
 	* init.c (cleanup_for_exit): abort cleanup if init_mutex is still
 	held.
 
