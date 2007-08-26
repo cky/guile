@@ -561,7 +561,6 @@
   ;; table (scm_i_port_table).  Provoking those gc conditions is a little
   ;; tricky, but the following code made it happen in 1.8.2.
   (pass-if "passing freed cell"
-    (throw 'unresolved)
     (let ((lst '()))
       ;; clear out the heap
       (gc) (gc) (gc)
@@ -580,6 +579,13 @@
       ;; and (if the bug is present) the cells accumulated in LST are now
       ;; freed cells, which give #f from `port?'
       (not (memq #f (map port? lst))))))
+
+(with-test-prefix
+ "fdes->port"
+ (pass-if "fdes->ports finds port"
+	  (let ((port (open-file (test-file) "w")))
+
+	    (not (not (memq port (fdes->ports (port->fdes port))))))))
 
 ;;;
 ;;; seek
