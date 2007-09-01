@@ -3063,7 +3063,7 @@ module '(ice-9 q) '(make-q q-length))}."
 		 #f))
     
     (define (warn module name int1 val1 int2 val2 var val)
-      (format #t
+      (format (current-error-port)
 	      "WARNING: ~A: `~A' imported from both ~A and ~A\n"
 	      (module-name module)
 	      name
@@ -3085,7 +3085,7 @@ module '(ice-9 q) '(make-q q-length))}."
     (define (warn-override-core module name int1 val1 int2 val2 var val)
       (and (eq? int1 the-scm-module)
 	   (begin
-	     (format #t
+	     (format (current-error-port)
 		     "WARNING: ~A: imported module ~A overrides core binding `~A'\n"
 		     (module-name module)
 		     (module-name int2)

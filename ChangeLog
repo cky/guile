@@ -1,3 +1,7 @@
+2007-09-01  Ludovic Courtès  <ludo@gnu.org>
+
+	* NEWS: Mention duplicate binding warnings to stderr.
+
 2007-08-23  Ludovic Courtès  <ludo@gnu.org>
 
 	* NEWS: Mention Solaris bug fixes.
