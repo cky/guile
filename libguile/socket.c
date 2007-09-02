@@ -1262,15 +1262,19 @@ SCM_DEFINE (scm_make_socket_address, "make-socket-address", 2, 0, 1,
 	    "@code{connect} for details).")
 #define FUNC_NAME s_scm_make_socket_address
 {
+  SCM result = SCM_BOOL_F;
   struct sockaddr *c_address;
   size_t c_address_size;
 
   c_address = scm_c_make_socket_address (family, address, args,
 					 &c_address_size);
-  if (!c_address)
-    return SCM_BOOL_F;
+  if (c_address != NULL)
+    {
+      result = scm_from_sockaddr (c_address, c_address_size);
+      free (c_address);
+    }
 
-  return (scm_from_sockaddr (c_address, c_address_size));
+  return result;
 }
 #undef FUNC_NAME
 

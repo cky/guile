@@ -43,6 +43,7 @@ Changes in 1.8.3 (since 1.8.2)
 
 ** Expressions like "(set! 'x #t)" no longer yield a crash
 ** Warnings about duplicate bindings now go to stderr
+** A memory leak in `make-socket-address' was fixed
 ** Build problems on Solaris fixed
 
 * Implementation improvements
