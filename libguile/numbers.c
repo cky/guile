@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005, 2006, 2007 Free Software Foundation, Inc.
  *
  * Portions Copyright 1990, 1991, 1992, 1993 by AT&T Bell Laboratories
  * and Bellcore.  See scm_divide.
@@ -5997,35 +5997,6 @@ scm_is_number (SCM z)
   return scm_is_true (scm_number_p (z));
 }
 
-#ifdef HAVE_COMPLEX_DOUBLE
-#ifndef HAVE_CLOG
-complex double clog (complex double z);
-complex double
-clog (complex double z)
-{
-  return log(cabs(z))+I*carg(z);
-}
-#endif
-
-#ifndef HAVE_CEXP
-complex double cexp (complex double z);
-complex double
-cexp (complex double z)
-{
-  return exp (cabs (z)) * cos(carg (z) + I*sin(carg (z)));
-}
-#endif
-
-#ifndef HAVE_CARG
-double carg (complex double z);
-double
-carg (complex double z)
-{
-  return atan2 (cimag(z), creal(z));
-}
-#endif
-#endif /* HAVE_COMPLEX_DOUBLE */
-
 
 /* In the following functions we dispatch to the real-arg funcs like log()
    when we know the arg is real, instead of just handing everything to
@@ -6040,7 +6011,7 @@ SCM_DEFINE (scm_log, "log", 1, 0, 0,
 {
   if (SCM_COMPLEXP (z))
     {
-#if HAVE_COMPLEX_DOUBLE
+#if HAVE_COMPLEX_DOUBLE && HAVE_CLOG
       return scm_from_complex_double (clog (SCM_COMPLEX_VALUE (z)));
 #else
       double re = SCM_COMPLEX_REAL (z);
@@ -6106,7 +6077,7 @@ SCM_DEFINE (scm_exp, "exp", 1, 0, 0,
 {
   if (SCM_COMPLEXP (z))
     {
-#if HAVE_COMPLEX_DOUBLE
+#if HAVE_COMPLEX_DOUBLE && HAVE_CEXP
       return scm_from_complex_double (cexp (SCM_COMPLEX_VALUE (z)));
 #else
       return scm_c_make_polar (exp (SCM_COMPLEX_REAL (z)),
