@@ -1,3 +1,15 @@
+2007-09-03  Kevin Ryde  <user42@zip.com.au>
+
+	* numbers.c (scm_log): Test HAVE_CLOG as well as HAVE_COMPLEX_DOUBLE
+	before using clog().  It's possible for gcc to provide the "complex
+	double" type, but for the system not to have the complex funcs.
+	(scm_exp): Ditto HAVE_CEXP for cexp().
+	(clog, cexp, carg): Remove fallback definitions.  These only
+	duplicated the code within scm_log and scm_exp, and the latter have to
+	exist for the case when there's no "complex double".  So better just
+	fix up the conditionals selecting between the complex funcs and plain
+	doubles than worry about fallbacks.
+
 2007-09-02  Ludovic Courtès  <ludo@gnu.org>
 
 	* socket.c (scm_make_socket_address): Free C_ADDRESS after use.
@@ -16,7 +28,7 @@
 2007-08-23  Ludovic Courtès  <ludo@gnu.org>
 
 	* read.c (scm_read_quote): Record position and copy source
-	expression when asked to.  Reported by Kevin Ryde.
+	expression when asked to.  Reported by Kevin.
 
 	* stime.c: Define `_REENTRANT' only if not already defined.
 
