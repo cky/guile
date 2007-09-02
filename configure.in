@@ -623,6 +623,9 @@ AC_CHECK_HEADERS([assert.h crt_externs.h])
 #   DQNAN - OSF specific
 #       (DINFINITY and DQNAN are actually global variables, not functions)
 #   chsize - an MS-DOS-ism, found in mingw
+#   cexp, clog - not in various pre-c99 systems, and note that it's possible
+#       for gcc to provide the "complex double" type but the system to not
+#       have functions like cexp and clog
 #   clog10 - not in mingw (though others like clog and csqrt are)
 #   fesetround - available in C99, but not older systems
 #   ftruncate - posix, but probably not older systems (current mingw
@@ -640,7 +643,7 @@ AC_CHECK_HEADERS([assert.h crt_externs.h])
 #   strcoll_l, newlocale - GNU extensions (glibc), also available on Darwin
 #   nl_langinfo - X/Open, not available on Windows.
 #
-AC_CHECK_FUNCS([DINFINITY DQNAN chsize clog10 ctermid fesetround ftime ftruncate fchown getcwd geteuid gettimeofday gmtime_r ioctl lstat mkdir mknod nice pipe _pipe readdir_r readlink rename rmdir select setegid seteuid setlocale setpgid setsid sigaction siginterrupt stat64 strftime strptime symlink sync sysconf tcgetpgrp tcsetpgrp times uname waitpid strdup system usleep atexit on_exit chown link fcntl ttyname getpwent getgrent kill getppid getpgrp fork setitimer getitimer strchr strcmp index bcopy memcpy rindex truncate unsetenv isblank _NSGetEnviron strcoll strcoll_l newlocale nl_langinfo])
+AC_CHECK_FUNCS([DINFINITY DQNAN cexp chsize clog clog10 ctermid fesetround ftime ftruncate fchown getcwd geteuid gettimeofday gmtime_r ioctl lstat mkdir mknod nice pipe _pipe readdir_r readlink rename rmdir select setegid seteuid setlocale setpgid setsid sigaction siginterrupt stat64 strftime strptime symlink sync sysconf tcgetpgrp tcsetpgrp times uname waitpid strdup system usleep atexit on_exit chown link fcntl ttyname getpwent getgrent kill getppid getpgrp fork setitimer getitimer strchr strcmp index bcopy memcpy rindex truncate unsetenv isblank _NSGetEnviron strcoll strcoll_l newlocale nl_langinfo])
 
 # Reasons for testing:
 #   netdb.h - not in mingw
@@ -678,7 +681,6 @@ AC_SEARCH_LIBS(crypt, crypt,
 #
 if test "$ac_cv_type_complex_double" = yes; then
 
-  AC_CHECK_FUNCS(cexp clog carg)		         
   AC_CACHE_CHECK([whether csqrt is usable],
     guile_cv_use_csqrt,
     [AC_TRY_RUN([
