@@ -67,6 +67,26 @@
 		      + strlen ((ptr)->sun_path))
 #endif
 
+/* The largest possible socket address.  Wrapping it in a union guarantees
+   that the compiler will make it suitably aligned.  */
+typedef union
+{
+  struct sockaddr     sockaddr;
+  struct sockaddr_in  sockaddr_in;
+
+#ifdef HAVE_UNIX_DOMAIN_SOCKETS
+  struct sockaddr_un  sockaddr_un;
+#endif
+#ifdef HAVE_IPV6
+  struct sockaddr_in6 sockaddr_in6;
+#endif
+} scm_t_max_sockaddr;
+
+
+/* Maximum size of a socket address.  */
+#define MAX_ADDR_SIZE   (sizeof (scm_t_max_sockaddr))
+
+
 
 
 SCM_DEFINE (scm_htons, "htons", 1, 0, 0, 
@@ -344,7 +364,7 @@ SCM_DEFINE (scm_inet_pton, "inet-pton", 2, 0, 0,
 {
   int af;
   char *src;
-  char dst[16];
+  scm_t_uint32 dst[4];
   int rv, eno;
 
   af = scm_to_int (family);
@@ -359,7 +379,7 @@ SCM_DEFINE (scm_inet_pton, "inet-pton", 2, 0, 0,
   else if (rv == 0)
     SCM_MISC_ERROR ("Bad address", SCM_EOL);
   if (af == AF_INET)
-    return scm_from_ulong (ntohl (*(scm_t_uint32 *) dst));
+    return scm_from_ulong (ntohl (*dst));
   else
     return scm_from_ipv6 ((scm_t_uint8 *) dst);
 }
@@ -468,6 +488,17 @@ SCM_DEFINE (scm_socketpair, "socketpair", 3, 0, 0,
 #undef FUNC_NAME
 #endif
 
+/* Possible results for `getsockopt ()'.  Wrapping it into a union guarantees
+   suitable alignment.  */
+typedef union
+{
+#ifdef HAVE_STRUCT_LINGER
+  struct linger linger;
+#endif
+  size_t size;
+  int    integer;
+} scm_t_getsockopt_result;
+
 SCM_DEFINE (scm_getsockopt, "getsockopt", 3, 0, 0,
             (SCM sock, SCM level, SCM optname),
 	    "Return an option value from socket port @var{sock}.\n"
@@ -518,13 +549,8 @@ SCM_DEFINE (scm_getsockopt, "getsockopt", 3, 0, 0,
 {
   int fd;
   /* size of optval is the largest supported option.  */
-#ifdef HAVE_STRUCT_LINGER
-  char optval[sizeof (struct linger)];
-  socklen_t optlen = sizeof (struct linger);
-#else
-  char optval[sizeof (size_t)];
-  socklen_t optlen = sizeof (size_t);
-#endif
+  scm_t_getsockopt_result optval;
+  socklen_t optlen = sizeof (optval);
   int ilevel;
   int ioptname;
 
@@ -534,7 +560,7 @@ SCM_DEFINE (scm_getsockopt, "getsockopt", 3, 0, 0,
   ioptname = scm_to_int (optname);
 
   fd = SCM_FPORT_FDES (sock);
-  if (getsockopt (fd, ilevel, ioptname, (void *) optval, &optlen) == -1)
+  if (getsockopt (fd, ilevel, ioptname, (void *) &optval, &optlen) == -1)
     SCM_SYSERROR;
 
   if (ilevel == SOL_SOCKET)
@@ -543,12 +569,12 @@ SCM_DEFINE (scm_getsockopt, "getsockopt", 3, 0, 0,
       if (ioptname == SO_LINGER)
 	{
 #ifdef HAVE_STRUCT_LINGER
-	  struct linger *ling = (struct linger *) optval;
+	  struct linger *ling = (struct linger *) &optval;
 
 	  return scm_cons (scm_from_long (ling->l_onoff),
 			   scm_from_long (ling->l_linger));
 #else
-	  return scm_cons (scm_from_long (*(int *) optval),
+	  return scm_cons (scm_from_long (*(int *) &optval),
 			   scm_from_int (0));
 #endif
 	}
@@ -563,10 +589,10 @@ SCM_DEFINE (scm_getsockopt, "getsockopt", 3, 0, 0,
 #endif
 	    )
 	  {
-	    return scm_from_size_t (*(size_t *) optval);
+	    return scm_from_size_t (*(size_t *) &optval);
 	  }
     }
-  return scm_from_int (*(int *) optval);
+  return scm_from_int (*(int *) &optval);
 }
 #undef FUNC_NAME
 
@@ -1011,12 +1037,11 @@ SCM_DEFINE (scm_listen, "listen", 2, 0, 0,
 
 /* Put the components of a sockaddr into a new SCM vector.  */
 static SCM_C_INLINE_KEYWORD SCM
-_scm_from_sockaddr (const struct sockaddr *address, unsigned addr_size,
-		 const char *proc)
+_scm_from_sockaddr (const scm_t_max_sockaddr *address, unsigned addr_size,
+		    const char *proc)
 {
-  short int fam = address->sa_family;
-  SCM result =SCM_EOL;
-
+  SCM result = SCM_EOL;
+  short int fam = ((struct sockaddr *) address)->sa_family;
 
   switch (fam)
     {
@@ -1083,7 +1108,8 @@ _scm_from_sockaddr (const struct sockaddr *address, unsigned addr_size,
 SCM
 scm_from_sockaddr (const struct sockaddr *address, unsigned addr_size)
 {
-  return (_scm_from_sockaddr (address, addr_size, "scm_from_sockaddr"));
+  return (_scm_from_sockaddr ((scm_t_max_sockaddr *) address,
+			      addr_size, "scm_from_sockaddr"));
 }
 
 /* Convert ADDRESS, an address object returned by either
@@ -1279,25 +1305,6 @@ SCM_DEFINE (scm_make_socket_address, "make-socket-address", 2, 0, 1,
 #undef FUNC_NAME
 
 
-/* calculate the size of a buffer large enough to hold any supported
-   sockaddr type.  if the buffer isn't large enough, certain system
-   calls will return a truncated address.  */
-
-#if defined (HAVE_UNIX_DOMAIN_SOCKETS)
-#define MAX_SIZE_UN sizeof (struct sockaddr_un)
-#else
-#define MAX_SIZE_UN 0
-#endif
-
-#if defined (HAVE_IPV6)
-#define MAX_SIZE_IN6 sizeof (struct sockaddr_in6)
-#else
-#define MAX_SIZE_IN6 0
-#endif
-
-#define MAX_ADDR_SIZE max (max (sizeof (struct sockaddr_in), MAX_SIZE_IN6),\
-                           MAX_SIZE_UN)
-
 SCM_DEFINE (scm_accept, "accept", 1, 0, 0, 
             (SCM sock),
 	    "Accept a connection on a bound, listening socket.\n"
@@ -1319,17 +1326,18 @@ SCM_DEFINE (scm_accept, "accept", 1, 0, 0,
   SCM address;
   SCM newsock;
   socklen_t addr_size = MAX_ADDR_SIZE;
-  char max_addr[MAX_ADDR_SIZE];
-  struct sockaddr *addr = (struct sockaddr *) max_addr;
+  scm_t_max_sockaddr addr;
 
   sock = SCM_COERCE_OUTPORT (sock);
   SCM_VALIDATE_OPFPORT (1, sock);
   fd = SCM_FPORT_FDES (sock);
-  newfd = accept (fd, addr, &addr_size);
+  newfd = accept (fd, (struct sockaddr *) &addr, &addr_size);
   if (newfd == -1)
     SCM_SYSERROR;
   newsock = SCM_SOCK_FD_TO_PORT (newfd);
-  address = _scm_from_sockaddr (addr, addr_size, FUNC_NAME);
+  address = _scm_from_sockaddr (&addr, addr_size,
+				FUNC_NAME);
+
   return scm_cons (newsock, address);
 }
 #undef FUNC_NAME
@@ -1343,15 +1351,15 @@ SCM_DEFINE (scm_getsockname, "getsockname", 1, 0, 0,
 {
   int fd;
   socklen_t addr_size = MAX_ADDR_SIZE;
-  char max_addr[MAX_ADDR_SIZE];
-  struct sockaddr *addr = (struct sockaddr *) max_addr;
+  scm_t_max_sockaddr addr;
 
   sock = SCM_COERCE_OUTPORT (sock);
   SCM_VALIDATE_OPFPORT (1, sock);
   fd = SCM_FPORT_FDES (sock);
-  if (getsockname (fd, addr, &addr_size) == -1)
+  if (getsockname (fd, (struct sockaddr *) &addr, &addr_size) == -1)
     SCM_SYSERROR;
-  return _scm_from_sockaddr (addr, addr_size, FUNC_NAME);
+
+  return _scm_from_sockaddr (&addr, addr_size, FUNC_NAME);
 }
 #undef FUNC_NAME
 
@@ -1365,15 +1373,15 @@ SCM_DEFINE (scm_getpeername, "getpeername", 1, 0, 0,
 {
   int fd;
   socklen_t addr_size = MAX_ADDR_SIZE;
-  char max_addr[MAX_ADDR_SIZE];
-  struct sockaddr *addr = (struct sockaddr *) max_addr;
+  scm_t_max_sockaddr addr;
 
   sock = SCM_COERCE_OUTPORT (sock);
   SCM_VALIDATE_OPFPORT (1, sock);
   fd = SCM_FPORT_FDES (sock);
-  if (getpeername (fd, addr, &addr_size) == -1)
+  if (getpeername (fd, (struct sockaddr *) &addr, &addr_size) == -1)
     SCM_SYSERROR;
-  return _scm_from_sockaddr (addr, addr_size, FUNC_NAME);
+
+  return _scm_from_sockaddr (&addr, addr_size, FUNC_NAME);
 }
 #undef FUNC_NAME
 
@@ -1509,8 +1517,7 @@ SCM_DEFINE (scm_recvfrom, "recvfrom!", 2, 3, 0,
   size_t cend;
   SCM address;
   socklen_t addr_size = MAX_ADDR_SIZE;
-  char max_addr[MAX_ADDR_SIZE];
-  struct sockaddr *addr = (struct sockaddr *) max_addr;
+  scm_t_max_sockaddr addr;
 
   SCM_VALIDATE_OPFPORT (1, sock);
   fd = SCM_FPORT_FDES (sock);
@@ -1527,20 +1534,21 @@ SCM_DEFINE (scm_recvfrom, "recvfrom!", 2, 3, 0,
   /* recvfrom will not necessarily return an address.  usually nothing
      is returned for stream sockets.  */
   buf = scm_i_string_writable_chars (str);
-  addr->sa_family = AF_UNSPEC;
+  ((struct sockaddr *) &addr)->sa_family = AF_UNSPEC;
   SCM_SYSCALL (rv = recvfrom (fd, buf + offset,
 			      cend - offset, flg,
-			      addr, &addr_size));
+			      (struct sockaddr *) &addr, &addr_size));
   scm_i_string_stop_writing ();
 
   if (rv == -1)
     SCM_SYSERROR;
-  if (addr->sa_family != AF_UNSPEC)
-    address = _scm_from_sockaddr (addr, addr_size, FUNC_NAME);
+  if (((struct sockaddr *) &addr)->sa_family != AF_UNSPEC)
+    address = _scm_from_sockaddr (&addr, addr_size, FUNC_NAME);
   else
     address = SCM_BOOL_F;
 
   scm_remember_upto_here_1 (str);
+
   return scm_cons (scm_from_int (rv), address);
 }
 #undef FUNC_NAME

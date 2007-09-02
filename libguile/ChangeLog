@@ -1,3 +1,18 @@
+2007-09-03  Ludovic Courtès  <ludo@gnu.org>
+
+	Fix alignment issues which showed up at least on SPARC.
+
+	* socket.c (scm_t_max_sockaddr, scm_t_getsockopt_result): New.
+	(scm_inet_pton): Change DST to `scm_t_uint32' for correct
+	alignment.
+	(scm_getsockopt): Change OPTVAL to `scm_t_getsockopt_result' for
+	correct alignment.
+	(_scm_from_sockaddr): Change ADDRESS to `scm_t_max_sockaddr *'.
+	(scm_from_sockaddr): Cast ADDRESS to `scm_t_max_sockaddr *'.
+	(MAX_SIZE_UN, MAX_SIZE_IN6): Removed.
+	(scm_accept, scm_getsockname, scm_getpeername, scm_recvfrom):
+	Use `scm_t_max_sockaddr' instead of "char max_addr[MAX_ADDR_SIZE]".
+
 2007-09-03  Kevin Ryde  <user42@zip.com.au>
 
 	* numbers.c (scm_log): Test HAVE_CLOG as well as HAVE_COMPLEX_DOUBLE

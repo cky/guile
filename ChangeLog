@@ -1,3 +1,7 @@
+2007-09-03  Ludovic Courtès  <ludo@gnu.org>
+
+	* NEWS: Mention alignment-related bug fixes.
+
 2007-09-03  Kevin Ryde  <user42@zip.com.au>
 
 	* configure.in (AC_CHECK_FUNCS): Move cexp and clog up into the main
