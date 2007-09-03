@@ -1,3 +1,8 @@
+2007-09-03  Ludovic Courtès  <ludo@gnu.org>
+
+	* tests/reader.test (reading)[block comment finishing sexp]: New
+	test.
+
 2007-08-26  Han-Wen Nienhuys  <hanwen@lilypond.org>
 
 	* tests/ports.test ("port-for-each"): remove unresolved for

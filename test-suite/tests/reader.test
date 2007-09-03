@@ -77,6 +77,10 @@
     (equal? '(+ 1 2 3)
             (read-string "(+ 1 #! this is a\ncomment !# 2 3)")))
 
+  (pass-if "block comment finishing s-exp"
+    (equal? '(+ 2)
+            (read-string "(+ 2 #! a comment\n!#\n) ")))
+
   (pass-if "unprintable symbol"
     ;; The reader tolerates unprintable characters for symbols.
     (equal? (string->symbol "\001\002\003")

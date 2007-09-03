@@ -1,5 +1,9 @@
 2007-09-03  Ludovic Courtès  <ludo@gnu.org>
 
+	* read.c (flush_ws): Handle SCSH block comments.
+
+2007-09-03  Ludovic Courtès  <ludo@gnu.org>
+
 	Fix alignment issues which showed up at least on SPARC.
 
 	* socket.c (scm_t_max_sockaddr, scm_t_getsockopt_result): New.

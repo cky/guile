@@ -179,6 +179,9 @@ static SCM *scm_read_hash_procedures;
   (((_chr) <= UCHAR_MAX) ? tolower (_chr) : (_chr))
 
 
+/* Read an SCSH block comment.  */
+static inline SCM scm_read_scsh_block_comment (int chr, SCM port);
+
 /* Helper function similar to `scm_read_token ()'.  Read from PORT until a
    whitespace is read.  Return zero if the whole token could fit in BUF,
    non-zero otherwise.  */
@@ -242,6 +245,21 @@ flush_ws (SCM port, const char *eoferr)
 	    goto lp;
 	  case SCM_LINE_INCREMENTORS:
 	    break;
+	  }
+	break;
+
+      case '#':
+	switch (c = scm_getc (port))
+	  {
+	  case EOF:
+	    eoferr = "read_sharp";
+	    goto goteof;
+	  case '!':
+	    scm_read_scsh_block_comment (c, port);
+	    break;
+	  default:
+	    scm_ungetc (c, port);
+	    return '#';
 	  }
 	break;
 
