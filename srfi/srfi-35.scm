@@ -115,16 +115,22 @@ supertypes."
   ;; Return a compound condition type made of the types listed in PARENTS.
   ;; All fields from PARENTS are kept, even same-named ones, since they are
   ;; needed by `extract-condition'.
-  (let* ((all-fields (append-map condition-type-all-fields
-				 parents))
-	 (layout     (struct-layout-for-condition all-fields)))
-    (make-struct %condition-type-vtable 0
-		 (make-struct-layout layout) ;; layout
-		 print-condition             ;; printer
-		 id
-		 parents                     ;; list of parents!
-		 all-fields
-		 all-fields)))
+  (cond ((null? parents)
+         (error "`make-compound-condition-type' passed empty parent list"
+                id))
+        ((null? (cdr parents))
+         (car parents))
+        (else
+         (let* ((all-fields (append-map condition-type-all-fields
+                                        parents))
+                (layout     (struct-layout-for-condition all-fields)))
+           (make-struct %condition-type-vtable 0
+                        (make-struct-layout layout) ;; layout
+                        print-condition             ;; printer
+                        id
+                        parents                     ;; list of parents!
+                        all-fields
+                        all-fields)))))
 
 
 ;;;

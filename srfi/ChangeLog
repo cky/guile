@@ -1,3 +1,10 @@
+2007-09-10  Ludovic Courtès  <ludo@gnu.org>
+
+	* srfi-35.scm (make-compound-condition-type): When PARENTS
+	contains only one element, return its car.  This improves the
+	output of `print-condition' for non-compound conditions returned
+	by `make-compound-condition'.
+
 2007-08-11  Ludovic Courtès  <ludo@gnu.org>
 
 	* srfi-35.scm: New file.
