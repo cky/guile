@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -1340,16 +1340,39 @@ SCM_DEFINE (scm_putenv, "putenv", 1, 0, 0,
 
   if (strchr (c_str, '=') == NULL)
     {
-#ifdef HAVE_UNSETENV
-      /* No '=' in argument means we should remove the variable from
-	 the environment.  Not all putenvs understand this (for instance
-	 FreeBSD 4.8 doesn't).  To be safe, we do it explicitely using
-	 unsetenv. */
+      /* We want no "=" in the argument to mean remove the variable from the
+	 environment, but not all putenv()s understand this, for example
+	 FreeBSD 4.8 doesn't.  Getting it happening everywhere is a bit
+	 painful.  What unsetenv() exists, we use that, of course.
+
+         Traditionally putenv("NAME") removes a variable, for example that's
+         what we have to do on Solaris 9 (it doesn't have an unsetenv).
+
+         But on DOS and on that DOS overlay manager thing called W-whatever,
+         putenv("NAME=") must be used (it too doesn't have an unsetenv).
+
+         Supposedly on AIX a putenv("NAME") could cause a segfault, but also
+         supposedly AIX 5.3 and up has unsetenv() available so should be ok
+         with the latter there.
+
+         For the moment we hard code the DOS putenv("NAME=") style under
+         __MINGW32__ and do the traditional everywhere else.  Such
+         system-name tests are bad, of course.  It'd be possible to use a
+         configure test when doing a a native build.  For example GNU R has
+         such a test (see R_PUTENV_AS_UNSETENV in
+         https://svn.r-project.org/R/trunk/m4/R.m4).  But when cross
+         compiling there'd want to be a guess, one probably based on the
+         system name (ie. mingw or not), thus landing back in basically the
+         present hard-coded situation.  Another possibility for a cross
+         build would be to try "NAME" then "NAME=" at runtime, if that's not
+         too much like overkill.  */
+
+#if HAVE_UNSETENV
+      /* when unsetenv() exists then we use it */
       unsetenv (c_str);
       free (c_str);
-#else
-      /* On e.g. Win32 hosts putenv() called with 'name=' removes the
-	 environment variable 'name'. */
+#elif defined (__MINGW32__)
+      /* otherwise putenv("NAME=") on DOS */
       int e;
       size_t len = strlen (c_str);
       char *ptr = scm_malloc (len + 2);
@@ -1359,7 +1382,12 @@ SCM_DEFINE (scm_putenv, "putenv", 1, 0, 0,
       e = errno; free (ptr); free (c_str); errno = e;
       if (rv < 0)
 	SCM_SYSERROR;
-#endif /* !HAVE_UNSETENV */
+#else
+      /* otherwise traditional putenv("NAME") */
+      rv = putenv (c_str);
+      if (rv < 0)
+	SCM_SYSERROR;
+#endif
     }
   else
     {
