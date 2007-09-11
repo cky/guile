@@ -1,3 +1,9 @@
+2007-09-11  Kevin Ryde  <user42@zip.com.au>
+
+	* posix.c (scm_putenv): Confine the putenv("NAME=") bit to mingw, use
+	putenv("NAME") as the fallback everywhere else.  In particular this is
+	needed for solaris 9.  Reported by Frank Storbeck.
+	
 2007-09-03  Ludovic Courtès  <ludo@gnu.org>
 
 	* read.c (flush_ws): Handle SCSH block comments.
