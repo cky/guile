@@ -904,9 +904,8 @@ SCM_DEFINE (scm_force_output, "force-output", 0, 1, 0,
 
 
 static void
-flush_output_port (void *closure, SCM handle)
+flush_output_port (void *closure, SCM port)
 {
-  SCM port = SCM_CDR (handle);
   if (SCM_OPOUTPORTP (port))
     scm_flush (port);
 }

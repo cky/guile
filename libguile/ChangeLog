@@ -1,3 +1,8 @@
+2007-10-01  Ludovic Courtès  <ludo@gnu.org>
+
+	* ports.c (flush_output_port): Expect directly a port instead of
+	a pair.  Fixes a bug in the new port table (2007-08-26).
+
 2007-09-11  Kevin Ryde  <user42@zip.com.au>
 
 	* posix.c (scm_putenv): Confine the putenv("NAME=") bit to mingw, use
