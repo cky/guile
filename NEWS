@@ -41,6 +41,7 @@ Changes in 1.8.3 (since 1.8.2)
 
 * Bugs fixed
 
+** The `(ice-9 slib)' module now works as expected
 ** Expressions like "(set! 'x #t)" no longer yield a crash
 ** Warnings about duplicate bindings now go to stderr
 ** A memory leak in `make-socket-address' was fixed

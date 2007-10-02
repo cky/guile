@@ -23,7 +23,7 @@ slib, The SLIB Manual}).  For example,
 @example
 (use-modules (ice-9 slib))
 (require 'primes)
-(probably-prime? 13)
+(prime? 13)
 @result{} #t
 @end example
 
@@ -31,7 +31,7 @@ A few Guile core functions are overridden by the SLIB setups; for
 example the SLIB version of @code{delete-file} returns a boolean
 indicating success or failure, whereas the Guile core version throws
 an error for failure.  In general (and as might be expected) when SLIB
-is loaded it's the SLIB specifications which are followed.
+is loaded it's the SLIB specifications that are followed.
 
 @menu
 * SLIB installation::
@@ -41,17 +41,30 @@ is loaded it's the SLIB specifications which are followed.
 @node SLIB installation
 @subsection SLIB installation
 
-The following seems to work (e.g., with slib versions 2c7 and 2d2):
+The following procedure works, e.g., with SLIB version 3a3
+(@pxref{Installation, SLIB installation,, slib, The SLIB Portable Scheme
+Library}):
 
 @enumerate
 @item
-Unpack slib somewhere, e.g., @file{/usr/local/share/slib}.
+Unpack SLIB and install it using @code{make install} from its directory.
+By default, this will install SLIB in @file{/usr/local/lib/slib/}.
+Running @code{make installinfo} installs its documentation, by default
+under @file{/usr/local/info/}.
 
 @item
-Create a symlink in the Guile site directory to slib, e.g.,:
+Define the @code{SCHEME_LIBRARY_PATH} environment variable:
 
 @example
-ln -s /usr/local/share/slib /usr/local/share/guile/site/slib
+$ SCHEME_LIBRARY_PATH=/usr/local/lib/slib/
+$ export SCHEME_LIBRARY_PATH
+@end example
+
+Alternatively, you can create a symlink in the Guile directory to SLIB,
+e.g.:
+
+@example
+ln -s /usr/local/lib/slib /usr/local/share/guile/1.8/slib
 @end example
 
 @item
@@ -60,12 +73,12 @@ Use Guile to create the catalog file, e.g.,:
 @example
 # guile
 guile> (use-modules (ice-9 slib))
-guile> (load "/usr/local/share/slib/mklibcat.scm")
+guile> (require 'new-catalog)
 guile> (quit)
 @end example
 
 The catalog data should now be in
-@file{/usr/local/share/guile/site/slibcat}.
+@file{/usr/local/share/guile/1.8/slibcat}.
 
 If instead you get an error such as:
 
@@ -77,15 +90,6 @@ then a solution is to get a newer version of Guile,
 or to modify @file{ice-9/slib.scm} to use @code{define-public} for the
 offending variables.
 
-@item
-Install the documentation:
-
-@example
-cd /usr/local/share/slib
-rm /usr/local/info/slib.info*
-cp slib.info /usr/local/info
-install-info slib.info /usr/local/info/dir
-@end example
 @end enumerate
 
 @node JACAL

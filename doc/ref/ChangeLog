@@ -1,3 +1,11 @@
+2007-10-02  Ludovic Courtès  <ludo@gnu.org>
+
+	* slib.texi (SLIB installation): Don't recommend using the site
+	directory for the symlink; instead, suggest either adding a
+	symlink in `/.../share/guile/1.8' (because slib will look for
+	its files in the implementation vicinity by default) or defining
+	`SCHEME_LIBRARY_PATH'.  Mention `new-catalog'.
+
 2007-08-11  Ludovic Courtès  <ludo@gnu.org>
 
 	* srfi-modules.texi (SRFI-34): New node.

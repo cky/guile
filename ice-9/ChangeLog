@@ -1,3 +1,8 @@
+2007-10-02  Ludovic Courtès  <ludo@gnu.org>
+
+	* slib.scm: Let SLIB's `guile.init' do most of the job.  See the
+	`guile-devel@gnu.org' mailing list archive for details.
+
 2007-09-01  Andy Wingo  <wingo@pobox.com>
 
 	* boot-9.scm (duplicate-handlers)[warn, warn-override-core]:

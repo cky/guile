@@ -1,3 +1,7 @@
+2007-10-02  Ludovic Courtès  <ludo@gnu.org>
+
+	* NEWS: Mention `(ice-9 slib)' fix.
+
 2007-09-03  Ludovic Courtès  <ludo@gnu.org>
 
 	* NEWS: Mention alignment-related bug fixes.
