@@ -1,6 +1,6 @@
 2007-10-02  Ludovic Courtès  <ludo@gnu.org>
 
-	* NEWS: Mention `(ice-9 slib)' fix.
+	* NEWS: Mention `(ice-9 slib)' fix and threading fix.
 
 2007-09-03  Ludovic Courtès  <ludo@gnu.org>
 

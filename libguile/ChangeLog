@@ -1,3 +1,9 @@
+2007-10-02  Ludovic Courtès  <ludo@gnu.org>
+
+	* threads.c (on_thread_exit): Don't call `scm_leave_guile ()'
+	since we're already in non-guile mode.  Reported by Greg Toxel
+	for NetBSD.
+
 2007-10-01  Ludovic Courtès  <ludo@gnu.org>
 
 	* ports.c (flush_output_port): Expect directly a port instead of

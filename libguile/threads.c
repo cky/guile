@@ -495,20 +495,18 @@ do_thread_exit (void *v)
 static void
 on_thread_exit (void *v)
 {
+  /* This handler is executed in non-guile mode.  */
   scm_i_thread *t = (scm_i_thread *)v, **tp;
 
   scm_i_pthread_setspecific (scm_i_thread_key, v);
 
   /* Unblocking the joining threads needs to happen in guile mode
-     since the queue is a SCM data structure.
-  */
+     since the queue is a SCM data structure.  */
   scm_with_guile (do_thread_exit, v);
 
   /* Removing ourself from the list of all threads needs to happen in
      non-guile mode since all SCM values on our stack become
-     unprotected once we are no longer in the list.
-  */
-  scm_leave_guile ();
+     unprotected once we are no longer in the list.  */
   scm_i_pthread_mutex_lock (&thread_admin_mutex);
   for (tp = &all_threads; *tp; tp = &(*tp)->next_thread)
     if (*tp == t)

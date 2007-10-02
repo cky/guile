@@ -46,6 +46,7 @@ Changes in 1.8.3 (since 1.8.2)
 ** Warnings about duplicate bindings now go to stderr
 ** A memory leak in `make-socket-address' was fixed
 ** Alignment issues (e.g., on SPARC) in network routines were fixed
+** A threading issue that showed up at least on NetBSD was fixed
 ** Build problems on Solaris fixed
 
 * Implementation improvements
