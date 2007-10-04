@@ -685,12 +685,14 @@ SCM_DEFINE (scm_make_locale, "make-locale", 2, 1, 0,
     scm_t_locale_settings prev_locale;
 
     err = enter_locale_section (c_locale, &prev_locale);
-    leave_locale_section (&prev_locale);
 
     if (err)
       goto fail;
     else
-      SCM_NEWSMOB (locale, scm_tc16_locale_smob_type, c_locale);
+      {
+	leave_locale_section (&prev_locale);
+	SCM_NEWSMOB (locale, scm_tc16_locale_smob_type, c_locale);
+      }
   }
 
 #endif
@@ -1410,7 +1412,7 @@ SCM_DEFINE (scm_nl_langinfo, "nl-langinfo", 1, 1, 0,
 	{
 	  c_result = nl_langinfo (c_item);
 
-	  leave_locale_section (&lsec_prev_locale);
+	  restore_locale_settings (&lsec_prev_locale);
 	  free_locale_settings (&lsec_prev_locale);
 	}
 #endif

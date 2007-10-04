@@ -1,3 +1,13 @@
+2007-10-04  Ludovic Courtès  <ludo@gnu.org>
+
+	* i18n.c (scm_make_locale)[!USE_GNU_LOCALE_API]: Don't call
+	`leave_locale_section ()' on failure of
+	`enter_locale_section ()' since the mutex is not held and locale
+	settings are unchanged.
+	(scm_nl_langinfo)[!USE_GNU_LOCALE_API]: Use
+	`restore_locale_settings ()' instead of `leave_locale_section ()' 
+	since the mutex is not held.
+	
 2007-10-02  Ludovic Courtès  <ludo@gnu.org>
 
 	* threads.c (on_thread_exit): Don't call `scm_leave_guile ()'
