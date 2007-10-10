@@ -1,4 +1,4 @@
-/* Copyright (C) 1999,2000,2001,2003,2004, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1999,2000,2001,2003,2004, 2006, 2007 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -21,6 +21,21 @@
 #include <assert.h>
 #include <string.h>
 
+#include "config.h"
+
+#ifdef HAVE_INTTYPES_H
+# include <inttypes.h>
+#elif (!defined PRIiMAX)
+# if (defined SIZEOF_LONG_LONG) && (SIZEOF_LONG_LONG >= 8)
+#  define PRIiMAX "lli"
+#  define PRIuMAX "llu"
+# else
+#  define PRIiMAX "li"
+#  define PRIuMAX "lu"
+# endif
+#endif
+
+
 static void
 test_1 (const char *str, scm_t_intmax min, scm_t_intmax max,
 	int result)
@@ -28,7 +43,8 @@ test_1 (const char *str, scm_t_intmax min, scm_t_intmax max,
   int r = scm_is_signed_integer (scm_c_eval_string (str), min, max);
   if (r != result)
     {
-      fprintf (stderr, "fail: scm_is_signed_integer (%s, %Ld, %Ld) == %d\n",
+      fprintf (stderr, "fail: scm_is_signed_integer (%s, "
+	       "%" PRIiMAX ", %" PRIiMAX ") == %d\n",
 	       str, min, max, result);
       exit (1);
     }
@@ -113,7 +129,8 @@ test_2 (const char *str, scm_t_uintmax min, scm_t_uintmax max,
   int r = scm_is_unsigned_integer (scm_c_eval_string (str), min, max);
   if (r != result)
     {
-      fprintf (stderr, "fail: scm_is_unsigned_integer (%s, %Lu, %Lu) == %d\n",
+      fprintf (stderr, "fail: scm_is_unsigned_integer (%s, "
+	       "%" PRIuMAX ", %" PRIuMAX ") == %d\n",
 	       str, min, max, result);
       exit (1);
     }
@@ -233,7 +250,8 @@ test_3 (const char *str, scm_t_intmax min, scm_t_intmax max,
 					    out_of_range_handler, NULL)))
 	{
 	  fprintf (stderr,
-		   "fail: scm_to_signed_int (%s, %Ld, %Ld) -> out of range\n",
+		   "fail: scm_to_signed_int (%s, "
+		   "%" PRIiMAX ", %" PRIiMAX ") -> out of range\n",
 		   str, min, max);
 	  exit (1);
 	}
@@ -245,7 +263,8 @@ test_3 (const char *str, scm_t_intmax min, scm_t_intmax max,
 					    wrong_type_handler, NULL)))
 	{
 	  fprintf (stderr,
-		   "fail: scm_to_signed_int (%s, %Ld, %Ld) -> wrong type\n",
+		   "fail: scm_to_signed_int (%s, "
+		   "%" PRIiMAX", %" PRIiMAX ") -> wrong type\n",
 		   str, min, max);
 	  exit (1);
 	}
@@ -258,7 +277,8 @@ test_3 (const char *str, scm_t_intmax min, scm_t_intmax max,
 	  || data.result != result)
 	{
 	  fprintf (stderr,
-		   "fail: scm_to_signed_int (%s, %Ld, %Ld) = %Ld\n",
+		   "fail: scm_to_signed_int (%s, "
+		   "%" PRIiMAX ", %" PRIiMAX ") = %" PRIiMAX "\n",
 		   str, min, max, result);
 	  exit (1);
 	}
@@ -365,7 +385,8 @@ test_4 (const char *str, scm_t_uintmax min, scm_t_uintmax max,
 					    out_of_range_handler, NULL)))
 	{
 	  fprintf (stderr,
-		   "fail: scm_to_unsigned_int (%s, %Lu, %Lu) -> out of range\n",
+		   "fail: scm_to_unsigned_int (%s, "
+		   "%" PRIuMAX ", %" PRIuMAX ") -> out of range\n",
 		   str, min, max);
 	  exit (1);
 	}
@@ -377,7 +398,8 @@ test_4 (const char *str, scm_t_uintmax min, scm_t_uintmax max,
 					    wrong_type_handler, NULL)))
 	{
 	  fprintf (stderr,
-		   "fail: scm_to_unsigned_int (%s, %Lu, %Lu) -> wrong type\n",
+		   "fail: scm_to_unsigned_int (%s, "
+		   "%" PRIuMAX ", %" PRIuMAX ") -> wrong type\n",
 		   str, min, max);
 	  exit (1);
 	}
@@ -390,7 +412,8 @@ test_4 (const char *str, scm_t_uintmax min, scm_t_uintmax max,
 	  || data.result != result)
 	{
 	  fprintf (stderr,
-		   "fail: scm_to_unsigned_int (%s, %Lu, %Lu) == %Lu\n",
+		   "fail: scm_to_unsigned_int (%s, "
+		   "%" PRIuMAX ", %" PRIuMAX ") == %" PRIuMAX "\n",
 		   str, min, max, result);
 	  exit (1);
 	}
@@ -446,7 +469,7 @@ test_5 (scm_t_intmax val, const char *result)
   SCM res = scm_c_eval_string (result);
   if (scm_is_false (scm_equal_p (scm_from_signed_integer (val), res)))
     {
-      fprintf (stderr, "fail: scm_from_signed_integer (%Ld) == %s\n",
+      fprintf (stderr, "fail: scm_from_signed_integer (%" PRIiMAX ") == %s\n",
 	       val, result);
       exit (1);
     }
@@ -478,7 +501,8 @@ test_6 (scm_t_uintmax val, const char *result)
   SCM res = scm_c_eval_string (result);
   if (scm_is_false (scm_equal_p (scm_from_unsigned_integer (val), res)))
     {
-      fprintf (stderr, "fail: scm_from_unsigned_integer (%Lu) == %s\n",
+      fprintf (stderr, "fail: scm_from_unsigned_integer (%"
+	       PRIuMAX ") == %s\n",
 	       val, result);
       exit (1);
     }
@@ -507,7 +531,7 @@ test_7s (SCM n, scm_t_intmax c_n, const char *result, const char *func)
 
   if (scm_is_false (scm_equal_p (n, r)))
     {
-      fprintf (stderr, "fail: %s (%Ld) == %s\n", func, c_n, result);
+      fprintf (stderr, "fail: %s (%" PRIiMAX ") == %s\n", func, c_n, result);
       exit (1);
     }
 }
@@ -521,7 +545,7 @@ test_7u (SCM n, scm_t_uintmax c_n, const char *result, const char *func)
 
   if (scm_is_false (scm_equal_p (n, r)))
     {
-      fprintf (stderr, "fail: %s (%Lu) == %s\n", func, c_n, result);
+      fprintf (stderr, "fail: %s (%" PRIuMAX ") == %s\n", func, c_n, result);
       exit (1);
     }
 }
@@ -580,7 +604,7 @@ test_8s (const char *str, scm_t_intmax (*func) (SCM), const char *func_name,
 	  || data.result != result)
 	{
 	  fprintf (stderr,
-		   "fail: %s (%s) = %Ld\n", func_name, str, result);
+		   "fail: %s (%s) = %" PRIiMAX "\n", func_name, str, result);
 	  exit (1);
 	}
     }
@@ -638,7 +662,7 @@ test_8u (const char *str, scm_t_uintmax (*func) (SCM), const char *func_name,
 	  || data.result != result)
 	{
 	  fprintf (stderr,
-		   "fail: %s (%s) = %Ld\n", func_name, str, result);
+		   "fail: %s (%s) = %" PRIiMAX "\n", func_name, str, result);
 	  exit (1);
 	}
     }

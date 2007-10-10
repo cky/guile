@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in.
 ##
-## Copyright 2003, 2004, 2005, 2006 Software Foundation, Inc.
+## Copyright 2003, 2004, 2005, 2006, 2007 Software Foundation, Inc.
 ##
 ## This file is part of GUILE.
 ##
@@ -32,7 +32,7 @@ TESTS_ENVIRONMENT = "${top_builddir}/pre-inst-guile-env"
 test_cflags = \
   -I$(top_srcdir)/test-suite/standalone \
   -I$(top_srcdir) \
-  -I$(top_srcdir)/libguile-ltdl $(EXTRA_DEFS) $(GUILE_CFLAGS)
+  $(EXTRA_DEFS) $(GUILE_CFLAGS)
 
 AM_LDFLAGS = $(GUILE_CFLAGS)
 

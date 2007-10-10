@@ -1,3 +1,13 @@
+2007-10-10  Ludovic Courtès  <ludo@gnu.org>
+
+	* standalone/test-conversion.c: Include <inttypes.h> where
+	available.  Use `PRIiMAX' and `PRIuMAX' to print
+	`scm_t_u?intmax'.  Fixes warnings on x86_64.  Reported by Poor
+	Yorick <org.gnu.lists.guile-user@pooryorick.com>.
+
+	* standalone/Makefile.am (test_cflags): Removed reference to
+	`libguile-ltdl'.
+
 2007-09-03  Ludovic Courtès  <ludo@gnu.org>
 
 	* tests/reader.test (reading)[block comment finishing sexp]: New
