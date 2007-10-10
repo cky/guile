@@ -382,6 +382,11 @@ main (int argc, char *argv[])
   pf ("#define SCM_NEED_BRACES_ON_PTHREAD_ONCE_INIT %d /* 0 or 1 */\n",
       SCM_I_GSC_NEED_BRACES_ON_PTHREAD_ONCE_INIT);
 
+  pf ("/* Define to 1 if need braces around PTHREAD_MUTEX_INITIALIZER\n"
+      "   (for IRIX with GCC)  */\n");
+  pf ("#define SCM_NEED_BRACES_ON_PTHREAD_MUTEX_INITIALIZER %d /* 0 or 1 */\n",
+      SCM_I_GSC_NEED_BRACES_ON_PTHREAD_MUTEX_INITIALIZER);
+
 #if USE_DLL_IMPORT
   pf ("\n");
   pf ("/* Define some additional CPP macros on Win32 platforms. */\n");

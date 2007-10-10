@@ -1,3 +1,12 @@
+2007-10-10  Ludovic Courtès  <ludo@gnu.org>
+
+	* configure.in (SCM_I_GSC_NEED_BRACES_ON_PTHREAD_ONCE_INIT):
+	New substituted variable.
+	Use `-Werror' when using GCC and checking for
+	`PTHREAD_ONCE_INIT'.  Add check for braces around
+	`PTHREAD_MUTEX_INITIALIZER'.
+	* NEWS: Mention build fix for IRIX.
+
 2007-10-02  Ludovic Courtès  <ludo@gnu.org>
 
 	* NEWS: Mention `(ice-9 slib)' fix and threading fix.

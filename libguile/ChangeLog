@@ -1,3 +1,12 @@
+2007-10-10  Ludovic Courtès  <ludo@gnu.org>
+
+	* pthread-threads.h (SCM_I_PTHREAD_MUTEX_INITIALIZER): Check
+	`SCM_NEED_BRACES_ON_PTHREAD_MUTEX_INITIALIZER'.
+	* gen-scmconfig.h.in
+	(SCM_I_GSC_NEED_BRACES_ON_PTHREAD_MUTEX_INITIALIZER): New.
+	* gen-scmconfig.c (main): Define
+	`SCM_NEED_BRACES_ON_PTHREAD_MUTEX_INITIALIZER'.
+
 2007-10-04  Ludovic Courtès  <ludo@gnu.org>
 
 	* i18n.c (scm_make_locale)[!USE_GNU_LOCALE_API]: Don't call

@@ -43,7 +43,11 @@
 
 /* Mutexes
  */
-#define SCM_I_PTHREAD_MUTEX_INITIALIZER     PTHREAD_MUTEX_INITIALIZER
+#if SCM_NEED_BRACES_ON_PTHREAD_MUTEX_INITIALIZER
+# define SCM_I_PTHREAD_MUTEX_INITIALIZER     { PTHREAD_MUTEX_INITIALIZER }
+#else
+# define SCM_I_PTHREAD_MUTEX_INITIALIZER     PTHREAD_MUTEX_INITIALIZER
+#endif
 #define scm_i_pthread_mutex_t               pthread_mutex_t
 #define scm_i_pthread_mutex_init            pthread_mutex_init
 #define scm_i_pthread_mutex_destroy         pthread_mutex_destroy
