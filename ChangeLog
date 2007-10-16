@@ -1,3 +1,10 @@
+2007-10-16  Ludovic Courtès  <ludo@gnu.org>
+
+	Guile 1.8.3 released.
+
+	* GUILE-VERSION (GUILE_MICRO_VERSION): Incremented.
+	(LIBGUILE_INTERFACE_REVISION): Incremented.
+
 2007-10-10  Ludovic Courtès  <ludo@gnu.org>
 
 	* configure.in (SCM_I_GSC_NEED_BRACES_ON_PTHREAD_ONCE_INIT):
