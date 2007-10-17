@@ -31,6 +31,14 @@ This slightly improves program startup times.
 ** Functions for handling `scm_option' now no longer require an argument
 indicating length of the `scm_t_option' array.
 
+
+
+Changes in 1.8.4 (since 1.8.3)
+
+* Bugs fixed
+
+** CR (ASCII 0x0d) is (again) recognized as a token delimiter by the reader
+
 
 Changes in 1.8.3 (since 1.8.2)
 

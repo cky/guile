@@ -1,3 +1,8 @@
+2007-10-17  Ludovic Courtès  <ludo@gnu.org>
+
+	* tests/reader.test (reading)[CR recognized as a token
+	delimiter]: New test.
+
 2007-10-10  Ludovic Courtès  <ludo@gnu.org>
 
 	* standalone/test-conversion.c: Include <inttypes.h> where

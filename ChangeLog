@@ -1,3 +1,7 @@
+2007-10-17  Ludovic Courtès  <ludo@gnu.org>
+
+	* NEWS: Mention reader bug-fix.
+
 2007-10-16  Ludovic Courtès  <ludo@gnu.org>
 
 	Guile 1.8.3 released.

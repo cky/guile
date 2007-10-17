@@ -1,3 +1,9 @@
+2007-10-17  Ludovic Courtès  <ludo@gnu.org>
+
+	* read.c (CHAR_IS_BLANK_): Add `\r' (ASCII 0x0d).  This fixes a
+	regression compared to 1.8.2.  Reported by Puneet
+	<schemer@gmail.com>.
+
 2007-10-10  Ludovic Courtès  <ludo@gnu.org>
 
 	* pthread-threads.h (SCM_I_PTHREAD_MUTEX_INITIALIZER): Check
