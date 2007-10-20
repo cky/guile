@@ -1,3 +1,42 @@
+2007-10-20  Julian Graham  <joolean@gmail.com>
+
+	Add support for thread cancellation and user-defined thread
+	cleanup handlers.  Small rework by Ludovic Courtès.
+
+	* null-threads.h (scm_i_pthread_cancel,
+	scm_i_pthread_cleanup_push, scm_i_pthread_cleanup_pop): New.
+	* pthread-threads.h (scm_i_pthread_cancel,
+	scm_i_pthread_cleanup_push, scm_i_pthread_cleanup_pop): New.
+	* scmsigs.c (scm_i_signal_delivery_thread,
+	signal_delivery_thread_mutex): New.
+	(signal_delivery_thread): Leave when `read_without_guile ()'
+	returns zero.
+	(start_signal_delivery_thread): Acquire SIGNAL_DELIVERY_THREAD
+	before spawning the thread.  Initialize
+	SCM_I_SIGNAL_DELIVERY_THREAD.
+	(ensure_signal_delivery_thread): Renamed to...
+	(scm_i_ensure_signal_delivery_thread): this.
+	(scm_i_close_signal_pipe): New.
+	* scmsigs.h: Updated.
+	* threads.c (thread_mark): Mark `t->cleanup_handler'.
+	(guilify_self_1): Initialize `t->cleanup_handler' and
+	`t->canceled'.
+	(do_thread_exit): Invoke `t->cleanup_handler'.
+	(on_thread_exit): Call `scm_i_ensure_signal_delivery_thread ()'.
+	Call `scm_i_close_signal_pipe ()' when the next-to-last thread
+	vanishes.
+	(scm_leave_guile_cleanup): New.
+	(scm_i_with_guile_and_parent): Use `scm_i_pthread_cleanup_push ()' 
+	and `scm_leave_guile_cleanup ()' to leave guile mode, rather
+	than call `scm_leave_guile ()' after FUNC.
+	(scm_cancel_thread, scm_set_thread_cleanup_x,
+	scm_threads_cleanup): New.
+	(scm_all_threads): Remove SCM_I_SIGNAL_DELIVERY_THREAD from the
+	returned list.
+	* threads.h (scm_i_thread)[cleanup_handler, canceled]: New
+	fields.
+	Add declarations of new functions.
+	
 2007-10-17  Ludovic Courtès  <ludo@gnu.org>
 
 	* read.c (CHAR_IS_BLANK_): Add `\r' (ASCII 0x0d).  This fixes a

@@ -1,3 +1,10 @@
+2007-10-20  Julian Graham  <joolean@gmail.com>
+
+	* tests/threads.test: Use proper `define-module'.
+	(cancel-thread, handler result passed to join, can cancel self,
+	handler supplants final expr, remove handler by setting false,
+	initial handler is false): New tests.
+
 2007-10-17  Ludovic Courtès  <ludo@gnu.org>
 
 	* tests/reader.test (reading)[CR recognized as a token

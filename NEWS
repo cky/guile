@@ -26,6 +26,9 @@ be used for efficiently implementing a Scheme code coverage.
 ** Duplicate bindings among used modules are resolved lazily.
 This slightly improves program startup times.
 
+** New thread cancellation and thread cleanup API
+See `cancel-thread', `set-thread-cleanup!', and `thread-cleanup'.
+
 * Changes to the C interface
 
 ** Functions for handling `scm_option' now no longer require an argument

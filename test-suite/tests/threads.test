@@ -1,6 +1,6 @@
 ;;;; threads.test --- Tests for Guile threading.    -*- scheme -*-
 ;;;;
-;;;; Copyright 2003, 2006 Free Software Foundation, Inc.
+;;;; Copyright 2003, 2006, 2007 Free Software Foundation, Inc.
 ;;;;
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -17,8 +17,10 @@
 ;;;; the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;;;; Boston, MA 02110-1301 USA
 
-(use-modules (ice-9 threads)
-	     (test-suite lib))
+(define-module (test-threads)
+  :use-module (ice-9 threads)
+  :use-module (test-suite lib))
+
 
 (if (provided? 'threads)
     (begin
@@ -133,4 +135,54 @@
 				(lambda (n) (set! result (cons n result)))
 				(lambda (n) (* 2 n))
 				'(0 1 2 3 4 5))
-	    (equal? result '(10 8 6 4 2 0)))))))
+	    (equal? result '(10 8 6 4 2 0)))))
+
+      ;;
+      ;; thread cancellation
+      ;;
+
+      (with-test-prefix "cancel-thread"
+
+        (pass-if "cancel succeeds"
+	  (let ((m (make-mutex)))
+	    (lock-mutex m)
+	    (let ((t (begin-thread (begin (lock-mutex m) 'foo))))
+	      (cancel-thread t)
+	      (join-thread t)
+	      #t)))
+
+	(pass-if "handler result passed to join"
+	  (let ((m (make-mutex)))
+	    (lock-mutex m)
+	    (let ((t (begin-thread (lock-mutex m))))
+	      (set-thread-cleanup! t (lambda () 'foo))
+	      (cancel-thread t)
+	      (eq? (join-thread t) 'foo))))
+
+	(pass-if "can cancel self"
+	  (let ((m (make-mutex)))
+	    (lock-mutex m)
+	    (let ((t (begin-thread (begin
+				     (set-thread-cleanup! (current-thread)
+							  (lambda () 'foo))
+				     (cancel-thread (current-thread))
+				     (lock-mutex m)))))
+	      (eq? (join-thread t) 'foo))))
+
+	(pass-if "handler supplants final expr"
+	  (let ((t (begin-thread (begin (set-thread-cleanup! (current-thread)
+							     (lambda () 'bar))
+					'foo))))
+	    (eq? (join-thread t) 'bar)))
+
+	(pass-if "remove handler by setting false"
+	  (let ((m (make-mutex)))
+	    (lock-mutex m)
+	    (let ((t (begin-thread (lock-mutex m) 'bar)))
+	      (set-thread-cleanup! t (lambda () 'foo))
+	      (set-thread-cleanup! t #f)
+	      (unlock-mutex m)
+	      (eq? (join-thread t) 'bar))))
+
+	(pass-if "initial handler is false"
+	  (not (thread-cleanup (current-thread)))))))

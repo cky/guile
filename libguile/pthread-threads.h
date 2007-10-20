@@ -35,6 +35,9 @@
 #define scm_i_pthread_create                pthread_create
 #define scm_i_pthread_detach                pthread_detach
 #define scm_i_pthread_exit                  pthread_exit
+#define scm_i_pthread_cancel                pthread_cancel
+#define scm_i_pthread_cleanup_push          pthread_cleanup_push
+#define scm_i_pthread_cleanup_pop           pthread_cleanup_pop
 #define scm_i_sched_yield                   sched_yield
 
 /* Signals

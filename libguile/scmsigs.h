@@ -3,7 +3,7 @@
 #ifndef SCM_SCMSIGS_H
 #define SCM_SCMSIGS_H
 
-/* Copyright (C) 1995,1996,1997,1998,2000, 2002, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000, 2002, 2006, 2007 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -23,6 +23,7 @@
 
 
 #include "libguile/__scm.h"
+#include "libguile/threads.h"
 
 
 
@@ -40,6 +41,11 @@ SCM_API SCM scm_sleep (SCM i);
 SCM_API SCM scm_usleep (SCM i);
 SCM_API SCM scm_raise (SCM sig);
 SCM_API void scm_init_scmsigs (void);
+
+SCM_API void scm_i_close_signal_pipe (void);
+SCM_API void scm_i_ensure_signal_delivery_thread (void);
+
+SCM_API scm_i_thread *scm_i_signal_delivery_thread;
 
 #endif  /* SCM_SCMSIGS_H */
 

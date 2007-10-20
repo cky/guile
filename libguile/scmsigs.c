@@ -33,6 +33,7 @@
 #include "libguile/eval.h"
 #include "libguile/root.h"
 #include "libguile/vectors.h"
+#include "libguile/threads.h"
 
 #include "libguile/validate.h"
 #include "libguile/scmsigs.h"
@@ -98,6 +99,14 @@
 static SCM *signal_handlers;
 static SCM signal_handler_asyncs;
 static SCM signal_handler_threads;
+
+/* The signal delivery thread.  */
+scm_i_thread *scm_i_signal_delivery_thread = NULL;
+
+/* The mutex held when launching the signal delivery thread.  */
+static scm_i_pthread_mutex_t signal_delivery_thread_mutex =
+  SCM_I_PTHREAD_MUTEX_INITIALIZER;
+
 
 /* saves the original C handlers, when a new handler is installed.
    set to SIG_ERR if the original handler is installed.  */
@@ -185,24 +194,34 @@ signal_delivery_thread (void *data)
 	  if (scm_is_true (h))
 	    scm_system_async_mark_for_thread (h, t);
 	}
+      else if (n == 0)
+	break; /* the signal pipe was closed. */
       else if (n < 0 && errno != EINTR)
 	perror ("error in signal delivery thread");
     }
 
-  return SCM_UNSPECIFIED;	/* not reached */
+  return SCM_UNSPECIFIED; /* not reached unless all other threads exited */
 }
 
 static void
 start_signal_delivery_thread (void)
 {
+  SCM signal_thread;
+
+  scm_i_pthread_mutex_lock (&signal_delivery_thread_mutex);
+
   if (pipe (signal_pipe) != 0)
     scm_syserror (NULL);
-  scm_spawn_thread (signal_delivery_thread, NULL,
-		    scm_handle_by_message, "signal delivery thread");
+  signal_thread = scm_spawn_thread (signal_delivery_thread, NULL,
+				    scm_handle_by_message,
+				    "signal delivery thread");
+  scm_i_signal_delivery_thread = SCM_I_THREAD_DATA (signal_thread);
+
+  scm_i_pthread_mutex_unlock (&signal_delivery_thread_mutex);
 }
 
-static void
-ensure_signal_delivery_thread ()
+void
+scm_i_ensure_signal_delivery_thread ()
 {
   static scm_i_pthread_once_t once = SCM_I_PTHREAD_ONCE_INIT;
   scm_i_pthread_once (&once, start_signal_delivery_thread);
@@ -228,8 +247,8 @@ take_signal (int signum)
 #endif
 }
 
-static void
-ensure_signal_delivery_thread ()
+void
+scm_i_ensure_signal_delivery_thread ()
 {
   return;
 }
@@ -332,7 +351,7 @@ SCM_DEFINE (scm_sigaction_for_thread, "sigaction", 1, 3, 0,
 	SCM_MISC_ERROR ("thread has already exited", SCM_EOL);
     }
 
-  ensure_signal_delivery_thread ();
+  scm_i_ensure_signal_delivery_thread ();
 
   SCM_CRITICAL_SECTION_START;
   old_handler = SCM_SIMPLE_VECTOR_REF (*signal_handlers, csig);
@@ -651,6 +670,21 @@ SCM_DEFINE (scm_raise, "raise", 1, 0, 0,
 #undef FUNC_NAME
 
 
+
+void
+scm_i_close_signal_pipe()
+{
+  /* SIGNAL_DELIVERY_THREAD_MUTEX is only locked while the signal delivery
+     thread is being launched.  The thread that calls this function is
+     already holding the thread admin mutex, so if the delivery thread hasn't
+     been launched at this point, it never will be before shutdown.  */
+  scm_i_pthread_mutex_lock (&signal_delivery_thread_mutex);
+
+  if (scm_i_signal_delivery_thread != NULL)
+    close (signal_pipe[1]);
+
+  scm_i_pthread_mutex_unlock (&signal_delivery_thread_mutex);
+}
 
 void
 scm_init_scmsigs ()

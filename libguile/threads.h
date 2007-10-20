@@ -3,7 +3,7 @@
 #ifndef SCM_THREADS_H
 #define SCM_THREADS_H
 
-/* Copyright (C) 1996,1997,1998,2000,2001, 2002, 2003, 2004, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1996,1997,1998,2000,2001, 2002, 2003, 2004, 2006, 2007 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -49,9 +49,11 @@ typedef struct scm_i_thread {
 
   SCM handle;
   scm_i_pthread_t pthread;
-  
+
+  SCM cleanup_handler;
   SCM join_queue;
   SCM result;
+  int canceled;
   int exited;
 
   SCM sleep_object;
@@ -153,6 +155,9 @@ do { \
 
 SCM_API SCM scm_call_with_new_thread (SCM thunk, SCM handler);
 SCM_API SCM scm_yield (void);
+SCM_API SCM scm_cancel_thread (SCM t);
+SCM_API SCM scm_set_thread_cleanup_x (SCM thread, SCM proc);
+SCM_API SCM scm_thread_cleanup (SCM thread);
 SCM_API SCM scm_join_thread (SCM t);
 
 SCM_API SCM scm_make_mutex (void);

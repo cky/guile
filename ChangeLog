@@ -1,3 +1,11 @@
+2007-10-20  Ludovic Courtès  <ludo@gnu.org>
+
+	* THANKS: Add Julian.
+
+2007-10-20  Julian Graham  <joolean@gmail.com>
+
+	* NEWS: Mention thread cancellation and cleanup API.
+
 2007-10-17  Ludovic Courtès  <ludo@gnu.org>
 
 	* NEWS: Mention reader bug-fix.

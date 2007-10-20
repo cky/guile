@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -48,6 +48,7 @@
 #include "libguile/continuations.h"
 #include "libguile/gc.h"
 #include "libguile/init.h"
+#include "libguile/scmsigs.h"
 
 #ifdef __MINGW32__
 #ifndef ETIMEDOUT
@@ -131,6 +132,7 @@ thread_mark (SCM obj)
 {
   scm_i_thread *t = SCM_I_THREAD_DATA (obj);
   scm_gc_mark (t->result);
+  scm_gc_mark (t->cleanup_handler);
   scm_gc_mark (t->join_queue);
   scm_gc_mark (t->dynwinds);
   scm_gc_mark (t->active_asyncs);
@@ -415,6 +417,7 @@ guilify_self_1 (SCM_STACKITEM *base)
   t->pthread = scm_i_pthread_self ();
   t->handle = SCM_BOOL_F;
   t->result = SCM_BOOL_F;
+  t->cleanup_handler = SCM_BOOL_F;
   t->join_queue = SCM_EOL;
   t->dynamic_state = SCM_BOOL_F;
   t->dynwinds = SCM_EOL;
@@ -434,6 +437,7 @@ guilify_self_1 (SCM_STACKITEM *base)
   scm_i_pthread_mutex_init (&t->heap_mutex, NULL);
   t->clear_freelists_p = 0;
   t->gc_running_p = 0;
+  t->canceled = 0;
   t->exited = 0;
 
   t->freelist = SCM_EOL;
@@ -478,7 +482,17 @@ guilify_self_2 (SCM parent)
 static void *
 do_thread_exit (void *v)
 {
-  scm_i_thread *t = (scm_i_thread *)v;
+  scm_i_thread *t = (scm_i_thread *) v;
+
+  if (!scm_is_false (t->cleanup_handler))
+    {
+      SCM ptr = t->cleanup_handler;
+
+      t->cleanup_handler = SCM_BOOL_F;
+      t->result = scm_internal_catch (SCM_BOOL_T,
+				      (scm_t_catch_body) scm_call_0, ptr,
+				      scm_handle_by_message_noexit, NULL);
+    }
 
   scm_i_scm_pthread_mutex_lock (&thread_admin_mutex);
 
@@ -489,6 +503,7 @@ do_thread_exit (void *v)
     ;
 
   scm_i_pthread_mutex_unlock (&thread_admin_mutex);
+
   return NULL;
 }
 
@@ -496,9 +511,13 @@ static void
 on_thread_exit (void *v)
 {
   /* This handler is executed in non-guile mode.  */
-  scm_i_thread *t = (scm_i_thread *)v, **tp;
+  scm_i_thread *t = (scm_i_thread *) v, **tp;
 
   scm_i_pthread_setspecific (scm_i_thread_key, v);
+
+  /* Ensure the signal handling thread has been launched, because we might be
+     shutting it down.  */
+  scm_i_ensure_signal_delivery_thread ();
 
   /* Unblocking the joining threads needs to happen in guile mode
      since the queue is a SCM data structure.  */
@@ -515,6 +534,14 @@ on_thread_exit (void *v)
 	break;
       }
   thread_count--;
+
+  /* If there's only one other thread, it could be the signal delivery
+     thread, so we need to notify it to shut down by closing its read pipe.
+     If it's not the signal delivery thread, then closing the read pipe isn't
+     going to hurt.  */
+  if (thread_count <= 1)
+    scm_i_close_signal_pipe ();
+
   scm_i_pthread_mutex_unlock (&thread_admin_mutex);
 
   scm_i_pthread_setspecific (scm_i_thread_key, NULL);
@@ -684,17 +711,30 @@ scm_with_guile (void *(*func)(void *), void *data)
 				      scm_i_default_dynamic_state);
 }
 
+static void
+scm_leave_guile_cleanup (void *x)
+{
+  scm_leave_guile ();
+}
+
 void *
-scm_i_with_guile_and_parent (void *(*func)(void *), void *data,
-			     SCM parent)
+scm_i_with_guile_and_parent (void *(*func)(void *), void *data, SCM parent)
 {
   void *res;
   int really_entered;
   SCM_STACKITEM base_item;
+
   really_entered = scm_i_init_thread_for_guile (&base_item, parent);
-  res = scm_c_with_continuation_barrier (func, data);
   if (really_entered)
-    scm_leave_guile ();
+    {
+      scm_i_pthread_cleanup_push (scm_leave_guile_cleanup, NULL);
+      res = scm_c_with_continuation_barrier (func, data);
+      scm_i_pthread_cleanup_pop (0);
+      scm_leave_guile ();
+    }
+  else 
+    res = scm_c_with_continuation_barrier (func, data);
+
   return res;
 }
 
@@ -880,6 +920,74 @@ SCM_DEFINE (scm_yield, "yield", 0, 0, 0,
 }
 #undef FUNC_NAME
 
+SCM_DEFINE (scm_cancel_thread, "cancel-thread", 1, 0, 0,
+	    (SCM thread),
+"Asynchronously force the target @var{thread} to terminate. @var{thread} "
+"cannot be the current thread, and if @var{thread} has already terminated or "
+"been signaled to terminate, this function is a no-op.")
+#define FUNC_NAME s_scm_cancel_thread
+{
+  scm_i_thread *t = NULL;
+
+  SCM_VALIDATE_THREAD (1, thread);
+  t = SCM_I_THREAD_DATA (thread);
+  scm_i_scm_pthread_mutex_lock (&thread_admin_mutex);
+  if (!t->canceled)
+    {
+      t->canceled = 1;
+      scm_i_pthread_mutex_unlock (&thread_admin_mutex);
+      scm_i_pthread_cancel (t->pthread);
+    }
+  else
+    scm_i_pthread_mutex_unlock (&thread_admin_mutex);
+
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_set_thread_cleanup_x, "set-thread-cleanup!", 2, 0, 0,
+	    (SCM thread, SCM proc),
+"Set the thunk @var{proc} as the cleanup handler for the thread @var{thread}. "
+"This handler will be called when the thread exits.")
+#define FUNC_NAME s_scm_set_thread_cleanup_x
+{
+  scm_i_thread *t;
+
+  SCM_VALIDATE_THREAD (1, thread);
+  if (!scm_is_false (proc))
+    SCM_VALIDATE_THUNK (2, proc);
+
+  scm_i_pthread_mutex_lock (&thread_admin_mutex);
+
+  t = SCM_I_THREAD_DATA (thread);
+  if (!(t->exited || t->canceled))
+    t->cleanup_handler = proc;
+
+  scm_i_pthread_mutex_unlock (&thread_admin_mutex);
+
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_thread_cleanup, "thread-cleanup", 1, 0, 0,
+	    (SCM thread),
+"Return the cleanup handler installed for the thread @var{thread}.")
+#define FUNC_NAME s_scm_thread_cleanup
+{
+  scm_i_thread *t;
+  SCM ret;
+
+  SCM_VALIDATE_THREAD (1, thread);
+
+  scm_i_pthread_mutex_lock (&thread_admin_mutex);
+  t = SCM_I_THREAD_DATA (thread);
+  ret = (t->exited || t->canceled) ? SCM_BOOL_F : t->cleanup_handler;
+  scm_i_pthread_mutex_unlock (&thread_admin_mutex);
+
+  return ret;
+}
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_join_thread, "join-thread", 1, 0, 0,
 	    (SCM thread),
 "Suspend execution of the calling thread until the target @var{thread} "
@@ -891,7 +999,7 @@ SCM_DEFINE (scm_join_thread, "join-thread", 1, 0, 0,
 
   SCM_VALIDATE_THREAD (1, thread);
   if (scm_is_eq (scm_current_thread (), thread))
-    SCM_MISC_ERROR ("can not join the current thread", SCM_EOL);
+    SCM_MISC_ERROR ("cannot join the current thread", SCM_EOL);
 
   scm_i_scm_pthread_mutex_lock (&thread_admin_mutex);
 
@@ -911,10 +1019,13 @@ SCM_DEFINE (scm_join_thread, "join-thread", 1, 0, 0,
   res = t->result;
 
   scm_i_pthread_mutex_unlock (&thread_admin_mutex);
+
   return res;
 }
 #undef FUNC_NAME
 
+
+
 /*** Fat mutexes */
 
 /* We implement our own mutex type since we want them to be 'fair', we
@@ -1537,8 +1648,11 @@ SCM_DEFINE (scm_all_threads, "all-threads", 0, 0, 0,
   l = &list;
   for (t = all_threads; t && n > 0; t = t->next_thread)
     {
-      SCM_SETCAR (*l, t->handle);
-      l = SCM_CDRLOC (*l);
+      if (t != scm_i_signal_delivery_thread)
+	{
+	  SCM_SETCAR (*l, t->handle);
+	  l = SCM_CDRLOC (*l);
+	}
       n--;
     }
   *l = SCM_EOL;

@@ -41,6 +41,9 @@
 #define scm_i_pthread_create(t,a,f,d)       (*(t)=0, (void)(f), ENOSYS)
 #define scm_i_pthread_detach(t)             do { } while (0)
 #define scm_i_pthread_exit(v)               exit(0)
+#define scm_i_pthread_cancel(t)             0
+#define scm_i_pthread_cleanup_push(t,v)     0
+#define scm_i_pthread_cleanup_pop(e)        0
 #define scm_i_sched_yield()                 0
 
 /* Signals
