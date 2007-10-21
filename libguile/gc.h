@@ -3,7 +3,7 @@
 #ifndef SCM_GC_H
 #define SCM_GC_H
 
-/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2002, 2003, 2004, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2002, 2003, 2004, 2006, 2007 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -271,7 +271,6 @@ SCM_API void scm_gc_register_roots (SCM *b, unsigned long n);
 SCM_API void scm_gc_unregister_roots (SCM *b, unsigned long n);
 SCM_API void scm_storage_prehistory (void);
 SCM_API int scm_init_storage (void);
-SCM_API void *scm_get_stack_base (void);
 SCM_API void scm_init_gc (void);
 
 #if SCM_ENABLE_DEPRECATED == 1

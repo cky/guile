@@ -635,7 +635,7 @@ get_thread_stack_base ()
 
 #ifndef PTHREAD_ATTR_GETSTACK_WORKS
   if ((void *)&attr < start || (void *)&attr >= end)
-    return scm_get_stack_base ();
+    return (SCM_STACKITEM *) GC_stackbottom;
   else
 #endif
     {
@@ -667,7 +667,7 @@ get_thread_stack_base ()
 static SCM_STACKITEM *
 get_thread_stack_base ()
 {
-  return scm_get_stack_base ();
+  return (SCM_STACKITEM *) GC_stackbottom;
 }
 
 #endif /* pthread methods of get_thread_stack_base */
@@ -679,7 +679,7 @@ get_thread_stack_base ()
 static SCM_STACKITEM *
 get_thread_stack_base ()
 {
-  return scm_get_stack_base ();
+  return (SCM_STACKITEM *) GC_stackbottom;
 }
 
 #endif /* !SCM_USE_PTHREAD_THREADS */
