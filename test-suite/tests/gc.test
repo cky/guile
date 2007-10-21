@@ -1,5 +1,5 @@
 ;;;; gc.test --- test guile's garbage collection    -*- scheme -*-
-;;;; Copyright (C) 2000, 2001, 2004, 2006 Free Software Foundation, Inc.
+;;;; Copyright (C) 2000, 2001, 2004, 2006, 2007 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -59,13 +59,17 @@
 
 (with-test-prefix "gc"
   (pass-if "Unused modules are removed"
-	   (let*
-	       ((dummy (gc))
-	        (last-count (cdr (assoc
-				  "eval-closure" (gc-live-object-stats)))))
-	       
-	     (for-each (lambda (x) (make-module)) (iota 1000))
+           ;; FIXME: This test fails because of the circular reference
+           ;; created by `make-module' between the module itself and its
+           ;; standard eval closure.
+	   (let* ((guard (make-guardian))
+                  (total 1000))
+
+	     (for-each (lambda (x) (guard (make-module))) (iota total))
 	     (gc)
 	     (gc) ;; twice: have to kill the weak vectors.
-	     (= last-count (cdr (assoc "eval-closure" (gc-live-object-stats)))))
-	   ))
+             (= (length (filter (lambda (x)
+                                  (eq? x #t))
+                                (map (lambda (x) (and (guard) #t))
+                                     (iota total))))
+                total))))

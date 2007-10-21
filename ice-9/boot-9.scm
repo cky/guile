@@ -1223,6 +1223,8 @@
 	  ;; We can't pass this as an argument to module-constructor,
 	  ;; because we need it to close over a pointer to the module
 	  ;; itself.
+          ;; FIXME: This creates a circular reference between MODULE and its
+          ;; standard eval closure which precludes them from being collected.
 	  (set-module-eval-closure! module (standard-eval-closure module))
 
 	  module))))
