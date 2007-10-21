@@ -1,3 +1,9 @@
+2007-10-21  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* eval.c (unmemoize_delay): Extend the environment before
+	unmemoizing the promise thunk.  This fixes a segmentation fault
+	reported by Frank Schwidom.
+
 2007-10-20  Julian Graham  <joolean@gmail.com>
 
 	Add support for thread cancellation and user-defined thread

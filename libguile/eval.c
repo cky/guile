@@ -1268,7 +1268,13 @@ static SCM
 unmemoize_delay (const SCM expr, const SCM env)
 {
   const SCM thunk_expr = SCM_CADDR (expr);
-  return scm_list_2 (scm_sym_delay, unmemoize_expression (thunk_expr, env));
+  /* A promise is implemented as a closure, and when applying a
+     closure the evaluator adds a new frame to the environment - even
+     though, in the case of a promise, the added frame is always
+     empty.  We need to extend the environment here in the same way,
+     so that any ILOCs in thunk_expr can be unmemoized correctly. */
+  const SCM new_env = SCM_EXTEND_ENV (SCM_EOL, SCM_EOL, env);
+  return scm_list_2 (scm_sym_delay, unmemoize_expression (thunk_expr, new_env));
 }
 
 
