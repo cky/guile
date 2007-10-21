@@ -512,6 +512,17 @@ on_thread_exit (void *v)
 
   /* Unblocking the joining threads needs to happen in guile mode
      since the queue is a SCM data structure.  */
+
+  /* Note: `scm_with_guile ()' invokes `GC_local_malloc ()', which accesses
+     thread-local storage (TLS).  If said storage is accessed using
+     `pthread_getspecific ()', then it may be inaccessible at this point,
+     having been destroyed earlier, since the invocation order of destructors
+     associated with pthread keys is unspecified:
+
+     http://www.opengroup.org/onlinepubs/009695399/functions/pthread_key_create.html
+
+     Thus, `libgc' *must* be compiled with `USE_COMPILER_TLS' for this code
+     to work.  */
   scm_with_guile (do_thread_exit, v);
 
   /* Removing ourself from the list of all threads needs to happen in
