@@ -41,6 +41,8 @@ Changes in 1.8.4 (since 1.8.3)
 * Bugs fixed
 
 ** CR (ASCII 0x0d) is (again) recognized as a token delimiter by the reader
+** Fixed a segmentation fault which occurred when displaying the
+backtrace of a stack with a promise object (made by `delay') in it.
 
 
 Changes in 1.8.3 (since 1.8.2)
