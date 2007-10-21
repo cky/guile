@@ -53,8 +53,7 @@
   (pass-if "throwing to a rewound catch context"
     (eq? (dont-crash-please) 'no-reentry))
 
-  (let ((dopts (debug-options)))
-    (debug-enable 'debug)
+  (with-debugging-evaluator
 
     (pass-if "make a stack from a continuation"
       (stack? (call-with-current-continuation make-stack)))
@@ -64,8 +63,6 @@
 	(or (boolean? id) (symbol? id))))
 
     (pass-if "get a continuation's innermost frame"
-      (pair? (call-with-current-continuation last-stack-frame)))
-
-    (debug-options dopts))
+      (pair? (call-with-current-continuation last-stack-frame))))
 
 )

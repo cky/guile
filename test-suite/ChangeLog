@@ -1,3 +1,16 @@
+2007-10-21  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* tests/continuations.test ("continuations"): Use
+	with-debugging-evaluator.
+
+	* lib.scm (with-debugging-evaluator*, with-debugging-evaluator):
+	New utilities.
+
+	* standalone/test-use-srfi: Use -q to avoid picking up the user's
+	~/.guile file.
+
+	* tests/eval.test (promises)[unmemoizing a promise]: New test.
+
 2007-10-20  Julian Graham  <joolean@gmail.com>
 
 	* tests/threads.test: Use proper `define-module'.
