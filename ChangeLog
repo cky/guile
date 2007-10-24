@@ -1,3 +1,8 @@
+2007-10-24  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* build-aux/.cvsignore: Add a load more generated files to ignore,
+	and commit to CVS.
+
 2007-10-20  Ludovic Courtès  <ludo@gnu.org>
 
 	* THANKS: Add Julian.
