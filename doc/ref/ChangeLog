@@ -1,3 +1,7 @@
+2007-10-24  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* .cvsignore: Add lib-version.texi.
+
 2007-10-02  Ludovic Courtès  <ludo@gnu.org>
 
 	* slib.texi (SLIB installation): Don't recommend using the site
