@@ -24,6 +24,7 @@ elisp-comp
 guile-*.tar.gz
 guile-tools
 install-sh
+lib
 libtool
 ltconfig
 ltmain.sh

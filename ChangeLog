@@ -1,5 +1,7 @@
 2007-10-24  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* .cvsignore: Add "lib".
+
 	* build-aux/.cvsignore: Add a load more generated files to ignore,
 	and commit to CVS.
 
