@@ -1385,8 +1385,6 @@ SCM_DEFINE (scm_putenv, "putenv", 1, 0, 0,
 #else
       /* otherwise traditional putenv("NAME") */
       rv = putenv (c_str);
-      free (c_str);
-
       if (rv < 0)
 	SCM_SYSERROR;
 #endif
@@ -1408,9 +1406,7 @@ SCM_DEFINE (scm_putenv, "putenv", 1, 0, 0,
             char *ptr = scm_malloc (len+2);
             strcpy (ptr, c_str);
             strcpy (ptr+len, " ");
-
             rv = putenv (ptr);
-	    free (ptr);
             if (rv < 0)
               {
                 int eno = errno;
@@ -1423,8 +1419,6 @@ SCM_DEFINE (scm_putenv, "putenv", 1, 0, 0,
             ptr = getenv (c_str);
             if (ptr)
               ptr[0] = '\0';
-	    free (c_str);
-
             return SCM_UNSPECIFIED;
           }
       }
@@ -1433,8 +1427,6 @@ SCM_DEFINE (scm_putenv, "putenv", 1, 0, 0,
       /* Leave c_str in the environment.  */
 
       rv = putenv (c_str);
-      free (c_str);
-
       if (rv < 0)
 	SCM_SYSERROR;
     }

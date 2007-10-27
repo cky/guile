@@ -1,7 +1,3 @@
-2007-10-27  Ludovic Courtès  <ludo@gnu.org>
-
-	* NEWS: Mention `putenv' memory leak fix.
-
 2007-10-24  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* .cvsignore: Add "lib".
