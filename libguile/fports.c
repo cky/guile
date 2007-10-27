@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2004, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2004, 2006, 2007 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -221,11 +221,10 @@ SCM_DEFINE (scm_setvbuf, "setvbuf", 2, 1, 0,
 /* Move ports with the specified file descriptor to new descriptors,
  * resetting the revealed count to 0.
  */
-static SCM
-scm_i_evict_port (SCM handle, void *closure)
+static void
+scm_i_evict_port (void *closure, SCM port)
 {
   int fd = * (int*) closure;
-  SCM port = SCM_CAR (handle);
 
   if (SCM_FPORTP (port))
     {
@@ -239,18 +238,12 @@ scm_i_evict_port (SCM handle, void *closure)
 	  scm_set_port_revealed_x (port, scm_from_int (0));
 	}
     }
-
-  return handle;
 }
 
 void
 scm_evict_ports (int fd)
 {
-  scm_i_scm_pthread_mutex_lock (&scm_i_port_table_mutex);
-  scm_internal_hash_for_each_handle (&scm_i_evict_port,
-				     (void*) &fd,
-				     scm_i_port_weak_hash);
-  scm_i_pthread_mutex_unlock (&scm_i_port_table_mutex);
+  scm_c_port_for_each (scm_i_evict_port, (void *) &fd);
 }
 
 

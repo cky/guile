@@ -1,3 +1,9 @@
+2007-10-27  Ludovic Courtès  <ludo@gnu.org>
+
+	* fports.c (scm_i_evict_port): Expect a port, rather than a pair
+	containing the port.  Fixes a bug in the new port table (2007-08-26).
+	(scm_evict_ports): Use `scm_c_port_for_each ()'.
+
 2007-10-21  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* eval.c (unmemoize_delay): Extend the environment before
