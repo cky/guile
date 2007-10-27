@@ -1,5 +1,7 @@
 2007-10-27  Ludovic Courtès  <ludo@gnu.org>
 
+	* posix.c (scm_putenv): Make sure C_STR gets freed.
+
 	* fports.c (scm_i_evict_port): Expect a port, rather than a pair
 	containing the port.  Fixes a bug in the new port table (2007-08-26).
 	(scm_evict_ports): Use `scm_c_port_for_each ()'.
