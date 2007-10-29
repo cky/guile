@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2007
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -283,6 +283,42 @@ Return @code{#t} iff @var{thread} has exited.
 @deffn {Scheme Procedure} yield
 If one or more threads are waiting to execute, calling yield forces an
 immediate context switch to one of them. Otherwise, yield has no effect.
+@end deffn
+
+@deffn {Scheme Procedure} cancel-thread thread
+@deffnx {C Function} scm_cancel_thread (thread)
+Asynchronously notify @var{thread} to exit.  Immediately after
+receiving this notification, @var{thread} will call its cleanup handler
+(if one has been set) and then terminate, aborting any evaluation that
+is in progress.
+
+Because Guile threads are isomorphic with POSIX threads, @var{thread}
+will not receive its cancellation signal until it reaches a cancellation
+point.  See your operating system's POSIX threading documentation for
+more information on cancellation points; note that in Guile, unlike
+native POSIX threads, a thread can receive a cancellation notification
+while attempting to lock a mutex.
+@end deffn
+
+@deffn {Scheme Procedure} set-thread-cleanup! thread proc
+@deffnx {C Function} scm_set_thread_cleanup_x (thread, proc)
+Set @var{proc} as the cleanup handler for the thread @var{thread}.
+@var{proc}, which must be a thunk, will be called when @var{thread}
+exits, either normally or by being canceled.  Thread cleanup handlers
+can be used to perform useful tasks like releasing resources, such as
+locked mutexes, when thread exit cannot be predicted.
+
+The return value of @var{proc} will be set as the @emph{exit value} of
+@var{thread}.
+
+To remove a cleanup handler, pass @code{#f} for @var{proc}.
+@end deffn
+
+@deffn {Scheme Procedure} thread-cleanup thread
+@deffnx {C Function} scm_thread_cleanup (thread)
+Return the cleanup handler currently installed for the thread
+@var{thread}.  If no cleanup handler is currently installed,
+thread-cleanup returns @code{#f}.
 @end deffn
 
 Higher level thread procedures are available by loading the

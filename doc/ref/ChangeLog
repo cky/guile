@@ -1,3 +1,8 @@
+2007-10-29  Julian Graham  <joolean@gmail.com>
+
+	* api-scheduling.texi (Threads): Document `cancel-thread',
+	`set-thread-cleanup!' and `thread-cleanup'.
+
 2007-10-24  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* .cvsignore: Add lib-version.texi.
