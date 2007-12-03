@@ -82,7 +82,8 @@ srfi_DATA = srfi-1.scm \
 	    srfi-35.scm \
             srfi-37.scm \
             srfi-39.scm \
-            srfi-60.scm
+            srfi-60.scm \
+	    srfi-69.scm
 
 EXTRA_DIST = $(srfi_DATA) 
 TAGS_FILES = $(srfi_DATA)

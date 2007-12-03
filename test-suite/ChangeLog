@@ -1,3 +1,8 @@
+2007-12-03  Stephen Compall  <s11@member.fsf.org>
+
+	* tests/srfi-69.test: New file.
+	* Makefile.am: Add it.
+
 2007-10-21  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* tests/continuations.test ("continuations"): Use

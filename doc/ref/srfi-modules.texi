@@ -44,6 +44,7 @@ get the relevant SRFI documents from the SRFI home page
 * SRFI-55::                     Requiring Features.
 * SRFI-60::                     Integers as bits.
 * SRFI-61::                     A more general `cond' clause
+* SRFI-69::                     Basic hash tables.
 @end menu
 
 
@@ -2470,7 +2471,7 @@ specified by @var{field+value}, a sequence of field names (symbols) and
 values as in the following example:
 
 @lisp
-(let* ((&ct (make-condition-type 'foo &condition '(a b c))))
+(let ((&ct (make-condition-type 'foo &condition '(a b c))))
   (make-condition &ct 'a 1 'b 2 'c 3))
 @end lisp
 
@@ -3025,6 +3026,195 @@ return multiple values, as well as arbitrary definitions of test
 success.  SRFI 61 is implemented in the Guile core; there's no module
 needed to get SRFI-61 itself.  Extended @code{cond} is documented in
 @ref{if cond case,, Simple Conditional Evaluation}.
+
+
+@node SRFI-69
+@subsection SRFI-69 - Basic hash tables
+@cindex SRFI-69
+
+This is a portable wrapper around Guile's built-in hash table and weak
+table support.  @xref{Hash Tables}, for information on that built-in
+support.  Above that, this hash-table interface provides association
+of equality and hash functions with tables at creation time, so
+variants of each function are not required, as well as a procedure
+that takes care of most uses for Guile hash table handles, which this
+SRFI does not provide as such.
+
+Access it with:
+
+@lisp
+(use-modules (srfi srfi-69))
+@end lisp
+
+@menu
+* SRFI-69 Creating hash tables::  
+* SRFI-69 Accessing table items::  
+* SRFI-69 Table properties::    
+* SRFI-69 Hash table algorithms::  
+@end menu
+
+@node SRFI-69 Creating hash tables
+@subsubsection Creating hash tables
+
+@deffn {Scheme Procedure} make-hash-table [equal-proc hash-proc #:weak weakness start-size]
+Create and answer a new hash table with @var{equal-proc} as the
+equality function and @var{hash-proc} as the hashing function.
+
+By default, @var{equal-proc} is @code{equal?}.  It can be any
+two-argument procedure, and should answer whether two keys are the
+same for this table's purposes.
+
+My default @var{hash-proc} assumes that @code{equal-proc} is no
+coarser than @code{equal?}  unless it is literally @code{string-ci=?}.
+If provided, @var{hash-proc} should be a two-argument procedure that
+takes a key and the current table size, and answers a reasonably good
+hash integer between 0 (inclusive) and the size (exclusive).
+
+@var{weakness} should be @code{#f} or a symbol indicating how ``weak''
+the hash table is:
+
+@table @code
+@item #f
+An ordinary non-weak hash table.  This is the default.
+
+@item key
+When the key has no more non-weak references at GC, remove that entry.
+
+@item value
+When the value has no more non-weak references at GC, remove that
+entry.
+
+@item key-or-value
+When either has no more non-weak references at GC, remove the
+association.
+@end table
+
+As a legacy of the time when Guile couldn't grow hash tables,
+@var{start-size} is an optional integer argument that specifies the
+approximate starting size for the hash table.  I will usually round
+this to an algorithmically-sounder number.
+@end deffn
+
+By @dfn{coarser} than @code{equal?}, I mean that for all @var{x} and
+@var{y} values where @code{(@var{equal-proc} @var{x} @var{y})},
+@code{(equal? @var{x} @var{y})} as well.  If that does not hold for
+your @var{equal-proc}, you must provide a @var{hash-proc}.
+
+In the case of weak tables, remember that @dfn{references} above
+always refers to @code{eq?}-wise references.  Just because you have a
+reference to some string @code{"foo"} doesn't mean that an association
+with key @code{"foo"} in a weak-key table @emph{won't} be collected;
+it only counts as a reference if the two @code{"foo"}s are @code{eq?},
+regardless of @var{equal-proc}.  As such, it is usually only sensible
+to use @code{eq?} and @code{hashq} as the equivalence and hash
+functions for a weak table.  @xref{Weak References}, for more
+information on Guile's built-in weak table support.
+
+@deffn {Scheme Procedure} alist->hash-table alist [equal-proc hash-proc #:weak weakness start-size]
+As with @code{make-hash-table}, but initialize it with the
+associations in @var{alist}.  Where keys are repeated in @var{alist},
+the leftmost association takes precedence.
+@end deffn
+
+@node SRFI-69 Accessing table items
+@subsubsection Accessing table items
+
+@deffn {Scheme Procedure} hash-table-ref table key [default-thunk]
+@deffnx {Scheme Procedure} hash-table-ref/default table key default
+Answer the value associated with @var{key} in @var{table}.  If
+@var{key} is not present, answer the result of invoking the thunk
+@var{default-thunk}, which signals an error instead by default.
+
+@code{hash-table-ref/default} is a variant that requires a third
+argument, @var{default}, and answers @var{default} itself instead of
+invoking it.
+@end deffn
+
+@deffn {Scheme Procedure} hash-table-set! table key new-value
+Set @var{key} to @var{new-value} in @var{table}.
+@end deffn
+
+@deffn {Scheme Procedure} hash-table-delete! table key
+Remove the association of @var{key} in @var{table}, if present.  If
+absent, do nothing.
+@end deffn
+
+@deffn {Scheme Procedure} hash-table-exists? table key
+Answer whether @var{key} has an association in @var{table}.
+@end deffn
+
+@deffn {Scheme Procedure} hash-table-update! table key modifier [default-thunk]
+@deffnx {Scheme Procedure} hash-table-update!/default table key modifier default
+Replace @var{key}'s associated value in @var{table} by invoking
+@var{modifier} with one argument, the old value.
+
+If @var{key} is not present, and @var{default-thunk} is provided,
+invoke it with no arguments to get the ``old value'' to be passed to
+@var{modifier} as above.  If @var{default-thunk} is not provided in
+such a case, signal an error.
+
+@code{hash-table-update!/default} is a variant that requires the
+fourth argument, which is used directly as the ``old value'' rather
+than as a thunk to be invoked to retrieve the ``old value''.
+@end deffn
+
+@node SRFI-69 Table properties
+@subsubsection Table properties
+
+@deffn {Scheme Procedure} hash-table-size table
+Answer the number of associations in @var{table}.  This is guaranteed
+to run in constant time for non-weak tables.
+@end deffn
+
+@deffn {Scheme Procedure} hash-table-keys table
+Answer an unordered list of the keys in @var{table}.
+@end deffn
+
+@deffn {Scheme Procedure} hash-table-values table
+Answer an unordered list of the values in @var{table}.
+@end deffn
+
+@deffn {Scheme Procedure} hash-table-walk table proc
+Invoke @var{proc} once for each association in @var{table}, passing
+the key and value as arguments.
+@end deffn
+
+@deffn {Scheme Procedure} hash-table-fold table proc init
+Invoke @code{(@var{proc} @var{key} @var{value} @var{previous})} for
+each @var{key} and @var{value} in @var{table}, where @var{previous} is
+the result of the previous invocation, using @var{init} as the first
+@var{previous} value.  Answer the final @var{proc} result.
+@end deffn
+
+@deffn {Scheme Procedure} hash-table->alist table
+Answer an alist where each association in @var{table} is an
+association in the result.
+@end deffn
+
+@node SRFI-69 Hash table algorithms
+@subsubsection Hash table algorithms
+
+Each hash table carries an @dfn{equivalence function} and a @dfn{hash
+function}, used to implement key lookups.  Beginning users should
+follow the rules for consistency of the default @var{hash-proc}
+specified above.  Advanced users can use these to implement their own
+equivalence and hash functions for specialized lookup semantics.
+
+@deffn {Scheme Procedure} hash-table-equivalence-function hash-table
+@deffnx {Scheme Procedure} hash-table-hash-function hash-table
+Answer the equivalence and hash function of @var{hash-table}, respectively.
+@end deffn
+
+@deffn {Scheme Procedure} hash obj [size]
+@deffnx {Scheme Procedure} string-hash obj [size]
+@deffnx {Scheme Procedure} string-ci-hash obj [size]
+@deffnx {Scheme Procedure} hash-by-identity obj [size]
+Answer a hash value appropriate for equality predicate @code{equal?},
+@code{string=?}, @code{string-ci=?}, and @code{eq?}, respectively.
+@end deffn
+
+@code{hash} is a backwards-compatible replacement for Guile's built-in
+@code{hash}.
 
 
 @c srfi-modules.texi ends here

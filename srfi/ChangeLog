@@ -1,3 +1,8 @@
+2007-12-03  Stephen Compall  <s11@member.fsf.org>
+
+	* srfi-69.scm: New file.
+	* Makefile.am: Add it.
+
 2007-09-10  Ludovic Courtès  <ludo@gnu.org>
 
 	* srfi-35.scm (make-compound-condition-type): When PARENTS

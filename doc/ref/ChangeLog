@@ -1,3 +1,7 @@
+2007-12-03  Stephen Compall  <s11@member.fsf.org>
+
+	* srfi-modules.texi: Describe SRFI-69 in a new subsection.
+
 2007-10-29  Julian Graham  <joolean@gmail.com>
 
 	* api-scheduling.texi (Threads): Document `cancel-thread',
