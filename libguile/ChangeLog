@@ -1,3 +1,9 @@
+2007-12-04  Ludovic Courtès  <ludo@gnu.org>
+
+	* socket.c (scm_accept): Leave guile mode using
+	`scm_std_select ()' before calling `accept(2)'.  Reported by
+	dskr <dskr@mac.com>.
+
 2007-10-27  Ludovic Courtès  <ludo@gnu.org>
 
 	* fports.c (scm_i_evict_port): Expect a port, rather than a pair

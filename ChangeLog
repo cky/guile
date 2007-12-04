@@ -1,3 +1,11 @@
+2007-12-04  Ludovic Courtès  <ludo@gnu.org>
+
+	* NEWS: Mention `accept' bug fix.
+
+2007-12-03  Ludovic Courtès  <ludo@gnu.org>
+
+	* NEWS: Add SRFI-69.
+
 2007-10-24  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* .cvsignore: Add "lib".

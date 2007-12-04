@@ -43,6 +43,11 @@ Changes in 1.8.4 (since 1.8.3)
 ** CR (ASCII 0x0d) is (again) recognized as a token delimiter by the reader
 ** Fixed a segmentation fault which occurred when displaying the
 backtrace of a stack with a promise object (made by `delay') in it.
+** Make `accept' leave guile mode while blocking
+
+* New modules (see the manual for details)
+
+** `(srfi srfi-69)'
 
 
 Changes in 1.8.3 (since 1.8.2)
