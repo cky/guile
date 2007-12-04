@@ -1,5 +1,8 @@
 2007-12-04  Ludovic Courtès  <ludo@gnu.org>
 
+	* ports.c (scm_c_read): Validate PORT as an open input port.
+	(scm_c_write): Validate PORT as an open output port.
+
 	* socket.c (scm_accept): Leave guile mode using
 	`scm_std_select ()' before calling `accept(2)'.  Reported by
 	dskr <dskr@mac.com>.

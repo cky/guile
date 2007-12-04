@@ -1069,10 +1069,14 @@ scm_lfwrite (const char *ptr, size_t size, SCM port)
 
 size_t
 scm_c_read (SCM port, void *buffer, size_t size)
+#define FUNC_NAME "scm_c_read"
 {
-  scm_t_port *pt = SCM_PTAB_ENTRY (port);
+  scm_t_port *pt;
   size_t n_read = 0, n_available;
 
+  SCM_VALIDATE_OPINPORT (1, port);
+
+  pt = SCM_PTAB_ENTRY (port);
   if (pt->rw_active == SCM_PORT_WRITE)
     scm_ptobs[SCM_PTOBNUM (port)].flush (port);
 
@@ -1109,6 +1113,7 @@ scm_c_read (SCM port, void *buffer, size_t size)
 
   return n_read + size;
 }
+#undef FUNC_NAME
 
 /* scm_c_write
  *
@@ -1120,11 +1125,17 @@ scm_c_read (SCM port, void *buffer, size_t size)
  * Warning: Doesn't update port line and column counts!
  */
 
-void 
+void
 scm_c_write (SCM port, const void *ptr, size_t size)
+#define FUNC_NAME "scm_c_write"
 {
-  scm_t_port *pt = SCM_PTAB_ENTRY (port);
-  scm_t_ptob_descriptor *ptob = &scm_ptobs[SCM_PTOBNUM (port)];
+  scm_t_port *pt;
+  scm_t_ptob_descriptor *ptob;
+
+  SCM_VALIDATE_OPOUTPORT (1, port);
+
+  pt = SCM_PTAB_ENTRY (port);
+  ptob = &scm_ptobs[SCM_PTOBNUM (port)];
 
   if (pt->rw_active == SCM_PORT_READ)
     scm_end_input (port);
@@ -1134,6 +1145,7 @@ scm_c_write (SCM port, const void *ptr, size_t size)
   if (pt->rw_random)
     pt->rw_active = SCM_PORT_WRITE;
 }
+#undef FUNC_NAME
 
 void 
 scm_flush (SCM port)
