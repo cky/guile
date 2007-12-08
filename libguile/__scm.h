@@ -3,7 +3,7 @@
 #ifndef SCM___SCM_H
 #define SCM___SCM_H
 
-/* Copyright (C) 1995,1996,1998,1999,2000,2001,2002,2003, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001,2002,2003, 2006, 2007 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -109,6 +109,20 @@
 #endif
 
 
+/* The SCM_EXPECT macros provide branch prediction hints to the compiler.  To
+ * use only in places where the result of the expression under "normal"
+ * circumstances is known.  */
+#if defined(__GNUC__) && (__GNUC__ >= 3)
+# define SCM_EXPECT    __builtin_expect
+#else
+# define SCM_EXPECT(_expr, _value) (_expr)
+#endif
+
+#define SCM_LIKELY(_expr)    SCM_EXPECT ((_expr), 1)
+#define SCM_UNLIKELY(_expr)  SCM_EXPECT ((_expr), 0)
+
+
+
 /* {Supported Options}
  *
  * These may be defined or undefined.
@@ -500,14 +514,14 @@ do { \
 #define SCM_ASSERT_TYPE(_cond, _arg, _pos, _subr, _msg)
 #define SCM_ASRTGO(_cond, _label)
 #else
-#define SCM_ASSERT(_cond, _arg, _pos, _subr) \
-	do { if (!(_cond)) \
+#define SCM_ASSERT(_cond, _arg, _pos, _subr)			\
+        do { if (SCM_UNLIKELY (!(_cond)))			\
           scm_wrong_type_arg (_subr, _pos, _arg); } while (0)
-#define SCM_ASSERT_TYPE(_cond, _arg, _pos, _subr, _msg) \
-	do { if (!(_cond)) \
+#define SCM_ASSERT_TYPE(_cond, _arg, _pos, _subr, _msg)			\
+        do { if (SCM_UNLIKELY (!(_cond)))				\
           scm_wrong_type_arg_msg(_subr, _pos, _arg, _msg);  } while (0)
-#define SCM_ASRTGO(_cond, _label) \
-        do {  if (!(_cond)) \
+#define SCM_ASRTGO(_cond, _label)		\
+        do {  if (SCM_UNLIKELY (!(_cond)))	\
           goto _label; } while (0)
 #endif
 
@@ -526,8 +540,9 @@ SCM_API SCM scm_call_generic_0 (SCM gf);
   return (SCM_UNPACK (gf)					\
 	  ? scm_call_generic_0 ((gf))				\
 	  : (scm_error_num_args_subr ((subr)), SCM_UNSPECIFIED))
-#define SCM_GASSERT0(cond, gf, subr) \
-  if (!(cond)) SCM_WTA_DISPATCH_0((gf), (subr))
+#define SCM_GASSERT0(cond, gf, subr)		\
+  if (SCM_UNLIKELY(!(cond)))		\
+    SCM_WTA_DISPATCH_0((gf), (subr))
 
 SCM_API SCM scm_call_generic_1 (SCM gf, SCM a1);
 
@@ -535,8 +550,9 @@ SCM_API SCM scm_call_generic_1 (SCM gf, SCM a1);
   return (SCM_UNPACK (gf)					\
 	  ? scm_call_generic_1 ((gf), (a1))			\
 	  : (scm_wrong_type_arg ((subr), (pos), (a1)), SCM_UNSPECIFIED))
-#define SCM_GASSERT1(cond, gf, a1, pos, subr) \
-  if (!(cond)) SCM_WTA_DISPATCH_1((gf), (a1), (pos), (subr))
+#define SCM_GASSERT1(cond, gf, a1, pos, subr)		\
+  if (SCM_UNLIKELY (!(cond)))			\
+    SCM_WTA_DISPATCH_1((gf), (a1), (pos), (subr))
 
 SCM_API SCM scm_call_generic_2 (SCM gf, SCM a1, SCM a2);
 
@@ -546,8 +562,9 @@ SCM_API SCM scm_call_generic_2 (SCM gf, SCM a1, SCM a2);
 	  : (scm_wrong_type_arg ((subr), (pos),				\
 				 (pos) == SCM_ARG1 ? (a1) : (a2)),	\
 	     SCM_UNSPECIFIED))
-#define SCM_GASSERT2(cond, gf, a1, a2, pos, subr) \
-  if (!(cond)) SCM_WTA_DISPATCH_2((gf), (a1), (a2), (pos), (subr))
+#define SCM_GASSERT2(cond, gf, a1, a2, pos, subr)	\
+  if (SCM_UNLIKELY (!(cond)))			\
+    SCM_WTA_DISPATCH_2((gf), (a1), (a2), (pos), (subr))
 
 SCM_API SCM scm_apply_generic (SCM gf, SCM args);
 
@@ -558,8 +575,9 @@ SCM_API SCM scm_apply_generic (SCM gf, SCM args);
 				 scm_list_ref ((args),			  \
 					       scm_from_int ((pos) - 1))), \
 	     SCM_UNSPECIFIED))
-#define SCM_GASSERTn(cond, gf, args, pos, subr) \
-  if (!(cond)) SCM_WTA_DISPATCH_n((gf), (args), (pos), (subr))
+#define SCM_GASSERTn(cond, gf, args, pos, subr)		\
+  if (SCM_UNLIKELY (!(cond)))			\
+    SCM_WTA_DISPATCH_n((gf), (args), (pos), (subr))
 
 #ifndef SCM_MAGIC_SNARFER
 /* Let these macros pass through if

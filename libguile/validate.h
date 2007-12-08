@@ -3,7 +3,7 @@
 #ifndef SCM_VALIDATE_H
 #define SCM_VALIDATE_H
 
-/* Copyright (C) 1999,2000,2001, 2002, 2004, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1999,2000,2001, 2002, 2004, 2006, 2007 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -99,8 +99,10 @@
 #define SCM_OUT_OF_RANGE(pos, arg) \
   do { scm_out_of_range_pos (FUNC_NAME, arg, scm_from_int (pos)); } while (0)
 
-#define SCM_ASSERT_RANGE(pos, arg, f) \
-  do { if (!(f)) scm_out_of_range_pos (FUNC_NAME, arg, scm_from_int (pos)); } while (0)
+#define SCM_ASSERT_RANGE(pos, arg, f)					\
+  do { if (SCM_UNLIKELY (!(f)))					\
+         scm_out_of_range_pos (FUNC_NAME, arg, scm_from_int (pos)); }	\
+  while (0)
 
 #define SCM_MUST_MALLOC_TYPE(type) \
   ((type *) scm_must_malloc (sizeof (type), FUNC_NAME))

@@ -1,3 +1,16 @@
+2007-12-08  Ludovic Courtès  <ludo@gnu.org>
+
+	* __scm.h (SCM_EXPECT, SCM_LIKELY, SCM_UNLIKELY): New macros.
+	(SCM_ASSERT, SCM_ASSERT_TYPE, SCM_ASRTGO, SCM_GASSERT0,
+	SCM_GASSERT1, SCM_GASSERT2, SCM_GASSERTn): Use them.
+	* eval.c (ASSERT_SYNTAX, ASSERT_SYNTAX_2): Likewise.
+	* eval.i.c (CEVAL): Use branch prediction hints for syntax
+	errors, wrong number of arguments and similar.
+	* numbers.c (scm_sum): Use `SCM_LIKELY' for the sum of two
+	immediate numbers.
+	(scm_difference, scm_product, scm_i_divide): Likewise.
+	* validate.h (SCM_ASSERT_RANGE): Use `SCM_UNLIKELY'.
+
 2007-12-04  Ludovic Courtès  <ludo@gnu.org>
 
 	* ports.c (scm_c_read): Validate PORT as an open input port.

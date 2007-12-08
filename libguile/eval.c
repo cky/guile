@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007
  * Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
@@ -299,10 +299,12 @@ syntax_error (const char* const msg, const SCM form, const SCM expr)
 
 
 /* Shortcut macros to simplify syntax error handling. */
-#define ASSERT_SYNTAX(cond, message, form) \
-  { if (!(cond)) syntax_error (message, form, SCM_UNDEFINED); }
-#define ASSERT_SYNTAX_2(cond, message, form, expr) \
-  { if (!(cond)) syntax_error (message, form, expr); }
+#define ASSERT_SYNTAX(cond, message, form)		\
+  { if (SCM_UNLIKELY (!(cond)))			\
+      syntax_error (message, form, SCM_UNDEFINED); }
+#define ASSERT_SYNTAX_2(cond, message, form, expr)	\
+  { if (SCM_UNLIKELY (!(cond)))			\
+      syntax_error (message, form, expr); }
 
 
 

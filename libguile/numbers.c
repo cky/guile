@@ -3950,16 +3950,16 @@ SCM_GPROC1 (s_sum, "+", scm_tc7_asubr, scm_sum, g_sum);
 SCM
 scm_sum (SCM x, SCM y)
 {
-  if (SCM_UNBNDP (y))
+  if (SCM_UNLIKELY (SCM_UNBNDP (y)))
     {
       if (SCM_NUMBERP (x)) return x;
       if (SCM_UNBNDP (x)) return SCM_INUM0;
       SCM_WTA_DISPATCH_1 (g_sum, x, SCM_ARG1, s_sum);
     }
 
-  if (SCM_I_INUMP (x))
+  if (SCM_LIKELY (SCM_I_INUMP (x)))
     {
-      if (SCM_I_INUMP (y))
+      if (SCM_LIKELY (SCM_I_INUMP (y)))
         {
           long xx = SCM_I_INUM (x);
           long yy = SCM_I_INUM (y);
@@ -4144,7 +4144,7 @@ SCM_GPROC1 (s_difference, "-", scm_tc7_asubr, scm_difference, g_difference);
 SCM
 scm_difference (SCM x, SCM y)
 {
-  if (SCM_UNBNDP (y))
+  if (SCM_UNLIKELY (SCM_UNBNDP (y)))
     {
       if (SCM_UNBNDP (x))
         SCM_WTA_DISPATCH_0 (g_difference, s_difference);
@@ -4173,9 +4173,9 @@ scm_difference (SCM x, SCM y)
           SCM_WTA_DISPATCH_1 (g_difference, x, SCM_ARG1, s_difference);
     }
   
-  if (SCM_I_INUMP (x))
+  if (SCM_LIKELY (SCM_I_INUMP (x)))
     {
-      if (SCM_I_INUMP (y))
+      if (SCM_LIKELY (SCM_I_INUMP (y)))
 	{
 	  long int xx = SCM_I_INUM (x);
 	  long int yy = SCM_I_INUM (y);
@@ -4388,7 +4388,7 @@ SCM_GPROC1 (s_product, "*", scm_tc7_asubr, scm_product, g_product);
 SCM
 scm_product (SCM x, SCM y)
 {
-  if (SCM_UNBNDP (y))
+  if (SCM_UNLIKELY (SCM_UNBNDP (y)))
     {
       if (SCM_UNBNDP (x))
 	return SCM_I_MAKINUM (1L);
@@ -4398,7 +4398,7 @@ scm_product (SCM x, SCM y)
 	SCM_WTA_DISPATCH_1 (g_product, x, SCM_ARG1, s_product);
     }
   
-  if (SCM_I_INUMP (x))
+  if (SCM_LIKELY (SCM_I_INUMP (x)))
     {
       long xx;
 
@@ -4411,7 +4411,7 @@ scm_product (SCM x, SCM y)
         case 1: return y; break;
 	}
 
-      if (SCM_I_INUMP (y))
+      if (SCM_LIKELY (SCM_I_INUMP (y)))
 	{
 	  long yy = SCM_I_INUM (y);
 	  long kk = xx * yy;
@@ -4611,7 +4611,7 @@ scm_i_divide (SCM x, SCM y, int inexact)
 {
   double a;
 
-  if (SCM_UNBNDP (y))
+  if (SCM_UNLIKELY (SCM_UNBNDP (y)))
     {
       if (SCM_UNBNDP (x))
 	SCM_WTA_DISPATCH_0 (g_divide, s_divide);
@@ -4671,10 +4671,10 @@ scm_i_divide (SCM x, SCM y, int inexact)
 	SCM_WTA_DISPATCH_1 (g_divide, x, SCM_ARG1, s_divide);
     }
 
-  if (SCM_I_INUMP (x))
+  if (SCM_LIKELY (SCM_I_INUMP (x)))
     {
       long xx = SCM_I_INUM (x);
-      if (SCM_I_INUMP (y))
+      if (SCM_LIKELY (SCM_I_INUMP (y)))
 	{
 	  long yy = SCM_I_INUM (y);
 	  if (yy == 0)
