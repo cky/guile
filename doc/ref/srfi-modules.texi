@@ -3091,11 +3091,11 @@ association.
 
 As a legacy of the time when Guile couldn't grow hash tables,
 @var{start-size} is an optional integer argument that specifies the
-approximate starting size for the hash table.  I will usually round
-this to an algorithmically-sounder number.
+approximate starting size for the hash table, which will be rounded to
+an algorithmically-sounder number.
 @end deffn
 
-By @dfn{coarser} than @code{equal?}, I mean that for all @var{x} and
+By @dfn{coarser} than @code{equal?}, we mean that for all @var{x} and
 @var{y} values where @code{(@var{equal-proc} @var{x} @var{y})},
 @code{(equal? @var{x} @var{y})} as well.  If that does not hold for
 your @var{equal-proc}, you must provide a @var{hash-proc}.
