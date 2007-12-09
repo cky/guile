@@ -1,4 +1,4 @@
-2007-12-09  Stephen Compall
+2007-12-09  Stephen Compall  <s11@member.fsf.org>
 
 	* srfi-modules.texi (SRFI-69): Avoid use of the first person.
 
