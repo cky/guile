@@ -143,7 +143,7 @@ follow them."
     (cond ((null? rest-list) (reverse! acc))
 	  ((keyword? (first rest-list))
 	   (lp acc (cddr rest-list)))
-	  (else (lp (cons (first rest-list) acc) (rest rest-list))))))
+	  (else (lp (cons (first rest-list) acc) (cdr rest-list))))))
 
 (define (guile-ht-ctor weakness)
   "Answer the Guile HT constructor for the given WEAKNESS."

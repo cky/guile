@@ -102,4 +102,7 @@ case-insensitive strings to `equal?'-tested values."
       (and (= 1 (hash-table-size ht))
 	   (lset= equal? '((b . 53)) (hash-table->alist ht)))))
 
+  (pass-if "can use all arguments, including size"
+    (hash-table? (make-hash-table equal? hash #:weak 'key 31)))
+
 )
