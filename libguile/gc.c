@@ -1017,7 +1017,7 @@ gc_async_thunk (void)
  */
 static void *
 mark_gc_async (void * hook_data SCM_UNUSED,
-	       void *func_data SCM_UNUSED,
+	       void *fn_data SCM_UNUSED,
 	       void *data SCM_UNUSED)
 {
   /* If cell access debugging is enabled, the user may choose to perform

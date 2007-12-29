@@ -40,7 +40,7 @@ typedef enum scm_t_c_hook_type {
 } scm_t_c_hook_type;
 
 typedef void  *(*scm_t_c_hook_function) (void *hook_data,
-					 void *func_data,
+					 void *fn_data,
 					 void *data);
 
 typedef struct scm_t_c_hook_entry {
@@ -60,11 +60,11 @@ SCM_API void scm_c_hook_init (scm_t_c_hook *hook,
 			      scm_t_c_hook_type type);
 SCM_API void scm_c_hook_add (scm_t_c_hook *hook,
 			     scm_t_c_hook_function func,
-			     void *func_data, 
+			     void *fn_data, 
 			     int appendp);
 SCM_API void scm_c_hook_remove (scm_t_c_hook *hook,
 				scm_t_c_hook_function func,
-				void *func_data);
+				void *fn_data);
 SCM_API void *scm_c_hook_run (scm_t_c_hook *hook, void *data);
 
 /*

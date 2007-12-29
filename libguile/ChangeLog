@@ -1,3 +1,11 @@
+2007-12-29  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* gc.c (mark_gc_async): Change "func_data" to "fn_data", to avoid
+	clash with AIX header file.
+	* hooks.c (scm_c_hook_add, scm_c_hook_remove): Same again.
+	* hooks.h (scm_t_c_hook_function, scm_c_hook_add,
+	scm_c_hook_remove): Same again.
+
 2007-12-08  Ludovic Courtès  <ludo@gnu.org>
 
 	* __scm.h (SCM_EXPECT, SCM_LIKELY, SCM_UNLIKELY): New macros.
