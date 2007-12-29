@@ -1,0 +1,69 @@
+#!/bin/sh
+exec guile -s "$0" "$@"
+!#
+
+(define bad-identifiers
+  '(
+    ;; On AIX 5.2 and 5.3, /usr/include/sys/timer.h includes:
+    ;;	 #ifndef  _LINUX_SOURCE_COMPAT
+    ;;	 #define func_data       t_union.data
+    ;;	 #endif
+    ;; So we want to avoid using func_data in Guile source code.
+    "func_data"
+    ))
+
+(use-modules (ice-9 regex) (ice-9 rdelim))
+
+(define bad-id-regexp
+  (make-regexp (string-append "\\<("
+			      (string-join (map regexp-quote bad-identifiers) "|")
+			      ")\\>")))
+
+(define exit-status 0)
+
+;; Non-exported code from (ice-9 ftw).
+(define (directory-files dir)
+  (let ((dir-stream (opendir dir)))
+    (let loop ((new (readdir dir-stream))
+               (acc '()))
+      (if (eof-object? new)
+	  (begin
+	    (closedir dir-stream)
+	    acc)
+          (loop (readdir dir-stream)
+                (if (or (string=? "."  new)             ;;; ignore
+                        (string=? ".." new))            ;;; ignore
+                    acc
+                    (cons (in-vicinity dir new) acc)))))))
+
+(define (directory-files-matching dir pattern)
+  (let ((file-name-regexp (make-regexp pattern)))
+    (filter (lambda (fn)
+	      (regexp-exec file-name-regexp fn))
+	    (directory-files dir))))
+
+(let loop ((file-names (directory-files-matching "../../libguile"
+						 "\\.[ch]$")))
+  (or (null? file-names)
+      (begin
+	(with-input-from-file (car file-names)
+	  (lambda ()
+	    (let loop ((linenum 1) (line (read-line)))
+	      (or (eof-object? line)
+		  (begin
+		    (if (regexp-exec bad-id-regexp line)
+			(begin
+			  (set! exit-status 1)
+			  (format (current-error-port)
+				  "~a:~a: ~a\n"
+				  (car file-names)
+				  linenum
+				  line)))
+		    (loop (+ linenum 1) (read-line)))))))
+	(loop (cdr file-names)))))
+     
+(exit exit-status)
+
+;; Local Variables:
+;; mode: scheme
+;; End:

@@ -1,3 +1,8 @@
+2007-12-29  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* standalone/test-bad-identifiers: New test.
+	* standalone/Makefile.am (check_SCRIPTS, TESTS): Add it.
+
 2007-12-13  Stephen Compall  <s11@member.fsf.org>
 
 	* tests/srfi-69.test (SRFI-69)[can use all arguments, including

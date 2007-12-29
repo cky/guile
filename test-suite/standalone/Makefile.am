@@ -49,6 +49,9 @@ CLEANFILES = *.x
 check_SCRIPTS += test-system-cmds
 TESTS += test-system-cmds
 
+check_SCRIPTS += test-bad-identifiers
+TESTS += test-bad-identifiers
+
 check_SCRIPTS += test-require-extension
 TESTS += test-require-extension
 
