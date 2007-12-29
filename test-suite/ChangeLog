@@ -1,6 +1,8 @@
 2007-12-29  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* standalone/test-bad-identifiers: New test.
+	(top level): Explain the point of this test.
+
 	* standalone/Makefile.am (check_SCRIPTS, TESTS): Add it.
 
 2007-12-13  Stephen Compall  <s11@member.fsf.org>

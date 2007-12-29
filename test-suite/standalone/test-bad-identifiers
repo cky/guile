@@ -2,6 +2,12 @@
 exec guile -s "$0" "$@"
 !#
 
+;; The use of certain identifiers as variable or parameter names has
+;; been found to cause build problems on particular platforms.  The
+;; aim of this test is to cause "make check" to fail (on GNU/Linux,
+;; which most Guile developers use) if we accidentally add new code
+;; that uses those identifiers.
+
 (define bad-identifiers
   '(
     ;; On AIX 5.2 and 5.3, /usr/include/sys/timer.h includes:
@@ -10,6 +16,8 @@ exec guile -s "$0" "$@"
     ;;	 #endif
     ;; So we want to avoid using func_data in Guile source code.
     "func_data"
+
+    ;; More troublesome identifiers can be added into the list here.
     ))
 
 (use-modules (ice-9 regex) (ice-9 rdelim))
