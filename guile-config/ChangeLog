@@ -1,3 +1,7 @@
+2007-12-30  Mike Gran  <spk121@yahoo.com>
+
+	* guile.m4: add serial number to m4
+
 2007-01-04  Kevin Ryde  <user42@zip.com.au>
 
 	* Makefile.am (guile-config): Use "|" as the sed delimiter, for the
