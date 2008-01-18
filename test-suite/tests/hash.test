@@ -72,3 +72,14 @@
 	     (hashx-set! hashq assq table 'x 123)
 	     (hashx-remove! hashq assq table 'x)
 	     (null? (hash-map->list noop table)))))
+
+;;;
+;;; hashx
+;;;
+
+(with-test-prefix "hashx"
+  (pass-if-exception 
+   "hashx-set! (lambda (k s) 1) (lambda (k al) #t) table 'foo 'bar"
+   exception:wrong-type-arg
+   (hashx-set! (lambda (k s) 1) (lambda (k al) #t) (make-hash-table) 'foo 'bar))
+  )

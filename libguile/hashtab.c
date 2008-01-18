@@ -454,8 +454,10 @@ scm_hash_fn_create_handle_x (SCM table, SCM obj, SCM init, unsigned long (*hash_
   if (k >= SCM_SIMPLE_VECTOR_LENGTH (buckets))
     scm_out_of_range ("hash_fn_create_handle_x", scm_from_ulong (k));
   it = assoc_fn (obj, SCM_SIMPLE_VECTOR_REF (buckets, k), closure);
-  if (scm_is_true (it))
+  if (scm_is_pair (it))
     return it;
+  else if (scm_is_true (it))
+    scm_wrong_type_arg_msg (NULL, 0, it, "a pair");
   else
     {
       /* When this is a weak hashtable, running the GC can change it.

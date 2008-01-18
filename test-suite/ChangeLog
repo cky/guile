@@ -1,3 +1,9 @@
+2008-01-18  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* tests/hash.test: New "hashx" test supplied by Gregory Marton;
+	prior to today's fix in libguile/hashtab.c, this caused a
+	segmentation fault.
+
 2007-12-29  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* standalone/test-bad-identifiers: New test.

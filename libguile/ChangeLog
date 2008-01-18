@@ -1,3 +1,9 @@
+2008-01-18  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* hashtab.c (scm_hash_fn_create_handle_x): If supplied assoc_fn
+	returns neither a pair nor #f, signal a wrong-type-arg error.
+	(Thanks to Gregory Marton for reporting this.)
+
 2007-12-29  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* gc.c (mark_gc_async): Change "func_data" to "fn_data", to avoid

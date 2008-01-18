@@ -46,6 +46,8 @@ backtrace of a stack with a promise object (made by `delay') in it.
 ** Make `accept' leave guile mode while blocking
 ** `scm_c_read ()' and `scm_c_write ()' now type-check their port argument
 ** Fixed a build problem on AIX (use of func_data identifier)
+** Fixed a segmentation fault which occurred when hashx-ref or hashx-set! was
+called with an associator proc that returns neither a pair nor #f.
 
 * New modules (see the manual for details)
 
