@@ -23,6 +23,7 @@ gl_MODULES([alloca strcase])
 gl_AVOID([])
 gl_SOURCE_BASE([lib])
 gl_M4_BASE([m4])
+gl_PO_BASE([])
 gl_DOC_BASE([doc])
 gl_TESTS_BASE([tests])
 gl_LIB([libgnu])
@@ -30,3 +31,4 @@ gl_LGPL
 gl_MAKEFILE_NAME([])
 gl_LIBTOOL
 gl_MACRO_PREFIX([gl])
+gl_PO_DOMAIN([])

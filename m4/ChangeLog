@@ -1,3 +1,8 @@
+2008-01-18  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* gnulib-cache.m4: Recent gnulib adds gl_PO_BASE and gl_PO_DOMAIN
+	lines to this file.
+
 2007-10-24  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* .cvsignore: Commit to CVS.
