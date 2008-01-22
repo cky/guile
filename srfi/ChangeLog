@@ -1,3 +1,7 @@
+2008-01-22  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* srfi-39.scm: Update copyright statement to LGPL.
+
 2007-12-13  Stephen Compall  <s11@member.fsf.org>
 
 	* srfi-69.scm (without-keyword-args): Use `cdr' instead of

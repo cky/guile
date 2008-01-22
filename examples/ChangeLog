@@ -1,3 +1,7 @@
+2008-01-22  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* compat/compat.h: Update copyright statement to LGPL.
+
 2002-11-17  Mikael Djurfeldt  <mdj@linnaeus>
 
 	* README: Added description of compat.

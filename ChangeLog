@@ -1,3 +1,7 @@
+2008-01-22  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* libguile.h: Update copyright statement to LGPL.
+
 2007-12-04  Ludovic Courtès  <ludo@gnu.org>
 
 	* NEWS: Mention `accept' and `scm_c_{read,write}' bug fixes.

@@ -53,6 +53,14 @@ called with an associator proc that returns neither a pair nor #f.
 
 ** `(srfi srfi-69)'
 
+* Changes to the distribution
+
+** Corrected a few files that referred incorrectly to the old GPL + special exception licence
+
+In fact Guile since 1.8.0 has been licensed with the GNU Lesser
+General Public License, and the few incorrect files have now been
+fixed to agree with the rest of the Guile distribution.
+
 
 Changes in 1.8.3 (since 1.8.2)
 
