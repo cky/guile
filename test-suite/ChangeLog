@@ -1,3 +1,7 @@
+2008-01-22  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* COPYING: Removed.
+
 2008-01-18  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* tests/hash.test: New "hashx" test supplied by Gregory Marton;

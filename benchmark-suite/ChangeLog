@@ -1,3 +1,7 @@
+2008-01-22  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* COPYING: Removed.
+
 2006-11-17  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* README: Note need for subscription to bug-guile@gnu.org.

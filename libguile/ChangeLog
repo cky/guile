@@ -1,5 +1,7 @@
 2008-01-22  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* COPYING: Removed.
+
 	* __scm.h, _scm.h, weaks.c: Update copyright statement to LGPL.
 
 2008-01-18  Neil Jerram  <neil@ossau.uklinux.net>

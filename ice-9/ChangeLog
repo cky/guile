@@ -1,3 +1,7 @@
+2008-01-22  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* COPYING: Removed.
+
 2007-10-02  Ludovic Courtès  <ludo@gnu.org>
 
 	* slib.scm: Let SLIB's `guile.init' do most of the job.  See the
