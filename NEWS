@@ -61,6 +61,10 @@ In fact Guile since 1.8.0 has been licensed with the GNU Lesser
 General Public License, and the few incorrect files have now been
 fixed to agree with the rest of the Guile distribution.
 
+** Removed unnecessary extra copies of COPYING*
+
+The distribution now contains a single COPYING.LESSER at its top level.
+
 
 Changes in 1.8.3 (since 1.8.2)
 
