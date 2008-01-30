@@ -63,11 +63,15 @@ export GUILE_LOAD_PATH
 
 # handle LTDL_LIBRARY_PATH (no clobber)
 ltdl_prefix=""
+dyld_prefix=""
 for dir in $subdirs_with_ltlibs ; do
     ltdl_prefix="${top_builddir}/${dir}:${ltdl_prefix}"
+    dyld_prefix="${top_builddir}/${dir}/.libs:${dyld_prefix}"
 done
 LTDL_LIBRARY_PATH="${ltdl_prefix}$LTDL_LIBRARY_PATH"
 export LTDL_LIBRARY_PATH
+DYLD_LIBRARY_PATH="${dyld_prefix}${top_builddir}/libguile/.libs:$DYLD_LIBRARY_PATH"
+export DYLD_LIBRARY_PATH
 
 # handle PATH (no clobber)
 PATH="${top_builddir}/guile-config:${PATH}"

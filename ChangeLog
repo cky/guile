@@ -1,3 +1,10 @@
+2008-01-30  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* pre-inst-guile.in (dyld_prefix), pre-inst-guile-env.in
+	(dyld_prefix): Construct and export dyld_prefix in a similar way
+	to ltdl_prefix, to allow pre-install dynamic linking to work on
+	MacOS.  Thanks to Roger Mc Murtrie for reporting this problem.
+
 2008-01-22  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* LICENSE: Change COPYING.LIB to COPYING.LESSER.
