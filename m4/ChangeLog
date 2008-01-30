@@ -1,3 +1,8 @@
+2008-01-30  Ludovic Courtès  <ludo@gnu.org>
+
+	* gnulib-cache.m4 (gl_MODULES): Add `extensions' explicitly
+	since we rely on it, e.g., for `srfi-14.c'.
+
 2008-01-18  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* gnulib-cache.m4: Recent gnulib adds gl_PO_BASE and gl_PO_DOMAIN
