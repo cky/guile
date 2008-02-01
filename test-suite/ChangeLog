@@ -1,3 +1,9 @@
+2008-02-01  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* standalone/Makefile.am: Add stanza for test-with-guile-module.
+
+	* standalone/test-with-guile-module.c: New test.
+
 2008-01-22  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* COPYING: Removed.

@@ -1,3 +1,9 @@
+2008-02-01  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* modules.c (the_root_module): Moved before scm_current_module.
+	(scm_current_module): Return the root module if `the-module' fluid
+	gives #f.
+
 2008-01-22  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* COPYING: Removed.

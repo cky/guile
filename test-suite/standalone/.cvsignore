@@ -11,3 +11,4 @@ test-num2integral
 test-round
 test-unwind
 test-list
+test-with-guile-module

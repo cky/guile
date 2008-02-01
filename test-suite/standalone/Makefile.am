@@ -110,6 +110,12 @@ TESTS += test-conversion
 check_SCRIPTS += test-use-srfi
 TESTS += test-use-srfi
 
+# test-with-guile-module
+test_with_guile_module_CFLAGS = ${test_cflags}
+test_with_guile_module_LDADD = ${top_builddir}/libguile/libguile.la
+check_PROGRAMS += test-with-guile-module
+TESTS += test-with-guile-module
+
 all-local:
 	cd ${srcdir} && chmod u+x ${check_SCRIPTS}
 
