@@ -1,3 +1,9 @@
+2008-02-01  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* api-scheduling.texi (Threads): Add "C Function scm_join_thread"
+	to doc for join-thread.  Thanks to Antoine Mathys for reporting
+	that scm_join_thread was missing.
+
 2007-12-09  Stephen Compall  <s11@member.fsf.org>
 
 	* srfi-modules.texi (SRFI-69): Avoid use of the first person.

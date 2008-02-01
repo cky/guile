@@ -269,6 +269,7 @@ Once @var{body} or @var{handler} returns, the return value is made the
 
 @c begin (texi-doc-string "guile" "join-thread")
 @deffn {Scheme Procedure} join-thread thread
+@deffnx {C Function} scm_join_thread (thread)
 Wait for @var{thread} to terminate and return its exit value.  Threads
 that have not been created with @code{call-with-new-thread} or
 @code{scm_spawn_thread} have an exit value of @code{#f}.
