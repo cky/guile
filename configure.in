@@ -173,6 +173,47 @@ AC_ARG_ENABLE(elisp,
   [  --disable-elisp         omit Emacs Lisp support],,
   enable_elisp=yes)
 
+dnl  Added the following configure option in January 2008 following
+dnl  investigation of problems with "64" system and library calls on
+dnl  Darwin (MacOS X).  The libguile code (_scm.h) assumes that if a
+dnl  system has stat64, it will have all the other 64 APIs too; but on
+dnl  Darwin, stat64 is there but other APIs are missing.
+dnl 
+dnl  It also appears, from the Darwin docs, that most system call APIs
+dnl  there (i.e. the traditional ones _without_ "64" in their names) have
+dnl  been 64-bit-capable for a long time now, so it isn't necessary to
+dnl  use "64" versions anyway.  For example, Darwin's off_t is 64-bit.
+dnl 
+dnl  A similar problem has been reported for HP-UX:
+dnl  http://www.nabble.com/Building-guile-1.8.2-on-hpux-td13106681.html
+dnl 
+dnl  Therefore, and also because a Guile without LARGEFILE64 support is
+dnl  better than no Guile at all, we provide this option to suppress
+dnl  trying to use "64" calls.
+dnl 
+dnl  It may be that for some 64-bit function on Darwin/HP-UX we do need
+dnl  to use a "64" call, and hence that by using --without-64-calls we're
+dnl  missing out on that.  If so, someone can work on that in the future.
+dnl  For now, --without-64-calls allows Guile to build on OSs where it
+dnl  wasn't building before.
+AC_ARG_WITH([64-calls],
+  AC_HELP_STRING([--without-64-calls],
+                 [don't attempt to use system and library calls with "64" in their names]),
+  [use_64_calls=$withval],
+  [use_64_calls=yes
+   case $host in
+     *-apple-darwin* )
+       use_64_calls=no
+       ;;
+   esac])
+echo "use_64_calls=$use_64_calls"
+case "$use_64_calls" in
+  y* )
+    AC_DEFINE(GUILE_USE_64_CALLS, 1,
+      [Define to 1 in order to try to use "64" versions of system and library calls.])
+    ;;
+esac
+
 #--------------------------------------------------------------------
 
 dnl Check for dynamic linking

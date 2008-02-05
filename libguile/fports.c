@@ -667,7 +667,7 @@ fport_seek_or_seek64 (SCM port, off_t_or_off64_t offset, int whence)
    case on NetBSD apparently), then fport_seek_or_seek64 is right to be
    fport_seek already.  */
 
-#if HAVE_STAT64 && SIZEOF_OFF_T != SIZEOF_OFF64_T
+#if GUILE_USE_64_CALLS && HAVE_STAT64 && SIZEOF_OFF_T != SIZEOF_OFF64_T
 static off_t
 fport_seek (SCM port, off_t offset, int whence)
 {

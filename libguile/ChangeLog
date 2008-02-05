@@ -1,3 +1,10 @@
+2008-02-05  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* fports.c (fport_seek): Make dependent on GUILE_USE_64_CALLS.
+
+	* _scm.h: Make definition of CHOOSE_LARGEFILE depend on
+	GUILE_USE_64_CALLS.
+
 2008-02-01  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* modules.c (the_root_module): Moved before scm_current_module.

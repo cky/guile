@@ -1,3 +1,7 @@
+2008-02-05  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* configure.in (--without-64-calls): New option.
+
 2008-01-30  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* pre-inst-guile.in (dyld_prefix), pre-inst-guile-env.in
