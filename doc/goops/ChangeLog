@@ -1,3 +1,8 @@
+2008-02-06  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* goops-tutorial.texi (Next-method): Minor improvements to the
+	text.
+
 2006-09-28  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* goops.texi (Slot Options): Added example from Ludovic Courtès
