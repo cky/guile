@@ -1,3 +1,8 @@
+2008-02-06  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* gc-malloc.c (scm_gc_malloc): Return NULL if requested size is 0.
+	(scm_gc_free): Don't call `free' if mem is NULL.
+
 2008-02-06  Ludovic Courtès  <ludo@gnu.org>
 
 	* numbers.c (scm_i_mkbig, scm_i_long2big, scm_i_ulong2big,
