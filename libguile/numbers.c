@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005, 2006, 2007 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005, 2006, 2007, 2008 Free Software Foundation, Inc.
  *
  * Portions Copyright 1990, 1991, 1992, 1993 by AT&T Bell Laboratories
  * and Bellcore.  See scm_divide.
@@ -183,7 +183,7 @@ static mpz_t z_negative_one;
 
 
 
-SCM_C_INLINE_KEYWORD SCM
+SCM
 scm_i_mkbig ()
 {
   /* Return a newly created bignum. */
@@ -192,7 +192,7 @@ scm_i_mkbig ()
   return z;
 }
 
-SCM_C_INLINE_KEYWORD SCM
+SCM
 scm_i_long2big (long x)
 {
   /* Return a newly created bignum initialized to X. */
@@ -201,7 +201,7 @@ scm_i_long2big (long x)
   return z;
 }
 
-SCM_C_INLINE_KEYWORD SCM
+SCM
 scm_i_ulong2big (unsigned long x)
 {
   /* Return a newly created bignum initialized to X. */
@@ -210,7 +210,7 @@ scm_i_ulong2big (unsigned long x)
   return z;
 }
 
-SCM_C_INLINE_KEYWORD SCM
+SCM
 scm_i_clonebig (SCM src_big, int same_sign_p)
 {
   /* Copy src_big's value, negate it if same_sign_p is false, and return. */
@@ -221,7 +221,7 @@ scm_i_clonebig (SCM src_big, int same_sign_p)
   return z;
 }
 
-SCM_C_INLINE_KEYWORD int
+int
 scm_i_bigcmp (SCM x, SCM y)
 {
   /* Return neg if x < y, pos if x > y, and 0 if x == y */
@@ -231,7 +231,7 @@ scm_i_bigcmp (SCM x, SCM y)
   return result;
 }
 
-SCM_C_INLINE_KEYWORD SCM
+SCM
 scm_i_dbl2big (double d)
 {
   /* results are only defined if d is an integer */
@@ -242,7 +242,7 @@ scm_i_dbl2big (double d)
 
 /* Convert a integer in double representation to a SCM number. */
 
-SCM_C_INLINE_KEYWORD SCM
+SCM
 scm_i_dbl2num (double u)
 {
   /* SCM_MOST_POSITIVE_FIXNUM+1 and SCM_MOST_NEGATIVE_FIXNUM are both
@@ -339,7 +339,7 @@ scm_i_big2dbl (SCM b)
   return result;
 }
 
-SCM_C_INLINE_KEYWORD SCM
+SCM
 scm_i_normbig (SCM b)
 {
   /* convert a big back to a fixnum if it'll fit */

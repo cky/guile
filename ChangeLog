@@ -1,3 +1,7 @@
+2008-02-06  Ludovic Courtès  <ludo@gnu.org>
+
+	* NEWS: Mention Sun Studio compilation fix.
+
 2008-02-05  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* configure.in (--without-64-calls): New option.

@@ -1,5 +1,5 @@
 Guile NEWS --- history of user-visible changes.
-Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 See the end for copying conditions.
 
 Please send Guile bug reports to bug-guile@gnu.org.  Note that you
@@ -51,6 +51,7 @@ called with an associator proc that returns neither a pair nor #f.
 ** Secondary threads now always return a valid module for (current-module).
 ** Avoid MacOS build problems caused by incorrect combination of "64"
 system and library calls.
+** Fixed compilation of `numbers.c' with Sun Studio (Solaris 9)
 
 * New modules (see the manual for details)
 

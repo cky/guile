@@ -1,3 +1,12 @@
+2008-02-06  Ludovic Courtès  <ludo@gnu.org>
+
+	* numbers.c (scm_i_mkbig, scm_i_long2big, scm_i_ulong2big,
+	scm_i_clonebig, scm_i_bigcmp, scm_i_dbl2big, scm_i_dbl2num,
+	scm_i_normbig): Remove `SCM_C_INLINE_KEYWORD' since these are
+	declared as `extern' in `numbers.h'.  This precluded compilation
+	on Solaris 9 with Sun CC (reported by David Halik
+	<dhalik@nbcs.rutgers.edu>).
+
 2008-02-05  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* fports.c (fport_seek): Make dependent on GUILE_USE_64_CALLS.
