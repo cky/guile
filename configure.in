@@ -205,6 +205,9 @@ AC_ARG_WITH([64-calls],
      *-apple-darwin* )
        use_64_calls=no
        ;;
+     powerpc-ibm-aix* )
+       use_64_calls=no
+       ;;
    esac])
 echo "use_64_calls=$use_64_calls"
 case "$use_64_calls" in

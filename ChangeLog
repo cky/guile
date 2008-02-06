@@ -1,3 +1,9 @@
+2008-02-06  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* configure.in: Default to --without-64-calls for
+	powerpc-ibm-aix*.  Thanks to Rainer Tammer for reporting that the
+	64 calls are a problem on that OS.
+
 2008-02-06  Ludovic Courtès  <ludo@gnu.org>
 
 	* NEWS: Mention Sun Studio compilation fix.
