@@ -1,3 +1,14 @@
+2008-02-07  Ludovic Courtès  <ludo@gnu.org>
+
+	Fix bug #21378.
+	Thanks to David Diffenbaugh <davediff@nbcs.rutgers.edu>.
+
+	* read.c (scm_read_quote): Don't use `__FUNCTION__' since it is
+	not supported by Sun CC on Solaris 9.
+	(scm_read_keyword): Likewise.
+	* strings.c (scm_take_locale_stringn): Remove
+	`SCM_C_INLINE_KEYWORD' to allow compilation with Sun CC.
+
 2008-02-07  Julian Graham  <joolean@gmail.com>
 
 	* threads.c (do_thread_exit, scm_cancel_thread, 

@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1999,2000,2001,2003, 2004, 2006, 2007 Free Software
+/* Copyright (C) 1995,1996,1997,1999,2000,2001,2003, 2004, 2006, 2007, 2008 Free Software
  * Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
@@ -657,7 +657,7 @@ scm_read_quote (int chr, SCM port)
 
     default:
       fprintf (stderr, "%s: unhandled quote character (%i)\n",
-	       __FUNCTION__, chr);
+	       "scm_read_quote", chr);
       abort ();
     }
 
@@ -772,7 +772,7 @@ scm_read_keyword (int chr, SCM port)
      XXX: This implementation allows sloppy syntaxes like `#:  key'.  */
   symbol = scm_read_expression (port);
   if (!scm_is_symbol (symbol))
-    scm_i_input_error (__FUNCTION__, port,
+    scm_i_input_error ("scm_read_keyword", port,
 		       "keyword prefix `~a' not followed by a symbol: ~s",
 		       scm_list_2 (SCM_MAKE_CHAR (chr), symbol));
 
