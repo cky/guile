@@ -54,6 +54,7 @@ system and library calls.
 ** Fixed compilation of `numbers.c' with Sun Studio (Solaris 9)
 ** Fixed wrong-type-arg errors when creating zero length SRFI-4
 uniform vectors on AIX.
+** Fixed a deadlock that occurs upon GC with multiple threads.
 
 * New modules (see the manual for details)
 

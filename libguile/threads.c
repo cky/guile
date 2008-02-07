@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -435,6 +435,7 @@ guilify_self_1 (SCM_STACKITEM *base)
   /* XXX - check for errors. */
   pipe (t->sleep_pipe);
   scm_i_pthread_mutex_init (&t->heap_mutex, NULL);
+  scm_i_pthread_mutex_init (&t->admin_mutex, NULL);
   t->clear_freelists_p = 0;
   t->gc_running_p = 0;
   t->canceled = 0;
@@ -494,7 +495,7 @@ do_thread_exit (void *v)
 				      scm_handle_by_message_noexit, NULL);
     }
 
-  scm_i_scm_pthread_mutex_lock (&thread_admin_mutex);
+  scm_i_scm_pthread_mutex_lock (&t->admin_mutex);
 
   t->exited = 1;
   close (t->sleep_pipe[0]);
@@ -502,7 +503,7 @@ do_thread_exit (void *v)
   while (scm_is_true (unblock_from_queue (t->join_queue)))
     ;
 
-  scm_i_pthread_mutex_unlock (&thread_admin_mutex);
+  scm_i_pthread_mutex_unlock (&t->admin_mutex);
 
   return NULL;
 }
@@ -931,15 +932,15 @@ SCM_DEFINE (scm_cancel_thread, "cancel-thread", 1, 0, 0,
 
   SCM_VALIDATE_THREAD (1, thread);
   t = SCM_I_THREAD_DATA (thread);
-  scm_i_scm_pthread_mutex_lock (&thread_admin_mutex);
+  scm_i_scm_pthread_mutex_lock (&t->admin_mutex);
   if (!t->canceled)
     {
       t->canceled = 1;
-      scm_i_pthread_mutex_unlock (&thread_admin_mutex);
+      scm_i_pthread_mutex_unlock (&t->admin_mutex);
       scm_i_pthread_cancel (t->pthread);
     }
   else
-    scm_i_pthread_mutex_unlock (&thread_admin_mutex);
+    scm_i_pthread_mutex_unlock (&t->admin_mutex);
 
   return SCM_UNSPECIFIED;
 }
@@ -957,13 +958,13 @@ SCM_DEFINE (scm_set_thread_cleanup_x, "set-thread-cleanup!", 2, 0, 0,
   if (!scm_is_false (proc))
     SCM_VALIDATE_THUNK (2, proc);
 
-  scm_i_pthread_mutex_lock (&thread_admin_mutex);
-
   t = SCM_I_THREAD_DATA (thread);
+  scm_i_pthread_mutex_lock (&t->admin_mutex);
+
   if (!(t->exited || t->canceled))
     t->cleanup_handler = proc;
 
-  scm_i_pthread_mutex_unlock (&thread_admin_mutex);
+  scm_i_pthread_mutex_unlock (&t->admin_mutex);
 
   return SCM_UNSPECIFIED;
 }
@@ -979,10 +980,10 @@ SCM_DEFINE (scm_thread_cleanup, "thread-cleanup", 1, 0, 0,
 
   SCM_VALIDATE_THREAD (1, thread);
 
-  scm_i_pthread_mutex_lock (&thread_admin_mutex);
   t = SCM_I_THREAD_DATA (thread);
+  scm_i_pthread_mutex_lock (&t->admin_mutex);
   ret = (t->exited || t->canceled) ? SCM_BOOL_F : t->cleanup_handler;
-  scm_i_pthread_mutex_unlock (&thread_admin_mutex);
+  scm_i_pthread_mutex_unlock (&t->admin_mutex);
 
   return ret;
 }
@@ -1001,24 +1002,24 @@ SCM_DEFINE (scm_join_thread, "join-thread", 1, 0, 0,
   if (scm_is_eq (scm_current_thread (), thread))
     SCM_MISC_ERROR ("cannot join the current thread", SCM_EOL);
 
-  scm_i_scm_pthread_mutex_lock (&thread_admin_mutex);
-
   t = SCM_I_THREAD_DATA (thread);
+  scm_i_scm_pthread_mutex_lock (&t->admin_mutex);
+
   if (!t->exited)
     {
       while (1)
 	{
-	  block_self (t->join_queue, thread, &thread_admin_mutex, NULL);
+	  block_self (t->join_queue, thread, &t->admin_mutex, NULL);
 	  if (t->exited)
 	    break;
-	  scm_i_pthread_mutex_unlock (&thread_admin_mutex);
+	  scm_i_pthread_mutex_unlock (&t->admin_mutex);
 	  SCM_TICK;
-	  scm_i_scm_pthread_mutex_lock (&thread_admin_mutex);
+	  scm_i_scm_pthread_mutex_lock (&t->admin_mutex);
 	}
     }
   res = t->result;
 
-  scm_i_pthread_mutex_unlock (&thread_admin_mutex);
+  scm_i_pthread_mutex_unlock (&t->admin_mutex);
 
   return res;
 }

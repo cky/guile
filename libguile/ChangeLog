@@ -1,3 +1,13 @@
+2008-02-07  Julian Graham  <joolean@gmail.com>
+
+	* threads.c (do_thread_exit, scm_cancel_thread, 
+	scm_set_thread_cleanup_x, scm_thread_cleanup): Lock on thread-specific 
+	admin mutex instead of `thread_admin_mutex'.
+	* threads.h (scm_i_thread)[admin_mutex]: New field.
+	* throw.c (make_jmpbuf): Don't enter critical section during thread
+	spawn -- there is a possibility of deadlock if other threads are
+	exiting.
+	
 2008-02-06  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* gc-malloc.c (scm_gc_malloc): Return NULL if requested size is 0.
