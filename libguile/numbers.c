@@ -162,11 +162,12 @@ xisnan (double x)
 #endif
 }
 
-
+#if defined (GUILE_I)
 /* For an SCM object Z which is a complex number (ie. satisfies
    SCM_COMPLEXP), return its value as a C level "complex double". */
 #define SCM_COMPLEX_VALUE(z)                                    \
-  (SCM_COMPLEX_REAL (z) + _Complex_I * SCM_COMPLEX_IMAG (z))
+  (SCM_COMPLEX_REAL (z) + GUILE_I * SCM_COMPLEX_IMAG (z))
+#endif
 
 /* Convert a C "complex double" to an SCM value. */
 #if HAVE_COMPLEX_DOUBLE
@@ -6011,7 +6012,7 @@ SCM_DEFINE (scm_log, "log", 1, 0, 0,
 {
   if (SCM_COMPLEXP (z))
     {
-#if HAVE_COMPLEX_DOUBLE && HAVE_CLOG
+#if HAVE_COMPLEX_DOUBLE && HAVE_CLOG && defined (SCM_COMPLEX_VALUE)
       return scm_from_complex_double (clog (SCM_COMPLEX_VALUE (z)));
 #else
       double re = SCM_COMPLEX_REAL (z);
@@ -6045,7 +6046,7 @@ SCM_DEFINE (scm_log10, "log10", 1, 0, 0,
       /* Mingw has clog() but not clog10().  (Maybe it'd be worth using
          clog() and a multiply by M_LOG10E, rather than the fallback
          log10+hypot+atan2.)  */
-#if HAVE_COMPLEX_DOUBLE && HAVE_CLOG10
+#if HAVE_COMPLEX_DOUBLE && HAVE_CLOG10 && defined (SCM_COMPLEX_VALUE)
       return scm_from_complex_double (clog10 (SCM_COMPLEX_VALUE (z)));
 #else
       double re = SCM_COMPLEX_REAL (z);
@@ -6077,7 +6078,7 @@ SCM_DEFINE (scm_exp, "exp", 1, 0, 0,
 {
   if (SCM_COMPLEXP (z))
     {
-#if HAVE_COMPLEX_DOUBLE && HAVE_CEXP
+#if HAVE_COMPLEX_DOUBLE && HAVE_CEXP && defined (SCM_COMPLEX_VALUE)
       return scm_from_complex_double (cexp (SCM_COMPLEX_VALUE (z)));
 #else
       return scm_c_make_polar (exp (SCM_COMPLEX_REAL (z)),
@@ -6111,7 +6112,7 @@ SCM_DEFINE (scm_sqrt, "sqrt", 1, 0, 0,
 {
   if (SCM_COMPLEXP (x))
     {
-#if HAVE_COMPLEX_DOUBLE && HAVE_USABLE_CSQRT
+#if HAVE_COMPLEX_DOUBLE && HAVE_USABLE_CSQRT && defined (SCM_COMPLEX_VALUE)
       return scm_from_complex_double (csqrt (SCM_COMPLEX_VALUE (x)));
 #else
       double re = SCM_COMPLEX_REAL (x);

@@ -55,6 +55,7 @@ system and library calls.
 ** Fixed wrong-type-arg errors when creating zero length SRFI-4
 uniform vectors on AIX.
 ** Fixed a deadlock that occurs upon GC with multiple threads.
+** Fixed compile problem with GCC on Solaris and AIX (use of _Complex_I)
 
 * New modules (see the manual for details)
 

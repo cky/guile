@@ -196,6 +196,7 @@ dnl  to use a "64" call, and hence that by using --without-64-calls we're
 dnl  missing out on that.  If so, someone can work on that in the future.
 dnl  For now, --without-64-calls allows Guile to build on OSs where it
 dnl  wasn't building before.
+AC_MSG_CHECKING([whether to use system and library "64" calls])
 AC_ARG_WITH([64-calls],
   AC_HELP_STRING([--without-64-calls],
                  [don't attempt to use system and library calls with "64" in their names]),
@@ -209,7 +210,7 @@ AC_ARG_WITH([64-calls],
        use_64_calls=no
        ;;
    esac])
-echo "use_64_calls=$use_64_calls"
+AC_MSG_RESULT($use_64_calls)
 case "$use_64_calls" in
   y* )
     AC_DEFINE(GUILE_USE_64_CALLS, 1,
@@ -718,6 +719,30 @@ AC_CHECK_DECLS([sethostname])
 AC_SEARCH_LIBS(crypt, crypt,
   [AC_DEFINE(HAVE_CRYPT,1,
              [Define to 1 if you have the `crypt' function.])])
+
+# When compiling with GCC on some OSs (Solaris, AIX), _Complex_I doesn't work;
+# in the reported cases so far, 1.0fi works well instead.
+if test "$ac_cv_type_complex_double" = yes; then
+  AC_MSG_CHECKING([for i])
+  AC_TRY_COMPILE([
+#if HAVE_COMPLEX_H
+#include <complex.h>
+#endif
+complex double z;
+],[
+z = _Complex_I;
+],[AC_DEFINE(GUILE_I,_Complex_I,[The imaginary unit (positive square root of -1).])
+   AC_MSG_RESULT([_Complex_I])],[AC_TRY_COMPILE([
+#if HAVE_COMPLEX_H
+#include <complex.h>
+#endif
+complex double z;
+],[
+z = 1.0fi;
+],[AC_DEFINE(GUILE_I,1.0fi)
+   AC_MSG_RESULT([1.0fi])],[ac_cv_type_complex_double=no
+                            AC_MSG_RESULT([not available])])])
+fi
 
 # glibc 2.3.6 (circa 2006) and various prior versions had a bug where
 # csqrt(-i) returned a negative real part, when it should be positive

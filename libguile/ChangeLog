@@ -1,3 +1,10 @@
+2008-02-11  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* numbers.c (SCM_COMPLEX_VALUE): Use GUILE_I instead of _Complex_I
+	directly, and only if GUILE_I was defined by the configure step.
+	(scm_log, scm_log10, scm_exp, scm_sqrt): Use SCM_COMPLEX_VALUE
+	code only if SCM_COMPLEX_VALUE is defined.
+
 2008-02-07  Ludovic Courtès  <ludo@gnu.org>
 
 	Fix bug #21378.

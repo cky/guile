@@ -1,3 +1,10 @@
+2008-02-11  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* configure.in (--without-64-calls): Use AC_MSG_CHECKING and
+	AC_MSG_RESULT instead of just echo.
+	(GUILE_I): New programs to try using _Complex_I or 1.0fi for the
+	imaginary unit.
+
 2008-02-06  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* configure.in: Default to --without-64-calls for
