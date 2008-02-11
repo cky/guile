@@ -1733,6 +1733,46 @@ The global random state used by the above functions when the
 @var{state} parameter is not given.
 @end defvar
 
+Note that the initial value of @code{*random-state*} is the same every
+time Guile starts up.  Therefore, if you don't pass a @var{state}
+parameter to the above procedures, and you don't set
+@code{*random-state*} to @code{(seed->random-state your-seed)}, where
+@code{your-seed} is something that @emph{isn't} the same every time,
+you'll get the same sequence of ``random'' numbers on every run.
+
+For example, unless the relevant source code has changed, @code{(map
+random (cdr (iota 30)))}, if the first use of random numbers since
+Guile started up, will always give:
+
+@lisp
+(map random (cdr (iota 19)))
+@result{}
+(0 1 1 2 2 2 1 2 6 7 10 0 5 3 12 5 5 12)
+@end lisp
+
+To use the time of day as the random seed, you can use code like this:
+
+@lisp
+(let ((time (gettimeofday)))
+  (set! *random-state*
+        (seed->random-state (+ (car time)
+                               (cdr time)))))
+@end lisp
+
+@noindent
+And then (depending on the time of day, of course):
+
+@lisp
+(map random (cdr (iota 19)))
+@result{}
+(0 0 1 0 2 4 5 4 5 5 9 3 10 1 8 3 14 17)
+@end lisp
+
+For security applications, such as password generation, you should use
+more bits of seed.  Otherwise an open source password generator could
+be attacked by guessing the seed@dots{} but that's a subject for
+another manual.
+
 
 @node Characters
 @subsection Characters

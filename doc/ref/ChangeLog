@@ -1,3 +1,8 @@
+2008-02-11  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* api-data.texi (Random): New text about the default random state,
+	following suggestions by Stephen Uitti.
+
 2008-02-01  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* api-scheduling.texi (Threads): Add "C Function scm_join_thread"
