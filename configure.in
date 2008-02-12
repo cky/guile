@@ -720,8 +720,11 @@ AC_SEARCH_LIBS(crypt, crypt,
   [AC_DEFINE(HAVE_CRYPT,1,
              [Define to 1 if you have the `crypt' function.])])
 
-# When compiling with GCC on some OSs (Solaris, AIX), _Complex_I doesn't work;
-# in the reported cases so far, 1.0fi works well instead.
+# When compiling with GCC on some OSs (Solaris, AIX), _Complex_I doesn't
+# work; in the reported cases so far, 1.0fi works well instead.  According
+# to the C99 spec, the complex.h header must provide a working definition
+# of _Complex_I, so we always try _Complex_I first.  The 1.0fi fallback
+# is a workaround for the failure of some systems to conform to C99.
 if test "$ac_cv_type_complex_double" = yes; then
   AC_MSG_CHECKING([for i])
   AC_TRY_COMPILE([
