@@ -1,3 +1,7 @@
+2008-02-12  Ludovic Courtès  <ludo@gnu.org>
+
+	* guile-snarf.in (tempdir): Honor `$TMPDIR'.
+
 2008-02-11  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* numbers.c (SCM_COMPLEX_VALUE): Use GUILE_I instead of _Complex_I
