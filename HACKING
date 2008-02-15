@@ -66,7 +66,8 @@ Automake --- a system for automatically generating Makefiles that
 
 libtool --- a system for managing the zillion hairy options needed
 	on various systems to produce shared libraries.  Available in
-	"ftp://ftp.gnu.org/pub/gnu/libtool"
+	"ftp://ftp.gnu.org/pub/gnu/libtool".  Version 1.5.26 (or
+	later) is needed for correct AIX support.
 
 gettext --- a system for rigging a program so that it can output its
         messages in the local tongue.  Guile presently only exports

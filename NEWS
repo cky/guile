@@ -56,6 +56,7 @@ system and library calls.
 uniform vectors on AIX.
 ** Fixed a deadlock that occurs upon GC with multiple threads.
 ** Fixed compile problem with GCC on Solaris and AIX (use of _Complex_I)
+** Fixed autotool-derived build problems on AIX 6.1.
 
 * New modules (see the manual for details)
 

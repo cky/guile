@@ -1,3 +1,19 @@
+2008-02-15  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* autogen.sh: Copy versions of config.guess and config.sub from
+	Guile CVS to build-aux and guile-readline.
+
+2008-02-14  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* HACKING: Note need for libtool >= 1.5.26.
+
+	* config.rpath, build-aux/config.rpath: Updated to latest upstream
+	version.
+
+	* config.guess, config.sub: 2008-01-07 versions added to Guile
+	CVS, to ensure that Guile developers are using new enough versions
+	(in particular for AIX 6.1 support).
+
 2008-02-11  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* configure.in (--without-64-calls): Use AC_MSG_CHECKING and
