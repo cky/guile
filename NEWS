@@ -57,10 +57,22 @@ uniform vectors on AIX.
 ** Fixed a deadlock that occurs upon GC with multiple threads.
 ** Fixed compile problem with GCC on Solaris and AIX (use of _Complex_I)
 ** Fixed autotool-derived build problems on AIX 6.1.
+** Fixed MacOS build problem caused by use of rl_get_keymap(_name)
 
 * New modules (see the manual for details)
 
 ** `(srfi srfi-69)'
+
+* Documentation fixes and improvements
+
+** Removed premature breakpoint documentation
+
+The features described are not available in the series of 1.8.x
+releases, so the documentation was misleading and has been removed.
+
+** More about Guile's default *random-state* variable
+
+** GOOPS: more about how to use `next-method'
 
 * Changes to the distribution
 

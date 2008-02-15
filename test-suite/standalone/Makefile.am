@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in.
 ##
-## Copyright 2003, 2004, 2005, 2006, 2007 Software Foundation, Inc.
+## Copyright 2003, 2004, 2005, 2006, 2007, 2008 Software Foundation, Inc.
 ##
 ## This file is part of GUILE.
 ##
