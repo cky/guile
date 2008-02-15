@@ -1,5 +1,5 @@
 ;;;; gc.test --- test guile's garbage collection    -*- scheme -*-
-;;;; Copyright (C) 2000, 2001, 2004, 2006 Free Software Foundation, Inc.
+;;;; Copyright (C) 2000, 2001, 2004, 2006, 2008 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -63,8 +63,17 @@
 	       ((dummy (gc))
 	        (last-count (cdr (assoc
 				  "eval-closure" (gc-live-object-stats)))))
-	       
+
 	     (for-each (lambda (x) (make-module)) (iota 1000))
+
+	     ;; XXX: This hack aims to clean up the stack to make sure we
+	     ;; don't leave a reference to one of the modules we created.  It
+	     ;; proved to be useful on SPARC:
+	     ;; http://lists.gnu.org/archive/html/guile-devel/2008-02/msg00006.html .
+             (let cleanup ((i 10))
+               (and (> i 0)
+                    (begin (cleanup (1- i)) i)))
+
 	     (gc)
 	     (gc) ;; twice: have to kill the weak vectors.
 	     (= last-count (cdr (assoc "eval-closure" (gc-live-object-stats)))))
