@@ -3,7 +3,7 @@
  * Copyright (c) 1991-1995 by Xerox Corporation.  All rights reserved.
  * Copyright (c) 1996-1999 by Silicon Graphics.  All rights reserved.
  * Copyright (c) 1999 by Hewlett-Packard Company.  All rights reserved.
- * Copyright (c) 2000, 2001, 2002, 2003, 2004, 2006 Free Software Foundation
+ * Copyright (c) 2000, 2001, 2002, 2003, 2004, 2006, 2008 Free Software Foundation
  *
  * THIS MATERIAL IS PROVIDED AS IS, WITH ABSOLUTELY NO WARRANTY EXPRESSED
  * OR IMPLIED.  ANY USE IS AT YOUR OWN RISK.
@@ -108,6 +108,11 @@ typedef int GC_bool;
 # if defined(__OpenBSD__) && defined(__sparc__)
 #    define SPARC
 #    define OPENBSD
+#    define mach_type_known
+# endif
+# if defined(__NetBSD__) && defined(__alpha__)
+#    define ALPHA
+#    define NETBSD
 #    define mach_type_known
 # endif
 # if defined(__NetBSD__) && defined(__powerpc__)
@@ -246,7 +251,7 @@ typedef int GC_bool;
 # endif
 # if defined(__alpha) || defined(__alpha__)
 #   define ALPHA
-#   if !defined(LINUX)
+#   if !defined(LINUX) && !defined (NETBSD)
 #     define OSF1	/* a.k.a Digital Unix */
 #   endif
 #   define mach_type_known

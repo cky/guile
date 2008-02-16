@@ -1,3 +1,8 @@
+2008-02-16  Ludovic Courtès  <ludo@gnu.org>
+
+	* gc_os_dep.c: Add NetBSD/alpha support.  Patch by Greg Troxel
+	<gdt@ir.bbn.com>.
+
 2008-02-12  Ludovic Courtès  <ludo@gnu.org>
 
 	* guile-snarf.in (tempdir): Honor `$TMPDIR'.

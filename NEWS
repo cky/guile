@@ -51,12 +51,14 @@ called with an associator proc that returns neither a pair nor #f.
 ** Secondary threads now always return a valid module for (current-module).
 ** Avoid MacOS build problems caused by incorrect combination of "64"
 system and library calls.
+** `guile-snarf' now honors `$TMPDIR'
 ** Fixed build with Sun Studio (Solaris 9)
 ** Fixed wrong-type-arg errors when creating zero length SRFI-4
 uniform vectors on AIX.
 ** Fixed a deadlock that occurs upon GC with multiple threads.
 ** Fixed compile problem with GCC on Solaris and AIX (use of _Complex_I)
 ** Fixed autotool-derived build problems on AIX 6.1.
+** Fixed NetBSD/alpha support
 ** Fixed MacOS build problem caused by use of rl_get_keymap(_name)
 
 * New modules (see the manual for details)
