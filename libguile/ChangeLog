@@ -1,3 +1,7 @@
+2008-02-17  Ludovic Courtès  <ludo@gnu.org>
+
+	* script.c (scm_compile_shell_switches): Update copyright year.
+
 2008-02-16  Ludovic Courtès  <ludo@gnu.org>
 
 	* gc_os_dep.c: Add NetBSD/alpha support.  Patch by Greg Troxel

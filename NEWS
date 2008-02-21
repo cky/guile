@@ -52,6 +52,7 @@ called with an associator proc that returns neither a pair nor #f.
 ** Avoid MacOS build problems caused by incorrect combination of "64"
 system and library calls.
 ** `guile-snarf' now honors `$TMPDIR'
+** `guile-config compile' now reports CPPFLAGS used at compile-time
 ** Fixed build with Sun Studio (Solaris 9)
 ** Fixed wrong-type-arg errors when creating zero length SRFI-4
 uniform vectors on AIX.

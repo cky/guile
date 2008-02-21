@@ -1,3 +1,8 @@
+2008-02-16  Ludovic Courtès  <ludo@gnu.org>
+
+	* LIBGUILEREADLINE-VERSION
+	(LIBGUILEREADLINE_INTERFACE_REVISION): Increment for release.
+
 2008-01-29  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* readline.c (scm_init_readline): Only do init_bouncing_parens ()

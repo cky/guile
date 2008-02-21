@@ -1,3 +1,14 @@
+2008-02-16  Ludovic Courtès  <ludo@gnu.org>
+
+	Guile 1.8.4 released.
+
+	* GUILE-VERSION (LIBGUILE_INTERFACE_REVISION): Increment.
+	(GUILE_MICRO_VERSION): Increment.
+
+	* configure.in (GUILE_CFLAGS): Include `$CPPFLAGS' since they
+	may include required `-I' flags (e.g., `-I/path/to/gmp'), so
+	that "guile-config compile" reports all the needed flags.
+
 2008-02-15  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* autogen.sh: Copy versions of config.guess and config.sub from
