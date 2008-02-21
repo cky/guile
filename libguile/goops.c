@@ -1,4 +1,4 @@
-/* Copyright (C) 1998,1999,2000,2001,2002,2003,2004
+/* Copyright (C) 1998,1999,2000,2001,2002,2003,2004,2008
  * Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -2870,7 +2870,8 @@ scm_add_slot (SCM class, char *slot_name, SCM slot_class,
 					      scm_list_1 (slot))));
       {
 	SCM n = SCM_SLOT (class, scm_si_nfields);
-	SCM gns = scm_list_n (name, SCM_BOOL_F, get, set, n, scm_from_int (1));
+	SCM gns = scm_list_n (name, SCM_BOOL_F, get, set, n, scm_from_int (1),
+			      SCM_UNDEFINED);
 	SCM_SET_SLOT (class, scm_si_getters_n_setters,
 		      scm_append_x (scm_list_2 (SCM_SLOT (class, scm_si_getters_n_setters),
 						scm_list_1 (gns))));

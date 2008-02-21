@@ -1,3 +1,10 @@
+2008-02-21  Ludovic Courtès  <ludo@gnu.org>
+
+	Fix bug #22369.
+
+	* goops.c (scm_add_slot): Add `SCM_UNDEFINED' as last argument
+	to `scm_list_n ()'.  Thanks to the anonymous reporter.
+
 2008-02-17  Ludovic Courtès  <ludo@gnu.org>
 
 	* script.c (scm_compile_shell_switches): Update copyright year.

@@ -36,6 +36,13 @@ indicating length of the `scm_t_option' array.
 
 
 
+Changes in 1.8.5 (since 1.8.4)
+
+* Bugs fixed
+
+** `scm add_slot ()' no longer segfaults (fixes bug #22369)
+
+
 Changes in 1.8.4 (since 1.8.3)
 
 * Bugs fixed
