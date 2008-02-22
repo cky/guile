@@ -1,5 +1,9 @@
 2008-02-22  Ludovic Courtès  <ludo@gnu.org>
 
+	* read.c (strncasecmp): Add declaration when
+	`HAVE_DECL_STRNCASECMP' is undefined.  Fixes compilation on
+	NetBSD 1.6.
+
 	* gc.c (scm_ia64_ar_bsp)[linux]: Don't discard `const' qualifier
 	of OPAQUE.
 

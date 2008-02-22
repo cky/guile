@@ -42,6 +42,7 @@ Changes in 1.8.5 (since 1.8.4)
 
 ** `scm add_slot ()' no longer segfaults (fixes bug #22369)
 ** Fixed build issue for GNU/Linux on IA64
+** Fixed build issue on NetBSD 1.6
 
 
 Changes in 1.8.4 (since 1.8.3)

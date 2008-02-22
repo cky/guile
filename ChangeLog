@@ -1,3 +1,7 @@
+2008-02-22  Ludovic Courtès  <ludo@gnu.org>
+
+	* configure.in: Check whether `strncasecmp' is declared.
+
 2008-02-16  Ludovic Courtès  <ludo@gnu.org>
 
 	Guile 1.8.4 released.
