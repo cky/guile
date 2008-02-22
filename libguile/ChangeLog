@@ -1,3 +1,8 @@
+2008-02-22  Ludovic Courtès  <ludo@gnu.org>
+
+	* gc.c (scm_ia64_ar_bsp)[linux]: Don't discard `const' qualifier
+	of OPAQUE.
+
 2008-02-21  Ludovic Courtès  <ludo@gnu.org>
 
 	Fix bug #22369.

@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -1104,7 +1104,7 @@ scm_ia64_register_backing_store_base (void)
 void *
 scm_ia64_ar_bsp (const void *opaque)
 {
-  ucontext_t *ctx = opaque;
+  const ucontext_t *ctx = opaque;
   return (void *) ctx->uc_mcontext.sc_ar_bsp;
 }
 # endif	/* linux */

@@ -40,7 +40,8 @@ Changes in 1.8.5 (since 1.8.4)
 
 * Bugs fixed
 
-** `scm_add_slot ()' no longer segfaults (fixes bug #22369)
+** `scm add_slot ()' no longer segfaults (fixes bug #22369)
+** Fixed build issue for GNU/Linux on IA64
 
 
 Changes in 1.8.4 (since 1.8.3)
