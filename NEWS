@@ -40,7 +40,12 @@ Changes in 1.8.5 (since 1.8.4)
 
 * Bugs fixed
 
-** `scm add_slot ()' no longer segfaults (fixes bug #22369)
+** `scm_add_slot ()' no longer segfaults (fixes bug #22369)
+** Fixed `(ice-9 match)' for patterns like `((_ ...) ...)'
+
+Previously, expressions like `(match '((foo) (bar)) (((_ ...) ...) #t))'
+would trigger an unbound variable error for `match:andmap'.
+
 ** Fixed build issue for GNU/Linux on IA64
 ** Fixed build issue on NetBSD 1.6
 

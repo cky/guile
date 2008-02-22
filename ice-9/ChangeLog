@@ -1,3 +1,9 @@
+2008-02-22  Ludovic Courtès  <ludo@gnu.org>
+
+	* match.scm: Export `match:andmap'.  This fixes evaluation of
+	expressions like `(match expr (((_ ...) ...) #t))' where a list
+	of lists is to be matched.
+
 2008-01-22  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* COPYING: Removed.
