@@ -1,3 +1,8 @@
+2008-02-23  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* standalone/test-with-guile-module.c: Updated to GNU coding
+	standards; added standard license statement.
+
 2008-02-15  Ludovic Courtès  <ludo@gnu.org>
 
 	* tests/gc.test (gc): Add hack to clean up the stack so that the
