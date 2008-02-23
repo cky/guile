@@ -50,6 +50,13 @@ would trigger an unbound variable error for `match:andmap'.
 ** Fixed build issue on NetBSD 1.6
 ** Fixed build issue on Solaris 2.10 x86_64
 
+* Changes to the distribution
+
+** New FAQ
+
+We've started collecting Frequently Asked Questions (FAQ), and will
+distribute these (with answers!) in future Guile releases.
+
 
 Changes in 1.8.4 (since 1.8.3)
 
