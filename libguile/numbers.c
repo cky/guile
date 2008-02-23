@@ -5336,13 +5336,13 @@ scm_c_make_rectangular (double re, double im)
 }
 
 SCM_DEFINE (scm_make_rectangular, "make-rectangular", 2, 0, 0,
-            (SCM real, SCM imaginary),
-	    "Return a complex number constructed of the given @var{real} and\n"
-	    "@var{imaginary} parts.")
+            (SCM real_part, SCM imaginary_part),
+	    "Return a complex number constructed of the given @var{real-part} "
+	    "and @var{imaginary-part} parts.")
 #define FUNC_NAME s_scm_make_rectangular
 {
   struct dpair xy;
-  scm_two_doubles (real, imaginary, FUNC_NAME, &xy);
+  scm_two_doubles (real_part, imaginary_part, FUNC_NAME, &xy);
   return scm_c_make_rectangular (xy.x, xy.y);
 }
 #undef FUNC_NAME

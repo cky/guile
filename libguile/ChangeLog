@@ -1,3 +1,10 @@
+2008-02-23  Ludovic Courtès  <ludo@gnu.org>
+
+	* numbers.c (scm_make_rectangular): Rename argument to
+	`real_part' and `imaginary_part' to work around Solaris 2.10
+	headers which define `imaginary' as a macro.  Patch by Tim
+	Mooney <mooney@dogbert.cc.ndsu.NoDak.edu>.
+
 2008-02-22  Ludovic Courtès  <ludo@gnu.org>
 
 	* read.c (strncasecmp): Add declaration when
@@ -12,7 +19,8 @@
 	Fix bug #22369.
 
 	* goops.c (scm_add_slot): Add `SCM_UNDEFINED' as last argument
-	to `scm_list_n ()'.  Thanks to the anonymous reporter.
+	to `scm_list_n ()'.  Thanks to René Köcher
+	<shirk87@googlemail.com>.
 
 2008-02-17  Ludovic Courtès  <ludo@gnu.org>
 
