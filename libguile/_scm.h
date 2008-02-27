@@ -95,14 +95,6 @@
 # define SCM_SYSCALL(line) line;
 #endif /* ndef SCM_SYSCALL */
 
-#if !defined (MSDOS) && !defined (__MINGW32__)
-# ifdef ARM_ULIB
-    extern volatile int errno;
-# else
-    extern int errno;
-# endif /* def ARM_ULIB */
-#endif /* ndef MSDOS && ndef __MINGW32__*/
-
 
 
 #ifndef min

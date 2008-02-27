@@ -1,3 +1,11 @@
+2008-02-27  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* _scm.h (errno): Remove declarations that have been there
+	forever, and are known to conflict on some platforms with that
+	provided by <errno.h>, which we include unconditionally.  If
+	<errno.h> doesn't provide a errno declaration, what is the point
+	of it?
+
 2008-02-23  Ludovic Courtès  <ludo@gnu.org>
 
 	* numbers.c (scm_make_rectangular): Rename argument to
