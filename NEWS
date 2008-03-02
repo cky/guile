@@ -49,6 +49,7 @@ would trigger an unbound variable error for `match:andmap'.
 ** Fixed build issue for GNU/Linux on IA64
 ** Fixed build issues on NetBSD 1.6
 ** Fixed build issue on Solaris 2.10 x86_64
+** Fixed build issue with DEC/Compaq/HP's compiler
 
 * Changes to the distribution
 

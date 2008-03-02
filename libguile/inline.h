@@ -3,7 +3,7 @@
 #ifndef SCM_INLINE_H
 #define SCM_INLINE_H
 
-/* Copyright (C) 2001, 2002, 2003, 2004, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2002, 2003, 2004, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -38,12 +38,23 @@
 #include "libguile/pairs.h"
 
 
+#if ((!defined SCM_C_INLINE) && (!defined SCM_INLINE_C_INCLUDING_INLINE_H)) \
+     || (defined __GNUC__)
+
+/* The `extern' declarations.  They should only appear when used from
+   "inline.c", when `inline' is not supported at all or when GCC's "extern
+   inline" is used.  */
+
 SCM_API SCM scm_cell (scm_t_bits car, scm_t_bits cdr);
 SCM_API SCM scm_double_cell (scm_t_bits car, scm_t_bits cbr,
 			     scm_t_bits ccr, scm_t_bits cdr);
 
 SCM_API SCM scm_array_handle_ref (scm_t_array_handle *h, ssize_t pos);
 SCM_API void scm_array_handle_set (scm_t_array_handle *h, ssize_t pos, SCM val);
+
+SCM_API int scm_is_pair (SCM x);
+
+#endif
 
 
 #if defined SCM_C_INLINE || defined SCM_INLINE_C_INCLUDING_INLINE_H

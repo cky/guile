@@ -1,3 +1,11 @@
+2008-03-02  Ludovic Courtès  <ludo@gnu.org>
+
+	* pairs.h (scm_is_pair): Moved declaration to `inline.h'.
+	* inline.h: Make sure `extern' declarations are not produced
+	when `inline' is supported but GCC is not used.  This
+	fixes "mixed linkage" errors with compilers such as
+	DEC/Compaq/HP CC.
+
 2008-02-27  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* _scm.h (errno): Remove declarations that have been there
