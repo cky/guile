@@ -1,3 +1,8 @@
+2008-03-06  Ludovic Courtès  <ludo@gnu.org>
+
+	* eval.c (scm_eval): If MODULE_OR_STATE is not a dynamic state,
+	make sure it's a module.  Reported by David I. Lehn.
+
 2008-03-02  Ludovic Courtès  <ludo@gnu.org>
 
 	* pairs.h (scm_is_pair): Moved declaration to `inline.h'.

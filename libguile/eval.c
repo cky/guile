@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
  * Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
@@ -4034,7 +4034,10 @@ SCM_DEFINE (scm_eval, "eval", 2, 0, 0,
   if (scm_is_dynamic_state (module_or_state))
     scm_dynwind_current_dynamic_state (module_or_state);
   else
-    scm_dynwind_current_module (module_or_state);
+    {
+      SCM_VALIDATE_MODULE (2, module_or_state);
+      scm_dynwind_current_module (module_or_state);
+    }
 
   res = scm_primitive_eval (exp);
 
