@@ -138,6 +138,97 @@
 	    (equal? result '(10 8 6 4 2 0)))))
 
       ;;
+      ;; timed mutex locking
+      ;;
+
+      (with-test-prefix "lock-mutex"
+
+	(pass-if "timed locking fails if timeout exceeded"
+	  (let ((m (make-mutex)))
+	    (lock-mutex m)
+	    (let ((t (begin-thread (lock-mutex m (+ (current-time) 1)))))
+	      (not (join-thread t)))))
+
+        (pass-if "timed locking succeeds if mutex unlocked within timeout"
+	  (let* ((m (make-mutex))
+		 (c (make-condition-variable))
+		 (cm (make-mutex)))
+	    (lock-mutex cm)
+	    (let ((t (begin-thread (begin (lock-mutex cm)
+					  (signal-condition-variable c)
+					  (unlock-mutex cm)
+					  (lock-mutex m
+						      (+ (current-time) 2))))))
+	      (lock-mutex m)
+	      (wait-condition-variable c cm)
+	      (unlock-mutex cm)
+	      (sleep 1)
+	      (unlock-mutex m)
+	      (join-thread t)))))
+
+      ;;
+      ;; timed mutex unlocking
+      ;;
+
+      (with-test-prefix "unlock-mutex"
+
+        (pass-if "timed unlocking returns #f if timeout exceeded"
+          (let ((m (make-mutex))
+		(c (make-condition-variable)))
+	    (lock-mutex m)
+	    (not (unlock-mutex m c (current-time)))))
+
+        (pass-if "timed unlocking returns #t if condition signaled"
+	  (let ((m1 (make-mutex))
+		(m2 (make-mutex))
+		(c1 (make-condition-variable))
+		(c2 (make-condition-variable)))
+	    (lock-mutex m1)
+	    (let ((t (begin-thread (begin (lock-mutex m1)
+					  (signal-condition-variable c1)
+					  (lock-mutex m2)
+					  (unlock-mutex m1)
+					  (unlock-mutex m2 
+							c2 
+							(+ (current-time) 
+							   2))))))
+	      (wait-condition-variable c1 m1)
+	      (unlock-mutex m1)
+	      (lock-mutex m2)
+	      (signal-condition-variable c2)
+	      (unlock-mutex m2)
+	      (join-thread t)))))
+
+      ;;
+      ;; timed joining
+      ;;
+
+      (with-test-prefix "join-thread"
+
+	(pass-if "timed joining fails if timeout exceeded"
+	  (let* ((m (make-mutex))
+		 (c (make-condition-variable))
+		 (t (begin-thread (begin (lock-mutex m)
+					 (wait-condition-variable c m))))
+		 (r (join-thread t (current-time))))
+	    (cancel-thread t)
+	    (not r)))
+      
+        (pass-if "join-thread returns timeoutval on timeout"
+          (let* ((m (make-mutex))
+		 (c (make-condition-variable))
+		 (t (begin-thread (begin (lock-mutex m)
+					 (wait-condition-variable c m))))
+		 (r (join-thread t (current-time) 'foo)))
+	    (cancel-thread t)
+	    (eq? r 'foo)))
+	    
+
+	(pass-if "timed joining succeeds if thread exits within timeout"
+          (let ((t (begin-thread (begin (sleep 1) #t))))
+	    (join-thread t (+ (current-time) 2)))))
+
+      ;;
       ;; thread cancellation
       ;;
 
@@ -185,4 +276,35 @@
 	      (eq? (join-thread t) 'bar))))
 
 	(pass-if "initial handler is false"
-	  (not (thread-cleanup (current-thread)))))))
+	  (not (thread-cleanup (current-thread)))))
+
+      ;;
+      ;; mutex behavior
+      ;;
+
+      (with-test-prefix "mutex-behavior"
+
+        (pass-if "unchecked unlock"
+          (let* ((m (make-mutex 'unchecked-unlock)))
+	    (unlock-mutex m)))
+
+	(pass-if "allow external unlock"
+	  (let* ((m (make-mutex 'allow-external-unlock))
+		 (t (begin-thread (lock-mutex m))))
+	    (join-thread t)
+	    (unlock-mutex m)))
+
+	(pass-if "recursive mutexes"
+	  (let* ((m (make-mutex 'recursive)))
+	    (lock-mutex m)
+	    (lock-mutex m)))		 
+
+	(pass-if "locking abandoned mutex throws exception"
+          (let* ((m (make-mutex))
+		 (t (begin-thread (lock-mutex m)))
+		 (success #f))
+	    (join-thread t)
+	    (catch 'abandoned-mutex-error
+		   (lambda () (lock-mutex m))
+		   (lambda key (set! success #t)))
+	    success)))))

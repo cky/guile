@@ -1,3 +1,12 @@
+2008-03-08  Julian Graham  <joolean@gmail.com>
+
+	* api-scheduling.texi (Threads): Add documentation for new 
+	functions "scm_thread_p" and new "scm_join_thread_timed".
+	(Mutexes and Condition Variables): Add documentation for new 
+	functions "scm_make_mutex_with_flags", "scm_mutex_p", 
+	"scm_lock_mutex_timed", "scm_unlock_mutex_timed", and 
+	"scm_condition_variable_p".
+
 2008-02-11  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* api-data.texi (Random): New text about the default random state,

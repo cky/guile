@@ -1,3 +1,29 @@
+2008-03-08  Julian Graham  <joolean@gmail.com>
+
+	* threads.c (scm_join_thread_timed, scm_thread_p, 
+	scm_make_mutex_with_flags, scm_lock_mutex_timed, 
+	scm_unlock_mutex_timed, scm_mutex_p, scm_condition_variable_p): New 
+	functions.
+	(thread_mark): Updated to mark new struct field `mutexes'.
+	(do_thread_exit): Notify threads waiting on mutexes locked by exiting 
+	thread.
+	(scm_join_thread, scm_make_mutex, scm_make_recursive_mutex, 
+	scm_mutex_lock): Reimplement in terms of their newer 
+	counterparts.
+	(scm_abandoned_mutex_error_key): New symbol.
+	(fat_mutex)[unchecked_unlock, allow_external_unlock]: New fields.
+	(fat_mutex_lock): Reimplement to support timeouts and abandonment.
+	(fat_mutex_trylock, scm_try_mutex): Remove fat_mutex_trylock and
+	reimplement scm_try_mutex as a lock attempt with a timeout of zero.
+	(fat_mutex_unlock): Allow unlocking from other threads and unchecked
+	unlocking; implement in terms of condition variable wait.
+	(scm_timed_wait_condition_variable): Reimplement in terms of 
+	fat_mutex_unlock.
+	* threads.h (scm_i_thread)[mutexes]: New field.
+	(scm_join_thread_timed, scm_thread_p, scm_lock_mutex_timed,
+	scm_unlock_mutex_timed, scm_mutex_p, scm_condition_variable_p): 
+	Prototypes for new functions.
+
 2008-03-06  Ludovic Courtès  <ludo@gnu.org>
 
 	* eval.c (scm_eval): If MODULE_OR_STATE is not a dynamic state,
