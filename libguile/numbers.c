@@ -163,20 +163,22 @@ xisnan (double x)
 }
 
 #if defined (GUILE_I)
+#if HAVE_COMPLEX_DOUBLE
+
 /* For an SCM object Z which is a complex number (ie. satisfies
    SCM_COMPLEXP), return its value as a C level "complex double". */
 #define SCM_COMPLEX_VALUE(z)                                    \
   (SCM_COMPLEX_REAL (z) + GUILE_I * SCM_COMPLEX_IMAG (z))
-#endif
 
 /* Convert a C "complex double" to an SCM value. */
-#if HAVE_COMPLEX_DOUBLE
 static SCM
 scm_from_complex_double (complex double z)
 {
   return scm_c_make_rectangular (creal (z), cimag (z));
 }
+
 #endif /* HAVE_COMPLEX_DOUBLE */
+#endif /* GUILE_I */
 
 
 

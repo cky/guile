@@ -1,3 +1,8 @@
+2008-03-09  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* numbers.c: Only define scm_from_complex_double if it will
+	actually be used.
+
 2008-03-08  Julian Graham  <joolean@gmail.com>
 
 	* threads.c (scm_join_thread_timed, scm_thread_p, 
