@@ -1,3 +1,9 @@
+2008-03-10  Ludovic Courtès  <ludo@gnu.org>
+
+	* eval.c, filesys.c: Enclose `alloca' blob in `#ifndef alloca',
+	as per Gnulib's `alloca'.  This should fix compilation on
+	FreeBSD 6.
+
 2008-03-09  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* numbers.c: Only define scm_from_complex_double if it will

@@ -51,7 +51,8 @@ would trigger an unbound variable error for `match:andmap'.
 ** Fixed build issues on NetBSD 1.6
 ** Fixed build issue on Solaris 2.10 x86_64
 ** Fixed build issue with DEC/Compaq/HP's compiler
-** Fixed scm_from_complex_double build issue on FreeBSD
+** Fixed `scm_from_complex_double' build issue on FreeBSD
+** Fixed `alloca' build issue on FreeBSD 6
 
 * Changes to the distribution
 
