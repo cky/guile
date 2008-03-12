@@ -1,3 +1,8 @@
+2008-03-12  Ludovic Courtès  <ludo@gnu.org>
+
+	* tests/srfi-37.test (short options without arguments): New
+	test.
+
 2008-02-23  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* standalone/test-with-guile-module.c: Updated to GNU coding

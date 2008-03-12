@@ -1,3 +1,9 @@
+2008-03-12  Ludovic Courtès  <ludo@gnu.org>
+
+	* srfi-37.scm (args-fold)[short-option]: Set ARGS to `(cdr
+	args)' before calling `next-arg'.  This fixes parsing of
+	argument-less options when using short names.
+
 2008-01-22  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* srfi-39.scm: Update copyright statement to LGPL.

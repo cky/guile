@@ -46,6 +46,12 @@ Changes in 1.8.5 (since 1.8.4)
 Previously, expressions like `(match '((foo) (bar)) (((_ ...) ...) #t))'
 would trigger an unbound variable error for `match:andmap'.
 
+** `(oop goops describe)' now properly provides the `describe' feature
+** Fixed `args-fold' from `(srfi srfi-37)'
+
+Previously, parsing short option names of argument-less options would
+lead to a stack overflow.
+
 ** Fixed type-checking for the second argument of `eval'
 ** Fixed build issue for GNU/Linux on IA64
 ** Fixed build issues on NetBSD 1.6
@@ -53,7 +59,6 @@ would trigger an unbound variable error for `match:andmap'.
 ** Fixed build issue with DEC/Compaq/HP's compiler
 ** Fixed `scm_from_complex_double' build issue on FreeBSD
 ** Fixed `alloca' build issue on FreeBSD 6
-** `(oop goops describe)' now properly provides the `describe' feature
 
 * Changes to the distribution
 

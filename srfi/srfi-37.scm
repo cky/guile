@@ -1,6 +1,6 @@
 ;;; srfi-37.scm --- args-fold
 
-;; 	Copyright (C) 2007 Free Software Foundation, Inc.
+;; 	Copyright (C) 2007, 2008 Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -151,7 +151,9 @@ program-arguments in ARGS, as decided by the OPTIONS'
     ;; followed by the remaining short options in (car ARGS).
     (define (short-option position)
       (if (>= position (string-length (car args)))
-	  (next-arg)
+          (begin
+            (set! args (cdr args))
+            (next-arg))
 	  (let* ((opt-name (string-ref (car args) position))
 		 (option-here (hash-ref lookup opt-name)))
 	    (cond ((not option-here)
