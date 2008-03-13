@@ -1,6 +1,6 @@
 ;;;; socket.test --- test socket functions     -*- scheme -*-
 ;;;;
-;;;; Copyright (C) 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+;;;; Copyright (C) 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -174,6 +174,15 @@
 ;;; AF_UNIX sockets and `make-socket-address'
 ;;;
 
+(define (temp-file-path)
+  ;; Return a temporary file path that honors `$TMPDIR', which `tmpnam'
+  ;; doesn't do.
+  (let ((dir (or (getenv "TMPDIR") "/tmp")))
+    (string-append dir "/guile-test-socket-"
+                   (number->string (current-time)) "-"
+                   (number->string (random 100000)))))
+
+
 (if (defined? 'AF_UNIX)
     (with-test-prefix "AF_UNIX/SOCK_DGRAM"
 
@@ -181,7 +190,7 @@
 
       (let ((server-socket (socket AF_UNIX SOCK_DGRAM 0))
 	    (server-bound? #f)
-	    (path (tmpnam)))
+	    (path (temp-file-path)))
 
 	(pass-if "bind"
 	  (catch 'system-error
@@ -196,7 +205,7 @@
 
 	(pass-if "bind/sockaddr"
 	  (let* ((sock (socket AF_UNIX SOCK_STREAM 0))
-		 (path (tmpnam))
+		 (path (temp-file-path))
 		 (sockaddr (make-socket-address AF_UNIX path)))
 	    (catch 'system-error
 	      (lambda ()
@@ -233,7 +242,7 @@
 	    (server-bound? #f)
 	    (server-listening? #f)
 	    (server-pid #f)
-	    (path (tmpnam)))
+	    (path (temp-file-path)))
 
 	(pass-if "bind"
 	  (catch 'system-error
@@ -248,7 +257,7 @@
 
 	(pass-if "bind/sockaddr"
 	  (let* ((sock (socket AF_UNIX SOCK_STREAM 0))
-		 (path (tmpnam))
+		 (path (temp-file-path))
 		 (sockaddr (make-socket-address AF_UNIX path)))
 	    (catch 'system-error
 	      (lambda ()

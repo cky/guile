@@ -1,3 +1,14 @@
+2008-03-13  Ludovic Courtès  <ludo@gnu.org>
+
+	* standalone/Makefile.am (test_cflags): Add `-I' flags for
+	Gnulib, so that <alloca.h> can be found.
+	(snarfcppopts): Likewise.
+
+	* tests/socket.test (temp-file-path): New.  Replace calls to
+	`tmpnam' with calls to `temp-file-path', so that `$TMPDIR' is
+	honored.
+	* standalone/test-unwind.c (check_ports): Honor `$TMPDIR'.
+
 2008-03-12  Ludovic Courtès  <ludo@gnu.org>
 
 	* tests/srfi-37.test (short options without arguments): New
