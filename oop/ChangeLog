@@ -1,3 +1,9 @@
+2008-03-18  Ludovic Courtès  <ludo@gnu.org>
+
+	* goops/util.scm (mapappend): Now an alias for SRFI-1's
+	`append-map', which is more efficient.
+	(every, any): Used and re-exported from SRFI-1.
+
 2008-03-12  Ludovic Courtès  <ludo@gnu.org>
 
 	* goops/describe.scm (describe): Provide `describe' (symbol),
