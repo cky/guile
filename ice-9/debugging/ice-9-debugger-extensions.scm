@@ -28,7 +28,10 @@
 
 (cond ((string>=? (version) "1.7")
        (use-modules (ice-9 debugger command-loop))
-       (define-module (ice-9 debugger command-loop))
+       (define-module (ice-9 debugger command-loop)
+	 #:use-module (ice-9 debugger)
+	 #:use-module (ice-9 debugger state)
+	 #:use-module (ice-9 debugging traps))
        (define new-define-command define-command)
        (set! define-command
 	     (lambda (name argument-template documentation procedure)

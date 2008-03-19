@@ -1,3 +1,8 @@
+2008-03-19  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* debugging/ice-9-debugger-extensions.scm (command-loop): Use
+	needed modules.
+
 2008-02-22  Ludovic Courtès  <ludo@gnu.org>
 
 	* match.scm: Export `match:andmap'.  This fixes evaluation of
