@@ -1,3 +1,36 @@
+2008-03-19  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* api-debug.texi (Low Level Trap Calls): Removed (material
+	duplicated elsewhere); doc for with-traps and debug-object? moved
+	to section on evaluator trap options.
+	(High Level Traps): Renamed just `Traps'.  Add references to
+	evaluator trap options and debug options.  Make language
+	appropriate for core Guile (as opposed to previously separate
+	package).
+	(Location Traps): Corrected to reflect that location traps now
+	specify a specific position, not a range of positions.
+	(Debugging Examples): New (content moved here from
+	scheme-debugging.texi, and updated to use traps instead of
+	breakpoints).
+
+	* api-modules.texi (Included Guile Modules): Change `Debugging
+	Features' reference to `Tracing'.
+
+	* api-options.texi (Evaluator trap options): Doc for with-traps
+	and debug-object? is now here.
+
+	* guile.texi, scheme-debugging.texi: Move the `Tracing' content of
+	scheme-debugging.texi to the Modules section.
+
+	* scheme-using.texi (Using Guile in Emacs, GDS Getting Started):
+	Minor edits.
+
+	* scheme-debugging.texi (Debugging Features, Intro to
+	Breakpoints): Removed.
+	(Examples): Moved to api-debug.texi.
+	(Tracing, Old Tracing): Promoted one level.
+	(New Tracing, Tracing Compared): Removed.
+	
 2008-03-08  Julian Graham  <joolean@gmail.com>
 
 	* api-scheduling.texi (Threads): Add documentation for new 

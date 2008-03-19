@@ -679,7 +679,7 @@ Guile starts up.
 
 @item (ice-9 debug)
 Mikael Djurfeldt's source-level debugging support for Guile
-(@pxref{Debugging Features}).
+(@pxref{Tracing}).
 
 @item (ice-9 expect)
 Actions based on matching input from a port (@pxref{Expect}).

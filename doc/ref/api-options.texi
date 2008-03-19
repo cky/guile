@@ -613,7 +613,6 @@ way.
 @var{retval} is the return value.
 @end deffn
 
-
 @deffn memoize-symbol-handler key cont expression env
 Called when the evaluator memoizes the value of a procedure symbol
 
@@ -624,6 +623,16 @@ wants to by using @code{call-with-current-continuation} in the usual
 way.
 
 @var{retval} is the return value.
+@end deffn
+
+@deffn {Scheme Procedure} with-traps thunk
+@deffnx {C Function} scm_with_traps (thunk)
+Call @var{thunk} with traps enabled.
+@end deffn
+
+@deffn {Scheme Procedure} debug-object? obj
+@deffnx {C Function} scm_debug_object_p (obj)
+Return @code{#t} if @var{obj} is a debug object.
 @end deffn
 
 

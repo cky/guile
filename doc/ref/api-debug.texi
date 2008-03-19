@@ -17,9 +17,9 @@ infrastructure that builds on top of those calls.
 @menu
 * Evaluation Model::            Evaluation and the Scheme stack.
 * Debug on Error::              Debugging when an error occurs.
-* Low Level Trap Calls::
-* High Level Traps::
+* Traps::
 * Breakpoints::
+* Debugging Examples::
 @end menu
 
 @node Evaluation Model
@@ -610,65 +610,8 @@ Invoke the Guile debugger to explore the context of the last error.
 @end deffn
 
 
-@node Low Level Trap Calls
-@subsection Low Level Trap Calls
-
-@cindex Low level trap calls
-@cindex Evaluator trap calls
-Guile's evaluator can be configured to call the following four user-specified
-procedures at various points in its operation.
-
-@table @dfn
-@item apply-frame-handler
-@item enter-frame-handler
-@item exit-frame-handler
-@item memoize-symbol-handler
-@end table
-
-These procedures, and the circumstances under which the evaluator
-calls them, are configured by the ``evaluator trap options'' interface
-(@pxref{Evaluator trap options}), and by the @code{trace} and
-@code{breakpoints} fields of the ``debug options'' interface
-(@pxref{Debugger options}).
-
-It is not necessary to understand the fine details of these low level
-calls, and of the options which configure them, in order to use the
-class-based trap interface effectively.  @code{guile-debugging} takes
-care of setting these options as required for whatever set of
-installed trap objects the user specifies.@footnote{And consequently,
-when using the class-based trap interface, users/applications should
-@emph{not} modify these options themselves, to avoid interfering with
-@code{guile-debugging}'s option settings.}  It is useful, though, to
-have a overall idea of how the evaluator works and when these low
-level calls can happen, as follows.
-
-@cindex Frame entry
-@cindex Frame exit
-On the basis of this description, we can now specify the points where
-low level trap calls may occur (subject to configuration).  Namely,
-whenever a new frame is added to the stack, because the evaluator is
-about to begin a new evaluation or to perform a new application, and
-whenever a frame is being removed from the stack because the
-computation that it refers to has completed and is returning its
-value@footnote{If this raises the question of how expressions with
-no return value are handled, the answer is that all computations in
-Guile return a value.  Those that appear to have no return value do so
-by using the special @code{*unspecified*} value, which the Guile REPL
-avoids displaying to the user.} to its caller.
-
-@deffn {Scheme Procedure} with-traps thunk
-@deffnx {C Function} scm_with_traps (thunk)
-Call @var{thunk} with traps enabled.
-@end deffn
-
-@deffn {Scheme Procedure} debug-object? obj
-@deffnx {C Function} scm_debug_object_p (obj)
-Return @code{#t} if @var{obj} is a debug object.
-@end deffn
-
-
-@node High Level Traps
-@subsection High Level Traps
+@node Traps
+@subsection Traps
 
 @cindex Traps
 @cindex Evaluator trap calls
@@ -678,29 +621,33 @@ Return @code{#t} if @var{obj} is a debug object.
 @cindex Code coverage
 @cindex Profiling
 The low level C code of Guile's evaluator can be configured to call
-out at key points to arbitrary user-specified code.  In principle this
-allows Scheme code to implement any model it chooses for examining the
-evaluation stack as program execution proceeds, and for suspending
-execution to be resumed later.  Possible applications of this feature
-include breakpoints, runtime tracing, code coverage, and profiling.
+out at key points to arbitrary user-specified procedures.  These
+procedures, and the circumstances under which the evaluator calls
+them, are configured by the ``evaluator trap options'' interface
+(@pxref{Evaluator trap options}), and by the @code{trace} and
+@code{breakpoints} fields of the ``debug options'' interface
+(@pxref{Debugger options}).  In principle this allows Scheme code to
+implement any model it chooses for examining the evaluation stack as
+program execution proceeds, and for suspending execution to be resumed
+later.  Possible applications of this feature include breakpoints,
+runtime tracing, code coverage, and profiling.
 
 @cindex Trap classes
 @cindex Trap objects
-Based on these low level trap calls, the enhancements described here
-provide a much higher level, object-oriented interface for the
-manipulation of traps.  Different kinds of trap are represented as
-GOOPS classes; for example, the @code{<procedure-trap>} class
-describes traps that are triggered by invocation of a specified
-procedure.  A particular instance of a trap class --- or @dfn{trap
-object} --- describes the condition under which a single trap will be
-triggered, and what will happen then; for example, an instance of
-@code{<procedure-trap>} whose @code{procedure} and @code{behaviour}
-slots contain @code{my-factorial} and @code{debug-trap} would be a
-trap that enters the command line debugger when the
-@code{my-factorial} procedure is invoked.
+Based on these low level trap calls, Guile provides a higher level,
+object-oriented interface for the manipulation of traps.  Different
+kinds of trap are represented as GOOPS classes; for example, the
+@code{<procedure-trap>} class describes traps that are triggered by
+invocation of a specified procedure.  A particular instance of a trap
+class --- or @dfn{trap object} --- describes the condition under which
+a single trap will be triggered, and what will happen then; for
+example, an instance of @code{<procedure-trap>} whose @code{procedure}
+and @code{behaviour} slots contain @code{my-factorial} and
+@code{debug-trap} would be a trap that enters the command line
+debugger when the @code{my-factorial} procedure is invoked.
 
-The following subsubsections describe all this in greater detail, for both
-the user wanting to use traps, and the developer interested in
+The following subsections describe all this in detail, for both the
+user wanting to use traps, and the developer interested in
 understanding how the interface hangs together.
 
 
@@ -813,8 +760,8 @@ shorthands for setting common kinds of traps.  @xref{Trap Shorthands},
 for some examples.
 
 The ability to install, uninstall and reinstall a trap without losing
-its definition is @code{guile-debugging}'s equivalent of the
-disable/enable commands provided by debuggers like GDB.
+its definition is Guile's equivalent of the disable/enable commands
+provided by debuggers like GDB.
 
 @deffn {Generic Function} install-trap trap
 Install the trap object @var{trap}, so that its behaviour will be
@@ -832,9 +779,9 @@ met.
 @subsubsection Specifying Trap Behaviour
 
 @cindex Trap behaviour
-@code{guile-debugging} provides several ``out-of-the-box'' behaviours
-for common needs.  All of the following can be used directly as the
-value of the @code{#:behaviour} option when creating a trap object.
+Guile provides several ``out-of-the-box'' behaviours for common needs.
+All of the following can be used directly as the value of the
+@code{#:behaviour} option when creating a trap object.
 
 @deffn {Procedure} debug-trap trap-context
 Enter Guile's command line debugger to explore the stack at
@@ -1179,9 +1126,9 @@ guile> (rev '(a b c))
 @node Tracing and (ice-9 debug)
 @subsubsection Tracing and (ice-9 debug)
 
-The @code{(ice-9 debug)} module of the core Guile distribution
-provides a tracing facility that is roughly similar to that described
-here, but there are important differences.
+The @code{(ice-9 debug)} module provides a tracing facility
+(@pxref{Tracing}) that is roughly similar to that described here, but
+there are important differences.
 
 @itemize @bullet
 @item
@@ -1202,35 +1149,30 @@ in stack depth, by using indentation like this:
 @end lisp
 
 However its output can @emph{only} show the information seen here,
-which corresponds to @code{guile-debugging}'s @code{trace/info}
-procedure; it cannot be configured to show other pieces of information
-about the trap context in the way that @code{guile-debugging}'s trace
-feature can.
+which corresponds to @code{(ice-9 debugging trace)}'s
+@code{trace/info} procedure; it cannot be configured to show other
+pieces of information about the trap context in the way that the
+@code{(ice-9 debugging trace)} implementation can.
 
 @item
 The @code{(ice-9 debug)} trace only allows the tracing of procedure
-applications and their return values, whereas @code{guile-debugging}'s
-trace allows any kind of trap to be traced.
+applications and their return values, whereas the @code{(ice-9 debugging
+trace)} implementation allows any kind of trap to be traced.
 
 It's interesting to note that @code{(ice-9 debug)}'s restriction here,
 which might initially appear to be just a straightforward consequence
 of its implementation, is also somewhat dictated by its pictorial
 display.  The use of indentation in the output relies on hooking into
 the low level trap calls in such a way that the trapped application
-entries and exits exactly balance each other.
-@code{guile-debugging}'s more general traps interface allows traps to
-be installed such that entry and exit traps don't necessarily balance,
-which means that, in general, indentation diagrams like the one above
-don't work.
+entries and exits exactly balance each other.  The @code{ice-9
+debugging trace} implementation allows traps to be installed such that
+entry and exit traps don't necessarily balance, which means that, in
+general, indentation diagrams like the one above don't work.
 @end itemize
 
 It isn't currently possible to use both @code{(ice-9 debug)} trace and
-@code{guile-debugging} in the same Guile session, because their settings
-of the low level trap options conflict with each other.  (It should be
-possible to fix this, by modifying @code{(ice-9 debug)} to use
-@code{guile-debugging}'s trap installation interface, but only if and
-when @code{guile-debugging} is integrated into the core Guile
-distribution.)
+@code{(ice-9 debugging trace)} in the same Guile session, because
+their settings of the low level trap options conflict with each other.
 
 
 @node Traps Installing More Traps
@@ -1456,9 +1398,9 @@ user would intuitively think of as single-stepping through their code,
 either through code in general (roughly corresponding to GDB's
 @code{step} command, for example), or through code from a particular
 source file (roughly corresponding to GDB's @code{next}).  Therefore
-if you are using @code{guile-debugging} to single-step through code
-and finding its behaviour counter-intuitive, please let me know so
-that I can improve it.
+if you are using a step trap to single-step through code and finding
+its behaviour counter-intuitive, please report that so we can improve
+it.
 
 The implementation and options of the @code{<step-trap>} class are
 complicated by the fact that it is unreliable to determine whether a
@@ -1620,16 +1562,16 @@ following subsubsection.
 @subsubsection Location Traps
 
 The @code{<location-trap>} class implements traps that are triggered
-by evaluation of code at a specific source location or within a
-specified range of source locations.  When compared with source traps,
-they are easier to set, and do not become irrelevant when the relevant
-code is reloaded; but unfortunately they are considerably less
-efficient, as they require running some ``are we in the right place
-for a trap'' code on every low level frame entry trap call.
+by evaluation of code at a specific source location.  When compared
+with source traps, they are easier to set, and do not become
+irrelevant when the relevant code is reloaded; but unfortunately they
+are a lot less efficient, as they require running some ``are we in the
+right place for a trap'' code on every low level frame entry trap
+call.
 
 @deffn {Class} <location-trap>
 Class for traps triggered by evaluation of code at a specific source
-location or in a specified range of source locations.
+location.
 @end deffn
 
 @deffn {Trap Option} #:file-regexp regexp
@@ -1637,31 +1579,27 @@ A regular expression specifying the filenames that will match this
 trap.  This option must be specified when creating a location trap.
 @end deffn
 
-@deffn {Trap Option} #:line line-spec
-If specified, @var{line-spec} describes either a single line, in which
-case it is a single integer, or a range of lines, in which case it is
-a pair of the form @code{(@var{min-line} . @var{max-line})}.  All line
-numbers are 0-based, and the range form is inclusive-inclusive.  If
-@code{#f} or not specified, the trap is not restricted by line number.
-(Default value @code{#f}.)
+@deffn {Trap Option} #:line line
+The line number (0-based) of the source location at which the trap
+should be triggered.  This option must be specified when creating a
+location trap.
 @end deffn
 
-@deffn {Trap Option} #:column column-spec
-If specified, @var{column-spec} describes either a single column, in
-which case it is a single integer, or a range of columns, in which
-case it is a pair of the form @code{(@var{min-column}
-. @var{max-column})}.  All column numbers are 0-based, and the range
-form is inclusive-inclusive.  If @code{#f} or not specified, the trap
-is not restricted by column number.  (Default value @code{#f}.)
+@deffn {Trap Option} #:column column
+The column number (0-based) of the source location at which the trap
+should be triggered.  This option must be specified when creating a
+location trap.
 @end deffn
 
 @noindent
-Example:
+Here is an example, which matches the @code{(facti (- n 1) (* a n))}
+expression in @file{ice-9/debugging/example-fns.scm}:
 
 @lisp
 (install-trap (make <location-trap>
                 #:file-regexp "example-fns.scm"
-                #:line '(11 . 13)
+                #:line 11
+                #:column 6
                 #:behaviour gds-debug-trap))
 @end lisp
 
@@ -1672,8 +1610,7 @@ Example:
 If the code described in the preceding subsubsections for creating and
 manipulating traps seems a little long-winded, it is of course
 possible to define more convenient shorthand forms for typical usage
-patterns.  For example, my own @file{.guile} file contains the
-following definitions for setting breakpoints and for tracing.
+patterns.  Here are some examples.
 
 @lisp
 (define (break! proc)
@@ -1694,11 +1631,11 @@ following definitions for setting breakpoints and for tracing.
                                     trace-until-exit))))
 @end lisp
 
-Definitions like these are not provided out-of-the-box by
-@code{guile-debugging}, because different users will have different
-ideas about what their default debugger should be, or, for example,
-which of the common trap options (@pxref{Common Trap Options}) it
-might be useful to expose through such shorthand procedures.
+Definitions like these are not provided out-of-the-box by Guile,
+because different users will have different ideas about what their
+default debugger should be, or, for example, which of the common trap
+options (@pxref{Common Trap Options}) it might be useful to expose
+through such shorthand procedures.
 
 
 @node Trap Utilities
@@ -1760,12 +1697,11 @@ While they are an important piece of infrastructure, and directly
 usable in some scenarios, traps are still too low level to meet some
 of the requirements of interactive development.
 
-For example, in my experience a common scenario is that a newly
-written procedure is not working properly, and so you'd like to be
-able to step or trace through its code to find out why.  Ideally this
-should be possible from the IDE and without having to modify the
-source code.  There are two problems with using traps directly in this
-scenario.
+A common scenario is that a newly written procedure is not working
+properly, and so you'd like to be able to step or trace through its
+code to find out why.  Ideally this should be possible from the IDE
+and without having to modify the source code.  There are two problems
+with using traps directly in this scenario.
 
 @enumerate
 @item
@@ -1883,6 +1819,216 @@ somewhere in your application's startup code, like this:
 and then all the details of the breakpoints that you want to set can
 be managed through GDS.  For the details of GDS's breakpoints
 interface, see @ref{Setting and Managing Breakpoints}.
+
+
+@node Debugging Examples
+@subsection Debugging Examples
+
+Here we present some examples of what you can do with the debugging
+facilities just described.
+
+@menu
+* Single Stepping through a Procedure's Code::
+* Profiling or Tracing a Procedure's Code::
+@end menu
+
+
+@node Single Stepping through a Procedure's Code
+@subsubsection Single Stepping through a Procedure's Code
+
+A good way to explore in detail what a Scheme procedure does is to set
+a trap on it and then single step through what it does.  To do this,
+make and install a @code{<procedure-trap>} with the @code{debug-trap}
+behaviour from @code{(ice-9 debugging ice-9-debugger-extensions)}.
+
+The following sample session illustrates this.  It assumes that the
+file @file{matrix.scm} defines a procedure @code{mkmatrix}, which is
+the one we want to explore, and another procedure @code{do-main} which
+calls @code{mkmatrix}.
+
+@lisp
+$ /usr/bin/guile -q
+guile> (use-modules (ice-9 debugger)
+                    (ice-9 debugging ice-9-debugger-extensions)
+                    (ice-9 debugging traps))
+guile> (load "matrix.scm")
+guile> (install-trap (make <procedure-trap>
+                       #:procedure mkmatrix
+                       #:behaviour debug-trap))
+guile> (do-main 4)
+This is the Guile debugger -- for help, type `help'.
+There are 3 frames on the stack.
+
+Frame 2 at matrix.scm:8:3
+        [mkmatrix]
+debug> next
+Frame 3 at matrix.scm:4:3
+        (let ((x 1)) (quote this-is-a-matric))
+debug> info frame
+Stack frame: 3
+This frame is an evaluation.
+The expression being evaluated is:
+matrix.scm:4:3:
+  (let ((x 1)) (quote this-is-a-matric))
+debug> next
+Frame 3 at matrix.scm:5:21
+        (quote this-is-a-matric)
+debug> bt
+In unknown file:
+   ?: 0* [primitive-eval (do-main 4)]
+In standard input:
+   4: 1* [do-main 4]
+In matrix.scm:
+   8: 2  [mkmatrix]
+   ...
+   5: 3  (quote this-is-a-matric)
+debug> quit
+this-is-a-matric
+guile> 
+@end lisp
+
+Or you can use Guile's Emacs interface (GDS), by using the module
+@code{(ice-9 gds-client)} instead of @code{(ice-9 debugger)} and
+@code{(ice-9 debugging ice-9-debugger-extensions)}, and changing
+@code{debug-trap} to @code{gds-debug-trap}.  Then the stack and
+corresponding source locations are displayed in Emacs instead of on
+the Guile command line.
+
+
+@node Profiling or Tracing a Procedure's Code
+@subsubsection Profiling or Tracing a Procedure's Code
+
+What if you wanted to get a trace of everything that the Guile
+evaluator does within a given procedure, but without Guile stopping
+and waiting for your input at every step?  For this requirement you
+can install a trap on the procedure, as in the previous example, but
+instead of @code{debug-trap} or @code{gds-debug-trap}, use the
+@code{trace-trap} and @code{trace-until-exit} behaviours provided by
+the @code{(ice-9 debugging trace)} module.
+
+@lisp
+guile> (use-modules (ice-9 debugging traps) (ice-9 debugging trace))
+guile> (load "matrix.scm")
+guile> (install-trap (make <procedure-trap>
+                       #:procedure mkmatrix
+                       #:behaviour (list trace-trap trace-until-exit)))
+guile> (do-main 4)
+|  2: [mkmatrix]
+|  3: [#<procedure #f (a sym definep)> #<autoload # b7c93870> define #f]
+|  3: [#<procedure #f (a sym definep)> #<autoload # b7c93870> define #f]
+|  4: (and (memq sym bindings) (let ...))
+|  5: (memq sym bindings)
+|  5: [memq define (debug)]
+|  5: =>#f
+|  3: [#<procedure #f (a sym definep)> #<autoload # b7c93870> define #f]
+|  3: [#<procedure #f (a sym definep)> #<autoload # b7c93870> define #f]
+|  4: (and (memq sym bindings) (let ...))
+|  5: (memq sym bindings)
+|  5: [memq define (debug)]
+|  5: =>#f
+|  3: [#<procedure #f (a sym definep)> #<autoload # b7c93870> let #f]
+|  3: [#<procedure #f (a sym definep)> #<autoload # b7c93870> let #f]
+|  4: (and (memq sym bindings) (let ...))
+|  5: (memq sym bindings)
+|  5: [memq let (debug)]
+|  5: =>#f
+|  3: [#<procedure #f (a sym definep)> #<autoload # b7c93870> let #f]
+|  3: [#<procedure #f (a sym definep)> #<autoload # b7c93870> let #f]
+|  4: (and (memq sym bindings) (let ...))
+|  5: (memq sym bindings)
+|  5: [memq let (debug)]
+|  5: =>#f
+|  3: [#<procedure #f (a sym definep)> #<autoload # b7c93870> let #f]
+|  3: [#<procedure #f (a sym definep)> #<autoload # b7c93870> let #f]
+|  4: (and (memq sym bindings) (let ...))
+|  5: (memq sym bindings)
+|  5: [memq let (debug)]
+|  5: =>#f
+|  2: (letrec ((yy 23)) (let ((x 1)) (quote this-is-a-matric)))
+|  3: [#<procedure #f (a sym definep)> #<autoload # b7c93870> let #f]
+|  3: [#<procedure #f (a sym definep)> #<autoload # b7c93870> let #f]
+|  4: (and (memq sym bindings) (let ...))
+|  5: (memq sym bindings)
+|  5: [memq let (debug)]
+|  5: =>#f
+|  3: [#<procedure #f (a sym definep)> #<autoload # b7c93870> let #f]
+|  3: [#<procedure #f (a sym definep)> #<autoload # b7c93870> let #f]
+|  4: (and (memq sym bindings) (let ...))
+|  5: (memq sym bindings)
+|  5: [memq let (debug)]
+|  5: =>#f
+|  3: [#<procedure #f (a sym definep)> #<autoload # b7c93870> let #f]
+|  3: [#<procedure #f (a sym definep)> #<autoload # b7c93870> let #f]
+|  4: (and (memq sym bindings) (let ...))
+|  5: (memq sym bindings)
+|  5: [memq let (debug)]
+|  5: =>#f
+|  2: (let ((x 1)) (quote this-is-a-matric))
+|  3: [#<procedure #f (a sym definep)> #<autoload # b7c93870> let #f]
+|  3: [#<procedure #f (a sym definep)> #<autoload # b7c93870> let #f]
+|  4: (and (memq sym bindings) (let ...))
+|  5: (memq sym bindings)
+|  5: [memq let (debug)]
+|  5: =>#f
+|  2: [let (let # #) (# # #)]
+|  2: [let (let # #) (# # #)]
+|  2: =>(#@@let* (x 1) #@@let (quote this-is-a-matric))
+this-is-a-matric
+guile> (do-main 4)
+|  2: [mkmatrix]
+|  2: (letrec ((yy 23)) (let* ((x 1)) (quote this-is-a-matric)))
+|  2: (let* ((x 1)) (quote this-is-a-matric))
+|  2: (quote this-is-a-matric)
+|  2: =>this-is-a-matric
+this-is-a-matric
+guile> 
+@end lisp
+
+This example shows the default configuration for how each line of trace
+output is formatted, which is:
+
+@itemize
+@item
+the character @code{|}, a visual clue that the line is a line of trace
+output, followed by
+
+@item
+a number indicating the real evaluator stack depth (where ``real'' means
+not counting tail-calls), followed by
+
+@item
+a summary of the expression being evaluated (@code{(@dots{})}), the
+procedure being called (@code{[@dots{}]}), or the value being returned
+from an evaluation or procedure call (@code{=>@dots{}}).
+@end itemize
+
+@noindent
+You can customize @code{(ice-9 debugging trace)} to show different
+information in each trace line using the @code{set-trace-layout}
+procedure.  The next example shows how to get the source location in
+each trace line instead of the stack depth.
+
+@lisp
+guile> (set-trace-layout "|~16@@a: ~a\n" trace/source trace/info)
+guile> (do-main 4)
+|  matrix.scm:7:2: [mkmatrix]
+|                : (letrec ((yy 23)) (let* ((x 1)) (quote this-is-a-matric)))
+|  matrix.scm:3:2: (let* ((x 1)) (quote this-is-a-matric))
+|  matrix.scm:4:4: (quote this-is-a-matric)
+|  matrix.scm:4:4: =>this-is-a-matric
+this-is-a-matric
+guile> 
+@end lisp
+
+(For anyone wondering why the first @code{(do-main 4)} call above
+generates lots more trace lines than the subsequent calls: these
+examples also demonstrate how the Guile evaluator ``memoizes'' code.
+When Guile evaluates a source code expression for the first time, it
+changes some parts of the expression so that they will be quicker to
+evaluate when that expression is evaluated again; this is called
+memoization.  The trace output from the first @code{(do-main 4)} call
+shows memoization steps, such as an internal define being transformed to
+a letrec.)
 
 
 @c Local Variables:
