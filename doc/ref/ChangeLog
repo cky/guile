@@ -1,3 +1,11 @@
+2008-03-24  Neil Jerram  <neil@ossau.uklinux.net>
+
+	Applying patch from Julian Graham, containing minor fixes to his
+	thread enhancements:
+	
+	* api-scheduling.texi (Mutexes and Condition Variables): Change
+	`flag' to `flags' in docstring.
+
 2008-03-19  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* api-debug.texi (Low Level Trap Calls): Removed (material

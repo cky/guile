@@ -377,7 +377,7 @@ in all threads is one way to avoid such problems.
 @sp 1
 @deffn {Scheme Procedure} make-mutex . flags
 @deffnx {C Function} scm_make_mutex ()
-@deffnx {C Function} scm_make_mutex_with_flags (SCM flag)
+@deffnx {C Function} scm_make_mutex_with_flags (SCM flags)
 Return a new mutex.  It is initially unlocked.  If @var{flags} is 
 specified, it must be a list of symbols specifying configuration flags
 for the newly-created mutex.  The supported flags are: 
