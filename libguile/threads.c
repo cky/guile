@@ -74,7 +74,7 @@ to_timespec (SCM t, scm_t_timespec *waittime)
       double sec = scm_c_truncate (time);
 
       waittime->tv_sec = (long) sec;
-      waittime->tv_nsec = (long) ((time - sec) * 1000000);
+      waittime->tv_nsec = (long) ((time - sec) * 1000000000);
     }
 }
 
@@ -1170,9 +1170,9 @@ SCM scm_make_mutex (void)
   return scm_make_mutex_with_flags (SCM_EOL);
 }
 
-static SCM unchecked_unlock_sym;
-static SCM allow_external_unlock_sym;
-static SCM recursive_sym;
+SCM_SYMBOL (unchecked_unlock_sym, "unchecked-unlock");
+SCM_SYMBOL (allow_external_unlock_sym, "allow-external-unlock");
+SCM_SYMBOL (recursive_sym, "recursive");
 
 SCM_DEFINE (scm_make_mutex_with_flags, "make-mutex", 0, 0, 1,
 	    (SCM flags),
@@ -1192,7 +1192,7 @@ SCM_DEFINE (scm_make_mutex_with_flags, "make-mutex", 0, 0, 1,
       else if (scm_is_eq (flag, recursive_sym))
 	recursive = 1;
       else 
-	SCM_MISC_ERROR ("unsupported mutex option", SCM_EOL);
+	SCM_MISC_ERROR ("unsupported mutex option: ~a", scm_list_1 (flag));
       ptr = SCM_CDR (ptr);
     }
   return make_fat_mutex (recursive, unchecked_unlock, external_unlock);
@@ -1378,10 +1378,16 @@ fat_mutex_unlock (SCM mutex, SCM cond,
       if (scm_is_false (m->owner))
 	{
 	  if (!m->unchecked_unlock)
-	    scm_misc_error (NULL, "mutex not locked", SCM_EOL);
+	    {
+	      scm_i_pthread_mutex_unlock (&m->lock);
+	      scm_misc_error (NULL, "mutex not locked", SCM_EOL);
+	    }
 	}
       else if (!m->allow_external_unlock)
-	scm_misc_error (NULL, "mutex not locked by current thread", SCM_EOL);
+	{
+	  scm_i_pthread_mutex_unlock (&m->lock);
+	  scm_misc_error (NULL, "mutex not locked by current thread", SCM_EOL);
+	}
     }
 
   if (! (SCM_UNBNDP (cond)))
@@ -1563,13 +1569,6 @@ SCM_DEFINE (scm_make_condition_variable, "make-condition-variable", 0, 0, 0,
 }
 #undef FUNC_NAME
 
-static int
-fat_cond_timedwait (SCM cond, SCM mutex,
-		    const scm_t_timespec *waittime)
-{
-  return fat_mutex_unlock (mutex, cond, waittime, 1);
-}
-
 SCM_DEFINE (scm_timed_wait_condition_variable, "wait-condition-variable", 2, 1, 0,
 	    (SCM cv, SCM mx, SCM t),
 "Wait until @var{cond-var} has been signalled.  While waiting, "
@@ -1594,7 +1593,7 @@ SCM_DEFINE (scm_timed_wait_condition_variable, "wait-condition-variable", 2, 1, 
       waitptr = &waittime;
     }
 
-  return fat_cond_timedwait (cv, mx, waitptr) ? SCM_BOOL_T : SCM_BOOL_F;
+  return fat_mutex_unlock (mx, cv, waitptr, 1) ? SCM_BOOL_T : SCM_BOOL_F;
 }
 #undef FUNC_NAME
 
@@ -1996,12 +1995,6 @@ scm_init_threads ()
   scm_set_smob_mark (scm_tc16_mutex, fat_mutex_mark);
   scm_set_smob_print (scm_tc16_mutex, fat_mutex_print);
   scm_set_smob_free (scm_tc16_mutex, fat_mutex_free);
-
-  unchecked_unlock_sym = 
-    scm_permanent_object (scm_from_locale_symbol ("unchecked-unlock"));
-  allow_external_unlock_sym = 
-    scm_permanent_object (scm_from_locale_symbol ("allow-external-unlock"));
-  recursive_sym = scm_permanent_object (scm_from_locale_symbol ("recursive"));
 
   scm_tc16_condvar = scm_make_smob_type ("condition-variable",
 					 sizeof (fat_cond));

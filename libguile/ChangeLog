@@ -1,3 +1,19 @@
+2008-03-24  Neil Jerram  <neil@ossau.uklinux.net>
+
+	Applying patch from Julian Graham, containing minor fixes to his
+	thread enhancements:
+
+	* threads.c (to_timespec): Change 1000000 multiplier to
+	1000000000.
+	(unchecked_unlock_sym, allow_external_unlock_sym,
+	recursive_sym): Use SCM_SYMBOL.
+	(scm_make_mutex_with_flags): When raising unsupported option
+	error, report what the unsupported option was.
+	(fat_mutex_unlock): When raising errors, unlock m->lock first.
+	(fat_cond_timedwait): Removed.
+	(scm_timed_wait_condition_variable): Call fat_mutex_unlock
+	directly instead of via fat_cond_timedwait.
+
 2008-03-10  Ludovic Courtès  <ludo@gnu.org>
 
 	* eval.c, filesys.c: Enclose `alloca' blob in `#ifndef alloca',
