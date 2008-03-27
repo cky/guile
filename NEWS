@@ -38,6 +38,14 @@ indicating length of the `scm_t_option' array.
 
 Changes in 1.8.5 (since 1.8.4)
 
+* Infrastructure changes
+
+** Guile repository switched from CVS to Git
+
+The new repository can be accessed using
+"git-clone git://git.sv.gnu.org/guile.git", or can be browsed on-line at
+http://git.sv.gnu.org/gitweb/?p=guile.git .  See `README' for details.
+
 * Bugs fixed
 
 ** `scm_add_slot ()' no longer segfaults (fixes bug #22369)

@@ -31,7 +31,7 @@ autoreconf -i --force --verbose
 echo "guile-readline..."
 (cd guile-readline && ./autogen.sh)
 
-# Copy versions of config.guess and config.sub from Guile CVS to
+# Copy versions of config.guess and config.sub from Guile's repository to
 # build-aux and guile-readline.
 cp -f config.guess config.sub build-aux/
 cp -f config.guess config.sub guile-readline/

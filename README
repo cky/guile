@@ -1,5 +1,5 @@
 !!! This is not a Guile release; it is a source tree retrieved via
-anonymous CVS or as a nightly snapshot at some random time after the
+Git or as a nightly snapshot at some random time after the
 Guile 1.8 release.  If this were a Guile release, you would not see
 this message. !!!  [fixme: zonk on release]
 
@@ -364,14 +364,24 @@ guile-readline:
         library on your system.
 doc:	Documentation (see above).
 
-Anonymous CVS Access and FTP snapshots ===============================
+Git Repository Access ================================================
 
-We make the developers' working Guile sources available via anonymous
-CVS, and by nightly snapshots, accessible via FTP.  See the files
-`ANON-CVS' and `SNAPSHOTS' for details.
+Guile's source code is stored in a Git repository at Savannah.  Anyone
+can access it using `git-clone' from one of the following URLs:
 
-If you would like to receive mail when people commit changes to the
-Guile CVS repository, you can subscribe to guile-cvs@gnu.org by the
-Mailman mailing list interface at
+  git://git.sv.gnu.org/guile.git
+  http://git.sv.gnu.org/r/guile.git
 
-  <http://mail.gnu.org/mailman/listinfo/guile-cvs>
+Developers with a Savannah SSH account can also access it from:
+
+  ssh://git.sv.gnu.org/srv/git/guile.git
+
+The repository can also be browsed on-line at the following address:
+
+  http://git.sv.gnu.org/gitweb/?p=guile.git
+
+For more information on Git, please see:
+
+  http://git.or.cz/
+
+Please send problem reports to <bug-guile@gnu.org>.
