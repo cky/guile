@@ -474,7 +474,7 @@ multiple threads using them concurrently.  This means that there is no
 risk of the internal data structures of libguile becoming corrupted in
 such a way that the process crashes.
 
-A program might still produce non-sensical results, though.  Taking
+A program might still produce nonsensical results, though.  Taking
 hashtables as an example, Guile guarantees that you can use them from
 multiple threads concurrently and a hashtable will always remain a valid
 hashtable and Guile will not crash when you access it.  It does not
