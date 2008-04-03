@@ -38,6 +38,32 @@
 #include "libguile/pairs.h"
 
 
+#ifndef SCM_INLINE_C_INCLUDING_INLINE_H
+
+/* GCC has `__inline__' in all modes, including strict ansi.  GCC 4.3 and
+   above with `-std=c99' or `-std=gnu99' implements ISO C99 inline semantics,
+   unless `-fgnu89-inline' is used.  Here we want GNU "extern inline"
+   semantics, hence the `__gnu_inline__' attribute, in accordance with:
+   http://gcc.gnu.org/gcc-4.3/porting_to.html .
+
+   With GCC 4.2, `__GNUC_STDC_INLINE__' is never defined (because C99 inline
+   semantics are not supported), but a warning is issued in C99 mode if
+   `__gnu_inline__' is not used.  */
+
+# ifdef __GNUC__
+#  if (defined __GNUC_STDC_INLINE__) || (__GNUC__ == 4 && __GNUC_MINOR__ == 2)
+#   define SCM_C_EXTERN_INLINE					\
+           extern __inline__ __attribute__ ((__gnu_inline__))
+#  else
+#   define SCM_C_EXTERN_INLINE extern __inline__
+#  endif
+# elif (defined SCM_C_INLINE)
+#  define SCM_C_EXTERN_INLINE static SCM_C_INLINE
+# endif
+
+#endif /* SCM_INLINE_C_INCLUDING_INLINE_H */
+
+
 #if ((!defined SCM_C_INLINE) && (!defined SCM_INLINE_C_INCLUDING_INLINE_H)) \
      || (defined __GNUC__)
 
@@ -66,14 +92,9 @@ SCM_API int scm_is_pair (SCM x);
 extern unsigned scm_newcell2_count;
 extern unsigned scm_newcell_count;
 
-#if defined SCM_C_INLINE && ! defined SCM_INLINE_C_INCLUDING_INLINE_H
-/* definitely inlining */
-#ifdef __GNUC__
-extern
-#else
-static
-#endif
-SCM_C_INLINE
+
+#if defined SCM_C_EXTERN_INLINE && ! defined SCM_INLINE_C_INCLUDING_INLINE_H
+SCM_C_EXTERN_INLINE
 #endif
 SCM
 scm_cell (scm_t_bits car, scm_t_bits cdr)
@@ -142,14 +163,8 @@ scm_cell (scm_t_bits car, scm_t_bits cdr)
   return z;
 }
 
-#if defined SCM_C_INLINE && ! defined SCM_INLINE_C_INCLUDING_INLINE_H
-/* definitely inlining */
-#ifdef __GNUC__
-extern
-#else
-static
-#endif
-SCM_C_INLINE
+#if defined SCM_C_EXTERN_INLINE && ! defined SCM_INLINE_C_INCLUDING_INLINE_H
+SCM_C_EXTERN_INLINE
 #endif
 SCM
 scm_double_cell (scm_t_bits car, scm_t_bits cbr,
@@ -217,14 +232,8 @@ scm_double_cell (scm_t_bits car, scm_t_bits cbr,
   return z;
 }
 
-#if defined SCM_C_INLINE && ! defined SCM_INLINE_C_INCLUDING_INLINE_H
-/* definitely inlining */
-#ifdef __GNUC__
-extern
-#else
-static
-#endif
-SCM_C_INLINE
+#if defined SCM_C_EXTERN_INLINE && ! defined SCM_INLINE_C_INCLUDING_INLINE_H
+SCM_C_EXTERN_INLINE
 #endif
 SCM
 scm_array_handle_ref (scm_t_array_handle *h, ssize_t p)
@@ -232,14 +241,8 @@ scm_array_handle_ref (scm_t_array_handle *h, ssize_t p)
   return h->ref (h, p);
 }
 
-#if defined SCM_C_INLINE && ! defined SCM_INLINE_C_INCLUDING_INLINE_H
-/* definitely inlining */
-#ifdef __GNUC__
-extern
-#else
-static
-#endif
-SCM_C_INLINE
+#if defined SCM_C_EXTERN_INLINE && ! defined SCM_INLINE_C_INCLUDING_INLINE_H
+SCM_C_EXTERN_INLINE
 #endif
 void
 scm_array_handle_set (scm_t_array_handle *h, ssize_t p, SCM v)
@@ -247,14 +250,8 @@ scm_array_handle_set (scm_t_array_handle *h, ssize_t p, SCM v)
   h->set (h, p, v);
 }
 
-#if defined SCM_C_INLINE && ! defined SCM_INLINE_C_INCLUDING_INLINE_H
-/* definitely inlining */
-#ifdef __GNUC__
-extern
-#else
-static
-#endif
-SCM_C_INLINE
+#if defined SCM_C_EXTERN_INLINE && ! defined SCM_INLINE_C_INCLUDING_INLINE_H
+SCM_C_EXTERN_INLINE
 #endif
 int
 scm_is_pair (SCM x)
