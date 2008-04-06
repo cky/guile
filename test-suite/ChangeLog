@@ -1,3 +1,11 @@
+2008-04-06  Ludovic Courtès  <ludo@gnu.org>
+
+	* standalone/test-asmobs-lib.c, standalone/test-conversion.c,
+	standalone/test-gh.c, standalone/test-list.c,
+	standalone/test-num2integral.c, standalone/test-round.c: Make
+	sure "config.h" is included first; use angle brackets for
+	<config.h> and <libguile.h>.
+
 2008-03-13  Ludovic Courtès  <ludo@gnu.org>
 
 	* standalone/Makefile.am (test_cflags): Add `-I' flags for
