@@ -1,0 +1,7 @@
+Makefile.am
+alloca.c
+alloca.in.h
+dummy.c
+strcasecmp.c
+strings.in.h
+strncasecmp.c
