@@ -28,6 +28,7 @@ mdate-sh
 install-sh
 texinfo.tex
 *~
+,*
 BUGS
 Makefile
 Makefile.in
@@ -63,3 +64,7 @@ mkinstalldirs
 pre-inst-guile
 pre-inst-guile-env
 stamp-h1
+guile-procedures.txt
+guile-config/guile-config
+guile-readline/guile-readline-config.h
+guile-readline/guile-readline-config.h.in
