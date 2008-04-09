@@ -1507,10 +1507,15 @@ static SCM
 wrap_init (SCM class, SCM *m, long n)
 {
   long i;
+  scm_t_bits slayout = SCM_STRUCT_DATA (class)[scm_vtable_index_layout];
+  const char *layout = scm_i_symbol_chars (SCM_PACK (slayout));
 
-  /* Set all slots to unbound */
+  /* Set all SCM-holding slots to unbound */
   for (i = 0; i < n; i++)
-    m[i] = SCM_GOOPS_UNBOUND;
+    if (layout[i*2] == 'p')
+      m[i] = SCM_GOOPS_UNBOUND;
+    else
+      m[i] = 0;
 
   return scm_double_cell ((((scm_t_bits) SCM_STRUCT_DATA (class))
 			   | scm_tc3_struct),
