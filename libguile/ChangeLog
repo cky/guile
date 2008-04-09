@@ -1,3 +1,10 @@
+2008-04-10  Andy Wingo  <wingo@pobox.com>
+
+	* libguile/goops.c (get_slot_value, set_slot_value): In the struct
+	allocation case, don't poke the slots array directly -- we should
+	go through struct-ref/struct-set! code so that we get the
+	permissions and allocation ('u' versus 'p') correct.
+
 2008-04-03  Ludovic Courtès  <ludo@gnu.org>
 
 	* inline.h (SCM_C_EXTERN_INLINE): New macro, addresses the

@@ -1260,6 +1260,7 @@ slot_definition_using_name (SCM class, SCM slot_name)
 
 static SCM
 get_slot_value (SCM class SCM_UNUSED, SCM obj, SCM slotdef)
+#define FUNC_NAME "%get-slot-value"
 {
   SCM access = SCM_CDDR (slotdef);
   /* Two cases here:
@@ -1270,7 +1271,9 @@ get_slot_value (SCM class SCM_UNUSED, SCM obj, SCM slotdef)
    * we can just assume fixnums here.
    */
   if (SCM_I_INUMP (access))
-    return SCM_SLOT (obj, SCM_I_INUM (access));
+    /* Don't poke at the slots directly, because scm_struct_ref handles the
+       access bits for us. */
+    return scm_struct_ref (obj, access);
   else
     {
       /* We must evaluate (apply (car access) (list obj))
@@ -1287,6 +1290,7 @@ get_slot_value (SCM class SCM_UNUSED, SCM obj, SCM slotdef)
       return scm_eval_body (SCM_CLOSURE_BODY (code), env);
     }
 }
+#undef FUNC_NAME
 
 static SCM
 get_slot_value_using_name (SCM class, SCM obj, SCM slot_name)
@@ -1300,6 +1304,7 @@ get_slot_value_using_name (SCM class, SCM obj, SCM slot_name)
 
 static SCM
 set_slot_value (SCM class SCM_UNUSED, SCM obj, SCM slotdef, SCM value)
+#define FUNC_NAME "%set-slot-value"
 {
   SCM access = SCM_CDDR (slotdef);
   /* Two cases here:
@@ -1310,7 +1315,8 @@ set_slot_value (SCM class SCM_UNUSED, SCM obj, SCM slotdef, SCM value)
    * we can just assume fixnums here.
    */
   if (SCM_I_INUMP (access))
-    SCM_SET_SLOT (obj, SCM_I_INUM (access), value);
+    /* obey permissions bits via going through struct-set! */
+    scm_struct_set_x (obj, access, value);
   else
     {
       /* We must evaluate (apply (cadr l) (list obj value))
@@ -1331,6 +1337,7 @@ set_slot_value (SCM class SCM_UNUSED, SCM obj, SCM slotdef, SCM value)
     }
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
 static SCM
 set_slot_value_using_name (SCM class, SCM obj, SCM slot_name, SCM value)
