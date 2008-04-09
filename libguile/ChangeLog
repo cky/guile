@@ -1,5 +1,11 @@
 2008-04-10  Andy Wingo  <wingo@pobox.com>
 
+	* struct.c (scm_struct_ref, scm_struct_set_x): "Light" structs
+	have no hidden words (members of the SCM_STRUCT_DATA(x) array
+	accessed with negative indices). In that case, determine the
+	number of fields from the length of the struct layout
+	descriptor. (Most GOOPS instances are light structs.)
+
 	* goops.c (wrap_init): Initialize 'u' slots to 0, not some random
 	SCM value.
 
