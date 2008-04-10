@@ -1,3 +1,10 @@
+2008-04-10  Ludovic Courtès  <ludo@gnu.org>
+
+	* inline.h (SCM_C_EXTERN_INLINE): Special-case Apple's GCC
+	4.0-based compiler, which doesn't support GNU inline semantics
+	at all in C99 mode but doesn't define `__GNUC_STDC_INLINE__'.
+	See http://thread.gmane.org/gmane.network.gnutls.general/1135 .
+
 2008-04-10  Andy Wingo  <wingo@pobox.com>
 
 	* struct.c (scm_struct_ref, scm_struct_set_x): "Light" structs

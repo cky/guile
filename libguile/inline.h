@@ -48,9 +48,13 @@
 
    With GCC 4.2, `__GNUC_STDC_INLINE__' is never defined (because C99 inline
    semantics are not supported), but a warning is issued in C99 mode if
-   `__gnu_inline__' is not used.  */
+   `__gnu_inline__' is not used.
 
-# ifdef __GNUC__
+   Apple's GCC build >5400 (since Xcode 3.0) doesn't support GNU inline in
+   C99 mode and doesn't define `__GNUC_STDC_INLINE__'.  Fall back to "static
+   inline" in that case.  */
+
+# if (defined __GNUC__) && (!(__APPLE_CC__ > 5400 && __STDC_VERSION__ >= 199901L))
 #  if (defined __GNUC_STDC_INLINE__) || (__GNUC__ == 4 && __GNUC_MINOR__ == 2)
 #   define SCM_C_EXTERN_INLINE					\
            extern __inline__ __attribute__ ((__gnu_inline__))
