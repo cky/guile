@@ -1,6 +1,6 @@
 ;;;; goops.test --- test suite for GOOPS                      -*- scheme -*-
 ;;;;
-;;;; Copyright (C) 2001,2003,2004, 2006 Free Software Foundation, Inc.
+;;;; Copyright (C) 2001,2003,2004, 2006, 2008 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -148,7 +148,31 @@
 			  #t)
 			(lambda args
 			  #f)))
-    ))
+
+    (pass-if "interaction with `struct-ref'"
+       (eval '(define-class <class-struct> ()
+                (foo #:init-keyword #:foo)
+                (bar #:init-keyword #:bar))
+             (current-module))
+       (eval '(let ((x (make <class-struct>
+                         #:foo 'hello
+                         #:bar 'world)))
+                (and (struct? x)
+                     (eq? (struct-ref x 0) 'hello)
+                     (eq? (struct-ref x 1) 'world)))
+             (current-module)))
+
+     (pass-if "interaction with `struct-set!'"
+       (eval '(define-class <class-struct-2> ()
+                (foo) (bar))
+             (current-module))
+       (eval '(let ((x (make <class-struct-2>)))
+                (struct-set! x 0 'hello)
+                (struct-set! x 1 'world)
+                (and (struct? x)
+                     (eq? (struct-ref x 0) 'hello)
+                     (eq? (struct-ref x 1) 'world)))
+             (current-module)))))
 
 (with-test-prefix "defining generics"
 

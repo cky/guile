@@ -1,3 +1,10 @@
+2008-04-13  Ludovic Courtès  <ludo@gnu.org>
+
+	* tests/goops.test (defining classes)[interaction with
+	`struct-ref', interaction with `struct-set!']: New test.  Checks
+	the interaction of `struct-ref' with "light structs", fixed on
+	2008-04-10 (commit 4650d115020924e8da5547d4c346cbe5cd01029e).
+
 2008-04-06  Ludovic Courtès  <ludo@gnu.org>
 
 	* standalone/test-asmobs-lib.c, standalone/test-conversion.c,
