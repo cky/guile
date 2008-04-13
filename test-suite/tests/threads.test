@@ -279,6 +279,52 @@
 	  (not (thread-cleanup (current-thread)))))
 
       ;;
+      ;; mutex ownership
+      ;;
+
+      (with-test-prefix "mutex-ownership"
+	(pass-if "mutex ownership for locked mutex"
+	  (let ((m (make-mutex)))
+	    (lock-mutex m)
+	    (eq? (mutex-owner m) (current-thread))))
+
+	(pass-if "mutex ownership for unlocked mutex"
+	  (let ((m (make-mutex)))
+	    (not (mutex-owner m))))
+
+	(pass-if "locking mutex on behalf of other thread"
+	  (let* ((m (make-mutex))
+		 (t (begin-thread 'foo)))
+	    (lock-mutex m #f t)
+	    (eq? (mutex-owner m) t)))
+
+        (pass-if "locking mutex with no owner"
+	  (let ((m (make-mutex)))
+	    (lock-mutex m #f #f)
+	    (not (mutex-owner m)))))
+
+      ;;
+      ;; mutex lock levels
+      ;;
+
+      (with-test-prefix "mutex-lock-levels"
+			
+        (pass-if "unlocked level is 0"
+	  (let ((m (make-mutex)))
+	    (and (not (mutex-locked? m)) (eqv? (mutex-level m) 0))))
+
+        (pass-if "non-recursive lock level is 1"
+	  (let ((m (make-mutex)))
+	    (lock-mutex m)
+	    (and (mutex-locked? m) (eqv? (mutex-level m) 1))))
+
+	(pass-if "recursive lock level is >1"
+	  (let ((m (make-mutex 'recursive)))
+	    (lock-mutex m)
+	    (lock-mutex m)
+	    (and (mutex-locked? m) (eqv? (mutex-level m) 2)))))
+
+      ;;
       ;; mutex behavior
       ;;
 

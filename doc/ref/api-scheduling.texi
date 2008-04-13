@@ -409,16 +409,20 @@ function is equivalent to calling `make-mutex' and specifying the
 @code{recursive} flag.
 @end deffn
 
-@deffn {Scheme Procedure} lock-mutex mutex [timeout]
+@deffn {Scheme Procedure} lock-mutex mutex [timeout [owner]]
 @deffnx {C Function} scm_lock_mutex (mutex)
-@deffnx {C Function} scm_lock_mutex_timed (mutex, timeout)
-Lock @var{mutex}.  If the mutex is already locked by another thread
-then block and return only when @var{mutex} has been acquired.
+@deffnx {C Function} scm_lock_mutex_timed (mutex, timeout, owner)
+Lock @var{mutex}.  If the mutex is already locked, then block and 
+return only when @var{mutex} has been acquired.
 
 When @var{timeout} is given, it specifies a point in time where the 
 waiting should be aborted.  It can be either an integer as returned 
 by @code{current-time} or a pair as returned by @code{gettimeofday}.  
 When the waiting is aborted, @code{#f} is returned. 
+
+When @var{owner} is given, it specifies an owner for @var{mutex} other
+than the calling thread.  @var{owner} may also be @code{#f}, 
+indicating that the mutex should be locked but left unowned.
 
 For standard mutexes (@code{make-mutex}), and error is signalled if
 the thread has itself already locked @var{mutex}.
@@ -469,6 +473,27 @@ the waiting should be aborted.  It can be either an integer as
 returned by @code{current-time} or a pair as returned by 
 @code{gettimeofday}.  When the waiting is aborted, @code{#f} is 
 returned.  Otherwise the function returns @code{#t}.
+@end deffn
+
+@deffn {Scheme Procedure} mutex-owner mutex
+@deffnx {C Function} scm_mutex_owner (mutex)
+Return the current owner of @var{mutex}, in the form of a thread or 
+@code{#f} (indicating no owner).  Note that a mutex may be unowned but
+still locked.
+@end deffn
+
+@deffn {Scheme Procedure} mutex-level mutex
+@deffnx {C Function} scm_mutex_level (mutex)
+Return the current lock level of @var{mutex}.  If @var{mutex} is
+currently unlocked, this value will be 0; otherwise, it will be the
+number of times @var{mutex} has been recursively locked by its current
+owner.
+@end deffn
+
+@deffn {Scheme Procedure} mutex-locked? mutex
+@deffnx {C Function} scm_mutex_locked_p (mutex)
+Return @code{#t} if @var{mutex} is locked, regardless of ownership;
+otherwise, return @code{#f}.
 @end deffn
 
 @deffn {Scheme Procedure} make-condition-variable
