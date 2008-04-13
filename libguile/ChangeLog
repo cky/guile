@@ -2,7 +2,7 @@
 
 	* inline.h (SCM_C_USE_EXTERN_INLINE): New macro.  Use it to make
 	sure "extern" declarations are produced when "extern inline" is
-	used.
+	used.  Simplify macrology around inline definitions.
 
 2008-04-10  Ludovic Courtès  <ludo@gnu.org>
 

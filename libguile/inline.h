@@ -88,7 +88,7 @@ SCM_API int scm_is_pair (SCM x);
 #endif
 
 
-#if defined SCM_C_INLINE || defined SCM_INLINE_C_INCLUDING_INLINE_H
+#if defined SCM_C_EXTERN_INLINE || defined SCM_INLINE_C_INCLUDING_INLINE_H
 /* either inlining, or being included from inline.c.  We use (and
    repeat) this long #if test here and below so that we don't have to
    introduce any extraneous symbols into the public namespace.  We
@@ -98,7 +98,7 @@ extern unsigned scm_newcell2_count;
 extern unsigned scm_newcell_count;
 
 
-#if defined SCM_C_EXTERN_INLINE && ! defined SCM_INLINE_C_INCLUDING_INLINE_H
+#ifndef SCM_INLINE_C_INCLUDING_INLINE_H
 SCM_C_EXTERN_INLINE
 #endif
 SCM
@@ -168,7 +168,7 @@ scm_cell (scm_t_bits car, scm_t_bits cdr)
   return z;
 }
 
-#if defined SCM_C_EXTERN_INLINE && ! defined SCM_INLINE_C_INCLUDING_INLINE_H
+#ifndef SCM_INLINE_C_INCLUDING_INLINE_H
 SCM_C_EXTERN_INLINE
 #endif
 SCM
@@ -237,7 +237,7 @@ scm_double_cell (scm_t_bits car, scm_t_bits cbr,
   return z;
 }
 
-#if defined SCM_C_EXTERN_INLINE && ! defined SCM_INLINE_C_INCLUDING_INLINE_H
+#ifndef SCM_INLINE_C_INCLUDING_INLINE_H
 SCM_C_EXTERN_INLINE
 #endif
 SCM
@@ -246,7 +246,7 @@ scm_array_handle_ref (scm_t_array_handle *h, ssize_t p)
   return h->ref (h, p);
 }
 
-#if defined SCM_C_EXTERN_INLINE && ! defined SCM_INLINE_C_INCLUDING_INLINE_H
+#ifndef SCM_INLINE_C_INCLUDING_INLINE_H
 SCM_C_EXTERN_INLINE
 #endif
 void
@@ -255,7 +255,7 @@ scm_array_handle_set (scm_t_array_handle *h, ssize_t p, SCM v)
   h->set (h, p, v);
 }
 
-#if defined SCM_C_EXTERN_INLINE && ! defined SCM_INLINE_C_INCLUDING_INLINE_H
+#ifndef SCM_INLINE_C_INCLUDING_INLINE_H
 SCM_C_EXTERN_INLINE
 #endif
 int
