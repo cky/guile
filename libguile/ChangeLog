@@ -1,3 +1,9 @@
+2008-04-13  Ludovic Courtès  <ludo@gnu.org>
+
+	* inline.h (SCM_C_USE_EXTERN_INLINE): New macro.  Use it to make
+	sure "extern" declarations are produced when "extern inline" is
+	used.
+
 2008-04-10  Ludovic Courtès  <ludo@gnu.org>
 
 	* inline.h (SCM_C_EXTERN_INLINE): Special-case Apple's GCC

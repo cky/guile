@@ -55,6 +55,7 @@
    inline" in that case.  */
 
 # if (defined __GNUC__) && (!(__APPLE_CC__ > 5400 && __STDC_VERSION__ >= 199901L))
+#  define SCM_C_USE_EXTERN_INLINE 1
 #  if (defined __GNUC_STDC_INLINE__) || (__GNUC__ == 4 && __GNUC_MINOR__ == 2)
 #   define SCM_C_EXTERN_INLINE					\
            extern __inline__ __attribute__ ((__gnu_inline__))
@@ -68,12 +69,12 @@
 #endif /* SCM_INLINE_C_INCLUDING_INLINE_H */
 
 
-#if ((!defined SCM_C_INLINE) && (!defined SCM_INLINE_C_INCLUDING_INLINE_H)) \
-     || (defined __GNUC__)
+#if (!defined SCM_C_INLINE) || (defined SCM_INLINE_C_INCLUDING_INLINE_H) \
+    || (defined SCM_C_USE_EXTERN_INLINE)
 
 /* The `extern' declarations.  They should only appear when used from
-   "inline.c", when `inline' is not supported at all or when GCC's "extern
-   inline" is used.  */
+   "inline.c", when `inline' is not supported at all or when "extern inline"
+   is used.  */
 
 SCM_API SCM scm_cell (scm_t_bits car, scm_t_bits cdr);
 SCM_API SCM scm_double_cell (scm_t_bits car, scm_t_bits cbr,
