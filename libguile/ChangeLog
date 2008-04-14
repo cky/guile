@@ -1,3 +1,17 @@
+2008-05-14  Julian Graham  <joolean@gmail.com>
+
+	* threads.c (fat_mutex)[recursive]: New field.
+	(make_fat_mutex): Adjust initialization to reflect changes to
+	mutex lock level semantics.
+	(fat_mutex_lock, fat_mutex_unlock): Add support for unowned
+	mutexes and locking mutexes on behalf of other threads.
+	(scm_lock_mutex, scm_lock_mutex_timed): Update to reflect
+	signature change to fat_mutex_lock.
+	(scm_mutex_owner, scm_mutex_level, scm_mutex_locked_p): New /
+	re-enabled functions.
+	* threads.h (scm_mutex_owner, scm_mutex_level,
+	scm_mutex_locked_p): Prototypes for new functions.
+
 2008-05-12  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* discouraged.c: Expand DEFFROM and DEFTO macros, to avoid

@@ -1,3 +1,11 @@
+2008-05-14  Julian Graham  <joolean@gmail.com>
+
+	* api-scheduling.texi (Mutexes and Condition Variables): Add
+	documentation for new functions "scm_mutex_owner",
+	"scm_mutex_level", and "scm_mutex_locked_p".  Update
+	documentation for function "scm_lock_mutex_timed" to reflect
+	addition of optional ownership argument.
+
 2008-05-07  Ludovic Courtès  <ludo@gnu.org>
 
 	* Makefile.am (autoconf-macros.texi): Avoid use of GNU Make

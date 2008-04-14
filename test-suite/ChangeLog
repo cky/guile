@@ -1,3 +1,12 @@
+2008-05-14  Julian Graham  <joolean@gmail.com>
+
+	* tests/threads.test (mutex-ownership, mutex-lock-levels): New
+	test prefix.
+	(mutex ownership for locked mutex, mutex ownership for unlocked
+	mutex, locking mutex on behalf of other thread, locking mutex
+	with no owner, unlocked level is 0, non-recursive lock level
+	is 1, recursive lock level is >1): New tests.
+
 2008-04-28  Ludovic Courtès  <ludo@gnu.org>
 
 	* tests/srfi-1.test (partition)[with improper list]: New test.
