@@ -1,3 +1,8 @@
+2008-04-16  Ludovic Courtès  <ludo@gnu.org>
+
+	* ports.c (scm_getc, scm_putc, scm_puts): Moved...
+	* inline.h: ... here.  Noticeably improves `read' performance.
+
 2008-04-15  Ludovic Courtès  <ludo@gnu.org>
 	    Julian Graham  <joolean@gmail.com>
 

@@ -25,17 +25,17 @@
    "inline.c".
 */
 
-#include "libguile/__scm.h"
-
-#if (SCM_DEBUG_CELL_ACCESSES == 1)
 #include <stdio.h>
-#endif
+#include <string.h>
+
+#include "libguile/__scm.h"
 
 #include "libguile/pairs.h"
 #include "libguile/gc.h"
 #include "libguile/threads.h"
 #include "libguile/unif.h"
-#include "libguile/pairs.h"
+#include "libguile/ports.h"
+#include "libguile/error.h"
 
 
 #ifndef SCM_INLINE_C_INCLUDING_INLINE_H
@@ -84,6 +84,10 @@ SCM_API SCM scm_array_handle_ref (scm_t_array_handle *h, ssize_t pos);
 SCM_API void scm_array_handle_set (scm_t_array_handle *h, ssize_t pos, SCM val);
 
 SCM_API int scm_is_pair (SCM x);
+
+SCM_API int scm_getc (SCM port);
+SCM_API void scm_putc (char c, SCM port);
+SCM_API void scm_puts (const char *str_data, SCM port);
 
 #endif
 
@@ -284,6 +288,78 @@ scm_is_pair (SCM x)
 
   return SCM_I_CONSP (x);
 }
+
+
+/* Port I/O.  */
+
+#ifndef SCM_INLINE_C_INCLUDING_INLINE_H
+SCM_C_EXTERN_INLINE
+#endif
+int
+scm_getc (SCM port)
+{
+  int c;
+  scm_t_port *pt = SCM_PTAB_ENTRY (port);
+
+  if (pt->rw_active == SCM_PORT_WRITE)
+    /* may be marginally faster than calling scm_flush.  */
+    scm_ptobs[SCM_PTOBNUM (port)].flush (port);
+
+  if (pt->rw_random)
+    pt->rw_active = SCM_PORT_READ;
+
+  if (pt->read_pos >= pt->read_end)
+    {
+      if (scm_fill_input (port) == EOF)
+	return EOF;
+    }
+
+  c = *(pt->read_pos++);
+
+  switch (c)
+    {
+      case '\a':
+        break;
+      case '\b':
+        SCM_DECCOL (port);
+        break;
+      case '\n':
+        SCM_INCLINE (port);
+        break;
+      case '\r':
+        SCM_ZEROCOL (port);
+        break;
+      case '\t':
+        SCM_TABCOL (port);
+        break;
+      default:
+        SCM_INCCOL (port);
+        break;
+    }
+
+  return c;
+}
+
+#ifndef SCM_INLINE_C_INCLUDING_INLINE_H
+SCM_C_EXTERN_INLINE
+#endif
+void
+scm_putc (char c, SCM port)
+{
+  SCM_ASSERT_TYPE (SCM_OPOUTPORTP (port), port, 0, NULL, "output port");
+  scm_lfwrite (&c, 1, port);
+}
+
+#ifndef SCM_INLINE_C_INCLUDING_INLINE_H
+SCM_C_EXTERN_INLINE
+#endif
+void
+scm_puts (const char *s, SCM port)
+{
+  SCM_ASSERT_TYPE (SCM_OPOUTPORTP (port), port, 0, NULL, "output port");
+  scm_lfwrite (s, strlen (s), port);
+}
+
 
 #endif
 #endif

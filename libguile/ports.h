@@ -3,7 +3,7 @@
 #ifndef SCM_PORTS_H
 #define SCM_PORTS_H
 
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2003, 2004, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2003, 2004, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -264,15 +264,12 @@ SCM_API SCM scm_eof_object_p (SCM x);
 SCM_API SCM scm_force_output (SCM port);
 SCM_API SCM scm_flush_all_ports (void);
 SCM_API SCM scm_read_char (SCM port);
-SCM_API void scm_putc (char c, SCM port);
-SCM_API void scm_puts (const char *str_data, SCM port);
 SCM_API size_t scm_c_read (SCM port, void *buffer, size_t size);
 SCM_API void scm_c_write (SCM port, const void *buffer, size_t size);
 SCM_API void scm_lfwrite (const char *ptr, size_t size, SCM port);
 SCM_API void scm_flush (SCM port);
 SCM_API void scm_end_input (SCM port);
 SCM_API int scm_fill_input (SCM port);
-SCM_API int scm_getc (SCM port);
 SCM_API void scm_ungetc (int c, SCM port);
 SCM_API void scm_ungets (const char *s, int n, SCM port);
 SCM_API SCM scm_peek_char (SCM port);

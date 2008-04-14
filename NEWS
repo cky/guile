@@ -49,6 +49,7 @@ http://git.sv.gnu.org/gitweb/?p=guile.git .  See `README' for details.
 * New features (see the manual for details)
 
 ** New `postfix' read option, for SRFI-88 keyword syntax
+** Some I/O primitives have been inlined, which improves I/O performance
 
 * Bugs fixed
 
