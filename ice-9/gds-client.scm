@@ -73,7 +73,9 @@
 					     (slot-ref (car fired-traps) 'depth)))))
                  ;; Write current stack to the frontend.
                  (write-form (list 'stack
-				   (or special-index 0)
+				   (if (and special-index (> special-index 0))
+				       special-index
+				       0)
                                    (stack->emacs-readable stack)
                                    (append (flags->emacs-readable flags)
                                            (slot-ref trap-context
