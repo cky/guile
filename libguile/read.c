@@ -63,7 +63,7 @@ scm_t_option scm_read_opts[] = {
   { SCM_OPTION_BOOLEAN, "case-insensitive", 0,
     "Convert symbols to lower case."},
   { SCM_OPTION_SCM, "keywords", SCM_UNPACK (SCM_BOOL_F),
-    "Style of keyword recognition: #f, 'prefix or 'postfix."}
+    "Style of keyword recognition: #f, 'prefix or 'postfix."},
 #if SCM_ENABLE_ELISP
   { SCM_OPTION_BOOLEAN, "elisp-vectors", 0,
     "Support Elisp vector syntax, namely `[...]'."},
