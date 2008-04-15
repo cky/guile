@@ -1,3 +1,10 @@
+2008-04-15  Ludovic Courtès  <ludo@gnu.org>
+
+	* api-data.texi (Keywords): Mention postfix syntax.
+	(Keyword Read Syntax): Document `postfix' read option.
+	* api-options.texi (Reader options): Update examples.
+	(Examples of option use): Likewise.
+
 2008-03-28  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* libguile-concepts.texi (Multi-Threading): Fix typo.

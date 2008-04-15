@@ -1,6 +1,6 @@
 ;;;; reader.test --- Exercise the reader.               -*- Scheme -*-
 ;;;;
-;;;; Copyright (C) 1999, 2001, 2002, 2003, 2007 Free Software Foundation, Inc.
+;;;; Copyright (C) 1999, 2001, 2002, 2003, 2007, 2008 Free Software Foundation, Inc.
 ;;;; Jim Blandy <jimb@red-bean.com>
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
@@ -149,6 +149,20 @@
          (with-read-options '(keywords prefix case-insensitive)
            (lambda ()
              (read-string ":KeyWord")))))
+  (pass-if "prefix non-keywords"
+    (symbol? (with-read-options '(keywords prefix)
+               (lambda ()
+                 (read-string "srfi88-keyword:")))))
+  (pass-if "postfix keywords"
+    (eq? #:keyword
+         (with-read-options '(keywords postfix)
+           (lambda ()
+             (read-string "keyword:")))))
+  (pass-if "`:' is not a postfix keyword (per SRFI-88)"
+    (eq? ':
+         (with-read-options '(keywords postfix)
+           (lambda ()
+             (read-string ":")))))
   (pass-if "no positions"
     (let ((sexp (with-read-options '()
                   (lambda ()

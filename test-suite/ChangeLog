@@ -1,3 +1,8 @@
+2008-04-15  Ludovic Courtès  <ludo@gnu.org>
+
+	* tests/reader.test (read-options)[prefix non-keywords, postfix
+	keywords, `:' is not a postfix keyword (per SRFI-88)]: New tests.
+
 2008-04-13  Ludovic Courtès  <ludo@gnu.org>
 
 	* tests/goops.test (defining classes)[interaction with

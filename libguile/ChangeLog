@@ -1,3 +1,10 @@
+2008-04-15  Ludovic Courtès  <ludo@gnu.org>
+	    Julian Graham  <joolean@gmail.com>
+
+	* read.c (scm_keyword_postfix): New.
+	(scm_read_opts): Update docstring for `keywords'.
+	(scm_read_mixed_case_symbol): Add support for postfix keywords.
+
 2008-04-13  Ludovic Courtès  <ludo@gnu.org>
 
 	* inline.h (SCM_C_USE_EXTERN_INLINE): New macro.  Use it to make

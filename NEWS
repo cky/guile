@@ -46,6 +46,10 @@ The new repository can be accessed using
 "git-clone git://git.sv.gnu.org/guile.git", or can be browsed on-line at
 http://git.sv.gnu.org/gitweb/?p=guile.git .  See `README' for details.
 
+* New features (see the manual for details)
+
+** New `postfix' read option, for SRFI-88 keyword syntax
+
 * Bugs fixed
 
 ** `scm_add_slot ()' no longer segfaults (fixes bug #22369)

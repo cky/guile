@@ -4901,7 +4901,7 @@ makes them easy to type.
 
 Guile's keyword support conforms to R5RS, and adds a (switchable) read
 syntax extension to permit keywords to begin with @code{:} as well as
-@code{#:}.
+@code{#:}, or to end with @code{:}.
 
 @menu
 * Why Use Keywords?::           Motivation for keyword usage.
@@ -5046,9 +5046,17 @@ If the @code{keyword} read option is set to @code{'prefix}, Guile also
 recognizes the alternative read syntax @code{:NAME}.  Otherwise, tokens
 of the form @code{:NAME} are read as symbols, as required by R5RS.
 
+@cindex SRFI-88 keyword syntax
+
+If the @code{keyword} read option is set to @code{'postfix}, Guile
+recognizes the @uref{http://srfi.schemers.org/srfi-88/srfi-88.html,
+SRFI-88 read syntax} @code{NAME:}.  Otherwise, tokens of this form are
+read as symbols.
+
 To enable and disable the alternative non-R5RS keyword syntax, you use
 the @code{read-set!} procedure documented in @ref{User level options
-interfaces} and @ref{Reader options}.
+interfaces} and @ref{Reader options}.  Note that the @code{prefix} and
+@code{postfix} syntax are mutually exclusive.
 
 @smalllisp
 (read-set! keywords 'prefix)
@@ -5060,6 +5068,16 @@ interfaces} and @ref{Reader options}.
 :type
 @result{}
 #:type
+
+(read-set! keywords 'postfix)
+
+type:
+@result{}
+#:type
+
+:type
+@result{}
+:type
 
 (read-set! keywords #f)
 
