@@ -29,6 +29,12 @@
 	      ((string? array) (char->integer (string-ref array idx)))
 	      (else (wta 'arrayp array 1)))))
 
+(fset 'aset
+      (lambda (array idx newelt)
+	(cond ((vector? array) (vector-set! array idx newelt))
+	      ((string? array) (string-set! array idx (integer->char newelt)))
+	      (else (wta 'arrayp array 1)))))
+
 (fset 'stringp (lambda->nil string?))
 
 (fset 'vector vector)

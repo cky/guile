@@ -68,3 +68,4 @@ guile-procedures.txt
 guile-config/guile-config
 guile-readline/guile-readline-config.h
 guile-readline/guile-readline-config.h.in
+TAGS

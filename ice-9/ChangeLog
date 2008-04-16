@@ -1,3 +1,8 @@
+2008-04-14  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* gds-client.scm (gds-debug-trap): Ensure that frame index passed
+	to Emacs is always positive.
+
 2008-03-19  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* debugging/ice-9-debugger-extensions.scm (command-loop): Use

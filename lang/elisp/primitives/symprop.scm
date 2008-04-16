@@ -9,7 +9,7 @@
 
 (fset 'put set-symbol-property!)
 
-(fset 'get symbol-property)
+(fset 'get (lambda->nil symbol-property))
 
 (fset 'set set)
 
