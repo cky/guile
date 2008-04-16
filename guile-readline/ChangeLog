@@ -1,3 +1,9 @@
+2008-04-16  Ludovic Courtès  <ludo@gnu.org>
+
+	* configure.in (AC_INIT): Don't use "echo -n", which is not
+	available on MacOS X; use `patsubst' instead to remove the
+	newline.  Reported by Steven Wu <wus@qwest.net>.
+
 2008-02-16  Ludovic Courtès  <ludo@gnu.org>
 
 	* LIBGUILEREADLINE-VERSION
