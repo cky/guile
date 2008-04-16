@@ -68,6 +68,7 @@ lead to a stack overflow.
 ** Fixed type-checking for the second argument of `eval'
 ** Fixed `struct-ref' and `struct-set!' on "light structs"
 ** Honor struct field access rights in GOOPS
+** Changed the storage strategy of source properties, which fixes a deadlock
 ** Allow compilation of Guile-using programs in C99 mode with GCC 4.3 and later
 ** Fixed build issue for GNU/Linux on IA64
 ** Fixed build issues on NetBSD 1.6
