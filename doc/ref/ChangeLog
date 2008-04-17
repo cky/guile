@@ -1,3 +1,7 @@
+2008-04-17  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* posix.texi (File System): New doc for file-exists?.
+
 2008-04-15  Ludovic Courtès  <ludo@gnu.org>
 
 	* api-data.texi (Keywords): Mention postfix syntax.
