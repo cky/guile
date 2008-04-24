@@ -121,7 +121,7 @@
 #  include <config.h>
 #endif
 
-#include "gen-scmconfig.h"
+#include <libguile/gen-scmconfig.h>
 
 #include <stdio.h>
 #include <string.h>

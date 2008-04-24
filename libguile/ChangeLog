@@ -1,3 +1,12 @@
+2008-04-24  Ludovic Courtès  <ludo@gnu.org>
+
+	* Makefile.am (DEFAULT_INCLUDES): New.  Fixes compilation on
+	Tru64 where our "random.h" would shadown libc's one.
+	(INCLUDES): Add "-I$(top_buildir)", which is normally in
+	`DEFAULT_INCLUDES'.
+	* gen-scmconfig.c: Include <libguile/gen-scmconfig.h>, not
+	"gen-scmconfig.h" since that file is under `$(builddir)'.
+
 2008-04-16  Ludovic Courtès  <ludo@gnu.org>
 
 	* ports.c (scm_getc, scm_putc, scm_puts): Moved...
