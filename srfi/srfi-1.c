@@ -1,6 +1,6 @@
 /* srfi-1.c --- SRFI-1 procedures for Guile
  *
- * 	Copyright (C) 1995, 1996, 1997, 2000, 2001, 2002, 2003, 2005, 2006
+ * 	Copyright (C) 1995, 1996, 1997, 2000, 2001, 2002, 2003, 2005, 2006, 2008
  *   	Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -17,6 +17,10 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
+
+#if HAVE_CONFIG_H
+# include <config.h>
+#endif
 
 #include <libguile.h>
 #include <libguile/lang.h>

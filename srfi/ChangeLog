@@ -1,3 +1,7 @@
+2008-04-27  Ludovic Courtès  <ludo@gnu.org>
+
+	* srfi-1.c: Include <config.h>.
+
 2008-04-26  Ludovic Courtès  <ludo@gnu.org>
 
 	* srfi-35.scm: Provide `srfi-35' through `cond-expand-provide'.
