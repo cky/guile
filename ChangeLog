@@ -1,5 +1,10 @@
 2008-04-26  Ludovic Courtès  <ludo@gnu.org>
 
+	* configure.in (BUILD_PTHREAD_SUPPORT): New Automake
+	conditional.
+
+2008-04-26  Ludovic Courtès  <ludo@gnu.org>
+
 	* Makefile.am (EXTRA_DIST): Remove `ANON-CVS' and `SNAPSHOTS'.
 
 2008-02-23  Neil Jerram  <neil@ossau.uklinux.net>

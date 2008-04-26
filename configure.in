@@ -1166,6 +1166,9 @@ AC_SUBST(SCM_I_GSC_NEED_BRACES_ON_PTHREAD_MUTEX_INITIALIZER, 0)
 
 case "$with_threads" in
   "yes" | "pthread" | "pthreads" | "pthread-threads" | "")
+
+    build_pthread_support="yes"
+
     ACX_PTHREAD(CC="$PTHREAD_CC"
       LIBS="$PTHREAD_LIBS $LIBS"
       SCM_I_GSC_USE_PTHREAD_THREADS=1
@@ -1244,6 +1247,10 @@ esac
 
 AC_MSG_CHECKING(what kind of threads to support)
 AC_MSG_RESULT($with_threads)
+
+AM_CONDITIONAL([BUILD_PTHREAD_SUPPORT],
+  [test "x$build_pthread_support" = "xyes"])
+
 
 ## Check whether pthread_attr_getstack works for the main thread
 

@@ -1,5 +1,11 @@
 2008-04-26  Ludovic Courtès  <ludo@gnu.org>
 
+	* standalone/Makefile.am (TESTS): Only add
+	`test-with-guile-module' when `BUILD_PTHREAD_SUPPORT' is true.
+	Reported by Alain Guibert <alguibert+bts@free.fr>.
+
+2008-04-26  Ludovic Courtès  <ludo@gnu.org>
+
 	* tests/srfi-35.test (cond-expand): New test.
 
 2008-04-26  Ludovic Courtès  <ludo@gnu.org>

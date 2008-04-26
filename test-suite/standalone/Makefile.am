@@ -26,6 +26,7 @@ noinst_LTLIBRARIES =
 check_PROGRAMS = 
 check_SCRIPTS =
 BUILT_SOURCES =
+EXTRA_DIST =
 
 TESTS_ENVIRONMENT = "${top_builddir}/pre-inst-guile-env"
 
@@ -113,13 +114,21 @@ TESTS += test-conversion
 check_SCRIPTS += test-use-srfi
 TESTS += test-use-srfi
 
+if BUILD_PTHREAD_SUPPORT
+
 # test-with-guile-module
 test_with_guile_module_CFLAGS = ${test_cflags}
 test_with_guile_module_LDADD = ${top_builddir}/libguile/libguile.la
 check_PROGRAMS += test-with-guile-module
 TESTS += test-with-guile-module
 
+else
+
+EXTRA_DIST += test-with-guile-module.c
+
+endif
+
 all-local:
 	cd ${srcdir} && chmod u+x ${check_SCRIPTS}
 
-EXTRA_DIST = ${check_SCRIPTS}
+EXTRA_DIST += ${check_SCRIPTS}
