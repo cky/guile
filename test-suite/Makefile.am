@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in.
 ##
-## Copyright 2001, 2002, 2003, 2004, 2005, 2006, 2007 Software Foundation, Inc.
+## Copyright 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008 Software Foundation, Inc.
 ##
 ## This file is part of GUILE.
 ##
@@ -81,6 +81,7 @@ SCM_TESTS = tests/alist.test			\
 	    tests/srfi-39.test			\
 	    tests/srfi-60.test			\
 	    tests/srfi-69.test			\
+	    tests/srfi-88.test			\
 	    tests/srfi-4.test			\
 	    tests/srfi-9.test			\
 	    tests/strings.test			\

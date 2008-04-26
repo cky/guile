@@ -1,3 +1,9 @@
+2008-04-26  Ludovic Courtès  <ludo@gnu.org>
+
+	* srfi-modules.texi (SRFI-88): New section.
+	* api-data.texi (Keyword Read Syntax): Add reference to
+	`SRFI-88'.
+
 2008-04-17  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* posix.texi (File System): New doc for file-exists?.

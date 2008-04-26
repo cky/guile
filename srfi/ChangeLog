@@ -1,3 +1,8 @@
+2008-04-26  Ludovic Courtès  <ludo@gnu.org>
+
+	* Makefile.am (srfi_DATA): Add `srfi-88.scm'.
+	* srfi-88.scm: New file.
+
 2008-03-12  Ludovic Courtès  <ludo@gnu.org>
 
 	* srfi-37.scm (args-fold)[short-option]: Set ARGS to `(cdr

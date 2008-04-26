@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2006, 2007
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2006, 2007, 2008
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -45,6 +45,7 @@ get the relevant SRFI documents from the SRFI home page
 * SRFI-60::                     Integers as bits.
 * SRFI-61::                     A more general `cond' clause
 * SRFI-69::                     Basic hash tables.
+* SRFI-88::                     Keyword objects.
 @end menu
 
 
@@ -3215,6 +3216,56 @@ Answer a hash value appropriate for equality predicate @code{equal?},
 
 @code{hash} is a backwards-compatible replacement for Guile's built-in
 @code{hash}.
+
+@node SRFI-88
+@subsection SRFI-88 Keyword Objects
+@cindex SRFI-88
+@cindex keyword objects
+
+@uref{http://srfi.schemers.org/srfi/srfi-88.html, SRFI-88} provides
+@dfn{keyword objects}, which are equivalent to Guile's keywords
+(@pxref{Keywords}).  SRFI-88 keywords can be entered using the
+@dfn{postfix keyword syntax}, which consists of an identifier followed
+by @code{:} (@pxref{Reader options, @code{postfix} keyword syntax}).
+SRFI-88 can be made available with:
+
+@example
+(use-modules (srfi srfi-88))
+@end example
+
+Doing so installs the right reader option for keyword syntax, using
+@code{(read-set! keywords 'postfix)}.  It also provides the procedures
+described below.
+
+@deffn {Scheme Procedure} keyword? obj
+Return @code{#t} if @var{obj} is a keyword.  This is the same procedure
+as the same-named built-in procedure (@pxref{Keyword Procedures,
+@code{keyword?}}).
+
+@example
+(keyword? foo:)         @result{} #t
+(keyword? 'foo:)        @result{} #t
+(keyword? "foo")        @result{} #f
+@end example
+@end deffn
+
+@deffn {Scheme Procedure} keyword->string kw
+Return the name of @var{kw} as a string, i.e., without the trailing
+colon.  The returned string may not be modified, e.g., with
+@code{string-set!}.
+
+@example
+(keyword->string foo:)  @result{} "foo"
+@end example
+@end deffn
+
+@deffn {Scheme Procedure} string->keyword str
+Return the keyword object whose name is @var{str}.
+
+@example
+(keyword->string (string->keyword "a b c"))     @result{} "a b c"
+@end example
+@end deffn
 
 
 @c srfi-modules.texi ends here
