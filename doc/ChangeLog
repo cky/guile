@@ -1,3 +1,7 @@
+2008-04-26  Ludovic Courtès  <ludo@gnu.org>
+
+	* Makefile.am (EXAMPLE_SMOB_FILES): Remove `COPYING'.
+
 2008-01-22  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* COPYING: Removed.
