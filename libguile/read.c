@@ -292,7 +292,7 @@ scm_read_sexp (int chr, SCM port)
   register int c;
   register SCM tmp;
   register SCM tl, ans = SCM_EOL;
-  SCM tl2 = SCM_EOL, ans2 = SCM_EOL, copy = SCM_BOOL_F;;
+  SCM tl2 = SCM_EOL, ans2 = SCM_EOL, copy = SCM_BOOL_F;
   static const int terminating_char = ')';
 
   /* Need to capture line and column numbers here. */

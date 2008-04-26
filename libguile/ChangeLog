@@ -1,3 +1,9 @@
+2008-04-26  Ludovic Courtès  <ludo@gnu.org>
+
+	* read.c (scm_read_sexp): Remove extraneous semi-colon at
+	end-of-line, which broke compilation with GCC 2.7.  Reported by
+	Alain Guibert <alguibert+bts@free.fr>.
+
 2008-04-24  Ludovic Courtès  <ludo@gnu.org>
 
 	* Makefile.am (DEFAULT_INCLUDES): New.  Fixes compilation on
