@@ -69,6 +69,7 @@ would trigger an unbound variable error for `match:andmap'.
 Previously, parsing short option names of argument-less options would
 lead to a stack overflow.
 
+** `(srfi srfi-35)' is now visible through `cond-expand'
 ** Fixed type-checking for the second argument of `eval'
 ** Fixed `struct-ref' and `struct-set!' on "light structs"
 ** Honor struct field access rights in GOOPS

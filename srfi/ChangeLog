@@ -1,5 +1,9 @@
 2008-04-26  Ludovic Courtès  <ludo@gnu.org>
 
+	* srfi-35.scm: Provide `srfi-35' through `cond-expand-provide'.
+
+2008-04-26  Ludovic Courtès  <ludo@gnu.org>
+
 	* Makefile.am (srfi_DATA): Add `srfi-88.scm'.
 	* srfi-88.scm: New file.
 

@@ -1,5 +1,9 @@
 2008-04-26  Ludovic Courtès  <ludo@gnu.org>
 
+	* tests/srfi-35.test (cond-expand): New test.
+
+2008-04-26  Ludovic Courtès  <ludo@gnu.org>
+
 	* Makefile.am (SCM_TESTS): Add `tests/srfi-88.test'.
 	* tests/srfi-88.test: New file.
 
