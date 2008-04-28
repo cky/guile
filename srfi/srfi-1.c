@@ -1667,6 +1667,7 @@ SCM_DEFINE (scm_srfi1_partition, "partition", 2, 0, 0,
   /* In this implementation, the output lists don't share memory with
      list, because it's probably not worth the effort. */
   scm_t_trampoline_1 call = scm_trampoline_1(pred);
+  SCM orig_list = list;
   SCM kept = scm_cons(SCM_EOL, SCM_EOL);
   SCM kept_tail = kept;
   SCM dropped = scm_cons(SCM_EOL, SCM_EOL);
@@ -1675,8 +1676,14 @@ SCM_DEFINE (scm_srfi1_partition, "partition", 2, 0, 0,
   SCM_ASSERT(call, pred, 2, FUNC_NAME);
   
   for (; !SCM_NULL_OR_NIL_P (list); list = SCM_CDR(list)) {
-    SCM elt = SCM_CAR(list);
-    SCM new_tail = scm_cons(SCM_CAR(list), SCM_EOL);
+    SCM elt, new_tail;
+
+    /* Make sure LIST is not a dotted list.  */
+    SCM_ASSERT (scm_is_pair (list), orig_list, SCM_ARG2, FUNC_NAME);
+
+    elt = SCM_CAR (list);
+    new_tail = scm_cons (SCM_CAR (list), SCM_EOL);
+
     if (scm_is_true (call (pred, elt))) {
       SCM_SETCDR(kept_tail, new_tail);
       kept_tail = new_tail;

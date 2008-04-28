@@ -1,3 +1,8 @@
+2008-04-28  Ludovic Courtès  <ludo@gnu.org>
+
+	* srfi-1.c (scm_srfi1_partition): Properly type-check LIST.
+	Reported by Julian Graham <joolean@gmail.com>.
+
 2008-04-27  Ludovic Courtès  <ludo@gnu.org>
 
 	* srfi-1.c: Include <config.h>.

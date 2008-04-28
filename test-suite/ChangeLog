@@ -1,3 +1,8 @@
+2008-04-28  Ludovic Courtès  <ludo@gnu.org>
+
+	* tests/srfi-1.test (partition)[with improper list]: New test.
+	(partition!)[with improper list]: New test.
+
 2008-04-26  Ludovic Courtès  <ludo@gnu.org>
 
 	* standalone/Makefile.am (TESTS): Only add

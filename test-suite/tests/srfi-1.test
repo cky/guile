@@ -1,6 +1,6 @@
 ;;;; srfi-1.test --- Test suite for Guile's SRFI-1 functions. -*- scheme -*-
 ;;;;
-;;;; Copyright 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+;;;; Copyright 2003, 2004, 2005, 2006, 2008 Free Software Foundation, Inc.
 ;;;;
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -2068,7 +2068,11 @@
 				   (make-list 10000 1)))
       (lambda (even odd)
 	(and (= (length odd) 10000)
-	     (= (length even) 0))))))
+	     (= (length even) 0)))))
+
+  (pass-if-exception "with improper list"
+    exception:wrong-type-arg
+    (partition symbol? '(a b . c))))
 
 ;;
 ;; partition!
@@ -2111,7 +2115,11 @@
 				    (make-list 10000 1)))
       (lambda (even odd)
 	(and (= (length odd) 10000)
-	     (= (length even) 0))))))
+	     (= (length even) 0)))))
+
+  (pass-if-exception "with improper list"
+    exception:wrong-type-arg
+    (partition! symbol? (cons* 'a 'b 'c))))
 
 ;;
 ;; reduce
