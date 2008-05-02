@@ -20,10 +20,7 @@
 ;;; Code:
 
 (define-module (system base syntax)
-  :use-module (ice-9 receive)
-  :use-module (ice-9 and-let-star)
-  :export (stack-catch receive and-let*
-           %make-struct slot
+  :export (%make-struct slot
            %slot-1 %slot-2 %slot-3 %slot-4 %slot-5
            %slot-6 %slot-7 %slot-8 %slot-9
            list-fold)

@@ -32,7 +32,8 @@
   :autoload (system vm profile) (vm-profile)
   :use-module (ice-9 format)
   :use-module (ice-9 session)
-  :use-module (ice-9 documentation))
+  :use-module (ice-9 documentation)
+  :use-module (ice-9 and-let-star))
 
 
 ;;;
