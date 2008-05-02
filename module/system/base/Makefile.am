@@ -1,4 +1,4 @@
-SOURCES = compile.scm language.scm module.scm
+SOURCES = compile.scm language.scm
 ## syntax.scm
 GOBJECTS = $(SOURCES:%.scm=%.go)
 
