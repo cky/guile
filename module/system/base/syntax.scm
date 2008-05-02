@@ -22,7 +22,12 @@
 (define-module (system base syntax)
   :use-module (ice-9 receive)
   :use-module (ice-9 and-let-star)
-  :export (stack-catch receive and-let*))
+  :export (stack-catch receive and-let*
+           %make-struct slot
+           %slot-1 %slot-2 %slot-3 %slot-4 %slot-5
+           %slot-6 %slot-7 %slot-8 %slot-9
+           list-fold)
+  :export-syntax (syntax define-type define-record |))
 
 
 ;;;
@@ -48,14 +53,13 @@
 	(else x)))
 
 (define (expand-symbol x)
-  (let loop ((s (symbol->string x)))
-    (let ((i (string-rindex s #\.)))
-      (if i
-	  `(slot ,(loop (substring s 0 i))
-		 (quote ,(string->symbol (substring s (1+ i)))))
-	  (string->symbol s)))))
+  (let* ((str (symbol->string x)))
+    (if (string-index str #\.)
+        (let ((parts (map string->symbol (string-split str #\.))))
+          `(slot ,(car parts)
+                 ,@(map (lambda (key) `',key) (cdr parts))))
+        x)))
 
-(export-syntax syntax)
 (define syntax expand-dot!)
 
 
@@ -63,14 +67,12 @@
 ;;; Type
 ;;;
 
-(export-syntax define-type)
 (define-macro (define-type name sig) sig)
 
 ;;;
 ;;; Record
 ;;;
 
-(export-syntax define-record)
 (define-macro (define-record def)
   (let ((name (car def)) (slots (cdr def)))
     `(begin
@@ -96,7 +98,7 @@
 
 (define *unbound* "#<unbound>")
 
-(define-public (%make-struct args slots)
+(define (%make-struct args slots)
   (map (lambda (slot)
 	 (let* ((key (if (pair? slot) (car slot) slot))
 		(def (if (pair? slot) (cdr slot) *unbound*))
@@ -111,25 +113,26 @@
       ((or (null? ls) (eq? (car ls) key))
        (if (null? ls) def (cadr ls)))))
 
-(define-public slot
-  (make-procedure-with-setter
-   (lambda (struct name)
-     (let ((data (assq name (vector-ref struct 1))))
-       (cond ((not data)
-	      (error "unknown slot" name))
-	     (else (cdr data)))))
-   (lambda (struct name val)
-     (let ((data (assq name (vector-ref struct 1))))
-       (cond ((not data)
-	      (error "unknown slot" name))
-	     (else (set-cdr! data val)))))))
+(define (get-slot struct name . names)
+  (let ((data (assq name (vector-ref struct 1))))
+    (cond ((not data) (error "unknown slot" name))
+          ((null? names) (cdr data))
+          (else (apply get-slot (cdr data) names)))))
+
+(define (set-slot! struct name . rest)
+  (let ((data (assq name (vector-ref struct 1))))
+    (cond ((not data) (error "unknown slot" name))
+          ((null? (cdr rest)) (set-cdr! data (car rest)))
+          (else (apply set-slot! (cdr data) rest)))))
+
+(define slot
+  (make-procedure-with-setter get-slot set-slot!))
 
 
 ;;;
 ;;; Variants
 ;;;
 
-(export-syntax |)
 (define-macro (| . rest)
   `(begin ,@(map %make-variant-type rest)))
 
@@ -147,22 +150,22 @@
 			    ls)))
 	     ((null? slots) (reverse! ls))))))
 
-(define-public (%slot-1 x) (vector-ref x 1))
-(define-public (%slot-2 x) (vector-ref x 2))
-(define-public (%slot-3 x) (vector-ref x 3))
-(define-public (%slot-4 x) (vector-ref x 4))
-(define-public (%slot-5 x) (vector-ref x 5))
-(define-public (%slot-6 x) (vector-ref x 6))
-(define-public (%slot-7 x) (vector-ref x 7))
-(define-public (%slot-8 x) (vector-ref x 8))
-(define-public (%slot-9 x) (vector-ref x 9))
+(define (%slot-1 x) (vector-ref x 1))
+(define (%slot-2 x) (vector-ref x 2))
+(define (%slot-3 x) (vector-ref x 3))
+(define (%slot-4 x) (vector-ref x 4))
+(define (%slot-5 x) (vector-ref x 5))
+(define (%slot-6 x) (vector-ref x 6))
+(define (%slot-7 x) (vector-ref x 7))
+(define (%slot-8 x) (vector-ref x 8))
+(define (%slot-9 x) (vector-ref x 9))
 
 
 ;;;
 ;;; Utilities
 ;;;
 
-(define-public (list-fold f d l)
+(define (list-fold f d l)
   (if (null? l)
       d
       (list-fold f (f (car l) d) (cdr l))))

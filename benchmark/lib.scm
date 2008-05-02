@@ -4,10 +4,10 @@
 
 
 (define (fibo x)
-  (if (= 1 x)
+  (if (or (= x 1) (= x 2))
       1
-      (+ x
-	 (fibo (1- x)))))
+      (+ (fibo (- x 1))
+	 (fibo (- x 2)))))
 
 (define (g-c-d x y)
   (if (= x y)
