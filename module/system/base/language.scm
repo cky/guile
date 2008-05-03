@@ -36,7 +36,7 @@
 			   ))
 
 (define-macro (define-language name . spec)
-  `(define ,name (,<language> :name ',name ,@spec)))
+  `(define ,name (,make-language :name ',name ,@spec)))
 
 (define (lookup-language name)
   (let ((m (resolve-module `(language ,name spec))))

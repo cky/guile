@@ -55,9 +55,9 @@
 (define (preprocess x e)
   (record-case x
     ((<glil-asm> vars body)
-     (let* ((venv (<venv> :parent e :nexts (slot vars 'nexts) :closure? #f))
+     (let* ((venv (make-venv :parent e :nexts (slot vars 'nexts) :closure? #f))
 	    (body (map (lambda (x) (preprocess x venv)) body)))
-       (<vm-asm> :venv venv :glil x :body body)))
+       (make-vm-asm :venv venv :glil x :body body)))
     ((<glil-external> op depth index)
      (do ((d depth (- d 1))
  	  (e e (slot e 'parent)))
@@ -147,7 +147,7 @@
 		     (push-code! `(external-set ,(+ n index)))))))
 
 	   ((<glil-module> op module name)
-	    (push-object! (<vlink> :module #f :name name))
+	    (push-object! (make-vlink :module #f :name name))
 	    (if (eq? op 'ref)
 		(push-code! '(variable-ref))
 		(push-code! '(variable-set))))
@@ -175,15 +175,15 @@
        (let ((bytes (stack->bytes (reverse! stack) label-alist)))
 	 (if toplevel
 	     (bytecode->objcode bytes vars.nlocs vars.nexts)
-	     (<bytespec> :vars vars :bytes bytes
-			 :meta (if (and (null? binding-alist)
-					(null? source-alist))
-				 #f
-				 (cons (reverse! binding-alist)
-				       (reverse! source-alist)))
-			 :objs (let ((objs (map car (reverse! object-alist))))
-				 (if (null? objs) #f (list->vector objs)))
-			 :closure? venv.closure?)))))))))
+	     (make-bytespec :vars vars :bytes bytes
+                            :meta (if (and (null? binding-alist)
+                                           (null? source-alist))
+                                      #f
+                                      (cons (reverse! binding-alist)
+                                            (reverse! source-alist)))
+                            :objs (let ((objs (map car (reverse! object-alist))))
+                                    (if (null? objs) #f (list->vector objs)))
+                            :closure? venv.closure?)))))))))
 
 (define (object-assoc x alist)
   (record-case x

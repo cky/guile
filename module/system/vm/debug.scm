@@ -38,7 +38,8 @@
   (let ((chain (vm-last-frame-chain vm)))
     (if (null? chain)
       (display "Nothing to debug\n")
-      (debugger-repl (<debugger> :vm vm :chain chain :index (length chain))))))
+      (debugger-repl (make-debugger
+                      :vm vm :chain chain :index (length chain))))))
 
 (define (debugger-repl db)
   (let loop ()

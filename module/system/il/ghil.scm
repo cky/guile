@@ -25,33 +25,33 @@
   :use-module (ice-9 regex)
   :export
   (
-   <ghil-void> <ghil-void>? <ghil-void>-1 <ghil-void>-2
-   <ghil-quote> <ghil-quote>? <ghil-quote>-1 <ghil-quote>-2 <ghil-quote>-3
-   <ghil-quasiquote> <ghil-quasiquote>?
+   <ghil-void> make-ghil-void <ghil-void>? <ghil-void>-1 <ghil-void>-2
+   <ghil-quote> make-ghil-quote <ghil-quote>? <ghil-quote>-1 <ghil-quote>-2 <ghil-quote>-3
+   <ghil-quasiquote> make-ghil-quasiquote <ghil-quasiquote>?
    <ghil-quasiquote>-1 <ghil-quasiquote>-2 <ghil-quasiquote>-3
-   <ghil-unquote> <ghil-unquote>?
+   <ghil-unquote> make-ghil-unquote <ghil-unquote>?
    <ghil-unquote>-1 <ghil-unquote>-2 <ghil-unquote>-3
-   <ghil-unquote-splicing> <ghil-unquote-splicing>?
+   <ghil-unquote-splicing> make-ghil-unquote-splicing <ghil-unquote-splicing>?
    <ghil-unquote-splicing>-1 <ghil-unquote-splicing>-2
    <ghil-unquote-splicing>-3
 
-   <ghil-ref> <ghil-ref>? <ghil-ref>-1 <ghil-ref>-2 <ghil-ref>-3
-   <ghil-set> <ghil-set>? <ghil-set>-1 <ghil-set>-2 <ghil-set>-3 <ghil-set>-4
-   <ghil-define> <ghil-define>?
+   <ghil-ref> make-ghil-ref <ghil-ref>? <ghil-ref>-1 <ghil-ref>-2 <ghil-ref>-3
+   <ghil-set> make-ghil-set <ghil-set>? <ghil-set>-1 <ghil-set>-2 <ghil-set>-3 <ghil-set>-4
+   <ghil-define> make-ghil-define <ghil-define>?
    <ghil-define>-1 <ghil-define>-2 <ghil-define>-3 <ghil-define>-4
 
-   <ghil-if> <ghil-if>?
+   <ghil-if> make-ghil-if <ghil-if>?
    <ghil-if>-1 <ghil-if>-2 <ghil-if>-3 <ghil-if>-4 <ghil-if>-5
-   <ghil-and> <ghil-and>? <ghil-and>-1 <ghil-and>-2 <ghil-and>-3
-   <ghil-or> <ghil-or>? <ghil-or>-1 <ghil-or>-2 <ghil-or>-3
-   <ghil-begin> <ghil-begin>? <ghil-begin>-1 <ghil-begin>-2 <ghil-begin>-3
-   <ghil-bind> <ghil-bind>?
+   <ghil-and> make-ghil-and <ghil-and>? <ghil-and>-1 <ghil-and>-2 <ghil-and>-3
+   <ghil-or> make-ghil-or <ghil-or>? <ghil-or>-1 <ghil-or>-2 <ghil-or>-3
+   <ghil-begin> make-ghil-begin <ghil-begin>? <ghil-begin>-1 <ghil-begin>-2 <ghil-begin>-3
+   <ghil-bind> make-ghil-bind <ghil-bind>?
    <ghil-bind>-1 <ghil-bind>-2 <ghil-bind>-3 <ghil-bind>-4 <ghil-bind>-5
-   <ghil-lambda> <ghil-lambda>? <ghil-lambda>-1 <ghil-lambda>-2
+   <ghil-lambda> make-ghil-lambda <ghil-lambda>? <ghil-lambda>-1 <ghil-lambda>-2
    <ghil-lambda>-3 <ghil-lambda>-4 <ghil-lambda>-5
-   <ghil-inline> <ghil-inline>?
+   <ghil-inline> make-ghil-inline <ghil-inline>?
    <ghil-inline>-1 <ghil-inline>-2 <ghil-inline>-3 <ghil-inline>-4
-   <ghil-call> <ghil-call>?
+   <ghil-call> make-ghil-call <ghil-call>?
    <ghil-call>-1 <ghil-call>-2 <ghil-call>-3 <ghil-call>-4
    ))
 
@@ -112,9 +112,7 @@
 ;;;
 
 (define-record (<ghil-var> env name kind (type #f) (value #f) (index #f)))
-
-(define-public (make-ghil-var env name kind)
-  (<ghil-var> :env env :name name :kind kind))
+(export make-ghil-var)
 
 
 ;;;
@@ -122,9 +120,7 @@
 ;;;
 
 (define-record (<ghil-mod> module (table '()) (imports '())))
-
-(define-public (make-ghil-mod module)
-  (<ghil-mod> :module module))
+(export make-ghil-mod)
 
 
 ;;;
@@ -133,10 +129,11 @@
 
 (define-record (<ghil-env> mod parent (table '()) (variables '())))
 
+(define %make-ghil-env make-ghil-env)
 (define-public (make-ghil-env e)
-  (match e
-    (($ <ghil-mod>) (<ghil-env> :mod e :parent e))
-    (($ <ghil-env> m) (<ghil-env> :mod m :parent e))))
+  (record-case e
+    ((<ghil-mod>) (%make-ghil-env :mod e :parent e))
+    ((<ghil-env> m) (%make-ghil-env :mod m :parent e))))
 
 (define (ghil-env-toplevel? e)
   (eq? e.mod e.parent))

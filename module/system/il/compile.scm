@@ -39,23 +39,23 @@
 (define (optimize x)
   (match x
     (($ <ghil-set> env var val)
-     (<ghil-set> env var (optimize val)))
+     (make-ghil-set env var (optimize val)))
 
     (($ <ghil-if> test then else)
-     (<ghil-if> (optimize test) (optimize then) (optimize else)))
+     (make-ghil-if (optimize test) (optimize then) (optimize else)))
 
     (($ <ghil-begin> exps)
-     (<ghil-begin> (map optimize exps)))
+     (make-ghil-begin (map optimize exps)))
 
     (($ <ghil-bind> env vars vals body)
-     (<ghil-bind> env vars (map optimize vals) (optimize body)))
+     (make-ghil-bind env vars (map optimize vals) (optimize body)))
 
     (($ <ghil-lambda> env vars rest body)
-     (<ghil-lambda> env vars rest (optimize body)))
+     (make-ghil-lambda env vars rest (optimize body)))
 
 ;; FIXME:  <ghil-inst> does not exist.  -- Ludo'.
 ;     (($ <ghil-inst> inst args)
-;      (<ghil-inst> inst (map optimize args)))
+;      (make-ghil-inst inst (map optimize args)))
 
     (($ <ghil-call> env proc args)
      (match proc
@@ -67,9 +67,9 @@
 		    (set! v.env env)
 		    (ghil-env-add! env v))
 		  lambda-env.variables)
-	(optimize (<ghil-bind> env vars args body)))
+	(optimize (make-ghil-bind env vars args body)))
        (else
-	(<ghil-call> env (optimize proc) (map optimize args)))))
+	(make-ghil-call env (optimize proc) (map optimize args)))))
     (else x)))
 
 
@@ -77,25 +77,25 @@
 ;;; Stage 3: Code generation
 ;;;
 
-(define *ia-void* (<glil-void>))
-(define *ia-drop* (<glil-call> 'drop 0))
-(define *ia-return* (<glil-call> 'return 0))
+(define *ia-void* (make-glil-void))
+(define *ia-drop* (make-glil-call 'drop 0))
+(define *ia-return* (make-glil-call 'return 0))
 
 (define (make-label) (gensym ":L"))
 
 (define (make-glil-var op env var)
   (case var.kind
     ((argument)
-     (<glil-argument> op var.index))
+     (make-glil-argument op var.index))
     ((local)
-     (<glil-local> op var.index))
+     (make-glil-local op var.index))
     ((external)
      (do ((depth 0 (1+ depth))
 	  (e env e.parent))
 	 ((eq? e var.env)
-	  (<glil-external> op depth var.index))))
+	  (make-glil-external op depth var.index))))
     ((module)
-     (<glil-module> op var.env var.name))
+     (make-glil-module op var.env var.name))
     (else (error "Unknown kind of variable:" var))))
 
 (define (codegen ghil)
@@ -104,13 +104,13 @@
       (set! stack (cons code stack)))
     (define (comp tree tail drop)
       (define (push-label! label)
-	(push-code! (<glil-label> label)))
+	(push-code! (make-glil-label label)))
       (define (push-branch! inst label)
-	(push-code! (<glil-branch> inst label)))
+	(push-code! (make-glil-branch inst label)))
       (define (push-call! loc inst args)
 	(for-each comp-push args)
-	(push-code! (<glil-call> inst (length args)))
-	(push-code! (<glil-source> loc)))
+	(push-code! (make-glil-call inst (length args)))
+	(push-code! (make-glil-source loc)))
       ;; possible tail position
       (define (comp-tail tree) (comp tree tail drop))
       ;; push the result
@@ -132,7 +132,7 @@
 	(return-code! *ia-void*))
       ;; return object if necessary
       (define (return-object! obj)
-	(return-code! (<glil-const> obj)))
+	(return-code! (make-glil-const obj)))
       ;;
       ;; dispatch
       (match tree
@@ -152,14 +152,14 @@
 	     ((? pair? pp)
 	      (loop (car pp))
 	      (loop (cdr pp))
-	      (push-code! (<glil-call> 'cons 2)))
+	      (push-code! (make-glil-call 'cons 2)))
 	     (($ <ghil-unquote> env loc exp)
 	      (comp-push exp))
 	     (($ <ghil-unquote-splicing> env loc exp)
 	      (comp-push exp)
 	      (push-call! #f 'list-break '()))
 	     (else
-	      (push-code! (<glil-const> x)))))
+	      (push-code! (make-glil-const x)))))
 	 (maybe-drop)
 	 (maybe-return))
 
@@ -253,11 +253,11 @@
 	 ;; BODY
 	 (for-each comp-push vals)
 	 (let ((vars (map (lambda (v) (list v.name v.kind v.index)) vars)))
-	   (if (not (null? vars)) (push-code! (<glil-bind> vars))))
+	   (if (not (null? vars)) (push-code! (make-glil-bind vars))))
 	 (for-each (lambda (var) (push-code! (make-glil-var 'set env var)))
 		   (reverse vars))
 	 (comp-tail body)
-	 (push-code! (<glil-unbind>)))
+	 (push-code! (make-glil-unbind)))
 
 	(($ <ghil-lambda> env loc vars rest body)
 	 (return-code! (codegen tree)))
@@ -289,23 +289,23 @@
 	 (finalize-index! exts)
 	 ;; meta bindings
 	 (let ((vars (map (lambda (v) (list v.name v.kind v.index)) args)))
-	   (if (not (null? vars)) (push-code! (<glil-bind> vars))))
+	   (if (not (null? vars)) (push-code! (make-glil-bind vars))))
 	 ;; export arguments
 	 (do ((n 0 (1+ n))
 	      (l args (cdr l)))
 	     ((null? l))
 	   (let ((v (car l)))
 	     (cond ((eq? v.kind 'external)
-		    (push-code! (<glil-argument> 'ref n))
-		    (push-code! (<glil-external> 'set 0 v.index))))))
+		    (push-code! (make-glil-argument 'ref n))
+		    (push-code! (make-glil-external 'set 0 v.index))))))
 	 ;; compile body
 	 (comp body #t #f)
 	 ;; create GLIL
-	 (let ((vars (<glil-vars> :nargs (length args)
-				  :nrest (if rest 1 0)
-				  :nlocs (length locs)
-				  :nexts (length exts))))
-	   (<glil-asm> vars (reverse! stack))))))))
+	 (let ((vars (make-glil-vars :nargs (length args)
+                                     :nrest (if rest 1 0)
+                                     :nlocs (length locs)
+                                     :nexts (length exts))))
+	   (make-glil-asm vars (reverse! stack))))))))
 
 (define (finalize-index! list)
   (do ((n 0 (1+ n))

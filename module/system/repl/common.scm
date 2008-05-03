@@ -35,15 +35,16 @@
 (define repl-default-options
   '((trace . #f)))
 
+(define %make-repl make-repl)
 (define-public (make-repl lang)
   (let ((cenv (make-cenv :vm (the-vm)
 			 :language (lookup-language lang)
 			 :module (current-module))))
-    (<repl> :env cenv
-	    :options repl-default-options
-	    :tm-stats (times)
-	    :gc-stats (gc-stats)
-	    :vm-stats (vm-stats cenv.vm))))
+    (%make-repl :env cenv
+                :options repl-default-options
+                :tm-stats (times)
+                :gc-stats (gc-stats)
+                :vm-stats (vm-stats cenv.vm))))
 
 (define-public (repl-welcome repl)
   (format #t "~A interpreter ~A on Guile ~A\n"

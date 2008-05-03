@@ -24,26 +24,26 @@
   :use-module (ice-9 match)
   :export
   (pprint-glil
-   <glil-vars>
-   <glil-asm> <glil-asm>?
+   <glil-vars> make-glil-vars
+   <glil-asm> make-glil-asm <glil-asm>?
    <glil-asm>-1 <glil-asm>-2 <glil-asm>-3 <glil-asm>-4 <glil-asm>-5
-   <glil-bind> <glil-bind>? <glil-bind>-1
-   <glil-unbind> <glil-unbind>?
-   <glil-source> <glil-source>? <glil-source>-1 <glil-source>-2
+   <glil-bind> make-glil-bind <glil-bind>? <glil-bind>-1
+   <glil-unbind> make-glil-unbind <glil-unbind>?
+   <glil-source> make-glil-source <glil-source>? <glil-source>-1 <glil-source>-2
 
-   <glil-void> <glil-void>?
-   <glil-const> <glil-const>? <glil-const>-1
+   <glil-void> make-glil-void <glil-void>?
+   <glil-const> make-glil-const <glil-const>? <glil-const>-1
 
-   <glil-argument> <glil-argument>? <glil-argument>-1 <glil-argument>-2
-   <glil-local> <glil-local>? <glil-local>-1 <glil-local>-2
-   <glil-external> <glil-external>?
+   <glil-argument> make-glil-argument <glil-argument>? <glil-argument>-1 <glil-argument>-2
+   <glil-local> make-glil-local <glil-local>? <glil-local>-1 <glil-local>-2
+   <glil-external> make-glil-external <glil-external>?
    <glil-external>-1 <glil-external>-2 <glil-external>-3
-   <glil-module> <glil-module>?
+   <glil-module> make-glil-module <glil-module>?
    <glil-module>-1 <glil-module>-2 <glil-module>-3
 
-   <glil-label> <glil-label>? <glil-label>-1
-   <glil-branch> <glil-branch>? <glil-branch>-1 <glil-branch>-2
-   <glil-call> <glil-call>? <glil-call>-1 <glil-call>-2
+   <glil-label> make-glil-label <glil-label>? <glil-label>-1
+   <glil-branch> make-glil-branch <glil-branch>? <glil-branch>-1 <glil-branch>-2
+   <glil-call> make-glil-call <glil-call>? <glil-call>-1 <glil-call>-2
    ))
 
 (define-record (<glil-vars> nargs nrest nlocs nexts))

@@ -73,17 +73,22 @@
 ;;; Record
 ;;;
 
+(define (symbol-trim-both sym pred)
+  (string->symbol (string-trim-both (symbol->string sym) pred)))
+
+
 (define-macro (define-record def)
-  (let ((name (car def)) (slots (cdr def)))
+  (let* ((name (car def)) (slots (cdr def))
+         (stem (symbol-trim-both name (list->char-set '(#\< #\>)))))
     `(begin
-       (define (,name . args)
-	 (vector ',name (%make-struct
-			 args
-			 (list ,@(map (lambda (slot)
-					(if (pair? slot)
-					  `(cons ',(car slot) ,(cadr slot))
-					  `',slot))
-				      slots)))))
+       (define ,(symbol-append 'make- stem)
+         (let ((slots (list ,@(map (lambda (slot)
+                                     (if (pair? slot)
+                                         `(cons ',(car slot) ,(cadr slot))
+                                         `',slot))
+                                   slots))))
+           (lambda args
+             (vector ',name (%make-struct args slots)))))
        (define (,(symbol-append name '?) x)
 	 (and (vector? x) (eq? (vector-ref x 0) ',name)))
        ,@(do ((n 1 (1+ n))
@@ -96,22 +101,32 @@
 			    ls)))
 	     ((null? slots) (reverse! ls))))))
 
-(define *unbound* "#<unbound>")
-
 (define (%make-struct args slots)
-  (map (lambda (slot)
-	 (let* ((key (if (pair? slot) (car slot) slot))
-		(def (if (pair? slot) (cdr slot) *unbound*))
-		(val (get-key args (symbol->keyword key) def)))
-	   (if (eq? val *unbound*)
-	     (error "slot unbound" key)
-	     (cons key val))))
-       slots))
-
-(define (get-key klist key def)
-  (do ((ls klist (cddr ls)))
-      ((or (null? ls) (eq? (car ls) key))
-       (if (null? ls) def (cadr ls)))))
+  (define (finish-bindings out)
+    (map (lambda (slot)
+           (let ((name (if (pair? slot) (car slot) slot)))
+             (or (assq name out)
+                 (if (pair? slot)
+                     (cons name (cdr slot))
+                     (error "unbound slot" args slots name)))))
+         slots))
+  (let lp ((in args) (positional slots) (out '()))
+    (cond
+     ((null? in)
+      (finish-bindings out))
+     ((keyword? (car in))
+      (let ((sym (keyword->symbol (car in))))
+        (cond
+         ((and (not (memq sym slots))
+               (not (assq sym (filter pair? slots))))
+          (error "unknown slot" sym))
+         ((assq sym out) (error "slot already set" sym out))
+         (else (lp (cddr in) '() (acons sym (cadr in) out))))))
+     ((null? positional)
+      (error "too many initargs" args slots))
+     (else
+      (lp (cdr in) (cdr positional)
+          (acons (car positional) (car in) out))))))
 
 (define (get-slot struct name . names)
   (let ((data (assq name (vector-ref struct 1))))
@@ -134,21 +149,7 @@
 ;;;
 
 (define-macro (| . rest)
-  `(begin ,@(map %make-variant-type rest)))
-
-(define (%make-variant-type def)
-  (let ((name (car def)) (slots (cdr def)))
-    `(begin
-       (define ,def (vector ',name ,@slots))
-       (define (,(symbol-append name '?) x)
-	 (and (vector? x) (eq? (vector-ref x 0) ',name)))
-       ,@(do ((n 1 (1+ n))
-	      (slots slots (cdr slots))
-	      (ls '() (cons `(define ,(string->symbol
-				       (format #f "~A-~A" name n))
-			       ,(string->symbol (format #f "%slot-~A" n)))
-			    ls)))
-	     ((null? slots) (reverse! ls))))))
+  `(begin ,@(map (lambda (def) `(define-record ,def)) rest)))
 
 (define (%slot-1 x) (vector-ref x 1))
 (define (%slot-2 x) (vector-ref x 2))
