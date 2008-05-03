@@ -183,7 +183,7 @@
     (if (eq? (car clause) 'else)
         clause
         `(($ ,@(car clause)) ,@(cdr clause))))
-  `(match ,record ,@(map process-clause clauses)))
+  `(,match ,record ,@(map process-clause clauses)))
 
 (define (record? x)
   (and (vector? x)

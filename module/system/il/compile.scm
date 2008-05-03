@@ -23,7 +23,6 @@
   :use-syntax (system base syntax)
   :use-module (system il glil)
   :use-module (system il ghil)
-  :use-module (ice-9 match)
   :use-module (ice-9 common-list)
   :export (compile))
 
@@ -37,31 +36,31 @@
 ;;;
 
 (define (optimize x)
-  (match x
-    (($ <ghil-set> env var val)
+  (record-case x
+    ((<ghil-set> env var val)
      (make-ghil-set env var (optimize val)))
 
-    (($ <ghil-if> test then else)
+    ((<ghil-if> test then else)
      (make-ghil-if (optimize test) (optimize then) (optimize else)))
 
-    (($ <ghil-begin> exps)
+    ((<ghil-begin> exps)
      (make-ghil-begin (map optimize exps)))
 
-    (($ <ghil-bind> env vars vals body)
+    ((<ghil-bind> env vars vals body)
      (make-ghil-bind env vars (map optimize vals) (optimize body)))
 
-    (($ <ghil-lambda> env vars rest body)
+    ((<ghil-lambda> env vars rest body)
      (make-ghil-lambda env vars rest (optimize body)))
 
 ;; FIXME:  <ghil-inst> does not exist.  -- Ludo'.
 ;     (($ <ghil-inst> inst args)
 ;      (make-ghil-inst inst (map optimize args)))
 
-    (($ <ghil-call> env proc args)
-     (match proc
+    ((<ghil-call> env proc args)
+     (record-case proc
        ;; ((@lambda (VAR...) BODY...) ARG...) =>
        ;;   (@let ((VAR ARG) ...) BODY...)
-       (($ <ghil-lambda> lambda-env vars #f body)
+       ((<ghil-lambda> lambda-env vars #f body)
 	(for-each (lambda (v)
 		    (if (eq? v.kind 'argument) (set! v.kind 'local))
 		    (set! v.env env)
@@ -135,48 +134,50 @@
 	(return-code! (make-glil-const obj)))
       ;;
       ;; dispatch
-      (match tree
-	(($ <ghil-void>)
+      (record-case tree
+	((<ghil-void>)
 	 (return-void!))
 
-	(($ <ghil-quote> env loc obj)
+	((<ghil-quote> env loc obj)
 	 (return-object! obj))
 
-	(($ <ghil-quasiquote> env loc exp)
+	((<ghil-quasiquote> env loc exp)
 	 (let loop ((x exp))
-	   (match x
-	     ((? list? ls)
-	      (push-call! #f 'mark '())
-	      (for-each loop ls)
-	      (push-call! #f 'list-mark '()))
-	     ((? pair? pp)
-	      (loop (car pp))
-	      (loop (cdr pp))
-	      (push-code! (make-glil-call 'cons 2)))
-	     (($ <ghil-unquote> env loc exp)
-	      (comp-push exp))
-	     (($ <ghil-unquote-splicing> env loc exp)
-	      (comp-push exp)
-	      (push-call! #f 'list-break '()))
-	     (else
-	      (push-code! (make-glil-const x)))))
+           (cond
+            ((list? x)
+             (push-call! #f 'mark '())
+             (for-each loop x)
+             (push-call! #f 'list-mark '()))
+            ((pair? x)
+             (loop (car x))
+             (loop (cdr x))
+             (push-code! (make-glil-call 'cons 2)))
+            ((record? x)
+             (record-case x
+              ((<ghil-unquote> env loc exp)
+               (comp-push exp))
+              ((<ghil-unquote-splicing> env loc exp)
+               (comp-push exp)
+               (push-call! #f 'list-break '()))))
+            (else
+             (push-code! (make-glil-const x)))))
 	 (maybe-drop)
 	 (maybe-return))
 
-	(($ <ghil-ref> env loc var)
+	((<ghil-ref> env loc var)
 	 (return-code! (make-glil-var 'ref env var)))
 
-	(($ <ghil-set> env loc var val)
+	((<ghil-set> env loc var val)
 	 (comp-push val)
 	 (push-code! (make-glil-var 'set env var))
 	 (return-void!))
 
-	(($ <ghil-define> env loc var val)
+	((<ghil-define> env loc var val)
 	 (comp-push val)
 	 (push-code! (make-glil-var 'set env var))
 	 (return-void!))
 
-	(($ <ghil-if> env loc test then else)
+	((<ghil-if> env loc test then else)
 	 ;;     TEST
 	 ;;     (br-if-not L1)
 	 ;;     THEN
@@ -192,7 +193,7 @@
 	   (comp-tail else)
 	   (if (not tail) (push-label! L2))))
 
-	(($ <ghil-and> env loc exps)
+	((<ghil-and> env loc exps)
 	 ;;     EXP
 	 ;;     (br-if-not L1)
 	 ;;     ...
@@ -215,7 +216,7 @@
 		 (comp-push (car exps))
 		 (push-branch! 'br-if-not L1)))))
 
-	(($ <ghil-or> env loc exps)
+	((<ghil-or> env loc exps)
 	 ;;     EXP
 	 ;;     (dup)
 	 ;;     (br-if L1)
@@ -237,7 +238,7 @@
 		 (push-branch! 'br-if L1)
 		 (push-call! #f 'drop '())))))
 
-	(($ <ghil-begin> env loc exps)
+	((<ghil-begin> env loc exps)
 	 ;; EXPS...
 	 ;; TAIL
 	 (if (null? exps)
@@ -247,7 +248,7 @@
 		  (comp-tail (car exps)))
 	       (comp-drop (car exps)))))
 
-	(($ <ghil-bind> env loc vars vals body)
+	((<ghil-bind> env loc vars vals body)
 	 ;; VALS...
 	 ;; (set VARS)...
 	 ;; BODY
@@ -259,17 +260,17 @@
 	 (comp-tail body)
 	 (push-code! (make-glil-unbind)))
 
-	(($ <ghil-lambda> env loc vars rest body)
+	((<ghil-lambda> env loc vars rest body)
 	 (return-code! (codegen tree)))
 
-	(($ <ghil-inline> env loc inst args)
+	((<ghil-inline> env loc inst args)
 	 ;; ARGS...
 	 ;; (INST NARGS)
 	 (push-call! loc inst args)
 	 (maybe-drop)
 	 (maybe-return))
 
-	(($ <ghil-call> env loc proc args)
+	((<ghil-call> env loc proc args)
 	 ;; PROC
 	 ;; ARGS...
 	 ;; ([tail-]call NARGS)
@@ -278,8 +279,8 @@
 	 (maybe-drop))))
     ;;
     ;; main
-    (match ghil
-      (($ <ghil-lambda> env loc args rest body)
+    (record-case ghil
+      ((<ghil-lambda> env loc args rest body)
        (let* ((vars env.variables)
 	      (locs (pick (lambda (v) (eq? v.kind 'local)) vars))
 	      (exts (pick (lambda (v) (eq? v.kind 'external)) vars)))

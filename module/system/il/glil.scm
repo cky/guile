@@ -21,7 +21,6 @@
 
 (define-module (system il glil)
   :use-syntax (system base syntax)
-  :use-module (ice-9 match)
   :export
   (pprint-glil
    <glil-vars> make-glil-vars
@@ -143,30 +142,30 @@
 ;;;
 
 (define (unparse glil)
-  (match glil
+  (record-case glil
     ;; meta
-    (($ <glil-asm> vars body)
+    ((<glil-asm> vars body)
      `(@asm (,vars.nargs ,vars.nrest ,vars.nlocs ,vars.nexts)
 	    ,@(map unparse body)))
-    (($ <glil-bind> vars) `(@bind ,@vars))
-    (($ <glil-unbind>) `(@unbind))
-    (($ <glil-source> loc) `(@source ,(car loc) ,(cdr loc)))
+    ((<glil-bind> vars) `(@bind ,@vars))
+    ((<glil-unbind>) `(@unbind))
+    ((<glil-source> loc) `(@source ,(car loc) ,(cdr loc)))
     ;; constants
-    (($ <glil-void>) `(void))
-    (($ <glil-const> obj) `(const ,obj))
+    ((<glil-void>) `(void))
+    ((<glil-const> obj) `(const ,obj))
     ;; variables
-    (($ <glil-argument> op index)
+    ((<glil-argument> op index)
      `(,(symbol-append 'argument- op) ,index))
-    (($ <glil-local> op index)
+    ((<glil-local> op index)
      `(,(symbol-append 'local- op) ,index))
-    (($ <glil-external> op depth index)
+    ((<glil-external> op depth index)
      `(,(symbol-append 'external- op) ,depth ,index))
-    (($ <glil-module> op module name)
+    ((<glil-module> op module name)
      `(,(symbol-append 'module- op) ,module ,name))
     ;; controls
-    (($ <glil-label> label) label)
-    (($ <glil-branch> inst label) `(,inst ,label))
-    (($ <glil-call> inst nargs) `(,inst ,nargs))))
+    ((<glil-label> label) label)
+    ((<glil-branch> inst label) `(,inst ,label))
+    ((<glil-call> inst nargs) `(,inst ,nargs))))
 
 
 ;;;
