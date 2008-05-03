@@ -175,11 +175,21 @@
        (cond ,@(map process-clause clauses)
              (else (error "unhandled record" ,r))))))
 
+;; These are short-lived, and headed to the chopping block.
 (use-modules (ice-9 match))
 (define-macro (record-case record . clauses)
   (define (process-clause clause)
-    `(($ ,@(car clause)) ,@(cdr clause)))
-  `(match ,record ,(map process-clause clauses)))
+    (if (eq? (car clause) 'else)
+        clause
+        `(($ ,@(car clause)) ,@(cdr clause))))
+  `(match ,record ,@(map process-clause clauses)))
+
+(define (record? x)
+  (and (vector? x)
+       (not (zero? (vector-length x)))
+       (symbol? (vector-ref x 0))
+       (eqv? (string-ref (symbol->string (vector-ref x 0)) 0) #\<)))
+(export record?)
 
 
 ;;;

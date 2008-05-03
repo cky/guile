@@ -53,12 +53,12 @@
 ;;;
 
 (define (preprocess x e)
-  (match x
-    (($ <glil-asm> vars body)
+  (record-case x
+    ((<glil-asm> vars body)
      (let* ((venv (<venv> :parent e :nexts (slot vars 'nexts) :closure? #f))
 	    (body (map (lambda (x) (preprocess x venv)) body)))
        (<vm-asm> :venv venv :glil x :body body)))
-    (($ <glil-external> op depth index)
+    ((<glil-external> op depth index)
      (do ((d depth (- d 1))
  	  (e e (slot e 'parent)))
  	 ((= d 0))
@@ -72,8 +72,8 @@
 ;;;
 
 (define (codegen glil toplevel)
-  (match glil
-    (($ <vm-asm> venv ($ <glil-asm> vars _) body)
+  (record-case glil
+    ((<vm-asm> venv glil body) (record-case glil ((<glil-asm> vars)
      (let ((stack '())
 	   (binding-alist '())
 	   (source-alist '())
@@ -98,12 +98,12 @@
 		 (else 3)))
 	 (apply + (map byte-length stack)))
        (define (generate-code x)
-	 (match x
-	   (($ <vm-asm> venv)
+	 (record-case x
+	   ((<vm-asm> venv)
 	    (push-object! (codegen x #f))
 	    (if (slot venv 'closure?) (push-code! `(make-closure))))
 
-	   (($ <glil-bind> binds)
+	   ((<glil-bind> binds)
 	    (let ((bindings
 		   (map (lambda (v)
 			  (let ((name (car v)) (type (cadr v)) (i (caddr v)))
@@ -115,29 +115,29 @@
 	      (set! binding-alist
 		    (acons (current-address) bindings binding-alist))))
 
-	   (($ <glil-unbind>)
+	   ((<glil-unbind>)
 	    (set! binding-alist (acons (current-address) #f binding-alist)))
 
-	   (($ <glil-source> loc)
+	   ((<glil-source> loc)
 	    (set! source-alist (acons (current-address) loc source-alist)))
 
-	   (($ <glil-void>)
+	   ((<glil-void>)
 	    (push-code! '(void)))
 
-	   (($ <glil-const> x)
+	   ((<glil-const> x)
 	    (push-object! x))
 
-	   (($ <glil-argument> op index)
+	   ((<glil-argument> op index)
 	    (if (eq? op 'ref)
 		(push-code! `(local-ref ,index))
 		(push-code! `(local-set ,index))))
 
-	   (($ <glil-local> op index)
+	   ((<glil-local> op index)
 	    (if (eq? op 'ref)
 		(push-code! `(local-ref ,(+ vars.nargs index)))
 		(push-code! `(local-set ,(+ vars.nargs index)))))
 
-	   (($ <glil-external> op depth index)
+	   ((<glil-external> op depth index)
 	    (do ((e venv e.parent)
 		 (d depth (1- d))
 		 (n 0 (+ n e.nexts)))
@@ -146,19 +146,19 @@
 		     (push-code! `(external-ref ,(+ n index)))
 		     (push-code! `(external-set ,(+ n index)))))))
 
-	   (($ <glil-module> op module name)
+	   ((<glil-module> op module name)
 	    (push-object! (<vlink> :module #f :name name))
 	    (if (eq? op 'ref)
 		(push-code! '(variable-ref))
 		(push-code! '(variable-set))))
 
-	   (($ <glil-label> label)
+	   ((<glil-label> label)
 	    (set! label-alist (assq-set! label-alist label (current-address))))
 
-	   (($ <glil-branch> inst label)
+	   ((<glil-branch> inst label)
 	    (set! stack (cons (list inst label) stack)))
 
-	   (($ <glil-call> inst nargs)
+	   ((<glil-call> inst nargs)
 	    (if (instruction? inst)
 		(let ((pops (instruction-pops inst)))
 		  (cond ((< pops 0)
@@ -183,11 +183,11 @@
 				       (reverse! source-alist)))
 			 :objs (let ((objs (map car (reverse! object-alist))))
 				 (if (null? objs) #f (list->vector objs)))
-			 :closure? venv.closure?)))))))
+			 :closure? venv.closure?)))))))))
 
 (define (object-assoc x alist)
-  (match x
-    (($ <vlink>) (assoc x alist))
+  (record-case x
+    ((<vlink>) (assoc x alist))
     (else        (assq x alist))))
 
 (define (stack->bytes stack label-alist)
@@ -222,9 +222,9 @@
   (let dump! ((x x))
     (cond
      ((object->code x) => push-code!)
-     (else
-      (match x
-	(($ <bytespec> vars bytes meta objs closure?)
+     ((record? x)
+      (record-case x
+	((<bytespec> vars bytes meta objs closure?)
 	 ;; dump parameters
 	 (let ((nargs vars.nargs) (nrest vars.nrest)
 	       (nlocs vars.nlocs) (nexts vars.nexts))
@@ -250,39 +250,41 @@
 	 (if meta (dump! meta))
 	 ;; dump bytecode
 	 (push-code! `(load-program ,bytes)))
-	(($ <vlink> module name)
+	((<vlink> module name)
 	 ;; FIXME: dump module
 	 (push-code! `(link ,(symbol->string name))))
-	(($ <vmod> id)
+	((<vmod> id)
 	 (push-code! `(load-module ,id)))
-	((and ($ integer) ($ exact))
-	 (let ((str (do ((n x (quotient n 256))
-			 (l '() (cons (modulo n 256) l)))
-			((= n 0)
-			 (apply u8vector l)))))
-	   (push-code! `(load-integer ,str))))
-	(($ number)
-	 (push-code! `(load-number ,(number->string x))))
-	(($ string)
-	 (push-code! `(load-string ,x)))
-	(($ symbol)
-	 (push-code! `(load-symbol ,(symbol->string x))))
-	(($ keyword)
-	 (push-code! `(load-keyword
-		       ,(symbol->string (keyword-dash-symbol x)))))
-	(($ list)
-	 (for-each dump! x)
-	 (let ((len (length x)))
-	   (if (>= len 65536) (too-long 'list))
-	   (push-code! `(list ,(quotient len 256) ,(modulo len 256)))))
-	(($ pair)
-	 (dump! (car x))
-	 (dump! (cdr x))
-	 (push-code! `(cons)))
-	(($ vector)
-	 (for-each dump! (vector->list x))
-	 (let ((len (vector-length x)))
-	   (if (>= len 65536) (too-long 'vector))
-	   (push-code! `(vector ,(quotient len 256) ,(modulo len 256)))))
-	(else
-	 (error "assemble: unrecognized object" x)))))))
+        (else
+         (error "assemble: unknown record type"))))
+     ((and (integer? x) (exact? x))
+      (let ((str (do ((n x (quotient n 256))
+                      (l '() (cons (modulo n 256) l)))
+                     ((= n 0)
+                      (apply u8vector l)))))
+        (push-code! `(load-integer ,str))))
+     ((number? x)
+      (push-code! `(load-number ,(number->string x))))
+     ((string? x)
+      (push-code! `(load-string ,x)))
+     ((symbol? x)
+      (push-code! `(load-symbol ,(symbol->string x))))
+     ((keyword? x)
+      (push-code! `(load-keyword
+                    ,(symbol->string (keyword-dash-symbol x)))))
+     ((list? x)
+      (for-each dump! x)
+      (let ((len (length x)))
+        (if (>= len 65536) (too-long 'list))
+        (push-code! `(list ,(quotient len 256) ,(modulo len 256)))))
+     ((pair? x)
+      (dump! (car x))
+      (dump! (cdr x))
+      (push-code! `(cons)))
+     ((vector? x)
+      (for-each dump! (vector->list x))
+      (let ((len (vector-length x)))
+        (if (>= len 65536) (too-long 'vector))
+        (push-code! `(vector ,(quotient len 256) ,(modulo len 256)))))
+     (else
+      (error "assemble: unrecognized object" x)))))
