@@ -21,6 +21,7 @@
 
 (define-module (system repl command)
   :use-syntax (system base syntax)
+  :use-module (system base pmatch)
   :use-module (system base compile)
   :use-module (system repl common)
   :use-module (system vm core)
@@ -126,7 +127,7 @@ List available meta commands.
 A command group name can be given as an optional argument.
 Without any argument, a list of help commands and command groups
 are displayed, as you have already seen ;)"
-  (match args
+  (pmatch args
     (()
      (display-group (lookup-group 'help))
      (display "Command Groups:\n\n")
@@ -140,9 +141,9 @@ are displayed, as you have already seen ;)"
      (newline)
      (display "Type `,COMMAND -h' to show documentation of each command.")
      (newline))
-    (('all)
+    ((all)
      (for-each display-group *command-table*))
-    ((? lookup-group group)
+    ((,group) (guard (lookup-group group))
      (display-group (lookup-group group)))
     (else
      (user-error "Unknown command group: ~A" (car args)))))
@@ -162,15 +163,15 @@ Show description/documentation."
 (define (option repl . args)
   "option [KEY VALUE]
 List/show/set options."
-  (match args
+  (pmatch args
     (()
      (for-each (lambda (key+val)
 		 (format #t "~A\t~A\n" (car key+val) (cdr key+val)))
 	       repl.options))
-    ((key)
+    ((,key)
      (display (repl-option-ref repl key))
      (newline))
-    ((key val)
+    ((,key ,val)
      (repl-option-set! repl key val)
      (case key
        ((trace)
@@ -191,7 +192,7 @@ Quit this session."
 (define (module repl . args)
   "module [MODULE]
 Change modules / Show current module."
-  (match args
+  (pmatch args
     (() (puts (binding repl.env.module)))))
 
 (define (use repl . args)

@@ -21,7 +21,6 @@
 
 (define-module (system il ghil)
   :use-syntax (system base syntax)
-  :use-module (ice-9 match)
   :use-module (ice-9 regex)
   :export
   (
