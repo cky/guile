@@ -35,8 +35,7 @@
 
 (define-record (<cenv> vm language module))
 
-(define-public (make-cenv . rest)
-  (apply <cenv> rest))
+(export make-cenv)
 
 (define-public (syntax-error loc msg exp)
   (throw 'syntax-error loc msg exp))
