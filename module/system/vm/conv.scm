@@ -23,7 +23,7 @@
   :use-module ((system vm core)
 	       :select (instruction? instruction-length
 			instruction->opcode opcode->instruction))
-  :use-module (ice-9 match)
+  :use-module (system base pmatch)
   :use-module (ice-9 regex)
   :use-module (srfi srfi-4)
   :use-module (srfi srfi-1)
@@ -35,8 +35,8 @@
 ;;;
 
 (define (code-pack code)
-  (match code
-    ((inst (? integer? n))
+  (pmatch code
+    ((inst ,n) (guard (integer? n))
      (cond ((< n 10)
 	    (let ((abbrev (string->symbol (format #f "~A:~A" inst n))))
 	      (if (instruction? abbrev) (list abbrev) code)))
@@ -73,20 +73,20 @@
 	(else #f)))
 
 (define (code->object code)
-  (match code
-    (('make-true) #t)
-    (('make-false) #f) ;; FIXME: Same as the `else' case!
-    (('make-eol) '())
-    (('make-int8 n)
+  (pmatch code
+    ((make-true) #t)
+    ((make-false) #f) ;; FIXME: Same as the `else' case!
+    ((make-eol) '())
+    ((make-int8 ,n)
      (if (< n 128) n (- n 256)))
-    (('make-int16 n1 n2)
+    ((make-int16 ,n1 ,n2)
      (let ((n (+ (* n1 256) n2)))
        (if (< n 32768) n (- n 65536))))
-    (('make-char8 n)
+    ((make-char8 ,n)
      (integer->char n))
-    (('load-string s) s)
-    (('load-symbol s) (string->symbol s))
-    (('load-keyword s) (make-keyword-from-dash-symbol (string->symbol s)))
+    ((load-string ,s) s)
+    ((load-symbol ,s) (string->symbol s))
+    ((load-keyword ,s) (symbol->keyword (string->symbol s)))
     (else #f)))
 
 ; (let ((c->o code->object))

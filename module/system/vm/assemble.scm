@@ -27,7 +27,6 @@
 		        make-binding
 			bytecode->objcode))
   :use-module (system vm conv)
-  :use-module (ice-9 match)
   :use-module (ice-9 regex)
   :use-module (ice-9 common-list)
   :use-module (srfi srfi-4)

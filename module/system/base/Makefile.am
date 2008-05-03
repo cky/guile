@@ -1,4 +1,4 @@
-SOURCES = compile.scm language.scm
+SOURCES = compile.scm language.scm pmatch.scm
 ## syntax.scm
 GOBJECTS = $(SOURCES:%.scm=%.go)
 
