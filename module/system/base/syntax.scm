@@ -20,7 +20,7 @@
 ;;; Code:
 
 (define-module (system base syntax)
-  :use-modules (srfi srfi-9)
+  :use-module (srfi srfi-9)
   :export (%make-struct slot
            %slot-1 %slot-2 %slot-3 %slot-4 %slot-5
            %slot-6 %slot-7 %slot-8 %slot-9
