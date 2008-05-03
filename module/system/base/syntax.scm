@@ -20,11 +20,14 @@
 ;;; Code:
 
 (define-module (system base syntax)
+  :use-modules (srfi srfi-9)
   :export (%make-struct slot
            %slot-1 %slot-2 %slot-3 %slot-4 %slot-5
            %slot-6 %slot-7 %slot-8 %slot-9
            list-fold)
-  :export-syntax (syntax define-type define-record |))
+  :export-syntax (syntax define-type define-record record-case)
+  :re-export-syntax (define-record-type))
+(export-syntax |) ;; emacs doesn't like the |
 
 
 ;;;
@@ -156,6 +159,21 @@
 (define (%slot-7 x) (vector-ref x 7))
 (define (%slot-8 x) (vector-ref x 8))
 (define (%slot-9 x) (vector-ref x 9))
+
+(define-macro (record-case record . clauses)
+  (let ((r (gensym)))
+    (define (process-clause clause)
+      (let ((record-type (caar clause))
+            (slots (cdar clause))
+            (body (cdr clause)))
+        `(((record-predicate ,record-type) ,r)
+          (let ,(map (lambda (slot)
+                       `(,slot ((record-accessor ,record-type ',slot) ,r)))
+                     slots)
+            ,@body))))
+    `(let ((,r ,record))
+       (cond ,@(map process-clause clauses)
+             (else (error "unhandled record" ,r))))))
 
 
 ;;;
