@@ -175,6 +175,12 @@
        (cond ,@(map process-clause clauses)
              (else (error "unhandled record" ,r))))))
 
+(use-modules (ice-9 match))
+(define-macro (record-case record . clauses)
+  (define (process-clause clause)
+    `(($ ,@(car clause)) ,@(cdr clause)))
+  `(match ,record ,(map process-clause clauses)))
+
 
 ;;;
 ;;; Utilities
