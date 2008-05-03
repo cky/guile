@@ -20,7 +20,7 @@
 ;;; Code:
 
 (define-module (system il macros)
-  :use-module (ice-9 match))
+  :use-module (srfi srfi-16))
 
 (define (make-label) (gensym ":L"))
 (define (make-sym) (gensym "_"))
@@ -34,7 +34,7 @@
 ;; 
 ;; (@if X (@and Y...) #f)
 (define @and
-  (match-lambda*
+  (case-lambda
     (() #t)
     ((x) x)
     ((x . rest) `(@if ,x (@and ,@rest) #f))))
@@ -43,7 +43,7 @@
 ;; 
 ;; (@let ((@_ X)) (@if @_ @_ (@or Y...)))
 (define @or
-  (match-lambda*
+  (case-lambda
     (() #f)
     ((x) x)
     ((x . rest)
@@ -86,27 +86,27 @@
 ;(define (@>= x y)	`(@@ ge? ,x ,y))
 
 (define @+
-  (match-lambda*
+  (case-lambda
     (() 0)
     ((x) x)
     ((x y) `(@@ add ,x ,y))
     ((x y . rest) `(@@ add ,x (@+ ,y ,@rest)))))
 
 (define @*
-  (match-lambda*
+  (case-lambda
     (() 1)
     ((x) x)
     ((x y) `(@@ mul ,x ,y))
     ((x y . rest) `(@@ mul ,x (@* ,y ,@rest)))))
 
 (define @-
-  (match-lambda*
+  (case-lambda
     ((x) `(@@ sub 0 ,x))
     ((x y) `(@@ sub ,x ,y))
     ((x y . rest) `(@@ sub ,x (@+ ,y ,@rest)))))
 
 (define @/
-  (match-lambda*
+  (case-lambda
     ((x) `(@@ div 1 ,x))
     ((x y) `(@@ div ,x ,y))
     ((x y . rest) `(@@ div ,x (@* ,y ,@rest)))))
@@ -296,7 +296,7 @@
 ;;;
 
 (define @cons*
-  (match-lambda*
+  (case-lambda
     ((x) x)
     ((x y) `(@cons ,x ,y))
     ((x y . rest) `(@cons ,x (@cons* ,y ,@rest)))))
