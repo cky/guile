@@ -167,7 +167,7 @@ List/show/set options."
     (()
      (for-each (lambda (key+val)
 		 (format #t "~A\t~A\n" (car key+val) (cdr key+val)))
-	       repl.options))
+	       (repl-options repl)))
     ((,key)
      (display (repl-option-ref repl key))
      (newline))
@@ -175,9 +175,10 @@ List/show/set options."
      (repl-option-set! repl key val)
      (case key
        ((trace)
-	(if val
-	    (apply vm-trace-on repl.env.vm val)
-	    (vm-trace-off repl.env.vm)))))))
+        (let ((vm (cenv-vm (repl-env repl))))
+          (if val
+              (apply vm-trace-on vm val)
+              (vm-trace-off vm))))))))
 
 (define (quit repl)
   "quit
@@ -193,7 +194,7 @@ Quit this session."
   "module [MODULE]
 Change modules / Show current module."
   (pmatch args
-    (() (puts (binding repl.env.module)))))
+    (() (puts (binding (cenv-module (repl-env repl)))))))
 
 (define (use repl . args)
   "use [MODULE ...]
@@ -201,12 +202,12 @@ Use modules."
   (define (use name)
     (let ((mod (resolve-interface name)))
       (if mod
-	  (module-use! repl.env.module mod)
+	  (module-use! (cenv-module (repl-env repl)) mod)
 	  (user-error "No such module: ~A" name))))
   (if (null? args)
       (for-each puts (map module-name
-			  (cons repl.env.module
-				(module-uses repl.env.module))))
+			  (cons (cenv-module (repl-env repl))
+				(module-uses (cenv-module (repl-env repl))))))
       (for-each (lambda (name)
 		  (cond
 		   ((pair? name) (use name))
@@ -221,11 +222,12 @@ Import modules / List those imported."
   (define (use name)
     (let ((mod (resolve-interface name)))
       (if mod
-	  (module-use! repl.env.module mod)
+	  (module-use! (cenv-module (repl-env repl)) mod)
 	  (user-error "No such module: ~A" name))))
   (if (null? args)
       (for-each puts (map module-name
-			  (cons repl.env.module (module-uses repl.env.module))))
+			  (cons (cenv-module (repl-env repl))
+                                (module-uses (cenv-module (repl-env repl))))))
       (for-each (lambda (name)
 		  (cond
 		   ((pair? name) (use name))
@@ -244,12 +246,13 @@ Load a file in the current module.
 	 (objcode (if (memq :f opts)
 		      (apply load-source-file file opts)
 		      (apply load-file file opts))))
-    (vm-load repl.env.vm objcode)))
+    (vm-load (cenv-vm (repl-env repl)) objcode)))
 
 (define (binding repl . opts)
   "binding
 List current bindings."
-  (fold (lambda (s v d) (format #t "~23A ~A\n" s v)) #f repl.env.module))
+  (fold (lambda (s v d) (format #t "~23A ~A\n" s v)) #f
+        (cenv-module (repl-env repl))))
 
 
 ;;;
@@ -259,7 +262,7 @@ List current bindings."
 (define (language repl name)
   "language LANGUAGE
 Change languages."
-  (set! repl.env.language (lookup-language name))
+  (set! (cenv-language (repl-env repl)) (lookup-language name))
   (repl-welcome repl))
 
 
@@ -306,13 +309,13 @@ Disassemble a file."
 (define (time repl form)
   "time FORM
 Time execution."
-  (let* ((vms-start (vm-stats repl.env.vm))
+  (let* ((vms-start (vm-stats (cenv-vm (repl-env repl))))
 	 (gc-start (gc-run-time))
 	 (tms-start (times))
 	 (result (repl-eval repl form))
 	 (tms-end (times))
 	 (gc-end (gc-run-time))
-	 (vms-end (vm-stats repl.env.vm)))
+	 (vms-end (vm-stats (cenv-vm (repl-env repl)))))
     (define (get proc start end)
       (/ (- (proc end) (proc start)) internal-time-units-per-second))
     (repl-print repl result)
@@ -329,7 +332,10 @@ Time execution."
 (define (profile repl form . opts)
   "profile FORM
 Profile execution."
-  (apply vm-profile repl.env.vm (repl-compile repl form) opts))
+  (apply vm-profile
+         (cenv-vm (repl-env repl))
+         (repl-compile repl form)
+         opts))
 
 
 ;;;
@@ -339,12 +345,12 @@ Profile execution."
 (define (backtrace repl)
   "backtrace
 Display backtrace."
-  (vm-backtrace repl.env.vm))
+  (vm-backtrace (cenv-vm (repl-env repl))))
 
 (define (debugger repl)
   "debugger
 Start debugger."
-  (vm-debugger repl.env.vm))
+  (vm-debugger (cenv-vm (repl-env repl))))
 
 (define (trace repl form . opts)
   "trace FORM
@@ -354,7 +360,7 @@ Trace execution.
   -l    Display local variables
   -e    Display external variables
   -b    Bytecode level trace"
-  (apply vm-trace repl.env.vm (repl-compile repl form) opts))
+  (apply vm-trace (cenv-vm (repl-env repl)) (repl-compile repl form) opts))
 
 (define (step repl)
   "step FORM
@@ -376,11 +382,11 @@ Garbage collection."
   "statistics
 Display statistics."
   (let ((this-tms (times))
-	(this-vms (vm-stats repl.env.vm))
+	(this-vms (vm-stats (cenv-vm (repl-env repl))))
 	(this-gcs (gc-stats))
-	(last-tms repl.tm-stats)
-	(last-vms repl.vm-stats)
-	(last-gcs repl.gc-stats))
+	(last-tms (repl-tm-stats repl))
+	(last-vms (repl-vm-stats repl))
+	(last-gcs (repl-gc-stats repl)))
     ;; GC times
     (let ((this-times  (assq-ref this-gcs 'gc-times))
 	  (last-times  (assq-ref last-gcs 'gc-times)))
@@ -443,9 +449,9 @@ Display statistics."
       (newline))
     ;; Save statistics
     ;; Save statistics
-    (set! repl.tm-stats this-tms)
-    (set! repl.vm-stats this-vms)
-    (set! repl.gc-stats this-gcs)))
+    (set! (repl-tm-stats repl) this-tms)
+    (set! (repl-vm-stats repl) this-vms)
+    (set! (repl-gc-stats repl) this-gcs)))
 
 (define (display-stat title flag field1 field2 unit)
   (let ((str (format #f "~~20~AA ~~10@A /~~10@A ~~A~~%" (if flag "" "@"))))

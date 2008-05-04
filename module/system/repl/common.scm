@@ -23,7 +23,9 @@
   :use-syntax (system base syntax)
   :use-module (system base compile)
   :use-module (system base language)
-  :use-module (system vm core))
+  :use-module (system vm core)
+  :export (<repl> make-repl repl-env repl-options repl-tm-stats
+                  repl-gc-stats repl-vm-stats))
 
 
 ;;;
@@ -36,7 +38,7 @@
   '((trace . #f)))
 
 (define %make-repl make-repl)
-(define-public (make-repl lang)
+(define (make-repl lang)
   (let ((cenv (make-cenv :vm (the-vm)
 			 :language (lookup-language lang)
 			 :module (current-module))))
