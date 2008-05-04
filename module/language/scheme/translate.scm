@@ -20,9 +20,9 @@
 ;;; Code:
 
 (define-module (language scheme translate)
+  :use-module (system base pmatch)
   :use-module (system base language)
   :use-module (system il ghil)
-  :use-module (ice-9 match)
   :use-module (ice-9 receive)
   :use-module (srfi srfi-39)
   :use-module ((system base compile) :select (syntax-error))
@@ -151,6 +151,14 @@
 	  `(slot ,(loop (substring s 0 i)) (quote ,sym)))
 	(string->symbol s)))))
 
+(define (valid-bindings? bindings . it-is-for-do)
+  (define (valid-binding? b)
+    (pmatch b 
+      ((,sym ,var) (guard (symbol? sym)) #t)
+      ((,sym ,var ,update) (guard (pair? it-is-for-do) (symbol? sym)) #t)
+      (else #f)))
+  (and (list? bindings) (and-map valid-binding? bindings)))
+
 (define (trans-pair e l head tail)
   (define (trans:x x) (trans e l x))
   (define (trans:pair x) (trans-pair e l (car x) (cdr x)))
@@ -158,36 +166,38 @@
   (define (make:void) (make-ghil-void e l))
   (define (bad-syntax)
     (syntax-error l (format #f "bad ~A" head) (cons head tail)))
+  ;; have to use a case first, because pmatch treats e.g. (quote foo)
+  ;; and (unquote foo) specially
   (case head
     ;; (void)
     ((void)
-     (match tail
+     (pmatch tail
        (() (make:void))
        (else (bad-syntax))))
 
     ;; (quote OBJ)
     ((quote)
-     (match tail
-       ((obj) (make-ghil-quote e l obj))
+     (pmatch tail
+       ((,obj) (make-ghil-quote e l obj))
        (else (bad-syntax))))
 
     ;; (quasiquote OBJ)
     ((quasiquote)
-     (match tail
-       ((obj) (make-ghil-quasiquote e l (trans-quasiquote e l obj)))
+     (pmatch tail
+       ((,obj) (make-ghil-quasiquote e l (trans-quasiquote e l obj)))
        (else (bad-syntax))))
 
-    ((define define-private)
-     (match tail
+    ((define define-private) ;; what is define-private?
+     (pmatch tail
        ;; (define NAME VAL)
-       (((? symbol? name) val)
-	(make-ghil-define e l (ghil-lookup e name) (trans:x val)))
+       ((,sym ,val) (guard (symbol? sym))
+        (make-ghil-define e l (ghil-lookup e name) (trans:x val)))
 
        ;; (define (NAME FORMALS...) BODY...)
-       ((((? symbol? name) . formals) . body)
-	;; -> (define NAME (lambda FORMALS BODY...))
-	(let ((val (trans:x `(lambda ,formals ,@body))))
-	  (make-ghil-define e l (ghil-lookup e name) val)))
+       (((,name . ,formals) . ,body) (guard (symbol? name))
+        ;; -> (define NAME (lambda FORMALS BODY...))
+        (let ((val (trans:x `(lambda ,formals ,@body))))
+          (make-ghil-define e l (ghil-lookup e name) val)))
 
        (else (bad-syntax))))
 
@@ -200,25 +210,25 @@
      (make:void))
 
     ((set!)
-     (match tail
+     (pmatch tail
        ;; (set! NAME VAL)
-       (((? symbol? name) val)
-	(make-ghil-set e l (ghil-lookup e name) (trans:x val)))
+       ((,name ,val) (guard (symbol? name))
+        (make-ghil-set e l (ghil-lookup e name) (trans:x val)))
 
        ;; (set! (NAME ARGS...) VAL)
-       ((((? symbol? name) . args) val)
-	;; -> ((setter NAME) ARGS... VAL)
-	(trans:pair `((setter ,name) . (,@args ,val))))
+       (((,name . ,args) ,val) (guard (symbol? name))
+        ;; -> ((setter NAME) ARGS... VAL)
+        (trans:pair `((setter ,name) . (,@args ,val))))
 
        (else (bad-syntax))))
 
     ;; (if TEST THEN [ELSE])
     ((if)
-     (match tail
-       ((test then)
-	(make-ghil-if e l (trans:x test) (trans:x then) (make:void)))
-       ((test then else)
-	(make-ghil-if e l (trans:x test) (trans:x then) (trans:x else)))
+     (pmatch tail
+       ((,test ,then)
+        (make-ghil-if e l (trans:x test) (trans:x then) (make:void)))
+       ((,test ,then ,else)
+        (make-ghil-if e l (trans:x test) (trans:x then) (trans:x else)))
        (else (bad-syntax))))
 
     ;; (and EXPS...)
@@ -234,123 +244,130 @@
      (make-ghil-begin e l (map trans:x tail)))
 
     ((let)
-     (match tail
+     (pmatch tail
        ;; (let NAME ((SYM VAL) ...) BODY...)
-       (((? symbol? name) (((? symbol? sym) val) ...) body ...)
-	;; -> (letrec ((NAME (lambda (SYM...) BODY...))) (NAME VAL...))
-	(trans:pair `(letrec ((,name (lambda ,sym ,@body))) (,name ,@val))))
+       ((,name ,bindings . ,body) (guard (symbol? name)
+                                         (valid-bindings? bindings))
+        ;; -> (letrec ((NAME (lambda (SYM...) BODY...))) (NAME VAL...))
+        (trans:pair `(letrec ((,name (lambda ,(map car bindings) ,@body)))
+                       (,name ,@(map cadr bindings)))))
 
        ;; (let () BODY...)
-       ((() body ...)
-	;; NOTE: This differs from `begin'
-	(make-ghil-begin e l (list (trans:body body))))
+       ((() . ,body)
+        ;; Note: this differs from `begin'
+        (make-ghil-begin e l (list (trans:body body))))
 
        ;; (let ((SYM VAL) ...) BODY...)
-       (((((? symbol? sym) val) ...) body ...)
-	(let ((vals (map trans:x val)))
-	  (call-with-ghil-bindings e sym
-	    (lambda (vars)
-	      (make-ghil-bind e l vars vals (trans:body body))))))
-
+       ((,bindings . ,body) (guard (valid-bindings? bindings))
+        (let ((vars (map car bindings))
+              (vals (map trans:x (map cadr bindings))))
+          (call-with-ghil-bindings e sym
+            (lambda (vars)
+              (make-ghil-bind e l vars vals (trans:body body))))))
        (else (bad-syntax))))
 
     ;; (let* ((SYM VAL) ...) BODY...)
     ((let*)
-     (match tail
-       (((def ...) body ...)
-	(if (null? def)
-	    (trans:pair `(let () ,@body))
-	    (trans:pair `(let (,(car def)) (let* ,(cdr def) ,@body)))))
+     (pmatch tail
+       ((() . ,body)
+        (trans:pair `(let () ,@body)))
+       ((((,sym ,val) . ,rest) . ,body) (guard (symbol? sym))
+        (trans:pair `(let ((,sym ,val)) (let* ,rest ,@body))))
        (else (bad-syntax))))
 
     ;; (letrec ((SYM VAL) ...) BODY...)
     ((letrec)
-     (match tail
-       (((((? symbol? sym) val) ...) body ...)
-	(call-with-ghil-bindings e sym
-	  (lambda (vars)
-	    (let ((vals (map trans:x val)))
-	      (make-ghil-bind e l vars vals (trans:body body))))))
+     (pmatch tail
+       ((,bindings . ,body) (guard (valid-bindings? bindings))
+        (call-with-ghil-bindings e (map car bindings)
+          (lambda (vars)
+            (let ((vals (map trans:x (map cadr bindings))))
+              (make-ghil-bind e l vars vals (trans:body body))))))
        (else (bad-syntax))))
 
     ;; (cond (CLAUSE BODY...) ...)
     ((cond)
-     (match tail
+     (pmatch tail
        (() (make:void))
-       ((('else . body)) (trans:body body))
-       (((test) . rest) (trans:pair `(or ,test (cond ,@rest))))
-       (((test '=> proc) . rest)
-	(trans:pair `(let ((_t ,test)) (if _t (,proc _t) (cond ,@rest)))))
-       (((test . body) . rest)
-	(trans:pair `(if ,test (begin ,@body) (cond ,@rest))))
+       (((else . ,body)) (trans:body body))
+       (((,test) . ,rest) (trans:pair `(or ,test (cond ,@rest))))
+       (((,test => ,proc) . ,rest)
+        ;; FIXME hygiene!
+        (trans:pair `(let ((_t ,test)) (if _t (,proc _t) (cond ,@rest)))))
+       (((,test . ,body) . ,rest)
+        (trans:pair `(if ,test (begin ,@body) (cond ,@rest))))
        (else (bad-syntax))))
 
     ;; (case EXP ((KEY...) BODY...) ...)
     ((case)
-     (match tail
-       ((exp . clauses)
-	(trans:pair
-	 `(let ((_t ,exp))
-	    ,(let loop ((ls clauses))
-	       (cond ((null? ls) '(void))
-		     ((eq? (caar ls) 'else) `(begin ,@(cdar ls)))
-		     (else `(if (memv _t ',(caar ls))
-				(begin ,@(cdar ls))
-				,(loop (cdr ls)))))))))
+     (pmatch tail
+       ((,exp . ,clauses)
+        (trans:pair
+         ;; FIXME hygiene!
+         `(let ((_t ,exp))
+            ,(let loop ((ls clauses))
+               (cond ((null? ls) '(void))
+                     ((eq? (caar ls) 'else) `(begin ,@(cdar ls)))
+                     (else `(if (memv _t ',(caar ls))
+                                (begin ,@(cdar ls))
+                                ,(loop (cdr ls)))))))))
        (else (bad-syntax))))
 
     ;; (do ((SYM VAL [UPDATE]) ...) (TEST RESULT...) BODY...)
     ((do)
-     (let ()
-       (define (next s x) (if (pair? x) (car x) s))
-       (match tail
-	 ((((sym init . update) ...) (test . result) body ...)
-	  (trans:pair
-	   `(letrec ((_l (lambda ,sym
-			   (if ,test
-			       (let () (void) ,@result)
-			       (let () (void) ,@body
-				    (_l ,@(map next sym update)))))))
-	      (_l ,@init))))
-	 (else (bad-syntax)))))
+     (pmatch tail
+       ((,bindings (,test . ,result) . ,body)
+        (let ((sym (map car bindings))
+              (val (map cadr bindings))
+              (update (map cddr bindings)))
+          (define (next s x) (if (pair? x) (car x) s))
+          (trans:pair
+           ;; FIXME hygiene!
+           `(letrec ((_l (lambda ,sym
+                           (if ,test
+                               (let () (void) ,@result)
+                               (let () (void) ,@body
+                                    (_l ,@(map next sym update)))))))
+              (_l ,@init)))))
+       (else (bad-syntax))))
 
     ;; (lambda FORMALS BODY...)
     ((lambda)
-     (match tail
-       ((formals body ...)
-	(receive (syms rest) (parse-formals formals)
-	  (call-with-ghil-environment e syms
-	    (lambda (env vars)
-	      (make-ghil-lambda env l vars rest (trans-body env l body))))))
+     (pmatch tail
+       ((,formals . ,body)
+        (receive (syms rest) (parse-formals formals)
+          (call-with-ghil-environment e syms
+   	 (lambda (env vars)
+              (make-ghil-lambda env l vars rest (trans-body env l body))))))
        (else (bad-syntax))))
 
     ((eval-case)
      (let loop ((x tail))
-       (match x
-	 (() (make:void))
-	 ((('else . body)) (trans:pair `(begin ,@body)))
-	 (((((? symbol? key) ...) body ...) rest ...)
-	  (if (memq 'load-toplevel key)
-	      (begin
-		(primitive-eval `(begin ,@(copy-tree body)))
-		(trans:pair `(begin ,@body)))
-	      (loop rest)))
-	 (else (bad-syntax)))))
+       (pmatch x
+   	 (() (make:void))
+   	 (((else . ,body)) (trans:pair `(begin ,@body)))
+   	 (((,keys . ,body) . ,rest) (guard (list? keys) (and-map symbol? keys))
+   	  (if (memq 'load-toplevel keys)
+   	      (begin
+   		(primitive-eval `(begin ,@(copy-tree body)))
+   		(trans:pair `(begin ,@body)))
+   	      (loop rest)))
+   	 (else (bad-syntax)))))
 
     (else
      (if (memq head %scheme-primitives)
-	 (make-ghil-inline e l head (map trans:x tail))
-	 (if (memq head %forbidden-primitives)
-	     (syntax-error l (format #f "`~a' is forbidden" head)
-			   (cons head tail))
-	     (make-ghil-call e l (trans:x head) (map trans:x tail)))))))
+   	 (make-ghil-inline e l head (map trans:x tail))
+   	 (if (memq head %forbidden-primitives)
+   	     (syntax-error l (format #f "`~a' is forbidden" head)
+   			   (cons head tail))
+      	     (make-ghil-call e l (trans:x head) (map trans:x tail)))))))
 
 (define (trans-quasiquote e l x)
   (cond ((not (pair? x)) x)
 	((memq (car x) '(unquote unquote-splicing))
 	 (let ((l (location x)))
-	   (match (cdr x)
-	     ((obj)
+	   (pmatch (cdr x)
+	     ((,obj)
 	      (if (eq? (car x) 'unquote)
 		  (make-ghil-unquote e l (trans e l obj))
 		  (make-ghil-unquote-splicing e l (trans e l obj))))
@@ -360,9 +377,9 @@
 
 (define (trans-body e l body)
   (define (define->binding df)
-    (match (cdr df)
-      (((? symbol? name) val) (list name val))
-      ((((? symbol? name) . formals) . body)
+    (pmatch (cdr df)
+      ((,name ,val) (guard (symbol? name)) (list name val))
+      (((,name . ,formals) . ,body) (guard (symbol? name))
        (list name `(lambda ,formals ,@body)))
       (else (syntax-error (location df) "bad define" df))))
   ;; main
