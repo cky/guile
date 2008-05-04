@@ -53,8 +53,12 @@
 
 (define-macro (define-record def)
   (let* ((name (car def)) (slots (cdr def))
-         (stem (symbol-trim-both name (list->char-set '(#\< #\>)))))
+         (slot-names (map (lambda (slot) (if (pair? slot) (car slot) slot))
+                          slots))
+         (stem (symbol-trim-both name (list->char-set '(#\< #\>))))
+         (type (make-record-type (symbol->string name) slot-names)))
     `(begin
+       (define ,name ,type)
        (define ,(symbol-append 'make- stem)
          (let ((slots (list ,@(map (lambda (slot)
                                      (if (pair? slot)
@@ -62,36 +66,28 @@
                                          `',slot))
                                    slots))))
            (lambda args
-             (vector ',name (%make-struct args slots)))))
-       (define (,(symbol-append name '?) x)
-	 (and (vector? x) (eq? (vector-ref x 0) ',name)))
-       ,@(do ((n 1 (1+ n))
-	      (slots (cdr def) (cdr slots))
-	      (ls '() (append (let* ((sdef (car slots))
-                                     (sname (if (pair? sdef) (car sdef) sdef)))
-                                `((define ,(string->symbol
-                                            (format #f "~A-~A" name n))
-                                    (lambda (x) (slot x ',sname)))
-                                  (define ,(symbol-append stem '- sname)
-                                    ,(make-procedure-with-setter
-                                      (lambda (x) (get-slot x sname))
-                                      (lambda (x v) (set-slot! x sname v))))))
-                              ls)))
-	     ((null? slots) (reverse! ls))))))
+             (apply ,(record-constructor type)
+                    (,%compute-initargs args slots)))))
+       (define ,(symbol-append name '?) ,(record-predicate type))
+       ,@(map (lambda (sname)
+                `(define ,(symbol-append stem '- sname)
+                   ,(make-procedure-with-setter
+                     (record-accessor type sname)
+                     (record-modifier type sname))))
+              slot-names))))
 
-(define (%make-struct args slots)
-  (define (finish-bindings out)
+(define (%compute-initargs args slots)
+  (define (finish out)
     (map (lambda (slot)
            (let ((name (if (pair? slot) (car slot) slot)))
-             (or (assq name out)
-                 (if (pair? slot)
-                     (cons name (cdr slot))
-                     (error "unbound slot" args slots name)))))
+             (cond ((assq name out) => cdr)
+                   ((pair? slot) (cdr slot))
+                   (else (error "unbound slot" args slots name)))))
          slots))
   (let lp ((in args) (positional slots) (out '()))
     (cond
      ((null? in)
-      (finish-bindings out))
+      (finish out))
      ((keyword? (car in))
       (let ((sym (keyword->symbol (car in))))
         (cond
@@ -105,21 +101,6 @@
      (else
       (lp (cdr in) (cdr positional)
           (acons (car positional) (car in) out))))))
-
-(define (get-slot struct name . names)
-  (let ((data (assq name (vector-ref struct 1))))
-    (cond ((not data) (error "unknown slot" name))
-          ((null? names) (cdr data))
-          (else (apply get-slot (cdr data) names)))))
-
-(define (set-slot! struct name . rest)
-  (let ((data (assq name (vector-ref struct 1))))
-    (cond ((not data) (error "unknown slot" name))
-          ((null? (cdr rest)) (set-cdr! data (car rest)))
-          (else (apply set-slot! (cdr data) rest)))))
-
-(define slot
-  (make-procedure-with-setter get-slot set-slot!))
 
 
 ;;;
@@ -142,33 +123,23 @@
 (define-macro (record-case record . clauses)
   (let ((r (gensym)))
     (define (process-clause clause)
-      (let ((record-type (caar clause))
-            (slots (cdar clause))
-            (body (cdr clause)))
-        `(((record-predicate ,record-type) ,r)
-          (let ,(map (lambda (slot)
-                       `(,slot ((record-accessor ,record-type ',slot) ,r)))
-                     slots)
-            ,@body))))
+      (if (eq? (car clause) 'else)
+          clause
+          (let ((record-type (caar clause))
+                (slots (cdar clause))
+                (body (cdr clause)))
+            `(((record-predicate ,record-type) ,r)
+              (let ,(map (lambda (slot)
+                           (if (pair? slot)
+                               `(,(car slot) ((record-accessor ,record-type ',(cadr slot)) ,r))
+                               `(,slot ((record-accessor ,record-type ',slot) ,r))))
+                         slots)
+                ,@body)))))
     `(let ((,r ,record))
-       (cond ,@(map process-clause clauses)
-             (else (error "unhandled record" ,r))))))
-
-;; These are short-lived, and headed to the chopping block.
-(use-modules (ice-9 match))
-(define-macro (record-case record . clauses)
-  (define (process-clause clause)
-    (if (eq? (car clause) 'else)
-        clause
-        `(($ ,@(car clause)) ,@(cdr clause))))
-  `(,match ,record ,@(map process-clause clauses)))
-
-(define (record? x)
-  (and (vector? x)
-       (not (zero? (vector-length x)))
-       (symbol? (vector-ref x 0))
-       (eqv? (string-ref (symbol->string (vector-ref x 0)) 0) #\<)))
-(export record?)
+       (cond ,@(let ((clauses (map process-clause clauses)))
+                 (if (assq 'else clauses)
+                     clauses
+                     (append clauses `((else (error "unhandled record" ,r))))))))))
 
 
 ;;;

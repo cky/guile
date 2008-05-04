@@ -155,7 +155,7 @@
 (define-public (make-ghil-env e)
   (record-case e
     ((<ghil-mod>) (%make-ghil-env :mod e :parent e))
-    ((<ghil-env> m) (%make-ghil-env :mod m :parent e))))
+    ((<ghil-env> mod) (%make-ghil-env :mod mod :parent e))))
 
 (define (ghil-env-toplevel? e)
   (eq? (ghil-env-mod e) (gil-env-parent e)))

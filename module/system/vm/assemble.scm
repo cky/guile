@@ -54,14 +54,14 @@
 (define (preprocess x e)
   (record-case x
     ((<glil-asm> vars body)
-     (let* ((venv (make-venv :parent e :nexts (slot vars 'nexts) :closure? #f))
+     (let* ((venv (make-venv :parent e :nexts (glil-vars-nexts vars) :closure? #f))
 	    (body (map (lambda (x) (preprocess x venv)) body)))
        (make-vm-asm :venv venv :glil x :body body)))
     ((<glil-external> op depth index)
      (do ((d depth (- d 1))
- 	  (e e (slot e 'parent)))
+ 	  (e e (venv-parent e)))
  	 ((= d 0))
-       (set! (slot e 'closure?) #t))
+       (set! (venv-closure? e) #t))
      x)
     (else x)))
 
@@ -100,9 +100,9 @@
 	 (record-case x
 	   ((<vm-asm> venv)
 	    (push-object! (codegen x #f))
-	    (if (slot venv 'closure?) (push-code! `(make-closure))))
+	    (if (venv-closure? venv) (push-code! `(make-closure))))
 
-	   ((<glil-bind> binds)
+	   ((<glil-bind> (binds vars))
 	    (let ((bindings
 		   (map (lambda (v)
 			  (let ((name (car v)) (type (cadr v)) (i (caddr v)))
@@ -123,8 +123,8 @@
 	   ((<glil-void>)
 	    (push-code! '(void)))
 
-	   ((<glil-const> x)
-	    (push-object! x))
+	   ((<glil-const> obj)
+	    (push-object! obj))
 
 	   ((<glil-argument> op index)
 	    (if (eq? op 'ref)

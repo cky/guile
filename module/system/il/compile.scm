@@ -276,10 +276,10 @@
 	((<ghil-lambda> env loc vars rest body)
 	 (return-code! (codegen tree)))
 
-	((<ghil-inline> env loc inst args)
+	((<ghil-inline> env loc inline args)
 	 ;; ARGS...
 	 ;; (INST NARGS)
-	 (push-call! loc inst args)
+	 (push-call! loc inline args)
 	 (maybe-drop)
 	 (maybe-return))
 
@@ -293,19 +293,19 @@
     ;;
     ;; main
     (record-case ghil
-      ((<ghil-lambda> env loc args rest body)
-       (let* ((vars (ghil-env-variables env))
-	      (locs (pick (lambda (v) (eq? (ghil-var-kind v) 'local)) vars))
-	      (exts (pick (lambda (v) (eq? (ghil-var-kind v) 'external)) vars)))
+      ((<ghil-lambda> env loc vars rest body)
+       (let* ((evars (ghil-env-variables env))
+	      (locs (pick (lambda (v) (eq? (ghil-var-kind v) 'local)) evars))
+	      (exts (pick (lambda (v) (eq? (ghil-var-kind v) 'external)) evars)))
 	 ;; initialize variable indexes
-	 (finalize-index! args)
+	 (finalize-index! vars)
 	 (finalize-index! locs)
 	 (finalize-index! exts)
 	 ;; meta bindings
-         (push-bindings! args)
+         (push-bindings! vars)
 	 ;; export arguments
 	 (do ((n 0 (1+ n))
-	      (l args (cdr l)))
+	      (l vars (cdr l)))
 	     ((null? l))
 	   (let ((v (car l)))
 	     (case (ghil-var-kind v)
@@ -315,7 +315,7 @@
 	 ;; compile body
 	 (comp body #t #f)
 	 ;; create GLIL
-	 (let ((vars (make-glil-vars :nargs (length args)
+	 (let ((vars (make-glil-vars :nargs (length vars)
                                      :nrest (if rest 1 0)
                                      :nlocs (length locs)
                                      :nexts (length exts))))
