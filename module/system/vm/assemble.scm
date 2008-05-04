@@ -108,7 +108,7 @@
 			  (let ((name (car v)) (type (cadr v)) (i (caddr v)))
 			    (case type
 			      ((argument) (make-binding name #f i))
-			      ((local) (make-binding name #f (+ vars.nargs i)))
+			      ((local) (make-binding name #f (+ (glil-vars-nargs vars) i)))
 			      ((external) (make-binding name #t i)))))
 			binds)))
 	      (set! binding-alist
@@ -133,13 +133,13 @@
 
 	   ((<glil-local> op index)
 	    (if (eq? op 'ref)
-		(push-code! `(local-ref ,(+ vars.nargs index)))
-		(push-code! `(local-set ,(+ vars.nargs index)))))
+		(push-code! `(local-ref ,(+ (glil-vars-nargs vars) index)))
+		(push-code! `(local-set ,(+ (glil-vars-nargs vars) index)))))
 
 	   ((<glil-external> op depth index)
-	    (do ((e venv e.parent)
+	    (do ((e venv (venv-parent e))
 		 (d depth (1- d))
-		 (n 0 (+ n e.nexts)))
+		 (n 0 (+ n (venv-nexts e))))
 		((= d 0)
 		 (if (eq? op 'ref)
 		     (push-code! `(external-ref ,(+ n index)))
@@ -173,7 +173,7 @@
 ;       (format #t "codegen: stack = ~a~%" (reverse stack))
        (let ((bytes (stack->bytes (reverse! stack) label-alist)))
 	 (if toplevel
-	     (bytecode->objcode bytes vars.nlocs vars.nexts)
+	     (bytecode->objcode bytes (glil-vars-nlocs vars) (glil-vars-nexts vars))
 	     (make-bytespec :vars vars :bytes bytes
                             :meta (if (and (null? binding-alist)
                                            (null? source-alist))
@@ -182,7 +182,7 @@
                                             (reverse! source-alist)))
                             :objs (let ((objs (map car (reverse! object-alist))))
                                     (if (null? objs) #f (list->vector objs)))
-                            :closure? venv.closure?)))))))))
+                            :closure? (venv-closure? venv))))))))))
 
 (define (object-assoc x alist)
   (record-case x
@@ -225,8 +225,8 @@
       (record-case x
 	((<bytespec> vars bytes meta objs closure?)
 	 ;; dump parameters
-	 (let ((nargs vars.nargs) (nrest vars.nrest)
-	       (nlocs vars.nlocs) (nexts vars.nexts))
+	 (let ((nargs (glil-vars-nargs vars)) (nrest (glil-vars-nrest vars))
+	       (nlocs (glil-vars-nlocs vars)) (nexts (glil-vars-nexts vars)))
 	   (cond
 	     ((and (< nargs 4) (< nlocs 8) (< nexts 4))
 	      ;; 8-bit representation
