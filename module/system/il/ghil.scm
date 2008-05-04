@@ -25,33 +25,50 @@
   :export
   (
    <ghil-void> make-ghil-void <ghil-void>? <ghil-void>-1 <ghil-void>-2
+   ghil-void-env ghil-void-loc
    <ghil-quote> make-ghil-quote <ghil-quote>? <ghil-quote>-1 <ghil-quote>-2 <ghil-quote>-3
+   ghil-quote-env ghil-quote-loc ghil-quote-obj
    <ghil-quasiquote> make-ghil-quasiquote <ghil-quasiquote>?
    <ghil-quasiquote>-1 <ghil-quasiquote>-2 <ghil-quasiquote>-3
+   ghil-quasiquote-env ghil-quasiquote-loc ghil-quasiquote-exp
    <ghil-unquote> make-ghil-unquote <ghil-unquote>?
    <ghil-unquote>-1 <ghil-unquote>-2 <ghil-unquote>-3
+   ghil-unquote-env ghil-unquote-loc ghil-unquote-exp
    <ghil-unquote-splicing> make-ghil-unquote-splicing <ghil-unquote-splicing>?
    <ghil-unquote-splicing>-1 <ghil-unquote-splicing>-2
    <ghil-unquote-splicing>-3
+   ghil-unquote-env ghil-unquote-loc ghil-unquote-exp
 
    <ghil-ref> make-ghil-ref <ghil-ref>? <ghil-ref>-1 <ghil-ref>-2 <ghil-ref>-3
+   ghil-ref-env ghil-ref-loc ghil-ref-var
    <ghil-set> make-ghil-set <ghil-set>? <ghil-set>-1 <ghil-set>-2 <ghil-set>-3 <ghil-set>-4
+   ghil-set-env ghil-set-loc ghil-set-var ghil-set-val
    <ghil-define> make-ghil-define <ghil-define>?
    <ghil-define>-1 <ghil-define>-2 <ghil-define>-3 <ghil-define>-4
+   ghil-define-env ghil-define-loc ghil-define-var ghil-define-val
 
    <ghil-if> make-ghil-if <ghil-if>?
    <ghil-if>-1 <ghil-if>-2 <ghil-if>-3 <ghil-if>-4 <ghil-if>-5
+   ghil-if-env ghil-if-loc ghil-if-test ghil-if-then ghil-if-else
    <ghil-and> make-ghil-and <ghil-and>? <ghil-and>-1 <ghil-and>-2 <ghil-and>-3
+   ghil-and-env ghil-and-loc ghil-and-exps
    <ghil-or> make-ghil-or <ghil-or>? <ghil-or>-1 <ghil-or>-2 <ghil-or>-3
+   ghil-or-env ghil-or-loc ghil-or-exps
    <ghil-begin> make-ghil-begin <ghil-begin>? <ghil-begin>-1 <ghil-begin>-2 <ghil-begin>-3
+   ghil-begin-env ghil-begin-loc ghil-begin-exps
    <ghil-bind> make-ghil-bind <ghil-bind>?
    <ghil-bind>-1 <ghil-bind>-2 <ghil-bind>-3 <ghil-bind>-4 <ghil-bind>-5
+   ghil-bind-env ghil-bind-loc ghil-bind-vars ghil-bind-vals ghil-bind-body
    <ghil-lambda> make-ghil-lambda <ghil-lambda>? <ghil-lambda>-1 <ghil-lambda>-2
    <ghil-lambda>-3 <ghil-lambda>-4 <ghil-lambda>-5
+   ghil-bind-env ghil-bind-loc ghil-bind-vars ghil-bind-vals ghil-bind-body
+   ghil-lambda-env ghil-lambda-loc ghil-lambda-vars ghil-lambda-rest ghil-lambda-body
    <ghil-inline> make-ghil-inline <ghil-inline>?
    <ghil-inline>-1 <ghil-inline>-2 <ghil-inline>-3 <ghil-inline>-4
+   ghil-inline-env ghil-inline-loc ghil-inline-inline ghil-inline-args
    <ghil-call> make-ghil-call <ghil-call>?
    <ghil-call>-1 <ghil-call>-2 <ghil-call>-3 <ghil-call>-4
+   ghil-call-env ghil-call-loc ghil-call-proc ghil-call-args
    ))
 
 

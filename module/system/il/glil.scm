@@ -24,25 +24,37 @@
   :export
   (pprint-glil
    <glil-vars> make-glil-vars
+   glil-vars-nargs glil-vars-nrest glil-vars-nlocs glil-vars-nexts
    <glil-asm> make-glil-asm <glil-asm>?
    <glil-asm>-1 <glil-asm>-2 <glil-asm>-3 <glil-asm>-4 <glil-asm>-5
+   glil-asm-vars glil-asm-body
    <glil-bind> make-glil-bind <glil-bind>? <glil-bind>-1
+   glil-bind-vars
    <glil-unbind> make-glil-unbind <glil-unbind>?
    <glil-source> make-glil-source <glil-source>? <glil-source>-1 <glil-source>-2
+   glil-source-loc
 
    <glil-void> make-glil-void <glil-void>?
    <glil-const> make-glil-const <glil-const>? <glil-const>-1
+   glil-const-obj
 
    <glil-argument> make-glil-argument <glil-argument>? <glil-argument>-1 <glil-argument>-2
+   glil-argument-op glil-argument-index
    <glil-local> make-glil-local <glil-local>? <glil-local>-1 <glil-local>-2
+   glil-local-op glil-local-index
    <glil-external> make-glil-external <glil-external>?
    <glil-external>-1 <glil-external>-2 <glil-external>-3
+   glil-external-op glil-external-depth glil-external-index
    <glil-module> make-glil-module <glil-module>?
    <glil-module>-1 <glil-module>-2 <glil-module>-3
+   glil-module-op glil-module-module glil-module-index
 
    <glil-label> make-glil-label <glil-label>? <glil-label>-1
+   glil-label-label
    <glil-branch> make-glil-branch <glil-branch>? <glil-branch>-1 <glil-branch>-2
+   glil-branch-int glil-branch-label
    <glil-call> make-glil-call <glil-call>? <glil-call>-1 <glil-call>-2
+   glil-call-int glil-call-nargs
    ))
 
 (define-record (<glil-vars> nargs nrest nlocs nexts))

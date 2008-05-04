@@ -93,12 +93,14 @@
 	 (and (vector? x) (eq? (vector-ref x 0) ',name)))
        ,@(do ((n 1 (1+ n))
 	      (slots (cdr def) (cdr slots))
-	      (ls '() (cons (let* ((slot (car slots))
-				   (slot (if (pair? slot) (car slot) slot)))
-			      `(define ,(string->symbol
-					 (format #f "~A-~A" name n))
-				 (lambda (x) (slot x ',slot))))
-			    ls)))
+	      (ls '() (append (let* ((slot (car slots))
+                                     (slot (if (pair? slot) (car slot) slot)))
+                                `((define ,(string->symbol
+                                            (format #f "~A-~A" name n))
+                                    (lambda (x) (slot x ',slot)))
+                                  (define ,(symbol-append stem '- slot)
+                                    (lambda (x) (slot x ',slot)))))
+                              ls)))
 	     ((null? slots) (reverse! ls))))))
 
 (define (%make-struct args slots)
