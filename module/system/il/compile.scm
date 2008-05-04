@@ -89,24 +89,32 @@
 (define (make-label) (gensym ":L"))
 
 (define (make-glil-var op env var)
-  (case var.kind
+  (case (ghil-var-kind var)
     ((argument)
-     (make-glil-argument op var.index))
+     (make-glil-argument op (ghil-var-index var)))
     ((local)
-     (make-glil-local op var.index))
+     (make-glil-local op (ghil-var-index var)))
     ((external)
      (do ((depth 0 (1+ depth))
-	  (e env e.parent))
-	 ((eq? e var.env)
-	  (make-glil-external op depth var.index))))
+	  (e env (ghil-env-parent e)))
+	 ((eq? e (ghil-var-env var))
+	  (make-glil-external op depth (ghil-var-index var)))))
     ((module)
-     (make-glil-module op var.env var.name))
+     (make-glil-module op (ghil-var-env var) (ghil-var-name var)))
     (else (error "Unknown kind of variable:" var))))
 
 (define (codegen ghil)
   (let ((stack '()))
     (define (push-code! code)
       (set! stack (cons code stack)))
+    (define (push-bindings! vars)
+      (if (not (null? vars))
+          (push-code!
+           (make-glil-bind
+            (map list
+                 (map ghil-var-name vars)
+                 (map ghil-var-kind vars)
+                 (map ghil-var-index vars))))))
     (define (comp tree tail drop)
       (define (push-label! label)
 	(push-code! (make-glil-label label)))
@@ -259,8 +267,7 @@
 	 ;; (set VARS)...
 	 ;; BODY
 	 (for-each comp-push vals)
-	 (let ((vars (map (lambda (v) (list v.name v.kind v.index)) vars)))
-	   (if (not (null? vars)) (push-code! (make-glil-bind vars))))
+         (push-bindings! vars)
 	 (for-each (lambda (var) (push-code! (make-glil-var 'set env var)))
 		   (reverse vars))
 	 (comp-tail body)
@@ -287,24 +294,24 @@
     ;; main
     (record-case ghil
       ((<ghil-lambda> env loc args rest body)
-       (let* ((vars env.variables)
-	      (locs (pick (lambda (v) (eq? v.kind 'local)) vars))
-	      (exts (pick (lambda (v) (eq? v.kind 'external)) vars)))
+       (let* ((vars (ghil-env-variables env))
+	      (locs (pick (lambda (v) (eq? (ghil-var-kind v) 'local)) vars))
+	      (exts (pick (lambda (v) (eq? (ghil-var-kind v) 'external)) vars)))
 	 ;; initialize variable indexes
 	 (finalize-index! args)
 	 (finalize-index! locs)
 	 (finalize-index! exts)
 	 ;; meta bindings
-	 (let ((vars (map (lambda (v) (list v.name v.kind v.index)) args)))
-	   (if (not (null? vars)) (push-code! (make-glil-bind vars))))
+         (push-bindings! args)
 	 ;; export arguments
 	 (do ((n 0 (1+ n))
 	      (l args (cdr l)))
 	     ((null? l))
 	   (let ((v (car l)))
-	     (cond ((eq? v.kind 'external)
-		    (push-code! (make-glil-argument 'ref n))
-		    (push-code! (make-glil-external 'set 0 v.index))))))
+	     (case (ghil-var-kind v)
+               ((external)
+                (push-code! (make-glil-argument 'ref n))
+                (push-code! (make-glil-external 'set 0 (ghil-var-index v)))))))
 	 ;; compile body
 	 (comp body #t #f)
 	 ;; create GLIL
@@ -318,4 +325,4 @@
   (do ((n 0 (1+ n))
        (l list (cdr l)))
       ((null? l))
-    (let ((v (car l))) (set! v.index n))))
+    (let ((v (car l))) (set! (ghil-var-index v) n))))

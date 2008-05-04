@@ -68,7 +68,14 @@
    <ghil-call> make-ghil-call <ghil-call>?
    <ghil-call>-1 <ghil-call>-2 <ghil-call>-3 <ghil-call>-4
    ghil-call-env ghil-call-loc ghil-call-proc ghil-call-args
-   ))
+
+   <ghil-var> make-ghil-var ghil-var-env ghil-var-name ghil-var-kind
+   ghil-var-type ghil-var-value ghil-var-index
+
+   <ghil-mod> make-ghil-mod ghil-mod-module ghil-mod-table ghil-mod-imports
+
+   <ghil-env> make-ghil-env ghil-env-mod ghil-env-parent ghil-env-table
+   ghil-env-variables))
 
 
 ;;;
