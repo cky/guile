@@ -21,7 +21,10 @@
 
 (define-module (system base language)
   :use-syntax (system base syntax)
-  :export (define-language lookup-language))
+  :export (define-language lookup-language
+           language-name language-title language-version language-reader
+           language-printer language-read-file language-expander
+           language-translator language-evaluator language-environment))
 
 
 ;;;

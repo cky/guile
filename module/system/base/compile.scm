@@ -112,16 +112,16 @@
 ;;;
 
 (define-public (read-file-in file lang)
-  (call-with-input-file file lang.read-file))
+  (call-with-input-file file (language-read-file lang)))
 
 (define-public (compile-in x e lang . opts)
   (catch 'result
     (lambda ()
       ;; expand
-      (set! x (lang.expander x e))
+      (set! x ((language-expander lang) x e))
       (if (memq :e opts) (throw 'result x))
       ;; translate
-      (set! x (lang.translator x e))
+      (set! x ((language-translator lang) x e))
       (if (memq :t opts) (throw 'result x))
       ;; compile
       (set! x (apply compile x e opts))

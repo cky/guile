@@ -46,42 +46,44 @@
                 :options repl-default-options
                 :tm-stats (times)
                 :gc-stats (gc-stats)
-                :vm-stats (vm-stats cenv.vm))))
+                :vm-stats (vm-stats (cenv-vm cenv)))))
 
 (define-public (repl-welcome repl)
-  (format #t "~A interpreter ~A on Guile ~A\n"
-	  repl.env.language.title repl.env.language.version (version))
+  (let ((language (cenv-language (repl-env repl))))
+    (format #t "~A interpreter ~A on Guile ~A\n"
+            (language-title language) (language-version language) (version)))
   (display "Copyright (C) 2001 Free Software Foundation, Inc.\n\n")
   (display "Enter `,help' for help.\n"))
 
 (define-public (repl-prompt repl)
-  (let ((module-name (car (last-pair (module-name repl.env.module)))))
-    (format #t "~A@~A> " repl.env.language.name module-name)
-    (force-output)))
+  (format #t "~A@~A> " (language-name (cenv-language (repl-env repl)))
+          (module-name (cenv-module (repl-env repl))))
+  (force-output))
 
 (define-public (repl-read repl)
-  (repl.env.language.reader))
+  ((language-reader (cenv-language (repl-env repl)))))
 
 (define-public (repl-compile repl form . opts)
-  (apply compile-in form repl.env.module repl.env.language opts))
+  (apply compile-in form (cenv-module (repl-env repl))
+         (cenv-language (repl-env repl)) opts))
 
 (define-public (repl-eval repl form)
-  (let ((eval repl.env.language.evaluator))
+  (let ((eval (language-evaluator (cenv-language (repl-env repl)))))
     (if eval
-	(eval form repl.env.module)
-	(vm-load repl.env.vm (repl-compile repl form)))))
+	(eval form (cenv-module (repl-env repl)))
+	(vm-load (cenv-vm (repl-env repl)) (repl-compile repl form)))))
 
 (define-public (repl-print repl val)
   (if (not (eq? val *unspecified*))
       (begin
-	(repl.env.language.printer val)
+	((language-printer (cenv-language (repl-env repl))) val)
 	(newline))))
 
 (define-public (repl-option-ref repl key)
-  (assq-ref repl.options key))
+  (assq-ref (repl-options repl) key))
 
 (define-public (repl-option-set! repl key val)
-  (set! repl.options (assq-set! repl.options key val)))
+  (set! (repl-options repl) (assq-set! (repl-options repl) key val)))
 
 
 ;;;
