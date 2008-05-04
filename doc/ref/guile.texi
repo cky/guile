@@ -177,6 +177,8 @@ x
 
 * Guile Modules::
 
+* Autoconf Support::
+
 Appendices
 
 * Data Representation::             All the details.
@@ -361,6 +363,8 @@ available through both Scheme and C interfaces.
 @include expect.texi
 @include scsh.texi
 @include scheme-debugging.texi
+
+@include autoconf.texi
 
 @include data-rep.texi
 @include fdl.texi

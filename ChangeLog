@@ -1,3 +1,9 @@
+2008-05-04  Ludovic Courtès  <ludo@gnu.org>
+
+	* configure.in: Substitute `sitedir', produce `guile-1.8.pc'.
+	* Makefile.am (EXTRA_DIST): Add `guile-1.8.pc.in'.
+	(pkgconfigdir, pkgconfig_DATA): New.
+
 2008-04-26  Ludovic Courtès  <ludo@gnu.org>
 
 	* configure.in (BUILD_PTHREAD_SUPPORT): New Automake
