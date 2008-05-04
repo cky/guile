@@ -25,7 +25,7 @@
            %slot-1 %slot-2 %slot-3 %slot-4 %slot-5
            %slot-6 %slot-7 %slot-8 %slot-9
            list-fold)
-  :export-syntax (syntax define-type define-record record-case)
+  :export-syntax (define-type define-record record-case)
   :re-export-syntax (define-record-type))
 (export-syntax |) ;; emacs doesn't like the |
 
@@ -35,32 +35,6 @@
 ;;;
 
 (read-set! keywords 'prefix)
-
-
-;;;
-;;; Dot expansion
-;;;
-
-;; FOO.BAR -> (slot FOO 'BAR)
-
-(define (expand-dot! x)
-  (cond ((symbol? x) (expand-symbol x))
-	((pair? x)
-	 (cond ((eq? (car x) 'quote) x)
-	       (else (set-car! x (expand-dot! (car x)))
-		     (set-cdr! x (expand-dot! (cdr x)))
-		     x)))
-	(else x)))
-
-(define (expand-symbol x)
-  (let* ((str (symbol->string x)))
-    (if (string-index str #\.)
-        (let ((parts (map string->symbol (string-split str #\.))))
-          `(slot ,(car parts)
-                 ,@(map (lambda (key) `',key) (cdr parts))))
-        x)))
-
-(define syntax expand-dot!)
 
 
 ;;;
