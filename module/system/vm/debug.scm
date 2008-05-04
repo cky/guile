@@ -46,9 +46,9 @@
     (display "debug> ")
     (let ((cmd (read)))
       (case cmd
-	((bt) (vm-backtrace db.vm))
+	((bt) (vm-backtrace (debugger-vm db)))
 	((stack)
-	 (write (vm-fetch-stack db.vm))
+	 (write (vm-fetch-stack (debugger-vm db)))
 	 (newline))
 	(else
 	 (format #t "Unknown command: ~A" cmd))))))

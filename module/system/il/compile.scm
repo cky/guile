@@ -37,38 +37,44 @@
 
 (define (optimize x)
   (record-case x
-    ((<ghil-set> env var val)
+    ((<ghil-set> env loc var val)
      (make-ghil-set env var (optimize val)))
 
-    ((<ghil-if> test then else)
+    ((<ghil-if> env loc test then else)
      (make-ghil-if (optimize test) (optimize then) (optimize else)))
 
-    ((<ghil-begin> exps)
+    ((<ghil-begin> env loc exps)
      (make-ghil-begin (map optimize exps)))
 
-    ((<ghil-bind> env vars vals body)
+    ((<ghil-bind> env loc vars vals body)
      (make-ghil-bind env vars (map optimize vals) (optimize body)))
 
-    ((<ghil-lambda> env vars rest body)
+    ((<ghil-lambda> env loc vars rest body)
      (make-ghil-lambda env vars rest (optimize body)))
 
 ;; FIXME:  <ghil-inst> does not exist.  -- Ludo'.
 ;     (($ <ghil-inst> inst args)
 ;      (make-ghil-inst inst (map optimize args)))
 
-    ((<ghil-call> env proc args)
-     (record-case proc
-       ;; ((@lambda (VAR...) BODY...) ARG...) =>
-       ;;   (@let ((VAR ARG) ...) BODY...)
-       ((<ghil-lambda> lambda-env vars #f body)
-	(for-each (lambda (v)
-		    (if (eq? v.kind 'argument) (set! v.kind 'local))
-		    (set! v.env env)
-		    (ghil-env-add! env v))
-		  lambda-env.variables)
-	(optimize (make-ghil-bind env vars args body)))
-       (else
-	(make-ghil-call env (optimize proc) (map optimize args)))))
+    ((<ghil-call> env loc proc args)
+     (let ((parent-env env))
+       (record-case proc
+         ;; ((@lambda (VAR...) BODY...) ARG...) =>
+         ;;   (@let ((VAR ARG) ...) BODY...)
+         ((<ghil-lambda> env loc vars rest body)
+          (cond
+           ((not rest)
+            (for-each (lambda (v)
+                        (case (ghil-var-kind v)
+                          ((argument) (set! (ghil-var-kind v) 'local)))
+                        (set! (ghil-var-env v) parent-env)
+                        (ghil-env-add! parent-env v))
+                      (ghil-env-variables env)))
+           (else
+            (make-ghil-call parent-env (optimize proc) (map optimize args)))))
+         (else
+          (make-ghil-call parent-env (optimize proc) (map optimize args))))))
+
     (else x)))
 
 

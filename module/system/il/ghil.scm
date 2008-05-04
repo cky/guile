@@ -61,7 +61,6 @@
    ghil-bind-env ghil-bind-loc ghil-bind-vars ghil-bind-vals ghil-bind-body
    <ghil-lambda> make-ghil-lambda <ghil-lambda>? <ghil-lambda>-1 <ghil-lambda>-2
    <ghil-lambda>-3 <ghil-lambda>-4 <ghil-lambda>-5
-   ghil-bind-env ghil-bind-loc ghil-bind-vars ghil-bind-vals ghil-bind-body
    ghil-lambda-env ghil-lambda-loc ghil-lambda-vars ghil-lambda-rest ghil-lambda-body
    <ghil-inline> make-ghil-inline <ghil-inline>?
    <ghil-inline>-1 <ghil-inline>-2 <ghil-inline>-3 <ghil-inline>-4
@@ -152,34 +151,45 @@
     ((<ghil-env> m) (%make-ghil-env :mod m :parent e))))
 
 (define (ghil-env-toplevel? e)
-  (eq? e.mod e.parent))
+  (eq? (ghil-env-mod e) (gil-env-parent e)))
 
 (define (ghil-env-ref env sym)
-  (assq-ref env.table sym))
+  (assq-ref (ghil-env-table env) sym))
+
+(define-macro (push! item loc)
+  `(set! ,loc (cons ,item ,loc)))
+(define-macro (apush! k v loc)
+  `(set! ,loc (acons ,k ,v ,loc)))
+(define-macro (apopq! k loc)
+  `(set! ,loc (assq-remove! ,k ,loc)))
 
 (define-public (ghil-env-add! env var)
-  (set! env.table (acons var.name var env.table))
-  (set! env.variables (cons var env.variables)))
+  (apush! (ghil-var-name var) var (ghil-env-table env))
+  (push! var (ghil-env-variables env)))
 
 (define (ghil-env-remove! env var)
-  (set! env.table (assq-remove! env.table var.name)))
+  (apopq! (ghil-var-name var) (ghil-env-table env)))
 
 
 ;;;
 ;;; Public interface
 ;;;
 
+;; looking up a var has side effects?
 (define-public (ghil-lookup env sym)
   (or (ghil-env-ref env sym)
-      (let loop ((e env.parent))
-	(cond ((<ghil-mod>? e)
-	       (or (assq-ref e.table sym)
-		   (let ((var (make-ghil-var #f sym 'module)))
-		     (set! e.table (acons sym var e.table))
-		     var)))
-	      ((ghil-env-ref e sym) =>
-	       (lambda (var) (set! var.kind 'external) var))
-	      (else (loop e.parent))))))
+      (let loop ((e (ghil-env-parent env)))
+        (record-case e
+          ((<ghil-mod> module table imports)
+           (or (assq-ref table sym)
+               (let ((var (make-ghil-var #f sym 'module)))
+                 (apush! sym var (ghil-mod-table e))
+                 var)))
+          ((<ghil-env> mod parent table variables)
+           (let ((found (assq-ref table sym)))
+             (if found
+                 (begin (set! (ghil-var-kind found) 'external) found)
+                 (loop parent))))))))
 
 (define-public (call-with-ghil-environment e syms func)
   (let* ((e (make-ghil-env e))

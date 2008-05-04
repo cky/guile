@@ -93,13 +93,15 @@
 	 (and (vector? x) (eq? (vector-ref x 0) ',name)))
        ,@(do ((n 1 (1+ n))
 	      (slots (cdr def) (cdr slots))
-	      (ls '() (append (let* ((slot (car slots))
-                                     (slot (if (pair? slot) (car slot) slot)))
+	      (ls '() (append (let* ((sdef (car slots))
+                                     (sname (if (pair? sdef) (car sdef) sdef)))
                                 `((define ,(string->symbol
                                             (format #f "~A-~A" name n))
-                                    (lambda (x) (slot x ',slot)))
-                                  (define ,(symbol-append stem '- slot)
-                                    (lambda (x) (slot x ',slot)))))
+                                    (lambda (x) (slot x ',sname)))
+                                  (define ,(symbol-append stem '- sname)
+                                    ,(make-procedure-with-setter
+                                      (lambda (x) (get-slot x sname))
+                                      (lambda (x v) (set-slot! x sname v))))))
                               ls)))
 	     ((null? slots) (reverse! ls))))))
 

@@ -157,7 +157,8 @@
   (record-case glil
     ;; meta
     ((<glil-asm> vars body)
-     `(@asm (,vars.nargs ,vars.nrest ,vars.nlocs ,vars.nexts)
+     `(@asm (,(glil-vars-nargs vars) ,(glil-vars-nrest vars)
+             ,(glil-vars-nlocs vars) ,(glil-vars-nexts vars))
 	    ,@(map unparse body)))
     ((<glil-bind> vars) `(@bind ,@vars))
     ((<glil-unbind>) `(@unbind))
