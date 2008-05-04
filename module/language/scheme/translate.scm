@@ -190,7 +190,7 @@
     ((define define-private) ;; what is define-private?
      (pmatch tail
        ;; (define NAME VAL)
-       ((,sym ,val) (guard (symbol? sym))
+       ((,name ,val) (guard (symbol? name))
         (make-ghil-define e l (ghil-lookup e name) (trans:x val)))
 
        ;; (define (NAME FORMALS...) BODY...)
@@ -259,9 +259,8 @@
 
        ;; (let ((SYM VAL) ...) BODY...)
        ((,bindings . ,body) (guard (valid-bindings? bindings))
-        (let ((vars (map car bindings))
-              (vals (map trans:x (map cadr bindings))))
-          (call-with-ghil-bindings e sym
+        (let ((vals (map trans:x (map cadr bindings))))
+          (call-with-ghil-bindings e (map car bindings)
             (lambda (vars)
               (make-ghil-bind e l vars vals (trans:body body))))))
        (else (bad-syntax))))
@@ -328,7 +327,7 @@
                                (let () (void) ,@result)
                                (let () (void) ,@body
                                     (_l ,@(map next sym update)))))))
-              (_l ,@init)))))
+              (_l ,@val)))))
        (else (bad-syntax))))
 
     ;; (lambda FORMALS BODY...)
