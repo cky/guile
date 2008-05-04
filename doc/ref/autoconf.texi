@@ -49,7 +49,7 @@ checks.
 @cindex autoconf
 
 GNU Guile provides a @dfn{pkg-config} description file, installed as
-@file{@var{prefix}/lib/pkgconfig/guile.pc}, which contains all the
+@file{@var{prefix}/lib/pkgconfig/guile-1.8.pc}, which contains all the
 information necessary to compile and link C applications that use Guile.
 The @code{pkg-config} program is able to read this file and provide this
 information to application programmers; it can be obtained at
@@ -59,8 +59,8 @@ The following command lines give respectively the C compilation and link
 flags needed to build Guile-using programs:
 
 @example
-pkg-config guile --cflags
-pkg-config guile --libs
+pkg-config guile-1.8 --cflags
+pkg-config guile-1.8 --libs
 @end example
 
 To ease use of pkg-config with Autoconf, pkg-config comes with a
@@ -71,7 +71,7 @@ accordingly, or prints an error and exits if Guile was not found:
 @findex PKG_CHECK_MODULES
 
 @example
-PKG_CHECK_MODULES([GUILE], [guile])
+PKG_CHECK_MODULES([GUILE], [guile-1.8])
 @end example
 
 Guile comes with additional Autoconf macros providing more information,

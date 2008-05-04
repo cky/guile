@@ -1,5 +1,8 @@
 2008-05-04  Ludovic Courtès  <ludo@gnu.org>
 
+	Add `pkg-config' support.  Suggested by Aaron VanDevender, Greg
+	Troxel, and others.
+
 	* configure.in: Substitute `sitedir', produce `guile-1.8.pc'.
 	* Makefile.am (EXTRA_DIST): Add `guile-1.8.pc.in'.
 	(pkgconfigdir, pkgconfig_DATA): New.
