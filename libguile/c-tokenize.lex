@@ -18,7 +18,12 @@ INTQUAL		(l|L|ll|LL|lL|Ll|u|U)
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-  
+
+/* Prevent compilation of static input() function in generated scanner
+   code.  This function is never actually used, and GCC 4.3 will emit
+   an error for that. */
+#define YY_NO_INPUT
+
 int yylex(void);
 
 int yyget_lineno (void);

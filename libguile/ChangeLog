@@ -1,3 +1,7 @@
+2008-05-05  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* c-tokenize.lex: #define YY_NO_INPUT.
+
 2008-04-26  Ludovic Courtès  <ludo@gnu.org>
 
 	* read.c (scm_read_sexp): Remove extraneous semi-colon at
