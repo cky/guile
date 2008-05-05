@@ -359,6 +359,8 @@ debugger to continue.)
 @node Using Guile in Emacs
 @section Using Guile in Emacs
 
+@cindex GDS
+@cindex Emacs
 There are several options for working on Guile Scheme code in Emacs.
 The simplest are to use Emacs's standard @code{scheme-mode} for
 editing code, and to run the interpreter when you need it by typing

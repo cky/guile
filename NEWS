@@ -58,7 +58,19 @@ See "Autoconf Support" in the manual for details.
 
 ** New `postfix' read option, for SRFI-88 keyword syntax
 ** Some I/O primitives have been inlined, which improves I/O performance
+** New object-based traps infrastructure
 
+This is a GOOPS-based infrastructure that builds on Guile's low-level
+evaluator trap calls and facilitates the development of debugging
+features like single-stepping, breakpoints, tracing and profiling.
+See the `Traps' node of the manual for details.
+
+** New support for working on Guile code from within Emacs
+
+Guile now incorporates the `GDS' library (previously distributed
+separately) for working on Guile code from within Emacs.  See the
+`Using Guile In Emacs' node of the manual for details.
+ 
 * Bugs fixed
 
 ** `scm_add_slot ()' no longer segfaults (fixes bug #22369)

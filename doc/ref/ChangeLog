@@ -1,3 +1,10 @@
+2008-05-05  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scheme-using.texi (Using Guile in Emacs): Add concept index
+	entries `GDS' and `Emacs'.
+
+	* api-debug.texi (Debugging): Add concept index entry `Debugging'.
+
 2008-05-04  Ludovic Courtès  <ludo@gnu.org>
 
 	* guile.texi (Guile Modules): Include `autoconf.texi'.
