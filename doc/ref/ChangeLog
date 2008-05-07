@@ -1,3 +1,9 @@
+2008-05-07  Ludovic Courtès  <ludo@gnu.org>
+
+	* Makefile.am (autoconf-macros.texi): Avoid use of GNU Make
+	specific `$<' variable.  This broke with BSD Make as found on
+	FreeBSD 6.2.
+
 2008-05-05  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* scheme-using.texi (Using Guile in Emacs): Add concept index
