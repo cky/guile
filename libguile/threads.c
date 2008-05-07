@@ -447,6 +447,22 @@ guilify_self_1 (SCM_STACKITEM *base)
   t->pending_asyncs = 1;
   t->last_debug_frame = NULL;
   t->base = base;
+#ifdef __ia64__
+  /* Calculate and store off the base of this thread's register
+     backing store (RBS).  Unfortunately our implementation(s) of
+     scm_ia64_register_backing_store_base are only reliable for the
+     main thread.  For other threads, therefore, find out the current
+     top of the RBS, and use that as a maximum. */
+  t->register_backing_store_base = scm_ia64_register_backing_store_base ();
+  {
+    ucontext_t ctx;
+    void *bsp;
+    getcontext (&ctx);
+    bsp = scm_ia64_ar_bsp (&ctx);
+    if (t->register_backing_store_base > bsp)
+      t->register_backing_store_base = bsp;
+  }
+#endif
   t->continuation_root = SCM_EOL;
   t->continuation_base = base;
   scm_i_pthread_cond_init (&t->sleep_cond, NULL);
@@ -1658,7 +1674,7 @@ SCM_DEFINE (scm_condition_variable_p, "condition-variable?", 1, 0, 0,
     scm_mark_locations ((SCM_STACKITEM *) &ctx.uc_mcontext,           \
       ((size_t) (sizeof (SCM_STACKITEM) - 1 + sizeof ctx.uc_mcontext) \
        / sizeof (SCM_STACKITEM)));                                    \
-    bot = (SCM_STACKITEM *) scm_ia64_register_backing_store_base ();  \
+    bot = (SCM_STACKITEM *) SCM_I_CURRENT_THREAD->register_backing_store_base;  \
     top = (SCM_STACKITEM *) scm_ia64_ar_bsp (&ctx);                   \
     scm_mark_locations (bot, top - bot); } while (0)
 #else
@@ -1682,7 +1698,7 @@ scm_threads_mark_stacks (void)
 #else
       scm_mark_locations (t->top, t->base - t->top);
 #endif
-      scm_mark_locations ((SCM_STACKITEM *) t->regs,
+      scm_mark_locations ((SCM_STACKITEM *) &t->regs,
 			  ((size_t) sizeof(t->regs)
 			   / sizeof (SCM_STACKITEM)));
     }

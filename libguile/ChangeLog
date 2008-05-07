@@ -1,3 +1,38 @@
+2008-05-08  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* throw.c (scm_ithrow): For IA64 add a return statement, to
+	appease GCC.
+
+	* threads.h (scm_i_thread): New IA64 fields:
+	register_backing_store_base and pending_rbs_continuation.
+
+	* threads.c (guilify_self_1): For IA64: cap RBS base address at
+	the current value of scm_ia64_ar_bsp, and store the capped value
+	in thread state.
+	(SCM_MARK_BACKING_STORE): Use thread->register_backing_store_base
+	instead of scm_ia64_register_backing_store_base().
+	(scm_threads_mark_stacks): Add "&" in "&t->regs", so that the code
+	works both for jmp_buf defined as an array, and jmp_buf defined as
+	a struct.
+
+	* continuations.h (scm_t_contregs): Remove `fresh' and `ctx'
+	fields; these are now inside the IA64 definition of `jmp_buf'.
+
+	* continuations.c (scm_make_continuation): Simplify, by moving
+	some of the IA64 code inside the definition of "setjmp", and by
+	some obvious commonizations.  For IA64 register backing store
+	(RBS) stack base, use thread->register_backing_store_base instead
+	of scm_ia64_register_backing_store_base().
+	(copy_stack): For IA64, store pointer to continuation being
+	invoked in thread state, so we can restore the continuation's RBS
+	stack just before the next setcontext call.
+	(copy_stack_and_call): Don't restore RBS stack explicitly here.
+	It will be restored, if appropriate, inside the longjmp call.
+	(scm_ia64_longjmp): New function.
+
+	* __scm.h (setjmp, longjmp, jmp_buf): For IA64, implement using
+	getcontext and setcontext.
+
 2008-05-07  Ludovic Courtès  <ludo@gnu.org>
 
 	* numbers.c (scm_from_complex_double): Mark as `SCM_UNUSED'.

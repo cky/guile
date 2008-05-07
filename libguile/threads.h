@@ -28,6 +28,7 @@
 #include "libguile/root.h"
 #include "libguile/iselect.h"
 #include "libguile/dynwind.h"
+#include "libguile/continuations.h"
 
 #if SCM_USE_PTHREAD_THREADS
 #include "libguile/pthread-threads.h"
@@ -113,6 +114,10 @@ typedef struct scm_i_thread {
   SCM_STACKITEM *base;
   SCM_STACKITEM *top;
   jmp_buf regs;
+#ifdef __ia64__
+  void *register_backing_store_base;
+  scm_t_contregs *pending_rbs_continuation;
+#endif
 
 } scm_i_thread;
 

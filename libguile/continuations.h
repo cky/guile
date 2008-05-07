@@ -46,8 +46,6 @@ typedef struct
   jmp_buf jmpbuf;
   SCM dynenv;
 #ifdef __ia64__
-  ucontext_t ctx;
-  int fresh;
   void *backing_store;
   unsigned long backing_store_size;
 #endif /* __ia64__ */

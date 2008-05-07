@@ -402,7 +402,23 @@
 #  define setjmp setjump
 #  define longjmp longjump
 # else				/* ndef _CRAY1 */
-#  include <setjmp.h>
+#  if defined (__ia64__)
+/* For IA64, emulate the setjmp API using getcontext. */
+#   include <signal.h>
+#   include <ucontext.h>
+    typedef struct {
+      ucontext_t ctx;
+      int fresh;
+    } jmp_buf;
+#   define setjmp(JB)				        \
+      ( (JB).fresh = 1,				        \
+        getcontext (&((JB).ctx)),			\
+        ((JB).fresh ? ((JB).fresh = 0, 0) : 1) )
+#   define longjmp(JB,VAL) scm_ia64_longjmp (&(JB), VAL)
+    void scm_ia64_longjmp (jmp_buf *, int);
+#  else                 	/* ndef __ia64__ */
+#   include <setjmp.h>
+#  endif			/* ndef __ia64__ */
 # endif				/* ndef _CRAY1 */
 #endif				/* ndef vms */
 
