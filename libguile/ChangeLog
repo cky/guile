@@ -1,3 +1,8 @@
+2008-05-07  Ludovic Courtès  <ludo@gnu.org>
+
+	* numbers.c (scm_from_complex_double): Mark as `SCM_UNUSED'.
+	This fixes compilation with `-Werror' on FreeBSD 6.2 (i386).
+
 2008-05-05  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* c-tokenize.lex: #define YY_NO_INPUT.

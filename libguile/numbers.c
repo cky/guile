@@ -170,8 +170,10 @@ xisnan (double x)
 #define SCM_COMPLEX_VALUE(z)                                    \
   (SCM_COMPLEX_REAL (z) + GUILE_I * SCM_COMPLEX_IMAG (z))
 
+static inline SCM scm_from_complex_double (complex double z) SCM_UNUSED;
+
 /* Convert a C "complex double" to an SCM value. */
-static SCM
+static inline SCM
 scm_from_complex_double (complex double z)
 {
   return scm_c_make_rectangular (creal (z), cimag (z));
