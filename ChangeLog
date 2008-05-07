@@ -1,3 +1,13 @@
+2008-05-07  Ludovic Courtès  <ludo@gnu.org>
+
+	Guile 1.8.5 released.
+
+	* GUILE-VERSION (LIBGUILE_INTERFACE_CURRENT): Increment due to
+	the addition of an inlined version of `scm getc ()' and friends.
+	(LIBGUILE_INTERFACE_AGE): Increment.
+	(LIBGUILE_INTERFACE_REVISION): Zeroed.
+	(LIBGUILE_SRFI_SRFI_1_INTERFACE_REVISION): Increment.
+
 2008-05-04  Ludovic Courtès  <ludo@gnu.org>
 
 	Add `pkg-config' support.  Suggested by Aaron VanDevender, Greg
