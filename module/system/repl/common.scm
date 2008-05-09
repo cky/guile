@@ -25,7 +25,10 @@
   :use-module (system base language)
   :use-module (system vm core)
   :export (<repl> make-repl repl-env repl-options repl-tm-stats
-                  repl-gc-stats repl-vm-stats))
+                  repl-gc-stats repl-vm-stats
+           repl-welcome repl-prompt repl-read repl-compile repl-eval
+           repl-print repl-option-ref repl-option-set!
+           puts ->string user-error))
 
 
 ;;;
@@ -48,41 +51,41 @@
                 :gc-stats (gc-stats)
                 :vm-stats (vm-stats (cenv-vm cenv)))))
 
-(define-public (repl-welcome repl)
+(define (repl-welcome repl)
   (let ((language (cenv-language (repl-env repl))))
     (format #t "~A interpreter ~A on Guile ~A\n"
             (language-title language) (language-version language) (version)))
   (display "Copyright (C) 2001 Free Software Foundation, Inc.\n\n")
   (display "Enter `,help' for help.\n"))
 
-(define-public (repl-prompt repl)
+(define (repl-prompt repl)
   (format #t "~A@~A> " (language-name (cenv-language (repl-env repl)))
           (module-name (cenv-module (repl-env repl))))
   (force-output))
 
-(define-public (repl-read repl)
+(define (repl-read repl)
   ((language-reader (cenv-language (repl-env repl)))))
 
-(define-public (repl-compile repl form . opts)
+(define (repl-compile repl form . opts)
   (apply compile-in form (cenv-module (repl-env repl))
          (cenv-language (repl-env repl)) opts))
 
-(define-public (repl-eval repl form)
+(define (repl-eval repl form)
   (let ((eval (language-evaluator (cenv-language (repl-env repl)))))
     (if eval
 	(eval form (cenv-module (repl-env repl)))
 	(vm-load (cenv-vm (repl-env repl)) (repl-compile repl form)))))
 
-(define-public (repl-print repl val)
+(define (repl-print repl val)
   (if (not (eq? val *unspecified*))
       (begin
 	((language-printer (cenv-language (repl-env repl))) val)
 	(newline))))
 
-(define-public (repl-option-ref repl key)
+(define (repl-option-ref repl key)
   (assq-ref (repl-options repl) key))
 
-(define-public (repl-option-set! repl key val)
+(define (repl-option-set! repl key val)
   (set! (repl-options repl) (assq-set! (repl-options repl) key val)))
 
 
@@ -90,10 +93,10 @@
 ;;; Utilities
 ;;;
 
-(define-public (puts x) (display x) (newline))
+(define (puts x) (display x) (newline))
 
-(define-public (->string x)
+(define (->string x)
   (object->string x display))
 
-(define-public (user-error msg . args)
+(define (user-error msg . args)
   (throw 'user-error #f msg args #f))
