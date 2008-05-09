@@ -39,7 +39,8 @@
 	    (begin (read-char) (meta-command repl (read-line)))
 	    ;; evaluation
 	    (let rep-loop ()
-	      (repl-print repl (repl-eval repl (repl-read repl)))
+	      (call-with-values (lambda () (repl-eval repl (repl-read repl)))
+                (lambda l (for-each (lambda (v) (repl-print repl v)) l)))
 	      (if (next-char #f) (rep-loop)))))
 	(lambda (key fun msg args)
 	  (display "ERROR: ")

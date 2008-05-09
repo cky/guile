@@ -34,7 +34,8 @@
   :use-module (ice-9 format)
   :use-module (ice-9 session)
   :use-module (ice-9 documentation)
-  :use-module (ice-9 and-let-star))
+  :use-module (ice-9 and-let-star)
+  :export (meta-command))
 
 
 ;;;
@@ -100,7 +101,7 @@
   (let ((abbrev (if abbrev (format #f "[,~A]" abbrev) "")))
     (format #t " ,~24A ~8@A - ~A\n" usage abbrev summary)))
 
-(define-public (meta-command repl line)
+(define (meta-command repl line)
   (let ((input (call-with-input-string (string-append "(" line ")") read)))
     (if (not (null? input))
 	(do ((key (car input))
