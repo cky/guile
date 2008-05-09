@@ -2526,7 +2526,7 @@ module '(ice-9 q) '(make-q q-length))}."
 ;;; the readline library.
 (define repl-reader
   (lambda (prompt)
-    (display prompt)
+    (display (if (string? prompt) prompt (prompt)))
     (force-output)
     (run-hook before-read-hook)
     ((or (fluid-ref current-reader) read) (current-input-port))))
