@@ -59,9 +59,14 @@
          (else
           (catch 'vm-error
                  (lambda ()
-                   (call-with-values (lambda () (repl-eval repl exp))
+                   (call-with-values (lambda ()
+                                       (run-hook before-eval-hook exp)
+                                       (repl-eval repl exp))
                      (lambda l
-                       (for-each (lambda (v) (repl-print repl v)) l))))
+                       (for-each (lambda (v)
+                                   (run-hook before-print-hook v)
+                                   (repl-print repl v))
+                                 l))))
                  (lambda (key fun msg args)
                    (display "ERROR: ")
                    (apply format #t msg args)
