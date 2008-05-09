@@ -21,32 +21,53 @@
 
 (define-module (system repl repl)
   :use-syntax (system base syntax)
+  :use-module (system base compile)
+  :use-module (system base language)
   :use-module (system repl common)
   :use-module (system repl command)
   :use-module (system vm core)
   :use-module (ice-9 rdelim)
   :export (start-repl))
 
+(define meta-command-token (cons 'meta 'command))
+
+(define (meta-reader read)
+  (lambda ()
+    (if (eqv? (next-char #t) #\,)
+        (begin (read-char) meta-command-token)
+        (read))))
+        
+;; repl-reader is a function defined in boot-9.scm, and is replaced by
+;; something else if readline has been activated. much of this hoopla is
+;; to be able to re-use the existing readline machinery.
+(define (prompting-meta-read repl)
+  (let ((prompt (lambda () (repl-prompt repl)))
+        (lread (language-reader (cenv-language (repl-env repl)))))
+    (with-fluid* current-reader (meta-reader lread)
+      (lambda () (repl-reader (lambda () (repl-prompt repl)))))))
+
 (define (start-repl lang)
   (let ((repl (make-repl lang)))
     (repl-welcome repl)
     (let prompt-loop ()
-      (repl-prompt repl)
-      (catch 'vm-error
-	(lambda ()
-	  (if (eq? (next-char #t) #\,)
-	    ;; meta command
-	    (begin (read-char) (meta-command repl (read-line)))
-	    ;; evaluation
-	    (let rep-loop ()
-	      (call-with-values (lambda () (repl-eval repl (repl-read repl)))
-                (lambda l (for-each (lambda (v) (repl-print repl v)) l)))
-	      (if (next-char #f) (rep-loop)))))
-	(lambda (key fun msg args)
-	  (display "ERROR: ")
-	  (apply format #t msg args)
-	  (newline)))
-      (prompt-loop))))
+      (let ((exp (prompting-meta-read repl)))
+        (cond
+         ((eq? exp meta-command-token)
+          (meta-command repl (read-line)))
+         ((eof-object? exp)
+          (throw 'quit))
+         (else
+          (catch 'vm-error
+                 (lambda ()
+                   (call-with-values (lambda () (repl-eval repl exp))
+                     (lambda l
+                       (for-each (lambda (v) (repl-print repl v)) l))))
+                 (lambda (key fun msg args)
+                   (display "ERROR: ")
+                   (apply format #t msg args)
+                   (newline)))))
+        (next-char #f) ;; consume trailing whitespace
+        (prompt-loop)))))
 
 (define (next-char wait)
   (if (or wait (char-ready?))

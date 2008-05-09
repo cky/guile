@@ -59,9 +59,8 @@
   (display "Enter `,help' for help.\n"))
 
 (define (repl-prompt repl)
-  (format #t "~A@~A> " (language-name (cenv-language (repl-env repl)))
-          (module-name (cenv-module (repl-env repl))))
-  (force-output))
+  (format #f "~A@~A> " (language-name (cenv-language (repl-env repl)))
+          (module-name (cenv-module (repl-env repl)))))
 
 (define (repl-read repl)
   ((language-reader (cenv-language (repl-env repl)))))
