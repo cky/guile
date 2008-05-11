@@ -187,7 +187,7 @@
        ((,obj) (make-ghil-quasiquote e l (trans-quasiquote e l obj)))
        (else (bad-syntax))))
 
-    ((define define-private) ;; what is define-private?
+    ((define)
      (pmatch tail
        ;; (define NAME VAL)
        ((,name ,val) (guard (symbol? name))
