@@ -20,20 +20,23 @@
 ;;; Code:
 
 (define-module (system vm frame)
-  :use-module ((system vm core) :renamer (symbol-prefix-proc 'vm:)))
+  :use-module ((system vm core) :renamer (symbol-prefix-proc 'vm:))
+  :export (frame-number frame-address
+           vm-current-frame-chain vm-last-frame-chain
+           print-frame print-frame-call))
 
 
 ;;;
 ;;; Frame chain
 ;;;
 
-(define-public frame-number (make-object-property))
-(define-public frame-address (make-object-property))
+(define frame-number (make-object-property))
+(define frame-address (make-object-property))
 
-(define-public (vm-current-frame-chain vm)
+(define (vm-current-frame-chain vm)
   (make-frame-chain (vm:vm-this-frame vm) (vm:vm:ip vm)))
 
-(define-public (vm-last-frame-chain vm)
+(define (vm-last-frame-chain vm)
   (make-frame-chain (vm:vm-last-frame vm) (vm:vm:ip vm)))
 
 (define (make-frame-chain frame addr)
@@ -52,12 +55,12 @@
 ;;; Pretty printing
 ;;;
 
-(define-public (print-frame frame)
+(define (print-frame frame)
   (format #t "#~A " (vm:frame-number frame))
   (print-frame-call frame)
   (newline))
 
-(define-public (print-frame-call frame)
+(define (print-frame-call frame)
   (define (abbrev x)
     (cond ((list? x)   (if (> (length x) 3)
 			 (list (abbrev (car x)) (abbrev (cadr x)) '...)

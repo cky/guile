@@ -49,13 +49,13 @@
 	(format #t "@class{~a}{~a}" name desc)
 	(format #t "~a" desc))))
 
-(define-public (display-list title list)
+(define (display-list title list)
   (if title (begin (display title) (display ":\n\n")))
   (if (null? list)
       (display "(not defined)\n")
       (for-each display-summary list)))
 
-(define-public (display-slot-list title instance list)
+(define (display-slot-list title instance list)
   (if title (begin (display title) (display ":\n\n")))
   (if (null? list)
       (display "(not defined)\n")
@@ -70,13 +70,13 @@
 		    (newline)))
 		list)))
 
-(define-public (display-file location)
+(define (display-file location)
   (display "Defined in ")
   (if (eq? *describe-format* 'tag)
       (format #t "@location{~a}.\n" location)
       (format #t "`~a'.\n" location)))
 
-(define-public (format-documentation doc)
+(define (format-documentation doc)
   (with-current-buffer (make-buffer #:text doc)
     (lambda ()
       (let ((regexp (make-regexp "@([a-z]*)(\\{([^\}]*)\\})?")))

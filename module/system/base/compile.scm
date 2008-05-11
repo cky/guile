@@ -28,7 +28,10 @@
 	       :select (the-vm vm-load objcode->u8vector))
   :use-module (system vm assemble)
   :use-module (ice-9 regex)
-  :export (<cenv> make-cenv cenv? cenv-vm cenv-language cenv-module))
+  :export (<cenv> make-cenv cenv? cenv-vm cenv-language cenv-module
+           syntax-error compile-file load-source-file load-file
+           compiled-file-name
+           scheme-eval read-file-in compile-in))
 
 ;;;
 ;;; Compiler environment
@@ -36,7 +39,7 @@
 
 (define-record (<cenv> vm language module))
 
-(define-public (syntax-error loc msg exp)
+(define (syntax-error loc msg exp)
   (throw 'syntax-error loc msg exp))
 
 (define-macro (call-with-compile-error-catch thunk)
@@ -57,7 +60,7 @@
 
 (define scheme (lookup-language 'scheme))
 
-(define-public (compile-file file . opts)
+(define (compile-file file . opts)
   (let ((comp (compiled-file-name file)))
     (catch 'nothing-at-all
       (lambda ()
@@ -89,21 +92,21 @@
 ; 	    (format #t "compile-file: returned ~a~%" result)
 ; 	    result))))
 
-(define-public (load-source-file file . opts)
+(define (load-source-file file . opts)
   (let ((source (read-file-in file scheme)))
     (apply compile-in source (current-module) scheme opts)))
 
-(define-public (load-file file . opts)
+(define (load-file file . opts)
   (let ((comp (compiled-file-name file)))
     (if (file-exists? comp)
 	(load-objcode comp)
 	(apply load-source-file file opts))))
 
-(define-public (compiled-file-name file)
+(define (compiled-file-name file)
   (let ((m (string-match "\\.[^.]*$" file)))
     (string-append (if m (match:prefix m) file) ".go")))
 
-(define-public (scheme-eval x e)
+(define (scheme-eval x e)
   (vm-load (the-vm) (compile-in x e scheme)))
 
 
@@ -111,10 +114,10 @@
 ;;; Scheme compiler interface
 ;;;
 
-(define-public (read-file-in file lang)
+(define (read-file-in file lang)
   (call-with-input-file file (language-read-file lang)))
 
-(define-public (compile-in x e lang . opts)
+(define (compile-in x e lang . opts)
   (catch 'result
     (lambda ()
       ;; expand

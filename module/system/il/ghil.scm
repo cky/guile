@@ -79,7 +79,10 @@
    ghil-mod-module ghil-mod-table ghil-mod-imports
 
    <ghil-env> make-ghil-env ghil-env?
-   ghil-env-mod ghil-env-parent ghil-env-table ghil-env-variables))
+   ghil-env-mod ghil-env-parent ghil-env-table ghil-env-variables
+
+   ghil-primitive-macro? ghil-env-add! ghil-lookup
+   call-with-ghil-environment call-with-ghil-bindings))
 
 
 ;;;
@@ -118,7 +121,7 @@
 
 (define *macro-module* (resolve-module '(system il macros)))
 
-(define-public (ghil-primitive-macro? x)
+(define (ghil-primitive-macro? x)
   (and (module-defined? *macro-module* x)
        (procedure? (module-ref *macro-module* x))))
 
@@ -151,7 +154,7 @@
 (define-record (<ghil-env> mod parent (table '()) (variables '())))
 
 (define %make-ghil-env make-ghil-env)
-(define-public (make-ghil-env e)
+(define (make-ghil-env e)
   (record-case e
     ((<ghil-mod>) (%make-ghil-env :mod e :parent e))
     ((<ghil-env> mod) (%make-ghil-env :mod mod :parent e))))
@@ -169,7 +172,7 @@
 (define-macro (apopq! k loc)
   `(set! ,loc (assq-remove! ,k ,loc)))
 
-(define-public (ghil-env-add! env var)
+(define (ghil-env-add! env var)
   (apush! (ghil-var-name var) var (ghil-env-table env))
   (push! var (ghil-env-variables env)))
 
@@ -182,7 +185,7 @@
 ;;;
 
 ;; looking up a var has side effects?
-(define-public (ghil-lookup env sym)
+(define (ghil-lookup env sym)
   (or (ghil-env-ref env sym)
       (let loop ((e (ghil-env-parent env)))
         (record-case e
@@ -197,7 +200,7 @@
                  (begin (set! (ghil-var-kind found) 'external) found)
                  (loop parent))))))))
 
-(define-public (call-with-ghil-environment e syms func)
+(define (call-with-ghil-environment e syms func)
   (let* ((e (make-ghil-env e))
 	 (vars (map (lambda (s)
 		      (let ((v (make-ghil-var e s 'argument)))
@@ -205,7 +208,7 @@
 		    syms)))
     (func e vars)))
 
-(define-public (call-with-ghil-bindings e syms func)
+(define (call-with-ghil-bindings e syms func)
   (let* ((vars (map (lambda (s)
 		      (let ((v (make-ghil-var e s 'local)))
 			(ghil-env-add! e v) v))

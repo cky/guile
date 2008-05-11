@@ -19,7 +19,16 @@
 
 ;;; Code:
 
-(define-module (system vm core))
+(define-module (system vm core)
+  :export (arity:nargs arity:nrest arity:nlocs arity:nexts
+           make-binding binding:name binding:extp binding:index
+           program-bindings program-sources
+           frame-arguments frame-local-variables frame-external-variables
+           frame-environment
+           frame-variable-exists? frame-variable-ref frame-variable-set!
+           frame-object-name
+           vm-fetch-locals vm-fetch-externals vm-return-value
+           vms:time vms:clock vm-load))
 
 ;;;
 ;;; Core procedures
@@ -37,23 +46,23 @@
 ;;; Programs
 ;;;
 
-(define-public arity:nargs car)
-(define-public arity:nrest cadr)
-(define-public arity:nlocs caddr)
-(define-public arity:nexts cadddr)
+(define arity:nargs car)
+(define arity:nrest cadr)
+(define arity:nlocs caddr)
+(define arity:nexts cadddr)
 
-(define-public (make-binding name extp index)
+(define (make-binding name extp index)
   (list name extp index))
 
-(define-public binding:name car)
-(define-public binding:extp cadr)
-(define-public binding:index caddr)
+(define binding:name car)
+(define binding:extp cadr)
+(define binding:index caddr)
 
-(define-public (program-bindings prog)
+(define (program-bindings prog)
   (cond ((program-meta prog) => car)
 	(else '())))
 
-(define-public (program-sources prog)
+(define (program-sources prog)
   (cond ((program-meta prog) => cdr)
 	(else '())))
 
@@ -62,21 +71,21 @@
 ;;; Frames
 ;;;
 
-(define-public (frame-arguments frame)
+(define (frame-arguments frame)
   (let* ((prog (frame-program frame))
 	 (arity (program-arity prog)))
     (do ((n (+ (arity:nargs arity) -1) (1- n))
 	 (l '() (cons (frame-local-ref frame n) l)))
 	((< n 0) l))))
 
-(define-public (frame-local-variables frame)
+(define (frame-local-variables frame)
   (let* ((prog (frame-program frame))
 	 (arity (program-arity prog)))
     (do ((n (+ (arity:nargs arity) (arity:nlocs arity) -1) (1- n))
 	 (l '() (cons (frame-local-ref frame n) l)))
 	((< n 0) l))))
 
-(define-public (frame-external-variables frame)
+(define (frame-external-variables frame)
   (frame-external-link frame))
 
 (define (frame-external-ref frame index)
@@ -111,25 +120,25 @@
       ((or (null? bs) (eq? obj (frame-binding-ref frame (car bs))))
        (and (pair? bs) (car bs)))))
 
-(define-public (frame-environment frame addr)
+(define (frame-environment frame addr)
   (map (lambda (binding)
 	 (cons (binding:name binding) (frame-binding-ref frame binding)))
        (frame-bindings frame addr)))
 
-(define-public (frame-variable-exists? frame addr sym)
+(define (frame-variable-exists? frame addr sym)
   (if (frame-lookup-binding frame addr sym) #t #f))
 
-(define-public (frame-variable-ref frame addr sym)
+(define (frame-variable-ref frame addr sym)
   (cond ((frame-lookup-binding frame addr sym) =>
 	 (lambda (binding) (frame-binding-ref frame binding)))
 	(else (error "Unknown variable:" sym))))
 
-(define-public (frame-variable-set! frame addr sym val)
+(define (frame-variable-set! frame addr sym val)
   (cond ((frame-lookup-binding frame addr sym) =>
 	 (lambda (binding) (frame-binding-set! frame binding val)))
 	(else (error "Unknown variable:" sym))))
 
-(define-public (frame-object-name frame addr obj)
+(define (frame-object-name frame addr obj)
   (cond ((frame-object-binding frame addr obj) => binding:name)
 	(else #f)))
 
@@ -138,13 +147,13 @@
 ;;; Current status
 ;;;
 
-(define-public (vm-fetch-locals vm)
+(define (vm-fetch-locals vm)
   (frame-local-variables (vm-this-frame vm)))
 
-(define-public (vm-fetch-externals vm)
+(define (vm-fetch-externals vm)
   (frame-external-variables (vm-this-frame vm)))
 
-(define-public (vm-return-value vm)
+(define (vm-return-value vm)
   (car (vm-fetch-stack vm)))
 
 
@@ -152,15 +161,15 @@
 ;;; Statistics
 ;;;
 
-(define-public (vms:time stat) (vector-ref stat 0))
-(define-public (vms:clock stat) (vector-ref stat 1))
+(define (vms:time stat) (vector-ref stat 0))
+(define (vms:clock stat) (vector-ref stat 1))
 
 
 ;;;
 ;;; Loader
 ;;;
 
-(define-public (vm-load vm objcode)
+(define (vm-load vm objcode)
   (vm (objcode->program objcode)))
 
 ;; `load-compiled' is referred to by `boot-9.scm' and used by `use-modules'

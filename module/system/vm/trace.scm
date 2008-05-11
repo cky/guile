@@ -23,22 +23,23 @@
   :use-syntax (system base syntax)
   :use-module (system vm core)
   :use-module (system vm frame)
-  :use-module (ice-9 format))
+  :use-module (ice-9 format)
+  :export (vm-trace vm-trace-on vm-trace-off))
 
-(define-public (vm-trace vm objcode . opts)
+(define (vm-trace vm objcode . opts)
   (dynamic-wind
       (lambda () (apply vm-trace-on vm opts))
       (lambda () (vm-load vm objcode))
       (lambda () (apply vm-trace-off vm opts))))
 
-(define-public (vm-trace-on vm . opts)
+(define (vm-trace-on vm . opts)
   (set-vm-option! vm 'trace-first #t)
   (if (memq :b opts) (add-hook! (vm-next-hook vm) trace-next))
   (set-vm-option! vm 'trace-options opts)
   (add-hook! (vm-apply-hook vm) trace-apply)
   (add-hook! (vm-return-hook vm) trace-return))
 
-(define-public (vm-trace-off vm . opts)
+(define (vm-trace-off vm . opts)
   (if (memq :b opts) (remove-hook! (vm-next-hook vm) trace-next))
   (remove-hook! (vm-apply-hook vm) trace-apply)
   (remove-hook! (vm-return-hook vm) trace-return))
