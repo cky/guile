@@ -383,13 +383,14 @@
       (else (syntax-error (location df) "bad define" df))))
   ;; main
   (let loop ((ls body) (ds '()))
-    (cond ((null? ls) (syntax-error l "bad body" body))
-	  ((and (pair? (car ls)) (eq? (caar ls) 'define))
-	   (loop (cdr ls) (cons (car ls) ds)))
-	  (else
-	   (if (null? ds)
-	       (trans-pair e l 'begin ls)
-	       (trans-pair e l 'letrec (cons (map define->binding ds) ls)))))))
+    (pmatch ls
+      (() (syntax-error l "bad body" body))
+      (((define . _) . _)
+       (loop (cdr ls) (cons (car ls) ds)))
+      (else
+       (if (null? ds)
+           (trans-pair e l 'begin ls)
+           (trans-pair e l 'letrec (cons (map define->binding ds) ls)))))))
 
 (define (parse-formals formals)
   (cond
