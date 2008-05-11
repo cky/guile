@@ -191,7 +191,8 @@
      (pmatch tail
        ;; (define NAME VAL)
        ((,name ,val) (guard (symbol? name) (ghil-env-toplevel? e))
-        (make-ghil-define e l (ghil-lookup e name) (trans:x val)))
+        (make-ghil-define e l (ghil-define (ghil-env-parent e) name)
+                          (trans:x val)))
 
        ;; (define (NAME FORMALS...) BODY...)
        (((,name . ,formals) . ,body) (guard (symbol? name))

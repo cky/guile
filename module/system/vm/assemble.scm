@@ -44,6 +44,7 @@
 (define-record (<venv> parent nexts closure?))
 (define-record (<vmod> id))
 (define-record (<vlink> module name))
+(define-record (<vdefine> module name))
 (define-record (<bytespec> vars bytes meta objs closure?))
 
 
@@ -146,10 +147,16 @@
 		     (push-code! `(external-set ,(+ n index)))))))
 
 	   ((<glil-module> op module name)
-	    (push-object! (make-vlink :module #f :name name))
-	    (if (eq? op 'ref)
-		(push-code! '(variable-ref))
-		(push-code! '(variable-set))))
+            (case op
+              ((ref)
+               (push-object! (make-vlink :module module :name name))
+               (push-code! '(variable-ref)))
+              ((set)
+               (push-object! (make-vlink :module module :name name))
+               (push-code! '(variable-set)))
+              ((define)
+               (push-object! (make-vdefine :module module :name name))
+               (push-code! '(variable-set)))))
 
 	   ((<glil-label> label)
 	    (set! label-alist (assq-set! label-alist label (current-address))))
@@ -252,6 +259,9 @@
 	((<vlink> module name)
 	 ;; FIXME: dump module
 	 (push-code! `(link ,(symbol->string name))))
+	((<vdefine> module name)
+	 ;; FIXME: dump module
+	 (push-code! `(define ,(symbol->string name))))
 	((<vmod> id)
 	 (push-code! `(load-module ,id)))
         (else

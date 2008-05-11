@@ -188,7 +188,7 @@
 
 	((<ghil-define> env loc var val)
 	 (comp-push val)
-	 (push-code! (make-glil-var 'set env var))
+	 (push-code! (make-glil-var 'define env var))
 	 (return-void!))
 
 	((<ghil-if> env loc test then else)

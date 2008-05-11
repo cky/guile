@@ -81,7 +81,7 @@
    <ghil-env> make-ghil-env ghil-env?
    ghil-env-mod ghil-env-parent ghil-env-table ghil-env-variables
 
-   ghil-primitive-macro? ghil-env-add! ghil-lookup
+   ghil-primitive-macro? ghil-env-add! ghil-lookup ghil-define
    ghil-env-toplevel?
    call-with-ghil-environment call-with-ghil-bindings))
 
@@ -192,15 +192,20 @@
         (record-case e
           ((<ghil-mod> module table imports)
            (or (assq-ref table sym)
-               (let ((var (make-ghil-var #f sym 'module)))
-                 (apush! sym var (ghil-mod-table e))
-                 var)))
+               ;; a free variable that we have not resolved
+               (make-ghil-var #f sym 'module)))
           ((<ghil-env> mod parent table variables)
            (let ((found (assq-ref table sym)))
              (if found
                  (begin (set! (ghil-var-kind found) 'external) found)
                  (loop parent))))))))
 
+(define (ghil-define mod sym)
+  (or (assq-ref (ghil-mod-table mod) sym)
+      (let ((var (make-ghil-var mod sym 'module)))
+        (apush! sym var (ghil-mod-table mod))
+        var)))
+          
 (define (call-with-ghil-environment e syms func)
   (let* ((e (make-ghil-env e))
 	 (vars (map (lambda (s)
