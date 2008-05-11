@@ -82,6 +82,7 @@
    ghil-env-mod ghil-env-parent ghil-env-table ghil-env-variables
 
    ghil-primitive-macro? ghil-env-add! ghil-lookup
+   ghil-env-toplevel?
    call-with-ghil-environment call-with-ghil-bindings))
 
 
@@ -160,7 +161,7 @@
     ((<ghil-env> mod) (%make-ghil-env :mod mod :parent e))))
 
 (define (ghil-env-toplevel? e)
-  (eq? (ghil-env-mod e) (gil-env-parent e)))
+  (eq? (ghil-env-mod e) (ghil-env-parent e)))
 
 (define (ghil-env-ref env sym)
   (assq-ref (ghil-env-table env) sym))
