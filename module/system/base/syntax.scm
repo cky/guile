@@ -20,13 +20,7 @@
 ;;; Code:
 
 (define-module (system base syntax)
-  :use-module (srfi srfi-9)
-  :export (%make-struct slot
-           %slot-1 %slot-2 %slot-3 %slot-4 %slot-5
-           %slot-6 %slot-7 %slot-8 %slot-9
-           list-fold)
-  :export-syntax (define-type define-record record-case)
-  :re-export-syntax (define-record-type))
+  :export-syntax (define-type define-record record-case))
 (export-syntax |) ;; emacs doesn't like the |
 
 
@@ -50,7 +44,6 @@
 (define (symbol-trim-both sym pred)
   (string->symbol (string-trim-both (symbol->string sym) pred)))
 
-
 (define-macro (define-record def)
   (let* ((name (car def)) (slots (cdr def))
          (slot-names (map (lambda (slot) (if (pair? slot) (car slot) slot))
@@ -68,7 +61,7 @@
            (lambda args
              (apply ,(record-constructor type)
                     (,%compute-initargs args slots)))))
-       (define ,(symbol-append name '?) ,(record-predicate type))
+       (define ,(symbol-append stem '?) ,(record-predicate type))
        ,@(map (lambda (sname)
                 `(define ,(symbol-append stem '- sname)
                    ,(make-procedure-with-setter
@@ -102,24 +95,6 @@
       (lp (cdr in) (cdr positional)
           (acons (car positional) (car in) out))))))
 
-
-;;;
-;;; Variants
-;;;
-
-(define-macro (| . rest)
-  `(begin ,@(map (lambda (def) `(define-record ,def)) rest)))
-
-(define (%slot-1 x) (vector-ref x 1))
-(define (%slot-2 x) (vector-ref x 2))
-(define (%slot-3 x) (vector-ref x 3))
-(define (%slot-4 x) (vector-ref x 4))
-(define (%slot-5 x) (vector-ref x 5))
-(define (%slot-6 x) (vector-ref x 6))
-(define (%slot-7 x) (vector-ref x 7))
-(define (%slot-8 x) (vector-ref x 8))
-(define (%slot-9 x) (vector-ref x 9))
-
 (define-macro (record-case record . clauses)
   (let ((r (gensym)))
     (define (process-clause clause)
@@ -141,12 +116,11 @@
                      clauses
                      (append clauses `((else (error "unhandled record" ,r))))))))))
 
+
 
 ;;;
-;;; Utilities
+;;; Variants
 ;;;
 
-(define (list-fold f d l)
-  (if (null? l)
-      d
-      (list-fold f (f (car l) d) (cdr l))))
+(define-macro (| . rest)
+  `(begin ,@(map (lambda (def) `(define-record ,def)) rest)))

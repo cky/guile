@@ -28,7 +28,7 @@
 	       :select (the-vm vm-load objcode->u8vector))
   :use-module (system vm assemble)
   :use-module (ice-9 regex)
-  :export (<cenv> make-cenv cenv-vm cenv-language cenv-module))
+  :export (<cenv> make-cenv cenv? cenv-vm cenv-language cenv-module))
 
 ;;;
 ;;; Compiler environment
