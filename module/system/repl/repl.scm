@@ -32,10 +32,13 @@
 (define meta-command-token (cons 'meta 'command))
 
 (define (meta-reader read)
-  (lambda ()
-    (if (eqv? (next-char #t) #\,)
-        (begin (read-char) meta-command-token)
-        (read))))
+  (lambda read-args
+    (with-input-from-port
+        (if (pair? read-args) (car read-args) (current-input-port))
+      (lambda ()
+        (if (eqv? (next-char #t) #\,)
+            (begin (read-char) meta-command-token)
+            (read))))))
         
 ;; repl-reader is a function defined in boot-9.scm, and is replaced by
 ;; something else if readline has been activated. much of this hoopla is
