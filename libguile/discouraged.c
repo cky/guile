@@ -23,33 +23,128 @@
 
 #if (SCM_ENABLE_DISCOURAGED == 1)
 
-#define DEFFROM(t,f1,f2) SCM f1(t x) { return f2 (x); }
-#define DEFTO(t,f1,f2)   t f1(SCM x, unsigned long pos, const char *s_caller) \
-                           { return f2 (x); }
+SCM
+scm_short2num (short x)
+{
+  return scm_from_short (x);
+}
 
-DEFFROM (short, scm_short2num, scm_from_short);
-DEFFROM (unsigned short, scm_ushort2num, scm_from_ushort);
-DEFFROM (int, scm_int2num, scm_from_int);
-DEFFROM (unsigned int, scm_uint2num, scm_from_uint);
-DEFFROM (long, scm_long2num, scm_from_long);
-DEFFROM (unsigned long, scm_ulong2num, scm_from_ulong);
-DEFFROM (size_t, scm_size2num, scm_from_size_t);
-DEFFROM (ptrdiff_t, scm_ptrdiff2num, scm_from_ssize_t);
+SCM
+scm_ushort2num (unsigned short x)
+{
+  return scm_from_ushort (x);
+}
 
-DEFTO (short, scm_num2short, scm_to_short);
-DEFTO (unsigned short, scm_num2ushort, scm_to_ushort);
-DEFTO (int, scm_num2int, scm_to_int);
-DEFTO (unsigned int, scm_num2uint, scm_to_uint);
-DEFTO (long, scm_num2long, scm_to_long);
-DEFTO (unsigned long, scm_num2ulong, scm_to_ulong);
-DEFTO (size_t, scm_num2size, scm_to_size_t);
-DEFTO (ptrdiff_t, scm_num2ptrdiff, scm_to_ssize_t);
+SCM
+scm_int2num (int x)
+{
+  return scm_from_int (x);
+}
+
+SCM
+scm_uint2num (unsigned int x)
+{
+  return scm_from_uint (x);
+}
+
+SCM
+scm_long2num (long x)
+{
+  return scm_from_long (x);
+}
+
+SCM
+scm_ulong2num (unsigned long x)
+{
+  return scm_from_ulong (x);
+}
+
+SCM
+scm_size2num (size_t x)
+{
+  return scm_from_size_t (x);
+}
+
+SCM
+scm_ptrdiff2num (ptrdiff_t x)
+{
+  return scm_from_ssize_t (x);
+}
+
+short
+scm_num2short (SCM x, unsigned long pos, const char *s_caller)
+{
+  return scm_to_short (x);
+}
+
+unsigned short
+scm_num2ushort (SCM x, unsigned long pos, const char *s_caller)
+{
+  return scm_to_ushort (x);
+}
+
+int
+scm_num2int (SCM x, unsigned long pos, const char *s_caller)
+{
+  return scm_to_int (x);
+}
+
+unsigned int
+scm_num2uint (SCM x, unsigned long pos, const char *s_caller)
+{
+  return scm_to_uint (x);
+}
+
+long
+scm_num2long (SCM x, unsigned long pos, const char *s_caller)
+{
+  return scm_to_long (x);
+}
+
+unsigned long
+scm_num2ulong (SCM x, unsigned long pos, const char *s_caller)
+{
+  return scm_to_ulong (x);
+}
+
+size_t
+scm_num2size (SCM x, unsigned long pos, const char *s_caller)
+{
+  return scm_to_size_t (x);
+}
+
+ptrdiff_t
+scm_num2ptrdiff (SCM x, unsigned long pos, const char *s_caller)
+{
+  return scm_to_ssize_t (x);
+}
 
 #if SCM_SIZEOF_LONG_LONG != 0
-DEFFROM (long long, scm_long_long2num, scm_from_long_long);
-DEFFROM (unsigned long long, scm_ulong_long2num, scm_from_ulong_long);
-DEFTO   (long long, scm_num2long_long, scm_to_long_long);
-DEFTO   (unsigned long long, scm_num2ulong_long, scm_to_ulong_long);
+
+SCM
+scm_long_long2num (long long x)
+{
+  return scm_from_long_long (x);
+}
+
+SCM
+scm_ulong_long2num (unsigned long long x)
+{
+  return scm_from_ulong_long (x);
+}
+
+long long
+scm_num2long_long (SCM x, unsigned long pos, const char *s_caller)
+{
+  return scm_to_long_long (x);
+}
+
+unsigned long long
+scm_num2ulong_long (SCM x, unsigned long pos, const char *s_caller)
+{
+  return scm_to_ulong_long (x);
+}
+
 #endif
 
 SCM

@@ -1,3 +1,9 @@
+2008-05-12  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* discouraged.c: Expand DEFFROM and DEFTO macros, to avoid
+	compiler warnings about excess semicolons.  (Reported by Didier
+	Godefroy.)
+
 2008-05-08  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* throw.c (scm_ithrow): For IA64 add a return statement, to
