@@ -45,7 +45,7 @@
 ;; to be able to re-use the existing readline machinery.
 (define (prompting-meta-read repl)
   (let ((prompt (lambda () (repl-prompt repl)))
-        (lread (language-reader (cenv-language (repl-env repl)))))
+        (lread (language-reader (repl-language repl))))
     (with-fluid* current-reader (meta-reader lread)
       (lambda () (repl-reader (lambda () (repl-prompt repl)))))))
 

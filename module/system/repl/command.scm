@@ -44,7 +44,7 @@
 
 (define *command-table*
   '((help     (help h) (apropos a) (describe d) (option o) (quit q))
-    (module   (module m) (use u) (import i) (load l) (binding b))
+    (module   (module m) (import i) (load l) (binding b))
     (language (language L))
     (compile  (compile c) (compile-file cc)
 	      (disassemble x) (disassemble-file xx))
@@ -176,7 +176,7 @@ List/show/set options."
      (repl-option-set! repl key val)
      (case key
        ((trace)
-        (let ((vm (cenv-vm (repl-env repl))))
+        (let ((vm (repl-vm repl)))
           (if val
               (apply vm-trace-on vm val)
               (vm-trace-off vm))))))))
@@ -195,27 +195,8 @@ Quit this session."
   "module [MODULE]
 Change modules / Show current module."
   (pmatch args
-    (() (puts (binding (cenv-module (repl-env repl)))))))
-
-(define (use repl . args)
-  "use [MODULE ...]
-Use modules."
-  (define (use name)
-    (let ((mod (resolve-interface name)))
-      (if mod
-	  (module-use! (cenv-module (repl-env repl)) mod)
-	  (user-error "No such module: ~A" name))))
-  (if (null? args)
-      (for-each puts (map module-name
-			  (cons (cenv-module (repl-env repl))
-				(module-uses (cenv-module (repl-env repl))))))
-      (for-each (lambda (name)
-		  (cond
-		   ((pair? name) (use name))
-		   ((symbol? name)
-		    (cond ((find-one-module (symbol->string name)) => use)))
-		   (else (user-error "Invalid module name: ~A" name))))
-		args)))
+    (() (puts (module-name (current-module))))
+    ((,mod-name) (set-current-module (resolve-module mod-name)))))
 
 (define (import repl . args)
   "import [MODULE ...]
@@ -223,20 +204,11 @@ Import modules / List those imported."
   (define (use name)
     (let ((mod (resolve-interface name)))
       (if mod
-	  (module-use! (cenv-module (repl-env repl)) mod)
+	  (module-use! (current-module) mod)
 	  (user-error "No such module: ~A" name))))
   (if (null? args)
-      (for-each puts (map module-name
-			  (cons (cenv-module (repl-env repl))
-                                (module-uses (cenv-module (repl-env repl))))))
-      (for-each (lambda (name)
-		  (cond
-		   ((pair? name) (use name))
-		   ((symbol? name)
-		    (and-let* ((m (find-one-module (symbol->string name))))
-		      (puts m) (use m)))
-		   (else (user-error "Invalid module name: ~A" name))))
-		args)))
+      (for-each puts (map module-name (module-uses (current-module))))
+      (for-each use args)))
 
 (define (load repl file . opts)
   "load FILE
@@ -247,13 +219,13 @@ Load a file in the current module.
 	 (objcode (if (memq :f opts)
 		      (apply load-source-file file opts)
 		      (apply load-file file opts))))
-    (vm-load (cenv-vm (repl-env repl)) objcode)))
+    (vm-load (repl-vm repl) objcode)))
 
 (define (binding repl . opts)
   "binding
 List current bindings."
-  (fold (lambda (s v d) (format #t "~23A ~A\n" s v)) #f
-        (cenv-module (repl-env repl))))
+  (module-for-each (lambda (k v) (format #t "~23A ~A\n" k v))
+                   (current-module)))
 
 
 ;;;
@@ -263,7 +235,7 @@ List current bindings."
 (define (language repl name)
   "language LANGUAGE
 Change languages."
-  (set! (cenv-language (repl-env repl)) (lookup-language name))
+  (set! (repl-language repl) (lookup-language name))
   (repl-welcome repl))
 
 
@@ -310,13 +282,13 @@ Disassemble a file."
 (define (time repl form)
   "time FORM
 Time execution."
-  (let* ((vms-start (vm-stats (cenv-vm (repl-env repl))))
+  (let* ((vms-start (vm-stats (repl-vm repl)))
 	 (gc-start (gc-run-time))
 	 (tms-start (times))
 	 (result (repl-eval repl form))
 	 (tms-end (times))
 	 (gc-end (gc-run-time))
-	 (vms-end (vm-stats (cenv-vm (repl-env repl)))))
+	 (vms-end (vm-stats (repl-vm repl))))
     (define (get proc start end)
       (/ (- (proc end) (proc start)) internal-time-units-per-second))
     (repl-print repl result)
@@ -334,7 +306,7 @@ Time execution."
   "profile FORM
 Profile execution."
   (apply vm-profile
-         (cenv-vm (repl-env repl))
+         (repl-vm repl)
          (repl-compile repl form)
          opts))
 
@@ -346,12 +318,12 @@ Profile execution."
 (define (backtrace repl)
   "backtrace
 Display backtrace."
-  (vm-backtrace (cenv-vm (repl-env repl))))
+  (vm-backtrace (repl-vm repl)))
 
 (define (debugger repl)
   "debugger
 Start debugger."
-  (vm-debugger (cenv-vm (repl-env repl))))
+  (vm-debugger (repl-vm repl)))
 
 (define (trace repl form . opts)
   "trace FORM
@@ -361,7 +333,7 @@ Trace execution.
   -l    Display local variables
   -e    Display external variables
   -b    Bytecode level trace"
-  (apply vm-trace (cenv-vm (repl-env repl)) (repl-compile repl form) opts))
+  (apply vm-trace (repl-vm repl) (repl-compile repl form) opts))
 
 (define (step repl)
   "step FORM
@@ -383,7 +355,7 @@ Garbage collection."
   "statistics
 Display statistics."
   (let ((this-tms (times))
-	(this-vms (vm-stats (cenv-vm (repl-env repl))))
+	(this-vms (vm-stats (repl-vm repl)))
 	(this-gcs (gc-stats))
 	(last-tms (repl-tm-stats repl))
 	(last-vms (repl-vm-stats repl))

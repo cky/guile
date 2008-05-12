@@ -28,16 +28,13 @@
 	       :select (the-vm vm-load objcode->u8vector))
   :use-module (system vm assemble)
   :use-module (ice-9 regex)
-  :export (<cenv> make-cenv cenv? cenv-vm cenv-language cenv-module
-           syntax-error compile-file load-source-file load-file
+  :export (syntax-error compile-file load-source-file load-file
            compiled-file-name
            scheme-eval read-file-in compile-in))
 
 ;;;
 ;;; Compiler environment
 ;;;
-
-(define-record (<cenv> vm language module))
 
 (define (syntax-error loc msg exp)
   (throw 'syntax-error loc msg exp))

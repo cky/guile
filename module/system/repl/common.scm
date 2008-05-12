@@ -24,8 +24,8 @@
   :use-module (system base compile)
   :use-module (system base language)
   :use-module (system vm core)
-  :export (<repl> make-repl repl-env repl-options repl-tm-stats
-                  repl-gc-stats repl-vm-stats
+  :export (<repl> make-repl repl-vm repl-language repl-options
+                  repl-tm-stats repl-gc-stats repl-vm-stats
            repl-welcome repl-prompt repl-read repl-compile repl-eval
            repl-print repl-option-ref repl-option-set!
            puts ->string user-error))
@@ -35,50 +35,47 @@
 ;;; Repl type
 ;;;
 
-(define-record (<repl> env options tm-stats gc-stats vm-stats))
+(define-record (<repl> vm language options tm-stats gc-stats vm-stats))
 
 (define repl-default-options
   '((trace . #f)))
 
 (define %make-repl make-repl)
 (define (make-repl lang)
-  (let ((cenv (make-cenv :vm (the-vm)
-			 :language (lookup-language lang)
-			 :module (current-module))))
-    (%make-repl :env cenv
-                :options repl-default-options
-                :tm-stats (times)
-                :gc-stats (gc-stats)
-                :vm-stats (vm-stats (cenv-vm cenv)))))
+  (%make-repl :vm (the-vm)
+              :language (lookup-language lang)
+              :options repl-default-options
+              :tm-stats (times)
+              :gc-stats (gc-stats)
+              :vm-stats (vm-stats (the-vm))))
 
 (define (repl-welcome repl)
-  (let ((language (cenv-language (repl-env repl))))
+  (let ((language (repl-language repl)))
     (format #t "~A interpreter ~A on Guile ~A\n"
             (language-title language) (language-version language) (version)))
-  (display "Copyright (C) 2001 Free Software Foundation, Inc.\n\n")
+  (display "Copyright (C) 2001-2008 Free Software Foundation, Inc.\n\n")
   (display "Enter `,help' for help.\n"))
 
 (define (repl-prompt repl)
-  (format #f "~A@~A> " (language-name (cenv-language (repl-env repl)))
-          (module-name (cenv-module (repl-env repl)))))
+  (format #f "~A@~A> " (language-name (repl-language repl))
+          (module-name (current-module))))
 
 (define (repl-read repl)
-  ((language-reader (cenv-language (repl-env repl)))))
+  ((language-reader (repl-language repl))))
 
 (define (repl-compile repl form . opts)
-  (apply compile-in form (cenv-module (repl-env repl))
-         (cenv-language (repl-env repl)) opts))
+  (apply compile-in form (current-module) (repl-language repl) opts))
 
 (define (repl-eval repl form)
-  (let ((eval (language-evaluator (cenv-language (repl-env repl)))))
+  (let ((eval (language-evaluator (repl-language repl))))
     (if eval
-	(eval form (cenv-module (repl-env repl)))
-	(vm-load (cenv-vm (repl-env repl)) (repl-compile repl form)))))
+	(eval form (current-module))
+	(vm-load (repl-vm repl) (repl-compile repl form)))))
 
 (define (repl-print repl val)
   (if (not (eq? val *unspecified*))
       (begin
-	((language-printer (cenv-language (repl-env repl))) val)
+	((language-printer (repl-language repl)) val)
 	(newline))))
 
 (define (repl-option-ref repl key)
