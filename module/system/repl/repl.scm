@@ -21,6 +21,7 @@
 
 (define-module (system repl repl)
   :use-syntax (system base syntax)
+  :use-module (system base pmatch)
   :use-module (system base compile)
   :use-module (system base language)
   :use-module (system repl common)
@@ -49,6 +50,41 @@
     (with-fluid* current-reader (meta-reader lread)
       (lambda () (repl-reader (lambda () (repl-prompt repl)))))))
 
+(define (default-pre-unwind-handler key . args)
+  (save-stack default-pre-unwind-handler)
+  (apply throw key args))
+
+(define (default-catch-handler . args)
+  (pmatch args
+    ((quit . _)
+     (apply throw args))
+    ((vm-error ,fun ,msg ,args)
+     (display "VM error: ")
+     (apply format #t msg args)
+     (newline))
+    ((,key ,subr ,msg ,args . ,rest)
+     (let ((cep (current-error-port)))
+       (cond ((not (stack? (fluid-ref the-last-stack))))
+             ((memq 'backtrace (debug-options-interface))
+              (let ((highlights (if (or (eq? key 'wrong-type-arg)
+                                        (eq? key 'out-of-range))
+                                    (car rest)
+                                    '())))
+                (run-hook before-backtrace-hook)
+                (newline cep)
+                (display "Backtrace:\n")
+                (display-backtrace (fluid-ref the-last-stack) cep
+                                   #f #f highlights)
+                (newline cep)
+                (run-hook after-backtrace-hook))))
+       (run-hook before-error-hook)
+       (apply display-error (fluid-ref the-last-stack) cep subr msg args rest)
+       (run-hook after-error-hook)
+       (set! stack-saved? #f)
+       (force-output cep)))
+    (else
+     (apply bad-throw args))))
+
 (define (start-repl lang)
   (let ((repl (make-repl lang)))
     (repl-welcome repl)
@@ -60,20 +96,19 @@
          ((eof-object? exp)
           (throw 'quit))
          (else
-          (catch 'vm-error
+          (catch #t
                  (lambda ()
                    (call-with-values (lambda ()
                                        (run-hook before-eval-hook exp)
-                                       (repl-eval repl exp))
+                                       (start-stack repl-eval
+                                                    (repl-eval repl exp)))
                      (lambda l
                        (for-each (lambda (v)
                                    (run-hook before-print-hook v)
                                    (repl-print repl v))
                                  l))))
-                 (lambda (key fun msg args)
-                   (display "ERROR: ")
-                   (apply format #t msg args)
-                   (newline)))))
+                 default-catch-handler
+                 default-pre-unwind-handler)))
         (next-char #f) ;; consume trailing whitespace
         (prompt-loop)))))
 
