@@ -6,7 +6,6 @@ vmdir = $(guiledir)/system/vm
 vm_DATA = $(SOURCES) $(GOBJECTS)
 
 CLEANFILES = $(GOBJECTS)
-MAINTAINERCLEANFILES = Makefile.in
 
 SUFFIXES = .scm .go
 %.go: %.scm

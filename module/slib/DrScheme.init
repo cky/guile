@@ -1,6 +1,0 @@
-;;;"DrScheme.init" Initialization for SLIB for DrScheme	-*-scheme-*-
-;;  Friedrich Dominicus <frido@q-software-solutions.com>
-;;  Newsgroups: comp.lang.scheme
-;;  Date: 02 Oct 2000 09:24:57 +0200
-
-(require-library "init.ss" "slibinit")

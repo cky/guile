@@ -1,4 +1,5 @@
 SUBDIRS = src doc testsuite
+DIST_SUBDIRS = src module doc testsuite
 
 # FIXME: The `module' directory is removed from `SUBDIRS' until it can
 # actually be built.
