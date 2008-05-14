@@ -55,7 +55,7 @@
 ;;; Compiler
 ;;;
 
-(define scheme (lookup-language 'scheme))
+(define (scheme) (lookup-language 'scheme))
 
 (define (compile-file file . opts)
   (let ((comp (compiled-file-name file)))
@@ -65,9 +65,9 @@
 	 (lambda ()
 	   (call-with-output-file comp
 	     (lambda (port)
-	       (let* ((source (read-file-in file scheme))
+	       (let* ((source (read-file-in file (scheme)))
 		      (objcode (apply compile-in source (current-module)
-				      scheme opts)))
+				      (scheme) opts)))
 		 (if (memq :c opts)
 		   (pprint-glil objcode port)
 		   (uniform-vector-write (objcode->u8vector objcode) port)))))
@@ -90,8 +90,8 @@
 ; 	    result))))
 
 (define (load-source-file file . opts)
-  (let ((source (read-file-in file scheme)))
-    (apply compile-in source (current-module) scheme opts)))
+  (let ((source (read-file-in file (scheme))))
+    (apply compile-in source (current-module) (scheme) opts)))
 
 (define (load-file file . opts)
   (let ((comp (compiled-file-name file)))
@@ -104,7 +104,7 @@
     (string-append (if m (match:prefix m) file) ".go")))
 
 (define (scheme-eval x e)
-  (vm-load (the-vm) (compile-in x e scheme)))
+  (vm-load (the-vm) (compile-in x e (scheme))))
 
 
 ;;;
