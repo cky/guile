@@ -1,7 +1,7 @@
 /*
  * private-gc.h - private declarations for garbage collection.
  * 
- * Copyright (C) 2002, 03, 04, 05, 06, 07 Free Software Foundation, Inc.
+ * Copyright (C) 2002, 03, 04, 05, 06, 07, 08 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -163,10 +163,13 @@ typedef struct scm_sweep_statistics
 extern scm_t_cell_type_statistics scm_i_master_freelist;
 extern scm_t_cell_type_statistics scm_i_master_freelist2;
 
+SCM_INTERNAL
 void scm_i_adjust_min_yield (scm_t_cell_type_statistics *freelist,
 			     scm_t_sweep_statistics sweep_stats,
 			     scm_t_sweep_statistics sweep_stats_1);
+SCM_INTERNAL
 void scm_i_gc_sweep_freelist_reset (scm_t_cell_type_statistics *freelist);
+SCM_INTERNAL
 int scm_i_gc_grow_heap_p (scm_t_cell_type_statistics * freelist);
 
 
@@ -263,39 +266,46 @@ extern scm_t_heap_segment ** scm_i_heap_segment_table;
 extern size_t scm_i_heap_segment_table_size;
 
 
-int scm_i_init_card_freelist (scm_t_cell * card, SCM *free_list,scm_t_heap_segment*);
-int scm_i_sweep_card (scm_t_cell * card, SCM *free_list, scm_t_heap_segment*);
-void scm_i_card_statistics (scm_t_cell *p, SCM hashtab, scm_t_heap_segment *seg);
-char const *scm_i_tag_name (scm_t_bits tag); /* MOVEME */
+SCM_INTERNAL int scm_i_init_card_freelist (scm_t_cell * card, SCM *free_list,
+					   scm_t_heap_segment*);
+SCM_INTERNAL int scm_i_sweep_card (scm_t_cell *card, SCM *free_list,
+				   scm_t_heap_segment *);
+SCM_INTERNAL void scm_i_card_statistics (scm_t_cell *p, SCM hashtab,
+					 scm_t_heap_segment *seg);
+SCM_INTERNAL char const *scm_i_tag_name (scm_t_bits tag); /* MOVEME */
 
-int scm_i_initialize_heap_segment_data (scm_t_heap_segment * segment, size_t requested);
-int scm_i_segment_card_count (scm_t_heap_segment * seg);
-int scm_i_segment_cell_count (scm_t_heap_segment * seg);
+SCM_INTERNAL int scm_i_initialize_heap_segment_data (scm_t_heap_segment *seg,
+						     size_t requested);
+SCM_INTERNAL int scm_i_segment_card_count (scm_t_heap_segment *seg);
+SCM_INTERNAL int scm_i_segment_cell_count (scm_t_heap_segment *seg);
 
-void scm_i_clear_segment_mark_space (scm_t_heap_segment *seg);
-scm_t_heap_segment * scm_i_make_empty_heap_segment (scm_t_cell_type_statistics*);
-SCM scm_i_sweep_some_cards (scm_t_heap_segment *seg,
-			    scm_t_sweep_statistics *sweep_stats);
-void scm_i_sweep_segment (scm_t_heap_segment *seg,
-			  scm_t_sweep_statistics *sweep_stats);
+SCM_INTERNAL void scm_i_clear_segment_mark_space (scm_t_heap_segment *seg);
+SCM_INTERNAL scm_t_heap_segment *
+scm_i_make_empty_heap_segment (scm_t_cell_type_statistics*);
+SCM_INTERNAL SCM scm_i_sweep_some_cards (scm_t_heap_segment *seg,
+					 scm_t_sweep_statistics *sweep_stats);
+SCM_INTERNAL void scm_i_sweep_segment (scm_t_heap_segment *seg,
+				       scm_t_sweep_statistics *sweep_stats);
 
-void scm_i_heap_segment_statistics (scm_t_heap_segment *seg, SCM tab);
+SCM_INTERNAL void scm_i_heap_segment_statistics (scm_t_heap_segment *seg,
+						 SCM tab);
 
-     
-int scm_i_insert_segment (scm_t_heap_segment * seg);
-long int scm_i_find_heap_segment_containing_object (SCM obj);
-int scm_i_get_new_heap_segment (scm_t_cell_type_statistics *,
-				scm_t_sweep_statistics,
-				policy_on_error);
-void scm_i_clear_mark_space (void);
-void scm_i_sweep_segments (void);
-SCM scm_i_sweep_some_segments (scm_t_cell_type_statistics *fl,
-			       scm_t_sweep_statistics *sweep_stats);
-void scm_i_reset_segments (void);
-void scm_i_sweep_all_segments (char const *reason,
-			       scm_t_sweep_statistics *sweep_stats);
-SCM scm_i_all_segments_statistics (SCM hashtab);
-void scm_i_make_initial_segment (int init_heap_size, scm_t_cell_type_statistics *freelist);
+
+SCM_INTERNAL int scm_i_insert_segment (scm_t_heap_segment *seg);
+SCM_INTERNAL long int scm_i_find_heap_segment_containing_object (SCM obj);
+SCM_INTERNAL int scm_i_get_new_heap_segment (scm_t_cell_type_statistics *,
+					     scm_t_sweep_statistics,
+					     policy_on_error);
+SCM_INTERNAL void scm_i_clear_mark_space (void);
+SCM_INTERNAL void scm_i_sweep_segments (void);
+SCM_INTERNAL SCM scm_i_sweep_some_segments (scm_t_cell_type_statistics *fl,
+					    scm_t_sweep_statistics *sweep_stats);
+SCM_INTERNAL void scm_i_reset_segments (void);
+SCM_INTERNAL void scm_i_sweep_all_segments (char const *reason,
+					    scm_t_sweep_statistics *sweep_stats);
+SCM_INTERNAL SCM scm_i_all_segments_statistics (SCM hashtab);
+SCM_INTERNAL void scm_i_make_initial_segment (int init_heap_size,
+					      scm_t_cell_type_statistics *fl);
 
 extern long int scm_i_deprecated_memory_return;
 

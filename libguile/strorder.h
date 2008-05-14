@@ -3,7 +3,7 @@
 #ifndef SCM_STRORDER_H
 #define SCM_STRORDER_H
 
-/* Copyright (C) 1995,1996,2000, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,2000, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -36,7 +36,7 @@ SCM_API SCM scm_string_ci_less_p (SCM s1, SCM s2);
 SCM_API SCM scm_string_ci_leq_p (SCM s1, SCM s2);
 SCM_API SCM scm_string_ci_gr_p (SCM s1, SCM s2);
 SCM_API SCM scm_string_ci_geq_p (SCM s1, SCM s2);
-SCM_API void scm_init_strorder (void);
+SCM_INTERNAL void scm_init_strorder (void);
 
 #endif  /* SCM_STRORDER_H */
 

@@ -1,3 +1,8 @@
+2008-05-31  Ludovic Courtès  <ludo@gnu.org>
+
+	* standalone/test-gh.c (string_equal): Use `scm_c_string_length ()'
+	instead of `scm_i_string_length ()'.
+	
 2008-05-15  Julian Graham  <joolean@gmail.com>
 
 	* tests/srfi-18.test: New file.

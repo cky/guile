@@ -3,7 +3,7 @@
 #ifndef SCM_IOEXT_H
 #define SCM_IOEXT_H
 
-/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -35,7 +35,7 @@ SCM_API SCM scm_isatty_p (SCM port);
 SCM_API SCM scm_fdopen (SCM fdes, SCM modes);
 SCM_API SCM scm_primitive_move_to_fdes (SCM port, SCM fd);
 SCM_API SCM scm_fdes_to_ports (SCM fd);
-SCM_API void scm_init_ioext (void);
+SCM_INTERNAL void scm_init_ioext (void);
 
 #endif  /* SCM_IOEXT_H */
 

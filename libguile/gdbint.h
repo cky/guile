@@ -3,7 +3,7 @@
 #ifndef SCM_GDBINT_H
 #define SCM_GDBINT_H
 
-/* Copyright (C) 1996,2000, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1996,2000, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -28,7 +28,7 @@
 
 SCM_API int scm_print_carefully_p;
 
-SCM_API void scm_init_gdbint (void);
+SCM_INTERNAL void scm_init_gdbint (void);
 
 #endif  /* SCM_GDBINT_H */
 

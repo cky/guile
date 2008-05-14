@@ -3,7 +3,7 @@
 #ifndef SCM_FLUIDS_H
 #define SCM_FLUIDS_H
 
-/* Copyright (C) 1996,2000,2001, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1996,2000,2001, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -82,10 +82,10 @@ SCM_API void *scm_c_with_dynamic_state (SCM state,
 					void *(*func)(void *), void *data);
 SCM_API SCM scm_with_dynamic_state (SCM state, SCM proc);
 
-SCM_API SCM scm_i_make_initial_dynamic_state (void);
+SCM_INTERNAL SCM scm_i_make_initial_dynamic_state (void);
 
-SCM_API void scm_fluids_prehistory (void);
-SCM_API void scm_init_fluids (void);
+SCM_INTERNAL void scm_fluids_prehistory (void);
+SCM_INTERNAL void scm_init_fluids (void);
 
 #endif  /* SCM_FLUIDS_H */
 

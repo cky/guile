@@ -3,7 +3,7 @@
 #ifndef SCM_HASHTAB_H
 #define SCM_HASHTAB_H
 
-/* Copyright (C) 1995,1996,1999,2000,2001, 2003, 2004, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1999,2000,2001, 2003, 2004, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -96,8 +96,9 @@ SCM_API SCM scm_weak_key_hash_table_p (SCM h);
 SCM_API SCM scm_weak_value_hash_table_p (SCM h);
 SCM_API SCM scm_doubly_weak_hash_table_p (SCM h);
 
-SCM_API void scm_i_rehash (SCM table, unsigned long (*hash_fn)(), void *closure, const char*func_name);
-SCM_API void scm_i_scan_weak_hashtables (void);
+SCM_INTERNAL void scm_i_rehash (SCM table, unsigned long (*hash_fn)(),
+				void *closure, const char *func_name);
+SCM_INTERNAL void scm_i_scan_weak_hashtables (void);
 
 SCM_API SCM scm_hash_fn_get_handle (SCM table, SCM obj, unsigned long (*hash_fn) (), SCM (*assoc_fn) (), void * closure);
 SCM_API SCM scm_hash_fn_create_handle_x (SCM table, SCM obj, SCM init, unsigned long (*hash_fn) (), SCM (*assoc_fn) (), void * closure);
@@ -132,8 +133,8 @@ SCM_API SCM scm_hash_fold (SCM proc, SCM init, SCM hash);
 SCM_API SCM scm_hash_for_each (SCM proc, SCM hash);
 SCM_API SCM scm_hash_for_each_handle (SCM proc, SCM hash);
 SCM_API SCM scm_hash_map_to_list (SCM proc, SCM hash);
-SCM_API void scm_hashtab_prehistory (void);
-SCM_API void scm_init_hashtab (void);
+SCM_INTERNAL void scm_hashtab_prehistory (void);
+SCM_INTERNAL void scm_init_hashtab (void);
 
 #endif  /* SCM_HASHTAB_H */
 

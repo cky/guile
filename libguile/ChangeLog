@@ -1,3 +1,10 @@
+2008-05-31  Ludovic Courtès  <ludo@gnu.org>
+
+	* __scm.h (SCM_INTERNAL): New macro.
+	* *.h: Use it to mark as internal `scm_i_' and `scm_init_'
+	functions that are not used by public macros or inline
+	functions.
+
 2008-05-14  Julian Graham  <joolean@gmail.com>
 
 	* threads.c (fat_mutex)[recursive]: New field.

@@ -3,7 +3,7 @@
 #ifndef SCM_ENVIRONMENTS_H
 #define SCM_ENVIRONMENTS_H
 
-/* Copyright (C) 1999,2000, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1999,2000, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -122,8 +122,8 @@ SCM_API SCM scm_environment_observe_weak (SCM env, SCM proc);
 SCM_API SCM scm_c_environment_observe (SCM env, scm_environment_observer proc, SCM data, int weak_p);
 SCM_API SCM scm_environment_unobserve (SCM token);
 
-SCM_API void scm_environments_prehistory (void);
-SCM_API void scm_init_environments (void);
+SCM_INTERNAL void scm_environments_prehistory (void);
+SCM_INTERNAL void scm_init_environments (void);
 
 
 

@@ -3,7 +3,7 @@
 #ifndef SCM_GC_H
 #define SCM_GC_H
 
-/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2002, 2003, 2004, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2002, 2003, 2004, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -241,10 +241,10 @@ SCM_API int scm_debug_cells_gc_interval ;
 void scm_i_expensive_validation_check (SCM cell);
 #endif
 
-SCM_API scm_i_pthread_mutex_t scm_i_gc_admin_mutex;
+SCM_INTERNAL scm_i_pthread_mutex_t scm_i_gc_admin_mutex;
 
 #define scm_gc_running_p (SCM_I_CURRENT_THREAD->gc_running_p)
-SCM_API scm_i_pthread_mutex_t scm_i_sweep_mutex;
+SCM_INTERNAL scm_i_pthread_mutex_t scm_i_sweep_mutex;
 
 #ifdef __ia64__
 void *scm_ia64_register_backing_store_base (void);
@@ -320,7 +320,7 @@ SCM_API SCM scm_gc_live_object_stats (void);
 SCM_API SCM scm_gc (void);
 SCM_API void scm_gc_for_alloc (struct scm_t_cell_type_statistics *freelist);
 SCM_API SCM scm_gc_for_newcell (struct scm_t_cell_type_statistics *master, SCM *freelist);
-SCM_API void scm_i_gc (const char *what);
+SCM_INTERNAL void scm_i_gc (const char *what);
 SCM_API void scm_gc_mark (SCM p);
 SCM_API void scm_gc_mark_dependencies (SCM p);
 SCM_API void scm_mark_locations (SCM_STACKITEM x[], unsigned long n);
@@ -384,7 +384,7 @@ SCM_API void scm_gc_unregister_roots (SCM *b, unsigned long n);
 SCM_API void scm_storage_prehistory (void);
 SCM_API int scm_init_storage (void);
 SCM_API void *scm_get_stack_base (void);
-SCM_API void scm_init_gc (void);
+SCM_INTERNAL void scm_init_gc (void);
 
 #if SCM_ENABLE_DEPRECATED == 1
 

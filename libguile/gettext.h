@@ -3,7 +3,7 @@
 #ifndef SCM_GETTEXT_H
 #define SCM_GETTEXT_H
 
-/* Copyright (C) 2004, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 2004, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -28,9 +28,9 @@ SCM_API SCM scm_textdomain (SCM domainname);
 SCM_API SCM scm_bindtextdomain (SCM domainname, SCM directory);
 SCM_API SCM scm_bind_textdomain_codeset (SCM domainname, SCM encoding);
 
-SCM_API int scm_i_to_lc_category (SCM category, int allow_lc_all);
+SCM_INTERNAL int scm_i_to_lc_category (SCM category, int allow_lc_all);
 
-SCM_API void scm_init_gettext (void);
+SCM_INTERNAL void scm_init_gettext (void);
 
 #endif  /* SCM_GETTEXT_H */
 

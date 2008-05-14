@@ -3,7 +3,7 @@
 #ifndef SCM_SORT_H
 #define SCM_SORT_H
 
-/* Copyright (C) 1999,2000, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1999,2000, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -39,7 +39,7 @@ SCM_API SCM scm_stable_sort (SCM ls, SCM less);
 SCM_API SCM scm_stable_sort_x (SCM ls, SCM less);
 SCM_API SCM scm_sort_list (SCM ls, SCM less);
 SCM_API SCM scm_sort_list_x (SCM ls, SCM less);
-SCM_API void scm_init_sort (void);
+SCM_INTERNAL void scm_init_sort (void);
 
 #endif  /* SCM_SORT_H */
 

@@ -3,7 +3,7 @@
 #ifndef SCM_RANDOM_H
 #define SCM_RANDOM_H
 
-/* Copyright (C) 1999,2000,2001, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1999,2000,2001, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -62,9 +62,9 @@ typedef struct scm_t_i_rstate {
   unsigned long c;
 } scm_t_i_rstate;
 
-SCM_API unsigned long scm_i_uniform32 (scm_t_i_rstate *);
-SCM_API void scm_i_init_rstate (scm_t_i_rstate *, const char *seed, int n);
-SCM_API scm_t_i_rstate *scm_i_copy_rstate (scm_t_i_rstate *);
+SCM_INTERNAL unsigned long scm_i_uniform32 (scm_t_i_rstate *);
+SCM_INTERNAL void scm_i_init_rstate (scm_t_i_rstate *, const char *seed, int n);
+SCM_INTERNAL scm_t_i_rstate *scm_i_copy_rstate (scm_t_i_rstate *);
 
 
 /*
@@ -99,7 +99,7 @@ SCM_API SCM scm_random_hollow_sphere_x (SCM v, SCM state);
 SCM_API SCM scm_random_normal (SCM state);
 SCM_API SCM scm_random_normal_vector_x (SCM v, SCM state);
 SCM_API SCM scm_random_exp (SCM state);
-SCM_API void scm_init_random (void);
+SCM_INTERNAL void scm_init_random (void);
 
 #endif  /* SCM_RANDOM_H */
 

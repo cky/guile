@@ -3,7 +3,7 @@
 #ifndef SCM_DYNWIND_H
 #define SCM_DYNWIND_H
 
-/* Copyright (C) 1995,1996,1998,1999,2000,2003,2004, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2003,2004, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -36,9 +36,9 @@ SCM_API SCM scm_internal_dynamic_wind (scm_t_guard before,
 				       void *inner_data,
 				       void *guard_data);
 SCM_API void scm_dowinds (SCM to, long delta);
-SCM_API void scm_i_dowinds (SCM to, long delta,
-			    void (*turn_func) (void *), void *data);
-SCM_API void scm_init_dynwind (void);
+SCM_INTERNAL void scm_i_dowinds (SCM to, long delta,
+				 void (*turn_func) (void *), void *data);
+SCM_INTERNAL void scm_init_dynwind (void);
 
 SCM_API void scm_swap_bindings (SCM vars, SCM vals);
 

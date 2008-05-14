@@ -3,7 +3,7 @@
 #ifndef SCM_HASH_H
 #define SCM_HASH_H
 
-/* Copyright (C) 1995,1996,2000, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,2000, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -34,7 +34,7 @@ SCM_API unsigned long scm_ihashv (SCM obj, unsigned long n);
 SCM_API SCM scm_hashv (SCM obj, SCM n);
 SCM_API unsigned long scm_ihash (SCM obj, unsigned long n);
 SCM_API SCM scm_hash (SCM obj, SCM n);
-SCM_API void scm_init_hash (void);
+SCM_INTERNAL void scm_init_hash (void);
 
 #endif  /* SCM_HASH_H */
 

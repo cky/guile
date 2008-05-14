@@ -3,7 +3,7 @@
 #ifndef SCM_SRCPROP_H
 #define SCM_SRCPROP_H
 
-/* Copyright (C) 1995,1996,2000,2001, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,2000,2001, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -70,7 +70,7 @@ SCM_API SCM scm_set_source_property_x (SCM obj, SCM key, SCM datum);
 SCM_API SCM scm_source_properties (SCM obj);
 SCM_API SCM scm_set_source_properties_x (SCM obj, SCM props);
 SCM_API void scm_finish_srcprop (void);
-SCM_API void scm_init_srcprop (void);
+SCM_INTERNAL void scm_init_srcprop (void);
 
 #if SCM_ENABLE_DEPRECATED == 1
 #define SRCBRKP(x) (scm_source_property_breakpoint_p (x))

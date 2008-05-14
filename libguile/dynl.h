@@ -3,7 +3,7 @@
 #ifndef SCM_DYNL_H
 #define SCM_DYNL_H
 
-/* Copyright (C) 1996,1998,2000,2001, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1996,1998,2000,2001, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -33,7 +33,7 @@ SCM_API SCM scm_dynamic_func (SCM symb, SCM dobj);
 SCM_API SCM scm_dynamic_call (SCM symb, SCM dobj);
 SCM_API SCM scm_dynamic_args_call (SCM symb, SCM dobj, SCM args);
 
-SCM_API void scm_init_dynamic_linking (void);
+SCM_INTERNAL void scm_init_dynamic_linking (void);
 
 #endif  /* SCM_DYNL_H */
 

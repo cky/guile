@@ -3,7 +3,7 @@
 #ifndef SCM_EQ_H
 #define SCM_EQ_H
 
-/* Copyright (C) 1995,1996,2000, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,2000, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -29,7 +29,7 @@
 SCM_API SCM scm_eq_p (SCM x, SCM y);
 SCM_API SCM scm_eqv_p (SCM x, SCM y);
 SCM_API SCM scm_equal_p (SCM x, SCM y);
-SCM_API void scm_init_eq (void);
+SCM_INTERNAL void scm_init_eq (void);
 
 #endif  /* SCM_EQ_H */
 

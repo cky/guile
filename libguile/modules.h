@@ -3,7 +3,7 @@
 #ifndef SCM_MODULES_H
 #define SCM_MODULES_H
 
-/* Copyright (C) 1998, 2000, 2001, 2002, 2003, 2006, 2007 Free Software Foundation, Inc.
+/* Copyright (C) 1998, 2000, 2001, 2002, 2003, 2006, 2007, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -116,8 +116,8 @@ SCM_API SCM scm_env_module (SCM env);
 SCM_API SCM scm_top_level_env (SCM thunk);
 SCM_API SCM scm_system_module_env_p (SCM env);
 
-SCM_API void scm_modules_prehistory (void);
-SCM_API void scm_init_modules (void);
+SCM_INTERNAL void scm_modules_prehistory (void);
+SCM_INTERNAL void scm_init_modules (void);
 
 #endif  /* SCM_MODULES_H */
 

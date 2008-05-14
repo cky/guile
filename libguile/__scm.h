@@ -97,6 +97,15 @@
 #define SCM_LIKELY(_expr)    SCM_EXPECT ((_expr), 1)
 #define SCM_UNLIKELY(_expr)  SCM_EXPECT ((_expr), 0)
 
+/* The SCM_INTERNAL macro makes it possible to explicitly declare a function
+ * as having "internal" linkage.  */
+#if (defined __GNUC__) && \
+  ((__GNUC__ >= 4) || (__GNUC__ == 3 && __GNUC_MINOR__ == 3))
+# define SCM_INTERNAL  __attribute__ ((__visibility__ ("internal")))
+#else
+# define SCM_INTERNAL
+#endif
+
 
 
 /* {Supported Options}

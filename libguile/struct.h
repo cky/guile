@@ -3,7 +3,7 @@
 #ifndef SCM_STRUCT_H
 #define SCM_STRUCT_H
 
-/* Copyright (C) 1995,1997,1999,2000,2001, 2006, 2007 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1997,1999,2000,2001, 2006, 2007, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -79,7 +79,7 @@ SCM_API SCM scm_struct_table;
 
 #define SCM_STRUCT_GC_CHAIN(X) SCM_CELL_OBJECT_3 (X)
 #define SCM_SET_STRUCT_GC_CHAIN(X, Y) SCM_SET_CELL_OBJECT_3 (X, Y)
-SCM_API SCM scm_i_structs_to_free;
+SCM_INTERNAL SCM scm_i_structs_to_free;
 
 
 
@@ -95,7 +95,7 @@ SCM_API SCM scm_struct_vtable_p (SCM x);
 SCM_API SCM scm_make_struct (SCM vtable, SCM tail_array_size, SCM init);
 SCM_API SCM scm_make_vtable (SCM fields, SCM printer);
 SCM_API SCM scm_make_vtable_vtable (SCM extra_fields, SCM tail_array_size, SCM init);
-SCM_API SCM scm_i_struct_equalp (SCM s1, SCM s2);
+SCM_INTERNAL SCM scm_i_struct_equalp (SCM s1, SCM s2);
 SCM_API SCM scm_struct_ref (SCM handle, SCM pos);
 SCM_API SCM scm_struct_set_x (SCM handle, SCM pos, SCM val);
 SCM_API SCM scm_struct_vtable (SCM handle);
@@ -106,7 +106,7 @@ SCM_API SCM scm_struct_vtable_name (SCM vtable);
 SCM_API SCM scm_set_struct_vtable_name_x (SCM vtable, SCM name);
 SCM_API void scm_print_struct (SCM exp, SCM port, scm_print_state *);
 SCM_API void scm_struct_prehistory (void);
-SCM_API void scm_init_struct (void);
+SCM_INTERNAL void scm_init_struct (void);
 
 #endif  /* SCM_STRUCT_H */
 

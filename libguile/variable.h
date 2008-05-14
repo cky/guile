@@ -3,7 +3,7 @@
 #ifndef SCM_VARIABLE_H
 #define SCM_VARIABLE_H
 
-/* Copyright (C) 1995,1996,2000,2001, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,2000,2001, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -43,9 +43,9 @@ SCM_API SCM scm_variable_ref (SCM var);
 SCM_API SCM scm_variable_set_x (SCM var, SCM val);
 SCM_API SCM scm_variable_bound_p (SCM var);
 
-SCM_API void scm_i_variable_print (SCM var, SCM port, scm_print_state *pstate);
+SCM_INTERNAL void scm_i_variable_print (SCM var, SCM port, scm_print_state *pstate);
 
-SCM_API void scm_init_variable (void);
+SCM_INTERNAL void scm_init_variable (void);
 
 #endif  /* SCM_VARIABLE_H */
 

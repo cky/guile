@@ -3,7 +3,7 @@
 #ifndef SCM_GUARDIANS_H
 #define SCM_GUARDIANS_H
 
-/* Copyright (C) 1998,2000,2001, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1998,2000,2001, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -26,11 +26,11 @@
 
 SCM_API SCM scm_make_guardian (void);
 
-SCM_API void scm_i_init_guardians_for_gc (void);
-SCM_API void scm_i_identify_inaccessible_guardeds (void);
-SCM_API int scm_i_mark_inaccessible_guardeds (void);
+SCM_INTERNAL void scm_i_init_guardians_for_gc (void);
+SCM_INTERNAL void scm_i_identify_inaccessible_guardeds (void);
+SCM_INTERNAL int scm_i_mark_inaccessible_guardeds (void);
 
-SCM_API void scm_init_guardians (void);
+SCM_INTERNAL void scm_init_guardians (void);
 
 #endif  /* SCM_GUARDIANS_H */
 

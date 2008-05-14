@@ -3,7 +3,7 @@
 #ifndef SCM_STRINGS_H
 #define SCM_STRINGS_H
 
-/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2004, 2005, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2004, 2005, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -110,47 +110,47 @@ SCM_API SCM scm_makfromstrs (int argc, char **argv);
 
 /* internal accessor functions.  Arguments must be valid. */
 
-SCM_API SCM scm_i_make_string (size_t len, char **datap);
-SCM_API SCM scm_i_substring (SCM str, size_t start, size_t end);
-SCM_API SCM scm_i_substring_read_only (SCM str, size_t start, size_t end);
-SCM_API SCM scm_i_substring_shared (SCM str, size_t start, size_t end);
-SCM_API SCM scm_i_substring_copy (SCM str, size_t start, size_t end);
-SCM_API size_t scm_i_string_length (SCM str);
-SCM_API const char *scm_i_string_chars (SCM str);
-SCM_API char *scm_i_string_writable_chars (SCM str);
-SCM_API void scm_i_string_stop_writing (void);
+SCM_INTERNAL SCM scm_i_make_string (size_t len, char **datap);
+SCM_INTERNAL SCM scm_i_substring (SCM str, size_t start, size_t end);
+SCM_INTERNAL SCM scm_i_substring_read_only (SCM str, size_t start, size_t end);
+SCM_INTERNAL SCM scm_i_substring_shared (SCM str, size_t start, size_t end);
+SCM_INTERNAL SCM scm_i_substring_copy (SCM str, size_t start, size_t end);
+SCM_INTERNAL size_t scm_i_string_length (SCM str);
+SCM_API /* FIXME: not internal */ const char *scm_i_string_chars (SCM str);
+SCM_API /* FIXME: not internal */ char *scm_i_string_writable_chars (SCM str);
+SCM_INTERNAL void scm_i_string_stop_writing (void);
 
 /* internal functions related to symbols. */
 
-SCM_API SCM scm_i_make_symbol (SCM name, scm_t_bits flags, 
-			       unsigned long hash, SCM props);
-SCM_API SCM
+SCM_INTERNAL SCM scm_i_make_symbol (SCM name, scm_t_bits flags,
+				    unsigned long hash, SCM props);
+SCM_INTERNAL SCM
 scm_i_c_make_symbol (const char *name, size_t len,
 		     scm_t_bits flags, unsigned long hash, SCM props);
-SCM_API SCM
+SCM_INTERNAL SCM
 scm_i_c_take_symbol (char *name, size_t len,
 		     scm_t_bits flags, unsigned long hash, SCM props);
-SCM_API const char *scm_i_symbol_chars (SCM sym);
-SCM_API size_t scm_i_symbol_length (SCM sym);
-SCM_API SCM scm_i_symbol_substring (SCM sym, size_t start, size_t end);
+SCM_INTERNAL const char *scm_i_symbol_chars (SCM sym);
+SCM_INTERNAL size_t scm_i_symbol_length (SCM sym);
+SCM_INTERNAL SCM scm_i_symbol_substring (SCM sym, size_t start, size_t end);
 
 /* internal GC functions. */
 
-SCM_API SCM scm_i_string_mark (SCM str);
-SCM_API SCM scm_i_stringbuf_mark (SCM buf);
-SCM_API SCM scm_i_symbol_mark (SCM buf);
-SCM_API void scm_i_string_free (SCM str);
-SCM_API void scm_i_stringbuf_free (SCM buf);
-SCM_API void scm_i_symbol_free (SCM sym);
+SCM_INTERNAL SCM scm_i_string_mark (SCM str);
+SCM_INTERNAL SCM scm_i_stringbuf_mark (SCM buf);
+SCM_INTERNAL SCM scm_i_symbol_mark (SCM buf);
+SCM_INTERNAL void scm_i_string_free (SCM str);
+SCM_INTERNAL void scm_i_stringbuf_free (SCM buf);
+SCM_INTERNAL void scm_i_symbol_free (SCM sym);
 
 /* internal utility functions. */
 
-SCM_API char **scm_i_allocate_string_pointers (SCM list);
-SCM_API void scm_i_free_string_pointers (char **pointers);
-SCM_API void scm_i_get_substring_spec (size_t len,
-				       SCM start, size_t *cstart,
-				       SCM end, size_t *cend);
-SCM_API SCM scm_i_take_stringbufn (char *str, size_t len);
+SCM_INTERNAL char **scm_i_allocate_string_pointers (SCM list);
+SCM_INTERNAL void scm_i_free_string_pointers (char **pointers);
+SCM_INTERNAL void scm_i_get_substring_spec (size_t len,
+					    SCM start, size_t *cstart,
+					    SCM end, size_t *cend);
+SCM_INTERNAL SCM scm_i_take_stringbufn (char *str, size_t len);
 
 /* deprecated stuff */
 
@@ -167,7 +167,7 @@ SCM_API size_t scm_i_deprecated_string_length (SCM str);
 
 #endif
 
-SCM_API void scm_init_strings (void);
+SCM_INTERNAL void scm_init_strings (void);
 
 #endif  /* SCM_STRINGS_H */
 

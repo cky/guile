@@ -3,7 +3,7 @@
 #ifndef SCM_GOOPS_H
 #define SCM_GOOPS_H
 
-/* Copyright (C) 1998,1999,2000,2001,2002,2003, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1998,1999,2000,2001,2002,2003, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -254,7 +254,8 @@ SCM_API SCM scm_pure_generic_p (SCM obj);
 #endif
 
 SCM_API SCM scm_sys_compute_slots (SCM c);
-SCM_API SCM scm_i_get_keyword (SCM key, SCM l, long len, SCM default_value, const char *subr);
+SCM_INTERNAL SCM scm_i_get_keyword (SCM key, SCM l, long len,
+				    SCM default_value, const char *subr);
 SCM_API SCM scm_get_keyword (SCM key, SCM l, SCM default_value);
 SCM_API SCM scm_sys_initialize_object (SCM obj, SCM initargs);
 SCM_API SCM scm_sys_prep_layout_x (SCM c);
@@ -297,8 +298,8 @@ SCM_API SCM scm_make (SCM args);
 SCM_API SCM scm_find_method (SCM args);
 SCM_API SCM scm_sys_method_more_specific_p (SCM m1, SCM m2, SCM targs);
 
-SCM_API SCM scm_init_goops_builtins (void);
-SCM_API void scm_init_goops (void);
+SCM_INTERNAL SCM scm_init_goops_builtins (void);
+SCM_INTERNAL void scm_init_goops (void);
 
 #if (SCM_ENABLE_DEPRECATED == 1)
 
