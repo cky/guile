@@ -88,11 +88,6 @@
 	((symbol? x)
          (make-ghil-ref e l (ghil-lookup e x)))
 
-        ;; this is for the eval-case defmacro stuff. dunno what to do
-        ;; about it though.
-        ((unspecified? x)
-         (make-ghil-void e l))
-
         ;; fixme: non-self-quoting objects like #<foo>
 	(else
          (make-ghil-quote e l x))))
@@ -252,13 +247,34 @@
             (make-ghil-lambda env l vars rest (trans-body env l body)))))))
 
     (eval-case
-     (() (retrans '(begin)))
-     (((else . ,body)) (retrans `(begin ,@body)))
-     (((,keys . ,body) . ,rest) (guard (list? keys) (and-map symbol? keys))
+     (,clauses
       (retrans
-       (if (memq 'load-toplevel keys)
-           `(begin ,(primitive-eval `(begin ,@(copy-tree body))))
-           `(eval-case ,@rest)))))))
+       `(begin
+          ,@(let ((toplevel? (ghil-env-toplevel? e)))
+              (let loop ((seen '()) (in clauses) (runtime '()))
+                (cond
+                 ((null? in) runtime)
+                 (else
+                  (pmatch (car in)
+                   ((else . ,body)
+                    (if (and toplevel? (not (memq 'compile-toplevel seen)))
+                        (primitive-eval `(begin ,@body)))
+                    (if (memq (if toplevel? 'load-toplevel 'evaluate) seen)
+                        runtime
+                        body))
+                   ((,keys . ,body) (guard (list? keys) (and-map symbol? keys))
+                    (for-each (lambda (k)
+                                (if (memq k seen)
+                                    (syntax-error l "eval-case condition seen twice" k)))
+                              keys)
+                    (if (and toplevel? (memq 'compile-toplevel keys))
+                        (primitive-eval `(begin ,@body)))
+                    (loop (append keys seen)
+                          (cdr in)
+                          (if (memq (if toplevel? 'load-toplevel 'evaluate) keys)
+                              (append runtime body)
+                              runtime)))
+                   (else (syntax-error l "bad eval-case clause" (car in))))))))))))))
 
 (define (trans-quasiquote e l x)
   (cond ((not (pair? x)) x)
