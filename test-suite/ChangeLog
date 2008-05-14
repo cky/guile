@@ -314,7 +314,7 @@
 2006-12-24  Han-Wen Nienhuys  <hanwen@lilypond.org>
 
 	* tests/numbers.test ("equal?"): add case for reduction of
-	rational numbers. 
+	rational numbers.
 
 2006-12-13  Kevin Ryde  <user42@zip.com.au>
 
@@ -601,7 +601,7 @@
 
 	* tests/guardians.test: Adapted to new (original) semantics.  test
 	guardingobjects multiple times.
-	
+
 2005-06-12  Marius Vollmer  <mvo@zagadka.de>
 
 	* standalone/test-gh.c: Do nothing when deprecated things are
@@ -627,7 +627,7 @@
 
 	* tests/unif.test (array-in-bounds?): Add a test failing in the
 	current code.
-	
+
 2005-05-07  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/srfi-1.test (car+cdr, fold, last, list-index, list-tabulate,
@@ -1054,7 +1054,7 @@
 	* standalone/test-conversion.c: Don't define SCM_T_INTMAX_MIN,
 	etc, they are now provided by libuile.h.
 	(test_int_sizes): New.
-	
+
 2004-07-06  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* standalone/test-num2integral.c, standalone/test-unwind.c:
@@ -1173,7 +1173,7 @@
 	real/big combinations, collect up tests under arg types for clarity.
 
 2004-03-26  Eric Hanchrow <offby1@blarg.net>
-	
+
 	* tests/numbers.test (modulo-expt): New tests.
 
 2004-03-24  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
@@ -1228,7 +1228,7 @@
 
 	* tests/r5rs_pitfall.scm: New.
 	* Makefile.am (SCM_TESTS): Added it.
-	
+
 2004-01-11  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/exceptions.test (false-if-exception): Disable tests on
@@ -1596,7 +1596,7 @@
 
 	* tests/numbers.test (truncate, round, asinh, acosh, atanh): Add some
 	tests.
-	
+
 2003-06-19  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/posix.test: New file, exercising putenv, setenv, unsetenv.
@@ -1625,7 +1625,7 @@
 	recent scm_logcount change.
 
 	* tests/reader.test (reading): Test bad # error message is formattable.
-	
+
 2003-06-01  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* tests/pairs.test: Added.
@@ -1684,7 +1684,7 @@
 
 	* tests/numbers.test (-): Add test for negative inum subtract bignum.
 	(logcount): New tests, exercising some negatives.
-	
+
 2003-05-03  Marius Vollmer  <mvo@zagadka.de>
 
 	* tests/r5rs_pitfall.test: New.  Thanks to Dale P. Smith for
