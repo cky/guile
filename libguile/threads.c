@@ -1,5 +1,5 @@
 /* Copyright (C) 1995,1996,1997,1998,2000,2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -565,15 +565,15 @@ do_thread_exit (void *v)
   while (scm_is_true (unblock_from_queue (t->join_queue)))
     ;
 
-  while (!scm_is_null (t->mutexes)) 
+  while (!scm_is_null (t->mutexes))
     {
       SCM mutex = SCM_CAR (t->mutexes);
       fat_mutex *m  = SCM_MUTEX_DATA (mutex);
       scm_i_pthread_mutex_lock (&m->lock);
-      
+
       unblock_from_queue (m->waiting);
 
-      scm_i_pthread_mutex_unlock (&m->lock);      
+      scm_i_pthread_mutex_unlock (&m->lock);
       t->mutexes = SCM_CDR (t->mutexes);
     }
 
@@ -678,7 +678,7 @@ scm_i_init_thread_for_guile (SCM_STACKITEM *base, SCM parent)
     {
       /* This thread is already guilified but not in guile mode, just
 	 resume it.
-	 
+
 	 XXX - base might be lower than when this thread was first
 	 guilified.
        */
@@ -807,7 +807,7 @@ scm_i_with_guile_and_parent (void *(*func)(void *), void *data, SCM parent)
       scm_i_pthread_cleanup_pop (0);
       scm_leave_guile ();
     }
-  else 
+  else
     res = scm_c_with_continuation_barrier (func, data);
 
   return res;
@@ -905,7 +905,7 @@ SCM_DEFINE (scm_call_with_new_thread, "call-with-new-thread", 1, 1, 0,
     }
   scm_i_scm_pthread_cond_wait (&data.cond, &data.mutex);
   scm_i_pthread_mutex_unlock (&data.mutex);
-  
+
   return data.thread;
 }
 #undef FUNC_NAME
@@ -982,7 +982,7 @@ scm_spawn_thread (scm_t_catch_body body, void *body_data,
     }
   scm_i_scm_pthread_cond_wait (&data.cond, &data.mutex);
   scm_i_pthread_mutex_unlock (&data.mutex);
-  
+
   return data.thread;
 }
 
@@ -1100,7 +1100,7 @@ SCM_DEFINE (scm_join_thread_timed, "join-thread", 1, 2, 0,
     {
       while (1)
 	{
-	  int err = block_self (t->join_queue, thread, &t->admin_mutex, 
+	  int err = block_self (t->join_queue, thread, &t->admin_mutex,
 				timeout_ptr);
 	  if (err == 0)
 	    {
@@ -1208,7 +1208,7 @@ SCM_DEFINE (scm_make_mutex_with_flags, "make-mutex", 0, 0, 1,
 	external_unlock = 1;
       else if (scm_is_eq (flag, recursive_sym))
 	recursive = 1;
-      else 
+      else
 	SCM_MISC_ERROR ("unsupported mutex option: ~a", scm_list_1 (flag));
       ptr = SCM_CDR (ptr);
     }
@@ -1245,7 +1245,7 @@ fat_mutex_lock (SCM mutex, scm_t_timespec *timeout, SCM owner, int *ret)
 	{
 	  m->owner = new_owner;
 	  m->level++;
-	  
+
 	  if (SCM_I_IS_THREAD (new_owner))
 	    {
 	      scm_i_thread *t = SCM_I_THREAD_DATA (new_owner);
@@ -1270,7 +1270,7 @@ fat_mutex_lock (SCM mutex, scm_t_timespec *timeout, SCM owner, int *ret)
 	  if (m->recursive)
 	    {
 	      m->level++;
-	      *ret = 1;		  
+	      *ret = 1;
 	    }
 	  else
 	    {
@@ -1279,11 +1279,11 @@ fat_mutex_lock (SCM mutex, scm_t_timespec *timeout, SCM owner, int *ret)
 						      "by thread"));
 	      *ret = 0;
 	    }
-	  break;  
+	  break;
 	}
       else
 	{
-	  if (timeout != NULL) 
+	  if (timeout != NULL)
 	    {
 	      gettimeofday (&current_time, NULL);
 	      if (current_time.tv_sec > timeout->tv_sec ||
@@ -1360,7 +1360,7 @@ SCM_DEFINE (scm_try_mutex, "try-mutex", 1, 0, 0,
 
   to_timespec (scm_from_int(0), &cwaittime);
   waittime = &cwaittime;
-  
+
   exception = fat_mutex_lock (mutex, waittime, SCM_UNDEFINED, &ret);
   if (!scm_is_false (exception))
     scm_ithrow (SCM_CAR (exception), scm_list_1 (SCM_CDR (exception)), 1);
@@ -1423,9 +1423,9 @@ fat_mutex_unlock (SCM mutex, SCM cond,
 	    m->owner = unblock_from_queue (m->waiting);
 
 	  scm_i_pthread_mutex_unlock (&m->lock);
-	  
+
 	  t->block_asyncs++;
-	  
+
 	  err = block_self (c->waiting, cond, &c->lock, waittime);
 
 	  if (err == 0)
@@ -1439,11 +1439,11 @@ fat_mutex_unlock (SCM mutex, SCM cond,
 	      brk = 1;
 	    }
 	  else if (err != EINTR)
-	    {	      
+	    {
 	      errno = err;
 	      scm_i_pthread_mutex_unlock (&c->lock);
 	      scm_syserror (NULL);
-	    }	  
+	    }
 
 	  if (brk)
 	    {
@@ -1452,12 +1452,12 @@ fat_mutex_unlock (SCM mutex, SCM cond,
 	      scm_i_pthread_mutex_unlock (&c->lock);
 	      break;
 	    }
-	  
+
 	  scm_i_pthread_mutex_unlock (&c->lock);
 
 	  t->block_asyncs--;
 	  scm_async_click ();
-	  
+
 	  scm_remember_upto_here_2 (cond, mutex);
 
 	  scm_i_scm_pthread_mutex_lock (&m->lock);
@@ -1467,13 +1467,13 @@ fat_mutex_unlock (SCM mutex, SCM cond,
     {
       if (m->level > 0)
 	m->level--;
-      if (m->level == 0) 
+      if (m->level == 0)
 	m->owner = unblock_from_queue (m->waiting);
-	  
+
       scm_i_pthread_mutex_unlock (&m->lock);
       ret = 1;
     }
-  
+
   return ret;
 }
 
@@ -1518,7 +1518,7 @@ SCM_DEFINE (scm_mutex_p, "mutex?", 1, 0, 0,
 {
   return SCM_MUTEXP (obj) ? SCM_BOOL_T : SCM_BOOL_F;
 }
-#undef FUNC_NAME 
+#undef FUNC_NAME
 
 SCM_DEFINE (scm_mutex_owner, "mutex-owner", 1, 0, 0,
 	    (SCM mx),
@@ -1618,7 +1618,7 @@ SCM_DEFINE (scm_timed_wait_condition_variable, "wait-condition-variable", 2, 1, 
 
   SCM_VALIDATE_CONDVAR (1, cv);
   SCM_VALIDATE_MUTEX (2, mx);
-  
+
   if (!SCM_UNBNDP (t))
     {
       to_timespec (t, &waittime);
@@ -1924,7 +1924,7 @@ scm_i_thread_put_to_sleep ()
       scm_leave_guile ();
       scm_i_pthread_mutex_lock (&thread_admin_mutex);
 
-      /* Signal all threads to go to sleep 
+      /* Signal all threads to go to sleep
        */
       scm_i_thread_go_to_sleep = 1;
       for (t = all_threads; t; t = t->next_thread)
@@ -2007,7 +2007,7 @@ scm_threads_prehistory (SCM_STACKITEM *base)
   scm_i_pthread_cond_init (&wake_up_cond, NULL);
   scm_i_pthread_key_create (&scm_i_freelist, NULL);
   scm_i_pthread_key_create (&scm_i_freelist2, NULL);
-  
+
   guilify_self_1 (base);
 }
 

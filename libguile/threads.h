@@ -67,7 +67,7 @@ typedef struct scm_i_thread {
   int sleep_fd, sleep_pipe[2];
 
   /* This mutex represents this threads right to access the heap.
-     That right can temporarily be taken away by the GC.  
+     That right can temporarily be taken away by the GC.
   */
   scm_i_pthread_mutex_t heap_mutex;
 
@@ -89,7 +89,7 @@ typedef struct scm_i_thread {
    */
   SCM active_asyncs;            /* The thunks to be run at the next
                                    safe point */
-  unsigned int block_asyncs;    /* Non-zero means that asyncs should 
+  unsigned int block_asyncs;    /* Non-zero means that asyncs should
                                    not be run. */
   unsigned int pending_asyncs;  /* Non-zero means that asyncs might be pending.
 				 */
