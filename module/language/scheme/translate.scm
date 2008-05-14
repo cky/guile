@@ -85,7 +85,7 @@
 	       (let ((public-if (module-public-interface module)))
 		 (module-use! (&compile-time-module) public-if))
 	       (syntax-error #f "invalid `use-syntax' form" e)))
-	 '(void))
+	 '(begin))
 
 	((begin let let* letrec lambda quote quasiquote if and or
 		set! cond case eval-case define do)
@@ -152,18 +152,11 @@
   (define (trans:x x) (trans e l x))
   (define (trans:pair x) (trans-pair e l (car x) (cdr x)))
   (define (trans:body body) (trans-body e l body))
-  (define (make:void) (make-ghil-void e l))
   (define (bad-syntax)
     (syntax-error l (format #f "bad ~A" head) (cons head tail)))
   ;; have to use a case first, because pmatch treats e.g. (quote foo)
   ;; and (unquote foo) specially
   (case head
-    ;; (void)
-    ((void)
-     (pmatch tail
-       (() (make:void))
-       (else (bad-syntax))))
-
     ;; (quote OBJ)
     ((quote)
      (pmatch tail
@@ -196,7 +189,7 @@
      (eval-at-compile-time (cons head tail))
 
      ;; FIXME: We need to evaluate them in the runtime module as well.
-     (make:void))
+     (trans:x '(begin)))
 
     ((set!)
      (pmatch tail
@@ -215,7 +208,7 @@
     ((if)
      (pmatch tail
        ((,test ,then)
-        (make-ghil-if e l (trans:x test) (trans:x then) (make:void)))
+        (make-ghil-if e l (trans:x test) (trans:x then) (trans:x '(begin))))
        ((,test ,then ,else)
         (make-ghil-if e l (trans:x test) (trans:x then) (trans:x else)))
        (else (bad-syntax))))
@@ -276,7 +269,7 @@
     ;; (cond (CLAUSE BODY...) ...)
     ((cond)
      (pmatch tail
-       (() (make:void))
+       (() (trans:x '(begin)))
        (((else . ,body)) (trans:body body))
        (((,test) . ,rest) (trans:pair `(or ,test (cond ,@rest))))
        (((,test => ,proc) . ,rest)
@@ -294,7 +287,7 @@
          ;; FIXME hygiene!
          `(let ((_t ,exp))
             ,(let loop ((ls clauses))
-               (cond ((null? ls) '(void))
+               (cond ((null? ls) '(begin))
                      ((eq? (caar ls) 'else) `(begin ,@(cdar ls)))
                      (else `(if (memv _t ',(caar ls))
                                 (begin ,@(cdar ls))
@@ -313,9 +306,9 @@
            ;; FIXME hygiene!
            `(letrec ((_l (lambda ,sym
                            (if ,test
-                               (let () (void) ,@result)
-                               (let () (void) ,@body
-                                    (_l ,@(map next sym update)))))))
+                               (begin ,@result)
+                               (begin ,@body
+                                      (_l ,@(map next sym update)))))))
               (_l ,@val)))))
        (else (bad-syntax))))
 
@@ -332,7 +325,7 @@
     ((eval-case)
      (let loop ((x tail))
        (pmatch x
-   	 (() (make:void))
+   	 (() (trans:x '(begin)))
    	 (((else . ,body)) (trans:pair `(begin ,@body)))
    	 (((,keys . ,body) . ,rest) (guard (list? keys) (and-map symbol? keys))
    	  (if (memq 'load-toplevel keys)
