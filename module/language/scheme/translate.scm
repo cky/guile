@@ -137,19 +137,8 @@
 	       (trans-pair e (or (location x) l) (car x) (cdr x))
 	       (trans e l y))))
 	((symbol? x)
-	 (let ((y (symbol-expand x)))
-	   (if (symbol? y)
-	       (make-ghil-ref e l (ghil-lookup e y))
-	       (trans e l y))))
+         (make-ghil-ref e l (ghil-lookup e x)))
 	(else (make-ghil-quote e l x))))
-
-(define (symbol-expand x)
-  (let loop ((s (symbol->string x)))
-    (let ((i (string-rindex s #\.)))
-      (if i
-	(let ((sym (string->symbol (substring s (1+ i)))))
-	  `(slot ,(loop (substring s 0 i)) (quote ,sym)))
-	(string->symbol s)))))
 
 (define (valid-bindings? bindings . it-is-for-do)
   (define (valid-binding? b)
