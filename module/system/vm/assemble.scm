@@ -266,7 +266,7 @@
 	((<vmod> id)
 	 (push-code! `(load-module ,id)))
         (else
-         (error "assemble: unknown record type"))))
+         (error "assemble: unknown record type" (record-type-descriptor x)))))
      ((and (integer? x) (exact? x))
       (let ((str (do ((n x (quotient n 256))
                       (l '() (cons (modulo n 256) l)))

@@ -49,10 +49,9 @@
   (let* ((name (car def)) (slots (cdr def))
          (slot-names (map (lambda (slot) (if (pair? slot) (car slot) slot))
                           slots))
-         (stem (symbol-trim-both name (list->char-set '(#\< #\>))))
-         (type (make-record-type (symbol->string name) slot-names)))
+         (stem (symbol-trim-both name (list->char-set '(#\< #\>)))))
     `(begin
-       (define ,name ,type)
+       (define ,name (make-record-type ,(symbol->string name) ',slot-names))
        (define ,(symbol-append 'make- stem)
          (let ((slots (list ,@(map (lambda (slot)
                                      (if (pair? slot)
@@ -62,12 +61,12 @@
                (constructor (record-constructor ,name)))
            (lambda args
              (apply constructor (%compute-initargs args slots)))))
-       (define ,(symbol-append stem '?) ,(record-predicate type))
+       (define ,(symbol-append stem '?) (record-predicate ,name))
        ,@(map (lambda (sname)
                 `(define ,(symbol-append stem '- sname)
-                   ,(make-procedure-with-setter
-                     (record-accessor type sname)
-                     (record-modifier type sname))))
+                   (make-procedure-with-setter
+                    (record-accessor ,name ',sname)
+                    (record-modifier ,name ',sname))))
               slot-names))))
 
 (define (%compute-initargs args slots)
