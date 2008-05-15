@@ -90,7 +90,7 @@
 
         ;; fixme: non-self-quoting objects like #<foo>
 	(else
-         (make-ghil-quote e l x))))
+         (make-ghil-quote e l #:obj x))))
 
 (define (valid-bindings? bindings . it-is-for-do)
   (define (valid-binding? b)

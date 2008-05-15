@@ -145,7 +145,7 @@
 	(return-code! *ia-void*))
       ;; return object if necessary
       (define (return-object! obj)
-	(return-code! (make-glil-const obj)))
+	(return-code! (make-glil-const #:obj obj)))
       ;;
       ;; dispatch
       (record-case tree
@@ -174,7 +174,7 @@
                (comp-push exp)
                (push-call! #f 'list-break '()))))
             (else
-             (push-code! (make-glil-const x)))))
+             (push-code! (make-glil-const #:obj x)))))
 	 (maybe-drop)
 	 (maybe-return))
 
