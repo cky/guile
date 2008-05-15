@@ -113,6 +113,8 @@
                 (else (syntax-error ,loc (format #f "bad ~A" ',sym) ,exp)))))))
   `(list ,@(map make1 body)))
 
+(define *the-compile-toplevel-symbol* 'load-toplevel)
+
 (define primitive-syntax-table
   (make-pmatch-transformers
    e l retrans
@@ -257,9 +259,9 @@
                  (else
                   (pmatch (car in)
                    ((else . ,body)
-                    (if (and toplevel? (not (memq 'compile-toplevel seen)))
+                    (if (and toplevel? (not (memq *the-compile-toplevel-symbol* seen)))
                         (primitive-eval `(begin ,@body)))
-                    (if (memq (if toplevel? 'load-toplevel 'evaluate) seen)
+                    (if (memq (if toplevel? *the-compile-toplevel-symbol* 'evaluate) seen)
                         runtime
                         body))
                    ((,keys . ,body) (guard (list? keys) (and-map symbol? keys))
@@ -267,7 +269,7 @@
                                 (if (memq k seen)
                                     (syntax-error l "eval-case condition seen twice" k)))
                               keys)
-                    (if (and toplevel? (memq 'compile-toplevel keys))
+                    (if (and toplevel? (memq *the-compile-toplevel-symbol* keys))
                         (primitive-eval `(begin ,@body)))
                     (loop (append keys seen)
                           (cdr in)
