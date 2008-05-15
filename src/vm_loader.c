@@ -91,11 +91,9 @@ VM_DEFINE_LOADER (load_symbol, "load-symbol")
 
 VM_DEFINE_LOADER (load_keyword, "load-keyword")
 {
-  SCM sym;
   size_t len;
   FETCH_LENGTH (len);
-  sym = scm_from_locale_symboln ((char *)ip, len);
-  PUSH (scm_make_keyword_from_dash_symbol (sym));
+  PUSH (scm_from_locale_keywordn ((char *)ip, len));
   ip += len;
   NEXT;
 }

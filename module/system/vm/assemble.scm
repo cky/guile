@@ -280,8 +280,7 @@
      ((symbol? x)
       (push-code! `(load-symbol ,(symbol->string x))))
      ((keyword? x)
-      (push-code! `(load-keyword
-                    ,(symbol->string (keyword-dash-symbol x)))))
+      (push-code! `(load-keyword ,(symbol->string (keyword->symbol x)))))
      ((list? x)
       (for-each dump! x)
       (let ((len (length x)))

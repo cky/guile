@@ -61,6 +61,12 @@
       (lambda (env loc exp)
         (retrans (apply (defmacro-transformer val) (cdr exp)))))
 
+     ((and (macro? val) (eq? (macro-name val) 'sc-macro))
+      ;; syncase!
+      (let ((syncase (module-ref (resolve-interface '(ice-9 syncase)) 'syncase)))
+        (lambda (env loc exp)
+          (retrans (syncase exp)))))
+
      ((macro? val)
       (syntax-error #f "unknown kind of macro" head))
 
