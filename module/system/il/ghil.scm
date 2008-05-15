@@ -185,15 +185,25 @@
 ;;; Public interface
 ;;;
 
+(define (module-lookup module sym)
+  (let ((iface (module-import-interface module sym)))
+    (and iface
+         (make-ghil-env (make-ghil-mod iface)))))
+
 ;; looking up a var has side effects?
 (define (ghil-lookup env sym)
   (or (ghil-env-ref env sym)
       (let loop ((e (ghil-env-parent env)))
         (record-case e
           ((<ghil-mod> module table imports)
-           (or (assq-ref table sym)
-               ;; a free variable that we have not resolved
-               (make-ghil-var #f sym 'module)))
+           (cond ((assq-ref table sym))
+                 ((module-lookup module sym)
+                  => (lambda (found-env)
+                       (make-ghil-var found-env sym 'module)))
+                 (else
+                  ;; a free variable that we have not resolved
+                  (warn "unresolved variable during compilation:" sym)
+                  (make-ghil-var #f sym 'module))))
           ((<ghil-env> mod parent table variables)
            (let ((found (assq-ref table sym)))
              (if found

@@ -147,6 +147,7 @@
 		     (push-code! `(external-set ,(+ n index)))))))
 
 	   ((<glil-module> op module name)
+            (pk op module name)
             (case op
               ((ref)
                (push-object! (make-vlink :module module :name name))
