@@ -1,3 +1,7 @@
+2008-05-15  Julian Graham  <joolean@gmail.com>
+
+	* tests/srfi-18.test: New file.
+
 2008-05-14  Julian Graham  <joolean@gmail.com>
 
 	* tests/threads.test (mutex-ownership, mutex-lock-levels): New

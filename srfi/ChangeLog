@@ -1,3 +1,7 @@
+2008-05-15  Julian Graham  <joolean@gmail.com>
+
+	* srfi-18.scm: New file.
+
 2008-04-28  Ludovic Courtès  <ludo@gnu.org>
 
 	* srfi-1.c (scm_srfi1_partition): Properly type-check LIST.
