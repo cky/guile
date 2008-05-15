@@ -212,7 +212,7 @@
 
 (define (ghil-define mod sym)
   (or (assq-ref (ghil-mod-table mod) sym)
-      (let ((var (make-ghil-var mod sym 'module)))
+      (let ((var (make-ghil-var (make-ghil-env mod) sym 'module)))
         (apush! sym var (ghil-mod-table mod))
         var)))
           

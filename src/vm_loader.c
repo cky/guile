@@ -178,16 +178,23 @@ VM_DEFINE_LOADER (load_program, "load-program")
   NEXT;
 }
 
-VM_DEFINE_LOADER (link, "link")
+VM_DEFINE_INSTRUCTION (link, "link", 0, 2, 1)
 {
-  SCM sym;
-  size_t len;
-
-  FETCH_LENGTH (len);
-  sym = scm_from_locale_symboln ((char *)ip, len);
-  ip += len;
-
-  PUSH (scm_lookup (sym));
+  SCM modname, mod, sym;
+  POP (sym);
+  POP (modname);
+  if (SCM_NFALSEP (modname)) 
+    {
+      mod = scm_c_module_lookup (scm_resolve_module (modname),
+                                 "%module-public-interface");
+      if (SCM_FALSEP (mod))
+        SCM_MISC_ERROR ("Could not load module", SCM_LIST1 (modname));
+      
+      PUSH (scm_module_lookup (SCM_VARIABLE_REF (mod), sym));
+    }
+  else
+    PUSH (scm_lookup (sym));
+  
   NEXT;
 }
 

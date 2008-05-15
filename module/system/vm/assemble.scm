@@ -257,8 +257,9 @@
 	 ;; dump bytecode
 	 (push-code! `(load-program ,bytes)))
 	((<vlink> module name)
-	 ;; FIXME: dump module
-	 (push-code! `(link ,(symbol->string name))))
+         (dump! (and=> module module-name))
+         (dump! name)
+	 (push-code! '(link)))
 	((<vdefine> module name)
 	 ;; FIXME: dump module
 	 (push-code! `(define ,(symbol->string name))))
