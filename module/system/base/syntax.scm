@@ -20,6 +20,7 @@
 ;;; Code:
 
 (define-module (system base syntax)
+  :export (%compute-initargs)
   :export-syntax (define-type define-record record-case))
 (export-syntax |) ;; emacs doesn't like the |
 
@@ -57,10 +58,10 @@
                                      (if (pair? slot)
                                          `(cons ',(car slot) ,(cadr slot))
                                          `',slot))
-                                   slots))))
+                                   slots)))
+               (constructor (record-constructor ,name)))
            (lambda args
-             (apply ,(record-constructor type)
-                    (,%compute-initargs args slots)))))
+             (apply constructor (%compute-initargs args slots)))))
        (define ,(symbol-append stem '?) ,(record-predicate type))
        ,@(map (lambda (sname)
                 `(define ,(symbol-append stem '- sname)

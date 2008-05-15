@@ -171,7 +171,7 @@
 (define-macro (apush! k v loc)
   `(set! ,loc (acons ,k ,v ,loc)))
 (define-macro (apopq! k loc)
-  `(set! ,loc (assq-remove! ,k ,loc)))
+  `(set! ,loc (assq-remove! ,loc ,k)))
 
 (define (ghil-env-add! env var)
   (apush! (ghil-var-name var) var (ghil-env-table env))
@@ -190,19 +190,39 @@
     (and iface
          (make-ghil-env (make-ghil-mod iface)))))
 
+(define (fix-ghil-mod! mod for-sym)
+  (warn "during lookup of" for-sym ":" (ghil-mod-module mod) "!= current" (current-module))
+  (if (not (null? (ghil-mod-table mod)))
+      (warn "throwing away old variable table" (ghil-mod-table mod)))
+  (set! (ghil-mod-module mod) (current-module))
+  (set! (ghil-mod-table mod) '())
+  (set! (ghil-mod-imports mod) '()))
+
 ;; looking up a var has side effects?
 (define (ghil-lookup env sym)
   (or (ghil-env-ref env sym)
       (let loop ((e (ghil-env-parent env)))
         (record-case e
           ((<ghil-mod> module table imports)
-           (cond ((assq-ref table sym))
+           (cond ((not (eq? module (current-module)))
+                  ;; FIXME: the primitive-eval in eval-case and/or macro
+                  ;; expansion can have side effects on the compilation
+                  ;; environment, for example changing the current
+                  ;; module. We probably need to add a special case in
+                  ;; compilation to handle define-module.
+                  (fix-ghil-mod! e sym)
+                  (loop e))
+                 ((assq-ref table sym)) ;; when does this hit?
                  ((module-lookup module sym)
                   => (lambda (found-env)
                        (make-ghil-var found-env sym 'module)))
                  (else
                   ;; a free variable that we have not resolved
-                  (warn "unresolved variable during compilation:" sym)
+                  (if (not (module-locally-bound? module sym))
+                      ;; For the benefit of repl compilation, that
+                      ;; doesn't compile modules all-at-once, don't warn
+                      ;; if we find the symbol locally.
+                      (warn "unresolved variable during compilation:" sym))
                   (make-ghil-var #f sym 'module))))
           ((<ghil-env> mod parent table variables)
            (let ((found (assq-ref table sym)))
@@ -211,6 +231,8 @@
                  (loop parent))))))))
 
 (define (ghil-define mod sym)
+  (if (not (eq? (ghil-mod-module mod) (current-module)))
+      (fix-ghil-mod! mod sym))
   (or (assq-ref (ghil-mod-table mod) sym)
       (let ((var (make-ghil-var (make-ghil-env mod) sym 'module)))
         (apush! sym var (ghil-mod-table mod))

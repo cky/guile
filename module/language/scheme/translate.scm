@@ -203,7 +203,7 @@
    (cond
     ;; (cond (CLAUSE BODY...) ...)
     (() (retrans '(begin)))
-    (((else . ,body)) (trans-body e l body))
+    (((else . ,body)) (retrans `(begin ,@body)))
     (((,test) . ,rest) (retrans `(or ,test (cond ,@rest))))
     (((,test => ,proc) . ,rest)
      ;; FIXME hygiene!
