@@ -35,11 +35,12 @@
 
 
 (define expansion-eval-closure (make-fluid))
+(define (current-eval-closure)
+  (or (fluid-ref expansion-eval-closure)
+      (module-eval-closure (current-module))))
 
 (define (env->eval-closure env)
-  (or (and env
-	   (car (last-pair env)))
-      (module-eval-closure the-root-module)))
+  (and env (car (last-pair env))))
 
 (define sc-macro
   (procedure->memoizing-macro
@@ -107,7 +108,7 @@
 (fluid-set! expansion-eval-closure the-syncase-eval-closure)
 
 (define (putprop symbol key binding)
-  (let* ((eval-closure (fluid-ref expansion-eval-closure))
+  (let* ((eval-closure (current-eval-closure))
 	 ;; Why not simply do (eval-closure symbol #t)?
 	 ;; Answer: That would overwrite imported bindings
 	 (v (or (eval-closure symbol #f) ;lookup
@@ -122,7 +123,7 @@
     (set-object-property! v key binding)))
 
 (define (getprop symbol key)
-  (let* ((v ((fluid-ref expansion-eval-closure) symbol #f)))
+  (let* ((v ((current-eval-closure) symbol #f)))
     (and v
 	 (or (object-property v key)
 	     (and (variable-bound? v)
@@ -137,7 +138,7 @@
 	    (if (symbol? e)
 		;; pass the expression through
 		e
-		(let* ((eval-closure (fluid-ref expansion-eval-closure))
+		(let* ((eval-closure (current-eval-closure))
 		       (m (variable-ref (eval-closure (car e) #f))))
 		  (if (eq? (macro-type m) 'syntax)
 		      ;; pass the expression through
@@ -244,4 +245,4 @@
        ;(eval-case ((load-toplevel) (export-syntax name)))
        (define-syntax name rules ...)))))
 
-(fluid-set! expansion-eval-closure (env->eval-closure #f))
+(fluid-set! expansion-eval-closure #f)
