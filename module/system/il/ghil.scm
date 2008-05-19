@@ -191,9 +191,15 @@
          (make-ghil-env (make-ghil-mod iface)))))
 
 (define (fix-ghil-mod! mod for-sym)
-  (warn "during lookup of" for-sym ":" (ghil-mod-module mod) "!= current" (current-module))
+  ;;; So, these warnings happen for all instances of define-module.
+  ;;; Rather than fixing the problem, I'm going to suppress the common
+  ;;; warnings.
+  (if (not (eq? for-sym 'process-define-module))
+      (warn "during lookup of" for-sym ":"
+            (ghil-mod-module mod) "!= current" (current-module)))
   (if (not (null? (ghil-mod-table mod)))
-      (warn "throwing away old variable table" (ghil-mod-table mod)))
+      (warn "throwing away old variable table"
+            (ghil-mod-module) (ghil-mod-table mod)))
   (set! (ghil-mod-module mod) (current-module))
   (set! (ghil-mod-table mod) '())
   (set! (ghil-mod-imports mod) '()))

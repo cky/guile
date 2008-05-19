@@ -50,8 +50,8 @@
   '(procedure->syntax procedure->macro procedure->memoizing-macro))
 
 (define (lookup-transformer e head retrans)
-  (let ((val (and=> (module-variable (ghil-mod-module (ghil-env-mod e)) head)
-                    variable-ref)))
+  (let* ((mod (ghil-mod-module (ghil-env-mod e)))
+         (val (and=> (module-variable mod head) variable-ref)))
     (cond
      ((or (primitive-macro? val) (eq? val eval-case))
       (or (assq-ref primitive-syntax-table head)
@@ -68,7 +68,7 @@
              (sc-expand3 (module-ref the-syncase-module 'sc-expand3)))
         (lambda (env loc exp)
           (retrans
-           (with-fluids ((eec (module-eval-closure (current-module))))
+           (with-fluids ((eec (module-eval-closure mod)))
              (sc-expand3 exp 'c '(compile load eval)))))))
 
      ((macro? val)
