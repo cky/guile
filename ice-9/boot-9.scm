@@ -569,10 +569,7 @@
 	      #f)))))
 
 (define (has-suffix? str suffix)
-  (let ((sufl (string-length suffix))
-	(sl (string-length str)))
-    (and (> sl sufl)
-	 (string=? (substring str (- sl sufl) sl) suffix))))
+  (string-suffix? suffix str))
 
 (define (system-error-errno args)
   (if (eq? (car args) 'system-error)
