@@ -64,7 +64,7 @@ VM_DEFINE_LOADER (load_number, "load-number")
 
   FETCH_LENGTH (len);
   PUSH (scm_string_to_number (scm_from_locale_stringn ((char *)ip, len),
-			      SCM_UNSPECIFIED /* radix = 10 */));
+			      SCM_UNDEFINED /* radix = 10 */));
   /* Was: scm_istring2number (ip, len, 10)); */
   ip += len;
   NEXT;
@@ -212,6 +212,19 @@ VM_DEFINE_LOADER (define, "define")
   ip += len;
 
   PUSH (scm_sym2var (sym, scm_current_module_lookup_closure (), SCM_BOOL_T));
+  NEXT;
+}
+
+VM_DEFINE_LOADER (late_bind, "late-bind")
+{
+  SCM sym;
+  size_t len;
+
+  FETCH_LENGTH (len);
+  sym = scm_from_locale_symboln ((char *)ip, len);
+  ip += len;
+
+  PUSH (sym);
   NEXT;
 }
 

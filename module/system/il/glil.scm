@@ -54,6 +54,9 @@
    <glil-module> make-glil-module glil-module?
    glil-module-op glil-module-module glil-module-index
 
+   <glil-late-bound> make-glil-late-bound glil-late-bound?
+   glil-late-bound-op glil-late-bound-name
+
    <glil-label> make-glil-label glil-label?
    glil-label-label
 
@@ -80,6 +83,7 @@
    (<glil-local> op index)
    (<glil-external> op depth index)
    (<glil-module> op module name)
+   (<glil-late-bound> op name)
    ;; Controls
    (<glil-label> label)
    (<glil-branch> inst label)

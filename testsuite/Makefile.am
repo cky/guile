@@ -15,7 +15,8 @@ vm_test_files =					\
       t-proc-with-setter.scm			\
       t-values.scm				\
       t-records.scm				\
-      t-match.scm
+      t-match.scm				\
+      t-mutual-toplevel-defines.scm
 
 EXTRA_DIST = run-vm-tests.scm $(vm_test_files)
 

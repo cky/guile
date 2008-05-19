@@ -224,12 +224,10 @@
                        (make-ghil-var found-env sym 'module)))
                  (else
                   ;; a free variable that we have not resolved
-                  (if (not (module-locally-bound? module sym))
-                      ;; For the benefit of repl compilation, that
-                      ;; doesn't compile modules all-at-once, don't warn
-                      ;; if we find the symbol locally.
-                      (warn "unresolved variable during compilation:" sym))
-                  (make-ghil-var #f sym 'module))))
+                  (warn "unresolved variable during compilation:" sym)
+                  (let ((var (make-ghil-var #f sym 'unresolved)))
+                    (apush! sym var table)
+                    var))))
           ((<ghil-env> mod parent table variables)
            (let ((found (assq-ref table sym)))
              (if found

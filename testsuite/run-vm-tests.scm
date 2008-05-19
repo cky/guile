@@ -74,9 +74,9 @@ equal in the sense of @var{equal?}."
 		     (format #t "running `~a'...  " file)
 		     (if (catch #t
 				(lambda ()
-				  (equal? (compile/run-test-from-file file)
-					  (eval (fetch-sexp-from-file file)
-						(interaction-environment))))
+				  (equal? (pk (compile/run-test-from-file file))
+					  (pk (eval (fetch-sexp-from-file file)
+						(interaction-environment)))))
 				(lambda (key . args)
 				  (format #t "[~a/~a] " key args)
 				  #f))

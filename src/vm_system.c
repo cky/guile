@@ -257,6 +257,28 @@ VM_DEFINE_INSTRUCTION (variable_ref, "variable-ref", 0, 0, 1)
   NEXT;
 }
 
+VM_DEFINE_INSTRUCTION (late_variable_ref, "late-variable-ref", 1, 0, 1)
+{
+  register unsigned objnum = FETCH ();
+  SCM x;
+  CHECK_OBJECT (objnum);
+  x = OBJECT_REF (objnum);
+
+  if (!SCM_VARIABLEP (x)) 
+    {
+      x = scm_lookup (x); /* might longjmp */
+      OBJECT_SET (objnum, x);
+      if (!VARIABLE_BOUNDP (x))
+        {
+          err_args = SCM_LIST1 (x);
+          goto vm_error_unbound;
+        }
+    }
+
+  PUSH (VARIABLE_REF (x));
+  NEXT;
+}
+
 /* set */
 
 VM_DEFINE_INSTRUCTION (local_set, "local-set", 1, 1, 0)
@@ -286,6 +308,29 @@ VM_DEFINE_INSTRUCTION (variable_set, "variable-set", 0, 1, 0)
   VARIABLE_SET (sp[0], sp[-1]);
   scm_set_object_property_x (sp[-1], scm_sym_name, SCM_CAR (sp[0]));
   sp -= 2;
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (late_variable_set, "late-variable-set", 1, 1, 0)
+{
+  register unsigned objnum = FETCH ();
+  SCM x;
+  CHECK_OBJECT (objnum);
+  x = OBJECT_REF (objnum);
+
+  if (!SCM_VARIABLEP (x)) 
+    {
+      x = scm_lookup (x); /* might longjmp */
+      OBJECT_SET (objnum, x);
+      if (!VARIABLE_BOUNDP (x))
+        {
+          err_args = SCM_LIST1 (x);
+          goto vm_error_unbound;
+        }
+    }
+
+  VARIABLE_SET (x, *sp);
+  DROP ();
   NEXT;
 }
 

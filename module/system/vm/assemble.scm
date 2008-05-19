@@ -44,6 +44,7 @@
 (define-record (<venv> parent nexts closure?))
 (define-record (<vmod> id))
 (define-record (<vlink> module name))
+(define-record (<vlate-bound> name))
 (define-record (<vdefine> module name))
 (define-record (<bytespec> vars bytes meta objs closure?))
 
@@ -158,6 +159,20 @@
                (push-object! (make-vdefine :module module :name name))
                (push-code! '(variable-set)))))
 
+	   ((<glil-late-bound> op name)
+            (let* ((var (make-vlate-bound :name name))
+                   (i (cond ((object-assoc var object-alist) => cdr)
+                            (else
+                             (let ((i (length object-alist)))
+                               (set! object-alist (acons var i object-alist))
+                               i)))))
+              (case op
+                ((ref)
+                 (push-code! `(late-variable-ref ,i)))
+                ((set)
+                 (push-code! `(late-variable-set ,i)))
+                (else (error "unknown late bound" op name)))))
+
 	   ((<glil-label> label)
 	    (set! label-alist (assq-set! label-alist label (current-address))))
 
@@ -263,6 +278,8 @@
 	((<vdefine> module name)
 	 ;; FIXME: dump module
 	 (push-code! `(define ,(symbol->string name))))
+	((<vlate-bound> name)
+	 (push-code! `(late-bind ,(symbol->string name))))
 	((<vmod> id)
 	 (push-code! `(load-module ,id)))
         (else
