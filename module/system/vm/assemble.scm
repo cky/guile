@@ -43,8 +43,8 @@
 (define-record (<vm-asm> venv glil body))
 (define-record (<venv> parent nexts closure?))
 (define-record (<vmod> id))
-(define-record (<vlink> module name))
-(define-record (<vlate-bound> name))
+(define-record (<vlink-now> module name))
+(define-record (<vlink-later> module name))
 (define-record (<vdefine> module name))
 (define-record (<bytespec> vars bytes meta objs closure?))
 
@@ -149,29 +149,28 @@
 
 	   ((<glil-module> op module name)
             (case op
-              ((ref)
-               (push-object! (make-vlink :module module :name name))
-               (push-code! '(variable-ref)))
-              ((set)
-               (push-object! (make-vlink :module module :name name))
-               (push-code! '(variable-set)))
+              ((ref set)
+               (cond
+                (toplevel
+                 (push-object! (make-vlink-now :module module :name name))
+                 (push-code! (case op
+                               ((ref) '(variable-ref))
+                               ((set) '(variable-set)))))
+                (else
+                 (let* ((var (make-vlink-later :module module :name name))
+                        (i (cond ((object-assoc var object-alist) => cdr)
+                                 (else
+                                  (let ((i (length object-alist)))
+                                    (set! object-alist (acons var i object-alist))
+                                    i)))))
+                   (push-code! (case op
+                                 ((ref) `(late-variable-ref ,i))
+                                 ((set) `(late-variable-set ,i))))))))
               ((define)
                (push-object! (make-vdefine :module module :name name))
-               (push-code! '(variable-set)))))
-
-	   ((<glil-late-bound> op name)
-            (let* ((var (make-vlate-bound :name name))
-                   (i (cond ((object-assoc var object-alist) => cdr)
-                            (else
-                             (let ((i (length object-alist)))
-                               (set! object-alist (acons var i object-alist))
-                               i)))))
-              (case op
-                ((ref)
-                 (push-code! `(late-variable-ref ,i)))
-                ((set)
-                 (push-code! `(late-variable-set ,i)))
-                (else (error "unknown late bound" op name)))))
+               (push-code! '(variable-set)))
+              (else
+               (error "unknown toplevel var kind" op name))))
 
 	   ((<glil-label> label)
 	    (set! label-alist (assq-set! label-alist label (current-address))))
@@ -208,7 +207,8 @@
 
 (define (object-assoc x alist)
   (record-case x
-    ((<vlink>) (assoc x alist))
+    ((<vlink-now>) (assoc x alist))
+    ((<vlink-later>) (assoc x alist))
     (else        (assq x alist))))
 
 (define (stack->bytes stack label-alist)
@@ -271,15 +271,17 @@
 	 (if meta (dump! meta))
 	 ;; dump bytecode
 	 (push-code! `(load-program ,bytes)))
-	((<vlink> module name)
-         (dump! (and=> module module-name))
+	((<vlink-later> module name)
+         (dump! (module-name module))
          (dump! name)
-	 (push-code! '(link)))
+	 (push-code! '(link-later)))
+	((<vlink-now> module name)
+         (dump! (module-name module))
+         (dump! name)
+	 (push-code! '(link-now)))
 	((<vdefine> module name)
 	 ;; FIXME: dump module
 	 (push-code! `(define ,(symbol->string name))))
-	((<vlate-bound> name)
-	 (push-code! `(late-bind ,(symbol->string name))))
 	((<vmod> id)
 	 (push-code! `(load-module ,id)))
         (else

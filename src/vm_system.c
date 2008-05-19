@@ -259,23 +259,25 @@ VM_DEFINE_INSTRUCTION (variable_ref, "variable-ref", 0, 0, 1)
 
 VM_DEFINE_INSTRUCTION (late_variable_ref, "late-variable-ref", 1, 0, 1)
 {
-  register unsigned objnum = FETCH ();
-  SCM x;
+  unsigned objnum = FETCH ();
+  SCM pair_or_var;
   CHECK_OBJECT (objnum);
-  x = OBJECT_REF (objnum);
+  pair_or_var = OBJECT_REF (objnum);
 
-  if (!SCM_VARIABLEP (x)) 
+  if (!SCM_VARIABLEP (pair_or_var)) 
     {
-      x = scm_lookup (x); /* might longjmp */
-      OBJECT_SET (objnum, x);
-      if (!VARIABLE_BOUNDP (x))
+      SCM mod = scm_resolve_module (SCM_CAR (pair_or_var));
+      /* module_lookup might longjmp */
+      pair_or_var = scm_module_lookup (mod, SCM_CDR (pair_or_var));
+      OBJECT_SET (objnum, pair_or_var);
+      if (!VARIABLE_BOUNDP (pair_or_var))
         {
-          err_args = SCM_LIST1 (x);
+          err_args = SCM_LIST1 (pair_or_var);
           goto vm_error_unbound;
         }
     }
 
-  PUSH (VARIABLE_REF (x));
+  PUSH (VARIABLE_REF (pair_or_var));
   NEXT;
 }
 
@@ -313,23 +315,20 @@ VM_DEFINE_INSTRUCTION (variable_set, "variable-set", 0, 1, 0)
 
 VM_DEFINE_INSTRUCTION (late_variable_set, "late-variable-set", 1, 1, 0)
 {
-  register unsigned objnum = FETCH ();
-  SCM x;
+  unsigned objnum = FETCH ();
+  SCM pair_or_var;
   CHECK_OBJECT (objnum);
-  x = OBJECT_REF (objnum);
+  pair_or_var = OBJECT_REF (objnum);
 
-  if (!SCM_VARIABLEP (x)) 
+  if (!SCM_VARIABLEP (pair_or_var)) 
     {
-      x = scm_lookup (x); /* might longjmp */
-      OBJECT_SET (objnum, x);
-      if (!VARIABLE_BOUNDP (x))
-        {
-          err_args = SCM_LIST1 (x);
-          goto vm_error_unbound;
-        }
+      SCM mod = scm_resolve_module (SCM_CAR (pair_or_var));
+      /* module_lookup might longjmp */
+      pair_or_var = scm_module_lookup (mod, SCM_CDR (pair_or_var));
+      OBJECT_SET (objnum, pair_or_var);
     }
 
-  VARIABLE_SET (x, *sp);
+  VARIABLE_SET (pair_or_var, *sp);
   DROP ();
   NEXT;
 }

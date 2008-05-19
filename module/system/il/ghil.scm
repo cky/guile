@@ -185,11 +185,6 @@
 ;;; Public interface
 ;;;
 
-(define (module-lookup module sym)
-  (let ((iface (module-import-interface module sym)))
-    (and iface
-         (make-ghil-env (make-ghil-mod iface)))))
-
 (define (fix-ghil-mod! mod for-sym)
   ;;; So, these warnings happen for all instances of define-module.
   ;;; Rather than fixing the problem, I'm going to suppress the common
@@ -219,13 +214,13 @@
                   (fix-ghil-mod! e sym)
                   (loop e))
                  ((assq-ref table sym)) ;; when does this hit?
-                 ((module-lookup module sym)
-                  => (lambda (found-env)
-                       (make-ghil-var found-env sym 'module)))
                  (else
-                  ;; a free variable that we have not resolved
-                  (warn "unresolved variable during compilation:" sym)
-                  (let ((var (make-ghil-var #f sym 'unresolved)))
+                  ;; although we could bind the variable here, in
+                  ;; practice further toplevel definitions in this
+                  ;; compilation unit could change how we would resolve
+                  ;; this binding, so punt and memoize the lookup at
+                  ;; runtime always.
+                  (let ((var (make-ghil-var (make-ghil-env e) sym 'module)))
                     (apush! sym var table)
                     var))))
           ((<ghil-env> mod parent table variables)

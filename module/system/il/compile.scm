@@ -101,10 +101,8 @@
 	  (make-glil-external op depth (ghil-var-index var)))))
     ((module)
      (let ((env (ghil-var-env var)))
-       (make-glil-module op (and env (ghil-mod-module (ghil-env-mod env)))
+       (make-glil-module op (ghil-mod-module (ghil-env-mod env))
                          (ghil-var-name var))))
-    ((unresolved)
-     (make-glil-late-bound op (ghil-var-name var)))
     (else (error "Unknown kind of variable:" var))))
 
 (define (codegen ghil)

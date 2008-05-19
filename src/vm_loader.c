@@ -176,29 +176,21 @@ VM_DEFINE_LOADER (load_program, "load-program")
   NEXT;
 }
 
-/* this seems to be a bit too much processing for one instruction.. */
-VM_DEFINE_INSTRUCTION (link, "link", 0, 2, 1)
+VM_DEFINE_INSTRUCTION (link_now, "link-now", 0, 2, 1)
 {
-  SCM modname, mod, sym;
+  SCM modname, sym;
   POP (sym);
   POP (modname);
-  if (SCM_NFALSEP (modname)) 
-    {
-      mod = scm_resolve_module (modname);
+  PUSH (scm_module_lookup (scm_resolve_module (modname), sym)); /* might longjmp */
+  NEXT;
+}
 
-      if (mod != scm_current_module ()) 
-        {
-          mod = scm_c_module_lookup (mod, "%module-public-interface");
-          if (SCM_FALSEP (mod))
-            SCM_MISC_ERROR ("Could not load module", SCM_LIST1 (modname));
-          mod = SCM_VARIABLE_REF (mod);
-        }
-      
-      PUSH (scm_module_lookup (mod, sym));
-    }
-  else
-    PUSH (scm_lookup (sym));
-  
+VM_DEFINE_INSTRUCTION (link_later, "link-later", 0, 2, 1)
+{
+  SCM modname, sym;
+  POP (sym);
+  POP (modname);
+  PUSH (scm_cons (modname, sym));
   NEXT;
 }
 
