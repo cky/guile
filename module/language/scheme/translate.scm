@@ -63,9 +63,13 @@
 
      ((and (macro? val) (eq? (macro-name val) 'sc-macro))
       ;; syncase!
-      (let ((syncase (module-ref (resolve-interface '(ice-9 syncase)) 'syncase)))
+      (let* ((the-syncase-module (resolve-module '(ice-9 syncase)))
+             (eec (module-ref the-syncase-module 'expansion-eval-closure))
+             (sc-expand3 (module-ref the-syncase-module 'sc-expand3)))
         (lambda (env loc exp)
-          (retrans (syncase exp)))))
+          (retrans
+           (with-fluids ((eec (module-eval-closure (current-module))))
+             (sc-expand3 exp 'c '(compile load eval)))))))
 
      ((macro? val)
       (syntax-error #f "unknown kind of macro" head))
