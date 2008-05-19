@@ -79,7 +79,7 @@
 (define (format-documentation doc)
   (with-current-buffer (make-buffer #:text doc)
     (lambda ()
-      (let ((regexp (make-regexp "@([a-z]*)(\\{([^\}]*)\\})?")))
+      (let ((regexp (make-regexp "@([a-z]*)(\\{([^}]*)\\})?")))
 	(do-while (match (re-search-forward regexp))
 	  (let ((key (string->symbol (match:substring match 1)))
 		(value (match:substring match 3)))
