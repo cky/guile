@@ -176,12 +176,11 @@ VM_DEFINE_LOADER (load_program, "load-program")
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (link_now, "link-now", 0, 2, 1)
+VM_DEFINE_INSTRUCTION (link_now, "link-now", 0, 1, 1)
 {
-  SCM modname, sym;
+  SCM sym;
   POP (sym);
-  POP (modname);
-  PUSH (scm_module_lookup (scm_resolve_module (modname), sym)); /* might longjmp */
+  PUSH (scm_lookup (sym)); /* might longjmp */
   NEXT;
 }
 

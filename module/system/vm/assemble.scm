@@ -43,7 +43,7 @@
 (define-record (<vm-asm> venv glil body))
 (define-record (<venv> parent nexts closure?))
 (define-record (<vmod> id))
-(define-record (<vlink-now> module name))
+(define-record (<vlink-now> name))
 (define-record (<vlink-later> module name))
 (define-record (<vdefine> module name))
 (define-record (<bytespec> vars bytes meta objs closure?))
@@ -152,7 +152,7 @@
               ((ref set)
                (cond
                 (toplevel
-                 (push-object! (make-vlink-now :module module :name name))
+                 (push-object! (make-vlink-now :name name))
                  (push-code! (case op
                                ((ref) '(variable-ref))
                                ((set) '(variable-set)))))
@@ -275,8 +275,7 @@
          (dump! (module-name module))
          (dump! name)
 	 (push-code! '(link-later)))
-	((<vlink-now> module name)
-         (dump! (module-name module))
+	((<vlink-now> name)
          (dump! name)
 	 (push-code! '(link-now)))
 	((<vdefine> module name)

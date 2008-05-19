@@ -201,14 +201,15 @@ Change modules / Show current module."
 (define (import repl . args)
   "import [MODULE ...]
 Import modules / List those imported."
-  (define (use name)
-    (let ((mod (resolve-interface name)))
-      (if mod
-	  (module-use! (current-module) mod)
-	  (user-error "No such module: ~A" name))))
-  (if (null? args)
-      (for-each puts (map module-name (module-uses (current-module))))
-      (for-each use args)))
+  (let ()
+    (define (use name)
+      (let ((mod (resolve-interface name)))
+        (if mod
+            (module-use! (current-module) mod)
+            (user-error "No such module: ~A" name))))
+    (if (null? args)
+        (for-each puts (map module-name (module-uses (current-module))))
+        (for-each use args))))
 
 (define (load repl file . opts)
   "load FILE
