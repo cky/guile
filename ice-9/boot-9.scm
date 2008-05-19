@@ -92,9 +92,11 @@
 ;; (eval-case ((situation*) forms)* (else forms)?)
 ;;
 ;; Evaluate certain code based on the situation that eval-case is used
-;; in.  The only defined situation right now is `load-toplevel' which
-;; triggers for code evaluated at the top-level, for example from the
-;; REPL or when loading a file.
+;; in. There are three situations defined. `load-toplevel' triggers for
+;; code evaluated at the top-level, for example from the REPL or when
+;; loading a file. `compile-toplevel' triggers for code compiled at the
+;; toplevel. `execute' triggers during execution of code not at the top
+;; level.
 
 (define eval-case
   (procedure->memoizing-macro
@@ -151,7 +153,7 @@
 	  (lambda (name parms . body)
 	    (let ((transformer `(lambda ,parms ,@body)))
 	      `(eval-case
-		((load-toplevel)
+                ((load-toplevel compile-toplevel)
 		 (define ,name (defmacro:transformer ,transformer)))
 		(else
 		 (error "defmacro can only be used at the top level")))))))
@@ -2265,8 +2267,8 @@ module '(ice-9 q) '(make-q q-length))}."
 	    (define ,(caddr options/enable/disable)
 	      ,(make-disable interface))
 	    (defmacro ,(caaddr option-group) (opt val)
-	      `(,,(car options/enable/disable)
-		(append (,,(car options/enable/disable))
+	      `(,',(car options/enable/disable)
+		(append (,',(car options/enable/disable))
 			(list ',opt ,val))))))))))
 
 (define-option-interface
@@ -2707,7 +2709,7 @@ module '(ice-9 q) '(make-q q-length))}."
 	     (car rest)
 	     `(lambda ,(cdr first) ,@rest))))
     `(eval-case
-      ((load-toplevel)
+      ((load-toplevel compile-toplevel)
        (define ,name (defmacro:transformer ,transformer)))
       (else
        (error "define-macro can only be used at the top level")))))
@@ -2720,7 +2722,7 @@ module '(ice-9 q) '(make-q q-length))}."
 	     (car rest)
 	     `(lambda ,(cdr first) ,@rest))))
     `(eval-case
-      ((load-toplevel)
+      ((load-toplevel compile-toplevel)
        (define ,name (defmacro:syntax-transformer ,transformer)))
       (else
        (error "define-syntax-macro can only be used at the top level")))))
@@ -2835,7 +2837,7 @@ module '(ice-9 q) '(make-q q-length))}."
 
 (defmacro define-module args
   `(eval-case
-    ((load-toplevel)
+    ((load-toplevel compile-toplevel)
      (let ((m (process-define-module
 	       (list ,@(compile-define-module-args args)))))
        (set-current-module m)
@@ -2860,7 +2862,7 @@ module '(ice-9 q) '(make-q q-length))}."
 
 (defmacro use-modules modules
   `(eval-case
-    ((load-toplevel)
+    ((load-toplevel compile-toplevel)
      (process-use-modules
       (list ,@(map (lambda (m)
 		     `(list ,@(compile-interface-spec m)))
@@ -2871,7 +2873,7 @@ module '(ice-9 q) '(make-q q-length))}."
 
 (defmacro use-syntax (spec)
   `(eval-case
-    ((load-toplevel)
+    ((load-toplevel compile-toplevel)
      ,@(if (pair? spec)
 	   `((process-use-modules (list
 				   (list ,@(compile-interface-spec spec))))
@@ -2901,7 +2903,7 @@ module '(ice-9 q) '(make-q q-length))}."
     (let ((name (defined-name (car args))))
       `(begin
 	 (define-private ,@args)
-	 (eval-case ((load-toplevel) (export ,name))))))))
+	 (eval-case ((load-toplevel compile-toplevel) (export ,name))))))))
 
 (defmacro defmacro-public args
   (define (syntax)
@@ -2916,7 +2918,7 @@ module '(ice-9 q) '(make-q q-length))}."
    (#t
     (let ((name (defined-name (car args))))
       `(begin
-	 (eval-case ((load-toplevel) (export-syntax ,name)))
+	 (eval-case ((load-toplevel compile-toplevel) (export-syntax ,name)))
 	 (defmacro ,@args))))))
 
 ;; Export a local variable
@@ -2955,7 +2957,7 @@ module '(ice-9 q) '(make-q q-length))}."
 
 (defmacro export names
   `(eval-case
-    ((load-toplevel)
+    ((load-toplevel compile-toplevel)
      (call-with-deferred-observers
       (lambda ()
 	(module-export! (current-module) ',names))))
@@ -2964,7 +2966,7 @@ module '(ice-9 q) '(make-q q-length))}."
 
 (defmacro re-export names
   `(eval-case
-    ((load-toplevel)
+    ((load-toplevel compile-toplevel)
      (call-with-deferred-observers
       (lambda ()
 	(module-re-export! (current-module) ',names))))
