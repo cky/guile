@@ -1,0 +1,57 @@
+Guile-VM NEWS
+
+
+Guile-VM is a bytecode compiler and virtual machine for Guile.
+
+
+guile-vm 0.7 -- 2008-05-20
+==========================
+
+* Initial release with NEWS.
+
+* Revived from Keisuke Nishida's Guile-VM project from 2000-2001, with
+  the help of Ludovic Courtès.
+
+* Meta-level changes
+** Updated to compile with Guile 1.8.
+** Documentation updated, including documentation on the instructions.
+** Added benchmarking and a test harness.
+
+* Changes to the inventory
+** Renamed the library from libguilevm to libguile-vm.
+** Added new executable script, guile-disasm.
+
+* New features
+** Add support for compiling macros, both defmacros and syncase macros.
+Primitive macros produced with the procedure->macro family of procedures
+are not supported, however.
+** Improvements to the REPL
+Multiple values support, readline integration, ice-9 history integration
+** Add support for eval-case
+The compiler recognizes compile-toplevel in addition to load-toplevel
+** Completely self-compiling
+Almost, anyway: not (system repl describe), because it uses GOOPS
+
+* Internal cleanups
+** Internal objects are now based on Guile records.
+** Guile-VM's code doesn't use the dot-syntax any more.
+** Changed (ice-9 match) for Kiselyov's pmatch.scm
+** New instructions: define, link-later, link-now, late-variable-{ref,set}
+** Object code now represented as u8vectors instead of strings.
+** Remove local import of an old version of slib
+
+* Bugfixes
+** The `optimize' procedure is coming out of bitrot
+** The Scheme compiler is now more strict about placement of internal
+   defines
+** set! is now compiled differently from define
+** Module-level variables are now bound at first use instead of in the
+   program prolog
+** Bugfix to load-program (stack misinterpretation)
+
+
+Copyright (C) 2008 Free Software Foundation, Inc.
+
+Copying and distribution of this file, with or without modification, are
+permitted in any medium without royalty provided the copyright notice
+and this notice are preserved.
