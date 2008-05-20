@@ -85,6 +85,11 @@
     (else
      (apply bad-throw args))))
 
+(eval-case
+ ((compile-toplevel)
+  (define-macro (start-stack tag expr)
+    expr)))
+
 (define (start-repl lang)
   (let ((repl (make-repl lang)))
     (repl-welcome repl)

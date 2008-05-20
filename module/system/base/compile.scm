@@ -58,16 +58,17 @@
 (define (scheme) (lookup-language 'scheme))
 
 (define (compile-file file . opts)
-  (let ((comp (compiled-file-name file)))
+  (let ((comp (compiled-file-name file))
+        (scheme (scheme)))
     (catch 'nothing-at-all
       (lambda ()
 	(call-with-compile-error-catch
 	 (lambda ()
 	   (call-with-output-file comp
 	     (lambda (port)
-	       (let* ((source (read-file-in file (scheme)))
+	       (let* ((source (read-file-in file scheme))
 		      (objcode (apply compile-in source (current-module)
-				      (scheme) opts)))
+				      scheme opts)))
 		 (if (memq :c opts)
 		   (pprint-glil objcode port)
 		   (uniform-vector-write (objcode->u8vector objcode) port)))))

@@ -127,7 +127,7 @@
                 (else (syntax-error ,loc (format #f "bad ~A" ',sym) ,exp)))))))
   `(list ,@(map make1 body)))
 
-(define *the-compile-toplevel-symbol* 'load-toplevel)
+(define *the-compile-toplevel-symbol* 'compile-toplevel)
 
 (define primitive-syntax-table
   (make-pmatch-transformers
