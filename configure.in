@@ -1,16 +1,16 @@
 # Guile-VM.
 
 AC_PREREQ(2.59)
-AC_INIT(guile-vm, 0.6, ludovic.courtes@laas.fr)
-AM_INIT_AUTOMAKE(guile-vm, 0.6)
+AC_INIT(guile-vm, 0.7, bug-guile@gnu.org)
+AM_INIT_AUTOMAKE([-Wno-portability])
 
 AC_CONFIG_SRCDIR(src/guile-vm.c)
 AC_CONFIG_HEADER(src/config.h)
 
 # Guile.
 GUILE_FLAGS
-if test "`guile -c '(display (string>=? (version) "1.7"))'`" != "#t"; then
-  AC_MSG_ERROR([Your Guile is too old.  You need Guile 1.7.2 or later.])
+if test "`guile -c '(display (string>=? (version) "1.8"))'`" != "#t"; then
+  AC_MSG_ERROR([Your Guile is too old.  You need Guile 1.8.0 or later.])
 fi
 
 # C Compiler.
@@ -23,8 +23,8 @@ guiledir="\$(datadir)/guile"
 AC_SUBST(guiledir)
 
 GUILEC="GUILE_LOAD_PATH=\$(top_srcdir)/module \
-  LD_LIBRARY_PATH=\$(top_srcdir)/src/.libs \
-  guile -s \$(top_srcdir)/src/guilec"
+  LD_LIBRARY_PATH=\$(top_builddir)/src/.libs \
+  guile -s \$(top_builddir)/src/guilec"
 AC_SUBST(GUILEC)
 
 AC_OUTPUT(Makefile src/Makefile doc/Makefile module/Makefile
