@@ -43,7 +43,6 @@
 #define _SCM_ENVS_H_
 
 #include <libguile.h>
-#include "config.h"
 
 extern scm_t_bits scm_tc16_env;
 

@@ -43,7 +43,6 @@
 #define _SCM_INSTRUCTIONS_H_
 
 #include <libguile.h>
-#include "config.h"
 
 enum scm_opcode {
 #define VM_INSTRUCTION_TO_OPCODE 1

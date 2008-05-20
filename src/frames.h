@@ -43,7 +43,6 @@
 #define _SCM_FRAMES_H_
 
 #include <libguile.h>
-#include "config.h"
 #include "programs.h"
 
 

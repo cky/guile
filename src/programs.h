@@ -43,7 +43,6 @@
 #define _SCM_PROGRAMS_H_
 
 #include <libguile.h>
-#include "config.h"
 
 /*
  * Programs

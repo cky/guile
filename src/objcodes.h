@@ -43,7 +43,6 @@
 #define _SCM_OBJCODES_H_
 
 #include <libguile.h>
-#include "config.h"
 
 struct scm_objcode {
   size_t size;			/* objcode size */

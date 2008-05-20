@@ -33,17 +33,17 @@ SUFFIXES = .i .x
 	grep '^VM_DEFINE' $< > $@
 
 .c.x:
-	$(SNARF) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< > $@ \
+	$(SNARF) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< > $@ \
 	|| { rm $@; false; }
 
 
 # Extra rules for debugging purposes.
 
 %.I: %.c
-	$(CPP) $(DEFS) $(INCLUDES) $(CPPFLAGS) $< > $@
+	$(CPP) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(CPPFLAGS) $< > $@
 
 %.s: %.c
-	$(CC) -S -dA $(DEFS) $(INCLUDES) $(CFLAGS) $(CPPFLAGS) -o $@ $<
+	$(CC) -S -dA $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(CFLAGS) $(CPPFLAGS) -o $@ $<
 
 
 %: %.in

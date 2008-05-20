@@ -39,8 +39,6 @@
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
 
-#include "config.h"
-
 #ifndef VM_LABEL
 #define VM_LABEL(tag) l_##tag
 #define VM_OPCODE(tag) scm_op_##tag
