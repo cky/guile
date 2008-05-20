@@ -101,8 +101,9 @@
 	(apply load-source-file file opts))))
 
 (define (compiled-file-name file)
-  (let ((m (string-match "\\.[^.]*$" file)))
-    (string-append (if m (match:prefix m) file) ".go")))
+  (let ((base (basename file)))
+    (let ((m (string-match "\\.scm$" base)))
+      (string-append (if m (match:prefix m) base) ".go"))))
 
 (define (scheme-eval x e)
   (vm-load (the-vm) (compile-in x e (scheme))))
