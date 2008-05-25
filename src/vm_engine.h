@@ -140,14 +140,16 @@
 {									\
   ssize_t _vincr;							\
 									\
-  bp = SCM_PROGRAM_DATA (program);					\
-  /* Was: objects = SCM_VELTS (bp->objs); */				\
+  if (bp != SCM_PROGRAM_DATA (program)) {                               \
+    bp = SCM_PROGRAM_DATA (program);					\
+    /* Was: objects = SCM_VELTS (bp->objs); */				\
 									\
-  if (objects)								\
-    scm_array_handle_release (&objects_handle);				\
+    if (objects)                                                        \
+      scm_array_handle_release (&objects_handle);                       \
 									\
-  objects = scm_vector_writable_elements (bp->objs, &objects_handle,	\
-					  &object_count, &_vincr);	\
+    objects = scm_vector_writable_elements (bp->objs, &objects_handle,	\
+                                            &object_count, &_vincr);	\
+  }                                                                     \
 }
 
 #define SYNC_BEFORE_GC()			\

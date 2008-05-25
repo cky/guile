@@ -3,6 +3,9 @@
 ;; A library of dumb functions that may be used to benchmark Guile-VM.
 
 
+;; The comments are from Ludovic, a while ago. The speedups now are much
+;; more significant (all over 2x, sometimes 8x).
+
 (define (fibo x)
   (if (or (= x 1) (= x 2))
       1
@@ -25,72 +28,56 @@
 
 ;; Disassembly of `loop'
 ;;
-; Disassembly of #<objcode 302360b0>:
+;; Disassembly of #<objcode b7c017e8>:
 
-; nlocs = 0  nexts = 0
+;; nlocs = 0  nexts = 0
 
-;    0    (make-int8 64)                  ;; 64
-;    2    (link "=")
-;    5    (link "loop")
-;   11    (link "1-")
-;   15    (vector 3)
-;   17    (make-int8:0)                   ;; 0
-;   18    (load-symbol "n")               ;; n
-;   28    (make-false)                    ;; #f
-;   29    (make-int8:0)                   ;; 0
-;   30    (list 3)
-;   32    (list 2)
-;   34    (list 1)
-;   36    (make-int8 8)                   ;; 8
-;   38    (make-int8 2)                   ;; 2
-;   40    (make-int8 6)                   ;; 6
-;   42    (cons)
-;   43    (cons)
-;   44    (make-int8 23)                  ;; 23
-;   46    (make-int8 4)                   ;; 4
-;   48    (make-int8 12)                  ;; 12
-;   50    (cons)
-;   51    (cons)
-;   52    (make-int8 25)                  ;; 25
-;   54    (make-int8 4)                   ;; 4
-;   56    (make-int8 6)                   ;; 6
-;   42    (cons)
-;   43    (cons)
-;   44    (make-int8 23)                  ;; 23
-;   46    (make-int8 4)                   ;; 4
-;   48    (make-int8 12)                  ;; 12
-;   50    (cons)
-;   51    (cons)
-;   52    (make-int8 25)                  ;; 25
-;   54    (make-int8 4)                   ;; 4
-;   56    (make-int8 6)                   ;; 6
-;   58    (cons)
-;   59    (cons)
-;   60    (list 4)
-;   62    load-program ##{201}#
-;   89    (link "loop")
-;   95    (variable-set)
-;   96    (void)
-;   97    (return)
+;;    0    (make-int8 64)                  ;; 64
+;;    2    (load-symbol "guile-user")      ;; guile-user
+;;   14    (list 0 1)                      ;; 1 element
+;;   17    (load-symbol "loop")            ;; loop
+;;   23    (link-later)
+;;   24    (load-symbol "guile-user")      ;; guile-user
+;;   36    (list 0 1)                      ;; 1 element
+;;   39    (load-symbol "1-")              ;; 1-
+;;   43    (link-later)
+;;   44    (vector 0 2)                    ;; 2 elements
+;;   47    (make-int8 0)                   ;; 0
+;;   49    (load-symbol "n")               ;; n
+;;   52    (make-false)                    ;; #f
+;;   53    (make-int8 0)                   ;; 0
+;;   55    (list 0 3)                      ;; 3 elements
+;;   58    (list 0 2)                      ;; 2 elements
+;;   61    (list 0 1)                      ;; 1 element
+;;   64    (make-int8 5)                   ;; 5
+;;   66    (make-false)                    ;; #f
+;;   67    (cons)
+;;   68    (make-int8 19)                  ;; 19
+;;   70    (make-false)                    ;; #f
+;;   71    (cons)
+;;   72    (make-int8 21)                  ;; 21
+;;   74    (make-false)                    ;; #f
+;;   75    (cons)
+;;   76    (list 0 4)                      ;; 4 elements
+;;   79    (load-program ##{70}#)
+;;  102    (define "loop")
+;;  108    (variable-set)
+;;  109    (void)
+;;  110    (return)
 
-; Bytecode ##{201}#:
+;; Bytecode ##{70}#:
 
-;    0    (object-ref 0)
-;    2    (variable-ref)
-;    3    (make-int8:0)                   ;; 0
-;    4    (local-ref 0)
-;    6    (call 2)
-;    8    (br-if-not 0 2)                 ;; -> 13
-;   11    (make-int8:0)                   ;; 0
-;   12    (return)
-;   13    (object-ref 1)
-;   15    (variable-ref)
-;   16    (object-ref 2)
-;   18    (variable-ref)
-;   19    (local-ref 0)
-;   21    (call 1)
-;   23    (tail-call 1)
-
+;;    0    (make-int8 0)                   ;; 0
+;;    2    (local-ref 0)
+;;    4    (ee?)
+;;    5    (br-if-not 0 3)                 ;; -> 11
+;;    8    (make-int8 0)                   ;; 0
+;;   10    (return)
+;;   11    (late-variable-ref 0)
+;;   13    (late-variable-ref 1)
+;;   15    (local-ref 0)
+;;   17    (call 1)
+;;   19    (tail-call 1)
 
 (define (loopi n)
   ;; Same as `loop'.
