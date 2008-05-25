@@ -43,10 +43,10 @@
   (let* ((link (vm:frame-dynamic-link frame))
 	 (chain (if (eq? link #t)
 		  '()
-		  (cons frame (vm:make-frame-chain
+		  (cons frame (make-frame-chain
 			       link (vm:frame-return-address frame))))))
-    (set! (vm:frame-number frame) (length chain))
-    (set! (vm:frame-address frame)
+    (set! (frame-number frame) (length chain))
+    (set! (frame-address frame)
 	  (- addr (program-base (vm:frame-program frame))))
     chain))
 

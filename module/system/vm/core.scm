@@ -20,6 +20,7 @@
 ;;; Code:
 
 (define-module (system vm core)
+  :use-module (system vm bootstrap)
   :export (arity:nargs arity:nrest arity:nlocs arity:nexts
            make-binding binding:name binding:extp binding:index
            program-bindings program-sources
@@ -34,12 +35,11 @@
 ;;; Core procedures
 ;;;
 
-(dynamic-call "scm_init_vm" (dynamic-link "libguile-vm"))
-
-(module-export! (current-module)
-		(delq! '%module-public-interface
-		       (hash-fold (lambda (k v d) (cons k d)) '()
-				  (module-obarray (current-module)))))
+;; FIXME
+(module-re-export! (current-module)
+                   (hash-fold (lambda (k v d) (cons k d)) '()
+                              (module-obarray
+                               (resolve-interface '(system vm bootstrap)))))
 
 
 ;;;
@@ -171,7 +171,3 @@
 
 (define (vm-load vm objcode)
   (vm (objcode->program objcode)))
-
-;; `load-compiled' is referred to by `boot-9.scm' and used by `use-modules'
-;; and friends.
-(set! load-compiled (lambda (file) (vm-load (the-vm) (load-objcode file))))

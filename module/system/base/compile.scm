@@ -30,7 +30,8 @@
   :use-module (ice-9 regex)
   :export (syntax-error compile-file load-source-file load-file
            compiled-file-name
-           scheme-eval read-file-in compile-in))
+           scheme-eval read-file-in compile-in
+           load/compile))
 
 ;;;
 ;;; Compiler environment

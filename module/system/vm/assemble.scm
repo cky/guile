@@ -30,6 +30,7 @@
   :use-module (ice-9 regex)
   :use-module (ice-9 common-list)
   :use-module (srfi srfi-4)
+  :use-module ((srfi srfi-1) :select (append-map))
   :export (preprocess codegen assemble))
 
 (define (assemble glil env . opts)
@@ -214,9 +215,8 @@
 (define (stack->bytes stack label-alist)
   (let loop ((result '()) (stack stack) (addr 0))
     (if (null? stack)
-	(apply u8vector
-	       (apply append
-		      (map u8vector->list (reverse! result))))
+	(list->u8vector(append-map u8vector->list
+                                   (reverse! result)))
 	(let ((bytes (car stack)))
 	  (if (pair? bytes)
 	      (let* ((offset (- (assq-ref label-alist (cadr bytes))

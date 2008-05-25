@@ -27,6 +27,7 @@
   :use-module (system repl common)
   :use-module (system repl command)
   :use-module (system vm core)
+  :use-module (system vm debug)
   :use-module (ice-9 rdelim)
   :export (start-repl))
 
@@ -61,6 +62,7 @@
     ((vm-error ,fun ,msg ,args)
      (display "VM error: ")
      (apply format #t msg args)
+     (vm-backtrace (the-vm))
      (newline))
     ((,key ,subr ,msg ,args . ,rest)
      (let ((cep (current-error-port)))

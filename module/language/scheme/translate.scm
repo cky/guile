@@ -23,6 +23,7 @@
   :use-module (system base pmatch)
   :use-module (system base language)
   :use-module (system il ghil)
+  :use-module (system il inline)
   :use-module (ice-9 receive)
   :use-module (srfi srfi-39)
   :use-module ((system base compile) :select (syntax-error))
@@ -38,9 +39,6 @@
 ;;;
 ;;; Translator
 ;;;
-
-(define %scheme-primitives
-  '(not null? eq? eqv? equal? pair? list? cons car cdr set-car! set-cdr!))
 
 (define %forbidden-primitives
   ;; Guile's `procedure->macro' family is evil because it crosses the
@@ -88,16 +86,15 @@
             ((lookup-transformer e head retrans)
              => (lambda (t) (t e l x)))
 
-            ;; FIXME: lexical/module overrides of scheme primitives
-            ((memq head %scheme-primitives)
-             (make-ghil-inline e l head (map retrans tail)))
-
             ;; FIXME: lexical/module overrides of forbidden primitives
             ((memq head %forbidden-primitives)
    	     (syntax-error l (format #f "`~a' is forbidden" head)
    			   (cons head tail)))
+
             (else
-      	     (make-ghil-call e l (retrans head) (map retrans tail))))))
+             (let ((tail (map retrans tail)))
+               (or (try-inline-with-env e l (cons head tail))
+                   (make-ghil-call e l (retrans head) tail)))))))
 
 	((symbol? x)
          (make-ghil-ref e l (ghil-lookup e x)))

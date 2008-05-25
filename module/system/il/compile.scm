@@ -41,20 +41,19 @@
      (make-ghil-set env var (optimize val)))
 
     ((<ghil-if> env loc test then else)
-     (make-ghil-if (optimize test) (optimize then) (optimize else)))
+     (make-ghil-if env loc (optimize test) (optimize then) (optimize else)))
 
     ((<ghil-begin> env loc exps)
-     (make-ghil-begin (map optimize exps)))
+     (make-ghil-begin env loc (map optimize exps)))
 
     ((<ghil-bind> env loc vars vals body)
-     (make-ghil-bind env vars (map optimize vals) (optimize body)))
+     (make-ghil-bind env loc vars (map optimize vals) (optimize body)))
 
     ((<ghil-lambda> env loc vars rest body)
-     (make-ghil-lambda env vars rest (optimize body)))
+     (make-ghil-lambda env loc vars rest (optimize body)))
 
-;; FIXME:  <ghil-inst> does not exist.  -- Ludo'.
-;     (($ <ghil-inst> inst args)
-;      (make-ghil-inst inst (map optimize args)))
+    ((<ghil-inline> env loc instruction args)
+     (make-ghil-inline env loc instruction (map optimize args)))
 
     ((<ghil-call> env loc proc args)
      (let ((parent-env env))
@@ -71,9 +70,9 @@
                         (ghil-env-add! parent-env v))
                       (ghil-env-variables env)))
            (else
-            (make-ghil-call parent-env (optimize proc) (map optimize args)))))
+            (make-ghil-call parent-env loc (optimize proc) (map optimize args)))))
          (else
-          (make-ghil-call parent-env (optimize proc) (map optimize args))))))
+          (make-ghil-call parent-env loc (optimize proc) (map optimize args))))))
 
     (else x)))
 

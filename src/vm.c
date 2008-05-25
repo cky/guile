@@ -54,8 +54,8 @@
 /* I sometimes use this for debugging. */
 #define vm_puts(OBJ)				\
 {						\
-  scm_display (OBJ, scm_def_errp);		\
-  scm_newline (scm_def_errp);			\
+  scm_display (OBJ, scm_current_error_port ()); \
+  scm_newline (scm_current_error_port ());      \
 }
 
 

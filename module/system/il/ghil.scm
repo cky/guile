@@ -81,7 +81,7 @@
    <ghil-env> make-ghil-env ghil-env?
    ghil-env-mod ghil-env-parent ghil-env-table ghil-env-variables
 
-   ghil-primitive-macro? ghil-env-add! ghil-lookup ghil-define
+   ghil-env-add! ghil-lookup ghil-define
    ghil-env-toplevel?
    call-with-ghil-environment call-with-ghil-bindings))
 
@@ -111,27 +111,6 @@
    (<ghil-lambda> env loc vars rest body)
    (<ghil-call> env loc proc args)
    (<ghil-inline> env loc inline args)))
-
-
-;;;
-;;; Procedures
-;;;
-
-(define *core-primitives*
-  '(@void @quote @define @set! @if @begin @let @letrec @lambda))
-
-(define *macro-module* (resolve-module '(system il macros)))
-
-(define (ghil-primitive-macro? x)
-  (and (module-defined? *macro-module* x)
-       (procedure? (module-ref *macro-module* x))))
-
-(define (ghil-macro-expander x)
-  (module-ref *macro-module* x))
-
-(define (ghil-primitive? x)
-  (or (memq x *core-primitives*)
-      (ghil-primitive-macro? x)))
 
 
 ;;;
