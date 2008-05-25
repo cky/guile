@@ -28,7 +28,7 @@
 
 ;; Disassembly of `loop'
 ;;
-;; Disassembly of #<objcode b7c017e8>:
+;; Disassembly of #<objcode b79bdf28>:
 
 ;; nlocs = 0  nexts = 0
 
@@ -37,35 +37,31 @@
 ;;   14    (list 0 1)                      ;; 1 element
 ;;   17    (load-symbol "loop")            ;; loop
 ;;   23    (link-later)
-;;   24    (load-symbol "guile-user")      ;; guile-user
-;;   36    (list 0 1)                      ;; 1 element
-;;   39    (load-symbol "1-")              ;; 1-
-;;   43    (link-later)
-;;   44    (vector 0 2)                    ;; 2 elements
-;;   47    (make-int8 0)                   ;; 0
-;;   49    (load-symbol "n")               ;; n
-;;   52    (make-false)                    ;; #f
-;;   53    (make-int8 0)                   ;; 0
-;;   55    (list 0 3)                      ;; 3 elements
-;;   58    (list 0 2)                      ;; 2 elements
-;;   61    (list 0 1)                      ;; 1 element
-;;   64    (make-int8 5)                   ;; 5
-;;   66    (make-false)                    ;; #f
-;;   67    (cons)
-;;   68    (make-int8 19)                  ;; 19
-;;   70    (make-false)                    ;; #f
-;;   71    (cons)
-;;   72    (make-int8 21)                  ;; 21
-;;   74    (make-false)                    ;; #f
-;;   75    (cons)
-;;   76    (list 0 4)                      ;; 4 elements
-;;   79    (load-program ##{70}#)
-;;  102    (define "loop")
-;;  108    (variable-set)
-;;  109    (void)
-;;  110    (return)
+;;   24    (vector 0 1)                    ;; 1 element
+;;   27    (make-int8 0)                   ;; 0
+;;   29    (load-symbol "n")               ;; n
+;;   32    (make-false)                    ;; #f
+;;   33    (make-int8 0)                   ;; 0
+;;   35    (list 0 3)                      ;; 3 elements
+;;   38    (list 0 2)                      ;; 2 elements
+;;   41    (list 0 1)                      ;; 1 element
+;;   44    (make-int8 5)                   ;; 5
+;;   46    (make-false)                    ;; #f
+;;   47    (cons)
+;;   48    (make-int8 18)                  ;; 18
+;;   50    (make-false)                    ;; #f
+;;   51    (cons)
+;;   52    (make-int8 20)                  ;; 20
+;;   54    (make-false)                    ;; #f
+;;   55    (cons)
+;;   56    (list 0 4)                      ;; 4 elements
+;;   59    (load-program ##{66}#)
+;;   81    (define "loop")
+;;   87    (variable-set)
+;;   88    (void)
+;;   89    (return)
 
-;; Bytecode ##{70}#:
+;; Bytecode ##{66}#:
 
 ;;    0    (make-int8 0)                   ;; 0
 ;;    2    (local-ref 0)
@@ -74,10 +70,10 @@
 ;;    8    (make-int8 0)                   ;; 0
 ;;   10    (return)
 ;;   11    (late-variable-ref 0)
-;;   13    (late-variable-ref 1)
-;;   15    (local-ref 0)
-;;   17    (call 1)
-;;   19    (tail-call 1)
+;;   13    (local-ref 0)
+;;   15    (make-int8 1)                   ;; 1
+;;   17    (sub)
+;;   18    (tail-call 1)
 
 (define (loopi n)
   ;; Same as `loop'.
