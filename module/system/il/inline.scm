@@ -110,6 +110,9 @@
 (define-inline >= (x y)
   (ge? x y))
 
+(define-inline zero? (x)
+  (ee? x 0))
+  
 (define-inline +
   () 0
   (x) x
@@ -127,6 +130,9 @@
   (x y) (sub x y)
   (x y . rest) (sub x (+ y . rest)))
   
+(define-inline 1-
+  (x) (sub x 1))
+
 (define-inline /
   (x) (div 1 x)
   (x y) (div x y)
