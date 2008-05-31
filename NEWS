@@ -36,6 +36,16 @@ indicating length of the `scm_t_option' array.
 
 
 
+Changes in 1.8.6 (since 1.8.5)
+
+* Bugs fixed
+
+** Internal `scm_i_' functions now have "hidden" linkage with GCC/ELF
+
+This makes these internal functions technically not callable from
+application code.
+
+
 Changes in 1.8.5 (since 1.8.4)
 
 * Infrastructure changes
