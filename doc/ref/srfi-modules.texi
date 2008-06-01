@@ -3222,7 +3222,7 @@ Answer a hash value appropriate for equality predicate @code{equal?},
 @cindex SRFI-88
 @cindex keyword objects
 
-@uref{http://srfi.schemers.org/srfi/srfi-88.html, SRFI-88} provides
+@uref{http://srfi.schemers.org/srfi-88/srfi-88.html, SRFI-88} provides
 @dfn{keyword objects}, which are equivalent to Guile's keywords
 (@pxref{Keywords}).  SRFI-88 keywords can be entered using the
 @dfn{postfix keyword syntax}, which consists of an identifier followed
