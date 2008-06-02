@@ -1,3 +1,9 @@
+2008-06-02  Ludovic Courtès  <ludo@gnu.org>
+
+	* deprecated.c (maybe_close_port): Rename EXCEPT to EXCEPT_SET
+	to workaround `#define except' on Tru64.  Reported by Peter
+	O'Gorman <pogma@thewrittenword.com>.
+
 2008-05-31  Ludovic Courtès  <ludo@gnu.org>
 
 	* __scm.h (SCM_INTERNAL): New macro.
