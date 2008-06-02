@@ -45,6 +45,7 @@ Changes in 1.8.6 (since 1.8.5)
 This makes these internal functions technically not callable from
 application code.
 
+** `guile-config link' now prints `-L$libdir' before `-lguile'
 ** Fix build issue on Tru64
 
 

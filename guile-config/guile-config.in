@@ -4,7 +4,7 @@
 ;;;; guile-config --- utility for linking programs with Guile
 ;;;; Jim Blandy <jim@red-bean.com> --- September 1997
 ;;;; 
-;;;; 	Copyright (C) 1998, 2001, 2004, 2005, 2006 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1998, 2001, 2004, 2005, 2006, 2008 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -151,11 +151,11 @@
     (display (string-join
 	      (list
 	       (get-build-info 'CFLAGS)
-	       "-lguile -lltdl" 
                (if (or (string=? libdir "/usr/lib")
                        (string=? libdir "/usr/lib/"))
 		   ""
 		   (string-append "-L" (get-build-info 'libdir)))
+               "-lguile -lltdl"
 	       (string-join other-flags)
 
 	       )))
