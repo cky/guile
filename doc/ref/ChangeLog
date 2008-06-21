@@ -1,3 +1,8 @@
+2008-06-30  Julian Graham  <joolean@gmail.com>
+
+	* srfi-modules.texi (SRFI-18): New section.
+	(SRFI-19 Time): Mention SRFI-18's `current-time'.
+
 2008-06-28  Ludovic Courtès  <ludo@gnu.org>
 
 	* api-modules.texi (Using Guile Modules): Substitute "syntax
