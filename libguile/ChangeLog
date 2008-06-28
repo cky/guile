@@ -1,3 +1,8 @@
+2008-06-28  Ludovic Courtès  <ludo@gnu.org>
+
+	* tags.h (SCM_UNPACK): Disable type-checking for `__DECC' and
+	`__HP_cc'.  Reported by Peter O'Gorman <pogma@thewrittenword.com>.
+
 2008-06-02  Ludovic Courtès  <ludo@gnu.org>
 
 	* deprecated.c (maybe_close_port): Rename EXCEPT to EXCEPT_SET

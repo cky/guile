@@ -3,7 +3,7 @@
 #ifndef SCM_TAGS_H
 #define SCM_TAGS_H
 
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2008
  * Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -113,8 +113,14 @@ typedef unsigned long scm_t_bits;
   and that there is no performance hit.  However, the alternative is
   compiled, and does generate a warning when used with the wrong
   pointer type.
- */
+
+  The Tru64 and ia64-hp-hpux11.23 compilers fail on `case (0?0=0:x)'
+  statements, so for them type-checking is disabled.  */
+#if defined __DECC || defined __HP_cc
+#   define SCM_UNPACK(x) ((scm_t_bits) (x))
+#else
 #   define SCM_UNPACK(x) ((scm_t_bits) (0? (*(SCM*)0=(x)): x))
+#endif
 
 /*
   There is no typechecking on SCM_PACK, since all kinds of types
