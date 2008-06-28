@@ -1,3 +1,8 @@
+2008-06-28  Ludovic Courtès  <ludo@gnu.org>
+
+	* srfi-19.scm (priv:read-tai-utc-data): Use `eof-object?'
+	instead of comparing LINE with `eof'.
+
 2008-05-15  Julian Graham  <joolean@gmail.com>
 
 	* srfi-18.scm: New file.
