@@ -1,5 +1,8 @@
 2008-06-28  Ludovic Courtès  <ludo@gnu.org>
 
+	* Makefile.am (INCLUDES): Renamed to...
+	(AM_CPPFLAGS): this, to match current Automake conventions.
+
 	* srfi-19.scm (priv:read-tai-utc-data): Use `eof-object?'
 	instead of comparing LINE with `eof'.
 

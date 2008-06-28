@@ -1,3 +1,7 @@
+2008-06-28  Ludovic Courtès  <ludo@gnu.org>
+
+	* configure.in: Use Automake with `-Wall -Wno-override'.
+
 2008-05-07  Ludovic Courtès  <ludo@gnu.org>
 
 	Guile 1.8.5 released.
