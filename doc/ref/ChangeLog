@@ -1,3 +1,9 @@
+2008-06-28  Ludovic Courtès  <ludo@gnu.org>
+
+	* api-modules.texi (Using Guile Modules): Substitute "syntax
+	transformer" to "system transformer".  Reported by Sebastian
+	Tennant <sebyte@smolny.plus.com>.
+
 2008-06-01  Ludovic Courtès  <ludo@gnu.org>
 
 	* srfi-modules.texi (SRFI-88): Fix URL.
