@@ -11,6 +11,7 @@ Changes in 1.9.0:
 
 * New modules (see the manual for details)
 
+** `(srfi srfi-18)', multithreading support
 ** The `(ice-9 i18n)' module provides internationalization support
 
 * Changes to the distribution
