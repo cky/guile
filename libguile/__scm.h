@@ -101,9 +101,9 @@
  * as having "internal" linkage.  */
 #if (defined __GNUC__) && \
   ((__GNUC__ >= 4) || (__GNUC__ == 3 && __GNUC_MINOR__ == 3))
-# define SCM_INTERNAL  __attribute__ ((__visibility__ ("internal")))
+# define SCM_INTERNAL  extern __attribute__ ((__visibility__ ("internal")))
 #else
-# define SCM_INTERNAL
+# define SCM_INTERNAL  extern
 #endif
 
 

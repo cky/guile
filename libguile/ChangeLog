@@ -1,3 +1,9 @@
+2008-07-04  Ludovic Courtès  <ludo@gnu.org>
+
+	* __scm.h (SCM_INTERNAL): Add `extern' so that these symbols are
+	not considered as "common" by GCC 4.3.  Reported by Patrick
+	Horgan <phorgan1@gmail.com>.
+
 2008-06-28  Ludovic Courtès  <ludo@gnu.org>
 
 	* Makefile.am (INCLUDES): Renamed to...
