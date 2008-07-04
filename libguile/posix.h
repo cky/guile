@@ -86,7 +86,7 @@ SCM_API SCM scm_sethostname (SCM name);
 SCM_API SCM scm_gethostname (void);
 SCM_INTERNAL void scm_init_posix (void);
 
-SCM_INTERNAL scm_i_pthread_mutex_t scm_i_locale_mutex;
+SCM_API scm_i_pthread_mutex_t scm_i_locale_mutex;
 
 #endif  /* SCM_POSIX_H */
 

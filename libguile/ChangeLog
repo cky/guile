@@ -1,5 +1,9 @@
 2008-07-04  Ludovic Courtès  <ludo@gnu.org>
 
+	* posix.h (scm_i_locale_mutex): Don't declare as `SCM_INTERNAL'
+	since it's needed by `libguile-i18n'.  Reported by Patrick
+	Horgan <phorgan1@gmail.com>.
+
 	* __scm.h (SCM_INTERNAL): Add `extern' so that these symbols are
 	not considered as "common" by GCC 4.3.  Reported by Patrick
 	Horgan <phorgan1@gmail.com>.
