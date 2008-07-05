@@ -6,3 +6,5 @@ include_next.m4
 onceonly_2_57.m4
 strcase.m4
 strings_h.m4
+gnulib-comp.m4
+onceonly.m4
