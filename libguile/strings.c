@@ -452,6 +452,16 @@ scm_i_symbol_length (SCM sym)
   return STRINGBUF_LENGTH (SYMBOL_STRINGBUF (sym));
 }
 
+size_t
+scm_c_symbol_length (SCM sym)
+#define FUNC_NAME "scm_c_symbol_length"
+{
+  SCM_VALIDATE_SYMBOL (1, sym);
+
+  return STRINGBUF_LENGTH (SYMBOL_STRINGBUF (sym));
+}
+#undef FUNC_NAME
+
 const char *
 scm_i_symbol_chars (SCM sym)
 {

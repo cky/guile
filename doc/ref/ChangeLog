@@ -1,3 +1,7 @@
+2008-07-05  Ludovic Courtès  <ludo@gnu.org>
+
+	* api-data.texi (Symbol Primitives): Add `scm_c_symbol_length ()'.
+
 2008-06-30  Julian Graham  <joolean@gmail.com>
 
 	* srfi-modules.texi (SRFI-18): New section.

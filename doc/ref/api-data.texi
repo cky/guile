@@ -4647,6 +4647,11 @@ immediately after creating the Scheme string.  In certain cases, Guile
 can then use @var{str} directly as its internal representation.
 @end deftypefn
 
+The size of a symbol can also be obtained from C:
+
+@deftypefn {C Function} size_t scm_c_symbol_length (SCM sym)
+Return the number of characters in @var{sym}.
+@end deftypefn
 
 Finally, some applications, especially those that generate new Scheme
 code dynamically, need to generate symbols for use in the generated

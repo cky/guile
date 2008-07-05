@@ -90,6 +90,7 @@ SCM_API SCM scm_string_append (SCM args);
 
 SCM_API SCM scm_c_make_string (size_t len, SCM chr);
 SCM_API size_t scm_c_string_length (SCM str);
+SCM_API size_t scm_c_symbol_length (SCM sym);
 SCM_API SCM scm_c_string_ref (SCM str, size_t pos);
 SCM_API void scm_c_string_set_x (SCM str, size_t pos, SCM chr);
 SCM_API SCM scm_c_substring (SCM str, size_t start, size_t end);

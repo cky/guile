@@ -1,3 +1,8 @@
+2008-07-05  Ludovic Courtès  <ludo@gnu.org>
+
+	* strings.c (scm_c_symbol_length): New function.
+	* strings.h (scm_c_symbol_length): New declaration.
+
 2008-07-04  Ludovic Courtès  <ludo@gnu.org>
 
 	* posix.h (scm_i_locale_mutex): Don't declare as `SCM_INTERNAL'
