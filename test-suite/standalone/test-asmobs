@@ -1,5 +1,5 @@
 #!/bin/sh
-exec guile -s "$0" "$@"
+exec guile -q -s "$0" "$@"
 !#
 
 (load-extension "libtest-asmobs" "libtest_asmobs_init")

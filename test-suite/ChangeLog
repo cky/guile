@@ -1,3 +1,9 @@
+2008-07-06  Ludovic Courtès  <ludo@gnu.org>
+
+	* standalone/test-asmobs, standalone/test-bad-identifiers,
+	standalone/test-require-extension, standalone/test-system-cmds:
+	Invoke `guile' with `-q'.
+
 2008-06-02  Ludovic Courtès  <ludo@gnu.org>
 
 	* standalone/test-conversion.c: Support systems whose

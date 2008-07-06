@@ -7,12 +7,12 @@ set -e
 # (Note the syntax "! guile -c ..." isn't used here, because that doesn't
 # work on Solaris 10.)
 #
-guile -c '(require-extension 7)' 2>/dev/null            && exit 1
-guile -c '(require-extension (blarg))' 2>/dev/null      && exit 1
-guile -c '(require-extension (srfi "foo"))' 2>/dev/null && exit 1
+guile -q -c '(require-extension 7)' 2>/dev/null            && exit 1
+guile -q -c '(require-extension (blarg))' 2>/dev/null      && exit 1
+guile -q -c '(require-extension (srfi "foo"))' 2>/dev/null && exit 1
 
 # expect these to succeed
-guile -c '(require-extension (srfi 1)) (exit (procedure? take-right))'
-guile -c '(require-extension (srfi))'
+guile -q -c '(require-extension (srfi 1)) (exit (procedure? take-right))'
+guile -q -c '(require-extension (srfi))'
 
 exit 0
