@@ -1,3 +1,7 @@
+2008-07-06  Ludovic Courtès  <ludo@gnu.org>
+
+	* configure.in: Update to Autoconf 2.61.
+
 2008-06-28  Ludovic Courtès  <ludo@gnu.org>
 
 	* configure.in: Use Automake with `-Wall -Wno-override'.
