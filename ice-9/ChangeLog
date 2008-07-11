@@ -1,3 +1,8 @@
+2008-07-17  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* gds-client.scm (handle-nondebug-protocol): Add support for
+	setting a trap on code that is about to be evaluated.
+
 2008-04-14  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* gds-client.scm (gds-debug-trap): Ensure that frame index passed

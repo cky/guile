@@ -43,6 +43,12 @@ Changes in 1.8.6 (since 1.8.5)
 
 ** New convenience function `scm_c_symbol_length ()'
 
+** Single stepping through code from Emacs
+
+When you use GDS to evaluate Scheme code from Emacs, you can now use
+`C-u' to indicate that you want to single step through that code. See
+`Evaluating Scheme Code' in the manual for more details.
+
 * Bugs fixed
 
 ** Internal `scm_i_' functions now have "hidden" linkage with GCC/ELF

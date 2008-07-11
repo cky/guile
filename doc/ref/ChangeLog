@@ -1,3 +1,8 @@
+2008-07-17  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scheme-using.texi (Evaluating Scheme Code): Document use of
+        `C-u' prefix with evaluation commands.
+
 2008-07-05  Ludovic Courtès  <ludo@gnu.org>
 
 	* api-data.texi (Symbol Primitives): Add `scm_c_symbol_length ()'.
