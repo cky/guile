@@ -52,6 +52,7 @@ application code.
 
 ** `guile-config link' now prints `-L$libdir' before `-lguile'
 ** Fix build issue on Tru64 and ia64-hp-hpux11.23 (`SCM_UNPACK' macro)
+** Fix build issue on mips, mipsel, powerpc and ia64 (stack direction)
 
 
 Changes in 1.8.5 (since 1.8.4)
