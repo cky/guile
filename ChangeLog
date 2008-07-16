@@ -1,3 +1,8 @@
+2008-07-16  Ludovic Courtès  <ludo@gnu.org>
+
+	* configure.in: Look for `struct dirent64' and `readdir64_r ()',
+	not available on HP-UX 11.11.
+
 2008-07-06  Ludovic Courtès  <ludo@gnu.org>
 
 	* configure.in: Update to Autoconf 2.61.

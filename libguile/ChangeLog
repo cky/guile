@@ -1,3 +1,13 @@
+2008-07-16  Ludovic Courtès  <ludo@gnu.org>
+
+	* gen-scmconfig.h.in (SCM_I_GSC_HAVE_STRUCT_DIRENT64): New.
+	* gen-scmconfig.c (main): Produce definitions of
+	`SCM_HAVE_STRUCT_DIRENT64' and `SCM_HAVE_READDIR64_R'.
+	* _scm.h (dirent_or_dirent64): Depend on
+	`SCM_HAVE_STRUCT_DIRENT64', for the sake of HP-UX 11.11.
+	(readdir_r_or_readdir64_r): Depend on `SCM_HAVE_READDIR64_R',
+	for HP-UX 11.11.
+
 2008-07-05  Ludovic Courtès  <ludo@gnu.org>
 
 	* strings.c (scm_c_symbol_length): New function.

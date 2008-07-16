@@ -387,6 +387,19 @@ main (int argc, char *argv[])
   pf ("#define SCM_NEED_BRACES_ON_PTHREAD_MUTEX_INITIALIZER %d /* 0 or 1 */\n",
       SCM_I_GSC_NEED_BRACES_ON_PTHREAD_MUTEX_INITIALIZER);
 
+  pf ("\n\n/*** File system access ***/\n");
+
+  pf ("/* Define to 1 if `struct dirent64' is available.  */\n");
+  pf ("#define SCM_HAVE_STRUCT_DIRENT64 %d /* 0 or 1 */\n",
+      SCM_I_GSC_HAVE_STRUCT_DIRENT64);
+
+  pf ("/* Define to 1 if `readdir64_r ()' is available.  */\n");
+#ifdef HAVE_READDIR64_R
+  pf ("#define SCM_HAVE_READDIR64_R 1 /* 0 or 1 */\n");
+#else
+  pf ("#define SCM_HAVE_READDIR64_R 0 /* 0 or 1 */\n");
+#endif
+
 #if USE_DLL_IMPORT
   pf ("\n");
   pf ("/* Define some additional CPP macros on Win32 platforms. */\n");
