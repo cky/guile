@@ -77,7 +77,7 @@ c-tokenize.$(OBJEXT): c-tokenize.c
 	if [ "$(cross_compiling)" = "yes" ]; then \
 		$(CC_FOR_BUILD) $(DEFS) $(INCLUDES) -c -o $@ $<; \
 	else \
-		$(COMPILE) -c -o $@ $<; \
+		$(filter-out -Werror,$(COMPILE)) -c -o $@ $<; \
 	fi
 
 ## Override default rule; this should run on BUILD host.

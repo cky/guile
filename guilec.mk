@@ -7,4 +7,7 @@ CLEANFILES = $(GOBJECTS)
 
 SUFFIXES = .scm .go
 .scm.go:
-	$(GUILEC) $<
+	GUILE_LOAD_PATH=\$(top_srcdir)/module \
+	LD_LIBRARY_PATH=\$(top_builddir)/src/.libs \
+	$(top_builddir)/pre-inst-guile-env \
+	  guile -s \$(top_builddir)/src/guilec $<

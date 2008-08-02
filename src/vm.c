@@ -305,7 +305,7 @@ SCM_DEFINE (scm_vm_version, "vm-version", 0, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_vm_version
 {
-  return scm_from_locale_string (VERSION);
+  return scm_from_locale_string (PACKAGE_VERSION);
 }
 #undef FUNC_NAME
 

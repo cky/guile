@@ -1,10 +1,11 @@
 bin_PROGRAMS = guile-vm
 bin_SCRIPTS = guilec guile-disasm
 guile_vm_SOURCES = guile-vm.c
-guile_vm_LDADD = libguile-vm.la 
-guile_vm_LDFLAGS = $(GUILE_LDFLAGS)
+guile_vm_LDADD = libguile-vm.la ../libguile/libguile.la
 
 AM_CFLAGS = -Wall -g
+
+CFLAGS:=$(filter-out -Wmissing-prototypes,$(CFLAGS))
 
 lib_LTLIBRARIES = libguile-vm.la
 libguile_vm_la_SOURCES =						\
@@ -17,15 +18,14 @@ EXTRA_DIST = vm_engine.c vm_system.c vm_scheme.c vm_loader.c \
 BUILT_SOURCES = vm_system.i vm_scheme.i vm_loader.i \
 	envs.x frames.x instructions.x objcodes.x programs.x vm.x
 
-INCLUDES = $(GUILE_CFLAGS)
+INCLUDES =
 CLEANFILES = guilec guile-disasm
 DISTCLEANFILES = $(BUILT_SOURCES)
-MAINTAINERCLEANFILES = Makefile.in config.h.in stamp-h.in
 
 ETAGS_ARGS = --regex='/SCM_\(SYMBOL\|VCELL\).*\"\([^\"]\)*\"/\3/' \
    --regex='/SCM_DEFINE[ \t]*(\([^,]*\),[^,]*/\1/'
 
-SNARF = guile-snarf
+SNARF = $(top_builddir)/pre-inst-guile-env guile-snarf
 SUFFIXES = .i .x
 
 .c.i:
@@ -46,7 +46,7 @@ SUFFIXES = .i .x
 
 
 %: %.in
-	sed "s!@guile@!$(GUILE)!" $^ > $@
+	sed "s!@guile@!$(bindir)/guile!" $^ > $@
 	@chmod 755 $@
 
-$(BUILT_SOURCES): config.h vm_expand.h
+$(BUILT_SOURCES): vm_expand.h
