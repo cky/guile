@@ -215,7 +215,7 @@
 			(set-buffered-input-continuation?! (readline-port) #f)
 			(set-readline-prompt! repl-prompt "... ")
 			(set-readline-read-hook! repl-read-hook))
-		      (lambda () (read))
+		      (lambda () ((or (fluid-ref current-reader) read)))
 		      (lambda ()
 			(set-readline-prompt! outer-new-input-prompt outer-continuation-prompt)
 			(set-readline-read-hook! outer-read-hook))))))
