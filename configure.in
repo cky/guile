@@ -1467,6 +1467,16 @@ AC_CONFIG_FILES([
   srfi/Makefile
   test-suite/Makefile
   test-suite/standalone/Makefile
+  src/Makefile
+  module/Makefile
+  module/system/Makefile
+  module/system/base/Makefile
+  module/system/vm/Makefile
+  module/system/il/Makefile
+  module/system/repl/Makefile
+  module/language/Makefile
+  module/language/scheme/Makefile
+  testsuite/Makefile
 ])
 
 AC_CONFIG_FILES([check-guile], [chmod +x check-guile])

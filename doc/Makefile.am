@@ -49,3 +49,5 @@ guile-api.alist: guile-api.alist-FORCE
 	( cd $(top_builddir) ; $(mscripts)/update-guile-api.alist )
 guile-api.alist-FORCE:
 endif
+
+info_TEXINFOS = guile-vm.texi

@@ -1,0 +1,8 @@
+;;; GHIL package definition				-*- gscheme -*-
+
+(define-package ghil
+  :category	Language
+  :version	"0.3"
+  :author	"Keisuke Nishida <kxn30@po.cwru.edu>"
+  :modules	((spec "spec.scm" gscheme))
+  )

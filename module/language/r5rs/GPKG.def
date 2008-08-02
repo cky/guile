@@ -1,0 +1,12 @@
+;;; r5rs package definition				-*- gscheme -*-
+
+(define-package r5rs
+  :category	Language
+  :version	"0.3"
+  :author	"Keisuke Nishida <kxn30@po.cwru.edu>"
+  :modules	((core "core.il" ghil)
+		 (null "null.il" ghil)
+		 (spec "spec.scm" gscheme)
+		 (expand "expand.scm" gscheme)
+		 (translate "translate.scm" gscheme))
+  )
