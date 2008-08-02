@@ -49,11 +49,12 @@
 
 (define (lookup-transformer e head retrans)
   (let* ((mod (ghil-mod-module (ghil-env-mod e)))
-         (val (and=> (module-variable mod head) 
-                     (lambda (var)
-                       ;; unbound vars can happen if the module
-                       ;; definition forward-declared them
-                       (and (variable-bound? var) (variable-ref var))))))
+         (val (and (symbol? head)
+                   (and=> (module-variable mod head) 
+                          (lambda (var)
+                            ;; unbound vars can happen if the module
+                            ;; definition forward-declared them
+                            (and (variable-bound? var) (variable-ref var)))))))
     (cond
      ((or (primitive-macro? val) (eq? val eval-case))
       (or (assq-ref primitive-syntax-table head)
@@ -93,7 +94,8 @@
 
             (else
              (let ((tail (map retrans tail)))
-               (or (try-inline-with-env e l (cons head tail))
+               (or (and (symbol? head)
+                        (try-inline-with-env e l (cons head tail)))
                    (make-ghil-call e l (retrans head) tail)))))))
 
 	((symbol? x)
