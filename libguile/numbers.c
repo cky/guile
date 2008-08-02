@@ -5599,8 +5599,18 @@ SCM_DEFINE (scm_inexact_to_exact, "inexact->exact", 1, 0, 0,
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_rationalize, "rationalize", 2, 0, 0, 
-            (SCM x, SCM err),
-	    "Return an exact number that is within @var{err} of @var{x}.")
+            (SCM x, SCM eps),
+	    "Returns the @emph{simplest} rational number differing\n"
+	    "from @var{x} by no more than @var{eps}.\n"
+	    "\n"
+	    "As required by @acronym{R5RS}, @code{rationalize} only returns an\n"
+	    "exact result when both its arguments are exact.  Thus, you might need\n"
+	    "to use @code{inexact->exact} on the arguments.\n"
+	    "\n"
+	    "@lisp\n"
+	    "(rationalize (inexact->exact 1.2) 1/100)\n"
+	    "@result{} 6/5\n"
+	    "@end lisp")
 #define FUNC_NAME s_scm_rationalize
 {
   if (SCM_I_INUMP (x))
@@ -5632,7 +5642,7 @@ SCM_DEFINE (scm_rationalize, "rationalize", 2, 0, 0,
 	 converges after less than a dozen iterations.
       */
 
-      err = scm_abs (err);
+      eps = scm_abs (eps);
       while (++i < 1000000)
 	{
 	  a = scm_sum (scm_product (a1, tt), a2);    /* a = a1*tt + a2 */
@@ -5640,11 +5650,11 @@ SCM_DEFINE (scm_rationalize, "rationalize", 2, 0, 0,
 	  if (scm_is_false (scm_zero_p (b)) &&         /* b != 0 */
 	      scm_is_false 
 	      (scm_gr_p (scm_abs (scm_difference (ex, scm_divide (a, b))),
-			 err)))                      /* abs(x-a/b) <= err */
+			 eps)))                      /* abs(x-a/b) <= eps */
 	    {
 	      SCM res = scm_sum (int_part, scm_divide (a, b));
 	      if (scm_is_false (scm_exact_p (x))
-		  || scm_is_false (scm_exact_p (err)))
+		  || scm_is_false (scm_exact_p (eps)))
 		return scm_exact_to_inexact (res);
 	      else
 		return res;

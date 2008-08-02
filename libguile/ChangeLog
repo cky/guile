@@ -1,3 +1,9 @@
+2008-08-02  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* numbers.c (scm_rationalize): Update docstring to match the
+	manual (which is more correct).  Change argument "err" to "eps",
+	also to match the manual.
+
 2008-07-17  Neil Jerram  <neil@ossau.uklinux.net>
 
 	From Thiemo Seufer <ths@networkno.de>:
