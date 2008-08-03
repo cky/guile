@@ -172,7 +172,7 @@
 	    ,@(map unparse body)))
     ((<glil-bind> vars) `(@bind ,@vars))
     ((<glil-unbind>) `(@unbind))
-    ((<glil-source> loc) `(@source ,(car loc) ,(cdr loc)))
+    ((<glil-source> loc) `(@source ,loc))
     ;; constants
     ((<glil-void>) `(void))
     ((<glil-const> obj) `(const ,obj))

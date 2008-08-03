@@ -33,7 +33,7 @@
 (define (translate x e)
   (call-with-ghil-environment (make-ghil-mod e) '()
     (lambda (env vars)
-      (make-ghil-lambda env #f vars #f (trans env #f x)))))
+      (make-ghil-lambda env #f vars #f (trans env (location x) x)))))
 
 
 ;;;
@@ -80,7 +80,7 @@
      (else #f))))
 
 (define (trans e l x)
-  (define (retrans x) (trans e l x))
+  (define (retrans x) (trans e (location x) x))
   (cond ((pair? x)
          (let ((head (car x)) (tail (cdr x)))
            (cond
@@ -120,7 +120,7 @@
           (clauses (cdr clause)))
       `(cons ',sym
              (lambda (,env ,loc ,exp)
-               (define (,retranslate x) (trans ,env ,loc x))
+               (define (,retranslate x) (trans ,env (location x) x))
                (pmatch (cdr ,exp)
                 ,@clauses
                 (else (syntax-error ,loc (format #f "bad ~A" ',sym) ,exp)))))))
@@ -340,4 +340,6 @@
   (and (pair? x)
        (let ((props (source-properties x)))
 	 (and (not (null? props))
-	      (cons (assq-ref props 'line) (assq-ref props 'column))))))
+	      (vector (assq-ref props 'line)
+                      (assq-ref props 'column)
+                      (assq-ref props 'filename))))))

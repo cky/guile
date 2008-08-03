@@ -106,11 +106,13 @@
 
 (define (codegen ghil)
   (let ((stack '()))
-    (define (push-code! code)
+    (define (push-code! loc code)
+      (if loc (set! stack (cons (make-glil-source loc) stack)))
       (set! stack (cons code stack)))
-    (define (push-bindings! vars)
+    (define (push-bindings! loc vars)
       (if (not (null? vars))
           (push-code!
+           loc
            (make-glil-bind
             (map list
                  (map ghil-var-name vars)
@@ -118,13 +120,12 @@
                  (map ghil-var-index vars))))))
     (define (comp tree tail drop)
       (define (push-label! label)
-	(push-code! (make-glil-label label)))
-      (define (push-branch! inst label)
-	(push-code! (make-glil-branch inst label)))
+	(push-code! #f (make-glil-label label)))
+      (define (push-branch! loc inst label)
+	(push-code! loc (make-glil-branch inst label)))
       (define (push-call! loc inst args)
 	(for-each comp-push args)
-	(push-code! (make-glil-call inst (length args)))
-	(push-code! (make-glil-source loc)))
+	(push-code! loc (make-glil-call inst (length args))))
       ;; possible tail position
       (define (comp-tail tree) (comp tree tail drop))
       ;; push the result
@@ -133,20 +134,20 @@
       (define (comp-drop tree) (comp tree #f #t))
       ;; drop the result if unnecessary
       (define (maybe-drop)
-	(if drop (push-code! *ia-drop*)))
+	(if drop (push-code! #f *ia-drop*)))
       ;; return here if necessary
       (define (maybe-return)
-	(if tail (push-code! *ia-return*)))
+	(if tail (push-code! #f *ia-return*)))
       ;; return this code if necessary
-      (define (return-code! code)
-	(if (not drop) (push-code! code))
+      (define (return-code! loc code)
+	(if (not drop) (push-code! loc code))
 	(maybe-return))
       ;; return void if necessary
       (define (return-void!)
-	(return-code! *ia-void*))
+	(return-code! #f *ia-void*))
       ;; return object if necessary
-      (define (return-object! obj)
-	(return-code! (make-glil-const #:obj obj)))
+      (define (return-object! loc obj)
+	(return-code! loc (make-glil-const #:obj obj)))
       ;;
       ;; dispatch
       (record-case tree
@@ -154,7 +155,7 @@
 	 (return-void!))
 
 	((<ghil-quote> env loc obj)
-	 (return-object! obj))
+	 (return-object! loc obj))
 
 	((<ghil-quasiquote> env loc exp)
 	 (let loop ((x exp))
@@ -166,7 +167,7 @@
             ((pair? x)
              (loop (car x))
              (loop (cdr x))
-             (push-code! (make-glil-call 'cons 2)))
+             (push-code! #f (make-glil-call 'cons 2)))
             ((record? x)
              (record-case x
               ((<ghil-unquote> env loc exp)
@@ -175,21 +176,21 @@
                (comp-push exp)
                (push-call! #f 'list-break '()))))
             (else
-             (push-code! (make-glil-const #:obj x)))))
+             (push-code! #f (make-glil-const #:obj x)))))
 	 (maybe-drop)
 	 (maybe-return))
 
 	((<ghil-ref> env loc var)
-	 (return-code! (make-glil-var 'ref env var)))
+	 (return-code! loc (make-glil-var 'ref env var)))
 
 	((<ghil-set> env loc var val)
 	 (comp-push val)
-	 (push-code! (make-glil-var 'set env var))
+	 (push-code! loc (make-glil-var 'set env var))
 	 (return-void!))
 
 	((<ghil-define> env loc var val)
 	 (comp-push val)
-	 (push-code! (make-glil-var 'define env var))
+	 (push-code! loc (make-glil-var 'define env var))
 	 (return-void!))
 
 	((<ghil-if> env loc test then else)
@@ -201,9 +202,9 @@
 	 ;; L2:
 	 (let ((L1 (make-label)) (L2 (make-label)))
 	   (comp-push test)
-	   (push-branch! 'br-if-not L1)
+	   (push-branch! loc 'br-if-not L1)
 	   (comp-tail then)
-	   (if (not tail) (push-branch! 'br L2))
+	   (if (not tail) (push-branch! #f 'br L2))
 	   (push-label! L1)
 	   (comp-tail else)
 	   (if (not tail) (push-label! L2))))
@@ -218,18 +219,18 @@
 	 ;; L2:
 	 (let ((L1 (make-label)) (L2 (make-label)))
 	   (if (null? exps)
-	       (return-object! #t)
+	       (return-object! loc #t)
 	       (do ((exps exps (cdr exps)))
 		   ((null? (cdr exps))
 		    (comp-tail (car exps))
-		    (if (not tail) (push-branch! 'br L2))
+		    (if (not tail) (push-branch! #f 'br L2))
 		    (push-label! L1)
-		    (return-object! #f)
+		    (return-object! #f #f)
 		    (if (not tail) (push-label! L2))
 		    (maybe-drop)
 		    (maybe-return))
 		 (comp-push (car exps))
-		 (push-branch! 'br-if-not L1)))))
+		 (push-branch! #f 'br-if-not L1)))))
 
 	((<ghil-or> env loc exps)
 	 ;;     EXP
@@ -241,7 +242,7 @@
 	 ;; L1:
 	 (let ((L1 (make-label)))
 	   (if (null? exps)
-	       (return-object! #f)
+	       (return-object! loc #f)
 	       (do ((exps exps (cdr exps)))
 		   ((null? (cdr exps))
 		    (comp-tail (car exps))
@@ -250,7 +251,7 @@
 		    (maybe-return))
 		 (comp-push (car exps))
 		 (push-call! #f 'dup '())
-		 (push-branch! 'br-if L1)
+		 (push-branch! #f 'br-if L1)
 		 (push-call! #f 'drop '())))))
 
 	((<ghil-begin> env loc exps)
@@ -268,14 +269,14 @@
 	 ;; (set VARS)...
 	 ;; BODY
 	 (for-each comp-push vals)
-         (push-bindings! vars)
-	 (for-each (lambda (var) (push-code! (make-glil-var 'set env var)))
+         (push-bindings! loc vars)
+	 (for-each (lambda (var) (push-code! #f (make-glil-var 'set env var)))
 		   (reverse vars))
 	 (comp-tail body)
-	 (push-code! (make-glil-unbind)))
+	 (push-code! #f (make-glil-unbind)))
 
 	((<ghil-lambda> env loc vars rest body)
-	 (return-code! (codegen tree)))
+	 (return-code! loc (codegen tree)))
 
 	((<ghil-inline> env loc inline args)
 	 ;; ARGS...
@@ -303,7 +304,7 @@
 	 (finalize-index! locs)
 	 (finalize-index! exts)
 	 ;; meta bindings
-         (push-bindings! vars)
+         (push-bindings! #f vars)
 	 ;; export arguments
 	 (do ((n 0 (1+ n))
 	      (l vars (cdr l)))
@@ -311,8 +312,8 @@
 	   (let ((v (car l)))
 	     (case (ghil-var-kind v)
                ((external)
-                (push-code! (make-glil-argument 'ref n))
-                (push-code! (make-glil-external 'set 0 (ghil-var-index v)))))))
+                (push-code! #f (make-glil-argument 'ref n))
+                (push-code! #f (make-glil-external 'set 0 (ghil-var-index v)))))))
 	 ;; compile body
 	 (comp body #t #f)
 	 ;; create GLIL
