@@ -33,7 +33,7 @@
 (define (translate x e)
   (call-with-ghil-environment (make-ghil-mod e) '()
     (lambda (env vars)
-      (make-ghil-lambda env #f vars #f (trans env (location x) x)))))
+      (make-ghil-lambda env #f vars #f '() (trans env (location x) x)))))
 
 
 ;;;
@@ -259,7 +259,9 @@
       (receive (syms rest) (parse-formals formals)
         (call-with-ghil-environment e syms
        (lambda (env vars)
-            (make-ghil-lambda env l vars rest (trans-body env l body)))))))
+         (receive (meta body) (parse-lambda-meta body)
+            (make-ghil-lambda env l vars rest meta
+                              (trans-body env l body))))))))
 
     (eval-case
      (,clauses
@@ -335,6 +337,12 @@
 	  (loop (cdr l) (cons (car l) v))
 	  (values (reverse! (cons l v)) #t))))
    (else (syntax-error (location formals) "bad formals" formals))))
+
+(define (parse-lambda-meta body)
+  (cond ((or (null? body) (null? (cdr body))) (values '() body))
+        ((string? (car body))
+         (values `((documentation . ,(car body))) (cdr body)))
+        (else (values '() body))))
 
 (define (location x)
   (and (pair? x)

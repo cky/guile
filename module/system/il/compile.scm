@@ -49,8 +49,8 @@
     ((<ghil-bind> env loc vars vals body)
      (make-ghil-bind env loc vars (map optimize vals) (optimize body)))
 
-    ((<ghil-lambda> env loc vars rest body)
-     (make-ghil-lambda env loc vars rest (optimize body)))
+    ((<ghil-lambda> env loc vars rest meta body)
+     (make-ghil-lambda env loc vars rest meta (optimize body)))
 
     ((<ghil-inline> env loc instruction args)
      (make-ghil-inline env loc instruction (map optimize args)))
@@ -60,7 +60,7 @@
        (record-case proc
          ;; ((@lambda (VAR...) BODY...) ARG...) =>
          ;;   (@let ((VAR ARG) ...) BODY...)
-         ((<ghil-lambda> env loc vars rest body)
+         ((<ghil-lambda> env loc vars rest meta body)
           (cond
            ((not rest)
             (for-each (lambda (v)
@@ -275,7 +275,7 @@
 	 (comp-tail body)
 	 (push-code! #f (make-glil-unbind)))
 
-	((<ghil-lambda> env loc vars rest body)
+	((<ghil-lambda> env loc vars rest meta body)
 	 (return-code! loc (codegen tree)))
 
 	((<ghil-inline> env loc inline args)
@@ -295,7 +295,7 @@
     ;;
     ;; main
     (record-case ghil
-      ((<ghil-lambda> env loc vars rest body)
+      ((<ghil-lambda> env loc vars rest meta body)
        (let* ((evars (ghil-env-variables env))
 	      (locs (pick (lambda (v) (eq? (ghil-var-kind v) 'local)) evars))
 	      (exts (pick (lambda (v) (eq? (ghil-var-kind v) 'external)) evars)))
@@ -321,7 +321,7 @@
                                      :nrest (if rest 1 0)
                                      :nlocs (length locs)
                                      :nexts (length exts))))
-	   (make-glil-asm vars (reverse! stack))))))))
+	   (make-glil-asm vars meta (reverse! stack))))))))
 
 (define (finalize-index! list)
   (do ((n 0 (1+ n))

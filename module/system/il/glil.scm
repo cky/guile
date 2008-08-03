@@ -27,7 +27,7 @@
    glil-vars-nargs glil-vars-nrest glil-vars-nlocs glil-vars-nexts
 
    <glil-asm> make-glil-asm glil-asm?
-   glil-asm-vars glil-asm-body
+   glil-asm-vars glil-asm-meta glil-asm-body
 
    <glil-bind> make-glil-bind glil-bind?
    glil-bind-vars
@@ -71,7 +71,7 @@
 (define-type <glil>
   (|
    ;; Meta operations
-   (<glil-asm> vars body)
+   (<glil-asm> vars meta body)
    (<glil-bind> vars)
    (<glil-unbind>)
    (<glil-source> loc)
@@ -166,9 +166,10 @@
 (define (unparse glil)
   (record-case glil
     ;; meta
-    ((<glil-asm> vars body)
+    ((<glil-asm> vars meta body)
      `(@asm (,(glil-vars-nargs vars) ,(glil-vars-nrest vars)
              ,(glil-vars-nlocs vars) ,(glil-vars-nexts vars))
+            ,meta
 	    ,@(map unparse body)))
     ((<glil-bind> vars) `(@bind ,@vars))
     ((<glil-unbind>) `(@unbind))

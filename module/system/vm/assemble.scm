@@ -56,7 +56,7 @@
 
 (define (preprocess x e)
   (record-case x
-    ((<glil-asm> vars body)
+    ((<glil-asm> vars meta body)
      (let* ((venv (make-venv :parent e :nexts (glil-vars-nexts vars) :closure? #f))
 	    (body (map (lambda (x) (preprocess x venv)) body)))
        (make-vm-asm :venv venv :glil x :body body)))
@@ -75,7 +75,7 @@
 
 (define (codegen glil toplevel)
   (record-case glil
-    ((<vm-asm> venv glil body) (record-case glil ((<glil-asm> vars)
+    ((<vm-asm> venv glil body) (record-case glil ((<glil-asm> vars meta) ; body?
      (let ((stack '())
 	   (binding-alist '())
 	   (source-alist '())
@@ -198,10 +198,12 @@
 	     (bytecode->objcode bytes (glil-vars-nlocs vars) (glil-vars-nexts vars))
 	     (make-bytespec :vars vars :bytes bytes
                             :meta (if (and (null? binding-alist)
-                                           (null? source-alist))
+                                           (null? source-alist)
+                                           (null? meta))
                                       #f
-                                      (cons (reverse! binding-alist)
-                                            (reverse! source-alist)))
+                                      (cons* (reverse! binding-alist)
+                                             (reverse! source-alist)
+                                             meta))
                             :objs (let ((objs (map car (reverse! object-alist))))
                                     (if (null? objs) #f (list->vector objs)))
                             :closure? (venv-closure? venv))))))))))

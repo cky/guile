@@ -63,7 +63,12 @@
 	(else '())))
 
 (define (program-sources prog)
-  (cond ((program-meta prog) => cdr)
+  (cond ((program-meta prog) => cadr)
+	(else '())))
+
+(define (program-property prog prop)
+  (cond ((program-meta prog) => (lambda (x)
+                                  (assq-ref (cddr x) prop)))
 	(else '())))
 
 
