@@ -24,6 +24,7 @@
   :export (arity:nargs arity:nrest arity:nlocs arity:nexts
            make-binding binding:name binding:extp binding:index
            program-bindings program-sources
+           program-properties program-property program-documentation
            frame-arguments frame-local-variables frame-external-variables
            frame-environment
            frame-variable-exists? frame-variable-ref frame-variable-set!
@@ -66,10 +67,16 @@
   (cond ((program-meta prog) => cadr)
 	(else '())))
 
+(define (program-properties prog)
+  (or (and=> (program-meta prog) cddr)
+      '()))
+
 (define (program-property prog prop)
-  (cond ((program-meta prog) => (lambda (x)
-                                  (assq-ref (cddr x) prop)))
-	(else '())))
+  (assq-ref (program-properties proc) prop))
+
+(define (program-documentation prog)
+  (assq-ref (program-properties proc) 'documentation))
+
 
 
 ;;;

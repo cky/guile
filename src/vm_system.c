@@ -422,20 +422,58 @@ VM_DEFINE_INSTRUCTION (call, "call", 1, -1, 1)
       NEXT;
     }
   /*
-   * Function call
+   * Subr call
+   */
+  switch (nargs) 
+    {
+    case 0:
+      {
+        scm_t_trampoline_0 call = scm_trampoline_0 (x);
+        if (call) 
+          {
+            SYNC_ALL ();
+            *sp = call (x);
+            NEXT;
+          }
+        break;
+      }
+    case 1:
+      {
+        scm_t_trampoline_1 call = scm_trampoline_1 (x);
+        if (call)
+          {
+            SCM arg1;
+            POP (arg1);
+            SYNC_ALL ();
+            *sp = call (x, arg1);
+            NEXT;
+          }
+        break;
+      }
+    case 2:
+      {
+        scm_t_trampoline_2 call = scm_trampoline_2 (x);
+        if (call)
+          {
+            SCM arg1, arg2;
+            POP (arg2);
+            POP (arg1);
+            SYNC_ALL ();
+            *sp = call (x, arg1, arg2);
+            NEXT;
+          }
+        break;
+      }
+    }
+  /*
+   * Other interpreted or compiled call
    */
   if (!SCM_FALSEP (scm_procedure_p (x)))
     {
       /* At this point, the stack contains the procedure and each one of its
 	 arguments.  */
       SCM args;
-
-#if 1
       POP_LIST (nargs);
-#else
-      /* Experimental:  Build the arglist on the VM stack.  XXX  */
-      POP_LIST_ON_STACK (nargs);
-#endif
       POP (args);
       *sp = scm_apply (x, args, SCM_EOL);
       NEXT;
@@ -503,7 +541,52 @@ VM_DEFINE_INSTRUCTION (tail_call, "tail-call", 1, -1, 1)
       goto vm_call_program;
     }
   /*
-   * Function call
+   * Subr call
+   */
+  switch (nargs) 
+    {
+    case 0:
+      {
+        scm_t_trampoline_0 call = scm_trampoline_0 (x);
+        if (call) 
+          {
+            SYNC_ALL ();
+            *sp = call (x);
+            goto vm_return;
+          }
+        break;
+      }
+    case 1:
+      {
+        scm_t_trampoline_1 call = scm_trampoline_1 (x);
+        if (call)
+          {
+            SCM arg1;
+            POP (arg1);
+            SYNC_ALL ();
+            *sp = call (x, arg1);
+            goto vm_return;
+          }
+        break;
+      }
+    case 2:
+      {
+        scm_t_trampoline_2 call = scm_trampoline_2 (x);
+        if (call)
+          {
+            SCM arg1, arg2;
+            POP (arg2);
+            POP (arg1);
+            SYNC_ALL ();
+            *sp = call (x, arg1, arg2);
+            goto vm_return;
+          }
+        break;
+      }
+    }
+
+  /*
+   * Other interpreted or compiled call
    */
   if (!SCM_FALSEP (scm_procedure_p (x)))
     {

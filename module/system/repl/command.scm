@@ -55,6 +55,14 @@
 (define (group-name g) (car g))
 (define (group-commands g) (cdr g))
 
+;; Hack, until core can be extended.
+(define procedure-documentation
+  (let ((old-definition procedure-documentation))
+    (lambda (p)
+      (if (program? p)
+          (program-documentation p)
+          (procedure-documentation p)))))
+
 (define *command-module* (current-module))
 (define (command-name c) (car c))
 (define (command-abbrev c) (if (null? (cdr c)) #f (cadr c)))

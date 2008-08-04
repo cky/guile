@@ -222,13 +222,13 @@
   if (sp > stack_limit)				\
     goto vm_error_stack_overflow
 
-#define CHECK_UNDERFLOW()			\
-  if (sp < stack_base)				\
+#define CHECK_UNDERFLOW()                                               \
+  if (sp < stack_base)                                                  \
     goto vm_error_stack_underflow
 
 #define PUSH(x)	do { sp++; CHECK_OVERFLOW (); *sp = x; } while (0)
-#define DROP()	do { CHECK_UNDERFLOW (); sp--; } while (0)
-#define DROPN(_n)	do { CHECK_UNDERFLOW (); sp -= (_n); } while (0)
+#define DROP()	do { sp--; CHECK_UNDERFLOW (); } while (0)
+#define DROPN(_n)	do { sp -= (_n); CHECK_UNDERFLOW (); } while (0)
 #define POP(x)	do { x = *sp; DROP (); } while (0)
 
 /* A fast CONS.  This has to be fast since its used, for instance, by
