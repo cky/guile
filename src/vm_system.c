@@ -480,6 +480,7 @@ VM_DEFINE_INSTRUCTION (call, "call", 1, -1, 1)
       SCM args;
       POP_LIST (nargs);
       POP (args);
+      SYNC_REGISTER ();
       *sp = scm_apply (x, args, SCM_EOL);
       NEXT;
     }
@@ -601,6 +602,7 @@ VM_DEFINE_INSTRUCTION (tail_call, "tail-call", 1, -1, 1)
       SCM args;
       POP_LIST (nargs);
       POP (args);
+      SYNC_REGISTER ();
       *sp = scm_apply (x, args, SCM_EOL);
       goto vm_return;
     }

@@ -89,7 +89,7 @@ VM_DEFINE_FUNCTION (eqv, "eqv?", 2)
     RETURN (SCM_BOOL_T);
   if (SCM_IMP (x) || SCM_IMP (y))
     RETURN (SCM_BOOL_F);
-  SYNC_BEFORE_GC ();
+  SYNC_REGISTER ();
   RETURN (scm_eqv_p (x, y));
 }
 
@@ -100,7 +100,7 @@ VM_DEFINE_FUNCTION (equal, "equal?", 2)
     RETURN (SCM_BOOL_T);
   if (SCM_IMP (x) || SCM_IMP (y))
     RETURN (SCM_BOOL_F);
-  SYNC_BEFORE_GC ();
+  SYNC_REGISTER ();
   RETURN (scm_equal_p (x, y));
 }
 
@@ -212,7 +212,7 @@ VM_DEFINE_FUNCTION (ge, "ge?", 2)
       if (SCM_FIXABLE (n))			\
 	RETURN (SCM_I_MAKINUM (n));		\
     }						\
-  SYNC_BEFORE_GC ();                            \
+  SYNC_REGISTER ();                            \
   RETURN (SEXP);				\
 }
 
@@ -226,7 +226,7 @@ VM_DEFINE_FUNCTION (ge, "ge?", 2)
       if (SCM_FIXABLE (n))				\
 	RETURN (SCM_I_MAKINUM (n));			\
     }							\
-  SYNC_BEFORE_GC ();                                    \
+  SYNC_REGISTER ();                                    \
   RETURN (SFUNC (x, y));				\
 }
 
@@ -243,35 +243,35 @@ VM_DEFINE_FUNCTION (sub, "sub", 2)
 VM_DEFINE_FUNCTION (mul, "mul", 2)
 {
   ARGS2 (x, y);
-  SYNC_BEFORE_GC ();
+  SYNC_REGISTER ();
   RETURN (scm_product (x, y));
 }
 
 VM_DEFINE_FUNCTION (div, "div", 2)
 {
   ARGS2 (x, y);
-  SYNC_BEFORE_GC ();
+  SYNC_REGISTER ();
   RETURN (scm_divide (x, y));
 }
 
 VM_DEFINE_FUNCTION (quo, "quo", 2)
 {
   ARGS2 (x, y);
-  SYNC_BEFORE_GC ();
+  SYNC_REGISTER ();
   RETURN (scm_quotient (x, y));
 }
 
 VM_DEFINE_FUNCTION (rem, "rem", 2)
 {
   ARGS2 (x, y);
-  SYNC_BEFORE_GC ();
+  SYNC_REGISTER ();
   RETURN (scm_remainder (x, y));
 }
 
 VM_DEFINE_FUNCTION (mod, "mod", 2)
 {
   ARGS2 (x, y);
-  SYNC_BEFORE_GC ();
+  SYNC_REGISTER ();
   RETURN (scm_modulo (x, y));
 }
 
