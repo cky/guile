@@ -51,6 +51,7 @@ VM_DEFINE_LOADER (load_integer, "load-integer")
       long val = 0;
       while (len-- > 0)
 	val = (val << 8) + FETCH ();
+      SYNC_BEFORE_GC ();
       PUSH (scm_from_ulong (val));
       NEXT;
     }
@@ -63,6 +64,7 @@ VM_DEFINE_LOADER (load_number, "load-number")
   size_t len;
 
   FETCH_LENGTH (len);
+  SYNC_BEFORE_GC ();
   PUSH (scm_string_to_number (scm_from_locale_stringn ((char *)ip, len),
 			      SCM_UNDEFINED /* radix = 10 */));
   /* Was: scm_istring2number (ip, len, 10)); */
@@ -74,6 +76,7 @@ VM_DEFINE_LOADER (load_string, "load-string")
 {
   size_t len;
   FETCH_LENGTH (len);
+  SYNC_BEFORE_GC ();
   PUSH (scm_from_locale_stringn ((char *)ip, len));
   /* Was: scm_makfromstr (ip, len, 0) */
   ip += len;
@@ -84,6 +87,7 @@ VM_DEFINE_LOADER (load_symbol, "load-symbol")
 {
   size_t len;
   FETCH_LENGTH (len);
+  SYNC_BEFORE_GC ();
   PUSH (scm_from_locale_symboln ((char *)ip, len));
   ip += len;
   NEXT;
@@ -93,6 +97,7 @@ VM_DEFINE_LOADER (load_keyword, "load-keyword")
 {
   size_t len;
   FETCH_LENGTH (len);
+  SYNC_BEFORE_GC ();
   PUSH (scm_from_locale_keywordn ((char *)ip, len));
   ip += len;
   NEXT;
@@ -102,6 +107,7 @@ VM_DEFINE_LOADER (load_module, "load-module")
 {
   size_t len;
   FETCH_LENGTH (len);
+  SYNC_BEFORE_GC ();
   PUSH (scm_c_lookup_env (scm_from_locale_symboln ((char *)ip, len)));
   ip += len;
   NEXT;
@@ -114,6 +120,7 @@ VM_DEFINE_LOADER (load_program, "load-program")
   struct scm_program *p;
 
   FETCH_LENGTH (len);
+  SYNC_BEFORE_GC ();
   prog = scm_c_make_program (ip, len, program);
   p = SCM_PROGRAM_DATA (prog);
   ip += len;
@@ -181,6 +188,7 @@ VM_DEFINE_INSTRUCTION (link_now, "link-now", 0, 1, 1)
 {
   SCM sym;
   POP (sym);
+  SYNC_BEFORE_GC ();
   PUSH (scm_lookup (sym)); /* might longjmp */
   NEXT;
 }
@@ -190,6 +198,7 @@ VM_DEFINE_INSTRUCTION (link_later, "link-later", 0, 2, 1)
   SCM modname, sym;
   POP (sym);
   POP (modname);
+  SYNC_BEFORE_GC ();
   PUSH (scm_cons (modname, sym));
   NEXT;
 }
@@ -200,9 +209,11 @@ VM_DEFINE_LOADER (define, "define")
   size_t len;
 
   FETCH_LENGTH (len);
+  SYNC_BEFORE_GC ();
   sym = scm_from_locale_symboln ((char *)ip, len);
   ip += len;
 
+  SYNC_BEFORE_GC ();
   PUSH (scm_sym2var (sym, scm_current_module_lookup_closure (), SCM_BOOL_T));
   NEXT;
 }
@@ -213,6 +224,7 @@ VM_DEFINE_LOADER (late_bind, "late-bind")
   size_t len;
 
   FETCH_LENGTH (len);
+  SYNC_BEFORE_GC ();
   sym = scm_from_locale_symboln ((char *)ip, len);
   ip += len;
 
