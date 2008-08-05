@@ -421,6 +421,8 @@ VM_DEFINE_INSTRUCTION (call, "call", 1, -1, 1)
       APPLY_HOOK ();
       NEXT;
     }
+#ifdef ENABLE_TRAMPOLINE
+  /* Seems to slow down the fibo test, dunno why */
   /*
    * Subr call
    */
@@ -465,6 +467,7 @@ VM_DEFINE_INSTRUCTION (call, "call", 1, -1, 1)
         break;
       }
     }
+#endif
   /*
    * Other interpreted or compiled call
    */
@@ -540,6 +543,8 @@ VM_DEFINE_INSTRUCTION (tail_call, "tail-call", 1, -1, 1)
       program = x;
       goto vm_call_program;
     }
+#ifdef ENABLE_TRAMPOLINE
+  /* This seems to actually slow down the fibo test -- dunno why */
   /*
    * Subr call
    */
@@ -584,6 +589,7 @@ VM_DEFINE_INSTRUCTION (tail_call, "tail-call", 1, -1, 1)
         break;
       }
     }
+#endif
 
   /*
    * Other interpreted or compiled call
