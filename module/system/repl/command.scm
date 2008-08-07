@@ -301,7 +301,7 @@ Time execution."
 	 (gc-end (gc-run-time))
 	 (vms-end (vm-stats (repl-vm repl))))
     (define (get proc start end)
-      (/ (- (proc end) (proc start)) internal-time-units-per-second))
+      (exact->inexact (/ (- (proc end) (proc start)) internal-time-units-per-second)))
     (repl-print repl result)
     (display "clock utime stime cutime cstime gctime\n")
     (format #t "~5,2F ~5,2F ~5,2F ~6,2F ~6,2F ~6,2F\n"

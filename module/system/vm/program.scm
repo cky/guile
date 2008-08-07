@@ -59,5 +59,5 @@
   (assq-ref (program-properties proc) prop))
 
 (define (program-documentation prog)
-  (assq-ref (program-properties proc) 'documentation))
+  (assq-ref (program-properties prog) 'documentation))
 

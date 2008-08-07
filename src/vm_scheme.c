@@ -169,7 +169,8 @@ VM_DEFINE_FUNCTION (set_cdr, "set-cdr!", 2)
   ARGS2 (x, y);							\
   if (SCM_I_INUMP (x) && SCM_I_INUMP (y))			\
     RETURN (SCM_BOOL (SCM_I_INUM (x) crel SCM_I_INUM (y)));	\
-  RETURN (srel (x, y));						\
+  SYNC_REGISTER ();                                             \
+  RETURN (srel (x, y));                                         \
 }
 
 VM_DEFINE_FUNCTION (ee, "ee?", 2)

@@ -60,6 +60,7 @@ VM_DEFINE_INSTRUCTION (halt, "halt", 0, 0, 0)
   POP (ret);
   FREE_FRAME ();
   SYNC_ALL ();
+  scm_dynwind_end ();
   return ret;
 }
 

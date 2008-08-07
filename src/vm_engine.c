@@ -72,6 +72,16 @@ vm_run (SCM vm, SCM program, SCM args)
 #if VM_USE_HOOKS
   SCM hook_args = SCM_LIST1 (vm);
 #endif
+  struct vm_unwind_data wind_data;
+
+  /* dynwind ended in the halt instruction */
+  scm_dynwind_begin (SCM_F_DYNWIND_REWINDABLE);
+  wind_data.vp = vp;
+  wind_data.sp = vp->sp;
+  wind_data.fp = vp->fp;
+  wind_data.this_frame = vp->this_frame;
+  scm_dynwind_unwind_handler (vm_reset_stack, &wind_data, 0);
+  
 
 #ifdef HAVE_LABELS_AS_VALUES
   /* Jump table */

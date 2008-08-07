@@ -112,6 +112,16 @@
 #endif
 #endif
 
+#ifndef IP_REG
+#define IP_REG
+#endif
+#ifndef SP_REG
+#define SP_REG
+#endif
+#ifndef FP_REG
+#define FP_REG
+#endif
+
 
 /*
  * Cache/Sync

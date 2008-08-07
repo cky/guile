@@ -99,6 +99,24 @@ reinstate_vm_cont (struct scm_vm *vp, SCM cont)
   memcpy (vp->sp + 1, p->stack_base, p->stack_size * sizeof (SCM));
 }
 
+struct vm_unwind_data 
+{
+  struct scm_vm *vp;
+  SCM *sp;
+  SCM *fp;
+  SCM this_frame;
+};
+
+static void
+vm_reset_stack (void *data)
+{
+  struct vm_unwind_data *w = data;
+  
+  w->vp->sp = w->sp;
+  w->vp->fp = w->fp;
+  w->vp->this_frame = w->this_frame;
+}
+
 static SCM
 vm_cont_mark (SCM obj)
 {
@@ -182,10 +200,18 @@ vm_heapify_frames_1 (struct scm_vm *vp, SCM *fp, SCM *sp, SCM **destp)
       SCM_FRAME_SET_DYNAMIC_LINK (fp, SCM_HEAP_FRAME_POINTER (link));
     }
 
+  /* Apparently the intention here is to be able to have a frame on the heap,
+     but data on the stack, so that you can push as much as you want on the
+     stack; but I think that it's currently causing borkage with nonlocal exits
+     and the unwind handler, which reinstates the sp and fp, but it's no longer
+     pointing at a valid stack frame. So disable for now, we'll get back to
+     this later. */
+#if 0
   /* Move stack data */
   for (; src <= sp; src++, dest++)
     *dest = *src;
   *destp = dest;
+#endif
 
   return frame;
 }
@@ -519,9 +545,12 @@ SCM_DEFINE (scm_vm_save_stack, "vm-save-stack", 1, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_vm_save_stack
 {
+  struct scm_vm *vp;
+  SCM *dest;
   SCM_VALIDATE_VM (1, vm);
-  SCM_VM_DATA (vm)->last_frame = vm_heapify_frames (vm);
-  return SCM_VM_DATA (vm)->last_frame;
+  vp = SCM_VM_DATA (vm);
+  vp->last_frame = vm_heapify_frames_1 (vp, vp->fp, vp->sp, &dest);
+  return vp->last_frame;
 }
 #undef FUNC_NAME
   
