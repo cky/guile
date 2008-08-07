@@ -44,11 +44,13 @@
 #endif
 
 #include <libguile.h>
+#include "bootstrap.h"
 
 int
 main (int argc, char **argv)
 {
   scm_init_guile ();
+  scm_bootstrap_vm ();
   scm_shell (argc, argv);
   return 0; /* never reached */
 }

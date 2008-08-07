@@ -9,7 +9,7 @@ exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
 
 (define-module (measure)
   :export (measure)
-  :use-module (system vm core)
+  :use-module (system vm vm)
   :use-module (system vm disasm)
   :use-module (system base compile)
   :use-module (system base language))

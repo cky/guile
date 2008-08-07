@@ -18,7 +18,7 @@
 ;;; Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
 
 
-(use-modules (system vm core)
+(use-modules (system vm vm)
 	     (system vm disasm)
 	     (system base compile)
 	     (system base language)

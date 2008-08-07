@@ -22,6 +22,7 @@ EXTRA_DIST = run-vm-tests.scm $(vm_test_files)
 
 
 check:
-	$(GUILE_VM) -L $(top_srcdir)/module		\
+	$(top_builddir)/pre-inst-guile-env $(GUILE_VM)  \
+	            -L $(top_srcdir)/module		\
 	            -l run-vm-tests.scm -e run-vm-tests	\
 		    $(vm_test_files)
