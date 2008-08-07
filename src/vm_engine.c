@@ -182,7 +182,6 @@ vm_run (SCM vm, SCM program, SCM args)
     if (objects)
       scm_array_handle_release (&objects_handle);
 
-    vp->last_frame = vm_heapify_frames (vm);
     scm_ithrow (sym_vm_error, SCM_LIST3 (sym_vm_run, err_msg, err_args), 1);
   }
 

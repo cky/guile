@@ -30,7 +30,7 @@
            vm-option set-vm-option! vm-version
 
            vm-fetch-locals vm-fetch-externals
-           vm-last-frame vm-this-frame vm-fetch-stack
+           vm-last-frame vm-this-frame vm-fetch-stack vm-save-stack
            vm-current-frame-chain vm-last-frame-chain
 
            vm-stats vms:time vms:clock

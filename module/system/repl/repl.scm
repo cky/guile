@@ -53,6 +53,7 @@
 
 (define (default-pre-unwind-handler key . args)
   (save-stack default-pre-unwind-handler)
+  (vm-save-stack (the-vm))
   (apply throw key args))
 
 (define (default-catch-handler . args)
@@ -65,6 +66,9 @@
      (vm-backtrace (the-vm))
      (newline))
     ((,key ,subr ,msg ,args . ,rest)
+     (display "This backtrace for free: ")
+     (vm-backtrace (the-vm))
+     (newline)
      (let ((cep (current-error-port)))
        (cond ((not (stack? (fluid-ref the-last-stack))))
              ((memq 'backtrace (debug-options-interface))

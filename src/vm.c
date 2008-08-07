@@ -514,6 +514,17 @@ SCM_DEFINE (scm_vm_last_frame, "vm-last-frame", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+SCM_DEFINE (scm_vm_save_stack, "vm-save-stack", 1, 0, 0,
+	    (SCM vm),
+	    "")
+#define FUNC_NAME s_scm_vm_save_stack
+{
+  SCM_VALIDATE_VM (1, vm);
+  SCM_VM_DATA (vm)->last_frame = vm_heapify_frames (vm);
+  return SCM_VM_DATA (vm)->last_frame;
+}
+#undef FUNC_NAME
+  
 SCM_DEFINE (scm_vm_fetch_code, "vm-fetch-code", 1, 0, 0,
 	    (SCM vm),
 	    "")

@@ -22,6 +22,7 @@
 (define-module (system vm frame)
   :use-module (system vm program)
   :export (frame-number frame-address
+           make-frame-chain
            print-frame print-frame-call
            frame-arguments frame-local-variables frame-external-variables
            frame-environment
