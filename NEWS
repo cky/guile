@@ -61,6 +61,7 @@ application code.
 ** Fix build issue on mips, mipsel, powerpc and ia64 (stack direction)
 ** Fix build issue on hppa2.0w-hp-hpux11.11 (`dirent64' and `readdir64_r')
 ** Fix misleading output from `(help rationalize)'
+** Fix build failure on Debian hppa architecture (bad stack growth detection)
 
 
 Changes in 1.8.5 (since 1.8.4)

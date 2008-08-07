@@ -1,3 +1,9 @@
+2008-08-07  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* configure.in (SCM_I_GSC_STACK_GROWS_UP): Remove use of
+	AC_CACHE_CHECK, which was inadvertently causing
+	SCM_I_GSC_STACK_GROWS_UP _always_ to be 0.
+
 2008-07-17  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* configure.in: Update stack direction test to be like that in
