@@ -23,7 +23,7 @@
   :use-syntax (system base syntax)
   :use-module (system base compile)
   :use-module (system base language)
-  :use-module (system vm core)
+  :use-module (system vm vm)
   :export (<repl> make-repl repl-vm repl-language repl-options
                   repl-tm-stats repl-gc-stats repl-vm-stats
            repl-welcome repl-prompt repl-read repl-compile repl-eval

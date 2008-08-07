@@ -21,7 +21,8 @@
 
 (define-module (system vm disasm)
   :use-module (system base pmatch)
-  :use-module (system vm core)
+  :use-module (system vm objcode)
+  :use-module (system vm program)
   :use-module (system vm conv)
   :use-module (ice-9 regex)
   :use-module (ice-9 format)
@@ -102,6 +103,7 @@
       (let ((info (object->string (car l))))
 	(print-info n info #f)))))
 
+;; FIXME: update for recent meta changes
 (define (disassemble-meta meta)
   (display "Meta info:\n\n")
   (for-each (lambda (data)

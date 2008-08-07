@@ -105,6 +105,7 @@ extern scm_t_bits scm_tc16_heap_frame;
 #define SCM_VALIDATE_HEAP_FRAME(p,x)	SCM_MAKE_VALIDATE (p, x, HEAP_FRAME_P)
 
 extern SCM scm_c_make_heap_frame (SCM *fp);
+extern void scm_bootstrap_frames (void);
 extern void scm_init_frames (void);
 
 #endif /* _SCM_FRAMES_H_ */

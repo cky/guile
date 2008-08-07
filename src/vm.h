@@ -79,6 +79,8 @@ extern SCM scm_vm_apply (SCM vm, SCM program, SCM args);
 extern SCM scm_vm_option_ref (SCM vm, SCM key);
 extern SCM scm_vm_option_set_x (SCM vm, SCM key, SCM val);
 
+extern SCM scm_load_compiled_with_vm (SCM file);
+
 extern void scm_init_vm (void);
 
 #endif /* _SCM_VM_H_ */

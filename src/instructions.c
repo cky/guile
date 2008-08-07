@@ -44,6 +44,7 @@
 #endif
 
 #include <string.h>
+#include "bootstrap.h"
 #include "instructions.h"
 
 struct scm_instruction scm_instruction_table[] = {
@@ -159,8 +160,15 @@ SCM_DEFINE (scm_opcode_to_instruction, "opcode->instruction", 1, 0, 0,
 #undef FUNC_NAME
 
 void
+scm_bootstrap_instructions (void)
+{
+}
+
+void
 scm_init_instructions (void)
 {
+  scm_bootstrap_vm ();
+
 #ifndef SCM_MAGIC_SNARFER
 #include "instructions.x"
 #endif

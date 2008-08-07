@@ -9,6 +9,7 @@ CFLAGS:=$(filter-out -Wmissing-prototypes,$(CFLAGS))
 
 lib_LTLIBRARIES = libguile-vm.la
 libguile_vm_la_SOURCES =						\
+	bootstrap.h 							\
 	envs.c frames.c instructions.c objcodes.c programs.c vm.c	\
 	envs.h frames.h instructions.h objcodes.h programs.h vm.h	\
 	vm_engine.h vm_expand.h

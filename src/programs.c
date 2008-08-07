@@ -44,6 +44,7 @@
 #endif
 
 #include <string.h>
+#include "bootstrap.h"
 #include "instructions.h"
 #include "programs.h"
 #include "vm.h"
@@ -227,7 +228,7 @@ SCM_DEFINE (scm_program_bytecode, "program-bytecode", 1, 0, 0,
 
 
 void
-scm_init_programs (void)
+scm_bootstrap_programs (void)
 {
   zero_vector = scm_permanent_object (scm_c_make_vector (0, SCM_BOOL_F));
 
@@ -235,7 +236,13 @@ scm_init_programs (void)
   scm_set_smob_mark (scm_tc16_program, program_mark);
   scm_set_smob_free (scm_tc16_program, program_free);
   scm_set_smob_apply (scm_tc16_program, program_apply, 0, 0, 1);
+}
 
+void
+scm_init_programs (void)
+{
+  scm_bootstrap_vm ();
+  
 #ifndef SCM_MAGIC_SNARFER
 #include "programs.x"
 #endif

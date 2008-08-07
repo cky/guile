@@ -26,7 +26,7 @@
   :use-module (system base language)
   :use-module (system repl common)
   :use-module (system repl command)
-  :use-module (system vm core)
+  :use-module (system vm vm)
   :use-module (system vm debug)
   :use-module (ice-9 rdelim)
   :export (start-repl))

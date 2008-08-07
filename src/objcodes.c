@@ -51,6 +51,7 @@
 #include <sys/types.h>
 #include <assert.h>
 
+#include "bootstrap.h"
 #include "programs.h"
 #include "objcodes.h"
 
@@ -277,10 +278,16 @@ SCM_DEFINE (scm_objcode_to_program, "objcode->program", 1, 0, 0,
 
 
 void
-scm_init_objcodes (void)
+scm_bootstrap_objcodes (void)
 {
   scm_tc16_objcode = scm_make_smob_type ("objcode", 0);
   scm_set_smob_free (scm_tc16_objcode, objcode_free);
+}
+
+void
+scm_init_objcodes (void)
+{
+  scm_bootstrap_vm ();
 
 #ifndef SCM_MAGIC_SNARFER
 #include "objcodes.x"

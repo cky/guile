@@ -21,7 +21,7 @@
 
 (define-module (system vm trace)
   :use-syntax (system base syntax)
-  :use-module (system vm core)
+  :use-module (system vm vm)
   :use-module (system vm frame)
   :use-module (ice-9 format)
   :export (vm-trace vm-trace-on vm-trace-off))

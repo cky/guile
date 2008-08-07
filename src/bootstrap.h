@@ -4,12 +4,12 @@
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2, or (at your option)
  * any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
@@ -39,43 +39,12 @@
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
 
-#ifndef _SCM_PROGRAMS_H_
-#define _SCM_PROGRAMS_H_
+#ifndef _SCM_VM_BOOTSTRAP_H_
+#define _SCM_VM_BOOTSTRAP_H_
 
-#include <libguile.h>
+extern void scm_bootstrap_vm (void);
 
-/*
- * Programs
- */
-
-typedef unsigned char scm_byte_t;
-
-struct scm_program {
-  size_t size;			/* the size of the program  */
-  unsigned char nargs;		/* the number of arguments */
-  unsigned char nrest;		/* the number of rest argument (0 or 1) */
-  unsigned char nlocs;		/* the number of local variables */
-  unsigned char nexts;		/* the number of external variables */
-  scm_byte_t *base;		/* program base address */
-  SCM meta;			/* meta data */
-  SCM objs;			/* constant objects */
-  SCM external;			/* external environment */
-  SCM holder;			/* the owner of bytecode */
-};
-
-extern scm_t_bits scm_tc16_program;
-
-#define SCM_PROGRAM_P(x)	(SCM_SMOB_PREDICATE (scm_tc16_program, x))
-#define SCM_PROGRAM_DATA(x)	((struct scm_program *) SCM_SMOB_DATA (x))
-#define SCM_VALIDATE_PROGRAM(p,x) SCM_MAKE_VALIDATE (p, x, PROGRAM_P)
-
-extern SCM scm_c_make_program (void *addr, size_t size, SCM holder);
-extern SCM scm_c_make_closure (SCM program, SCM external);
-
-extern void scm_bootstrap_programs (void);
-extern void scm_init_programs (void);
-
-#endif /* _SCM_PROGRAMS_H_ */
+#endif /* _SCM_VM_BOOTSTRAP_H_ */
 
 /*
   Local Variables:

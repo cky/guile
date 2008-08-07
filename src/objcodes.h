@@ -60,6 +60,10 @@ extern scm_t_bits scm_tc16_objcode;
 #define SCM_OBJCODE_BASE(x)	(SCM_OBJCODE_DATA (x)->base)
 #define SCM_OBJCODE_FD(x)	(SCM_OBJCODE_DATA (x)->fd)
 
+extern SCM scm_load_objcode (SCM file);
+extern SCM scm_objcode_to_program (SCM objcode);
+
+extern void scm_bootstrap_objcodes (void);
 extern void scm_init_objcodes (void);
 
 #endif /* _SCM_OBJCODES_H_ */

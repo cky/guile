@@ -24,8 +24,8 @@
   :use-module (system base language)
   :use-module (system il compile)
   :use-module (system il glil)
-  :use-module ((system vm core)
-	       :select (the-vm vm-load objcode->u8vector load-objcode))
+  :use-module (system vm objcode)
+  :use-module (system vm vm) ;; for compile-time evaluation
   :use-module (system vm assemble)
   :use-module (ice-9 regex)
   :export (syntax-error compile-file load-source-file load-file

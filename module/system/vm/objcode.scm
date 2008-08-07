@@ -1,4 +1,4 @@
-;;; Bootstrapping the VM into the interpreter
+;;; Guile VM object code
 
 ;; Copyright (C) 2001 Free Software Foundation, Inc.
 
@@ -19,13 +19,8 @@
 
 ;;; Code:
 
-(define-module (system vm bootstrap))
+(define-module (system vm objcode)
+  :export (objcode->u8vector objcode? objcode->program  bytecode->objcode
+           load-objcode))
 
-;;;
-;;; Core procedures
-;;;
-
-;; Calling this updates boot-9.scm's `load-compiled' to point to to
-;; scm_load_compiled_with_vm, so future module loads will read .go files
-;; if they are present.
-(dynamic-call "scm_bootstrap_vm" (dynamic-link "libguile-vm"))
+(dynamic-call "scm_init_objcodes" (dynamic-link "libguile-vm"))

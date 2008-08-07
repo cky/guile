@@ -1,4 +1,4 @@
-;;; Bootstrapping the VM into the interpreter
+;;; Guile VM instructions
 
 ;; Copyright (C) 2001 Free Software Foundation, Inc.
 
@@ -19,13 +19,10 @@
 
 ;;; Code:
 
-(define-module (system vm bootstrap))
+(define-module (system vm instruction)
+  :export (instruction-list
+           instruction? instruction-length
+           instruction-pops instruction-pushes
+           instruction->opcode opcode->instruction))
 
-;;;
-;;; Core procedures
-;;;
-
-;; Calling this updates boot-9.scm's `load-compiled' to point to to
-;; scm_load_compiled_with_vm, so future module loads will read .go files
-;; if they are present.
-(dynamic-call "scm_bootstrap_vm" (dynamic-link "libguile-vm"))
+(dynamic-call "scm_init_instructions" (dynamic-link "libguile-vm"))

@@ -561,13 +561,25 @@ SCM_DEFINE (scm_vm_fetch_stack, "vm-fetch-stack", 1, 0, 0,
  * Initialize
  */
 
-void
-scm_init_vm (void)
+SCM scm_load_compiled_with_vm (SCM file)
 {
-  scm_init_frames ();
-  scm_init_instructions ();
-  scm_init_objcodes ();
-  scm_init_programs ();
+  SCM program = scm_objcode_to_program (scm_load_objcode (file));
+  
+  return vm_run (the_vm, program, SCM_EOL);
+}
+
+void
+scm_bootstrap_vm (void)
+{
+  static int strappage = 0;
+  
+  if (strappage)
+    return;
+
+  scm_bootstrap_frames ();
+  scm_bootstrap_instructions ();
+  scm_bootstrap_objcodes ();
+  scm_bootstrap_programs ();
 
   scm_tc16_vm_cont = scm_make_smob_type ("vm-cont", 0);
   scm_set_smob_mark (scm_tc16_vm_cont, vm_cont_mark);
@@ -579,6 +591,19 @@ scm_init_vm (void)
   scm_set_smob_apply (scm_tc16_vm, scm_vm_apply, 1, 0, 1);
 
   the_vm = scm_permanent_object (make_vm ());
+
+  /* a bit heavy-handed, this */
+  scm_variable_set_x (scm_c_lookup ("load-compiled"),
+                      scm_c_make_gsubr ("load-compiled/vm", 1, 0, 0,
+                                        scm_load_compiled_with_vm));
+
+  strappage = 1;
+}
+
+void
+scm_init_vm (void)
+{
+  scm_bootstrap_vm ();
 
 #ifndef SCM_MAGIC_SNARFER
 #include "vm.x"

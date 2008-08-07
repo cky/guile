@@ -44,6 +44,7 @@
 #endif
 
 #include <string.h>
+#include "bootstrap.h"
 #include "frames.h"
 
 
@@ -172,11 +173,17 @@ SCM_DEFINE (scm_frame_external_link, "frame-external-link", 1, 0, 0,
 
 
 void
-scm_init_frames (void)
+scm_bootstrap_frames (void)
 {
   scm_tc16_heap_frame = scm_make_smob_type ("frame", 0);
   scm_set_smob_mark (scm_tc16_heap_frame, heap_frame_mark);
   scm_set_smob_free (scm_tc16_heap_frame, heap_frame_free);
+}
+
+void
+scm_init_frames (void)
+{
+  scm_bootstrap_vm ();
 
 #ifndef SCM_MAGIC_SNARFER
 #include "frames.x"

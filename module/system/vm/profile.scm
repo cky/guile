@@ -20,7 +20,7 @@
 ;;; Code:
 
 (define-module (system vm profile)
-  :use-module (system vm core)
+  :use-module (system vm vm)
   :use-module (ice-9 format)
   :export (vm-profile))
 
