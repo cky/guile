@@ -310,7 +310,6 @@ VM_DEFINE_INSTRUCTION (external_set, "external-set", 1, 1, 0)
 VM_DEFINE_INSTRUCTION (variable_set, "variable-set", 0, 1, 0)
 {
   VARIABLE_SET (sp[0], sp[-1]);
-  scm_set_object_property_x (sp[-1], scm_sym_name, SCM_CAR (sp[0]));
   sp -= 2;
   NEXT;
 }

@@ -74,13 +74,13 @@
 			 (else (vector (abbrev (vector-ref x 0)) '...))))
 	  (else x)))
   (write (abbrev (cons (program-name frame)
-		       (frame-arguments frame)))))
+                       (frame-arguments frame)))))
 
 (define (program-name frame)
   (let ((prog (frame-program frame))
 	(link (frame-dynamic-link frame)))
     (or (object-property prog 'name)
-	(frame-object-name link (1- (frame-address link)) prog)
+        (frame-object-name link (1- (frame-address link)) prog)
 	(hash-fold (lambda (s v d) (if (eq? prog (variable-ref v)) s d))
 		   prog (module-obarray (current-module))))))
 

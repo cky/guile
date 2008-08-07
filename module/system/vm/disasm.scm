@@ -47,6 +47,7 @@
 	 (nexts (arity:nexts arity))
 	 (bytes (program-bytecode prog))
 	 (objs  (program-objects prog))
+	 (meta  (program-meta prog))
 	 (exts  (program-external prog)))
     ;; Disassemble this bytecode
     (format #t "Disassembly of ~A:\n\n" prog)
@@ -58,6 +59,8 @@
 	(disassemble-objects objs))
     (if (pair? exts)
 	(disassemble-externals exts))
+    (if meta
+	(disassemble-meta meta))
     ;; Disassemble other bytecode in it
     (for-each
      (lambda (x)
@@ -103,13 +106,29 @@
       (let ((info (object->string (car l))))
 	(print-info n info #f)))))
 
-;; FIXME: update for recent meta changes
+(define-macro (unless test . body)
+  `(if (not ,test) (begin ,@body)))
+
 (define (disassemble-meta meta)
-  (display "Meta info:\n\n")
-  (for-each (lambda (data)
-	      (print-info (car data) (list->info (cdr data)) #f))
-	    meta)
-  (newline))
+  (let ((bindings (car meta))
+        (sources (cadr meta))
+        (props (cddr meta)))
+    (unless (null? bindings)
+            (display "Bindings:\n\n")
+            (for-each (lambda (b)
+                        (print-info (car b) (list->info (cadr b)) #f))
+                      bindings)
+            (newline))
+    (unless (null? sources)
+            (display "Sources:\n\n")
+            (for-each (lambda (x)
+                        (print-info (car x) (list->info (cdr x)) #f))
+                      sources)
+            (newline))
+    (unless (null? props)
+            (display "Properties:\n\n")
+            (for-each (lambda (x) (print-info #f x #f)) props)
+            (newline))))
 
 (define (original-value addr code objs)
   (define (branch-code? code)
