@@ -22,6 +22,7 @@
 (define-module (system vm program)
   :export (arity:nargs arity:nrest arity:nlocs arity:nexts
            make-binding binding:name binding:extp binding:index
+           source:addr source:line source:column source:file
            program-bindings program-sources
            program-properties program-property program-documentation
            
@@ -46,6 +47,15 @@
 (define (program-bindings prog)
   (cond ((program-meta prog) => car)
 	(else '())))
+
+(define (source:addr source)
+  (car source))
+(define (source:line source)
+  (vector-ref (cdr source) 0))
+(define (source:column source)
+  (vector-ref (cdr source) 1))
+(define (source:file source)
+  (vector-ref (cdr source) 2))
 
 (define (program-sources prog)
   (cond ((program-meta prog) => cadr)

@@ -58,7 +58,5 @@
 ;;;
 
 (define (vm-backtrace vm)
-  (let ((chain (vm-last-frame-chain vm)))
-    (if (null? chain)
-      (display "No backtrace available\n")
-      (for-each print-frame (reverse! chain)))))
+  (print-frame-chain-as-backtrace
+   (reverse! (vm-last-frame-chain vm))))

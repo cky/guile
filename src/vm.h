@@ -63,6 +63,7 @@ struct scm_vm {
   SCM *stack_limit;		/* stack limit address */
   SCM this_frame;		/* currrent frame */
   SCM last_frame;		/* last frame */
+  scm_byte_t *last_ip;		/* ip when exception occured */
   SCM hooks[SCM_VM_NUM_HOOKS];	/* hooks */
   SCM options;			/* options */
   unsigned long time;		/* time spent */

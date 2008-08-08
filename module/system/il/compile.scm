@@ -107,8 +107,8 @@
 (define (codegen ghil)
   (let ((stack '()))
     (define (push-code! loc code)
-      (if loc (set! stack (cons (make-glil-source loc) stack)))
-      (set! stack (cons code stack)))
+      (set! stack (cons code stack))
+      (if loc (set! stack (cons (make-glil-source loc) stack))))
     (define (push-bindings! loc vars)
       (if (not (null? vars))
           (push-code!

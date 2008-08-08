@@ -267,9 +267,9 @@ VM_DEFINE_INSTRUCTION (late_variable_ref, "late-variable-ref", 1, 0, 1)
 
   if (!SCM_VARIABLEP (pair_or_var)) 
     {
-      SYNC_BEFORE_GC ();
+      SYNC_REGISTER ();
+      /* either one of these calls might longjmp */
       SCM mod = scm_resolve_module (SCM_CAR (pair_or_var));
-      /* module_lookup might longjmp */
       pair_or_var = scm_module_lookup (mod, SCM_CDR (pair_or_var));
       OBJECT_SET (objnum, pair_or_var);
       if (!VARIABLE_BOUNDP (pair_or_var))

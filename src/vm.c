@@ -277,6 +277,7 @@ make_vm (void)
   vp->options     = SCM_EOL;
   vp->this_frame  = SCM_BOOL_F;
   vp->last_frame  = SCM_BOOL_F;
+  vp->last_ip     = NULL;
   for (i = 0; i < SCM_VM_NUM_HOOKS; i++)
     vp->hooks[i] = SCM_BOOL_F;
   SCM_RETURN_NEWSMOB (scm_tc16_vm, vp);
@@ -540,6 +541,16 @@ SCM_DEFINE (scm_vm_last_frame, "vm-last-frame", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+SCM_DEFINE (scm_vm_last_ip, "vm:last-ip", 1, 0, 0,
+	    (SCM vm),
+	    "")
+#define FUNC_NAME s_scm_vm_last_ip
+{
+  SCM_VALIDATE_VM (1, vm);
+  return scm_from_ulong ((unsigned long) SCM_VM_DATA (vm)->last_ip);
+}
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_vm_save_stack, "vm-save-stack", 1, 0, 0,
 	    (SCM vm),
 	    "")
@@ -550,6 +561,7 @@ SCM_DEFINE (scm_vm_save_stack, "vm-save-stack", 1, 0, 0,
   SCM_VALIDATE_VM (1, vm);
   vp = SCM_VM_DATA (vm);
   vp->last_frame = vm_heapify_frames_1 (vp, vp->fp, vp->sp, &dest);
+  vp->last_ip = vp->ip;
   return vp->last_frame;
 }
 #undef FUNC_NAME

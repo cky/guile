@@ -23,7 +23,7 @@
   :use-module (system vm frame)
   :use-module (system vm objcode)
   :export (vm? the-vm make-vm vm-version
-           vm:ip vm:sp vm:fp
+           vm:ip vm:sp vm:fp vm:last-ip
 
            vm-load vm-return-value
 
@@ -44,7 +44,7 @@
   (make-frame-chain (vm-this-frame vm) (vm:ip vm)))
 
 (define (vm-last-frame-chain vm)
-  (make-frame-chain (vm-last-frame vm) (vm:ip vm)))
+  (make-frame-chain (vm-last-frame vm) (vm:last-ip vm)))
 
 (define (vm-fetch-locals vm)
   (frame-local-variables (vm-this-frame vm)))

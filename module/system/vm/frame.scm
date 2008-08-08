@@ -21,9 +21,10 @@
 
 (define-module (system vm frame)
   :use-module (system vm program)
+  :use-module ((srfi srfi-1) :select (fold))
   :export (frame-number frame-address
            make-frame-chain
-           print-frame print-frame-call
+           print-frame print-frame-chain-as-backtrace
            frame-arguments frame-local-variables frame-external-variables
            frame-environment
            frame-variable-exists? frame-variable-ref frame-variable-set!
@@ -43,11 +44,12 @@
 
 (define (make-frame-chain frame addr)
   (let* ((link (frame-dynamic-link frame))
-	 (chain (if (eq? link #t)
-		  '()
-		  (cons frame (make-frame-chain
-			       link (frame-return-address frame))))))
-    (set! (frame-number frame) (length chain))
+	 (chain (cons frame
+                      (if (eq? link #t)
+                          '()
+                          (make-frame-chain
+                           link (frame-return-address frame))))))
+    (set! (frame-number frame) (1- (length chain)))
     (set! (frame-address frame)
 	  (- addr (program-base (frame-program frame))))
     chain))
@@ -57,30 +59,63 @@
 ;;; Pretty printing
 ;;;
 
-(define (print-frame frame)
-  (format #t "#~A " (frame-number frame))
-  (print-frame-call frame)
-  (newline))
+(define (frame-line-number frame)
+  (let ((addr (frame-address frame)))
+    (cond ((assv-ref (program-sources (frame-program frame)) addr)
+           => source:line)
+          (else (format #f "@~a" addr)))))
 
-(define (print-frame-call frame)
+(define (frame-file frame prev)
+  (let ((sources (program-sources (frame-program frame))))
+    (if (null? sources)
+        prev
+        (or (source:file (car sources))
+            "current input"))))
+
+(define (print-frame frame)
+  (format #t "~4@a: ~a ~a\n" (frame-line-number frame) (frame-number frame)
+          (frame-call-representation frame)))
+
+
+(define (frame-call-representation frame)
   (define (abbrev x)
-    (cond ((list? x)   (if (> (length x) 3)
-			 (list (abbrev (car x)) (abbrev (cadr x)) '...)
-			 (map abbrev x)))
-	  ((pair? x)   (cons (abbrev (car x)) (abbrev (cdr x))))
-	  ((vector? x) (case (vector-length x)
-			 ((0) x)
-			 ((1) (vector (abbrev (vector-ref x 0))))
-			 (else (vector (abbrev (vector-ref x 0)) '...))))
+    (cond ((list? x)
+           (if (> (length x) 3)
+               (list (abbrev (car x)) (abbrev (cadr x)) '...)
+               (map abbrev x)))
+	  ((pair? x)
+           (cons (abbrev (car x)) (abbrev (cdr x))))
+	  ((vector? x)
+           (case (vector-length x)
+             ((0) x)
+             ((1) (vector (abbrev (vector-ref x 0))))
+             (else (vector (abbrev (vector-ref x 0)) '...))))
 	  (else x)))
-  (write (abbrev (cons (program-name frame)
-                       (frame-arguments frame)))))
+  (abbrev (cons (program-name frame) (frame-arguments frame))))
+
+(define (print-frame-chain-as-backtrace frames)
+  (if (null? frames)
+      (format #t "No backtrace available.\n")
+      (begin
+        (format #t "Backtrace:\n")
+        (pk frames (map frame-program frames)
+             (map frame-address frames)
+             )
+        (fold (lambda (frame file)
+                (let ((new-file (frame-file frame file)))
+                  (if (not (eqv? new-file file))
+                      (format #t "In ~a:\n" new-file))
+                  (print-frame frame)
+                  new-file))
+              'no-file
+              frames))))
 
 (define (program-name frame)
   (let ((prog (frame-program frame))
 	(link (frame-dynamic-link frame)))
     (or (object-property prog 'name)
-        (frame-object-name link (1- (frame-address link)) prog)
+        (and (frame? link)
+             (frame-object-name link (1- (frame-address link)) prog))
 	(hash-fold (lambda (s v d) (if (eq? prog (variable-ref v)) s d))
 		   prog (module-obarray (current-module))))))
 
