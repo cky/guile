@@ -100,10 +100,9 @@ vm_run (SCM vm, SCM program, SCM args)
     SCM prog = program;
 
     /* Boot program */
-    /* FIXME: heap program object points to objcode on the stack. Badness! */
     scm_byte_t bytes[3] = {scm_op_call, 0, scm_op_halt};
     bytes[1] = scm_ilength (args); /* FIXME: argument overflow */
-    program = scm_c_make_program (bytes, 3, SCM_BOOL_T);
+    program = scm_c_make_program (bytes, 3, SCM_BOOL_F);
 
     /* Initial frame */
     CACHE_REGISTER ();

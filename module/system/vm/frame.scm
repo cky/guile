@@ -45,8 +45,9 @@
 
 (define (bootstrap-frame? frame)
   (let ((code (program-bytecode (frame-program frame))))
-    ;; XXX: need to fix the bootstrap prog, its code is on the C stack
-    (and (= (uniform-vector-length code) 3))))
+    (and (= (uniform-vector-length code) 3)
+         (= (uniform-vector-ref code 2)
+            (instruction->opcode 'halt)))))
 
 (define (make-frame-chain frame addr)
   (define (make-rest)

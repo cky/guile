@@ -71,8 +71,11 @@ scm_c_make_program (void *addr, size_t size, SCM holder)
   p->holder   = holder;
 
   /* If nobody holds bytecode's address, then allocate a new memory */
-  if (SCM_FALSEP (holder))
-    p->base = scm_gc_malloc (size, "program-base");
+  if (SCM_FALSEP (holder)) 
+    {
+      p->base = scm_gc_malloc (size, "program-base");
+      memcpy (p->base, addr, size);
+    }
   else
     p->base = addr;
 
