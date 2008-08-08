@@ -21,6 +21,7 @@
 
 (define-module (system vm frame)
   :use-module (system vm program)
+  :use-module (system vm instruction)
   :use-module ((srfi srfi-1) :select (fold))
   :export (frame-number frame-address
            make-frame-chain
@@ -42,17 +43,27 @@
 (define frame-number (make-object-property))
 (define frame-address (make-object-property))
 
+(define (bootstrap-frame? frame)
+  (let ((code (program-bytecode (frame-program frame))))
+    ;; XXX: need to fix the bootstrap prog, its code is on the C stack
+    (and (= (uniform-vector-length code) 3))))
+
 (define (make-frame-chain frame addr)
-  (let* ((link (frame-dynamic-link frame))
-	 (chain (cons frame
-                      (if (eq? link #t)
-                          '()
-                          (make-frame-chain
-                           link (frame-return-address frame))))))
-    (set! (frame-number frame) (1- (length chain)))
-    (set! (frame-address frame)
-	  (- addr (program-base (frame-program frame))))
-    chain))
+  (define (make-rest)
+    (make-frame-chain (frame-dynamic-link frame)
+                      (frame-return-address frame)))
+  (cond
+   ((or (eq? frame #t) (eq? frame #f))
+    ;; handle #f or #t dynamic links
+    '())
+   ((bootstrap-frame? frame)
+    (make-rest))
+   (else
+    (let ((chain (make-rest)))
+      (set! (frame-number frame) (length chain))
+      (set! (frame-address frame)
+            (- addr (program-base (frame-program frame))))
+      (cons frame chain)))))
 
 
 ;;;
@@ -97,10 +108,7 @@
   (if (null? frames)
       (format #t "No backtrace available.\n")
       (begin
-        (format #t "Backtrace:\n")
-        (pk frames (map frame-program frames)
-             (map frame-address frames)
-             )
+        (format #t "VM backtrace:\n")
         (fold (lambda (frame file)
                 (let ((new-file (frame-file frame file)))
                   (if (not (eqv? new-file file))

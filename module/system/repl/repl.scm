@@ -66,7 +66,6 @@
      (vm-backtrace (the-vm))
      (newline))
     ((,key ,subr ,msg ,args . ,rest)
-     (display "This backtrace for free: ")
      (vm-backtrace (the-vm))
      (newline)
      (let ((cep (current-error-port)))

@@ -59,4 +59,4 @@
 
 (define (vm-backtrace vm)
   (print-frame-chain-as-backtrace
-   (reverse! (vm-last-frame-chain vm))))
+   (reverse (vm-last-frame-chain vm))))
