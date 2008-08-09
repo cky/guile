@@ -58,6 +58,18 @@
 
 (define (scheme) (lookup-language 'scheme))
 
+(define (call-with-output-file/atomic filename proc)
+  (let* ((template (string-append filename ".XXXXXX"))
+         (tmp (mkstemp! template)))
+    (catch #t
+           (lambda ()
+             (with-output-to-port tmp
+               (lambda () (proc (current-output-port))))
+             (rename-file template filename))
+           (lambda args
+             (delete-file template)
+             (apply throw args)))))
+
 (define (compile-file file . opts)
   (let ((comp (compiled-file-name file))
         (scheme (scheme)))
@@ -65,7 +77,7 @@
       (lambda ()
 	(call-with-compile-error-catch
 	 (lambda ()
-	   (call-with-output-file comp
+	   (call-with-output-file/atomic comp
 	     (lambda (port)
 	       (let* ((source (read-file-in file scheme))
 		      (objcode (apply compile-in source (current-module)
