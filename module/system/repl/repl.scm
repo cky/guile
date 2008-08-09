@@ -90,6 +90,12 @@
     (else
      (apply bad-throw args))))
 
+(define (call-with-backtrace thunk)
+  (catch #t
+         thunk
+         default-catch-handler
+         default-pre-unwind-handler))
+
 (eval-case
  ((compile-toplevel)
   (define-macro (start-stack tag expr)
@@ -102,23 +108,23 @@
       (let ((exp (prompting-meta-read repl)))
         (cond
          ((eq? exp meta-command-token)
-          (meta-command repl (read-line)))
+          (call-with-backtrace
+           (lambda ()
+             (meta-command repl (read-line)))))
          ((eof-object? exp)
           (throw 'quit))
          (else
-          (catch #t
-                 (lambda ()
-                   (call-with-values (lambda ()
-                                       (run-hook before-eval-hook exp)
-                                       (start-stack repl-eval
-                                                    (repl-eval repl exp)))
-                     (lambda l
-                       (for-each (lambda (v)
-                                   (run-hook before-print-hook v)
-                                   (repl-print repl v))
-                                 l))))
-                 default-catch-handler
-                 default-pre-unwind-handler)))
+          (call-with-backtrace
+           (lambda ()
+             (call-with-values (lambda ()
+                                 (run-hook before-eval-hook exp)
+                                 (start-stack repl-eval
+                                              (repl-eval repl exp)))
+               (lambda l
+                 (for-each (lambda (v)
+                             (run-hook before-print-hook v)
+                             (repl-print repl v))
+                           l)))))))
         (next-char #f) ;; consume trailing whitespace
         (prompt-loop)))))
 
