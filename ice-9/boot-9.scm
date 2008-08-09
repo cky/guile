@@ -2166,14 +2166,20 @@ module '(ice-9 q) '(make-q q-length))}."
 	    (lambda () (autoload-in-progress! dir-hint name))
 	    (lambda ()
 	      (let ((file (in-vicinity dir-hint name)))
-		(cond ((and load-compiled
-			    (%search-load-path (string-append file ".go")))
-		       => (lambda (full)
-			    (load-file load-compiled full)))
-		      ((%search-load-path file)
-		       => (lambda (full)
-			    (with-fluids ((current-reader #f))
-			      (load-file primitive-load full)))))))
+                (let ((compiled (and load-compiled
+                                     (%search-load-path
+                                      (string-append file ".go"))))
+                      (source (%search-load-path file)))
+                  (cond ((and source
+                              (or (not compiled)
+                                  (< (stat:mtime (stat compiled))
+                                     (stat:mtime (stat source)))))
+                         (if compiled
+                             (warn "source file" source "newer than" compiled))
+                         (with-fluids ((current-reader #f))
+                           (load-file primitive-load source)))
+                        (compiled
+                         (load-file load-compiled compiled))))))
 	    (lambda () (set-autoloaded! dir-hint name didit)))
 	   didit))))
 
