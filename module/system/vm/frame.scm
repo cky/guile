@@ -73,7 +73,7 @@
 
 (define (frame-line-number frame)
   (let ((addr (frame-address frame)))
-    (cond ((assv-ref (program-sources (frame-program frame)) addr)
+    (cond ((assv addr (program-sources (frame-program frame)))
            => source:line)
           (else (format #f "@~a" addr)))))
 
@@ -85,7 +85,7 @@
             "current input"))))
 
 (define (print-frame frame)
-  (format #t "~4@a: ~a ~a\n" (frame-line-number frame) (frame-number frame)
+  (format #t "~4@a: ~a   ~a\n" (frame-line-number frame) (frame-number frame)
           (frame-call-representation frame)))
 
 
@@ -112,7 +112,7 @@
         (format #t "VM backtrace:\n")
         (fold (lambda (frame file)
                 (let ((new-file (frame-file frame file)))
-                  (if (not (eqv? new-file file))
+                  (if (not (equal? new-file file))
                       (format #t "In ~a:\n" new-file))
                   (print-frame frame)
                   new-file))
