@@ -560,8 +560,18 @@ SCM_DEFINE (scm_vm_save_stack, "vm-save-stack", 1, 0, 0,
   SCM *dest;
   SCM_VALIDATE_VM (1, vm);
   vp = SCM_VM_DATA (vm);
-  vp->last_frame = vm_heapify_frames_1 (vp, vp->fp, vp->sp, &dest);
-  vp->last_ip = vp->ip;
+
+  if (vp->fp) 
+    {
+      vp->last_frame = vm_heapify_frames_1 (vp, vp->fp, vp->sp, &dest);
+      vp->last_ip = vp->ip;
+    }
+  else
+    {
+      vp->last_frame = SCM_BOOL_F;
+    }
+  
+  
   return vp->last_frame;
 }
 #undef FUNC_NAME

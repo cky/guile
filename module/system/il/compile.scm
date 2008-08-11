@@ -217,20 +217,22 @@
 	 ;;     (br L2)
 	 ;; L1: (const #f)
 	 ;; L2:
-	 (let ((L1 (make-label)) (L2 (make-label)))
-	   (if (null? exps)
-	       (return-object! loc #t)
-	       (do ((exps exps (cdr exps)))
-		   ((null? (cdr exps))
-		    (comp-tail (car exps))
-		    (if (not tail) (push-branch! #f 'br L2))
-		    (push-label! L1)
-		    (return-object! #f #f)
-		    (if (not tail) (push-label! L2))
-		    (maybe-drop)
-		    (maybe-return))
-		 (comp-push (car exps))
-		 (push-branch! #f 'br-if-not L1)))))
+         (cond ((null? exps) (return-object! loc #t))
+               ((null? (cdr exps)) (comp-tail (car exps)))
+               (else
+                (let ((L1 (make-label)) (L2 (make-label)))
+                  (let lp ((exps exps))
+                    (cond ((null? (cdr exps))
+                           (comp-tail (car exps))
+                           (push-branch! #f 'br L2)
+                           (push-label! L1)
+                           (return-object! #f #f)
+                           (push-label! L2)
+                           (maybe-return))
+                          (else
+                           (comp-push (car exps))
+                           (push-branch! #f 'br-if-not L1)
+                           (lp (cdr exps)))))))))
 
 	((<ghil-or> env loc exps)
 	 ;;     EXP
@@ -240,19 +242,21 @@
 	 ;;     ...
 	 ;;     TAIL
 	 ;; L1:
-	 (let ((L1 (make-label)))
-	   (if (null? exps)
-	       (return-object! loc #f)
-	       (do ((exps exps (cdr exps)))
-		   ((null? (cdr exps))
-		    (comp-tail (car exps))
-		    (push-label! L1)
-		    (maybe-drop)
-		    (maybe-return))
-		 (comp-push (car exps))
-		 (push-call! #f 'dup '())
-		 (push-branch! #f 'br-if L1)
-		 (push-call! #f 'drop '())))))
+         (cond ((null? exps) (return-object! loc #f))
+               ((null? (cdr exps)) (comp-tail (car exps)))
+               (else
+                (let ((L1 (make-label)))
+                  (let lp ((exps exps))
+                    (cond ((null? (cdr exps))
+                           (comp-tail (car exps))
+                           (push-label! L1)
+                           (maybe-return))
+                          (else
+                           (comp-push (car exps))
+                           (push-call! #f 'dup '())
+                           (push-branch! #f 'br-if L1)
+                           (push-call! #f 'drop '())
+                           (lp (cdr exps)))))))))
 
 	((<ghil-begin> env loc exps)
 	 ;; EXPS...

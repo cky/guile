@@ -29,7 +29,7 @@
   :use-module (system vm vm)
   :use-module (system vm debug)
   :use-module (ice-9 rdelim)
-  :export (start-repl))
+  :export (start-repl call-with-backtrace))
 
 (define meta-command-token (cons 'meta 'command))
 

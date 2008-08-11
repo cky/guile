@@ -6,12 +6,15 @@ GUILE_VM = $(top_builddir)/src/guile-vm
 vm_test_files =					\
       t-basic-contructs.scm			\
       t-global-bindings.scm			\
+      t-catch.scm				\
       t-closure.scm				\
       t-closure2.scm				\
       t-closure3.scm				\
       t-do-loop.scm				\
       t-macros.scm				\
       t-macros2.scm				\
+      t-map.scm					\
+      t-or.scm					\
       t-proc-with-setter.scm			\
       t-values.scm				\
       t-records.scm				\

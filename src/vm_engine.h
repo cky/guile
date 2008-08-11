@@ -141,6 +141,13 @@
   vp->fp = fp;					\
 }
 
+#ifdef IP_PARANOIA
+#define CHECK_IP() \
+  do { if (ip < bp->base || ip - bp->base > bp->size) abort (); } while (0)
+#else
+#define CHECK_IP()
+#endif
+
 /* Get a local copy of the program's "object table" (i.e. the vector of
    external bindings that are referenced by the program), initialized by
    `load-program'.  */
@@ -232,9 +239,9 @@
   if (sp > stack_limit)				\
     goto vm_error_stack_overflow
 
-#define CHECK_UNDERFLOW()                                               \
-  if (sp < stack_base)                                                  \
-    goto vm_error_stack_underflow
+#define CHECK_UNDERFLOW()                       \
+  if (sp < stack_base)                          \
+    goto vm_error_stack_underflow;
 
 #define PUSH(x)	do { sp++; CHECK_OVERFLOW (); *sp = x; } while (0)
 #define DROP()	do { sp--; CHECK_UNDERFLOW (); } while (0)
@@ -428,6 +435,7 @@ do {						\
   p[2] = dl;					\
   p[1] = SCM_BOOL_F;				\
   p[0] = external;				\
+  stack_base = p + 3;				\
 }
 
 #define FREE_FRAME()				\
@@ -454,6 +462,9 @@ do {						\
 	*sp++ = *p++;				\
       sp--;					\
     }						\
+  stack_base = fp ?				\
+    SCM_FRAME_UPPER_ADDRESS (fp) - 1		\
+    : vp->stack_base;				\
 }
 
 #define CACHE_EXTERNAL() external = fp[bp->nargs + bp->nlocs]

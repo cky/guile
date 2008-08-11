@@ -60,6 +60,7 @@ VM_DEFINE_INSTRUCTION (halt, "halt", 0, 0, 0)
   POP (ret);
   FREE_FRAME ();
   SYNC_ALL ();
+  vp->ip = NULL;
   scm_dynwind_end ();
   return ret;
 }
@@ -657,6 +658,7 @@ VM_DEFINE_INSTRUCTION (return, "return", 0, 0, 1)
   program = SCM_FRAME_PROGRAM (fp);
   CACHE_PROGRAM ();
   CACHE_EXTERNAL ();
+  CHECK_IP ();
   NEXT;
 }
 
