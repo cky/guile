@@ -206,7 +206,9 @@ Quit this session."
 Change modules / Show current module."
   (pmatch args
     (() (puts (module-name (current-module))))
-    ((,mod-name) (set-current-module (resolve-module mod-name)))))
+    ((,mod-name) (guard (list? mod-name))
+     (set-current-module (resolve-module mod-name)))
+    (,mod-name (set-current-module (resolve-module mod-name)))))
 
 (define (import repl . args)
   "import [MODULE ...]

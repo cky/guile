@@ -105,8 +105,10 @@
   (let ((repl (make-repl lang)))
     (repl-welcome repl)
     (let prompt-loop ()
-      (let ((exp (prompting-meta-read repl)))
+      (let ((exp (call-with-backtrace
+                  (lambda () (prompting-meta-read repl)))))
         (cond
+         ((eqv? exp (if #f #f))) ; read error, pass
          ((eq? exp meta-command-token)
           (call-with-backtrace
            (lambda ()
