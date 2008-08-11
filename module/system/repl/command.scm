@@ -399,13 +399,10 @@ Display statistics."
     ;; GC time taken
     (let ((this-mark  (assq-ref this-gcs 'gc-mark-time-taken))
 	  (last-mark  (assq-ref last-gcs 'gc-mark-time-taken))
-	  (this-sweep (assq-ref this-gcs 'gc-sweep-time-taken))
-	  (last-sweep (assq-ref last-gcs 'gc-sweep-time-taken))
 	  (this-total (assq-ref this-gcs 'gc-time-taken))
 	  (last-total (assq-ref last-gcs 'gc-time-taken)))
       (display-stat-title "GC time taken:" "diff" "total")
       (display-time-stat "mark" this-mark last-mark)
-      (display-time-stat "sweep" this-sweep last-sweep)
       (display-time-stat "total" this-total last-total)
       (newline))
     ;; Process time spent
@@ -451,12 +448,12 @@ Display statistics."
 
 (define (display-time-stat title this last)
   (define (conv num)
-    (format #f "~10,2F" (/ num internal-time-units-per-second)))
+    (format #f "~10,2F" (exact->inexact (/ num internal-time-units-per-second))))
   (display-stat title #f (conv (- this last)) (conv this) "s"))
 
 (define (display-mips-stat title this-time this-clock last-time last-clock)
   (define (mips time clock)
-    (if (= time 0) "----" (format #f "~10,2F" (/ clock time 1000000))))
+    (if (= time 0) "----" (format #f "~10,2F" (/ clock time 1000000.0))))
   (display-stat title #f
 		(mips (- this-time last-time) (- this-clock last-clock))
 		(mips this-time this-clock) "mips"))

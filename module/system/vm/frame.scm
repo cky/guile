@@ -85,7 +85,7 @@
             "current input"))))
 
 (define (print-frame frame)
-  (format #t "~4@a: ~a   ~a\n" (frame-line-number frame) (frame-number frame)
+  (format #t "~4@a: ~a   ~s\n" (frame-line-number frame) (frame-number frame)
           (frame-call-representation frame)))
 
 
