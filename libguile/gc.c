@@ -246,6 +246,8 @@ SCM_SYMBOL (sym_cells_marked, "cells-marked");
 SCM_SYMBOL (sym_cells_swept, "cells-swept");
 SCM_SYMBOL (sym_malloc_yield, "malloc-yield");
 SCM_SYMBOL (sym_cell_yield, "cell-yield");
+SCM_SYMBOL (sym_min_cell_yield, "min-cell-yield");
+SCM_SYMBOL (sym_min_double_cell_yield, "min-double-cell-yield");
 SCM_SYMBOL (sym_protected_objects, "protected-objects");
 SCM_SYMBOL (sym_total_cells_allocated, "total-cells-allocated");
 
@@ -316,6 +318,8 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
   unsigned long int local_scm_gc_times;
   unsigned long int local_scm_gc_mark_time_taken;
   unsigned long int local_protected_obj_count;
+  unsigned long int local_min_cell_yield;
+  unsigned long int local_min_double_cell_yield;
   double local_scm_gc_cells_swept;
   double local_scm_gc_cells_marked;
   double local_scm_total_cells_allocated;
@@ -327,8 +331,7 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
   /*
     temporarily store the numbers, so as not to cause GC.
    */
- 
-  bounds = malloc (sizeof (unsigned long)  * table_size * 2);
+  bounds = malloc (sizeof (unsigned long) * table_size * 2);
   if (!bounds)
     abort();
   for (i = table_size; i--; )
@@ -346,6 +349,8 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
   local_scm_heap_size = SCM_HEAP_SIZE;
 
   local_scm_cells_allocated = scm_cells_allocated;
+  local_min_cell_yield = scm_i_master_freelist.min_yield;
+  local_min_double_cell_yield = scm_i_master_freelist2.min_yield;
   
   local_scm_gc_time_taken = scm_gc_time_taken;
   local_scm_gc_mark_time_taken = scm_gc_mark_time_taken;
@@ -398,8 +403,11 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
 			  scm_from_long (local_scm_gc_cell_yield_percentage)),
 		scm_cons (sym_protected_objects,
 			  scm_from_ulong (local_protected_obj_count)),
+		scm_cons (sym_min_cell_yield,
+			  scm_from_ulong (local_min_cell_yield)),
+		scm_cons (sym_min_double_cell_yield,
+			  scm_from_ulong (local_min_double_cell_yield)),
 		scm_cons (sym_heap_segments, heap_segs),
-		
 		SCM_UNDEFINED);
   SCM_CRITICAL_SECTION_END;
   
