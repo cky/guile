@@ -26,9 +26,6 @@
 scm_t_cell_type_statistics scm_i_master_freelist;
 scm_t_cell_type_statistics scm_i_master_freelist2;
 
-
-
-
 /*
 
 In older versions of GUILE GC there was extensive support for
@@ -37,8 +34,6 @@ inside the heap, and writing to an object that was GC'd would mangle
 the list. Mark bits are now separate, and checking for sane cell
 access can be done much more easily by simply checking if the mark bit
 is unset before allocation.  --hwn
-
-
 
 */
 
@@ -68,9 +63,6 @@ SCM_DEFINE (scm_gc_set_debug_check_freelist_x, "gc-set-debug-check-freelist!", 1
 
 #endif /* defined (GUILE_DEBUG) */
 #endif /* deprecated */
-
-
-
 
 /* Adjust FREELIST variables to decide wether or not to allocate more heap in
    the next GC run based on SWEEP_STATS on SWEEP_STATS_1 (statistics
@@ -156,7 +148,6 @@ scm_gc_init_freelist (void)
   if (scm_max_segment_size <= 0)
     scm_max_segment_size = SCM_DEFAULT_MAX_SEGMENT_SIZE;
   
-  
   scm_i_make_initial_segment (init_heap_size_1, &scm_i_master_freelist);
   scm_i_make_initial_segment (init_heap_size_2, &scm_i_master_freelist2);
   
@@ -188,5 +179,6 @@ scm_i_gc_sweep_freelist_reset (scm_t_cell_type_statistics *freelist)
 int
 scm_i_gc_grow_heap_p (scm_t_cell_type_statistics * freelist)
 {
-  return SCM_MAX (freelist->collected,freelist->collected_1)  < freelist->min_yield;
+  return SCM_MAX (freelist->collected, freelist->collected_1)
+    < freelist->min_yield;
 }

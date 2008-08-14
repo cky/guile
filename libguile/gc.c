@@ -543,7 +543,6 @@ scm_gc_for_newcell (scm_t_cell_type_statistics *freelist, SCM *free_cells)
       /*
 	out of fresh cells. Try to get some new ones.
        */
-
       did_gc = 1;
       scm_i_gc ("cells");
 

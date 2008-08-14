@@ -24,10 +24,6 @@
 #include "libguile/gc.h"
 #include "libguile/private-gc.h"
 
-
-
-
-
 size_t scm_max_segment_size;
 
 scm_t_heap_segment *
@@ -62,8 +58,6 @@ scm_i_heap_segment_statistics (scm_t_heap_segment *seg, SCM tab)
       p += SCM_GC_CARD_N_CELLS;
     }
 }
-
-
 
 /*
   Fill SEGMENT with memory both for data and mark bits.
@@ -387,9 +381,6 @@ scm_i_all_segments_statistics (SCM tab)
   return tab;
 }
 
-
-
-
 /*
   Determine whether the given value does actually represent a cell in
   some heap segment.  If this is the case, the number of the heap
@@ -494,13 +485,14 @@ scm_i_get_new_heap_segment (scm_t_cell_type_statistics *freelist,
     float min_cells = (f * h - sweep_stats.collected) / (1.0 - f);
 
     /* Make heap grow with factor 1.5 */
-    len =  freelist->heap_size / 2;
+    len = freelist->heap_size / 2;
 #ifdef DEBUGINFO
     fprintf (stderr, "(%ld < %ld)", (long) len, (long) min_cells);
 #endif
-
+	   
     if (len < min_cells)
-      len = (unsigned long) min_cells;  
+      len = (unsigned long) min_cells;
+
     len *= sizeof (scm_t_cell);
     /* force new sampling */
     freelist->collected = LONG_MAX;
@@ -508,6 +500,7 @@ scm_i_get_new_heap_segment (scm_t_cell_type_statistics *freelist,
 
   if (len > scm_max_segment_size)
     len = scm_max_segment_size;
+
   if (len < SCM_MIN_HEAP_SEG_SIZE)
     len = SCM_MIN_HEAP_SEG_SIZE;
 
@@ -541,7 +534,7 @@ scm_i_make_initial_segment (int init_heap_size, scm_t_cell_type_statistics *free
 
   if (init_heap_size < 1)
     {
-      init_heap_size =  SCM_DEFAULT_INIT_HEAP_SIZE_1;
+      init_heap_size = SCM_DEFAULT_INIT_HEAP_SIZE_1;
     }
  
   if (scm_i_initialize_heap_segment_data (seg, init_heap_size))

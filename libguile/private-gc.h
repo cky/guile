@@ -73,11 +73,8 @@
 
 #define SCM_DEFAULT_MAX_SEGMENT_SIZE  (20*1024*1024L)
 
-
-
 #define SCM_MIN_HEAP_SEG_SIZE (8 * SCM_GC_SIZEOF_CARD)
 #define SCM_HEAP_SEG_SIZE (16384L * sizeof (scm_t_cell))
-
 
 #define SCM_DOUBLECELL_ALIGNED_P(x)  (((2 * sizeof (scm_t_cell) - 1) & SCM_UNPACK (x)) == 0)
 
@@ -101,7 +98,6 @@ typedef enum { return_on_error, abort_on_error } policy_on_error;
   A struct holding GC statistics on a particular type of cells.
 */
 typedef struct scm_t_cell_type_statistics {
-
   /*
     heap segment where the last cell was allocated 
   */
@@ -195,25 +191,17 @@ int scm_i_gc_grow_heap_p (scm_t_cell_type_statistics * freelist);
 /*
   gc-mark
  */
-
-
 void scm_mark_all (void);
-
-
 
 /*
 gc-segment:
 */
-
-
-
 
 /*
 
  Cells are stored in a heap-segment: it is a contiguous chunk of
  memory, that associated with one freelist. 
 */
-
 typedef struct scm_t_heap_segment
 {
   /*
@@ -255,12 +243,10 @@ typedef struct scm_t_heap_segment
 
 
 /*
-
   A table of segment records is kept that records the upper and
   lower extents of the segment;  this is used during the conservative
   phase of gc to identify probably gc roots (because they point
   into valid segments at reasonable offsets).
-
 */
 extern scm_t_heap_segment ** scm_i_heap_segment_table;
 extern size_t scm_i_heap_segment_table_size;
@@ -308,7 +294,6 @@ SCM_INTERNAL void scm_i_make_initial_segment (int init_heap_size,
 					      scm_t_cell_type_statistics *fl);
 
 extern long int scm_i_deprecated_memory_return;
-
 
 /*
   global init funcs.
