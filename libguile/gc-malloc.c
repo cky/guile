@@ -113,21 +113,17 @@ scm_realloc (void *mem, size_t size)
   scm_i_scm_pthread_mutex_lock (&scm_i_sweep_mutex);
   scm_gc_running_p = 1;
 
-  // We don't want these sweep statistics to influence results for
-  // cell GC, so we don't collect statistics.
-  scm_i_sweep_all_segments ("realloc", NULL);
-  
-  SCM_SYSCALL (ptr = realloc (mem, size));
-  if (ptr)
-    { 
-      scm_gc_running_p = 0;
-      scm_i_pthread_mutex_unlock (&scm_i_sweep_mutex);
-      return ptr;
-    }
-
   scm_i_gc ("realloc");
+
+  /*
+   We don't want these sweep statistics to influence results for
+   cell GC, so we don't collect statistics.
+   
+   realloc() failed, so we're really desparate to free memory. Run a
+   full sweep.
+  */
   scm_i_sweep_all_segments ("realloc", NULL);
-  
+
   scm_gc_running_p = 0;
   scm_i_pthread_mutex_unlock (&scm_i_sweep_mutex);
   

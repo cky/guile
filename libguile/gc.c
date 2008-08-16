@@ -664,7 +664,7 @@ scm_i_gc (const char *what)
      the time taken.
   */
   scm_gc_time_taken += (scm_c_get_internal_run_time () - t_before_gc);
-  assert(scm_cells_allocated == scm_i_marked_count ());
+    
   scm_i_thread_wake_up ();
   /*
     For debugging purposes, you could do
