@@ -285,8 +285,6 @@ SCM_API int scm_gc_malloc_yield_percentage;
 SCM_API unsigned long scm_mallocated;
 SCM_API unsigned long scm_mtrigger;
 
-
-
 SCM_API SCM scm_after_gc_hook;
 
 SCM_API scm_t_c_hook scm_before_gc_c_hook;

@@ -15,31 +15,31 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-
+#include <assert.h>
 #include <stdio.h>
 #include <gmp.h>
 
 #include "libguile/_scm.h"
-#include "libguile/eval.h"
-#include "libguile/numbers.h"
-#include "libguile/stime.h"
-#include "libguile/stackchk.h"
-#include "libguile/struct.h"
-#include "libguile/smob.h"
-#include "libguile/unif.h"
 #include "libguile/async.h"
+#include "libguile/deprecation.h"
+#include "libguile/eval.h"
+#include "libguile/gc.h"
+#include "libguile/hashtab.h"
+#include "libguile/numbers.h"
 #include "libguile/ports.h"
+#include "libguile/private-gc.h"
 #include "libguile/root.h"
+#include "libguile/smob.h"
+#include "libguile/srfi-4.h"
+#include "libguile/stackchk.h"
+#include "libguile/stime.h"
 #include "libguile/strings.h"
+#include "libguile/struct.h"
+#include "libguile/tags.h"
+#include "libguile/unif.h"
+#include "libguile/validate.h"
 #include "libguile/vectors.h"
 #include "libguile/weaks.h"
-#include "libguile/hashtab.h"
-#include "libguile/tags.h"
-#include "libguile/private-gc.h"
-#include "libguile/validate.h"
-#include "libguile/deprecation.h"
-#include "libguile/gc.h"
-#include "libguile/srfi-4.h"
 
 #include "libguile/private-gc.h"
 
@@ -50,27 +50,23 @@ long int scm_i_deprecated_memory_return;
  */
 SCM scm_i_structs_to_free;
 
-
 /*
   Init all the free cells in CARD, prepending to *FREE_LIST.
 
-  Return: number of free cells found in this card.
+  Return: FREE_COUNT, the number of cells collected.  This is
+  typically the length of the *FREE_LIST, but for some special cases,
+  we do not actually free the cell. To make the numbers match up, we
+  do increase the FREE_COUNT.
 
   It would be cleaner to have a separate function sweep_value(), but
   that is too slow (functions with switch statements can't be
   inlined).
 
-
-
-  
   NOTE:
 
-  This function is quite efficient. However, for many types of cells,
-  allocation and a de-allocation involves calling malloc() and
-  free().
-
-  This is costly for small objects (due to malloc/free overhead.)
-  (should measure this).
+  For many types of cells, allocation and a de-allocation involves
+  calling malloc() and free().  This is costly for small objects (due
+  to malloc/free overhead.)  (should measure this).
 
   It might also be bad for threads: if several threads are allocating
   strings concurrently, then mallocs for both threads may have to
@@ -82,15 +78,16 @@ SCM scm_i_structs_to_free;
   --hwn.
  */
 int
-scm_i_sweep_card (scm_t_cell *  p, SCM *free_list, scm_t_heap_segment*seg)
+scm_i_sweep_card (scm_t_cell *card, SCM *free_list, scm_t_heap_segment *seg)
 #define FUNC_NAME "sweep_card"
 {
-  scm_t_c_bvec_long *bitvec = SCM_GC_CARD_BVEC(p);
-  scm_t_cell * end = p + SCM_GC_CARD_N_CELLS;
+  scm_t_c_bvec_long *bitvec = SCM_GC_CARD_BVEC(card);
+  scm_t_cell *end = card + SCM_GC_CARD_N_CELLS;
+  scm_t_cell *p = card;
   int span = seg->span;
-  int offset =SCM_MAX (SCM_GC_CARD_N_HEADER_CELLS, span);
-  int free_count  = 0;
-
+  int offset = SCM_MAX (SCM_GC_CARD_N_HEADER_CELLS, span);
+  int free_count = 0;
+  
   /*
     I tried something fancy with shifting by one bit every word from
     the bitvec in turn, but it wasn't any faster, but quite a bit
@@ -101,7 +98,7 @@ scm_i_sweep_card (scm_t_cell *  p, SCM *free_list, scm_t_heap_segment*seg)
       SCM scmptr = PTR2SCM (p);
       if (SCM_C_BVEC_GET (bitvec, offset))
         continue;
-
+      free_count++;
       switch (SCM_TYP7 (scmptr))
 	{
 	case scm_tcs_struct:
@@ -184,7 +181,7 @@ scm_i_sweep_card (scm_t_cell *  p, SCM *free_list, scm_t_heap_segment*seg)
 	      /* Keep "revealed" ports alive.  */
 	      if (scm_revealed_count (scmptr) > 0)
 		continue;
-	  
+	      
 	      /* Yes, I really do mean scm_ptobs[k].free */
 	      /* rather than ftobs[k].close.  .close */
 	      /* is for explicit CLOSE-PORT by user */
@@ -214,7 +211,6 @@ scm_i_sweep_card (scm_t_cell *  p, SCM *free_list, scm_t_heap_segment*seg)
 	  switch SCM_TYP16 (scmptr)
 	    {
 	    case scm_tc_free_cell:
-	      free_count --;
 	      break;
 	    default:
 	      {
@@ -258,9 +254,8 @@ scm_i_sweep_card (scm_t_cell *  p, SCM *free_list, scm_t_heap_segment*seg)
       SCM_GC_SET_CELL_WORD (scmptr, 0, scm_tc_free_cell);	  
       SCM_SET_FREE_CELL_CDR (scmptr, PTR2SCM (*free_list));
       *free_list = scmptr;
-      free_count ++;
     }
-
+  
   return free_count;
 }
 #undef FUNC_NAME
@@ -270,17 +265,17 @@ scm_i_sweep_card (scm_t_cell *  p, SCM *free_list, scm_t_heap_segment*seg)
   Like sweep, but no complicated logic to do the sweeping.
  */
 int
-scm_i_init_card_freelist (scm_t_cell *  card, SCM *free_list,
-			scm_t_heap_segment*seg)
+scm_i_init_card_freelist (scm_t_cell *card, SCM *free_list,
+			  scm_t_heap_segment *seg)
 {
   int span = seg->span;
   scm_t_cell *end = card + SCM_GC_CARD_N_CELLS;
   scm_t_cell *p = end - span;
-
-  scm_t_c_bvec_long * bvec_ptr =  (scm_t_c_bvec_long* ) seg->bounds[1];
+  int collected = 0;
+  scm_t_c_bvec_long *bvec_ptr = (scm_t_c_bvec_long*) seg->bounds[1];
   int idx = (card  - seg->bounds[0]) / SCM_GC_CARD_N_CELLS; 
 
-  bvec_ptr += idx *SCM_GC_CARD_BVEC_SIZE_IN_LONGS;
+  bvec_ptr += idx * SCM_GC_CARD_BVEC_SIZE_IN_LONGS;
   SCM_GC_SET_CELL_BVEC (card, bvec_ptr);
   
   /*
@@ -292,11 +287,41 @@ scm_i_init_card_freelist (scm_t_cell *  card, SCM *free_list,
       SCM_GC_SET_CELL_WORD (scmptr, 0, scm_tc_free_cell);
       SCM_SET_FREE_CELL_CDR (scmptr, PTR2SCM (*free_list));
       *free_list = scmptr;
+      collected ++;
     }
 
-  return SCM_GC_CARD_N_CELLS - SCM_MAX(span, SCM_GC_CARD_N_HEADER_CELLS);
+  return collected;
 }
 
+/*
+  Classic MIT Hack, see e.g. http://www.tekpool.com/?cat=9
+ */
+int scm_i_uint_bit_count(unsigned int u)
+{
+  unsigned int u_count = u 
+    - ((u >> 1) & 033333333333) 
+    - ((u >> 2) & 011111111111);
+  return 
+    ((u_count + (u_count >> 3)) 
+     & 030707070707) % 63;
+}
+
+/*
+  Amount of cells marked in this cell, measured in 1-cells.
+ */
+int
+scm_i_card_marked_count (scm_t_cell *card, int span)
+{
+  scm_t_c_bvec_long* bvec = SCM_GC_CARD_BVEC (card);
+  scm_t_c_bvec_long* bvec_end = (bvec + SCM_GC_CARD_BVEC_SIZE_IN_LONGS);
+  
+  int count = 0;
+  while (bvec < bvec_end) {
+    count += scm_i_uint_bit_count(*bvec);
+    bvec ++;
+  }
+  return count * span;
+}
 
 void
 scm_i_card_statistics (scm_t_cell *p, SCM hashtab, scm_t_heap_segment *seg)

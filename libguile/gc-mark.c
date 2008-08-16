@@ -183,7 +183,7 @@ Prefetching:
 
 Should prefetch objects before marking, i.e. if marking a cell, we
 should prefetch the car, and then mark the cdr. This will improve CPU
-cache misses, because the car is more likely to be in core when we
+cache misses, because the car is more likely to be in cache when we
 finish the cdr.
 
 See http://www.hpl.hp.com/techreports/2000/HPL-2000-99.pdf, reducing
@@ -415,10 +415,8 @@ scm_gc_mark_dependencies (SCM p)
       }
   }
   
- if (SCM_GC_MARK_P (ptr))
-  {
+  if (SCM_GC_MARK_P (ptr))
     return;
-  }
   
   SCM_SET_GC_MARK (ptr);
 
@@ -426,8 +424,6 @@ scm_gc_mark_dependencies (SCM p)
   
 }
 #undef FUNC_NAME
-
-
 
 
 /* Mark a region conservatively */

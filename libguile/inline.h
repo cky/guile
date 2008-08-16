@@ -119,13 +119,6 @@ scm_cell (scm_t_bits car, scm_t_bits cdr)
       *freelist = SCM_FREE_CELL_CDR (*freelist);
     }
 
-  /*
-    We update scm_cells_allocated from this function. If we don't
-    update this explicitly, we will have to walk a freelist somewhere
-    later on, which seems a lot more expensive.
-   */
-  scm_cells_allocated += 1;  
-
 #if (SCM_DEBUG_CELL_ACCESSES == 1)
     if (scm_debug_cell_accesses_p)
       {
@@ -152,7 +145,6 @@ scm_cell (scm_t_bits car, scm_t_bits cdr)
       threading. What if another thread is doing GC at this point
       ... ?
      */
-      
 #endif
 
   
@@ -189,8 +181,6 @@ scm_double_cell (scm_t_bits car, scm_t_bits cbr,
       z = *freelist;
       *freelist = SCM_FREE_CELL_CDR (*freelist);
     }
-
-  scm_cells_allocated += 2;
 
   /* Initialize the type slot last so that the cell is ignored by the
      GC until it is completely initialized.  This is only relevant

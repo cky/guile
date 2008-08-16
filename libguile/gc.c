@@ -212,8 +212,7 @@ unsigned long scm_last_cells_allocated = 0;
 unsigned long scm_mallocated = 0;
 
 /* Global GC sweep statistics since the last full GC.  */
-static scm_t_sweep_statistics scm_i_gc_sweep_stats = { 0, 0 };
-static scm_t_sweep_statistics scm_i_gc_sweep_stats_1 = { 0, 0 };
+scm_t_sweep_statistics scm_i_gc_sweep_stats = { 0, 0 };
 
 /* Total count of cells marked/swept.  */
 static double scm_gc_cells_marked_acc = 0.;
@@ -221,7 +220,6 @@ static double scm_gc_cells_swept_acc = 0.;
 static double scm_gc_cells_allocated_acc = 0.;
 
 static unsigned long scm_gc_time_taken = 0;
-static unsigned long t_before_gc;
 static unsigned long scm_gc_mark_time_taken = 0;
 
 static unsigned long scm_gc_times = 0;
@@ -246,8 +244,6 @@ SCM_SYMBOL (sym_cells_marked, "cells-marked");
 SCM_SYMBOL (sym_cells_swept, "cells-swept");
 SCM_SYMBOL (sym_malloc_yield, "malloc-yield");
 SCM_SYMBOL (sym_cell_yield, "cell-yield");
-SCM_SYMBOL (sym_min_cell_yield, "min-cell-yield");
-SCM_SYMBOL (sym_min_double_cell_yield, "min-double-cell-yield");
 SCM_SYMBOL (sym_protected_objects, "protected-objects");
 SCM_SYMBOL (sym_total_cells_allocated, "total-cells-allocated");
 
@@ -318,45 +314,32 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
   unsigned long int local_scm_gc_times;
   unsigned long int local_scm_gc_mark_time_taken;
   unsigned long int local_protected_obj_count;
-  unsigned long int local_min_cell_yield;
-  unsigned long int local_min_double_cell_yield;
   double local_scm_gc_cells_swept;
   double local_scm_gc_cells_marked;
   double local_scm_total_cells_allocated;
   SCM answer;
   unsigned long *bounds = 0;
-  int table_size = scm_i_heap_segment_table_size;  
+  int table_size = 0;
   SCM_CRITICAL_SECTION_START;
 
-  /*
-    temporarily store the numbers, so as not to cause GC.
-   */
-  bounds = malloc (sizeof (unsigned long) * table_size * 2);
-  if (!bounds)
-    abort();
-  for (i = table_size; i--; )
-    {
-      bounds[2*i] = (unsigned long)scm_i_heap_segment_table[i]->bounds[0];
-      bounds[2*i+1] = (unsigned long)scm_i_heap_segment_table[i]->bounds[1];
-    }
-
+  bounds = scm_i_segment_table_info (&table_size);
 
   /* Below, we cons to produce the resulting list.  We want a snapshot of
    * the heap situation before consing.
    */
   local_scm_mtrigger = scm_mtrigger;
   local_scm_mallocated = scm_mallocated;
-  local_scm_heap_size = SCM_HEAP_SIZE;
+  local_scm_heap_size =
+    (scm_i_master_freelist.heap_total_cells + scm_i_master_freelist2.heap_total_cells);
 
-  local_scm_cells_allocated = scm_cells_allocated;
-  local_min_cell_yield = scm_i_master_freelist.min_yield;
-  local_min_double_cell_yield = scm_i_master_freelist2.min_yield;
+  local_scm_cells_allocated =
+    scm_cells_allocated + scm_i_gc_sweep_stats.collected;
   
   local_scm_gc_time_taken = scm_gc_time_taken;
   local_scm_gc_mark_time_taken = scm_gc_mark_time_taken;
   local_scm_gc_times = scm_gc_times;
   local_scm_gc_malloc_yield_percentage = scm_gc_malloc_yield_percentage;
-  local_scm_gc_cell_yield_percentage=  scm_gc_cell_yield_percentage;
+  local_scm_gc_cell_yield_percentage = scm_gc_cell_yield_percentage;
   local_protected_obj_count = protected_obj_count;
   local_scm_gc_cells_swept =
     (double) scm_gc_cells_swept_acc
@@ -366,7 +349,7 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
     -(double) scm_i_gc_sweep_stats.collected;
 
   local_scm_total_cells_allocated = scm_gc_cells_allocated_acc
-    + (double) (scm_cells_allocated - scm_last_cells_allocated);
+    + (double) scm_i_gc_sweep_stats.collected;
   
   for (i = table_size; i--;)
     {
@@ -374,6 +357,7 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
 				      scm_from_ulong (bounds[2*i+1])),
 			    heap_segs);
     }
+  
   /* njrev: can any of these scm_cons's or scm_list_n signal a memory
      error?  If so we need a frame here. */
   answer =
@@ -403,10 +387,6 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
 			  scm_from_long (local_scm_gc_cell_yield_percentage)),
 		scm_cons (sym_protected_objects,
 			  scm_from_ulong (local_protected_obj_count)),
-		scm_cons (sym_min_cell_yield,
-			  scm_from_ulong (local_min_cell_yield)),
-		scm_cons (sym_min_double_cell_yield,
-			  scm_from_ulong (local_min_double_cell_yield)),
 		scm_cons (sym_heap_segments, heap_segs),
 		SCM_UNDEFINED);
   SCM_CRITICAL_SECTION_END;
@@ -416,62 +396,25 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
 }
 #undef FUNC_NAME
 
-/* Update the global sweeping/collection statistics by adding SWEEP_STATS to
-   SCM_I_GC_SWEEP_STATS and updating related variables.  */
-static inline void
-gc_update_stats (scm_t_sweep_statistics sweep_stats)
+/*
+  Update nice-to-know-statistics.
+ */
+static void
+gc_end_stats ()
 {
   /* CELLS SWEPT is another word for the number of cells that were examined
      during GC. YIELD is the number that we cleaned out. MARKED is the number
      that weren't cleaned.  */
-
-  scm_gc_cell_yield_percentage = (sweep_stats.collected * 100) / SCM_HEAP_SIZE;
-
-  scm_i_sweep_statistics_sum (&scm_i_gc_sweep_stats, sweep_stats);
-
-  if ((scm_i_gc_sweep_stats.collected > scm_i_gc_sweep_stats.swept)
-      || (scm_cells_allocated < sweep_stats.collected))
-    {
-      printf ("internal GC error, please report to `"
-	      PACKAGE_BUGREPORT "'\n");
-      abort ();
-    }
+  scm_gc_cell_yield_percentage = (scm_i_gc_sweep_stats.collected * 100) /
+    (scm_i_master_freelist.heap_total_cells + scm_i_master_freelist2.heap_total_cells);
 
   scm_gc_cells_allocated_acc +=
-    (double) (scm_cells_allocated - scm_last_cells_allocated);
-
-  scm_cells_allocated -= sweep_stats.collected;
-  scm_last_cells_allocated = scm_cells_allocated;
-}
-
-static void
-gc_start_stats (const char *what SCM_UNUSED)
-{
-  t_before_gc = scm_c_get_internal_run_time ();
-
-  scm_gc_malloc_collected = 0;
-}
-
-static void
-gc_end_stats (scm_t_sweep_statistics sweep_stats)
-{
-  unsigned long t = scm_c_get_internal_run_time ();
-
-  scm_gc_time_taken += (t - t_before_gc);
-
-  /* Reset the number of cells swept/collected since the last full GC.  */
-  scm_i_gc_sweep_stats_1 = scm_i_gc_sweep_stats;
-  scm_i_gc_sweep_stats.collected = scm_i_gc_sweep_stats.swept = 0;
-
-  gc_update_stats (sweep_stats);
-
-  scm_gc_cells_marked_acc += (double) scm_i_gc_sweep_stats.swept
-    - (double) scm_i_gc_sweep_stats.collected;
+    (double) scm_i_gc_sweep_stats.collected;
+  scm_gc_cells_marked_acc += (double) scm_cells_allocated;
   scm_gc_cells_swept_acc += (double) scm_i_gc_sweep_stats.swept;
 
   ++scm_gc_times;
 }
-
 
 SCM_DEFINE (scm_object_address, "object-address", 1, 0, 0,
             (SCM obj),
@@ -519,57 +462,50 @@ scm_gc_for_newcell (scm_t_cell_type_statistics *freelist, SCM *free_cells)
 {
   SCM cell;
   int did_gc = 0;
-  scm_t_sweep_statistics sweep_stats;
 
   scm_i_scm_pthread_mutex_lock (&scm_i_sweep_mutex);
   scm_gc_running_p = 1;
-
-  *free_cells = scm_i_sweep_some_segments (freelist, &sweep_stats);
-  gc_update_stats (sweep_stats);
-
-  if (*free_cells == SCM_EOL && scm_i_gc_grow_heap_p (freelist))
+  
+  *free_cells = scm_i_sweep_for_freelist (freelist);
+  if (*free_cells == SCM_EOL)
     {
-      freelist->heap_segment_idx =
-	scm_i_get_new_heap_segment (freelist,
-				    scm_i_gc_sweep_stats,
-				    abort_on_error);
+      float delta = scm_i_gc_heap_size_delta (freelist);
+      if (delta > 0.0)
+	{
+	  size_t bytes = ((unsigned long) delta) * sizeof (scm_t_cell);
+	  freelist->heap_segment_idx =
+	    scm_i_get_new_heap_segment (freelist, bytes, abort_on_error);
 
-      *free_cells = scm_i_sweep_some_segments (freelist, &sweep_stats);
-      gc_update_stats (sweep_stats);
+	  *free_cells = scm_i_sweep_for_freelist (freelist);
+	}
     }
-
+  
   if (*free_cells == SCM_EOL)
     {
       /*
-	with the advent of lazy sweep, GC yield is only known just
-	before doing the GC.
-      */
-      scm_i_adjust_min_yield (freelist,
-			      scm_i_gc_sweep_stats,
-			      scm_i_gc_sweep_stats_1);
-
-      /*
 	out of fresh cells. Try to get some new ones.
        */
+      char reason[] = "0-cells";
+      reason[0] += freelist->span;
+      
       did_gc = 1;
-      scm_i_gc ("cells");
+      scm_i_gc (reason);
 
-      *free_cells = scm_i_sweep_some_segments (freelist, &sweep_stats);
-      gc_update_stats (sweep_stats);
+      *free_cells = scm_i_sweep_for_freelist (freelist);
     }
   
   if (*free_cells == SCM_EOL)
     {
       /*
 	failed getting new cells. Get new juice or die.
-       */
+      */
+      float delta = scm_i_gc_heap_size_delta (freelist);
+      assert (delta > 0.0);
+      size_t bytes = ((unsigned long) delta) * sizeof (scm_t_cell);
       freelist->heap_segment_idx =
-	scm_i_get_new_heap_segment (freelist,
-				    scm_i_gc_sweep_stats,
-				    abort_on_error);
+	scm_i_get_new_heap_segment (freelist, bytes, abort_on_error);
 
-      *free_cells = scm_i_sweep_some_segments (freelist, &sweep_stats);
-      gc_update_stats (sweep_stats);
+      *free_cells = scm_i_sweep_for_freelist (freelist);
     }
   
   if (*free_cells == SCM_EOL)
@@ -595,46 +531,9 @@ scm_t_c_hook scm_before_sweep_c_hook;
 scm_t_c_hook scm_after_sweep_c_hook;
 scm_t_c_hook scm_after_gc_c_hook;
 
-/* Must be called while holding scm_i_sweep_mutex.
- */
-
-void
-scm_i_gc (const char *what)
+static void
+scm_check_deprecated_memory_return()
 {
-  scm_t_sweep_statistics sweep_stats;
-
-  scm_i_thread_put_to_sleep ();
-
-  scm_c_hook_run (&scm_before_gc_c_hook, 0);
-
-#ifdef DEBUGINFO
-  fprintf (stderr,"gc reason %s\n", what);
-  
-  fprintf (stderr,
-	   scm_is_null (*SCM_FREELIST_LOC (scm_i_freelist))
-	   ? "*"
-	   : (scm_is_null (*SCM_FREELIST_LOC (scm_i_freelist2)) ? "o" : "m"));
-#endif
-
-  gc_start_stats (what);
-
-  /*
-    Set freelists to NULL so scm_cons() always triggers gc, causing
-    the assertion above to fail.
-  */
-  *SCM_FREELIST_LOC (scm_i_freelist) = SCM_EOL;
-  *SCM_FREELIST_LOC (scm_i_freelist2) = SCM_EOL;
-  
-  /*
-    Let's finish the sweep. The conservative GC might point into the
-    garbage, and marking that would create a mess.
-   */
-  scm_i_sweep_all_segments ("GC", &sweep_stats);
-
-  /* Invariant: the number of cells collected (i.e., freed) must always be
-     lower than or equal to the number of cells "swept" (i.e., visited).  */
-  assert (sweep_stats.collected <= sweep_stats.swept);
-
   if (scm_mallocated < scm_i_deprecated_memory_return)
     {
       /* The byte count of allocated objects has underflowed.  This is
@@ -649,14 +548,65 @@ scm_i_gc (const char *what)
       abort ();
     }
   scm_mallocated -= scm_i_deprecated_memory_return;
+  scm_i_deprecated_memory_return = 0;
+}
 
+/* Must be called while holding scm_i_sweep_mutex.
+
+   This function is fairly long, but it touches various global
+   variables. To not obscure the side effects on global variables,
+   this function has not been split up.
+ */
+void
+scm_i_gc (const char *what)
+{
+  unsigned long t_before_gc = 0;
   
-  /* Mark */
+  scm_i_thread_put_to_sleep ();
+  
+  scm_c_hook_run (&scm_before_gc_c_hook, 0);
 
+#ifdef DEBUGINFO
+  fprintf (stderr,"gc reason %s\n", what);
+  fprintf (stderr,
+	   scm_is_null (*SCM_FREELIST_LOC (scm_i_freelist))
+	   ? "*"
+	   : (scm_is_null (*SCM_FREELIST_LOC (scm_i_freelist2)) ? "o" : "m"));
+#endif
+
+  t_before_gc = scm_c_get_internal_run_time ();
+  scm_gc_malloc_collected = 0;
+
+  /*
+    Set freelists to NULL so scm_cons() always triggers gc, causing
+    the assertion above to fail.
+  */
+  *SCM_FREELIST_LOC (scm_i_freelist) = SCM_EOL;
+  *SCM_FREELIST_LOC (scm_i_freelist2) = SCM_EOL;
+  
+  /*
+    Let's finish the sweep. The conservative GC might point into the
+    garbage, and marking that would create a mess.
+   */
+  scm_i_sweep_all_segments ("GC", &scm_i_gc_sweep_stats);
+  scm_check_deprecated_memory_return();
+
+  /* Sanity check our numbers. */
+  assert (scm_cells_allocated == scm_i_marked_count ());
+  assert (scm_i_gc_sweep_stats.swept
+	  == (scm_i_master_freelist.heap_total_cells
+	      + scm_i_master_freelist2.heap_total_cells));
+  assert (scm_i_gc_sweep_stats.collected + scm_cells_allocated
+	  == scm_i_gc_sweep_stats.swept);
+
+  /* Mark */
   scm_c_hook_run (&scm_before_mark_c_hook, 0);
+
   scm_mark_all ();
   scm_gc_mark_time_taken += (scm_c_get_internal_run_time () - t_before_gc);
 
+  scm_cells_allocated = scm_i_marked_count ();
+ 
   /* Sweep
 
     TODO: the after_sweep hook should probably be moved to just before
@@ -682,15 +632,35 @@ scm_i_gc (const char *what)
     distinct classes of hook functions since this can prevent some
     bad interference when several modules adds gc hooks.
    */
-
   scm_c_hook_run (&scm_before_sweep_c_hook, 0);
-  scm_gc_sweep ();
+
+  /*
+    Nothing here: lazy sweeping.
+   */
+  scm_i_reset_segments ();
+  
+  *SCM_FREELIST_LOC (scm_i_freelist) = SCM_EOL;
+  *SCM_FREELIST_LOC (scm_i_freelist2) = SCM_EOL;
+
+  /* Invalidate the freelists of other threads. */
+  scm_i_thread_invalidate_freelists ();
+  assert(scm_cells_allocated == scm_i_marked_count ());
+
   scm_c_hook_run (&scm_after_sweep_c_hook, 0);
 
-  gc_end_stats (sweep_stats);
+  gc_end_stats ();
+  assert(scm_cells_allocated == scm_i_marked_count ());
 
+  scm_i_gc_sweep_stats.collected = scm_i_gc_sweep_stats.swept = 0;
+  scm_i_gc_sweep_freelist_reset (&scm_i_master_freelist);
+  scm_i_gc_sweep_freelist_reset (&scm_i_master_freelist2);
+  
+  /* Arguably, this statistic is fairly useless: marking will dominate
+     the time taken.
+  */
+  scm_gc_time_taken += (scm_c_get_internal_run_time () - t_before_gc);
+  assert(scm_cells_allocated == scm_i_marked_count ());
   scm_i_thread_wake_up ();
-
   /*
     For debugging purposes, you could do
     scm_i_sweep_all_segments("debug"), but then the remains of the
@@ -975,8 +945,6 @@ scm_init_storage ()
   scm_gc_init_freelist();
   scm_gc_init_malloc ();
 
-  j = SCM_HEAP_SEG_SIZE;
-  
 #if 0
   /* We can't have a cleanup handler since we have no thread to run it
      in. */
@@ -1121,21 +1089,6 @@ void
 scm_gc_sweep (void)
 #define FUNC_NAME "scm_gc_sweep"
 {
-  scm_i_deprecated_memory_return = 0;
-
-  scm_i_gc_sweep_freelist_reset (&scm_i_master_freelist);
-  scm_i_gc_sweep_freelist_reset (&scm_i_master_freelist2);
-
-  /*
-    NOTHING HERE: LAZY SWEEPING ! 
-   */
-  scm_i_reset_segments ();
-  
-  *SCM_FREELIST_LOC (scm_i_freelist) = SCM_EOL;
-  *SCM_FREELIST_LOC (scm_i_freelist2) = SCM_EOL;
-
-  /* Invalidate the freelists of other threads. */
-  scm_i_thread_invalidate_freelists ();
 }
 
 #undef FUNC_NAME
