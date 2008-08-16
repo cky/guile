@@ -115,12 +115,14 @@ scm_i_insert_segment (scm_t_heap_segment *seg)
 
   I think this function is too long to be inlined. --hwn
 */
+
 int
 scm_i_find_heap_segment_containing_object (SCM obj)
 {
   if (!CELL_P (obj))
     return -1;
 
+  scm_i_find_heap_calls ++;
   if ((scm_t_cell *) obj < lowest_cell || (scm_t_cell *) obj >= highest_cell)
     return -1;
   

@@ -44,6 +44,7 @@ scm_i_get_new_heap_segment (scm_t_cell_type_statistics *freelist,
   if (len < SCM_MIN_HEAP_SEG_SIZE)
     len = SCM_MIN_HEAP_SEG_SIZE;
 
+  /* todo: consider having a more flexible lower bound. */
   {
     scm_t_heap_segment *seg = scm_i_make_empty_heap_segment (freelist);
 

@@ -210,7 +210,7 @@ unsigned long scm_mtrigger;
 unsigned long scm_cells_allocated = 0;
 unsigned long scm_last_cells_allocated = 0;
 unsigned long scm_mallocated = 0;
-
+long int scm_i_find_heap_calls = 0;
 /* Global GC sweep statistics since the last full GC.  */
 scm_t_sweep_statistics scm_i_gc_sweep_stats = { 0, 0 };
 
@@ -241,6 +241,7 @@ SCM_SYMBOL (sym_gc_time_taken, "gc-time-taken");
 SCM_SYMBOL (sym_gc_mark_time_taken, "gc-mark-time-taken");
 SCM_SYMBOL (sym_times, "gc-times");
 SCM_SYMBOL (sym_cells_marked, "cells-marked");
+SCM_SYMBOL (sym_cells_marked_conservatively, "cells-marked-conservatively");
 SCM_SYMBOL (sym_cells_swept, "cells-swept");
 SCM_SYMBOL (sym_malloc_yield, "malloc-yield");
 SCM_SYMBOL (sym_cell_yield, "cell-yield");
@@ -314,6 +315,7 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
   unsigned long int local_scm_gc_times;
   unsigned long int local_scm_gc_mark_time_taken;
   unsigned long int local_protected_obj_count;
+  unsigned long int local_conservative_scan_count;
   double local_scm_gc_cells_swept;
   double local_scm_gc_cells_marked;
   double local_scm_total_cells_allocated;
@@ -327,6 +329,7 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
   /* Below, we cons to produce the resulting list.  We want a snapshot of
    * the heap situation before consing.
    */
+  local_conservative_scan_count = scm_i_find_heap_calls;
   local_scm_mtrigger = scm_mtrigger;
   local_scm_mallocated = scm_mallocated;
   local_scm_heap_size =
@@ -369,6 +372,8 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
 			  scm_from_double (local_scm_total_cells_allocated)),
 		scm_cons (sym_heap_size,
 			  scm_from_ulong (local_scm_heap_size)),
+		scm_cons (sym_cells_marked_conservatively,
+			  scm_from_ulong (local_conservative_scan_count)),
 		scm_cons (sym_mallocated,
 			  scm_from_ulong (local_scm_mallocated)),
 		scm_cons (sym_mtrigger,

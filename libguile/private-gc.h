@@ -275,6 +275,7 @@ SCM_INTERNAL SCM scm_i_all_segments_statistics (SCM hashtab);
 SCM_INTERNAL unsigned long *scm_i_segment_table_info(int *size);
 
 extern long int scm_i_deprecated_memory_return;
+extern long int scm_i_find_heap_calls;
 
 /*
   global init funcs.

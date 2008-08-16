@@ -78,7 +78,7 @@ scm_mark_all (void)
   scm_i_init_guardians_for_gc ();
   
   scm_i_clear_mark_space ();
-  
+  scm_i_find_heap_calls = 0;
   /* Mark every thread's stack and registers */
   scm_threads_mark_stacks ();
 
@@ -404,7 +404,7 @@ scm_gc_mark_dependencies (SCM p)
       {
     /* We are in debug mode.  Check the ptr exhaustively. */
 	
-	valid_cell = valid_cell && (scm_i_find_heap_segment_containing_object (ptr) >= 0);
+	valid_cell = valid_cell && scm_in_heap_p (ptr);
       }
     
 #endif
