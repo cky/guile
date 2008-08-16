@@ -32,18 +32,6 @@
  * 64 bit machine.  The units of the _SIZE parameters are bytes.
  * Cons pairs and object headers occupy one heap cell.
  *
- * SCM_INIT_HEAP_SIZE is the initial size of heap.  If this much heap is
- * allocated initially the heap will grow by half its current size
- * each subsequent time more heap is needed.
- *
- * If SCM_INIT_HEAP_SIZE heap cannot be allocated initially, SCM_HEAP_SEG_SIZE
- * will be used, and the heap will grow by SCM_HEAP_SEG_SIZE when more
- * heap is needed.  SCM_HEAP_SEG_SIZE must fit into type size_t.  This code
- * is in scm_init_storage() and alloc_some_heap() in sys.c
- *
- * If SCM_INIT_HEAP_SIZE can be allocated initially, the heap will grow by
- * SCM_EXPHEAP(scm_heap_size) when more heap is needed.
- *
  * SCM_MIN_HEAP_SEG_SIZE is minimum size of heap to accept when more heap
  * is needed.
  */
