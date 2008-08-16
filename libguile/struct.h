@@ -79,6 +79,15 @@ SCM_API SCM scm_struct_table;
 
 #define SCM_STRUCT_GC_CHAIN(X) SCM_CELL_OBJECT_3 (X)
 #define SCM_SET_STRUCT_GC_CHAIN(X, Y) SCM_SET_CELL_OBJECT_3 (X, Y)
+
+/* For clearing structs. We can't use the regular GC mark bits, as
+   meddling with them at random times would mess up the invariants of
+   the garbage collector.
+ */
+#define SCM_STRUCT_MARK_P(X) SCM_CELL_WORD_2 (X)
+#define SCM_SET_STRUCT_MARK(X) SCM_SET_CELL_WORD_2 (X, 0x1)
+#define SCM_CLEAR_STRUCT_MARK(X) SCM_SET_CELL_WORD_2 (X, 0x0)
+
 SCM_INTERNAL SCM scm_i_structs_to_free;
 
 
