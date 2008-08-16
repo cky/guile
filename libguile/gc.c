@@ -216,6 +216,7 @@ scm_t_sweep_statistics scm_i_gc_sweep_stats = { 0, 0 };
 
 /* Total count of cells marked/swept.  */
 static double scm_gc_cells_marked_acc = 0.;
+static double scm_gc_cells_marked_conservatively_acc = 0.;
 static double scm_gc_cells_swept_acc = 0.;
 static double scm_gc_cells_allocated_acc = 0.;
 
@@ -315,9 +316,9 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
   unsigned long int local_scm_gc_times;
   unsigned long int local_scm_gc_mark_time_taken;
   unsigned long int local_protected_obj_count;
-  unsigned long int local_conservative_scan_count;
   double local_scm_gc_cells_swept;
   double local_scm_gc_cells_marked;
+  double local_scm_gc_cells_marked_conservatively;
   double local_scm_total_cells_allocated;
   SCM answer;
   unsigned long *bounds = 0;
@@ -329,7 +330,6 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
   /* Below, we cons to produce the resulting list.  We want a snapshot of
    * the heap situation before consing.
    */
-  local_conservative_scan_count = scm_i_find_heap_calls;
   local_scm_mtrigger = scm_mtrigger;
   local_scm_mallocated = scm_mallocated;
   local_scm_heap_size =
@@ -348,8 +348,10 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
     (double) scm_gc_cells_swept_acc
     + (double) scm_i_gc_sweep_stats.swept;
   local_scm_gc_cells_marked = scm_gc_cells_marked_acc 
-    +(double) scm_i_gc_sweep_stats.swept
-    -(double) scm_i_gc_sweep_stats.collected;
+    + (double) scm_i_gc_sweep_stats.swept
+    - (double) scm_i_gc_sweep_stats.collected;
+  local_scm_gc_cells_marked_conservatively
+    = scm_gc_cells_marked_conservatively_acc;
 
   local_scm_total_cells_allocated = scm_gc_cells_allocated_acc
     + (double) scm_i_gc_sweep_stats.collected;
@@ -373,7 +375,7 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
 		scm_cons (sym_heap_size,
 			  scm_from_ulong (local_scm_heap_size)),
 		scm_cons (sym_cells_marked_conservatively,
-			  scm_from_ulong (local_conservative_scan_count)),
+			  scm_from_ulong (local_scm_gc_cells_marked_conservatively)),
 		scm_cons (sym_mallocated,
 			  scm_from_ulong (local_scm_mallocated)),
 		scm_cons (sym_mtrigger,
@@ -416,6 +418,7 @@ gc_end_stats ()
   scm_gc_cells_allocated_acc +=
     (double) scm_i_gc_sweep_stats.collected;
   scm_gc_cells_marked_acc += (double) scm_cells_allocated;
+  scm_gc_cells_marked_conservatively_acc += (double) scm_i_find_heap_calls;
   scm_gc_cells_swept_acc += (double) scm_i_gc_sweep_stats.swept;
 
   ++scm_gc_times;
@@ -597,6 +600,9 @@ scm_i_gc (const char *what)
   scm_check_deprecated_memory_return();
 
   /* Sanity check our numbers. */
+
+  /* If this was not true, someone touched mark bits outside of the
+     mark phase. */
   assert (scm_cells_allocated == scm_i_marked_count ());
   assert (scm_i_gc_sweep_stats.swept
 	  == (scm_i_master_freelist.heap_total_cells
@@ -649,12 +655,10 @@ scm_i_gc (const char *what)
 
   /* Invalidate the freelists of other threads. */
   scm_i_thread_invalidate_freelists ();
-  assert(scm_cells_allocated == scm_i_marked_count ());
 
   scm_c_hook_run (&scm_after_sweep_c_hook, 0);
 
   gc_end_stats ();
-  assert(scm_cells_allocated == scm_i_marked_count ());
 
   scm_i_gc_sweep_stats.collected = scm_i_gc_sweep_stats.swept = 0;
   scm_i_gc_sweep_freelist_reset (&scm_i_master_freelist);
