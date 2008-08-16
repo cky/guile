@@ -73,6 +73,7 @@ scm_mark_all (void)
   long j;
   int loops;
 
+  scm_i_marking = 1;
   scm_i_init_weak_vectors_for_gc ();
   scm_i_init_guardians_for_gc ();
   
@@ -139,8 +140,6 @@ scm_mark_all (void)
       break;
     }
 
-  /* fprintf (stderr, "%d loops\n", loops); */
-
   /* Remove all unmarked entries from the weak vectors.
    */
   scm_i_remove_weaks_from_weak_vectors ();
@@ -148,6 +147,7 @@ scm_mark_all (void)
   /* Bring hashtables upto date.
    */
   scm_i_scan_weak_hashtables ();
+  scm_i_marking = 0;
 }
 
 /* {Mark/Sweep}
@@ -167,6 +167,12 @@ scm_gc_mark (SCM ptr)
 
   SCM_SET_GC_MARK (ptr);
   scm_gc_mark_dependencies (ptr);
+}
+
+void
+ensure_marking (void)
+{
+  assert (scm_i_marking);
 }
 
 /*

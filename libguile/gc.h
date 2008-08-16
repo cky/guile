@@ -155,6 +155,8 @@ typedef unsigned long scm_t_c_bvec_long;
 
 /* testing and changing GC marks */
 #define SCM_GC_MARK_P(x)   SCM_GC_CELL_GET_BIT (x)
+
+void ensure_marking(void);
 #define SCM_SET_GC_MARK(x) SCM_GC_CELL_SET_BIT (x)
 #define SCM_CLEAR_GC_MARK(x) SCM_GC_CELL_CLEAR_BIT (x)
 

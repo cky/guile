@@ -191,6 +191,11 @@ int scm_i_gc_grow_heap_p (scm_t_cell_type_statistics * freelist);
 /*
   gc-mark
  */
+
+/* this can be used to ensure that set/clear gc marks only happen when
+   allowed. */
+int scm_i_marking;
+
 void scm_mark_all (void);
 
 /*
