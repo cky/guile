@@ -25,6 +25,7 @@
  */
 
 #include <stdio.h>
+#include <assert.h>
 
 #include "libguile/_scm.h"
 #include "libguile/alist.h"
@@ -1705,11 +1706,10 @@ go_to_hell (void *o)
 {
   SCM obj = SCM_PACK ((scm_t_bits) o);
   scm_lock_mutex (hell_mutex);
-  if (n_hell == hell_size)
+  if (n_hell >= hell_size)
     {
-      long new_size = 2 * hell_size;
-      hell = scm_realloc (hell, new_size);
-      hell_size = new_size;
+      hell_size *= 2;
+      hell = scm_realloc (hell, hell_size * sizeof(scm_t_bits));
     }
   hell[n_hell++] = SCM_STRUCT_DATA (obj);
   scm_unlock_mutex (hell_mutex);
@@ -2995,7 +2995,7 @@ scm_init_goops_builtins (void)
 
   list_of_no_method = scm_permanent_object (scm_list_1 (sym_no_method));
 
-  hell = scm_malloc (hell_size);
+  hell = scm_calloc (hell_size * sizeof(scm_t_bits));
   hell_mutex = scm_permanent_object (scm_make_mutex ());
 
   create_basic_classes ();
