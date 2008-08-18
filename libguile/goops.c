@@ -1709,7 +1709,7 @@ go_to_hell (void *o)
   if (n_hell >= hell_size)
     {
       hell_size *= 2;
-      hell = scm_realloc (hell, hell_size * sizeof(scm_t_bits));
+      hell = scm_realloc (hell, hell_size * sizeof(*hell));
     }
   hell[n_hell++] = SCM_STRUCT_DATA (obj);
   scm_unlock_mutex (hell_mutex);
