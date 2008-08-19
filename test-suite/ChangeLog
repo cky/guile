@@ -1,3 +1,8 @@
+2008-08-19  Ludovic Courtès  <ludo@gnu.org>
+
+	* tests/goops.test (object update)[changing class, `hell' in
+	`goops.c' grows as expected]: New tests.
+
 2008-07-06  Ludovic Courtès  <ludo@gnu.org>
 
 	* standalone/test-asmobs, standalone/test-bad-identifiers,

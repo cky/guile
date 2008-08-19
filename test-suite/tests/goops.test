@@ -18,7 +18,8 @@
 ;;;; Boston, MA 02110-1301 USA
 
 (define-module (test-suite test-goops)
-  #:use-module (test-suite lib))
+  #:use-module (test-suite lib)
+  #:autoload   (srfi srfi-1)    (unfold))
 
 (pass-if "GOOPS loads"
 	 (false-if-exception
@@ -277,7 +278,77 @@
 	     (y #:accessor y #:init-value 456)
 	     (z #:accessor z #:init-value 789))
 	  (current-module))
-    (eval '(and (= (y foo) 456) (= (z foo) 789)) (current-module))))
+    (eval '(and (= (y foo) 456) (= (z foo) 789)) (current-module)))
+
+  (pass-if "changing class"
+    (let* ((c1 (class () (the-slot #:init-keyword #:value)))
+           (c2 (class () (the-slot #:init-keyword #:value)
+                         (the-other-slot #:init-value 888)))
+           (o1 (make c1 #:value 777)))
+      (and (is-a? o1 c1)
+           (not (is-a? o1 c2))
+           (equal? (slot-ref o1 'the-slot) 777)
+           (let ((o2 (change-class o1 c2)))
+             (and (eq? o1 o2)
+                  (is-a? o2 c2)
+                  (not (is-a? o2 c1))
+                  (equal? (slot-ref o2 'the-slot) 777))))))
+
+  (pass-if "`hell' in `goops.c' grows as expected"
+    ;; This snippet yielded a segfault prior to the 2008-08-19 `goops.c'
+    ;; fix (i.e., Guile 1.8.5 and earlier).  The root of the problem was
+    ;; that `go_to_hell ()' would not reallocate enough room for the `hell'
+    ;; array, leading to out-of-bounds accesses.
+
+    (let* ((parent-class (class ()
+                           #:name '<class-that-will-be-redefined>))
+           (classes
+            (unfold (lambda (i) (>= i 20))
+                    (lambda (i)
+                      (make-class (list parent-class)
+                                  '((the-slot #:init-value #:value)
+                                    (the-other-slot))
+                                  #:name (string->symbol
+                                          (string-append "<foo-to-redefine-"
+                                                         (number->string i)
+                                                         ">"))))
+                    (lambda (i)
+                      (+ 1 i))
+                    0))
+           (objects
+            (map (lambda (class)
+                   (make class #:value 777))
+                 classes)))
+
+      (define-method (change-class (foo parent-class)
+                                   (new <class>))
+        ;; Called by `scm_change_object_class ()', via `purgatory ()'.
+        (if (null? classes)
+            (next-method)
+            (let ((class  (car classes))
+                  (object (car objects)))
+              (set! classes (cdr classes))
+              (set! objects (cdr objects))
+
+              ;; Redefine the class so that its instances are eventually
+              ;; passed to `scm_change_object_class ()'.  This leads to
+              ;; nested `scm_change_object_class ()' calls, which increases
+              ;; the size of HELL and increments N_HELL.
+              (class-redefinition class
+                                  (make-class '() (class-slots class)
+                                              #:name (class-name class)))
+
+              ;; Use `slot-ref' to trigger the `scm_change_object_class ()'
+              ;; and `go_to_hell ()' calls.
+              (slot-ref object 'the-slot)
+
+              (next-method))))
+
+
+      ;; Initiate the whole `change-class' chain.
+      (let* ((class  (car classes))
+             (object (change-class (car objects) class)))
+        (is-a? object class)))))
 
 (with-test-prefix "object comparison"
   (pass-if "default method"
