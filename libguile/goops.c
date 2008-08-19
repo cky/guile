@@ -2995,7 +2995,7 @@ scm_init_goops_builtins (void)
 
   list_of_no_method = scm_permanent_object (scm_list_1 (sym_no_method));
 
-  hell = scm_calloc (hell_size * sizeof(scm_t_bits));
+  hell = scm_calloc (hell_size * sizeof (*hell));
   hell_mutex = scm_permanent_object (scm_make_mutex ());
 
   create_basic_classes ();
