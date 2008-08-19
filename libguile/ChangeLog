@@ -1,3 +1,10 @@
+2008-08-19  Han-Wen Nienhuys  <hanwen@lilypond.org>
+	    Ludovic Courtès  <ludo@gnu.org>
+
+	* goops.c (scm_init_goops_builtins, go_to_hell): Fix allocation
+	of `hell' by passing "hell_size * sizeof (*hell)" instead of
+	"hell_size" to `scm_malloc ()' and `scm_realloc ()'.
+
 2008-08-02  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* numbers.c (scm_rationalize): Update docstring to match the
