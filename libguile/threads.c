@@ -18,8 +18,6 @@
 
 
 
-#define _GNU_SOURCE
-
 #include "libguile/_scm.h"
 
 #if HAVE_UNISTD_H

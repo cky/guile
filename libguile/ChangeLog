@@ -1,3 +1,9 @@
+2008-08-20  Ludovic Courtès  <ludo@gnu.org>
+
+	* eval.c, filesys.c, gc.c, numbers.c, stime.c, threads.c: Don't
+	define `_GNU_SOURCE' explicitly as it's now defined in
+	<config.h> thanks to `AC_USE_SYSTEM_EXTENSIONS'.
+
 2008-08-19  Han-Wen Nienhuys  <hanwen@lilypond.org>
 	    Ludovic Courtès  <ludo@gnu.org>
 

@@ -19,7 +19,6 @@
 
 
 /* See stime.c for comments on why _POSIX_C_SOURCE is not always defined. */
-#define _GNU_SOURCE              /* ask glibc for everything */
 #define _LARGEFILE64_SOURCE      /* ask for stat64 etc */
 #ifdef __hpux
 #define _POSIX_C_SOURCE 199506L  /* for readdir_r */
