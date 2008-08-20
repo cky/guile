@@ -3,10 +3,6 @@ bin_SCRIPTS = guilec guile-disasm
 guile_vm_SOURCES = guile-vm.c
 guile_vm_LDADD = libguile-vm.la ../libguile/libguile.la
 
-AM_CFLAGS = -Wall -g
-
-CFLAGS:=$(filter-out -Wmissing-prototypes,$(CFLAGS))
-
 lib_LTLIBRARIES = libguile-vm.la
 libguile_vm_la_SOURCES =						\
 	bootstrap.h 							\

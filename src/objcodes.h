@@ -62,6 +62,9 @@ extern scm_t_bits scm_tc16_objcode;
 
 extern SCM scm_load_objcode (SCM file);
 extern SCM scm_objcode_to_program (SCM objcode);
+extern SCM scm_objcode_p (SCM obj);
+extern SCM scm_bytecode_to_objcode (SCM bytecode, SCM nlocs, SCM nexts);
+extern SCM scm_objcode_to_u8vector (SCM objcode);
 
 extern void scm_bootstrap_objcodes (void);
 extern void scm_init_objcodes (void);

@@ -79,6 +79,14 @@ struct scm_instruction {
 extern struct scm_instruction scm_instruction_table[];
 extern struct scm_instruction *scm_lookup_instruction (SCM name);
 
+extern SCM scm_instruction_list (void);
+extern SCM scm_instruction_p (SCM obj);
+extern SCM scm_instruction_length (SCM inst);
+extern SCM scm_instruction_pops (SCM inst);
+extern SCM scm_instruction_pushes (SCM inst);
+extern SCM scm_instruction_to_opcode (SCM inst);
+extern SCM scm_opcode_to_instruction (SCM op);
+
 extern void scm_bootstrap_instructions (void);
 extern void scm_init_instructions (void);
 

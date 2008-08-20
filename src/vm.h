@@ -80,6 +80,30 @@ extern SCM scm_vm_apply (SCM vm, SCM program, SCM args);
 extern SCM scm_vm_option_ref (SCM vm, SCM key);
 extern SCM scm_vm_option_set_x (SCM vm, SCM key, SCM val);
 
+extern SCM scm_vm_version (void);
+extern SCM scm_the_vm (void);
+extern SCM scm_vm_p (SCM obj);
+extern SCM scm_vm_ip (SCM vm);
+extern SCM scm_vm_sp (SCM vm);
+extern SCM scm_vm_fp (SCM vm);
+extern SCM scm_vm_boot_hook (SCM vm);
+extern SCM scm_vm_halt_hook (SCM vm);
+extern SCM scm_vm_next_hook (SCM vm);
+extern SCM scm_vm_break_hook (SCM vm);
+extern SCM scm_vm_enter_hook (SCM vm);
+extern SCM scm_vm_apply_hook (SCM vm);
+extern SCM scm_vm_exit_hook (SCM vm);
+extern SCM scm_vm_return_hook (SCM vm);
+extern SCM scm_vm_option (SCM vm, SCM key);
+extern SCM scm_set_vm_option_x (SCM vm, SCM key, SCM val);
+extern SCM scm_vm_stats (SCM vm);
+extern SCM scm_vm_this_frame (SCM vm);
+extern SCM scm_vm_last_frame (SCM vm);
+extern SCM scm_vm_last_ip (SCM vm);
+extern SCM scm_vm_save_stack (SCM vm);
+extern SCM scm_vm_fetch_code (SCM vm);
+extern SCM scm_vm_fetch_stack (SCM vm);
+
 extern SCM scm_load_compiled_with_vm (SCM file);
 
 extern void scm_init_vm (void);

@@ -72,6 +72,15 @@ extern scm_t_bits scm_tc16_program;
 extern SCM scm_c_make_program (void *addr, size_t size, SCM holder);
 extern SCM scm_c_make_closure (SCM program, SCM external);
 
+extern SCM scm_program_p (SCM obj);
+extern SCM scm_program_base (SCM program);
+extern SCM scm_program_arity (SCM program);
+extern SCM scm_program_meta (SCM program);
+extern SCM scm_program_objects (SCM program);
+extern SCM scm_program_external (SCM program);
+extern SCM scm_program_external_set_x (SCM program, SCM external);
+extern SCM scm_program_bytecode (SCM program);
+
 extern void scm_bootstrap_programs (void);
 extern void scm_init_programs (void);
 

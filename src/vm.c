@@ -44,6 +44,7 @@
 #endif
 
 #include <string.h>
+#include "bootstrap.h"
 #include "frames.h"
 #include "instructions.h"
 #include "objcodes.h"
@@ -175,7 +176,9 @@ vm_heapify_frames_1 (struct scm_vm *vp, SCM *fp, SCM *sp, SCM **destp)
 {
   SCM frame;
   SCM *dl = SCM_FRAME_DYNAMIC_LINK (fp);
+#if 0
   SCM *src = SCM_FRAME_UPPER_ADDRESS (fp);
+#endif
   SCM *dest = SCM_FRAME_LOWER_ADDRESS (fp);
 
   if (!dl)
@@ -336,7 +339,7 @@ SCM_DEFINE (scm_vm_version, "vm-version", 0, 0, 0,
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_the_vm, "the-vm", 0, 0, 0,
-	    (),
+	    (void),
 	    "")
 #define FUNC_NAME s_scm_the_vm
 {

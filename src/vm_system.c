@@ -490,14 +490,15 @@ VM_DEFINE_INSTRUCTION (call, "call", 1, -1, 1)
    */
   if (SCM_VM_CONT_P (x))
     {
+      program = x;
     vm_call_cc:
       /* Check the number of arguments */
       if (nargs != 1)
-	scm_wrong_num_args (x);
+	scm_wrong_num_args (program);
 
       /* Reinstate the continuation */
       EXIT_HOOK ();
-      reinstate_vm_cont (vp, x);
+      reinstate_vm_cont (vp, program);
       CACHE_REGISTER ();
       program = SCM_FRAME_PROGRAM (fp);
       CACHE_PROGRAM ();
@@ -607,13 +608,15 @@ VM_DEFINE_INSTRUCTION (tail_call, "tail-call", 1, -1, 1)
       *sp = scm_apply (x, args, SCM_EOL);
       goto vm_return;
     }
+
+  program = x;
+
   /*
    * Continuation call
    */
-  if (SCM_VM_CONT_P (x))
+  if (SCM_VM_CONT_P (program))
     goto vm_call_cc;
 
-  program = x;
   goto vm_error_wrong_type_apply;
 }
 
