@@ -103,16 +103,6 @@ VM_DEFINE_LOADER (load_keyword, "load-keyword")
   NEXT;
 }
 
-VM_DEFINE_LOADER (load_module, "load-module")
-{
-  size_t len;
-  FETCH_LENGTH (len);
-  SYNC_REGISTER ();
-  PUSH (scm_c_lookup_env (scm_from_locale_symboln ((char *)ip, len)));
-  ip += len;
-  NEXT;
-}
-
 VM_DEFINE_LOADER (load_program, "load-program")
 {
   size_t len;

@@ -10,14 +10,14 @@ CFLAGS:=$(filter-out -Wmissing-prototypes,$(CFLAGS))
 lib_LTLIBRARIES = libguile-vm.la
 libguile_vm_la_SOURCES =						\
 	bootstrap.h 							\
-	envs.c frames.c instructions.c objcodes.c programs.c vm.c	\
-	envs.h frames.h instructions.h objcodes.h programs.h vm.h	\
+	frames.c instructions.c objcodes.c programs.c vm.c	\
+	frames.h instructions.h objcodes.h programs.h vm.h	\
 	vm_engine.h vm_expand.h
 libguile_vm_la_LDFLAGS = -version-info 0:0:0 -export-dynamic
 EXTRA_DIST = vm_engine.c vm_system.c vm_scheme.c vm_loader.c \
              guilec.in guile-disasm.in
 BUILT_SOURCES = vm_system.i vm_scheme.i vm_loader.i \
-	envs.x frames.x instructions.x objcodes.x programs.x vm.x
+	frames.x instructions.x objcodes.x programs.x vm.x
 
 INCLUDES =
 CLEANFILES = guilec guile-disasm

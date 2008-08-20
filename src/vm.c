@@ -44,7 +44,6 @@
 #endif
 
 #include <string.h>
-#include "envs.h"
 #include "frames.h"
 #include "instructions.h"
 #include "objcodes.h"

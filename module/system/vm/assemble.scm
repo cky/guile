@@ -42,7 +42,6 @@
 
 (define-record (<vm-asm> venv glil body))
 (define-record (<venv> parent nexts closure?))
-(define-record (<vmod> id))
 (define-record (<vlink-now> name))
 (define-record (<vlink-later> module name))
 (define-record (<vdefine> module name))
@@ -282,8 +281,6 @@
 	((<vdefine> module name)
 	 ;; FIXME: dump module
 	 (push-code! `(define ,(symbol->string name))))
-	((<vmod> id)
-	 (push-code! `(load-module ,id)))
         (else
          (error "assemble: unknown record type" (record-type-descriptor x)))))
      ((and (integer? x) (exact? x))
