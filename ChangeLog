@@ -1,3 +1,8 @@
+2008-08-21  Ludovic Courtès  <ludo@gnu.org>
+
+	* autogen.sh: Don't use `gnulib-tool', use the Gnulib files
+	available in the repository.
+
 2008-08-07  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* configure.in (SCM_I_GSC_STACK_GROWS_UP): Remove use of
