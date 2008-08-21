@@ -31,7 +31,7 @@
 # Example: ../../pre-inst-guile-env ./guile-test-foo
 
 # config
-subdirs_with_ltlibs="srfi guile-readline"       # maintain me
+subdirs_with_ltlibs="srfi guile-readline libguile"       # maintain me
 
 # env (set by configure)
 top_srcdir="@top_srcdir_absolute@"
