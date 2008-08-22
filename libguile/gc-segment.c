@@ -107,10 +107,11 @@ scm_i_heap_segment_marked_count (scm_t_heap_segment *seg)
      scm_i_segment_card_count (seg) * SCM_GC_CARD_BVEC_SIZE_IN_LONGS);
   
   int count = 0;
-  while (bvec < bvec_end) {
-    count += scm_i_uint_bit_count (*bvec);
-    bvec ++;
-  }
+  while (bvec < bvec_end)
+    {
+      count += scm_i_uint_bit_count (*bvec);
+      bvec ++;
+    }
   return count * seg->span;
 }
 

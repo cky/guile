@@ -316,10 +316,11 @@ scm_i_card_marked_count (scm_t_cell *card, int span)
   scm_t_c_bvec_long* bvec_end = (bvec + SCM_GC_CARD_BVEC_SIZE_IN_LONGS);
   
   int count = 0;
-  while (bvec < bvec_end) {
-    count += scm_i_uint_bit_count (*bvec);
-    bvec ++;
-  }
+  while (bvec < bvec_end)
+    {
+      count += scm_i_uint_bit_count (*bvec);
+      bvec ++;
+    }
   return count * span;
 }
 
