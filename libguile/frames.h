@@ -104,6 +104,7 @@ extern scm_t_bits scm_tc16_heap_frame;
 #define SCM_HEAP_FRAME_POINTER(f)	(SCM_HEAP_FRAME_DATA (f) + 2)
 #define SCM_VALIDATE_HEAP_FRAME(p,x)	SCM_MAKE_VALIDATE (p, x, HEAP_FRAME_P)
 
+extern SCM scm_heap_frame_p (SCM obj);
 extern SCM scm_frame_program (SCM frame);
 extern SCM scm_frame_local_ref (SCM frame, SCM index);
 extern SCM scm_frame_local_set_x (SCM frame, SCM index, SCM val);

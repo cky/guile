@@ -38,7 +38,7 @@
            vm-next-hook vm-apply-hook vm-boot-hook vm-return-hook
            vm-break-hook vm-exit-hook vm-halt-hook vm-enter-hook))
 
-(dynamic-call "scm_init_vm" (dynamic-link "libguile-vm"))
+(dynamic-call "scm_init_vm" (dynamic-link "libguile"))
 
 (define (vm-current-frame-chain vm)
   (make-frame-chain (vm-this-frame vm) (vm:ip vm)))

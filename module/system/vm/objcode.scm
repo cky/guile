@@ -23,4 +23,4 @@
   :export (objcode->u8vector objcode? objcode->program  bytecode->objcode
            load-objcode))
 
-(dynamic-call "scm_init_objcodes" (dynamic-link "libguile-vm"))
+(dynamic-call "scm_init_objcodes" (dynamic-link "libguile"))

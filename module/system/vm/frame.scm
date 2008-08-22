@@ -32,9 +32,10 @@
            frame-object-name
            frame-local-ref frame-external-link frame-local-set!
            frame-return-address frame-program
-           frame-dynamic-link frame?))
+           frame-dynamic-link heap-frame?))
 
-(dynamic-call "scm_init_frames" (dynamic-link "libguile-vm"))
+;; fixme: avoid the dynamic-call?
+(dynamic-call "scm_init_frames" (dynamic-link "libguile"))
 
 ;;;
 ;;; Frame chain
@@ -123,7 +124,7 @@
   (let ((prog (frame-program frame))
 	(link (frame-dynamic-link frame)))
     (or (object-property prog 'name)
-        (and (frame? link)
+        (and (heap-frame? link)
              (frame-object-name link (1- (frame-address link)) prog))
 	(hash-fold (lambda (s v d) (if (eq? prog (variable-ref v)) s d))
 		   prog (module-obarray (current-module))))))

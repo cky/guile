@@ -39,18 +39,61 @@
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
 
-#if HAVE_CONFIG_H
-#  include <config.h>
-#endif
+#ifndef _SCM_INSTRUCTIONS_H_
+#define _SCM_INSTRUCTIONS_H_
 
 #include <libguile.h>
-#include "bootstrap.h"
 
-int
-main (int argc, char **argv)
-{
-  scm_init_guile ();
-  scm_bootstrap_vm ();
-  scm_shell (argc, argv);
-  return 0; /* never reached */
-}
+enum scm_opcode {
+#define VM_INSTRUCTION_TO_OPCODE 1
+#include "vm-expand.h"
+#include "vm-i-system.i"
+#include "vm-i-scheme.i"
+#include "vm-i-loader.i"
+#undef VM_INSTRUCTION_TO_OPCODE
+  scm_op_last
+};
+
+struct scm_instruction {
+  enum scm_opcode opcode;	/* opcode */
+  const char *name;		/* instruction name */
+  signed char len;		/* Instruction length.  This may be -1 for
+				   the loader (see the `VM_LOADER'
+				   macro).  */
+  signed char npop;		/* The number of values popped.  This may be
+				   -1 for insns like `call' which can take
+				   any number of arguments.  */
+  char npush;			/* the number of values pushed */
+};
+
+#define SCM_INSTRUCTION_P(x)		(scm_lookup_instruction (x))
+#define SCM_INSTRUCTION_OPCODE(i)	(scm_lookup_instruction (i)->opcode)
+#define SCM_INSTRUCTION_NAME(i)		(scm_lookup_instruction (i)->name)
+#define SCM_INSTRUCTION_LENGTH(i)	(scm_lookup_instruction (i)->len)
+#define SCM_INSTRUCTION_POPS(i)		(scm_lookup_instruction (i)->npop)
+#define SCM_INSTRUCTION_PUSHES(i)	(scm_lookup_instruction (i)->npush)
+#define SCM_VALIDATE_INSTRUCTION(p,x)	SCM_MAKE_VALIDATE (p, x, INSTRUCTION_P)
+
+#define SCM_INSTRUCTION(i)		(&scm_instruction_table[i])
+
+extern struct scm_instruction scm_instruction_table[];
+extern struct scm_instruction *scm_lookup_instruction (SCM name);
+
+extern SCM scm_instruction_list (void);
+extern SCM scm_instruction_p (SCM obj);
+extern SCM scm_instruction_length (SCM inst);
+extern SCM scm_instruction_pops (SCM inst);
+extern SCM scm_instruction_pushes (SCM inst);
+extern SCM scm_instruction_to_opcode (SCM inst);
+extern SCM scm_opcode_to_instruction (SCM op);
+
+extern void scm_bootstrap_instructions (void);
+extern void scm_init_instructions (void);
+
+#endif /* _SCM_INSTRUCTIONS_H_ */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

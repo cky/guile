@@ -44,7 +44,7 @@
 #endif
 
 #include <string.h>
-#include "bootstrap.h"
+#include "vm-bootstrap.h"
 #include "frames.h"
 #include "instructions.h"
 #include "objcodes.h"
@@ -245,14 +245,14 @@ vm_heapify_frames (SCM vm)
 #if 0
 #define VM_NAME   vm_regular_engine
 #define VM_ENGINE VM_REGULAR_ENGINE
-#include "vm_engine.c"
+#include "vm-engine.c"
 #undef VM_NAME
 #undef VM_ENGINE
 #endif
 
 #define VM_NAME	  vm_debug_engine
 #define VM_ENGINE VM_DEBUG_ENGINE
-#include "vm_engine.c"
+#include "vm-engine.c"
 #undef VM_NAME
 #undef VM_ENGINE
 
@@ -656,10 +656,9 @@ scm_bootstrap_vm (void)
 
   the_vm = scm_permanent_object (make_vm ());
 
-  /* a bit heavy-handed, this */
-  scm_variable_set_x (scm_c_lookup ("load-compiled"),
-                      scm_c_make_gsubr ("load-compiled/vm", 1, 0, 0,
-                                        scm_load_compiled_with_vm));
+  scm_c_define ("load-compiled",
+                scm_c_make_gsubr ("load-compiled/vm", 1, 0, 0,
+                                  scm_load_compiled_with_vm));
 
   strappage = 1;
 }

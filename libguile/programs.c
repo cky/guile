@@ -44,7 +44,7 @@
 #endif
 
 #include <string.h>
-#include "bootstrap.h"
+#include "vm-bootstrap.h"
 #include "instructions.h"
 #include "programs.h"
 #include "vm.h"

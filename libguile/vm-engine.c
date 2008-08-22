@@ -41,7 +41,7 @@
 
 /* This file is included in vm.c twice */
 
-#include "vm_engine.h"
+#include "vm-engine.h"
 
 
 static SCM
@@ -87,10 +87,10 @@ vm_run (SCM vm, SCM program, SCM args)
   /* Jump table */
   static void *jump_table[] = {
 #define VM_INSTRUCTION_TO_LABEL 1
-#include "vm_expand.h"
-#include "vm_system.i"
-#include "vm_scheme.i"
-#include "vm_loader.i"
+#include "vm-expand.h"
+#include "vm-i-system.i"
+#include "vm-i-scheme.i"
+#include "vm-i-loader.i"
 #undef VM_INSTRUCTION_TO_LABEL
   };
 #endif
@@ -124,10 +124,10 @@ vm_run (SCM vm, SCM program, SCM args)
   switch (*ip++) {
 #endif
 
-#include "vm_expand.h"
-#include "vm_system.c"
-#include "vm_scheme.c"
-#include "vm_loader.c"
+#include "vm-expand.h"
+#include "vm-i-system.c"
+#include "vm-i-scheme.c"
+#include "vm-i-loader.c"
 
 #ifndef HAVE_LABELS_AS_VALUES
   }

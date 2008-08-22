@@ -44,7 +44,7 @@
 #endif
 
 #include <string.h>
-#include "bootstrap.h"
+#include "vm-bootstrap.h"
 #include "frames.h"
 
 
@@ -95,10 +95,10 @@ heap_frame_free (SCM obj)
 
 /* Scheme interface */
 
-SCM_DEFINE (scm_frame_p, "frame?", 1, 0, 0,
+SCM_DEFINE (scm_heap_frame_p, "heap-frame?", 1, 0, 0,
 	    (SCM obj),
 	    "")
-#define FUNC_NAME s_scm_frame_p
+#define FUNC_NAME s_scm_heap_frame_p
 {
   return SCM_BOOL (SCM_HEAP_FRAME_P (obj));
 }

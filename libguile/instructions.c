@@ -44,15 +44,15 @@
 #endif
 
 #include <string.h>
-#include "bootstrap.h"
+#include "vm-bootstrap.h"
 #include "instructions.h"
 
 struct scm_instruction scm_instruction_table[] = {
 #define VM_INSTRUCTION_TO_TABLE 1
-#include "vm_expand.h"
-#include "vm_system.i"
-#include "vm_scheme.i"
-#include "vm_loader.i"
+#include "vm-expand.h"
+#include "vm-i-system.i"
+#include "vm-i-scheme.i"
+#include "vm-i-loader.i"
 #undef VM_INSTRUCTION_TO_TABLE
   {scm_op_last}
 };

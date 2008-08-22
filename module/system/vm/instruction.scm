@@ -25,4 +25,4 @@
            instruction-pops instruction-pushes
            instruction->opcode opcode->instruction))
 
-(dynamic-call "scm_init_instructions" (dynamic-link "libguile-vm"))
+(dynamic-call "scm_init_instructions" (dynamic-link "libguile"))

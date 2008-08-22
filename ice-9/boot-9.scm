@@ -2136,7 +2136,8 @@ module '(ice-9 q) '(make-q q-length))}."
 
 ;;; {Compiled module}
 
-(define load-compiled #f)
+(if (not (defined? 'load-compiled))
+    (define load-compiled #f))
 
 
 

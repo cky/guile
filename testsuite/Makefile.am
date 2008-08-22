@@ -1,7 +1,7 @@
 # The test programs.
 
 # The Libtool executable.
-GUILE_VM = $(top_builddir)/src/guile-vm
+GUILE_VM = $(top_builddir)/pre-inst-guile
 
 vm_test_files =					\
       t-basic-contructs.scm			\

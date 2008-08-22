@@ -51,7 +51,7 @@
 #include <sys/types.h>
 #include <assert.h>
 
-#include "bootstrap.h"
+#include "vm-bootstrap.h"
 #include "programs.h"
 #include "objcodes.h"
 

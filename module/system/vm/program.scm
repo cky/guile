@@ -30,7 +30,7 @@
            program-bytecode program? program-objects
            program-base program-external))
 
-(dynamic-call "scm_init_programs" (dynamic-link "libguile-vm"))
+(dynamic-call "scm_init_programs" (dynamic-link "libguile"))
 
 (define arity:nargs car)
 (define arity:nrest cadr)

@@ -118,6 +118,7 @@
 #include "libguile/variable.h"
 #include "libguile/vectors.h"
 #include "libguile/version.h"
+#include "libguile/vm-bootstrap.h"
 #include "libguile/vports.h"
 #include "libguile/weaks.h"
 #include "libguile/guardians.h"
@@ -571,6 +572,8 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_init_rdelim ();
   scm_init_rw ();
   scm_init_extensions ();
+
+  scm_bootstrap_vm ();
 
   atexit (cleanup_for_exit);
   scm_load_startup_files ();
