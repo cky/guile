@@ -387,7 +387,7 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
 		scm_cons (sym_cells_swept,
 			  scm_from_double (local_scm_gc_cells_swept)),
 		scm_cons (sym_malloc_yield,
-			  scm_from_long(local_scm_gc_malloc_yield_percentage)),
+			  scm_from_long (local_scm_gc_malloc_yield_percentage)),
 		scm_cons (sym_cell_yield,
 			  scm_from_long (local_scm_gc_cell_yield_percentage)),
 		scm_cons (sym_protected_objects,
@@ -538,7 +538,7 @@ scm_t_c_hook scm_after_sweep_c_hook;
 scm_t_c_hook scm_after_gc_c_hook;
 
 static void
-scm_check_deprecated_memory_return()
+scm_check_deprecated_memory_return ()
 {
   if (scm_mallocated < scm_i_deprecated_memory_return)
     {
@@ -584,7 +584,7 @@ scm_i_gc (const char *what)
   scm_gc_malloc_collected = 0;
 
   /*
-    Set freelists to NULL so scm_cons() always triggers gc, causing
+    Set freelists to NULL so scm_cons () always triggers gc, causing
     the assertion above to fail.
   */
   *SCM_FREELIST_LOC (scm_i_freelist) = SCM_EOL;
@@ -595,7 +595,7 @@ scm_i_gc (const char *what)
     garbage, and marking that would create a mess.
    */
   scm_i_sweep_all_segments ("GC", &scm_i_gc_sweep_stats);
-  scm_check_deprecated_memory_return();
+  scm_check_deprecated_memory_return ();
 
   /* Sanity check our numbers. */
 
@@ -670,7 +670,7 @@ scm_i_gc (const char *what)
   scm_i_thread_wake_up ();
   /*
     For debugging purposes, you could do
-    scm_i_sweep_all_segments("debug"), but then the remains of the
+    scm_i_sweep_all_segments ("debug"), but then the remains of the
     cell aren't left to analyse.
    */
 }
@@ -774,7 +774,7 @@ scm_permanent_object (SCM obj)
 */
 
 /* Implementation note:  For every object X, there is a counter which
-   scm_gc_protect_object(X) increments and scm_gc_unprotect_object(X) decrements.
+   scm_gc_protect_object (X) increments and scm_gc_unprotect_object (X) decrements.
 */
 
 
@@ -949,7 +949,7 @@ scm_init_storage ()
   while (j)
     scm_sys_protects[--j] = SCM_BOOL_F;
 
-  scm_gc_init_freelist();
+  scm_gc_init_freelist ();
   scm_gc_init_malloc ();
 
 #if 0
@@ -1071,7 +1071,7 @@ void *
 scm_ia64_ar_bsp (const void *ctx)
 {
   uint64_t bsp;
-  __uc_get_ar_bsp(ctx, &bsp);
+  __uc_get_ar_bsp (ctx, &bsp);
   return (void *) bsp;
 }
 # endif /* hpux */

@@ -119,7 +119,7 @@ scm_realloc (void *mem, size_t size)
    We don't want these sweep statistics to influence results for
    cell GC, so we don't collect statistics.
    
-   realloc() failed, so we're really desparate to free memory. Run a
+   realloc () failed, so we're really desparate to free memory. Run a
    full sweep.
   */
   scm_i_sweep_all_segments ("realloc", NULL);
@@ -314,7 +314,7 @@ scm_gc_malloc (size_t size, const char *what)
      again in scm_gc_register_collectable_memory.  We don't really
      want the second GC since it will not find new garbage.
 
-     Note: this is a theoretical peeve. In reality, malloc() never
+     Note: this is a theoretical peeve. In reality, malloc () never
      returns NULL. Usually, memory is overcommitted, and when you try
      to write it the program is killed with signal 11. --hwn
   */
@@ -342,10 +342,10 @@ scm_gc_realloc (void *mem, size_t old_size, size_t new_size, const char *what)
 
 
   /*    
-  scm_realloc() may invalidate the block pointed to by WHERE, eg. by
+  scm_realloc () may invalidate the block pointed to by WHERE, eg. by
   unmapping it from memory or altering the contents.  Since
-  increase_mtrigger() might trigger a GC that would scan
-  MEM, it is crucial that this call precedes realloc().
+  increase_mtrigger () might trigger a GC that would scan
+  MEM, it is crucial that this call precedes realloc ().
   */
 
   decrease_mtrigger (old_size, what);

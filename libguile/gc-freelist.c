@@ -129,15 +129,15 @@ scm_gc_init_freelist (void)
   if (scm_i_get_new_heap_segment (&scm_i_master_freelist,
 				  init_heap_size_1, return_on_error) == -1)  {
     fprintf (stderr, error_message, init_heap_size_1, 1);
-    abort();
+    abort ();
   }
   if (scm_i_get_new_heap_segment (&scm_i_master_freelist2,
 				  init_heap_size_2, return_on_error) == -1) {
     fprintf (stderr, error_message, init_heap_size_2, 2);
-    abort();
+    abort ();
   }
 
-  check_deprecated_heap_vars();
+  check_deprecated_heap_vars ();
 }
 
 
@@ -178,9 +178,9 @@ scm_i_gc_heap_size_delta (scm_t_cell_type_statistics * freelist)
   float swept = freelist->swept;
   float delta = ((f * swept - collected) / (1.0 - f));
 
-  assert(freelist->heap_total_cells >= freelist->collected);
-  assert(freelist->swept == freelist->heap_total_cells);
-  assert(swept >= collected);
+  assert (freelist->heap_total_cells >= freelist->collected);
+  assert (freelist->swept == freelist->heap_total_cells);
+  assert (swept >= collected);
 
   return delta;
 }

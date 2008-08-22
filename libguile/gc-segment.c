@@ -108,7 +108,7 @@ scm_i_heap_segment_marked_count (scm_t_heap_segment *seg)
   
   int count = 0;
   while (bvec < bvec_end) {
-    count += scm_i_uint_bit_count(*bvec);
+    count += scm_i_uint_bit_count (*bvec);
     bvec ++;
   }
   return count * seg->span;

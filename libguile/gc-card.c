@@ -58,14 +58,14 @@ SCM scm_i_structs_to_free;
   we do not actually free the cell. To make the numbers match up, we
   do increase the FREE_COUNT.
 
-  It would be cleaner to have a separate function sweep_value(), but
+  It would be cleaner to have a separate function sweep_value (), but
   that is too slow (functions with switch statements can't be
   inlined).
 
   NOTE:
 
   For many types of cells, allocation and a de-allocation involves
-  calling malloc() and free().  This is costly for small objects (due
+  calling malloc () and free ().  This is costly for small objects (due
   to malloc/free overhead.)  (should measure this).
 
   It might also be bad for threads: if several threads are allocating
@@ -81,7 +81,7 @@ int
 scm_i_sweep_card (scm_t_cell *card, SCM *free_list, scm_t_heap_segment *seg)
 #define FUNC_NAME "sweep_card"
 {
-  scm_t_c_bvec_long *bitvec = SCM_GC_CARD_BVEC(card);
+  scm_t_c_bvec_long *bitvec = SCM_GC_CARD_BVEC (card);
   scm_t_cell *end = card + SCM_GC_CARD_N_CELLS;
   scm_t_cell *p = card;
   int span = seg->span;
@@ -175,7 +175,7 @@ scm_i_sweep_card (scm_t_cell *card, SCM *free_list, scm_t_heap_segment *seg)
 	      if (!(k < scm_numptob))
 		{
 		  fprintf (stderr, "undefined port type");
-		  abort();
+		  abort ();
 		}
 #endif
 	      /* Keep "revealed" ports alive.  */
@@ -220,7 +220,7 @@ scm_i_sweep_card (scm_t_cell *card, SCM *free_list, scm_t_heap_segment *seg)
 		if (!(k < scm_numsmob))
 		  {
 		    fprintf (stderr, "undefined smob type");
-		    abort();
+		    abort ();
 		  }
 #endif
 		if (scm_smobs[k].free)
@@ -238,7 +238,7 @@ scm_i_sweep_card (scm_t_cell *card, SCM *free_list, scm_t_heap_segment *seg)
 			   SCM_SMOBNAME (k));
 			scm_i_deprecated_memory_return += mm;
 #else
-			abort();
+			abort ();
 #endif
 		      }
 		  }
@@ -248,7 +248,7 @@ scm_i_sweep_card (scm_t_cell *card, SCM *free_list, scm_t_heap_segment *seg)
 	  break;
 	default:
 	  fprintf (stderr, "unknown type");
-	  abort();
+	  abort ();
 	}
 
       SCM_GC_SET_CELL_WORD (scmptr, 0, scm_tc_free_cell);	  
@@ -296,7 +296,7 @@ scm_i_init_card_freelist (scm_t_cell *card, SCM *free_list,
 /*
   Classic MIT Hack, see e.g. http://www.tekpool.com/?cat=9
  */
-int scm_i_uint_bit_count(unsigned int u)
+int scm_i_uint_bit_count (unsigned int u)
 {
   unsigned int u_count = u 
     - ((u >> 1) & 033333333333) 
@@ -317,7 +317,7 @@ scm_i_card_marked_count (scm_t_cell *card, int span)
   
   int count = 0;
   while (bvec < bvec_end) {
-    count += scm_i_uint_bit_count(*bvec);
+    count += scm_i_uint_bit_count (*bvec);
     bvec ++;
   }
   return count * span;
@@ -326,7 +326,7 @@ scm_i_card_marked_count (scm_t_cell *card, int span)
 void
 scm_i_card_statistics (scm_t_cell *p, SCM hashtab, scm_t_heap_segment *seg)
 {
-  scm_t_c_bvec_long *bitvec = SCM_GC_CARD_BVEC(p);
+  scm_t_c_bvec_long *bitvec = SCM_GC_CARD_BVEC (p);
   scm_t_cell * end = p + SCM_GC_CARD_N_CELLS;
   int span = seg->span;
   int offset = SCM_MAX (SCM_GC_CARD_N_HEADER_CELLS, span);
@@ -436,7 +436,7 @@ scm_i_tag_name (scm_t_bits tag)
     case scm_tc7_smob:
       /* scm_tc_free_cell is smob 0, the name field in that scm_smobs[]
          entry should be ok for our return here */
-      return scm_smobs[SCM_TC2SMOBNUM(tag)].name;
+      return scm_smobs[SCM_TC2SMOBNUM (tag)].name;
     }
 
   return NULL;
@@ -468,7 +468,7 @@ int
 scm_dbg_gc_marked_p (SCM obj)
 {
   if (!SCM_IMP (obj))
-    return SCM_GC_MARK_P(obj);
+    return SCM_GC_MARK_P (obj);
   else
     return 0;
 }
@@ -477,7 +477,7 @@ scm_t_cell *
 scm_dbg_gc_get_card (SCM obj)
 {
   if (!SCM_IMP (obj))
-    return SCM_GC_CELL_CARD(obj);
+    return SCM_GC_CELL_CARD (obj);
   else
     return NULL;
 }

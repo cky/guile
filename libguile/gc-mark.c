@@ -339,10 +339,10 @@ scm_gc_mark_dependencies (SCM p)
       if (!(i < scm_numptob))
 	{
 	  fprintf (stderr, "undefined port type");
-	  abort();
+	  abort ();
 	}
 #endif
-      if (SCM_PTAB_ENTRY(ptr))
+      if (SCM_PTAB_ENTRY (ptr))
 	scm_gc_mark (SCM_FILENAME (ptr));
       if (scm_ptobs[i].mark)
 	{
@@ -366,7 +366,7 @@ scm_gc_mark_dependencies (SCM p)
 	  if (!(i < scm_numsmob))
 	    {
 	      fprintf (stderr, "undefined smob type");
-	      abort();
+	      abort ();
 	    }
 #endif
 	  if (scm_smobs[i].mark)
@@ -380,7 +380,7 @@ scm_gc_mark_dependencies (SCM p)
       break;
     default:
       fprintf (stderr, "unknown type");
-      abort();
+      abort ();
     }
 
   /*
@@ -411,7 +411,7 @@ scm_gc_mark_dependencies (SCM p)
     if (!valid_cell)
       {
 	fprintf (stderr, "rogue pointer in heap");
-	abort();
+	abort ();
       }
   }
   
@@ -503,7 +503,7 @@ scm_deprecated_newcell2 (void)
 
 
 void
-scm_gc_init_mark(void)
+scm_gc_init_mark (void)
 {
 #if SCM_ENABLE_DEPRECATED == 1
   scm_tc16_allocated = scm_make_smob_type ("allocated cell", 0);

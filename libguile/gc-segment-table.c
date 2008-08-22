@@ -53,7 +53,7 @@ int
 scm_i_insert_segment (scm_t_heap_segment *seg)
 {
   size_t size = (scm_i_heap_segment_table_size + 1) * sizeof (scm_t_heap_segment *);
-  SCM_SYSCALL(scm_i_heap_segment_table
+  SCM_SYSCALL (scm_i_heap_segment_table
 	      = ((scm_t_heap_segment **)
 		 realloc ((char *)scm_i_heap_segment_table, size)));
 
@@ -256,13 +256,13 @@ scm_i_all_segments_statistics (SCM tab)
 
 
 unsigned long*
-scm_i_segment_table_info(int* size)
+scm_i_segment_table_info (int* size)
 {
   *size = scm_i_heap_segment_table_size;  
   unsigned long *bounds = malloc (sizeof (unsigned long) * *size * 2);
   int i;
   if (!bounds)
-    abort();
+    abort ();
   for (i = *size; i-- > 0; )
     {
       bounds[2*i] = (unsigned long)scm_i_heap_segment_table[i]->bounds[0];
