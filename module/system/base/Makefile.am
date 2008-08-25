@@ -1,3 +1,3 @@
 SOURCES = pmatch.scm syntax.scm compile.scm language.scm
-moddir = $(guiledir)/system/base
+modpath = system/base
 include $(top_srcdir)/guilec.mk
