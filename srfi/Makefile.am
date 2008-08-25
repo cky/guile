@@ -29,6 +29,8 @@ DEFS = @DEFS@ @EXTRA_DEFS@
 AM_CPPFLAGS = -I.. -I$(srcdir)/..				\
 	      -I$(top_srcdir)/lib -I$(top_builddir)/lib
 
+AM_CFLAGS = $(GCC_CFLAGS)
+
 srfiincludedir = $(pkgincludedir)/srfi
 
 # These headers are visible as <guile/srfi/mumble.h>

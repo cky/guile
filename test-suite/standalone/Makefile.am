@@ -34,7 +34,7 @@ test_cflags =					\
   -I$(top_srcdir)/test-suite/standalone		\
   -I$(top_srcdir)				\
   -I$(top_srcdir)/lib -I$(top_builddir)/lib	\
-  $(EXTRA_DEFS) $(GUILE_CFLAGS)
+  $(EXTRA_DEFS) $(GUILE_CFLAGS) $(GCC_CFLAGS)
 
 AM_LDFLAGS = $(GUILE_CFLAGS)
 
