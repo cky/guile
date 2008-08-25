@@ -1,3 +1,9 @@
+2008-08-25  Ludovic Courtès  <ludo@gnu.org>
+
+	* configure.in (GCC_CFLAGS): New variable.  Store GCC flags like
+	`-Werror' inside it so that they are not used when compiling
+	Gnulib modules.
+
 2008-08-21  Ludovic Courtès  <ludo@gnu.org>
 
 	* autogen.sh: Don't use `gnulib-tool', use the Gnulib files

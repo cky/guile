@@ -1,3 +1,7 @@
+2008-08-25  Ludovic Courtès  <ludo@gnu.org>
+
+	* Makefile.am (AM_CFLAGS): New.
+
 2008-06-28  Ludovic Courtès  <ludo@gnu.org>
 
 	* Makefile.am (INCLUDES): Renamed to...
