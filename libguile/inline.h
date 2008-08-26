@@ -25,17 +25,17 @@
    "inline.c".
 */
 
-#include "libguile/__scm.h"
-
-#if (SCM_DEBUG_CELL_ACCESSES == 1)
 #include <stdio.h>
-#endif
+#include <string.h>
+
+#include "libguile/__scm.h"
 
 #include "libguile/pairs.h"
 #include "libguile/gc.h"
 #include "libguile/threads.h"
 #include "libguile/unif.h"
-#include "libguile/pairs.h"
+#include "libguile/ports.h"
+#include "libguile/error.h"
 
 
 #ifndef SCM_INLINE_C_INCLUDING_INLINE_H
@@ -55,6 +55,7 @@
    inline" in that case.  */
 
 # if (defined __GNUC__) && (!(__APPLE_CC__ > 5400 && __STDC_VERSION__ >= 199901L))
+#  define SCM_C_USE_EXTERN_INLINE 1
 #  if (defined __GNUC_STDC_INLINE__) || (__GNUC__ == 4 && __GNUC_MINOR__ == 2)
 #   define SCM_C_EXTERN_INLINE					\
            extern __inline__ __attribute__ ((__gnu_inline__))
@@ -68,12 +69,12 @@
 #endif /* SCM_INLINE_C_INCLUDING_INLINE_H */
 
 
-#if ((!defined SCM_C_INLINE) && (!defined SCM_INLINE_C_INCLUDING_INLINE_H)) \
-     || (defined __GNUC__)
+#if (!defined SCM_C_INLINE) || (defined SCM_INLINE_C_INCLUDING_INLINE_H) \
+    || (defined SCM_C_USE_EXTERN_INLINE)
 
 /* The `extern' declarations.  They should only appear when used from
-   "inline.c", when `inline' is not supported at all or when GCC's "extern
-   inline" is used.  */
+   "inline.c", when `inline' is not supported at all or when "extern inline"
+   is used.  */
 
 SCM_API SCM scm_cell (scm_t_bits car, scm_t_bits cdr);
 SCM_API SCM scm_double_cell (scm_t_bits car, scm_t_bits cbr,
@@ -84,10 +85,14 @@ SCM_API void scm_array_handle_set (scm_t_array_handle *h, ssize_t pos, SCM val);
 
 SCM_API int scm_is_pair (SCM x);
 
+SCM_API int scm_getc (SCM port);
+SCM_API void scm_putc (char c, SCM port);
+SCM_API void scm_puts (const char *str_data, SCM port);
+
 #endif
 
 
-#if defined SCM_C_INLINE || defined SCM_INLINE_C_INCLUDING_INLINE_H
+#if defined SCM_C_EXTERN_INLINE || defined SCM_INLINE_C_INCLUDING_INLINE_H
 /* either inlining, or being included from inline.c.  We use (and
    repeat) this long #if test here and below so that we don't have to
    introduce any extraneous symbols into the public namespace.  We
@@ -97,7 +102,7 @@ extern unsigned scm_newcell2_count;
 extern unsigned scm_newcell_count;
 
 
-#if defined SCM_C_EXTERN_INLINE && ! defined SCM_INLINE_C_INCLUDING_INLINE_H
+#ifndef SCM_INLINE_C_INCLUDING_INLINE_H
 SCM_C_EXTERN_INLINE
 #endif
 SCM
@@ -113,13 +118,6 @@ scm_cell (scm_t_bits car, scm_t_bits cdr)
       z = *freelist;
       *freelist = SCM_FREE_CELL_CDR (*freelist);
     }
-
-  /*
-    We update scm_cells_allocated from this function. If we don't
-    update this explicitly, we will have to walk a freelist somewhere
-    later on, which seems a lot more expensive.
-   */
-  scm_cells_allocated += 1;  
 
 #if (SCM_DEBUG_CELL_ACCESSES == 1)
     if (scm_debug_cell_accesses_p)
@@ -147,7 +145,6 @@ scm_cell (scm_t_bits car, scm_t_bits cdr)
       threading. What if another thread is doing GC at this point
       ... ?
      */
-      
 #endif
 
   
@@ -167,7 +164,7 @@ scm_cell (scm_t_bits car, scm_t_bits cdr)
   return z;
 }
 
-#if defined SCM_C_EXTERN_INLINE && ! defined SCM_INLINE_C_INCLUDING_INLINE_H
+#ifndef SCM_INLINE_C_INCLUDING_INLINE_H
 SCM_C_EXTERN_INLINE
 #endif
 SCM
@@ -184,8 +181,6 @@ scm_double_cell (scm_t_bits car, scm_t_bits cbr,
       z = *freelist;
       *freelist = SCM_FREE_CELL_CDR (*freelist);
     }
-
-  scm_cells_allocated += 2;
 
   /* Initialize the type slot last so that the cell is ignored by the
      GC until it is completely initialized.  This is only relevant
@@ -236,7 +231,7 @@ scm_double_cell (scm_t_bits car, scm_t_bits cbr,
   return z;
 }
 
-#if defined SCM_C_EXTERN_INLINE && ! defined SCM_INLINE_C_INCLUDING_INLINE_H
+#ifndef SCM_INLINE_C_INCLUDING_INLINE_H
 SCM_C_EXTERN_INLINE
 #endif
 SCM
@@ -245,7 +240,7 @@ scm_array_handle_ref (scm_t_array_handle *h, ssize_t p)
   return h->ref (h, p);
 }
 
-#if defined SCM_C_EXTERN_INLINE && ! defined SCM_INLINE_C_INCLUDING_INLINE_H
+#ifndef SCM_INLINE_C_INCLUDING_INLINE_H
 SCM_C_EXTERN_INLINE
 #endif
 void
@@ -254,7 +249,7 @@ scm_array_handle_set (scm_t_array_handle *h, ssize_t p, SCM v)
   h->set (h, p, v);
 }
 
-#if defined SCM_C_EXTERN_INLINE && ! defined SCM_INLINE_C_INCLUDING_INLINE_H
+#ifndef SCM_INLINE_C_INCLUDING_INLINE_H
 SCM_C_EXTERN_INLINE
 #endif
 int
@@ -283,6 +278,78 @@ scm_is_pair (SCM x)
 
   return SCM_I_CONSP (x);
 }
+
+
+/* Port I/O.  */
+
+#ifndef SCM_INLINE_C_INCLUDING_INLINE_H
+SCM_C_EXTERN_INLINE
+#endif
+int
+scm_getc (SCM port)
+{
+  int c;
+  scm_t_port *pt = SCM_PTAB_ENTRY (port);
+
+  if (pt->rw_active == SCM_PORT_WRITE)
+    /* may be marginally faster than calling scm_flush.  */
+    scm_ptobs[SCM_PTOBNUM (port)].flush (port);
+
+  if (pt->rw_random)
+    pt->rw_active = SCM_PORT_READ;
+
+  if (pt->read_pos >= pt->read_end)
+    {
+      if (scm_fill_input (port) == EOF)
+	return EOF;
+    }
+
+  c = *(pt->read_pos++);
+
+  switch (c)
+    {
+      case '\a':
+        break;
+      case '\b':
+        SCM_DECCOL (port);
+        break;
+      case '\n':
+        SCM_INCLINE (port);
+        break;
+      case '\r':
+        SCM_ZEROCOL (port);
+        break;
+      case '\t':
+        SCM_TABCOL (port);
+        break;
+      default:
+        SCM_INCCOL (port);
+        break;
+    }
+
+  return c;
+}
+
+#ifndef SCM_INLINE_C_INCLUDING_INLINE_H
+SCM_C_EXTERN_INLINE
+#endif
+void
+scm_putc (char c, SCM port)
+{
+  SCM_ASSERT_TYPE (SCM_OPOUTPORTP (port), port, 0, NULL, "output port");
+  scm_lfwrite (&c, 1, port);
+}
+
+#ifndef SCM_INLINE_C_INCLUDING_INLINE_H
+SCM_C_EXTERN_INLINE
+#endif
+void
+scm_puts (const char *s, SCM port)
+{
+  SCM_ASSERT_TYPE (SCM_OPOUTPORTP (port), port, 0, NULL, "output port");
+  scm_lfwrite (s, strlen (s), port);
+}
+
 
 #endif
 #endif

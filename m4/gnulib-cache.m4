@@ -19,7 +19,11 @@
 
 # Specification in the form of a few gnulib-tool.m4 macro invocations:
 gl_LOCAL_DIR([])
-gl_MODULES([alloca extensions strcase])
+gl_MODULES([
+  alloca
+  extensions
+  strcase
+])
 gl_AVOID([])
 gl_SOURCE_BASE([lib])
 gl_M4_BASE([m4])

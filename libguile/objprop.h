@@ -3,7 +3,7 @@
 #ifndef SCM_OBJPROP_H
 #define SCM_OBJPROP_H
 
-/* Copyright (C) 1995,2000,2001, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,2000,2001, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -30,7 +30,7 @@ SCM_API SCM scm_object_properties (SCM obj);
 SCM_API SCM scm_set_object_properties_x (SCM obj, SCM plist);
 SCM_API SCM scm_object_property (SCM obj, SCM key);
 SCM_API SCM scm_set_object_property_x (SCM obj, SCM key, SCM val);
-SCM_API void scm_init_objprop (void);
+SCM_INTERNAL void scm_init_objprop (void);
 
 #endif  /* SCM_OBJPROP_H */
 

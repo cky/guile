@@ -3,7 +3,7 @@
 #ifndef SCM_VECTORS_H
 #define SCM_VECTORS_H
 
-/* Copyright (C) 1995,1996,1998,2000,2001,2002,2004,2005, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,2000,2001,2002,2004,2005, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -82,8 +82,8 @@ SCM_API void scm_generalized_vector_get_handle (SCM vec,
 #define SCM_I_VECTOR_WELTS(x)  ((SCM *) SCM_CELL_WORD_1 (x))
 #define SCM_I_VECTOR_LENGTH(x) (((size_t) SCM_CELL_WORD_0 (x)) >> 8)
 
-SCM_API void scm_i_vector_free (SCM vec);
-SCM_API SCM  scm_i_vector_equal_p (SCM x, SCM y);
+SCM_INTERNAL void scm_i_vector_free (SCM vec);
+SCM_INTERNAL SCM  scm_i_vector_equal_p (SCM x, SCM y);
 
 /* Weak vectors share implementation details with ordinary vectors,
    but no one else should.
@@ -99,9 +99,9 @@ SCM_API SCM  scm_i_vector_equal_p (SCM x, SCM y);
 #define SCM_I_WVECT_GC_CHAIN(x)         (SCM_CELL_OBJECT_3 (x))
 #define SCM_I_SET_WVECT_GC_CHAIN(x, o)  (SCM_SET_CELL_OBJECT_3 ((x), (o)))
 
-SCM_API SCM scm_i_allocate_weak_vector (scm_t_bits type, SCM size, SCM fill);
+SCM_INTERNAL SCM scm_i_allocate_weak_vector (scm_t_bits type, SCM size, SCM fill);
 
-SCM_API void scm_init_vectors (void);
+SCM_INTERNAL void scm_init_vectors (void);
 
 #endif  /* SCM_VECTORS_H */
 

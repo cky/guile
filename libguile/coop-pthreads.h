@@ -3,7 +3,7 @@
 #ifndef SCM_COOP_PTHREADS_H
 #define SCM_COOP_PTHREADS_H
 
-/* Copyright (C) 2002, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 2002, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -70,7 +70,7 @@ SCM_API int scm_i_switch_counter;
 #define SCM_SET_THREAD_LOCAL_DATA(ptr) (scm_i_copt_set_thread_data (ptr))
 
 SCM_API void *scm_i_copt_thread_data;
-SCM_API void scm_i_copt_set_thread_data (void *data);
+SCM_INTERNAL void scm_i_copt_set_thread_data (void *data);
 
 #endif  /* SCM_COOP_PTHREAD_H */
 

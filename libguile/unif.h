@@ -3,7 +3,7 @@
 #ifndef SCM_UNIF_H
 #define SCM_UNIF_H
 
-/* Copyright (C) 1995,1996,1997,1999,2000,2001, 2004, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1999,2000,2001, 2004, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -162,9 +162,9 @@ SCM_API scm_t_bits scm_i_tc16_enclosed_array;
 #define SCM_I_ARRAY_DIMS(a) \
   ((scm_t_array_dim *)((char *) SCM_I_ARRAY_MEM (a) + sizeof (scm_i_t_array)))
 
-SCM_API SCM scm_i_make_ra (int ndim, int enclosed);
-SCM_API SCM scm_i_cvref (SCM v, size_t p, int enclosed);
-SCM_API SCM scm_i_read_array (SCM port, int c);
+SCM_INTERNAL SCM scm_i_make_ra (int ndim, int enclosed);
+SCM_INTERNAL SCM scm_i_cvref (SCM v, size_t p, int enclosed);
+SCM_INTERNAL SCM scm_i_read_array (SCM port, int c);
 
 /* deprecated. */
 
@@ -183,7 +183,7 @@ SCM_API int scm_raprin1 (SCM exp, SCM port, scm_print_state *pstate);
 
 #endif
 
-SCM_API void scm_init_unif (void);
+SCM_INTERNAL void scm_init_unif (void);
 
 #endif  /* SCM_UNIF_H */
 

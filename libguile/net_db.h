@@ -3,7 +3,7 @@
 #ifndef SCM_NET_DB_H
 #define SCM_NET_DB_H
 
-/* Copyright (C) 1995,2000,2001, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,2000,2001, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -34,7 +34,7 @@ SCM_API SCM scm_sethost (SCM arg);
 SCM_API SCM scm_setnet (SCM arg);
 SCM_API SCM scm_setproto (SCM arg);
 SCM_API SCM scm_setserv (SCM arg);
-SCM_API void scm_init_net_db (void);
+SCM_INTERNAL void scm_init_net_db (void);
 
 #endif  /* SCM_NET_DB_H */
 

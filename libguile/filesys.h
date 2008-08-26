@@ -3,7 +3,7 @@
 #ifndef SCM_FILESYS_H
 #define SCM_FILESYS_H
 
-/* Copyright (C) 1995,1997,1998,1999,2000,2001, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1997,1998,1999,2000,2001, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -65,7 +65,7 @@ SCM_API SCM scm_copy_file (SCM oldfile, SCM newfile);
 SCM_API SCM scm_dirname (SCM filename);
 SCM_API SCM scm_basename (SCM filename, SCM suffix);
 
-SCM_API void scm_init_filesys (void);
+SCM_INTERNAL void scm_init_filesys (void);
 
 #endif  /* SCM_FILESYS_H */
 

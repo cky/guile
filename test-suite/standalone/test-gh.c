@@ -31,7 +31,7 @@ string_equal (SCM str, char *lit)
   int len = strlen (lit);
   int result;
  
-  result = ((scm_i_string_length (str) == len)
+  result = ((scm_c_string_length (str) == len)
             && (!memcmp (scm_i_string_chars (str), lit, len)));
   scm_remember_upto_here_1 (str);
   return result;

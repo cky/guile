@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2006, 2007
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2006, 2007, 2008
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -34,6 +34,7 @@ get the relevant SRFI documents from the SRFI home page
 * SRFI-14::                     Character-set library.
 * SRFI-16::                     case-lambda
 * SRFI-17::                     Generalized set!
+* SRFI-18::                     Multithreading support
 * SRFI-19::                     Time/Date library.
 * SRFI-26::                     Specializing parameters
 * SRFI-31::                     A special form `rec' for recursive evaluation
@@ -45,6 +46,7 @@ get the relevant SRFI documents from the SRFI home page
 * SRFI-60::                     Integers as bits.
 * SRFI-61::                     A more general `cond' clause
 * SRFI-69::                     Basic hash tables.
+* SRFI-88::                     Keyword objects.
 @end menu
 
 
@@ -1677,6 +1679,344 @@ The same as the Guile core @code{make-procedure-with-setter}
 @end defun
 
 
+@node SRFI-18
+@subsection SRFI-18 - Multithreading support
+@cindex SRFI-18
+
+This is an implementation of the SRFI-18 threading and synchronization
+library.  The functions and variables described here are provided by
+
+@example
+(use-modules (srfi srfi-18))
+@end example
+
+As a general rule, the data types and functions in this SRFI-18
+implementation are compatible with the types and functions in Guile's
+core threading code.  For example, mutexes created with the SRFI-18 
+@code{make-mutex} function can be passed to the built-in Guile 
+function @code{lock-mutex} (@pxref{Mutexes and Condition Variables}),
+and mutexes created with the built-in Guile function @code{make-mutex}
+can be passed to the SRFI-18 function @code{mutex-lock!}.  Cases in
+which this does not hold true are noted in the following sections.
+
+@menu
+* SRFI-18 Threads::             Executing code 
+* SRFI-18 Mutexes::             Mutual exclusion devices
+* SRFI-18 Condition variables:: Synchronizing of groups of threads
+* SRFI-18 Time::                Representation of times and durations
+* SRFI-18 Exceptions::          Signalling and handling errors
+@end menu
+
+@node SRFI-18 Threads
+@subsubsection SRFI-18 Threads
+
+Threads created by SRFI-18 differ in two ways from threads created by 
+Guile's built-in thread functions.  First, a thread created by SRFI-18
+@code{make-thread} begins in a blocked state and will not start 
+execution until @code{thread-start!} is called on it.  Second, SRFI-18
+threads are constructed with a top-level exception handler that 
+captures any exceptions that are thrown on thread exit.  In all other
+regards, SRFI-18 threads are identical to normal Guile threads.
+
+@defun current-thread
+Returns the thread that called this function.  This is the same
+procedure as the same-named built-in procedure @code{current-thread}
+(@pxref{Threads}).
+@end defun
+
+@defun thread? obj
+Returns @code{#t} if @var{obj} is a thread, @code{#f} otherwise.  This
+is the same procedure as the same-named built-in procedure 
+@code{thread?} (@pxref{Threads}).
+@end defun
+
+@defun make-thread thunk [name]
+Call @code{thunk} in a new thread and with a new dynamic state,
+returning the new thread and optionally assigning it the object name
+@var{name}, which may be any Scheme object.
+
+Note that the name @code{make-thread} conflicts with the 
+@code{(ice-9 threads)} function @code{make-thread}.  Applications 
+wanting to use both of these functions will need to refer to them by 
+different names.
+@end defun
+
+@defun thread-name thread
+Returns the name assigned to @var{thread} at the time of its creation,
+or @code{#f} if it was not given a name.
+@end defun
+
+@defun thread-specific thread
+@defunx thread-specific-set! thread obj
+Get or set the ``object-specific'' property of @var{thread}.  In
+Guile's implementation of SRFI-18, this value is stored as an object
+property, and will be @code{#f} if not set.
+@end defun
+
+@defun thread-start! thread
+Unblocks @var{thread} and allows it to begin execution if it has not
+done so already.
+@end defun
+
+@defun thread-yield!
+If one or more threads are waiting to execute, calling 
+@code{thread-yield!} forces an immediate context switch to one of them.
+Otherwise, @code{thread-yield!} has no effect.  @code{thread-yield!} 
+behaves identically to the Guile built-in function @code{yield}.
+@end defun
+
+@defun thread-sleep! timeout
+The current thread waits until the point specified by the time object
+@var{timeout} is reached (@pxref{SRFI-18 Time}).  This blocks the 
+thread only if @var{timeout} represents a point in the future.  it is 
+an error for @var{timeout} to be @code{#f}.
+@end defun
+
+@defun thread-terminate! thread
+Causes an abnormal termination of @var{thread}.  If @var{thread} is
+not already terminated, all mutexes owned by @var{thread} become
+unlocked/abandoned.  If @var{thread} is the current thread, 
+@code{thread-terminate!} does not return.  Otherwise 
+@code{thread-terminate!} returns an unspecified value; the termination
+of @var{thread} will occur before @code{thread-terminate!} returns.  
+Subsequent attempts to join on @var{thread} will cause a ``terminated 
+thread exception'' to be raised.
+
+@code{thread-terminate!} is compatible with the thread cancellation
+procedures in the core threads API (@pxref{Threads}) in that if a 
+cleanup handler has been installed for the target thread, it will be 
+called before the thread exits and its return value (or exception, if
+any) will be stored for later retrieval via a call to 
+@code{thread-join!}.
+@end defun
+
+@defun thread-join! thread [timeout [timeout-val]]
+Wait for @var{thread} to terminate and return its exit value.  When a 
+time value @var{timeout} is given, it specifies a point in time where
+the waiting should be aborted.  When the waiting is aborted, 
+@var{timeoutval} is returned if it is specified; otherwise, a
+@code{join-timeout-exception} exception is raised 
+(@pxref{SRFI-18 Exceptions}).  Exceptions may also be raised if the 
+thread was terminated by a call to @code{thread-terminate!} 
+(@code{terminated-thread-exception} will be raised) or if the thread 
+exited by raising an exception that was handled by the top-level 
+exception handler (@code{uncaught-exception} will be raised; the 
+original exception can be retrieved using 
+@code{uncaught-exception-reason}).
+@end defun
+
+
+@node SRFI-18 Mutexes
+@subsubsection SRFI-18 Mutexes
+
+The behavior of Guile's built-in mutexes is parameterized via a set of
+flags passed to the @code{make-mutex} procedure in the core
+(@pxref{Mutexes and Condition Variables}).  To satisfy the requirements
+for mutexes specified by SRFI-18, the @code{make-mutex} procedure
+described below sets the following flags:
+@itemize @bullet
+@item
+@code{recursive}: the mutex can be locked recursively
+@item
+@code{unchecked-unlock}: attempts to unlock a mutex that is already
+unlocked will not raise an exception
+@item
+@code{allow-external-unlock}: the mutex can be unlocked by any thread,
+not just the thread that locked it originally
+@end itemize
+
+@defun make-mutex [name]
+Returns a new mutex, optionally assigning it the object name 
+@var{name}, which may be any Scheme object.  The returned mutex will be
+created with the configuration described above.  Note that the name 
+@code{make-mutex} conflicts with Guile core function @code{make-mutex}.
+Applications wanting to use both of these functions will need to refer 
+to them by different names.
+@end defun
+
+@defun mutex-name mutex
+Returns the name assigned to @var{mutex} at the time of its creation, 
+or @code{#f} if it was not given a name.
+@end defun
+
+@defun mutex-specific mutex
+@defunx mutex-specific-set! mutex obj
+Get or set the ``object-specific'' property of @var{mutex}.  In Guile's
+implementation of SRFI-18, this value is stored as an object property, 
+and will be @code{#f} if not set.
+@end defun
+
+@defun mutex-state mutex
+Returns information about the state of @var{mutex}.  Possible values 
+are:
+@itemize @bullet
+@item
+thread @code{T}: the mutex is in the locked/owned state and thread T
+is the owner of the mutex
+@item 
+symbol @code{not-owned}: the mutex is in the locked/not-owned state
+@item
+symbol @code{abandoned}: the mutex is in the unlocked/abandoned state
+@item
+symbol @code{not-abandoned}: the mutex is in the 
+unlocked/not-abandoned state 
+@end itemize
+@end defun
+
+@defun mutex-lock! mutex [timeout [thread]]
+Lock @var{mutex}, optionally specifying a time object @var{timeout}
+after which to abort the lock attempt and a thread @var{thread} giving
+a new owner for @var{mutex} different than the current thread.  This 
+procedure has the same behavior as the @code{lock-mutex} procedure in 
+the core library.
+@end defun
+
+@defun mutex-unlock! mutex [condition-variable [timeout]]
+Unlock @var{mutex}, optionally specifying a condition variable
+@var{condition-variable} on which to wait, either indefinitely or,
+optionally, until the time object @var{timeout} has passed, to be
+signalled.  This procedure has the same behavior as the 
+@code{unlock-mutex} procedure in the core library.
+@end defun
+
+
+@node SRFI-18 Condition variables
+@subsubsection SRFI-18 Condition variables
+
+SRFI-18 does not specify a ``wait'' function for condition variables.
+Waiting on a condition variable can be simulated using the SRFI-18
+@code{mutex-unlock!} function described in the previous section, or
+Guile's built-in @code{wait-condition-variable} procedure can be used.
+
+@defun condition-variable? obj
+Returns @code{#t} if @var{obj} is a condition variable, @code{#f}
+otherwise.  This is the same procedure as the same-named built-in 
+procedure
+(@pxref{Mutexes and Condition Variables, @code{condition-variable?}}).
+@end defun
+
+@defun make-condition-variable [name]
+Returns a new condition variable, optionally assigning it the object
+name @var{name}, which may be any Scheme object.  This procedure 
+replaces a procedure of the same name in the core library.
+@end defun
+
+@defun condition-variable-name condition-variable
+Returns the name assigned to @var{thread} at the time of its creation,
+or @code{#f} if it was not given a name.
+@end defun
+
+@defun condition-variable-specific condition-variable
+@defunx condition-variable-specific-set! condition-variable obj
+Get or set the ``object-specific'' property of 
+@var{condition-variable}.  In Guile's implementation of SRFI-18, this
+value is stored as an object property, and will be @code{#f} if not 
+set.
+@end defun
+
+@defun condition-variable-signal! condition-variable
+@defunx condition-variable-broadcast! condition-variable
+Wake up one thread that is waiting for @var{condition-variable}, in
+the case of @code{condition-variable-signal!}, or all threads waiting
+for it, in the case of @code{condition-variable-broadcast!}.  The
+behavior of these procedures is equivalent to that of the procedures
+@code{signal-condition-variable} and 
+@code{broadcast-condition-variable} in the core library.
+@end defun
+
+
+@node SRFI-18 Time
+@subsubsection SRFI-18 Time
+
+The SRFI-18 time functions manipulate time in two formats: a 
+``time object'' type that represents an absolute point in time in some 
+implementation-specific way; and the number of seconds since some 
+unspecified ``epoch''.  In Guile's implementation, the epoch is the
+Unix epoch, 00:00:00 UTC, January 1, 1970.
+
+@defun current-time
+Return the current time as a time object.  This procedure replaces 
+the procedure of the same name in the core library, which returns the
+current time in seconds since the epoch.
+@end defun
+
+@defun time? obj
+Returns @code{#t} if @var{obj} is a time object, @code{#f} otherwise.
+@end defun
+
+@defun time->seconds time
+@defunx seconds->time seconds
+Convert between time objects and numerical values representing the
+number of seconds since the epoch.  When converting from a time object 
+to seconds, the return value is the number of seconds between 
+@var{time} and the epoch.  When converting from seconds to a time 
+object, the return value is a time object that represents a time 
+@var{seconds} seconds after the epoch.
+@end defun
+
+
+@node SRFI-18 Exceptions
+@subsubsection SRFI-18 Exceptions
+
+SRFI-18 exceptions are identical to the exceptions provided by 
+Guile's implementation of SRFI-34.  The behavior of exception 
+handlers invoked to handle exceptions thrown from SRFI-18 functions,
+however, differs from the conventional behavior of SRFI-34 in that
+the continuation of the handler is the same as that of the call to
+the function.  Handlers are called in a tail-recursive manner; the
+exceptions do not ``bubble up''.
+
+@defun current-exception-handler
+Returns the current exception handler.
+@end defun
+
+@defun with-exception-handler handler thunk
+Installs @var{handler} as the current exception handler and calls the
+procedure @var{thunk} with no arguments, returning its value as the 
+value of the exception.  @var{handler} must be a procedure that accepts
+a single argument. The current exception handler at the time this 
+procedure is called will be restored after the call returns.
+@end defun
+
+@defun raise obj
+Raise @var{obj} as an exception.  This is the same procedure as the
+same-named procedure defined in SRFI 34.
+@end defun
+
+@defun join-timeout-exception? obj
+Returns @code{#t} if @var{obj} is an exception raised as the result of 
+performing a timed join on a thread that does not exit within the
+specified timeout, @code{#f} otherwise.
+@end defun
+
+@defun abandoned-mutex-exception? obj
+Returns @code{#t} if @var{obj} is an exception raised as the result of
+attempting to lock a mutex that has been abandoned by its owner thread,
+@code{#f} otherwise.
+@end defun
+
+@defun terminated-thread-exception? obj
+Returns @code{#t} if @var{obj} is an exception raised as the result of 
+joining on a thread that exited as the result of a call to
+@code{thread-terminate!}.
+@end defun
+
+@defun uncaught-exception? obj
+@defunx uncaught-exception-reason exc
+@code{uncaught-exception?} returns @code{#t} if @var{obj} is an 
+exception thrown as the result of joining a thread that exited by
+raising an exception that was handled by the top-level exception
+handler installed by @code{make-thread}.  When this occurs, the 
+original exception is preserved as part of the exception thrown by
+@code{thread-join!} and can be accessed by calling 
+@code{uncaught-exception-reason} on that exception.  Note that
+because this exception-preservation mechanism is a side-effect of
+@code{make-thread}, joining on threads that exited as described above
+but were created by other means will not raise this 
+@code{uncaught-exception} error.
+@end defun
+
+
 @node SRFI-19
 @subsection SRFI-19 - Time/Date Library
 @cindex SRFI-19
@@ -1844,8 +2184,10 @@ Return the current time of the given @var{type}.  The default
 @var{type} is @code{time-utc}.
 
 Note that the name @code{current-time} conflicts with the Guile core
-@code{current-time} function (@pxref{Time}).  Applications wanting to
-use both will need to use a different name for one of them.
+@code{current-time} function (@pxref{Time}) as well as the SRFI-18
+@code{current-time} function (@pxref{SRFI-18 Time}).  Applications 
+wanting to use more than one of these functions will need to refer to
+them by different names.
 @end defun
 
 @defun time-resolution [type]
@@ -3215,6 +3557,56 @@ Answer a hash value appropriate for equality predicate @code{equal?},
 
 @code{hash} is a backwards-compatible replacement for Guile's built-in
 @code{hash}.
+
+@node SRFI-88
+@subsection SRFI-88 Keyword Objects
+@cindex SRFI-88
+@cindex keyword objects
+
+@uref{http://srfi.schemers.org/srfi-88/srfi-88.html, SRFI-88} provides
+@dfn{keyword objects}, which are equivalent to Guile's keywords
+(@pxref{Keywords}).  SRFI-88 keywords can be entered using the
+@dfn{postfix keyword syntax}, which consists of an identifier followed
+by @code{:} (@pxref{Reader options, @code{postfix} keyword syntax}).
+SRFI-88 can be made available with:
+
+@example
+(use-modules (srfi srfi-88))
+@end example
+
+Doing so installs the right reader option for keyword syntax, using
+@code{(read-set! keywords 'postfix)}.  It also provides the procedures
+described below.
+
+@deffn {Scheme Procedure} keyword? obj
+Return @code{#t} if @var{obj} is a keyword.  This is the same procedure
+as the same-named built-in procedure (@pxref{Keyword Procedures,
+@code{keyword?}}).
+
+@example
+(keyword? foo:)         @result{} #t
+(keyword? 'foo:)        @result{} #t
+(keyword? "foo")        @result{} #f
+@end example
+@end deffn
+
+@deffn {Scheme Procedure} keyword->string kw
+Return the name of @var{kw} as a string, i.e., without the trailing
+colon.  The returned string may not be modified, e.g., with
+@code{string-set!}.
+
+@example
+(keyword->string foo:)  @result{} "foo"
+@end example
+@end deffn
+
+@deffn {Scheme Procedure} string->keyword str
+Return the keyword object whose name is @var{str}.
+
+@example
+(keyword->string (string->keyword "a b c"))     @result{} "a b c"
+@end example
+@end deffn
 
 
 @c srfi-modules.texi ends here

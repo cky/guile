@@ -1,6 +1,6 @@
 ;;; srfi-35.scm --- Conditions
 
-;; Copyright (C) 2007 Free Software Foundation, Inc.
+;; Copyright (C) 2007, 2008 Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -36,6 +36,8 @@
             &message message-condition? condition-message
             &serious serious-condition?
             &error error?))
+
+(cond-expand-provide (current-module) '(srfi-35))
 
 
 ;;;

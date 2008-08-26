@@ -364,7 +364,7 @@ scm_free_structs (void *dummy1 SCM_UNUSED,
 	{
 	  SCM vtable = SCM_STRUCT_VTABLE (chain);
 	  if (SCM_STRUCT_GC_CHAIN (vtable) != 0 && vtable != chain)
-	    SCM_SET_GC_MARK (vtable);
+	    SCM_SET_STRUCT_MARK (vtable);
 	  chain = SCM_STRUCT_GC_CHAIN (chain);
 	}
       /* Free unmarked structs.  */
@@ -374,9 +374,9 @@ scm_free_structs (void *dummy1 SCM_UNUSED,
 	{
 	  SCM obj = chain;
 	  chain = SCM_STRUCT_GC_CHAIN (chain);
-	  if (SCM_GC_MARK_P (obj))
+	  if (SCM_STRUCT_MARK_P (obj))
 	    {
-	      SCM_CLEAR_GC_MARK (obj);
+	      SCM_CLEAR_STRUCT_MARK (obj);
 	      SCM_SET_STRUCT_GC_CHAIN (obj, newchain);
 	      newchain = obj;
 	    }
@@ -897,8 +897,8 @@ scm_struct_prehistory ()
 {
   scm_i_structs_to_free = SCM_EOL;
   scm_c_hook_add (&scm_before_sweep_c_hook, scm_struct_gc_init, 0, 0);
-  /* With the new lazy sweep GC, the point at which the entire heap is
-     swept is just before the mark phase. */
+  /* With lazy sweep GC, the point at which the entire heap is swept
+     is just before the mark phase. */
   scm_c_hook_add (&scm_before_mark_c_hook, scm_free_structs, 0, 0);
 }
 

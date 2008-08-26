@@ -3,7 +3,7 @@
 #ifndef SCM_PORTS_H
 #define SCM_PORTS_H
 
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2003, 2004, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2003, 2004, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -109,8 +109,8 @@ typedef struct
 } scm_t_port;
 
 
-SCM_API scm_i_pthread_mutex_t scm_i_port_table_mutex;
-SCM_API SCM scm_i_port_weak_hash;
+SCM_INTERNAL scm_i_pthread_mutex_t scm_i_port_table_mutex;
+SCM_INTERNAL SCM scm_i_port_weak_hash;
 
 
 #define SCM_READ_BUFFER_EMPTY_P(c_port) (c_port->read_pos >= c_port->read_end)
@@ -195,7 +195,7 @@ typedef struct scm_t_ptob_descriptor
 
 SCM_API scm_t_ptob_descriptor *scm_ptobs;
 SCM_API long scm_numptob;
-SCM_API long scm_i_port_table_room;
+SCM_INTERNAL long scm_i_port_table_room;
 
 
 
@@ -241,7 +241,7 @@ SCM_API void scm_dynwind_current_input_port (SCM port);
 SCM_API void scm_dynwind_current_output_port (SCM port);
 SCM_API void scm_dynwind_current_error_port (SCM port);
 SCM_API SCM scm_new_port_table_entry (scm_t_bits tag);
-SCM_API void scm_i_remove_port (SCM port);
+SCM_INTERNAL void scm_i_remove_port (SCM port);
 SCM_API void scm_grow_port_cbuf (SCM port, size_t requested);
 SCM_API SCM scm_pt_size (void);
 SCM_API SCM scm_pt_member (SCM member);
@@ -264,15 +264,12 @@ SCM_API SCM scm_eof_object_p (SCM x);
 SCM_API SCM scm_force_output (SCM port);
 SCM_API SCM scm_flush_all_ports (void);
 SCM_API SCM scm_read_char (SCM port);
-SCM_API void scm_putc (char c, SCM port);
-SCM_API void scm_puts (const char *str_data, SCM port);
 SCM_API size_t scm_c_read (SCM port, void *buffer, size_t size);
 SCM_API void scm_c_write (SCM port, const void *buffer, size_t size);
 SCM_API void scm_lfwrite (const char *ptr, size_t size, SCM port);
 SCM_API void scm_flush (SCM port);
 SCM_API void scm_end_input (SCM port);
 SCM_API int scm_fill_input (SCM port);
-SCM_API int scm_getc (SCM port);
 SCM_API void scm_ungetc (int c, SCM port);
 SCM_API void scm_ungets (const char *s, int n, SCM port);
 SCM_API SCM scm_peek_char (SCM port);
@@ -291,7 +288,7 @@ SCM_API void scm_print_port_mode (SCM exp, SCM port);
 SCM_API void scm_ports_prehistory (void);
 SCM_API SCM scm_void_port (char * mode_str);
 SCM_API SCM scm_sys_make_void_port (SCM mode);
-SCM_API void scm_init_ports (void);
+SCM_INTERNAL void scm_init_ports (void);
 
 
 #if SCM_ENABLE_DEPRECATED==1
@@ -305,8 +302,8 @@ SCM_API SCM scm_pt_member (SCM member);
 
 /* internal */
 
-SCM_API long scm_i_mode_bits (SCM modes);
-SCM_API void scm_i_dynwind_current_load_port (SCM port);
+SCM_INTERNAL long scm_i_mode_bits (SCM modes);
+SCM_INTERNAL void scm_i_dynwind_current_load_port (SCM port);
 
 
 #endif  /* SCM_PORTS_H */

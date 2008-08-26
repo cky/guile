@@ -84,8 +84,8 @@ scm_gc_init_malloc (void)
 {
   scm_mtrigger = scm_getenv_int ("GUILE_INIT_MALLOC_LIMIT",
 				 SCM_DEFAULT_INIT_MALLOC_LIMIT);
-  scm_i_minyield_malloc =  scm_getenv_int ("GUILE_MIN_YIELD_MALLOC",
-					   SCM_DEFAULT_MALLOC_MINYIELD);
+  scm_i_minyield_malloc = scm_getenv_int ("GUILE_MIN_YIELD_MALLOC",
+					  SCM_DEFAULT_MALLOC_MINYIELD);
 
   if (scm_i_minyield_malloc >= 100)
     scm_i_minyield_malloc = 99;
@@ -105,7 +105,6 @@ void *
 scm_realloc (void *mem, size_t size)
 {
   void *ptr;
-  scm_t_sweep_statistics sweep_stats;
 
   SCM_SYSCALL (ptr = realloc (mem, size));
   if (ptr)
@@ -114,19 +113,17 @@ scm_realloc (void *mem, size_t size)
   scm_i_scm_pthread_mutex_lock (&scm_i_sweep_mutex);
   scm_gc_running_p = 1;
 
-  scm_i_sweep_all_segments ("realloc", &sweep_stats);
-  
-  SCM_SYSCALL (ptr = realloc (mem, size));
-  if (ptr)
-    { 
-      scm_gc_running_p = 0;
-      scm_i_pthread_mutex_unlock (&scm_i_sweep_mutex);
-      return ptr;
-    }
-
   scm_i_gc ("realloc");
-  scm_i_sweep_all_segments ("realloc", &sweep_stats);
-  
+
+  /*
+   We don't want these sweep statistics to influence results for
+   cell GC, so we don't collect statistics.
+   
+   realloc () failed, so we're really desparate to free memory. Run a
+   full sweep.
+  */
+  scm_i_sweep_all_segments ("realloc", NULL);
+
   scm_gc_running_p = 0;
   scm_i_pthread_mutex_unlock (&scm_i_sweep_mutex);
   
@@ -231,19 +228,22 @@ increase_mtrigger (size_t size, const char *what)
     {
       unsigned long prev_alloced;
       float yield;
-      scm_t_sweep_statistics sweep_stats;
 
       scm_i_scm_pthread_mutex_lock (&scm_i_sweep_mutex);
       scm_gc_running_p = 1;
       
-      prev_alloced  = mallocated;
+      prev_alloced = mallocated;
+
+      /* The GC will finish the pending sweep. For that reason, we
+	 don't execute a complete sweep after GC, although that might
+	 free some more memory.
+      */
       scm_i_gc (what);
-      scm_i_sweep_all_segments ("mtrigger", &sweep_stats);
 
       yield = (((float) prev_alloced - (float) scm_mallocated)
 	       / (float) prev_alloced);
       
-      scm_gc_malloc_yield_percentage = (int) (100  * yield);
+      scm_gc_malloc_yield_percentage = (int) (100 * yield);
 
 #ifdef DEBUGINFO
       fprintf (stderr,  "prev %lud , now %lud, yield %4.2lf, want %d",
@@ -271,7 +271,7 @@ increase_mtrigger (size_t size, const char *what)
 	  if (no_overflow_trigger >= (float) ULONG_MAX)
 	    scm_mtrigger = ULONG_MAX;
 	  else
-	    scm_mtrigger =  (unsigned long) no_overflow_trigger;
+	    scm_mtrigger = (unsigned long) no_overflow_trigger;
 	  
 #ifdef DEBUGINFO
 	  fprintf (stderr, "Mtrigger sweep: ineffective. New trigger %d\n",
@@ -314,7 +314,7 @@ scm_gc_malloc (size_t size, const char *what)
      again in scm_gc_register_collectable_memory.  We don't really
      want the second GC since it will not find new garbage.
 
-     Note: this is a theoretical peeve. In reality, malloc() never
+     Note: this is a theoretical peeve. In reality, malloc () never
      returns NULL. Usually, memory is overcommitted, and when you try
      to write it the program is killed with signal 11. --hwn
   */
@@ -342,10 +342,10 @@ scm_gc_realloc (void *mem, size_t old_size, size_t new_size, const char *what)
 
 
   /*    
-  scm_realloc() may invalidate the block pointed to by WHERE, eg. by
+  scm_realloc () may invalidate the block pointed to by WHERE, eg. by
   unmapping it from memory or altering the contents.  Since
-  increase_mtrigger() might trigger a GC that would scan
-  MEM, it is crucial that this call precedes realloc().
+  increase_mtrigger () might trigger a GC that would scan
+  MEM, it is crucial that this call precedes realloc ().
   */
 
   decrease_mtrigger (old_size, what);

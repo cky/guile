@@ -8,6 +8,7 @@
 @node Debugging
 @section Debugging Infrastructure
 
+@cindex Debugging
 In order to understand Guile's debugging facilities, you first need to
 understand a little about how the evaluator works and what the Scheme
 stack is.  With that in place we explain the low level trap calls that

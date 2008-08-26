@@ -3,7 +3,7 @@
 #ifndef SCM_STIME_H
 #define SCM_STIME_H
 
-/* Copyright (C) 1995,1996,1997,1998,2000, 2003, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000, 2003, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -64,7 +64,7 @@ SCM_API SCM scm_tzset (void);
 SCM_API SCM scm_times (void);
 SCM_API SCM scm_strftime (SCM format, SCM stime);
 SCM_API SCM scm_strptime (SCM format, SCM string);
-SCM_API void scm_init_stime (void);
+SCM_INTERNAL void scm_init_stime (void);
 
 #endif  /* SCM_STIME_H */
 

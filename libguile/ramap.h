@@ -3,7 +3,7 @@
 #ifndef SCM_RAMAP_H
 #define SCM_RAMAP_H
 
-/* Copyright (C) 1995,1996,1997,2000, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,2000, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -47,7 +47,7 @@ SCM_API SCM scm_array_for_each (SCM proc, SCM ra0, SCM lra);
 SCM_API SCM scm_array_index_map_x (SCM ra, SCM proc);
 SCM_API SCM scm_raequal (SCM ra0, SCM ra1);
 SCM_API SCM scm_array_equal_p (SCM ra0, SCM ra1);
-SCM_API void scm_init_ramap (void);
+SCM_INTERNAL void scm_init_ramap (void);
 
 #endif  /* SCM_RAMAP_H */
 

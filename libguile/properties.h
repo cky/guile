@@ -3,7 +3,7 @@
 #ifndef SCM_PROPERTIES_H
 #define SCM_PROPERTIES_H
 
-/* Copyright (C) 1995,1996,1998,2000, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,2000, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -29,7 +29,7 @@ SCM_API SCM scm_primitive_property_ref (SCM prop, SCM obj);
 SCM_API SCM scm_primitive_property_set_x (SCM prop, SCM obj, SCM val);
 SCM_API SCM scm_primitive_property_del_x (SCM prop, SCM obj);
 
-SCM_API void scm_init_properties (void);
+SCM_INTERNAL void scm_init_properties (void);
 
 #endif  /* SCM_PROPERTIES_H */
 

@@ -18,7 +18,6 @@
  */
 
 #include <libguile.h>
-#include "libguile/private-gc.h"  /* for SCM_MIN */
 #include "srfi-60.h"
 
 
@@ -332,7 +331,9 @@ SCM_DEFINE (scm_srfi60_integer_to_list, "integer->list", 1, 1, 0,
       long nn = SCM_I_INUM (n);
       for (i = 0; i < ll; i++)
         {
-          unsigned long shift = SCM_MIN (i, (unsigned long) SCM_LONG_BIT-1);
+          unsigned long shift =
+	    (i < ((unsigned long) SCM_LONG_BIT-1)) 
+	    ? i : ((unsigned long) SCM_LONG_BIT-1);
           int bit = (nn >> shift) & 1;
           ret = scm_cons (scm_from_bool (bit), ret);
         }

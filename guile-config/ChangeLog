@@ -1,3 +1,8 @@
+2008-06-02  Ludovic Courtès  <ludo@gnu.org>
+
+	* guile-config.in (build-link): Show `-L' before `-lguile'.
+	Reported by Peter O'Gorman <pogma@thewrittenword.com>.
+
 2008-01-22  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* COPYING: Removed.

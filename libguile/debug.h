@@ -3,7 +3,7 @@
 #ifndef SCM_DEBUG_H
 #define SCM_DEBUG_H
 
-/* Copyright (C) 1995,1996,1998,1999,2000,2001,2002,2004
+/* Copyright (C) 1995,1996,1998,1999,2000,2001,2002,2004,2008
  * Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -150,8 +150,8 @@ SCM_API SCM scm_evaluator_traps (SCM setting);
 SCM_API SCM scm_debug_options (SCM setting);
 SCM_API SCM scm_make_debugobj (scm_t_debug_frame *debug);
 
-SCM_API SCM scm_i_unmemoize_expr (SCM memoized);
-SCM_API void scm_init_debug (void);
+SCM_INTERNAL SCM scm_i_unmemoize_expr (SCM memoized);
+SCM_INTERNAL void scm_init_debug (void);
 
 #ifdef GUILE_DEBUG
 SCM_API SCM scm_memcons (SCM car, SCM cdr, SCM env);

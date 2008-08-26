@@ -3,7 +3,7 @@
 #ifndef SCM_KEYWORDS_H
 #define SCM_KEYWORDS_H
 
-/* Copyright (C) 1995,1996,1999,2000,2001, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1999,2000,2001, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -38,7 +38,7 @@ SCM_API int scm_is_keyword (SCM val);
 SCM_API SCM scm_from_locale_keyword (const char *str);
 SCM_API SCM scm_from_locale_keywordn (const char *str, size_t len);
 
-SCM_API void scm_init_keywords (void);
+SCM_INTERNAL void scm_init_keywords (void);
 
 #endif  /* SCM_KEYWORDS_H */
 

@@ -124,47 +124,30 @@ scm_make_continuation (int *first)
   continuation->offset = continuation->stack - src;
   memcpy (continuation->stack, src, sizeof (SCM_STACKITEM) * stack_size);
 
-#ifdef __ia64__
-  continuation->fresh = 1;
-  getcontext (&continuation->ctx);
-  if (continuation->fresh)
+  *first = !setjmp (continuation->jmpbuf);
+  if (*first)
     {
+#ifdef __ia64__
       continuation->backing_store_size =
-	(char *) scm_ia64_ar_bsp(&continuation->ctx)
+	(char *) scm_ia64_ar_bsp(&continuation->jmpbuf.ctx)
 	-
-	(char *) scm_ia64_register_backing_store_base ();
+	(char *) thread->register_backing_store_base;
       continuation->backing_store = NULL;
       continuation->backing_store = 
         scm_gc_malloc (continuation->backing_store_size,
 		       "continuation backing store");
       memcpy (continuation->backing_store, 
-              (void *) scm_ia64_register_backing_store_base (), 
+              (void *) thread->register_backing_store_base, 
               continuation->backing_store_size);
-      *first = 1;
-      continuation->fresh = 0;
+#endif /* __ia64__ */
       return cont;
     }
   else
     {
       SCM ret = continuation->throw_value;
-      *first = 0;
       continuation->throw_value = SCM_BOOL_F;
       return ret;
     }
-#else /* !__ia64__ */
-  if (setjmp (continuation->jmpbuf))
-    {
-      SCM ret = continuation->throw_value;
-      *first = 0;
-      continuation->throw_value = SCM_BOOL_F;
-      return ret;
-    }
-  else
-    {
-      *first = 1;
-      return cont;
-    }
-#endif /* !__ia64__ */
 }
 #undef FUNC_NAME
 
@@ -218,6 +201,9 @@ copy_stack (void *data)
   copy_stack_data *d = (copy_stack_data *)data;
   memcpy (d->dst, d->continuation->stack,
 	  sizeof (SCM_STACKITEM) * d->continuation->num_stack_items);
+#ifdef __ia64__
+  SCM_I_CURRENT_THREAD->pending_rbs_continuation = d->continuation;
+#endif
 }
 
 static void
@@ -235,15 +221,25 @@ copy_stack_and_call (scm_t_contregs *continuation, SCM val,
   scm_i_set_last_debug_frame (continuation->dframe);
 
   continuation->throw_value = val;
-#ifdef __ia64__
-  memcpy (scm_ia64_register_backing_store_base (),
-          continuation->backing_store,
-          continuation->backing_store_size);
-  setcontext (&continuation->ctx);
-#else
   longjmp (continuation->jmpbuf, 1);
-#endif
 }
+
+#ifdef __ia64__
+void
+scm_ia64_longjmp (jmp_buf *JB, int VAL)
+{
+  scm_i_thread *t = SCM_I_CURRENT_THREAD;
+
+  if (t->pending_rbs_continuation)
+    {
+      memcpy (t->register_backing_store_base,
+	      t->pending_rbs_continuation->backing_store,
+	      t->pending_rbs_continuation->backing_store_size);
+      t->pending_rbs_continuation = NULL;
+    }
+  setcontext (&JB->ctx);
+}
+#endif
 
 /* Call grow_stack until the stack space is large enough, then, as the current
  * stack frame might get overwritten, let copy_stack_and_call perform the

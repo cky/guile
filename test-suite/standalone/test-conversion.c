@@ -27,7 +27,9 @@
 
 #ifdef HAVE_INTTYPES_H
 # include <inttypes.h>
-#elif (!defined PRIiMAX)
+#endif
+
+#ifndef PRIiMAX
 # if (defined SIZEOF_LONG_LONG) && (SIZEOF_LONG_LONG >= 8)
 #  define PRIiMAX "lli"
 #  define PRIuMAX "llu"

@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2007
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2007, 2008
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -329,12 +329,12 @@ Signal error if module name is not resolvable.
 
 
 @c FIXME::martin: Is this correct, and is there more to say?
-@c FIXME::martin: Define term and concept `system transformer' somewhere.
+@c FIXME::martin: Define term and concept `syntax transformer' somewhere.
 
 @deffn syntax use-syntax module-name
-Load the module @code{module-name} and use its system
-transformer as the system transformer for the currently defined module,
-as well as installing it as the current system transformer.
+Load the module @code{module-name} and use its syntax
+transformer as the syntax transformer for the currently defined module,
+as well as installing it as the current syntax transformer.
 @end deffn
 
 @deffn syntax @@ module-name binding-name

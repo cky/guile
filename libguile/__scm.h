@@ -97,6 +97,15 @@
 #define SCM_LIKELY(_expr)    SCM_EXPECT ((_expr), 1)
 #define SCM_UNLIKELY(_expr)  SCM_EXPECT ((_expr), 0)
 
+/* The SCM_INTERNAL macro makes it possible to explicitly declare a function
+ * as having "internal" linkage.  */
+#if (defined __GNUC__) && \
+  ((__GNUC__ >= 4) || (__GNUC__ == 3 && __GNUC_MINOR__ == 3))
+# define SCM_INTERNAL  extern __attribute__ ((__visibility__ ("internal")))
+#else
+# define SCM_INTERNAL  extern
+#endif
+
 
 
 /* {Supported Options}
@@ -402,7 +411,23 @@
 #  define setjmp setjump
 #  define longjmp longjump
 # else				/* ndef _CRAY1 */
-#  include <setjmp.h>
+#  if defined (__ia64__)
+/* For IA64, emulate the setjmp API using getcontext. */
+#   include <signal.h>
+#   include <ucontext.h>
+    typedef struct {
+      ucontext_t ctx;
+      int fresh;
+    } jmp_buf;
+#   define setjmp(JB)				        \
+      ( (JB).fresh = 1,				        \
+        getcontext (&((JB).ctx)),			\
+        ((JB).fresh ? ((JB).fresh = 0, 0) : 1) )
+#   define longjmp(JB,VAL) scm_ia64_longjmp (&(JB), VAL)
+    void scm_ia64_longjmp (jmp_buf *, int);
+#  else                 	/* ndef __ia64__ */
+#   include <setjmp.h>
+#  endif			/* ndef __ia64__ */
 # endif				/* ndef _CRAY1 */
 #endif				/* ndef vms */
 

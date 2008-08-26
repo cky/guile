@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2003, 2004, 2006, 2007 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2003, 2004, 2006, 2007, 2008 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -960,64 +960,6 @@ scm_fill_input (SCM port)
   return scm_ptobs[SCM_PTOBNUM (port)].fill_input (port);
 }
 
-int 
-scm_getc (SCM port)
-{
-  int c;
-  scm_t_port *pt = SCM_PTAB_ENTRY (port);
-
-  if (pt->rw_active == SCM_PORT_WRITE)
-    /* may be marginally faster than calling scm_flush.  */
-    scm_ptobs[SCM_PTOBNUM (port)].flush (port);
-  
-  if (pt->rw_random)
-    pt->rw_active = SCM_PORT_READ;
-
-  if (pt->read_pos >= pt->read_end)
-    {
-      if (scm_fill_input (port) == EOF)
-	return EOF;
-    }
-
-  c = *(pt->read_pos++);
-
-  switch (c)
-    {
-      case '\a':
-        break;
-      case '\b':
-        SCM_DECCOL (port);
-        break;
-      case '\n':
-        SCM_INCLINE (port);
-        break;
-      case '\r':
-        SCM_ZEROCOL (port);
-        break;
-      case '\t':
-        SCM_TABCOL (port);
-        break;
-      default:
-        SCM_INCCOL (port);
-        break;
-    }
- 
-  return c;
-}
-
-void 
-scm_putc (char c, SCM port)
-{
-  SCM_ASSERT_TYPE (SCM_OPOUTPORTP (port), port, 0, NULL, "output port");
-  scm_lfwrite (&c, 1, port);
-}
-
-void 
-scm_puts (const char *s, SCM port)
-{
-  SCM_ASSERT_TYPE (SCM_OPOUTPORTP (port), port, 0, NULL, "output port");
-  scm_lfwrite (s, strlen (s), port);
-}
 
 /* scm_lfwrite
  *

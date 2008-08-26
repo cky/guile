@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in.
 ##
-##  	Copyright (C) 1998, 1999, 2000, 2001, 2002, 2006, 2007 Free Software Foundation, Inc.
+##  	Copyright (C) 1998, 1999, 2000, 2001, 2002, 2006, 2007, 2008 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
@@ -32,15 +32,16 @@ bin_SCRIPTS = guile-tools
 
 include_HEADERS = libguile.h
 
-# automake sometimes forgets to distribute acconfig.h,
-# apparently depending on the phase of the moon.
-EXTRA_DIST = LICENSE HACKING GUILE-VERSION ANON-CVS SNAPSHOTS	\
-	     m4/ChangeLog FAQ
+EXTRA_DIST = LICENSE HACKING GUILE-VERSION \
+	     m4/ChangeLog FAQ guile-1.8.pc.in
 
 TESTS = check-guile
 
 ACLOCAL_AMFLAGS = -I guile-config -I m4
 
 DISTCLEANFILES = check-guile.log
+
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = guile-1.8.pc
 
 # Makefile.am ends here

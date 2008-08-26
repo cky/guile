@@ -3,7 +3,7 @@
 #ifndef SCM_FUTURES_H
 #define SCM_FUTURES_H
 
-/* Copyright (C) 2002, 2003, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 2002, 2003, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -73,7 +73,7 @@ SCM_API scm_t_bits scm_tc16_future;
 
 extern SCM *scm_loc_sys_thread_handler;
 
-SCM_API SCM scm_i_make_future (SCM thunk);
+SCM_INTERNAL SCM scm_i_make_future (SCM thunk);
 SCM_API SCM scm_make_future (SCM thunk);
 SCM_API SCM scm_future_ref (SCM future);
 

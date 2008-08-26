@@ -148,7 +148,7 @@ SCM_API SCM scm_i_chase_pairs (SCM x, scm_t_uint32 pattern);
 #define scm_caaadr(x) scm_i_chase_pairs ((x), SCM_I_AAAD_PAT)
 #define scm_caaaar(x) scm_i_chase_pairs ((x), SCM_I_AAAA_PAT)
 
-SCM_API void scm_init_pairs (void);
+SCM_INTERNAL void scm_init_pairs (void);
 
 #endif  /* SCM_PAIRS_H */
 

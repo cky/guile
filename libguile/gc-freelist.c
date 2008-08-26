@@ -26,9 +26,6 @@
 scm_t_cell_type_statistics scm_i_master_freelist;
 scm_t_cell_type_statistics scm_i_master_freelist2;
 
-
-
-
 /*
 
 In older versions of GUILE GC there was extensive support for
@@ -37,8 +34,6 @@ inside the heap, and writing to an object that was GC'd would mangle
 the list. Mark bits are now separate, and checking for sane cell
 access can be done much more easily by simply checking if the mark bit
 is unset before allocation.  --hwn
-
-
 
 */
 
@@ -69,78 +64,53 @@ SCM_DEFINE (scm_gc_set_debug_check_freelist_x, "gc-set-debug-check-freelist!", 1
 #endif /* defined (GUILE_DEBUG) */
 #endif /* deprecated */
 
-
-
-
-/* Adjust FREELIST variables to decide wether or not to allocate more heap in
-   the next GC run based on SWEEP_STATS on SWEEP_STATS_1 (statistics
-   collected after the two last full GC).  */
-void
-scm_i_adjust_min_yield (scm_t_cell_type_statistics *freelist,
-			scm_t_sweep_statistics sweep_stats,
-			scm_t_sweep_statistics sweep_stats_1)
-{
-  /* min yield is adjusted upwards so that next predicted total yield
-   * (allocated cells actually freed by GC) becomes
-   * `min_yield_fraction' of total heap size.  Note, however, that
-   * the absolute value of min_yield will correspond to `collected'
-   * on one master (the one which currently is triggering GC).
-   *
-   * The reason why we look at total yield instead of cells collected
-   * on one list is that we want to take other freelists into account.
-   * On this freelist, we know that (local) yield = collected cells,
-   * but that's probably not the case on the other lists.
-   *
-   * (We might consider computing a better prediction, for example
-   *  by computing an average over multiple GC:s.)
-   */
-  if (freelist->min_yield_fraction)
-    {
-      /* Pick largest of last two yields. */
-      long delta = ((SCM_HEAP_SIZE * freelist->min_yield_fraction / 100)
-		   - (long) SCM_MAX (sweep_stats.collected,
-				     sweep_stats_1.collected));
-#ifdef DEBUGINFO
-      fprintf (stderr, " after GC = %lu, delta = %ld\n",
-	       (unsigned long) scm_cells_allocated,
-	       (long) delta);
-#endif
-      if (delta > 0)
-	freelist->min_yield += delta;
-    }
-}
-
-
 static void
 scm_init_freelist (scm_t_cell_type_statistics *freelist,
-	       int span,
-	       int min_yield)
+		   int span,
+		   int min_yield_percentage)
 {
-  if (min_yield < 1)
-    min_yield = 1;
-  if (min_yield > 99)
-    min_yield = 99;
+  if (min_yield_percentage < 1)
+    min_yield_percentage = 1;
+  if (min_yield_percentage > 99)
+    min_yield_percentage = 99;
 
   freelist->heap_segment_idx = -1;
-  freelist->min_yield = 0;
-  freelist->min_yield_fraction = min_yield;
+  freelist->min_yield_fraction = min_yield_percentage / 100.0;
   freelist->span = span;
+  freelist->swept = 0;
   freelist->collected = 0;
-  freelist->collected_1 = 0;
-  freelist->heap_size = 0;
+  freelist->heap_total_cells = 0;
 }
 
 #if (SCM_ENABLE_DEPRECATED == 1)
- size_t scm_default_init_heap_size_1;
- int scm_default_min_yield_1;
- size_t scm_default_init_heap_size_2;
- int scm_default_min_yield_2;
- size_t scm_default_max_segment_size;
+size_t scm_default_init_heap_size_1;
+int scm_default_min_yield_1;
+size_t scm_default_init_heap_size_2;
+int scm_default_min_yield_2;
+size_t scm_default_max_segment_size;
+
+static void
+check_deprecated_heap_vars (void)  {
+  if (scm_default_init_heap_size_1 ||
+      scm_default_min_yield_1||
+      scm_default_init_heap_size_2||
+      scm_default_min_yield_2||
+      scm_default_max_segment_size)
+    {
+      scm_c_issue_deprecation_warning ("Tuning heap parameters with C variables is deprecated. Use environment variables instead.");
+    }
+}
+#else
+static void check_deprecated_heap_vars (void) { }
 #endif
 
 void
 scm_gc_init_freelist (void)
 {
+  const char *error_message =
+    "Could not allocate initial heap of %uld.\n"
+    "Try adjusting GUILE_INIT_SEGMENT_SIZE_%d\n";
+ 
   int init_heap_size_1
     = scm_getenv_int ("GUILE_INIT_SEGMENT_SIZE_1", SCM_DEFAULT_INIT_HEAP_SIZE_1);
   int init_heap_size_2
@@ -155,38 +125,62 @@ scm_gc_init_freelist (void)
 
   if (scm_max_segment_size <= 0)
     scm_max_segment_size = SCM_DEFAULT_MAX_SEGMENT_SIZE;
-  
-  
-  scm_i_make_initial_segment (init_heap_size_1, &scm_i_master_freelist);
-  scm_i_make_initial_segment (init_heap_size_2, &scm_i_master_freelist2);
-  
-#if (SCM_ENABLE_DEPRECATED == 1)
-  if ( scm_default_init_heap_size_1 ||
-       scm_default_min_yield_1||
-       scm_default_init_heap_size_2||
-       scm_default_min_yield_2||
-       scm_default_max_segment_size)
-    {
-      scm_c_issue_deprecation_warning ("Tuning heap parameters with C variables is deprecated. Use environment variables instead.");
-    }
-#endif
+   
+  if (scm_i_get_new_heap_segment (&scm_i_master_freelist,
+				  init_heap_size_1, return_on_error) == -1)  {
+    fprintf (stderr, error_message, init_heap_size_1, 1);
+    abort ();
+  }
+  if (scm_i_get_new_heap_segment (&scm_i_master_freelist2,
+				  init_heap_size_2, return_on_error) == -1) {
+    fprintf (stderr, error_message, init_heap_size_2, 2);
+    abort ();
+  }
+
+  check_deprecated_heap_vars ();
 }
+
 
 
 void
 scm_i_gc_sweep_freelist_reset (scm_t_cell_type_statistics *freelist)
 {
-  freelist->collected_1 = freelist->collected;
   freelist->collected = 0;
-  
+  freelist->swept = 0;
   /*
     at the end we simply start with the lowest segment again.
    */
   freelist->heap_segment_idx = -1;
 }
 
-int
-scm_i_gc_grow_heap_p (scm_t_cell_type_statistics * freelist)
+
+/*
+  Returns how many more cells we should allocate according to our
+  policy.  May return negative if we don't need to allocate more. 
+
+
+  The new yield should at least equal gc fraction of new heap size, i.e.
+
+  c + dh > f * (h + dh)
+
+  c : collected
+  f : min yield fraction
+  h : heap size
+  dh : size of new heap segment
+
+  this gives dh > (f * h - c) / (1 - f).
+*/
+float
+scm_i_gc_heap_size_delta (scm_t_cell_type_statistics * freelist)
 {
-  return SCM_MAX (freelist->collected,freelist->collected_1)  < freelist->min_yield;
+  float f = freelist->min_yield_fraction;
+  float collected = freelist->collected;
+  float swept = freelist->swept;
+  float delta = ((f * swept - collected) / (1.0 - f));
+
+  assert (freelist->heap_total_cells >= freelist->collected);
+  assert (freelist->swept == freelist->heap_total_cells);
+  assert (swept >= collected);
+
+  return delta;
 }

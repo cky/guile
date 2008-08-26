@@ -3,7 +3,7 @@
 #ifndef SCM_EVAL_H
 #define SCM_EVAL_H
 
-/* Copyright (C) 1995,1996,1998,1999,2000,2001,2002,2003,2004
+/* Copyright (C) 1995,1996,1998,1999,2000,2001,2002,2003,2004,2008
  * Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -152,7 +152,7 @@ SCM_API SCM scm_apply_0 (SCM proc, SCM args);
 SCM_API SCM scm_apply_1 (SCM proc, SCM arg1, SCM args);
 SCM_API SCM scm_apply_2 (SCM proc, SCM arg1, SCM arg2, SCM args);
 SCM_API SCM scm_apply_3 (SCM proc, SCM arg1, SCM arg2, SCM arg3, SCM args);
-SCM_API SCM scm_i_call_closure_0 (SCM proc);
+SCM_INTERNAL SCM scm_i_call_closure_0 (SCM proc);
 SCM_API scm_t_trampoline_0 scm_trampoline_0 (SCM proc);
 SCM_API scm_t_trampoline_1 scm_trampoline_1 (SCM proc);
 SCM_API scm_t_trampoline_2 scm_trampoline_2 (SCM proc);
@@ -167,18 +167,18 @@ SCM_API SCM scm_force (SCM x);
 SCM_API SCM scm_promise_p (SCM x);
 SCM_API SCM scm_cons_source (SCM xorig, SCM x, SCM y);
 SCM_API SCM scm_copy_tree (SCM obj);
-SCM_API SCM scm_i_eval_x (SCM exp, SCM env);
-SCM_API SCM scm_i_eval (SCM exp, SCM env);
+SCM_API SCM scm_i_eval_x (SCM exp, SCM env) /* not internal */;
+SCM_INTERNAL SCM scm_i_eval (SCM exp, SCM env);
 SCM_API SCM scm_primitive_eval (SCM exp);
 SCM_API SCM scm_primitive_eval_x (SCM exp);
 SCM_API SCM scm_eval (SCM exp, SCM module);
 SCM_API SCM scm_eval_x (SCM exp, SCM module);
 
-SCM_API void scm_i_print_iloc (SCM /*iloc*/, SCM /*port*/);
-SCM_API void scm_i_print_isym (SCM /*isym*/, SCM /*port*/);
-SCM_API SCM scm_i_unmemocopy_expr (SCM expr, SCM env);
-SCM_API SCM scm_i_unmemocopy_body (SCM forms, SCM env);
-SCM_API void scm_init_eval (void);
+SCM_INTERNAL void scm_i_print_iloc (SCM /*iloc*/, SCM /*port*/);
+SCM_INTERNAL void scm_i_print_isym (SCM /*isym*/, SCM /*port*/);
+SCM_INTERNAL SCM scm_i_unmemocopy_expr (SCM expr, SCM env);
+SCM_INTERNAL SCM scm_i_unmemocopy_body (SCM forms, SCM env);
+SCM_INTERNAL void scm_init_eval (void);
 
 
 #if (SCM_ENABLE_DEPRECATED == 1)

@@ -3,7 +3,7 @@
 #ifndef SCM_REGEX_POSIX_H
 #define SCM_REGEX_POSIX_H
 
-/* Copyright (C) 1997,1998,2000,2001, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1997,1998,2000,2001, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -31,7 +31,7 @@ SCM_API scm_t_bits scm_tc16_regex;
 SCM_API SCM scm_make_regexp (SCM pat, SCM flags);
 SCM_API SCM scm_regexp_p (SCM x);
 SCM_API SCM scm_regexp_exec (SCM rx, SCM str, SCM start, SCM flags);
-SCM_API void scm_init_regex_posix (void);
+SCM_INTERNAL void scm_init_regex_posix (void);
 
 #endif  /* SCM_REGEX_POSIX_H */
 

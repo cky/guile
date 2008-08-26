@@ -113,7 +113,11 @@
 #endif
 
 /* These names are a bit long, but they make it clear what they represent. */
-#define dirent_or_dirent64              CHOOSE_LARGEFILE(dirent,dirent64)
+#if SCM_HAVE_STRUCT_DIRENT64 == 1
+# define dirent_or_dirent64             CHOOSE_LARGEFILE(dirent,dirent64)
+#else
+# define dirent_or_dirent64             dirent
+#endif
 #define fstat_or_fstat64                CHOOSE_LARGEFILE(fstat,fstat64)
 #define ftruncate_or_ftruncate64        CHOOSE_LARGEFILE(ftruncate,ftruncate64)
 #define lseek_or_lseek64                CHOOSE_LARGEFILE(lseek,lseek64)
@@ -121,7 +125,11 @@
 #define off_t_or_off64_t                CHOOSE_LARGEFILE(off_t,off64_t)
 #define open_or_open64                  CHOOSE_LARGEFILE(open,open64)
 #define readdir_or_readdir64            CHOOSE_LARGEFILE(readdir,readdir64)
-#define readdir_r_or_readdir64_r        CHOOSE_LARGEFILE(readdir_r,readdir64_r)
+#if SCM_HAVE_READDIR64_R == 1
+# define readdir_r_or_readdir64_r       CHOOSE_LARGEFILE(readdir_r,readdir64_r)
+#else
+# define readdir_r_or_readdir64_r       readdir_r
+#endif
 #define stat_or_stat64                  CHOOSE_LARGEFILE(stat,stat64)
 #define truncate_or_truncate64          CHOOSE_LARGEFILE(truncate,truncate64)
 #define scm_from_off_t_or_off64_t       CHOOSE_LARGEFILE(scm_from_off_t,scm_from_int64)

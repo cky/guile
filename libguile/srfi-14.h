@@ -3,7 +3,7 @@
 
 /* srfi-14.c --- SRFI-14 procedures for Guile
  *
- * 	Copyright (C) 2001, 2004, 2006 Free Software Foundation, Inc.
+ * 	Copyright (C) 2001, 2004, 2006, 2008 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -106,7 +106,7 @@ SCM_API SCM scm_char_set_ascii;
 SCM_API SCM scm_char_set_empty;
 SCM_API SCM scm_char_set_full;
 
-SCM_API void scm_srfi_14_compute_char_sets (void);
-SCM_API void scm_init_srfi_14 (void);
+SCM_INTERNAL void scm_srfi_14_compute_char_sets (void);
+SCM_INTERNAL void scm_init_srfi_14 (void);
 
 #endif /* SCM_SRFI_14_H */

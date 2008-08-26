@@ -73,11 +73,12 @@ scm_mark_all (void)
   long j;
   int loops;
 
+  scm_i_marking = 1;
   scm_i_init_weak_vectors_for_gc ();
   scm_i_init_guardians_for_gc ();
   
   scm_i_clear_mark_space ();
-  
+  scm_i_find_heap_calls = 0;
   /* Mark every thread's stack and registers */
   scm_threads_mark_stacks ();
 
@@ -139,8 +140,6 @@ scm_mark_all (void)
       break;
     }
 
-  /* fprintf (stderr, "%d loops\n", loops); */
-
   /* Remove all unmarked entries from the weak vectors.
    */
   scm_i_remove_weaks_from_weak_vectors ();
@@ -148,6 +147,7 @@ scm_mark_all (void)
   /* Bring hashtables upto date.
    */
   scm_i_scan_weak_hashtables ();
+  scm_i_marking = 0;
 }
 
 /* {Mark/Sweep}
@@ -169,6 +169,12 @@ scm_gc_mark (SCM ptr)
   scm_gc_mark_dependencies (ptr);
 }
 
+void
+ensure_marking (void)
+{
+  assert (scm_i_marking);
+}
+
 /*
 
 Mark the dependencies of an object.
@@ -177,7 +183,7 @@ Prefetching:
 
 Should prefetch objects before marking, i.e. if marking a cell, we
 should prefetch the car, and then mark the cdr. This will improve CPU
-cache misses, because the car is more likely to be in core when we
+cache misses, because the car is more likely to be in cache when we
 finish the cdr.
 
 See http://www.hpl.hp.com/techreports/2000/HPL-2000-99.pdf, reducing
@@ -333,10 +339,10 @@ scm_gc_mark_dependencies (SCM p)
       if (!(i < scm_numptob))
 	{
 	  fprintf (stderr, "undefined port type");
-	  abort();
+	  abort ();
 	}
 #endif
-      if (SCM_PTAB_ENTRY(ptr))
+      if (SCM_PTAB_ENTRY (ptr))
 	scm_gc_mark (SCM_FILENAME (ptr));
       if (scm_ptobs[i].mark)
 	{
@@ -360,7 +366,7 @@ scm_gc_mark_dependencies (SCM p)
 	  if (!(i < scm_numsmob))
 	    {
 	      fprintf (stderr, "undefined smob type");
-	      abort();
+	      abort ();
 	    }
 #endif
 	  if (scm_smobs[i].mark)
@@ -374,7 +380,7 @@ scm_gc_mark_dependencies (SCM p)
       break;
     default:
       fprintf (stderr, "unknown type");
-      abort();
+      abort ();
     }
 
   /*
@@ -398,21 +404,19 @@ scm_gc_mark_dependencies (SCM p)
       {
     /* We are in debug mode.  Check the ptr exhaustively. */
 	
-	valid_cell = valid_cell && (scm_i_find_heap_segment_containing_object (ptr) >= 0);
+	valid_cell = valid_cell && scm_in_heap_p (ptr);
       }
     
 #endif
     if (!valid_cell)
       {
 	fprintf (stderr, "rogue pointer in heap");
-	abort();
+	abort ();
       }
   }
   
- if (SCM_GC_MARK_P (ptr))
-  {
+  if (SCM_GC_MARK_P (ptr))
     return;
-  }
   
   SCM_SET_GC_MARK (ptr);
 
@@ -420,8 +424,6 @@ scm_gc_mark_dependencies (SCM p)
   
 }
 #undef FUNC_NAME
-
-
 
 
 /* Mark a region conservatively */
@@ -501,7 +503,7 @@ scm_deprecated_newcell2 (void)
 
 
 void
-scm_gc_init_mark(void)
+scm_gc_init_mark (void)
 {
 #if SCM_ENABLE_DEPRECATED == 1
   scm_tc16_allocated = scm_make_smob_type ("allocated cell", 0);

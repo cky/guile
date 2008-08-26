@@ -956,6 +956,11 @@ If @var{suffix} is provided, and is equal to the end of
 @end lisp
 @end deffn
 
+@deffn {Scheme Procedure} file-exists? filename
+Return @code{#t} if the file named @var{filename} exists, @code{#f} if
+not.
+@end deffn
+
 
 @node User Information
 @subsection User Information

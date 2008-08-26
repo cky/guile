@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -31,7 +31,6 @@
    what it takes away, and decide from that whether to use it, instead of
    hard coding __hpux.  */
 
-#define _GNU_SOURCE  /* ask glibc for everything, in particular strptime */
 #ifndef _REENTRANT
 # define _REENTRANT   /* ask solaris for gmtime_r prototype */
 #endif

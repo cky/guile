@@ -1,6 +1,6 @@
 ## Process this file with Automake to create Makefile.in
 ##
-##  	Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2006, 2007 Free Software Foundation, Inc.
+##  	Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2006, 2007, 2008 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
@@ -23,11 +23,19 @@ AUTOMAKE_OPTIONS = gnu
 
 ## Prevent automake from adding extra -I options
 DEFS = @DEFS@
+
+# Override Automake's `DEFAULT_INCLUDES'.  By default, it contains
+# "-I$(srcdir)", which causes problems on Tru64 where our "random.h"
+# is picked up by <stdlib.h> instead of the libc's <random.h>.
+DEFAULT_INCLUDES =
+
 ## Check for headers in $(srcdir)/.., so that #include
 ## <libguile/MUMBLE.h> will find MUMBLE.h in this dir when we're
 ## building.  Also look for Gnulib headers in `lib'.
-INCLUDES = -I.. -I$(top_srcdir)				\
-	   -I$(top_srcdir)/lib -I$(top_builddir)/lib
+AM_CPPFLAGS = -I$(top_srcdir) -I$(top_builddir)		\
+	      -I$(top_srcdir)/lib -I$(top_builddir)/lib
+
+AM_CFLAGS = $(GCC_CFLAGS)
 
 ## The Gnulib Libtool archive.
 gnulib_library = $(top_builddir)/lib/libgnu.la
@@ -47,7 +55,7 @@ gen_scmconfig_SOURCES = gen-scmconfig.c
 ## For some reason, OBJEXT does not include the dot
 gen-scmconfig.$(OBJEXT): gen-scmconfig.c
 	if [ "$(cross_compiling)" = "yes" ]; then \
-		$(CC_FOR_BUILD) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) -c -o $@ $<; \
+		$(CC_FOR_BUILD) $(DEFS) $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) -c -o $@ $<; \
 	else \
 		$(COMPILE) -c -o $@ $<; \
 	fi
@@ -75,7 +83,7 @@ guile_filter_doc_snarfage_SOURCES = c-tokenize.c
 ## For some reason, OBJEXT does not include the dot
 c-tokenize.$(OBJEXT): c-tokenize.c
 	if [ "$(cross_compiling)" = "yes" ]; then \
-		$(CC_FOR_BUILD) $(DEFS) $(INCLUDES) -c -o $@ $<; \
+		$(CC_FOR_BUILD) $(DEFS) $(AM_CPPFLAGS) -c -o $@ $<; \
 	else \
 		$(filter-out -Werror,$(COMPILE)) -c -o $@ $<; \
 	fi
@@ -91,18 +99,18 @@ guile_filter_doc_snarfage$(EXEEXT): $(guile_filter_doc_snarfage_OBJECTS) $(guile
 
 
 guile_SOURCES = guile.c
-guile_CFLAGS = $(GUILE_CFLAGS)
+guile_CFLAGS = $(GUILE_CFLAGS) $(AM_CFLAGS)
 guile_LDADD = libguile.la
 guile_LDFLAGS = @DLPREOPEN@ $(GUILE_CFLAGS)
 
-libguile_la_CFLAGS = $(GUILE_CFLAGS)
+libguile_la_CFLAGS = $(GUILE_CFLAGS) $(AM_CFLAGS)
 
 libguile_la_SOURCES = alist.c arbiters.c async.c backtrace.c boolean.c	\
     chars.c continuations.c convert.c debug.c deprecation.c		\
     deprecated.c discouraged.c dynwind.c eq.c error.c	\
     eval.c evalext.c extensions.c feature.c fluids.c fports.c		\
     futures.c gc.c gc-mark.c gc-segment.c gc-malloc.c gc-card.c		\
-    gc-freelist.c gc_os_dep.c gdbint.c gettext.c			\
+    gc-freelist.c gc_os_dep.c gdbint.c gettext.c gc-segment-table.c     \
     gh_data.c gh_eval.c gh_funcs.c					\
     gh_init.c gh_io.c gh_list.c gh_predicates.c goops.c gsubr.c		\
     guardians.c hash.c hashtab.c hooks.c init.c inline.c		\
@@ -132,7 +140,7 @@ DOT_X_FILES = alist.x arbiters.x async.x backtrace.x boolean.x chars.x	\
     dynl.x dynwind.x eq.x error.x eval.x evalext.x	\
     extensions.x feature.x fluids.x fports.x futures.x gc.x gc-mark.x	\
     gc-segment.x gc-malloc.x gc-card.x gettext.x goops.x		\
-    gsubr.x guardians.x							\
+    gsubr.x guardians.x gc-segment-table.x                              \
     hash.x hashtab.x hooks.x i18n.x init.x ioext.x keywords.x lang.x	\
     list.x load.x macros.x mallocs.x modules.x numbers.x objects.x	\
     objprop.x options.x pairs.x ports.x print.x procprop.x procs.x	\
@@ -152,8 +160,8 @@ DOT_DOC_FILES = alist.doc arbiters.doc async.doc backtrace.doc		\
     deprecated.doc discouraged.doc dynl.doc dynwind.doc			\
     eq.doc error.doc eval.doc evalext.doc		\
     extensions.doc feature.doc fluids.doc fports.doc futures.doc	\
-    gc.doc goops.doc gsubr.doc gc-mark.doc gc-segment.doc		\
-    gc-malloc.doc gc-card.doc gettext.doc				\
+    gc.doc goops.doc gsubr.doc gc-mark.doc gc-segment.doc \
+    gc-malloc.doc gc-card.doc gettext.doc gc-segment-table.doc          \
     guardians.doc hash.doc hashtab.doc					\
     hooks.doc i18n.doc init.doc ioext.doc keywords.doc lang.doc		\
     list.doc load.doc macros.doc mallocs.doc modules.doc numbers.doc	\
@@ -301,7 +309,7 @@ libpath.h: $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	@mv libpath.tmp libpath.h
 
 
-snarfcppopts = $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
+snarfcppopts = $(DEFS) $(AM_CPPFLAGS) $(CPPFLAGS) $(CFLAGS)
 
 SUFFIXES = .x .doc
 .c.x:
@@ -351,7 +359,7 @@ schemelibdir = $(pkgdatadir)/$(GUILE_EFFECTIVE_VERSION)
 schemelib_DATA = guile-procedures.txt
 
 ## Add -MG to make the .x magic work with auto-dep code.
-MKDEP = gcc -M -MG $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
+MKDEP = gcc -M -MG $(DEFS) $(AM_CPPFLAGS) $(CPPFLAGS) $(CFLAGS)
 
 cpp_err_symbols.c: cpp_err_symbols.in cpp_cnvt.awk
 	$(AWK) -f $(srcdir)/cpp_cnvt.awk < $(srcdir)/cpp_err_symbols.in > \

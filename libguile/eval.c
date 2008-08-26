@@ -18,8 +18,6 @@
 
 
 
-#define _GNU_SOURCE
-
 /* SECTION: This code is compiled once.
  */
 

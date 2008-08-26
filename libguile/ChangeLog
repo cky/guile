@@ -1,3 +1,181 @@
+2008-08-25  Ludovic Courtès  <ludo@gnu.org>
+
+	* Makefile.am (AM_CFLAGS): New.
+	(guile_CFLAGS, libguile_la_CFLAGS): Use it.
+
+2008-08-20  Ludovic Courtès  <ludo@gnu.org>
+
+	* eval.c, filesys.c, gc.c, numbers.c, stime.c, threads.c: Don't
+	define `_GNU_SOURCE' explicitly as it's now defined in
+	<config.h> thanks to `AC_USE_SYSTEM_EXTENSIONS'.
+
+2008-08-19  Han-Wen Nienhuys  <hanwen@lilypond.org>
+	    Ludovic Courtès  <ludo@gnu.org>
+
+	* goops.c (scm_init_goops_builtins, go_to_hell): Fix allocation
+	of `hell' by passing "hell_size * sizeof (*hell)" instead of
+	"hell_size" to `scm_malloc ()' and `scm_realloc ()'.
+
+2008-08-02  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* numbers.c (scm_rationalize): Update docstring to match the
+	manual (which is more correct).  Change argument "err" to "eps",
+	also to match the manual.
+
+2008-07-17  Neil Jerram  <neil@ossau.uklinux.net>
+
+	From Thiemo Seufer <ths@networkno.de>:
+	
+	* gc_os_dep.c (CPP_WORDSZ, ALIGN_DOUBLE, DATAEND,
+        DYNAMIC_LOADING): Added #defines.
+        (_fdata, _end): Added declarations.
+        (DATASTART): Use _fdata instead of __data_start.
+        (STACKBOTTOM): Changed from 0x80000000 to 0x7fff8000.
+
+2008-07-16  Ludovic Courtès  <ludo@gnu.org>
+
+	* gen-scmconfig.h.in (SCM_I_GSC_HAVE_STRUCT_DIRENT64): New.
+	* gen-scmconfig.c (main): Produce definitions of
+	`SCM_HAVE_STRUCT_DIRENT64' and `SCM_HAVE_READDIR64_R'.
+	* _scm.h (dirent_or_dirent64): Depend on
+	`SCM_HAVE_STRUCT_DIRENT64', for the sake of HP-UX 11.11.
+	(readdir_r_or_readdir64_r): Depend on `SCM_HAVE_READDIR64_R',
+	for HP-UX 11.11.
+
+2008-07-05  Ludovic Courtès  <ludo@gnu.org>
+
+	* strings.c (scm_c_symbol_length): New function.
+	* strings.h (scm_c_symbol_length): New declaration.
+
+2008-07-04  Ludovic Courtès  <ludo@gnu.org>
+
+	* posix.h (scm_i_locale_mutex): Don't declare as `SCM_INTERNAL'
+	since it's needed by `libguile-i18n'.  Reported by Patrick
+	Horgan <phorgan1@gmail.com>.
+
+	* __scm.h (SCM_INTERNAL): Add `extern' so that these symbols are
+	not considered as "common" by GCC 4.3.  Reported by Patrick
+	Horgan <phorgan1@gmail.com>.
+
+2008-06-28  Ludovic Courtès  <ludo@gnu.org>
+
+	* Makefile.am (INCLUDES): Renamed to...
+	(AM_CPPFLAGS): this, to match current Automake conventions.
+	Users updated.
+
+	* tags.h (SCM_UNPACK): Disable type-checking for `__DECC' and
+	`__HP_cc'.  Reported by Peter O'Gorman <pogma@thewrittenword.com>.
+
+2008-06-02  Ludovic Courtès  <ludo@gnu.org>
+
+	* deprecated.c (maybe_close_port): Rename EXCEPT to EXCEPT_SET
+	to workaround `#define except' on Tru64.  Reported by Peter
+	O'Gorman <pogma@thewrittenword.com>.
+
+2008-05-31  Ludovic Courtès  <ludo@gnu.org>
+
+	* __scm.h (SCM_INTERNAL): New macro.
+	* *.h: Use it to mark as internal `scm_i_' and `scm_init_'
+	functions that are not used by public macros or inline
+	functions.
+
+2008-05-14  Julian Graham  <joolean@gmail.com>
+
+	* threads.c (fat_mutex)[recursive]: New field.
+	(make_fat_mutex): Adjust initialization to reflect changes to
+	mutex lock level semantics.
+	(fat_mutex_lock, fat_mutex_unlock): Add support for unowned
+	mutexes and locking mutexes on behalf of other threads.
+	(scm_lock_mutex, scm_lock_mutex_timed): Update to reflect
+	signature change to fat_mutex_lock.
+	(scm_mutex_owner, scm_mutex_level, scm_mutex_locked_p): New /
+	re-enabled functions.
+	* threads.h (scm_mutex_owner, scm_mutex_level,
+	scm_mutex_locked_p): Prototypes for new functions.
+
+2008-05-12  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* discouraged.c: Expand DEFFROM and DEFTO macros, to avoid
+	compiler warnings about excess semicolons.  (Reported by Didier
+	Godefroy.)
+
+2008-05-08  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* throw.c (scm_ithrow): For IA64 add a return statement, to
+	appease GCC.
+
+	* threads.h (scm_i_thread): New IA64 fields:
+	register_backing_store_base and pending_rbs_continuation.
+
+	* threads.c (guilify_self_1): For IA64: cap RBS base address at
+	the current value of scm_ia64_ar_bsp, and store the capped value
+	in thread state.
+	(SCM_MARK_BACKING_STORE): Use thread->register_backing_store_base
+	instead of scm_ia64_register_backing_store_base().
+	(scm_threads_mark_stacks): Add "&" in "&t->regs", so that the code
+	works both for jmp_buf defined as an array, and jmp_buf defined as
+	a struct.
+
+	* continuations.h (scm_t_contregs): Remove `fresh' and `ctx'
+	fields; these are now inside the IA64 definition of `jmp_buf'.
+
+	* continuations.c (scm_make_continuation): Simplify, by moving
+	some of the IA64 code inside the definition of "setjmp", and by
+	some obvious commonizations.  For IA64 register backing store
+	(RBS) stack base, use thread->register_backing_store_base instead
+	of scm_ia64_register_backing_store_base().
+	(copy_stack): For IA64, store pointer to continuation being
+	invoked in thread state, so we can restore the continuation's RBS
+	stack just before the next setcontext call.
+	(copy_stack_and_call): Don't restore RBS stack explicitly here.
+	It will be restored, if appropriate, inside the longjmp call.
+	(scm_ia64_longjmp): New function.
+
+	* __scm.h (setjmp, longjmp, jmp_buf): For IA64, implement using
+	getcontext and setcontext.
+
+2008-05-07  Ludovic Courtès  <ludo@gnu.org>
+
+	* numbers.c (scm_from_complex_double): Mark as `SCM_UNUSED'.
+	This fixes compilation with `-Werror' on FreeBSD 6.2 (i386).
+
+2008-05-05  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* c-tokenize.lex: #define YY_NO_INPUT.
+
+2008-04-26  Ludovic Courtès  <ludo@gnu.org>
+
+	* read.c (scm_read_sexp): Remove extraneous semi-colon at
+	end-of-line, which broke compilation with GCC 2.7.  Reported by
+	Alain Guibert <alguibert+bts@free.fr>.
+
+2008-04-24  Ludovic Courtès  <ludo@gnu.org>
+
+	* Makefile.am (DEFAULT_INCLUDES): New.  Fixes compilation on
+	Tru64 where our "random.h" would shadown libc's one.
+	(INCLUDES): Add "-I$(top_buildir)", which is normally in
+	`DEFAULT_INCLUDES'.
+	* gen-scmconfig.c: Include <libguile/gen-scmconfig.h>, not
+	"gen-scmconfig.h" since that file is under `$(builddir)'.
+
+2008-04-16  Ludovic Courtès  <ludo@gnu.org>
+
+	* ports.c (scm_getc, scm_putc, scm_puts): Moved...
+	* inline.h: ... here.  Noticeably improves `read' performance.
+
+2008-04-15  Ludovic Courtès  <ludo@gnu.org>
+	    Julian Graham  <joolean@gmail.com>
+
+	* read.c (scm_keyword_postfix): New.
+	(scm_read_opts): Update docstring for `keywords'.
+	(scm_read_mixed_case_symbol): Add support for postfix keywords.
+
+2008-04-13  Ludovic Courtès  <ludo@gnu.org>
+
+	* inline.h (SCM_C_USE_EXTERN_INLINE): New macro.  Use it to make
+	sure "extern" declarations are produced when "extern inline" is
+	used.  Simplify macrology around inline definitions.
+
 2008-04-10  Ludovic Courtès  <ludo@gnu.org>
 
 	* inline.h (SCM_C_EXTERN_INLINE): Special-case Apple's GCC
@@ -57,15 +235,15 @@
 
 2008-03-08  Julian Graham  <joolean@gmail.com>
 
-	* threads.c (scm_join_thread_timed, scm_thread_p, 
-	scm_make_mutex_with_flags, scm_lock_mutex_timed, 
-	scm_unlock_mutex_timed, scm_mutex_p, scm_condition_variable_p): New 
+	* threads.c (scm_join_thread_timed, scm_thread_p,
+	scm_make_mutex_with_flags, scm_lock_mutex_timed,
+	scm_unlock_mutex_timed, scm_mutex_p, scm_condition_variable_p): New
 	functions.
 	(thread_mark): Updated to mark new struct field `mutexes'.
-	(do_thread_exit): Notify threads waiting on mutexes locked by exiting 
+	(do_thread_exit): Notify threads waiting on mutexes locked by exiting
 	thread.
-	(scm_join_thread, scm_make_mutex, scm_make_recursive_mutex, 
-	scm_mutex_lock): Reimplement in terms of their newer 
+	(scm_join_thread, scm_make_mutex, scm_make_recursive_mutex,
+	scm_mutex_lock): Reimplement in terms of their newer
 	counterparts.
 	(scm_abandoned_mutex_error_key): New symbol.
 	(fat_mutex)[unchecked_unlock, allow_external_unlock]: New fields.
@@ -74,11 +252,11 @@
 	reimplement scm_try_mutex as a lock attempt with a timeout of zero.
 	(fat_mutex_unlock): Allow unlocking from other threads and unchecked
 	unlocking; implement in terms of condition variable wait.
-	(scm_timed_wait_condition_variable): Reimplement in terms of 
+	(scm_timed_wait_condition_variable): Reimplement in terms of
 	fat_mutex_unlock.
 	* threads.h (scm_i_thread)[mutexes]: New field.
 	(scm_join_thread_timed, scm_thread_p, scm_lock_mutex_timed,
-	scm_unlock_mutex_timed, scm_mutex_p, scm_condition_variable_p): 
+	scm_unlock_mutex_timed, scm_mutex_p, scm_condition_variable_p):
 	Prototypes for new functions.
 
 2008-03-06  Ludovic Courtès  <ludo@gnu.org>
@@ -159,14 +337,14 @@
 
 2008-02-07  Julian Graham  <joolean@gmail.com>
 
-	* threads.c (do_thread_exit, scm_cancel_thread, 
-	scm_set_thread_cleanup_x, scm_thread_cleanup): Lock on thread-specific 
+	* threads.c (do_thread_exit, scm_cancel_thread,
+	scm_set_thread_cleanup_x, scm_thread_cleanup): Lock on thread-specific
 	admin mutex instead of `thread_admin_mutex'.
 	* threads.h (scm_i_thread)[admin_mutex]: New field.
 	* throw.c (make_jmpbuf): Don't enter critical section during thread
 	spawn -- there is a possibility of deadlock if other threads are
 	exiting.
-	
+
 2008-02-06  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* gc-malloc.c (scm_gc_malloc): Return NULL if requested size is 0.
@@ -276,7 +454,7 @@
 	Call `scm_i_close_signal_pipe ()' when the next-to-last thread
 	vanishes.
 	(scm_leave_guile_cleanup): New.
-	(scm_i_with_guile_and_parent): Use `scm_i_pthread_cleanup_push ()' 
+	(scm_i_with_guile_and_parent): Use `scm_i_pthread_cleanup_push ()'
 	and `scm_leave_guile_cleanup ()' to leave guile mode, rather
 	than call `scm_leave_guile ()' after FUNC.
 	(scm_cancel_thread, scm_set_thread_cleanup_x,
@@ -286,7 +464,7 @@
 	* threads.h (scm_i_thread)[cleanup_handler, canceled]: New
 	fields.
 	Add declarations of new functions.
-	
+
 2007-10-17  Ludovic Courtès  <ludo@gnu.org>
 
 	* read.c (CHAR_IS_BLANK_): Add `\r' (ASCII 0x0d).  This fixes a
@@ -309,9 +487,9 @@
 	`enter_locale_section ()' since the mutex is not held and locale
 	settings are unchanged.
 	(scm_nl_langinfo)[!USE_GNU_LOCALE_API]: Use
-	`restore_locale_settings ()' instead of `leave_locale_section ()' 
+	`restore_locale_settings ()' instead of `leave_locale_section ()'
 	since the mutex is not held.
-	
+
 2007-10-02  Ludovic Courtès  <ludo@gnu.org>
 
 	* threads.c (on_thread_exit): Don't call `scm_leave_guile ()'
@@ -328,7 +506,7 @@
 	* posix.c (scm_putenv): Confine the putenv("NAME=") bit to mingw, use
 	putenv("NAME") as the fallback everywhere else.  In particular this is
 	needed for solaris 9.  Reported by Frank Storbeck.
-	
+
 2007-09-03  Ludovic Courtès  <ludo@gnu.org>
 
 	* read.c (flush_ws): Handle SCSH block comments.
@@ -392,7 +570,7 @@
 	Fix tests of the tc16 number types, they were checked under
 	scm_tc7_number, but the values went down the tag>=255 smob case.
 	Put smob case under scm_tc7_smob instead of using tag>=255, per
-	recommendation in comments with scm_tc7_smob to use symbolic values. 
+	recommendation in comments with scm_tc7_smob to use symbolic values.
 	Use SCM_TC2SMOBNUM to extract scm_smobs index, instead of explicit
 	code.  Lose some unnecessary "break" statements.
 
@@ -658,7 +836,7 @@
 	is equal to S1 and FIELD2 is equal to S2.  This avoids infinite
 	recursion when comparing `s' fields, as the REQUIRED_VTABLE_FIELDS
 	added by `make-vtable-vtable'.  Reported by Marco Maggi.
-	
+
 2007-01-18  Han-Wen Nienhuys  <hanwen@lilypond.org>
 
 	* throw.c (scm_ithrow): more refined error message: print symbols
@@ -751,7 +929,7 @@
 
 	Also, the REDUCED bit alters the SCM_CELL_TYPE(), making
 	comparisons between reduced and unreduced fractions go wrong.
-	
+
 	* numbers.h: remove SCM_FRACTION_SET_NUMERATOR,
 	SCM_FRACTION_SET_DENOMINATOR, SCM_FRACTION_REDUCED_BIT,
 	SCM_FRACTION_REDUCED_SET, SCM_FRACTION_REDUCED_CLEAR,
@@ -862,7 +1040,7 @@
 	* script.c (scm_shell_usage): Note need for subscription to bug-guile@gnu.org.
 
 2006-11-08  Ludovic Courtès  <ludovic.courtes@laas.fr>
-	
+
 	* libguile/gc-freelist.c (scm_i_adjust_min_yield): Take two
 	"sweep_stats" arguments; use them instead of accessing the global
 	variables `scm_gc_cells_collected' and `scm_gc_cells_collected_1'.
@@ -913,7 +1091,7 @@
 2006-10-25  Neil Jerram  <neil@ossau.uklinux.net>
 
 	IA64 HP-UX GC patch from Hrvoje Nikšić.  (Thanks!)
-	
+
 	* threads.c (SCM_MARK_BACKING_STORE): Use scm_ia64_ar_bsp() and
 	scm_ia64_register_backing_store_base() instead of Linux-specific
 	implementations.
@@ -1101,7 +1279,7 @@
 	HAVE_TM_ZONE.
 	(scm_strptime): Use tm_gmtoff from the strptime result when that field
 	exists, it's set by glibc strptime "%s".
-	
+
 2006-06-13  Ludovic Courtès <ludovic.courtes@laas.fr>
 
 	* eq.c: Include "struct.h", "goops.h" and "objects.h".
@@ -1127,7 +1305,7 @@
 
 	* throw.c (scm_handle_by_message): Add dummy return value to avoid
 	compiler warning on cygwin.  Reported by Ryan VanderBijl.
-	
+
 	* Makefile.am (EXTRA_DOT_X_FILES): Typo in dependency rule, was a
 	duplicate of EXTRA_DOT_DOC_FILES.
 	(DOT_X_FILES, EXTRA_DOT_X_FILES, DOT_DOC_FILES, EXTRA_DOT_DOC_FILES):
@@ -1241,7 +1419,7 @@
 
 	* fports.c (scm_setvbuf): Fix for not _IOLBF, clear SCM_BUFLINE
 	instead of toggling it.  Reported by Ludovic Courtès.
-	
+
 2006-03-26  Marius Vollmer  <mvo@zagadka.de>
 
 	* threads.c (get_thread_stack_base): Use scm_get_stack_base
@@ -1511,7 +1689,7 @@
 2005-12-07  Marius Vollmer  <mvo@zagadka.de>
 
 	Reported by Bruce Korb:
-	
+
 	* init.c (invoke_main_func): Don't call exit here.  Throws that
 	are only caught by scm_with_guile will bypass us and would cause
 	scm_boot_guile to return erroneously.
@@ -1519,16 +1697,16 @@
 	here, passing it an appropriate exit code.
 
 	From Andy Wingo:
-	
+
 	* script.c (scm_find_executable): Compile fix -- fgetc returns an
 	unsigned char cast to an int, or -1 for EOS.
-	
+
 2005-12-06  Marius Vollmer  <mvo@zagadka.de>
 
 	* srfi-4.h, srfi-4.c, srfi-4.i.c (take_uvec): Make BASE pointer
 	non-const.
 	(scm_take_u8vector, etc): Likewise.  Thanks to Ludovic Courtès!
-	
+
 	* threads.h, threads.c (scm_t_guile_ticket, scm_leave_guile,
 	scm_enter_guile): Removed from public API.  See comment at
 	scm_without_guile for the rationale.
@@ -1629,7 +1807,7 @@
 2005-10-23  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP is not portable enough.
-	
+
 	* null-threads.h, pthread-threads.h
 	(SCM_I_PTHREAD_RECURSIVE_MUTEX_INITIALIZER): Removed.
 	(scm_i_pthread_mutexattr_recursive): New.
@@ -1639,7 +1817,7 @@
 	(scm_threads_prehistory): Initialize
 	scm_i_pthread_mutexattr_recursive and scm_i_critical_section_mutex
 	here.
-	
+
 	* eval.c (source_mutex): Do not initialiaze statically.
 	(scm_init_eval): Do it here, using
 	scm_i_pthread_mutexattr_recursive.
@@ -1653,7 +1831,7 @@
 	(quote_keywordish_symbol): New, for evaluating the option.
 	(scm_print_symbol_name): Use it.
 	(scm_init_print): Initialize new option to sym_reader.
-	
+
 2005-08-15  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* eval.c (eval_letrec_inits): New.
@@ -1688,7 +1866,7 @@
 
 	* modules.h, modules.c (scm_eval_closure_module): Removed, we
 	already have scm_lookup_closure_module, which does the same thing.
-	
+
 2005-08-01  Marius Vollmer  <mvo@zagadka.de>
 
 	New marking algorithm for weak hashtables that fixes the problem
@@ -1697,7 +1875,7 @@
 
 	Guardians have been changed back to their original semantics and
 	are no longer greedy and no longer drop cycles.
-	
+
 	* gc-mark.c (scm_mark_all): Do not rely on hooks to run the weak
 	hashtable and guardian machinery but call the relevant functions
 	directly.
@@ -1712,7 +1890,7 @@
 	scm_i_identify_inaccessible_guardeds,
 	scm_i_mark_inaccessible_guardeds): New.
 	(scm_make_guardian): Removed greedy_p argument.
-	
+
 	* weaks.h, weaks.c (SCM_I_WVECT_TYPE, SCM_I_SET_WVECT_TYPE): New.
 	(SCM_I_WVECT_N_ITEMS, SCM_I_SET_WVECT_N_ITEMS): New.
 	(SCM_WVECTF_NOSCAN, SCM_WVECT_NOSCAN_P): Removed.
@@ -1722,7 +1900,7 @@
 	scm_i_remove_weaks_from_weak_vectors, scm_i_remove_weaks): New.
 	(scm_weak_vector_gc_init, scm_mark_weak_vector_spines,
 	scm_scan_weak_vectors): Removed.
-	
+
 	* hashtab.h (scm_i_scan_weak_hashtables): New.
 	* hashtab.c (make_hash_table, scm_i_rehash): Do not use
 	SCM_WVECTF_NOSCAN.
@@ -1748,7 +1926,7 @@
 
 	* hashtab.c (scm_i_rehash): Cast SCM_HASHTABLE_FLAGS (table) to
 	scm_t_bits before storing them in the type word.
-	
+
 	* gc.c (tag_table_to_type_alist): Modified type of c_tag from
 	scm_t_bits to int.
 
@@ -1759,11 +1937,11 @@
 	* pairs.c (scm_error_pair_access): Use scm_from_locale_string rather
 	than scm_makfrom0str.
 	Reported by Ken Raeburn.
-	
+
 	* gc-card.c (scm_dbg_gc_get_bvec): Change return from long* to
 	scm_t_c_bvec_long*, gcc 4 doesn't like different pointer targets when
 	returning SCM_GC_CARD_BVEC.
-	
+
 	* pairs.c (scm_error_pair_access): Plain ascii ' in error message
 	rather than latin-1 acute accent, the latter may not print on all
 	terminals.
@@ -1835,7 +2013,7 @@
 2005-06-09  Han-Wen Nienhuys  <hanwen@xs4all.nl>
 
 	* gc.c (tag_table_to_type_alist): convert tag number to "tag %d"
-	string, so live object stats can be sorted with string<?. 
+	string, so live object stats can be sorted with string<?.
 
 2005-06-06  Marius Vollmer  <mvo@zagadka.de>
 
@@ -1866,21 +2044,21 @@
 	From Jan Nieuwenhuizen <janneke@gnu.org>. Thanks!
 
  	* hashtab.h: Bugfix: use SCM_API (WAS: extern).
- 
+
  	* socket.c: Remove obsolete comment about socklen_t.
  	(s_scm_setsockopt)[!HAVE_IP_MREQ]: Do not use ip_mreq code.
- 
+
  	* numbers.h (isnan)[__MINGW32__]: Remove.
- 
+
  	* Makefile.am (gen_scmconfig_SOURCES): Bugfix: Add
  	DEFAULT_INCLUDES when cross compiling.
- 
+
  	* threads.c (ETIMEDOUT, pipe)[__MINGW32__]: Add defines.
 
  	* stime.c (scm_strftime)[!HAVE_TM_ZONE]: Use
 	SCM_SIMPLE_VECTOR_REF instead of SCM_VELTS.  (Changed slightly
 	from Jan's patch.)
- 
+
 2005-05-22  Marius Vollmer  <mvo@zagadka.de>
 
 	* unif.c (scm_make_shared_array): Add old base to new base since
@@ -1893,7 +2071,7 @@
 2005-05-12  Neil Jerram  <neil@ossau.uklinux.net>
 
 	Mac OS X compile warning fixes, reported by Richard Todd.
-	
+
 	* unif.c (scm_i_read_array): Declare rank as ssize_t, to guarantee
 	that it is signed.
 
@@ -1914,7 +2092,7 @@
 2005-05-11  Neil Jerram  <neil@ossau.uklinux.net>
 
 	Fix C99isms reported by Ludovic Courtès:
-	
+
 	* threads.c (s_scm_lock_mutex): Don't declare msg in middle of
 	code.
 
@@ -1989,7 +2167,7 @@
 	non-NULL.  Always use a NULL closure.
 	(scm_hash_fn_create_handle_x): Also rehash when table contains too
 	few entries.
-	
+
 2005-03-29  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* hashtab.h, hashtab.c (scm_hash_fx_remove_x): Removed delete_fn
@@ -1999,7 +2177,7 @@
 	(scm_hashx_remove_x): Likewise.  Also, exported to Scheme.
 	(scm_hash_clear): Accept plain vectors as hashtables.
 	(scm_delx_x): Removed.
-	
+
 2005-03-28  Han-Wen Nienhuys  <hanwen@xs4all.nl>
 
 	* inline.h (scm_double_cell): use __asm__ iso. asm, to maintain
@@ -2011,7 +2189,7 @@
 	scm_root.
 
 	* threads.c: Removed fprintf debug statements.
-	
+
 2005-03-24  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* debug.c (scm_make_memoized): Restore use of SCM_UNPACK.
@@ -2111,13 +2289,13 @@
 	simple things inside that region.
 	 (scm_make_fluid, scm_make_dynamic_state): Lock fluid_admin_mutex
 	while adding to the global lists.
-	
+
 
 2005-03-08  Marius Vollmer  <mvo@zagadka.de>
 
 	libltdl is no longer distributed.  We expect it to be installed
 	already.
-	
+
 	* Makefile.am (INCLUDES): Removed @LTDLINCL@.
 	(libguile_la_LIBADD): Removed @LIBLTDL@.
 
@@ -2135,14 +2313,14 @@
 
 	* throw.c (scm_ithrow): Abort when scm_i_critical_section_level is
 	not zero.
-	
+
 	* threads.h, threads.c (scm_frame_lock_mutex): New.
 	(scm_frame_critical_section): Take mutex as argument.
 	(framed_critical_section_mutex): New, used as default for above.
 	(scm_init_threads): Initialize it.
 	(scm_threads_prehistory): Do not initialize thread_admin_mutex and
 	scm_i_critical_section_mutex; both are initialized statically.
-	
+
 	* continuation.c, deprecated.c, goops.c, guardians.c keywords.c,
 	libguile_la-arrays.loT, objprop.c, ports.c, smob.c, sort.s,
 	srcprop.c, stime.c, struct.c, throw.c, regex-posix.c: Include
@@ -2156,7 +2334,7 @@
 	section.
 	(scm_dynthrow):  Abort when scm_i_critical_section_level is
 	not zero.
-	
+
 2005-03-04  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* threads.c (scm_try_mutex): Renamed argument for consistency.
@@ -2169,11 +2347,11 @@
 
 	Big merge from the mvo-thread-cleanup branch. The main changes
 	are:
-	
+
 	- The dynamic roots functionality has been split into dynamic
 	  states and continuations barriers.  Fluids have been
 	  reimplemented and can now be garbage collected.
-	
+
 	- Initialization of Guile now works in a multi-thread friendly
 	  manner.  Threads can freely enter and leave guile mode.
 
@@ -2184,13 +2362,13 @@
 
 	- Signals are delivered via a pipe to a dedicated 'signal delivery
 	  thread'.
-	
+
 	- SCM_DEFER_INTS, SCM_ALLOW_INTS etc have been deprecated.
 
 	* throw.c (scm_handle_by_message): Exit only the current thread,
 	not the whole process.
 	(scm_handle_by_message_noexit): Exit when catching 'quit.
-	
+
 	* scmsigs.c (take_signal, signal_delivery_thread,
 	start_signal_delivery_thread, ensure_signal_delivery_thread,
 	install_handler): Reimplemented signal delivery as explained in
@@ -2216,7 +2394,7 @@
 	when using pthreads.
 	* null-threads.c, null-threads.h: Provide dummy definitions for
 	the above symbols when not using pthreads.
-	
+
 	* modules.h, modules.c (scm_frame_current_module): New.
 
 	* load.c (scm_primitive_load): Use scm_i_frame_current_load_port
@@ -2231,7 +2409,7 @@
 	Moved around some init funcs.  Call
 	scm_init_threads_default_dynamic_state.  Register cleanup_for_exit
 	with atexit.
-	
+
 	* hashtab.c (scm_hash_fn_create_handle_x, scm_hash_fn_remove_x):
 	Use "!scm_is_eq" instead of "!=".
 
@@ -2243,7 +2421,7 @@
 	scm_after_gc_c_hook.
 	(scm_permanent_object): Allocate outside of critical section.
 	(cleanup): Removed.
-	
+
 	* fluids.h, fluids.c: Reimplemented completely.
 	(SCM_FLUID_NUM, SCM_FAST_FLUID_REF,
 	SCM_FAST_FLUID_SET): Reimplemented as functions.
@@ -2254,19 +2432,19 @@
 	scm_set_current_dynamic_state, scm_frame_current_dynamic_state,
 	scm_c_with_dynamic_state, scm_with_dynamic_state,
 	scm_i_make_initial_dynamic_state, scm_fluids_prehistory): New.
-	
+
 	* feature.c (progargs_fluid): New.
 	(scm_program_arguments, scm_set_program_arguments): Use it instead
 	of scm_progargs.
 	(scm_init_feature): Allocate it.  Also, only add "threads" feature
 	when SCM_USE_PTHREAD_THREADS is true.
-	
+
 	* eval.c (scm_makprom): Use scm_make_recursive_mutex instead of
 	scm_make_rec_mutex, with all the consequences.
 	(scm_eval_x, scm_eval): Use scm_frame_begin etc instead of
 	scm_internal_dynamic_wind.  Handle dynamic states as second
 	argument.
-	
+
         * threads.h, threads.c (scm_internal_select): Renamed to
 	scm_std_select and discouraged old name.
 	(scm_thread_sleep, scm_thread_usleep): Likewise, as scm_std_sleep
@@ -2336,9 +2514,9 @@
 	respectively.
 
 	* fluid.h (SCM_FLUIDP): Deprecated.
-	
+
 	* coop-threads.c: Removed.
-	
+
 	* continuations.h, continuations.c (scm_with_continuation_barrier,
 	scm_c_with_continuation_barrier, scm_i_with_continuation_barrier):
 	New.
@@ -2352,14 +2530,14 @@
 	current sleep.
 	(scm_system_async_mark_for_thread): Do not use scm_current_thread
 	since that might not work during early initialization.
-	
+
 	* __scm.h (SCM_DEFER_INTS, SCM_ALLOW_INTS, SCM_REDEFER_INTS,
 	SCM_REALLOW_INTS): Deprecated by moving into deprecated.h and
 	deprecated.c.  Replaced all uses with SCM_CRITICAL_SECTION_START
 	and SCM_CRITICAL_SECTION_END.
 	(SCM_ENTER_A_SECTION, SCM_EXIT_A_SECTION): Removed.  Replaced with
 	SCM_CRITICAL_SECTION_START/END.
-	
+
 	* Makefile.am (modinclude_HEADER): Removed threads-plugin.h.
 	(libguile_la_SOURCES): Added null-threads.c
 	(EXTRA_libguile_la_SOURCES): Removed pthread-threads.c and
@@ -2379,8 +2557,8 @@
 	scm_frame_current_dynamic_state and
 	scm_i_with_continuation_barrier.
 	(scm_dynamic_root): Return current continuation barrier.
-	
-	
+
+
 2005-02-28  Marius Vollmer  <mvo@zagadka.de>
 
 	* socket.c (scm_setsockopt): Handle IP_ADD_MEMBERSHIP and
@@ -2408,7 +2586,7 @@
 	the hashtable.
 	(scm_hash_fn_create_handle_x): Likewise.
 	* vectors.h (SCM_I_SET_WVECT_TYPE): New, for use in scm_i_rehash.
-	
+
 2005-02-10  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* unif.c (prototype_to_type): Bugfix: Don't compare prototype to
@@ -2446,7 +2624,7 @@
 	statistics on the number of live objects of each type.
 
 	* gc-card.c (scm_i_tag_name):  new function.
-	(scm_i_card_statistics): new function. 
+	(scm_i_card_statistics): new function.
 
 2005-01-24  Kevin Ryde  <user42@zip.com.au>
 
@@ -2489,14 +2667,14 @@
 	(scm_classes_initialized): Removed.
 	(scm_class_of): Do not check it.
 	(create_standard_classes): Do not set it.
-	
+
 2005-01-17  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* objects.h, objects.c (scm_classes_initialized): New.
 	(scm_class_of): Signal error when scm_classes_initialized is zero.
 	* goops.c (create_standard_classes): Set scm_classes_initialized
 	to one.
-	
+
 	* random.c (scm_random_solid_sphere_x): Use
 	scm_c_generalized_vector_length instead of
 	scm_uniform_vector_length.
@@ -2538,13 +2716,13 @@
 	(scm_init_srfi_4): Set mark function of smob when needed.
 	Initialize scm_uint64_min, scm_uint64_max, scm_int64_min,
 	scm_int64_max.
-	
+
 	Recognize 1.4 -e syntax.
-	
+
 	* script.c (sym_at, sym_atat, sym_main, all_symbols): New.
 	(scm_compile_shell_switches): Use them to recognize and convert
 	1.4 "-e" syntax.
-	
+
 2005-01-12  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* deprecated.h, deprecated.c, strings.h, strings.c: Turn all
@@ -2560,9 +2738,9 @@
 	(print_summary): New.
 	(scm_init_deprecation): Initialize SCM_WARN_DEPRECATED instead of
 	mode.
-	
+
 	Deprecated SCM_ARRAY* macros.
-	
+
 	* unif.h, unif.c, ramap.c, vectors.c, srfi-4.c, srfi-4.i.c
 	(SCM_ARRAYP, SCM_I_ARRAYP): Renamed former to latter internal
 	version.  Changed all uses.
@@ -2581,11 +2759,11 @@
 	Moved from unif.h to unif.c.
 	(scm_c_array_rank): New.
 	(scm_array_rank): Reimplement using it.
-	
+
 	* deprecated.h, deprecated.c (SCM_ARRAYP, SCM_ARRAY_NDIM,
 	SCM_ARRAY_CONTP, SCM_ARRAY_MEM, SCM_ARRAY_V, SCM_ARRAY_BASE,
 	SCM_ARRAY_DIMS, scm_t_array): New deprecated versions.
-	
+
 2005-01-11  Marius Vollmer  <mvo@zagadka.de>
 
 	* ramap.c: Replace uses of scm_make_ra with scm_i_make_ra.
@@ -2605,7 +2783,7 @@
 	(scm_ra_set_contp): Deprecated, changed all uses to
 	scm_i_ra_set_contp.
 	(scm_cvref, scm_aind, scm_raprin1): Deprecated.
-	
+
 2005-01-10  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* eval.c (scm_eval): Added example to docstring.  Thanks to Issac
@@ -2617,7 +2795,7 @@
 	(scm_i_print_array): Print length information for arrays that need
 	it.
 	(scm_i_read_array): Parse it.
-	
+
 	* deprecated.h, deprecated.c (SCM_CHARS, SCM_UCHARS, SCM_LENGTH,
 	scm_i_object_chars, scm_i_object_length): Brought back from the
 	dead.
@@ -2653,7 +2831,7 @@
 	uvec_fast_ref since scm_array_handle_ref should be faster now.
 	(coerce_to_uvec, scm_c_uniform_vector_ref,
 	scm_c_uniform_vector_set_x): Likewise.
-	
+
 	* unif.h, unif.c, inline.h (scm_i_t_array_ref, scm_i_t_array_set):
 	New.
 	(scm_t_array_handle): Added ref, set, elements and
@@ -2671,12 +2849,12 @@
 	scm_bit_position, scm_bit_set_star_x, scm_bit_count_star,
 	scm_bit_invert_x): Correctly multiply index with increment in the
 	general case.
-	
+
 	* unif.c (scm_array_handle_set): Correctly execute only one
 	alternative.  D'Oh!
 	(scm_list_to_typed_array, l2ra): Use scm_t_array_handle to fill
 	the array; this covers all cases with much simpler code.
-	
+
 	* srfi-4.c (scm_uniform_element_size): Deprecated implementation
 	as well.
 
@@ -2693,7 +2871,7 @@
 	(scm_i_print_array): Print zero rank arrays specially.
 	(tag_to_type): Return #t for an empty tag, not the empty symbol.
 	(scm_i_read_array): Allow zero rank arrays.
-	
+
 2005-01-07  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* hashtab.h, hashtab.c (SCM_HASHTAB_BUCKET_LOC): Removed.
@@ -2704,9 +2882,9 @@
 	Removed ref_stack field.
 	(PSTATE_STACK_REF, PSTATE_STACK_SET): New, for accessing the stack
 	of a print state.  Use them everywhere instead of ref_stack.
-	
+
 	* srfi-4.h (scm_uniform_element_size): Deprecated for real.
-	
+
 	* srfi-4.c: Include deprecation.h.
 
 	* vectors.h, vectors.c, unif.h, unif.c, deprecated.h,
@@ -2721,12 +2899,12 @@
 	scm_vector_equal_p): Moved from vectors.[hc] to deprecated.[hc].
 	(scm_vector_equal_p, scm_i_vector_equal_p): Renamed former to
 	latter.  Changed use in eq.c.
-	
+
 2005-01-07  Marius Vollmer  <mvo@zagadka.de>
 
 	Make the uniform vector routines also deal with one dimensional
 	arrays.
-	
+
 	* srfi-4.c (SCM_IS_UVEC): New, use it instead of
 	SCM_SMOB_PREDICATE in this file.
 	(is_uvec): Also recognize one-dimensional uniform numeric arrays
@@ -2743,13 +2921,13 @@
 	(scm_uniform_vector_to_list): Let uvec_to_list do all the
 	checking.
 	(scm_uniform_vector_length): Use uvec_length.
-	
+
 2005-01-06  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* srfi-4.h, srfi-4.c (scm_c_uniform_vector_element_size,
 	scm_c_uniform_vector_size): Removed.
 	(scm_array_handle_uniform_element_size): New.
-	
+
 
 	* unif.h (scm_array_handle_ref, scm_array_handle_set): Changed
 	type of POS parameter to be signed, positions can be negative.
@@ -2757,11 +2935,11 @@
 	scm_t_array_handle to properly call it.
 	(scm_vector_get_handle, scm_generalized_vector_get_handle):
 	Renamed former to latter, changed all uses.
-	
+
 2005-01-05  Marius Vollmer  <mvo@zagadka.de>
 
 	Updated bitvector routines to also use scm_t_array_handles.
-	
+
 	* unif.h (scm_bitvector_elements,
 	scm_bitvector_writable_elements): Use a scm_t_array_handle and
 	deliver offset, length and increment to caller.  Changed all uses.
@@ -2776,7 +2954,7 @@
 	arrays is now SCM_UNSPECIFIED.  The old special value SCM_BOOL_F
 	was a valid value to fill bitvectors with, so it can't really be
 	specialed out.
-	
+
 2005-01-04  Kevin Ryde  <user42@zip.com.au>
 
 	* stime.c (scm_strftime): Free t.tm_zone produced by bdtime2c.
@@ -2798,7 +2976,7 @@
 	so that it doesn't leak.
 	(scm_stable_sort): Simply call scm_stable_sort_x on a copy of the
 	list or vector.
-	
+
 	* ramap.c (scm_array_map_x): Do not try to convert fill value
 	before filling, any necessary conversion is done while storing.
 
@@ -2818,7 +2996,7 @@
 	vector elements API or simple vector API, as appropriate.  Removed
 	SCM_HAVE_ARRAYS ifdefery.  Replaced all uses of
 	SCM_HASHTABLE_BUCKETS with SCM_HASHTABLE_BUCKET.
-	
+
 	* srfi-4.h, srfi-4.c,
 	srfi-4.i.c (scm_array_handle_uniform_elements,
 	scm_array_handle_uniform_writable_elements,
@@ -2828,10 +3006,10 @@
 	scm_t_array_handle, deliver length and increment.
 	(scm_array_handle_<foo>_elements,
 	scm_array_handle_<foo>_writable_elements): New.
-	
+
 	* gen-scmconfig.h.in (SCM_I_GSC_HAVE_ARRAYS): Removed.
 	* gen-scmconfig.c: Hard code SCM_HAVE_ARRAYS to "1".
-	
+
 	* unif.h, unif.c (scm_t_array_handle, scm_array_get_handle,
 	scm_array_handle_rank, scm_array_handle_dims, scm_array_handle_ref
 	scm_array_handle_set, scm_array_handle_elements
@@ -2843,7 +3021,7 @@
 	(scm_make_shared_array, scm_enclose_array): Correctly use
 	scm_c_generalized_vector_length instead of
 	scm_uniform_vector_length.
-	
+
 	* validate.h (SCM_VALIDATE_VECTOR,
 	SCM_VALIDATE_VECTOR_OR_DVECTOR): use scm_is_simple_vector instead
 	of SCM_VECTORP.
@@ -2889,7 +3067,7 @@
 	No longer use creators to specify the type of an array.  Creators
 	expose the fact that arrays are wrapped around vectors, but that
 	might change.
-	
+
 	* srfi-4.h (scm_i_proc_make_u8vector, scm_i_proc_make_s8vector,
 	scm_i_proc_make_u16vector, scm_i_proc_make_s16vector,
 	scm_i_proc_make_u32vector, scm_i_proc_make_s32vector,
@@ -2923,7 +3101,7 @@
 	(tag_to_type): New.
 	(scm_i_read_array): Use scm_list_to_typed_array instead of
 	scm_list_to_uniform_array.
-	
+
 2004-12-27  Marius Vollmer  <mvo@zagadka.de>
 
 	* unif.h, unif.c (scm_bitvector_elements): Made return value "const".
@@ -2950,7 +3128,7 @@
 	scm_frame_uniform_vector_release_writable_elements): New. Takes
 	crown of longest identifier yet.
 	Changed all uses as required by the changes above.
-	
+
 	* vectors.h, vectors.c (scm_c_vector_set_x): Make return type
 	void.
 	(scm_is_vector, scm_vector_p, scm_vector_length,
@@ -2970,7 +3148,7 @@
 	scm_uniform_vector_length.
 	(scm_ramap, rafe): Use scm_c_vector_ref instead of SCM_VELTS.  use
 	scm_c_generalized_vector_ref instead of scm_uniform_vector_ref.
-		
+
 2004-12-23  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* continuations.h, continuations.c (scm_t_contregs): New 'offset'
@@ -2981,7 +3159,7 @@
 	scm_last_stack_frame, scm_stack_id): Use the new 'offset' member
 	of continuations instead of calculating the offset ourselves.
 	Relocate 'vect' member of scm_t_debug_frame.
-	
+
 2004-12-16  Kevin Ryde  <user42@zip.com.au>
 
 	* ramap.c (scm_array_map_x): Check for at least one source argument.
@@ -3025,7 +3203,7 @@
 	use of an array as their storage 'vector'.  When all generalized
 	vectors are allowed as storage, including one-dimensional arrays,
 	this will no longer work.)
-	
+
 	* unif.h, unif.c: (scm_tc16_enclosed_array, SCM_ENCLOSED_ARRAYP):
 	New.
 	(exactly_one_third, singp): Removed.
@@ -3065,7 +3243,7 @@
 	explicitly.
 	(scm_init_unif): Initialize scm_tc16_enclosed_array smob.
 	Use scm_i_print_array as printer for scm_tc16_array.
-	
+
 2004-11-10  Marius Vollmer  <mvo@zagadka.de>
 
 	* ramap.c (cind): Changed second arg to be pointer to long instead
@@ -3081,7 +3259,7 @@
 	in terms of scm_uniform_vector_read_x and
 	scm_uniform_vector_write, respectively.  Strings and
 	bitvector support has been dropped.
-	
+
 	* srfi-4.h, srfi-4.c: Do not include <libguile.h>, include the
 	needed files directly.  Include config.h, <unistd.h> and <io.h>
 	when available.
@@ -3104,7 +3282,7 @@
 	(make_uvec): ...but not here.
 	(coerce_to_uvec): Use new generalized vector functions to handle
 	all kinds of vectors in one go.
-	
+
 	* tags.h (scm_tc7_bvect): Renamed to scm_tc7_unused7, renaming the
 	remaining scm_tc7_unused tags to get a neatly ordered list.
 
@@ -3121,7 +3299,7 @@
 	scm_is_generalized_vector, scm_c_generalized_vector_length,
 	scm_c_generalized_vector_ref, scm_c_generalized_vector_set_x):
 	New.
-	
+
 	* unif.h, unif.c (scm_bitvector_p, scm_bitvector,
 	scm_make_bitvector, scm_bitvector_length, scm_bitvector_ref,
 	scm_bitvector_set_x, scm_list_to_bitvector, scm_bitvector_to_list,
@@ -3206,7 +3384,7 @@
 	* srfi-4.h, srfi-4.c (scm_frame_uniform_vector_release): New.
 	* unif.c (scm_bit_set_star_x, scm_bit_count_star_x): Use it to get
 	more efficient access to the u32vector.
-	
+
 	* tags.h (scm_tc7_llvect, scm_tc7_uvect, scm_tc7_fvect,
 	scm_tc7_dvect, scm_tc7_cvect, scm_tc7_svect, scm_tc7_byvect,
 	scm_tc7_ivect): Renamed to scm_tc7_unused_1 to scm_tc7_unused_8.
@@ -3222,7 +3400,7 @@
 
 	* unif.c (scm_bit_set_star_x, scm_bit_count_star_x): Use u32vectors
 	instead of old-sytle uvectors.
-	
+
 	* convert.c, convert.i.c: Rewritten completely, using
 	scm_any_to_u8vector, etc and other new-style uniform vector
 	functions.
@@ -3247,7 +3425,7 @@
 	return creators.
 	(scm_make_uve): Use scm_call_1 instead of scm_call_2 with a second
 	arg of SCM_UNDEFINED.  The latter is wrong.
-	
+
 	* unif.h, unif.c (scm_make_u1vector): New, but only temporary.
 	(make_uve): Removed.
 	(scm_i_proc_make_vector, scm_i_proc_make_string,
@@ -3279,7 +3457,7 @@
 	Updated all tables and generic functions to support them.
 	(scm_i_proc_make_u8vector, scm_i_proc_make_s8vector, etc): New.
 	(scm_init_srfi_4): Initialize them.
-	
+
 	* srfi-4.i.c (scm_take_u8vector, etc): use uvec_sizes instead of
 	sizeof(CTYPE) as explained in the comment.
 
@@ -3296,7 +3474,7 @@
 	vector.  The plan is to gradually replace one type after the other
 	until none is left and then to consider general cleanups and
 	optimizations.
-	
+
 	* srfi-4.h, srfi-4.i.c (scm_u8vector_elements, etc): New.
 
 	* srfi-4.h, srfi-4.c (scm_uniform_vector_p,
@@ -3358,7 +3536,7 @@
 	requested.
 	* convert.c (scm_c_scm2chars, scm_c_chars2scm,
 	scm_c_chars2byvect): Use a s8vector instead of a scm_tc7_byvect.
-	
+
 2004-10-26  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* numbers.h, numbers.c (scm_i_print_double): New.
@@ -3389,11 +3567,11 @@
 	(scm_uint2str): New, for scm_t_uintmax.
 	(scm_iint2str): Argument type changed to scm_t_intmax,
 	reimplemented in terms of scm_uint2str.
-	
+
 	* print.c, print.h (scm_uintprint): New, for printing
 	scm_t_uintmax values.
 	(scm_intprint): Argument type changed to scm_t_intmax.
-	
+
 	* sort.c (quicksort, scm_merge, scm_merge_list_x,
 	scm_merge_list_step, scm_merge_vector_step): Inserted SCM_TICKs at
 	strategic places so that the loops can be interrupted.
@@ -3402,7 +3580,7 @@
 	"-I$(top_srcdir)/libguile-ltdl".
 	(libguile_la_LIBADD): Use @LIBLTDL@ instead of
 	"../libguile-ltdl/libguile-ltdl.a".
-	
+
 	* guile.c, dynl.c: Switched to using libltdl directly.  Replaced
 	all references to scm_lt_* with just lt_*.  Include <ltdl.h>
 	instead of <libguile-ltdl.h>.
@@ -3415,12 +3593,12 @@
 	quicksort to fail, it just put all the burdon on the insertion
 	sort and was thus very slow.  Thanks to Rolan Orre for reporting
 	the slowness!
-	
+
 2004-10-19  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* numbers.c (scm_i_range_error): New.
 	* conv-integer.i.c, conv-uinteger.i.c: Use it instead of
-	scm_out_of_range.	
+	scm_out_of_range.
 
 	* sort.c (scm_restricted_vector_sort_x): Validate startpos <=
 	endpos.  State inclusiveness/exclusiveness of bounds in docstring.
@@ -3448,11 +3626,11 @@
 
 	Keywords no longer store a 'dash symbol'.  Instead, they store a
 	symbol with their real name.
-	
+
 	* keywords.h, keywords.c, deprecated.h, deprecated.c
 	(SCM_KEYWORDP, SCM_KEYWORDSYM): Deprecated and implemented in
 	terms of scm_is_keyword and scm_keyword_dash_symbol.
-	
+
 	* keywords.h, keywords.c, discouraged.h, discouraged.c
 	(scm_make_keyword_from_dash_symbol, scm_keyword_dash_symbol,
 	scm_c_make_keyword): Discouraged.
@@ -3462,7 +3640,7 @@
 	(scm_is_keyword, scm_from_locale_keyword,
 	scm_from_locale_keywordn): New.
 
-	* goops.c: Replaced SCM_KEYWORDP with scm_is_keyword.	
+	* goops.c: Replaced SCM_KEYWORDP with scm_is_keyword.
 
 	* snarf.h (SCM_KEYWORD, SCM_GLOBAL_KEYWORD): Use
 	scm_from_locale_keyword instead of scm_c_make_keyword.
@@ -3520,7 +3698,7 @@
 	(libguile_la_LIBADD): Removed THREAD_LIBS_LOCAL, which is unused
 	now.
 	(libpath.h): Put GUILE_CFLAGS in the build-info.
-	
+
 2004-09-23  Marius Vollmer  <mvo@zagadka.de>
 
         * print.h (scm_print_state): Added highlight_objects.
@@ -3532,14 +3710,14 @@
 	* backtrace.h, backtrace.c (scm_display_backtrace_with_highlights,
 	scm_backtrace_with_highlights): New.  Set highlight_objects of
 	printstate.
-	
+
 	* error.c (scm_error_scm): Document new meaning of data/rest
 	argument for out-of-range and wrong-type-arg errors.
 	(scm_out_of_range, scm_out_of_range_pos, scm_wrong_type_arg,
 	scm_wrong_type_arg_msg): Pass bad_value in rest argument of
 	exception so that it gets highlighted in the backtrace.
 	Don't talk about "argument" when not giving a position.
-	
+
 	* throw.c (handler_message): The rest argument is the fourth
 	argument, not everything after the third.  Call
 	scm_display_backtrace_with_highlights, passing the rest argument
@@ -3603,8 +3781,8 @@
 	* strings.h, strings.c (scm_substring_read_only,
 	scm_c_substring_read_only, scm_i_substring_read_only): New.
 	(RO_STRING_TAG, IS_RO_STRING): New.
-	(scm_i_string_writable_chars): Bail on read-only strings. 
-	
+	(scm_i_string_writable_chars): Bail on read-only strings.
+
 	* read.c (scm_lreadr): use scm_c_substring_read_only for string
 	literals, thus making them read-only as specified by R5RS.
 
@@ -3619,7 +3797,7 @@
 	numbers.c.
 	(scm_to_mpz, scm_from_mpz): New.
 	Thanks to Andreas Vögele!
-	
+
 	* read.c (skip_scsh_block_comment): Recognize "!#" everywhere, not
 	just on a line of its own.
 
@@ -3630,7 +3808,7 @@
 	over- or underflow occurs.  Thanks to Andreas Vögele!
 	(scm_xsubstring, scm_string_xcopy_x): Use ints for 'extended'
 	indices, which can also be negative.
-	
+
 2004-09-20  Marius Vollmer  <mvo@zagadka.de>
 
 	* gc-mark.c (SCM_MARK_BACKING_STORE): Removed, it was unused.
@@ -3668,7 +3846,7 @@
 	(scm_lreadr): Abort on seeing "#!", which should no longer happen.
 	(skip_scsh_block_comment): Use scm_input_error instead of
 	scm_misc_error in case of EOF.
-	
+
 2004-09-07  Kevin Ryde  <user42@zip.com.au>
 
 	* numbers.c (scm_integer_expt): Reject exponent +/-inf.
@@ -3742,7 +3920,7 @@
 	scm_i_string_chars et al.  Copious scm_remember_upto_heres have
 	been inserted.  Made sure that no internal string pointer is used
 	across a SCM_TICK or a possible GC.
-	
+
 	* script.c (scm_compile_shell_switches): Use
 	scm_from_locale_string instead of scm_makfrom0str.
 
@@ -3757,7 +3935,7 @@
 	* srfi-13.c, srfi-13.h, srfi-14.c, srfi-14.h: New files.
 	* strop.h, strop.c: Removed, they are now empty.
 	* Makefile.am: Updated for new and removed files.
-	
+
 	* symbols.h, symbols.c (scm_string_ci_to_symbol): Moved here, next
 	to scm_string_to_symbol.
 
@@ -3771,7 +3949,7 @@
 	scm_string_geq_p, scm_string_ci_less_p, scm_string_ci_leq_p,
 	scm_string_ci_gr_p, scm_string_ci_geq_p): Use scm_string_eq, etc
 	instead of explicit code.
-	
+
 	* deprecated.c, load.c, posix.c, unif.c, symbols.c: Include
 	"srfi-13.h" instead of "strop.h".
 
@@ -3789,14 +3967,14 @@
 	scm_i_string_char, scm_i_string_writable_chars): Use it.
 	(scm_i_substring_copy): Make START argument optional for C
 	callers, for upcoming SRFI-13 integration.
-	
+
 2004-08-21  Marius Vollmer  <mvo@zagadka.de>
 
         From Richard Todd, Thanks!
-	
+
 	* script.c (scm_compile_shell_switches): added '-L' switch to add
 	to the %load-path.
-	
+
 2004-08-21  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
 
 	* eval.c (unmemoize_exprs): When dropping internal body markers
@@ -3814,7 +3992,7 @@
 	scm_i_string_writable_chars doesn't give that.  Fixed by letting
 	mkstemp modify a locale version of the tmpl argument and copying
 	the result back into tmpl.
- 
+
 	* strop.c (scm_substring_move_x): Store into str2, not str1.
 
 2004-08-20  Kevin Ryde  <user42@zip.com.au>
@@ -3833,7 +4011,7 @@
         New string implementation, with copy-on-write strings and
 	mutation-sharing substrings, and a new internal string API.
 	Symbols can now share memory with strings.
-	
+
 	* tags.h (scm_tc7_stringbuf): New tag.
 
 	* strings.h, strings.c: (scm_i_string_chars, scm_i_string_length,
@@ -3888,12 +4066,12 @@
 	(scm_i_thread_wake_up): Unlock all threads, including ourselves,
 	call scm_i_enter_guile.
 	(scm_thread_mark_stacks): Expect all threads to be suspended.
-	
+
 	* gc.h, gc.c (scm_i_gc_admin_mutex): New, to protect
 	scm_gc_mallocated, for now.
 	(scm_init_storage): Initialize it.
 	* gc-malloc.c (descrease_mtrigger, increase_mtrigger): Use it.
-	
+
 	* gc-mark.c (scm_gc_mark_dependencies): Call scm_i_string_mark,
 	scm_i_stringbuf_mark and scm_i_symbol_mark, as appropriate.
 	* gc-card.c (scm_i_sweep_card):  Call scm_i_string_free,
@@ -3936,7 +4114,7 @@
 	(scm_recv, scm_send, scm_recvfrom, scm_sendto): Use
 	SCM_I_STRING_CHARS and SCM_I_STRING_LENGTH instead of
 	SCM_STRING_CHARS and SCM_STRING_LENGTH.
-	
+
 	* simpos.c (scm_system): Convert SCM strings to locale strings
 	instead of accessing their internals.
 
@@ -3960,12 +4138,12 @@
 	(scm_basename, scm_dirname): Use SCM_I_STRING_CHARS and
 	SCM_I_STRING_LENGTH instead of SCM_STRING_CHARS and
 	SCM_STRING_LENGTH.
-	
+
 	* extensions.c (load_extension): Convert lib and init to locale
 	strings instead of accessing the internals directly.
 	(scm_c_load_extension): Use scm_from_locale_string instead of
 	scm_makfrom0str.
-	
+
 	* fports.h, fports.c (scm_i_fdes_to_port): New, like
 	scm_fdes_to_port, but take mode bits directly instead of as a C
 	string.
@@ -3984,7 +4162,7 @@
 	(scm_void_port): Implement using above.
 	(scm_sys_make_void_port): Use scm_i_void_port together with
 	scm_i_mode_bits to avoid accessing internals of SCM string.
-	
+
 	* strings.h, strings.c (scm_i_get_substring_spec): New.
 
 	* socket.c, rw.c, deprecated.h, validate.h
@@ -3993,7 +4171,7 @@
 	scm_to_locale_string, etc.
 	(SCM_VALIDATE_SUBSTRING_SPEC_COPY): Deprecated.  Replaced as
 	above, plus scm_i_get_substring_spec.
-	
+
 	* regex-posix.c, read.c, random.c, ramap.c, print.c, numbers.c,
 	hash.c, gc.c, gc-card.c, convert.i.c, backtrace.c, strop.c,
 	strorder.c, strports.c, struct.c, symbols.c, unif.c, ports.c: Use
@@ -4011,7 +4189,7 @@
 	(scm_putenv): Rewritten to use only C strings.
 	(scm_setlocale, scm_crpt): Convert argument strings to locale
 	strings.
-	
+
 2004-08-11  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* load.c (scm_primitive_load_path): Do not check for absolute
@@ -4055,7 +4233,7 @@
 	(scm_string_append): Use memcpy instead of explicit loop.  Do not
 	use register keyword.  Use plain 'char' instead of 'unsigned
 	char'.
-	
+
 	* strports.c (scm_mkstrport): Use SCM_I_STRING_UCHARS instead of
 	SCM_STRING_UCHARS.  Use SCM_I_STRINGP instead of SCM_STRINGP.
 
@@ -4071,7 +4249,7 @@
 	SCM_STRING_LENGTH with SCM_I_STRINGP, SCM_I_STRING_CHARS, and
 	SCM_I_STRING_LENGTH, respectively.
 	(gh_scm2newstr): Implement in terms of scm_to_locale_string.
-	
+
 	* environments.c: Instead calling scm_puts on the SCM_STRING_CHARS
 	of a string, call scm_display on the string itself.
 
@@ -4097,7 +4275,7 @@
 	scm_error, this avoids the back and forth conversion of SUBR and
 	MESSAGE and also plugs a memory leak.
 	(scm_error): Call scm_error_scm.
-	
+
 	* backtrace.c: Replaced SCM_STRINGP with scm_is_string.
 	(display_header): Print FNAME when it is true, not
 	merely when it is a string.
@@ -4105,7 +4283,7 @@
 	* strings.h (SCM_SET_STRING_LENGTH, SCM_SET_STRING_CHARS): Removed
 	unceremoniously.  They were unused by Guile itself, and external
 	use should stop immediately.
-	
+
 
 2004-08-10  Marius Vollmer  <mvo@zagadka.de>
 
@@ -4113,7 +4291,7 @@
 	scm_truncate): Renamed to scm_c_round and scm_c_truncate;
 	deprecated versions installed in deprecated.h and deprecated.c.
 	Changed all uses.
-	
+
 2004-08-06  Rob Browning  <rlb@defaultvalue.org>
 
 	* net_db.c (scm_resolv_error): don't cause an exception while
@@ -4143,7 +4321,7 @@
 	stat on the filename, to be certain a file rename can't mean we get
 	info on one filesystem object but open another.  This fstat usage is
 	similar to Emacs copy-file.
-	
+
 	* posix.c (scm_setgroups): Enhance docstring, per doc/ref/posix.texi.
 
 	* simpos.c (scm_system_star): Change scm_from_long to scm_from_int on
@@ -4165,7 +4343,7 @@
 	New.
 	(scm_make_complex): Discouraged by moving to discouraged.h and
 	discouraged.c.  Replaced all uses with scm_c_make_rectangular.
-	
+
 	* discouraged.h, discouraged.c, numbers.c, numbers.h
 	(scm_is_rational): New.
 	(scm_i_short2big, scm_i_int2big, scm_i_uint2big, scm_i_size2big,
@@ -4181,7 +4359,7 @@
 	explicit code.
 	(scm_from_double): Do not implement in terms of scm_make_real, use
 	explicit code.
-	
+
 2004-08-02  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* init.c (scm_init_guile_1): Call scm_i_init_discouraged.
@@ -4213,7 +4391,7 @@
 	* numbers.h, numbers.c: Removed GUILE_DEBUG code.
 	(scm_i_short2big, scm_i_ushort2big, scm_i_int2big, scm_i_uint2big,
 	scm_i_size2big, scm_i_ptrdiff2big): Removed.
-	(scm_i_long2big, scm_i_ulong2big): New, explicit definitions.  
+	(scm_i_long2big, scm_i_ulong2big): New, explicit definitions.
 	* conv-integer.i.c, conv-uinteger.i.c: Use them instead of
 	explicit code.
 
@@ -4267,7 +4445,7 @@
 	SCM_T_INT64_MIN, SCM_T_INT64_MAX, SCM_T_UINT64_MAX,
 	SCM_T_INTMAX_MIN, SCM_T_INTMAX_MAX, SCM_T_UINTMAX_MAX): Moved
 	definition into __scm.h, using new SCM_I_TYPE_MIN, etc.
-	
+
 	* conv-integer.i.c, conv-uinteger.i.c: New files, used to generate
 	the functions below.
 
@@ -4282,11 +4460,11 @@
 	(scm_to_signed_integer, scm_to_unsigned_integer,
 	scm_from_signed_integer, scm_from_unsigned_integer): Generate via
 	conv-integer.i.c and conv-uinteger.i.c, as well.
-	
+
 	* number.h (scm_to_ssize_t, scm_to_size_t): Use the new
 	SCM_I_SSIZE_MIN, SCM_I_SSIZE_MAX, and SCM_I_SIZE_MAX macros for
 	the limits.  Those are always defined.
-	
+
 2004-07-29  Kevin Ryde  <user42@zip.com.au>
 
 	* posix.c (scm_ttyname): Use scm_i_misc_mutex for thread safety.
@@ -4306,7 +4484,7 @@
 	Reimplement using scm_is_false, scm_is_true, scm_is_bool, and
 	scm_from_bool, respectively.
 	(SCM_NINUMP): Added.
-	
+
 	* tags.h, deprecated.h (SCM_EQ_P): Deprecated by moving it into
 	deprecated.h.  Replaced all uses with scm_is_eq.
 
@@ -4327,7 +4505,7 @@
 	* dynwind.c (scm_i_dowinds): Removed unused code that would call
 	the unexisting scm_cross_dynwind_binding_scope for inums on the
 	windlist.
-	
+
 2004-07-10  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* socket.c (ipv6_net_to_num, scm_from_ipv6): Renamed
@@ -4338,7 +4516,7 @@
 	an IPv& byte-wise address to a SCM integer.  Changed all uses.
 	(bignum_in_ipv6_range_p, VALIDATE_INET6): Removed, their function
 	is now done by scm_to_ipv6.
-	
+
 	* numbers.c (scm_to_signed_integer, scm_to_unsigned_integer): dot
 	not accept inexact integers.
 
@@ -4372,7 +4550,7 @@
 	use CHAR_BIT instead of hardcoding 8.
 	(LLONG_MIN, LLONG_MAX, ULLONG_MAX): Removed and used
 	SCM_I_LLONG_MIN etc. instead.
-	
+
 	* numbers.h (SCM_MAKINUM, SCM_I_MAKINUM): Renamed SCM_MAKINUM to
 	SCM_I_MAKINUM and changed all uses.
 	* deprecated.h, deprecated.c (SCM_MAKINUM): Newly deprecated.
@@ -4400,7 +4578,7 @@
 	scm_from_uint8, scm_from_int16, scm_from_uint16, scm_from_int32,
 	scm_from_uint32, scm_from_int64, scm_from_uint64, scm_from_intmax,
 	scm_from_uintmax): New.
-	
+
 2004-07-06  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* tags.h (scm_is_eq): New.
@@ -4424,7 +4602,7 @@
 	scm_from_uint, scm_from_long, scm_from_ulong, scm_from_size_t,
 	scm_from_ssize_t, scm_is_real, scm_to_double, scm_from_double):
 	New.
-	
+
 2004-07-05  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* boolean.h, boolean.c (scm_is_true, scm_is_false, scm_from_bool,
@@ -4504,7 +4682,7 @@
 	unmemoize_do, unmemoize_if, unmemoize_lambda, unmemoize_let,
 	unmemoize_letrec, unmemoize_letstar, unmemoize_or,
 	unmemoize_set_x, unmemoize_apply, unmemoize_atcall_cc,
-	unmemoize_at_call_with_values, unmemoize_future, sym_atslot_ref, 
+	unmemoize_at_call_with_values, unmemoize_future, sym_atslot_ref,
 	unmemoize_atslot_ref, sym_atslot_set_x, unmemoize_atslot_set_x,
 	unmemoize_builtin_macro): New static functions and symbols.
 
@@ -4532,7 +4710,7 @@
 	macroexp and made static.  Added new version of scm_macroexp that
 	emits a deprecation warning and then calls macroexp.
 	(scm_m_undefine): Issue deprecation warning.
-	
+
 2004-05-30  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
 
 	* eval.c (lookup_global_symbol, literal_p, try_macro_lookup):
@@ -4640,7 +4818,7 @@
 
 	Convert floating point numbers into strings with an arbitrary
 	radix.  Thanks to Richard Todd!
-	
+
 	* numbers.c (FLOBUFLEN): Increase so that radix 2 strings will
 	fit.
 	(fx): Removed.
@@ -4726,7 +4904,7 @@
 
 	* num2integral.i.c (NUM2INTEGRAL): Test BIGMPZ_FITSP with "!= 0" to
 	avoid warning from gcc 3.4.  Reported by Hyperdivision.
-	
+
 	* numbers.c (scm_bit_extract): Use min instead of MIN.
 	(MIN): Remove, this conflicts with similar macro defined by limits.h
 	on HP-UX.  Reported by Andreas Vögele.
@@ -4813,7 +4991,7 @@
 	rounding in x+0.5 when x is a big value already an integer.  In
 	certain hardware rounding cases x+0.5 can give an adjacent integer,
 	leading to that as the result, when we really just wanted x itself.
-	
+
 2004-04-19  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
 
 	* eval.c (scm_unmemocopy): Fixed unmemoization of let*.
@@ -4863,7 +5041,7 @@
 2004-04-15  Kevin Ryde  <user42@zip.com.au>
 
 	* cpp_sig_symbols.in: Add SIGSYS.
-	
+
 	* list.c (scm_append_x): Use iterative style, to avoid non-tail
 	recursion.
 
@@ -4880,9 +5058,9 @@
 	* inline.h (scm_cell): use SCM_GC_CELL_WORD for checking tag.
 
 	* chars.h (scm_init_chars): change scm_{upcase,downcase} to
-	scm_c_{up,down}case. 
+	scm_c_{up,down}case.
 	(SCM_MAKE_CHAR): add (unsigned char) cast. This prevents havoc
-	when hi-bit ASCII is subjected to SCM_MAKE_CHAR().  
+	when hi-bit ASCII is subjected to SCM_MAKE_CHAR().
 
 2004-04-06  Kevin Ryde  <user42@zip.com.au>
 
@@ -5090,7 +5268,7 @@
 	SCM_DEBUG_CELL_ACCESSES is not defined. Scheme source code should
 	use (if (defined? 'set-debug-cell-accesses!) .. ) to switch on
 	debugging conditionally.
- 
+
 2004-03-21  Kevin Ryde  <user42@zip.com.au>
 
 	* stime.c (scm_gmtime): Use gmtime_r when available, for thread safety.
@@ -5162,10 +5340,10 @@
 
 	* gc.h (scm_gc_cells_collected): Removed duplicated declaration.
 	Thanks to Bill Schottstaedt!
-	
+
 	* socket.h (scm_gethost): Removed prototype it is already in
 	"net_db.h".  Thanks to Bill Schottstaedt!
-	
+
 2004-02-18  Kevin Ryde  <user42@zip.com.au>
 
 	* num2integral.i.c (INTEGRAL2BIG): WORDS_BIGENDIAN not right for word
@@ -5258,7 +5436,7 @@
 	* read.h: Remove conditionally compiled last arg to
 	scm_lreadparen.
 	(SCM_ELISP_VECTORS_P, SCM_ESCAPED_PARENS_P): New.
-	
+
 2004-01-23  Han-Wen Nienhuys   <hanwen@xs4all.nl>
 
 	* eval.c (m_expand_body): remove stray variable new_body.
@@ -5280,7 +5458,7 @@
 	* dynwind.h, dynwind.c (scm_frame_unwind,
 	scm_frame_unwind_handler): Renamed and changed all uses.
 	(scm_frame_rewind, scm_frame_rewind_handler): Likewise.
-	
+
 2004-01-11  Kevin Ryde  <user42@zip.com.au>
 
 	* unif.c (scm_bit_count, scm_bit_position, s_scm_bit_set_star_x,
@@ -5306,14 +5484,14 @@
 	case of only one fluid.
 	(scm_with_fluid): New.
 	(scm_c_with_fluid): Use frames instead of scm_c_with_fluids.
-	
+
 	* fluids.h, fluids.c (scm_frame_fluid): New.
 	(scm_with_fluid): New.
 	(scm_i_swap_fluids, scm_i_swap_fluids_reverse): Removed.
 
 	* dynwind.c (scm_frame_end): Do not use scm_i_dowinds.  Instead,
 	do the unwinding directly.  It is simple enough.
-	
+
 	* dynwind.h, dynwind.c: Did the following renamings:
 	scm_begin_frame -> scm_frame_begin,
 	scm_end_frame -> scm_frame_end,
@@ -5327,7 +5505,7 @@
 	scm_with_blocked_asyncs -> scm_frame_block_asyncs,
 	scm_with_unblocked_asyncs -> scm_frame_unblock_asyncs.
 	Changed all uses.
-	
+
 	* ports.h, ports.c: Did the follwing renamings:
 	scm_with_current_input_port -> scm_frame_current_input_port,
 	scm_with_current_output_port -> scm_frame_current_output_port,
@@ -5359,12 +5537,12 @@
 	(WINDER_F_MARK, WINDER_MARK_P, winder_mark): New.
 	(scm_on_unwind_with_scm, scm_on_rewind_with_scm): New. Use above
 	to protect SCM values.
-	
+
 	* dynwind.h (SCM_F_WIND_EXPLICITELY,
 	SCM_F_WIND_EXPLICITLY): It's "explicitly" not "explicitely", damn.
 	Changed all uses.
 	(scm_on_unwind_with_scm, scm_on_rewind_with_scm): New.
-	
+
 2004-01-05  Marius Vollmer  <mvo@zagadka.de>
 
 	* ports.h, ports.c (scm_with_current_input_port,
@@ -5393,12 +5571,12 @@
 	rewinding.
 	(scm_dynthrow): Do not call scm_dowinds, this is now done by
 	copy_stack_and_call.
-	
+
 2004-01-04  Kevin Ryde  <user42@zip.com.au>
 
 	* numbers.c (scm_less_p): Don't convert frac to float for compares,
 	can give bad results due to rounding.
-	
+
 	* stime.c (scm_current_time, scm_gettimeofday): Add a comment about
 	setzone/restorezone protection for DOS.
 
@@ -5499,13 +5677,13 @@
 2003-11-18  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	Support for exact fractions from Bill Schottstaedt!  Thanks!
-	
+
 	* print.c (scm_iprin1): Handle fractions.
 
 	* objects.h (scm_class_fraction): New.
-	* objects.c (scm_class_fraction): New. 
+	* objects.c (scm_class_fraction): New.
 	(scm_class_of): Handle fractions.
-	
+
 	* hash.c (scm_hasher): Handle fractions.
 
 	* numbers.c: New code for handling fraction all over the place.
@@ -5528,7 +5706,7 @@
 	scm_rational_p): New prototypes.
 	(scm_i_dbl2num, scm_i_fraction2double, scm_i_fraction_equalp,
 	scm_i_print_fraction): New prototypes.
-	
+
 	* goops.c (create_standard_classes): Create "<fraction>" class.
 
 	* gc-mark.c (scm_gc_mark_dependencies): Handle fractions.
@@ -6102,7 +6280,7 @@
 
 	* numbers.c (scm_lognot): Rewrite using ~ and mpz_com, for directness
 	and to have non-integer types rejected as per other logical funcs.
-	
+
 2003-08-28  Kevin Ryde  <user42@zip.com.au>
 
 	* gc.h (scm_remember_upto_here_1): Revise comments on the asm form.
@@ -6139,7 +6317,7 @@
 	that parameter name.
 	(scm_primitive_property_set_x): In docstring, VAL is the value
 	parameter not CODE.
-	
+
 2003-07-27  Marius Vollmer  <mvo@zagadka.de>
 
 	* print.c (scm_print_symbol_name): handle more weird characters by
@@ -6149,7 +6327,7 @@
 	* posix.c (scm_setgroups): New.  Thanks to Paul Jarc!
 	(scm_getgroups): Handle groups ids that don't fit into a fixnum.
 	Don't use SCM_WRITABLE_VELTS.
-	
+
 	* gc.h (SCM_GC_SET_CELL_BVEC): New.
 	* gc-card.c (scm_i_init_card_freelist): Use it.  Thanks to
 	Matthias Koeppe!
@@ -6227,13 +6405,13 @@
 
 2003-07-03  Han-Wen Nienhuys  <hanwen@cs.uu.nl>
 
-	* __scm.h (SCM_ASSERT): change "else" expansion to "do { } while (0)" 
+	* __scm.h (SCM_ASSERT): change "else" expansion to "do { } while (0)"
 
 2003-07-02  Han-Wen Nienhuys  <hanwen@cs.uu.nl>
 
 	* __scm.h (SCM_ASRTGO): add "else" to macro expansions with if
 	clauses.
-	
+
 2003-06-29  Marius Vollmer  <mvo@zagadka.de>
 
 	* deprecated.h (SCM_OPDIRP, scm_fport, scm_option, scm_srcprops,
@@ -6248,7 +6426,7 @@
 	* continuations.c: Redeclaration of getcontext() via the
 	__asm__ ("getcontext") directive.
 
-	* continuations.h: Include <ucontext.h> instead of 
+	* continuations.h: Include <ucontext.h> instead of
 	<sys/ucontext.h>.
 
 2003-06-21  Kevin Ryde  <user42@zip.com.au>
@@ -6279,7 +6457,7 @@
 	(scm_getspecific, scm_setspecific): Made these two function
 	real part of the API.
 
-	* posix.c (s_scm_putenv): Added some code to make a 
+	* posix.c (s_scm_putenv): Added some code to make a
 	(putenv "FOO="), i.e. setting an empty string, work also on
 	Win32 systems.  Thanks to Kevin Ryde for the proposal.
 
@@ -6327,7 +6505,7 @@
 
 	* read.c (scm_input_error): Pass arg list parameter to scm_error_scm,
 	rather than SCM_EOL.  Needed by "Unknown # object" case in scm_lreadr.
-	
+
 2003-06-04  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* __scm.h, gc-card.c (SCM_DEBUG_DEBUGGER_SUPPORT,
@@ -6411,7 +6589,7 @@
 
 2003-05-30  Stefan Jahn  <stefan@lkcc.org>
 
-	* posix.c (s_scm_putenv): Use the new HAVE_UNSETENV 
+	* posix.c (s_scm_putenv): Use the new HAVE_UNSETENV
 	appropriately for mingw32 hosts.
 
 	* numbers.h: Defining copysign(), isnan() and finite() to
@@ -6442,13 +6620,13 @@
 	* load.c (s_scm_search_path): Fixed absolute and relative
 	path detections for native Windows platforms.
 
-	* gc.h, threads.h: Export some more symbols using SCM_API (necessary 
+	* gc.h, threads.h: Export some more symbols using SCM_API (necessary
 	to build on mingw32).
 
-	* gc-freelist.c ("s_scm_map_free_list", 
+	* gc-freelist.c ("s_scm_map_free_list",
 	"s_scm_gc_set_debug_check_freelist_x"): Fixed use of FUNC_NAME.
 
-	* fports.c (fport_fill_input): Disable use of 
+	* fports.c (fport_fill_input): Disable use of
 	fport_wait_for_input() on Win32 platforms.
 
 	* filesys.c (s_scm_basename): Fixed __MINGW32__ code.
@@ -6504,7 +6682,7 @@
 	branch.  Some have been slightly rewritten.
 	(scm_i_object_chars, scm_i_object_length): New, to support
 	SCM_CHARS, SCM_UCHARS, and SCM_LENTH.
-	
+
 2003-05-19  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* eval.c (scm_m_do, unmemocopy, SCM_CEVAL):  Reversed order of
@@ -6558,7 +6736,7 @@
 	(print_state_mutex): New mutex.
 	(scm_make_print_state, scm_free_print_state, scm_prin1):
 	Lock/unlock print_state_mutex.
-	
+
 	* deprecated.h (SCM_GC8MARKP, SCM_SETGC8MARK, SCM_CLRGC8MARK):
 	Use current names in definitions.
 
@@ -6641,7 +6819,7 @@
 	scm_port_for_each.
 	(scm_port_for_each): Reimplemented using scm_c_port_for_each.
 	* ports.h (scm_c_port_for_each): New prototype.
-	
+
 2003-04-28  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* eval.c (scm_m_atdispatch): Removed until actually needed.  (This
@@ -6906,7 +7084,7 @@
 	* goops.c (prep_hashsets): make static to match prototype.
 	(scm_sym_args): SCM_SYMBOL -> SCM_GLOBAL_SYMBOL.  Thanks to Albert
 	Chin.
-	
+
 	* c-tokenize.lex: remove trailing comma from enum.  Thanks to
 	Albert Chin.
 
@@ -7172,7 +7350,7 @@
 	builds work.
 	(DOT_X_FILES): Removed "iselect.x".
 	(DOT_DOC_FILES): Removed "iselect.doc".
-	
+
 2003-03-25  Rob Browning  <rlb@defaultvalue.org>
 
 	* win32-socket.h: #include "libguile/__scm.h".  Replace usage of
@@ -7696,7 +7874,7 @@
 
 	* goops.c (scm_sys_prep_layout_x): Bugfix: Only create layout for
 	slots with instance allocation.
-	
+
 	* goops.c, goops.h (scm_class_extended_generic_with_setter): New
 	class.
 	(scm_compute_applicable_methods): Use scm_generic_function_methods.
@@ -7731,7 +7909,7 @@
 	* Makefile.am (c-tokenize.o): Refer to source via $< so that vpath
 	builds work.
 	(EXTRA_DIST): Added version.h.in.
-	
+
 2002-12-21  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	This change makes it possible for one thread to do lazy sweeping
@@ -7912,7 +8090,7 @@
 
 	These changes remove scm_ints_disabled (which hasn't has any
 	effect in Guile for quite some time).
-	
+
 	* async.c, error.h (scm_ints_disabled): Removed.
 
 	* gc.c (scm_gc_for_newcell), init.c (scm_init_guile_1),
@@ -7937,7 +8115,7 @@
 	threads, though.  Signalling and error handling for threads is
 	very likely broken.  Work on making the implementation cleaner and
 	more efficient is needed.
-	
+
 	* __scm.h (SCM_ALLOW_INTS_ONLY): Removed.
 	(SCM_NONREC_CRITICAL_SECTION_START,
 	SCM_NONREC_CRITICAL_SECTION_END, SCM_REC_CRITICAL_SECTION_START,
@@ -7985,7 +8163,7 @@
 
 	* Makefile.am (version.h): Changed $^ --> $< in rule for
 	version.h.
-	
+
 2002-12-08  Rob Browning  <rlb@defaultvalue.org>
 
 	* version.h.in (SCM_MICRO_VERSION): use @--@ substitution now.
@@ -8010,13 +8188,13 @@
 	implements the rest on top of that.  Guile's implementation is
 	what the "coop-pthreads" package has been previously.  Support for
 	"coop" threads has been removed until I get time to add it again.
-	
+
 	* Makefile.am (libguile_la_SOURCES): Removed iselect.c.
 	(noinst_HEADERS): Removed coop-threads.c, coop-threads.h, coop.c,
 	null-threads.c, coop-pthreads.c.
 	(modinclude_HEADERS): Removed coop-defs.h, coop-pthreads.h.  Added
 	pthread-threads.h.
-	
+
 	* validate.h (SCM_VALIDATE_THREAD): Moved to threads.h.
 
 	* threads.h: Do not include "libguile/coop-defs.h".  Include
@@ -8042,7 +8220,7 @@
 
 	* pthread-threads.h: New, implement pthread-like API by deferring
 	to pthread itself.
-	
+
 	* init.c (scm_init_guile_1): Do not call scm_init_iselect, which
 	has been lost in the reorganization.
 
@@ -8070,7 +8248,7 @@
 	case; Use trampolines.
 
 	Other changes:
-	
+
 	* sort.c (scm_cmp_function): Choose subr2less for scm_tc7_subr_2o;
 	(subr2oless): Removed.
 	(scm_restricted_vector_sort_x): Use scm_return_first to keep the
@@ -8165,13 +8343,13 @@
 	SCM_COPT_THREADS is defined.
 	(SCM_SYSCALL): Use EINTR-expection version when SCM_COPT_THREADS
 	is defined.
-	
+
 	* coop-pthreads.c: Some harmless renamings of internal stuff.
 	(create_thread): New, generalized version of
 	scm_call_with_new_thread.
 	(scm_call_with_new_thread): Use it.
 	(scm_spawn_thread): New, use create_thread.
-	
+
 2002-11-02  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* coop-pthreads.c, coop-pthreads.h: Redone completely, you might
@@ -8190,7 +8368,7 @@
 	(take_signal): Simplified, to avoid race conditions.
 	(scm_sigaction_for_thread): Use new Scheme.  Validate that thread
 	hasn't exited yet.
-	
+
 	* async.c (scm_async_click): Reset pending_asyncs, handle
 	signal_asyncs.  Don't set cdr of a non-signal async to #f.
 	(scm_i_queue_async_cell): Do not check cdr of cell for #f, queue
@@ -8199,7 +8377,7 @@
 	exited.
 	(scm_unmask_signals, decrease_block): Call scm_async_click after
 	block_asyncs becomes zero.
-	
+
 	* __scm.h (SCM_ASYNC_CLICK): Check pending_asyncs instead of
 	active_asyncs.
 
@@ -8207,16 +8385,16 @@
 	fields.
 	* root.c (root_mark): Mark them.
 	(make_root): Initialize them.
-	
+
 	* iselect.c, iselect.h: Replaced GUILE_ISELECT with
 	USE_COOP_THREADS.
 	(scm_internal_select): Define one version for USE_COOP_THREADS and
 	one for USE_NULL_THREADS.
 	(scm_init_iselect): Likewise.
-	
+
         * inline.h (scm_cell, scm_double_cell): Also allow
 	USE_COPT_THREADS to not protect the slot initializers.
-	
+
 	* init.c (scm_init_guile_1): Call scm_init_thread_procs.  This is
 	because threads need to be initialized before the stack, but
 	gsubrs such as scm_timed_condition_variable_wait can only be
@@ -8265,7 +8443,7 @@
 	scm_cond_wait, scm_cond_signal, scm_cond_broadcast,
 	scm_cond_destory): Do not define, they are now deprecated and
 	handled by threads.{h,c}.
-	
+
 	* null-threads.c (scm_null_mutex, scm_null_cond): Define here.
 	(scm_threads_init): Create smobs here, using the appropriate
 	sizes.
@@ -8307,7 +8485,7 @@
 	* goops.c (hell_mutex): Reimplemented using scm_make_mutex, etc.
 
 	* coop-pthreads.h, coop-pthreads.c: New, but unfinished.
-	
+
 2002-10-21  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* null-threads.c: Include <time.h>.  Also, use <...> for inclusion
@@ -8386,7 +8564,7 @@
 	* scmsigs.c (scm_sigaction_for_thread): Store original handler in
 	signal_handlers, not the closure that is used as the async.
 	The closure is stored in signal_handler_cells, as previously.
-	
+
 2002-10-10  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* root.h (scm_root_state): Added 'block_async' slot.
@@ -8411,7 +8589,7 @@
 	(increase_block, decrease_block, scm_call_with_blocked_asyncs,
 	scm_call_with_unblocked_asyncs, scm_c_call_with_blocked_asyncs,
 	scm_c_call_with_unblocked_asyncs): New.
-	
+
 	* script.c (scm_compile_shell_switches): Do not set scm_mask_ints.
 	Asyncs are enabled by default.
 
@@ -8432,7 +8610,7 @@
 	(scm_system_async_mark_for_thread): Initialize cdr of handler cell
 	with SCM_BOOL_F.
 	* scmsigs.c (scm_sigaction_for_thread): Likewise.
-	
+
 2002-10-04  Rob Browning  <rlb@defaultvalue.org>
 
 	* guile.c (main): switch to scm_lt_dlset_preloaded_symbols;
@@ -8478,7 +8656,7 @@
 	scm_set_switch_rate, scm_system_async_mark_from_signal_handler):
 	Removed prototypes.
 	(scm_i_queue_async_cell): New.
-	
+
 	* __scm.h (scm_asyncs_pending_p): Removed.
 	(SCM_ASYNC_CLICK): Check scm_active_asyncs instead of
 	scm_asyncs_pending_p.
@@ -8525,7 +8703,7 @@
 
 2002-09-19  Han-Wen Nienhuys  <hanwen@cs.uu.nl>
 
-	* inline.h (scm_double_cell): move SET_GCMARK set out of if body. 
+	* inline.h (scm_double_cell): move SET_GCMARK set out of if body.
 
 2002-09-09  Han-Wen Nienhuys  <hanwen@cs.uu.nl>
 
@@ -8546,7 +8724,7 @@
 	* gc-malloc.c (scm_gc_init_malloc): check user settings for
 	sanity.
 
-	* gc-freelist.c (scm_init_freelist): check user settings for sanity. 
+	* gc-freelist.c (scm_init_freelist): check user settings for sanity.
 
 	* struct.h: change scm_structs_to_free to scm_i_structs_to_free
 
@@ -8613,7 +8791,7 @@
 2002-08-23  Han-Wen Nienhuys  <hanwen@cs.uu.nl>
 
 	* gc-segment.c (scm_i_get_new_heap_segment): Oops. We want segment
-	length *at* least SCM_MIN_HEAP_SEG_SIZE, not at most.  
+	length *at* least SCM_MIN_HEAP_SEG_SIZE, not at most.
 
 2002-08-22  Han-Wen Nienhuys  <hanwen@cs.uu.nl>
 
@@ -8644,7 +8822,7 @@
 	function
 
 	* ports.h: use scm_i_ prefix for port table and port table size.
-	
+
 2002-08-15  Mikael Djurfeldt  <mdj@linnaeus>
 
 	* vports.c (scm_make_soft_port): Initialize pt variable.
@@ -8659,12 +8837,12 @@
 	(scm_eval_string): Implement using scm_eval_string_in_module.
 	(scm_c_eval_string_in_module): New.
 	Thanks to Ralf Mattes for the suggestion!
-	
+
 2002-08-09  Han-Wen Nienhuys  <hanwen@cs.uu.nl>
 
 	* gc-card.c ("sweep_card"): remove SCM_MISC_ERROR messages: print
 	message and abort.
-	
+
 	* gc-mark.c ("scm_gc_mark_dependencies"): idem.
 
 	* ports.c ("scm_new_port_table_entry"): return a boxed SCM in
@@ -8688,7 +8866,7 @@
 
 2002-08-05  Han-Wen Nienhuys  <hanwen@cs.uu.nl>
 
-	* tags.h: remove GC bits documentation from the tags table. 
+	* tags.h: remove GC bits documentation from the tags table.
 
 	* read.c (INPUT_ERROR): Prepare for file:line:column error
 	messages for errors in scm_lreadr() and friends.
@@ -8696,14 +8874,14 @@
 2002-08-04  Han-Wen Nienhuys  <hanwen@cs.uu.nl>
 
 	* gc-malloc.c (scm_malloc): use scm_realloc() (simplifies
-	implementation). 
+	implementation).
 	(scm_gc_calloc): new function
 
 2002-08-04  Han-Wen Nienhuys <hanwen@cs.uu.nl>
 
 	* ports.c (scm_new_port_table_entry): init port entry to 0
 	completely.
-	
+
 	* ports.c (scm_new_port_table_entry): change function from
 	scm_add_to_port_table. This prevents cells with null-pointers from
 	being exposed to GC.
@@ -8734,7 +8912,7 @@
 
 2002-07-24  Stefan Jahn  <stefan@lkcc.org>
 
-	* continuations.h: ia64: Include <signal.h> before 
+	* continuations.h: ia64: Include <signal.h> before
 	<sys/ucontext.h>.
 
 2002-07-21  Dirk Herrmann  <D.Herrmann@tu-bs.de>
@@ -8767,7 +8945,7 @@
 
 	* *.c: use SCM_VECTOR_SET everywhere, where a vector is written.
 	Document cases where SCM_WRITABLE_VELTS() is used.
-	
+
 	* vectors.h (SCM_VELTS): prepare for write barrier, and let
 	SCM_VELTS() return a const pointer
 	(SCM_VECTOR_SET): add macro.

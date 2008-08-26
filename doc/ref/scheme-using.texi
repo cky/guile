@@ -359,6 +359,8 @@ debugger to continue.)
 @node Using Guile in Emacs
 @section Using Guile in Emacs
 
+@cindex GDS
+@cindex Emacs
 There are several options for working on Guile Scheme code in Emacs.
 The simplest are to use Emacs's standard @code{scheme-mode} for
 editing code, and to run the interpreter when you need it by typing
@@ -985,6 +987,14 @@ Evaluate the Scheme code in the marked region of the current buffer
 region contains a balanced expression, or try to expand the region so
 that it does; it uses the region exactly as it is.
 @end table
+
+If you type @kbd{C-u} before one of these commands, GDS will
+immediately pop up a Scheme stack buffer, showing the requested
+evaluation, so that you can single step through it.  (This is achieved
+by setting a @code{<source-trap>} trap at the start of the requested
+evaluation; see @ref{Source Traps} for more on how those work.)  The
+Scheme stack display, and the options for continuing through the code,
+are described in the next two sections.
 
 
 @node Displaying the Scheme Stack

@@ -1008,19 +1008,18 @@ scm_get_stack_base ()
 
 # ifdef MIPS
 #   define MACH_TYPE "MIPS"
-/* #   define STACKBOTTOM ((ptr_t)0x7fff8000)  sometimes also works.  */
 #   ifdef LINUX
-      /* This was developed for a linuxce style platform.  Probably	*/
-      /* needs to be tweaked for workstation class machines.		*/
-#     define OS_TYPE "LINUX"
-      extern int __data_start;
-#     define DATASTART ((ptr_t)(&__data_start))
-#     define ALIGNMENT 4
-#     define USE_GENERIC_PUSH_REGS 1
-#     define STACKBOTTOM 0x80000000
-	/* In many cases, this should probably use LINUX_STACKBOTTOM 	*/
-	/* instead. But some kernel versions seem to give the wrong	*/
-	/* value from /proc.						*/
+#       define CPP_WORDSZ _MIPS_SZPTR
+#       define OS_TYPE "LINUX"
+#       define ALIGNMENT 4
+#       define ALIGN_DOUBLE
+        extern int _fdata;
+#       define DATASTART ((ptr_t)(&_fdata))
+        extern int _end;
+#       define DATAEND ((ptr_t)(&_end))
+#       define STACKBOTTOM ((ptr_t)0x7fff8000)
+#       define USE_GENERIC_PUSH_REGS 1
+#       define DYNAMIC_LOADING
 #   endif /* Linux */
 #   ifdef ULTRIX
 #	define HEURISTIC2

@@ -3,7 +3,7 @@
 #ifndef SCM_RW_H
 #define SCM_RW_H
 
-/* Copyright (C) 2001, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -29,8 +29,8 @@ SCM_API SCM scm_read_string_x_partial (SCM str, SCM port_or_fdes, SCM start,
 SCM_API SCM scm_write_string_partial (SCM str, SCM port_or_fdes, SCM start,
 				      SCM end);
 
-SCM_API SCM scm_init_rw_builtins (void);
-SCM_API void scm_init_rw (void);
+SCM_INTERNAL SCM scm_init_rw_builtins (void);
+SCM_INTERNAL void scm_init_rw (void);
 
 #endif  /* SCM_RW_H */
 

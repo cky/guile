@@ -73,7 +73,9 @@
 					     (slot-ref (car fired-traps) 'depth)))))
                  ;; Write current stack to the frontend.
                  (write-form (list 'stack
-				   (or special-index 0)
+				   (if (and special-index (> special-index 0))
+				       special-index
+				       0)
                                    (stack->emacs-readable stack)
                                    (append (flags->emacs-readable flags)
                                            (slot-ref trap-context
@@ -352,7 +354,7 @@ Thanks!\n\n"
 
     ((eval)
      (set! last-lazy-trap-context #f)
-     (apply (lambda (correlator module port-name line column code)
+     (apply (lambda (correlator module port-name line column code flags)
               (with-input-from-string code
                 (lambda ()
                   (set-port-filename! (current-input-port) port-name)
@@ -382,6 +384,11 @@ Thanks!\n\n"
                               ;; it to the list.
 			      (begin
 				(for-each-breakpoint setup-after-read x)
+				(if (and (pair? x)
+					 (memq 'debug flags))
+				    (install-trap (make <source-trap>
+						    #:expression x
+						    #:behaviour gds-debug-trap)))
 				(loop (cons x exprs) (read))))))
                       (lambda (key . args)
                         (write-form `(eval-results

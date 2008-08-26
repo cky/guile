@@ -11,6 +11,7 @@ Changes in 1.9.0:
 
 * New modules (see the manual for details)
 
+** `(srfi srfi-18)', multithreading support
 ** The `(ice-9 i18n)' module provides internationalization support
 
 * Changes to the distribution
@@ -36,6 +37,34 @@ indicating length of the `scm_t_option' array.
 
 
 
+Changes in 1.8.6 (since 1.8.5)
+
+* New features (see the manual for details)
+
+** New convenience function `scm_c_symbol_length ()'
+
+** Single stepping through code from Emacs
+
+When you use GDS to evaluate Scheme code from Emacs, you can now use
+`C-u' to indicate that you want to single step through that code. See
+`Evaluating Scheme Code' in the manual for more details.
+
+* Bugs fixed
+
+** Internal `scm_i_' functions now have "hidden" linkage with GCC/ELF
+
+This makes these internal functions technically not callable from
+application code.
+
+** `guile-config link' now prints `-L$libdir' before `-lguile'
+** Fix memory corruption involving GOOPS' `class-redefinition'
+** Fix build issue on Tru64 and ia64-hp-hpux11.23 (`SCM_UNPACK' macro)
+** Fix build issue on mips, mipsel, powerpc and ia64 (stack direction)
+** Fix build issue on hppa2.0w-hp-hpux11.11 (`dirent64' and `readdir64_r')
+** Fix misleading output from `(help rationalize)'
+** Fix build failure on Debian hppa architecture (bad stack growth detection)
+
+
 Changes in 1.8.5 (since 1.8.4)
 
 * Infrastructure changes
@@ -46,6 +75,31 @@ The new repository can be accessed using
 "git-clone git://git.sv.gnu.org/guile.git", or can be browsed on-line at
 http://git.sv.gnu.org/gitweb/?p=guile.git .  See `README' for details.
 
+** Add support for `pkg-config'
+
+See "Autoconf Support" in the manual for details.
+
+* New modules (see the manual for details)
+
+** `(srfi srfi-88)'
+
+* New features (see the manual for details)
+
+** New `postfix' read option, for SRFI-88 keyword syntax
+** Some I/O primitives have been inlined, which improves I/O performance
+** New object-based traps infrastructure
+
+This is a GOOPS-based infrastructure that builds on Guile's low-level
+evaluator trap calls and facilitates the development of debugging
+features like single-stepping, breakpoints, tracing and profiling.
+See the `Traps' node of the manual for details.
+
+** New support for working on Guile code from within Emacs
+
+Guile now incorporates the `GDS' library (previously distributed
+separately) for working on Guile code from within Emacs.  See the
+`Using Guile In Emacs' node of the manual for details.
+ 
 * Bugs fixed
 
 ** `scm_add_slot ()' no longer segfaults (fixes bug #22369)
@@ -60,9 +114,12 @@ would trigger an unbound variable error for `match:andmap'.
 Previously, parsing short option names of argument-less options would
 lead to a stack overflow.
 
+** `(srfi srfi-35)' is now visible through `cond-expand'
 ** Fixed type-checking for the second argument of `eval'
+** Fixed type-checking for SRFI-1 `partition'
 ** Fixed `struct-ref' and `struct-set!' on "light structs"
 ** Honor struct field access rights in GOOPS
+** Changed the storage strategy of source properties, which fixes a deadlock
 ** Allow compilation of Guile-using programs in C99 mode with GCC 4.3 and later
 ** Fixed build issue for GNU/Linux on IA64
 ** Fixed build issues on NetBSD 1.6
@@ -70,6 +127,8 @@ lead to a stack overflow.
 ** Fixed build issue with DEC/Compaq/HP's compiler
 ** Fixed `scm_from_complex_double' build issue on FreeBSD
 ** Fixed `alloca' build issue on FreeBSD 6
+** Removed use of non-portable makefile constructs
+** Fixed shadowing of libc's <random.h> on Tru64, which broke compilation
 ** Make sure all tests honor `$TMPDIR'
 
 * Changes to the distribution

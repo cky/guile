@@ -852,6 +852,12 @@ scm_ithrow (SCM key, SCM args, int noreturn SCM_UNUSED)
   /* Otherwise, it's some random piece of junk.  */
   else
     abort ();
+
+#ifdef __ia64__
+  /* On IA64, we #define longjmp as setcontext, and GCC appears not to
+     know that that doesn't return. */
+  return SCM_UNSPECIFIED;
+#endif
 }
 
 

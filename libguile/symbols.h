@@ -3,7 +3,7 @@
 #ifndef SCM_SYMBOLS_H
 #define SCM_SYMBOLS_H
 
-/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2003, 2004, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2003, 2004, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -61,11 +61,11 @@ SCM_API SCM scm_take_locale_symboln (char *sym, size_t len);
 
 /* internal functions. */
 
-SCM_API unsigned long scm_i_hash_symbol (SCM obj, unsigned long n,
+SCM_INTERNAL unsigned long scm_i_hash_symbol (SCM obj, unsigned long n,
 					 void *closure);
 
-SCM_API void scm_symbols_prehistory (void);
-SCM_API void scm_init_symbols (void);
+SCM_INTERNAL void scm_symbols_prehistory (void);
+SCM_INTERNAL void scm_init_symbols (void);
 
 #endif  /* SCM_SYMBOLS_H */
 

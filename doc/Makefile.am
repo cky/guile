@@ -1,6 +1,6 @@
 ## Process this file with Automake to create Makefile.in
 ##
-##  	Copyright (C) 1998, 2002, 2006 Free Software Foundation, Inc.
+##  	Copyright (C) 1998, 2002, 2006, 2008 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
@@ -27,7 +27,7 @@ SUBDIRS = ref tutorial goops r5rs
 # man_MANS = guile.1
 
 EXAMPLE_SMOB_FILES = \
-    ChangeLog Makefile README COPYING image-type.c image-type.h myguile.c
+    ChangeLog Makefile README image-type.c image-type.h myguile.c
 
 OLDFMT = oldfmt.c
 

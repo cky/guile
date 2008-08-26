@@ -3,7 +3,7 @@
 #ifndef SCM_PROCS_H
 #define SCM_PROCS_H
 
-/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -154,8 +154,8 @@ SCM_API SCM scm_procedure_with_setter_p (SCM obj);
 SCM_API SCM scm_make_procedure_with_setter (SCM procedure, SCM setter);
 SCM_API SCM scm_procedure (SCM proc);
 SCM_API SCM scm_setter (SCM proc);
-SCM_API void scm_init_subr_table (void);
-SCM_API void scm_init_procs (void);
+SCM_INTERNAL void scm_init_subr_table (void);
+SCM_INTERNAL void scm_init_procs (void);
 
 #ifdef GUILE_DEBUG
 SCM_API SCM scm_make_cclo (SCM proc, SCM len);
