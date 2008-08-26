@@ -43,7 +43,7 @@ EOF
 }
 
 prefix="@prefix@"
-pkgdatadir="@datadir@/@PACKAGE@"
+pkgdatadir="@datarootdir@/@PACKAGE@"
 guileversion="@GUILE_EFFECTIVE_VERSION@"
 default_scriptsdir=$pkgdatadir/$guileversion/scripts
 
