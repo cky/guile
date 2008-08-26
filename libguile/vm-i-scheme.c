@@ -203,31 +203,17 @@ VM_DEFINE_FUNCTION (ge, "ge?", 2)
  * Numeric functions
  */
 
-#undef FUNC1
-#define FUNC1(CEXP,SEXP)			\
-{						\
-  ARGS1 (x);					\
-  if (SCM_I_INUMP (x))				\
-    {						\
-      int n = CEXP;				\
-      if (SCM_FIXABLE (n))			\
-	RETURN (SCM_I_MAKINUM (n));		\
-    }						\
-  SYNC_REGISTER ();                            \
-  RETURN (SEXP);				\
-}
-
 #undef FUNC2
 #define FUNC2(CFUNC,SFUNC)				\
 {							\
   ARGS2 (x, y);						\
   if (SCM_I_INUMP (x) && SCM_I_INUMP (y))		\
     {							\
-      int n = SCM_I_INUM (x) CFUNC SCM_I_INUM (y);	\
+      scm_t_bits n = SCM_I_INUM (x) CFUNC SCM_I_INUM (y);\
       if (SCM_FIXABLE (n))				\
 	RETURN (SCM_I_MAKINUM (n));			\
     }							\
-  SYNC_REGISTER ();                                    \
+  SYNC_REGISTER ();					\
   RETURN (SFUNC (x, y));				\
 }
 
