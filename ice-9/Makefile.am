@@ -24,8 +24,10 @@ AUTOMAKE_OPTIONS = gnu
 SUBDIRS = debugger debugging
 
 # These should be installed and distributed.
-ice9_sources =								\
-	and-let-star.scm boot-9.scm calling.scm common-list.scm		\
+modpath = ice-9
+SOURCES = and-let-star.scm
+NOCOMP_SOURCES =								\
+	boot-9.scm calling.scm common-list.scm		\
 	debug.scm debugger.scm documentation.scm emacs.scm expect.scm	\
 	format.scm getopt-long.scm hcons.scm i18n.scm			\
 	lineio.scm ls.scm mapping.scm					\
@@ -39,12 +41,12 @@ ice9_sources =								\
 	weak-vector.scm deprecated.scm list.scm serialize.scm		\
 	gds-client.scm gds-server.scm
 
-subpkgdatadir = $(pkgdatadir)/${GUILE_EFFECTIVE_VERSION}/ice-9
-subpkgdata_DATA = $(ice9_sources)
-TAGS_FILES = $(subpkgdata_DATA)
+include $(top_srcdir)/guilec.mk
 
 ## test.scm is not currently installed.
-EXTRA_DIST = $(ice9_sources) test.scm compile-psyntax.scm
+EXTRA_DIST += test.scm compile-psyntax.scm
+
+TAGS_FILES = $(SOURCES)
 
 if MAINTAINER_MODE
 # We expect this to never be invoked when there is not already
