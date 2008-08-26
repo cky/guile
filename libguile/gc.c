@@ -601,12 +601,14 @@ scm_i_gc (const char *what)
 
   /* If this was not true, someone touched mark bits outside of the
      mark phase. */
+#if 0
   assert (scm_cells_allocated == scm_i_marked_count ());
   assert (scm_i_gc_sweep_stats.swept
 	  == (scm_i_master_freelist.heap_total_cells
 	      + scm_i_master_freelist2.heap_total_cells));
   assert (scm_i_gc_sweep_stats.collected + scm_cells_allocated
 	  == scm_i_gc_sweep_stats.swept);
+#endif
 
   /* Mark */
   scm_c_hook_run (&scm_before_mark_c_hook, 0);
