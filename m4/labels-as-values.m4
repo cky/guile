@@ -1,5 +1,5 @@
 dnl check for gcc's "labels as values" feature
-AC_DEFUN(AC_C_LABELS_AS_VALUES,
+AC_DEFUN([AC_C_LABELS_AS_VALUES],
 [AC_CACHE_CHECK([labels as values], ac_cv_labels_as_values,
 [AC_TRY_COMPILE([
 int foo(int);
@@ -15,7 +15,7 @@ l2: return 2;
 ac_cv_labels_as_values=yes,
 ac_cv_labels_as_values=no)])
 if test "$ac_cv_labels_as_values" = yes; then
-AC_DEFINE(HAVE_LABELS_AS_VALUES, [],
+AC_DEFINE([HAVE_LABELS_AS_VALUES], [],
           [Define if compiler supports gcc's "labels as values" (aka computed goto)
            feature, used to speed up instruction dispatch in the interpreter.])
 fi
