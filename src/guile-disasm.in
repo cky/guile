@@ -3,9 +3,9 @@
 
 ;; Obviously, this is -*- Scheme -*-.
 
-(use-modules (system vm core)
-	     (system vm disasm))
+(use-modules (system vm objcode)
+             (system vm disasm))
 
 (for-each (lambda (file)
-	    (disassemble-objcode (load-objcode file)))
-	  (cdr (command-line)))
+            (disassemble-objcode (load-objcode file)))
+          (cdr (command-line)))
