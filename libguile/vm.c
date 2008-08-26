@@ -94,8 +94,8 @@ reinstate_vm_cont (struct scm_vm *vp, SCM cont)
       abort ();
     }
   vp->ip = p->ip;
-  vp->sp = vp->stack_limit - (int) p->sp;
-  vp->fp = vp->stack_limit - (int) p->fp;
+  vp->sp = vp->stack_limit - (intptr_t) p->sp;
+  vp->fp = vp->stack_limit - (intptr_t) p->fp;
   memcpy (vp->sp + 1, p->stack_base, p->stack_size * sizeof (SCM));
 }
 
