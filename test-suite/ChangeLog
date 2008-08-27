@@ -1,3 +1,8 @@
+2008-08-27  Ludovic Courtès  <ludo@gnu.org>
+
+	* tests/srfi-18.test: Don't run the tests unless
+	"(provided? 'threads)" is true.
+
 2008-08-25  Ludovic Courtès  <ludo@gnu.org>
 
 	* standalone/Makefile.am (test_cflags): Add `$(GCC_CFLAGS)'.

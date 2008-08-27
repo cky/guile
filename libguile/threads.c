@@ -784,7 +784,7 @@ scm_with_guile (void *(*func)(void *), void *data)
 				      scm_i_default_dynamic_state);
 }
 
-static void
+SCM_UNUSED static void
 scm_leave_guile_cleanup (void *x)
 {
   scm_leave_guile ();

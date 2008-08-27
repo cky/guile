@@ -1,3 +1,12 @@
+2008-08-27  Ludovic Courtès  <ludo@gnu.org>
+
+	Fix builds `--without-threads'.  Reported by Han-Wen Nienhuys
+	<hanwen@xs4all.nl>.
+
+	* scmsigs.c (scm_i_close_signal_pipe): Don't refer to
+	`signal_pipe' unless `SCM_USE_PTHREAD_THREADS' is true.
+	* threads.c (scm_leave_guile_cleanup): Mark as `SCM_UNUSED'.
+
 2008-08-25  Ludovic Courtès  <ludo@gnu.org>
 
 	* Makefile.am (AM_CFLAGS): New.
