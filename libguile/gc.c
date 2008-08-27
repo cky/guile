@@ -599,6 +599,7 @@ scm_i_gc (const char *what)
 
   /* Sanity check our numbers. */
 
+#if (SCM_DEBUG_CELL_ACCESSES == 0)
   /* If this was not true, someone touched mark bits outside of the
      mark phase. */
   assert (scm_cells_allocated == scm_i_marked_count ());
@@ -607,7 +608,8 @@ scm_i_gc (const char *what)
 	      + scm_i_master_freelist2.heap_total_cells));
   assert (scm_i_gc_sweep_stats.collected + scm_cells_allocated
 	  == scm_i_gc_sweep_stats.swept);
-
+#endif /* SCM_DEBUG_CELL_ACCESSES */
+  
   /* Mark */
   scm_c_hook_run (&scm_before_mark_c_hook, 0);
 
