@@ -1,3 +1,8 @@
+2008-08-25  Ludovic Courtès  <ludo@gnu.org>
+
+	* Makefile.am (AM_CFLAGS): New.
+	(guile_CFLAGS, libguile_la_CFLAGS): Use it.
+
 2008-08-20  Ludovic Courtès  <ludo@gnu.org>
 
 	* eval.c, filesys.c, gc.c, numbers.c, stime.c, threads.c: Don't

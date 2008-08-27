@@ -35,6 +35,8 @@ DEFAULT_INCLUDES =
 AM_CPPFLAGS = -I$(top_srcdir) -I$(top_builddir)		\
 	      -I$(top_srcdir)/lib -I$(top_builddir)/lib
 
+AM_CFLAGS = $(GCC_CFLAGS)
+
 ## The Gnulib Libtool archive.
 gnulib_library = $(top_builddir)/lib/libgnu.la
 
@@ -97,11 +99,11 @@ guile_filter_doc_snarfage$(EXEEXT): $(guile_filter_doc_snarfage_OBJECTS) $(guile
 
 
 guile_SOURCES = guile.c
-guile_CFLAGS = $(GUILE_CFLAGS)
+guile_CFLAGS = $(GUILE_CFLAGS) $(AM_CFLAGS)
 guile_LDADD = libguile.la
 guile_LDFLAGS = @DLPREOPEN@ $(GUILE_CFLAGS)
 
-libguile_la_CFLAGS = $(GUILE_CFLAGS)
+libguile_la_CFLAGS = $(GUILE_CFLAGS) $(AM_CFLAGS)
 
 libguile_la_SOURCES = alist.c arbiters.c async.c backtrace.c boolean.c	\
     chars.c continuations.c convert.c debug.c deprecation.c		\
