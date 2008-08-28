@@ -37,7 +37,7 @@ autom4te.cache
 benchmark-guile
 check-guile
 check-guile.log
-compile
+build-aux/compile
 confdefs.h
 config.build-subdirs
 config.cache

@@ -26,7 +26,7 @@ AUTOMAKE_OPTIONS = 1.10
 
 SUBDIRS = lib oop libguile ice-9 guile-config guile-readline emacs \
 	  scripts srfi doc examples test-suite benchmark-suite lang am \
-	  src module testsuite
+	  module testsuite
 
 bin_SCRIPTS = guile-tools
 

@@ -8,4 +8,4 @@ CLEANFILES = $(GOBJECTS)
 
 SUFFIXES = .scm .go
 .scm.go:
-	$(top_builddir)/pre-inst-guile -s \$(top_builddir)/src/guilec $<
+	$(top_builddir)/pre-inst-guile-env $(top_builddir)/guile-tools compile $<

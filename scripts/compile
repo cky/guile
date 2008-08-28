@@ -1,0 +1,92 @@
+#!/bin/sh
+# -*- scheme -*-
+exec ${GUILE-guile} -e '(@ (scripts compile) compile)' -s $0 "$@"
+!#
+;;; Compile --- Command-line Guile Scheme compiler
+
+;; Copyright 2005,2008 Free Software Foundation, Inc.
+;;
+;; This program is free software; you can redistribute it and/or
+;; modify it under the terms of the GNU General Public License as
+;; published by the Free Software Foundation; either version 2, or
+;; (at your option) any later version.
+;;
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;; General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with this software; see the file COPYING.  If not, write to
+;; the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301 USA
+
+;;; Author: Ludovic Courtès <ludovic.courtes@laas.fr>
+;;; Author: Andy Wingo <wingo@pobox.com>
+
+;;; Commentary:
+
+;; Usage: compile [ARGS]
+;;
+;; PROGRAM does something.
+;;
+;; TODO: Write it!
+
+;;; Code:
+
+(read-set! keywords 'prefix)
+
+(define-module (scripts compile)
+  :use-module (system base compile)
+  :use-module (ice-9 getopt-long)
+  :export (compile))
+
+(define %options
+  '((help           (single-char #\h) (value #f))
+    (optimize       (single-char #\O) (value #f))
+    (expand-only    (single-char #\e) (value #f))
+    (translate-only (single-char #\t) (value #f))
+    (compile-only   (single-char #\c) (value #f))))
+
+(define (compile args)
+  (let* ((options         (getopt-long args %options))
+         (help?           (option-ref options 'help #f))
+         (optimize?       (option-ref options 'optimize #f))
+         (expand-only?    (option-ref options 'expand-only #f))
+         (translate-only? (option-ref options 'translate-only #f))
+         (compile-only?   (option-ref options 'compile-only #f)))
+    (if help?
+        (begin
+          (format #t "Usage: compile [OPTION] FILE...
+Compile each Guile Scheme source file FILE into a Guile object.
+
+  -h, --help           print this help message
+  -O, --optimize       turn on optimizations
+  -e, --expand-only    only go through the code expansion stage
+  -t, --translate-only stop after the translation to GHIL
+  -c, --compile-only   stop after the compilation to GLIL
+
+Report bugs to <guile-user@gnu.org>.~%")
+          (exit 0)))
+
+    (let ((compile-opts (append (if optimize? '(:O) '())
+                                (if expand-only? '(:e) '())
+                                (if translate-only? '(:t) '())
+                                (if compile-only? '(:c) '()))))
+
+      (catch #t
+             (lambda ()
+               (for-each (lambda (file)
+                           (apply compile-file file compile-opts))
+                         (option-ref options '() '())))
+             (lambda (key . args)
+               (format (current-error-port) "exception `~a' caught~a~%" key
+                       (if (null? args) ""
+                           (if (string? (car args))
+                               (string-append " in subr `" (car args) "'")
+                               "")))
+
+               (format (current-error-port) "removing compiled files due to errors~%")
+               (false-if-exception
+                (for-each unlink (map compiled-file-name files)))
+               (exit 1))))))

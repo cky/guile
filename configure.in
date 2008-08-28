@@ -1555,7 +1555,6 @@ AC_CONFIG_FILES([
   srfi/Makefile
   test-suite/Makefile
   test-suite/standalone/Makefile
-  src/Makefile
   module/Makefile
   module/system/Makefile
   module/system/base/Makefile
