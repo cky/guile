@@ -178,9 +178,11 @@ scm_i_gc_heap_size_delta (scm_t_cell_type_statistics * freelist)
   float swept = freelist->swept;
   float delta = ((f * swept - collected) / (1.0 - f));
 
+#if 0
   assert (freelist->heap_total_cells >= freelist->collected);
   assert (freelist->swept == freelist->heap_total_cells);
   assert (swept >= collected);
+#endif
 
   return delta;
 }
