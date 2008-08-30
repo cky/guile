@@ -19,10 +19,10 @@
 ;;;; Boston, MA 02110-1301 USA
 
 (define-module (test-suite test-srfi-18)
-  #:use-module (test-suite lib)
-  #:use-module (srfi srfi-18))
+  #:use-module (test-suite lib))
 
 (and (provided? 'threads)
+     (use-modules (srfi srfi-18))
 
 (with-test-prefix "current-thread"
 
