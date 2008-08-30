@@ -1292,11 +1292,11 @@ fat_mutex_lock (SCM mutex, scm_t_timespec *timeout, SCM owner, int *ret)
 		  break;
 		}
 	    }
+	  block_self (m->waiting, mutex, &m->lock, timeout);
 	  scm_i_pthread_mutex_unlock (&m->lock);
 	  SCM_TICK;
 	  scm_i_scm_pthread_mutex_lock (&m->lock);
 	}
-      block_self (m->waiting, mutex, &m->lock, timeout);
     }
   scm_i_pthread_mutex_unlock (&m->lock);
   return err;

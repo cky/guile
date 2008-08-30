@@ -1,3 +1,8 @@
+2008-08-29  Julian Graham  <joolean@gmail.com>
+
+	* threads.c (fat_mutex_lock): Resolve a deadlock caused by not
+	checking mutex state after calling `SCM_TICK'.
+
 2008-08-27  Ludovic Courtès  <ludo@gnu.org>
 
 	Fix builds `--without-threads'.  Reported by Han-Wen Nienhuys
