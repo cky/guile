@@ -56,7 +56,8 @@
                             ;; definition forward-declared them
                             (and (variable-bound? var) (variable-ref var)))))))
     (cond
-     ((or (primitive-macro? val) (eq? val eval-case))
+     ((or (primitive-macro? val)
+          (eq? val eval-case))
       (or (assq-ref primitive-syntax-table head)
           (syntax-error #f "unhandled primitive macro" head)))
 
@@ -291,7 +292,11 @@
                           (if (memq (if toplevel? 'load-toplevel 'evaluate) keys)
                               (append runtime body)
                               runtime)))
-                   (else (syntax-error l "bad eval-case clause" (car in))))))))))))))
+                   (else (syntax-error l "bad eval-case clause" (car in))))))))))))
+
+    ;; FIXME: make this actually do something
+    (start-stack
+     ((,tag ,expr) (retrans expr)))))
 
 (define (trans-quasiquote e l x level)
   (cond ((not (pair? x)) x)
