@@ -102,6 +102,15 @@
      (make-glil-module op (ghil-var-env var) (ghil-var-name var)))
     (else (error "Unknown kind of variable:" var))))
 
+(define (constant? x)
+  (cond ((or (number? x) (string? x) (symbol? x) (keyword? x) (boolean? x)) #t)
+        ((pair? x) (and (constant? (car x))
+                        (constant? (cdr x))))
+        ((vector? x) (let lp ((i (vector-length x)))
+                       (or (zero? i)
+                           (and (constant? (vector-ref x (1- i)))
+                                (lp (1- i))))))))
+
 (define (codegen ghil)
   (let ((stack '()))
     (define (push-code! loc code)
@@ -173,8 +182,10 @@
               ((<ghil-unquote-splicing> env loc exp)
                (comp-push exp)
                (push-call! #f 'list-break '()))))
+            ((constant? x)
+             (push-code! #f (make-glil-const #:obj x)))
             (else
-             (push-code! #f (make-glil-const #:obj x)))))
+             (error "element of quasiquote can't be compiled" x))))
 	 (maybe-drop)
 	 (maybe-return))
 
