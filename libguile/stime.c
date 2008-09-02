@@ -44,6 +44,7 @@
 
 #include <stdio.h>
 #include <errno.h>
+#include <strftime.h>
 
 #include "libguile/_scm.h"
 #include "libguile/async.h"
@@ -689,10 +690,9 @@ SCM_DEFINE (scm_strftime, "strftime", 2, 0, 0,
     tzset ();
 #endif
 
-    /* POSIX says strftime returns 0 on buffer overrun, but old
-       systems (i.e. libc 4 on GNU/Linux) might return `size' in that
-       case. */
-    while ((len = strftime (tbuf, size, myfmt, &t)) == 0 || len == size)
+    /* Use `nstrftime ()' from Gnulib, which supports all GNU extensions
+       supported by glibc.  */
+    while ((len = nstrftime (tbuf, size, myfmt, &t, 0, 0)) == 0)
       {
 	free (tbuf);
 	size *= 2;
