@@ -337,22 +337,6 @@
 
 
 
-;;; {Environments}
-;;;
-
-(define the-environment
-  (procedure->syntax
-   (lambda (x e)
-     e)))
-
-(define the-root-environment (the-environment))
-
-(define (environment-module env)
-  (let ((closure (and (pair? env) (car (last-pair env)))))
-    (and closure (procedure-property closure 'module))))
-
-
-
 ;;; {Records}
 ;;;
 
