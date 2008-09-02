@@ -144,8 +144,9 @@ vm_cont_free (SCM obj)
  * VM Internal functions
  */
 
-SCM_SYMBOL (sym_vm_run, "vm-run");
-SCM_SYMBOL (sym_vm_error, "vm-error");
+static SCM sym_vm_run;
+static SCM sym_vm_error;
+static SCM sym_debug;
 
 static scm_byte_t *
 vm_fetch_length (scm_byte_t *ip, size_t *lenp)
@@ -315,8 +316,6 @@ vm_free (SCM obj)
 
   return 0;
 }
-
-SCM_SYMBOL (sym_debug, "debug");
 
 SCM
 scm_vm_apply (SCM vm, SCM program, SCM args)
@@ -659,6 +658,10 @@ scm_bootstrap_vm (void)
   scm_c_define ("load-compiled",
                 scm_c_make_gsubr ("load-compiled/vm", 1, 0, 0,
                                   scm_load_compiled_with_vm));
+
+  sym_vm_run = scm_permanent_object (scm_from_locale_symbol ("vm-run"));
+  sym_vm_error = scm_permanent_object (scm_from_locale_symbol ("vm-error"));
+  sym_debug = scm_permanent_object (scm_from_locale_symbol ("debug"));
 
   strappage = 1;
 }
