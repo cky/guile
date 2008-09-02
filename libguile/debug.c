@@ -69,7 +69,9 @@ SCM_DEFINE (scm_debug_options, "debug-options-interface", 0, 1, 0,
       SCM_OUT_OF_RANGE (1, setting);
     }
   SCM_RESET_DEBUG_MODE;
+#ifdef STACK_CHECKING
   scm_stack_checking_enabled_p = SCM_STACK_CHECKING_P;
+#endif
   scm_debug_eframe_size = 2 * SCM_N_FRAMES;
 
   scm_dynwind_end ();
