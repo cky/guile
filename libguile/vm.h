@@ -43,6 +43,7 @@
 #define _SCM_VM_H_
 
 #include <libguile.h>
+#include <libguile/programs.h>
 
 #define SCM_VM_BOOT_HOOK	0
 #define SCM_VM_HALT_HOOK	1
