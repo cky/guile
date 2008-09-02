@@ -2210,22 +2210,10 @@ module '(ice-9 q) '(make-q q-length))}."
 ;;; {Run-time options}
 ;;;
 
-(define define-option-interface
+(defmacro define-option-interface (option-group)
   (let* ((option-name car)
 	 (option-value cadr)
 	 (option-documentation caddr)
-
-	 (print-option (lambda (option)
-			 (display (option-name option))
-			 (if (< (string-length
-				 (symbol->string (option-name option)))
-				8)
-			     (display #\tab))
-			 (display #\tab)
-			 (display (option-value option))
-			 (display #\tab)
-			 (display (option-documentation option))
-			 (newline)))
 
 	 ;; Below follow the macros defining the run-time option interfaces.
 
@@ -2234,8 +2222,19 @@ module '(ice-9 q) '(make-q q-length))}."
 			    (cond ((null? args) (,interface))
 				  ((list? (car args))
 				   (,interface (car args)) (,interface))
-				  (else (for-each ,print-option
-						  (,interface #t)))))))
+				  (else (for-each
+                                         (lambda (option)
+                                           (display (option-name option))
+                                           (if (< (string-length
+                                                   (symbol->string (option-name option)))
+                                                  8)
+                                               (display #\tab))
+                                           (display #\tab)
+                                           (display (option-value option))
+                                           (display #\tab)
+                                           (display (option-documentation option))
+                                           (newline))
+                                         (,interface #t)))))))
 
 	 (make-enable (lambda (interface)
 			`(lambda flags
@@ -2250,22 +2249,19 @@ module '(ice-9 q) '(make-q q-length))}."
 					flags)
 			      (,interface options)
 			      (,interface))))))
-    (procedure->memoizing-macro
-     (lambda (exp env)
-       (let* ((option-group (cadr exp))
-	      (interface (car option-group))
-	      (options/enable/disable (cadr option-group)))
-	 `(begin
-	    (define ,(car options/enable/disable)
-	      ,(make-options interface))
-	    (define ,(cadr options/enable/disable)
-	      ,(make-enable interface))
-	    (define ,(caddr options/enable/disable)
-	      ,(make-disable interface))
-	    (defmacro ,(caaddr option-group) (opt val)
-	      `(,',(car options/enable/disable)
-		(append (,',(car options/enable/disable))
-			(list ',opt ,val))))))))))
+    (let* ((interface (car option-group))
+           (options/enable/disable (cadr option-group)))
+      `(begin
+         (define ,(car options/enable/disable)
+           ,(make-options interface))
+         (define ,(cadr options/enable/disable)
+           ,(make-enable interface))
+         (define ,(caddr options/enable/disable)
+           ,(make-disable interface))
+         (defmacro ,(caaddr option-group) (opt val)
+           `(,',(car options/enable/disable)
+             (append (,',(car options/enable/disable))
+                     (list ',opt ,val))))))))
 
 (define-option-interface
   (eval-options-interface
