@@ -269,15 +269,24 @@ VM_DEFINE_INSTRUCTION (late_variable_ref, "late-variable-ref", 1, 0, 1)
   if (!SCM_VARIABLEP (pair_or_var)) 
     {
       SYNC_REGISTER ();
-      /* either one of these calls might longjmp */
-      SCM mod = scm_resolve_module (SCM_CAR (pair_or_var));
-      pair_or_var = scm_module_lookup (mod, SCM_CDR (pair_or_var));
-      OBJECT_SET (objnum, pair_or_var);
+      if (SCM_LIKELY (scm_module_system_booted_p)) 
+        {
+          /* either one of these calls might longjmp */
+          SCM mod = scm_resolve_module (SCM_CAR (pair_or_var));
+          pair_or_var = scm_module_lookup (mod, SCM_CDR (pair_or_var));
+        }
+      else
+        {
+          pair_or_var = scm_lookup (SCM_CDR (pair_or_var));
+        }
+          
       if (!VARIABLE_BOUNDP (pair_or_var))
         {
           err_args = SCM_LIST1 (pair_or_var);
           goto vm_error_unbound;
         }
+
+      OBJECT_SET (objnum, pair_or_var);
     }
 
   PUSH (VARIABLE_REF (pair_or_var));
@@ -325,9 +334,17 @@ VM_DEFINE_INSTRUCTION (late_variable_set, "late-variable-set", 1, 1, 0)
   if (!SCM_VARIABLEP (pair_or_var)) 
     {
       SYNC_BEFORE_GC ();
-      SCM mod = scm_resolve_module (SCM_CAR (pair_or_var));
-      /* module_lookup might longjmp */
-      pair_or_var = scm_module_lookup (mod, SCM_CDR (pair_or_var));
+      if (SCM_LIKELY (scm_module_system_booted_p)) 
+        {
+          /* either one of these calls might longjmp */
+          SCM mod = scm_resolve_module (SCM_CAR (pair_or_var));
+          pair_or_var = scm_module_lookup (mod, SCM_CDR (pair_or_var));
+        }
+      else
+        {
+          pair_or_var = scm_lookup (SCM_CDR (pair_or_var));
+        }
+
       OBJECT_SET (objnum, pair_or_var);
     }
 
