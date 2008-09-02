@@ -28,6 +28,7 @@
 
 #include "libguile/validate.h"
 #include "libguile/procs.h"
+#include "libguile/programs.h"
 
 
 
@@ -218,7 +219,9 @@ SCM_DEFINE (scm_thunk_p, "thunk?", 1, 0, 0,
 	  obj = SCM_PROCEDURE (obj);
 	  goto again;
 	default:
-	  ;
+          if (SCM_PROGRAM_P (obj) && SCM_PROGRAM_DATA (obj)->nargs == 0)
+            return SCM_BOOL_T;
+          /* otherwise fall through */
 	}
     }
   return SCM_BOOL_F;
