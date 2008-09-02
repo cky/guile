@@ -282,7 +282,7 @@ scm_load_startup_files ()
   /* Load Ice-9.  */
   if (!scm_ice_9_already_loaded)
     {
-      scm_primitive_load_path (scm_from_locale_string ("ice-9/boot-9.scm"));
+      scm_primitive_load_path (scm_from_locale_string ("ice-9/boot-9"));
 
       /* Load the init.scm file.  */
       if (scm_is_true (init_path))
