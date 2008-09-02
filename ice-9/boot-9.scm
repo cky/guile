@@ -428,14 +428,14 @@
 
 (define (record-constructor rtd . opt)
   (let ((field-names (if (pair? opt) (car opt) (record-type-fields rtd))))
-    (local-eval `(lambda ,field-names
-		   (make-struct ',rtd 0 ,@(map (lambda (f)
-						 (if (memq f field-names)
-						     f
-						     #f))
-					       (record-type-fields rtd))))
-		the-root-environment)))
-
+    (primitive-eval
+     `(lambda ,field-names
+        (make-struct ',rtd 0 ,@(map (lambda (f)
+                                      (if (memq f field-names)
+                                          f
+                                          #f))
+                                    (record-type-fields rtd)))))))
+          
 (define (record-predicate rtd)
   (lambda (obj) (and (struct? obj) (eq? rtd (struct-vtable obj)))))
 
@@ -447,25 +447,22 @@
 		 #f)))
 
 (define (record-accessor rtd field-name)
-  (let* ((pos (list-index (record-type-fields rtd) field-name)))
+  (let ((pos (list-index (record-type-fields rtd) field-name)))
     (if (not pos)
 	(error 'no-such-field field-name))
-    (local-eval `(lambda (obj)
-                   (if (eq? (struct-vtable obj) ,rtd)
-                       (struct-ref obj ,pos)
-                       (%record-type-error ,rtd obj)))
-		the-root-environment)))
+    (lambda (obj)
+      (if (eq? (struct-vtable obj) rtd)
+          (struct-ref obj pos)
+          (%record-type-error rtd obj)))))
 
 (define (record-modifier rtd field-name)
-  (let* ((pos (list-index (record-type-fields rtd) field-name)))
+  (let ((pos (list-index (record-type-fields rtd) field-name)))
     (if (not pos)
 	(error 'no-such-field field-name))
-    (local-eval `(lambda (obj val)
-                   (if (eq? (struct-vtable obj) ,rtd)
-                       (struct-set! obj ,pos val)
-                       (%record-type-error ,rtd obj)))
-		the-root-environment)))
-
+    (lambda (obj val)
+      (if (eq? (struct-vtable obj) rtd)
+          (struct-set! obj pos val)
+          (%record-type-error rtd obj)))))
 
 (define (record? obj)
   (and (struct? obj) (record-type? (struct-vtable obj))))
