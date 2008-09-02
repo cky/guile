@@ -1859,15 +1859,16 @@
 (define module-export! #f)
 (define default-duplicate-binding-procedures #f)
 
+(define %app (make-module 31))
+(define app %app) ;; for backwards compatability
+
+(local-define '(%app modules) (make-module 31))
+(local-define '(%app modules guile) the-root-module)
+
 ;; This boots the module system.  All bindings needed by modules.c
 ;; must have been defined by now.
 ;;
 (set-current-module the-root-module)
-
-(define %app (make-module 31))
-(define app %app) ;; for backwards compatability
-(local-define '(%app modules) (make-module 31))
-(local-define '(%app modules guile) the-root-module)
 
 ;; (define-special-value '(%app modules new-ws) (lambda () (make-scm-module)))
 
