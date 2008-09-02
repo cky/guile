@@ -45,7 +45,7 @@
   ;; compilation boundary.  One solution might be to evaluate calls to
   ;; `procedure->memoizing-macro' at compilation time, but it may be more
   ;; compicated than that.
-  '(procedure->syntax procedure->macro procedure->memoizing-macro))
+  '(procedure->syntax procedure->macro))
 
 ;; Looks up transformers relative to the current module at
 ;; compilation-time. See also the discussion of ghil-lookup in ghil.scm.
