@@ -1826,25 +1826,29 @@
 
 ;; NOTE: This binding is used in libguile/modules.c.
 ;;
-(define (resolve-module name . maybe-autoload)
-  (let ((full-name (append '(%app modules) name)))
-    (let ((already (nested-ref the-root-module full-name)))
-      (if already
-	  ;; The module already exists...
-	  (if (and (or (null? maybe-autoload) (car maybe-autoload))
-		   (not (module-public-interface already)))
-	      ;; ...but we are told to load and it doesn't contain source, so
-	      (begin
-		(try-load-module name)
-		already)
-	      ;; simply return it.
-	      already)
-	  (begin
-	    ;; Try to autoload it if we are told so
-	    (if (or (null? maybe-autoload) (car maybe-autoload))
-		(try-load-module name))
-	    ;; Get/create it.
-	    (make-modules-in (current-module) full-name))))))
+(define resolve-module
+  (let ((the-root-module the-root-module))
+    (lambda (name . maybe-autoload)
+      (if (equal? name '(guile))
+          the-root-module
+          (let ((full-name (append '(%app modules) name)))
+            (let ((already (nested-ref the-root-module full-name)))
+              (if already
+                  ;; The module already exists...
+                  (if (and (or (null? maybe-autoload) (car maybe-autoload))
+                           (not (module-public-interface already)))
+                      ;; ...but we are told to load and it doesn't contain source, so
+                      (begin
+                        (try-load-module name)
+                        already)
+                      ;; simply return it.
+                      already)
+                  (begin
+                    ;; Try to autoload it if we are told so
+                    (if (or (null? maybe-autoload) (car maybe-autoload))
+                        (try-load-module name))
+                    ;; Get/create it.
+                    (make-modules-in (current-module) full-name)))))))))
 
 ;; Cheat.  These bindings are needed by modules.c, but we don't want
 ;; to move their real definition here because that would be unnatural.
