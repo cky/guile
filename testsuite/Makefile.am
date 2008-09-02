@@ -16,6 +16,7 @@ vm_test_files =					\
       t-map.scm					\
       t-or.scm					\
       t-proc-with-setter.scm			\
+      t-quasiquote.scm				\
       t-values.scm				\
       t-records.scm				\
       t-match.scm				\

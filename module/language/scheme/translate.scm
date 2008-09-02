@@ -137,7 +137,7 @@
     
    (quasiquote
     ;; (quasiquote OBJ)
-    ((,obj) (make-ghil-quasiquote e l (trans-quasiquote e l obj))))
+    ((,obj) (make-ghil-quasiquote e l (trans-quasiquote e l obj 0))))
 
    (define
     ;; (define NAME VAL)
@@ -293,18 +293,27 @@
                               runtime)))
                    (else (syntax-error l "bad eval-case clause" (car in))))))))))))))
 
-(define (trans-quasiquote e l x)
+(define (trans-quasiquote e l x level)
   (cond ((not (pair? x)) x)
 	((memq (car x) '(unquote unquote-splicing))
 	 (let ((l (location x)))
 	   (pmatch (cdr x)
 	     ((,obj)
-	      (if (eq? (car x) 'unquote)
-		  (make-ghil-unquote e l (trans e l obj))
-		  (make-ghil-unquote-splicing e l (trans e l obj))))
+              (cond
+               ((zero? level) 
+                (if (eq? (car x) 'unquote)
+                    (make-ghil-unquote e l (trans e l obj))
+                    (make-ghil-unquote-splicing e l (trans e l obj))))
+               (else
+                (list (car x) (trans-quasiquote e l obj (1- level))))))
 	     (else (syntax-error l (format #f "bad ~A" (car x)) x)))))
-	(else (cons (trans-quasiquote e l (car x))
-		    (trans-quasiquote e l (cdr x))))))
+        ((eq? (car x) 'quasiquote)
+	 (let ((l (location x)))
+	   (pmatch (cdr x)
+	     ((,obj) (list 'quasiquote (trans-quasiquote e l obj (1+ level))))
+             (else (syntax-error l (format #f "bad ~A" (car x)) x)))))
+	(else (cons (trans-quasiquote e l (car x) level)
+		    (trans-quasiquote e l (cdr x) level)))))
 
 (define (trans-body e l body)
   (define (define->binding df)
