@@ -167,12 +167,6 @@
 		 (error "defmacro can only be used at the top level")))))))
     (defmacro:transformer defmacro-transformer)))
 
-(define defmacro:syntax-transformer
-  (lambda (f)
-    (procedure->syntax
-	      (lambda (exp env)
-		(copy-tree (apply f (cdr exp)))))))
-
 
 ;; XXX - should the definition of the car really be looked up in the
 ;; current module?
@@ -2711,18 +2705,6 @@ module '(ice-9 q) '(make-q q-length))}."
       (else
        (error "define-macro can only be used at the top level")))))
 
-
-(defmacro define-syntax-macro (first . rest)
-  (let ((name (if (symbol? first) first (car first)))
-	(transformer
-	 (if (symbol? first)
-	     (car rest)
-	     `(lambda ,(cdr first) ,@rest))))
-    `(eval-case
-      ((load-toplevel compile-toplevel)
-       (define ,name (defmacro:syntax-transformer ,transformer)))
-      (else
-       (error "define-syntax-macro can only be used at the top level")))))
 
 
 
