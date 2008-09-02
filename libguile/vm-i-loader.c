@@ -144,19 +144,21 @@ VM_DEFINE_LOADER (load_program, "load-program")
       int i = SCM_I_INUM (x);
       if (-128 <= i && i <= 127)
 	{
+          scm_t_uint8 c = (scm_t_uint8)i;
 	  /* 8-bit representation */
-	  p->nargs = (i >> 6) & 0x03;	/* 7-6 bits */
-	  p->nrest = (i >> 5) & 0x01;	/*   5 bit  */
-	  p->nlocs = (i >> 2) & 0x07;	/* 4-2 bits */
-	  p->nexts = i & 0x03;		/* 1-0 bits */
+	  p->nargs = (c >> 6) & 0x03;	/* 7-6 bits */
+	  p->nrest = (c >> 5) & 0x01;	/*   5 bit  */
+	  p->nlocs = (c >> 2) & 0x07;	/* 4-2 bits */
+	  p->nexts = c & 0x03;		/* 1-0 bits */
 	}
       else
 	{
+          scm_t_uint16 s = (scm_t_uint16)i;
 	  /* 16-bit representation */
-	  p->nargs = (i >> 12) & 0x07;	/* 15-12 bits */
-	  p->nrest = (i >> 11) & 0x01;	/*    11 bit  */
-	  p->nlocs = (i >> 4)  & 0x7f;	/* 10-04 bits */
-	  p->nexts = i & 0x0f;		/* 03-00 bits */
+	  p->nargs = (s >> 12) & 0x0f;	/* 15-12 bits */
+	  p->nrest = (s >> 11) & 0x01;	/*    11 bit  */
+	  p->nlocs = (s >> 4)  & 0x7f;	/* 10-04 bits */
+	  p->nexts = s & 0x0f;		/* 03-00 bits */
 	}
     }
   else
