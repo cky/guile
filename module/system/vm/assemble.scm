@@ -250,10 +250,6 @@
 	 (let ((nargs (glil-vars-nargs vars)) (nrest (glil-vars-nrest vars))
 	       (nlocs (glil-vars-nlocs vars)) (nexts (glil-vars-nexts vars)))
 	   (cond
-	     ((and (< nargs 4) (< nlocs 8) (< nexts 4))
-	      ;; 8-bit representation
-	      (let ((x (+ (* nargs 64) (* nrest 32) (* nlocs 4) nexts)))
-		(push-code! `(make-int8 ,x))))
 	     ((and (< nargs 16) (< nlocs 128) (< nexts 16))
 	      ;; 16-bit representation
 	      (let ((x (+ (* nargs 4096) (* nrest 2048) (* nlocs 16) nexts)))

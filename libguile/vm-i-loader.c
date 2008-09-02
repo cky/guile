@@ -141,25 +141,12 @@ VM_DEFINE_LOADER (load_program, "load-program")
   /* NOTE: format defined in system/vm/assemble.scm */
   if (SCM_I_INUMP (x))
     {
-      int i = SCM_I_INUM (x);
-      if (-128 <= i && i <= 127)
-	{
-          scm_t_uint8 c = (scm_t_uint8)i;
-	  /* 8-bit representation */
-	  p->nargs = (c >> 6) & 0x03;	/* 7-6 bits */
-	  p->nrest = (c >> 5) & 0x01;	/*   5 bit  */
-	  p->nlocs = (c >> 2) & 0x07;	/* 4-2 bits */
-	  p->nexts = c & 0x03;		/* 1-0 bits */
-	}
-      else
-	{
-          scm_t_uint16 s = (scm_t_uint16)i;
-	  /* 16-bit representation */
-	  p->nargs = (s >> 12) & 0x0f;	/* 15-12 bits */
-	  p->nrest = (s >> 11) & 0x01;	/*    11 bit  */
-	  p->nlocs = (s >> 4)  & 0x7f;	/* 10-04 bits */
-	  p->nexts = s & 0x0f;		/* 03-00 bits */
-	}
+      scm_t_uint16 s = (scm_t_uint16)SCM_I_INUM (x);
+      /* 16-bit representation */
+      p->nargs = (s >> 12) & 0x0f;	/* 15-12 bits */
+      p->nrest = (s >> 11) & 0x01;	/*    11 bit  */
+      p->nlocs = (s >> 4)  & 0x7f;	/* 10-04 bits */
+      p->nexts = s & 0x0f;		/* 03-00 bits */
     }
   else
     {
