@@ -11,3 +11,10 @@ strcase.m4
 string_h.m4
 strings_h.m4
 onceonly.m4
+mbstate_t.m4
+stdbool.m4
+strftime.m4
+time_h.m4
+time_r.m4
+tm_gmtoff.m4
+wchar.m4
