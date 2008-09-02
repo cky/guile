@@ -252,8 +252,9 @@
 	   (cond
 	     ((and (< nargs 16) (< nlocs 128) (< nexts 16))
 	      ;; 16-bit representation
-	      (let ((x (+ (* nargs 4096) (* nrest 2048) (* nlocs 16) nexts)))
-		(push-code! `(make-int16 ,(quotient x 256) ,(modulo x 256)))))
+	      (let ((x (logior
+                        (ash nargs 12) (ash nrest 11) (ash nlocs 4) nexts)))
+		(push-code! `(make-int16 ,(ash x -8) ,(logand x (1- (ash 1 8)))))))
 	     (else
 	      ;; Other cases
 	      (push-code! (object->code nargs))
