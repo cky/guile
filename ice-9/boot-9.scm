@@ -162,7 +162,7 @@
 	    (let ((transformer `(lambda ,parms ,@body)))
 	      `(eval-case
                 ((load-toplevel compile-toplevel)
-		 (define ,name (defmacro:transformer ,transformer)))
+                 (define ,name (defmacro:transformer ,transformer)))
 		(else
 		 (error "defmacro can only be used at the top level")))))))
     (defmacro:transformer defmacro-transformer)))
@@ -206,8 +206,8 @@
 
 (defmacro begin-deprecated forms
   (if (include-deprecated-features)
-      (cons begin forms)
-      #f))
+      `(begin ,@forms)
+      (begin)))
 
 
 
