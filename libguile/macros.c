@@ -28,6 +28,7 @@
 #include "libguile/deprecation.h"
 
 #include "libguile/validate.h"
+#include "libguile/programs.h"
 #include "libguile/macros.h"
 
 #include "libguile/private-options.h"
@@ -44,7 +45,7 @@ macro_print (SCM macro, SCM port, scm_print_state *pstate)
       || scm_is_false (scm_printer_apply (SCM_PRINT_CLOSURE,
 					macro, port, pstate)))
     {
-      if (!SCM_CLOSUREP (code))
+      if (!SCM_CLOSUREP (code) && !SCM_PROGRAM_P (code))
 	scm_puts ("#<primitive-", port);
       else
 	scm_puts ("#<", port);
