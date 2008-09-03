@@ -2121,7 +2121,7 @@ unmemoize_future (const SCM expr, const SCM env)
   return scm_list_2 (scm_sym_future, unmemoize_expression (thunk_expr, env));
 }
 
-#endif
+#endif /* futures disabled. */
 
 SCM_SYNTAX (s_gset_x, "set!", scm_i_makbimacro, scm_m_generalized_set_x);
 SCM_SYMBOL (scm_sym_setter, "setter");
