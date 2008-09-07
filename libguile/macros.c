@@ -221,9 +221,15 @@ SCM_DEFINE (scm_macro_transformer, "macro-transformer", 1, 0, 0,
 	    "Return the transformer of the macro @var{m}.")
 #define FUNC_NAME s_scm_macro_transformer
 {
+  SCM data;
+
   SCM_VALIDATE_SMOB (1, m, macro);
-  return ((SCM_CLOSUREP (SCM_PACK (SCM_SMOB_DATA (m)))) ?
-	  SCM_PACK(SCM_SMOB_DATA (m)) : SCM_BOOL_F);
+  data = SCM_PACK (SCM_SMOB_DATA (m));
+  
+  if (SCM_CLOSUREP (data) || SCM_PROGRAM_P (data))
+    return data;
+  else
+    return SCM_BOOL_F;
 }
 #undef FUNC_NAME
 
