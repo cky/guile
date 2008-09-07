@@ -25,9 +25,9 @@ SUBDIRS = debugger debugging
 
 # These should be installed and distributed.
 modpath = ice-9
-SOURCES = and-let-star.scm
-NOCOMP_SOURCES =								\
-	boot-9.scm calling.scm common-list.scm		\
+SOURCES = and-let-star.scm boot-9.scm
+NOCOMP_SOURCES =							\
+	 calling.scm common-list.scm					\
 	debug.scm debugger.scm documentation.scm emacs.scm expect.scm	\
 	format.scm getopt-long.scm hcons.scm i18n.scm			\
 	lineio.scm ls.scm mapping.scm					\
