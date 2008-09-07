@@ -71,3 +71,5 @@ guile-readline/guile-readline-config.h.in
 *.go
 TAGS
 guile-1.8.pc
+lib/alloca.h
+lib/strings.h
