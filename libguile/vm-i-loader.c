@@ -118,7 +118,7 @@ VM_DEFINE_LOADER (load_program, "load-program")
   POP (x);
 
   /* init meta data */
-  if (SCM_CONSP (x))
+  if (SCM_PROGRAM_P (x))
     {
       p->meta = x;
       POP (x);

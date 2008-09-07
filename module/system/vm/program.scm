@@ -44,8 +44,11 @@
 (define binding:extp cadr)
 (define binding:index caddr)
 
+(define (curry1 proc)
+  (lambda (x) (proc (x))))
+
 (define (program-bindings prog)
-  (cond ((program-meta prog) => car)
+  (cond ((program-meta prog) => (curry1 car))
 	(else '())))
 
 (define (source:addr source)
@@ -58,11 +61,11 @@
   (vector-ref (cdr source) 2))
 
 (define (program-sources prog)
-  (cond ((program-meta prog) => cadr)
+  (cond ((program-meta prog) => (curry1 cadr))
 	(else '())))
 
 (define (program-properties prog)
-  (or (and=> (program-meta prog) cddr)
+  (or (and=> (program-meta prog) (curry1 cddr))
       '()))
 
 (define (program-property prog prop)

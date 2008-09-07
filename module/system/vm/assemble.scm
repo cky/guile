@@ -71,6 +71,25 @@
 ;;; Stage 2: Bytecode generation
 ;;;
 
+(define-macro (push x loc)
+  `(set! ,loc (cons ,x ,loc)))
+
+;; this is to avoid glil-const's desire to put constants in the object
+;; array -- instead we explicitly want them in the code, because meta
+;; info is infrequently used. to load it up always would make garbage,
+;; needlessly. so hide it behind a lambda.
+(define (make-meta bindings sources tail)
+  (if (and (null? bindings) (null? sources) (null? tail))
+      #f
+      (let ((stack '()))
+        (define (push-code! code)
+          (push (code->bytes code) stack))
+        (dump-object! push-code! `(,bindings ,sources ,@tail))
+        (push-code! '(return))
+        (make-bytespec :vars (make-glil-vars 0 0 0 0)
+                       :bytes (stack->bytes (reverse! stack) '())
+                       :meta #f :objs #f :closure? #f))))
+
 (define (codegen glil toplevel)
   (record-case glil
     ((<vm-asm> venv glil body) (record-case glil ((<glil-asm> vars meta) ; body?
@@ -81,10 +100,11 @@
 	   (object-alist '()))
        (define (push-code! code)
 ;	 (format #t "push-code! ~a~%" code)
-	 (set! stack (cons (code->bytes code) stack)))
+	 (push (code->bytes code) stack))
        (define (push-object! x)
 	 (cond ((object->code x) => push-code!)
-	       (toplevel (dump-object! push-code! x))
+	       (toplevel
+                (dump-object! push-code! x))
 	       (else
 		(let ((i (cond ((object-assoc x object-alist) => cdr)
 			       (else
@@ -175,7 +195,7 @@
 	    (set! label-alist (assq-set! label-alist label (current-address))))
 
 	   ((<glil-branch> inst label)
-	    (set! stack (cons (list inst label) stack)))
+	    (push (list inst label) stack))
 
 	   ((<glil-call> inst nargs)
 	    (if (instruction? inst)
@@ -195,13 +215,9 @@
 	 (if toplevel
 	     (bytecode->objcode bytes (glil-vars-nlocs vars) (glil-vars-nexts vars))
 	     (make-bytespec :vars vars :bytes bytes
-                            :meta (if (and (null? binding-alist)
-                                           (null? source-alist)
-                                           (null? meta))
-                                      #f
-                                      (cons* (reverse! binding-alist)
+                            :meta (make-meta (reverse! binding-alist)
                                              (reverse! source-alist)
-                                             meta))
+                                             meta)
                             :objs (let ((objs (map car (reverse! object-alist))))
                                     (if (null? objs) #f (list->vector objs)))
                             :closure? (venv-closure? venv))))))))))
@@ -267,7 +283,7 @@
 	 ;; dump meta data
 	 (if meta (dump! meta))
 	 ;; dump bytecode
-	 (push-code! `(load-program ,bytes)))
+ 	 (push-code! `(load-program ,bytes)))
 	((<vlink-later> module name)
          (dump! module)
          (dump! name)
