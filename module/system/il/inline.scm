@@ -69,22 +69,19 @@
   (and=> (assq-ref *inline-table* head-value)
          (lambda (proc) (apply proc args))))
 
-(define (ghil-env-ref env sym)
-  (assq-ref (ghil-env-table env) sym))
-
 
 (define (try-inline-with-env env loc exp)
   (let ((sym (car exp)))
-    (and (not (ghil-env-ref env sym))
-         (let loop ((e (ghil-env-parent env)))
-           (record-case e
-            ((<ghil-mod> module table imports)
-             (and (not (assq-ref table sym))
-                  (module-bound? module sym)
-                  (try-inline (module-ref module sym) (cdr exp))))
-            ((<ghil-env> mod parent table variables)
-             (and (not (assq-ref table sym))
-                  (loop parent))))))))
+    (let loop ((e env))
+      (record-case e
+        ((<ghil-toplevel-env> table)
+         (let ((mod (current-module)))
+           (and (not (assoc-ref table (cons (module-name mod) sym)))
+                (module-bound? mod sym)
+                (try-inline (module-ref mod sym) (cdr exp)))))
+        ((<ghil-env> parent table variables)
+         (and (not (assq-ref table sym))
+              (loop parent)))))))
 
 (define-inline eq? (x y)
   (eq? x y))

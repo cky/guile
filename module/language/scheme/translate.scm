@@ -31,7 +31,7 @@
 
 
 (define (translate x e)
-  (call-with-ghil-environment (make-ghil-mod e) '()
+  (call-with-ghil-environment (make-ghil-toplevel-env) '()
     (lambda (env vars)
       (make-ghil-lambda env #f vars #f '() (trans env (location x) x)))))
 
@@ -47,8 +47,10 @@
   ;; compicated than that.
   '(procedure->syntax procedure->macro procedure->memoizing-macro))
 
-(define (lookup-transformer e head retrans)
-  (let* ((mod (ghil-mod-module (ghil-env-mod e)))
+;; Looks up transformers relative to the current module at
+;; compilation-time. See also the discussion of ghil-lookup in ghil.scm.
+(define (lookup-transformer head retrans)
+  (let* ((mod (current-module))
          (val (and (symbol? head)
                    (and=> (module-variable mod head) 
                           (lambda (var)
@@ -85,7 +87,7 @@
   (cond ((pair? x)
          (let ((head (car x)) (tail (cdr x)))
            (cond
-            ((lookup-transformer e head retrans)
+            ((lookup-transformer head retrans)
              => (lambda (t) (t e l x)))
 
             ;; FIXME: lexical/module overrides of forbidden primitives
@@ -142,7 +144,8 @@
 
    (define
     ;; (define NAME VAL)
-    ((,name ,val) (guard (symbol? name) (ghil-env-toplevel? e))
+    ((,name ,val) (guard (symbol? name)
+                         (ghil-toplevel-env? (ghil-env-parent e)))
      (make-ghil-define e l (ghil-define (ghil-env-parent e) name)
                        (retrans val)))
     ;; (define (NAME FORMALS...) BODY...)
@@ -259,16 +262,17 @@
      ((,formals . ,body)
       (receive (syms rest) (parse-formals formals)
         (call-with-ghil-environment e syms
-       (lambda (env vars)
-         (receive (meta body) (parse-lambda-meta body)
-            (make-ghil-lambda env l vars rest meta
-                              (trans-body env l body))))))))
+          (lambda (env vars)
+            (receive (meta body) (parse-lambda-meta body)
+              (make-ghil-lambda env l vars rest meta
+                                (trans-body env l body))))))))
 
     (eval-case
      (,clauses
       (retrans
        `(begin
-          ,@(let ((toplevel? (ghil-env-toplevel? e)))
+          ;; Compilation of toplevel units is always wrapped in a lambda
+          ,@(let ((toplevel? (ghil-toplevel-env? (ghil-env-parent e))))
               (let loop ((seen '()) (in clauses) (runtime '()))
                 (cond
                  ((null? in) runtime)

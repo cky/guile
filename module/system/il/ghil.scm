@@ -76,14 +76,13 @@
    ghil-var-env ghil-var-name ghil-var-kind ghil-var-type ghil-var-value
    ghil-var-index
 
-   <ghil-mod> make-ghil-mod ghil-mod?
-   ghil-mod-module ghil-mod-table ghil-mod-imports
+   <ghil-toplevel-env> make-ghil-toplevel-env ghil-toplevel-env?
+   ghil-toplevel-env-table
 
    <ghil-env> make-ghil-env ghil-env?
-   ghil-env-mod ghil-env-parent ghil-env-table ghil-env-variables
+   ghil-env-parent ghil-env-table ghil-env-variables
 
    ghil-env-add! ghil-lookup ghil-define
-   ghil-env-toplevel?
    call-with-ghil-environment call-with-ghil-bindings))
 
 
@@ -125,23 +124,13 @@
 ;;; Modules
 ;;;
 
-(define-record (<ghil-mod> module (table '()) (imports '())))
-
 
 ;;;
 ;;; Environments
 ;;;
 
-(define-record (<ghil-env> mod parent (table '()) (variables '())))
-
-(define %make-ghil-env make-ghil-env)
-(define (make-ghil-env e)
-  (record-case e
-    ((<ghil-mod>) (%make-ghil-env :mod e :parent e))
-    ((<ghil-env> mod) (%make-ghil-env :mod mod :parent e))))
-
-(define (ghil-env-toplevel? e)
-  (eq? (ghil-env-mod e) (ghil-env-parent e)))
+(define-record (<ghil-env> parent (table '()) (variables '())))
+(define-record (<ghil-toplevel-env> (table '())))
 
 (define (ghil-env-ref env sym)
   (assq-ref (ghil-env-table env) sym))
@@ -165,64 +154,59 @@
 ;;; Public interface
 ;;;
 
-(define (fix-ghil-mod! mod for-sym)
-  ;;; So, these warnings happen for all instances of define-module.
-  ;;; Rather than fixing the problem, I'm going to suppress the common
-  ;;; warnings.
-  (if (not (eq? for-sym 'process-define-module))
-      (warn "during lookup of" for-sym ":"
-            (ghil-mod-module mod) "!= current" (current-module)))
-  (if (not (null? (ghil-mod-table mod)))
-      (warn "throwing away old variable table"
-            (ghil-mod-module) (ghil-mod-table mod)))
-  (set! (ghil-mod-module mod) (current-module))
-  (set! (ghil-mod-table mod) '())
-  (set! (ghil-mod-imports mod) '()))
-
-;; looking up a var has side effects?
+;; ghil-lookup: find out where a variable will be stored at runtime.
+;;
+;; First searches the lexical environments. If the variable is not in
+;; the innermost environment, make sure the variable is marked as being
+;; "external" so that it goes on the heap.
+;;
+;; If the variable is not found lexically, it is a toplevel variable,
+;; which will be looked up at runtime with respect to the module that is
+;; current at compile-time. The variable will be resolved when it is
+;; first used.
+;; 
+;; You might think that you want to look up all variables with respect
+;; to the current runtime module, but you would have to associate the
+;; current module with a closure, so that lazy lookup is done with
+;; respect to the proper module. We could do that -- it would probably
+;; cons less at runtime.
+;;
+;; This toplevel lookup strategy can exhibit weird effects in the case
+;; of a call to set-current-module inside a closure -- specifically,
+;; looking up any needed bindings for the rest of the closure in the
+;; compilation module instead of the runtime module -- but such things
+;; are both unspecified in the scheme standard.
 (define (ghil-lookup env sym)
-  (or (ghil-env-ref env sym)
-      (let loop ((e (ghil-env-parent env)))
-        (record-case e
-          ((<ghil-mod> module table imports)
-           (cond ((not (eq? module (current-module)))
-                  ;; FIXME: the primitive-eval in eval-case and/or macro
-                  ;; expansion can have side effects on the compilation
-                  ;; environment, for example changing the current
-                  ;; module. We probably need to add a special case in
-                  ;; compilation to handle define-module.
-                  (fix-ghil-mod! e sym)
-                  (loop e))
-                 ((assq-ref table sym)) ;; when does this hit?
-                 (else
-                  ;; although we could bind the variable here, in
-                  ;; practice further toplevel definitions in this
-                  ;; compilation unit could change how we would resolve
-                  ;; this binding, so punt and memoize the lookup at
-                  ;; runtime always.
-                  (let ((var (make-ghil-var (make-ghil-env e) sym 'module)))
-                    (apush! sym var table)
-                    var))))
-          ((<ghil-env> mod parent table variables)
-           (let ((found (assq-ref table sym)))
-             (if found
-                 (begin (set! (ghil-var-kind found) 'external) found)
-                 (loop parent))))))))
+  (let loop ((e env))
+    (record-case e
+      ((<ghil-toplevel-env> table)
+       (let ((key (cons (module-name (current-module)) sym)))
+         (or (assoc-ref table key)
+             (let ((var (make-ghil-var (car key) (cdr key) 'module)))
+               (apush! key var (ghil-toplevel-env-table e))
+               var))))
+      ((<ghil-env> parent table variables)
+       (let ((found (assq-ref table sym)))
+         (if found
+             (begin
+               (if (not (eq? e env))
+                   (set! (ghil-var-kind found) 'external))
+               found)
+             (loop parent)))))))
 
-(define (ghil-define mod sym)
-  (if (not (eq? (ghil-mod-module mod) (current-module)))
-      (fix-ghil-mod! mod sym))
-  (or (assq-ref (ghil-mod-table mod) sym)
-      (let ((var (make-ghil-var (make-ghil-env mod) sym 'module)))
-        (apush! sym var (ghil-mod-table mod))
-        var)))
+(define (ghil-define toplevel sym)
+  (let ((key (cons (module-name (current-module)) sym)))
+    (or (assoc-ref (ghil-toplevel-env-table toplevel) key)
+        (let ((var (make-ghil-var (car key) (cdr key) 'module)))
+          (apush! key var (ghil-toplevel-env-table toplevel))
+          var))))
           
 (define (call-with-ghil-environment e syms func)
   (let* ((e (make-ghil-env e))
-	 (vars (map (lambda (s)
-		      (let ((v (make-ghil-var e s 'argument)))
-			(ghil-env-add! e v) v))
-		    syms)))
+         (vars (map (lambda (s)
+                      (let ((v (make-ghil-var e s 'argument)))
+                        (ghil-env-add! e v) v))
+                    syms)))
     (func e vars)))
 
 (define (call-with-ghil-bindings e syms func)
