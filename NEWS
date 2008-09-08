@@ -58,6 +58,7 @@ When you use GDS to evaluate Scheme code from Emacs, you can now use
 
 ** `guile-config link' now prints `-L$libdir' before `-lguile'
 ** Fix memory corruption involving GOOPS' `class-redefinition'
+** Fix possible deadlock in `mutex-lock'
 ** Fix build issue on Tru64 and ia64-hp-hpux11.23 (`SCM_UNPACK' macro)
 ** Fix build issue on mips, mipsel, powerpc and ia64 (stack direction)
 ** Fix build issue on hppa2.0w-hp-hpux11.11 (`dirent64' and `readdir64_r')
