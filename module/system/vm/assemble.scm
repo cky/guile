@@ -285,9 +285,7 @@
 	 ;; dump bytecode
  	 (push-code! `(load-program ,bytes)))
 	((<vlink-later> module name)
-         (dump! module)
-         (dump! name)
-	 (push-code! '(link-later)))
+         (dump! name))
 	((<vlink-now> name)
          (dump! name)
 	 (push-code! '(link-now)))

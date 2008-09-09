@@ -46,6 +46,7 @@
 #include <string.h>
 #include "vm-bootstrap.h"
 #include "instructions.h"
+#include "modules.h"
 #include "programs.h"
 #include "vm.h"
 
@@ -69,6 +70,7 @@ scm_c_make_program (void *addr, size_t size, SCM holder)
   p->objs     = zero_vector;
   p->external = SCM_EOL;
   p->holder   = holder;
+  p->module   = scm_current_module ();
 
   /* If nobody holds bytecode's address, then allocate a new memory */
   if (SCM_FALSEP (holder)) 
@@ -99,6 +101,7 @@ program_mark (SCM obj)
   scm_gc_mark (p->meta);
   scm_gc_mark (p->objs);
   scm_gc_mark (p->external);
+  scm_gc_mark (p->module);
   return p->holder;
 }
 
@@ -181,6 +184,16 @@ SCM_DEFINE (scm_program_objects, "program-objects", 1, 0, 0,
 {
   SCM_VALIDATE_PROGRAM (1, program);
   return SCM_PROGRAM_DATA (program)->objs;
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_program_module, "program-module", 1, 0, 0,
+	    (SCM program),
+	    "")
+#define FUNC_NAME s_scm_program_module
+{
+  SCM_VALIDATE_PROGRAM (1, program);
+  return SCM_PROGRAM_DATA (program)->module;
 }
 #undef FUNC_NAME
 

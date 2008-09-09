@@ -262,34 +262,33 @@ VM_DEFINE_INSTRUCTION (variable_ref, "variable-ref", 0, 0, 1)
 VM_DEFINE_INSTRUCTION (late_variable_ref, "late-variable-ref", 1, 0, 1)
 {
   unsigned objnum = FETCH ();
-  SCM pair_or_var;
+  SCM sym_or_var;
   CHECK_OBJECT (objnum);
-  pair_or_var = OBJECT_REF (objnum);
+  sym_or_var = OBJECT_REF (objnum);
 
-  if (!SCM_VARIABLEP (pair_or_var)) 
+  if (!SCM_VARIABLEP (sym_or_var)) 
     {
       SYNC_REGISTER ();
-      if (SCM_LIKELY (scm_module_system_booted_p)) 
+      if (SCM_LIKELY (scm_module_system_booted_p && SCM_NFALSEP (bp->module))) 
         {
-          /* either one of these calls might longjmp */
-          SCM mod = scm_resolve_module (SCM_CAR (pair_or_var));
-          pair_or_var = scm_module_lookup (mod, SCM_CDR (pair_or_var));
+          /* might longjmp */
+          sym_or_var = scm_module_lookup (bp->module, sym_or_var);
         }
       else
         {
-          pair_or_var = scm_lookup (SCM_CDR (pair_or_var));
+          sym_or_var = scm_sym2var (sym_or_var, SCM_BOOL_F, SCM_BOOL_F);
         }
           
-      if (!VARIABLE_BOUNDP (pair_or_var))
+      if (!VARIABLE_BOUNDP (sym_or_var))
         {
-          err_args = SCM_LIST1 (pair_or_var);
+          err_args = SCM_LIST1 (sym_or_var);
           goto vm_error_unbound;
         }
 
-      OBJECT_SET (objnum, pair_or_var);
+      OBJECT_SET (objnum, sym_or_var);
     }
 
-  PUSH (VARIABLE_REF (pair_or_var));
+  PUSH (VARIABLE_REF (sym_or_var));
   NEXT;
 }
 
@@ -327,28 +326,27 @@ VM_DEFINE_INSTRUCTION (variable_set, "variable-set", 0, 1, 0)
 VM_DEFINE_INSTRUCTION (late_variable_set, "late-variable-set", 1, 1, 0)
 {
   unsigned objnum = FETCH ();
-  SCM pair_or_var;
+  SCM sym_or_var;
   CHECK_OBJECT (objnum);
-  pair_or_var = OBJECT_REF (objnum);
+  sym_or_var = OBJECT_REF (objnum);
 
-  if (!SCM_VARIABLEP (pair_or_var)) 
+  if (!SCM_VARIABLEP (sym_or_var)) 
     {
       SYNC_BEFORE_GC ();
-      if (SCM_LIKELY (scm_module_system_booted_p)) 
+      if (SCM_LIKELY (scm_module_system_booted_p && SCM_NFALSEP (bp->module))) 
         {
-          /* either one of these calls might longjmp */
-          SCM mod = scm_resolve_module (SCM_CAR (pair_or_var));
-          pair_or_var = scm_module_lookup (mod, SCM_CDR (pair_or_var));
+          /* might longjmp */
+          sym_or_var = scm_module_lookup (bp->module, sym_or_var);
         }
       else
         {
-          pair_or_var = scm_lookup (SCM_CDR (pair_or_var));
+          sym_or_var = scm_sym2var (sym_or_var, SCM_BOOL_F, SCM_BOOL_F);
         }
 
-      OBJECT_SET (objnum, pair_or_var);
+      OBJECT_SET (objnum, sym_or_var);
     }
 
-  VARIABLE_SET (pair_or_var, *sp);
+  VARIABLE_SET (sym_or_var, *sp);
   DROP ();
   NEXT;
 }

@@ -57,6 +57,7 @@ struct scm_program {
   unsigned char nlocs;		/* the number of local variables */
   unsigned char nexts;		/* the number of external variables */
   scm_byte_t *base;		/* program base address */
+  SCM module;			/* resolve bindings with respect to this module */
   SCM meta;			/* meta data */
   SCM objs;			/* constant objects */
   SCM external;			/* external environment */
@@ -77,6 +78,7 @@ extern SCM scm_program_base (SCM program);
 extern SCM scm_program_arity (SCM program);
 extern SCM scm_program_meta (SCM program);
 extern SCM scm_program_objects (SCM program);
+extern SCM scm_program_module (SCM program);
 extern SCM scm_program_external (SCM program);
 extern SCM scm_program_external_set_x (SCM program, SCM external);
 extern SCM scm_program_bytecode (SCM program);

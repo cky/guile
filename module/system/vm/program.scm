@@ -28,7 +28,7 @@
            
            program-arity program-external-set! program-meta
            program-bytecode program? program-objects
-           program-base program-external))
+           program-module program-base program-external))
 
 (dynamic-call "scm_init_programs" (dynamic-link "libguile"))
 

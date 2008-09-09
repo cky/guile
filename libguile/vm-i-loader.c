@@ -172,16 +172,6 @@ VM_DEFINE_INSTRUCTION (link_now, "link-now", 0, 1, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (link_later, "link-later", 0, 2, 1)
-{
-  SCM modname, sym;
-  POP (sym);
-  POP (modname);
-  SYNC_REGISTER ();
-  PUSH (scm_cons (modname, sym));
-  NEXT;
-}
-
 VM_DEFINE_LOADER (define, "define")
 {
   SCM sym;

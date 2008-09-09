@@ -161,21 +161,9 @@
 ;; "external" so that it goes on the heap.
 ;;
 ;; If the variable is not found lexically, it is a toplevel variable,
-;; which will be looked up at runtime with respect to the module that is
-;; current at compile-time. The variable will be resolved when it is
-;; first used.
-;; 
-;; You might think that you want to look up all variables with respect
-;; to the current runtime module, but you would have to associate the
-;; current module with a closure, so that lazy lookup is done with
-;; respect to the proper module. We could do that -- it would probably
-;; cons less at runtime.
-;;
-;; This toplevel lookup strategy can exhibit weird effects in the case
-;; of a call to set-current-module inside a closure -- specifically,
-;; looking up any needed bindings for the rest of the closure in the
-;; compilation module instead of the runtime module -- but such things
-;; are both unspecified in the scheme standard.
+;; which will be looked up at runtime with respect to the module that
+;; was current when the lambda was bound, at runtime. The variable will
+;; be resolved when it is first used.
 (define (ghil-lookup env sym)
   (let loop ((e env))
     (record-case e
