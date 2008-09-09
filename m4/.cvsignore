@@ -18,3 +18,5 @@ time_h.m4
 time_r.m4
 tm_gmtoff.m4
 wchar.m4
+count-one-bits.m4
+inline.m4
