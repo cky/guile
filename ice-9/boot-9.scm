@@ -2975,6 +2975,7 @@ module '(ice-9 q) '(make-q q-length))}."
 ;; Indeed, all references to global variables are memoized into such
 ;; variable objects.
 
+;; FIXME: these don't work with the compiler
 (define-macro (@ mod-name var-name)
   (let ((var (module-variable (resolve-interface mod-name) var-name)))
     (if (not var)
@@ -3337,6 +3338,8 @@ module '(ice-9 q) '(make-q q-length))}."
     ;; scmsigs.c scm_sigaction_for_thread), so the handlers setup here have
     ;; no effect.
     (let ((old-handlers #f)
+          (start-repl (module-ref (resolve-interface '(system repl repl))
+                                  'start-repl))
 	  (signals (if (provided? 'posix)
 		       `((,SIGINT . "User interrupt")
 			 (,SIGFPE . "Arithmetic error")
@@ -3371,7 +3374,7 @@ module '(ice-9 q) '(make-q q-length))}."
 
 	  ;; the protected thunk.
 	  (lambda ()
-	    (let ((status (scm-style-repl)))
+            (let ((status (start-repl 'scheme)))
 	      (run-hook exit-hook)
 	      status))
 

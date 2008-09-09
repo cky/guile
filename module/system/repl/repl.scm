@@ -102,7 +102,8 @@
     expr)))
 
 (define (start-repl lang)
-  (let ((repl (make-repl lang)))
+  (let ((repl (make-repl lang))
+        (status #f))
     (repl-welcome repl)
     (let prompt-loop ()
       (let ((exp (call-with-backtrace
@@ -114,21 +115,28 @@
            (lambda ()
              (meta-command repl (read-line)))))
          ((eof-object? exp)
-          (throw 'quit))
+          (newline)
+          (set! status '()))
          (else
           (call-with-backtrace
            (lambda ()
-             (call-with-values (lambda ()
-                                 (run-hook before-eval-hook exp)
-                                 (start-stack repl-eval
-                                              (repl-eval repl exp)))
-               (lambda l
-                 (for-each (lambda (v)
-                             (run-hook before-print-hook v)
-                             (repl-print repl v))
-                           l)))))))
-        (next-char #f) ;; consume trailing whitespace
-        (prompt-loop)))))
+             (catch 'quit
+                    (lambda ()
+                      (call-with-values (lambda ()
+                                          (run-hook before-eval-hook exp)
+                                          (start-stack repl-eval
+                                                       (repl-eval repl exp)))
+                        (lambda l
+                          (for-each (lambda (v)
+                                      (run-hook before-print-hook v)
+                                      (repl-print repl v))
+                                    l))))
+                    (lambda (k . args)
+                      (set! status args)))))))
+        (or status
+            (begin
+              (next-char #f) ;; consume trailing whitespace
+              (prompt-loop)))))))
 
 (define (next-char wait)
   (if (or wait (char-ready?))
