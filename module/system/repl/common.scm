@@ -38,7 +38,8 @@
 (define-record (<repl> vm language options tm-stats gc-stats vm-stats))
 
 (define repl-default-options
-  '((trace . #f)))
+  '((trace . #f)
+    (interp . #f)))
 
 (define %make-repl make-repl)
 (define (make-repl lang)
@@ -68,7 +69,9 @@
 
 (define (repl-eval repl form)
   (let ((eval (language-evaluator (repl-language repl))))
-    (if eval
+    (if (and eval
+             (or (not (language-translator (repl-language repl)))
+                 (assq-ref (repl-options repl) 'interp)))
 	(eval form (current-module))
 	(vm-load (repl-vm repl) (repl-compile repl form)))))
 

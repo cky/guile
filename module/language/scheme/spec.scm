@@ -46,5 +46,6 @@
   #:reader	read
   #:read-file	read-file
   #:translator	translate
+  #:evaluator	eval
   #:printer	write
   )
