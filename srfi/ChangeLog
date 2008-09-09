@@ -1,3 +1,8 @@
+2008-08-30  Julian Graham <joolean@gmail.com>
+
+       * srfi-18.scm: Raise error if Guile not built with threading
+       support.
+
 2008-08-25  Ludovic Courtès  <ludo@gnu.org>
 
 	* Makefile.am (AM_CFLAGS): New.

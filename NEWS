@@ -32,6 +32,11 @@ See `cancel-thread', `set-thread-cleanup!', and `thread-cleanup'.
 
 * Changes to the C interface
 
+** Internal `scm_i_' functions now have "hidden" linkage with GCC/ELF
+
+This makes these internal functions technically not callable from
+application code.
+
 ** Functions for handling `scm_option' now no longer require an argument
 indicating length of the `scm_t_option' array.
 
@@ -49,15 +54,18 @@ When you use GDS to evaluate Scheme code from Emacs, you can now use
 `C-u' to indicate that you want to single step through that code. See
 `Evaluating Scheme Code' in the manual for more details.
 
+* Changes to the distribution
+
+** Automake's `AM_MAINTAINER_MODE' is no longer used
+
+Thus, the `--enable-maintainer-mode' configure option is no longer
+available: Guile is now always configured in "maintainer mode".
+
 * Bugs fixed
-
-** Internal `scm_i_' functions now have "hidden" linkage with GCC/ELF
-
-This makes these internal functions technically not callable from
-application code.
 
 ** `guile-config link' now prints `-L$libdir' before `-lguile'
 ** Fix memory corruption involving GOOPS' `class-redefinition'
+** Fix possible deadlock in `mutex-lock'
 ** Fix build issue on Tru64 and ia64-hp-hpux11.23 (`SCM_UNPACK' macro)
 ** Fix build issue on mips, mipsel, powerpc and ia64 (stack direction)
 ** Fix build issue on hppa2.0w-hp-hpux11.11 (`dirent64' and `readdir64_r')
