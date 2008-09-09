@@ -20,11 +20,11 @@
 ;;; Code:
 
 (define-module (system repl common)
-  :use-syntax (system base syntax)
-  :use-module (system base compile)
-  :use-module (system base language)
-  :use-module (system vm vm)
-  :export (<repl> make-repl repl-vm repl-language repl-options
+  #:use-syntax (system base syntax)
+  #:use-module (system base compile)
+  #:use-module (system base language)
+  #:use-module (system vm vm)
+  #:export (<repl> make-repl repl-vm repl-language repl-options
                   repl-tm-stats repl-gc-stats repl-vm-stats
            repl-welcome repl-prompt repl-read repl-compile repl-eval
            repl-print repl-option-ref repl-option-set!
@@ -42,12 +42,12 @@
 
 (define %make-repl make-repl)
 (define (make-repl lang)
-  (%make-repl :vm (the-vm)
-              :language (lookup-language lang)
-              :options repl-default-options
-              :tm-stats (times)
-              :gc-stats (gc-stats)
-              :vm-stats (vm-stats (the-vm))))
+  (%make-repl #:vm (the-vm)
+              #:language (lookup-language lang)
+              #:options repl-default-options
+              #:tm-stats (times)
+              #:gc-stats (gc-stats)
+              #:vm-stats (vm-stats (the-vm))))
 
 (define (repl-welcome repl)
   (let ((language (repl-language repl)))

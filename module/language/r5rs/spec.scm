@@ -20,10 +20,10 @@
 ;;; Code:
 
 (define-module (language r5rs spec)
-  :use-module (system base language)
-  :use-module (language r5rs expand)
-  :use-module (language r5rs translate)
-  :export (r5rs))
+  #:use-module (system base language)
+  #:use-module (language r5rs expand)
+  #:use-module (language r5rs translate)
+  #:export (r5rs))
 
 
 ;;;
@@ -54,11 +54,11 @@
 ;;;
 
 (define-language r5rs
-  :title	"Standard Scheme (R5RS + syntax-case)"
-  :version	"0.3"
-  :reader	read
-  :expander	expand
-  :translator	translate
-  :printer	write
-;;  :environment	(global-ref 'Language::R5RS::core)
+  #:title	"Standard Scheme (R5RS + syntax-case)"
+  #:version	"0.3"
+  #:reader	read
+  #:expander	expand
+  #:translator	translate
+  #:printer	write
+;;  #:environment	(global-ref 'Language::R5RS::core)
   )

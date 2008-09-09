@@ -20,17 +20,17 @@
 ;;; Code:
 
 (define-module (system vm assemble)
-  :use-syntax (system base syntax)
-  :use-module (system il glil)
-  :use-module (system vm instruction)
-  :use-module (system vm objcode)
-  :use-module ((system vm program) :select (make-binding))
-  :use-module (system vm conv)
-  :use-module (ice-9 regex)
-  :use-module (ice-9 common-list)
-  :use-module (srfi srfi-4)
-  :use-module ((srfi srfi-1) :select (append-map))
-  :export (preprocess codegen assemble))
+  #:use-syntax (system base syntax)
+  #:use-module (system il glil)
+  #:use-module (system vm instruction)
+  #:use-module (system vm objcode)
+  #:use-module ((system vm program) #:select (make-binding))
+  #:use-module (system vm conv)
+  #:use-module (ice-9 regex)
+  #:use-module (ice-9 common-list)
+  #:use-module (srfi srfi-4)
+  #:use-module ((srfi srfi-1) #:select (append-map))
+  #:export (preprocess codegen assemble))
 
 (define (assemble glil env . opts)
   (codegen (preprocess glil #f) #t))
@@ -55,9 +55,9 @@
 (define (preprocess x e)
   (record-case x
     ((<glil-asm> vars meta body)
-     (let* ((venv (make-venv :parent e :nexts (glil-vars-nexts vars) :closure? #f))
+     (let* ((venv (make-venv #:parent e #:nexts (glil-vars-nexts vars) #:closure? #f))
 	    (body (map (lambda (x) (preprocess x venv)) body)))
-       (make-vm-asm :venv venv :glil x :body body)))
+       (make-vm-asm #:venv venv #:glil x #:body body)))
     ((<glil-external> op depth index)
      (do ((d depth (- d 1))
  	  (e e (venv-parent e)))
@@ -86,9 +86,9 @@
           (push (code->bytes code) stack))
         (dump-object! push-code! `(,bindings ,sources ,@tail))
         (push-code! '(return))
-        (make-bytespec :vars (make-glil-vars 0 0 0 0)
-                       :bytes (stack->bytes (reverse! stack) '())
-                       :meta #f :objs #f :closure? #f))))
+        (make-bytespec #:vars (make-glil-vars 0 0 0 0)
+                       #:bytes (stack->bytes (reverse! stack) '())
+                       #:meta #f #:objs #f #:closure? #f))))
 
 (define (codegen glil toplevel)
   (record-case glil
@@ -171,12 +171,12 @@
               ((ref set)
                (cond
                 (toplevel
-                 (push-object! (make-vlink-now :name name))
+                 (push-object! (make-vlink-now #:name name))
                  (push-code! (case op
                                ((ref) '(variable-ref))
                                ((set) '(variable-set)))))
                 (else
-                 (let* ((var (make-vlink-later :module module :name name))
+                 (let* ((var (make-vlink-later #:module module #:name name))
                         (i (cond ((object-assoc var object-alist) => cdr)
                                  (else
                                   (let ((i (length object-alist)))
@@ -186,7 +186,7 @@
                                  ((ref) `(late-variable-ref ,i))
                                  ((set) `(late-variable-set ,i))))))))
               ((define)
-               (push-object! (make-vdefine :module module :name name))
+               (push-object! (make-vdefine #:module module #:name name))
                (push-code! '(variable-set)))
               (else
                (error "unknown toplevel var kind" op name))))
@@ -214,13 +214,13 @@
        (let ((bytes (stack->bytes (reverse! stack) label-alist)))
 	 (if toplevel
 	     (bytecode->objcode bytes (glil-vars-nlocs vars) (glil-vars-nexts vars))
-	     (make-bytespec :vars vars :bytes bytes
-                            :meta (make-meta (reverse! binding-alist)
+	     (make-bytespec #:vars vars #:bytes bytes
+                            #:meta (make-meta (reverse! binding-alist)
                                              (reverse! source-alist)
                                              meta)
-                            :objs (let ((objs (map car (reverse! object-alist))))
+                            #:objs (let ((objs (map car (reverse! object-alist))))
                                     (if (null? objs) #f (list->vector objs)))
-                            :closure? (venv-closure? venv))))))))))
+                            #:closure? (venv-closure? venv))))))))))
 
 (define (object-assoc x alist)
   (record-case x

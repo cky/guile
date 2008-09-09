@@ -20,11 +20,11 @@
 ;;; Code:
 
 (define-module (system repl describe)
-  :use-module (oop goops)
-  :use-module (ice-9 regex)
-  :use-module (ice-9 format)
-  :use-module (ice-9 and-let-star)
-  :export (describe))
+  #:use-module (oop goops)
+  #:use-module (ice-9 regex)
+  #:use-module (ice-9 format)
+  #:use-module (ice-9 and-let-star)
+  #:export (describe))
 
 (define-method (describe (symbol <symbol>))
   (format #t "`~s' is " symbol)

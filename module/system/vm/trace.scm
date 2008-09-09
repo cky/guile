@@ -20,11 +20,11 @@
 ;;; Code:
 
 (define-module (system vm trace)
-  :use-syntax (system base syntax)
-  :use-module (system vm vm)
-  :use-module (system vm frame)
-  :use-module (ice-9 format)
-  :export (vm-trace vm-trace-on vm-trace-off))
+  #:use-syntax (system base syntax)
+  #:use-module (system vm vm)
+  #:use-module (system vm frame)
+  #:use-module (ice-9 format)
+  #:export (vm-trace vm-trace-on vm-trace-off))
 
 (define (vm-trace vm objcode . opts)
   (dynamic-wind
@@ -34,13 +34,13 @@
 
 (define (vm-trace-on vm . opts)
   (set-vm-option! vm 'trace-first #t)
-  (if (memq :b opts) (add-hook! (vm-next-hook vm) trace-next))
+  (if (memq #:b opts) (add-hook! (vm-next-hook vm) trace-next))
   (set-vm-option! vm 'trace-options opts)
   (add-hook! (vm-apply-hook vm) trace-apply)
   (add-hook! (vm-return-hook vm) trace-return))
 
 (define (vm-trace-off vm . opts)
-  (if (memq :b opts) (remove-hook! (vm-next-hook vm) trace-next))
+  (if (memq #:b opts) (remove-hook! (vm-next-hook vm) trace-next))
   (remove-hook! (vm-apply-hook vm) trace-apply)
   (remove-hook! (vm-return-hook vm) trace-return))
 

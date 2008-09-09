@@ -20,13 +20,13 @@
 ;;; Code:
 
 (define-module (language ghil spec)
-  :use-module (system base language)
-  :export (ghil))
+  #:use-module (system base language)
+  #:export (ghil))
 
 (define-language ghil
-  :title	"Guile High Intermediate Language (GHIL)"
-  :version	"0.3"
-  :reader	read
-  :printer	write
-;;  :environment	(make-vmodule)
+  #:title	"Guile High Intermediate Language (GHIL)"
+  #:version	"0.3"
+  #:reader	read
+  #:printer	write
+;;  #:environment	(make-vmodule)
   )

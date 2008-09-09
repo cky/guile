@@ -20,24 +20,24 @@
 ;;; Code:
 
 (define-module (system repl command)
-  :use-syntax (system base syntax)
-  :use-module (system base pmatch)
-  :use-module (system base compile)
-  :use-module (system repl common)
-  :use-module (system vm objcode)
-  :use-module (system vm program)
-  :use-module (system vm vm)
-  :autoload (system base language) (lookup-language)
-  :autoload (system il glil) (pprint-glil)
-  :autoload (system vm disasm) (disassemble-program disassemble-objcode)
-  :autoload (system vm debug) (vm-debugger vm-backtrace)
-  :autoload (system vm trace) (vm-trace vm-trace-on vm-trace-off)
-  :autoload (system vm profile) (vm-profile)
-  :use-module (ice-9 format)
-  :use-module (ice-9 session)
-  :use-module (ice-9 documentation)
-  :use-module (ice-9 and-let-star)
-  :export (meta-command))
+  #:use-syntax (system base syntax)
+  #:use-module (system base pmatch)
+  #:use-module (system base compile)
+  #:use-module (system repl common)
+  #:use-module (system vm objcode)
+  #:use-module (system vm program)
+  #:use-module (system vm vm)
+  #:autoload (system base language) (lookup-language)
+  #:autoload (system il glil) (pprint-glil)
+  #:autoload (system vm disasm) (disassemble-program disassemble-objcode)
+  #:autoload (system vm debug) (vm-debugger vm-backtrace)
+  #:autoload (system vm trace) (vm-trace vm-trace-on vm-trace-off)
+  #:autoload (system vm profile) (vm-profile)
+  #:use-module (ice-9 format)
+  #:use-module (ice-9 session)
+  #:use-module (ice-9 documentation)
+  #:use-module (ice-9 and-let-star)
+  #:export (meta-command))
 
 
 ;;;
@@ -122,7 +122,7 @@
 		 (not (eq? (string-ref (symbol->string (car args)) 0) #\-)))
 	     (let ((c (lookup-command key)))
 	       (if c
-		   (cond ((memq :h opts) (display-command c))
+		   (cond ((memq #:h opts) (display-command c))
 			 (else (apply (command-procedure c)
 				      repl (append! args (reverse! opts)))))
 		   (user-error "Unknown meta command: ~A" key))))))))
@@ -229,7 +229,7 @@ Load a file in the current module.
 
   -f    Load source file (see `compile')"
   (let* ((file (->string file))
-	 (objcode (if (memq :f opts)
+	 (objcode (if (memq #:f opts)
 		      (apply load-source-file file opts)
 		      (apply load-file file opts))))
     (vm-load (repl-vm repl) objcode)))
@@ -267,8 +267,8 @@ Generate compiled code.
   -O    Enable optimization
   -D    Add debug information"
   (let ((x (apply repl-compile repl form opts)))
-    (cond ((or (memq :e opts) (memq :t opts)) (puts x))
-	  ((memq :c opts) (pprint-glil x))
+    (cond ((or (memq #:e opts) (memq #:t opts)) (puts x))
+	  ((memq #:c opts) (pprint-glil x))
 	  (else (disassemble-objcode x)))))
 
 (define guile:compile-file compile-file)

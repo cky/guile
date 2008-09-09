@@ -20,10 +20,10 @@
 ;;; Code:
 
 (define-module (system vm frame)
-  :use-module (system vm program)
-  :use-module (system vm instruction)
-  :use-module ((srfi srfi-1) :select (fold))
-  :export (frame-number frame-address
+  #:use-module (system vm program)
+  #:use-module (system vm instruction)
+  #:use-module ((srfi srfi-1) #:select (fold))
+  #:export (frame-number frame-address
            make-frame-chain
            print-frame print-frame-chain-as-backtrace
            frame-arguments frame-local-variables frame-external-variables

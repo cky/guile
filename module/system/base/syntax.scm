@@ -20,16 +20,9 @@
 ;;; Code:
 
 (define-module (system base syntax)
-  :export (%compute-initargs)
-  :export-syntax (define-type define-record record-case))
+  #:export (%compute-initargs)
+  #:export-syntax (define-type define-record record-case))
 (export-syntax |) ;; emacs doesn't like the |
-
-
-;;;
-;;; Keywords by `:KEYWORD
-;;;
-
-(read-set! keywords 'prefix)
 
 
 ;;;

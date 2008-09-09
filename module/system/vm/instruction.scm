@@ -20,7 +20,7 @@
 ;;; Code:
 
 (define-module (system vm instruction)
-  :export (instruction-list
+  #:export (instruction-list
            instruction? instruction-length
            instruction-pops instruction-pushes
            instruction->opcode opcode->instruction))

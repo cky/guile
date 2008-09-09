@@ -20,16 +20,16 @@
 ;;; Code:
 
 (define-module (system repl repl)
-  :use-syntax (system base syntax)
-  :use-module (system base pmatch)
-  :use-module (system base compile)
-  :use-module (system base language)
-  :use-module (system repl common)
-  :use-module (system repl command)
-  :use-module (system vm vm)
-  :use-module (system vm debug)
-  :use-module (ice-9 rdelim)
-  :export (start-repl call-with-backtrace))
+  #:use-syntax (system base syntax)
+  #:use-module (system base pmatch)
+  #:use-module (system base compile)
+  #:use-module (system base language)
+  #:use-module (system repl common)
+  #:use-module (system repl command)
+  #:use-module (system vm vm)
+  #:use-module (system vm debug)
+  #:use-module (ice-9 rdelim)
+  #:export (start-repl call-with-backtrace))
 
 (define meta-command-token (cons 'meta 'command))
 

@@ -20,15 +20,15 @@
 ;;; Code:
 
 (define-module (system base compile)
-  :use-syntax (system base syntax)
-  :use-module (system base language)
-  :use-module (system il compile)
-  :use-module (system il glil)
-  :use-module (system vm objcode)
-  :use-module (system vm vm) ;; for compile-time evaluation
-  :use-module (system vm assemble)
-  :use-module (ice-9 regex)
-  :export (syntax-error compile-file load-source-file load-file
+  #:use-syntax (system base syntax)
+  #:use-module (system base language)
+  #:use-module (system il compile)
+  #:use-module (system il glil)
+  #:use-module (system vm objcode)
+  #:use-module (system vm vm) ;; for compile-time evaluation
+  #:use-module (system vm assemble)
+  #:use-module (ice-9 regex)
+  #:export (syntax-error compile-file load-source-file load-file
            compiled-file-name
            scheme-eval read-file-in compile-in
            load/compile))
@@ -82,7 +82,7 @@
 	       (let* ((source (read-file-in file scheme))
 		      (objcode (apply compile-in source (current-module)
 				      scheme opts)))
-		 (if (memq :c opts)
+		 (if (memq #:c opts)
 		   (pprint-glil objcode port)
 		   (uniform-vector-write (objcode->u8vector objcode) port)))))
 	   (format #t "wrote `~A'\n" comp))))
@@ -136,13 +136,13 @@
       (lambda ()
         ;; expand
         (set! x ((language-expander lang) x e))
-        (if (memq :e opts) (throw 'result x))
+        (if (memq #:e opts) (throw 'result x))
         ;; translate
         (set! x ((language-translator lang) x e))
-        (if (memq :t opts) (throw 'result x))
+        (if (memq #:t opts) (throw 'result x))
         ;; compile
         (set! x (apply compile x e opts))
-        (if (memq :c opts) (throw 'result x))
+        (if (memq #:c opts) (throw 'result x))
         ;; assemble
         (apply assemble x e opts))
       (lambda (key val) val)))))

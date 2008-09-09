@@ -2752,6 +2752,11 @@ module '(ice-9 q) '(make-q q-length))}."
 ;; Return a list of expressions that evaluate to the appropriate
 ;; arguments for resolve-interface according to SPEC.
 
+(eval-case
+ ((compile-toplevel)
+  (if (memq 'prefix (read-options))
+      (error "boot-9 must be compiled with #:kw, not :kw"))))
+
 (define (compile-interface-spec spec)
   (define (make-keyarg sym key quote?)
     (cond ((or (memq sym spec)

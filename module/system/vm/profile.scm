@@ -20,9 +20,9 @@
 ;;; Code:
 
 (define-module (system vm profile)
-  :use-module (system vm vm)
-  :use-module (ice-9 format)
-  :export (vm-profile))
+  #:use-module (system vm vm)
+  #:use-module (ice-9 format)
+  #:export (vm-profile))
 
 (define (vm-profile vm objcode . opts)
   (let ((flag (vm-option vm 'debug)))

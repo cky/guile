@@ -20,8 +20,8 @@
 ;;; Code:
 
 (define-module (system il glil)
-  :use-syntax (system base syntax)
-  :export
+  #:use-syntax (system base syntax)
+  #:export
   (pprint-glil
    <glil-vars> make-glil-vars
    glil-vars-nargs glil-vars-nrest glil-vars-nlocs glil-vars-nexts

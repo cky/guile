@@ -20,9 +20,9 @@
 ;;; Code:
 
 (define-module (language scheme spec)
-  :use-module (language scheme translate)
-  :use-module (system base language)
-  :export (scheme))
+  #:use-module (language scheme translate)
+  #:use-module (system base language)
+  #:export (scheme))
 
 ;;;
 ;;; Reader
@@ -41,10 +41,10 @@
 ;;;
 
 (define-language scheme
-  :title	"Guile Scheme"
-  :version	"0.5"
-  :reader	read
-  :read-file	read-file
-  :translator	translate
-  :printer	write
+  #:title	"Guile Scheme"
+  #:version	"0.5"
+  #:reader	read
+  #:read-file	read-file
+  #:translator	translate
+  #:printer	write
   )

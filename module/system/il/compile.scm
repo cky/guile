@@ -20,14 +20,14 @@
 ;;; Code:
 
 (define-module (system il compile)
-  :use-syntax (system base syntax)
-  :use-module (system il glil)
-  :use-module (system il ghil)
-  :use-module (ice-9 common-list)
-  :export (compile))
+  #:use-syntax (system base syntax)
+  #:use-module (system il glil)
+  #:use-module (system il ghil)
+  #:use-module (ice-9 common-list)
+  #:export (compile))
 
 (define (compile x e . opts)
-  (if (memq :O opts) (set! x (optimize x)))
+  (if (memq #:O opts) (set! x (optimize x)))
   (codegen x))
 
 
@@ -330,10 +330,10 @@
 	 ;; compile body
 	 (comp body #t #f)
 	 ;; create GLIL
-	 (let ((vars (make-glil-vars :nargs (length vars)
-                                     :nrest (if rest 1 0)
-                                     :nlocs (length locs)
-                                     :nexts (length exts))))
+	 (let ((vars (make-glil-vars #:nargs (length vars)
+                                     #:nrest (if rest 1 0)
+                                     #:nlocs (length locs)
+                                     #:nexts (length exts))))
 	   (make-glil-asm vars meta (reverse! stack))))))))
 
 (define (finalize-index! list)

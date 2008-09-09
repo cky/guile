@@ -20,8 +20,8 @@
 ;;; Code:
 
 (define-module (lang elisp spec)
-  :use-module (system lang language)
-  :export (elisp))
+  #:use-module (system lang language)
+  #:export (elisp))
 
 
 ;;;

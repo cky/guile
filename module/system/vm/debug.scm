@@ -20,11 +20,11 @@
 ;;; Code:
 
 (define-module (system vm debug)
-  :use-syntax (system base syntax)
-  :use-module (system vm vm)
-  :use-module (system vm frame)
-  :use-module (ice-9 format)
-  :export (vm-debugger vm-backtrace))
+  #:use-syntax (system base syntax)
+  #:use-module (system vm vm)
+  #:use-module (system vm frame)
+  #:use-module (ice-9 format)
+  #:export (vm-debugger vm-backtrace))
 
 
 ;;;
@@ -38,7 +38,7 @@
     (if (null? chain)
       (display "Nothing to debug\n")
       (debugger-repl (make-debugger
-                      :vm vm :chain chain :index (length chain))))))
+                      #:vm vm #:chain chain #:index (length chain))))))
 
 (define (debugger-repl db)
   (let loop ()

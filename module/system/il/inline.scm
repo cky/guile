@@ -20,10 +20,10 @@
 ;;; Code:
 
 (define-module (system il inline)
-  :use-module (system base syntax)
-  :use-module (system il ghil)
-  :use-module (srfi srfi-16)
-  :export (*inline-table* define-inline try-inline try-inline-with-env))
+  #:use-module (system base syntax)
+  #:use-module (system il ghil)
+  #:use-module (srfi srfi-16)
+  #:export (*inline-table* define-inline try-inline try-inline-with-env))
 
 (define *inline-table* '())
 

@@ -20,14 +20,14 @@
 ;;; Code:
 
 (define-module (language scheme translate)
-  :use-module (system base pmatch)
-  :use-module (system base language)
-  :use-module (system il ghil)
-  :use-module (system il inline)
-  :use-module (ice-9 receive)
-  :use-module (srfi srfi-39)
-  :use-module ((system base compile) :select (syntax-error))
-  :export (translate))
+  #:use-module (system base pmatch)
+  #:use-module (system base language)
+  #:use-module (system il ghil)
+  #:use-module (system il inline)
+  #:use-module (ice-9 receive)
+  #:use-module (srfi srfi-39)
+  #:use-module ((system base compile) #:select (syntax-error))
+  #:export (translate))
 
 
 (define (translate x e)

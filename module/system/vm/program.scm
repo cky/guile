@@ -20,7 +20,7 @@
 ;;; Code:
 
 (define-module (system vm program)
-  :export (arity:nargs arity:nrest arity:nlocs arity:nexts
+  #:export (arity:nargs arity:nrest arity:nlocs arity:nexts
            make-binding binding:name binding:extp binding:index
            source:addr source:line source:column source:file
            program-bindings program-sources

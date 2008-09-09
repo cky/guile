@@ -20,14 +20,14 @@
 ;;; Code:
 
 (define-module (system vm disasm)
-  :use-module (system base pmatch)
-  :use-module (system vm objcode)
-  :use-module (system vm program)
-  :use-module (system vm conv)
-  :use-module (ice-9 regex)
-  :use-module (ice-9 format)
-  :use-module (ice-9 receive)
-  :export (disassemble-objcode disassemble-program disassemble-bytecode))
+  #:use-module (system base pmatch)
+  #:use-module (system vm objcode)
+  #:use-module (system vm program)
+  #:use-module (system vm conv)
+  #:use-module (ice-9 regex)
+  #:use-module (ice-9 format)
+  #:use-module (ice-9 receive)
+  #:export (disassemble-objcode disassemble-program disassemble-bytecode))
 
 (define (disassemble-objcode objcode . opts)
   (let* ((prog  (objcode->program objcode))

@@ -20,12 +20,12 @@
 ;;; Code:
 
 (define-module (system vm conv)
-  :use-module (system vm instruction)
-  :use-module (system base pmatch)
-  :use-module (ice-9 regex)
-  :use-module (srfi srfi-4)
-  :use-module (srfi srfi-1)
-  :export (code-pack code-unpack object->code code->object code->bytes
+  #:use-module (system vm instruction)
+  #:use-module (system base pmatch)
+  #:use-module (ice-9 regex)
+  #:use-module (srfi srfi-4)
+  #:use-module (srfi srfi-1)
+  #:export (code-pack code-unpack object->code code->object code->bytes
 	   make-byte-decoder))
 
 ;;;
