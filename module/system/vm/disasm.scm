@@ -60,7 +60,7 @@
     (if (pair? exts)
 	(disassemble-externals exts))
     (if meta
-	(disassemble-meta meta))
+	(disassemble-meta (meta)))
     ;; Disassemble other bytecode in it
     (for-each
      (lambda (x)
