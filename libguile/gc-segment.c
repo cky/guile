@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -15,9 +15,15 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+#if HAVE_CONFIG_H
+# include <config.h>
+#endif
+
 #include <assert.h> 
 #include <stdio.h>
 #include <string.h>
+
+#include <count-one-bits.h>
 
 #include "libguile/_scm.h"
 #include "libguile/pairs.h"
@@ -109,7 +115,7 @@ scm_i_heap_segment_marked_count (scm_t_heap_segment *seg)
   int count = 0;
   while (bvec < bvec_end)
     {
-      count += scm_i_uint_bit_count (*bvec);
+      count += count_one_bits_l (*bvec);
       bvec ++;
     }
   return count * seg->span;

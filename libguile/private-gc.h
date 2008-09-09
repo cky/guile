@@ -78,7 +78,6 @@
 #define SCM_GC_IN_CARD_HEADERP(x) \
   (scm_t_cell *) (x) <  SCM_GC_CELL_CARD (x) + SCM_GC_CARD_N_HEADER_CELLS
 
-int scm_i_uint_bit_count (unsigned int u);
 int scm_getenv_int (const char *var, int def);
 
 

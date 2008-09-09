@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -15,8 +15,14 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+#if HAVE_CONFIG_H
+# include <config.h>
+#endif
+
 #include <assert.h>
 #include <stdio.h>
+#include <count-one-bits.h>
+
 #include <gmp.h>
 
 #include "libguile/_scm.h"
@@ -294,19 +300,6 @@ scm_i_init_card_freelist (scm_t_cell *card, SCM *free_list,
 }
 
 /*
-  Classic MIT Hack, see e.g. http://www.tekpool.com/?cat=9
- */
-int scm_i_uint_bit_count (unsigned int u)
-{
-  unsigned int u_count = u 
-    - ((u >> 1) & 033333333333) 
-    - ((u >> 2) & 011111111111);
-  return 
-    ((u_count + (u_count >> 3)) 
-     & 030707070707) % 63;
-}
-
-/*
   Amount of cells marked in this cell, measured in 1-cells.
  */
 int
@@ -318,7 +311,7 @@ scm_i_card_marked_count (scm_t_cell *card, int span)
   int count = 0;
   while (bvec < bvec_end)
     {
-      count += scm_i_uint_bit_count (*bvec);
+      count += count_one_bits_l (*bvec);
       bvec ++;
     }
   return count * span;
