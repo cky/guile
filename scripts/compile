@@ -34,12 +34,10 @@ exec ${GUILE-guile} -e '(@ (scripts compile) compile)' -s $0 "$@"
 
 ;;; Code:
 
-(read-set! keywords 'prefix)
-
 (define-module (scripts compile)
-  :use-module (system base compile)
-  :use-module (ice-9 getopt-long)
-  :export (compile))
+  #:use-module (system base compile)
+  #:use-module (ice-9 getopt-long)
+  #:export (compile))
 
 (define %options
   '((help           (single-char #\h) (value #f))
@@ -69,10 +67,10 @@ Compile each Guile Scheme source file FILE into a Guile object.
 Report bugs to <guile-user@gnu.org>.~%")
           (exit 0)))
 
-    (let ((compile-opts (append (if optimize? '(:O) '())
-                                (if expand-only? '(:e) '())
-                                (if translate-only? '(:t) '())
-                                (if compile-only? '(:c) '()))))
+    (let ((compile-opts (append (if optimize? '(#:O) '())
+                                (if expand-only? '(#:e) '())
+                                (if translate-only? '(#:t) '())
+                                (if compile-only? '(#:c) '()))))
 
       (catch #t
              (lambda ()
