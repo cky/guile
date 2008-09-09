@@ -54,6 +54,13 @@ When you use GDS to evaluate Scheme code from Emacs, you can now use
 `C-u' to indicate that you want to single step through that code. See
 `Evaluating Scheme Code' in the manual for more details.
 
+* Changes to the distribution
+
+** Automake's `AM_MAINTAINER_MODE' is no longer used
+
+Thus, the `--enable-maintainer-mode' configure option is no longer
+available: Guile is now always configured in "maintainer mode".
+
 * Bugs fixed
 
 ** `guile-config link' now prints `-L$libdir' before `-lguile'
