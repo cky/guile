@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 Free Software Foundation, Inc.
+/* Copyright (C) 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -21,7 +21,12 @@
 /* The six standard categories, as defined in IEEE Std 1003.1-2001.  */
 SCM_DEFINE_LOCALE_CATEGORY (COLLATE)
 SCM_DEFINE_LOCALE_CATEGORY (CTYPE)
+
+#ifdef LC_MESSAGES
+/* MinGW doesn't have `LC_MESSAGES'.  */
 SCM_DEFINE_LOCALE_CATEGORY (MESSAGES)
+#endif
+
 SCM_DEFINE_LOCALE_CATEGORY (MONETARY)
 SCM_DEFINE_LOCALE_CATEGORY (NUMERIC)
 SCM_DEFINE_LOCALE_CATEGORY (TIME)
