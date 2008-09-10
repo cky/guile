@@ -52,7 +52,8 @@ scm_t_option scm_readline_opts[] = {
   { SCM_OPTION_INTEGER, "history-length", 200,
     "History length." },
   { SCM_OPTION_INTEGER, "bounce-parens", 500,
-    "Time (ms) to show matching opening parenthesis (0 = off)."}
+    "Time (ms) to show matching opening parenthesis (0 = off)."},
+  { 0 }
 };
 
 extern void stifle_history (int max);
@@ -64,7 +65,6 @@ SCM_DEFINE (scm_readline_options, "readline-options-interface", 0, 1, 0,
 {
   SCM ans = scm_options (setting,
 			 scm_readline_opts,
-			 SCM_N_READLINE_OPTIONS,
 			 FUNC_NAME);
   stifle_history (SCM_HISTORY_LENGTH);
   return ans;
@@ -573,8 +573,7 @@ scm_init_readline ()
 
   reentry_barrier_mutex = scm_permanent_object (scm_make_mutex ());
   scm_init_opts (scm_readline_options,
-		 scm_readline_opts,
-		 SCM_N_READLINE_OPTIONS);
+		 scm_readline_opts);
   init_bouncing_parens();
   scm_add_feature ("readline");
 #endif /* HAVE_RL_GETC_FUNCTION */

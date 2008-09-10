@@ -119,6 +119,10 @@ extern char ** environ;
 # define USE_GNU_LOCALE_API
 #endif
 
+#if (defined USE_GNU_LOCALE_API) && (defined HAVE_XLOCALE_H)
+# include <xlocale.h>
+#endif
+
 #if HAVE_CRYPT_H
 #  include <crypt.h>
 #endif
@@ -491,11 +495,25 @@ SCM_DEFINE (scm_kill, "kill", 2, 0, 0,
   /* Signal values are interned in scm_init_posix().  */
 #ifdef HAVE_KILL
   if (kill (scm_to_int (pid), scm_to_int  (sig)) != 0)
+    SCM_SYSERROR;
 #else
+  /* Mingw has raise(), but not kill().  (Other raw DOS environments might
+     be similar.)  Use raise() when the requested pid is our own process,
+     otherwise bomb.  */
   if (scm_to_int (pid) == getpid ())
-    if (raise (scm_to_int (sig)) != 0)
+    {
+      if (raise (scm_to_int (sig)) != 0)
+        {
+        err:
+          SCM_SYSERROR;
+        }
+      else
+        {
+          errno = ENOSYS;
+          goto err;
+        }
+    }
 #endif
-      SCM_SYSERROR;
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -1316,9 +1334,6 @@ SCM_DEFINE (scm_putenv, "putenv", 1, 0, 0,
 {
   int rv;
   char *c_str = scm_to_locale_string (str);
-#ifdef __MINGW32__
-  size_t len = strlen (c_str);
-#endif
 
   if (strchr (c_str, '=') == NULL)
     {
@@ -1333,6 +1348,7 @@ SCM_DEFINE (scm_putenv, "putenv", 1, 0, 0,
       /* On e.g. Win32 hosts putenv() called with 'name=' removes the
 	 environment variable 'name'. */
       int e;
+      size_t len = strlen (c_str);
       char *ptr = scm_malloc (len + 2);
       strcpy (ptr, c_str);
       strcpy (ptr+len, "=");
@@ -1352,26 +1368,29 @@ SCM_DEFINE (scm_putenv, "putenv", 1, 0, 0,
          by getenv.  It's not enough just to modify the string we set,
          because MINGW putenv copies it.  */
 
-      if (c_str[len-1] == '=')
-        {
-	  char *ptr = scm_malloc (len+2);
-	  strcpy (ptr, c_str);
-	  strcpy (ptr+len, " ");
-	  rv = putenv (ptr);
-	  if (rv < 0)
-	    {
-	      int eno = errno;
-	      free (c_str);
-	      errno = eno;
-	      SCM_SYSERROR;
-	    }
-	  /* truncate to just the name */
-	  c_str[len-1] = '\0';
-	  ptr = getenv (c_str);
-	  if (ptr)
-	    ptr[0] = '\0';
-	  return SCM_UNSPECIFIED;
-        }
+      {
+        size_t len = strlen (c_str);
+        if (c_str[len-1] == '=')
+          {
+            char *ptr = scm_malloc (len+2);
+            strcpy (ptr, c_str);
+            strcpy (ptr+len, " ");
+            rv = putenv (ptr);
+            if (rv < 0)
+              {
+                int eno = errno;
+                free (c_str);
+                errno = eno;
+                SCM_SYSERROR;
+              }
+            /* truncate to just the name */
+            c_str[len-1] = '\0';
+            ptr = getenv (c_str);
+            if (ptr)
+              ptr[0] = '\0';
+            return SCM_UNSPECIFIED;
+          }
+      }
 #endif /* __MINGW32__ */
 
       /* Leave c_str in the environment.  */
@@ -1384,12 +1403,11 @@ SCM_DEFINE (scm_putenv, "putenv", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-#ifndef USE_GNU_LOCALE_API
 /* This mutex is used to serialize invocations of `setlocale ()' on non-GNU
-   systems (i.e., systems where a reentrant locale API is not available).
-   See `i18n.c' for details.  */
-scm_i_pthread_mutex_t scm_i_locale_mutex;
-#endif
+   systems (i.e., systems where a reentrant locale API is not available).  It
+   is also acquired before calls to `nl_langinfo ()'.  See `i18n.c' for
+   details.  */
+scm_i_pthread_mutex_t scm_i_locale_mutex = SCM_I_PTHREAD_MUTEX_INITIALIZER;
 
 #ifdef HAVE_SETLOCALE
 
@@ -1406,6 +1424,7 @@ SCM_DEFINE (scm_setlocale, "setlocale", 1, 1, 0,
 	    "the locale will be set using environment variables.")
 #define FUNC_NAME s_scm_setlocale
 {
+  int c_category;
   char *clocale;
   char *rv;
 
@@ -1421,13 +1440,11 @@ SCM_DEFINE (scm_setlocale, "setlocale", 1, 1, 0,
       scm_dynwind_free (clocale);
     }
 
-#ifndef USE_GNU_LOCALE_API
+  c_category = scm_i_to_lc_category (category, 1);
+
   scm_i_pthread_mutex_lock (&scm_i_locale_mutex);
-#endif
-  rv = setlocale (scm_i_to_lc_category (category, 1), clocale);
-#ifndef USE_GNU_LOCALE_API
+  rv = setlocale (c_category, clocale);
   scm_i_pthread_mutex_unlock (&scm_i_locale_mutex);
-#endif
 
   if (rv == NULL)
     {
@@ -1565,7 +1582,7 @@ SCM_DEFINE (scm_crypt, "crypt", 2, 0, 0,
 #define FUNC_NAME s_scm_crypt
 {
   SCM ret;
-  char *c_key, *c_salt;
+  char *c_key, *c_salt, *c_ret;
 
   scm_dynwind_begin (0);
   scm_i_dynwind_pthread_mutex_lock (&scm_i_misc_mutex);
@@ -1575,8 +1592,14 @@ SCM_DEFINE (scm_crypt, "crypt", 2, 0, 0,
   c_salt = scm_to_locale_string (salt);
   scm_dynwind_free (c_salt);
 
-  ret = scm_from_locale_string (crypt (c_key, c_salt));
+  /* The Linux crypt(3) man page says crypt will return NULL and set errno
+     on error.  (Eg. ENOSYS if legal restrictions mean it cannot be
+     implemented).  */
+  c_ret = crypt (c_key, c_salt);
+  if (c_ret == NULL)
+    SCM_SYSERROR;
 
+  ret = scm_from_locale_string (c_ret);
   scm_dynwind_end ();
   return ret;
 }
@@ -1965,10 +1988,6 @@ SCM_DEFINE (scm_gethostname, "gethostname", 0, 0, 0,
 void
 scm_init_posix ()
 {
-#ifndef USE_GNU_LOCALE_API
-  scm_i_pthread_mutex_init (&scm_i_locale_mutex, NULL);
-#endif
-
   scm_add_feature ("posix");
 #ifdef HAVE_GETEUID
   scm_add_feature ("EIDs");

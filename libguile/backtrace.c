@@ -47,6 +47,7 @@
 #include "libguile/lang.h"
 #include "libguile/backtrace.h"
 #include "libguile/filesys.h"
+#include "libguile/private-options.h"
 
 /* {Error reporting and backtraces}
  *

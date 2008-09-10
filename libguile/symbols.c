@@ -40,6 +40,9 @@
 #include "libguile/validate.h"
 #include "libguile/symbols.h"
 
+#include "libguile/private-options.h"
+
+
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif

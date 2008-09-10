@@ -22,6 +22,7 @@
 
 #include "libguile/__scm.h"
 
+SCM_API SCM scm_global_locale;
 SCM_API SCM scm_make_locale (SCM category_mask, SCM locale_name, SCM base_locale);
 SCM_API SCM scm_locale_p (SCM obj);
 SCM_API SCM scm_string_locale_lt (SCM s1, SCM s2, SCM locale);
@@ -40,6 +41,7 @@ SCM_API SCM scm_string_locale_upcase (SCM chr, SCM locale);
 SCM_API SCM scm_string_locale_downcase (SCM chr, SCM locale);
 SCM_API SCM scm_locale_string_to_integer (SCM str, SCM base, SCM locale);
 SCM_API SCM scm_locale_string_to_inexact (SCM str, SCM locale);
+SCM_API SCM scm_nl_langinfo (SCM item, SCM locale);
 
 SCM_API void scm_init_i18n (void);
 

@@ -43,6 +43,9 @@
 
 #include "libguile/validate.h"
 #include "libguile/print.h"
+
+#include "libguile/private-options.h"
+
 
 
 /* {Names of immediate symbols}
@@ -83,7 +86,9 @@ scm_t_option scm_print_opts[] = {
     "How to print symbols that have a colon as their first or last character. "
     "The value '#f' does not quote the colons; '#t' quotes them; "
     "'reader' quotes them when the reader option 'keywords' is not '#f'." 
-  }
+  },
+  { 0 },
+  
 };
 
 SCM_DEFINE (scm_print_options, "print-options-interface", 0, 1, 0, 
@@ -96,7 +101,6 @@ SCM_DEFINE (scm_print_options, "print-options-interface", 0, 1, 0,
 {
   SCM ans = scm_options (setting,
 			 scm_print_opts,
-			 SCM_N_PRINT_OPTIONS,
 			 FUNC_NAME);
   return ans;
 }
@@ -940,11 +944,13 @@ scm_write (SCM obj, SCM port)
   SCM_ASSERT (scm_valid_oport_value_p (port), port, SCM_ARG2, s_write);
 
   scm_prin1 (obj, port, 1);
+#if 0
 #ifdef HAVE_PIPE
 # ifdef EPIPE
   if (EPIPE == errno)
     scm_close_port (port);
 # endif
+#endif
 #endif
   return SCM_UNSPECIFIED;
 }
@@ -961,11 +967,13 @@ scm_display (SCM obj, SCM port)
   SCM_ASSERT (scm_valid_oport_value_p (port), port, SCM_ARG2, s_display);
 
   scm_prin1 (obj, port, 0);
+#if 0
 #ifdef HAVE_PIPE
 # ifdef EPIPE
   if (EPIPE == errno)
     scm_close_port (port);
 # endif
+#endif
 #endif
   return SCM_UNSPECIFIED;
 }
@@ -1098,11 +1106,13 @@ SCM_DEFINE (scm_write_char, "write-char", 1, 1, 0,
   SCM_VALIDATE_OPORT_VALUE (2, port);
 
   scm_putc ((int) SCM_CHAR (chr), SCM_COERCE_OUTPORT (port));
+#if 0
 #ifdef HAVE_PIPE
 # ifdef EPIPE
   if (EPIPE == errno)
     scm_close_port (port);
 # endif
+#endif
 #endif
   return SCM_UNSPECIFIED;
 }
@@ -1173,7 +1183,7 @@ scm_init_print ()
 {
   SCM vtable, layout, type;
 
-  scm_init_opts (scm_print_options, scm_print_opts, SCM_N_PRINT_OPTIONS);
+  scm_init_opts (scm_print_options, scm_print_opts);
 
   scm_print_options (scm_list_4 (scm_from_locale_symbol ("highlight-prefix"),
 				 scm_from_locale_string ("{"),

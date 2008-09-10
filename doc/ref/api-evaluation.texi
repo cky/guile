@@ -629,6 +629,9 @@ Like @code{help}, but also print programmer options.
 Modify the evaluator options.  @code{trap-enable} should be used with boolean
 options and switches them on, @code{trap-disable} switches them off.
 @code{trap-set!} can be used to set an option to a specific value.
+
+See @ref{Evaluator trap options} for more information on the available
+trap handlers.
 @end deffn
 
 @deffn {Scheme Procedure} evaluator-traps-interface [setting]

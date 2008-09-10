@@ -1,7 +1,7 @@
 ;;;; structs.test --- Test suite for Guile's structures.   -*- Scheme -*-
 ;;;; Ludovic Courtès <ludovic.courtes@laas.fr>, 2006-06-12.
 ;;;;
-;;;; Copyright (C) 2006 Free Software Foundation, Inc.
+;;;; Copyright (C) 2006, 2007 Free Software Foundation, Inc.
 ;;;;
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -18,7 +18,8 @@
 ;;;; the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;;;; Boston, MA 02110-1301 USA
 
-(use-modules (test-suite lib))
+(define-module (test-suite test-structs)
+  :use-module (test-suite lib))
 
 
 
@@ -80,15 +81,27 @@
   (pass-if "struct-set!"
      (let ((ball (make-ball green "Bob")))
        (set-owner! ball "Bill")
-       (string=? (owner ball) "Bill")))
+       (string=? (owner ball) "Bill"))))
 
-  (pass-if "equal?"
+
+(with-test-prefix "equal?"
+
+  (pass-if "simple structs"
+     (let* ((vtable (make-vtable-vtable "pr" 0))
+            (s1     (make-struct vtable 0 "hello"))
+            (s2     (make-struct vtable 0 "hello")))
+       (equal? s1 s2)))
+
+  (pass-if "more complex structs"
      (let ((first (make-ball red (string-copy "Bob")))
-	   (second (make-ball red (string-copy "Bob"))))
+           (second (make-ball red (string-copy "Bob"))))
        (equal? first second)))
 
   (pass-if "not-equal?"
-     (not (or (equal? (make-ball red "Bob") (make-ball green "Bill"))
+     (not (or (equal? (make-ball red "Bob") (make-ball green "Bob"))
 	      (equal? (make-ball red "Bob") (make-ball red "Bill"))))))
 
 
+;;; Local Variables:
+;;; coding: latin-1
+;;; End:

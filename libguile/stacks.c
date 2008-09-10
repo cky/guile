@@ -32,6 +32,8 @@
 
 #include "libguile/validate.h"
 #include "libguile/stacks.h"
+#include "libguile/private-options.h"
+
 
 
 /* {Frames and stacks}

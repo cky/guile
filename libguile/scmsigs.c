@@ -22,6 +22,7 @@
 #  include <config.h>
 #endif
 
+#include <fcntl.h>      /* for mingw */
 #include <signal.h>
 #include <stdio.h>
 #include <errno.h>
@@ -35,6 +36,14 @@
 
 #include "libguile/validate.h"
 #include "libguile/scmsigs.h"
+
+#ifdef HAVE_IO_H
+#include <io.h>  /* for mingw _pipe() */
+#endif
+
+#ifdef HAVE_PROCESS_H
+#include <process.h>    /* for mingw */
+#endif
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -50,7 +59,7 @@
 /* This weird comma expression is because Sleep is void under Windows. */
 #define sleep(sec) (Sleep ((sec) * 1000), 0)
 #define usleep(usec) (Sleep ((usec) / 1000), 0)
-#define kill(pid, sig) raise (sig)
+#define pipe(fd) _pipe (fd, 256, O_BINARY)
 #endif
 
 
@@ -106,6 +115,12 @@ close_1 (SCM proc, SCM arg)
 }
 
 #if SCM_USE_PTHREAD_THREADS
+/* On mingw there's no notion of inter-process signals, only a raise()
+   within the process itself which apparently invokes the registered handler
+   immediately.  Not sure how well the following code will cope in this
+   case.  It builds but it may not offer quite the same scheme-level
+   semantics as on a proper system.  If you're relying on much in the way of
+   signal handling on mingw you probably lose anyway.  */
 
 static int signal_pipe[2];
 
@@ -149,12 +164,13 @@ read_without_guile (int fd, char *buf, size_t n)
 static SCM
 signal_delivery_thread (void *data)
 {
-  sigset_t all_sigs;
   int n, sig;
   char sigbyte;
-
+#if HAVE_PTHREAD_SIGMASK  /* not on mingw, see notes above */
+  sigset_t all_sigs;
   sigfillset (&all_sigs);
   scm_i_pthread_sigmask (SIG_SETMASK, &all_sigs, NULL);
+#endif
 
   while (1)
     {
@@ -616,7 +632,7 @@ SCM_DEFINE (scm_raise, "raise", 1, 0, 0,
 	    "@var{sig} is as described for the kill procedure.")
 #define FUNC_NAME s_scm_raise
 {
-  if (kill (getpid (), scm_to_int (sig)) != 0)
+  if (raise (scm_to_int (sig)) != 0)
     SCM_SYSERROR;
   return SCM_UNSPECIFIED;
 }

@@ -198,30 +198,72 @@ evaluated in order.
 @node let-keywords Reference
 @subsubsection let-keywords Reference
 
-@c FIXME::martin: Review me!
+@code{let-keywords} and @code{let-keywords*} extract values from
+keyword style argument lists, binding local variables to those values
+or to defaults.
 
-@code{let-keywords} and @code{let-keywords*} are used for extracting
-values from argument lists which use keywords instead of argument
-position for binding local variables to argument values.
+@deffn {library syntax} let-keywords args allow-other-keys? (binding @dots{})  body @dots{}
+@deffnx {library syntax} let-keywords* args allow-other-keys? (binding @dots{})  body @dots{}
+@var{args} is evaluated and should give a list of the form
+@code{(#:keyword1 value1 #:keyword2 value2 @dots{})}.  The
+@var{binding}s are variables and default expressions, with the
+variables to be set (by name) from the keyword values.  The @var{body}
+forms are then evaluated and the last is the result.  An example will
+make the syntax clearest,
 
-@code{let-keywords} binds all variables simultaneously, while
-@code{let-keywords*} binds them sequentially, consistent with @code{let}
-and @code{let*} (@pxref{Local Bindings}).
+@example
+(define args '(#:xyzzy "hello" #:foo "world"))
 
-@deffn {library syntax} let-keywords rest-arg allow-other-keys? (binding @dots{})  expr @dots{}
-@deffnx {library syntax} let-keywords* rest-arg allow-other-keys? (binding @dots{})  expr @dots{}
-These macros pick out keyword arguments from @var{rest-arg}, but do not
-modify it.  This is consistent at least with Common Lisp, which
-duplicates keyword arguments in the rest argument. More explanation of what
-keyword arguments in a lambda list look like can be found below in
-the documentation for @code{lambda*}
- (@pxref{lambda* Reference}).  @var{binding}s can have the same form as
-for @code{let-optional}. If @var{allow-other-keys?} is false, an error
-will be thrown if anything that looks like a keyword argument but does
-not match a known keyword parameter will result in an error.
+(let-keywords args #t
+      ((foo  "default for foo")
+       (bar  (string-append "default" "for" "bar")))
+  (display foo)
+  (display ", ")
+  (display bar))
+@print{} world, defaultforbar
+@end example
 
-After binding the variables, the expressions @var{expr} @dots{} are
-evaluated in order.
+The binding for @code{foo} comes from the @code{#:foo} keyword in
+@code{args}.  But the binding for @code{bar} is the default in the
+@code{let-keywords}, since there's no @code{#:bar} in the args.
+
+@var{allow-other-keys?} is evaluated and controls whether unknown
+keywords are allowed in the @var{args} list.  When true other keys are
+ignored (such as @code{#:xyzzy} in the example), when @code{#f} an
+error is thrown for anything unknown.
+
+@code{let-keywords} is like @code{let} (@pxref{Local Bindings}) in
+that all bindings are made at once, the defaults expressions are
+evaluated (if needed) outside the scope of the @code{let-keywords}.
+
+@code{let-keywords*} is like @code{let*}, each binding is made
+successively, and the default expressions see the bindings previously
+made.  This is the style used by @code{lambda*} keywords
+(@pxref{lambda* Reference}).  For example,
+
+@example
+(define args '(#:foo 3))
+
+(let-keywords* args #f
+      ((foo  99)
+       (bar  (+ foo 6)))
+  (display bar))
+@print{} 9
+@end example
+
+The expression for each default is only evaluated if it's needed,
+ie. if the keyword doesn't appear in @var{args}.  So one way to make a
+keyword mandatory is to throw an error of some sort as the default.
+
+@example
+(define args '(#:start 7 #:finish 13))
+
+(let-keywords* args #t
+      ((start 0)
+       (stop  (error "missing #:stop argument")))
+  ...)
+@result{} ERROR: missing #:stop argument
+@end example
 @end deffn
 
 

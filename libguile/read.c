@@ -38,6 +38,8 @@
 #include "libguile/srfi-4.h"
 
 #include "libguile/read.h"
+#include "libguile/private-options.h"
+
 
 
 
@@ -52,14 +54,14 @@ scm_t_option scm_read_opts[] = {
   { SCM_OPTION_BOOLEAN, "case-insensitive", 0,
     "Convert symbols to lower case."},
   { SCM_OPTION_SCM, "keywords", SCM_UNPACK (SCM_BOOL_F),
-    "Style of keyword recognition: #f or 'prefix."}
+    "Style of keyword recognition: #f or 'prefix."},
 #if SCM_ENABLE_ELISP
-  ,
   { SCM_OPTION_BOOLEAN, "elisp-vectors", 0,
     "Support Elisp vector syntax, namely `[...]'."},
   { SCM_OPTION_BOOLEAN, "elisp-strings", 0,
-    "Support `\\(' and `\\)' in strings."}
+    "Support `\\(' and `\\)' in strings."},
 #endif
+  { 0, },
 };
 
 /*
@@ -112,7 +114,6 @@ SCM_DEFINE (scm_read_options, "read-options-interface", 0, 1, 0,
 {
   SCM ans = scm_options (setting,
 			 scm_read_opts,
-			 SCM_N_READ_OPTIONS,
 			 FUNC_NAME);
   if (SCM_COPY_SOURCE_P)
     SCM_RECORD_POSITIONS_P = 1;
@@ -898,7 +899,9 @@ SCM_DEFINE (scm_read_hash_extend, "read-hash-extend", 2, 0, 0,
 	    "starting with the character sequence @code{#} and @var{chr}.\n"
 	    "@var{proc} will be called with two arguments:  the character\n"
 	    "@var{chr} and the port to read further data from. The object\n"
-	    "returned will be the return value of @code{read}.")
+	    "returned will be the return value of @code{read}. \n"
+	    "Passing @code{#f} for @var{proc} will remove a previous setting. \n"
+	    )
 #define FUNC_NAME s_scm_read_hash_extend
 {
   SCM this;
@@ -977,7 +980,7 @@ scm_init_read ()
   scm_read_hash_procedures =
     SCM_VARIABLE_LOC (scm_c_define ("read-hash-procedures", SCM_EOL));
 
-  scm_init_opts (scm_read_options, scm_read_opts, SCM_N_READ_OPTIONS);
+  scm_init_opts (scm_read_options, scm_read_opts);
 #include "libguile/read.x"
 }
 

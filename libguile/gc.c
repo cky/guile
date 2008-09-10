@@ -223,6 +223,7 @@ unsigned long scm_mtrigger;
 /* GC Statistics Keeping
  */
 unsigned long scm_cells_allocated = 0;
+unsigned long scm_last_cells_allocated = 0;
 unsigned long scm_mallocated = 0;
 unsigned long scm_gc_cells_collected;
 unsigned long scm_gc_cells_collected_1 = 0; /* previous GC yield */
@@ -256,8 +257,7 @@ SCM_SYMBOL (sym_cells_swept, "cells-swept");
 SCM_SYMBOL (sym_malloc_yield, "malloc-yield");
 SCM_SYMBOL (sym_cell_yield, "cell-yield");
 SCM_SYMBOL (sym_protected_objects, "protected-objects");
-
-
+SCM_SYMBOL (sym_total_cells_allocated, "total-cells-allocated");
 
 
 /* Number of calls to SCM_NEWCELL since startup.  */

@@ -40,8 +40,9 @@ typedef struct scm_t_option
 #define SCM_OPTION_SCM     2
 
 
-SCM_API SCM scm_options (SCM, scm_t_option [], unsigned int, const char*);
-SCM_API void scm_init_opts (SCM (*) (SCM), scm_t_option [], unsigned int n);
+SCM_API SCM scm_options_try (SCM args, scm_t_option options[], const char *s, int dry_run);
+SCM_API SCM scm_options (SCM, scm_t_option [], const char*);
+SCM_API void scm_init_opts (SCM (*) (SCM), scm_t_option []);
 SCM_API void scm_init_options (void);
 
 #endif  /* SCM_OPTIONS_H */

@@ -45,19 +45,7 @@
 
 #define SCM_WHITE_SPACES  SCM_SINGLE_SPACES: case '\t'
 
-SCM_API scm_t_option scm_read_opts[];
 
-#define SCM_COPY_SOURCE_P      scm_read_opts[0].val
-#define SCM_RECORD_POSITIONS_P scm_read_opts[1].val
-#define SCM_CASE_INSENSITIVE_P scm_read_opts[2].val
-#define SCM_KEYWORD_STYLE      scm_read_opts[3].val
-#if SCM_ENABLE_ELISP
-#define SCM_ELISP_VECTORS_P    scm_read_opts[4].val
-#define SCM_ESCAPED_PARENS_P   scm_read_opts[5].val
-#define SCM_N_READ_OPTIONS 6
-#else
-#define SCM_N_READ_OPTIONS 4
-#endif
 
 
 

@@ -182,7 +182,7 @@ noinst_HEADERS = convert.i.c					\
                  srfi-4.i.c					\
                  quicksort.i.c                                  \
                  win32-uname.h win32-dirent.h win32-socket.h	\
-	         private-gc.h
+	         private-gc.h private-options.h
 
 libguile_la_DEPENDENCIES = @LIBLOBJS@
 libguile_la_LIBADD = @LIBLOBJS@
@@ -283,7 +283,7 @@ SUFFIXES = .x .doc
 .c.x:
 	./guile-snarf -o $@ $< $(snarfcppopts)
 .c.doc:
-	-(test -n "${AWK+set}" || AWK="@AWK@"; ${AWK} -f ./guile-func-name-check $<)
+	-$(AWK) -f ./guile-func-name-check $<
 	(./guile-snarf-docs $(snarfcppopts) $< | \
 	./guile_filter_doc_snarfage$(EXEEXT) --filter-snarfage) > $@ || { rm $@; false; }
 

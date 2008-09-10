@@ -1476,7 +1476,7 @@ In the following C functions, @var{SUBR} and @var{MESSAGE} parameters
 can be @code{NULL} to give the effect of @code{#f} described above.
 
 @deftypefn {C Function} SCM scm_error (SCM @var{key}, char *@var{subr}, char *@var{message}, SCM @var{args}, SCM @var{rest})
-Throw an error, as per @code{scm-error} above.
+Throw an error, as per @code{scm-error} (@pxref{Error Reporting}).
 @end deftypefn
 
 @deftypefn {C Function} void scm_syserror (char *@var{subr})

@@ -30,6 +30,8 @@
 #include "libguile/validate.h"
 #include "libguile/macros.h"
 
+#include "libguile/private-options.h"
+
 scm_t_bits scm_tc16_macro;
 
 

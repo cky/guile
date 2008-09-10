@@ -615,14 +615,21 @@ Invoke the Guile debugger to explore the context of the last error.
 
 @cindex Low level trap calls
 @cindex Evaluator trap calls
-Guile's evaluator can be configured to call three user-specified
-procedures at various points in its operation: an
-@dfn{apply-frame-handler} procedure, an @dfn{enter-frame-handler}
-procedure, and an @dfn{exit-frame-handler} procedure.  These procedures,
-and the circumstances under which the evaluator calls them, are
-configured by the ``evaluator trap options'' interface (@pxref{Evaluator
-trap options}), and by the @code{trace} and @code{breakpoints} fields of
-the ``debug options'' interface (@pxref{Debugger options}).
+Guile's evaluator can be configured to call the following four user-specified
+procedures at various points in its operation.
+
+@table @dfn
+@item apply-frame-handler
+@item enter-frame-handler
+@item exit-frame-handler
+@item memoize-symbol-handler
+@end table
+
+These procedures, and the circumstances under which the evaluator
+calls them, are configured by the ``evaluator trap options'' interface
+(@pxref{Evaluator trap options}), and by the @code{trace} and
+@code{breakpoints} fields of the ``debug options'' interface
+(@pxref{Debugger options}).
 
 It is not necessary to understand the fine details of these low level
 calls, and of the options which configure them, in order to use the

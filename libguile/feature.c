@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,1999,2000,2001,2002, 2003, 2004, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001,2002, 2003, 2004, 2006, 2007 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -75,6 +75,22 @@ scm_set_program_arguments (int argc, char **argv, char *first)
     args = scm_cons (scm_from_locale_string (first), args);
   scm_fluid_set_x (progargs_fluid, args);
 }
+
+SCM_DEFINE (scm_set_program_arguments_scm, "set-program-arguments", 1, 0, 0, 
+	    (SCM lst),
+	    "Set the command line arguments to be returned by\n"
+	    "@code{program-arguments} (and @code{command-line}).  @var{lst}\n"
+	    "should be a list of strings, the first of which is the program\n"
+	    "name (either a script name, or just @code{\"guile\"}).\n"
+	    "\n"
+	    "Program arguments are held in a fluid and therefore have a\n"
+	    "separate value in each Guile thread.  Neither the list nor the\n"
+	    "strings within it are copied, so should not be modified later.")
+#define FUNC_NAME s_scm_set_program_arguments_scm
+{
+  return scm_fluid_set_x (progargs_fluid, lst);
+}
+#undef FUNC_NAME
 
 
 

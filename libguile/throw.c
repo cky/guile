@@ -37,6 +37,10 @@
 #include "libguile/validate.h"
 #include "libguile/throw.h"
 #include "libguile/init.h"
+#include "libguile/strings.h"
+
+#include "libguile/private-options.h"
+
 
 
 /* the jump buffer data structure */
@@ -695,7 +699,31 @@ scm_ithrow (SCM key, SCM args, int noreturn SCM_UNUSED)
 
   if (scm_i_critical_section_level)
     {
+      SCM s = args;
+      int i = 0;
+
+      /*
+	We have much better routines for displaying Scheme, but we're
+	already inside a pernicious error, and it's unlikely that they
+	are available to us. We try to print something useful anyway,
+	so users don't need a debugger to find out what went wrong.	
+       */
       fprintf (stderr, "throw from within critical section.\n");
+      if (scm_is_symbol (key))
+	fprintf (stderr, "error key: %s\n", scm_i_symbol_chars (key));
+
+      
+      for (; scm_is_pair (s); s = scm_cdr (s), i++)
+	{
+	  char const *str = NULL;
+	  if (scm_is_string (scm_car (s)))
+	    str = scm_i_string_chars (scm_car (s));
+	  else if (scm_is_symbol (scm_car (s)))
+	    str = scm_i_symbol_chars (scm_car (s));
+	  
+	  if (str != NULL)
+	    fprintf (stderr, "argument %d: %s\n", i, str);
+	}
       abort ();
     }
 

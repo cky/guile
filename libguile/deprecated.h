@@ -5,7 +5,7 @@
 #ifndef SCM_DEPRECATED_H
 #define SCM_DEPRECATED_H
 
-/* Copyright (C) 2003,2004, 2005, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 2003,2004, 2005, 2006, 2007 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -164,7 +164,7 @@ SCM_API SCM scm_make_gsubr_with_generic (const char *name,
 					 SCM (*fcn)(),
 					 SCM *gf);
 
-extern SCM scm_create_hook (const char* name, int n_args);
+SCM_API SCM scm_create_hook (const char* name, int n_args);
 
 #define SCM_LIST0 SCM_EOL
 #define SCM_LIST1(e0) scm_cons ((e0), SCM_EOL)
