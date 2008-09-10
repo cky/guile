@@ -48,6 +48,8 @@
 ;; set!
 ;;
 
+(define %some-variable #f)
+
 (with-test-prefix "set!"
 
   (with-test-prefix "target is not procedure with setter"
@@ -58,7 +60,20 @@
 
     (pass-if-exception "(set! '#f 1)"
       exception:bad-variable
-      (eval '(set! '#f 1) (interaction-environment)))))
+      (eval '(set! '#f 1) (interaction-environment))))
+
+  (with-test-prefix "target uses macro"
+
+    (pass-if "(set! (@@ ...) 1)"
+      (eval '(set! (@@ (test-suite test-srfi-17) %some-variable) 1)
+            (interaction-environment))
+      (equal? %some-variable 1))
+
+    ;; The `(quote x)' below used to be memoized as an infinite list before
+    ;; Guile 1.8.3.
+    (pass-if-exception "(set! 'x 1)"
+      exception:bad-variable
+      (eval '(set! 'x 1) (interaction-environment)))))
 
 ;;
 ;; setter

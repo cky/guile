@@ -1,3 +1,64 @@
+2007-10-02  Ludovic Courtès  <ludo@gnu.org>
+
+	* NEWS: Mention `(ice-9 slib)' fix and threading fix.
+
+2007-09-03  Ludovic Courtès  <ludo@gnu.org>
+
+	* NEWS: Mention alignment-related bug fixes.
+
+2007-09-03  Kevin Ryde  <user42@zip.com.au>
+
+	* configure.in (AC_CHECK_FUNCS): Move cexp and clog up into the main
+	funcs check block.  Remove carg which is now unused.
+
+2007-09-02  Ludovic Courtès  <ludo@gnu.org>
+
+	* NEWS: Mention memory leak fix in `make-socket-address'.
+
+2007-09-01  Ludovic Courtès  <ludo@gnu.org>
+
+	* NEWS: Mention duplicate binding warnings to stderr.
+
+2007-08-23  Ludovic Courtès  <ludo@gnu.org>
+
+	* NEWS: Mention Solaris bug fixes.
+
+2007-08-11  Ludovic Courtès  <ludo@gnu.org>
+
+	* NEWS: Mention SRFI-35 and the new reader.
+
+2007-08-08  Ludovic Courtès  <ludo@gnu.org>
+
+	* NEWS: Mention changes to `record-accessor' and
+	`record-modifier'.
+
+2007-07-29  Ludovic Courtès  <ludo@gnu.org>
+
+	Added Gnulib support.
+
+	* autogen.sh: Run `gnulib-tool --update'.
+
+	* Makefile.am (SUBDIRS): Added `lib'.
+	(ACLOCAL_AMFLAGS): Added `-I m4'.
+	(EXTRA_DIST): Added `m4/ChangeLog'.
+
+	* NEWS: Comply with Automake's `check-news' option, i.e., have
+	the last "Changes in" line appear within the first 15 lines.
+	Mention use of Gnulib.
+
+	* configure.in: Use `build-aux' as `AC_CONFIG_AUX_DIR', and `m4'
+	as `AC_CONFIG_MACRO_DIR'.  Use Automake's `gnu' and `check-news'
+	options.
+	Require Autoconf 2.59.  Invoke `gl_EARLY' and `gl_INIT', don't
+	run `AC_AIX', `AC_ISC_POSIX' and `AC_MINIX' since they are
+	implied by `gl_EARLY'.  Don't look for <strings.h> and
+	`strncasecmp'.  Don't invoke `AC_FUNC_ALLOCA'.  Produce
+	`lib/Makefile'.
+
+2007-07-25  Ludovic Courtès  <ludo@gnu.org>
+
+	* NEWS: Mention bug fix for "(set! 'x #f)".
+
 2007-07-22  Ludovic Courtès  <ludo@gnu.org>
 
 	* configure.in: Check for <strings.h> and `strncasecmp ()'.

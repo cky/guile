@@ -24,7 +24,7 @@
 #
 AUTOMAKE_OPTIONS = 1.10
 
-SUBDIRS = oop libguile ice-9 guile-config guile-readline emacs \
+SUBDIRS = lib oop libguile ice-9 guile-config guile-readline emacs \
 	  scripts srfi doc examples test-suite benchmark-suite lang am
 
 bin_SCRIPTS = guile-tools
@@ -33,11 +33,12 @@ include_HEADERS = libguile.h
 
 # automake sometimes forgets to distribute acconfig.h,
 # apparently depending on the phase of the moon.
-EXTRA_DIST = LICENSE HACKING GUILE-VERSION ANON-CVS SNAPSHOTS
+EXTRA_DIST = LICENSE HACKING GUILE-VERSION ANON-CVS SNAPSHOTS	\
+	     m4/ChangeLog
 
 TESTS = check-guile
 
-ACLOCAL_AMFLAGS = -I guile-config
+ACLOCAL_AMFLAGS = -I guile-config -I m4
 
 DISTCLEANFILES = check-guile.log
 

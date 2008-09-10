@@ -429,7 +429,7 @@
 (define (record-predicate rtd)
   (lambda (obj) (and (struct? obj) (eq? rtd (struct-vtable obj)))))
 
-(define (%record-type-check rtd obj)  ;; private helper
+(define (%record-type-error rtd obj)  ;; private helper
   (or (eq? rtd (record-type-descriptor obj))
       (scm-error 'wrong-type-arg "%record-type-check"
 		 "Wrong type record (want `~S'): ~S"
@@ -441,8 +441,9 @@
     (if (not pos)
 	(error 'no-such-field field-name))
     (local-eval `(lambda (obj)
-		   (%record-type-check ',rtd obj)
-		   (struct-ref obj ,pos))
+                   (if (eq? (struct-vtable obj) ,rtd)
+                       (struct-ref obj ,pos)
+                       (%record-type-error ,rtd obj)))
 		the-root-environment)))
 
 (define (record-modifier rtd field-name)
@@ -450,8 +451,9 @@
     (if (not pos)
 	(error 'no-such-field field-name))
     (local-eval `(lambda (obj val)
-		   (%record-type-check ',rtd obj)
-		   (struct-set! obj ,pos val))
+                   (if (eq? (struct-vtable obj) ,rtd)
+                       (struct-set! obj ,pos val)
+                       (%record-type-error ,rtd obj)))
 		the-root-environment)))
 
 
@@ -3061,7 +3063,7 @@ module '(ice-9 q) '(make-q q-length))}."
 		 #f))
     
     (define (warn module name int1 val1 int2 val2 var val)
-      (format #t
+      (format (current-error-port)
 	      "WARNING: ~A: `~A' imported from both ~A and ~A\n"
 	      (module-name module)
 	      name
@@ -3083,7 +3085,7 @@ module '(ice-9 q) '(make-q q-length))}."
     (define (warn-override-core module name int1 val1 int2 val2 var val)
       (and (eq? int1 the-scm-module)
 	   (begin
-	     (format #t
+	     (format (current-error-port)
 		     "WARNING: ~A: imported module ~A overrides core binding `~A'\n"
 		     (module-name module)
 		     (module-name int2)

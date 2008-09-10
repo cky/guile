@@ -1,3 +1,120 @@
+2007-10-02  Ludovic Courtès  <ludo@gnu.org>
+
+	* threads.c (on_thread_exit): Don't call `scm_leave_guile ()'
+	since we're already in non-guile mode.  Reported by Greg Toxel
+	for NetBSD.
+
+2007-10-01  Ludovic Courtès  <ludo@gnu.org>
+
+	* ports.c (flush_output_port): Expect directly a port instead of
+	a pair.  Fixes a bug in the new port table (2007-08-26).
+
+2007-09-11  Kevin Ryde  <user42@zip.com.au>
+
+	* posix.c (scm_putenv): Confine the putenv("NAME=") bit to mingw, use
+	putenv("NAME") as the fallback everywhere else.  In particular this is
+	needed for solaris 9.  Reported by Frank Storbeck.
+	
+2007-09-03  Ludovic Courtès  <ludo@gnu.org>
+
+	* read.c (flush_ws): Handle SCSH block comments.
+
+2007-09-03  Ludovic Courtès  <ludo@gnu.org>
+
+	Fix alignment issues which showed up at least on SPARC.
+
+	* socket.c (scm_t_max_sockaddr, scm_t_getsockopt_result): New.
+	(scm_inet_pton): Change DST to `scm_t_uint32' for correct
+	alignment.
+	(scm_getsockopt): Change OPTVAL to `scm_t_getsockopt_result' for
+	correct alignment.
+	(_scm_from_sockaddr): Change ADDRESS to `scm_t_max_sockaddr *'.
+	(scm_from_sockaddr): Cast ADDRESS to `scm_t_max_sockaddr *'.
+	(MAX_SIZE_UN, MAX_SIZE_IN6): Removed.
+	(scm_accept, scm_getsockname, scm_getpeername, scm_recvfrom):
+	Use `scm_t_max_sockaddr' instead of "char max_addr[MAX_ADDR_SIZE]".
+
+2007-09-03  Kevin Ryde  <user42@zip.com.au>
+
+	* numbers.c (scm_log): Test HAVE_CLOG as well as HAVE_COMPLEX_DOUBLE
+	before using clog().  It's possible for gcc to provide the "complex
+	double" type, but for the system not to have the complex funcs.
+	(scm_exp): Ditto HAVE_CEXP for cexp().
+	(clog, cexp, carg): Remove fallback definitions.  These only
+	duplicated the code within scm_log and scm_exp, and the latter have to
+	exist for the case when there's no "complex double".  So better just
+	fix up the conditionals selecting between the complex funcs and plain
+	doubles than worry about fallbacks.
+
+2007-09-02  Ludovic Courtès  <ludo@gnu.org>
+
+	* socket.c (scm_make_socket_address): Free C_ADDRESS after use.
+	This fixes a memory leak.
+
+2007-08-26  Han-Wen Nienhuys  <hanwen@lilypond.org>
+
+	* fports.c gc-card.c gc.c gc.h ioext.c ports.c ports.h weaks.h
+	gc.c: replace port table with weak hash table. This simplifies
+	memory management, and fixes freed cells appearing in
+	port-for-each output.
+
+	* init.c (cleanup_for_exit): abort cleanup if init_mutex is still
+	held.
+
+2007-08-23  Ludovic Courtès  <ludo@gnu.org>
+
+	* read.c (scm_read_quote): Record position and copy source
+	expression when asked to.  Reported by Kevin.
+
+	* stime.c: Define `_REENTRANT' only if not already defined.
+
+2007-08-21  Kevin Ryde  <user42@zip.com.au>
+
+	* gc-card.c (scm_i_card_statistics): Record scm_tc7_number types as
+	tc16 values so big, real, complex and fraction can be distinguished.
+
+	(scm_i_tag_name): Return "number" for scm_tc7_number, not NULL.  NULL
+	was making numbers come out as "type 23" in gc-live-object-stats.
+	Fix tests of the tc16 number types, they were checked under
+	scm_tc7_number, but the values went down the tag>=255 smob case.
+	Put smob case under scm_tc7_smob instead of using tag>=255, per
+	recommendation in comments with scm_tc7_smob to use symbolic values. 
+	Use SCM_TC2SMOBNUM to extract scm_smobs index, instead of explicit
+	code.  Lose some unnecessary "break" statements.
+
+	(scm_i_card_statistics): Use scm_hashq_create_handle_x and modify the
+	element returned, rather than two lookups scm_hashq_ref and
+	scm_hashq_set_x.
+
+2007-08-17  Kevin Ryde  <user42@zip.com.au>
+
+	* stime.c: Add #define _REENTRANT, to get gmtime_r() prototype on
+	solaris 2.6.  Reported by anirkko.
+
+2007-07-29  Ludovic Courtès  <ludo@gnu.org>
+
+	* Makefile.am (INCLUDES): Added Gnulib includes.
+	(gnulib_library): New.
+	(libguile_i18n_v_@LIBGUILE_I18N_MAJOR@_la_LIBADD): Added
+	`$(gnulib_library)'.
+	(libguile_la_LIBADD): Likewise.
+
+	* posix.c: Don't define `_GNU_SOURCE' since `gl_EARLY' arranges
+	to define it when available.
+	* srfi-14.c: Likewise.
+	* i18n.c: Likewise.  Include Gnulib's <alloca.h>
+	* eval.c: Include Gnulib's <alloca.h>.
+	* filesys.c: Likewise.
+	* read.c: Don't include <strings.h> and don't provide an
+	`strncasecmp ()' replacement; use Gnulib's <string.h> and
+	`strncasecmp ()' instead.
+
+2007-07-25  Ludovic Courtès  <ludo@gnu.org>
+
+	* eval.c (macroexp): When `scm_ilength (res) <= 0', return
+	immediately.  This used to produce a circular memoized
+	expression, e.g., for `(set (quote x) #t)'.
+
 2007-07-22  Ludovic Courtès  <ludo@gnu.org>
 
 	Overhauled the reader, making it faster.

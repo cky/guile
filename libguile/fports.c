@@ -31,6 +31,7 @@
 #include "libguile/gc.h"
 #include "libguile/posix.h"
 #include "libguile/dynwind.h"
+#include "libguile/hashtab.h"
 
 #include "libguile/fports.h"
 
@@ -220,32 +221,35 @@ SCM_DEFINE (scm_setvbuf, "setvbuf", 2, 1, 0,
 /* Move ports with the specified file descriptor to new descriptors,
  * resetting the revealed count to 0.
  */
+static SCM
+scm_i_evict_port (SCM handle, void *closure)
+{
+  int fd = * (int*) closure;
+  SCM port = SCM_CAR (handle);
+
+  if (SCM_FPORTP (port))
+    {
+      scm_t_fport *fp = SCM_FSTREAM (port);
+
+      if (fp->fdes == fd)
+	{
+	  fp->fdes = dup (fd);
+	  if (fp->fdes == -1)
+	    scm_syserror ("scm_evict_ports");
+	  scm_set_port_revealed_x (port, scm_from_int (0));
+	}
+    }
+
+  return handle;
+}
 
 void
 scm_evict_ports (int fd)
 {
-  long i;
-
   scm_i_scm_pthread_mutex_lock (&scm_i_port_table_mutex);
-
-  for (i = 0; i < scm_i_port_table_size; i++)
-    {
-      SCM port = scm_i_port_table[i]->port;
-
-      if (SCM_FPORTP (port))
-	{
-	  scm_t_fport *fp = SCM_FSTREAM (port);
-
-	  if (fp->fdes == fd)
-	    {
-	      fp->fdes = dup (fd);
-	      if (fp->fdes == -1)
-		scm_syserror ("scm_evict_ports");
-	      scm_set_port_revealed_x (port, scm_from_int (0));
-	    }
-	}
-    }
-
+  scm_internal_hash_for_each_handle (&scm_i_evict_port,
+				     (void*) &fd,
+				     scm_i_port_weak_hash);
   scm_i_pthread_mutex_unlock (&scm_i_port_table_mutex);
 }
 

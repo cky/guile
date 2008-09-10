@@ -77,6 +77,10 @@
     (equal? '(+ 1 2 3)
             (read-string "(+ 1 #! this is a\ncomment !# 2 3)")))
 
+  (pass-if "block comment finishing s-exp"
+    (equal? '(+ 2)
+            (read-string "(+ 2 #! a comment\n!#\n) ")))
+
   (pass-if "unprintable symbol"
     ;; The reader tolerates unprintable characters for symbols.
     (equal? (string->symbol "\001\002\003")
@@ -151,6 +155,12 @@
     (let ((sexp (with-read-options '(positions)
                   (lambda ()
                     (read-string "(+ 1 2 3)")))))
+      (and (equal? (source-property sexp 'line) 0)
+           (equal? (source-property sexp 'column) 0))))
+  (pass-if "positions on quote"
+    (let ((sexp (with-read-options '(positions)
+                  (lambda ()
+                    (read-string "'abcde")))))
       (and (equal? (source-property sexp 'line) 0)
            (equal? (source-property sexp 'column) 0)))))
 

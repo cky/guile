@@ -1,3 +1,22 @@
+2007-10-02  Ludovic Courtès  <ludo@gnu.org>
+
+	* slib.scm: Let SLIB's `guile.init' do most of the job.  See the
+	`guile-devel@gnu.org' mailing list archive for details.
+
+2007-09-01  Andy Wingo  <wingo@pobox.com>
+
+	* boot-9.scm (duplicate-handlers)[warn, warn-override-core]:
+	Send warnings to `stderr' instead of `stdout'.
+
+2007-08-08  Ludovic Courtès  <ludo@gnu.org>
+
+	* boot-9.scm (%record-type-check): Renamed to
+	`%record-type-error'.
+	(record-accessor): Directly use `struct-vtable' and
+	`struct-ref', thereby avoiding indirections and procedure-call
+	overhead.
+	(record-modifier): Likewise.
+
 2007-05-05  Ludovic Courtès  <ludo@chbouib.org>
 
 	Implemented lazy duplicate binding handling.  Fixed the

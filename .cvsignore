@@ -33,4 +33,3 @@ mkinstalldirs
 pre-inst-guile
 pre-inst-guile-env
 stamp-h1
-texinfo.tex

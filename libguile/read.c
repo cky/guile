@@ -26,9 +26,6 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
-#ifdef HAVE_STRINGS_H
-# include <strings.h>
-#endif
 
 #include "libguile/_scm.h"
 #include "libguile/chars.h"
@@ -182,29 +179,8 @@ static SCM *scm_read_hash_procedures;
   (((_chr) <= UCHAR_MAX) ? tolower (_chr) : (_chr))
 
 
-#ifndef HAVE_STRNCASECMP
-/* XXX: Use Gnulib's `strncasecmp ()'.  */
-
-static int
-strncasecmp (const char *s1, const char *s2, size_t len2)
-{
-  while (*s1 && *s2 && len2 > 0)
-    {
-      int c1 = *s1, c2 = *s2;
-
-      if (CHAR_DOWNCASE (c1) != CHAR_DOWNCASE (c2))
-	return 0;
-      else
-	{
-	  ++s1;
-	  ++s2;
-	  --len2;
-	}
-    }
-  return !(*s1 || *s2 || len2 > 0);
-}
-#endif
-
+/* Read an SCSH block comment.  */
+static inline SCM scm_read_scsh_block_comment (int chr, SCM port);
 
 /* Helper function similar to `scm_read_token ()'.  Read from PORT until a
    whitespace is read.  Return zero if the whole token could fit in BUF,
@@ -269,6 +245,21 @@ flush_ws (SCM port, const char *eoferr)
 	    goto lp;
 	  case SCM_LINE_INCREMENTORS:
 	    break;
+	  }
+	break;
+
+      case '#':
+	switch (c = scm_getc (port))
+	  {
+	  case EOF:
+	    eoferr = "read_sharp";
+	    goto goteof;
+	  case '!':
+	    scm_read_scsh_block_comment (c, port);
+	    break;
+	  default:
+	    scm_ungetc (c, port);
+	    return '#';
 	  }
 	break;
 
@@ -637,6 +628,8 @@ static SCM
 scm_read_quote (int chr, SCM port)
 {
   SCM p;
+  long line = SCM_LINUM (port);
+  int column = SCM_COL (port) - 1;
 
   switch (chr)
     {
@@ -670,6 +663,17 @@ scm_read_quote (int chr, SCM port)
     }
 
   p = scm_cons2 (p, scm_read_expression (port), SCM_EOL);
+  if (SCM_RECORD_POSITIONS_P)
+    scm_whash_insert (scm_source_whash, p,
+		      scm_make_srcprops (line, column,
+					 SCM_FILENAME (port),
+					 SCM_COPY_SOURCE_P
+					 ? (scm_cons2 (SCM_CAR (p),
+						       SCM_CAR (SCM_CDR (p)),
+						       SCM_EOL))
+					 : SCM_UNDEFINED,
+					 SCM_EOL));
+
 
   return p;
 }
