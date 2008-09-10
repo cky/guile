@@ -197,6 +197,14 @@
 #define SCM_DEBUG 0
 #endif
 
+/* For debugging purposes: define this is to ensure nobody is using
+ * the mark bits outside of the marking phase.  This is meant for
+ * debugging purposes only.
+ */
+#ifndef SCM_DEBUG_MARKING_API
+#define SCM_DEBUG_MARKING_API 0
+#endif
+
 /* If SCM_DEBUG_CELL_ACCESSES is set to 1, cell accesses will perform
  * exhaustive parameter checking:  It will be verified that cell parameters
  * actually point to a valid heap cell.  Note:  If this option is enabled,

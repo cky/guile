@@ -156,9 +156,16 @@ typedef unsigned long scm_t_c_bvec_long;
 /* testing and changing GC marks */
 #define SCM_GC_MARK_P(x)   SCM_GC_CELL_GET_BIT (x)
 
-void ensure_marking(void);
-#define SCM_SET_GC_MARK(x) SCM_GC_CELL_SET_BIT (x)
-#define SCM_CLEAR_GC_MARK(x) SCM_GC_CELL_CLEAR_BIT (x)
+SCM_INTERNAL void scm_i_ensure_marking(void);
+
+#if (SCM_DEBUG_MARKING_API == 1)
+#define SCM_I_ENSURE_MARKING scm_i_ensure_marking(), 
+#else
+#define SCM_I_ENSURE_MARKING
+#endif
+
+#define SCM_SET_GC_MARK(x) SCM_I_ENSURE_MARKING SCM_GC_CELL_SET_BIT (x)
+#define SCM_CLEAR_GC_MARK(x) SCM_I_ENSURE_MARKING SCM_GC_CELL_CLEAR_BIT (x)
 
 /* Low level cell data accessing macros.  These macros should only be used
  * from within code related to garbage collection issues, since they will

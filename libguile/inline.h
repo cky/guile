@@ -134,12 +134,14 @@ scm_cell (scm_t_bits car, scm_t_bits cdr)
 	  }
       }
 
+#if (SCM_DEBUG_MARKING_API == 0)
     /*
       Always set mark. Otherwise cells that are alloced before
       scm_debug_cell_accesses_p is toggled seem invalid.
     */
     SCM_SET_GC_MARK (z);
-
+#endif /* SCM_DEBUG_MARKING_API */
+    
     /*
       TODO: figure out if this use of mark bits is valid with
       threading. What if another thread is doing GC at this point
@@ -202,10 +204,11 @@ scm_double_cell (scm_t_bits car, scm_t_bits cbr,
 	  abort();
 	}
     }
-
+#if (SCM_DEBUG_MARKING_API == 0)
   /* see above. */
   SCM_SET_GC_MARK (z);
-
+#endif /* SCM_DEBUG_MARKING_API */
+  
 #endif
 
   /* When this function is inlined, it's possible that the last
