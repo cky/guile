@@ -38,6 +38,9 @@
 #define scm_i_pthread_create                pthread_create
 #define scm_i_pthread_detach                pthread_detach
 #define scm_i_pthread_exit                  pthread_exit
+#define scm_i_pthread_cancel                pthread_cancel
+#define scm_i_pthread_cleanup_push          pthread_cleanup_push
+#define scm_i_pthread_cleanup_pop           pthread_cleanup_pop
 #define scm_i_sched_yield                   sched_yield
 
 /* Signals
@@ -46,7 +49,11 @@
 
 /* Mutexes
  */
-#define SCM_I_PTHREAD_MUTEX_INITIALIZER     PTHREAD_MUTEX_INITIALIZER
+#if SCM_NEED_BRACES_ON_PTHREAD_MUTEX_INITIALIZER
+# define SCM_I_PTHREAD_MUTEX_INITIALIZER     { PTHREAD_MUTEX_INITIALIZER }
+#else
+# define SCM_I_PTHREAD_MUTEX_INITIALIZER     PTHREAD_MUTEX_INITIALIZER
+#endif
 #define scm_i_pthread_mutex_t               pthread_mutex_t
 #define scm_i_pthread_mutex_init            pthread_mutex_init
 #define scm_i_pthread_mutex_destroy         pthread_mutex_destroy

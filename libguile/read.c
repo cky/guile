@@ -150,7 +150,7 @@ static SCM *scm_read_hash_procedures;
 /* `isblank' is only in C99.  */
 #define CHAR_IS_BLANK_(_chr)					\
   (((_chr) == ' ') || ((_chr) == '\t') || ((_chr) == '\n')	\
-   || ((_chr) == '\f'))
+   || ((_chr) == '\f') || ((_chr) == '\r'))
 
 #ifdef MSDOS
 # define CHAR_IS_BLANK(_chr)			\
@@ -182,9 +182,8 @@ static SCM *scm_read_hash_procedures;
 /* Read an SCSH block comment.  */
 static inline SCM scm_read_scsh_block_comment (int chr, SCM port);
 
-/* Helper function similar to `scm_read_token ()'.  Read from PORT until a
-   whitespace is read.  Return zero if the whole token could fit in BUF,
-   non-zero otherwise.  */
+/* Read from PORT until a delimiter (e.g., a whitespace) is read.  Return
+   zero if the whole token fits in BUF, non-zero otherwise.  */
 static inline int
 read_token (SCM port, char *buf, size_t buf_size, size_t *read)
 {

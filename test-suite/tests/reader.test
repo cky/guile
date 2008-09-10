@@ -84,7 +84,11 @@
   (pass-if "unprintable symbol"
     ;; The reader tolerates unprintable characters for symbols.
     (equal? (string->symbol "\001\002\003")
-            (read-string "\001\002\003"))))
+            (read-string "\001\002\003")))
+
+  (pass-if "CR recognized as a token delimiter"
+    ;; In 1.8.3, character 0x0d was not recognized as a delimiter.
+    (equal? (read-string "one\x0dtwo") 'one)))
 
 
 (pass-if-exception "radix passed to number->string can't be zero"

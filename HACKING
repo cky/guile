@@ -1,0 +1,665 @@
+-*-text-*-
+Guile Hacking Guide
+Copyright (c) 1996, 1997, 1998, 1999, 2000, 2001, 2002 Free software Foundation, Inc.
+
+   Permission is granted to anyone to make or distribute verbatim copies
+   of this document as received, in any medium, provided that the
+   copyright notice and permission notice are preserved,
+   and that the distributor grants the recipient permission
+   for further redistribution as permitted by this notice.
+
+   Permission is granted to distribute modified versions
+   of this document, or of portions of it,
+   under the above conditions, provided also that they
+   carry prominent notices stating who last changed them,
+   and that any new or changed statements about the activities
+   of the Free Software Foundation are approved by the Foundation.
+
+
+What to Hack =========================================================
+
+You can hack whatever you want, thank GNU.
+
+However, to see what others have indicated as their interest (and avoid
+potential wasteful duplication of effort), see file TODO.  Note that
+the version you find may be out of date; a CVS checkout is recommended:
+see below for details (see also the files ANON-CVS and SNAPSHOTS).
+
+It's also a good idea to join the guile-devel@gnu.org mailing list.
+See http://www.gnu.org/software/guile/mail/mail.html for more info.
+
+
+Hacking It Yourself ==================================================
+
+When Guile is obtained from CVS, a few extra steps must be taken
+before the usual configure, make, make install.  You will need to have
+up-to-date versions of the tools listed below, correctly installed.
+i.e., they must be found in the current PATH and not shadowed or
+otherwise broken by files left behind from other versions.
+
+"up-to-date" means the latest released versions at the time that Guile
+was obtained from CVS.  Sometimes older or newer versions will work.
+(See below for versions to avoid.)
+
+Then you must run the autogen.sh script, as described below.
+
+In case of problems, it may be worth getting a fresh copy of Guile
+from CVS: synchronisation problems have been known to occur
+occasionally.
+
+The same procedure can be used to regenerate the files in released
+versions of Guile.  In that case the headers of the original generated
+files (e.g., configure, Makefile.in, ltmain.sh) can be used to
+identify which tool versions may be required.
+
+Autoconf --- a system for automatically generating `configure'
+	scripts from templates which list the non-portable features a
+	program would like to use.  Available in
+	"ftp://ftp.gnu.org/pub/gnu/autoconf"
+
+Automake --- a system for automatically generating Makefiles that
+	conform to the (rather Byzantine) GNU coding standards.  The
+	nice thing is that it takes care of hairy targets like 'make
+	dist' and 'make distclean', and automatically generates
+	Makefile dependencies.  Automake is available in
+	"ftp://ftp.gnu.org/pub/gnu/automake"
+
+libtool --- a system for managing the zillion hairy options needed
+	on various systems to produce shared libraries.  Available in
+	"ftp://ftp.gnu.org/pub/gnu/libtool"
+
+gettext --- a system for rigging a program so that it can output its
+        messages in the local tongue.  Guile presently only exports
+        the gettext functionality to Scheme, it does not use it
+        itself.
+
+flex --- a scanner generator.  It's probably not essential to have the
+        latest version.
+
+One false move and you will be lost in a little maze of automatically
+generated files, all different.
+
+Here is the authoritative list of tool/version/platform tuples that
+have been known to cause problems, and a short description of the problem.
+
+- automake 1.4 adds extraneous rules to the top-level Makefile if
+  you specify specific Makefiles to rebuild on the command line.
+
+- automake 1.4-p4 (debian "1:1.4-p4-1.1") all platforms
+  automake "include" facility does not recognize filenames w/ "-".
+
+- libtool 1.4 uses acconfig.h, which is deprecated by newest autoconf
+  (which constructs the equivalent through 3rd arg of AC_DEFINE forms).
+
+- autoreconf from autoconf prior to 2.59 will run gettextize, which
+  will mess up the Guile tree.
+
+- (add here.)
+
+
+Sample GDB Initialization File=========================================
+
+Here is a sample .gdbinit posted by Bill Schottstaedt (modified to
+use `set' instead of `call' in some places):
+
+  define gp
+  set gdb_print($arg0)
+  print gdb_output
+  end
+  document gp
+  Executes (object->string arg)
+  end
+
+  define ge
+  call gdb_read($arg0)
+  call gdb_eval(gdb_result)
+  set gdb_print(gdb_result)
+  print gdb_output
+  end
+  document ge
+  Executes (print (eval (read arg))): ge "(+ 1 2)" => 3
+  end
+
+  define gh
+  call g_help(scm_str2symbol($arg0), 20)
+  set gdb_print($1)
+  print gdb_output
+  end
+  document gh
+  Prints help string for arg: gh "enved-target"
+  end
+
+Bill further writes:
+
+  so in gdb if you see something useless like:
+
+  #32 0x081ae8f4 in scm_primitive_load (filename=1112137128) at load.c:129
+
+  You can get the file name with gp:
+
+  (gdb) gp 1112137128
+  $1 = 0x40853fac "\"/home/bil/test/share/guile/1.5.0/ice-9/session.scm\""
+
+
+Contributing Your Changes ============================================
+
+- If you have put together a change that meets the coding standards
+described below, we encourage you to submit it to Guile.  The best
+place to post it is guile-devel@gnu.org.  Please don't send it
+directly to me; I often don't have time to look things over.  If you
+have tested your change, then you don't need to be shy.
+
+- Please submit patches using either context or unified diffs (diff -c
+or diff -u).  Don't include a patch for ChangeLog; such patches don't
+apply cleanly, since we've probably changed the top of ChangeLog too.
+Instead, provide the unaltered text at the top of your patch.
+
+- For proper credit, also make sure you update the AUTHORS file
+(for new files for which you've assigned copyright to the FSF), or
+the THANKS file (for everything else).
+
+Please don't include patches for generated files like configure,
+aclocal.m4, or any Makefile.in.  Such patches are often large, and
+we're just going to regenerate those files anyway.
+
+
+CVS conventions ======================================================
+
+- We use CVS to manage the Guile sources.  The repository lives on
+subversions.gnu.org, in /cvs; you will need an
+account on that machine to access the repository.  Also, for security
+reasons, subversions presently only supports CVS connections via the SSH
+protocol, so you must first install the SSH client.  Then, you should
+set your CVS_RSH environment variable to ssh, and use the following as
+your CVS root:
+
+	:ext:USER@subversions.gnu.org:/cvs
+
+Either set your CVSROOT environment variable to that, or give it as
+the value of the global -d option to CVS when you check out a working
+directory.
+
+For more information on SSH, see http://www.openssh.com.
+
+The Guile sources live in several modules:
+
+  - guile-core --- the interpreter, QuickThreads, and ice-9
+  - guile-tcltk --- the Guile/Tk interface
+  - guile-tk --- the new Guile/Tk interface, based on STk's modified Tk
+  - guile-rgx-ctax --- the Guile/Rx interface, and the ctax implementation
+  - guile-scsh --- the port of SCSH to guile, talk to Gary Houston
+  - guile-www --- A Guile module for making HTTP requests.
+  - guile-statprof --- an experimental statistical profiler.
+
+There is a mailing list for CVS commit messages; see README for details.
+
+- The guile-core tree is now versioned similarly to the Linux kernel.
+Guile now always uses three numbers to represent the version,
+i.e. "1.6.5".  The first number, 1, is the major version number, the
+second number, 6, is the minor version number, and the third number,
+5, is the micro version number.  Changes in major version number
+indicate major changes in Guile.
+
+Minor version numbers that are even denote stable releases, and odd
+minor version numbers denote development versions (which may be
+unstable).  The micro version number indicates a minor sub-revision of
+a given MAJOR.MINOR release.
+
+- A default CVS checkout will get the current unstable development
+tree.  However, for each stable release, a CVS branch is created so
+that release (and ongoing maintenance) of the stable version can
+proceed independent of the development of the next unstable version.
+To check out a particular stable branch, you just need to specify "-r
+branch_release-X-Y" to your CVS checkout command (or to any update).
+For example, if you wanted to check out the 1.6 stable branch, you
+would specify "-r branch_release-1-6".
+
+So, for example, during a normal development cycle, work will proceed
+on an unstable version, say 1.5.X, until it is decided that it's time
+for a stable release.  At that point, a branch named
+branch_release-1-6 will be created, and the version numbers on the
+HEAD of the CVS tree (the trunk, i.e. what you get by default), will
+be changed to reflect the new unstable version 1.7.X.  Then unstable
+development will proceed on the unstable version, while the stable
+1.5.X branch is fixed up for the eventual 1.6.0 release.
+
+Anytime you want to yank an existing checked out tree to the stable
+branch, you can run a command like this:
+
+  cvs -z3 update -r branch_release-1-6 -Pd
+
+This will yank the working directory over on to the stable release
+branch.  Note that this directory will track that branch from then on
+unless you do something to yank it back to the main (unstable) trunk.
+
+To go back to the unstable branch, you can use
+
+  cvs -z3 update -A -Pd
+
+Note that in either case, you should probably make sure you've
+commited or removed all local changes before running the commands or
+you're likely to have some unexpected results.
+
+Finally note that one approach, should you need to work on both
+branches, is to keep two trees checked out, one stable, the other
+unstable and you can work in whichever is appropriate.
+
+To save some initial bandwidth, you can check out either the stable
+tree or the unstable tree, and then do something like this:
+
+  cp -a core-unstable core-1.5
+  cd core-1.5
+  cvs -z3 update -r branch_release-1-6 -Pd
+
+- The stable and unstable CVS trees are distinct, and no changes will
+automatically propagate between them.  If you make changes that need
+to show up both places, you'll need to apply the changes both places.
+You *might* be able to do this with a cvs command, but often you'll
+probably need to apply the changes by hand or risk migrating
+superfluous modifications between the two versions.  This is
+particularly important when moving a change from the unstable branch
+to the stable branch.
+
+- In general, please don't be adventurous with the stable branch.  We
+mostly want bugfixes, documentation improvements, build improvements,
+etc., though exceptions will doubtless exist.
+
+- There are a few CVS tagging conventions which follow the Scheme
+convention that dashes are used to separate words within a single
+symbol, and so dashes bind more tightly than underscores.  This means
+that foo-bar_baz-bax indicates that foo-bar is somehow separate from
+baz-bax.  The conventions are as follows:
+
+  Branch root tags:
+  -----------------
+  anytime just before you create a branch it's a good
+  idea to create a normal tag so that you can refer to the branch point
+  on the main trunk as well as on the branch.  So please use a tag of
+  the form
+
+    branch-root-release-1-X
+
+  or more generally, for other non-release branches:
+
+    branch-root_FOO
+
+  Branch tags:
+  ------------
+  for the branch tag itself please use
+
+   branch_release-1-6
+
+  or more generally, for other non-release branches:
+
+    branch_FOO
+
+  Merge tags:
+  -----------
+  Whenever you're merging a branch back into the trunk (or into another
+  branch repeatedly) you need to tag the branch each time you merge.  If
+  you don't do that, you won't be able to merge repeatedly without
+  possibly tedious conflicts.  For those tags, we suggest:
+
+    branch-merge_SOME-FOO_to_SOME-BAR_1
+    branch-merge_SOME-FOO_to_SOME-BAR_2
+    ..
+
+  As an example, SOME-BAR might be trunk, or even perhaps another branch
+  like branch-mvo-super-fixes :>
+
+  More mundanely, you might have
+
+    branch-merge_release-1-6_to_trunk_1
+
+  (Merging the stable branch to the trunk like this
+   will probably be much more common, when it happens, than the
+   reverse for the reasons mentioned above.
+
+  Release tags:
+  -------------
+  When releasing a new version of guile, please use:
+
+    release_X-Y-Z
+
+  i.e.
+
+    release_1-6-0
+
+- If you hack on a stable branch, please apply any relevant patches or
+fixes to the current unstable version (the main CVS trunk) as well.
+Similarly, please back-port any important fixes to the unstable CVS
+tree to the current stable branch.
+
+- We check Makefile.am and configure.in files into CVS, but the
+"autogen.sh" script must be run from the top-level to generate the
+actual "configure" script that then must be run to create the various
+Makefile-s to build guile. The general rule is that you should be able
+to check out a working directory of Guile from CVS, and then type
+"./autogen.sh", then "configure", and finally "make".  No
+automatically generated files should be checked into the CVS
+repository.
+
+- The .cvsignore file is contained in the repository, to provide a
+reasonable list of auto-generated files that should not be checked in.
+This, however, prohibits one from having local additions to the
+.cvsignore file (yes, you can modify it and never check it in, but
+that doesn't seem to be a good solution to me).  To get around this
+problem, you might want to patch your cvs program so that it uses a
+.cvsignore-local file (say) instead of the one from the repository.  A
+patch for this can be found at the very end of this file.
+
+- (Automake 1.4 only) Be sure to run automake at the top of the tree
+with no arguments.  Do not use `automake Makefile' to regenerate
+specific Makefile.in files, and do not trust the Makefile rules to
+rebuild them when they are out of date.  Automake 1.4 will add
+extraneous rules to the top-level Makefile if you specify specific
+Makefiles to rebuild on the command line.  Running the command
+`autoreconf --force' should take care of everything correctly.
+
+- Make sure your changes compile and work, at least on your own
+machine, before checking them into the main branch of the Guile
+repository.  A good way for testing this is to run "make distcheck".
+If you really need to check in untested changes, make a branch.
+
+- Include each log entry in both the ChangeLog and in the CVS logs.
+If you're using Emacs, the pcl-cvs interface to CVS has features to
+make this easier; it checks the ChangeLog, and generates good default
+CVS log entries from that.
+
+
+Coding standards =====================================================
+
+- Before contributing larger amounts of code to Guile, please read the
+documents in `guile-core/devel/policy' in the CVS source tree.
+
+- As for any part of Project GNU, changes to Guile should follow the
+GNU coding standards.  The standards are available via anonymous FTP
+from prep.ai.mit.edu, as /pub/gnu/standards/standards.texi and
+make-stds.texi.
+
+- The Guile tree should compile without warnings under the following
+GCC switches, which are the default in the current configure script:
+
+    -O2 -Wall -Wpointer-arith -Wmissing-prototypes
+
+To make sure of this, you can use the --enable-error-on-warning option
+to configure.  This option will make GCC fail if it hits a warning.
+
+Note that the warnings generated vary from one version of GCC to the
+next, and from one architecture to the next (apparently).  To provide
+a concrete common standard, Guile should compile without warnings from
+GCC 2.7.2.3 in a Red Hat 5.2 i386 Linux machine.  Furthermore, each
+developer should pursue any additional warnings noted by on their
+compiler.  This means that people using more stringent compilers will
+have more work to do, and assures that everyone won't switch to the
+most lenient compiler they can find.  :)
+
+Note also that EGCS (as of November 3 1998) doesn't handle the
+`noreturn' attribute properly, so it doesn't understand that functions
+like scm_error won't return.  This may lead to some silly warnings
+about uninitialized variables.  You should look into these warnings to
+make sure they are indeed spurious, but you needn't correct warnings
+caused by this EGCS bug.
+
+- If you add code which uses functions or other features that are not
+entirely portable, please make sure the rest of Guile will still
+function properly on systems where they are missing.  This usually
+entails adding a test to configure.in, and then adding #ifdefs to your
+code to disable it if the system's features are missing.
+
+- The normal way of removing a function, macro or variable is to mark
+it as "deprecated", keep it for a while, and remove it in a later
+release.  If a function or macro is marked as "deprecated" it
+indicates that people shouldn't use it in new programs, and should try
+to remove it in old.  Make sure that an alternative exists unless it
+is our purpose to remove functionality.  Don't deprecate definitions
+if it is unclear when they will be removed.  (This is to ensure that a
+valid way of implementing some functionality always exists.)
+
+When deprecating a definition, always follow this procedure:
+
+1. Mark the definition using
+
+   #if (SCM_DEBUG_DEPRECATED == 0)
+   ...
+   #endif
+
+   or, for Scheme code, wrap it using
+
+   (begin-deprecated
+      ...)
+
+2. Make the deprecated code issue a warning when it is used, by using
+   scm_c_issue_deprecation_warning (in C) or issue-deprecation-warning
+   (in Scheme).
+
+3. Write a comment at the definition explaining how a programmer can
+   manage without the deprecated definition.
+
+4. Add an entry that the definition has been deprecated in NEWS and
+   explain what do do instead.
+
+5. In file TODO, there is a list of releases with reminders about what
+   to do at each release.  Add a reminder about the removal of the
+   deprecated defintion at the appropriate release.
+
+- Please write log entries for functions written in C under the
+functions' C names, and write log entries for functions written in
+Scheme under the functions' Scheme names.  Please don't do this:
+
+	* procs.c, procs.h (procedure-documentation): Moved from eval.c.
+
+Entries like this make it harder to search the ChangeLogs, because you
+can never tell which name the entry will refer to.  Instead, write this:
+
+	* procs.c, procs.h (scm_procedure_documentation): Moved from eval.c.
+
+Changes like adding this line are special:
+
+    SCM_PROC (s_map_in_order, "map-in-order", 2, 0, 1, scm_map);
+
+Since the change here is about the name itself --- we're adding a new
+alias for scm_map that guarantees the order in which we process list
+elements, but we're not changing scm_map at all --- it's appropriate
+to use the Scheme name in the log entry.
+
+- There's no need to keep a change log for a ChangeLog file.  For any
+other kind of file (including documentation, since our documentation
+is indeed precisely engineered -- we surpass GNU standards here), add
+an appropriate ChangeLog entry when you change it.  Simple!
+
+- Make sure you have papers from people before integrating their
+changes or contributions.  This is very frustrating, but very
+important to do right.  From maintain.texi, "Information for
+Maintainers of GNU Software":
+
+    When incorporating changes from other people, make sure to follow the
+    correct procedures.  Doing this ensures that the FSF has the legal
+    right to distribute and defend GNU software.
+
+    For the sake of registering the copyright on later versions ofthe
+    software you need to keep track of each person who makes significant
+    changes.  A change of ten lines or so, or a few such changes, in a
+    large program is not significant.
+
+    *Before* incorporating significant changes, make sure that the person
+    has signed copyright papers, and that the Free Software Foundation has
+    received them.
+
+If you receive contributions you want to use from someone, let me know
+and I'll take care of the administrivia.  Put the contributions aside
+until we have the necessary papers.
+
+Once you accept a contribution, be sure to keep the files AUTHORS and
+THANKS uptodate.
+
+- When you make substantial changes to a file, add the current year to
+the list of years in the copyright notice at the top of the file.
+
+- When you get bug reports or patches from people, be sure to list
+them in THANKS.
+
+
+Naming conventions =================================================
+
+We use certain naming conventions to structure the considerable number
+of global identifiers.  All identifiers should be either all lower
+case or all upper case.  Syllables are separated by underscores `_'.
+All non-static identifiers should start with scm_ or SCM_.  Then might
+follow zero or more syllables giving the category of the identifier.
+The currently used category identifiers are
+
+    t   - type name
+
+    c,C - something with a interface suited for C use.  This is used
+          to name functions that behave like Scheme primitives but
+          have a more C friendly calling convention.
+
+    i,I - internal to libguile.  It is global, but not considered part
+          of the libguile API.
+
+    f   - a SCM variable pointing to a Scheme function object.
+
+    F   - a bit mask for a flag.
+
+    m   - a macro transformer procedure
+
+    n,N - a count of something
+
+    s   - a constant C string
+
+    k   - a SCM variable pointing to a keyword.
+
+  sym   - a SCM variable pointing to a symbol.
+
+  var   - a SCM variable pointing to a variable object.
+
+The follwing syllables also have a technical meaning:
+
+  str   - this denotes a zero terminated C string
+
+  mem   - a C string with an explicit count
+
+
+See also the file `devel/names.text'.
+
+
+Helpful hints ========================================================
+
+- [From Mikael Djurfeldt] When working on the Guile internals, it is
+quite often practical to implement a scheme-level procedure which
+helps you examine the feature you're working on.
+
+Examples of such procedures are: pt-size, debug-hand and
+current-pstate.
+
+I've now put #ifdef GUILE_DEBUG around all such procedures, so that
+they are not compiled into the "normal" Guile library.  Please do the
+same when you add new procedures/C functions for debugging purpose.
+
+You can define the GUILE_DEBUG flag by passing --enable-guile-debug to
+the configure script.
+
+- You'll see uses of the macro SCM_P scattered throughout the code;
+those are vestiges of a time when Guile was meant to compile on
+pre-ANSI compilers.  Guile now requires ANSI C, so when you write new
+functions, feel free to use ANSI declarations, and please provide
+prototypes for everything.  You don't need to use SCM_P in new code.
+
+
+Jim Blandy, and others
+
+
+Patches ===========================================================
+
+This one makes cvs-1.10 consider the file $CVSDOTIGNORE instead of
+.cvsignore when that environment variable is set.
+
+=== patch start ===
+diff -r -u cvs-1.10/src/cvs.h cvs-1.10.ignore-hack/src/cvs.h
+--- cvs-1.10/src/cvs.h	Mon Jul 27 04:54:11 1998
++++ cvs-1.10.ignore-hack/src/cvs.h	Sun Jan 23 12:58:09 2000
+@@ -516,7 +516,7 @@
+
+ extern int ign_name PROTO ((char *name));
+ void ign_add PROTO((char *ign, int hold));
+-void ign_add_file PROTO((char *file, int hold));
++int ign_add_file PROTO((char *file, int hold));
+ void ign_setup PROTO((void));
+ void ign_dir_add PROTO((char *name));
+ int ignore_directory PROTO((char *name));
+diff -r -u cvs-1.10/src/ignore.c cvs-1.10.ignore-hack/src/ignore.c
+--- cvs-1.10/src/ignore.c	Mon Sep  8 01:04:15 1997
++++ cvs-1.10.ignore-hack/src/ignore.c	Sun Jan 23 12:57:50 2000
+@@ -99,9 +99,9 @@
+ /*
+  * Open a file and read lines, feeding each line to a line parser. Arrange
+  * for keeping a temporary list of wildcards at the end, if the "hold"
+- * argument is set.
++ * argument is set.  Return true when the file exists and has been handled.
+  */
+-void
++int
+ ign_add_file (file, hold)
+     char *file;
+     int hold;
+@@ -149,8 +149,8 @@
+     if (fp == NULL)
+     {
+ 	if (! existence_error (errno))
+-	    error (0, errno, "cannot open %s", file);
+-	return;
++	  error (0, errno, "cannot open %s", file);
++	return 0;
+     }
+     while (getline (&line, &line_allocated, fp) >= 0)
+ 	ign_add (line, hold);
+@@ -159,6 +159,7 @@
+     if (fclose (fp) < 0)
+ 	error (0, errno, "cannot close %s", file);
+     free (line);
++    return 1;
+ }
+
+ /* Parse a line of space-separated wildcards and add them to the list. */
+@@ -375,6 +376,7 @@
+     struct stat sb;
+     char *file;
+     char *xdir;
++    char *cvsdotignore;
+
+     /* Set SUBDIRS if we have subdirectory information in ENTRIES.  */
+     if (entries == NULL)
+@@ -397,7 +399,10 @@
+     if (dirp == NULL)
+ 	return;
+
+-    ign_add_file (CVSDOTIGNORE, 1);
++    cvsdotignore = getenv("CVSDOTIGNORE");
++    if (cvsdotignore == NULL || !ign_add_file (cvsdotignore, 1))
++      ign_add_file (CVSDOTIGNORE, 1);
++
+     wrap_add_file (CVSDOTWRAPPER, 1);
+
+     while ((dp = readdir (dirp)) != NULL)
+=== patch end ===
+
+This one is for pcl-cvs-2.9.2, so that `i' adds to the local
+.cvsignore file.
+
+=== patch start ===
+--- pcl-cvs.el~ Mon Nov  1 12:33:46 1999
++++ pcl-cvs.el  Tue Jan 25 21:46:27 2000
+@@ -1177,7 +1177,10 @@
+   "Append the file in FILEINFO to the .cvsignore file.
+ Can only be used in the *cvs* buffer."
+   (save-window-excursion
+-    (set-buffer (find-file-noselect (expand-file-name ".cvsignore" dir)))
++    (set-buffer (find-file-noselect
++                (expand-file-name (or (getenv "CVSDOTIGNORE")
++                                      ".cvsignore")
++                                  dir)))
+     (goto-char (point-max))
+     (unless (zerop (current-column)) (insert "\n"))
+     (insert str "\n")
+=== patch end ===
