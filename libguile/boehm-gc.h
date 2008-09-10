@@ -1,7 +1,7 @@
 #ifndef SCM_BOEHM_GC_H
 #define SCM_BOEHM_GC_H
 
-/* Copyright (C) 2006 Free Software Foundation, Inc.
+/* Copyright (C) 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -34,6 +34,15 @@
 #endif
 
 #include <gc/gc.h>
-#include <gc/gc_local_alloc.h>
+
+#if (defined GC_VERSION_MAJOR) && (GC_VERSION_MAJOR < 7)
+/* This was needed with `libgc' 6.x.  */
+# include <gc/gc_local_alloc.h>
+#endif
+
+#if (defined GC_VERSION_MAJOR) && (GC_VERSION_MAJOR >= 7)
+/* This type was provided by `libgc' 6.x.  */
+typedef void *GC_PTR;
+#endif
 
 #endif /* SCM_BOEHM_GC_H */
