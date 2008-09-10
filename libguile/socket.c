@@ -1,4 +1,4 @@
-/* Copyright (C) 1996,1997,1998,2000,2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1996,1997,1998,2000,2001, 2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -386,16 +386,28 @@ SCM_DEFINE (scm_inet_ntop, "inet-ntop", 2, 0, 0,
 #else
   char dst[46];
 #endif
-  char addr6[16];
+  const char *result;
 
   af = scm_to_int (family);
   SCM_ASSERT_RANGE (1, family, af == AF_INET || af == AF_INET6);
   if (af == AF_INET)
-    *(scm_t_uint32 *) addr6 = htonl (SCM_NUM2ULONG (2, address));
+    {
+      scm_t_uint32 addr4;
+
+      addr4 = htonl (SCM_NUM2ULONG (2, address));
+      result = inet_ntop (af, &addr4, dst, sizeof (dst));
+    }
   else
-    scm_to_ipv6 ((scm_t_uint8 *) addr6, address);
-  if (inet_ntop (af, &addr6, dst, sizeof dst) == NULL)
+    {
+      char addr6[16];
+
+      scm_to_ipv6 ((scm_t_uint8 *) addr6, address);
+      result = inet_ntop (af, &addr6, dst, sizeof (dst));
+    }
+
+  if (result == NULL)
     SCM_SYSERROR;
+
   return scm_from_locale_string (dst);
 }
 #undef FUNC_NAME

@@ -1,6 +1,6 @@
 ;;; srfi-19.scm --- Time/Date Library
 
-;; 	Copyright (C) 2001, 2002, 2003, 2005, 2006 Free Software Foundation, Inc.
+;; 	Copyright (C) 2001, 2002, 2003, 2005, 2006, 2007 Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -350,14 +350,6 @@
   (let ((run-time (get-internal-run-time)))
     (make-time
      time-process
-     (quotient run-time internal-time-units-per-second)
-     (* (remainder run-time internal-time-units-per-second)
-        priv:ns-per-guile-tick))))
-
-(define (priv:current-time-process)
-  (let ((run-time (get-internal-run-time)))
-    (list
-     'time-process
      (* (remainder run-time internal-time-units-per-second)
         priv:ns-per-guile-tick)
      (quotient run-time internal-time-units-per-second))))
@@ -819,10 +811,12 @@
         (hour (date-hour date))
         (day (date-day date))
         (month (date-month date))
-        (year (date-year date)))
+        (year (date-year date))
+        (offset (date-zone-offset date)))
     (+ (priv:encode-julian-day-number day month year)
        (- 1/2)
-       (+ (/ (+ (* hour 60 60)
+       (+ (/ (+ (- offset)
+                (* hour 60 60)
                 (* minute 60)
                 second
                 (/ nanosecond priv:nano))

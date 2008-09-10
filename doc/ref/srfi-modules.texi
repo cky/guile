@@ -37,6 +37,7 @@ get the relevant SRFI documents from the SRFI home page
 * SRFI-19::                     Time/Date library.
 * SRFI-26::                     Specializing parameters
 * SRFI-31::                     A special form `rec' for recursive evaluation
+* SRFI-37::                     args-fold program argument processor
 * SRFI-39::                     Parameter objects
 * SRFI-55::                     Requiring Features.
 * SRFI-60::                     Integers as bits.
@@ -2399,6 +2400,93 @@ The second syntax can be used to create anonymous recursive functions:
   424242
   guile>
 @end lisp
+
+
+@node SRFI-37
+@subsection SRFI-37 - args-fold
+@cindex SRFI-37
+
+This is a processor for GNU @code{getopt_long}-style program
+arguments.  It provides an alternative, less declarative interface
+than @code{getopt-long} in @code{(ice-9 getopt-long)}
+(@pxref{getopt-long,,The (ice-9 getopt-long) Module}).  Unlike
+@code{getopt-long}, it supports repeated options and any number of
+short and long names per option.  Access it with:
+
+@lisp
+(use-modules (srfi srfi-37))
+@end lisp
+
+@acronym{SRFI}-37 principally provides an @code{option} type and the
+@code{args-fold} function.  To use the library, create a set of
+options with @code{option} and use it as a specification for invoking
+@code{args-fold}.
+
+Here is an example of a simple argument processor for the typical
+@samp{--version} and @samp{--help} options, which returns a backwards
+list of files given on the command line:
+
+@lisp
+(args-fold (cdr (program-arguments))
+           (let ((display-and-exit-proc
+                  (lambda (msg)
+                    (lambda (opt name arg loads)
+                      (display msg) (quit)))))
+             (list (option '(#\v "version") #f #f
+                           (display-and-exit-proc "Foo version 42.0\n"))
+                   (option '(#\h "help") #f #f
+                           (display-and-exit-proc
+                            "Usage: foo scheme-file ..."))))
+           (lambda (opt name arg loads)
+             (error "Unrecognized option `~A'" name))
+           (lambda (op loads) (cons op loads))
+           '())
+@end lisp
+
+@deffn {Scheme Procedure} option names required-arg? optional-arg? processor
+Return an object that specifies a single kind of program option.
+
+@var{names} is a list of command-line option names, and should consist of
+characters for traditional @code{getopt} short options and strings for
+@code{getopt_long}-style long options.
+
+@var{required-arg?} and @var{optional-arg?} are mutually exclusive;
+one or both must be @code{#f}.  If @var{required-arg?}, the option
+must be followed by an argument on the command line, such as
+@samp{--opt=value} for long options, or an error will be signalled.
+If @var{optional-arg?}, an argument will be taken if available.
+
+@var{processor} is a procedure that takes at least 3 arguments, called
+when @code{args-fold} encounters the option: the containing option
+object, the name used on the command line, and the argument given for
+the option (or @code{#f} if none).  The rest of the arguments are
+@code{args-fold} ``seeds'', and the @var{processor} should return
+seeds as well.
+@end deffn
+
+@deffn {Scheme Procedure} option-names opt
+@deffnx {Scheme Procedure} option-required-arg? opt
+@deffnx {Scheme Procedure} option-optional-arg? opt
+@deffnx {Scheme Procedure} option-processor opt
+Return the specified field of @var{opt}, an option object, as
+described above for @code{option}.
+@end deffn
+
+@deffn {Scheme Procedure} args-fold args options unrecognized-option-proc operand-proc seeds @dots{}
+Process @var{args}, a list of program arguments such as that returned
+by @code{(cdr (program-arguments))}, in order against @var{options}, a
+list of option objects as described above.  All functions called take
+the ``seeds'', or the last multiple-values as multiple arguments,
+starting with @var{seeds}, and must return the new seeds.  Return the
+final seeds.
+
+Call @code{unrecognized-option-proc}, which is like an option object's
+processor, for any options not found in @var{options}.
+
+Call @code{operand-proc} with any items on the command line that are
+not named options.  This includes arguments after @samp{--}.  It is
+called with the argument in question, as well as the seeds.
+@end deffn
 
 
 @node SRFI-39

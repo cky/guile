@@ -21,5 +21,10 @@
 (define-module (oop goops internal)
   :use-module (oop goops))
 
-(set-module-uses! %module-public-interface
-		  (list (nested-ref the-root-module '(app modules oop goops))))
+;; Export all the bindings that are internal to `(oop goops)'.
+(let ((public-i (module-public-interface (current-module))))
+  (module-for-each (lambda (name var)
+                     (if (eq? name '%module-public-interface)
+                         #t
+                         (module-add! public-i name var)))
+                   (resolve-module '(oop goops))))

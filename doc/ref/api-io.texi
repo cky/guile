@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2007
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -24,6 +24,7 @@
 
 @node Ports
 @subsection Ports
+@cindex Port
 
 Sequential input/output in Scheme is represented by operations on a
 @dfn{port}.  This chapter explains the operations that Guile provides
@@ -94,10 +95,12 @@ Equivalent to @code{(or (input-port? @var{x}) (output-port?
 
 @node Reading
 @subsection Reading
+@cindex Reading
 
 [Generic procedures for reading from ports.]
 
 @rnindex eof-object?
+@cindex End of file object
 @deffn {Scheme Procedure} eof-object? x
 @deffnx {C Function} scm_eof_object_p (x)
 Return @code{#t} if @var{x} is an end-of-file object; otherwise
@@ -217,6 +220,7 @@ Set the current column or line number of @var{port}.
 
 @node Writing
 @subsection Writing
+@cindex Writing
 
 [Generic procedures for writing to ports.]
 
@@ -320,6 +324,8 @@ all open output ports.  The return value is unspecified.
 
 @node Closing
 @subsection Closing
+@cindex Closing ports
+@cindex Port, close
 
 @deffn {Scheme Procedure} close-port port
 @deffnx {C Function} scm_close_port (port)
@@ -354,6 +360,8 @@ open.
 
 @node Random Access
 @subsection Random Access
+@cindex Random access, ports
+@cindex Port, random access
 
 @deffn {Scheme Procedure} seek fd_port offset whence
 @deffnx {C Function} scm_seek (fd_port, offset, whence)
@@ -410,6 +418,8 @@ the current size, but this is not mandatory in the POSIX standard.
 
 @node Line/Delimited
 @subsection Line Oriented and Delimited Text
+@cindex Line input/output
+@cindex Port, line input/output
 
 The delimited-I/O module can be accessed with:
 
@@ -520,6 +530,8 @@ delimiter may be either a newline or the @var{eof-object}; if
 
 @node Block Reading and Writing
 @subsection Block reading and writing
+@cindex Block read/write
+@cindex Port, block read/write
 
 The Block-string-I/O module can be accessed with:
 
@@ -618,6 +630,8 @@ return 0 immediately if the request size is 0 bytes.
 
 @node Default Ports
 @subsection Default Ports for Input, Output and Errors
+@cindex Default ports
+@cindex Port, default
 
 @rnindex current-input-port
 @deffn {Scheme Procedure} current-input-port
@@ -693,6 +707,8 @@ initialized with the @var{port} argument.
 
 @node Port Types
 @subsection Types of Port
+@cindex Types of ports
+@cindex Port, types
 
 [Types of port; how to make them.]
 
@@ -706,6 +722,8 @@ initialized with the @var{port} argument.
 
 @node File Ports
 @subsubsection File Ports
+@cindex File port
+@cindex Port, file
 
 The following procedures are used to open file ports.
 See also @ref{Ports and File Descriptors, open}, for an interface
@@ -866,6 +884,8 @@ Determine whether @var{obj} is a port that is related to a file.
 
 @node String Ports
 @subsubsection String Ports
+@cindex String port
+@cindex Port, string
 
 The following allow string ports to be opened by analogy to R4R*
 file port facilities:
@@ -931,6 +951,8 @@ but trying to extract the file descriptor number will fail.
 
 @node Soft Ports
 @subsubsection Soft Ports
+@cindex Soft port
+@cindex Port, soft
 
 A @dfn{soft-port} is a port based on a vector of procedures capable of
 accepting or delivering characters.  It allows emulation of I/O ports.
@@ -986,6 +1008,8 @@ For example:
 
 @node Void Ports
 @subsubsection Void Ports
+@cindex Void port
+@cindex Port, void
 
 This kind of port causes any data to be discarded when written to, and
 always returns the end-of-file object when read from.
@@ -1010,6 +1034,8 @@ documentation for @code{open-file} in @ref{File Ports}.
 
 @node C Port Interface
 @subsubsection C Port Interface
+@cindex C port interface
+@cindex Port, C interface
 
 This section describes how to use Scheme ports from C.
 
@@ -1119,6 +1145,7 @@ is set.
 
 @node Port Implementation
 @subsubsection Port Implementation
+@cindex Port implemenation
 
 This section describes how to implement a new port type in C.
 

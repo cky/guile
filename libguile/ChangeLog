@@ -1,7 +1,118 @@
+2007-07-22  Ludovic Courtès  <ludo@gnu.org>
+
+	Overhauled the reader, making it faster.
+
+	* gdbint.c (tok_buf, tok_buf_mark_p): Removed.
+	(gdb_read): Don't use a token buffer.  Use `scm_read ()' instead
+	of `scm_lreadr ()'.
+
+	* read.c: Overhauled.  No longer use a token buffer.  Use a
+	on-stack C buffer in the common case and use Scheme strings when
+	larger buffers are needed.
+	* read.h (scm_grow_tok_buf, scm_flush_ws, scm_casei_streq,
+	scm_lreadr, scm_lreadrecparen): Removed.
+	(scm_i_input_error): Marked as `SCM_NORETURN'.
+
+2007-07-15  Ludovic Courtès  <ludo@gnu.org>
+
+	* script.c (scm_compile_shell_switches): Updated copyright year.
+
+2007-07-11  Ludovic Courtès  <ludo@gnu.org>
+
+	* goops.c (scm_sys_method_more_specific_p): Added docstring.
+	Make sure LEN is greater than or equal to the minimum length of
+	specializers of M1 and M2.  This fixes a segfault later on in
+	`more_specificp ()' if TARGS is too small.  Reported by Marco
+	Maggi <marco.maggi-ipsu@poste.it>.
+
+2007-06-26  Ludovic Courtès  <ludo@gnu.org>
+
+	* fluids.c (next_fluid_num): When growing ALLOCATED_FLUIDS, make
+	sure to free the previous array after the new one has been
+	installed.  This leak is made visible by running
+	"(define l (map (lambda (i) (make-fluid)) (iota 255)))"
+	from the REPL within Valgrind.
+
+2007-06-12  Ludovic Courtès  <ludo@chbouib.org>
+
+	* socket.c (scm_inet_ntop): In the `AF_INET' case, declare `addr4'
+	as an `scm_t_uint32' rather than re-using `addr6'.  This fixes a
+	bus error on SPARC (and possibly others) due to unaligned access.
+
+2007-06-07  Ludovic Courtès  <ludovic.courtes@laas.fr>
+
+	* posix.c (scm_ttyname): Check whether RESULT is NULL before
+	making a string from it (reported by Dan McMahill).  Don't call
+	`scm_from_locale_string ()' before the mutex is released.
+
+2007-05-26  Ludovic Courtès  <ludo@chbouib.org>
+
+	* eval.c (scm_m_define): Updated comment.  Changed order for value
+	evaluation and `scm_sym2var ()' call, which is perfectly valid per
+	R5RS.  This reverts the change dated 2004-04-22 by Dirk Herrmann.
+
+2007-05-05  Ludovic Courtès  <ludo@chbouib.org>
+
+	Implemented lazy duplicate binding handling.
+
+	* modules.c (scm_export): Renamed to...
+	(scm_module_export): This.  Now public.
+	(module_variable): Removed.
+	(default_duplicate_binding_procedures_var): New variable.
+	(default_duplicate_binding_handlers, resolve_duplicate_binding,
+	module_imported_variable, scm_module_local_variable,
+	scm_module_variable): New functions.
+	(scm_module_import_interface): Rewritten.
+	(scm_module_reverse_lookup): Exported as a Scheme function.
+	* modules.h (scm_module_index_duplicate_handlers,
+	scm_module_index_import_obarray): New macros.
+	(scm_module_variable, scm_module_local_variable,
+	scm_module_export): New declarations.
+
+2007-04-17  Ludovic Courtès  <ludovic.courtes@laas.fr>
+
+	* numbers.c: Commented out trailing `HAVE_COMPLEX_DOUBLE' after
+	`#endif'.  Use `#ifndef HAVE_XXX' rather than `#if !HAVE_XXX'.
+
+2007-04-09  Han-Wen Nienhuys  <hanwen@lilypond.org>
+
+	* numbers.c (carg): provide carg, cexp, clog in case they are
+	missing.
+
+2007-03-12  Ludovic Courtès  <ludovic.courtes@laas.fr>
+
+	* i18n.c (scm_nl_langinfo): `#ifdef'd uses of `GROUPING',
+	`FRAC_DIGITS', etc., which are GNU extensions.  Reported by
+	Steven Wu.
+
+2007-03-08  Kevin Ryde  <user42@zip.com.au>
+
+	* struct.c, struct.h (scm_make_vtable): New function, providing
+	`make-vtable'.
+	* stacks.c (scm_init_stacks): Use it.
+
+2007-03-06  Kevin Ryde  <user42@zip.com.au>
+
+	* struct.c (scm_make_struct): Check for R,W,O at end of layout when
+	allocating a tail array.  If there's no such then those tail fields
+	are uninitialized and garbage SCMs there can cause a segv if printed
+	(after fetching with struct-ref).
+
+2007-02-22  Kevin Ryde  <user42@zip.com.au>
+
+	* scmsigs.c (scm_sleep): In docstring, cross refence usleep.
+	(scm_usleep): Update docstring per manual, cross reference sleep.
+
+	* struct.c (scm_make_struct): Move SCM_CRITICAL_SECTION_END up so that
+	scm_struct_init is not within that section.  scm_struct_init can
+	thrown an error, which within a critical section results in an
+	abort().
+
 2007-02-19  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* Makefile.am (noinst_HEADERS): Add private-options.h, so that it
 	is included in the distribution.
+	(noinst_HEADERS): And the same for eval.i.c.
 
 2007-01-31  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
@@ -38,9 +149,23 @@
 	acquiring the locale mutex.
 	(scm_init_posix): No longer initialize SCM_I_LOCALE_MUTEX here.
 
+2007-01-27  Kevin Ryde  <user42@zip.com.au>
+
+	* ports.c (scm_port_line, scm_set_port_line_x), read.c
+	(scm_i_input_error, scm_lreadr, scm_lreadrecparen): Corrections to
+	port line number type, should be "long" not "int", as per line_number
+	field of scm_t_port.  (Makes a difference only on 64-bit systems, and
+	only then for a linenum above 2Gig.)
+
 2007-01-25  Han-Wen Nienhuys  <hanwen@lilypond.org>
 
 	* vector.c: remove comment as per kryde's request.
+
+2007-01-25  Kevin Ryde  <user42@zip.com.au>
+
+	* sort.c (scm_stable_sort): Return empty list for input empty list, as
+	done in guile 1.6 and as always done by plain `sort'.  Was falling
+	through to SCM_WRONG_TYPE_ARG.  Reported by Ales Hvezda.
 
 2007-01-22  Han-Wen Nienhuys  <hanwen@lilypond.org>
 
@@ -755,7 +880,7 @@
 	scm_t_uint64 and scm_t_uint32 instead of scm_t_int64 and
 	scm_t_int32.
 
-2006-01-04  Ludovic Court<E8>s  <ludovic.courtes@laas.fr>
+2006-01-04  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
         * gc-segment.c (scm_i_sweep_some_cards): Take a SWEEP_STATS
         argument.  Don't refer to SCM_GC_CELLS_COLLECTED and

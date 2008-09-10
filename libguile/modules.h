@@ -3,7 +3,7 @@
 #ifndef SCM_MODULES_H
 #define SCM_MODULES_H
 
-/* Copyright (C) 1998, 2000, 2001, 2002, 2003, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1998, 2000, 2001, 2002, 2003, 2006, 2007 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -45,6 +45,8 @@ SCM_API scm_t_bits scm_module_tag;
 #define scm_module_index_binder		2
 #define scm_module_index_eval_closure	3
 #define scm_module_index_transformer	4
+#define scm_module_index_duplicate_handlers 7
+#define scm_module_index_import_obarray 8
 
 #define SCM_MODULE_OBARRAY(module) \
   SCM_PACK (SCM_STRUCT_DATA (module) [scm_module_index_obarray])
@@ -56,6 +58,10 @@ SCM_API scm_t_bits scm_module_tag;
   SCM_PACK (SCM_STRUCT_DATA (module)[scm_module_index_eval_closure])
 #define SCM_MODULE_TRANSFORMER(module) \
   SCM_PACK (SCM_STRUCT_DATA (module)[scm_module_index_transformer])
+#define SCM_MODULE_DUPLICATE_HANDLERS(module) \
+  SCM_PACK (SCM_STRUCT_DATA (module)[scm_module_index_duplicate_handlers])
+#define SCM_MODULE_IMPORT_OBARRAY(module) \
+  SCM_PACK (SCM_STRUCT_DATA (module)[scm_module_index_import_obarray])
 
 SCM_API scm_t_bits scm_tc16_eval_closure;
 
@@ -64,6 +70,8 @@ SCM_API scm_t_bits scm_tc16_eval_closure;
 
 
 SCM_API SCM scm_current_module (void);
+SCM_API SCM scm_module_variable (SCM module, SCM sym);
+SCM_API SCM scm_module_local_variable (SCM module, SCM sym);
 SCM_API SCM scm_interaction_environment (void);
 SCM_API SCM scm_set_current_module (SCM module);
 
@@ -80,6 +88,7 @@ SCM_API SCM scm_c_module_lookup (SCM module, const char *name);
 SCM_API SCM scm_c_module_define (SCM module, const char *name, SCM val);
 SCM_API SCM scm_module_lookup (SCM module, SCM symbol);
 SCM_API SCM scm_module_define (SCM module, SCM symbol, SCM val);
+SCM_API SCM scm_module_export (SCM module, SCM symbol_list);
 SCM_API SCM scm_module_reverse_lookup (SCM module, SCM variable);
 
 SCM_API SCM scm_c_resolve_module (const char *name);

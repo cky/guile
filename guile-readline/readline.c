@@ -1,6 +1,6 @@
 /* readline.c --- line editing support for Guile */
 
-/* Copyright (C) 1997,1999,2000,2001, 2002, 2003, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1997,1999,2000,2001, 2002, 2003, 2006, 2007 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -329,6 +329,7 @@ SCM_DEFINE (scm_add_history, "add-history", 1, 0, 0,
 
   s = scm_to_locale_string (text);
   add_history (s);
+  free (s);
 
   return SCM_UNSPECIFIED;
 }

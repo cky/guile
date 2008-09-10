@@ -1,5 +1,5 @@
 Guile NEWS --- history of user-visible changes.
-Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 See the end for copying conditions.
 
 Please send Guile bug reports to bug-guile@gnu.org.  Note that you
@@ -16,17 +16,31 @@ Each release reports the NEWS in the following sections:
 
 Changes in 1.9.XXXXXXXX:
 
+* New modules (see the manual for details)
+
+** The `(ice-9 i18n)' module provides internationalization support
+
 * Changes to the distribution
 * Changes to the stand-alone interpreter
 * Changes to Scheme functions and syntax
 
-** A new 'memoize-symbol evaluator trap has been added. This trap can
+** A new 'memoize-symbol evaluator trap has been added.  This trap can
 be used for efficiently implementing a Scheme code coverage.
+
+** Duplicate bindings among used modules are resolved lazily.
+This slightly improves program startup times.
 
 * Changes to the C interface
 
-** Functions for handling scm_option now no longer require an argument
-indicating length of the scm_t_option array.
+** Functions for handling `scm_option' now no longer require an argument
+indicating length of the `scm_t_option' array.
+
+
+Changes in 1.8.3 (since 1.8.2)
+
+* New modules (see the manual for details)
+
+** `(srfi srfi-37)'
 
 
 Changes in 1.8.2 (since 1.8.1):
@@ -34,6 +48,7 @@ Changes in 1.8.2 (since 1.8.1):
 * New procedures (see the manual for details)
 
 ** set-program-arguments
+** make-vtable
 
 * Bugs fixed
 
@@ -45,14 +60,21 @@ Changes in 1.8.2 (since 1.8.1):
 the core bindings got priority, preventing SRFI replacements or
 extensions.)
 ** `regexp-exec' doesn't abort() on #\nul in the input or bad flags arg
-** `kill' on mingw throws an error for a pid other than oneself
+** `kill' on mingw throws an error for a PID other than oneself
 ** Procedure names are attached to procedure-with-setters
 ** Array read syntax works with negative lower bound
 ** `array-in-bounds?' fix if an array has different lower bounds on each index
 ** `*' returns exact 0 for "(* inexact 0)"
 This follows what it always did for "(* 0 inexact)".
+** SRFI-19: Value returned by `(current-time time-process)' was incorrect
+** SRFI-19: `date->julian-day' did not account for timezone offset
+** `ttyname' no longer crashes when passed a non-tty argument
+** `inet-ntop' no longer crashes on SPARC when passed an `AF_INET' address
+** Small memory leaks have been fixed in `make-fluid' and `add-history'
+** GOOPS: Fixed a bug in `method-more-specific?'
 ** Build problems on Solaris fixed
-** Build problems on Mingw fixed
+** Build problems on HP-UX IA64 fixed
+** Build problems on MinGW fixed
 
 
 Changes in 1.8.1 (since 1.8.0):
@@ -77,6 +99,8 @@ Changes in 1.8.1 (since 1.8.0):
 * Bugs fixed
 
 ** Build problems have been fixed on MacOS, SunOS, and QNX.
+
+** `strftime' fix sign of %z timezone offset.
 
 ** A one-dimensional array can now be 'equal?' to a vector.
 

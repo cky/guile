@@ -1,4 +1,4 @@
-/* Copyright (C) 1999,2000,2001,2002, 2004, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1999,2000,2001,2002, 2004, 2006, 2007 Free Software Foundation, Inc.
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -531,6 +531,9 @@ SCM_DEFINE (scm_stable_sort, "stable-sort", 2, 0, 0,
 	    "This is a stable sort.")
 #define FUNC_NAME s_scm_stable_sort
 {
+  if (SCM_NULL_OR_NIL_P (items))
+    return SCM_EOL;
+
   if (scm_is_pair (items))
     return scm_stable_sort_x (scm_list_copy (items), less);
   else if (scm_is_vector (items))

@@ -1,7 +1,7 @@
 ;;;; srfi-19.test --- test suite for SRFI-19 -*- scheme -*-
 ;;;; Matthias Koeppe <mkoeppe@mail.math.uni-magdeburg.de> --- June 2001
 ;;;;
-;;;; 	Copyright (C) 2001, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2001, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 ;;;;
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -109,7 +109,9 @@ incomplete numerical tower implementation.)"
 		add-duration
 		#t))
   (pass-if "(current-time time-tai) works"
-	   (begin (current-time time-tai) #t))
+	   (time? (current-time time-tai)))
+  (pass-if "(current-time time-process) works"
+           (time? (current-time time-process)))
   (test-time-conversion time-utc time-tai)
   (test-time-conversion time-utc time-monotonic)
   (test-time-conversion time-tai time-monotonic)
@@ -139,6 +141,12 @@ incomplete numerical tower implementation.)"
   (test-dst time-monotonic->date date->time-monotonic)
   (test-dst julian-day->date date->julian-day)
   (test-dst modified-julian-day->date date->modified-julian-day)
+
+  (pass-if "`date->julian-day' honors timezone"
+    (let ((now (current-date -14400)))
+      (time=? (date->time-utc (julian-day->date (date->julian-day now)))
+              (date->time-utc now))))
+
   (pass-if "string->date respects local DST if no time zone is read"
 	   (time=? (date->time-utc
 		    (with-tz "EST5EDT"

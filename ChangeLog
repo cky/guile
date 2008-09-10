@@ -1,10 +1,79 @@
+2007-07-22  Ludovic Courtès  <ludo@gnu.org>
+
+	* configure.in: Check for <strings.h> and `strncasecmp ()'.
+
+2007-07-19  Ludovic Courtès  <ludo@gnu.org>
+
+	* NEWS: Mention `(ice-9 i18n)' and lazy duplicate binding
+	resolution.
+
+2007-07-18  Ludovic Courtès  <ludo@gnu.org>
+
+	* NEWS: Mention SRFI-37.
+
+2007-07-15  Ludovic Courtès  <ludo@gnu.org>
+
+	Guile 1.8.2 released.
+
+	* NEWS: Mention HP-UX/IA64 build fixes.
+
+	* THANKS: Added people who reported bugs or sent patches since
+	1.8.1.  Converted to UTF-8.
+
+	* README: Updated version number.
+
+	* Makefile.am (EXTRA_DIST): Removed `BUGS' (was outdated).
+
+	* ANON-CVS, HACKING, SNAPSHOTS: New, from the `workbook'
+	directory of the CVS repository.
+
+	* autogen.sh: Removed dependency on the `workbook' CVS
+	directory.
+
+	* GUILE-VERSION (GUILE_MICRO_VERSION): Set to 2.
+	(LIBGUILE_INTERFACE_CURRENT): Incremented due to new symbols.
+	(LIBGUILE_INTERFACE_REVISION): Set to 0.
+	(LIBGUILE_INTERFACE_AGE): Incremented.
+	(LIBGUILE_SRFI_SRFI_60_INTERFACE_REVISION): Incremented due to
+	bug fixes.
+
+2007-07-11  Ludovic Courtès  <ludo@gnu.org>
+
+	* NEWS: Mention GOOPS `method-more-specific?' bug fix.
+
+2007-07-09  Ludovic Courtès  <ludo@gnu.org>
+
+	* NEWS: Mention SRFI-19 `date->julian-day' bug fix.
+
+2007-06-26  Ludovic Courtès  <ludo@gnu.org>
+
+	* NEWS: Mention fixed memory leaks.
+
+2007-06-12  Ludovic Courtès  <ludo@chbouib.org>
+
+	* NEWS: Mention `inet-ntop' bug fix.
+
+2007-05-09  Ludovic Courtès  <ludo@chbouib.org>
+
+	* NEWS: Mention SRFI-19 `time-process' bug fix.
+
+2007-04-17  Ludovic Courtès  <ludovic.courtes@laas.fr>
+
+	* configure.in (GUILE_FOR_BUILD): Reverted to `$(preinstguile)'
+	instead of `$(top_builddir_absolute)/$(preinstguile)'.
+	
+2007-04-09  Han-Wen Nienhuys  <hanwen@lilypond.org>
+
+	* configure.in (HAVE_CRYPT): check for cexp, clog, carg
+
+2007-02-24  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* autogen.sh: Announce versions of autoconf, automake, libtool and
+	m4.
+
+	* pre-inst-guile.in (subdirs_with_ltlibs): Add libguile.
+
 2007-02-18  Neil Jerram  <neil@ossau.uklinux.net>
-
-	* acinclude.m4 (AM_INTL_SUBDIR): Remove unnecessary dnl.
-
-	* configure.in: Remove AM_GNU_GETTEXT_VERSION again.
-
-	* Makefile.am (EXTRA_DIST): Add config.rpath.
 
 	* config.rpath (Module): New (from gettext package).
 
@@ -15,19 +84,28 @@
 
 2007-01-28  Neil Jerram  <neil@ossau.uklinux.net>
 
-	* configure.in: Do AM_GNU_GETTEXT_VERSION, so that autoreconf will
-	run autopoint.
-
-	* acinclude.m4 (AM_INTL_SUBDIR): Provide dummy definition, to work
-	around current autoconf/automake/gettext bug.
-
 	* INSTALL: New upstream version.
 
 	* ABOUT-NLS: New upstream version.
 
+2007-01-23  Kevin Ryde  <user42@zip.com.au>
+
+	* configure.in (isinf, isnan): Use a volatile global to stop gcc
+	optimizing out the test.  In particular this fixes solaris where there
+	isn't an isinf or isnan (though gcc still optimizes as if there is).
+	Reported by Hugh Sasse.
+	(AC_C_VOLATILE): New.
+
 2007-01-22  Han-Wen Nienhuys  <hanwen@lilypond.org>
 
 	* .gitignore: new file. Make using git easier.
+
+2007-01-22  Kevin Ryde  <user42@zip.com.au>
+
+	* configure.in (AC_INIT): Don't use "echo -n", it's not portable and
+	in particular fails on solaris (resulting in literal "-n"s going into
+	the output, making the resulting configure unusable).  Reported by
+	Hugh Sasse.
 
 2007-01-03  Han-Wen Nienhuys  <hanwen@lilypond.org>
 

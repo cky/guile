@@ -29,6 +29,7 @@
  exception:wrong-num-args exception:wrong-type-arg
  exception:numerical-overflow
  exception:struct-set!-denied
+ exception:system-error
  exception:miscellaneous-error
  exception:string-contains-nul
 
@@ -257,6 +258,8 @@
   (cons 'numerical-overflow "^Numerical overflow"))
 (define exception:struct-set!-denied
   (cons 'misc-error "^set! denied for field"))
+(define exception:system-error
+  (cons 'system-error ".*"))
 (define exception:miscellaneous-error
   (cons 'misc-error "^.*"))
 

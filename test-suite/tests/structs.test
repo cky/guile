@@ -102,6 +102,60 @@
 	      (equal? (make-ball red "Bob") (make-ball red "Bill"))))))
 
 
+;;
+;; make-struct
+;;
+
+(define exception:bad-tail
+  (cons 'misc-error "tail array not allowed unless"))
+
+(with-test-prefix "make-struct"
+
+  ;; in guile 1.8.1 and earlier, this caused an error throw out of an
+  ;; SCM_CRITICAL_SECTION_START / SCM_CRITICAL_SECTION_END, which abort()ed
+  ;; the program
+  ;;
+  (pass-if-exception "wrong type for `u' field" exception:wrong-type-arg
+    (let* ((vv (make-vtable-vtable "" 0))
+	   (v  (make-struct vv 0 (make-struct-layout "uw"))))
+      (make-struct v 0 'x)))
+
+  ;; In guile 1.8.1 and earlier, and 1.6.8 and earlier, there was no check
+  ;; on a tail array being created without an R/W/O type for it.  This left
+  ;; it uninitialized by scm_struct_init(), resulting in garbage getting
+  ;; into an SCM when struct-ref read it (and attempting to print a garbage
+  ;; SCM can cause a segv).
+  ;;
+  (pass-if-exception "no R/W/O for tail array" exception:bad-tail
+    (let* ((vv (make-vtable-vtable "" 0))
+	   (v  (make-struct vv 0 (make-struct-layout "pw"))))
+      (make-struct v 123 'x))))
+
+;;
+;; make-vtable
+;;
+
+(with-test-prefix "make-vtable"
+
+  (pass-if "without printer"
+    (let* ((vtable (make-vtable "pwpr"))
+	   (struct (make-struct vtable 0 'x 'y)))
+      (and (eq? 'x (struct-ref struct 0))
+	   (eq? 'y (struct-ref struct 1)))))
+
+  (pass-if "with printer"
+    (let ()
+      (define (print struct port)
+	(display "hello" port))
+	
+      (let* ((vtable (make-vtable "pwpr" print))
+	     (struct (make-struct vtable 0 'x 'y))
+	     (str    (call-with-output-string
+		      (lambda (port)
+			(display struct port)))))
+	 (equal? str "hello")))))
+
+
 ;;; Local Variables:
 ;;; coding: latin-1
 ;;; End:

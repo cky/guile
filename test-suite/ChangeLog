@@ -1,3 +1,90 @@
+2007-07-22  Ludovic Courtès  <ludo@gnu.org>
+
+	* tests/reader.test: Added a proper header and `define-module'.
+	(exception:unterminated-block-comment,
+	exception:unknown-character-name,
+	exception:unknown-sharp-object, exception:eof-in-string,
+	exception:illegal-escape, with-read-options): New.
+	(reading)[block comment, unprintable symbol]: New tests.
+	(exceptions): New test prefix.
+	(read-options): New test prefix.
+
+2007-07-18  Stephen Compall  <s11@member.fsf.org>
+
+	* tests/syntax.test: Add SRFI-61 `cond' tests.
+
+	* tests/srfi-37.test: New file.
+	* Makefile.am: Add it.
+
+2007-07-11  Ludovic Courtès  <ludo@gnu.org>
+
+	* tests/goops.test (defining methods): New test prefix.
+
+2007-07-09  Ludovic Courtès  <ludo@gnu.org>
+
+	* tests/srfi-19.test (`time-utc->julian-day' honors timezone):
+	New.  Suggested by Jon Wilson <j85wilson@fastmail.fm>.
+
+2007-06-26  Ludovic Courtès  <ludo@gnu.org>
+
+	* tests/socket.test (htonl): Only executed if `htonl' is defined.
+	(ntohl): Likewise.  Reported by Marijn Schouten (hkBst)
+	<hkBst@gentoo.org>.
+
+2007-06-12  Ludovic Courtès  <ludo@chbouib.org>
+
+	* tests/socket.test: Renamed module to `(test-suite test-socket)'.
+	(inet-ntop): New test prefix.
+
+2007-06-07  Ludovic Courtès  <ludovic.courtes@laas.fr>
+
+	* lib.scm (exception:system-error): New variable.
+
+	* tests/posix.test (ttyname): New test prefix.  Catches a bug
+	reported by Dan McMahill.
+
+2007-05-26  Ludovic Courtès  <ludo@chbouib.org>
+
+	* tests/syntax.test (top-level define)[binding is created before
+	expression is evaluated]: Moved to "internal define", using `let'
+	instead of `begin'.  The test was not necessarily valid for
+	top-level defines, according to Section 5.2.1 or R5RS.
+	[redefinition]: New.
+
+2007-05-09  Ludovic Courtès  <ludo@chbouib.org>
+
+	* tests/srfi-19.test ((current-time time-tai) works): Use `time?'.
+	((current-time time-process) works): New test, catches a bug
+	reported by Scott Shedden.
+
+2007-05-05  Ludovic Courtès  <ludo@chbouib.org>
+
+	* tests/modules.test: Use `define-module'.  Use `(srfi srfi-1)'.
+	(foundations, observers, duplicate bindings, lazy binder): New
+	test prefixes.
+	(autoload)[module-autoload!]: New test.
+
+2007-03-08  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/structs.test (make-struct): Exercise the error check on tail
+	array size != 0 when layout spec doesn't have tail array.
+	(make-vtable): Exercise this.
+
+2007-02-22  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/structs.test (make-struct): New test of type check on a "u"
+	field, which had been causing an abort().
+
+2007-02-20  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* standalone/Makefile.am (check_SCRIPTS): Add test-use-srfi, so
+	that it gets into the distribution.
+
+2007-02-19  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* standalone/Makefile.am (check_SCRIPTS): Add test-use-srfi, so
+	that it gets into the distribution.
+
 2007-01-31  Ludovic Courtès  <ludovic.courtes@laas.fr>
 
 	* tests/i18n.test: Use `(srfi srfi-1)'.
@@ -12,6 +99,20 @@
 	* tests/srfi-19.test: Install the C locale.
 	(SRFI date/time library)[string->date understands days and
 	months]: New test.
+
+2007-01-27  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/ports.test (port-line): Check not truncated to "int" on 64-bit
+	systems.
+
+2007-01-25  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/sort.test (stable-sort): New test, exercising empty list
+	input.  As reported by Ales Hvezda.
+
+	* tests/time.test (gmtime in another thread): Catch #t all errors from
+	gmtime in the thread, since it can be a system error not a scheme
+	out-of-range on 64-bit systems.  Reported by Marijn Schouten.
 
 2007-01-19  Ludovic Courtès  <ludovic.courtes@laas.fr>
 

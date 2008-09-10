@@ -1,5 +1,5 @@
 #!/bin/sh
-# Usage: sh -x ./autogen.sh [WORKBOOK]
+# Usage: sh -x ./autogen.sh
 
 set -e
 
@@ -9,32 +9,16 @@ set -e
 }
 
 ######################################################################
-### Find workbook and make symlinks.
-
-workbook=../workbook                    # assume "cvs co hack"
-test x$1 = x || workbook=$1
-if [ ! -d $workbook ] ; then
-    echo "ERROR: could not find workbook dir"
-    echo "       re-run like so: $0 WORKBOOK"
-    exit 1
-fi
-: found workbook at $workbook
-workbook=`(cd $workbook ; pwd)`
-
-workbookdistfiles="ANON-CVS HACKING SNAPSHOTS"
-for f in $workbookdistfiles ; do
-    rm -f $f
-    ln -s $workbook/build/dist-files/$f $f
-done
-rm -f examples/example.gdbinit
-ln -s $workbook/build/dist-files/.gdbinit examples/example.gdbinit
-
-# TODO: This should be moved to dist-guile
-mscripts=../guile-scripts
-if test -x $mscripts/render-bugs ; then
-  rm -f BUGS
-  $mscripts/render-bugs > BUGS
-fi
+### announce build tool versions
+echo ""
+autoconf --version
+echo ""
+automake --version
+echo ""
+libtool --version
+echo ""
+${M4:-/usr/bin/m4} --version
+echo ""
 
 ######################################################################
 ### update infrastructure

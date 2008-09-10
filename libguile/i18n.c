@@ -1442,35 +1442,40 @@ SCM_DEFINE (scm_nl_langinfo, "nl-langinfo", 1, 1, 0,
     result = SCM_BOOL_F;
   else
     {
-      char *p;
-
       switch (c_item)
 	{
+#if (defined GROUPING) && (defined MON_GROUPING)
 	case GROUPING:
 	case MON_GROUPING:
-	  /* In this cases, the result is to be interpreted as a list of
-	     numbers.  If the last item is `CHARS_MAX', it has the special
-	     meaning "no more grouping".  */
-	  result = SCM_EOL;
-	  for (p = c_result; (*p != '\0') && (*p != CHAR_MAX); p++)
-	    result = scm_cons (SCM_I_MAKINUM ((int) *p), result);
-
 	  {
-	    SCM last_pair = result;
+	    char *p;
 
-	    result = scm_reverse_x (result, SCM_EOL);
+	    /* In this cases, the result is to be interpreted as a list of
+	       numbers.  If the last item is `CHARS_MAX', it has the special
+	       meaning "no more grouping".  */
+	    result = SCM_EOL;
+	    for (p = c_result; (*p != '\0') && (*p != CHAR_MAX); p++)
+	      result = scm_cons (SCM_I_MAKINUM ((int) *p), result);
 
-	    if (*p != CHAR_MAX)
-	      {
-		/* Cyclic grouping information.  */
-		if (last_pair != SCM_EOL)
-		  SCM_SETCDR (last_pair, result);
-	      }
+	    {
+	      SCM last_pair = result;
+
+	      result = scm_reverse_x (result, SCM_EOL);
+
+	      if (*p != CHAR_MAX)
+		{
+		  /* Cyclic grouping information.  */
+		  if (last_pair != SCM_EOL)
+		    SCM_SETCDR (last_pair, result);
+		}
+	    }
+
+	    free (c_result);
+	    break;
 	  }
+#endif
 
-	  free (c_result);
-	  break;
-
+#if (defined FRAC_DIGITS) && (defined INT_FRAC_DIGITS)
 	case FRAC_DIGITS:
 	case INT_FRAC_DIGITS:
 	  /* This is to be interpreted as a single integer.  */
@@ -1482,19 +1487,25 @@ SCM_DEFINE (scm_nl_langinfo, "nl-langinfo", 1, 1, 0,
 
 	  free (c_result);
 	  break;
+#endif
 
+#if (defined P_CS_PRECEDES) && (defined INT_N_CS_PRECEDES)
 	case P_CS_PRECEDES:
 	case N_CS_PRECEDES:
 	case INT_P_CS_PRECEDES:
 	case INT_N_CS_PRECEDES:
+#if (defined P_SEP_BY_SPACE) && (defined N_SEP_BY_SPACE)
 	case P_SEP_BY_SPACE:
 	case N_SEP_BY_SPACE:
+#endif
 	  /* This is to be interpreted as a boolean.  */
 	  result = scm_from_bool (*c_result);
 
 	  free (c_result);
 	  break;
+#endif
 
+#if (defined P_SIGN_POSN) && (defined INT_N_SIGN_POSN)
 	case P_SIGN_POSN:
 	case N_SIGN_POSN:
 	case INT_P_SIGN_POSN:
@@ -1527,6 +1538,7 @@ SCM_DEFINE (scm_nl_langinfo, "nl-langinfo", 1, 1, 0,
 	      result = scm_from_locale_symbol ("unspecified");
 	    }
 	  break;
+#endif
 
 	default:
 	  /* FIXME: `locale_string ()' is not appropriate here because of

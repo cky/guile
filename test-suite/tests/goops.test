@@ -177,6 +177,39 @@
 		  (null? (generic-function-methods foo)))
 	    (current-module)))))
 
+(with-test-prefix "defining methods"
+
+  (pass-if "define-method"
+    (let ((m (current-module)))
+      (eval '(define-method (my-plus (s1 <string>) (s2 <string>))
+               (string-append s1 s2))
+            m)
+      (eval '(define-method (my-plus (i1 <integer>) (i2 <integer>))
+               (+ i1 i2))
+            m)
+      (eval '(and (is-a? my-plus <generic>)
+                  (= (length (generic-function-methods my-plus))
+                     2))
+            m)))
+
+  (pass-if "method-more-specific?"
+    (eval '(let* ((m+        (generic-function-methods my-plus))
+                  (m1        (car m+))
+                  (m2        (cadr m+))
+                  (arg-types (list <string> <string>)))
+             (if (memq <string> (method-specializers m1))
+                 (method-more-specific? m1 m2 arg-types)
+                 (method-more-specific? m2 m1 arg-types)))
+          (current-module)))
+
+  (pass-if-exception "method-more-specific? (failure)"
+                     exception:wrong-type-arg
+    (eval '(let* ((m+ (generic-function-methods my-plus))
+                  (m1 (car m+))
+                  (m2 (cadr m+)))
+             (method-more-specific? m1 m2 '()))
+          (current-module))))
+
 (with-test-prefix "defining accessors"
 
   (with-test-prefix "define-accessor"

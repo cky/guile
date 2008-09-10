@@ -1,3 +1,8 @@
+2007-05-05  Ludovic Courtès  <ludo@chbouib.org>
+
+	* goops/internal.scm: Use the public module API rather than hack
+	with `%module-public-interface', `nested-ref', et al.
+
 2005-03-24  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* accessors.scm, simple.scm: New files.

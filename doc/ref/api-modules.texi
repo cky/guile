@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2007
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -600,6 +600,18 @@ Return the current module object.
 @deffn {Scheme Procedure} set-current-module module
 Set the current module to @var{module} and return
 the previous current module.
+@end deffn
+
+@deffn {Scheme Procedure} save-module-excursion thunk
+Call @var{thunk} within a @code{dynamic-wind} such that the module that
+is current at invocation time is restored when @var{thunk}'s dynamic
+extent is left (@pxref{Dynamic Wind}).
+
+More precisely, if @var{thunk} escapes non-locally, the current module
+(at the time of escape) is saved, and the original current module (at
+the time @var{thunk}'s dynamic extent was last entered) is restored.  If
+@var{thunk}'s dynamic extent is re-entered, then the current module is
+saved, and the previously saved inner module is set current again.
 @end deffn
 
 @deffn {Scheme Procedure} resolve-module name

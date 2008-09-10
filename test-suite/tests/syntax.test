@@ -557,6 +557,50 @@
         (let ((=> 'foo))
           (eq? (cond (else => identity)) identity)))))
 
+  (with-test-prefix "SRFI-61"
+
+    (pass-if "always available"
+      (cond-expand (srfi-61 #t) (else #f)))
+
+    (pass-if "single value consequent"
+      (eq? 'ok (cond (#t identity => (lambda (x) 'ok)) (else #f))))
+
+    (pass-if "single value alternate"
+      (eq? 'ok (cond (#t not => (lambda (x) #f)) (else 'ok))))
+
+    (pass-if-exception "doesn't affect standard =>"
+      exception:wrong-num-args
+      (cond ((values 1 2) => (lambda (x y) #t))))
+
+    (pass-if "multiple values consequent"
+      (equal? '(2 1) (cond ((values 1 2)
+			    (lambda (one two)
+			      (and (= 1 one) (= 2 two))) =>
+			    (lambda (one two) (list two one)))
+			   (else #f))))
+
+    (pass-if "multiple values alternate"
+      (eq? 'ok (cond ((values 2 3 4)
+		      (lambda args (equal? '(1 2 3) args)) =>
+		      (lambda (x y z) #f))
+		     (else 'ok))))
+
+    (pass-if "zero values"
+      (eq? 'ok (cond ((values) (lambda () #t) => (lambda () 'ok))
+		     (else #f))))
+
+    (pass-if "bound => is handled correctly"
+      (let ((=> 'ok))
+	(eq? 'ok (cond (#t identity =>) (else #f)))))
+
+    (pass-if-exception "missing recipient"
+      '(syntax-error . "Missing recipient")
+      (cond (#t identity =>)))
+
+    (pass-if-exception "extra recipient"
+      '(syntax-error . "Extra expression")
+      (cond (#t identity => identity identity))))
+
   (with-test-prefix "unmemoization"
 
     (pass-if "normal clauses"
@@ -725,15 +769,16 @@
 
 (with-test-prefix "top-level define"
 
-  (pass-if "binding is created before expression is evaluated"
-    (= (eval '(begin
-                (define foo
-                  (begin
-                    (set! foo 1)
-                    (+ foo 1)))
-                foo)
-             (interaction-environment))
-       2))
+  (pass-if "redefinition"
+    (let ((m (make-module)))
+      (beautify-user-module! m)
+
+      ;; The previous value of `round' must still be visible at the time the
+      ;; new `round' is defined.  According to R5RS (Section 5.2.1), `define'
+      ;; should behave like `set!' in this case (except that in the case of
+      ;; Guile, we respect module boundaries).
+      (eval '(define round round) m)
+      (eq? (module-ref m 'round) round)))
 
   (with-test-prefix "currying"
 
@@ -779,6 +824,17 @@
                   (eq? 'b (a 1) (a 4))
                   (eq? 'c (a 2) (a 5))))
           (interaction-environment)))
+
+  (pass-if "binding is created before expression is evaluated"
+    ;; Internal defines are equivalent to `letrec' (R5RS, Section 5.2.2).
+    (= (eval '(let ()
+                (define foo
+                  (begin
+                    (set! foo 1)
+                    (+ foo 1)))
+                foo)
+             (interaction-environment))
+       2))
 
   (pass-if "internal defines with begin"
     (false-if-exception

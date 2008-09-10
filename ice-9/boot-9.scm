@@ -1098,18 +1098,20 @@
 ;;;   'module, 'directory, 'interface, 'custom-interface.  If no explicit kind
 ;;;   is set, it defaults to 'module.
 ;;;
-;;; - duplicates-handlers
+;;; - duplicates-handlers: a list of procedures that get called to make a
+;;;   choice between two duplicate bindings when name clashes occur.  See the
+;;;   `duplicate-handlers' global variable below.
 ;;;
-;;; - duplicates-interface
+;;; - observers: a list of procedures that get called when the module is
+;;;   modified.
 ;;;
-;;; - observers
-;;;
-;;; - weak-observers
-;;;
-;;; - observer-id
+;;; - weak-observers: a weak-key hash table of procedures that get called
+;;;   when the module is modified.  See `module-observe-weak' for details.
 ;;;
 ;;; In addition, the module may (must?) contain a binding for
-;;; %module-public-interface... More explanations here...
+;;; `%module-public-interface'.  This variable should be bound to a module
+;;; representing the exported interface of a module.  See the
+;;; `module-public-interface' and `module-export!' procedures.
 ;;;
 ;;; !!! warning: The interface to lazy binder procedures is going
 ;;; to be changed in an incompatible way to permit all the basic
@@ -1173,8 +1175,8 @@
 (define module-type
   (make-record-type 'module
 		    '(obarray uses binder eval-closure transformer name kind
-		      duplicates-handlers duplicates-interface
-		      observers weak-observers observer-id)
+		      duplicates-handlers import-obarray
+		      observers weak-observers)
 		    %print-module))
 
 ;; make-module &opt size uses binder
@@ -1189,6 +1191,10 @@
 	(if (> (length args) index)
 	    (list-ref args index)
 	    default))
+
+      (define %default-import-size
+        ;; Typical number of imported bindings actually used by a module.
+        600)
 
       (if (> (length args) 3)
 	  (error "Too many args to make-module." args))
@@ -1207,10 +1213,10 @@
 	     "Lazy-binder expected to be a procedure or #f." binder))
 
 	(let ((module (module-constructor (make-hash-table size)
-					  uses binder #f #f #f #f #f #f
+					  uses binder #f #f #f #f #f
+					  (make-hash-table %default-import-size)
 					  '()
-					  (make-weak-value-hash-table 31)
-					  0)))
+					  (make-weak-key-hash-table 31))))
 
 	  ;; We can't pass this as an argument to module-constructor,
 	  ;; because we need it to close over a pointer to the module
@@ -1240,16 +1246,12 @@
   (record-accessor module-type 'duplicates-handlers))
 (define set-module-duplicates-handlers!
   (record-modifier module-type 'duplicates-handlers))
-(define module-duplicates-interface
-  (record-accessor module-type 'duplicates-interface))
-(define set-module-duplicates-interface!
-  (record-modifier module-type 'duplicates-interface))
 (define module-observers (record-accessor module-type 'observers))
 (define set-module-observers! (record-modifier module-type 'observers))
 (define module-weak-observers (record-accessor module-type 'weak-observers))
-(define module-observer-id (record-accessor module-type 'observer-id))
-(define set-module-observer-id! (record-modifier module-type 'observer-id))
 (define module? (record-predicate module-type))
+
+(define module-import-obarray (record-accessor module-type 'import-obarray))
 
 (define set-module-eval-closure!
   (let ((setter (record-modifier module-type 'eval-closure)))
@@ -1269,11 +1271,19 @@
   (set-module-observers! module (cons proc (module-observers module)))
   (cons module proc))
 
-(define (module-observe-weak module proc)
-  (let ((id (module-observer-id module)))
-    (hash-set! (module-weak-observers module) id proc)
-    (set-module-observer-id! module (+ 1 id))
-    (cons module id)))
+(define (module-observe-weak module observer-id . proc)
+  ;; Register PROC as an observer of MODULE under name OBSERVER-ID (which can
+  ;; be any Scheme object).  PROC is invoked and passed MODULE any time
+  ;; MODULE is modified.  PROC gets unregistered when OBSERVER-ID gets GC'd
+  ;; (thus, it is never unregistered if OBSERVER-ID is an immediate value,
+  ;; for instance).
+
+  ;; The two-argument version is kept for backward compatibility: when called
+  ;; with two arguments, the observer gets unregistered when closure PROC
+  ;; gets GC'd (making it impossible to use an anonymous lambda for PROC).
+
+  (let ((proc (if (null? proc) observer-id (car proc))))
+    (hashq-set! (module-weak-observers module) observer-id proc)))
 
 (define (module-unobserve token)
   (let ((module (car token))
@@ -1311,7 +1321,11 @@
 
 (define (module-call-observers m)
   (for-each (lambda (proc) (proc m)) (module-observers m))
-  (hash-fold (lambda (id proc res) (proc m)) #f (module-weak-observers m)))
+
+  ;; We assume that weak observers don't (un)register themselves as they are
+  ;; called since this would preclude proper iteration over the hash table
+  ;; elements.
+  (hash-for-each (lambda (id proc) (proc m)) (module-weak-observers m)))
 
 
 
@@ -1435,26 +1449,8 @@
 ;;;
 ;;; If the symbol is not found at all, return #f.
 ;;;
-(define (module-local-variable m v)
-;  (caddr
-;   (list m v
-	 (let ((b (module-obarray-ref (module-obarray m) v)))
-	   (or (and (variable? b) b)
-	       (and (module-binder m)
-		    ((module-binder m) m v #f)))))
-;))
-
-;; module-variable module symbol
-;;
-;; like module-local-variable, except search the uses in the
-;; case V is not found in M.
-;;
-;; NOTE: This function is superseded with C code (see modules.c)
-;;;      when using the standard eval closure.
-;;
-(define (module-variable m v)
-  (module-search module-local-variable m v))
-
+;;; (This is now written in C, see `modules.c'.)
+;;;
 
 ;;; {Mapping modules x symbols --> bindings}
 ;;;
@@ -1515,19 +1511,10 @@
 	       (module-modified m)
 	       b)))
 
-      ;; No local variable yet, so we need to create a new one.  That
-      ;; new variable is initialized with the old imported value of V,
-      ;; if there is one.
-      (let ((imported-var (module-variable m v))
-	    (local-var (or (and (module-binder m)
-				((module-binder m) m v #t))
-			   (begin
-			     (let ((answer (make-undefined-variable)))
-			       (module-add! m v answer)
-			       answer)))))
-	(if (and imported-var (not (variable-bound? local-var)))
-	    (variable-set! local-var (variable-ref imported-var)))
-	local-var)))
+      ;; Create a new local variable.
+      (let ((local-var (make-undefined-variable)))
+        (module-add! m v local-var)
+        local-var)))
 
 ;; module-ensure-local-variable! module symbol
 ;;
@@ -1696,46 +1683,29 @@
 ;; Add INTERFACE to the list of interfaces used by MODULE.
 ;;
 (define (module-use! module interface)
-  (set-module-uses! module
-		    (cons interface
-			  (filter (lambda (m)
-				    (not (equal? (module-name m)
-						 (module-name interface))))
-				  (module-uses module))))
-  (module-modified module))
+  (if (not (eq? module interface))
+      (begin
+        ;; Newly used modules must be appended rather than consed, so that
+        ;; `module-variable' traverses the use list starting from the first
+        ;; used module.
+        (set-module-uses! module
+                          (append (filter (lambda (m)
+                                            (not
+                                             (equal? (module-name m)
+                                                     (module-name interface))))
+                                          (module-uses module))
+                                  (list interface)))
+
+        (module-modified module))))
 
 ;; MODULE-USE-INTERFACES! module interfaces
 ;;
 ;; Same as MODULE-USE! but add multiple interfaces and check for duplicates
 ;;
 (define (module-use-interfaces! module interfaces)
-  (let* ((duplicates-handlers? (or (module-duplicates-handlers module)
-				   (default-duplicate-binding-procedures)))
-	 (uses (module-uses module)))
-    ;; remove duplicates-interface
-    (set! uses (delq! (module-duplicates-interface module) uses))
-    ;; remove interfaces to be added
-    (for-each (lambda (interface)
-		(set! uses
-		      (filter (lambda (m)
-				(not (equal? (module-name m)
-					     (module-name interface))))
-			      uses)))
-	      interfaces)
-    ;; add interfaces to use list
-    (set-module-uses! module uses)
-    (for-each (lambda (interface)
-		(and duplicates-handlers?
-		     ;; perform duplicate checking
-		     (process-duplicates module interface))
-		(set! uses (cons interface uses))
-		(set-module-uses! module uses))
-	      interfaces)
-    ;; add duplicates interface
-    (if (module-duplicates-interface module)
-	(set-module-uses! module
-			  (cons (module-duplicates-interface module) uses)))
-    (module-modified module)))
+  (set-module-uses! module
+                    (append (module-uses module) interfaces))
+  (module-modified module))
 
 
 
@@ -1861,8 +1831,8 @@
 	  (set-module-public-interface! module interface))))
   (if (and (not (memq the-scm-module (module-uses module)))
 	   (not (eq? module the-root-module)))
-      (set-module-uses! module
-			(append (module-uses module) (list the-scm-module)))))
+      ;; Import the default set of bindings (from the SCM module) in MODULE.
+      (module-use! module the-scm-module)))
 
 ;; NOTE: This binding is used in libguile/modules.c.
 ;;
@@ -1893,6 +1863,7 @@
 (define process-define-module #f)
 (define process-use-modules #f)
 (define module-export! #f)
+(define default-duplicate-binding-procedures #f)
 
 ;; This boots the module system.  All bindings needed by modules.c
 ;; must have been defined by now.
@@ -2027,7 +1998,8 @@
 	       (reversed-interfaces '())
 	       (exports '())
 	       (re-exports '())
-	       (replacements '()))
+	       (replacements '())
+               (autoloads '()))
 
       (if (null? kws)
 	  (call-with-deferred-observers
@@ -2035,7 +2007,9 @@
 	     (module-use-interfaces! module (reverse reversed-interfaces))
 	     (module-export! module exports)
 	     (module-replace! module replacements)
-	     (module-re-export! module re-exports)))
+	     (module-re-export! module re-exports)
+             (if (not (null? autoloads))
+                 (apply module-autoload! module autoloads))))
 	  (case (car kws)
 	    ((#:use-module #:use-syntax)
 	     (or (pair? (cdr kws))
@@ -2055,31 +2029,35 @@
 		     (cons interface reversed-interfaces)
 		     exports
 		     re-exports
-		     replacements)))
+		     replacements
+                     autoloads)))
 	    ((#:autoload)
 	     (or (and (pair? (cdr kws)) (pair? (cddr kws)))
 		 (unrecognized kws))
 	     (loop (cdddr kws)
-		   (cons (make-autoload-interface module
-						  (cadr kws)
-						  (caddr kws))
-			 reversed-interfaces)
+                   reversed-interfaces
 		   exports
 		   re-exports
-		   replacements))
+		   replacements
+                   (let ((name (cadr kws))
+                         (bindings (caddr kws)))
+                     (cons* name bindings autoloads))))
 	    ((#:no-backtrace)
 	     (set-system-module! module #t)
-	     (loop (cdr kws) reversed-interfaces exports re-exports replacements))
+	     (loop (cdr kws) reversed-interfaces exports re-exports
+                   replacements autoloads))
 	    ((#:pure)
 	     (purify-module! module)
-	     (loop (cdr kws) reversed-interfaces exports re-exports replacements))
+	     (loop (cdr kws) reversed-interfaces exports re-exports
+                   replacements autoloads))
 	    ((#:duplicates)
 	     (if (not (pair? (cdr kws)))
 		 (unrecognized kws))
 	     (set-module-duplicates-handlers!
 	      module
 	      (lookup-duplicates-handlers (cadr kws)))
-	     (loop (cddr kws) reversed-interfaces exports re-exports replacements))
+	     (loop (cddr kws) reversed-interfaces exports re-exports
+                   replacements autoloads))
 	    ((#:export #:export-syntax)
 	     (or (pair? (cdr kws))
 		 (unrecognized kws))
@@ -2087,7 +2065,8 @@
 		   reversed-interfaces
 		   (append (cadr kws) exports)
 		   re-exports
-		   replacements))
+		   replacements
+                   autoloads))
 	    ((#:re-export #:re-export-syntax)
 	     (or (pair? (cdr kws))
 		 (unrecognized kws))
@@ -2095,7 +2074,8 @@
 		   reversed-interfaces
 		   exports
 		   (append (cadr kws) re-exports)
-		   replacements))
+		   replacements
+                   autoloads))
 	    ((#:replace #:replace-syntax)
 	     (or (pair? (cdr kws))
 		 (unrecognized kws))
@@ -2103,7 +2083,8 @@
 		   reversed-interfaces
 		   exports
 		   re-exports
-		   (append (cadr kws) replacements)))
+		   (append (cadr kws) replacements)
+                   autoloads))
 	    (else
 	     (unrecognized kws)))))
     (run-hook module-defined-hook module)
@@ -2131,8 +2112,26 @@
 		      (if (pair? autoload)
 			  (set-car! autoload i)))
 		    (module-local-variable i sym))))))
-    (module-constructor (make-hash-table 0) '() b #f #f name 'autoload #f #f
-			'() (make-weak-value-hash-table 31) 0)))
+    (module-constructor (make-hash-table 0) '() b #f #f name 'autoload #f
+                        (make-hash-table 0) '() (make-weak-value-hash-table 31))))
+
+(define (module-autoload! module . args)
+  "Have @var{module} automatically load the module named @var{name} when one
+of the symbols listed in @var{bindings} is looked up.  @var{args} should be a
+list of module-name/binding-list pairs, e.g., as in @code{(module-autoload!
+module '(ice-9 q) '(make-q q-length))}."
+  (let loop ((args args))
+    (cond ((null? args)
+           #t)
+          ((null? (cdr args))
+           (error "invalid name+binding autoload list" args))
+          (else
+           (let ((name     (car args))
+                 (bindings (cadr args)))
+             (module-use! module (make-autoload-interface module
+                                                          name bindings))
+             (loop (cddr args)))))))
+
 
 ;;; {Compiled module}
 
@@ -3133,57 +3132,6 @@
 			      (lookup-duplicates-handlers handler-names))
 			    handler-names)))
 
-(define (make-duplicates-interface)
-  (let ((m (make-module)))
-    (set-module-kind! m 'custom-interface)
-    (set-module-name! m 'duplicates)
-    m))
-
-(define (process-duplicates module interface)
-  (let* ((duplicates-handlers (or (module-duplicates-handlers module)
-				  (default-duplicate-binding-procedures)))
-	 (duplicates-interface (module-duplicates-interface module)))
-    (module-for-each
-     (lambda (name var)
-       (cond ((module-import-interface module name)
-	      =>
-	      (lambda (prev-interface)
-		(let ((var1 (module-local-variable prev-interface name))
-		      (var2 (module-local-variable interface name)))
-		  (if (not (eq? var1 var2))
-		      (begin
-			(if (not duplicates-interface)
-			    (begin
-			      (set! duplicates-interface
-				    (make-duplicates-interface))
-			      (set-module-duplicates-interface!
-			       module
-			       duplicates-interface)))
-			(let* ((var (module-local-variable duplicates-interface
-							   name))
-			       (val (and var
-					 (variable-bound? var)
-					 (variable-ref var))))
-			  (let loop ((duplicates-handlers duplicates-handlers))
-			    (cond ((null? duplicates-handlers))
-				  (((car duplicates-handlers)
-				    module
-				    name
-				    prev-interface
-				    (and (variable-bound? var1)
-					 (variable-ref var1))
-				    interface
-				    (and (variable-bound? var2)
-					 (variable-ref var2))
-				    var
-				    val)
-				   =>
-				   (lambda (var)
-				     (module-add! duplicates-interface name var)))
-				  (else
-				   (loop (cdr duplicates-handlers)))))))))))))
-     interface)))
-
 
 
 ;;; {`cond-expand' for SRFI-0 support.}
@@ -3398,10 +3346,7 @@
 	  '(((ice-9 threads)))
 	  '())))
     ;; load debugger on demand
-    (module-use! guile-user-module
-		 (make-autoload-interface guile-user-module
-					  '(ice-9 debugger) '(debug)))
-
+    (module-autoload! guile-user-module '(ice-9 debugger) '(debug))
 
     ;; Note: SIGFPE, SIGSEGV and SIGBUS are actually "query-only" (see
     ;; scmsigs.c scm_sigaction_for_thread), so the handlers setup here have
