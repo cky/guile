@@ -139,6 +139,11 @@ SCM_API scm_i_pthread_mutex_t scm_i_gc_admin_mutex;
 #define scm_gc_running_p (SCM_I_CURRENT_THREAD->gc_running_p)
 SCM_API scm_i_pthread_mutex_t scm_i_sweep_mutex;
 
+#ifdef __ia64__
+void *scm_ia64_register_backing_store_base (void);
+void *scm_ia64_ar_bsp (const void *);
+#endif
+
 
 
 #if (SCM_ENABLE_DEPRECATED == 1)
@@ -165,13 +170,9 @@ SCM_API scm_i_pthread_key_t scm_i_freelist2;
 SCM_API struct scm_t_cell_type_statistics scm_i_master_freelist;
 SCM_API struct scm_t_cell_type_statistics scm_i_master_freelist2;
 
-
-SCM_API unsigned long scm_gc_cells_swept;
-SCM_API unsigned long scm_gc_cells_collected;
 SCM_API unsigned long scm_gc_malloc_collected;
 SCM_API unsigned long scm_gc_ports_collected;
 SCM_API unsigned long scm_cells_allocated;
-SCM_API int scm_gc_cell_yield_percentage;
 SCM_API int scm_gc_malloc_yield_percentage;
 SCM_API unsigned long scm_mallocated;
 SCM_API unsigned long scm_mtrigger;

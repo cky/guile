@@ -17,8 +17,10 @@
 ;;;; the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;;;; Boston, MA 02110-1301 USA
 
-(use-modules (srfi srfi-1)
-	     (test-suite lib))
+(define-module (test-srfi-1)
+  #:use-module (test-suite lib)
+  #:use-module (srfi srfi-1))
+
 
 (define (ref-delete x lst . proc)
   "Reference implemenation of srfi-1 `delete'."

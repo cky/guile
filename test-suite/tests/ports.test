@@ -539,19 +539,72 @@
 	(= 8 (port-column port))))))
 
 ;;;
+;;; seek
+;;;
+
+(with-test-prefix "seek"
+
+  (with-test-prefix "file port"
+
+    (pass-if "SEEK_CUR"
+      (call-with-output-file (test-file)
+	(lambda (port)
+	  (display "abcde" port)))
+      (let ((port (open-file (test-file) "r")))
+	(read-char port)
+	(seek port 2 SEEK_CUR)
+	(eqv? #\d (read-char port))))
+
+    (pass-if "SEEK_SET"
+      (call-with-output-file (test-file)
+	(lambda (port)
+	  (display "abcde" port)))
+      (let ((port (open-file (test-file) "r")))
+	(read-char port)
+	(seek port 3 SEEK_SET)
+	(eqv? #\d (read-char port))))
+
+    (pass-if "SEEK_END"
+      (call-with-output-file (test-file)
+	(lambda (port)
+	  (display "abcde" port)))
+      (let ((port (open-file (test-file) "r")))
+	(read-char port)
+	(seek port -2 SEEK_END)
+	(eqv? #\d (read-char port))))))
+
+;;;
 ;;; truncate-file
 ;;;
 
 (with-test-prefix "truncate-file"
 
+  (pass-if-exception "flonum file" exception:wrong-type-arg
+    (truncate-file 1.0 123))
+
+  (pass-if-exception "frac file" exception:wrong-type-arg
+    (truncate-file 7/3 123))
+
   (with-test-prefix "filename"
+
+    (pass-if-exception "flonum length" exception:wrong-type-arg
+      (call-with-output-file (test-file)
+	(lambda (port)
+	  (display "hello" port)))
+      (truncate-file (test-file) 1.0))
 
     (pass-if "shorten"
       (call-with-output-file (test-file)
 	(lambda (port)
 	  (display "hello" port)))
       (truncate-file (test-file) 1)
-      (eqv? 1 (stat:size (stat (test-file))))))
+      (eqv? 1 (stat:size (stat (test-file)))))
+
+    (pass-if-exception "shorten to current pos" exception:miscellaneous-error
+      (call-with-output-file (test-file)
+	(lambda (port)
+	  (display "hello" port)))
+      (truncate-file (test-file))))
 
   (with-test-prefix "file descriptor"
 
@@ -561,6 +614,16 @@
 	  (display "hello" port)))
       (let ((fd (open-fdes (test-file) O_RDWR)))
 	(truncate-file fd 1)
+	(close-fdes fd))
+      (eqv? 1 (stat:size (stat (test-file)))))
+
+    (pass-if "shorten to current pos"
+      (call-with-output-file (test-file)
+	(lambda (port)
+	  (display "hello" port)))
+      (let ((fd (open-fdes (test-file) O_RDWR)))
+	(seek fd 1 SEEK_SET)
+	(truncate-file fd)
 	(close-fdes fd))
       (eqv? 1 (stat:size (stat (test-file))))))
 
@@ -572,6 +635,15 @@
 	  (display "hello" port)))
       (let ((port (open-file (test-file) "r+")))
 	(truncate-file port 1))
+      (eqv? 1 (stat:size (stat (test-file)))))
+
+    (pass-if "shorten to current pos"
+      (call-with-output-file (test-file)
+	(lambda (port)
+	  (display "hello" port)))
+      (let ((port (open-file (test-file) "r+")))
+	(read-char port)
+	(truncate-file port))
       (eqv? 1 (stat:size (stat (test-file)))))))
 
 

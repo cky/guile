@@ -28,6 +28,11 @@
 #endif
 #include <stdio.h>
 #include <assert.h>
+
+#ifdef HAVE_STRING_H
+#include <string.h>   /* for memset used by FD_ZERO on Solaris 10 */
+#endif
+
 #if HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif
@@ -558,7 +563,8 @@ scm_i_init_thread_for_guile (SCM_STACKITEM *base, SCM parent)
 }
 
 #if SCM_USE_PTHREAD_THREADS
-#ifdef HAVE_PTHREAD_ATTR_GETSTACK
+/* pthread_getattr_np not available on MacOS X and Solaris 10. */
+#if HAVE_PTHREAD_ATTR_GETSTACK && HAVE_PTHREAD_GETATTR_NP
 
 #define HAVE_GET_THREAD_STACK_BASE
 
@@ -592,7 +598,7 @@ get_thread_stack_base ()
     }
 }
 
-#endif /* HAVE_PTHREAD_ATTR_GETSTACK */
+#endif /* HAVE_PTHREAD_ATTR_GETSTACK && HAVE_PTHREAD_GETATTR_NP */
 
 #else /* !SCM_USE_PTHREAD_THREADS */
 
@@ -1276,8 +1282,8 @@ SCM_DEFINE (scm_broadcast_condition_variable, "broadcast-condition-variable", 1,
     scm_mark_locations ((SCM_STACKITEM *) &ctx.uc_mcontext,           \
       ((size_t) (sizeof (SCM_STACKITEM) - 1 + sizeof ctx.uc_mcontext) \
        / sizeof (SCM_STACKITEM)));                                    \
-    bot = (SCM_STACKITEM *) __libc_ia64_register_backing_store_base;  \
-    top = (SCM_STACKITEM *) ctx.uc_mcontext.sc_ar_bsp;                \
+    bot = (SCM_STACKITEM *) scm_ia64_register_backing_store_base ();  \
+    top = (SCM_STACKITEM *) scm_ia64_ar_bsp (&ctx);                   \
     scm_mark_locations (bot, top - bot); } while (0)
 #else
 # define SCM_MARK_BACKING_STORE()

@@ -71,6 +71,32 @@
       (quotient (- n d -1) d)  ;; neg/pos
       (quotient n d)))         ;; pos/pos
 
+;; return true of X is in the range LO to HI, inclusive
+(define (within-range? lo hi x)
+  (and (>= x (min lo hi))
+       (<= x (max lo hi))))
+
+;; return true if GOT is within +/- 0.01 of GOT
+;; for a complex number both real and imaginary parts must be in that range
+(define (eqv-loosely? want got)
+  (and (within-range? (- (real-part want) 0.01)
+		      (+ (real-part want) 0.01)
+		      (real-part got))
+       (within-range? (- (imag-part want) 0.01)
+		      (+ (imag-part want) 0.01)
+		      (imag-part got))))
+
+;; return true if OBJ is negative infinity
+(define (negative-infinity? obj)
+  (and (real? obj)
+       (negative? obj)
+       (inf? obj)))
+
+(define const-e    2.7182818284590452354)
+(define const-e^2  7.3890560989306502274)
+(define const-1/e  0.3678794411714423215)
+
+
 ;;;
 ;;; 1+
 ;;;
@@ -199,6 +225,36 @@
 
     (pass-if "sqrt ((fixnum-max+1)^2 - 1)"
       (eq? #f (exact? (sqrt (- (expt (+ fixnum-max 1) 2) 1)))))))
+
+;;;
+;;; exp
+;;;
+
+(with-test-prefix "exp"
+  (pass-if "documented?"
+    (documented? exp))
+
+  (pass-if-exception "no args" exception:wrong-num-args
+    (exp))
+  (pass-if-exception "two args" exception:wrong-num-args
+    (exp 123 456))
+
+  (pass-if (eqv? 0.0 (exp -inf.0)))
+  (pass-if (eqv-loosely? 1.0 (exp 0)))
+  (pass-if (eqv-loosely? 1.0 (exp 0.0)))
+  (pass-if (eqv-loosely? const-e   (exp 1.0)))
+  (pass-if (eqv-loosely? const-e^2 (exp 2.0)))
+  (pass-if (eqv-loosely? const-1/e (exp -1)))
+
+  (pass-if "exp(pi*i) = -1"
+    (eqv-loosely? -1.0 (exp 0+3.14159i)))
+  (pass-if "exp(-pi*i) = -1"
+    (eqv-loosely? -1.0 (exp 0-3.14159i)))
+  (pass-if "exp(2*pi*i) = +1"
+    (eqv-loosely? 1.0 (exp 0+6.28318i)))
+
+  (pass-if "exp(2-pi*i) = -e^2"
+    (eqv-loosely? (- const-e^2) (exp 2.0-3.14159i))))
 
 ;;;
 ;;; odd?
@@ -2931,6 +2987,62 @@
 	(= i (integer-length n))))))
 
 ;;;
+;;; log
+;;;
+
+(with-test-prefix "log"
+  (pass-if "documented?"
+    (documented? log))
+
+  (pass-if-exception "no args" exception:wrong-num-args
+    (log))
+  (pass-if-exception "two args" exception:wrong-num-args
+    (log 123 456))
+
+  (pass-if (negative-infinity? (log 0)))
+  (pass-if (negative-infinity? (log 0.0)))
+  (pass-if (eqv? 0.0 (log 1)))
+  (pass-if (eqv? 0.0 (log 1.0)))
+  (pass-if (eqv-loosely? 1.0  (log const-e)))
+  (pass-if (eqv-loosely? 2.0  (log const-e^2)))
+  (pass-if (eqv-loosely? -1.0 (log const-1/e)))
+
+  (pass-if (eqv-loosely? 1.0+1.57079i (log 0+2.71828i)))
+  (pass-if (eqv-loosely? 1.0-1.57079i (log 0-2.71828i)))
+
+  (pass-if (eqv-loosely? 0.0+3.14159i (log -1.0)))
+  (pass-if (eqv-loosely? 1.0+3.14159i (log -2.71828)))
+  (pass-if (eqv-loosely? 2.0+3.14159i (log (* -2.71828 2.71828)))))
+
+;;;
+;;; log10
+;;;
+
+(with-test-prefix "log10"
+  (pass-if "documented?"
+    (documented? log10))
+
+  (pass-if-exception "no args" exception:wrong-num-args
+    (log10))
+  (pass-if-exception "two args" exception:wrong-num-args
+    (log10 123 456))
+
+  (pass-if (negative-infinity? (log10 0)))
+  (pass-if (negative-infinity? (log10 0.0)))
+  (pass-if (eqv? 0.0 (log10 1)))
+  (pass-if (eqv? 0.0 (log10 1.0)))
+  (pass-if (eqv-loosely? 1.0  (log10 10.0)))
+  (pass-if (eqv-loosely? 2.0  (log10 100.0)))
+  (pass-if (eqv-loosely? -1.0 (log10 0.1)))
+
+  (pass-if (eqv-loosely? 1.0+0.68218i (log10 0+10.0i)))
+  (pass-if (eqv-loosely? 1.0-0.68218i (log10 0-10.0i)))
+
+  (pass-if (eqv-loosely? 0.0+1.36437i (log10 -1)))
+  (pass-if (eqv-loosely? 1.0+1.36437i (log10 -10)))
+  (pass-if (eqv-loosely? 2.0+1.36437i (log10 -100))))
+
+;;;
 ;;; logbit?
 ;;;
 
@@ -3035,3 +3147,36 @@
 	      (lognot #xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)))
   (pass-if (= #xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
 	      (lognot #x-100000000000000000000000000000000))))
+
+;;;
+;;; sqrt
+;;;
+
+(with-test-prefix "sqrt"
+  (pass-if "documented?"
+    (documented? sqrt))
+
+  (pass-if-exception "no args" exception:wrong-num-args
+    (sqrt))
+  (pass-if-exception "two args" exception:wrong-num-args
+    (sqrt 123 456))
+
+  (pass-if (eqv? 0.0 (sqrt 0)))
+  (pass-if (eqv? 0.0 (sqrt 0.0)))
+  (pass-if (eqv? 1.0 (sqrt 1.0)))
+  (pass-if (eqv-loosely? 2.0   (sqrt 4.0)))
+  (pass-if (eqv-loosely? 31.62 (sqrt 1000.0)))
+
+  (pass-if (eqv? +1.0i (sqrt -1.0)))
+  (pass-if (eqv-loosely? +2.0i   (sqrt -4.0)))
+  (pass-if (eqv-loosely? +31.62i (sqrt -1000.0)))
+
+  (pass-if "+i swings back to 45deg angle"
+    (eqv-loosely? +0.7071+0.7071i (sqrt +1.0i)))
+
+  ;; Note: glibc 2.3 csqrt() had a bug affecting this test case, so if it
+  ;; fails check whether that's the cause (there's a configure test to
+  ;; reject it, but when cross-compiling we assume the C library is ok).
+  (pass-if "-100i swings back to 45deg down"
+    (eqv-loosely? +7.071-7.071i (sqrt -100.0i))))
+

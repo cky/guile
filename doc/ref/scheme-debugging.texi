@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2006
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -511,3 +511,8 @@ behaviour as well as the more traditional @code{trace-here}.
 The older mechanism will probably become obsolete eventually, but it's
 worth keeping it around for a while until we are sure that the new
 mechanism is correct and does what programmers need.
+
+
+@c Local Variables:
+@c TeX-master: "guile.texi"
+@c End:

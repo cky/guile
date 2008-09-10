@@ -18,9 +18,9 @@
 (use-modules (ice-9 documentation)
 	     (test-suite lib))
 
-;;; FIXME: Test disabled!
-;;; The `environments' code (which is currently unused) relies on weak alist
-;;; vectors.  However, these are currently implemented as weak hash tables.
+;;; environments are currently commented out of libguile, so these
+;;; tests must be commented out also. - NJ 2006-11-02.
+(if #f (let ()
 
 ;;;
 ;;; miscellaneous
@@ -1047,3 +1047,5 @@
     (pass-if "documented?"
       (documented? make-import-environment))))
 
+;;; End of commenting out. - NJ 2006-11-02.
+))

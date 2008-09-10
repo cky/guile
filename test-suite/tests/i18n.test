@@ -1,0 +1,143 @@
+;;;; i18n.test --- Exercise the i18n API.
+;;;;
+;;;; Copyright (C) 2006 Free Software Foundation, Inc.
+;;;; Ludovic Courtès
+;;;;
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 2.1 of the License, or (at your option) any later version.
+;;;;
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;;
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+(define-module (test-suite i18n)
+  :use-module (ice-9 i18n)
+  :use-module (test-suite lib))
+
+;; Start from a pristine locale state.
+(setlocale LC_ALL "C")
+
+
+(with-test-prefix "locale objects"
+
+  (pass-if "make-locale (2 args)"
+    (not (not (make-locale LC_ALL_MASK "C"))))
+
+  (pass-if "make-locale (3 args)"
+    (not (not (make-locale LC_COLLATE_MASK "C"
+                           (make-locale LC_MESSAGES_MASK "C")))))
+
+  (pass-if "locale?"
+    (and (locale? (make-locale LC_ALL_MASK "C"))
+         (locale? (make-locale (logior LC_MESSAGES_MASK LC_NUMERIC_MASK) "C"
+                               (make-locale LC_CTYPE_MASK "C"))))))
+
+
+
+(with-test-prefix "text collation (English)"
+
+  (pass-if "string-locale<?"
+    (and (string-locale<? "hello" "world")
+         (string-locale<? "hello" "world"
+                          (make-locale LC_COLLATE_MASK "C"))))
+
+  (pass-if "char-locale<?"
+    (and (char-locale<? #\a #\b)
+         (char-locale<? #\a #\b (make-locale LC_COLLATE_MASK "C"))))
+
+  (pass-if "string-locale-ci=?"
+    (and (string-locale-ci=? "Hello" "HELLO")
+         (string-locale-ci=? "Hello" "HELLO"
+                             (make-locale LC_COLLATE_MASK "C"))))
+
+  (pass-if "string-locale-ci<?"
+    (and (string-locale-ci<? "hello" "WORLD")
+         (string-locale-ci<? "hello" "WORLD"
+                             (make-locale LC_COLLATE_MASK "C")))))
+
+
+(define %french-locale
+  (false-if-exception
+   (make-locale (logior LC_CTYPE_MASK LC_COLLATE_MASK)
+                "fr_FR.ISO-8859-1")))
+
+(define (under-french-locale-or-unresolved thunk)
+  ;; On non-GNU systems, an exception may be raised only when the locale is
+  ;; actually used rather than at `make-locale'-time.  Thus, we must guard
+  ;; against both.
+  (if %french-locale
+      (catch 'system-error thunk
+             (lambda (key . args)
+               (throw 'unresolved)))
+      (throw 'unresolved)))
+
+(with-test-prefix "text collation (French)"
+
+  (pass-if "string-locale<?"
+    (under-french-locale-or-unresolved
+      (lambda ()
+        (string-locale<? "été" "hiver" %french-locale))))
+
+  (pass-if "char-locale<?"
+    (under-french-locale-or-unresolved
+      (lambda ()
+        (char-locale<? #\é #\h %french-locale))))
+
+  (pass-if "string-locale-ci=?"
+    (under-french-locale-or-unresolved
+      (lambda ()
+        (string-locale-ci=? "ÉTÉ" "été" %french-locale))))
+
+  (pass-if "string-locale-ci<>?"
+    (under-french-locale-or-unresolved
+      (lambda ()
+        (and (string-locale-ci<? "été" "Hiver" %french-locale)
+             (string-locale-ci>? "HiVeR" "été" %french-locale)))))
+
+  (pass-if "char-locale-ci<>?"
+     (under-french-locale-or-unresolved
+       (lambda ()
+         (and (char-locale-ci<? #\é #\H %french-locale)
+              (char-locale-ci>? #\h #\É %french-locale))))))
+
+
+(with-test-prefix "character mapping"
+
+  (pass-if "char-locale-downcase"
+    (and (eq? #\a (char-locale-downcase #\A))
+         (eq? #\a (char-locale-downcase #\A (make-locale LC_ALL_MASK "C")))))
+
+  (pass-if "char-locale-upcase"
+    (and (eq? #\Z (char-locale-upcase #\z))
+         (eq? #\Z (char-locale-upcase #\z (make-locale LC_ALL_MASK "C"))))))
+
+
+(with-test-prefix "number parsing"
+
+  (pass-if "locale-string->integer"
+    (call-with-values (lambda () (locale-string->integer "123"))
+      (lambda (result char-count)
+        (and (equal? result 123)
+             (equal? char-count 3)))))
+
+  (pass-if "locale-string->inexact"
+    (call-with-values
+        (lambda ()
+          (locale-string->inexact "123.456"
+                                  (make-locale LC_NUMERIC_MASK "C")))
+      (lambda (result char-count)
+        (and (equal? result 123.456)
+             (equal? char-count 7))))))
+
+
+;;; Local Variables:
+;;; coding: latin-1
+;;; mode: scheme
+;;; End:

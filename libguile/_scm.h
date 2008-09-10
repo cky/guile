@@ -54,6 +54,9 @@
  and differences between _scm.h and __scm.h.
  **********************************************************************/
 
+#if defined(__ia64) && !defined(__ia64__)
+# define __ia64__
+#endif
 
 #if HAVE_CONFIG_H
 #  include <config.h>
@@ -167,6 +170,8 @@
 #else
 #  error sizeof(off_t) is not 4 or 8.
 #endif
+#define scm_to_off64_t    scm_to_int64
+#define scm_from_off64_t  scm_from_int64
 
 
 #endif  /* SCM__SCM_H */

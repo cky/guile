@@ -1,4 +1,195 @@
-2006-09-20  Ludovic Courtès  <ludovic.courtes@laas.fr>
+2006-12-12  Ludovic CourtÃ¨s  <ludovic.courtes@laas.fr>
+
+	* libguile/unif.c (read_decimal_integer): Let RESP be SIGN * RES
+	instead of RES (reported by Gyula Szavai).  This allows the use of
+	negative lower bounds.
+	(scm_i_read_array): Make sure LEN is non-negative (reported by
+	Gyula Szavai).
+
+	(scm_array_in_bounds_p): Iterate over S instead of always
+	comparing indices with the bounds of S[0].  This fixes
+	`array-in-bounds?' for arrays with a rank greater than one and
+	with different lower bounds for each dimension.
+
+2006-11-29  Ludovic CourtÃ¨s  <ludovic.courtes@laas.fr>
+
+	* libguile/vectors.c (scm_vector_to_list): Fixed list
+	construction: elements were not copied when INC is zero (see
+	"shared array" example in `vectors.test').  Reported by
+	Szavai Gyula.
+
+2006-11-18  Ludovic CourtÃ¨s  <ludovic.courtes@laas.fr>
+
+	* Makefile.am (lib_LTLIBRARIES): Added `libguile-i18n-v-XX.la'.
+	(libguile_la_SOURCES): Added `gettext.c', removed `i18n.c'.
+	(libguile_i18n_v_XX_la_SOURCES, libguile_i18n_v_XX_la_CFLAGS,
+	libguile_i18n_v_XX_la_LIBADD, libguile_i18n_v_XX_la_LDFLAGS): New.
+	(DOT_X_FILES): Added `gettext.x'.
+	(DOT_DOC_FILES): Likewise.
+	(EXTRA_libguile_la_SOURCES): Added `locale-categories.h'.
+	(modinclude_HEADERS): Added `gettext.h'.
+	(EXTRA_DIST): Added `libgettext.h'.
+
+	* gettext.h: Renamed to...
+	* libgettext.h: New file.
+
+	* i18n.c: Renamed to...
+	* gettext.c: New file.
+
+	* i18n.h: Renamed to...
+	* gettext.h: New file.
+
+	* i18n.c, i18n.h, locale-categories.h: New files.
+
+	* init.c: Include "libguile/gettext.h" instead of
+	"libguile/i18n.h".
+	(scm_i_init_guile): Invoke `scm_init_gettext ()' instead of
+	`scm_init_i18n ()'.
+
+	* posix.c: Include "libguile/gettext.h" instead of
+	"libguile/i18n.h"  Test `HAVE_NEWLOCALE' and `HAVE_STRCOLL_L'.
+	(USE_GNU_LOCALE_API): New macro.
+	(scm_i_locale_mutex): New variable.
+	(scm_setlocale): Lock and unlock it around `setlocale ()' calls.
+
+	* posix.h: Include "libguile/threads.h".
+	(scm_i_locale_mutex): New declaration.
+
+2006-11-17  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* script.c (scm_shell_usage): Note need for subscription to bug-guile@gnu.org.
+
+2006-11-08  Ludovic CourtÃ¨s  <ludovic.courtes@laas.fr>
+	
+	* libguile/gc-freelist.c (scm_i_adjust_min_yield): Take two
+	"sweep_stats" arguments; use them instead of accessing the global
+	variables `scm_gc_cells_collected' and `scm_gc_cells_collected_1'.
+
+	* libguile/gc-segment.c (scm_i_sweep_some_cards): Reset SWEEP
+	before each iteration of the loop.
+	(scm_i_sweep_some_segments): Reset SWEEP at each iteration.
+	(scm_i_get_new_heap_segment): Take an additional argument
+	SWEEP_STATS.  Compute MIN_CELLS as a function of it.
+
+	* libguile/gc.c (scm_gc_cells_collected,
+	scm_gc_cells_collected_1): Removed.
+	(scm_i_gc_sweep_stats, scm_i_gc_sweep_stats_1): New.
+	(scm_gc_cells_marked_acc, scm_gc_cells_swept_acc,
+	scm_gc_time_taken, scm_gc_mark_time_taken, scm_gc_times,
+	scm_gc_cell_yield_percentage, protected_obj_count): Made `static'.
+	(scm_gc_stats): Use `scm_i_gc_sweep_stats' instead of
+	`scm_gc_cells_(collected|swept)'.
+	(gc_update_stats): New.
+	(gc_end_stats): Use `scm_i_gc_sweep_stats' and
+	`scm_i_gc_sweep_stats_1' instead of the former globals.
+	(scm_gc_for_newcell): Invoke `gc_update_stats ()' after each
+	`scm_i_sweep_some_segments' call.  This fixes a bug where the GC
+	would keep allocating new segments instead of re-using collected
+	cells (because `scm_gc_cells_collected' would remain zero).
+
+	* libguile/gc.h (scm_gc_cells_swept, scm_gc_cells_collected,
+	scm_gc_cell_yield_percentage): Removed.
+
+	* libguile/private-gc.h (scm_gc_cells_collected_1): Removed.
+	(scm_i_adjust_min_yield): Updated.
+	(scm_i_get_new_heap_segment): Updated.
+
+2006-11-02  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* modules.c: Correct comment saying that low-level environments
+	will be used "in the next release".
+
+	* init.c: Comment out #include of environments.h.
+	(scm_i_init_guile): Comment out scm_environments_prehistory() and
+	scm_init_environments() calls.
+
+	* Makefile.am (libguile_la_SOURCES): Remove environments.c.
+	(DOT_X_FILES): Remove environments.x.
+	(DOT_DOC_FILES): Remove environments.doc.
+	(modinclude_HEADERS): Remove environments.h.
+
+2006-10-25  Neil Jerram  <neil@ossau.uklinux.net>
+
+	IA64 HP-UX GC patch from Hrvoje NikÅ¡iÄ‡.  (Thanks!)
+	
+	* threads.c (SCM_MARK_BACKING_STORE): Use scm_ia64_ar_bsp() and
+	scm_ia64_register_backing_store_base() instead of Linux-specific
+	implementations.
+
+	* gc.h (scm_ia64_register_backing_store_base, scm_ia64_ar_bsp):
+	New declarations.
+
+	* gc.c (__libc_ia64_register_backing_store_base): Declaration
+	removed.
+	(scm_ia64_register_backing_store_base, scm_ia64_ar_bsp): New, with
+	implementations for Linux and HP-UX.
+
+	* coop-pthreads.c (SCM_MARK_BACKING_STORE): Use scm_ia64_ar_bsp()
+	and scm_ia64_register_backing_store_base() instead of
+	Linux-specific implementations.
+
+	* continuations.h (__libc_ia64_register_backing_store_base):
+	Declaration removed.
+	(scm_t_contregs): New "fresh" field.
+
+	* continuations.c (ia64_getcontext): Removed.
+	(scm_make_continuation): Use continuation fresh field instead of
+	interpreting getcontext return values (which isn't portable).  Use
+	scm_ia64_ar_bsp() and scm_ia64_register_backing_store_base()
+	instead of Linux-specific implementations.
+	(copy_stack_and_call): Use scm_ia64_register_backing_store_base()
+	instead of Linux-specific implementation.
+
+	* _scm.h (__ia64__): Also detect __ia64.
+
+2006-10-03  Kevin Ryde  <user42@zip.com.au>
+
+	* eval.c (SCM_APPLY): For scm_tc7_subr_2o, throw wrong-num-args on 0
+	arguments or 3 or more arguments.  Previously 0 called proc with
+	SCM_UNDEFINED, and 3 or more silently used just the first 2.
+
+2006-09-28  Kevin Ryde  <user42@zip.com.au>
+
+	* fports.c, ports.c (ftruncate): Use "HAVE_CHSIZE && ! HAVE_FTRUNCATE"
+	for chsize fallback, instead of hard-coding mingw.  Mingw in fact
+	supplies ftruncate itself these days.
+
+	* ports.c (fcntl.h): Can include this unconditionally, no need for
+	__MINGW32__.
+
+	* ports.c (truncate): Conditionalize on "HAVE_FTRUNCATE && !
+	HAVE_TRUNCATE" so as not to hard-code mingw.  Use "const char *" and
+	"off_t" for parameters, per usual definition of this function, rather
+	than "char *" and "int".  Use ftruncate instead of chsize.  Check for
+	error on final close.
+
+2006-09-27  Kevin Ryde  <user42@zip.com.au>
+
+	* numbers.c (scm_log10): Check HAVE_CLOG10, clog10() is not available
+	in mingw.
+
+	* posix.c (scm_execl, scm_execlp, scm_execle): Cast "const char *
+	const *" for mingw to suppress warnings from gcc (which are errors
+	under the configure default -Werror).  Reported by Nils Durner.
+
+2006-09-26  Kevin Ryde  <user42@zip.com.au>
+
+	* _scm.h (scm_to_off64_t, scm_from_off64_t): New macros.
+	* fports.c (scm_open_file): Use open_or_open64.
+	(fport_seek_or_seek64): New function, adapting fport_seek.
+	* fports.c, fports.h (scm_i_fport_seek, scm_i_fport_truncate): New
+	functions.
+	* ports.c (scm_seek, scm_truncate_file): Use scm_i_fport_seek and
+	scm_i_fport_truncate to allow 64-bit seeks and truncates on fports.
+
+	* ports.c (scm_truncate_file): Update docstring per manual.
+
+2006-09-23  Kevin Ryde  <user42@zip.com.au>
+
+	* numbers.c, numbers.h (scm_log, scm_log10, scm_exp, scm_sqrt): New
+	functions.
+
+2006-09-20  Ludovic CourtÃ¨s  <ludovic.courtes@laas.fr>
 
 	* srfi-14.c: Include <config.h>.  Define `_GNU_SOURCE'.
 	(make_predset, define_predset, make_strset, define_strset, false,
@@ -20,6 +211,11 @@
 	(scm_setlocale): Invoke `scm_srfi_14_compute_char_sets ()' after a
 	successful `setlocale ()' call.
 
+2006-09-08  Kevin Ryde  <user42@zip.com.au>
+
+	* socket.c (scm_init_socket): Add MSG_DONTWAIT.
+	(scm_recvfrom): Update docstring from manual.
+
 2006-08-31  Rob Browning  <rlb@defaultvalue.org>
 
 	* ports.c (scm_c_port_for_each): Add a
@@ -32,10 +228,46 @@
 	improvements to docstring.
 	(scm_backtrace_with_highlights): Analogous improvements.
 
+2006-08-12  Kevin Ryde  <user42@zip.com.au>
+
+	* gen-scmconfig.h.in (SCM_I_GSC_NEED_BRACES_ON_PTHREAD_ONCE_INIT):
+	New, set from configure.
+	* gen-scmconfig.c (SCM_NEED_BRACES_ON_PTHREAD_ONCE_INIT): New output
+	to scmconfig.h.
+	* pthread-threads.h (SCM_I_PTHREAD_ONCE_INIT): Use
+	SCM_NEED_BRACES_ON_PTHREAD_ONCE_INIT to cope with Solaris.
+	Reported by Claes Wallin.
+
 2006-08-11  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* stacks.c (scm_last_stack_frame): Correct docstring (returns a
 	frame, not a stack).
+
+2006-07-25  Kevin Ryde  <user42@zip.com.au>
+
+	* threads.c (get_thread_stack_base): Restrict HAVE_PTHREAD_GETATTR_NP
+	on pthreads version, since pthread_getattr_np not available on solaris
+	and macos.  Reported by Claes Wallin.
+
+2006-07-24  Kevin Ryde  <user42@zip.com.au>
+
+	* filesys.c (dirfd): Test with #ifndef rather than HAVE_DIRFD, since
+	it's a macro on MacOS X.  Reported by Claes Wallin.
+
+	* posix.c (sethostname): Give prototype if not HAVE_DECL_SETHOSTNAME,
+	for the benefit of Solaris 10.  Reported by Claes Wallin.
+
+	* socket.c (scm_htonl, scm_ntohl): Use scm_to_uint32 rather than
+	NUM2ULONG, to enforce 32-bit range check on systems with 64-bit long.
+
+2006-07-21  Kevin Ryde  <user42@zip.com.au>
+
+	* eval.c, filesys.c (alloca): Update <alloca.h> etc blob, per current
+	autoconf recommendation.  Should fix Solaris 10 reported by Claes
+	Wallin.
+
+	* threads.c: Include <string.h>, needed for memset() which is used by
+	FD_ZERO() on Solaris 10.  Reported by Claes Wallin.
 
 2006-07-18  Rob Browning  <rlb@defaultvalue.org>
 
@@ -44,12 +276,31 @@
 	arrangements and avoid an illegal instruction during
 	call-with-current-continuation.
 
-2006-07-12  Ludovic Courtès <ludovic.courtes@laas.fr>
+2006-07-12  Ludovic CourtÃ¨s <ludovic.courtes@laas.fr>
 
 	* numbers.c (guile_ieee_init): Use regular ANSI C casts rather
 	than C++-style `X_CAST ()'.  Patch posted by by Mike Gran.
 
-2006-06-13  Ludovic Courtès <ludovic.courtes@laas.fr>
+2006-07-08  Kevin Ryde  <user42@zip.com.au>
+
+	* environments.c (core_environments_unobserve): Use if/else rather
+	than ?: for "SET" bits, avoiding complaints from AIX xlc compiler
+	about them not being rvalues.  Reported by Mike Gran.
+
+	* Makefile.am (version.h): Don't use $< in an explicit rule, it's not
+	portable and in particular fails on OpenBSD and AIX (see autoconf
+	manual too).  Reported by Mike Gran.
+
+2006-06-25  Kevin Ryde  <user42@zip.com.au>
+
+	* stime.c (bdtime2c): tm_gmtoff is seconds East, so take negative of
+	tm:gmtoff which is seconds West.  Reported by Aaron VanDevender.
+	(bdtime2c): Test HAVE_STRUCT_TM_TM_GMTOFF for tm_gmtoff, rather than
+	HAVE_TM_ZONE.
+	(scm_strptime): Use tm_gmtoff from the strptime result when that field
+	exists, it's set by glibc strptime "%s".
+	
+2006-06-13  Ludovic CourtÃ¨s <ludovic.courtes@laas.fr>
 
 	* eq.c: Include "struct.h", "goops.h" and "objects.h".
 	(scm_equal_p): Invoke `scm_i_struct_equalp ()' on structures that
@@ -187,7 +438,7 @@
 2006-04-06  Kevin Ryde  <user42@zip.com.au>
 
 	* fports.c (scm_setvbuf): Fix for not _IOLBF, clear SCM_BUFLINE
-	instead of toggling it.  Reported by Ludovic Courtès.
+	instead of toggling it.  Reported by Ludovic CourtÃ¨s.
 	
 2006-03-26  Marius Vollmer  <mvo@zagadka.de>
 
@@ -199,7 +450,7 @@
 	* gc_os_dep.c (scm_get_stack_base): Abort when the machine type is
 	unknown instead of returning NULL.
 
-2006-03-21  Ludovic Courtès  <ludovic.courtes@laas.fr>
+2006-03-21  Ludovic CourtÃ¨s  <ludovic.courtes@laas.fr>
 
         * numbers.c (scm_i_mem2number): Renamed to
 	scm_c_locale_stringn_to_number.
@@ -291,7 +542,7 @@
         (scm_i_sweep_statistics_init): New macro.
         (scm_i_sweep_statistics_sum): New macro
 
-2006-02-14  Ludovic Courtès  <ludovic.courtes@laas.fr>
+2006-02-14  Ludovic CourtÃ¨s  <ludovic.courtes@laas.fr>
 
         * strings.c (scm_i_take_stringbufn): Register LEN+1 bytes instead of
 	LEN.  Without this, too much collectable memory gets unregistered,
@@ -409,7 +660,7 @@
 	* inline.h, pairs.c (scm_is_pair): Moved scm_is_pair from pairs.c
 	to inline.h to make it inline.
 
-2005-12-19  Ludovic Courtès  <ludovic.courtes@laas.fr>
+2005-12-19  Ludovic CourtÃ¨s  <ludovic.courtes@laas.fr>
 
         * strings.c (scm_i_take_stringbufn): New.
         (scm_i_c_take_symbol): New.
@@ -442,7 +693,7 @@
 
 2005-12-29  Neil Jerram  <neil@ossau.uklinux.net>
 
-	* fluids.c (next_fluid_num): [From Ludovic Courtès:] Don't trigger
+	* fluids.c (next_fluid_num): [From Ludovic CourtÃ¨s:] Don't trigger
 	the GC when allocated_fluids_len is zero.
 
 2005-12-14  Neil Jerram  <neil@ossau.uklinux.net>
@@ -474,7 +725,7 @@
 
 	* srfi-4.h, srfi-4.c, srfi-4.i.c (take_uvec): Make BASE pointer
 	non-const.
-	(scm_take_u8vector, etc): Likewise.  Thanks to Ludovic Courtès!
+	(scm_take_u8vector, etc): Likewise.  Thanks to Ludovic CourtÃ¨s!
 	
 	* threads.h, threads.c (scm_t_guile_ticket, scm_leave_guile,
 	scm_enter_guile): Removed from public API.  See comment at
@@ -489,7 +740,7 @@
 	* eval.c (scm_m_cond): Recognize SRFI 61 cond syntax.
 	(CEVAL): Evaluate SRFI 61 cond clauses.
 
-2005-12-06  Ludovic Courtès  <ludovic.courtes@laas.fr>
+2005-12-06  Ludovic CourtÃ¨s  <ludovic.courtes@laas.fr>
 
 	* gc-card.c (scm_i_card_statistics): Return if BITVEC is NULL.
 	This was typically hit when running `gc-live-object-stats' right
@@ -503,7 +754,7 @@
 2005-11-26  Kevin Ryde  <user42@zip.com.au>
 
 	* gc-mark.c (scm_mark_all): Change C++ comment to C comment.  Reported
-	by Ludovic Courtès.
+	by Ludovic CourtÃ¨s.
 
 	* list.c (list): Should be "primitive" in SCM_SNARF_DOCS, not
 	"register".
@@ -515,7 +766,7 @@
 	* socket.c (scm_fill_sockaddr): Remove SCM_C_INLINE_KEYWORD, this is
 	much too big to want to inline.
 
-2005-11-17  Ludovic Courtès  <ludovic.courtes@laas.fr>
+2005-11-17  Ludovic CourtÃ¨s  <ludovic.courtes@laas.fr>
 
 	* print.c (EXIT_NESTED_DATA): Before popping from the stack, reset
 	the value at its top.  This fixes a reference leak.
@@ -523,14 +774,14 @@
 	`PSTATE_STACK_SET ()' in order to avoid undesired potential side
 	effects.
 
-2005-11-12  Ludovic Courtès  <ludovic.courtes@laas.fr>
+2005-11-12  Ludovic CourtÃ¨s  <ludovic.courtes@laas.fr>
 
 	* gc.c (scm_weak_vectors): Removed.
 
 2005-11-12  Kevin Ryde  <user42@zip.com.au>
 
 	* socket.c (scm_setsockopt): Missing @defvar in docstring.  Reported
-	by Ludovic Courtès.
+	by Ludovic CourtÃ¨s.
 
 2005-11-07  Marius Vollmer  <mvo@zagadka.de>
 
@@ -552,7 +803,7 @@
 
 	* debug.h (SCM_CHEAPTRAPS_P): Removed.
 
-2005-10-27  Ludovic Courtès  <ludovic.courtes@laas.fr>
+2005-10-27  Ludovic CourtÃ¨s  <ludovic.courtes@laas.fr>
 
 	* socket.c (scm_fill_sockaddr): No need to check NULL from scm_malloc.
 	(scm_connect, scm_bind, scm_sendto): Accept sockaddr object.
@@ -860,7 +1111,7 @@
 
 2005-05-11  Neil Jerram  <neil@ossau.uklinux.net>
 
-	Fix C99isms reported by Ludovic Courtès:
+	Fix C99isms reported by Ludovic CourtÃ¨s:
 	
 	* threads.c (s_scm_lock_mutex): Don't declare msg in middle of
 	code.
@@ -975,7 +1226,7 @@
 2005-03-18  Kevin Ryde  <user42@zip.com.au>
 
 	* arbiters.c (FETCH_STORE) [generic C]: Should be
-	scm_i_scm_pthread_mutex_lock/unlock now.  Reported by Ludovic Courtès.
+	scm_i_scm_pthread_mutex_lock/unlock now.  Reported by Ludovic CourtÃ¨s.
 
 2005-03-13  Kevin Ryde  <user42@zip.com.au>
 
@@ -2121,7 +2372,7 @@
 
 2004-11-02  Marius Vollmer  <mvo@zagadka.de>
 
-        Mac OS X and OpenBSD compatibility patches from Andreas Vögele.
+        Mac OS X and OpenBSD compatibility patches from Andreas VÃ¶gele.
 	Thanks!
 
 	* backtrace.c (scm_display_backtrace_with_highlights): Join the
@@ -2565,7 +2816,7 @@
 	* numbers.h, numbers.c: Include <gmp.h> in numbers.h, not in
 	numbers.c.
 	(scm_to_mpz, scm_from_mpz): New.
-	Thanks to Andreas Vögele!
+	Thanks to Andreas VÃ¶gele!
 	
 	* read.c (skip_scsh_block_comment): Recognize "!#" everywhere, not
 	just on a line of its own.
@@ -2574,7 +2825,7 @@
 	scm_string_tabulate, string_upcase_x, string_down_case_x,
 	string_titlecase_x, string_reverse_x, scm_string_tokenize): Use
 	size_t instead of int for indices into strings.  Make sure that no
-	over- or underflow occurs.  Thanks to Andreas Vögele!
+	over- or underflow occurs.  Thanks to Andreas VÃ¶gele!
 	(scm_xsubstring, scm_string_xcopy_x): Use ints for 'extended'
 	indices, which can also be negative.
 	
@@ -2596,7 +2847,7 @@
 
 	* filesys.c, stime.c (_POSIX_C_SOURCE): Use this only on hpux, it
 	causes too many problems elsewhere (glibc, freebsd, mingw).  Reported
-	by Andreas Vögele.
+	by Andreas VÃ¶gele.
 
 2004-09-08  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
@@ -3431,7 +3682,7 @@
 	* gc_os_dep.c: update ifdefery for macosx.
 	(scm_get_stack_base): separate result initialization from
 	declaration to slience warnings with macosx and hp-ux using gcc
-	3.3.  Thanks to Andreas Vögele.
+	3.3.  Thanks to Andreas VÃ¶gele.
 
 2004-06-13  Han-Wen Nienhuys   <hanwen@xs4all.nl>
 
@@ -3641,10 +3892,10 @@
 2004-05-02  Kevin Ryde  <user42@zip.com.au>
 
 	* eval.c (scm_macroexp): Add prototype, since it's not in eval.h under
-	--disable-deprecated.  Reported by Andreas Vögele.
+	--disable-deprecated.  Reported by Andreas VÃ¶gele.
 
 	* filesys.c (_POSIX_C_SOURCE): Define to 199506L to get readdir_r (in
-	particular on HP-UX).  Reported by Andreas Vögele.
+	particular on HP-UX).  Reported by Andreas VÃ¶gele.
 
 	* list.c (varargs.h): Remove, leave just stdarg.h which is all the
 	code has support for.  Fixes building with AIX cc, which is ansi but
@@ -3655,14 +3906,14 @@
 2004-05-01  Kevin Ryde  <user42@zip.com.au>
 
 	* continuations.c (scm_dynthrow): Use >= instead of SCM_PTR_GE which
-	is now gone.  Reported by Andreas Vögele.
+	is now gone.  Reported by Andreas VÃ¶gele.
 
 2004-04-28  Kevin Ryde  <user42@zip.com.au>
 
 	* backtrace.c (display_frame_expr), numbers.c (XDIGIT2UINT,
 	mem2uinteger, mem2decimal_from_point, mem2ureal): Cast char to int for
 	ctype.h tests, to avoid warnings from gcc on HP-UX about char as array
-	subscript.  Reported by Andreas Vögele.
+	subscript.  Reported by Andreas VÃ¶gele.
 	Also cast through unsigned char to avoid passing negatives to those
 	macros if input contains 8-bit values.
 
@@ -3676,17 +3927,17 @@
 	
 	* numbers.c (scm_bit_extract): Use min instead of MIN.
 	(MIN): Remove, this conflicts with similar macro defined by limits.h
-	on HP-UX.  Reported by Andreas Vögele.
+	on HP-UX.  Reported by Andreas VÃ¶gele.
 
 	* stime.c (_POSIX_C_SOURCE): Define to 199506L to get gmtime_r (in
-	particular on HP-UX).  Reported by Andreas Vögele.
+	particular on HP-UX).  Reported by Andreas VÃ¶gele.
 
 	* threads.c (scm_threads_mark_stacks): Correction sizet -> size_t.
-	Reported by Andreas Vögele.
+	Reported by Andreas VÃ¶gele.
 
 	* threads-plugin.h (SCM_MUTEX_MAXSIZE): Increase to 25*sizeof(long),
 	for the benefit of hpux11 where pthread_mutex_t is 88 bytes.  Reported
-	by Andreas Vögele.
+	by Andreas VÃ¶gele.
 
 2004-04-22  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
 
@@ -7539,7 +7790,7 @@
 2002-08-26  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* script.c (scm_compile_shell_switches): Added "2002" to Copyright
-	years.  Thanks to Martin Grabmüller!
+	years.  Thanks to Martin GrabmÃ¼ller!
 
 2002-08-25  Han-Wen Nienhuys  <hanwen@cs.uu.nl>
 
@@ -9455,7 +9706,7 @@
 	* deprecation.c (scm_include_deprecated_features): Simplified.
 
 	* eval.c (EVALCAR, unmemocopy), eval.h (SCM_XEVALCAR): Use
-	`SCM_IMP' instead of `!SCM_CELLP´.
+	`SCM_IMP' instead of `!SCM_CELLPÂ´.
 
 	* eval.c (unmemocopy): Eliminate redundant SCM_CELLP tests.
 	Extract side-effecting operations from macros.
@@ -10496,7 +10747,7 @@
 2001-06-09  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* ports.c (scm_lfwrite): Maintain columnd and row count in port.
-	Thanks to Matthias Köppe!
+	Thanks to Matthias KÃ¶ppe!
 
 2001-06-08  Michael Livshin  <mlivshin@bigfoot.com>
 
@@ -10504,7 +10755,7 @@
 	space-happy C preprocessors.
 
 	* filter-doc-snarfage.c, guile-snarf.in: try to cope with spaces
-	inside cookies.  thanks to Matthias Köppe!
+	inside cookies.  thanks to Matthias KÃ¶ppe!
 
 2001-06-08  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
@@ -11079,7 +11330,7 @@
 	SCM_VARIABLE_INIT since that it what it used to be.
 
 	* deprecation.c (scm_include_deprecated_features): Make docstring
-	ANSIsh.  Thanks to Matthias Köppe!
+	ANSIsh.  Thanks to Matthias KÃ¶ppe!
 
 2001-05-21  Marius Vollmer  <mvo@zagadka.ping.de>
 
@@ -11433,7 +11684,7 @@
 2001-05-15  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* values.c (print_values): Print as a unreadable object, not as
-	multiple lines.  Thanks to Matthias Köppe!
+	multiple lines.  Thanks to Matthias KÃ¶ppe!
 
 2001-05-14  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
@@ -11465,7 +11716,7 @@
 
 2001-05-09  Michael Livshin  <mlivshin@bigfoot.com>
 
-	from Matthias Köppe (thanks!):
+	from Matthias KÃ¶ppe (thanks!):
 
 	* ports.c (scm_c_read): pointer arithmetic on void pointers isn't
 	portable.
@@ -13322,7 +13573,7 @@
 
 2001-01-11  Michael Livshin  <mlivshin@bigfoot.com>
 
-	from Matthias Köppe:
+	from Matthias KÃ¶ppe:
 
 	* objects.h (SCM_SET_ENTITY_SETTER): new macro.  SCM_ENTITY_SETTER
 	casts its result, so doesn't yield an lvalue per ANSI C.
@@ -13391,3 +13642,7 @@
 	(write_all): new helper procedure.
 
 The ChangeLog continues in the file: "ChangeLog-2000"
+
+;; Local Variables:
+;; coding: utf-8
+;; End:

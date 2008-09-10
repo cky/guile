@@ -3,7 +3,7 @@
 #ifndef SCM_I18N_H
 #define SCM_I18N_H
 
-/* Copyright (C) 2004, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 2006 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -22,13 +22,24 @@
 
 #include "libguile/__scm.h"
 
-SCM_API SCM scm_gettext (SCM msgid, SCM domainname, SCM category);
-SCM_API SCM scm_ngettext (SCM msgid, SCM msgid_plural, SCM n, SCM domainname, SCM category);
-SCM_API SCM scm_textdomain (SCM domainname);
-SCM_API SCM scm_bindtextdomain (SCM domainname, SCM directory);
-SCM_API SCM scm_bind_textdomain_codeset (SCM domainname, SCM encoding);
-
-SCM_API int scm_i_to_lc_category (SCM category, int allow_lc_all);
+SCM_API SCM scm_make_locale (SCM category_mask, SCM locale_name, SCM base_locale);
+SCM_API SCM scm_locale_p (SCM obj);
+SCM_API SCM scm_string_locale_lt (SCM s1, SCM s2, SCM locale);
+SCM_API SCM scm_string_locale_gt (SCM s1, SCM s2, SCM locale);
+SCM_API SCM scm_string_locale_ci_lt (SCM s1, SCM s2, SCM locale);
+SCM_API SCM scm_string_locale_ci_gt (SCM s1, SCM s2, SCM locale);
+SCM_API SCM scm_string_locale_ci_eq (SCM s1, SCM s2, SCM locale);
+SCM_API SCM scm_char_locale_lt (SCM c1, SCM c2, SCM locale);
+SCM_API SCM scm_char_locale_gt (SCM c1, SCM c2, SCM locale);
+SCM_API SCM scm_char_locale_ci_lt (SCM c1, SCM c2, SCM locale);
+SCM_API SCM scm_char_locale_ci_gt (SCM c1, SCM c2, SCM locale);
+SCM_API SCM scm_char_locale_ci_eq (SCM c1, SCM c2, SCM locale);
+SCM_API SCM scm_char_locale_upcase (SCM chr, SCM locale);
+SCM_API SCM scm_char_locale_downcase (SCM chr, SCM locale);
+SCM_API SCM scm_string_locale_upcase (SCM chr, SCM locale);
+SCM_API SCM scm_string_locale_downcase (SCM chr, SCM locale);
+SCM_API SCM scm_locale_string_to_integer (SCM str, SCM base, SCM locale);
+SCM_API SCM scm_locale_string_to_inexact (SCM str, SCM locale);
 
 SCM_API void scm_init_i18n (void);
 

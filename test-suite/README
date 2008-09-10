@@ -13,9 +13,11 @@ You can reference the file `lib.scm' from your own code as the module
 function explaining what's going on.
 
 Please write more Guile tests, and send them to bug-guile@gnu.org.
-We'll merge them into the distribution.  All test suites must be
-licensed for our use under the GPL, but I don't think I'm going to
-collect assignment papers for them.
+(Note that you must be subscribed to this list first, in order to
+successfully send a report to it.)  We'll merge them into the
+distribution.  All test suites must be licensed for our use under the
+GPL, but I don't think I'm going to collect assignment papers for
+them.
 
 
 

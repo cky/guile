@@ -82,9 +82,10 @@
 	   (port (with-error-to-port (cdr pair)
 		   (lambda ()
 		     (open-input-pipe
-		      "exec 1>/dev/null; echo closed 1>&2; sleep 999")))))
-      (read-char (car pair)) ;; wait for child to do its thing
-      (and (char-ready? port)
+		      "exec 1>/dev/null; echo closed 1>&2; exec 2>/dev/null; sleep 999")))))
+      (close-port (cdr pair))   ;; write side
+      (and (char? (read-char (car pair))) ;; wait for child to do its thing
+	   (char-ready? port)
 	   (eof-object? (read-char port))))))
 
 ;;
@@ -131,15 +132,16 @@
 	      (port (with-error-to-port (cdr pair)
 		      (lambda ()
 			(open-output-pipe
-			 "exec 0</dev/null; echo closed 1>&2; sleep 999")))))
-	 (read-char (car pair)) ;; wait for child to do its thing
-	 (catch 'system-error
+			 "exec 0</dev/null; echo closed 1>&2; exec 2>/dev/null; sleep 999")))))
+	 (close-port (cdr pair))   ;; write side
+	 (and (char? (read-char (car pair))) ;; wait for child to do its thing
+	      (catch 'system-error
 		(lambda ()
 		  (write-char #\x port)
 		  (force-output port)
 		  #f)
 		(lambda (key name fmt args errno-list)
-		  (= (car errno-list) EPIPE))))))))
+		  (= (car errno-list) EPIPE)))))))))
 
 ;;
 ;; close-pipe

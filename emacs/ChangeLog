@@ -1,3 +1,24 @@
+2006-11-02  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* gds-scheme.el (gds-choose-client): Change assq to memq, so that
+	the mapcar really constructs a list of available clients.
+
+2006-10-14  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* gds.el (gds-socket-type-alist): New.
+	(gds-run-debug-server): Use gds-server-socket-type and
+	gds-socket-type-alist instead of gds-server-port-or-path.
+	(gds-server-socket-type): New, replacing gds-server-port-or-path.
+
+2006-10-13  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* gds.el (gds-run-debug-server): Use variable
+	gds-server-port-or-path instead of hardcoded 8333.
+	(gds-server-port-or-path): New.
+
+	* gds-server.el (gds-start-server): Change port arg to
+	port-or-path, to support Unix domain sockets.
+
 2006-08-18  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* gds-server.el (gds-start-server): Change "ossau" to "ice-9".

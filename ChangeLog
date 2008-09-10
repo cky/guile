@@ -1,10 +1,66 @@
-2006-09-20  Ludovic Courtès  <ludovic.courtes@laas.fr>
+2006-11-18  Ludovic CourtÃ¨s  <ludovic.courtes@laas.fr>
+
+	* GUILE-VERSION: Added `LIBGUILE_I18N_*'.
+
+	* configure.in: Look for `strcoll_l ()' and `newlocale ()'.
+	Substitute the `LIBGUILE_I18N_' variables.
+	
+	* NEWS: Mention `(ice-9 i18n)'.
+
+2006-11-17  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* README: Note need for subscription to bug-guile@gnu.org.
+
+	* NEWS: Note need for subscription to bug-guile@gnu.org.
+
+2006-11-08  Ludovic CourtÃ¨s  <ludovic.courtes@laas.fr>
+
+	* configure.in: Pass `bug-guile@gnu.org' as a third argument to
+	`AC_INIT'.
+
+2006-10-25  Neil Jerram  <neil@ossau.uklinux.net>
+
+	IA64 HP-UX patch from Hrvoje NikÅ¡iÄ‡.  (Thanks!)
+	
+	* configure.in: New check for uca lib (needed for IA64 on HP-UX).
+
+2006-10-06  Rob Browning  <rlb@defaultvalue.org>
+
+	Guile 1.8.1 released.
+
+	* GUILE-VERSION (GUILE_MICRO_VERSION): Increment for release.
+	(LIBGUILE_INTERFACE_REVISION): Increment for release.
+	(LIBGUILE_SRFI_SRFI_1_INTERFACE_REVISION): Increment for release.
+	(LIBGUILE_SRFI_SRFI_4_INTERFACE_REVISION): Increment for release.
+	(LIBGUILE_SRFI_SRFI_13_14_INTERFACE_REVISION): Increment for release.
+	(LIBGUILE_SRFI_SRFI_60_INTERFACE_REVISION): Increment for release.
+
+	* Makefile.am (EXTRA_DIST): Add LICENSE.
+
+2006-09-28  Kevin Ryde  <user42@zip.com.au>
+
+	* configure.in (chsize, ftruncate, truncate): New tests, for mingw.
+
+2006-09-27  Kevin Ryde  <user42@zip.com.au>
+
+	* configure.in (clog10): New test, not in mingw.
+
+2006-09-23  Kevin Ryde  <user42@zip.com.au>
+
+	* configure.in (complex.h, complex double, csqrt): New tests.
+
+2006-09-20  Ludovic CourtÃ¨s  <ludovic.courtes@laas.fr>
 
 	* configure.in: Check for `isblank ()'.
 
 	* NEWS: Mentioned the interaction between `setlocale' and SRFI-14
 	standard char sets.
-	
+
+2006-08-22  Kevin Ryde  <user42@zip.com.au>
+
+	* configure.in: Test if need braces around PTHREAD_ONCE_INIT, set
+	AC_OUTPUT of SCM_I_GSC_NEED_BRACES_ON_PTHREAD_ONCE_INIT.
+
 2006-08-18  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* configure.in: Generate Makefile for emacs subdir.
@@ -13,7 +69,21 @@
 
 	* configure.in: Generate Makefile for ice-9/debugging subdir.
 
-2006-06-13  Ludovic Courtès  <ludovic.courtes@laas.fr>
+2006-07-25  Kevin Ryde  <user42@zip.com.au>
+
+	* configure.in (AC_CHECK_FUNCS): Add pthread_getattr_np.
+
+2006-07-24  Kevin Ryde  <user42@zip.com.au>
+
+	* configure.in (AC_CHECK_DECLS): Add sethostname for Solaris 10.
+	(AC_CHECK_FUNCS): Remove dirfd, it's a macro.
+	Reported by Claes Wallin.
+	
+2006-06-25  Kevin Ryde  <user42@zip.com.au>
+
+	* configure.in (AC_CHECK_MEMBERS): Test struct tm.tm_gmtoff.
+
+2006-06-13  Ludovic CourtÃ¨s  <ludovic.courtes@laas.fr>
 
 	* NEWS: Mentioned the new behavior of `equal?' for structures.
 
@@ -216,7 +286,7 @@
 
 	* acinclude.m4 (ACX_PTHREAD): New.
 	* configure.in: Use it instead of simply looking for -lpthread.
-	Thanks to Andreas Vögele!
+	Thanks to Andreas VÃ¶gele!
 	
 2004-09-08  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
@@ -269,7 +339,7 @@
 2004-07-09  Marius Vollmer  <mvo@zagadka.de>
 
 	* configure.in: Bugfix: set SCM_I_GSC_T_UINTMAX, not
-	SCM_I_GSC_T_INTMAX in two places.  Thanks to Andreas Vögele!
+	SCM_I_GSC_T_INTMAX in two places.  Thanks to Andreas VÃ¶gele!
 
 2004-07-07  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
@@ -1988,7 +2058,7 @@ Tue Dec 14 09:12:22 1999  Greg J. Badros  <gjb@cs.washington.edu>
 
 1999-07-19  Jim Blandy  <jimb@savonarola.red-bean.com>
 
-	Fixes for EMX from Mikael Ståldal.
+	Fixes for EMX from Mikael StÃ¥ldal.
 
 	* configure.in: Check for <io.h>.
 	* configure: Regenerated.
@@ -2923,3 +2993,8 @@ Thu Aug  1 02:31:53 1996  Jim Blandy  <jimb@totoro.cyclic.com>
 	Makefile.  Build doc/Makefile from doc/Makefile.in.
 
 	* doc/Makefile.in: New file.
+
+
+;; Local Variables:
+;; coding: utf-8
+;; End:

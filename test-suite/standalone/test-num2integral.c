@@ -141,12 +141,17 @@ test_ulong_long ()
 #endif /* SCM_SIZEOF_LONG_LONG != 0 */
 }
 
+static void
+tests (void *data, int argc, char **argv)
+{
+  test_long_long ();
+  test_ulong_long ();
+}
+
 int
 main (int argc, char *argv[])
 {
-  scm_init_guile();
-  test_long_long ();
-  test_ulong_long ();
+  scm_boot_guile (argc, argv, tests, NULL);
   return 0;
 }
 

@@ -1,69 +1,41 @@
-/* Convenience header for conditional use of GNU <libintl.h>.
-   Copyright (C) 1995-1998, 2000-2002, 2006 Free Software Foundation, Inc.
+/* classes: h_files */
 
-   This program is free software; you can redistribute it and/or modify it
-   under the terms of the GNU Library General Public License as published
-   by the Free Software Foundation; either version 2, or (at your option)
-   any later version.
+#ifndef SCM_GETTEXT_H
+#define SCM_GETTEXT_H
 
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Library General Public License for more details.
+/* Copyright (C) 2004, 2006 Free Software Foundation, Inc.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
 
-   You should have received a copy of the GNU Library General Public
-   License along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
-   USA.  */
+#include "libguile/__scm.h"
 
-#ifndef _LIBGETTEXT_H
-#define _LIBGETTEXT_H 1
+SCM_API SCM scm_gettext (SCM msgid, SCM domainname, SCM category);
+SCM_API SCM scm_ngettext (SCM msgid, SCM msgid_plural, SCM n, SCM domainname, SCM category);
+SCM_API SCM scm_textdomain (SCM domainname);
+SCM_API SCM scm_bindtextdomain (SCM domainname, SCM directory);
+SCM_API SCM scm_bind_textdomain_codeset (SCM domainname, SCM encoding);
 
-/* NLS can be disabled through the configure --disable-nls option.  */
-#if ENABLE_NLS
+SCM_API int scm_i_to_lc_category (SCM category, int allow_lc_all);
 
-/* Get declarations of GNU message catalog functions.  */
-# include <libintl.h>
+SCM_API void scm_init_gettext (void);
 
-#else
+#endif  /* SCM_GETTEXT_H */
 
-/* Solaris /usr/include/locale.h includes /usr/include/libintl.h, which
-   chokes if dcgettext is defined as a macro.  So include it now, to make
-   later inclusions of <locale.h> a NOP.  We don't include <libintl.h>
-   as well because people using "gettext.h" will not include <libintl.h>,
-   and also including <libintl.h> would fail on SunOS 4, whereas <locale.h>
-   is OK.  */
-#if defined(__sun)
-# include <locale.h>
-#endif
-
-/* Disabled NLS.
-   The casts to 'const char *' serve the purpose of producing warnings
-   for invalid uses of the value returned from these functions.
-   On pre-ANSI systems without 'const', the config.h file is supposed to
-   contain "#define const".  */
-# define gettext(Msgid) ((const char *) (Msgid))
-# define dgettext(Domainname, Msgid) ((const char *) (Msgid))
-# define dcgettext(Domainname, Msgid, Category) ((const char *) (Msgid))
-# define ngettext(Msgid1, Msgid2, N) \
-    ((N) == 1 ? (const char *) (Msgid1) : (const char *) (Msgid2))
-# define dngettext(Domainname, Msgid1, Msgid2, N) \
-    ((N) == 1 ? (const char *) (Msgid1) : (const char *) (Msgid2))
-# define dcngettext(Domainname, Msgid1, Msgid2, N, Category) \
-    ((N) == 1 ? (const char *) (Msgid1) : (const char *) (Msgid2))
-# define textdomain(Domainname) ((const char *) (Domainname))
-# define bindtextdomain(Domainname, Dirname) ((const char *) (Dirname))
-# define bind_textdomain_codeset(Domainname, Codeset) ((const char *) (Codeset))
-
-#endif
-
-/* A pseudo function call that serves as a marker for the automated
-   extraction of messages, but does not call gettext().  The run-time
-   translation is done at a different place in the code.
-   The argument, String, should be a literal string.  Concatenated strings
-   and other string expressions won't work.
-   The macro's expansion is not parenthesized, so that it is suitable as
-   initializer for static 'char[]' or 'const char[]' variables.  */
-#define gettext_noop(String) String
-
-#endif /* _LIBGETTEXT_H */
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

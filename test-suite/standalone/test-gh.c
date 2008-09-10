@@ -67,11 +67,16 @@ test_gh_set_substr ()
   assert (string_equal (string, "Frdarnitrnit!"));
 }
 
-int 
+static void
+tests (void *data, int argc, char **argv)
+{
+  test_gh_set_substr ();
+}
+
+int
 main (int argc, char *argv[])
 {
-  scm_init_guile ();
-  test_gh_set_substr ();
+  scm_boot_guile (argc, argv, tests, NULL);
   return 0;
 }
 

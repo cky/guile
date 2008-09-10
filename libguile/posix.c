@@ -40,7 +40,7 @@
 
 #include "libguile/validate.h"
 #include "libguile/posix.h"
-#include "libguile/i18n.h"
+#include "libguile/gettext.h"
 #include "libguile/threads.h"
 
 
@@ -115,6 +115,10 @@ extern char ** environ;
 #include <locale.h>
 #endif
 
+#if (defined HAVE_NEWLOCALE) && (defined HAVE_STRCOLL_L)
+# define USE_GNU_LOCALE_API
+#endif
+
 #if HAVE_CRYPT_H
 #  include <crypt.h>
 #endif
@@ -155,6 +159,12 @@ extern char ** environ;
 
 #ifndef F_OK
 #define F_OK 0
+#endif
+
+/* No prototype for this on Solaris 10.  The man page says it's in
+   <unistd.h> ... but it lies. */
+#if ! HAVE_DECL_SETHOSTNAME
+int sethostname (char *name, size_t namelen);
 #endif
 
 /* On NextStep, <utime.h> doesn't define struct utime, unless we
@@ -943,7 +953,12 @@ SCM_DEFINE (scm_execl, "execl", 1, 0, 1,
   scm_dynwind_unwind_handler (free_string_pointers, exec_argv, 
 			    SCM_F_WIND_EXPLICITLY);
 
-  execv (exec_file, exec_argv);
+  execv (exec_file,
+#ifdef __MINGW32__
+         /* extra "const" in mingw formals, provokes warning from gcc */
+         (const char * const *)
+#endif
+         exec_argv);
   SCM_SYSERROR;
 
   /* not reached.  */
@@ -974,7 +989,12 @@ SCM_DEFINE (scm_execlp, "execlp", 1, 0, 1,
   scm_dynwind_unwind_handler (free_string_pointers, exec_argv, 
 			    SCM_F_WIND_EXPLICITLY);
 
-  execvp (exec_file, exec_argv);
+  execvp (exec_file,
+#ifdef __MINGW32__
+          /* extra "const" in mingw formals, provokes warning from gcc */
+          (const char * const *)
+#endif
+          exec_argv);
   SCM_SYSERROR;
 
   /* not reached.  */
@@ -1013,7 +1033,17 @@ SCM_DEFINE (scm_execle, "execle", 2, 0, 1,
   scm_dynwind_unwind_handler (free_string_pointers, exec_env,
 			    SCM_F_WIND_EXPLICITLY);
 
-  execve (exec_file, exec_argv, exec_env);
+  execve (exec_file,
+#ifdef __MINGW32__
+          /* extra "const" in mingw formals, provokes warning from gcc */
+          (const char * const *)
+#endif
+          exec_argv,
+#ifdef __MINGW32__
+          /* extra "const" in mingw formals, provokes warning from gcc */
+          (const char * const *)
+#endif
+          exec_env);
   SCM_SYSERROR;
 
   /* not reached.  */
@@ -1354,7 +1384,15 @@ SCM_DEFINE (scm_putenv, "putenv", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+#ifndef USE_GNU_LOCALE_API
+/* This mutex is used to serialize invocations of `setlocale ()' on non-GNU
+   systems (i.e., systems where a reentrant locale API is not available).
+   See `i18n.c' for details.  */
+scm_i_pthread_mutex_t scm_i_locale_mutex;
+#endif
+
 #ifdef HAVE_SETLOCALE
+
 SCM_DEFINE (scm_setlocale, "setlocale", 1, 1, 0,
             (SCM category, SCM locale),
 	    "If @var{locale} is omitted, return the current value of the\n"
@@ -1383,7 +1421,14 @@ SCM_DEFINE (scm_setlocale, "setlocale", 1, 1, 0,
       scm_dynwind_free (clocale);
     }
 
+#ifndef USE_GNU_LOCALE_API
+  scm_i_pthread_mutex_lock (&scm_i_locale_mutex);
+#endif
   rv = setlocale (scm_i_to_lc_category (category, 1), clocale);
+#ifndef USE_GNU_LOCALE_API
+  scm_i_pthread_mutex_unlock (&scm_i_locale_mutex);
+#endif
+
   if (rv == NULL)
     {
       /* POSIX and C99 don't say anything about setlocale setting errno, so
@@ -1917,9 +1962,13 @@ SCM_DEFINE (scm_gethostname, "gethostname", 0, 0, 0,
 #endif /* HAVE_GETHOSTNAME */
 
 
-void 
+void
 scm_init_posix ()
 {
+#ifndef USE_GNU_LOCALE_API
+  scm_i_pthread_mutex_init (&scm_i_locale_mutex, NULL);
+#endif
+
   scm_add_feature ("posix");
 #ifdef HAVE_GETEUID
   scm_add_feature ("EIDs");

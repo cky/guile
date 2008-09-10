@@ -98,9 +98,7 @@ SCM_DEFINE (scm_htonl, "htonl", 1, 0, 0,
 	    "and returned as a new integer.")
 #define FUNC_NAME s_scm_htonl
 {
-  scm_t_uint32 c_in = SCM_NUM2ULONG (1, value);
-
-  return scm_from_ulong (htonl (c_in));
+  return scm_from_ulong (htonl (scm_to_uint32 (value)));
 }
 #undef FUNC_NAME
 
@@ -111,9 +109,7 @@ SCM_DEFINE (scm_ntohl, "ntohl", 1, 0, 0,
 	    "and returned as a new integer.")
 #define FUNC_NAME s_scm_ntohl
 {
-  scm_t_uint32 c_in = SCM_NUM2ULONG (1, value);
-
-  return scm_from_ulong (ntohl (c_in));
+  return scm_from_ulong (ntohl (scm_to_uint32 (value)));
 }
 #undef FUNC_NAME
 
@@ -1459,25 +1455,34 @@ SCM_DEFINE (scm_send, "send", 2, 1, 0,
 
 SCM_DEFINE (scm_recvfrom, "recvfrom!", 2, 3, 0,
             (SCM sock, SCM str, SCM flags, SCM start, SCM end),
-	    "Return data from the socket port @var{sock} and also\n"
-	    "information about where the data was received from.\n"
-	    "@var{sock} must already be bound to the address from which\n"
-	    "data is to be received.  @code{str}, is a string into which the\n"
-	    "data will be written.  The size of @var{str} limits the amount\n"
-	    "of data which can be received: in the case of packet protocols,\n"
-	    "if a packet larger than this limit is encountered then some\n"
-	    "data will be irrevocably lost.\n\n"
-	    "The optional @var{flags} argument is a value or bitwise OR of\n"
-	    "@code{MSG_OOB}, @code{MSG_PEEK}, @code{MSG_DONTROUTE} etc.\n\n"
-	    "The value returned is a pair: the @emph{car} is the number of\n"
-	    "bytes read from the socket and the @emph{cdr} an address object\n"
-	    "in the same form as returned by @code{accept}.  The address\n"
-	    "will given as @code{#f} if not available, as is usually the\n"
-	    "case for stream sockets.\n\n"
-	    "The @var{start} and @var{end} arguments specify a substring of\n"
-	    "@var{str} to which the data should be written.\n\n"
-	    "Note that the data is read directly from the socket file\n"
-	    "descriptor: any unread buffered port data is ignored.")
+	    "Receive data from socket port @var{sock} (which must be already\n"
+	    "bound), returning the originating address as well as the data.\n"
+	    "This is usually for use on datagram sockets, but can be used on\n"
+	    "stream-oriented sockets too.\n"
+	    "\n"
+	    "The data received is stored in the given @var{str}, using\n"
+	    "either the whole string or just the region between the optional\n"
+	    "@var{start} and @var{end} positions.  The size of @var{str}\n"
+	    "limits the amount of data which can be received.  For datagram\n"
+	    "protocols, if a packet larger than this is received then excess\n"
+	    "bytes are irrevocably lost.\n"
+	    "\n"
+	    "The return value is a pair.  The @code{car} is the number of\n"
+	    "bytes read.  The @code{cdr} is a socket address object which is\n"
+	    "where the data come from, or @code{#f} if the origin is\n"
+	    "unknown.\n"
+	    "\n"
+	    "The optional @var{flags} argument is a or bitwise OR\n"
+	    "(@code{logior}) of @code{MSG_OOB}, @code{MSG_PEEK},\n"
+	    "@code{MSG_DONTROUTE} etc.\n"
+	    "\n"
+	    "Data is read directly from the socket file descriptor, any\n"
+	    "buffered port data is ignored.\n"
+	    "\n"
+	    "On a GNU/Linux system @code{recvfrom!} is not multi-threading,\n"
+	    "all threads stop while a @code{recvfrom!} call is in progress.\n"
+	    "An application may need to use @code{select}, @code{O_NONBLOCK}\n"
+	    "or @code{MSG_DONTWAIT} to avoid this.")
 #define FUNC_NAME s_scm_recvfrom
 {
   int rv;
@@ -1728,6 +1733,9 @@ scm_init_socket ()
 #endif
 
   /* recv/send options.  */
+#ifdef MSG_DONTWAIT
+  scm_c_define ("MSG_DONTWAIT", scm_from_int (MSG_DONTWAIT));
+#endif
 #ifdef MSG_OOB
   scm_c_define ("MSG_OOB", scm_from_int (MSG_OOB));
 #endif

@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2006
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -1012,6 +1012,12 @@ zero.
 @rnindex number->string
 @rnindex string->number
 
+The following procedures read and write numbers according to their
+external representation as defined by R5RS (@pxref{Lexical structure,
+R5RS Lexical Structure,, r5rs, The Revised^5 Report on the Algorithmic
+Language Scheme}).  @xref{The ice-9 i18n Module, the @code{(ice-9
+i18n)} module}, for locale-dependent number parsing.
+
 @deffn {Scheme Procedure} number->string n [radix]
 @deffnx {C Function} scm_number_to_string (n, radix)
 Return a string holding the external representation of the
@@ -1214,7 +1220,16 @@ including complex numbers.
 @rnindex sqrt
 @c begin (texi-doc-string "guile" "sqrt")
 @deffn {Scheme Procedure} sqrt z
-Return the square root of @var{z}.
+Return the square root of @var{z}.  Of the two possible roots
+(positive and negative), the one with the a positive real part is
+returned, or if that's zero then a positive imaginary part.  Thus,
+
+@example
+(sqrt 9.0)       @result{} 3.0
+(sqrt -9.0)      @result{} 0.0+3.0i
+(sqrt 1.0+1.0i)  @result{} 1.09868411346781+0.455089860562227i
+(sqrt -1.0-1.0i) @result{} 0.455089860562227-1.09868411346781i
+@end example
 @end deffn
 
 @rnindex expt
@@ -2934,7 +2949,8 @@ predicates (@pxref{Characters}), but are defined on character sequences.
 The first set is specified in R5RS and has names that end in @code{?}.
 The second set is specified in SRFI-13 and the names have no ending
 @code{?}.  The predicates ending in @code{-ci} ignore the character case
-when comparing strings.
+when comparing strings.  @xref{The ice-9 i18n Module, the @code{(ice-9
+i18n)} module}, for locale-dependent string comparison.
 
 @rnindex string=?
 @deffn {Scheme Procedure} string=? s1 s2
@@ -4674,10 +4690,8 @@ see @code{symbol-property}.
 @end deffn
 
 Support for these extra slots may be removed in a future release, and it
-is probably better to avoid using them.  (In release 1.6, Guile itself
-uses the property list slot sparingly, and the function slot not at
-all.)  For a more modern and Schemely approach to properties, see
-@ref{Object Properties}.
+is probably better to avoid using them.  For a more modern and Schemely
+approach to properties, see @ref{Object Properties}.
 
 
 @node Symbol Read Syntax

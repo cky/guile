@@ -37,24 +37,22 @@
 
 #ifndef DEVAL
 
-/* AIX requires this to be the first thing in the file.  The #pragma
-   directive is indented so pre-ANSI compilers will ignore it, rather
-   than choke on it.  */
-#ifndef __GNUC__
-# if HAVE_ALLOCA_H
-#  include <alloca.h>
-# else
-#  ifdef _AIX
-#   pragma alloca
-#  else
-#   ifndef alloca /* predefined by HP cc +Olibcalls */
-char *alloca ();
-#   endif
-#  endif
+/* This blob per the Autoconf manual (under "Particular Functions"). */
+#if HAVE_ALLOCA_H
+# include <alloca.h>
+#elif defined __GNUC__
+# define alloca __builtin_alloca
+#elif defined _AIX
+# define alloca __alloca
+#elif defined _MSC_VER
+# include <malloc.h>
+# define alloca _alloca
+#else
+# include <stddef.h>
+# ifdef  __cplusplus
+extern "C"
 # endif
-#endif
-#if HAVE_MALLOC_H
-#include <malloc.h> /* alloca on mingw */
+void *alloca (size_t);
 #endif
 
 #include <assert.h>
@@ -4851,7 +4849,16 @@ tail:
   switch (SCM_TYP7 (proc))
     {
     case scm_tc7_subr_2o:
-      args = scm_is_null (args) ? SCM_UNDEFINED : SCM_CAR (args);
+      if (SCM_UNBNDP (arg1))
+	scm_wrong_num_args (proc);
+      if (scm_is_null (args))
+        args = SCM_UNDEFINED;
+      else
+        {
+          if (! scm_is_null (SCM_CDR (args)))
+            scm_wrong_num_args (proc);
+          args = SCM_CAR (args);
+        }
       RETURN (SCM_SUBRF (proc) (arg1, args));
     case scm_tc7_subr_2:
       if (scm_is_null (args) || !scm_is_null (SCM_CDR (args)))

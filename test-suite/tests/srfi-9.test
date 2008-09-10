@@ -18,25 +18,69 @@
 ;;;; the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;;;; Boston, MA 02110-1301 USA
 
-(use-modules (srfi srfi-9))
+(define-module (test-suite test-numbers)
+  #:use-module (test-suite lib)
+  #:use-module (srfi srfi-9))
+
+
+(define exception:not-a-record
+  (cons 'misc-error "^not-a-record"))
+
 
 (define-record-type :foo (make-foo x) foo? 
   (x get-x) (y get-y set-y!))
 
+(define-record-type :bar (make-bar i j) bar? 
+  (i get-i) (i get-j set-j!))
+
 (define f (make-foo 1))
 (set-y! f 2)
 
-(with-test-prefix "record procedures"
+(define b (make-bar 123 456))
 
-  (pass-if "predicate"
+(with-test-prefix "constructor"
+
+  (pass-if-exception "foo 0 args" exception:wrong-num-args
+     (make-foo))
+  (pass-if-exception "foo 2 args" exception:wrong-num-args
+     (make-foo 1 2)))
+
+(with-test-prefix "predicate"
+
+  (pass-if "pass"
      (foo? f))
+  (pass-if "fail wrong record type"
+     (eq? #f (foo? b)))
+  (pass-if "fail number"
+     (eq? #f (foo? 123))))
 
-  (pass-if "accessor 1"
+(with-test-prefix "accessor"
+
+  (pass-if "get-x"
      (= 1 (get-x f)))
-
-  (pass-if "accessor 2"
+  (pass-if "get-y"
      (= 2 (get-y f)))
 
-  (pass-if "modifier"
+  (pass-if-exception "get-x on number" exception:not-a-record
+     (get-x 999))
+  (pass-if-exception "get-y on number" exception:not-a-record
+     (get-y 999))
+
+  ;; prior to guile 1.6.9 and 1.8.1 this wan't enforced
+  (pass-if-exception "get-x on bar" exception:wrong-type-arg
+     (get-x b))
+  (pass-if-exception "get-y on bar" exception:wrong-type-arg
+     (get-y b)))
+
+(with-test-prefix "modifier"
+
+  (pass-if "set-y!"
      (set-y! f #t)
-     (eq? #t (get-y f))))
+     (eq? #t (get-y f)))
+
+  (pass-if-exception "set-y! on number" exception:not-a-record
+     (set-y! 999 #t))
+
+  ;; prior to guile 1.6.9 and 1.8.1 this wan't enforced
+  (pass-if-exception "set-y! on bar" exception:wrong-type-arg
+     (set-y! b 99)))

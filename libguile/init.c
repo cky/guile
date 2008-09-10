@@ -46,7 +46,9 @@
 #include "libguile/deprecation.h"
 #include "libguile/dynl.h"
 #include "libguile/dynwind.h"
+#if 0
 #include "libguile/environments.h"
+#endif
 #include "libguile/eq.h"
 #include "libguile/error.h"
 #include "libguile/eval.h"
@@ -63,7 +65,7 @@
 #include "libguile/hash.h"
 #include "libguile/hashtab.h"
 #include "libguile/hooks.h"
-#include "libguile/i18n.h"
+#include "libguile/gettext.h"
 #include "libguile/iselect.h"
 #include "libguile/ioext.h"
 #include "libguile/keywords.h"
@@ -436,7 +438,9 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_struct_prehistory ();	  /* requires storage */
   scm_symbols_prehistory ();      /* requires storage */
   scm_init_subr_table ();
+#if 0
   scm_environments_prehistory (); /* requires storage */
+#endif
   scm_modules_prehistory ();      /* requires storage and hash tables */
   scm_init_variable ();           /* all bindings need variables */
   scm_init_continuations ();
@@ -445,7 +449,9 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_init_gsubr ();
   scm_init_thread_procs ();       /* requires gsubrs */
   scm_init_procprop ();
+#if 0
   scm_init_environments ();
+#endif
   scm_init_alist ();
   scm_init_arbiters ();
   scm_init_async ();
@@ -475,7 +481,7 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_init_properties ();
   scm_init_hooks ();            /* Requires smob_prehistory */
   scm_init_gc ();		/* Requires hooks, async */
-  scm_init_i18n ();
+  scm_init_gettext ();
   scm_init_ioext ();
   scm_init_keywords ();
   scm_init_list ();

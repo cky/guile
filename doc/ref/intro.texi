@@ -420,7 +420,8 @@ purpose to check whether your code still relies on them.
 @section Reporting Bugs
 
 Any problems with the installation should be reported to
-@email{bug-guile@@gnu.org}.
+@email{bug-guile@@gnu.org}.  Please note that you must be subscribed to
+this list first, in order to successfully send a report to it.
 
 Whenever you have found a bug in Guile you are encouraged to report it
 to the Guile developers, so they can fix it.  They may also be able to
