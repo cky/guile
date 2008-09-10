@@ -92,7 +92,7 @@ static char *s_hashtable = "hashtable";
 
 /* Return a ``usable'' version of ALIST, an alist of weak pairs.  By
    ``usable'', we mean that it contains only valid Scheme objects.  On
-   return, REMOVE_ITEMS is set to the number of pairs that have been
+   return, REMOVED_ITEMS is set to the number of pairs that have been
    deleted.  */
 static SCM
 scm_fixup_weak_alist (SCM alist, size_t *removed_items)
@@ -496,7 +496,7 @@ scm_hash_fn_create_handle_x (SCM table, SCM obj, SCM init, unsigned long (*hash_
   if (weak)
     END_WEAK_BUCKET_FIXUP (table, buckets, k, alist, hash_fn);
 
-  if (scm_is_true (it))
+  if (scm_is_pair (it))
     return it;
   else if (scm_is_true (it))
     scm_wrong_type_arg_msg (NULL, 0, it, "a pair");
