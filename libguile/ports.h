@@ -195,7 +195,6 @@ typedef struct scm_t_ptob_descriptor
 
 SCM_API scm_t_ptob_descriptor *scm_ptobs;
 SCM_API long scm_numptob;
-SCM_INTERNAL long scm_i_port_table_room;
 
 
 

@@ -547,7 +547,6 @@ finalize_port (GC_PTR ptr, GC_PTR data)
 
 	  SCM_SETSTREAM (port, 0);
 	  SCM_CLR_PORT_OPEN_FLAG (port);
-	  scm_remove_from_port_table (port);
 
 	  scm_gc_ports_collected++;
 	}
@@ -1159,7 +1158,7 @@ void
 scm_flush (SCM port)
 {
   long i = SCM_PTOBNUM (port);
-  assert ((i >= 0) && (i < scm_i_port_table_size));
+  assert (i >= 0);
   (scm_ptobs[i].flush) (port);
 }
 
@@ -1647,13 +1646,6 @@ scm_ports_prehistory ()
 {
   scm_numptob = 0;
   scm_ptobs = NULL;
-
-  /* In order for the ports to be collectable, the port table must not be
-     scanned by the GC.  */
-  scm_i_port_table =
-    scm_gc_malloc_pointerless (scm_i_port_table_room
-			       * sizeof (scm_t_port *),
-			       "port-table");
 }
 
 
