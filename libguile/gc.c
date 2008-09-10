@@ -416,7 +416,7 @@ gc_end_stats ()
 
   scm_gc_cells_allocated_acc +=
     (double) scm_i_gc_sweep_stats.collected;
-  scm_gc_cells_marked_acc += (double) scm_cells_allocated;
+  scm_gc_cells_marked_acc += (double) scm_i_last_marked_cell_count;
   scm_gc_cells_marked_conservatively_acc += (double) scm_i_find_heap_calls;
   scm_gc_cells_swept_acc += (double) scm_i_gc_sweep_stats.swept;
 
@@ -558,6 +558,8 @@ scm_check_deprecated_memory_return ()
   scm_i_deprecated_memory_return = 0;
 }
 
+long int scm_i_last_marked_cell_count;
+
 /* Must be called while holding scm_i_sweep_mutex.
 
    This function is fairly long, but it touches various global
@@ -598,16 +600,22 @@ scm_i_gc (const char *what)
   scm_i_sweep_all_segments ("GC", &scm_i_gc_sweep_stats);
   scm_check_deprecated_memory_return ();
 
-#if (SCM_DEBUG_CELL_ACCESSES == 0 && SCM_SIZEOF_UNSIGNED_LONG ==4)
+#if (SCM_DEBUG_CELL_ACCESSES == 0 && SCM_SIZEOF_UNSIGNED_LONG == 4)
   /* Sanity check our numbers. */
   /* TODO(hanwen): figure out why the stats are off on x64_64. */
   /* If this was not true, someone touched mark bits outside of the
      mark phase. */
-  assert (scm_cells_allocated == scm_i_marked_count ());
+  if (scm_i_last_marked_cell_count != scm_i_marked_count ())
+    {
+      static char msg[] =
+	"The number of marked objects changed since the last GC: %d vs %d.";
+      /* At some point, we should probably use a deprecation warning. */
+      fprintf(stderr, msg, scm_i_last_marked_cell_count, scm_i_marked_count ());
+    }
   assert (scm_i_gc_sweep_stats.swept
 	  == (scm_i_master_freelist.heap_total_cells
 	      + scm_i_master_freelist2.heap_total_cells));
-  assert (scm_i_gc_sweep_stats.collected + scm_cells_allocated
+  assert (scm_i_gc_sweep_stats.collected + scm_i_last_marked_cell_count
 	  == scm_i_gc_sweep_stats.swept);
 #endif /* SCM_DEBUG_CELL_ACCESSES */
   
@@ -617,8 +625,8 @@ scm_i_gc (const char *what)
   scm_mark_all ();
   scm_gc_mark_time_taken += (scm_c_get_internal_run_time () - t_before_gc);
 
-  scm_cells_allocated = scm_i_marked_count ();
- 
+  scm_i_last_marked_cell_count = scm_cells_allocated = scm_i_marked_count ();
+
   /* Sweep
 
     TODO: the after_sweep hook should probably be moved to just before

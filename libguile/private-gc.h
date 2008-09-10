@@ -273,8 +273,9 @@ SCM_INTERNAL void scm_i_sweep_all_segments (char const *reason,
 SCM_INTERNAL SCM scm_i_all_segments_statistics (SCM hashtab);
 SCM_INTERNAL unsigned long *scm_i_segment_table_info(int *size);
 
-extern long int scm_i_deprecated_memory_return;
-extern long int scm_i_find_heap_calls;
+SCM_INTERNAL long int scm_i_deprecated_memory_return;
+SCM_INTERNAL long int scm_i_find_heap_calls;
+SCM_INTERNAL long int scm_i_last_marked_cell_count;
 
 /*
   global init funcs.
