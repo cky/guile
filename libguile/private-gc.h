@@ -112,6 +112,9 @@ void scm_mark_all (void);
 extern long int scm_i_deprecated_memory_return;
 extern long int scm_i_find_heap_calls;
 
+SCM_INTERNAL char const *scm_i_tag_name (scm_t_bits tag); /* MOVEME */
+
+
 /*
   global init funcs.
  */

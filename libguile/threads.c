@@ -18,6 +18,10 @@
 
 
 
+#if HAVE_CONFIG_H
+# include <config.h>
+#endif
+
 #include "libguile/boehm-gc.h"
 #include "libguile/_scm.h"
 
