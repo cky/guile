@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005, 2006, 2007 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005, 2006, 2007, 2008 Free Software Foundation, Inc.
  *
  * Portions Copyright 1990, 1991, 1992, 1993 by AT&T Bell Laboratories
  * and Bellcore.  See scm_divide.
@@ -39,9 +39,6 @@
    - see if direct mpz operations can help in ash and elsewhere.
 
  */
-
-/* tell glibc (2.3) to give prototype for C99 trunc(), csqrt(), etc */
-#define _GNU_SOURCE
 
 #if HAVE_CONFIG_H
 #  include <config.h>
@@ -162,20 +159,25 @@ xisnan (double x)
 #endif
 }
 
+#if defined (GUILE_I)
+#if HAVE_COMPLEX_DOUBLE
 
 /* For an SCM object Z which is a complex number (ie. satisfies
    SCM_COMPLEXP), return its value as a C level "complex double". */
 #define SCM_COMPLEX_VALUE(z)                                    \
-  (SCM_COMPLEX_REAL (z) + _Complex_I * SCM_COMPLEX_IMAG (z))
+  (SCM_COMPLEX_REAL (z) + GUILE_I * SCM_COMPLEX_IMAG (z))
+
+static inline SCM scm_from_complex_double (complex double z) SCM_UNUSED;
 
 /* Convert a C "complex double" to an SCM value. */
-#if HAVE_COMPLEX_DOUBLE
-static SCM
+static inline SCM
 scm_from_complex_double (complex double z)
 {
   return scm_c_make_rectangular (creal (z), cimag (z));
 }
+
 #endif /* HAVE_COMPLEX_DOUBLE */
+#endif /* GUILE_I */
 
 
 
@@ -183,7 +185,7 @@ static mpz_t z_negative_one;
 
 
 
-SCM_C_INLINE_KEYWORD SCM
+SCM
 scm_i_mkbig ()
 {
   /* Return a newly created bignum. */
@@ -192,7 +194,7 @@ scm_i_mkbig ()
   return z;
 }
 
-SCM_C_INLINE_KEYWORD SCM
+SCM
 scm_i_long2big (long x)
 {
   /* Return a newly created bignum initialized to X. */
@@ -201,7 +203,7 @@ scm_i_long2big (long x)
   return z;
 }
 
-SCM_C_INLINE_KEYWORD SCM
+SCM
 scm_i_ulong2big (unsigned long x)
 {
   /* Return a newly created bignum initialized to X. */
@@ -210,7 +212,7 @@ scm_i_ulong2big (unsigned long x)
   return z;
 }
 
-SCM_C_INLINE_KEYWORD SCM
+SCM
 scm_i_clonebig (SCM src_big, int same_sign_p)
 {
   /* Copy src_big's value, negate it if same_sign_p is false, and return. */
@@ -221,7 +223,7 @@ scm_i_clonebig (SCM src_big, int same_sign_p)
   return z;
 }
 
-SCM_C_INLINE_KEYWORD int
+int
 scm_i_bigcmp (SCM x, SCM y)
 {
   /* Return neg if x < y, pos if x > y, and 0 if x == y */
@@ -231,7 +233,7 @@ scm_i_bigcmp (SCM x, SCM y)
   return result;
 }
 
-SCM_C_INLINE_KEYWORD SCM
+SCM
 scm_i_dbl2big (double d)
 {
   /* results are only defined if d is an integer */
@@ -242,7 +244,7 @@ scm_i_dbl2big (double d)
 
 /* Convert a integer in double representation to a SCM number. */
 
-SCM_C_INLINE_KEYWORD SCM
+SCM
 scm_i_dbl2num (double u)
 {
   /* SCM_MOST_POSITIVE_FIXNUM+1 and SCM_MOST_NEGATIVE_FIXNUM are both
@@ -339,7 +341,7 @@ scm_i_big2dbl (SCM b)
   return result;
 }
 
-SCM_C_INLINE_KEYWORD SCM
+SCM
 scm_i_normbig (SCM b)
 {
   /* convert a big back to a fixnum if it'll fit */
@@ -3950,16 +3952,16 @@ SCM_GPROC1 (s_sum, "+", scm_tc7_asubr, scm_sum, g_sum);
 SCM
 scm_sum (SCM x, SCM y)
 {
-  if (SCM_UNBNDP (y))
+  if (SCM_UNLIKELY (SCM_UNBNDP (y)))
     {
       if (SCM_NUMBERP (x)) return x;
       if (SCM_UNBNDP (x)) return SCM_INUM0;
       SCM_WTA_DISPATCH_1 (g_sum, x, SCM_ARG1, s_sum);
     }
 
-  if (SCM_I_INUMP (x))
+  if (SCM_LIKELY (SCM_I_INUMP (x)))
     {
-      if (SCM_I_INUMP (y))
+      if (SCM_LIKELY (SCM_I_INUMP (y)))
         {
           long xx = SCM_I_INUM (x);
           long yy = SCM_I_INUM (y);
@@ -4144,7 +4146,7 @@ SCM_GPROC1 (s_difference, "-", scm_tc7_asubr, scm_difference, g_difference);
 SCM
 scm_difference (SCM x, SCM y)
 {
-  if (SCM_UNBNDP (y))
+  if (SCM_UNLIKELY (SCM_UNBNDP (y)))
     {
       if (SCM_UNBNDP (x))
         SCM_WTA_DISPATCH_0 (g_difference, s_difference);
@@ -4173,9 +4175,9 @@ scm_difference (SCM x, SCM y)
           SCM_WTA_DISPATCH_1 (g_difference, x, SCM_ARG1, s_difference);
     }
   
-  if (SCM_I_INUMP (x))
+  if (SCM_LIKELY (SCM_I_INUMP (x)))
     {
-      if (SCM_I_INUMP (y))
+      if (SCM_LIKELY (SCM_I_INUMP (y)))
 	{
 	  long int xx = SCM_I_INUM (x);
 	  long int yy = SCM_I_INUM (y);
@@ -4388,7 +4390,7 @@ SCM_GPROC1 (s_product, "*", scm_tc7_asubr, scm_product, g_product);
 SCM
 scm_product (SCM x, SCM y)
 {
-  if (SCM_UNBNDP (y))
+  if (SCM_UNLIKELY (SCM_UNBNDP (y)))
     {
       if (SCM_UNBNDP (x))
 	return SCM_I_MAKINUM (1L);
@@ -4398,7 +4400,7 @@ scm_product (SCM x, SCM y)
 	SCM_WTA_DISPATCH_1 (g_product, x, SCM_ARG1, s_product);
     }
   
-  if (SCM_I_INUMP (x))
+  if (SCM_LIKELY (SCM_I_INUMP (x)))
     {
       long xx;
 
@@ -4411,7 +4413,7 @@ scm_product (SCM x, SCM y)
         case 1: return y; break;
 	}
 
-      if (SCM_I_INUMP (y))
+      if (SCM_LIKELY (SCM_I_INUMP (y)))
 	{
 	  long yy = SCM_I_INUM (y);
 	  long kk = xx * yy;
@@ -4611,7 +4613,7 @@ scm_i_divide (SCM x, SCM y, int inexact)
 {
   double a;
 
-  if (SCM_UNBNDP (y))
+  if (SCM_UNLIKELY (SCM_UNBNDP (y)))
     {
       if (SCM_UNBNDP (x))
 	SCM_WTA_DISPATCH_0 (g_divide, s_divide);
@@ -4671,10 +4673,10 @@ scm_i_divide (SCM x, SCM y, int inexact)
 	SCM_WTA_DISPATCH_1 (g_divide, x, SCM_ARG1, s_divide);
     }
 
-  if (SCM_I_INUMP (x))
+  if (SCM_LIKELY (SCM_I_INUMP (x)))
     {
       long xx = SCM_I_INUM (x);
-      if (SCM_I_INUMP (y))
+      if (SCM_LIKELY (SCM_I_INUMP (y)))
 	{
 	  long yy = SCM_I_INUM (y);
 	  if (yy == 0)
@@ -5336,13 +5338,13 @@ scm_c_make_rectangular (double re, double im)
 }
 
 SCM_DEFINE (scm_make_rectangular, "make-rectangular", 2, 0, 0,
-            (SCM real, SCM imaginary),
-	    "Return a complex number constructed of the given @var{real} and\n"
-	    "@var{imaginary} parts.")
+            (SCM real_part, SCM imaginary_part),
+	    "Return a complex number constructed of the given @var{real-part} "
+	    "and @var{imaginary-part} parts.")
 #define FUNC_NAME s_scm_make_rectangular
 {
   struct dpair xy;
-  scm_two_doubles (real, imaginary, FUNC_NAME, &xy);
+  scm_two_doubles (real_part, imaginary_part, FUNC_NAME, &xy);
   return scm_c_make_rectangular (xy.x, xy.y);
 }
 #undef FUNC_NAME
@@ -5595,8 +5597,18 @@ SCM_DEFINE (scm_inexact_to_exact, "inexact->exact", 1, 0, 0,
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_rationalize, "rationalize", 2, 0, 0, 
-            (SCM x, SCM err),
-	    "Return an exact number that is within @var{err} of @var{x}.")
+            (SCM x, SCM eps),
+	    "Returns the @emph{simplest} rational number differing\n"
+	    "from @var{x} by no more than @var{eps}.\n"
+	    "\n"
+	    "As required by @acronym{R5RS}, @code{rationalize} only returns an\n"
+	    "exact result when both its arguments are exact.  Thus, you might need\n"
+	    "to use @code{inexact->exact} on the arguments.\n"
+	    "\n"
+	    "@lisp\n"
+	    "(rationalize (inexact->exact 1.2) 1/100)\n"
+	    "@result{} 6/5\n"
+	    "@end lisp")
 #define FUNC_NAME s_scm_rationalize
 {
   if (SCM_I_INUMP (x))
@@ -5628,7 +5640,7 @@ SCM_DEFINE (scm_rationalize, "rationalize", 2, 0, 0,
 	 converges after less than a dozen iterations.
       */
 
-      err = scm_abs (err);
+      eps = scm_abs (eps);
       while (++i < 1000000)
 	{
 	  a = scm_sum (scm_product (a1, tt), a2);    /* a = a1*tt + a2 */
@@ -5636,11 +5648,11 @@ SCM_DEFINE (scm_rationalize, "rationalize", 2, 0, 0,
 	  if (scm_is_false (scm_zero_p (b)) &&         /* b != 0 */
 	      scm_is_false 
 	      (scm_gr_p (scm_abs (scm_difference (ex, scm_divide (a, b))),
-			 err)))                      /* abs(x-a/b) <= err */
+			 eps)))                      /* abs(x-a/b) <= eps */
 	    {
 	      SCM res = scm_sum (int_part, scm_divide (a, b));
 	      if (scm_is_false (scm_exact_p (x))
-		  || scm_is_false (scm_exact_p (err)))
+		  || scm_is_false (scm_exact_p (eps)))
 		return scm_exact_to_inexact (res);
 	      else
 		return res;
@@ -6012,7 +6024,7 @@ SCM_DEFINE (scm_log, "log", 1, 0, 0,
 {
   if (SCM_COMPLEXP (z))
     {
-#if HAVE_COMPLEX_DOUBLE && HAVE_CLOG
+#if HAVE_COMPLEX_DOUBLE && HAVE_CLOG && defined (SCM_COMPLEX_VALUE)
       return scm_from_complex_double (clog (SCM_COMPLEX_VALUE (z)));
 #else
       double re = SCM_COMPLEX_REAL (z);
@@ -6046,7 +6058,7 @@ SCM_DEFINE (scm_log10, "log10", 1, 0, 0,
       /* Mingw has clog() but not clog10().  (Maybe it'd be worth using
          clog() and a multiply by M_LOG10E, rather than the fallback
          log10+hypot+atan2.)  */
-#if HAVE_COMPLEX_DOUBLE && HAVE_CLOG10
+#if HAVE_COMPLEX_DOUBLE && HAVE_CLOG10 && defined (SCM_COMPLEX_VALUE)
       return scm_from_complex_double (clog10 (SCM_COMPLEX_VALUE (z)));
 #else
       double re = SCM_COMPLEX_REAL (z);
@@ -6078,7 +6090,7 @@ SCM_DEFINE (scm_exp, "exp", 1, 0, 0,
 {
   if (SCM_COMPLEXP (z))
     {
-#if HAVE_COMPLEX_DOUBLE && HAVE_CEXP
+#if HAVE_COMPLEX_DOUBLE && HAVE_CEXP && defined (SCM_COMPLEX_VALUE)
       return scm_from_complex_double (cexp (SCM_COMPLEX_VALUE (z)));
 #else
       return scm_c_make_polar (exp (SCM_COMPLEX_REAL (z)),
@@ -6112,7 +6124,7 @@ SCM_DEFINE (scm_sqrt, "sqrt", 1, 0, 0,
 {
   if (SCM_COMPLEXP (x))
     {
-#if HAVE_COMPLEX_DOUBLE && HAVE_USABLE_CSQRT
+#if HAVE_COMPLEX_DOUBLE && HAVE_USABLE_CSQRT && defined (SCM_COMPLEX_VALUE)
       return scm_from_complex_double (csqrt (SCM_COMPLEX_VALUE (x)));
 #else
       double re = SCM_COMPLEX_REAL (x);

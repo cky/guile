@@ -3,7 +3,7 @@
 #ifndef SCM_WEAKS_H
 #define SCM_WEAKS_H
 
-/* Copyright (C) 1995,1996,2000,2001, 2003, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,2000,2001, 2003, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -90,14 +90,14 @@ SCM_API SCM scm_make_doubly_weak_alist_vector (SCM k);
 SCM_API SCM scm_weak_key_alist_vector_p (SCM x);
 SCM_API SCM scm_weak_value_alist_vector_p (SCM x);
 SCM_API SCM scm_doubly_weak_alist_vector_p (SCM x);
-SCM_API SCM scm_init_weaks_builtins (void);
-SCM_API void scm_weaks_prehistory (void);
-SCM_API void scm_init_weaks (void);
+SCM_INTERNAL SCM scm_init_weaks_builtins (void);
+SCM_INTERNAL void scm_weaks_prehistory (void);
+SCM_INTERNAL void scm_init_weaks (void);
 
-SCM_API void scm_i_init_weak_vectors_for_gc (void);
-SCM_API void scm_i_mark_weak_vector (SCM w);
-SCM_API int scm_i_mark_weak_vectors_non_weaks (void);
-SCM_API void scm_i_remove_weaks_from_weak_vectors (void);
+SCM_INTERNAL void scm_i_init_weak_vectors_for_gc (void);
+SCM_INTERNAL void scm_i_mark_weak_vector (SCM w);
+SCM_INTERNAL int scm_i_mark_weak_vectors_non_weaks (void);
+SCM_INTERNAL void scm_i_remove_weaks_from_weak_vectors (void);
 
 
 #endif  /* SCM_WEAKS_H */

@@ -690,11 +690,12 @@ In this case,
 @node Next-method, Example, Generic functions and methods, Generic functions
 @subsection Next-method
 
-When a generic function is called, the list of applicable methods is
-built. As mentioned before, the most specific method of this list is
-applied (see@ @ref{Generic functions and methods}). This method may call
-the next method in the list of applicable methods. This is done by using
-the special form @code{next-method}. Consider the following definitions
+When you call a generic function, with a particular set of arguments,
+GOOPS builds a list of all the methods that are applicable to those
+arguments and orders them by how closely the method definitions match
+the actual argument types.  It then calls the method at the top of this
+list.  If the selected method's code wants to call on to the next method
+in this list, it can do so by using @code{next-method}.
 
 @lisp
 (define-method (Test (a <integer>)) (cons 'integer (next-method)))
@@ -702,13 +703,39 @@ the special form @code{next-method}. Consider the following definitions
 (define-method (Test a)             (list 'top))
 @end lisp
 
-With those definitions,
+With these definitions,
 
 @lisp
 (Test 1)   @result{} (integer number top)
 (Test 1.0) @result{} (number top)
 (Test #t)  @result{} (top)
 @end lisp
+
+@code{next-method} is always called as just @code{(next-method)}.  The
+arguments for the next method call are always implicit, and always the
+same as for the original method call.
+
+If you want to call on to a method with the same name but with a
+different set of arguments (as you might with overloaded methods in C++,
+for example), you do not use @code{next-method}, but instead simply
+write the new call as usual:
+
+@lisp
+(define-method (Test (a <number>) min max)
+  (if (and (>= a min) (<= a max))
+      (display "Number is in range\n"))
+  (Test a))
+
+(Test 2 1 10)
+@print{}
+Number is in range
+@result{}
+(integer number top)
+@end lisp
+
+(You should be careful in this case that the @code{Test} calls do not
+lead to an infinite recursion, but this consideration is just the same
+as in Scheme code in general.)
 
 @node Example,  , Next-method, Generic functions
 @subsection Example

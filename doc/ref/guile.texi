@@ -138,7 +138,7 @@ x
 @comment The title is printed in a large font.
 @title Guile Reference Manual
 @subtitle Edition @value{MANUAL-EDITION}, for use with Guile @value{VERSION}
-@c @subtitle $Id: guile.texi,v 1.48 2006-11-18 18:14:55 civodul Exp $
+@c @subtitle $Id: guile.texi,v 1.49 2008-03-19 22:51:23 ossau Exp $
 
 @c See preface.texi for the list of authors
 @author The Guile Developers
@@ -176,6 +176,8 @@ x
 * API Reference::
 
 * Guile Modules::
+
+* Autoconf Support::
 
 Appendices
 
@@ -222,7 +224,6 @@ etc. that make up Guile's application programming interface (API),
 * Guile Scripting::             How to write Guile scripts.
 * Using Guile Interactively::   Guile's REPL features.
 * Using Guile in Emacs::        Guile and Emacs.
-* Debugging Features::          Features for finding errors.
 * Further Reading::             Where to find out more about Scheme.
 @end menu
 
@@ -230,7 +231,6 @@ etc. that make up Guile's application programming interface (API),
 @include scheme-intro.texi
 @include scheme-scripts.texi
 @include scheme-using.texi
-@include scheme-debugging.texi
 @include scheme-reading.texi
 
 @node Programming in C
@@ -351,6 +351,7 @@ available through both Scheme and C interfaces.
 * Buffered Input::              Ports made from a reader function.
 * Expect::			Controlling interactive programs with Guile.
 * The Scheme shell (scsh)::     Using scsh interfaces in Guile.
+* Tracing::                     Tracing program execution.
 @end menu
 
 @include slib.texi
@@ -361,6 +362,9 @@ available through both Scheme and C interfaces.
 @include misc-modules.texi
 @include expect.texi
 @include scsh.texi
+@include scheme-debugging.texi
+
+@include autoconf.texi
 
 @include data-rep.texi
 @include fdl.texi

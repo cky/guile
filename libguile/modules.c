@@ -1,4 +1,4 @@
-/* Copyright (C) 1998,2000,2001,2002,2003,2004,2006,2007 Free Software Foundation, Inc.
+/* Copyright (C) 1998,2000,2001,2002,2003,2004,2006,2007,2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -40,12 +40,25 @@ scm_t_bits scm_module_tag;
 
 static SCM the_module;
 
+static SCM the_root_module_var;
+
+static SCM
+the_root_module ()
+{
+  if (scm_module_system_booted_p)
+    return SCM_VARIABLE_REF (the_root_module_var);
+  else
+    return SCM_BOOL_F;
+}
+
 SCM_DEFINE (scm_current_module, "current-module", 0, 0, 0,
 	    (),
 	    "Return the current module.")
 #define FUNC_NAME s_scm_current_module
 {
-  return scm_fluid_ref (the_module);
+  SCM curr = scm_fluid_ref (the_module);
+
+  return scm_is_true (curr) ? curr : the_root_module ();
 }
 #undef FUNC_NAME
 
@@ -229,17 +242,6 @@ scm_env_top_level (SCM env)
 }
 
 SCM_SYMBOL (sym_module, "module");
-
-static SCM the_root_module_var;
-
-static SCM
-the_root_module ()
-{
-  if (scm_module_system_booted_p)
-    return SCM_VARIABLE_REF (the_root_module_var);
-  else
-    return SCM_BOOL_F;
-}
 
 SCM
 scm_lookup_closure_module (SCM proc)

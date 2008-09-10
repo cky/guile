@@ -15,9 +15,8 @@
 					 '("")
 					 load-path)))
 		      (cond ((null? dirs) #f)
-			    ((file-exists? (string-append (car dirs)
-							  filename))
-			     (string-append (car dirs) filename))
+			    ((file-exists? (in-vicinity (car dirs) filename))
+			     (in-vicinity (car dirs) filename))
 			    (else (loop (cdr dirs)))))))
       (if pathname
 	  (begin

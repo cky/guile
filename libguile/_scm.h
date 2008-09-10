@@ -3,46 +3,22 @@
 #ifndef SCM__SCM_H
 #define SCM__SCM_H
 
-/* Copyright (C) 1995,1996,2000,2001, 2002, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,2000,2001, 2002, 2006, 2008 Free Software Foundation, Inc.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
+ * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this software; see the file COPYING.  If not, write to
- * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301 USA
- *
- * As a special exception, the Free Software Foundation gives permission
- * for additional uses of the text contained in its release of GUILE.
- *
- * The exception is that, if you link the GUILE library with other files
- * to produce an executable, this does not by itself cause the
- * resulting executable to be covered by the GNU General Public License.
- * Your use of that executable is in no way restricted on account of
- * linking the GUILE library code into it.
- *
- * This exception does not however invalidate any other reasons why
- * the executable file might be covered by the GNU General Public License.
- *
- * This exception applies only to the code released by the
- * Free Software Foundation under the name GUILE.  If you copy
- * code from other Free Software Foundation releases into a copy of
- * GUILE, as the General Public License permits, the exception does
- * not apply to the code that you add in this way.  To avoid misleading
- * anyone as to the status of such modified files, you must delete
- * this exception notice from them.
- *
- * If you write modifications of your own for GUILE, it is your choice
- * whether to permit this exception to apply to your modifications.
- * If you do not wish that, delete this exception notice.  */
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
 
 
 
@@ -119,14 +95,6 @@
 # define SCM_SYSCALL(line) line;
 #endif /* ndef SCM_SYSCALL */
 
-#if !defined (MSDOS) && !defined (__MINGW32__)
-# ifdef ARM_ULIB
-    extern volatile int errno;
-# else
-    extern int errno;
-# endif /* def ARM_ULIB */
-#endif /* ndef MSDOS && ndef __MINGW32__*/
-
 
 
 #ifndef min
@@ -138,14 +106,18 @@
 
 
 
-#if HAVE_STAT64
+#if GUILE_USE_64_CALLS && HAVE_STAT64
 #define CHOOSE_LARGEFILE(foo,foo64)     foo64
 #else
 #define CHOOSE_LARGEFILE(foo,foo64)     foo
 #endif
 
 /* These names are a bit long, but they make it clear what they represent. */
-#define dirent_or_dirent64              CHOOSE_LARGEFILE(dirent,dirent64)
+#if SCM_HAVE_STRUCT_DIRENT64 == 1
+# define dirent_or_dirent64             CHOOSE_LARGEFILE(dirent,dirent64)
+#else
+# define dirent_or_dirent64             dirent
+#endif
 #define fstat_or_fstat64                CHOOSE_LARGEFILE(fstat,fstat64)
 #define ftruncate_or_ftruncate64        CHOOSE_LARGEFILE(ftruncate,ftruncate64)
 #define lseek_or_lseek64                CHOOSE_LARGEFILE(lseek,lseek64)
@@ -153,7 +125,11 @@
 #define off_t_or_off64_t                CHOOSE_LARGEFILE(off_t,off64_t)
 #define open_or_open64                  CHOOSE_LARGEFILE(open,open64)
 #define readdir_or_readdir64            CHOOSE_LARGEFILE(readdir,readdir64)
-#define readdir_r_or_readdir64_r        CHOOSE_LARGEFILE(readdir_r,readdir64_r)
+#if SCM_HAVE_READDIR64_R == 1
+# define readdir_r_or_readdir64_r       CHOOSE_LARGEFILE(readdir_r,readdir64_r)
+#else
+# define readdir_r_or_readdir64_r       readdir_r
+#endif
 #define stat_or_stat64                  CHOOSE_LARGEFILE(stat,stat64)
 #define truncate_or_truncate64          CHOOSE_LARGEFILE(truncate,truncate64)
 #define scm_from_off_t_or_off64_t       CHOOSE_LARGEFILE(scm_from_off_t,scm_from_int64)

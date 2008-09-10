@@ -1,7 +1,6 @@
 ## Process this file with Automake to create Makefile.in
 ##
-##  	Copyright (C) 1998, 1999, 2000, 2001, 2006 Free Software Foundation, Inc.
-##  	Copyright (C) 2002, 2003, 2004, 2006 Free Software Foundation, Inc.
+##  	Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2006, 2008 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
@@ -20,7 +19,9 @@
 ##   to the Free Software Foundation, Inc., 51 Franklin Street, Fifth
 ##   Floor, Boston, MA 02110-1301 USA
 
-guile_pdd = $(patsubst %/guile-readline,%/guile,$(pkgdatadir))
+# Guile's `pkgdatadir'.
+guile_pdd = $(datadir)/guile
+
 ice9dir = $(guile_pdd)/$(GUILE_EFFECTIVE_VERSION)/ice-9
 ice9_DATA = readline.scm
 ETAGS_ARGS = $(ice9_DATA)

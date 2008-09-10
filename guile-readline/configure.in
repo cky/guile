@@ -1,7 +1,12 @@
 AC_PREREQ(2.50)
 
+dnl Don't use "echo -n", which is not portable (e.g., not available on
+dnl MacOS X).  Instead, use `patsubst' to remove the newline.
 AC_INIT(guile-readline,
-        m4_esyscmd(. ../GUILE-VERSION && echo -n ${GUILE_VERSION}))
+        patsubst(m4_esyscmd(. ../GUILE-VERSION && echo ${GUILE_VERSION}), [
+]),
+	[bug-guile@gnu.org])
+
 AC_CONFIG_AUX_DIR([.])
 AC_CONFIG_SRCDIR(readline.c)
 AM_CONFIG_HEADER([guile-readline-config.h])
@@ -42,6 +47,11 @@ AC_CHECK_FUNCS(siginterrupt rl_clear_signals rl_cleanup_after_signal)
 
 dnl Check for modern readline naming
 AC_CHECK_FUNCS(rl_filename_completion_function)
+
+dnl Check for rl_get_keymap.  We only use this for deciding whether to
+dnl install paren matching on the Guile command line (when using
+dnl readline for input), so it's completely optional.
+AC_CHECK_FUNCS(rl_get_keymap)
 
 dnl Check for rl_pre_input_hook.  This is more complicated because on
 dnl some systems (HP/UX), the linker wont let us treat

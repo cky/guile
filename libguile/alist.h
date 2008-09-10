@@ -3,7 +3,7 @@
 #ifndef SCM_ALIST_H
 #define SCM_ALIST_H
 
-/* Copyright (C) 1995,1996,2000, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,2000, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -42,7 +42,7 @@ SCM_API SCM scm_assoc_set_x (SCM alist, SCM key, SCM val);
 SCM_API SCM scm_assq_remove_x (SCM alist, SCM key);
 SCM_API SCM scm_assv_remove_x (SCM alist, SCM key);
 SCM_API SCM scm_assoc_remove_x (SCM alist, SCM key);
-SCM_API void scm_init_alist (void);
+SCM_INTERNAL void scm_init_alist (void);
 
 #endif  /* SCM_ALIST_H */
 

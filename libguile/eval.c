@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
  * Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
@@ -17,8 +17,6 @@
  */
 
 
-
-#define _GNU_SOURCE
 
 /* SECTION: This code is compiled once.
  */
@@ -299,10 +297,12 @@ syntax_error (const char* const msg, const SCM form, const SCM expr)
 
 
 /* Shortcut macros to simplify syntax error handling. */
-#define ASSERT_SYNTAX(cond, message, form) \
-  { if (!(cond)) syntax_error (message, form, SCM_UNDEFINED); }
-#define ASSERT_SYNTAX_2(cond, message, form, expr) \
-  { if (!(cond)) syntax_error (message, form, expr); }
+#define ASSERT_SYNTAX(cond, message, form)		\
+  { if (SCM_UNLIKELY (!(cond)))			\
+      syntax_error (message, form, SCM_UNDEFINED); }
+#define ASSERT_SYNTAX_2(cond, message, form, expr)	\
+  { if (SCM_UNLIKELY (!(cond)))			\
+      syntax_error (message, form, expr); }
 
 
 
@@ -1268,7 +1268,13 @@ static SCM
 unmemoize_delay (const SCM expr, const SCM env)
 {
   const SCM thunk_expr = SCM_CADDR (expr);
-  return scm_list_2 (scm_sym_delay, unmemoize_expression (thunk_expr, env));
+  /* A promise is implemented as a closure, and when applying a
+     closure the evaluator adds a new frame to the environment - even
+     though, in the case of a promise, the added frame is always
+     empty.  We need to extend the environment here in the same way,
+     so that any ILOCs in thunk_expr can be unmemoized correctly. */
+  const SCM new_env = SCM_EXTEND_ENV (SCM_EOL, SCM_EOL, env);
+  return scm_list_2 (scm_sym_delay, unmemoize_expression (thunk_expr, new_env));
 }
 
 
@@ -2115,7 +2121,7 @@ unmemoize_future (const SCM expr, const SCM env)
   return scm_list_2 (scm_sym_future, unmemoize_expression (thunk_expr, env));
 }
 
-#endif
+#endif /* futures disabled. */
 
 SCM_SYNTAX (s_gset_x, "set!", scm_i_makbimacro, scm_m_generalized_set_x);
 SCM_SYMBOL (scm_sym_setter, "setter");
@@ -4014,7 +4020,10 @@ SCM_DEFINE (scm_eval, "eval", 2, 0, 0,
   if (scm_is_dynamic_state (module_or_state))
     scm_dynwind_current_dynamic_state (module_or_state);
   else
-    scm_dynwind_current_module (module_or_state);
+    {
+      SCM_VALIDATE_MODULE (2, module_or_state);
+      scm_dynwind_current_module (module_or_state);
+    }
 
   res = scm_primitive_eval (exp);
 

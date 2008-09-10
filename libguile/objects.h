@@ -3,7 +3,7 @@
 #ifndef SCM_OBJECTS_H
 #define SCM_OBJECTS_H
 
-/* Copyright (C) 1996,1999,2000,2001, 2003, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1996,1999,2000,2001, 2003, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -181,7 +181,7 @@ SCM_API SCM scm_metaclass_operator;
 
 /* Goops functions. */
 SCM_API SCM scm_make_extended_class (char const *type_name, int applicablep);
-SCM_API void scm_i_inherit_applicable (SCM c);
+SCM_INTERNAL void scm_i_inherit_applicable (SCM c);
 SCM_API void scm_make_port_classes (long ptobnum, char *type_name);
 SCM_API void scm_change_object_class (SCM, SCM, SCM);
 SCM_API SCM scm_memoize_method (SCM x, SCM args);
@@ -205,9 +205,9 @@ SCM_API SCM scm_object_procedure (SCM obj);
 SCM_API SCM scm_make_class_object (SCM metaclass, SCM layout);
 SCM_API SCM scm_make_subclass_object (SCM c, SCM layout);
 
-SCM_API SCM scm_i_make_class_object (SCM metaclass, SCM layout_string,
-				     unsigned long flags);
-SCM_API void scm_init_objects (void);
+SCM_INTERNAL SCM scm_i_make_class_object (SCM metaclass, SCM layout_string,
+					  unsigned long flags);
+SCM_INTERNAL void scm_init_objects (void);
 
 #endif  /* SCM_OBJECTS_H */
 

@@ -3,7 +3,7 @@
 #ifndef SCM_ARBITERS_H
 #define SCM_ARBITERS_H
 
-/* Copyright (C) 1995,1996,2000, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,2000, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -29,7 +29,7 @@
 SCM_API SCM scm_make_arbiter (SCM name);
 SCM_API SCM scm_try_arbiter (SCM arb);
 SCM_API SCM scm_release_arbiter (SCM arb);
-SCM_API void scm_init_arbiters (void);
+SCM_INTERNAL void scm_init_arbiters (void);
 
 #endif  /* SCM_ARBITERS_H */
 

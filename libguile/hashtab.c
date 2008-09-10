@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2003, 2004, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2003, 2004, 2006, 2008 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -498,6 +498,8 @@ scm_hash_fn_create_handle_x (SCM table, SCM obj, SCM init, unsigned long (*hash_
 
   if (scm_is_true (it))
     return it;
+  else if (scm_is_true (it))
+    scm_wrong_type_arg_msg (NULL, 0, it, "a pair");
   else
     {
       /* When this is a weak hashtable, running the GC can change it.

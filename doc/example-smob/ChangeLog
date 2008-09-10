@@ -1,3 +1,7 @@
+2008-01-22  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* COPYING: Removed.
+
 2004-09-24  Marius Vollmer  <mvo@zagadka.de>
 
 	* image-type.c: Updated from manual.

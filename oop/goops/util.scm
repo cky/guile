@@ -1,4 +1,4 @@
-;;;; 	Copyright (C) 1999, 2000, 2001, 2003, 2006 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1999, 2000, 2001, 2003, 2006, 2008 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -17,9 +17,10 @@
 
 
 (define-module (oop goops util)
-  :export (any every
-	   mapappend find-duplicate top-level-env top-level-env?
+  :export (mapappend find-duplicate top-level-env top-level-env?
 	   map* for-each* length* improper->proper)
+  :use-module (srfi srfi-1)
+  :re-export  (any every)
   :no-backtrace
   )
 
@@ -28,43 +29,7 @@
 ;;; {Utilities}
 ;;;
 
-(define (any pred lst . rest)
-  (if (null? rest) ;fast path
-      (and (not (null? lst))
-           (let loop ((head (car lst)) (tail (cdr lst)))
-             (if (null? tail)
-                 (pred head)
-                 (or (pred head)
-                     (loop (car tail) (cdr tail))))))
-      (let ((lsts (cons lst rest)))
-        (and (not (any null? lsts))
-             (let loop ((heads (map car lsts)) (tails (map cdr lsts)))
-               (if (any null? tails)
-                   (apply pred heads)
-                   (or (apply pred heads)
-                       (loop (map car tails) (map cdr tails)))))))))
-
-(define (every pred lst . rest)
-  (if (null? rest) ;fast path
-      (or (null? lst)
-          (let loop ((head (car lst)) (tail (cdr lst)))
-            (if (null? tail)
-                (pred head)
-                (and (pred head)
-                     (loop (car tail) (cdr tail))))))
-      (let ((lsts (cons lst rest)))
-        (or (any null? lsts)
-            (let loop ((heads (map car lsts)) (tails (map cdr lsts)))
-              (if (any null? tails)
-                  (apply pred heads)
-                  (and (apply pred heads)
-                       (loop (map car tails) (map cdr tails)))))))))
-
-(define (mapappend func . args)
-  (if (memv '()  args)
-      '()
-      (append (apply func (map car args))
-	      (apply mapappend func (map cdr args)))))
+(define mapappend append-map)
 
 (define (find-duplicate l)	; find a duplicate in a list; #f otherwise
   (cond 

@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2007
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -90,8 +90,8 @@ execution and triggering this execution.  They will not be executed
 automatically.
 
 @menu
-* System asyncs::               
-* User asyncs::                 
+* System asyncs::
+* User asyncs::
 @end menu
 
 @node System asyncs
@@ -267,11 +267,24 @@ Once @var{body} or @var{handler} returns, the return value is made the
 @emph{exit value} of the thread and the thread is terminated.
 @end deftypefn
 
+@deffn {Scheme Procedure} thread? obj
+@deffnx {C Function} scm_thread_p (obj)
+Return @code{#t} iff @var{obj} is a thread; otherwise, return
+@code{#f}.
+@end deffn
+
 @c begin (texi-doc-string "guile" "join-thread")
-@deffn {Scheme Procedure} join-thread thread
+@deffn {Scheme Procedure} join-thread thread [timeout [timeoutval]]
+@deffnx {C Function} scm_join_thread (thread)
+@deffnx {C Function} scm_join_thread_timed (thread, timeout, timeoutval)
 Wait for @var{thread} to terminate and return its exit value.  Threads
 that have not been created with @code{call-with-new-thread} or
-@code{scm_spawn_thread} have an exit value of @code{#f}.
+@code{scm_spawn_thread} have an exit value of @code{#f}.  When
+@var{timeout} is given, it specifies a point in time where the waiting
+should be aborted.  It can be either an integer as returned by
+@code{current-time} or a pair as returned by @code{gettimeofday}.
+When the waiting is aborted, @var{timeoutval} is returned (if it is
+specified; @code{#f} is returned otherwise).
 @end deffn
 
 @deffn {Scheme Procedure} thread-exited? thread
@@ -283,6 +296,42 @@ Return @code{#t} iff @var{thread} has exited.
 @deffn {Scheme Procedure} yield
 If one or more threads are waiting to execute, calling yield forces an
 immediate context switch to one of them. Otherwise, yield has no effect.
+@end deffn
+
+@deffn {Scheme Procedure} cancel-thread thread
+@deffnx {C Function} scm_cancel_thread (thread)
+Asynchronously notify @var{thread} to exit.  Immediately after
+receiving this notification, @var{thread} will call its cleanup handler
+(if one has been set) and then terminate, aborting any evaluation that
+is in progress.
+
+Because Guile threads are isomorphic with POSIX threads, @var{thread}
+will not receive its cancellation signal until it reaches a cancellation
+point.  See your operating system's POSIX threading documentation for
+more information on cancellation points; note that in Guile, unlike
+native POSIX threads, a thread can receive a cancellation notification
+while attempting to lock a mutex.
+@end deffn
+
+@deffn {Scheme Procedure} set-thread-cleanup! thread proc
+@deffnx {C Function} scm_set_thread_cleanup_x (thread, proc)
+Set @var{proc} as the cleanup handler for the thread @var{thread}.
+@var{proc}, which must be a thunk, will be called when @var{thread}
+exits, either normally or by being canceled.  Thread cleanup handlers
+can be used to perform useful tasks like releasing resources, such as
+locked mutexes, when thread exit cannot be predicted.
+
+The return value of @var{proc} will be set as the @emph{exit value} of
+@var{thread}.
+
+To remove a cleanup handler, pass @code{#f} for @var{proc}.
+@end deffn
+
+@deffn {Scheme Procedure} thread-cleanup thread
+@deffnx {C Function} scm_thread_cleanup (thread)
+Return the cleanup handler currently installed for the thread
+@var{thread}.  If no cleanup handler is currently installed,
+thread-cleanup returns @code{#f}.
 @end deffn
 
 Higher level thread procedures are available by loading the
@@ -326,20 +375,54 @@ Acquiring requisite mutexes in a fixed order (like always A before B)
 in all threads is one way to avoid such problems.
 
 @sp 1
-@deffn {Scheme Procedure} make-mutex
+@deffn {Scheme Procedure} make-mutex . flags
 @deffnx {C Function} scm_make_mutex ()
-Return a new standard mutex.  It is initially unlocked.
+@deffnx {C Function} scm_make_mutex_with_flags (SCM flags)
+Return a new mutex.  It is initially unlocked.  If @var{flags} is
+specified, it must be a list of symbols specifying configuration flags
+for the newly-created mutex.  The supported flags are:
+@table @code
+@item unchecked-unlock
+Unless this flag is present, a call to `unlock-mutex' on the returned
+mutex when it is already unlocked will cause an error to be signalled.
+
+@item allow-external-unlock
+Allow the returned mutex to be unlocked by the calling thread even if
+it was originally locked by a different thread.
+
+@item recursive
+The returned mutex will be recursive.
+
+@end table
+@end deffn
+
+@deffn {Scheme Procedure} mutex? obj
+@deffnx {C Function} scm_mutex_p (obj)
+Return @code{#t} iff @var{obj} is a mutex; otherwise, return
+@code{#f}.
 @end deffn
 
 @deffn {Scheme Procedure} make-recursive-mutex
 @deffnx {C Function} scm_make_recursive_mutex ()
-Create a new recursive mutex.  It is initialloy unlocked.
+Create a new recursive mutex.  It is initially unlocked.  Calling this
+function is equivalent to calling `make-mutex' and specifying the
+@code{recursive} flag.
 @end deffn
 
-@deffn {Scheme Procedure} lock-mutex mutex
+@deffn {Scheme Procedure} lock-mutex mutex [timeout [owner]]
 @deffnx {C Function} scm_lock_mutex (mutex)
-Lock @var{mutex}.  If the mutex is already locked by another thread
-then block and return only when @var{mutex} has been acquired.
+@deffnx {C Function} scm_lock_mutex_timed (mutex, timeout, owner)
+Lock @var{mutex}.  If the mutex is already locked, then block and
+return only when @var{mutex} has been acquired.
+
+When @var{timeout} is given, it specifies a point in time where the
+waiting should be aborted.  It can be either an integer as returned
+by @code{current-time} or a pair as returned by @code{gettimeofday}.
+When the waiting is aborted, @code{#f} is returned.
+
+When @var{owner} is given, it specifies an owner for @var{mutex} other
+than the calling thread.  @var{owner} may also be @code{#f},
+indicating that the mutex should be locked but left unowned.
 
 For standard mutexes (@code{make-mutex}), and error is signalled if
 the thread has itself already locked @var{mutex}.
@@ -348,6 +431,10 @@ For a recursive mutex (@code{make-recursive-mutex}), if the thread has
 itself already locked @var{mutex}, then a further @code{lock-mutex}
 call increments the lock count.  An additional @code{unlock-mutex}
 will be required to finally release.
+
+If @var{mutex} was locked by a thread that exited before unlocking it,
+the next attempt to lock @var{mutex} will succeed, but
+@code{abandoned-mutex-error} will be signalled.
 
 When a system async (@pxref{System asyncs}) is activated for a thread
 blocked in @code{lock-mutex}, the wait is interrupted and the async is
@@ -367,15 +454,57 @@ If @var{mutex} is locked by some other thread then nothing is done and
 the return is @code{#f}.
 @end deffn
 
-@deffn {Scheme Procedure} unlock-mutex mutex
+@deffn {Scheme Procedure} unlock-mutex mutex [condvar [timeout]]
 @deffnx {C Function} scm_unlock_mutex (mutex)
-Unlock @var{mutex}.  An error is signalled if @var{mutex} is not
-locked by the calling thread.
+@deffnx {C Function} scm_unlock_mutex_timed (mutex, condvar, timeout)
+Unlock @var{mutex}.  An error is signalled if @var{mutex} is not locked
+and was not created with the @code{unchecked-unlock} flag set, or if
+@var{mutex} is locked by a thread other than the calling thread and was
+not created with the @code{allow-external-unlock} flag set.
+
+If @var{condvar} is given, it specifies a condition variable upon
+which the calling thread will wait to be signalled before returning.
+(This behavior is very similar to that of
+@code{wait-condition-variable}, except that the mutex is left in an
+unlocked state when the function returns.)
+
+When @var{timeout} is also given, it specifies a point in time where
+the waiting should be aborted.  It can be either an integer as
+returned by @code{current-time} or a pair as returned by
+@code{gettimeofday}.  When the waiting is aborted, @code{#f} is
+returned.  Otherwise the function returns @code{#t}.
+@end deffn
+
+@deffn {Scheme Procedure} mutex-owner mutex
+@deffnx {C Function} scm_mutex_owner (mutex)
+Return the current owner of @var{mutex}, in the form of a thread or
+@code{#f} (indicating no owner).  Note that a mutex may be unowned but
+still locked.
+@end deffn
+
+@deffn {Scheme Procedure} mutex-level mutex
+@deffnx {C Function} scm_mutex_level (mutex)
+Return the current lock level of @var{mutex}.  If @var{mutex} is
+currently unlocked, this value will be 0; otherwise, it will be the
+number of times @var{mutex} has been recursively locked by its current
+owner.
+@end deffn
+
+@deffn {Scheme Procedure} mutex-locked? mutex
+@deffnx {C Function} scm_mutex_locked_p (mutex)
+Return @code{#t} if @var{mutex} is locked, regardless of ownership;
+otherwise, return @code{#f}.
 @end deffn
 
 @deffn {Scheme Procedure} make-condition-variable
 @deffnx {C Function} scm_make_condition_variable ()
 Return a new condition variable.
+@end deffn
+
+@deffn {Scheme Procedure} condition-variable? obj
+@deffnx {C Function} scm_condition_variable_p (obj)
+Return @code{#t} iff @var{obj} is a condition variable; otherwise,
+return @code{#f}.
 @end deffn
 
 @deffn {Scheme Procedure} wait-condition-variable condvar mutex [time]

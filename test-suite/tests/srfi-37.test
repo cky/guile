@@ -1,6 +1,6 @@
 ;;;; srfi-37.test --- Test suite for SRFI 37 -*- scheme -*-
 ;;;;
-;;;; 	Copyright (C) 2007 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2007, 2008 Free Software Foundation, Inc.
 ;;;;
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -90,6 +90,18 @@
 			 (list (option '(#\x) #f #t arg-proc)
 			       (option '(#\z) #f #f arg-proc)
 			       (option '(#\y) #t #f arg-proc))
+			 (lambda (opt name arg k) #f)
+			 (lambda (opt name arg k) #f)
+			 '()))))
+
+  (pass-if "short options without arguments"
+    ;; In Guile 1.8.4 and earlier, using short names of argument-less options
+    ;; would lead to a stack overflow.
+    (let ((arg-proc (lambda (opt name arg k)
+		      (acons name arg k))))
+      (equal? '((#\x . #f))
+	      (args-fold '("-x")
+			 (list (option '(#\x) #f #f arg-proc))
 			 (lambda (opt name arg k) #f)
 			 (lambda (opt name arg k) #f)
 			 '()))))

@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -14,8 +14,6 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-
-#define _GNU_SOURCE
 
 /* #define DEBUGINFO */
 
@@ -154,7 +152,7 @@ scm_assert_cell_valid (SCM cell)
       */
       if (scm_expensive_debug_cell_accesses_p)
 	scm_i_expensive_validation_check (cell);
-      
+#if (SCM_DEBUG_MARKING_API == 0)
       if (!SCM_GC_MARK_P (cell))
 	{
 	  fprintf (stderr,
@@ -164,7 +162,8 @@ scm_assert_cell_valid (SCM cell)
                    (unsigned long) SCM_UNPACK (cell));
 	  abort ();
 	}
-
+#endif /* SCM_DEBUG_MARKING_API */
+      
       scm_i_cell_validation_already_running = 0;  /* re-enable */
     }
 }
@@ -240,6 +239,7 @@ SCM_SYMBOL (sym_gc_time_taken, "gc-time-taken");
 SCM_SYMBOL (sym_gc_mark_time_taken, "gc-mark-time-taken");
 SCM_SYMBOL (sym_times, "gc-times");
 SCM_SYMBOL (sym_cells_marked, "cells-marked");
+SCM_SYMBOL (sym_cells_marked_conservatively, "cells-marked-conservatively");
 SCM_SYMBOL (sym_cells_swept, "cells-swept");
 SCM_SYMBOL (sym_malloc_yield, "malloc-yield");
 SCM_SYMBOL (sym_cell_yield, "cell-yield");
@@ -327,7 +327,7 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
 		scm_cons (sym_cells_swept,
 			  scm_from_double (local_scm_gc_cells_swept)),
 		scm_cons (sym_malloc_yield,
-			  scm_from_long(local_scm_gc_malloc_yield_percentage)),
+			  scm_from_long (local_scm_gc_malloc_yield_percentage)),
 		scm_cons (sym_cell_yield,
 			  scm_from_long (local_scm_gc_cell_yield_percentage)),
 		scm_cons (sym_heap_segments, heap_segs),
@@ -344,7 +344,6 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
   return answer;
 }
 #undef FUNC_NAME
-
 
 
 
@@ -505,7 +504,7 @@ scm_permanent_object (SCM obj)
 */
 
 /* Implementation note:  For every object X, there is a counter which
-   scm_gc_protect_object(X) increments and scm_gc_unprotect_object(X) decrements.
+   scm_gc_protect_object (X) increments and scm_gc_unprotect_object (X) decrements.
 */
 
 
@@ -715,7 +714,7 @@ gc_async_thunk (void)
  */
 static void *
 mark_gc_async (void * hook_data SCM_UNUSED,
-	       void *func_data SCM_UNUSED,
+	       void *fn_data SCM_UNUSED,
 	       void *data SCM_UNUSED)
 {
   /* If cell access debugging is enabled, the user may choose to perform

@@ -50,7 +50,7 @@ scm_c_hook_init (scm_t_c_hook *hook, void *hook_data, scm_t_c_hook_type type)
 void
 scm_c_hook_add (scm_t_c_hook *hook,
 		scm_t_c_hook_function func,
-		void *func_data, 
+		void *fn_data, 
 		int appendp)
 {
   scm_t_c_hook_entry *entry = scm_malloc (sizeof (scm_t_c_hook_entry));
@@ -60,19 +60,19 @@ scm_c_hook_add (scm_t_c_hook *hook,
       loc = &(*loc)->next;
   entry->next = *loc;
   entry->func = func;
-  entry->data = func_data;
+  entry->data = fn_data;
   *loc = entry;
 }
 
 void
 scm_c_hook_remove (scm_t_c_hook *hook,
 		   scm_t_c_hook_function func,
-		   void *func_data)
+		   void *fn_data)
 {
   scm_t_c_hook_entry **loc = &hook->first;
   while (*loc)
     {
-      if ((*loc)->func == func && (*loc)->data == func_data)
+      if ((*loc)->func == func && (*loc)->data == fn_data)
 	{
 	  scm_t_c_hook_entry *entry = *loc;
 	  *loc = (*loc)->next;

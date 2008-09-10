@@ -1,6 +1,6 @@
 ;;; installed-scm-file
 
-;;;; 	Copyright (C) 2001, 2006 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2001, 2006, 2008 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -22,6 +22,7 @@
   :export (match match-lambda match-lambda* match-define
 		 match-let match-let* match-letrec
 		 define-structure define-const-structure
+                 match:andmap
 		 match:error match:set-error
 		 match:error-control match:set-error-control
 		 match:structure-control match:set-structure-control

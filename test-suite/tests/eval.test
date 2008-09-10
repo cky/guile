@@ -294,7 +294,23 @@
 
     (pass-if-exception "implicit forcing is not supported"
       exception:wrong-type-arg
-      (+ (delay (* 3 7)) 13))))
+      (+ (delay (* 3 7)) 13))
+
+    ;; Tests that require the debugging evaluator...
+    (with-debugging-evaluator
+
+      (pass-if "unmemoizing a promise"
+        (display-backtrace
+	 (let ((stack #f))
+	   (false-if-exception (lazy-catch #t
+					   (lambda ()
+					     (let ((f (lambda (g) (delay (g)))))
+					       (force (f error))))
+					   (lambda _
+					     (set! stack (make-stack #t)))))
+	   stack)
+	 (%make-void-port "w"))
+	#t))))
 
 ;;;
 ;;; letrec init evaluation

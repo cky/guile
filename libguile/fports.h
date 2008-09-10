@@ -3,7 +3,7 @@
 #ifndef SCM_FPORTS_H
 #define SCM_FPORTS_H
 
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -53,13 +53,13 @@ SCM_API void scm_evict_ports (int fd);
 SCM_API SCM scm_open_file (SCM filename, SCM modes);
 SCM_API SCM scm_fdes_to_port (int fdes, char *mode, SCM name);
 SCM_API SCM scm_file_port_p (SCM obj);
-SCM_API void scm_init_fports (void);
+SCM_INTERNAL void scm_init_fports (void);
 
 /* internal functions */
 
-SCM_API SCM scm_i_fdes_to_port (int fdes, long mode_bits, SCM name);
-SCM_API int scm_i_fport_truncate (SCM, SCM);
-SCM_API SCM scm_i_fport_seek (SCM, SCM, int);
+SCM_INTERNAL SCM scm_i_fdes_to_port (int fdes, long mode_bits, SCM name);
+SCM_INTERNAL int scm_i_fport_truncate (SCM, SCM);
+SCM_INTERNAL SCM scm_i_fport_seek (SCM, SCM, int);
 
 
 #endif  /* SCM_FPORTS_H */

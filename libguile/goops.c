@@ -1,4 +1,4 @@
-/* Copyright (C) 1998,1999,2000,2001,2002,2003,2004
+/* Copyright (C) 1998,1999,2000,2001,2002,2003,2004,2008
  * Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -25,6 +25,7 @@
  */
 
 #include <stdio.h>
+#include <assert.h>
 
 #include "libguile/_scm.h"
 #include "libguile/alist.h"
@@ -1258,6 +1259,7 @@ slot_definition_using_name (SCM class, SCM slot_name)
 
 static SCM
 get_slot_value (SCM class SCM_UNUSED, SCM obj, SCM slotdef)
+#define FUNC_NAME "%get-slot-value"
 {
   SCM access = SCM_CDDR (slotdef);
   /* Two cases here:
@@ -1268,7 +1270,9 @@ get_slot_value (SCM class SCM_UNUSED, SCM obj, SCM slotdef)
    * we can just assume fixnums here.
    */
   if (SCM_I_INUMP (access))
-    return SCM_SLOT (obj, SCM_I_INUM (access));
+    /* Don't poke at the slots directly, because scm_struct_ref handles the
+       access bits for us. */
+    return scm_struct_ref (obj, access);
   else
     {
       /* We must evaluate (apply (car access) (list obj))
@@ -1285,6 +1289,7 @@ get_slot_value (SCM class SCM_UNUSED, SCM obj, SCM slotdef)
       return scm_eval_body (SCM_CLOSURE_BODY (code), env);
     }
 }
+#undef FUNC_NAME
 
 static SCM
 get_slot_value_using_name (SCM class, SCM obj, SCM slot_name)
@@ -1298,6 +1303,7 @@ get_slot_value_using_name (SCM class, SCM obj, SCM slot_name)
 
 static SCM
 set_slot_value (SCM class SCM_UNUSED, SCM obj, SCM slotdef, SCM value)
+#define FUNC_NAME "%set-slot-value"
 {
   SCM access = SCM_CDDR (slotdef);
   /* Two cases here:
@@ -1308,7 +1314,8 @@ set_slot_value (SCM class SCM_UNUSED, SCM obj, SCM slotdef, SCM value)
    * we can just assume fixnums here.
    */
   if (SCM_I_INUMP (access))
-    SCM_SET_SLOT (obj, SCM_I_INUM (access), value);
+    /* obey permissions bits via going through struct-set! */
+    scm_struct_set_x (obj, access, value);
   else
     {
       /* We must evaluate (apply (cadr l) (list obj value))
@@ -1329,6 +1336,7 @@ set_slot_value (SCM class SCM_UNUSED, SCM obj, SCM slotdef, SCM value)
     }
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
 static SCM
 set_slot_value_using_name (SCM class, SCM obj, SCM slot_name, SCM value)
@@ -1498,10 +1506,15 @@ static SCM
 wrap_init (SCM class, SCM *m, long n)
 {
   long i;
+  scm_t_bits slayout = SCM_STRUCT_DATA (class)[scm_vtable_index_layout];
+  const char *layout = scm_i_symbol_chars (SCM_PACK (slayout));
 
-  /* Set all slots to unbound */
+  /* Set all SCM-holding slots to unbound */
   for (i = 0; i < n; i++)
-    m[i] = SCM_GOOPS_UNBOUND;
+    if (layout[i*2] == 'p')
+      m[i] = SCM_GOOPS_UNBOUND;
+    else
+      m[i] = 0;
 
   return scm_double_cell ((((scm_t_bits) SCM_STRUCT_DATA (class))
 			   | scm_tc3_struct),
@@ -1691,11 +1704,10 @@ go_to_hell (void *o)
 {
   SCM obj = SCM_PACK ((scm_t_bits) o);
   scm_lock_mutex (hell_mutex);
-  if (n_hell == hell_size)
+  if (n_hell >= hell_size)
     {
-      long new_size = 2 * hell_size;
-      hell = scm_realloc (hell, new_size);
-      hell_size = new_size;
+      hell_size *= 2;
+      hell = scm_realloc (hell, hell_size * sizeof(*hell));
     }
   hell[n_hell++] = SCM_STRUCT_DATA (obj);
   scm_unlock_mutex (hell_mutex);
@@ -2867,7 +2879,8 @@ scm_add_slot (SCM class, char *slot_name, SCM slot_class,
 					      scm_list_1 (slot))));
       {
 	SCM n = SCM_SLOT (class, scm_si_nfields);
-	SCM gns = scm_list_n (name, SCM_BOOL_F, get, set, n, scm_from_int (1));
+	SCM gns = scm_list_n (name, SCM_BOOL_F, get, set, n, scm_from_int (1),
+			      SCM_UNDEFINED);
 	SCM_SET_SLOT (class, scm_si_getters_n_setters,
 		      scm_append_x (scm_list_2 (SCM_SLOT (class, scm_si_getters_n_setters),
 						scm_list_1 (gns))));
@@ -2979,7 +2992,7 @@ scm_init_goops_builtins (void)
 
   list_of_no_method = scm_permanent_object (scm_list_1 (sym_no_method));
 
-  hell = scm_malloc (hell_size);
+  hell = scm_calloc (hell_size * sizeof (*hell));
   hell_mutex = scm_permanent_object (scm_make_mutex ());
 
   create_basic_classes ();

@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1999,2000,2001,2003, 2004, 2006, 2007 Free Software
+/* Copyright (C) 1995,1996,1997,1999,2000,2001,2003, 2004, 2006, 2007, 2008 Free Software
  * Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
@@ -53,6 +53,7 @@
 
 SCM_GLOBAL_SYMBOL (scm_sym_dot, ".");
 SCM_SYMBOL (scm_keyword_prefix, "prefix");
+SCM_SYMBOL (scm_keyword_postfix, "postfix");
 
 scm_t_option scm_read_opts[] = {
   { SCM_OPTION_BOOLEAN, "copy", 0,
@@ -62,7 +63,7 @@ scm_t_option scm_read_opts[] = {
   { SCM_OPTION_BOOLEAN, "case-insensitive", 0,
     "Convert symbols to lower case."},
   { SCM_OPTION_SCM, "keywords", SCM_UNPACK (SCM_BOOL_F),
-    "Style of keyword recognition: #f or 'prefix."},
+    "Style of keyword recognition: #f, 'prefix or 'postfix."},
 #if SCM_ENABLE_ELISP
   { SCM_OPTION_BOOLEAN, "elisp-vectors", 0,
     "Support Elisp vector syntax, namely `[...]'."},
@@ -291,7 +292,7 @@ scm_read_sexp (int chr, SCM port)
   register int c;
   register SCM tmp;
   register SCM tl, ans = SCM_EOL;
-  SCM tl2 = SCM_EOL, ans2 = SCM_EOL, copy = SCM_BOOL_F;;
+  SCM tl2 = SCM_EOL, ans2 = SCM_EOL, copy = SCM_BOOL_F;
   static const int terminating_char = ')';
 
   /* Need to capture line and column numbers here. */
@@ -531,14 +532,18 @@ static SCM
 scm_read_mixed_case_symbol (int chr, SCM port)
 {
   SCM result, str = SCM_EOL;
-  int overflow = 0;
+  int overflow = 0, ends_with_colon = 0;
   char buffer[READER_BUFFER_SIZE];
   size_t read = 0;
+  int postfix = scm_is_eq (SCM_PACK (SCM_KEYWORD_STYLE), scm_keyword_postfix);
 
   scm_ungetc (chr, port);
   do
     {
       overflow = read_token (port, buffer, sizeof (buffer), &read);
+
+      if (read > 0)
+	ends_with_colon = (buffer[read - 1] == ':');
 
       if ((overflow) || (scm_is_pair (str)))
 	str = scm_cons (scm_from_locale_stringn (buffer, read), str);
@@ -549,12 +554,21 @@ scm_read_mixed_case_symbol (int chr, SCM port)
     {
       str = scm_string_concatenate (scm_reverse_x (str, SCM_EOL));
       result = scm_string_to_symbol (str);
+
+      /* Per SRFI-88, `:' alone is an identifier, not a keyword.  */
+      if (postfix && ends_with_colon && (scm_c_string_length (result) > 1))
+	result = scm_symbol_to_keyword (result);
     }
   else
-    /* For symbols smaller than `sizeof (buffer)', we don't need to recur to
-       Scheme strings.  Therefore, we only create one Scheme object (a
-       symbol) per symbol read.  */
-    result = scm_from_locale_symboln (buffer, read);
+    {
+      /* For symbols smaller than `sizeof (buffer)', we don't need to recur
+	 to Scheme strings.  Therefore, we only create one Scheme object (a
+	 symbol) per symbol read.  */
+      if (postfix && ends_with_colon && (read > 1))
+	result = scm_from_locale_keywordn (buffer, read - 1);
+      else
+	result = scm_from_locale_symboln (buffer, read);
+    }
 
   return result;
 }
@@ -657,7 +671,7 @@ scm_read_quote (int chr, SCM port)
 
     default:
       fprintf (stderr, "%s: unhandled quote character (%i)\n",
-	       __FUNCTION__, chr);
+	       "scm_read_quote", chr);
       abort ();
     }
 
@@ -772,7 +786,7 @@ scm_read_keyword (int chr, SCM port)
      XXX: This implementation allows sloppy syntaxes like `#:  key'.  */
   symbol = scm_read_expression (port);
   if (!scm_is_symbol (symbol))
-    scm_i_input_error (__FUNCTION__, port,
+    scm_i_input_error ("scm_read_keyword", port,
 		       "keyword prefix `~a' not followed by a symbol: ~s",
 		       scm_list_2 (SCM_MAKE_CHAR (chr), symbol));
 

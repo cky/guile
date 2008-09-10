@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2006, 2007
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2006, 2007, 2008
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -956,6 +956,11 @@ If @var{suffix} is provided, and is equal to the end of
 @end lisp
 @end deffn
 
+@deffn {Scheme Procedure} file-exists? filename
+Return @code{#t} if the file named @var{filename} exists, @code{#f} if
+not.
+@end deffn
+
 
 @node User Information
 @subsection User Information
@@ -1259,27 +1264,8 @@ formatting.
 If @code{setlocale} has been called (@pxref{Locales}), month and day
 names are from the current locale and in the locale character set.
 
-Note that @samp{%Z} might print the @code{tm:zone} in @var{tm} or it
-might print just the current zone (@code{tzset} above).  A GNU system
-prints @code{tm:zone}, a strict C99 system like NetBSD prints the
-current zone.  Perhaps in the future Guile will try to get
-@code{tm:zone} used always.
-@c
-@c  The issue in the above is not just whether tm_zone exists in
-@c  struct tm, but whether libc feels it should read it.  Being a
-@c  non-C99 field, a strict C99 program won't know to set it, quite
-@c  likely leaving garbage there.  NetBSD, which has the field,
-@c  therefore takes the view that it mustn't read it.  See the PR
-@c  about this at
-@c
-@c      http://www.netbsd.org/cgi-bin/query-pr-single.pl?number=21722
-@c
-@c  Uniformly making tm:zone used on all systems (all those which have
-@c  %Z at all of course) might be nice (either mung TZ and tzset, or
-@c  mung tzname[]).  On the other hand it would make us do more than
-@c  C99 says, and we really don't want to get intimate with the gory
-@c  details of libc time funcs, no more than can be helped.
-@c
+Note that @samp{%Z} always ignores the @code{tm:zone} in @var{tm};
+instead it prints just the current zone (@code{tzset} above).
 @end deffn
 
 @deffn {Scheme Procedure} strptime format string

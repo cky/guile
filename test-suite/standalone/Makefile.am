@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in.
 ##
-## Copyright 2003, 2004, 2005, 2006, 2007 Software Foundation, Inc.
+## Copyright 2003, 2004, 2005, 2006, 2007, 2008 Software Foundation, Inc.
 ##
 ## This file is part of GUILE.
 ##
@@ -26,18 +26,22 @@ noinst_LTLIBRARIES =
 check_PROGRAMS = 
 check_SCRIPTS =
 BUILT_SOURCES =
+EXTRA_DIST =
 
 TESTS_ENVIRONMENT = "${top_builddir}/pre-inst-guile-env"
 
-test_cflags = \
-  -I$(top_srcdir)/test-suite/standalone \
-  -I$(top_srcdir) \
-  $(EXTRA_DEFS) $(GUILE_CFLAGS)
+test_cflags =					\
+  -I$(top_srcdir)/test-suite/standalone		\
+  -I$(top_srcdir)				\
+  -I$(top_srcdir)/lib -I$(top_builddir)/lib	\
+  $(EXTRA_DEFS) $(GUILE_CFLAGS) $(GCC_CFLAGS)
 
 AM_LDFLAGS = $(GUILE_CFLAGS)
 
-snarfcppopts = \
-  $(DEFS) $(DEFAULT_INCLUDES) $(CPPFLAGS) $(CFLAGS) -I$(top_srcdir)
+snarfcppopts =								\
+  $(DEFS) $(DEFAULT_INCLUDES) $(CPPFLAGS) $(CFLAGS) -I$(top_srcdir)	\
+  -I$(top_srcdir)/lib -I$(top_builddir)/lib
+
 SUFFIXES = .x
 .c.x:
 	${top_builddir}/libguile/guile-snarf -o $@ $< $(snarfcppopts)
@@ -48,6 +52,9 @@ CLEANFILES = *.x
 
 check_SCRIPTS += test-system-cmds
 TESTS += test-system-cmds
+
+check_SCRIPTS += test-bad-identifiers
+TESTS += test-bad-identifiers
 
 check_SCRIPTS += test-require-extension
 TESTS += test-require-extension
@@ -107,7 +114,21 @@ TESTS += test-conversion
 check_SCRIPTS += test-use-srfi
 TESTS += test-use-srfi
 
+if BUILD_PTHREAD_SUPPORT
+
+# test-with-guile-module
+test_with_guile_module_CFLAGS = ${test_cflags}
+test_with_guile_module_LDADD = ${top_builddir}/libguile/libguile.la
+check_PROGRAMS += test-with-guile-module
+TESTS += test-with-guile-module
+
+else
+
+EXTRA_DIST += test-with-guile-module.c
+
+endif
+
 all-local:
 	cd ${srcdir} && chmod u+x ${check_SCRIPTS}
 
-EXTRA_DIST = ${check_SCRIPTS}
+EXTRA_DIST += ${check_SCRIPTS}

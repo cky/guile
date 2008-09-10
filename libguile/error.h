@@ -3,7 +3,7 @@
 #ifndef SCM_ERROR_H
 #define SCM_ERROR_H
 
-/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2002, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2002, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -57,7 +57,7 @@ SCM_API void scm_wrong_type_arg_msg (const char *subr, int pos,
 SCM_API void scm_memory_error (const char *subr) SCM_NORETURN;
 SCM_API void scm_misc_error (const char *subr, const char *message,
 			     SCM args) SCM_NORETURN;
-SCM_API void scm_init_error (void);
+SCM_INTERNAL void scm_init_error (void);
 
 #endif  /* SCM_ERROR_H */
 

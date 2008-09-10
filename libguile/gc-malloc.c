@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2004, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2004, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -84,8 +84,8 @@ scm_gc_init_malloc (void)
 {
   scm_mtrigger = scm_getenv_int ("GUILE_INIT_MALLOC_LIMIT",
 				 SCM_DEFAULT_INIT_MALLOC_LIMIT);
-  scm_i_minyield_malloc =  scm_getenv_int ("GUILE_MIN_YIELD_MALLOC",
-					   SCM_DEFAULT_MALLOC_MINYIELD);
+  scm_i_minyield_malloc = scm_getenv_int ("GUILE_MIN_YIELD_MALLOC",
+					  SCM_DEFAULT_MALLOC_MINYIELD);
 
   if (scm_i_minyield_malloc >= 100)
     scm_i_minyield_malloc = 99;
@@ -204,7 +204,7 @@ scm_gc_malloc (size_t size, const char *what)
      again in scm_gc_register_collectable_memory.  We don't really
      want the second GC since it will not find new garbage.
 
-     Note: this is a theoretical peeve. In reality, malloc() never
+     Note: this is a theoretical peeve. In reality, malloc () never
      returns NULL. Usually, memory is overcommitted, and when you try
      to write it the program is killed with signal 11. --hwn
   */

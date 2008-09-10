@@ -3,7 +3,7 @@
 #ifndef SCM_VALUES_H
 #define SCM_VALUES_H
 
-/* Copyright (C) 2000,2001, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 2000,2001, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -30,7 +30,7 @@ SCM_API SCM scm_values_vtable;
                         && scm_is_eq (scm_struct_vtable (x), scm_values_vtable))
 
 SCM_API SCM scm_values (SCM args);
-SCM_API void scm_init_values (void);
+SCM_INTERNAL void scm_init_values (void);
 
 #endif  /* SCM_VALUES_H */
 

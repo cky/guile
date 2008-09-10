@@ -1,7 +1,7 @@
 ;;;; srfi-35.test --- Test suite for SRFI-35               -*- Scheme -*-
 ;;;; Ludovic Courtès <ludo@gnu.org>
 ;;;;
-;;;; 	Copyright (C) 2007 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2007, 2008 Free Software Foundation, Inc.
 ;;;;
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -21,6 +21,12 @@
 (define-module (test-srfi-35)
   :use-module (test-suite lib)
   :use-module (srfi srfi-35))
+
+
+(with-test-prefix "cond-expand"
+  (pass-if "srfi-35"
+    (cond-expand (srfi-35 #t)
+                 (else    #f))))
 
 
 (with-test-prefix "condition types"
@@ -308,3 +314,7 @@
   (pass-if "(c2-b v5)"
     (equal? (c2-b v5) "b2")))
 
+
+;;; Local Variables:
+;;; coding: latin-1
+;;; End:

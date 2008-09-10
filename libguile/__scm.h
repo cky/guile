@@ -3,46 +3,22 @@
 #ifndef SCM___SCM_H
 #define SCM___SCM_H
 
-/* Copyright (C) 1995,1996,1998,1999,2000,2001,2002,2003, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001,2002,2003, 2006, 2007, 2008 Free Software Foundation, Inc.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
+ * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this software; see the file COPYING.  If not, write to
- * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301 USA
- *
- * As a special exception, the Free Software Foundation gives permission
- * for additional uses of the text contained in its release of GUILE.
- *
- * The exception is that, if you link the GUILE library with other files
- * to produce an executable, this does not by itself cause the
- * resulting executable to be covered by the GNU General Public License.
- * Your use of that executable is in no way restricted on account of
- * linking the GUILE library code into it.
- *
- * This exception does not however invalidate any other reasons why
- * the executable file might be covered by the GNU General Public License.
- *
- * This exception applies only to the code released by the
- * Free Software Foundation under the name GUILE.  If you copy
- * code from other Free Software Foundation releases into a copy of
- * GUILE, as the General Public License permits, the exception does
- * not apply to the code that you add in this way.  To avoid misleading
- * anyone as to the status of such modified files, you must delete
- * this exception notice from them.
- *
- * If you write modifications of your own for GUILE, it is your choice
- * whether to permit this exception to apply to your modifications.
- * If you do not wish that, delete this exception notice.  */
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
 
 
 
@@ -109,6 +85,29 @@
 #endif
 
 
+/* The SCM_EXPECT macros provide branch prediction hints to the compiler.  To
+ * use only in places where the result of the expression under "normal"
+ * circumstances is known.  */
+#if defined(__GNUC__) && (__GNUC__ >= 3)
+# define SCM_EXPECT    __builtin_expect
+#else
+# define SCM_EXPECT(_expr, _value) (_expr)
+#endif
+
+#define SCM_LIKELY(_expr)    SCM_EXPECT ((_expr), 1)
+#define SCM_UNLIKELY(_expr)  SCM_EXPECT ((_expr), 0)
+
+/* The SCM_INTERNAL macro makes it possible to explicitly declare a function
+ * as having "internal" linkage.  */
+#if (defined __GNUC__) && \
+  ((__GNUC__ >= 4) || (__GNUC__ == 3 && __GNUC_MINOR__ == 3))
+# define SCM_INTERNAL  extern __attribute__ ((__visibility__ ("internal")))
+#else
+# define SCM_INTERNAL  extern
+#endif
+
+
+
 /* {Supported Options}
  *
  * These may be defined or undefined.
@@ -196,6 +195,14 @@
  */
 #ifndef SCM_DEBUG
 #define SCM_DEBUG 0
+#endif
+
+/* For debugging purposes: define this is to ensure nobody is using
+ * the mark bits outside of the marking phase.  This is meant for
+ * debugging purposes only.
+ */
+#ifndef SCM_DEBUG_MARKING_API
+#define SCM_DEBUG_MARKING_API 0
 #endif
 
 /* If SCM_DEBUG_CELL_ACCESSES is set to 1, cell accesses will perform
@@ -412,7 +419,23 @@
 #  define setjmp setjump
 #  define longjmp longjump
 # else				/* ndef _CRAY1 */
-#  include <setjmp.h>
+#  if defined (__ia64__)
+/* For IA64, emulate the setjmp API using getcontext. */
+#   include <signal.h>
+#   include <ucontext.h>
+    typedef struct {
+      ucontext_t ctx;
+      int fresh;
+    } jmp_buf;
+#   define setjmp(JB)				        \
+      ( (JB).fresh = 1,				        \
+        getcontext (&((JB).ctx)),			\
+        ((JB).fresh ? ((JB).fresh = 0, 0) : 1) )
+#   define longjmp(JB,VAL) scm_ia64_longjmp (&(JB), VAL)
+    void scm_ia64_longjmp (jmp_buf *, int);
+#  else                 	/* ndef __ia64__ */
+#   include <setjmp.h>
+#  endif			/* ndef __ia64__ */
 # endif				/* ndef _CRAY1 */
 #endif				/* ndef vms */
 
@@ -500,14 +523,14 @@ do { \
 #define SCM_ASSERT_TYPE(_cond, _arg, _pos, _subr, _msg)
 #define SCM_ASRTGO(_cond, _label)
 #else
-#define SCM_ASSERT(_cond, _arg, _pos, _subr) \
-	do { if (!(_cond)) \
+#define SCM_ASSERT(_cond, _arg, _pos, _subr)			\
+        do { if (SCM_UNLIKELY (!(_cond)))			\
           scm_wrong_type_arg (_subr, _pos, _arg); } while (0)
-#define SCM_ASSERT_TYPE(_cond, _arg, _pos, _subr, _msg) \
-	do { if (!(_cond)) \
+#define SCM_ASSERT_TYPE(_cond, _arg, _pos, _subr, _msg)			\
+        do { if (SCM_UNLIKELY (!(_cond)))				\
           scm_wrong_type_arg_msg(_subr, _pos, _arg, _msg);  } while (0)
-#define SCM_ASRTGO(_cond, _label) \
-        do {  if (!(_cond)) \
+#define SCM_ASRTGO(_cond, _label)		\
+        do {  if (SCM_UNLIKELY (!(_cond)))	\
           goto _label; } while (0)
 #endif
 
@@ -526,8 +549,9 @@ SCM_API SCM scm_call_generic_0 (SCM gf);
   return (SCM_UNPACK (gf)					\
 	  ? scm_call_generic_0 ((gf))				\
 	  : (scm_error_num_args_subr ((subr)), SCM_UNSPECIFIED))
-#define SCM_GASSERT0(cond, gf, subr) \
-  if (!(cond)) SCM_WTA_DISPATCH_0((gf), (subr))
+#define SCM_GASSERT0(cond, gf, subr)		\
+  if (SCM_UNLIKELY(!(cond)))		\
+    SCM_WTA_DISPATCH_0((gf), (subr))
 
 SCM_API SCM scm_call_generic_1 (SCM gf, SCM a1);
 
@@ -535,8 +559,9 @@ SCM_API SCM scm_call_generic_1 (SCM gf, SCM a1);
   return (SCM_UNPACK (gf)					\
 	  ? scm_call_generic_1 ((gf), (a1))			\
 	  : (scm_wrong_type_arg ((subr), (pos), (a1)), SCM_UNSPECIFIED))
-#define SCM_GASSERT1(cond, gf, a1, pos, subr) \
-  if (!(cond)) SCM_WTA_DISPATCH_1((gf), (a1), (pos), (subr))
+#define SCM_GASSERT1(cond, gf, a1, pos, subr)		\
+  if (SCM_UNLIKELY (!(cond)))			\
+    SCM_WTA_DISPATCH_1((gf), (a1), (pos), (subr))
 
 SCM_API SCM scm_call_generic_2 (SCM gf, SCM a1, SCM a2);
 
@@ -546,8 +571,9 @@ SCM_API SCM scm_call_generic_2 (SCM gf, SCM a1, SCM a2);
 	  : (scm_wrong_type_arg ((subr), (pos),				\
 				 (pos) == SCM_ARG1 ? (a1) : (a2)),	\
 	     SCM_UNSPECIFIED))
-#define SCM_GASSERT2(cond, gf, a1, a2, pos, subr) \
-  if (!(cond)) SCM_WTA_DISPATCH_2((gf), (a1), (a2), (pos), (subr))
+#define SCM_GASSERT2(cond, gf, a1, a2, pos, subr)	\
+  if (SCM_UNLIKELY (!(cond)))			\
+    SCM_WTA_DISPATCH_2((gf), (a1), (a2), (pos), (subr))
 
 SCM_API SCM scm_apply_generic (SCM gf, SCM args);
 
@@ -558,8 +584,9 @@ SCM_API SCM scm_apply_generic (SCM gf, SCM args);
 				 scm_list_ref ((args),			  \
 					       scm_from_int ((pos) - 1))), \
 	     SCM_UNSPECIFIED))
-#define SCM_GASSERTn(cond, gf, args, pos, subr) \
-  if (!(cond)) SCM_WTA_DISPATCH_n((gf), (args), (pos), (subr))
+#define SCM_GASSERTn(cond, gf, args, pos, subr)		\
+  if (SCM_UNLIKELY (!(cond)))			\
+    SCM_WTA_DISPATCH_n((gf), (args), (pos), (subr))
 
 #ifndef SCM_MAGIC_SNARFER
 /* Let these macros pass through if

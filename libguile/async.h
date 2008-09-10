@@ -3,7 +3,7 @@
 #ifndef SCM_ASYNC_H
 #define SCM_ASYNC_H
 
-/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2002, 2004, 2005, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2002, 2004, 2005, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -38,10 +38,11 @@ SCM_API SCM scm_async (SCM thunk);
 SCM_API SCM scm_async_mark (SCM a);
 SCM_API SCM scm_system_async_mark (SCM a);
 SCM_API SCM scm_system_async_mark_for_thread (SCM a, SCM thread);
-SCM_API void scm_i_queue_async_cell (SCM cell, scm_i_thread *);
-SCM_API int scm_i_setup_sleep (scm_i_thread *,
-			       SCM obj, scm_i_pthread_mutex_t *m, int fd);
-SCM_API void scm_i_reset_sleep (scm_i_thread *);
+SCM_INTERNAL void scm_i_queue_async_cell (SCM cell, scm_i_thread *);
+SCM_INTERNAL int scm_i_setup_sleep (scm_i_thread *,
+				    SCM obj, scm_i_pthread_mutex_t *m,
+				    int fd);
+SCM_INTERNAL void scm_i_reset_sleep (scm_i_thread *);
 SCM_API SCM scm_run_asyncs (SCM list_of_a);
 SCM_API SCM scm_noop (SCM args);
 SCM_API SCM scm_call_with_blocked_asyncs (SCM proc);
@@ -77,7 +78,7 @@ extern int scm_i_critical_section_level;
     scm_async_click ();	\
   } while (0)
 
-SCM_API void scm_init_async (void);
+SCM_INTERNAL void scm_init_async (void);
 
 #if (SCM_ENABLE_DEPRECATED == 1)
 

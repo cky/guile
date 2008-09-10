@@ -1,7 +1,7 @@
 /*
  * private-gc.h - private declarations for garbage collection.
  * 
- * Copyright (C) 2002, 03, 04, 05, 06, 07 Free Software Foundation, Inc.
+ * Copyright (C) 2002, 03, 04, 05, 06, 07, 08 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -32,18 +32,6 @@
  * 64 bit machine.  The units of the _SIZE parameters are bytes.
  * Cons pairs and object headers occupy one heap cell.
  *
- * SCM_INIT_HEAP_SIZE is the initial size of heap.  If this much heap is
- * allocated initially the heap will grow by half its current size
- * each subsequent time more heap is needed.
- *
- * If SCM_INIT_HEAP_SIZE heap cannot be allocated initially, SCM_HEAP_SEG_SIZE
- * will be used, and the heap will grow by SCM_HEAP_SEG_SIZE when more
- * heap is needed.  SCM_HEAP_SEG_SIZE must fit into type size_t.  This code
- * is in scm_init_storage() and alloc_some_heap() in sys.c
- *
- * If SCM_INIT_HEAP_SIZE can be allocated initially, the heap will grow by
- * SCM_EXPHEAP(scm_heap_size) when more heap is needed.
- *
  * SCM_MIN_HEAP_SEG_SIZE is minimum size of heap to accept when more heap
  * is needed.
  */
@@ -66,6 +54,12 @@
 #define SCM_DEFAULT_MIN_YIELD_1 40
 #define SCM_DEFAULT_INIT_HEAP_SIZE_2 32*1024
 
+/*
+  How many cells to collect during one sweep call. This is the pool
+  size of each thread.
+ */
+#define DEFAULT_SWEEP_AMOUNT 512
+
 /* The following value may seem large, but note that if we get to GC at
  * all, this means that we have a numerically intensive application
  */
@@ -73,11 +67,8 @@
 
 #define SCM_DEFAULT_MAX_SEGMENT_SIZE  (20*1024*1024L)
 
-
-
 #define SCM_MIN_HEAP_SEG_SIZE (8 * SCM_GC_SIZEOF_CARD)
 #define SCM_HEAP_SEG_SIZE (16384L * sizeof (scm_t_cell))
-
 
 #define SCM_DOUBLECELL_ALIGNED_P(x)  (((2 * sizeof (scm_t_cell) - 1) & SCM_UNPACK (x)) == 0)
 
@@ -86,7 +77,6 @@
     ((SCM_GC_CARD_N_CELLS + SCM_C_BVEC_LONG_BITS - 1) / SCM_C_BVEC_LONG_BITS)
 #define SCM_GC_IN_CARD_HEADERP(x) \
   (scm_t_cell *) (x) <  SCM_GC_CELL_CARD (x) + SCM_GC_CARD_N_HEADER_CELLS
-
 
 int scm_getenv_int (const char *var, int def);
 
@@ -113,15 +103,14 @@ typedef enum { return_on_error, abort_on_error } policy_on_error;
   gc-mark
  */
 
+/* this can be used to ensure that set/clear gc marks only happen when
+   allowed. */
+int scm_i_marking;
 
 void scm_mark_all (void);
 
-
-char const *scm_i_tag_name (scm_t_bits tag); /* MOVEME */
-
-
 extern long int scm_i_deprecated_memory_return;
-
+extern long int scm_i_find_heap_calls;
 
 /*
   global init funcs.

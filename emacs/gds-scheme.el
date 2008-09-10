@@ -279,9 +279,12 @@ region's code."
       (setq line (count-lines (point-min) (point))))
     (cons line column)))
 
-(defun gds-eval-region (start end)
-  "Evaluate the current region."
-  (interactive "r")
+(defun gds-eval-region (start end &optional debugp)
+  "Evaluate the current region.  If invoked with `C-u' prefix (or, in
+a program, with optional DEBUGP arg non-nil), pause and pop up the
+stack at the start of the evaluation, so that the user can single-step
+through the code."
+  (interactive "r\nP")
   (or gds-client
       (gds-auto-associate-buffer)
       (call-interactively 'gds-associate-buffer))
@@ -289,24 +292,29 @@ region's code."
 	(port-name (gds-port-name start end))
 	(lc (gds-line-and-column start)))
     (let ((code (buffer-substring-no-properties start end)))
-      (gds-send (format "eval (region . %S) %s %S %d %d %S"
+      (gds-send (format "eval (region . %S) %s %S %d %d %S %s"
 			(gds-abbreviated code)
 			(if module (prin1-to-string module) "#f")
 			port-name (car lc) (cdr lc)
-			code)
+			code
+			(if debugp '(debug) '(none)))
 		gds-client))))
 
-(defun gds-eval-expression (expr &optional correlator)
-  "Evaluate the supplied EXPR (a string)."
-  (interactive "sEvaluate expression: \nP")
+(defun gds-eval-expression (expr &optional correlator debugp)
+  "Evaluate the supplied EXPR (a string).  If invoked with `C-u'
+prefix (or, in a program, with optional DEBUGP arg non-nil), pause and
+pop up the stack at the start of the evaluation, so that the user can
+single-step through the code."
+  (interactive "sEvaluate expression: \ni\nP")
   (or gds-client
       (gds-auto-associate-buffer)
       (call-interactively 'gds-associate-buffer))
   (set-text-properties 0 (length expr) nil expr)
-  (gds-send (format "eval (%S . %S) #f \"Emacs expression\" 0 0 %S"
+  (gds-send (format "eval (%S . %S) #f \"Emacs expression\" 0 0 %S %s"
 		    (or correlator 'expression)
 		    (gds-abbreviated expr)
-		    expr)
+		    expr
+		    (if debugp '(debug) '(none)))
 	    gds-client))
 
 (defconst gds-abbreviated-length 35)
@@ -325,19 +333,25 @@ region's code."
       (concat (substring code 0 (- gds-abbreviated-length 3)) "...")
     code))
 
-(defun gds-eval-defun ()
-  "Evaluate the defun (top-level form) at point."
-  (interactive)
+(defun gds-eval-defun (&optional debugp)
+  "Evaluate the defun (top-level form) at point.  If invoked with
+`C-u' prefix (or, in a program, with optional DEBUGP arg non-nil),
+pause and pop up the stack at the start of the evaluation, so that the
+user can single-step through the code."
+  (interactive "P")
   (save-excursion
    (end-of-defun)
    (let ((end (point)))
      (beginning-of-defun)
-     (gds-eval-region (point) end))))
+     (gds-eval-region (point) end debugp))))
 
-(defun gds-eval-last-sexp ()
-  "Evaluate the sexp before point."
-  (interactive)
-  (gds-eval-region (save-excursion (backward-sexp) (point)) (point)))
+(defun gds-eval-last-sexp (&optional debugp)
+  "Evaluate the sexp before point.  If invoked with `C-u' prefix (or,
+in a program, with optional DEBUGP arg non-nil), pause and pop up the
+stack at the start of the evaluation, so that the user can single-step
+through the code."
+  (interactive "P")
+  (gds-eval-region (save-excursion (backward-sexp) (point)) (point) debugp))
 
 ;;;; Help.
 

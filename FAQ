@@ -1,0 +1,19 @@
+Guile FAQ                       -*- outline -*-
+
+* Build problems
+
+** readline.c: error: `rl_pending_input' undeclared
+
+This occurs if the Readline library detected by Guile's configure
+script is actually the BSD Editline project's supposedly
+Readline-compatible library.  The immediate fix is to uninstall
+Editline and install the real GNU Readline instead.  When you do this,
+please note that it probably won't work to keep Editline in /usr and
+install GNU Readline in /usr/local (or some similar arrangement),
+because the Editline library will then still be picked up at link and
+run time; it's best (subject to other constraints) to remove Editline
+completely.
+
+For the longer term, please also report this problem to the Editline
+project, to encourage them to fix it in the next release of their
+Readline compatibility library.

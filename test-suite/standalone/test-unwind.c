@@ -1,7 +1,35 @@
+/* Copyright (C) 2004, 2005, 2008 Free Software Foundation, Inc.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+#if HAVE_CONFIG_H
+# include <config.h>
+#endif
+
+#include <alloca.h>
+
 #include <libguile.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+
+#ifdef HAVE_STRING_H
+# include <string.h>
+#endif
+
 
 void set_flag (void *data);
 void func1 (void);
@@ -170,7 +198,17 @@ delete_file (void *data)
 void
 check_ports ()
 {
-  char filename[] = "/tmp/check-ports.XXXXXX";
+#define FILENAME_TEMPLATE "/check-ports.XXXXXX"
+  char *filename;
+  const char *tmpdir = getenv ("TMPDIR");
+
+  if (tmpdir == NULL)
+    tmpdir = "/tmp";
+
+  filename = (char *) alloca (strlen (tmpdir) +
+			      sizeof (FILENAME_TEMPLATE) + 1);
+  strcpy (filename, tmpdir);
+  strcat (filename, FILENAME_TEMPLATE);
 
   if (mktemp (filename) == NULL)
     exit (1);
@@ -205,6 +243,7 @@ check_ports ()
       }
   }
   scm_dynwind_end ();
+#undef FILENAME_TEMPLATE
 }
 
 void

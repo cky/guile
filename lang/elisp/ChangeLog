@@ -1,3 +1,12 @@
+2008-04-14  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* primitives/symprop.scm (get): Use lambda->nil.
+
+	* primitives/strings.scm (aset): New primitive.
+
+	* internals/load.scm (load): Use in-vicinity (instead of
+	string-append) to add a slash if needed.
+
 2004-02-08  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* primitives/Makefile.am (TAGS_FILES), internals/Makefile.am

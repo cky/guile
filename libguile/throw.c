@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2003, 2004, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2003, 2004, 2006, 2008 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -75,13 +75,9 @@ static SCM
 make_jmpbuf (void)
 {
   SCM answer;
-  SCM_CRITICAL_SECTION_START;
-  {
-    SCM_NEWSMOB2 (answer, tc16_jmpbuffer, 0, 0);
-    SETJBJMPBUF(answer, (jmp_buf *)0);
-    DEACTIVATEJB(answer);
-  }
-  SCM_CRITICAL_SECTION_END;
+  SCM_NEWSMOB2 (answer, tc16_jmpbuffer, 0, 0);
+  SETJBJMPBUF(answer, (jmp_buf *)0);
+  DEACTIVATEJB(answer);
   return answer;
 }
 
@@ -856,6 +852,12 @@ scm_ithrow (SCM key, SCM args, int noreturn SCM_UNUSED)
   /* Otherwise, it's some random piece of junk.  */
   else
     abort ();
+
+#ifdef __ia64__
+  /* On IA64, we #define longjmp as setcontext, and GCC appears not to
+     know that that doesn't return. */
+  return SCM_UNSPECIFIED;
+#endif
 }
 
 

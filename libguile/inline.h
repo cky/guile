@@ -3,7 +3,7 @@
 #ifndef SCM_INLINE_H
 #define SCM_INLINE_H
 
-/* Copyright (C) 2001, 2002, 2003, 2004, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2002, 2003, 2004, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -25,18 +25,56 @@
    "inline.c".
 */
 
-#include "libguile/__scm.h"
-
-#if (SCM_DEBUG_CELL_ACCESSES == 1)
 #include <stdio.h>
-#endif
+#include <string.h>
+
+#include "libguile/__scm.h"
 
 #include "libguile/pairs.h"
 #include "libguile/gc.h"
 #include "libguile/threads.h"
 #include "libguile/unif.h"
-#include "libguile/pairs.h"
+#include "libguile/ports.h"
+#include "libguile/error.h"
 
+
+#ifndef SCM_INLINE_C_INCLUDING_INLINE_H
+
+/* GCC has `__inline__' in all modes, including strict ansi.  GCC 4.3 and
+   above with `-std=c99' or `-std=gnu99' implements ISO C99 inline semantics,
+   unless `-fgnu89-inline' is used.  Here we want GNU "extern inline"
+   semantics, hence the `__gnu_inline__' attribute, in accordance with:
+   http://gcc.gnu.org/gcc-4.3/porting_to.html .
+
+   With GCC 4.2, `__GNUC_STDC_INLINE__' is never defined (because C99 inline
+   semantics are not supported), but a warning is issued in C99 mode if
+   `__gnu_inline__' is not used.
+
+   Apple's GCC build >5400 (since Xcode 3.0) doesn't support GNU inline in
+   C99 mode and doesn't define `__GNUC_STDC_INLINE__'.  Fall back to "static
+   inline" in that case.  */
+
+# if (defined __GNUC__) && (!(__APPLE_CC__ > 5400 && __STDC_VERSION__ >= 199901L))
+#  define SCM_C_USE_EXTERN_INLINE 1
+#  if (defined __GNUC_STDC_INLINE__) || (__GNUC__ == 4 && __GNUC_MINOR__ == 2)
+#   define SCM_C_EXTERN_INLINE					\
+           extern __inline__ __attribute__ ((__gnu_inline__))
+#  else
+#   define SCM_C_EXTERN_INLINE extern __inline__
+#  endif
+# elif (defined SCM_C_INLINE)
+#  define SCM_C_EXTERN_INLINE static SCM_C_INLINE
+# endif
+
+#endif /* SCM_INLINE_C_INCLUDING_INLINE_H */
+
+
+#if (!defined SCM_C_INLINE) || (defined SCM_INLINE_C_INCLUDING_INLINE_H) \
+    || (defined SCM_C_USE_EXTERN_INLINE)
+
+/* The `extern' declarations.  They should only appear when used from
+   "inline.c", when `inline' is not supported at all or when "extern inline"
+   is used.  */
 
 #include "libguile/boehm-gc.h"
 
@@ -48,8 +86,16 @@ SCM_API SCM scm_double_cell (scm_t_bits car, scm_t_bits cbr,
 SCM_API SCM scm_array_handle_ref (scm_t_array_handle *h, ssize_t pos);
 SCM_API void scm_array_handle_set (scm_t_array_handle *h, ssize_t pos, SCM val);
 
+SCM_API int scm_is_pair (SCM x);
 
-#if defined SCM_C_INLINE || defined SCM_INLINE_C_INCLUDING_INLINE_H
+SCM_API int scm_getc (SCM port);
+SCM_API void scm_putc (char c, SCM port);
+SCM_API void scm_puts (const char *str_data, SCM port);
+
+#endif
+
+
+#if defined SCM_C_EXTERN_INLINE || defined SCM_INLINE_C_INCLUDING_INLINE_H
 /* either inlining, or being included from inline.c.  We use (and
    repeat) this long #if test here and below so that we don't have to
    introduce any extraneous symbols into the public namespace.  We
@@ -58,14 +104,9 @@ SCM_API void scm_array_handle_set (scm_t_array_handle *h, ssize_t pos, SCM val);
 extern unsigned scm_newcell2_count;
 extern unsigned scm_newcell_count;
 
-#if defined SCM_C_INLINE && ! defined SCM_INLINE_C_INCLUDING_INLINE_H
-/* definitely inlining */
-#ifdef __GNUC__
-extern
-#else
-static
-#endif
-SCM_C_INLINE
+
+#ifndef SCM_INLINE_C_INCLUDING_INLINE_H
+SCM_C_EXTERN_INLINE
 #endif
 
 SCM
@@ -83,14 +124,8 @@ scm_cell (scm_t_bits car, scm_t_bits cdr)
   return cell;
 }
 
-#if defined SCM_C_INLINE && ! defined SCM_INLINE_C_INCLUDING_INLINE_H
-/* definitely inlining */
-#ifdef __GNUC__
-extern
-#else
-static
-#endif
-SCM_C_INLINE
+#ifndef SCM_INLINE_C_INCLUDING_INLINE_H
+SCM_C_EXTERN_INLINE
 #endif
 SCM
 scm_double_cell (scm_t_bits car, scm_t_bits cbr,
@@ -132,14 +167,8 @@ scm_double_cell (scm_t_bits car, scm_t_bits cbr,
   return z;
 }
 
-#if defined SCM_C_INLINE && ! defined SCM_INLINE_C_INCLUDING_INLINE_H
-/* definitely inlining */
-#ifdef __GNUC__
-extern
-#else
-static
-#endif
-SCM_C_INLINE
+#ifndef SCM_INLINE_C_INCLUDING_INLINE_H
+SCM_C_EXTERN_INLINE
 #endif
 SCM
 scm_array_handle_ref (scm_t_array_handle *h, ssize_t p)
@@ -147,14 +176,8 @@ scm_array_handle_ref (scm_t_array_handle *h, ssize_t p)
   return h->ref (h, p);
 }
 
-#if defined SCM_C_INLINE && ! defined SCM_INLINE_C_INCLUDING_INLINE_H
-/* definitely inlining */
-#ifdef __GNUC__
-extern
-#else
-static
-#endif
-SCM_C_INLINE
+#ifndef SCM_INLINE_C_INCLUDING_INLINE_H
+SCM_C_EXTERN_INLINE
 #endif
 void
 scm_array_handle_set (scm_t_array_handle *h, ssize_t p, SCM v)
@@ -162,14 +185,8 @@ scm_array_handle_set (scm_t_array_handle *h, ssize_t p, SCM v)
   h->set (h, p, v);
 }
 
-#if defined SCM_C_INLINE && ! defined SCM_INLINE_C_INCLUDING_INLINE_H
-/* definitely inlining */
-#ifdef __GNUC__
-extern
-#else
-static
-#endif
-SCM_C_INLINE
+#ifndef SCM_INLINE_C_INCLUDING_INLINE_H
+SCM_C_EXTERN_INLINE
 #endif
 int
 scm_is_pair (SCM x)
@@ -197,6 +214,78 @@ scm_is_pair (SCM x)
 
   return SCM_I_CONSP (x);
 }
+
+
+/* Port I/O.  */
+
+#ifndef SCM_INLINE_C_INCLUDING_INLINE_H
+SCM_C_EXTERN_INLINE
+#endif
+int
+scm_getc (SCM port)
+{
+  int c;
+  scm_t_port *pt = SCM_PTAB_ENTRY (port);
+
+  if (pt->rw_active == SCM_PORT_WRITE)
+    /* may be marginally faster than calling scm_flush.  */
+    scm_ptobs[SCM_PTOBNUM (port)].flush (port);
+
+  if (pt->rw_random)
+    pt->rw_active = SCM_PORT_READ;
+
+  if (pt->read_pos >= pt->read_end)
+    {
+      if (scm_fill_input (port) == EOF)
+	return EOF;
+    }
+
+  c = *(pt->read_pos++);
+
+  switch (c)
+    {
+      case '\a':
+        break;
+      case '\b':
+        SCM_DECCOL (port);
+        break;
+      case '\n':
+        SCM_INCLINE (port);
+        break;
+      case '\r':
+        SCM_ZEROCOL (port);
+        break;
+      case '\t':
+        SCM_TABCOL (port);
+        break;
+      default:
+        SCM_INCCOL (port);
+        break;
+    }
+
+  return c;
+}
+
+#ifndef SCM_INLINE_C_INCLUDING_INLINE_H
+SCM_C_EXTERN_INLINE
+#endif
+void
+scm_putc (char c, SCM port)
+{
+  SCM_ASSERT_TYPE (SCM_OPOUTPORTP (port), port, 0, NULL, "output port");
+  scm_lfwrite (&c, 1, port);
+}
+
+#ifndef SCM_INLINE_C_INCLUDING_INLINE_H
+SCM_C_EXTERN_INLINE
+#endif
+void
+scm_puts (const char *s, SCM port)
+{
+  SCM_ASSERT_TYPE (SCM_OPOUTPORTP (port), port, 0, NULL, "output port");
+  scm_lfwrite (s, strlen (s), port);
+}
+
 
 #endif
 #endif

@@ -3,7 +3,7 @@
 #ifndef SCM_HOOKS_H
 #define SCM_HOOKS_H
 
-/* Copyright (C) 1995,1996,1999,2000,2001, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1999,2000,2001, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -40,7 +40,7 @@ typedef enum scm_t_c_hook_type {
 } scm_t_c_hook_type;
 
 typedef void  *(*scm_t_c_hook_function) (void *hook_data,
-					 void *func_data,
+					 void *fn_data,
 					 void *data);
 
 typedef struct scm_t_c_hook_entry {
@@ -60,11 +60,11 @@ SCM_API void scm_c_hook_init (scm_t_c_hook *hook,
 			      scm_t_c_hook_type type);
 SCM_API void scm_c_hook_add (scm_t_c_hook *hook,
 			     scm_t_c_hook_function func,
-			     void *func_data, 
+			     void *fn_data, 
 			     int appendp);
 SCM_API void scm_c_hook_remove (scm_t_c_hook *hook,
 				scm_t_c_hook_function func,
-				void *func_data);
+				void *fn_data);
 SCM_API void *scm_c_hook_run (scm_t_c_hook *hook, void *data);
 
 /*
@@ -87,7 +87,7 @@ SCM_API SCM scm_reset_hook_x (SCM hook);
 SCM_API SCM scm_run_hook (SCM hook, SCM args);
 SCM_API void scm_c_run_hook (SCM hook, SCM args);
 SCM_API SCM scm_hook_to_list (SCM hook);
-SCM_API void scm_init_hooks (void);
+SCM_INTERNAL void scm_init_hooks (void);
 
 #endif  /* SCM_HOOKS_H */
 

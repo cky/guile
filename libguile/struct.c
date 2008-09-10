@@ -1,4 +1,4 @@
-/* Copyright (C) 1996,1997,1998,1999,2000,2001, 2003, 2004, 2006, 2007 Free Software Foundation, Inc.
+/* Copyright (C) 1996,1997,1998,1999,2000,2001, 2003, 2004, 2006, 2007, 2008 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -635,7 +635,11 @@ SCM_DEFINE (scm_struct_ref, "struct-ref", 2, 0, 0,
 
   fields_desc = scm_i_symbol_chars (layout);
   layout_len = scm_i_symbol_length (layout);
-  n_fields = data[scm_struct_i_n_words];
+  if (SCM_STRUCT_VTABLE_FLAGS (handle) & SCM_STRUCTF_LIGHT)
+    /* no extra words */
+    n_fields = layout_len / 2;
+  else
+    n_fields = data[scm_struct_i_n_words];
   
   SCM_ASSERT_RANGE(1, pos, p < n_fields);
 
@@ -712,7 +716,11 @@ SCM_DEFINE (scm_struct_set_x, "struct-set!", 3, 0, 0,
 
   fields_desc = scm_i_symbol_chars (layout);
   layout_len = scm_i_symbol_length (layout);
-  n_fields = data[scm_struct_i_n_words];
+  if (SCM_STRUCT_VTABLE_FLAGS (handle) & SCM_STRUCTF_LIGHT)
+    /* no extra words */
+    n_fields = layout_len / 2;
+  else
+    n_fields = data[scm_struct_i_n_words];
 
   SCM_ASSERT_RANGE (1, pos, p < n_fields);
 

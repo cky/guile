@@ -1,4 +1,16 @@
-2007-05-05  Ludovic Court�s  <ludo@chbouib.org>
+2008-03-18  Ludovic Courtès  <ludo@gnu.org>
+
+	* goops/util.scm (mapappend): Now an alias for SRFI-1's
+	`append-map', which is more efficient.
+	(every, any): Used and re-exported from SRFI-1.
+
+2008-03-12  Ludovic Courtès  <ludo@gnu.org>
+
+	* goops/describe.scm (describe): Provide `describe' (symbol),
+	not `"describe"' (string).  Reported by David Pirotte
+	<david@altosw.be>.
+
+2007-05-05  Ludovic Courtès  <ludo@chbouib.org>
 
 	* goops/internal.scm: Use the public module API rather than hack
 	with `%module-public-interface', `nested-ref', et al.
@@ -282,3 +294,7 @@
 
 	* goops.scm (goops-error): Removed use of oldfmt.
 
+
+;; Local Variables:
+;; coding: utf-8
+;; End:

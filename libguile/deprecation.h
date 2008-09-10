@@ -3,7 +3,7 @@
 #ifndef SCM_DEPRECATION_H
 #define SCM_DEPRECATION_H
 
-/* Copyright (C) 2001, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -41,7 +41,7 @@ SCM_API SCM scm_issue_deprecation_warning (SCM msgs);
 #endif
 
 SCM_API SCM scm_include_deprecated_features (void);
-SCM_API void scm_init_deprecation (void);
+SCM_INTERNAL void scm_init_deprecation (void);
 
 #endif  /* SCM_DEPRECATION_H */
 

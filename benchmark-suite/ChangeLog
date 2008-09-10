@@ -1,3 +1,12 @@
+2008-04-17  Ludovic Courtès  <ludo@gnu.org>
+
+	* Makefile.am (SCM_BENCHMARKS): Add `benchmarks/read.bm'.
+	* benchmarks/read.bm: New file.
+
+2008-01-22  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* COPYING: Removed.
+
 2006-11-17  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* README: Note need for subscription to bug-guile@gnu.org.

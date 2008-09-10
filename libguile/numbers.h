@@ -3,7 +3,7 @@
 #ifndef SCM_NUMBERS_H
 #define SCM_NUMBERS_H
 
-/* Copyright (C) 1995,1996,1998,2000,2001,2002,2003,2004,2005, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,2000,2001,2002,2003,2004,2005, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -261,15 +261,15 @@ SCM_API SCM scm_exp (SCM z);
 SCM_API SCM scm_sqrt (SCM z);
 
 /* bignum internal functions */
-SCM_API SCM scm_i_mkbig (void);
-SCM_API SCM scm_i_normbig (SCM x);
-SCM_API int scm_i_bigcmp (SCM a, SCM b);
-SCM_API SCM scm_i_dbl2big (double d);
-SCM_API SCM scm_i_dbl2num (double d);
-SCM_API double scm_i_big2dbl (SCM b);
-SCM_API SCM scm_i_long2big (long n);
-SCM_API SCM scm_i_ulong2big (unsigned long n);
-SCM_API SCM scm_i_clonebig (SCM src_big, int same_sign_p);
+SCM_INTERNAL SCM scm_i_mkbig (void);
+SCM_API /* FIXME: not internal */ SCM scm_i_normbig (SCM x);
+SCM_INTERNAL int scm_i_bigcmp (SCM a, SCM b);
+SCM_INTERNAL SCM scm_i_dbl2big (double d);
+SCM_INTERNAL SCM scm_i_dbl2num (double d);
+SCM_API /* FIXME: not internal */ double scm_i_big2dbl (SCM b);
+SCM_API /* FIXME: not internal */ SCM scm_i_long2big (long n);
+SCM_API /* FIXME: not internal */ SCM scm_i_ulong2big (unsigned long n);
+SCM_API /* FIXME: not internal */ SCM scm_i_clonebig (SCM src_big, int same_sign_p);
 
 /* ratio functions */
 SCM_API SCM scm_rationalize (SCM x, SCM err);
@@ -277,13 +277,13 @@ SCM_API SCM scm_numerator (SCM z);
 SCM_API SCM scm_denominator (SCM z);
 
 /* fraction internal functions */
-SCM_API double scm_i_fraction2double (SCM z);
-SCM_API SCM scm_i_fraction_equalp (SCM x, SCM y);
-SCM_API int scm_i_print_fraction (SCM sexp, SCM port, scm_print_state *pstate);
+SCM_INTERNAL double scm_i_fraction2double (SCM z);
+SCM_INTERNAL SCM scm_i_fraction_equalp (SCM x, SCM y);
+SCM_INTERNAL int scm_i_print_fraction (SCM sexp, SCM port, scm_print_state *pstate);
 
 /* general internal functions */
-SCM_API void scm_i_print_double (double val, SCM port);
-SCM_API void scm_i_print_complex (double real, double imag, SCM port);
+SCM_INTERNAL void scm_i_print_double (double val, SCM port);
+SCM_INTERNAL void scm_i_print_complex (double real, double imag, SCM port);
 
 /* conversion functions for integers */
 
@@ -480,7 +480,7 @@ SCM_API double scm_c_angle (SCM z);
 
 SCM_API int scm_is_number (SCM val);
 
-SCM_API void scm_init_numbers (void);
+SCM_INTERNAL void scm_init_numbers (void);
 
 #endif  /* SCM_NUMBERS_H */
 

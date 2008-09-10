@@ -3,7 +3,7 @@
 #ifndef SCM_PAIRS_H
 #define SCM_PAIRS_H
 
-/* Copyright (C) 1995,1996,2000,2001, 2004, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,2000,2001, 2004, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -78,8 +78,6 @@
 SCM_API void scm_error_pair_access (SCM);
 #endif
 
-SCM_API int scm_is_pair (SCM x);
-
 SCM_API SCM scm_cons (SCM x, SCM y);
 SCM_API SCM scm_cons2 (SCM w, SCM x, SCM y);
 SCM_API SCM scm_pair_p (SCM x);
@@ -150,7 +148,7 @@ SCM_API SCM scm_i_chase_pairs (SCM x, scm_t_uint32 pattern);
 #define scm_caaadr(x) scm_i_chase_pairs ((x), SCM_I_AAAD_PAT)
 #define scm_caaaar(x) scm_i_chase_pairs ((x), SCM_I_AAAA_PAT)
 
-SCM_API void scm_init_pairs (void);
+SCM_INTERNAL void scm_init_pairs (void);
 
 #endif  /* SCM_PAIRS_H */
 

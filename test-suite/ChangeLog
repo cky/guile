@@ -1,3 +1,159 @@
+2008-08-27  Ludovic Courtès  <ludo@gnu.org>
+
+	* tests/srfi-18.test: Don't run the tests unless
+	"(provided? 'threads)" is true.
+
+2008-08-25  Ludovic Courtès  <ludo@gnu.org>
+
+	* standalone/Makefile.am (test_cflags): Add `$(GCC_CFLAGS)'.
+
+2008-08-19  Ludovic Courtès  <ludo@gnu.org>
+
+	* tests/goops.test (object update)[changing class, `hell' in
+	`goops.c' grows as expected]: New tests.
+
+2008-07-06  Ludovic Courtès  <ludo@gnu.org>
+
+	* standalone/test-asmobs, standalone/test-bad-identifiers,
+	standalone/test-require-extension, standalone/test-system-cmds:
+	Invoke `guile' with `-q'.
+
+2008-06-02  Ludovic Courtès  <ludo@gnu.org>
+
+	* standalone/test-conversion.c: Support systems whose
+	<inttypes.h> doesn't define `PRIiMAX'.  Reported by Peter
+	O'Gorman <pogma@thewrittenword.com>.
+
+2008-05-31  Ludovic Courtès  <ludo@gnu.org>
+
+	* standalone/test-gh.c (string_equal): Use `scm_c_string_length ()'
+	instead of `scm_i_string_length ()'.
+	
+2008-05-15  Julian Graham  <joolean@gmail.com>
+
+	* tests/srfi-18.test: New file.
+
+2008-05-14  Julian Graham  <joolean@gmail.com>
+
+	* tests/threads.test (mutex-ownership, mutex-lock-levels): New
+	test prefix.
+	(mutex ownership for locked mutex, mutex ownership for unlocked
+	mutex, locking mutex on behalf of other thread, locking mutex
+	with no owner, unlocked level is 0, non-recursive lock level
+	is 1, recursive lock level is >1): New tests.
+
+2008-04-28  Ludovic Courtès  <ludo@gnu.org>
+
+	* tests/srfi-1.test (partition)[with improper list]: New test.
+	(partition!)[with improper list]: New test.
+
+2008-04-26  Ludovic Courtès  <ludo@gnu.org>
+
+	* standalone/Makefile.am (TESTS): Only add
+	`test-with-guile-module' when `BUILD_PTHREAD_SUPPORT' is true.
+	Reported by Alain Guibert <alguibert+bts@free.fr>.
+
+2008-04-26  Ludovic Courtès  <ludo@gnu.org>
+
+	* tests/srfi-35.test (cond-expand): New test.
+
+2008-04-26  Ludovic Courtès  <ludo@gnu.org>
+
+	* Makefile.am (SCM_TESTS): Add `tests/srfi-88.test'.
+	* tests/srfi-88.test: New file.
+
+2008-04-15  Ludovic Courtès  <ludo@gnu.org>
+
+	* tests/reader.test (read-options)[prefix non-keywords, postfix
+	keywords, `:' is not a postfix keyword (per SRFI-88)]: New tests.
+
+2008-04-13  Ludovic Courtès  <ludo@gnu.org>
+
+	* tests/goops.test (defining classes)[interaction with
+	`struct-ref', interaction with `struct-set!']: New test.  Checks
+	the interaction of `struct-ref' with "light structs", fixed on
+	2008-04-10 (commit 4650d115020924e8da5547d4c346cbe5cd01029e).
+
+2008-04-06  Ludovic Courtès  <ludo@gnu.org>
+
+	* standalone/test-asmobs-lib.c, standalone/test-conversion.c,
+	standalone/test-gh.c, standalone/test-list.c,
+	standalone/test-num2integral.c, standalone/test-round.c: Make
+	sure "config.h" is included first; use angle brackets for
+	<config.h> and <libguile.h>.
+
+2008-03-13  Ludovic Courtès  <ludo@gnu.org>
+
+	* standalone/Makefile.am (test_cflags): Add `-I' flags for
+	Gnulib, so that <alloca.h> can be found.
+	(snarfcppopts): Likewise.
+
+	* tests/socket.test (temp-file-path): New.  Replace calls to
+	`tmpnam' with calls to `temp-file-path', so that `$TMPDIR' is
+	honored.
+	* standalone/test-unwind.c (check_ports): Honor `$TMPDIR'.
+
+2008-03-12  Ludovic Courtès  <ludo@gnu.org>
+
+	* tests/srfi-37.test (short options without arguments): New
+	test.
+
+2008-02-23  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* standalone/test-with-guile-module.c: Updated to GNU coding
+	standards; added standard license statement.
+
+2008-02-15  Ludovic Courtès  <ludo@gnu.org>
+
+	* tests/gc.test (gc): Add hack to clean up the stack so that the
+	test passes on SPARC.
+
+2008-02-01  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* standalone/Makefile.am: Add stanza for test-with-guile-module.
+
+	* standalone/test-with-guile-module.c: New test.
+
+2008-01-22  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* COPYING: Removed.
+
+2008-01-18  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* tests/hash.test: New "hashx" test supplied by Gregory Marton;
+	prior to today's fix in libguile/hashtab.c, this caused a
+	segmentation fault.
+
+2007-12-29  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* standalone/test-bad-identifiers: New test.
+	(top level): Explain the point of this test.
+
+	* standalone/Makefile.am (check_SCRIPTS, TESTS): Add it.
+
+2007-12-13  Stephen Compall  <s11@member.fsf.org>
+
+	* tests/srfi-69.test (SRFI-69)[can use all arguments, including
+	size]: New test.
+
+2007-12-03  Stephen Compall  <s11@member.fsf.org>
+
+	* tests/srfi-69.test: New file.
+	* Makefile.am: Add it.
+
+2007-10-21  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* tests/continuations.test ("continuations"): Use
+	with-debugging-evaluator.
+
+	* lib.scm (with-debugging-evaluator*, with-debugging-evaluator):
+	New utilities.
+
+	* standalone/test-use-srfi: Use -q to avoid picking up the user's
+	~/.guile file.
+
+	* tests/eval.test (promises)[unmemoizing a promise]: New test.
+
 2007-10-20  Julian Graham  <joolean@gmail.com>
 
 	* tests/threads.test: Use proper `define-module'.
@@ -193,7 +349,7 @@
 2006-12-24  Han-Wen Nienhuys  <hanwen@lilypond.org>
 
 	* tests/numbers.test ("equal?"): add case for reduction of
-	rational numbers. 
+	rational numbers.
 
 2006-12-13  Kevin Ryde  <user42@zip.com.au>
 
@@ -480,7 +636,7 @@
 
 	* tests/guardians.test: Adapted to new (original) semantics.  test
 	guardingobjects multiple times.
-	
+
 2005-06-12  Marius Vollmer  <mvo@zagadka.de>
 
 	* standalone/test-gh.c: Do nothing when deprecated things are
@@ -506,7 +662,7 @@
 
 	* tests/unif.test (array-in-bounds?): Add a test failing in the
 	current code.
-	
+
 2005-05-07  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/srfi-1.test (car+cdr, fold, last, list-index, list-tabulate,
@@ -933,7 +1089,7 @@
 	* standalone/test-conversion.c: Don't define SCM_T_INTMAX_MIN,
 	etc, they are now provided by libuile.h.
 	(test_int_sizes): New.
-	
+
 2004-07-06  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* standalone/test-num2integral.c, standalone/test-unwind.c:
@@ -1052,7 +1208,7 @@
 	real/big combinations, collect up tests under arg types for clarity.
 
 2004-03-26  Eric Hanchrow <offby1@blarg.net>
-	
+
 	* tests/numbers.test (modulo-expt): New tests.
 
 2004-03-24  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
@@ -1107,7 +1263,7 @@
 
 	* tests/r5rs_pitfall.scm: New.
 	* Makefile.am (SCM_TESTS): Added it.
-	
+
 2004-01-11  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/exceptions.test (false-if-exception): Disable tests on
@@ -1475,7 +1631,7 @@
 
 	* tests/numbers.test (truncate, round, asinh, acosh, atanh): Add some
 	tests.
-	
+
 2003-06-19  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/posix.test: New file, exercising putenv, setenv, unsetenv.
@@ -1504,7 +1660,7 @@
 	recent scm_logcount change.
 
 	* tests/reader.test (reading): Test bad # error message is formattable.
-	
+
 2003-06-01  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* tests/pairs.test: Added.
@@ -1563,7 +1719,7 @@
 
 	* tests/numbers.test (-): Add test for negative inum subtract bignum.
 	(logcount): New tests, exercising some negatives.
-	
+
 2003-05-03  Marius Vollmer  <mvo@zagadka.de>
 
 	* tests/r5rs_pitfall.test: New.  Thanks to Dale P. Smith for

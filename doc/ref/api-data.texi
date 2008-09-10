@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2006, 2007
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2006, 2007, 2008
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -1732,6 +1732,46 @@ Return a new random state using @var{seed}.
 The global random state used by the above functions when the
 @var{state} parameter is not given.
 @end defvar
+
+Note that the initial value of @code{*random-state*} is the same every
+time Guile starts up.  Therefore, if you don't pass a @var{state}
+parameter to the above procedures, and you don't set
+@code{*random-state*} to @code{(seed->random-state your-seed)}, where
+@code{your-seed} is something that @emph{isn't} the same every time,
+you'll get the same sequence of ``random'' numbers on every run.
+
+For example, unless the relevant source code has changed, @code{(map
+random (cdr (iota 30)))}, if the first use of random numbers since
+Guile started up, will always give:
+
+@lisp
+(map random (cdr (iota 19)))
+@result{}
+(0 1 1 2 2 2 1 2 6 7 10 0 5 3 12 5 5 12)
+@end lisp
+
+To use the time of day as the random seed, you can use code like this:
+
+@lisp
+(let ((time (gettimeofday)))
+  (set! *random-state*
+        (seed->random-state (+ (car time)
+                               (cdr time)))))
+@end lisp
+
+@noindent
+And then (depending on the time of day, of course):
+
+@lisp
+(map random (cdr (iota 19)))
+@result{}
+(0 0 1 0 2 4 5 4 5 5 9 3 10 1 8 3 14 17)
+@end lisp
+
+For security applications, such as password generation, you should use
+more bits of seed.  Otherwise an open source password generator could
+be attacked by guessing the seed@dots{} but that's a subject for
+another manual.
 
 
 @node Characters
@@ -4607,6 +4647,11 @@ immediately after creating the Scheme string.  In certain cases, Guile
 can then use @var{str} directly as its internal representation.
 @end deftypefn
 
+The size of a symbol can also be obtained from C:
+
+@deftypefn {C Function} size_t scm_c_symbol_length (SCM sym)
+Return the number of characters in @var{sym}.
+@end deftypefn
 
 Finally, some applications, especially those that generate new Scheme
 code dynamically, need to generate symbols for use in the generated
@@ -4861,7 +4906,7 @@ makes them easy to type.
 
 Guile's keyword support conforms to R5RS, and adds a (switchable) read
 syntax extension to permit keywords to begin with @code{:} as well as
-@code{#:}.
+@code{#:}, or to end with @code{:}.
 
 @menu
 * Why Use Keywords?::           Motivation for keyword usage.
@@ -5006,9 +5051,16 @@ If the @code{keyword} read option is set to @code{'prefix}, Guile also
 recognizes the alternative read syntax @code{:NAME}.  Otherwise, tokens
 of the form @code{:NAME} are read as symbols, as required by R5RS.
 
+@cindex SRFI-88 keyword syntax
+
+If the @code{keyword} read option is set to @code{'postfix}, Guile
+recognizes the SRFI-88 read syntax @code{NAME:} (@pxref{SRFI-88}).
+Otherwise, tokens of this form are read as symbols.
+
 To enable and disable the alternative non-R5RS keyword syntax, you use
 the @code{read-set!} procedure documented in @ref{User level options
-interfaces} and @ref{Reader options}.
+interfaces} and @ref{Reader options}.  Note that the @code{prefix} and
+@code{postfix} syntax are mutually exclusive.
 
 @smalllisp
 (read-set! keywords 'prefix)
@@ -5020,6 +5072,16 @@ interfaces} and @ref{Reader options}.
 :type
 @result{}
 #:type
+
+(read-set! keywords 'postfix)
+
+type:
+@result{}
+#:type
+
+:type
+@result{}
+:type
 
 (read-set! keywords #f)
 

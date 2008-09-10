@@ -3,7 +3,7 @@
 #ifndef SCM_LIST_H
 #define SCM_LIST_H
 
-/* Copyright (C) 1995,1996,1997,2000,2001,2003,2004,2005,2006
+/* Copyright (C) 1995,1996,1997,2000,2001,2003,2004,2005,2006,2008
  * Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -71,8 +71,8 @@ SCM_API SCM scm_filter_x (SCM pred, SCM list);
 
 /* Guile internal functions */
 
-SCM_API SCM scm_i_finite_list_copy (SCM /* a list known to be finite */);
-SCM_API void scm_init_list (void);
+SCM_INTERNAL SCM scm_i_finite_list_copy (SCM /* a list known to be finite */);
+SCM_INTERNAL void scm_init_list (void);
 
 #endif  /* SCM_LIST_H */
 

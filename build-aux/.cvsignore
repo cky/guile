@@ -1,0 +1,13 @@
+.deps
+.dirstamp
+link-warning.h
+compile
+config.guess
+config.sub
+depcomp
+elisp-comp
+install-sh
+ltmain.sh
+mdate-sh
+missing
+texinfo.tex

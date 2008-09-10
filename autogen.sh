@@ -19,17 +19,19 @@ libtool --version
 echo ""
 ${M4:-/usr/bin/m4} --version
 echo ""
-gnulib-tool --version
-echo ""
 
 ######################################################################
 ### update infrastructure
 
-gnulib-tool --update &&				\
 autoreconf -i --force --verbose
 
 echo "guile-readline..."
 (cd guile-readline && ./autogen.sh)
+
+# Copy versions of config.guess and config.sub from Guile's repository to
+# build-aux and guile-readline.
+cp -f config.guess config.sub build-aux/
+cp -f config.guess config.sub guile-readline/
 
 echo "Now run configure and make."
 echo "You must pass the \`--enable-maintainer-mode' option to configure."

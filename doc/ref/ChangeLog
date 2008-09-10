@@ -1,3 +1,153 @@
+2008-07-17  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scheme-using.texi (Evaluating Scheme Code): Document use of
+        `C-u' prefix with evaluation commands.
+
+2008-07-05  Ludovic Courtès  <ludo@gnu.org>
+
+	* api-data.texi (Symbol Primitives): Add `scm_c_symbol_length ()'.
+
+2008-06-30  Julian Graham  <joolean@gmail.com>
+
+	* srfi-modules.texi (SRFI-18): New section.
+	(SRFI-19 Time): Mention SRFI-18's `current-time'.
+
+2008-06-28  Ludovic Courtès  <ludo@gnu.org>
+
+	* api-modules.texi (Using Guile Modules): Substitute "syntax
+	transformer" to "system transformer".  Reported by Sebastian
+	Tennant <sebyte@smolny.plus.com>.
+
+2008-06-01  Ludovic Courtès  <ludo@gnu.org>
+
+	* srfi-modules.texi (SRFI-88): Fix URL.
+
+2008-05-14  Julian Graham  <joolean@gmail.com>
+
+	* api-scheduling.texi (Mutexes and Condition Variables): Add
+	documentation for new functions "scm_mutex_owner",
+	"scm_mutex_level", and "scm_mutex_locked_p".  Update
+	documentation for function "scm_lock_mutex_timed" to reflect
+	addition of optional ownership argument.
+
+2008-05-07  Ludovic Courtès  <ludo@gnu.org>
+
+	* Makefile.am (autoconf-macros.texi): Avoid use of GNU Make
+	specific `$<' variable.  This broke with BSD Make as found on
+	FreeBSD 6.2.
+
+2008-05-05  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scheme-using.texi (Using Guile in Emacs): Add concept index
+	entries `GDS' and `Emacs'.
+
+	* api-debug.texi (Debugging): Add concept index entry `Debugging'.
+
+2008-05-04  Ludovic Courtès  <ludo@gnu.org>
+
+	* guile.texi (Guile Modules): Include `autoconf.texi'.
+	* autoconf.texi (Autoconf Support): Mention `pkg-config'.
+	(Autoconf Macros): Document `pkg-config' support.
+
+2008-04-26  Ludovic Courtès  <ludo@gnu.org>
+
+	* srfi-modules.texi (SRFI-88): New section.
+	* api-data.texi (Keyword Read Syntax): Add reference to
+	`SRFI-88'.
+
+2008-04-17  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* posix.texi (File System): New doc for file-exists?.
+
+2008-04-15  Ludovic Courtès  <ludo@gnu.org>
+
+	* api-data.texi (Keywords): Mention postfix syntax.
+	(Keyword Read Syntax): Document `postfix' read option.
+	* api-options.texi (Reader options): Update examples.
+	(Examples of option use): Likewise.
+
+2008-03-28  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* libguile-concepts.texi (Multi-Threading): Fix typo.
+
+2008-03-24  Neil Jerram  <neil@ossau.uklinux.net>
+
+	Applying patch from Julian Graham, containing minor fixes to his
+	thread enhancements:
+
+	* api-scheduling.texi (Mutexes and Condition Variables): Change
+	`flag' to `flags' in docstring.
+
+2008-03-19  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* api-debug.texi (Low Level Trap Calls): Removed (material
+	duplicated elsewhere); doc for with-traps and debug-object? moved
+	to section on evaluator trap options.
+	(High Level Traps): Renamed just `Traps'.  Add references to
+	evaluator trap options and debug options.  Make language
+	appropriate for core Guile (as opposed to previously separate
+	package).
+	(Location Traps): Corrected to reflect that location traps now
+	specify a specific position, not a range of positions.
+	(Debugging Examples): New (content moved here from
+	scheme-debugging.texi, and updated to use traps instead of
+	breakpoints).
+
+	* api-modules.texi (Included Guile Modules): Change `Debugging
+	Features' reference to `Tracing'.
+
+	* api-options.texi (Evaluator trap options): Doc for with-traps
+	and debug-object? is now here.
+
+	* guile.texi, scheme-debugging.texi: Move the `Tracing' content of
+	scheme-debugging.texi to the Modules section.
+
+	* scheme-using.texi (Using Guile in Emacs, GDS Getting Started):
+	Minor edits.
+
+	* scheme-debugging.texi (Debugging Features, Intro to
+	Breakpoints): Removed.
+	(Examples): Moved to api-debug.texi.
+	(Tracing, Old Tracing): Promoted one level.
+	(New Tracing, Tracing Compared): Removed.
+
+2008-03-08  Julian Graham  <joolean@gmail.com>
+
+	* api-scheduling.texi (Threads): Add documentation for new
+	functions "scm_thread_p" and new "scm_join_thread_timed".
+	(Mutexes and Condition Variables): Add documentation for new
+	functions "scm_make_mutex_with_flags", "scm_mutex_p",
+	"scm_lock_mutex_timed", "scm_unlock_mutex_timed", and
+	"scm_condition_variable_p".
+
+2008-02-11  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* api-data.texi (Random): New text about the default random state,
+	following suggestions by Stephen Uitti.
+
+2008-02-01  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* api-scheduling.texi (Threads): Add "C Function scm_join_thread"
+	to doc for join-thread.  Thanks to Antoine Mathys for reporting
+	that scm_join_thread was missing.
+
+2007-12-09  Stephen Compall  <s11@member.fsf.org>
+
+	* srfi-modules.texi (SRFI-69): Avoid use of the first person.
+
+2007-12-03  Stephen Compall  <s11@member.fsf.org>
+
+	* srfi-modules.texi: Describe SRFI-69 in a new subsection.
+
+2007-10-29  Julian Graham  <joolean@gmail.com>
+
+	* api-scheduling.texi (Threads): Document `cancel-thread',
+	`set-thread-cleanup!' and `thread-cleanup'.
+
+2007-10-24  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* .cvsignore: Add lib-version.texi.
+
 2007-10-02  Ludovic Courtès  <ludo@gnu.org>
 
 	* slib.texi (SLIB installation): Don't recommend using the site
@@ -129,7 +279,7 @@
 	(lib-version.texi): New target.
 
 	* guile.texi: Include `lib-version.texi'.
-	
+
 	* api-data.texi (Conversion): Link to `The ice-9 i18n Module' when
 	describing `string->number'.
 	(String Comparison): Likewise.
@@ -317,7 +467,7 @@
 
 	* api-debug.texi (Debug on Error): Note need to handling of errors
 	in C.
-	
+
 	* api-debug.texi (Debugging): New intro text.  New subsection
 	"Evaluation Model".  Moved existing subsections "Capturing the
 	Stack or Innermost Stack Frame", "Examining the Stack", "Examining
@@ -353,7 +503,7 @@
 	* api-evaluation.texi (Fly Evaluation): Add scm_c_eval_string.
 	(Loading): Add scm_c_primitive_load.
 	Reported by Jon Wilson.
-	
+
 2006-06-25  Kevin Ryde  <user42@zip.com.au>
 
 	* posix.texi (Time): In tm:gmtoff, give example values, note not the
@@ -487,7 +637,7 @@
 
         * api-data.texi (Operations Related to Symbols):
         Documented `scm_take_locale_symbol ()'.
-	
+
 2005-12-15  Kevin Ryde  <user42@zip.com.au>
 
 	* api-evaluation.texi (Fly Evaluation): Add scm_call_4, suggested by
@@ -578,7 +728,7 @@
 
 	* misc-modules.texi (Formatted Output): Show modifiers like ~:d
 	instead of in words.
-	
+
 2005-08-06  Kevin Ryde  <user42@zip.com.au>
 
 	* api-compound.texi (List Modification): In filter, return may share a
@@ -925,7 +1075,7 @@
 	* api-i18n.texi: New file.
 	* Makefile.am (guile_TEXINFOS): Added it.
 	* guile.texi: Include it.
-	
+
 2004-09-16  Kevin Ryde  <user42@zip.com.au>
 
 	* api-utility.texi (Equality): Revise for clarity.
@@ -980,16 +1130,16 @@
 
 	Ran a (docstring-process-module "(guile)") and moved entries from
 	new-docstrings.texi to their appropriate place.
-	
+
 	* api-undocumented.texi: New file.
 
 2004-08-21  Marius Vollmer  <mvo@zagadka.de>
 
         From Richard Todd, Thanks!
-	
+
  	* scheme-scripts.texi (Invoking Guile): documented new '-L'
 	switch.
- 
+
 2004-08-20  Marius Vollmer  <mvo@zagadka.de>
 
 	* gh.texi: Updated transition section with new recommended things.
@@ -1000,7 +1150,7 @@
 	mutation-sharing substrings.
 	(Symbols): Document scm_from_locale_symbol and
 	scm_from_locale_symboln.
-	
+
 2004-08-18  Kevin Ryde  <user42@zip.com.au>
 
 	* posix.texi (Network Sockets and Communication): Add SOCK_RDM and
@@ -1062,7 +1212,7 @@
 	scm_is_complex, scm_is_number, scm_c_make_rectangular,
 	scm_c_make_polar, scm_c_real_part, scm_c_imag_part,
 	scm_c_magnitude, and scm_c_angle.
-	
+
 2004-08-02  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* gh.texi: Replaced references to scm_num2* with scm_to_* and
@@ -1098,7 +1248,7 @@
 	* api-deprecated.texi: Removed.
 	* intro.texi (Discouraged and Deprecated): General information
 	about deprecation, etc.
-	
+
 2004-07-30  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* misc-modules.texi (Formatted Output): Changed @w to @w{} in
@@ -1183,7 +1333,7 @@
 
 	* Makefile.am (CLEANFILES): Remove guile.cps guile.fns guile.rns
 	guile.tps guile.vrs guile.tmp, cleaned by automake these days.
- 	
+
 2004-05-06  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* scheme-smobs.texi: Updated for new SCM_SMOB_* macros.
@@ -1266,7 +1416,7 @@
 	* scheme-control.texi (while do): Expand and clarify `do', in
 	particular note iteration binds fresh locations, rather than values
 	"stored".
- 
+
 	* srfi-modules.texi (SRFI-4): Revise for clarity, give each function
 	explicitly rather than showing TAG so Emacs info-look can find them,
 	merge "SRFI-4 - Read Syntax" and "SRFI-4 - Procedures" into just one
@@ -1296,7 +1446,7 @@
 2004-01-21  Marius Vollmer  <mvo@zagadka.de>
 
 	Added copyright notices to all TeXinfo files.
-	
+
 	* fdl.texi: New.
 	* guile.texi: Include it as an appendix.
 	* preface.texi: State that the manual is FDL.
@@ -1318,7 +1468,7 @@
 
 	* misc-modules.texi (Queues): New chapter.
 	* guile.texi (Top): Add it.
-	
+
 2004-01-09  Kevin Ryde  <user42@zip.com.au>
 
 	* scheme-compound.texi (Bit Vectors): Revise for clarity, following
@@ -1373,7 +1523,7 @@
 	* scheme-data.texi: Include exact rationals.
 
 	From Stephen Compall.  Thanks!
-	
+
         * intro.texi (What is Guile?): Add @acronym for POSIX, R5RS, GUI,
 	and HTTP.  Conclude linking libguile.  Say what one can find *for*.
 
@@ -1454,7 +1604,7 @@
 	* data-rep.texi, scheme-memory.texi (scm_remember_upto_here_1,
 	scm_remember_upto_here_2): Moved from data-rep.texi to
 	scheme-memory.texi.
-	
+
 2003-10-02  Kevin Ryde  <user42@zip.com.au>
 
 	* scheme-io.texi (String Ports): In call-with-output-string, note proc
@@ -1785,7 +1935,7 @@
 	remainder and modulo round their results.
 
 	* scheme-io.texi (Reading): In read-char and peek-char, fix typos "?"
-	in @rnindex.  In port-column, use @: after i.e.  
+	in @rnindex.  In port-column, use @: after i.e.
 	(Writing): In get-print-state, two spaces after full stop.  Add write,
 	revise display.
 
@@ -1804,7 +1954,7 @@
 
 2003-04-30  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
-	* posix.texi (scm_c_port_for_each): Added. 
+	* posix.texi (scm_c_port_for_each): Added.
 
 2003-04-26  Neil Jerram  <neil@ossau.uklinux.net>
 
@@ -1935,7 +2085,7 @@
 	Configuration.
 
 	The following doc updates are from Ian Sheldon - thanks!
-	
+
 	* scheme-data.texi (Appending Strings, Regexp Functions, Match
 	Structures): Add examples.
 	(Regular Expressions): Add instruction to use (ice-9 regex)
@@ -1973,7 +2123,7 @@
 
 	* intro.texi: Updated GNu ftp server name.  Use "-lguile" instead
 	of "libguile.a".  Some small fixes/improvements.
-	
+
 	* scheme-reading.texi: Added www.schemers.org.  Removed foldoc,
 	it's too generic.  Updated 'teach yourself ...' URL.
 
@@ -1984,7 +2134,7 @@
 
 2002-08-14  Marius Vollmer  <mvo@zagadka.ping.de>
 
-	* scheme-evaluation.texi (eval-string): Updated. 
+	* scheme-evaluation.texi (eval-string): Updated.
 
 	* scheme-scheduling.texi (Fluids): Touched up a bit, added
 	with-fluids.
@@ -2024,7 +2174,7 @@
 
 	* scheme-memory.texi (Memory Blocks): add scm_calloc, scm_gc_calloc.
 	correct typos.
-	
+
 2002-08-05  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* intro.texi, srfi-modules.texi: Added (use-modules (ice-9
@@ -2068,7 +2218,7 @@
 	rather than deprecated section.  Hence this change.  Added
 	`@deftp' for scm_t_bits data type so that a proper index entry is
 	added for this.  Thanks to Richard Y. Kim!
-	
+
 	* data-rep.texi (Subrs): Changed scm_make_gsubr to
 	scm_c_define_gsubr.  Thanks to Richard Y. Kim!
 
@@ -2105,13 +2255,13 @@
 
 	* scheme-debug.texi (Debugging): Rename chapter `Debugging
 	Infrastructure' and reorganize its contents.
-	
+
 	* scheme-debug.texi (Debugging), scheme-control.texi (Handling
 	Errors): Move display-error to error-focussed section.
 
 	* scheme-debug.texi (Debugging), debugging.texi (Backtrace): Move
 	backtrace to user-level debugging chapter.
-	
+
 	* scheme-debug.texi (Debugging), scheme-procedures.texi (Procedure
 	Properties): Move procedure-name, procedure-source and
 	procedure-environment to procedures chapter.
@@ -2194,7 +2344,7 @@
 
 	* scheme-utility.texi (Hooks): Further updates.  New material on
 	GC hooks.
-	
+
 	* scheme-evaluation.texi (Fly Evaluation): Note disappearance of
 	eval2 and read-and-eval!.
 

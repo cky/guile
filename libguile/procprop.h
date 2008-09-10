@@ -3,7 +3,7 @@
 #ifndef SCM_PROCPROP_H
 #define SCM_PROCPROP_H
 
-/* Copyright (C) 1995,1996,1998,2000, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,2000, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -32,12 +32,12 @@ SCM_API SCM scm_sym_system_procedure;
 
 
 
-SCM_API SCM scm_i_procedure_arity (SCM proc);
+SCM_INTERNAL SCM scm_i_procedure_arity (SCM proc);
 SCM_API SCM scm_procedure_properties (SCM proc);
 SCM_API SCM scm_set_procedure_properties_x (SCM proc, SCM new_val);
 SCM_API SCM scm_procedure_property (SCM p, SCM k);
 SCM_API SCM scm_set_procedure_property_x (SCM p, SCM k, SCM v);
-SCM_API void scm_init_procprop (void);
+SCM_INTERNAL void scm_init_procprop (void);
 
 #endif  /* SCM_PROCPROP_H */
 

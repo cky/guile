@@ -36,6 +36,8 @@
 #include "libguile/validate.h"
 #include "libguile/socket.h"
 
+#include "libguile/iselect.h"
+
 #ifdef __MINGW32__
 #include "win32-socket.h"
 #endif
@@ -1321,16 +1323,30 @@ SCM_DEFINE (scm_accept, "accept", 1, 0, 0,
 	    "connection and will continue to accept new requests.")
 #define FUNC_NAME s_scm_accept
 {
-  int fd;
+  int fd, selected;
   int newfd;
   SCM address;
   SCM newsock;
+  SELECT_TYPE readfds, exceptfds;
   socklen_t addr_size = MAX_ADDR_SIZE;
   scm_t_max_sockaddr addr;
 
   sock = SCM_COERCE_OUTPORT (sock);
   SCM_VALIDATE_OPFPORT (1, sock);
   fd = SCM_FPORT_FDES (sock);
+
+  FD_ZERO (&readfds);
+  FD_ZERO (&exceptfds);
+  FD_SET (fd, &readfds);
+  FD_SET (fd, &exceptfds);
+
+  /* Block until something happens on FD, leaving guile mode while
+     waiting.  */
+  selected = scm_std_select (fd + 1, &readfds, NULL, &exceptfds,
+			     NULL);
+  if (selected < 0)
+    SCM_SYSERROR;
+
   newfd = accept (fd, (struct sockaddr *) &addr, &addr_size);
   if (newfd == -1)
     SCM_SYSERROR;
