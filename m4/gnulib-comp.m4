@@ -46,8 +46,6 @@ LTALLOCA=`echo "$ALLOCA" | sed 's/\.[^.]* /.lo /g;s/\.[^.]*$/.lo/'`
 changequote([, ])dnl
 AC_SUBST([LTALLOCA])
   gl_FUNC_ALLOCA
-  gl_COUNT_ONE_BITS
-  gl_INLINE
   AM_STDBOOL_H
   gl_STRCASE
   gl_FUNC_GNU_STRFTIME
@@ -186,7 +184,6 @@ AC_DEFUN([gl_FILE_LIST], [
   build-aux/link-warning.h
   lib/alloca.c
   lib/alloca.in.h
-  lib/count-one-bits.h
   lib/dummy.c
   lib/stdbool.in.h
   lib/strcasecmp.c
@@ -196,14 +193,11 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/strncasecmp.c
   lib/time.in.h
   lib/time_r.c
-  lib/verify.h
   lib/wchar.in.h
   m4/alloca.m4
-  m4/count-one-bits.m4
   m4/extensions.m4
   m4/gnulib-common.m4
   m4/include_next.m4
-  m4/inline.m4
   m4/mbstate_t.m4
   m4/stdbool.m4
   m4/strcase.m4
