@@ -32,7 +32,8 @@ bin_SCRIPTS = guile-tools
 include_HEADERS = libguile.h
 
 EXTRA_DIST = LICENSE HACKING GUILE-VERSION \
-	     m4/ChangeLog FAQ guile-1.8.pc.in
+	     m4/ChangeLog FAQ guile-1.8.pc.in \
+	     m4/autobuild.m4
 
 TESTS = check-guile
 
