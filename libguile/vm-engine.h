@@ -406,24 +406,29 @@ do {						\
 }
 
 /* See frames.h for the layout of stack frames */
-
+/* When this is called, bp points to the new program data,
+   and the arguments are already on the stack */
 #define NEW_FRAME()				\
 {						\
   int i;					\
-  SCM ra = SCM_PACK (ip);			\
-  SCM dl = SCM_PACK (fp);			\
-  SCM *p = sp + 1;				\
-  SCM *q = p + bp->nlocs;			\
+  SCM *dl, *data;                               \
+  scm_byte_t *ra = ip;                          \
 						\
-  /* New pointers */				\
-  ip = bp->base;				\
-  fp = p - bp->nargs;				\
-  sp = q + 3;					\
+  /* Save old registers */                      \
+  ra = ip;                                      \
+  dl = fp;                                      \
+						\
+  /* New registers */                           \
+  fp = sp - bp->nargs + 1;                      \
+  data = SCM_FRAME_DATA_ADDRESS (fp);           \
+  sp = data + 3;                                \
   CHECK_OVERFLOW ();				\
+  stack_base = sp;				\
+  ip = bp->base;				\
 						\
   /* Init local variables */			\
-  for (; p < q; p++)				\
-    *p = SCM_UNDEFINED;				\
+  for (i=bp->nlocs; i; i--)                     \
+    data[-i] = SCM_UNDEFINED;                   \
 						\
   /* Create external variables */		\
   external = bp->external;			\
@@ -431,11 +436,10 @@ do {						\
     CONS (external, SCM_UNDEFINED, external);	\
 						\
   /* Set frame data */				\
-  p[3] = ra;					\
-  p[2] = dl;					\
-  p[1] = SCM_BOOL_F;				\
-  p[0] = external;				\
-  stack_base = p + 3;				\
+  data[3] = (SCM)ra;                            \
+  data[2] = (SCM)dl;                            \
+  data[1] = SCM_BOOL_F;				\
+  data[0] = external;				\
 }
 
 #define FREE_FRAME()				\
