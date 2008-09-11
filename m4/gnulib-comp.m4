@@ -25,6 +25,7 @@ AC_DEFUN([gl_EARLY],
   m4_pattern_allow([^gl_LIBOBJS$])dnl a variable
   m4_pattern_allow([^gl_LTLIBOBJS$])dnl a variable
   AC_REQUIRE([AC_PROG_RANLIB])
+  AB_INIT
   AC_REQUIRE([gl_USE_SYSTEM_EXTENSIONS])
 ])
 
@@ -199,6 +200,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/verify.h
   lib/wchar.in.h
   m4/alloca.m4
+  m4/autobuild.m4
   m4/count-one-bits.m4
   m4/extensions.m4
   m4/gnulib-common.m4

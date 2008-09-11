@@ -20,3 +20,4 @@ tm_gmtoff.m4
 wchar.m4
 count-one-bits.m4
 inline.m4
+autobuild.m4
