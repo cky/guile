@@ -1984,98 +1984,98 @@
                          (error "unrecognized define-module argument" arg))))
     (beautify-user-module! module)
     (let loop ((kws kws)
-	       (reversed-interfaces '())
-	       (exports '())
-	       (re-exports '())
-	       (replacements '())
+               (reversed-interfaces '())
+               (exports '())
+               (re-exports '())
+               (replacements '())
                (autoloads '()))
 
       (if (null? kws)
-	  (call-with-deferred-observers
-	   (lambda ()
-	     (module-use-interfaces! module (reverse reversed-interfaces))
-	     (module-export! module exports)
-	     (module-replace! module replacements)
-	     (module-re-export! module re-exports)
+          (call-with-deferred-observers
+           (lambda ()
+             (module-use-interfaces! module (reverse reversed-interfaces))
+             (module-export! module exports)
+             (module-replace! module replacements)
+             (module-re-export! module re-exports)
              (if (not (null? autoloads))
                  (apply module-autoload! module autoloads))))
-	  (case (car kws)
-	    ((#:use-module #:use-syntax)
-	     (or (pair? (cdr kws))
-		 (unrecognized kws))
-	     (let* ((interface-args (cadr kws))
-		    (interface (apply resolve-interface interface-args)))
-	       (and (eq? (car kws) #:use-syntax)
-		    (or (symbol? (caar interface-args))
-			(error "invalid module name for use-syntax"
-			       (car interface-args)))
-		    (set-module-transformer!
-		     module
-		     (module-ref interface
-				 (car (last-pair (car interface-args)))
-				 #f)))
-	       (loop (cddr kws)
-		     (cons interface reversed-interfaces)
-		     exports
-		     re-exports
-		     replacements
+          (case (car kws)
+            ((#:use-module #:use-syntax)
+             (or (pair? (cdr kws))
+                 (unrecognized kws))
+             (let* ((interface-args (cadr kws))
+                    (interface (apply resolve-interface interface-args)))
+               (and (eq? (car kws) #:use-syntax)
+                    (or (symbol? (caar interface-args))
+                        (error "invalid module name for use-syntax"
+                               (car interface-args)))
+                    (set-module-transformer!
+                     module
+                     (module-ref interface
+                                 (car (last-pair (car interface-args)))
+                                 #f)))
+               (loop (cddr kws)
+                     (cons interface reversed-interfaces)
+                     exports
+                     re-exports
+                     replacements
                      autoloads)))
-	    ((#:autoload)
-	     (or (and (pair? (cdr kws)) (pair? (cddr kws)))
-		 (unrecognized kws))
-	     (loop (cdddr kws)
+            ((#:autoload)
+             (or (and (pair? (cdr kws)) (pair? (cddr kws)))
+                 (unrecognized kws))
+             (loop (cdddr kws)
                    reversed-interfaces
-		   exports
-		   re-exports
-		   replacements
+                   exports
+                   re-exports
+                   replacements
                    (let ((name (cadr kws))
                          (bindings (caddr kws)))
                      (cons* name bindings autoloads))))
-	    ((#:no-backtrace)
-	     (set-system-module! module #t)
-	     (loop (cdr kws) reversed-interfaces exports re-exports
+            ((#:no-backtrace)
+             (set-system-module! module #t)
+             (loop (cdr kws) reversed-interfaces exports re-exports
                    replacements autoloads))
-	    ((#:pure)
-	     (purify-module! module)
-	     (loop (cdr kws) reversed-interfaces exports re-exports
+            ((#:pure)
+             (purify-module! module)
+             (loop (cdr kws) reversed-interfaces exports re-exports
                    replacements autoloads))
-	    ((#:duplicates)
-	     (if (not (pair? (cdr kws)))
-		 (unrecognized kws))
-	     (set-module-duplicates-handlers!
-	      module
-	      (lookup-duplicates-handlers (cadr kws)))
-	     (loop (cddr kws) reversed-interfaces exports re-exports
+            ((#:duplicates)
+             (if (not (pair? (cdr kws)))
+                 (unrecognized kws))
+             (set-module-duplicates-handlers!
+              module
+              (lookup-duplicates-handlers (cadr kws)))
+             (loop (cddr kws) reversed-interfaces exports re-exports
                    replacements autoloads))
-	    ((#:export #:export-syntax)
-	     (or (pair? (cdr kws))
-		 (unrecognized kws))
-	     (loop (cddr kws)
-		   reversed-interfaces
-		   (append (cadr kws) exports)
-		   re-exports
-		   replacements
+            ((#:export #:export-syntax)
+             (or (pair? (cdr kws))
+                 (unrecognized kws))
+             (loop (cddr kws)
+                   reversed-interfaces
+                   (append (cadr kws) exports)
+                   re-exports
+                   replacements
                    autoloads))
-	    ((#:re-export #:re-export-syntax)
-	     (or (pair? (cdr kws))
-		 (unrecognized kws))
-	     (loop (cddr kws)
-		   reversed-interfaces
-		   exports
-		   (append (cadr kws) re-exports)
-		   replacements
+            ((#:re-export #:re-export-syntax)
+             (or (pair? (cdr kws))
+                 (unrecognized kws))
+             (loop (cddr kws)
+                   reversed-interfaces
+                   exports
+                   (append (cadr kws) re-exports)
+                   replacements
                    autoloads))
-	    ((#:replace #:replace-syntax)
-	     (or (pair? (cdr kws))
-		 (unrecognized kws))
-	     (loop (cddr kws)
-		   reversed-interfaces
-		   exports
-		   re-exports
-		   (append (cadr kws) replacements)
+            ((#:replace #:replace-syntax)
+             (or (pair? (cdr kws))
+                 (unrecognized kws))
+             (loop (cddr kws)
+                   reversed-interfaces
+                   exports
+                   re-exports
+                   (append (cadr kws) replacements)
                    autoloads))
-	    (else
-	     (unrecognized kws)))))
+            (else
+             (unrecognized kws)))))
     (run-hook module-defined-hook module)
     module))
 
