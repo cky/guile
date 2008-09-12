@@ -147,7 +147,7 @@
     ((,name ,val) (guard (symbol? name)
                          (ghil-toplevel-env? (ghil-env-parent e)))
      (make-ghil-define e l (ghil-define (ghil-env-parent e) name)
-                       (retrans val)))
+                       (maybe-name-value! (retrans val) name)))
     ;; (define (NAME FORMALS...) BODY...)
     (((,name . ,formals) . ,body) (guard (symbol? name))
      ;; -> (define NAME (lambda FORMALS BODY...))
@@ -361,6 +361,14 @@
         ((string? (car body))
          (values `((documentation . ,(car body))) (cdr body)))
         (else (values '() body))))
+
+(define (maybe-name-value! val name)
+  (cond
+   ((ghil-lambda? val)
+    (if (not (assq-ref (ghil-lambda-meta val) 'name))
+        (set! (ghil-lambda-meta val)
+              (acons 'name name (ghil-lambda-meta val))))))
+  val)
 
 (define (location x)
   (and (pair? x)
