@@ -4,4 +4,5 @@ SCM_BENCHMARKS = benchmarks/0-reference.bm	\
                  benchmarks/logand.bm		\
 		 benchmarks/read.bm
 
-EXTRA_DIST = guile-benchmark lib.scm $(SCM_BENCHMARKS)
+EXTRA_DIST = guile-benchmark lib.scm $(SCM_BENCHMARKS)	\
+	     ChangeLog-2008

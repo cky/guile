@@ -88,7 +88,7 @@ srfi_DATA = srfi-1.scm \
 	    srfi-69.scm \
 	    srfi-88.scm
 
-EXTRA_DIST = $(srfi_DATA) 
+EXTRA_DIST = $(srfi_DATA) ChangeLog-2008
 TAGS_FILES = $(srfi_DATA)
 
 GUILE_SNARF = ../libguile/guile-snarf

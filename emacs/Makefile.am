@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in.
 ##
-##  	Copyright (C) 2006 Free Software Foundation, Inc.
+##  	Copyright (C) 2006, 2008 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
@@ -24,4 +24,4 @@ AUTOMAKE_OPTIONS = gnu
 dist_lisp_LISP = gds.el gds-server.el gds-scheme.el
 ELCFILES = 
 
-ETAGS_ARGS = $(dist_lisp_LISP)
+ETAGS_ARGS = $(dist_lisp_LISP) ChangeLog-2008

@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in.
 ##
-##  	Copyright (C) 2002, 2006 Free Software Foundation, Inc.
+##  	Copyright (C) 2002, 2006, 2008 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
@@ -44,7 +44,7 @@ scripts_sources =				\
 subpkgdatadir = $(pkgdatadir)/$(GUILE_EFFECTIVE_VERSION)/scripts
 subpkgdata_SCRIPTS = $(scripts_sources)
 
-EXTRA_DIST = $(scripts_sources)
+EXTRA_DIST = $(scripts_sources) ChangeLog-2008
 
 list:
 	@echo $(scripts_sources)

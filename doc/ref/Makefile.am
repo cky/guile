@@ -80,6 +80,8 @@ guile_TEXINFOS = preface.texi			\
 
 ETAGS_ARGS = $(info_TEXINFOS) $(guile_TEXINFOS)
 
+EXTRA_DIST = ChangeLog-2008
+
 include $(top_srcdir)/am/pre-inst-guile
 
 # Automated snarfing
@@ -102,4 +104,4 @@ MAINTAINERCLEANFILES = autoconf-macros.texi
 # it can't possibly be different on the build machine than where the
 # distribution was generated, so we might as well include it in the
 # distribution.
-EXTRA_DIST = lib-version.texi
+EXTRA_DIST += lib-version.texi
