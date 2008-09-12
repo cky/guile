@@ -60,7 +60,7 @@
     (if (pair? exts)
 	(disassemble-externals exts))
     (if meta
-	(disassemble-meta (meta)))
+	(disassemble-meta prog (meta)))
     ;; Disassemble other bytecode in it
     (for-each
      (lambda (x)
@@ -109,16 +109,42 @@
 (define-macro (unless test . body)
   `(if (not ,test) (begin ,@body)))
 
-(define (disassemble-meta meta)
+(define (disassemble-bindings prog bindings)
+  (let* ((nargs (arity:nargs (program-arity prog)))
+         (args (if (zero? nargs) '() (cdar bindings)))
+         (nonargs (if (zero? nargs) bindings (cdr bindings))))
+    (unless (null? args)
+            (display "Arguments:\n\n")
+            (for-each (lambda (bind n)
+                        (print-info n
+                                    (format #f "~a[~a]: ~a"
+                                            (if (cadr bind) 'local 'external)
+                                            (caddr bind) (car bind))
+                                    #f))
+                      args
+                      (iota nargs))
+            (newline))
+    (unless (null? nonargs)
+            (display "Bindings:\n\n")
+            (for-each (lambda (start binds end)
+                        (for-each (lambda (bind)
+                                    (print-info (format #f "~a-~a" start end)
+                                                (format #f "~a[~a]: ~a"
+                                                        (if (cadr bind) 'local 'external)
+                                                        (caddr bind) (car bind))
+                                                #f))
+                                  binds))
+                      (map car (filter cdr nonargs))
+                      (map cdr (filter cdr nonargs))
+                      (map car (filter (lambda (x) (not (cdr x))) nonargs)))
+            (newline))))
+
+(define (disassemble-meta program meta)
   (let ((bindings (car meta))
         (sources (cadr meta))
         (props (cddr meta)))
     (unless (null? bindings)
-            (display "Bindings:\n\n")
-            (for-each (lambda (b)
-                        (print-info (car b) (list->info (cadr b)) #f))
-                      bindings)
-            (newline))
+            (disassemble-bindings program bindings))
     (unless (null? sources)
             (display "Sources:\n\n")
             (for-each (lambda (x)
