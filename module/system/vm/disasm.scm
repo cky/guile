@@ -118,7 +118,7 @@
             (for-each (lambda (bind n)
                         (print-info n
                                     (format #f "~a[~a]: ~a"
-                                            (if (cadr bind) 'local 'external)
+                                            (if (cadr bind) 'external 'local)
                                             (caddr bind) (car bind))
                                     #f))
                       args
@@ -130,7 +130,7 @@
                         (for-each (lambda (bind)
                                     (print-info (format #f "~a-~a" start end)
                                                 (format #f "~a[~a]: ~a"
-                                                        (if (cadr bind) 'local 'external)
+                                                        (if (cadr bind) 'external 'local)
                                                         (caddr bind) (car bind))
                                                 #f))
                                   binds))
