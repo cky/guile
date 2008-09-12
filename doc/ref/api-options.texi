@@ -99,7 +99,7 @@ your site should be installed.  On Unix-like systems, this is usually
 @defvar %load-path
 List of directories which should be searched for Scheme modules and
 libraries.  @code{%load-path} is initialized when Guile starts up to
-@code{(list (%site-dir) (%library-dir) (%package-data-dir) ".")},
+@code{(list (%site-dir) (%library-dir) (%package-data-dir))},
 prepended with the contents of the GUILE_LOAD_PATH environment variable,
 if it is set.
 @end defvar
