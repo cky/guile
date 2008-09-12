@@ -104,7 +104,7 @@
              ((1) (vector (abbrev (vector-ref x 0))))
              (else (vector (abbrev (vector-ref x 0)) '...))))
 	  (else x)))
-  (abbrev (cons (program-name frame) (frame-arguments frame))))
+  (abbrev (cons (frame-program-name frame) (frame-arguments frame))))
 
 (define (print-frame-chain-as-backtrace frames)
   (if (null? frames)
@@ -120,10 +120,11 @@
               'no-file
               frames))))
 
-(define (program-name frame)
+(define (frame-program-name frame)
   (let ((prog (frame-program frame))
 	(link (frame-dynamic-link frame)))
-    (or (object-property prog 'name)
+    (or (program-name prog)
+        (object-property prog 'name)
         (and (heap-frame? link) (frame-address link)
              (frame-object-name link (1- (frame-address link)) prog))
 	(hash-fold (lambda (s v d) (if (eq? prog (variable-ref v)) s d))
@@ -167,6 +168,7 @@
     (frame-external-set! frame (binding:index binding) val)
     (frame-local-set! frame (binding:index binding) val)))
 
+;; FIXME handle #f program-bindings return
 (define (frame-bindings frame addr)
   (do ((bs (program-bindings (frame-program frame)) (cdr bs))
        (ls '() (if (cdar bs) (cons (cdar bs) ls) (cdr ls))))

@@ -54,6 +54,7 @@
 scm_t_bits scm_tc16_program;
 
 static SCM zero_vector;
+static SCM write_program = SCM_BOOL_F;
 
 SCM
 scm_c_make_program (void *addr, size_t size, SCM holder)
@@ -123,6 +124,21 @@ static SCM
 program_apply (SCM program, SCM args)
 {
   return scm_vm_apply (scm_the_vm (), program, args);
+}
+
+static int
+program_print (SCM program, SCM port, scm_print_state *pstate)
+{
+  if (SCM_FALSEP (write_program))
+    write_program = scm_module_local_variable
+      (scm_c_resolve_module ("system vm program"),
+       scm_from_locale_symbol ("write-program"));
+  
+  if (SCM_FALSEP (write_program))
+    return scm_smob_print (program, port, pstate);
+
+  scm_call_2 (SCM_VARIABLE_REF (write_program), program, port);
+  return 1;
 }
 
 
@@ -252,6 +268,7 @@ scm_bootstrap_programs (void)
   scm_set_smob_mark (scm_tc16_program, program_mark);
   scm_set_smob_free (scm_tc16_program, program_free);
   scm_set_smob_apply (scm_tc16_program, program_apply, 0, 0, 1);
+  scm_set_smob_print (scm_tc16_program, program_print);
 }
 
 void

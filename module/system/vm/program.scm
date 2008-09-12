@@ -25,6 +25,7 @@
            source:addr source:line source:column source:file
            program-bindings program-sources
            program-properties program-property program-documentation
+           program-name
            
            program-arity program-external-set! program-meta
            program-bytecode program? program-objects
@@ -49,7 +50,7 @@
 
 (define (program-bindings prog)
   (cond ((program-meta prog) => (curry1 car))
-	(else '())))
+	(else #f)))
 
 (define (source:addr source)
   (car source))
@@ -74,3 +75,22 @@
 (define (program-documentation prog)
   (assq-ref (program-properties prog) 'documentation))
 
+(define (program-name prog)
+  (assq-ref (program-properties prog) 'name))
+
+(define (program-bindings-as-lambda-list prog)
+  (let ((bindings (program-bindings prog))
+        (nargs (arity:nargs (program-arity prog)))
+        (rest? (not (zero? (arity:nrest (program-arity prog))))))
+    (if (not bindings)
+        (if rest? (cons (1- nargs) 1) (list nargs))
+        (let ((arg-names (map binding:name (cdar bindings))))
+          (if rest?
+              (apply cons* arg-names)
+              arg-names)))))
+
+(define (write-program prog port)
+  (format port "#<program ~a ~a>"
+          (or (program-name prog)
+              (number->string (object-address prog) 16))
+          (program-bindings-as-lambda-list prog)))
