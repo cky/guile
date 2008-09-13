@@ -56,6 +56,7 @@
    |                  | <- fp + bp->nargs + bp->nlocs + 4
    +------------------+    = SCM_FRAME_UPPER_ADDRESS (fp)
    | Return address   |
+   | MV return address|
    | Dynamic link     |
    | Heap link        |
    | External link    | <- fp + bp->nargs + bp->nlocs
@@ -74,13 +75,15 @@
 #define SCM_FRAME_DATA_ADDRESS(fp)				\
   (fp + SCM_PROGRAM_DATA (SCM_FRAME_PROGRAM (fp))->nargs	\
       + SCM_PROGRAM_DATA (SCM_FRAME_PROGRAM (fp))->nlocs)
-#define SCM_FRAME_UPPER_ADDRESS(fp)	(SCM_FRAME_DATA_ADDRESS (fp) + 4)
+#define SCM_FRAME_UPPER_ADDRESS(fp)	(SCM_FRAME_DATA_ADDRESS (fp) + 5)
 #define SCM_FRAME_LOWER_ADDRESS(fp)	(fp - 1)
 
 #define SCM_FRAME_BYTE_CAST(x)		((scm_byte_t *) SCM_UNPACK (x))
 #define SCM_FRAME_STACK_CAST(x)		((SCM *) SCM_UNPACK (x))
 
 #define SCM_FRAME_RETURN_ADDRESS(fp)				\
+  (SCM_FRAME_BYTE_CAST (SCM_FRAME_DATA_ADDRESS (fp)[4]))
+#define SCM_FRAME_MV_RETURN_ADDRESS(fp)				\
   (SCM_FRAME_BYTE_CAST (SCM_FRAME_DATA_ADDRESS (fp)[3]))
 #define SCM_FRAME_DYNAMIC_LINK(fp)				\
   (SCM_FRAME_STACK_CAST (SCM_FRAME_DATA_ADDRESS (fp)[2]))
@@ -109,6 +112,7 @@ extern SCM scm_frame_program (SCM frame);
 extern SCM scm_frame_local_ref (SCM frame, SCM index);
 extern SCM scm_frame_local_set_x (SCM frame, SCM index, SCM val);
 extern SCM scm_frame_return_address (SCM frame);
+extern SCM scm_frame_mv_return_address (SCM frame);
 extern SCM scm_frame_dynamic_link (SCM frame);
 extern SCM scm_frame_external_link (SCM frame);
 

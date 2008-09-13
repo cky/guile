@@ -571,13 +571,14 @@ VM_DEFINE_INSTRUCTION (tail_call, "tail-call", 1, -1, 1)
     {
       SCM *data, *tail_args, *dl;
       int i;
-      scm_byte_t *ra;
+      scm_byte_t *ra, *mvra;
 
       EXIT_HOOK ();
 
       /* save registers */
       tail_args = stack_base + 2;
       ra = SCM_FRAME_RETURN_ADDRESS (fp);
+      mvra = SCM_FRAME_MV_RETURN_ADDRESS (fp);
       dl = SCM_FRAME_DYNAMIC_LINK (fp);
 
       /* switch programs */
@@ -590,7 +591,7 @@ VM_DEFINE_INSTRUCTION (tail_call, "tail-call", 1, -1, 1)
          sure we have space for the locals now */
       data = SCM_FRAME_DATA_ADDRESS (fp);
       ip = bp->base;
-      stack_base = data + 3;
+      stack_base = data + 4;
       sp = stack_base;
       CHECK_OVERFLOW ();
 
@@ -608,7 +609,8 @@ VM_DEFINE_INSTRUCTION (tail_call, "tail-call", 1, -1, 1)
         CONS (external, SCM_UNDEFINED, external);
 
       /* Set frame data */
-      data[3] = (SCM)ra;
+      data[4] = (SCM)ra;
+      data[3] = (SCM)mvra;
       data[2] = (SCM)dl;
       data[1] = SCM_BOOL_F;
       data[0] = external;
@@ -731,13 +733,13 @@ VM_DEFINE_INSTRUCTION (return, "return", 0, 0, 1)
 #ifdef THE_GOVERNMENT_IS_AFTER_ME
     if (sp != stack_base)
       abort ();
-    if (stack_base != data + 3)
+    if (stack_base != data + 4)
       abort ();
 #endif
 
     /* Restore registers */
     sp = SCM_FRAME_LOWER_ADDRESS (fp);
-    ip = SCM_FRAME_BYTE_CAST (data[3]);
+    ip = SCM_FRAME_BYTE_CAST (data[4]);
     fp = SCM_FRAME_STACK_CAST (data[2]);
     stack_base = SCM_FRAME_UPPER_ADDRESS (fp) - 1;
 

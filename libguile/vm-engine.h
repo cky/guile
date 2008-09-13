@@ -422,7 +422,7 @@ do {						\
   /* New registers */                           \
   fp = sp - bp->nargs + 1;                      \
   data = SCM_FRAME_DATA_ADDRESS (fp);           \
-  sp = data + 3;                                \
+  sp = data + 4;                                \
   CHECK_OVERFLOW ();				\
   stack_base = sp;				\
   ip = bp->base;				\
@@ -437,7 +437,8 @@ do {						\
     CONS (external, SCM_UNDEFINED, external);	\
 						\
   /* Set frame data */				\
-  data[3] = (SCM)ra;                            \
+  data[4] = (SCM)ra;                            \
+  data[3] = 0x0;                                \
   data[2] = (SCM)dl;                            \
   data[1] = SCM_BOOL_F;				\
   data[0] = external;				\
