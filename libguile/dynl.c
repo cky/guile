@@ -1,7 +1,7 @@
 /* dynl.c - dynamic linking
  *
  * Copyright (C) 1990, 91, 92, 93, 94, 95, 96, 97, 98, 99, 2000, 2001, 2002,
- * 2003 Free Software Foundation, Inc.
+ * 2003, 2008 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -19,6 +19,10 @@
  */
 
 
+
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
 
 /* "dynl.c" dynamically link&load object files.
    Author: Aubrey Jaffer

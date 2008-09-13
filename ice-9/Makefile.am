@@ -44,7 +44,7 @@ subpkgdata_DATA = $(ice9_sources)
 TAGS_FILES = $(subpkgdata_DATA)
 
 ## test.scm is not currently installed.
-EXTRA_DIST = $(ice9_sources) test.scm compile-psyntax.scm
+EXTRA_DIST = $(ice9_sources) test.scm compile-psyntax.scm ChangeLog-2008
 
 # We expect this to never be invoked when there is not already
 # ice-9/psyntax.pp in %load-path, since compile-psyntax.scm depends

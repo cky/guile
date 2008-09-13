@@ -24,7 +24,7 @@
 #define _POSIX_C_SOURCE 199506L  /* for readdir_r */
 #endif
 
-#if HAVE_CONFIG_H
+#ifdef HAVE_CONFIG_H
 #  include <config.h>
 #endif
 

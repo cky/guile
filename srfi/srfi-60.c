@@ -1,6 +1,6 @@
 /* srfi-60.c --- Integers as Bits
  *
- * Copyright (C) 2005, 2006 Free Software Foundation, Inc.
+ * Copyright (C) 2005, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -17,8 +17,12 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
+
 #include <libguile.h>
-#include "srfi-60.h"
+#include <srfi/srfi-60.h>
 
 
 SCM_DEFINE (scm_srfi60_log2_binary_factors, "log2-binary-factors", 1, 0, 0,

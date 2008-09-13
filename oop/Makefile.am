@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in.
 ##
-##  	Copyright (C) 2000, 2004, 2006 Free Software Foundation, Inc.
+##  	Copyright (C) 2000, 2004, 2006, 2008 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##   
@@ -30,4 +30,4 @@ subpkgdatadir = $(pkgdatadir)/$(GUILE_EFFECTIVE_VERSION)/oop
 subpkgdata_DATA = $(oop_sources)
 TAGS_FILES = $(subpkgdata_DATA)
 
-EXTRA_DIST = $(oop_sources)
+EXTRA_DIST = $(oop_sources) ChangeLog-2008

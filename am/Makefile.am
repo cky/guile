@@ -1,6 +1,6 @@
 ## Process this file with Automake to create Makefile.in
 ##
-##  	Copyright (C) 2002, 2006 Free Software Foundation, Inc.
+##  	Copyright (C) 2002, 2006, 2008 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
@@ -23,6 +23,6 @@ AUTOMAKE_OPTIONS = gnu
 
 am_frags = pre-inst-guile maintainer-dirs
 
-EXTRA_DIST = $(am_frags)
+EXTRA_DIST = $(am_frags) ChangeLog-2008
 
 ## Makefile.am ends here

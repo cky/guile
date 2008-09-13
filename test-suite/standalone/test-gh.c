@@ -17,6 +17,10 @@
 
 /* some bits originally by Jim Blandy <jimb@red-bean.com> */
 
+#ifndef HAVE_CONFIG_H
+# include <config.h>
+#endif
+
 #include <libguile.h>
 #include <libguile/gh.h>
 

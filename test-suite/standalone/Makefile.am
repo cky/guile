@@ -32,7 +32,7 @@ TESTS_ENVIRONMENT = "${top_builddir}/pre-inst-guile-env"
 
 test_cflags =					\
   -I$(top_srcdir)/test-suite/standalone		\
-  -I$(top_srcdir)				\
+  -I$(top_srcdir) -I$(top_builddir)		\
   -I$(top_srcdir)/lib -I$(top_builddir)/lib	\
   $(EXTRA_DEFS) $(GUILE_CFLAGS) $(GCC_CFLAGS)
 
@@ -40,7 +40,7 @@ AM_LDFLAGS = $(GUILE_CFLAGS)
 
 snarfcppopts =								\
   $(DEFS) $(DEFAULT_INCLUDES) $(CPPFLAGS) $(CFLAGS) -I$(top_srcdir)	\
-  -I$(top_srcdir)/lib -I$(top_builddir)/lib
+  -I$(top_srcdir)/lib -I$(top_builddir)/lib -I$(top_builddir)
 
 SUFFIXES = .x
 .c.x:

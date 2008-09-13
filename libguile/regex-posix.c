@@ -26,7 +26,7 @@
    libraries which do not agree with the Spencer implementation may
    produce varying behavior.  Sigh. */
 
-#if HAVE_CONFIG_H
+#ifdef HAVE_CONFIG_H
 #  include <config.h>
 #endif
 

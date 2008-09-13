@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in.
 ##
-##  	Copyright (C) 1998, 1999, 2000, 2001, 2004, 2006 Free Software Foundation, Inc.
+##  	Copyright (C) 1998, 1999, 2000, 2001, 2004, 2006, 2008 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##   
@@ -36,4 +36,4 @@ subpkgdatadir = $(pkgdatadir)/$(GUILE_EFFECTIVE_VERSION)/lang/elisp
 subpkgdata_DATA = $(elisp_sources)
 TAGS_FILES = $(subpkgdata_DATA)
 
-EXTRA_DIST = $(elisp_sources)
+EXTRA_DIST = $(elisp_sources) ChangeLog-2008

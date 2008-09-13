@@ -1,6 +1,6 @@
 ## Process this file with Automake to create Makefile.in
 ##
-##  	Copyright (C) 1998, 2004, 2006 Free Software Foundation, Inc.
+##  	Copyright (C) 1998, 2004, 2006, 2008 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##   
@@ -27,3 +27,5 @@ goops_TEXINFOS = goops-tutorial.texi \
   hierarchy.eps hierarchy.png hierarchy.txt hierarchy.pdf
 
 TEXINFO_TEX = ../ref/texinfo.tex
+
+EXTRA_DIST = ChangeLog-2008

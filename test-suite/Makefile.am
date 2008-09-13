@@ -97,7 +97,7 @@ SCM_TESTS = tests/alist.test			\
 SCM_TESTS_DIRS = tests/asmobs \
                  tests/c-api
 
-EXTRA_DIST = guile-test lib.scm $(SCM_TESTS)
+EXTRA_DIST = guile-test lib.scm $(SCM_TESTS) ChangeLog-2008
 
 ## Automake should be able to handle the distribution of tests/asmobs
 ## etc without any help, but not all version can handle 'deep'
