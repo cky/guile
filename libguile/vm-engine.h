@@ -132,6 +132,7 @@
   ip = vp->ip;					\
   sp = vp->sp;					\
   fp = vp->fp;					\
+  stack_base = fp ? SCM_FRAME_UPPER_ADDRESS (fp) - 1 : vp->stack_base; \
 }
 
 #define SYNC_REGISTER()				\

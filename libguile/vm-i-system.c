@@ -670,7 +670,27 @@ VM_DEFINE_INSTRUCTION (return, "return", 0, 0, 1)
  vm_return:
   EXIT_HOOK ();
   RETURN_HOOK ();
-  FREE_FRAME ();
+  {
+    SCM ret, *data;
+    data = SCM_FRAME_DATA_ADDRESS (fp);
+
+    POP (ret);
+#ifdef THE_GOVERNMENT_IS_AFTER_ME
+    if (sp != stack_base)
+      abort ();
+    if (stack_base != data + 3)
+      abort ();
+#endif
+
+    /* Restore registers */
+    sp = SCM_FRAME_LOWER_ADDRESS (fp);
+    ip = SCM_FRAME_BYTE_CAST (data[3]);
+    fp = SCM_FRAME_STACK_CAST (data[2]);
+    stack_base = SCM_FRAME_UPPER_ADDRESS (fp) - 1;
+
+    /* Set return value (sp is already pushed) */
+    *sp = ret;
+  }
 
   /* Restore the last program */
   program = SCM_FRAME_PROGRAM (fp);
