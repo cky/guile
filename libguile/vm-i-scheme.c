@@ -46,6 +46,12 @@
  * Predicates
  */
 
+#define ARGS1(a1)	SCM a1 = sp[0];
+#define ARGS2(a1,a2)	SCM a1 = sp[-1], a2 = sp[0]; sp--;
+#define ARGS3(a1,a2,a3)	SCM a1 = sp[-2], a2 = sp[-1], a3 = sp[0]; sp -= 2;
+
+#define RETURN(x)	do { *sp = x; NEXT; } while (0)
+
 VM_DEFINE_FUNCTION (not, "not", 1)
 {
   ARGS1 (x);
