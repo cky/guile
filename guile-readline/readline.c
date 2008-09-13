@@ -27,7 +27,6 @@
 
 #ifdef HAVE_RL_GETC_FUNCTION
 #include "libguile.h"
-#include "libguile/gh.h"
 #include "libguile/iselect.h"
 
 #include <stdio.h>

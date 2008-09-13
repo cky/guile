@@ -72,13 +72,6 @@ test_round_LDADD = ${top_builddir}/libguile/libguile.la
 check_PROGRAMS += test-round
 TESTS += test-round
 
-# test-gh
-test_gh_SOURCES = test-gh.c
-test_gh_CFLAGS = ${test_cflags}
-test_gh_LDADD = ${top_builddir}/libguile/libguile.la
-check_PROGRAMS += test-gh
-TESTS += test-gh
-
 # test-asmobs
 noinst_LTLIBRARIES += libtest-asmobs.la
 libtest_asmobs_la_SOURCES = test-asmobs-lib.c test-asmobs-lib.x

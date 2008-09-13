@@ -307,7 +307,6 @@ available through both Scheme and C interfaces.
 * Translation::                 Support for translating other languages.
 * Internationalization::        Support for gettext, etc.
 * Debugging::                   Debugging infrastructure and Scheme interface.
-* GH::                          The deprecated GH interface.
 @end menu
 
 @include api-overview.texi
@@ -331,7 +330,6 @@ available through both Scheme and C interfaces.
 @include api-translation.texi
 @include api-i18n.texi
 @include api-debug.texi
-@include gh.texi
 
 @node Guile Modules
 @chapter Guile Modules

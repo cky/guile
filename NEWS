@@ -32,6 +32,8 @@ See `cancel-thread', `set-thread-cleanup!', and `thread-cleanup'.
 
 * Changes to the C interface
 
+** The GH interface (deprecated in version 1.6, 2001) was removed.
+
 ** Internal `scm_i_' functions now have "hidden" linkage with GCC/ELF
 
 This makes these internal functions technically not callable from
