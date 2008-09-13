@@ -262,9 +262,11 @@
                            (maybe-return))
                           (else
                            (comp-push (car exps))
-                           (push-call! #f 'dup '())
+                           (if (not drop)
+                               (push-call! #f 'dup '()))
                            (push-branch! #f 'br-if L1)
-                           (push-call! #f 'drop '())
+                           (if (not drop)
+                               (push-call! #f 'drop '()))
                            (lp (cdr exps)))))))))
 
 	((<ghil-begin> env loc exps)

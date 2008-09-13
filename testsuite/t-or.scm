@@ -10,6 +10,8 @@
  (or #f 'where)
  (or #f #f)
  (or 'what #f)
+ ;; not in tail position, value discarded
+ (begin (or 'what (error "two")) 'two)
  ;; in tail position (within the lambdas)
  ((lambda ()
     (or)))
