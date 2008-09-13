@@ -131,7 +131,7 @@ program_print (SCM program, SCM port, scm_print_state *pstate)
 {
   static int print_error = 0;
 
-  if (SCM_FALSEP (write_program))
+  if (SCM_FALSEP (write_program) && scm_module_system_booted_p)
     write_program = scm_module_local_variable
       (scm_c_resolve_module ("system vm program"),
        scm_from_locale_symbol ("write-program"));

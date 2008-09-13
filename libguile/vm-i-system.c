@@ -442,7 +442,6 @@ VM_DEFINE_INSTRUCTION (call, "call", 1, -1, 1)
   if (SCM_PROGRAM_P (x))
     {
       program = x;
-    vm_call_program:
       CACHE_PROGRAM ();
       INIT_ARGS ();
       NEW_FRAME ();
@@ -564,15 +563,58 @@ VM_DEFINE_INSTRUCTION (tail_call, "tail-call", 1, -1, 1)
       APPLY_HOOK ();
       NEXT;
     }
+
   /*
-   * Proper tail call
+   * Tail call, but not to self -- reuse the frame, keeping the ra and dl
    */
   if (SCM_PROGRAM_P (x))
     {
+      SCM *data, *tail_args, *dl;
+      int i;
+      scm_byte_t *ra;
+
       EXIT_HOOK ();
-      FREE_FRAME ();
-      program = x;
-      goto vm_call_program;
+
+      /* save registers */
+      tail_args = stack_base + 2;
+      ra = SCM_FRAME_RETURN_ADDRESS (fp);
+      dl = SCM_FRAME_DYNAMIC_LINK (fp);
+
+      /* switch programs */
+      fp[-1] = program = x;
+      CACHE_PROGRAM ();
+      INIT_ARGS ();
+      nargs = bp->nargs;
+
+      /* new registers -- logically this would be better later, but let's make
+         sure we have space for the locals now */
+      data = SCM_FRAME_DATA_ADDRESS (fp);
+      ip = bp->base;
+      stack_base = data + 3;
+      sp = stack_base;
+      CHECK_OVERFLOW ();
+
+      /* copy args, bottom-up */
+      for (i = 0; i < nargs; i++)
+        fp[i] = tail_args[i];
+
+      /* init locals */
+      for (i = bp->nlocs; i; i--)
+        data[-i] = SCM_UNDEFINED;
+      
+      /* and the external variables */
+      external = bp->external;
+      for (i = 0; i < bp->nexts; i++)
+        CONS (external, SCM_UNDEFINED, external);
+
+      /* Set frame data */
+      data[3] = (SCM)ra;
+      data[2] = (SCM)dl;
+      data[1] = SCM_BOOL_F;
+      data[0] = external;
+      ENTER_HOOK ();
+      APPLY_HOOK ();
+      NEXT;
     }
 #ifdef ENABLE_TRAMPOLINE
   /* This seems to actually slow down the fibo test -- dunno why */
