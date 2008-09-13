@@ -1,5 +1,5 @@
 /* Representation of stack frame debug information
- * Copyright (C) 1996,1997,2000,2001, 2006, 2007 Free Software Foundation
+ * Copyright (C) 1996,1997,2000,2001, 2006, 2007, 2008 Free Software Foundation
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,6 +18,9 @@
 
 
 
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
 
 #include "libguile/_scm.h"
 #include "libguile/eval.h"

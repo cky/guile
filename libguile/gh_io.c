@@ -1,4 +1,4 @@
-/*      Copyright (C) 1995,1996,1997, 2000, 2001, 2006 Free Software Foundation, Inc.
+/*      Copyright (C) 1995,1996,1997, 2000, 2001, 2006, 2008 Free Software Foundation, Inc.
 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -15,6 +15,9 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
 
 #include "libguile/gh.h"
 

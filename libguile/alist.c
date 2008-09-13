@@ -1,4 +1,4 @@
-/* Copyright (C) 1995, 96, 97, 98, 99, 2000, 2001, 2004, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995, 96, 97, 98, 99, 2000, 2001, 2004, 2006, 2008 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -17,6 +17,10 @@
 
 
 
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
+
 #include "libguile/_scm.h"
 #include "libguile/eq.h"
 #include "libguile/list.h"
