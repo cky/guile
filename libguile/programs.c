@@ -129,15 +129,19 @@ program_apply (SCM program, SCM args)
 static int
 program_print (SCM program, SCM port, scm_print_state *pstate)
 {
+  static int print_error = 0;
+
   if (SCM_FALSEP (write_program))
     write_program = scm_module_local_variable
       (scm_c_resolve_module ("system vm program"),
        scm_from_locale_symbol ("write-program"));
   
-  if (SCM_FALSEP (write_program))
+  if (SCM_FALSEP (write_program) || print_error)
     return scm_smob_print (program, port, pstate);
 
+  print_error = 1;
   scm_call_2 (SCM_VARIABLE_REF (write_program), program, port);
+  print_error = 0;
   return 1;
 }
 

@@ -82,7 +82,7 @@
   (let ((bindings (program-bindings prog))
         (nargs (arity:nargs (program-arity prog)))
         (rest? (not (zero? (arity:nrest (program-arity prog))))))
-    (if (not bindings)
+    (if (or (null? bindings) (not bindings))
         (if rest? (cons (1- nargs) 1) (list nargs))
         (let ((arg-names (map binding:name (cdar bindings))))
           (if rest?
@@ -92,5 +92,7 @@
 (define (write-program prog port)
   (format port "#<program ~a ~a>"
           (or (program-name prog)
+              (let ((s (program-sources prog)))
+                (and (not (null? s)) (cdar s)))
               (number->string (object-address prog) 16))
           (program-bindings-as-lambda-list prog)))
