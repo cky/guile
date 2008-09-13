@@ -58,9 +58,20 @@ VM_DEFINE_INSTRUCTION (halt, "halt", 0, 0, 0)
   vp->time += scm_c_get_internal_run_time () - start_time;
   HALT_HOOK ();
   POP (ret);
-  FREE_FRAME ();
+  {
+#ifdef THE_GOVERNMENT_IS_AFTER_ME
+    if (sp != stack_base)
+      abort ();
+    if (stack_base != SCM_FRAME_UPPER_ADDRESS (fp) - 1)
+      abort ();
+#endif
+
+    /* Restore registers */
+    sp = SCM_FRAME_LOWER_ADDRESS (fp) - 1;
+    ip = NULL;
+    fp = SCM_FRAME_DYNAMIC_LINK (fp);
+  }
   SYNC_ALL ();
-  vp->ip = NULL;
   scm_dynwind_end ();
   return ret;
 }
