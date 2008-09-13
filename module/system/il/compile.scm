@@ -296,6 +296,7 @@
 	((<ghil-inline> env loc inline args)
 	 ;; ARGS...
 	 ;; (INST NARGS)
+         ;; FIXME: translate between call and goto/args, etc
 	 (push-call! loc inline args)
 	 (maybe-drop)
 	 (maybe-return))
@@ -305,7 +306,7 @@
 	 ;; ARGS...
 	 ;; ([tail-]call NARGS)
 	 (comp-push proc)
-	 (push-call! loc (if tail 'tail-call 'call) args)
+	 (push-call! loc (if tail 'goto/args 'call) args)
 	 (maybe-drop))))
     ;;
     ;; main

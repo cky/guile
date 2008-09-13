@@ -194,10 +194,16 @@
 (define-inline list? (x)
   (list? x))
 
-(define-inline apply (proc . args)
-  (apply proc . args))
-
 (define-inline cons*
   (x) x
   (x y) (cons x y)
   (x y . rest) (cons x (cons* y . rest)))
+
+(define-inline apply (proc . args)
+  (apply proc . args))
+
+;; From ice-9/r4rs.scm; actually not that bad of a strategy for handling
+;; the (apply apply ...) case
+
+(define-inline @apply (proc . args)
+  (apply proc . args))

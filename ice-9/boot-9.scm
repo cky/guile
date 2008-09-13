@@ -208,7 +208,7 @@
 ;;; {R4RS compliance}
 ;;;
 
-(primitive-load-path "ice-9/r4rs.scm")
+(primitive-load-path "ice-9/r4rs")
 
 
 

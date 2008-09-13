@@ -516,8 +516,9 @@ VM_DEFINE_INSTRUCTION (call, "call", 1, -1, 1)
   if (SCM_VM_CONT_P (x))
     {
       program = x;
-    vm_call_cc:
+    vm_call_continuation:
       /* Check the number of arguments */
+      /* FIXME multiple args */
       if (nargs != 1)
 	scm_wrong_num_args (program);
 
@@ -534,10 +535,11 @@ VM_DEFINE_INSTRUCTION (call, "call", 1, -1, 1)
   goto vm_error_wrong_type_apply;
 }
 
-VM_DEFINE_INSTRUCTION (tail_call, "tail-call", 1, -1, 1)
+VM_DEFINE_INSTRUCTION (goto_args, "goto/args", 1, -1, 1)
 {
   register SCM x;
   nargs = FETCH ();
+ vm_goto_args:
   x = sp[-nargs];
 
   SCM_TICK;	/* allow interrupt here */
@@ -685,7 +687,7 @@ VM_DEFINE_INSTRUCTION (tail_call, "tail-call", 1, -1, 1)
    * Continuation call
    */
   if (SCM_VM_CONT_P (program))
-    goto vm_call_cc;
+    goto vm_call_continuation;
 
   goto vm_error_wrong_type_apply;
 }
@@ -711,13 +713,41 @@ VM_DEFINE_INSTRUCTION (apply, "apply", 1, -1, 1)
   goto vm_call;
 }
 
+VM_DEFINE_INSTRUCTION (goto_apply, "goto/apply", 1, -1, 1)
+{
+  int len;
+  SCM ls;
+  POP (ls);
+
+  nargs = FETCH ();
+  if (nargs < 2)
+    goto vm_error_wrong_num_args;
+
+  len = scm_ilength (ls);
+  if (len < 0)
+    goto vm_error_wrong_type_arg;
+
+  for (; !SCM_NULLP (ls); ls = SCM_CDR (ls))
+    PUSH (SCM_CAR (ls));
+
+  nargs += len - 2;
+  goto vm_goto_args;
+}
+
 VM_DEFINE_INSTRUCTION (call_cc, "call/cc", 1, 1, 1)
 {
   SYNC_BEFORE_GC ();
   PUSH (capture_vm_cont (vp));
-  POP (program);
   nargs = 1;
   goto vm_call;
+}
+
+VM_DEFINE_INSTRUCTION (goto_cc, "goto/cc", 1, 1, 1)
+{
+  SYNC_BEFORE_GC ();
+  PUSH (capture_vm_cont (vp));
+  nargs = 1;
+  goto vm_goto_args;
 }
 
 VM_DEFINE_INSTRUCTION (return, "return", 0, 0, 1)

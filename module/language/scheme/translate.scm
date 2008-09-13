@@ -40,7 +40,7 @@
 ;;; Translator
 ;;;
 
-(define %forbidden-primitives
+(define *forbidden-primitives*
   ;; Guile's `procedure->macro' family is evil because it crosses the
   ;; compilation boundary.  One solution might be to evaluate calls to
   ;; `procedure->memoizing-macro' at compilation time, but it may be more
@@ -91,7 +91,7 @@
              => (lambda (t) (t e l x)))
 
             ;; FIXME: lexical/module overrides of forbidden primitives
-            ((memq head %forbidden-primitives)
+            ((memq head *forbidden-primitives*)
    	     (syntax-error l (format #f "`~a' is forbidden" head)
    			   (cons head tail)))
 

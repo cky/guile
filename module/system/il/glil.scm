@@ -150,7 +150,7 @@
 ;;;      (make-instl (car x) label))
 ;;;     ;; (call NARGS)
 ;;;     ;; (tail-call NARGS)
-;;;     (((or 'call 'tail-call) n)
+;;;     (((or 'call 'goto/args) n)
 ;;;      (make-instn (car x) n))
 ;;;     ;; (INST)
 ;;;     ((inst)
