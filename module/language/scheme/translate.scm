@@ -300,7 +300,11 @@
 
     ;; FIXME: make this actually do something
     (start-stack
-     ((,tag ,expr) (retrans expr)))))
+     ((,tag ,expr) (retrans expr)))
+
+    (values
+     ((,x) (retrans x))
+     (,args (make-ghil-values e l (map retrans args))))))
 
 (define (trans-quasiquote e l x level)
   (cond ((not (pair? x)) x)

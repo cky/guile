@@ -55,9 +55,19 @@ VM_DEFINE_INSTRUCTION (nop, "nop", 0, 0, 0)
 VM_DEFINE_INSTRUCTION (halt, "halt", 0, 0, 0)
 {
   SCM ret;
+  int nvalues;
   vp->time += scm_c_get_internal_run_time () - start_time;
   HALT_HOOK ();
-  POP (ret);
+  nvalues = SCM_I_INUM (*sp--);
+  if (nvalues == 1)
+    POP (ret);
+  else
+    {
+      POP_LIST (nvalues);
+      POP (ret);
+      ret = scm_values (ret);
+    }
+    
   {
 #ifdef THE_GOVERNMENT_IS_AFTER_ME
     if (sp != stack_base)
@@ -692,6 +702,68 @@ VM_DEFINE_INSTRUCTION (goto_args, "goto/args", 1, -1, 1)
   goto vm_error_wrong_type_apply;
 }
 
+VM_DEFINE_INSTRUCTION (mv_call, "mv-call", 2, -1, 1)
+{
+  SCM x;
+  int offset;
+  
+  nargs = FETCH ();
+  offset = FETCH ();
+
+  x = sp[-nargs];
+
+  /*
+   * Subprogram call
+   */
+  if (SCM_PROGRAM_P (x))
+    {
+      program = x;
+      CACHE_PROGRAM ();
+      INIT_ARGS ();
+      NEW_FRAME ();
+      SCM_FRAME_DATA_ADDRESS (fp)[3] = (SCM)(SCM_FRAME_RETURN_ADDRESS (fp) + offset);
+      ENTER_HOOK ();
+      APPLY_HOOK ();
+      NEXT;
+    }
+  /*
+   * Other interpreted or compiled call
+   */
+  if (!SCM_FALSEP (scm_procedure_p (x)))
+    {
+      /* At this point, the stack contains the procedure and each one of its
+	 arguments.  */
+      SCM args;
+      POP_LIST (nargs);
+      POP (args);
+      SYNC_REGISTER ();
+      *sp = scm_apply (x, args, SCM_EOL);
+      if (SCM_VALUESP (*sp))
+        {
+          SCM values, len;
+          POP (values);
+          values = scm_struct_ref (values, SCM_INUM0);
+          len = scm_length (values);
+          while (!SCM_NULLP (values))
+            PUSH (SCM_CAR (values));
+          PUSH (len);
+          ip += offset;
+        }
+      NEXT;
+    }
+  /*
+   * Continuation call
+   */
+  if (SCM_VM_CONT_P (x))
+    {
+      program = x;
+      goto vm_call_continuation;
+    }
+
+  program = x;
+  goto vm_error_wrong_type_apply;
+}
+
 VM_DEFINE_INSTRUCTION (apply, "apply", 1, -1, 1)
 {
   int len;
@@ -775,6 +847,66 @@ VM_DEFINE_INSTRUCTION (return, "return", 0, 0, 1)
 
     /* Set return value (sp is already pushed) */
     *sp = ret;
+  }
+
+  /* Restore the last program */
+  program = SCM_FRAME_PROGRAM (fp);
+  CACHE_PROGRAM ();
+  CACHE_EXTERNAL ();
+  CHECK_IP ();
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (return_values, "return/values", 1, -1, -1)
+{
+  EXIT_HOOK ();
+  RETURN_HOOK ();
+  {
+    int nvalues = FETCH ();
+    SCM *data = SCM_FRAME_DATA_ADDRESS (fp);
+#ifdef THE_GOVERNMENT_IS_AFTER_ME
+    if (stack_base != data + 4)
+      abort ();
+#endif
+
+    /* data[3] is the mv return address */
+    if (nvalues != 1 && data[3]) 
+      {
+        int i;
+        /* Restore registers */
+        sp = SCM_FRAME_LOWER_ADDRESS (fp) - 1;
+        ip = SCM_FRAME_BYTE_CAST (data[3]); /* multiple value ra */
+        fp = SCM_FRAME_STACK_CAST (data[2]);
+        
+        /* Push return values, and the number of values */
+        for (i = 0; i < nvalues; i++)
+          *++sp = stack_base[1+i];
+        *++sp = SCM_I_MAKINUM (nvalues);
+             
+        /* Finally set new stack_base */
+        stack_base = SCM_FRAME_UPPER_ADDRESS (fp) - 1;
+      }
+    else if (nvalues >= 1)
+      {
+        /* Multiple values for a single-valued continuation -- here's where I
+           break with guile tradition and try and do something sensible. (Also,
+           this block handles the single-valued return to an mv
+           continuation.) */
+        /* Restore registers */
+        sp = SCM_FRAME_LOWER_ADDRESS (fp) - 1;
+        ip = SCM_FRAME_BYTE_CAST (data[4]); /* single value ra */
+        fp = SCM_FRAME_STACK_CAST (data[2]);
+        
+        /* Push first value */
+        *++sp = stack_base[1];
+             
+        /* Finally set new stack_base */
+        stack_base = SCM_FRAME_UPPER_ADDRESS (fp) - 1;
+      }
+    else
+      goto vm_error_no_values;
+    
+    
   }
 
   /* Restore the last program */

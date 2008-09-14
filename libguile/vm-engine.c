@@ -100,9 +100,9 @@ vm_run (SCM vm, SCM program, SCM args)
     SCM prog = program;
 
     /* Boot program */
-    scm_byte_t bytes[3] = {scm_op_call, 0, scm_op_halt};
+    scm_byte_t bytes[5] = {scm_op_mv_call, 0, 1, scm_op_make_int8_1, scm_op_halt};
     bytes[1] = scm_ilength (args); /* FIXME: argument overflow */
-    program = scm_c_make_program (bytes, 3, SCM_BOOL_F);
+    program = scm_c_make_program (bytes, 5, SCM_BOOL_F);
 
     /* Initial frame */
     CACHE_REGISTER ();
@@ -163,6 +163,11 @@ vm_run (SCM vm, SCM program, SCM args)
 
   vm_error_stack_underflow:
     err_msg  = scm_from_locale_string ("VM: Stack underflow");
+    err_args = SCM_EOL;
+    goto vm_error;
+
+  vm_error_no_values:
+    err_msg  = scm_from_locale_string ("VM: 0-valued return");
     err_args = SCM_EOL;
     goto vm_error;
 

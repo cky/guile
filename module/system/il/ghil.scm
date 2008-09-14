@@ -72,6 +72,9 @@
    <ghil-call> make-ghil-call ghil-call?
    ghil-call-env ghil-call-loc ghil-call-proc ghil-call-args
 
+   <ghil-values> make-ghil-values ghil-values?
+   ghil-values-env ghil-values-loc ghil-values-values
+
    <ghil-var> make-ghil-var ghil-var?
    ghil-var-env ghil-var-name ghil-var-kind ghil-var-type ghil-var-value
    ghil-var-index
@@ -110,7 +113,8 @@
    (<ghil-bind> env loc vars vals body)
    (<ghil-lambda> env loc vars rest meta body)
    (<ghil-call> env loc proc args)
-   (<ghil-inline> env loc inline args)))
+   (<ghil-inline> env loc inline args)
+   (<ghil-values> env loc values)))
 
 
 ;;;
