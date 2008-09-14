@@ -886,38 +886,11 @@ SCM_DEFINE (scm_uniform_vector_read_x, "uniform-vector-read!", 1, 3, 0,
 
   if (SCM_NIMP (port_or_fd))
     {
-      scm_t_port *pt = SCM_PTAB_ENTRY (port_or_fd);
-
-      if (pt->rw_active == SCM_PORT_WRITE)
-	scm_flush (port_or_fd);
-
       ans = cend - cstart;
-      while (remaining > 0)
-	{
-	  if (pt->read_pos < pt->read_end)
-	    {
-	      size_t to_copy = min (pt->read_end - pt->read_pos,
-				    remaining);
-	      
-	      memcpy (base + off, pt->read_pos, to_copy);
-	      pt->read_pos += to_copy;
-	      remaining -= to_copy;
-	      off += to_copy;
-	    }
-	  else
-	    {
-	      if (scm_fill_input (port_or_fd) == EOF)
-		{
-		  if (remaining % sz != 0)
-		    SCM_MISC_ERROR ("unexpected EOF", SCM_EOL);
-		  ans -= remaining / sz;
-		  break;
-		}
-	    }
-	}
-      
-      if (pt->rw_random)
-	pt->rw_active = SCM_PORT_READ;
+      remaining -= scm_c_read (port_or_fd, base + off, remaining);
+      if (remaining % sz != 0)
+        SCM_MISC_ERROR ("unexpected EOF", SCM_EOL);
+      ans -= remaining / sz;
     }
   else /* file descriptor.  */
     {
