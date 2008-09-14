@@ -65,6 +65,7 @@ vm_run (SCM vm, SCM program, SCM args)
 
   /* Internal variables */
   int nargs = 0;
+  int nvalues = 0;
   long start_time = scm_c_get_internal_run_time ();
   // SCM dynwinds = SCM_EOL;
   SCM err_msg;

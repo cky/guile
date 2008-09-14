@@ -312,6 +312,17 @@
                 (push-code! #f (make-glil-call #:inst 'variable-ref #:nargs 0))
                 (push-call! loc 'call values))))
                 
+        ((<ghil-values*> env loc values)
+         (cond (tail ;; (lambda () (apply values '(1 2)))
+                (push-call! loc 'return/values* values))
+               (drop ;; (lambda () (apply values '(1 2)) 3)
+                (for-each comp-drop values))
+               (else ;; (lambda () (list (apply values '(10 12)) 1))
+                (push-code! #f (make-glil-const #:obj 'values))
+                (push-code! #f (make-glil-call #:inst 'link-now #:nargs 1))
+                (push-code! #f (make-glil-call #:inst 'variable-ref #:nargs 0))
+                (push-call! loc 'apply values))))
+                
 	((<ghil-call> env loc proc args)
 	 ;; PROC
 	 ;; ARGS...

@@ -302,9 +302,35 @@
     (start-stack
      ((,tag ,expr) (retrans expr)))
 
+    ;; FIXME: not hygienic, relies on @apply not being shadowed
+    (apply
+     (,args (retrans `(@apply ,@args))))
+
+    (@apply
+     ((,proc ,arg1 . ,args)
+      (let ((args (cons (retrans arg1) (map retrans args))))
+        (cond ((and (symbol? proc)
+                    (not (ghil-lookup e proc #f))
+                    (and=> (module-variable (current-module) proc)
+                           (lambda (var)
+                             (and (variable-bound? var)
+                                  (lookup-apply-transformer (variable-ref var))))))
+               ;; that is, a variable, not part of this compilation
+               ;; unit, but defined in the toplevel environment, and has
+               ;; an apply transformer registered
+               => (lambda (t) (t e l args)))
+              (else (make-ghil-inline e l 'apply
+                                      (cons (retrans proc) args)))))))
+
     (values
      ((,x) (retrans x))
      (,args (make-ghil-values e l (map retrans args))))))
+
+(define (lookup-apply-transformer proc)
+  (cond ((eq? proc values)
+         (lambda (e l args)
+           (make-ghil-values* e l args)))
+        (else #f)))
 
 (define (trans-quasiquote e l x level)
   (cond ((not (pair? x)) x)

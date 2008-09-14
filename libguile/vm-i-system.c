@@ -55,7 +55,6 @@ VM_DEFINE_INSTRUCTION (nop, "nop", 0, 0, 0)
 VM_DEFINE_INSTRUCTION (halt, "halt", 0, 0, 0)
 {
   SCM ret;
-  int nvalues;
   vp->time += scm_c_get_internal_run_time () - start_time;
   HALT_HOOK ();
   nvalues = SCM_I_INUM (*sp--);
@@ -859,55 +858,57 @@ VM_DEFINE_INSTRUCTION (return, "return", 0, 0, 1)
 
 VM_DEFINE_INSTRUCTION (return_values, "return/values", 1, -1, -1)
 {
+  /* nvalues declared at top level, because for some reason gcc seems to think
+     that perhaps it might be used without declaration. Fooey to that, I say. */
+  SCM *data;
+
+  nvalues = FETCH ();
+ vm_return_values:
   EXIT_HOOK ();
   RETURN_HOOK ();
-  {
-    int nvalues = FETCH ();
-    SCM *data = SCM_FRAME_DATA_ADDRESS (fp);
+
+  data = SCM_FRAME_DATA_ADDRESS (fp);
 #ifdef THE_GOVERNMENT_IS_AFTER_ME
-    if (stack_base != data + 4)
-      abort ();
+  if (stack_base != data + 4)
+    abort ();
 #endif
 
-    /* data[3] is the mv return address */
-    if (nvalues != 1 && data[3]) 
-      {
-        int i;
-        /* Restore registers */
-        sp = SCM_FRAME_LOWER_ADDRESS (fp) - 1;
-        ip = SCM_FRAME_BYTE_CAST (data[3]); /* multiple value ra */
-        fp = SCM_FRAME_STACK_CAST (data[2]);
+  /* data[3] is the mv return address */
+  if (nvalues != 1 && data[3]) 
+    {
+      int i;
+      /* Restore registers */
+      sp = SCM_FRAME_LOWER_ADDRESS (fp) - 1;
+      ip = SCM_FRAME_BYTE_CAST (data[3]); /* multiple value ra */
+      fp = SCM_FRAME_STACK_CAST (data[2]);
         
-        /* Push return values, and the number of values */
-        for (i = 0; i < nvalues; i++)
-          *++sp = stack_base[1+i];
-        *++sp = SCM_I_MAKINUM (nvalues);
+      /* Push return values, and the number of values */
+      for (i = 0; i < nvalues; i++)
+        *++sp = stack_base[1+i];
+      *++sp = SCM_I_MAKINUM (nvalues);
              
-        /* Finally set new stack_base */
-        stack_base = SCM_FRAME_UPPER_ADDRESS (fp) - 1;
-      }
-    else if (nvalues >= 1)
-      {
-        /* Multiple values for a single-valued continuation -- here's where I
-           break with guile tradition and try and do something sensible. (Also,
-           this block handles the single-valued return to an mv
-           continuation.) */
-        /* Restore registers */
-        sp = SCM_FRAME_LOWER_ADDRESS (fp) - 1;
-        ip = SCM_FRAME_BYTE_CAST (data[4]); /* single value ra */
-        fp = SCM_FRAME_STACK_CAST (data[2]);
+      /* Finally set new stack_base */
+      stack_base = SCM_FRAME_UPPER_ADDRESS (fp) - 1;
+    }
+  else if (nvalues >= 1)
+    {
+      /* Multiple values for a single-valued continuation -- here's where I
+         break with guile tradition and try and do something sensible. (Also,
+         this block handles the single-valued return to an mv
+         continuation.) */
+      /* Restore registers */
+      sp = SCM_FRAME_LOWER_ADDRESS (fp) - 1;
+      ip = SCM_FRAME_BYTE_CAST (data[4]); /* single value ra */
+      fp = SCM_FRAME_STACK_CAST (data[2]);
         
-        /* Push first value */
-        *++sp = stack_base[1];
+      /* Push first value */
+      *++sp = stack_base[1];
              
-        /* Finally set new stack_base */
-        stack_base = SCM_FRAME_UPPER_ADDRESS (fp) - 1;
-      }
-    else
-      goto vm_error_no_values;
-    
-    
-  }
+      /* Finally set new stack_base */
+      stack_base = SCM_FRAME_UPPER_ADDRESS (fp) - 1;
+    }
+  else
+    goto vm_error_no_values;
 
   /* Restore the last program */
   program = SCM_FRAME_PROGRAM (fp);
@@ -915,6 +916,28 @@ VM_DEFINE_INSTRUCTION (return_values, "return/values", 1, -1, -1)
   CACHE_EXTERNAL ();
   CHECK_IP ();
   NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (return_values_star, "return/values*", 1, -1, -1)
+{
+  SCM l;
+
+  nvalues = FETCH ();
+#ifdef THE_GOVERNMENT_IS_AFTER_ME
+  if (nvalues < 1)
+    abort ();
+#endif
+    
+  nvalues--;
+  POP (l);
+  while (SCM_CONSP (l))
+    {
+      PUSH (SCM_CAR (l));
+      l = SCM_CDR (l);
+      nvalues++;
+    }
+
+  goto vm_return_values;
 }
 
 /*

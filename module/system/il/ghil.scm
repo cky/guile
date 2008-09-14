@@ -75,6 +75,9 @@
    <ghil-values> make-ghil-values ghil-values?
    ghil-values-env ghil-values-loc ghil-values-values
 
+   <ghil-values*> make-ghil-values* ghil-values*?
+   ghil-values*-env ghil-values*-loc ghil-values*-values
+
    <ghil-var> make-ghil-var ghil-var?
    ghil-var-env ghil-var-name ghil-var-kind ghil-var-type ghil-var-value
    ghil-var-index
@@ -114,7 +117,8 @@
    (<ghil-lambda> env loc vars rest meta body)
    (<ghil-call> env loc proc args)
    (<ghil-inline> env loc inline args)
-   (<ghil-values> env loc values)))
+   (<ghil-values> env loc values)
+   (<ghil-values*> env loc values)))
 
 
 ;;;
@@ -168,15 +172,17 @@
 ;; which will be looked up at runtime with respect to the module that
 ;; was current when the lambda was bound, at runtime. The variable will
 ;; be resolved when it is first used.
-(define (ghil-lookup env sym)
+(define (ghil-lookup env sym . define?)
   (let loop ((e env))
     (record-case e
       ((<ghil-toplevel-env> table)
        (let ((key (cons (module-name (current-module)) sym)))
          (or (assoc-ref table key)
-             (let ((var (make-ghil-var (car key) (cdr key) 'module)))
-               (apush! key var (ghil-toplevel-env-table e))
-               var))))
+             (and (or (null? define?)
+                      (car define?))
+                  (let ((var (make-ghil-var (car key) (cdr key) 'module)))
+                    (apush! key var (ghil-toplevel-env-table e))
+                    var)))))
       ((<ghil-env> parent table variables)
        (let ((found (assq-ref table sym)))
          (if found
