@@ -58,10 +58,7 @@
                             ;; definition forward-declared them
                             (and (variable-bound? var) (variable-ref var)))))))
     (cond
-     ((or (primitive-macro? val)
-          (eq? val eval-case))
-      (or (assq-ref primitive-syntax-table head)
-          (syntax-error #f "unhandled primitive macro" head)))
+     ((assq-ref custom-transformer-table val))
 
      ((defmacro? val)
       (lambda (env loc exp)
@@ -76,6 +73,9 @@
           (retrans
            (with-fluids ((eec (module-eval-closure mod)))
              (sc-expand3 exp 'c '(compile load eval)))))))
+
+     ((primitive-macro? val)
+      (syntax-error #f "unhandled primitive macro" head))
 
      ((macro? val)
       (syntax-error #f "unknown kind of macro" head))
@@ -121,7 +121,7 @@
   (define (make1 clause)
     (let ((sym (car clause))
           (clauses (cdr clause)))
-      `(cons ',sym
+      `(cons ,sym
              (lambda (,env ,loc ,exp)
                (define (,retranslate x) (trans ,env (location x) x))
                (pmatch (cdr ,exp)
@@ -131,7 +131,7 @@
 
 (define *the-compile-toplevel-symbol* 'compile-toplevel)
 
-(define primitive-syntax-table
+(define custom-transformer-table
   (make-pmatch-transformers
    e l retrans
    (quote
