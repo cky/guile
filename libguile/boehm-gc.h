@@ -35,7 +35,7 @@
 
 #include <gc/gc.h>
 
-#if (defined GC_VERSION_MAJOR) && (GC_VERSION_MAJOR < 7)
+#if (! ((defined GC_VERSION_MAJOR) && (GC_VERSION_MAJOR >= 7)))
 /* This was needed with `libgc' 6.x.  */
 # include <gc/gc_local_alloc.h>
 #endif
