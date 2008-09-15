@@ -163,7 +163,7 @@
 				(l '() (cons (pop) l)))
 			       ((= n 0) (cons* inst (reverse! l)))))))
 	    (values start code))
-	  #f))))
+	  (values #f #f)))))
 
 
 ;;;

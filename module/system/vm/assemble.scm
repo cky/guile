@@ -90,6 +90,13 @@
                        #:bytes (stack->bytes (reverse! stack) '())
                        #:meta #f #:objs #f #:closure? #f))))
 
+(define (byte-length x)
+  (cond ((u8vector? x) (u8vector-length x))
+        ((>= (instruction-length (car x)) 0)
+         ;; one byte for the instruction itself
+         (1+ (instruction-length (car x))))
+        (else (error "variable-length instruction?" x))))
+
 (define (codegen glil toplevel)
   (record-case glil
     ((<vm-asm> venv glil body) (record-case glil ((<glil-asm> vars meta) ; body?
@@ -113,9 +120,6 @@
 				  i)))))
 		  (push-code! `(object-ref ,i))))))
        (define (current-address)
-	 (define (byte-length x)
-	   (cond ((u8vector? x) (u8vector-length x))
-		 (else 3)))
 	 (apply + (map byte-length stack)))
        (define (generate-code x)
 	 (record-case x
@@ -206,7 +210,11 @@
 			 (push-code! (list inst)))
 			(else
 			 (error "Wrong number of arguments:" inst nargs))))
-		(error "Unknown instruction:" inst)))))
+		(error "Unknown instruction:" inst)))
+
+	   ((<glil-mv-call> nargs ra)
+            (push (list 'mv-call nargs ra) stack))))
+
        ;;
        ;; main
        (for-each generate-code body)
@@ -228,22 +236,36 @@
     ((<vlink-later>) (assoc x alist))
     (else        (assq x alist))))
 
+(define (check-length len u8v)
+  (or (= len (u8vector-length u8v))
+      (error "the badness!" len u8v))
+  u8v)
+
 (define (stack->bytes stack label-alist)
   (let loop ((result '()) (stack stack) (addr 0))
     (if (null? stack)
-	(list->u8vector(append-map u8vector->list
-                                   (reverse! result)))
-	(let ((bytes (car stack)))
-	  (if (pair? bytes)
-	      (let* ((offset (- (assq-ref label-alist (cadr bytes))
-				(+ addr 3)))
-		     (n (if (< offset 0) (+ offset 65536) offset)))
-		(set! bytes (code->bytes (list (car bytes)
-					       (quotient n 256)
-					       (modulo n 256))))))
-	  (loop (cons bytes result)
-		(cdr stack)
-		(+ addr (u8vector-length bytes)))))))
+        (check-length
+         addr
+         (list->u8vector
+          (append-map u8vector->list (reverse! result))))
+        (let ((elt (car stack)))
+          (cond
+           ((u8vector? elt)
+            (loop (cons elt result)
+                  (cdr stack)
+                  (+ addr (byte-length elt))))
+           ((symbol? (car (last-pair elt)))
+            ;; not yet code because labels needed to be resolved
+            (let* ((head (list-head elt (1- (length elt))))
+                   (label-addr (assq-ref label-alist (car (last-pair elt))))
+                   (offset (- label-addr (+ addr (byte-length elt))))
+                   (n (if (< offset 0) (+ offset 65536) offset)))
+              (loop (cons (code->bytes
+                           (append head (list (quotient n 256) (modulo n 256))))
+                          result)
+                    (cdr stack)
+                    (+ addr (byte-length elt)))))
+           (else (error "bad code" elt)))))))
 
 
 ;;;

@@ -329,7 +329,28 @@
 	 ;; ([tail-]call NARGS)
 	 (comp-push proc)
 	 (push-call! loc (if tail 'goto/args 'call) args)
-	 (maybe-drop))))
+	 (maybe-drop))
+
+	((<ghil-mv-call> env loc producer consumer)
+	 ;; CONSUMER
+         ;; PRODUCER
+         ;; (mv-call MV)
+         ;; ([tail]-call 1)
+         ;; goto POST
+         ;; MV: [tail-]call/nargs
+         ;; POST: (maybe-drop)
+         (let ((MV (make-label)) (POST (make-label)))
+           (comp-push consumer)
+           (comp-push producer)
+           (push-code! loc (make-glil-mv-call 0 MV))
+           (push-code! loc (make-glil-call (if tail 'goto/args 'call) 1))
+           (cond ((not tail)
+                  (push-branch! #f 'br POST)))
+           (push-label! MV)
+           (push-code! loc (make-glil-call (if tail 'goto/nargs 'call/nargs) 0))
+           (cond ((not tail)
+                  (push-label! POST)
+                  (maybe-drop)))))))
     ;;
     ;; main
     (record-case ghil

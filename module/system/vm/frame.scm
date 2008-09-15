@@ -46,8 +46,8 @@
 
 (define (bootstrap-frame? frame)
   (let ((code (program-bytecode (frame-program frame))))
-    (and (= (uniform-vector-length code) 5)
-         (= (uniform-vector-ref code 4)
+    (and (= (uniform-vector-length code) 6)
+         (= (uniform-vector-ref code 5)
             (instruction->opcode 'halt)))))
 
 (define (make-frame-chain frame addr)

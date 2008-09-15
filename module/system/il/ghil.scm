@@ -72,6 +72,9 @@
    <ghil-call> make-ghil-call ghil-call?
    ghil-call-env ghil-call-loc ghil-call-proc ghil-call-args
 
+   <ghil-mv-call> make-ghil-mv-call ghil-mv-call?
+   ghil-mv-call-env ghil-mv-call-loc ghil-mv-call-producer ghil-mv-call-consumer
+
    <ghil-values> make-ghil-values ghil-values?
    ghil-values-env ghil-values-loc ghil-values-values
 
@@ -116,6 +119,7 @@
    (<ghil-bind> env loc vars vals body)
    (<ghil-lambda> env loc vars rest meta body)
    (<ghil-call> env loc proc args)
+   (<ghil-mv-call> env loc producer consumer)
    (<ghil-inline> env loc inline args)
    (<ghil-values> env loc values)
    (<ghil-values*> env loc values)))

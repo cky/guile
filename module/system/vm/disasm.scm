@@ -71,23 +71,23 @@
 
 (define (disassemble-bytecode bytes objs)
   (let ((decode (make-byte-decoder bytes))
-	(programs '()))
-    (do ((addr+code (decode) (decode)))
-	((not addr+code) (newline))
-      (receive (addr code) addr+code
-	(pmatch code
-	  ((load-program ,x)
-	   (let ((sym (gensym "")))
-	     (set! programs (acons sym x programs))
-	     (print-info addr (format #f "(load-program #~A)" sym) #f)))
-	  (else
-	   (let ((info (list->info code))
-		 (extra (original-value addr code objs)))
-	     (print-info addr info extra))))))
+        (programs '()))
+    (define (lp addr code)
+      (pmatch code
+       (#f (newline))
+       ((load-program ,x)
+        (let ((sym (gensym "")))
+          (set! programs (acons sym x programs))
+          (print-info addr (format #f "(load-program #~A)" sym) #f)))
+       (else
+        (print-info addr (list->info code)
+                    (original-value addr code objs))))
+      (if code (call-with-values decode lp)))
+    (call-with-values decode lp)
     (for-each (lambda (sym+bytes)
-		(format #t "Bytecode #~A:\n\n" (car sym+bytes))
-		(disassemble-bytecode (cdr sym+bytes) #f))
-	      (reverse! programs))))
+                (format #t "Bytecode #~A:\n\n" (car sym+bytes))
+                (disassemble-bytecode (cdr sym+bytes) #f))
+              (reverse! programs))))
 
 (define (disassemble-objects objs)
   (display "Objects:\n\n")
@@ -178,6 +178,9 @@
 	       ((make-false) "#f")
 	       ((object-ref)
 		(if objs (object->string (vector-ref objs (car args))) #f))
+               ((mv-call)
+                (let ((offset (+ (* (caddr code) 256) (cadddr code))))
+                  (format #f "MV -> ~A" (+ addr offset 4))))
 	       (else #f)))))))
 
 (define (list->info list)

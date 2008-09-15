@@ -322,6 +322,16 @@
               (else (make-ghil-inline e l 'apply
                                       (cons (retrans proc) args)))))))
 
+    ;; FIXME: not hygienic, relies on @call-with-values not being shadowed
+    (call-with-values
+     ((,producer ,consumer)
+      (retrans `(@call-with-values ,producer ,consumer)))
+     (else #f))
+
+    (@call-with-values
+     ((,producer ,consumer)
+      (make-ghil-mv-call e l (retrans producer) (retrans consumer))))
+
     (values
      ((,x) (retrans x))
      (,args (make-ghil-values e l (map retrans args))))))

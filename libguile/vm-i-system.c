@@ -376,11 +376,18 @@ VM_DEFINE_INSTRUCTION (late_variable_set, "late-variable-set", 1, 1, 0)
  * branch and jump
  */
 
-#define BR(p)					\
+/* offset must be a signed short!!! */
+#define FETCH_OFFSET(offset)                    \
 {						\
   int h = FETCH ();				\
   int l = FETCH ();				\
-  signed short offset = (h << 8) + l;		\
+  offset = (h << 8) + l;                        \
+}
+
+#define BR(p)					\
+{						\
+  signed short offset;                          \
+  FETCH_OFFSET (offset);                        \
   if (p)					\
     ip += offset;				\
   DROP ();					\
@@ -701,13 +708,29 @@ VM_DEFINE_INSTRUCTION (goto_args, "goto/args", 1, -1, 1)
   goto vm_error_wrong_type_apply;
 }
 
-VM_DEFINE_INSTRUCTION (mv_call, "mv-call", 2, -1, 1)
+VM_DEFINE_INSTRUCTION (goto_nargs, "goto/nargs", 0, 0, 1)
 {
   SCM x;
-  int offset;
+  POP (x);
+  nargs = scm_to_int (x);
+  goto vm_goto_args;
+}
+
+VM_DEFINE_INSTRUCTION (call_nargs, "call/nargs", 0, 0, 1)
+{
+  SCM x;
+  POP (x);
+  nargs = scm_to_int (x);
+  goto vm_call;
+}
+
+VM_DEFINE_INSTRUCTION (mv_call, "mv-call", 3, -1, 1)
+{
+  SCM x;
+  signed short offset;
   
   nargs = FETCH ();
-  offset = FETCH ();
+  FETCH_OFFSET (offset);
 
   x = sp[-nargs];
 

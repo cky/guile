@@ -61,10 +61,13 @@
    glil-label-label
 
    <glil-branch> make-glil-branch glil-branch?
-   glil-branch-int glil-branch-label
+   glil-branch-inst glil-branch-label
 
    <glil-call> make-glil-call glil-call?
-   glil-call-int glil-call-nargs))
+   glil-call-inst glil-call-nargs
+
+   <glil-mv-call> make-glil-mv-call glil-mv-call?
+   glil-mv-call-nargs glil-mv-call-ra))
 
 (define-record (<glil-vars> nargs nrest nlocs nexts))
 
@@ -87,7 +90,8 @@
    ;; Controls
    (<glil-label> label)
    (<glil-branch> inst label)
-   (<glil-call> inst nargs)))
+   (<glil-call> inst nargs)
+   (<glil-mv-call> nargs ra)))
 
 
 ;;;
