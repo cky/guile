@@ -64,7 +64,7 @@ scm_c_make_subr (const char *name, long type, SCM (*fcn) ())
     }
 
   entry = scm_subr_table_size;
-  z = scm_cell ((entry << 8) + type, (scm_t_bits) fcn);
+  z = scm_immutable_cell ((entry << 8) + type, (scm_t_bits) fcn);
   scm_subr_table[entry].handle = z;
   scm_subr_table[entry].name = scm_from_locale_symbol (name);
   scm_subr_table[entry].generic = 0;
@@ -80,18 +80,6 @@ scm_c_define_subr (const char *name, long type, SCM (*fcn) ())
   SCM subr = scm_c_make_subr (name, type, fcn);
   scm_define (SCM_SUBR_ENTRY(subr).name, subr);
   return subr;
-}
-
-/* This function isn't currently used since subrs are never freed. */
-/* *fixme* Need mutex here. */
-void
-scm_free_subr_entry (SCM subr)
-{
-  long entry = SCM_SUBRNUM (subr);
-  /* Move last entry in table to the free position */
-  scm_subr_table[entry] = scm_subr_table[scm_subr_table_size - 1];
-  SCM_SET_SUBRNUM (scm_subr_table[entry].handle, entry);
-  scm_subr_table_size--;
 }
 
 SCM

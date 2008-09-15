@@ -41,12 +41,9 @@ typedef struct
 } scm_t_subr_entry;
 
 #define SCM_SUBRNUM(subr) (SCM_CELL_WORD_0 (subr) >> 8)
-#define SCM_SET_SUBRNUM(subr, num) \
-        SCM_SET_CELL_WORD_0 (subr, (num << 8) + SCM_TYP7 (subr))
 #define SCM_SUBR_ENTRY(x) (scm_subr_table[SCM_SUBRNUM (x)])
 #define SCM_SNAME(x) (SCM_SUBR_ENTRY (x).name)
 #define SCM_SUBRF(x) ((SCM (*)()) SCM_CELL_WORD_1 (x))
-#define SCM_SET_SUBRF(x, v) (SCM_SET_CELL_WORD_1 ((x), (v)))
 #define SCM_DSUBRF(x) ((double (*)()) SCM_CELL_WORD_1 (x))
 #define SCM_SUBR_PROPS(x) (SCM_SUBR_ENTRY (x).properties)
 #define SCM_SUBR_GENERIC(x) (SCM_SUBR_ENTRY (x).generic)
@@ -136,7 +133,6 @@ SCM_API long scm_subr_table_room;
 
 
 
-SCM_API void scm_free_subr_entry (SCM subr);
 SCM_API SCM scm_c_make_subr (const char *name, long type, SCM (*fcn)());
 SCM_API SCM scm_c_make_subr_with_generic (const char *name, long type,
 					  SCM (*fcn)(), SCM *gf);
