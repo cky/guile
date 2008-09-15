@@ -136,19 +136,6 @@ scm_i_take_stringbufn (char *str, size_t len)
 			  (scm_t_bits) len, (scm_t_bits) 0);
 }
 
-SCM
-scm_i_stringbuf_mark (SCM buf)
-{
-  return SCM_BOOL_F;
-}
-
-void
-scm_i_stringbuf_free (SCM buf)
-{
-  if (!STRINGBUF_INLINE (buf))
-    scm_gc_free (STRINGBUF_OUTLINE_CHARS (buf),
-		 STRINGBUF_OUTLINE_LENGTH (buf) + 1, "string");
-}
 
 scm_i_pthread_mutex_t stringbuf_write_mutex = SCM_I_PTHREAD_MUTEX_INITIALIZER;
 
@@ -306,20 +293,7 @@ scm_c_substring_shared (SCM str, size_t start, size_t end)
   return scm_i_substring_shared (str, start, end);
 }
 
-SCM
-scm_i_string_mark (SCM str)
-{
-  if (IS_SH_STRING (str))
-    return SH_STRING_STRING (str);
-  else
-    return STRING_STRINGBUF (str);
-}
-
-void
-scm_i_string_free (SCM str)
-{
-}
-
+
 /* Internal accessors
  */
 
@@ -470,18 +444,6 @@ scm_i_symbol_chars (SCM sym)
 {
   SCM buf = SYMBOL_STRINGBUF (sym);
   return STRINGBUF_CHARS (buf);
-}
-
-SCM
-scm_i_symbol_mark (SCM sym)
-{
-  scm_gc_mark (SYMBOL_STRINGBUF (sym));
-  return SCM_CELL_OBJECT_3 (sym);
-}
-
-void
-scm_i_symbol_free (SCM sym)
-{
 }
 
 SCM

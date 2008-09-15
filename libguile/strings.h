@@ -135,15 +135,6 @@ SCM_INTERNAL const char *scm_i_symbol_chars (SCM sym);
 SCM_INTERNAL size_t scm_i_symbol_length (SCM sym);
 SCM_INTERNAL SCM scm_i_symbol_substring (SCM sym, size_t start, size_t end);
 
-/* internal GC functions. */
-
-SCM_INTERNAL SCM scm_i_string_mark (SCM str);
-SCM_INTERNAL SCM scm_i_stringbuf_mark (SCM buf);
-SCM_INTERNAL SCM scm_i_symbol_mark (SCM buf);
-SCM_INTERNAL void scm_i_string_free (SCM str);
-SCM_INTERNAL void scm_i_stringbuf_free (SCM buf);
-SCM_INTERNAL void scm_i_symbol_free (SCM sym);
-
 /* internal utility functions. */
 
 SCM_INTERNAL char **scm_i_allocate_string_pointers (SCM list);
