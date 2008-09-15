@@ -70,10 +70,7 @@ typedef struct
 #define SCM_CLOSURE_BODY(x) SCM_CDR (SCM_CODE (x))
 #define SCM_PROCPROPS(x) SCM_CDR (SCM_CLOSCAR (x))
 #define SCM_SETPROCPROPS(x, p) SCM_SETCDR (SCM_CLOSCAR (x), p)
-#define SCM_SETCODE(x, e) (SCM_SET_CELL_WORD_0 (x, SCM_UNPACK (scm_cons ((e), SCM_EOL)) \
-                           + scm_tc3_closure))
 #define SCM_ENV(x) SCM_CELL_OBJECT_1 (x)
-#define SCM_SETENV(x, e) SCM_SET_CELL_OBJECT_1 ((x), (e))
 #define SCM_TOP_LEVEL(ENV)  (scm_is_null (ENV) || (scm_is_true (scm_procedure_p (SCM_CAR (ENV)))))
 
 /* Procedure-with-setter
