@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2004, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2004, 2006, 2008 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -64,7 +64,7 @@ static SCM *scm_loc_load_hook;
 
 /* The current reader (a fluid).  */
 static SCM the_reader = SCM_BOOL_F;
-static size_t the_reader_fluid_num = 0;
+
 
 SCM_DEFINE (scm_primitive_load, "primitive-load", 1, 0, 0, 
            (SCM filename),
@@ -97,7 +97,7 @@ SCM_DEFINE (scm_primitive_load, "primitive-load", 1, 0, 0,
 
 	/* Lookup and use the current reader to read the next
 	   expression. */
-	reader = SCM_FAST_FLUID_REF (the_reader_fluid_num);
+	reader = scm_fluid_ref (the_reader);
 	if (reader == SCM_BOOL_F)
 	  form = scm_read (port);
 	else
@@ -517,8 +517,7 @@ scm_init_load ()
   scm_loc_load_hook = SCM_VARIABLE_LOC (scm_c_define ("%load-hook", SCM_BOOL_F));
 
   the_reader = scm_make_fluid ();
-  the_reader_fluid_num = SCM_FLUID_NUM (the_reader);
-  SCM_FAST_FLUID_SET_X (the_reader_fluid_num, SCM_BOOL_F);
+  scm_fluid_set_x (the_reader, SCM_BOOL_F);
   scm_c_define("current-reader", the_reader);
 
   init_build_info ();

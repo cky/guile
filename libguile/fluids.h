@@ -50,18 +50,11 @@
    eventually.
 */
 
-#define SCM_FLUID_NUM(x)             scm_i_fluid_num (x)
-#define SCM_FAST_FLUID_REF(n)        scm_i_fast_fluid_ref (n)
-#define SCM_FAST_FLUID_SET_X(n, val) scm_i_fast_fluid_set_x ((n),(val))
-
 SCM_API SCM scm_make_fluid (void);
 SCM_API int scm_is_fluid (SCM obj);
 SCM_API SCM scm_fluid_p (SCM fl);
 SCM_API SCM scm_fluid_ref (SCM fluid);
 SCM_API SCM scm_fluid_set_x (SCM fluid, SCM value);
-SCM_API size_t scm_i_fluid_num (SCM fl);
-SCM_API SCM scm_i_fast_fluid_ref (size_t n);
-SCM_API void scm_i_fast_fluid_set_x (size_t n, SCM val);
 
 SCM_API SCM scm_c_with_fluids (SCM fluids, SCM vals,
 			       SCM (*cproc)(void *), void *cdata);
