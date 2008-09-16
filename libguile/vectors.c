@@ -351,7 +351,7 @@ scm_c_make_vector (size_t k, SCM fill)
   else
     base = NULL;
 
-  v = scm_cell ((k << 8) | scm_tc7_vector, (scm_t_bits) base);
+  v = scm_immutable_cell ((k << 8) | scm_tc7_vector, (scm_t_bits) base);
   scm_remember_upto_here_1 (fill);
 
   return v;
