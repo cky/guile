@@ -165,8 +165,6 @@ SCM_API size_t scm_max_segment_size;
 
 #define SCM_SET_FREELIST_LOC(key,ptr) scm_i_pthread_setspecific ((key), (ptr))
 #define SCM_FREELIST_LOC(key) ((SCM *) scm_i_pthread_getspecific (key))
-SCM_API scm_i_pthread_key_t scm_i_freelist;
-SCM_API scm_i_pthread_key_t scm_i_freelist2;
 SCM_API struct scm_t_cell_type_statistics scm_i_master_freelist;
 SCM_API struct scm_t_cell_type_statistics scm_i_master_freelist2;
 

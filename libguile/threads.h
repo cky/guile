@@ -66,16 +66,6 @@ typedef struct scm_i_thread {
   scm_i_pthread_cond_t sleep_cond;
   int sleep_fd, sleep_pipe[2];
 
-  /* This mutex represents this threads right to access the heap.
-     That right can temporarily be taken away by the GC.
-  */
-  scm_i_pthread_mutex_t heap_mutex;
-
-  /* The freelists of this thread.  Each thread has its own lists so
-     that they can all allocate concurrently.
-  */
-  SCM freelist, freelist2;
-  int clear_freelists_p; /* set if GC was done while thread was asleep */
   int gc_running_p;      /* non-zero while this thread does GC or a
 			    sweep. */
 

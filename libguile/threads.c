@@ -372,12 +372,6 @@ static void
 resume (scm_i_thread *t)
 {
   t->top = NULL;
-  if (t->clear_freelists_p)
-    {
-      *SCM_FREELIST_LOC (scm_i_freelist) = SCM_EOL;
-      *SCM_FREELIST_LOC (scm_i_freelist2) = SCM_EOL;
-      t->clear_freelists_p = 0;
-    }
 }
 
 typedef void* scm_t_guile_ticket;
@@ -388,7 +382,6 @@ scm_enter_guile (scm_t_guile_ticket ticket)
   scm_i_thread *t = (scm_i_thread *)ticket;
   if (t)
     {
-      scm_i_pthread_mutex_lock (&t->heap_mutex);
       resume (t);
     }
 }
@@ -410,7 +403,6 @@ static scm_t_guile_ticket
 scm_leave_guile ()
 {
   scm_i_thread *t = suspend ();
-  scm_i_pthread_mutex_unlock (&t->heap_mutex);
   return (scm_t_guile_ticket) t;
 }
 
@@ -464,23 +456,14 @@ guilify_self_1 (SCM_STACKITEM *base)
   t->sleep_fd = -1;
   /* XXX - check for errors. */
   pipe (t->sleep_pipe);
-  scm_i_pthread_mutex_init (&t->heap_mutex, NULL);
   scm_i_pthread_mutex_init (&t->admin_mutex, NULL);
-  t->clear_freelists_p = 0;
   t->gc_running_p = 0;
   t->current_mark_stack_ptr = NULL;
   t->current_mark_stack_limit = NULL;
   t->canceled = 0;
   t->exited = 0;
 
-  t->freelist = SCM_EOL;
-  t->freelist2 = SCM_EOL;
-  SCM_SET_FREELIST_LOC (scm_i_freelist, &t->freelist);
-  SCM_SET_FREELIST_LOC (scm_i_freelist2, &t->freelist2);
-
   scm_i_pthread_setspecific (scm_i_thread_key, t);
-
-  scm_i_pthread_mutex_lock (&t->heap_mutex);
 
   scm_i_pthread_mutex_lock (&thread_admin_mutex);
   t->next_thread = all_threads;
@@ -1901,7 +1884,6 @@ scm_dynwind_critical_section (SCM mutex)
 
 /*** Initialization */
 
-scm_i_pthread_key_t scm_i_freelist, scm_i_freelist2;
 scm_i_pthread_mutex_t scm_i_misc_mutex;
 
 #if SCM_USE_PTHREAD_THREADS
@@ -1921,8 +1903,6 @@ scm_threads_prehistory (SCM_STACKITEM *base)
 			    scm_i_pthread_mutexattr_recursive);
   scm_i_pthread_mutex_init (&scm_i_misc_mutex, NULL);
   scm_i_pthread_cond_init (&wake_up_cond, NULL);
-  scm_i_pthread_key_create (&scm_i_freelist, NULL);
-  scm_i_pthread_key_create (&scm_i_freelist2, NULL);
 
   guilify_self_1 (base);
 }
