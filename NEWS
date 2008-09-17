@@ -71,6 +71,7 @@ available: Guile is now always configured in "maintainer mode".
 ** Fix build issue on hppa2.0w-hp-hpux11.11 (`dirent64' and `readdir64_r')
 ** Fix misleading output from `(help rationalize)'
 ** Fix build failure on Debian hppa architecture (bad stack growth detection)
+** Fix `gcd' when called with a single, negative argument.
 
 
 Changes in 1.8.5 (since 1.8.4)

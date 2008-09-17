@@ -1022,7 +1022,7 @@ SCM
 scm_gcd (SCM x, SCM y)
 {
   if (SCM_UNBNDP (y))
-    return SCM_UNBNDP (x) ? SCM_INUM0 : x;
+    return SCM_UNBNDP (x) ? SCM_INUM0 : scm_abs (x);
   
   if (SCM_I_INUMP (x))
     {
