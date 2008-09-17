@@ -325,8 +325,7 @@ scm_i_string_writable_chars (SCM orig_str)
   scm_i_pthread_mutex_lock (&stringbuf_write_mutex);
   if (STRINGBUF_SHARED (buf))
     {
-      /* Clone stringbuf.  For this, we put all threads to sleep.
-       */
+      /* Clone stringbuf.  */
 
       size_t len = STRING_LENGTH (str);
       SCM new_buf;
@@ -337,11 +336,16 @@ scm_i_string_writable_chars (SCM orig_str)
       memcpy (STRINGBUF_CHARS (new_buf),
 	      STRINGBUF_CHARS (buf) + STRING_START (str), len);
 
-      scm_i_thread_put_to_sleep ();
-      SET_STRING_STRINGBUF (str, new_buf);
       start -= STRING_START (str);
+
+      /* FIXME: The following operations are not atomic, so other threads
+	 looking at STR may see an inconsistent state.  Nevertheless it can't
+	 hurt much since (i) accessing STR while it is being mutated can't
+	 yield a crash, and (ii) concurrent accesses to STR should be
+	 protected by a mutex at the application level.  The latter may not
+	 apply when STR != ORIG_STR, though.  */
       SET_STRING_START (str, 0);
-      scm_i_thread_wake_up ();
+      SET_STRING_STRINGBUF (str, new_buf);
 
       buf = new_buf;
 
