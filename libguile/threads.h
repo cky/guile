@@ -146,13 +146,6 @@ SCM_INTERNAL void *scm_i_with_guile_and_parent (void *(*func)(void *),
 						void *data, SCM parent);
 
 
-extern int scm_i_thread_go_to_sleep;
-
-SCM_INTERNAL void scm_i_thread_put_to_sleep (void);
-SCM_INTERNAL void scm_i_thread_wake_up (void);
-SCM_INTERNAL void scm_i_thread_invalidate_freelists (void);
-void scm_i_thread_sleep_for_gc (void);
-
 void scm_threads_prehistory (SCM_STACKITEM *);
 void scm_threads_init_first_thread (void);
 
@@ -162,10 +155,7 @@ SCM_INTERNAL void scm_init_threads_default_dynamic_state (void);
 
 
 #define SCM_THREAD_SWITCHING_CODE \
-do { \
-  if (scm_i_thread_go_to_sleep) \
-    scm_i_thread_sleep_for_gc (); \
-} while (0)
+  do { } while (0)
 
 SCM_API SCM scm_call_with_new_thread (SCM thunk, SCM handler);
 SCM_API SCM scm_yield (void);

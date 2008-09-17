@@ -1880,61 +1880,8 @@ scm_c_thread_exited_p (SCM thread)
 #undef FUNC_NAME
 
 static scm_i_pthread_cond_t wake_up_cond;
-int scm_i_thread_go_to_sleep;
 static int threads_initialized_p = 0;
 
-void
-scm_i_thread_put_to_sleep ()
-{
-  if (threads_initialized_p)
-    {
-      scm_i_thread *t;
-
-      scm_leave_guile ();
-      scm_i_pthread_mutex_lock (&thread_admin_mutex);
-
-      /* Signal all threads to go to sleep
-       */
-      scm_i_thread_go_to_sleep = 1;
-      for (t = all_threads; t; t = t->next_thread)
-	scm_i_pthread_mutex_lock (&t->heap_mutex);
-      scm_i_thread_go_to_sleep = 0;
-    }
-}
-
-void
-scm_i_thread_invalidate_freelists ()
-{
-  /* thread_admin_mutex is already locked. */
-
-  scm_i_thread *t;
-  for (t = all_threads; t; t = t->next_thread)
-    if (t != SCM_I_CURRENT_THREAD)
-      t->clear_freelists_p = 1;
-}
-
-void
-scm_i_thread_wake_up ()
-{
-  if (threads_initialized_p)
-    {
-      scm_i_thread *t;
-
-      scm_i_pthread_cond_broadcast (&wake_up_cond);
-      for (t = all_threads; t; t = t->next_thread)
-	scm_i_pthread_mutex_unlock (&t->heap_mutex);
-      scm_i_pthread_mutex_unlock (&thread_admin_mutex);
-      scm_enter_guile ((scm_t_guile_ticket) SCM_I_CURRENT_THREAD);
-    }
-}
-
-void
-scm_i_thread_sleep_for_gc ()
-{
-  scm_i_thread *t = suspend ();
-  scm_i_pthread_cond_wait (&wake_up_cond, &t->heap_mutex);
-  resume (t);
-}
 
 /* This mutex is used by SCM_CRITICAL_SECTION_START/END.
  */
