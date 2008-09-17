@@ -66,9 +66,6 @@ typedef struct scm_i_thread {
   scm_i_pthread_cond_t sleep_cond;
   int sleep_fd, sleep_pipe[2];
 
-  int gc_running_p;      /* non-zero while this thread does GC or a
-			    sweep. */
-
   /* Information about the Boehm-GC mark stack during the mark phase.  This
      is used by `scm_gc_mark ()'.  */
   void *current_mark_stack_ptr;

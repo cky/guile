@@ -457,7 +457,6 @@ guilify_self_1 (SCM_STACKITEM *base)
   /* XXX - check for errors. */
   pipe (t->sleep_pipe);
   scm_i_pthread_mutex_init (&t->admin_mutex, NULL);
-  t->gc_running_p = 0;
   t->current_mark_stack_ptr = NULL;
   t->current_mark_stack_limit = NULL;
   t->canceled = 0;

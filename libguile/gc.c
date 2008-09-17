@@ -388,7 +388,6 @@ SCM_DEFINE (scm_gc, "gc", 0, 0, 0,
 #define FUNC_NAME s_scm_gc
 {
   scm_i_scm_pthread_mutex_lock (&scm_i_sweep_mutex);
-  scm_gc_running_p = 1;
   scm_i_gc ("call");
   /* njrev: It looks as though other places, e.g. scm_realloc,
      can call scm_i_gc without acquiring the sweep mutex.  Does this
@@ -397,7 +396,6 @@ SCM_DEFINE (scm_gc, "gc", 0, 0, 0,
      (e.g. scm_permobjs above in scm_gc_stats) by a critical section,
      not by the sweep mutex.  Shouldn't all the GC-relevant objects be
      protected in the same way? */
-  scm_gc_running_p = 0;
   scm_i_pthread_mutex_unlock (&scm_i_sweep_mutex);
   scm_c_hook_run (&scm_after_gc_c_hook, 0);
   return SCM_UNSPECIFIED;

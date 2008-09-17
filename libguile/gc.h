@@ -136,7 +136,7 @@ void scm_i_expensive_validation_check (SCM cell);
 
 SCM_INTERNAL scm_i_pthread_mutex_t scm_i_gc_admin_mutex;
 
-#define scm_gc_running_p (SCM_I_CURRENT_THREAD->gc_running_p)
+#define scm_gc_running_p  0
 SCM_INTERNAL scm_i_pthread_mutex_t scm_i_sweep_mutex;
 
 #ifdef __ia64__
