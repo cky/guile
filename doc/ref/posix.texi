@@ -1263,9 +1263,6 @@ formatting.
 
 If @code{setlocale} has been called (@pxref{Locales}), month and day
 names are from the current locale and in the locale character set.
-
-Note that @samp{%Z} always ignores the @code{tm:zone} in @var{tm};
-instead it prints just the current zone (@code{tzset} above).
 @end deffn
 
 @deffn {Scheme Procedure} strptime format string
