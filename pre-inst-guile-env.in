@@ -66,6 +66,11 @@ else
 fi
 export GUILE_LOAD_PATH
 
+# Don't look in installed dirs for guile modules
+if ( env | grep -v -q -E '^GUILE_SYSTEM_PATH=' ); then
+  export GUILE_SYSTEM_PATH=
+fi
+
 # handle LTDL_LIBRARY_PATH (no clobber)
 ltdl_prefix=""
 dyld_prefix=""
