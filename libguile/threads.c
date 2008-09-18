@@ -457,6 +457,7 @@ guilify_self_1 (SCM_STACKITEM *base)
   t->current_mark_stack_limit = NULL;
   t->canceled = 0;
   t->exited = 0;
+  t->guile_mode = 0;
 
   scm_i_pthread_setspecific (scm_i_thread_key, t);
 
@@ -473,6 +474,8 @@ static void
 guilify_self_2 (SCM parent)
 {
   scm_i_thread *t = SCM_I_CURRENT_THREAD;
+
+  t->guile_mode = 1;
 
   SCM_NEWSMOB (t->handle, scm_tc16_thread, t);
 
@@ -797,17 +800,61 @@ scm_i_with_guile_and_parent (void *(*func)(void *), void *data, SCM parent)
   return res;
 }
 
+
+/*** Non-guile mode.  */
+
+#if (defined HAVE_GC_DO_BLOCKING) && (!defined HAVE_DECL_GC_DO_BLOCKING)
+
+/* This declaration is missing from the public headers of GC 7.1.  */
+extern void GC_do_blocking (void (*) (void *), void *);
+
+#endif
+
+#ifdef HAVE_GC_DO_BLOCKING
+struct without_guile_arg
+{
+  void * (*function) (void *);
+  void    *data;
+  void    *result;
+};
+
+static void
+without_guile_trampoline (void *closure)
+{
+  struct without_guile_arg *arg;
+
+  SCM_I_CURRENT_THREAD->guile_mode = 0;
+
+  arg = (struct without_guile_arg *) closure;
+  arg->result = arg->function (arg->data);
+
+  SCM_I_CURRENT_THREAD->guile_mode = 1;
+}
+#endif
+
 void *
 scm_without_guile (void *(*func)(void *), void *data)
 {
-  void *res;
-  scm_t_guile_ticket t;
-  t = scm_leave_guile ();
-  res = func (data);
-  scm_enter_guile (t);
-  return res;
+  void *result;
+
+#ifdef HAVE_GC_DO_BLOCKING
+  if (SCM_I_CURRENT_THREAD->guile_mode)
+    {
+      struct without_guile_arg arg;
+
+      arg.function = func;
+      arg.data = data;
+      GC_do_blocking (without_guile_trampoline, &arg);
+      result = arg.result;
+    }
+  else
+#endif
+    result = func (data);
+
+  return result;
 }
 
+
 /*** Thread creation */
 
 typedef struct {
