@@ -1188,6 +1188,14 @@ AC_CHECK_LIB([gc], [GC_collect_a_little],
 AC_CHECK_HEADER([gc/gc.h], [],
   [AC_MSG_ERROR([`libgc' (Boehm's GC library) header files not found.])])
 
+# `GC_do_blocking ()' is available in GC 7.1 but not declared.
+AC_CHECK_FUNCS([GC_do_blocking])
+AC_CHECK_DECL([GC_do_blocking],
+  [AC_DEFINE([HAVE_DECL_GC_DO_BLOCKING], [1],
+    [Define this if the `GC_do_blocking ()' function is declared])],
+  [],
+  [#include <gc/gc.h>])
+
 
 AC_CHECK_SIZEOF(float)
 if test "$ac_cv_sizeof_float" -le "$ac_cv_sizeof_long"; then
