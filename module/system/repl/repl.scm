@@ -141,7 +141,7 @@
 (define (next-char wait)
   (if (or wait (char-ready?))
       (let ((ch (peek-char)))
-	(cond ((eof-object? ch) (newline) (throw 'quit))
+	(cond ((eof-object? ch) ch)
 	      ((char-whitespace? ch) (read-char) (next-char wait))
 	      (else ch)))
       #f))
