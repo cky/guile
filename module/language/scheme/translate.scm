@@ -25,7 +25,6 @@
   #:use-module (system il ghil)
   #:use-module (system il inline)
   #:use-module (ice-9 receive)
-  #:use-module (srfi srfi-39)
   #:use-module ((system base compile) #:select (syntax-error))
   #:export (translate))
 
@@ -331,6 +330,17 @@
     (@call-with-values
      ((,producer ,consumer)
       (make-ghil-mv-call e l (retrans producer) (retrans consumer))))
+
+    (receive
+     ((,formals ,producer-exp . ,body)
+      ;; Lovely, self-referential usage. Not strictly necessary, the
+      ;; macro would do the trick; but it's good to test the mv-bind
+      ;; code.
+      (receive (syms rest) (parse-formals formals)
+        (call-with-ghil-bindings e syms
+          (lambda (vars)
+            (make-ghil-mv-bind e l (retrans `(lambda () ,producer-exp))
+                               vars rest (trans-body e l body)))))))
 
     (values
      ((,x) (retrans x))

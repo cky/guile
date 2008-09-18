@@ -172,6 +172,11 @@ vm_run (SCM vm, SCM program, SCM args)
     err_args = SCM_EOL;
     goto vm_error;
 
+  vm_error_not_enough_values:
+    err_msg  = scm_from_locale_string ("VM: Not enough values for mv-bind");
+    err_args = SCM_EOL;
+    goto vm_error;
+
 #if VM_CHECK_IP
   vm_error_invalid_address:
     err_msg  = scm_from_locale_string ("VM: Invalid program address");

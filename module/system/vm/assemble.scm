@@ -139,6 +139,19 @@
 	      (set! binding-alist
 		    (acons (current-address) bindings binding-alist))))
 
+	   ((<glil-mv-bind> (binds vars) rest)
+	    (let ((bindings
+		   (map (lambda (v)
+			  (let ((name (car v)) (type (cadr v)) (i (caddr v)))
+			    (case type
+			      ((argument) (make-binding name #f i))
+			      ((local) (make-binding name #f (+ (glil-vars-nargs vars) i)))
+			      ((external) (make-binding name #t i)))))
+			binds)))
+	      (set! binding-alist
+		    (acons (current-address) bindings binding-alist))
+              (push-code! `(truncate-values ,(length binds) ,(if rest 1 0)))))
+
 	   ((<glil-unbind>)
 	    (set! binding-alist (acons (current-address) #f binding-alist)))
 

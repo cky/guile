@@ -32,6 +32,9 @@
    <glil-bind> make-glil-bind glil-bind?
    glil-bind-vars
 
+   <glil-mv-bind> make-glil-mv-bind glil-mv-bind?
+   glil-mv-bind-vars glil-mv-bind-rest
+
    <glil-unbind> make-glil-unbind glil-unbind?
 
    <glil-source> make-glil-source glil-source?
@@ -76,6 +79,7 @@
    ;; Meta operations
    (<glil-asm> vars meta body)
    (<glil-bind> vars)
+   (<glil-mv-bind> vars rest)
    (<glil-unbind>)
    (<glil-source> loc)
    ;; Objects

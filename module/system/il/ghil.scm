@@ -62,6 +62,9 @@
    <ghil-bind> make-ghil-bind ghil-bind?
    ghil-bind-env ghil-bind-loc ghil-bind-vars ghil-bind-vals ghil-bind-body
 
+   <ghil-mv-bind> make-ghil-mv-bind ghil-mv-bind?
+   ghil-mv-bind-env ghil-mv-bind-loc ghil-mv-bind-producer ghil-mv-bind-vars ghil-mv-bind-rest ghil-mv-bind-body
+
    <ghil-lambda> make-ghil-lambda ghil-lambda?
    ghil-lambda-env ghil-lambda-loc ghil-lambda-vars ghil-lambda-rest
    ghil-lambda-meta ghil-lambda-body
@@ -117,6 +120,7 @@
    (<ghil-or> env loc exps)
    (<ghil-begin> env loc exps)
    (<ghil-bind> env loc vars vals body)
+   (<ghil-mv-bind> env loc producer vars rest body)
    (<ghil-lambda> env loc vars rest meta body)
    (<ghil-call> env loc proc args)
    (<ghil-mv-call> env loc producer consumer)

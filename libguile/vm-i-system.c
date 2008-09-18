@@ -713,6 +713,7 @@ VM_DEFINE_INSTRUCTION (goto_nargs, "goto/nargs", 0, 0, 1)
   SCM x;
   POP (x);
   nargs = scm_to_int (x);
+  /* FIXME: should truncate values? */
   goto vm_goto_args;
 }
 
@@ -721,6 +722,7 @@ VM_DEFINE_INSTRUCTION (call_nargs, "call/nargs", 0, 0, 1)
   SCM x;
   POP (x);
   nargs = scm_to_int (x);
+  /* FIXME: should truncate values? */
   goto vm_call;
 }
 
@@ -961,6 +963,29 @@ VM_DEFINE_INSTRUCTION (return_values_star, "return/values*", 1, -1, -1)
     }
 
   goto vm_return_values;
+}
+
+VM_DEFINE_INSTRUCTION (truncate_values, "truncate-values", 2, -1, -1)
+{
+  SCM x;
+  int nbinds, rest;
+  POP (x);
+  nvalues = scm_to_int (x);
+  nbinds = FETCH ();
+  rest = FETCH ();
+
+  if (rest)
+    nbinds--;
+
+  if (nvalues < nbinds)
+    goto vm_error_not_enough_values;
+
+  if (rest)
+    POP_LIST (nvalues - nbinds);
+  else
+    DROPN (nvalues - nbinds);
+
+  NEXT;
 }
 
 /*

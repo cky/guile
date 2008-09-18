@@ -35,13 +35,31 @@
 ;;; Stage 2: Optimization
 ;;;
 
+(define (lift-variables! env)
+  (let ((parent-env (ghil-env-parent env)))
+    (for-each (lambda (v)
+                (case (ghil-var-kind v)
+                  ((argument) (set! (ghil-var-kind v) 'local)))
+                (set! (ghil-var-env v) parent-env)
+                (ghil-env-add! parent-env v))
+              (ghil-env-variables env))))
+
 (define (optimize x)
   (record-case x
     ((<ghil-set> env loc var val)
      (make-ghil-set env var (optimize val)))
 
+    ((<ghil-define> env loc var val)
+     (make-ghil-define env var (optimize val)))
+
     ((<ghil-if> env loc test then else)
      (make-ghil-if env loc (optimize test) (optimize then) (optimize else)))
+
+    ((<ghil-and> env loc exps)
+     (make-ghil-and env loc (map optimize exps)))
+
+    ((<ghil-or> env loc exps)
+     (make-ghil-or env loc (map optimize exps)))
 
     ((<ghil-begin> env loc exps)
      (make-ghil-begin env loc (map optimize exps)))
@@ -63,16 +81,22 @@
          ((<ghil-lambda> env loc vars rest meta body)
           (cond
            ((not rest)
-            (for-each (lambda (v)
-                        (case (ghil-var-kind v)
-                          ((argument) (set! (ghil-var-kind v) 'local)))
-                        (set! (ghil-var-env v) parent-env)
-                        (ghil-env-add! parent-env v))
-                      (ghil-env-variables env)))
+            (lift-variables! env)
+            (make-ghil-bind parent-env loc (map optimize args)))
            (else
             (make-ghil-call parent-env loc (optimize proc) (map optimize args)))))
          (else
           (make-ghil-call parent-env loc (optimize proc) (map optimize args))))))
+
+    ((<ghil-mv-call> env loc producer consumer)
+     (record-case consumer
+      ;; (mv-call PRODUCER (lambda ARGS BODY...)) =>
+      ;;   (mv-let PRODUCER ARGS BODY...)
+      ((<ghil-lambda> env loc vars rest meta body)
+       (lift-variables! env)
+       (make-ghil-mv-bind producer vars rest body))
+      (else
+       (make-ghil-mv-call env loc (optimize producer) (optimize consumer)))))
 
     (else x)))
 
@@ -116,15 +140,11 @@
     (define (push-code! loc code)
       (set! stack (cons code stack))
       (if loc (set! stack (cons (make-glil-source loc) stack))))
+    (define (var->binding var)
+      (list (ghil-var-name var) (ghil-var-kind var) (ghil-var-index var)))
     (define (push-bindings! loc vars)
       (if (not (null? vars))
-          (push-code!
-           loc
-           (make-glil-bind
-            (map list
-                 (map ghil-var-name vars)
-                 (map ghil-var-kind vars)
-                 (map ghil-var-index vars))))))
+          (push-code! loc (make-glil-bind (map var->binding vars)))))
     (define (comp tree tail drop)
       (define (push-label! label)
 	(push-code! #f (make-glil-label label)))
@@ -289,6 +309,21 @@
 		   (reverse vars))
 	 (comp-tail body)
 	 (push-code! #f (make-glil-unbind)))
+
+	((<ghil-mv-bind> env loc producer vars rest body)
+	 ;; VALS...
+	 ;; (set VARS)...
+	 ;; BODY
+         (let ((MV (make-label)))
+           (comp-push producer)
+           (push-code! loc (make-glil-mv-call 0 MV))
+           (push-code! #f (make-glil-const #:obj 1))
+           (push-label! MV)
+           (push-code! #f (make-glil-mv-bind (map var->binding vars) rest))
+           (for-each (lambda (var) (push-code! #f (make-glil-var 'set env var)))
+                     (reverse vars)))
+         (comp-tail body)
+         (push-code! #f (make-glil-unbind)))
 
 	((<ghil-lambda> env loc vars rest meta body)
 	 (return-code! loc (codegen tree)))
