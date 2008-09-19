@@ -625,7 +625,7 @@ void
 scm_storage_prehistory ()
 {
   GC_all_interior_pointers = 0;
-  GC_free_space_divisor = scm_getenv_int ("GC_FREE_SPACE_DIVISOR", 3);
+  GC_set_free_space_divisor (scm_getenv_int ("GC_FREE_SPACE_DIVISOR", 3));
 
   GC_INIT ();
 
