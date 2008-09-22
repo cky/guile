@@ -491,7 +491,7 @@ scm_i_symbol_substring (SCM sym, size_t start, size_t end)
   scm_i_pthread_mutex_lock (&stringbuf_write_mutex);
   SET_STRINGBUF_SHARED (buf);
   scm_i_pthread_mutex_unlock (&stringbuf_write_mutex);
-  return scm_double_cell (STRING_TAG, SCM_UNPACK(buf),
+  return scm_double_cell (RO_STRING_TAG, SCM_UNPACK (buf),
 			  (scm_t_bits)start, (scm_t_bits) end - start);
 }
 

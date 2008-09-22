@@ -63,6 +63,7 @@ available: Guile is now always configured in "maintainer mode".
 
 * Bugs fixed
 
+** `symbol->string' now returns a read-only string, as per R5RS
 ** `guile-config link' now prints `-L$libdir' before `-lguile'
 ** Fix memory corruption involving GOOPS' `class-redefinition'
 ** Fix possible deadlock in `mutex-lock'
