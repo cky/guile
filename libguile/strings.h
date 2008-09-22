@@ -152,6 +152,7 @@ SCM_INTERNAL void scm_i_get_substring_spec (size_t len,
 					    SCM start, size_t *cstart,
 					    SCM end, size_t *cend);
 SCM_INTERNAL SCM scm_i_take_stringbufn (char *str, size_t len);
+SCM_INTERNAL SCM scm_i_make_read_only_string (SCM str);
 
 /* deprecated stuff */
 

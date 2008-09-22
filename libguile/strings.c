@@ -218,6 +218,12 @@ get_str_buf_start (SCM *str, SCM *buf, size_t *start)
 }
 
 SCM
+scm_i_make_read_only_string (SCM str)
+{
+  return scm_i_substring_read_only (str, 0, STRING_LENGTH (str));
+}
+
+SCM
 scm_i_substring (SCM str, size_t start, size_t end)
 {
   SCM buf;
@@ -234,15 +240,28 @@ scm_i_substring (SCM str, size_t start, size_t end)
 SCM
 scm_i_substring_read_only (SCM str, size_t start, size_t end)
 {
-  SCM buf;
-  size_t str_start;
-  get_str_buf_start (&str, &buf, &str_start);
-  scm_i_pthread_mutex_lock (&stringbuf_write_mutex);
-  SET_STRINGBUF_SHARED (buf);
-  scm_i_pthread_mutex_unlock (&stringbuf_write_mutex);
-  return scm_double_cell (RO_STRING_TAG, SCM_UNPACK(buf),
-			  (scm_t_bits)str_start + start,
-			  (scm_t_bits) end - start);
+  SCM result;
+
+  if (SCM_UNLIKELY (STRING_LENGTH (str) == 0))
+    /* We want the empty string to be `eq?' with the read-only empty
+       string.  */
+    result = str;
+  else
+    {
+      SCM buf;
+      size_t str_start;
+
+      get_str_buf_start (&str, &buf, &str_start);
+      scm_i_pthread_mutex_lock (&stringbuf_write_mutex);
+      SET_STRINGBUF_SHARED (buf);
+      scm_i_pthread_mutex_unlock (&stringbuf_write_mutex);
+
+      result = scm_double_cell (RO_STRING_TAG, SCM_UNPACK (buf),
+				(scm_t_bits) str_start + start,
+				(scm_t_bits) end - start);
+    }
+
+  return result;
 }
 
 SCM
