@@ -63,6 +63,8 @@ available: Guile is now always configured in "maintainer mode".
 
 * Bugs fixed
 
+** `symbol->string' now returns a read-only string, as per R5RS
+** Literal strings as returned by `read' are now read-only, as per R5RS
 ** `guile-config link' now prints `-L$libdir' before `-lguile'
 ** Fix memory corruption involving GOOPS' `class-redefinition'
 ** Fix possible deadlock in `mutex-lock'
@@ -71,6 +73,7 @@ available: Guile is now always configured in "maintainer mode".
 ** Fix build issue on hppa2.0w-hp-hpux11.11 (`dirent64' and `readdir64_r')
 ** Fix misleading output from `(help rationalize)'
 ** Fix build failure on Debian hppa architecture (bad stack growth detection)
+** Fix `gcd' when called with a single, negative argument.
 
 
 Changes in 1.8.5 (since 1.8.4)

@@ -28,6 +28,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <fcntl.h>  /* for chsize on mingw */
+#include <assert.h>
 
 #include <assert.h>
 
@@ -1012,6 +1013,8 @@ scm_fill_input (SCM port)
 {
   scm_t_port *pt = SCM_PTAB_ENTRY (port);
 
+  assert (pt->read_pos == pt->read_end);
+
   if (pt->read_buf == pt->putback_buf)
     {
       /* finished reading put-back chars.  */
@@ -1074,12 +1077,39 @@ scm_lfwrite (const char *ptr, size_t size, SCM port)
  *
  * Warning: Doesn't update port line and column counts!  */
 
+/* This structure, and the following swap_buffer function, are used
+   for temporarily swapping a port's own read buffer, and the buffer
+   that the caller of scm_c_read provides. */
+struct port_and_swap_buffer
+{
+  scm_t_port *pt;
+  unsigned char *buffer;
+  size_t size;
+};
+
+static void
+swap_buffer (void *data)
+{
+  struct port_and_swap_buffer *psb = (struct port_and_swap_buffer *) data;
+  unsigned char *old_buf = psb->pt->read_buf;
+  size_t old_size = psb->pt->read_buf_size;
+
+  /* Make the port use (buffer, size) from the struct. */
+  psb->pt->read_pos = psb->pt->read_buf = psb->pt->read_end = psb->buffer;
+  psb->pt->read_buf_size = psb->size;
+
+  /* Save the port's old (buffer, size) in the struct. */
+  psb->buffer = old_buf;
+  psb->size = old_size;
+}
+
 size_t
 scm_c_read (SCM port, void *buffer, size_t size)
 #define FUNC_NAME "scm_c_read"
 {
   scm_t_port *pt;
   size_t n_read = 0, n_available;
+  struct port_and_swap_buffer psb;
 
   SCM_VALIDATE_OPINPORT (1, port);
 
@@ -1090,35 +1120,52 @@ scm_c_read (SCM port, void *buffer, size_t size)
   if (pt->rw_random)
     pt->rw_active = SCM_PORT_READ;
 
-  if (SCM_READ_BUFFER_EMPTY_P (pt))
+  /* Take bytes first from the port's read buffer. */
+  if (pt->read_pos < pt->read_end)
     {
-      if (scm_fill_input (port) == EOF)
-	return 0;
-    }
-  
-  n_available = pt->read_end - pt->read_pos;
-  
-  while (n_available < size)
-    {
+      n_available = min (size, pt->read_end - pt->read_pos);
       memcpy (buffer, pt->read_pos, n_available);
       buffer = (char *) buffer + n_available;
       pt->read_pos += n_available;
       n_read += n_available;
-      
-      if (SCM_READ_BUFFER_EMPTY_P (pt))
-	{
-	  if (scm_fill_input (port) == EOF)
-	    return n_read;
-	}
-
       size -= n_available;
-      n_available = pt->read_end - pt->read_pos;
     }
 
-  memcpy (buffer, pt->read_pos, size);
-  pt->read_pos += size;
+  /* Avoid the scm_dynwind_* costs if we now have enough data. */
+  if (size == 0)
+    return n_read;
 
-  return n_read + size;
+  /* Now we will call scm_fill_input repeatedly until we have read the
+     requested number of bytes.  (Note that a single scm_fill_input
+     call does not guarantee to fill the whole of the port's read
+     buffer.)  For these calls, since we already have a buffer here to
+     read into, we bypass the port's own read buffer (if it has one),
+     by saving it off and modifying the port structure to point to our
+     own buffer.
+
+     We need to make sure that the port's normal buffer is reinstated
+     in case one of the scm_fill_input () calls throws an exception;
+     we use the scm_dynwind_* API to achieve that. */
+  psb.pt = pt;
+  psb.buffer = buffer;
+  psb.size = size;
+  scm_dynwind_begin (SCM_F_DYNWIND_REWINDABLE);
+  scm_dynwind_rewind_handler (swap_buffer, &psb, SCM_F_WIND_EXPLICITLY);
+  scm_dynwind_unwind_handler (swap_buffer, &psb, SCM_F_WIND_EXPLICITLY);
+
+  /* Call scm_fill_input until we have all the bytes that we need, or
+     we hit EOF. */
+  while (pt->read_buf_size && (scm_fill_input (port) != EOF))
+    {
+      pt->read_buf_size -= (pt->read_end - pt->read_pos);
+      pt->read_pos = pt->read_buf = pt->read_end;
+    }
+  n_read += pt->read_buf - (unsigned char *) buffer;
+
+  /* Reinstate the port's normal buffer. */
+  scm_dynwind_end ();
+
+  return n_read;
 }
 #undef FUNC_NAME
 
