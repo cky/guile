@@ -71,6 +71,8 @@ struct scm_vm {
   unsigned long clock;		/* bogos clock */
 };
 
+extern SCM scm_the_vm_fluid;
+
 #define SCM_VM_P(x)		SCM_SMOB_PREDICATE (scm_tc16_vm, x)
 #define SCM_VM_DATA(vm)		((struct scm_vm *) SCM_SMOB_DATA (vm))
 #define SCM_VALIDATE_VM(pos,x)	SCM_MAKE_VALIDATE (pos, x, VM_P)

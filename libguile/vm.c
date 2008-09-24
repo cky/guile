@@ -259,7 +259,7 @@ vm_heapify_frames (SCM vm)
 
 scm_t_bits scm_tc16_vm;
 
-static SCM the_vm;
+SCM scm_the_vm_fluid;
 
 static SCM
 make_vm (void)
@@ -342,7 +342,7 @@ SCM_DEFINE (scm_the_vm, "the-vm", 0, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_the_vm
 {
-  return the_vm;
+  return scm_fluid_ref (scm_the_vm_fluid);
 }
 #undef FUNC_NAME
 
@@ -628,7 +628,7 @@ SCM scm_load_compiled_with_vm (SCM file)
 {
   SCM program = scm_objcode_to_program (scm_load_objcode (file));
   
-  return vm_run (the_vm, program, SCM_EOL);
+  return vm_run (scm_the_vm (), program, SCM_EOL);
 }
 
 void
@@ -653,7 +653,9 @@ scm_bootstrap_vm (void)
   scm_set_smob_free (scm_tc16_vm, vm_free);
   scm_set_smob_apply (scm_tc16_vm, scm_vm_apply, 1, 0, 1);
 
-  the_vm = scm_permanent_object (make_vm ());
+  scm_the_vm_fluid = scm_permanent_object (scm_make_fluid ());
+  scm_fluid_set_x (scm_the_vm_fluid, make_vm ());
+  scm_c_define ("*the-vm*", scm_the_vm_fluid);
 
   scm_c_define ("load-compiled",
                 scm_c_make_gsubr ("load-compiled/vm", 1, 0, 0,
