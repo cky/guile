@@ -107,6 +107,9 @@ extern SCM scm_vm_save_stack (SCM vm);
 extern SCM scm_vm_fetch_code (SCM vm);
 extern SCM scm_vm_fetch_stack (SCM vm);
 
+extern SCM scm_vm_capture_continuations (void);
+extern void scm_vm_reinstate_continuations (SCM conts);
+
 extern SCM scm_load_compiled_with_vm (SCM file);
 
 extern void scm_init_vm (void);

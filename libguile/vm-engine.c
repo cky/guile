@@ -82,7 +82,12 @@ vm_run (SCM vm, SCM program, SCM args)
   wind_data.fp = vp->fp;
   wind_data.this_frame = vp->this_frame;
   scm_dynwind_unwind_handler (vm_reset_stack, &wind_data, 0);
-  
+
+  /* could do this if we reified all vm stacks -- for now, don't bother changing
+     *the-vm*
+  if (scm_fluid_ref (scm_the_vm_fluid) != vm)
+    scm_dynwind_fluid (scm_the_vm_fluid, vm);
+   */
 
 #ifdef HAVE_LABELS_AS_VALUES
   /* Jump table */

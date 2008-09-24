@@ -65,38 +65,98 @@
 
 scm_t_bits scm_tc16_vm_cont;
 
+struct scm_vm_cont {
+  scm_byte_t *ip;
+  scm_t_ptrdiff sp;
+  scm_t_ptrdiff fp;
+  scm_t_ptrdiff stack_size;
+  SCM *stack_base;
+};
+
 
 #define SCM_VM_CONT_P(OBJ)	SCM_SMOB_PREDICATE (scm_tc16_vm_cont, OBJ)
-#define SCM_VM_CONT_VP(CONT)	((struct scm_vm *) SCM_CELL_WORD_1 (CONT))
+#define SCM_VM_CONT_DATA(CONT)	((struct scm_vm_cont *) SCM_CELL_WORD_1 (CONT))
+
+static SCM
+vm_cont_mark (SCM obj)
+{
+  scm_t_ptrdiff i, size;
+  SCM *stack;
+
+  stack = SCM_VM_CONT_DATA (obj)->stack_base;
+  size = SCM_VM_CONT_DATA (obj)->stack_size;
+
+  /* we could be smarter about this. */
+  for (i = 0; i < size; i ++)
+    if (SCM_NIMP (stack[i]))
+      scm_gc_mark (stack[i]);
+
+  return SCM_BOOL_F;
+}
+
+static scm_sizet
+vm_cont_free (SCM obj)
+{
+  struct scm_vm_cont *p = SCM_VM_CONT_DATA (obj);
+
+  scm_gc_free (p->stack_base, p->stack_size * sizeof (SCM), "stack-base");
+  scm_gc_free (p, sizeof (struct scm_vm), "vm");
+
+  return 0;
+}
 
 static SCM
 capture_vm_cont (struct scm_vm *vp)
 {
-  struct scm_vm *p = scm_gc_malloc (sizeof (*p), "capture_vm_cont");
-  p->stack_size = vp->stack_limit - vp->sp;
+  struct scm_vm_cont *p = scm_gc_malloc (sizeof (*p), "capture_vm_cont");
+  p->stack_size = vp->sp - vp->stack_base + 1;
   p->stack_base = scm_gc_malloc (p->stack_size * sizeof (SCM),
 				 "capture_vm_cont");
-  p->stack_limit = p->stack_base + p->stack_size - 2;
   p->ip = vp->ip;
-  p->sp = (SCM *) (vp->stack_limit - vp->sp);
-  p->fp = (SCM *) (vp->stack_limit - vp->fp);
-  memcpy (p->stack_base, vp->sp + 1, vp->stack_size * sizeof (SCM));
+  p->sp = vp->sp - vp->stack_base;
+  p->fp = vp->fp - vp->stack_base;
+  memcpy (p->stack_base, vp->stack_base, p->stack_size * sizeof (SCM));
   SCM_RETURN_NEWSMOB (scm_tc16_vm_cont, p);
 }
 
 static void
 reinstate_vm_cont (struct scm_vm *vp, SCM cont)
 {
-  struct scm_vm *p = SCM_VM_CONT_VP (cont);
+  struct scm_vm_cont *p = SCM_VM_CONT_DATA (cont);
   if (vp->stack_size < p->stack_size)
     {
       /* puts ("FIXME: Need to expand"); */
       abort ();
     }
   vp->ip = p->ip;
-  vp->sp = vp->stack_limit - (intptr_t) p->sp;
-  vp->fp = vp->stack_limit - (intptr_t) p->fp;
-  memcpy (vp->sp + 1, p->stack_base, p->stack_size * sizeof (SCM));
+  vp->sp = vp->stack_base + p->sp;
+  vp->fp = vp->stack_base + p->fp;
+  memcpy (vp->stack_base, p->stack_base, p->stack_size * sizeof (SCM));
+}
+
+/* In theory, a number of vm instances can be active in the call trace, and we
+   only want to reify the continuations of those in the current continuation
+   root. I don't see a nice way to do this -- ideally it would involve dynwinds,
+   and previous values of the *the-vm* fluid within the current continuation
+   root. But we don't have access to continuation roots in the dynwind stack.
+   So, just punt for now -- take the current value of *the-vm*.
+
+   While I'm on the topic, ideally we could avoid copying the C stack if the
+   continuation root is inside VM code, and call/cc was invoked within that same
+   call to vm_run; but that's currently not implemented.
+ */
+SCM
+scm_vm_capture_continuations (void)
+{
+  SCM vm = scm_the_vm ();
+  return scm_acons (vm, capture_vm_cont (SCM_VM_DATA (vm)), SCM_EOL);
+}
+
+void
+scm_vm_reinstate_continuations (SCM conts)
+{
+  for (; conts != SCM_EOL; conts = SCM_CDR (conts))
+    reinstate_vm_cont (SCM_VM_DATA (SCM_CAAR (conts)), SCM_CDAR (conts));
 }
 
 struct vm_unwind_data 
@@ -115,28 +175,6 @@ vm_reset_stack (void *data)
   w->vp->sp = w->sp;
   w->vp->fp = w->fp;
   w->vp->this_frame = w->this_frame;
-}
-
-static SCM
-vm_cont_mark (SCM obj)
-{
-  SCM *p;
-  struct scm_vm *vp = SCM_VM_CONT_VP (obj);
-  for (p = vp->stack_base; p <= vp->stack_limit; p++)
-    if (SCM_NIMP (*p))
-      scm_gc_mark (*p);
-  return SCM_BOOL_F;
-}
-
-static scm_sizet
-vm_cont_free (SCM obj)
-{
-  struct scm_vm *p = SCM_VM_CONT_VP (obj);
-
-  scm_gc_free (p->stack_base, p->stack_size * sizeof (SCM), "stack-base");
-  scm_gc_free (p, sizeof (struct scm_vm), "vm");
-
-  return 0;
 }
 
 
