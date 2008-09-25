@@ -205,7 +205,7 @@
 		(lambda ()
 		  (debug-disable 'debug 'procnames)
 		  (read-disable 'positions)
-		  (load-from-path "ice-9/psyntax.pp"))
+		  (load-from-path "ice-9/psyntax-pp"))
 		(lambda ()
 		  (debug-options old-debug)
 		  (read-options old-read))))

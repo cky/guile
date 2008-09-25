@@ -25,14 +25,20 @@ SUBDIRS = debugger debugging
 
 # These should be installed and distributed.
 modpath = ice-9
-SOURCES = and-let-star.scm boot-9.scm
+# Compile psyntax and boot-9 first, so that we get the speed benefit in
+# the rest of the compilation. Also, if there is too much switching back
+# and forth between interpreted and compiled code, we end up using more
+# of the C stack than the interpreter would have; so avoid that by
+# putting these core modules first.
+SOURCES = psyntax-pp.scm boot-9.scm \
+	and-let-star.scm
 NOCOMP_SOURCES =							\
 	 calling.scm common-list.scm					\
 	debug.scm debugger.scm documentation.scm emacs.scm expect.scm	\
 	format.scm getopt-long.scm hcons.scm i18n.scm			\
 	lineio.scm ls.scm mapping.scm					\
 	match.scm networking.scm null.scm optargs.scm poe.scm popen.scm	\
-	posix.scm psyntax.pp psyntax.ss q.scm r4rs.scm r5rs.scm		\
+	posix.scm psyntax.ss q.scm r4rs.scm r5rs.scm		\
 	rdelim.scm receive.scm regex.scm runq.scm rw.scm		\
 	safe-r5rs.scm safe.scm session.scm slib.scm stack-catch.scm	\
 	streams.scm string-fun.scm syncase.scm threads.scm		\
@@ -50,12 +56,12 @@ TAGS_FILES = $(SOURCES)
 
 if MAINTAINER_MODE
 # We expect this to never be invoked when there is not already
-# ice-9/psyntax.pp in %load-path, since compile-psyntax.scm depends
-# on ice-9/syncase.scm, which does `(load-from-path "ice-9/psyntax.pp")'.
+# ice-9/psyntax-pp.scm in %load-path, since compile-psyntax.scm depends
+# on ice-9/syncase.scm, which does `(load-from-path "ice-9/psyntax-pp.scm")'.
 # In other words, to bootstrap this file, you need to do something like:
-#    GUILE_LOAD_PATH=/usr/local/share/guile/1.5.4 make psyntax.pp
+#    GUILE_LOAD_PATH=/usr/local/share/guile/1.5.4 make psyntax-pp.scm
 include $(top_srcdir)/am/pre-inst-guile
-psyntax.pp: psyntax.ss
+psyntax-pp.scm: psyntax.ss
 	$(preinstguile) -s $(srcdir)/compile-psyntax.scm \
-		$(srcdir)/psyntax.ss $(srcdir)/psyntax.pp
+		$(srcdir)/psyntax.ss $(srcdir)/psyntax-pp.scm
 endif
