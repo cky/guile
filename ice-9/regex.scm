@@ -1,4 +1,4 @@
-;;;; 	Copyright (C) 1997, 1999, 2001, 2004, 2005, 2006 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1997, 1999, 2001, 2004, 2005, 2006, 2008 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -178,7 +178,7 @@
 
 (define (fold-matches regexp string init proc . flags)
   (let ((regexp (if (regexp? regexp) regexp (make-regexp regexp)))
-	(flags (if (null? flags) 0 flags)))
+	(flags (if (null? flags) 0 (car flags))))
     (let loop ((start 0)
 	       (value init)
 	       (abuts #f))		; True if start abuts a previous match.

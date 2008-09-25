@@ -1,7 +1,7 @@
 ;;;; regexp.test --- test Guile's regular expression functions -*- scheme -*-
 ;;;; Jim Blandy <jimb@red-bean.com> --- September 1999
 ;;;;
-;;;; 	Copyright (C) 1999, 2004, 2006, 2007 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1999, 2004, 2006, 2007, 2008 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -101,6 +101,29 @@
   (pass-if-exception "non-integer flags" exception:wrong-type-arg
     (let ((re (make-regexp "ab+")))
       (regexp-exec re "aaaabbbb" 0 'bogus-flags-arg))))      
+
+;;;
+;;; fold-matches
+;;;
+
+(with-test-prefix "fold-matches"
+
+  (pass-if "without flags"
+    (equal? '("hello")
+            (fold-matches "^[a-z]+$" "hello" '()
+                          (lambda (match result)
+                            (cons (match:substring match)
+                                  result)))))
+
+  (pass-if "with flags"
+    ;; Prior to 1.8.6, passing an additional flag would not work.
+    (null?
+     (fold-matches "^[a-z]+$" "hello" '()
+                   (lambda (match result)
+                     (cons (match:substring match)
+                           result))
+                   (logior regexp/notbol regexp/noteol)))))
+
 
 ;;;
 ;;; regexp-quote
