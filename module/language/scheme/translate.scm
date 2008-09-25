@@ -267,6 +267,11 @@
               (make-ghil-lambda env l vars rest meta
                                 (trans-body env l body))))))))
 
+    ;; FIXME not hygienic
+    (delay
+     ((,expr)
+      (retrans `(make-promise (lambda () ,expr)))))
+
     (eval-case
      (,clauses
       (retrans
