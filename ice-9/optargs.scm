@@ -149,11 +149,10 @@
 				 => cdr)
 				(else
 				 ,(cadr key)))))))
-	  `(let* ((ra->kbl ,rest-arg->keyword-binding-list)
-		  (,kb-list-gensym (ra->kbl ,REST-ARG ',(map
-							 (lambda (x) (symbol->keyword (if (pair? x) (car x) x)))
-							 BINDINGS)
-					    ,ALLOW-OTHER-KEYS?)))
+	  `(let ((,kb-list-gensym (rest-arg->keyword-binding-list
+                                   ,REST-ARG ',(map (lambda (x) (symbol->keyword (if (pair? x) (car x) x)))
+                                                    BINDINGS)
+                                   ,ALLOW-OTHER-KEYS?)))
 	     ,(let-o-k-template REST-ARG BINDINGS BODY let-type bindfilter)))))
 
 

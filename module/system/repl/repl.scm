@@ -83,7 +83,7 @@
                 (newline cep)
                 (run-hook after-backtrace-hook))))
        (run-hook before-error-hook)
-       (apply display-error (fluid-ref the-last-stack) cep subr msg args rest)
+       (display-error (fluid-ref the-last-stack) cep subr msg args rest)
        (run-hook after-error-hook)
        (set! stack-saved? #f)
        (force-output cep)))

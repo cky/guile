@@ -38,15 +38,17 @@
 ;;;
 
 (define (syntax-error loc msg exp)
-  (throw 'syntax-error loc msg exp))
+  (throw 'syntax-error-compile-time loc msg exp))
 
 (define-macro (call-with-compile-error-catch thunk)
-  `(catch 'syntax-error
+  `(catch 'syntax-error-compile-time
 	 ,thunk
 	 (lambda (key loc msg exp)
 	   (if (pair? loc)
-	       (format #t "~A:~A: ~A: ~A~%" (car loc) (cdr loc) msg exp)
-	       (format #t "unknown location: ~A: ~A~%" msg exp)))))
+	       (format (current-error-port)
+                       "~A:~A: ~A: ~A~%" (car loc) (cdr loc) msg exp)
+	       (format (current-error-port)
+                       "unknown location: ~A: ~A~%" msg exp)))))
 
 (export-syntax  call-with-compile-error-catch)
 

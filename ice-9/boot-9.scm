@@ -523,10 +523,10 @@
 
 
 (if (provided? 'posix)
-    (primitive-load-path "ice-9/posix.scm"))
+    (primitive-load-path "ice-9/posix"))
 
 (if (provided? 'socket)
-    (primitive-load-path "ice-9/networking.scm"))
+    (primitive-load-path "ice-9/networking"))
 
 ;; For reference, Emacs file-exists-p uses stat in this same way.
 ;; ENHANCE-ME: Catching an exception from stat is a bit wasteful, do this in
@@ -3406,7 +3406,7 @@ module '(ice-9 q) '(make-q q-length))}."
    (provided? sym)))
 
 (begin-deprecated
- (primitive-load-path "ice-9/deprecated.scm"))
+ (primitive-load-path "ice-9/deprecated"))
 
 
 

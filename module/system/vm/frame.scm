@@ -127,7 +127,9 @@
         (object-property prog 'name)
         (and (heap-frame? link) (frame-address link)
              (frame-object-name link (1- (frame-address link)) prog))
-	(hash-fold (lambda (s v d) (if (eq? prog (variable-ref v)) s d))
+	(hash-fold (lambda (s v d) (if (and (variable-bound? v)
+                                            (eq? prog (variable-ref v)))
+                                       s d))
 		   prog (module-obarray (current-module))))))
 
 

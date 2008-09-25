@@ -25,6 +25,7 @@
   #:use-module (system il ghil)
   #:use-module (system il inline)
   #:use-module (ice-9 receive)
+  #:use-module ((ice-9 syncase) #:select (sc-macro))
   #:use-module ((system base compile) #:select (syntax-error))
   #:export (translate))
 
@@ -63,7 +64,7 @@
       (lambda (env loc exp)
         (retrans (apply (defmacro-transformer val) (cdr exp)))))
 
-     ((and (macro? val) (eq? (macro-name val) 'sc-macro))
+     ((eq? val sc-macro)
       ;; syncase!
       (let* ((the-syncase-module (resolve-module '(ice-9 syncase)))
              (eec (module-ref the-syncase-module 'expansion-eval-closure))
@@ -92,7 +93,7 @@
             ;; FIXME: lexical/module overrides of forbidden primitives
             ((memq head *forbidden-primitives*)
    	     (syntax-error l (format #f "`~a' is forbidden" head)
-   			   (cons head tail)))
+                           (cons head tail)))
 
             (else
              (let ((tail (map retrans tail)))
