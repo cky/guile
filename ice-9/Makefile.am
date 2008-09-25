@@ -31,21 +31,28 @@ modpath = ice-9
 # of the C stack than the interpreter would have; so avoid that by
 # putting these core modules first.
 SOURCES = psyntax-pp.scm boot-9.scm \
-	and-let-star.scm
-NOCOMP_SOURCES =							\
-	 calling.scm common-list.scm					\
+	and-let-star.scm calling.scm common-list.scm			\
 	debug.scm debugger.scm documentation.scm emacs.scm expect.scm	\
 	format.scm getopt-long.scm hcons.scm i18n.scm			\
 	lineio.scm ls.scm mapping.scm					\
-	match.scm networking.scm null.scm optargs.scm poe.scm popen.scm	\
-	posix.scm psyntax.ss q.scm r4rs.scm r5rs.scm		\
+	networking.scm null.scm optargs.scm poe.scm popen.scm		\
+	posix.scm psyntax.ss q.scm r4rs.scm r5rs.scm			\
 	rdelim.scm receive.scm regex.scm runq.scm rw.scm		\
 	safe-r5rs.scm safe.scm session.scm slib.scm stack-catch.scm	\
 	streams.scm string-fun.scm syncase.scm threads.scm		\
 	buffered-input.scm time.scm history.scm channel.scm		\
-        pretty-print.scm ftw.scm gap-buffer.scm occam-channel.scm	\
+        pretty-print.scm ftw.scm gap-buffer.scm				\
 	weak-vector.scm deprecated.scm list.scm serialize.scm		\
-	gds-client.scm gds-server.scm
+	gds-server.scm
+
+# match.scm compiles, but then using it (via
+# snarf-check-and-output-texi) fails. need to figure out what the
+# problem is.
+# 
+# occam-channel and gds-client use goops, which is not yet vm-compatible
+# (it does some compilation-like optimizations for the interpreter), so
+# punt on them for the time being.
+NOCOMP_SOURCES = match.scm occam-channel.scm gds-client.scm
 
 include $(top_srcdir)/guilec.mk
 
