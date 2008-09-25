@@ -2730,18 +2730,18 @@ module '(ice-9 q) '(make-q q-length))}."
 ;; This is probably a bug in syncase.
 ;;
 (define-macro (while cond . body)
-  (define (while-helper proc)
-    (do ((key (make-symbol "while-key")))
-	((catch key
-		(lambda ()
-		  (proc (lambda () (throw key #t))
-			(lambda () (throw key #f))))
-		(lambda (key arg) arg)))))
-  `(,while-helper (,lambda (break continue)
-		    (do ()
-			((,not ,cond))
-		      ,@body)
-		    #t)))
+  (let ((key (make-symbol "while-key")))
+    `(do ()
+         ((catch ',key
+                 (lambda ()
+                   (let ((break (lambda () (throw ',key #t)))
+                         (continue (lambda () (throw ',key #f))))
+                     (do ()
+                         ((not ,cond))
+                       ,@body)
+                     #t))
+                 (lambda (key arg)
+                   arg))))))
 
 
 

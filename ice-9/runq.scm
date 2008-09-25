@@ -216,13 +216,14 @@
 ;;;
 ;;; 		Returns a new strip which is the concatenation of the argument strips.
 ;;;
-(define ((strip-sequence . strips))
-  (let loop ((st (let ((a strips)) (set! strips #f) a)))
-    (and (not (null? st))
-	 (let ((then ((car st))))
-	   (if then
-	       (lambda () (loop (cons then (cdr st))))
-	       (lambda () (loop (cdr st))))))))
+(define (strip-sequence . strips)
+  (lambda ()
+    (let loop ((st (let ((a strips)) (set! strips #f) a)))
+      (and (not (null? st))
+           (let ((then ((car st))))
+             (if then
+                 (lambda () (loop (cons then (cdr st))))
+                 (lambda () (loop (cdr st)))))))))
 
 
 ;;;;

@@ -22,73 +22,71 @@
   :use-module (ice-9 rdelim)
   :export (help apropos apropos-internal apropos-fold
 	   apropos-fold-accessible apropos-fold-exported apropos-fold-all
-	   source arity system-module))
+	   source arity))
 
 
 
 ;;; Documentation
 ;;;
-(define help
-  (procedure->syntax
-    (lambda (exp env)
-      "(help [NAME])
+(define-macro (help . exp)
+  "(help [NAME])
 Prints useful information.  Try `(help)'."
-      (cond ((not (= (length exp) 2))
-             (help-usage))
-            ((not (provided? 'regex))
-             (display "`help' depends on the `regex' feature.
+  (cond ((not (= (length exp) 1))
+         (help-usage))
+        ((not (provided? 'regex))
+         (display "`help' depends on the `regex' feature.
 You don't seem to have regular expressions installed.\n"))
+        (else
+         (let ((name (car exp))
+               (not-found (lambda (type x)
+                            (simple-format #t "No ~A found for ~A\n"
+                                           type x))))
+           (cond
+            
+            ;; SYMBOL
+            ((symbol? name)
+             (help-doc name
+                       (simple-format
+                        #f "^~A$"
+                        (regexp-quote (symbol->string name)))))
+            
+            ;; "STRING"
+            ((string? name)
+             (help-doc name name))
+
+            ;; (unquote SYMBOL)
+            ((and (list? name)
+                  (= (length name) 2)
+                  (eq? (car name) 'unquote))
+             (cond ((object-documentation
+                     (eval (cadr name) (current-module)))
+                    => write-line)
+                   (else (not-found 'documentation (cadr name)))))
+
+            ;; (quote SYMBOL)
+            ((and (list? name)
+                  (= (length name) 2)
+                  (eq? (car name) 'quote)
+                  (symbol? (cadr name)))
+             (cond ((search-documentation-files (cadr name))
+                    => write-line)
+                   (else (not-found 'documentation (cadr name)))))
+
+            ;; (SYM1 SYM2 ...)
+            ((and (list? name)
+                  (and-map symbol? name)
+                  (not (null? name))
+                  (not (eq? (car name) 'quote)))
+             (cond ((module-commentary name)
+                    => (lambda (doc)
+                         (display name) (write-line " commentary:")
+                         (write-line doc)))
+                   (else (not-found 'commentary name))))
+
+            ;; unrecognized
             (else
-             (let ((name (cadr exp))
-                   (not-found (lambda (type x)
-                                (simple-format #t "No ~A found for ~A\n"
-                                               type x))))
-               (cond
-
-                ;; SYMBOL
-                ((symbol? name)
-                 (help-doc name
-                           (simple-format
-                            #f "^~A$"
-                            (regexp-quote (symbol->string name)))))
-
-                ;; "STRING"
-                ((string? name)
-                 (help-doc name name))
-
-                ;; (unquote SYMBOL)
-                ((and (list? name)
-                      (= (length name) 2)
-                      (eq? (car name) 'unquote))
-                 (cond ((object-documentation
-                         (local-eval (cadr name) env))
-                        => write-line)
-                       (else (not-found 'documentation (cadr name)))))
-
-                ;; (quote SYMBOL)
-                ((and (list? name)
-                      (= (length name) 2)
-                      (eq? (car name) 'quote)
-                      (symbol? (cadr name)))
-                 (cond ((search-documentation-files (cadr name))
-                        => write-line)
-                       (else (not-found 'documentation (cadr name)))))
-
-                ;; (SYM1 SYM2 ...)
-                ((and (list? name)
-                      (and-map symbol? name)
-                      (not (null? name))
-                      (not (eq? (car name) 'quote)))
-                 (cond ((module-commentary name)
-                        => (lambda (doc)
-                             (display name) (write-line " commentary:")
-                             (write-line doc)))
-                       (else (not-found 'commentary name))))
-
-                ;; unrecognized
-                (else
-                 (help-usage)))
-               *unspecified*))))))
+             (help-usage)))
+           '(begin)))))
 
 (define (module-filename name)          ; fixme: better way? / done elsewhere?
   (let* ((name (map symbol->string name))
@@ -457,18 +455,5 @@ It is an image under the mapping EXTRACT."
 	      (display formals)
 	      (display #\'))))))))
   (display ".\n"))
-
-(define system-module
-  (procedure->syntax
-   (lambda (exp env)
-     (let* ((m (nested-ref the-root-module
-			   (append '(app modules) (cadr exp)))))
-       (if (not m)
-	   (error "Couldn't find any module named" (cadr exp)))
-       (let ((s (not (procedure-property (module-eval-closure m)
-					 'system-module))))
-	 (set-system-module! m s)
-	 (string-append "Module " (symbol->string (module-name m))
-			" is now a " (if s "system" "user") " module."))))))
 
 ;;; session.scm ends here

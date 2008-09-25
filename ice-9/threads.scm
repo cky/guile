@@ -47,12 +47,13 @@
 
 
 
-(define ((par-mapper mapper)  proc . arglists)
-  (mapper join-thread
-	  (apply map
-		 (lambda args
-		   (begin-thread (apply proc args)))
-		 arglists)))
+(define (par-mapper mapper)
+  (lambda (proc . arglists)
+    (mapper join-thread
+            (apply map
+                   (lambda args
+                     (begin-thread (apply proc args)))
+                   arglists))))
 
 (define par-map (par-mapper map))
 (define par-for-each (par-mapper for-each))

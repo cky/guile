@@ -197,9 +197,10 @@
 ;;; (define-public string-prefix=? (string-prefix-predicate string=?))
 ;;;
 
-(define ((string-prefix-predicate pred?) prefix str)
-  (and (<= (string-length prefix) (string-length str))
-       (pred? prefix (substring str 0 (string-length prefix)))))
+(define (string-prefix-predicate pred?)
+  (lambda (prefix str)
+    (and (<= (string-length prefix) (string-length str))
+         (pred? prefix (substring str 0 (string-length prefix))))))
 
 (define string-prefix=? (string-prefix-predicate string=?))
 
