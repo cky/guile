@@ -732,7 +732,7 @@ dispatch:
 
 
 	case (ISYMNUM (SCM_IM_DELAY)):
-	  RETURN (scm_makprom (scm_closure (SCM_CDR (x), env)));
+	  RETURN (scm_make_promise (scm_closure (SCM_CDR (x), env)));
 
 #if 0
 	  /* See futures.h for a comment why futures are not enabled.

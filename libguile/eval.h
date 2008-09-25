@@ -162,7 +162,7 @@ SCM_API SCM scm_dapply (SCM proc, SCM arg1, SCM args);
 SCM_API SCM scm_map (SCM proc, SCM arg1, SCM args);
 SCM_API SCM scm_for_each (SCM proc, SCM arg1, SCM args);
 SCM_API SCM scm_closure (SCM code, SCM env);
-SCM_API SCM scm_makprom (SCM code);
+SCM_API SCM scm_make_promise (SCM thunk);
 SCM_API SCM scm_force (SCM x);
 SCM_API SCM scm_promise_p (SCM x);
 SCM_API SCM scm_cons_source (SCM xorig, SCM x, SCM y);

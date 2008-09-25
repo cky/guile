@@ -3662,13 +3662,23 @@ scm_closure (SCM code, SCM env)
 
 scm_t_bits scm_tc16_promise;
 
-SCM 
-scm_makprom (SCM code)
+SCM_DEFINE (scm_make_promise, "make-promise", 1, 0, 0, 
+	    (SCM thunk),
+	    "Create a new promise object.\n\n"
+            "@code{make-promise} is a procedural form of @code{delay}.\n"
+            "These two expressions are equivalent:\n"
+            "@lisp\n"
+	    "(delay @var{exp})\n"
+	    "(make-promise (lambda () @var{exp}))\n"
+            "@end lisp\n")
+#define FUNC_NAME s_scm_make_promise
 {
+  SCM_VALIDATE_THUNK (1, thunk);
   SCM_RETURN_NEWSMOB2 (scm_tc16_promise,
-		       SCM_UNPACK (code),
+		       SCM_UNPACK (thunk),
 		       scm_make_recursive_mutex ());
 }
+#undef FUNC_NAME
 
 static SCM
 promise_mark (SCM promise)
