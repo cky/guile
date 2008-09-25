@@ -524,6 +524,7 @@ VM_DEFINE_INSTRUCTION (call, "call", 1, -1, 1)
       POP (args);
       SYNC_REGISTER ();
       *sp = scm_apply (x, args, SCM_EOL);
+      /* FIXME what if SCM_VALUESP(*sp) */
       NEXT;
     }
   /*
@@ -694,6 +695,7 @@ VM_DEFINE_INSTRUCTION (goto_args, "goto/args", 1, -1, 1)
       POP (args);
       SYNC_REGISTER ();
       *sp = scm_apply (x, args, SCM_EOL);
+      /* FIXME what if SCM_VALUESP(*sp) */
       goto vm_return;
     }
 
@@ -830,20 +832,67 @@ VM_DEFINE_INSTRUCTION (goto_apply, "goto/apply", 1, -1, 1)
   goto vm_goto_args;
 }
 
-VM_DEFINE_INSTRUCTION (call_cc, "call/cc", 1, 1, 1)
+VM_DEFINE_INSTRUCTION (call_cc, "call/cc", 0, 1, 1)
 {
-  SYNC_BEFORE_GC ();
-  PUSH (capture_vm_cont (vp));
-  nargs = 1;
-  goto vm_call;
+  int first;
+  SCM proc, cont;
+  POP (proc);
+  SYNC_ALL ();
+  cont = scm_make_continuation (&first);
+  if (first) 
+    {
+      PUSH (proc);
+      PUSH (cont);
+      nargs = 1;
+      goto vm_call;
+    }
+  else if (SCM_VALUESP (cont))
+    {
+      /* multiple values returned to continuation */
+      SCM values;
+      values = scm_struct_ref (cont, SCM_INUM0);
+      if (SCM_NULLP (values))
+        goto vm_error_wrong_num_args;
+      /* non-tail context does not accept multiple values? */
+      PUSH (SCM_CAR (values));
+      NEXT;
+    }
+  else
+    {
+      PUSH (cont);
+      NEXT;
+    }
 }
 
-VM_DEFINE_INSTRUCTION (goto_cc, "goto/cc", 1, 1, 1)
+VM_DEFINE_INSTRUCTION (goto_cc, "goto/cc", 0, 1, 1)
 {
-  SYNC_BEFORE_GC ();
-  PUSH (capture_vm_cont (vp));
-  nargs = 1;
-  goto vm_goto_args;
+  int first;
+  SCM proc, cont;
+  POP (proc);
+  SYNC_ALL ();
+  cont = scm_make_continuation (&first);
+  if (first) 
+    {
+      PUSH (proc);
+      PUSH (cont);
+      nargs = 1;
+      goto vm_goto_args;
+    }
+  else if (SCM_VALUESP (cont))
+    {
+      /* multiple values returned to continuation */
+      SCM values;
+      values = scm_struct_ref (cont, SCM_INUM0);
+      nvalues = scm_ilength (values);
+      while (!SCM_NULLP (values))
+        PUSH (SCM_CAR (values));
+      goto vm_return_values;
+    }
+  else
+    {
+      PUSH (cont);
+      goto vm_return;
+    }
 }
 
 VM_DEFINE_INSTRUCTION (return, "return", 0, 0, 1)

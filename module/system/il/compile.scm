@@ -331,10 +331,16 @@
 	((<ghil-inline> env loc inline args)
 	 ;; ARGS...
 	 ;; (INST NARGS)
-         ;; FIXME: translate between call and goto/args, etc
-	 (push-call! loc inline args)
-	 (maybe-drop)
-	 (maybe-return))
+         (let ((tail-table '((call . goto/args)
+                             (apply . goto/apply)
+                             (call/cc . goto/cc))))
+           (cond ((and tail (assq-ref tail-table inline))
+                  => (lambda (tail-inst)
+                       (push-call! loc tail-inst args)))
+                 (else
+                  (push-call! loc inline args)
+                  (maybe-drop)
+                  (maybe-return)))))
 
         ((<ghil-values> env loc values)
          (cond (tail ;; (lambda () (values 1 2))

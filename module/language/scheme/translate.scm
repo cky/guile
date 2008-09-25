@@ -331,6 +331,17 @@
      ((,producer ,consumer)
       (make-ghil-mv-call e l (retrans producer) (retrans consumer))))
 
+    ;; FIXME: not hygienic, relies on @call-with-current-continuation
+    ;; not being shadowed
+    (call-with-current-continuation
+     ((,proc)
+      (retrans `(@call-with-current-continuation ,proc)))
+     (else #f))
+
+    (@call-with-current-continuation
+     ((,proc)
+      (make-ghil-inline e l 'call/cc (list (retrans proc)))))
+
     (receive
      ((,formals ,producer-exp . ,body)
       ;; Lovely, self-referential usage. Not strictly necessary, the
