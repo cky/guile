@@ -380,7 +380,14 @@ SCM_DEFINE (scm_the_vm, "the-vm", 0, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_the_vm
 {
-  return scm_fluid_ref (scm_the_vm_fluid);
+  SCM ret;
+
+  if (SCM_NFALSEP ((ret = scm_fluid_ref (scm_the_vm_fluid))))
+    return ret;
+
+  ret = make_vm ();
+  scm_fluid_set_x (scm_the_vm_fluid, ret);
+  return ret;
 }
 #undef FUNC_NAME
 
