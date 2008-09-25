@@ -770,7 +770,7 @@ VM_DEFINE_INSTRUCTION (mv_call, "mv-call", 3, -1, 1)
           POP (values);
           values = scm_struct_ref (values, SCM_INUM0);
           len = scm_length (values);
-          while (!SCM_NULLP (values))
+          for (; !SCM_NULLP (values); values = SCM_CDR (values))
             PUSH (SCM_CAR (values));
           PUSH (len);
           ip += offset;
@@ -884,7 +884,7 @@ VM_DEFINE_INSTRUCTION (goto_cc, "goto/cc", 0, 1, 1)
       SCM values;
       values = scm_struct_ref (cont, SCM_INUM0);
       nvalues = scm_ilength (values);
-      while (!SCM_NULLP (values))
+      for (; !SCM_NULLP (values); values = SCM_CDR (values))
         PUSH (SCM_CAR (values));
       goto vm_return_values;
     }
