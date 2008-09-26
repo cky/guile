@@ -1715,8 +1715,36 @@ SCM_DEFINE (scm_condition_variable_p, "condition-variable?", 1, 0, 0,
 #endif
 
 
-
+
 /*** Select */
+
+struct select_args
+{
+  int             nfds;
+  SELECT_TYPE    *read_fds;
+  SELECT_TYPE    *write_fds;
+  SELECT_TYPE    *except_fds;
+  struct timeval *timeout;
+
+  int             result;
+  int             errno_value;
+};
+
+static void *
+do_std_select (void *args)
+{
+  struct select_args *select_args;
+
+  select_args = (struct select_args *) args;
+
+  select_args->result =
+    select (select_args->nfds,
+	    select_args->read_fds, select_args->write_fds,
+	    select_args->except_fds, select_args->timeout);
+  select_args->errno_value = errno;
+
+  return NULL;
+}
 
 int
 scm_std_select (int nfds,
@@ -1728,7 +1756,7 @@ scm_std_select (int nfds,
   fd_set my_readfds;
   int res, eno, wakeup_fd;
   scm_i_thread *t = SCM_I_CURRENT_THREAD;
-  scm_t_guile_ticket ticket;
+  struct select_args args;
 
   if (readfds == NULL)
     {
@@ -1740,15 +1768,23 @@ scm_std_select (int nfds,
     SCM_TICK;
 
   wakeup_fd = t->sleep_pipe[0];
-  ticket = scm_leave_guile ();
   FD_SET (wakeup_fd, readfds);
   if (wakeup_fd >= nfds)
     nfds = wakeup_fd+1;
-  res = select (nfds, readfds, writefds, exceptfds, timeout);
-  t->sleep_fd = -1;
-  eno = errno;
-  scm_enter_guile (ticket);
 
+  args.nfds = nfds;
+  args.read_fds = readfds;
+  args.write_fds = writefds;
+  args.except_fds = exceptfds;
+  args.timeout = timeout;
+
+  /* Explicitly cooperate with the GC.  */
+  scm_without_guile (do_std_select, &args);
+
+  res = args.result;
+  eno = args.errno_value;
+
+  t->sleep_fd = -1;
   scm_i_reset_sleep (t);
 
   if (res > 0 && FD_ISSET (wakeup_fd, readfds))
