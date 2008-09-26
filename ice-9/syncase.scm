@@ -213,7 +213,7 @@
 
 ;;; The following lines are necessary only if we start making changes
 ;; (use-syntax sc-expand)
-;; (load-from-path "ice-9/psyntax.ss")
+;; (load-from-path "ice-9/psyntax")
 
 (define internal-eval (nested-ref the-scm-module '(%app modules guile eval)))
 

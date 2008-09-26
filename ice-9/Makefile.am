@@ -36,7 +36,7 @@ SOURCES = psyntax-pp.scm boot-9.scm \
 	format.scm getopt-long.scm hcons.scm i18n.scm			\
 	lineio.scm ls.scm mapping.scm					\
 	networking.scm null.scm optargs.scm poe.scm popen.scm		\
-	posix.scm psyntax.ss q.scm r4rs.scm r5rs.scm			\
+	posix.scm psyntax.scm q.scm r4rs.scm r5rs.scm			\
 	rdelim.scm receive.scm regex.scm runq.scm rw.scm		\
 	safe-r5rs.scm safe.scm session.scm slib.scm stack-catch.scm	\
 	streams.scm string-fun.scm syncase.scm threads.scm		\
@@ -68,7 +68,7 @@ if MAINTAINER_MODE
 # In other words, to bootstrap this file, you need to do something like:
 #    GUILE_LOAD_PATH=/usr/local/share/guile/1.5.4 make psyntax-pp.scm
 include $(top_srcdir)/am/pre-inst-guile
-psyntax-pp.scm: psyntax.ss
+psyntax-pp.scm: psyntax.scm
 	$(preinstguile) -s $(srcdir)/compile-psyntax.scm \
-		$(srcdir)/psyntax.ss $(srcdir)/psyntax-pp.scm
+		$(srcdir)/psyntax.scm $(srcdir)/psyntax-pp.scm
 endif
