@@ -303,10 +303,6 @@
                               runtime)))
                    (else (syntax-error l "bad eval-case clause" (car in))))))))))))
 
-    ;; FIXME: make this actually do something
-    (start-stack
-     ((,tag ,expr) (retrans expr)))
-
     ;; FIXME: not hygienic, relies on @apply not being shadowed
     (apply
      (,args (retrans `(@apply ,@args))))

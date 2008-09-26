@@ -750,6 +750,14 @@
 
 
 
+;;; {The interpreter stack}
+;;;
+
+(defmacro start-stack (tag exp)
+  `(%start-stack ,tag (lambda () ,exp)))
+
+
+
 ;;; {Loading by paths}
 ;;;
 
