@@ -80,16 +80,14 @@ struct scm_vm_cont {
 static SCM
 vm_cont_mark (SCM obj)
 {
-  scm_t_ptrdiff i, size;
+  size_t size;
   SCM *stack;
 
   stack = SCM_VM_CONT_DATA (obj)->stack_base;
   size = SCM_VM_CONT_DATA (obj)->stack_size;
 
   /* we could be smarter about this. */
-  for (i = 0; i < size; i ++)
-    if (SCM_NIMP (stack[i]))
-      scm_gc_mark (stack[i]);
+  scm_mark_locations ((SCM_STACKITEM *) stack, size);
 
   return SCM_BOOL_F;
 }
@@ -333,7 +331,7 @@ vm_mark (SCM obj)
 
   /* mark the stack conservatively */
   scm_mark_locations ((SCM_STACKITEM *) vp->stack_base,
-		      sizeof (SCM) * (vp->sp - vp->stack_base + 1));
+                      vp->sp - vp->stack_base + 1);
 
   /* mark other objects  */
   for (i = 0; i < SCM_VM_NUM_HOOKS; i++)

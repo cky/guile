@@ -51,6 +51,7 @@ continuation_mark (SCM obj)
 
   scm_gc_mark (continuation->root);
   scm_gc_mark (continuation->throw_value);
+  scm_gc_mark (continuation->vm_conts);
   scm_mark_locations (continuation->stack, continuation->num_stack_items);
 #ifdef __ia64__
   if (continuation->backing_store)

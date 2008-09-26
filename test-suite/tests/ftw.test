@@ -25,18 +25,19 @@
 ;; what ice-9/posix.scm stat:dev and stat:ino do (which in turn match
 ;; libguile/filesys.c of course)
 
-(or (equal? (procedure-source stat:dev)
-	    '(lambda (f) (vector-ref f 0)))
-    (error "oops, unexpected stat:dev definition"))
 (define (stat:dev! st dev)
   (vector-set! st 0 dev))
-
-(or (equal? (procedure-source stat:ino)
-	    '(lambda (f) (vector-ref f 1)))
-    (error "oops, unexpected stat:ino definition"))
 (define (stat:ino! st ino)
   (vector-set! st 1 ino))
 
+(let* ((s (stat "/"))
+       (i (stat:ino s))
+       (d (stat:dev s)))
+  (stat:ino! s (1+ i))
+  (stat:dev! s (1+ d))
+  (if (not (and (= (stat:ino s) (1+ i))
+                (= (stat:dev s) (1+ d))))
+      (error "unexpected definitions of stat:dev and stat:ino")))
 
 ;;
 ;; visited?-proc
