@@ -1807,12 +1807,16 @@ scm_std_select (int nfds,
 
 #if SCM_USE_PTHREAD_THREADS
 
+/* It seems reasonable to not run procedures related to mutex and condition
+   variables within `GC_do_blocking ()' since, (i) the GC can operate even
+   without it, and (ii) the only potential gain would be GC latency.  See
+   http://thread.gmane.org/gmane.comp.programming.garbage-collection.boehmgc/2245/focus=2251
+   for a discussion of the pros and cons.  */
+
 int
 scm_pthread_mutex_lock (scm_i_pthread_mutex_t *mutex)
 {
-  scm_t_guile_ticket t = scm_leave_guile ();
   int res = scm_i_pthread_mutex_lock (mutex);
-  scm_enter_guile (t);
   return res;
 }
 
@@ -1832,9 +1836,7 @@ scm_dynwind_pthread_mutex_lock (scm_i_pthread_mutex_t *mutex)
 int
 scm_pthread_cond_wait (scm_i_pthread_cond_t *cond, scm_i_pthread_mutex_t *mutex)
 {
-  scm_t_guile_ticket t = scm_leave_guile ();
   int res = scm_i_pthread_cond_wait (cond, mutex);
-  scm_enter_guile (t);
   return res;
 }
 
@@ -1843,9 +1845,7 @@ scm_pthread_cond_timedwait (scm_i_pthread_cond_t *cond,
 			    scm_i_pthread_mutex_t *mutex,
 			    const scm_t_timespec *wt)
 {
-  scm_t_guile_ticket t = scm_leave_guile ();
   int res = scm_i_pthread_cond_timedwait (cond, mutex, wt);
-  scm_enter_guile (t);
   return res;
 }
 
