@@ -7,6 +7,7 @@ vm_test_files =					\
       t-basic-contructs.scm			\
       t-global-bindings.scm			\
       t-catch.scm				\
+      t-call-cc.scm				\
       t-closure.scm				\
       t-closure2.scm				\
       t-closure3.scm				\

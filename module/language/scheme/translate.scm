@@ -102,7 +102,7 @@
                    (make-ghil-call e l (retrans head) tail)))))))
 
 	((symbol? x)
-         (make-ghil-ref e l (ghil-lookup e x)))
+         (make-ghil-ref e l (ghil-var-for-ref! e x)))
 
         ;; fixme: non-self-quoting objects like #<foo>
 	(else
@@ -146,7 +146,7 @@
     ;; (define NAME VAL)
     ((,name ,val) (guard (symbol? name)
                          (ghil-toplevel-env? (ghil-env-parent e)))
-     (make-ghil-define e l (ghil-define (ghil-env-parent e) name)
+     (make-ghil-define e l (ghil-var-define! (ghil-env-parent e) name)
                        (maybe-name-value! (retrans val) name)))
     ;; (define (NAME FORMALS...) BODY...)
     (((,name . ,formals) . ,body) (guard (symbol? name))
@@ -156,7 +156,7 @@
    (set!
     ;; (set! NAME VAL)
     ((,name ,val) (guard (symbol? name))
-     (make-ghil-set e l (ghil-lookup e name) (retrans val)))
+     (make-ghil-set e l (ghil-var-for-set! e name) (retrans val)))
 
     ;; (set! (NAME ARGS...) VAL)
     (((,name . ,args) ,val) (guard (symbol? name))
@@ -311,7 +311,7 @@
      ((,proc ,arg1 . ,args)
       (let ((args (cons (retrans arg1) (map retrans args))))
         (cond ((and (symbol? proc)
-                    (not (ghil-lookup e proc #f))
+                    (not (ghil-var-is-bound? e proc))
                     (and=> (module-variable (current-module) proc)
                            (lambda (var)
                              (and (variable-bound? var)

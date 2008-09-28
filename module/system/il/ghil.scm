@@ -94,7 +94,8 @@
    <ghil-env> make-ghil-env ghil-env?
    ghil-env-parent ghil-env-table ghil-env-variables
 
-   ghil-env-add! ghil-lookup ghil-define
+   ghil-env-add!
+   ghil-var-is-bound? ghil-var-for-ref! ghil-var-for-set! ghil-var-define!
    call-with-ghil-environment call-with-ghil-bindings))
 
 
@@ -165,42 +166,78 @@
 (define (ghil-env-remove! env var)
   (apopq! (ghil-var-name var) (ghil-env-table env)))
 
+(define (force-heap-allocation! var)
+  (set! (ghil-var-kind var) 'external))
+  
+
 
 ;;;
 ;;; Public interface
 ;;;
 
-;; ghil-lookup: find out where a variable will be stored at runtime.
+;; The following four functions used to be one, in ghil-lookup. Now they
+;; are four, to reflect the different intents. A bit of duplication, but
+;; that's OK. The common current is to find out where a variable will be
+;; stored at runtime.
 ;;
-;; First searches the lexical environments. If the variable is not in
-;; the innermost environment, make sure the variable is marked as being
-;; "external" so that it goes on the heap.
+;; These functions first search the lexical environments. If the
+;; variable is not in the innermost environment, make sure the variable
+;; is marked as being "external" so that it goes on the heap. If the
+;; variable is being modified (via a set!), also make sure it's on the
+;; heap, so that other continuations see the changes to the var.
 ;;
 ;; If the variable is not found lexically, it is a toplevel variable,
 ;; which will be looked up at runtime with respect to the module that
 ;; was current when the lambda was bound, at runtime. The variable will
 ;; be resolved when it is first used.
-(define (ghil-lookup env sym . define?)
+(define (ghil-var-is-bound? env sym)
+  (let loop ((e env))
+    (record-case e
+      ((<ghil-toplevel-env> table)
+       (let ((key (cons (module-name (current-module)) sym)))
+         (assoc-ref table key)))
+      ((<ghil-env> parent table variables)
+       (and (not (assq-ref table sym))
+            (loop parent))))))
+
+(define (ghil-var-for-ref! env sym)
   (let loop ((e env))
     (record-case e
       ((<ghil-toplevel-env> table)
        (let ((key (cons (module-name (current-module)) sym)))
          (or (assoc-ref table key)
-             (and (or (null? define?)
-                      (car define?))
-                  (let ((var (make-ghil-var (car key) (cdr key) 'module)))
-                    (apush! key var (ghil-toplevel-env-table e))
-                    var)))))
+             (let ((var (make-ghil-var (car key) (cdr key) 'module)))
+               (apush! key var (ghil-toplevel-env-table e))
+               var))))
       ((<ghil-env> parent table variables)
-       (let ((found (assq-ref table sym)))
-         (if found
-             (begin
-               (if (not (eq? e env))
-                   (set! (ghil-var-kind found) 'external))
-               found)
-             (loop parent)))))))
+       (cond
+        ((assq-ref table sym)
+         => (lambda (var)
+              (or (eq? e env)
+                  (force-heap-allocation! var))
+              var))
+        (else
+         (loop parent)))))))
 
-(define (ghil-define toplevel sym)
+(define (ghil-var-for-set! env sym)
+  (let loop ((e env))
+    (record-case e
+      ((<ghil-toplevel-env> table)
+       (let ((key (cons (module-name (current-module)) sym)))
+         (or (assoc-ref table key)
+             (let ((var (make-ghil-var (car key) (cdr key) 'module)))
+               (apush! key var (ghil-toplevel-env-table e))
+               var))))
+      ((<ghil-env> parent table variables)
+       (cond
+        ((assq-ref table sym)
+         => (lambda (var)
+              (force-heap-allocation! var)
+              var))
+        (else
+         (loop parent)))))))
+
+(define (ghil-var-define! toplevel sym)
   (let ((key (cons (module-name (current-module)) sym)))
     (or (assoc-ref (ghil-toplevel-env-table toplevel) key)
         (let ((var (make-ghil-var (car key) (cdr key) 'module)))
