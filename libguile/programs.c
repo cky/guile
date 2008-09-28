@@ -90,6 +90,8 @@ SCM
 scm_c_make_closure (SCM program, SCM external)
 {
   SCM prog = scm_c_make_program (0, 0, program);
+  if (!SCM_PROGRAM_P (program))
+    abort ();
   *SCM_PROGRAM_DATA (prog) = *SCM_PROGRAM_DATA (program);
   SCM_PROGRAM_DATA (prog)->external = external;
   return prog;

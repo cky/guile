@@ -331,7 +331,7 @@ vm_mark (SCM obj)
 
   /* mark the stack conservatively */
   scm_mark_locations ((SCM_STACKITEM *) vp->stack_base,
-                      vp->sp - vp->stack_base + 1);
+                      sizeof (SCM)*(vp->sp + 1 - vp->stack_base));
 
   /* mark other objects  */
   for (i = 0; i < SCM_VM_NUM_HOOKS; i++)

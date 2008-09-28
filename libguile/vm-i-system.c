@@ -64,6 +64,7 @@ VM_DEFINE_INSTRUCTION (halt, "halt", 0, 0, 0)
     {
       POP_LIST (nvalues);
       POP (ret);
+      SYNC_REGISTER ();
       ret = scm_values (ret);
     }
     
@@ -186,6 +187,7 @@ VM_DEFINE_INSTRUCTION (vector, "vector", 2, -1, 1)
   unsigned l = FETCH ();
   unsigned len = ((h << 8) + l);
   POP_LIST (len);
+  SYNC_REGISTER ();
   *sp = scm_vector (*sp);
   NEXT;
 }
@@ -199,6 +201,7 @@ VM_DEFINE_INSTRUCTION (list_mark, "list-mark", 0, 0, 0)
 VM_DEFINE_INSTRUCTION (vector_mark, "vector-mark", 0, 0, 0)
 {
   POP_LIST_MARK ();
+  SYNC_REGISTER ();
   *sp = scm_vector (*sp);
   NEXT;
 }
