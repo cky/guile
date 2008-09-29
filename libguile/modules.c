@@ -620,6 +620,25 @@ SCM_DEFINE (scm_module_import_interface, "module-import-interface", 2, 0, 0,
 }
 #undef FUNC_NAME
 
+SCM_SYMBOL (sym_sys_module_public_interface, "%module-public-interface");
+
+SCM_DEFINE (scm_module_public_interface, "module-public-interface", 1, 0, 0,
+	    (SCM module),
+	    "Return the public interface of @var{module}.\n\n"
+            "If @var{module} has no public interface, @code{#f} is returned.")
+#define FUNC_NAME s_scm_module_public_interface
+{
+  SCM var;
+
+  SCM_VALIDATE_MODULE (1, module);
+  var = scm_module_local_variable (module, sym_sys_module_public_interface);
+  if (scm_is_true (var))
+    return SCM_VARIABLE_REF (var);
+  else
+    return SCM_BOOL_F;
+}
+#undef FUNC_NAME
+
 /* scm_sym2var
  *
  * looks up the variable bound to SYM according to PROC.  PROC should be

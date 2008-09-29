@@ -1783,8 +1783,7 @@
 ;;; The directory of all modules and the standard root module.
 ;;;
 
-(define (module-public-interface m)
-  (module-ref m '%module-public-interface #f))
+;; module-public-interface is defined in C.
 (define (set-module-public-interface! m i)
   (module-define! m '%module-public-interface i))
 (define (set-system-module! m s)
