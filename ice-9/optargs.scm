@@ -149,7 +149,7 @@
 				 => cdr)
 				(else
 				 ,(cadr key)))))))
-	  `(let ((,kb-list-gensym (rest-arg->keyword-binding-list
+	  `(let ((,kb-list-gensym ((@@ (ice-9 optargs) rest-arg->keyword-binding-list)
                                    ,REST-ARG ',(map (lambda (x) (symbol->keyword (if (pair? x) (car x) x)))
                                                     BINDINGS)
                                    ,ALLOW-OTHER-KEYS?)))
