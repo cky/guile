@@ -54,11 +54,8 @@
    <glil-external> make-glil-external glil-external?
    glil-external-op glil-external-depth glil-external-index
 
-   <glil-module> make-glil-module glil-module?
-   glil-module-op glil-module-module glil-module-index
-
-   <glil-late-bound> make-glil-late-bound glil-late-bound?
-   glil-late-bound-op glil-late-bound-name
+   <glil-toplevel> make-glil-toplevel glil-toplevel?
+   glil-toplevel-op glil-toplevel-name
 
    <glil-label> make-glil-label glil-label?
    glil-label-label
@@ -89,8 +86,7 @@
    (<glil-argument> op index)
    (<glil-local> op index)
    (<glil-external> op depth index)
-   (<glil-module> op module name)
-   (<glil-late-bound> op name)
+   (<glil-toplevel> op name)
    ;; Controls
    (<glil-label> label)
    (<glil-branch> inst label)
@@ -192,8 +188,8 @@
      `(,(symbol-append 'local- op) ,index))
     ((<glil-external> op depth index)
      `(,(symbol-append 'external- op) ,depth ,index))
-    ((<glil-module> op module name)
-     `(,(symbol-append 'module- op) ,module ,name))
+    ((<glil-toplevel> op name)
+     `(,(symbol-append 'toplevel- op) ,name))
     ;; controls
     ((<glil-label> label) label)
     ((<glil-branch> inst label) `(,inst ,label))

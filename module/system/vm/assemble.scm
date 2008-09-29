@@ -43,8 +43,8 @@
 (define-record (<vm-asm> venv glil body))
 (define-record (<venv> parent nexts closure?))
 (define-record (<vlink-now> name))
-(define-record (<vlink-later> module name))
-(define-record (<vdefine> module name))
+(define-record (<vlink-later> name))
+(define-record (<vdefine> name))
 (define-record (<bytespec> vars bytes meta objs closure?))
 
 
@@ -183,7 +183,7 @@
 		     (push-code! `(external-ref ,(+ n index)))
 		     (push-code! `(external-set ,(+ n index)))))))
 
-	   ((<glil-module> op module name)
+	   ((<glil-toplevel> op name)
             (case op
               ((ref set)
                (cond
@@ -193,7 +193,7 @@
                                ((ref) '(variable-ref))
                                ((set) '(variable-set)))))
                 (else
-                 (let* ((var (make-vlink-later #:module module #:name name))
+                 (let* ((var (make-vlink-later #:name name))
                         (i (cond ((object-assoc var object-alist) => cdr)
                                  (else
                                   (let ((i (length object-alist)))
@@ -203,7 +203,7 @@
                                  ((ref) `(late-variable-ref ,i))
                                  ((set) `(late-variable-set ,i))))))))
               ((define)
-               (push-object! (make-vdefine #:module module #:name name))
+               (push-object! (make-vdefine #:name name))
                (push-code! '(variable-set)))
               (else
                (error "unknown toplevel var kind" op name))))
@@ -319,13 +319,12 @@
 	 (if meta (dump! meta))
 	 ;; dump bytecode
  	 (push-code! `(load-program ,bytes)))
-	((<vlink-later> module name)
+	((<vlink-later> name)
          (dump! name))
 	((<vlink-now> name)
          (dump! name)
 	 (push-code! '(link-now)))
-	((<vdefine> module name)
-	 ;; FIXME: dump module
+	((<vdefine> name)
 	 (push-code! `(define ,(symbol->string name))))
         (else
          (error "assemble: unknown record type" (record-type-descriptor x)))))
