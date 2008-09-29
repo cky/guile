@@ -85,8 +85,7 @@
    ghil-values*-env ghil-values*-loc ghil-values*-values
 
    <ghil-var> make-ghil-var ghil-var?
-   ghil-var-env ghil-var-name ghil-var-kind ghil-var-type ghil-var-value
-   ghil-var-index
+   ghil-var-env ghil-var-name ghil-var-kind ghil-var-index
 
    <ghil-toplevel-env> make-ghil-toplevel-env ghil-toplevel-env?
    ghil-toplevel-env-table
@@ -134,7 +133,7 @@
 ;;; Variables
 ;;;
 
-(define-record (<ghil-var> env name kind (type #f) (value #f) (index #f)))
+(define-record (<ghil-var> env name kind (index #f)))
 
 
 ;;;
