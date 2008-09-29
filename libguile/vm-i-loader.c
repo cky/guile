@@ -165,10 +165,32 @@ VM_DEFINE_LOADER (load_program, "load-program")
 
 VM_DEFINE_INSTRUCTION (link_now, "link-now", 0, 1, 1)
 {
-  SCM sym;
-  POP (sym);
+  SCM what;
+  POP (what);
   SYNC_REGISTER ();
-  PUSH (scm_lookup (sym)); /* might longjmp */
+  if (SCM_LIKELY (SCM_SYMBOLP (what)))
+    {
+      PUSH (scm_lookup (what)); /* might longjmp */
+    }
+  else
+    {
+      SCM mod;
+      /* compilation of @ or @@
+         `what' is a three-element list: (MODNAME SYM INTERFACE?)
+         INTERFACE? is #t if we compiled @ or #f if we compiled @@
+      */
+      mod = scm_resolve_module (SCM_CAR (what));
+      if (scm_is_true (SCM_CADDR (what)))
+        mod = scm_module_public_interface (mod);
+      if (SCM_FALSEP (mod))
+        {
+          err_args = SCM_LIST1 (SCM_CAR (what));
+          goto vm_error_no_such_module;
+        }
+      /* might longjmp */
+      PUSH (scm_module_lookup (mod, SCM_CADR (what)));
+    }
+      
   NEXT;
 }
 

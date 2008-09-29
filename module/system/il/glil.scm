@@ -57,6 +57,9 @@
    <glil-toplevel> make-glil-toplevel glil-toplevel?
    glil-toplevel-op glil-toplevel-name
 
+   <glil-module> make-glil-module glil-module?
+   glil-module-op glil-module-mod glil-module-name glil-module-public?
+
    <glil-label> make-glil-label glil-label?
    glil-label-label
 
@@ -87,6 +90,7 @@
    (<glil-local> op index)
    (<glil-external> op depth index)
    (<glil-toplevel> op name)
+   (<glil-module> op mod name public?)
    ;; Controls
    (<glil-label> label)
    (<glil-branch> inst label)
@@ -190,6 +194,8 @@
      `(,(symbol-append 'external- op) ,depth ,index))
     ((<glil-toplevel> op name)
      `(,(symbol-append 'toplevel- op) ,name))
+    ((<glil-module> op mod name public?)
+     `(,(symbol-append (if public? 'public 'private) '- op) ,mod ,name))
     ;; controls
     ((<glil-label> label) label)
     ((<glil-branch> inst label) `(,inst ,label))

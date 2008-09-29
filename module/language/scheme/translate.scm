@@ -158,6 +158,22 @@
     ((,name ,val) (guard (symbol? name))
      (make-ghil-set e l (ghil-var-for-set! e name) (retrans val)))
 
+    ;; FIXME: Would be nice to verify the values of @ and @@ relative
+    ;; to imported modules...
+    (((@ ,modname ,name) ,val) (guard (symbol? name)
+                                      (list? modname)
+                                      (and-map symbol? modname)
+                                      (not (ghil-var-is-bound? e '@)))
+     (make-ghil-set e l (ghil-var-at-module! e modname name #t)
+                    (retrans val)))
+
+    (((@@ ,modname ,name) ,val) (guard (symbol? name)
+                                      (list? modname)
+                                      (and-map symbol? modname)
+                                      (not (ghil-var-is-bound? e '@@)))
+     (make-ghil-set e l (ghil-var-at-module! e modname name #f)
+                    (retrans val)))
+
     ;; (set! (NAME ARGS...) VAL)
     (((,name . ,args) ,val) (guard (symbol? name))
      ;; -> ((setter NAME) ARGS... VAL)
@@ -271,6 +287,14 @@
     (delay
      ((,expr)
       (retrans `(make-promise (lambda () ,expr)))))
+
+    (@
+     ((,modname ,sym)
+      (make-ghil-ref e l (ghil-var-at-module! e modname sym #t))))
+
+    (@@
+     ((,modname ,sym)
+      (make-ghil-ref e l (ghil-var-at-module! e modname sym #f))))
 
     (eval-case
      (,clauses

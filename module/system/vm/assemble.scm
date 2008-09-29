@@ -42,8 +42,9 @@
 
 (define-record (<vm-asm> venv glil body))
 (define-record (<venv> parent nexts closure?))
-(define-record (<vlink-now> name))
-(define-record (<vlink-later> name))
+;; key is either a symbol or the list (MODNAME SYM PUBLIC?)
+(define-record (<vlink-now> key))
+(define-record (<vlink-later> key))
 (define-record (<vdefine> name))
 (define-record (<bytespec> vars bytes meta objs closure?))
 
@@ -188,12 +189,12 @@
               ((ref set)
                (cond
                 (toplevel
-                 (push-object! (make-vlink-now #:name name))
+                 (push-object! (make-vlink-now #:key name))
                  (push-code! (case op
                                ((ref) '(variable-ref))
                                ((set) '(variable-set)))))
                 (else
-                 (let* ((var (make-vlink-later #:name name))
+                 (let* ((var (make-vlink-later #:key name))
                         (i (cond ((object-assoc var object-alist) => cdr)
                                  (else
                                   (let ((i (length object-alist)))
@@ -207,6 +208,29 @@
                (push-code! '(variable-set)))
               (else
                (error "unknown toplevel var kind" op name))))
+
+	   ((<glil-module> op mod name public?)
+            (let ((key (list mod name public?)))
+              (case op
+                ((ref set)
+                 (cond
+                  (toplevel
+                   (push-object! (make-vlink-now #:key key))
+                   (push-code! (case op
+                                 ((ref) '(variable-ref))
+                                 ((set) '(variable-set)))))
+                  (else
+                   (let* ((var (make-vlink-later #:key key))
+                          (i (cond ((object-assoc var object-alist) => cdr)
+                                   (else
+                                    (let ((i (length object-alist)))
+                                      (set! object-alist (acons var i object-alist))
+                                      i)))))
+                     (push-code! (case op
+                                   ((ref) `(late-variable-ref ,i))
+                                   ((set) `(late-variable-set ,i))))))))
+                (else
+                 (error "unknown module var kind" op key)))))
 
 	   ((<glil-label> label)
 	    (set! label-alist (assq-set! label-alist label (current-address))))
@@ -319,10 +343,10 @@
 	 (if meta (dump! meta))
 	 ;; dump bytecode
  	 (push-code! `(load-program ,bytes)))
-	((<vlink-later> name)
-         (dump! name))
-	((<vlink-now> name)
-         (dump! name)
+	((<vlink-later> key)
+         (dump! key))
+	((<vlink-now> key)
+         (dump! key)
 	 (push-code! '(link-now)))
 	((<vdefine> name)
 	 (push-code! `(define ,(symbol->string name))))

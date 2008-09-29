@@ -285,33 +285,51 @@ VM_DEFINE_INSTRUCTION (variable_ref, "variable-ref", 0, 0, 1)
 VM_DEFINE_INSTRUCTION (late_variable_ref, "late-variable-ref", 1, 0, 1)
 {
   unsigned objnum = FETCH ();
-  SCM sym_or_var;
+  SCM what;
   CHECK_OBJECT (objnum);
-  sym_or_var = OBJECT_REF (objnum);
+  what = OBJECT_REF (objnum);
 
-  if (!SCM_VARIABLEP (sym_or_var)) 
+  if (!SCM_VARIABLEP (what)) 
     {
       SYNC_REGISTER ();
-      if (SCM_LIKELY (scm_module_system_booted_p && SCM_NFALSEP (bp->module))) 
+      if (SCM_LIKELY (SCM_SYMBOLP (what))) 
         {
-          /* might longjmp */
-          sym_or_var = scm_module_lookup (bp->module, sym_or_var);
+          if (SCM_LIKELY (scm_module_system_booted_p
+                          && scm_is_true (bp->module)))
+            /* might longjmp */
+            what = scm_module_lookup (bp->module, what);
+          else
+            what = scm_sym2var (what, SCM_BOOL_F, SCM_BOOL_F);
         }
       else
         {
-          sym_or_var = scm_sym2var (sym_or_var, SCM_BOOL_F, SCM_BOOL_F);
+          SCM mod;
+          /* compilation of @ or @@
+             `what' is a three-element list: (MODNAME SYM INTERFACE?)
+             INTERFACE? is #t if we compiled @ or #f if we compiled @@
+          */
+          mod = scm_resolve_module (SCM_CAR (what));
+          if (scm_is_true (SCM_CADDR (what)))
+            mod = scm_module_public_interface (mod);
+          if (SCM_FALSEP (mod))
+            {
+              err_args = SCM_LIST1 (mod);
+              goto vm_error_no_such_module;
+            }
+          /* might longjmp */
+          what = scm_module_lookup (mod, SCM_CADR (what));
         }
           
-      if (!VARIABLE_BOUNDP (sym_or_var))
+      if (!VARIABLE_BOUNDP (what))
         {
-          err_args = SCM_LIST1 (sym_or_var);
+          err_args = SCM_LIST1 (what);
           goto vm_error_unbound;
         }
 
-      OBJECT_SET (objnum, sym_or_var);
+      OBJECT_SET (objnum, what);
     }
 
-  PUSH (VARIABLE_REF (sym_or_var));
+  PUSH (VARIABLE_REF (what));
   NEXT;
 }
 
@@ -349,27 +367,45 @@ VM_DEFINE_INSTRUCTION (variable_set, "variable-set", 0, 1, 0)
 VM_DEFINE_INSTRUCTION (late_variable_set, "late-variable-set", 1, 1, 0)
 {
   unsigned objnum = FETCH ();
-  SCM sym_or_var;
+  SCM what;
   CHECK_OBJECT (objnum);
-  sym_or_var = OBJECT_REF (objnum);
+  what = OBJECT_REF (objnum);
 
-  if (!SCM_VARIABLEP (sym_or_var)) 
+  if (!SCM_VARIABLEP (what)) 
     {
       SYNC_BEFORE_GC ();
-      if (SCM_LIKELY (scm_module_system_booted_p && SCM_NFALSEP (bp->module))) 
+      if (SCM_LIKELY (SCM_SYMBOLP (what))) 
         {
-          /* might longjmp */
-          sym_or_var = scm_module_lookup (bp->module, sym_or_var);
+          if (SCM_LIKELY (scm_module_system_booted_p
+                          && scm_is_true (bp->module)))
+            /* might longjmp */
+            what = scm_module_lookup (bp->module, what);
+          else
+            what = scm_sym2var (what, SCM_BOOL_F, SCM_BOOL_F);
         }
       else
         {
-          sym_or_var = scm_sym2var (sym_or_var, SCM_BOOL_F, SCM_BOOL_F);
+          SCM mod;
+          /* compilation of @ or @@
+             `what' is a three-element list: (MODNAME SYM INTERFACE?)
+             INTERFACE? is #t if we compiled @ or #f if we compiled @@
+          */
+          mod = scm_resolve_module (SCM_CAR (what));
+          if (scm_is_true (SCM_CADDR (what)))
+            mod = scm_module_public_interface (mod);
+          if (SCM_FALSEP (mod))
+            {
+              err_args = SCM_LIST1 (what);
+              goto vm_error_no_such_module;
+            }
+          /* might longjmp */
+          what = scm_module_lookup (mod, SCM_CADR (what));
         }
 
-      OBJECT_SET (objnum, sym_or_var);
+      OBJECT_SET (objnum, what);
     }
 
-  VARIABLE_SET (sym_or_var, *sp);
+  VARIABLE_SET (what, *sp);
   DROP ();
   NEXT;
 }

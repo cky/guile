@@ -182,6 +182,10 @@ vm_run (SCM vm, SCM program, SCM args)
     err_args = SCM_EOL;
     goto vm_error;
 
+  vm_error_no_such_module:
+    err_msg  = scm_from_locale_string ("VM: No such module: ~A");
+    goto vm_error;
+
 #if VM_CHECK_IP
   vm_error_invalid_address:
     err_msg  = scm_from_locale_string ("VM: Invalid program address");

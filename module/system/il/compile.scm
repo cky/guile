@@ -124,6 +124,9 @@
 	  (make-glil-external op depth (ghil-var-index var)))))
     ((toplevel)
      (make-glil-toplevel op (ghil-var-name var)))
+    ((public private)
+     (make-glil-module op (ghil-var-env var) (ghil-var-name var)
+                       (eq? (ghil-var-kind var) 'public)))
     (else (error "Unknown kind of variable:" var))))
 
 (define (constant? x)

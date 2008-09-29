@@ -95,6 +95,7 @@
 
    ghil-env-add!
    ghil-var-is-bound? ghil-var-for-ref! ghil-var-for-set! ghil-var-define!
+   ghil-var-at-module!
    call-with-ghil-environment call-with-ghil-bindings))
 
 
@@ -235,6 +236,19 @@
               var))
         (else
          (loop parent)))))))
+
+(define (ghil-var-at-module! env modname sym interface?)
+  (let loop ((e env))
+    (record-case e
+      ((<ghil-toplevel-env> table)
+       (let ((key (list modname sym interface?)))
+         (or (assoc-ref table key)
+             (let ((var (make-ghil-var modname sym
+                                       (if interface? 'public 'private))))
+               (apush! key var (ghil-toplevel-env-table e))
+               var))))
+      ((<ghil-env> parent table variables)
+       (loop parent)))))
 
 (define (ghil-var-define! toplevel sym)
   (let ((key (cons (module-name (current-module)) sym)))
