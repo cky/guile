@@ -27,7 +27,7 @@ SUBDIRS = ref tutorial goops r5rs
 # man_MANS = guile.1
 
 EXAMPLE_SMOB_FILES = \
-    ChangeLog Makefile README image-type.c image-type.h myguile.c
+    ChangeLog-2008 Makefile README image-type.c image-type.h myguile.c
 
 OLDFMT = oldfmt.c
 
@@ -38,16 +38,14 @@ dist-hook:
 	  cp $(srcdir)/example-smob/$$f $(distdir)/example-smob/; \
         done
 
-EXTRA_DIST = groupings.alist # guile-api.alist
+EXTRA_DIST = groupings.alist ChangeLog-2008 # guile-api.alist
 
 # pending the papers from Robert Merkel
 # EXTRA_DIST = guile.1
 
-if MAINTAINER_MODE
 include $(top_srcdir)/am/maintainer-dirs
 guile-api.alist: guile-api.alist-FORCE
 	( cd $(top_builddir) ; $(mscripts)/update-guile-api.alist )
 guile-api.alist-FORCE:
-endif
 
 info_TEXINFOS = guile-vm.texi

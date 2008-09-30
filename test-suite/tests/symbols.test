@@ -1,6 +1,6 @@
 ;;;; symbols.test --- test suite for Guile's symbols    -*- scheme -*-
 ;;;;
-;;;; Copyright (C) 2001, 2006 Free Software Foundation, Inc.
+;;;; Copyright (C) 2001, 2006, 2008 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -17,17 +17,17 @@
 ;;;; the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;;;; Boston, MA 02110-1301 USA
 
-(use-modules (ice-9 documentation))
+(define-module (test-suite test-symbols)
+  #:use-module (test-suite lib)
+  #:use-module (ice-9 documentation))
 
 
 ;;;
 ;;; miscellaneous
 ;;;
 
-;; FIXME:  As soon as guile supports immutable strings, this has to be
-;; replaced with the appropriate error type and message.
 (define exception:immutable-string
-  (cons 'some-error-type "^trying to modify an immutable string"))
+  (cons 'misc-error "^string is read-only"))
 
 (define (documented? object)
   (not (not (object-documentation object))))
@@ -55,7 +55,7 @@
 
 (with-test-prefix "symbol->string"
 
-  (expect-fail-exception "result is an immutable string"
+  (pass-if-exception "result is an immutable string"
     exception:immutable-string
     (string-set! (symbol->string 'abc) 1 #\space)))
 

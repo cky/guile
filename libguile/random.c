@@ -18,7 +18,7 @@
 
 /* Author: Mikael Djurfeldt <djurfeldt@nada.kth.se> */
 
-#if HAVE_CONFIG_H
+#ifdef HAVE_CONFIG_H
 #  include <config.h>
 #endif
 

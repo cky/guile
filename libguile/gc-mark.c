@@ -17,7 +17,7 @@
 
 
 
-#if HAVE_CONFIG_H
+#ifdef HAVE_CONFIG_H
 #  include <config.h>
 #endif
 
@@ -165,12 +165,19 @@ scm_gc_mark (SCM ptr)
   if (SCM_GC_MARK_P (ptr))
     return;
 
+  if (!scm_i_marking)
+    {
+      static const char msg[]
+	= "Should only call scm_gc_mark() during GC.";
+      scm_c_issue_deprecation_warning (msg);
+    }
+
   SCM_SET_GC_MARK (ptr);
   scm_gc_mark_dependencies (ptr);
 }
 
 void
-ensure_marking (void)
+scm_i_ensure_marking (void)
 {
   assert (scm_i_marking);
 }

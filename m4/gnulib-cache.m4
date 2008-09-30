@@ -15,14 +15,17 @@
 
 
 # Specification in the form of a command-line invocation:
-#   gnulib-tool --import --dir=. --lib=libgnu --source-base=lib --m4-base=m4 --doc-base=doc --aux-dir=build-aux --lgpl --libtool --macro-prefix=gl alloca extensions strcase
+#   gnulib-tool --import --dir=. --lib=libgnu --source-base=lib --m4-base=m4 --doc-base=doc --aux-dir=build-aux --lgpl --libtool --macro-prefix=gl alloca autobuild count-one-bits extensions strcase strftime
 
 # Specification in the form of a few gnulib-tool.m4 macro invocations:
 gl_LOCAL_DIR([])
 gl_MODULES([
   alloca
+  autobuild
+  count-one-bits
   extensions
   strcase
+  strftime
 ])
 gl_AVOID([])
 gl_SOURCE_BASE([lib])

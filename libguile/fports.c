@@ -19,7 +19,7 @@
 
 #define _LARGEFILE64_SOURCE      /* ask for stat64 etc */
 
-#if HAVE_CONFIG_H
+#ifdef HAVE_CONFIG_H
 #  include <config.h>
 #endif
 

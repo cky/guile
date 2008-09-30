@@ -1059,6 +1059,11 @@
   (expect-fail "documented?"
     (documented? gcd))
 
+  (with-test-prefix "(n)"
+
+    (pass-if "n = -2"
+      (eqv? 2 (gcd -2))))
+
   (with-test-prefix "(0 n)"
 
     (pass-if "n = 0"

@@ -31,21 +31,14 @@ See http://www.gnu.org/software/guile/mail/mail.html for more info.
 
 Hacking It Yourself ==================================================
 
-When Guile is obtained from CVS, a few extra steps must be taken
+When Guile is obtained from Git, a few extra steps must be taken
 before the usual configure, make, make install.  You will need to have
-up-to-date versions of the tools listed below, correctly installed.
-i.e., they must be found in the current PATH and not shadowed or
-otherwise broken by files left behind from other versions.
+up-to-date versions of the tools as listed below, correctly installed.
 
-"up-to-date" means the latest released versions at the time that Guile
-was obtained from CVS.  Sometimes older or newer versions will work.
-(See below for versions to avoid.)
+Sometimes older or newer versions will work.  (See below for versions
+to avoid.)
 
 Then you must run the autogen.sh script, as described below.
-
-In case of problems, it may be worth getting a fresh copy of Guile
-from CVS: synchronisation problems have been known to occur
-occasionally.
 
 The same procedure can be used to regenerate the files in released
 versions of Guile.  In that case the headers of the original generated
@@ -145,29 +138,26 @@ Bill further writes:
 Contributing Your Changes ============================================
 
 - If you have put together a change that meets the coding standards
-described below, we encourage you to submit it to Guile.  The best
-place to post it is guile-devel@gnu.org.  Please don't send it
-directly to me; I often don't have time to look things over.  If you
-have tested your change, then you don't need to be shy.
+described below, we encourage you to submit it to Guile.  Post your
+patch to guile-devel@gnu.org.
 
-- Please submit patches using either context or unified diffs (diff -c
-or diff -u).  Don't include a patch for ChangeLog; such patches don't
-apply cleanly, since we've probably changed the top of ChangeLog too.
-Instead, provide the unaltered text at the top of your patch.
+- We prefer patches generated using 'git format-patch'.
+
+- Provide a description in the commit message, like so:
+
+  1-line description of change
+
+  More extensive discussion of your change.  Document why you are
+  changing things.
+
+  * filename (function name): file specific change comments.
 
 - For proper credit, also make sure you update the AUTHORS file
 (for new files for which you've assigned copyright to the FSF), or
 the THANKS file (for everything else).
 
-Please don't include patches for generated files like configure,
-aclocal.m4, or any Makefile.in.  Such patches are often large, and
-we're just going to regenerate those files anyway.
-
 
 Coding standards =====================================================
-
-- Before contributing larger amounts of code to Guile, please read the
-documents in `guile-core/devel/policy' in the CVS source tree.
 
 - As for any part of Project GNU, changes to Guile should follow the
 GNU coding standards.  The standards are available via anonymous FTP
@@ -190,13 +180,6 @@ developer should pursue any additional warnings noted by on their
 compiler.  This means that people using more stringent compilers will
 have more work to do, and assures that everyone won't switch to the
 most lenient compiler they can find.  :)
-
-Note also that EGCS (as of November 3 1998) doesn't handle the
-`noreturn' attribute properly, so it doesn't understand that functions
-like scm_error won't return.  This may lead to some silly warnings
-about uninitialized variables.  You should look into these warnings to
-make sure they are indeed spurious, but you needn't correct warnings
-caused by this EGCS bug.
 
 - If you add code which uses functions or other features that are not
 entirely portable, please make sure the rest of Guile will still
@@ -240,16 +223,15 @@ When deprecating a definition, always follow this procedure:
    to do at each release.  Add a reminder about the removal of the
    deprecated defintion at the appropriate release.
 
-- Please write log entries for functions written in C under the
-functions' C names, and write log entries for functions written in
-Scheme under the functions' Scheme names.  Please don't do this:
+- Write commit messages for functions written in C using the
+functions' C names, and write entries for functions written in Scheme
+using the functions' Scheme names.  For example, 
 
-	* procs.c, procs.h (procedure-documentation): Moved from eval.c.
+  * foo.c: Moved scm_procedure_documentation from eval.c.
 
-Entries like this make it harder to search the ChangeLogs, because you
-can never tell which name the entry will refer to.  Instead, write this:
+is preferred over
 
-	* procs.c, procs.h (scm_procedure_documentation): Moved from eval.c.
+  * foo.c: Moved procedure-documentation from eval.c.
 
 Changes like adding this line are special:
 
@@ -258,12 +240,7 @@ Changes like adding this line are special:
 Since the change here is about the name itself --- we're adding a new
 alias for scm_map that guarantees the order in which we process list
 elements, but we're not changing scm_map at all --- it's appropriate
-to use the Scheme name in the log entry.
-
-- There's no need to keep a change log for a ChangeLog file.  For any
-other kind of file (including documentation, since our documentation
-is indeed precisely engineered -- we surpass GNU standards here), add
-an appropriate ChangeLog entry when you change it.  Simple!
+to use the Scheme name in the commit message.
 
 - Make sure you have papers from people before integrating their
 changes or contributions.  This is very frustrating, but very
@@ -357,106 +334,6 @@ same when you add new procedures/C functions for debugging purpose.
 You can define the GUILE_DEBUG flag by passing --enable-guile-debug to
 the configure script.
 
-- You'll see uses of the macro SCM_P scattered throughout the code;
-those are vestiges of a time when Guile was meant to compile on
-pre-ANSI compilers.  Guile now requires ANSI C, so when you write new
-functions, feel free to use ANSI declarations, and please provide
-prototypes for everything.  You don't need to use SCM_P in new code.
-
 
 Jim Blandy, and others
 
-
-Patches ===========================================================
-
-This one makes cvs-1.10 consider the file $CVSDOTIGNORE instead of
-.cvsignore when that environment variable is set.
-
-=== patch start ===
-diff -r -u cvs-1.10/src/cvs.h cvs-1.10.ignore-hack/src/cvs.h
---- cvs-1.10/src/cvs.h	Mon Jul 27 04:54:11 1998
-+++ cvs-1.10.ignore-hack/src/cvs.h	Sun Jan 23 12:58:09 2000
-@@ -516,7 +516,7 @@
-
- extern int ign_name PROTO ((char *name));
- void ign_add PROTO((char *ign, int hold));
--void ign_add_file PROTO((char *file, int hold));
-+int ign_add_file PROTO((char *file, int hold));
- void ign_setup PROTO((void));
- void ign_dir_add PROTO((char *name));
- int ignore_directory PROTO((char *name));
-diff -r -u cvs-1.10/src/ignore.c cvs-1.10.ignore-hack/src/ignore.c
---- cvs-1.10/src/ignore.c	Mon Sep  8 01:04:15 1997
-+++ cvs-1.10.ignore-hack/src/ignore.c	Sun Jan 23 12:57:50 2000
-@@ -99,9 +99,9 @@
- /*
-  * Open a file and read lines, feeding each line to a line parser. Arrange
-  * for keeping a temporary list of wildcards at the end, if the "hold"
-- * argument is set.
-+ * argument is set.  Return true when the file exists and has been handled.
-  */
--void
-+int
- ign_add_file (file, hold)
-     char *file;
-     int hold;
-@@ -149,8 +149,8 @@
-     if (fp == NULL)
-     {
- 	if (! existence_error (errno))
--	    error (0, errno, "cannot open %s", file);
--	return;
-+	  error (0, errno, "cannot open %s", file);
-+	return 0;
-     }
-     while (getline (&line, &line_allocated, fp) >= 0)
- 	ign_add (line, hold);
-@@ -159,6 +159,7 @@
-     if (fclose (fp) < 0)
- 	error (0, errno, "cannot close %s", file);
-     free (line);
-+    return 1;
- }
-
- /* Parse a line of space-separated wildcards and add them to the list. */
-@@ -375,6 +376,7 @@
-     struct stat sb;
-     char *file;
-     char *xdir;
-+    char *cvsdotignore;
-
-     /* Set SUBDIRS if we have subdirectory information in ENTRIES.  */
-     if (entries == NULL)
-@@ -397,7 +399,10 @@
-     if (dirp == NULL)
- 	return;
-
--    ign_add_file (CVSDOTIGNORE, 1);
-+    cvsdotignore = getenv("CVSDOTIGNORE");
-+    if (cvsdotignore == NULL || !ign_add_file (cvsdotignore, 1))
-+      ign_add_file (CVSDOTIGNORE, 1);
-+
-     wrap_add_file (CVSDOTWRAPPER, 1);
-
-     while ((dp = readdir (dirp)) != NULL)
-=== patch end ===
-
-This one is for pcl-cvs-2.9.2, so that `i' adds to the local
-.cvsignore file.
-
-=== patch start ===
---- pcl-cvs.el~ Mon Nov  1 12:33:46 1999
-+++ pcl-cvs.el  Tue Jan 25 21:46:27 2000
-@@ -1177,7 +1177,10 @@
-   "Append the file in FILEINFO to the .cvsignore file.
- Can only be used in the *cvs* buffer."
-   (save-window-excursion
--    (set-buffer (find-file-noselect (expand-file-name ".cvsignore" dir)))
-+    (set-buffer (find-file-noselect
-+                (expand-file-name (or (getenv "CVSDOTIGNORE")
-+                                      ".cvsignore")
-+                                  dir)))
-     (goto-char (point-max))
-     (unless (zerop (current-column)) (insert "\n"))
-     (insert str "\n")
-=== patch end ===

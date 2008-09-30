@@ -89,6 +89,9 @@
 	    make-condition-variable
 	    raise))
 
+(if (not (provided? 'threads))
+    (error "SRFI-18 requires Guile with threads support"))
+
 (cond-expand-provide (current-module) '(srfi-18))
 
 (define (check-arg-type pred arg caller)

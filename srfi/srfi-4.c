@@ -1,6 +1,6 @@
 /* srfi-4.c --- Homogeneous numeric vector datatypes.
  *
- * 	Copyright (C) 2001, 2004, 2006 Free Software Foundation, Inc.
+ * 	Copyright (C) 2001, 2004, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -22,7 +22,11 @@
    since people might still be linking with it.
 */
 
-#include "srfi/srfi-4.h"
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
+
+#include <srfi/srfi-4.h>
 
 void
 scm_init_srfi_4 (void)

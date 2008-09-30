@@ -17,6 +17,9 @@
 
 
 
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
 
 #include "libguile/_scm.h"
 
@@ -784,7 +787,7 @@ scm_with_guile (void *(*func)(void *), void *data)
 				      scm_i_default_dynamic_state);
 }
 
-static void
+SCM_UNUSED static void
 scm_leave_guile_cleanup (void *x)
 {
   scm_leave_guile ();
@@ -1292,11 +1295,11 @@ fat_mutex_lock (SCM mutex, scm_t_timespec *timeout, SCM owner, int *ret)
 		  break;
 		}
 	    }
+	  block_self (m->waiting, mutex, &m->lock, timeout);
 	  scm_i_pthread_mutex_unlock (&m->lock);
 	  SCM_TICK;
 	  scm_i_scm_pthread_mutex_lock (&m->lock);
 	}
-      block_self (m->waiting, mutex, &m->lock, timeout);
     }
   scm_i_pthread_mutex_unlock (&m->lock);
   return err;

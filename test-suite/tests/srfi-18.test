@@ -1,7 +1,7 @@
 ;;;; srfi-18.test --- Test suite for Guile's SRFI-18 functions. -*- scheme -*-
 ;;;; Julian Graham, 2007-10-26
 ;;;;
-;;;; Copyright (C) 2007 Free Software Foundation, Inc.
+;;;; Copyright (C) 2007, 2008 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -19,8 +19,10 @@
 ;;;; Boston, MA 02110-1301 USA
 
 (define-module (test-suite test-srfi-18)
-  #:use-module (test-suite lib)
-  #:use-module (srfi srfi-18))
+  #:use-module (test-suite lib))
+
+(and (provided? 'threads)
+     (use-modules (srfi srfi-18))
 
 (with-test-prefix "current-thread"
 
@@ -475,3 +477,5 @@
 	      (set! success #t)))
        (lambda () (thread-join! t)))
       success)))
+
+)

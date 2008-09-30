@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002, 2006 Free Software Foundation
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002, 2006, 2008 Free Software Foundation
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -17,6 +17,9 @@
 
 
 
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
 
 #include <errno.h>
 
@@ -84,6 +87,8 @@ SCM_GLOBAL_SYMBOL (scm_sym_breakpoint, "breakpoint");
 #define SETSRCPROPPOS(p, l, c) (SCM_SET_CELL_WORD(p,1, SRCPROPMAKPOS (l, c)))
 #define SETSRCPROPLINE(p, l) SETSRCPROPPOS (p, l, SRCPROPCOL (p))
 #define SETSRCPROPCOL(p, c) SETSRCPROPPOS (p, SRCPROPLINE (p), c)
+#define SETSRCPROPCOPY(p, c) (SCM_SET_CELL_WORD(p, 2, c))
+#define SETSRCPROPPLIST(p, l) (SCM_SET_CELL_WORD(p, 3, l))
 
 
 
@@ -302,14 +307,14 @@ SCM_DEFINE (scm_set_source_property_x, "set-source-property!", 3, 0, 0,
   else if (scm_is_eq (scm_sym_copy, key))
     {
       if (SRCPROPSP (p))
-	SRCPROPCOPY (p) = datum;
+	SETSRCPROPCOPY (p, datum);
       else
 	SCM_WHASHSET (scm_source_whash, h, scm_make_srcprops (0, 0, SCM_UNDEFINED, datum, p));
     }
   else
     {
       if (SRCPROPSP (p))
-	SRCPROPPLIST (p) = scm_acons (key, datum, SRCPROPPLIST (p));
+	SETSRCPROPPLIST (p, scm_acons (key, datum, SRCPROPPLIST (p)));
       else
 	SCM_WHASHSET (scm_source_whash, h, scm_acons (key, datum, p));
     }

@@ -111,8 +111,7 @@ libguile_la_SOURCES = alist.c arbiters.c async.c backtrace.c boolean.c	\
     eval.c evalext.c extensions.c feature.c fluids.c fports.c		\
     futures.c gc.c gc-mark.c gc-segment.c gc-malloc.c gc-card.c		\
     gc-freelist.c gc_os_dep.c gdbint.c gettext.c gc-segment-table.c     \
-    gh_data.c gh_eval.c gh_funcs.c					\
-    gh_init.c gh_io.c gh_list.c gh_predicates.c goops.c gsubr.c		\
+    goops.c gsubr.c		\
     guardians.c hash.c hashtab.c hooks.c init.c inline.c		\
     ioext.c keywords.c lang.c list.c load.c macros.c mallocs.c		\
     modules.c numbers.c objects.c objprop.c options.c pairs.c ports.c	\
@@ -219,7 +218,7 @@ libguile_la_LIBADD = @LIBLOBJS@ $(gnulib_library)
 libguile_la_LDFLAGS = @LTLIBINTL@ -version-info @LIBGUILE_INTERFACE_CURRENT@:@LIBGUILE_INTERFACE_REVISION@:@LIBGUILE_INTERFACE_AGE@ -export-dynamic -no-undefined
 
 # These are headers visible as <guile/mumble.h>
-pkginclude_HEADERS = gh.h
+pkginclude_HEADERS = 
 
 # These are headers visible as <libguile/mumble.h>.
 modincludedir = $(includedir)/libguile
@@ -252,11 +251,11 @@ bin_SCRIPTS = guile-snarf
 # and people feel like maintaining them.  For now, this is not the case.
 noinst_SCRIPTS = guile-doc-snarf guile-snarf-docs guile-func-name-check
 
-EXTRA_DIST = ChangeLog-gh ChangeLog-scm ChangeLog-threads		\
-    ChangeLog-1996-1999 ChangeLog-2000 cpp_signal.c			\
-    cpp_errno.c cpp_err_symbols.in cpp_err_symbols.c		\
-    cpp_sig_symbols.c cpp_sig_symbols.in cpp_cnvt.awk	\
-    c-tokenize.lex version.h.in \
+EXTRA_DIST = ChangeLog-scm ChangeLog-threads		\
+    ChangeLog-1996-1999 ChangeLog-2000 ChangeLog-2008 cpp_signal.c	\
+    cpp_errno.c cpp_err_symbols.in cpp_err_symbols.c			\
+    cpp_sig_symbols.c cpp_sig_symbols.in cpp_cnvt.awk			\
+    c-tokenize.lex version.h.in						\
     scmconfig.h.top libgettext.h
 #    $(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES) \
 #    guile-procedures.txt guile.texi

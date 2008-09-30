@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2004, 2006, 2007 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2004, 2006, 2007, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,7 +18,7 @@
 
 
 
-#if HAVE_CONFIG_H
+#ifdef HAVE_CONFIG_H
 #  include <config.h>
 #endif
 
@@ -680,8 +680,10 @@ scm_i_close_signal_pipe()
      been launched at this point, it never will be before shutdown.  */
   scm_i_pthread_mutex_lock (&signal_delivery_thread_mutex);
 
+#if SCM_USE_PTHREAD_THREADS
   if (scm_i_signal_delivery_thread != NULL)
     close (signal_pipe[1]);
+#endif
 
   scm_i_pthread_mutex_unlock (&signal_delivery_thread_mutex);
 }

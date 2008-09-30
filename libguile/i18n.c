@@ -1,4 +1,4 @@
-/* Copyright (C) 2006, 2007 Free Software Foundation, Inc.
+/* Copyright (C) 2006, 2007, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -15,7 +15,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#if HAVE_CONFIG_H
+#ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
 
@@ -769,7 +769,7 @@ static inline void
 str_upcase (register char *dst, register const char *src)
 {
   for (; *src != '\0'; src++, dst++)
-    *dst = toupper (*src);
+    *dst = toupper ((int) *src);
   *dst = '\0';
 }
 
@@ -777,7 +777,7 @@ static inline void
 str_downcase (register char *dst, register const char *src)
 {
   for (; *src != '\0'; src++, dst++)
-    *dst = tolower (*src);
+    *dst = tolower ((int) *src);
   *dst = '\0';
 }
 
@@ -1120,13 +1120,13 @@ SCM_DEFINE (scm_char_locale_downcase, "char-locale-downcase", 1, 1, 0,
   if (c_locale != NULL)
     {
 #ifdef USE_GNU_LOCALE_API
-      c_result = tolower_l (c_chr, c_locale);
+      c_result = tolower_l ((int) c_chr, c_locale);
 #else
-      RUN_IN_LOCALE_SECTION (c_locale, c_result = tolower (c_chr));
+      RUN_IN_LOCALE_SECTION (c_locale, c_result = tolower ((int) c_chr));
 #endif
     }
   else
-    c_result = tolower (c_chr);
+    c_result = tolower ((int) c_chr);
 
   return (SCM_MAKE_CHAR (c_result));
 }
@@ -1150,13 +1150,13 @@ SCM_DEFINE (scm_char_locale_upcase, "char-locale-upcase", 1, 1, 0,
   if (c_locale != NULL)
     {
 #ifdef USE_GNU_LOCALE_API
-      c_result = toupper_l (c_chr, c_locale);
+      c_result = toupper_l ((int) c_chr, c_locale);
 #else
-      RUN_IN_LOCALE_SECTION (c_locale, c_result = toupper (c_chr));
+      RUN_IN_LOCALE_SECTION (c_locale, c_result = toupper ((int) c_chr));
 #endif
     }
   else
-    c_result = toupper (c_chr);
+    c_result = toupper ((int) c_chr);
 
   return (SCM_MAKE_CHAR (c_result));
 }

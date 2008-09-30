@@ -1,6 +1,6 @@
 /* srfi-14.c --- Old place of SRFI-14 procedures for Guile
  *
- * Copyright (C) 2001, 2004, 2006 Free Software Foundation, Inc.
+ * Copyright (C) 2001, 2004, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -17,7 +17,11 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#include "srfi/srfi-14.h"
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
+
+#include <srfi/srfi-14.h>
 
 void
 scm_init_srfi_14 (void)

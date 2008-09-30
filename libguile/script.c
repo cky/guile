@@ -17,7 +17,7 @@
 /* "script.c" argv tricks for `#!' scripts.
    Authors: Aubrey Jaffer and Jim Blandy */
 
-#if HAVE_CONFIG_H
+#ifdef HAVE_CONFIG_H
 #  include <config.h>
 #endif
 
@@ -26,12 +26,15 @@
 #include <ctype.h>
 
 #include "libguile/_scm.h"
-#include "libguile/gh.h"
+#include "libguile/eval.h"
+#include "libguile/feature.h"
 #include "libguile/load.h"
-#include "libguile/version.h"
-
-#include "libguile/validate.h"
+#include "libguile/read.h"
 #include "libguile/script.h"
+#include "libguile/strings.h"
+#include "libguile/strports.h"
+#include "libguile/validate.h"
+#include "libguile/version.h"
 
 #ifdef HAVE_STRING_H
 #include <string.h>

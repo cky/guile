@@ -1,6 +1,6 @@
 ## Process this file with Automake to create Makefile.in
 ##
-##   Copyright (C) 2001, 2006 Free Software Foundation, Inc.
+##   Copyright (C) 2001, 2006, 2008 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##   
@@ -22,4 +22,4 @@
 SUBDIRS = scripts box box-module box-dynamic box-dynamic-module\
  modules safe
 
-EXTRA_DIST = README
+EXTRA_DIST = README ChangeLog-2008

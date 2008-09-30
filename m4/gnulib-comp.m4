@@ -25,6 +25,7 @@ AC_DEFUN([gl_EARLY],
   m4_pattern_allow([^gl_LIBOBJS$])dnl a variable
   m4_pattern_allow([^gl_LTLIBOBJS$])dnl a variable
   AC_REQUIRE([AC_PROG_RANLIB])
+  AB_INIT
   AC_REQUIRE([gl_USE_SYSTEM_EXTENSIONS])
 ])
 
@@ -46,8 +47,15 @@ LTALLOCA=`echo "$ALLOCA" | sed 's/\.[^.]* /.lo /g;s/\.[^.]*$/.lo/'`
 changequote([, ])dnl
 AC_SUBST([LTALLOCA])
   gl_FUNC_ALLOCA
+  gl_COUNT_ONE_BITS
+  gl_INLINE
+  AM_STDBOOL_H
   gl_STRCASE
+  gl_FUNC_GNU_STRFTIME
   gl_HEADER_STRINGS_H
+  gl_HEADER_TIME_H
+  gl_TIME_R
+  gl_WCHAR_H
   m4_ifval(gl_LIBSOURCES_LIST, [
     m4_syscmd([test ! -d ]m4_defn([gl_LIBSOURCES_DIR])[ ||
       for gl_file in ]gl_LIBSOURCES_LIST[ ; do
@@ -179,14 +187,32 @@ AC_DEFUN([gl_FILE_LIST], [
   build-aux/link-warning.h
   lib/alloca.c
   lib/alloca.in.h
+  lib/count-one-bits.h
   lib/dummy.c
+  lib/stdbool.in.h
   lib/strcasecmp.c
+  lib/strftime.c
+  lib/strftime.h
   lib/strings.in.h
   lib/strncasecmp.c
+  lib/time.in.h
+  lib/time_r.c
+  lib/verify.h
+  lib/wchar.in.h
   m4/alloca.m4
+  m4/autobuild.m4
+  m4/count-one-bits.m4
   m4/extensions.m4
   m4/gnulib-common.m4
   m4/include_next.m4
+  m4/inline.m4
+  m4/mbstate_t.m4
+  m4/stdbool.m4
   m4/strcase.m4
+  m4/strftime.m4
   m4/strings_h.m4
+  m4/time_h.m4
+  m4/time_r.m4
+  m4/tm_gmtoff.m4
+  m4/wchar.m4
 ])

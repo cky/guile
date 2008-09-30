@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in.
 ##
-##   Copyright (C) 1998,1999,2000,2001,2003, 2004, 2006 Free Software Foundation, Inc.
+##   Copyright (C) 1998,1999,2000,2001,2003, 2004, 2006, 2008 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
@@ -60,11 +60,10 @@ NOCOMP_SOURCES = match.scm occam-channel.scm gds-client.scm psyntax.scm
 include $(top_srcdir)/guilec.mk
 
 ## test.scm is not currently installed.
-EXTRA_DIST += test.scm compile-psyntax.scm
+EXTRA_DIST += test.scm compile-psyntax.scm ChangeLog-2008
 
 TAGS_FILES = $(SOURCES)
 
-if MAINTAINER_MODE
 # We expect this to never be invoked when there is not already
 # ice-9/psyntax-pp.scm in %load-path, since compile-psyntax.scm depends
 # on ice-9/syncase.scm, which does `(load-from-path "ice-9/psyntax-pp.scm")'.
@@ -74,4 +73,3 @@ include $(top_srcdir)/am/pre-inst-guile
 psyntax-pp.scm: psyntax.scm
 	$(preinstguile) -s $(srcdir)/compile-psyntax.scm \
 		$(srcdir)/psyntax.scm $(srcdir)/psyntax-pp.scm
-endif

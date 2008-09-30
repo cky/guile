@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2002, 2003, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2002, 2003, 2006, 2008 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -23,6 +23,10 @@
 /* This whole file is not being compiled.  See futures.h for the
    reason.
 */
+
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
 
 #include "libguile/_scm.h"
 #include "libguile/eval.h"
