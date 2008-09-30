@@ -79,6 +79,8 @@
   :replace (<class> <operator-class> <entity-class> <entity>)
   :no-backtrace)
 
+(define *goops-module* (current-module))
+
 ;; First initialize the builtin part of GOOPS
 (%init-goops-builtins)
 
@@ -1173,14 +1175,17 @@
 		  (vector-set! methods index m)
 		  m)))))
 
+;; eval tricks are apparently to make the accessors as fast as possible
+;; for the evaluator. when goops gets vm-aware, this will be different.
+
 (define (make-bound-check-get index)
-  (local-eval `(lambda (o) (@assert-bound-ref o ,index)) (the-environment)))
+  (eval `(lambda (o) (@assert-bound-ref o ,index)) *goops-module*))
 
 (define (make-get index)
-  (local-eval `(lambda (o) (@slot-ref o ,index)) (the-environment)))
+  (eval `(lambda (o) (@slot-ref o ,index)) *goops-module*))
 
 (define (make-set index)
-  (local-eval `(lambda (o v) (@slot-set! o ,index v)) (the-environment)))
+  (eval `(lambda (o v) (@slot-set! o ,index v)) *goops-module*))
 
 (define bound-check-get
   (standard-accessor-method make-bound-check-get bound-check-get-methods))
