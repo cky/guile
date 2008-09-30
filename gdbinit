@@ -99,90 +99,98 @@ define smobdescriptor
   p scm_smobs[0xff & (((scm_t_bits)$arg0) >> 8)]
 end
 
-define vmstack
+define vmstackinit
   set $vmsp=sp
   set $vmstack_base=stack_base
   set $vmfp=fp
   set $vmbp=bp
   set $vmframe=0
+end
+
+define nextframe
+  set $orig_vmsp=$vmsp
+  while $vmsp > $vmstack_base
+    output $orig_vmsp - $vmsp
+    sputs "\t"
+    output $vmsp
+    sputs "\t"
+    gwrite *$vmsp
+    set $vmsp=$vmsp-1
+  end
+  newline
+  sputs "Frame "
+  output $vmframe
+  newline
+  sputs "ra:\t"
+  output $vmsp
+  sputs "\t"
+  output (SCM*)*$vmsp
+  set $vmsp=$vmsp-1
+  newline
+  sputs "mvra:\t"
+  output $vmsp
+  sputs "\t"
+  output (SCM*)*$vmsp
+  set $vmsp=$vmsp-1
+  newline
+  sputs "dl:\t"
+  output $vmsp
+  sputs "\t"
+  set $vmdl=(SCM*)(*$vmsp)
+  output $vmdl
+  newline
+  set $vmsp=$vmsp-1
+  sputs "hl:\t"
+  output $vmsp
+  sputs "\t"
+  gwrite *$vmsp
+  set $vmsp=$vmsp-1
+  sputs "el:\t"
+  output $vmsp
+  sputs "\t"
+  gwrite *$vmsp
+  set $vmsp=$vmsp-1
+  set $vmnlocs=(int)$vmbp->nlocs
+  while $vmnlocs > 0
+    sputs "loc #"
+    output $vmnlocs
+    sputs ":\t"
+    output $vmsp
+    sputs "\t"
+    gwrite *$vmsp
+    set $vmsp=$vmsp-1
+    set $vmnlocs=$vmnlocs-1
+  end
+  set $vmnargs=(int)$vmbp->nargs
+  while $vmnargs > 0
+    sputs "arg #"
+    output $vmnargs
+    sputs ":\t"
+    output $vmsp
+    sputs "\t"
+    gwrite *$vmsp
+    set $vmsp=$vmsp-1
+    set $vmnargs=$vmnargs-1
+  end
+  sputs "prog:\t"
+  output $vmsp
+  sputs "\t"
+  gwrite *$vmsp
+  set $vmsp=$vmsp-1
+  newline
+  if !$vmdl
+    loop_break
+  end
+  set $vmfp=$vmdl
+  set $vmbp=(struct scm_program*)(((SCM*)($vmfp[-1]))[1])
+  set $vmstack_base=$vmfp+$vmbp->nargs+$vmbp->nlocs+4
+  set $vmframe=$vmframe+1
+  newline
+end
+
+define vmstack
+  vmstackinit
   while $vmsp > vp->stack_base
-    set $orig_vmsp=$vmsp
-    while $vmsp > $vmstack_base
-      output $orig_vmsp - $vmsp
-      sputs "\t"
-      output $vmsp
-      sputs "\t"
-      gwrite *$vmsp
-      set $vmsp=$vmsp-1
-    end
-    newline
-    sputs "Frame "
-    output $vmframe
-    newline
-    sputs "ra:\t"
-    output $vmsp
-    sputs "\t"
-    output (SCM*)*$vmsp
-    set $vmsp=$vmsp-1
-    newline
-    sputs "mvra:\t"
-    output $vmsp
-    sputs "\t"
-    output (SCM*)*$vmsp
-    set $vmsp=$vmsp-1
-    newline
-    sputs "dl:\t"
-    output $vmsp
-    sputs "\t"
-    set $vmdl=(SCM*)(*$vmsp)
-    output $vmdl
-    newline
-    set $vmsp=$vmsp-1
-    sputs "hl:\t"
-    output $vmsp
-    sputs "\t"
-    gwrite *$vmsp
-    set $vmsp=$vmsp-1
-    sputs "el:\t"
-    output $vmsp
-    sputs "\t"
-    gwrite *$vmsp
-    set $vmsp=$vmsp-1
-    set $vmnlocs=(int)$vmbp->nlocs
-    while $vmnlocs > 0
-      sputs "loc #"
-      output $vmnlocs
-      sputs ":\t"
-      output $vmsp
-      sputs "\t"
-      gwrite *$vmsp
-      set $vmsp=$vmsp-1
-      set $vmnlocs=$vmnlocs-1
-    end
-    set $vmnargs=(int)$vmbp->nargs
-    while $vmnargs > 0
-      sputs "arg #"
-      output $vmnargs
-      sputs ":\t"
-      output $vmsp
-      sputs "\t"
-      gwrite *$vmsp
-      set $vmsp=$vmsp-1
-      set $vmnargs=$vmnargs-1
-    end
-    sputs "prog:\t"
-    output $vmsp
-    sputs "\t"
-    gwrite *$vmsp
-    set $vmsp=$vmsp-1
-    newline
-    if !$vmdl
-      loop_break
-    end
-    set $vmfp=$vmdl
-    set $vmbp=(struct scm_program*)(((SCM*)($vmfp[-1]))[1])
-    set $vmstack_base=$vmfp+$vmbp->nargs+$vmbp->nlocs+4
-    set $vmframe=$vmframe+1
-    newline
+    nextframe
   end
 end

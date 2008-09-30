@@ -558,12 +558,12 @@ VM_DEFINE_INSTRUCTION (call, "call", 1, -1, 1)
     {
       /* At this point, the stack contains the procedure and each one of its
 	 arguments.  */
-      SCM args;
       POP_LIST (nargs);
-      POP (args);
       SYNC_REGISTER ();
-      *sp = scm_apply (x, args, SCM_EOL);
+      /* keep args on stack so they are marked */
+      sp[-1] = scm_apply (x, sp[0], SCM_EOL);
       /* FIXME what if SCM_VALUESP(*sp) */
+      DROP ();
       NEXT;
     }
   /*
@@ -729,11 +729,10 @@ VM_DEFINE_INSTRUCTION (goto_args, "goto/args", 1, -1, 1)
    */
   if (!SCM_FALSEP (scm_procedure_p (x)))
     {
-      SCM args;
       POP_LIST (nargs);
-      POP (args);
       SYNC_REGISTER ();
-      *sp = scm_apply (x, args, SCM_EOL);
+      sp[-1] = scm_apply (x, sp[0], SCM_EOL);
+      DROP ();
       /* FIXME what if SCM_VALUESP(*sp) */
       goto vm_return;
     }
@@ -798,11 +797,10 @@ VM_DEFINE_INSTRUCTION (mv_call, "mv-call", 3, -1, 1)
     {
       /* At this point, the stack contains the procedure and each one of its
 	 arguments.  */
-      SCM args;
       POP_LIST (nargs);
-      POP (args);
       SYNC_REGISTER ();
-      *sp = scm_apply (x, args, SCM_EOL);
+      sp[-1] = scm_apply (x, sp[0], SCM_EOL);
+      DROP ();
       if (SCM_VALUESP (*sp))
         {
           SCM values, len;
