@@ -80,6 +80,7 @@
 
 (define-module (ice-9 documentation)
   :use-module (ice-9 rdelim)
+  :use-module ((system vm program) :select (program? program-documentation))
   :export (file-commentary
            documentation-files search-documentation-files
            object-documentation)
@@ -201,6 +202,8 @@ OBJECT can be a procedure, macro or any object that has its
 	     (and transformer
 		  (proc-doc transformer))))
       (object-property object 'documentation)
+      (and (program? object)
+           (program-documentation object))
       (and (procedure? object)
 	   (not (closure? object))
 	   (procedure-name object)
