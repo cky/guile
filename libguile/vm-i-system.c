@@ -198,6 +198,12 @@ VM_DEFINE_INSTRUCTION (list_mark, "list-mark", 0, 0, 0)
   NEXT;
 }
 
+VM_DEFINE_INSTRUCTION (cons_mark, "cons-mark", 0, 0, 0)
+{
+  POP_CONS_MARK ();
+  NEXT;
+}
+
 VM_DEFINE_INSTRUCTION (vector_mark, "vector-mark", 0, 0, 0)
 {
   POP_LIST_MARK ();

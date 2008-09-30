@@ -356,6 +356,19 @@ do {						\
   PUSH (l);					\
 } while (0)
 
+#define POP_CONS_MARK()				\
+do {						\
+  SCM o, l;					\
+  POP (l);                                      \
+  POP (o);					\
+  while (!SCM_UNBNDP (o))			\
+    {						\
+      CONS (l, o, l);				\
+      POP (o);					\
+    }						\
+  PUSH (l);					\
+} while (0)
+
 
 /*
  * Instruction operation
