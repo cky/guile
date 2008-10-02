@@ -151,8 +151,9 @@ vm_run (SCM vm, SCM program, SCM args)
     goto vm_error;
 
   vm_error_wrong_num_args:
-    err_msg  = scm_from_locale_string ("VM: Wrong number of arguments");
-    err_args = SCM_EOL;
+    /* nargs and program are valid */
+    scm_wrong_num_args (program);
+    /* shouldn't get here */
     goto vm_error;
 
   vm_error_wrong_type_apply:

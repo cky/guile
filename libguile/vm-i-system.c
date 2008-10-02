@@ -840,8 +840,7 @@ VM_DEFINE_INSTRUCTION (apply, "apply", 1, -1, 1)
   POP (ls);
 
   nargs = FETCH ();
-  if (nargs < 2)
-    goto vm_error_wrong_num_args;
+  ASSERT (nargs >= 2);
 
   len = scm_ilength (ls);
   if (len < 0)
@@ -861,8 +860,7 @@ VM_DEFINE_INSTRUCTION (goto_apply, "goto/apply", 1, -1, 1)
   POP (ls);
 
   nargs = FETCH ();
-  if (nargs < 2)
-    goto vm_error_wrong_num_args;
+  ASSERT (nargs >= 2);
 
   len = scm_ilength (ls);
   if (len < 0)
@@ -895,7 +893,7 @@ VM_DEFINE_INSTRUCTION (call_cc, "call/cc", 0, 1, 1)
       SCM values;
       values = scm_struct_ref (cont, SCM_INUM0);
       if (SCM_NULLP (values))
-        goto vm_error_wrong_num_args;
+        goto vm_error_no_values;
       /* non-tail context does not accept multiple values? */
       PUSH (SCM_CAR (values));
       NEXT;

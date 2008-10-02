@@ -127,6 +127,15 @@
  * Cache/Sync
  */
 
+#define ENABLE_ASSERTIONS
+
+#ifdef ENABLE_ASSERTIONS
+# define ASSERT(condition) if (SCM_UNLIKELY (!(condition))) abort()
+#else
+# define ASSERT(condition)
+#endif
+
+
 #define CACHE_REGISTER()			\
 {						\
   ip = vp->ip;					\
