@@ -1571,6 +1571,7 @@ AC_CONFIG_FILES([benchmark-guile], [chmod +x benchmark-guile])
 AC_CONFIG_FILES([guile-tools], [chmod +x guile-tools])
 AC_CONFIG_FILES([pre-inst-guile], [chmod +x pre-inst-guile])
 AC_CONFIG_FILES([pre-inst-guile-env], [chmod +x pre-inst-guile-env])
+AC_CONFIG_FILES([gdb-pre-inst-guile], [chmod +x gdb-pre-inst-guile])
 AC_CONFIG_FILES([libguile/guile-snarf],
                 [chmod +x libguile/guile-snarf])
 AC_CONFIG_FILES([libguile/guile-doc-snarf],
