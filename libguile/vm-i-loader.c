@@ -152,11 +152,10 @@ VM_DEFINE_LOADER (load_program, "load-program")
     {
       /* Other cases */
       /* x is #f, and already popped off */
-      p->nargs = SCM_I_INUM (sp[-3]);
-      p->nrest = SCM_I_INUM (sp[-2]);
-      p->nlocs = SCM_I_INUM (sp[-1]);
-      p->nexts = SCM_I_INUM (sp[0]);
-      sp -= 4;
+      POP (x); p->nexts = scm_to_unsigned_integer (x, 0, 255);
+      POP (x); p->nlocs = scm_to_unsigned_integer (x, 0, 255);
+      POP (x); p->nrest = scm_to_unsigned_integer (x, 0, 1);
+      POP (x); p->nargs = scm_to_unsigned_integer (x, 0, 255);
     }
 
   PUSH (prog);

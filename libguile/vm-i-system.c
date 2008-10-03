@@ -58,6 +58,7 @@ VM_DEFINE_INSTRUCTION (halt, "halt", 0, 0, 0)
   vp->time += scm_c_get_internal_run_time () - start_time;
   HALT_HOOK ();
   nvalues = SCM_I_INUM (*sp--);
+  NULLSTACK (1);
   if (nvalues == 1)
     POP (ret);
   else
@@ -69,17 +70,14 @@ VM_DEFINE_INSTRUCTION (halt, "halt", 0, 0, 0)
     }
     
   {
-#ifdef THE_GOVERNMENT_IS_AFTER_ME
-    if (sp != stack_base)
-      abort ();
-    if (stack_base != SCM_FRAME_UPPER_ADDRESS (fp) - 1)
-      abort ();
-#endif
+    ASSERT (sp == stack_base);
+    ASSERT (stack_base == SCM_FRAME_UPPER_ADDRESS (fp) - 1);
 
     /* Restore registers */
     sp = SCM_FRAME_LOWER_ADDRESS (fp) - 1;
     ip = NULL;
     fp = SCM_FRAME_DYNAMIC_LINK (fp);
+    NULLSTACK (stack_base - sp);
   }
   SYNC_ALL ();
   scm_dynwind_end ();
@@ -366,7 +364,7 @@ VM_DEFINE_INSTRUCTION (external_set, "external-set", 1, 1, 0)
 VM_DEFINE_INSTRUCTION (variable_set, "variable-set", 0, 1, 0)
 {
   VARIABLE_SET (sp[0], sp[-1]);
-  sp -= 2;
+  DROPN (2);
   NEXT;
 }
 
@@ -435,6 +433,7 @@ VM_DEFINE_INSTRUCTION (late_variable_set, "late-variable-set", 1, 1, 0)
   FETCH_OFFSET (offset);                        \
   if (p)					\
     ip += offset;				\
+  NULLSTACK (1);				\
   DROP ();					\
   NEXT;						\
 }
@@ -621,6 +620,7 @@ VM_DEFINE_INSTRUCTION (goto_args, "goto/args", 1, -1, 1)
 
       /* Drop the first argument and the program itself.  */
       sp -= 2;
+      NULLSTACK (bp->nargs + 1)
 
       /* Call itself */
       ip = bp->base;
@@ -636,6 +636,9 @@ VM_DEFINE_INSTRUCTION (goto_args, "goto/args", 1, -1, 1)
       SCM *data, *tail_args, *dl;
       int i;
       scm_byte_t *ra, *mvra;
+#ifdef VM_ENABLE_STACK_NULLING
+      SCM *old_sp;
+#endif
 
       EXIT_HOOK ();
 
@@ -646,10 +649,18 @@ VM_DEFINE_INSTRUCTION (goto_args, "goto/args", 1, -1, 1)
       dl = SCM_FRAME_DYNAMIC_LINK (fp);
 
       /* switch programs */
-      fp[-1] = program = x;
+      program = x;
       CACHE_PROGRAM ();
       INIT_ARGS ();
+      /* delay updating the frame so that if INIT_ARGS has to cons up a rest
+         arg, going into GC, the stack still makes sense */
+      fp[-1] = program;
       nargs = bp->nargs;
+
+#ifdef VM_ENABLE_STACK_NULLING
+      old_sp = sp;
+      CHECK_STACK_LEAK ();
+#endif
 
       /* new registers -- logically this would be better later, but let's make
          sure we have space for the locals now */
@@ -663,21 +674,26 @@ VM_DEFINE_INSTRUCTION (goto_args, "goto/args", 1, -1, 1)
       for (i = 0; i < nargs; i++)
         fp[i] = tail_args[i];
 
+      NULLSTACK (old_sp - sp);
+
       /* init locals */
       for (i = bp->nlocs; i; i--)
         data[-i] = SCM_UNDEFINED;
       
-      /* and the external variables */
-      external = bp->external;
-      for (i = 0; i < bp->nexts; i++)
-        CONS (external, SCM_UNDEFINED, external);
-
       /* Set frame data */
       data[4] = (SCM)ra;
       data[3] = (SCM)mvra;
       data[2] = (SCM)dl;
       data[1] = SCM_BOOL_F;
+
+      /* Postpone initializing external vars, because if the CONS causes a GC,
+         we want the stack marker to see the data array formatted as expected. */
+      data[0] = SCM_UNDEFINED;
+      external = bp->external;
+      for (i = 0; i < bp->nexts; i++)
+        CONS (external, SCM_UNDEFINED, external);
       data[0] = external;
+
       ENTER_HOOK ();
       APPLY_HOOK ();
       NEXT;
@@ -887,6 +903,9 @@ VM_DEFINE_INSTRUCTION (call_cc, "call/cc", 0, 1, 1)
       nargs = 1;
       goto vm_call;
     }
+  ASSERT (sp == vp->sp);
+  ASSERT (fp == vp->fp);
+  ASSERT (ip == vp->ip);
   else if (SCM_VALUESP (cont))
     {
       /* multiple values returned to continuation */
@@ -946,18 +965,20 @@ VM_DEFINE_INSTRUCTION (return, "return", 0, 0, 1)
     data = SCM_FRAME_DATA_ADDRESS (fp);
 
     POP (ret);
-#ifdef THE_GOVERNMENT_IS_AFTER_ME
-    if (sp != stack_base)
-      abort ();
-    if (stack_base != data + 4)
-      abort ();
-#endif
+    ASSERT (sp == stack_base);
+    ASSERT (stack_base == data + 4);
 
     /* Restore registers */
     sp = SCM_FRAME_LOWER_ADDRESS (fp);
     ip = SCM_FRAME_BYTE_CAST (data[4]);
     fp = SCM_FRAME_STACK_CAST (data[2]);
-    stack_base = SCM_FRAME_UPPER_ADDRESS (fp) - 1;
+    {
+#ifdef VM_ENABLE_STACK_NULLING
+      int nullcount = stack_base - sp;
+#endif
+      stack_base = SCM_FRAME_UPPER_ADDRESS (fp) - 1;
+      NULLSTACK (nullcount);
+    }
 
     /* Set return value (sp is already pushed) */
     *sp = ret;
@@ -983,10 +1004,7 @@ VM_DEFINE_INSTRUCTION (return_values, "return/values", 1, -1, -1)
   RETURN_HOOK ();
 
   data = SCM_FRAME_DATA_ADDRESS (fp);
-#ifdef THE_GOVERNMENT_IS_AFTER_ME
-  if (stack_base != data + 4)
-    abort ();
-#endif
+  ASSERT (stack_base == data + 4);
 
   /* data[3] is the mv return address */
   if (nvalues != 1 && data[3]) 
@@ -1003,6 +1021,7 @@ VM_DEFINE_INSTRUCTION (return_values, "return/values", 1, -1, -1)
       *++sp = SCM_I_MAKINUM (nvalues);
              
       /* Finally set new stack_base */
+      NULLSTACK (stack_base - sp + nvalues + 1);
       stack_base = SCM_FRAME_UPPER_ADDRESS (fp) - 1;
     }
   else if (nvalues >= 1)
@@ -1020,6 +1039,7 @@ VM_DEFINE_INSTRUCTION (return_values, "return/values", 1, -1, -1)
       *++sp = stack_base[1];
              
       /* Finally set new stack_base */
+      NULLSTACK (stack_base - sp);
       stack_base = SCM_FRAME_UPPER_ADDRESS (fp) - 1;
     }
   else
@@ -1038,10 +1058,7 @@ VM_DEFINE_INSTRUCTION (return_values_star, "return/values*", 1, -1, -1)
   SCM l;
 
   nvalues = FETCH ();
-#ifdef THE_GOVERNMENT_IS_AFTER_ME
-  if (nvalues < 1)
-    abort ();
-#endif
+  ASSERT (nvalues >= 1);
     
   nvalues--;
   POP (l);

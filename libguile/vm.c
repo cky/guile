@@ -58,6 +58,20 @@
   scm_newline (scm_current_error_port ());      \
 }
 
+/* The VM has a number of internal assertions that shouldn't normally be
+   necessary, but might be if you think you found a bug in the VM. */
+#define VM_ENABLE_ASSERTIONS
+
+/* We can add a mode that ensures that all stack items above the stack pointer
+   are NULL. This is useful for checking the internal consistency of the VM's
+   assumptions and its operators, but isn't necessary for normal operation. It
+   will ensure that assertions are enabled. */
+#define VM_ENABLE_STACK_NULLING
+
+#if defined (VM_ENABLE_STACK_NULLING) && !defined (VM_ENABLE_ASSERTIONS)
+#define VM_ENABLE_ASSERTIONS
+#endif
+
 
 /*
  * VM Continuation
@@ -71,23 +85,53 @@ struct scm_vm_cont {
   scm_t_ptrdiff fp;
   scm_t_ptrdiff stack_size;
   SCM *stack_base;
+  scm_t_ptrdiff reloc;
 };
 
 
 #define SCM_VM_CONT_P(OBJ)	SCM_SMOB_PREDICATE (scm_tc16_vm_cont, OBJ)
 #define SCM_VM_CONT_DATA(CONT)	((struct scm_vm_cont *) SCM_CELL_WORD_1 (CONT))
 
+static void
+vm_mark_stack (SCM *base, scm_t_ptrdiff size, SCM *fp, scm_t_ptrdiff reloc)
+{
+  SCM *sp, *upper, *lower;
+  sp = base + size - 1;
+
+  while (sp > base && fp) 
+    {
+      upper = SCM_FRAME_UPPER_ADDRESS (fp);
+      lower = SCM_FRAME_LOWER_ADDRESS (fp);
+
+      for (; sp >= upper; sp--)
+        if (SCM_NIMP (*sp)) 
+          {
+            if (scm_in_heap_p (*sp))
+              scm_gc_mark (*sp);
+            else
+              fprintf (stderr, "BADNESS: crap on the stack: %p\n", *sp);
+          }
+      
+
+      /* skip ra, mvra */
+      sp -= 2;
+
+      /* update fp from the dynamic link */
+      fp = (SCM*)*sp-- + reloc;
+
+      /* mark from the hl down to the lower address */
+      for (; sp >= lower; sp--)
+        if (*sp && SCM_NIMP (*sp))
+          scm_gc_mark (*sp);
+    }
+}
+
 static SCM
 vm_cont_mark (SCM obj)
 {
-  size_t size;
-  SCM *stack;
+  struct scm_vm_cont *p = SCM_VM_CONT_DATA (obj);
 
-  stack = SCM_VM_CONT_DATA (obj)->stack_base;
-  size = SCM_VM_CONT_DATA (obj)->stack_size;
-
-  /* we could be smarter about this. */
-  scm_mark_locations ((SCM_STACKITEM *) stack, size);
+  vm_mark_stack (p->stack_base, p->stack_size, p->stack_base + p->fp, p->reloc);
 
   return SCM_BOOL_F;
 }
@@ -110,10 +154,14 @@ capture_vm_cont (struct scm_vm *vp)
   p->stack_size = vp->sp - vp->stack_base + 1;
   p->stack_base = scm_gc_malloc (p->stack_size * sizeof (SCM),
 				 "capture_vm_cont");
+#ifdef VM_ENABLE_STACK_NULLING
+  memset (p->stack_base, 0, p->stack_size * sizeof (SCM));
+#endif
   p->ip = vp->ip;
   p->sp = vp->sp - vp->stack_base;
   p->fp = vp->fp - vp->stack_base;
   memcpy (p->stack_base, vp->stack_base, p->stack_size * sizeof (SCM));
+  p->reloc = p->stack_base - vp->stack_base;
   SCM_RETURN_NEWSMOB (scm_tc16_vm_cont, p);
 }
 
@@ -126,6 +174,13 @@ reinstate_vm_cont (struct scm_vm *vp, SCM cont)
       /* puts ("FIXME: Need to expand"); */
       abort ();
     }
+#ifdef VM_ENABLE_STACK_NULLING
+  {
+    scm_t_ptrdiff nzero = (vp->sp - vp->stack_base) - p->sp;
+    if (nzero > 0)
+      memset (vp->stack_base + p->stack_size, 0, nzero);
+  }
+#endif
   vp->ip = p->ip;
   vp->sp = vp->stack_base + p->sp;
   vp->fp = vp->stack_base + p->fp;
@@ -173,6 +228,9 @@ vm_reset_stack (void *data)
   w->vp->sp = w->sp;
   w->vp->fp = w->fp;
   w->vp->this_frame = w->this_frame;
+#ifdef VM_ENABLE_STACK_NULLING
+  memset (w->vp->sp + 1, 0, w->vp->stack_size - (w->vp->sp + 1 - w->vp->stack_base));
+#endif
 }
 
 
@@ -329,9 +387,14 @@ vm_mark (SCM obj)
   int i;
   struct scm_vm *vp = SCM_VM_DATA (obj);
 
-  /* mark the stack conservatively */
-  scm_mark_locations ((SCM_STACKITEM *) vp->stack_base,
-                      sizeof (SCM)*(vp->sp + 1 - vp->stack_base));
+#ifdef VM_ENABLE_STACK_NULLING
+  if (vp->sp >= vp->stack_base)
+    if (!vp->sp[0] || vp->sp[1])
+      abort ();
+#endif
+
+  /* mark the stack, precisely */
+  vm_mark_stack (vp->stack_base, vp->sp + 1 - vp->stack_base, vp->fp, 0);
 
   /* mark other objects  */
   for (i = 0; i < SCM_VM_NUM_HOOKS; i++)

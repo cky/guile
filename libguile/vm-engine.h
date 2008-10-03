@@ -127,9 +127,7 @@
  * Cache/Sync
  */
 
-#define ENABLE_ASSERTIONS
-
-#ifdef ENABLE_ASSERTIONS
+#ifdef VM_ENABLE_ASSERTIONS
 # define ASSERT(condition) if (SCM_UNLIKELY (!(condition))) abort()
 #else
 # define ASSERT(condition)
@@ -151,7 +149,7 @@
   vp->fp = fp;					\
 }
 
-#ifdef IP_PARANOIA
+#ifdef VM_ENABLE_PARANOID_ASSERTIONS
 #define CHECK_IP() \
   do { if (ip < bp->base || ip - bp->base > bp->size) abort (); } while (0)
 #else
@@ -245,6 +243,16 @@
  * Stack operation
  */
 
+#ifdef VM_ENABLE_STACK_NULLING
+# define CHECK_STACK_LEAKN(_n) ASSERT (!sp[_n]);
+# define CHECK_STACK_LEAK() CHECK_STACK_LEAKN(1)
+# define NULLSTACK(_n) { int __x = _n; CHECK_STACK_LEAKN (_n+1); while (__x > 0) sp[__x--] = NULL; }
+#else
+# define CHECK_STACK_LEAKN(_n)
+# define CHECK_STACK_LEAK()
+# define NULLSTACK(_n)
+#endif
+
 #define CHECK_OVERFLOW()			\
   if (sp > stack_limit)				\
     goto vm_error_stack_overflow
@@ -254,8 +262,8 @@
     goto vm_error_stack_underflow;
 
 #define PUSH(x)	do { sp++; CHECK_OVERFLOW (); *sp = x; } while (0)
-#define DROP()	do { sp--; CHECK_UNDERFLOW (); } while (0)
-#define DROPN(_n)	do { sp -= (_n); CHECK_UNDERFLOW (); } while (0)
+#define DROP()	do { sp--; CHECK_UNDERFLOW (); NULLSTACK (1); } while (0)
+#define DROPN(_n)	do { sp -= (_n); CHECK_UNDERFLOW (); NULLSTACK (_n); } while (0)
 #define POP(x)	do { x = *sp; DROP (); } while (0)
 
 /* A fast CONS.  This has to be fast since its used, for instance, by
@@ -275,10 +283,12 @@
 do						\
 {						\
   int i;					\
-  SCM l = SCM_EOL;				\
-  sp -= n;					\
-  for (i = n; i; i--)				\
-    CONS (l, sp[i], l);				\
+  SCM l = SCM_EOL, x;				\
+  for (i = n; i; i--)                           \
+    {                                           \
+      POP (x);                                  \
+      CONS (l, x, l);                           \
+    }                                           \
   PUSH (l);					\
 } while (0)
 
@@ -404,6 +414,7 @@ do {						\
 {						\
   CLOCK (1);					\
   NEXT_HOOK ();					\
+  CHECK_STACK_LEAK ();                          \
   NEXT_JUMP ();					\
 }
 
@@ -419,6 +430,8 @@ do {						\
       int n = nargs - (bp->nargs - 1);		\
       if (n < 0)				\
 	goto vm_error_wrong_num_args;		\
+      /* NB, can cause GC while setting up the  \
+         stack frame */                         \
       POP_LIST (n);				\
     }						\
   else						\
@@ -453,17 +466,21 @@ do {						\
   for (i=bp->nlocs; i; i--)                     \
     data[-i] = SCM_UNDEFINED;                   \
 						\
-  /* Create external variables */		\
-  external = bp->external;			\
-  for (i = 0; i < bp->nexts; i++)		\
-    CONS (external, SCM_UNDEFINED, external);	\
-						\
   /* Set frame data */				\
   data[4] = (SCM)ra;                            \
   data[3] = 0x0;                                \
   data[2] = (SCM)dl;                            \
   data[1] = SCM_BOOL_F;				\
-  data[0] = external;				\
+                                                \
+  /* Postpone initializing external vars,       \
+     because if the CONS causes a GC, we        \
+     want the stack marker to see the data      \
+     array formatted as expected. */            \
+  data[0] = SCM_UNDEFINED;                      \
+  external = bp->external;                      \
+  for (i = 0; i < bp->nexts; i++)               \
+    CONS (external, SCM_UNDEFINED, external);   \
+  data[0] = external;                           \
 }
 
 #define CACHE_EXTERNAL() external = fp[bp->nargs + bp->nlocs]
