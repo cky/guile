@@ -1,7 +1,7 @@
 ;;;; strings.test --- test suite for Guile's string functions    -*- scheme -*-
 ;;;; Jim Blandy <jimb@red-bean.com> --- August 1999
 ;;;;
-;;;; Copyright (C) 1999, 2001, 2004, 2005, 2006, 2008 Free Software Foundation, Inc.
+;;;; Copyright (C) 1999, 2001, 2004, 2005, 2006 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -168,11 +168,7 @@
 
   (pass-if-exception "read-only string"
     exception:read-only-string
-    (string-set! (substring/read-only "abc" 0) 1 #\space))
-
-  (pass-if-exception "literal string"
-    exception:read-only-string
-    (string-set! "an immutable string" 0 #\a)))
+    (string-set! (substring/read-only "abc" 0) 1 #\space)))
 
 (with-test-prefix "string-split"
 
