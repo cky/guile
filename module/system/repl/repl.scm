@@ -88,7 +88,8 @@
        (set! stack-saved? #f)
        (force-output cep)))
     (else
-     (apply bad-throw args))))
+     (format (current-error-port) "\nERROR: uncaught throw to `~a', args: ~a\n"
+             (car args) (cdr args)))))
 
 (define (call-with-backtrace thunk)
   (catch #t
