@@ -23,6 +23,4 @@ AUTOMAKE_OPTIONS = gnu
 
 info_TEXINFOS = guile-tut.texi
 
-TEXINFO_TEX = ../ref/texinfo.tex
-
 EXTRA_DIST = ChangeLog-2008
