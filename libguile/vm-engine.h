@@ -247,10 +247,17 @@
 # define CHECK_STACK_LEAKN(_n) ASSERT (!sp[_n]);
 # define CHECK_STACK_LEAK() CHECK_STACK_LEAKN(1)
 # define NULLSTACK(_n) { int __x = _n; CHECK_STACK_LEAKN (_n+1); while (__x > 0) sp[__x--] = NULL; }
+/* If you have a nonlocal exit in a pre-wind proc while invoking a continuation
+   inside a dynwind (phew!), the stack is fully rewound but vm_reset_stack for
+   that continuation doesn't have a chance to run. It's not important on a
+   semantic level, but it does mess up our stack nulling -- so this macro is to
+   fix that. */
+# define NULLSTACK_FOR_NONLOCAL_EXIT() if (vp->sp > sp) NULLSTACK (vp->sp - sp);
 #else
 # define CHECK_STACK_LEAKN(_n)
 # define CHECK_STACK_LEAK()
 # define NULLSTACK(_n)
+# define NULLSTACK_FOR_NONLOCAL_EXIT()
 #endif
 
 #define CHECK_OVERFLOW()			\

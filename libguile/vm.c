@@ -155,6 +155,9 @@ capture_vm_cont (struct scm_vm *vp)
   p->stack_base = scm_gc_malloc (p->stack_size * sizeof (SCM),
 				 "capture_vm_cont");
 #ifdef VM_ENABLE_STACK_NULLING
+  if (vp->sp >= vp->stack_base)
+    if (!vp->sp[0] || vp->sp[1])
+      abort ();
   memset (p->stack_base, 0, p->stack_size * sizeof (SCM));
 #endif
   p->ip = vp->ip;
@@ -178,7 +181,9 @@ reinstate_vm_cont (struct scm_vm *vp, SCM cont)
   {
     scm_t_ptrdiff nzero = (vp->sp - vp->stack_base) - p->sp;
     if (nzero > 0)
-      memset (vp->stack_base + p->stack_size, 0, nzero);
+      memset (vp->stack_base + p->stack_size, 0, nzero * sizeof (SCM));
+    /* actually nzero should always be negative, because vm_reset_stack will
+       unwind the stack to some point *below* this continuation */
   }
 #endif
   vp->ip = p->ip;
@@ -224,12 +229,13 @@ static void
 vm_reset_stack (void *data)
 {
   struct vm_unwind_data *w = data;
+  struct scm_vm *vp = w->vp;
   
-  w->vp->sp = w->sp;
-  w->vp->fp = w->fp;
-  w->vp->this_frame = w->this_frame;
+  vp->sp = w->sp;
+  vp->fp = w->fp;
+  vp->this_frame = w->this_frame;
 #ifdef VM_ENABLE_STACK_NULLING
-  memset (w->vp->sp + 1, 0, w->vp->stack_size - (w->vp->sp + 1 - w->vp->stack_base));
+  memset (vp->sp + 1, 0, (vp->stack_size - (vp->sp + 1 - vp->stack_base)) * sizeof(SCM));
 #endif
 }
 

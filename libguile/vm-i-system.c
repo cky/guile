@@ -567,6 +567,7 @@ VM_DEFINE_INSTRUCTION (call, "call", 1, -1, 1)
       SYNC_REGISTER ();
       /* keep args on stack so they are marked */
       sp[-1] = scm_apply (x, sp[0], SCM_EOL);
+      NULLSTACK_FOR_NONLOCAL_EXIT ();
       /* FIXME what if SCM_VALUESP(*sp) */
       DROP ();
       NEXT;
@@ -754,6 +755,7 @@ VM_DEFINE_INSTRUCTION (goto_args, "goto/args", 1, -1, 1)
       POP_LIST (nargs);
       SYNC_REGISTER ();
       sp[-1] = scm_apply (x, sp[0], SCM_EOL);
+      NULLSTACK_FOR_NONLOCAL_EXIT ();
       DROP ();
       /* FIXME what if SCM_VALUESP(*sp) */
       goto vm_return;
@@ -822,6 +824,7 @@ VM_DEFINE_INSTRUCTION (mv_call, "mv-call", 3, -1, 1)
       POP_LIST (nargs);
       SYNC_REGISTER ();
       sp[-1] = scm_apply (x, sp[0], SCM_EOL);
+      NULLSTACK_FOR_NONLOCAL_EXIT ();
       DROP ();
       if (SCM_VALUESP (*sp))
         {
@@ -931,6 +934,9 @@ VM_DEFINE_INSTRUCTION (goto_cc, "goto/cc", 0, 1, 1)
   POP (proc);
   SYNC_ALL ();
   cont = scm_make_continuation (&first);
+  ASSERT (sp == vp->sp);
+  ASSERT (fp == vp->fp);
+  ASSERT (ip == vp->ip);
   if (first) 
     {
       PUSH (proc);
