@@ -293,6 +293,7 @@ vm_heapify_frames_1 (struct scm_vm *vp, SCM *fp, SCM *sp, SCM **destp)
 	link = vm_heapify_frames_1 (vp, dl, dest - 1, &dest);
       frame = scm_c_make_heap_frame (fp);
       fp = SCM_HEAP_FRAME_POINTER (frame);
+      /* FIXME: I don't think we should be storing heap links on the stack. */
       SCM_FRAME_HEAP_LINK (fp)    = link;
       SCM_FRAME_SET_DYNAMIC_LINK (fp, SCM_HEAP_FRAME_POINTER (link));
     }
@@ -670,6 +671,11 @@ SCM_DEFINE (scm_vm_save_stack, "vm-save-stack", 1, 0, 0,
 
   if (vp->fp) 
     {
+#ifdef VM_ENABLE_STACK_NULLING
+      if (vp->sp >= vp->stack_base)
+        if (!vp->sp[0] || vp->sp[1])
+          abort ();
+#endif
       vp->last_frame = vm_heapify_frames_1 (vp, vp->fp, vp->sp, &dest);
       vp->last_ip = vp->ip;
     }

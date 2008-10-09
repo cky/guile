@@ -152,6 +152,9 @@ vm_run (SCM vm, SCM program, SCM args)
 
   vm_error_wrong_num_args:
     /* nargs and program are valid */
+    SYNC_ALL ();
+    if (objects)
+      scm_array_handle_release (&objects_handle);
     scm_wrong_num_args (program);
     /* shouldn't get here */
     goto vm_error;

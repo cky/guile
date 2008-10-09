@@ -46,6 +46,6 @@
   #:reader	read
   #:read-file	read-file
   #:translator	translate
-  #:evaluator	eval
+  #:evaluator	(lambda (x module) (primitive-eval x))
   #:printer	write
   )
