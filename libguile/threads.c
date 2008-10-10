@@ -1715,7 +1715,7 @@ scm_threads_mark_stacks (void)
 #else
       scm_mark_locations (t->top, t->base - t->top);
 #endif
-      scm_mark_locations ((SCM_STACKITEM *) &t->regs,
+      scm_mark_locations ((void *) &t->regs,
 			  ((size_t) sizeof(t->regs)
 			   / sizeof (SCM_STACKITEM)));
     }
