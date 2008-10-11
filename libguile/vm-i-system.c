@@ -908,7 +908,6 @@ VM_DEFINE_INSTRUCTION (call_cc, "call/cc", 0, 1, 1)
     }
   ASSERT (sp == vp->sp);
   ASSERT (fp == vp->fp);
-  ASSERT (ip == vp->ip);
   else if (SCM_VALUESP (cont))
     {
       /* multiple values returned to continuation */
@@ -936,7 +935,6 @@ VM_DEFINE_INSTRUCTION (goto_cc, "goto/cc", 0, 1, 1)
   cont = scm_make_continuation (&first);
   ASSERT (sp == vp->sp);
   ASSERT (fp == vp->fp);
-  ASSERT (ip == vp->ip);
   if (first) 
     {
       PUSH (proc);
