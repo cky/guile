@@ -23,7 +23,6 @@
 #include "libguile/_scm.h"
 #include "libguile/alist.h"
 #include "libguile/eval.h"
-#include "libguile/gh.h"
 #include "libguile/hash.h"
 #include "libguile/list.h"
 #include "libguile/ports.h"

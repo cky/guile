@@ -32,6 +32,8 @@ See `cancel-thread', `set-thread-cleanup!', and `thread-cleanup'.
 
 * Changes to the C interface
 
+** The GH interface (deprecated in version 1.6, 2001) was removed.
+
 ** Internal `scm_i_' functions now have "hidden" linkage with GCC/ELF
 
 This makes these internal functions technically not callable from
@@ -64,13 +66,14 @@ available: Guile is now always configured in "maintainer mode".
 * Bugs fixed
 
 ** `symbol->string' now returns a read-only string, as per R5RS
-** Literal strings as returned by `read' are now read-only, as per R5RS
+** Fix incorrect handling of the FLAGS argument of `fold-matches'
 ** `guile-config link' now prints `-L$libdir' before `-lguile'
 ** Fix memory corruption involving GOOPS' `class-redefinition'
 ** Fix possible deadlock in `mutex-lock'
 ** Fix build issue on Tru64 and ia64-hp-hpux11.23 (`SCM_UNPACK' macro)
 ** Fix build issue on mips, mipsel, powerpc and ia64 (stack direction)
 ** Fix build issue on hppa2.0w-hp-hpux11.11 (`dirent64' and `readdir64_r')
+** Fix build issue on i386-unknown-freebsd7.0 ("break strict-aliasing rules")
 ** Fix misleading output from `(help rationalize)'
 ** Fix build failure on Debian hppa architecture (bad stack growth detection)
 ** Fix `gcd' when called with a single, negative argument.

@@ -55,7 +55,6 @@ guile_TEXINFOS = preface.texi			\
 		 scsh.texi			\
 		 tcltk.texi			\
 		 scheme-scripts.texi		\
-		 gh.texi			\
 		 api-overview.texi		\
 		 scheme-debugging.texi		\
 		 scheme-using.texi		\
