@@ -2723,32 +2723,25 @@ module '(ice-9 q) '(make-q q-length))}."
 ;; The inner `do' loop avoids re-establishing a catch every iteration,
 ;; that's only necessary if continue is actually used.  A new key is
 ;; generated every time, so break and continue apply to their originating
-;; `while' even when recursing.  `while-helper' is an easy way to keep the
-;; `key' binding away from the cond and body code.
+;; `while' even when recursing.
 ;;
-;; FIXME: This is supposed to have an `unquote' on the `do' the same used
-;; for lambda and not, so as to protect against any user rebinding of that
-;; symbol, but unfortunately an unquote breaks with ice-9 syncase, eg.
-;;
-;;     (use-modules (ice-9 syncase))
-;;     (while #f)
-;;     => ERROR: invalid syntax ()
-;;
-;; This is probably a bug in syncase.
+;; FIXME: This macro is unintentionally unhygienic with respect to let,
+;; make-symbol, do, throw, catch, lambda, and not.
 ;;
 (define-macro (while cond . body)
-  (let ((key (make-symbol "while-key")))
-    `(do ()
-         ((catch ',key
-                 (lambda ()
-                   (let ((break (lambda () (throw ',key #t)))
-                         (continue (lambda () (throw ',key #f))))
-                     (do ()
-                         ((not ,cond))
-                       ,@body)
-                     #t))
-                 (lambda (key arg)
-                   arg))))))
+  (let ((keyvar (make-symbol "while-keyvar")))
+    `(let ((,keyvar (make-symbol "while-key")))
+       (do ()
+           ((catch ,keyvar
+                   (lambda ()
+                     (let ((break (lambda () (throw ,keyvar #t)))
+                           (continue (lambda () (throw ,keyvar #f))))
+                       (do ()
+                           ((not ,cond))
+                         ,@body)
+                       #t))
+                   (lambda (key arg)
+                     arg)))))))
 
 
 
