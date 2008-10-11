@@ -360,8 +360,6 @@ vm_heapify_frames (SCM vm)
 
 scm_t_bits scm_tc16_vm;
 
-SCM scm_the_vm_fluid;
-
 static SCM
 make_vm (void)
 #define FUNC_NAME "make_vm"
@@ -372,6 +370,9 @@ make_vm (void)
   vp->stack_size  = VM_DEFAULT_STACK_SIZE;
   vp->stack_base  = scm_gc_malloc (vp->stack_size * sizeof (SCM),
 				   "stack-base");
+#ifdef VM_ENABLE_STACK_NULLING
+  memset (vp->stack_base, 0, vp->stack_size * sizeof (SCM));
+#endif
   vp->stack_limit = vp->stack_base + vp->stack_size - 3;
   vp->ip    	  = NULL;
   vp->sp    	  = vp->stack_base - 1;
@@ -448,14 +449,12 @@ SCM_DEFINE (scm_the_vm, "the-vm", 0, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_the_vm
 {
-  SCM ret;
+  scm_i_thread *t = SCM_I_CURRENT_THREAD;
 
-  if (SCM_NFALSEP ((ret = scm_fluid_ref (scm_the_vm_fluid))))
-    return ret;
+  if (SCM_UNLIKELY (SCM_FALSEP ((t->vm))))
+    t->vm = make_vm ();
 
-  ret = make_vm ();
-  scm_fluid_set_x (scm_the_vm_fluid, ret);
-  return ret;
+  return t->vm;
 }
 #undef FUNC_NAME
 
@@ -770,10 +769,6 @@ scm_bootstrap_vm (void)
   scm_set_smob_mark (scm_tc16_vm, vm_mark);
   scm_set_smob_free (scm_tc16_vm, vm_free);
   scm_set_smob_apply (scm_tc16_vm, scm_vm_apply, 1, 0, 1);
-
-  scm_the_vm_fluid = scm_permanent_object (scm_make_fluid ());
-  scm_fluid_set_x (scm_the_vm_fluid, make_vm ());
-  scm_c_define ("*the-vm*", scm_the_vm_fluid);
 
   scm_c_define ("load-compiled",
                 scm_c_make_gsubr ("load-compiled/vm", 1, 0, 0,

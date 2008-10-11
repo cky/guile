@@ -22,7 +22,7 @@
 (define-module (system vm vm)
   #:use-module (system vm frame)
   #:use-module (system vm objcode)
-  #:export (vm? the-vm *the-vm* make-vm vm-version
+  #:export (vm? the-vm make-vm vm-version
            vm:ip vm:sp vm:fp vm:last-ip
 
            vm-load vm-return-value

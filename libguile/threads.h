@@ -111,6 +111,7 @@ typedef struct scm_i_thread {
   SCM_STACKITEM *continuation_base;
 
   /* For keeping track of the stack and registers. */
+  SCM vm;
   SCM_STACKITEM *base;
   SCM_STACKITEM *top;
   jmp_buf regs;

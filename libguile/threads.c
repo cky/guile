@@ -158,6 +158,7 @@ thread_mark (SCM obj)
   scm_gc_mark (t->dynwinds);
   scm_gc_mark (t->active_asyncs);
   scm_gc_mark (t->continuation_root);
+  scm_gc_mark (t->vm);
   return t->dynamic_state;
 }
 
@@ -506,6 +507,7 @@ guilify_self_2 (SCM parent)
   scm_gc_register_collectable_memory (t, sizeof (scm_i_thread), "thread");
   t->continuation_root = scm_cons (t->handle, SCM_EOL);
   t->continuation_base = t->base;
+  t->vm = SCM_BOOL_F;
 
   if (scm_is_true (parent))
     t->dynamic_state = scm_make_dynamic_state (parent);
