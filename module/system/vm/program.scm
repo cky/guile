@@ -84,10 +84,10 @@
         (rest? (not (zero? (arity:nrest (program-arity prog))))))
     (if (or (null? bindings) (not bindings))
         (if rest? (cons (1- nargs) 1) (list nargs))
-        (let ((arg-names (map binding:name (cdar bindings))))
+        (let ((args (map binding:name (list-head bindings nargs))))
           (if rest?
-              (apply cons* arg-names)
-              arg-names)))))
+              (apply cons* args)
+              args)))))
 
 (define (write-program prog port)
   (format port "#<program ~a ~a>"

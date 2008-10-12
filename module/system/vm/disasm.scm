@@ -37,7 +37,7 @@
 	 (bytes (program-bytecode prog)))
     (format #t "Disassembly of ~A:\n\n" objcode)
     (format #t "nlocs = ~A  nexts = ~A\n\n" nlocs nexts)
-    (disassemble-bytecode bytes #f)))
+    (disassemble-bytecode bytes #f 0 #f #f '())))
 
 (define (disassemble-program prog . opts)
   (let* ((arity (program-arity prog))
@@ -48,13 +48,19 @@
 	 (bytes (program-bytecode prog))
 	 (objs  (program-objects prog))
 	 (meta  (program-meta prog))
-	 (exts  (program-external prog)))
+	 (exts  (program-external prog))
+         (binds (program-bindings prog))
+         (blocs (and binds
+                     (filter (lambda (x) (not (binding:extp x))) binds)))
+         (bexts (and binds
+                     (filter binding:extp binds)))
+         (srcs  (program-sources prog)))
     ;; Disassemble this bytecode
     (format #t "Disassembly of ~A:\n\n" prog)
     (format #t "nargs = ~A  nrest = ~A  nlocs = ~A  nexts = ~A\n\n"
 	    nargs nrest nlocs nexts)
     (format #t "Bytecode:\n\n")
-    (disassemble-bytecode bytes objs)
+    (disassemble-bytecode bytes objs nargs blocs bexts srcs)
     (if (> (vector-length objs) 0)
 	(disassemble-objects objs))
     (if (pair? exts)
@@ -69,24 +75,25 @@
 		  (apply disassemble-program x opts))))
      (vector->list objs))))
 
-(define (disassemble-bytecode bytes objs)
+(define (disassemble-bytecode bytes objs nargs blocs bexts sources)
   (let ((decode (make-byte-decoder bytes))
         (programs '()))
-    (define (lp addr code)
+    (define (lp start end code)
       (pmatch code
        (#f (newline))
        ((load-program ,x)
         (let ((sym (gensym "")))
           (set! programs (acons sym x programs))
-          (print-info addr (format #f "(load-program #~A)" sym) #f)))
+          (print-info start `(load-program ,sym) #f #f)))
        (else
-        (print-info addr (list->info code)
-                    (original-value addr code objs))))
+        (print-info start code
+                    (code-annotation end code objs nargs blocs bexts)
+                    (and=> (assq end sources) source->string))))
       (if code (call-with-values decode lp)))
     (call-with-values decode lp)
     (for-each (lambda (sym+bytes)
                 (format #t "Bytecode #~A:\n\n" (car sym+bytes))
-                (disassemble-bytecode (cdr sym+bytes) #f))
+                (disassemble-bytecode (cdr sym+bytes) #f 0 #f #f '()))
               (reverse! programs))))
 
 (define (disassemble-objects objs)
@@ -94,8 +101,7 @@
   (let ((len (vector-length objs)))
     (do ((n 0 (1+ n)))
 	((= n len) (newline))
-      (let ((info (object->string (vector-ref objs n))))
-	(print-info n info #f)))))
+      (print-info n (vector-ref objs n) #f #f))))
 
 (define (disassemble-externals exts)
   (display "Externals:\n\n")
@@ -103,94 +109,60 @@
     (do ((n 0 (1+ n))
 	 (l exts (cdr l)))
 	((null? l) (newline))
-      (let ((info (object->string (car l))))
-	(print-info n info #f)))))
+      (print-info n (car l) #f))))
 
 (define-macro (unless test . body)
   `(if (not ,test) (begin ,@body)))
 
-(define (disassemble-bindings prog bindings)
-  (let* ((nargs (arity:nargs (program-arity prog)))
-         (args (if (zero? nargs) '() (cdar bindings)))
-         (nonargs (if (zero? nargs) bindings (cdr bindings))))
-    (unless (null? args)
-            (display "Arguments:\n\n")
-            (for-each (lambda (bind n)
-                        (print-info n
-                                    (format #f "~a[~a]: ~a"
-                                            (if (cadr bind) 'external 'local)
-                                            (caddr bind) (car bind))
-                                    #f))
-                      args
-                      (iota nargs))
-            (newline))
-    (unless (null? nonargs)
-            (display "Bindings:\n\n")
-            (for-each (lambda (start binds end)
-                        (for-each (lambda (bind)
-                                    (print-info (format #f "~a-~a" start end)
-                                                (format #f "~a[~a]: ~a"
-                                                        (if (cadr bind) 'external 'local)
-                                                        (caddr bind) (car bind))
-                                                #f))
-                                  binds))
-                      (map car (filter cdr nonargs))
-                      (map cdr (filter cdr nonargs))
-                      (map car (filter (lambda (x) (not (cdr x))) nonargs)))
-            (newline))))
+(define *uninteresting-props* '(name))
 
 (define (disassemble-meta program meta)
-  (let ((bindings (car meta))
-        (sources (cadr meta))
-        (props (cddr meta)))
-    (unless (null? bindings)
-            (disassemble-bindings program bindings))
-    (unless (null? sources)
-            (display "Sources:\n\n")
-            (for-each (lambda (x)
-                        (print-info (car x) (list->info (cdr x)) #f))
-                      sources)
-            (newline))
+  (let ((sources (cadr meta))
+        (props (filter (lambda (x)
+                         (not (memq (car x) *uninteresting-props*)))
+                       (cddr meta))))
     (unless (null? props)
             (display "Properties:\n\n")
-            (for-each (lambda (x) (print-info #f x #f)) props)
+            (for-each (lambda (x) (print-info #f x #f #f)) props)
             (newline))))
 
-(define (original-value addr code objs)
+(define (source->string src)
+  (format #f "~a:~a:~a" (or (source:file src) "(unknown file)")
+          (source:line src) (source:column src)))
+
+(define (make-int16 byte1 byte2)
+  (+ (* byte1 256) byte2))
+
+(define (code-annotation end-addr code objs nargs blocs bexts)
   (let* ((code (code-unpack code))
          (inst (car code))
          (args (cdr code)))
     (case inst
       ((list vector) 
-       (let ((len (+ (* (cadr code) 256) (caddr code))))
-         (format #f "~a element~a" len (if (> len 1) "s" ""))))
+       (list "~a element~:p" (apply make-int16 args)))
       ((br br-if br-if-eq br-if-not br-if-not-eq br-if-not-null br-if-null)
-       (let ((offset (+ (* (car args) 256) (cadr args))))
-         (format #f "-> ~A" (+ addr offset 3))))
+       (list "-> ~A" (+ end-addr (apply make-int16 args))))
       ((object-ref)
-       (if objs (object->string (vector-ref objs (car args))) #f))
+       (and objs (list "~s" (vector-ref objs (car args)))))
+      ((local-ref local-set)
+       (and blocs
+            (let ((b (list-ref blocs (car args))))
+              (list "`~a'~@[ (arg)~]"
+                    (binding:name b) (< (binding:index b) nargs)))))
+      ((external-ref external-set)
+       (and bexts
+            (let ((b (list-ref bexts (car args))))
+              (list "`~a'~@[ (arg)~]"
+                    (binding:name b) (< (binding:index b) nargs)))))
       ((mv-call)
-       (let ((offset (+ (* (caddr code) 256) (cadddr code))))
-         (format #f "MV -> ~A" (+ addr offset 4))))
+       (list "MV -> ~A" (+ end-addr (apply make-int16 args))))
       (else
-       (and=> (code->object code) object->string)))))
+       (and=> (code->object code)
+              (lambda (obj) (list "~s" obj)))))))
 
-(define (list->info list)
-  (object->string list))
-
-;   (define (u8vector->string vec)
-;     (list->string (map integer->char (u8vector->list vec))))
-
-;   (case (car list)
-;     ((link)
-;      (object->string `(link ,(u8vector->string (cadr list)))))
-;     (else
-;      (object->string list))))
-
-(define (print-info addr info extra)
-  (if extra
-      (format #t "~4@A    ~32A;; ~A\n" addr info extra)
-      (format #t "~4@A    ~A\n" addr info)))
+;; i am format's daddy.
+(define (print-info addr info extra src)
+  (format #t "~4@S    ~32S~@[;; ~1{~@?~}~]~@[~61t at ~a~]\n" addr info extra src))
 
 (define (simplify x)
   (cond ((string? x)

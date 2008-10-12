@@ -74,6 +74,8 @@
 
 (define-macro (push x loc)
   `(set! ,loc (cons ,x ,loc)))
+(define-macro (pop loc)
+  `(let ((_x (car ,loc))) (set! ,loc (cdr ,loc)) _x))
 
 ;; this is to avoid glil-const's desire to put constants in the object
 ;; array -- instead we explicitly want them in the code, because meta
@@ -102,7 +104,8 @@
   (record-case glil
     ((<vm-asm> venv glil body) (record-case glil ((<glil-asm> vars meta) ; body?
      (let ((stack '())
-	   (binding-alist '())
+	   (open-bindings '())
+	   (closed-bindings '())
 	   (source-alist '())
 	   (label-alist '())
 	   (object-alist '()))
@@ -120,6 +123,32 @@
 				  (set! object-alist (acons x i object-alist))
 				  i)))))
 		  (push-code! `(object-ref ,i))))))
+       (define (munge-bindings bindings nargs)
+         (map
+          (lambda (v)
+            (let ((name (car v)) (type (cadr v)) (i (caddr v)))
+              (case type
+                ((argument) (make-binding name #f i))
+                ((local) (make-binding name #f (+ nargs i)))
+                ((external) (make-binding name #t i))
+                (else (error "unknown binding type" name type)))))
+          bindings))
+       (define (push-bindings! bindings)
+         (push (cons (current-address) bindings) open-bindings))
+       (define (close-binding!)
+         (let* ((bindings (pop open-bindings))
+                (start (car bindings))
+                (end (current-address)))
+           (for-each
+            (lambda (binding)
+              (push `(,start ,@binding ,start ,end) closed-bindings))
+            (cdr bindings))))
+       (define (finish-bindings!)
+         (while (not (null? open-bindings)) (close-binding!))
+         (set! closed-bindings
+               (stable-sort! (reverse! closed-bindings)
+                             (lambda (x y) (< (car x) (car y)))))
+         (set! closed-bindings (map cdr closed-bindings)))
        (define (current-address)
 	 (apply + (map byte-length stack)))
        (define (generate-code x)
@@ -129,32 +158,14 @@
 	    (if (venv-closure? venv) (push-code! `(make-closure))))
 
 	   ((<glil-bind> (binds vars))
-	    (let ((bindings
-		   (map (lambda (v)
-			  (let ((name (car v)) (type (cadr v)) (i (caddr v)))
-			    (case type
-			      ((argument) (make-binding name #f i))
-			      ((local) (make-binding name #f (+ (glil-vars-nargs vars) i)))
-			      ((external) (make-binding name #t i)))))
-			binds)))
-	      (set! binding-alist
-		    (acons (current-address) bindings binding-alist))))
+            (push-bindings! (munge-bindings binds (glil-vars-nargs vars))))
 
 	   ((<glil-mv-bind> (binds vars) rest)
-	    (let ((bindings
-		   (map (lambda (v)
-			  (let ((name (car v)) (type (cadr v)) (i (caddr v)))
-			    (case type
-			      ((argument) (make-binding name #f i))
-			      ((local) (make-binding name #f (+ (glil-vars-nargs vars) i)))
-			      ((external) (make-binding name #t i)))))
-			binds)))
-	      (set! binding-alist
-		    (acons (current-address) bindings binding-alist))
-              (push-code! `(truncate-values ,(length binds) ,(if rest 1 0)))))
+            (push-bindings! (munge-bindings binds (glil-vars-nargs vars)))
+            (push-code! `(truncate-values ,(length binds) ,(if rest 1 0))))
 
 	   ((<glil-unbind>)
-	    (set! binding-alist (acons (current-address) #f binding-alist)))
+            (close-binding!))
 
 	   ((<glil-source> loc)
 	    (set! source-alist (acons (current-address) loc source-alist)))
@@ -255,14 +266,15 @@
        ;;
        ;; main
        (for-each generate-code body)
+       (finish-bindings!)
 ;       (format #t "codegen: stack = ~a~%" (reverse stack))
        (let ((bytes (stack->bytes (reverse! stack) label-alist)))
 	 (if toplevel
 	     (bytecode->objcode bytes (glil-vars-nlocs vars) (glil-vars-nexts vars))
 	     (make-bytespec #:vars vars #:bytes bytes
-                            #:meta (make-meta (reverse! binding-alist)
-                                             (reverse! source-alist)
-                                             meta)
+                            #:meta (make-meta closed-bindings
+                                              (reverse! source-alist)
+                                              meta)
                             #:objs (let ((objs (map car (reverse! object-alist))))
                                     (if (null? objs) #f (list->vector objs)))
                             #:closure? (venv-closure? venv))))))))))

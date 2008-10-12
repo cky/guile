@@ -162,8 +162,8 @@
 			   (do ((n n (1- n))
 				(l '() (cons (pop) l)))
 			       ((= n 0) (cons* inst (reverse! l)))))))
-	    (values start code))
-	  (values #f #f)))))
+	    (values start addr code))
+	  (values #f #f #f)))))
 
 
 ;;;
