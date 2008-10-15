@@ -32,10 +32,12 @@
   "(help [NAME])
 Prints useful information.  Try `(help)'."
   (cond ((not (= (length exp) 1))
-         (help-usage))
+         (help-usage)
+         '(begin))
         ((not (provided? 'regex))
          (display "`help' depends on the `regex' feature.
-You don't seem to have regular expressions installed.\n"))
+You don't seem to have regular expressions installed.\n")
+         '(begin))
         (else
          (let ((name (car exp))
                (not-found (lambda (type x)
