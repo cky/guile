@@ -163,7 +163,7 @@
                   (list "~s" (variable-ref v))
                   (list "`~s'" v)))))
       ((mv-call)
-       (list "MV -> ~A" (+ end-addr (apply make-int16 args))))
+       (list "MV -> ~A" (+ end-addr (apply make-int16 (cdr args)))))
       (else
        (and=> (code->object code)
               (lambda (obj) (list "~s" obj)))))))
