@@ -51,7 +51,9 @@
 	 (exts  (program-external prog))
          (binds (program-bindings prog))
          (blocs (and binds
-                     (filter (lambda (x) (not (binding:extp x))) binds)))
+                     (append (list-head binds nargs)
+                             (filter (lambda (x) (not (binding:extp x)))
+                                     (list-tail binds nargs)))))
          (bexts (and binds
                      (filter binding:extp binds)))
          (srcs  (program-sources prog)))
@@ -61,8 +63,6 @@
 	    nargs nrest nlocs nexts)
     (format #t "Bytecode:\n\n")
     (disassemble-bytecode bytes objs nargs blocs bexts srcs)
-    (if (> (vector-length objs) 0)
-	(disassemble-objects objs))
     (if (pair? exts)
 	(disassemble-externals exts))
     (if meta
@@ -151,9 +151,17 @@
                     (binding:name b) (< (binding:index b) nargs)))))
       ((external-ref external-set)
        (and bexts
-            (let ((b (list-ref bexts (car args))))
-              (list "`~a'~@[ (arg)~]"
-                    (binding:name b) (< (binding:index b) nargs)))))
+            (if (< (car args) (length bexts))
+                (let ((b (list-ref bexts (car args))))
+                  (list "`~a'~@[ (arg)~]"
+                        (binding:name b) (< (binding:index b) nargs)))
+                (list "(closure variable)"))))
+      ((late-variable-ref late-variable-set)
+       (and objs
+            (let ((v (vector-ref objs (car args))))
+              (if (and (variable? v) (variable-bound? v))
+                  (list "~s" (variable-ref v))
+                  (list "`~s'" v)))))
       ((mv-call)
        (list "MV -> ~A" (+ end-addr (apply make-int16 args))))
       (else
