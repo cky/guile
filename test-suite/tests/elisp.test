@@ -278,6 +278,19 @@
 				(write (eval-elisp expr))))))
 		   (string=? calc expected))))
       
+      (define (elisp-pass-if/maybe-error key expr expected)
+	(pass-if (with-output-to-string (lambda () (write expr)))
+		 (string=?
+                  (catch key
+                         (lambda ()
+                           (with-output-to-string
+                             (lambda () (write (eval-elisp expr)))))
+                         (lambda (k . args)
+                           (format (current-error-port)
+                                   "warning: caught ~a: ~a\n" k args)
+                           (throw 'unresolved)))
+                  expected)))
+
       (elisp-pass-if '(and #f) "#f")
       (elisp-pass-if '(and #t) "#t")
       (elisp-pass-if '(and nil) "#nil")
@@ -327,8 +340,14 @@
       ;; loading the macro definition of lambda in subr.el.
       (elisp-pass-if '(function (lambda (x y &optional o &rest r) (list x y o r))) "(lambda (x y &optional o &rest r) (list x y o r))")
       (elisp-pass-if '(funcall (lambda (x y &optional o &rest r) (list x y o r)) 1 2 3 4) "(1 2 3 (4))")
-      (elisp-pass-if '(apply (lambda (x y &optional o &rest r) (list x y o r)) 1 2 3 nil) "(1 2 3 #nil)")
 
+      ;; If r4rs.scm is compiled, `apply' will only unroll true scheme
+      ;; lists.
+      (elisp-pass-if/maybe-error
+       'vm-error
+       '(apply (lambda (x y &optional o &rest r) (list x y o r)) 1 2 3 nil)
+       "(1 2 3 #nil)")
+      
       (elisp-pass-if '(setq x 3) "3")
       (elisp-pass-if '(defvar x 4) "x")
       (elisp-pass-if 'x "3")
