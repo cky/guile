@@ -299,6 +299,18 @@ do						\
   PUSH (l);					\
 } while (0)
 
+/* The opposite: push all of the elements in L onto the list. */
+#define PUSH_LIST(l)				\
+do						\
+{						\
+  for (; scm_is_pair (l); l = SCM_CDR (l))      \
+    PUSH (SCM_CAR (l));                         \
+  if (SCM_UNLIKELY (!SCM_NULLP (l))) {          \
+    err_args = scm_list_1 (l);                  \
+    goto vm_error_improper_list;                \
+  }                                             \
+} while (0)
+
 
 /* Below is a (slightly broken) experiment to avoid calling `scm_cell' and to
    allocate cells on the stack.  This is a significant improvement for

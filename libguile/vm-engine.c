@@ -176,6 +176,10 @@ vm_run (SCM vm, SCM program, SCM args)
     err_args = SCM_EOL;
     goto vm_error;
 
+  vm_error_improper_list:
+    err_msg  = scm_from_locale_string ("VM: Attempt to unroll an improper list: tail is ~A");
+    goto vm_error;
+
   vm_error_no_values:
     err_msg  = scm_from_locale_string ("VM: 0-valued return");
     err_args = SCM_EOL;

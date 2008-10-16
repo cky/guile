@@ -214,8 +214,7 @@ VM_DEFINE_INSTRUCTION (list_break, "list-break", 0, 0, 0)
 {
   SCM l;
   POP (l);
-  for (; !SCM_NULLP (l); l = SCM_CDR (l))
-    PUSH (SCM_CAR (l));
+  PUSH_LIST (l);
   NEXT;
 }
 
@@ -833,8 +832,7 @@ VM_DEFINE_INSTRUCTION (mv_call, "mv-call", 3, -1, 1)
           POP (values);
           values = scm_struct_ref (values, SCM_INUM0);
           len = scm_length (values);
-          for (; !SCM_NULLP (values); values = SCM_CDR (values))
-            PUSH (SCM_CAR (values));
+          PUSH_LIST (values);
           PUSH (len);
           ip += offset;
         }
@@ -866,8 +864,7 @@ VM_DEFINE_INSTRUCTION (apply, "apply", 1, -1, 1)
   if (len < 0)
     goto vm_error_wrong_type_arg;
 
-  for (; !SCM_NULLP (ls); ls = SCM_CDR (ls))
-    PUSH (SCM_CAR (ls));
+  PUSH_LIST (ls);
 
   nargs += len - 2;
   goto vm_call;
@@ -886,8 +883,7 @@ VM_DEFINE_INSTRUCTION (goto_apply, "goto/apply", 1, -1, 1)
   if (len < 0)
     goto vm_error_wrong_type_arg;
 
-  for (; !SCM_NULLP (ls); ls = SCM_CDR (ls))
-    PUSH (SCM_CAR (ls));
+  PUSH_LIST (ls);
 
   nargs += len - 2;
   goto vm_goto_args;
@@ -949,8 +945,7 @@ VM_DEFINE_INSTRUCTION (goto_cc, "goto/cc", 0, 1, 1)
       SCM values;
       values = scm_struct_ref (cont, SCM_INUM0);
       nvalues = scm_ilength (values);
-      for (; !SCM_NULLP (values); values = SCM_CDR (values))
-        PUSH (SCM_CAR (values));
+      PUSH_LIST (values);
       goto vm_return_values;
     }
   else
