@@ -172,15 +172,12 @@
 
 ;; FIXME handle #f program-bindings return
 (define (frame-bindings frame addr)
-  (do ((bs (program-bindings (frame-program frame)) (cdr bs))
-       (ls '() (if (cdar bs) (cons (cdar bs) ls) (cdr ls))))
-      ((or (null? bs) (> (caar bs) addr))
-       (apply append ls))))
+  (filter (lambda (b) (and (>= addr (binding:start b))
+                           (<= addr (binding:end b))))
+          (program-bindings (frame-program frame))))
 
 (define (frame-lookup-binding frame addr sym)
-  (do ((bs (frame-bindings frame addr) (cdr bs)))
-      ((or (null? bs) (eq? sym (binding:name (car bs))))
-       (and (pair? bs) (car bs)))))
+  (assq sym (reverse (frame-bindings frame addr))))
 
 (define (frame-object-binding frame addr obj)
   (do ((bs (frame-bindings frame addr) (cdr bs)))
