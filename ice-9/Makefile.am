@@ -36,7 +36,7 @@ SOURCES = psyntax-pp.scm boot-9.scm \
 	format.scm getopt-long.scm hcons.scm i18n.scm			\
 	lineio.scm ls.scm mapping.scm					\
 	networking.scm null.scm optargs.scm poe.scm		\
-	posix.scm q.scm r4rs.scm r5rs.scm			\
+	popen.scm posix.scm q.scm r4rs.scm r5rs.scm			\
 	rdelim.scm receive.scm regex.scm runq.scm rw.scm		\
 	safe-r5rs.scm safe.scm session.scm slib.scm stack-catch.scm	\
 	streams.scm string-fun.scm syncase.scm threads.scm		\
@@ -49,16 +49,13 @@ SOURCES = psyntax-pp.scm boot-9.scm \
 # snarf-check-and-output-texi) fails. need to figure out what the
 # problem is.
 #
-# popen.scm compiles, but then breaks the test suite via random lost gc
-# references. need to figure out what's going on there.
-# 
 # occam-channel and gds-client use goops, which is not yet vm-compatible
 # (it does some compilation-like optimizations for the interpreter), so
 # punt on them for the time being.
 #
 # psyntax.scm needs help. fortunately it's only needed when recompiling
 # psyntax-pp.scm.
-NOCOMP_SOURCES = match.scm occam-channel.scm gds-client.scm psyntax.scm popen.scm
+NOCOMP_SOURCES = match.scm occam-channel.scm gds-client.scm psyntax.scm
 
 include $(top_srcdir)/guilec.mk
 

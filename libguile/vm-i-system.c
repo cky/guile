@@ -604,6 +604,7 @@ VM_DEFINE_INSTRUCTION (goto_args, "goto/args", 1, -1, 1)
  vm_goto_args:
   x = sp[-nargs];
 
+  SYNC_REGISTER ();
   SCM_TICK;	/* allow interrupt here */
 
   /*
