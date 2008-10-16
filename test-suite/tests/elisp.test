@@ -19,6 +19,10 @@
   :use-module (test-suite lib)
   :use-module (ice-9 weak-vector))
 
+(define *old-stack-level* (and=> (memq 'stack (debug-options)) cadr))
+(if *old-stack-level*
+    (debug-set! stack (* 2 *old-stack-level*)))
+
 ;;;
 ;;; elisp
 ;;;
@@ -330,5 +334,7 @@
       (elisp-pass-if 'x "3")
 
       ))
+
+(debug-set! stack *old-stack-level*)
 
 ;;; elisp.test ends here
