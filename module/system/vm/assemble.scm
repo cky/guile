@@ -100,6 +100,13 @@
          (1+ (instruction-length (car x))))
         (else (error "variable-length instruction?" x))))
 
+;; a binding that doesn't yet know its extents
+(define (make-temp-binding name ext? index)
+  (list name ext? index))
+(define btemp:name car)
+(define btemp:extp cadr)
+(define btemp:index caddr)
+
 (define (codegen glil toplevel)
   (record-case glil
     ((<vm-asm> venv glil body) (record-case glil ((<glil-asm> vars meta) ; body?
@@ -128,9 +135,9 @@
           (lambda (v)
             (let ((name (car v)) (type (cadr v)) (i (caddr v)))
               (case type
-                ((argument) (make-binding name #f i))
-                ((local) (make-binding name #f (+ nargs i)))
-                ((external) (make-binding name #t i))
+                ((argument) (make-temp-binding name #f i))
+                ((local) (make-temp-binding name #f (+ nargs i)))
+                ((external) (make-temp-binding name #t i))
                 (else (error "unknown binding type" name type)))))
           bindings))
        (define (push-bindings! bindings)
@@ -140,8 +147,12 @@
                 (start (car bindings))
                 (end (current-address)))
            (for-each
-            (lambda (binding)
-              (push `(,start ,@binding ,start ,end) closed-bindings))
+            (lambda (open)
+              ;; the cons is for dsu sort
+              (push (cons start
+                          (make-binding (btemp:name open) (btemp:extp open) 
+                                        (btemp:index open) start end))
+                    closed-bindings))
             (cdr bindings))))
        (define (finish-bindings!)
          (while (not (null? open-bindings)) (close-binding!))

@@ -21,7 +21,10 @@
 
 (define-module (system vm program)
   #:export (arity:nargs arity:nrest arity:nlocs arity:nexts
-           make-binding binding:name binding:extp binding:index
+
+            make-binding binding:name binding:extp binding:index
+            binding:start binding:end
+
            source:addr source:line source:column source:file
            program-bindings program-sources
            program-properties program-property program-documentation
@@ -38,12 +41,13 @@
 (define arity:nlocs caddr)
 (define arity:nexts cadddr)
 
-(define (make-binding name extp index)
-  (list name extp index))
-
-(define binding:name car)
-(define binding:extp cadr)
-(define binding:index caddr)
+(define (make-binding name extp index start end)
+  (list name extp index start end))
+(define (binding:name b) (list-ref b 0))
+(define (binding:extp b) (list-ref b 1))
+(define (binding:index b) (list-ref b 2))
+(define (binding:start b) (list-ref b 3))
+(define (binding:end b) (list-ref b 4))
 
 (define (curry1 proc)
   (lambda (x) (proc (x))))
