@@ -334,6 +334,29 @@ guile-procedures.txt: guile-procedures.texi
 
 endif
 
+# Stack limit calibration for `make check'.  (For why we do this, see
+# the comments in measure-hwm.scm.)  We're relying here on a couple of
+# bits of Automake magic.
+#
+# 1. The fact that "libguile" comes before "test-suite" in SUBDIRS in
+# our toplevel Makefile.am.  This ensures that the
+# stack-limit-calibration.scm "test" will be run before any of the
+# tests under test-suite.
+#
+# 2. The fact that each test is invoked as $TESTS_ENVIRONMENT $test.
+# This allows us to ensure that the test will be considered to have
+# passed, by using `true' as TESTS_ENVIRONMENT.
+#
+# Why don't we care about the test "actually passing"?  Because the
+# important thing about stack-limit-calibration.scm is just that it is
+# generated in the first place, so that other tests under test-suite
+# can use it.
+TESTS = stack-limit-calibration.scm
+TESTS_ENVIRONMENT = true
+
+stack-limit-calibration.scm: measure-hwm.scm guile$(EXEEXT)
+	$(preinstguile) -s measure-hwm.scm > $@
+
 c-tokenize.c: c-tokenize.lex
 	flex -t $(srcdir)/c-tokenize.lex > $@ || { rm $@; false; }
 

@@ -70,3 +70,4 @@ guile-readline/guile-readline-config.h
 guile-readline/guile-readline-config.h.in
 TAGS
 guile-1.8.pc
+libguile/stack-limit-calibration.scm
