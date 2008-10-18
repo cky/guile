@@ -34,7 +34,7 @@
 
 (define (code-pack code)
   (pmatch code
-    ((inst ,n) (guard (integer? n))
+    ((,inst ,n) (guard (integer? n))
      (cond ((< n 10)
 	    (let ((abbrev (string->symbol (format #f "~A:~A" inst n))))
 	      (if (instruction? abbrev) (list abbrev) code)))
