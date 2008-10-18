@@ -359,7 +359,7 @@
                   (error "too many locals" nargs nlocs))
               ;; really it should be a flag..
               (if (> nrest 1) (error "nrest should be 0 or 1" nrest))
-              (if (> next 255) (error "too many externals" next))
+              (if (> nexts 255) (error "too many externals" nexts))
 	      (push-code! (object->code nargs))
 	      (push-code! (object->code nrest))
 	      (push-code! (object->code nlocs))
