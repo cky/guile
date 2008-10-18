@@ -621,7 +621,13 @@ VM_DEFINE_INSTRUCTION (goto_args, "goto/args", 1, -1, 1)
 
       /* Drop the first argument and the program itself.  */
       sp -= 2;
-      NULLSTACK (bp->nargs + 1)
+      NULLSTACK (bp->nargs + 1);
+
+      /* Freshen the externals */
+      external = bp->external;
+      for (i = 0; i < bp->nexts; i++)
+        CONS (external, SCM_UNDEFINED, external);
+      SCM_FRAME_DATA_ADDRESS (fp)[0] = external;
 
       /* Call itself */
       ip = bp->base;

@@ -179,6 +179,8 @@
 	((not (struct? (car classes))) sum)
       (set! sum (+ sum (struct-ref (car classes) hashset-index))))))
 
+;;; FIXME: the throw probably is expensive, given that this function
+;;; might be called an average of 3 or 4 times per rehash...
 (define (cache-try-hash! min-misses hashset cache entries)
   (let ((max-misses 0)
 	(mask (- (vector-length cache) 1)))

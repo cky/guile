@@ -34,7 +34,7 @@ SOURCES = psyntax-pp.scm boot-9.scm \
 	and-let-star.scm calling.scm common-list.scm			\
 	debug.scm debugger.scm documentation.scm emacs.scm expect.scm	\
 	format.scm getopt-long.scm hcons.scm i18n.scm			\
-	lineio.scm ls.scm mapping.scm					\
+	lineio.scm ls.scm mapping.scm match.scm				\
 	networking.scm null.scm optargs.scm poe.scm		\
 	popen.scm posix.scm q.scm r4rs.scm r5rs.scm			\
 	rdelim.scm receive.scm regex.scm runq.scm rw.scm		\
@@ -45,17 +45,13 @@ SOURCES = psyntax-pp.scm boot-9.scm \
 	weak-vector.scm deprecated.scm list.scm serialize.scm		\
 	gds-server.scm
 
-# match.scm compiles, but then using it (via
-# snarf-check-and-output-texi) fails. need to figure out what the
-# problem is.
-#
 # occam-channel and gds-client use goops, which is not yet vm-compatible
 # (it does some compilation-like optimizations for the interpreter), so
 # punt on them for the time being.
 #
 # psyntax.scm needs help. fortunately it's only needed when recompiling
 # psyntax-pp.scm.
-NOCOMP_SOURCES = match.scm occam-channel.scm gds-client.scm psyntax.scm
+NOCOMP_SOURCES = occam-channel.scm gds-client.scm psyntax.scm
 
 include $(top_srcdir)/guilec.mk
 

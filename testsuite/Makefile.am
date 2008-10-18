@@ -11,6 +11,7 @@ vm_test_files =					\
       t-closure.scm				\
       t-closure2.scm				\
       t-closure3.scm				\
+      t-closure4.scm				\
       t-do-loop.scm				\
       t-macros.scm				\
       t-macros2.scm				\

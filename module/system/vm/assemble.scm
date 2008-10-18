@@ -355,6 +355,11 @@
 		(push-code! `(make-int16 ,(ash x -8) ,(logand x (1- (ash 1 8)))))))
 	     (else
 	      ;; Other cases
+              (if (> (+ nargs nlocs) 255)
+                  (error "too many locals" nargs nlocs))
+              ;; really it should be a flag..
+              (if (> nrest 1) (error "nrest should be 0 or 1" nrest))
+              (if (> next 255) (error "too many externals" next))
 	      (push-code! (object->code nargs))
 	      (push-code! (object->code nrest))
 	      (push-code! (object->code nlocs))

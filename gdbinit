@@ -1,5 +1,11 @@
+# -*- GDB-Script -*-
+
 define newline
   call (void)scm_newline (scm_current_error_port ())
+end
+
+define pp
+  call (void)scm_call_1 (scm_variable_ref (scm_c_module_lookup (scm_c_resolve_module ("ice-9 pretty-print"), "pretty-print")), $arg0)
 end
 
 define gdisplay
@@ -193,4 +199,8 @@ define vmstack
   while $vmsp > vp->stack_base
     nextframe
   end
+end
+
+define inst
+  p scm_instruction_table[$arg0]
 end

@@ -134,24 +134,30 @@ VM_DEFINE_FUNCTION (cons, "cons", 2)
   RETURN (x);
 }
 
+#define VM_VALIDATE_CONS(x)                     \
+  if (SCM_UNLIKELY (!scm_is_pair (x)))          \
+    { err_args = x;                             \
+      goto vm_error_not_a_pair;                 \
+    }
+  
 VM_DEFINE_FUNCTION (car, "car", 1)
 {
   ARGS1 (x);
-  SCM_VALIDATE_CONS (1, x);
+  VM_VALIDATE_CONS (x);
   RETURN (SCM_CAR (x));
 }
 
 VM_DEFINE_FUNCTION (cdr, "cdr", 1)
 {
   ARGS1 (x);
-  SCM_VALIDATE_CONS (1, x);
+  VM_VALIDATE_CONS (x);
   RETURN (SCM_CDR (x));
 }
 
 VM_DEFINE_FUNCTION (set_car, "set-car!", 2)
 {
   ARGS2 (x, y);
-  SCM_VALIDATE_CONS (1, x);
+  VM_VALIDATE_CONS (x);
   SCM_SETCAR (x, y);
   RETURN (SCM_UNSPECIFIED);
 }
@@ -159,7 +165,7 @@ VM_DEFINE_FUNCTION (set_car, "set-car!", 2)
 VM_DEFINE_FUNCTION (set_cdr, "set-cdr!", 2)
 {
   ARGS2 (x, y);
-  SCM_VALIDATE_CONS (1, x);
+  VM_VALIDATE_CONS (x);
   SCM_SETCDR (x, y);
   RETURN (SCM_UNSPECIFIED);
 }

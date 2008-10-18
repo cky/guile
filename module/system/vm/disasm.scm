@@ -109,7 +109,7 @@
     (do ((n 0 (1+ n))
 	 (l exts (cdr l)))
 	((null? l) (newline))
-      (print-info n (car l) #f))))
+      (print-info n (car l) #f #f))))
 
 (define-macro (unless test . body)
   `(if (not ,test) (begin ,@body)))
