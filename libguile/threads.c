@@ -96,11 +96,13 @@ static SCM
 enqueue (SCM q, SCM t)
 {
   SCM c = scm_cons (t, SCM_EOL);
+  SCM_CRITICAL_SECTION_START;
   if (scm_is_null (SCM_CDR (q)))
     SCM_SETCDR (q, c);
   else
     SCM_SETCDR (SCM_CAR (q), c);
   SCM_SETCAR (q, c);
+  SCM_CRITICAL_SECTION_END;
   return c;
 }
 
@@ -113,6 +115,7 @@ static int
 remqueue (SCM q, SCM c)
 {
   SCM p, prev = q;
+  SCM_CRITICAL_SECTION_START;
   for (p = SCM_CDR (q); !scm_is_null (p); p = SCM_CDR (p))
     {
       if (scm_is_eq (p, c))
@@ -120,10 +123,12 @@ remqueue (SCM q, SCM c)
 	  if (scm_is_eq (c, SCM_CAR (q)))
 	    SCM_SETCAR (q, SCM_CDR (c));
 	  SCM_SETCDR (prev, SCM_CDR (c));
+	  SCM_CRITICAL_SECTION_END;
 	  return 1;
 	}
       prev = p;
     }
+  SCM_CRITICAL_SECTION_END;
   return 0;
 }
 
@@ -133,14 +138,20 @@ remqueue (SCM q, SCM c)
 static SCM
 dequeue (SCM q)
 {
-  SCM c = SCM_CDR (q);
+  SCM c;
+  SCM_CRITICAL_SECTION_START;
+  c = SCM_CDR (q);
   if (scm_is_null (c))
-    return SCM_BOOL_F;
+    {
+      SCM_CRITICAL_SECTION_END;
+      return SCM_BOOL_F;
+    }
   else
     {
       SCM_SETCDR (q, SCM_CDR (c));
       if (scm_is_null (SCM_CDR (q)))
 	SCM_SETCAR (q, SCM_EOL);
+      SCM_CRITICAL_SECTION_END;
       return SCM_CAR (c);
     }
 }
@@ -216,8 +227,7 @@ thread_free (SCM obj)
    interrupted.  Upon return of this function, the current thread is
    no longer on QUEUE, even when the sleep has been interrupted.
 
-   The QUEUE data structure is assumed to be protected by MUTEX and
-   the caller of block_self must hold MUTEX.  It will be atomically
+   The caller of block_self must hold MUTEX.  It will be atomically
    unlocked while sleeping, just as with scm_i_pthread_cond_wait.
 
    SLEEP_OBJECT is an arbitrary SCM value that is kept alive as long
@@ -265,9 +275,8 @@ block_self (SCM queue, SCM sleep_object, scm_i_pthread_mutex_t *mutex,
   return err;
 }
 
-/* Wake up the first thread on QUEUE, if any.  The caller must hold
-   the mutex that protects QUEUE.  The awoken thread is returned, or
-   #f when the queue was empty.
+/* Wake up the first thread on QUEUE, if any.  The awoken thread is
+   returned, or #f if the queue was empty.
  */
 static SCM
 unblock_from_queue (SCM queue)
@@ -440,6 +449,7 @@ guilify_self_1 (SCM_STACKITEM *base)
   t->result = SCM_BOOL_F;
   t->cleanup_handler = SCM_BOOL_F;
   t->mutexes = SCM_EOL;
+  t->held_mutex = NULL;
   t->join_queue = SCM_EOL;
   t->dynamic_state = SCM_BOOL_F;
   t->dynwinds = SCM_EOL;
@@ -588,6 +598,14 @@ on_thread_exit (void *v)
 {
   /* This handler is executed in non-guile mode.  */
   scm_i_thread *t = (scm_i_thread *) v, **tp;
+
+  /* If this thread was cancelled while doing a cond wait, it will
+     still have a mutex locked, so we unlock it here. */
+  if (t->held_mutex)
+    {
+      scm_i_pthread_mutex_unlock (t->held_mutex);
+      t->held_mutex = NULL;
+    }
 
   scm_i_pthread_setspecific (scm_i_thread_key, v);
 
@@ -1417,17 +1435,15 @@ fat_mutex_unlock (SCM mutex, SCM cond,
 	{
 	  int brk = 0;
 
-	  scm_i_scm_pthread_mutex_lock (&c->lock);
 	  if (m->level > 0)
 	    m->level--;
 	  if (m->level == 0)
 	    m->owner = unblock_from_queue (m->waiting);
 
-	  scm_i_pthread_mutex_unlock (&m->lock);
-
 	  t->block_asyncs++;
 
-	  err = block_self (c->waiting, cond, &c->lock, waittime);
+	  err = block_self (c->waiting, cond, &m->lock, waittime);
+	  scm_i_pthread_mutex_unlock (&m->lock);
 
 	  if (err == 0)
 	    {
@@ -1442,7 +1458,6 @@ fat_mutex_unlock (SCM mutex, SCM cond,
 	  else if (err != EINTR)
 	    {
 	      errno = err;
-	      scm_i_pthread_mutex_unlock (&c->lock);
 	      scm_syserror (NULL);
 	    }
 
@@ -1450,11 +1465,8 @@ fat_mutex_unlock (SCM mutex, SCM cond,
 	    {
 	      if (relock)
 		scm_lock_mutex_timed (mutex, SCM_UNDEFINED, owner);
-	      scm_i_pthread_mutex_unlock (&c->lock);
 	      break;
 	    }
-
-	  scm_i_pthread_mutex_unlock (&c->lock);
 
 	  t->block_asyncs--;
 	  scm_async_click ();
@@ -1570,7 +1582,6 @@ static size_t
 fat_cond_free (SCM mx)
 {
   fat_cond *c = SCM_CONDVAR_DATA (mx);
-  scm_i_pthread_mutex_destroy (&c->lock);
   scm_gc_free (c, sizeof (fat_cond), "condition-variable");
   return 0;
 }
@@ -1594,7 +1605,6 @@ SCM_DEFINE (scm_make_condition_variable, "make-condition-variable", 0, 0, 0,
   SCM cv;
 
   c = scm_gc_malloc (sizeof (fat_cond), "condition variable");
-  scm_i_pthread_mutex_init (&c->lock, 0);
   c->waiting = SCM_EOL;
   SCM_NEWSMOB (cv, scm_tc16_condvar, (scm_t_bits) c);
   c->waiting = make_queue ();
@@ -1633,9 +1643,7 @@ SCM_DEFINE (scm_timed_wait_condition_variable, "wait-condition-variable", 2, 1, 
 static void
 fat_cond_signal (fat_cond *c)
 {
-  scm_i_scm_pthread_mutex_lock (&c->lock);
   unblock_from_queue (c->waiting);
-  scm_i_pthread_mutex_unlock (&c->lock);
 }
 
 SCM_DEFINE (scm_signal_condition_variable, "signal-condition-variable", 1, 0, 0,
@@ -1652,10 +1660,8 @@ SCM_DEFINE (scm_signal_condition_variable, "signal-condition-variable", 1, 0, 0,
 static void
 fat_cond_broadcast (fat_cond *c)
 {
-  scm_i_scm_pthread_mutex_lock (&c->lock);
   while (scm_is_true (unblock_from_queue (c->waiting)))
     ;
-  scm_i_pthread_mutex_unlock (&c->lock);
 }
 
 SCM_DEFINE (scm_broadcast_condition_variable, "broadcast-condition-variable", 1, 0, 0,
@@ -1804,7 +1810,9 @@ int
 scm_pthread_cond_wait (scm_i_pthread_cond_t *cond, scm_i_pthread_mutex_t *mutex)
 {
   scm_t_guile_ticket t = scm_leave_guile ();
+  ((scm_i_thread *)t)->held_mutex = mutex;
   int res = scm_i_pthread_cond_wait (cond, mutex);
+  ((scm_i_thread *)t)->held_mutex = NULL;
   scm_enter_guile (t);
   return res;
 }
@@ -1815,7 +1823,9 @@ scm_pthread_cond_timedwait (scm_i_pthread_cond_t *cond,
 			    const scm_t_timespec *wt)
 {
   scm_t_guile_ticket t = scm_leave_guile ();
+  ((scm_i_thread *)t)->held_mutex = mutex;
   int res = scm_i_pthread_cond_timedwait (cond, mutex, wt);
+  ((scm_i_thread *)t)->held_mutex = NULL;
   scm_enter_guile (t);
   return res;
 }
@@ -1964,7 +1974,9 @@ void
 scm_i_thread_sleep_for_gc ()
 {
   scm_i_thread *t = suspend ();
+  t->held_mutex = &t->heap_mutex;
   scm_i_pthread_cond_wait (&wake_up_cond, &t->heap_mutex);
+  t->held_mutex = NULL;
   resume (t);
 }
 
