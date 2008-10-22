@@ -56,6 +56,7 @@ typedef struct scm_i_thread {
 
   scm_i_pthread_mutex_t admin_mutex;
   SCM mutexes;
+  scm_i_pthread_mutex_t *held_mutex;
 
   SCM result;
   int canceled;
