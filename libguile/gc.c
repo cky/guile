@@ -346,6 +346,18 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
 #undef FUNC_NAME
 
 
+SCM_DEFINE (scm_gc_dump, "gc-dump", 0, 0, 0,
+	    (void),
+	    "Dump information about the garbage collector's internal data "
+	    "structures and memory usage to the standard output.")
+#define FUNC_NAME s_scm_gc_dump
+{
+  GC_dump ();
+
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+
 
 SCM_DEFINE (scm_object_address, "object-address", 1, 0, 0,
             (SCM obj),

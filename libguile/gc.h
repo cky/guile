@@ -204,6 +204,7 @@ SCM_API SCM scm_set_debug_cell_accesses_x (SCM flag);
 SCM_API SCM scm_object_address (SCM obj);
 SCM_API SCM scm_gc_enable (void);
 SCM_API SCM scm_gc_disable (void);
+SCM_API SCM scm_gc_dump (void);
 SCM_API SCM scm_gc_stats (void);
 SCM_API SCM scm_gc_live_object_stats (void);
 SCM_API SCM scm_gc (void);
