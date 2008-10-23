@@ -26,6 +26,7 @@
 ;;;;
 
 (define-module (oop goops)
+  :use-module (srfi srfi-1)
   :export-syntax (define-class class standard-define-class
 		  define-generic define-accessor define-method
 		  define-extended-generic define-extended-generics
@@ -157,94 +158,55 @@
 ;;;   SLOT-DEFINITION ::= SLOT-NAME | (SLOT-NAME OPTION ...)
 ;;;   OPTION ::= KEYWORD VALUE
 ;;;
-(define (define-class-pre-definition keyword exp env)
-  (case keyword
+(define (define-class-pre-definition kw val)
+  (case kw
     ((#:getter #:setter)
-     `(process-class-pre-define-generic ',exp))
+     `(if (or (not (defined? ',val))
+              (not (is-a? ,val <generic>)))
+          (define-generic ,val)))
     ((#:accessor)
-     `(process-class-pre-define-accessor ',exp))
+     `(if (or (not (defined? ',val))
+              (not (is-a? ,val <accessor>)))
+          (define-accessor ,val)))
     (else #f)))
 
-(define (process-class-pre-define-generic name)
-  (let ((var (module-variable (current-module) name)))
-    (if (not (and var
-		  (variable-bound? var)
-		  (is-a? (variable-ref var) <generic>)))
-	(process-define-generic name))))
-
-(define (process-class-pre-define-accessor name)
-  (let ((var (module-variable (current-module) name)))
-    (cond ((or (not var)
-	       (not (variable-bound? var)))
-	   (process-define-accessor name))
-	  ((or (is-a? (variable-ref var) <accessor>)
-	       (is-a? (variable-ref var) <extended-generic-with-setter>)))
-	  ((is-a? (variable-ref var) <generic>)
-	   ;;*fixme* don't mutate an imported object!
-	   (variable-set! var (ensure-accessor (variable-ref var) name)))
-	  (else
-	   (process-define-accessor name)))))
+(define (kw-do-map mapper f kwargs)
+  (define (keywords l)
+    (cond
+     ((null? l) '())
+     ((or (null? (cdr l)) (not (keyword? (car l))))
+      (goops-error "malformed keyword arguments: ~a" kwargs))
+     (else (cons (car l) (keywords (cddr l))))))
+  (define (args l)
+    (if (null? l) '() (cons (cadr l) (args (cddr l)))))
+  ;; let* to check keywords first
+  (let* ((k (keywords kwargs))
+         (a (args kwargs)))
+    (mapper f k a)))
 
 ;;; This code should be implemented in C.
 ;;;
-(define define-class
-  (letrec (;; Some slot options require extra definitions to be made.
-	   ;; In particular, we want to make sure that the generic
-	   ;; function objects which represent accessors exist
-	   ;; before `make-class' tries to add methods to them.
-	   ;;
-	   ;; Postpone error handling to class macro.
-	   ;;
-	   (pre-definitions
-	    (lambda (slots env)
-	      (do ((slots slots (cdr slots))
-		   (definitions '()
-		     (if (pair? (car slots))
-			 (do ((options (cdar slots) (cddr options))
-			      (definitions definitions
-				(cond ((not (symbol? (cadr options)))
-				       definitions)
-				      ((define-class-pre-definition
-					 (car options)
-					 (cadr options)
-					 env)
-				       => (lambda (definition)
-					    (cons definition definitions)))
-				      (else definitions))))
-			     ((not (and (pair? options)
-					(pair? (cdr options))))
-			      definitions))
-			 definitions)))
-		  ((or (not (pair? slots))
-		       (keyword? (car slots)))
-		   (reverse definitions)))))
-	   
-	   ;; Syntax
-	   (name cadr)
-	   (slots cdddr))
-    
-    (procedure->memoizing-macro
-      (lambda (exp env)
-	(cond ((not (top-level-env? env))
-	       (goops-error "define-class: Only allowed at top level"))
-	      ((not (and (list? exp) (>= (length exp) 3)))
-	       (goops-error "missing or extra expression"))
-	      (else
-	       (let ((name (name exp)))
-		 `(begin
-		    ;; define accessors
-		    ,@(pre-definitions (slots exp) env)
-		    ;; update the current-module
-		    (let* ((class (class ,@(cddr exp) #:name ',name))
-			   (var (module-ensure-local-variable!
-				 (current-module) ',name))
-			   (old (and (variable-bound? var)
-				     (variable-ref var))))
-		      (if (and old
-			       (is-a? old <class>)
-			       (memq <object> (class-precedence-list old)))
-			  (variable-set! var (class-redefinition old class))
-			  (variable-set! var class)))))))))))
+(define-macro (define-class name supers . slots)
+  ;; Some slot options require extra definitions to be made. In
+  ;; particular, we want to make sure that the generic function objects
+  ;; which represent accessors exist before `make-class' tries to add
+  ;; methods to them.
+  ;;
+  ;; Postpone some error handling to class macro.
+  ;;
+  `(begin
+     ;; define accessors
+     ,@(append-map (lambda (slot)
+                     (kw-do-map filter-map
+                                define-class-pre-definition 
+                                (if (pair? slot) (cdr slot) '())))
+                   (take-while (lambda (x) (not (keyword? x))) slots))
+     (if (and (defined? ',name)
+              (is-a? ,name <class>)
+              (memq <object> (class-precedence-list ,name)))
+         (class-redefinition ,name
+                             (class ,supers ,@slots #:name ',name))
+         (define ,name (class ,supers ,@slots #:name ',name)))))
 
 (define standard-define-class define-class)
 
@@ -253,69 +215,37 @@
 ;;;   SLOT-DEFINITION ::= SLOT-NAME | (SLOT-NAME OPTION ...)
 ;;;   OPTION ::= KEYWORD VALUE
 ;;;
-(define class
-  (letrec ((slot-option-keyword car)
-	   (slot-option-value cadr)
-	   (process-slot-options
-	    (lambda (options)
-	      (let loop ((options options)
-			 (res '()))
-		(cond ((null? options)
-		       (reverse res))
-		      ((null? (cdr options))
-		       (goops-error "malformed slot option list"))
-		      ((not (keyword? (slot-option-keyword options)))
-		       (goops-error "malformed slot option list"))
-		      (else
-		       (case (slot-option-keyword options)
-			 ((#:init-form)
-			  (loop (cddr options)
-				(append (list `(lambda ()
-						 ,(slot-option-value options))
-					      #:init-thunk
-					      (list 'quote
-						    (slot-option-value options))
-					      #:init-form)
-					res)))
-			 (else
-			  (loop (cddr options)
-				(cons (cadr options)
-				      (cons (car options)
-					    res)))))))))))
+(define-macro (class supers . slots)
+  (define (make-slot-definition-forms slots)
+    (map
+     (lambda (def)
+       (cond
+        ((pair? def)
+         `(list ',(car def)
+                ,@(kw-do-map append-map
+                             (lambda (kw arg)
+                               (case kw
+                                 ((#:init-form)
+                                  `(#:init-form ',arg
+                                    #:init-thunk (lambda () ,arg)))
+                                 (else (list kw arg))))
+                             (cdr def))))
+        (else
+         `(list ',def))))
+     slots))
     
-    (procedure->memoizing-macro
-      (let ((supers cadr)
-	    (slots cddr)
-	    (options cdddr))
-	(lambda (exp env)
-	  (cond ((not (and (list? exp) (>= (length exp) 2)))
-		 (goops-error "missing or extra expression"))
-		((not (list? (supers exp)))
-		 (goops-error "malformed superclass list: ~S" (supers exp)))
-		(else
-		 (let ((slot-defs (cons #f '())))
-		   (do ((slots (slots exp) (cdr slots))
-			(defs slot-defs (cdr defs)))
-		       ((or (null? slots)
-			    (keyword? (car slots)))
-			`(make-class
-			  ;; evaluate super class variables
-			  (list ,@(supers exp))
-			  ;; evaluate slot definitions, except the slot name!
-			  (list ,@(cdr slot-defs))
-			  ;; evaluate class options
-			  ,@slots
-			  ;; place option last in case someone wants to
-			  ;; pass a different value
-			  #:environment ',env))
-		     (set-cdr!
-		      defs
-		      (list (if (pair? (car slots))
-				`(list ',(slot-definition-name (car slots))
-				       ,@(process-slot-options
-					  (slot-definition-options
-					   (car slots))))
-				`(list ',(car slots))))))))))))))
+  (if (not (list? supers))
+      (goops-error "malformed superclass list: ~S" supers))
+  (let ((slot-defs (cons #f '()))
+        (slots (take-while (lambda (x) (not (keyword? x))) slots))
+        (options (or (find-tail keyword? slots) '())))
+    `(make-class
+      ;; evaluate super class variables
+      (list ,@supers)
+      ;; evaluate slot definitions, except the slot name!
+      (list ,@(make-slot-definition-forms slots))
+      ;; evaluate class options
+      ,@options)))
 
 (define (make-class supers slots . options)
   (let ((env (or (get-keyword #:environment options #f)
