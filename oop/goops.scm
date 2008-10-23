@@ -425,56 +425,42 @@
 ;;; {Methods}
 ;;;
 
-(define define-method
-  (procedure->memoizing-macro
-    (lambda (exp env)
-      (let ((head (cadr exp)))
-	(if (not (pair? head))
-	    (goops-error "bad method head: ~S" head)
-	    (let ((gf (car head)))
-	      (cond ((and (pair? gf)
-			  (eq? (car gf) 'setter)
-			  (pair? (cdr gf))
-			  (symbol? (cadr gf))
-			  (null? (cddr gf)))
-		     ;; named setter method
-		     (let ((name (cadr gf)))
-		       (cond ((not (symbol? name))
-			      `(add-method! (setter ,name)
-					    (method ,(cdadr exp)
-						    ,@(cddr exp))))
-			     ((defined? name env)
-			      `(begin
-				 ;; *fixme* Temporary hack for the current
-				 ;;         module system
-				 (if (not ,name)
-				     (define-accessor ,name))
-				 (add-method! (setter ,name)
-					      (method ,(cdadr exp)
-						      ,@(cddr exp)))))
-			     (else
-			      `(begin
-				 (define-accessor ,name)
-				 (add-method! (setter ,name)
-					      (method ,(cdadr exp)
-						      ,@(cddr exp))))))))
-		    ((not (symbol? gf))
-		     `(add-method! ,gf (method ,(cdadr exp) ,@(cddr exp))))
-		    ((defined? gf env)
-		     `(begin
-			;; *fixme* Temporary hack for the current
-			;;         module system
-			(if (not ,gf)
-			    (define-generic ,gf))
-			(add-method! ,gf
-				     (method ,(cdadr exp)
-					     ,@(cddr exp)))))
-		    (else
-		     `(begin
-			(define-generic ,gf)
-			(add-method! ,gf
-				     (method ,(cdadr exp)
-					     ,@(cddr exp))))))))))))
+(define-macro (define-method head . body)
+  (if (not (pair? head))
+      (goops-error "bad method head: ~S" head))
+  (let ((gf (car head)))
+    (cond ((and (pair? gf)
+                (eq? (car gf) 'setter)
+                (pair? (cdr gf))
+                (symbol? (cadr gf))
+                (null? (cddr gf)))
+           ;; named setter method
+           (let ((name (cadr gf)))
+             (cond ((not (symbol? name))
+                    `(add-method! (setter ,name)
+                                  (method ,(cdr head) ,@body)))
+                   (else
+                    `(begin
+                       (if (or (not (defined? ',name))
+                               (not (is-a? ,name <accessor>)))
+                           (define-accessor ,name))
+                       (add-method! (setter ,name)
+                                    (method ,(cdr head) ,@body)))))))
+          ((not (symbol? gf))
+           `(add-method! ,gf (method ,(cdr head) ,@body)))
+          (else
+           `(begin
+              ;; FIXME: this code is how it always was, but it's quite
+              ;; cracky: it will only define the generic function if it
+              ;; was undefined before (ok), or *was defined to #f*. The
+              ;; latter is crack. But there are bootstrap issues about
+              ;; fixing this -- change it to (is-a? ,gf <generic>) and
+              ;; see.
+              (if (or (not (defined? ',gf))
+                      (not ,gf))
+                  (define-generic ,gf))
+              (add-method! ,gf
+                           (method ,(cdr head) ,@body)))))))
 
 (define (make-method specializers procedure)
   (make <method>
