@@ -467,7 +467,7 @@
 	#:specializers specializers
 	#:procedure procedure))
 
-(define method
+(define-macro (method args . body)
   (letrec ((specializers
 	    (lambda (ls)
 	      (cond ((null? ls) (list (list 'quote '())))
@@ -482,16 +482,12 @@
 		  (cons (if (pair? (car ls)) (caar ls) (car ls))
 			(formals (cdr ls)))
 		  ls))))
-    (procedure->memoizing-macro
-      (lambda (exp env)
-	(let ((args (cadr exp))
-	      (body (cddr exp)))
-	  `(make <method>
-		 #:specializers (cons* ,@(specializers args))
-		 #:procedure (lambda ,(formals args)
-			       ,@(if (null? body)
-				     (list *unspecified*)
-				     body))))))))
+    `(make <method>
+       #:specializers (cons* ,@(specializers args))
+       #:procedure (lambda ,(formals args)
+                     ,@(if (null? body)
+                           (list *unspecified*)
+                           body)))))
 
 ;;;
 ;;; {add-method!}
