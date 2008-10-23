@@ -37,10 +37,6 @@
 	   make-generic ensure-generic
 	   make-extended-generic
 	   make-accessor ensure-accessor
-	   process-class-pre-define-generic
-	   process-class-pre-define-accessor
-	   process-define-generic
-	   process-define-accessor
 	   make-method add-method!
 	   object-eqv? object-equal?
 	   class-slot-ref class-slot-set! slot-unbound slot-missing 
@@ -283,51 +279,33 @@
 ;;; {Generic functions and accessors}
 ;;;
 
-(define define-generic
-  (procedure->memoizing-macro
-    (lambda (exp env)
-      (let ((name (cadr exp)))
-	(cond ((not (symbol? name))
-	       (goops-error "bad generic function name: ~S" name))
-	      ((top-level-env? env)
-	       `(process-define-generic ',name))
-	      (else
-	       `(define ,name (make <generic> #:name ',name))))))))
+;; Apparently the desired semantics are that we extend previous
+;; procedural definitions, but that if `name' was already a generic, we
+;; overwrite its definition.
+(define-macro (define-generic name)
+  (if (not (symbol? name))
+      (goops-error "bad generic function name: ~S" name))
+  `(define ,name
+     (if (and (defined? ',name) (is-a? ,name <generic>))
+         (make <generic> #:name ',name)
+         (ensure-generic (if (defined? ',name) ,name #f) ',name))))
 
-(define (process-define-generic name)
-  (let ((var (module-ensure-local-variable! (current-module) name)))
-    (if (or (not var)
-	    (not (variable-bound? var))
-	    (is-a? (variable-ref var) <generic>))
-	;; redefine if NAME isn't defined previously, or is another generic
-	(variable-set! var (make <generic> #:name name))
-	;; otherwise try to upgrade the object to a generic
-	(variable-set! var (ensure-generic (variable-ref var) name)))))
+(define-macro (define-extended-generic name val)
+  (if (not (symbol? name))
+      (goops-error "bad generic function name: ~S" name))
+  `(define ,name (make-extended-generic ,val ',name)))
 
-(define define-extended-generic
-  (procedure->memoizing-macro
-    (lambda (exp env)
-      (let ((name (cadr exp)))
-	(cond ((not (symbol? name))
-	       (goops-error "bad generic function name: ~S" name))
-	      ((null? (cddr exp))
-	       (goops-error "missing expression"))
-	      (else
-	       `(define ,name (make-extended-generic ,(caddr exp) ',name))))))))
-(define define-extended-generics
-  (procedure->memoizing-macro
-    (lambda (exp env)
-      (let ((names (cadr exp))
-	    (prefixes (get-keyword #:prefix (cddr exp) #f)))
-	(if prefixes
-	    `(begin
-	       ,@(map (lambda (name)
-			`(define-extended-generic ,name
-			   (list ,@(map (lambda (prefix)
-					  (symbol-append prefix name))
-					prefixes))))
-		      names))
-	    (goops-error "no prefixes supplied"))))))
+(define-macro (define-extended-generics names . args)
+  (let ((prefixes (get-keyword #:prefix args #f)))
+    (if prefixes
+        `(begin
+           ,@(map (lambda (name)
+                    `(define-extended-generic ,name
+                       (list ,@(map (lambda (prefix)
+                                      (symbol-append prefix name))
+                                    prefixes))))
+                  names))
+        (goops-error "no prefixes supplied"))))
 
 (define (make-generic . name)
   (let ((name (and (pair? name) (car name))))
@@ -385,27 +363,14 @@
 	   (make <generic> #:name name #:default old-definition))
 	  (else (make <generic> #:name name)))))
 
-(define define-accessor
-  (procedure->memoizing-macro
-    (lambda (exp env)
-      (let ((name (cadr exp)))
-	(cond ((not (symbol? name))
-	       (goops-error "bad accessor name: ~S" name))
-	      ((top-level-env? env)
-	       `(process-define-accessor ',name))
-	      (else
-	       `(define ,name (make-accessor ',name))))))))
-
-(define (process-define-accessor name)
-  (let ((var (module-ensure-local-variable! (current-module) name)))
-    (if (or (not var)
-	    (not (variable-bound? var))
-	    (is-a? (variable-ref var) <accessor>)
-	    (is-a? (variable-ref var) <extended-generic-with-setter>))
-	;; redefine if NAME isn't defined previously, or is another accessor
-	(variable-set! var (make-accessor name))
-	;; otherwise try to upgrade the object to an accessor
-	(variable-set! var (ensure-accessor (variable-ref var) name)))))
+;; same semantics as <generic>
+(define-macro (define-accessor name)
+  (if (not (symbol? name))
+      (goops-error "bad accessor name: ~S" name))
+  `(define ,name
+     (if (and (defined? ',name) (is-a? ,name <accessor>))
+         (make <accessor> #:name ',name)
+         (ensure-accessor (if (defined? ',name) ,name #f) ',name))))
 
 (define (make-setter-name name)
   (string->symbol (string-append "setter:" (symbol->string name))))
