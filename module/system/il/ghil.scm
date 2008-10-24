@@ -93,7 +93,11 @@
    <ghil-env> make-ghil-env ghil-env?
    ghil-env-parent ghil-env-table ghil-env-variables
 
+   <ghil-reified-env> make-ghil-reified-env ghil-reified-env?
+   ghil-reified-env-env ghil-reified-env-loc
+
    ghil-env-add!
+   ghil-env-reify
    ghil-var-is-bound? ghil-var-for-ref! ghil-var-for-set! ghil-var-define!
    ghil-var-at-module!
    call-with-ghil-environment call-with-ghil-bindings))
@@ -126,7 +130,8 @@
   (<ghil-mv-call> env loc producer consumer)
   (<ghil-inline> env loc inline args)
   (<ghil-values> env loc values)
-  (<ghil-values*> env loc values))
+  (<ghil-values*> env loc values)
+  (<ghil-reified-env> env loc))
 
 
 
@@ -273,6 +278,21 @@
 	 (ret (func vars)))
     (for-each (lambda (v) (ghil-env-remove! e v)) vars)
     ret))
+
+(define (ghil-env-reify env)
+  (let loop ((e env) (out '()))
+    (record-case e
+      ((<ghil-toplevel-env> table)
+       (map (lambda (v)
+              (cons (ghil-var-name v)
+                    (or (ghil-var-index v)
+                        (error "reify called before indices finalized"))))
+            out))
+      ((<ghil-env> parent table variables)
+       (loop parent
+             (append out
+                     (filter (lambda (v) (eq? (ghil-var-kind v) 'external))
+                             variables)))))))
 
 
 ;;;

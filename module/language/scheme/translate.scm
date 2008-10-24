@@ -381,7 +381,10 @@
 
     (values
      ((,x) (retrans x))
-     (,args (make-ghil-values e l (map retrans args))))))
+     (,args (make-ghil-values e l (map retrans args))))
+
+    (compile-time-environment
+     (() (make-ghil-reified-env e l)))))
 
 (define (lookup-apply-transformer proc)
   (cond ((eq? proc values)

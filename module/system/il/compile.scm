@@ -397,7 +397,11 @@
            (push-code! loc (make-glil-call (if tail 'goto/nargs 'call/nargs) 0))
            (cond ((not tail)
                   (push-label! POST)
-                  (maybe-drop)))))))
+                  (maybe-drop)))))
+
+        ((<ghil-reified-env> env loc)
+         (return-object! loc (ghil-env-reify env)))))
+
     ;;
     ;; main
     (record-case ghil

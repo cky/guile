@@ -123,6 +123,12 @@
 	(else
 	 (loop (cdr clauses))))))))
 
+(define (compile-time-environment)
+  "A special function known to the compiler that, when compiled, will
+return a representation of the lexical environment in place at compile
+time. Useful for supporting some forms of dynamic compilation."
+  (error "compile-time-environment and the interpreter do not mix"))
+
 
 
 ;; Before compiling, make sure any symbols are resolved in the (guile)
