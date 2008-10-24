@@ -114,10 +114,8 @@
 	(not readables))
     (define readables (make-weak-key-hash-table 61)))
 
-(define readable
-  (procedure->memoizing-macro
-    (lambda (exp env)
-      `(make-readable ,(cadr exp) ',(copy-tree (cadr exp))))))
+(define-macro (readable exp)
+  `(make-readable ,exp ',(copy-tree exp)))
 
 (define (make-readable obj expr)
   (hashq-set! readables obj expr)
@@ -377,16 +375,14 @@
 	    (class-slots class)
 	    (slot-ref class 'getters-n-setters)))
 
-(define restore
-  (procedure->memoizing-macro
-    (lambda (exp env)
-      "(restore CLASS (SLOT-NAME1 ...) EXP1 ...)"
-      `(let ((o (,%allocate-instance ,(cadr exp) '())))
-	 (for-each (lambda (name val)
-		     (,slot-set! o name val))
-		   ',(caddr exp)
-		   (list ,@(cdddr exp)))
-	 o))))
+(define-macro (restore class slots . exps)
+  "(restore CLASS (SLOT-NAME1 ...) EXP1 ...)"
+  `(let ((o ((@@ (oop goops) %allocate-instance) ,class '())))
+     (for-each (lambda (name val)
+                 (slot-set! o name val))
+               ',slots
+               (list ,@exps))
+     o))
 
 (define-method (enumerate! (o <object>) env)
   (get-set-for-each (lambda (get set)
@@ -621,13 +617,11 @@
 
 ;;; write-component OBJECT PATCHER FILE ENV
 ;;;
-(define write-component
-  (procedure->memoizing-macro
-    (lambda (exp env)
-      `(or (write-component-procedure ,(cadr exp) ,@(cdddr exp))
-	   (begin
-	     (display #f ,(cadddr exp))
-	     (add-patcher! ,(caddr exp) env))))))
+(define-macro (write-component object patcher file env)
+  `(or (write-component-procedure ,object ,file ,env)
+       (begin
+         (display #f ,file)
+         (add-patcher! ,patcher ,env))))
 
 ;;;
 ;;; Main engine

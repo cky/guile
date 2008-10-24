@@ -23,59 +23,51 @@
   :export (define-class-with-accessors
 	   define-class-with-accessors-keywords))
 
-(define define-class-with-accessors
-  (procedure->memoizing-macro
-   (lambda (exp env)
-     (let ((name (cadr exp))
-	   (supers (caddr exp))
-	   (slots (cdddr exp))
-	   (eat? #f))
-       `(standard-define-class ,name ,supers
-	  ,@(map-in-order
-	     (lambda (slot)
-	       (cond (eat?
-		      (set! eat? #f)
-		      slot)
-		     ((keyword? slot)
-		      (set! eat? #t)
-		      slot)
-		     ((pair? slot)
-		      (if (get-keyword #:accessor (cdr slot) #f)
-			  slot
-			  (let ((name (car slot)))
-			    `(,name #:accessor ,name ,@(cdr slot)))))
-		     (else
-		      `(,slot #:accessor ,slot))))
-	     slots))))))
+(define-macro (define-class-with-accessors name supers . slots)
+  (let ((eat? #f))
+    `(standard-define-class
+      ,name ,supers
+      ,@(map-in-order
+         (lambda (slot)
+           (cond (eat?
+                  (set! eat? #f)
+                  slot)
+                 ((keyword? slot)
+                  (set! eat? #t)
+                  slot)
+                 ((pair? slot)
+                  (if (get-keyword #:accessor (cdr slot) #f)
+                      slot
+                      (let ((name (car slot)))
+                        `(,name #:accessor ,name ,@(cdr slot)))))
+                 (else
+                  `(,slot #:accessor ,slot))))
+         slots))))
 
-(define define-class-with-accessors-keywords
-  (procedure->memoizing-macro
-   (lambda (exp env)
-     (let ((name (cadr exp))
-	   (supers (caddr exp))
-	   (slots (cdddr exp))
-	   (eat? #f))
-       `(standard-define-class ,name ,supers
-	  ,@(map-in-order
-	     (lambda (slot)
-	       (cond (eat?
-		      (set! eat? #f)
-		      slot)
-		     ((keyword? slot)
-		      (set! eat? #t)
-		      slot)
-		     ((pair? slot)
-		      (let ((slot
-			     (if (get-keyword #:accessor (cdr slot) #f)
-				 slot
-				 (let ((name (car slot)))
-				   `(,name #:accessor ,name ,@(cdr slot))))))
-			(if (get-keyword #:init-keyword (cdr slot) #f)
-			    slot
-			    (let* ((name (car slot))
-				   (keyword (symbol->keyword name)))
-			      `(,name #:init-keyword ,keyword ,@(cdr slot))))))
-		     (else
-		      `(,slot #:accessor ,slot
-			      #:init-keyword ,(symbol->keyword slot)))))
-	     slots))))))
+(define-macro (define-class-with-accessors-keywords name supers . slots)
+  (let ((eat? #f))
+    `(standard-define-class
+      ,name ,supers
+      ,@(map-in-order
+         (lambda (slot)
+           (cond (eat?
+                  (set! eat? #f)
+                  slot)
+                 ((keyword? slot)
+                  (set! eat? #t)
+                  slot)
+                 ((pair? slot)
+                  (let ((slot
+                         (if (get-keyword #:accessor (cdr slot) #f)
+                             slot
+                             (let ((name (car slot)))
+                               `(,name #:accessor ,name ,@(cdr slot))))))
+                    (if (get-keyword #:init-keyword (cdr slot) #f)
+                        slot
+                        (let* ((name (car slot))
+                               (keyword (symbol->keyword name)))
+                          `(,name #:init-keyword ,keyword ,@(cdr slot))))))
+                 (else
+                  `(,slot #:accessor ,slot
+                          #:init-keyword ,(symbol->keyword slot)))))
+         slots))))
