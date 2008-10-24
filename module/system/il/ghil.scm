@@ -104,30 +104,30 @@
 ;;;
 
 (define-type <ghil>
-  (|
-   ;; Objects
-   (<ghil-void> env loc)
-   (<ghil-quote> env loc obj)
-   (<ghil-quasiquote> env loc exp)
-   (<ghil-unquote> env loc exp)
-   (<ghil-unquote-splicing> env loc exp)
-   ;; Variables
-   (<ghil-ref> env loc var)
-   (<ghil-set> env loc var val)
-   (<ghil-define> env loc var val)
-   ;; Controls
-   (<ghil-if> env loc test then else)
-   (<ghil-and> env loc exps)
-   (<ghil-or> env loc exps)
-   (<ghil-begin> env loc exps)
-   (<ghil-bind> env loc vars vals body)
-   (<ghil-mv-bind> env loc producer vars rest body)
-   (<ghil-lambda> env loc vars rest meta body)
-   (<ghil-call> env loc proc args)
-   (<ghil-mv-call> env loc producer consumer)
-   (<ghil-inline> env loc inline args)
-   (<ghil-values> env loc values)
-   (<ghil-values*> env loc values)))
+  ;; Objects
+  (<ghil-void> env loc)
+  (<ghil-quote> env loc obj)
+  (<ghil-quasiquote> env loc exp)
+  (<ghil-unquote> env loc exp)
+  (<ghil-unquote-splicing> env loc exp)
+  ;; Variables
+  (<ghil-ref> env loc var)
+  (<ghil-set> env loc var val)
+  (<ghil-define> env loc var val)
+  ;; Controls
+  (<ghil-if> env loc test then else)
+  (<ghil-and> env loc exps)
+  (<ghil-or> env loc exps)
+  (<ghil-begin> env loc exps)
+  (<ghil-bind> env loc vars vals body)
+  (<ghil-mv-bind> env loc producer vars rest body)
+  (<ghil-lambda> env loc vars rest meta body)
+  (<ghil-call> env loc proc args)
+  (<ghil-mv-call> env loc producer consumer)
+  (<ghil-inline> env loc inline args)
+  (<ghil-values> env loc values)
+  (<ghil-values*> env loc values))
+
 
 
 ;;;

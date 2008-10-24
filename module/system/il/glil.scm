@@ -75,27 +75,26 @@
 (define-record (<glil-vars> nargs nrest nlocs nexts))
 
 (define-type <glil>
-  (|
-   ;; Meta operations
-   (<glil-asm> vars meta body)
-   (<glil-bind> vars)
-   (<glil-mv-bind> vars rest)
-   (<glil-unbind>)
-   (<glil-source> loc)
-   ;; Objects
-   (<glil-void>)
-   (<glil-const> obj)
-   ;; Variables
-   (<glil-argument> op index)
-   (<glil-local> op index)
-   (<glil-external> op depth index)
-   (<glil-toplevel> op name)
-   (<glil-module> op mod name public?)
-   ;; Controls
-   (<glil-label> label)
-   (<glil-branch> inst label)
-   (<glil-call> inst nargs)
-   (<glil-mv-call> nargs ra)))
+  ;; Meta operations
+  (<glil-asm> vars meta body)
+  (<glil-bind> vars)
+  (<glil-mv-bind> vars rest)
+  (<glil-unbind>)
+  (<glil-source> loc)
+  ;; Objects
+  (<glil-void>)
+  (<glil-const> obj)
+  ;; Variables
+  (<glil-argument> op index)
+  (<glil-local> op index)
+  (<glil-external> op depth index)
+  (<glil-toplevel> op name)
+  (<glil-module> op mod name public?)
+  ;; Controls
+  (<glil-label> label)
+  (<glil-branch> inst label)
+  (<glil-call> inst nargs)
+  (<glil-mv-call> nargs ra))
 
 
 ;;;

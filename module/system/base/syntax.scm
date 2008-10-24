@@ -22,14 +22,15 @@
 (define-module (system base syntax)
   #:export (%compute-initargs)
   #:export-syntax (define-type define-record record-case))
-(export-syntax |) ;; emacs doesn't like the |
 
 
 ;;;
 ;;; Type
 ;;;
 
-(define-macro (define-type name sig) sig)
+(define-macro (define-type name . rest)
+  `(begin ,@(map (lambda (def) `(define-record ,def)) rest)))
+
 
 ;;;
 ;;; Record
@@ -108,12 +109,3 @@
                  (if (assq 'else clauses)
                      clauses
                      (append clauses `((else (error "unhandled record" ,r))))))))))
-
-
-
-;;;
-;;; Variants
-;;;
-
-(define-macro (| . rest)
-  `(begin ,@(map (lambda (def) `(define-record ,def)) rest)))
