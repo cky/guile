@@ -2420,10 +2420,14 @@ static void
 create_standard_classes (void)
 {
   SCM slots;
-  SCM method_slots = scm_list_4 (scm_from_locale_symbol ("generic-function"),
+  SCM method_slots = scm_list_n (scm_from_locale_symbol ("generic-function"),
 				 scm_from_locale_symbol ("specializers"),
 				 sym_procedure,
-				 scm_from_locale_symbol ("code-table"));
+				 scm_from_locale_symbol ("code-table"),
+				 scm_from_locale_symbol ("formals"),
+				 scm_from_locale_symbol ("body"),
+				 scm_from_locale_symbol ("compile-env"),
+                                 SCM_UNDEFINED);
   SCM amethod_slots = scm_list_1 (scm_list_3 (scm_from_locale_symbol ("slot-definition"),
 					      k_init_keyword,
 					      k_slot_definition));

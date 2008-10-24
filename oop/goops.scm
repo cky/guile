@@ -484,6 +484,9 @@
 		  ls))))
     `(make <method>
        #:specializers (cons* ,@(specializers args))
+       #:formals ',(formals args)
+       #:body ',body
+       #:compile-env (compile-time-environment)
        #:procedure (lambda ,(formals args)
                      ,@(if (null? body)
                            (list *unspecified*)
@@ -1427,7 +1430,11 @@
   (slot-set! method 'specializers (get-keyword #:specializers initargs '()))
   (slot-set! method 'procedure
 	     (get-keyword #:procedure initargs dummy-procedure))
-  (slot-set! method 'code-table '()))
+  (slot-set! method 'code-table '())
+  (slot-set! method 'formals (get-keyword #:formals initargs '()))
+  (slot-set! method 'body (get-keyword #:body initargs '()))
+  (slot-set! method 'compile-env (get-keyword #:compile-env initargs #f)))
+             
 
 (define-method (initialize (obj <foreign-object>) initargs))
 
