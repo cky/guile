@@ -355,7 +355,7 @@ TESTS = stack-limit-calibration.scm
 TESTS_ENVIRONMENT = true
 
 stack-limit-calibration.scm: measure-hwm.scm guile$(EXEEXT)
-	$(preinstguile) -s measure-hwm.scm > $@
+	$(preinstguile) -s $(srcdir)/measure-hwm.scm > $@
 
 c-tokenize.c: c-tokenize.lex
 	flex -t $(srcdir)/c-tokenize.lex > $@ || { rm $@; false; }
@@ -411,7 +411,7 @@ MOSTLYCLEANFILES = \
 	cpp_err_symbols_here cpp_err_symbols_diff cpp_err_symbols_new \
 	cpp_sig_symbols_here cpp_sig_symbols_diff cpp_sig_symbols_new \
 	version.h version.h.tmp \
-	scmconfig.h scmconfig.h.tmp
+	scmconfig.h scmconfig.h.tmp stack-limit-calibration.scm
 
 CLEANFILES = libpath.h *.x *.doc guile-procedures.txt guile-procedures.texi guile.texi
 
