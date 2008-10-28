@@ -582,7 +582,12 @@ on_thread_exit (void *v)
      http://www.opengroup.org/onlinepubs/009695399/functions/pthread_key_create.html
 
      Thus, `libgc' *must* be compiled with `USE_COMPILER_TLS' for this code
-     to work.  */
+     to work.
+
+     FIXME: Worse, we can't use the GC at all at this point.  With assertions
+     enabled, `libgc' triggers an assertion in `thread_local_alloc.c' upon
+     the next `cons' showing that `GC_lookup_thread ()' returned NULL; this
+     is due to the fact that we're in the thread destructor.  */
   scm_with_guile (do_thread_exit, v);
 
   /* Removing ourself from the list of all threads needs to happen in
