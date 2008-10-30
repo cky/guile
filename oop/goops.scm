@@ -79,7 +79,9 @@
 (define *goops-module* (current-module))
 
 ;; First initialize the builtin part of GOOPS
-(%init-goops-builtins)
+(eval-case
+ ((load-toplevel compile-toplevel)
+  (%init-goops-builtins)))
 
 ;; Then load the rest of GOOPS
 (use-modules (oop goops util)
@@ -489,7 +491,7 @@
        #:compile-env (compile-time-environment)
        #:procedure (lambda ,(formals args)
                      ,@(if (null? body)
-                           (list *unspecified*)
+                           '(begin)
                            body)))))
 
 ;;;
@@ -526,23 +528,21 @@
 		methods)
 	      (loop (cdr l)))))))
 
-(define (internal-add-method! gf m)
-  (slot-set! m  'generic-function gf)
-  (slot-set! gf 'methods (compute-new-list-of-methods gf m))
-  (let ((specializers (slot-ref m 'specializers)))
-    (slot-set! gf 'n-specialized
-	       (max (length* specializers)
-		    (slot-ref gf 'n-specialized))))
-  (%invalidate-method-cache! gf)
-  (add-method-in-classes! m)
-  *unspecified*)
+(define internal-add-method!
+  (method ((gf <generic>) (m <method>))
+    (slot-set! m  'generic-function gf)
+    (slot-set! gf 'methods (compute-new-list-of-methods gf m))
+    (let ((specializers (slot-ref m 'specializers)))
+      (slot-set! gf 'n-specialized
+                 (max (length* specializers)
+                      (slot-ref gf 'n-specialized))))
+    (%invalidate-method-cache! gf)
+    (add-method-in-classes! m)
+    *unspecified*))
 
 (define-generic add-method!)
 
-(internal-add-method! add-method!
-		      (make <method>
-			#:specializers (list <generic> <method>)
-			#:procedure internal-add-method!))
+((method-procedure internal-add-method!) add-method! internal-add-method!)
 
 (define-method (add-method! (proc <procedure>) (m <method>))
   (if (generic-capability? proc)
@@ -1407,12 +1407,8 @@
 	(name (get-keyword #:name initargs #f)))
     (next-method)
     (slot-set! generic 'methods (if (is-a? previous-definition <procedure>)
-				    (list (make <method>
-						#:specializers <top>
-						#:procedure
-						(lambda l
-						  (apply previous-definition 
-							 l))))
+				    (list (method args
+                                            (apply previous-definition args)))
 				    '()))
     (if name
 	(set-procedure-property! generic 'name name))

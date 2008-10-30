@@ -117,7 +117,7 @@
 (define (cache-methods entries)
   (do ((i (- (vector-length entries) 1) (- i 1))
        (methods '() (let ((entry (vector-ref entries i)))
-		      (if (struct? (car entry))
+		      (if (or (not (pair? entry)) (struct? (car entry)))
 			  (cons entry methods)
 			  methods))))
       ((< i 0) methods)))

@@ -23,11 +23,8 @@ AUTOMAKE_OPTIONS = gnu
 
 SUBDIRS = goops
 
-# These should be installed and distributed.
-oop_sources = goops.scm
+modpath = oop
+SOURCES = goops.scm
+include $(top_srcdir)/guilec.mk
 
-subpkgdatadir = $(pkgdatadir)/$(GUILE_EFFECTIVE_VERSION)/oop
-subpkgdata_DATA = $(oop_sources)
-TAGS_FILES = $(subpkgdata_DATA)
-
-EXTRA_DIST = $(oop_sources) ChangeLog-2008
+EXTRA_DIST += ChangeLog-2008
