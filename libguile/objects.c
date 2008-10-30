@@ -138,8 +138,9 @@ scm_mcache_lookup_cmethod (SCM cache, SCM args)
 	    z = SCM_CDR (z);
 	  }
 	while (j-- && !scm_is_null (ls));
-      /* Fewer arguments than specifiers => CAR != CLASS */
-      if (!SCM_CLASSP (SCM_CAR (z)))
+      /* Fewer arguments than specifiers => CAR != CLASS or `no-method' */
+      if (!scm_is_pair (z)
+          || (!SCM_CLASSP (SCM_CAR (z)) && !scm_is_symbol (SCM_CAR (z))))
 	return z;
     next_method:
       i = (i + 1) & mask;

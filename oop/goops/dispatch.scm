@@ -176,7 +176,8 @@
   (let ((hashset-index (+ hashset-index hashset)))
     (do ((sum 0)
 	 (classes entry (cdr classes)))
-	((not (struct? (car classes))) sum)
+	((not (and (pair? classes) (struct? (car classes))))
+         sum)
       (set! sum (+ sum (struct-ref (car classes) hashset-index))))))
 
 ;;; FIXME: the throw probably is expensive, given that this function
@@ -191,7 +192,8 @@
 		 ((null? ls) max-misses)
 	       (do ((i (logand mask (cache-hashval hashset (car ls)))
 		       (logand mask (+ i 1))))
-		   ((not (struct? (car (vector-ref cache i))))
+		   ((and (pair? (vector-ref cache i))
+                         (eq? (car (vector-ref cache i)) 'no-method))
 		    (vector-set! cache i (car ls)))
 		 (set! misses (+ 1 misses))
 		 (if (>= misses min-misses)
