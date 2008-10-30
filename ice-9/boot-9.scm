@@ -123,13 +123,6 @@
 	(else
 	 (loop (cdr clauses))))))))
 
-(define (compile-time-environment)
-  "A special function known to the compiler that, when compiled, will
-return a representation of the lexical environment in place at compile
-time. Useful for supporting some forms of dynamic compilation. Returns
-#f if called from the interpreter."
-  #f)
-
 
 
 ;; Before compiling, make sure any symbols are resolved in the (guile)
@@ -2982,7 +2975,6 @@ module '(ice-9 q) '(make-q q-length))}."
 ;; Indeed, all references to global variables are memoized into such
 ;; variable objects.
 
-;; FIXME: these don't work with the compiler
 (define-macro (@ mod-name var-name)
   (let ((var (module-variable (resolve-interface mod-name) var-name)))
     (if (not var)
@@ -2997,6 +2989,19 @@ module '(ice-9 q) '(make-q q-length))}."
     (if (not var)
 	(error "no such variable" (list '@@ mod-name var-name)))
     var))
+
+
+
+;;; {Compiler interface}
+;;;
+;;; The full compiler interface can be found in (system). Here we put a
+;;; few useful procedures into the global namespace.
+
+(module-autoload! the-scm-module
+                  '(system base compile)
+                  '(compile
+                    compile-time-environment))
+
 
 
 

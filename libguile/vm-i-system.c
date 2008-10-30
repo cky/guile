@@ -413,6 +413,12 @@ VM_DEFINE_INSTRUCTION (late_variable_set, "late-variable-set", 1, 1, 0)
   NEXT;
 }
 
+VM_DEFINE_INSTRUCTION (externals, "externals", 0, 0, 1)
+{
+  PUSH (external);
+  NEXT;
+}
+
 
 /*
  * branch and jump

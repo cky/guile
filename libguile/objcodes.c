@@ -254,8 +254,8 @@ SCM_DEFINE (scm_objcode_to_u8vector, "objcode->u8vector", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_objcode_to_program, "objcode->program", 1, 0, 0,
-	    (SCM objcode),
+SCM_DEFINE (scm_objcode_to_program, "objcode->program", 1, 1, 0,
+	    (SCM objcode, SCM external),
 	    "")
 #define FUNC_NAME s_scm_objcode_to_program
 {
@@ -265,6 +265,10 @@ SCM_DEFINE (scm_objcode_to_program, "objcode->program", 1, 0, 0,
   struct scm_program *p;
 
   SCM_VALIDATE_OBJCODE (1, objcode);
+  if (SCM_UNBNDP (external))
+    external = SCM_EOL;
+  else
+    SCM_VALIDATE_LIST (2, external);
 
   base = SCM_OBJCODE_BASE (objcode);
   size = SCM_OBJCODE_SIZE (objcode);
@@ -272,6 +276,7 @@ SCM_DEFINE (scm_objcode_to_program, "objcode->program", 1, 0, 0,
   p = SCM_PROGRAM_DATA (prog);
   p->nlocs = base[8];
   p->nexts = base[9];
+  p->external = external;
   return prog;
 }
 #undef FUNC_NAME

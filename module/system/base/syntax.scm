@@ -87,7 +87,10 @@
       (error "too many initargs" args slots))
      (else
       (lp (cdr in) (cdr positional)
-          (acons (car positional) (car in) out))))))
+          (let ((slot (car positional)))
+            (acons (if (pair? slot) (car slot) slot)
+                   (car in)
+                   out)))))))
 
 (define-macro (record-case record . clauses)
   (let ((r (gensym)))

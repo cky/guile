@@ -31,7 +31,7 @@
 
 
 (define (translate x e)
-  (call-with-ghil-environment (make-ghil-toplevel-env) '()
+  (call-with-ghil-environment e '()
     (lambda (env vars)
       (make-ghil-lambda env #f vars #f '() (trans env (location x) x)))))
 
@@ -383,8 +383,17 @@
      ((,x) (retrans x))
      (,args (make-ghil-values e l (map retrans args))))
 
+    ;; (compile-time-environment)
+    ;; => (MODULE LEXICALS . EXTERNALS)
     (compile-time-environment
-     (() (make-ghil-reified-env e l)))))
+     (() (make-ghil-inline
+          e l 'cons
+          (list (retrans '(current-module))
+                (make-ghil-inline
+                 e l 'cons
+                 (list (make-ghil-reified-env e l)
+                       (make-ghil-inline e l 'externals '())))))))
+    ))
 
 (define (lookup-apply-transformer proc)
   (cond ((eq? proc values)

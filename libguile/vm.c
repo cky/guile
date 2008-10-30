@@ -743,7 +743,7 @@ SCM_DEFINE (scm_vm_fetch_stack, "vm-fetch-stack", 1, 0, 0,
 
 SCM scm_load_compiled_with_vm (SCM file)
 {
-  SCM program = scm_objcode_to_program (scm_load_objcode (file));
+  SCM program = scm_objcode_to_program (scm_load_objcode (file), SCM_EOL);
   
   return vm_run (scm_the_vm (), program, SCM_EOL);
 }

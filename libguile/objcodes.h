@@ -61,7 +61,7 @@ extern scm_t_bits scm_tc16_objcode;
 #define SCM_OBJCODE_FD(x)	(SCM_OBJCODE_DATA (x)->fd)
 
 extern SCM scm_load_objcode (SCM file);
-extern SCM scm_objcode_to_program (SCM objcode);
+extern SCM scm_objcode_to_program (SCM objcode, SCM external);
 extern SCM scm_objcode_p (SCM obj);
 extern SCM scm_bytecode_to_objcode (SCM bytecode, SCM nlocs, SCM nexts);
 extern SCM scm_objcode_to_u8vector (SCM objcode);

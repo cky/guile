@@ -97,7 +97,7 @@
    ghil-reified-env-env ghil-reified-env-loc
 
    ghil-env-add!
-   ghil-env-reify
+   ghil-env-reify ghil-env-dereify
    ghil-var-is-bound? ghil-var-for-ref! ghil-var-for-set! ghil-var-define!
    ghil-var-at-module!
    call-with-ghil-environment call-with-ghil-bindings))
@@ -293,6 +293,16 @@
              (append out
                      (filter (lambda (v) (eq? (ghil-var-kind v) 'external))
                              variables)))))))
+
+(define (ghil-env-dereify name-index-alist)
+  (let* ((e (make-ghil-env (make-ghil-toplevel-env)))
+         (vars (map (lambda (pair)
+                      (make-ghil-var e (car pair) 'external (cdr pair)))
+                    name-index-alist)))
+    (set! (ghil-env-table e)
+          (map (lambda (v) (cons (ghil-var-name v) v)) vars))
+    (set! (ghil-env-variables e) vars)
+    e))
 
 
 ;;;

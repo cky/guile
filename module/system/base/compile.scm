@@ -22,16 +22,21 @@
 (define-module (system base compile)
   #:use-syntax (system base syntax)
   #:use-module (system base language)
-  #:use-module (system il compile)
+  #:use-module ((system il compile) #:select ((compile . compile-il)))
+  #:use-module (system il ghil)
   #:use-module (system il glil)
   #:use-module (system vm objcode)
-  #:use-module (system vm vm) ;; for compile-time evaluation
   #:use-module (system vm assemble)
+  #:use-module (system vm vm) ;; for compile-time evaluation
   #:use-module (ice-9 regex)
+  #:use-module (ice-9 optargs)
   #:export (syntax-error compile-file load-source-file load-file
-           compiled-file-name
-           scheme-eval read-file-in compile-in
-           load/compile))
+            *current-language*
+            compiled-file-name
+            compile-time-environment
+            compile read-file-in compile-in
+            load/compile)
+  #:export-syntax (call-with-compile-error-catch))
 
 ;;;
 ;;; Compiler environment
@@ -50,15 +55,12 @@
 	       (format (current-error-port)
                        "unknown location: ~A: ~A~%" msg exp)))))
 
-(export-syntax  call-with-compile-error-catch)
-
-
 
 ;;;
 ;;; Compiler
 ;;;
 
-(define (scheme) (lookup-language 'scheme))
+(define *current-language* (make-fluid))
 
 (define (call-with-output-file/atomic filename proc)
   (let* ((template (string-append filename ".XXXXXX"))
@@ -74,16 +76,16 @@
 
 (define (compile-file file . opts)
   (let ((comp (compiled-file-name file))
-        (scheme (scheme)))
+        (lang (fluid-ref *current-language*)))
     (catch 'nothing-at-all
       (lambda ()
 	(call-with-compile-error-catch
 	 (lambda ()
 	   (call-with-output-file/atomic comp
 	     (lambda (port)
-	       (let* ((source (read-file-in file scheme))
+	       (let* ((source (read-file-in file lang))
 		      (objcode (apply compile-in source (current-module)
-				      scheme opts)))
+				      lang opts)))
 		 (if (memq #:c opts)
 		   (pprint-glil objcode port)
 		   (uniform-vector-write (objcode->u8vector objcode) port)))))
@@ -106,8 +108,9 @@
 ; 	    result))))
 
 (define (load-source-file file . opts)
-  (let ((source (read-file-in file (scheme))))
-    (apply compile-in source (current-module) (scheme) opts)))
+  (let ((lang (fluid-ref *current-language*)))
+    (let ((source (read-file-in file lang)))
+      (apply compile-in source (current-module) lang opts))))
 
 (define (load-file file . opts)
   (let ((comp (compiled-file-name file)))
@@ -116,12 +119,63 @@
 	(apply load-source-file file opts))))
 
 (define (compiled-file-name file)
-  (let ((base (basename file)))
-    (let ((m (string-match "\\.scm$" base)))
-      (string-append (if m (match:prefix m) base) ".go"))))
+  (let ((base (basename file))
+        (cext (cond ((or (null? %load-compiled-extensions)
+                         (string-null? (car %load-compiled-extensions)))
+                     (warn "invalid %load-compiled-extensions"
+                           %load-compiled-extensions)
+                     ".go")
+                    (else (car %load-compiled-extensions)))))
+    (let lp ((exts %load-extensions))
+      (cond ((null? exts) (string-append base cext))
+            ((string-null? (car exts)) (lp (cdr exts)))
+            ((string-suffix? (car exts) base)
+             (string-append
+              (substring base 0
+                         (- (string-length base) (string-length (car exts))))
+              cext))
+            (else (lp (cdr exts)))))))
 
-(define (scheme-eval x e)
-  (vm-load (the-vm) (compile-in x e (scheme))))
+;;; environment := #f
+;;;                | MODULE
+;;;                | COMPILE-ENV
+;;; compile-env := (MODULE LEXICALS . EXTERNALS)
+(define (cenv-module env)
+  (cond ((not env) #f)
+        ((module? env) env)
+        ((and (pair? env) (module? (car env))) (car env))
+        (else (error "bad environment" env))))
+
+(define (cenv-ghil-env env)
+  (cond ((not env) (make-ghil-toplevel-env))
+        ((module? env) (make-ghil-toplevel-env))
+        ((pair? env)
+         (ghil-env-dereify (cadr env)))
+        (else (error "bad environment" env))))
+
+(define (cenv-externals env)
+  (cond ((not env) '())
+        ((module? env) '())
+        ((pair? env) (cddr env))
+        (else (error "bad environment" env))))
+
+(define (compile-time-environment)
+  "A special function known to the compiler that, when compiled, will
+return a representation of the lexical environment in place at compile
+time. Useful for supporting some forms of dynamic compilation. Returns
+#f if called from the interpreter."
+  #f)
+
+(define* (compile x #:optional env)
+  (let ((thunk (objcode->program
+                (compile-in x env (fluid-ref *current-language*))
+                (cenv-externals env))))
+    (if (not env)
+        (thunk)
+        (save-module-excursion
+         (lambda ()
+           (set-current-module (cenv-module env))
+           (thunk))))))
 
 
 ;;;
@@ -136,6 +190,8 @@
    (lambda ()
      (catch 'result
       (lambda ()
+        (and=> (cenv-module e) set-current-module)
+        (set! e (cenv-ghil-env e))
         ;; expand
         (set! x ((language-expander lang) x e))
         (if (memq #:e opts) (throw 'result x))
@@ -143,7 +199,7 @@
         (set! x ((language-translator lang) x e))
         (if (memq #:t opts) (throw 'result x))
         ;; compile
-        (set! x (apply compile x e opts))
+        (set! x (apply compile-il x e opts))
         (if (memq #:c opts) (throw 'result x))
         ;; assemble
         (apply assemble x e opts))
@@ -179,3 +235,5 @@
 	     (not (string=? (dirname oldname) ".")))
 	(string-append (dirname oldname) "/" filename)
 	filename)))
+
+(fluid-set! *current-language* (lookup-language 'scheme))
