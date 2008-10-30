@@ -2215,6 +2215,9 @@ scm_memoize_method (SCM x, SCM args)
 SCM_KEYWORD (k_setter,		"setter");
 SCM_KEYWORD (k_specializers,	"specializers");
 SCM_KEYWORD (k_procedure,	"procedure");
+SCM_KEYWORD (k_formals,		"formals");
+SCM_KEYWORD (k_body,		"body");
+SCM_KEYWORD (k_compile_env,	"compile-env");
 SCM_KEYWORD (k_dsupers,		"dsupers");
 SCM_KEYWORD (k_slots,		"slots");
 SCM_KEYWORD (k_gf,		"generic-function");
@@ -2281,6 +2284,24 @@ SCM_DEFINE (scm_make, "make",  0, 0, 1,
 			       SCM_EOL,
 			       FUNC_NAME));
 	  SCM_SET_SLOT (z, scm_si_code_table, SCM_EOL);
+	  SCM_SET_SLOT (z, scm_si_formals,
+	    scm_i_get_keyword (k_formals,
+			       args,
+			       len - 1,
+			       SCM_EOL,
+			       FUNC_NAME));
+	  SCM_SET_SLOT (z, scm_si_body,
+	    scm_i_get_keyword (k_body,
+			       args,
+			       len - 1,
+			       SCM_EOL,
+			       FUNC_NAME));
+	  SCM_SET_SLOT (z, scm_si_compile_env,
+	    scm_i_get_keyword (k_compile_env,
+			       args,
+			       len - 1,
+			       SCM_BOOL_F,
+			       FUNC_NAME));
 	}
       else
 	{

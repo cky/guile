@@ -24,13 +24,6 @@
   :no-backtrace
   )
 
-(define source-formals cadr)
-(define source-body cddr)
-
-(define cmethod-code cdr)
-(define cmethod-environment car)
-
-
 ;;;
 ;;; Method entries
 ;;;
@@ -52,16 +45,11 @@
 (define (compute-entry-with-cmethod methods types)
   (or (code-table-lookup (slot-ref (car methods) 'code-table) types)
       (let* ((method (car methods))
-	     (place-holder (list #f))
-	     (entry (append types place-holder)))
-	;; In order to handle recursion nicely, put the entry
-	;; into the code-table before compiling the method 
-	(slot-set! (car methods) 'code-table
-		   (cons entry (slot-ref (car methods) 'code-table)))
-	(let ((cmethod (compile-method methods types)))
-	  (set-car! place-holder (car cmethod))
-	  (set-cdr! place-holder (cdr cmethod)))
-	(cons entry place-holder))))
+             (cmethod (compile-method methods types))
+	     (entry (append types cmethod)))
+	(slot-set! method 'code-table
+		   (cons entry (slot-ref method 'code-table)))
+	(cons entry cmethod))))
 
 (define (compute-cmethod methods types)
   (cdr (compute-entry-with-cmethod methods types)))
@@ -87,7 +75,99 @@
     (lambda args
       (no-next-method gf (if (null? args) default-args args)))))
 
-(define (make-make-next-method vcell gf methods types)
+;;;
+;;; Method compilation
+;;;
+
+;;; So, for the reader: there basic idea is that, given that the
+;;; semantics of `next-method' depend on the concrete types being
+;;; dispatched, why not compile a specific procedure to handle each type
+;;; combination that we see at runtime. There are two compilation
+;;; strategies implemented: one for the memoizer, and one for the VM
+;;; compiler.
+;;;
+;;; In theory we can do much better than a bytecode compilation, because
+;;; we know the *exact* types of the arguments. It's ideal for native
+;;; compilation. A task for the future.
+;;;
+;;; I think this whole generic application mess would benefit from a
+;;; strict MOP.
+
+(define (compile-method methods types)
+  (if (slot-ref (car methods) 'compile-env)
+      (compile-method/vm methods types)
+      (compile-method/memoizer methods types)))
+
+(define (make-next-method gf methods types)
+  (if (null? methods)
+      (lambda args (no-next-method gf args))
+      (let ((cmethod (compute-cmethod methods types)))
+        (if (pair? cmethod)
+            ;; if it's a pair, the next-method is interpreted
+            (local-eval (cons 'lambda (cmethod-code cmethod))
+                        (cmethod-environment cmethod))
+            ;; otherwise a normal procedure
+            cmethod))))
+
+(define (compile-method/vm methods types)
+  (let* ((program-external (@ (system vm program) program-external))
+         (formals (slot-ref (car methods) 'formals))
+	 (body (slot-ref (car methods) 'body)))
+    (cond
+     ((not (next-method? body))
+      ;; just one method to call -- in the future we could compile this
+      ;; based on the types that we see, but for now just return the
+      ;; method procedure (which is vm-compiled already)
+      (method-procedure (car methods)))
+
+     ;; (and-map (lambda (m) (null? (slot-ref m 'compile-env))) methods)
+     ;; many methods, but with no lexical bindings: can inline, in theory.
+     ;;
+     ;; modules complicate this though, the different method bodies only
+     ;; make sense in the contexts of their modules. so while we could
+     ;; expand this to a big letrec, there wouldn't be real inlining.
+
+     (else
+      (let* ((next-method-sym (gensym " next-method"))
+             (method (car methods))
+             (cmethod (compile
+                       `(let ((,next-method-sym #f))
+                          (lambda ,formals
+                            (let ((next-method
+                                   (lambda args
+                                     (if (null? args)
+                                         ,(if (list? formals)
+                                              `(,next-method-sym ,@formals)
+                                              `(apply
+                                                ,next-method-sym
+                                                ,@(improper->proper formals)))
+                                         (apply ,next-method-sym args)))))
+                              ,@body)))
+                       (slot-ref method 'compile-env))))
+        (list-set! (program-external cmethod) 0
+                   (make-next-method (method-generic-function method)
+                                     (cdr methods)
+                                     types))
+        cmethod)))))
+
+;;;
+;;; Compiling methods for the memoizer
+;;;
+
+(define source-formals cadr)
+(define source-body cddr)
+
+(define cmethod-code cdr)
+(define cmethod-environment car)
+
+(define %tag-body
+  (nested-ref the-root-module '(app modules oop goops %tag-body)))
+
+;;; An exegetical note: the strategy here seems to be to (a) only put in
+;;; next-method if it's referenced in the code; (b) memoize the lookup
+;;; lazily, when `next-method' is first called.
+
+(define (make-make-next-method/memoizer vcell gf methods types)
   (lambda default-args
     (lambda args
       (if (null? methods)
@@ -100,17 +180,7 @@
 	    (set-cdr! vcell (make-final-make-next-method method))
 	    (@apply method (if (null? args) default-args args)))))))
 
-;;;
-;;; Method compilation
-;;;
-
-;;; NOTE: This section is far from finished.  It will finally be
-;;; implemented on C level.
-
-(define %tag-body
-  (nested-ref the-root-module '(app modules oop goops %tag-body)))
-
-(define (compile-method methods types)
+(define (compile-method/memoizer methods types)
   (let* ((proc (method-procedure (car methods)))
 	 ;; XXX - procedure-source can not be guaranteed to be
 	 ;;       reliable or efficient
@@ -120,7 +190,7 @@
     (if (next-method? body)
 	(let ((vcell (cons 'goops:make-next-method #f)))
 	  (set-cdr! vcell
-		    (make-make-next-method
+		    (make-make-next-method/memoizer
 		     vcell
 		     (method-generic-function (car methods))
 		     (cdr methods) types))

@@ -1801,16 +1801,18 @@
 (define (make-modules-in module name)
   (if (null? name)
       module
-      (cond
-       ((module-ref module (car name) #f)
-	=> (lambda (m) (make-modules-in m (cdr name))))
-       (else	(let ((m (make-module 31)))
-		  (set-module-kind! m 'directory)
-		  (set-module-name! m (append (or (module-name module)
-						  '())
-					      (list (car name))))
-		  (module-define! module (car name) m)
-		  (make-modules-in m (cdr name)))))))
+      (make-modules-in
+       (let* ((var (module-local-variable module (car name)))
+              (val (and var (variable-bound? var) (variable-ref var))))
+         (if (module? val)
+             val
+             (let ((m (make-module 31)))
+               (set-module-kind! m 'directory)
+               (set-module-name! m (append (or (module-name module) '())
+                                           (list (car name))))
+               (module-define! module (car name) m)
+               m)))
+       (cdr name))))
 
 (define (beautify-user-module! module)
   (let ((interface (module-public-interface module)))
@@ -1833,23 +1835,22 @@
       (if (equal? name '(guile))
           the-root-module
           (let ((full-name (append '(%app modules) name)))
-            (let ((already (nested-ref the-root-module full-name)))
-              (if already
-                  ;; The module already exists...
-                  (if (and (or (null? maybe-autoload) (car maybe-autoload))
-                           (not (module-public-interface already)))
-                      ;; ...but we are told to load and it doesn't contain source, so
-                      (begin
-                        (try-load-module name)
-                        already)
-                      ;; simply return it.
-                      already)
-                  (begin
-                    ;; Try to autoload it if we are told so
-                    (if (or (null? maybe-autoload) (car maybe-autoload))
-                        (try-load-module name))
-                    ;; Get/create it.
-                    (make-modules-in (current-module) full-name)))))))))
+            (let ((already (nested-ref the-root-module full-name))
+                  (autoload (or (null? maybe-autoload) (car maybe-autoload))))
+              (cond
+               ((and already (module? already)
+                     (or (not autoload) (module-public-interface already)))
+                ;; A hit, a palpable hit.
+                already)
+               (autoload
+                ;; Try to autoload the module, and recurse.
+                (try-load-module name)
+                (resolve-module name #f))
+               (else
+                ;; A module is not bound (but maybe something else is),
+                ;; we're not autoloading -- here's the weird semantics,
+                ;; we create an empty module.
+                (make-modules-in the-root-module full-name)))))))))
 
 ;; Cheat.  These bindings are needed by modules.c, but we don't want
 ;; to move their real definition here because that would be unnatural.

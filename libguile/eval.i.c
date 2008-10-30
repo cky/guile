@@ -855,8 +855,8 @@ dispatch:
 		      args = SCM_CDR (args);
 		      z = SCM_CDR (z);
 		    }
-		  /* Fewer arguments than specifiers => CAR != ENV */
-		  if (scm_is_null (SCM_CAR (z)) || scm_is_pair (SCM_CAR (z)))
+		  /* Fewer arguments than specifiers => CAR != CLASS */
+		  if (!SCM_CLASSP (SCM_CAR (z)))
 		    goto apply_cmethod;
 		next_method:
 		  hash_value = (hash_value + 1) & mask;
@@ -867,10 +867,16 @@ dispatch:
 
 	    apply_cmethod: /* inputs: z, arg1 */
 	      {
-		SCM formals = SCM_CMETHOD_FORMALS (z);
-		env = SCM_EXTEND_ENV (formals, arg1, SCM_CMETHOD_ENV (z));
-		x = SCM_CMETHOD_BODY (z);
-		goto nontoplevel_begin;
+                if (scm_is_pair (z)) {
+                  SCM formals = SCM_CMETHOD_FORMALS (z);
+                  env = SCM_EXTEND_ENV (formals, arg1, SCM_CMETHOD_ENV (z));
+                  x = SCM_CMETHOD_BODY (z);
+                  goto nontoplevel_begin;
+                } else {
+                  proc = z;
+                  PREP_APPLY (proc, arg1);
+                  goto apply_proc;
+                }
 	      }
 	    }
 	  }
