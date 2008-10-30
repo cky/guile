@@ -573,22 +573,10 @@ on_thread_exit (void *v)
   /* Unblocking the joining threads needs to happen in guile mode
      since the queue is a SCM data structure.  */
 
-  /* Note: `scm_with_guile ()' invokes `GC_local_malloc ()', which accesses
-     thread-local storage (TLS).  If said storage is accessed using
-     `pthread_getspecific ()', then it may be inaccessible at this point,
-     having been destroyed earlier, since the invocation order of destructors
-     associated with pthread keys is unspecified:
-
-     http://www.opengroup.org/onlinepubs/009695399/functions/pthread_key_create.html
-
-     Thus, `libgc' *must* be compiled with `USE_COMPILER_TLS' for this code
-     to work.
-
-     FIXME: Worse, we can't use the GC at all at this point.  With assertions
-     enabled, `libgc' triggers an assertion in `thread_local_alloc.c' upon
-     the next `cons' showing that `GC_lookup_thread ()' returned NULL; this
-     is due to the fact that we're in the thread destructor.  */
-  scm_with_guile (do_thread_exit, v);
+  /* Note: Since `do_thread_exit ()' uses allocates memory via `libgc', we
+     assume the GC is usable at this point, and notably that thread-local
+     storage (TLS) hasn't been deallocated yet.  */
+  do_thread_exit (v);
 
   /* Removing ourself from the list of all threads needs to happen in
      non-guile mode since all SCM values on our stack become
@@ -619,7 +607,7 @@ static scm_i_pthread_once_t init_thread_key_once = SCM_I_PTHREAD_ONCE_INIT;
 static void
 init_thread_key (void)
 {
-  scm_i_pthread_key_create (&scm_i_thread_key, on_thread_exit);
+  scm_i_pthread_key_create (&scm_i_thread_key, NULL);
 }
 
 /* Perform any initializations necessary to bring the current thread
@@ -782,6 +770,7 @@ SCM_UNUSED static void
 scm_leave_guile_cleanup (void *x)
 {
   scm_leave_guile ();
+  on_thread_exit (SCM_I_CURRENT_THREAD);
 }
 
 void *
@@ -889,6 +878,9 @@ really_launch (void *d)
     t->result = scm_call_0 (thunk);
   else
     t->result = scm_catch (SCM_BOOL_T, thunk, handler);
+
+  /* Trigger a call to `on_thread_exit ()'.  */
+  pthread_exit (NULL);
 
   return 0;
 }
