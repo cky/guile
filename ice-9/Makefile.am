@@ -35,7 +35,7 @@ SOURCES = psyntax-pp.scm boot-9.scm \
 	debug.scm debugger.scm documentation.scm emacs.scm expect.scm	\
 	format.scm getopt-long.scm hcons.scm i18n.scm			\
 	lineio.scm ls.scm mapping.scm match.scm				\
-	networking.scm null.scm optargs.scm poe.scm		\
+	networking.scm null.scm occam-channel.scm optargs.scm poe.scm	\
 	popen.scm posix.scm q.scm r4rs.scm r5rs.scm			\
 	rdelim.scm receive.scm regex.scm runq.scm rw.scm		\
 	safe-r5rs.scm safe.scm session.scm slib.scm stack-catch.scm	\
@@ -45,13 +45,12 @@ SOURCES = psyntax-pp.scm boot-9.scm \
 	weak-vector.scm deprecated.scm list.scm serialize.scm		\
 	gds-server.scm
 
-# occam-channel and gds-client use goops, which is not yet vm-compatible
-# (it does some compilation-like optimizations for the interpreter), so
-# punt on them for the time being.
+# gds-client is tight with the memoizer, so punt on it until it can be
+# made portable.
 #
 # psyntax.scm needs help. fortunately it's only needed when recompiling
 # psyntax-pp.scm.
-NOCOMP_SOURCES = occam-channel.scm gds-client.scm psyntax.scm
+NOCOMP_SOURCES = gds-client.scm psyntax.scm
 
 include $(top_srcdir)/guilec.mk
 
