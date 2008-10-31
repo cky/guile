@@ -637,7 +637,10 @@ scm_smob_prehistory ()
   smob_freelist = GC_new_free_list ();
   smob_gc_kind = GC_new_kind ((void **)smob_freelist,
 			      GC_MAKE_PROC (GC_new_proc (smob_mark), 0),
-			      0, 0);
+			      0,
+			      /* Clear new objects.  As of version 7.1, libgc
+				 doesn't seem to support passing 0 here.  */
+			      1);
 
   scm_numsmob = 0;
   for (i = 0; i < MAX_SMOB_COUNT; ++i)
