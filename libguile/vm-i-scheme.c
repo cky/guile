@@ -274,6 +274,28 @@ VM_DEFINE_FUNCTION (mod, "mod", 2)
   RETURN (scm_modulo (x, y));
 }
 
+
+/*
+ * GOOPS support
+ */
+VM_DEFINE_FUNCTION (slot_ref, "slot-ref", 2)
+{
+  size_t slot;
+  ARGS2 (instance, idx);
+  slot = SCM_I_INUM (idx);
+  RETURN (SCM_PACK (SCM_STRUCT_DATA (instance) [slot]));
+}
+
+VM_DEFINE_FUNCTION (slot_set, "slot-set", 3)
+{
+  size_t slot;
+  ARGS3 (instance, idx, val);
+  slot = SCM_I_INUM (idx);
+  SCM_STRUCT_DATA (instance) [slot] = SCM_UNPACK (val);
+  RETURN (SCM_UNSPECIFIED);
+}
+
+
 /*
   Local Variables:
   c-file-style: "gnu"
