@@ -583,13 +583,10 @@ SCM_DEFINE (scm_sys_initialize_object, "%initialize-object", 2, 0, 0,
 	    {
 	      slot_value = get_slot_value (class, obj, SCM_CAR (get_n_set));
 	      if (SCM_GOOPS_UNBOUNDP (slot_value))
-		{
-		  SCM env = SCM_EXTEND_ENV (SCM_EOL, SCM_EOL, SCM_ENV (tmp));
-		  set_slot_value (class,
-				  obj,
-				  SCM_CAR (get_n_set),
-				  scm_eval_body (SCM_CLOSURE_BODY (tmp), env));
-		}
+                set_slot_value (class,
+                                obj,
+                                SCM_CAR (get_n_set),
+                                scm_call_0 (tmp));
 	    }
 	}
     }

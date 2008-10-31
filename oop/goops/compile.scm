@@ -175,8 +175,11 @@
 	    (set-cdr! vcell (make-final-make-no-next-method gf))
 	    (no-next-method gf (if (null? args) default-args args)))
 	  (let* ((cmethod (compute-cmethod methods types))
-		 (method (local-eval (cons 'lambda (cmethod-code cmethod))
-				     (cmethod-environment cmethod))))
+		 (method
+                  (if (pair? cmethod)
+                      (local-eval (cons 'lambda (cmethod-code cmethod))
+                                  (cmethod-environment cmethod))
+                      cmethod)))
 	    (set-cdr! vcell (make-final-make-next-method method))
 	    (@apply method (if (null? args) default-args args)))))))
 
