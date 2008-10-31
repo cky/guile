@@ -21,14 +21,10 @@
 
 AUTOMAKE_OPTIONS = gnu
 
-# These should be installed and distributed.
-goops_sources =							\
+modpath = oop/goops
+SOURCES = 							\
     active-slot.scm compile.scm composite-slot.scm describe.scm	\
     dispatch.scm internal.scm save.scm stklos.scm util.scm      \
-    old-define-method.scm accessors.scm simple.scm
+    accessors.scm simple.scm
 
-subpkgdatadir = $(pkgdatadir)/$(GUILE_EFFECTIVE_VERSION)/oop/goops
-subpkgdata_DATA = $(goops_sources)
-TAGS_FILES = $(subpkgdata_DATA)
-
-EXTRA_DIST = $(goops_sources)
+include $(top_srcdir)/guilec.mk

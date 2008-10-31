@@ -1284,7 +1284,7 @@ get_slot_value (SCM class SCM_UNUSED, SCM obj, SCM slotdef)
 
       code = SCM_CAR (access);
       if (!SCM_CLOSUREP (code))
-	return SCM_SUBRF (code) (obj);
+	return scm_call_1 (code, obj);
       env  = SCM_EXTEND_ENV (SCM_CLOSURE_FORMALS (code),
 			     scm_list_1 (obj),
 			     SCM_ENV (code));
@@ -1327,7 +1327,7 @@ set_slot_value (SCM class SCM_UNUSED, SCM obj, SCM slotdef, SCM value)
 
       code = SCM_CADR (access);
       if (!SCM_CLOSUREP (code))
-	SCM_SUBRF (code) (obj, value);
+	scm_call_2 (code, obj, value);
       else
 	{
 	  env  = SCM_EXTEND_ENV (SCM_CLOSURE_FORMALS (code),

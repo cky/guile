@@ -16,6 +16,11 @@
 ;;;; 
 
 
+;; There are circularities here; you can't import (oop goops compile)
+;; before (oop goops). So when compiling, make sure that things are
+;; kosher.
+(eval-case ((compile-toplevel) (resolve-module '(oop goops))))
+
 (define-module (oop goops compile)
   :use-module (oop goops)
   :use-module (oop goops util)
@@ -183,30 +188,35 @@
 	    (set-cdr! vcell (make-final-make-next-method method))
 	    (@apply method (if (null? args) default-args args)))))))
 
+(define (compile-method/memoizer+next methods types proc formals body)
+  (let ((vcell (cons 'goops:make-next-method #f)))
+    (set-cdr! vcell
+              (make-make-next-method/memoizer
+               vcell
+               (method-generic-function (car methods))
+               (cdr methods) types))
+    ;;*fixme*
+    `(,(cons vcell (procedure-environment proc))
+      ,formals
+      ;;*fixme* Only do this on source where next-method can't be inlined
+      (let ((next-method ,(if (list? formals)
+                              `(goops:make-next-method ,@formals)
+                              `(apply goops:make-next-method
+                                      ,@(improper->proper formals)))))
+        ,@body))))
+
 (define (compile-method/memoizer methods types)
   (let* ((proc (method-procedure (car methods)))
 	 ;; XXX - procedure-source can not be guaranteed to be
 	 ;;       reliable or efficient
-	 (src (procedure-source proc))
-	 (formals (source-formals src))
-	 (body (source-body src)))
-    (if (next-method? body)
-	(let ((vcell (cons 'goops:make-next-method #f)))
-	  (set-cdr! vcell
-		    (make-make-next-method/memoizer
-		     vcell
-		     (method-generic-function (car methods))
-		     (cdr methods) types))
-	  ;;*fixme*
-	  `(,(cons vcell (procedure-environment proc))
-	    ,formals
-	    ;;*fixme* Only do this on source where next-method can't be inlined
-	    (let ((next-method ,(if (list? formals)
-				    `(goops:make-next-method ,@formals)
-				    `(apply goops:make-next-method
-					    ,@(improper->proper formals)))))
-	      ,@body)))
-	(cons (procedure-environment proc)
-	      (cons formals
-		    (%tag-body body)))
-	)))
+	 (src (procedure-source proc)))
+    (if src
+        (let ((formals (source-formals src))
+              (body (source-body src)))
+          (if (next-method? body)
+              (compile-method/memoizer+next methods types proc formals body)
+              (cons (procedure-environment proc)
+                    (cons formals
+                          (%tag-body body)))
+              ))
+        proc)))

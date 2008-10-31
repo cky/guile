@@ -1099,12 +1099,17 @@
 	  (else
 	   (let ((get (car l)) 
 		 (set (cadr l)))
-	     (if (not (and (closure? get)
-			   (= (car (procedure-property get 'arity)) 1)))
+             ;; note that we allow non-closures; we only check arity on
+             ;; the closures, though, because we inline their dispatch
+             ;; in %get-slot-value / %set-slot-value.
+	     (if (or (not (procedure? get))
+                     (and (closure? get)
+                          (not (= (car (procedure-property get 'arity)) 1))))
 		 (goops-error "Bad getter closure for slot `~S' in ~S: ~S"
 			      slot class get))
-	     (if (not (and (closure? set)
-			   (= (car (procedure-property set 'arity)) 2)))
+	     (if (or (not (procedure? set))
+                     (and (closure? set)
+                          (not (= (car (procedure-property set 'arity)) 2))))
 		 (goops-error "Bad setter closure for slot `~S' in ~S: ~S"
 			      slot class set))))))
 
