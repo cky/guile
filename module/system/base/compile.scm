@@ -62,17 +62,31 @@
 
 (define *current-language* (make-fluid))
 
+;; This is basically to avoid mucking with the backtrace.
+(define (call-with-nonlocal-exit-protect thunk on-nonlocal-exit)
+  (let ((success #f) (entered #f))
+    (dynamic-wind
+        (lambda ()
+          (if entered
+              (error "thunk may only be entered once: ~a" thunk))
+          (set! entered #t))
+        (lambda ()
+          (thunk)
+          (set! success #t))
+        (lambda ()
+          (if (not success)
+              (on-nonlocal-exit))))))
+                        
 (define (call-with-output-file/atomic filename proc)
   (let* ((template (string-append filename ".XXXXXX"))
          (tmp (mkstemp! template)))
-    (catch #t
-           (lambda ()
-             (with-output-to-port tmp
-               (lambda () (proc (current-output-port))))
-             (rename-file template filename))
-           (lambda args
-             (delete-file template)
-             (apply throw args)))))
+    (call-with-nonlocal-exit-protect
+     (lambda ()
+       (with-output-to-port tmp
+         (lambda () (proc (current-output-port))))
+       (rename-file template filename))
+     (lambda ()
+       (delete-file template)))))
 
 (define (compile-file file . opts)
   (let ((comp (compiled-file-name file))
