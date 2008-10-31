@@ -50,6 +50,8 @@
 
 ;; Looks up transformers relative to the current module at
 ;; compilation-time. See also the discussion of ghil-lookup in ghil.scm.
+;;
+;; FIXME shadowing lexicals?
 (define (lookup-transformer head retrans)
   (let* ((mod (current-module))
          (val (and (symbol? head)
@@ -130,7 +132,7 @@
                  (pmatch (cdr exp)
                          ,@clauses
                          (else
-                          (syntax-error loc (format #f "bad ~A" ',sym exp)))))))
+                          (syntax-error l (format #f "bad ~A" ',sym) exp))))))
 
 (define-scheme-translator quote
   ;; (quote OBJ)
