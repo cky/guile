@@ -27,13 +27,14 @@
   #:use-module (ice-9 receive)
   #:use-module ((ice-9 syncase) #:select (sc-macro))
   #:use-module ((system base compile) #:select (syntax-error))
-  #:export (translate))
+  #:export (translate translate-1
+            *translate-table* define-scheme-translator))
 
 
 (define (translate x e)
   (call-with-ghil-environment e '()
     (lambda (env vars)
-      (make-ghil-lambda env #f vars #f '() (trans env (location x) x)))))
+      (make-ghil-lambda env #f vars #f '() (translate-1 env #f x)))))
 
 
 ;;;
@@ -58,7 +59,7 @@
                             ;; definition forward-declared them
                             (and (variable-bound? var) (variable-ref var)))))))
     (cond
-     ((assq-ref custom-transformer-table val))
+     ((hashq-ref *translate-table* val))
 
      ((defmacro? val)
       (lambda (env loc exp)
@@ -82,31 +83,32 @@
 
      (else #f))))
 
-(define (trans e l x)
-  (define (retrans x) (trans e (location x) x))
-  (cond ((pair? x)
-         (let ((head (car x)) (tail (cdr x)))
-           (cond
-            ((lookup-transformer head retrans)
-             => (lambda (t) (t e l x)))
+(define (translate-1 e l x)
+  (let ((l (or l (location x))))
+    (define (retrans x) (translate-1 e #f x))
+    (cond ((pair? x)
+           (let ((head (car x)) (tail (cdr x)))
+             (cond
+              ((lookup-transformer head retrans)
+               => (lambda (t) (t e l x)))
 
-            ;; FIXME: lexical/module overrides of forbidden primitives
-            ((memq head *forbidden-primitives*)
-   	     (syntax-error l (format #f "`~a' is forbidden" head)
-                           (cons head tail)))
+              ;; FIXME: lexical/module overrides of forbidden primitives
+              ((memq head *forbidden-primitives*)
+               (syntax-error l (format #f "`~a' is forbidden" head)
+                             (cons head tail)))
 
-            (else
-             (let ((tail (map retrans tail)))
-               (or (and (symbol? head)
-                        (try-inline-with-env e l (cons head tail)))
-                   (make-ghil-call e l (retrans head) tail)))))))
+              (else
+               (let ((tail (map retrans tail)))
+                 (or (and (symbol? head)
+                          (try-inline-with-env e l (cons head tail)))
+                     (make-ghil-call e l (retrans head) tail)))))))
 
-	((symbol? x)
-         (make-ghil-ref e l (ghil-var-for-ref! e x)))
+          ((symbol? x)
+           (make-ghil-ref e l (ghil-var-for-ref! e x)))
 
-        ;; fixme: non-self-quoting objects like #<foo>
-	(else
-         (make-ghil-quote e l #:obj x))))
+          ;; fixme: non-self-quoting objects like #<foo>
+          (else
+           (make-ghil-quote e l #:obj x)))))
 
 (define (valid-bindings? bindings . it-is-for-do)
   (define (valid-binding? b)
@@ -116,284 +118,280 @@
       (else #f)))
   (and (list? bindings) (and-map valid-binding? bindings)))
 
-(define-macro (make-pmatch-transformers env loc retranslate . body)
-  (define exp (gensym))
-  (define (make1 clause)
-    (let ((sym (car clause))
-          (clauses (cdr clause)))
-      `(cons ,sym
-             (lambda (,env ,loc ,exp)
-               (define (,retranslate x) (trans ,env (location x) x))
-               (pmatch (cdr ,exp)
-                ,@clauses
-                (else (syntax-error ,loc (format #f "bad ~A" ',sym) ,exp)))))))
-  `(list ,@(map make1 body)))
+(define *translate-table* (make-hash-table))
 
-(define *the-compile-toplevel-symbol* 'compile-toplevel)
+(define-macro (define-scheme-translator sym . clauses)
+  `(hashq-set! (@ (language scheme translate) *translate-table*)
+               ,sym
+               (lambda (e l exp)
+                 (define (retrans x)
+                   ((@ (language scheme translate) translate-1) e #f x))
+                 (define syntax-error (@ (system base compile) syntax-error))
+                 (pmatch (cdr exp)
+                         ,@clauses
+                         (else
+                          (syntax-error loc (format #f "bad ~A" ',sym exp)))))))
 
-(define custom-transformer-table
-  (make-pmatch-transformers
-   e l retrans
-   (quote
-    ;; (quote OBJ)
-    ((,obj) (make-ghil-quote e l obj)))
+(define-scheme-translator quote
+  ;; (quote OBJ)
+  ((,obj) (make-ghil-quote e l obj)))
     
-   (quasiquote
-    ;; (quasiquote OBJ)
-    ((,obj) (make-ghil-quasiquote e l (trans-quasiquote e l obj 0))))
+(define-scheme-translator quasiquote
+  ;; (quasiquote OBJ)
+  ((,obj) (make-ghil-quasiquote e l (trans-quasiquote e l obj 0))))
 
-   (define
-    ;; (define NAME VAL)
-    ((,name ,val) (guard (symbol? name)
-                         (ghil-toplevel-env? (ghil-env-parent e)))
-     (make-ghil-define e l (ghil-var-define! (ghil-env-parent e) name)
-                       (maybe-name-value! (retrans val) name)))
-    ;; (define (NAME FORMALS...) BODY...)
-    (((,name . ,formals) . ,body) (guard (symbol? name))
-     ;; -> (define NAME (lambda FORMALS BODY...))
-     (retrans `(define ,name (lambda ,formals ,@body)))))
+(define-scheme-translator define
+  ;; (define NAME VAL)
+  ((,name ,val) (guard (symbol? name)
+                       (ghil-toplevel-env? (ghil-env-parent e)))
+   (make-ghil-define e l (ghil-var-define! (ghil-env-parent e) name)
+                     (maybe-name-value! (retrans val) name)))
+  ;; (define (NAME FORMALS...) BODY...)
+  (((,name . ,formals) . ,body) (guard (symbol? name))
+   ;; -> (define NAME (lambda FORMALS BODY...))
+   (retrans `(define ,name (lambda ,formals ,@body)))))
 
-   (set!
-    ;; (set! NAME VAL)
-    ((,name ,val) (guard (symbol? name))
-     (make-ghil-set e l (ghil-var-for-set! e name) (retrans val)))
+(define-scheme-translator set!
+  ;; (set! NAME VAL)
+  ((,name ,val) (guard (symbol? name))
+   (make-ghil-set e l (ghil-var-for-set! e name) (retrans val)))
 
-    ;; FIXME: Would be nice to verify the values of @ and @@ relative
-    ;; to imported modules...
-    (((@ ,modname ,name) ,val) (guard (symbol? name)
-                                      (list? modname)
-                                      (and-map symbol? modname)
-                                      (not (ghil-var-is-bound? e '@)))
-     (make-ghil-set e l (ghil-var-at-module! e modname name #t)
-                    (retrans val)))
+  ;; FIXME: Would be nice to verify the values of @ and @@ relative
+  ;; to imported modules...
+  (((@ ,modname ,name) ,val) (guard (symbol? name)
+                                    (list? modname)
+                                    (and-map symbol? modname)
+                                    (not (ghil-var-is-bound? e '@)))
+   (make-ghil-set e l (ghil-var-at-module! e modname name #t)
+                  (retrans val)))
 
-    (((@@ ,modname ,name) ,val) (guard (symbol? name)
-                                      (list? modname)
-                                      (and-map symbol? modname)
-                                      (not (ghil-var-is-bound? e '@@)))
-     (make-ghil-set e l (ghil-var-at-module! e modname name #f)
-                    (retrans val)))
+  (((@@ ,modname ,name) ,val) (guard (symbol? name)
+                                     (list? modname)
+                                     (and-map symbol? modname)
+                                     (not (ghil-var-is-bound? e '@@)))
+   (make-ghil-set e l (ghil-var-at-module! e modname name #f)
+                  (retrans val)))
 
-    ;; (set! (NAME ARGS...) VAL)
-    (((,name . ,args) ,val) (guard (symbol? name))
-     ;; -> ((setter NAME) ARGS... VAL)
-     (retrans `((setter ,name) . (,@args ,val)))))
+  ;; (set! (NAME ARGS...) VAL)
+  (((,name . ,args) ,val) (guard (symbol? name))
+   ;; -> ((setter NAME) ARGS... VAL)
+   (retrans `((setter ,name) . (,@args ,val)))))
 
-   (if
-    ;; (if TEST THEN [ELSE])
-    ((,test ,then)
-     (make-ghil-if e l (retrans test) (retrans then) (retrans '(begin))))
-    ((,test ,then ,else)
-     (make-ghil-if e l (retrans test) (retrans then) (retrans else))))
+(define-scheme-translator if
+  ;; (if TEST THEN [ELSE])
+  ((,test ,then)
+   (make-ghil-if e l (retrans test) (retrans then) (retrans '(begin))))
+  ((,test ,then ,else)
+   (make-ghil-if e l (retrans test) (retrans then) (retrans else))))
 
-   (and
-    ;; (and EXPS...)
-    (,tail (make-ghil-and e l (map retrans tail))))
+(define-scheme-translator and
+  ;; (and EXPS...)
+  (,tail (make-ghil-and e l (map retrans tail))))
 
-   (or
-    ;; (or EXPS...)
-    (,tail (make-ghil-or e l (map retrans tail))))
+(define-scheme-translator or
+  ;; (or EXPS...)
+  (,tail (make-ghil-or e l (map retrans tail))))
 
-   (begin
-     ;; (begin EXPS...)
-     (,tail (make-ghil-begin e l (map retrans tail))))
+(define-scheme-translator begin
+  ;; (begin EXPS...)
+  (,tail (make-ghil-begin e l (map retrans tail))))
 
-   (let
-    ;; (let NAME ((SYM VAL) ...) BODY...)
-    ((,name ,bindings . ,body) (guard (symbol? name)
-                                      (valid-bindings? bindings))
-     ;; -> (letrec ((NAME (lambda (SYM...) BODY...))) (NAME VAL...))
-     (retrans `(letrec ((,name (lambda ,(map car bindings) ,@body)))
-                 (,name ,@(map cadr bindings)))))
+(define-scheme-translator let
+  ;; (let NAME ((SYM VAL) ...) BODY...)
+  ((,name ,bindings . ,body) (guard (symbol? name)
+                                    (valid-bindings? bindings))
+   ;; -> (letrec ((NAME (lambda (SYM...) BODY...))) (NAME VAL...))
+   (retrans `(letrec ((,name (lambda ,(map car bindings) ,@body)))
+               (,name ,@(map cadr bindings)))))
 
-    ;; (let () BODY...)
-    ((() . ,body)
-     ;; Note: this differs from `begin'
-     (make-ghil-begin e l (list (trans-body e l body))))
+  ;; (let () BODY...)
+  ((() . ,body)
+   ;; Note: this differs from `begin'
+   (make-ghil-begin e l (list (trans-body e l body))))
     
-    ;; (let ((SYM VAL) ...) BODY...)
-    ((,bindings . ,body) (guard (valid-bindings? bindings))
-     (let ((vals (map retrans (map cadr bindings))))
-       (call-with-ghil-bindings e (map car bindings)
-         (lambda (vars)
-           (make-ghil-bind e l vars vals (trans-body e l body)))))))
-
-   (let*
-    ;; (let* ((SYM VAL) ...) BODY...)
-    ((() . ,body)
-     (retrans `(let () ,@body)))
-    ((((,sym ,val) . ,rest) . ,body) (guard (symbol? sym))
-     (retrans `(let ((,sym ,val)) (let* ,rest ,@body)))))
-
-   (letrec
-    ;; (letrec ((SYM VAL) ...) BODY...)
-    ((,bindings . ,body) (guard (valid-bindings? bindings))
+  ;; (let ((SYM VAL) ...) BODY...)
+  ((,bindings . ,body) (guard (valid-bindings? bindings))
+   (let ((vals (map retrans (map cadr bindings))))
      (call-with-ghil-bindings e (map car bindings)
-        (lambda (vars)
-          (let ((vals (map retrans (map cadr bindings))))
-            (make-ghil-bind e l vars vals (trans-body e l body)))))))
+                              (lambda (vars)
+                                (make-ghil-bind e l vars vals (trans-body e l body)))))))
 
-   (cond
-    ;; (cond (CLAUSE BODY...) ...)
-    (() (retrans '(begin)))
-    (((else . ,body)) (retrans `(begin ,@body)))
-    (((,test) . ,rest) (retrans `(or ,test (cond ,@rest))))
-    (((,test => ,proc) . ,rest)
-     ;; FIXME hygiene!
-     (retrans `(let ((_t ,test)) (if _t (,proc _t) (cond ,@rest)))))
-    (((,test . ,body) . ,rest)
-     (retrans `(if ,test (begin ,@body) (cond ,@rest)))))
+(define-scheme-translator let*
+  ;; (let* ((SYM VAL) ...) BODY...)
+  ((() . ,body)
+   (retrans `(let () ,@body)))
+  ((((,sym ,val) . ,rest) . ,body) (guard (symbol? sym))
+   (retrans `(let ((,sym ,val)) (let* ,rest ,@body)))))
 
-   (case
-    ;; (case EXP ((KEY...) BODY...) ...)
-    ((,exp . ,clauses)
+(define-scheme-translator letrec
+  ;; (letrec ((SYM VAL) ...) BODY...)
+  ((,bindings . ,body) (guard (valid-bindings? bindings))
+   (call-with-ghil-bindings e (map car bindings)
+                            (lambda (vars)
+                              (let ((vals (map retrans (map cadr bindings))))
+                                (make-ghil-bind e l vars vals (trans-body e l body)))))))
+
+(define-scheme-translator cond
+  ;; (cond (CLAUSE BODY...) ...)
+  (() (retrans '(begin)))
+  (((else . ,body)) (retrans `(begin ,@body)))
+  (((,test) . ,rest) (retrans `(or ,test (cond ,@rest))))
+  (((,test => ,proc) . ,rest)
+   ;; FIXME hygiene!
+   (retrans `(let ((_t ,test)) (if _t (,proc _t) (cond ,@rest)))))
+  (((,test . ,body) . ,rest)
+   (retrans `(if ,test (begin ,@body) (cond ,@rest)))))
+
+(define-scheme-translator case
+  ;; (case EXP ((KEY...) BODY...) ...)
+  ((,exp . ,clauses)
+   (retrans
+    ;; FIXME hygiene!
+    `(let ((_t ,exp))
+       ,(let loop ((ls clauses))
+          (cond ((null? ls) '(begin))
+                ((eq? (caar ls) 'else) `(begin ,@(cdar ls)))
+                (else `(if (memv _t ',(caar ls))
+                           (begin ,@(cdar ls))
+                           ,(loop (cdr ls))))))))))
+
+(define-scheme-translator do
+  ;; (do ((SYM VAL [UPDATE]) ...) (TEST RESULT...) BODY...)
+  ((,bindings (,test . ,result) . ,body)
+   (let ((sym (map car bindings))
+         (val (map cadr bindings))
+         (update (map cddr bindings)))
+     (define (next s x) (if (pair? x) (car x) s))
      (retrans
       ;; FIXME hygiene!
-      `(let ((_t ,exp))
-         ,(let loop ((ls clauses))
-            (cond ((null? ls) '(begin))
-                  ((eq? (caar ls) 'else) `(begin ,@(cdar ls)))
-                  (else `(if (memv _t ',(caar ls))
-                             (begin ,@(cdar ls))
-                             ,(loop (cdr ls))))))))))
+      `(letrec ((_l (lambda ,sym
+                      (if ,test
+                          (begin ,@result)
+                          (begin ,@body
+                                 (_l ,@(map next sym update)))))))
+         (_l ,@val))))))
 
-    (do
-     ;; (do ((SYM VAL [UPDATE]) ...) (TEST RESULT...) BODY...)
-     ((,bindings (,test . ,result) . ,body)
-      (let ((sym (map car bindings))
-            (val (map cadr bindings))
-            (update (map cddr bindings)))
-        (define (next s x) (if (pair? x) (car x) s))
-        (retrans
-         ;; FIXME hygiene!
-         `(letrec ((_l (lambda ,sym
-                         (if ,test
-                             (begin ,@result)
-                             (begin ,@body
-                                    (_l ,@(map next sym update)))))))
-            (_l ,@val))))))
+(define-scheme-translator lambda
+  ;; (lambda FORMALS BODY...)
+  ((,formals . ,body)
+   (receive (syms rest) (parse-formals formals)
+            (call-with-ghil-environment e syms
+                                        (lambda (env vars)
+                                          (receive (meta body) (parse-lambda-meta body)
+                                                   (make-ghil-lambda env l vars rest meta
+                                                                     (trans-body env l body))))))))
 
-    (lambda
-     ;; (lambda FORMALS BODY...)
-     ((,formals . ,body)
-      (receive (syms rest) (parse-formals formals)
-        (call-with-ghil-environment e syms
-          (lambda (env vars)
-            (receive (meta body) (parse-lambda-meta body)
-              (make-ghil-lambda env l vars rest meta
-                                (trans-body env l body))))))))
+(define-scheme-translator delay
+  ;; FIXME not hygienic
+  ((,expr)
+   (retrans `(make-promise (lambda () ,expr)))))
 
-    ;; FIXME not hygienic
-    (delay
-     ((,expr)
-      (retrans `(make-promise (lambda () ,expr)))))
+(define-scheme-translator @
+  ((,modname ,sym)
+   (make-ghil-ref e l (ghil-var-at-module! e modname sym #t))))
 
-    (@
-     ((,modname ,sym)
-      (make-ghil-ref e l (ghil-var-at-module! e modname sym #t))))
+(define-scheme-translator @@
+  ((,modname ,sym)
+   (make-ghil-ref e l (ghil-var-at-module! e modname sym #f))))
 
-    (@@
-     ((,modname ,sym)
-      (make-ghil-ref e l (ghil-var-at-module! e modname sym #f))))
+(define *the-compile-toplevel-symbol* 'compile-toplevel)
+(define-scheme-translator eval-case
+  (,clauses
+   (retrans
+    `(begin
+       ;; Compilation of toplevel units is always wrapped in a lambda
+       ,@(let ((toplevel? (ghil-toplevel-env? (ghil-env-parent e))))
+           (let loop ((seen '()) (in clauses) (runtime '()))
+             (cond
+              ((null? in) runtime)
+              (else
+               (pmatch (car in)
+                       ((else . ,body)
+                        (if (and toplevel? (not (memq *the-compile-toplevel-symbol* seen)))
+                            (primitive-eval `(begin ,@body)))
+                        (if (memq (if toplevel? *the-compile-toplevel-symbol* 'evaluate) seen)
+                            runtime
+                            body))
+                       ((,keys . ,body) (guard (list? keys) (and-map symbol? keys))
+                        (for-each (lambda (k)
+                                    (if (memq k seen)
+                                        (syntax-error l "eval-case condition seen twice" k)))
+                                  keys)
+                        (if (and toplevel? (memq *the-compile-toplevel-symbol* keys))
+                            (primitive-eval `(begin ,@body)))
+                        (loop (append keys seen)
+                              (cdr in)
+                              (if (memq (if toplevel? 'load-toplevel 'evaluate) keys)
+                                  (append runtime body)
+                                  runtime)))
+                       (else (syntax-error l "bad eval-case clause" (car in))))))))))))
 
-    (eval-case
-     (,clauses
-      (retrans
-       `(begin
-          ;; Compilation of toplevel units is always wrapped in a lambda
-          ,@(let ((toplevel? (ghil-toplevel-env? (ghil-env-parent e))))
-              (let loop ((seen '()) (in clauses) (runtime '()))
-                (cond
-                 ((null? in) runtime)
-                 (else
-                  (pmatch (car in)
-                   ((else . ,body)
-                    (if (and toplevel? (not (memq *the-compile-toplevel-symbol* seen)))
-                        (primitive-eval `(begin ,@body)))
-                    (if (memq (if toplevel? *the-compile-toplevel-symbol* 'evaluate) seen)
-                        runtime
-                        body))
-                   ((,keys . ,body) (guard (list? keys) (and-map symbol? keys))
-                    (for-each (lambda (k)
-                                (if (memq k seen)
-                                    (syntax-error l "eval-case condition seen twice" k)))
-                              keys)
-                    (if (and toplevel? (memq *the-compile-toplevel-symbol* keys))
-                        (primitive-eval `(begin ,@body)))
-                    (loop (append keys seen)
-                          (cdr in)
-                          (if (memq (if toplevel? 'load-toplevel 'evaluate) keys)
-                              (append runtime body)
-                              runtime)))
-                   (else (syntax-error l "bad eval-case clause" (car in))))))))))))
+(define-scheme-translator apply
+  ;; FIXME: not hygienic, relies on @apply not being shadowed
+  (,args (retrans `(@apply ,@args))))
 
-    ;; FIXME: not hygienic, relies on @apply not being shadowed
-    (apply
-     (,args (retrans `(@apply ,@args))))
+(define-scheme-translator @apply
+  ((,proc ,arg1 . ,args)
+   (let ((args (cons (retrans arg1) (map retrans args))))
+     (cond ((and (symbol? proc)
+                 (not (ghil-var-is-bound? e proc))
+                 (and=> (module-variable (current-module) proc)
+                        (lambda (var)
+                          (and (variable-bound? var)
+                               (lookup-apply-transformer (variable-ref var))))))
+            ;; that is, a variable, not part of this compilation
+            ;; unit, but defined in the toplevel environment, and has
+            ;; an apply transformer registered
+            => (lambda (t) (t e l args)))
+           (else (make-ghil-inline e l 'apply
+                                   (cons (retrans proc) args)))))))
 
-    (@apply
-     ((,proc ,arg1 . ,args)
-      (let ((args (cons (retrans arg1) (map retrans args))))
-        (cond ((and (symbol? proc)
-                    (not (ghil-var-is-bound? e proc))
-                    (and=> (module-variable (current-module) proc)
-                           (lambda (var)
-                             (and (variable-bound? var)
-                                  (lookup-apply-transformer (variable-ref var))))))
-               ;; that is, a variable, not part of this compilation
-               ;; unit, but defined in the toplevel environment, and has
-               ;; an apply transformer registered
-               => (lambda (t) (t e l args)))
-              (else (make-ghil-inline e l 'apply
-                                      (cons (retrans proc) args)))))))
+(define-scheme-translator call-with-values
+  ;; FIXME: not hygienic, relies on @call-with-values not being shadowed
+  ((,producer ,consumer)
+   (retrans `(@call-with-values ,producer ,consumer)))
+  (else #f))
 
-    ;; FIXME: not hygienic, relies on @call-with-values not being shadowed
-    (call-with-values
-     ((,producer ,consumer)
-      (retrans `(@call-with-values ,producer ,consumer)))
-     (else #f))
+(define-scheme-translator @call-with-values
+  ((,producer ,consumer)
+   (make-ghil-mv-call e l (retrans producer) (retrans consumer))))
 
-    (@call-with-values
-     ((,producer ,consumer)
-      (make-ghil-mv-call e l (retrans producer) (retrans consumer))))
+(define-scheme-translator call-with-current-continuation
+  ;; FIXME: not hygienic, relies on @call-with-current-continuation
+  ;; not being shadowed
+  ((,proc)
+   (retrans `(@call-with-current-continuation ,proc)))
+  (else #f))
 
-    ;; FIXME: not hygienic, relies on @call-with-current-continuation
-    ;; not being shadowed
-    (call-with-current-continuation
-     ((,proc)
-      (retrans `(@call-with-current-continuation ,proc)))
-     (else #f))
+(define-scheme-translator @call-with-current-continuation
+  ((,proc)
+   (make-ghil-inline e l 'call/cc (list (retrans proc)))))
 
-    (@call-with-current-continuation
-     ((,proc)
-      (make-ghil-inline e l 'call/cc (list (retrans proc)))))
+(define-scheme-translator receive
+  ((,formals ,producer-exp . ,body)
+   ;; Lovely, self-referential usage. Not strictly necessary, the
+   ;; macro would do the trick; but it's good to test the mv-bind
+   ;; code.
+   (receive (syms rest) (parse-formals formals)
+            (call-with-ghil-bindings e syms
+                                     (lambda (vars)
+                                       (make-ghil-mv-bind e l (retrans `(lambda () ,producer-exp))
+                                                          vars rest (trans-body e l body)))))))
 
-    (receive
-     ((,formals ,producer-exp . ,body)
-      ;; Lovely, self-referential usage. Not strictly necessary, the
-      ;; macro would do the trick; but it's good to test the mv-bind
-      ;; code.
-      (receive (syms rest) (parse-formals formals)
-        (call-with-ghil-bindings e syms
-          (lambda (vars)
-            (make-ghil-mv-bind e l (retrans `(lambda () ,producer-exp))
-                               vars rest (trans-body e l body)))))))
+(define-scheme-translator values
+  ((,x) (retrans x))
+  (,args (make-ghil-values e l (map retrans args))))
 
-    (values
-     ((,x) (retrans x))
-     (,args (make-ghil-values e l (map retrans args))))
-
-    ;; (compile-time-environment)
-    ;; => (MODULE LEXICALS . EXTERNALS)
-    (compile-time-environment
-     (() (make-ghil-inline
-          e l 'cons
-          (list (retrans '(current-module))
-                (make-ghil-inline
-                 e l 'cons
-                 (list (make-ghil-reified-env e l)
-                       (make-ghil-inline e l 'externals '())))))))
-    ))
+(define-scheme-translator compile-time-environment
+  ;; (compile-time-environment)
+  ;; => (MODULE LEXICALS . EXTERNALS)
+  (() (make-ghil-inline
+       e l 'cons
+       (list (retrans '(current-module))
+             (make-ghil-inline
+              e l 'cons
+              (list (make-ghil-reified-env e l)
+                    (make-ghil-inline e l 'externals '())))))))
 
 (define (lookup-apply-transformer proc)
   (cond ((eq? proc values)
@@ -410,8 +408,8 @@
               (cond
                ((zero? level) 
                 (if (eq? (car x) 'unquote)
-                    (make-ghil-unquote e l (trans e l obj))
-                    (make-ghil-unquote-splicing e l (trans e l obj))))
+                    (make-ghil-unquote e l (translate-1 e l obj))
+                    (make-ghil-unquote-splicing e l (translate-1 e l obj))))
                (else
                 (list (car x) (trans-quasiquote e l obj (1- level))))))
 	     (else (syntax-error l (format #f "bad ~A" (car x)) x)))))
@@ -438,8 +436,8 @@
        (loop (cdr ls) (cons (car ls) ds)))
       (else
        (if (null? ds)
-           (trans e l `(begin ,@ls))
-           (trans e l `(letrec ,(map define->binding ds) ,@ls)))))))
+           (translate-1 e l `(begin ,@ls))
+           (translate-1 e l `(letrec ,(map define->binding ds) ,@ls)))))))
 
 (define (parse-formals formals)
   (cond
