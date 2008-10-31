@@ -54,16 +54,19 @@
      ((number? exp)
       `(make-ghil-quote #f #f ,exp))
      (else (error "bad consequent yall" exp))))
-  `(set! *inline-table*
-         (assq-set! *inline-table*
+  `(set! (@ (system il inline) *inline-table*)
+         (assq-set! (@ (system il inline) *inline-table*)
                     ,sym
-                    (case-lambda
-                     ,@(let lp ((in clauses) (out '()))
-                         (if (null? in)
-                             (reverse (cons '(else #f) out))
-                             (lp (cddr in)
-                                 (cons `(,(car in)
-                                         ,(consequent (cadr in))) out))))))))
+                    (let ((make-ghil-inline (@ (system il ghil) make-ghil-inline))
+                          (make-ghil-quote (@ (system il ghil) make-ghil-quote))
+                          (try-inline (@ (system il inline) try-inline)))
+                      (case-lambda
+                       ,@(let lp ((in clauses) (out '()))
+                           (if (null? in)
+                               (reverse (cons '(else #f) out))
+                               (lp (cddr in)
+                                   (cons `(,(car in)
+                                           ,(consequent (cadr in))) out)))))))))
 
 (define (try-inline head-value args)
   (and=> (assq-ref *inline-table* head-value)
