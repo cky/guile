@@ -1055,17 +1055,48 @@
 		  (vector-set! methods index m)
 		  m)))))
 
-;; eval tricks are apparently to make the accessors as fast as possible
-;; for the evaluator. when goops gets vm-aware, this will be different.
+;; the idea is to compile the index into the procedure, for fastest
+;; lookup. Also, @slot-ref and @slot-set! have their own bytecodes.
 
+(eval-case
+ ((load-toplevel compile-toplevel)
+  (use-modules ((language scheme translate) :select (define-scheme-translator))
+               ((system il ghil) :select (make-ghil-inline))
+               (system base pmatch))
+
+  ;; unfortunately, can't use define-inline because these are primitive
+  ;; syntaxen.
+  (define-scheme-translator @slot-ref
+    ((,obj ,index) (guard (integer? index)
+                          (>= index 0) (< index max-fixnum))
+     (make-ghil-inline #f #f 'slot-ref
+                       (list (retrans obj) (retrans index)))))
+
+  (define-scheme-translator @slot-set!
+    ((,obj ,index ,val) (guard (integer? index)
+                               (>= index 0) (< index max-fixnum))
+     (make-ghil-inline #f #f 'slot-set
+                       (list (retrans obj) (retrans index) (retrans val)))))))
+
+;; Irritatingly, we can't use `compile' here, as the module shadows
+;; the binding.
 (define (make-bound-check-get index)
-  (eval `(lambda (o) (@assert-bound-ref o ,index)) *goops-module*))
+  ((@ (system base compile) compile)
+   `(lambda (o) (let ((x (@slot-ref o ,index)))
+                  (if (unbound? x)
+                      (slot-unbound obj)
+                      x)))
+   *goops-module*))
 
 (define (make-get index)
-  (eval `(lambda (o) (@slot-ref o ,index)) *goops-module*))
+  ((@ (system base compile) compile)
+   `(lambda (o) (@slot-ref o ,index))
+   *goops-module*))
 
 (define (make-set index)
-  (eval `(lambda (o v) (@slot-set! o ,index v)) *goops-module*))
+  ((@ (system base compile) compile)
+   `(lambda (o v) (@slot-set! o ,index v))
+   *goops-module*))
 
 (define bound-check-get
   (standard-accessor-method make-bound-check-get bound-check-get-methods))
