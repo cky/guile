@@ -52,7 +52,7 @@ SOURCES = psyntax-pp.scm boot-9.scm \
 # psyntax-pp.scm.
 NOCOMP_SOURCES = gds-client.scm psyntax.scm
 
-include $(top_srcdir)/guilec.mk
+include $(top_srcdir)/am/guilec
 
 ## test.scm is not currently installed.
 EXTRA_DIST += test.scm compile-psyntax.scm ChangeLog-2008

@@ -2,4 +2,4 @@ SOURCES = assemble.scm conv.scm debug.scm \
 	  disasm.scm frame.scm instruction.scm objcode.scm \
 	  profile.scm program.scm trace.scm vm.scm
 modpath = system/vm
-include $(top_srcdir)/guilec.mk
+include $(top_srcdir)/am/guilec

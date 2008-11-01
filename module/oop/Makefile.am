@@ -25,6 +25,6 @@ SUBDIRS = goops
 
 modpath = oop
 SOURCES = goops.scm
-include $(top_srcdir)/guilec.mk
+include $(top_srcdir)/am/guilec
 
 EXTRA_DIST += ChangeLog-2008

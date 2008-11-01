@@ -27,4 +27,4 @@ SOURCES = 							\
     dispatch.scm internal.scm save.scm stklos.scm util.scm      \
     accessors.scm simple.scm
 
-include $(top_srcdir)/guilec.mk
+include $(top_srcdir)/am/guilec
