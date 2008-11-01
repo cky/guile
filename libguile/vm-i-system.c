@@ -1069,7 +1069,7 @@ VM_DEFINE_INSTRUCTION (return_values, "return/values", 1, -1, -1)
       *++sp = stack_base[1];
              
       /* Finally set new stack_base */
-      NULLSTACK (stack_base - sp);
+      NULLSTACK (stack_base - sp + nvalues + 1);
       stack_base = SCM_FRAME_UPPER_ADDRESS (fp) - 1;
     }
   else
