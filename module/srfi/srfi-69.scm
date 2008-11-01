@@ -90,6 +90,28 @@
 
 (cond-expand-provide (current-module) '(srfi-37))
 
+;;;; Internal helper macros
+
+;; Define these first, so the compiler will pick them up.
+
+;; I am a macro only for efficiency, to avoid varargs/apply.
+(define-macro (hashx-invoke hashx-proc ht-var . args)
+  "Invoke HASHX-PROC, a `hashx-*' procedure taking a hash-function,
+assoc-function, and the hash-table as first args."
+  `(,hashx-proc (hash-table-hash-function ,ht-var)
+		(ht-associator ,ht-var)
+		(ht-real-table ,ht-var)
+		. ,args))
+
+(define-macro (with-hashx-values bindings ht-var . body-forms)
+  "Bind BINDINGS to the hash-function, associator, and real-table of
+HT-VAR, while evaluating BODY-FORMS."
+  `(let ((,(first bindings) (hash-table-hash-function ,ht-var))
+	 (,(second bindings) (ht-associator ,ht-var))
+	 (,(third bindings) (ht-real-table ,ht-var)))
+     . ,body-forms))
+
+
 ;;;; Hashing
 
 ;;; The largest fixnum is in `most-positive-fixnum' in module (guile),
@@ -198,23 +220,6 @@ manual for specifics, of which there are many."
 ;; possible collision with *unspecified*.
 (define ht-unspecified (cons *unspecified* "ht-value"))
 
-;; I am a macro only for efficiency, to avoid varargs/apply.
-(define-macro (hashx-invoke hashx-proc ht-var . args)
-  "Invoke HASHX-PROC, a `hashx-*' procedure taking a hash-function,
-assoc-function, and the hash-table as first args."
-  `(,hashx-proc (hash-table-hash-function ,ht-var)
-		(ht-associator ,ht-var)
-		(ht-real-table ,ht-var)
-		. ,args))
-
-(define-macro (with-hashx-values bindings ht-var . body-forms)
-  "Bind BINDINGS to the hash-function, associator, and real-table of
-HT-VAR, while evaluating BODY-FORMS."
-  `(let ((,(first bindings) (hash-table-hash-function ,ht-var))
-	 (,(second bindings) (ht-associator ,ht-var))
-	 (,(third bindings) (ht-real-table ,ht-var)))
-     . ,body-forms))
-
 (define (hash-table-ref ht key . default-thunk-lst)
   "Lookup KEY in HT and answer the value, invoke DEFAULT-THUNK if KEY
 isn't present, or signal an error if DEFAULT-THUNK isn't provided."
@@ -295,7 +300,9 @@ for tables where #:weak was #f or not specified at creation time."
 
 (define (hash-table-walk ht proc)
   "Call PROC with each key and value as two arguments."
-  (hash-table-fold ht (lambda (k v unspec) (proc k v) unspec)
+  (hash-table-fold ht (lambda (k v unspec)
+                        (call-with-values (lambda () (proc k v))
+                          (lambda vals unspec)))
 		   *unspecified*))
 
 (define (hash-table-fold ht f knil)
