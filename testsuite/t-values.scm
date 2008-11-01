@@ -1,8 +1,9 @@
-(use-modules (ice-9 receive))
-
-(define (do-stuff x y)
-  (values x y))
-
-(call-with-values (lambda ()    (values 1 2))
-		  (lambda (x y) (cons x y)))
+(list (call-with-values
+          (lambda () (values 1 2))
+        (lambda (x y) (cons x y)))
+      
+      ;; the start-stack forces a bounce through the interpreter
+      (call-with-values
+          (lambda () (start-stack 'foo (values 1 2)))
+        list))
 

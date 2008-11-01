@@ -573,8 +573,17 @@ VM_DEFINE_INSTRUCTION (call, "call", 1, -1, 1)
       /* keep args on stack so they are marked */
       sp[-1] = scm_apply (x, sp[0], SCM_EOL);
       NULLSTACK_FOR_NONLOCAL_EXIT ();
-      /* FIXME what if SCM_VALUESP(*sp) */
       DROP ();
+      if (SCM_UNLIKELY (SCM_VALUESP (*sp)))
+        {
+          /* truncate values */
+          SCM values;
+          POP (values);
+          values = scm_struct_ref (values, SCM_INUM0);
+          if (scm_is_null (values))
+            goto vm_error_not_enough_values;
+          PUSH (SCM_CAR (values));
+        }
       NEXT;
     }
   /*
@@ -769,7 +778,16 @@ VM_DEFINE_INSTRUCTION (goto_args, "goto/args", 1, -1, 1)
       sp[-1] = scm_apply (x, sp[0], SCM_EOL);
       NULLSTACK_FOR_NONLOCAL_EXIT ();
       DROP ();
-      /* FIXME what if SCM_VALUESP(*sp) */
+      if (SCM_UNLIKELY (SCM_VALUESP (*sp)))
+        {
+          /* multiple values returned to continuation */
+          SCM values;
+          POP (values);
+          values = scm_struct_ref (values, SCM_INUM0);
+          nvalues = scm_ilength (values);
+          PUSH_LIST (values);
+          goto vm_return_values;
+        }
       goto vm_return;
     }
 
