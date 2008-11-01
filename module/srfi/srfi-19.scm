@@ -236,8 +236,7 @@
     (63072000  . 10)))
 
 (define (read-leap-second-table filename)
-  (set! priv:leap-second-table (priv:read-tai-utc-data filename))
-  (values))
+  (set! priv:leap-second-table (priv:read-tai-utc-data filename)))
 
 
 (define (priv:leap-second-delta utc-seconds)
@@ -1131,8 +1130,7 @@
     (if associated (cdr associated) #f)))
 
 (define (priv:date-printer date index format-string str-len port)
-  (if (>= index str-len)
-      (values)
+  (if (< index str-len)
       (let ((current-char (string-ref format-string index)))
         (if (not (char=? current-char #\~))
             (begin
@@ -1340,9 +1338,9 @@
 ;; for input,
 ;; 3. a port reader procedure that knows how to read the current port
 ;; for a value. Its one parameter is the port.
-;; 4. a action procedure, that takes the value (from 3.) and some
-;; object (here, always the date) and (probably) side-effects it.
-;; In some cases (e.g., ~A) the action is to do nothing
+;; 4. an optional action procedure, that takes the value (from 3.) and
+;; some object (here, always the date) and (probably) side-effects it.
+;; If no action is required, as with ~A, this element may be #f.
 
 (define priv:read-directives
   (let ((ireader4 (priv:make-integer-reader 4))
@@ -1358,13 +1356,12 @@
                                      priv:locale-abbr-month->index))
         (locale-reader-long-month   (priv:make-locale-reader
                                      priv:locale-long-month->index))
-        (char-fail (lambda (ch) #t))
-        (do-nothing (lambda (val object) (values))))
+        (char-fail (lambda (ch) #t)))
 
     (list
-     (list #\~ char-fail (priv:make-char-id-reader #\~) do-nothing)
-     (list #\a char-alphabetic? locale-reader-abbr-weekday do-nothing)
-     (list #\A char-alphabetic? locale-reader-long-weekday do-nothing)
+     (list #\~ char-fail (priv:make-char-id-reader #\~) #f)
+     (list #\a char-alphabetic? locale-reader-abbr-weekday #f)
+     (list #\A char-alphabetic? locale-reader-long-weekday #f)
      (list #\b char-alphabetic? locale-reader-abbr-month
            (lambda (val object)
              (set-date-month! object val)))
@@ -1410,9 +1407,7 @@
           (priv:time-error 'string->date 'bad-date-format-string template-string)
           (if (not (skipper ch))
               (begin (read-char port) (skip-until port skipper))))))
-  (if (>= index str-len)
-      (begin
-        (values))
+  (if (< index str-len)
       (let ((current-char (string-ref format-string index)))
         (if (not (char=? current-char #\~))
             (let ((port-char (read-char port)))
@@ -1445,7 +1440,7 @@
                                 (priv:time-error 'string->date
                                                  'bad-date-format-string
                                                  template-string)
-                                (actor val date)))
+                                (if actor (actor val date))))
                           (priv:string->date date
                                              (+ index 2)
                                              format-string
