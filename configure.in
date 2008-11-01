@@ -1560,6 +1560,7 @@ AC_CONFIG_FILES([
   module/ice-9/Makefile
   module/ice-9/debugger/Makefile
   module/ice-9/debugging/Makefile
+  module/srfi/Makefile
   module/oop/Makefile
   module/oop/goops/Makefile
   testsuite/Makefile

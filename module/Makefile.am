@@ -1,1 +1,1 @@
-SUBDIRS = system language ice-9 oop
+SUBDIRS = system language ice-9 srfi oop

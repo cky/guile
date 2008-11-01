@@ -64,32 +64,7 @@ libguile_srfi_srfi_60_v_@LIBGUILE_SRFI_SRFI_60_MAJOR@_la_LIBADD =	\
    $(top_builddir)/libguile/libguile.la $(top_builddir)/lib/libgnu.la
 libguile_srfi_srfi_60_v_@LIBGUILE_SRFI_SRFI_60_MAJOR@_la_LDFLAGS = -no-undefined -export-dynamic -version-info @LIBGUILE_SRFI_SRFI_60_INTERFACE@
 
-srfidir = $(datadir)/guile/$(GUILE_EFFECTIVE_VERSION)/srfi
-srfi_DATA = srfi-1.scm \
-            srfi-2.scm \
-	    srfi-4.scm \
-            srfi-6.scm \
-            srfi-8.scm \
-            srfi-9.scm \
-            srfi-10.scm \
-            srfi-11.scm \
-            srfi-13.scm \
-            srfi-14.scm \
-	    srfi-16.scm \
-            srfi-17.scm \
-            srfi-19.scm \
-            srfi-26.scm \
-            srfi-31.scm \
-            srfi-34.scm \
-	    srfi-35.scm \
-            srfi-37.scm \
-            srfi-39.scm \
-            srfi-60.scm \
-	    srfi-69.scm \
-	    srfi-88.scm
-
-EXTRA_DIST = $(srfi_DATA) ChangeLog-2008
-TAGS_FILES = $(srfi_DATA)
+EXTRA_DIST = ChangeLog-2008
 
 GUILE_SNARF = ../libguile/guile-snarf
 
