@@ -31,6 +31,7 @@
 
 #include "libguile/validate.h"
 #include "libguile/procs.h"
+#include "libguile/procprop.h"
 #include "libguile/programs.h"
 
 
@@ -300,11 +301,25 @@ SCM_DEFINE (scm_make_procedure_with_setter, "make-procedure-with-setter", 2, 0, 
 	    "with the associated setter @var{setter}.")
 #define FUNC_NAME s_scm_make_procedure_with_setter
 {
+  SCM name, ret;
   SCM_VALIDATE_PROC (1, procedure);
   SCM_VALIDATE_PROC (2, setter);
-  return scm_double_cell (scm_tc7_pws,
-			  SCM_UNPACK (procedure),
-			  SCM_UNPACK (setter), 0);
+  ret = scm_double_cell (scm_tc7_pws,
+                         SCM_UNPACK (procedure),
+                         SCM_UNPACK (setter), 0);
+  /* don't use procedure_name, because don't care enough to do a reverse
+     lookup */
+  switch (SCM_TYP7 (procedure)) {
+  case scm_tcs_subrs:
+    name = SCM_SNAME (procedure);
+    break;
+  default:
+    name = scm_procedure_property (procedure, scm_sym_name);
+    break;
+  }
+  if (scm_is_true (name))
+    scm_set_procedure_property_x (ret, scm_sym_name, name);
+  return ret;
 }
 #undef FUNC_NAME
 
