@@ -1540,16 +1540,11 @@ AC_CONFIG_FILES([
   examples/safe/Makefile
   examples/scripts/Makefile
   guile-config/Makefile
-  ice-9/Makefile
-  ice-9/debugger/Makefile
-  ice-9/debugging/Makefile
   lang/Makefile
   lang/elisp/Makefile
   lang/elisp/internals/Makefile
   lang/elisp/primitives/Makefile
   libguile/Makefile
-  oop/Makefile
-  oop/goops/Makefile
   scripts/Makefile
   srfi/Makefile
   test-suite/Makefile
@@ -1562,6 +1557,11 @@ AC_CONFIG_FILES([
   module/system/repl/Makefile
   module/language/Makefile
   module/language/scheme/Makefile
+  module/ice-9/Makefile
+  module/ice-9/debugger/Makefile
+  module/ice-9/debugging/Makefile
+  module/oop/Makefile
+  module/oop/goops/Makefile
   testsuite/Makefile
 ])
 
