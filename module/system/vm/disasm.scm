@@ -59,8 +59,6 @@
          (srcs  (program-sources prog)))
     ;; Disassemble this bytecode
     (format #t "Disassembly of ~A:\n\n" prog)
-    (format #t "nargs = ~A  nrest = ~A  nlocs = ~A  nexts = ~A\n\n"
-	    nargs nrest nlocs nexts)
     (format #t "Bytecode:\n\n")
     (disassemble-bytecode bytes objs nargs blocs bexts srcs)
     (if (pair? exts)

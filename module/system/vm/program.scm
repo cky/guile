@@ -86,7 +86,7 @@
   (let ((bindings (program-bindings prog))
         (nargs (arity:nargs (program-arity prog)))
         (rest? (not (zero? (arity:nrest (program-arity prog))))))
-    (if (or (null? bindings) (not bindings))
+    (if (not bindings)
         (if rest? (cons (1- nargs) 1) (list nargs))
         (let ((args (map binding:name (list-head bindings nargs))))
           (if rest?
