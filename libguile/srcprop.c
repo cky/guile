@@ -95,13 +95,6 @@ SCM_GLOBAL_SYMBOL (scm_sym_breakpoint, "breakpoint");
 
 scm_t_bits scm_tc16_srcprops;
 
-static SCM
-srcprops_mark (SCM obj)
-{
-  scm_gc_mark (SRCPROPCOPY (obj));
-  return SRCPROPPLIST (obj);
-}
-
 static int
 srcprops_print (SCM obj, SCM port, scm_print_state *pstate)
 {
@@ -328,7 +321,6 @@ void
 scm_init_srcprop ()
 {
   scm_tc16_srcprops = scm_make_smob_type ("srcprops", 0);
-  scm_set_smob_mark (scm_tc16_srcprops, srcprops_mark);
   scm_set_smob_print (scm_tc16_srcprops, srcprops_print);
 
   scm_source_whash = scm_make_weak_key_hash_table (scm_from_int (2047));
