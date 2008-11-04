@@ -24,6 +24,7 @@
 #include "libguile/_scm.h"
 #include "libguile/ports.h"
 #include "libguile/root.h"
+#include "libguile/threads.h"
 
 #include "libguile/stackchk.h"
 
@@ -77,6 +78,17 @@ scm_stack_report ()
   scm_uintprint ((scm_t_bits) &stack, 16, port);
   scm_puts ("\n", port);
 }
+
+
+SCM_DEFINE (scm_sys_get_stack_size, "%get-stack-size", 0, 0, 0,
+	    (),
+	    "Return the current thread's C stack size (in Scheme objects).")
+#define FUNC_NAME s_scm_sys_get_stack_size
+{
+  return scm_from_long (scm_stack_size (SCM_I_CURRENT_THREAD->base));
+}
+#undef FUNC_NAME
+
 
 void
 scm_init_stackchk ()

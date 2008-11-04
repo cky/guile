@@ -77,6 +77,7 @@ available: Guile is now always configured in "maintainer mode".
 ** Fix misleading output from `(help rationalize)'
 ** Fix build failure on Debian hppa architecture (bad stack growth detection)
 ** Fix `gcd' when called with a single, negative argument.
+** Fix `Stack overflow' errors seen when building on some platforms
 
 
 Changes in 1.8.5 (since 1.8.4)

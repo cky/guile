@@ -1588,6 +1588,8 @@ AC_CONFIG_FILES([libguile/guile-func-name-check],
                 [chmod +x libguile/guile-func-name-check])
 AC_CONFIG_FILES([libguile/guile-snarf-docs],
                 [chmod +x libguile/guile-snarf-docs])
+AC_CONFIG_FILES([test-suite/standalone/test-use-srfi],
+                [chmod +x test-suite/standalone/test-use-srfi])
 
 AC_OUTPUT
 
