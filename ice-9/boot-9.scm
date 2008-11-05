@@ -1,6 +1,6 @@
 ;;; installed-scm-file
 
-;;;; Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007
+;;;; Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
 ;;;; Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
@@ -1223,8 +1223,6 @@
 	  ;; We can't pass this as an argument to module-constructor,
 	  ;; because we need it to close over a pointer to the module
 	  ;; itself.
-          ;; FIXME: This creates a circular reference between MODULE and its
-          ;; standard eval closure which precludes them from being collected.
 	  (set-module-eval-closure! module (standard-eval-closure module))
 
 	  module))))
@@ -1264,7 +1262,17 @@
       ;; Make it possible to lookup the module from the environment.
       ;; This implementation is correct since an eval closure can belong
       ;; to maximally one module.
-      (set-procedure-property! closure 'module module))))
+
+      ;; XXX: The following line introduces a circular reference that
+      ;; precludes garbage collection of modules with the current weak hash
+      ;; table semantics (see
+      ;; http://thread.gmane.org/gmane.comp.programming.garbage-collection.boehmgc/2465
+      ;; for details).  Since it doesn't appear to be used (only in
+      ;; `scm_lookup_closure_module ()', which has 1 caller), we just comment
+      ;; it out.
+
+      ;(set-procedure-property! closure 'module module)
+      )))
 
 
 

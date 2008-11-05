@@ -255,7 +255,13 @@ scm_lookup_closure_module (SCM proc)
     return SCM_PACK (SCM_SMOB_DATA (proc));
   else
     {
-      SCM mod = scm_procedure_property (proc, sym_module);
+      SCM mod;
+
+      /* FIXME: The `module' property is no longer set.  See
+	 `set-module-eval-closure!' in `boot-9.scm'.  */
+      abort ();
+
+      mod = scm_procedure_property (proc, sym_module);
       if (scm_is_false (mod))
 	mod = the_root_module ();
       return mod;

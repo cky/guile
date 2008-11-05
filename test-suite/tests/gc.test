@@ -59,9 +59,6 @@
 
 (with-test-prefix "gc"
   (pass-if "Unused modules are removed"
-           ;; FIXME: This test fails because of the circular reference
-           ;; created by `make-module' between the module itself and its
-           ;; standard eval closure.
 	   (let* ((guard (make-guardian))
                   (total 1000))
 
