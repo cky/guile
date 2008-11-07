@@ -1,7 +1,7 @@
 #!/bin/sh
 # -*- Scheme -*-
 exec ${GUILE-guile} --no-debug -q -l "$0" \
-                    -c '(apply main (command-line))' "$@"
+                    -c '(apply main (cdr (command-line)))' "$@"
 !#
 ;;; Copyright (C) 2008 Free Software Foundation, Inc.
 ;;;
@@ -23,7 +23,13 @@ exec ${GUILE-guile} --no-debug -q -l "$0" \
 (use-modules (ice-9 format)
              (ice-9 rdelim)
              (ice-9 regex)
-             (srfi srfi-1))
+             (srfi srfi-1)
+             (srfi srfi-37))
+
+
+;;;
+;;; Memory usage.
+;;;
 
 (define (memory-mappings pid)
   "Return an list of alists, each of which contains information about a
@@ -130,19 +136,100 @@ memory mapping of process @var{pid}.  This information is obtained by reading
     ))
 
 
-(define (main . args)
-  (if (not (= (length args) 2))
-      (begin
-        (format #t "Usage: run FILE.SCM
+;;;
+;;; Larceny/Twobit benchmarking compability layer.
+;;;
 
-Load FILE.SCM, a Guile Scheme source file, and report its execution time and
-final heap usage.~%")
-        (exit 1)))
+(load "twobit-compat.scm")
 
-  (let ((prog  (cadr args))
-        (start (gettimeofday)))
-    (format #t "running `~a'...~%" prog)
+(define (save-directory-excursion directory thunk)
+  (let ((previous-dir (getcwd)))
     (dynamic-wind
+      (lambda ()
+        (chdir directory))
+      thunk
+      (lambda ()
+        (chdir previous-dir)))))
+
+(define (load-larceny-benchmark file)
+  "Load the Larceny benchmark from @var{file}."
+  (let ((name   (let ((base (basename file)))
+                  (substring base 0 (or (string-rindex base #\.)
+                                        (string-length base)))))
+        (module (let ((m (make-module)))
+                  (beautify-user-module! m)
+                  (module-use! m (resolve-interface '(ice-9 syncase)))
+                  m)))
+    (save-directory-excursion (dirname file)
+     (lambda ()
+       (save-module-excursion
+        (lambda ()
+          (set-current-module module)
+          (module-define! module 'run-benchmark run-benchmark)
+          (load (basename file))
+
+          ;; Invoke the benchmark's entry point.
+          (let ((entry (module-ref (current-module)
+                                   (symbol-append (string->symbol name)
+                                                  '-benchmark))))
+            (entry))))))))
+
+
+
+;;;
+;;; Option processing.
+;;;
+
+(define %options
+  (list (option '(#\h "help") #f #f
+                (lambda args
+                  (show-help)
+                  (exit 0)))
+        (option '(#\l "larceny") #f #f
+                (lambda (opt name arg result)
+                  (alist-cons 'larceny? #t result)))))
+
+(define (show-help)
+  (format #t "Usage: gc-profile [OPTIONS] FILE.SCM
+Load FILE.SCM, a Guile Scheme source file, and report its execution time and
+final heap usage.
+
+  -h, --help      Show this help message
+
+  -l, --larceny   Provide mechanisms compatible with the Larceny/Twobit
+                  GC benchmark suite.
+
+Report bugs to <bug-guile@gnu.org>.~%"))
+
+(define (parse-args args)
+  (define (leave fmt . args)
+    (apply format (current-error-port) (string-append fmt "~%") args)
+    (exit 1))
+
+  (args-fold args %options
+             (lambda (opt name arg result)
+               (leave "~A: unrecognized option" opt))
+             (lambda (file result)
+               (if (pair? (assoc 'input result))
+                   (leave "~a: only one input file at a time" file)
+                   (alist-cons 'input file result)))
+             '()))
+
+
+;;;
+;;; Main program.
+;;;
+
+(define (main . args)
+  (let* ((options (parse-args args))
+         (prog    (assoc-ref options 'input))
+         (load    (if (assoc-ref options 'larceny?)
+                      load-larceny-benchmark
+                      load)))
+    (format #t "running `~a'...~%" prog)
+
+    (let ((start (gettimeofday)))
+      (dynamic-wind
         (lambda ()
           #t)
         (lambda ()
@@ -151,4 +238,4 @@ final heap usage.~%")
         (lambda ()
           (let ((end (gettimeofday)))
             (format #t "done~%")
-            (display-stats start end))))))
+            (display-stats start end)))))))
