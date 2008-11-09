@@ -1182,11 +1182,10 @@ main ()
 # Boehm's GC library
 #
 #--------------------------------------------------------------------
-AC_CHECK_LIB([gc], [GC_collect_a_little],
-  [LIBS="-lgc $LIBS"],
-  [AC_MSG_ERROR([`libgc' (Boehm's GC library) not found.])])
-AC_CHECK_HEADER([gc/gc.h], [],
-  [AC_MSG_ERROR([`libgc' (Boehm's GC library) header files not found.])])
+PKG_CHECK_MODULES([BDW_GC], [bdw-gc])
+
+CFLAGS="$BDW_GC_CFLAGS $CFLAGS"
+LIBS="$BDW_GC_LIBS $LIBS"
 
 # `GC_do_blocking ()' is available in GC 7.1 but not declared.
 AC_CHECK_FUNCS([GC_do_blocking])
