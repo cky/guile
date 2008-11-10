@@ -24,7 +24,8 @@ exec ${GUILE-guile} --no-debug -q -l "$0" \
              (ice-9 rdelim)
              (ice-9 regex)
              (srfi srfi-1)
-             (srfi srfi-37))
+             (srfi srfi-37)
+             (srfi srfi-39))
 
 
 ;;;
@@ -140,7 +141,36 @@ memory mapping of process @var{pid}.  This information is obtained by reading
 ;;; Larceny/Twobit benchmarking compability layer.
 ;;;
 
-(load "twobit-compat.scm")
+(define *iteration-count*
+  (make-parameter #f))
+
+(define (run-benchmark name . args)
+  "A @code{run-benchmark} procedure compatible with Larceny's GC benchmarking
+framework.  See
+@url{http://www.ccs.neu.edu/home/will/Twobit/benchmarksAbout.html} for
+details."
+
+  (define %concise-invocation?
+    ;; This procedure can be called with only two arguments, NAME and
+    ;; RUN-MAKER.
+    (procedure? (car args)))
+
+  (let ((count     (or (*iteration-count*)
+                       (if %concise-invocation? 0 (car args))))
+        (run-maker (if %concise-invocation? (car args) (cadr args)))
+        (ok?       (if %concise-invocation?
+                       (lambda (result) #t)
+                       (caddr args)))
+        (args      (if %concise-invocation? '() (cdddr args))))
+    (let loop ((i 0))
+      (and (< i count)
+           (let ((result (apply run-maker args)))
+             (if (not (ok? result))
+                 (begin
+                   (format (current-output-port) "invalid result for `~A'~%"
+                           name)
+                   (exit 1)))
+             (loop (1+ i)))))))
 
 (define (save-directory-excursion directory thunk)
   (let ((previous-dir (getcwd)))
@@ -187,7 +217,10 @@ memory mapping of process @var{pid}.  This information is obtained by reading
                   (exit 0)))
         (option '(#\l "larceny") #f #f
                 (lambda (opt name arg result)
-                  (alist-cons 'larceny? #t result)))))
+                  (alist-cons 'larceny? #t result)))
+        (option '(#\i "iterations") #t #f
+                (lambda (opt name arg result)
+                  (alist-cons 'iterations (string->number arg) result)))))
 
 (define (show-help)
   (format #t "Usage: gc-profile [OPTIONS] FILE.SCM
@@ -198,6 +231,10 @@ final heap usage.
 
   -l, --larceny   Provide mechanisms compatible with the Larceny/Twobit
                   GC benchmark suite.
+  -i, --iterations=COUNT
+                  Run the given benchmark COUNT times, regardless of the
+                  iteration count passed to `run-benchmark' (for Larceny
+                  benchmarks).
 
 Report bugs to <bug-guile@gnu.org>.~%"))
 
@@ -226,16 +263,18 @@ Report bugs to <bug-guile@gnu.org>.~%"))
          (load    (if (assoc-ref options 'larceny?)
                       load-larceny-benchmark
                       load)))
-    (format #t "running `~a'...~%" prog)
 
-    (let ((start (gettimeofday)))
-      (dynamic-wind
-        (lambda ()
-          #t)
-        (lambda ()
-          (set! quit (lambda args args))
-          (load prog))
-        (lambda ()
-          (let ((end (gettimeofday)))
-            (format #t "done~%")
-            (display-stats start end)))))))
+    (parameterize ((*iteration-count* (assoc-ref options 'iterations)))
+      (format #t "running `~a'...~%" prog)
+
+      (let ((start (gettimeofday)))
+        (dynamic-wind
+          (lambda ()
+            #t)
+          (lambda ()
+            (set! quit (lambda args args))
+            (load prog))
+          (lambda ()
+            (let ((end (gettimeofday)))
+              (format #t "done~%")
+              (display-stats start end))))))))
