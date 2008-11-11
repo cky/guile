@@ -356,12 +356,12 @@
 
     (run-benchmark "GCOld"
 		   1
-		   (lambda (result) #t)
 		   (lambda ()
                      (lambda ()
                        (do ((step 0 (+ step 1)))
                            ((>= step steps))
-                         (doStep MEG)))))
+                         (doStep MEG))))
+                   (lambda (result) #t))
 
     (checkTrees)
 
@@ -380,5 +380,7 @@
 
     (+ mutatorSum (vector-length aexport))))
 
-(define (main . args)
+(define (gcold-benchmark . args)
+  (define gcold-iters 1)
+
   (GCOld 25 0 10 10 gcold-iters))
