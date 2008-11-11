@@ -2966,7 +2966,7 @@ scm_t_option scm_debug_opts[] = {
   { SCM_OPTION_BOOLEAN, "backtrace", 0, "Show backtrace on error." },
   { SCM_OPTION_BOOLEAN, "debug", 0, "Use the debugging evaluator." },
 
-  { SCM_OPTION_INTEGER, "stack", 20000, "Stack size limit (measured in words; 0 = no check)." },
+  { SCM_OPTION_INTEGER, "stack", 40000, "Stack size limit (measured in words; 0 = no check)." },
   { SCM_OPTION_SCM, "show-file-name", (unsigned long)SCM_BOOL_T,
     "Show file names and line numbers "
     "in backtraces when not `#f'.  A value of `base' "
