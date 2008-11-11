@@ -265,7 +265,7 @@ Report bugs to <bug-guile@gnu.org>.~%"))
                       load)))
 
     (parameterize ((*iteration-count* (assoc-ref options 'iterations)))
-      (format #t "running `~a'...~%" prog)
+      (format #t "running `~a' with Guile ~a...~%" prog (version))
 
       (let ((start (gettimeofday)))
         (dynamic-wind
