@@ -30,6 +30,7 @@
   #:use-module (system vm vm) ;; for compile-time evaluation
   #:use-module (ice-9 regex)
   #:use-module (ice-9 optargs)
+  #:use-module ((srfi srfi-1) #:select (fold))
   #:export (syntax-error compile-file load-source-file load-file
             *current-language*
             compiled-file-name
@@ -197,27 +198,35 @@ time. Useful for supporting some forms of dynamic compilation. Returns
 ;;;
 
 (define (read-file-in file lang)
-  (call-with-input-file file (language-read-file lang)))
+  (call-with-input-file file (or (language-read-file lang)
+                                 (error "language has no #:read-file" lang))))
+
+;;; FIXME: fold run-pass x (compile-passes lang opts) 
+(define (compile-passes lang opts)
+  (let lp ((passes (list
+                    (language-expander lang)
+                    (language-translator lang)
+                    (lambda (x e) (apply compile-il x e opts))
+                    (lambda (x e) (apply assemble x e opts))))
+           (keys '(#f #:e #:t #:c))
+           (out '()))
+    (if (or (null? keys)
+            (and (car keys) (memq (car keys) opts)))
+        (reverse! out)
+        (lp (cdr passes) (cdr keys)
+            (if (car passes)
+                (cons (car passes) out)
+                out)))))
 
 (define (compile-in x e lang . opts)
   (save-module-excursion
    (lambda ()
-     (catch 'result
-      (lambda ()
-        (and=> (cenv-module e) set-current-module)
-        (set! e (cenv-ghil-env e))
-        ;; expand
-        (set! x ((language-expander lang) x e))
-        (if (memq #:e opts) (throw 'result x))
-        ;; translate
-        (set! x ((language-translator lang) x e))
-        (if (memq #:t opts) (throw 'result x))
-        ;; compile
-        (set! x (apply compile-il x e opts))
-        (if (memq #:c opts) (throw 'result x))
-        ;; assemble
-        (apply assemble x e opts))
-      (lambda (key val) val)))))
+     (and=> (cenv-module e) set-current-module)
+     (let ((env (cenv-ghil-env e)))
+       (fold (lambda (pass exp)
+               (pass exp env))
+             x
+             (compile-passes lang opts))))))
 
 ;;;
 ;;;

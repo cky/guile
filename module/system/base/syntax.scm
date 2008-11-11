@@ -29,7 +29,12 @@
 ;;;
 
 (define-macro (define-type name . rest)
-  `(begin ,@(map (lambda (def) `(define-record ,def)) rest)))
+  (let ((name (if (pair? name) (car name) name))
+        (opts (if (pair? name) (cdr name) '())))
+    (let ((printer (kw-arg-ref opts #:printer)))
+      `(begin ,@(map (lambda (def) `(define-record ,def
+                                      ,@(if printer (list printer) '())))
+                     rest)))))
 
 
 ;;;
@@ -39,13 +44,14 @@
 (define (symbol-trim-both sym pred)
   (string->symbol (string-trim-both (symbol->string sym) pred)))
 
-(define-macro (define-record def)
+(define-macro (define-record def . printer)
   (let* ((name (car def)) (slots (cdr def))
          (slot-names (map (lambda (slot) (if (pair? slot) (car slot) slot))
                           slots))
          (stem (symbol-trim-both name (list->char-set '(#\< #\>)))))
     `(begin
-       (define ,name (make-record-type ,(symbol->string name) ',slot-names))
+       (define ,name (make-record-type ,(symbol->string name) ',slot-names
+                                       ,@printer))
        (define ,(symbol-append 'make- stem)
          (let ((slots (list ,@(map (lambda (slot)
                                      (if (pair? slot)

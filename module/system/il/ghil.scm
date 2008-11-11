@@ -20,7 +20,8 @@
 ;;; Code:
 
 (define-module (system il ghil)
-  #:use-syntax (system base syntax)
+  #:use-module (system base syntax)
+  #:use-module (system base pmatch)
   #:use-module (ice-9 regex)
   #:export
   (<ghil-void> make-ghil-void ghil-void?
@@ -100,14 +101,19 @@
    ghil-env-reify ghil-env-dereify
    ghil-var-is-bound? ghil-var-for-ref! ghil-var-for-set! ghil-var-define!
    ghil-var-at-module!
-   call-with-ghil-environment call-with-ghil-bindings))
+   call-with-ghil-environment call-with-ghil-bindings
+
+   parse-ghil unparse-ghil))
 
 
 ;;;
 ;;; Parse tree
 ;;;
 
-(define-type <ghil>
+(define (print-ghil x port)
+  (format port "#<ghil ~s>" (unparse-ghil x)))
+
+(define-type (<ghil> #:printer print-ghil)
   ;; Objects
   (<ghil-void> env loc)
   (<ghil-quote> env loc obj)
@@ -309,156 +315,162 @@
 ;;; Parser
 ;;;
 
-;;; (define-public (parse-ghil x e)
-;;;   (parse `(@lambda () ,x) (make-ghil-mod e)))
-;;; 
-;;; (define (parse x e)
-;;;   (cond ((pair? x) (parse-pair x e))
-;;; 	((symbol? x)
-;;; 	 (let ((str (symbol->string x)))
-;;; 	   (case (string-ref str 0)
-;;; 	     ((#\@) (error "Invalid use of IL primitive" x))
-;;; 	     ((#\:) (let ((sym (string->symbol (substring str 1))))
-;;; 		      (<ghil-quote> (symbol->keyword sym))))
-;;; 	     (else (<ghil-ref> e (ghil-lookup e x))))))
-;;; 	(else (<ghil-quote> x))))
-;;; 
-;;; (define (map-parse x e)
-;;;   (map (lambda (x) (parse x e)) x))
-;;; 
-;;; (define (parse-pair x e)
-;;;   (let ((head (car x)) (tail (cdr x)))
-;;;     (if (and (symbol? head) (eq? (string-ref (symbol->string head) 0) #\@))
-;;; 	(if (ghil-primitive-macro? head)
-;;; 	    (parse (apply (ghil-macro-expander head) tail) e)
-;;; 	    (parse-primitive head tail e))
-;;; 	(<ghil-call> e (parse head e) (map-parse tail e)))))
-;;; 
-;;; (define (parse-primitive prim args e)
-;;;   (case prim
-;;;     ;; (@ IDENTIFIER)
-;;;     ((@)
-;;;      (match args
-;;;        (()
-;;; 	(<ghil-ref> e (make-ghil-var '@ '@ 'module)))
-;;;        ((identifier)
-;;; 	(receive (module name) (identifier-split identifier)
-;;; 	  (<ghil-ref> e (make-ghil-var module name 'module))))))
-;;; 
-;;;     ;; (@@ OP ARGS...)
-;;;     ((@@)
-;;;      (match args
-;;;        ((op . args)
-;;; 	(<ghil-inline> op (map-parse args e)))))
-;;; 
-;;;     ;; (@void)
-;;;     ((@void)
-;;;      (match args
-;;;        (() (<ghil-void>))))
-;;; 
-;;;     ;; (@quote OBJ)
-;;;     ((@quote)
-;;;      (match args
-;;;        ((obj)
-;;; 	(<ghil-quote> obj))))
-;;; 
-;;;     ;; (@define NAME VAL)
-;;;     ((@define)
-;;;      (match args
-;;;        ((name val)
-;;; 	(let ((v (ghil-lookup e name)))
-;;; 	  (<ghil-set> e v (parse val e))))))
-;;; 
-;;;     ;; (@set! NAME VAL)
-;;;     ((@set!)
-;;;      (match args
-;;;        ((name val)
-;;; 	(let ((v (ghil-lookup e name)))
-;;; 	  (<ghil-set> e v (parse val e))))))
-;;; 
-;;;     ;; (@if TEST THEN [ELSE])
-;;;     ((@if)
-;;;      (match args
-;;;        ((test then)
-;;; 	(<ghil-if> (parse test e) (parse then e) (<ghil-void>)))
-;;;        ((test then else)
-;;; 	(<ghil-if> (parse test e) (parse then e) (parse else e)))))
-;;; 
-;;;     ;; (@begin BODY...)
-;;;     ((@begin)
-;;;      (parse-body args e))
-;;; 
-;;;     ;; (@let ((SYM INIT)...) BODY...)
-;;;     ((@let)
-;;;      (match args
-;;;        ((((sym init) ...) body ...)
-;;; 	(let* ((vals (map-parse init e))
-;;; 	       (vars (map (lambda (s)
-;;; 			    (let ((v (make-ghil-var e s 'local)))
-;;; 			      (ghil-env-add! e v) v))
-;;; 			  sym))
-;;; 	       (body (parse-body body e)))
-;;; 	  (for-each (lambda (v) (ghil-env-remove! e v)) vars)
-;;; 	  (<ghil-bind> e vars vals body)))))
-;;; 
-;;;     ;; (@letrec ((SYM INIT)...) BODY...)
-;;;     ((@letrec)
-;;;      (match args
-;;;        ((((sym init) ...) body ...)
-;;; 	(let* ((vars (map (lambda (s)
-;;; 			    (let ((v (make-ghil-var e s 'local)))
-;;; 			      (ghil-env-add! e v) v))
-;;; 			  sym))
-;;; 	       (vals (map-parse init e))
-;;; 	       (body (parse-body body e)))
-;;; 	  (for-each (lambda (v) (ghil-env-remove! e v)) vars)
-;;; 	  (<ghil-bind> e vars vals body)))))
-;;; 
-;;;     ;; (@lambda FORMALS BODY...)
-;;;     ((@lambda)
-;;;      (match args
-;;;        ((formals . body)
-;;; 	(receive (syms rest) (parse-formals formals)
-;;; 	  (let* ((e (make-ghil-env e))
-;;; 		 (vars (map (lambda (s)
-;;; 			      (let ((v (make-ghil-var e s 'argument)))
-;;; 				(ghil-env-add! e v) v))
-;;; 			    syms)))
-;;; 	    (<ghil-lambda> e vars rest (parse-body body e)))))))
-;;; 
-;;;     ;; (@eval-case CLAUSE...)
-;;;     ((@eval-case)
-;;;      (let loop ((clauses args))
-;;;        (cond ((null? clauses) (<ghil-void>))
-;;; 	     ((or (eq? (caar clauses) '@else)
-;;; 		  (and (memq 'load-toplevel (caar clauses))
-;;; 		       (ghil-env-toplevel? e)))
-;;; 	      (parse-body (cdar clauses) e))
-;;; 	     (else
-;;; 	      (loop (cdr clauses))))))
-;;; 
-;;;     (else (error "Unknown primitive:" prim))))
-;;; 
-;;; (define (parse-body x e)
-;;;   (<ghil-begin> (map-parse x e)))
-;;; 
-;;; (define (parse-formals formals)
-;;;   (cond
-;;;    ;; (@lambda x ...)
-;;;    ((symbol? formals) (values (list formals) #t))
-;;;    ;; (@lambda (x y z) ...)
-;;;    ((list? formals) (values formals #f))
-;;;    ;; (@lambda (x y . z) ...)
-;;;    ((pair? formals)
-;;;     (let loop ((l formals) (v '()))
-;;;       (if (pair? l)
-;;; 	  (loop (cdr l) (cons (car l) v))
-;;; 	  (values (reverse! (cons l v)) #t))))
-;;;    (else (error "Invalid formals:" formals))))
-;;; 
-;;; (define (identifier-split identifier)
-;;;   (let ((m (string-match "::([^:]*)$" (symbol->string identifier))))
-;;;     (if m
-;;; 	(values (string->symbol (match:prefix m))
-;;; 		(string->symbol (match:substring m 1)))
-;;; 	(values #f identifier))))
+(define (location x)
+  (and (pair? x)
+       (let ((props (source-properties x)))
+	 (and (not (null? props))
+	      (vector (assq-ref props 'line)
+                      (assq-ref props 'column)
+                      (assq-ref props 'filename))))))
+
+(define (parse-quasiquote e x level)
+  (cond ((not (pair? x)) x)
+	((memq (car x) '(unquote unquote-splicing))
+	 (let ((l (location x)))
+	   (pmatch (cdr x)
+	     ((,obj)
+              (cond
+               ((zero? level) 
+                (if (eq? (car x) 'unquote)
+                    (make-ghil-unquote e l (parse-ghil e obj))
+                    (make-ghil-unquote-splicing e l (parse-ghil e obj))))
+               (else
+                (list (car x) (parse-quasiquote e obj (1- level))))))
+	     (else (syntax-error l (format #f "bad ~A" (car x)) x)))))
+        ((eq? (car x) 'quasiquote)
+	 (let ((l (location x)))
+	   (pmatch (cdr x)
+	     ((,obj) (list 'quasiquote (parse-quasiquote e obj (1+ level))))
+             (else (syntax-error l (format #f "bad ~A" (car x)) x)))))
+	(else (cons (parse-quasiquote e (car x) level)
+		    (parse-quasiquote e (cdr x) level)))))
+
+(define (parse-ghil env exp)
+  (let ((loc (location exp))
+        (retrans (lambda (x) (parse-ghil env x))))
+    (pmatch exp
+     (,exp (guard (symbol? exp))
+           (make-ghil-ref env #f (ghil-var-for-ref! env exp)))
+
+     (,exp (guard (not (pair? exp)))
+           (make-ghil-quote #:env env #:loc #f #:obj exp))
+
+     (('quote ,exp) (make-ghil-quote #:env env #:loc loc #:obj exp))
+
+     ((void) (make-ghil-void env loc))
+
+     ((lambda ,syms ,rest ,meta . ,body)
+      (call-with-ghil-environment env syms
+        (lambda (env vars)
+          (make-ghil-lambda env loc vars rest meta
+                            (parse-ghil env `(begin ,@body))))))
+
+     ((begin . ,body)
+      (make-ghil-begin env loc (map retrans body)))
+
+     ((bind ,syms ,exprs . ,body)
+      (let ((vals (map retrans exprs)))
+        (call-with-ghil-bindings env syms
+          (lambda (vars)
+            (make-ghil-bind env loc vars vals (retrans `(begin ,@body)))))))
+
+     ((bindrec ,syms ,exprs . ,body)
+      (call-with-ghil-bindings env syms
+        (lambda (vars)
+          (let ((vals (map (lambda (exp) (parse-ghil env exp)) exprs)))
+            (make-ghil-bind env loc vars vals (retrans `(begin ,@body)))))))
+
+     ((set! ,sym ,val)
+      (make-ghil-set env loc (ghil-var-for-set! env sym) (retrans val)))
+
+     ((define ,sym ,val)
+      (make-ghil-define env loc (ghil-var-define! env sym) (retrans val)))
+
+     ((if ,test ,then ,else)
+      (make-ghil-if env loc (retrans test) (retrans then) (retrans else)))
+
+     ((and . ,exps)
+      (make-ghil-and env loc (map retrans exps)))
+
+     ((or . ,exps)
+      (make-ghil-or env loc (map retrans exps)))
+
+     ((mv-bind ,syms ,rest ,producer . ,body)
+      (call-with-ghil-bindings env syms
+        (lambda (vars)
+          (make-ghil-mv-bind env loc (retrans producer) vars rest
+                             (map retrans body)))))
+
+     ((call ,proc . ,args)
+      (make-ghil-call env loc (retrans proc) (map retrans args)))
+
+     ((mv-call ,producer . ,consumer)
+      (make-ghil-mv-call env loc (retrans producer) (retrans consumer)))
+
+     ((inline ,op . ,args)
+      (make-ghil-inline env loc op (map retrans args)))
+
+     ((values . ,values)
+      (make-ghil-values env loc (map retrans values)))
+
+     ((values* . ,values)
+      (make-ghil-values env loc (map retrans values)))
+
+     ((compile-time-environment)
+      (make-ghil-reified-env env loc))
+
+     ((quasiquote ,exp)
+      (make-ghil-quasiquote env loc #:exp (parse-quasiquote env exp 0)))
+
+     (else
+      (error "unrecognized GHIL" exp)))))
+
+(define (unparse-ghil ghil)
+  (record-case ghil
+    ((<ghil-void> env loc)
+     '(void))
+    ((<ghil-quote> env loc obj)
+     `(quote ,obj))
+    ((<ghil-quasiquote> env loc exp)
+     `(quasiquote ,(map unparse-ghil exp)))
+    ((<ghil-unquote> env loc exp)
+     `(unquote ,(unparse-ghil exp)))
+    ((<ghil-unquote-splicing> env loc exp)
+     `(unquote-splicing ,(unparse-ghil exp)))
+  ;; Variables
+    ((<ghil-ref> env loc var)
+     (ghil-var-name var))
+    ((<ghil-set> env loc var val)
+     `(set! ,(ghil-var-name var) ,(unparse-ghil val)))
+    ((<ghil-define> env loc var val)
+     `(define ,(ghil-var-name var) ,(unparse-ghil val)))
+  ;; Controls
+    ((<ghil-if> env loc test then else)
+     `(if ,(unparse-ghil test) ,(unparse-ghil then) ,(unparse-ghil else)))
+    ((<ghil-and> env loc exps)
+     `(and ,@(map unparse-ghil exps)))
+    ((<ghil-or> env loc exps)
+     `(or ,@(map unparse-ghil exps)))
+    ((<ghil-begin> env loc exps)
+     `(begin ,@(map unparse-ghil exps)))
+    ((<ghil-bind> env loc vars vals body)
+     `(bind ,(map ghil-var-name vars) ,(map unparse-ghil vals)
+            ,@(map unparse-ghil body)))
+    ((<ghil-mv-bind> env loc producer vars rest body)
+     `(mv-bind ,(map ghil-var-name vars) ,rest
+               ,(unparse-ghil producer) ,@(map unparse-ghil body)))
+    ((<ghil-lambda> env loc vars rest meta body)
+     `(lambda ,(map ghil-var-name vars) ,rest ,meta
+              ,(unparse-ghil body)))
+    ((<ghil-call> env loc proc args)
+     `(call ,(unparse-ghil proc) ,@(map unparse-ghil args)))
+    ((<ghil-mv-call> env loc producer consumer)
+     `(mv-call ,(unparse-ghil producer) ,(unparse-ghil consumer)))
+    ((<ghil-inline> env loc inline args)
+     `(inline ,inline (map unparse-ghil args)))
+    ((<ghil-values> env loc values)
+     `(values (map unparse-ghil values)))
+    ((<ghil-values*> env loc values)
+     `(values* (map unparse-ghil values)))
+    ((<ghil-reified-env> env loc)
+     `(compile-time-environment))))

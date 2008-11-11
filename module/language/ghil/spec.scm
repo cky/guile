@@ -21,12 +21,21 @@
 
 (define-module (language ghil spec)
   #:use-module (system base language)
+  #:use-module (system il ghil)
   #:export (ghil))
+
+(define (write-ghil exp . port)
+  (apply write (unparse-ghil exp) port))
+
+(define (translate x e)
+  (call-with-ghil-environment e '()
+    (lambda (env vars)
+      (make-ghil-lambda env #f vars #f '() (parse-ghil env x)))))
 
 (define-language ghil
   #:title	"Guile High Intermediate Language (GHIL)"
   #:version	"0.3"
   #:reader	read
-  #:printer	write
-;;  #:environment	(make-vmodule)
+  #:printer	write-ghil
+  #:translator  translate
   )

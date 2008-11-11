@@ -78,7 +78,11 @@
 (define (repl-print repl val)
   (if (not (eq? val *unspecified*))
       (begin
-	((language-printer (repl-language repl)) val)
+        ;; The result of an evaluation is representable in scheme, and
+        ;; should be printed with the generic printer, `write'. The
+        ;; language-printer is something else: it prints expressions of
+        ;; a given language, not the result of evaluation.
+	(write val)
 	(newline))))
 
 (define (repl-option-ref repl key)

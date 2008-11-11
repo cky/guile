@@ -31,9 +31,10 @@
 ;;; Language class
 ;;;
 
-(define-record (<language> name title version reader printer read-file
-			   (expander (lambda (x e) x))
-			   (translator (lambda (x e) x))
+(define-record (<language> name title version reader printer
+                           (read-file #f)
+			   (expander #f)
+			   (translator #f)
 			   (evaluator #f)
 			   (environment #f)
 			   ))

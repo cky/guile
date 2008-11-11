@@ -136,11 +136,11 @@
 
 (define-scheme-translator quote
   ;; (quote OBJ)
-  ((,obj) (make-ghil-quote e l obj)))
+  ((,obj) (make-ghil-quote e l #:obj obj)))
     
 (define-scheme-translator quasiquote
   ;; (quasiquote OBJ)
-  ((,obj) (make-ghil-quasiquote e l (trans-quasiquote e l obj 0))))
+  ((,obj) (make-ghil-quasiquote e l #:exp (trans-quasiquote e l obj 0))))
 
 (define-scheme-translator define
   ;; (define NAME VAL)
