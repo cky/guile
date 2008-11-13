@@ -23,8 +23,7 @@ AUTOMAKE_OPTIONS = gnu
 
 SUBDIRS = ref tutorial goops r5rs
 
-# pending the papers from Robert Merkel
-# man_MANS = guile.1
+dist_man1_MANS = guile.1
 
 EXAMPLE_SMOB_FILES = \
     ChangeLog-2008 Makefile README image-type.c image-type.h myguile.c
@@ -39,9 +38,6 @@ dist-hook:
         done
 
 EXTRA_DIST = groupings.alist ChangeLog-2008 # guile-api.alist
-
-# pending the papers from Robert Merkel
-# EXTRA_DIST = guile.1
 
 include $(top_srcdir)/am/maintainer-dirs
 guile-api.alist: guile-api.alist-FORCE

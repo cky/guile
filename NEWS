@@ -56,6 +56,8 @@ When you use GDS to evaluate Scheme code from Emacs, you can now use
 `C-u' to indicate that you want to single step through that code. See
 `Evaluating Scheme Code' in the manual for more details.
 
+** New "guile(1)" man page!
+
 * Changes to the distribution
 
 ** Automake's `AM_MAINTAINER_MODE' is no longer used
