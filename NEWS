@@ -80,6 +80,8 @@ available: Guile is now always configured in "maintainer mode".
 ** Fix build failure on Debian hppa architecture (bad stack growth detection)
 ** Fix `gcd' when called with a single, negative argument.
 ** Fix `Stack overflow' errors seen when building on some platforms
+** Fix bug when `scm_with_guile ()' was called several times from the
+   same thread
 
 
 Changes in 1.8.5 (since 1.8.4)

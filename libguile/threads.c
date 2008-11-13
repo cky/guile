@@ -698,9 +698,18 @@ scm_i_init_thread_for_guile (SCM_STACKITEM *base, SCM parent)
       /* This thread is already guilified but not in guile mode, just
 	 resume it.
 
-	 XXX - base might be lower than when this thread was first
-	 guilified.
-       */
+         A user call to scm_with_guile() will lead us to here.  This could
+         happen from anywhere on the stack, and in particular lower on the
+         stack than when it was when this thread was first guilified.  Thus,
+         `base' must be updated.  */
+#if SCM_STACK_GROWS_UP
+      if (base < t->base)
+         t->base = base;
+#else
+      if (base > t->base)
+         t->base = base;
+#endif
+
       scm_enter_guile ((scm_t_guile_ticket) t);
       return 1;
     }

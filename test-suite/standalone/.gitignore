@@ -6,3 +6,4 @@
 /test-unwind
 /test-with-guile-module
 /test-use-srfi
+/test-scm-with-guile

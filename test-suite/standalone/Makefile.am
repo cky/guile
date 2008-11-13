@@ -115,9 +115,14 @@ test_with_guile_module_LDADD = ${top_builddir}/libguile/libguile.la
 check_PROGRAMS += test-with-guile-module
 TESTS += test-with-guile-module
 
+test_scm_with_guile_CFLAGS = ${test_cflags}
+test_scm_with_guile_LDADD = ${top_builddir}/libguile/libguile.la
+check_PROGRAMS += test-scm-with-guile
+TESTS += test-scm-with-guile
+
 else
 
-EXTRA_DIST += test-with-guile-module.c
+EXTRA_DIST += test-with-guile-module.c test-scm-with-guile.c
 
 endif
 
