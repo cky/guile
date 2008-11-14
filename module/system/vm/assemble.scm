@@ -40,13 +40,13 @@
 ;;; Types
 ;;;
 
-(define-record (<vm-asm> venv glil body))
-(define-record (<venv> parent nexts closure?))
+(define-record <vm-asm> venv glil body)
+(define-record <venv> parent nexts closure?)
 ;; key is either a symbol or the list (MODNAME SYM PUBLIC?)
-(define-record (<vlink-now> key))
-(define-record (<vlink-later> key))
-(define-record (<vdefine> name))
-(define-record (<bytespec> vars bytes meta objs closure?))
+(define-record <vlink-now> key)
+(define-record <vlink-later> key)
+(define-record <vdefine> name)
+(define-record <bytespec> vars bytes meta objs closure?)
 
 
 ;;;

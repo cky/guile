@@ -31,7 +31,7 @@
 ;;; Debugger
 ;;;
 
-(define-record (<debugger> vm chain index))
+(define-record <debugger> vm chain index)
 
 (define (vm-debugger vm)
   (let ((chain (vm-last-frame-chain vm)))

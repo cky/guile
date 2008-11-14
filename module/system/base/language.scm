@@ -20,30 +20,56 @@
 ;;; Code:
 
 (define-module (system base language)
-  #:use-syntax (system base syntax)
+  #:use-module (system base syntax)
   #:export (define-language lookup-language make-language
-           language-name language-title language-version language-reader
-           language-printer language-read-file language-expander
-           language-translator language-evaluator language-environment))
+            language-name language-title language-version language-reader
+            language-printer language-parser language-read-file
+            language-compilers language-evaluator
+
+            lookup-compilation-order invalidate-compilation-cache!))
 
 
 ;;;
 ;;; Language class
 ;;;
 
-(define-record (<language> name title version reader printer
-                           (read-file #f)
-			   (expander #f)
-			   (translator #f)
-			   (evaluator #f)
-			   (environment #f)
-			   ))
+(define-record <language>
+  name
+  title
+  version
+  reader
+  printer
+  (parser #f)
+  (read-file #f)
+  (compilers '())
+  (evaluator #f))
 
 (define-macro (define-language name . spec)
-  `(define ,name (make-language #:name ',name ,@spec)))
+  `(begin
+     (invalidate-compilation-cache!)
+     (define ,name (make-language #:name ',name ,@spec))))
 
 (define (lookup-language name)
   (let ((m (resolve-module `(language ,name spec))))
     (if (module-bound? m name)
 	(module-ref m name)
 	(error "no such language" name))))
+
+(define *compilation-cache* '())
+
+(define (invalidate-compilation-cache!)
+  (set! *compilation-cache* '()))
+
+(define (compute-compilation-order from to)
+  (let lp ((from from) (seen '()))
+    (cond ((eq? from to) (reverse! (cons from seen)))
+          ((memq from seen) #f)
+          (else (or-map (lambda (lang) (lp lang (cons from seen)))
+                        (map car (language-compilers from)))))))
+
+(define (lookup-compilation-order from to)
+  (or (assoc-ref *compilation-cache* (cons from to))
+      (let ((order (compute-compilation-order from to)))
+        (set! *compilation-cache*
+              (acons (cons from to) order *compilation-cache*))
+        order)))

@@ -121,7 +121,8 @@
                       (call-with-values (lambda ()
                                           (run-hook before-eval-hook exp)
                                           (start-stack repl-eval
-                                                       (repl-eval repl exp)))
+                                                       (repl-eval repl
+                                                                  (repl-parse repl exp))))
                         (lambda l
                           (for-each (lambda (v)
                                       (run-hook before-print-hook v)

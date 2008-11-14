@@ -1086,17 +1086,17 @@
                   (if (unbound? x)
                       (slot-unbound obj)
                       x)))
-   *goops-module*))
+   #:env *goops-module*))
 
 (define (make-get index)
   ((@ (system base compile) compile)
    `(lambda (o) (@slot-ref o ,index))
-   *goops-module*))
+   #:env *goops-module*))
 
 (define (make-set index)
   ((@ (system base compile) compile)
    `(lambda (o v) (@slot-set! o ,index v))
-   *goops-module*))
+   #:env *goops-module*))
 
 (define bound-check-get
   (standard-accessor-method make-bound-check-get bound-check-get-methods))

@@ -145,7 +145,7 @@
 ;;; Variables
 ;;;
 
-(define-record (<ghil-var> env name kind (index #f)))
+(define-record <ghil-var> env name kind (index #f))
 
 
 ;;;
@@ -157,8 +157,8 @@
 ;;; Environments
 ;;;
 
-(define-record (<ghil-env> parent (table '()) (variables '())))
-(define-record (<ghil-toplevel-env> (table '())))
+(define-record <ghil-env> parent (table '()) (variables '()))
+(define-record <ghil-toplevel-env> (table '()))
 
 (define (ghil-env-ref env sym)
   (assq-ref (ghil-env-table env) sym))

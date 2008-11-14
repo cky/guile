@@ -40,15 +40,15 @@
 
     ;; fixme: compiling with #t or module
     (pass-if "recompiling with environment"
-             (equal? ((compile '(lambda () x) env))
+             (equal? ((compile '(lambda () x) #:env env))
                      1))
 
     (pass-if "recompiling with environment/2"
-             (equal? ((compile '(lambda () (set! x (1+ x)) x) env))
+             (equal? ((compile '(lambda () (set! x (1+ x)) x) #:env env))
                      2))
 
     (pass-if "recompiling with environment/3"
-             (equal? ((compile '(lambda () x) env))
+             (equal? ((compile '(lambda () x) #:env env))
                      2))
     )
 
@@ -57,6 +57,6 @@
                    10))
 
   (pass-if "compile environment is a module"
-           (equal? ((compile '(lambda () 10) (current-module)))
+           (equal? ((compile '(lambda () 10) #:env (current-module)))
                    10))
   )

@@ -24,17 +24,52 @@
   #:use-module (system base language)
   #:use-module (system il ghil)
   #:use-module (system il inline)
+  #:use-module (system vm objcode)
   #:use-module (ice-9 receive)
+  #:use-module (ice-9 optargs)
   #:use-module ((ice-9 syncase) #:select (sc-macro))
   #:use-module ((system base compile) #:select (syntax-error))
   #:export (translate translate-1
             *translate-table* define-scheme-translator))
 
 
-(define (translate x e)
-  (call-with-ghil-environment e '()
-    (lambda (env vars)
-      (make-ghil-lambda env #f vars #f '() (translate-1 env #f x)))))
+;;; environment := #f
+;;;                | MODULE
+;;;                | COMPILE-ENV
+;;; compile-env := (MODULE LEXICALS . EXTERNALS)
+(define (cenv-module env)
+  (cond ((not env) #f)
+        ((module? env) env)
+        ((and (pair? env) (module? (car env))) (car env))
+        (else (error "bad environment" env))))
+
+(define (cenv-ghil-env env)
+  (cond ((not env) (make-ghil-toplevel-env))
+        ((module? env) (make-ghil-toplevel-env))
+        ((pair? env)
+         (ghil-env-dereify (cadr env)))
+        (else (error "bad environment" env))))
+
+(define (cenv-externals env)
+  (cond ((not env) '())
+        ((module? env) '())
+        ((pair? env) (cddr env))
+        (else (error "bad environment" env))))
+
+
+
+
+(define (translate x e opts)
+  (save-module-excursion
+   (lambda ()
+     (and=> (cenv-module e) set-current-module)
+     (call-with-ghil-environment (cenv-ghil-env e) '()
+       (lambda (env vars)
+         (values (make-ghil-lambda env #f vars #f '() (translate-1 env #f x))
+                 (and e
+                      (cons* (cenv-module e)
+                             (ghil-env-parent env)
+                             (cenv-externals e)))))))))
 
 
 ;;;
@@ -375,10 +410,11 @@
    ;; macro would do the trick; but it's good to test the mv-bind
    ;; code.
    (receive (syms rest) (parse-formals formals)
-            (call-with-ghil-bindings e syms
-                                     (lambda (vars)
-                                       (make-ghil-mv-bind e l (retrans `(lambda () ,producer-exp))
-                                                          vars rest (trans-body e l body)))))))
+            (let ((producer (retrans `(lambda () ,producer-exp))))
+              (call-with-ghil-bindings e syms
+                (lambda (vars)
+                  (make-ghil-mv-bind e l producer
+                                     vars rest (trans-body e l body))))))))
 
 (define-scheme-translator values
   ((,x) (retrans x))

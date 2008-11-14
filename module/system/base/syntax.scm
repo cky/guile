@@ -32,8 +32,11 @@
   (let ((name (if (pair? name) (car name) name))
         (opts (if (pair? name) (cdr name) '())))
     (let ((printer (kw-arg-ref opts #:printer)))
-      `(begin ,@(map (lambda (def) `(define-record ,def
-                                      ,@(if printer (list printer) '())))
+      `(begin ,@(map (lambda (def)
+                       `(define-record ,(if printer
+                                            `(,(car def) ,printer)
+                                            (car def))
+                          ,@(cdr def)))
                      rest)))))
 
 
@@ -44,14 +47,15 @@
 (define (symbol-trim-both sym pred)
   (string->symbol (string-trim-both (symbol->string sym) pred)))
 
-(define-macro (define-record def . printer)
-  (let* ((name (car def)) (slots (cdr def))
+(define-macro (define-record name-form . slots)
+  (let* ((name (if (pair? name-form) (car name-form) name-form))
+         (printer (and (pair? name-form) (cadr name-form)))
          (slot-names (map (lambda (slot) (if (pair? slot) (car slot) slot))
                           slots))
          (stem (symbol-trim-both name (list->char-set '(#\< #\>)))))
     `(begin
        (define ,name (make-record-type ,(symbol->string name) ',slot-names
-                                       ,@printer))
+                                       ,@(if printer (list printer) '())))
        (define ,(symbol-append 'make- stem)
          (let ((slots (list ,@(map (lambda (slot)
                                      (if (pair? slot)

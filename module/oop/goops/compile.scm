@@ -148,7 +148,7 @@
                                                 ,@(improper->proper formals)))
                                          (apply ,next-method-sym args)))))
                               ,@body)))
-                       (slot-ref method 'compile-env))))
+                       #:env (slot-ref method 'compile-env))))
         (list-set! (program-external cmethod) 0
                    (make-next-method (method-generic-function method)
                                      (cdr methods)

@@ -20,10 +20,10 @@
 ;;; Code:
 
 (define-module (system il glil)
-  #:use-syntax (system base syntax)
+  #:use-module (system base syntax)
+  #:use-module (system base pmatch)
   #:export
-  (pprint-glil
-   <glil-vars> make-glil-vars
+  (<glil-vars> make-glil-vars
    glil-vars-nargs glil-vars-nrest glil-vars-nlocs glil-vars-nexts
 
    <glil-asm> make-glil-asm glil-asm?
@@ -70,11 +70,16 @@
    glil-call-inst glil-call-nargs
 
    <glil-mv-call> make-glil-mv-call glil-mv-call?
-   glil-mv-call-nargs glil-mv-call-ra))
+   glil-mv-call-nargs glil-mv-call-ra
 
-(define-record (<glil-vars> nargs nrest nlocs nexts))
+   parse-glil unparse-glil))
 
-(define-type <glil>
+(define-record <glil-vars> nargs nrest nlocs nexts)
+
+(define (print-glil x port)
+  (format port "#<glil ~s>" (unparse-glil x)))
+
+(define-type (<glil> #:printer print-glil)
   ;; Meta operations
   (<glil-asm> vars meta body)
   (<glil-bind> vars)
@@ -97,125 +102,57 @@
   (<glil-mv-call> nargs ra))
 
 
-;;;
-;;; Parser
-;;;
+(define (parse-glil x)
+  (pmatch x
+    ((asm (,nargs ,nrest ,nlocs ,next) ,meta . ,body)
+     (make-glil-asm (make-glil-vars nargs nrest nlocs next)
+                    meta (map parse-glil body)))
+    ((bind . ,vars) (make-glil-bind vars))
+    ((mv-bind ,vars . ,rest) (make-glil-mv-bind vars (map parse-glil rest)))
+    ((unbind) (make-glil-unbind))
+    ((source ,loc) (make-glil-source loc))
+    ((void) (make-glil-void))
+    ((const ,obj) (make-glil-const obj))
+    ((argument ,op ,index) (make-glil-argument op index))
+    ((local ,op ,index) (make-glil-local op index))
+    ((external ,op ,depth ,index) (make-glil-external op depth index))
+    ((toplevel ,op ,name) (make-glil-toplevel op name))
+    ((module public ,op ,mod ,name) (make-glil-module op mod name #t))
+    ((module private ,op ,mod ,name) (make-glil-module op mod name #f))
+    ((label ,label) (make-label ,label))
+    ((branch ,inst ,label) (make-glil-branch inst label))
+    ((call ,inst ,nargs) (make-glil-call inst nargs))
+    ((mv-call ,nargs ,ra) (make-glil-mv-call nargs ra))
+    (else (error "invalid glil" x))))
 
-;;; (define (parse-glil x)
-;;;   (match x
-;;;     (('@asm args . body)
-;;;      (let* ((env (make-new-env e))
-;;; 	    (args (parse-args args env)))
-;;;        (make-asm env args (map-parse body env))))
-;;;     (else
-;;;      (error "Invalid assembly code:" x))))
-;;; 
-;;; (define (parse-args x e)
-;;;   (let ((args (cond ((symbol? x) (make-args (list (make-local-var x)) #t))
-;;; 		    ((list? x) (make-args (map make-local-var x) #f))
-;;; 		    (else (let loop ((l x) (v '()))
-;;; 			    (if (pair? l)
-;;; 				(loop (cdr l) (cons (car l) v))
-;;; 				(make-args (map make-local-var
-;;; 						(reverse! (cons l v)))
-;;; 					   #t)))))))
-;;;     (for-each (lambda (v) (env-add! e v)) (args-vars args))
-;;;     args))
-;;; 
-;;; (define (map-parse x e)
-;;;   (map (lambda (x) (parse x e)) x))
-;;; 
-;;; (define (parse x e)
-;;;   (match x
-;;;     ;; (@asm ARGS BODY...)
-;;;     (('@asm args . body)
-;;;      (parse-asm x e))
-;;;     ;; (@bind VARS BODY...)
-;;;     ;; (@block VARS BODY...)
-;;;     (((or '@bind '@block) vars . body)
-;;;      (let* ((offset (env-nvars e))
-;;; 	    (vars (args-vars (parse-args vars e)))
-;;; 	    (block (make-block (car x) offset vars (map-parse body e))))
-;;;        (for-each (lambda (v) (env-remove! e)) vars)
-;;;        block))
-;;;     ;; (void)
-;;;     (('void)
-;;;      (make-void))
-;;;     ;; (const OBJ)
-;;;     (('const obj)
-;;;      (make-const obj))
-;;;     ;; (ref NAME)
-;;;     ;; (set NAME)
-;;;     (((or 'ref 'set) name)
-;;;      (make-access (car x) (env-ref e name)))
-;;;     ;; (label LABEL)
-;;;     (('label label)
-;;;      (make-label label))
-;;;     ;; (br-if LABEL)
-;;;     ;; (jump LABEL)
-;;;     (((or 'br-if 'jump) label)
-;;;      (make-instl (car x) label))
-;;;     ;; (call NARGS)
-;;;     ;; (tail-call NARGS)
-;;;     (((or 'call 'goto/args) n)
-;;;      (make-instn (car x) n))
-;;;     ;; (INST)
-;;;     ((inst)
-;;;      (if (instruction? inst)
-;;; 	 (make-inst inst)
-;;; 	 (error "Unknown instruction:" inst)))))
-
-
-;;;
-;;; Unparser
-;;;
-
-(define (unparse glil)
+(define (unparse-glil glil)
   (record-case glil
     ;; meta
     ((<glil-asm> vars meta body)
-     `(@asm (,(glil-vars-nargs vars) ,(glil-vars-nrest vars)
-             ,(glil-vars-nlocs vars) ,(glil-vars-nexts vars))
-            ,meta
-	    ,@(map unparse body)))
-    ((<glil-bind> vars) `(@bind ,@vars))
-    ((<glil-unbind>) `(@unbind))
-    ((<glil-source> loc) `(@source ,loc))
+     `(asm (,(glil-vars-nargs vars) ,(glil-vars-nrest vars)
+            ,(glil-vars-nlocs vars) ,(glil-vars-nexts vars))
+           ,meta
+           ,@(map unparse-glil body)))
+    ((<glil-bind> vars) `(bind ,@vars))
+    ((<glil-mv-bind> vars rest) `(mv-bind ,vars ,@rest))
+    ((<glil-unbind>) `(unbind))
+    ((<glil-source> loc) `(source ,loc))
     ;; constants
     ((<glil-void>) `(void))
     ((<glil-const> obj) `(const ,obj))
     ;; variables
     ((<glil-argument> op index)
-     `(,(symbol-append 'argument- op) ,index))
+     `(argument ,op ,index))
     ((<glil-local> op index)
-     `(,(symbol-append 'local- op) ,index))
+     `(local ,op ,index))
     ((<glil-external> op depth index)
-     `(,(symbol-append 'external- op) ,depth ,index))
+     `(external ,op ,depth ,index))
     ((<glil-toplevel> op name)
-     `(,(symbol-append 'toplevel- op) ,name))
+     `(toplevel ,op ,name))
     ((<glil-module> op mod name public?)
-     `(,(symbol-append (if public? 'public 'private) '- op) ,mod ,name))
+     `(module ,(if public? 'public 'private) ,op ,mod ,name))
     ;; controls
-    ((<glil-label> label) label)
-    ((<glil-branch> inst label) `(,inst ,label))
-    ((<glil-call> inst nargs) `(,inst ,nargs))))
-
-
-;;;
-;;; Printer
-;;;
-
-(define (pprint-glil glil . port)
-  (let ((port (if (pair? port) (car port) (current-output-port))))
-    (let print ((code (unparse glil)) (column 0))
-      (display (make-string column #\space) port)
-      (cond ((and (pair? code) (eq? (car code) '@asm))
-	     (format port "(@asm ~A\n" (cadr code))
-	     (let ((col (+ column 2)))
-	       (let loop ((l (cddr code)))
-		 (print (car l) col)
-		 (if (null? (cdr l))
-		   (display ")" port)
-		   (begin (newline port) (loop (cdr l)))))))
-	    (else (write code port))))
-    (newline port)))
+    ((<glil-label> label) (label ,label))
+    ((<glil-branch> inst label) `(branch ,inst ,label))
+    ((<glil-call> inst nargs) `(call ,inst ,nargs))
+    ((<glil-mv-call> nargs ra) `(mv-call ,nargs ,(unparse-glil ra)))))

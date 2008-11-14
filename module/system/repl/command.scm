@@ -28,7 +28,6 @@
   #:use-module (system vm program)
   #:use-module (system vm vm)
   #:autoload (system base language) (lookup-language)
-  #:autoload (system il glil) (pprint-glil)
   #:autoload (system vm disasm) (disassemble-program disassemble-objcode)
   #:autoload (system vm debug) (vm-debugger vm-backtrace)
   #:autoload (system vm trace) (vm-trace vm-trace-on vm-trace-off)
@@ -168,7 +167,8 @@ Find bindings/modules/packages."
 (define (describe repl obj)
   "describe OBJ
 Show description/documentation."
-  (display (object-documentation (repl-eval repl obj)))
+  (display (object-documentation
+            (repl-eval repl (repl-parse repl obj))))
   (newline))
 
 (define (option repl . args)
@@ -266,21 +266,20 @@ Generate compiled code.
 
   -O    Enable optimization
   -D    Add debug information"
-  (let ((x (apply repl-compile repl form opts)))
-    (cond ((or (memq #:e opts) (memq #:t opts)) (puts x))
-	  ((memq #:c opts) (pprint-glil x))
-	  (else (disassemble-objcode x)))))
+  (let ((x (apply repl-compile repl (repl-parse repl form) opts)))
+    (cond ((objcode? x) (disassemble-objcode x))
+          (else (repl-print repl x)))))
 
 (define guile:compile-file compile-file)
 (define (compile-file repl file . opts)
   "compile-file FILE
 Compile a file."
-  (apply guile:compile-file (->string file) opts))
+  (guile:compile-file (->string file) #:opts opts))
 
 (define (disassemble repl prog)
   "disassemble PROGRAM
 Disassemble a program."
-  (disassemble-program (repl-eval repl prog)))
+  (disassemble-program (repl-eval repl (repl-parse repl prog))))
 
 (define (disassemble-file repl file)
   "disassemble-file FILE
@@ -298,7 +297,7 @@ Time execution."
   (let* ((vms-start (vm-stats (repl-vm repl)))
 	 (gc-start (gc-run-time))
 	 (tms-start (times))
-	 (result (repl-eval repl form))
+	 (result (repl-eval repl (repl-parse repl form)))
 	 (tms-end (times))
 	 (gc-end (gc-run-time))
 	 (vms-end (vm-stats (repl-vm repl))))
@@ -320,7 +319,7 @@ Time execution."
 Profile execution."
   (apply vm-profile
          (repl-vm repl)
-         (repl-compile repl form)
+         (repl-compile repl (repl-parse repl form))
          opts))
 
 
@@ -346,7 +345,9 @@ Trace execution.
   -l    Display local variables
   -e    Display external variables
   -b    Bytecode level trace"
-  (apply vm-trace (repl-vm repl) (repl-compile repl form) opts))
+  (apply vm-trace (repl-vm repl)
+         (repl-compile repl (repl-parse repl form))
+         opts))
 
 (define (step repl)
   "step FORM

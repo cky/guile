@@ -1,4 +1,4 @@
-;;; Guile Scheme specification
+;;; Guile Lowlevel Intermediate Language
 
 ;; Copyright (C) 2001 Free Software Foundation, Inc.
 
@@ -19,34 +19,30 @@
 
 ;;; Code:
 
-(define-module (language scheme spec)
+(define-module (language glil spec)
   #:use-module (system base language)
-  #:use-module (language scheme translate)
-  #:use-module (language ghil spec)
-  #:export (scheme))
+  #:use-module (language objcode spec)
+  #:use-module (system il glil)
+  #:use-module (system vm assemble)
+  #:export (glil))
 
-;;;
-;;; Reader
-;;;
+(define (write-glil exp . port)
+  (apply write (unparse-glil exp) port))
 
-(read-enable 'positions)
+(define (translate x)
+  ;; Don't wrap in a thunk -- if you're down in these weeds you can
+  ;; thunk it yourself. We don't know how many locs there will be,
+  ;; anyway.
+  (parse-glil x))
 
-(define (read-file port)
-  (do ((x (read port) (read port))
-       (l '() (cons x l)))
-      ((eof-object? x)
-       (cons 'begin (reverse! l)))))
+(define (compile x e opts)
+  (values (assemble x e) e))
 
-;;;
-;;; Language definition
-;;;
-
-(define-language scheme
-  #:title	"Guile Scheme"
-  #:version	"0.5"
+(define-language glil
+  #:title	"Guile Lowlevel Intermediate Language (GLIL)"
+  #:version	"0.3"
   #:reader	read
-  #:read-file	read-file
-  #:compilers   `((,ghil . ,translate))
-  #:evaluator	(lambda (x module) (primitive-eval x))
-  #:printer	write
+  #:printer	write-glil
+  #:parser      translate
+  #:compilers   `((,objcode . ,compile))
   )

@@ -26,9 +26,10 @@
   #:use-module (ice-9 common-list)
   #:export (compile))
 
-(define (compile x e . opts)
+(define (compile x e opts)
   (if (memq #:O opts) (set! x (optimize x)))
-  (codegen x))
+  (values (codegen x)
+          (and e (cons (car e) (cddr e)))))
 
 
 ;;;

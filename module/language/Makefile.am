@@ -1,1 +1,1 @@
-SUBDIRS=scheme
+SUBDIRS=scheme ghil glil objcode value

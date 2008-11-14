@@ -1557,6 +1557,10 @@ AC_CONFIG_FILES([
   module/system/repl/Makefile
   module/language/Makefile
   module/language/scheme/Makefile
+  module/language/ghil/Makefile
+  module/language/glil/Makefile
+  module/language/objcode/Makefile
+  module/language/value/Makefile
   module/ice-9/Makefile
   module/ice-9/debugger/Makefile
   module/ice-9/debugging/Makefile

@@ -21,14 +21,16 @@
 
 (define-module (language ghil spec)
   #:use-module (system base language)
+  #:use-module (language glil spec)
   #:use-module (system il ghil)
+  #:use-module ((system il compile) #:select ((compile . compile-il)))
   #:export (ghil))
 
 (define (write-ghil exp . port)
   (apply write (unparse-ghil exp) port))
 
-(define (translate x e)
-  (call-with-ghil-environment e '()
+(define (parse x)
+  (call-with-ghil-environment (make-ghil-toplevel-env e) '()
     (lambda (env vars)
       (make-ghil-lambda env #f vars #f '() (parse-ghil env x)))))
 
@@ -37,5 +39,6 @@
   #:version	"0.3"
   #:reader	read
   #:printer	write-ghil
-  #:translator  translate
+  #:parser      parse
+  #:compilers   `((,glil . ,compile-il))
   )

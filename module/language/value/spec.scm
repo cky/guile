@@ -1,4 +1,4 @@
-;;; Guile Scheme specification
+;;; Guile Lowlevel Intermediate Language
 
 ;; Copyright (C) 2001 Free Software Foundation, Inc.
 
@@ -19,34 +19,13 @@
 
 ;;; Code:
 
-(define-module (language scheme spec)
+(define-module (language value spec)
   #:use-module (system base language)
-  #:use-module (language scheme translate)
-  #:use-module (language ghil spec)
-  #:export (scheme))
+  #:export (value))
 
-;;;
-;;; Reader
-;;;
-
-(read-enable 'positions)
-
-(define (read-file port)
-  (do ((x (read port) (read port))
-       (l '() (cons x l)))
-      ((eof-object? x)
-       (cons 'begin (reverse! l)))))
-
-;;;
-;;; Language definition
-;;;
-
-(define-language scheme
-  #:title	"Guile Scheme"
-  #:version	"0.5"
-  #:reader	read
-  #:read-file	read-file
-  #:compilers   `((,ghil . ,translate))
-  #:evaluator	(lambda (x module) (primitive-eval x))
+(define-language value
+  #:title	"Guile Values"
+  #:version	"0.3"
+  #:reader	#f
   #:printer	write
   )

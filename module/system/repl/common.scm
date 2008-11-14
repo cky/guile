@@ -25,17 +25,17 @@
   #:use-module (system base language)
   #:use-module (system vm vm)
   #:export (<repl> make-repl repl-vm repl-language repl-options
-                  repl-tm-stats repl-gc-stats repl-vm-stats
-           repl-welcome repl-prompt repl-read repl-compile repl-eval
-           repl-print repl-option-ref repl-option-set!
-           puts ->string user-error))
+            repl-tm-stats repl-gc-stats repl-vm-stats
+            repl-welcome repl-prompt repl-read repl-compile repl-eval
+            repl-parse repl-print repl-option-ref repl-option-set!
+            puts ->string user-error))
 
 
 ;;;
 ;;; Repl type
 ;;;
 
-(define-record (<repl> vm language options tm-stats gc-stats vm-stats))
+(define-record <repl> vm language options tm-stats gc-stats vm-stats)
 
 (define repl-default-options
   '((trace . #f)
@@ -65,15 +65,23 @@
   ((language-reader (repl-language repl))))
 
 (define (repl-compile repl form . opts)
-  (apply compile-in form (current-module) (repl-language repl) opts))
+  (let ((to (lookup-language (cond ((memq #:e opts) 'scheme)
+                                   ((memq #:t opts) 'ghil)
+                                   ((memq #:c opts) 'glil)
+                                   (else 'objcode)))))
+    (compile form #:from (repl-language repl) #:to to #:opts opts)))
+
+(define (repl-parse repl form)
+  (let ((parser (language-parser (repl-language repl))))
+    (if parser (parser form) form)))
 
 (define (repl-eval repl form)
   (let ((eval (language-evaluator (repl-language repl))))
     (if (and eval
-             (or (not (language-translator (repl-language repl)))
+             (or (null? (language-compilers (repl-language repl)))
                  (assq-ref (repl-options repl) 'interp)))
-	(eval form (current-module))
-	(vm-load (repl-vm repl) (repl-compile repl form)))))
+        (eval form (current-module))
+        (vm-load (repl-vm repl) (repl-compile repl form '())))))
 
 (define (repl-print repl val)
   (if (not (eq? val *unspecified*))

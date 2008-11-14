@@ -22,13 +22,12 @@
 	     (system vm disasm)
 	     (system base compile)
 	     (system base language)
-
+             (language scheme spec)
+             (language objcode spec)
 	     (srfi srfi-1)
 	     (ice-9 r5rs))
 
 
-(define %scheme (lookup-language 'scheme))
-
 (define (fetch-sexp-from-file file)
   (with-input-from-file file
     (lambda ()
@@ -40,7 +39,7 @@
 
 (define (compile-to-objcode sexp)
   "Compile the expression @var{sexp} into a VM program and return it."
-  (compile-in sexp (current-module) %scheme))
+  (compile sexp #:from scheme #:to objcode))
 
 (define (run-vm-program objcode)
   "Run VM program contained into @var{objcode}."
