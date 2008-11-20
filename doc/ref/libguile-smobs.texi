@@ -517,10 +517,10 @@ Smobs are called smob because they are small: they normally have only
 room for one @code{void*} or @code{SCM} value plus 16 bits.  The
 reason for this is that smobs are directly implemented by using the
 low-level, two-word cells of Guile that are also used to implement
-pairs, for example.  (@pxref{Data Representation} for the details.)
-One word of the two-word cells is used for @code{SCM_SMOB_DATA} (or
-@code{SCM_SMOB_OBJECT}), the other contains the 16-bit type tag and
-the 16 extra bits.
+pairs, for example.  (@pxref{The Libguile Runtime Environment} for the
+details.)  One word of the two-word cells is used for
+@code{SCM_SMOB_DATA} (or @code{SCM_SMOB_OBJECT}), the other contains
+the 16-bit type tag and the 16 extra bits.
 
 In addition to the fundamental two-word cells, Guile also has
 four-word cells, which are appropriately called @dfn{double cells}.

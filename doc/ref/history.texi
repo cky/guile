@@ -1,0 +1,46 @@
+@c -*-texinfo-*-
+@c This is part of the GNU Guile Reference Manual.
+@c Copyright (C)  2008
+@c   Free Software Foundation, Inc.
+@c See the file guile.texi for copying conditions.
+
+@node A Brief History of Guile
+@section A Brief History of Guile
+
+@menu
+* In the Beginning There Was Emacs::  
+* The Tcl Wars::                
+* Early Days::                  
+* Adolescence::                 
+* Maturity::                    
+@end menu
+
+@node In the Beginning There Was Emacs
+@subsection In the Beginning, There Was Emacs
+
+@node The Tcl Wars
+@subsection The ``Tcl Wars''
+
+@node Early Days
+@subsection Early Days
+
+The naming (scheme, plan, connive)
+
+GEL -> GUILE -> Guile
+
+Multilingual vision
+
+@node Adolescence
+@subsection Adolescence
+
+GOOPS
+
+the module system
+
+@node Maturity
+@subsection Maturity
+
+1.6, 1.8, ...
+
+pthreads
+

@@ -177,11 +177,12 @@ x
 
 * Guile Modules::
 
+* History and Implementation Details::
+
 * Autoconf Support::
 
 Appendices
 
-* Data Representation::             All the details.
 * GNU Free Documentation License::  The license of this manual.
 
 Indices
@@ -252,7 +253,9 @@ different ways to design a program around Guile, or how to embed Guile
 into existing programs.
 
 There is also a pedagogical yet detailed explanation of how the data
-representation of Guile is implemented, @xref{Data Representation}.
+representation of Guile is implemented, see @ref{Data Representation in
+Scheme} and @ref{The Libguile Runtime Environment}.
+
 You don't need to know the details given there to use Guile from C,
 but they are useful when you want to modify Guile itself or when you
 are just curious about how it is all done.
@@ -364,7 +367,28 @@ available through both Scheme and C interfaces.
 
 @include autoconf.texi
 
+@node History and Implementation Details
+@chapter History and Implementation Details
+
+Some mumblings about Guile as an artifact of historical processes;
+knowledge of this history useful when hacking the source code.
+Libguile as the end product of 
+
+@menu
+* A Brief History of Guile::            Foo.
+* Data Representation in Scheme::       Why things aren't just totally
+                                        straightforward, in general terms.
+* The Libguile Runtime Environment::    Low-level details on Guile's C
+                                        runtime library.
+* A Virtual Machine for Guile::         Foo.
+* Compiling to the Virtual Machine::    Bar.
+@end menu
+
+@include history.texi
 @include data-rep.texi
+@include vm.texi
+@include compiler.texi
+
 @include fdl.texi
 
 @iftex
