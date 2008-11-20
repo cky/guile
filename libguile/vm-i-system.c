@@ -285,7 +285,7 @@ VM_DEFINE_INSTRUCTION (variable_ref, "variable-ref", 0, 0, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (late_variable_ref, "late-variable-ref", 1, 0, 1)
+VM_DEFINE_INSTRUCTION (toplevel_ref, "toplevel-ref", 1, 0, 1)
 {
   unsigned objnum = FETCH ();
   SCM what;
@@ -367,7 +367,7 @@ VM_DEFINE_INSTRUCTION (variable_set, "variable-set", 0, 1, 0)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (late_variable_set, "late-variable-set", 1, 1, 0)
+VM_DEFINE_INSTRUCTION (toplevel_set, "toplevel-set", 1, 1, 0)
 {
   unsigned objnum = FETCH ();
   SCM what;

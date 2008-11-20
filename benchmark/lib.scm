@@ -69,7 +69,7 @@
 ;;    5    (br-if-not 0 3)                 ;; -> 11
 ;;    8    (make-int8 0)                   ;; 0
 ;;   10    (return)
-;;   11    (late-variable-ref 0)
+;;   11    (toplevel-ref 0)
 ;;   13    (local-ref 0)
 ;;   15    (make-int8 1)                   ;; 1
 ;;   17    (sub)

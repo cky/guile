@@ -154,7 +154,7 @@
                   (list "`~a'~@[ (arg)~]"
                         (binding:name b) (< (binding:index b) nargs)))
                 (list "(closure variable)"))))
-      ((late-variable-ref late-variable-set)
+      ((toplevel-ref toplevel-set)
        (and objs
             (let ((v (vector-ref objs (car args))))
               (if (and (variable? v) (variable-bound? v))

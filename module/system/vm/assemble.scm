@@ -223,8 +223,8 @@
                                     (set! object-alist (acons var i object-alist))
                                     i)))))
                    (push-code! (case op
-                                 ((ref) `(late-variable-ref ,i))
-                                 ((set) `(late-variable-set ,i))))))))
+                                 ((ref) `(toplevel-ref ,i))
+                                 ((set) `(toplevel-set ,i))))))))
               ((define)
                (push-object! (make-vdefine #:name name))
                (push-code! '(variable-set)))
@@ -249,8 +249,8 @@
                                       (set! object-alist (acons var i object-alist))
                                       i)))))
                      (push-code! (case op
-                                   ((ref) `(late-variable-ref ,i))
-                                   ((set) `(late-variable-set ,i))))))))
+                                   ((ref) `(toplevel-ref ,i))
+                                   ((set) `(toplevel-set ,i))))))))
                 (else
                  (error "unknown module var kind" op key)))))
 
