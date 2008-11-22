@@ -7,3 +7,4 @@
 /test-with-guile-module
 /test-use-srfi
 /test-scm-with-guile
+/test-scm-c-read
