@@ -1073,32 +1073,56 @@ scm_c_read (SCM port, void *buffer, size_t size)
   /* Now we will call scm_fill_input repeatedly until we have read the
      requested number of bytes.  (Note that a single scm_fill_input
      call does not guarantee to fill the whole of the port's read
-     buffer.)  For these calls, since we already have a buffer here to
-     read into, we bypass the port's own read buffer (if it has one),
-     by saving it off and modifying the port structure to point to our
-     own buffer.
-
-     We need to make sure that the port's normal buffer is reinstated
-     in case one of the scm_fill_input () calls throws an exception;
-     we use the scm_dynwind_* API to achieve that. */
-  psb.pt = pt;
-  psb.buffer = buffer;
-  psb.size = size;
-  scm_dynwind_begin (SCM_F_DYNWIND_REWINDABLE);
-  scm_dynwind_rewind_handler (swap_buffer, &psb, SCM_F_WIND_EXPLICITLY);
-  scm_dynwind_unwind_handler (swap_buffer, &psb, SCM_F_WIND_EXPLICITLY);
-
-  /* Call scm_fill_input until we have all the bytes that we need, or
-     we hit EOF. */
-  while (pt->read_buf_size && (scm_fill_input (port) != EOF))
+     buffer.) */
+  if (pt->read_buf_size <= 1)
     {
-      pt->read_buf_size -= (pt->read_end - pt->read_pos);
-      pt->read_pos = pt->read_buf = pt->read_end;
-    }
-  n_read += pt->read_buf - (unsigned char *) buffer;
+      /* The port that we are reading from is unbuffered - i.e. does
+	 not have its own persistent buffer - but we have a buffer,
+	 provided by our caller, that is the right size for the data
+	 that is wanted.  For the following scm_fill_input calls,
+	 therefore, we use the buffer in hand as the port's read
+	 buffer.
 
-  /* Reinstate the port's normal buffer. */
-  scm_dynwind_end ();
+	 We need to make sure that the port's normal (1 byte) buffer
+	 is reinstated in case one of the scm_fill_input () calls
+	 throws an exception; we use the scm_dynwind_* API to achieve
+	 that. */
+      psb.pt = pt;
+      psb.buffer = buffer;
+      psb.size = size;
+      scm_dynwind_begin (SCM_F_DYNWIND_REWINDABLE);
+      scm_dynwind_rewind_handler (swap_buffer, &psb, SCM_F_WIND_EXPLICITLY);
+      scm_dynwind_unwind_handler (swap_buffer, &psb, SCM_F_WIND_EXPLICITLY);
+
+      /* Call scm_fill_input until we have all the bytes that we need,
+	 or we hit EOF. */
+      while (pt->read_buf_size && (scm_fill_input (port) != EOF))
+	{
+	  pt->read_buf_size -= (pt->read_end - pt->read_pos);
+	  pt->read_pos = pt->read_buf = pt->read_end;
+	}
+      n_read += pt->read_buf - (unsigned char *) buffer;
+
+      /* Reinstate the port's normal buffer. */
+      scm_dynwind_end ();
+    }
+  else
+    {
+      /* The port has its own buffer.  It is important that we use it,
+	 even if it happens to be smaller than our caller's buffer, so
+	 that a custom port implementation's entry points (in
+	 particular, fill_input) can rely on the buffer always being
+	 the same as they first set up. */
+      while (size && (scm_fill_input (port) != EOF))
+	{
+	  n_available = min (size, pt->read_end - pt->read_pos);
+	  memcpy (buffer, pt->read_pos, n_available);
+	  buffer = (char *) buffer + n_available;
+	  pt->read_pos += n_available;
+	  n_read += n_available;
+	  size -= n_available;
+	} 
+    }
 
   return n_read;
 }
