@@ -1,4 +1,4 @@
-/* Copyright (C) 1996,1997,2000,2001, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1996,1997,2000,2001, 2006, 2008 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -67,9 +67,7 @@ int
 main (int argc, char **argv)
 {
 #if !defined (__MINGW32__)
-  /* libtool automagically inserts this variable into your executable... */
-  extern const lt_dlsymlist lt_preloaded_symbols[];
-  lt_dlpreload_default (lt_preloaded_symbols);
+  LTDL_SET_PRELOADED_SYMBOLS ();
 #endif
   scm_boot_guile (argc, argv, inner_main, 0);
   return 0; /* never reached */
