@@ -42,10 +42,10 @@ make_port (scm_t_bits port_type)
 
   port = scm_new_port_table_entry (port_type);
 
-  /* Attach it the underlying u8vector, which we'll use as PORT's buffer.  */
+  /* Associate C_BUFFER with PORT, for test purposes.  */
   SCM_SETSTREAM (port, (scm_t_bits) c_buffer);
 
-  /* Have the port directly access the buffer (bytevector).  */
+  /* Use C_BUFFER as PORT's internal buffer.  */
   c_port = SCM_PTAB_ENTRY (port);
   c_port->read_pos = c_port->read_buf = (unsigned char *) c_buffer;
   c_port->read_end = (unsigned char *) c_buffer + PORT_BUFFER_SIZE;
