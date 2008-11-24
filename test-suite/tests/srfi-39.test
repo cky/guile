@@ -1,6 +1,6 @@
 ;;;; srfi-39.test --- -*- scheme -*-
 ;;;;
-;;;; Copyright (C) 2004, 2005, 2006 Free Software Foundation, Inc.
+;;;; Copyright (C) 2004, 2005, 2006, 2008 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -19,7 +19,10 @@
 
 (define-module (test-srfi-39)
   #:use-module (test-suite lib)
-  #:use-module (srfi srfi-39))
+  #:use-module (srfi srfi-34)
+  #:use-module (srfi srfi-39)
+  #:duplicates (last) ;; avoid warning about srfi-34 replacing `raise'
+  )
 
 (define a (make-parameter 3))
 (define b (make-parameter 4))
@@ -53,7 +56,19 @@
            (check c d 10 9)
            (parameterize ((c (a)) (d (b)))
 	     (and (check a b 0 1)
-		  (check c d 0 1)))))))
+		  (check c d 0 1))))))
+
+  (pass-if "SRFI-34"
+    (let ((inside? (make-parameter #f)))
+      (call/cc (lambda (return)
+                 (with-exception-handler
+                  (lambda (c)
+                    ;; This handler should be called in the dynamic
+                    ;; environment installed by `parameterize'.
+                    (return (inside?)))
+                  (lambda ()
+                    (parameterize ((inside? #t))
+                      (raise 'some-exception)))))))))
 
 (let ()
   (define (test-ports param new-port new-port-2)

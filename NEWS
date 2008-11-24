@@ -82,6 +82,8 @@ available: Guile is now always configured in "maintainer mode".
 ** Fix `Stack overflow' errors seen when building on some platforms
 ** Fix bug when `scm_with_guile ()' was called several times from the
    same thread
+** The handler of SRFI-34 `with-exception-handler' is now invoked in the
+   dynamic environment of the call to `raise'
 
 
 Changes in 1.8.5 (since 1.8.4)

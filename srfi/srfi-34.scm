@@ -1,6 +1,6 @@
 ;;; srfi-34.scm --- Exception handling for programs
 
-;; Copyright (C) 2003, 2006 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2006, 2008 Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -40,7 +40,7 @@
 procedure that accepts one argument.  It is installed as the current
 exception handler for the dynamic extent (as determined by
 dynamic-wind) of the invocation of THUNK."
-  (lazy-catch throw-key
+  (with-throw-handler throw-key
 	      thunk
 	      (lambda (key obj)
 		(handler obj))))
