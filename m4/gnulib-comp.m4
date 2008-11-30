@@ -215,4 +215,5 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/time_r.m4
   m4/tm_gmtoff.m4
   m4/wchar.m4
+  m4/wint_t.m4
 ])

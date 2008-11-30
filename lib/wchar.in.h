@@ -26,7 +26,9 @@
  * the declaration of wcwidth().
  */
 
+#if __GNUC__ >= 3
 @PRAGMA_SYSTEM_HEADER@
+#endif
 
 #ifdef __need_mbstate_t
 /* Special invocation convention inside uClibc header files.  */
@@ -60,6 +62,12 @@
 
 #ifdef __cplusplus
 extern "C" {
+#endif
+
+
+/* Define wint_t.  (Also done in wctype.in.h.)  */
+#if !@HAVE_WINT_T@ && !defined wint_t
+# define wint_t int
 #endif
 
 
