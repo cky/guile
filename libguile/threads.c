@@ -61,6 +61,9 @@
 # define pipe(fd) _pipe (fd, 256, O_BINARY)
 #endif /* __MINGW32__ */
 
+#include <full-read.h>
+
+
 static void
 to_timespec (SCM t, scm_t_timespec *waittime)
 {
@@ -480,8 +483,13 @@ guilify_self_1 (SCM_STACKITEM *base)
   t->sleep_mutex = NULL;
   t->sleep_object = SCM_BOOL_F;
   t->sleep_fd = -1;
-  /* XXX - check for errors. */
-  pipe (t->sleep_pipe);
+
+  if (pipe (t->sleep_pipe) != 0)
+    /* FIXME: Error conditions during the initialization phase are handled
+       gracelessly since public functions such as `scm_init_guile ()'
+       currently have type `void'.  */
+    abort ();
+
   scm_i_pthread_mutex_init (&t->heap_mutex, NULL);
   scm_i_pthread_mutex_init (&t->admin_mutex, NULL);
   t->clear_freelists_p = 0;
@@ -1776,7 +1784,8 @@ scm_std_select (int nfds,
   if (res > 0 && FD_ISSET (wakeup_fd, readfds))
     {
       char dummy;
-      read (wakeup_fd, &dummy, 1);
+      full_read (wakeup_fd, &dummy, 1);
+
       FD_CLR (wakeup_fd, readfds);
       res -= 1;
       if (res == 0)
