@@ -85,6 +85,7 @@ available: Guile is now always configured in "maintainer mode".
 ** The handler of SRFI-34 `with-exception-handler' is now invoked in the
    dynamic environment of the call to `raise'
 ** Fix potential deadlock in `make-struct'
+** Fix compilation problem with libltdl from Libtool 2.2.x
 
 
 Changes in 1.8.5 (since 1.8.4)
