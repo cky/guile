@@ -86,6 +86,7 @@ available: Guile is now always configured in "maintainer mode".
    dynamic environment of the call to `raise'
 ** Fix potential deadlock in `make-struct'
 ** Fix compilation problem with libltdl from Libtool 2.2.x
+** Fix sloppy bound checking in `string-{ref,set!}' with the empty string
 
 
 Changes in 1.8.5 (since 1.8.4)

@@ -670,10 +670,17 @@ SCM_DEFINE (scm_string_ref, "string-ref", 2, 0, 0,
 	    "indexing. @var{k} must be a valid index of @var{str}.")
 #define FUNC_NAME s_scm_string_ref
 {
+  size_t len;
   unsigned long idx;
 
   SCM_VALIDATE_STRING (1, str);
-  idx = scm_to_unsigned_integer (k, 0, scm_i_string_length (str)-1);
+
+  len = scm_i_string_length (str);
+  if (SCM_LIKELY (len > 0))
+    idx = scm_to_unsigned_integer (k, 0, len - 1);
+  else
+    scm_out_of_range (NULL, k);
+
   return SCM_MAKE_CHAR (scm_i_string_chars (str)[idx]);
 }
 #undef FUNC_NAME
@@ -693,10 +700,17 @@ SCM_DEFINE (scm_string_set_x, "string-set!", 3, 0, 0,
 	    "@var{str}.")
 #define FUNC_NAME s_scm_string_set_x
 {
+  size_t len;
   unsigned long idx;
 
   SCM_VALIDATE_STRING (1, str);
-  idx = scm_to_unsigned_integer (k, 0, scm_i_string_length(str)-1);
+
+  len = scm_i_string_length (str);
+  if (SCM_LIKELY (len > 0))
+    idx = scm_to_unsigned_integer (k, 0, len - 1);
+  else
+    scm_out_of_range (NULL, k);
+
   SCM_VALIDATE_CHAR (3, chr);
   {
     char *dst = scm_i_string_writable_chars (str);
