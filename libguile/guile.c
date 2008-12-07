@@ -66,9 +66,6 @@ inner_main (void *closure SCM_UNUSED, int argc, char **argv)
 int
 main (int argc, char **argv)
 {
-#if !defined (__MINGW32__)
-  LTDL_SET_PRELOADED_SYMBOLS ();
-#endif
   scm_boot_guile (argc, argv, inner_main, 0);
   return 0; /* never reached */
 }
