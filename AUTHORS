@@ -339,3 +339,7 @@ In the subdirectory libguile, changes to:
 
 John W. Eaton, based on code from AT&T Bell Laboratories and Bellcore:
  The complex number division method in libguile/numbers.c.
+
+Gregory Marton:
+In the subdirectory test-suite/tests, changes to:
+    hash.test
