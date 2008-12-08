@@ -65,6 +65,12 @@ When you use GDS to evaluate Scheme code from Emacs, you can now use
 Thus, the `--enable-maintainer-mode' configure option is no longer
 available: Guile is now always configured in "maintainer mode".
 
+** `ChangeLog' files are no longer updated
+
+Instead, changes are detailed in the version control system's logs.  See
+the top-level `ChangeLog' files for details.
+
+
 * Bugs fixed
 
 ** `symbol->string' now returns a read-only string, as per R5RS
