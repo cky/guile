@@ -1,7 +1,6 @@
 (define-module (ice-9 gds-client)
   #:use-module (oop goops)
   #:use-module (oop goops describe)
-  #:use-module (ice-9 debugging breakpoints)
   #:use-module (ice-9 debugging trace)
   #:use-module (ice-9 debugging traps)
   #:use-module (ice-9 debugging trc)
@@ -12,7 +11,6 @@
   #:use-module (ice-9 string-fun)
   #:export (gds-debug-trap
 	    run-utility
-	    set-gds-breakpoints
 	    gds-accept-input))
 
 (cond ((string>=? (version) "1.7")
@@ -383,7 +381,6 @@ Thanks!\n\n"
                               ;; Another complete expression read; add
                               ;; it to the list.
 			      (begin
-				(for-each-breakpoint setup-after-read x)
 				(if (and (pair? x)
 					 (memq 'debug flags))
 				    (install-trap (make <source-trap>
@@ -400,11 +397,7 @@ Thanks!\n\n"
                                            (display " to evaluate\n")
                                            (apply display-error #f
                                                   (current-output-port) args)))
-                                      ("error-in-read"))))))))
-	      (if (string? port-name)
-		  (without-traps
-		   (lambda ()
-		     (for-each-breakpoint setup-after-eval port-name)))))
+                                      ("error-in-read")))))))))
             (cdr protocol)))
 
     ((complete)
@@ -441,82 +434,8 @@ Thanks!\n\n"
          (gds-debug-trap last-lazy-trap-context)
          (error "There is no stack available to show")))
 
-    ((set-breakpoint)
-     ;; Create or update a breakpoint object according to the
-     ;; definition.  If the target code is already loaded, note that
-     ;; this may immediately install a trap.
-     (let* ((num (cadr protocol))
-	    (def (caddr protocol))
-	    (behaviour (case (list-ref def 0)
-			 ((debug) gds-debug-trap)
-			 ((trace) gds-trace-trap)
-			 ((trace-subtree) gds-trace-subtree)
-			 (else (error "Unsupported behaviour:"
-				      (list-ref def 0)))))
-	    (bp (hash-ref breakpoints num)))
-       (trc 'existing-bp bp)
-       (if bp
-	   (update-breakpoint bp (list-ref def 3))
-	   (begin
-	     (set! bp
-		   (case (list-ref def 1)
-		     ((in)
-		      (break-in (string->symbol (list-ref def 3))
-				(list-ref def 2)
-				#:behaviour behaviour))
-		     ((at)
-		      (break-at (list-ref def 2)
-				(car (list-ref def 3))
-				(cdr (list-ref def 3))
-				#:behaviour behaviour))
-		     (else
-		      (error "Unsupported breakpoint type:"
-			     (list-ref def 1)))))
-	     ;; Install an observer that will tell the frontend about
-	     ;; future changes in this breakpoint's status.
-	     (slot-set! bp 'observer
-			(lambda ()
-			  (write-form `(breakpoint
-					,num
-					,@(map trap-description
-					       (slot-ref bp 'traps))))))
-	     ;; Add this to the breakpoint hash, and return the
-	     ;; breakpoint number and status to the front end.
-	     (hash-set! breakpoints num bp)))
-       ;; Call the breakpoint's observer now.
-       ((slot-ref bp 'observer))))
-
-    ((delete-breakpoint)
-     (let* ((num (cadr protocol))
-	    (bp (hash-ref breakpoints num)))
-       (if bp
-	   (begin
-	     (hash-remove! breakpoints num)
-	     (delete-breakpoint bp)))))
-
-;;;    ((describe-breakpoints)
-;;;     ;; Describe all breakpoints.
-;;;     (let ((desc
-;;;	    (with-output-to-string
-;;;	      (lambda ()
-;;;		(hash-fold (lambda (num bp acc)
-;;;			     (format #t
-;;;				     "Breakpoint ~a ~a (~a):\n"
-;;;				     (class-name (class-of bp))
-;;;				     num
-;;;				     (slot-ref bp 'status))
-;;;			     (for-each (lambda (trap)
-;;;					 (write (trap-description trap))
-;;;					 (newline))
-;;;				       (slot-ref bp 'traps)))
-;;;			   #f
-;;;			   breakpoints)))))
-;;;       (write-form (list 'info-result desc))))
-
     (else
      (error "Unexpected protocol:" protocol))))
-
-(define breakpoints (make-hash-table 11))
 
 (define (resolve-module-from-root name)
   (save-module-excursion
@@ -591,17 +510,12 @@ Thanks!\n\n"
   (apply throw key args))
 
 (define (run-utility)
-  (set-gds-breakpoints)
+  (connect-to-gds)
   (write (getpid))
   (newline)
   (force-output)
   (named-module-use! '(guile-user) '(ice-9 session))
   (gds-accept-input #f))
-
-(define (set-gds-breakpoints)
-  (connect-to-gds)
-  (write-form '(get-breakpoints))
-  (gds-accept-input #t))
 
 (define-method (trap-description (trap <trap>))
   (let loop ((description (list (class-name (class-of trap))))
