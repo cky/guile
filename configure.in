@@ -86,6 +86,8 @@ AC_LIBTOOL_DLOPEN
 AC_PROG_LIBTOOL
 AC_CHECK_LIB([ltdl], [lt_dlinit], ,
   [AC_MSG_ERROR([libltdl not found.  See README.])])
+AC_CHECK_HEADER([ltdl.h], [],
+  [AC_MSG_ERROR([<ltdl.h> not found.  See README.])])
 
 AC_CHECK_PROG(have_makeinfo, makeinfo, yes, no)
 AM_CONDITIONAL(HAVE_MAKEINFO, test "$have_makeinfo" = yes)
