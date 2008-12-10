@@ -46,8 +46,10 @@
 
      http://developer.apple.com/documentation/Darwin/Reference/ManPages/man3/newlocale.3.html
 
-   The whole API is being standardized by the X/Open Group (as of Jan. 2007)
-   following Drepper's proposal.  */
+   The whole API was eventually standardized in the ``Open Group Base
+   Specifications Issue 7'' (aka. "POSIX 2008"):
+
+     http://www.opengroup.org/onlinepubs/9699919799/basedefs/locale.h.html  */
 # define USE_GNU_LOCALE_API
 #endif
 
