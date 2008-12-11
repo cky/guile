@@ -138,7 +138,13 @@ listen on to the path that it should bind to for each one.")
 
 ;;;; Debugger protocol
 
+(defcustom gds-protocol-hook nil
+  "Hook called on receipt of a protocol form from the GDS client."
+  :type 'hook
+  :group 'gds)
+
 (defun gds-debug-protocol (client form)
+  (run-hook-with-args 'gds-protocol-hook form)
   (or (eq client '*)
       (let ((proc (car form)))
         (cond ((eq proc 'name)
