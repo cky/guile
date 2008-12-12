@@ -1,0 +1,225 @@
+
+* Installation
+
+** How do I install guile-debugging?
+
+After unpacking the .tar.gz file, run the usual sequence of commands:
+
+$ ./configure
+$ make
+$ sudo make install
+
+Then you need to make sure that the directory where guile-debugging's
+Scheme files were installed is included in your Guile's load path.
+(The sequence above will usually install guile-debugging under
+/usr/local, and /usr/local is not in Guile's load path by default,
+unless Guile itself was installed under /usr/local.)  You can discover
+your Guile's default load path by typing
+
+$ guile -q -c '(begin (write %load-path) (newline))'
+
+There are two ways to add guile-debugging's installation directory to
+Guile's load path, if it isn't already there.
+
+1. Edit or create the `init.scm' file, which Guile reads on startup,
+   so that it includes a line like this:
+
+   (set! %load-path (cons "/usr/local/share/guile" %load-path))
+
+   but with "/usr/local" replaced by the prefix that you installed
+   guile-debugging under, if not /usr/local.
+
+   The init.scm file must be installed (if it does not already exist
+   there) in one of the directories in Guile's default load-path.
+
+2. Add this line to your .emacs file:
+
+   (setq gds-scheme-directory "/usr/local/share/guile")
+
+   before the `require' or `load' line that loads GDS, but with
+   "/usr/local" replaced by the prefix that you installed
+   guile-debugging under, if not /usr/local.
+
+Finally, if you want guile-debugging's GDS interface to be loaded
+automatically whenever you run Emacs, add this line to your .emacs:
+
+(require 'gds)
+
+* Troubleshooting
+
+** "error in process filter" when starting Emacs (or loading GDS)
+
+This is caused by an internal error in GDS's Scheme code, for which a
+backtrace will have appeared in the gds-debug buffer, so please switch
+to the gds-debug buffer and see what it says there.
+
+The most common cause is a load path problem: Guile cannot find GDS's
+Scheme code because it is not in the known load path.  In this case
+you should see the error message "no code for module" somewhere in the
+backtrace.  If you see this, please try the remedies described in `How
+do I install guile-debugging?' above, then restart Emacs and see if
+the problem has been cured.
+
+If you don't see "no code for module", or if the described remedies
+don't fix the problem, please send the contents of the gds-debug
+buffer to me at <neil@ossau.uklinux.net>, so I can debug the problem.
+
+If you don't see a backtrace at all in the gds-debug buffer, try the
+next item ...
+
+** "error in process filter" at some other time
+
+This is caused by an internal error somewhere in GDS's Emacs Lisp
+code.  If possible, please
+
+- switch on the `debug-on-error' option (M-x set-variable RET
+  debug-on-error RET t RET)
+
+- do whatever you were doing so that the same error happens again
+
+- send the Emacs Lisp stack trace which pops up to me at
+  <neil@ossau.uklinux.net>.
+
+If that doesn't work, please just mail me with as much detail as
+possible of what you were doing when the error occurred.
+
+* GDS Features
+
+** How do I inspect variable values?
+
+Type `e' followed by the name of the variable, then <RET>.  This
+works whenever GDS is displaying a stack for an error at at a
+breakpoint.  (You can actually `e' to evaluate any expression in the
+local environment of the selected stack frame; inspecting variables is
+the special case of this where the expression is only a variable name.)
+
+If GDS is displaying the associated source code in the window above or
+below the stack, you can see the values of any variables in the
+highlighted code just by hovering your mouse over them.
+
+** How do I change a variable's value?
+
+Type `e' and then `(set! VARNAME NEWVAL)', where VARNAME is the name
+of the variable you want to set and NEWVAL is an expression which
+Guile can evaluate to get the new value.  This works whenever GDS is
+displaying a stack for an error at at a breakpoint.  The setting will
+take effect in the local environment of the selected stack frame.
+
+** How do I change the expression that Guile is about to evaluate?
+
+Type `t' followed by the expression that you want Guile to evaluate
+instead, then <RET>.
+
+Then type one of the commands that tells Guile to continue execution.
+
+(Tweaking expressions, as described here, is only supported by the
+latest CVS version of Guile.  The GDS stack display tells you when
+tweaking is possible by adding "(tweakable)" to the first line of the
+stack window.)
+
+** How do I return a value from the current stack frame different to what the evaluator has calculated?
+
+You have to be at the normal exit of the relevant frame first, so if
+GDS is not already showing you the normally calculated return value,
+type `o' to finish the evaluation of the selected frame.
+
+Then type `t' followed by the value you want to return, and <RET>.
+The value that you type can be any expression, but note that it will
+not be evaluated before being returned; for example if you type `(+ 2
+3)', the return value will be a three-element list, not 5.
+
+Finally type one of the commands that tells Guile to continue
+execution.
+
+(Tweaking return values, as described here, is only supported by the
+latest CVS version of Guile.  The GDS stack display tells you when
+tweaking is possible by adding "(tweakable)" to the first line of the
+stack window.)
+
+** How do I step over a line of code?
+
+Scheme isn't organized by lines, so it doesn't really make sense to
+think of stepping over lines.  Instead please see the next entry on
+stepping over expressions.
+
+** How do I step over an expression?
+
+It depends what you mean by "step over".  If you mean that you want
+Guile to evaluate that expression normally, but then show you its
+return value, type `o', which does exactly that.
+
+If you mean that you want to skip the evaluation of that expression
+(for example because it has side effects that you don't want to
+happen), use `t' to change the expression to something else which
+Guile will evaluate instead.
+
+There has to be a substitute expression so Guile can calculate a value
+to return to the calling frame.  If you know at a particular point
+that the return value is not important, you can type `t #f <RET>' or
+`t 0 <RET>'.
+
+See `How do I change the expression that Guile is about to evaluate?'
+above for more on using `t'.
+
+** How do I move up and down the call stack?
+
+Type `u' to move up and `d' to move down.  "Up" in GDS means to a more
+"inner" frame, and "down" means to a more "outer" frame.
+
+** How do I run until the next breakpoint?
+
+Type `g' (for "go").
+
+** How do I run until the end of the selected stack frame?
+
+Type `o'.
+
+** How do I set a breakpoint?
+
+First identify the code that you want to set the breakpoint in, and
+what kind of breakpoint you want.  To set a breakpoint on entry to a
+top level procedure, move the cursor to anywhere in the procedure
+definition, and make sure that the region/mark is inactive.  To set a
+breakpoint on a particular expression (or sequence of expressions) set
+point and mark so that the region covers the opening parentheses of
+all the target expressions.
+
+Then type ...
+
+  `C-c C-b d' for a `debug' breakpoint, which means that GDS will
+  display the stack when the breakpoint is hit
+
+  `C-c C-b t' for a `trace' breakpoint, which means that the start and
+  end of the relevant procedure or expression(s) will be traced to the
+  *GDS Trace* buffer
+
+  `C-c C-b T' for a `trace-subtree' breakpoint, which means that every
+  evaluation step involved in the evaluation of the relevant procedure
+  or expression(s) will be traced to the *GDS Trace* buffer.
+
+You can also type `C-x <SPC>', which does the same as one of the
+above, depending on the value of `gds-default-breakpoint-type'.
+
+** How do I clear a breakpoint?
+
+Select a region containing the breakpoints that you want to clear, and
+type `C-c C-b <DEL>'.
+
+** How do I trace calls to a particular procedure or evaluations of a particular expression?
+
+In GDS this means setting a breakpoint whose type is `trace' or
+`trace-subtree'.  See `How do I set a breakpoint?' above.
+
+* Development
+
+** How can I follow or contribute to guile-debugging's development?
+
+guile-debugging is hosted at http://gna.org, so please see the project
+page there.  Feel free to raise bugs, tasks containing patches or
+feature requests, and so on.  You can also write directly to me by
+email: <neil@ossau.uklinux.net>.
+
+
+Local Variables:
+mode: outline
+End:
