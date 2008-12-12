@@ -36,38 +36,31 @@
 
 (define connection->id (make-object-property))
 
-(define (run-server port-or-path)
+(define (run-server unix-socket-name tcp-port)
 
-  (or (integer? port-or-path)
-      (string? port-or-path)
-      (error "port-or-path should be an integer (port number) or a string (file name)"
-	     port-or-path))
+  (let ((unix-server (socket PF_UNIX SOCK_STREAM 0))
+	(tcp-server (socket PF_INET SOCK_STREAM 0)))
 
-  (let ((server (socket (if (integer? port-or-path) PF_INET PF_UNIX)
-			SOCK_STREAM
-			0)))
+    ;; Bind and start listening on the Unix domain socket.
+    (false-if-exception (delete-file unix-socket-name))
+    (bind unix-server AF_UNIX unix-socket-name)
+    (listen unix-server 5)
 
-    ;; Initialize server socket.
-    (if (integer? port-or-path)
-	(begin
-	  (setsockopt server SOL_SOCKET SO_REUSEADDR 1)
-	  (bind server AF_INET INADDR_ANY port-or-path))
-	(begin
-	  (catch #t
-		 (lambda () (delete-file port-or-path))
-		 (lambda _ #f))
-	  (bind server AF_UNIX port-or-path)))
+    ;; Bind and start listening on the TCP socket.
+    (setsockopt tcp-server SOL_SOCKET SO_REUSEADDR 1)
+    (false-if-exception (bind tcp-server AF_INET INADDR_ANY tcp-port))
+    (listen tcp-server 5)
 
-    ;; Start listening.
-    (listen server 5)
-
+    ;; Main loop.
     (let loop ((clients '()) (readable-sockets '()))
 
       (define (do-read port)
 	(cond ((eq? port (current-input-port))
 	       (do-read-from-ui))
-	      ((eq? port server)
-	       (accept-new-client))
+	      ((eq? port unix-server)
+	       (accept-new-client unix-server))
+	      ((eq? port tcp-server)
+	       (accept-new-client tcp-server))
 	      (else
 	       (do-read-from-client port))))
 
@@ -86,7 +79,7 @@
 	      (trc "client not found")))	
 	clients)
 
-      (define (accept-new-client)
+      (define (accept-new-client server)
         (let ((new-port (car (accept server))))
 	  ;; Read the client's ID.
 	  (let ((name-form (read new-port)))
@@ -122,8 +115,10 @@
       ;;(trc 'readable-sockets readable-sockets)
 
       (if (null? readable-sockets)
-	  (loop clients (car (select (cons (current-input-port)
-					   (cons server clients))
+	  (loop clients (car (select (cons* (current-input-port)
+					    unix-server
+					    tcp-server
+					    clients)
 				     '()
 				     '())))
 	  (loop (do-read (car readable-sockets)) (cdr readable-sockets))))))

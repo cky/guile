@@ -172,23 +172,20 @@
 
 (define (connect-to-gds . application-name)
   (or gds-port
-      (begin
+      (let ((gds-unix-socket-name (getenv "GDS_UNIX_SOCKET_NAME")))
         (set! gds-port
-	      (or (let ((s (socket PF_INET SOCK_STREAM 0))
-			(SOL_TCP 6)
-			(TCP_NODELAY 1))
-		    (setsockopt s SOL_TCP TCP_NODELAY 1)
-		    (catch #t
-			   (lambda ()
-			     (connect s AF_INET (inet-aton "127.0.0.1") 8333)
-			     s)
-			   (lambda _ #f)))
-		  (let ((s (socket PF_UNIX SOCK_STREAM 0)))
-		    (catch #t
-			   (lambda ()
-			     (connect s AF_UNIX "/tmp/.gds_socket")
-			     s)
-			   (lambda _ #f)))
+	      (or (and gds-unix-socket-name
+		       (false-if-exception
+			(let ((s (socket PF_UNIX SOCK_STREAM 0)))
+			  (connect s AF_UNIX gds-unix-socket-name)
+			  s)))
+		  (false-if-exception
+		   (let ((s (socket PF_INET SOCK_STREAM 0))
+			 (SOL_TCP 6)
+			 (TCP_NODELAY 1))
+		     (setsockopt s SOL_TCP TCP_NODELAY 1)
+		     (connect s AF_INET (inet-aton "127.0.0.1") 8333)
+		     s))
 		  (error "Couldn't connect to GDS by TCP or Unix domain socket")))
         (write-form (list 'name (getpid) (apply client-name application-name))))))
 
