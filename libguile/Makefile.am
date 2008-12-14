@@ -134,7 +134,7 @@ DOT_X_FILES = alist.x arbiters.x async.x backtrace.x boolean.x chars.x	\
     continuations.x debug.x deprecation.x deprecated.x discouraged.x	\
     dynl.x dynwind.x environments.x eq.x error.x eval.x evalext.x	\
     extensions.x feature.x fluids.x fports.x futures.x gc.x		\
-    gettext.c goops.x gsubr.x guardians.x				\
+    gettext.x goops.x gsubr.x guardians.x				\
     hash.x hashtab.x hooks.x i18n.x init.x ioext.x keywords.x lang.x	\
     list.x load.x macros.x mallocs.x modules.x numbers.x objects.x	\
     objprop.x options.x pairs.x ports.x print.x procprop.x procs.x	\
