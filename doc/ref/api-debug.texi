@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2007
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -19,7 +19,6 @@ infrastructure that builds on top of those calls.
 * Evaluation Model::            Evaluation and the Scheme stack.
 * Debug on Error::              Debugging when an error occurs.
 * Traps::
-* Breakpoints::
 * Debugging Examples::
 @end menu
 
@@ -1689,137 +1688,6 @@ just above.
 Return the trap object with the specified @var{number}, or @code{#f}
 if there isn't one.
 @end deffn
-
-
-@node Breakpoints
-@subsection Breakpoints
-
-While they are an important piece of infrastructure, and directly
-usable in some scenarios, traps are still too low level to meet some
-of the requirements of interactive development.
-
-A common scenario is that a newly written procedure is not working
-properly, and so you'd like to be able to step or trace through its
-code to find out why.  Ideally this should be possible from the IDE
-and without having to modify the source code.  There are two problems
-with using traps directly in this scenario.
-
-@enumerate
-@item
-They are too detailed: constructing and installing a trap requires you
-to say what kind of trap you want and to specify fairly low level
-options for it, whereas what you really want is just to say ``break
-here using the most efficient means possible.''
-
-@item
-The most efficient kinds of trap --- that is, @code{<procedure-trap>}
-and @code{<source-trap>} --- can only be specified and installed
-@emph{after} the code that they refer to has been loaded.  This is an
-inconvenient detail for the user to deal with, and in some
-applications it might be very difficult to insert an instruction to
-install the required trap in between when the code is loaded and when
-the procedure concerned is first called.  It would be better to be
-able to tell Guile about the requirement upfront, and for it to deal
-with installing the trap when possible.
-@end enumerate
-
-We solve these problems by introducing breakpoints.  A breakpoint is
-something which says ``I want to break at location X, or in procedure
-P --- just make it happen'', and can be set regardless of whether the
-relevant code has already been loaded.  Breakpoints use traps to do
-their work, but that is a detail that the user will usually not have
-to care about.
-
-Breakpoints are provided by a combination of Scheme code in the client
-program, and facilities for setting and managing breakpoints in the
-GDS front end.  On the Scheme side the entry points are as follows.
-
-@deffn {Getter with Setter} default-breakpoint-behaviour
-A ``getter with setter'' procedure that can be used to get or set the
-default behaviour for new breakpoints.  When a new default behaviour
-is set, by calling
-
-@lisp
-(set! (default-breakpoint-behaviour) @var{new-behaviour})
-@end lisp
-
-@noindent
-the new behaviour applies to all following @code{break-in} and
-@code{break-at} calls, but does not affect breakpoints which have
-already been set.  @var{new-behaviour} should be a behaviour procedure
-with the signature
-
-@lisp
-(lambda (trap-context) @dots{})
-@end lisp
-
-@noindent
-as described in @ref{Specifying Trap Behaviour}.
-@end deffn
-
-@deffn {Procedure} break-in procedure-name [module-or-file-name] [options]
-Set a breakpoint on entry to the procedure named @var{procedure-name},
-which should be a symbol.  @var{module-or-file-name}, if present, is
-the name of the module (a list of symbols) or file (a string) which
-includes the target procedure.  If @var{module-or-file-name} is
-absent, the target procedure is assumed to be in the current module.
-
-The available options are any of the common trap options
-(@pxref{Common Trap Options}), and are used when creating the
-breakpoint's underlying traps.  The default breakpoint behaviour
-(given earlier to @code{default-breakpoint-behaviour}) is only used if
-these options do not include @code{#:behaviour @var{behaviour}}.
-@end deffn
-
-@deffn {Procedure} break-at file-name line column [options]
-Set a breakpoint on the expression in file @var{file-name} whose
-opening parenthesis is on line @var{line} at column @var{column}.
-@var{line} and @var{column} both count from 0 (not from 1).
-
-The available options are any of the common trap options
-(@pxref{Common Trap Options}), and are used when creating the
-breakpoint's underlying traps.  The default breakpoint behaviour
-(given earlier to @code{default-breakpoint-behaviour}) is only used if
-these options do not include @code{#:behaviour @var{behaviour}}.
-@end deffn
-
-@deffn {Procedure} set-gds-breakpoints
-Ask the GDS front end for a list of breakpoints to set, and set these
-using @code{break-in} and @code{break-at} as appropriate.
-@end deffn
-
-@code{default-breakpoint-behaviour}, @code{break-in} and
-@code{break-at} allow an application's startup code to specify any
-breakpoints that it needs inline in that code.  For example, to trace
-calls and arguments to a group of procedures to handle HTTP requests,
-one might write something like this:
-
-@lisp
-(use-modules (ice-9 debugging breakpoints)
-             (ice-9 debugging trace))
-
-(set! (default-breakpoint-behaviour) trace-trap)
-
-(break-in 'handle-http-request '(web http))
-(break-in 'read-http-request '(web http))
-(break-in 'decode-form-data '(web http))
-(break-in 'send-http-response '(web http))
-@end lisp
-
-@code{set-gds-breakpoints} can be used as well as or instead of the
-above, and is intended to be the most practical option if you are
-using GDS.  The idea is that you only need to add this one call
-somewhere in your application's startup code, like this:
-
-@lisp
-(use-modules (ice-9 gds-client))
-(set-gds-breakpoints)
-@end lisp
-
-@noindent
-and then all the details of the breakpoints that you want to set can
-be managed through GDS.  For the details of GDS's breakpoints
-interface, see @ref{Setting and Managing Breakpoints}.
 
 
 @node Debugging Examples

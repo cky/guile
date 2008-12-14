@@ -277,7 +277,7 @@ SCM_DEFINE (scm_getgroups, "getgroups", 0, 0, 0,
 
   size = ngroups * sizeof (GETGROUPS_T);
   groups = scm_malloc (size);
-  getgroups (ngroups, groups);
+  ngroups = getgroups (ngroups, groups);
 
   result = scm_c_make_vector (ngroups, SCM_BOOL_F);
   while (--ngroups >= 0) 
@@ -1563,12 +1563,15 @@ SCM_DEFINE (scm_nice, "nice", 1, 0, 0,
 	    "The return value is unspecified.")
 #define FUNC_NAME s_scm_nice
 {
+  int nice_value;
+
   /* nice() returns "prio-NZERO" on success or -1 on error, but -1 can arise
      from "prio-NZERO", so an error must be detected from errno changed */
   errno = 0;
-  nice (scm_to_int (incr));
+  nice_value = nice (scm_to_int (incr));
   if (errno != 0)
     SCM_SYSERROR;
+
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME

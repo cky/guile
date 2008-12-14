@@ -409,8 +409,14 @@ SCM_DEFINE (scm_make_struct, "make-struct", 2, 0, 1,
       if (! SCM_LAYOUT_TAILP (SCM_CHAR (last_char)))
         goto bad_tail;
     }
-    
-  SCM_CRITICAL_SECTION_START;
+
+  /* In guile 1.8.5 and earlier, everything below was covered by a
+     CRITICAL_SECTION lock.  This can lead to deadlocks in garbage
+     collection, since other threads might be holding the heap_mutex, while
+     sleeping on the CRITICAL_SECTION lock.  There does not seem to be any
+     need for a lock on the section below, as it does not access or update
+     any globals, so the critical section has been removed. */
+
   if (c_vtable[scm_struct_i_flags] & SCM_STRUCTF_ENTITY)
     {
       data = scm_alloc_struct (basic_size + tail_elts,
@@ -442,15 +448,6 @@ SCM_DEFINE (scm_make_struct, "make-struct", 2, 0, 1,
 				      &prev_finalizer_data);
     }
 
-  SCM_CRITICAL_SECTION_END;
-
-  /* In guile 1.8.1 and earlier, the SCM_CRITICAL_SECTION_END above covered
-     also the following scm_struct_init.  But that meant if scm_struct_init
-     finds an invalid type for a "u" field then there's an error throw in a
-     critical section, which results in an abort().  Not sure if we need any
-     protection across scm_struct_init.  The data array contains garbage at
-     this point, but until we return it's not visible to anyone except
-     `gc'.  */
   scm_struct_init (handle, layout, data, tail_elts, init);
 
   return handle;

@@ -101,7 +101,7 @@ guile_filter_doc_snarfage$(EXEEXT): $(guile_filter_doc_snarfage_OBJECTS) $(guile
 guile_SOURCES = guile.c
 guile_CFLAGS = $(GUILE_CFLAGS) $(AM_CFLAGS)
 guile_LDADD = libguile.la
-guile_LDFLAGS = @DLPREOPEN@ $(GUILE_CFLAGS)
+guile_LDFLAGS = $(GUILE_CFLAGS)
 
 libguile_la_CFLAGS = $(GUILE_CFLAGS) $(AM_CFLAGS)
 

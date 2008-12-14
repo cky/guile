@@ -63,6 +63,9 @@
 #define pipe(fd) _pipe (fd, 256, O_BINARY)
 #endif
 
+#include <full-write.h>
+
+
 
 
 /* SIGRETTYPE is the type that signal handlers return.  See <signal.h> */
@@ -137,7 +140,7 @@ static SIGRETTYPE
 take_signal (int signum)
 {
   char sigbyte = signum;
-  write (signal_pipe[1], &sigbyte, 1);
+  full_write (signal_pipe[1], &sigbyte, 1);
 
 #ifndef HAVE_SIGACTION
   signal (signum, take_signal);

@@ -107,6 +107,13 @@ TESTS += test-conversion
 check_SCRIPTS += test-use-srfi
 TESTS += test-use-srfi
 
+# test-scm-c-read
+test_scm_c_read_SOURCES = test-scm-c-read.c
+test_scm_c_read_CFLAGS = ${test_cflags}
+test_scm_c_read_LDADD = ${top_builddir}/libguile/libguile.la
+check_PROGRAMS += test-scm-c-read
+TESTS += test-scm-c-read
+
 if BUILD_PTHREAD_SUPPORT
 
 # test-with-guile-module
@@ -115,9 +122,14 @@ test_with_guile_module_LDADD = ${top_builddir}/libguile/libguile.la
 check_PROGRAMS += test-with-guile-module
 TESTS += test-with-guile-module
 
+test_scm_with_guile_CFLAGS = ${test_cflags}
+test_scm_with_guile_LDADD = ${top_builddir}/libguile/libguile.la
+check_PROGRAMS += test-scm-with-guile
+TESTS += test-scm-with-guile
+
 else
 
-EXTRA_DIST += test-with-guile-module.c
+EXTRA_DIST += test-with-guile-module.c test-scm-with-guile.c
 
 endif
 

@@ -47,13 +47,19 @@ LTALLOCA=`echo "$ALLOCA" | sed 's/\.[^.]* /.lo /g;s/\.[^.]*$/.lo/'`
 changequote([, ])dnl
 AC_SUBST([LTALLOCA])
   gl_FUNC_ALLOCA
+  gl_SAFE_READ
+  gl_SAFE_WRITE
+  gt_TYPE_SSIZE_T
   AM_STDBOOL_H
   gl_STRCASE
   gl_FUNC_GNU_STRFTIME
   gl_HEADER_STRINGS_H
   gl_HEADER_TIME_H
   gl_TIME_R
+  gl_UNISTD_H
   gl_WCHAR_H
+  gl_FUNC_WRITE
+  gl_UNISTD_MODULE_INDICATOR([write])
   m4_ifval(gl_LIBSOURCES_LIST, [
     m4_syscmd([test ! -d ]m4_defn([gl_LIBSOURCES_DIR])[ ||
       for gl_file in ]gl_LIBSOURCES_LIST[ ; do
@@ -185,7 +191,14 @@ AC_DEFUN([gl_FILE_LIST], [
   build-aux/link-warning.h
   lib/alloca.c
   lib/alloca.in.h
-  lib/dummy.c
+  lib/full-read.c
+  lib/full-read.h
+  lib/full-write.c
+  lib/full-write.h
+  lib/safe-read.c
+  lib/safe-read.h
+  lib/safe-write.c
+  lib/safe-write.h
   lib/stdbool.in.h
   lib/strcasecmp.c
   lib/strftime.c
@@ -194,13 +207,19 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/strncasecmp.c
   lib/time.in.h
   lib/time_r.c
+  lib/unistd.in.h
+  lib/verify.h
   lib/wchar.in.h
+  lib/write.c
   m4/alloca.m4
   m4/autobuild.m4
   m4/extensions.m4
   m4/gnulib-common.m4
   m4/include_next.m4
   m4/mbstate_t.m4
+  m4/safe-read.m4
+  m4/safe-write.m4
+  m4/ssize_t.m4
   m4/stdbool.m4
   m4/strcase.m4
   m4/strftime.m4
@@ -208,5 +227,8 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/time_h.m4
   m4/time_r.m4
   m4/tm_gmtoff.m4
+  m4/unistd_h.m4
   m4/wchar.m4
+  m4/wint_t.m4
+  m4/write.m4
 ])

@@ -62,6 +62,9 @@
 # define pipe(fd) _pipe (fd, 256, O_BINARY)
 #endif /* __MINGW32__ */
 
+#include <full-read.h>
+
+
 static void
 to_timespec (SCM t, scm_t_timespec *waittime)
 {
@@ -460,8 +463,13 @@ guilify_self_1 (SCM_STACKITEM *base)
   t->sleep_mutex = NULL;
   t->sleep_object = SCM_BOOL_F;
   t->sleep_fd = -1;
-  /* XXX - check for errors. */
-  pipe (t->sleep_pipe);
+
+  if (pipe (t->sleep_pipe) != 0)
+    /* FIXME: Error conditions during the initialization phase are handled
+       gracelessly since public functions such as `scm_init_guile ()'
+       currently have type `void'.  */
+    abort ();
+
   scm_i_pthread_mutex_init (&t->admin_mutex, NULL);
   t->current_mark_stack_ptr = NULL;
   t->current_mark_stack_limit = NULL;
@@ -677,9 +685,18 @@ scm_i_init_thread_for_guile (SCM_STACKITEM *base, SCM parent)
       /* This thread is already guilified but not in guile mode, just
 	 resume it.
 
-	 XXX - base might be lower than when this thread was first
-	 guilified.
-       */
+         A user call to scm_with_guile() will lead us to here.  This could
+         happen from anywhere on the stack, and in particular lower on the
+         stack than when it was when this thread was first guilified.  Thus,
+         `base' must be updated.  */
+#if SCM_STACK_GROWS_UP
+      if (base < t->base)
+         t->base = base;
+#else
+      if (base > t->base)
+         t->base = base;
+#endif
+
       scm_enter_guile ((scm_t_guile_ticket) t);
       return 1;
     }
@@ -1793,7 +1810,8 @@ scm_std_select (int nfds,
   if (res > 0 && FD_ISSET (wakeup_fd, readfds))
     {
       char dummy;
-      read (wakeup_fd, &dummy, 1);
+      full_read (wakeup_fd, &dummy, 1);
+
       FD_CLR (wakeup_fd, readfds);
       res -= 1;
       if (res == 0)
