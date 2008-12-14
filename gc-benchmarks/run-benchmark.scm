@@ -176,7 +176,8 @@ exec ${GUILE-guile} -q -l "$0"                                  \
   `((reference-environment . "GUILE=guile")
     (benchmark-directory   . "./gc-benchmarks")
     (log-port              . ,(current-output-port))
-    (profile-options       . "")))
+    (profile-options       . "")
+    (input                 . ())))
 
 (define (show-help)
   (format #t "Usage: run-benchmark [OPTIONS] BENCHMARKS...
