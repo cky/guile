@@ -1,7 +1,7 @@
 ;;;; srfi-19.test --- test suite for SRFI-19 -*- scheme -*-
 ;;;; Matthias Koeppe <mkoeppe@mail.math.uni-magdeburg.de> --- June 2001
 ;;;;
-;;;; 	Copyright (C) 2001, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2001, 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 ;;;;
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -166,6 +166,14 @@ incomplete numerical tower implementation.)"
                                                 0)))
                    (date->time-utc
                     (make-date 0 0 0 0 9 12 2006 0))))
+
+  (pass-if "string->date works on Sunday"
+    ;; `string->date' never rests!
+    (let* ((str  "Sun, 05 Jun 2005 18:33:00 +0200")
+           (date (string->date str "~a, ~d ~b ~Y ~H:~M:~S ~z")))
+      (equal? "Sun Jun 05 18:33:00+0200 2005"
+              (date->string date))))
+
   ;; check time comparison procedures
   (let* ((time1 (make-time time-monotonic 0 0))
          (time2 (make-time time-monotonic 0 0))
