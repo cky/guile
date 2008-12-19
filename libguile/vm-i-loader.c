@@ -208,20 +208,6 @@ VM_DEFINE_LOADER (define, "define")
   NEXT;
 }
 
-VM_DEFINE_LOADER (late_bind, "late-bind")
-{
-  SCM sym;
-  size_t len;
-
-  FETCH_LENGTH (len);
-  SYNC_REGISTER ();
-  sym = scm_from_locale_symboln ((char *)ip, len);
-  ip += len;
-
-  PUSH (sym);
-  NEXT;
-}
-
 /*
   Local Variables:
   c-file-style: "gnu"

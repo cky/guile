@@ -94,7 +94,7 @@ global memory (modules, global bindings, etc) that is shared among
 other parts of Guile, including other VMs.
 
 A VM has generic instructions, such as those to reference local
-variables, and instructions designed to support Guile's langauges --
+variables, and instructions designed to support Guile's languages --
 mathematical instructions that support the entire numerical tower, an
 inlined implementation of @code{cons}, etc.
 
@@ -108,7 +108,7 @@ The registers that a VM has are as follows:
 
 In other architectures, the instruction pointer is sometimes called
 the ``program counter'' (pc). This set of registers is pretty typical
-for stack machines; their exact meanings in the context of Guile's Vm
+for stack machines; their exact meanings in the context of Guile's VM
 is described below REFFIXME.
 
 A virtual machine executes by loading a compiled procedure, and
@@ -188,10 +188,11 @@ we return from this activation frame, we will jump back to this
 @item MV return address
 The @code{ip} to return to if this application returns multiple
 values. For continuations that only accept one value, this value will
-be @code{NULL}; for others, it will be an @code{ip} that expects that
-the top value on the stack is an integer -- the number of values being
-returned -- and that below that integer there are the values being
-returned.
+be @code{NULL}; for others, it will be an @code{ip} that points to a
+multiple-value return address in the calling code. That code will
+expect the top value on the stack to be an integer -- the number of
+values being returned -- and that below that integer there are the
+values being returned.
 
 @item Dynamic link
 This is the @code{fp} in effect before this program was applied. In
@@ -435,7 +436,7 @@ same way:
 @itemize
 @item They take the Scheme object located on the stack and use it as
 the branch condition;
-@item If the condition if false, then program execution continues with
+@item If the condition is false, then program execution continues with
 the next instruction;
 @item If the condition is true, then the instruction pointer is
 increased by the offset passed as an argument to the branch
@@ -493,18 +494,18 @@ In order to handle such bindings, each program has an @dfn{object
 table} associated to it.  This table (actually a Scheme vector)
 contains all constant objects referenced by the program.  The object
 table of a program is initialized right before a program is loaded
-with @var{load-program}.
+with @code{load-program}.
 
 Variable objects are one such type of constant object: when a global
 binding is defined, a variable object is associated to it and that
 object will remain constant over time, even if the value bound to it
 changes. Therefore, toplevel bindings only need to be looked up once.
 ThereafterReferences to the corresponding toplevel variables from within the
-program are then performed via the @var{object-ref} instruction and
+program are then performed via the @code{object-ref} instruction and
 are almost as fast as local variable references.
 
 Let us consider the following program (procedure) which references
-external bindings @code{frob} and @var{%magic}:
+external bindings @code{frob} and @code{%magic}:
 
 @example
 (lambda (x)
