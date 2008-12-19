@@ -177,7 +177,7 @@ x
 
 * Guile Modules::
 
-* History and Implementation Details::
+* Guile Implementation::
 
 * Autoconf Support::
 
@@ -367,15 +367,16 @@ available through both Scheme and C interfaces.
 
 @include autoconf.texi
 
-@node History and Implementation Details
-@chapter History and Implementation Details
+@node Guile Implementation
+@chapter Guile Implementation
 
-Some mumblings about Guile as an artifact of historical processes;
-knowledge of this history useful when hacking the source code.
-Libguile as the end product of 
+Things that aren't necessary to know to use guile, but that are
+interesting once you decide that Guile is interesting.
+
+Also Schemers as closet compiler writers.
 
 @menu
-* A Brief History of Guile::            Foo.
+* History::                             A brief history of Guile.
 * Data Representation in Scheme::       Why things aren't just totally
                                         straightforward, in general terms.
 * The Libguile Runtime Environment::    Low-level details on Guile's C

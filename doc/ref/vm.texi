@@ -7,6 +7,19 @@
 @node A Virtual Machine for Guile
 @section A Virtual Machine for Guile
 
+Guile has both an interpreter and a compiler. To a user, the
+difference is largely transparent -- interpreted and compiled
+procedures can call each other as they please.
+
+The difference is that the compiler creates and interprets bytecode
+for a custom virtual machine, instead of interpreting the
+S-expressions directly. Running compiled code is faster than running
+interpreted code.
+
+The virtual machine that does the bytecode interpretation is a part of
+Guile itself. This section describes the nature of Guile's virtual
+machine.
+
 @menu
 * Why a VM?::                   
 * VM Concepts::                 
@@ -19,7 +32,47 @@
 @node Why a VM?
 @subsection Why a VM?
 
-asdfa
+For a long time, Guile only had an interpreter, called the evaluator.
+Guile's evaluator operates directly on the S-expression representation
+of Scheme source code.
+
+But while the evaluator is highly optimized and hand-tuned, and
+contains some extensive speed trickery (REFFIXME memoization), it
+still performs many needless computations during the course of
+evaluating an expression. For example, application of a function to
+arguments needlessly conses up the arguments in a list. Evaluation of
+an expression always has to figure out what the car of the expression
+is -- a procedure, a memoized form, or something else. All values have
+to be allocated on the heap. Et cetera.
+
+The solution to this problem is to compile the higher-level language,
+Scheme, into a lower-level language for which all of the checks and
+dispatching have already been done -- the code is instead stripped to
+the bare minimum needed to ``do the job''.
+
+The question becomes then, what low-level language to choose? There
+are many options. We could compile to native code directly, but that
+poses portability problems for Guile, as it is a highly cross-platform
+project.
+
+So we want the performance gains that compilation provides, but we
+also want to maintain the portability benefits of a single code path.
+The obvious solution is to compile to a virtual machine that is
+present on all Guile installations.
+
+The easiest (and most fun) way to depend on a virtual machine is to
+implement the virtual machine within Guile itself. This way the
+virtual machine provides what Scheme needs (tail calls, multiple
+values, call/cc) and can provide optimized inline instructions for
+Guile (cons, struct-ref, etc.).
+
+So this is what Guile does. The rest of this section describes that VM
+that Guile implements, and the compiled procedures that run on it.
+
+Note that this decision to implement a bytecode compiler does not
+preclude native compilation. We can compile from bytecode to native
+code at runtime, or even do ahead of time compilation. More
+possibilities are discussed in REFFIXME.
 
 @node VM Concepts
 @subsection VM Concepts
@@ -184,18 +237,17 @@ Within the lambda expression, "foo" is a top-level variable, "a" is a
 lexically captured variable, and "b" is a local variable.
 
 That is to say: @code{b} may safely be allocated on the stack, as
-there is no enclosing lexical environment that references it, nor is
-it ever mutated.
+there is no enclosed procedure that references it, nor is it ever
+mutated.
 
-@code{a}, on the other hand, is referenced by an enclosed lexical
-context, that of the lambda. Thus it must be allocated on the heap, as
-it may (and will) outlive the dynamic extent of the invocation of
-@code{foo}.
+@code{a}, on the other hand, is referenced by an enclosed procedure,
+that of the lambda. Thus it must be allocated on the heap, as it may
+(and will) outlive the dynamic extent of the invocation of @code{foo}.
 
 @code{foo} is a toplevel variable, as mandated by Scheme's semantics:
 
 @example
-  (define proc (foo 'bar))
+  (define proc (foo 'bar)) ; assuming prev. definition of @code{foo}
   (define foo 42)          ; redefinition
   (proc 'baz)
   @result{} (42 bar baz)
@@ -642,7 +694,7 @@ Create and fill a vector with the top @var{n} values from the stack,
 popping off those values and pushing on the resulting vector.
 @end deffn
 
-@deffn mark
+@deffn Instruction mark
 Pushes a special value onto the stack that other stack instructions
 like @code{list-mark} can use.
 @end deffn
