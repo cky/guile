@@ -1406,7 +1406,7 @@
 (define (priv:string->date date index format-string str-len port template-string)
   (define (skip-until port skipper)
     (let ((ch (peek-char port)))
-      (if (eof-object? port)
+      (if (eof-object? ch)
           (priv:time-error 'string->date 'bad-date-format-string template-string)
           (if (not (skipper ch))
               (begin (read-char port) (skip-until port skipper))))))
