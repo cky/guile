@@ -997,7 +997,7 @@ This reference can be decoded to a C pointer to a heap cell using the
 @code{SCM} value is done using the @code{PTR2SCM} macro.
 
 @c (FIXME:: this name should be changed)
-@deftypefn Macro (scm_t_cell *) SCM2PTR (SCM @var{x})
+@deftypefn Macro {scm_t_cell *} SCM2PTR (SCM @var{x})
 Extract and return the heap cell pointer from a non-immediate @code{SCM}
 object @var{x}.
 @end deftypefn
