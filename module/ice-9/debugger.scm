@@ -131,16 +131,16 @@ Indicates that the debugger should display an introductory message.
 
 (define (debug-on-error syms)
   "Enable or disable debug on error."
-  (set! lazy-handler-dispatch
+  (set! pre-unwind-handler-dispatch
 	(if syms
 	    (lambda (key . args)
 	      (if (memq key syms)
 		  (begin
-		    (debug-stack (make-stack #t lazy-handler-dispatch)
+		    (debug-stack (make-stack #t pre-unwind-handler-dispatch)
 				 #:with-introduction
 				 #:continuable)
 		    (throw 'abort key)))
-	      (apply default-lazy-handler key args))
-	    default-lazy-handler)))
+	      (apply default-pre-unwind-handler key args))
+	    default-pre-unwind-handler)))
 
 ;;; (ice-9 debugger) ends here.

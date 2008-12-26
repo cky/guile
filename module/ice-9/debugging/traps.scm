@@ -59,7 +59,7 @@
 	    trap-ordering
             behaviour-ordering
 	    throw->trap-context
-	    on-lazy-handler-dispatch
+	    on-pre-unwind-handler-dispatch
 	    ;; Interface for authors of new <trap> subclasses.
 	    <trap-context>
 	    <trap>
@@ -467,14 +467,14 @@ it twice."
 ;;; same code for certain events that are trap-like, but not actually
 ;;; traps in the sense of the calls made by libguile's evaluator.
 
-;;; The main example of this is when an error is signalled.  Guile
-;;; doesn't yet have a 100% reliable way of hooking into errors, but
-;;; in practice most errors go through a lazy-catch whose handler is
-;;; lazy-handler-dispatch (defined in ice-9/boot-9.scm), which in turn
-;;; calls default-lazy-handler.  So we can present most errors as
-;;; pseudo-traps by modifying default-lazy-handler.
+;;; The main example of this is when an error is signalled. Guile
+;;; doesn't yet have a 100% reliable way of hooking into errors, but in
+;;; practice most errors go through a catch whose pre-unwind handler is
+;;; pre-unwind-handler-dispatch (defined in ice-9/boot-9.scm), which in
+;;; turn calls default-pre-unwind-handler. So we can present most errors
+;;; as pseudo-traps by modifying default-pre-unwind-handler.
 
-(define default-default-lazy-handler default-lazy-handler)
+(define default-default-pre-unwind-handler default-pre-unwind-handler)
 
 (define (throw->trap-context key args . stack-args)
   (let ((ctx (make <trap-context>
@@ -489,16 +489,16 @@ it twice."
 		     (apply make-stack #t stack-args))))
     ctx))
 
-(define (on-lazy-handler-dispatch behaviour . ignored-keys)
-  (set! default-lazy-handler
+(define (on-pre-unwind-handler-dispatch behaviour . ignored-keys)
+  (set! default-pre-unwind-handler
 	(if behaviour
 	    (lambda (key . args)
 	      (or (memq key ignored-keys)
 		  (behaviour (throw->trap-context key
 						  args
-						  lazy-handler-dispatch)))
-	      (apply default-default-lazy-handler key args))
-	    default-default-lazy-handler)))
+						  pre-unwind-handler-dispatch)))
+	      (apply default-default-pre-unwind-handler key args))
+	    default-default-pre-unwind-handler)))
 
 ;;; {Trap Classes}
 

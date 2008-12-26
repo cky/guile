@@ -40,4 +40,4 @@ this call to @code{catch}."
   (catch key
 	 thunk
 	 handler
-	 lazy-handler-dispatch))
+	 pre-unwind-handler-dispatch))

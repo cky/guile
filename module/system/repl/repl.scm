@@ -51,11 +51,6 @@
     (with-fluid* current-reader (meta-reader lread)
       (lambda () (repl-reader (lambda () (repl-prompt repl)))))))
 
-(define (default-pre-unwind-handler key . args)
-  (save-stack default-pre-unwind-handler)
-  (vm-save-stack (the-vm))
-  (apply throw key args))
-
 (define (default-catch-handler . args)
   (pmatch args
     ((quit . _)
@@ -66,8 +61,6 @@
      (apply format #t msg args)
      (newline))
     ((,key ,subr ,msg ,args . ,rest)
-     (vm-backtrace (the-vm))
-     (newline)
      (let ((cep (current-error-port)))
        (cond ((not (stack? (fluid-ref the-last-stack))))
              ((memq 'backtrace (debug-options-interface))
@@ -93,43 +86,42 @@
 
 (define (call-with-backtrace thunk)
   (catch #t
-         thunk
+         (lambda () (%start-stack #t thunk))
          default-catch-handler
-         default-pre-unwind-handler))
+         pre-unwind-handler-dispatch))
+
+(define-macro (with-backtrace form)
+  `(call-with-backtrace (lambda () ,form)))
 
 (define (start-repl lang)
   (let ((repl (make-repl lang))
         (status #f))
     (repl-welcome repl)
     (let prompt-loop ()
-      (let ((exp (call-with-backtrace
-                  (lambda () (prompting-meta-read repl)))))
+      (let ((exp (with-backtrace (prompting-meta-read repl))))
         (cond
          ((eqv? exp (if #f #f))) ; read error, pass
          ((eq? exp meta-command-token)
-          (call-with-backtrace
-           (lambda ()
-             (meta-command repl (read-line)))))
+          (with-backtrace (meta-command repl (read-line))))
          ((eof-object? exp)
           (newline)
           (set! status '()))
          (else
-          (call-with-backtrace
-           (lambda ()
-             (catch 'quit
-                    (lambda ()
-                      (call-with-values (lambda ()
-                                          (run-hook before-eval-hook exp)
-                                          (start-stack repl-eval
-                                                       (repl-eval repl
-                                                                  (repl-parse repl exp))))
-                        (lambda l
-                          (for-each (lambda (v)
-                                      (run-hook before-print-hook v)
-                                      (repl-print repl v))
-                                    l))))
-                    (lambda (k . args)
-                      (set! status args)))))))
+          (with-backtrace
+           (catch 'quit
+                  (lambda ()
+                    (call-with-values
+                        (lambda ()
+                          (run-hook before-eval-hook exp)
+                          (start-stack #t
+                                       (repl-eval repl (repl-parse repl exp))))
+                      (lambda l
+                        (for-each (lambda (v)
+                                    (run-hook before-print-hook v)
+                                    (repl-print repl v))
+                                  l))))
+                  (lambda (k . args)
+                    (set! status args))))))
         (or status
             (begin
               (next-char #f) ;; consume trailing whitespace

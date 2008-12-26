@@ -2323,12 +2323,12 @@ module '(ice-9 q) '(make-q q-length))}."
 
 (define (set-repl-prompt! v) (set! scm-repl-prompt v))
 
-(define (default-lazy-handler key . args)
-  (save-stack lazy-handler-dispatch)
+(define (default-pre-unwind-handler key . args)
+  (save-stack pre-unwind-handler-dispatch)
   (apply throw key args))
 
-(define (lazy-handler-dispatch key . args)
-  (apply default-lazy-handler key args))
+(define (pre-unwind-handler-dispatch key . args)
+  (apply default-pre-unwind-handler key args))
 
 (define abort-hook (make-hook))
 
@@ -2405,15 +2405,15 @@ module '(ice-9 q) '(make-q q-length))}."
 				 (else
 				  (apply bad-throw key args)))))))
 
-		    ;; Note that having just `lazy-handler-dispatch'
+		    ;; Note that having just `pre-unwind-handler-dispatch'
 		    ;; here is connected with the mechanism that
 		    ;; produces a nice backtrace upon error.  If, for
 		    ;; example, this is replaced with (lambda args
-		    ;; (apply lazy-handler-dispatch args)), the stack
+		    ;; (apply pre-unwind-handler-dispatch args)), the stack
 		    ;; cutting (in save-stack) goes wrong and ends up
 		    ;; saving no stack at all, so there is no
 		    ;; backtrace.
-		    lazy-handler-dispatch)))
+		    pre-unwind-handler-dispatch)))
 
 	(if next (loop next) status)))
     (set! set-batch-mode?! (lambda (arg)
