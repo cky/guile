@@ -467,8 +467,21 @@ static void
 display_backtrace_get_file_line (SCM frame, SCM *file, SCM *line)
 {
   SCM source = SCM_FRAME_SOURCE (frame);
-  *file = SCM_MEMOIZEDP (source) ? scm_source_property (source, scm_sym_filename) : SCM_BOOL_F;
-  *line = (SCM_MEMOIZEDP (source)) ? scm_source_property (source, scm_sym_line) : SCM_BOOL_F;
+  *file = *line = SCM_BOOL_F;
+  if (SCM_MEMOIZEDP (source))
+    {
+      *file = scm_source_property (source, scm_sym_filename);
+      *line = scm_source_property (source, scm_sym_line);
+    }
+  else if (scm_is_vector (source))
+    {
+      /* #(line column file), from VM compilation */
+      size_t len = scm_c_vector_length (source);
+      if (len >= 3)
+        *file = scm_c_vector_ref (source, 2);
+      if (len >= 1)
+        *line = scm_c_vector_ref (source, 0);
+    }
 }
 
 static void
