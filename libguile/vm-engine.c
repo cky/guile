@@ -80,7 +80,6 @@ vm_run (SCM vm, SCM program, SCM args)
   wind_data.vp = vp;
   wind_data.sp = vp->sp;
   wind_data.fp = vp->fp;
-  wind_data.this_frame = vp->this_frame;
   scm_dynwind_unwind_handler (vm_reset_stack, &wind_data, 0);
 
   /* could do this if we reified all vm stacks -- for now, don't bother changing

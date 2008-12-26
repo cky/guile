@@ -217,11 +217,10 @@
 #if VM_USE_HOOKS
 #define RUN_HOOK(h)				\
 {						\
-  if (!SCM_FALSEP (vp->hooks[h]))		\
+  if (SCM_UNLIKELY (!SCM_FALSEP (vp->hooks[h])))\
     {						\
       SYNC_REGISTER ();				\
-      vm_heapify_frames (vm);			\
-      scm_c_run_hook (vp->hooks[h], hook_args);	\
+      vm_dispatch_hook (vm, vp->hooks[h], hook_args);      \
       CACHE_REGISTER ();			\
     }						\
 }
@@ -310,75 +309,6 @@ do						\
     goto vm_error_improper_list;                \
   }                                             \
 } while (0)
-
-
-/* Below is a (slightly broken) experiment to avoid calling `scm_cell' and to
-   allocate cells on the stack.  This is a significant improvement for
-   programs which call a lot of procedures, since the procedure call
-   mechanism uses POP_LIST which normally uses `scm_cons'.
-
-   What it does is that it creates a list whose cells are allocated on the
-   VM's stack instead of being allocated on the heap via `scm_cell'.  This is
-   much faster.  However, if the callee does something like:
-
-     (lambda (. args)
-       (set! the-args args))
-
-   then terrible things may happen since the list of arguments may be
-   overwritten later on.  */
-
-
-/* Awful hack that aligns PTR so that it can be considered as a non-immediate
-   value by Guile.  */
-#define ALIGN_AS_NON_IMMEDIATE(_ptr)		\
-{						\
-  if ((scm_t_bits)(_ptr) & 6)			\
-    {						\
-      size_t _incr;				\
-						\
-      _incr = (scm_t_bits)(_ptr) & 6;		\
-      _incr = (~_incr) & 7;			\
-      (_ptr) += _incr;				\
-    }						\
-}
-
-#define POP_LIST_ON_STACK(n)			\
-do						\
-{						\
-  int i;					\
-  if (n == 0)					\
-    {						\
-      sp -= n;					\
-      PUSH (SCM_EOL);				\
-    }						\
-  else						\
-    {						\
-      SCM *list_head, *list;			\
-						\
-      list_head = sp + 1;			\
-      ALIGN_AS_NON_IMMEDIATE (list_head);	\
-      list = list_head;				\
-						\
-      sp -= n;					\
-      for (i = 1; i <= n; i++)			\
-	{					\
-	  /* The cell's car and cdr.  */	\
-	  *(list) = sp[i];			\
-	  *(list + 1) = PTR2SCM (list + 2);	\
-	  list += 2;				\
-	}					\
-						\
-      /* The last pair's cdr is '().  */	\
-      list--;					\
-      *list = SCM_EOL;				\
-      /* Push the SCM object that points */	\
-      /* to the first cell.  */			\
-      PUSH (PTR2SCM (list_head));		\
-    }						\
-}						\
-while (0)
-
-/* end of the experiment */
 
 
 #define POP_LIST_MARK()				\
@@ -476,7 +406,7 @@ do {						\
   /* New registers */                           \
   fp = sp - bp->nargs + 1;                      \
   data = SCM_FRAME_DATA_ADDRESS (fp);           \
-  sp = data + 4;                                \
+  sp = data + 3;                                \
   CHECK_OVERFLOW ();				\
   stack_base = sp;				\
   ip = bp->base;				\
@@ -486,10 +416,9 @@ do {						\
     data[-i] = SCM_UNDEFINED;                   \
 						\
   /* Set frame data */				\
-  data[4] = (SCM)ra;                            \
-  data[3] = 0x0;                                \
-  data[2] = (SCM)dl;                            \
-  data[1] = SCM_BOOL_F;				\
+  data[3] = (SCM)ra;                            \
+  data[2] = 0x0;                                \
+  data[1] = (SCM)dl;                            \
                                                 \
   /* Postpone initializing external vars,       \
      because if the CONS causes a GC, we        \

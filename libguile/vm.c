@@ -79,19 +79,6 @@
 
 scm_t_bits scm_tc16_vm_cont;
 
-struct scm_vm_cont {
-  scm_byte_t *ip;
-  scm_t_ptrdiff sp;
-  scm_t_ptrdiff fp;
-  scm_t_ptrdiff stack_size;
-  SCM *stack_base;
-  scm_t_ptrdiff reloc;
-};
-
-
-#define SCM_VM_CONT_P(OBJ)	SCM_SMOB_PREDICATE (scm_tc16_vm_cont, OBJ)
-#define SCM_VM_CONT_DATA(CONT)	((struct scm_vm_cont *) SCM_CELL_WORD_1 (CONT))
-
 static void
 vm_mark_stack (SCM *base, scm_t_ptrdiff size, SCM *fp, scm_t_ptrdiff reloc)
 {
@@ -119,7 +106,7 @@ vm_mark_stack (SCM *base, scm_t_ptrdiff size, SCM *fp, scm_t_ptrdiff reloc)
       /* update fp from the dynamic link */
       fp = (SCM*)*sp-- + reloc;
 
-      /* mark from the hl down to the lower address */
+      /* mark from the el down to the lower address */
       for (; sp >= lower; sp--)
         if (*sp && SCM_NIMP (*sp))
           scm_gc_mark (*sp);
@@ -222,7 +209,6 @@ struct vm_unwind_data
   struct scm_vm *vp;
   SCM *sp;
   SCM *fp;
-  SCM this_frame;
 };
 
 static void
@@ -233,10 +219,32 @@ vm_reset_stack (void *data)
   
   vp->sp = w->sp;
   vp->fp = w->fp;
-  vp->this_frame = w->this_frame;
 #ifdef VM_ENABLE_STACK_NULLING
   memset (vp->sp + 1, 0, (vp->stack_size - (vp->sp + 1 - vp->stack_base)) * sizeof(SCM));
 #endif
+}
+
+static void enfalsen_frame (void *p)
+{ 
+  struct scm_vm *vp = p;
+  vp->trace_frame = SCM_BOOL_F;
+}
+
+static void
+vm_dispatch_hook (SCM vm, SCM hook, SCM hook_args)
+{
+  struct scm_vm *vp = SCM_VM_DATA (vm);
+
+  if (!SCM_FALSEP (vp->trace_frame))
+    return;
+  
+  scm_dynwind_begin (0);
+  vp->trace_frame = scm_c_make_vm_frame (vm, vp->fp, vp->sp, vp->ip, 0);
+  scm_dynwind_unwind_handler (enfalsen_frame, vp, SCM_F_WIND_EXPLICITLY);
+
+  scm_c_run_hook (hook, hook_args);
+
+  scm_dynwind_end ();
 }
 
 
@@ -270,68 +278,6 @@ vm_fetch_length (scm_byte_t *ip, size_t *lenp)
       *lenp = (b1 << 24) + (b2 << 16) + (b3 << 8) + b4;
     }
   return ip;
-}
-
-static SCM
-vm_heapify_frames_1 (struct scm_vm *vp, SCM *fp, SCM *sp, SCM **destp)
-{
-  SCM frame;
-  SCM *dl = SCM_FRAME_DYNAMIC_LINK (fp);
-#if 0
-  SCM *src = SCM_FRAME_UPPER_ADDRESS (fp);
-#endif
-  SCM *dest = SCM_FRAME_LOWER_ADDRESS (fp);
-
-  if (!dl)
-    {
-      /* The top frame */
-      frame = scm_c_make_heap_frame (fp);
-      fp = SCM_HEAP_FRAME_POINTER (frame);
-      SCM_FRAME_HEAP_LINK (fp) = SCM_BOOL_T;
-    }
-  else
-    {
-      /* Child frames */
-      SCM link = SCM_FRAME_HEAP_LINK (dl);
-      if (!SCM_FALSEP (link))
-	link = SCM_FRAME_LOWER_ADDRESS (dl)[-1]; /* self link */
-      else
-	link = vm_heapify_frames_1 (vp, dl, dest - 1, &dest);
-      frame = scm_c_make_heap_frame (fp);
-      fp = SCM_HEAP_FRAME_POINTER (frame);
-      /* FIXME: I don't think we should be storing heap links on the stack. */
-      SCM_FRAME_HEAP_LINK (fp)    = link;
-      SCM_FRAME_SET_DYNAMIC_LINK (fp, SCM_HEAP_FRAME_POINTER (link));
-    }
-
-  /* Apparently the intention here is to be able to have a frame on the heap,
-     but data on the stack, so that you can push as much as you want on the
-     stack; but I think that it's currently causing borkage with nonlocal exits
-     and the unwind handler, which reinstates the sp and fp, but it's no longer
-     pointing at a valid stack frame. So disable for now, we'll get back to
-     this later. */
-#if 0
-  /* Move stack data */
-  for (; src <= sp; src++, dest++)
-    *dest = *src;
-  *destp = dest;
-#endif
-
-  return frame;
-}
-
-static SCM
-vm_heapify_frames (SCM vm)
-{
-  struct scm_vm *vp = SCM_VM_DATA (vm);
-  if (SCM_FALSEP (SCM_FRAME_HEAP_LINK (vp->fp)))
-    {
-      SCM *dest;
-      vp->this_frame = vm_heapify_frames_1 (vp, vp->fp, vp->sp, &dest);
-      vp->fp = SCM_HEAP_FRAME_POINTER (vp->this_frame);
-      vp->sp = dest - 1;
-    }
-  return vp->this_frame;
 }
 
 
@@ -380,11 +326,9 @@ make_vm (void)
   vp->time        = 0;
   vp->clock       = 0;
   vp->options     = SCM_EOL;
-  vp->this_frame  = SCM_BOOL_F;
-  vp->last_frame  = SCM_BOOL_F;
-  vp->last_ip     = NULL;
   for (i = 0; i < SCM_VM_NUM_HOOKS; i++)
     vp->hooks[i] = SCM_BOOL_F;
+  vp->trace_frame = SCM_BOOL_F;
   SCM_RETURN_NEWSMOB (scm_tc16_vm, vp);
 }
 #undef FUNC_NAME
@@ -407,8 +351,9 @@ vm_mark (SCM obj)
   /* mark other objects  */
   for (i = 0; i < SCM_VM_NUM_HOOKS; i++)
     scm_gc_mark (vp->hooks[i]);
-  scm_gc_mark (vp->this_frame);
-  scm_gc_mark (vp->last_frame);
+
+  scm_gc_mark (vp->trace_frame);
+
   return vp->options;
 }
 
@@ -630,109 +575,13 @@ SCM_DEFINE (scm_vm_stats, "vm-stats", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-#define VM_CHECK_RUNNING(vm) 				\
-  if (!SCM_VM_DATA (vm)->ip)				\
-    SCM_MISC_ERROR ("Not running", SCM_LIST1 (vm))
-
-SCM_DEFINE (scm_vm_this_frame, "vm-this-frame", 1, 0, 0,
+SCM_DEFINE (scm_vm_trace_frame, "vm-trace-frame", 1, 0, 0,
 	    (SCM vm),
 	    "")
-#define FUNC_NAME s_scm_vm_this_frame
+#define FUNC_NAME s_scm_vm_trace_frame
 {
   SCM_VALIDATE_VM (1, vm);
-  return SCM_VM_DATA (vm)->this_frame;
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_vm_last_frame, "vm-last-frame", 1, 0, 0,
-	    (SCM vm),
-	    "")
-#define FUNC_NAME s_scm_vm_last_frame
-{
-  SCM_VALIDATE_VM (1, vm);
-  return SCM_VM_DATA (vm)->last_frame;
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_vm_last_ip, "vm:last-ip", 1, 0, 0,
-	    (SCM vm),
-	    "")
-#define FUNC_NAME s_scm_vm_last_ip
-{
-  SCM_VALIDATE_VM (1, vm);
-  return scm_from_ulong ((unsigned long) SCM_VM_DATA (vm)->last_ip);
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_vm_save_stack, "vm-save-stack", 1, 0, 0,
-	    (SCM vm),
-	    "")
-#define FUNC_NAME s_scm_vm_save_stack
-{
-  struct scm_vm *vp;
-  SCM *dest;
-  SCM_VALIDATE_VM (1, vm);
-  vp = SCM_VM_DATA (vm);
-
-  if (vp->fp) 
-    {
-#ifdef VM_ENABLE_STACK_NULLING
-      if (vp->sp >= vp->stack_base)
-        if (!vp->sp[0] || vp->sp[1])
-          abort ();
-#endif
-      vp->last_frame = vm_heapify_frames_1 (vp, vp->fp, vp->sp, &dest);
-      vp->last_ip = vp->ip;
-    }
-  else
-    {
-      vp->last_frame = SCM_BOOL_F;
-    }
-  
-  
-  return vp->last_frame;
-}
-#undef FUNC_NAME
-  
-SCM_DEFINE (scm_vm_fetch_code, "vm-fetch-code", 1, 0, 0,
-	    (SCM vm),
-	    "")
-#define FUNC_NAME s_scm_vm_fetch_code
-{
-  int i;
-  SCM list;
-  scm_byte_t *ip;
-  struct scm_instruction *p;
-
-  SCM_VALIDATE_VM (1, vm);
-  VM_CHECK_RUNNING (vm);
-
-  ip = SCM_VM_DATA (vm)->ip;
-  p = SCM_INSTRUCTION (*ip);
-
-  list = SCM_LIST1 (scm_str2symbol (p->name));
-  for (i = 1; i <= p->len; i++)
-    list = scm_cons (SCM_I_MAKINUM (ip[i]), list);
-  return scm_reverse_x (list, SCM_EOL);
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_vm_fetch_stack, "vm-fetch-stack", 1, 0, 0,
-	    (SCM vm),
-	    "")
-#define FUNC_NAME s_scm_vm_fetch_stack
-{
-  SCM *sp;
-  SCM ls = SCM_EOL;
-  struct scm_vm *vp;
-
-  SCM_VALIDATE_VM (1, vm);
-  VM_CHECK_RUNNING (vm);
-
-  vp = SCM_VM_DATA (vm);
-  for (sp = vp->stack_base; sp <= vp->sp; sp++)
-    ls = scm_cons (*sp, ls);
-  return ls;
+  return SCM_VM_DATA (vm)->trace_frame;
 }
 #undef FUNC_NAME
 

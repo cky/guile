@@ -48,148 +48,240 @@
 #include "frames.h"
 
 
-scm_t_bits scm_tc16_heap_frame;
+scm_t_bits scm_tc16_vm_frame;
+
+#define RELOC(frame, val) (val + SCM_VM_FRAME_OFFSET (frame))
 
 SCM
-scm_c_make_heap_frame (SCM *fp)
+scm_c_make_vm_frame (SCM stack_holder, SCM *fp, SCM *sp,
+                     scm_byte_t *ip, scm_t_ptrdiff offset)
 {
-  SCM frame;
-  SCM *lower = SCM_FRAME_LOWER_ADDRESS (fp);
-  SCM *upper = SCM_FRAME_UPPER_ADDRESS (fp);
-  size_t size = sizeof (SCM) * (upper - lower + 1);
-  SCM *p = scm_gc_malloc (size, "frame");
-
-  SCM_NEWSMOB (frame, scm_tc16_heap_frame, p);
-  p[0] = frame; /* self link */
-  memcpy (p + 1, lower, size - sizeof (SCM));
-
-  return frame;
+  struct scm_vm_frame *p = scm_gc_malloc (sizeof (struct scm_vm_frame),
+                                          "vmframe");
+  p->stack_holder = stack_holder;
+  p->fp = fp;
+  p->sp = sp;
+  p->ip = ip;
+  p->offset = offset;
+  SCM_RETURN_NEWSMOB (scm_tc16_vm_frame, p);
 }
 
 static SCM
-heap_frame_mark (SCM obj)
+vm_frame_mark (SCM obj)
 {
-  SCM *sp;
-  SCM *fp = SCM_HEAP_FRAME_POINTER (obj);
-  SCM *limit = &SCM_FRAME_HEAP_LINK (fp);
-
-  for (sp = SCM_FRAME_LOWER_ADDRESS (fp); sp <= limit; sp++)
-    if (SCM_NIMP (*sp))
-      scm_gc_mark (*sp);
-
-  return SCM_BOOL_F;
+  return SCM_VM_FRAME_STACK_HOLDER (obj);
 }
 
 static scm_sizet
-heap_frame_free (SCM obj)
+vm_frame_free (SCM obj)
 {
-  SCM *fp = SCM_HEAP_FRAME_POINTER (obj);
-  SCM *lower = SCM_FRAME_LOWER_ADDRESS (fp);
-  SCM *upper = SCM_FRAME_UPPER_ADDRESS (fp);
-  size_t size = sizeof (SCM) * (upper - lower + 1);
-
-  scm_gc_free (SCM_HEAP_FRAME_DATA (obj), size, "frame");
-
+  struct scm_vm_frame *p = SCM_VM_FRAME_DATA (obj);
+  scm_gc_free (p, sizeof(struct scm_vm_frame), "vmframe");
   return 0;
 }
 
 /* Scheme interface */
 
-SCM_DEFINE (scm_heap_frame_p, "heap-frame?", 1, 0, 0,
+SCM_DEFINE (scm_vm_frame_p, "vm-frame?", 1, 0, 0,
 	    (SCM obj),
 	    "")
-#define FUNC_NAME s_scm_heap_frame_p
+#define FUNC_NAME s_scm_vm_frame_p
 {
-  return SCM_BOOL (SCM_HEAP_FRAME_P (obj));
+  return SCM_BOOL (SCM_VM_FRAME_P (obj));
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_frame_program, "frame-program", 1, 0, 0,
+SCM_DEFINE (scm_vm_frame_program, "vm-frame-program", 1, 0, 0,
 	    (SCM frame),
 	    "")
-#define FUNC_NAME s_scm_frame_program
+#define FUNC_NAME s_scm_vm_frame_program
 {
-  SCM_VALIDATE_HEAP_FRAME (1, frame);
-  return SCM_FRAME_PROGRAM (SCM_HEAP_FRAME_POINTER (frame));
+  SCM_VALIDATE_VM_FRAME (1, frame);
+  return SCM_FRAME_PROGRAM (SCM_VM_FRAME_FP (frame));
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_frame_local_ref, "frame-local-ref", 2, 0, 0,
+SCM_DEFINE (scm_vm_frame_arguments, "vm-frame-arguments", 1, 0, 0,
+	    (SCM frame),
+	    "")
+#define FUNC_NAME s_scm_vm_frame_arguments
+{
+  SCM *fp;
+  int i;
+  struct scm_program *bp;
+  SCM ret;
+  
+  SCM_VALIDATE_VM_FRAME (1, frame);
+
+  fp = SCM_VM_FRAME_FP (frame);
+  bp = SCM_PROGRAM_DATA (SCM_FRAME_PROGRAM (fp));
+
+  if (!bp->nargs)
+    return SCM_EOL;
+  else if (bp->nrest)
+    ret = fp[bp->nargs - 1];
+  else
+    ret = scm_cons (fp[bp->nargs - 1], SCM_EOL);
+  
+  for (i = bp->nargs - 2; i >= 0; i--)
+    ret = scm_cons (fp[i], ret);
+  
+  return ret;
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_vm_frame_source, "vm-frame-source", 1, 0, 0,
+	    (SCM frame),
+	    "")
+#define FUNC_NAME s_scm_vm_frame_source
+{
+  SCM *fp;
+  struct scm_program *bp;
+  
+  SCM_VALIDATE_VM_FRAME (1, frame);
+
+  fp = SCM_VM_FRAME_FP (frame);
+  bp = SCM_PROGRAM_DATA (SCM_FRAME_PROGRAM (fp));
+
+  return scm_c_program_source (bp, SCM_VM_FRAME_IP (frame) - bp->base);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_vm_frame_local_ref, "vm-frame-local-ref", 2, 0, 0,
 	    (SCM frame, SCM index),
 	    "")
-#define FUNC_NAME s_scm_frame_local_ref
+#define FUNC_NAME s_scm_vm_frame_local_ref
 {
-  SCM_VALIDATE_HEAP_FRAME (1, frame);
-  SCM_MAKE_VALIDATE (2, index, I_INUMP); /* FIXME: Check the range! */
-  return SCM_FRAME_VARIABLE (SCM_HEAP_FRAME_POINTER (frame),
-			     SCM_I_INUM (index));
+  SCM *fp;
+  unsigned int i;
+  struct scm_program *bp;
+  
+  SCM_VALIDATE_VM_FRAME (1, frame);
+
+  fp = SCM_VM_FRAME_FP (frame);
+  bp = SCM_PROGRAM_DATA (SCM_FRAME_PROGRAM (fp));
+
+  SCM_VALIDATE_UINT_COPY (2, index, i);
+  SCM_ASSERT_RANGE (2, index, i < bp->nargs + bp->nlocs);
+
+  return SCM_FRAME_VARIABLE (fp, i);
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_frame_local_set_x, "frame-local-set!", 3, 0, 0,
+SCM_DEFINE (scm_vm_frame_local_set_x, "vm-frame-local-set!", 3, 0, 0,
 	    (SCM frame, SCM index, SCM val),
 	    "")
-#define FUNC_NAME s_scm_frame_local_set_x
+#define FUNC_NAME s_scm_vm_frame_local_set_x
 {
-  SCM_VALIDATE_HEAP_FRAME (1, frame);
-  SCM_MAKE_VALIDATE (2, index, I_INUMP); /* FIXME: Check the range! */
-  SCM_FRAME_VARIABLE (SCM_HEAP_FRAME_POINTER (frame),
-		      SCM_I_INUM (index)) = val;
+  SCM *fp;
+  unsigned int i;
+  struct scm_program *bp;
+  
+  SCM_VALIDATE_VM_FRAME (1, frame);
+
+  fp = SCM_VM_FRAME_FP (frame);
+  bp = SCM_PROGRAM_DATA (SCM_FRAME_PROGRAM (fp));
+
+  SCM_VALIDATE_UINT_COPY (2, index, i);
+  SCM_ASSERT_RANGE (2, index, i < bp->nargs + bp->nlocs);
+
+  SCM_FRAME_VARIABLE (fp, i) = val;
+
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_frame_return_address, "frame-return-address", 1, 0, 0,
+SCM_DEFINE (scm_vm_frame_return_address, "vm-frame-return-address", 1, 0, 0,
 	    (SCM frame),
 	    "")
-#define FUNC_NAME s_scm_frame_return_address
+#define FUNC_NAME s_scm_vm_frame_return_address
 {
-  SCM_VALIDATE_HEAP_FRAME (1, frame);
+  SCM_VALIDATE_VM_FRAME (1, frame);
   return scm_from_ulong ((unsigned long)
 			 (SCM_FRAME_RETURN_ADDRESS
-			  (SCM_HEAP_FRAME_POINTER (frame))));
+			  (SCM_VM_FRAME_FP (frame))));
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_frame_mv_return_address, "frame-mv-return-address", 1, 0, 0,
+SCM_DEFINE (scm_vm_frame_mv_return_address, "vm-frame-mv-return-address", 1, 0, 0,
 	    (SCM frame),
 	    "")
-#define FUNC_NAME s_scm_frame_mv_return_address
+#define FUNC_NAME s_scm_vm_frame_mv_return_address
 {
-  SCM_VALIDATE_HEAP_FRAME (1, frame);
+  SCM_VALIDATE_VM_FRAME (1, frame);
   return scm_from_ulong ((unsigned long)
 			 (SCM_FRAME_MV_RETURN_ADDRESS
-			  (SCM_HEAP_FRAME_POINTER (frame))));
+			  (SCM_VM_FRAME_FP (frame))));
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_frame_dynamic_link, "frame-dynamic-link", 1, 0, 0,
+SCM_DEFINE (scm_vm_frame_dynamic_link, "vm-frame-dynamic-link", 1, 0, 0,
 	    (SCM frame),
 	    "")
-#define FUNC_NAME s_scm_frame_dynamic_link
+#define FUNC_NAME s_scm_vm_frame_dynamic_link
 {
-  SCM_VALIDATE_HEAP_FRAME (1, frame);
-  return SCM_FRAME_HEAP_LINK (SCM_HEAP_FRAME_POINTER (frame));
+  SCM_VALIDATE_VM_FRAME (1, frame);
+  /* fixme: munge fp if holder is a continuation */
+  return scm_from_ulong
+    ((unsigned long)
+     RELOC (frame,
+            SCM_FRAME_DYNAMIC_LINK (SCM_VM_FRAME_FP (frame))));
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_frame_external_link, "frame-external-link", 1, 0, 0,
+SCM_DEFINE (scm_vm_frame_external_link, "vm-frame-external-link", 1, 0, 0,
 	    (SCM frame),
 	    "")
-#define FUNC_NAME s_scm_frame_external_link
+#define FUNC_NAME s_scm_vm_frame_external_link
 {
-  SCM_VALIDATE_HEAP_FRAME (1, frame);
-  return SCM_FRAME_EXTERNAL_LINK (SCM_HEAP_FRAME_POINTER (frame));
+  SCM_VALIDATE_VM_FRAME (1, frame);
+  return SCM_FRAME_EXTERNAL_LINK (SCM_VM_FRAME_FP (frame));
 }
 #undef FUNC_NAME
+
+SCM_DEFINE (scm_vm_frame_stack, "vm-frame-stack", 1, 0, 0,
+	    (SCM frame),
+	    "")
+#define FUNC_NAME s_scm_vm_frame_stack
+{
+  SCM *top, *bottom, ret = SCM_EOL;
+
+  SCM_VALIDATE_VM_FRAME (1, frame);
+
+  top = SCM_VM_FRAME_SP (frame);
+  bottom = SCM_FRAME_UPPER_ADDRESS (SCM_VM_FRAME_FP (frame));
+  while (bottom <= top)
+    ret = scm_cons (*bottom++, ret);
+
+  return ret;
+}
+#undef FUNC_NAME
+
+extern SCM
+scm_c_vm_frame_prev (SCM frame)
+{
+  SCM *this_fp, *new_fp, *new_sp;
+  this_fp = SCM_VM_FRAME_FP (frame);
+  new_fp = SCM_FRAME_DYNAMIC_LINK (this_fp);
+  if (new_fp) 
+    { new_fp = RELOC (frame, new_fp);
+      new_sp = SCM_FRAME_LOWER_ADDRESS (this_fp) - 1;
+      return scm_c_make_vm_frame (SCM_VM_FRAME_STACK_HOLDER (frame),
+                                  new_fp, new_sp,
+                                  SCM_FRAME_RETURN_ADDRESS (this_fp),
+                                  SCM_VM_FRAME_OFFSET (frame));
+    }
+  else
+    return SCM_BOOL_F;
+}
 
 
 void
 scm_bootstrap_frames (void)
 {
-  scm_tc16_heap_frame = scm_make_smob_type ("frame", 0);
-  scm_set_smob_mark (scm_tc16_heap_frame, heap_frame_mark);
-  scm_set_smob_free (scm_tc16_heap_frame, heap_frame_free);
+  scm_tc16_vm_frame = scm_make_smob_type ("vm-frame", 0);
+  scm_set_smob_mark (scm_tc16_vm_frame, vm_frame_mark);
+  scm_set_smob_free (scm_tc16_vm_frame, vm_frame_free);
 }
 
 void

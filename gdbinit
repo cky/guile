@@ -146,11 +146,6 @@ define nextframe
   output $vmdl
   newline
   set $vmsp=$vmsp-1
-  sputs "hl:\t"
-  output $vmsp
-  sputs "\t"
-  gwrite *$vmsp
-  set $vmsp=$vmsp-1
   sputs "el:\t"
   output $vmsp
   sputs "\t"
@@ -184,14 +179,13 @@ define nextframe
   gwrite *$vmsp
   set $vmsp=$vmsp-1
   newline
-  if !$vmdl
-    loop_break
+  if $vmdl
+    set $vmfp=$vmdl
+    set $vmbp=(struct scm_program*)(((SCM*)($vmfp[-1]))[1])
+    set $vmstack_base=$vmfp+$vmbp->nargs+$vmbp->nlocs+4
+    set $vmframe=$vmframe+1
+    newline
   end
-  set $vmfp=$vmdl
-  set $vmbp=(struct scm_program*)(((SCM*)($vmfp[-1]))[1])
-  set $vmstack_base=$vmfp+$vmbp->nargs+$vmbp->nlocs+4
-  set $vmframe=$vmframe+1
-  newline
 end
 
 define vmstack

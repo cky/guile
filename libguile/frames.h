@@ -58,7 +58,6 @@
    | Return address   |
    | MV return address|
    | Dynamic link     |
-   | Heap link        |
    | External link    | <- fp + bp->nargs + bp->nlocs
    | Local variable 1 |    = SCM_FRAME_DATA_ADDRESS (fp)
    | Local variable 0 | <- fp + bp->nargs
@@ -75,21 +74,20 @@
 #define SCM_FRAME_DATA_ADDRESS(fp)				\
   (fp + SCM_PROGRAM_DATA (SCM_FRAME_PROGRAM (fp))->nargs	\
       + SCM_PROGRAM_DATA (SCM_FRAME_PROGRAM (fp))->nlocs)
-#define SCM_FRAME_UPPER_ADDRESS(fp)	(SCM_FRAME_DATA_ADDRESS (fp) + 5)
+#define SCM_FRAME_UPPER_ADDRESS(fp)	(SCM_FRAME_DATA_ADDRESS (fp) + 4)
 #define SCM_FRAME_LOWER_ADDRESS(fp)	(fp - 1)
 
 #define SCM_FRAME_BYTE_CAST(x)		((scm_byte_t *) SCM_UNPACK (x))
 #define SCM_FRAME_STACK_CAST(x)		((SCM *) SCM_UNPACK (x))
 
 #define SCM_FRAME_RETURN_ADDRESS(fp)				\
-  (SCM_FRAME_BYTE_CAST (SCM_FRAME_DATA_ADDRESS (fp)[4]))
-#define SCM_FRAME_MV_RETURN_ADDRESS(fp)				\
   (SCM_FRAME_BYTE_CAST (SCM_FRAME_DATA_ADDRESS (fp)[3]))
+#define SCM_FRAME_MV_RETURN_ADDRESS(fp)				\
+  (SCM_FRAME_BYTE_CAST (SCM_FRAME_DATA_ADDRESS (fp)[2]))
 #define SCM_FRAME_DYNAMIC_LINK(fp)				\
-  (SCM_FRAME_STACK_CAST (SCM_FRAME_DATA_ADDRESS (fp)[2]))
+  (SCM_FRAME_STACK_CAST (SCM_FRAME_DATA_ADDRESS (fp)[1]))
 #define SCM_FRAME_SET_DYNAMIC_LINK(fp, dl)		\
-  ((SCM_FRAME_DATA_ADDRESS (fp)[2])) = (SCM)(dl);
-#define SCM_FRAME_HEAP_LINK(fp)		(SCM_FRAME_DATA_ADDRESS (fp)[1])
+  ((SCM_FRAME_DATA_ADDRESS (fp)[1])) = (SCM)(dl);
 #define SCM_FRAME_EXTERNAL_LINK(fp)	(SCM_FRAME_DATA_ADDRESS (fp)[0])
 #define SCM_FRAME_VARIABLE(fp,i)	fp[i]
 #define SCM_FRAME_PROGRAM(fp)		fp[-1]
@@ -99,24 +97,43 @@
  * Heap frames
  */
 
-extern scm_t_bits scm_tc16_heap_frame;
+extern scm_t_bits scm_tc16_vm_frame;
 
-#define SCM_HEAP_FRAME_P(x)	SCM_SMOB_PREDICATE (scm_tc16_heap_frame, x)
-#define SCM_HEAP_FRAME_DATA(f)		((SCM *) SCM_SMOB_DATA (f))
-#define SCM_HEAP_FRAME_SELF(f)		(SCM_HEAP_FRAME_DATA (f) + 0)
-#define SCM_HEAP_FRAME_POINTER(f)	(SCM_HEAP_FRAME_DATA (f) + 2)
-#define SCM_VALIDATE_HEAP_FRAME(p,x)	SCM_MAKE_VALIDATE (p, x, HEAP_FRAME_P)
+struct scm_vm_frame 
+{
+  SCM stack_holder;
+  SCM *fp;
+  SCM *sp;
+  scm_byte_t *ip;
+  scm_t_ptrdiff offset;
+};
 
-extern SCM scm_heap_frame_p (SCM obj);
-extern SCM scm_frame_program (SCM frame);
-extern SCM scm_frame_local_ref (SCM frame, SCM index);
-extern SCM scm_frame_local_set_x (SCM frame, SCM index, SCM val);
-extern SCM scm_frame_return_address (SCM frame);
-extern SCM scm_frame_mv_return_address (SCM frame);
-extern SCM scm_frame_dynamic_link (SCM frame);
-extern SCM scm_frame_external_link (SCM frame);
+#define SCM_VM_FRAME_P(x)	SCM_SMOB_PREDICATE (scm_tc16_vm_frame, x)
+#define SCM_VM_FRAME_DATA(x)	((struct scm_vm_frame*)SCM_SMOB_DATA (x))
+#define SCM_VM_FRAME_STACK_HOLDER(f)	SCM_VM_FRAME_DATA(f)->stack_holder
+#define SCM_VM_FRAME_FP(f)	SCM_VM_FRAME_DATA(f)->fp
+#define SCM_VM_FRAME_SP(f)	SCM_VM_FRAME_DATA(f)->sp
+#define SCM_VM_FRAME_IP(f)	SCM_VM_FRAME_DATA(f)->ip
+#define SCM_VM_FRAME_OFFSET(f)	SCM_VM_FRAME_DATA(f)->offset
+#define SCM_VALIDATE_VM_FRAME(p,x)	SCM_MAKE_VALIDATE (p, x, VM_FRAME_P)
 
-extern SCM scm_c_make_heap_frame (SCM *fp);
+/* FIXME rename scm_byte_t */
+extern SCM scm_c_make_vm_frame (SCM stack_holder, SCM *fp, SCM *sp,
+                                scm_byte_t *ip, scm_t_ptrdiff offset);
+extern SCM scm_vm_frame_p (SCM obj);
+extern SCM scm_vm_frame_program (SCM frame);
+extern SCM scm_vm_frame_arguments (SCM frame);
+extern SCM scm_vm_frame_source (SCM frame);
+extern SCM scm_vm_frame_local_ref (SCM frame, SCM index);
+extern SCM scm_vm_frame_local_set_x (SCM frame, SCM index, SCM val);
+extern SCM scm_vm_frame_return_address (SCM frame);
+extern SCM scm_vm_frame_mv_return_address (SCM frame);
+extern SCM scm_vm_frame_dynamic_link (SCM frame);
+extern SCM scm_vm_frame_external_link (SCM frame);
+extern SCM scm_vm_frame_stack (SCM frame);
+
+extern SCM scm_c_vm_frame_prev (SCM frame);
+
 extern void scm_bootstrap_frames (void);
 extern void scm_init_frames (void);
 

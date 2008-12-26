@@ -154,12 +154,11 @@ The structure of the fixed part of an application frame is as follows:
 
 @example
              Stack
-   |                  | <- fp + bp->nargs + bp->nlocs + 5
+   |                  | <- fp + bp->nargs + bp->nlocs + 4
    +------------------+    = SCM_FRAME_UPPER_ADDRESS (fp)
    | Return address   |
    | MV return address|
    | Dynamic link     |
-   | Heap link        |
    | External link    | <- fp + bp->nargs + bp->nlocs
    | Local variable 1 |    = SCM_FRAME_DATA_ADDRESS (fp)
    | Local variable 0 | <- fp + bp->nargs
@@ -198,9 +197,6 @@ values being returned.
 This is the @code{fp} in effect before this program was applied. In
 effect, this and the return address are the registers that are always
 ``saved''.
-
-@item Heap link
-This field is unused and needs to be removed ASAP.
 
 @item External link
 This field is a reference to the list of heap-allocated variables

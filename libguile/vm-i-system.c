@@ -688,7 +688,7 @@ VM_DEFINE_INSTRUCTION (goto_args, "goto/args", 1, -1, 1)
          sure we have space for the locals now */
       data = SCM_FRAME_DATA_ADDRESS (fp);
       ip = bp->base;
-      stack_base = data + 4;
+      stack_base = data + 3;
       sp = stack_base;
       CHECK_OVERFLOW ();
 
@@ -703,10 +703,9 @@ VM_DEFINE_INSTRUCTION (goto_args, "goto/args", 1, -1, 1)
         data[-i] = SCM_UNDEFINED;
       
       /* Set frame data */
-      data[4] = (SCM)ra;
-      data[3] = (SCM)mvra;
-      data[2] = (SCM)dl;
-      data[1] = SCM_BOOL_F;
+      data[3] = (SCM)ra;
+      data[2] = (SCM)mvra;
+      data[1] = (SCM)dl;
 
       /* Postpone initializing external vars, because if the CONS causes a GC,
          we want the stack marker to see the data array formatted as expected. */
@@ -839,7 +838,7 @@ VM_DEFINE_INSTRUCTION (mv_call, "mv-call", 3, -1, 1)
       CACHE_PROGRAM ();
       INIT_ARGS ();
       NEW_FRAME ();
-      SCM_FRAME_DATA_ADDRESS (fp)[3] = (SCM)(SCM_FRAME_RETURN_ADDRESS (fp) + offset);
+      SCM_FRAME_DATA_ADDRESS (fp)[2] = (SCM)(SCM_FRAME_RETURN_ADDRESS (fp) + offset);
       ENTER_HOOK ();
       APPLY_HOOK ();
       NEXT;
@@ -996,12 +995,12 @@ VM_DEFINE_INSTRUCTION (return, "return", 0, 0, 1)
 
     POP (ret);
     ASSERT (sp == stack_base);
-    ASSERT (stack_base == data + 4);
+    ASSERT (stack_base == data + 3);
 
     /* Restore registers */
     sp = SCM_FRAME_LOWER_ADDRESS (fp);
-    ip = SCM_FRAME_BYTE_CAST (data[4]);
-    fp = SCM_FRAME_STACK_CAST (data[2]);
+    ip = SCM_FRAME_BYTE_CAST (data[3]);
+    fp = SCM_FRAME_STACK_CAST (data[1]);
     {
 #ifdef VM_ENABLE_STACK_NULLING
       int nullcount = stack_base - sp;
@@ -1034,16 +1033,16 @@ VM_DEFINE_INSTRUCTION (return_values, "return/values", 1, -1, -1)
   RETURN_HOOK ();
 
   data = SCM_FRAME_DATA_ADDRESS (fp);
-  ASSERT (stack_base == data + 4);
+  ASSERT (stack_base == data + 3);
 
-  /* data[3] is the mv return address */
-  if (nvalues != 1 && data[3]) 
+  /* data[2] is the mv return address */
+  if (nvalues != 1 && data[2]) 
     {
       int i;
       /* Restore registers */
       sp = SCM_FRAME_LOWER_ADDRESS (fp) - 1;
-      ip = SCM_FRAME_BYTE_CAST (data[3]); /* multiple value ra */
-      fp = SCM_FRAME_STACK_CAST (data[2]);
+      ip = SCM_FRAME_BYTE_CAST (data[2]); /* multiple value ra */
+      fp = SCM_FRAME_STACK_CAST (data[1]);
         
       /* Push return values, and the number of values */
       for (i = 0; i < nvalues; i++)
@@ -1062,8 +1061,8 @@ VM_DEFINE_INSTRUCTION (return_values, "return/values", 1, -1, -1)
          continuation.) */
       /* Restore registers */
       sp = SCM_FRAME_LOWER_ADDRESS (fp) - 1;
-      ip = SCM_FRAME_BYTE_CAST (data[4]); /* single value ra */
-      fp = SCM_FRAME_STACK_CAST (data[2]);
+      ip = SCM_FRAME_BYTE_CAST (data[3]); /* single value ra */
+      fp = SCM_FRAME_STACK_CAST (data[1]);
         
       /* Push first value */
       *++sp = stack_base[1];

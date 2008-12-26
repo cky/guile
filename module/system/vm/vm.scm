@@ -23,37 +23,16 @@
   #:use-module (system vm frame)
   #:use-module (system vm objcode)
   #:export (vm? the-vm make-vm vm-version
-           vm:ip vm:sp vm:fp vm:last-ip
+            vm:ip vm:sp vm:fp vm:last-ip
 
-           vm-load vm-return-value
+            vm-load vm-option set-vm-option! vm-version vm-stats
+            vms:time vms:clock
 
-           vm-option set-vm-option! vm-version
-
-           vm-fetch-locals vm-fetch-externals
-           vm-last-frame vm-this-frame vm-fetch-stack vm-save-stack
-           vm-current-frame-chain vm-last-frame-chain
-
-           vm-stats vms:time vms:clock
-
-           vm-next-hook vm-apply-hook vm-boot-hook vm-return-hook
-           vm-break-hook vm-exit-hook vm-halt-hook vm-enter-hook))
+            vm-trace-frame
+            vm-next-hook vm-apply-hook vm-boot-hook vm-return-hook
+            vm-break-hook vm-exit-hook vm-halt-hook vm-enter-hook))
 
 (dynamic-call "scm_init_vm" (dynamic-link "libguile"))
-
-(define (vm-current-frame-chain vm)
-  (make-frame-chain (vm-this-frame vm) (vm:ip vm)))
-
-(define (vm-last-frame-chain vm)
-  (make-frame-chain (vm-last-frame vm) (vm:last-ip vm)))
-
-(define (vm-fetch-locals vm)
-  (frame-local-variables (vm-this-frame vm)))
-
-(define (vm-fetch-externals vm)
-  (frame-external-variables (vm-this-frame vm)))
-
-(define (vm-return-value vm)
-  (car (vm-fetch-stack vm)))
 
 (define (vms:time stat) (vector-ref stat 0))
 (define (vms:clock stat) (vector-ref stat 1))

@@ -62,13 +62,11 @@ struct scm_vm {
   size_t stack_size;		/* stack size */
   SCM *stack_base;		/* stack base address */
   SCM *stack_limit;		/* stack limit address */
-  SCM this_frame;		/* currrent frame */
-  SCM last_frame;		/* last frame */
-  scm_byte_t *last_ip;		/* ip when exception occured */
   SCM hooks[SCM_VM_NUM_HOOKS];	/* hooks */
   SCM options;			/* options */
   unsigned long time;		/* time spent */
   unsigned long clock;		/* bogos clock */
+  SCM trace_frame;              /* a frame being traced */
 };
 
 extern SCM scm_the_vm_fluid;
@@ -100,12 +98,20 @@ extern SCM scm_vm_return_hook (SCM vm);
 extern SCM scm_vm_option (SCM vm, SCM key);
 extern SCM scm_set_vm_option_x (SCM vm, SCM key, SCM val);
 extern SCM scm_vm_stats (SCM vm);
-extern SCM scm_vm_this_frame (SCM vm);
-extern SCM scm_vm_last_frame (SCM vm);
-extern SCM scm_vm_last_ip (SCM vm);
-extern SCM scm_vm_save_stack (SCM vm);
-extern SCM scm_vm_fetch_code (SCM vm);
-extern SCM scm_vm_fetch_stack (SCM vm);
+extern SCM scm_vm_trace_frame (SCM vm);
+
+struct scm_vm_cont {
+  scm_byte_t *ip;
+  scm_t_ptrdiff sp;
+  scm_t_ptrdiff fp;
+  scm_t_ptrdiff stack_size;
+  SCM *stack_base;
+  scm_t_ptrdiff reloc;
+};
+
+extern scm_t_bits scm_tc16_vm_cont;
+#define SCM_VM_CONT_P(OBJ)	SCM_SMOB_PREDICATE (scm_tc16_vm_cont, OBJ)
+#define SCM_VM_CONT_DATA(CONT)	((struct scm_vm_cont *) SCM_CELL_WORD_1 (CONT))
 
 extern SCM scm_vm_capture_continuations (void);
 extern void scm_vm_reinstate_continuations (SCM conts);

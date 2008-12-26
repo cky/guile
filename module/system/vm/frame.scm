@@ -23,7 +23,15 @@
   #:use-module (system vm program)
   #:use-module (system vm instruction)
   #:use-module ((srfi srfi-1) #:select (fold))
-  #:export (frame-number frame-address
+  #:export (vm-frame?
+            vm-frame-program
+            vm-frame-local-ref vm-frame-local-set!
+            vm-frame-return-address vm-frame-mv-return-address
+            vm-frame-dynamic-link vm-frame-external-link
+            vm-frame-stack
+
+
+            vm-frame-number vm-frame-address
            make-frame-chain
            print-frame print-frame-chain-as-backtrace
            frame-arguments frame-local-variables frame-external-variables
@@ -41,8 +49,8 @@
 ;;; Frame chain
 ;;;
 
-(define frame-number (make-object-property))
-(define frame-address (make-object-property))
+(define vm-frame-number (make-object-property))
+(define vm-frame-address (make-object-property))
 
 (define (bootstrap-frame? frame)
   (let ((code (program-bytecode (frame-program frame))))
