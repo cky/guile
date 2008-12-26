@@ -199,6 +199,24 @@ SCM_DEFINE (scm_program_meta, "program-meta", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+extern SCM
+scm_c_program_source (struct scm_program *p, size_t ip)
+{
+  SCM meta, sources, source;
+
+  if (scm_is_false (p->meta))
+    return SCM_BOOL_F;
+  meta = scm_call_0 (p->meta);
+  if (scm_is_false (meta))
+    return SCM_BOOL_F;
+  sources = scm_cadr (meta);
+  source = scm_assv (scm_from_size_t (ip), sources);
+  if (scm_is_false (source))
+    return SCM_BOOL_F;
+
+  return scm_cdr (source); /* a #(line column file) vector */
+}
+
 SCM_DEFINE (scm_program_objects, "program-objects", 1, 0, 0,
 	    (SCM program),
 	    "")

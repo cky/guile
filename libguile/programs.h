@@ -83,6 +83,8 @@ extern SCM scm_program_external (SCM program);
 extern SCM scm_program_external_set_x (SCM program, SCM external);
 extern SCM scm_program_bytecode (SCM program);
 
+extern SCM scm_c_program_source (struct scm_program *p, size_t ip);
+
 extern void scm_bootstrap_programs (void);
 extern void scm_init_programs (void);
 
