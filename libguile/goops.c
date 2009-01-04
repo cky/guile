@@ -1218,7 +1218,10 @@ SCM_DEFINE (scm_sys_fast_slot_ref, "%fast-slot-ref", 2, 0, 0,
   unsigned long int i;
 
   SCM_VALIDATE_INSTANCE (1, obj);
-  i = scm_to_unsigned_integer (index, 0, SCM_NUMBER_OF_SLOTS(obj)-1);
+  i = scm_to_unsigned_integer (index, 0,
+			       SCM_I_INUM (SCM_SLOT (SCM_CLASS_OF (obj),
+						     scm_si_nfields))
+			       - 1);
   return SCM_SLOT (obj, i);
 }
 #undef FUNC_NAME
@@ -1232,7 +1235,10 @@ SCM_DEFINE (scm_sys_fast_slot_set_x, "%fast-slot-set!", 3, 0, 0,
   unsigned long int i;
 
   SCM_VALIDATE_INSTANCE (1, obj);
-  i = scm_to_unsigned_integer (index, 0, SCM_NUMBER_OF_SLOTS(obj)-1);
+  i = scm_to_unsigned_integer (index, 0,
+			       SCM_I_INUM (SCM_SLOT (SCM_CLASS_OF (obj),
+						     scm_si_nfields))
+			       - 1);
 
   SCM_SET_SLOT (obj, i, value);
 
