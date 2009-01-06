@@ -157,10 +157,11 @@ The C-like syntax, ctax, was improved, but mostly this release
 featured a start at the task of breaking Guile into pieces.
 
 @item 1.0 --- 5 January 1997
-@code{#f} was distinguished from @code{'()}. Green threads were added.
-Source-level debugging became more useful, and programmer's and user's
-manuals were begun. The module system gained a high-level interface,
-which is still used today in more or less the same form.
+@code{#f} was distinguished from @code{'()}. User-level, cooperative
+multi-threading was added. Source-level debugging became more useful,
+and programmer's and user's manuals were begun. The module system
+gained a high-level interface, which is still used today in more or
+less the same form.
 
 @item 1.1 --- 16 May 1997
 @itemx 1.2 --- 24 June 1997
@@ -195,16 +196,16 @@ into Guile core.
 
 @item 1.8 --- 20 February 2006
 Guile's arbitrary-precision arithmetic switched to use the GMP
-library, and added support for exact rationals. Green threads were
-removed in favor of POSIX threads, providing true multiprocessing.
-Gettext support was added, and Guile's C API was cleaned up and
-orthogonalized in a massive way.
+library, and added support for exact rationals. Guile's embedded
+user-space threading was removed in favor of POSIX pre-emptive
+threads, providing true multiprocessing. Gettext support was added,
+and Guile's C API was cleaned up and orthogonalized in a massive way.
 
 @item 2.0 --- thus far, only unstable snapshots available
 A virtual machine was added to Guile, along with the associated
-compiler and toolchain. Support for locales was added. Running Guile
-instances became controllable and debuggable from within Emacs, via
-GDS. GDS was backported to 1.8.5. An SRFI-compatible interface to
+compiler and toolchain. Support for internationalization was added.
+Running Guile instances became controllable and debuggable from within
+Emacs, via GDS. GDS was backported to 1.8.5. An SRFI-18 interface to
 multithreading was added, including thread cancellation.
 @end table
 
