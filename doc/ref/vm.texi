@@ -335,34 +335,6 @@ name to that variable, so it just marks it as being a ``closure
 variable''. Finally we see the reference to @code{b}, then a tail call
 (@code{goto/args}) with three arguments.
 
-@c @example
-@c (use-modules (system vm program))
-@c @end example
-
-@c @deffn {Scheme Procedure} program-bytecode program
-@c @deffnx {C Function} scm_program_bytecode (program)
-@c Returns the object code associated with this program.
-@c @end deffn
-
-@c @deffn {Scheme Procedure} program-arity program
-@c @deffnx {C Function} scm_program_arity (program)
-@c Returns a representation of the ``arity'' of a program.
-@c @end deffn
-
-@c @deffn {Scheme Procedure} arity:nargs arity
-@c @deffnx {Scheme Procedure} arity:nrest arity
-@c @deffnx {Scheme Procedure} arity:nlocs arity
-@c @deffnx {Scheme Procedure} arity:nexts arity
-@c Accessors for arity objects, as returned by @code{program-arity}.
-
-@c @code{nargs} is the number of arguments to the procedure, and
-@c @code{nrest} will be non-zero if the last argument is a rest argument.
-
-@c The other two accessors determine the number of local and external
-@c (heap-allocated) variables that this procedure will need to have
-@c allocated.
-@c @end deffn
-
 @node Instruction Set
 @subsection Instruction Set
 
