@@ -25,7 +25,7 @@ machine.
 * VM Concepts::                 
 * Stack Layout::                
 * Variables and the VM::                   
-* Compiled Procedures::         
+* VM Programs::         
 * Instruction Set::
 @end menu
 
@@ -258,8 +258,8 @@ counterintuitively, what would seem ``closer to the metal'', viz
 @code{set!}, actually forces heap allocation instead of stack
 allocation.
 
-@node Compiled Procedures
-@subsection Compiled Procedures
+@node VM Programs
+@subsection Compiled Procedures are VM Programs
 
 By default, when you enter in expressions at Guile's REPL, they are
 first compiled to VM object code, then that VM object code is executed

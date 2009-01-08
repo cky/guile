@@ -7,3 +7,126 @@
 @node Compiling to the Virtual Machine
 @section Compiling to the Virtual Machine
 
+Compilers have a mystique about them that is attractive and
+off-putting at the same time. They are attractive because they are
+magical -- they transform inert text into live results, like throwing
+the switch on Frankenstein. However, this magic is perceived by many
+to be impenetrable.
+
+This section aims to pull back the veil from over Guile's compiler
+implementation, some reference to the wizard of oz FIXME.
+
+REFFIXME, if you're lost and you just wanted to know how to compile
+your .scm file.
+
+@menu
+* Compiler Tower::                   
+* The Scheme Compiler::                   
+* GHIL::                 
+* GLIL::                
+* Object Code::                   
+@end menu
+
+@node Compiler Tower
+@subsection Compiler Tower
+
+Guile's compiler is quite simple, actually -- its @emph{compilers}, to
+put it more accurately. Guile defines a tower of languages, starting
+at Scheme and progressively simplifying down to languages that
+resemble the VM instruction set (REFFIXME).
+
+Each language knows how to compile to the next, so each step is simple
+and understandable. Furthermore, this set of languages is not
+hardcoded into Guile, so it is possible for the user to add new
+high-level languages, new passes, or even different compilation
+targets.
+
+lookup-language
+(lang xxx spec)
+
+(system-base-language)
+
+describe:
+
+(define-record <language>
+  name
+  title
+  version
+  reader
+  printer
+  (parser #f)
+  (read-file #f)
+  (compilers '())
+  (evaluator #f))
+
+(define-macro (define-language name . spec)
+
+(lookup-compilation-order from to)
+
+language definition
+
+compiling from here to there
+
+the normal tower: scheme, ghil, glil, object code
+maybe from there serialized to disk
+or if at repl, brought back to life by compiling to ``value''
+
+compile-file defaults to compiling to objcode
+compile defaults to compiling to value
+
+((lambda (x) ((compile x) x)) '(lambda (x) ((compile x) x)))
+quine
+
+@node The Scheme Compiler
+@subsection The Scheme Compiler
+
+macro expansion
+
+define-scheme-translator
+
+inlining
+
+format of the environment
+
+compile-time-environment
+
+symbols resolved as local, external, or toplevel
+
+@node GHIL
+@subsection GHIL
+
+ghil environments
+
+structured, typed intermediate language, close to scheme
+with an s-expression representation
+
+,lang ghil
+
+some pre-optimization
+
+real name of the game is closure elimination -- fixing letrec
+
+@node GLIL
+@subsection GLIL
+
+structured, typed intermediate language, close to object code
+
+passes through the env
+
+no let, no lambda, no closures, just labels and branches and constants
+and code. Well, there's a bit more, but that's the flavor of GLIL.
+
+Compiled code will effectively be a thunk, of no arguments, but
+optionally closing over some number of variables (which should be
+captured via `make-closure' REFFIXME.
+
+@node Object Code
+@subsection Object Code
+
+describe the env -- module + externals (the actual values!)
+
+The env is used when compiling to value -- effectively calling the
+thunk from objcode->program with a certain current module and with
+those externals. so you can recompile a closure at runtime, a trick
+that goops uses.
+

@@ -11,6 +11,7 @@
 @menu
 * Lambda::                      Basic procedure creation using lambda.
 * Primitive Procedures::        Procedures defined in C.
+* Compiled Procedures::         Scheme procedures can be compiled.
 * Optional Arguments::          Handling keyword, optional and rest arguments.
 * Procedure Properties::        Procedure properties and meta-information.
 * Procedures with Setters::     Procedures with setters.
@@ -130,6 +131,21 @@ required.
 use @code{scm_c_make_subr} and also @code{scm_makcclo} if necessary.
 It is advisable to use the gsubr variants since they provide a
 slightly higher-level abstraction of the Guile implementation.
+
+@node Compiled Procedures
+@subsection Compiled Procedures
+
+Procedures that were created when loading a compiled file are
+themselves compiled. (In contrast, procedures that are defined by
+loading a Scheme source file are interpreted, and often not as fast as
+compiled procedures.)
+
+Loading compiled files is the normal way that compiled procedures come
+to being, though procedures can be compiled at runtime as well.
+@xref{Read/Load/Eval/Compile}, for more information on runtime
+compilation.
+
+here document things from (system vm program)
 
 @node Optional Arguments
 @subsection Optional Arguments
