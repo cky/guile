@@ -21,8 +21,8 @@
 
 (define-module (language ghil compile-glil)
   #:use-syntax (system base syntax)
-  #:use-module (language glil def)
-  #:use-module (language ghil def)
+  #:use-module (language glil)
+  #:use-module (language ghil)
   #:use-module (ice-9 common-list)
   #:export (compile-glil))
 

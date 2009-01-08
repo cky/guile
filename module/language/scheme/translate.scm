@@ -22,7 +22,7 @@
 (define-module (language scheme translate)
   #:use-module (system base pmatch)
   #:use-module (system base language)
-  #:use-module (language ghil def)
+  #:use-module (language ghil)
   #:use-module (language scheme inline)
   #:use-module (system vm objcode)
   #:use-module (ice-9 receive)

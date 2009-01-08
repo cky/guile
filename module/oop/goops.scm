@@ -1061,7 +1061,7 @@
 (eval-case
  ((load-toplevel compile-toplevel)
   (use-modules ((language scheme translate) :select (define-scheme-translator))
-               ((language ghil def) :select (make-ghil-inline))
+               ((language ghil) :select (make-ghil-inline))
                (system base pmatch))
 
   ;; unfortunately, can't use define-inline because these are primitive

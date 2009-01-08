@@ -22,7 +22,7 @@
 (define-module (language glil spec)
   #:use-module (system base language)
   #:use-module (language objcode spec)
-  #:use-module (language glil def)
+  #:use-module (language glil)
   #:use-module (language glil compile-objcode)
   #:export (glil))
 

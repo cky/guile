@@ -21,7 +21,7 @@
 
 (define-module (language scheme inline)
   #:use-module (system base syntax)
-  #:use-module (language ghil def)
+  #:use-module (language ghil)
   #:use-module (srfi srfi-16)
   #:export (*inline-table* define-inline try-inline try-inline-with-env))
 
@@ -57,8 +57,8 @@
   `(set! (@ (language scheme inline) *inline-table*)
          (assq-set! (@ (language scheme inline) *inline-table*)
                     ,sym
-                    (let ((make-ghil-inline (@ (language ghil def) make-ghil-inline))
-                          (make-ghil-quote (@ (language ghil def) make-ghil-quote))
+                    (let ((make-ghil-inline (@ (language ghil) make-ghil-inline))
+                          (make-ghil-quote (@ (language ghil) make-ghil-quote))
                           (try-inline (@ (language scheme inline) try-inline)))
                       (case-lambda
                        ,@(let lp ((in clauses) (out '()))

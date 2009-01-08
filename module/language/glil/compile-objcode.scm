@@ -21,7 +21,7 @@
 
 (define-module (language glil compile-objcode)
   #:use-syntax (system base syntax)
-  #:use-module (language glil def)
+  #:use-module (language glil)
   #:use-module (system vm instruction)
   #:use-module (system vm objcode)
   #:use-module ((system vm program) #:select (make-binding))

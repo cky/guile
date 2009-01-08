@@ -22,8 +22,8 @@
 (define-module (language ghil spec)
   #:use-module (system base language)
   #:use-module (language glil spec)
-  #:use-module (language glil def)
-  #:use-module (language ghil def)
+  #:use-module (language glil)
+  #:use-module (language ghil)
   #:use-module (language ghil compile-glil)
   #:export (ghil))
 
