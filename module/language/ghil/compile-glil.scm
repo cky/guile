@@ -19,14 +19,14 @@
 
 ;;; Code:
 
-(define-module (system il compile)
+(define-module (language ghil compile-glil)
   #:use-syntax (system base syntax)
-  #:use-module (system il glil)
-  #:use-module (system il ghil)
+  #:use-module (language glil def)
+  #:use-module (language ghil def)
   #:use-module (ice-9 common-list)
-  #:export (compile))
+  #:export (compile-glil))
 
-(define (compile x e opts)
+(define (compile-glil x e opts)
   (if (memq #:O opts) (set! x (optimize x)))
   (values (codegen x)
           (and e (cons (car e) (cddr e)))))

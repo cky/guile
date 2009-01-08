@@ -22,8 +22,9 @@
 (define-module (language ghil spec)
   #:use-module (system base language)
   #:use-module (language glil spec)
-  #:use-module (system il ghil)
-  #:use-module ((system il compile) #:select ((compile . compile-il)))
+  #:use-module (language glil def)
+  #:use-module (language ghil def)
+  #:use-module (language ghil compile-glil)
   #:export (ghil))
 
 (define (write-ghil exp . port)
@@ -40,5 +41,5 @@
   #:reader	read
   #:printer	write-ghil
   #:parser      parse
-  #:compilers   `((,glil . ,compile-il))
+  #:compilers   `((,glil . ,compile-glil))
   )

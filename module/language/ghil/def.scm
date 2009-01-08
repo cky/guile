@@ -19,7 +19,7 @@
 
 ;;; Code:
 
-(define-module (system il ghil)
+(define-module (language ghil def)
   #:use-module (system base syntax)
   #:use-module (system base pmatch)
   #:use-module (ice-9 regex)

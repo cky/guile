@@ -19,9 +19,9 @@
 
 ;;; Code:
 
-(define-module (system vm assemble)
+(define-module (language glil compile-objcode)
   #:use-syntax (system base syntax)
-  #:use-module (system il glil)
+  #:use-module (language glil def)
   #:use-module (system vm instruction)
   #:use-module (system vm objcode)
   #:use-module ((system vm program) #:select (make-binding))
@@ -30,9 +30,9 @@
   #:use-module (ice-9 common-list)
   #:use-module (srfi srfi-4)
   #:use-module ((srfi srfi-1) #:select (append-map))
-  #:export (preprocess codegen assemble))
+  #:export (preprocess codegen compile-objcode))
 
-(define (assemble glil env . opts)
+(define (compile-objcode glil env . opts)
   (codegen (preprocess glil #f) #t))
 
 

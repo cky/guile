@@ -22,8 +22,8 @@
 (define-module (language glil spec)
   #:use-module (system base language)
   #:use-module (language objcode spec)
-  #:use-module (system il glil)
-  #:use-module (system vm assemble)
+  #:use-module (language glil def)
+  #:use-module (language glil compile-objcode)
   #:export (glil))
 
 (define (write-glil exp . port)
@@ -36,7 +36,7 @@
   (parse-glil x))
 
 (define (compile x e opts)
-  (values (assemble x e) e))
+  (values (compile-objcode x e) e))
 
 (define-language glil
   #:title	"Guile Lowlevel Intermediate Language (GLIL)"

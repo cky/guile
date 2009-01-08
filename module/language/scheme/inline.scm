@@ -19,9 +19,9 @@
 
 ;;; Code:
 
-(define-module (system il inline)
+(define-module (language scheme inline)
   #:use-module (system base syntax)
-  #:use-module (system il ghil)
+  #:use-module (language ghil def)
   #:use-module (srfi srfi-16)
   #:export (*inline-table* define-inline try-inline try-inline-with-env))
 
@@ -54,12 +54,12 @@
      ((number? exp)
       `(make-ghil-quote #f #f ,exp))
      (else (error "bad consequent yall" exp))))
-  `(set! (@ (system il inline) *inline-table*)
-         (assq-set! (@ (system il inline) *inline-table*)
+  `(set! (@ (language scheme inline) *inline-table*)
+         (assq-set! (@ (language scheme inline) *inline-table*)
                     ,sym
-                    (let ((make-ghil-inline (@ (system il ghil) make-ghil-inline))
-                          (make-ghil-quote (@ (system il ghil) make-ghil-quote))
-                          (try-inline (@ (system il inline) try-inline)))
+                    (let ((make-ghil-inline (@ (language ghil def) make-ghil-inline))
+                          (make-ghil-quote (@ (language ghil def) make-ghil-quote))
+                          (try-inline (@ (language scheme inline) try-inline)))
                       (case-lambda
                        ,@(let lp ((in clauses) (out '()))
                            (if (null? in)

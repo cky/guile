@@ -1,1 +1,1 @@
-SUBDIRS = base il vm repl
+SUBDIRS = base vm repl

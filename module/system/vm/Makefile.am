@@ -1,4 +1,4 @@
-SOURCES = assemble.scm conv.scm debug.scm \
+SOURCES = conv.scm debug.scm \
 	  disasm.scm frame.scm instruction.scm objcode.scm \
 	  profile.scm program.scm trace.scm vm.scm
 modpath = system/vm

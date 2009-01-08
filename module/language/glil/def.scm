@@ -19,7 +19,7 @@
 
 ;;; Code:
 
-(define-module (system il glil)
+(define-module (language glil def)
   #:use-module (system base syntax)
   #:use-module (system base pmatch)
   #:export
