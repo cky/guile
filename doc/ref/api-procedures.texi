@@ -147,30 +147,75 @@ compilation.
 
 Compiled procedures, also known as @dfn{programs}, respond all
 procedures that operate on procedures. In addition, there are a few
-more accessors for low-level details on programs. Most people won't
-need these, but it's good to have them documented.
+more accessors for low-level details on programs.
 
-You'll have to include the appropriate module first, though:
+Most people won't need to use the routines described in this section,
+but it's good to have them documented. You'll have to include the
+appropriate module first, though:
 
 @example
 (use-modules (system vm program))
 @end example
 
+@deffn {Scheme Procedure} program? obj
+@deffnx {C Function} scm_program_p (obj)
+Returns @code{#t} iff @var{obj} is a compiled procedure.
+@end deffn
+
 @deffn {Scheme Procedure} program-bytecode program
 @deffnx {C Function} scm_program_bytecode (program)
-Returns the object code associated with this program.
+Returns the object code associated with this program, as a
+@code{u8vector}.
+@end deffn
+
+@deffn {Scheme Procedure} program-base program
+@deffnx {C Function} scm_program_base (program)
+Returns the address in memory corresponding to the start of
+@var{program}'s object code, as an integer. This is useful mostly when
+you map the value of an instruction pointer from the VM to actual
+instructions.
+@end deffn
+
+@deffn {Scheme Procedure} program-objects program
+@deffnx {C Function} scm_program_objects (program)
+Returns the ``object table'' associated with this program, as a
+vector. @xref{VM Programs}, for more information.
+@end deffn
+
+@deffn {Scheme Procedure} program-module program
+@deffnx {C Function} scm_program_module (program)
+Returns the module that was current when this program was created.
+Free variables in this program are looked up with respect to this
+module.
+@end deffn
+
+@deffn {Scheme Procedure} program-external program
+@deffnx {C Function} scm_program_external (program)
+Returns the set of heap-allocated variables that this program captures
+in its closure, as a list. If a closure is code with data, you can get
+the code from @code{program-bytecode}, and the data via
+@code{program-external}.
+
+Users must not modify the returned value unless they think they're
+really clever.
+@end deffn
+
+@deffn {Scheme Procedure} program-external-set! program external
+@deffnx {C Function} scm_program_external_set_x (program, external)
+Set @var{external} as the set of closure variables on @var{program}.
+
+The Guile maintainers will not be held responsible for side effects of
+calling this function, including but not limited to replacement of
+shampoo with hair dye, and a slight salty taste in tomorrow's dinner.
 @end deffn
 
 @deffn {Scheme Procedure} program-arity program
 @deffnx {C Function} scm_program_arity (program)
-Returns a representation of the ``arity'' of a program.
-@end deffn
-
-@deffn {Scheme Procedure} arity:nargs arity
+@deffnx {Scheme Procedure} arity:nargs arity
 @deffnx {Scheme Procedure} arity:nrest arity
 @deffnx {Scheme Procedure} arity:nlocs arity
 @deffnx {Scheme Procedure} arity:nexts arity
-Accessors for arity objects, as returned by @code{program-arity}.
+Accessors for a representation of the ``arity'' of a program.
 
 @code{nargs} is the number of arguments to the procedure, and
 @code{nrest} will be non-zero if the last argument is a rest argument.
@@ -178,6 +223,16 @@ Accessors for arity objects, as returned by @code{program-arity}.
 The other two accessors determine the number of local and external
 (heap-allocated) variables that this procedure will need to have
 allocated.
+@end deffn
+
+@deffn {Scheme Procedure} program-meta program
+@deffnx scm_program_meta (program)
+Return the metadata thunk of @var{program}, or @code{#f} if it has no
+metadata.
+
+When called, a metadata thunk returns a list of the following form:
+@code{(@var{bindings} @var{sources} . @var{properties})}. The format
+of each of these elements is discussed below.
 @end deffn
 
 @deffn {Scheme Procedure} program-bindings program
@@ -207,23 +262,32 @@ not impose a runtime performance penalty.
 @deffnx {Scheme Procedure} source:file source
 Source location annotations for programs, along with their accessors.
 
-Blah...
+Source location information propagates through the compiler and ends
+up being serialized to the program's metadata. This information is
+keyed by the offset of the instruction pointer within the object code
+of the program. Specifically, it is keyed on the @code{ip} @emph{just
+following} an instruction, so that backtraces can find the source
+location of a call that is in progress.
 @end deffn
 
 @deffn {Scheme Procedure} program-properties program
-@deffnx {Scheme Procedure} program-property program
-@deffnx {Scheme Procedure} program-documentation program
+Return the properties of a @code{program} as an association list,
+keyed by property name (a symbol). 
+
+Some interesting properties include:
+@itemize
+@item @code{name}, the name of the procedure
+@item @code{documentation}, the procedure's docstring
+@end itemize
+@end deffn
+
+@deffn {Scheme Procedure} program-property program name
+Access a program's property by name, returning @code{#f} if not found.
+@end deffn
+
+@deffn {Scheme Procedure} program-documentation program
 @deffnx {Scheme Procedure} program-name program
-@deffnx {Scheme Procedure} program-external program
-@deffnx {Scheme Procedure} program-external-set! program
-@deffnx {Scheme Procedure} program-meta program
-@deffnx {Scheme Procedure} program-bytecode program
-@deffnx {Scheme Procedure} program-bytecode program
-@deffnx {Scheme Procedure} program? program
-@deffnx {Scheme Procedure} program-objects program
-@deffnx {Scheme Procedure} program-module program
-@deffnx {Scheme Procedure} program-base program
-Undocumented...
+Accessors for specific properties.
 @end deffn
 
 @node Optional Arguments
