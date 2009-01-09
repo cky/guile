@@ -42,9 +42,9 @@ seen in Emacs' current and continued existence, spanning more than a
 quarter-century.
 
 Besides providing for modification of a program by others, extension
-languages are good for /intension/ as well. Programs built in ``the
-Emacs way'' are pleasurable and easy for their authors to flesh out
-with the features that they need.
+languages are good for @emph{intension} as well. Programs built in
+``the Emacs way'' are pleasurable and easy for their authors to flesh
+out with the features that they need.
 
 After the Emacs experience was appreciated more widely, a number of
 hackers started to consider how to spread this experience to the rest

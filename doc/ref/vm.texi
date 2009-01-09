@@ -388,46 +388,46 @@ These instructions access and mutate the environment of a compiled
 procedure -- the local bindings, the ``external'' bindings, and the
 toplevel bindings.
 
-@deffn Instruction local-ref offset
+@deffn Instruction local-ref index
 Push onto the stack the value of the local variable located at
-@var{offset} within the current stack frame.
+@var{index} within the current stack frame.
 
 Note that arguments and local variables are all in one block. Thus the
-first argument, if any, is at offset 0, and local bindings follow the
+first argument, if any, is at index 0, and local bindings follow the
 arguments.
 @end deffn
 
-@deffn Instruction local-set offset
+@deffn Instruction local-set index
 Pop the Scheme object located on top of the stack and make it the new
-value of the local variable located at @var{offset} within the current
+value of the local variable located at @var{index} within the current
 stack frame.
 @end deffn
 
-@deffn Instruction external-ref offset
+@deffn Instruction external-ref index
 Push the value of the closure variable located at position
-@var{offset} within the program's list of external variables.
+@var{index} within the program's list of external variables.
 @end deffn
 
-@deffn Instruction external-set offset
+@deffn Instruction external-set index
 Pop the Scheme object located on top of the stack and make it the new
-value of the closure variable located at @var{offset} within the
+value of the closure variable located at @var{index} within the
 program's list of external variables.
 @end deffn
 
 The external variable lookup algorithm should probably be made more
-efficient in the future via addressing by frame and offset. Currently,
+efficient in the future via addressing by frame and index. Currently,
 external variables are all consed onto a list, which results in O(N)
 lookup time.
 
 @deffn Instruction externals
 Pushes the current list of external variables onto the stack. This
 instruction is used in the implementation of
-@code{compile-time-environment}.
+@code{compile-time-environment}. @xref{The Scheme Compiler}.
 @end deffn
 
-@deffn Instruction toplevel-ref offset
+@deffn Instruction toplevel-ref index
 Push the value of the toplevel binding whose location is stored in at
-position @var{offset} in the object table.
+position @var{index} in the object table.
 
 Initially, a cell in the object table that is used by
 @code{toplevel-ref} is initialized to one of two forms. The normal
@@ -453,9 +453,9 @@ variable has been successfully resolved.
 This instruction pushes the value of the variable onto the stack.
 @end deffn
 
-@deffn Instruction toplevel-ref offset
+@deffn Instruction toplevel-ref index
 Pop a value off the stack, and set it as the value of the toplevel
-variable stored at @var{offset} in the object table. If the variable
+variable stored at @var{index} in the object table. If the variable
 has not yet been looked up, we do the lookup as in
 @code{toplevel-ref}.
 @end deffn
@@ -490,15 +490,13 @@ All the conditional branch instructions described below work in the
 same way:
 
 @itemize
-@item They take the Scheme object located on the stack and use it as
+@item They pop off the Scheme object located on the stack and use it as
 the branch condition;
-@item If the condition is false, then program execution continues with
-the next instruction;
 @item If the condition is true, then the instruction pointer is
 increased by the offset passed as an argument to the branch
 instruction;
-@item Finally, when the instruction finished, the condition object is
-removed from the stack.
+@item Program execution proceeds with the next instruction (that is,
+the one to which the instruction pointer points).
 @end itemize
 
 Note that the offset passed to the instruction is encoded on two 8-bit

@@ -404,7 +404,7 @@
      ((call ,proc . ,args)
       (make-ghil-call env loc (retrans proc) (map retrans args)))
 
-     ((mv-call ,producer . ,consumer)
+     ((mv-call ,producer ,consumer)
       (make-ghil-mv-call env loc (retrans producer) (retrans consumer)))
 
      ((inline ,op . ,args)

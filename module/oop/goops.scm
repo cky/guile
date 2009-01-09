@@ -1060,7 +1060,7 @@
 
 (eval-case
  ((load-toplevel compile-toplevel)
-  (use-modules ((language scheme translate) :select (define-scheme-translator))
+  (use-modules ((language scheme compile-ghil) :select (define-scheme-translator))
                ((language ghil) :select (make-ghil-inline))
                (system base pmatch))
 

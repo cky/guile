@@ -424,7 +424,7 @@ desired results. This is known as @dfn{compilation}.
 
 While it is possible to compile simple Scheme expressions such as
 @code{(+ 2 2)} or even @code{"Hello world!"}, compilation is most
-interesting in th context of procedures. Compiling a lambda expression
+interesting in the context of procedures. Compiling a lambda expression
 produces a compiled procedure, which is just like a normal procedure
 except typically much faster, because it can bypass the generic
 interpreter.
@@ -446,8 +446,8 @@ computation are fulfilled by macros and closures. Of course one good
 counterexample is the REPL itself, or any code that reads expressions
 from a port.)
 
-For more information on the compiler itself, @xref{Compiling to the
-Virtual Machine}. For information on the virtual machine, @xref{A
+For more information on the compiler itself, see @ref{Compiling to the
+Virtual Machine}. For information on the virtual machine, see @ref{A
 Virtual Machine for Guile}.
 
 @deffn {Scheme Procedure} compile exp [env=#f] [from=(current-language)] [to=value] [opts=()]

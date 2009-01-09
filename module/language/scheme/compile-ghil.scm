@@ -19,7 +19,7 @@
 
 ;;; Code:
 
-(define-module (language scheme translate)
+(define-module (language scheme compile-ghil)
   #:use-module (system base pmatch)
   #:use-module (system base language)
   #:use-module (language ghil)
@@ -29,7 +29,7 @@
   #:use-module (ice-9 optargs)
   #:use-module ((ice-9 syncase) #:select (sc-macro))
   #:use-module ((system base compile) #:select (syntax-error))
-  #:export (translate translate-1
+  #:export (compile-ghil translate-1
             *translate-table* define-scheme-translator))
 
 
@@ -59,7 +59,7 @@
 
 
 
-(define (translate x e opts)
+(define (compile-ghil x e opts)
   (save-module-excursion
    (lambda ()
      (and=> (cenv-module e) set-current-module)
@@ -158,11 +158,11 @@
 (define *translate-table* (make-hash-table))
 
 (define-macro (define-scheme-translator sym . clauses)
-  `(hashq-set! (@ (language scheme translate) *translate-table*)
+  `(hashq-set! (@ (language scheme compile-ghil) *translate-table*)
                ,sym
                (lambda (e l exp)
                  (define (retrans x)
-                   ((@ (language scheme translate) translate-1) e #f x))
+                   ((@ (language scheme compile-ghil) translate-1) e #f x))
                  (define syntax-error (@ (system base compile) syntax-error))
                  (pmatch (cdr exp)
                          ,@clauses

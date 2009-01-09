@@ -365,8 +365,6 @@ available through both Scheme and C interfaces.
 @include scsh.texi
 @include scheme-debugging.texi
 
-@include autoconf.texi
-
 @node Guile Implementation
 @chapter Guile Implementation
 
@@ -389,6 +387,8 @@ Also Schemers as closet compiler writers.
 @include data-rep.texi
 @include vm.texi
 @include compiler.texi
+
+@include autoconf.texi
 
 @include fdl.texi
 

@@ -68,7 +68,7 @@ for Scheme:
   #:version	"0.5"
   #:reader	read
   #:read-file	read-file
-  #:compilers   `((,ghil . ,translate))
+  #:compilers   `((,ghil . ,compile-ghil))
   #:evaluator	(lambda (x module) (primitive-eval x))
   #:printer	write)
 @end example
@@ -158,27 +158,190 @@ different worlds indefinitely, as shown by the following quine:
 @node The Scheme Compiler
 @subsection The Scheme Compiler
 
-macro expansion
+The job of the Scheme compiler is to expand all macros and to resolve
+all symbols to lexical variables. Its target language, GHIL, is fairly
+close to Scheme itself, so this process is not very complicated.
 
-define-scheme-translator
+The Scheme compiler is driven by a table of @dfn{translators},
+declared with the @code{define-scheme-translator} form, defined in the
+module, @code{(language scheme compile-ghil)}.
 
-inlining
+@deffn {Scheme Syntax} define-scheme-translator head clause1 clause2...
+The best documentation of this form is probably an example. Here is
+the translator for @code{if}:
 
-format of the environment
+@example
+(define-scheme-translator if
+  ;; (if TEST THEN [ELSE])
+  ((,test ,then)
+   (make-ghil-if e l (retrans test) (retrans then) (retrans '(begin))))
+  ((,test ,then ,else)
+   (make-ghil-if e l (retrans test) (retrans then) (retrans else))))
+@end example
 
-compile-time-environment
+The match syntax is from the @code{pmatch} macro, defined in
+@code{(system base pmatch)}. The result of a clause should be a valid
+GHIL value. If no clause matches, a syntax error is signalled.
 
-symbols resolved as local, external, or toplevel
+In the body of the clauses, the following bindings are introduced:
+@itemize
+@item @code{e}, the current environment
+@item @code{l}, the current source location (or @code{#f})
+@item @code{retrans}, a procedure that may be called to compile
+subexpressions
+@end itemize
+
+Note that translators are looked up by @emph{value}, not by name. That
+is to say, the translator is keyed under the @emph{value} of
+@code{if}, which normally prints as @code{#<primitive-builtin-macro!
+if>}.
+@end deffn
+
+Users can extend the compiler by defining new translators.
+Additionally, some forms can be inlined directly to
+instructions -- @xref{Inlined Scheme Instructions}, for a list. The
+actual inliners are defined in @code{(language scheme inline)}:
+
+@deffn {Scheme Syntax} define-inline head arity1 result1 arity2 result2...
+Defines an inliner for @code{head}. As in
+@code{define-scheme-translator}, inliners are keyed by value and not
+by name.
+
+Expressions are matched on their arities. For example:
+
+@example
+(define-inline eq?
+  (x y) (eq? x y))
+@end example
+
+This inlines calls to the Scheme procedure, @code{eq?}, to the
+instruction @code{eq?}.
+
+A more complicated example would be:
+
+@example
+(define-inline +
+  () 0
+  (x) x
+  (x y) (add x y)
+  (x y . rest) (add x (+ y . rest)))
+@end example
+@end deffn
+
+Compilers take two arguments, an expression and an environment, and
+return two values as well: an expression in the target language, and
+an environment suitable for the target language. The format of the
+environment is language-dependent.
+
+For Scheme, an environment may be one of three things:
+@itemize
+@item @code{#f}, in which case compilation is performed in the context
+of the current module;
+@item a module, which specifies the context of the compilation; or
+@item a @dfn{compile environment}, which specifies lexical variables
+as well.
+@end itemize
+
+The format of a compile environment for scheme is @code{(@var{module}
+@var{lexicals} . @var{externals})}, though users are strongly
+discouraged from constructing these environments themselves. Instead,
+if you need this functionality -- as in GOOPS' dynamic method compiler
+-- capture an environment with @code{compile-time-environment}, then
+pass that environment to @code{compile}.
+
+@deffn {Scheme Procedure} compile-time-environment
+A special function known to the compiler that, when compiled, will
+return a representation of the lexical environment in place at compile
+time. Useful for supporting some forms of dynamic compilation. Returns
+@code{#f} if called from the interpreter.
+@end deffn
 
 @node GHIL
 @subsection GHIL
-
-ghil environments
 
 structured, typed intermediate language, close to scheme
 with an s-expression representation
 
 ,lang ghil
+
+document reified format, as it's more interesting, and gives you an idea
+
+all have environment and location pointers
+
+@deffn {GHIL Expression} quote exp
+A quoted expression.
+@end deffn
+@deffn {GHIL Expression} quasiquote exp
+A quasiquoted expression. The parse format understands the normal
+@code{unquote} and @code{unquote-splicing} forms as in normal Scheme.
+When constructing @var{exp} programmatically, you will need to call
+@code{make-ghil-unquote} and @code{make-ghil-unquote-splicing} as
+appropriate.
+@end deffn
+@deffn {GHIL Expression} lambda syms rest meta . body
+A closure. @var{syms} is the argument list, as a list of symbols.
+@var{rest} is a boolean, which is @code{#t} iff the last argument is a
+rest argument. @var{meta} is an association list of properties. The
+actual @var{body} should be a list of GHIL expressions.
+@end deffn
+@deffn {GHIL Expression} void
+The unspecified value.
+@end deffn
+@deffn {GHIL Expression} begin . body
+Like Scheme's @code{begin}.
+@end deffn
+@deffn {GHIL Expression} bind syms exprs . body
+Like a deconstructed @code{let}: each element of @var{syms} will be
+bound to the corresponding GHIL expression in @var{exprs}.
+@end deffn
+@deffn {GHIL Expression} bindrec syms exprs . body
+As @code{bind} is to @code{let}, so @code{bindrec} is to
+@code{letrec}.
+@end deffn
+@deffn {GHIL Expression} set! sym val
+Like Scheme's @code{set!}.
+@end deffn
+@deffn {GHIL Expression} define sym val
+Like Scheme's @code{define}, but without the lambda sugar of course.
+@end deffn
+@deffn {GHIL Expression} if test then else
+A conditional. Note that @var{else} is not optional.
+@end deffn
+@deffn {GHIL Expression} and . exps
+Like Scheme's @code{and}.
+@end deffn
+@deffn {GHIL Expression} or . exps
+Like Scheme's @code{or}.
+@end deffn
+@deffn {GHIL Expression} mv-bind syms rest producer . body
+Like Scheme's @code{receive} -- binds the values returned by
+applying @code{producer}, which should be a thunk, to the
+@code{lambda}-like bindings described by @var{syms} and @var{rest}.
+@end deffn
+@deffn {GHIL Expression} call proc . args
+A procedure call.
+@end deffn
+@deffn {GHIL Expression} mv-call producer consumer
+Like Scheme's @code{call-with-values}.
+@end deffn
+@deffn {GHIL Expression} inline op . args
+An inlined VM instruction. @var{op} should be the instruction name as
+a symbol, and @var{args} should be its arguments, as GHIL expressions.
+@end deffn
+@deffn {GHIL Expression} values . values
+Like Scheme's @code{values}.
+@end deffn
+@deffn {GHIL Expression} values* . values
+@var{values} are as in the Scheme expression, @code{(apply values .
+@var{vals})}.
+@end deffn
+@deffn {GHIL Expression} compile-time-environment
+Produces, at runtime, a reification of the environment at compile
+time.
+@end deffn
+
+ghil environments
+ghil-var-for-ref!, ghil-var-for-set!, ghil-var-define!, ghil-var-at-module!
 
 some pre-optimization
 
