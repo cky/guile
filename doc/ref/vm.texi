@@ -37,13 +37,13 @@ Guile's evaluator operates directly on the S-expression representation
 of Scheme source code.
 
 But while the evaluator is highly optimized and hand-tuned, and
-contains some extensive speed trickery (REFFIXME memoization), it
-still performs many needless computations during the course of
-evaluating an expression. For example, application of a function to
-arguments needlessly conses up the arguments in a list. Evaluation of
-an expression always has to figure out what the car of the expression
-is -- a procedure, a memoized form, or something else. All values have
-to be allocated on the heap. Et cetera.
+contains some extensive speed trickery (@pxref{Memoization}), it still
+performs many needless computations during the course of evaluating an
+expression. For example, application of a function to arguments
+needlessly conses up the arguments in a list. Evaluation of an
+expression always has to figure out what the car of the expression is
+-- a procedure, a memoized form, or something else. All values have to
+be allocated on the heap. Et cetera.
 
 The solution to this problem is to compile the higher-level language,
 Scheme, into a lower-level language for which all of the checks and
@@ -72,7 +72,7 @@ that Guile implements, and the compiled procedures that run on it.
 Note that this decision to implement a bytecode compiler does not
 preclude native compilation. We can compile from bytecode to native
 code at runtime, or even do ahead of time compilation. More
-possibilities are discussed in REFFIXME.
+possibilities are discussed in @xref{Extending the Compiler}.
 
 @node VM Concepts
 @subsection VM Concepts
@@ -109,7 +109,7 @@ The registers that a VM has are as follows:
 In other architectures, the instruction pointer is sometimes called
 the ``program counter'' (pc). This set of registers is pretty typical
 for stack machines; their exact meanings in the context of Guile's VM
-is described below REFFIXME.
+is described in the next section.
 
 A virtual machine executes by loading a compiled procedure, and
 executing the object code associated with that procedure. Of course,
@@ -200,8 +200,8 @@ effect, this and the return address are the registers that are always
 
 @item External link
 This field is a reference to the list of heap-allocated variables
-associated with this frame. A discussion of heap versus stack
-allocation can be found in REFFIXME.
+associated with this frame. For a discussion of heap versus stack
+allocation, @xref{Variables and the VM}.
 
 @item Local variable @var{n}
 Lambda-local variables that are allocated on the stack are all
@@ -217,7 +217,8 @@ from its initial value here onto a location in the heap, and
 thereafter only referenced on the heap.
 
 @item Program
-This is the program being applied. Programs are discussed in REFFIXME!
+This is the program being applied. For more information on how
+programs are implemented, @xref{VM Programs}.
 @end table
 
 @node Variables and the VM
@@ -270,14 +271,15 @@ A compiled procedure is a compound object, consisting of its bytecode,
 a reference to any captured lexical variables, an object array, and
 some metadata such as the procedure's arity, name, and documentation.
 You can pick apart these pieces with the accessors in @code{(system vm
-program)}. REFFIXME, for a full API reference.
+program)}. @xref{Compiled Procedures}, for a full API reference.
 
 @cindex object table
 The object array of a compiled procedure, also known as the
 @dfn{object table}, holds all Scheme objects whose values are known
 not to change across invocations of the procedure: constant strings,
 symbols, etc. The object table of a program is initialized right
-before a program is loaded with @code{load-program} REFFIXME.
+before a program is loaded with @code{load-program}.
+@xref{Loading Instructions}, for more information.
 
 Variable objects are one such type of constant object: when a global
 binding is defined, a variable object is associated to it and that
@@ -326,8 +328,8 @@ The second stanza disassembles the compiled lambda. Toplevel variables
 are resolved relative to the module that was current when the
 procedure was created. This lookup occurs lazily, at the first time
 the variable is actually referenced, and the location of the lookup is
-cached so that future references are very cheap. REFFIXME xref
-toplevel-ref, for more details.
+cached so that future references are very cheap. @xref{Environment
+Control Instructions}, for more details.
 
 Then we see a reference to an external variable, corresponding to
 @code{a}. The disassembler doesn't have enough information to give a
@@ -584,7 +586,8 @@ of a procedure is fast: the VM just mmap's the thunk and goes. The
 symbols and pairs associated with the metadata are only created if the
 user asks for them.
 
-The format of the thunk's return value is specified in REFFIXME.
+For information on the format of the thunk's return value,
+@xref{Compiled Procedures}.
 @item Optionally, the program's object table, as a vector.
 
 A program that does not reference toplevel bindings and does not use
@@ -643,9 +646,9 @@ arguments off the stack, and push the result of calling
 @code{scm_apply}.
 
 For compiled procedures, this instruction sets up a new stack frame,
-as described in REFFIXME, and then dispatches to the first instruction
-in the called procedure, relying on the called procedure to return one
-value to the newly-created continuation.
+as described in @ref{Stack Layout}, and then dispatches to the first
+instruction in the called procedure, relying on the called procedure
+to return one value to the newly-created continuation.
 @end deffn
 
 @deffn Instruction goto/args nargs
@@ -692,11 +695,11 @@ Like @code{call}, except that a multiple-value continuation is created
 in addition to a single-value continuation.
 
 The offset (a two-byte value) is an offset within the instruction
-stream; the multiple-value return address in the new frame (see
-frames REFFIXME) will be set to the normal return address plus this
-offset. Instructions at that offset will expect the top value of the
-stack to be the number of values, and below that values themselves,
-pushed separately.
+stream; the multiple-value return address in the new frame
+(@pxref{Stack Layout}) will be set to the normal return address plus
+this offset. Instructions at that offset will expect the top value of
+the stack to be the number of values, and below that values
+themselves, pushed separately.
 @end deffn
 
 @deffn Instruction return/values nvalues
@@ -822,7 +825,7 @@ machine is first entered; compiled Scheme procedures will not contain
 this instruction.
 
 If multiple values have been returned, the SCM value will be a
-multiple-values object (REFFIXME scm_values).
+multiple-values object (@pxref{Multiple Values}).
 @end deffn
 
 @deffn Instruction break

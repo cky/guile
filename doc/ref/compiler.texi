@@ -14,10 +14,10 @@ the switch on Frankenstein. However, this magic is perceived by many
 to be impenetrable.
 
 This section aims to pull back the veil from over Guile's compiler
-implementation, some reference to the wizard of oz FIXME.
+implementation, and pay attention to the small man behind the curtain.
 
-REFFIXME, if you're lost and you just wanted to know how to compile
-your .scm file.
+@xref{Read/Load/Eval/Compile}, if you're lost and you just wanted to
+know how to compile your .scm file.
 
 @menu
 * Compiler Tower::                   
@@ -25,7 +25,10 @@ your .scm file.
 * GHIL::                 
 * GLIL::                
 * Object Code::                   
+* Extending the Compiler::
 @end menu
+
+FIXME: document the new repl somewhere?
 
 @node Compiler Tower
 @subsection Compiler Tower
@@ -33,7 +36,7 @@ your .scm file.
 Guile's compiler is quite simple, actually -- its @emph{compilers}, to
 put it more accurately. Guile defines a tower of languages, starting
 at Scheme and progressively simplifying down to languages that
-resemble the VM instruction set (REFFIXME).
+resemble the VM instruction set (@pxref{Instruction Set}).
 
 Each language knows how to compile to the next, so each step is simple
 and understandable. Furthermore, this set of languages is not
@@ -41,41 +44,116 @@ hardcoded into Guile, so it is possible for the user to add new
 high-level languages, new passes, or even different compilation
 targets.
 
-lookup-language
-(lang xxx spec)
+Languages are registered in the module, @code{(system base language)}:
 
-(system-base-language)
+@example
+(use-modules (system base language))
+@end example
 
-describe:
+They are registered with the @code{define-language} form.
 
-(define-record <language>
-  name
-  title
-  version
-  reader
-  printer
-  (parser #f)
-  (read-file #f)
-  (compilers '())
-  (evaluator #f))
+@deffn {Scheme Syntax} define-language @
+name title version reader printer @
+[parser=#f] [read-file=#f] [compilers='()] [evaluator=#f]
+Define a language.
 
-(define-macro (define-language name . spec)
+This syntax defines a @code{#<language>} object, bound to @var{name}
+in the current environment. In addition, the language will be added to
+the global language set. For example, this is the language definition
+for Scheme:
 
-(lookup-compilation-order from to)
+@example
+(define-language scheme
+  #:title	"Guile Scheme"
+  #:version	"0.5"
+  #:reader	read
+  #:read-file	read-file
+  #:compilers   `((,ghil . ,translate))
+  #:evaluator	(lambda (x module) (primitive-eval x))
+  #:printer	write)
+@end example
 
-language definition
+In this example, from @code{(language scheme spec)}, @code{read-file}
+reads expressions from a port and wraps them in a @code{begin} block.
+@end deffn
 
-compiling from here to there
+The interesting thing about having languages defined this way is that
+they present a uniform interface to the read-eval-print loop. This
+allows the user to change the current language of the REPL:
 
-the normal tower: scheme, ghil, glil, object code
-maybe from there serialized to disk
-or if at repl, brought back to life by compiling to ``value''
+@example
+$ guile
+Guile Scheme interpreter 0.5 on Guile 1.9.0
+Copyright (C) 2001-2008 Free Software Foundation, Inc.
 
-compile-file defaults to compiling to objcode
-compile defaults to compiling to value
+Enter `,help' for help.
+scheme@@(guile-user)> ,language ghil
+Guile High Intermediate Language (GHIL) interpreter 0.3 on Guile 1.9.0
+Copyright (C) 2001-2008 Free Software Foundation, Inc.
 
+Enter `,help' for help.
+ghil@@(guile-user)> 
+@end example
+
+Languages can be looked up by name, as they were above.
+
+@deffn {Scheme Procedure} lookup-language name
+Looks up a language named @var{name}, autoloading it if necessary.
+
+Languages are autoloaded by looking for a variable named @var{name} in
+a module named @code{(language @var{name} spec)}.
+
+The language object will be returned, or @code{#f} if there does not
+exist a language with that name.
+@end deffn
+
+Defining languages this way allows us to programmatically determine
+the necessary steps for compiling code from one language to another.
+
+@deffn {Scheme Procedure} lookup-compilation-order from to
+Recursively traverses the set of languages to which @var{from} can
+compile, depth-first, and return the first path that can transform
+@var{from} to @var{to}. Returns @code{#f} if no path is found.
+
+This function memoizes its results in a cache that is invalidated by
+subsequent calls to @code{define-language}, so it should be quite
+fast.
+@end deffn
+
+There is a notion of a ``current language'', which is maintained in
+the @code{*current-language*} fluid. This language is normally Scheme,
+and may be rebound by the user. The runtime compilation interfaces
+(@pxref{Read/Load/Eval/Compile}) also allow you to choose other source
+and target languages.
+
+The normal tower of languages when compiling Scheme goes like this:
+
+@itemize
+@item Scheme, which we know and love
+@item Guile High Intermediate Language (GHIL)
+@item Guile Low Intermediate Language (GLIL)
+@item Object code
+@end itemize
+
+Object code may be serialized to disk directly, though it has a cookie
+and version prepended to the front. But when compiling Scheme at
+runtime, you want a Scheme value, e.g. a compiled procedure. For this
+reason, so as not to break the abstraction, Guile defines a fake
+language, @code{value}. Compiling to @code{value} loads the object
+code into a procedure, and wakes the sleeping giant.
+
+Perhaps this strangeness can be explained by example:
+@code{compile-file} defaults to compiling to object code, because it
+produces object code that has to live in the barren world outside the
+Guile runtime; but @code{compile} defaults to compiling to
+@code{value}, as its product re-enters the Guile world.
+
+Indeed, the process of compilation can circulate through these
+different worlds indefinitely, as shown by the following quine:
+
+@example
 ((lambda (x) ((compile x) x)) '(lambda (x) ((compile x) x)))
-quine
+@end example
 
 @node The Scheme Compiler
 @subsection The Scheme Compiler
@@ -118,7 +196,7 @@ and code. Well, there's a bit more, but that's the flavor of GLIL.
 
 Compiled code will effectively be a thunk, of no arguments, but
 optionally closing over some number of variables (which should be
-captured via `make-closure' REFFIXME.
+captured via `make-closure', @pxref{Loading Instructions}).
 
 @node Object Code
 @subsection Object Code
@@ -130,3 +208,15 @@ thunk from objcode->program with a certain current module and with
 those externals. so you can recompile a closure at runtime, a trick
 that goops uses.
 
+@node Extending the Compiler
+@subsection Extending the Compiler
+
+JIT compilation
+
+AOT compilation
+
+link to what dybvig did
+
+profiling
+
+startup time

@@ -2021,6 +2021,8 @@ this-is-a-matric
 guile> 
 @end lisp
 
+@anchor{Memoization}
+@cindex Memoization
 (For anyone wondering why the first @code{(do-main 4)} call above
 generates lots more trace lines than the subsequent calls: these
 examples also demonstrate how the Guile evaluator ``memoizes'' code.
