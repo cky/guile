@@ -31,7 +31,7 @@
   (apply write (unparse-ghil exp) port))
 
 (define (parse x)
-  (call-with-ghil-environment (make-ghil-toplevel-env e) '()
+  (call-with-ghil-environment (make-ghil-toplevel-env (current-module)) '()
     (lambda (env vars)
       (make-ghil-lambda env #f vars #f '() (parse-ghil env x)))))
 

@@ -23,11 +23,9 @@
   #:use-module (system base syntax)
   #:use-module (system base pmatch)
   #:export
-  (<glil-vars> make-glil-vars
-   glil-vars-nargs glil-vars-nrest glil-vars-nlocs glil-vars-nexts
-
-   <glil-asm> make-glil-asm glil-asm?
-   glil-asm-vars glil-asm-meta glil-asm-body
+  (<glil-asm> make-glil-asm glil-asm?
+   glil-asm-nargs glil-asm-nrest glil-asm-nlocs glil-asm-nexts
+   glil-asm-meta glil-asm-body
 
    <glil-bind> make-glil-bind glil-bind?
    glil-bind-vars
@@ -74,14 +72,12 @@
 
    parse-glil unparse-glil))
 
-(define-record <glil-vars> nargs nrest nlocs nexts)
-
 (define (print-glil x port)
   (format port "#<glil ~s>" (unparse-glil x)))
 
 (define-type (<glil> #:printer print-glil)
   ;; Meta operations
-  (<glil-asm> vars meta body)
+  (<glil-asm> nargs nrest nlocs nexts meta body)
   (<glil-bind> vars)
   (<glil-mv-bind> vars rest)
   (<glil-unbind>)
@@ -104,9 +100,8 @@
 
 (define (parse-glil x)
   (pmatch x
-    ((asm (,nargs ,nrest ,nlocs ,next) ,meta . ,body)
-     (make-glil-asm (make-glil-vars nargs nrest nlocs next)
-                    meta (map parse-glil body)))
+    ((asm ,nargs ,nrest ,nlocs ,nexts ,meta . ,body)
+     (make-glil-asm nargs nrest nlocs nexts meta (map parse-glil body)))
     ((bind . ,vars) (make-glil-bind vars))
     ((mv-bind ,vars . ,rest) (make-glil-mv-bind vars (map parse-glil rest)))
     ((unbind) (make-glil-unbind))
@@ -128,11 +123,8 @@
 (define (unparse-glil glil)
   (record-case glil
     ;; meta
-    ((<glil-asm> vars meta body)
-     `(asm (,(glil-vars-nargs vars) ,(glil-vars-nrest vars)
-            ,(glil-vars-nlocs vars) ,(glil-vars-nexts vars))
-           ,meta
-           ,@(map unparse-glil body)))
+    ((<glil-asm> nargs nrest nlocs nexts meta body)
+     `(asm ,nargs ,nrest ,nlocs ,nexts ,meta ,@(map unparse-glil body)))
     ((<glil-bind> vars) `(bind ,@vars))
     ((<glil-mv-bind> vars rest) `(mv-bind ,vars ,@rest))
     ((<glil-unbind>) `(unbind))

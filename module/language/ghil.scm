@@ -349,11 +349,8 @@
   (let ((loc (location exp))
         (retrans (lambda (x) (parse-ghil env x))))
     (pmatch exp
-     (,exp (guard (symbol? exp))
-           (make-ghil-ref env #f (ghil-var-for-ref! env exp)))
-
-     (,exp (guard (not (pair? exp)))
-           (make-ghil-quote #:env env #:loc #f #:obj exp))
+     ((ref ,sym) (guard (symbol? sym))
+      (make-ghil-ref env #f (ghil-var-for-ref! env sym)))
 
      (('quote ,exp) (make-ghil-quote #:env env #:loc loc #:obj exp))
 
@@ -380,7 +377,7 @@
           (let ((vals (map (lambda (exp) (parse-ghil env exp)) exprs)))
             (make-ghil-bind env loc vars vals (retrans `(begin ,@body)))))))
 
-     ((set! ,sym ,val)
+     ((set ,sym ,val)
       (make-ghil-set env loc (ghil-var-for-set! env sym) (retrans val)))
 
      ((define ,sym ,val)
@@ -430,9 +427,7 @@
     ((<ghil-void> env loc)
      '(void))
     ((<ghil-quote> env loc obj)
-     (if (symbol? obj)
-         `(,'quote ,obj)
-         obj))
+     `(,'quote ,obj))
     ((<ghil-quasiquote> env loc exp)
      `(,'quasiquote ,(map unparse-ghil exp)))
     ((<ghil-unquote> env loc exp)
@@ -441,9 +436,9 @@
      `(,'unquote-splicing ,(unparse-ghil exp)))
   ;; Variables
     ((<ghil-ref> env loc var)
-     (ghil-var-name var))
+     `(ref ,(ghil-var-name var)))
     ((<ghil-set> env loc var val)
-     `(set! ,(ghil-var-name var) ,(unparse-ghil val)))
+     `(set ,(ghil-var-name var) ,(unparse-ghil val)))
     ((<ghil-define> env loc var val)
      `(define ,(ghil-var-name var) ,(unparse-ghil val)))
   ;; Controls

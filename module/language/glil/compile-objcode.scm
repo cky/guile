@@ -46,7 +46,7 @@
 (define-record <vlink-now> key)
 (define-record <vlink-later> key)
 (define-record <vdefine> name)
-(define-record <bytespec> vars bytes meta objs closure?)
+(define-record <bytespec> nargs nrest nlocs nexts bytes meta objs closure?)
 
 
 ;;;
@@ -55,8 +55,8 @@
 
 (define (preprocess x e)
   (record-case x
-    ((<glil-asm> vars meta body)
-     (let* ((venv (make-venv #:parent e #:nexts (glil-vars-nexts vars) #:closure? #f))
+    ((<glil-asm> nargs nrest nlocs nexts meta body)
+     (let* ((venv (make-venv #:parent e #:nexts nexts #:closure? #f))
 	    (body (map (lambda (x) (preprocess x venv)) body)))
        (make-vm-asm #:venv venv #:glil x #:body body)))
     ((<glil-external> op depth index)
@@ -89,7 +89,7 @@
           (push (code->bytes code) stack))
         (dump-object! push-code! `(,bindings ,sources ,@tail))
         (push-code! '(return))
-        (make-bytespec #:vars (make-glil-vars 0 0 0 0)
+        (make-bytespec #:nargs 0 #:nrest 0 #:nlocs 0 #:nexts 0
                        #:bytes (stack->bytes (reverse! stack) '())
                        #:meta #f #:objs #f #:closure? #f))))
 
@@ -109,7 +109,7 @@
 
 (define (codegen glil toplevel)
   (record-case glil
-    ((<vm-asm> venv glil body) (record-case glil ((<glil-asm> vars meta) ; body?
+    ((<vm-asm> venv glil body) (record-case glil ((<glil-asm> nargs nrest nlocs nexts meta) ; body?
      (let ((stack '())
 	   (open-bindings '())
 	   (closed-bindings '())
@@ -168,11 +168,11 @@
 	    (push-object! (codegen x #f))
 	    (if (venv-closure? venv) (push-code! `(make-closure))))
 
-	   ((<glil-bind> (binds vars))
-            (push-bindings! (munge-bindings binds (glil-vars-nargs vars))))
+	   ((<glil-bind> vars)
+            (push-bindings! (munge-bindings vars nargs)))
 
-	   ((<glil-mv-bind> (binds vars) rest)
-            (push-bindings! (munge-bindings binds (glil-vars-nargs vars)))
+	   ((<glil-mv-bind> vars rest)
+            (push-bindings! (munge-bindings vars nargs))
             (push-code! `(truncate-values ,(length binds) ,(if rest 1 0))))
 
 	   ((<glil-unbind>)
@@ -194,8 +194,8 @@
 
 	   ((<glil-local> op index)
 	    (if (eq? op 'ref)
-		(push-code! `(local-ref ,(+ (glil-vars-nargs vars) index)))
-		(push-code! `(local-set ,(+ (glil-vars-nargs vars) index)))))
+		(push-code! `(local-ref ,(+ nargs index)))
+		(push-code! `(local-set ,(+ nargs index)))))
 
 	   ((<glil-external> op depth index)
 	    (do ((e venv (venv-parent e))
@@ -281,8 +281,9 @@
 ;       (format #t "codegen: stack = ~a~%" (reverse stack))
        (let ((bytes (stack->bytes (reverse! stack) label-alist)))
 	 (if toplevel
-	     (bytecode->objcode bytes (glil-vars-nlocs vars) (glil-vars-nexts vars))
-	     (make-bytespec #:vars vars #:bytes bytes
+	     (bytecode->objcode bytes nlocs nexts)
+	     (make-bytespec #:nargs nargs #:nrest nrest #:nlocs nlocs
+                            #:nexts nexts #:bytes bytes
                             #:meta (make-meta closed-bindings
                                               (reverse! source-alist)
                                               meta)
@@ -343,28 +344,26 @@
      ((object->code x) => push-code!)
      ((record? x)
       (record-case x
-	((<bytespec> vars bytes meta objs closure?)
-	 ;; dump parameters
-	 (let ((nargs (glil-vars-nargs vars)) (nrest (glil-vars-nrest vars))
-	       (nlocs (glil-vars-nlocs vars)) (nexts (glil-vars-nexts vars)))
-	   (cond
-	     ((and (< nargs 16) (< nlocs 128) (< nexts 16))
-	      ;; 16-bit representation
-	      (let ((x (logior
-                        (ash nargs 12) (ash nrest 11) (ash nlocs 4) nexts)))
-		(push-code! `(make-int16 ,(ash x -8) ,(logand x (1- (ash 1 8)))))))
-	     (else
-	      ;; Other cases
-              (if (> (+ nargs nlocs) 255)
-                  (error "too many locals" nargs nlocs))
-              ;; really it should be a flag..
-              (if (> nrest 1) (error "nrest should be 0 or 1" nrest))
-              (if (> nexts 255) (error "too many externals" nexts))
-	      (push-code! (object->code nargs))
-	      (push-code! (object->code nrest))
-	      (push-code! (object->code nlocs))
-	      (push-code! (object->code nexts))
-	      (push-code! (object->code #f)))))
+        ((<bytespec> nargs nrest nlocs nexts bytes meta objs closure?)
+         ;; dump parameters
+         (cond
+          ((and (< nargs 16) (< nlocs 128) (< nexts 16))
+           ;; 16-bit representation
+           (let ((x (logior
+                     (ash nargs 12) (ash nrest 11) (ash nlocs 4) nexts)))
+             (push-code! `(make-int16 ,(ash x -8) ,(logand x (1- (ash 1 8)))))))
+          (else
+           ;; Other cases
+           (if (> (+ nargs nlocs) 255)
+               (error "too many locals" nargs nlocs))
+           ;; really it should be a flag..
+           (if (> nrest 1) (error "nrest should be 0 or 1" nrest))
+           (if (> nexts 255) (error "too many externals" nexts))
+           (push-code! (object->code nargs))
+           (push-code! (object->code nrest))
+           (push-code! (object->code nlocs))
+           (push-code! (object->code nexts))
+           (push-code! (object->code #f))))
 	 ;; dump object table
 	 (if objs (dump! objs))
 	 ;; dump meta data

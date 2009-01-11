@@ -216,6 +216,12 @@
 	 (maybe-drop)
 	 (maybe-return))
 
+	((<ghil-unquote> env loc exp)
+         (error "unquote outside of quasiquote" exp))
+
+	((<ghil-unquote-splicing> env loc exp)
+         (error "unquote-splicing outside of quasiquote" exp))
+
 	((<ghil-ref> env loc var)
 	 (return-code! loc (make-glil-var 'ref env var)))
 
@@ -428,11 +434,9 @@
 	 ;; compile body
 	 (comp body #t #f)
 	 ;; create GLIL
-	 (let ((vars (make-glil-vars #:nargs (length vars)
-                                     #:nrest (if rest 1 0)
-                                     #:nlocs (length locs)
-                                     #:nexts (length exts))))
-	   (make-glil-asm vars meta (reverse! stack))))))))
+         (make-glil-asm
+          (length vars) (if rest 1 0) (length locs) (length exts)
+          meta (reverse! stack)))))))
 
 (define (finalize-index! list)
   (do ((n 0 (1+ n))
