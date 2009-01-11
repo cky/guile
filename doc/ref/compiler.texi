@@ -13,8 +13,8 @@ magical -- they transform inert text into live results, like throwing
 the switch on Frankenstein's monster. However, this magic is perceived
 by many to be impenetrable.
 
-This section aims to pull back the veil from over Guile's compiler
-implementation, and pay attention to the small man behind the curtain.
+This section aims to pay attention to the small man behind the
+curtain.
 
 @xref{Read/Load/Eval/Compile}, if you're lost and you just wanted to
 know how to compile your .scm file.
