@@ -55,7 +55,7 @@
 
 (define (preprocess x e)
   (record-case x
-    ((<glil-asm> nargs nrest nlocs nexts meta body)
+    ((<glil-program> nargs nrest nlocs nexts meta body)
      (let* ((venv (make-venv #:parent e #:nexts nexts #:closure? #f))
 	    (body (map (lambda (x) (preprocess x venv)) body)))
        (make-vm-asm #:venv venv #:glil x #:body body)))
@@ -109,7 +109,7 @@
 
 (define (codegen glil toplevel)
   (record-case glil
-    ((<vm-asm> venv glil body) (record-case glil ((<glil-asm> nargs nrest nlocs nexts meta) ; body?
+    ((<vm-asm> venv glil body) (record-case glil ((<glil-program> nargs nrest nlocs nexts meta) ; body?
      (let ((stack '())
 	   (open-bindings '())
 	   (closed-bindings '())

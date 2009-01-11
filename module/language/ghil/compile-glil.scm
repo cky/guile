@@ -434,7 +434,7 @@
 	 ;; compile body
 	 (comp body #t #f)
 	 ;; create GLIL
-         (make-glil-asm
+         (make-glil-program
           (length vars) (if rest 1 0) (length locs) (length exts)
           meta (reverse! stack)))))))
 

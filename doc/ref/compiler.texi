@@ -259,98 +259,301 @@ time. Useful for supporting some forms of dynamic compilation. Returns
 @node GHIL
 @subsection GHIL
 
-structured, typed intermediate language, close to scheme
-with an s-expression representation
+Guile High Intermediate Language (GHIL) is a structured intermediate
+language that is close in expressive power to Scheme. It is an
+expanded, pre-analyzed Scheme.
 
-,lang ghil
+GHIL is ``structured'' in the sense that its representation is based
+on records, not S-expressions. This gives a rigidity to the language
+that ensures that compiling to a lower-level language only requires a
+limited set of transformations. Practically speaking, consider the
+GHIL type, @code{<ghil-quote>}, which has fields named @code{env},
+@code{loc}, and @code{exp}. Instances of this type are records created
+via @code{make-ghil-quote}, and whose fields are accessed as
+@code{ghil-quote-env}, @code{ghil-quote-loc}, and
+@code{ghil-quote-exp}. There is also a predicate, @code{ghil-quote?}.
+@xref{Records}, for more information on records.
 
-document reified format, as it's more interesting, and gives you an idea
+Expressions of GHIL name their environments explicitly, and all
+variables are referenced by identity in addition to by name.
+@code{(language ghil)} defines a number of routines to deal explicitly
+with variables and environments:
 
-all have environment and location pointers
+@deftp {Scheme Variable} <ghil-toplevel-env> [table='()]
+A toplevel environment. The @var{table} holds all toplevel variables
+that have been resolved in this environment.
+@end deftp
+@deftp {Scheme Variable} <ghil-env> parent [table='()] [variables='()]
+A lexical environment. @var{parent} will be the enclosing lexical
+environment, or a toplevel environment. @var{table} holds an alist
+mapping symbols to variables bound in this environment, while
+@var{variables} holds a cumulative list of all variables ever defined
+in this environment.
 
-@deffn {GHIL Expression} quote exp
-A quoted expression.
+Lexical environments correspond to procedures. Bindings introduced
+e.g. by Scheme's @code{let} add to the bindings in a lexical
+environment. An example of a case in which a variable might be in
+@var{variables} but not in @var{table} would be a variable that is in
+the same procedure, but is out of scope.
+@end deftp
+@deftp {Scheme Variable} <ghil-var> env name kind [index=#f]
+A variable. @var{kind} is one of @code{argument}, @code{local},
+@code{external}, @code{toplevel}, @code{public}, or @code{private};
+see the procedures below for more information. @var{index} is used in
+compilation.
+@end deftp
+
+@deffn {Scheme Procedure} ghil-var-is-bound? env sym
+Recursively look up a variable named @var{sym} in @var{env}, and
+return it or @code{#f} if none is found.
 @end deffn
-@deffn {GHIL Expression} quasiquote exp
-A quasiquoted expression. The parse format understands the normal
-@code{unquote} and @code{unquote-splicing} forms as in normal Scheme.
-When constructing @var{exp} programmatically, you will need to call
-@code{make-ghil-unquote} and @code{make-ghil-unquote-splicing} as
-appropriate.
+@deffn {Scheme Procedure} ghil-var-for-ref! env sym
+Recursively look up a variable named @var{sym} in @var{env}, and
+return it. If the symbol was not bound, return a new toplevel
+variable.
 @end deffn
-@deffn {GHIL Expression} lambda syms rest meta . body
-A closure. @var{syms} is the argument list, as a list of symbols.
-@var{rest} is a boolean, which is @code{#t} iff the last argument is a
-rest argument. @var{meta} is an association list of properties. The
-actual @var{body} should be a list of GHIL expressions.
+@deffn {Scheme Procedure} ghil-var-for-set! env sym
+Like @code{ghil-var-for-ref!}, except that the returned variable will
+be marked as @code{external}. @xref{Variables and the VM}.
 @end deffn
-@deffn {GHIL Expression} void
+@deffn {Scheme Procedure} ghil-var-define! toplevel-env sym
+Return an existing or new toplevel variable named @var{sym}.
+@var{toplevel-env} must be a toplevel environment.
+@end deffn
+@deffn {Scheme Procedure} ghil-var-at-module! env modname sym interface?
+Return a variable that will be resolved at runtime with respect to a
+specific module named @var{modname}. If @var{interface?} is true, the
+variable will be of type @code{public}, otherwise @code{private}.
+@end deffn
+@deffn {Scheme Procedure} call-with-ghil-environment env syms func
+Bind @var{syms} to fresh variables within a new lexical environment
+whose parent is @var{env}, and call @var{func} as @code{(@var{func}
+@var{new-env} @var{new-vars})}.
+@end deffn
+@deffn {Scheme Procedure} call-with-ghil-bindings env syms func
+Like @code{call-with-ghil-environment}, except the existing
+environment @var{env} is re-used. For that reason, @var{func} is
+invoked as @code{(@var{func} @var{new-vars})}
+@end deffn
+
+In the aforementioned @code{<ghil-quote>} type, the @var{env} slot
+holds a pointer to the environment in which the expression occurs. The
+@var{loc} slot holds source location information, so that errors
+corresponding to this expression can be mapped back to the initial
+expression in the higher-level language, e.g. Scheme. @xref{Compiled
+Procedures}, for more information on source location objects.
+
+GHIL also has a declarative serialization format, which makes writing
+and reading it a tractable problem for the human mind. Since all GHIL
+language constructs contain @code{env} and @code{loc} pointers, they
+are left out of the serialization. (Serializing @code{env} structures
+would be difficult, as they are often circular.) What is left is the
+type of expression, and the remaining slots defined in the expression
+type.
+
+For example, an S-expression representation of the @code{<ghil-quote>}
+expression would be:
+
+@example
+(quote 3)
+@end example
+
+It's deceptively like Scheme. The general rule is, for a type defined
+as @code{<ghil-@var{foo}> env loc @var{slot1} @var{slot2}...}, the
+S-expression representation will be @code{(@var{foo} @var{slot1}
+@var{slot2}...)}. Users may program with this format directly at the
+REPL:
+
+@example
+scheme@@(guile-user)> ,language ghil
+Guile High Intermediate Language (GHIL) interpreter 0.3 on Guile 1.9.0
+Copyright (C) 2001-2008 Free Software Foundation, Inc.
+
+Enter `,help' for help.
+ghil@@(guile-user)> (call (ref +) (quote 32) (quote 10))
+@result{} 42
+@end example
+
+For convenience, some slots are serialized as rest arguments; those
+are noted below. The other caveat is that variables are serialized as
+their names only, and not their identities.
+
+@deftp {Scheme Variable} <ghil-void> env loc
 The unspecified value.
-@end deffn
-@deffn {GHIL Expression} begin . body
-Like Scheme's @code{begin}.
-@end deffn
-@deffn {GHIL Expression} bind syms exprs . body
-Like a deconstructed @code{let}: each element of @var{syms} will be
-bound to the corresponding GHIL expression in @var{exprs}.
-@end deffn
-@deffn {GHIL Expression} bindrec syms exprs . body
-As @code{bind} is to @code{let}, so @code{bindrec} is to
-@code{letrec}.
-@end deffn
-@deffn {GHIL Expression} set! sym val
-Like Scheme's @code{set!}.
-@end deffn
-@deffn {GHIL Expression} define sym val
-Like Scheme's @code{define}, but without the lambda sugar of course.
-@end deffn
-@deffn {GHIL Expression} if test then else
+@end deftp
+@deftp {Scheme Variable} <ghil-quote> env loc exp
+A quoted expression.
+
+Note that unlike in Scheme, there are no self-quoting expressions; all
+constants must come from @code{quote} expressions.
+@end deftp
+@deftp {Scheme Variable} <ghil-quasiquote> env loc exp
+A quasiquoted expression. The expression is treated as a constant,
+except for embedded @code{unquote} and @code{unquote-splicing} forms.
+@end deftp
+@deftp {Scheme Variable} <ghil-unquote> env loc exp
+Like Scheme's @code{unquote}; only valid within a quasiquote.
+@end deftp
+@deftp {Scheme Variable} <ghil-unquote-splicing> env loc exp
+Like Scheme's @code{unquote-splicing}; only valid within a quasiquote.
+@end deftp
+@deftp {Scheme Variable} <ghil-ref> env loc var
+A variable reference. Note that for purposes of serialization,
+@var{var} is serialized as its name, as a symbol.
+@end deftp
+@deftp {Scheme Variable} <ghil-set> env loc var val
+A variable mutation. @var{var} is serialized as a symbol.
+@end deftp
+@deftp {Scheme Variable} <ghil-define> env loc var val
+A toplevel variable definition. See @code{ghil-var-define!}.
+@end deftp
+@deftp {Scheme Variable} <ghil-if> env loc test then else
 A conditional. Note that @var{else} is not optional.
-@end deffn
-@deffn {GHIL Expression} and . exps
+@end deftp
+@deftp {Scheme Variable} <ghil-and> env loc . exps
 Like Scheme's @code{and}.
-@end deffn
-@deffn {GHIL Expression} or . exps
+@end deftp
+@deftp {Scheme Variable} <ghil-or> env loc . exps
 Like Scheme's @code{or}.
-@end deffn
-@deffn {GHIL Expression} mv-bind syms rest producer . body
+@end deftp
+@deftp {Scheme Variable} <ghil-begin> env loc . body
+Like Scheme's @code{begin}.
+@end deftp
+@deftp {Scheme Variable} <ghil-bind> env loc vars exprs . body
+Like a deconstructed @code{let}: each element of @var{vars} will be
+bound to the corresponding GHIL expression in @var{exprs}.
+
+Note that for purposes of the serialization format, @var{exprs} are
+evaluated before the new bindings are added to the environment. For
+@code{letrec} semantics, there also exists a @code{bindrec} parse
+flavor. This is useful for writing GHIL at the REPL, but the
+serializer does not currently have the cleverness needed to determine
+whether a @code{<ghil-bind>} has @code{let} or @code{letrec}
+semantics, and thus only serializes @code{<ghil-bind>} as @code{bind}.
+@end deftp
+@deftp {Scheme Variable} <ghil-mv-bind> env loc vars rest producer . body
 Like Scheme's @code{receive} -- binds the values returned by
 applying @code{producer}, which should be a thunk, to the
-@code{lambda}-like bindings described by @var{syms} and @var{rest}.
-@end deffn
-@deffn {GHIL Expression} call proc . args
+@code{lambda}-like bindings described by @var{vars} and @var{rest}.
+@end deftp
+@deftp {Scheme Variable} <ghil-lambda> env loc vars rest meta . body
+A closure. @var{vars} is the argument list, serialized as a list of
+symbols. @var{rest} is a boolean, which is @code{#t} iff the last
+argument is a rest argument. @var{meta} is an association list of
+properties. The actual @var{body} should be a list of GHIL
+expressions.
+@end deftp
+@deftp {Scheme Variable} <ghil-call> env loc proc . args
 A procedure call.
-@end deffn
-@deffn {GHIL Expression} mv-call producer consumer
+@end deftp
+@deftp {Scheme Variable} <ghil-mv-call> env loc producer consumer
 Like Scheme's @code{call-with-values}.
-@end deffn
-@deffn {GHIL Expression} inline op . args
+@end deftp
+@deftp {Scheme Variable} <ghil-inline> env loc op . args
 An inlined VM instruction. @var{op} should be the instruction name as
 a symbol, and @var{args} should be its arguments, as GHIL expressions.
-@end deffn
-@deffn {GHIL Expression} values . values
+@end deftp
+@deftp {Scheme Variable} <ghil-values> env loc . values
 Like Scheme's @code{values}.
-@end deffn
-@deffn {GHIL Expression} values* . values
+@end deftp
+@deftp {Scheme Variable} <ghil-values*> env loc . values
 @var{values} are as in the Scheme expression, @code{(apply values .
 @var{vals})}.
-@end deffn
-@deffn {GHIL Expression} compile-time-environment
+@end deftp
+@deftp {Scheme Variable} <ghil-reified-env> env loc
 Produces, at runtime, a reification of the environment at compile
-time.
-@end deffn
+time. Used in the implementation of Scheme's
+@code{compile-time-environment}.
+@end deftp
 
-ghil environments
-ghil-var-for-ref!, ghil-var-for-set!, ghil-var-define!, ghil-var-at-module!
+GHIL implements a compiler to GLIL that recursively traverses GHIL
+expressions, writing out GLIL expressions into a linear list. The
+compiler also keeps some state as to whether the current expression is
+in tail context, and whether its value will be used in future
+computations. This state allows the compiler not to emit code for
+constant expressions that will not be used (e.g. docstrings), and to
+perform tail calls when in tail position.
 
-some pre-optimization
+Just as the Scheme to GHIL compiler introduced new hidden state---the
+environment---the GHIL to GLIL compiler introduces more state, the
+stack. While not represented explicitly, the stack is present in the
+compilation of each GHIL expression: compiling a GHIL expression
+should leave the runtime value stack in the same state. For example,
+if the intermediate value stack has two elements before evaluating an
+@code{if} expression, it should have two elements after that
+expression.
 
-real name of the game is closure elimination -- fixing letrec
+Interested readers are encouraged to read the implementation in
+@code{(language ghil compile-glil)} for more details.
 
 @node GLIL
 @subsection GLIL
 
-structured, typed intermediate language, close to object code
+Guile Low Intermediate Language (GHIL) is a structured intermediate
+language whose expressions closely mirror the functionality of Guile's
+VM instruction set.
+
+Its expression types are defined in @code{(language glil)}, and as
+with GHIL, some of its fields parse as rest arguments.
+
+@deftp {Scheme Variable} <glil-asm> nargs nrest nlocs nexts meta . body
+vars is @code{(@var{nargs} @var{nrest} @var{nlocs} @var{next})}
+@end deftp
+@deftp {Scheme Variable} <glil-bind> . vars
+vars is a list of @code{(@var{name} @var{type} @var{index})}
+@end deftp
+@deftp {Scheme Variable} <glil-mv-bind> vars rest
+vars is a list of @code{(@var{name} @var{type} @var{index})}
+@var{rest} is bool
+@end deftp
+@deftp {Scheme Variable} <glil-unbind>
+closes binding
+@end deftp
+@deftp {Scheme Variable} <glil-source> loc
+source information for the preceding expression
+@end deftp
+@deftp {Scheme Variable} <glil-void>
+push the unspecified value
+@end deftp
+@deftp {Scheme Variable} <glil-const> obj
+A constant value -- @var{obj} can be anything serializable -- number,
+string, symbol, keyword, null, bool, char, or pair or vector or list thereof
+@end deftp
+@deftp {Scheme Variable} <glil-argument> op index
+access an argument on the stack. op is ref or set.
+@end deftp
+@deftp {Scheme Variable} <glil-local> op index
+access a local var (on the stack). op is ref or set.
+@end deftp
+@deftp {Scheme Variable} <glil-external> op depth index
+access a heap-allocated var, depth is the number of environments deep,
+index is the position within the env. op is ref or set.
+@end deftp
+@deftp {Scheme Variable} <glil-toplevel> op name
+access a toplevel var. if compiling at the toplevel, will translate to
+a link-now + variable-ref,set; otherwise toplevel-ref/set with the
+object vector cache. also op == define.
+@end deftp
+@deftp {Scheme Variable} <glil-module> op mod name public?
+access a module var, ref/set, like ...
+@end deftp
+@deftp {Scheme Variable} <glil-label> label
+make a new label. @var{label} can be any scheme value, and should be
+unique.
+@end deftp
+@deftp {Scheme Variable} <glil-branch> inst label
+branch to a label. @var{label} should be a @code{<ghil-label>}.
+@code{inst} is a branching instruction: @code{br-if}, @code{br}, etc.
+@end deftp
+@deftp {Scheme Variable} <glil-call> inst nargs
+This expression is perhaps misnamed, as it does not correspond to
+function calls. @code{<glil-call>} invokes the VM instruction named
+@var{inst}, noting that it is called with @var{nargs} stack arguments.
+@end deftp
+@deftp {Scheme Variable} <glil-mv-call> nargs ra
+Multiple-values call, ra should be an offset for the mvra, in bytes (?)
+@end deftp
+
 
 passes through the env
 
@@ -379,6 +582,14 @@ JIT compilation
 AOT compilation
 
 link to what dybvig did
+
+real name of the game is closure elimination -- fixing letrec
+
+possibilities: box ``external'' values individually, then allocate on
+stack instead of in a list. HOCS p3. Procedure slots in symbols?
+Optimized case-lambda to avoid creating lists? Underflow / overflow
+implementation of continuations? JIT / AOT compilers. R6RS especially
+wrt modules and macros. Built-in syncase. Letrec optimizations. 
 
 profiling
 

@@ -23,9 +23,9 @@
   #:use-module (system base syntax)
   #:use-module (system base pmatch)
   #:export
-  (<glil-asm> make-glil-asm glil-asm?
-   glil-asm-nargs glil-asm-nrest glil-asm-nlocs glil-asm-nexts
-   glil-asm-meta glil-asm-body
+  (<glil-program> make-glil-program glil-program?
+   glil-program-nargs glil-program-nrest glil-program-nlocs glil-program-nexts
+   glil-program-meta glil-program-body
 
    <glil-bind> make-glil-bind glil-bind?
    glil-bind-vars
@@ -77,7 +77,7 @@
 
 (define-type (<glil> #:printer print-glil)
   ;; Meta operations
-  (<glil-asm> nargs nrest nlocs nexts meta body)
+  (<glil-program> nargs nrest nlocs nexts meta body)
   (<glil-bind> vars)
   (<glil-mv-bind> vars rest)
   (<glil-unbind>)
@@ -100,8 +100,8 @@
 
 (define (parse-glil x)
   (pmatch x
-    ((asm ,nargs ,nrest ,nlocs ,nexts ,meta . ,body)
-     (make-glil-asm nargs nrest nlocs nexts meta (map parse-glil body)))
+    ((program ,nargs ,nrest ,nlocs ,nexts ,meta . ,body)
+     (make-glil-program nargs nrest nlocs nexts meta (map parse-glil body)))
     ((bind . ,vars) (make-glil-bind vars))
     ((mv-bind ,vars . ,rest) (make-glil-mv-bind vars (map parse-glil rest)))
     ((unbind) (make-glil-unbind))
@@ -123,8 +123,8 @@
 (define (unparse-glil glil)
   (record-case glil
     ;; meta
-    ((<glil-asm> nargs nrest nlocs nexts meta body)
-     `(asm ,nargs ,nrest ,nlocs ,nexts ,meta ,@(map unparse-glil body)))
+    ((<glil-program> nargs nrest nlocs nexts meta body)
+     `(program ,nargs ,nrest ,nlocs ,nexts ,meta ,@(map unparse-glil body)))
     ((<glil-bind> vars) `(bind ,@vars))
     ((<glil-mv-bind> vars rest) `(mv-bind ,vars ,@rest))
     ((<glil-unbind>) `(unbind))
