@@ -55,11 +55,6 @@
   (pmatch args
     ((quit . _)
      (apply throw args))
-    ((vm-error ,fun ,msg ,args)
-     (vm-backtrace (the-vm))
-     (display "\nVM error: \n")
-     (apply format #t msg args)
-     (newline))
     ((,key ,subr ,msg ,args . ,rest)
      (let ((cep (current-error-port)))
        (cond ((not (stack? (fluid-ref the-last-stack))))

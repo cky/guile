@@ -489,108 +489,212 @@ Interested readers are encouraged to read the implementation in
 @node GLIL
 @subsection GLIL
 
-Guile Low Intermediate Language (GHIL) is a structured intermediate
+Guile Low Intermediate Language (GLIL) is a structured intermediate
 language whose expressions closely mirror the functionality of Guile's
 VM instruction set.
 
 Its expression types are defined in @code{(language glil)}, and as
 with GHIL, some of its fields parse as rest arguments.
 
-@deftp {Scheme Variable} <glil-asm> nargs nrest nlocs nexts meta . body
-vars is @code{(@var{nargs} @var{nrest} @var{nlocs} @var{next})}
+@deftp {Scheme Variable} <glil-program> nargs nrest nlocs nexts meta . body
+A unit of code that at runtime will correspond to a compiled
+procedure. (@var{nargs} @var{nrest} @var{nlocs} @var{nexts}
+collectively define the program's arity; see @ref{Compiled
+Procedures}, for more information. @var{meta} should be an alist of
+properties, as in @code{<ghil-lambda>}. @var{body} is a list of GLIL
+expressions.
 @end deftp
 @deftp {Scheme Variable} <glil-bind> . vars
-vars is a list of @code{(@var{name} @var{type} @var{index})}
+An advisory expression that notes a liveness extent for a set of
+variables. @var{vars} is a list of @code{(@var{name} @var{type}
+@var{index})}, where @var{type} should be either @code{argument},
+@code{local}, or @code{external}.
+
+@code{<glil-bind>} expressions end up being serialized as part of a
+program's metadata and do not form part of a program's code path.
 @end deftp
 @deftp {Scheme Variable} <glil-mv-bind> vars rest
-vars is a list of @code{(@var{name} @var{type} @var{index})}
-@var{rest} is bool
+A multiple-value binding of the values on the stack to @var{vars}. Iff
+@var{rest} is true, the last element of @var{vars} will be treated as
+a rest argument.
+
+In addition to pushing a binding annotation on the stack, like
+@code{<glil-bind>}, an expression is emitted at compilation time to
+make sure that there are enough values available to bind. See the
+notes on @code{truncate-values} in @ref{Procedural Instructions}, for
+more information.
 @end deftp
 @deftp {Scheme Variable} <glil-unbind>
-closes binding
+Closes the liveness extent of the most recently encountered
+@code{<glil-bind>} or @code{<glil-mv-bind>} expression. As GLIL
+expressions are compiled, a parallel stack of live bindings is
+maintained; this expression pops off the top element from that stack.
+
+Bindings are written into the program's metadata so that debuggers and
+other tools can determine the set of live local variables at a given
+offset within a VM program.
 @end deftp
 @deftp {Scheme Variable} <glil-source> loc
-source information for the preceding expression
+Records source information for the preceding expression. @var{loc}
+should be a vector, @code{#(@var{line} @var{column} @var{filename})}.
 @end deftp
 @deftp {Scheme Variable} <glil-void>
-push the unspecified value
+Pushes the unspecified value on the stack.
 @end deftp
 @deftp {Scheme Variable} <glil-const> obj
-A constant value -- @var{obj} can be anything serializable -- number,
-string, symbol, keyword, null, bool, char, or pair or vector or list thereof
+Pushes a constant value onto the stack. @var{obj} must be a number,
+string, symbol, keyword, boolean, character, or a pair or vector or
+list thereof, or the empty list.
 @end deftp
 @deftp {Scheme Variable} <glil-argument> op index
-access an argument on the stack. op is ref or set.
+Accesses an argument on the stack. If @var{op} is @code{ref}, the
+argument is pushed onto the stack; if it is @code{set}, the argument
+is set from the top value on the stack, which is popped off.
 @end deftp
 @deftp {Scheme Variable} <glil-local> op index
-access a local var (on the stack). op is ref or set.
+Like @code{<glil-argument>}, but for local variables. @xref{Stack
+Layout}, for more information.
 @end deftp
 @deftp {Scheme Variable} <glil-external> op depth index
-access a heap-allocated var, depth is the number of environments deep,
-index is the position within the env. op is ref or set.
+Accesses a heap-allocated variable, addressed by @var{depth}, the nth
+enclosing environment, and @var{index}, the variable's position within
+the environment. @var{op} is @code{ref} or @code{set}.
 @end deftp
 @deftp {Scheme Variable} <glil-toplevel> op name
-access a toplevel var. if compiling at the toplevel, will translate to
-a link-now + variable-ref,set; otherwise toplevel-ref/set with the
-object vector cache. also op == define.
+Accesses a toplevel variable. @var{op} may be @code{ref}, @code{set},
+or @code{define}.
 @end deftp
 @deftp {Scheme Variable} <glil-module> op mod name public?
-access a module var, ref/set, like ...
+Accesses a variable within a specific module. See
+@code{ghil-var-at-module!}, for more information.
 @end deftp
 @deftp {Scheme Variable} <glil-label> label
-make a new label. @var{label} can be any scheme value, and should be
-unique.
+Creates a new label. @var{label} can be any Scheme value, and should
+be unique.
 @end deftp
 @deftp {Scheme Variable} <glil-branch> inst label
-branch to a label. @var{label} should be a @code{<ghil-label>}.
+Branch to a label. @var{label} should be a @code{<ghil-label>}.
 @code{inst} is a branching instruction: @code{br-if}, @code{br}, etc.
 @end deftp
 @deftp {Scheme Variable} <glil-call> inst nargs
-This expression is perhaps misnamed, as it does not correspond to
+This expression is probably misnamed, as it does not correspond to
 function calls. @code{<glil-call>} invokes the VM instruction named
 @var{inst}, noting that it is called with @var{nargs} stack arguments.
+The arguments should be pushed on the stack already. What happens to
+the stack afterwards depends on the instruction.
 @end deftp
 @deftp {Scheme Variable} <glil-mv-call> nargs ra
-Multiple-values call, ra should be an offset for the mvra, in bytes (?)
+Performs a multiple-value call. @var{ra} is a @code{<glil-label>}
+corresponding to the multiple-value return address for the call. See
+the notes on @code{mv-call} in @ref{Procedural Instructions}, for more
+information.
 @end deftp
 
+Users may enter in GLIL at the REPL as well, though there is a bit
+more bookkeeping to do. Since GLIL needs the set of variables to be
+declared explicitly in a @code{<glil-program>}, GLIL expressions must
+be wrapped in a thunk that declares the arity of the expression:
 
-passes through the env
+@example
+scheme@@(guile-user)> ,language glil
+Guile Lowlevel Intermediate Language (GLIL) interpreter 0.3 on Guile 1.9.0
+Copyright (C) 2001-2008 Free Software Foundation, Inc.
 
-no let, no lambda, no closures, just labels and branches and constants
-and code. Well, there's a bit more, but that's the flavor of GLIL.
+Enter `,help' for help.
+glil@@(guile-user)> (program 0 0 0 0 () (const 3) (call return 0))
+@result{} 3
+@end example
 
-Compiled code will effectively be a thunk, of no arguments, but
-optionally closing over some number of variables (which should be
-captured via `make-closure', @pxref{Loading Instructions}).
+Just as in all of Guile's compilers, an environment is passed to the
+GLIL-to-object code compiler, and one is returned as well, along with
+the object code.
 
 @node Object Code
 @subsection Object Code
 
-describe the env -- module + externals (the actual values!)
+Object code is the serialization of the raw instruction stream of a
+program, ready for interpretation by the VM. Procedures related to
+object code are defined in the @code{(system vm objcode)} module.
 
-The env is used when compiling to value -- effectively calling the
-thunk from objcode->program with a certain current module and with
-those externals. so you can recompile a closure at runtime, a trick
-that goops uses.
+@deffn {Scheme Procedure} objcode? obj
+@deffnx {C Function} scm_objcode_p (obj)
+Returns @code{#f} iff @var{obj} is object code, @code{#f} otherwise.
+@end deffn
+
+@deffn {Scheme Procedure} bytecode->objcode bytecode nlocs nexts
+@deffnx {C Function} scm_bytecode_to_objcode (bytecode, nlocs, nexts)
+Makes a bytecode object from @var{bytecode}, which should be a
+@code{u8vector}. @var{nlocs} and @var{nexts} denote the number of
+stack and heap variables to reserve when this objcode is executed.
+@end deffn
+
+@deffn {Scheme Variable} load-objcode file
+@deffnx {C Function} scm_load_objcode (file)
+Load object code from a file named @var{file}. The file will be mapped
+into memory via @code{mmap}, so this is a very fast operation.
+
+On disk, object code has an eight-byte cookie prepended to it, so that
+we will not execute arbitrary garbage. In addition, two more bytes are
+reserved for @var{nlocs} and @var{nexts}.
+@end deffn
+
+@deffn {Scheme Variable} objcode->u8vector objcode
+@deffnx {C Function} scm_objcode_to_u8vector (objcode)
+Copy object code out to a @code{u8vector} for analysis by Scheme. The
+ten-byte header is included.
+@end deffn
+
+@deffn {Scheme Variable} objcode->program objcode [external='()]
+@deffnx {C Function} scm_objcode_to_program (objcode, external)
+Load up object code into a Scheme program. The resulting program will
+be a thunk that captures closure variables from @var{external}.
+@end deffn
+
+Object code from a file may be disassembled at the REPL via the
+meta-command @code{,disassemble-file}, abbreviated as @code{,xx}.
+Programs may be disassembled via @code{,disassemble}, abbreviated as
+@code{,x}.
+
+Compiling object code to the fake language, @code{value}, is performed
+via loading objcode into a program, then executing that thunk with
+respect to the compilation environment. Normally the environment
+propagates through the compiler transparently, but users may specify
+the compilation environment manually as well:
+
+@deffn {Scheme Procedure} make-objcode-env module externals
+Make an object code environment. @var{module} should be a Scheme
+module, and @var{externals} should be a list of external variables.
+@code{#f} is also a valid object code environment.
+@end deffn
 
 @node Extending the Compiler
 @subsection Extending the Compiler
 
-JIT compilation
+At this point, we break with the impersonal tone of the rest of the
+manual, and make an intervention. Admit it: if you've read this far
+into the compiler internals manual, you are a junkie. Perhaps a course
+at your university left you unsated, or perhaps you've always harbored
+a sublimated desire to hack the holy of computer science holies: a
+compiler. Well you're in good company, and in a good position. Guile's
+compiler needs your help.
 
-AOT compilation
+There are many possible avenues for improving Guile's compiler.
+Probably the most important improvement, speed-wise, will be some form
+of native compilation, both just-in-time and ahead-of-time. This could
+be done in many ways. Probably the easiest strategy would be to extend
+the compiled procedure structure to include a pointer to a native code
+vector, and compile from bytecode to native code at runtime after a
+procedure is called a certain number of times.
 
-link to what dybvig did
+The name of the game is a profiling-based harvest of the low-hanging
+fruit, running programs of interest under a system-level profiler and
+determining which improvements would give the most bang for the buck.
+There are many well-known efficiency hacks in the literature: Dybvig's
+letrec optimization, individual boxing of heap-allocated values (and
+then store the boxes on the stack directory), optimized case-lambda
+expressions, stack underflow and overflow handlers, etc. Highly
+recommended papers: Dybvig's HOCS, Ghuloum's compiler paper.
 
-real name of the game is closure elimination -- fixing letrec
-
-possibilities: box ``external'' values individually, then allocate on
-stack instead of in a list. HOCS p3. Procedure slots in symbols?
-Optimized case-lambda to avoid creating lists? Underflow / overflow
-implementation of continuations? JIT / AOT compilers. R6RS especially
-wrt modules and macros. Built-in syncase. Letrec optimizations. 
-
-profiling
-
-startup time
+The compiler also needs help at the top end, enhancing the Scheme that
+it knows to also understand R6RS, and adding new high-level compilers:
+Emacs Lisp, Lua, JavaScript...

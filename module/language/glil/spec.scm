@@ -29,12 +29,6 @@
 (define (write-glil exp . port)
   (apply write (unparse-glil exp) port))
 
-(define (translate x)
-  ;; Don't wrap in a thunk -- if you're down in these weeds you can
-  ;; thunk it yourself. We don't know how many locs there will be,
-  ;; anyway.
-  (parse-glil x))
-
 (define (compile x e opts)
   (values (compile-objcode x e) e))
 
@@ -43,6 +37,6 @@
   #:version	"0.3"
   #:reader	read
   #:printer	write-glil
-  #:parser      translate
+  #:parser      parse-glil
   #:compilers   `((,objcode . ,compile))
   )
