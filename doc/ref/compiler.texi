@@ -10,8 +10,8 @@
 Compilers have a mystique about them that is attractive and
 off-putting at the same time. They are attractive because they are
 magical -- they transform inert text into live results, like throwing
-the switch on Frankenstein. However, this magic is perceived by many
-to be impenetrable.
+the switch on Frankenstein's monster. However, this magic is perceived
+by many to be impenetrable.
 
 This section aims to pull back the veil from over Guile's compiler
 implementation, and pay attention to the small man behind the curtain.
@@ -27,8 +27,6 @@ know how to compile your .scm file.
 * Object Code::                   
 * Extending the Compiler::
 @end menu
-
-FIXME: document the new repl somewhere?
 
 @node Compiler Tower
 @subsection Compiler Tower
@@ -498,7 +496,7 @@ with GHIL, some of its fields parse as rest arguments.
 
 @deftp {Scheme Variable} <glil-program> nargs nrest nlocs nexts meta . body
 A unit of code that at runtime will correspond to a compiled
-procedure. (@var{nargs} @var{nrest} @var{nlocs} @var{nexts}
+procedure. @var{nargs} @var{nrest} @var{nlocs}, and @var{nexts}
 collectively define the program's arity; see @ref{Compiled
 Procedures}, for more information. @var{meta} should be an alist of
 properties, as in @code{<ghil-lambda>}. @var{body} is a list of GLIL
