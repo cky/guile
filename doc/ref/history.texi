@@ -60,7 +60,7 @@ Language.
 
 GEL was the product of converting SCM, Aubrey Jaffer's implementation
 of Scheme, into something more appropriate to embedding as a library.
-(SCM was itself based on an implementation by George Carrette, SIOD).
+(SCM was itself based on an implementation by George Carrette, SIOD.)
 
 Lord managed to convince Richard Stallman to dub GEL the official
 extension language for the GNU project. It was a natural fit, given
@@ -176,8 +176,9 @@ Command-line editing became much more pleasant through the use of the
 readline library. The initial support for internationalization via
 multi-byte strings was removed, and has yet to be added back, though
 UTF-8 hacks are common. Modules gained the ability to have custom
-expanders, which is still used for syntax-case macros. Ports have
-better support for file descriptors, and fluids were added.
+expanders, which is still used for syntax-case macros. Initial Emacs
+Lisp support landed, ports gained better support for file descriptors,
+and fluids were added.
 
 @item 1.3.2 --- 20 August 1999
 @itemx 1.3.4 --- 25 September 1999
@@ -205,8 +206,8 @@ and Guile's C API was cleaned up and orthogonalized in a massive way.
 A virtual machine was added to Guile, along with the associated
 compiler and toolchain. Support for internationalization was added.
 Running Guile instances became controllable and debuggable from within
-Emacs, via GDS. GDS was backported to 1.8.5. An SRFI-18 interface to
-multithreading was added, including thread cancellation.
+Emacs, via GDS, which was also backported to 1.8.5. An SRFI-18
+interface to multithreading was added, including thread cancellation.
 @end table
 
 @node Status
