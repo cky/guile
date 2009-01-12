@@ -936,10 +936,10 @@
           (else (loop (+ index 1))))))
 
 (define (priv:locale-abbr-weekday->index string)
-  (priv:date-reverse-lookup string priv:locale-abbr-weekday 7 string=?))
+  (priv:date-reverse-lookup string locale-day-short 7 string=?))
 
 (define (priv:locale-long-weekday->index string)
-  (priv:date-reverse-lookup string priv:locale-long-weekday 7 string=?))
+  (priv:date-reverse-lookup string locale-day 7 string=?))
 
 (define (priv:locale-abbr-month->index string)
   (priv:date-reverse-lookup string priv:locale-abbr-month  12 string=?))
