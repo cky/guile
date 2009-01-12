@@ -173,7 +173,7 @@
 
 	   ((<glil-mv-bind> vars rest)
             (push-bindings! (munge-bindings vars nargs))
-            (push-code! `(truncate-values ,(length binds) ,(if rest 1 0))))
+            (push-code! `(truncate-values ,(length vars) ,(if rest 1 0))))
 
 	   ((<glil-unbind>)
             (close-binding!))
