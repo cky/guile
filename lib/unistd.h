@@ -1,3 +1,4 @@
+/* DO NOT EDIT! GENERATED AUTOMATICALLY! */
 /* Substitute for and wrapper around <unistd.h>.
    Copyright (C) 2003-2008 Free Software Foundation, Inc.
 
@@ -18,12 +19,12 @@
 #ifndef _GL_UNISTD_H
 
 #if __GNUC__ >= 3
-@PRAGMA_SYSTEM_HEADER@
+#pragma GCC system_header
 #endif
 
 /* The include_next requires a split double-inclusion guard.  */
-#if @HAVE_UNISTD_H@
-# @INCLUDE_NEXT@ @NEXT_UNISTD_H@
+#if 1
+# include_next <unistd.h>
 #endif
 
 #ifndef _GL_UNISTD_H
@@ -38,14 +39,14 @@
 /* mingw, BeOS, Haiku declare environ in <stdlib.h>, not in <unistd.h>.  */
 #include <stdlib.h>
 
-#if @GNULIB_WRITE@ && @REPLACE_WRITE@ && @GNULIB_UNISTD_H_SIGPIPE@
+#if 1 && 0 && 0
 /* Get ssize_t.  */
 # include <sys/types.h>
 #endif
 
-#if @GNULIB_GETHOSTNAME@
+#if 0
 /* Get all possible declarations of gethostname().  */
-# if @UNISTD_H_HAVE_WINSOCK2_H@
+# if 0
 #  include <winsock2.h>
 #  if !defined _GL_SYS_SOCKET_H
 #   undef socket
@@ -85,6 +86,34 @@
 #endif
 
 /* The definition of GL_LINK_WARNING is copied here.  */
+/* GL_LINK_WARNING("literal string") arranges to emit the literal string as
+   a linker warning on most glibc systems.
+   We use a linker warning rather than a preprocessor warning, because
+   #warning cannot be used inside macros.  */
+#ifndef GL_LINK_WARNING
+  /* This works on platforms with GNU ld and ELF object format.
+     Testing __GLIBC__ is sufficient for asserting that GNU ld is in use.
+     Testing __ELF__ guarantees the ELF object format.
+     Testing __GNUC__ is necessary for the compound expression syntax.  */
+# if defined __GLIBC__ && defined __ELF__ && defined __GNUC__
+#  define GL_LINK_WARNING(message) \
+     GL_LINK_WARNING1 (__FILE__, __LINE__, message)
+#  define GL_LINK_WARNING1(file, line, message) \
+     GL_LINK_WARNING2 (file, line, message)  /* macroexpand file and line */
+#  define GL_LINK_WARNING2(file, line, message) \
+     GL_LINK_WARNING3 (file ":" #line ": warning: " message)
+#  define GL_LINK_WARNING3(message) \
+     ({ static const char warning[sizeof (message)]		\
+          __attribute__ ((__unused__,				\
+                          __section__ (".gnu.warning"),		\
+                          __aligned__ (1)))			\
+          = message "\n";					\
+        (void)0;						\
+     })
+# else
+#  define GL_LINK_WARNING(message) ((void) 0)
+# endif
+#endif
 
 
 /* Declare overridden functions.  */
@@ -94,8 +123,8 @@ extern "C" {
 #endif
 
 
-#if @GNULIB_CHOWN@
-# if @REPLACE_CHOWN@
+#if 0
+# if 0
 #  ifndef REPLACE_CHOWN
 #   define REPLACE_CHOWN 1
 #  endif
@@ -119,18 +148,18 @@ extern int chown (const char *file, uid_t uid, gid_t gid);
 #endif
 
 
-#if @GNULIB_CLOSE@
-# if @UNISTD_H_HAVE_WINSOCK2_H@
+#if 0
+# if 0
 /* Need a gnulib internal function.  */
 #  define HAVE__GL_CLOSE_FD_MAYBE_SOCKET 1
 # endif
-# if @REPLACE_CLOSE@
+# if 0
 /* Automatically included by modules that need a replacement for close.  */
 #  undef close
 #  define close rpl_close
 extern int close (int);
 # endif
-#elif @UNISTD_H_HAVE_WINSOCK2_H@
+#elif 0
 # undef close
 # define close close_used_without_requesting_gnulib_module_close
 #elif defined GNULIB_POSIXCHECK
@@ -142,8 +171,8 @@ extern int close (int);
 #endif
 
 
-#if @GNULIB_DUP2@
-# if !@HAVE_DUP2@
+#if 0
+# if !1
 /* Copy the file descriptor OLDFD into file descriptor NEWFD.  Do nothing if
    NEWFD = OLDFD, otherwise close NEWFD first if it is open.
    Return 0 if successful, otherwise -1 and errno set.
@@ -160,8 +189,8 @@ extern int dup2 (int oldfd, int newfd);
 #endif
 
 
-#if @GNULIB_ENVIRON@
-# if !@HAVE_DECL_ENVIRON@
+#if 0
+# if !1
 /* Set of environment variables and values.  An array of strings of the form
    "VARIABLE=VALUE", terminated with a NULL.  */
 #  if defined __APPLE__ && defined __MACH__
@@ -180,8 +209,8 @@ extern char **environ;
 #endif
 
 
-#if @GNULIB_EUIDACCESS@
-# if !@HAVE_EUIDACCESS@
+#if 0
+# if !1
 /* Like access(), except that is uses the effective user id and group id of
    the current process.  */
 extern int euidaccess (const char *filename, int mode);
@@ -195,8 +224,8 @@ extern int euidaccess (const char *filename, int mode);
 #endif
 
 
-#if @GNULIB_FCHDIR@
-# if @REPLACE_FCHDIR@
+#if 0
+# if 0
 
 /* Change the process' current working directory to the directory on which
    the given file descriptor is open.
@@ -220,12 +249,12 @@ extern int dup2 (int, int);
 #endif
 
 
-#if @GNULIB_FSYNC@
+#if 0
 /* Synchronize changes to a file.
    Return 0 if successful, otherwise -1 and errno set.
    See POSIX:2001 specification
    <http://www.opengroup.org/susv3xsh/fsync.html>.  */
-# if !@HAVE_FSYNC@
+# if !1
 extern int fsync (int fd);
 # endif
 #elif defined GNULIB_POSIXCHECK
@@ -237,8 +266,8 @@ extern int fsync (int fd);
 #endif
 
 
-#if @GNULIB_FTRUNCATE@
-# if !@HAVE_FTRUNCATE@
+#if 0
+# if !1
 /* Change the size of the file to which FD is opened to become equal to LENGTH.
    Return 0 if successful, otherwise -1 and errno set.
    See the POSIX:2001 specification
@@ -254,11 +283,11 @@ extern int ftruncate (int fd, off_t length);
 #endif
 
 
-#if @GNULIB_GETCWD@
+#if 0
 /* Include the headers that might declare getcwd so that they will not
    cause confusion if included after this file.  */
 # include <stdlib.h>
-# if @REPLACE_GETCWD@
+# if 0
 /* Get the name of the current working directory, and put it in SIZE bytes
    of BUF.
    Return BUF if successful, or NULL if the directory couldn't be determined
@@ -281,7 +310,7 @@ extern char * getcwd (char *buf, size_t size);
 #endif
 
 
-#if @GNULIB_GETDOMAINNAME@
+#if 0
 /* Return the NIS domain name of the machine.
    WARNING! The NIS domain name is unrelated to the fully qualified host name
             of the machine.  It is also unrelated to email addresses.
@@ -292,7 +321,7 @@ extern char * getcwd (char *buf, size_t size);
    Null terminate it if the name is shorter than LEN.
    If the NIS domain name is longer than LEN, set errno = EINVAL and return -1.
    Return 0 if successful, otherwise set errno and return -1.  */
-# if !@HAVE_GETDOMAINNAME@
+# if !1
 extern int getdomainname(char *name, size_t len);
 # endif
 #elif defined GNULIB_POSIXCHECK
@@ -304,8 +333,8 @@ extern int getdomainname(char *name, size_t len);
 #endif
 
 
-#if @GNULIB_GETDTABLESIZE@
-# if !@HAVE_GETDTABLESIZE@
+#if 0
+# if !1
 /* Return the maximum number of file descriptors in the current process.  */
 extern int getdtablesize (void);
 # endif
@@ -318,7 +347,7 @@ extern int getdtablesize (void);
 #endif
 
 
-#if @GNULIB_GETHOSTNAME@
+#if 0
 /* Return the standard host name of the machine.
    WARNING! The host name may or may not be fully qualified.
 
@@ -326,14 +355,14 @@ extern int getdtablesize (void);
    Null terminate it if the name is shorter than LEN.
    If the host name is longer than LEN, set errno = EINVAL and return -1.
    Return 0 if successful, otherwise set errno and return -1.  */
-# if @UNISTD_H_HAVE_WINSOCK2_H@
+# if 0
 #  undef gethostname
 #  define gethostname rpl_gethostname
 # endif
-# if @UNISTD_H_HAVE_WINSOCK2_H@ || !@HAVE_GETHOSTNAME@
+# if 0 || !1
 extern int gethostname(char *name, size_t len);
 # endif
-#elif @UNISTD_H_HAVE_WINSOCK2_H@
+#elif 0
 # undef gethostname
 # define gethostname gethostname_used_without_requesting_gnulib_module_gethostname
 #elif defined GNULIB_POSIXCHECK
@@ -345,7 +374,7 @@ extern int gethostname(char *name, size_t len);
 #endif
 
 
-#if @GNULIB_GETLOGIN_R@
+#if 0
 /* Copies the user's login name to NAME.
    The array pointed to by NAME has room for SIZE bytes.
 
@@ -355,7 +384,7 @@ extern int gethostname(char *name, size_t len);
 
    See <http://www.opengroup.org/susv3xsh/getlogin.html>.
  */
-# if !@HAVE_DECL_GETLOGIN_R@
+# if !1
 #  include <stddef.h>
 extern int getlogin_r (char *name, size_t size);
 # endif
@@ -368,11 +397,11 @@ extern int getlogin_r (char *name, size_t size);
 #endif
 
 
-#if @GNULIB_GETPAGESIZE@
-# if @REPLACE_GETPAGESIZE@
+#if 0
+# if 0
 #  define getpagesize rpl_getpagesize
 extern int getpagesize (void);
-# elif !@HAVE_GETPAGESIZE@
+# elif !1
 /* This is for POSIX systems.  */
 #  if !defined getpagesize && defined _SC_PAGESIZE
 #   if ! (defined __VMS && __VMS_VER < 70000000)
@@ -388,7 +417,7 @@ extern int getpagesize (void);
 #   endif
 #  endif
 /* This is for BeOS.  */
-#  if !defined getpagesize && @HAVE_OS_H@
+#  if !defined getpagesize && 0
 #   include <OS.h>
 #   if defined B_PAGE_SIZE
 #    define getpagesize() B_PAGE_SIZE
@@ -399,7 +428,7 @@ extern int getpagesize (void);
 #   define getpagesize() 2048
 #  endif
 /* This is for older Unix systems.  */
-#  if !defined getpagesize && @HAVE_SYS_PARAM_H@
+#  if !defined getpagesize && 0
 #   include <sys/param.h>
 #   ifdef EXEC_PAGESIZE
 #    define getpagesize() EXEC_PAGESIZE
@@ -426,8 +455,8 @@ extern int getpagesize (void);
 #endif
 
 
-#if @GNULIB_GETUSERSHELL@
-# if !@HAVE_GETUSERSHELL@
+#if 0
+# if !1
 /* Return the next valid login shell on the system, or NULL when the end of
    the list has been reached.  */
 extern char *getusershell (void);
@@ -456,8 +485,8 @@ extern void endusershell (void);
 #endif
 
 
-#if @GNULIB_LCHOWN@
-# if @REPLACE_LCHOWN@
+#if 0
+# if 0
 /* Change the owner of FILE to UID (if UID is not -1) and the group of FILE
    to GID (if GID is not -1).  Do not follow symbolic links.
    Return 0 if successful, otherwise -1 and errno set.
@@ -475,8 +504,8 @@ extern int lchown (char const *file, uid_t owner, gid_t group);
 #endif
 
 
-#if @GNULIB_LSEEK@
-# if @REPLACE_LSEEK@
+#if 0
+# if 0
 /* Set the offset of FD relative to SEEK_SET, SEEK_CUR, or SEEK_END.
    Return the new offset if successful, otherwise -1 and errno set.
    See the POSIX:2001 specification
@@ -493,13 +522,13 @@ extern int lchown (char const *file, uid_t owner, gid_t group);
 #endif
 
 
-#if @GNULIB_READLINK@
+#if 0
 /* Read the contents of the symbolic link FILE and place the first BUFSIZE
    bytes of it into BUF.  Return the number of bytes placed into BUF if
    successful, otherwise -1 and errno set.
    See the POSIX:2001 specification
    <http://www.opengroup.org/susv3xsh/readlink.html>.  */
-# if !@HAVE_READLINK@
+# if !1
 #  include <stddef.h>
 extern int readlink (const char *file, char *buf, size_t bufsize);
 # endif
@@ -512,12 +541,12 @@ extern int readlink (const char *file, char *buf, size_t bufsize);
 #endif
 
 
-#if @GNULIB_SLEEP@
+#if 0
 /* Pause the execution of the current thread for N seconds.
    Returns the number of seconds left to sleep.
    See the POSIX:2001 specification
    <http://www.opengroup.org/susv3xsh/sleep.html>.  */
-# if !@HAVE_SLEEP@
+# if !1
 extern unsigned int sleep (unsigned int n);
 # endif
 #elif defined GNULIB_POSIXCHECK
@@ -529,7 +558,7 @@ extern unsigned int sleep (unsigned int n);
 #endif
 
 
-#if @GNULIB_WRITE@ && @REPLACE_WRITE@ && @GNULIB_UNISTD_H_SIGPIPE@
+#if 1 && 0 && 0
 /* Write up to COUNT bytes starting at BUF to file descriptor FD.
    See the POSIX:2001 specification
    <http://www.opengroup.org/susv3xsh/write.html>.  */
