@@ -59,6 +59,8 @@
 # include <winsock2.h>
 #endif /* __MINGW32__ */
 
+#include <full-write.h>
+
 /* Mingw (version 3.4.5, circa 2006) has ftruncate as an alias for chsize
    already, but have this code here in case that wasn't so in past versions,
    or perhaps to help other minimal DOS environments.
@@ -826,9 +828,9 @@ fport_flush (SCM port)
 	      const char *msg = "Error: could not flush file-descriptor ";
 	      char buf[11];
 
-	      write (2, msg, strlen (msg));
+	      full_write (2, msg, strlen (msg));
 	      sprintf (buf, "%d\n", fp->fdes);
-	      write (2, buf, strlen (buf));
+	      full_write (2, buf, strlen (buf));
 
 	      count = remaining;
 	    }

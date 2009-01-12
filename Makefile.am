@@ -38,7 +38,7 @@ EXTRA_DIST = LICENSE HACKING GUILE-VERSION		\
 
 TESTS = check-guile
 
-ACLOCAL_AMFLAGS = -I guile-config -I m4
+ACLOCAL_AMFLAGS = -I m4
 
 DISTCLEANFILES = check-guile.log
 

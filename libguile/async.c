@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2002, 2004, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2002, 2004, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -40,6 +40,8 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
+
+#include <full-write.h>
 
 
 /* {Asynchronous Events}
@@ -241,13 +243,13 @@ scm_i_queue_async_cell (SCM c, scm_i_thread *t)
   if (sleep_fd >= 0)
     {
       char dummy = 0;
+
       /* Likewise, T might already been done with sleeping here, but
 	 interrupting it once too often does no harm.  T might also
 	 not yet have started sleeping, but this is no problem either
 	 since the data written to a pipe will not be lost, unlike a
-	 condition variable signal.
-      */
-      write (sleep_fd, &dummy, 1);
+	 condition variable signal.  */
+      full_write (sleep_fd, &dummy, 1);
     }
 
   /* This is needed to protect sleep_mutex.

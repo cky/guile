@@ -622,18 +622,6 @@ you would add an element to this alist to transform
 	 (not gds-debug-server))
     (gds-run-debug-server))
 
-;; Things to do only when this file is loaded for the first time.
-;; (And not, for example, when code is reevaluated by eval-buffer.)
-(defvar gds-scheme-first-load t)
-(if gds-scheme-first-load
-    (progn
-      ;; Read the persistent breakpoints file, if configured.
-      (if gds-breakpoints-file-name
-	  (gds-read-breakpoints-file))
-      ;; Note that first time load is complete.
-      (setq gds-scheme-first-load nil)))
-
-
 ;;;; The end!
 
 (provide 'gds)

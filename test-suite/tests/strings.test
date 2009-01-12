@@ -161,18 +161,61 @@
 	 (string-ci>=? (string-ints 0) (string-ints 255)))))
 
 ;;
+;; string-ref
+;;
+
+(with-test-prefix "string-ref"
+
+  (pass-if-exception "empty string"
+    exception:out-of-range
+    (string-ref "" 0))
+
+  (pass-if-exception "empty string and non-zero index"
+    exception:out-of-range
+    (string-ref "" 123))
+
+  (pass-if-exception "out of range"
+    exception:out-of-range
+    (string-ref "hello" 123))
+
+  (pass-if-exception "negative index"
+    exception:out-of-range
+    (string-ref "hello" -1))
+
+  (pass-if "regular string"
+    (char=? (string-ref "GNU Guile" 4) #\G)))
+
+;;
 ;; string-set!
 ;;
 
 (with-test-prefix "string-set!"
 
+  (pass-if-exception "empty string"
+    exception:out-of-range
+    (string-set! (string-copy "") 0 #\x))
+
+  (pass-if-exception "empty string and non-zero index"
+    exception:out-of-range
+    (string-set! (string-copy "") 123 #\x))
+
+  (pass-if-exception "out of range"
+    exception:out-of-range
+    (string-set! (string-copy "hello") 123 #\x))
+
+  (pass-if-exception "negative index"
+    exception:out-of-range
+    (string-set! (string-copy "hello") -1 #\x))
+
   (pass-if-exception "read-only string"
     exception:read-only-string
     (string-set! (substring/read-only "abc" 0) 1 #\space))
 
-  (pass-if-exception "literal string"
-    exception:read-only-string
-    (string-set! "an immutable string" 0 #\a)))
+  (pass-if "regular string"
+    (let ((s (string-copy "GNU guile")))
+      (string-set! s 4 #\G)
+      (char=? (string-ref s 4) #\G))))
+
 
 (with-test-prefix "string-split"
 

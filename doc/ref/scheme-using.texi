@@ -485,18 +485,15 @@ popping up in a temporary Emacs window.
 @end itemize
 
 @item
-Debugging a Guile Scheme program.  When your program hits an error or a
-breakpoint, GDS shows you the relevant code and the Scheme stack, and
-makes it easy to
+Debugging a Guile Scheme program.  When your program hits an error or
+stops at a trap, GDS shows you the relevant code and the Scheme stack,
+and makes it easy to
 
 @itemize
 @item
 look at the values of local variables
 @item
 see what is happening at all levels of the Scheme stack
-@item
-set new breakpoints (by simply typing @kbd{C-x @key{SPC}}) or modify
-existing ones
 @item
 continue execution, either normally or step by step.
 @end itemize
@@ -508,13 +505,6 @@ what to do next; for example, you can select a stack frame and tell
 Guile to run until that frame completes, at which point GDS will display
 the frame's return value.
 @end enumerate
-
-Combinations of these well too.  You can evaluate a fragment of code (in
-a Scheme buffer) that contains a breakpoint, then use the debugging
-interface to step through the code at the breakpoint.  You can also run
-a program until it hits a breakpoint, then examine, modify and
-reevaluate some of the relevant code, and then tell the program to
-continue running.
 
 GDS can provide these facilities for any number of Guile Scheme programs
 (which we often refer to as ``clients'') at once, and these programs can
@@ -638,63 +628,16 @@ act on instructions from GDS, and we refer to it as a @dfn{utility}
 Guile client.  Over time this utility client will accumulate the code
 that you ask it to evaluate, and you can also tell it to load complete
 files or modules by sending it @code{load} or @code{use-modules}
-expressions.  You can set breakpoints and evaluate code which hits those
-breakpoints, and GDS will pop up the stack at the breakpoint so you can
-explore your code by single-stepping and evaluating test expressions.
-For a hands-on, tutorial introduction to using GDS in this way, use
-Emacs to open the file @file{gds-tutorial.txt} (which should have been
-installed as part of Guile, perhaps under @file{/usr/share/doc/guile}),
-and then follow the steps in that file.
+expressions.
 
 When you want to use GDS to work on an independent Guile
 application, you need to add something to that application's Scheme code
 to cause it to connect to and interact with GDS at the right times.  The
 following subsections describe the ways of doing this.
 
-@subsubsection Setting Specific Breakpoints
-
-The first option is to use @code{break-in} or @code{break-at} to set
-specific breakpoints in the application's code.  This requires code like
-the following.
-
-@lisp
-(use-modules (ice-9 debugging breakpoints)
-             (ice-9 gds-client))
-
-(break-in 'fact2 "ice-9/debugging/example-fns"
-          #:behaviour gds-debug-trap)
-(break-in 'facti "ice-9/debugging/example-fns"
-          #:behaviour gds-debug-trap)
-@end lisp
-
-@noindent
-The @code{#:behaviour gds-debug-trap} clauses mean to use GDS to
-display the stack when one of these breakpoints is hit.  For more on
-breakpoints, @code{break-in} and @code{break-at}, see
-@ref{Breakpoints}.
-
-@subsubsection Setting GDS-managed Breakpoints
-
-Instead of listing specific breakpoints in application code, you can use
-GDS to manage the set of breakpoints that you want from Emacs, and tell
-the application to download the breakpoints that it should set from
-GDS.  The code for this is:
-
-@lisp
-(use-modules (ice-9 gds-client))
-(set-gds-breakpoints)
-@end lisp
-
-These lines tell the program to connect to GDS immediately and download
-a set of breakpoint definitions.  The program sets those breakpoints in
-its code, then continues running.
-
-When the program later hits one of the breakpoints, it will use GDS to
-display the stack and wait for instruction on what to do next.
-
 @subsubsection Invoking GDS when an Exception Occurs
 
-Another option is to use GDS to catch and display any exceptions that
+One option is to use GDS to catch and display any exceptions that
 are thrown by the application's code.  If you already have a
 @code{lazy-catch} or @code{with-throw-handler} around the area of code
 that you want to monitor, you just need to add the following to the
@@ -749,12 +692,12 @@ hits an exception that is protected by a @code{lazy-catch} using
 
 @subsubsection Accepting GDS Instructions at Any Time
 
-In addition to setting breakpoints and/or an exception handler as
-described above, a Guile program can in principle set itself up to
-accept new instructions from GDS at any time, not just when it has
-stopped at a breakpoint or exception.  This would allow the GDS user to
-set new breakpoints or to evaluate code in the context of the running
-program, without having to wait for the program to stop first.
+In addition to setting an exception handler as described above, a
+Guile program can in principle set itself up to accept new
+instructions from GDS at any time, not just when it has stopped at an
+exception.  This would allow the GDS user to evaluate code in the
+context of the running program, without having to wait for the program
+to stop first.
 
 @lisp
 (use-modules (ice-9 gds-client))
@@ -793,13 +736,11 @@ the utility Guile client is essentially just this:
 
 @lisp
 (use-modules (ice-9 gds-client))
-(set-gds-breakpoints)
 (named-module-use! '(guile-user) '(ice-9 session))
 (gds-accept-input #f))
 @end lisp
 
-@code{set-gds-breakpoints} works as already described.  The
-@code{named-module-use!} line ensures that the client can process
+The @code{named-module-use!} line ensures that the client can process
 @code{help} and @code{apropos} expressions, to implement lookups in
 Guile's online help.  The @code{#f} parameter to
 @code{gds-accept-input} means that the @code{continue} instruction
@@ -827,9 +768,6 @@ GDS provides for working on code in @code{scheme-mode} buffers.
 
 @menu
 * Access to Guile Help and Completion::
-* Setting and Managing Breakpoints::
-* Listing and Deleting Breakpoints::
-* Moving and Losing Breakpoints::
 * Evaluating Scheme Code::
 @end menu
 
@@ -870,90 +808,6 @@ are inserted.  Otherwise, if there are any completions available, they
 are popped up in a temporary Emacs window, where one of them can be
 selected using either @kbd{@key{RET}} or the mouse.
 @end table
-
-
-@node Setting and Managing Breakpoints
-@subsubsection Setting and Managing Breakpoints
-
-You can create a breakpoint in GDS by typing @kbd{C-x @key{SPC}} in a
-Scheme mode buffer.  To create a breakpoint on calls to a procedure ---
-i.e. the equivalent of calling @code{break-in} --- place the cursor
-anywhere within the procedure's definition, make sure that the region is
-unset, and type @kbd{C-x @key{SPC}}.  To create breakpoints on a
-particular expression, or on the series of expressions in a particular
-region --- i.e. as with @code{break-at} --- select a region containing
-the open parentheses of the expressions where you want breakpoints, and
-type @kbd{C-x @key{SPC}}.  In other words, GDS assumes that you want a
-@code{break-at} breakpoint if there is an active region, and a
-@code{break-in} breakpoint otherwise.
-
-There are three supported breakpoint behaviours, known as @code{debug},
-@code{trace} and @code{trace-subtree}.  @code{debug} means that GDS will
-display the stack and wait for instruction when the breakpoint is hit.
-@code{trace} means that a line will be written to the trace output
-buffer (@code{*GDS Trace*}) when the breakpoint is hit, and when the
-relevant expression or procedure call returns.  @code{trace-subtree}
-means that a line is written to the trace output buffer for every
-evaluation step between when the breakpoint is hit and when the
-expression or procedure returns.
-
-@kbd{C-x @key{SPC}} creates a breakpoint with behaviour according to the
-@code{gds-default-breakpoint-type} variable, which by default is
-@code{debug}; you can customize this if you prefer a different default.
-You can also create a breakpoint with behaviour other than the current
-default by using the alternative key sequences @kbd{C-c C-b d} (for
-@code{debug}), @kbd{C-c C-b t} (for @code{trace}) and @kbd{C-c C-b T}
-(for @code{trace-subtree}).
-
-GDS keeps all the breakpoints that you create in a single list, and
-tries to set them in every Guile program that connects to GDS and calls
-@code{set-gds-breakpoints}.  That may sound surprising, because you are
-probably thinking of one particular program when you create a
-breakpoint; but GDS assumes that you would want the breakpoint to continue
-taking effect if you stop and restart that program, and this is
-currently achieved by giving all breakpoints to every program that asks
-for them.  In practice it doesn't matter if a program gets a breakpoint
-definition --- such as ``break in procedure @code{foo}'' --- that it
-can't actually map to any of its code.
-
-If there are already Guile programs connected to GDS when you create a
-new breakpoint, GDS also tries to set the new breakpoint in each of
-those programs at the earliest opportunity, which is usually when they
-decide to stop and talk to GDS for some other reason.
-
-
-@node Listing and Deleting Breakpoints
-@subsubsection Listing and Deleting Breakpoints
-
-To see a list of all breakpoints, type @kbd{C-c C-b ?} (or @kbd{M-x
-gds-describe-breakpoints}).  GDS will then pop up a buffer that
-describes each breakpoint and reports whether it is actually set in each
-of the Guile programs connected to GDS.
-
-To delete a breakpoint, type @kbd{C-c C-b @key{backspace}}.  If the
-region is active when you do this, GDS will delete all of the
-breakpoints in the region.  If the region is not active, GDS tries to
-delete a ``break-in'' breakpoint for the procedure whose definition
-contains point (the Emacs cursor).  In either case, deletion means that
-the breakpoint is removed both from GDS's global list and from all of
-the connected Guile programs that had previously managed to set it.
-
-
-@node Moving and Losing Breakpoints
-@subsubsection Moving and Losing Breakpoints
-
-Imagine that you set a breakpoint at line 80 of a Scheme code file, and
-execute some code that hits this breakpoint; then you add some new code
-at line 40, or delete some code that is no longer needed, and save the
-file.  Now the breakpoint will have moved up or down from line 80, and
-any attached Guile program needs to be told about the new line number.
-Otherwise, when a program loads this file again, it will try incorrectly
-to set a breakpoint on whatever code is now at line 80, and will
-@emph{not} set a breakpoint on the code where you want it.
-
-For this reason, GDS checks all breakpoint positions whenever you save a
-Scheme file, and sends the new position to connected Guile programs for
-any breakpoints that have moved.  @dots{} [to be continued]
 
 
 @node Evaluating Scheme Code
@@ -1000,15 +854,15 @@ are described in the next two sections.
 @node Displaying the Scheme Stack
 @subsection Displaying the Scheme Stack
 
-When you specify @code{gds-debug-trap} as the behaviour for a trap or
-a breakpoint and the Guile program concerned hits that trap or
-breakpoint, GDS displays the stack and the relevant Scheme source code
-in Emacs, allowing you to explore the state of the program and then
-decide what to do next.  The same applies if the program calls
-@code{(on-lazy-handler-dispatch gds-debug-trap)} and then throws an
-exception that passes through @code{lazy-handler-dispatch}, except
-that in this case you can only explore; it isn't possible to continue
-normal execution after an exception.
+When you specify @code{gds-debug-trap} as the behaviour for a trap and
+the Guile program concerned hits that trap, GDS displays the stack and
+the relevant Scheme source code in Emacs, allowing you to explore the
+state of the program and then decide what to do next.  The same
+applies if the program calls @code{(on-lazy-handler-dispatch
+gds-debug-trap)} and then throws an exception that passes through
+@code{lazy-handler-dispatch}, except that in this case you can only
+explore; it isn't possible to continue normal execution after an
+exception.
 
 The following commands are available in the stack buffer for exploring
 the state of the program.

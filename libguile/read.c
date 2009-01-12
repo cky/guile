@@ -484,7 +484,7 @@ scm_read_string (int chr, SCM port)
   else
     str = (str == SCM_BOOL_F) ? scm_nullstr : str;
 
-  return scm_i_make_read_only_string (str);
+  return str;
 }
 #undef FUNC_NAME
 

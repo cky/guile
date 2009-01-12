@@ -2,9 +2,7 @@ Guile NEWS --- history of user-visible changes.
 Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 See the end for copying conditions.
 
-Please send Guile bug reports to bug-guile@gnu.org.  Note that you
-must be subscribed to this list first, in order to successfully send a
-report to it.
+Please send Guile bug reports to bug-guile@gnu.org.
 
 
 Changes in 1.9.0:
@@ -42,6 +40,12 @@ application code.
 ** Functions for handling `scm_option' now no longer require an argument
 indicating length of the `scm_t_option' array.
 
+
+Changes in 1.8.7 (since 1.8.6)
+
+* Bugs fixed
+
+** Fix %fast-slot-ref/set!, to avoid possible segmentation fault
 
 
 Changes in 1.8.6 (since 1.8.5)
@@ -56,6 +60,8 @@ When you use GDS to evaluate Scheme code from Emacs, you can now use
 `C-u' to indicate that you want to single step through that code. See
 `Evaluating Scheme Code' in the manual for more details.
 
+** New "guile(1)" man page!
+
 * Changes to the distribution
 
 ** Automake's `AM_MAINTAINER_MODE' is no longer used
@@ -63,10 +69,15 @@ When you use GDS to evaluate Scheme code from Emacs, you can now use
 Thus, the `--enable-maintainer-mode' configure option is no longer
 available: Guile is now always configured in "maintainer mode".
 
+** `ChangeLog' files are no longer updated
+
+Instead, changes are detailed in the version control system's logs.  See
+the top-level `ChangeLog' files for details.
+
+
 * Bugs fixed
 
 ** `symbol->string' now returns a read-only string, as per R5RS
-** Literal strings as returned by `read' are now read-only, as per R5RS
 ** Fix incorrect handling of the FLAGS argument of `fold-matches'
 ** `guile-config link' now prints `-L$libdir' before `-lguile'
 ** Fix memory corruption involving GOOPS' `class-redefinition'
@@ -74,9 +85,18 @@ available: Guile is now always configured in "maintainer mode".
 ** Fix build issue on Tru64 and ia64-hp-hpux11.23 (`SCM_UNPACK' macro)
 ** Fix build issue on mips, mipsel, powerpc and ia64 (stack direction)
 ** Fix build issue on hppa2.0w-hp-hpux11.11 (`dirent64' and `readdir64_r')
+** Fix build issue on i386-unknown-freebsd7.0 ("break strict-aliasing rules")
 ** Fix misleading output from `(help rationalize)'
 ** Fix build failure on Debian hppa architecture (bad stack growth detection)
 ** Fix `gcd' when called with a single, negative argument.
+** Fix `Stack overflow' errors seen when building on some platforms
+** Fix bug when `scm_with_guile ()' was called several times from the
+   same thread
+** The handler of SRFI-34 `with-exception-handler' is now invoked in the
+   dynamic environment of the call to `raise'
+** Fix potential deadlock in `make-struct'
+** Fix compilation problem with libltdl from Libtool 2.2.x
+** Fix sloppy bound checking in `string-{ref,set!}' with the empty string
 
 
 Changes in 1.8.5 (since 1.8.4)
@@ -229,7 +249,6 @@ Changes in 1.8.3 (since 1.8.2)
 ** The reader is now faster, which reduces startup time
 ** Procedures returned by `record-accessor' and `record-modifier' are faster
 
-
 
 Changes in 1.8.2 (since 1.8.1):
 
@@ -237,6 +256,16 @@ Changes in 1.8.2 (since 1.8.1):
 
 ** set-program-arguments
 ** make-vtable
+
+* Incompatible changes
+
+** The body of a top-level `define' no longer sees the binding being created
+
+In a top-level `define', the binding being created is no longer visible
+from the `define' body.  This breaks code like
+"(define foo (begin (set! foo 1) (+ foo 1)))", where `foo' is now
+unbound in the body.  However, such code was not R5RS-compliant anyway,
+per Section 5.2.1.
 
 * Bugs fixed
 
@@ -281,8 +310,6 @@ Changes in 1.8.1 (since 1.8.0):
 ** scm_log10 - [C]
 ** scm_exp - [C]
 ** scm_sqrt - [C]
-
-* New `(ice-9 i18n)' module (see the manual for details)
 
 * Bugs fixed
 

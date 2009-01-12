@@ -3,7 +3,7 @@
 .\" Process this file with
 .\" groff -man -Tascii foo.1
 .\"
-.TH GUILE 1 "January 2001" Version "1.4"
+.TH GUILE 1
 .SH NAME
 guile \- a Scheme interpreter
 .SH SYNOPSIS
@@ -11,8 +11,8 @@ guile \- a Scheme interpreter
 .B [-l FILE] [-e FUNCTION] [\]
 .B [-c EXPR] [-s SCRIPT] [--]
 .SH DESCRIPTION
-Guile is an interpreter for the Scheme programming language.  It
-implements a superset of R4RS, providing the additional features
+GNU Guile is an interpreter for the Scheme programming language.  It
+implements R5RS, providing additional features
 necessary for real-world use.  It is extremely simple to embed guile
 into a C program, calling C from Scheme and Scheme from C.  Guile's
 design makes it very suitable for use as an "extension" or "glue"
@@ -79,7 +79,13 @@ interface:
 (activate-readline)
 
 .SH "SEE ALSO"
-.B info guile, info guile-tut
+The full documentation for guile is maintained as a Texinfo manual.  If
+the info and guile programs are properly installed at your site, the
+command
+.IP
+.B info guile
+.PP
+should give you access to the complete manual.
 
 http://www.schemers.org provides a general introduction to the
 Scheme language.

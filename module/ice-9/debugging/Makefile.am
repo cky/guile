@@ -22,8 +22,8 @@
 AUTOMAKE_OPTIONS = gnu
 
 # These should be installed and distributed.
-ice9_debugging_sources = breakpoints.scm example-fns.scm \
-               ice-9-debugger-extensions.scm load-hooks.scm \
+ice9_debugging_sources = example-fns.scm \
+               ice-9-debugger-extensions.scm \
                steps.scm trace.scm traps.scm trc.scm
 
 subpkgdatadir = $(pkgdatadir)/${GUILE_EFFECTIVE_VERSION}/ice-9/debugging

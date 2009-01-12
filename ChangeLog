@@ -1,6 +1,6 @@
 -*- text -*-
 
-Starting from September 1st, 2008, the Guile projects no longer stores
+Starting from September 1st, 2008, the Guile project no longer stores
 change logs in `ChangeLog' files.  Instead, changes are detailed in the
 version control system's logs.  They can be seen by downloading a copy
 of the Git repository:

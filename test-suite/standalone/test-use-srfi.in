@@ -19,7 +19,7 @@
 
 # Test that two srfi numbers on the command line work.
 #
-guile -q --use-srfi=1,10 >/dev/null <<EOF
+guile -q -l @top_builddir_absolute@/libguile/stack-limit-calibration.scm --use-srfi=1,10 >/dev/null <<EOF
 (if (and (defined? 'partition)
          (defined? 'define-reader-ctor))
     (exit 0)   ;; good
@@ -38,7 +38,7 @@ fi
 # `top-repl' the core bindings got ahead of anything --use-srfi gave.
 #
 
-guile -q --use-srfi=1 >/dev/null <<EOF
+guile -q -l @top_builddir_absolute@/libguile/stack-limit-calibration.scm --use-srfi=1 >/dev/null <<EOF
 (catch #t
   (lambda ()
     (iota 2 3 4))
@@ -56,7 +56,7 @@ fi
 # exercises duplicates handling in `top-repl' versus `use-srfis' (in
 # boot-9.scm).
 #
-guile -q --use-srfi=17 >/dev/null <<EOF
+guile -q -l @top_builddir_absolute@/libguile/stack-limit-calibration.scm --use-srfi=17 >/dev/null <<EOF
 (if (procedure-with-setter? car)
     (exit 0)   ;; good
     (exit 1))  ;; bad
