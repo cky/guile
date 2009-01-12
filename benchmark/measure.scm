@@ -44,9 +44,7 @@ exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
 	 (& (if (defined? proc-name)
 		(eval `(set! ,proc-name #f) (current-module))
 		(format #t "unbound~%")))
-	 (objcode (compile-in proc-source
-			      (current-module) *scheme*))
-	 (the-program (vm-load (the-vm) objcode))
+	 (the-program (compile proc-source))
 
 ;	 (%%% (disassemble-objcode objcode))
 	 (time-compiled (time-for-eval `(,proc-name ,@(cdr sexp))

@@ -66,8 +66,8 @@
 /* We can add a mode that ensures that all stack items above the stack pointer
    are NULL. This is useful for checking the internal consistency of the VM's
    assumptions and its operators, but isn't necessary for normal operation. It
-   will ensure that assertions are enabled. */
-#define VM_ENABLE_STACK_NULLING
+   will ensure that assertions are enabled. Slows down the VM by about 30%. */
+/* #define VM_ENABLE_STACK_NULLING */
 
 #if defined (VM_ENABLE_STACK_NULLING) && !defined (VM_ENABLE_ASSERTIONS)
 #define VM_ENABLE_ASSERTIONS
