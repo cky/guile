@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,2000,2001, 2004, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,2000,2001, 2004, 2006, 2008, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -66,8 +66,8 @@
  * stringbuf.  So we have fixstrings and bigstrings...
  */
 
-#define STRINGBUF_F_SHARED      0x100
-#define STRINGBUF_F_INLINE      0x200
+#define STRINGBUF_F_SHARED      SCM_I_STRINGBUF_F_SHARED
+#define STRINGBUF_F_INLINE      SCM_I_STRINGBUF_F_INLINE
 
 #define STRINGBUF_TAG           scm_tc7_stringbuf
 #define STRINGBUF_SHARED(buf)   (SCM_CELL_WORD_0(buf) & STRINGBUF_F_SHARED)
@@ -156,7 +156,7 @@ scm_i_pthread_mutex_t stringbuf_write_mutex = SCM_I_PTHREAD_MUTEX_INITIALIZER;
 /* Read-only strings.
  */
 
-#define RO_STRING_TAG         (scm_tc7_string + 0x200)
+#define RO_STRING_TAG         scm_tc7_ro_string
 #define IS_RO_STRING(str)     (SCM_CELL_TYPE(str)==RO_STRING_TAG)
 
 /* Mutation-sharing substrings

@@ -3,7 +3,7 @@
 #ifndef SCM_STRINGS_H
 #define SCM_STRINGS_H
 
-/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2004, 2005, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2004, 2005, 2006, 2008, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -108,6 +108,17 @@ SCM_API char *scm_to_locale_stringn (SCM str, size_t *lenp);
 SCM_API size_t scm_to_locale_stringbuf (SCM str, char *buf, size_t max_len);
 
 SCM_API SCM scm_makfromstrs (int argc, char **argv);
+
+
+/* internal constants */
+
+/* Type tag for read-only strings.  */
+#define scm_tc7_ro_string             (scm_tc7_string + 0x200)
+
+/* Flags for shared and inline strings.  */
+#define SCM_I_STRINGBUF_F_SHARED      0x100
+#define SCM_I_STRINGBUF_F_INLINE      0x200
+
 
 /* internal accessor functions.  Arguments must be valid. */
 
