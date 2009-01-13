@@ -3,7 +3,7 @@
 #ifndef SCM_SNARF_H
 #define SCM_SNARF_H
 
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2004, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2004, 2006, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -35,6 +35,13 @@
 #define SCM_FUNC_CAST_ARBITRARY_ARGS SCM (*)()
 #endif
 
+#if (defined SCM_ALIGNED) && (SCM_DEBUG_TYPING_STRICTNESS <= 1)
+/* We support static allocation of some `SCM' objects.  */
+# define SCM_SUPPORT_STATIC_ALLOCATION
+#endif
+
+
+
 /* Generic macros to be used in user macro definitions.
  *
  * For example, in order to define a macro which creates ints and
@@ -173,13 +180,31 @@ scm_c_define_subr_with_generic (RANAME, TYPE, \
 SCM_SNARF_HERE(static const char RANAME[]=STR)\
 SCM_SNARF_INIT(scm_make_synt (RANAME, TYPE, CFN))
 
-#define SCM_SYMBOL(c_name, scheme_name) \
-SCM_SNARF_HERE(static SCM c_name) \
+#ifdef SCM_SUPPORT_STATIC_ALLOCATION
+
+# define SCM_SYMBOL(c_name, scheme_name)				\
+SCM_SNARF_HERE(								\
+  SCM_IMMUTABLE_STRING (c_name ## _string, scheme_name);		\
+  static SCM c_name)							\
+SCM_SNARF_INIT(c_name = scm_string_to_symbol (c_name ## _string))
+
+# define SCM_GLOBAL_SYMBOL(c_name, scheme_name)				\
+SCM_SNARF_HERE(								\
+  SCM_IMMUTABLE_STRING (c_name ## _string, scheme_name);		\
+  SCM c_name)								\
+SCM_SNARF_INIT(c_name = scm_string_to_symbol (c_name ## _string))
+
+#else /* !SCM_SUPPORT_STATIC_ALLOCATION */
+
+# define SCM_SYMBOL(c_name, scheme_name)				\
+SCM_SNARF_HERE(static SCM c_name)					\
 SCM_SNARF_INIT(c_name = scm_permanent_object (scm_from_locale_symbol (scheme_name)))
 
-#define SCM_GLOBAL_SYMBOL(c_name, scheme_name) \
-SCM_SNARF_HERE(SCM c_name) \
+# define SCM_GLOBAL_SYMBOL(c_name, scheme_name)				\
+SCM_SNARF_HERE(SCM c_name)						\
 SCM_SNARF_INIT(c_name = scm_permanent_object (scm_from_locale_symbol (scheme_name)))
+
+#endif /* !SCM_SUPPORT_STATIC_ALLOCATION */
 
 #define SCM_KEYWORD(c_name, scheme_name) \
 SCM_SNARF_HERE(static SCM c_name) \
@@ -269,6 +294,39 @@ SCM_SNARF_INIT(scm_set_smob_apply((tag), (c_name), (req), (opt), (rest));)
 SCM_SNARF_HERE(SCM c_name arglist) \
 SCM_SNARF_INIT(scm_set_smob_apply((tag), (c_name), (req), (opt), (rest));)
 
+
+/* Low-level snarfing for static memory allocation.  */
+
+#ifdef SCM_SUPPORT_STATIC_ALLOCATION
+
+#define SCM_IMMUTABLE_DOUBLE_CELL(c_name, car, cbr, ccr, cdr)		\
+  static SCM_ALIGNED (8) SCM_UNUSED const scm_t_cell			\
+  c_name ## _raw_cell [2] =						\
+    {									\
+      { SCM_PACK (car), SCM_PACK (cbr) },				\
+      { SCM_PACK (ccr), SCM_PACK (cdr) }				\
+    };									\
+  static SCM_UNUSED const SCM c_name = SCM_PACK (& c_name ## _raw_cell)
+
+#define SCM_IMMUTABLE_STRINGBUF(c_name, contents)			\
+  SCM_IMMUTABLE_DOUBLE_CELL (c_name,					\
+			     scm_tc7_stringbuf | SCM_I_STRINGBUF_F_SHARED, \
+			     (scm_t_bits) (contents),			\
+                             (scm_t_bits) sizeof (contents) - 1,	\
+			     (scm_t_bits) 0)
+
+#define SCM_IMMUTABLE_STRING(c_name, contents)				\
+  SCM_IMMUTABLE_STRINGBUF (c_name ## _stringbuf, contents);		\
+  SCM_IMMUTABLE_DOUBLE_CELL (c_name,					\
+			     scm_tc7_ro_string,				\
+			     (scm_t_bits) &c_name ## _stringbuf_raw_cell, \
+			     (scm_t_bits) 0,				\
+			     (scm_t_bits) sizeof (contents) - 1)
+
+#endif /* SCM_SUPPORT_STATIC_ALLOCATION */
+
+
+/* Documentation.  */
 
 #ifdef SCM_MAGIC_SNARF_DOCS
 #undef SCM_ASSERT
