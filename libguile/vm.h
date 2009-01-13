@@ -102,8 +102,8 @@ extern SCM scm_vm_trace_frame (SCM vm);
 
 struct scm_vm_cont {
   scm_byte_t *ip;
-  scm_t_ptrdiff sp;
-  scm_t_ptrdiff fp;
+  SCM *sp;
+  SCM *fp;
   scm_t_ptrdiff stack_size;
   SCM *stack_base;
   scm_t_ptrdiff reloc;

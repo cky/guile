@@ -119,7 +119,8 @@ vm_cont_mark (SCM obj)
 {
   struct scm_vm_cont *p = SCM_VM_CONT_DATA (obj);
 
-  vm_mark_stack (p->stack_base, p->stack_size, p->stack_base + p->fp, p->reloc);
+  if (p->stack_size)
+    vm_mark_stack (p->stack_base, p->stack_size, p->fp + p->reloc, p->reloc);
 
   return SCM_BOOL_F;
 }
@@ -149,8 +150,8 @@ capture_vm_cont (struct scm_vm *vp)
   memset (p->stack_base, 0, p->stack_size * sizeof (SCM));
 #endif
   p->ip = vp->ip;
-  p->sp = vp->sp - vp->stack_base;
-  p->fp = vp->fp - vp->stack_base;
+  p->sp = vp->sp;
+  p->fp = vp->fp;
   memcpy (p->stack_base, vp->stack_base, p->stack_size * sizeof (SCM));
   p->reloc = p->stack_base - vp->stack_base;
   SCM_RETURN_NEWSMOB (scm_tc16_vm_cont, p);
@@ -167,7 +168,7 @@ reinstate_vm_cont (struct scm_vm *vp, SCM cont)
     }
 #ifdef VM_ENABLE_STACK_NULLING
   {
-    scm_t_ptrdiff nzero = (vp->sp - vp->stack_base) - p->sp;
+    scm_t_ptrdiff nzero = (vp->sp - p->sp);
     if (nzero > 0)
       memset (vp->stack_base + p->stack_size, 0, nzero * sizeof (SCM));
     /* actually nzero should always be negative, because vm_reset_stack will
@@ -175,8 +176,8 @@ reinstate_vm_cont (struct scm_vm *vp, SCM cont)
   }
 #endif
   vp->ip = p->ip;
-  vp->sp = vp->stack_base + p->sp;
-  vp->fp = vp->stack_base + p->fp;
+  vp->sp = p->sp;
+  vp->fp = p->fp;
   memcpy (vp->stack_base, p->stack_base, p->stack_size * sizeof (SCM));
 }
 

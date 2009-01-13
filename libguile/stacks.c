@@ -516,8 +516,8 @@ SCM_DEFINE (scm_make_stack, "make-stack", 1, 0, 1,
           vm_cont = scm_cdr (scm_car (cont->vm_conts));
           data = SCM_VM_CONT_DATA (vm_cont);
           vmframe = scm_c_make_vm_frame (vm_cont,
-                                         data->stack_base + data->fp,
-                                         data->stack_base + data->sp,
+                                         data->fp + data->reloc,
+                                         data->sp + data->reloc,
                                          data->ip,
                                          data->reloc);
         } else 
