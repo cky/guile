@@ -120,7 +120,7 @@ fast.
 
 There is a notion of a ``current language'', which is maintained in
 the @code{*current-language*} fluid. This language is normally Scheme,
-and may be rebound by the user. The runtime compilation interfaces
+and may be rebound by the user. The run-time compilation interfaces
 (@pxref{Read/Load/Eval/Compile}) also allow you to choose other source
 and target languages.
 
@@ -135,7 +135,7 @@ The normal tower of languages when compiling Scheme goes like this:
 
 Object code may be serialized to disk directly, though it has a cookie
 and version prepended to the front. But when compiling Scheme at
-runtime, you want a Scheme value, e.g. a compiled procedure. For this
+run time, you want a Scheme value, e.g. a compiled procedure. For this
 reason, so as not to break the abstraction, Guile defines a fake
 language, @code{value}. Compiling to @code{value} loads the object
 code into a procedure, and wakes the sleeping giant.
@@ -319,7 +319,7 @@ Return an existing or new toplevel variable named @var{sym}.
 @var{toplevel-env} must be a toplevel environment.
 @end deffn
 @deffn {Scheme Procedure} ghil-var-at-module! env modname sym interface?
-Return a variable that will be resolved at runtime with respect to a
+Return a variable that will be resolved at run-time with respect to a
 specific module named @var{modname}. If @var{interface?} is true, the
 variable will be of type @code{public}, otherwise @code{private}.
 @end deffn
@@ -459,7 +459,7 @@ Like Scheme's @code{values}.
 @var{vals})}.
 @end deftp
 @deftp {Scheme Variable} <ghil-reified-env> env loc
-Produces, at runtime, a reification of the environment at compile
+Produces, at run-time, a reification of the environment at compile
 time. Used in the implementation of Scheme's
 @code{compile-time-environment}.
 @end deftp
@@ -476,7 +476,7 @@ Just as the Scheme to GHIL compiler introduced new hidden state---the
 environment---the GHIL to GLIL compiler introduces more state, the
 stack. While not represented explicitly, the stack is present in the
 compilation of each GHIL expression: compiling a GHIL expression
-should leave the runtime value stack in the same state. For example,
+should leave the run-time value stack in the same state. For example,
 if the intermediate value stack has two elements before evaluating an
 @code{if} expression, it should have two elements after that
 expression.
@@ -495,7 +495,7 @@ Its expression types are defined in @code{(language glil)}, and as
 with GHIL, some of its fields parse as rest arguments.
 
 @deftp {Scheme Variable} <glil-program> nargs nrest nlocs nexts meta . body
-A unit of code that at runtime will correspond to a compiled
+A unit of code that at run-time will correspond to a compiled
 procedure. @var{nargs} @var{nrest} @var{nlocs}, and @var{nexts}
 collectively define the program's arity; see @ref{Compiled
 Procedures}, for more information. @var{meta} should be an alist of
@@ -681,7 +681,7 @@ Probably the most important improvement, speed-wise, will be some form
 of native compilation, both just-in-time and ahead-of-time. This could
 be done in many ways. Probably the easiest strategy would be to extend
 the compiled procedure structure to include a pointer to a native code
-vector, and compile from bytecode to native code at runtime after a
+vector, and compile from bytecode to native code at run-time after a
 procedure is called a certain number of times.
 
 The name of the game is a profiling-based harvest of the low-hanging

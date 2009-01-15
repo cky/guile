@@ -8,7 +8,7 @@
 @section A Virtual Machine for Guile
 
 Guile has both an interpreter and a compiler. To a user, the
-difference is largely transparent -- interpreted and compiled
+difference is largely transparent---interpreted and compiled
 procedures can call each other as they please.
 
 The difference is that the compiler creates and interprets bytecode
@@ -32,9 +32,11 @@ machine.
 @node Why a VM?
 @subsection Why a VM?
 
-For a long time, Guile only had an interpreter, called the evaluator.
-Guile's evaluator operates directly on the S-expression representation
-of Scheme source code.
+@cindex interpreter
+@cindex evaluator
+For a long time, Guile only had an interpreter, called the
+@dfn{evaluator}. Guile's evaluator operates directly on the
+S-expression representation of Scheme source code.
 
 But while the evaluator is highly optimized and hand-tuned, and
 contains some extensive speed trickery (@pxref{Memoization}), it still
@@ -47,7 +49,7 @@ be allocated on the heap. Et cetera.
 
 The solution to this problem is to compile the higher-level language,
 Scheme, into a lower-level language for which all of the checks and
-dispatching have already been done -- the code is instead stripped to
+dispatching have already been done---the code is instead stripped to
 the bare minimum needed to ``do the job''.
 
 The question becomes then, what low-level language to choose? There
@@ -63,8 +65,8 @@ present on all Guile installations.
 The easiest (and most fun) way to depend on a virtual machine is to
 implement the virtual machine within Guile itself. This way the
 virtual machine provides what Scheme needs (tail calls, multiple
-values, call/cc) and can provide optimized inline instructions for
-Guile (cons, struct-ref, etc.).
+values, @code{call/cc}) and can provide optimized inline instructions
+for Guile (@code{cons}, @code{struct-ref}, etc.).
 
 So this is what Guile does. The rest of this section describes that VM
 that Guile implements, and the compiled procedures that run on it.
@@ -72,7 +74,7 @@ that Guile implements, and the compiled procedures that run on it.
 Note that this decision to implement a bytecode compiler does not
 preclude native compilation. We can compile from bytecode to native
 code at runtime, or even do ahead of time compilation. More
-possibilities are discussed in @xref{Extending the Compiler}.
+possibilities are discussed in @ref{Extending the Compiler}.
 
 @node VM Concepts
 @subsection VM Concepts
@@ -84,7 +86,7 @@ virtual machine per thread. When a VM-compiled procedure is run, Guile
 looks up the virtual machine for the current thread and executes the
 procedure using that VM.
 
-Guile's virtual machine is a stack machine -- that is, it has few
+Guile's virtual machine is a stack machine---that is, it has few
 registers, and the instructions defined in the VM operate by pushing
 and popping values from a stack.
 
@@ -114,7 +116,7 @@ is described in the next section.
 A virtual machine executes by loading a compiled procedure, and
 executing the object code associated with that procedure. Of course,
 that procedure may call other procedures, tail-call others, ad
-infinitum -- indeed, within a guile whose modules have all been
+infinitum---indeed, within a guile whose modules have all been
 compiled to object code, one might never leave the virtual machine.
 
 @c wingo: I wish the following were true, but currently we just use
@@ -189,8 +191,8 @@ The @code{ip} to return to if this application returns multiple
 values. For continuations that only accept one value, this value will
 be @code{NULL}; for others, it will be an @code{ip} that points to a
 multiple-value return address in the calling code. That code will
-expect the top value on the stack to be an integer -- the number of
-values being returned -- and that below that integer there are the
+expect the top value on the stack to be an integer---the number of
+values being returned---and that below that integer there are the
 values being returned.
 
 @item Dynamic link
@@ -320,7 +322,7 @@ Bytecode:
 
 At @code{ip} 0 and 2, we do the copy from argument to heap for
 @code{a}. @code{Ip} 4 loads up the compiled lambda, and then at
-@code{ip} 6 we make a closure -- binding code (from the compiled
+@code{ip} 6 we make a closure---binding code (from the compiled
 lambda) with data (the heap-allocated variables). Finally we return
 the closure.
 
@@ -385,7 +387,7 @@ instructions. More instructions may be added over time.
 @subsubsection Environment Control Instructions
 
 These instructions access and mutate the environment of a compiled
-procedure -- the local bindings, the ``external'' bindings, and the
+procedure---the local bindings, the ``external'' bindings, and the
 toplevel bindings.
 
 @deffn Instruction local-ref index
@@ -575,7 +577,7 @@ procedure. This instruction pops the following values from the stack:
 
 @itemize
 @item Optionally, a thunk, which when called should return metadata
-associated with this program -- for example its name, the names of its
+associated with this program---for example its name, the names of its
 arguments, its documentation string, debugging information, etc.
 
 Normally, this thunk its itself a compiled procedure (with no
@@ -852,7 +854,7 @@ to avoid the overhead of creating new stack frames.
 
 Since most of these operations are historically implemented as C
 primitives, not inlining them would entail constantly calling out from
-the VM to the interpreter, which has some costs -- registers must be
+the VM to the interpreter, which has some costs---registers must be
 saved, the interpreter has to dispatch, called procedures have to do
 much typechecking, etc. It's much more efficient to inline these
 operations in the virtual machine itself.
