@@ -409,6 +409,7 @@ scm_enter_guile (scm_t_guile_ticket ticket)
   if (t)
     {
       scm_i_pthread_mutex_lock (&t->heap_mutex);
+      t->heap_mutex_locked_by_self = 1;
       resume (t);
     }
 }
@@ -430,7 +431,11 @@ static scm_t_guile_ticket
 scm_leave_guile ()
 {
   scm_i_thread *t = suspend ();
-  scm_i_pthread_mutex_unlock (&t->heap_mutex);
+  if (t->heap_mutex_locked_by_self)
+    {
+      t->heap_mutex_locked_by_self = 0;
+      scm_i_pthread_mutex_unlock (&t->heap_mutex);
+    }
   return (scm_t_guile_ticket) t;
 }
 
@@ -491,6 +496,7 @@ guilify_self_1 (SCM_STACKITEM *base)
     abort ();
 
   scm_i_pthread_mutex_init (&t->heap_mutex, NULL);
+  t->heap_mutex_locked_by_self = 0;
   scm_i_pthread_mutex_init (&t->admin_mutex, NULL);
   t->clear_freelists_p = 0;
   t->gc_running_p = 0;
@@ -505,6 +511,7 @@ guilify_self_1 (SCM_STACKITEM *base)
   scm_i_pthread_setspecific (scm_i_thread_key, t);
 
   scm_i_pthread_mutex_lock (&t->heap_mutex);
+  t->heap_mutex_locked_by_self = 1;
 
   scm_i_pthread_mutex_lock (&thread_admin_mutex);
   t->next_thread = all_threads;
@@ -1992,9 +1999,14 @@ void
 scm_i_thread_sleep_for_gc ()
 {
   scm_i_thread *t = suspend ();
-  t->held_mutex = &t->heap_mutex;
+
+  /* Don't put t->heap_mutex in t->held_mutex here, because if the
+     thread is cancelled during the cond wait, the thread's cleanup
+     function (scm_leave_guile_cleanup) will handle unlocking the
+     heap_mutex, so we don't need to do that again in on_thread_exit.
+  */
   scm_i_pthread_cond_wait (&wake_up_cond, &t->heap_mutex);
-  t->held_mutex = NULL;
+
   resume (t);
 }
 
