@@ -98,8 +98,6 @@ typedef struct scm_t_method {
 /* Also defined in libguile/objects.c */
 #define SCM_CLASS_OF(x)        SCM_STRUCT_VTABLE (x)
 #define SCM_ACCESSORS_OF(x)    (SCM_PACK (SCM_STRUCT_VTABLE_DATA (x)[scm_si_getters_n_setters]))
-#define SCM_NUMBER_OF_SLOTS(x) \
- ((SCM_STRUCT_DATA (x)[scm_struct_i_n_words]) - scm_struct_n_extra_words)
 
 #define SCM_CLASSP(x) \
   (SCM_STRUCTP (x) && SCM_STRUCT_VTABLE_FLAGS (x) & SCM_CLASSF_METACLASS)

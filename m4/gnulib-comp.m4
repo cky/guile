@@ -1,5 +1,5 @@
 # DO NOT EDIT! GENERATED AUTOMATICALLY!
-# Copyright (C) 2002-2008 Free Software Foundation, Inc.
+# Copyright (C) 2002-2009 Free Software Foundation, Inc.
 #
 # This file is free software, distributed under the terms of the GNU
 # General Public License.  As a special exception to the GNU General
@@ -42,11 +42,16 @@ AC_DEFUN([gl_INIT],
   m4_pushdef([gl_LIBSOURCES_DIR], [])
   gl_COMMON
   gl_source_base='lib'
-changequote(,)dnl
-LTALLOCA=`echo "$ALLOCA" | sed 's/\.[^.]* /.lo /g;s/\.[^.]*$/.lo/'`
-changequote([, ])dnl
-AC_SUBST([LTALLOCA])
   gl_FUNC_ALLOCA
+  gl_LOCALCHARSET
+  LOCALCHARSET_TESTS_ENVIRONMENT="CHARSETALIASDIR=\"\$(top_builddir)/$gl_source_base\""
+  AC_SUBST([LOCALCHARSET_TESTS_ENVIRONMENT])
+  gl_FUNC_MBRLEN
+  gl_WCHAR_MODULE_INDICATOR([mbrlen])
+  gl_FUNC_MBRTOWC
+  gl_WCHAR_MODULE_INDICATOR([mbrtowc])
+  gl_FUNC_MBSINIT
+  gl_WCHAR_MODULE_INDICATOR([mbsinit])
   gl_SAFE_READ
   gl_SAFE_WRITE
   gt_TYPE_SSIZE_T
@@ -189,18 +194,26 @@ AC_DEFUN([gltests_LIBSOURCES], [
 # gnulib-tool and may be removed by future gnulib-tool invocations.
 AC_DEFUN([gl_FILE_LIST], [
   build-aux/link-warning.h
-  lib/alloca.c
   lib/alloca.in.h
+  lib/config.charset
   lib/full-read.c
   lib/full-read.h
   lib/full-write.c
   lib/full-write.h
+  lib/localcharset.c
+  lib/localcharset.h
+  lib/mbrlen.c
+  lib/mbrtowc.c
+  lib/mbsinit.c
+  lib/ref-add.sin
+  lib/ref-del.sin
   lib/safe-read.c
   lib/safe-read.h
   lib/safe-write.c
   lib/safe-write.h
   lib/stdbool.in.h
   lib/strcasecmp.c
+  lib/streq.h
   lib/strftime.c
   lib/strftime.h
   lib/strings.in.h
@@ -213,9 +226,18 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/write.c
   m4/alloca.m4
   m4/autobuild.m4
+  m4/codeset.m4
   m4/extensions.m4
+  m4/glibc21.m4
   m4/gnulib-common.m4
   m4/include_next.m4
+  m4/localcharset.m4
+  m4/locale-fr.m4
+  m4/locale-ja.m4
+  m4/locale-zh.m4
+  m4/mbrlen.m4
+  m4/mbrtowc.m4
+  m4/mbsinit.m4
   m4/mbstate_t.m4
   m4/safe-read.m4
   m4/safe-write.m4
