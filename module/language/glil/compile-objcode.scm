@@ -115,7 +115,16 @@
 	   (closed-bindings '())
 	   (source-alist '())
 	   (label-alist '())
+           ;; the pre-elements are prepended to the object vector
+           ;; in practice these are placeholders for module & meta.
+           (object-pre-elements '(#f #f))
 	   (object-alist '()))
+       (define (object-index obj)
+         (cond ((object-assoc obj object-alist) => cdr)
+               (else
+                (let ((i (+ (length object-alist) (length object-pre-elements))))
+                  (set! object-alist (acons obj i object-alist))
+                  i))))
        (define (push-code! code)
 ;	 (format #t "push-code! ~a~%" code)
 	 (push (code->bytes code) stack))
@@ -124,12 +133,7 @@
 	       (toplevel
                 (dump-object! push-code! x))
 	       (else
-		(let ((i (cond ((object-assoc x object-alist) => cdr)
-			       (else
-				(let ((i (length object-alist)))
-				  (set! object-alist (acons x i object-alist))
-				  i)))))
-		  (push-code! `(object-ref ,i))))))
+                (push-code! `(object-ref ,(object-index x))))))
        (define (munge-bindings bindings nargs)
          (map
           (lambda (v)
@@ -217,11 +221,7 @@
                                ((set) '(variable-set)))))
                 (else
                  (let* ((var (make-vlink-later #:key name))
-                        (i (cond ((object-assoc var object-alist) => cdr)
-                                 (else
-                                  (let ((i (length object-alist)))
-                                    (set! object-alist (acons var i object-alist))
-                                    i)))))
+                        (i (object-index var)))
                    (push-code! (case op
                                  ((ref) `(toplevel-ref ,i))
                                  ((set) `(toplevel-set ,i))))))))
@@ -243,11 +243,7 @@
                                  ((set) '(variable-set)))))
                   (else
                    (let* ((var (make-vlink-later #:key key))
-                          (i (cond ((object-assoc var object-alist) => cdr)
-                                   (else
-                                    (let ((i (length object-alist)))
-                                      (set! object-alist (acons var i object-alist))
-                                      i)))))
+                          (i (object-index var)))
                      (push-code! (case op
                                    ((ref) `(toplevel-ref ,i))
                                    ((set) `(toplevel-set ,i))))))))
@@ -282,14 +278,18 @@
        (let ((bytes (stack->bytes (reverse! stack) label-alist)))
 	 (if toplevel
 	     (bytecode->objcode bytes nlocs nexts)
+             (let ((metathunk (make-meta closed-bindings
+                                              (reverse! source-alist)
+                                              meta)))
 	     (make-bytespec #:nargs nargs #:nrest nrest #:nlocs nlocs
                             #:nexts nexts #:bytes bytes
-                            #:meta (make-meta closed-bindings
-                                              (reverse! source-alist)
-                                              meta)
-                            #:objs (let ((objs (map car (reverse! object-alist))))
-                                    (if (null? objs) #f (list->vector objs)))
-                            #:closure? (venv-closure? venv))))))))))
+                            #:meta metathunk
+                            #:objs (if (and (null? object-alist) (not metathunk))
+                                       #f
+                                       (list->vector
+                                        (append object-pre-elements
+                                                (map car (reverse! object-alist)))))
+                            #:closure? (venv-closure? venv)))))))))))
 
 (define (object-assoc x alist)
   (record-case x
