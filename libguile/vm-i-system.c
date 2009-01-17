@@ -297,10 +297,11 @@ VM_DEFINE_INSTRUCTION (toplevel_ref, "toplevel-ref", 1, 0, 1)
       SYNC_REGISTER ();
       if (SCM_LIKELY (SCM_SYMBOLP (what))) 
         {
+          SCM mod;
           if (SCM_LIKELY (scm_module_system_booted_p
-                          && scm_is_true (bp->module)))
+                          && scm_is_true ((mod = scm_program_module (program)))))
             /* might longjmp */
-            what = scm_module_lookup (bp->module, what);
+            what = scm_module_lookup (mod, what);
           else
             what = scm_sym2var (what, SCM_BOOL_F, SCM_BOOL_F);
         }
@@ -379,10 +380,11 @@ VM_DEFINE_INSTRUCTION (toplevel_set, "toplevel-set", 1, 1, 0)
       SYNC_BEFORE_GC ();
       if (SCM_LIKELY (SCM_SYMBOLP (what))) 
         {
+          SCM mod;
           if (SCM_LIKELY (scm_module_system_booted_p
-                          && scm_is_true (bp->module)))
+                          && scm_is_true ((mod = scm_program_module (program)))))
             /* might longjmp */
-            what = scm_module_lookup (bp->module, what);
+            what = scm_module_lookup (mod, what);
           else
             what = scm_sym2var (what, SCM_BOOL_F, SCM_BOOL_F);
         }

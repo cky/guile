@@ -240,7 +240,7 @@ SCM_DEFINE (scm_objcode_to_program, "objcode->program", 1, 1, 0,
 
   base = SCM_OBJCODE_BASE (objcode);
   size = SCM_OBJCODE_SIZE (objcode);
-  prog = scm_c_make_program (base + 10, size - 10, objcode);
+  prog = scm_c_make_program (base + 10, size - 10, SCM_BOOL_F, objcode);
   p = SCM_PROGRAM_DATA (prog);
   p->nlocs = base[8];
   p->nexts = base[9];

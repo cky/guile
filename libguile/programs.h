@@ -57,8 +57,6 @@ struct scm_program {
   unsigned char nlocs;		/* the number of local variables */
   unsigned char nexts;		/* the number of external variables */
   scm_byte_t *base;		/* program base address */
-  SCM module;			/* resolve bindings with respect to this module */
-  SCM meta;			/* meta data */
   SCM objs;			/* constant objects */
   SCM external;			/* external environment */
   SCM holder;			/* the owner of bytecode */
@@ -70,7 +68,7 @@ extern scm_t_bits scm_tc16_program;
 #define SCM_PROGRAM_DATA(x)	((struct scm_program *) SCM_SMOB_DATA (x))
 #define SCM_VALIDATE_PROGRAM(p,x) SCM_MAKE_VALIDATE (p, x, PROGRAM_P)
 
-extern SCM scm_c_make_program (void *addr, size_t size, SCM holder);
+extern SCM scm_c_make_program (void *addr, size_t size, SCM objs, SCM holder);
 extern SCM scm_c_make_closure (SCM program, SCM external);
 
 extern SCM scm_program_p (SCM obj);

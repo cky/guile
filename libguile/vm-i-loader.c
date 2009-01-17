@@ -106,36 +106,32 @@ VM_DEFINE_LOADER (load_keyword, "load-keyword")
 VM_DEFINE_LOADER (load_program, "load-program")
 {
   size_t len;
-  SCM prog, x;
+  SCM prog, x, objs = SCM_BOOL_F, meta = SCM_BOOL_F;
   struct scm_program *p;
-
-  FETCH_LENGTH (len);
-  SYNC_REGISTER ();
-  prog = scm_c_make_program (ip, len, program);
-  p = SCM_PROGRAM_DATA (prog);
-  ip += len;
 
   POP (x);
 
   /* init meta data */
   if (SCM_PROGRAM_P (x))
     {
-      p->meta = x;
+      meta = x;
       POP (x);
     }
 
   /* init object table */
   if (scm_is_vector (x))
     {
-#if 0
-      if (scm_is_simple_vector (x))
-	printf ("is_simple_vector!\n");
-      else
-	printf ("NOT is_simple_vector\n");
-#endif
-      p->objs = x;
+      objs = x;
+      scm_c_vector_set_x (objs, 0, scm_current_module ());
+      scm_c_vector_set_x (objs, 1, meta);
       POP (x);
     }
+
+  FETCH_LENGTH (len);
+  SYNC_REGISTER ();
+  prog = scm_c_make_program (ip, len, objs, program);
+  p = SCM_PROGRAM_DATA (prog);
+  ip += len;
 
   /* init parameters */
   /* NOTE: format defined in system/vm/assemble.scm */

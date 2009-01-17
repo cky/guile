@@ -115,8 +115,9 @@
 	   (closed-bindings '())
 	   (source-alist '())
 	   (label-alist '())
-           ;; the pre-elements are prepended to the object vector
-           ;; in practice these are placeholders for module & meta.
+           ;; the pre-elements are prepended to the object vector in
+           ;; practice these are placeholders for module & meta,
+           ;; respectively.
            (object-pre-elements '(#f #f))
 	   (object-alist '()))
        (define (object-index obj)

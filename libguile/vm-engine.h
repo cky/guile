@@ -163,17 +163,15 @@
    call `scm_vector_writable_elements ()' and the likes.  */
 #define CACHE_PROGRAM()							\
 {									\
-  ssize_t _vincr;							\
-									\
   if (bp != SCM_PROGRAM_DATA (program)) {                               \
     bp = SCM_PROGRAM_DATA (program);					\
-    /* Was: objects = SCM_VELTS (bp->objs); */				\
-									\
-    if (objects)                                                        \
-      scm_array_handle_release (&objects_handle);                       \
-									\
-    objects = scm_vector_writable_elements (bp->objs, &objects_handle,	\
-                                            &object_count, &_vincr);	\
+    if (SCM_I_IS_VECTOR (bp->objs)) {                                   \
+      objects = SCM_I_VECTOR_WELTS (bp->objs);                          \
+      object_count = SCM_I_VECTOR_LENGTH (bp->objs);                    \
+    } else {                                                            \
+      objects = NULL;                                                   \
+      object_count = 0;                                                 \
+    }                                                                   \
   }                                                                     \
 }
 

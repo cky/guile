@@ -58,8 +58,7 @@ vm_run (SCM vm, SCM program, SCM args)
   struct scm_program *bp = NULL;	/* program base pointer */
   SCM external = SCM_EOL;		/* external environment */
   SCM *objects = NULL;			/* constant objects */
-  scm_t_array_handle objects_handle;    /* handle of the OBJECTS array */
-  size_t object_count;                  /* length of OBJECTS */
+  size_t object_count = 0;              /* length of OBJECTS */
   SCM *stack_base = vp->stack_base;	/* stack base address */
   SCM *stack_limit = vp->stack_limit;	/* stack limit address */
 
@@ -105,9 +104,7 @@ vm_run (SCM vm, SCM program, SCM args)
     SCM prog = program;
 
     /* Boot program */
-    scm_byte_t bytes[6] = {scm_op_mv_call, 0, 0, 1, scm_op_make_int8_1, scm_op_halt};
-    bytes[1] = scm_ilength (args); /* FIXME: argument overflow */
-    program = scm_c_make_program (bytes, 6, SCM_BOOL_F);
+    program = vm_make_boot_program (scm_ilength (args));
 
     /* Initial frame */
     CACHE_REGISTER ();
@@ -152,8 +149,6 @@ vm_run (SCM vm, SCM program, SCM args)
   vm_error_wrong_num_args:
     /* nargs and program are valid */
     SYNC_ALL ();
-    if (objects)
-      scm_array_handle_release (&objects_handle);
     scm_wrong_num_args (program);
     /* shouldn't get here */
     goto vm_error;
@@ -222,8 +217,6 @@ vm_run (SCM vm, SCM program, SCM args)
 
   vm_error:
     SYNC_ALL ();
-    if (objects)
-      scm_array_handle_release (&objects_handle);
 
     scm_ithrow (sym_vm_error, SCM_LIST3 (sym_vm_run, err_msg, err_args), 1);
   }

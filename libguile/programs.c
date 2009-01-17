@@ -57,7 +57,7 @@ static SCM zero_vector;
 static SCM write_program = SCM_BOOL_F;
 
 SCM
-scm_c_make_program (void *addr, size_t size, SCM holder)
+scm_c_make_program (void *addr, size_t size, SCM objs, SCM holder)
 #define FUNC_NAME "scm_c_make_program"
 {
   struct scm_program *p = scm_gc_malloc (sizeof (struct scm_program),
@@ -67,11 +67,9 @@ scm_c_make_program (void *addr, size_t size, SCM holder)
   p->nrest    = 0;
   p->nlocs    = 0;
   p->nexts    = 0;
-  p->meta     = SCM_BOOL_F;
-  p->objs     = zero_vector;
+  p->objs     = objs;
   p->external = SCM_EOL;
   p->holder   = holder;
-  p->module   = scm_current_module ();
 
   /* If nobody holds bytecode's address, then allocate a new memory */
   if (SCM_FALSEP (holder)) 
@@ -89,22 +87,22 @@ scm_c_make_program (void *addr, size_t size, SCM holder)
 SCM
 scm_c_make_closure (SCM program, SCM external)
 {
-  SCM prog = scm_c_make_program (0, 0, program);
-  if (!SCM_PROGRAM_P (program))
-    abort ();
-  *SCM_PROGRAM_DATA (prog) = *SCM_PROGRAM_DATA (program);
-  SCM_PROGRAM_DATA (prog)->external = external;
-  return prog;
+  struct scm_program *p = scm_gc_malloc (sizeof (struct scm_program),
+                                         "program");
+  *p = *SCM_PROGRAM_DATA (program);
+  p->holder = program;
+  p->external = external;
+  SCM_RETURN_NEWSMOB (scm_tc16_program, p);
 }
 
 static SCM
 program_mark (SCM obj)
 {
   struct scm_program *p = SCM_PROGRAM_DATA (obj);
-  scm_gc_mark (p->meta);
-  scm_gc_mark (p->objs);
-  scm_gc_mark (p->external);
-  scm_gc_mark (p->module);
+  if (scm_is_true (p->objs))
+    scm_gc_mark (p->objs);
+  if (!scm_is_null (p->external))
+    scm_gc_mark (p->external);
   return p->holder;
 }
 
@@ -194,8 +192,10 @@ SCM_DEFINE (scm_program_meta, "program-meta", 1, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_program_meta
 {
+  SCM objs;
   SCM_VALIDATE_PROGRAM (1, program);
-  return SCM_PROGRAM_DATA (program)->meta;
+  objs = SCM_PROGRAM_DATA (program)->objs;
+  return scm_is_true (objs) ? scm_c_vector_ref (objs, 1) : SCM_BOOL_F;
 }
 #undef FUNC_NAME
 
@@ -204,9 +204,12 @@ scm_c_program_source (struct scm_program *p, size_t ip)
 {
   SCM meta, sources, source;
 
-  if (scm_is_false (p->meta))
+  if (scm_is_false (p->objs))
     return SCM_BOOL_F;
-  meta = scm_call_0 (p->meta);
+  meta = scm_c_vector_ref (p->objs, 1);
+  if (scm_is_false (meta))
+    return SCM_BOOL_F;
+  meta = scm_call_0 (meta);
   if (scm_is_false (meta))
     return SCM_BOOL_F;
   sources = scm_cadr (meta);
@@ -232,8 +235,10 @@ SCM_DEFINE (scm_program_module, "program-module", 1, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_program_module
 {
+  SCM objs;
   SCM_VALIDATE_PROGRAM (1, program);
-  return SCM_PROGRAM_DATA (program)->module;
+  objs = SCM_PROGRAM_DATA (program)->objs;
+  return scm_is_true (objs) ? scm_c_vector_ref (objs, 0) : SCM_BOOL_F;
 }
 #undef FUNC_NAME
 

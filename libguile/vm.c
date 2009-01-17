@@ -282,6 +282,16 @@ vm_fetch_length (scm_byte_t *ip, size_t *lenp)
   return ip;
 }
 
+static SCM
+vm_make_boot_program (long len)
+{
+  scm_byte_t bytes[6] = {scm_op_mv_call, 0, 0, 1, scm_op_make_int8_1, scm_op_halt};
+  if (SCM_UNLIKELY (len > 255 || len < 0))
+    abort ();
+  bytes[1] = (scm_byte_t)len;
+  return scm_c_make_program (bytes, 6, SCM_BOOL_F, SCM_BOOL_F);
+}
+
 
 /*
  * VM
