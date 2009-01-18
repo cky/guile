@@ -172,7 +172,7 @@ scm_make_port_type (char *name,
       scm_memory_error ("scm_make_port_type");
     }
   /* Make a class object if Goops is present */
-  if (scm_port_class)
+  if (SCM_UNPACK (scm_port_class[0]) != 0)
     scm_make_port_classes (scm_numptob - 1, SCM_PTOBNAME (scm_numptob - 1));
   return scm_tc7_port + (scm_numptob - 1) * 256;
 }
