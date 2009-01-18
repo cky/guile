@@ -3,7 +3,7 @@
 #ifndef SCM_SMOB_H
 #define SCM_SMOB_H
 
-/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2004, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2004, 2006, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -151,6 +151,9 @@ while (0)
 #define SCM_SMOB_APPLY_1(x, a1)		(SCM_SMOB_DESCRIPTOR (x).apply_1 (x, (a1)))
 #define SCM_SMOB_APPLY_2(x, a1, a2)	(SCM_SMOB_DESCRIPTOR (x).apply_2 (x, (a1), (a2)))
 #define SCM_SMOB_APPLY_3(x, a1, a2, rst)	(SCM_SMOB_DESCRIPTOR (x).apply_3 (x, (a1), (a2), (rst)))
+
+/* Maximum number of SMOB types.  */
+#define SCM_I_MAX_SMOB_TYPE_COUNT  256
 
 SCM_API long scm_numsmob;
 SCM_API scm_smob_descriptor scm_smobs[];

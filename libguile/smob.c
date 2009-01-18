@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2003, 2004, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2003, 2004, 2006, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -49,7 +49,8 @@
  * tags for smobjects (if you know a tag you can get an index and conversely).
  */
 
-#define MAX_SMOB_COUNT 256
+#define MAX_SMOB_COUNT SCM_I_MAX_SMOB_TYPE_COUNT
+
 long scm_numsmob;
 scm_smob_descriptor scm_smobs[MAX_SMOB_COUNT];
 
