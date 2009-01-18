@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1999,2000,2001, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1999,2000,2001, 2006, 2008, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -64,7 +64,7 @@ scm_c_make_subr (const char *name, long type, SCM (*fcn) ())
     }
 
   entry = scm_subr_table_size;
-  z = scm_immutable_cell ((entry << 8) + type, (scm_t_bits) fcn);
+  z = scm_cell ((entry << 8) + type, (scm_t_bits) fcn);
   scm_subr_table[entry].handle = z;
   scm_subr_table[entry].name = scm_from_locale_symbol (name);
   scm_subr_table[entry].generic = 0;
