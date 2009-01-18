@@ -153,7 +153,7 @@ SCM scm_class_scm;
 SCM scm_class_int, scm_class_float, scm_class_double;
 
 SCM *scm_port_class = 0;
-SCM *scm_smob_class = 0;
+SCM scm_smob_class[SCM_I_MAX_SMOB_TYPE_COUNT];
 
 SCM scm_no_applicable_method;
 
@@ -2694,7 +2694,6 @@ create_smob_classes (void)
 {
   long i;
 
-  scm_smob_class = scm_malloc (SCM_I_MAX_SMOB_TYPE_COUNT * sizeof (SCM));
   for (i = 0; i < SCM_I_MAX_SMOB_TYPE_COUNT; ++i)
     scm_smob_class[i] = 0;
 

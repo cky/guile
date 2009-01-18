@@ -309,7 +309,7 @@ scm_make_smob_type (char const *name, size_t size)
     }
 
   /* Make a class object if Goops is present. */
-  if (scm_smob_class)
+  if (SCM_UNPACK (scm_smob_class[0]) != 0)
     scm_smob_class[new_smob] = scm_make_extended_class (name, 0);
 
   return scm_tc7_smob + new_smob * 256;
@@ -449,8 +449,8 @@ scm_set_smob_apply (scm_t_bits tc, SCM (*apply) (),
   scm_smobs[SCM_TC2SMOBNUM (tc)].apply_2 = apply_2;
   scm_smobs[SCM_TC2SMOBNUM (tc)].apply_3 = apply_3;
   scm_smobs[SCM_TC2SMOBNUM (tc)].gsubr_type = type;
-  
-  if (scm_smob_class)
+
+  if (SCM_UNPACK (scm_smob_class[0]) != 0)
     scm_i_inherit_applicable (scm_smob_class[SCM_TC2SMOBNUM (tc)]);
 }
 
