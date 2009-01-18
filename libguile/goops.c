@@ -2738,9 +2738,10 @@ create_port_classes (void)
 {
   long i;
 
-  scm_port_class = (SCM *) scm_malloc (3 * 256 * sizeof (SCM));
-  for (i = 0; i < 3 * 256; ++i)
-    scm_port_class[i] = 0;
+  /* Allocate 3 times the maximum number of port types so that input ports,
+     output ports, and in/out ports can be stored at different offsets.  See
+     `SCM_IN_PCLASS_INDEX' et al.  */
+  scm_port_class = scm_calloc (3 * SCM_I_MAX_PORT_TYPE_COUNT * sizeof (SCM));
 
   for (i = 0; i < scm_numptob; ++i)
     scm_make_port_classes (i, SCM_PTOBNAME (i));
