@@ -1,4 +1,4 @@
-;;; Guile Lowlevel Intermediate Language
+;;; Guile Virtual Machine Assembly
 
 ;; Copyright (C) 2001 Free Software Foundation, Inc.
 
@@ -19,30 +19,20 @@
 
 ;;; Code:
 
-(define-module (language glil spec)
+(define-module (language assembly spec)
   #:use-module (system base language)
   #:use-module (language objcode spec)
-  #:use-module (language assembly spec)
-  #:use-module (language glil)
-  #:use-module (language glil compile-objcode)
-  #:use-module (language glil compile-assembly)
-  #:export (glil))
-
-(define (write-glil exp . port)
-  (apply write (unparse-glil exp) port))
+  ;; #:use-module (language assembly compile-objcode)
+  #:export (assembly))
 
 (define (compile x e opts)
   (values (compile-objcode x e) e))
 
-(define (compile-asm x e opts)
-  (values (compile-assembly x) e))
-
-(define-language glil
-  #:title	"Guile Lowlevel Intermediate Language (GLIL)"
-  #:version	"0.3"
+(define-language assembly
+  #:title	"Guile Virtual Machine Assembly Language"
+  #:version	"2.0"
   #:reader	read
-  #:printer	write-glil
-  #:parser      parse-glil
-  #:compilers   `((,objcode . ,compile)
-                  (,assembly . ,compile-asm))
+  #:printer	write
+  #:parser      read ;; fixme: make a verifier?
+  ;; #:compilers   `((,objcode . ,compile))
   )

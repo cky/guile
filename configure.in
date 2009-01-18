@@ -1558,6 +1558,7 @@ AC_CONFIG_FILES([
   module/language/scheme/Makefile
   module/language/ghil/Makefile
   module/language/glil/Makefile
+  module/language/assembly/Makefile
   module/language/objcode/Makefile
   module/language/value/Makefile
   module/ice-9/Makefile
