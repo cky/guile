@@ -2694,8 +2694,8 @@ create_smob_classes (void)
 {
   long i;
 
-  scm_smob_class = (SCM *) scm_malloc (255 * sizeof (SCM));
-  for (i = 0; i < 255; ++i)
+  scm_smob_class = scm_malloc (SCM_I_MAX_SMOB_TYPE_COUNT * sizeof (SCM));
+  for (i = 0; i < SCM_I_MAX_SMOB_TYPE_COUNT; ++i)
     scm_smob_class[i] = 0;
 
   scm_smob_class[SCM_TC2SMOBNUM (scm_tc16_keyword)] = scm_class_keyword;
