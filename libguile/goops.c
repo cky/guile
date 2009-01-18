@@ -1,4 +1,4 @@
-/* Copyright (C) 1998,1999,2000,2001,2002,2003,2004,2008
+/* Copyright (C) 1998,1999,2000,2001,2002,2003,2004,2008,2009
  * Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -1879,6 +1879,11 @@ typedef struct t_extension {
   SCM extension;
 } t_extension;
 
+
+/* Hint for `scm_gc_malloc ()' et al. when allocating `t_extension'
+   objects.  */
+static const char extension_gc_hint[] = "GOOPS extension";
+
 static t_extension *extensions = 0;
 
 SCM_VARIABLE (scm_var_make_extended_generic, "make-extended-generic");
@@ -1899,7 +1904,8 @@ scm_c_extend_primitive_generic (SCM extended, SCM extension)
     }
   else
     {
-      t_extension *e = scm_malloc (sizeof (t_extension));
+      t_extension *e = scm_gc_malloc (sizeof (t_extension),
+				      extension_gc_hint);
       t_extension **loc = &extensions;
       /* Make sure that extensions are placed before their own
        * extensions in the extensions list.  O(N^2) algorithm, but
@@ -1922,7 +1928,6 @@ setup_extended_primitive_generics ()
       t_extension *e = extensions;
       scm_c_extend_primitive_generic (e->extended, e->extension);
       extensions = e->next;
-      free (e);
     }
 }
 
