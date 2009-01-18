@@ -47,6 +47,9 @@ scm_t_subr_entry *scm_subr_table;
 static unsigned long scm_subr_table_size = 0;
 static unsigned long scm_subr_table_room = 800;
 
+/* Hint for `scm_gc_malloc ()' and friends.  */
+static const char subr_table_gc_hint[] = "subr table";
+
 SCM 
 scm_c_make_subr (const char *name, long type, SCM (*fcn) ())
 {
@@ -57,8 +60,10 @@ scm_c_make_subr (const char *name, long type, SCM (*fcn) ())
     {
       long new_size = scm_subr_table_room * 3 / 2;
       void *new_table
-	= scm_realloc ((char *) scm_subr_table,
-		       sizeof (scm_t_subr_entry) * new_size);
+	= scm_gc_realloc (scm_subr_table,
+			  sizeof (* scm_subr_table) * scm_subr_table_room,
+			  sizeof (* scm_subr_table) * new_size,
+			  subr_table_gc_hint);
       scm_subr_table = new_table;
       scm_subr_table_room = new_size;
     }
@@ -328,7 +333,8 @@ scm_init_subr_table ()
 {
   scm_subr_table
     = ((scm_t_subr_entry *)
-       scm_malloc (sizeof (scm_t_subr_entry) * scm_subr_table_room));
+       scm_gc_malloc (sizeof (* scm_subr_table) * scm_subr_table_room,
+		      subr_table_gc_hint));
 }
 
 void
