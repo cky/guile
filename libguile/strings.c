@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,2000,2001, 2004, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,2000,2001, 2004, 2006, 2008, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -30,7 +30,6 @@
 #include "libguile/strings.h"
 #include "libguile/deprecation.h"
 #include "libguile/validate.h"
-#include "libguile/dynwind.h"
 
 
 
@@ -949,6 +948,7 @@ scm_makfromstrs (int argc, char **argv)
 
 char **
 scm_i_allocate_string_pointers (SCM list)
+#define FUNC_NAME "scm_i_allocate_string_pointers"
 {
   char **result;
   int len = scm_ilength (list);
@@ -957,34 +957,31 @@ scm_i_allocate_string_pointers (SCM list)
   if (len < 0)
     scm_wrong_type_arg_msg (NULL, 0, list, "proper list");
 
-  scm_dynwind_begin (0);
-
-  result = (char **) scm_malloc ((len + 1) * sizeof (char *));
+  result = scm_gc_malloc ((len + 1) * sizeof (char *),
+			  "string pointers");
   result[len] = NULL;
-  scm_dynwind_unwind_handler (free, result, 0);
 
   /* The list might be have been modified in another thread, so
      we check LIST before each access.
    */
   for (i = 0; i < len && scm_is_pair (list); i++)
     {
-      result[i] = scm_to_locale_string (SCM_CAR (list));
+      SCM str;
+      size_t len;
+
+      str = SCM_CAR (list);
+      len = scm_c_string_length (str);
+
+      result[i] = scm_gc_malloc_pointerless (len + 1, "string pointers");
+      memcpy (result[i], scm_i_string_chars (str), len);
+      result[i][len] = '\0';
+
       list = SCM_CDR (list);
     }
 
-  scm_dynwind_end ();
   return result;
 }
-
-void
-scm_i_free_string_pointers (char **pointers)
-{
-  int i;
-  
-  for (i = 0; pointers[i]; i++)
-    free (pointers[i]);
-  free (pointers);
-}
+#undef FUNC_NAME
 
 void
 scm_i_get_substring_spec (size_t len,
