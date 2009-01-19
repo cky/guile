@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2003, 2004, 2006, 2007, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2003, 2004, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -134,7 +134,7 @@ scm_make_port_type (char *name,
 		    void (*write) (SCM port, const void *data, size_t size))
 {
   char *tmp;
-  if (255 <= scm_numptob)
+  if (SCM_I_MAX_PORT_TYPE_COUNT - 1 <= scm_numptob)
     goto ptoberr;
   SCM_CRITICAL_SECTION_START;
   tmp = (char *) scm_gc_realloc ((char *) scm_ptobs,
@@ -172,7 +172,7 @@ scm_make_port_type (char *name,
       scm_memory_error ("scm_make_port_type");
     }
   /* Make a class object if Goops is present */
-  if (scm_port_class)
+  if (SCM_UNPACK (scm_port_class[0]) != 0)
     scm_make_port_classes (scm_numptob - 1, SCM_PTOBNAME (scm_numptob - 1));
   return scm_tc7_port + (scm_numptob - 1) * 256;
 }

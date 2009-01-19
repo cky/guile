@@ -149,7 +149,6 @@ SCM_INTERNAL SCM scm_i_symbol_substring (SCM sym, size_t start, size_t end);
 /* internal utility functions. */
 
 SCM_INTERNAL char **scm_i_allocate_string_pointers (SCM list);
-SCM_INTERNAL void scm_i_free_string_pointers (char **pointers);
 SCM_INTERNAL void scm_i_get_substring_spec (size_t len,
 					    SCM start, size_t *cstart,
 					    SCM end, size_t *cend);

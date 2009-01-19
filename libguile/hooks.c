@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2003, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2003, 2006, 2008, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -42,6 +42,9 @@
  * using C level hooks.
  */
 
+/* Hint for `scm_gc_malloc ()' and friends.  */
+static const char hook_entry_gc_hint[] = "hook entry";
+
 void
 scm_c_hook_init (scm_t_c_hook *hook, void *hook_data, scm_t_c_hook_type type)
 {
@@ -56,8 +59,10 @@ scm_c_hook_add (scm_t_c_hook *hook,
 		void *fn_data, 
 		int appendp)
 {
-  scm_t_c_hook_entry *entry = scm_malloc (sizeof (scm_t_c_hook_entry));
+  scm_t_c_hook_entry *entry;
   scm_t_c_hook_entry **loc = &hook->first;
+
+  entry = scm_gc_malloc (sizeof (scm_t_c_hook_entry), hook_entry_gc_hint);
   if (appendp)
     while (*loc)
       loc = &(*loc)->next;
@@ -77,9 +82,7 @@ scm_c_hook_remove (scm_t_c_hook *hook,
     {
       if ((*loc)->func == func && (*loc)->data == fn_data)
 	{
-	  scm_t_c_hook_entry *entry = *loc;
 	  *loc = (*loc)->next;
-	  free (entry);
 	  return;
 	}
       loc = &(*loc)->next;

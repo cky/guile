@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2003, 2004, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2003, 2004, 2006, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -49,7 +49,8 @@
  * tags for smobjects (if you know a tag you can get an index and conversely).
  */
 
-#define MAX_SMOB_COUNT 256
+#define MAX_SMOB_COUNT SCM_I_MAX_SMOB_TYPE_COUNT
+
 long scm_numsmob;
 scm_smob_descriptor scm_smobs[MAX_SMOB_COUNT];
 
@@ -312,7 +313,7 @@ scm_make_smob_type (char const *name, size_t size)
     }
 
   /* Make a class object if Goops is present. */
-  if (scm_smob_class)
+  if (SCM_UNPACK (scm_smob_class[0]) != 0)
     scm_smob_class[new_smob] = scm_make_extended_class (name, 0);
 
   return scm_tc7_smob + new_smob * 256;
@@ -452,8 +453,8 @@ scm_set_smob_apply (scm_t_bits tc, SCM (*apply) (),
   scm_smobs[SCM_TC2SMOBNUM (tc)].apply_2 = apply_2;
   scm_smobs[SCM_TC2SMOBNUM (tc)].apply_3 = apply_3;
   scm_smobs[SCM_TC2SMOBNUM (tc)].gsubr_type = type;
-  
-  if (scm_smob_class)
+
+  if (SCM_UNPACK (scm_smob_class[0]) != 0)
     scm_i_inherit_applicable (scm_smob_class[SCM_TC2SMOBNUM (tc)]);
 }
 

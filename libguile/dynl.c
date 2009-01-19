@@ -1,7 +1,7 @@
 /* dynl.c - dynamic linking
  *
  * Copyright (C) 1990, 91, 92, 93, 94, 95, 96, 97, 98, 99, 2000, 2001, 2002,
- * 2003, 2008 Free Software Foundation, Inc.
+ * 2003, 2008, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -262,12 +262,6 @@ SCM_DEFINE (scm_dynamic_call, "dynamic-call", 2, 0, 0,
 }
 #undef FUNC_NAME
 
-static void
-free_string_pointers (void *data)
-{
-  scm_i_free_string_pointers ((char **)data);
-}
-
 SCM_DEFINE (scm_dynamic_args_call, "dynamic-args-call", 3, 0, 0, 
             (SCM func, SCM dobj, SCM args),
 	    "Call the C function indicated by @var{func} and @var{dobj},\n"
@@ -288,21 +282,16 @@ SCM_DEFINE (scm_dynamic_args_call, "dynamic-args-call", 3, 0, 0,
   int result, argc;
   char **argv;
 
-  scm_dynwind_begin (0);
-
   if (scm_is_string (func))
     func = scm_dynamic_func (func, dobj);
 
   fptr = (int (*) (int, char **)) scm_to_ulong (func);
 
   argv = scm_i_allocate_string_pointers (args);
-  scm_dynwind_unwind_handler (free_string_pointers, argv,
-			      SCM_F_WIND_EXPLICITLY);
   for (argc = 0; argv[argc]; argc++)
     ;
   result = (*fptr) (argc, argv);
 
-  scm_dynwind_end ();
   return scm_from_int (result);
 }
 #undef FUNC_NAME

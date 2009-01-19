@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1999,2000,2001, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1999,2000,2001, 2006, 2008, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -44,27 +44,32 @@ scm_t_subr_entry *scm_subr_table;
 /* Increased to 800 on 2001-05-07 -- Guile now has 779 primitives on
    startup, 786 with guile-readline.  'martin */
 
-long scm_subr_table_size = 0;
-long scm_subr_table_room = 800;
+static unsigned long scm_subr_table_size = 0;
+static unsigned long scm_subr_table_room = 800;
+
+/* Hint for `scm_gc_malloc ()' and friends.  */
+static const char subr_table_gc_hint[] = "subr table";
 
 SCM 
 scm_c_make_subr (const char *name, long type, SCM (*fcn) ())
 {
   register SCM z;
-  long entry;
+  unsigned long entry;
 
   if (scm_subr_table_size == scm_subr_table_room)
     {
       long new_size = scm_subr_table_room * 3 / 2;
       void *new_table
-	= scm_realloc ((char *) scm_subr_table,
-		       sizeof (scm_t_subr_entry) * new_size);
+	= scm_gc_realloc (scm_subr_table,
+			  sizeof (* scm_subr_table) * scm_subr_table_room,
+			  sizeof (* scm_subr_table) * new_size,
+			  subr_table_gc_hint);
       scm_subr_table = new_table;
       scm_subr_table_room = new_size;
     }
 
   entry = scm_subr_table_size;
-  z = scm_immutable_cell ((entry << 8) + type, (scm_t_bits) fcn);
+  z = scm_cell ((entry << 8) + type, (scm_t_bits) fcn);
   scm_subr_table[entry].handle = z;
   scm_subr_table[entry].name = scm_from_locale_symbol (name);
   scm_subr_table[entry].generic = 0;
@@ -328,7 +333,8 @@ scm_init_subr_table ()
 {
   scm_subr_table
     = ((scm_t_subr_entry *)
-       scm_malloc (sizeof (scm_t_subr_entry) * scm_subr_table_room));
+       scm_gc_malloc (sizeof (* scm_subr_table) * scm_subr_table_room,
+		      subr_table_gc_hint));
 }
 
 void

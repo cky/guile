@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -943,12 +943,6 @@ SCM_DEFINE (scm_tcsetpgrp, "tcsetpgrp", 2, 0, 0,
 #undef FUNC_NAME
 #endif /* HAVE_TCSETPGRP */
 
-static void
-free_string_pointers (void *data)
-{
-  scm_i_free_string_pointers ((char **)data);
-}
-
 SCM_DEFINE (scm_execl, "execl", 1, 0, 1, 
             (SCM filename, SCM args),
 	    "Executes the file named by @var{path} as a new process image.\n"
@@ -971,8 +965,6 @@ SCM_DEFINE (scm_execl, "execl", 1, 0, 1,
   scm_dynwind_free (exec_file);
 
   exec_argv = scm_i_allocate_string_pointers (args);
-  scm_dynwind_unwind_handler (free_string_pointers, exec_argv, 
-			    SCM_F_WIND_EXPLICITLY);
 
   execv (exec_file,
 #ifdef __MINGW32__
@@ -1007,8 +999,6 @@ SCM_DEFINE (scm_execlp, "execlp", 1, 0, 1,
   scm_dynwind_free (exec_file);
 
   exec_argv = scm_i_allocate_string_pointers (args);
-  scm_dynwind_unwind_handler (free_string_pointers, exec_argv, 
-			    SCM_F_WIND_EXPLICITLY);
 
   execvp (exec_file,
 #ifdef __MINGW32__
@@ -1047,12 +1037,7 @@ SCM_DEFINE (scm_execle, "execle", 2, 0, 1,
   scm_dynwind_free (exec_file);
 
   exec_argv = scm_i_allocate_string_pointers (args);
-  scm_dynwind_unwind_handler (free_string_pointers, exec_argv,
-			    SCM_F_WIND_EXPLICITLY);
-
   exec_env = scm_i_allocate_string_pointers (env);
-  scm_dynwind_unwind_handler (free_string_pointers, exec_env,
-			    SCM_F_WIND_EXPLICITLY);
 
   execve (exec_file,
 #ifdef __MINGW32__
@@ -1136,19 +1121,7 @@ SCM_DEFINE (scm_environ, "environ", 0, 1, 0,
     return scm_makfromstrs (-1, environ);
   else
     {
-      char **new_environ;
-
-      new_environ = scm_i_allocate_string_pointers (env);
-      /* Free the old environment, except when called for the first
-       * time.
-       */
-      {
-	static int first = 1;
-	if (!first)
-	  scm_i_free_string_pointers (environ);
-	first = 0;
-      }
-      environ = new_environ;
+      environ = scm_i_allocate_string_pointers (env);
       return SCM_UNSPECIFIED;
     }
 }

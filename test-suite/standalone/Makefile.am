@@ -103,6 +103,10 @@ test_conversion_LDADD = ${top_builddir}/libguile/libguile.la
 check_PROGRAMS += test-conversion
 TESTS += test-conversion
 
+# test-fast-slot-ref
+check_SCRIPTS += test-fast-slot-ref
+TESTS += test-fast-slot-ref
+
 # test-use-srfi
 check_SCRIPTS += test-use-srfi
 TESTS += test-use-srfi

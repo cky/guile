@@ -3,7 +3,7 @@
 #ifndef SCM_GOOPS_H
 #define SCM_GOOPS_H
 
-/* Copyright (C) 1998,1999,2000,2001,2002,2003, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1998,1999,2000,2001,2002,2003, 2006, 2008, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -98,8 +98,6 @@ typedef struct scm_t_method {
 /* Also defined in libguile/objects.c */
 #define SCM_CLASS_OF(x)        SCM_STRUCT_VTABLE (x)
 #define SCM_ACCESSORS_OF(x)    (SCM_PACK (SCM_STRUCT_VTABLE_DATA (x)[scm_si_getters_n_setters]))
-#define SCM_NUMBER_OF_SLOTS(x) \
- ((SCM_STRUCT_DATA (x)[scm_struct_i_n_words]) - scm_struct_n_extra_words)
 
 #define SCM_CLASSP(x) \
   (SCM_STRUCTP (x) && SCM_STRUCT_VTABLE_FLAGS (x) & SCM_CLASSF_METACLASS)
@@ -170,8 +168,8 @@ SCM_API SCM scm_class_complex;
 SCM_API SCM scm_class_integer;
 SCM_API SCM scm_class_fraction;
 SCM_API SCM scm_class_unknown;
-SCM_API SCM *scm_port_class;
-SCM_API SCM *scm_smob_class;
+SCM_API SCM scm_port_class[];
+SCM_API SCM scm_smob_class[];
 SCM_API SCM scm_class_top;
 SCM_API SCM scm_class_object;
 SCM_API SCM scm_class_class;

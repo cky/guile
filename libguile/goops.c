@@ -1,4 +1,4 @@
-/* Copyright (C) 1998,1999,2000,2001,2002,2003,2004,2008
+/* Copyright (C) 1998,1999,2000,2001,2002,2003,2004,2008,2009
  * Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -152,8 +152,13 @@ SCM scm_class_protected_opaque, scm_class_protected_read_only;
 SCM scm_class_scm;
 SCM scm_class_int, scm_class_float, scm_class_double;
 
-SCM *scm_port_class = 0;
-SCM *scm_smob_class = 0;
+/* Port classes.  Allocate 3 times the maximum number of port types so that
+   input ports, output ports, and in/out ports can be stored at different
+   offsets.  See `SCM_IN_PCLASS_INDEX' et al.  */
+SCM scm_port_class[3 * SCM_I_MAX_PORT_TYPE_COUNT];
+
+/* SMOB classes.  */
+SCM scm_smob_class[SCM_I_MAX_SMOB_TYPE_COUNT];
 
 SCM scm_no_applicable_method;
 
@@ -1216,7 +1221,10 @@ SCM_DEFINE (scm_sys_fast_slot_ref, "%fast-slot-ref", 2, 0, 0,
   unsigned long int i;
 
   SCM_VALIDATE_INSTANCE (1, obj);
-  i = scm_to_unsigned_integer (index, 0, SCM_NUMBER_OF_SLOTS(obj)-1);
+  i = scm_to_unsigned_integer (index, 0,
+			       SCM_I_INUM (SCM_SLOT (SCM_CLASS_OF (obj),
+						     scm_si_nfields))
+			       - 1);
   return SCM_SLOT (obj, i);
 }
 #undef FUNC_NAME
@@ -1230,7 +1238,10 @@ SCM_DEFINE (scm_sys_fast_slot_set_x, "%fast-slot-set!", 3, 0, 0,
   unsigned long int i;
 
   SCM_VALIDATE_INSTANCE (1, obj);
-  i = scm_to_unsigned_integer (index, 0, SCM_NUMBER_OF_SLOTS(obj)-1);
+  i = scm_to_unsigned_integer (index, 0,
+			       SCM_I_INUM (SCM_SLOT (SCM_CLASS_OF (obj),
+						     scm_si_nfields))
+			       - 1);
 
   SCM_SET_SLOT (obj, i, value);
 
@@ -1873,6 +1884,11 @@ typedef struct t_extension {
   SCM extension;
 } t_extension;
 
+
+/* Hint for `scm_gc_malloc ()' et al. when allocating `t_extension'
+   objects.  */
+static const char extension_gc_hint[] = "GOOPS extension";
+
 static t_extension *extensions = 0;
 
 SCM_VARIABLE (scm_var_make_extended_generic, "make-extended-generic");
@@ -1893,7 +1909,8 @@ scm_c_extend_primitive_generic (SCM extended, SCM extension)
     }
   else
     {
-      t_extension *e = scm_malloc (sizeof (t_extension));
+      t_extension *e = scm_gc_malloc (sizeof (t_extension),
+				      extension_gc_hint);
       t_extension **loc = &extensions;
       /* Make sure that extensions are placed before their own
        * extensions in the extensions list.  O(N^2) algorithm, but
@@ -1916,7 +1933,6 @@ setup_extended_primitive_generics ()
       t_extension *e = extensions;
       scm_c_extend_primitive_generic (e->extended, e->extension);
       extensions = e->next;
-      free (e);
     }
 }
 
@@ -2686,8 +2702,7 @@ create_smob_classes (void)
 {
   long i;
 
-  scm_smob_class = (SCM *) scm_malloc (255 * sizeof (SCM));
-  for (i = 0; i < 255; ++i)
+  for (i = 0; i < SCM_I_MAX_SMOB_TYPE_COUNT; ++i)
     scm_smob_class[i] = 0;
 
   scm_smob_class[SCM_TC2SMOBNUM (scm_tc16_keyword)] = scm_class_keyword;
@@ -2730,10 +2745,6 @@ static void
 create_port_classes (void)
 {
   long i;
-
-  scm_port_class = (SCM *) scm_malloc (3 * 256 * sizeof (SCM));
-  for (i = 0; i < 3 * 256; ++i)
-    scm_port_class[i] = 0;
 
   for (i = 0; i < scm_numptob; ++i)
     scm_make_port_classes (i, SCM_PTOBNAME (i));
