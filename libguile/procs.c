@@ -83,7 +83,7 @@ SCM
 scm_c_define_subr (const char *name, long type, SCM (*fcn) ())
 {
   SCM subr = scm_c_make_subr (name, type, fcn);
-  scm_define (SCM_SUBR_ENTRY(subr).name, subr);
+  scm_define (SCM_SNAME (subr), subr);
   return subr;
 }
 
@@ -92,7 +92,7 @@ scm_c_make_subr_with_generic (const char *name,
 			      long type, SCM (*fcn) (), SCM *gf)
 {
   SCM subr = scm_c_make_subr (name, type, fcn);
-  SCM_SUBR_ENTRY(subr).generic = gf;
+  SCM_SUBR_GENERIC (subr) = gf;
   return subr;
 }
 
@@ -101,7 +101,7 @@ scm_c_define_subr_with_generic (const char *name,
 				long type, SCM (*fcn) (), SCM *gf)
 {
   SCM subr = scm_c_make_subr_with_generic (name, type, fcn, gf);
-  scm_define (SCM_SUBR_ENTRY(subr).name, subr);
+  scm_define (SCM_SNAME (subr), subr);
   return subr;
 }
 
