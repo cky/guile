@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2006, 2008, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -75,13 +75,13 @@ create_gsubr (int define, const char *name,
       subr = scm_c_make_subr (name, scm_tc7_lsubr_2, fcn);
     create_subr:
       if (define)
-	scm_define (SCM_SUBR_ENTRY(subr).name, subr);
+	scm_define (SCM_SNAME (subr), subr);
       return subr;
     default:
       {
 	SCM cclo = scm_makcclo (scm_f_gsubr_apply, 3L);
 	SCM subr = scm_c_make_subr (name, scm_tc7_subr_0, fcn);
-	SCM sym = SCM_SUBR_ENTRY(subr).name;
+	SCM sym = SCM_SNAME (subr);
 	if (SCM_GSUBR_MAX < req + opt + rst)
 	  {
             fprintf (stderr,
@@ -151,7 +151,7 @@ create_gsubr_with_generic (int define,
       subr = scm_c_make_subr_with_generic (name, scm_tc7_lsubr_2, fcn, gf);
     create_subr:
       if (define)
-	scm_define (SCM_SUBR_ENTRY(subr).name, subr);
+	scm_define (SCM_SNAME (subr), subr);
       return subr;
     default:
       ;
