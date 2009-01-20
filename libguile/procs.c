@@ -92,7 +92,7 @@ scm_c_make_subr_with_generic (const char *name,
 			      long type, SCM (*fcn) (), SCM *gf)
 {
   SCM subr = scm_c_make_subr (name, type, fcn);
-  SCM_SUBR_GENERIC (subr) = gf;
+  SCM_SET_SUBR_GENERIC_LOC (subr, gf);
   return subr;
 }
 
