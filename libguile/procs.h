@@ -50,6 +50,8 @@ typedef struct
 #define SCM_DSUBRF(x) ((double (*)()) SCM_CELL_WORD_1 (x))
 #define SCM_SUBR_PROPS(x) (SCM_SUBR_ENTRY (x).properties)
 #define SCM_SUBR_GENERIC(x) (SCM_SUBR_ENTRY (x).generic)
+#define SCM_SET_SUBR_GENERIC(x, g) (*SCM_SUBR_ENTRY (x).generic = (g))
+#define SCM_SET_SUBR_GENERIC_LOC(x, g) (SCM_SUBR_ENTRY (x).generic = (g))
 
 #define SCM_CCLO_LENGTH(x) (SCM_CELL_WORD_0 (x) >> 8)
 #define SCM_MAKE_CCLO_TAG(v)  (((v) << 8) + scm_tc7_cclo)
