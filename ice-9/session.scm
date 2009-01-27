@@ -20,11 +20,60 @@
   :use-module (ice-9 documentation)
   :use-module (ice-9 regex)
   :use-module (ice-9 rdelim)
-  :export (help apropos apropos-internal apropos-fold
-	   apropos-fold-accessible apropos-fold-exported apropos-fold-all
-	   source arity system-module))
+  :export (help
+           add-value-help-handler! remove-value-help-handler!
+           add-name-help-handler! remove-name-help-handler!
+           apropos apropos-internal apropos-fold apropos-fold-accessible
+           apropos-fold-exported apropos-fold-all source arity
+           system-module module-commentary))
 
 
+
+(define *value-help-handlers* '())
+
+(define (add-value-help-handler! proc)
+  "Adds a handler for performing `help' on a value.
+
+`proc' will be called as (PROC NAME VALUE). `proc' should return #t to
+indicate that it has performed help, a string to override the default
+object documentation, or #f to try the other handlers, potentially
+falling back on the normal behavior for `help'."
+  (set! *value-help-handlers* (cons proc *value-help-handlers*)))
+
+(define (remove-value-help-handler! proc)
+  "Removes a handler for performing `help' on a value.
+
+See the documentation for `add-value-help-handler' for more
+information."
+  (set! *value-help-handlers* (delete! proc *value-help-handlers*)))
+
+(define (try-value-help name value)
+  (or-map (lambda (proc) (proc name value)) *value-help-handlers*))
+
+
+(define *name-help-handlers* '())
+
+(define (add-name-help-handler! proc)
+  "Adds a handler for performing `help' on a name.
+
+`proc' will be called with the unevaluated name as its argument. That is
+to say, when the user calls `(help FOO)', the name is FOO, exactly as
+the user types it.
+
+The return value of `proc' is as specified in
+`add-value-help-handler!'."
+  (set! *name-help-handlers* (cons proc *name-help-handlers*)))
+
+(define (remove-name-help-handler! proc)
+  "Removes a handler for performing `help' on a name.
+
+See the documentation for `add-name-help-handler' for more
+information."
+  (set! *name-help-handlers* (delete! proc *name-help-handlers*)))
+
+(define (try-name-help name)
+  (or-map (lambda (proc) (proc name)) *name-help-handlers*))
+
 
 ;;; Documentation
 ;;;
@@ -45,6 +94,10 @@ You don't seem to have regular expressions installed.\n"))
                                                type x))))
                (cond
 
+                ;; User-specified
+                ((try-name-help name)
+                 => (lambda (x) (if (not (eq? x #t)) (display x))))
+
                 ;; SYMBOL
                 ((symbol? name)
                  (help-doc name
@@ -60,10 +113,12 @@ You don't seem to have regular expressions installed.\n"))
                 ((and (list? name)
                       (= (length name) 2)
                       (eq? (car name) 'unquote))
-                 (cond ((object-documentation
-                         (local-eval (cadr name) env))
-                        => write-line)
-                       (else (not-found 'documentation (cadr name)))))
+                 (let ((value (local-eval (cadr name) env)))
+                   (cond ((try-value-help (cadr name) value)
+                          => noop)
+                         ((object-documentation value)
+                          => write-line)
+                         (else (not-found 'documentation (cadr name))))))
 
                 ;; (quote SYMBOL)
                 ((and (list? name)
@@ -109,7 +164,8 @@ You don't seem to have regular expressions installed.\n"))
   (let ((entries (apropos-fold (lambda (module name object data)
 				 (cons (list module
 					     name
-					     (object-documentation object)
+					     (or (try-value-help name object)
+                                                 (object-documentation object))
 					     (cond ((closure? object)
 						    "a procedure")
 						   ((procedure? object)
