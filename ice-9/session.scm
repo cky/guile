@@ -29,7 +29,9 @@
 
 
 
-(define *value-help-handlers* '())
+(define *value-help-handlers*
+  `(,(lambda (name value)
+       (object-documentation value))))
 
 (define (add-value-help-handler! proc)
   "Adds a handler for performing `help' on a value.
@@ -41,10 +43,7 @@ falling back on the normal behavior for `help'."
   (set! *value-help-handlers* (cons proc *value-help-handlers*)))
 
 (define (remove-value-help-handler! proc)
-  "Removes a handler for performing `help' on a value.
-
-See the documentation for `add-value-help-handler' for more
-information."
+  "Removes a handler for performing `help' on a value."
   (set! *value-help-handlers* (delete! proc *value-help-handlers*)))
 
 (define (try-value-help name value)
@@ -60,15 +59,13 @@ information."
 to say, when the user calls `(help FOO)', the name is FOO, exactly as
 the user types it.
 
-The return value of `proc' is as specified in
-`add-value-help-handler!'."
+`proc' should return #t to indicate that it has performed help, a string
+to override the default object documentation, or #f to try the other
+handlers, potentially falling back on the normal behavior for `help'."
   (set! *name-help-handlers* (cons proc *name-help-handlers*)))
 
 (define (remove-name-help-handler! proc)
-  "Removes a handler for performing `help' on a name.
-
-See the documentation for `add-name-help-handler' for more
-information."
+  "Removes a handler for performing `help' on a name."
   (set! *name-help-handlers* (delete! proc *name-help-handlers*)))
 
 (define (try-name-help name)
@@ -113,12 +110,11 @@ You don't seem to have regular expressions installed.\n"))
                 ((and (list? name)
                       (= (length name) 2)
                       (eq? (car name) 'unquote))
-                 (let ((value (local-eval (cadr name) env)))
-                   (cond ((try-value-help (cadr name) value)
-                          => noop)
-                         ((object-documentation value)
-                          => write-line)
-                         (else (not-found 'documentation (cadr name))))))
+                 (let ((doc (try-value-help (cadr name)
+                                            (local-eval (cadr name) env))))
+                   (cond ((not doc) (not-found 'documentation (cadr name)))
+                         ((eq? doc #t)) ;; pass
+                         (else (write-line doc)))))
 
                 ;; (quote SYMBOL)
                 ((and (list? name)
@@ -164,8 +160,7 @@ You don't seem to have regular expressions installed.\n"))
   (let ((entries (apropos-fold (lambda (module name object data)
 				 (cons (list module
 					     name
-					     (or (try-value-help name object)
-                                                 (object-documentation object))
+					     (try-value-help name object)
 					     (cond ((closure? object)
 						    "a procedure")
 						   ((procedure? object)
