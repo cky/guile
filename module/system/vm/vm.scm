@@ -21,7 +21,7 @@
 
 (define-module (system vm vm)
   #:use-module (system vm frame)
-  #:use-module (system vm objcode)
+  #:use-module (system vm program)
   #:export (vm? the-vm make-vm vm-version
             vm:ip vm:sp vm:fp vm:last-ip
 
@@ -38,4 +38,4 @@
 (define (vms:clock stat) (vector-ref stat 1))
 
 (define (vm-load vm objcode)
-  (vm (objcode->program objcode)))
+  (vm (make-program objcode)))

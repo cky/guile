@@ -43,6 +43,6 @@
   #:reader	read
   #:printer	write-glil
   #:parser      parse-glil
-  #:compilers   `((,objcode . ,compile)
-                  (,assembly . ,compile-asm))
+  #:compilers   `((,assembly . ,compile-asm)
+                  (,objcode . ,compile))
   )

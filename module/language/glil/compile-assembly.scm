@@ -26,7 +26,6 @@
   #:use-module (language assembly)
   #:use-module (system vm instruction)
   #:use-module ((system vm program) #:select (make-binding))
-  #:use-module (system vm conv) ;; fixme: move this module
   #:use-module (ice-9 receive)
   #:use-module ((srfi srfi-1) #:select (fold))
   #:export (compile-assembly))
@@ -50,11 +49,16 @@
   (if (and (null? bindings) (null? sources) (null? tail))
       #f
       (make-subprogram
-       (compile-assembly
-        (make-glil-program 0 0 0 0 #f
-                           (list
-                            (make-glil-const `(,bindings ,sources ,@tail))
-                            (make-glil-call 'return 0)))))))
+       ;; we need to prepend #f for the object table. This would have
+       ;; even less overhead if we just appended the metadata-generating
+       ;; instructions after the body of the program's code. A FIXME for
+       ;; the future, eh.
+       `((make-false)
+         ,(compile-assembly
+           (make-glil-program 0 0 0 0 '()
+                              (list
+                               (make-glil-const `(,bindings ,sources ,@tail))
+                               (make-glil-call 'return 0))))))))
 
 ;; A functional stack of names of live variables.
 (define (make-open-binding name ext? index)
@@ -95,14 +99,14 @@
 
 ;; A functional object table.
 (define *module-and-meta* 2)
-(define (assoc-ref-or-acons x alist make-y)
-  (cond ((assoc-ref x alist)
+(define (assoc-ref-or-acons alist x make-y)
+  (cond ((assoc-ref alist x)
          => (lambda (y) (values y alist)))
         (else
          (let ((y (make-y x alist)))
-         (values y (acons x y alist))))))
+           (values y (acons x y alist))))))
 (define (object-index-and-alist x alist)
-  (assoc-ref-or-acons x alist
+  (assoc-ref-or-acons alist x
                       (lambda (x alist)
                         (+ (length alist) *module-and-meta*))))
 
@@ -122,46 +126,56 @@
     (values x bindings source-alist label-alist object-alist))
 
   (record-case glil
-    ((<glil-program> nargs nrest nlocs nexts meta body)
-     (define (process-body)
-       (let ((nexts-stack (cons nexts nexts-stack)))
-         (let lp ((body body) (code '()) (bindings '(())) (source-alist '())
-                  (label-alist '()) (object-alist (if (null? (cdr nexts-stack)) #f '())) (addr 0))
-           (cond
-            ((null? body)
-             (values (reverse code)
-                     (close-all-bindings bindings addr)
-                     (reverse source-alist)
-                     (reverse label-alist)
-                     (and object-alist (map car (reverse object-alist)))
-                     addr))
-            (else
-             (receive (subcode bindings source-alist label-alist object-alist)
-                 (glil->assembly (car body) nargs nexts-stack bindings
-                                 source-alist label-alist object-alist addr)
-               (lp (cdr body) (append (reverse subcode) code)
-                   bindings source-alist label-alist object-alist
-                   (apply + addr (map byte-length subcode)))))))))
+    ((<glil-program> nargs nrest nlocs nexts meta body closure-level)
+     (let ((toplevel? (null? nexts-stack)))
+       (define (process-body)
+         (let ((nexts-stack (cons nexts nexts-stack)))
+           (let lp ((body body) (code '()) (bindings '(())) (source-alist '())
+                    (label-alist '()) (object-alist (if toplevel? #f '())) (addr 0))
+             (cond
+              ((null? body)
+               (values (reverse code)
+                       (close-all-bindings bindings addr)
+                       (reverse source-alist)
+                       (reverse label-alist)
+                       (and object-alist (map car (reverse object-alist)))
+                       addr))
+              (else
+               (receive (subcode bindings source-alist label-alist object-alist)
+                   (glil->assembly (car body) nargs nexts-stack bindings
+                                   source-alist label-alist object-alist addr)
+                 (lp (cdr body) (append (reverse subcode) code)
+                     bindings source-alist label-alist object-alist
+                     (apply + addr (map byte-length subcode)))))))))
 
-     ;; include len and labels
-     (receive (code bindings sources labels objects subaddr)
-         (process-body)
-       (let ((asm `(,@(if objects
-                          (dump-object
-                           (make-object-table objects
-                                              (make-meta bindings sources meta))
-                           addr)
-                          '())
-                    (assembly ,nargs ,nrest ,nlocs ,nexts
-                              ,labels ,subaddr
-                              . ,code)
-                    ,@(if closure? '((make-closure)) '()))))
-         (cond ((or (null? nexts-stack) (not object-alist))
-                (emit-code asm))
-               (else
-                (receive (i object-alist)
-                    (object-index-and-alist (make-subprogram asm) object-alist)
-                  (emit-code/object '((object-ref ,i)) object-alist)))))))
+       (receive (code bindings sources labels objects len)
+           (process-body)
+         (let ((prog `(load-program ,nargs ,nrest ,nlocs ,nexts ,labels
+                                    ,len . ,code)))
+           (cond
+            (toplevel?
+             ;; toplevel bytecode isn't loaded by the vm, no way to do
+             ;; object table or closure capture (not in the bytecode,
+             ;; anyway)
+             (emit-code `(,prog)))
+            (else
+             (let ((table (dump-object (make-object-table
+                                        objects
+                                        (make-meta bindings sources meta))
+                                       addr))
+                   (closure (if (> closure-level 0) '((make-closure)) '())))
+               (cond
+                (object-alist
+                 ;; if we are being compiled from something with an object
+                 ;; table, cache the program there
+                 (receive (i object-alist)
+                     (object-index-and-alist (make-subprogram `(,@table ,prog))
+                                             object-alist)
+                   (emit-code/object `((object-ref ,i) ,@closure)
+                                     object-alist)))
+                (else
+                 ;; otherwise emit a load directly
+                 (emit-code `(,@table ,prog ,@closure)))))))))))
     
     ((<glil-bind> vars)
      (values '()
@@ -262,7 +276,7 @@
                             ((set) '(variable-set))))))
            (else
             (receive (i object-alist)
-                (object-index-and-alist (make-variable-cache-cell name)
+                (object-index-and-alist (make-variable-cache-cell key)
                                         object-alist)
               (emit-code/object (case op
                                   ((ref) `((toplevel-ref ,i)))
@@ -306,12 +320,12 @@
     (cond
      ((object->code x) => list)
      ((variable-cache-cell? x) (dump (variable-cache-cell-key x)))
-     ((subprogram? x) (list (subprogram-code x)))
+     ((subprogram? x) (subprogram-code x))
      ((and (integer? x) (exact? x))
       (let ((str (do ((n x (quotient n 256))
                       (l '() (cons (modulo n 256) l)))
                      ((= n 0)
-                      (apply u8vector l)))))
+                      (list->string (map integer->char l))))))
         `((load-integer ,str))))
      ((number? x)
       `((load-number ,(number->string x))))
@@ -322,23 +336,25 @@
      ((keyword? x)
       `((load-keyword ,(symbol->string (keyword->symbol x)))))
      ((list? x)
-      (fold (lambda (x y)
-              (append (dump x) y))
+      (fold append
             (let ((len (length x)))
               (if (>= len 65536) (too-long "list"))
               `((list ,(quotient len 256) ,(modulo len 256))))
-            x))
+            (fold (lambda (x y) (cons (dump x) y))
+                  '()
+                  x)))
      ((pair? x)
       `(,@(dump (car x))
         ,@(dump (cdr x))
         (cons)))
      ((vector? x)
-      (fold (lambda (x y)
-              (append (dump x) y))
+      (fold append
             (let ((len (vector-length x)))
               (if (>= len 65536) (too-long "vector"))
               `((vector ,(quotient len 256) ,(modulo len 256))))
-            (vector->list x)))
+            (fold (lambda (x y) (cons (dump x) y))
+                  '()
+                  (vector->list x))))
      (else
       (error "assemble: unrecognized object" x)))))
 

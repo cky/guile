@@ -52,43 +52,43 @@
 
 #define RETURN(x)	do { *sp = x; NEXT; } while (0)
 
-VM_DEFINE_FUNCTION (not, "not", 1)
+VM_DEFINE_FUNCTION (80, not, "not", 1)
 {
   ARGS1 (x);
   RETURN (SCM_BOOL (SCM_FALSEP (x)));
 }
 
-VM_DEFINE_FUNCTION (not_not, "not-not", 1)
+VM_DEFINE_FUNCTION (81, not_not, "not-not", 1)
 {
   ARGS1 (x);
   RETURN (SCM_BOOL (!SCM_FALSEP (x)));
 }
 
-VM_DEFINE_FUNCTION (eq, "eq?", 2)
+VM_DEFINE_FUNCTION (82, eq, "eq?", 2)
 {
   ARGS2 (x, y);
   RETURN (SCM_BOOL (SCM_EQ_P (x, y)));
 }
 
-VM_DEFINE_FUNCTION (not_eq, "not-eq?", 2)
+VM_DEFINE_FUNCTION (83, not_eq, "not-eq?", 2)
 {
   ARGS2 (x, y);
   RETURN (SCM_BOOL (!SCM_EQ_P (x, y)));
 }
 
-VM_DEFINE_FUNCTION (nullp, "null?", 1)
+VM_DEFINE_FUNCTION (84, nullp, "null?", 1)
 {
   ARGS1 (x);
   RETURN (SCM_BOOL (SCM_NULLP (x)));
 }
 
-VM_DEFINE_FUNCTION (not_nullp, "not-null?", 1)
+VM_DEFINE_FUNCTION (85, not_nullp, "not-null?", 1)
 {
   ARGS1 (x);
   RETURN (SCM_BOOL (!SCM_NULLP (x)));
 }
 
-VM_DEFINE_FUNCTION (eqv, "eqv?", 2)
+VM_DEFINE_FUNCTION (86, eqv, "eqv?", 2)
 {
   ARGS2 (x, y);
   if (SCM_EQ_P (x, y))
@@ -99,7 +99,7 @@ VM_DEFINE_FUNCTION (eqv, "eqv?", 2)
   RETURN (scm_eqv_p (x, y));
 }
 
-VM_DEFINE_FUNCTION (equal, "equal?", 2)
+VM_DEFINE_FUNCTION (87, equal, "equal?", 2)
 {
   ARGS2 (x, y);
   if (SCM_EQ_P (x, y))
@@ -110,13 +110,13 @@ VM_DEFINE_FUNCTION (equal, "equal?", 2)
   RETURN (scm_equal_p (x, y));
 }
 
-VM_DEFINE_FUNCTION (pairp, "pair?", 1)
+VM_DEFINE_FUNCTION (88, pairp, "pair?", 1)
 {
   ARGS1 (x);
   RETURN (SCM_BOOL (SCM_CONSP (x)));
 }
 
-VM_DEFINE_FUNCTION (listp, "list?", 1)
+VM_DEFINE_FUNCTION (89, listp, "list?", 1)
 {
   ARGS1 (x);
   RETURN (SCM_BOOL (scm_ilength (x) >= 0));
@@ -127,7 +127,7 @@ VM_DEFINE_FUNCTION (listp, "list?", 1)
  * Basic data
  */
 
-VM_DEFINE_FUNCTION (cons, "cons", 2)
+VM_DEFINE_FUNCTION (90, cons, "cons", 2)
 {
   ARGS2 (x, y);
   CONS (x, x, y);
@@ -140,21 +140,21 @@ VM_DEFINE_FUNCTION (cons, "cons", 2)
       goto vm_error_not_a_pair;                 \
     }
   
-VM_DEFINE_FUNCTION (car, "car", 1)
+VM_DEFINE_FUNCTION (91, car, "car", 1)
 {
   ARGS1 (x);
   VM_VALIDATE_CONS (x);
   RETURN (SCM_CAR (x));
 }
 
-VM_DEFINE_FUNCTION (cdr, "cdr", 1)
+VM_DEFINE_FUNCTION (92, cdr, "cdr", 1)
 {
   ARGS1 (x);
   VM_VALIDATE_CONS (x);
   RETURN (SCM_CDR (x));
 }
 
-VM_DEFINE_FUNCTION (set_car, "set-car!", 2)
+VM_DEFINE_FUNCTION (93, set_car, "set-car!", 2)
 {
   ARGS2 (x, y);
   VM_VALIDATE_CONS (x);
@@ -162,7 +162,7 @@ VM_DEFINE_FUNCTION (set_car, "set-car!", 2)
   RETURN (SCM_UNSPECIFIED);
 }
 
-VM_DEFINE_FUNCTION (set_cdr, "set-cdr!", 2)
+VM_DEFINE_FUNCTION (94, set_cdr, "set-cdr!", 2)
 {
   ARGS2 (x, y);
   VM_VALIDATE_CONS (x);
@@ -185,27 +185,27 @@ VM_DEFINE_FUNCTION (set_cdr, "set-cdr!", 2)
   RETURN (srel (x, y));                                         \
 }
 
-VM_DEFINE_FUNCTION (ee, "ee?", 2)
+VM_DEFINE_FUNCTION (95, ee, "ee?", 2)
 {
   REL (==, scm_num_eq_p);
 }
 
-VM_DEFINE_FUNCTION (lt, "lt?", 2)
+VM_DEFINE_FUNCTION (96, lt, "lt?", 2)
 {
   REL (<, scm_less_p);
 }
 
-VM_DEFINE_FUNCTION (le, "le?", 2)
+VM_DEFINE_FUNCTION (97, le, "le?", 2)
 {
   REL (<=, scm_leq_p);
 }
 
-VM_DEFINE_FUNCTION (gt, "gt?", 2)
+VM_DEFINE_FUNCTION (98, gt, "gt?", 2)
 {
   REL (>, scm_gr_p);
 }
 
-VM_DEFINE_FUNCTION (ge, "ge?", 2)
+VM_DEFINE_FUNCTION (99, ge, "ge?", 2)
 {
   REL (>=, scm_geq_p);
 }
@@ -229,45 +229,45 @@ VM_DEFINE_FUNCTION (ge, "ge?", 2)
   RETURN (SFUNC (x, y));				\
 }
 
-VM_DEFINE_FUNCTION (add, "add", 2)
+VM_DEFINE_FUNCTION (100, add, "add", 2)
 {
   FUNC2 (+, scm_sum);
 }
 
-VM_DEFINE_FUNCTION (sub, "sub", 2)
+VM_DEFINE_FUNCTION (101, sub, "sub", 2)
 {
   FUNC2 (-, scm_difference);
 }
 
-VM_DEFINE_FUNCTION (mul, "mul", 2)
+VM_DEFINE_FUNCTION (102, mul, "mul", 2)
 {
   ARGS2 (x, y);
   SYNC_REGISTER ();
   RETURN (scm_product (x, y));
 }
 
-VM_DEFINE_FUNCTION (div, "div", 2)
+VM_DEFINE_FUNCTION (103, div, "div", 2)
 {
   ARGS2 (x, y);
   SYNC_REGISTER ();
   RETURN (scm_divide (x, y));
 }
 
-VM_DEFINE_FUNCTION (quo, "quo", 2)
+VM_DEFINE_FUNCTION (104, quo, "quo", 2)
 {
   ARGS2 (x, y);
   SYNC_REGISTER ();
   RETURN (scm_quotient (x, y));
 }
 
-VM_DEFINE_FUNCTION (rem, "rem", 2)
+VM_DEFINE_FUNCTION (105, rem, "rem", 2)
 {
   ARGS2 (x, y);
   SYNC_REGISTER ();
   RETURN (scm_remainder (x, y));
 }
 
-VM_DEFINE_FUNCTION (mod, "mod", 2)
+VM_DEFINE_FUNCTION (106, mod, "mod", 2)
 {
   ARGS2 (x, y);
   SYNC_REGISTER ();
@@ -278,7 +278,7 @@ VM_DEFINE_FUNCTION (mod, "mod", 2)
 /*
  * GOOPS support
  */
-VM_DEFINE_FUNCTION (slot_ref, "slot-ref", 2)
+VM_DEFINE_FUNCTION (107, slot_ref, "slot-ref", 2)
 {
   size_t slot;
   ARGS2 (instance, idx);
@@ -286,7 +286,7 @@ VM_DEFINE_FUNCTION (slot_ref, "slot-ref", 2)
   RETURN (SCM_PACK (SCM_STRUCT_DATA (instance) [slot]));
 }
 
-VM_DEFINE_FUNCTION (slot_set, "slot-set", 3)
+VM_DEFINE_FUNCTION (108, slot_set, "slot-set", 3)
 {
   size_t slot;
   ARGS3 (instance, idx, val);
@@ -295,6 +295,17 @@ VM_DEFINE_FUNCTION (slot_set, "slot-set", 3)
   RETURN (SCM_UNSPECIFIED);
 }
 
+/*
+(defun renumber-ops ()
+  "start from top of buffer and renumber 'VM_DEFINE_FOO (\n' sequences"
+  (interactive "")
+  (save-excursion
+    (let ((counter 79)) (goto-char (point-min))
+      (while (re-search-forward "^VM_DEFINE_[^ ]+ (\\([^,]+\\)," (point-max) t)
+        (replace-match
+         (number-to-string (setq counter (1+ counter)))
+          t t nil 1)))))
+*/
 
 /*
   Local Variables:

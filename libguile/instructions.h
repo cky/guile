@@ -44,6 +44,9 @@
 
 #include <libguile.h>
 
+#define SCM_VM_NUM_INSTRUCTIONS (1<<7)
+#define SCM_VM_INSTRUCTION_MASK (SCM_VM_NUM_INSTRUCTIONS-1)
+
 enum scm_opcode {
 #define VM_INSTRUCTION_TO_OPCODE 1
 #include "vm-expand.h"
@@ -51,33 +54,8 @@ enum scm_opcode {
 #include "vm-i-scheme.i"
 #include "vm-i-loader.i"
 #undef VM_INSTRUCTION_TO_OPCODE
-  scm_op_last
+  scm_op_last = SCM_VM_NUM_INSTRUCTIONS
 };
-
-struct scm_instruction {
-  enum scm_opcode opcode;	/* opcode */
-  const char *name;		/* instruction name */
-  signed char len;		/* Instruction length.  This may be -1 for
-				   the loader (see the `VM_LOADER'
-				   macro).  */
-  signed char npop;		/* The number of values popped.  This may be
-				   -1 for insns like `call' which can take
-				   any number of arguments.  */
-  char npush;			/* the number of values pushed */
-};
-
-#define SCM_INSTRUCTION_P(x)		(scm_lookup_instruction (x))
-#define SCM_INSTRUCTION_OPCODE(i)	(scm_lookup_instruction (i)->opcode)
-#define SCM_INSTRUCTION_NAME(i)		(scm_lookup_instruction (i)->name)
-#define SCM_INSTRUCTION_LENGTH(i)	(scm_lookup_instruction (i)->len)
-#define SCM_INSTRUCTION_POPS(i)		(scm_lookup_instruction (i)->npop)
-#define SCM_INSTRUCTION_PUSHES(i)	(scm_lookup_instruction (i)->npush)
-#define SCM_VALIDATE_INSTRUCTION(p,x)	SCM_MAKE_VALIDATE (p, x, INSTRUCTION_P)
-
-#define SCM_INSTRUCTION(i)		(&scm_instruction_table[i])
-
-extern struct scm_instruction scm_instruction_table[];
-extern struct scm_instruction *scm_lookup_instruction (SCM name);
 
 extern SCM scm_instruction_list (void);
 extern SCM scm_instruction_p (SCM obj);

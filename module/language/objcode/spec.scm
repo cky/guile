@@ -23,6 +23,7 @@
   #:use-module (system base language)
   #:use-module (language value spec)
   #:use-module (system vm objcode)
+  #:use-module (system vm program)
   #:export (objcode make-objcode-env))
 
 (define (make-objcode-env module externals)
@@ -35,7 +36,7 @@
   (if env (cdr env) '()))
 
 (define (objcode->value x e opts)
-  (let ((thunk (objcode->program x (objcode-env-externals e))))
+  (let ((thunk (make-program x #f (objcode-env-externals e))))
     (if e
         (save-module-excursion
          (lambda ()
@@ -47,6 +48,6 @@
   #:title	"Guile Object Code"
   #:version	"0.3"
   #:reader	#f
-  #:printer	(lambda (x port) (uniform-vector-write (objcode->u8vector x) port))
+  #:printer	write-objcode
   #:compilers   `((,value . ,objcode->value))
   )

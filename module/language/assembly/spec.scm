@@ -22,7 +22,7 @@
 (define-module (language assembly spec)
   #:use-module (system base language)
   #:use-module (language objcode spec)
-  ;; #:use-module (language assembly compile-objcode)
+  #:use-module (language assembly compile-objcode)
   #:export (assembly))
 
 (define (compile x e opts)
@@ -34,5 +34,5 @@
   #:reader	read
   #:printer	write
   #:parser      read ;; fixme: make a verifier?
-  ;; #:compilers   `((,objcode . ,compile))
+  #:compilers   `((,objcode . ,compile))
   )

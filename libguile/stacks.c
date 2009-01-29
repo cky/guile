@@ -129,8 +129,8 @@
 /* FIXME: factor this out somewhere? */
 static int is_vm_bootstrap_frame (SCM f)
 {
-  struct scm_program *bp = SCM_PROGRAM_DATA (scm_vm_frame_program (f));
-  return bp->base[bp->size-1] == scm_op_halt;
+  struct scm_objcode *bp = SCM_PROGRAM_DATA (scm_vm_frame_program (f));
+  return bp->base[bp->len-1] == scm_op_halt;
 }
 
 /* Count number of debug info frames on a stack, beginning with

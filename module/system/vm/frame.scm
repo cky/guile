@@ -52,8 +52,9 @@
 (define vm-frame-number (make-object-property))
 (define vm-frame-address (make-object-property))
 
+;; FIXME: the header.
 (define (bootstrap-frame? frame)
-  (let ((code (program-bytecode (frame-program frame))))
+  (let ((code (objcode->u8vector (program-objcode (frame-program frame)))))
     (and (= (uniform-vector-length code) 6)
          (= (uniform-vector-ref code 5)
             (instruction->opcode 'halt)))))

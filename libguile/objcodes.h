@@ -44,11 +44,19 @@
 
 #include <libguile.h>
 
+/* objcode data should be directly mappable to this C structure. */
 struct scm_objcode {
-  size_t size;			/* objcode size */
-  char *base;			/* objcode base address */
-  int fd;			/* file descriptor when mmap'ed */
+  scm_t_uint8 nargs;
+  scm_t_uint8 nrest;
+  scm_t_uint8 nlocs;
+  scm_t_uint8 nexts;
+  scm_t_uint32 len;             /* the maximum index of base[] */
+  scm_t_uint8 base[0];
 };
+
+#define SCM_F_OBJCODE_IS_MMAP     (1<<0)
+#define SCM_F_OBJCODE_IS_U8VECTOR (1<<1)
+#define SCM_F_OBJCODE_IS_SLICE    (1<<2)
 
 extern scm_t_bits scm_tc16_objcode;
 
@@ -56,15 +64,23 @@ extern scm_t_bits scm_tc16_objcode;
 #define SCM_OBJCODE_DATA(x)	((struct scm_objcode *) SCM_SMOB_DATA (x))
 #define SCM_VALIDATE_OBJCODE(p,x) SCM_MAKE_VALIDATE (p, x, OBJCODE_P)
 
-#define SCM_OBJCODE_SIZE(x)	(SCM_OBJCODE_DATA (x)->size)
+#define SCM_OBJCODE_LEN(x)	(SCM_OBJCODE_DATA (x)->len)
+#define SCM_OBJCODE_NARGS(x)	(SCM_OBJCODE_DATA (x)->nargs)
+#define SCM_OBJCODE_NREST(x)	(SCM_OBJCODE_DATA (x)->nrest)
+#define SCM_OBJCODE_NLOCS(x)	(SCM_OBJCODE_DATA (x)->nlocs)
+#define SCM_OBJCODE_NEXTS(x)	(SCM_OBJCODE_DATA (x)->nexts)
 #define SCM_OBJCODE_BASE(x)	(SCM_OBJCODE_DATA (x)->base)
-#define SCM_OBJCODE_FD(x)	(SCM_OBJCODE_DATA (x)->fd)
 
+#define SCM_OBJCODE_IS_MMAP(x)	(SCM_SMOB_FLAGS (x) & SCM_F_OBJCODE_IS_MMAP)
+#define SCM_OBJCODE_IS_U8VECTOR(x) (SCM_SMOB_FLAGS (x) & SCM_F_OBJCODE_IS_U8VECTOR)
+#define SCM_OBJCODE_IS_SLICE(x) (SCM_SMOB_FLAGS (x) & SCM_F_OBJCODE_IS_SLICE)
+
+SCM scm_c_make_objcode_slice (SCM parent, scm_t_uint8 *ptr);
 extern SCM scm_load_objcode (SCM file);
-extern SCM scm_objcode_to_program (SCM objcode, SCM external);
 extern SCM scm_objcode_p (SCM obj);
-extern SCM scm_bytecode_to_objcode (SCM bytecode, SCM nlocs, SCM nexts);
+extern SCM scm_bytecode_to_objcode (SCM bytecode);
 extern SCM scm_objcode_to_u8vector (SCM objcode);
+extern SCM scm_write_objcode (SCM objcode, SCM port);
 
 extern void scm_bootstrap_objcodes (void);
 extern void scm_init_objcodes (void);

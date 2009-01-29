@@ -1,43 +1,20 @@
-/* Copyright (C) 2001 Free Software Foundation, Inc.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
+/* Copyright (C) 2001,2008,2009 Free Software Foundation, Inc.
  * 
- * This program is distributed in the hope that it will be useful,
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this software; see the file COPYING.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  *
- * As a special exception, the Free Software Foundation gives permission
- * for additional uses of the text contained in its release of GUILE.
- *
- * The exception is that, if you link the GUILE library with other files
- * to produce an executable, this does not by itself cause the
- * resulting executable to be covered by the GNU General Public License.
- * Your use of that executable is in no way restricted on account of
- * linking the GUILE library code into it.
- *
- * This exception does not however invalidate any other reasons why
- * the executable file might be covered by the GNU General Public License.
- *
- * This exception applies only to the code released by the
- * Free Software Foundation under the name GUILE.  If you copy
- * code from other Free Software Foundation releases into a copy of
- * GUILE, as the General Public License permits, the exception does
- * not apply to the code that you add in this way.  To avoid misleading
- * anyone as to the status of such modified files, you must delete
- * this exception notice from them.
- *
- * If you write modifications of your own for GUILE, it is your choice
- * whether to permit this exception to apply to your modifications.
- * If you do not wish that, delete this exception notice.  */
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
 
 /* This file is included in vm_engine.c */
 
@@ -46,13 +23,12 @@
  * Basic operations
  */
 
-/* This must be the first instruction! */
-VM_DEFINE_INSTRUCTION (nop, "nop", 0, 0, 0)
+VM_DEFINE_INSTRUCTION (0, nop, "nop", 0, 0, 0)
 {
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (halt, "halt", 0, 0, 0)
+VM_DEFINE_INSTRUCTION (1, halt, "halt", 0, 0, 0)
 {
   SCM ret;
   vp->time += scm_c_get_internal_run_time () - start_time;
@@ -84,25 +60,25 @@ VM_DEFINE_INSTRUCTION (halt, "halt", 0, 0, 0)
   return ret;
 }
 
-VM_DEFINE_INSTRUCTION (break, "break", 0, 0, 0)
+VM_DEFINE_INSTRUCTION (2, break, "break", 0, 0, 0)
 {
   BREAK_HOOK ();
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (drop, "drop", 0, 0, 0)
+VM_DEFINE_INSTRUCTION (3, drop, "drop", 0, 0, 0)
 {
   DROP ();
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (mark, "mark", 0, 0, 1)
+VM_DEFINE_INSTRUCTION (4, mark, "mark", 0, 0, 1)
 {
   PUSH (SCM_UNDEFINED);
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (dup, "dup", 0, 0, 1)
+VM_DEFINE_INSTRUCTION (5, dup, "dup", 0, 0, 1)
 {
   SCM x = *sp;
   PUSH (x);
@@ -114,49 +90,49 @@ VM_DEFINE_INSTRUCTION (dup, "dup", 0, 0, 1)
  * Object creation
  */
 
-VM_DEFINE_INSTRUCTION (void, "void", 0, 0, 1)
+VM_DEFINE_INSTRUCTION (6, void, "void", 0, 0, 1)
 {
   PUSH (SCM_UNSPECIFIED);
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (make_true, "make-true", 0, 0, 1)
+VM_DEFINE_INSTRUCTION (7, make_true, "make-true", 0, 0, 1)
 {
   PUSH (SCM_BOOL_T);
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (make_false, "make-false", 0, 0, 1)
+VM_DEFINE_INSTRUCTION (8, make_false, "make-false", 0, 0, 1)
 {
   PUSH (SCM_BOOL_F);
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (make_eol, "make-eol", 0, 0, 1)
+VM_DEFINE_INSTRUCTION (9, make_eol, "make-eol", 0, 0, 1)
 {
   PUSH (SCM_EOL);
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (make_int8, "make-int8", 1, 0, 1)
+VM_DEFINE_INSTRUCTION (10, make_int8, "make-int8", 1, 0, 1)
 {
   PUSH (SCM_I_MAKINUM ((signed char) FETCH ()));
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (make_int8_0, "make-int8:0", 0, 0, 1)
+VM_DEFINE_INSTRUCTION (11, make_int8_0, "make-int8:0", 0, 0, 1)
 {
   PUSH (SCM_INUM0);
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (make_int8_1, "make-int8:1", 0, 0, 1)
+VM_DEFINE_INSTRUCTION (12, make_int8_1, "make-int8:1", 0, 0, 1)
 {
   PUSH (SCM_I_MAKINUM (1));
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (make_int16, "make-int16", 2, 0, 1)
+VM_DEFINE_INSTRUCTION (13, make_int16, "make-int16", 2, 0, 1)
 {
   int h = FETCH ();
   int l = FETCH ();
@@ -164,13 +140,13 @@ VM_DEFINE_INSTRUCTION (make_int16, "make-int16", 2, 0, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (make_char8, "make-char8", 1, 0, 1)
+VM_DEFINE_INSTRUCTION (14, make_char8, "make-char8", 1, 0, 1)
 {
   PUSH (SCM_MAKE_CHAR (FETCH ()));
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (list, "list", 2, -1, 1)
+VM_DEFINE_INSTRUCTION (15, list, "list", 2, -1, 1)
 {
   unsigned h = FETCH ();
   unsigned l = FETCH ();
@@ -179,7 +155,7 @@ VM_DEFINE_INSTRUCTION (list, "list", 2, -1, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (vector, "vector", 2, -1, 1)
+VM_DEFINE_INSTRUCTION (16, vector, "vector", 2, -1, 1)
 {
   unsigned h = FETCH ();
   unsigned l = FETCH ();
@@ -190,19 +166,19 @@ VM_DEFINE_INSTRUCTION (vector, "vector", 2, -1, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (list_mark, "list-mark", 0, 0, 0)
+VM_DEFINE_INSTRUCTION (17, list_mark, "list-mark", 0, 0, 0)
 {
   POP_LIST_MARK ();
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (cons_mark, "cons-mark", 0, 0, 0)
+VM_DEFINE_INSTRUCTION (18, cons_mark, "cons-mark", 0, 0, 0)
 {
   POP_CONS_MARK ();
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (vector_mark, "vector-mark", 0, 0, 0)
+VM_DEFINE_INSTRUCTION (19, vector_mark, "vector-mark", 0, 0, 0)
 {
   POP_LIST_MARK ();
   SYNC_REGISTER ();
@@ -210,7 +186,7 @@ VM_DEFINE_INSTRUCTION (vector_mark, "vector-mark", 0, 0, 0)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (list_break, "list-break", 0, 0, 0)
+VM_DEFINE_INSTRUCTION (20, list_break, "list-break", 0, 0, 0)
 {
   SCM l;
   POP (l);
@@ -238,7 +214,7 @@ VM_DEFINE_INSTRUCTION (list_break, "list-break", 0, 0, 0)
 
 /* ref */
 
-VM_DEFINE_INSTRUCTION (object_ref, "object-ref", 1, 0, 1)
+VM_DEFINE_INSTRUCTION (21, object_ref, "object-ref", 1, 0, 1)
 {
   register unsigned objnum = FETCH ();
   CHECK_OBJECT (objnum);
@@ -246,13 +222,13 @@ VM_DEFINE_INSTRUCTION (object_ref, "object-ref", 1, 0, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (local_ref, "local-ref", 1, 0, 1)
+VM_DEFINE_INSTRUCTION (22, local_ref, "local-ref", 1, 0, 1)
 {
   PUSH (LOCAL_REF (FETCH ()));
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (external_ref, "external-ref", 1, 0, 1)
+VM_DEFINE_INSTRUCTION (23, external_ref, "external-ref", 1, 0, 1)
 {
   unsigned int i;
   SCM e = external;
@@ -266,7 +242,7 @@ VM_DEFINE_INSTRUCTION (external_ref, "external-ref", 1, 0, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (variable_ref, "variable-ref", 0, 0, 1)
+VM_DEFINE_INSTRUCTION (24, variable_ref, "variable-ref", 0, 0, 1)
 {
   SCM x = *sp;
 
@@ -285,7 +261,7 @@ VM_DEFINE_INSTRUCTION (variable_ref, "variable-ref", 0, 0, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (toplevel_ref, "toplevel-ref", 1, 0, 1)
+VM_DEFINE_INSTRUCTION (25, toplevel_ref, "toplevel-ref", 1, 0, 1)
 {
   unsigned objnum = FETCH ();
   SCM what;
@@ -339,14 +315,14 @@ VM_DEFINE_INSTRUCTION (toplevel_ref, "toplevel-ref", 1, 0, 1)
 
 /* set */
 
-VM_DEFINE_INSTRUCTION (local_set, "local-set", 1, 1, 0)
+VM_DEFINE_INSTRUCTION (26, local_set, "local-set", 1, 1, 0)
 {
   LOCAL_SET (FETCH (), *sp);
   DROP ();
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (external_set, "external-set", 1, 1, 0)
+VM_DEFINE_INSTRUCTION (27, external_set, "external-set", 1, 1, 0)
 {
   unsigned int i;
   SCM e = external;
@@ -361,14 +337,14 @@ VM_DEFINE_INSTRUCTION (external_set, "external-set", 1, 1, 0)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (variable_set, "variable-set", 0, 1, 0)
+VM_DEFINE_INSTRUCTION (28, variable_set, "variable-set", 0, 1, 0)
 {
   VARIABLE_SET (sp[0], sp[-1]);
   DROPN (2);
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (toplevel_set, "toplevel-set", 1, 1, 0)
+VM_DEFINE_INSTRUCTION (29, toplevel_set, "toplevel-set", 1, 1, 0)
 {
   unsigned objnum = FETCH ();
   SCM what;
@@ -415,7 +391,7 @@ VM_DEFINE_INSTRUCTION (toplevel_set, "toplevel-set", 1, 1, 0)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (externals, "externals", 0, 0, 1)
+VM_DEFINE_INSTRUCTION (30, externals, "externals", 0, 0, 1)
 {
   PUSH (external);
   NEXT;
@@ -445,7 +421,7 @@ VM_DEFINE_INSTRUCTION (externals, "externals", 0, 0, 1)
   NEXT;						\
 }
 
-VM_DEFINE_INSTRUCTION (br, "br", 2, 0, 0)
+VM_DEFINE_INSTRUCTION (31, br, "br", 2, 0, 0)
 {
   int h = FETCH ();
   int l = FETCH ();
@@ -453,32 +429,32 @@ VM_DEFINE_INSTRUCTION (br, "br", 2, 0, 0)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (br_if, "br-if", 2, 0, 0)
+VM_DEFINE_INSTRUCTION (32, br_if, "br-if", 2, 0, 0)
 {
   BR (!SCM_FALSEP (*sp));
 }
 
-VM_DEFINE_INSTRUCTION (br_if_not, "br-if-not", 2, 0, 0)
+VM_DEFINE_INSTRUCTION (33, br_if_not, "br-if-not", 2, 0, 0)
 {
   BR (SCM_FALSEP (*sp));
 }
 
-VM_DEFINE_INSTRUCTION (br_if_eq, "br-if-eq", 2, 0, 0)
+VM_DEFINE_INSTRUCTION (34, br_if_eq, "br-if-eq", 2, 0, 0)
 {
   BR (SCM_EQ_P (sp[0], sp--[1]));
 }
 
-VM_DEFINE_INSTRUCTION (br_if_not_eq, "br-if-not-eq", 2, 0, 0)
+VM_DEFINE_INSTRUCTION (35, br_if_not_eq, "br-if-not-eq", 2, 0, 0)
 {
   BR (!SCM_EQ_P (sp[0], sp--[1]));
 }
 
-VM_DEFINE_INSTRUCTION (br_if_null, "br-if-null", 2, 0, 0)
+VM_DEFINE_INSTRUCTION (36, br_if_null, "br-if-null", 2, 0, 0)
 {
   BR (SCM_NULLP (*sp));
 }
 
-VM_DEFINE_INSTRUCTION (br_if_not_null, "br-if-not-null", 2, 0, 0)
+VM_DEFINE_INSTRUCTION (37, br_if_not_null, "br-if-not-null", 2, 0, 0)
 {
   BR (!SCM_NULLP (*sp));
 }
@@ -488,14 +464,16 @@ VM_DEFINE_INSTRUCTION (br_if_not_null, "br-if-not-null", 2, 0, 0)
  * Subprogram call
  */
 
-VM_DEFINE_INSTRUCTION (make_closure, "make-closure", 0, 1, 1)
+VM_DEFINE_INSTRUCTION (38, make_closure, "make-closure", 0, 1, 1)
 {
   SYNC_BEFORE_GC ();
-  *sp = scm_c_make_closure (*sp, external);
+  *sp = scm_make_program (SCM_PROGRAM_OBJCODE (*sp),
+                          SCM_PROGRAM_OBJTABLE (*sp),
+                          external);
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (call, "call", 1, -1, 1)
+VM_DEFINE_INSTRUCTION (39, call, "call", 1, -1, 1)
 {
   SCM x;
   nargs = FETCH ();
@@ -613,7 +591,7 @@ VM_DEFINE_INSTRUCTION (call, "call", 1, -1, 1)
   goto vm_error_wrong_type_apply;
 }
 
-VM_DEFINE_INSTRUCTION (goto_args, "goto/args", 1, -1, 1)
+VM_DEFINE_INSTRUCTION (40, goto_args, "goto/args", 1, -1, 1)
 {
   register SCM x;
   nargs = FETCH ();
@@ -641,7 +619,7 @@ VM_DEFINE_INSTRUCTION (goto_args, "goto/args", 1, -1, 1)
       NULLSTACK (bp->nargs + 1);
 
       /* Freshen the externals */
-      external = bp->external;
+      external = SCM_PROGRAM_EXTERNALS (x);
       for (i = 0; i < bp->nexts; i++)
         CONS (external, SCM_UNDEFINED, external);
       SCM_FRAME_DATA_ADDRESS (fp)[0] = external;
@@ -712,7 +690,7 @@ VM_DEFINE_INSTRUCTION (goto_args, "goto/args", 1, -1, 1)
       /* Postpone initializing external vars, because if the CONS causes a GC,
          we want the stack marker to see the data array formatted as expected. */
       data[0] = SCM_UNDEFINED;
-      external = bp->external;
+      external = SCM_PROGRAM_EXTERNALS (fp[-1]);
       for (i = 0; i < bp->nexts; i++)
         CONS (external, SCM_UNDEFINED, external);
       data[0] = external;
@@ -803,7 +781,7 @@ VM_DEFINE_INSTRUCTION (goto_args, "goto/args", 1, -1, 1)
   goto vm_error_wrong_type_apply;
 }
 
-VM_DEFINE_INSTRUCTION (goto_nargs, "goto/nargs", 0, 0, 1)
+VM_DEFINE_INSTRUCTION (41, goto_nargs, "goto/nargs", 0, 0, 1)
 {
   SCM x;
   POP (x);
@@ -812,7 +790,7 @@ VM_DEFINE_INSTRUCTION (goto_nargs, "goto/nargs", 0, 0, 1)
   goto vm_goto_args;
 }
 
-VM_DEFINE_INSTRUCTION (call_nargs, "call/nargs", 0, 0, 1)
+VM_DEFINE_INSTRUCTION (42, call_nargs, "call/nargs", 0, 0, 1)
 {
   SCM x;
   POP (x);
@@ -821,7 +799,7 @@ VM_DEFINE_INSTRUCTION (call_nargs, "call/nargs", 0, 0, 1)
   goto vm_call;
 }
 
-VM_DEFINE_INSTRUCTION (mv_call, "mv-call", 3, -1, 1)
+VM_DEFINE_INSTRUCTION (43, mv_call, "mv-call", 3, -1, 1)
 {
   SCM x;
   signed short offset;
@@ -882,7 +860,7 @@ VM_DEFINE_INSTRUCTION (mv_call, "mv-call", 3, -1, 1)
   goto vm_error_wrong_type_apply;
 }
 
-VM_DEFINE_INSTRUCTION (apply, "apply", 1, -1, 1)
+VM_DEFINE_INSTRUCTION (44, apply, "apply", 1, -1, 1)
 {
   int len;
   SCM ls;
@@ -901,7 +879,7 @@ VM_DEFINE_INSTRUCTION (apply, "apply", 1, -1, 1)
   goto vm_call;
 }
 
-VM_DEFINE_INSTRUCTION (goto_apply, "goto/apply", 1, -1, 1)
+VM_DEFINE_INSTRUCTION (45, goto_apply, "goto/apply", 1, -1, 1)
 {
   int len;
   SCM ls;
@@ -920,7 +898,7 @@ VM_DEFINE_INSTRUCTION (goto_apply, "goto/apply", 1, -1, 1)
   goto vm_goto_args;
 }
 
-VM_DEFINE_INSTRUCTION (call_cc, "call/cc", 0, 1, 1)
+VM_DEFINE_INSTRUCTION (46, call_cc, "call/cc", 0, 1, 1)
 {
   int first;
   SCM proc, cont;
@@ -954,7 +932,7 @@ VM_DEFINE_INSTRUCTION (call_cc, "call/cc", 0, 1, 1)
     }
 }
 
-VM_DEFINE_INSTRUCTION (goto_cc, "goto/cc", 0, 1, 1)
+VM_DEFINE_INSTRUCTION (47, goto_cc, "goto/cc", 0, 1, 1)
 {
   int first;
   SCM proc, cont;
@@ -986,7 +964,7 @@ VM_DEFINE_INSTRUCTION (goto_cc, "goto/cc", 0, 1, 1)
     }
 }
 
-VM_DEFINE_INSTRUCTION (return, "return", 0, 0, 1)
+VM_DEFINE_INSTRUCTION (48, return, "return", 0, 0, 1)
 {
  vm_return:
   EXIT_HOOK ();
@@ -1023,7 +1001,7 @@ VM_DEFINE_INSTRUCTION (return, "return", 0, 0, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (return_values, "return/values", 1, -1, -1)
+VM_DEFINE_INSTRUCTION (49, return_values, "return/values", 1, -1, -1)
 {
   /* nvalues declared at top level, because for some reason gcc seems to think
      that perhaps it might be used without declaration. Fooey to that, I say. */
@@ -1084,7 +1062,7 @@ VM_DEFINE_INSTRUCTION (return_values, "return/values", 1, -1, -1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (return_values_star, "return/values*", 1, -1, -1)
+VM_DEFINE_INSTRUCTION (50, return_values_star, "return/values*", 1, -1, -1)
 {
   SCM l;
 
@@ -1107,7 +1085,7 @@ VM_DEFINE_INSTRUCTION (return_values_star, "return/values*", 1, -1, -1)
   goto vm_return_values;
 }
 
-VM_DEFINE_INSTRUCTION (truncate_values, "truncate-values", 2, -1, -1)
+VM_DEFINE_INSTRUCTION (51, truncate_values, "truncate-values", 2, -1, -1)
 {
   SCM x;
   int nbinds, rest;
@@ -1130,6 +1108,17 @@ VM_DEFINE_INSTRUCTION (truncate_values, "truncate-values", 2, -1, -1)
   NEXT;
 }
 
+/*
+(defun renumber-ops ()
+  "start from top of buffer and renumber 'VM_DEFINE_FOO (\n' sequences"
+  (interactive "")
+  (save-excursion
+    (let ((counter -1)) (goto-char (point-min))
+      (while (re-search-forward "^VM_DEFINE_[^ ]+ (\\([^,]+\\)," (point-max) t)
+        (replace-match
+         (number-to-string (setq counter (1+ counter)))
+          t t nil 1)))))
+*/
 /*
   Local Variables:
   c-file-style: "gnu"

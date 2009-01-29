@@ -55,7 +55,7 @@ vm_run (SCM vm, SCM program, SCM args)
 
   /* Cache variables */
   struct scm_vm *vp = SCM_VM_DATA (vm);	/* VM data pointer */
-  struct scm_program *bp = NULL;	/* program base pointer */
+  struct scm_objcode *bp = NULL;	/* program base pointer */
   SCM external = SCM_EOL;		/* external environment */
   SCM *objects = NULL;			/* constant objects */
   size_t object_count = 0;              /* length of OBJECTS */
@@ -74,6 +74,25 @@ vm_run (SCM vm, SCM program, SCM args)
 #endif
   struct vm_unwind_data wind_data;
 
+#ifdef HAVE_LABELS_AS_VALUES
+  static void **jump_table = NULL;
+  
+  if (SCM_UNLIKELY (!jump_table))
+    {
+      int i;
+      jump_table = scm_gc_malloc (SCM_VM_NUM_INSTRUCTIONS * sizeof(void*),
+                                  "jump table");
+      for (i = 0; i < SCM_VM_NUM_INSTRUCTIONS; i++)
+        jump_table[i] = &&vm_error_bad_instruction;
+#define VM_INSTRUCTION_TO_LABEL 1
+#include "vm-expand.h"
+#include "vm-i-system.i"
+#include "vm-i-scheme.i"
+#include "vm-i-loader.i"
+#undef VM_INSTRUCTION_TO_LABEL
+    }
+#endif
+
   /* dynwind ended in the halt instruction */
   scm_dynwind_begin (SCM_F_DYNWIND_REWINDABLE);
   wind_data.vp = vp;
@@ -86,18 +105,6 @@ vm_run (SCM vm, SCM program, SCM args)
   if (scm_fluid_ref (scm_the_vm_fluid) != vm)
     scm_dynwind_fluid (scm_the_vm_fluid, vm);
    */
-
-#ifdef HAVE_LABELS_AS_VALUES
-  /* Jump table */
-  static void *jump_table[] = {
-#define VM_INSTRUCTION_TO_LABEL 1
-#include "vm-expand.h"
-#include "vm-i-system.i"
-#include "vm-i-scheme.i"
-#include "vm-i-loader.i"
-#undef VM_INSTRUCTION_TO_LABEL
-  };
-#endif
 
   /* Initialization */
   {
@@ -120,10 +127,11 @@ vm_run (SCM vm, SCM program, SCM args)
 
   /* Let's go! */
   BOOT_HOOK ();
+  NEXT;
 
 #ifndef HAVE_LABELS_AS_VALUES
  vm_start:
-  switch (*ip++) {
+  switch ((*ip++) & SCM_VM_INSTRUCTION_MASK) {
 #endif
 
 #include "vm-expand.h"
@@ -132,11 +140,18 @@ vm_run (SCM vm, SCM program, SCM args)
 #include "vm-i-loader.c"
 
 #ifndef HAVE_LABELS_AS_VALUES
+  default:
+    goto vm_error_bad_instruction;
   }
 #endif
 
   /* Errors */
   {
+  vm_error_bad_instruction:
+    err_msg  = scm_from_locale_string ("VM: Bad instruction: ~A");
+    err_args = SCM_LIST1 (scm_from_uchar (ip[-1]));
+    goto vm_error;
+
   vm_error_unbound:
     err_msg  = scm_from_locale_string ("VM: Unbound variable: ~A");
     goto vm_error;

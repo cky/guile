@@ -20,7 +20,8 @@
 ;;; Code:
 
 (define-module (system vm objcode)
-  #:export (objcode->u8vector objcode? objcode->program  bytecode->objcode
-           load-objcode))
+  #:export (objcode->u8vector objcode? bytecode->objcode
+            load-objcode write-objcode
+            word-size byte-order))
 
 (dynamic-call "scm_init_objcodes" (dynamic-link "libguile"))

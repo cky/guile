@@ -151,7 +151,7 @@
 
 #ifdef VM_ENABLE_PARANOID_ASSERTIONS
 #define CHECK_IP() \
-  do { if (ip < bp->base || ip - bp->base > bp->size) abort (); } while (0)
+  do { if (ip < bp->base || ip - bp->base > bp->len) abort (); } while (0)
 #else
 #define CHECK_IP()
 #endif
@@ -165,9 +165,9 @@
 {									\
   if (bp != SCM_PROGRAM_DATA (program)) {                               \
     bp = SCM_PROGRAM_DATA (program);					\
-    if (SCM_I_IS_VECTOR (bp->objs)) {                                   \
-      objects = SCM_I_VECTOR_WELTS (bp->objs);                          \
-      object_count = SCM_I_VECTOR_LENGTH (bp->objs);                    \
+    if (SCM_I_IS_VECTOR (SCM_PROGRAM_OBJTABLE (program))) {             \
+      objects = SCM_I_VECTOR_WELTS (SCM_PROGRAM_OBJTABLE (program));    \
+      object_count = SCM_I_VECTOR_LENGTH (SCM_PROGRAM_OBJTABLE (program)); \
     } else {                                                            \
       objects = NULL;                                                   \
       object_count = 0;                                                 \
@@ -341,7 +341,7 @@ do {						\
  */
 
 #define FETCH()		(*ip++)
-#define FETCH_LENGTH(len) do { ip = vm_fetch_length (ip, &len); } while (0)
+#define FETCH_LENGTH(len) do { len=*ip++; len<<=8; len+=*ip++; len<<=8; len+=*ip++; } while (0)
 
 #undef CLOCK
 #if VM_USE_CLOCK
@@ -352,7 +352,7 @@ do {						\
 
 #undef NEXT_JUMP
 #ifdef HAVE_LABELS_AS_VALUES
-#define NEXT_JUMP()		goto *jump_table[FETCH ()]
+#define NEXT_JUMP()		goto *jump_table[FETCH () & SCM_VM_INSTRUCTION_MASK]
 #else
 #define NEXT_JUMP()		goto vm_start
 #endif
@@ -423,7 +423,7 @@ do {						\
      want the stack marker to see the data      \
      array formatted as expected. */            \
   data[0] = SCM_UNDEFINED;                      \
-  external = bp->external;                      \
+  external = SCM_PROGRAM_EXTERNALS (fp[-1]);    \
   for (i = 0; i < bp->nexts; i++)               \
     CONS (external, SCM_UNDEFINED, external);   \
   data[0] = external;                           \

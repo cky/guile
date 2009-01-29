@@ -133,7 +133,7 @@
 
 
 (define (make-byte-decoder bytes)
-  (let ((addr 0) (size (u8vector-length bytes)))
+  (let ((addr 8) (size (u8vector-length bytes)))
     (define (pop)
       (let ((byte (u8vector-ref bytes addr)))
 	(set! addr (1+ addr))
@@ -141,54 +141,46 @@
     (define (sublist lst start end)
       (take (drop lst start) (- end start)))
     (lambda ()
-      (if (< addr size)
-	  (let* ((start addr)
-		 (inst (opcode->instruction (pop)))
-		 (n (instruction-length inst))
-		 (code (if (< n 0)
-			   ;; variable length
-			   (let* ((end (+ (decode-length pop) addr))
-				  (subbytes (sublist
-					     (u8vector->list bytes)
-					     addr end))
-				  (->string? (not (eq? inst 'load-program))))
-			     (set! addr end)
-			     (list inst
-				   (if ->string?
-				       (list->string
-					(map integer->char subbytes))
-				       (apply u8vector subbytes))))
-			   ;; fixed length
-			   (do ((n n (1- n))
-				(l '() (cons (pop) l)))
-			       ((= n 0) (cons* inst (reverse! l)))))))
-	    (values start addr code))
-	  (values #f #f #f)))))
+      (cond
+       ((>= addr size)
+        (values #f #f #f))
+       (else
+        (let* ((start addr)
+               (inst (opcode->instruction (pop))))
+          (cond
+            ((eq? inst 'load-program)
+             ;; FIXME just turn it into a bytecode slice?
+             (pk 'yo addr size)
+             (let* ((len (+ 8
+                            (u8vector-ref bytes (+ addr 4))
+                            (ash (u8vector-ref bytes (+ addr 5)) 8)
+                            (ash (u8vector-ref bytes (+ addr 6)) 16)
+                            (ash (u8vector-ref bytes (+ addr 7)) 24)))
+                    (end (+ len addr))
+                    (subbytes (sublist (u8vector->list bytes) addr end)))
+               (set! addr end)
+               (values start addr
+                       (list inst (list->u8vector subbytes)))))
+            ((< (instruction-length inst) 0)
+             (let* ((end (+ (decode-length pop) addr))
+                    (subbytes (sublist
+                               (u8vector->list bytes)
+                               addr end)))
+               (set! addr end)
+               (values start addr
+                       (list inst
+                             (list->string (map integer->char subbytes))))))
+            (else
+             ;; fixed length
+             (do ((n (instruction-length inst) (1- n))
+                  (l '() (cons (pop) l)))
+                 ((= n 0) (values start addr (cons* inst (reverse! l)))))))))))))
 
 
 ;;;
 ;;; Variable-length interface
 ;;;
 
-;; NOTE: decoded in vm_fetch_length in vm.c as well.
-
-(define (encode-length len)
-  (cond ((< len 254) (u8vector len))
-	((< len (* 256 256))
-	 (u8vector 254 (quotient len 256) (modulo len 256)))
-	((< len most-positive-fixnum)
-	 (u8vector 255
-		   (quotient len (* 256 256 256))
-		   (modulo (quotient len (* 256 256)) 256)
-		   (modulo (quotient len 256) 256)
-		   (modulo len 256)))
-	(else (error "Too long code length:" len))))
-
 (define (decode-length pop)
-  (let ((len (pop)))
-    (cond ((< len 254) len)
-	  ((= len 254) (+ (* (pop) 256) (pop)))
-	  (else (+ (* (pop) 256 256 256)
-		   (* (pop) 256 256)
-		   (* (pop) 256)
-		   (pop))))))
+  (let* ((a (pop)) (b (pop)) (c (pop)))
+    (+ (ash a 16) (ash b 8) c)))

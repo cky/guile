@@ -29,12 +29,13 @@
   #:use-module (ice-9 receive)
   #:export (disassemble-objcode disassemble-program disassemble-bytecode))
 
+;; FIXME: the header, and arity
 (define (disassemble-objcode objcode . opts)
-  (let* ((prog  (objcode->program objcode))
+  (let* ((prog  (make-program objcode)) ;; fixme: no need to make a program...
 	 (arity (program-arity prog))
 	 (nlocs (arity:nlocs arity))
 	 (nexts (arity:nexts arity))
-	 (bytes (program-bytecode prog)))
+	 (bytes (objcode->u8vector (program-objcode prog))))
     (format #t "Disassembly of ~A:\n\n" objcode)
     (format #t "nlocs = ~A  nexts = ~A\n\n" nlocs nexts)
     (disassemble-bytecode bytes #f 0 #f #f '())))
@@ -45,7 +46,8 @@
 	 (nrest (arity:nrest arity))
 	 (nlocs (arity:nlocs arity))
 	 (nexts (arity:nexts arity))
-	 (bytes (program-bytecode prog))
+         ;; FIXME: header and arity, etc
+	 (bytes (objcode->u8vector (program-objcode prog)))
 	 (objs  (program-objects prog))
 	 (meta  (program-meta prog))
 	 (exts  (program-external prog))
@@ -66,12 +68,14 @@
     (if meta
 	(disassemble-meta prog (meta)))
     ;; Disassemble other bytecode in it
-    (for-each
-     (lambda (x)
-       (if (program? x)
-	   (begin (display "----------------------------------------\n")
-		  (apply disassemble-program x opts))))
-     (vector->list objs))))
+    ;; FIXME: something about the module.
+    (if objs
+        (for-each
+         (lambda (x)
+           (if (program? x)
+               (begin (display "----------------------------------------\n")
+                      (apply disassemble-program x opts))))
+         (cddr (vector->list objs))))))
 
 (define (disassemble-bytecode bytes objs nargs blocs bexts sources)
   (let ((decode (make-byte-decoder bytes))

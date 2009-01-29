@@ -1,65 +1,42 @@
-/* Copyright (C) 2001 Free Software Foundation, Inc.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
+/* Copyright (C) 2001,2008,2009 Free Software Foundation, Inc.
  * 
- * This program is distributed in the hope that it will be useful,
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this software; see the file COPYING.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  *
- * As a special exception, the Free Software Foundation gives permission
- * for additional uses of the text contained in its release of GUILE.
- *
- * The exception is that, if you link the GUILE library with other files
- * to produce an executable, this does not by itself cause the
- * resulting executable to be covered by the GNU General Public License.
- * Your use of that executable is in no way restricted on account of
- * linking the GUILE library code into it.
- *
- * This exception does not however invalidate any other reasons why
- * the executable file might be covered by the GNU General Public License.
- *
- * This exception applies only to the code released by the
- * Free Software Foundation under the name GUILE.  If you copy
- * code from other Free Software Foundation releases into a copy of
- * GUILE, as the General Public License permits, the exception does
- * not apply to the code that you add in this way.  To avoid misleading
- * anyone as to the status of such modified files, you must delete
- * this exception notice from them.
- *
- * If you write modifications of your own for GUILE, it is your choice
- * whether to permit this exception to apply to your modifications.
- * If you do not wish that, delete this exception notice.  */
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
 
 /* This file is included in vm_engine.c */
 
-VM_DEFINE_LOADER (load_integer, "load-integer")
+VM_DEFINE_LOADER (60, load_integer, "load-integer")
 {
   size_t len;
 
   FETCH_LENGTH (len);
   if (len <= 4)
     {
-      long val = 0;
+      int val = 0;
       while (len-- > 0)
 	val = (val << 8) + FETCH ();
       SYNC_REGISTER ();
-      PUSH (scm_from_ulong (val));
+      PUSH (scm_from_int (val));
       NEXT;
     }
   else
     SCM_MISC_ERROR ("load-integer: not implemented yet", SCM_EOL);
 }
 
-VM_DEFINE_LOADER (load_number, "load-number")
+VM_DEFINE_LOADER (61, load_number, "load-number")
 {
   size_t len;
 
@@ -72,7 +49,7 @@ VM_DEFINE_LOADER (load_number, "load-number")
   NEXT;
 }
 
-VM_DEFINE_LOADER (load_string, "load-string")
+VM_DEFINE_LOADER (62, load_string, "load-string")
 {
   size_t len;
   FETCH_LENGTH (len);
@@ -83,7 +60,7 @@ VM_DEFINE_LOADER (load_string, "load-string")
   NEXT;
 }
 
-VM_DEFINE_LOADER (load_symbol, "load-symbol")
+VM_DEFINE_LOADER (63, load_symbol, "load-symbol")
 {
   size_t len;
   FETCH_LENGTH (len);
@@ -93,7 +70,7 @@ VM_DEFINE_LOADER (load_symbol, "load-symbol")
   NEXT;
 }
 
-VM_DEFINE_LOADER (load_keyword, "load-keyword")
+VM_DEFINE_LOADER (64, load_keyword, "load-keyword")
 {
   size_t len;
   FETCH_LENGTH (len);
@@ -103,62 +80,28 @@ VM_DEFINE_LOADER (load_keyword, "load-keyword")
   NEXT;
 }
 
-VM_DEFINE_LOADER (load_program, "load-program")
+VM_DEFINE_LOADER (65, load_program, "load-program")
 {
-  size_t len;
-  SCM prog, x, objs = SCM_BOOL_F, meta = SCM_BOOL_F;
-  struct scm_program *p;
+  scm_t_uint32 len;
+  SCM objs, objcode;
 
-  POP (x);
-
-  /* init meta data */
-  if (SCM_PROGRAM_P (x))
-    {
-      meta = x;
-      POP (x);
-    }
-
-  /* init object table */
-  if (scm_is_vector (x))
-    {
-      objs = x;
-      scm_c_vector_set_x (objs, 0, scm_current_module ());
-      scm_c_vector_set_x (objs, 1, meta);
-      POP (x);
-    }
-
-  FETCH_LENGTH (len);
+  POP (objs);
   SYNC_REGISTER ();
-  prog = scm_c_make_program (ip, len, objs, program);
-  p = SCM_PROGRAM_DATA (prog);
+
+  if (scm_is_vector (objs) && scm_is_false (scm_c_vector_ref (objs, 0)))
+    scm_c_vector_set_x (objs, 0, scm_current_module ());
+
+  objcode = scm_c_make_objcode_slice (SCM_PROGRAM_OBJCODE (fp[-1]), ip);
+  len = sizeof (struct scm_objcode) + SCM_OBJCODE_LEN (objcode);
+
+  PUSH (scm_make_program (objcode, objs, SCM_EOL));
+
   ip += len;
 
-  /* init parameters */
-  /* NOTE: format defined in system/vm/assemble.scm */
-  if (SCM_I_INUMP (x))
-    {
-      scm_t_uint16 s = (scm_t_uint16)SCM_I_INUM (x);
-      /* 16-bit representation */
-      p->nargs = (s >> 12) & 0x0f;	/* 15-12 bits */
-      p->nrest = (s >> 11) & 0x01;	/*    11 bit  */
-      p->nlocs = (s >> 4)  & 0x7f;	/* 10-04 bits */
-      p->nexts = s & 0x0f;		/* 03-00 bits */
-    }
-  else
-    {
-      /* Other cases */
-      /* x is #f, and already popped off */
-      POP (x); p->nexts = scm_to_unsigned_integer (x, 0, 255);
-      POP (x); p->nlocs = scm_to_unsigned_integer (x, 0, 255);
-      POP (x); p->nrest = scm_to_unsigned_integer (x, 0, 1);
-      POP (x); p->nargs = scm_to_unsigned_integer (x, 0, 255);
-    }
-
-  PUSH (prog);
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (link_now, "link-now", 0, 1, 1)
+VM_DEFINE_INSTRUCTION (66, link_now, "link-now", 0, 1, 1)
 {
   SCM what;
   POP (what);
@@ -189,7 +132,7 @@ VM_DEFINE_INSTRUCTION (link_now, "link-now", 0, 1, 1)
   NEXT;
 }
 
-VM_DEFINE_LOADER (define, "define")
+VM_DEFINE_LOADER (67, define, "define")
 {
   SCM sym;
   size_t len;
@@ -203,6 +146,18 @@ VM_DEFINE_LOADER (define, "define")
   PUSH (scm_sym2var (sym, scm_current_module_lookup_closure (), SCM_BOOL_T));
   NEXT;
 }
+
+/*
+(defun renumber-ops ()
+  "start from top of buffer and renumber 'VM_DEFINE_FOO (\n' sequences"
+  (interactive "")
+  (save-excursion
+    (let ((counter 59)) (goto-char (point-min))
+      (while (re-search-forward "^VM_DEFINE_[^ ]+ (\\([^,]+\\)," (point-max) t)
+        (replace-match
+         (number-to-string (setq counter (1+ counter)))
+          t t nil 1)))))
+*/
 
 /*
   Local Variables:

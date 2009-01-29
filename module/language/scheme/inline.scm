@@ -201,3 +201,6 @@
   (x) x
   (x y) (cons x y)
   (x y . rest) (cons x (cons* y . rest)))
+
+(define-inline acons
+  (x y z) (cons (cons x y) z))

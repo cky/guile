@@ -69,6 +69,8 @@
    will ensure that assertions are enabled. Slows down the VM by about 30%. */
 /* #define VM_ENABLE_STACK_NULLING */
 
+/* #define VM_ENABLE_PARANOID_ASSERTIONS */
+
 #if defined (VM_ENABLE_STACK_NULLING) && !defined (VM_ENABLE_ASSERTIONS)
 #define VM_ENABLE_ASSERTIONS
 #endif
@@ -258,38 +260,25 @@ static SCM sym_vm_run;
 static SCM sym_vm_error;
 static SCM sym_debug;
 
-static scm_byte_t *
-vm_fetch_length (scm_byte_t *ip, size_t *lenp)
+static SCM make_u8vector (const scm_t_uint8 *bytes, size_t len)
 {
-  /* NOTE: format defined in system/vm/conv.scm */
-  *lenp = *ip++;
-  if (*lenp < 254)
-    return ip;
-  else if (*lenp == 254)
-    {
-      int b1 = *ip++;
-      int b2 = *ip++;
-      *lenp = (b1 << 8) + b2;
-    }
-  else
-    {
-      int b1 = *ip++;
-      int b2 = *ip++;
-      int b3 = *ip++;
-      int b4 = *ip++;
-      *lenp = (b1 << 24) + (b2 << 16) + (b3 << 8) + b4;
-    }
-  return ip;
+  scm_t_uint8 *new_bytes = scm_gc_malloc (len, "make-u8vector");
+  memcpy (new_bytes, bytes, len);
+  return scm_take_u8vector (new_bytes, len);
 }
 
 static SCM
-vm_make_boot_program (long len)
+vm_make_boot_program (long nargs)
 {
-  scm_byte_t bytes[6] = {scm_op_mv_call, 0, 0, 1, scm_op_make_int8_1, scm_op_halt};
-  if (SCM_UNLIKELY (len > 255 || len < 0))
+  scm_byte_t bytes[] = {0, 0, 0, 0,
+                        0, 0, 0, 0,
+                        scm_op_mv_call, 0, 0, 1, scm_op_make_int8_1, scm_op_halt};
+  ((scm_t_uint32*)bytes)[1] = 6; /* set len in current endianness */
+  if (SCM_UNLIKELY (nargs > 255 || nargs < 0))
     abort ();
-  bytes[1] = (scm_byte_t)len;
-  return scm_c_make_program (bytes, 6, SCM_BOOL_F, SCM_BOOL_F);
+  bytes[9] = (scm_byte_t)nargs;
+  return scm_make_program (scm_bytecode_to_objcode (make_u8vector (bytes, sizeof(bytes))),
+                           SCM_BOOL_F, SCM_EOL);
 }
 
 
@@ -604,7 +593,8 @@ SCM_DEFINE (scm_vm_trace_frame, "vm-trace-frame", 1, 0, 0,
 
 SCM scm_load_compiled_with_vm (SCM file)
 {
-  SCM program = scm_objcode_to_program (scm_load_objcode (file), SCM_EOL);
+  SCM program = scm_make_program (scm_load_objcode (file),
+                                  SCM_BOOL_F, SCM_EOL);
   
   return vm_run (scm_the_vm (), program, SCM_EOL);
 }

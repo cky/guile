@@ -20,19 +20,21 @@
 ;;; Code:
 
 (define-module (system vm program)
-  #:export (arity:nargs arity:nrest arity:nlocs arity:nexts
+  #:export (make-program
+
+            arity:nargs arity:nrest arity:nlocs arity:nexts
 
             make-binding binding:name binding:extp binding:index
             binding:start binding:end
 
-           source:addr source:line source:column source:file
-           program-bindings program-sources
-           program-properties program-property program-documentation
-           program-name
+            source:addr source:line source:column source:file
+            program-bindings program-sources
+            program-properties program-property program-documentation
+            program-name
            
-           program-arity program-external-set! program-meta
-           program-bytecode program? program-objects
-           program-module program-base program-external))
+            program-arity program-external-set! program-meta
+            program-objcode program? program-objects
+            program-module program-base program-external))
 
 (dynamic-call "scm_init_programs" (dynamic-link "libguile"))
 

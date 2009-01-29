@@ -108,7 +108,7 @@ SCM_DEFINE (scm_vm_frame_arguments, "vm-frame-arguments", 1, 0, 0,
 {
   SCM *fp;
   int i;
-  struct scm_program *bp;
+  struct scm_objcode *bp;
   SCM ret;
   
   SCM_VALIDATE_VM_FRAME (1, frame);
@@ -136,14 +136,15 @@ SCM_DEFINE (scm_vm_frame_source, "vm-frame-source", 1, 0, 0,
 #define FUNC_NAME s_scm_vm_frame_source
 {
   SCM *fp;
-  struct scm_program *bp;
+  struct scm_objcode *bp;
   
   SCM_VALIDATE_VM_FRAME (1, frame);
 
   fp = SCM_VM_FRAME_FP (frame);
   bp = SCM_PROGRAM_DATA (SCM_FRAME_PROGRAM (fp));
 
-  return scm_c_program_source (bp, SCM_VM_FRAME_IP (frame) - bp->base);
+  return scm_c_program_source (SCM_FRAME_PROGRAM (fp),
+                               SCM_VM_FRAME_IP (frame) - bp->base);
 }
 #undef FUNC_NAME
 
@@ -154,7 +155,7 @@ SCM_DEFINE (scm_vm_frame_local_ref, "vm-frame-local-ref", 2, 0, 0,
 {
   SCM *fp;
   unsigned int i;
-  struct scm_program *bp;
+  struct scm_objcode *bp;
   
   SCM_VALIDATE_VM_FRAME (1, frame);
 
@@ -175,7 +176,7 @@ SCM_DEFINE (scm_vm_frame_local_set_x, "vm-frame-local-set!", 3, 0, 0,
 {
   SCM *fp;
   unsigned int i;
-  struct scm_program *bp;
+  struct scm_objcode *bp;
   
   SCM_VALIDATE_VM_FRAME (1, frame);
 

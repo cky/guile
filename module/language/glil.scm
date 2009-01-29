@@ -22,10 +22,11 @@
 (define-module (language glil)
   #:use-module (system base syntax)
   #:use-module (system base pmatch)
+  #:use-module ((srfi srfi-1) #:select (fold))
   #:export
   (<glil-program> make-glil-program glil-program?
    glil-program-nargs glil-program-nrest glil-program-nlocs glil-program-nexts
-   glil-program-meta glil-program-body
+   glil-program-meta glil-program-body glil-program-closure-level
 
    <glil-bind> make-glil-bind glil-bind?
    glil-bind-vars
@@ -77,7 +78,7 @@
 
 (define-type (<glil> #:printer print-glil)
   ;; Meta operations
-  (<glil-program> nargs nrest nlocs nexts meta body)
+  (<glil-program> nargs nrest nlocs nexts meta body (closure-level #f))
   (<glil-bind> vars)
   (<glil-mv-bind> vars rest)
   (<glil-unbind>)
@@ -96,6 +97,22 @@
   (<glil-branch> inst label)
   (<glil-call> inst nargs)
   (<glil-mv-call> nargs ra))
+
+(define (compute-closure-level body)
+  (fold (lambda (x ret)
+          (record-case x
+            ((<glil-program> closure-level) (max ret closure-level))
+            ((<glil-external> depth) (max ret depth))
+            (else ret)))
+        0 body))
+
+(define %make-glil-program make-glil-program)
+(define (make-glil-program . args)
+  (let ((prog (apply %make-glil-program args)))
+    (if (not (glil-program-closure-level prog))
+        (set! (glil-program-closure-level prog)
+              (compute-closure-level (glil-program-body prog))))
+    prog))
 
 
 (define (parse-glil x)
@@ -144,7 +161,7 @@
     ((<glil-module> op mod name public?)
      `(module ,(if public? 'public 'private) ,op ,mod ,name))
     ;; controls
-    ((<glil-label> label) (label ,label))
+    ((<glil-label> label) `(label ,label))
     ((<glil-branch> inst label) `(branch ,inst ,label))
     ((<glil-call> inst nargs) `(call ,inst ,nargs))
     ((<glil-mv-call> nargs ra) `(mv-call ,nargs ,(unparse-glil ra)))))

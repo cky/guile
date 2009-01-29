@@ -43,6 +43,7 @@
 #define _SCM_PROGRAMS_H_
 
 #include <libguile.h>
+#include <libguile/objcodes.h>
 
 /*
  * Programs
@@ -50,26 +51,16 @@
 
 typedef unsigned char scm_byte_t;
 
-struct scm_program {
-  size_t size;			/* the size of the program  */
-  unsigned char nargs;		/* the number of arguments */
-  unsigned char nrest;		/* the number of rest argument (0 or 1) */
-  unsigned char nlocs;		/* the number of local variables */
-  unsigned char nexts;		/* the number of external variables */
-  scm_byte_t *base;		/* program base address */
-  SCM objs;			/* constant objects */
-  SCM external;			/* external environment */
-  SCM holder;			/* the owner of bytecode */
-};
-
 extern scm_t_bits scm_tc16_program;
 
 #define SCM_PROGRAM_P(x)	(SCM_SMOB_PREDICATE (scm_tc16_program, x))
-#define SCM_PROGRAM_DATA(x)	((struct scm_program *) SCM_SMOB_DATA (x))
+#define SCM_PROGRAM_OBJCODE(x)	(SCM_SMOB_OBJECT (x))
+#define SCM_PROGRAM_OBJTABLE(x)	(SCM_SMOB_OBJECT_2 (x))
+#define SCM_PROGRAM_EXTERNALS(x) (SCM_SMOB_OBJECT_3 (x))
+#define SCM_PROGRAM_DATA(x)	(SCM_OBJCODE_DATA (SCM_PROGRAM_OBJCODE (x)))
 #define SCM_VALIDATE_PROGRAM(p,x) SCM_MAKE_VALIDATE (p, x, PROGRAM_P)
 
-extern SCM scm_c_make_program (void *addr, size_t size, SCM objs, SCM holder);
-extern SCM scm_c_make_closure (SCM program, SCM external);
+extern SCM scm_make_program (SCM objcode, SCM objtable, SCM externals);
 
 extern SCM scm_program_p (SCM obj);
 extern SCM scm_program_base (SCM program);
@@ -79,9 +70,9 @@ extern SCM scm_program_objects (SCM program);
 extern SCM scm_program_module (SCM program);
 extern SCM scm_program_external (SCM program);
 extern SCM scm_program_external_set_x (SCM program, SCM external);
-extern SCM scm_program_bytecode (SCM program);
+extern SCM scm_program_objcode (SCM program);
 
-extern SCM scm_c_program_source (struct scm_program *p, size_t ip);
+extern SCM scm_c_program_source (SCM program, size_t ip);
 
 extern void scm_bootstrap_programs (void);
 extern void scm_init_programs (void);

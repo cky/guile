@@ -53,71 +53,35 @@
 
 scm_t_bits scm_tc16_program;
 
-static SCM zero_vector;
 static SCM write_program = SCM_BOOL_F;
 
-SCM
-scm_c_make_program (void *addr, size_t size, SCM objs, SCM holder)
-#define FUNC_NAME "scm_c_make_program"
+SCM_DEFINE (scm_make_program, "make-program", 1, 2, 0,
+	    (SCM objcode, SCM objtable, SCM external),
+	    "")
+#define FUNC_NAME s_scm_make_program
 {
-  struct scm_program *p = scm_gc_malloc (sizeof (struct scm_program),
-					 "program");
-  p->size     = size;
-  p->nargs    = 0;
-  p->nrest    = 0;
-  p->nlocs    = 0;
-  p->nexts    = 0;
-  p->objs     = objs;
-  p->external = SCM_EOL;
-  p->holder   = holder;
-
-  /* If nobody holds bytecode's address, then allocate a new memory */
-  if (SCM_FALSEP (holder)) 
-    {
-      p->base = scm_gc_malloc (size, "program-base");
-      memcpy (p->base, addr, size);
-    }
+  SCM_VALIDATE_OBJCODE (1, objcode);
+  if (SCM_UNLIKELY (SCM_UNBNDP (objtable)))
+    objtable = SCM_BOOL_F;
+  else if (scm_is_true (objtable))
+    SCM_VALIDATE_VECTOR (2, objtable);
+  if (SCM_UNLIKELY (SCM_UNBNDP (external)))
+    external = SCM_EOL;
   else
-    p->base = addr;
+    SCM_VALIDATE_LIST (3, external);
 
-  SCM_RETURN_NEWSMOB (scm_tc16_program, p);
+  SCM_RETURN_NEWSMOB3 (scm_tc16_program, objcode, objtable, external);
 }
 #undef FUNC_NAME
-
-SCM
-scm_c_make_closure (SCM program, SCM external)
-{
-  struct scm_program *p = scm_gc_malloc (sizeof (struct scm_program),
-                                         "program");
-  *p = *SCM_PROGRAM_DATA (program);
-  p->holder = program;
-  p->external = external;
-  SCM_RETURN_NEWSMOB (scm_tc16_program, p);
-}
 
 static SCM
 program_mark (SCM obj)
 {
-  struct scm_program *p = SCM_PROGRAM_DATA (obj);
-  if (scm_is_true (p->objs))
-    scm_gc_mark (p->objs);
-  if (!scm_is_null (p->external))
-    scm_gc_mark (p->external);
-  return p->holder;
-}
-
-static scm_sizet
-program_free (SCM obj)
-{
-  struct scm_program *p = SCM_PROGRAM_DATA (obj);
-  scm_sizet size = (sizeof (struct scm_program));
-
-  if (SCM_FALSEP (p->holder))
-    scm_gc_free (p->base, p->size, "program-base");
-
-  scm_gc_free (p, size, "program");
-
-  return 0;
+  if (scm_is_true (SCM_PROGRAM_OBJTABLE (obj)))
+    scm_gc_mark (SCM_PROGRAM_OBJTABLE (obj));
+  if (!scm_is_null (SCM_PROGRAM_EXTERNALS (obj)))
+    scm_gc_mark (SCM_PROGRAM_EXTERNALS (obj));
+  return SCM_PROGRAM_OBJCODE (obj);
 }
 
 static SCM
@@ -175,7 +139,7 @@ SCM_DEFINE (scm_program_arity, "program-arity", 1, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_program_arity
 {
-  struct scm_program *p;
+  struct scm_objcode *p;
 
   SCM_VALIDATE_PROGRAM (1, program);
 
@@ -187,6 +151,28 @@ SCM_DEFINE (scm_program_arity, "program-arity", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+SCM_DEFINE (scm_program_objects, "program-objects", 1, 0, 0,
+	    (SCM program),
+	    "")
+#define FUNC_NAME s_scm_program_objects
+{
+  SCM_VALIDATE_PROGRAM (1, program);
+  return SCM_PROGRAM_OBJTABLE (program);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_program_module, "program-module", 1, 0, 0,
+	    (SCM program),
+	    "")
+#define FUNC_NAME s_scm_program_module
+{
+  SCM objs;
+  SCM_VALIDATE_PROGRAM (1, program);
+  objs = SCM_PROGRAM_OBJTABLE (program);
+  return scm_is_true (objs) ? scm_c_vector_ref (objs, 0) : SCM_BOOL_F;
+}
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_program_meta, "program-meta", 1, 0, 0,
 	    (SCM program),
 	    "")
@@ -194,19 +180,17 @@ SCM_DEFINE (scm_program_meta, "program-meta", 1, 0, 0,
 {
   SCM objs;
   SCM_VALIDATE_PROGRAM (1, program);
-  objs = SCM_PROGRAM_DATA (program)->objs;
+  objs = SCM_PROGRAM_OBJTABLE (program);
   return scm_is_true (objs) ? scm_c_vector_ref (objs, 1) : SCM_BOOL_F;
 }
 #undef FUNC_NAME
 
 extern SCM
-scm_c_program_source (struct scm_program *p, size_t ip)
+scm_c_program_source (SCM program, size_t ip)
 {
   SCM meta, sources, source;
 
-  if (scm_is_false (p->objs))
-    return SCM_BOOL_F;
-  meta = scm_c_vector_ref (p->objs, 1);
+  meta = scm_program_meta (program);
   if (scm_is_false (meta))
     return SCM_BOOL_F;
   meta = scm_call_0 (meta);
@@ -220,35 +204,13 @@ scm_c_program_source (struct scm_program *p, size_t ip)
   return scm_cdr (source); /* a #(line column file) vector */
 }
 
-SCM_DEFINE (scm_program_objects, "program-objects", 1, 0, 0,
-	    (SCM program),
-	    "")
-#define FUNC_NAME s_scm_program_objects
-{
-  SCM_VALIDATE_PROGRAM (1, program);
-  return SCM_PROGRAM_DATA (program)->objs;
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_program_module, "program-module", 1, 0, 0,
-	    (SCM program),
-	    "")
-#define FUNC_NAME s_scm_program_module
-{
-  SCM objs;
-  SCM_VALIDATE_PROGRAM (1, program);
-  objs = SCM_PROGRAM_DATA (program)->objs;
-  return scm_is_true (objs) ? scm_c_vector_ref (objs, 0) : SCM_BOOL_F;
-}
-#undef FUNC_NAME
-
 SCM_DEFINE (scm_program_external, "program-external", 1, 0, 0,
 	    (SCM program),
 	    "")
 #define FUNC_NAME s_scm_program_external
 {
   SCM_VALIDATE_PROGRAM (1, program);
-  return SCM_PROGRAM_DATA (program)->external;
+  return SCM_PROGRAM_EXTERNALS (program);
 }
 #undef FUNC_NAME
 
@@ -260,29 +222,19 @@ SCM_DEFINE (scm_program_external_set_x, "program-external-set!", 2, 0, 0,
 {
   SCM_VALIDATE_PROGRAM (1, program);
   SCM_VALIDATE_LIST (2, external);
-  SCM_PROGRAM_DATA (program)->external = external;
+  SCM_PROGRAM_EXTERNALS (program) = external;
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_program_bytecode, "program-bytecode", 1, 0, 0,
+SCM_DEFINE (scm_program_objcode, "program-objcode", 1, 0, 0,
 	    (SCM program),
-	    "Return a u8vector containing @var{program}'s bytecode.")
-#define FUNC_NAME s_scm_program_bytecode
+	    "Return a @var{program}'s object code.")
+#define FUNC_NAME s_scm_program_objcode
 {
-  size_t size;
-  scm_t_uint8 *c_bytecode;
-
   SCM_VALIDATE_PROGRAM (1, program);
 
-  size = SCM_PROGRAM_DATA (program)->size;
-  c_bytecode = malloc (size);
-  if (!c_bytecode)
-    return SCM_BOOL_F;
-
-  memcpy (c_bytecode, SCM_PROGRAM_DATA (program)->base, size);
-
-  return scm_take_u8vector (c_bytecode, size);
+  return SCM_PROGRAM_OBJCODE (program);
 }
 #undef FUNC_NAME
 
@@ -291,11 +243,8 @@ SCM_DEFINE (scm_program_bytecode, "program-bytecode", 1, 0, 0,
 void
 scm_bootstrap_programs (void)
 {
-  zero_vector = scm_permanent_object (scm_c_make_vector (0, SCM_BOOL_F));
-
   scm_tc16_program = scm_make_smob_type ("program", 0);
   scm_set_smob_mark (scm_tc16_program, program_mark);
-  scm_set_smob_free (scm_tc16_program, program_free);
   scm_set_smob_apply (scm_tc16_program, program_apply, 0, 0, 1);
   scm_set_smob_print (scm_tc16_program, program_print);
 }

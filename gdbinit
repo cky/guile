@@ -76,9 +76,11 @@ define smobdatatox
   smobwordtox $arg0 1
 end
 
-define program
+define program_objcode
   smobdatatox $arg0
-  p *(struct scm_program*)$x
+  set $objcode=$x
+  smobdatatox $objcode
+  p *(struct scm_objcode*)$x
 end
 
 define proglocals
@@ -181,7 +183,7 @@ define nextframe
   newline
   if $vmdl
     set $vmfp=$vmdl
-    set $vmbp=(struct scm_program*)(((SCM*)($vmfp[-1]))[1])
+    set $vmbp=(struct scm_objcode*)((SCM*)(((SCM*)($vmfp[-1]))[1])[1])
     set $vmstack_base=$vmfp+$vmbp->nargs+$vmbp->nlocs+4
     set $vmframe=$vmframe+1
     newline

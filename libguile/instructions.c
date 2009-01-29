@@ -47,7 +47,19 @@
 #include "vm-bootstrap.h"
 #include "instructions.h"
 
-struct scm_instruction scm_instruction_table[] = {
+struct scm_instruction {
+  enum scm_opcode opcode;	/* opcode */
+  const char *name;		/* instruction name */
+  signed char len;		/* Instruction length.  This may be -1 for
+				   the loader (see the `VM_LOADER'
+				   macro).  */
+  signed char npop;		/* The number of values popped.  This may be
+				   -1 for insns like `call' which can take
+				   any number of arguments.  */
+  char npush;			/* the number of values pushed */
+};
+
+static struct scm_instruction scm_instruction_table[] = {
 #define VM_INSTRUCTION_TO_TABLE 1
 #include "vm-expand.h"
 #include "vm-i-system.i"
@@ -57,10 +69,15 @@ struct scm_instruction scm_instruction_table[] = {
   {scm_op_last}
 };
 
-/* C interface */
+#define SCM_VALIDATE_LOOKUP_INSTRUCTION(pos, var, cvar)               \
+  do {                                                                \
+    cvar = scm_lookup_instruction_by_name (var);                      \
+    SCM_ASSERT_TYPE (cvar, var, pos, FUNC_NAME, "INSTRUCTION_P");     \
+  } while (0)
 
-struct scm_instruction *
-scm_lookup_instruction (SCM name)
+
+static struct scm_instruction *
+scm_lookup_instruction_by_name (SCM name)
 {
   struct scm_instruction *ip;
   char *symbol;
@@ -82,6 +99,7 @@ scm_lookup_instruction (SCM name)
   return 0;
 }
 
+
 /* Scheme interface */
 
 SCM_DEFINE (scm_instruction_list, "instruction-list", 0, 0, 0,
@@ -102,7 +120,7 @@ SCM_DEFINE (scm_instruction_p, "instruction?", 1, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_instruction_p
 {
-  return SCM_BOOL (SCM_INSTRUCTION_P (obj));
+  return SCM_BOOL (scm_lookup_instruction_by_name (obj));
 }
 #undef FUNC_NAME
 
@@ -111,8 +129,9 @@ SCM_DEFINE (scm_instruction_length, "instruction-length", 1, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_instruction_length
 {
-  SCM_VALIDATE_INSTRUCTION (1, inst);
-  return SCM_I_MAKINUM (SCM_INSTRUCTION_LENGTH (inst));
+  struct scm_instruction *ip;
+  SCM_VALIDATE_LOOKUP_INSTRUCTION (1, inst, ip);
+  return SCM_I_MAKINUM (ip->len);
 }
 #undef FUNC_NAME
 
@@ -121,8 +140,9 @@ SCM_DEFINE (scm_instruction_pops, "instruction-pops", 1, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_instruction_pops
 {
-  SCM_VALIDATE_INSTRUCTION (1, inst);
-  return SCM_I_MAKINUM (SCM_INSTRUCTION_POPS (inst));
+  struct scm_instruction *ip;
+  SCM_VALIDATE_LOOKUP_INSTRUCTION (1, inst, ip);
+  return SCM_I_MAKINUM (ip->npop);
 }
 #undef FUNC_NAME
 
@@ -131,8 +151,9 @@ SCM_DEFINE (scm_instruction_pushes, "instruction-pushes", 1, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_instruction_pushes
 {
-  SCM_VALIDATE_INSTRUCTION (1, inst);
-  return SCM_I_MAKINUM (SCM_INSTRUCTION_PUSHES (inst));
+  struct scm_instruction *ip;
+  SCM_VALIDATE_LOOKUP_INSTRUCTION (1, inst, ip);
+  return SCM_I_MAKINUM (ip->npush);
 }
 #undef FUNC_NAME
 
@@ -141,8 +162,9 @@ SCM_DEFINE (scm_instruction_to_opcode, "instruction->opcode", 1, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_instruction_to_opcode
 {
-  SCM_VALIDATE_INSTRUCTION (1, inst);
-  return SCM_I_MAKINUM (SCM_INSTRUCTION_OPCODE (inst));
+  struct scm_instruction *ip;
+  SCM_VALIDATE_LOOKUP_INSTRUCTION (1, inst, ip);
+  return SCM_I_MAKINUM (ip->opcode);
 }
 #undef FUNC_NAME
 
@@ -151,11 +173,18 @@ SCM_DEFINE (scm_opcode_to_instruction, "opcode->instruction", 1, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_opcode_to_instruction
 {
-  int i;
+  struct scm_instruction *ip;
+  int opcode;
+
   SCM_MAKE_VALIDATE (1, op, I_INUMP);
-  i = SCM_I_INUM (op);
-  SCM_ASSERT_RANGE (1, op, 0 <= i && i < scm_op_last);
-  return scm_from_locale_symbol (scm_instruction_table[i].name);
+  opcode = SCM_I_INUM (op);
+
+  for (ip = scm_instruction_table; ip->opcode != scm_op_last; ip++)
+    if (opcode == ip->opcode)
+      return scm_from_locale_symbol (ip->name);
+
+  scm_wrong_type_arg_msg (FUNC_NAME, 1, op, "INSTRUCTION_P");
+  return SCM_BOOL_F; /* not reached */
 }
 #undef FUNC_NAME
 

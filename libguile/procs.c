@@ -32,6 +32,7 @@
 #include "libguile/validate.h"
 #include "libguile/procs.h"
 #include "libguile/procprop.h"
+#include "libguile/objcodes.h"
 #include "libguile/programs.h"
 
 

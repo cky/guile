@@ -24,6 +24,7 @@ SUBDIRS = standalone
 SCM_TESTS = tests/alist.test			\
 	    tests/and-let-star.test		\
 	    tests/arbiters.test			\
+	    tests/asm-to-bytecode.test		\
 	    tests/bit-operations.test		\
 	    tests/c-api.test			\
 	    tests/chars.test			\
