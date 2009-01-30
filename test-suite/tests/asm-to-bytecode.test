@@ -17,7 +17,7 @@
 (define-module (test-suite tests asm-to-bytecode)
   #:use-module (test-suite lib)
   #:use-module (system vm instruction)
-  #:use-module (language assembly compile-objcode))
+  #:use-module (language assembly compile-bytecode))
 
 (define (munge-bytecode v)
   (let ((newv (make-u8vector (vector-length v))))
@@ -39,7 +39,7 @@
     (define (get-addr) i)
     (run-test `(length ,x) #t
               (lambda ()
-                (fill-objcode x write-byte get-addr '())
+                (write-bytecode x write-byte get-addr '())
                 (= i len)))
     (run-test `(compile-equal? ,x ,y) #t
               (lambda ()

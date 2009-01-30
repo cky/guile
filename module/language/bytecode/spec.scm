@@ -1,4 +1,4 @@
-;;; Guile Virtual Machine Assembly
+;;; Guile Lowlevel Intermediate Language
 
 ;; Copyright (C) 2001 Free Software Foundation, Inc.
 
@@ -19,17 +19,19 @@
 
 ;;; Code:
 
-(define-module (language assembly spec)
+(define-module (language bytecode spec)
   #:use-module (system base language)
-  #:use-module (language bytecode spec)
-  #:use-module (language assembly compile-bytecode)
-  #:export (assembly))
+  #:use-module (language objcode spec)
+  #:use-module (system vm objcode)
+  #:export (bytecode))
 
-(define-language assembly
-  #:title	"Guile Virtual Machine Assembly Language"
-  #:version	"2.0"
+(define (compile-objcode x e opts)
+  (values (bytecode->objcode x) e))
+
+(define-language bytecode
+  #:title	"Guile Bytecode Vectors"
+  #:version	"0.3"
   #:reader	read
   #:printer	write
-  #:parser      read ;; fixme: make a verifier?
-  #:compilers   `((,bytecode . ,compile-bytecode))
+  #:compilers   `((,objcode . ,compile-objcode))
   )

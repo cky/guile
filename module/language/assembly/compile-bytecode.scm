@@ -19,18 +19,16 @@
 
 ;;; Code:
 
-(define-module (language assembly compile-objcode)
+(define-module (language assembly compile-bytecode)
   #:use-module (system base pmatch)
   #:use-module (system vm instruction)
-  #:use-module (system vm objcode)
-  #:use-module (language objcode)
   #:use-module (srfi srfi-4)
   #:use-module ((srfi srfi-1) #:select (fold))
-  #:export (compile-objcode fill-objcode))
+  #:export (compile-bytecode write-bytecode))
 
 (define *program-header-len* 8)
 
-(define (compile-objcode assembly env . opts)
+(define (compile-bytecode assembly env . opts)
   (pmatch assembly
     ((load-program ,nargs ,nrest ,nlocs ,nexts ,labels ,len . ,code)
      (letrec ((v (make-u8vector (+ *program-header-len* len)))
@@ -40,13 +38,13 @@
                             (if (>= i 0) (u8vector-set! v i b))
                             (set! i (1+ i))))
               (get-addr (lambda () i)))
-       (fill-objcode assembly write-byte get-addr '())
+       (write-bytecode assembly write-byte get-addr '())
        (if (not (= i (u8vector-length v)))
-           (error "incorrect length in assembly" i len)
-           (bytecode->objcode v))))
+           (error "incorrect length in assembly" i len))
+       (values v env)))
     (else (error "bad assembly" assembly))))
 
-(define (fill-objcode asm write-byte get-addr labels)
+(define (write-bytecode asm write-byte get-addr labels)
   (define (write-char c)
     (write-byte (char->integer c)))
   (define (write-string s)
@@ -94,7 +92,7 @@
                   (write (lambda (x) (set! i (1+ i)) (write-byte x)))
                   (get-addr (lambda () i)))
            (for-each (lambda (asm)
-                       (fill-objcode asm write get-addr labels))
+                       (write-bytecode asm write get-addr labels))
                      code)))
         ((load-integer ,str) (write-loader str))
         ((load-number ,str) (write-loader str))
