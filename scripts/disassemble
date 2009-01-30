@@ -32,10 +32,10 @@ exec ${GUILE-guile} -e '(@ (scripts disassemble) disassemble)' -s $0 "$@"
 
 (define-module (scripts disassemble)
   #:use-module (system vm objcode)
-  #:use-module (system vm disasm)
+  #:use-module (language assembly disassemble)
   #:export (disassemble))
 
 (define (disassemble args)
   (for-each (lambda (file)
-              (disassemble-objcode (load-objcode file)))
+              (disassemble (load-objcode file)))
             (cdr args)))

@@ -20,7 +20,7 @@
 ;;; Code:
 
 (define-module (system vm objcode)
-  #:export (objcode->u8vector objcode? bytecode->objcode
+  #:export (objcode? bytecode->objcode objcode->bytecode
             load-objcode write-objcode
             word-size byte-order))
 

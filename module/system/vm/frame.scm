@@ -54,9 +54,8 @@
 
 ;; FIXME: the header.
 (define (bootstrap-frame? frame)
-  (let ((code (objcode->u8vector (program-objcode (frame-program frame)))))
-    (and (= (uniform-vector-length code) 6)
-         (= (uniform-vector-ref code 5)
+  (let ((code (objcode->bytecode (program-objcode (frame-program frame)))))
+    (and (= (uniform-vector-ref code (1- (uniform-vector-length code)))
             (instruction->opcode 'halt)))))
 
 (define (make-frame-chain frame addr)

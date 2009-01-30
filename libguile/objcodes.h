@@ -79,7 +79,7 @@ SCM scm_c_make_objcode_slice (SCM parent, scm_t_uint8 *ptr);
 extern SCM scm_load_objcode (SCM file);
 extern SCM scm_objcode_p (SCM obj);
 extern SCM scm_bytecode_to_objcode (SCM bytecode);
-extern SCM scm_objcode_to_u8vector (SCM objcode);
+extern SCM scm_objcode_to_bytecode (SCM objcode);
 extern SCM scm_write_objcode (SCM objcode, SCM port);
 
 extern void scm_bootstrap_objcodes (void);

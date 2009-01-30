@@ -28,7 +28,7 @@
   (values (bytecode->objcode x) e))
 
 (define (decompile-objcode x e opts)
-  (values (objcode->u8vector x) e))
+  (values (objcode->bytecode x) e))
 
 (define-language bytecode
   #:title	"Guile Bytecode Vectors"

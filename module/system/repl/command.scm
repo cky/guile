@@ -28,7 +28,6 @@
   #:use-module (system vm program)
   #:use-module (system vm vm)
   #:autoload (system base language) (lookup-language)
-  #:autoload (system vm disasm) (disassemble-program disassemble-objcode)
   #:autoload (system vm debug) (vm-debugger vm-backtrace)
   #:autoload (system vm trace) (vm-trace vm-trace-on vm-trace-off)
   #:autoload (system vm profile) (vm-profile)
@@ -276,15 +275,18 @@ Generate compiled code.
 Compile a file."
   (guile:compile-file (->string file) #:opts opts))
 
+(define (guile:disassemble x)
+  ((@ (language assembly disassemble) disassemble) x))
+
 (define (disassemble repl prog)
   "disassemble PROGRAM
 Disassemble a program."
-  (disassemble-program (repl-eval repl (repl-parse repl prog))))
+  (guile:disassemble (repl-eval repl (repl-parse repl prog))))
 
 (define (disassemble-file repl file)
   "disassemble-file FILE
 Disassemble a file."
-  (disassemble-objcode (load-objcode (->string file))))
+  (guile:disassemble (load-objcode (->string file))))
 
 
 ;;;

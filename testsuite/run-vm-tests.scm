@@ -19,7 +19,6 @@
 
 
 (use-modules (system vm vm)
-	     (system vm disasm)
 	     (system base compile)
 	     (system base language)
              (language scheme spec)

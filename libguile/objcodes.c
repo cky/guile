@@ -204,10 +204,10 @@ SCM_DEFINE (scm_load_objcode, "load-objcode", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_objcode_to_u8vector, "objcode->u8vector", 1, 0, 0,
+SCM_DEFINE (scm_objcode_to_bytecode, "objcode->bytecode", 1, 0, 0,
 	    (SCM objcode),
 	    "")
-#define FUNC_NAME s_scm_objcode_to_u8vector
+#define FUNC_NAME s_scm_objcode_to_bytecode
 {
   scm_t_uint8 *u8vector;
   scm_t_uint32 len;
