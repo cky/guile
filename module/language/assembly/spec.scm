@@ -22,6 +22,7 @@
 (define-module (language assembly spec)
   #:use-module (system base language)
   #:use-module (language assembly compile-bytecode)
+  #:use-module (language assembly decompile-bytecode)
   #:export (assembly))
 
 (define-language assembly
@@ -31,4 +32,5 @@
   #:printer	write
   #:parser      read ;; fixme: make a verifier?
   #:compilers   `((bytecode . ,compile-bytecode))
+  #:decompilers `((bytecode . ,decompile-bytecode))
   )

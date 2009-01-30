@@ -22,8 +22,6 @@
 (define-module (system base compile)
   #:use-module (system base syntax)
   #:use-module (system base language)
-  #:use-module (language objcode spec)
-  #:use-module (language value spec)
   #:use-module (system vm vm) ;; FIXME: there's a reason for this, can't remember why tho
   #:use-module (ice-9 regex)
   #:use-module (ice-9 optargs)
@@ -31,7 +29,8 @@
   #:export (syntax-error 
             *current-language*
             compiled-file-name compile-file compile-and-load
-            compile compile-time-environment)
+            compile compile-time-environment
+            decompile)
   #:export-syntax (call-with-compile-error-catch))
 
 ;;;
@@ -57,10 +56,9 @@
 ;;;
 
 (define *current-language* (make-fluid))
+(fluid-set! *current-language* 'scheme)
 (define (current-language)
-  (or (fluid-ref *current-language*)
-      (begin (fluid-set! *current-language* (lookup-language 'scheme))
-             (current-language))))
+  (fluid-ref *current-language*))
 
 (define (call-once thunk)
   (let ((entered #f))
@@ -85,9 +83,15 @@
          (lambda args
            (delete-file template)))))))
 
-(define* (compile-file file #:key (to objcode) (opts '()))
+(define (ensure-language x)
+  (if (language? x)
+      x
+      (lookup-language x)))
+
+(define* (compile-file file #:key (to 'objcode) (opts '()))
   (let ((comp (compiled-file-name file))
-        (lang (current-language)))
+        (lang (ensure-language (current-language)))
+        (to (ensure-language to)))
     (catch 'nothing-at-all
       (lambda ()
 	(call-with-compile-error-catch
@@ -107,9 +111,9 @@
 	(format #t "ERROR: ~A ~A ~A\n" key (car args) (cadddr args))
 	(delete-file comp)))))
 
-(define* (compile-and-load file #:key (to value) (opts '()))
-  (let ((lang (current-language)))
-    (compile (read-file-in file lang) #:to value #:opts opts)))
+(define* (compile-and-load file #:key (to 'value) (opts '()))
+  (let ((lang (ensure-language (current-language))))
+    (compile (read-file-in file lang) #:to 'value #:opts opts)))
 
 (define (compiled-file-name file)
   (let ((base (basename file))
@@ -160,9 +164,29 @@ time. Useful for supporting some forms of dynamic compilation. Returns
 (define* (compile x #:key
                   (env #f)
                   (from (current-language))
-                  (to value)
+                  (to 'value)
                   (opts '()))
   (compile-fold (compile-passes from to opts)
+                x
+                env
+                opts))
+
+
+;;;
+;;; Decompiler interface
+;;;
+
+(define (decompile-passes from to opts)
+  (map cdr
+       (or (lookup-decompilation-order from to)
+           (error "no way to decompile" from "to" to))))
+
+(define* (decompile x #:key
+                    (env #f)
+                    (from 'value)
+                    (to 'assembly)
+                    (opts '()))
+  (compile-fold (decompile-passes from to opts)
                 x
                 env
                 opts))

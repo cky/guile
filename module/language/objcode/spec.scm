@@ -43,10 +43,21 @@
            (values (thunk) #f)))
         (values (thunk) #f))))
 
+(define (decompile-value x env opts)
+  (cond
+   ((program? x)
+    (values (program-objcode x)
+            (cons (program-objects x) (program-externals x))))
+   ((objcode? x)
+    (values x #f))
+   (else
+    (error "can't decompile ~A: not a program or objcode" x))))
+
 (define-language objcode
   #:title	"Guile Object Code"
   #:version	"0.3"
   #:reader	#f
   #:printer	write-objcode
   #:compilers   `((value . ,objcode->value))
+  #:decompilers `((value . ,decompile-value))
   )

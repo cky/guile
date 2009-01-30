@@ -21,7 +21,7 @@
 
 (define-module (system base language)
   #:use-module (system base syntax)
-  #:export (define-language lookup-language make-language
+  #:export (define-language language? lookup-language make-language
             language-name language-title language-version language-reader
             language-printer language-parser language-read-file
             language-compilers language-decompilers language-evaluator
@@ -90,7 +90,9 @@
 (define (lookup-decompilation-order from to)
   (let ((key (cons from to)))
     (or (assoc-ref *decompilation-cache* key)
-        (let ((order (compute-translation-order from to language-decompilers)))
-          (set! *decompilation-cache*
-                (acons key order *decompilation-cache*))
+        ;; trickery!
+        (let ((order (and=>
+                      (compute-translation-order to from language-decompilers)
+                      reverse!)))
+          (set! *decompilation-cache* (acons key order *decompilation-cache*))
           order))))

@@ -27,10 +27,14 @@
 (define (compile-objcode x e opts)
   (values (bytecode->objcode x) e))
 
+(define (decompile-objcode x e opts)
+  (values (objcode->u8vector x) e))
+
 (define-language bytecode
   #:title	"Guile Bytecode Vectors"
   #:version	"0.3"
   #:reader	read
   #:printer	write
   #:compilers   `((objcode . ,compile-objcode))
+  #:decompilers `((objcode . ,decompile-objcode))
   )
