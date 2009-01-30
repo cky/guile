@@ -22,7 +22,6 @@
 (define-module (language scheme spec)
   #:use-module (system base language)
   #:use-module (language scheme compile-ghil)
-  #:use-module (language ghil spec)
   #:export (scheme))
 
 ;;;
@@ -46,7 +45,7 @@
   #:version	"0.5"
   #:reader	read
   #:read-file	read-file
-  #:compilers   `((,ghil . ,compile-ghil))
+  #:compilers   `((ghil . ,compile-ghil))
   #:evaluator	(lambda (x module) (primitive-eval x))
   #:printer	write
   )

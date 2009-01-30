@@ -21,7 +21,6 @@
 
 (define-module (language glil spec)
   #:use-module (system base language)
-  #:use-module (language assembly spec)
   #:use-module (language glil)
   #:use-module (language glil compile-assembly)
   #:export (glil))
@@ -38,5 +37,5 @@
   #:reader	read
   #:printer	write-glil
   #:parser      parse-glil
-  #:compilers   `((,assembly . ,compile-asm))
+  #:compilers   `((assembly . ,compile-asm))
   )

@@ -21,7 +21,6 @@
 
 (define-module (language objcode spec)
   #:use-module (system base language)
-  #:use-module (language value spec)
   #:use-module (system vm objcode)
   #:use-module (system vm program)
   #:export (objcode make-objcode-env))
@@ -49,5 +48,5 @@
   #:version	"0.3"
   #:reader	#f
   #:printer	write-objcode
-  #:compilers   `((,value . ,objcode->value))
+  #:compilers   `((value . ,objcode->value))
   )

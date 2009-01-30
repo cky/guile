@@ -21,7 +21,6 @@
 
 (define-module (language ghil spec)
   #:use-module (system base language)
-  #:use-module (language glil spec)
   #:use-module (language glil)
   #:use-module (language ghil)
   #:use-module (language ghil compile-glil)
@@ -41,5 +40,5 @@
   #:reader	read
   #:printer	write-ghil
   #:parser      parse
-  #:compilers   `((,glil . ,compile-glil))
+  #:compilers   `((glil . ,compile-glil))
   )

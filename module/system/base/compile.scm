@@ -140,15 +140,9 @@
         (error "language has no #:read-file" lang))))
 
 (define (compile-passes from to opts)
-  (let lp ((langs (or (lookup-compilation-order from to)
-                      (error "no way to compile" (language-name from)
-                             "to" (language-name to))))
-           (out '()))
-    (if (null? (cdr langs))
-        (reverse! out)
-        (lp (cdr langs)
-            (cons (assq-ref (language-compilers (car langs)) (cadr langs))
-                  out)))))
+  (map cdr
+       (or (lookup-compilation-order from to)
+           (error "no way to compile" from "to" to))))
 
 (define (compile-fold passes exp env opts)
   (if (null? passes)

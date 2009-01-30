@@ -24,9 +24,10 @@
   #:export (define-language lookup-language make-language
             language-name language-title language-version language-reader
             language-printer language-parser language-read-file
-            language-compilers language-evaluator
+            language-compilers language-decompilers language-evaluator
 
-            lookup-compilation-order invalidate-compilation-cache!))
+            lookup-compilation-order lookup-decompilation-order
+            invalidate-compilation-cache!))
 
 
 ;;;
@@ -42,6 +43,7 @@
   (parser #f)
   (read-file #f)
   (compilers '())
+  (decompilers '())
   (evaluator #f))
 
 (define-macro (define-language name . spec)
@@ -56,20 +58,39 @@
 	(error "no such language" name))))
 
 (define *compilation-cache* '())
+(define *decompilation-cache* '())
 
 (define (invalidate-compilation-cache!)
+  (set! *decompilation-cache* '())
   (set! *compilation-cache* '()))
 
-(define (compute-compilation-order from to)
-  (let lp ((from from) (seen '()))
-    (cond ((eq? from to) (reverse! (cons from seen)))
-          ((memq from seen) #f)
-          (else (or-map (lambda (lang) (lp lang (cons from seen)))
-                        (map car (language-compilers from)))))))
+(define (compute-translation-order from to language-translators)
+  (cond
+   ((not (language? to))
+    (compute-translation-order from (lookup-language to) language-translators))
+   (else
+    (let lp ((from from) (seen '()))
+      (cond
+       ((not (language? from))
+        (lp (lookup-language from) seen))
+       ((eq? from to) (reverse! seen))
+       ((memq from seen) #f)
+       (else (or-map (lambda (pair)
+                       (lp (car pair) (acons from (cdr pair) seen)))
+                     (language-translators from))))))))
 
 (define (lookup-compilation-order from to)
-  (or (assoc-ref *compilation-cache* (cons from to))
-      (let ((order (compute-compilation-order from to)))
-        (set! *compilation-cache*
-              (acons (cons from to) order *compilation-cache*))
-        order)))
+  (let ((key (cons from to)))
+    (or (assoc-ref *compilation-cache* key)
+        (let ((order (compute-translation-order from to language-compilers)))
+          (set! *compilation-cache*
+                (acons key order *compilation-cache*))
+          order))))
+
+(define (lookup-decompilation-order from to)
+  (let ((key (cons from to)))
+    (or (assoc-ref *decompilation-cache* key)
+        (let ((order (compute-translation-order from to language-decompilers)))
+          (set! *decompilation-cache*
+                (acons key order *decompilation-cache*))
+          order))))

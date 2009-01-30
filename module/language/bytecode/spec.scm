@@ -21,7 +21,6 @@
 
 (define-module (language bytecode spec)
   #:use-module (system base language)
-  #:use-module (language objcode spec)
   #:use-module (system vm objcode)
   #:export (bytecode))
 
@@ -33,5 +32,5 @@
   #:version	"0.3"
   #:reader	read
   #:printer	write
-  #:compilers   `((,objcode . ,compile-objcode))
+  #:compilers   `((objcode . ,compile-objcode))
   )
