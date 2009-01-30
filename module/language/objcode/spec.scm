@@ -46,8 +46,25 @@
 (define (decompile-value x env opts)
   (cond
    ((program? x)
-    (values (program-objcode x)
-            (cons (program-objects x) (program-externals x))))
+    (let ((objs  (program-objects x))
+          (meta  (program-meta x))
+          (exts  (program-external x))
+          (binds (program-bindings x))
+          (srcs  (program-sources x))
+          (nargs (arity:nargs (program-arity x))))
+      (let ((blocs (and binds
+                        (append (list-head binds nargs)
+                                (filter (lambda (x) (not (binding:extp x)))
+                                        (list-tail binds nargs)))))
+            (bexts (and binds
+                        (filter binding:extp binds))))
+        (values (program-objcode x)
+                `((objects . ,objs)
+                  (meta    . ,(and meta (meta)))
+                  (exts    . ,exts)
+                  (blocs   . ,blocs)
+                  (bexts   . ,bexts)
+                  (sources . ,srcs))))))
    ((objcode? x)
     (values x #f))
    (else

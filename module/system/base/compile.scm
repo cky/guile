@@ -181,12 +181,18 @@ time. Useful for supporting some forms of dynamic compilation. Returns
        (or (lookup-decompilation-order from to)
            (error "no way to decompile" from "to" to))))
 
+(define (decompile-fold passes exp env opts)
+  (if (null? passes)
+      (values exp env)
+      (receive (exp env) ((car passes) exp env opts)
+        (decompile-fold (cdr passes) exp env opts))))
+
 (define* (decompile x #:key
                     (env #f)
                     (from 'value)
                     (to 'assembly)
                     (opts '()))
-  (compile-fold (decompile-passes from to opts)
-                x
-                env
-                opts))
+  (decompile-fold (decompile-passes from to opts)
+                  x
+                  env
+                  opts))
