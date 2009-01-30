@@ -210,7 +210,7 @@
 
     ((<glil-const> obj)
      (cond
-      ((object->code obj)
+      ((object->assembly obj)
        => (lambda (code)
             (emit-code (list code))))
       ((not object-alist)
@@ -318,7 +318,7 @@
 
   (let dump ((x x))
     (cond
-     ((object->code x) => list)
+     ((object->assembly x) => list)
      ((variable-cache-cell? x) (dump (variable-cache-cell-key x)))
      ((subprogram? x) (subprogram-code x))
      ((and (integer? x) (exact? x))

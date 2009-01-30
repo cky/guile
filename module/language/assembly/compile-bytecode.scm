@@ -21,27 +21,26 @@
 
 (define-module (language assembly compile-bytecode)
   #:use-module (system base pmatch)
+  #:use-module (language assembly)
   #:use-module (system vm instruction)
   #:use-module (srfi srfi-4)
   #:use-module ((srfi srfi-1) #:select (fold))
   #:export (compile-bytecode write-bytecode))
 
-(define *program-header-len* 8)
-
 (define (compile-bytecode assembly env . opts)
   (pmatch assembly
-    ((load-program ,nargs ,nrest ,nlocs ,nexts ,labels ,len . ,code)
-     (letrec ((v (make-u8vector (+ *program-header-len* len)))
+    ((load-program . _)
+     ;; the 1- and -1 are so that we drop the load-program byte
+     (letrec ((v (make-u8vector (1- (byte-length assembly))))
               (i -1)
               (write-byte (lambda (b)
-                            ;; drop the load-program byte
                             (if (>= i 0) (u8vector-set! v i b))
                             (set! i (1+ i))))
               (get-addr (lambda () i)))
        (write-bytecode assembly write-byte get-addr '())
-       (if (not (= i (u8vector-length v)))
-           (error "incorrect length in assembly" i len))
-       (values v env)))
+       (if (= i (u8vector-length v))
+           (values v env)
+           (error "incorrect length in assembly" i (u8vector-length v)))))
     (else (error "bad assembly" assembly))))
 
 (define (write-bytecode asm write-byte get-addr labels)

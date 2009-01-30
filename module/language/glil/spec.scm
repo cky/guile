@@ -21,18 +21,13 @@
 
 (define-module (language glil spec)
   #:use-module (system base language)
-  #:use-module (language objcode spec)
   #:use-module (language assembly spec)
   #:use-module (language glil)
-  #:use-module (language glil compile-objcode)
   #:use-module (language glil compile-assembly)
   #:export (glil))
 
 (define (write-glil exp . port)
   (apply write (unparse-glil exp) port))
-
-(define (compile x e opts)
-  (values (compile-objcode x e) e))
 
 (define (compile-asm x e opts)
   (values (compile-assembly x) e))
@@ -43,6 +38,5 @@
   #:reader	read
   #:printer	write-glil
   #:parser      parse-glil
-  #:compilers   `((,assembly . ,compile-asm)
-                  (,objcode . ,compile))
+  #:compilers   `((,assembly . ,compile-asm))
   )

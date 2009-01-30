@@ -22,33 +22,37 @@
 (define-module (language assembly)
   #:use-module (system base pmatch)
   #:use-module (system vm instruction)
-  #:export (byte-length code-pack code-unpack object->code code->object))
+  #:export (byte-length
+            assembly-pack assembly-unpack
+            object->assembly assembly->object))
 
-(define (len+ len)
-  (+ 3 len))
+;; nargs, nrest, nlocs, nexts, len
+(define *program-header-len* (+ 1 1 1 1 4))
 
-(define (byte-length x)
-  (pmatch x
+;; lengths are encoded in 3 bytes
+(define *len-len* 3)
+
+(define (byte-length assembly)
+  (pmatch assembly
     (,label (guard (not (pair? label)))
      0)
     ((load-integer ,str)
-     (1+ (len+ (string-length str))))
+     (+ 1 *len-len* (string-length str)))
     ((load-number ,str)
-     (1+ (len+ (string-length str))))
+     (+ 1 *len-len* (string-length str)))
     ((load-string ,str)
-     (1+ (len+ (string-length str))))
+     (+ 1 *len-len* (string-length str)))
     ((load-symbol ,str)
-     (1+ (len+ (string-length str))))
+     (+ 1 *len-len* (string-length str)))
     ((load-keyword ,str)
-     (1+ (len+ (string-length str))))
+     (+ 1 *len-len* (string-length str)))
     ((define ,str)
-     (1+ (len+ (string-length str))))
+     (+ 1 *len-len* (string-length str)))
     ((load-program ,nargs ,nrest ,nlocs ,nexts ,labels ,len . ,code)
-     ;; lengths of nargs, nrest, nlocs, nexts, len, and code, respectively
-     (1+ (+ 1 1 1 1 4 len)))
+     (+ 1 *program-header-len* len))
     ((,inst . _) (guard (>= (instruction-length inst) 0))
-     (1+ (instruction-length inst)))
-    (else (error "unknown instruction" x))))
+     (+ 1 (instruction-length inst)))
+    (else (error "unknown instruction" assembly))))
 
 ;;;
 ;;; Code compress/decompression
@@ -61,11 +65,11 @@
 (define *expansions*
   (map (lambda (x) (cons (cdr x) (car x))) *abbreviations*))
 
-(define (code-pack code)
+(define (assembly-pack code)
   (or (assoc-ref code *abbreviations*)
       code))
 
-(define (code-unpack code)
+(define (assembly-unpack code)
   (or (assoc-ref code *expansions*)
       code))
 
@@ -74,7 +78,7 @@
 ;;; Encoder/decoder
 ;;;
 
-(define (object->code x)
+(define (object->assembly x)
   (cond ((eq? x #t) `(make-true))
 	((eq? x #f) `(make-false))
 	((null? x) `(make-eol))
@@ -88,7 +92,7 @@
 	((char? x) `(make-char8 ,(char->integer x)))
 	(else #f)))
 
-(define (code->object code)
+(define (assembly->object code)
   (pmatch code
     ((make-true) #t)
     ((make-false) #f) ;; FIXME: Same as the `else' case!
