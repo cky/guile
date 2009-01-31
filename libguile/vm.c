@@ -268,7 +268,7 @@ static SCM make_u8vector (const scm_t_uint8 *bytes, size_t len)
 }
 
 static SCM
-vm_make_boot_program (long nargs)
+really_make_boot_program (long nargs)
 {
   scm_byte_t bytes[] = {0, 0, 0, 0,
                         0, 0, 0, 0,
@@ -279,6 +279,24 @@ vm_make_boot_program (long nargs)
   bytes[9] = (scm_byte_t)nargs;
   return scm_make_program (scm_bytecode_to_objcode (make_u8vector (bytes, sizeof(bytes))),
                            SCM_BOOL_F, SCM_EOL);
+}
+#define NUM_BOOT_PROGS 8
+static SCM
+vm_make_boot_program (long nargs)
+{
+  static SCM programs[NUM_BOOT_PROGS] = { 0, };
+
+  if (SCM_UNLIKELY (!programs[0])) 
+    {
+      int i;
+      for (i = 0; i < NUM_BOOT_PROGS; i++)
+        programs[i] = scm_permanent_object (really_make_boot_program (i));
+    }
+  
+  if (SCM_LIKELY (nargs < NUM_BOOT_PROGS))
+    return programs[nargs];
+  else
+    return really_make_boot_program (nargs);
 }
 
 
