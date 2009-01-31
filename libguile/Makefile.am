@@ -1,6 +1,6 @@
 ## Process this file with Automake to create Makefile.in
 ##
-##  	Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2006, 2007, 2008 Free Software Foundation, Inc.
+##  	Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
@@ -76,6 +76,19 @@ scmconfig.h: ${top_builddir}/config.h gen-scmconfig$(EXEEXT)
 	chmod 444 scmconfig.h.tmp
 	rm -f scmconfig.h
 	mv scmconfig.h.tmp scmconfig.h
+
+snarf-gsubr.h:
+	( echo "/* Automatically generated, do not edit.  */" ;						\
+	  for req in `seq 0 16`; do									\
+	    for opt in `seq 0 16`; do									\
+	      for rst in 0 1; do									\
+		echo "#ifndef SCM_DEFINE_SUBR_req$${req}_opt$${opt}_rst$${rst}" ;			\
+		echo "# define SCM_DEFINE_SUBR_req$${req}_opt$${opt}_rst$${rst} SCM_DEFINE_GSUBR" ;	\
+		echo "#endif" ;										\
+	      done ;											\
+	    done ;											\
+	  done ) > "$@.tmp"
+	mv "$@.tmp" "$@"
 
 guile_filter_doc_snarfage_SOURCES = c-tokenize.c
 
@@ -166,8 +179,8 @@ DOT_DOC_FILES = alist.doc arbiters.doc async.doc backtrace.doc		\
 
 EXTRA_DOT_DOC_FILES = @EXTRA_DOT_DOC_FILES@
 
-BUILT_SOURCES = cpp_err_symbols.c cpp_sig_symbols.c libpath.h \
-    version.h scmconfig.h \
+BUILT_SOURCES = cpp_err_symbols.c cpp_sig_symbols.c libpath.h	\
+    version.h scmconfig.h snarf-gsubr.h				\
     $(DOT_X_FILES) $(EXTRA_DOT_X_FILES)
 
 EXTRA_libguile_la_SOURCES = _scm.h		\
@@ -224,7 +237,7 @@ modinclude_HEADERS = __scm.h alist.h arbiters.h async.h backtrace.h	\
     pthread-threads.h null-threads.h throw.h unif.h values.h		\
     variable.h vectors.h vports.h weaks.h
 
-nodist_modinclude_HEADERS = version.h scmconfig.h
+nodist_modinclude_HEADERS = version.h scmconfig.h snarf-gsubr.h
 
 bin_SCRIPTS = guile-snarf
 
@@ -409,7 +422,8 @@ MOSTLYCLEANFILES = \
 	cpp_err_symbols_here cpp_err_symbols_diff cpp_err_symbols_new \
 	cpp_sig_symbols_here cpp_sig_symbols_diff cpp_sig_symbols_new \
 	version.h version.h.tmp \
-	scmconfig.h scmconfig.h.tmp stack-limit-calibration.scm
+	scmconfig.h scmconfig.h.tmp snarf-gsubr.h snarf-gsubr.h.tmp \
+	stack-limit-calibration.scm
 
 CLEANFILES = libpath.h *.x *.doc guile-procedures.txt guile-procedures.texi guile.texi
 

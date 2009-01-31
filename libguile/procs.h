@@ -51,6 +51,40 @@
 #define SCM_CCLO_SUBR(x) (SCM_CCLO_REF ((x), 0))
 #define SCM_SET_CCLO_SUBR(x, v) (SCM_CCLO_SET ((x), 0, (v)))
 
+/* Return the subr type corresponding to the given arity.  If the arity
+   doesn't match that of a subr (e.g., too many arguments), then -1 is
+   returned.  This has to be in sync with `create_gsubr ()'.  */
+#define SCM_SUBR_ARITY_TO_TYPE(req, opt, rest)	\
+  ((rest) == 0					\
+   ? ((opt) == 0				\
+      ? ((req) == 0				\
+	 ? scm_tc7_subr_0			\
+	 : ((req) == 1				\
+	    ? scm_tc7_subr_1			\
+	    : ((req) == 2			\
+	       ? scm_tc7_subr_2			\
+	       : ((req) == 3			\
+		  ? scm_tc7_subr_3		\
+		  : -1))))			\
+      : ((opt) == 1				\
+	 ? ((req) == 0				\
+	    ? scm_tc7_subr_1o			\
+	    : ((req) == 1			\
+	       ? scm_tc7_subr_2o		\
+	       : -1))				\
+	 : -1))					\
+   : ((rest) == 1				\
+      ? ((opt) == 0				\
+	 ? ((req) == 0				\
+	    ? scm_tc7_lsubr			\
+	    : ((req) == 2			\
+	       ? scm_tc7_lsubr_2		\
+	       : -1))				\
+	 : -1)					\
+      : -1))
+
+
+
 /* Closures
  */
 

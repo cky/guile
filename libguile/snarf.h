@@ -84,7 +84,7 @@ DOCSTRING ^^ }
 # endif
 #endif
 
-#define SCM_DEFINE(FNAME, PRIMNAME, REQ, OPT, VAR, ARGLIST, DOCSTRING) \
+#define SCM_DEFINE_GSUBR(FNAME, PRIMNAME, REQ, OPT, VAR, ARGLIST, DOCSTRING) \
 SCM_SNARF_HERE(\
 static const char s_ ## FNAME [] = PRIMNAME; \
 SCM FNAME ARGLIST\
@@ -94,6 +94,63 @@ scm_c_define_gsubr (s_ ## FNAME, REQ, OPT, VAR, \
                     (SCM_FUNC_CAST_ARBITRARY_ARGS) FNAME); \
 )\
 SCM_SNARF_DOCS(primitive, FNAME, PRIMNAME, ARGLIST, REQ, OPT, VAR, DOCSTRING)
+
+#ifdef SCM_SUPPORT_STATIC_ALLOCATION
+
+/* Regular "subrs", i.e., few arguments.  */
+#define SCM_DEFINE_SUBR(FNAME, PRIMNAME, REQ, OPT, VAR, ARGLIST, DOCSTRING) \
+SCM_SYMBOL (scm_i_paste (FNAME, __name), PRIMNAME);			\
+SCM_SNARF_HERE(								\
+  static const char scm_i_paste (s_, FNAME) [] = PRIMNAME;		\
+  SCM_IMMUTABLE_SUBR (scm_i_paste (FNAME, __subr),			\
+		      scm_i_paste (FNAME, __name),			\
+		      REQ, OPT, VAR, &FNAME);				\
+  SCM FNAME ARGLIST							\
+)									\
+SCM_SNARF_INIT(								\
+  /* Initialize the procedure name (an interned symbol).  */		\
+  scm_i_paste (FNAME, __subr_meta_info)[0] = scm_i_paste (FNAME, __name); \
+									\
+  /* Define the subr.  */						\
+  scm_c_define (scm_i_paste (s_, FNAME), scm_i_paste (FNAME, __subr));	\
+)									\
+SCM_SNARF_DOCS(primitive, FNAME, PRIMNAME, ARGLIST, REQ, OPT, VAR, DOCSTRING)
+
+/* XXX: Eventually, we could statically allocate gsubrs as well.  */
+
+/* These are the subrs whose arity makes it possible to define them as "raw
+   subrs" (as opposed to "gsubrs").  This has to be consistent with
+   `SCM_SUBR_ARITY_TO_TYPE ()' and `create_gsubr ()'.  */
+#define SCM_DEFINE_SUBR_req0_opt0_rst0  SCM_DEFINE_SUBR
+#define SCM_DEFINE_SUBR_req1_opt0_rst0  SCM_DEFINE_SUBR
+#define SCM_DEFINE_SUBR_req0_opt1_rst0  SCM_DEFINE_SUBR
+#define SCM_DEFINE_SUBR_req1_opt1_rst0  SCM_DEFINE_SUBR
+#define SCM_DEFINE_SUBR_req2_opt0_rst0  SCM_DEFINE_SUBR
+#define SCM_DEFINE_SUBR_req3_opt0_rst0  SCM_DEFINE_SUBR
+#define SCM_DEFINE_SUBR_req0_opt0_rst1  SCM_DEFINE_SUBR
+#define SCM_DEFINE_SUBR_req2_opt0_rst1  SCM_DEFINE_SUBR
+
+/* For any other combination of required/optional/rest arguments, use
+   `SCM_DEFINE_GSUBR ().  */
+#include "libguile/snarf-gsubr.h"
+
+/* The generic subr definition macro.  This macro dispatches to either
+   `SCM_DEFINE_SUBR ()' or `SCM_DEFINE_GSUBR ()' depending on the arity of
+   the subr being defined.  */
+#define SCM_DEFINE(FNAME, PRIMNAME, REQ, OPT, VAR, ARGLIST, DOCSTRING)	\
+  SCM_DEFINE_SUBR_req ## REQ ## _opt ## OPT ## _rst ## VAR		\
+    (FNAME, PRIMNAME,							\
+     REQ, OPT, VAR,							\
+     ARGLIST, DOCSTRING)
+
+
+#else /* !SCM_SUPPORT_STATIC_ALLOCATION */
+
+/* Always use the generic subr case.  */
+#define SCM_DEFINE SCM_DEFINE_GSUBR
+
+#endif /* !SCM_SUPPORT_STATIC_ALLOCATION */
+
 
 #define SCM_PRIMITIVE_GENERIC(FNAME, PRIMNAME, REQ, OPT, VAR, ARGLIST, DOCSTRING) \
 SCM_SNARF_HERE(\
@@ -331,6 +388,18 @@ SCM_SNARF_INIT(scm_set_smob_apply((tag), (c_name), (req), (opt), (rest));)
 							_stringbuf_raw_cell), \
 			     (scm_t_bits) 0,				\
 			     (scm_t_bits) sizeof (contents) - 1)
+
+#define SCM_IMMUTABLE_SUBR(c_name, name, req, opt, rest, fcn)		\
+  static SCM_UNUSED SCM scm_i_paste (c_name, _meta_info)[2] =		\
+    {									\
+      SCM_BOOL_F,  /* The name, initialized at run-time.  */		\
+      SCM_EOL      /* The procedure properties.  */			\
+    };									\
+  SCM_IMMUTABLE_DOUBLE_CELL (c_name,					\
+			     SCM_SUBR_ARITY_TO_TYPE (req, opt, rest),	\
+			     (scm_t_bits) fcn,				\
+			     (scm_t_bits) 0 /* no generic */,		\
+			     (scm_t_bits) & scm_i_paste (c_name, _meta_info));
 
 #endif /* SCM_SUPPORT_STATIC_ALLOCATION */
 
