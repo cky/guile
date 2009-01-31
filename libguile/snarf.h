@@ -40,6 +40,10 @@
 # define SCM_SUPPORT_STATIC_ALLOCATION
 #endif
 
+/* C preprocessor token concatenation.  */
+#define scm_i_paste(x, y)      x ## y
+#define scm_i_paste3(a, b, c)  a ## b ## c
+
 
 
 /* Generic macros to be used in user macro definitions.
@@ -184,15 +188,19 @@ SCM_SNARF_INIT(scm_make_synt (RANAME, TYPE, CFN))
 
 # define SCM_SYMBOL(c_name, scheme_name)				\
 SCM_SNARF_HERE(								\
-  SCM_IMMUTABLE_STRING (c_name ## _string, scheme_name);		\
+  SCM_IMMUTABLE_STRING (scm_i_paste (c_name, _string), scheme_name);	\
   static SCM c_name)							\
-SCM_SNARF_INIT(c_name = scm_string_to_symbol (c_name ## _string))
+SCM_SNARF_INIT(								\
+  c_name = scm_string_to_symbol (scm_i_paste (c_name, _string))		\
+)
 
 # define SCM_GLOBAL_SYMBOL(c_name, scheme_name)				\
 SCM_SNARF_HERE(								\
-  SCM_IMMUTABLE_STRING (c_name ## _string, scheme_name);		\
+  SCM_IMMUTABLE_STRING (scm_i_paste (c_name, _string), scheme_name);	\
   SCM c_name)								\
-SCM_SNARF_INIT(c_name = scm_string_to_symbol (c_name ## _string))
+SCM_SNARF_INIT(								\
+  c_name = scm_string_to_symbol (scm_i_paste (c_name, _string))		\
+)
 
 #else /* !SCM_SUPPORT_STATIC_ALLOCATION */
 
@@ -316,10 +324,11 @@ SCM_SNARF_INIT(scm_set_smob_apply((tag), (c_name), (req), (opt), (rest));)
 			     (scm_t_bits) 0)
 
 #define SCM_IMMUTABLE_STRING(c_name, contents)				\
-  SCM_IMMUTABLE_STRINGBUF (c_name ## _stringbuf, contents);		\
+  SCM_IMMUTABLE_STRINGBUF (scm_i_paste (c_name, _stringbuf), contents);	\
   SCM_IMMUTABLE_DOUBLE_CELL (c_name,					\
 			     scm_tc7_ro_string,				\
-			     (scm_t_bits) &c_name ## _stringbuf_raw_cell, \
+			     (scm_t_bits) &scm_i_paste (c_name,		\
+							_stringbuf_raw_cell), \
 			     (scm_t_bits) 0,				\
 			     (scm_t_bits) sizeof (contents) - 1)
 
