@@ -1,7 +1,7 @@
 #ifndef SCM_BOEHM_GC_H
 #define SCM_BOEHM_GC_H
 
-/* Copyright (C) 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 2006, 2008, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -44,5 +44,24 @@
 /* This type was provided by `libgc' 6.x.  */
 typedef void *GC_PTR;
 #endif
+
+
+#include <gc/gc_mark.h>
+
+/* Return true if PTR points to the heap.  */
+#define SCM_I_IS_POINTER_TO_THE_HEAP(ptr)			\
+  ((void *) (ptr) >= GC_least_plausible_heap_addr		\
+   && (void *) (ptr) <= GC_greatest_plausible_heap_addr)
+
+/* Register a disappearing link for the object pointed to by OBJ such that
+   the pointer pointed to be LINK is cleared when OBJ is reclaimed.  Do so
+   only if OBJ actually points to the heap.  See
+   http://thread.gmane.org/gmane.comp.programming.garbage-collection.boehmgc/2563
+   for details.  */
+#define SCM_I_REGISTER_DISAPPEARING_LINK(link, obj)		\
+  ((SCM_I_IS_POINTER_TO_THE_HEAP (obj))				\
+   ? GC_GENERAL_REGISTER_DISAPPEARING_LINK ((link), (obj))	\
+   : 0)
+
 
 #endif /* SCM_BOEHM_GC_H */
