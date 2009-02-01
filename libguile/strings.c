@@ -86,8 +86,15 @@
 
 #define STRINGBUF_MAX_INLINE_LEN (3*sizeof(scm_t_bits))
 
-#define SET_STRINGBUF_SHARED(buf) \
-  (SCM_SET_CELL_WORD_0 ((buf), SCM_CELL_WORD_0 (buf) | STRINGBUF_F_SHARED))
+#define SET_STRINGBUF_SHARED(buf)					\
+  do									\
+    {									\
+      /* Don't modify BUF if it's already marked as shared since it might be \
+	 a read-only, statically allocated stringbuf.  */		\
+      if (SCM_LIKELY (!STRINGBUF_SHARED (buf)))				\
+	SCM_SET_CELL_WORD_0 ((buf), SCM_CELL_WORD_0 (buf) | STRINGBUF_F_SHARED); \
+    }									\
+  while (0)
 
 #if SCM_DEBUG
 static size_t lenhist[1001];
