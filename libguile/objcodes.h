@@ -51,6 +51,8 @@ struct scm_objcode {
   scm_t_uint8 nlocs;
   scm_t_uint8 nexts;
   scm_t_uint32 len;             /* the maximum index of base[] */
+  scm_t_uint32 metalen;         /* well, i lie. this many bytes at the end of
+                                   base[] for metadata */
   scm_t_uint8 base[0];
 };
 
@@ -65,6 +67,8 @@ extern scm_t_bits scm_tc16_objcode;
 #define SCM_VALIDATE_OBJCODE(p,x) SCM_MAKE_VALIDATE (p, x, OBJCODE_P)
 
 #define SCM_OBJCODE_LEN(x)	(SCM_OBJCODE_DATA (x)->len)
+#define SCM_OBJCODE_META_LEN(x)	(SCM_OBJCODE_DATA (x)->metalen)
+#define SCM_OBJCODE_TOTAL_LEN(x) (SCM_OBJCODE_LEN (x) + SCM_OBJCODE_META_LEN (x))
 #define SCM_OBJCODE_NARGS(x)	(SCM_OBJCODE_DATA (x)->nargs)
 #define SCM_OBJCODE_NREST(x)	(SCM_OBJCODE_DATA (x)->nrest)
 #define SCM_OBJCODE_NLOCS(x)	(SCM_OBJCODE_DATA (x)->nlocs)

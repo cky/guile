@@ -42,19 +42,22 @@
 (define (decode-load-program pop)
   (let* ((nargs (pop)) (nrest (pop)) (nlocs (pop)) (nexts (pop))
          (a (pop)) (b (pop)) (c (pop)) (d (pop))
+         (e (pop)) (f (pop)) (g (pop)) (h (pop))
          (len (+ a (ash b 8) (ash c 16) (ash d 24)))
+         (metalen (+ e (ash f 8) (ash g 16) (ash h 24)))
+         (totlen (+ len metalen))
          (i 0))
     (define (sub-pop) ;; ...records. ha. ha.
-      (let ((b (cond ((< i len) (pop))
-                     ((= i len) #f)
+      (let ((b (cond ((< i totlen) (pop))
+                     ((= i totlen) #f)
                      (else (error "tried to decode too many bytes")))))
         (if b (set! i (1+ i)))
         b))
     (let lp ((out '()))
-      (cond ((> i len)
+      (cond ((> i totlen)
              (error "error decoding program -- read too many bytes" out))
-            ((= i len)
-             `(load-program ,nargs ,nrest ,nlocs ,nexts () ,len
+            ((= i totlen)
+             `(load-program ,nargs ,nrest ,nlocs ,nexts () ,len ,metalen
                             ,@(reverse! out)))
             (else
              (let ((exp (decode-bytecode sub-pop)))

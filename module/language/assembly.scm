@@ -26,8 +26,8 @@
             assembly-pack assembly-unpack
             object->assembly assembly->object))
 
-;; nargs, nrest, nlocs, nexts, len
-(define *program-header-len* (+ 1 1 1 1 4))
+;; nargs, nrest, nlocs, nexts, len, metalen
+(define *program-header-len* (+ 1 1 1 1 4 4))
 
 ;; lengths are encoded in 3 bytes
 (define *len-len* 3)
@@ -48,8 +48,8 @@
      (+ 1 *len-len* (string-length str)))
     ((define ,str)
      (+ 1 *len-len* (string-length str)))
-    ((load-program ,nargs ,nrest ,nlocs ,nexts ,labels ,len . ,code)
-     (+ 1 *program-header-len* len))
+    ((load-program ,nargs ,nrest ,nlocs ,nexts ,labels ,len ,metalen . ,code)
+     (+ 1 *program-header-len* len metalen))
     ((,inst . _) (guard (>= (instruction-length inst) 0))
      (+ 1 (instruction-length inst)))
     (else (error "unknown instruction" assembly))))

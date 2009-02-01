@@ -77,7 +77,7 @@
                        (char->integer #\x)))
     
     ;; fixme: little-endian test.
-    (comp-test '(load-program 3 2 1 0 '() 3 (make-int8 3) (return))
-               (vector 'load-program 3 2 1 0 3 0 0 0
+    (comp-test '(load-program 3 2 1 0 '() 3 0 (make-int8 3) (return))
+               (vector 'load-program 3 2 1 0 3 0 0 0 0 0 0 0
                        (instruction->opcode 'make-int8) 3
                        (instruction->opcode 'return)))))

@@ -272,11 +272,12 @@ really_make_boot_program (long nargs)
 {
   scm_byte_t bytes[] = {0, 0, 0, 0,
                         0, 0, 0, 0,
+                        0, 0, 0, 0,
                         scm_op_mv_call, 0, 0, 1, scm_op_make_int8_1, scm_op_halt};
-  ((scm_t_uint32*)bytes)[1] = 6; /* set len in current endianness */
+  ((scm_t_uint32*)bytes)[1] = 6; /* set len in current endianness, no meta */
   if (SCM_UNLIKELY (nargs > 255 || nargs < 0))
     abort ();
-  bytes[9] = (scm_byte_t)nargs;
+  bytes[13] = (scm_byte_t)nargs;
   return scm_make_program (scm_bytecode_to_objcode (make_u8vector (bytes, sizeof(bytes))),
                            SCM_BOOL_F, SCM_EOL);
 }
