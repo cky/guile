@@ -46,12 +46,9 @@ typedef void *GC_PTR;
 #endif
 
 
-#include <gc/gc_mark.h>
-
 /* Return true if PTR points to the heap.  */
-#define SCM_I_IS_POINTER_TO_THE_HEAP(ptr)			\
-  ((void *) (ptr) >= GC_least_plausible_heap_addr		\
-   && (void *) (ptr) <= GC_greatest_plausible_heap_addr)
+#define SCM_I_IS_POINTER_TO_THE_HEAP(ptr)	\
+  (GC_base (ptr) != NULL)
 
 /* Register a disappearing link for the object pointed to by OBJ such that
    the pointer pointed to be LINK is cleared when OBJ is reclaimed.  Do so
