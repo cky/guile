@@ -160,9 +160,16 @@ VM_DEFINE_INSTRUCTION (16, vector, "vector", 2, -1, 1)
   unsigned h = FETCH ();
   unsigned l = FETCH ();
   unsigned len = ((h << 8) + l);
-  POP_LIST (len);
+  SCM vect;
+  
   SYNC_REGISTER ();
-  *sp = scm_vector (*sp);
+  sp++; sp -= len;
+  CHECK_UNDERFLOW ();
+  vect = scm_make_vector (scm_from_uint (len), SCM_BOOL_F);
+  memcpy (SCM_I_VECTOR_WELTS(vect), sp, sizeof(SCM) * len);
+  NULLSTACK (len);
+  *sp = vect;
+
   NEXT;
 }
 
