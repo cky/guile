@@ -10,7 +10,6 @@ exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
 (define-module (measure)
   :export (measure)
   :use-module (system vm vm)
-  :use-module (system vm disasm)
   :use-module (system base compile)
   :use-module (system base language))
 
@@ -46,7 +45,6 @@ exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
 		(format #t "unbound~%")))
 	 (the-program (compile proc-source))
 
-;	 (%%% (disassemble-objcode objcode))
 	 (time-compiled (time-for-eval `(,proc-name ,@(cdr sexp))
 				       (lambda (sexp)
 					 (eval `(begin
