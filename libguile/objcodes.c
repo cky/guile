@@ -190,14 +190,17 @@ SCM_DEFINE (scm_bytecode_to_objcode, "bytecode->objcode", 1, 0, 0,
   data = (struct scm_objcode*)c_bytecode;
   SCM_NEWSMOB2 (objcode, scm_tc16_objcode, data, bytecode);
   scm_array_handle_release (&handle);
+
+  SCM_ASSERT_RANGE (0, bytecode, size >= sizeof(struct scm_objcode));
+  if (data->len + data->metalen != (size - sizeof (*data)))
+    scm_misc_error (FUNC_NAME, "bad u8vector size (~a != ~a)",
+		    SCM_LIST2 (scm_from_size_t (size),
+                               scm_from_uint32 (sizeof (*data) + data->len + data->metalen)));
   assert (increment == 1);
-  SCM_ASSERT_RANGE (0, bytecode, size < 1<<31);
-  SCM_ASSERT_RANGE (0, bytecode, size >= sizeof(*data));
   SCM_SET_SMOB_FLAGS (objcode, SCM_F_OBJCODE_IS_U8VECTOR);
   
   /* foolishly, we assume that as long as bytecode is around, that c_bytecode
      will be of the same length; perhaps a bad assumption? */
-  /* FIXME: check length of bytecode */
 
   return objcode;
 }

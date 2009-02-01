@@ -178,10 +178,15 @@ SCM_DEFINE (scm_program_meta, "program-meta", 1, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_program_meta
 {
-  SCM objs;
+  SCM metaobj;
+  
   SCM_VALIDATE_PROGRAM (1, program);
-  objs = SCM_PROGRAM_OBJTABLE (program);
-  return scm_is_true (objs) ? scm_c_vector_ref (objs, 1) : SCM_BOOL_F;
+
+  metaobj = scm_objcode_meta (SCM_PROGRAM_OBJCODE (program));
+  if (scm_is_true (metaobj))
+    return scm_make_program (metaobj, SCM_BOOL_F, SCM_EOL);
+  else
+    return SCM_BOOL_F;
 }
 #undef FUNC_NAME
 

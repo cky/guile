@@ -92,7 +92,7 @@ VM_DEFINE_LOADER (65, load_program, "load-program")
     scm_c_vector_set_x (objs, 0, scm_current_module ());
 
   objcode = scm_c_make_objcode_slice (SCM_PROGRAM_OBJCODE (fp[-1]), ip);
-  len = sizeof (struct scm_objcode) + SCM_OBJCODE_LEN (objcode);
+  len = sizeof (struct scm_objcode) + SCM_OBJCODE_TOTAL_LEN (objcode);
 
   PUSH (scm_make_program (objcode, objs, SCM_EOL));
 

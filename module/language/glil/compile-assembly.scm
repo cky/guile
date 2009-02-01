@@ -44,21 +44,14 @@
 (define-record <subprogram> code)
 
 
-;; A metadata thunk has no object table, so it is very quick to load.
 (define (make-meta bindings sources tail)
   (if (and (null? bindings) (null? sources) (null? tail))
       #f
-      (make-subprogram
-       ;; we need to prepend #f for the object table. This would have
-       ;; even less overhead if we just appended the metadata-generating
-       ;; instructions after the body of the program's code. A FIXME for
-       ;; the future, eh.
-       `((make-false)
-         ,(compile-assembly
-           (make-glil-program 0 0 0 0 '()
-                              (list
-                               (make-glil-const `(,bindings ,sources ,@tail))
-                               (make-glil-call 'return 0))))))))
+      (compile-assembly
+       (make-glil-program 0 0 0 0 '()
+                          (list
+                           (make-glil-const `(,bindings ,sources ,@tail))
+                           (make-glil-call 'return 0))))))
 
 ;; A functional stack of names of live variables.
 (define (make-open-binding name ext? index)
@@ -98,7 +91,7 @@
       (close-all-bindings (close-binding bindings end) end)))
 
 ;; A functional object table.
-(define *module-and-meta* 2)
+(define *module* 1)
 (define (assoc-ref-or-acons alist x make-y)
   (cond ((assoc-ref alist x)
          => (lambda (y) (values y alist)))
@@ -108,15 +101,15 @@
 (define (object-index-and-alist x alist)
   (assoc-ref-or-acons alist x
                       (lambda (x alist)
-                        (+ (length alist) *module-and-meta*))))
+                        (+ (length alist) *module*))))
 
 (define (compile-assembly glil)
   (receive (code . _)
       (glil->assembly glil 0 '() '(()) '() '() #f 0)
     (car code)))
-(define (make-object-table objects meta)
-  (and (or meta (not (null? objects)))
-       (list->vector (cons* #f meta objects))))
+(define (make-object-table objects)
+  (and (not (null? objects))
+       (list->vector (cons #f objects))))
 
 (define (glil->assembly glil nargs nexts-stack bindings
                         source-alist label-alist object-alist addr)
@@ -151,7 +144,9 @@
        (receive (code bindings sources labels objects len)
            (process-body)
          (let ((prog `(load-program ,nargs ,nrest ,nlocs ,nexts ,labels
-                                    ,len #f . ,code)))
+                                    ,len
+                                    ,(make-meta bindings sources meta)
+                                    . ,code)))
            (cond
             (toplevel?
              ;; toplevel bytecode isn't loaded by the vm, no way to do
@@ -159,10 +154,7 @@
              ;; anyway)
              (emit-code `(,prog)))
             (else
-             (let ((table (dump-object (make-object-table
-                                        objects
-                                        (make-meta bindings sources meta))
-                                       addr))
+             (let ((table (dump-object (make-object-table objects) addr))
                    (closure (if (> closure-level 0) '((make-closure)) '())))
                (cond
                 (object-alist
