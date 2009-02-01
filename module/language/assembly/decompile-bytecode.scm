@@ -48,16 +48,17 @@
          (totlen (+ len metalen))
          (i 0))
     (define (sub-pop) ;; ...records. ha. ha.
-      (let ((b (cond ((< i totlen) (pop))
-                     ((= i totlen) #f)
+      (let ((b (cond ((< i len) (pop))
+                     ((= i len) #f)
                      (else (error "tried to decode too many bytes")))))
         (if b (set! i (1+ i)))
         b))
     (let lp ((out '()))
-      (cond ((> i totlen)
+      (cond ((> i len)
              (error "error decoding program -- read too many bytes" out))
-            ((= i totlen)
-             `(load-program ,nargs ,nrest ,nlocs ,nexts () ,len ,metalen
+            ((= i len)
+             `(load-program ,nargs ,nrest ,nlocs ,nexts () ,len
+                            ,(if (zero? metalen) #f (decode-load-program pop))
                             ,@(reverse! out)))
             (else
              (let ((exp (decode-bytecode sub-pop)))

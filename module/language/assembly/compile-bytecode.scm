@@ -81,19 +81,27 @@
       (write-byte opcode)
       (pmatch asm
         ((load-program ,nargs ,nrest ,nlocs ,nexts
-                       ,labels ,length ,metalength . ,code)
+                       ,labels ,length ,meta . ,code)
          (write-byte nargs)
          (write-byte nrest)
          (write-byte nlocs)
          (write-byte nexts)
          (write-uint32-le length) ;; FIXME!
-         (write-uint32-le metalength) ;; FIXME!
+         (write-uint32-le (if meta (1- (byte-length meta)) 0)) ;; FIXME!
          (letrec ((i 0)
                   (write (lambda (x) (set! i (1+ i)) (write-byte x)))
                   (get-addr (lambda () i)))
            (for-each (lambda (asm)
                        (write-bytecode asm write get-addr labels))
-                     code)))
+                     code))
+         (if meta
+             ;; don't write the load-program byte for metadata
+             (letrec ((i -1)
+                      (write (lambda (x)
+                               (set! i (1+ i))
+                               (if (> i 0) (write-byte x))))
+                      (get-addr (lambda () i)))
+               (write-bytecode meta write get-addr '()))))
         ((load-integer ,str) (write-loader str))
         ((load-number ,str) (write-loader str))
         ((load-string ,str) (write-loader str))

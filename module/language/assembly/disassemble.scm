@@ -36,7 +36,7 @@
 
 (define (disassemble-load-program asm env)
   (pmatch asm
-    ((load-program ,nargs ,nrest ,nlocs ,nexts ,labels ,len ,metalen . ,code)
+    ((load-program ,nargs ,nrest ,nlocs ,nexts ,labels ,len ,meta . ,code)
      (let ((objs  (and env (assq-ref env 'objects)))
            (meta  (and env (assq-ref env 'meta)))
            (exts  (and env (assq-ref env 'exts)))

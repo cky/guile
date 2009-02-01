@@ -77,7 +77,20 @@
                        (char->integer #\x)))
     
     ;; fixme: little-endian test.
-    (comp-test '(load-program 3 2 1 0 '() 3 0 (make-int8 3) (return))
+    (comp-test '(load-program 3 2 1 0 () 3 #f (make-int8 3) (return))
                (vector 'load-program 3 2 1 0 3 0 0 0 0 0 0 0
+                       (instruction->opcode 'make-int8) 3
+                       (instruction->opcode 'return)))
+
+    ;; fixme: little-endian test.
+    (comp-test '(load-program 3 2 1 0 () 3
+                              (load-program 3 2 1 0 () 3
+                                            #f
+                                            (make-int8 3) (return))
+                              (make-int8 3) (return))
+               (vector 'load-program 3 2 1 0 3 0 0 0 (+ 3 12) 0 0 0
+                       (instruction->opcode 'make-int8) 3
+                       (instruction->opcode 'return)
+                       3 2 1 0 3 0 0 0 0 0 0 0
                        (instruction->opcode 'make-int8) 3
                        (instruction->opcode 'return)))))

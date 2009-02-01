@@ -151,7 +151,7 @@
        (receive (code bindings sources labels objects len)
            (process-body)
          (let ((prog `(load-program ,nargs ,nrest ,nlocs ,nexts ,labels
-                                    ,len 0 . ,code)))
+                                    ,len #f . ,code)))
            (cond
             (toplevel?
              ;; toplevel bytecode isn't loaded by the vm, no way to do

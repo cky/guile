@@ -92,10 +92,10 @@ make_objcode_by_mmap (int fd)
 
   data = (struct scm_objcode*)(addr + strlen (OBJCODE_COOKIE));
 
-  if (data->len != (st.st_size - sizeof (*data) - strlen (OBJCODE_COOKIE)))
+  if (data->len + data->metalen != (st.st_size - sizeof (*data) - strlen (OBJCODE_COOKIE)))
     scm_misc_error (FUNC_NAME, "bad length header (~a, ~a)",
 		    SCM_LIST2 (scm_from_size_t (st.st_size),
-                               scm_from_uint32 (data->len)));
+                               scm_from_uint32 (sizeof (*data) + data->len + data->metalen)));
 
   SCM_NEWSMOB3 (sret, scm_tc16_objcode, addr + strlen (OBJCODE_COOKIE),
                 SCM_PACK (SCM_BOOL_F), fd);
@@ -118,14 +118,16 @@ scm_c_make_objcode_slice (SCM parent, scm_t_uint8 *ptr)
   parent_data = SCM_OBJCODE_DATA (parent);
   
   if (ptr < parent_data->base
-      || ptr >= (parent_data->base + parent_data->len
+      || ptr >= (parent_data->base + parent_data->len + parent_data->metalen
                  - sizeof (struct scm_objcode)))
-    scm_misc_error (FUNC_NAME, "offset out of bounds (~a vs ~a)",
-		    SCM_LIST2 (scm_from_ulong ((ulong)ptr),
-                               scm_from_uint32 (parent_data->len)));
+    scm_misc_error (FUNC_NAME, "offset out of bounds (~a vs ~a + ~a + ~a)",
+		    SCM_LIST4 (scm_from_ulong ((ulong)ptr),
+                               scm_from_ulong ((ulong)parent_data->base),
+                               scm_from_uint32 (parent_data->len),
+                               scm_from_uint32 (parent_data->metalen)));
 
   data = (struct scm_objcode*)ptr;
-  if (data->base + data->len > parent_data->base + parent_data->len)
+  if (data->base + data->len + data->metalen > parent_data->base + parent_data->len + parent_data->metalen)
     abort ();
 
   SCM_NEWSMOB2 (ret, scm_tc16_objcode, data, parent);
@@ -151,6 +153,21 @@ SCM_DEFINE (scm_objcode_p, "objcode?", 1, 0, 0,
 #define FUNC_NAME s_scm_objcode_p
 {
   return SCM_BOOL (SCM_OBJCODE_P (obj));
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_objcode_meta, "objcode-meta", 1, 0, 0,
+	    (SCM objcode),
+	    "")
+#define FUNC_NAME s_scm_objcode_meta
+{
+  SCM_VALIDATE_OBJCODE (1, objcode);
+
+  if (SCM_OBJCODE_META_LEN (objcode) == 0)
+    return SCM_BOOL_F;
+  else
+    return scm_c_make_objcode_slice (objcode, (SCM_OBJCODE_BASE (objcode)
+                                               + SCM_OBJCODE_LEN (objcode)));
 }
 #undef FUNC_NAME
 
@@ -180,6 +197,7 @@ SCM_DEFINE (scm_bytecode_to_objcode, "bytecode->objcode", 1, 0, 0,
   
   /* foolishly, we assume that as long as bytecode is around, that c_bytecode
      will be of the same length; perhaps a bad assumption? */
+  /* FIXME: check length of bytecode */
 
   return objcode;
 }
@@ -214,7 +232,7 @@ SCM_DEFINE (scm_objcode_to_bytecode, "objcode->bytecode", 1, 0, 0,
 
   SCM_VALIDATE_OBJCODE (1, objcode);
 
-  len = SCM_OBJCODE_DATA (objcode)->len + sizeof(struct scm_objcode);
+  len = sizeof(struct scm_objcode) + SCM_OBJCODE_TOTAL_LEN (objcode);
   /* FIXME:  Is `gc_malloc' ok here? */
   u8vector = scm_gc_malloc (len, "objcode-u8vector");
   memcpy (u8vector, SCM_OBJCODE_DATA (objcode), len);
@@ -233,7 +251,7 @@ SCM_DEFINE (scm_write_objcode, "write-objcode", 2, 0, 0,
   
   scm_c_write (port, OBJCODE_COOKIE, strlen (OBJCODE_COOKIE));
   scm_c_write (port, SCM_OBJCODE_DATA (objcode),
-               SCM_OBJCODE_LEN (objcode) + sizeof (struct scm_objcode));
+               sizeof (struct scm_objcode) + SCM_OBJCODE_TOTAL_LEN (objcode));
 
   return SCM_UNSPECIFIED;
 }
