@@ -42,6 +42,7 @@
 #include "libguile/root.h"
 #include "libguile/fluids.h"
 #include "libguile/objects.h"
+#include "libguile/programs.h"
 
 #include "libguile/validate.h"
 #include "libguile/debug.h"
@@ -314,6 +315,8 @@ SCM_DEFINE (scm_procedure_name, "procedure-name", 1, 0, 0,
 #endif
       if (scm_is_false (name) && SCM_CLOSUREP (proc))
 	name = scm_reverse_lookup (SCM_ENV (proc), proc);
+      if (scm_is_false (name) && SCM_PROGRAM_P (proc))
+        name = scm_program_name (proc);
       return name;
     }
   }

@@ -51,13 +51,6 @@
 (define (binding:start b) (list-ref b 3))
 (define (binding:end b) (list-ref b 4))
 
-(define (curry1 proc)
-  (lambda (x) (proc (x))))
-
-(define (program-bindings prog)
-  (cond ((program-meta prog) => (curry1 car))
-	(else #f)))
-
 (define (source:addr source)
   (car source))
 (define (source:line source)
@@ -67,22 +60,11 @@
 (define (source:file source)
   (vector-ref (cdr source) 2))
 
-(define (program-sources prog)
-  (cond ((program-meta prog) => (curry1 cadr))
-	(else '())))
-
-(define (program-properties prog)
-  (or (and=> (program-meta prog) (curry1 cddr))
-      '()))
-
 (define (program-property prog prop)
   (assq-ref (program-properties proc) prop))
 
 (define (program-documentation prog)
   (assq-ref (program-properties prog) 'documentation))
-
-(define (program-name prog)
-  (assq-ref (program-properties prog) 'name))
 
 (define (program-bindings-as-lambda-list prog)
   (let ((bindings (program-bindings prog))

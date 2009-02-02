@@ -48,6 +48,7 @@
 #include "instructions.h"
 #include "modules.h"
 #include "programs.h"
+#include "procprop.h" // scm_sym_name
 #include "vm.h"
 
 
@@ -190,18 +191,73 @@ SCM_DEFINE (scm_program_meta, "program-meta", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-extern SCM
-scm_c_program_source (SCM program, size_t ip)
+SCM_DEFINE (scm_program_bindings, "program-bindings", 1, 0, 0,
+	    (SCM program),
+	    "")
+#define FUNC_NAME s_scm_program_bindings
 {
-  SCM meta, sources, source;
+  SCM meta;
+  
+  SCM_VALIDATE_PROGRAM (1, program);
 
   meta = scm_program_meta (program);
   if (scm_is_false (meta))
     return SCM_BOOL_F;
-  meta = scm_call_0 (meta);
+  
+  return scm_car (scm_call_0 (meta));
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_program_sources, "program-sources", 1, 0, 0,
+	    (SCM program),
+	    "")
+#define FUNC_NAME s_scm_program_sources
+{
+  SCM meta;
+  
+  SCM_VALIDATE_PROGRAM (1, program);
+
+  meta = scm_program_meta (program);
   if (scm_is_false (meta))
-    return SCM_BOOL_F;
-  sources = scm_cadr (meta);
+    return SCM_EOL;
+  
+  return scm_cadr (scm_call_0 (meta));
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_program_properties, "program-properties", 1, 0, 0,
+	    (SCM program),
+	    "")
+#define FUNC_NAME s_scm_program_properties
+{
+  SCM meta;
+  
+  SCM_VALIDATE_PROGRAM (1, program);
+
+  meta = scm_program_meta (program);
+  if (scm_is_false (meta))
+    return SCM_EOL;
+  
+  return scm_cddr (scm_call_0 (meta));
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_program_name, "program-name", 1, 0, 0,
+	    (SCM program),
+	    "")
+#define FUNC_NAME s_scm_program_name
+{
+  SCM_VALIDATE_PROGRAM (1, program);
+  return scm_assq_ref (scm_program_properties (program), scm_sym_name);
+}
+#undef FUNC_NAME
+
+extern SCM
+scm_c_program_source (SCM program, size_t ip)
+{
+  SCM sources, source;
+
+  sources = scm_program_sources (program);
   source = scm_assv (scm_from_size_t (ip), sources);
   if (scm_is_false (source))
     return SCM_BOOL_F;

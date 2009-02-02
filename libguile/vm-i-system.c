@@ -488,6 +488,9 @@ VM_DEFINE_INSTRUCTION (39, call, "call", 1, -1, 1)
  vm_call:
   x = sp[-nargs];
 
+  SYNC_REGISTER ();
+  SCM_TICK;	/* allow interrupt here */
+
   /*
    * Subprogram call
    */
