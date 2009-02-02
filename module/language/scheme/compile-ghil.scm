@@ -248,7 +248,9 @@
     
   ;; (let ((SYM VAL) ...) BODY...)
   ((,bindings . ,body) (guard (valid-bindings? bindings))
-   (let ((vals (map retrans (map cadr bindings))))
+   (let ((vals (map (lambda (b)
+                      (maybe-name-value! (retrans (cadr b)) (car b)))
+                    bindings)))
      (call-with-ghil-bindings e (map car bindings)
                               (lambda (vars)
                                 (make-ghil-bind e l vars vals (trans-body e l body)))))))
@@ -265,7 +267,10 @@
   ((,bindings . ,body) (guard (valid-bindings? bindings))
    (call-with-ghil-bindings e (map car bindings)
                             (lambda (vars)
-                              (let ((vals (map retrans (map cadr bindings))))
+                              (let ((vals (map (lambda (b)
+                                                 (maybe-name-value!
+                                                  (retrans (cadr b)) (car b)))
+                                               bindings)))
                                 (make-ghil-bind e l vars vals (trans-body e l body)))))))
 
 (define-scheme-translator cond
