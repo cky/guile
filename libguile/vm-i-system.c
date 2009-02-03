@@ -979,6 +979,8 @@ VM_DEFINE_INSTRUCTION (48, return, "return", 0, 0, 1)
  vm_return:
   EXIT_HOOK ();
   RETURN_HOOK ();
+  SYNC_REGISTER ();
+  SCM_TICK;	/* allow interrupt here */
   {
     SCM ret, *data;
     data = SCM_FRAME_DATA_ADDRESS (fp);

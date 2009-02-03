@@ -39,6 +39,8 @@
 #include "libguile/ports.h"
 #include "libguile/strings.h"
 #include "libguile/vectors.h"
+#include "libguile/programs.h"
+#include "libguile/vm.h"
 
 #include "libguile/validate.h"
 #include "libguile/objects.h"
@@ -162,7 +164,9 @@ SCM
 scm_apply_generic (SCM gf, SCM args)
 {
   SCM cmethod = scm_mcache_compute_cmethod (SCM_ENTITY_PROCEDURE (gf), args);
-  if (scm_is_pair (cmethod))
+  if (SCM_PROGRAM_P (cmethod))
+    return scm_vm_apply (scm_the_vm (), cmethod, args);
+  else if (scm_is_pair (cmethod))
     return scm_eval_body (SCM_CDR (SCM_CMETHOD_CODE (cmethod)),
                           SCM_EXTEND_ENV (SCM_CAR (SCM_CMETHOD_CODE (cmethod)),
                                           args,

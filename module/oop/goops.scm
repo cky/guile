@@ -38,7 +38,6 @@
 	   make-extended-generic
 	   make-accessor ensure-accessor
 	   make-method add-method!
-	   object-eqv? object-equal?
 	   class-slot-ref class-slot-set! slot-unbound slot-missing 
 	   slot-definition-name  slot-definition-options
 	   slot-definition-allocation
@@ -621,12 +620,6 @@
 
 (define-method (eqv? x y) #f)
 (define-method (equal? x y) (eqv? x y))
-
-;;; These following two methods are for backward compatibility only.
-;;; They are not called by the Guile interpreter.
-;;;
-(define-method (object-eqv? x y)    #f)
-(define-method (object-equal? x y)  (eqv? x y))
 
 ;;;
 ;;; methods to display/write an object
