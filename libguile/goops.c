@@ -59,24 +59,32 @@
 
 #define SPEC_OF(x)  SCM_SLOT (x, scm_si_specializers)
 
-#define DEFVAR(v, val) \
-{ scm_eval (scm_list_3 (scm_sym_define_public, (v), (val)), \
-	    scm_module_goops); }
-/* Temporary hack until we get the new module system */
-/*fixme* Should optimize by keeping track of the variable object itself */
-#define GETVAR(v) (SCM_VARIABLE_REF (scm_call_2 (scm_goops_lookup_closure,  \
-						 (v), SCM_BOOL_F)))
+/* this file is a mess. in theory, though, we shouldn't have many SCM references
+   -- most of the references should be to vars. */
 
-/* Fixme: Should use already interned symbols */
+static SCM var_slot_unbound = SCM_BOOL_F;
+static SCM var_slot_missing = SCM_BOOL_F;
+static SCM var_compute_cpl = SCM_BOOL_F;
+static SCM var_no_applicable_method = SCM_BOOL_F;
+static SCM var_memoize_method_x = SCM_BOOL_F;
+static SCM var_change_class = SCM_BOOL_F;
 
-#define CALL_GF1(name, a)	(scm_call_1 (GETVAR (scm_from_locale_symbol (name)), \
-					     a))
-#define CALL_GF2(name, a, b)	(scm_call_2 (GETVAR (scm_from_locale_symbol (name)), \
-					     a, b))
-#define CALL_GF3(name, a, b, c)	(scm_call_3 (GETVAR (scm_from_locale_symbol (name)), \
-					     a, b, c))
-#define CALL_GF4(name, a, b, c, d)	(scm_call_4 (GETVAR (scm_from_locale_symbol (name)), \
-					     a, b, c, d))
+SCM_SYMBOL (sym_slot_unbound, "slot-unbound");
+SCM_SYMBOL (sym_slot_missing, "slot-missing");
+SCM_SYMBOL (sym_compute_cpl, "compute-cpl");
+SCM_SYMBOL (sym_no_applicable_method, "no-applicable-method");
+SCM_SYMBOL (sym_memoize_method_x, "memoize-method!");
+SCM_SYMBOL (sym_change_class, "change-class");
+
+SCM_VARIABLE (scm_var_make_extended_generic, "make-extended-generic");
+
+
+/* FIXME, exports should come from the scm file only */
+#define DEFVAR(v, val)                                          \
+  { scm_module_define (scm_module_goops, (v), (val));           \
+    scm_module_export (scm_module_goops, scm_list_1 ((v)));     \
+  }
+
 
 /* Class redefinition protocol:
 
@@ -118,8 +126,6 @@
 
 static int goops_loaded_p = 0;
 static scm_t_rstate *goops_rstate;
-
-static SCM scm_goops_lookup_closure;
 
 /* These variables are filled in by the object system when loaded. */
 SCM scm_class_boolean, scm_class_char, scm_class_pair;
@@ -341,7 +347,7 @@ static SCM
 compute_cpl (SCM class)
 {
   if (goops_loaded_p)
-    return CALL_GF1 ("compute-cpl", class);
+    return scm_call_1 (SCM_VARIABLE_REF (var_compute_cpl), class);
   else
     {
       SCM supers = SCM_SLOT (class, scm_si_direct_supers);
@@ -1189,7 +1195,7 @@ SCM_DEFINE (scm_assert_bound, "assert-bound", 2, 0, 0,
 #define FUNC_NAME s_scm_assert_bound
 {
   if (SCM_GOOPS_UNBOUNDP (value))
-    return CALL_GF1 ("slot-unbound", obj);
+    return scm_call_1 (SCM_VARIABLE_REF (var_slot_unbound), obj);
   return value;
 }
 #undef FUNC_NAME
@@ -1202,7 +1208,7 @@ SCM_DEFINE (scm_at_assert_bound_ref, "@assert-bound-ref", 2, 0, 0,
 {
   SCM value = SCM_SLOT (obj, scm_to_int (index));
   if (SCM_GOOPS_UNBOUNDP (value))
-    return CALL_GF1 ("slot-unbound", obj);
+    return scm_call_1 (SCM_VARIABLE_REF (var_slot_unbound), obj);
   return value;
 }
 #undef FUNC_NAME
@@ -1307,7 +1313,7 @@ get_slot_value_using_name (SCM class, SCM obj, SCM slot_name)
   if (scm_is_true (slotdef))
     return get_slot_value (class, obj, slotdef);
   else
-    return CALL_GF3 ("slot-missing", class, obj, slot_name);
+    return scm_call_3 (SCM_VARIABLE_REF (var_slot_missing), class, obj, slot_name);
 }
 
 static SCM
@@ -1354,7 +1360,7 @@ set_slot_value_using_name (SCM class, SCM obj, SCM slot_name, SCM value)
   if (scm_is_true (slotdef))
     return set_slot_value (class, obj, slotdef, value);
   else
-    return CALL_GF4 ("slot-missing", class, obj, slot_name, value);
+    return scm_call_4 (SCM_VARIABLE_REF (var_slot_missing), class, obj, slot_name, value);
 }
 
 static SCM
@@ -1384,7 +1390,7 @@ SCM_DEFINE (scm_slot_ref_using_class, "slot-ref-using-class", 3, 0, 0,
 
   res = get_slot_value_using_name (class, obj, slot_name);
   if (SCM_GOOPS_UNBOUNDP (res))
-    return CALL_GF3 ("slot-unbound", class, obj, slot_name);
+    return scm_call_3 (SCM_VARIABLE_REF (var_slot_unbound), class, obj, slot_name);
   return res;
 }
 #undef FUNC_NAME
@@ -1447,7 +1453,7 @@ SCM_DEFINE (scm_slot_ref, "slot-ref", 2, 0, 0,
 
   res = get_slot_value_using_name (class, obj, slot_name);
   if (SCM_GOOPS_UNBOUNDP (res))
-    return CALL_GF3 ("slot-unbound", class, obj, slot_name);
+    return scm_call_3 (SCM_VARIABLE_REF (var_slot_unbound), class, obj, slot_name);
   return res;
 }
 #undef FUNC_NAME
@@ -1736,7 +1742,7 @@ SCM_SYMBOL (scm_sym_change_class, "change-class");
 static SCM
 purgatory (void *args)
 {
-  return scm_apply_0 (GETVAR (scm_sym_change_class),
+  return scm_apply_0 (SCM_VARIABLE_REF (var_change_class),
 		      SCM_PACK ((scm_t_bits) args));
 }
 
@@ -2132,7 +2138,7 @@ scm_compute_applicable_methods (SCM gf, SCM args, long len, int find_method_p)
     {
       if (find_method_p)
 	return SCM_BOOL_F;
-      CALL_GF2 ("no-applicable-method", gf, save);
+      scm_call_2 (SCM_VARIABLE_REF (var_no_applicable_method), gf, save);
       /* if we are here, it's because no-applicable-method hasn't signaled an error */
       return SCM_BOOL_F;
     }
@@ -2189,8 +2195,13 @@ call_memoize_method (void *a)
   SCM cmethod = scm_mcache_lookup_cmethod (x, SCM_CDDR (args));
   if (scm_is_true (cmethod))
     return cmethod;
-  /*fixme* Use scm_apply */
-  return CALL_GF3 ("memoize-method!", gf, SCM_CDDR (args), x);
+
+  if (SCM_UNLIKELY (scm_is_false (var_memoize_method_x)))
+    var_memoize_method_x =
+      scm_permanent_object
+      (scm_module_variable (scm_module_goops, sym_memoize_method_x));
+      
+  return scm_call_3 (SCM_VARIABLE_REF (var_memoize_method_x), gf, SCM_CDDR (args), x);
 }
 
 SCM
@@ -2660,7 +2671,7 @@ make_class_from_template (char const *template, char const *type_name, SCM super
 
   /* Only define name if doesn't already exist. */
   if (!SCM_GOOPS_UNBOUNDP (name)
-      && scm_is_false (scm_call_2 (scm_goops_lookup_closure, name, SCM_BOOL_F)))
+      && scm_is_false (scm_module_variable (scm_module_goops, name)))
     DEFVAR (name, class);
   return class;
 }
@@ -2998,8 +3009,23 @@ SCM_DEFINE (scm_sys_goops_loaded, "%goops-loaded", 0, 0, 0,
 {
   goops_loaded_p = 1;
   var_compute_applicable_methods =
-    scm_sym2var (sym_compute_applicable_methods, scm_goops_lookup_closure,
-		 SCM_BOOL_F);
+    scm_permanent_object
+    (scm_module_variable (scm_module_goops, sym_compute_applicable_methods));
+  var_slot_unbound =
+    scm_permanent_object
+    (scm_module_variable (scm_module_goops, sym_slot_unbound));
+  var_slot_missing =
+    scm_permanent_object
+    (scm_module_variable (scm_module_goops, sym_slot_missing));
+  var_compute_cpl =
+    scm_permanent_object
+    (scm_module_variable (scm_module_goops, sym_compute_cpl));
+  var_no_applicable_method =
+    scm_permanent_object
+    (scm_module_variable (scm_module_goops, sym_no_applicable_method));
+  var_change_class =
+    scm_permanent_object
+    (scm_module_variable (scm_module_goops, sym_change_class));
   setup_extended_primitive_generics ();
   return SCM_UNSPECIFIED;
 }
@@ -3011,12 +3037,10 @@ SCM
 scm_init_goops_builtins (void)
 {
   scm_module_goops = scm_current_module ();
-  scm_goops_lookup_closure = scm_module_lookup_closure (scm_module_goops);
 
   /* Not really necessary right now, but who knows...
    */
   scm_permanent_object (scm_module_goops);
-  scm_permanent_object (scm_goops_lookup_closure);
 
   scm_components = scm_permanent_object (scm_make_weak_key_hash_table
 					 (scm_from_int (37)));
