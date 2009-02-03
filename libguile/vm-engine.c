@@ -72,7 +72,6 @@ vm_run (SCM vm, SCM program, SCM args)
 #if VM_USE_HOOKS
   SCM hook_args = SCM_LIST1 (vm);
 #endif
-  struct vm_unwind_data wind_data;
 
 #ifdef HAVE_LABELS_AS_VALUES
   static void **jump_table = NULL;
@@ -91,19 +90,6 @@ vm_run (SCM vm, SCM program, SCM args)
 #undef VM_INSTRUCTION_TO_LABEL
     }
 #endif
-
-  /* dynwind ended in the halt instruction */
-  scm_dynwind_begin (SCM_F_DYNWIND_REWINDABLE);
-  wind_data.vp = vp;
-  wind_data.sp = vp->sp;
-  wind_data.fp = vp->fp;
-  scm_dynwind_unwind_handler (vm_reset_stack, &wind_data, 0);
-
-  /* could do this if we reified all vm stacks -- for now, don't bother changing
-     *the-vm*
-  if (scm_fluid_ref (scm_the_vm_fluid) != vm)
-    scm_dynwind_fluid (scm_the_vm_fluid, vm);
-   */
 
   /* Initialization */
   {

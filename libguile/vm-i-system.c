@@ -56,7 +56,6 @@ VM_DEFINE_INSTRUCTION (1, halt, "halt", 0, 0, 0)
     NULLSTACK (stack_base - sp);
   }
   SYNC_ALL ();
-  scm_dynwind_end ();
   return ret;
 }
 

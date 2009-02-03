@@ -41,6 +41,7 @@
 #include "libguile/throw.h"
 #include "libguile/init.h"
 #include "libguile/strings.h"
+#include "libguile/vm.h"
 
 #include "libguile/private-options.h"
 
@@ -169,7 +170,16 @@ scm_c_catch (SCM tag,
   struct jmp_buf_and_retval jbr;
   SCM jmpbuf;
   SCM answer;
+  SCM vm;
+  SCM *sp = NULL, *fp = NULL; /* to reset the vm */
   struct pre_unwind_data pre_unwind;
+
+  vm = scm_the_vm ();
+  if (SCM_NFALSEP (vm))
+    {
+      sp = SCM_VM_DATA (vm)->sp;
+      fp = SCM_VM_DATA (vm)->fp;
+    }
 
   jmpbuf = make_jmpbuf ();
   answer = SCM_EOL;
@@ -199,6 +209,30 @@ scm_c_catch (SCM tag,
       throw_tag = jbr.throw_tag;
       jbr.throw_tag = SCM_EOL;
       jbr.retval = SCM_EOL;
+      if (SCM_NFALSEP (vm))
+        {
+          SCM_VM_DATA (vm)->sp = sp;
+          SCM_VM_DATA (vm)->fp = fp;
+#ifdef VM_ENABLE_STACK_NULLING
+          /* see vm.c -- you'll have to enable this manually */
+          memset (sp + 1, 0,
+                  (SCM_VM_DATA (vm)->stack_size
+                   - (sp + 1 - SCM_VM_DATA (vm)->stack_base)) * sizeof(SCM));
+#endif
+        }
+      else if (SCM_NFALSEP ((vm = scm_the_vm ())))
+        {
+          /* oof, it's possible this catch was called before the vm was
+             booted... yick. anyway, try to reset the vm stack. */
+          SCM_VM_DATA (vm)->sp = SCM_VM_DATA (vm)->stack_base - 1;
+          SCM_VM_DATA (vm)->fp = NULL;
+#ifdef VM_ENABLE_STACK_NULLING
+          /* see vm.c -- you'll have to enable this manually */
+          memset (SCM_VM_DATA (vm)->stack_base, 0,
+                  SCM_VM_DATA (vm)->stack_size * sizeof(SCM));
+#endif
+        }
+          
       answer = handler (handler_data, throw_tag, throw_args);
     }
   else

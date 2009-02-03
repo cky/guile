@@ -67,6 +67,7 @@
    are NULL. This is useful for checking the internal consistency of the VM's
    assumptions and its operators, but isn't necessary for normal operation. It
    will ensure that assertions are enabled. Slows down the VM by about 30%. */
+/* NB! If you enable this, search for NULLING in throw.c */
 /* #define VM_ENABLE_STACK_NULLING */
 
 /* #define VM_ENABLE_PARANOID_ASSERTIONS */
@@ -208,26 +209,6 @@ scm_vm_reinstate_continuations (SCM conts)
     reinstate_vm_cont (SCM_VM_DATA (SCM_CAAR (conts)), SCM_CDAR (conts));
 }
 
-struct vm_unwind_data 
-{
-  struct scm_vm *vp;
-  SCM *sp;
-  SCM *fp;
-};
-
-static void
-vm_reset_stack (void *data)
-{
-  struct vm_unwind_data *w = data;
-  struct scm_vm *vp = w->vp;
-  
-  vp->sp = w->sp;
-  vp->fp = w->fp;
-#ifdef VM_ENABLE_STACK_NULLING
-  memset (vp->sp + 1, 0, (vp->stack_size - (vp->sp + 1 - vp->stack_base)) * sizeof(SCM));
-#endif
-}
-
 static void enfalsen_frame (void *p)
 { 
   struct scm_vm *vp = p;
@@ -331,6 +312,10 @@ make_vm (void)
 #define FUNC_NAME "make_vm"
 {
   int i;
+
+  if (!scm_tc16_vm)
+    return SCM_BOOL_F; /* not booted yet */
+
   struct scm_vm *vp = scm_gc_malloc (sizeof (struct scm_vm), "vm");
 
   vp->stack_size  = VM_DEFAULT_STACK_SIZE;
