@@ -52,19 +52,24 @@
 #endif /* not HAVE_LABELS_AS_VALUES */
 #endif /* VM_LABEL */
 
-#undef VM_DEFINE_INSTRUCTION
 #undef VM_DEFINE_FUNCTION
 #undef VM_DEFINE_LOADER
-#ifdef VM_INSTRUCTION_TO_TABLE
+#define VM_DEFINE_FUNCTION(code,tag,name,nargs) \
+  VM_DEFINE_INSTRUCTION(code,tag,name,0,nargs,1)
+#define VM_DEFINE_LOADER(code,tag,name)         \
+  VM_DEFINE_INSTRUCTION(code,tag,name,-1,0,1)
+
+#undef VM_DEFINE_INSTRUCTION
 /*
  * These will go to scm_instruction_table in instructions.c
  */
-#define VM_DEFINE_INSTRUCTION(code,tag,name,len,npop,npush) \
-  {VM_OPCODE (tag), name, len, npop, npush},
-#define VM_DEFINE_FUNCTION(code,tag,name,nargs) \
-  {VM_OPCODE (tag), name, 0, nargs, 1},
-#define VM_DEFINE_LOADER(code,tag,name)         \
-  {VM_OPCODE (tag), name, -1, 0, 1},
+#ifdef VM_INSTRUCTION_TO_TABLE
+#define VM_DEFINE_INSTRUCTION(code_,tag_,name_,len_,npop_,npush_) \
+  table[VM_OPCODE (tag_)].opcode = VM_OPCODE (tag_);               \
+  table[VM_OPCODE (tag_)].name = name_;                            \
+  table[VM_OPCODE (tag_)].len = len_;                              \
+  table[VM_OPCODE (tag_)].npop = npop_;                            \
+  table[VM_OPCODE (tag_)].npush = npush_;
 
 #else
 #ifdef VM_INSTRUCTION_TO_LABEL
@@ -72,8 +77,6 @@
  * These will go to jump_table in vm_engine.c
  */
 #define VM_DEFINE_INSTRUCTION(code,tag,name,len,npop,npush)	jump_table[VM_OPCODE (tag)] = VM_ADDR (tag);
-#define VM_DEFINE_FUNCTION(code,tag,name,nargs)			jump_table[VM_OPCODE (tag)] = VM_ADDR (tag);
-#define VM_DEFINE_LOADER(code,tag,name)				jump_table[VM_OPCODE (tag)] = VM_ADDR (tag);
 
 #else
 #ifdef VM_INSTRUCTION_TO_OPCODE
@@ -81,16 +84,12 @@
  * These will go to scm_opcode in instructions.h
  */
 #define VM_DEFINE_INSTRUCTION(code,tag,name,len,npop,npush)	VM_OPCODE (tag) = code,
-#define VM_DEFINE_FUNCTION(code,tag,name,nargs)			VM_OPCODE (tag) = code,
-#define VM_DEFINE_LOADER(code,tag,name)				VM_OPCODE (tag) = code,
 
 #else /* Otherwise */
 /*
  * These are directly included in vm_engine.c
  */
 #define VM_DEFINE_INSTRUCTION(code,tag,name,len,npop,npush)	VM_TAG (tag)
-#define VM_DEFINE_FUNCTION(code,tag,name,nargs)			VM_TAG (tag)
-#define VM_DEFINE_LOADER(code,tag,name)				VM_TAG (tag)
 
 #endif /* VM_INSTRUCTION_TO_OPCODE */
 #endif /* VM_INSTRUCTION_TO_LABEL */

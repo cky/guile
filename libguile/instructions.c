@@ -57,16 +57,7 @@ struct scm_instruction {
 				   -1 for insns like `call' which can take
 				   any number of arguments.  */
   char npush;			/* the number of values pushed */
-};
-
-static struct scm_instruction scm_instruction_table[] = {
-#define VM_INSTRUCTION_TO_TABLE 1
-#include "vm-expand.h"
-#include "vm-i-system.i"
-#include "vm-i-scheme.i"
-#include "vm-i-loader.i"
-#undef VM_INSTRUCTION_TO_TABLE
-  {scm_op_last}
+  SCM symname;                  /* filled in later */
 };
 
 #define SCM_VALIDATE_LOOKUP_INSTRUCTION(pos, var, cvar)               \
@@ -76,27 +67,58 @@ static struct scm_instruction scm_instruction_table[] = {
   } while (0)
 
 
+static struct scm_instruction*
+fetch_instruction_table ()
+{
+  static struct scm_instruction *table = NULL;
+
+  if (SCM_UNLIKELY (!table))
+    {
+      size_t bytes = scm_op_last * sizeof(struct scm_instruction);
+      int i;
+      table = malloc (bytes);
+      memset (table, 0, bytes);
+#define VM_INSTRUCTION_TO_TABLE 1
+#include "vm-expand.h"
+#include "vm-i-system.i"
+#include "vm-i-scheme.i"
+#include "vm-i-loader.i"
+#undef VM_INSTRUCTION_TO_TABLE
+      for (i = 0; i < scm_op_last; i++)
+        {
+          table[i].opcode = i;
+          if (table[i].name)
+            table[i].symname = scm_from_locale_symbol (table[i].name);
+          else
+            table[i].symname = SCM_BOOL_F;
+        }
+    }
+  return table;
+}
+
 static struct scm_instruction *
 scm_lookup_instruction_by_name (SCM name)
 {
-  struct scm_instruction *ip;
-  char *symbol;
+  static SCM instructions_by_name = SCM_BOOL_F;
+  struct scm_instruction *table = fetch_instruction_table ();
+  SCM op;
 
-  if (SCM_SYMBOLP (name))
-    for (ip = scm_instruction_table; ip->opcode != scm_op_last; ip++)
-      {
-	symbol = scm_to_locale_string (scm_symbol_to_string (name));
-	if ((symbol) && (strcmp (ip->name, symbol) == 0))
-	  {
-	    free (symbol);
-	    return ip;
-	  }
+  if (SCM_UNLIKELY (SCM_FALSEP (instructions_by_name)))
+    { 
+      int i;
+      instructions_by_name = scm_make_hash_table (SCM_I_MAKINUM (scm_op_last));
+      for (i = 0; i < scm_op_last; i++)
+        if (scm_is_true (table[i].symname))
+          scm_hashq_set_x (instructions_by_name, table[i].symname,
+                           SCM_I_MAKINUM (i));
+      instructions_by_name = scm_permanent_object (instructions_by_name);
+    }
+  
+  op = scm_hashq_ref (instructions_by_name, name, SCM_UNDEFINED);
+  if (SCM_I_INUMP (op))
+    return &table[SCM_I_INUM (op)];
 
-	if (symbol)
-	  free (symbol);
-      }
-
-  return 0;
+  return NULL;
 }
 
 
@@ -109,8 +131,9 @@ SCM_DEFINE (scm_instruction_list, "instruction-list", 0, 0, 0,
 {
   SCM list = SCM_EOL;
   struct scm_instruction *ip;
-  for (ip = scm_instruction_table; ip->opcode != scm_op_last; ip++)
-    list = scm_cons (scm_from_locale_symbol (ip->name), list);
+  for (ip = fetch_instruction_table (); ip->opcode != scm_op_last; ip++)
+    if (ip->name)
+      list = scm_cons (ip->symname, list);
   return scm_reverse_x (list, SCM_EOL);
 }
 #undef FUNC_NAME
@@ -173,18 +196,19 @@ SCM_DEFINE (scm_opcode_to_instruction, "opcode->instruction", 1, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_opcode_to_instruction
 {
-  struct scm_instruction *ip;
   int opcode;
+  SCM ret = SCM_BOOL_F;
 
   SCM_MAKE_VALIDATE (1, op, I_INUMP);
   opcode = SCM_I_INUM (op);
 
-  for (ip = scm_instruction_table; ip->opcode != scm_op_last; ip++)
-    if (opcode == ip->opcode)
-      return scm_from_locale_symbol (ip->name);
+  if (opcode < scm_op_last)
+    ret = fetch_instruction_table ()[opcode].symname;
 
-  scm_wrong_type_arg_msg (FUNC_NAME, 1, op, "INSTRUCTION_P");
-  return SCM_BOOL_F; /* not reached */
+  if (scm_is_false (ret))
+    scm_wrong_type_arg_msg (FUNC_NAME, 1, op, "INSTRUCTION_P");
+
+  return ret;
 }
 #undef FUNC_NAME
 

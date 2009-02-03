@@ -80,8 +80,7 @@ vm_run (SCM vm, SCM program, SCM args)
   if (SCM_UNLIKELY (!jump_table))
     {
       int i;
-      jump_table = scm_gc_malloc (SCM_VM_NUM_INSTRUCTIONS * sizeof(void*),
-                                  "jump table");
+      jump_table = malloc (SCM_VM_NUM_INSTRUCTIONS * sizeof(void*));
       for (i = 0; i < SCM_VM_NUM_INSTRUCTIONS; i++)
         jump_table[i] = &&vm_error_bad_instruction;
 #define VM_INSTRUCTION_TO_LABEL 1
