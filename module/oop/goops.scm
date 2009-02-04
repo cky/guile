@@ -128,10 +128,9 @@
   (if (null? supers)
       <class>
       (let* ((all-metas (map (lambda (x) (class-of x)) supers))
-	     (all-cpls  (apply append
-			       (map (lambda (m)
-				      (cdr (class-precedence-list m))) 
-				    all-metas)))
+	     (all-cpls  (append-map (lambda (m)
+                                      (cdr (class-precedence-list m))) 
+                                    all-metas))
 	     (needed-metas '()))
 	;; Find the most specific metaclasses.  The new metaclass will be
 	;; a subclass of these.
@@ -319,13 +318,12 @@
     (let ((ans (if gws?
 		   (let* ((sname (and name (make-setter-name name)))
 			  (setters
-			   (apply append
-				  (map (lambda (gf)
+			   (append-map (lambda (gf)
 					 (if (is-a? gf <generic-with-setter>)
 					     (list (ensure-generic (setter gf)
 								   sname))
 					     '()))
-				       gfs)))
+				       gfs))
 			  (es (make <extended-generic-with-setter>
 				#:name name
 				#:extends gfs
