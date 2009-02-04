@@ -473,9 +473,8 @@ VM_DEFINE_INSTRUCTION (37, br_if_not_null, "br-if-not-null", 2, 0, 0)
 VM_DEFINE_INSTRUCTION (38, make_closure, "make-closure", 0, 1, 1)
 {
   SYNC_BEFORE_GC ();
-  *sp = scm_make_program (SCM_PROGRAM_OBJCODE (*sp),
-                          SCM_PROGRAM_OBJTABLE (*sp),
-                          external);
+  SCM_NEWSMOB3 (*sp, scm_tc16_program, SCM_PROGRAM_OBJCODE (*sp),
+                SCM_PROGRAM_OBJTABLE (*sp), external);
   NEXT;
 }
 

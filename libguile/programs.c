@@ -69,6 +69,12 @@ SCM_DEFINE (scm_make_program, "make-program", 1, 2, 0,
   if (SCM_UNLIKELY (SCM_UNBNDP (external)))
     external = SCM_EOL;
   else
+    /* FIXME: currently this test is quite expensive (can be 2-3% of total
+       execution time in programs that make many closures). We could remove it,
+       yes, but we'd get much better gains if we used some other method, like
+       just capturing the variables that we need instead of all heap-allocated
+       variables. Dunno. Keeping the check for now, as it's a user-callable
+       function, and inlining the op in the vm's make-closure operation. */
     SCM_VALIDATE_LIST (3, external);
 
   SCM_RETURN_NEWSMOB3 (scm_tc16_program, objcode, objtable, external);

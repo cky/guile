@@ -363,7 +363,7 @@ do {						\
 
 #define INIT_ARGS()				\
 {						\
-  if (bp->nrest)				\
+  if (SCM_UNLIKELY (bp->nrest))                 \
     {						\
       int n = nargs - (bp->nargs - 1);		\
       if (n < 0)				\
@@ -374,7 +374,7 @@ do {						\
     }						\
   else						\
     {						\
-      if (nargs != bp->nargs)			\
+      if (SCM_UNLIKELY (nargs != bp->nargs))    \
 	goto vm_error_wrong_num_args;		\
     }						\
 }
