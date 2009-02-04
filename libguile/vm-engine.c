@@ -39,14 +39,27 @@
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
 
-/* This file is included in vm.c twice */
+/* This file is included in vm.c multiple times */
+
+#if (VM_ENGINE == SCM_VM_REGULAR_ENGINE)
+#define VM_USE_HOOKS		0	/* Various hooks */
+#define VM_USE_CLOCK		0	/* Bogoclock */
+#define VM_CHECK_EXTERNAL	1	/* Check external link */
+#define VM_CHECK_OBJECT         1       /* Check object table */
+#elif (VM_ENGINE == SCM_VM_DEBUG_ENGINE)
+#define VM_USE_HOOKS		1
+#define VM_USE_CLOCK		1
+#define VM_CHECK_EXTERNAL	1
+#define VM_CHECK_OBJECT         1
+#else
+#error unknown debug engine VM_ENGINE
+#endif
 
 #include "vm-engine.h"
 
 
 static SCM
-vm_run (SCM vm, SCM program, SCM args)
-#define FUNC_NAME "vm-engine"
+VM_NAME (struct scm_vm *vp, SCM program, SCM *argv, int nargs)
 {
   /* VM registers */
   register scm_byte_t *ip IP_REG;	/* instruction pointer */
@@ -54,7 +67,6 @@ vm_run (SCM vm, SCM program, SCM args)
   register SCM *fp FP_REG;		/* frame pointer */
 
   /* Cache variables */
-  struct scm_vm *vp = SCM_VM_DATA (vm);	/* VM data pointer */
   struct scm_objcode *bp = NULL;	/* program base pointer */
   SCM external = SCM_EOL;		/* external environment */
   SCM *objects = NULL;			/* constant objects */
@@ -63,14 +75,12 @@ vm_run (SCM vm, SCM program, SCM args)
   SCM *stack_limit = vp->stack_limit;	/* stack limit address */
 
   /* Internal variables */
-  int nargs = 0;
   int nvalues = 0;
   long start_time = scm_c_get_internal_run_time ();
-  // SCM dynwinds = SCM_EOL;
   SCM err_msg;
   SCM err_args;
 #if VM_USE_HOOKS
-  SCM hook_args = SCM_LIST1 (vm);
+  SCM hook_args = SCM_EOL;
 #endif
 
 #ifdef HAVE_LABELS_AS_VALUES
@@ -96,7 +106,7 @@ vm_run (SCM vm, SCM program, SCM args)
     SCM prog = program;
 
     /* Boot program */
-    program = vm_make_boot_program (scm_ilength (args));
+    program = vm_make_boot_program (nargs);
 
     /* Initial frame */
     CACHE_REGISTER ();
@@ -106,8 +116,10 @@ vm_run (SCM vm, SCM program, SCM args)
 
     /* Initial arguments */
     PUSH (prog);
-    for (; !SCM_NULLP (args); args = SCM_CDR (args))
-      PUSH (SCM_CAR (args));
+    if (SCM_UNLIKELY (sp + nargs >= stack_limit))
+      goto vm_error_too_many_args;
+    while (nargs--)
+      PUSH (*argv++);
   }
 
   /* Let's go! */
@@ -144,6 +156,11 @@ vm_run (SCM vm, SCM program, SCM args)
   vm_error_wrong_type_arg:
     err_msg  = scm_from_locale_string ("VM: Wrong type argument");
     err_args = SCM_EOL;
+    goto vm_error;
+
+  vm_error_too_many_args:
+    err_msg  = scm_from_locale_string ("VM: Too many arguments");
+    err_args = SCM_LIST1 (scm_from_int (nargs));
     goto vm_error;
 
   vm_error_wrong_num_args:
@@ -223,7 +240,11 @@ vm_run (SCM vm, SCM program, SCM args)
 
   abort (); /* never reached */
 }
-#undef FUNC_NAME
+
+#undef VM_USE_HOOKS
+#undef VM_USE_CLOCK
+#undef VM_CHECK_EXTERNAL
+#undef VM_CHECK_OBJECT
 
 /*
   Local Variables:

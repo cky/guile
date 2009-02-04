@@ -41,15 +41,6 @@
 
 /* This file is included in vm_engine.c */
 
-/*
- * Options
- */
-
-#define VM_USE_HOOKS		1	/* Various hooks */
-#define VM_USE_CLOCK		1	/* Bogoclock */
-#define VM_CHECK_EXTERNAL	1	/* Check external link */
-#define VM_CHECK_OBJECT         1       /* Check object table */
-
 
 /*
  * Registers
@@ -193,7 +184,7 @@
 #undef CHECK_EXTERNAL
 #if VM_CHECK_EXTERNAL
 #define CHECK_EXTERNAL(e) \
-  do { if (!SCM_CONSP (e)) goto vm_error_external; } while (0)
+  do { if (SCM_UNLIKELY (!SCM_CONSP (e))) goto vm_error_external; } while (0)
 #else
 #define CHECK_EXTERNAL(e)
 #endif
@@ -201,7 +192,7 @@
 /* Accesses to a program's object table.  */
 #if VM_CHECK_OBJECT
 #define CHECK_OBJECT(_num) \
-  do { if ((_num) >= object_count) goto vm_error_object; } while (0)
+  do { if (SCM_UNLIKELY ((_num) >= object_count)) goto vm_error_object; } while (0)
 #else
 #define CHECK_OBJECT(_num)
 #endif
@@ -218,7 +209,7 @@
   if (SCM_UNLIKELY (!SCM_FALSEP (vp->hooks[h])))\
     {						\
       SYNC_REGISTER ();				\
-      vm_dispatch_hook (vm, vp->hooks[h], hook_args);      \
+      vm_dispatch_hook (vp, vp->hooks[h], hook_args);      \
       CACHE_REGISTER ();			\
     }						\
 }

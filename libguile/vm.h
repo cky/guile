@@ -55,6 +55,14 @@
 #define SCM_VM_RETURN_HOOK	7
 #define SCM_VM_NUM_HOOKS	8
 
+struct scm_vm;
+
+typedef SCM (*scm_t_vm_engine) (struct scm_vm *vp, SCM program, SCM *argv, int nargs);
+
+#define SCM_VM_REGULAR_ENGINE 0
+#define SCM_VM_DEBUG_ENGINE 1
+#define SCM_VM_NUM_ENGINES 2
+
 struct scm_vm {
   scm_byte_t *ip;		/* instruction pointer */
   SCM *sp;			/* stack pointer */
@@ -62,6 +70,7 @@ struct scm_vm {
   size_t stack_size;		/* stack size */
   SCM *stack_base;		/* stack base address */
   SCM *stack_limit;		/* stack limit address */
+  int engine;                   /* which vm engine we're using */
   SCM hooks[SCM_VM_NUM_HOOKS];	/* hooks */
   SCM options;			/* options */
   unsigned long time;		/* time spent */
@@ -78,6 +87,7 @@ extern SCM scm_the_vm_fluid;
 extern SCM scm_the_vm ();
 extern SCM scm_make_vm (void);
 extern SCM scm_vm_apply (SCM vm, SCM program, SCM args);
+extern SCM scm_c_vm_run (struct scm_vm *vp, SCM program, SCM *argv, int nargs);
 extern SCM scm_vm_option_ref (SCM vm, SCM key);
 extern SCM scm_vm_option_set_x (SCM vm, SCM key, SCM val);
 

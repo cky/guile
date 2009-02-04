@@ -43,6 +43,7 @@
 #  include <config.h>
 #endif
 
+#include <alloca.h>
 #include <string.h>
 #include "vm-bootstrap.h"
 #include "frames.h"
@@ -216,15 +217,14 @@ static void enfalsen_frame (void *p)
 }
 
 static void
-vm_dispatch_hook (SCM vm, SCM hook, SCM hook_args)
+vm_dispatch_hook (struct scm_vm *vp, SCM hook, SCM hook_args)
 {
-  struct scm_vm *vp = SCM_VM_DATA (vm);
-
   if (!SCM_FALSEP (vp->trace_frame))
     return;
   
   scm_dynwind_begin (0);
-  vp->trace_frame = scm_c_make_vm_frame (vm, vp->fp, vp->sp, vp->ip, 0);
+  // FIXME, stack holder should be the vm
+  vp->trace_frame = scm_c_make_vm_frame (SCM_BOOL_F, vp->fp, vp->sp, vp->ip, 0);
   scm_dynwind_unwind_handler (enfalsen_frame, vp, SCM_F_WIND_EXPLICITLY);
 
   scm_c_run_hook (hook, hook_args);
@@ -288,22 +288,24 @@ vm_make_boot_program (long nargs)
 
 #define VM_DEFAULT_STACK_SIZE	(16 * 1024)
 
-#define VM_REGULAR_ENGINE	0
-#define VM_DEBUG_ENGINE		1
-
-#if 0
 #define VM_NAME   vm_regular_engine
-#define VM_ENGINE VM_REGULAR_ENGINE
+#define FUNC_NAME "vm-regular-engine"
+#define VM_ENGINE SCM_VM_REGULAR_ENGINE
 #include "vm-engine.c"
 #undef VM_NAME
+#undef FUNC_NAME
 #undef VM_ENGINE
-#endif
 
 #define VM_NAME	  vm_debug_engine
-#define VM_ENGINE VM_DEBUG_ENGINE
+#define FUNC_NAME "vm-debug-engine"
+#define VM_ENGINE SCM_VM_DEBUG_ENGINE
 #include "vm-engine.c"
 #undef VM_NAME
+#undef FUNC_NAME
 #undef VM_ENGINE
+
+static const scm_t_vm_engine vm_engines[] = 
+  { vm_regular_engine, vm_debug_engine };
 
 scm_t_bits scm_tc16_vm;
 
@@ -328,6 +330,7 @@ make_vm (void)
   vp->ip    	  = NULL;
   vp->sp    	  = vp->stack_base - 1;
   vp->fp    	  = NULL;
+  vp->engine      = SCM_VM_DEBUG_ENGINE;
   vp->time        = 0;
   vp->clock       = 0;
   vp->options     = SCM_EOL;
@@ -375,11 +378,33 @@ vm_free (SCM obj)
 }
 
 SCM
+scm_c_vm_run (struct scm_vm *vp, SCM program, SCM *argv, int nargs)
+{
+  return vm_engines[vp->engine](vp, program, argv, nargs);
+}
+
+SCM
 scm_vm_apply (SCM vm, SCM program, SCM args)
 #define FUNC_NAME "scm_vm_apply"
 {
-  SCM_VALIDATE_PROGRAM (1, program);
-  return vm_run (vm, program, args);
+  SCM *argv;
+  int i, nargs;
+  
+  SCM_VALIDATE_VM (1, vm);
+  SCM_VALIDATE_PROGRAM (2, program);
+
+  nargs = scm_ilength (args);
+  if (SCM_UNLIKELY (nargs < 0))
+    scm_wrong_type_arg_msg (FUNC_NAME, 3, args, "list");
+  
+  argv = alloca(nargs * sizeof(SCM));
+  for (i = 0; i < nargs; i++)
+    {
+      argv[i] = SCM_CAR (args);
+      args = SCM_CDR (args);
+    }
+
+  return scm_c_vm_run (SCM_VM_DATA (vm), program, argv, nargs);
 }
 #undef FUNC_NAME
 
@@ -600,7 +625,7 @@ SCM scm_load_compiled_with_vm (SCM file)
   SCM program = scm_make_program (scm_load_objcode (file),
                                   SCM_BOOL_F, SCM_EOL);
   
-  return vm_run (scm_the_vm (), program, SCM_EOL);
+  return scm_c_vm_run (SCM_VM_DATA (scm_the_vm ()), program, NULL, 0);
 }
 
 void
