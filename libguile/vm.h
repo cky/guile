@@ -87,7 +87,7 @@ extern SCM scm_the_vm_fluid;
 extern SCM scm_the_vm ();
 extern SCM scm_make_vm (void);
 extern SCM scm_vm_apply (SCM vm, SCM program, SCM args);
-extern SCM scm_c_vm_run (struct scm_vm *vp, SCM program, SCM *argv, int nargs);
+extern SCM scm_c_vm_run (SCM vm, SCM program, SCM *argv, int nargs);
 extern SCM scm_vm_option_ref (SCM vm, SCM key);
 extern SCM scm_vm_option_set_x (SCM vm, SCM key, SCM val);
 

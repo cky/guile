@@ -378,8 +378,9 @@ vm_free (SCM obj)
 }
 
 SCM
-scm_c_vm_run (struct scm_vm *vp, SCM program, SCM *argv, int nargs)
+scm_c_vm_run (SCM vm, SCM program, SCM *argv, int nargs)
 {
+  struct scm_vm *vp = SCM_VM_DATA (vm);
   return vm_engines[vp->engine](vp, program, argv, nargs);
 }
 
@@ -404,7 +405,7 @@ scm_vm_apply (SCM vm, SCM program, SCM args)
       args = SCM_CDR (args);
     }
 
-  return scm_c_vm_run (SCM_VM_DATA (vm), program, argv, nargs);
+  return scm_c_vm_run (vm, program, argv, nargs);
 }
 #undef FUNC_NAME
 
@@ -625,7 +626,7 @@ SCM scm_load_compiled_with_vm (SCM file)
   SCM program = scm_make_program (scm_load_objcode (file),
                                   SCM_BOOL_F, SCM_EOL);
   
-  return scm_c_vm_run (SCM_VM_DATA (scm_the_vm ()), program, NULL, 0);
+  return scm_c_vm_run (scm_the_vm (), program, NULL, 0);
 }
 
 void

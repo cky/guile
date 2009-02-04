@@ -52,6 +52,7 @@
 #include "libguile/ports.h"
 #include "libguile/print.h"
 #include "libguile/procprop.h"
+#include "libguile/programs.h"
 #include "libguile/root.h"
 #include "libguile/smob.h"
 #include "libguile/srcprop.h"
@@ -62,6 +63,7 @@
 #include "libguile/validate.h"
 #include "libguile/values.h"
 #include "libguile/vectors.h"
+#include "libguile/vm.h"
 
 #include "libguile/eval.h"
 #include "libguile/private-options.h"
@@ -3050,32 +3052,56 @@ SCM_DEFINE (scm_evaluator_traps, "evaluator-traps-interface", 0, 1, 0,
 SCM
 scm_call_0 (SCM proc)
 {
-  return scm_apply (proc, SCM_EOL, SCM_EOL);
+  if (SCM_PROGRAM_P (proc))
+    return scm_c_vm_run (scm_the_vm (), proc, NULL, 0);
+  else
+    return scm_apply (proc, SCM_EOL, SCM_EOL);
 }
 
 SCM
 scm_call_1 (SCM proc, SCM arg1)
 {
-  return scm_apply (proc, arg1, scm_listofnull);
+  if (SCM_PROGRAM_P (proc))
+    return scm_c_vm_run (scm_the_vm (), proc, &arg1, 1);
+  else
+    return scm_apply (proc, arg1, scm_listofnull);
 }
 
 SCM
 scm_call_2 (SCM proc, SCM arg1, SCM arg2)
 {
-  return scm_apply (proc, arg1, scm_cons (arg2, scm_listofnull));
+  if (SCM_PROGRAM_P (proc))
+    {
+      SCM args[] = { arg1, arg2 };
+      return scm_c_vm_run (scm_the_vm (), proc, args, 2);
+    }
+  else
+    return scm_apply (proc, arg1, scm_cons (arg2, scm_listofnull));
 }
 
 SCM
 scm_call_3 (SCM proc, SCM arg1, SCM arg2, SCM arg3)
 {
-  return scm_apply (proc, arg1, scm_cons2 (arg2, arg3, scm_listofnull));
+  if (SCM_PROGRAM_P (proc))
+    {
+      SCM args[] = { arg1, arg2, arg3 };
+      return scm_c_vm_run (scm_the_vm (), proc, args, 3);
+    }
+  else
+    return scm_apply (proc, arg1, scm_cons2 (arg2, arg3, scm_listofnull));
 }
 
 SCM
 scm_call_4 (SCM proc, SCM arg1, SCM arg2, SCM arg3, SCM arg4)
 {
-  return scm_apply (proc, arg1, scm_cons2 (arg2, arg3,
-					   scm_cons (arg4, scm_listofnull)));
+  if (SCM_PROGRAM_P (proc))
+    {
+      SCM args[] = { arg1, arg2, arg3, arg4 };
+      return scm_c_vm_run (scm_the_vm (), proc, args, 4);
+    }
+  else
+    return scm_apply (proc, arg1, scm_cons2 (arg2, arg3,
+                                             scm_cons (arg4, scm_listofnull)));
 }
 
 /* Simple procedure applies
