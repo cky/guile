@@ -120,15 +120,11 @@ VM_NAME (struct scm_vm *vp, SCM program, SCM *argv, int nargs)
 
 #if VM_PUSH_DEBUG_FRAMES
     debug.prev = scm_i_last_debug_frame ();
-    if (!(debug.prev && debug.prev->status == SCM_APPLYFRAME
-          && debug.prev->vect[0].a.proc != prog))
-      {
-        debug.status = SCM_APPLYFRAME;
-        debug.vect = &debug_vect_body;
-        debug.vect[0].a.proc = program; /* the boot program */
-        debug.vect[0].a.args = SCM_EOL;
-        scm_i_set_last_debug_frame (&debug);
-      }
+    debug.status = SCM_APPLYFRAME;
+    debug.vect = &debug_vect_body;
+    debug.vect[0].a.proc = program; /* the boot program */
+    debug.vect[0].a.args = SCM_EOL;
+    scm_i_set_last_debug_frame (&debug);
 #endif
 
     /* Initial frame */
@@ -169,8 +165,7 @@ VM_NAME (struct scm_vm *vp, SCM program, SCM *argv, int nargs)
  vm_done:
   SYNC_ALL ();
 #if VM_PUSH_DEBUG_FRAMES
-  if (debug.status == SCM_APPLYFRAME)
-    scm_i_set_last_debug_frame (debug.prev);
+  scm_i_set_last_debug_frame (debug.prev);
 #endif
   return finish_args;
 

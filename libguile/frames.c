@@ -66,6 +66,19 @@ scm_c_make_vm_frame (SCM stack_holder, SCM *fp, SCM *sp,
   SCM_RETURN_NEWSMOB (scm_tc16_vm_frame, p);
 }
 
+static int
+vm_frame_print (SCM frame, SCM port, scm_print_state *pstate)
+{
+  scm_puts ("#<vm-frame ", port);
+  scm_uintprint (SCM_UNPACK (frame), 16, port);
+  scm_putc (' ', port);
+  scm_write (scm_vm_frame_program (frame), port);
+  /* don't write args, they can get us into trouble. */
+  scm_puts (">", port);
+
+  return 1;
+}
+
 static SCM
 vm_frame_mark (SCM obj)
 {
@@ -283,6 +296,7 @@ scm_bootstrap_frames (void)
   scm_tc16_vm_frame = scm_make_smob_type ("vm-frame", 0);
   scm_set_smob_mark (scm_tc16_vm_frame, vm_frame_mark);
   scm_set_smob_free (scm_tc16_vm_frame, vm_frame_free);
+  scm_set_smob_print (scm_tc16_vm_frame, vm_frame_print);
 }
 
 void

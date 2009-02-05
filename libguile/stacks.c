@@ -156,19 +156,23 @@ stack_depth (scm_t_debug_frame *dframe, scm_t_ptrdiff offset, SCM vmframe,
           scm_t_debug_info *vect = RELOC_INFO (dframe->vect, offset);
           if (SCM_PROGRAM_P (vect[0].a.proc))
             {
+              if (!SCM_PROGRAM_IS_BOOT (vect[0].a.proc))
+                /* Programs can end up in the debug stack via deval; but we just
+                   ignore those, because we know that the debugging VM engine
+                   pushes one dframe per invocation, with the boot program as
+                   the proc, so we only count those. */
+                continue;
               /* count vmframe back to previous boot frame */
               for (; scm_is_true (vmframe); vmframe = scm_c_vm_frame_prev (vmframe))
                 {
-                  if (SCM_PROGRAM_IS_BOOT (scm_vm_frame_program (vmframe)))
+                  if (!SCM_PROGRAM_IS_BOOT (scm_vm_frame_program (vmframe)))
+                    ++n;
+                  else
                     { /* skip boot frame, cut out of the vm backtrace */
                       vmframe = scm_c_vm_frame_prev (vmframe);
                       break;
                     }
-                  else
-                    ++n;
                 }
-              if (!SCM_PROGRAM_IS_BOOT (vect[0].a.proc))
-                ++n; /* increment for apply frame if this isn't a boot frame */
             }
           else if (scm_is_eq (vect[0].a.proc, scm_f_gsubr_apply))
             /* Skip gsubr apply frames. */
@@ -322,7 +326,12 @@ read_frames (scm_t_debug_frame *dframe, scm_t_ptrdiff offset,
 	continue;
       else if (SCM_PROGRAM_P (iframe->proc))
         {
-          scm_t_info_frame saved = *iframe;
+          if (!SCM_PROGRAM_IS_BOOT (iframe->proc))
+            /* Programs can end up in the debug stack via deval; but we just
+               ignore those, because we know that the debugging VM engine
+               pushes one dframe per invocation, with the boot program as
+               the proc, so we only count those. */
+            continue;
           for (; scm_is_true (vmframe);
                vmframe = scm_c_vm_frame_prev (vmframe))
             {
@@ -342,11 +351,6 @@ read_frames (scm_t_debug_frame *dframe, scm_t_ptrdiff offset,
                   if (--n == 0)
                     goto quit;
                 }
-            }
-          if (!SCM_PROGRAM_IS_BOOT (saved.proc))
-            {
-              *iframe = saved;
-              NEXT_FRAME (iframe, n, quit);
             }
         }
       else
