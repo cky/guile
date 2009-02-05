@@ -53,12 +53,15 @@ typedef unsigned char scm_byte_t;
 
 extern scm_t_bits scm_tc16_program;
 
+#define SCM_F_PROGRAM_IS_BOOT (1<<0)
+
 #define SCM_PROGRAM_P(x)	(SCM_SMOB_PREDICATE (scm_tc16_program, x))
 #define SCM_PROGRAM_OBJCODE(x)	(SCM_SMOB_OBJECT (x))
 #define SCM_PROGRAM_OBJTABLE(x)	(SCM_SMOB_OBJECT_2 (x))
 #define SCM_PROGRAM_EXTERNALS(x) (SCM_SMOB_OBJECT_3 (x))
 #define SCM_PROGRAM_DATA(x)	(SCM_OBJCODE_DATA (SCM_PROGRAM_OBJCODE (x)))
 #define SCM_VALIDATE_PROGRAM(p,x) SCM_MAKE_VALIDATE (p, x, PROGRAM_P)
+#define SCM_PROGRAM_IS_BOOT(x)	(SCM_SMOB_FLAGS (x) & SCM_F_PROGRAM_IS_BOOT)
 
 extern SCM scm_make_program (SCM objcode, SCM objtable, SCM externals);
 

@@ -126,13 +126,6 @@
 #define RELOC_FRAME(ptr, offset) \
   ((scm_t_debug_frame *) ((SCM_STACKITEM *) (ptr) + (offset)))
 
-/* FIXME: factor this out somewhere? */
-static int is_vm_bootstrap_frame (SCM f)
-{
-  struct scm_objcode *bp = SCM_PROGRAM_DATA (scm_vm_frame_program (f));
-  return bp->base[bp->len-1] == scm_op_halt;
-}
-
 /* Count number of debug info frames on a stack, beginning with
  * DFRAME.  OFFSET is used for relocation of pointers when the stack
  * is read from a continuation.
@@ -163,19 +156,25 @@ stack_depth (scm_t_debug_frame *dframe, scm_t_ptrdiff offset, SCM vmframe,
           scm_t_debug_info *vect = RELOC_INFO (dframe->vect, offset);
           if (SCM_PROGRAM_P (vect[0].a.proc))
             {
-              /* count vmframe back to previous bootstrap frame */
+              /* count vmframe back to previous boot frame */
               for (; scm_is_true (vmframe); vmframe = scm_c_vm_frame_prev (vmframe))
                 {
-                  if (is_vm_bootstrap_frame (vmframe))
-                    { /* skip bootstrap frame, cut out of the vm backtrace */
+                  if (SCM_PROGRAM_IS_BOOT (scm_vm_frame_program (vmframe)))
+                    { /* skip boot frame, cut out of the vm backtrace */
                       vmframe = scm_c_vm_frame_prev (vmframe);
                       break;
                     }
                   else
                     ++n;
                 }
+              if (!SCM_PROGRAM_IS_BOOT (vect[0].a.proc))
+                ++n; /* increment for apply frame if this isn't a boot frame */
             }
-          ++n; /* increment for apply frame in any case */
+          else if (scm_is_eq (vect[0].a.proc, scm_f_gsubr_apply))
+            /* Skip gsubr apply frames. */
+            continue;
+          else
+            ++n; /* increment for non-program apply frame */
         }
       else
 	++n;
@@ -321,36 +320,39 @@ read_frames (scm_t_debug_frame *dframe, scm_t_ptrdiff offset,
       else if (scm_is_eq (iframe->proc, scm_f_gsubr_apply))
 	/* Skip gsubr apply frames. */
 	continue;
-      else
-	{
-          if (SCM_PROGRAM_P (iframe->proc))
+      else if (SCM_PROGRAM_P (iframe->proc))
+        {
+          scm_t_info_frame saved = *iframe;
+          for (; scm_is_true (vmframe);
+               vmframe = scm_c_vm_frame_prev (vmframe))
             {
-              scm_t_info_frame saved = *iframe;
-              for (; scm_is_true (vmframe);
-                   vmframe = scm_c_vm_frame_prev (vmframe))
-                {
-                  if (is_vm_bootstrap_frame (vmframe))
-                    { /* skip bootstrap frame, back to interpreted frames */
-                      vmframe = scm_c_vm_frame_prev (vmframe);
-                      break;
-                    }
-                  else 
-                    {
-                      /* Oh dear, oh dear, oh dear. */
-                      iframe->flags = SCM_UNPACK (SCM_INUM0) | SCM_FRAMEF_PROC;
-                      iframe->source = scm_vm_frame_source (vmframe);
-                      iframe->proc = scm_vm_frame_program (vmframe);
-                      iframe->args = scm_vm_frame_arguments (vmframe);
-                      ++iframe;
-                      if (--n == 0)
-                        goto quit;
-                    }
+              if (SCM_PROGRAM_IS_BOOT (scm_vm_frame_program (vmframe)))
+                { /* skip boot frame, back to interpreted frames */
+                  vmframe = scm_c_vm_frame_prev (vmframe);
+                  break;
                 }
-              *iframe = saved;
+              else 
+                {
+                  /* Oh dear, oh dear, oh dear. */
+                  iframe->flags = SCM_UNPACK (SCM_INUM0) | SCM_FRAMEF_PROC;
+                  iframe->source = scm_vm_frame_source (vmframe);
+                  iframe->proc = scm_vm_frame_program (vmframe);
+                  iframe->args = scm_vm_frame_arguments (vmframe);
+                  ++iframe;
+                  if (--n == 0)
+                    goto quit;
+                }
             }
-
-	  NEXT_FRAME (iframe, n, quit);
-	}
+          if (!SCM_PROGRAM_IS_BOOT (saved.proc))
+            {
+              *iframe = saved;
+              NEXT_FRAME (iframe, n, quit);
+            }
+        }
+      else
+        {
+          NEXT_FRAME (iframe, n, quit);
+        }
     quit:
       if (iframe > iframes)
 	(iframe - 1) -> flags |= SCM_FRAMEF_REAL;
@@ -543,10 +545,11 @@ SCM_DEFINE (scm_make_stack, "make-stack", 1, 0, 1,
   SCM_STACK (stack) -> id = id;
   iframe = &SCM_STACK (stack) -> tail[0];
   SCM_STACK (stack) -> frames = iframe;
+  SCM_STACK (stack) -> length = n;
 
   /* Translate the current chain of stack frames into debugging information. */
-  n = read_frames (dframe, offset, vmframe, n, iframe);
-  SCM_STACK (stack) -> length = n;
+  if (read_frames (dframe, offset, vmframe, n, iframe) != n)
+    abort (); /* we counted wrong, this really shouldn't happen */
 
   /* Narrow the stack according to the arguments given to scm_make_stack. */
   SCM_VALIDATE_REST_ARGUMENT (args);

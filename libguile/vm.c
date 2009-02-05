@@ -255,12 +255,15 @@ really_make_boot_program (long nargs)
                         0, 0, 0, 0,
                         0, 0, 0, 0,
                         scm_op_mv_call, 0, 0, 1, scm_op_make_int8_1, scm_op_halt};
+  SCM ret;
   ((scm_t_uint32*)bytes)[1] = 6; /* set len in current endianness, no meta */
   if (SCM_UNLIKELY (nargs > 255 || nargs < 0))
     abort ();
   bytes[13] = (scm_byte_t)nargs;
-  return scm_make_program (scm_bytecode_to_objcode (make_u8vector (bytes, sizeof(bytes))),
-                           SCM_BOOL_F, SCM_EOL);
+  ret = scm_make_program (scm_bytecode_to_objcode (make_u8vector (bytes, sizeof(bytes))),
+                          SCM_BOOL_F, SCM_EOL);
+  SCM_SET_SMOB_FLAGS (ret, SCM_F_PROGRAM_IS_BOOT);
+  return ret;
 }
 #define NUM_BOOT_PROGS 8
 static SCM
