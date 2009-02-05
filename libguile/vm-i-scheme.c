@@ -136,7 +136,7 @@ VM_DEFINE_FUNCTION (90, cons, "cons", 2)
 
 #define VM_VALIDATE_CONS(x)                     \
   if (SCM_UNLIKELY (!scm_is_pair (x)))          \
-    { err_args = x;                             \
+    { finish_args = x;                          \
       goto vm_error_not_a_pair;                 \
     }
   

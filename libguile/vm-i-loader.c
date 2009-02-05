@@ -122,7 +122,7 @@ VM_DEFINE_INSTRUCTION (66, link_now, "link-now", 0, 1, 1)
         mod = scm_module_public_interface (mod);
       if (SCM_FALSEP (mod))
         {
-          err_args = SCM_LIST1 (SCM_CAR (what));
+          finish_args = SCM_LIST1 (SCM_CAR (what));
           goto vm_error_no_such_module;
         }
       /* might longjmp */

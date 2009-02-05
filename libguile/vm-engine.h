@@ -294,7 +294,7 @@ do						\
   for (; scm_is_pair (l); l = SCM_CDR (l))      \
     PUSH (SCM_CAR (l));                         \
   if (SCM_UNLIKELY (!NILP (l))) {               \
-    err_args = scm_list_1 (l);                  \
+    finish_args = scm_list_1 (l);               \
     goto vm_error_improper_list;                \
   }                                             \
 } while (0)

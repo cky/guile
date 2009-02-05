@@ -30,19 +30,18 @@ VM_DEFINE_INSTRUCTION (0, nop, "nop", 0, 0, 0)
 
 VM_DEFINE_INSTRUCTION (1, halt, "halt", 0, 0, 0)
 {
-  SCM ret;
   vp->time += scm_c_get_internal_run_time () - start_time;
   HALT_HOOK ();
   nvalues = SCM_I_INUM (*sp--);
   NULLSTACK (1);
   if (nvalues == 1)
-    POP (ret);
+    POP (finish_args);
   else
     {
       POP_LIST (nvalues);
-      POP (ret);
+      POP (finish_args);
       SYNC_REGISTER ();
-      ret = scm_values (ret);
+      finish_args = scm_values (finish_args);
     }
     
   {
@@ -55,8 +54,8 @@ VM_DEFINE_INSTRUCTION (1, halt, "halt", 0, 0, 0)
     fp = SCM_FRAME_DYNAMIC_LINK (fp);
     NULLSTACK (stack_base - sp);
   }
-  SYNC_ALL ();
-  return ret;
+  
+  goto vm_done;
 }
 
 VM_DEFINE_INSTRUCTION (2, break, "break", 0, 0, 0)
@@ -254,8 +253,8 @@ VM_DEFINE_INSTRUCTION (24, variable_ref, "variable-ref", 0, 0, 1)
 
   if (!VARIABLE_BOUNDP (x))
     {
-      err_args = SCM_LIST1 (x);
-      /* Was: err_args = SCM_LIST1 (SCM_CAR (x)); */
+      finish_args = SCM_LIST1 (x);
+      /* Was: finish_args = SCM_LIST1 (SCM_CAR (x)); */
       goto vm_error_unbound;
     }
   else
@@ -299,7 +298,7 @@ VM_DEFINE_INSTRUCTION (25, toplevel_ref, "toplevel-ref", 1, 0, 1)
             mod = scm_module_public_interface (mod);
           if (SCM_FALSEP (mod))
             {
-              err_args = SCM_LIST1 (mod);
+              finish_args = SCM_LIST1 (mod);
               goto vm_error_no_such_module;
             }
           /* might longjmp */
@@ -308,7 +307,7 @@ VM_DEFINE_INSTRUCTION (25, toplevel_ref, "toplevel-ref", 1, 0, 1)
           
       if (!VARIABLE_BOUNDP (what))
         {
-          err_args = SCM_LIST1 (what);
+          finish_args = SCM_LIST1 (what);
           goto vm_error_unbound;
         }
 
@@ -382,7 +381,7 @@ VM_DEFINE_INSTRUCTION (29, toplevel_set, "toplevel-set", 1, 1, 0)
             mod = scm_module_public_interface (mod);
           if (SCM_FALSEP (mod))
             {
-              err_args = SCM_LIST1 (what);
+              finish_args = SCM_LIST1 (what);
               goto vm_error_no_such_module;
             }
           /* might longjmp */
@@ -1088,7 +1087,7 @@ VM_DEFINE_INSTRUCTION (50, return_values_star, "return/values*", 1, -1, -1)
       nvalues++;
     }
   if (SCM_UNLIKELY (!SCM_NULL_OR_NIL_P (l))) {
-    err_args = scm_list_1 (l);
+    finish_args = scm_list_1 (l);
     goto vm_error_improper_list;
   }
 
