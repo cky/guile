@@ -3,7 +3,7 @@
 #ifndef SCM_OBJECTS_H
 #define SCM_OBJECTS_H
 
-/* Copyright (C) 1996,1999,2000,2001, 2003, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1996,1999,2000,2001, 2003, 2006, 2008, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -171,9 +171,9 @@ typedef struct scm_effective_slot_definition {
 #define SCM_CMETHOD_ENV(cmethod)  SCM_CAR (cmethod)
 
 /* Port classes */
-#define SCM_IN_PCLASS_INDEX    0x000
-#define SCM_OUT_PCLASS_INDEX   0x100
-#define SCM_INOUT_PCLASS_INDEX 0x200
+#define SCM_IN_PCLASS_INDEX       0
+#define SCM_OUT_PCLASS_INDEX      SCM_I_MAX_PORT_TYPE_COUNT
+#define SCM_INOUT_PCLASS_INDEX    (2 * SCM_I_MAX_PORT_TYPE_COUNT)
 
 /* Plugin proxy classes for basic types. */
 SCM_API SCM scm_metaclass_standard;

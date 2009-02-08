@@ -72,6 +72,13 @@ typedef struct scm_i_thread {
   */
   scm_i_pthread_mutex_t heap_mutex;
 
+  /* Boolean tracking whether the above mutex is currently locked by
+     this thread.  This is equivalent to whether or not the thread is
+     in "Guile mode".  This field doesn't need any protection because
+     it is only ever set or tested by the owning thread.
+  */
+  int heap_mutex_locked_by_self;
+
   /* The freelists of this thread.  Each thread has its own lists so
      that they can all allocate concurrently.
   */
@@ -225,7 +232,7 @@ SCM_API int scm_pthread_cond_wait (pthread_cond_t *cond,
 				   pthread_mutex_t *mutex);
 SCM_API int scm_pthread_cond_timedwait (pthread_cond_t *cond,
 					pthread_mutex_t *mutex,
-					const struct timespec *abstime);
+					const scm_t_timespec *abstime);
 #endif
 
 /* More convenience functions.

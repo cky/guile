@@ -34,3 +34,6 @@
 
 (pass-if "basic syncase macro"
   (= (plus 1 2 3) (+ 1 2 3)))
+
+(pass-if "@ works with syncase"
+  (eq? run-test (@ (test-suite lib) run-test)))

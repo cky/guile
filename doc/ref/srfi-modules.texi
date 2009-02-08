@@ -29,7 +29,7 @@ get the relevant SRFI documents from the SRFI home page
 * SRFI-8::                      receive.
 * SRFI-9::                      define-record-type.
 * SRFI-10::                     Hash-Comma Reader Extension.
-* SRFI-11::                     let-values and let-values*.
+* SRFI-11::                     let-values and let*-values.
 * SRFI-13::                     String library.
 * SRFI-14::                     Character-set library.
 * SRFI-16::                     case-lambda
@@ -1514,9 +1514,9 @@ the anonymous and compact syntax of @nicode{#,()} is much better.
 @cindex SRFI-11
 
 @findex let-values
-@findex let-values*
+@findex let*-values
 This module implements the binding forms for multiple values
-@code{let-values} and @code{let-values*}.  These forms are similar to
+@code{let-values} and @code{let*-values}.  These forms are similar to
 @code{let} and @code{let*} (@pxref{Local Bindings}), but they support
 binding of the values returned by multiple-valued expressions.
 
@@ -1533,7 +1533,7 @@ available.
 
 @code{let-values} performs all bindings simultaneously, which means that
 no expression in the binding clauses may refer to variables bound in the
-same clause list.  @code{let-values*}, on the other hand, performs the
+same clause list.  @code{let*-values}, on the other hand, performs the
 bindings sequentially, just like @code{let*} does for single-valued
 expressions.
 
