@@ -109,9 +109,8 @@
 
      ((eq? val sc-macro)
       ;; syncase!
-      (let* ((the-syncase-module (resolve-module '(ice-9 syncase)))
-             (eec (module-ref the-syncase-module 'expansion-eval-closure))
-             (sc-expand3 (module-ref the-syncase-module 'sc-expand3)))
+      (let* ((eec (@@ (ice-9 syncase) expansion-eval-closure))
+             (sc-expand3 (@@ (ice-9 syncase) sc-expand3)))
         (lambda (env loc exp)
           (retrans
            (with-fluids ((eec (module-eval-closure mod)))
