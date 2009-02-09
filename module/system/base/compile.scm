@@ -48,7 +48,7 @@
 	       (format (current-error-port)
                        "~A:~A: ~A: ~A~%" (car loc) (cdr loc) msg exp)
 	       (format (current-error-port)
-                       "unknown location: ~A: ~A~%" msg exp)))))
+                       "unknown location: ~A: ~S~%" msg exp)))))
 
 
 ;;;
@@ -77,8 +77,7 @@
      (lambda ()
        (with-throw-handler #t
          (lambda ()
-           (with-output-to-port tmp
-             (lambda () (proc (current-output-port))))
+           (proc tmp)
            (rename-file template filename))
          (lambda args
            (delete-file template)))))))

@@ -552,8 +552,12 @@ SCM_DEFINE (scm_make_stack, "make-stack", 1, 0, 1,
   SCM_STACK (stack) -> length = n;
 
   /* Translate the current chain of stack frames into debugging information. */
-  if (read_frames (dframe, offset, vmframe, n, iframe) != n)
-    abort (); /* we counted wrong, this really shouldn't happen */
+  n = read_frames (dframe, offset, vmframe, n, iframe);
+  if (n != SCM_STACK (stack)->length)
+    {
+      scm_puts ("warning: stack count incorrect!\n", scm_current_error_port ());
+      SCM_STACK (stack)->length = n;
+    }
 
   /* Narrow the stack according to the arguments given to scm_make_stack. */
   SCM_VALIDATE_REST_ARGUMENT (args);

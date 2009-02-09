@@ -317,11 +317,11 @@
   ;; (lambda FORMALS BODY...)
   ((,formals . ,body)
    (receive (syms rest) (parse-formals formals)
-            (call-with-ghil-environment e syms
-                                        (lambda (env vars)
-                                          (receive (meta body) (parse-lambda-meta body)
-                                                   (make-ghil-lambda env l vars rest meta
-                                                                     (trans-body env l body))))))))
+       (call-with-ghil-environment e syms
+     (lambda (env vars)
+       (receive (meta body) (parse-lambda-meta body)
+                (make-ghil-lambda env l vars rest meta
+                                  (trans-body env l body))))))))
 
 (define-scheme-translator delay
   ;; FIXME not hygienic
