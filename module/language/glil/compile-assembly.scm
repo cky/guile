@@ -44,6 +44,29 @@
 (define-record <subprogram> code)
 
 
+(define (limn-sources sources)
+  (let lp ((in sources) (out '()) (filename #f))
+    (if (null? in)
+        (reverse! out)
+        (let ((addr (caar in))
+              (new-filename (assq-ref (cdar in ) 'filename))
+              (line (assq-ref (cdar in) 'line))
+              (column (assq-ref (cdar in) 'column)))
+          (cond
+           ((not (equal? new-filename filename))
+            (lp (cdr in)
+                `((,addr . (,line . ,column))
+                  (filename ,new-filename)
+                  . ,out)
+                new-filename))
+           ((or (null? out) (not (equal? (cdar out) `(,line . ,column))))
+            (lp (cdr in)
+                `((,addr . (,line . ,column))
+                  . ,out)
+                filename))
+           (else
+            (lp (cdr in) out filename)))))))
+
 (define (make-meta bindings sources tail)
   (if (and (null? bindings) (null? sources) (null? tail))
       #f
@@ -129,7 +152,7 @@
               ((null? body)
                (values (reverse code)
                        (close-all-bindings bindings addr)
-                       (reverse source-alist)
+                       (limn-sources (reverse! source-alist))
                        (reverse label-alist)
                        (and object-alist (map car (reverse object-alist)))
                        addr))
@@ -139,7 +162,8 @@
                                    source-alist label-alist object-alist addr)
                  (lp (cdr body) (append (reverse subcode) code)
                      bindings source-alist label-alist object-alist
-                     (apply + addr (map byte-length subcode)))))))))
+                     (fold (lambda (x len) (+ (byte-length x) len))
+                           addr subcode))))))))
 
        (receive (code bindings sources labels objects len)
            (process-body)
@@ -190,10 +214,10 @@
              label-alist
              object-alist))
              
-    ((<glil-source> loc)
+    ((<glil-source> props)
      (values '()
              bindings
-             (acons addr loc source-alist)
+             (acons addr props source-alist)
              label-alist
              object-alist))
 

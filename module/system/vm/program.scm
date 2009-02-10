@@ -28,7 +28,7 @@
             binding:start binding:end
 
             source:addr source:line source:column source:file
-            program-bindings program-sources
+            program-bindings program-sources program-source
             program-properties program-property program-documentation
             program-name
            
@@ -53,12 +53,12 @@
 
 (define (source:addr source)
   (car source))
-(define (source:line source)
-  (vector-ref (cdr source) 0))
-(define (source:column source)
-  (vector-ref (cdr source) 1))
 (define (source:file source)
-  (vector-ref (cdr source) 2))
+  (cadr source))
+(define (source:line source)
+  (caddr source))
+(define (source:column source)
+  (cdddr source))
 
 (define (program-property prog prop)
   (assq-ref (program-properties proc) prop))
@@ -80,7 +80,11 @@
 (define (write-program prog port)
   (format port "#<program ~a ~a>"
           (or (program-name prog)
-              (let ((s (program-sources prog)))
-                (and (not (null? s)) (cdar s)))
+              (and=> (program-source prog 0)
+                     (lambda (s)
+                       (format #f "~a at ~a:~a:~a"
+                               (number->string (object-address prog) 16)
+                               (or (source:file s) "<unknown port>")
+                               (source:line s) (source:column s))))
               (number->string (object-address prog) 16))
           (program-bindings-as-lambda-list prog)))

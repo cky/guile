@@ -431,6 +431,8 @@
                ((external)
                 (push-code! #f (make-glil-argument 'ref n))
                 (push-code! #f (make-glil-external 'set 0 (ghil-var-index v)))))))
+         ;; push on definition source location
+         (if loc (set! stack (cons (make-glil-source loc) stack)))
 	 ;; compile body
 	 (comp body #t #f)
 	 ;; create GLIL

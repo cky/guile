@@ -473,14 +473,14 @@ display_backtrace_get_file_line (SCM frame, SCM *file, SCM *line)
       *file = scm_source_property (source, scm_sym_filename);
       *line = scm_source_property (source, scm_sym_line);
     }
-  else if (scm_is_vector (source))
+  else if (scm_is_pair (source)
+           && scm_is_pair (scm_cdr (source))
+           && scm_is_pair (scm_cddr (source))
+           && !scm_is_pair (scm_cdddr (source)))
     {
-      /* #(line column file), from VM compilation */
-      size_t len = scm_c_vector_length (source);
-      if (len >= 3)
-        *file = scm_c_vector_ref (source, 2);
-      if (len >= 1)
-        *line = scm_c_vector_ref (source, 0);
+      /* (addr . (filename . (line . column))), from vm compilation */
+      *file = scm_cadr (source);
+      *line = scm_caddr (source);
     }
 }
 

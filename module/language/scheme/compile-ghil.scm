@@ -127,10 +127,11 @@
 (define (translate-1 e l x)
   (let ((l (or l (location x))))
     (define (retrans x) (translate-1 e #f x))
+    (define (retrans/loc x) (translate-1 e (or (location x) l) x))
     (cond ((pair? x)
            (let ((head (car x)) (tail (cdr x)))
              (cond
-              ((lookup-transformer head retrans)
+              ((lookup-transformer head retrans/loc)
                => (lambda (t) (t e l x)))
 
               ;; FIXME: lexical/module overrides of forbidden primitives
@@ -166,7 +167,10 @@
                ,sym
                (lambda (e l exp)
                  (define (retrans x)
-                   ((@ (language scheme compile-ghil) translate-1) e #f x))
+                   ((@ (language scheme compile-ghil) translate-1)
+                    e
+                    (or ((@@ (language scheme compile-ghil) location) x) l)
+                    x))
                  (define syntax-error (@ (system base compile) syntax-error))
                  (pmatch (cdr exp)
                          ,@clauses
@@ -518,6 +522,4 @@
   (and (pair? x)
        (let ((props (source-properties x)))
 	 (and (not (null? props))
-	      (vector (assq-ref props 'line)
-                      (assq-ref props 'column)
-                      (assq-ref props 'filename))))))
+              props))))

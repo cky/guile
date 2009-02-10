@@ -71,6 +71,7 @@ extern SCM scm_program_arity (SCM program);
 extern SCM scm_program_meta (SCM program);
 extern SCM scm_program_bindings (SCM program);
 extern SCM scm_program_sources (SCM program);
+extern SCM scm_program_source (SCM program, SCM ip);
 extern SCM scm_program_properties (SCM program);
 extern SCM scm_program_name (SCM program);
 extern SCM scm_program_objects (SCM program);

@@ -49,6 +49,7 @@
 #include "modules.h"
 #include "programs.h"
 #include "procprop.h" // scm_sym_name
+#include "srcprop.h" // scm_sym_filename
 #include "vm.h"
 
 
@@ -219,7 +220,7 @@ SCM_DEFINE (scm_program_sources, "program-sources", 1, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_program_sources
 {
-  SCM meta;
+  SCM meta, sources, ret, filename;
   
   SCM_VALIDATE_PROGRAM (1, program);
 
@@ -227,7 +228,25 @@ SCM_DEFINE (scm_program_sources, "program-sources", 1, 0, 0,
   if (scm_is_false (meta))
     return SCM_EOL;
   
-  return scm_cadr (scm_call_0 (meta));
+  filename = SCM_BOOL_F;
+  ret = SCM_EOL;
+  for (sources = scm_cadr (scm_call_0 (meta)); !scm_is_null (sources);
+       sources = scm_cdr (sources))
+    {
+      SCM x = scm_car (sources);
+      if (scm_is_pair (x))
+        {
+          if (scm_is_number (scm_car (x)))
+            {
+              SCM addr = scm_car (x);
+              ret = scm_acons (addr, scm_cons (filename, scm_cdr (x)),
+                               ret);
+            }
+          else if (scm_is_eq (scm_car (x), scm_sym_filename))
+            filename = scm_cdr (x);
+        }
+    }
+  return scm_reverse_x (ret, SCM_UNDEFINED);
 }
 #undef FUNC_NAME
 
@@ -258,17 +277,28 @@ SCM_DEFINE (scm_program_name, "program-name", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+SCM_DEFINE (scm_program_source, "program-source", 2, 0, 0,
+	    (SCM program, SCM ip),
+	    "")
+#define FUNC_NAME s_scm_program_source
+{
+  SCM_VALIDATE_PROGRAM (1, program);
+  return scm_c_program_source (program, scm_to_size_t (ip));
+}
+#undef FUNC_NAME
+    
 extern SCM
 scm_c_program_source (SCM program, size_t ip)
 {
-  SCM sources, source;
+  SCM sources, source = SCM_BOOL_F;
 
-  sources = scm_program_sources (program);
-  source = scm_assv (scm_from_size_t (ip), sources);
-  if (scm_is_false (source))
-    return SCM_BOOL_F;
-
-  return scm_cdr (source); /* a #(line column file) vector */
+  for (sources = scm_program_sources (program);
+       !scm_is_null (sources)
+         && scm_to_size_t (scm_caar (sources)) <= ip;
+       sources = scm_cdr (sources))
+    source = scm_car (sources);
+  
+  return source; /* (addr . (filename . (line . column))) */
 }
 
 SCM_DEFINE (scm_program_external, "program-external", 1, 0, 0,

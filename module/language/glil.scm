@@ -37,7 +37,7 @@
    <glil-unbind> make-glil-unbind glil-unbind?
 
    <glil-source> make-glil-source glil-source?
-   glil-source-loc
+   glil-source-props
 
    <glil-void> make-glil-void glil-void?
 
@@ -82,7 +82,7 @@
   (<glil-bind> vars)
   (<glil-mv-bind> vars rest)
   (<glil-unbind>)
-  (<glil-source> loc)
+  (<glil-source> props)
   ;; Objects
   (<glil-void>)
   (<glil-const> obj)
@@ -122,7 +122,7 @@
     ((bind . ,vars) (make-glil-bind vars))
     ((mv-bind ,vars . ,rest) (make-glil-mv-bind vars (map parse-glil rest)))
     ((unbind) (make-glil-unbind))
-    ((source ,loc) (make-glil-source loc))
+    ((source ,props) (make-glil-source props))
     ((void) (make-glil-void))
     ((const ,obj) (make-glil-const obj))
     ((argument ,op ,index) (make-glil-argument op index))
@@ -145,7 +145,7 @@
     ((<glil-bind> vars) `(bind ,@vars))
     ((<glil-mv-bind> vars rest) `(mv-bind ,vars ,@rest))
     ((<glil-unbind>) `(unbind))
-    ((<glil-source> loc) `(source ,loc))
+    ((<glil-source> props) `(source ,props))
     ;; constants
     ((<glil-void>) `(void))
     ((<glil-const> obj) `(const ,obj))
