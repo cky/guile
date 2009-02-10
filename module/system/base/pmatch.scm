@@ -39,4 +39,4 @@
          (let ((vx (car v)) (vy (cdr v)))
            (ppat vx x (ppat vy y kt kf) kf))
          kf))
-    ((_ v lit kt kf) (if (equal? v (quote lit)) kt kf))))
+    ((_ v lit kt kf) (if (eq? v (quote lit)) kt kf))))
