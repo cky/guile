@@ -37,7 +37,7 @@
    ghil-unquote-env ghil-unquote-loc ghil-unquote-exp
 
    <ghil-unquote-splicing> make-ghil-unquote-splicing ghil-unquote-splicing?
-   ghil-unquote-env ghil-unquote-loc ghil-unquote-exp
+   ghil-unquote-splicing-env ghil-unquote-splicing-loc ghil-unquote-splicing-exp
 
    <ghil-ref> make-ghil-ref ghil-ref?
    ghil-ref-env ghil-ref-loc ghil-ref-var

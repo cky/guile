@@ -102,6 +102,34 @@
                    (car in)
                    out)))))))
 
+;; So, dear reader. It is pleasant indeed around this fire or at this
+;; cafe or in this room, is it not? I think so too.
+;;
+;; This macro used to generate code that looked like this:
+;;
+;;  `(((record-predicate ,record-type) ,r)
+;;    (let ,(map (lambda (slot)
+;;                 (if (pair? slot)
+;;                     `(,(car slot) ((record-accessor ,record-type ',(cadr slot)) ,r))
+;;                     `(,slot ((record-accessor ,record-type ',slot) ,r))))
+;;               slots)
+;;      ,@body)))))
+;;
+;; But this was a hot spot, so computing all those predicates and
+;; accessors all the time was getting expensive, so we did a terrible
+;; thing: we decided that since above we're already defining accessors
+;; and predicates with computed names, we might as well just rely on that fact here.
+;;
+;; It's a bit nasty, I agree. But it is fast.
+;;
+;;scheme@(guile-user)> (with-statprof #:hz 1000 #:full-stacks? #t (resolve-module '(oop goops)))%     cumulative   self             
+;; time   seconds     seconds      name
+;;   8.82      0.03      0.01  glil->assembly
+;;   8.82      0.01      0.01  record-type-fields
+;;   5.88      0.01      0.01  %compute-initargs
+;;   5.88      0.01      0.01  list-index
+
+
 (define-macro (record-case record . clauses)
   (let ((r (gensym)))
     (define (process-clause clause)
@@ -110,13 +138,14 @@
           (let ((record-type (caar clause))
                 (slots (cdar clause))
                 (body (cdr clause)))
-            `(((record-predicate ,record-type) ,r)
-              (let ,(map (lambda (slot)
-                           (if (pair? slot)
-                               `(,(car slot) ((record-accessor ,record-type ',(cadr slot)) ,r))
-                               `(,slot ((record-accessor ,record-type ',slot) ,r))))
-                         slots)
-                ,@body)))))
+            (let ((stem (symbol-trim-both record-type (list->char-set '(#\< #\>)))))
+              `((,(symbol-append stem '?) ,r)
+                (let ,(map (lambda (slot)
+                             (if (pair? slot)
+                                 `(,(car slot) (,(symbol-append stem '- (cadr slot)) ,r))
+                                 `(,slot (,(symbol-append stem '- slot) ,r))))
+                           slots)
+                  ,@body))))))
     `(let ((,r ,record))
        (cond ,@(let ((clauses (map process-clause clauses)))
                  (if (assq 'else clauses)
