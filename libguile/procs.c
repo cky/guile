@@ -38,19 +38,13 @@
  */
 
 
-/* libguile contained approx. 700 primitive procedures on 24 Aug 1999. */
-
-/* Increased to 800 on 2001-05-07 -- Guile now has 779 primitives on
-   startup, 786 with guile-readline.  'martin */
-
 SCM
 scm_c_make_subr (const char *name, long type, SCM (*fcn) ())
 {
   register SCM z;
   SCM *meta_info;
 
-  meta_info = scm_gc_malloc (2 * sizeof (* meta_info),
-			     "subr meta-info");
+  meta_info = scm_gc_malloc (2 * sizeof (*meta_info), "subr meta-info");
   meta_info[0] = scm_from_locale_symbol (name);
   meta_info[1] = SCM_EOL;  /* properties */
 
