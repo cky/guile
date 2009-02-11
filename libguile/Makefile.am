@@ -77,6 +77,8 @@ scmconfig.h: ${top_builddir}/config.h gen-scmconfig$(EXEEXT)
 	rm -f scmconfig.h
 	mv scmconfig.h.tmp scmconfig.h
 
+# Generate aliases for `SCM_DEFINE_GSUBR'.  Since there's a lot of
+# them, it's an efficient compression method.
 snarf-gsubr.h:
 	( echo "/* Automatically generated, do not edit.  */" ;						\
 	  for req in `seq 0 16`; do									\
