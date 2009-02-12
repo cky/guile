@@ -150,7 +150,7 @@
 
           ;; fixme: non-self-quoting objects like #<foo>
           (else
-           (make-ghil-quote e l #:obj x)))))
+           (make-ghil-quote e l x)))))
 
 (define (valid-bindings? bindings . it-is-for-do)
   (define (valid-binding? b)
@@ -179,11 +179,11 @@
 
 (define-scheme-translator quote
   ;; (quote OBJ)
-  ((,obj) (make-ghil-quote e l #:obj obj)))
+  ((,obj) (make-ghil-quote e l obj)))
     
 (define-scheme-translator quasiquote
   ;; (quasiquote OBJ)
-  ((,obj) (make-ghil-quasiquote e l #:exp (trans-quasiquote e l obj 0))))
+  ((,obj) (make-ghil-quasiquote e l (trans-quasiquote e l obj 0))))
 
 (define-scheme-translator define
   ;; (define NAME VAL)

@@ -352,7 +352,7 @@
      ((ref ,sym) (guard (symbol? sym))
       (make-ghil-ref env #f (ghil-var-for-ref! env sym)))
 
-     (('quote ,exp) (make-ghil-quote #:env env #:loc loc #:obj exp))
+     (('quote ,exp) (make-ghil-quote env loc exp))
 
      ((void) (make-ghil-void env loc))
 
@@ -417,7 +417,7 @@
       (make-ghil-reified-env env loc))
 
      ((quasiquote ,exp)
-      (make-ghil-quasiquote env loc #:exp (parse-quasiquote env exp 0)))
+      (make-ghil-quasiquote env loc (parse-quasiquote env exp 0)))
 
      (else
       (error "unrecognized GHIL" exp)))))

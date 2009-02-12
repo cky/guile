@@ -178,7 +178,7 @@
 	(return-code! #f *ia-void*))
       ;; return object if necessary
       (define (return-object! loc obj)
-	(return-code! loc (make-glil-const #:obj obj)))
+	(return-code! loc (make-glil-const obj)))
       ;;
       ;; dispatch
       (record-case tree
@@ -210,7 +210,7 @@
                (comp-push exp)
                (push-call! #f 'list-break '()))))
             ((constant? x)
-             (push-code! #f (make-glil-const #:obj x)))
+             (push-code! #f (make-glil-const x)))
             (else
              (error "element of quasiquote can't be compiled" x))))
 	 (maybe-drop)
@@ -330,7 +330,7 @@
          (let ((MV (make-label)))
            (comp-push producer)
            (push-code! loc (make-glil-mv-call 0 MV))
-           (push-code! #f (make-glil-const #:obj 1))
+           (push-code! #f (make-glil-const 1))
            (push-label! MV)
            (push-code! #f (make-glil-mv-bind (map var->binding vars) rest))
            (for-each (lambda (var) (push-code! #f (make-glil-var 'set env var)))
@@ -361,9 +361,9 @@
                (drop ;; (lambda () (values 1 2) 3)
                 (for-each comp-drop values))
                (else ;; (lambda () (list (values 10 12) 1))
-                (push-code! #f (make-glil-const #:obj 'values))
-                (push-code! #f (make-glil-call #:inst 'link-now #:nargs 1))
-                (push-code! #f (make-glil-call #:inst 'variable-ref #:nargs 0))
+                (push-code! #f (make-glil-const 'values))
+                (push-code! #f (make-glil-call 'link-now 1))
+                (push-code! #f (make-glil-call 'variable-ref 0))
                 (push-call! loc 'call values))))
                 
         ((<ghil-values*> env loc values)
@@ -372,9 +372,9 @@
                (drop ;; (lambda () (apply values '(1 2)) 3)
                 (for-each comp-drop values))
                (else ;; (lambda () (list (apply values '(10 12)) 1))
-                (push-code! #f (make-glil-const #:obj 'values))
-                (push-code! #f (make-glil-call #:inst 'link-now #:nargs 1))
-                (push-code! #f (make-glil-call #:inst 'variable-ref #:nargs 0))
+                (push-code! #f (make-glil-const 'values))
+                (push-code! #f (make-glil-call 'link-now 1))
+                (push-code! #f (make-glil-call 'variable-ref 0))
                 (push-call! loc 'apply values))))
                 
 	((<ghil-call> env loc proc args)

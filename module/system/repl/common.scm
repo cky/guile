@@ -35,7 +35,7 @@
 ;;; Repl type
 ;;;
 
-(define-record <repl> vm language options tm-stats gc-stats vm-stats)
+(define-record/keywords <repl> vm language options tm-stats gc-stats vm-stats)
 
 (define repl-default-options
   '((trace . #f)

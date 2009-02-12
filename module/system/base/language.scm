@@ -34,7 +34,7 @@
 ;;; Language class
 ;;;
 
-(define-record <language>
+(define-record/keywords <language>
   name
   title
   version

@@ -21,7 +21,8 @@
 
 (define-module (system base syntax)
   #:export (%compute-initargs)
-  #:export-syntax (define-type define-record record-case))
+  #:export-syntax (define-type define-record define-record/keywords
+                   record-case))
 
 
 ;;;
@@ -48,6 +49,39 @@
   (string->symbol (string-trim-both (symbol->string sym) pred)))
 
 (define-macro (define-record name-form . slots)
+  (let* ((name (if (pair? name-form) (car name-form) name-form))
+         (printer (and (pair? name-form) (cadr name-form)))
+         (slot-names (map (lambda (slot) (if (pair? slot) (car slot) slot))
+                          slots))
+         (stem (symbol-trim-both name (list->char-set '(#\< #\>)))))
+    `(begin
+       (define ,name (make-record-type ,(symbol->string name) ',slot-names
+                                       ,@(if printer (list printer) '())))
+       ,(let* ((reqs (let lp ((slots slots))
+                       (if (or (null? slots) (not (symbol? (car slots))))
+                           '()
+                           (cons (car slots) (lp (cdr slots))))))
+               (opts (list-tail slots (length reqs)))
+               (tail (gensym)))
+          `(define (,(symbol-append 'make- stem) ,@reqs . ,tail)
+             (let ,(map (lambda (o)
+                          `(,(car o) (cond ((null? ,tail) ,(cadr o))
+                                           (else (let ((_x (car ,tail)))
+                                                   (set! ,tail (cdr ,tail))
+                                                   _x)))))
+                        opts)
+               (make-struct ,name 0 ,@slot-names))))
+       (define ,(symbol-append stem '?) (record-predicate ,name))
+       ,@(map (lambda (sname)
+                `(define ,(symbol-append stem '- sname)
+                   (make-procedure-with-setter
+                    (record-accessor ,name ',sname)
+                    (record-modifier ,name ',sname))))
+              slot-names))))
+
+;; like the former, but accepting keyword arguments in addition to
+;; optional arguments
+(define-macro (define-record/keywords name-form . slots)
   (let* ((name (if (pair? name-form) (car name-form) name-form))
          (printer (and (pair? name-form) (cadr name-form)))
          (slot-names (map (lambda (slot) (if (pair? slot) (car slot) slot))
