@@ -165,7 +165,8 @@
 
 
 (define-macro (record-case record . clauses)
-  (let ((r (gensym)))
+  (let ((r (gensym))
+        (rtd (gensym)))
     (define (process-clause clause)
       (if (eq? (car clause) 'else)
           clause
@@ -173,14 +174,15 @@
                 (slots (cdar clause))
                 (body (cdr clause)))
             (let ((stem (symbol-trim-both record-type (list->char-set '(#\< #\>)))))
-              `((,(symbol-append stem '?) ,r)
+              `((eq? ,rtd ,record-type)
                 (let ,(map (lambda (slot)
                              (if (pair? slot)
                                  `(,(car slot) (,(symbol-append stem '- (cadr slot)) ,r))
                                  `(,slot (,(symbol-append stem '- slot) ,r))))
                            slots)
                   ,@body))))))
-    `(let ((,r ,record))
+    `(let* ((,r ,record)
+            (,rtd (struct-vtable ,r)))
        (cond ,@(let ((clauses (map process-clause clauses)))
                  (if (assq 'else clauses)
                      clauses
