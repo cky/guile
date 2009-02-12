@@ -311,6 +311,24 @@ fi
 AC_LANG_RESTORE
 ])dnl ACX_PTHREAD
 
+dnl GUILE_GNU_LD_RELRO
+dnl
+dnl Check whether GNU ld's read-only relocations (the `PT_GNU_RELRO'
+dnl ELF segment header) are supported.  This allows things like
+dnl statically allocated cells (1) to eventually be remapped read-only
+dnl by the loader, and (2) to be identified as pointerless by the
+dnl garbage collector.
+AC_DEFUN([GUILE_GNU_LD_RELRO], [
+  AC_MSG_CHECKING([whether the linker understands `-z relro'])
+
+  save_LDFLAGS="$LDFLAGS"
+  LDFLAGS="$LDFLAGS -Wl,-z -Wl,relro"
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([], [])],
+    [AC_MSG_RESULT([yes])],
+    [AC_MSG_RESULT([no])
+     LDFLAGS="$save_LDFLAGS"])
+])
+
 dnl GUILE_READLINE
 dnl
 dnl Check all the things needed by `guile-readline', the Readline
