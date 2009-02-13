@@ -24,8 +24,7 @@
 (define-module (oop goops compile)
   :use-module (oop goops)
   :use-module (oop goops util)
-  :export (compute-cmethod compute-entry-with-cmethod
-	   compile-method cmethod-code cmethod-environment)
+  :export (compute-cmethod compile-make-procedure)
   :no-backtrace
   )
 
@@ -42,46 +41,20 @@
 				   (check-entry (cdr entry) (cdr types)))))))
     (lambda (code-table types)
       (cond ((null? code-table) #f)
-	    ((check-entry (car code-table) types)
-	     => (lambda (cmethod)
-		  (cons (car code-table) cmethod)))
+	    ((check-entry (car code-table) types))
 	    (else (code-table-lookup (cdr code-table) types))))))
 
-(define (compute-entry-with-cmethod methods types)
+(define (compute-cmethod methods types)
   (or (code-table-lookup (slot-ref (car methods) 'code-table) types)
       (let* ((method (car methods))
              (cmethod (compile-method methods types))
 	     (entry (append types cmethod)))
 	(slot-set! method 'code-table
 		   (cons entry (slot-ref method 'code-table)))
-	(cons entry cmethod))))
-
-(define (compute-cmethod methods types)
-  (cdr (compute-entry-with-cmethod methods types)))
+	cmethod)))
 
 ;;;
-;;; Next methods
-;;;
-
-;;; Temporary solution---return #f if x doesn't refer to `next-method'.
-(define (next-method? x)
-  (and (pair? x)
-       (or (eq? (car x) 'next-method)
-	   (next-method? (car x))
-	   (next-method? (cdr x)))))
-
-(define (make-final-make-next-method method)
-  (lambda default-args
-    (lambda args
-      (@apply method (if (null? args) default-args args)))))	  
-
-(define (make-final-make-no-next-method gf)
-  (lambda default-args
-    (lambda args
-      (no-next-method gf (if (null? args) default-args args)))))
-
-;;;
-;;; Method compilation
+;;; Compiling next methods into method bodies
 ;;;
 
 ;;; So, for the reader: there basic idea is that, given that the
@@ -98,125 +71,38 @@
 ;;; I think this whole generic application mess would benefit from a
 ;;; strict MOP.
 
+;;; Temporary solution---return #f if x doesn't refer to `next-method'.
+(define (next-method? x)
+  (and (pair? x)
+       (or (eq? (car x) 'next-method)
+	   (next-method? (car x))
+	   (next-method? (cdr x)))))
+
+;; Called by the `method' macro in goops.scm.
+(define (compile-make-procedure formals specializers body)
+  (and (next-method? body)
+       (let ((next-method-sym (gensym " next-method"))
+             (args-sym (gensym)))
+         `(lambda (,next-method-sym)
+            (lambda ,formals
+              (let ((next-method (lambda ,args-sym
+                                   (if (null? ,args-sym)
+                                       ,(if (list? formals)
+                                            `(,next-method-sym ,@formals)
+                                            `(apply
+                                              ,next-method-sym
+                                              ,@(improper->proper formals)))
+                                       (apply ,next-method-sym ,args-sym)))))
+                ,@(if (null? body)
+                      '((begin))
+                      body)))))))
+
 (define (compile-method methods types)
-  (if (slot-ref (car methods) 'compile-env)
-      (compile-method/vm methods types)
-      (compile-method/memoizer methods types)))
-
-(define (make-next-method gf methods types)
-  (if (null? methods)
-      (lambda args (no-next-method gf args))
-      (let ((cmethod (compute-cmethod methods types)))
-        (if (pair? cmethod)
-            ;; if it's a pair, the next-method is interpreted
-            (local-eval (cons 'lambda (cmethod-code cmethod))
-                        (cmethod-environment cmethod))
-            ;; otherwise a normal procedure
-            cmethod))))
-
-(define (compile-method/vm methods types)
-  (let* ((program-external (@ (system vm program) program-external))
-         (formals (slot-ref (car methods) 'formals))
-	 (body (slot-ref (car methods) 'body)))
-    (cond
-     ((not (next-method? body))
-      ;; just one method to call -- in the future we could compile this
-      ;; based on the types that we see, but for now just return the
-      ;; method procedure (which is vm-compiled already)
-      (method-procedure (car methods)))
-
-     ;; (and-map (lambda (m) (null? (slot-ref m 'compile-env))) methods)
-     ;; many methods, but with no lexical bindings: can inline, in theory.
-     ;;
-     ;; modules complicate this though, the different method bodies only
-     ;; make sense in the contexts of their modules. so while we could
-     ;; expand this to a big letrec, there wouldn't be real inlining.
-
-     (else
-      (let* ((next-method-sym (gensym " next-method"))
-             (method (car methods))
-             (cmethod (compile
-                       `(let ((,next-method-sym #f))
-                          (lambda ,formals
-                            (let ((next-method
-                                   (lambda args
-                                     (if (null? args)
-                                         ,(if (list? formals)
-                                              `(,next-method-sym ,@formals)
-                                              `(apply
-                                                ,next-method-sym
-                                                ,@(improper->proper formals)))
-                                         (apply ,next-method-sym args)))))
-                              ,@body)))
-                       #:env (slot-ref method 'compile-env))))
-        (list-set! (program-external cmethod) 0
-                   (make-next-method (method-generic-function method)
-                                     (cdr methods)
-                                     types))
-        cmethod)))))
-
-;;;
-;;; Compiling methods for the memoizer
-;;;
-
-(define source-formals cadr)
-(define source-body cddr)
-
-(define cmethod-code cdr)
-(define cmethod-environment car)
-
-(define %tag-body
-  (nested-ref the-root-module '(app modules oop goops %tag-body)))
-
-;;; An exegetical note: the strategy here seems to be to (a) only put in
-;;; next-method if it's referenced in the code; (b) memoize the lookup
-;;; lazily, when `next-method' is first called.
-
-(define (make-make-next-method/memoizer vcell gf methods types)
-  (lambda default-args
-    (lambda args
-      (if (null? methods)
-	  (begin
-	    (set-cdr! vcell (make-final-make-no-next-method gf))
-	    (no-next-method gf (if (null? args) default-args args)))
-	  (let* ((cmethod (compute-cmethod methods types))
-		 (method
-                  (if (pair? cmethod)
-                      (local-eval (cons 'lambda (cmethod-code cmethod))
-                                  (cmethod-environment cmethod))
-                      cmethod)))
-	    (set-cdr! vcell (make-final-make-next-method method))
-	    (@apply method (if (null? args) default-args args)))))))
-
-(define (compile-method/memoizer+next methods types proc formals body)
-  (let ((vcell (cons 'goops:make-next-method #f)))
-    (set-cdr! vcell
-              (make-make-next-method/memoizer
-               vcell
-               (method-generic-function (car methods))
-               (cdr methods) types))
-    ;;*fixme*
-    `(,(cons vcell (procedure-environment proc))
-      ,formals
-      ;;*fixme* Only do this on source where next-method can't be inlined
-      (let ((next-method ,(if (list? formals)
-                              `(goops:make-next-method ,@formals)
-                              `(apply goops:make-next-method
-                                      ,@(improper->proper formals)))))
-        ,@body))))
-
-(define (compile-method/memoizer methods types)
-  (let* ((proc (method-procedure (car methods)))
-	 ;; XXX - procedure-source can not be guaranteed to be
-	 ;;       reliable or efficient
-	 (src (procedure-source proc)))
-    (if src
-        (let ((formals (source-formals src))
-              (body (source-body src)))
-          (if (next-method? body)
-              (compile-method/memoizer+next methods types proc formals body)
-              (cons (procedure-environment proc)
-                    (cons formals
-                          (%tag-body body)))
-              ))
-        proc)))
+  (let ((make-procedure (slot-ref (car methods) 'make-procedure)))
+    (if make-procedure
+        (make-procedure
+         (if (null? methods)
+             (lambda args
+               (no-next-method (method-generic-function (car methods)) args))
+             (compute-cmethod (cdr methods) types)))
+        (method-procedure (car methods)))))

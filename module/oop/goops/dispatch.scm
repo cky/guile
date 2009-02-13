@@ -269,7 +269,6 @@
 		  (+ 1 (slot-ref (method-cache-generic-function exp)
 				 'n-specialized)))))
 	(let* ((types (map class-of (first-n args n-specializers)))
-	       (entry+cmethod (compute-entry-with-cmethod applicable types)))
-	  (insert! exp (car entry+cmethod)) ; entry = types + cmethod
-	  (cdr entry+cmethod) ; cmethod
-	  )))))
+	       (cmethod (compute-cmethod applicable types)))
+	  (insert! exp (append types cmethod)) ; entry = types + cmethod
+	  cmethod))))) ; cmethod

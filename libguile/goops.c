@@ -2231,7 +2231,7 @@ SCM_KEYWORD (k_specializers,	"specializers");
 SCM_KEYWORD (k_procedure,	"procedure");
 SCM_KEYWORD (k_formals,		"formals");
 SCM_KEYWORD (k_body,		"body");
-SCM_KEYWORD (k_compile_env,	"compile-env");
+SCM_KEYWORD (k_make_procedure,	"make-procedure");
 SCM_KEYWORD (k_dsupers,		"dsupers");
 SCM_KEYWORD (k_slots,		"slots");
 SCM_KEYWORD (k_gf,		"generic-function");
@@ -2295,7 +2295,7 @@ SCM_DEFINE (scm_make, "make",  0, 0, 1,
 	    scm_i_get_keyword (k_procedure,
 			       args,
 			       len - 1,
-			       SCM_EOL,
+			       SCM_BOOL_F,
 			       FUNC_NAME));
 	  SCM_SET_SLOT (z, scm_si_code_table, SCM_EOL);
 	  SCM_SET_SLOT (z, scm_si_formals,
@@ -2310,8 +2310,8 @@ SCM_DEFINE (scm_make, "make",  0, 0, 1,
 			       len - 1,
 			       SCM_EOL,
 			       FUNC_NAME));
-	  SCM_SET_SLOT (z, scm_si_compile_env,
-	    scm_i_get_keyword (k_compile_env,
+	  SCM_SET_SLOT (z, scm_si_make_procedure,
+	    scm_i_get_keyword (k_make_procedure,
 			       args,
 			       len - 1,
 			       SCM_BOOL_F,
@@ -2461,7 +2461,7 @@ create_standard_classes (void)
 				 scm_from_locale_symbol ("code-table"),
 				 scm_from_locale_symbol ("formals"),
 				 scm_from_locale_symbol ("body"),
-				 scm_from_locale_symbol ("compile-env"),
+				 scm_from_locale_symbol ("make-procedure"),
                                  SCM_UNDEFINED);
   SCM amethod_slots = scm_list_1 (scm_list_3 (scm_from_locale_symbol ("slot-definition"),
 					      k_init_keyword,

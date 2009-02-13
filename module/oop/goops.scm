@@ -37,7 +37,7 @@
 	   make-generic ensure-generic
 	   make-extended-generic
 	   make-accessor ensure-accessor
-	   make-method add-method!
+	   add-method!
 	   class-slot-ref class-slot-set! slot-unbound slot-missing 
 	   slot-definition-name  slot-definition-options
 	   slot-definition-allocation
@@ -461,11 +461,6 @@
               (add-method! ,gf
                            (method ,(cdr head) ,@body)))))))
 
-(define (make-method specializers procedure)
-  (make <method>
-	#:specializers specializers
-	#:procedure procedure))
-
 (define-macro (method args . body)
   (letrec ((specializers
 	    (lambda (ls)
@@ -481,15 +476,23 @@
 		  (cons (if (pair? (car ls)) (caar ls) (car ls))
 			(formals (cdr ls)))
 		  ls))))
-    `(make <method>
-       #:specializers (cons* ,@(specializers args))
-       #:formals ',(formals args)
-       #:body ',body
-       #:compile-env (compile-time-environment)
-       #:procedure (lambda ,(formals args)
-                     ,@(if (null? body)
-                           '(begin)
-                           body)))))
+    (let ((make-proc (compile-make-procedure (formals args)
+                                             (specializers args)
+                                             body)))
+      `(make <method>
+         #:specializers (cons* ,@(specializers args))
+         #:formals ',(formals args)
+         #:body ',body
+         #:make-procedure ,make-proc
+         #:procedure ,(and (not make-proc)
+                           ;; that is to say: we set #:procedure if
+                           ;; `compile-make-procedure' returned `#f',
+                           ;; which is the case if `body' does not
+                           ;; contain a call to `next-method'
+                          `(lambda ,(formals args)
+                             ,@(if (null? body)
+                                   '((begin))
+                                   body)))))))
 
 ;;;
 ;;; {add-method!}
@@ -1452,11 +1455,11 @@
   (slot-set! method 'generic-function (get-keyword #:generic-function initargs #f))
   (slot-set! method 'specializers (get-keyword #:specializers initargs '()))
   (slot-set! method 'procedure
-	     (get-keyword #:procedure initargs dummy-procedure))
+	     (get-keyword #:procedure initargs #f))
   (slot-set! method 'code-table '())
   (slot-set! method 'formals (get-keyword #:formals initargs '()))
   (slot-set! method 'body (get-keyword #:body initargs '()))
-  (slot-set! method 'compile-env (get-keyword #:compile-env initargs #f)))
+  (slot-set! method 'make-procedure (get-keyword #:make-procedure initargs #f)))
              
 
 (define-method (initialize (obj <foreign-object>) initargs))
