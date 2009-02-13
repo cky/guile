@@ -78,6 +78,7 @@
        (with-throw-handler #t
          (lambda ()
            (proc tmp)
+           (close-port tmp)
            (rename-file template filename))
          (lambda args
            (delete-file template)))))))
