@@ -88,9 +88,10 @@
 	     (oop goops compile))
 
 
-(define min-fixnum (- (expt 2 29)))
-
-(define max-fixnum (- (expt 2 29) 1))
+(eval-case
+ ((load-toplevel compile-toplevel)
+  (define min-fixnum (- (expt 2 29)))
+  (define max-fixnum (- (expt 2 29) 1))))
 
 ;;
 ;; goops-error
@@ -1035,27 +1036,13 @@
 	   (procedure-environment proc)))
 	(lambda (o) (assert-bound (proc o) o)))))
 
-(define n-standard-accessor-methods 10)
-
-(define bound-check-get-methods (make-vector n-standard-accessor-methods #f))
-(define standard-get-methods (make-vector n-standard-accessor-methods #f))
-(define standard-set-methods (make-vector n-standard-accessor-methods #f))
-
-(define (standard-accessor-method make methods)
-  (lambda (index)
-    (cond ((>= index n-standard-accessor-methods) (make index))
-	  ((vector-ref methods index))
-	  (else (let ((m (make index)))
-		  (vector-set! methods index m)
-		  m)))))
-
 ;; the idea is to compile the index into the procedure, for fastest
 ;; lookup. Also, @slot-ref and @slot-set! have their own bytecodes.
 
 (eval-case
- ((load-toplevel compile-toplevel)
+ ((compile-toplevel)
   (use-modules ((language scheme compile-ghil) :select (define-scheme-translator))
-               ((language ghil) :select (make-ghil-inline))
+               ((language ghil) :select (make-ghil-inline make-ghil-call))
                (system base pmatch))
 
   ;; unfortunately, can't use define-inline because these are primitive
@@ -1064,38 +1051,54 @@
     ((,obj ,index) (guard (integer? index)
                           (>= index 0) (< index max-fixnum))
      (make-ghil-inline #f #f 'slot-ref
-                       (list (retrans obj) (retrans index)))))
+                       (list (retrans obj) (retrans index))))
+    (else
+     (make-ghil-call e l (retrans (car exp)) (map retrans (cdr exp)))))
 
   (define-scheme-translator @slot-set!
     ((,obj ,index ,val) (guard (integer? index)
                                (>= index 0) (< index max-fixnum))
      (make-ghil-inline #f #f 'slot-set
-                       (list (retrans obj) (retrans index) (retrans val)))))))
+                       (list (retrans obj) (retrans index) (retrans val))))
+    (else
+     (make-ghil-call e l (retrans (car exp)) (map retrans (cdr exp)))))))
 
-;; Irritatingly, we can't use `compile' here, as the module shadows
-;; the binding.
-(define (make-bound-check-get index)
-  ((@ (system base compile) compile)
-   `(lambda (o) (let ((x (@slot-ref o ,index)))
-                  (if (unbound? x)
-                      (slot-unbound obj)
-                      x)))
-   #:env *goops-module*))
+(eval-case
+ ((load-toplevel compile-toplevel)
+  (define num-standard-pre-cache 20)))
 
-(define (make-get index)
-  ((@ (system base compile) compile)
-   `(lambda (o) (@slot-ref o ,index))
-   #:env *goops-module*))
+(define-macro (define-standard-accessor-method form . body)
+  (let ((name (caar form))
+        (n-var (cadar form))
+        (args (cdr form)))
+    (define (make-one x)
+      (define (body-trans form)
+        (cond ((not (pair? form)) form)
+              ((eq? (car form) '@slot-ref)
+               `(,(car form) ,(cadr form) ,x))
+              ((eq? (car form) '@slot-set!)
+               `(,(car form) ,(cadr form) ,x ,(cadddr form)))
+              (else
+               (map body-trans form))))
+      `(lambda ,args ,@(map body-trans body)))
+    `(define ,name
+       (let ((cache (vector ,@(map make-one (iota num-standard-pre-cache)))))
+         (lambda (n)
+           (if (< n ,num-standard-pre-cache)
+               (vector-ref cache n)
+               ((lambda (,n-var) (lambda ,args ,@body)) n)))))))
 
-(define (make-set index)
-  ((@ (system base compile) compile)
-   `(lambda (o v) (@slot-set! o ,index v))
-   #:env *goops-module*))
+(define-standard-accessor-method ((bound-check-get n) o)
+  (let ((x (@slot-ref o n)))
+    (if (unbound? x)
+        (slot-unbound obj)
+        x)))
 
-(define bound-check-get
-  (standard-accessor-method make-bound-check-get bound-check-get-methods))
-(define standard-get (standard-accessor-method make-get standard-get-methods))
-(define standard-set (standard-accessor-method make-set standard-set-methods))
+(define-standard-accessor-method ((standard-get n) o)
+  (@slot-ref o n))
+
+(define-standard-accessor-method ((standard-set n) o v)
+  (@slot-set! o n v))
 
 ;;; compute-getters-n-setters
 ;;;

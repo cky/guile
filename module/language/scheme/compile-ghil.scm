@@ -174,8 +174,9 @@
                  (define syntax-error (@ (system base compile) syntax-error))
                  (pmatch (cdr exp)
                          ,@clauses
-                         (else
-                          (syntax-error l (format #f "bad ~A" ',sym) exp))))))
+                         ,@(if (assq 'else clauses) '()
+                               '((else
+                                  (syntax-error l (format #f "bad ~A" ',sym) exp))))))))
 
 (define-scheme-translator quote
   ;; (quote OBJ)
