@@ -159,6 +159,7 @@ AC_ARG_ENABLE([deprecated],
 
 if test "$enable_deprecated" = no; then
   SCM_I_GSC_ENABLE_DEPRECATED=0
+  warn_default=no
 else
   if test "$enable_deprecated" = yes || test "$enable_deprecated" = ""; then
     warn_default=summary
@@ -168,9 +169,9 @@ else
     warn_default=$enable_deprecated
   fi
   SCM_I_GSC_ENABLE_DEPRECATED=1
-  AC_DEFINE_UNQUOTED(SCM_WARN_DEPRECATED_DEFAULT, "$warn_default",
-  [Define this to control the default warning level for deprecated features.])
 fi
+AC_DEFINE_UNQUOTED(SCM_WARN_DEPRECATED_DEFAULT, "$warn_default",
+[Define this to control the default warning level for deprecated features.])
 
 AC_ARG_ENABLE(elisp,
   [  --disable-elisp         omit Emacs Lisp support],,

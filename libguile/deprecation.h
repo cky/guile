@@ -3,7 +3,7 @@
 #ifndef SCM_DEPRECATION_H
 #define SCM_DEPRECATION_H
 
-/* Copyright (C) 2001, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2006, 2008, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -26,19 +26,13 @@
 
 
 
-#if (SCM_ENABLE_DEPRECATED == 1)
-
-/* These functions are _not_ deprecated, but we exclude them along
-   with the really deprecated features to be sure that no-one is
-   trying to emit deprecation warnings when libguile is supposed to be
-   clean of them.
-*/
+/* These functions are a possibly useful part of the API and not only used
+   internally, thus they are exported always, not depending on
+   SCM_ENABLE_DEPRECATED.  */
 
 SCM_API void scm_c_issue_deprecation_warning (const char *msg);
 SCM_API void scm_c_issue_deprecation_warning_fmt (const char *msg, ...);
 SCM_API SCM scm_issue_deprecation_warning (SCM msgs);
-
-#endif
 
 SCM_API SCM scm_include_deprecated_features (void);
 SCM_INTERNAL void scm_init_deprecation (void);
