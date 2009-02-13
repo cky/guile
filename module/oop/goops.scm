@@ -503,7 +503,7 @@
   ;; Add method in all the classes which appears in its specializers list
   (for-each* (lambda (x)
 	       (let ((dm (class-direct-methods x)))
-		 (if (not (memv m dm))
+		 (if (not (memq m dm))
 		     (slot-set! x 'direct-methods (cons m dm)))))
 	     (method-specializers m)))
 
