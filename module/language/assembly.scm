@@ -22,7 +22,9 @@
 (define-module (language assembly)
   #:use-module (system base pmatch)
   #:use-module (system vm instruction)
+  #:use-module ((srfi srfi-1) #:select (fold))
   #:export (byte-length
+            addr+ align-program
             assembly-pack assembly-unpack
             object->assembly assembly->object))
 
@@ -53,6 +55,21 @@
     ((,inst . _) (guard (>= (instruction-length inst) 0))
      (+ 1 (instruction-length inst)))
     (else (error "unknown instruction" assembly))))
+
+
+(define *program-alignment* 8)
+
+(define (addr+ addr code)
+  (fold (lambda (x len) (+ (byte-length x) len))
+        addr
+        code))
+
+(define (align-program prog addr)
+  `(,@(make-list (modulo (- *program-alignment*
+                            (modulo addr *program-alignment*))
+                         *program-alignment*)
+                 '(nop))
+    ,prog))
 
 ;;;
 ;;; Code compress/decompression

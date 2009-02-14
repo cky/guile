@@ -39,9 +39,10 @@
 (define-record <variable-cache-cell> key)
 
 ;; Subprograms can be loaded into an object table as well. We need a
-;; disjoint type here too.
+;; disjoint type here too. (Subprograms have their own object tables --
+;; though probably we should just make one table per compilation unit.)
 
-(define-record <subprogram> code)
+(define-record <subprogram> table prog)
 
 
 (define (limn-sources sources)
@@ -162,8 +163,7 @@
                                    source-alist label-alist object-alist addr)
                  (lp (cdr body) (append (reverse subcode) code)
                      bindings source-alist label-alist object-alist
-                     (fold (lambda (x len) (+ (byte-length x) len))
-                           addr subcode))))))))
+                     (addr+ addr subcode))))))))
 
        (receive (code bindings sources labels objects len)
            (process-body)
@@ -185,7 +185,7 @@
                  ;; if we are being compiled from something with an object
                  ;; table, cache the program there
                  (receive (i object-alist)
-                     (object-index-and-alist (make-subprogram `(,@table ,prog))
+                     (object-index-and-alist (make-subprogram table prog)
                                              object-alist)
                    (emit-code/object `((object-ref ,i) ,@closure)
                                      object-alist)))
@@ -326,51 +326,57 @@
     ((<glil-mv-call> nargs ra)
      (emit-code `((mv-call ,nargs ,ra))))))
 
-;; addr is currently unused, but could be used to align data in the
-;; instruction stream.
 (define (dump-object x addr)
   (define (too-long x)
     (error (string-append x " too long")))
 
-  (let dump ((x x))
-    (cond
-     ((object->assembly x) => list)
-     ((variable-cache-cell? x) (dump (variable-cache-cell-key x)))
-     ((subprogram? x) (subprogram-code x))
-     ((and (integer? x) (exact? x))
-      (let ((str (do ((n x (quotient n 256))
-                      (l '() (cons (modulo n 256) l)))
-                     ((= n 0)
-                      (list->string (map integer->char l))))))
-        `((load-integer ,str))))
-     ((number? x)
-      `((load-number ,(number->string x))))
-     ((string? x)
-      `((load-string ,x)))
-     ((symbol? x)
-      `((load-symbol ,(symbol->string x))))
-     ((keyword? x)
-      `((load-keyword ,(symbol->string (keyword->symbol x)))))
-     ((list? x)
-      (fold append
-            (let ((len (length x)))
-              (if (>= len 65536) (too-long "list"))
-              `((list ,(quotient len 256) ,(modulo len 256))))
-            (fold (lambda (x y) (cons (dump x) y))
-                  '()
-                  x)))
-     ((pair? x)
-      `(,@(dump (car x))
-        ,@(dump (cdr x))
-        (cons)))
-     ((vector? x)
-      (fold append
-            (let ((len (vector-length x)))
-              (if (>= len 65536) (too-long "vector"))
-              `((vector ,(quotient len 256) ,(modulo len 256))))
-            (fold (lambda (x y) (cons (dump x) y))
-                  '()
-                  (vector->list x))))
-     (else
-      (error "assemble: unrecognized object" x)))))
+  (cond
+   ((object->assembly x) => list)
+   ((variable-cache-cell? x) (dump-object (variable-cache-cell-key x) addr))
+   ((subprogram? x)
+    `(,@(subprogram-table x)
+      ,@(align-program (subprogram-prog x)
+                       (addr+ addr (subprogram-table x)))))
+   ((and (integer? x) (exact? x))
+    (let ((str (do ((n x (quotient n 256))
+                    (l '() (cons (modulo n 256) l)))
+                   ((= n 0)
+                    (list->string (map integer->char l))))))
+      `((load-integer ,str))))
+   ((number? x)
+    `((load-number ,(number->string x))))
+   ((string? x)
+    `((load-string ,x)))
+   ((symbol? x)
+    `((load-symbol ,(symbol->string x))))
+   ((keyword? x)
+    `((load-keyword ,(symbol->string (keyword->symbol x)))))
+   ((list? x)
+    (let ((tail (let ((len (length x)))
+                  (if (>= len 65536) (too-long "list"))
+                  `((list ,(quotient len 256) ,(modulo len 256))))))
+      (let dump-objects ((objects x) (codes '()) (addr addr))
+        (if (null? objects)
+            (fold append tail codes)
+            (let ((code (dump-object (car objects) addr)))
+              (dump-objects (cdr objects) (cons code codes)
+                            (addr+ addr code)))))))
+   ((pair? x)
+    (let ((kar (dump-object (car x) addr)))
+      `(,@kar
+        ,@(dump-object (cdr x) (addr+ addr kar))
+        (cons))))
+   ((vector? x)
+    (let* ((len (vector-length x))
+           (tail (if (>= len 65536)
+                     (too-long "vector")
+                     `((vector ,(quotient len 256) ,(modulo len 256))))))
+      (let dump-objects ((i 0) (codes '()) (addr addr))
+        (if (>= i len)
+            (fold append tail codes)
+            (let ((code (dump-object (vector-ref x i) addr)))
+              (dump-objects (1+ i) (cons code codes)
+                            (addr+ addr code)))))))
+   (else
+    (error "assemble: unrecognized object" x))))
 
