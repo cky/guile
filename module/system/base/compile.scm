@@ -1,6 +1,6 @@
 ;;; High-level compiler interface
 
-;; Copyright (C) 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009 Free Software Foundation, Inc.
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -124,10 +124,11 @@
                      ".go")
                     (else (car %load-compiled-extensions)))))
     (let lp ((exts %load-extensions))
-      (cond ((null? exts) (string-append base cext))
+      (cond ((null? exts) (string-append file cext))
             ((string-null? (car exts)) (lp (cdr exts)))
             ((string-suffix? (car exts) base)
              (string-append
+              (dirname file) "/"
               (substring base 0
                          (- (string-length base) (string-length (car exts))))
               cext))
