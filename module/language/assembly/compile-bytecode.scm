@@ -25,6 +25,7 @@
   #:use-module (system vm instruction)
   #:use-module (srfi srfi-4)
   #:use-module ((srfi srfi-1) #:select (fold))
+  #:use-module ((system vm objcode) #:select (byte-order))
   #:export (compile-bytecode write-bytecode))
 
 (define (compile-bytecode assembly env . opts)
@@ -75,7 +76,11 @@
     (write-uint16-be (- (assq-ref labels label) (+ (get-addr) 2))))
   
   (let ((inst (car asm))
-        (args (cdr asm)))
+        (args (cdr asm))
+        (write-uint32 (case byte-order
+                        ((1234) write-uint32-le)
+                        ((4321) write-uint32-be)
+                        (else (error "unknown endianness" byte-order)))))
     (let ((opcode (instruction->opcode inst))
           (len (instruction-length inst)))
       (write-byte opcode)
@@ -86,8 +91,8 @@
          (write-byte nrest)
          (write-byte nlocs)
          (write-byte nexts)
-         (write-uint32-le length) ;; FIXME!
-         (write-uint32-le (if meta (1- (byte-length meta)) 0)) ;; FIXME!
+         (write-uint32 length)
+         (write-uint32 (if meta (1- (byte-length meta)) 0))
          (letrec ((i 0)
                   (write (lambda (x) (set! i (1+ i)) (write-byte x)))
                   (get-addr (lambda () i)))
