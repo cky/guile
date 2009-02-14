@@ -137,9 +137,9 @@
 (define (glil->assembly glil nargs nexts-stack bindings
                         source-alist label-alist object-alist addr)
   (define (emit-code x)
-    (values x bindings source-alist label-alist object-alist))
+    (values (map assembly-pack x) bindings source-alist label-alist object-alist))
   (define (emit-code/object x object-alist)
-    (values x bindings source-alist label-alist object-alist))
+    (values (map assembly-pack x) bindings source-alist label-alist object-alist))
 
   (record-case glil
     ((<glil-program> nargs nrest nlocs nexts meta body closure-level)

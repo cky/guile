@@ -66,11 +66,11 @@
   (map (lambda (x) (cons (cdr x) (car x))) *abbreviations*))
 
 (define (assembly-pack code)
-  (or (assoc-ref code *abbreviations*)
+  (or (assoc-ref *abbreviations* code)
       code))
 
 (define (assembly-unpack code)
-  (or (assoc-ref code *expansions*)
+  (or (assoc-ref *expansions* code)
       code))
 
 
