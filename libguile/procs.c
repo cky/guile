@@ -37,45 +37,20 @@
 /* {Procedures}
  */
 
-scm_t_subr_entry *scm_subr_table;
 
-/* libguile contained approx. 700 primitive procedures on 24 Aug 1999. */
-
-/* Increased to 800 on 2001-05-07 -- Guile now has 779 primitives on
-   startup, 786 with guile-readline.  'martin */
-
-static unsigned long scm_subr_table_size = 0;
-static unsigned long scm_subr_table_room = 800;
-
-/* Hint for `scm_gc_malloc ()' and friends.  */
-static const char subr_table_gc_hint[] = "subr table";
-
-SCM 
+SCM
 scm_c_make_subr (const char *name, long type, SCM (*fcn) ())
 {
   register SCM z;
-  unsigned long entry;
+  SCM *meta_info;
 
-  if (scm_subr_table_size == scm_subr_table_room)
-    {
-      long new_size = scm_subr_table_room * 3 / 2;
-      void *new_table
-	= scm_gc_realloc (scm_subr_table,
-			  sizeof (* scm_subr_table) * scm_subr_table_room,
-			  sizeof (* scm_subr_table) * new_size,
-			  subr_table_gc_hint);
-      scm_subr_table = new_table;
-      scm_subr_table_room = new_size;
-    }
+  meta_info = scm_gc_malloc (2 * sizeof (*meta_info), "subr meta-info");
+  meta_info[0] = scm_from_locale_symbol (name);
+  meta_info[1] = SCM_EOL;  /* properties */
 
-  entry = scm_subr_table_size;
-  z = scm_cell ((entry << 8) + type, (scm_t_bits) fcn);
-  scm_subr_table[entry].handle = z;
-  scm_subr_table[entry].name = scm_from_locale_symbol (name);
-  scm_subr_table[entry].generic = 0;
-  scm_subr_table[entry].properties = SCM_EOL;
-  scm_subr_table_size++;
-  
+  z = scm_double_cell ((scm_t_bits) type, (scm_t_bits) fcn,
+		       0 /* generic */, (scm_t_bits) meta_info);
+
   return z;
 }
 
@@ -83,7 +58,7 @@ SCM
 scm_c_define_subr (const char *name, long type, SCM (*fcn) ())
 {
   SCM subr = scm_c_make_subr (name, type, fcn);
-  scm_define (SCM_SUBR_ENTRY(subr).name, subr);
+  scm_define (SCM_SNAME (subr), subr);
   return subr;
 }
 
@@ -92,7 +67,7 @@ scm_c_make_subr_with_generic (const char *name,
 			      long type, SCM (*fcn) (), SCM *gf)
 {
   SCM subr = scm_c_make_subr (name, type, fcn);
-  SCM_SUBR_ENTRY(subr).generic = gf;
+  SCM_SET_SUBR_GENERIC_LOC (subr, gf);
   return subr;
 }
 
@@ -101,7 +76,7 @@ scm_c_define_subr_with_generic (const char *name,
 				long type, SCM (*fcn) (), SCM *gf)
 {
   SCM subr = scm_c_make_subr_with_generic (name, type, fcn, gf);
-  scm_define (SCM_SUBR_ENTRY(subr).name, subr);
+  scm_define (SCM_SNAME (subr), subr);
   return subr;
 }
 
@@ -327,16 +302,7 @@ scm_setter (SCM proc)
   return SCM_BOOL_F; /* not reached */
 }
 
-
-void
-scm_init_subr_table ()
-{
-  scm_subr_table
-    = ((scm_t_subr_entry *)
-       scm_gc_malloc (sizeof (* scm_subr_table) * scm_subr_table_room,
-		      subr_table_gc_hint));
-}
-
+
 void
 scm_init_procs ()
 {

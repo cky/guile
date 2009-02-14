@@ -98,9 +98,12 @@ lib-version.texi: $(top_srcdir)/GUILE-VERSION
 MAINTAINERCLEANFILES = autoconf-macros.texi
 
 # To allow "make distcheck" to succeed, lib-version.texi must either
-# be cleaned or be included in the distribution.  There's no point
-# forcing a distribution build to regenerate lib-version.texi, because
-# it can't possibly be different on the build machine than where the
-# distribution was generated, so we might as well include it in the
-# distribution.
+# be cleaned or be included in the distribution.  Or both - and in
+# fact both are good.  There's no point forcing a distribution build
+# to regenerate lib-version.texi, because it can't possibly be
+# different on the build machine than where the distribution was
+# generated, so we might as well include it in the distribution.
 EXTRA_DIST += lib-version.texi
+# But when we want to get back to a clean tree, lib-version.texi
+# should be cleaned.
+CLEANFILES = lib-version.texi

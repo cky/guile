@@ -74,3 +74,4 @@ libguile/stack-limit-calibration.scm
 cscope.out
 cscope.files
 *.log
+INSTALL
