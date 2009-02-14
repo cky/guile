@@ -129,7 +129,7 @@
 
 (define (compile-assembly glil)
   (receive (code . _)
-      (glil->assembly glil 0 '() '(()) '() '() #f 0)
+      (glil->assembly glil 0 '() '(()) '() '() #f -1)
     (car code)))
 (define (make-object-table objects)
   (and (not (null? objects))
@@ -176,7 +176,7 @@
              ;; toplevel bytecode isn't loaded by the vm, no way to do
              ;; object table or closure capture (not in the bytecode,
              ;; anyway)
-             (emit-code `(,prog)))
+             (emit-code (align-program prog addr)))
             (else
              (let ((table (dump-object (make-object-table objects) addr))
                    (closure (if (> closure-level 0) '((make-closure)) '())))
@@ -191,7 +191,8 @@
                                      object-alist)))
                 (else
                  ;; otherwise emit a load directly
-                 (emit-code `(,@table ,prog ,@closure)))))))))))
+                 (emit-code `(,@table ,@(align-program prog (addr+ addr table))
+                                      ,@closure)))))))))))
     
     ((<glil-bind> vars)
      (values '()

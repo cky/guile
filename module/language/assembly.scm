@@ -66,7 +66,8 @@
 
 (define (align-program prog addr)
   `(,@(make-list (modulo (- *program-alignment*
-                            (modulo addr *program-alignment*))
+                            (modulo (1+ addr) *program-alignment*))
+                         ;; plus the one for the load-program inst itself
                          *program-alignment*)
                  '(nop))
     ,prog))
