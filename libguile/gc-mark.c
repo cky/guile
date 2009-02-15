@@ -294,21 +294,6 @@ scm_gc_mark_dependencies (SCM p)
 	}
       ptr = SCM_SIMPLE_VECTOR_REF (ptr, 0);
       goto gc_mark_loop;
-#ifdef CCLO
-    case scm_tc7_cclo:
-      {
-	size_t i = SCM_CCLO_LENGTH (ptr);
-	size_t j;
-	for (j = 1; j != i; ++j)
-	  {
-	    SCM obj = SCM_CCLO_REF (ptr, j);
-	    if (!SCM_IMP (obj))
-	      scm_gc_mark (obj);
-	  }
-	ptr = SCM_CCLO_REF (ptr, 0);
-	goto gc_mark_loop;
-      }
-#endif
 
     case scm_tc7_string:
       ptr = scm_i_string_mark (ptr);

@@ -3,7 +3,7 @@
 #ifndef SCM_GSUBR_H
 #define SCM_GSUBR_H
 
-/* Copyright (C) 1995,1996,1998,2000,2001, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,2000,2001, 2006, 2008, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -26,18 +26,16 @@
 
 
 
+/* Return an integer describing the arity of GSUBR, a subr of type
+   `scm_tc7_gsubr'.  The result can be interpreted with `SCM_GSUBR_REQ ()'
+   and similar.  */
+#define SCM_GSUBR_TYPE(gsubr)  (SCM_CELL_TYPE (gsubr) >> 8)
+
 #define SCM_GSUBR_MAKTYPE(req, opt, rst) ((req)|((opt)<<4)|((rst)<<8))
+#define SCM_GSUBR_MAX    33
 #define SCM_GSUBR_REQ(x) ((long)(x)&0xf)
 #define SCM_GSUBR_OPT(x) (((long)(x)&0xf0)>>4)
 #define SCM_GSUBR_REST(x) ((long)(x)>>8)
-
-#define SCM_GSUBR_MAX 10
-#define SCM_GSUBR_TYPE(cclo) (SCM_CCLO_REF ((cclo), 1))
-#define SCM_SET_GSUBR_TYPE(cclo, type) (SCM_CCLO_SET ((cclo), 1, (type)))
-#define SCM_GSUBR_PROC(cclo) (SCM_CCLO_REF ((cclo), 2))
-#define SCM_SET_GSUBR_PROC(cclo, proc) (SCM_CCLO_SET ((cclo), 2, (proc)))
-
-SCM_API SCM scm_f_gsubr_apply;
 
 SCM_API SCM scm_c_make_gsubr (const char *name, 
 			      int req, int opt, int rst, SCM (*fcn) ());
