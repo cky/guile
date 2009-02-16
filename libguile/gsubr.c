@@ -179,16 +179,14 @@ scm_c_define_gsubr_with_generic (const char *name,
 
 
 SCM
-scm_gsubr_apply (SCM args)
+scm_gsubr_apply (SCM self, SCM args)
 #define FUNC_NAME "scm_gsubr_apply"
 {
-  SCM self = SCM_CAR (args);
   SCM (*fcn)() = SCM_SUBRF (self);
   SCM v[SCM_GSUBR_MAX];
   unsigned int typ = SCM_GSUBR_TYPE (self);
   long i, n = SCM_GSUBR_REQ (typ) + SCM_GSUBR_OPT (typ) + SCM_GSUBR_REST (typ);
 
-  args = SCM_CDR (args);
   for (i = 0; i < SCM_GSUBR_REQ (typ); i++) {
     if (scm_is_null (args))
       scm_wrong_num_args (SCM_SNAME (self));

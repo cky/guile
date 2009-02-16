@@ -1129,7 +1129,7 @@ dispatch:
 	debug.info->a.proc = proc;
 	debug.info->a.args = SCM_EOL;
 #endif
-	RETURN (scm_gsubr_apply (scm_list_1 (proc)));
+	RETURN (scm_gsubr_apply (proc, SCM_EOL));
       case scm_tc7_pws:
 	proc = SCM_PROCEDURE (proc);
 #ifdef DEVAL
@@ -1248,7 +1248,7 @@ dispatch:
 	    debug.info->a.args = scm_cons (arg1, debug.info->a.args);
 	    debug.info->a.proc = proc;
 #endif
-	    RETURN (scm_gsubr_apply (scm_list_2 (proc, arg1)));
+	    RETURN (scm_gsubr_apply (proc, scm_list_1 (arg1)));
 	  case scm_tc7_pws:
 	    proc = SCM_PROCEDURE (proc);
 #ifdef DEVAL
@@ -1348,12 +1348,12 @@ dispatch:
 	  cclon:
 	  case scm_tc7_gsubr:
 #ifdef DEVAL
-	    RETURN (scm_gsubr_apply (scm_cons (proc, debug.info->a.args)));
+	    RETURN (scm_gsubr_apply (proc, debug.info->a.args));
 #else
-	    RETURN (scm_gsubr_apply
-		     (scm_cons (proc,
-				scm_cons2 (arg1, arg2,
-					   scm_ceval_args (x, env, proc)))));
+	    RETURN (scm_gsubr_apply (proc,
+				     scm_cons2 (arg1, arg2,
+						scm_ceval_args (x, env,
+								proc))));
 #endif
 	  case scm_tcs_struct:
 	    if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
@@ -1865,7 +1865,7 @@ tail:
 #else
       args = (SCM_UNBNDP(arg1) ? SCM_EOL : scm_cons (arg1, args));
 #endif
-      RETURN (scm_gsubr_apply (scm_cons (proc, args)));
+      RETURN (scm_gsubr_apply (proc, args));
     case scm_tc7_pws:
       proc = SCM_PROCEDURE (proc);
 #ifdef DEVAL
