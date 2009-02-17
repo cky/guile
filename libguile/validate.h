@@ -378,7 +378,7 @@
 
 #define SCM_VALIDATE_VECTOR_LEN(pos, v, len) \
   do { \
-    SCM_ASSERT (SCM_VECTORP (v) && len == SCM_VECTOR_LENGTH (v), v, pos, FUNC_NAME); \
+    SCM_ASSERT (scm_is_vector (v) && len == scm_c_vector_length (v), v, pos, FUNC_NAME); \
   } while (0)
 
 
