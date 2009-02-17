@@ -1,6 +1,6 @@
 ;;; Guile VM assembler
 
-;; Copyright (C) 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009 Free Software Foundation, Inc.
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -343,7 +343,9 @@
                     (l '() (cons (modulo n 256) l)))
                    ((= n 0)
                     (list->string (map integer->char l))))))
-      `((load-integer ,str))))
+      (if (< x 0)
+	  `((load-integer ,str))
+	  `((load-unsigned-integer ,str)))))
    ((number? x)
     `((load-number ,(number->string x))))
    ((string? x)

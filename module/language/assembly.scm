@@ -1,6 +1,6 @@
 ;;; Guile Virtual Machine Assembly
 
-;; Copyright (C) 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009 Free Software Foundation, Inc.
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -38,6 +38,8 @@
   (pmatch assembly
     (,label (guard (not (pair? label)))
      0)
+    ((load-unsigned-integer ,str)
+     (+ 1 *len-len* (string-length str)))
     ((load-integer ,str)
      (+ 1 *len-len* (string-length str)))
     ((load-number ,str)

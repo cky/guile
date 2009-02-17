@@ -18,12 +18,30 @@
 
 /* This file is included in vm_engine.c */
 
+VM_DEFINE_LOADER (59, load_unsigned_integer, "load-unsigned-integer")
+{
+  size_t len;
+
+  FETCH_LENGTH (len);
+  if (SCM_LIKELY (len <= 4))
+    {
+      unsigned int val = 0;
+      while (len-- > 0)
+	val = (val << 8U) + FETCH ();
+      SYNC_REGISTER ();
+      PUSH (scm_from_uint (val));
+      NEXT;
+    }
+  else
+    SCM_MISC_ERROR ("load-unsigned-integer: not implemented yet", SCM_EOL);
+}
+
 VM_DEFINE_LOADER (60, load_integer, "load-integer")
 {
   size_t len;
 
   FETCH_LENGTH (len);
-  if (len <= 4)
+  if (SCM_LIKELY (len <= 4))
     {
       int val = 0;
       while (len-- > 0)

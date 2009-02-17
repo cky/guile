@@ -549,7 +549,9 @@ indicating the size of the embedded data, in bytes. The length itself
 may be encoded in 1, 2, or 4 bytes.
 
 @deffn Instruction load-integer length
-Load a 32-bit integer from the instruction stream.
+@deffnx Instruction load-unsigned-integer length
+Load a 32-bit integer (respectively unsigned integer) from the
+instruction stream.
 @end deffn
 @deffn Instruction load-number length
 Load an arbitrary number from the instruction stream. The number is

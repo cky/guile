@@ -1,6 +1,6 @@
 ;;; Guile VM assembler
 
-;; Copyright (C) 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009 Free Software Foundation, Inc.
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -107,6 +107,7 @@
                                (if (> i 0) (write-byte x))))
                       (get-addr (lambda () i)))
                (write-bytecode meta write get-addr '()))))
+        ((load-unsigned-integer ,str) (write-loader str))
         ((load-integer ,str) (write-loader str))
         ((load-number ,str) (write-loader str))
         ((load-string ,str) (write-loader str))

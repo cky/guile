@@ -13,6 +13,7 @@ vm_test_files =					\
       t-closure3.scm				\
       t-closure4.scm				\
       t-do-loop.scm				\
+      t-literal-integers.scm			\
       t-macros.scm				\
       t-macros2.scm				\
       t-map.scm					\
