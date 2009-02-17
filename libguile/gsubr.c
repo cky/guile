@@ -179,8 +179,8 @@ scm_c_define_gsubr_with_generic (const char *name,
 
 
 SCM
-scm_gsubr_apply (SCM self, SCM args)
-#define FUNC_NAME "scm_gsubr_apply"
+scm_i_gsubr_apply (SCM self, SCM args)
+#define FUNC_NAME "scm_i_gsubr_apply"
 {
   SCM (*fcn)() = SCM_SUBRF (self);
   SCM v[SCM_GSUBR_MAX];
