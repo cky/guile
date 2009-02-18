@@ -59,6 +59,19 @@
        (make-ghil-inline e l 'div (list (comp a e) (comp b e))))
       ((* ,a ,b)
        (make-ghil-inline e l 'mul (list (comp a e) (comp b e))))
+      ((ref ,id)
+       (make-ghil-ref e l (ghil-var-for-ref! e (string->symbol id))))
+      ((define ,id ,val)
+       (make-ghil-define e l (ghil-var-define! (ghil-env-parent e) (string->symbol id))
+                         (comp val e)))
+      ((begin . ,forms)
+       (make-ghil-begin e l (map (lambda (x) (comp x e)) forms)))
+      ((lambda ,formals ,body)
+       (call-with-ghil-environment e formals
+         (lambda (env vars)
+           (make-ghil-lambda env l vars #f '() (comp body env)))))
+      ((call ,proc ,args)
+       (make-ghil-call e l (comp proc e) (map (lambda (x) (comp x e)) args)))
       (else
        (error "compilation not yet implemented:" x)))))
 

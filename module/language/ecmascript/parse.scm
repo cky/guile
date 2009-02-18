@@ -55,12 +55,12 @@
    (SourceElement (Statement) -> $1
                   (FunctionDeclaration) -> $1)
 
-   (FunctionDeclaration (function Identifier lparen rparen lbrace FunctionBody rbrace) -> `(define ,$2 (lambda () ,@$6))
-                        (function Identifier lparen FormalParameterList rparen lbrace FunctionBody rbrace) -> `(define ,$2 (lambda ,$4 ,@$7)))
-   (FunctionExpression (function lparen rparen lbrace FunctionBody rbrace) -> `(lambda () ,@$5)
-                       (function Identifier lparen rparen lbrace FunctionBody rbrace) -> `(lambda () ,@$6)
-                       (function lparen FormalParameterList rparen lbrace FunctionBody rbrace) -> `(lambda ,$3 ,@$6)
-                       (function Identifier lparen FormalParameterList rparen lbrace FunctionBody rbrace) -> `(lambda ,$4 ,@$7))
+   (FunctionDeclaration (function Identifier lparen rparen lbrace FunctionBody rbrace) -> `(define ,$2 (lambda () ,$6))
+                        (function Identifier lparen FormalParameterList rparen lbrace FunctionBody rbrace) -> `(define ,$2 (lambda ,$4 ,$7)))
+   (FunctionExpression (function lparen rparen lbrace FunctionBody rbrace) -> `(lambda () ,$5)
+                       (function Identifier lparen rparen lbrace FunctionBody rbrace) -> `(lambda () ,$6)
+                       (function lparen FormalParameterList rparen lbrace FunctionBody rbrace) -> `(lambda ,$3 ,$6)
+                       (function Identifier lparen FormalParameterList rparen lbrace FunctionBody rbrace) -> `(lambda ,$4 ,$7))
    (FormalParameterList (Identifier) -> `(,$1)
                         (FormalParameterList comma Identifier) -> `(,@$1 ,$3))
    (SourceElements (SourceElement) -> $1
