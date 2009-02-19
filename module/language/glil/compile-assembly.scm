@@ -75,7 +75,7 @@
        (make-glil-program 0 0 0 0 '()
                           (list
                            (make-glil-const `(,bindings ,sources ,@tail))
-                           (make-glil-call 'return 0))))))
+                           (make-glil-call 'return 1))))))
 
 ;; A functional stack of names of live variables.
 (define (make-open-binding name ext? index)

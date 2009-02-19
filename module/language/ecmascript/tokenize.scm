@@ -225,7 +225,7 @@
                  => (lambda (x) `(,x . #f)))
                 ((assoc-ref *future-reserved-words* word)
                  (error "word is reserved for the future, dude." word))
-                (else `(Identifier . ,word))))
+                (else `(Identifier . ,(string->symbol word)))))
         (begin (read-char port)
                (lp (peek-char port) (cons c chars))))))
 

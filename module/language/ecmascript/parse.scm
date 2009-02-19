@@ -30,6 +30,9 @@
 (define (read-ecmascript/1 port)
   (parse-ecmascript (make-tokenizer/1 port) pk))
 
+(define *eof-object*
+  (call-with-input-string "" read-char))
+
 (define parse-ecmascript
   (lalr-parser
    ;; terminal (i.e. input) token types
@@ -45,7 +48,7 @@
 
 
    (Program (SourceElements) -> $1
-            (*eoi*) -> (call-with-input-string "" read-char))
+            (*eoi*) -> *eof-object*)
 
    ;;
    ;; Verily, here we define statements. Expressions are defined
@@ -55,8 +58,8 @@
    (SourceElement (Statement) -> $1
                   (FunctionDeclaration) -> $1)
 
-   (FunctionDeclaration (function Identifier lparen rparen lbrace FunctionBody rbrace) -> `(define ,$2 (lambda () ,$6))
-                        (function Identifier lparen FormalParameterList rparen lbrace FunctionBody rbrace) -> `(define ,$2 (lambda ,$4 ,$7)))
+   (FunctionDeclaration (function Identifier lparen rparen lbrace FunctionBody rbrace) -> `(var ,$2 (lambda () ,$6))
+                        (function Identifier lparen FormalParameterList rparen lbrace FunctionBody rbrace) -> `(var ,$2 (lambda ,$4 ,$7)))
    (FunctionExpression (function lparen rparen lbrace FunctionBody rbrace) -> `(lambda () ,$5)
                        (function Identifier lparen rparen lbrace FunctionBody rbrace) -> `(lambda () ,$6)
                        (function lparen FormalParameterList rparen lbrace FunctionBody rbrace) -> `(lambda ,$3 ,$6)

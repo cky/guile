@@ -21,6 +21,7 @@
 
 (define-module (language ecmascript compile-ghil)
   #:use-module (language ghil)
+  #:use-module (ice-9 receive)
   #:use-module (system base pmatch)
   #:export (compile-ghil))
 
@@ -36,6 +37,11 @@
        (let ((props (source-properties x)))
 	 (and (not (null? props))
               props))))
+
+(define-macro (@impl e l sym . args)
+  `(make-ghil-call ,e ,l
+                   (ghil-var-at-module! ,e '(language ecmascript impl) ',sym #t)
+                   (list ,@(map (lambda (x) `(comp x ,e)) ,args))))
 
 (define (comp x e)
   (let ((l (location x)))
@@ -60,21 +66,80 @@
       ((* ,a ,b)
        (make-ghil-inline e l 'mul (list (comp a e) (comp b e))))
       ((ref ,id)
-       (make-ghil-ref e l (ghil-var-for-ref! e (string->symbol id))))
-      ((define ,id ,val)
-       (make-ghil-define e l (ghil-var-define! (ghil-env-parent e) (string->symbol id))
+       (make-ghil-ref e l (ghil-var-for-ref! e id)))
+      ((var ,id ,val)
+       (make-ghil-define e l (ghil-var-define! (ghil-env-parent e) id)
                          (comp val e)))
       ((begin . ,forms)
        (make-ghil-begin e l (map (lambda (x) (comp x e)) forms)))
       ((lambda ,formals ,body)
-       (call-with-ghil-environment e formals
+       (call-with-ghil-environment e '(%args)
          (lambda (env vars)
-           (make-ghil-lambda env l vars #f '() (comp body env)))))
+           (make-ghil-lambda env l vars #t '()
+                             (comp-body env l body formals '%args)))))
       ((call ,proc ,args)
        (make-ghil-call e l (comp proc e) (map (lambda (x) (comp x e)) args)))
+      ((return ,expr)
+       (make-ghil-inline e l 'return (list (comp expr e))))
       (else
        (error "compilation not yet implemented:" x)))))
 
-
-
-
+(define (comp-body env loc body formals %args)
+  (define (process)
+    (let lp ((in body) (out '()) (rvars (reverse formals)))
+      (pmatch in
+        (((var ,x) . ,rest)
+         (lp rest
+             out
+             (if (memq x rvars) rvars (cons x rvars))))
+        (((var ,x ,y) . ,rest)
+         (lp rest
+             `((= (ref ,x) ,y) . ,out)
+             (if (memq x rvars) rvars (cons x rvars))))
+        ((,x . ,rest) (guard (and (pair? x) (eq? (car x) 'lambda)))
+         (lp rest
+             (cons x out)
+             rvars))
+        ((,x . ,rest) (guard (pair? x))
+         (receive (sub-out rvars)
+             (lp x '() rvars)
+           (lp rest
+               (cons sub-out out)
+               rvars)))
+        ((,x . ,rest)
+         (lp rest
+             (cons x out)
+             rvars))
+        (()
+         (values (reverse! out)
+                 rvars)))))
+  (receive (out rvars)
+      (process)
+    (call-with-ghil-bindings env (reverse rvars)
+      (lambda (vars)
+        (let ((%argv (assq-ref (ghil-env-table env) %args)))
+          (make-ghil-begin
+           env loc
+           `(,@(map (lambda (f)
+                      (make-ghil-if
+                       env loc
+                       (make-ghil-inline
+                        env loc 'null?
+                        (list (make-ghil-ref env loc %argv)))
+                       (make-ghil-begin env loc '())
+                       (make-ghil-begin
+                        env loc
+                        (list (make-ghil-set
+                               env loc
+                               (ghil-var-for-ref! env f)
+                               (make-ghil-inline
+                                env loc 'car
+                                (list (make-ghil-ref env loc %argv))))
+                              (make-ghil-set
+                               env loc %argv
+                               (make-ghil-inline
+                                env loc 'cdr
+                                (list (make-ghil-ref env loc %argv))))))))
+                    formals)
+             ;; fixme: here check for too many args
+             ,(comp out env))))))))

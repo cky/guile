@@ -107,8 +107,8 @@
 ;;;
 
 (define *ia-void* (make-glil-void))
-(define *ia-drop* (make-glil-call 'drop 0))
-(define *ia-return* (make-glil-call 'return 0))
+(define *ia-drop* (make-glil-call 'drop 1))
+(define *ia-return* (make-glil-call 'return 1))
 
 (define (make-label) (gensym ":L"))
 
@@ -299,7 +299,7 @@
                                (push-call! #f 'dup '()))
                            (push-branch! #f 'br-if L1)
                            (if (not drop)
-                               (push-call! #f 'drop '()))
+                               (push-code! loc (make-glil-call 'drop 1)))
                            (lp (cdr exps)))))))))
 
 	((<ghil-begin> env loc exps)

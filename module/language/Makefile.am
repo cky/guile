@@ -4,6 +4,7 @@ SOURCES=ghil.scm glil.scm assembly.scm \
 	ecmascript/tokenize.scm
 	ecmascript/spec.scm
 	ecmascript/compile-ghil.scm
+	ecmascript/impl.scm
 # unfortunately, the one that we want to compile can't yet be compiled
 # -- too many local vars, or something.
 NOCOMP_SOURCES = ecmascript/parse.scm

@@ -64,7 +64,7 @@ VM_DEFINE_INSTRUCTION (2, break, "break", 0, 0, 0)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (3, drop, "drop", 0, 0, 0)
+VM_DEFINE_INSTRUCTION (3, drop, "drop", 0, 1, 0)
 {
   DROP ();
   NEXT;
@@ -971,7 +971,7 @@ VM_DEFINE_INSTRUCTION (47, goto_cc, "goto/cc", 0, 1, 1)
     }
 }
 
-VM_DEFINE_INSTRUCTION (48, return, "return", 0, 0, 1)
+VM_DEFINE_INSTRUCTION (48, return, "return", 0, 1, 1)
 {
  vm_return:
   EXIT_HOOK ();
