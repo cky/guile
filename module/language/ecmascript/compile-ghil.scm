@@ -44,6 +44,9 @@
                     ,e ,l
                     (ghil-var-at-module! ,e '(language ecmascript impl) ',sym #t))
                    ,args))
+(define-macro (@implv e l sym)
+  `(make-ghil-ref ,e ,l
+                  (ghil-var-at-module! ,e '(language ecmascript impl) ',sym #t)))
 
 (define (comp x e)
   (let ((l (location x)))
@@ -69,9 +72,22 @@
        (make-ghil-inline e l 'mul (list (comp a e) (comp b e))))
       ((ref ,id)
        (make-ghil-ref e l (ghil-var-for-ref! e id)))
-      ((var ,id ,val)
-       (make-ghil-define e l (ghil-var-define! (ghil-env-parent e) id)
-                         (comp val e)))
+      ((var . ,forms)
+       (make-ghil-begin e l
+                        (map (lambda (form)
+                               (pmatch form
+                                 ((,x ,y)
+                                  (make-ghil-define e l
+                                                    (ghil-var-define!
+                                                     (ghil-env-parent e) x)
+                                                    (comp y e)))
+                                 ((,x)
+                                  (make-ghil-define e l
+                                                    (ghil-var-define!
+                                                     (ghil-env-parent e) x)
+                                                    (@implv e l *undefined*)))
+                                 (else (error "bad var form" form))))
+                             forms)))
       ((begin . ,forms)
        (make-ghil-begin e l (map (lambda (x) (comp x e)) forms)))
       ((lambda ,formals ,body)
