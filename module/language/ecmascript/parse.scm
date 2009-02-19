@@ -199,11 +199,11 @@
 
    (ObjectLiteral (lbrace rbrace) -> `(object)
                   (lbrace PropertyNameAndValueList rbrace) -> `(object ,@$2))
-   (PropertyNameAndValueList (PropertyName colon AssignmentExpression) -> `((,$1 . ,$3))
-                             (PropertyNameAndValueList comma PropertyName colon AssignmentExpression) -> `(,@$1 (,$3 . ,$5)))
-   (PropertyName (Identifier) -> `(ref ,$1)
-                 (StringLiteral) -> `(string ,$1)
-                 (NumericLiteral) -> `(number ,$1))
+   (PropertyNameAndValueList (PropertyName colon AssignmentExpression) -> `((,$1 ,$3))
+                             (PropertyNameAndValueList comma PropertyName colon AssignmentExpression) -> `(,@$1 (,$3 ,$5)))
+   (PropertyName (Identifier) -> $1
+                 (StringLiteral) -> (string->symbol $1)
+                 (NumericLiteral) -> $1)
 
    (MemberExpression (PrimaryExpression) -> $1
                      (FunctionExpression) -> $1

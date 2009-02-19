@@ -101,6 +101,17 @@
        (make-ghil-inline e l 'return (list (comp expr e))))
       ((array . ,args)
        (@impl e l new-array (map (lambda (x) (comp x e)) args)))
+      ((object . ,args)
+       (@impl e l new-object
+              (map (lambda (x)
+                     (pmatch x
+                       ((,prop ,val)
+                        (make-ghil-inline e l 'cons
+                                          (list (make-ghil-quote e l prop)
+                                                (comp val e))))
+                       (else
+                        (error "bad prop-val pair" x))))
+                   args)))
       ((pref ,obj ,prop)
        (@impl e l pget (list (comp obj e) (make-ghil-quote e l prop))))
       ((= (ref ,name) ,val)

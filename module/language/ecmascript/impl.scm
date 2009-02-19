@@ -31,7 +31,8 @@
             ->primitive ->boolean ->number ->integer ->int32 ->uint32
             ->uint16 ->string ->object
 
-            new-array))
+            new-array
+            new-object))
 
 (define *undefined* ((@@ (oop goops) make-unbound)))
 
@@ -227,3 +228,10 @@
                (vector-set! vect i (car vals))
                (lp (1+ i) (cdr vals)))
               (else o))))))
+
+(define (new-object . pairs)
+  (let ((o (make <js-object>)))
+    (map (lambda (pair)
+           (pput o (car pair) (cdr pair)))
+         pairs)
+    o))
