@@ -47,13 +47,14 @@
   (value #:getter js-value #:init-value #f #:init-keyword #:value))
 
 (define-method (pget (o <js-object>) p)
-  (let ((h (hashq-get-handle (js-props o) p)))
-    (if h
-        (cdr h)
-        (let ((proto (js-prototype o)))
-          (if proto
-              (pget proto p)
-              *undefined*)))))
+  (let ((p (if (string? p) (string->symbol p) p)))
+    (let ((h (hashq-get-handle (js-props o) p)))
+      (if h
+          (cdr h)
+          (let ((proto (js-prototype o)))
+            (if proto
+                (pget proto p)
+                *undefined*))))))
 
 (define-method (prop-attrs (o <js-object>) p)
   (or (let ((attrs (js-prop-attrs o)))
@@ -67,22 +68,18 @@
   (memq attr (prop-attrs o p)))
 
 (define-method (pput (o <js-object>) p v)
-  (if (prop-has-attr? o p 'ReadOnly)
-      (throw 'ReferenceError o p)
-      (hashq-set! (js-props o) p v)))
-
-;; what the hell is this
-(define-method (has-property? (o <js-object>) p v)
-  (if (prop-has-attr? o p 'ReadOnly)
-      (throw 'ReferenceError o p)
-      (hashq-set! (js-props o) p v)))
+  (let ((p (if (string? p) (string->symbol p) p)))
+    (if (prop-has-attr? o p 'ReadOnly)
+        (throw 'ReferenceError o p)
+        (hashq-set! (js-props o) p v))))
 
 (define-method (pdel (o <js-object>) p)
-  (if (prop-has-attr? o p 'DontDelete)
-      #f
-      (begin
-        (pput o p *undefined*)
-        #t)))
+  (let ((p (if (string? p) (string->symbol p) p)))
+    (if (prop-has-attr? o p 'DontDelete)
+        #f
+        (begin
+          (pput o p *undefined*)
+          #t))))
 
 (define (object->string o error?)
   (let ((toString (pget o 'toString)))
@@ -197,7 +194,8 @@
            (if (< p (vector-length v))
                (vector-ref v p)
                (next-method))))
-        ((eq? p 'length)
+        ((or (and (symbol? p) (eq? p 'length))
+             (and (string? p) (string=? p "length")))
          (vector-length (js-array-vector o)))
         (else (next-method))))
 
@@ -211,7 +209,8 @@
                  (vector-move-left! vect 0 (vector-length vect) new 0)
                  (set! (js-array-vector o) new)
                  (vector-set! new p)))))
-        ((eq? p 'length)
+        ((or (and (symbol? p) (eq? p 'length))
+             (and (string? p) (string=? p "length")))
          (let ((vect (js-array-vector o)))
            (let ((new (make-vector (->uint32 v) 0)))
              (vector-move-left! vect 0 (min (vector-length vect) (->uint32 v))

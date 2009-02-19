@@ -114,10 +114,14 @@
                    args)))
       ((pref ,obj ,prop)
        (@impl e l pget (list (comp obj e) (make-ghil-quote e l prop))))
+      ((aref ,obj ,index)
+       (@impl e l pget (list (comp obj e) (comp index e))))
       ((= (ref ,name) ,val)
        (make-ghil-set e l (ghil-var-for-set! e name) (comp val e)))
       ((= (pref ,obj ,prop) ,val)
        (@impl e l pput (list (comp obj e) (make-ghil-quote e l prop) (comp val e))))
+      ((= (aref ,obj ,prop) ,val)
+       (@impl e l pput (list (comp obj e) (comp prop e) (comp val e))))
       (else
        (error "compilation not yet implemented:" x)))))
 
