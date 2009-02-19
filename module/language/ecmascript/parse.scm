@@ -102,8 +102,8 @@
                         (Identifier Initialiser) -> `(,$1 ,$2))
    (VariableDeclarationNoIn (Identifier) -> `(,$1)
                             (Identifier Initialiser) -> `(,$1 ,$2))
-   (Initialiser (= AssignmentExpression) -> $1)
-   (InitialiserNoIn (= AssignmentExpressionNoIn) -> $1)
+   (Initialiser (= AssignmentExpression) -> $2)
+   (InitialiserNoIn (= AssignmentExpressionNoIn) -> $2)
 
    (EmptyStatement (semicolon) -> '(begin))
 

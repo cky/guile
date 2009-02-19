@@ -55,7 +55,8 @@
               *undefined*)))))
 
 (define-method (prop-attrs (o <js-object>) p)
-  (or (hashq-ref (js-prop-attrs o) p)
+  (or (let ((attrs (js-prop-attrs o)))
+        (and attrs (hashq-ref (js-prop-attrs o) p)))
       (let ((proto (js-prototype o)))
         (if proto
             (prop-attrs proto p)

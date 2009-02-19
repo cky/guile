@@ -43,7 +43,7 @@
                    (make-ghil-ref
                     ,e ,l
                     (ghil-var-at-module! ,e '(language ecmascript impl) ',sym #t))
-                   (map (lambda (x) (comp x ,e)) ,args)))
+                   ,args))
 
 (define (comp x e)
   (let ((l (location x)))
@@ -84,7 +84,13 @@
       ((return ,expr)
        (make-ghil-inline e l 'return (list (comp expr e))))
       ((array . ,args)
-       (@impl e l new-array args))
+       (@impl e l new-array (map (lambda (x) (comp x e)) args)))
+      ((pref ,obj ,prop)
+       (@impl e l pget (list (comp obj e) (make-ghil-quote e l prop))))
+      ((= (ref ,name) ,val)
+       (make-ghil-set e l (ghil-var-for-set! e name) (comp val e)))
+      ((= (pref ,obj ,prop) ,val)
+       (@impl e l pput (list (comp obj e) (make-ghil-quote e l prop) (comp val e))))
       (else
        (error "compilation not yet implemented:" x)))))
 
@@ -92,14 +98,16 @@
   (define (process)
     (let lp ((in body) (out '()) (rvars (reverse formals)))
       (pmatch in
-        (((var ,x) . ,rest)
-         (lp rest
+        (((var (,x) . ,morevars) . ,rest)
+         (lp `((var . ,morevars) . ,rest)
              out
              (if (memq x rvars) rvars (cons x rvars))))
-        (((var ,x ,y) . ,rest)
-         (lp rest
+        (((var (,x ,y) . ,morevars) . ,rest)
+         (lp `((var . ,morevars) . ,rest)
              `((= (ref ,x) ,y) . ,out)
              (if (memq x rvars) rvars (cons x rvars))))
+        (((var) . ,rest)
+         (lp rest out rvars))
         ((,x . ,rest) (guard (and (pair? x) (eq? (car x) 'lambda)))
          (lp rest
              (cons x out)
