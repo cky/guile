@@ -186,16 +186,16 @@
                       (lparen Expression rparen) -> $2)
 
    (ArrayLiteral (lbracket rbracket) -> '(array)
-                 (lbracket Elision rbracket) -> '(array)
+                 (lbracket Elision rbracket) -> '(array ,@$2)
                  (lbracket ElementList rbracket) -> `(array ,@$2)
                  (lbracket ElementList comma rbracket) -> `(array ,@$2)
                  (lbracket ElementList comma Elision rbracket) -> `(array ,@$2))
    (ElementList (AssignmentExpression) -> `(,$1)
-                (Elision AssignmentExpression) -> `(,$2)
+                (Elision AssignmentExpression) -> `(,@$1 ,$2)
                 (ElementList comma AssignmentExpression) -> `(,@$1 ,$3)
-                (ElementList comma Elision AssignmentExpression) -> `(,@$1 ,$4))
-   (Elision (comma) -> #f
-            (Elision comma) -> #f)
+                (ElementList comma Elision AssignmentExpression) -> `(,@$1 ,@$3 ,$4))
+   (Elision (comma) -> '((number 0))
+            (Elision comma) -> `(,@$1 (number 0)))
 
    (ObjectLiteral (lbrace rbrace) -> `(object)
                   (lbrace PropertyNameAndValueList rbrace) -> `(object ,@$2))

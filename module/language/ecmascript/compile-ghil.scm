@@ -38,10 +38,12 @@
 	 (and (not (null? props))
               props))))
 
-(define-macro (@impl e l sym . args)
+(define-macro (@impl e l sym args)
   `(make-ghil-call ,e ,l
-                   (ghil-var-at-module! ,e '(language ecmascript impl) ',sym #t)
-                   (list ,@(map (lambda (x) `(comp x ,e)) ,args))))
+                   (make-ghil-ref
+                    ,e ,l
+                    (ghil-var-at-module! ,e '(language ecmascript impl) ',sym #t))
+                   (map (lambda (x) (comp x ,e)) ,args)))
 
 (define (comp x e)
   (let ((l (location x)))
@@ -81,6 +83,8 @@
        (make-ghil-call e l (comp proc e) (map (lambda (x) (comp x e)) args)))
       ((return ,expr)
        (make-ghil-inline e l 'return (list (comp expr e))))
+      ((array . ,args)
+       (@impl e l new-array args))
       (else
        (error "compilation not yet implemented:" x)))))
 

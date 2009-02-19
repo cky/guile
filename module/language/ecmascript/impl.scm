@@ -20,7 +20,7 @@
 ;;; Code:
 
 (define-module (language ecmascript impl)
-  #:use-modules (oop goops)
+  #:use-module (oop goops)
   #:export (*undefined*
             <js-object>
             pget prop-attrs prop-has-attr? pput has-property? pdel
@@ -29,7 +29,9 @@
             object->value/number object->value
 
             ->primitive ->boolean ->number ->integer ->int32 ->uint32
-            ->uint16 ->string ->object))
+            ->uint16 ->string ->object
+
+            new-array))
 
 (define *undefined* ((@@ (oop goops) make-unbound)))
 
@@ -67,6 +69,7 @@
       (throw 'ReferenceError o p)
       (hashq-set! (js-props o) p v)))
 
+;; what the hell is this
 (define-method (has-property? (o <js-object>) p v)
   (if (prop-has-attr? o p 'ReadOnly)
       (throw 'ReferenceError o p)
@@ -182,3 +185,44 @@
         ((number? x) (make <js-object> #:prototype String #:value x))
         ((string? x) (make <js-object> #:prototype Number #:value x))
         (else x)))
+
+(define-class <js-array-object> (<js-object>)
+  (vector #:init-value #() #:accessor js-array-vector))
+
+(define-method (pget (o <js-array-object>) p)
+  (cond ((and (integer? p) (exact? p) (>= p 0))
+         (let ((v (js-array-vector o)))
+           (if (< p (vector-length v))
+               (vector-ref v p)
+               (next-method))))
+        ((eq? p 'length)
+         (vector-length (js-array-vector o)))
+        (else (next-method))))
+
+(define-method (pput (o <js-array-object>) p v)
+  (cond ((and (integer? p) (exact? p) (>= 0 p))
+         (let ((vect (js-array-vector o)))
+           (if (< p (vector-length vect))
+               (vector-set! vect p)
+               ;; Fixme: round up to powers of 2?
+               (let ((new (make-vector (1+ p) 0)))
+                 (vector-move-left! vect 0 (vector-length vect) new 0)
+                 (set! (js-array-vector o) new)
+                 (vector-set! new p)))))
+        ((eq? p 'length)
+         (let ((vect (js-array-vector o)))
+           (let ((new (make-vector (->uint32 v) 0)))
+             (vector-move-left! vect 0 (min (vector-length vect) (->uint32 v))
+                                new 0)
+             (set! (js-array-vector o) new))))
+        (else (next-method))))
+
+(define (new-array . vals)
+  (let ((o (make <js-array-object>)))
+    (pput o 'length (length vals))
+    (let ((vect (js-array-vector o)))
+      (let lp ((i 0) (vals vals))
+        (cond ((not (null? vals))
+               (vector-set! vect i (car vals))
+               (lp (1+ i) (cdr vals)))
+              (else o))))))
