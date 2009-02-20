@@ -173,7 +173,7 @@
    ;; as to get operator precedence right.
    ;;
 
-   (PrimaryExpression (this) -> '(this)
+   (PrimaryExpression (this) -> 'this
                       (null) -> 'null
                       (true) -> #t
                       (false) -> #f

@@ -24,9 +24,12 @@
   #:use-module (language ecmascript base)
   #:use-module (language ecmascript function)
   #:use-module (language ecmascript array)
-  #:re-export (*undefined* *this*
+  #:export (get-this)
+  #:re-export (*undefined* *this* call/this*
                pget pput pdel
                new-object
                new
                new-array))
 
+(define (get-this)
+  (fluid-ref *this*))

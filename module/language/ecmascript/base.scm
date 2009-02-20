@@ -23,6 +23,7 @@
   #:use-module (oop goops)
   #:export (*undefined* *this*
             <js-object> *object-prototype*
+            js-prototype js-props js-prop-attrs js-value js-constructor js-class
             pget prop-attrs prop-has-attr? pput has-property? pdel
 
             object->string object->number object->value/string
@@ -31,7 +32,7 @@
             ->primitive ->boolean ->number ->integer ->int32 ->uint32
             ->uint16 ->string ->object
 
-            call/this lambda/this define-js-method
+            call/this* call/this lambda/this define-js-method
 
             new-object))
 
@@ -82,8 +83,11 @@
           (pput o p *undefined*)
           #t))))
 
+(define (call/this* this f)
+  (with-fluid* *this* this f))
+
 (define-macro (call/this this f . args)
-  `(with-fluid* *this* ,this (lambda () (f . ,args))))
+  `(with-fluid* *this* ,this (lambda () (,f . ,args))))
 (define-macro (lambda/this formals . body)
   `(lambda ,formals (let ((this (fluid-ref *this*))) . ,body)))
 (define-macro (define-js-method object name-and-args . body)
