@@ -38,15 +38,13 @@
 	 (and (not (null? props))
               props))))
 
-(define-macro (@impl e l sym args)
-  `(make-ghil-call ,e ,l
-                   (make-ghil-ref
-                    ,e ,l
-                    (ghil-var-at-module! ,e '(language ecmascript impl) ',sym #t))
-                   ,args))
 (define-macro (@implv e l sym)
   `(make-ghil-ref ,e ,l
                   (ghil-var-at-module! ,e '(language ecmascript impl) ',sym #t)))
+(define-macro (@impl e l sym args)
+  `(make-ghil-call ,e ,l
+                   (@implv ,e ,l ,sym)
+                   ,args))
 
 (define (comp x e)
   (let ((l (location x)))
@@ -72,6 +70,138 @@
        (make-ghil-inline e l 'div (list (comp a e) (comp b e))))
       ((* ,a ,b)
        (make-ghil-inline e l 'mul (list (comp a e) (comp b e))))
+      ((postinc (ref ,foo))
+       (call-with-ghil-bindings e '(%tmp)
+         (lambda (vars)
+           (make-ghil-begin
+            e l (list (make-ghil-set e l (car vars) (comp `(ref ,foo) e))
+                      (make-ghil-set e l (ghil-var-for-set! e foo)
+                                     (make-ghil-inline
+                                      e l 'add (list (make-ghil-quote e l 1)
+                                                     (make-ghil-ref e l (car vars)))))
+                      (make-ghil-ref e l (car vars)))))))
+      ((postinc (pref ,obj ,prop))
+       (call-with-ghil-bindings e '(%tmp)
+         (lambda (vars)
+           (make-ghil-begin
+            e l (list (make-ghil-set e l (car vars) (comp `(pref ,obj ,prop) e))
+                      (@impl e l pput (list (comp obj e)
+                                            (make-ghil-quote e l prop)
+                                            (make-ghil-inline
+                                             e l 'add (list (make-ghil-quote e l 1)
+                                                            (make-ghil-ref e l (car vars))))))
+                      (make-ghil-ref e l (car vars)))))))
+      ((postinc (aref ,obj ,prop))
+       (call-with-ghil-bindings e '(%tmp)
+         (lambda (vars)
+           (make-ghil-begin
+            e l (list (make-ghil-set e l (car vars) (comp `(aref ,obj ,prop) e))
+                      (@impl e l pput (list (comp obj e)
+                                            (comp prop e)
+                                            (make-ghil-inline
+                                             e l 'add (list (make-ghil-quote e l 1)
+                                                            (make-ghil-ref e l (car vars))))))
+                      (make-ghil-ref e l (car vars)))))))
+      ((postdec (ref ,foo))
+       (call-with-ghil-bindings e '(%tmp)
+         (lambda (vars)
+           (make-ghil-begin
+            e l (list (make-ghil-set e l (car vars) (comp `(ref ,foo) e))
+                      (make-ghil-set e l (ghil-var-for-set! e foo)
+                                     (make-ghil-inline
+                                      e l 'sub (list (make-ghil-ref e l (car vars))
+                                                     (make-ghil-quote e l 1))))
+                      (make-ghil-ref e l (car vars)))))))
+      ((postdec (pref ,obj ,prop))
+       (call-with-ghil-bindings e '(%tmp)
+         (lambda (vars)
+           (make-ghil-begin
+            e l (list (make-ghil-set e l (car vars) (comp `(pref ,obj ,prop) e))
+                      (@impl e l pput (list (comp obj e)
+                                            (make-ghil-quote e l prop)
+                                            (make-ghil-inline
+                                             e l 'sub (list (make-ghil-ref e l (car vars))
+                                                            (make-ghil-quote e l 1)))))
+                      (make-ghil-ref e l (car vars)))))))
+      ((postdec (aref ,obj ,prop))
+       (call-with-ghil-bindings e '(%tmp)
+         (lambda (vars)
+           (make-ghil-begin
+            e l (list (make-ghil-set e l (car vars) (comp `(aref ,obj ,prop) e))
+                      (@impl e l pput (list (comp obj e)
+                                            (comp prop e)
+                                            (make-ghil-inline
+                                             e l 'sub (list (make-ghil-ref e l (car vars))
+                                                            (make-ghil-quote e l 1)))))
+                      (make-ghil-ref e l (car vars)))))))
+      ((preinc (ref ,foo))
+       (let ((v (ghil-var-for-set! e foo)))
+         (make-ghil-begin
+          e l (list (make-ghil-set e l v
+                                   (make-ghil-inline
+                                    e l 'add (list (make-ghil-quote e l 1)
+                                                   (make-ghil-ref e l v))))
+                    (make-ghil-ref e l v)))))
+      ((preinc (pref ,obj ,prop))
+       (call-with-ghil-bindings e '(%tmp)
+         (lambda (vars)
+           (make-ghil-begin
+            e l (list (make-ghil-set e l (car vars) (comp obj e))
+                      (@impl e l pput (list (make-ghil-ref e l (car vars))
+                                            (make-ghil-quote e l prop)
+                                            (make-ghil-inline
+                                             e l 'add (list (make-ghil-quote e l 1)
+                                                            (@impl e l pget (list (make-ghil-ref e l (car vars))
+                                                                                  (make-ghil-quote e l prop)))))))
+                      (@impl e l pget (list (make-ghil-ref e l (car vars))
+                                            (make-ghil-quote e l prop))))))))
+      ((preinc (aref ,obj ,prop))
+       (call-with-ghil-bindings e '(%tmp)
+         (lambda (vars)
+           (make-ghil-begin
+            e l (list (make-ghil-set e l (car vars) (comp obj e))
+                      (@impl e l pput (list (make-ghil-ref e l (car vars))
+                                            (comp prop e)
+                                            (make-ghil-inline
+                                             e l 'add (list (make-ghil-quote e l 1)
+                                                            (@impl e l pget (list (make-ghil-ref e l (car vars))
+                                                                                  (comp prop e)))))))
+                      (@impl e l pget (list (make-ghil-ref e l (car vars))
+                                            (comp prop e))))))))
+      ((predec (ref ,foo))
+       (let ((v (ghil-var-for-set! e foo)))
+         (make-ghil-begin
+          e l (list (make-ghil-set e l v
+                                   (make-ghil-inline
+                                    e l 'sub (list (make-ghil-ref e l v)
+                                                   (make-ghil-quote e l 1))))
+                    (make-ghil-ref e l v)))))
+      ((predec (pref ,obj ,prop))
+       (call-with-ghil-bindings e '(%tmp)
+         (lambda (vars)
+           (make-ghil-begin
+            e l (list (make-ghil-set e l (car vars) (comp obj e))
+                      (@impl e l pput (list (make-ghil-ref e l (car vars))
+                                            (make-ghil-quote e l prop)
+                                            (make-ghil-inline
+                                             e l 'sub (list (@impl e l pget (list (make-ghil-ref e l (car vars))
+                                                                                  (make-ghil-quote e l prop)))
+                                                            (make-ghil-quote e l 1)))))
+                      (@impl e l pget (list (make-ghil-ref e l (car vars))
+                                            (make-ghil-quote e l prop))))))))
+      ((predec (aref ,obj ,prop))
+       (call-with-ghil-bindings e '(%tmp)
+         (lambda (vars)
+           (make-ghil-begin
+            e l (list (make-ghil-set e l (car vars) (comp obj e))
+                      (@impl e l pput (list (make-ghil-ref e l (car vars))
+                                            (comp prop e)
+                                            (make-ghil-inline
+                                             e l 'sub (list (@impl e l pget (list (make-ghil-ref e l (car vars))
+                                                                                  (comp prop e)))
+                                                            (make-ghil-quote e l 1)))))
+                      (@impl e l pget (list (make-ghil-ref e l (car vars))
+                                            (comp prop e))))))))
       ((ref ,id)
        (make-ghil-ref e l (ghil-var-for-ref! e id)))
       ((var . ,forms)
@@ -98,6 +228,7 @@
            (make-ghil-lambda env l vars #t '()
                              (comp-body env l body formals '%args)))))
       ((call/this ,obj ,prop ,args)
+       ;; FIXME: only evaluate "obj" once
        (@impl e l call/this*
               (list obj (make-ghil-lambda
                          e l '() #f '()
@@ -138,6 +269,16 @@
        (@impl e l pput (list (comp obj e) (make-ghil-quote e l prop) (comp val e))))
       ((= (aref ,obj ,prop) ,val)
        (@impl e l pput (list (comp obj e) (comp prop e) (comp val e))))
+      ((new ,what ,args)
+       (@impl e l new (map (lambda (x) (comp x e)) (cons what args))))
+      ((delete (pref ,obj ,prop))
+       (@impl e l pdel (list (comp obj e) (make-ghil-quote e l prop))))
+      ((delete (aref ,obj ,prop))
+       (@impl e l pdel (list (comp obj e) (comp prop e))))
+      ((void ,expr)
+       (make-ghil-begin e l (list (comp expr e) (@implv e l *undefined*))))
+      ((typeof ,expr)
+       (@impl e l typeof (list (comp expr e))))
       (else
        (error "compilation not yet implemented:" x)))))
 

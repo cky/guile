@@ -24,7 +24,7 @@
   #:use-module (language ecmascript base)
   #:use-module (language ecmascript function)
   #:use-module (language ecmascript array)
-  #:export (get-this)
+  #:export (get-this typeof)
   #:re-export (*undefined* *this* call/this*
                pget pput pdel
                new-object
@@ -33,3 +33,13 @@
 
 (define (get-this)
   (fluid-ref *this*))
+
+(define (typeof x)
+  (cond ((eq? x *undefined*) "undefined")
+        ((null? x) "object")
+        ((boolean? x) "boolean")
+        ((number? x) "number")
+        ((string? x) "string")
+        ((procedure? x) "function")
+        ((is-a? x <js-object>) "object")
+        (else "scm")))
