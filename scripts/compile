@@ -4,7 +4,7 @@ exec ${GUILE-guile} -e '(@ (scripts compile) compile)' -s $0 "$@"
 !#
 ;;; Compile --- Command-line Guile Scheme compiler
 
-;; Copyright 2005,2008 Free Software Foundation, Inc.
+;; Copyright 2005,2008,2009 Free Software Foundation, Inc.
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -21,7 +21,7 @@ exec ${GUILE-guile} -e '(@ (scripts compile) compile)' -s $0 "$@"
 ;; the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;; Boston, MA 02110-1301 USA
 
-;;; Author: Ludovic Courtès <ludovic.courtes@laas.fr>
+;;; Author: Ludovic Courtès <ludo@gnu.org>
 ;;; Author: Andy Wingo <wingo@pobox.com>
 
 ;;; Commentary:
@@ -35,25 +35,54 @@ exec ${GUILE-guile} -e '(@ (scripts compile) compile)' -s $0 "$@"
 ;;; Code:
 
 (define-module (scripts compile)
-  #:use-module (system base compile)
-  #:use-module (ice-9 getopt-long)
+  #:use-module ((system base compile) #:select (compile-file))
+  #:use-module (srfi srfi-1)
+  #:use-module (srfi srfi-37)
   #:export (compile))
 
+
 (define %options
-  '((help           (single-char #\h) (value #f))
-    (optimize       (single-char #\O) (value #f))
-    (expand-only    (single-char #\e) (value #f))
-    (translate-only (single-char #\t) (value #f))
-    (compile-only   (single-char #\c) (value #f))))
+  ;; Specifications of the command-line options.
+  (list (option '(#\h "help") #f #f
+                (lambda (opt name arg result)
+		  (alist-cons 'help? #t result)))
 
+	(option '(#\O "optimize") #f #f
+		(lambda (opt name arg result)
+		  (alist-cons 'optimize? #t result)))
+	(option '(#\e "expand-only") #f #f
+		(lambda (opt name arg result)
+		  (alist-cons 'expand-only? #t result)))
+	(option '(#\t "translate-only") #f #f
+		(lambda (opt name arg result)
+		  (alist-cons 'translate-only? #t result)))
+	(option '(#\c "compile-only") #f #f
+		(lambda (opt name arg result)
+		  (alist-cons 'compile-only? #t result)))))
+
+(define (parse-args args)
+  "Parse argument list @var{args} and return an alist with all the relevant
+options."
+  (args-fold args %options
+             (lambda (opt name arg result)
+               (format (current-error-port) "~A: unrecognized option" opt)
+	       (exit 1))
+             (lambda (file result)
+	       (let ((input-files (assoc-ref result 'input-files)))
+		 (alist-cons 'input-files (cons file input-files)
+			     result)))
+             '((input-files))))
+
+
 (define (compile args)
-  (let* ((options         (getopt-long args %options))
-         (help?           (option-ref options 'help #f))
-         (optimize?       (option-ref options 'optimize #f))
-         (expand-only?    (option-ref options 'expand-only #f))
-         (translate-only? (option-ref options 'translate-only #f))
-         (compile-only?   (option-ref options 'compile-only #f)))
-    (if help?
+  (let* ((options         (parse-args (cdr args)))
+         (help?           (assoc-ref options 'help?))
+         (optimize?       (assoc-ref options 'optimize?))
+         (expand-only?    (assoc-ref options 'expand-only?))
+         (translate-only? (assoc-ref options 'translate-only?))
+         (compile-only?   (assoc-ref options 'compile-only?))
+	 (input-files     (assoc-ref options 'input-files)))
+    (if (or help? (null? input-files))
         (begin
           (format #t "Usage: compile [OPTION] FILE...
 Compile each Guile Scheme source file FILE into a Guile object.
@@ -73,4 +102,8 @@ Report bugs to <guile-user@gnu.org>.~%")
                                 (if compile-only? '(#:c) '()))))
       (for-each (lambda (file)
                   (apply compile-file file compile-opts))
-                (option-ref options '() '())))))
+                input-files))))
+
+;;; Local Variables:
+;;; coding: latin-1
+;;; End:
