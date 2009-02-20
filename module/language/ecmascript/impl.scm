@@ -24,12 +24,18 @@
   #:use-module (language ecmascript base)
   #:use-module (language ecmascript function)
   #:use-module (language ecmascript array)
-  #:export (get-this typeof)
   #:re-export (*undefined* *this* call/this*
-               pget pput pdel
+               pget pput pdel has-property?
                new-object
                new
-               new-array))
+               new-array)
+  #:export (get-this
+            typeof
+            bitwise-not logical-not
+            shift
+            mod
+            band bxor bior))
+
 
 (define (get-this)
   (fluid-ref *this*))
@@ -43,3 +49,15 @@
         ((procedure? x) "function")
         ((is-a? x <js-object>) "object")
         (else "scm")))
+
+(define bitwise-not lognot)
+(define (logical-not x)
+  (not (->boolean (->primitive x))))
+
+(define shift ash)
+
+(define band logand)
+(define bxor logxor)
+(define bior logior)
+
+(define mod modulo)

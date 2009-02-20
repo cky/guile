@@ -317,7 +317,7 @@
    (AssignmentExpressionNoIn (ConditionalExpressionNoIn) -> $1
                              (LeftHandSideExpression AssignmentOperator AssignmentExpressionNoIn) -> `(,$2 ,$1 ,$3))
    (AssignmentOperator (=) -> '=
-                       (*=) -> '=
+                       (*=) -> '*=
                        (/=) -> '/=
                        (%=) -> '%=
                        (+=) -> '+=

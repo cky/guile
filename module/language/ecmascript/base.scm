@@ -48,15 +48,17 @@
   (constructor #:getter js-constructor #:init-value #f #:init-keyword #:constructor)
   (class #:getter js-class #:init-value "Object" #:init-keyword #:class))
 
+(define-method (pget (o <js-object>) (p <string>))
+  (pget o (string->symbol p)))
+
 (define-method (pget (o <js-object>) p)
-  (let ((p (if (string? p) (string->symbol p) p)))
-    (let ((h (hashq-get-handle (js-props o) p)))
-      (if h
-          (cdr h)
-          (let ((proto (js-prototype o)))
-            (if proto
-                (pget proto p)
-                *undefined*))))))
+  (let ((h (hashq-get-handle (js-props o) p)))
+    (if h
+        (cdr h)
+        (let ((proto (js-prototype o)))
+          (if proto
+              (pget proto p)
+              *undefined*)))))
 
 (define-method (prop-attrs (o <js-object>) p)
   (or (let ((attrs (js-prop-attrs o)))
@@ -75,6 +77,9 @@
         (throw 'ReferenceError o p)
         (hashq-set! (js-props o) p v))))
 
+(define-method (pput (o <js-object>) (p <string>) v)
+  (pput o (string->symbol p) v))
+
 (define-method (pdel (o <js-object>) p)
   (let ((p (if (string? p) (string->symbol p) p)))
     (if (prop-has-attr? o p 'DontDelete)
@@ -82,6 +87,17 @@
         (begin
           (pput o p *undefined*)
           #t))))
+
+(define-method (pdel (o <js-object>) (p <string>) v)
+  (pdel o (string->symbol p)))
+
+(define-method (has-property? (o <js-object>) p)
+  (if (hashq-get-handle (js-props o) v)
+      #t
+      (let ((proto (js-prototype o)))
+        (if proto
+            (has-property? proto p)
+            #f))))
 
 (define (call/this* this f)
   (with-fluid* *this* this f))
