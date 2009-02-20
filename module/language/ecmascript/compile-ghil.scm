@@ -51,14 +51,15 @@
     (define (let1 what proc)
       (call-with-ghil-bindings e '(%tmp)
         (lambda (vars)
-          (make-ghil-begin e l (list (make-ghil-set e l (car vars) what)
-                                     (proc (car vars)))))))
+          (make-ghil-bind e l vars (list what)
+                          (proc (car vars))))))
     (define (begin1 what proc)
       (call-with-ghil-bindings e '(%tmp)
         (lambda (vars)
-          (make-ghil-begin e l (list (make-ghil-set e l (car vars) what)
-                                     (proc (car vars))
-                                     (make-ghil-ref e l (car vars)))))))
+          (make-ghil-bind e l vars (list what)
+                          (make-ghil-begin
+                           e l (list (proc (car vars))
+                                     (make-ghil-ref e l (car vars))))))))
     (pmatch x
       (null
        ;; FIXME, null doesn't have much relation to EOL...
@@ -130,7 +131,11 @@
       ((or ,a ,b)
        (make-ghil-or e l (list (comp a e) (comp b e))))
       ((if ,test ,then ,else)
-       (make-ghil-if e l (comp test e) (comp then e) (comp else e)))
+       (make-ghil-if e l (@impl e l ->boolean (list (comp test e)))
+                     (comp then e) (comp else e)))
+      ((if ,test ,then ,else)
+       (make-ghil-if e l (@impl e l ->boolean (list (comp test e)))
+                     (comp then e) (@implv e l *undefined*)))
       ((postinc (ref ,foo))
        (begin1 (comp `(ref ,foo) e)
                (lambda (var)
@@ -363,6 +368,74 @@
        (make-ghil-begin e l (list (comp expr e) (@implv e l *undefined*))))
       ((typeof ,expr)
        (@impl e l typeof (list (comp expr e))))
+      ((do ,statement ,test)
+       (call-with-ghil-bindings e '(%loop %continue)
+         (lambda (vars)
+           (make-ghil-bind
+            e l vars (list
+                      (call-with-ghil-environment e '()
+                        (lambda (e _)
+                          (make-ghil-lambda
+                           e l '() #f '()
+                           (make-ghil-begin
+                            e l (list (comp statement e)
+                                      (make-ghil-call e l (make-ghil-ref
+                                                           e l (ghil-var-for-ref! e '%continue))
+                                                      '()))))))
+                      (call-with-ghil-environment e '()
+                        (lambda (e _)
+                          (make-ghil-lambda
+                           e l '() #f '()
+                           (make-ghil-if e l (comp test e)
+                                         (make-ghil-call e l (make-ghil-ref
+                                                              e l (ghil-var-for-ref! e '%loop))
+                                                         '())
+                                         (@implv e l *undefined*))))))
+            (make-ghil-call e l (make-ghil-ref e l (car vars)) '())))))
+      ((while ,test ,statement)
+       (call-with-ghil-bindings e '(%continue)
+         (lambda (vars)
+           (make-ghil-begin
+            e l
+            (list (make-ghil-set
+                   e l (car vars)
+                   (call-with-ghil-environment e '()
+                     (lambda (e _)
+                       (make-ghil-lambda
+                        e l '() #f '()
+                        (make-ghil-if
+                         e l (comp test e)
+                         (make-ghil-begin
+                          e l (list (comp statement e)
+                                    (make-ghil-call e l (make-ghil-ref
+                                                         e l (ghil-var-for-ref! e '%continue))
+                                                    '())))
+                         (@implv e l *undefined*))))))
+                  (make-ghil-call e l (make-ghil-ref e l (car vars)) '()))))))
+      ((for ,init ,test ,inc ,statement)
+       (call-with-ghil-bindings e '(%continue)
+         (lambda (vars)
+           (make-ghil-begin
+            e l
+            (list (comp (or init '(begin)) e)
+                  (make-ghil-set
+                   e l (car vars)
+                   (call-with-ghil-environment e '()
+                     (lambda (e _)
+                       (make-ghil-lambda
+                        e l '() #f '()
+                        (make-ghil-if
+                         e l (comp (or test 'true) e)
+                         (make-ghil-begin
+                          e l (list (comp (or inc '(begin)) e)
+                                    (comp statement e)
+                                    (make-ghil-call e l (make-ghil-ref
+                                                         e l (ghil-var-for-ref! e '%continue))
+                                                    '())))
+                         (@implv e l *undefined*))))))
+                  (make-ghil-call e l (make-ghil-ref e l (car vars)) '()))))))
+      ((block ,x)
+       (comp x e))
       (else
        (error "compilation not yet implemented:" x)))))
 

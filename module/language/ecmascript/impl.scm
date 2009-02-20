@@ -26,9 +26,8 @@
   #:use-module (language ecmascript array)
   #:re-export (*undefined* *this* call/this*
                pget pput pdel has-property?
-               new-object
-               new
-               new-array)
+               ->boolean
+               new-object new new-array)
   #:export (get-this
             typeof
             bitwise-not logical-not

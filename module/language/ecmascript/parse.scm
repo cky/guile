@@ -175,8 +175,8 @@
 
    (PrimaryExpression (this) -> 'this
                       (null) -> 'null
-                      (true) -> #t
-                      (false) -> #f
+                      (true) -> 'true
+                      (false) -> 'false
                       (Identifier) -> `(ref ,$1)
                       (StringLiteral) -> `(string ,$1)
                       (RegexpLiteral) -> `(regexp ,$1)
