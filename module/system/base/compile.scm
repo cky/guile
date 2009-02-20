@@ -88,8 +88,9 @@
       x
       (lookup-language x)))
 
-(define* (compile-file file #:key (to 'objcode) (opts '()))
-  (let ((comp (compiled-file-name file))
+(define* (compile-file file #:optional output-file
+		            #:key (to 'objcode) (opts '()))
+  (let ((comp (or output-file (compiled-file-name file)))
         (lang (ensure-language (current-language)))
         (to (ensure-language to)))
     (catch 'nothing-at-all
