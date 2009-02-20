@@ -47,6 +47,11 @@ exec ${GUILE-guile} -e '(@ (scripts compile) compile)' -s $0 "$@"
                 (lambda (opt name arg result)
 		  (alist-cons 'help? #t result)))
 
+	(option '(#\L "load-path") #t #f
+		(lambda (opt name arg result)
+		  (let ((load-path (assoc-ref result 'load-path)))
+		    (alist-cons 'load-path (cons arg load-path)
+				result))))
 	(option '(#\O "optimize") #f #f
 		(lambda (opt name arg result)
 		  (alist-cons 'optimize? #t result)))
@@ -71,7 +76,10 @@ options."
 	       (let ((input-files (assoc-ref result 'input-files)))
 		 (alist-cons 'input-files (cons file input-files)
 			     result)))
-             '((input-files))))
+
+	     ;; default option values
+             '((input-files)
+	       (load-path))))
 
 
 (define (compile args)
@@ -81,13 +89,16 @@ options."
          (expand-only?    (assoc-ref options 'expand-only?))
          (translate-only? (assoc-ref options 'translate-only?))
          (compile-only?   (assoc-ref options 'compile-only?))
-	 (input-files     (assoc-ref options 'input-files)))
+	 (input-files     (assoc-ref options 'input-files))
+	 (load-path       (assoc-ref options 'load-path)))
     (if (or help? (null? input-files))
         (begin
           (format #t "Usage: compile [OPTION] FILE...
 Compile each Guile Scheme source file FILE into a Guile object.
 
   -h, --help           print this help message
+
+  -L, --load-path=DIR  add DIR to the front of the module load path
   -O, --optimize       turn on optimizations
   -e, --expand-only    only go through the code expansion stage
   -t, --translate-only stop after the translation to GHIL
@@ -95,6 +106,8 @@ Compile each Guile Scheme source file FILE into a Guile object.
 
 Report bugs to <guile-user@gnu.org>.~%")
           (exit 0)))
+
+    (set! %load-path (append load-path %load-path))
 
     (let ((compile-opts (append (if optimize? '(#:O) '())
                                 (if expand-only? '(#:e) '())
