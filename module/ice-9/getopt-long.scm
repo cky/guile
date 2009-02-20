@@ -176,7 +176,7 @@
 (define make-option-spec (record-constructor option-spec option-spec-fields))
 
 (eval-case
- ((compile-toplevel)
+ ((load-toplevel compile-toplevel)
 
   ;; The following procedures are used only at compile-time when expanding
   ;; `define-all-option-spec-accessors/modifiers' (see below).
