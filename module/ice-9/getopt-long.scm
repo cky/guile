@@ -1,4 +1,4 @@
-;;; Copyright (C) 1998, 2001, 2006 Free Software Foundation, Inc.
+;;; Copyright (C) 1998, 2001, 2006, 2009 Free Software Foundation, Inc.
 ;;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -160,23 +160,34 @@
   :use-module ((ice-9 common-list) :select (some remove-if-not))
   :export (getopt-long option-ref))
 
-(define option-spec-fields '(name
-                             value
-                             required?
-                             single-char
-                             predicate
-                             value-policy))
+(eval-case
+ ((load-toplevel compile-toplevel)
+
+  ;; This binding is used both at compile-time and run-time.
+
+  (define option-spec-fields '(name
+			       value
+			       required?
+			       single-char
+			       predicate
+			       value-policy))))
 
 (define option-spec (make-record-type 'option-spec option-spec-fields))
 (define make-option-spec (record-constructor option-spec option-spec-fields))
 
-(define (define-one-option-spec-field-accessor field)
-  `(define ,(symbol-append 'option-spec-> field)        ;;; name slib-compat
-     (record-accessor option-spec ',field)))
+(eval-case
+ ((compile-toplevel)
 
-(define (define-one-option-spec-field-modifier field)
-  `(define ,(symbol-append 'set-option-spec- field '!)  ;;; name slib-compat
-     (record-modifier option-spec ',field)))
+  ;; The following procedures are used only at compile-time when expanding
+  ;; `define-all-option-spec-accessors/modifiers' (see below).
+
+  (define (define-one-option-spec-field-accessor field)
+    `(define ,(symbol-append 'option-spec-> field)        ;;; name slib-compat
+       (record-accessor option-spec ',field)))
+
+  (define (define-one-option-spec-field-modifier field)
+    `(define ,(symbol-append 'set-option-spec- field '!)  ;;; name slib-compat
+       (record-modifier option-spec ',field)))))
 
 (defmacro define-all-option-spec-accessors/modifiers ()
   `(begin
