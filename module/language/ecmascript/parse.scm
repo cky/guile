@@ -126,10 +126,10 @@
                        (for lparen ExpressionNoIn semicolon Expression semicolon rparen Statement) -> `(for ,$3 ,$5 #f ,$8)
                        (for lparen ExpressionNoIn semicolon Expression semicolon Expression rparen Statement) -> `(for ,$3 ,$5 ,$7 ,$9)
 
-                       (for lparen var VariableDeclarationListNoIn semicolon semicolon rparen Statement) -> `(for (var ,$4) #f #f ,$8)
-                       (for lparen var VariableDeclarationListNoIn semicolon semicolon Expression rparen Statement) -> `(for (var ,$4) #f ,$7 ,$9)
-                       (for lparen var VariableDeclarationListNoIn semicolon Expression semicolon rparen Statement) -> `(for (var ,$4) ,$6 #f ,$9)
-                       (for lparen var VariableDeclarationListNoIn semicolon Expression semicolon Expression rparen Statement) -> `(for (var ,$4) ,$6 ,$8 ,$10)
+                       (for lparen var VariableDeclarationListNoIn semicolon semicolon rparen Statement) -> `(for (var ,@$4) #f #f ,$8)
+                       (for lparen var VariableDeclarationListNoIn semicolon semicolon Expression rparen Statement) -> `(for (var ,@$4) #f ,$7 ,$9)
+                       (for lparen var VariableDeclarationListNoIn semicolon Expression semicolon rparen Statement) -> `(for (var ,@$4) ,$6 #f ,$9)
+                       (for lparen var VariableDeclarationListNoIn semicolon Expression semicolon Expression rparen Statement) -> `(for (var ,@$4) ,$6 ,$8 ,$10)
 
                        (for lparen LeftHandSideExpression in Expression rparen Statement) -> `(for-in ,$3 ,$5 ,$7)
                        (for lparen var VariableDeclarationNoIn in Expression rparen Statement) -> `(for-in ,$4 ,$6 ,$8))

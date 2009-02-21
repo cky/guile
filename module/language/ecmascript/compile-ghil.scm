@@ -25,6 +25,8 @@
   #:use-module (system base pmatch)
   #:export (compile-ghil))
 
+(eval-case ((load-toplevel) (debug-set! stack 0)))
+
 (define (compile-ghil exp env opts)
   (values
   (call-with-ghil-environment (make-ghil-toplevel-env) '()
@@ -434,6 +436,18 @@
                                                     '())))
                          (@implv e l *undefined*))))))
                   (make-ghil-call e l (make-ghil-ref e l (car vars)) '()))))))
+      ((break)
+       (let ((var (ghil-var-for-ref! e '%continue)))
+         (if (and (ghil-env? (ghil-var-env var))
+                  (eq? (ghil-var-env var) (ghil-env-parent e)))
+             (make-ghil-inline e l 'return (@implv e l *undefined*))
+             (error "bad break, yo"))))
+      ((continue)
+       (let ((var (ghil-var-for-ref! e '%continue)))
+         (if (and (ghil-env? (ghil-var-env var))
+                  (eq? (ghil-var-env var) (ghil-env-parent e)))
+             (make-ghil-inline e l 'goto/args (list (make-ghil-ref e l var)))
+             (error "bad continue, yo"))))
       ((block ,x)
        (comp x e))
       (else

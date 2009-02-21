@@ -631,6 +631,10 @@ VM_DEFINE_INSTRUCTION (40, goto_args, "goto/args", 1, -1, 1)
         CONS (external, SCM_UNDEFINED, external);
       SCM_FRAME_DATA_ADDRESS (fp)[0] = external;
 
+      /* Init locals to valid SCM values */
+      for (i = 0; i < bp->nlocs; i++)
+	LOCAL_SET (i + bp->nargs, SCM_UNDEFINED);
+
       /* Call itself */
       ip = bp->base;
       APPLY_HOOK ();
