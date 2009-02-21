@@ -135,9 +135,14 @@
        (and objs (list "~s" (vector-ref objs (car args)))))
       ((local-ref local-set)
        (and blocs
-            (let ((b (list-ref blocs (car args))))
-              (list "`~a'~@[ (arg)~]"
-                    (binding:name b) (< (binding:index b) nargs)))))
+            (let lp ((bindings (list-ref blocs (car args))))
+              (and (pair? bindings)
+                   (let ((b (car bindings)))
+                     (if (and (< (binding:start (car bindings)) end-addr)
+                              (>= (binding:end (car bindings)) end-addr))
+                         (list "`~a'~@[ (arg)~]"
+                               (binding:name b) (< (binding:index b) nargs))
+                         (lp (cdr bindings))))))))
       ((external-ref external-set)
        (and bexts
             (if (< (car args) (length bexts))

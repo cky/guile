@@ -25,8 +25,6 @@
   #:use-module (system base pmatch)
   #:export (compile-ghil))
 
-(eval-case ((load-toplevel) (debug-set! stack 0)))
-
 (define (compile-ghil exp env opts)
   (values
   (call-with-ghil-environment (make-ghil-toplevel-env) '()
@@ -48,6 +46,15 @@
                    (@implv ,e ,l ,sym)
                    ,args))
 
+(define-macro (ormatch x . clauses)
+  (let ((X (gensym)))
+    `(let ((,X ,x))
+       (or ,@(map (lambda (c)
+                    (if (eq? (car c) 'else)
+                        `(begin . ,(cdr c))
+                        `(pmatch ,X ,c (else #f))))
+                  clauses)))))
+
 (define (comp x e)
   (let ((l (location x)))
     (define (let1 what proc)
@@ -62,7 +69,7 @@
                           (make-ghil-begin
                            e l (list (proc (car vars))
                                      (make-ghil-ref e l (car vars))))))))
-    (pmatch x
+    (ormatch x
       (null
        ;; FIXME, null doesn't have much relation to EOL...
        (make-ghil-quote e l '()))

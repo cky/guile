@@ -175,7 +175,7 @@
                  (pmatch (cdr exp)
                          ,@clauses
                          ,@(if (assq 'else clauses) '()
-                               '((else
+                               `((else
                                   (syntax-error l (format #f "bad ~A" ',sym) exp))))))))
 
 (define-scheme-translator quote
@@ -261,8 +261,8 @@
                       (maybe-name-value! (retrans (cadr b)) (car b)))
                     bindings)))
      (call-with-ghil-bindings e (map car bindings)
-                              (lambda (vars)
-                                (make-ghil-bind e l vars vals (trans-body e l body)))))))
+       (lambda (vars)
+         (make-ghil-bind e l vars vals (trans-body e l body)))))))
 
 (define-scheme-translator let*
   ;; (let* ((SYM VAL) ...) BODY...)
@@ -275,12 +275,12 @@
   ;; (letrec ((SYM VAL) ...) BODY...)
   ((,bindings . ,body) (guard (valid-bindings? bindings))
    (call-with-ghil-bindings e (map car bindings)
-                            (lambda (vars)
-                              (let ((vals (map (lambda (b)
-                                                 (maybe-name-value!
-                                                  (retrans (cadr b)) (car b)))
-                                               bindings)))
-                                (make-ghil-bind e l vars vals (trans-body e l body)))))))
+     (lambda (vars)
+       (let ((vals (map (lambda (b)
+                          (maybe-name-value!
+                           (retrans (cadr b)) (car b)))
+                        bindings)))
+         (make-ghil-bind e l vars vals (trans-body e l body)))))))
 
 (define-scheme-translator cond
   ;; (cond (CLAUSE BODY...) ...)

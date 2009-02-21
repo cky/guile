@@ -180,7 +180,7 @@
                                  `(,(car slot) (,(symbol-append stem '- (cadr slot)) ,r))
                                  `(,slot (,(symbol-append stem '- slot) ,r))))
                            slots)
-                  ,@body))))))
+                  ,@(if (pair? body) body '((if #f #f)))))))))
     `(let* ((,r ,record)
             (,rtd (struct-vtable ,r)))
        (cond ,@(let ((clauses (map process-clause clauses)))

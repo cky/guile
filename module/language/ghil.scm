@@ -452,10 +452,10 @@
      `(begin ,@(map unparse-ghil exps)))
     ((<ghil-bind> env loc vars vals body)
      `(bind ,(map ghil-var-name vars) ,(map unparse-ghil vals)
-            ,@(map unparse-ghil body)))
+            ,(unparse-ghil body)))
     ((<ghil-mv-bind> env loc producer vars rest body)
      `(mv-bind ,(map ghil-var-name vars) ,rest
-               ,(unparse-ghil producer) ,@(map unparse-ghil body)))
+               ,(unparse-ghil producer) ,(unparse-ghil body)))
     ((<ghil-lambda> env loc vars rest meta body)
      `(lambda ,(map ghil-var-name vars) ,rest ,meta
               ,(unparse-ghil body)))

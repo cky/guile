@@ -43,6 +43,25 @@
            (values (thunk) #f)))
         (values (thunk) #f))))
 
+;; since locals are allocated on the stack and can have limited scope,
+;; in many cases we use one local for more than one lexical variable. so
+;; the returned locals set is a list, where element N of the list is
+;; itself a list of bindings for local variable N.
+(define (collapse-locals locs)
+  (let lp ((ret '()) (locs locs))
+    (if (null? locs)
+        (map cdr (sort! ret 
+                        (lambda (x y) (< (car x) (car y)))))
+        (let ((b (car locs)))
+          (cond
+           ((assv-ref ret (binding:index b))
+            => (lambda (bindings)
+                 (append! bindings (list b))
+                 (lp ret (cdr locs))))
+           (else
+            (lp (acons (binding:index b) (list b) ret)
+                (cdr locs))))))))
+
 (define (decompile-value x env opts)
   (cond
    ((program? x)
@@ -53,9 +72,10 @@
           (srcs  (program-sources x))
           (nargs (arity:nargs (program-arity x))))
       (let ((blocs (and binds
-                        (append (list-head binds nargs)
-                                (filter (lambda (x) (not (binding:extp x)))
-                                        (list-tail binds nargs)))))
+                        (collapse-locals
+                         (append (list-head binds nargs)
+                                 (filter (lambda (x) (not (binding:extp x)))
+                                         (list-tail binds nargs))))))
             (bexts (and binds
                         (filter binding:extp binds))))
         (values (program-objcode x)

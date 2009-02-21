@@ -120,7 +120,7 @@
     ((program ,nargs ,nrest ,nlocs ,nexts ,meta . ,body)
      (make-glil-program nargs nrest nlocs nexts meta (map parse-glil body)))
     ((bind . ,vars) (make-glil-bind vars))
-    ((mv-bind ,vars . ,rest) (make-glil-mv-bind vars (map parse-glil rest)))
+    ((mv-bind ,vars ,rest) (make-glil-mv-bind vars rest))
     ((unbind) (make-glil-unbind))
     ((source ,props) (make-glil-source props))
     ((void) (make-glil-void))
@@ -143,7 +143,7 @@
     ((<glil-program> nargs nrest nlocs nexts meta body)
      `(program ,nargs ,nrest ,nlocs ,nexts ,meta ,@(map unparse-glil body)))
     ((<glil-bind> vars) `(bind ,@vars))
-    ((<glil-mv-bind> vars rest) `(mv-bind ,vars ,@rest))
+    ((<glil-mv-bind> vars rest) `(mv-bind ,vars ,rest))
     ((<glil-unbind>) `(unbind))
     ((<glil-source> props) `(source ,props))
     ;; constants
@@ -164,4 +164,4 @@
     ((<glil-label> label) `(label ,label))
     ((<glil-branch> inst label) `(branch ,inst ,label))
     ((<glil-call> inst nargs) `(call ,inst ,nargs))
-    ((<glil-mv-call> nargs ra) `(mv-call ,nargs ,(unparse-glil ra)))))
+    ((<glil-mv-call> nargs ra) `(mv-call ,nargs ,ra))))
