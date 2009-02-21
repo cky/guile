@@ -46,6 +46,8 @@
                    (@implv ,e ,l ,sym)
                    ,args))
 
+;; The purpose, you ask? To avoid non-tail recursion when expanding a
+;; long pmatch sequence.
 (define-macro (ormatch x . clauses)
   (let ((X (gensym)))
     `(let ((,X ,x))

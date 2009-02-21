@@ -381,6 +381,8 @@
   ;; FIXME: not hygienic, relies on @apply not being shadowed
   (,args (retrans `(@apply ,@args))))
 
+;; FIXME: we could add inliners for `list' and `vector'
+
 (define-scheme-translator @apply
   ((,proc ,arg1 . ,args)
    (let ((args (cons (retrans arg1) (map retrans args))))

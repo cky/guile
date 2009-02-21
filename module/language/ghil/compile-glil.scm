@@ -382,7 +382,14 @@
 	 ;; ARGS...
 	 ;; ([tail-]call NARGS)
 	 (comp-push proc)
-	 (push-call! loc (if tail 'goto/args 'call) args)
+         (let ((nargs (length args)))
+           (cond ((< nargs 255)
+                  (push-call! loc (if tail 'goto/args 'call) args))
+                 (else
+                  (push-call! loc 'mark '())
+                  (for-each comp-push args)
+                  (push-call! loc 'list-mark '())
+                  (push-code! loc (make-glil-call (if tail 'goto/apply 'apply) 2)))))
 	 (maybe-drop))
 
 	((<ghil-mv-call> env loc producer consumer)
