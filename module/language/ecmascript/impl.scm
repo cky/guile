@@ -57,10 +57,36 @@
 (define-method (prop-attrs (o <js-global-object>) (p <string>))
   (prop-attrs o (string->symbol p)))
 
+(define-class <js-module-object> (<js-object>)
+  (module #:init-form (js-module o) #:init-keyword #:module
+          #:getter js-module))
+(define-method (pget (o <js-module-object>) (p <string>))
+  (pget o (string->symbol p)))
+(define-method (pget (o <js-module-object>) (p <symbol>))
+  (let ((v (module-variable (js-module o) p)))
+    (if v
+        (variable-ref v)
+        (next-method))))
+(define-method (pput (o <js-module-object>) (p <string>) v)
+  (pput o (string->symbol p) v))
+(define-method (pput (o <js-module-object>) (p <symbol>) v)
+  (module-define! (js-module o) p v))
+(define-method (prop-attrs (o <js-module-object>) (p <symbol>))
+  (cond ((module-variable (js-module o) p) '())
+        (else (next-method))))
+(define-method (prop-attrs (o <js-module-object>) (p <string>))
+  (prop-attrs o (string->symbol p)))
+
+;; we could make a renamer, but having obj['foo-bar'] should be enough
+(define (js-require modstr)
+  (make <js-module-object> #:module
+        (resolve-interface (map string->symbol (string-split modstr #\.)))))
+      
 (define (init-js-bindings! mod)
   (module-define! mod 'NaN +nan.0)
   (module-define! mod 'Infinity +inf.0)
   (module-define! mod 'undefined *undefined*)
+  (module-define! mod 'require js-require)
   ;; isNAN, isFinite, parseFloat, parseInt, eval
   ;; decodeURI, decodeURIComponent, encodeURI, encodeURIComponent
   ;; Object Function Array String Boolean Number Date RegExp Error EvalError
