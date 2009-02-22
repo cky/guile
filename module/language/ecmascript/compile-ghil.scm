@@ -442,8 +442,8 @@
                         (make-ghil-if
                          e l (comp (or test 'true) e)
                          (make-ghil-begin
-                          e l (list (comp (or inc '(begin)) e)
-                                    (comp statement e)
+                          e l (list (comp statement e)
+                                    (comp (or inc '(begin)) e)
                                     (make-ghil-call e l (make-ghil-ref
                                                          e l (ghil-var-for-ref! e '%continue))
                                                     '())))
