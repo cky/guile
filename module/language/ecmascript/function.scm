@@ -22,7 +22,7 @@
 (define-module (language ecmascript function)
   #:use-module (oop goops)
   #:use-module (language ecmascript base)
-  #:export (*function-prototype* *program-wrappers* new))
+  #:export (*function-prototype* *program-wrappers*))
 
 
 (define-class <js-program-wrapper> (<js-object>))
@@ -72,10 +72,8 @@
         (js-prototype wrapper)
         #f)))
 
-(define-method (new (f <applicable>) . initargs)
-  (let ((o (make <js-object>
-             #:prototype (or (js-prototype f) *object-prototype*))))
-    (let ((new-o (with-fluid *this* o (lambda () (apply f initargs)))))
-      (if (is-a? new-o <js-object>)
-          new-o
-          o))))
+(define-method (js-constructor (o <applicable>))
+  (let ((wrapper (hashq-ref *program-wrappers* o)))
+    (if wrapper
+        (js-constructor wrapper)
+        #f)))

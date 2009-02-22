@@ -41,7 +41,8 @@
               (else o))))))
 
 (define *array-prototype* (make <js-object> #:class "Array"
-                                #:value new-array))
+                                #:value new-array
+                                #:constructor new-array))
 
 (hashq-set! *program-wrappers* new-array *array-prototype*)
 

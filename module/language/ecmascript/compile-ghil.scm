@@ -25,19 +25,6 @@
   #:use-module (system base pmatch)
   #:export (compile-ghil))
 
-(define (compile-ghil exp env opts)
-  (values
-  (call-with-ghil-environment (make-ghil-toplevel-env) '()
-    (lambda (env vars)
-      (make-ghil-lambda env #f vars #f '() (comp exp env))))
-  env))
-
-(define (location x)
-  (and (pair? x)
-       (let ((props (source-properties x)))
-	 (and (not (null? props))
-              props))))
-
 (define-macro (@implv e l sym)
   `(make-ghil-ref ,e ,l
                   (ghil-var-at-module! ,e '(language ecmascript impl) ',sym #t)))
@@ -45,6 +32,22 @@
   `(make-ghil-call ,e ,l
                    (@implv ,e ,l ,sym)
                    ,args))
+
+(define (compile-ghil exp env opts)
+  (values
+   (call-with-ghil-environment (make-ghil-toplevel-env) '()
+     (lambda (env vars)
+       (make-ghil-lambda env #f vars #f '()
+                         (make-ghil-begin env #f
+                                          (list (@impl env #f js-init '())
+                                                (comp exp env))))))
+   env))
+
+(define (location x)
+  (and (pair? x)
+       (let ((props (source-properties x)))
+	 (and (not (null? props))
+              props))))
 
 ;; The purpose, you ask? To avoid non-tail recursion when expanding a
 ;; long pmatch sequence.

@@ -212,7 +212,7 @@
                      (new MemberExpression Arguments) -> `(new ,$2 ,$3))
 
    (NewExpression (MemberExpression) -> $1
-                  (new NewExpression) -> `(new ,$2))
+                  (new NewExpression) -> `(new ,$2 ()))
 
    (CallExpression (MemberExpression Arguments) -> `(call ,$1 ,$2)
                    (CallExpression Arguments) -> `(call ,$1 ,$2)

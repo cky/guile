@@ -34,7 +34,7 @@
 
             call/this* call/this lambda/this define-js-method
 
-            new-object))
+            new-object new))
 
 (define *undefined* ((@@ (oop goops) make-unbound)))
 (define *this* (make-fluid))
@@ -72,21 +72,19 @@
   (memq attr (prop-attrs o p)))
 
 (define-method (pput (o <js-object>) p v)
-  (let ((p (if (string? p) (string->symbol p) p)))
-    (if (prop-has-attr? o p 'ReadOnly)
-        (throw 'ReferenceError o p)
-        (hashq-set! (js-props o) p v))))
+  (if (prop-has-attr? o p 'ReadOnly)
+      (throw 'ReferenceError o p)
+      (hashq-set! (js-props o) p v)))
 
 (define-method (pput (o <js-object>) (p <string>) v)
   (pput o (string->symbol p) v))
 
 (define-method (pdel (o <js-object>) p)
-  (let ((p (if (string? p) (string->symbol p) p)))
-    (if (prop-has-attr? o p 'DontDelete)
-        #f
-        (begin
-          (pput o p *undefined*)
-          #t))))
+  (if (prop-has-attr? o p 'DontDelete)
+      #f
+      (begin
+        (pput o p *undefined*)
+        #t)))
 
 (define-method (pdel (o <js-object>) (p <string>) v)
   (pdel o (string->symbol p)))
@@ -236,3 +234,15 @@
            (pput o (car pair) (cdr pair)))
          pairs)
     o))
+(slot-set! *object-prototype* 'constructor new-object)
+
+(define-method (new o . initargs)
+  (let ((ctor (js-constructor o)))
+    (if (not ctor)
+        (throw 'TypeError 'new o)
+        (let ((o (make <js-object>
+                   #:prototype (or (js-prototype o) *object-prototype*))))
+          (let ((new-o (call/this o apply ctor initargs)))
+            (if (is-a? new-o <js-object>)
+                new-o
+                o))))))
