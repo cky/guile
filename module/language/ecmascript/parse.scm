@@ -24,11 +24,14 @@
   #:use-module (language ecmascript tokenize)
   #:export (read-ecmascript read-ecmascript/1 parse-ecmascript))
 
+(define (syntax-error message . args)
+  (apply throw 'SyntaxError message args))
+
 (define (read-ecmascript port)
-  (parse-ecmascript (make-tokenizer port) pk))
+  (parse-ecmascript (make-tokenizer port) syntax-error))
 
 (define (read-ecmascript/1 port)
-  (parse-ecmascript (make-tokenizer/1 port) pk))
+  (parse-ecmascript (make-tokenizer/1 port) syntax-error))
 
 (define *eof-object*
   (call-with-input-string "" read-char))

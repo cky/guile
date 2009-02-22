@@ -24,13 +24,16 @@
   #:use-module ((srfi srfi-1) #:select (unfold-right))
   #:export (next-token make-tokenizer make-tokenizer/1 tokenize tokenize/1))
 
+(define (syntax-error message . args)
+  (apply throw 'SyntaxError message args))
+
 ;; taken from SSAX, sorta
 (define (read-until delims port)
   (if (eof-object? (peek-char port))
-      (error "EOF while reading a token")
+      (syntax-error "EOF while reading a token")
       (let ((token (read-delimited delims port 'peek)))
         (if (eof-object? (peek-char port))
-            (error "EOF while reading a token")
+            (syntax-error "EOF while reading a token")
             token))))
 
 (define (char-hex? c)
@@ -61,7 +64,7 @@
       (read-char port)
       (let lp ((c (read-char port)))
         (cond
-         ((eof-object? c) (error "EOF while in multi-line comment"))
+         ((eof-object? c) (syntax-error "EOF while in multi-line comment"))
          ((char=? c #\*)
           (if (eqv? (peek-char port) #\/)
               (begin
@@ -101,7 +104,7 @@
             (lp (read-until terms port)
                 (string-append head str (string #\\ echar)))))
          (else
-          (error "regexp literals may not contain newlines" str)))))))
+          (syntax-error "regexp literals may not contain newlines" str)))))))
 
 (define (read-string port)
   (let ((c (read-char port)))
@@ -120,7 +123,7 @@
              (let ((next (peek-char port)))
                (cond ((eof-object? next) #\nul)
                      ((char-numeric? next)
-                      (error "octal escape sequences are not supported"))
+                      (syntax-error "octal escape sequences are not supported"))
                      (else #\nul))))
             ((#\x)
              (let* ((a (read-char port))
@@ -129,9 +132,9 @@
                 ((and (char-hex? a) (char-hex? b))
                  (integer->char (+ (* 16 (hex->number a)) (hex->number b))))
                 (else
-                 (error "bad hex character escape" a b)))))
+                 (syntax-error "bad hex character escape" a b)))))
             ((#\u)
-             (error "unicode not supported"))
+             (syntax-error "unicode not supported"))
             (else
              c))))
       (let lp ((str (read-until terms port)))
@@ -146,7 +149,7 @@
               (lp (string-append str (string echar)
                                  (read-until terms port)))))
            (else
-            (error "string literals may not contain newlines" str))))))))
+            (syntax-error "string literals may not contain newlines" str))))))))
 
 (define *keywords*
   '(("break" . break)
@@ -224,7 +227,7 @@
           (cond ((assoc-ref *keywords* word)
                  => (lambda (x) `(,x . #f)))
                 ((assoc-ref *future-reserved-words* word)
-                 (error "word is reserved for the future, dude." word))
+                 (syntax-error "word is reserved for the future, dude." word))
                 (else `(Identifier . ,(string->symbol word)))))
         (begin (read-char port)
                (lp (peek-char port) (cons c chars))))))
@@ -240,7 +243,7 @@
       (read-char port)
       (let ((c (peek-char port)))
         (if (not (char-hex? c))
-            (error "bad digit reading hexadecimal number" c))
+            (syntax-error "bad digit reading hexadecimal number" c))
         (let lp ((c c) (acc 0))
           (cond ((char-hex? c)
                  (read-char port)
@@ -253,7 +256,7 @@
         (cond ((eof-object? c) acc)
               ((char-numeric? c)
                (if (or (char=? c #\8) (char=? c #\9))
-                   (error "invalid digit in octal sequence" c))
+                   (syntax-error "invalid digit in octal sequence" c))
                (read-char port)
                (lp (peek-char port)
                    (+ (* 8 acc) (digit->number c))))
@@ -270,12 +273,12 @@
          ((or (char=? c1 #\e) (char=? c1 #\E))
           (read-char port)
           (let ((add (let ((c (peek-char port)))
-                       (cond ((eof-object? c) (error "error reading exponent: EOF"))
+                       (cond ((eof-object? c) (syntax-error "error reading exponent: EOF"))
                              ((char=? c #\+) (read-char port) +)
                              ((char=? c #\-) (read-char port) -)
                              ((char-numeric? c) +)
-                             (else (error "error reading exponent: non-digit"
-                                          c))))))
+                             (else (syntax-error "error reading exponent: non-digit"
+                                                 c))))))
             (let lp ((c (peek-char port)) (e 0))
               (cond ((and (not (eof-object? c)) (char-numeric? c))
                      (read-char port)
@@ -375,7 +378,7 @@
          (candidate
           `(,candidate . #f))
          (else
-          (error "bad syntax: character not allowed" c)))))))
+          (syntax-error "bad syntax: character not allowed" c)))))))
 
 (define (next-token port div?)
   (let ((c (peek-char port)))
@@ -431,19 +434,19 @@
               ((rparen)
                (if (and (pair? stack) (eq? (car stack) 'lparen))
                    (set! stack (cdr stack))
-                   (error "unexpected right parenthesis")))
+                   (syntax-error "unexpected right parenthesis")))
               ((lbracket)
                (set! stack (cons 'lbracket stack)))
               ((rbracket)
                (if (and (pair? stack) (eq? (car stack) 'lbracket))
                    (set! stack (cdr stack))
-                   (error "unexpected right bracket" stack)))
+                   (syntax-error "unexpected right bracket" stack)))
               ((lbrace)
                (set! stack (cons 'lbrace stack)))
               ((rbrace)
                (if (and (pair? stack) (eq? (car stack) 'lbrace))
                    (set! stack (cdr stack))
-                   (error "unexpected right brace" stack)))
+                   (syntax-error "unexpected right brace" stack)))
               ((semicolon)
                (set! eoi? (null? stack))))
             (set! div? (and (pair? tok) (eq? (car tok) 'identifier)))
