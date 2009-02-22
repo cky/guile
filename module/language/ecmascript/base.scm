@@ -24,7 +24,7 @@
   #:export (*undefined* *this*
             <js-object> *object-prototype*
             js-prototype js-props js-prop-attrs js-value js-constructor js-class
-            pget prop-attrs prop-has-attr? pput has-property? pdel
+            pget prop-keys prop-attrs prop-has-attr? pput has-property? pdel
 
             object->string object->number object->value/string
             object->value/number object->value
@@ -47,6 +47,9 @@
   (value #:getter js-value #:init-value #f #:init-keyword #:value)
   (constructor #:getter js-constructor #:init-value #f #:init-keyword #:constructor)
   (class #:getter js-class #:init-value "Object" #:init-keyword #:class))
+
+(define-method (prop-keys (o <js-object>))
+  (hash-map->list (lambda (k v) k) (js-props o)))
 
 (define-method (pget (o <js-object>) (p <string>))
   (pget o (string->symbol p)))

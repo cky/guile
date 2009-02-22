@@ -135,7 +135,7 @@
                        (for lparen var VariableDeclarationListNoIn semicolon Expression semicolon Expression rparen Statement) -> `(for (var ,@$4) ,$6 ,$8 ,$10)
 
                        (for lparen LeftHandSideExpression in Expression rparen Statement) -> `(for-in ,$3 ,$5 ,$7)
-                       (for lparen var VariableDeclarationNoIn in Expression rparen Statement) -> `(for-in ,$4 ,$6 ,$8))
+                       (for lparen var VariableDeclarationNoIn in Expression rparen Statement) -> `(begin (var ,$4) (for-in (ref ,@$4) ,$6 ,$8)))
 
    (ContinueStatement (continue Identifier semicolon) -> `(continue ,$2)
                       (continue semicolon) -> `(continue))

@@ -307,7 +307,6 @@
            (make-ghil-lambda env l vars #t '()
                              (comp-body env l body formals '%args)))))
       ((call/this ,obj ,prop ,args)
-       ;; FIXME: only evaluate "obj" once
        (@impl e l call/this*
               (list obj (make-ghil-lambda
                          e l '() #f '()
@@ -449,6 +448,39 @@
                                                     '())))
                          (@implv e l *undefined*))))))
                   (make-ghil-call e l (make-ghil-ref e l (car vars)) '()))))))
+      ((for-in ,var ,object ,statement)
+       (call-with-ghil-bindings e '(%continue %enum)
+         (lambda (vars)
+           (make-ghil-begin
+            e l
+            (list
+             (make-ghil-set
+              e l (car vars)
+              (call-with-ghil-environment e '()
+                (lambda (e _)
+                  (make-ghil-lambda
+                   e l '() #f '()
+                   (make-ghil-if
+                    e l (@impl e l ->boolean
+                               (list (@impl e l pget
+                                            (list (make-ghil-ref
+                                                   e l (ghil-var-for-ref! e '%enum))
+                                                  (make-ghil-quote e l 'length)))))
+                    (make-ghil-begin
+                     e l (list (comp `(= ,var (call/this ,(make-ghil-ref
+                                                           e l (ghil-var-for-ref! e '%enum))
+                                                         ,(make-ghil-quote e l 'pop)
+                                                         ()))
+                                     e)
+                               (comp statement e)
+                               (make-ghil-call e l (make-ghil-ref
+                                                    e l (ghil-var-for-ref! e '%continue))
+                                               '())))
+                    (@implv e l *undefined*))))))
+             (make-ghil-set
+              e l (cadr vars)
+              (@impl e l make-enumerator (list (comp object e))))
+             (make-ghil-call e l (make-ghil-ref e l (car vars)) '()))))))
       ((break)
        (let ((var (ghil-var-for-ref! e '%continue)))
          (if (and (ghil-env? (ghil-var-env var))

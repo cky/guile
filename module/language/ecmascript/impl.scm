@@ -33,32 +33,12 @@
             bitwise-not logical-not
             shift
             mod
-            band bxor bior))
+            band bxor bior
+            make-enumerator))
 
-
-(define-class <js-global-object> (<js-object>))
-(define-method (pget (o <js-global-object>) (p <string>))
-  (pget o (string->symbol p)))
-(define-method (pget (o <js-global-object>) (p <symbol>))
-  (let ((v (module-variable (current-module) p)))
-    (if v
-        (variable-ref v)
-        (next-method))))
-(define-method (pput (o <js-global-object>) (p <string>) v)
-  (pput o (string->symbol p) v))
-(define-method (pput (o <js-global-object>) (p <symbol>) v)
-  (module-define! (current-module) p v))
-(define-method (prop-attrs (o <js-global-object>) (p <symbol>))
-  (cond ((module-local-variable (current-module) p)
-         '())
-        ((module-variable (current-module) p)
-         '(DontDelete ReadOnly))
-        (else (next-method))))
-(define-method (prop-attrs (o <js-global-object>) (p <string>))
-  (prop-attrs o (string->symbol p)))
 
 (define-class <js-module-object> (<js-object>)
-  (module #:init-form (js-module o) #:init-keyword #:module
+  (module #:init-form (current-module) #:init-keyword #:module
           #:getter js-module))
 (define-method (pget (o <js-module-object>) (p <string>))
   (pget o (string->symbol p)))
@@ -72,16 +52,24 @@
 (define-method (pput (o <js-module-object>) (p <symbol>) v)
   (module-define! (js-module o) p v))
 (define-method (prop-attrs (o <js-module-object>) (p <symbol>))
-  (cond ((module-variable (js-module o) p) '())
+  (cond ((module-local-variable (js-module o) p) '())
+        ((module-variable (js-module o) p) '(DontDelete ReadOnly))
         (else (next-method))))
 (define-method (prop-attrs (o <js-module-object>) (p <string>))
   (prop-attrs o (string->symbol p)))
+(define-method (prop-keys (o <js-module-object>))
+  (append (hash-map->list (lambda (k v) k) (module-obarray (js-module o)))
+          (next-method)))
 
 ;; we could make a renamer, but having obj['foo-bar'] should be enough
 (define (js-require modstr)
   (make <js-module-object> #:module
         (resolve-interface (map string->symbol (string-split modstr #\.)))))
       
+(define-class <js-global-object> (<js-module-object>))
+(define-method (js-module (o <js-global-object>))
+  (current-module))
+
 (define (init-js-bindings! mod)
   (module-define! mod 'NaN +nan.0)
   (module-define! mod 'Infinity +inf.0)
@@ -165,3 +153,18 @@
   (> (->number a) (->number b)))
 (define-method (> (a <string>) (b <string>))
   (string> a b))
+
+(define (obj-and-prototypes o)
+  (if o
+      (cons o (obj-and-prototypes (js-prototype o)))
+      '()))
+              
+(define (make-enumerator obj)
+  (let ((props (make-hash-table 23)))
+    (for-each (lambda (o)
+                (for-each (lambda (k) (hashq-set! props k #t))
+                          (prop-keys o)))
+              (obj-and-prototypes obj))
+    (apply new-array (filter (lambda (p)
+                               (not (prop-has-attr? obj p 'DontEnum)))
+                             (hash-map->list (lambda (k v) k) props)))))
