@@ -456,7 +456,10 @@
                    (syntax-error "unexpected right brace" stack)))
               ((semicolon)
                (set! eoi? (null? stack))))
-            (set! div? (and (pair? tok) (eq? (car tok) 'identifier)))
+            (set! div? (and (pair? tok)
+                            (or (eq? (car tok) 'Identifier)
+                                (eq? (car tok) 'NumericLiteral)
+                                (eq? (car tok) 'StringLiteral))))
             tok)))))
 
 (define (tokenize port)
