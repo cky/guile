@@ -89,7 +89,8 @@
       (this
        (@impl e l get-this '()))
       ((+ ,a)
-       (make-ghil-inline e l 'add (list (comp a e) (make-ghil-quote e l 0))))
+       (make-ghil-inline e l 'add (list (@impl e l ->number (list (comp a e)))
+                                        (make-ghil-quote e l 0))))
       ((- ,a)
        (make-ghil-inline e l 'sub (list (make-ghil-quote e l 0) (comp a e))))
       ((~ ,a)

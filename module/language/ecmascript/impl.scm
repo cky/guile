@@ -26,7 +26,7 @@
   #:use-module (language ecmascript array)
   #:re-export (*undefined* *this* call/this*
                pget pput pdel has-property?
-               ->boolean
+               ->boolean ->number
                new-object new new-array)
   #:export (js-init get-this
             typeof
@@ -110,3 +110,32 @@
 
 (define-method (+ a b)
   (+ (->number a) (->number b)))
+
+(define-method (- a b)
+  (- (->number a) (->number b)))
+
+(define-method (* a b)
+  (* (->number a) (->number b)))
+
+(define-method (/ a b)
+  (/ (->number a) (->number b)))
+
+(define-method (< a b)
+  (< (->number a) (->number b)))
+(define-method (< (a <string>) (b <string>))
+  (string< a b))
+
+(define-method (<= a b)
+  (<= (->number a) (->number b)))
+(define-method (<= (a <string>) (b <string>))
+  (string<= a b))
+
+(define-method (>= a b)
+  (>= (->number a) (->number b)))
+(define-method (>= (a <string>) (b <string>))
+  (string>= a b))
+
+(define-method (> a b)
+  (> (->number a) (->number b)))
+(define-method (> (a <string>) (b <string>))
+  (string> a b))
