@@ -381,37 +381,44 @@
           (syntax-error "bad syntax: character not allowed" c)))))))
 
 (define (next-token port div?)
-  (let ((c (peek-char port)))
-    (case c
-      ((#\ht #\vt #\np #\space)
-       ; whitespace
-       (read-char port)
-       (next-token port div?))
-      ((#\newline #\cr)
-       ; line break
-       (read-char port)
-       (next-token port div?))
-      ((#\/)
-       ;; division, single comment, double comment, or regexp
-       (read-slash port div?))
-      ((#\" #\')
-       ; string literal
-       `(StringLiteral . ,(read-string port)))
-      (else
-       (cond
-        ((eof-object? c)
-         '*eoi*)
-        ((or (char-alphabetic? c)
-             (char=? c #\$)
-             (char=? c #\_))
-         ;; reserved word or identifier
-         (read-identifier port))
-        ((char-numeric? c)
-         ;; numeric -- also accept . FIXME, requires lookahead
-         `(NumericLiteral . ,(read-numeric port)))
-        (else
-         ;; punctuation
-         (read-punctuation port)))))))
+  (let ((c (peek-char port))
+        (props `((filename . ,(port-filename port))
+                 (line . ,(port-line port))
+                 (column . ,(port-column port)))))
+    (let ((tok 
+           (case c
+             ((#\ht #\vt #\np #\space)
+                                        ; whitespace
+              (read-char port)
+              (next-token port div?))
+             ((#\newline #\cr)
+                                        ; line break
+              (read-char port)
+              (next-token port div?))
+             ((#\/)
+              ;; division, single comment, double comment, or regexp
+              (read-slash port div?))
+             ((#\" #\')
+                                        ; string literal
+              `(StringLiteral . ,(read-string port)))
+             (else
+              (cond
+               ((eof-object? c)
+                '*eoi*)
+               ((or (char-alphabetic? c)
+                    (char=? c #\$)
+                    (char=? c #\_))
+                ;; reserved word or identifier
+                (read-identifier port))
+               ((char-numeric? c)
+                ;; numeric -- also accept . FIXME, requires lookahead
+                `(NumericLiteral . ,(read-numeric port)))
+               (else
+                ;; punctuation
+                (read-punctuation port)))))))
+      (if (pair? tok)
+          (set-source-properties! tok props))
+      tok)))
 
 (define (make-tokenizer port)
   (let ((div? #f))
