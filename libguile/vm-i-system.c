@@ -278,7 +278,7 @@ VM_DEFINE_INSTRUCTION (25, toplevel_ref, "toplevel-ref", 1, 0, 1)
       SYNC_REGISTER ();
       if (SCM_LIKELY (SCM_SYMBOLP (what))) 
         {
-          SCM mod;
+          SCM mod = SCM_EOL;
           if (SCM_LIKELY (scm_module_system_booted_p
                           && scm_is_true ((mod = scm_program_module (program)))))
             /* might longjmp */
@@ -361,7 +361,7 @@ VM_DEFINE_INSTRUCTION (29, toplevel_set, "toplevel-set", 1, 1, 0)
       SYNC_BEFORE_GC ();
       if (SCM_LIKELY (SCM_SYMBOLP (what))) 
         {
-          SCM mod;
+          SCM mod = SCM_EOL;
           if (SCM_LIKELY (scm_module_system_booted_p
                           && scm_is_true ((mod = scm_program_module (program)))))
             /* might longjmp */
