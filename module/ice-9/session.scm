@@ -22,7 +22,7 @@
   :use-module (ice-9 rdelim)
   :export (help apropos apropos-internal apropos-fold
 	   apropos-fold-accessible apropos-fold-exported apropos-fold-all
-	   source arity))
+	   source arity procedure-arguments))
 
 
 
@@ -457,5 +457,26 @@ It is an image under the mapping EXTRACT."
 	      (display formals)
 	      (display #\'))))))))
   (display ".\n"))
+
+
+(define (procedure-arguments proc)
+  "Return an alist describing the arguments that `proc' accepts, or `#f'
+if the information cannot be obtained.
+
+The alist keys that are currently defined are `required', `optional',
+`keyword', and `rest'."
+  (cond
+   ((procedure-property proc 'arglist)
+    => (lambda (arglist)
+         `((required . ,(car arglist))
+           (optional . ,(cadr arglist))
+           (keyword . ,(caddr arglist))
+           (rest . ,(car (cddddr arglist))))))
+   ((procedure-source proc)
+    => cadr)
+   (((@ (system vm program) program?) proc)
+    ((@ (system vm program) program-arguments) proc))
+   (else #f)))
+
 
 ;;; session.scm ends here

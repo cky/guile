@@ -30,7 +30,7 @@
             source:addr source:line source:column source:file
             program-bindings program-sources program-source
             program-properties program-property program-documentation
-            program-name
+            program-name program-arguments
            
             program-arity program-external-set! program-meta
             program-objcode program? program-objects
@@ -65,6 +65,18 @@
 
 (define (program-documentation prog)
   (assq-ref (program-properties prog) 'documentation))
+
+(define (program-arguments prog)
+  (let ((bindings (program-bindings prog))
+        (nargs (arity:nargs (program-arity prog)))
+        (rest? (not (zero? (arity:nrest (program-arity prog))))))
+    (if bindings
+        (let ((args (map binding:name (list-head bindings nargs))))
+          (if rest?
+              `((required . ,(list-head args (1- (length args))))
+                (rest . ,(car (last-pair args))))
+              `((required . ,args))))
+        #f)))
 
 (define (program-bindings-as-lambda-list prog)
   (let ((bindings (program-bindings prog))
