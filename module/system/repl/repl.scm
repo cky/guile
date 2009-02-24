@@ -43,7 +43,7 @@
                  ;; apparently sometimes even if this is eof, read will
                  ;; wait on somethingorother. strange.
                  ch)
-                ((eqv? (char #\,))
+                ((eqv? ch #\,)
                  (read-char)
                  meta-command-token)
                 (else (read))))))))
