@@ -1,7 +1,8 @@
+# -*- makefile -*-
 GOBJECTS = $(SOURCES:%.scm=%.go)
 
 moddir = $(pkgdatadir)/$(GUILE_EFFECTIVE_VERSION)/$(modpath)
-mod_DATA = $(SOURCES) $(NOCOMP_SOURCES) $(GOBJECTS)
+nobase_mod_DATA = $(SOURCES) $(NOCOMP_SOURCES) $(GOBJECTS)
 EXTRA_DIST = $(SOURCES) $(NOCOMP_SOURCES)
 
 CLEANFILES = $(GOBJECTS)
