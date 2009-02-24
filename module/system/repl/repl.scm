@@ -38,9 +38,15 @@
     (with-input-from-port
         (if (pair? read-args) (car read-args) (current-input-port))
       (lambda ()
-        (if (eqv? (next-char #t) #\,)
-            (begin (read-char) meta-command-token)
-            (read))))))
+        (let ((ch (next-char #t)))
+          (cond ((eof-object? ch)
+                 ;; apparently sometimes even if this is eof, read will
+                 ;; wait on somethingorother. strange.
+                 ch)
+                ((eqv? (char #\,))
+                 (read-char)
+                 meta-command-token)
+                (else (read))))))))
         
 ;; repl-reader is a function defined in boot-9.scm, and is replaced by
 ;; something else if readline has been activated. much of this hoopla is
