@@ -77,9 +77,13 @@
 #endif
 #endif
 #ifdef __i386__
+/* gcc on lenny actually crashes if we allocate these variables in registers.
+   hopefully this is the only one of these. */
+#if !(__GNUC__==4 && __GNUC_MINOR__==1 && __GNUC_PATCHLEVEL__==2)
 #define IP_REG asm("%esi")
 #define SP_REG asm("%edi")
 #define FP_REG
+#endif
 #endif
 #if defined(PPC) || defined(_POWER) || defined(_IBMR2)
 #define IP_REG asm("26")
