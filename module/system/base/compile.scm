@@ -78,6 +78,7 @@
        (with-throw-handler #t
          (lambda ()
            (proc tmp)
+           (chmod tmp (logand #o0666 (lognot (umask))))
            (close-port tmp)
            (rename-file template filename))
          (lambda args
