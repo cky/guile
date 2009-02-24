@@ -9,4 +9,5 @@ CLEANFILES = $(GOBJECTS)
 
 SUFFIXES = .scm .go
 .scm.go:
+	$(MKDIR_P) `dirname $@`
 	$(top_builddir)/pre-inst-guile-env $(top_builddir)/guile-tools compile -o "$@" "$<"

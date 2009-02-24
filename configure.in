@@ -4,7 +4,7 @@ dnl
 
 define(GUILE_CONFIGURE_COPYRIGHT,[[
 
-Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 This file is part of GUILE
 
@@ -1550,18 +1550,6 @@ AC_CONFIG_FILES([
   test-suite/Makefile
   test-suite/standalone/Makefile
   module/Makefile
-  module/system/Makefile
-  module/system/base/Makefile
-  module/system/vm/Makefile
-  module/system/repl/Makefile
-  module/language/Makefile
-  module/language/scheme/Makefile
-  module/language/ghil/Makefile
-  module/language/glil/Makefile
-  module/language/assembly/Makefile
-  module/language/bytecode/Makefile
-  module/language/objcode/Makefile
-  module/language/value/Makefile
   module/ice-9/Makefile
   module/ice-9/debugger/Makefile
   module/ice-9/debugging/Makefile
