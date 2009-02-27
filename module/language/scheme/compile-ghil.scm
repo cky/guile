@@ -162,6 +162,9 @@
 
 (define *translate-table* (make-hash-table))
 
+(define-macro (-> form)
+  `(,(symbol-append 'make-ghil- (car form)) e l . ,(cdr form)))
+
 (define-macro (define-scheme-translator sym . clauses)
   `(hashq-set! (@ (language scheme compile-ghil) *translate-table*)
                ,sym
@@ -180,18 +183,20 @@
 
 (define-scheme-translator quote
   ;; (quote OBJ)
-  ((,obj) (make-ghil-quote e l obj)))
+  ((,obj)
+   (-> (quote obj))))
     
 (define-scheme-translator quasiquote
   ;; (quasiquote OBJ)
-  ((,obj) (make-ghil-quasiquote e l (trans-quasiquote e l obj 0))))
+  ((,obj)
+   (-> (quasiquote (trans-quasiquote e l obj 0)))))
 
 (define-scheme-translator define
   ;; (define NAME VAL)
   ((,name ,val) (guard (symbol? name)
                        (ghil-toplevel-env? (ghil-env-parent e)))
-   (make-ghil-define e l (ghil-var-define! (ghil-env-parent e) name)
-                     (maybe-name-value! (retrans val) name)))
+   (-> (define (ghil-var-define! (ghil-env-parent e) name)
+               (maybe-name-value! (retrans val) name))))
   ;; (define (NAME FORMALS...) BODY...)
   (((,name . ,formals) . ,body) (guard (symbol? name))
    ;; -> (define NAME (lambda FORMALS BODY...))
@@ -200,7 +205,7 @@
 (define-scheme-translator set!
   ;; (set! NAME VAL)
   ((,name ,val) (guard (symbol? name))
-   (make-ghil-set e l (ghil-var-for-set! e name) (retrans val)))
+   (-> (set (ghil-var-for-set! e name) (retrans val))))
 
   ;; FIXME: Would be nice to verify the values of @ and @@ relative
   ;; to imported modules...
@@ -208,15 +213,13 @@
                                     (list? modname)
                                     (and-map symbol? modname)
                                     (not (ghil-var-is-bound? e '@)))
-   (make-ghil-set e l (ghil-var-at-module! e modname name #t)
-                  (retrans val)))
+   (-> (set (ghil-var-at-module! e modname name #t) (retrans val))))
 
   (((@@ ,modname ,name) ,val) (guard (symbol? name)
                                      (list? modname)
                                      (and-map symbol? modname)
                                      (not (ghil-var-is-bound? e '@@)))
-   (make-ghil-set e l (ghil-var-at-module! e modname name #f)
-                  (retrans val)))
+   (-> (set (ghil-var-at-module! e modname name #f) (retrans val))))
 
   ;; (set! (NAME ARGS...) VAL)
   (((,name . ,args) ,val) (guard (symbol? name))
@@ -226,21 +229,24 @@
 (define-scheme-translator if
   ;; (if TEST THEN [ELSE])
   ((,test ,then)
-   (make-ghil-if e l (retrans test) (retrans then) (retrans '(begin))))
+   (-> (if (retrans test) (retrans then) (retrans '(begin)))))
   ((,test ,then ,else)
-   (make-ghil-if e l (retrans test) (retrans then) (retrans else))))
+   (-> (if (retrans test) (retrans then) (retrans else)))))
 
 (define-scheme-translator and
   ;; (and EXPS...)
-  (,tail (make-ghil-and e l (map retrans tail))))
+  (,tail
+   (-> (and (map retrans tail)))))
 
 (define-scheme-translator or
   ;; (or EXPS...)
-  (,tail (make-ghil-or e l (map retrans tail))))
+  (,tail
+   (-> (or (map retrans tail)))))
 
 (define-scheme-translator begin
   ;; (begin EXPS...)
-  (,tail (make-ghil-begin e l (map retrans tail))))
+  (,tail
+   (-> (begin (map retrans tail)))))
 
 (define-scheme-translator let
   ;; (let NAME ((SYM VAL) ...) BODY...)
@@ -253,7 +259,7 @@
   ;; (let () BODY...)
   ((() . ,body)
    ;; Note: this differs from `begin'
-   (make-ghil-begin e l (list (trans-body e l body))))
+   (-> (begin (list (trans-body e l body)))))
     
   ;; (let ((SYM VAL) ...) BODY...)
   ((,bindings . ,body) (guard (valid-bindings? bindings))
@@ -262,7 +268,7 @@
                     bindings)))
      (call-with-ghil-bindings e (map car bindings)
        (lambda (vars)
-         (make-ghil-bind e l vars vals (trans-body e l body)))))))
+         (-> (bind vars vals (trans-body e l body))))))))
 
 (define-scheme-translator let*
   ;; (let* ((SYM VAL) ...) BODY...)
@@ -280,7 +286,7 @@
                           (maybe-name-value!
                            (retrans (cadr b)) (car b)))
                         bindings)))
-         (make-ghil-bind e l vars vals (trans-body e l body)))))))
+         (-> (bind vars vals (trans-body e l body))))))))
 
 (define-scheme-translator cond
   ;; (cond (CLAUSE BODY...) ...)
@@ -326,11 +332,10 @@
   ;; (lambda FORMALS BODY...)
   ((,formals . ,body)
    (receive (syms rest) (parse-formals formals)
-       (call-with-ghil-environment e syms
-     (lambda (env vars)
-       (receive (meta body) (parse-lambda-meta body)
-                (make-ghil-lambda env l vars rest meta
-                                  (trans-body env l body))))))))
+     (call-with-ghil-environment e syms
+       (lambda (e vars)
+         (receive (meta body) (parse-lambda-meta body)
+           (-> (lambda vars rest meta (trans-body e l body)))))))))
 
 (define-scheme-translator delay
   ;; FIXME not hygienic
@@ -339,11 +344,11 @@
 
 (define-scheme-translator @
   ((,modname ,sym)
-   (make-ghil-ref e l (ghil-var-at-module! e modname sym #t))))
+   (-> (ref (ghil-var-at-module! e modname sym #t)))))
 
 (define-scheme-translator @@
   ((,modname ,sym)
-   (make-ghil-ref e l (ghil-var-at-module! e modname sym #f))))
+   (-> (ref (ghil-var-at-module! e modname sym #f)))))
 
 (define *the-compile-toplevel-symbol* 'compile-toplevel)
 (define-scheme-translator eval-case
@@ -396,8 +401,8 @@
             ;; unit, but defined in the toplevel environment, and has
             ;; an apply transformer registered
             => (lambda (t) (t e l args)))
-           (else (make-ghil-inline e l 'apply
-                                   (cons (retrans proc) args)))))))
+           (else
+            (-> (inline 'apply (cons (retrans proc) args))))))))
 
 (define-scheme-translator call-with-values
   ;; FIXME: not hygienic, relies on @call-with-values not being shadowed
@@ -407,7 +412,7 @@
 
 (define-scheme-translator @call-with-values
   ((,producer ,consumer)
-   (make-ghil-mv-call e l (retrans producer) (retrans consumer))))
+   (-> (mv-call (retrans producer) (retrans consumer)))))
 
 (define-scheme-translator call-with-current-continuation
   ;; FIXME: not hygienic, relies on @call-with-current-continuation
@@ -418,7 +423,7 @@
 
 (define-scheme-translator @call-with-current-continuation
   ((,proc)
-   (make-ghil-inline e l 'call/cc (list (retrans proc)))))
+   (-> (inline 'call/cc (list (retrans proc))))))
 
 (define-scheme-translator receive
   ((,formals ,producer-exp . ,body)
@@ -429,28 +434,28 @@
             (let ((producer (retrans `(lambda () ,producer-exp))))
               (call-with-ghil-bindings e syms
                 (lambda (vars)
-                  (make-ghil-mv-bind e l producer
-                                     vars rest (trans-body e l body))))))))
+                  (-> (mv-bind producer vars rest
+                               (trans-body e l body)))))))))
 
 (define-scheme-translator values
   ((,x) (retrans x))
-  (,args (make-ghil-values e l (map retrans args))))
+  (,args
+   (-> (values (map retrans args)))))
 
 (define-scheme-translator compile-time-environment
   ;; (compile-time-environment)
   ;; => (MODULE LEXICALS . EXTERNALS)
-  (() (make-ghil-inline
-       e l 'cons
-       (list (retrans '(current-module))
-             (make-ghil-inline
-              e l 'cons
-              (list (make-ghil-reified-env e l)
-                    (make-ghil-inline e l 'externals '())))))))
+  (()
+   (-> (inline 'cons
+               (list (retrans '(current-module))
+                     (-> (inline 'cons
+                                 (list (-> (reified-env))
+                                       (-> (inline 'externals '()))))))))))
 
 (define (lookup-apply-transformer proc)
   (cond ((eq? proc values)
          (lambda (e l args)
-           (make-ghil-values* e l args)))
+           (-> (values* args))))
         (else #f)))
 
 (define (trans-quasiquote e l x level)
@@ -462,8 +467,8 @@
               (cond
                ((zero? level) 
                 (if (eq? (car x) 'unquote)
-                    (make-ghil-unquote e l (translate-1 e l obj))
-                    (make-ghil-unquote-splicing e l (translate-1 e l obj))))
+                    (-> (unquote (translate-1 e l obj)))
+                    (-> (unquote-splicing (translate-1 e l obj)))))
                (else
                 (list (car x) (trans-quasiquote e l obj (1- level))))))
 	     (else (syntax-error l (format #f "bad ~A" (car x)) x)))))
