@@ -47,10 +47,11 @@
                           ,@(cdr def)))
                      rest)
               ,@(map (lambda (common-slot i)
-                       `(define (,(symbol-append (trim-brackets name)
-                                                 '- common-slot)
-                                 x)
-                          (struct-ref x ,i)))
+                       `(define ,(symbol-append (trim-brackets name)
+                                                '- common-slot)
+                          (make-procedure-with-setter
+                           (lambda (x) (struct-ref x ,i))
+                           (lambda (x v) (struct-set! x ,i v)))))
                      common-slots (iota (length common-slots)))))))
 
 
