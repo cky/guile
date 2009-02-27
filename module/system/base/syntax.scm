@@ -50,7 +50,7 @@
                        `(define (,(symbol-append (trim-brackets name)
                                                  '- common-slot)
                                  x)
-                          (struct-ref x i)))
+                          (struct-ref x ,i)))
                      common-slots (iota (length common-slots)))))))
 
 

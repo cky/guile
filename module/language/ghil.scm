@@ -24,7 +24,9 @@
   #:use-module (system base pmatch)
   #:use-module (ice-9 regex)
   #:export
-  (<ghil-void> make-ghil-void ghil-void?
+  (ghil-env ghil-loc
+
+   <ghil-void> make-ghil-void ghil-void?
    ghil-void-env ghil-void-loc
 
    <ghil-quote> make-ghil-quote ghil-quote?
@@ -113,31 +115,32 @@
 (define (print-ghil x port)
   (format port "#<ghil ~s>" (unparse-ghil x)))
 
-(define-type (<ghil> #:printer print-ghil)
+(define-type (<ghil> #:printer print-ghil
+                     #:common-slots (env loc))
   ;; Objects
-  (<ghil-void> env loc)
-  (<ghil-quote> env loc obj)
-  (<ghil-quasiquote> env loc exp)
-  (<ghil-unquote> env loc exp)
-  (<ghil-unquote-splicing> env loc exp)
+  (<ghil-void>)
+  (<ghil-quote> obj)
+  (<ghil-quasiquote> exp)
+  (<ghil-unquote> exp)
+  (<ghil-unquote-splicing> exp)
   ;; Variables
-  (<ghil-ref> env loc var)
-  (<ghil-set> env loc var val)
-  (<ghil-define> env loc var val)
+  (<ghil-ref> var)
+  (<ghil-set> var val)
+  (<ghil-define> var val)
   ;; Controls
-  (<ghil-if> env loc test then else)
-  (<ghil-and> env loc exps)
-  (<ghil-or> env loc exps)
-  (<ghil-begin> env loc exps)
-  (<ghil-bind> env loc vars vals body)
-  (<ghil-mv-bind> env loc producer vars rest body)
-  (<ghil-lambda> env loc vars rest meta body)
-  (<ghil-call> env loc proc args)
-  (<ghil-mv-call> env loc producer consumer)
-  (<ghil-inline> env loc inline args)
-  (<ghil-values> env loc values)
-  (<ghil-values*> env loc values)
-  (<ghil-reified-env> env loc))
+  (<ghil-if> test then else)
+  (<ghil-and> exps)
+  (<ghil-or> exps)
+  (<ghil-begin> exps)
+  (<ghil-bind> vars vals body)
+  (<ghil-mv-bind> producer vars rest body)
+  (<ghil-lambda> vars rest meta body)
+  (<ghil-call> proc args)
+  (<ghil-mv-call> producer consumer)
+  (<ghil-inline> inline args)
+  (<ghil-values> values)
+  (<ghil-values*> values)
+  (<ghil-reified-env>))
 
 
 
