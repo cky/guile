@@ -45,6 +45,10 @@
                 (ghil-env-add! parent-env v))
               (ghil-env-variables env))))
 
+;; The premise of this, unused, approach to optimization is that you can
+;; determine the environment of a variable lexically, because they have
+;; been alpha-renamed. It makes the transformations *much* easier.
+;; Unfortunately it doesn't work yet.
 (define (optimize* x)
   (transform-record (<ghil> env loc) x
     ((quasiquote exp)
