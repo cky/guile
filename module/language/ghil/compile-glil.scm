@@ -45,15 +45,6 @@
                 (ghil-env-add! parent-env v))
               (ghil-env-variables env))))
 
-(define-macro (->ghil x)
-  `(,(symbol-append 'make-ghil- (car x))
-    env loc
-    ,@(map (lambda (y)
-             (if (and (pair? y) (eq? (car y) 'unquote))
-                 (cadr y)
-                 y))
-           (cdr x))))
-
 (define (optimize* x)
   (transform-record (<ghil> env loc) x
     ((quasiquote exp)
@@ -62,80 +53,61 @@
              ((pair? x) (cons (optimize-qq (car x)) (optimize-qq (cdr x))))
              ((record? x) (optimize x))
              (else x)))
-     (->ghil
-      (quasiquote (optimize-qq x))))
+     (-> (quasiquote (optimize-qq x))))
 
     ((unquote exp)
-     (->ghil
-      (unquote (optimize exp))))
+     (-> (unquote (optimize exp))))
 
     ((unquote-splicing exp)
-     (->ghil
-      (unquote-splicing (optimize exp))))
+     (-> (unquote-splicing (optimize exp))))
 
     ((set var val)
-     (->ghil
-      (set var (optimize val))))
+     (-> (set var (optimize val))))
 
     ((define var val)
-     (->ghil
-      (define var (optimize val))))
+     (-> (define var (optimize val))))
 
     ((if test then else)
-     (->ghil
-      (if (optimize test) (optimize then) (optimize else))))
+     (-> (if (optimize test) (optimize then) (optimize else))))
 
     ((and exps)
-     (->ghil
-      (and (map optimize exps))))
+     (-> (and (map optimize exps))))
 
     ((or exps)
-     (->ghil
-      (or (map optimize exps))))
+     (-> (or (map optimize exps))))
 
     ((begin exps)
-     (->ghil
-      (begin (map optimize exps))))
+     (-> (begin (map optimize exps))))
 
     ((bind vars vals body)
-     (->ghil
-      (bind vars (map optimize vals) (optimize body))))
+     (-> (bind vars (map optimize vals) (optimize body))))
 
     ((mv-bind producer vars rest body)
-     (->ghil
-      (mv-bind (optimize producer) vars rest (optimize body))))
+     (-> (mv-bind (optimize producer) vars rest (optimize body))))
 
     ((inline inst args)
-     (->ghil
-      (inline inst (map optimize args))))
+     (-> (inline inst (map optimize args))))
 
     ((call (proc (lambda vars (rest #f) meta body)) args)
-     (->ghil
-      (bind vars (optimize args) (optimize body))))
+     (-> (bind vars (optimize args) (optimize body))))
 
     ((call proc args)
-     (->ghil
-      (call (optimize proc) (map optimize args))))
+     (-> (call (optimize proc) (map optimize args))))
 
     ((lambda vars rest meta body)
-     (->ghil
-      (lambda vars rest meta (optimize body))))
+     (-> (lambda vars rest meta (optimize body))))
 
     ((mv-call producer (consumer (lambda vars rest meta body)))
-     (->ghil
-      (mv-bind (optimize producer) vars rest (optimize body))))
+     (-> (mv-bind (optimize producer) vars rest (optimize body))))
 
     ((mv-call producer consumer)
-     (->ghil
-      (mv-call (optimize producer) (optimize consumer))))
+     (-> (mv-call (optimize producer) (optimize consumer))))
 
     ((values values)
-     (->ghil
-      (values (map optimize values))))
+     (-> (values (map optimize values))))
 
     ((values* values)
-     (->ghil
-      (values* (map optimize values))))
+     (-> (values* (map optimize values))))
 
     (else
      (error "unrecognized GHIL" x))))
