@@ -24,6 +24,11 @@
   #:export-syntax (define-type define-record define-record/keywords
                    record-case))
 
+(define (symbol-trim-both sym pred)
+  (string->symbol (string-trim-both (symbol->string sym) pred)))
+(define (trim-brackets sym)
+  (symbol-trim-both sym (list->char-set '(#\< #\>))))
+
 
 ;;;
 ;;; Type
@@ -32,28 +37,33 @@
 (define-macro (define-type name . rest)
   (let ((name (if (pair? name) (car name) name))
         (opts (if (pair? name) (cdr name) '())))
-    (let ((printer (kw-arg-ref opts #:printer)))
+    (let ((printer (kw-arg-ref opts #:printer))
+          (common-slots (or (kw-arg-ref opts #:common-slots) '())))
       `(begin ,@(map (lambda (def)
                        `(define-record ,(if printer
                                             `(,(car def) ,printer)
                                             (car def))
+                          ,@common-slots
                           ,@(cdr def)))
-                     rest)))))
+                     rest)
+              ,@(map (lambda (common-slot i)
+                       `(define (,(symbol-append (trim-brackets name)
+                                                 '- common-slot)
+                                 x)
+                          (struct-ref x i)))
+                     common-slots (iota (length common-slots)))))))
 
 
 ;;;
 ;;; Record
 ;;;
 
-(define (symbol-trim-both sym pred)
-  (string->symbol (string-trim-both (symbol->string sym) pred)))
-
 (define-macro (define-record name-form . slots)
   (let* ((name (if (pair? name-form) (car name-form) name-form))
          (printer (and (pair? name-form) (cadr name-form)))
          (slot-names (map (lambda (slot) (if (pair? slot) (car slot) slot))
                           slots))
-         (stem (symbol-trim-both name (list->char-set '(#\< #\>)))))
+         (stem (trim-brackets name)))
     `(begin
        (define ,name (make-record-type ,(symbol->string name) ',slot-names
                                        ,@(if printer (list printer) '())))
