@@ -37,9 +37,12 @@
  * Scheme guardians should be simple and friendly, not like the greedy
  * monsters we had...
  *
- * Rewritten for the Boehm-Wiser GC by Ludovic Courtès.
+ * Rewritten for the Boehm-Demers-Weiser GC by Ludovic Courtès.
  * FIXME: This is currently not thread-safe.
  */
+
+/* Uncomment the following line to debug guardian finalization.  */
+/* #define DEBUG_GUARDIANS 1 */
 
 #ifdef HAVE_CONFIG_H
 # include <config.h>
@@ -109,7 +112,7 @@ finalize_guarded (GC_PTR ptr, GC_PTR finalizer_data)
   guardian_list = SCM_CDR (PTR2SCM (finalizer_data));
   proxied_finalizer = SCM_CAR (PTR2SCM (finalizer_data));
 
-#if 0
+#ifdef DEBUG_GUARDIANS
   printf ("finalizing guarded %p (%u guardians)\n",
 	  ptr, scm_to_uint (scm_length (guardian_list)));
 #endif
@@ -130,8 +133,13 @@ finalize_guarded (GC_PTR ptr, GC_PTR finalizer_data)
       t_guardian *g;
 
       if (SCM_WEAK_PAIR_CAR_DELETED_P (guardian_list))
-	/* The guardian itself vanished in the meantime.  */
-	continue;
+	{
+	  /* The guardian itself vanished in the meantime.  */
+#ifdef DEBUG_GUARDIANS
+	  printf ("  guardian for %p vanished\n", ptr);
+#endif
+	  continue;
+	}
 
       g = GUARDIAN_DATA (SCM_CAR (guardian_list));
       if (g->live == 0)
@@ -166,12 +174,12 @@ finalize_guarded (GC_PTR ptr, GC_PTR finalizer_data)
       GC_REGISTER_FINALIZER_NO_ORDER (ptr, finalizer, finalizer_data,
 				      &prev_finalizer, &prev_finalizer_data);
 
-#if 0
+#ifdef DEBUG_GUARDIANS
       printf ("  reinstalled proxied finalizer %p for %p\n", finalizer, ptr);
 #endif
     }
 
-#if 0
+#ifdef DEBUG_GUARDIANS
   printf ("end of finalize (%p)\n", ptr);
 #endif
 }
