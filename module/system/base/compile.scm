@@ -45,9 +45,12 @@
 	 ,thunk
 	 (lambda (key loc msg exp)
 	   (if (pair? loc)
-	       (format (current-error-port)
-                       "~A:~A: ~A: ~A~%" (car loc) (cdr loc) msg exp)
-	       (format (current-error-port)
+               (let ((file (or (assq-ref loc 'filename) "unknown file"))
+                     (line (assq-ref loc 'line))
+                     (col (assq-ref loc 'column)))
+                 (format (current-error-port)
+                         "~A:~A:~A: ~A: ~A~%" file line col msg exp))
+               (format (current-error-port)
                        "unknown location: ~A: ~S~%" msg exp)))))
 
 

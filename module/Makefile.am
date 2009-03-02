@@ -45,6 +45,7 @@ SOURCES =								\
   $(OBJCODE_LANG_SOURCES) $(VALUE_LANG_SOURCES)
 
 SCHEME_LANG_SOURCES =						\
+  language/scheme/amatch.scm language/scheme/expand.scm 	\
   language/scheme/compile-ghil.scm language/scheme/spec.scm	\
   language/scheme/inline.scm
 

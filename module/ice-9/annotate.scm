@@ -17,22 +17,24 @@
 
 
 (define-module (ice-9 annotate)
-  :export (<annotation> annotation? annotate make-annotation
+  :export (<annotation> annotation? annotate deannotate make-annotation
            annotation-expression annotation-source annotation-stripped
            set-annotation-stripped!))
 
 (define <annotation>          
   (make-vtable "prprpw"
                (lambda (struct port)
-                 (display "#<annotation of ")
-                 (display (struct-ref 0))
-                 (display ">"))))
+                 (display "#<annotation of " port)
+                 (display (struct-ref struct 0) port)
+                 (display ">" port))))
 
 (define (annotation? x)
   (and (struct? x) (eq? (struct-vtable x) <annotation>)))
 
-(define (make-annotation e s stripped?)
-  (make-struct <annotation> 0 e s stripped?))
+(define (make-annotation e s . stripped?)
+  (if (null? stripped?)
+      (make-struct <annotation> 0 e s #f)
+      (apply make-struct <annotation> 0 e s stripped?)))
 
 (define (annotation-expression a)
   (struct-ref a 0))
@@ -44,11 +46,17 @@
   (struct-set! a 2 #t))
 
 (define (annotate e)
-  (cond ((list? e)
+  (cond ((and (list? e) (not (null? e)))
          (make-annotation (map annotate e) (source-properties e) #f))
         ((pair? e)
          (make-annotation (cons (annotate (car e)) (annotate (cdr e)))
                           (source-properties e) #f))
         (else e)))
                           
-
+(define (deannotate e)
+  (cond ((list? e)
+         (map deannotate e))
+        ((pair? e)
+         (cons (deannotate (car e)) (deannotate (cdr e))))
+        ((annotation? e) (deannotate (annotation-expression e)))
+        (else e)))
