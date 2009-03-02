@@ -172,6 +172,8 @@
 
 (define-scheme-expander begin
   ;; (begin EXPS...)
+  ((,single-exp)
+   (-> (re-expand single-exp)))
   (,tail
    (-> `(begin . ,(map re-expand tail)))))
 
@@ -193,13 +195,16 @@
                                      . ,body)))
                      (,name . ,(map acadr (aref bindings)))))))
 
+  ((() . ,body)
+   (re-expand (expand-internal-defines body)))
+
   ;; (let ((SYM VAL) ...) BODY...)
   ((,bindings . ,body) (guard (valid-bindings? bindings))
    (-> `(let ,(map (lambda (x)
                      ;; nb, relies on -> non-hygiene
                      (-> `(,(acar x) ,(re-expand (acadr x)))))
                    (aref bindings))
-          . ,(map re-expand body)))))
+          ,(expand-internal-defines (map re-expand body))))))
 
 (define-scheme-expander let*
   ;; (let* ((SYM VAL) ...) BODY...)
@@ -215,7 +220,7 @@
                         ;; nb, relies on -> non-hygiene
                         (-> `(,(acar x) ,(re-expand (acadr x)))))
                       (aref bindings))
-          . ,(map re-expand body)))))
+          ,(expand-internal-defines (map re-expand body))))))
 
 (define-scheme-expander cond
   ;; (cond (CLAUSE BODY...) ...)
@@ -260,7 +265,7 @@
 (define-scheme-expander lambda
   ;; (lambda FORMALS BODY...)
   ((,formals . ,body)
-   (-> `(lambda ,formals . ,(map re-expand body)))))
+   (-> `(lambda ,formals ,(expand-internal-defines (map re-expand body))))))
 
 (define-scheme-expander delay
   ;; FIXME not hygienic
@@ -281,20 +286,16 @@
                              (-> `(,(acar x) . ,(map re-expand (acdr x)))))
                            clauses)))))
 
-(define (trans-body e l body)
-  (define (define->binding df)
-    (amatch (cdr df)
-      ((,name ,val) (guard (symbol? name)) (list name val))
-      (((,name . ,formals) . ,body) (guard (symbol? name))
-       (list name `(lambda ,formals ,@body)))
-      (else (syntax-error (location df) "bad define" df))))
-  ;; main
+;;; Hum, I don't think this takes imported modifications to `define'
+;;; properly into account. (Lexical bindings are OK because of alpha
+;;; renaming.)
+(define (expand-internal-defines body)
   (let loop ((ls body) (ds '()))
     (amatch ls
       (() (syntax-error l "bad body" body))
-      (((define . _) . _)
-       (loop (cdr ls) (cons (car ls) ds)))
+      (((define ,name ,val) . _)
+       (loop (acdr ls) (cons (list name val) ds)))
       (else
        (if (null? ds)
-           (translate-1 e l `(begin ,@ls))
-           (translate-1 e l `(letrec ,(map define->binding ds) ,@ls)))))))
+           (if (null? (cdr ls)) (car ls) `(begin ,@ls))
+           `(letrec ,ds ,(if (null? (cdr ls)) (car ls) `(begin ,@ls))))))))
