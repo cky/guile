@@ -67,6 +67,7 @@ SCM_TESTS = tests/alist.test			\
 	    tests/reader.test			\
 	    tests/receive.test			\
 	    tests/regexp.test			\
+	    tests/signals.test			\
 	    tests/socket.test			\
 	    tests/srcprop.test			\
 	    tests/srfi-1.test			\

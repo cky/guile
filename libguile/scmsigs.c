@@ -340,7 +340,10 @@ SCM_DEFINE (scm_sigaction_for_thread, "sigaction", 1, 3, 0,
 	  install_handler (csig, SCM_BOOL_F, SCM_BOOL_F);
 	}
       else
-	SCM_OUT_OF_RANGE (2, handler);
+	{
+	  SCM_CRITICAL_SECTION_END;
+	  SCM_OUT_OF_RANGE (2, handler);
+	}
     }
   else if (scm_is_false (handler))
     {
