@@ -118,7 +118,8 @@
    (-> `(,'quasiquote
          ,(let lp ((x obj) (level 0))
             (cond ((not (apair? x)) x)
-                  ((memq (acar x) '(,'unquote ,'unquote-splicing))
+                  ;; FIXME: hygiene regarding imported , / ,@ rebinding
+                  ((memq (acar x) '(unquote unquote-splicing))
                    (amatch (acdr x)
                      ((,obj)
                       (cond
@@ -264,6 +265,9 @@
 
 (define-scheme-expander lambda
   ;; (lambda FORMALS BODY...)
+  ((,formals ,docstring ,body1 . ,body) (guard (string? docstring))
+   (-> `(lambda ,formals ,docstring ,(expand-internal-defines
+                                      (map re-expand (cons body1 body))))))
   ((,formals . ,body)
    (-> `(lambda ,formals ,(expand-internal-defines (map re-expand body))))))
 

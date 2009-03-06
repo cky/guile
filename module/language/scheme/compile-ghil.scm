@@ -351,36 +351,13 @@
    (-> (ref (ghil-var-at-module! e modname sym #f)))))
 
 (define *the-compile-toplevel-symbol* 'compile-toplevel)
-(define-scheme-translator eval-case
-  (,clauses
-   (retrans
-    `(begin
-       ;; Compilation of toplevel units is always wrapped in a lambda
-       ,@(let ((toplevel? (ghil-toplevel-env? (ghil-env-parent e))))
-           (let loop ((seen '()) (in clauses) (runtime '()))
-             (cond
-              ((null? in) runtime)
-              (else
-               (pmatch (car in)
-                       ((else . ,body)
-                        (if (and toplevel? (not (memq *the-compile-toplevel-symbol* seen)))
-                            (primitive-eval `(begin ,@body)))
-                        (if (memq (if toplevel? *the-compile-toplevel-symbol* 'evaluate) seen)
-                            runtime
-                            body))
-                       ((,keys . ,body) (guard (list? keys) (and-map symbol? keys))
-                        (for-each (lambda (k)
-                                    (if (memq k seen)
-                                        (syntax-error l "eval-case condition seen twice" k)))
-                                  keys)
-                        (if (and toplevel? (memq *the-compile-toplevel-symbol* keys))
-                            (primitive-eval `(begin ,@body)))
-                        (loop (append keys seen)
-                              (cdr in)
-                              (if (memq (if toplevel? 'load-toplevel 'evaluate) keys)
-                                  (append runtime body)
-                                  runtime)))
-                       (else (syntax-error l "bad eval-case clause" (car in))))))))))))
+(define-scheme-translator eval-when
+  ((,when . ,body) (guard (list? when) (and-map symbol? when))
+   (if (memq 'compile when)
+       (primitive-eval `(begin . ,body)))
+   (if (memq 'load when)
+       (retrans `(begin . ,body))
+       (retrans `(begin)))))
 
 (define-scheme-translator apply
   ;; FIXME: not hygienic, relies on @apply not being shadowed

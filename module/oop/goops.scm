@@ -78,9 +78,8 @@
 (define *goops-module* (current-module))
 
 ;; First initialize the builtin part of GOOPS
-(eval-case
- ((load-toplevel compile-toplevel)
-  (%init-goops-builtins)))
+(eval-when (eval load compile)
+  (%init-goops-builtins))
 
 ;; Then load the rest of GOOPS
 (use-modules (oop goops util)
@@ -88,10 +87,9 @@
 	     (oop goops compile))
 
 
-(eval-case
- ((load-toplevel compile-toplevel)
+(eval-when (eval load compile)
   (define min-fixnum (- (expt 2 29)))
-  (define max-fixnum (- (expt 2 29) 1))))
+  (define max-fixnum (- (expt 2 29) 1)))
 
 ;;
 ;; goops-error
@@ -1039,8 +1037,7 @@
 ;; the idea is to compile the index into the procedure, for fastest
 ;; lookup. Also, @slot-ref and @slot-set! have their own bytecodes.
 
-(eval-case
- ((compile-toplevel)
+(eval-when (compile)
   (use-modules ((language scheme compile-ghil) :select (define-scheme-translator))
                ((language ghil) :select (make-ghil-inline make-ghil-call))
                (system base pmatch))
@@ -1061,11 +1058,10 @@
      (make-ghil-inline #f #f 'slot-set
                        (list (retrans obj) (retrans index) (retrans val))))
     (else
-     (make-ghil-call e l (retrans (car exp)) (map retrans (cdr exp)))))))
+     (make-ghil-call e l (retrans (car exp)) (map retrans (cdr exp))))))
 
-(eval-case
- ((load-toplevel compile-toplevel)
-  (define num-standard-pre-cache 20)))
+(eval-when (eval load compile)
+  (define num-standard-pre-cache 20))
 
 (define-macro (define-standard-accessor-method form . body)
   (let ((name (caar form))

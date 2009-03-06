@@ -86,42 +86,29 @@
 
 
 
-;;; {EVAL-CASE}
-;;;
-
-;; (eval-case ((situation*) forms)* (else forms)?)
+;; (eval-when (situation...) form...)
 ;;
-;; Evaluate certain code based on the situation that eval-case is used
-;; in. There are three situations defined. `load-toplevel' triggers for
-;; code evaluated at the top-level, for example from the REPL or when
-;; loading a file. `compile-toplevel' triggers for code compiled at the
-;; toplevel. `execute' triggers during execution of code not at the top
-;; level.
+;; Evaluate certain code based on the situation that eval-when is used
+;; in. There are three situations defined.
+;;
+;; `load' triggers when a file is loaded via `load', or when a compiled
+;; file is loaded.
+;;
+;; `compile' triggers when an expression is compiled.
+;;
+;; `eval' triggers when code is evaluated interactively, as at the REPL
+;; or via the `compile' or `eval' procedures.
 
-(define eval-case
+;; NB: this macro is only ever expanded by the interpreter. The compiler
+;; notices it and interprets the situations differently.
+(define eval-when
   (procedure->memoizing-macro
    (lambda (exp env)
-     (define (toplevel-env? env)
-       (or (not (pair? env)) (not (pair? (car env)))))
-     (define (syntax)
-       (error "syntax error in eval-case"))
-     (let loop ((clauses (cdr exp)))
-       (cond
-	((null? clauses)
-	 #f)
-	((not (list? (car clauses)))
-	 (syntax))
-	((eq? 'else (caar clauses))
-	 (or (null? (cdr clauses))
-	     (syntax))
-	 (cons 'begin (cdar clauses)))
-	((not (list? (caar clauses)))
-	 (syntax))
-	((and (toplevel-env? env)
-	      (memq 'load-toplevel (caar clauses)))
-	 (cons 'begin (cdar clauses)))
-	(else
-	 (loop (cdr clauses))))))))
+     (let ((situations (cadr exp))
+           (body (cddr exp)))
+       (if (or (memq 'load situations)
+               (memq 'eval situations))
+           `(begin . ,body))))))
 
 
 
@@ -129,8 +116,8 @@
 ;; module, the primary location of those symbols, rather than in
 ;; (guile-user), the default module that we compile in.
 
-(eval-case
- ((compile-toplevel)
+(eval-when
+ ((compile)
   (set-current-module (resolve-module '(guile)))))
 
 ;;; {Defmacros}
@@ -160,11 +147,9 @@
   (let ((defmacro-transformer
 	  (lambda (name parms . body)
 	    (let ((transformer `(lambda ,parms ,@body)))
-	      `(eval-case
-                ((load-toplevel compile-toplevel)
-                 (define ,name (defmacro:transformer ,transformer)))
-		(else
-		 (error "defmacro can only be used at the top level")))))))
+	      `(eval-when
+                (eval load compile)
+                (define ,name (defmacro:transformer ,transformer)))))))
     (defmacro:transformer defmacro-transformer)))
 
 
@@ -2707,11 +2692,9 @@ module '(ice-9 q) '(make-q q-length))}."
 	 (if (symbol? first)
 	     (car rest)
 	     `(lambda ,(cdr first) ,@rest))))
-    `(eval-case
-      ((load-toplevel compile-toplevel)
-       (define ,name (defmacro:transformer ,transformer)))
-      (else
-       (error "define-macro can only be used at the top level")))))
+    `(eval-when
+      (eval load compile)
+      (define ,name (defmacro:transformer ,transformer)))))
 
 
 
@@ -2753,8 +2736,8 @@ module '(ice-9 q) '(make-q q-length))}."
 ;; Return a list of expressions that evaluate to the appropriate
 ;; arguments for resolve-interface according to SPEC.
 
-(eval-case
- ((compile-toplevel)
+(eval-when
+ ((compile)
   (if (memq 'prefix (read-options))
       (error "boot-9 must be compiled with #:kw, not :kw"))))
 
@@ -2821,14 +2804,12 @@ module '(ice-9 q) '(make-q q-length))}."
 		 (cddr args))))))
 
 (defmacro define-module args
-  `(eval-case
-    ((load-toplevel compile-toplevel)
-     (let ((m (process-define-module
-	       (list ,@(compile-define-module-args args)))))
-       (set-current-module m)
-       m))
-    (else
-     (error "define-module can only be used at the top level"))))
+  `(eval-when
+    (eval load compile)
+    (let ((m (process-define-module
+              (list ,@(compile-define-module-args args)))))
+      (set-current-module m)
+      m)))
 
 ;; The guts of the use-modules macro.  Add the interfaces of the named
 ;; modules to the use-list of the current module, in order.
@@ -2846,28 +2827,24 @@ module '(ice-9 q) '(make-q q-length))}."
        (module-use-interfaces! (current-module) interfaces)))))
 
 (defmacro use-modules modules
-  `(eval-case
-    ((load-toplevel compile-toplevel)
-     (process-use-modules
-      (list ,@(map (lambda (m)
-		     `(list ,@(compile-interface-spec m)))
-		   modules)))
-     *unspecified*)
-    (else
-     (error "use-modules can only be used at the top level"))))
+  `(eval-when
+    (eval load compile)
+    (process-use-modules
+     (list ,@(map (lambda (m)
+                    `(list ,@(compile-interface-spec m)))
+                  modules)))
+    *unspecified*))
 
 (defmacro use-syntax (spec)
-  `(eval-case
-    ((load-toplevel compile-toplevel)
+  `(eval-when
+    (eval load compile)
      ,@(if (pair? spec)
 	   `((process-use-modules (list
 				   (list ,@(compile-interface-spec spec))))
 	     (set-module-transformer! (current-module)
 				      ,(car (last-pair spec))))
 	   `((set-module-transformer! (current-module) ,spec)))
-     *unspecified*)
-    (else
-     (error "use-syntax can only be used at the top level"))))
+     *unspecified*))
 
 ;; Dirk:FIXME:: This incorrect (according to R5RS) syntax needs to be changed
 ;; as soon as guile supports hygienic macros.
@@ -2888,7 +2865,7 @@ module '(ice-9 q) '(make-q q-length))}."
     (let ((name (defined-name (car args))))
       `(begin
 	 (define-private ,@args)
-	 (eval-case ((load-toplevel compile-toplevel) (export ,name))))))))
+	 (export ,name))))))
 
 (defmacro defmacro-public args
   (define (syntax)
@@ -2903,7 +2880,7 @@ module '(ice-9 q) '(make-q q-length))}."
    (#t
     (let ((name (defined-name (car args))))
       `(begin
-	 (eval-case ((load-toplevel compile-toplevel) (export-syntax ,name)))
+	 (export-syntax ,name)
 	 (defmacro ,@args))))))
 
 ;; Export a local variable
@@ -2941,22 +2918,14 @@ module '(ice-9 q) '(make-q q-length))}."
 	      names)))
 
 (defmacro export names
-  `(eval-case
-    ((load-toplevel compile-toplevel)
-     (call-with-deferred-observers
-      (lambda ()
-	(module-export! (current-module) ',names))))
-    (else
-     (error "export can only be used at the top level"))))
+  `(call-with-deferred-observers
+    (lambda ()
+      (module-export! (current-module) ',names))))
 
 (defmacro re-export names
-  `(eval-case
-    ((load-toplevel compile-toplevel)
-     (call-with-deferred-observers
-      (lambda ()
-	(module-re-export! (current-module) ',names))))
-    (else
-     (error "re-export can only be used at the top level"))))
+  `(call-with-deferred-observers
+    (lambda ()
+      (module-re-export! (current-module) ',names))))
 
 (defmacro export-syntax names
   `(export ,@names))

@@ -178,3 +178,20 @@
  
 (define (list->uniform-vector prot lst)
   (list->uniform-array 1 prot lst))
+
+(define-macro (eval-case . clauses)
+  (issue-deprecation-warning
+   "`eval-case' is deprecated.  Use `eval-when' instead.")
+  ;; Practically speaking, eval-case only had load-toplevel and else as
+  ;; conditions.
+  (cond
+   ((assoc-ref clauses '(load-toplevel))
+    => (lambda (exps)
+         ;; the *unspecified so that non-toplevel definitions will be
+         ;; caught
+         `(begin *unspecified* . ,exps)))
+   ((assoc-ref clauses 'else)
+    => (lambda (exps)
+         `(begin *unspecified* . ,exps)))
+   (else
+    `(begin))))

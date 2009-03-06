@@ -83,9 +83,8 @@
            locale-yes-regexp locale-no-regexp))
 
 
-(eval-case
- ((load-toplevel compile-toplevel)
-  (load-extension "libguile-i18n-v-0" "scm_init_i18n")))
+(eval-when (eval load compile)
+  (load-extension "libguile-i18n-v-0" "scm_init_i18n"))
 
 
 ;;;
