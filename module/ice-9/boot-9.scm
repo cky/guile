@@ -116,9 +116,8 @@
 ;; module, the primary location of those symbols, rather than in
 ;; (guile-user), the default module that we compile in.
 
-(eval-when
- ((compile)
-  (set-current-module (resolve-module '(guile)))))
+(eval-when (compile)
+  (set-current-module (resolve-module '(guile))))
 
 ;;; {Defmacros}
 ;;;
@@ -1779,7 +1778,8 @@
 (set-module-name! the-root-module '(guile))
 (set-module-name! the-scm-module '(guile))
 (set-module-kind! the-scm-module 'interface)
-(for-each set-system-module! (list the-root-module the-scm-module) '(#t #t))
+(set-system-module! the-root-module #t)
+(set-system-module! the-scm-module #t)
 
 ;; NOTE: This binding is used in libguile/modules.c.
 ;;
@@ -2737,9 +2737,9 @@ module '(ice-9 q) '(make-q q-length))}."
 ;; arguments for resolve-interface according to SPEC.
 
 (eval-when
- ((compile)
-  (if (memq 'prefix (read-options))
-      (error "boot-9 must be compiled with #:kw, not :kw"))))
+ (compile)
+ (if (memq 'prefix (read-options))
+     (error "boot-9 must be compiled with #:kw, not :kw")))
 
 (define (compile-interface-spec spec)
   (define (make-keyarg sym key quote?)
