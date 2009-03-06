@@ -345,86 +345,92 @@
 
 
 ;;; output constructors
-(begin
+(define (build-annotated src exp)
+  (if (and src (not (annotation? exp)))
+      (make-annotation exp src #t)
+      exp))
+
 (define-syntax build-application
   (syntax-rules ()
     ((_ source fun-exp arg-exps)
-     `(,fun-exp . ,arg-exps))))
+     (build-annotated source `(,fun-exp . ,arg-exps)))))
 
 (define-syntax build-conditional
   (syntax-rules ()
     ((_ source test-exp then-exp else-exp)
-     `(if ,test-exp ,then-exp ,else-exp))))
+     (build-annotated source `(if ,test-exp ,then-exp ,else-exp)))))
 
 (define-syntax build-lexical-reference
   (syntax-rules ()
     ((_ type source var)
-     var)))
+     (build-annotated source var))))
 
 (define-syntax build-lexical-assignment
   (syntax-rules ()
     ((_ source var exp)
-     `(set! ,var ,exp))))
+     (build-annotated source `(set! ,var ,exp)))))
 
 (define-syntax build-global-reference
   (syntax-rules ()
     ((_ source var)
-     var)))
+     (build-annotated source var))))
 
 (define-syntax build-global-assignment
   (syntax-rules ()
     ((_ source var exp)
-     `(set! ,var ,exp))))
+     (build-annotated source `(set! ,var ,exp)))))
 
 (define-syntax build-global-definition
   (syntax-rules ()
     ((_ source var exp)
-     `(define ,var ,exp))))
+     (build-annotated source `(define ,var ,exp)))))
 
 (define-syntax build-lambda
   (syntax-rules ()
     ((_ src vars exp)
-     `(lambda ,vars ,exp))))
+     (build-annotated src `(lambda ,vars ,exp)))))
 
 (define-syntax build-primref
   (syntax-rules ()
-    ((_ src name) name)
-    ((_ src level name) name)))
+    ((_ src name) (build-annotated src name))
+    ((_ src level name) (build-annotated src name))))
 
 (define (build-data src exp)
   (if (and (self-evaluating? exp)
 	   (not (vector? exp)))
-      exp
-      (list 'quote exp)))
+      (build-annotated src exp)
+      (build-annotated src (list 'quote exp))))
 
 (define build-sequence
   (lambda (src exps)
     (if (null? (cdr exps))
-        (car exps)
-        `(begin ,@exps))))
+        (build-annotated src (car exps))
+        (build-annotated src `(begin ,@exps)))))
 
 (define build-let
   (lambda (src vars val-exps body-exp)
     (if (null? vars)
-	body-exp
-	`(let ,(map list vars val-exps) ,body-exp))))
+	(build-annotated src body-exp)
+	(build-annotated src `(let ,(map list vars val-exps) ,body-exp)))))
 
 (define build-named-let
   (lambda (src vars val-exps body-exp)
     (if (null? vars)
-	body-exp
-	`(let ,(car vars) ,(map list (cdr vars) val-exps) ,body-exp))))
+	(build-annotated src body-exp)
+	(build-annotated src
+                         `(let ,(car vars)
+                            ,(map list (cdr vars) val-exps) ,body-exp)))))
 
 (define build-letrec
   (lambda (src vars val-exps body-exp)
     (if (null? vars)
-        body-exp
-        `(letrec ,(map list vars val-exps) ,body-exp))))
+        (build-annotated src body-exp)
+        (build-annotated src
+                         `(letrec ,(map list vars val-exps) ,body-exp)))))
 
 (define-syntax build-lexical-var
   (syntax-rules ()
-    ((_ src id) (gensym (symbol->string id)))))
-)
+    ((_ src id) (build-annotated src (gensym (symbol->string id))))))
 
 (define-structure (syntax-object expression wrap))
 
