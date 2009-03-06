@@ -318,8 +318,6 @@
 (define fx= =)
 (define fx< <)
 
-(define annotation? (lambda (x) #f))
-
 (define top-level-eval-hook
   (lambda (x)
     (eval `(,noexpand ,x) (interaction-environment))))

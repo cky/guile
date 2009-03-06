@@ -24,7 +24,7 @@
 (define <annotation>          
   (make-vtable "prprpw"
                (lambda (struct port)
-                 (display "#<annotation of " port)
+                 (display "#<annotated " port)
                  (display (struct-ref struct 0) port)
                  (display ">" port))))
 
@@ -46,12 +46,15 @@
   (struct-set! a 2 #t))
 
 (define (annotate e)
-  (cond ((and (list? e) (not (null? e)))
-         (make-annotation (map annotate e) (source-properties e) #f))
-        ((pair? e)
-         (make-annotation (cons (annotate (car e)) (annotate (cdr e)))
-                          (source-properties e) #f))
-        (else e)))
+  (let ((p (if (pair? e) (source-properties e) #f))
+        (out (cond ((and (list? e) (not (null? e)))
+                    (map annotate e))
+                   ((pair? e)
+                    (cons (annotate (car e)) (annotate (cdr e))))
+                   (else e))))
+    (if (pair? p)
+        (make-annotation out p #f)
+        out)))
                           
 (define (deannotate e)
   (cond ((list? e)

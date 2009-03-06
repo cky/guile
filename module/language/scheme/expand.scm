@@ -284,11 +284,13 @@
   ((,modname ,sym)
    x))
 
-(define-scheme-expander eval-case
-  (,clauses
-   (-> `(eval-case . ,(map (lambda (x)
-                             (-> `(,(acar x) . ,(map re-expand (acdr x)))))
-                           clauses)))))
+(define-scheme-expander eval-when
+  ((,when . ,body) (guard (list? when) (and-map symbol? when))
+   (if (memq 'compile when)
+       (primitive-eval `(begin . ,body)))
+   (if (memq 'load when)
+       (-> `(begin . ,body))
+       (-> `(begin)))))
 
 ;;; Hum, I don't think this takes imported modifications to `define'
 ;;; properly into account. (Lexical bindings are OK because of alpha
