@@ -19,7 +19,8 @@
 (define-module (ice-9 annotate)
   :export (<annotation> annotation? annotate deannotate make-annotation
            annotation-expression annotation-source annotation-stripped
-           set-annotation-stripped!))
+           set-annotation-stripped!
+           deannotate/source-properties))
 
 (define <annotation>          
   (make-vtable "prprpw"
@@ -62,4 +63,18 @@
         ((pair? e)
          (cons (deannotate (car e)) (deannotate (cdr e))))
         ((annotation? e) (deannotate (annotation-expression e)))
+        (else e)))
+
+(define (deannotate/source-properties e)
+  (cond ((list? e)
+         (map deannotate/source-properties e))
+        ((pair? e)
+         (cons (deannotate/source-properties (car e))
+               (deannotate/source-properties (cdr e))))
+        ((annotation? e)
+         (let ((e (deannotate/source-properties (annotation-expression e)))
+               (source (annotation-source e)))
+           (if (pair? e)
+               (set-source-properties! e source))
+           e))
         (else e)))

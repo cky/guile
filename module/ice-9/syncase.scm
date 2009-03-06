@@ -47,7 +47,7 @@
   (procedure->memoizing-macro
     (lambda (exp env)
       (with-fluids ((expansion-eval-closure (env->eval-closure env)))
-        (sc-expand exp)))))
+        (deannotate/source-properties (sc-expand (annotate exp)))))))
 
 ;;; Exported variables
 
@@ -235,7 +235,7 @@
 (define (syncase exp)
   (with-fluids ((expansion-eval-closure
 		 (module-eval-closure (current-module))))
-    (sc-expand exp)))
+    (deannotate/source-properties (sc-expand (annotate exp)))))
 
 (set-module-transformer! the-syncase-module syncase)
 
