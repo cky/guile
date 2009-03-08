@@ -21,6 +21,8 @@
 #endif
 
 #include <stdio.h>
+#include <stdarg.h>
+
 #include "libguile/_scm.h"
 #include "libguile/procprop.h"
 #include "libguile/root.h"
@@ -177,12 +179,114 @@ scm_c_define_gsubr_with_generic (const char *name,
   return create_gsubr_with_generic (1, name, req, opt, rst, fcn, gf);
 }
 
+/* Apply PROC, a gsubr, to the ARGC arguments in ARGV.  ARGC is expected to
+   match the number of arguments of the underlying C function.  */
+static SCM
+gsubr_apply_raw (SCM proc, unsigned int argc, const SCM *argv)
+{
+  SCM (*fcn) ();
+  unsigned int type, argc_max;
 
+  type = SCM_GSUBR_TYPE (proc);
+  argc_max = SCM_GSUBR_REQ (type) + SCM_GSUBR_OPT (type)
+    + SCM_GSUBR_REST (type);
+
+  if (SCM_UNLIKELY (argc != argc_max))
+    /* We expect the exact argument count.  */
+    scm_wrong_num_args (SCM_SNAME (proc));
+
+  fcn = SCM_SUBRF (proc);
+
+  switch (argc)
+    {
+    case 0:
+      return (*fcn) ();
+    case 1:
+      return (*fcn) (argv[0]);
+    case 2:
+      return (*fcn) (argv[0], argv[1]);
+    case 3:
+      return (*fcn) (argv[0], argv[1], argv[2]);
+    case 4:
+      return (*fcn) (argv[0], argv[1], argv[2], argv[3]);
+    case 5:
+      return (*fcn) (argv[0], argv[1], argv[2], argv[3], argv[4]);
+    case 6:
+      return (*fcn) (argv[0], argv[1], argv[2], argv[3], argv[4], argv[5]);
+    case 7:
+      return (*fcn) (argv[0], argv[1], argv[2], argv[3], argv[4], argv[5],
+		     argv[6]);
+    case 8:
+      return (*fcn) (argv[0], argv[1], argv[2], argv[3], argv[4], argv[5],
+		     argv[6], argv[7]);
+    case 9:
+      return (*fcn) (argv[0], argv[1], argv[2], argv[3], argv[4], argv[5],
+		     argv[6], argv[7], argv[8]);
+    case 10:
+      return (*fcn) (argv[0], argv[1], argv[2], argv[3], argv[4], argv[5],
+		     argv[6], argv[7], argv[8], argv[9]);
+    default:
+      scm_misc_error ((char *) SCM_SNAME (proc),
+		      "gsubr invocation with more than 10 arguments not implemented",
+		      SCM_EOL);
+    }
+
+  return SCM_BOOL_F; /* Never reached. */
+}
+
+/* Apply PROC, a gsubr, to the given arguments.  Missing optional arguments
+   are added, and rest arguments are turned into a list.  */
 SCM
-scm_i_gsubr_apply (SCM self, SCM args)
+scm_i_gsubr_apply (SCM proc, SCM arg, ...)
+{
+  unsigned int type, argc, argc_max;
+  SCM *argv;
+  va_list arg_list;
+
+  type = SCM_GSUBR_TYPE (proc);
+  argc_max = SCM_GSUBR_REQ (type) + SCM_GSUBR_OPT (type);
+  argv = alloca ((argc_max + SCM_GSUBR_REST (type)) * sizeof (*argv));
+
+  va_start (arg_list, arg);
+
+  for (argc = 0;
+       !SCM_UNBNDP (arg) && argc < argc_max;
+       argc++, arg = va_arg (arg_list, SCM))
+    argv[argc] = arg;
+
+  if (SCM_UNLIKELY (argc < SCM_GSUBR_REQ (type)))
+    scm_wrong_num_args (SCM_SNAME (proc));
+
+  /* Fill in optional arguments that were not passed.  */
+  while (argc < argc_max)
+    argv[argc++] = SCM_UNDEFINED;
+
+  if (SCM_GSUBR_REST (type))
+    {
+      /* Accumulate rest arguments in a list.  */
+      SCM *rest_loc;
+
+      argv[argc_max] = SCM_EOL;
+
+      for (rest_loc = &argv[argc_max];
+	   !SCM_UNBNDP (arg);
+	   rest_loc = SCM_CDRLOC (*rest_loc), arg = va_arg (arg_list, SCM))
+	*rest_loc = scm_cons (arg, SCM_EOL);
+
+      argc = argc_max + 1;
+    }
+
+  va_end (arg_list);
+
+  return gsubr_apply_raw (proc, argc, argv);
+}
+
+/* Apply SELF, a gsubr, to the arguments listed in ARGS.  Missing optional
+   arguments are added, and rest arguments are kept into a list.  */
+SCM
+scm_i_gsubr_apply_list (SCM self, SCM args)
 #define FUNC_NAME "scm_i_gsubr_apply"
 {
-  SCM (*fcn)() = SCM_SUBRF (self);
   SCM v[SCM_GSUBR_MAX];
   unsigned int typ = SCM_GSUBR_TYPE (self);
   long i, n = SCM_GSUBR_REQ (typ) + SCM_GSUBR_OPT (typ) + SCM_GSUBR_REST (typ);
@@ -205,22 +309,8 @@ scm_i_gsubr_apply (SCM self, SCM args)
     v[i] = args;
   else if (!scm_is_null (args))
     scm_wrong_num_args (SCM_SNAME (self));
-  switch (n) {
-  case 2: return (*fcn)(v[0], v[1]);
-  case 3: return (*fcn)(v[0], v[1], v[2]);
-  case 4: return (*fcn)(v[0], v[1], v[2], v[3]);
-  case 5: return (*fcn)(v[0], v[1], v[2], v[3], v[4]);
-  case 6: return (*fcn)(v[0], v[1], v[2], v[3], v[4], v[5]);
-  case 7: return (*fcn)(v[0], v[1], v[2], v[3], v[4], v[5], v[6]);
-  case 8: return (*fcn)(v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7]);
-  case 9: return (*fcn)(v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7], v[8]);
-  case 10: return (*fcn)(v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7], v[8], v[9]);
-  default:
-    scm_misc_error ((char *) SCM_SNAME (self),
-		    "gsubr invocation with more than 10 arguments not implemented",
-		    SCM_EOL);
-  }
-  return SCM_BOOL_F; /* Never reached. */
+
+  return gsubr_apply_raw (self, n, v);
 }
 #undef FUNC_NAME
 
