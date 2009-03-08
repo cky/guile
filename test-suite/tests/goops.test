@@ -1,6 +1,6 @@
 ;;;; goops.test --- test suite for GOOPS                      -*- scheme -*-
 ;;;;
-;;;; Copyright (C) 2001,2003,2004, 2006, 2008 Free Software Foundation, Inc.
+;;;; Copyright (C) 2001,2003,2004, 2006, 2008, 2009 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -124,6 +124,24 @@
 			   '()
 			   table))))
   )
+
+(with-test-prefix "classes for built-in types"
+
+  (pass-if "subr"
+    (eq? (class-of fluid-ref) <procedure>))
+
+  (pass-if "gsubr"
+    (eq? (class-of hashq-ref) <procedure>))
+
+  (pass-if "car"
+    (eq? (class-of car) <procedure>))
+
+  (pass-if "string"
+    (eq? (class-of "foo") <string>))
+
+  (pass-if "port"
+    (is-a? (%make-void-port "w") <port>)))
+
 
 (with-test-prefix "defining classes"
 

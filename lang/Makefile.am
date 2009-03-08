@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in.
 ##
-##  	Copyright (C) 2000, 2006 Free Software Foundation, Inc.
+##  	Copyright (C) 2000, 2006, 2009 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##   
@@ -21,4 +21,48 @@
 
 AUTOMAKE_OPTIONS = gnu
 
-SUBDIRS = elisp
+# These should be installed and distributed.
+
+elisp_sources =					\
+	elisp/base.scm				\
+	elisp/example.el			\
+	elisp/interface.scm			\
+	elisp/transform.scm			\
+	elisp/variables.scm			\
+						\
+	elisp/primitives/buffers.scm		\
+	elisp/primitives/char-table.scm		\
+	elisp/primitives/features.scm		\
+	elisp/primitives/fns.scm		\
+	elisp/primitives/format.scm		\
+	elisp/primitives/guile.scm		\
+	elisp/primitives/keymaps.scm		\
+	elisp/primitives/lists.scm		\
+	elisp/primitives/load.scm		\
+	elisp/primitives/match.scm		\
+	elisp/primitives/numbers.scm		\
+	elisp/primitives/pure.scm		\
+	elisp/primitives/read.scm		\
+	elisp/primitives/signal.scm		\
+	elisp/primitives/strings.scm		\
+	elisp/primitives/symprop.scm		\
+	elisp/primitives/syntax.scm		\
+	elisp/primitives/system.scm		\
+	elisp/primitives/time.scm		\
+						\
+	elisp/internals/evaluation.scm		\
+	elisp/internals/format.scm		\
+	elisp/internals/fset.scm		\
+	elisp/internals/lambda.scm		\
+	elisp/internals/load.scm		\
+	elisp/internals/null.scm		\
+	elisp/internals/set.scm			\
+	elisp/internals/signal.scm		\
+	elisp/internals/time.scm		\
+	elisp/internals/trace.scm
+
+subpkgdatadir = $(pkgdatadir)/$(GUILE_EFFECTIVE_VERSION)/lang
+nobase_subpkgdata_DATA = $(elisp_sources)
+TAGS_FILES = $(nobase_subpkgdata_DATA)
+
+EXTRA_DIST = $(elisp_sources) elisp/ChangeLog-2008

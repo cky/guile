@@ -81,39 +81,6 @@ scm_c_define_subr_with_generic (const char *name,
 }
 
 
-#ifdef CCLO
-SCM 
-scm_makcclo (SCM proc, size_t len)
-{
-  scm_t_bits *base = scm_gc_malloc (len * sizeof (scm_t_bits),
-				    "compiled closure");
-  unsigned long i;
-  SCM s;
-
-  for (i = 0; i < len; ++i)
-    base [i] = SCM_UNPACK (SCM_UNSPECIFIED);
-
-  s = scm_cell (SCM_MAKE_CCLO_TAG (len), (scm_t_bits) base);
-  SCM_SET_CCLO_SUBR (s, proc);
-  return s;
-}
-
-/* Undocumented debugging procedure */
-#ifdef GUILE_DEBUG
-SCM_DEFINE (scm_make_cclo, "make-cclo", 2, 0, 0,
-            (SCM proc, SCM len),
-	    "Create a compiled closure for @var{proc}, which reserves\n"
-	    "@var{len} objects for its usage.")
-#define FUNC_NAME s_scm_make_cclo
-{
-  return scm_makcclo (proc, scm_to_size_t (len));
-}
-#undef FUNC_NAME
-#endif
-#endif
-
-
-
 SCM_DEFINE (scm_procedure_p, "procedure?", 1, 0, 0, 
 	    (SCM obj),
 	    "Return @code{#t} if @var{obj} is a procedure.")
@@ -127,9 +94,6 @@ SCM_DEFINE (scm_procedure_p, "procedure?", 1, 0, 0,
 	  break;
       case scm_tcs_closures:
       case scm_tcs_subrs:
-#ifdef CCLO
-      case scm_tc7_cclo:
-#endif
       case scm_tc7_pws:
 	return SCM_BOOL_T;
       case scm_tc7_smob:
@@ -167,10 +131,9 @@ SCM_DEFINE (scm_thunk_p, "thunk?", 1, 0, 0,
 	case scm_tc7_lsubr:
 	case scm_tc7_rpsubr:
 	case scm_tc7_asubr:
-#ifdef CCLO
-	case scm_tc7_cclo:
-#endif
 	  return SCM_BOOL_T;
+	case scm_tc7_gsubr:
+	  return scm_from_bool (SCM_GSUBR_REQ (SCM_GSUBR_TYPE (obj)) == 0);
 	case scm_tc7_pws:
 	  obj = SCM_PROCEDURE (obj);
 	  goto again;
@@ -221,12 +184,6 @@ SCM_DEFINE (scm_procedure_documentation, "procedure-documentation", 1, 0, 0,
 	return SCM_BOOL_F;
     default:
       return SCM_BOOL_F;
-/*
-  case scm_tcs_subrs:
-#ifdef CCLO
-  case scm_tc7_cclo:
-#endif
-*/
     }
 }
 #undef FUNC_NAME
