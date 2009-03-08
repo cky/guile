@@ -1353,7 +1353,7 @@
     (cond
       ((pair? x)
        (let ((new (cons #f #f)))
-         (when parent (set-annotation-stripped! parent new))
+         (if parent (set-annotation-stripped! parent new))
          (set-car! new (strip-annotation (car x) #f))
          (set-cdr! new (strip-annotation (cdr x) #f))
          new))
@@ -1362,7 +1362,7 @@
            (strip-annotation (annotation-expression x) x)))
       ((vector? x)
        (let ((new (make-vector (vector-length x))))
-         (when parent (set-annotation-stripped! parent new))
+         (if parent (set-annotation-stripped! parent new))
          (let loop ((i (- (vector-length x) 1)))
            (unless (fx< i 0)
              (vector-set! new i (strip-annotation (vector-ref x i) #f))

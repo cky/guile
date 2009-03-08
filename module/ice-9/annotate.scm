@@ -43,8 +43,8 @@
   (struct-ref a 1))
 (define (annotation-stripped a)
   (struct-ref a 2))
-(define (set-annotation-stripped! a)
-  (struct-set! a 2 #t))
+(define (set-annotation-stripped! a stripped?)
+  (struct-set! a 2 stripped?))
 
 (define (annotate e)
   (let ((p (if (pair? e) (source-properties e) #f))
