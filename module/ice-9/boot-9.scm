@@ -33,6 +33,13 @@
 
 
 
+;;; {R4RS compliance}
+;;;
+
+(primitive-load-path "ice-9/r4rs")
+
+
+
 ;;; {Features}
 ;;;
 
@@ -186,13 +193,6 @@
   (if (include-deprecated-features)
       `(begin ,@forms)
       (begin)))
-
-
-
-;;; {R4RS compliance}
-;;;
-
-(primitive-load-path "ice-9/r4rs")
 
 
 
@@ -2159,8 +2159,8 @@ module '(ice-9 q) '(make-q q-length))}."
                                      (stat:mtime (stat source)))))
                          (if compiled
                              (warn "source file" source "newer than" compiled))
-                         (with-fluids ((current-reader #f))
-                           (load-file primitive-load source)))
+                         (with-fluid* current-reader #f
+                           (lambda () (load-file primitive-load source))))
                         (compiled
                          (load-file load-compiled compiled))))))
 	    (lambda () (set-autoloaded! dir-hint name didit)))
