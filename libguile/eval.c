@@ -306,6 +306,9 @@ syntax_error (const char* const msg, const SCM form, const SCM expr)
   { if (SCM_UNLIKELY (!(cond)))			\
       syntax_error (message, form, expr); }
 
+static void error_unbound_variable (SCM symbol) SCM_NORETURN;
+static void error_defined_variable (SCM symbol) SCM_NORETURN;
+
 
 
 /* {Ilocs}
@@ -1976,6 +1979,46 @@ unmemoize_set_x (const SCM expr, const SCM env)
 /* Start of the memoizers for non-R5RS builtin macros.  */
 
 
+SCM_SYNTAX (s_at, "@", scm_makmmacro, scm_m_at);
+SCM_GLOBAL_SYMBOL (scm_sym_at, s_at);
+
+SCM 
+scm_m_at (SCM expr, SCM env SCM_UNUSED)
+{
+  SCM mod, var;
+  ASSERT_SYNTAX (scm_ilength (expr) == 3, s_bad_expression, expr);
+  ASSERT_SYNTAX (scm_ilength (scm_cadr (expr)) > 0, s_bad_expression, expr);
+
+  mod = scm_resolve_module (scm_cadr (expr));
+  if (scm_is_false (mod))
+    error_unbound_variable (expr);
+  var = scm_module_variable (scm_module_public_interface (mod), scm_caddr (expr));
+  if (scm_is_false (var))
+    error_unbound_variable (expr);
+  
+  return var;
+}
+
+SCM_SYNTAX (s_atat, "@@", scm_makmmacro, scm_m_atat);
+SCM_GLOBAL_SYMBOL (scm_sym_atat, s_atat);
+
+SCM 
+scm_m_atat (SCM expr, SCM env SCM_UNUSED)
+{
+  SCM mod, var;
+  ASSERT_SYNTAX (scm_ilength (expr) == 3, s_bad_expression, expr);
+  ASSERT_SYNTAX (scm_ilength (scm_cadr (expr)) > 0, s_bad_expression, expr);
+
+  mod = scm_resolve_module (scm_cadr (expr));
+  if (scm_is_false (mod))
+    error_unbound_variable (expr);
+  var = scm_module_variable (mod, scm_caddr (expr));
+  if (scm_is_false (var))
+    error_unbound_variable (expr);
+  
+  return var;
+}
+
 SCM_SYNTAX (s_atapply, "@apply", scm_i_makbimacro, scm_m_apply);
 SCM_GLOBAL_SYMBOL (scm_sym_atapply, s_atapply);
 SCM_GLOBAL_SYMBOL (scm_sym_apply, s_atapply + 1);
@@ -2661,9 +2704,6 @@ scm_ilookup (SCM iloc, SCM env)
 
 
 SCM_SYMBOL (scm_unbound_variable_key, "unbound-variable");
-
-static void error_unbound_variable (SCM symbol) SCM_NORETURN;
-static void error_defined_variable (SCM symbol) SCM_NORETURN;
 
 /* Call this for variables that are unfound.
  */
