@@ -577,11 +577,20 @@ scm_current_module_lookup_closure ()
     return SCM_BOOL_F;
 }
 
+SCM_SYMBOL (sym_sys_pre_modules_transformer, "%pre-modules-transformer");
+
 SCM
 scm_module_transformer (SCM module)
 {
-  if (scm_is_false (module))
-    return SCM_BOOL_F;
+  if (SCM_UNLIKELY (scm_is_false (module)))
+    { SCM v = scm_hashq_ref (scm_pre_modules_obarray,
+                             sym_sys_pre_modules_transformer,
+                             SCM_BOOL_F);
+      if (scm_is_false (v))
+        return SCM_BOOL_F;
+      else
+        return SCM_VARIABLE_REF (v);
+    }
   else
     return SCM_MODULE_TRANSFORMER (module);
 }
@@ -589,10 +598,7 @@ scm_module_transformer (SCM module)
 SCM
 scm_current_module_transformer ()
 {
-  if (scm_module_system_booted_p)
-    return scm_module_transformer (scm_current_module ());
-  else
-    return SCM_BOOL_F;
+  return scm_module_transformer (scm_current_module ());
 }
 
 SCM_DEFINE (scm_module_import_interface, "module-import-interface", 2, 0, 0,
