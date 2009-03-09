@@ -4109,11 +4109,12 @@ SCM_DEFINE (scm_eval, "eval", 2, 0, 0,
   scm_dynwind_begin (SCM_F_DYNWIND_REWINDABLE);
   if (scm_is_dynamic_state (module_or_state))
     scm_dynwind_current_dynamic_state (module_or_state);
-  else
+  else if (scm_module_system_booted_p)
     {
       SCM_VALIDATE_MODULE (2, module_or_state);
       scm_dynwind_current_module (module_or_state);
     }
+  /* otherwise if the module system isn't booted, ignore the module arg */
 
   res = scm_primitive_eval (exp);
 
