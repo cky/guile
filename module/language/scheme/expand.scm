@@ -37,7 +37,7 @@
 (define (acddr x) (acdr (acdr x)))
 (define (aloc x) (and (annotation? x) (annotation-source x)))
 (define (re-annotate x y)
-  (if (annotation? x)
+  (if (and (annotation? x) (not (annotation? y)))
       (make-annotation y (annotation-source x))
       y))
 (define-macro (-> exp) `(re-annotate x ,exp))
@@ -77,8 +77,8 @@
                      (sc-expand3 (@@ (ice-9 syncase) sc-expand3)))
                 (re-expand
                  (with-fluids ((eec (module-eval-closure mod)))
-                   ;; fixme
-                   (sc-expand3 (deannotate exp) 'c '(compile load eval))))))
+                   ;; fixme -- use ewes fluid?
+                   (sc-expand3 exp 'c '(compile load eval))))))
 
              ((primitive-macro? val)
               (syntax-error (aloc x) "unhandled primitive macro" head))
