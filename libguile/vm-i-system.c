@@ -284,7 +284,13 @@ VM_DEFINE_INSTRUCTION (25, toplevel_ref, "toplevel-ref", 1, 0, 1)
             /* might longjmp */
             what = scm_module_lookup (mod, what);
           else
-            what = scm_sym2var (what, SCM_BOOL_F, SCM_BOOL_F);
+            {
+              SCM v = scm_sym2var (what, SCM_BOOL_F, SCM_BOOL_F);
+              if (scm_is_false (v))
+                SCM_MISC_ERROR ("unbound variable: ~S", scm_list_1 (what));
+              else
+                what = v;
+            }
         }
       else
         {
@@ -367,7 +373,13 @@ VM_DEFINE_INSTRUCTION (29, toplevel_set, "toplevel-set", 1, 1, 0)
             /* might longjmp */
             what = scm_module_lookup (mod, what);
           else
-            what = scm_sym2var (what, SCM_BOOL_F, SCM_BOOL_F);
+            {
+              SCM v = scm_sym2var (what, SCM_BOOL_F, SCM_BOOL_F);
+              if (scm_is_false (v))
+                SCM_MISC_ERROR ("unbound variable: ~S", scm_list_1 (what));
+              else
+                what = v;
+            }
         }
       else
         {
