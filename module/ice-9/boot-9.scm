@@ -192,7 +192,7 @@
 (defmacro begin-deprecated forms
   (if (include-deprecated-features)
       `(begin ,@forms)
-      (begin)))
+      `(begin)))
 
 
 
