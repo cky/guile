@@ -225,7 +225,7 @@ scm_dynthrow (SCM cont, SCM val)
   SCM_STACKITEM *dst = thread->continuation_base;
   SCM_STACKITEM stack_top_element;
 
-  if (scm_i_critical_section_level)
+  if (thread->critical_section_level)
     {
       fprintf (stderr, "continuation invoked from within critical section.\n");
       abort ();

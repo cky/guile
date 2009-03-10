@@ -60,20 +60,18 @@ void scm_dynwind_unblock_asyncs (void);
    the manual.
 */
 
-/* Defined in threads.c.  scm_i_critical_section_level is only used
-   for error checking and will go away eventually. */
+/* Defined in threads.c. */
 extern scm_i_pthread_mutex_t scm_i_critical_section_mutex;
-extern int scm_i_critical_section_level;
 
 #define SCM_CRITICAL_SECTION_START \
   do { \
     scm_i_pthread_mutex_lock (&scm_i_critical_section_mutex);\
     SCM_I_CURRENT_THREAD->block_asyncs++; \
-    scm_i_critical_section_level++; \
+    SCM_I_CURRENT_THREAD->critical_section_level++; \
   } while (0)
 #define SCM_CRITICAL_SECTION_END \
   do { \
-    scm_i_critical_section_level--; \
+    SCM_I_CURRENT_THREAD->critical_section_level--; \
     SCM_I_CURRENT_THREAD->block_asyncs--; \
     scm_i_pthread_mutex_unlock (&scm_i_critical_section_mutex); \
     scm_async_click ();	\

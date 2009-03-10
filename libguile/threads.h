@@ -117,6 +117,9 @@ typedef struct scm_i_thread {
   scm_t_contregs *pending_rbs_continuation;
 #endif
 
+  /* Whether this thread is in a critical section. */
+  int critical_section_level;
+
 } scm_i_thread;
 
 #define SCM_I_IS_THREAD(x)    SCM_SMOB_PREDICATE (scm_tc16_thread, x)

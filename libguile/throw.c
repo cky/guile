@@ -732,7 +732,7 @@ scm_ithrow (SCM key, SCM args, int noreturn SCM_UNUSED)
   SCM dynpair = SCM_UNDEFINED;
   SCM winds;
 
-  if (scm_i_critical_section_level)
+  if (SCM_I_CURRENT_THREAD->critical_section_level)
     {
       SCM s = args;
       int i = 0;

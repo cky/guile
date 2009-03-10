@@ -318,6 +318,7 @@ guilify_self_1 (SCM_STACKITEM *base)
   t->active_asyncs = SCM_EOL;
   t->block_asyncs = 1;
   t->pending_asyncs = 1;
+  t->critical_section_level = 0;
   t->last_debug_frame = NULL;
   t->base = base;
 #ifdef __ia64__
@@ -1855,7 +1856,6 @@ static int threads_initialized_p = 0;
 /* This mutex is used by SCM_CRITICAL_SECTION_START/END.
  */
 scm_i_pthread_mutex_t scm_i_critical_section_mutex;
-int scm_i_critical_section_level = 0;
 
 static SCM dynwind_critical_section_mutex;
 
