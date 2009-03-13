@@ -19,7 +19,6 @@
 (define-module (ice-9 syncase)
   :use-module (ice-9 debug)
   :use-module (ice-9 threads)
-  :use-module (ice-9 annotate)
   :export-syntax (sc-macro define-syntax define-syntax-public 
                   eval-when fluid-let-syntax
 		  identifier-syntax let-syntax
@@ -43,11 +42,13 @@
 (define (env->eval-closure env)
   (and env (car (last-pair env))))
 
+(define (annotation? x) #f)
+
 (define sc-macro
   (procedure->memoizing-macro
     (lambda (exp env)
       (with-fluids ((expansion-eval-closure (env->eval-closure env)))
-        (deannotate/source-properties (sc-expand (annotate exp)))))))
+        (sc-expand exp)))))
 
 ;;; Exported variables
 
@@ -235,7 +236,7 @@
 (define (syncase exp)
   (with-fluids ((expansion-eval-closure
 		 (module-eval-closure (current-module))))
-    (deannotate/source-properties (sc-expand (annotate exp)))))
+    (sc-expand exp)))
 
 (set-module-transformer! the-syncase-module syncase)
 
