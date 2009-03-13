@@ -44,7 +44,9 @@
             '(1 0 #f)))
 
   (pass-if "apply"
-    (equal? (procedure-property apply 'arity)
+    (equal? (if ((@ (system vm program) program?) apply)
+                (throw 'unresolved)
+                (procedure-property apply 'arity))
             '(1 0 #t)))
 
   (pass-if "cons*"
