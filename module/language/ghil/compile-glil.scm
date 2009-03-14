@@ -499,6 +499,8 @@
               (nexts (allocate-indices-linearly! exts)))
 	 ;; meta bindings
          (push-bindings! #f vars)
+         ;; push on definition source location
+         (if loc (set! stack (cons (make-glil-source loc) stack)))
 	 ;; copy args to the heap if they're marked as external
 	 (do ((n 0 (1+ n))
 	      (l vars (cdr l)))
@@ -508,8 +510,6 @@
                ((external)
                 (push-code! #f (make-glil-argument 'ref n))
                 (push-code! #f (make-glil-external 'set 0 (ghil-var-index v)))))))
-         ;; push on definition source location
-         (if loc (set! stack (cons (make-glil-source loc) stack)))
 	 ;; compile body
 	 (comp body #t #f)
 	 ;; create GLIL

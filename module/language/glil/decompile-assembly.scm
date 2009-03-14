@@ -21,6 +21,7 @@
 
 (define-module (language glil decompile-assembly)
   #:use-module (system base pmatch)
+  #:use-module (system vm program)
   #:use-module (language assembly)
   #:use-module (language glil)
   #:export (decompile-assembly))
@@ -34,7 +35,7 @@
     ((load-program ,nargs ,nrest ,nlocs ,nexts ,labels ,len ,meta . ,body)
      (decompile-load-program nargs nrest nlocs nexts
                              (decompile-meta meta)
-                             body labels))
+                             body labels #f))
     (else
      (error "invalid assembly" x))))
 
@@ -53,25 +54,61 @@
   (let lp ((in (reverse l)) (out out))
     (cond ((null? in) out)
           ((eq? (car in) *placeholder*) (lp (cdr in) out))
+          ((glil-program? (car in)) (lp (cdr in) (cons (car in) out)))
           (else (lp (cdr in) (cons (make-glil-const (car l)) out))))))
 
-(define (decompile-load-program nargs nrest nlocs nexts meta body labels)
+(define (decompile-load-program nargs nrest nlocs nexts meta body labels
+                                objects)
   (let ((glil-labels (sort (map (lambda (x)
                                   (cons (cdr x) (make-glil-label (car x))))
                                 labels)
                            (lambda (x y) (< (car x) (car y)))))
-        (bindings (if meta (car meta) '()))
+        (bindings (sort (if meta (car meta) '())
+                        (lambda (x y) (< (binding:start x) (binding:start y)))))
+        (unbindings (sort (if meta (car meta) '())
+                          (lambda (x y) (< (binding:end x) (binding:end y)))))
         (sources (if meta (cadr meta) '()))
         (props (if meta (cddr meta) '())))
+    (define (pop-bindings! addr)
+      (let lp ((in bindings) (out '()))
+        (if (or (null? in) (> (binding:start (car in)) addr))
+            (begin
+              (set! bindings in)
+              (if (null? out) #f (reverse out)))
+            (lp (cdr in) (cons (car in) out)))))
+    (define (pop-unbindings! addr)
+      (let lp ((in unbindings) (out '()))
+        (if (or (null? in) (> (binding:end (car in)) addr))
+            (begin
+              (set! unbindings in)
+              (if (null? out) #f (reverse out)))
+            (lp (cdr in) (cons (car in) out)))))
     (let lp ((in body) (stack '()) (out '()) (pos 0))
       (cond
+       ((null? in)
+        (or (null? stack) (error "leftover stack insts" stack body))
+        (make-glil-program nargs nrest nlocs nexts props (reverse out) #f))
+       ((pop-bindings! pos)
+        => (lambda (bindings)
+             (lp in stack
+                 (cons (make-glil-bind
+                        (map (lambda (x)
+                               (let ((name (binding:name x))
+                                     (i (binding:index x)))
+                                 (cond
+                                  ((binding:extp x) `(,name external ,i))
+                                  ((< i nargs) `(,name argument ,i))
+                                  (else `(,name local ,(- i nargs))))))
+                             bindings))
+                       out)
+                 pos)))
+       ((pop-unbindings! pos)
+        => (lambda (bindings)
+             (lp in stack (cons (make-glil-unbind) out) pos)))
        ((and (or (null? out) (not (glil-label? (car out))))
              (assv-ref glil-labels pos))
         => (lambda (label)
              (lp in stack (cons label out) pos)))
-       ((null? in)
-        (or (null? stack) (error "leftover stack insts" stack body))
-        (make-glil-program nargs nrest nlocs nexts props (reverse out) #f))
        (else
         (pmatch (car in)
           ((nop)
@@ -79,10 +116,11 @@
           ((make-false)
            (lp (cdr in) (cons #f stack) out (1+ pos)))
           ((load-program ,a ,b ,c ,d ,labels ,sublen ,meta . ,body)
-           (lp (cdr in) (cons *placeholder* (cdr stack))
+           (lp (cdr in)
                (cons (decompile-load-program a b c d (decompile-meta meta)
-                                             body labels)
-                     (emit-constants (list-head stack 1) out))
+                                             body labels (car stack))
+                     (cdr stack))
+               out
                (+ pos (byte-length (car in)))))
           ((load-symbol ,str)
            (lp (cdr in) (cons (string->symbol str) stack) out
@@ -124,10 +162,7 @@
                (+ pos 2)))
           ((br-if-not ,l)
            (lp (cdr in) (cdr stack)
-               (cons (make-glil-branch
-                      'br-if-not
-                      (assv-ref glil-labels (assq-ref labels l)))
-                     out)
+               (cons (make-glil-branch 'br-if-not l) out)
                (+ pos 3)))
           ((mul)
            (lp (cdr in) (cons *placeholder* (cddr stack))
