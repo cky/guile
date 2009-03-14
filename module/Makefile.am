@@ -53,7 +53,8 @@ GHIL_LANG_SOURCES =					\
   language/ghil/spec.scm language/ghil/compile-glil.scm
 
 GLIL_LANG_SOURCES =						\
-  language/glil/spec.scm language/glil/compile-assembly.scm
+  language/glil/spec.scm language/glil/compile-assembly.scm 	\
+  language/glil/decompile-assembly.scm
 
 ASSEMBLY_LANG_SOURCES =				\
   language/assembly/spec.scm			\

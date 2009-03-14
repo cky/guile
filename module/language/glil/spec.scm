@@ -23,6 +23,7 @@
   #:use-module (system base language)
   #:use-module (language glil)
   #:use-module (language glil compile-assembly)
+  #:use-module (language glil decompile-assembly)
   #:export (glil))
 
 (define (write-glil exp . port)
@@ -38,4 +39,4 @@
   #:printer	write-glil
   #:parser      parse-glil
   #:compilers   `((assembly . ,compile-asm))
-  )
+  #:decompilers `((assembly . ,decompile-assembly)))
