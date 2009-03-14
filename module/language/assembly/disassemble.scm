@@ -64,7 +64,8 @@
                       (acons sym asm programs))))
                (else
                 (print-info pos asm
-                            (code-annotation end asm objs nargs blocs bexts)
+                            (code-annotation end asm objs nargs blocs bexts
+                                             labels)
                             (and=> (and srcs (assq end srcs)) source->string))
                 (lp (+ pos (byte-length asm)) (cdr code) programs)))))))
                  
@@ -122,7 +123,7 @@
 (define (make-int16 byte1 byte2)
   (+ (* byte1 256) byte2))
 
-(define (code-annotation end-addr code objs nargs blocs bexts)
+(define (code-annotation end-addr code objs nargs blocs bexts labels)
   (let* ((code (assembly-unpack code))
          (inst (car code))
          (args (cdr code)))
@@ -130,7 +131,7 @@
       ((list vector) 
        (list "~a element~:p" (apply make-int16 args)))
       ((br br-if br-if-eq br-if-not br-if-not-eq br-if-not-null br-if-null)
-       (list "-> ~A" (+ end-addr (apply make-int16 args))))
+       (list "-> ~A" (assq-ref labels (car args))))
       ((object-ref)
        (and objs (list "~s" (vector-ref objs (car args)))))
       ((local-ref local-set)
@@ -157,7 +158,7 @@
                   (list "~s" (variable-ref v))
                   (list "`~s'" v)))))
       ((mv-call)
-       (list "MV -> ~A" (+ end-addr (apply make-int16 (cdr args)))))
+       (list "MV -> ~A" (assq-ref labels (cadr args))))
       (else
        (and=> (assembly->object code)
               (lambda (obj) (list "~s" obj)))))))
