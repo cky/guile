@@ -57,7 +57,7 @@
            ((not (equal? new-filename filename))
             (lp (cdr in)
                 `((,addr . (,line . ,column))
-                  (filename ,new-filename)
+                  (filename . ,new-filename)
                   . ,out)
                 new-filename))
            ((or (null? out) (not (equal? (cdar out) `(,line . ,column))))
