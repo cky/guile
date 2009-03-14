@@ -39,6 +39,15 @@
           (values ret env)
           (error "bad bytecode: only decoded ~a out of ~a bytes" i size)))))
 
+(define (br-instruction? x)
+  (memq x '(br br-if br-if-not br-if-eq br-if-not-eq br-if-null br-if-not-null)))
+
+(define (bytes->s16 a b)
+  (let ((x (+ (ash a 8) b)))
+    (if (zero? (logand (ash 1 15) x))
+        x
+        (- x (ash 1 16)))))
+
 (define (decode-load-program pop)
   (let* ((nargs (pop)) (nrest (pop)) (nlocs (pop)) (nexts (pop))
          (a (pop)) (b (pop)) (c (pop)) (d (pop))
@@ -46,7 +55,15 @@
          (len (+ a (ash b 8) (ash c 16) (ash d 24)))
          (metalen (+ e (ash f 8) (ash g 16) (ash h 24)))
          (totlen (+ len metalen))
+         (labels '())
          (i 0))
+    (define (ensure-label rel1 rel2)
+      (let ((where (+ i (bytes->s16 rel1 rel2))))
+        (or (assv-ref labels where)
+            (begin
+              (let ((l (gensym ":L")))
+                (set! labels (acons where l labels))
+                l)))))
     (define (sub-pop) ;; ...records. ha. ha.
       (let ((b (cond ((< i len) (pop))
                      ((= i len) #f)
@@ -57,13 +74,21 @@
       (cond ((> i len)
              (error "error decoding program -- read too many bytes" out))
             ((= i len)
-             `(load-program ,nargs ,nrest ,nlocs ,nexts () ,len
+             `(load-program ,nargs ,nrest ,nlocs ,nexts
+                            ,(map (lambda (x) (cons (cdr x) (car x)))
+                                  (reverse labels))
+                            ,len
                             ,(if (zero? metalen) #f (decode-load-program pop))
                             ,@(reverse! out)))
             (else
              (let ((exp (decode-bytecode sub-pop)))
-               ;; replace with labels?
-               (lp (cons exp out))))))))
+               (pmatch exp
+                 ((,br ,rel1 ,rel2) (guard (br-instruction? br))
+                  (lp (cons `(,br ,(ensure-label rel1 rel2)) out)))
+                 ((mv-call ,n ,rel1 ,rel2)
+                  (lp (cons `(mv-call ,n ,(ensure-label rel1 rel2)) out)))
+                 (else 
+                  (lp (cons exp out))))))))))
 
 (define (decode-bytecode pop)
   (and=> (pop)
