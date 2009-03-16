@@ -268,6 +268,14 @@ scm_bootstrap_objcodes (void)
   scm_set_smob_mark (scm_tc16_objcode, objcode_mark);
 }
 
+/* Before, we used __BYTE_ORDER, but that is not defined on all
+   systems. So punt and use automake, PDP endianness be damned. */
+#ifdef WORDS_BIGENDIAN
+#define SCM_BYTE_ORDER 4321
+#else
+#define SCM_BYTE_ORDER 1234
+#endif
+
 void
 scm_init_objcodes (void)
 {
@@ -278,7 +286,7 @@ scm_init_objcodes (void)
 #endif
 
   scm_c_define ("word-size", scm_from_size_t (sizeof(SCM)));
-  scm_c_define ("byte-order", scm_from_uint16 (__BYTE_ORDER));
+  scm_c_define ("byte-order", scm_from_uint16 (SCM_BYTE_ORDER));
 }
 
 /*
