@@ -1,5 +1,5 @@
 ;;;; eval.test --- tests guile's evaluator     -*- scheme -*-
-;;;; Copyright (C) 2000, 2001, 2006, 2007 Free Software Foundation, Inc.
+;;;; Copyright (C) 2000, 2001, 2006, 2007, 2009 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -17,6 +17,7 @@
 
 (define-module (test-suite test-eval)
   :use-module (test-suite lib)
+  :use-module ((srfi srfi-1) :select (unfold count))
   :use-module (ice-9 documentation))
 
 
@@ -311,6 +312,68 @@
 	   stack)
 	 (%make-void-port "w"))
 	#t))))
+
+
+;;;
+;;; stacks
+;;;
+
+(define (stack->frames stack)
+  ;; Return the list of frames comprising STACK.
+  (unfold (lambda (i)
+            (>= i (stack-length stack)))
+          (lambda (i)
+            (stack-ref stack i))
+          1+
+          0))
+
+(with-test-prefix "stacks"
+  (with-debugging-evaluator
+
+    (pass-if "stack involving a subr"
+      ;; The subr involving the error must appear exactly once on the stack.
+      (catch 'result
+        (lambda ()
+          (start-stack 'foo
+            (lazy-catch 'wrong-type-arg
+              (lambda ()
+                ;; Trigger a `wrong-type-arg' exception.
+                (fluid-ref 'not-a-fluid))
+              (lambda _
+                (let* ((stack  (make-stack #t))
+                       (frames (stack->frames stack)))
+                  (throw 'result
+                         (count (lambda (frame)
+                                  (and (frame-procedure? frame)
+                                       (eq? (frame-procedure frame)
+                                            fluid-ref)))
+                                frames)))))))
+        (lambda (key result)
+          (= 1 result))))
+
+    (pass-if "stack involving a gsubr"
+      ;; The gsubr involving the error must appear exactly once on the stack.
+      ;; This is less obvious since gsubr application may require an
+      ;; additional `SCM_APPLY ()' call, which should not be visible to the
+      ;; application.
+      (catch 'result
+        (lambda ()
+          (start-stack 'foo
+            (lazy-catch 'wrong-type-arg
+              (lambda ()
+                ;; Trigger a `wrong-type-arg' exception.
+                (hashq-ref 'wrong 'type 'arg))
+              (lambda _
+                (let* ((stack  (make-stack #t))
+                       (frames (stack->frames stack)))
+                  (throw 'result
+                         (count (lambda (frame)
+                                  (and (frame-procedure? frame)
+                                       (eq? (frame-procedure frame)
+                                            hashq-ref)))
+                                frames)))))))
+        (lambda (key result)
+          (= 1 result))))))
 
 ;;;
 ;;; letrec init evaluation

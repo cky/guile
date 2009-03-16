@@ -39,18 +39,6 @@
 #define SCM_SET_SUBR_GENERIC(x, g) (*((SCM *) SCM_CELL_WORD_2 (x)) = (g))
 #define SCM_SET_SUBR_GENERIC_LOC(x, g) (SCM_SET_CELL_WORD_2 (x, (scm_t_bits) g))
 
-#define SCM_CCLO_LENGTH(x) (SCM_CELL_WORD_0 (x) >> 8)
-#define SCM_MAKE_CCLO_TAG(v)  (((v) << 8) + scm_tc7_cclo)
-#define SCM_SET_CCLO_LENGTH(x, v) (SCM_SET_CELL_WORD_0 ((x), SCM_MAKE_CCLO_TAG(v)))
-#define SCM_CCLO_BASE(x) ((scm_t_bits *) SCM_CELL_WORD_1 (x))
-#define SCM_SET_CCLO_BASE(x, v) (SCM_SET_CELL_WORD_1 ((x), (v)))
-
-#define SCM_CCLO_REF(x, i) (SCM_PACK (SCM_CCLO_BASE (x) [i]))
-#define SCM_CCLO_SET(x, i, v) (SCM_CCLO_BASE (x) [i] = SCM_UNPACK (v))
-
-#define SCM_CCLO_SUBR(x) (SCM_CCLO_REF ((x), 0))
-#define SCM_SET_CCLO_SUBR(x, v) (SCM_CCLO_SET ((x), 0, (v)))
-
 /* Return the subr type corresponding to the given arity.  If the arity
    doesn't match that of a subr (e.g., too many arguments), then -1 is
    returned.  This has to be in sync with `create_gsubr ()'.  */
@@ -158,7 +146,6 @@ SCM_API SCM scm_c_make_subr_with_generic (const char *name, long type,
 SCM_API SCM scm_c_define_subr (const char *name, long type, SCM (*fcn)());
 SCM_API SCM scm_c_define_subr_with_generic (const char *name, long type,
 					    SCM (*fcn)(), SCM *gf);
-SCM_API SCM scm_makcclo (SCM proc, size_t len);
 SCM_API SCM scm_procedure_p (SCM obj);
 SCM_API SCM scm_closure_p (SCM obj);
 SCM_API SCM scm_thunk_p (SCM obj);
@@ -169,10 +156,6 @@ SCM_API SCM scm_make_procedure_with_setter (SCM procedure, SCM setter);
 SCM_API SCM scm_procedure (SCM proc);
 SCM_API SCM scm_setter (SCM proc);
 SCM_INTERNAL void scm_init_procs (void);
-
-#ifdef GUILE_DEBUG
-SCM_API SCM scm_make_cclo (SCM proc, SCM len);
-#endif /*GUILE_DEBUG*/
 
 #endif  /* SCM_PROCS_H */
 

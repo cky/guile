@@ -1,5 +1,5 @@
 /* Representation of stack frame debug information
- * Copyright (C) 1996,1997,2000,2001, 2006, 2007, 2008 Free Software Foundation
+ * Copyright (C) 1996,1997,2000,2001, 2006, 2007, 2008, 2009 Free Software Foundation
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -293,9 +293,6 @@ read_frames (scm_t_debug_frame *dframe, scm_t_ptrdiff offset,
 	      NEXT_FRAME (iframe, n, quit);
 	    }
 	}
-      else if (scm_is_eq (iframe->proc, scm_f_gsubr_apply))
-	/* Skip gsubr apply frames. */
-	continue;
       else
 	{
 	  NEXT_FRAME (iframe, n, quit);

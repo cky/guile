@@ -1,7 +1,7 @@
 /*
  * eval.i.c - actual evaluator code for GUILE
  *
- * Copyright (C) 2002, 03, 04, 05, 06, 07 Free Software Foundation, Inc.
+ * Copyright (C) 2002, 03, 04, 05, 06, 07, 09 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -1124,14 +1124,12 @@ dispatch:
 	if (!SCM_SMOB_APPLICABLE_P (proc))
 	  goto badfun;
 	RETURN (SCM_SMOB_APPLY_0 (proc));
-      case scm_tc7_cclo:
-	arg1 = proc;
-	proc = SCM_CCLO_SUBR (proc);
+      case scm_tc7_gsubr:
 #ifdef DEVAL
 	debug.info->a.proc = proc;
-	debug.info->a.args = scm_list_1 (arg1);
+	debug.info->a.args = SCM_EOL;
 #endif
-	goto evap1;
+	RETURN (scm_i_gsubr_apply (proc, SCM_UNDEFINED));
       case scm_tc7_pws:
 	proc = SCM_PROCEDURE (proc);
 #ifdef DEVAL
@@ -1245,15 +1243,12 @@ dispatch:
 	    if (!SCM_SMOB_APPLICABLE_P (proc))
 	      goto badfun;
 	    RETURN (SCM_SMOB_APPLY_1 (proc, arg1));
-	  case scm_tc7_cclo:
-	    arg2 = arg1;
-	    arg1 = proc;
-	    proc = SCM_CCLO_SUBR (proc);
+	  case scm_tc7_gsubr:
 #ifdef DEVAL
 	    debug.info->a.args = scm_cons (arg1, debug.info->a.args);
 	    debug.info->a.proc = proc;
 #endif
-	    goto evap2;
+	    RETURN (scm_i_gsubr_apply (proc, arg1, SCM_UNDEFINED));
 	  case scm_tc7_pws:
 	    proc = SCM_PROCEDURE (proc);
 #ifdef DEVAL
@@ -1350,20 +1345,11 @@ dispatch:
 	    if (!SCM_SMOB_APPLICABLE_P (proc))
 	      goto badfun;
 	    RETURN (SCM_SMOB_APPLY_2 (proc, arg1, arg2));
-	  cclon:
-	  case scm_tc7_cclo:
+	  case scm_tc7_gsubr:
 #ifdef DEVAL
-	    RETURN (SCM_APPLY (SCM_CCLO_SUBR (proc),
-			       scm_cons (proc, debug.info->a.args),
-			       SCM_EOL));
+	    RETURN (scm_i_gsubr_apply_list (proc, debug.info->a.args));
 #else
-	    RETURN (SCM_APPLY (SCM_CCLO_SUBR (proc),
-			       scm_cons2 (proc, arg1,
-					  scm_cons (arg2,
-						    scm_ceval_args (x,
-								   env,
-								   proc))),
-			       SCM_EOL));
+	    RETURN (scm_i_gsubr_apply (proc, arg1, arg2, SCM_UNDEFINED));
 #endif
 	  case scm_tcs_struct:
 	    if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
@@ -1492,8 +1478,8 @@ dispatch:
 	    goto badfun;
 	  RETURN (SCM_SMOB_APPLY_3 (proc, arg1, arg2,
 				    SCM_CDDR (debug.info->a.args)));
-	case scm_tc7_cclo:
-	  goto cclon;
+	case scm_tc7_gsubr:
+	  RETURN (scm_i_gsubr_apply_list (proc, debug.info->a.args));
 	case scm_tc7_pws:
 	  proc = SCM_PROCEDURE (proc);
 	  debug.info->a.proc = proc;
@@ -1555,8 +1541,16 @@ dispatch:
 	    goto badfun;
 	  RETURN (SCM_SMOB_APPLY_3 (proc, arg1, arg2,
 				    scm_ceval_args (x, env, proc)));
-	case scm_tc7_cclo:
-	  goto cclon;
+	case scm_tc7_gsubr:
+	  if (scm_is_null (SCM_CDR (x)))
+	    /* 3 arguments */
+	    RETURN (scm_i_gsubr_apply (proc, arg1, arg2, EVALCAR (x, env),
+				       SCM_UNDEFINED));
+	  else
+	    RETURN (scm_i_gsubr_apply_list (proc,
+					    scm_cons2 (arg1, arg2,
+						       scm_ceval_args (x, env,
+								       proc))));
 	case scm_tc7_pws:
 	  proc = SCM_PROCEDURE (proc);
 	  if (!SCM_CLOSUREP (proc))
@@ -1867,19 +1861,15 @@ tail:
 	RETURN (SCM_SMOB_APPLY_2 (proc, arg1, SCM_CAR (args)));
       else
 	RETURN (SCM_SMOB_APPLY_3 (proc, arg1, SCM_CAR (args), SCM_CDR (args)));
-    case scm_tc7_cclo:
+    case scm_tc7_gsubr:
 #ifdef DEVAL
       args = (SCM_UNBNDP(arg1) ? SCM_EOL : debug.vect[0].a.args);
-      arg1 = proc;
-      proc = SCM_CCLO_SUBR (proc);
       debug.vect[0].a.proc = proc;
       debug.vect[0].a.args = scm_cons (arg1, args);
 #else
       args = (SCM_UNBNDP(arg1) ? SCM_EOL : scm_cons (arg1, args));
-      arg1 = proc;
-      proc = SCM_CCLO_SUBR (proc);
 #endif
-      goto tail;
+      RETURN (scm_i_gsubr_apply_list (proc, args));
     case scm_tc7_pws:
       proc = SCM_PROCEDURE (proc);
 #ifdef DEVAL

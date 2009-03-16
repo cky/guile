@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,2000,2001,2003,2004, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,2000,2001,2003,2004, 2006, 2008, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -88,21 +88,14 @@ scm_i_procedure_arity (SCM proc)
 	{
 	  return SCM_BOOL_F;
 	}
-    case scm_tc7_cclo:
-      if (scm_is_eq (SCM_CCLO_SUBR (proc), scm_f_gsubr_apply))
-	{
-	  int type = scm_to_int (SCM_GSUBR_TYPE (proc));
-	  a += SCM_GSUBR_REQ (type);
-	  o = SCM_GSUBR_OPT (type);
-	  r = SCM_GSUBR_REST (type);
-	  break;
-	}
-      else
-	{
-	  proc = SCM_CCLO_SUBR (proc);
-	  a -= 1;
-	  goto loop;
-	}
+    case scm_tc7_gsubr:
+      {
+	unsigned int type = SCM_GSUBR_TYPE (proc);
+	a = SCM_GSUBR_REQ (type);
+	o = SCM_GSUBR_OPT (type);
+	r = SCM_GSUBR_REST (type);
+	break;
+      }
     case scm_tc7_pws:
       proc = SCM_PROCEDURE (proc);
       goto loop;

@@ -1,5 +1,5 @@
 /* Debugging extensions for Guile
- * Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2006, 2008 Free Software Foundation
+ * Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2006, 2008, 2009 Free Software Foundation
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -352,9 +352,6 @@ SCM_DEFINE (scm_procedure_source, "procedure-source", 1, 0, 0,
     if (!SCM_SMOB_DESCRIPTOR (proc).apply)
       break;
   case scm_tcs_subrs:
-#ifdef CCLO
-  case scm_tc7_cclo:
-#endif
   procprop:
     /* It would indeed be a nice thing if we supplied source even for
        built in procedures! */
@@ -385,9 +382,6 @@ SCM_DEFINE (scm_procedure_environment, "procedure-environment", 1, 0, 0,
   case scm_tcs_closures:
     return SCM_ENV (proc);
   case scm_tcs_subrs:
-#ifdef CCLO
-  case scm_tc7_cclo:
-#endif
     return SCM_EOL;
   default:
     SCM_WRONG_TYPE_ARG (1, proc);

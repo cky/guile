@@ -455,7 +455,7 @@ typedef unsigned long scm_t_bits;
 #define scm_tc7_unused_9	79
 
 #define scm_tc7_dsubr		61
-#define scm_tc7_cclo		63
+#define scm_tc7_gsubr		63
 #define scm_tc7_rpsubr		69
 #define scm_tc7_subr_0		85
 #define scm_tc7_subr_1		87
@@ -677,7 +677,8 @@ enum scm_tc8_tags
   case scm_tc7_subr_1o:\
   case scm_tc7_subr_2o:\
   case scm_tc7_lsubr_2:\
-  case scm_tc7_lsubr
+  case scm_tc7_lsubr: \
+  case scm_tc7_gsubr
 
 
 

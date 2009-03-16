@@ -233,7 +233,7 @@ SCM_DEFINE (scm_class_of, "class-of", 1, 0, 0,
 	    return scm_class_primitive_generic;
 	  else
 	    return scm_class_procedure;
-	case scm_tc7_cclo:
+	case scm_tc7_gsubr:
 	  return scm_class_procedure;
 	case scm_tc7_pws:
 	  return scm_class_procedure_with_setter;

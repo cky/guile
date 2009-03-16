@@ -150,8 +150,6 @@
  */
 
 
-#define CCLO
-
 /* Guile Scheme supports the #f/() distinction; Guile Lisp won't.  We
    have horrible plans for their unification.  */
 #undef SICP
