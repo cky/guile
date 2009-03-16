@@ -1,9 +1,8 @@
-# The test programs.
+TESTS_ENVIRONMENT = \
+	$(top_builddir)/pre-inst-guile \
+	-l $(srcdir)/run-vm-tests.scm -e run-vm-tests
 
-# The Libtool executable.
-GUILE_VM = $(top_builddir)/pre-inst-guile
-
-vm_test_files =					\
+check_SCRIPTS =					\
       t-basic-contructs.scm			\
       t-global-bindings.scm			\
       t-catch.scm				\
@@ -25,11 +24,6 @@ vm_test_files =					\
       t-match.scm				\
       t-mutual-toplevel-defines.scm
 
-EXTRA_DIST = run-vm-tests.scm $(vm_test_files)
+TESTS = $(check_SCRIPTS)
 
-
-check:
-	$(top_builddir)/pre-inst-guile-env $(GUILE_VM)  \
-	            -L $(top_srcdir)/module		\
-	            -l run-vm-tests.scm -e run-vm-tests	\
-		    $(vm_test_files)
+EXTRA_DIST = run-vm-tests.scm
