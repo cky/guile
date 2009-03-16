@@ -671,7 +671,7 @@ scm_init_vm (void)
   scm_bootstrap_vm ();
 
 #ifndef SCM_MAGIC_SNARFER
-#include "vm.x"
+#include "libguile/vm.x"
 #endif
 }
 

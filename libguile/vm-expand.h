@@ -65,7 +65,7 @@
  */
 #ifdef VM_INSTRUCTION_TO_TABLE
 #define VM_DEFINE_INSTRUCTION(code_,tag_,name_,len_,npop_,npush_) \
-  table[VM_OPCODE (tag_)].opcode = VM_OPCODE (tag_);               \
+  table[VM_OPCODE (tag_)].opcode = code_;                          \
   table[VM_OPCODE (tag_)].name = name_;                            \
   table[VM_OPCODE (tag_)].len = len_;                              \
   table[VM_OPCODE (tag_)].npop = npop_;                            \
@@ -76,7 +76,7 @@
 /*
  * These will go to jump_table in vm_engine.c
  */
-#define VM_DEFINE_INSTRUCTION(code,tag,name,len,npop,npush)	jump_table[VM_OPCODE (tag)] = VM_ADDR (tag);
+#define VM_DEFINE_INSTRUCTION(code,tag,name,len,npop,npush)	jump_table[code] = VM_ADDR (tag);
 
 #else
 #ifdef VM_INSTRUCTION_TO_OPCODE

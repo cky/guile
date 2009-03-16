@@ -137,7 +137,4 @@ EXTRA_DIST += test-with-guile-module.c test-scm-with-guile.c
 
 endif
 
-all-local:
-	cd ${srcdir} && chmod u+x ${check_SCRIPTS}
-
 EXTRA_DIST += ${check_SCRIPTS}

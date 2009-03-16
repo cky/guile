@@ -282,7 +282,7 @@ scm_init_objcodes (void)
   scm_bootstrap_vm ();
 
 #ifndef SCM_MAGIC_SNARFER
-#include "objcodes.x"
+#include "libguile/objcodes.x"
 #endif
 
   scm_c_define ("word-size", scm_from_size_t (sizeof(SCM)));

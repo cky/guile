@@ -305,7 +305,7 @@ scm_init_frames (void)
   scm_bootstrap_vm ();
 
 #ifndef SCM_MAGIC_SNARFER
-#include "frames.x"
+#include "libguile/frames.x"
 #endif
 }
 

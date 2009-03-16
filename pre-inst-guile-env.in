@@ -50,7 +50,7 @@ then
     if test "${top_srcdir}" != "${top_builddir}"; then
         GUILE_LOAD_PATH="${top_builddir}/guile-readline:${top_srcdir}/guile-readline:${top_builddir}:${top_srcdir}:${top_builddir}/module:${top_srcdir}/module"
     else
-        GUILE_LOAD_PATH="${top_srcdir}/guile-readline:${top_srcdir}:${top_builddir}/module:${top_srcdir}/module"
+        GUILE_LOAD_PATH="${top_srcdir}/guile-readline:${top_srcdir}:${top_srcdir}/module:${top_srcdir}/module"
     fi
 else
   for d in "${top_srcdir}" "${top_srcdir}/guile-readline" \

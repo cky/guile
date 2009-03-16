@@ -376,7 +376,7 @@ scm_init_programs (void)
   scm_bootstrap_vm ();
   
 #ifndef SCM_MAGIC_SNARFER
-#include "programs.x"
+#include "libguile/programs.x"
 #endif
 }
 

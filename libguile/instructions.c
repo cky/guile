@@ -79,10 +79,10 @@ fetch_instruction_table ()
       table = malloc (bytes);
       memset (table, 0, bytes);
 #define VM_INSTRUCTION_TO_TABLE 1
-#include "vm-expand.h"
-#include "vm-i-system.i"
-#include "vm-i-scheme.i"
-#include "vm-i-loader.i"
+#include <libguile/vm-expand.h>
+#include <libguile/vm-i-system.i>
+#include <libguile/vm-i-scheme.i>
+#include <libguile/vm-i-loader.i>
 #undef VM_INSTRUCTION_TO_TABLE
       for (i = 0; i < scm_op_last; i++)
         {
@@ -223,7 +223,7 @@ scm_init_instructions (void)
   scm_bootstrap_vm ();
 
 #ifndef SCM_MAGIC_SNARFER
-#include "instructions.x"
+#include "libguile/instructions.x"
 #endif
 }
 

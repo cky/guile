@@ -103,10 +103,10 @@ VM_NAME (struct scm_vm *vp, SCM program, SCM *argv, int nargs)
       for (i = 0; i < SCM_VM_NUM_INSTRUCTIONS; i++)
         jump_table[i] = &&vm_error_bad_instruction;
 #define VM_INSTRUCTION_TO_LABEL 1
-#include "vm-expand.h"
-#include "vm-i-system.i"
-#include "vm-i-scheme.i"
-#include "vm-i-loader.i"
+#include <libguile/vm-expand.h>
+#include <libguile/vm-i-system.i>
+#include <libguile/vm-i-scheme.i>
+#include <libguile/vm-i-loader.i>
 #undef VM_INSTRUCTION_TO_LABEL
     }
 #endif

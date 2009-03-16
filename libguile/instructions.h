@@ -49,10 +49,10 @@
 
 enum scm_opcode {
 #define VM_INSTRUCTION_TO_OPCODE 1
-#include "vm-expand.h"
-#include "vm-i-system.i"
-#include "vm-i-scheme.i"
-#include "vm-i-loader.i"
+#include <libguile/vm-expand.h>
+#include <libguile/vm-i-system.i>
+#include <libguile/vm-i-scheme.i>
+#include <libguile/vm-i-loader.i>
 #undef VM_INSTRUCTION_TO_OPCODE
   scm_op_last = SCM_VM_NUM_INSTRUCTIONS
 };

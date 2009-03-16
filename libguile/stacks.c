@@ -34,7 +34,6 @@
 #include "libguile/strings.h"
 #include "libguile/vm.h" /* to capture vm stacks */
 #include "libguile/frames.h" /* vm frames */
-#include "libguile/instructions.h" /* scm_op_halt */
 
 #include "libguile/validate.h"
 #include "libguile/stacks.h"
