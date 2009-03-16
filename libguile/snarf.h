@@ -97,8 +97,8 @@ SCM_SNARF_DOCS(primitive, FNAME, PRIMNAME, ARGLIST, REQ, OPT, VAR, DOCSTRING)
 
 #ifdef SCM_SUPPORT_STATIC_ALLOCATION
 
-/* Regular "subrs", i.e., few arguments.  */
-#define SCM_DEFINE_SUBR(FNAME, PRIMNAME, REQ, OPT, VAR, ARGLIST, DOCSTRING) \
+/* Static subr allocation.  */
+#define SCM_DEFINE(FNAME, PRIMNAME, REQ, OPT, VAR, ARGLIST, DOCSTRING)	\
 SCM_SYMBOL (scm_i_paste (FNAME, __name), PRIMNAME);			\
 SCM_SNARF_HERE(								\
   static const char scm_i_paste (s_, FNAME) [] = PRIMNAME;		\
@@ -115,34 +115,6 @@ SCM_SNARF_INIT(								\
   scm_c_define (scm_i_paste (s_, FNAME), scm_i_paste (FNAME, __subr));	\
 )									\
 SCM_SNARF_DOCS(primitive, FNAME, PRIMNAME, ARGLIST, REQ, OPT, VAR, DOCSTRING)
-
-/* XXX: Eventually, we could statically allocate gsubrs as well.  */
-
-/* These are the subrs whose arity makes it possible to define them as "raw
-   subrs" (as opposed to "gsubrs").  This has to be consistent with
-   `SCM_SUBR_ARITY_TO_TYPE ()' and `create_gsubr ()'.  */
-#define SCM_DEFINE_SUBR_req0_opt0_rst0  SCM_DEFINE_SUBR
-#define SCM_DEFINE_SUBR_req1_opt0_rst0  SCM_DEFINE_SUBR
-#define SCM_DEFINE_SUBR_req0_opt1_rst0  SCM_DEFINE_SUBR
-#define SCM_DEFINE_SUBR_req1_opt1_rst0  SCM_DEFINE_SUBR
-#define SCM_DEFINE_SUBR_req2_opt0_rst0  SCM_DEFINE_SUBR
-#define SCM_DEFINE_SUBR_req3_opt0_rst0  SCM_DEFINE_SUBR
-#define SCM_DEFINE_SUBR_req0_opt0_rst1  SCM_DEFINE_SUBR
-#define SCM_DEFINE_SUBR_req2_opt0_rst1  SCM_DEFINE_SUBR
-
-/* For any other combination of required/optional/rest arguments, use
-   `SCM_DEFINE_GSUBR ().  */
-#include "libguile/snarf-gsubr.h"
-
-/* The generic subr definition macro.  This macro dispatches to either
-   `SCM_DEFINE_SUBR ()' or `SCM_DEFINE_GSUBR ()' depending on the arity of
-   the subr being defined.  */
-#define SCM_DEFINE(FNAME, PRIMNAME, REQ, OPT, VAR, ARGLIST, DOCSTRING)	\
-  SCM_DEFINE_SUBR_req ## REQ ## _opt ## OPT ## _rst ## VAR		\
-    (FNAME, PRIMNAME,							\
-     REQ, OPT, VAR,							\
-     ARGLIST, DOCSTRING)
-
 
 #else /* !SCM_SUPPORT_STATIC_ALLOCATION */
 
