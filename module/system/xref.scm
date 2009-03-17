@@ -66,6 +66,10 @@
               (else (lp (1+ i) out)))))))
    (else '())))
 
+(define (hacky-procedure-callees proc)
+  ;; we could analyze the memoized source or something
+  '())
+
 (define (procedure-callees proc)
   (cond
    ((program? proc) (program-callees proc))
