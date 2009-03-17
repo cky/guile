@@ -149,9 +149,11 @@
 		      (let ((e ((macro-transformer m)
 				e
 				(append r (list eval-closure)))))
-			(if (null? r)
-			    (sc-expand e)
-			    (sc-chi e r w))))))))))
+			(if (variable? e)
+			    e
+			    (if (null? r)
+				(sc-expand e)
+				(sc-chi e r w)))))))))))
 
 (define generated-symbols (make-weak-key-hash-table 1019))
 
