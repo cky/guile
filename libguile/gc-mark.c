@@ -337,7 +337,13 @@ scm_gc_mark_dependencies (SCM p)
       ptr = SCM_CELL_OBJECT_1 (ptr);
       goto gc_mark_loop;
     case scm_tcs_subrs:
-      break;
+      if (SCM_CELL_WORD_2 (ptr) && *(SCM*)SCM_CELL_WORD_2 (ptr))
+        /* the generic associated with this primitive */
+        scm_gc_mark (*(SCM*)SCM_CELL_WORD_2 (ptr));
+      if (SCM_NIMP (((SCM*)SCM_CELL_WORD_3 (ptr))[1]))
+        scm_gc_mark (((SCM*)SCM_CELL_WORD_3 (ptr))[1]); /* props */
+      ptr = ((SCM*)SCM_CELL_WORD_3 (ptr))[0]; /* name */
+      goto gc_mark_loop;
     case scm_tc7_port:
       i = SCM_PTOBNUM (ptr);
 #if (SCM_DEBUG_CELL_ACCESSES == 1) 
