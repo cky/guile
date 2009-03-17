@@ -3,7 +3,7 @@
 #ifndef SCM_GOOPS_H
 #define SCM_GOOPS_H
 
-/* Copyright (C) 1998,1999,2000,2001,2002,2003, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1998,1999,2000,2001,2002,2003, 2006, 2008, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -171,7 +171,7 @@ SCM_API SCM scm_class_integer;
 SCM_API SCM scm_class_fraction;
 SCM_API SCM scm_class_unknown;
 SCM_API SCM *scm_port_class;
-SCM_API SCM *scm_smob_class;
+SCM_API SCM scm_smob_class[];
 SCM_API SCM scm_class_top;
 SCM_API SCM scm_class_object;
 SCM_API SCM scm_class_class;
