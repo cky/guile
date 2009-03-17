@@ -116,7 +116,7 @@
 
     (if (not *callers-db*)
         (begin
-          (set! db (make-hash-table))
+          (set! db (make-doubly-weak-hash-table))
           (visit-module the-root-module)
           (set! *callers-db* db)))))
 
