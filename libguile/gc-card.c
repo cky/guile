@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -130,14 +130,6 @@ scm_i_sweep_card (scm_t_cell *card, SCM *free_list, scm_t_heap_segment *seg)
 	case scm_tc7_vector:
 	  scm_i_vector_free (scmptr);
 	  break;
-
-#ifdef CCLO
-	case scm_tc7_cclo:
-	  scm_gc_free (SCM_CCLO_BASE (scmptr), 
-		       SCM_CCLO_LENGTH (scmptr) * sizeof (SCM),
-		       "compiled closure");
-	  break;
-#endif
 
 	case scm_tc7_number:
 	  switch SCM_TYP16 (scmptr)
@@ -397,10 +389,6 @@ scm_i_tag_name (scm_t_bits tag)
       return "weak vector";
     case scm_tc7_vector:
       return "vector";
-#ifdef CCLO
-    case scm_tc7_cclo:
-      return "compiled closure";
-#endif
     case scm_tc7_number:
       switch (tag)
 	{

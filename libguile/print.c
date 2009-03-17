@@ -1,4 +1,4 @@
-/* Copyright (C) 1995-1999,2000,2001, 2002, 2003, 2004, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995-1999,2000,2001, 2002, 2003, 2004, 2006, 2008, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -657,30 +657,7 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 	  scm_puts (scm_i_symbol_chars (SCM_SNAME (exp)), port);
 	  scm_putc ('>', port);
 	  break;
-#ifdef CCLO
-	case scm_tc7_cclo:
-	  {
-	    SCM proc = SCM_CCLO_SUBR (exp);
-	    if (scm_is_eq (proc, scm_f_gsubr_apply))
-	      {
-		/* Print gsubrs as primitives */
-		SCM name = scm_procedure_name (exp);
-		scm_puts ("#<primitive-procedure", port);
-		if (scm_is_true (name))
-		  {
-		    scm_putc (' ', port);
-		    scm_puts (scm_i_symbol_chars (name), port);
-		  }
-	      }
-	    else
-	      {
-		scm_puts ("#<compiled-closure ", port);
-		scm_iprin1 (proc, port, pstate);
-	      }
-	    scm_putc ('>', port);
-	  }
-	  break;
-#endif
+
 	case scm_tc7_pws:
 	  scm_puts ("#<procedure-with-setter", port);
 	  {

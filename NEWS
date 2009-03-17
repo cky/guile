@@ -1,5 +1,5 @@
 Guile NEWS --- history of user-visible changes.
-Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 See the end for copying conditions.
 
 Please send Guile bug reports to bug-guile@gnu.org.
@@ -39,6 +39,9 @@ application code.
 
 ** Functions for handling `scm_option' now no longer require an argument
 indicating length of the `scm_t_option' array.
+
+** Primitive procedures (aka. "subrs") are now stored in double cells
+This removes the subr table and simplifies the code.
 
 
 Changes in 1.8.7 (since 1.8.6)

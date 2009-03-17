@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
  * Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
@@ -3269,7 +3269,7 @@ scm_trampoline_0 (SCM proc)
       break;
     case scm_tc7_asubr:
     case scm_tc7_rpsubr:
-    case scm_tc7_cclo:
+    case scm_tc7_gsubr:
     case scm_tc7_pws:
       trampoline = scm_call_0;
       break;
@@ -3395,7 +3395,7 @@ scm_trampoline_1 (SCM proc)
       break;
     case scm_tc7_asubr:
     case scm_tc7_rpsubr:
-    case scm_tc7_cclo:
+    case scm_tc7_gsubr:
     case scm_tc7_pws:
       trampoline = scm_call_1;
       break;
@@ -3489,7 +3489,7 @@ scm_trampoline_2 (SCM proc)
       else
 	return NULL;
       break;
-    case scm_tc7_cclo:
+    case scm_tc7_gsubr:
     case scm_tc7_pws:
       trampoline = scm_call_2;
       break;
