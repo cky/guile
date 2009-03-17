@@ -233,7 +233,7 @@ SCM_API int scm_pthread_cond_wait (pthread_cond_t *cond,
 				   pthread_mutex_t *mutex);
 SCM_API int scm_pthread_cond_timedwait (pthread_cond_t *cond,
 					pthread_mutex_t *mutex,
-					const struct timespec *abstime);
+					const scm_t_timespec *abstime);
 #endif
 
 /* More convenience functions.
