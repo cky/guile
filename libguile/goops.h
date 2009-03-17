@@ -170,7 +170,7 @@ SCM_API SCM scm_class_complex;
 SCM_API SCM scm_class_integer;
 SCM_API SCM scm_class_fraction;
 SCM_API SCM scm_class_unknown;
-SCM_API SCM *scm_port_class;
+SCM_API SCM scm_port_class[];
 SCM_API SCM scm_smob_class[];
 SCM_API SCM scm_class_top;
 SCM_API SCM scm_class_object;

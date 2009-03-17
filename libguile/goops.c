@@ -158,7 +158,12 @@ SCM scm_class_protected_opaque, scm_class_protected_read_only;
 SCM scm_class_scm;
 SCM scm_class_int, scm_class_float, scm_class_double;
 
-SCM *scm_port_class = 0;
+/* Port classes.  Allocate 3 times the maximum number of port types so that
+   input ports, output ports, and in/out ports can be stored at different
+   offsets.  See `SCM_IN_PCLASS_INDEX' et al.  */
+SCM scm_port_class[3 * SCM_I_MAX_PORT_TYPE_COUNT];
+
+/* SMOB classes.  */
 SCM scm_smob_class[SCM_I_MAX_SMOB_TYPE_COUNT];
 
 SCM scm_no_applicable_method;
@@ -2770,11 +2775,6 @@ static void
 create_port_classes (void)
 {
   long i;
-
-  /* Allocate 3 times the maximum number of port types so that input ports,
-     output ports, and in/out ports can be stored at different offsets.  See
-     `SCM_IN_PCLASS_INDEX' et al.  */
-  scm_port_class = scm_calloc (3 * SCM_I_MAX_PORT_TYPE_COUNT * sizeof (SCM));
 
   for (i = 0; i < scm_numptob; ++i)
     scm_make_port_classes (i, SCM_PTOBNAME (i));
