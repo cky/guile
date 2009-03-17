@@ -30,28 +30,15 @@
 /* Subrs 
  */
 
-typedef struct
-{
-  SCM handle;			/* link back to procedure object */
-  SCM name;
-  SCM *generic;			/* 0 if no generic support
-				 * *generic == 0 until first method
-				 */
-  SCM properties;		/* procedure properties */
-} scm_t_subr_entry;
-
-#define SCM_SUBRNUM(subr) (SCM_CELL_WORD_0 (subr) >> 8)
-#define SCM_SET_SUBRNUM(subr, num) \
-        SCM_SET_CELL_WORD_0 (subr, (num << 8) + SCM_TYP7 (subr))
-#define SCM_SUBR_ENTRY(x) (scm_subr_table[SCM_SUBRNUM (x)])
-#define SCM_SNAME(x) (SCM_SUBR_ENTRY (x).name)
+#define SCM_SUBR_META_INFO(x)  ((SCM *) SCM_CELL_WORD_3 (x))
+#define SCM_SNAME(x) (SCM_SUBR_META_INFO (x) [0])
 #define SCM_SUBRF(x) ((SCM (*)()) SCM_CELL_WORD_1 (x))
 #define SCM_SET_SUBRF(x, v) (SCM_SET_CELL_WORD_1 ((x), (v)))
 #define SCM_DSUBRF(x) ((double (*)()) SCM_CELL_WORD_1 (x))
-#define SCM_SUBR_PROPS(x) (SCM_SUBR_ENTRY (x).properties)
-#define SCM_SUBR_GENERIC(x) (SCM_SUBR_ENTRY (x).generic)
-#define SCM_SET_SUBR_GENERIC(x, g) (*SCM_SUBR_ENTRY (x).generic = (g))
-#define SCM_SET_SUBR_GENERIC_LOC(x, g) (SCM_SUBR_ENTRY (x).generic = (g))
+#define SCM_SUBR_PROPS(x) (SCM_SUBR_META_INFO (x) [1])
+#define SCM_SUBR_GENERIC(x) ((SCM *) SCM_CELL_WORD_2 (x))
+#define SCM_SET_SUBR_GENERIC(x, g) (*((SCM *) SCM_CELL_WORD_2 (x)) = (g))
+#define SCM_SET_SUBR_GENERIC_LOC(x, g) (SCM_SET_CELL_WORD_2 (x, (scm_t_bits) g))
 
 #define SCM_CCLO_LENGTH(x) (SCM_CELL_WORD_0 (x) >> 8)
 #define SCM_MAKE_CCLO_TAG(v)  (((v) << 8) + scm_tc7_cclo)
@@ -132,11 +119,9 @@ typedef struct
 #define SCM_PROCEDURE(obj) SCM_CELL_OBJECT_1 (obj)
 #define SCM_SETTER(obj) SCM_CELL_OBJECT_2 (obj)
 
-SCM_API scm_t_subr_entry *scm_subr_table;
 
 
 
-SCM_API void scm_mark_subr_table (void);
 SCM_API void scm_free_subr_entry (SCM subr);
 SCM_API SCM scm_c_make_subr (const char *name, long type, SCM (*fcn)());
 SCM_API SCM scm_c_make_subr_with_generic (const char *name, long type,
@@ -154,7 +139,6 @@ SCM_API SCM scm_procedure_with_setter_p (SCM obj);
 SCM_API SCM scm_make_procedure_with_setter (SCM procedure, SCM setter);
 SCM_API SCM scm_procedure (SCM proc);
 SCM_API SCM scm_setter (SCM proc);
-SCM_INTERNAL void scm_init_subr_table (void);
 SCM_INTERNAL void scm_init_procs (void);
 
 #ifdef GUILE_DEBUG

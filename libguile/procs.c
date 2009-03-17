@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1999,2000,2001, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1999,2000,2001, 2006, 2008, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -40,40 +40,20 @@
 /* {Procedures}
  */
 
-scm_t_subr_entry *scm_subr_table;
 
-/* libguile contained approx. 700 primitive procedures on 24 Aug 1999. */
-
-/* Increased to 800 on 2001-05-07 -- Guile now has 779 primitives on
-   startup, 786 with guile-readline.  'martin */
-
-static unsigned long scm_subr_table_size = 0;
-static unsigned long scm_subr_table_room = 800;
-
-SCM 
+SCM
 scm_c_make_subr (const char *name, long type, SCM (*fcn) ())
 {
   register SCM z;
-  unsigned long entry;
+  SCM *meta_info;
 
-  if (scm_subr_table_size == scm_subr_table_room)
-    {
-      long new_size = scm_subr_table_room * 3 / 2;
-      void *new_table
-	= scm_realloc ((char *) scm_subr_table,
-		       sizeof (scm_t_subr_entry) * new_size);
-      scm_subr_table = new_table;
-      scm_subr_table_room = new_size;
-    }
+  meta_info = scm_gc_malloc (2 * sizeof (*meta_info), "subr meta-info");
+  meta_info[0] = scm_from_locale_symbol (name);
+  meta_info[1] = SCM_EOL;  /* properties */
 
-  entry = scm_subr_table_size;
-  z = scm_cell ((entry << 8) + type, (scm_t_bits) fcn);
-  scm_subr_table[entry].handle = z;
-  scm_subr_table[entry].name = scm_from_locale_symbol (name);
-  scm_subr_table[entry].generic = 0;
-  scm_subr_table[entry].properties = SCM_EOL;
-  scm_subr_table_size++;
-  
+  z = scm_double_cell ((scm_t_bits) type, (scm_t_bits) fcn,
+		       0 /* generic */, (scm_t_bits) meta_info);
+
   return z;
 }
 
@@ -90,11 +70,8 @@ scm_c_define_subr (const char *name, long type, SCM (*fcn) ())
 void
 scm_free_subr_entry (SCM subr)
 {
-  long entry = SCM_SUBRNUM (subr);
-  /* Move last entry in table to the free position */
-  scm_subr_table[entry] = scm_subr_table[scm_subr_table_size - 1];
-  SCM_SET_SUBRNUM (scm_subr_table[entry].handle, entry);
-  scm_subr_table_size--;
+  scm_gc_free (SCM_SUBR_META_INFO (subr), 2 * sizeof (SCM),
+	       "subr meta-info");
 }
 
 SCM
@@ -113,20 +90,6 @@ scm_c_define_subr_with_generic (const char *name,
   SCM subr = scm_c_make_subr_with_generic (name, type, fcn, gf);
   scm_define (SCM_SNAME (subr), subr);
   return subr;
-}
-
-void
-scm_mark_subr_table ()
-{
-  long i;
-  for (i = 0; i < scm_subr_table_size; ++i)
-    {
-      scm_gc_mark (scm_subr_table[i].name);
-      if (scm_subr_table[i].generic && *scm_subr_table[i].generic)
-	scm_gc_mark (*scm_subr_table[i].generic);
-      if (SCM_NIMP (scm_subr_table[i].properties))
-	scm_gc_mark (scm_subr_table[i].properties);
-    }
 }
 
 
@@ -367,15 +330,7 @@ scm_setter (SCM proc)
   return SCM_BOOL_F; /* not reached */
 }
 
-
-void
-scm_init_subr_table ()
-{
-  scm_subr_table
-    = ((scm_t_subr_entry *)
-       scm_malloc (sizeof (scm_t_subr_entry) * scm_subr_table_room));
-}
-
+
 void
 scm_init_procs ()
 {
