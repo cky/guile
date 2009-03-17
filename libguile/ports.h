@@ -3,7 +3,7 @@
 #ifndef SCM_PORTS_H
 #define SCM_PORTS_H
 
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2003, 2004, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2003, 2004, 2006, 2008, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -161,6 +161,9 @@ SCM_INTERNAL SCM scm_i_port_weak_hash;
 #define SCM_INCCOL(port)  	{SCM_COL (port) += 1;}
 #define SCM_DECCOL(port)  	{if (SCM_COL (port) > 0) SCM_COL (port) -= 1;}
 #define SCM_TABCOL(port)  	{SCM_COL (port) += 8 - SCM_COL (port) % 8;}
+
+/* Maximum number of port types.  */
+#define SCM_I_MAX_PORT_TYPE_COUNT  256
 
 
 
