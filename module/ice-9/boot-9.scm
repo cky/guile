@@ -1659,7 +1659,8 @@
 ;; Add INTERFACE to the list of interfaces used by MODULE.
 ;;
 (define (module-use! module interface)
-  (if (not (eq? module interface))
+  (if (not (or (eq? module interface)
+               (memq interface (module-uses module))))
       (begin
         ;; Newly used modules must be appended rather than consed, so that
         ;; `module-variable' traverses the use list starting from the first

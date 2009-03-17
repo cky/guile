@@ -20,7 +20,7 @@
   #:use-module (system base pmatch)
   #:use-module (system base compile)
   #:use-module (system vm program)
-  #:export (procedure-callees))
+  #:export (procedure-callees procedure-callers *xref-ignored-modules*))
 
 (define (program-callees prog)
   (cond
@@ -47,22 +47,30 @@
                ((vector-ref progv i)
                 (let ((obj (vector-ref objects i)))
                   (if (variable? obj)
-                      (lp (1+ i) (cons (variable-ref obj) out))
+                      (lp (1+ i) (if (variable-bound? obj)
+                                     (cons (variable-ref obj) out)
+                                     out))
                       ;; otherwise it's an unmemoized binding
                       (pmatch obj
                         (,sym (guard (symbol? sym))
-                         (let ((v (module-variable (program-module prog) sym)))
+                         (let ((v (module-variable (or (program-module prog)
+                                                       the-root-module)
+                                                   sym)))
                            (lp (1+ i)
-                               (if v (cons (variable-ref v) out) out))))
+                               (if (and v (variable-bound? v))
+                                   (cons (variable-ref v) out)
+                                   out))))
                         ((,mod ,sym ,public?)
                          ;; hm, hacky.
                          (let ((m (nested-ref the-root-module
                                               (append '(%app modules) mod))))
                            (let ((v (and m (module-variable
-                                            (if public? (module-interface m) m)
+                                            (if public? (module-public-interface m) m)
                                             sym))))
                              (lp (1+ i)
-                                 (if v (cons (variable-ref v) out) out)))))))))
+                                 (if (and v (variable-bound? v))
+                                     (cons (variable-ref v) out)
+                                     out)))))))))
               (else (lp (1+ i) out)))))))
    (else '())))
 
@@ -75,3 +83,43 @@
    ((program? proc) (program-callees proc))
    ((procedure-source proc) (hacky-procedure-callees proc))
    (else '())))
+
+(define *callers-db* #f)
+
+(define *xref-ignored-modules* '((value-history)))
+(define (on-module-modified m)
+  (if (not (member (module-name m) *xref-ignored-modules*))
+      (set! *callers-db* #f)))
+
+(define (ensure-callers-db)
+  (let ((visited '())
+        (db #f))
+    (define (visit-procedure proc)
+      (for-each
+       (lambda (x)
+         (hashq-set! db x (cons proc (hashq-ref db x '()))))
+       (procedure-callees proc)))
+
+    (define (visit-module mod)
+      (set! visited (cons mod visited))
+      (if (not (memq on-module-modified (module-observers mod)))
+          (module-observe mod on-module-modified))
+      (module-for-each
+       (lambda (sym var)
+          (if (variable-bound? var)
+              (let ((x (variable-ref var)))
+                (cond
+                 ((procedure? x) (visit-procedure x))
+                 ((module? x) (if (not (memq x visited))
+                                  (visit-module x)))))))
+       mod))
+
+    (if (not *callers-db*)
+        (begin
+          (set! db (make-hash-table))
+          (visit-module the-root-module)
+          (set! *callers-db* db)))))
+
+(define (procedure-callers proc)
+  (ensure-callers-db)
+  (hashq-ref *callers-db* proc #f))
