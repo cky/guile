@@ -48,7 +48,8 @@ SCM_API SCM scm_c_define_gsubr_with_generic (const char *name,
 					     int req, int opt, int rst,
 					     SCM (*fcn) (), SCM *gf);
 
-SCM_API SCM scm_gsubr_apply (SCM args);
+SCM_INTERNAL SCM scm_i_gsubr_apply (SCM proc, SCM arg, ...);
+SCM_INTERNAL SCM scm_i_gsubr_apply_list (SCM proc, SCM args);
 SCM_INTERNAL void scm_init_gsubr (void);
 
 #endif  /* SCM_GSUBR_H */

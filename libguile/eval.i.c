@@ -1140,7 +1140,7 @@ dispatch:
 	debug.info->a.proc = proc;
 	debug.info->a.args = SCM_EOL;
 #endif
-	RETURN (scm_gsubr_apply (scm_list_1 (proc)));
+	RETURN (scm_i_gsubr_apply (proc, SCM_UNDEFINED));
       case scm_tc7_pws:
 	proc = SCM_PROCEDURE (proc);
 #ifdef DEVAL
@@ -1259,7 +1259,7 @@ dispatch:
 	    debug.info->a.args = scm_cons (arg1, debug.info->a.args);
 	    debug.info->a.proc = proc;
 #endif
-	    RETURN (scm_gsubr_apply (scm_list_2 (proc, arg1)));
+	    RETURN (scm_i_gsubr_apply (proc, arg1, SCM_UNDEFINED));
 	  case scm_tc7_pws:
 	    proc = SCM_PROCEDURE (proc);
 #ifdef DEVAL
@@ -1356,15 +1356,11 @@ dispatch:
 	    if (!SCM_SMOB_APPLICABLE_P (proc))
 	      goto badfun;
 	    RETURN (SCM_SMOB_APPLY_2 (proc, arg1, arg2));
-	  cclon:
 	  case scm_tc7_gsubr:
 #ifdef DEVAL
-	    RETURN (scm_gsubr_apply (scm_cons (proc, debug.info->a.args)));
+	    RETURN (scm_i_gsubr_apply_list (proc, debug.info->a.args));
 #else
-	    RETURN (scm_gsubr_apply
-		     (scm_cons (proc,
-				scm_cons2 (arg1, arg2,
-					   scm_ceval_args (x, env, proc)))));
+	    RETURN (scm_i_gsubr_apply (proc, arg1, arg2, SCM_UNDEFINED));
 #endif
 	  case scm_tcs_struct:
 	    if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
@@ -1494,7 +1490,7 @@ dispatch:
 	  RETURN (SCM_SMOB_APPLY_3 (proc, arg1, arg2,
 				    SCM_CDDR (debug.info->a.args)));
 	case scm_tc7_gsubr:
-	  goto cclon;
+	  RETURN (scm_i_gsubr_apply_list (proc, debug.info->a.args));
 	case scm_tc7_pws:
 	  proc = SCM_PROCEDURE (proc);
 	  debug.info->a.proc = proc;
@@ -1557,7 +1553,15 @@ dispatch:
 	  RETURN (SCM_SMOB_APPLY_3 (proc, arg1, arg2,
 				    scm_ceval_args (x, env, proc)));
 	case scm_tc7_gsubr:
-	  goto cclon;
+	  if (scm_is_null (SCM_CDR (x)))
+	    /* 3 arguments */
+	    RETURN (scm_i_gsubr_apply (proc, arg1, arg2, EVALCAR (x, env),
+				       SCM_UNDEFINED));
+	  else
+	    RETURN (scm_i_gsubr_apply_list (proc,
+					    scm_cons2 (arg1, arg2,
+						       scm_ceval_args (x, env,
+								       proc))));
 	case scm_tc7_pws:
 	  proc = SCM_PROCEDURE (proc);
 	  if (!SCM_CLOSUREP (proc))
@@ -1876,7 +1880,7 @@ tail:
 #else
       args = (SCM_UNBNDP(arg1) ? SCM_EOL : scm_cons (arg1, args));
 #endif
-      RETURN (scm_gsubr_apply (scm_cons (proc, args)));
+      RETURN (scm_i_gsubr_apply_list (proc, args));
     case scm_tc7_pws:
       proc = SCM_PROCEDURE (proc);
 #ifdef DEVAL

@@ -25,11 +25,12 @@
 ;;;   they explicitly invoke GC --- in other words, they assume that GC
 ;;;   won't happen too often.
 
-(use-modules (test-suite lib)
-	     (ice-9 documentation)
-             (ice-9 weak-vector))
+(define-module (test-guardians)
+  :use-module (test-suite lib)
+  :use-module (ice-9 documentation)
+  :use-module (ice-9 weak-vector))
 
-
+
 ;;;
 ;;; miscellaneous
 ;;;

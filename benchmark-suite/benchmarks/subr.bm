@@ -21,6 +21,9 @@
   :use-module (benchmark-suite lib))
 
 
+(define hook1 (make-hook 1))
+(define hook3 (make-hook 3))
+
 (with-benchmark-prefix "subr invocation"
 
   (benchmark "simple subr" 700000
@@ -34,7 +37,18 @@
     ;; closures" (cclos).  There, when a cclo/gsubr is called, the evaluator
     ;; goes through `SCM_APPLY ()' and conses the arguments, which is more
     ;; costly than the invocation of a "simple subr".
-    (string= "foo" "bar")))
+    (string= "foo" "bar"))
+
+  (benchmark "generic subr with rest arg" 700000
+    ;; 1 required argument, 0 optional arguments, 1 rest.
+    (run-hook hook1 1))
+
+  (benchmark "generic subr with rest arg and 3+ parameters" 700000
+    ;; 1 required argument, 0 optional arguments, 1 rest.
+
+    ;; The evaluator considers calls with 3 and more parameters as a general
+    ;; form and always stores the arguments into a list.
+    (run-hook hook3 1 2 3)))
 
 
 (with-benchmark-prefix "subr application"
@@ -43,4 +57,10 @@
     (apply 1+ '(0)))
 
   (benchmark "generic subr" 700000
-    (apply string= "foo" '("bar"))))
+    (apply string= "foo" '("bar")))
+
+  (benchmark "generic subr with rest arg" 700000
+    (apply run-hook hook1 '(1)))
+
+  (benchmark "generic subr with rest arg and 3+ parameters" 700000
+    (run-hook hook3 1 2 '(3))))

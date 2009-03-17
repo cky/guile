@@ -1541,9 +1541,6 @@ AC_CONFIG_FILES([
   examples/scripts/Makefile
   guile-config/Makefile
   lang/Makefile
-  lang/elisp/Makefile
-  lang/elisp/internals/Makefile
-  lang/elisp/primitives/Makefile
   libguile/Makefile
   scripts/Makefile
   srfi/Makefile
