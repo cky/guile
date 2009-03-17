@@ -1905,7 +1905,7 @@ scm_c_extend_primitive_generic (SCM extended, SCM extension)
       gext = scm_call_2 (SCM_VARIABLE_REF (scm_var_make_extended_generic),
 			 gf,
 			 SCM_SNAME (extension));
-      *SCM_SUBR_GENERIC (extension) = gext;
+      SCM_SET_SUBR_GENERIC (extension, gext);
     }
   else
     {
