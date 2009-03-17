@@ -47,14 +47,14 @@ scm_t_subr_entry *scm_subr_table;
 /* Increased to 800 on 2001-05-07 -- Guile now has 779 primitives on
    startup, 786 with guile-readline.  'martin */
 
-long scm_subr_table_size = 0;
-long scm_subr_table_room = 800;
+static unsigned long scm_subr_table_size = 0;
+static unsigned long scm_subr_table_room = 800;
 
 SCM 
 scm_c_make_subr (const char *name, long type, SCM (*fcn) ())
 {
   register SCM z;
-  long entry;
+  unsigned long entry;
 
   if (scm_subr_table_size == scm_subr_table_room)
     {
