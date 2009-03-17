@@ -34,6 +34,8 @@ SOURCES =								\
   system/vm/objcode.scm system/vm/profile.scm system/vm/program.scm	\
   system/vm/trace.scm system/vm/vm.scm					\
 									\
+  system/xref.scm							\
+									\
   system/repl/repl.scm system/repl/common.scm				\
   system/repl/command.scm						\
 									\
