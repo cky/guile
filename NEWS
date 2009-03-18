@@ -64,6 +64,8 @@ transformed by (ice-9 syncase) would cause an "Invalid syntax" error.
 Now it works as you would expect (giving the value of the specified
 module binding).
 
+** Have `scm_take_locale_symbol ()' return an interned symbol (bug #25865)
+
 
 Changes in 1.8.6 (since 1.8.5)
 
