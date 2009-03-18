@@ -20,9 +20,11 @@
   #:use-module (system base pmatch)
   #:use-module (system base compile)
   #:use-module (system vm program)
-  #:export (procedure-callees procedure-callers *xref-ignored-modules*))
+  #:export (*xref-ignored-modules*
+            procedure-callees
+            procedure-callers))
 
-(define (program-callees prog)
+(define (program-callee-rev-vars prog)
   (cond
    ((program-objects prog)
     => (lambda (objects)
@@ -39,50 +41,48 @@
                 body)))
             (let lp ((i 0) (out '()))
               (cond
-               ((= i n) (reverse out))
+               ((= i n) out)
                ((program? (vector-ref objects i))
-                (lp (1+ i) (append (reverse (program-callees
-                                             (vector-ref objects i)))
-                                   out)))
+                (lp (1+ i)
+                    (append (program-callee-rev-vars (vector-ref objects i))
+                            out)))
                ((vector-ref progv i)
                 (let ((obj (vector-ref objects i)))
                   (if (variable? obj)
-                      (lp (1+ i) (if (variable-bound? obj)
-                                     (cons (variable-ref obj) out)
-                                     out))
+                      (lp (1+ i) (cons obj out))
                       ;; otherwise it's an unmemoized binding
                       (pmatch obj
                         (,sym (guard (symbol? sym))
                          (let ((v (module-variable (or (program-module prog)
                                                        the-root-module)
                                                    sym)))
-                           (lp (1+ i)
-                               (if (and v (variable-bound? v))
-                                   (cons (variable-ref v) out)
-                                   out))))
+                           (lp (1+ i) (if v (cons v out) out))))
                         ((,mod ,sym ,public?)
                          ;; hm, hacky.
-                         (let ((m (nested-ref the-root-module
-                                              (append '(%app modules) mod))))
-                           (let ((v (and m (module-variable
-                                            (if public? (module-public-interface m) m)
-                                            sym))))
-                             (lp (1+ i)
-                                 (if (and v (variable-bound? v))
-                                     (cons (variable-ref v) out)
-                                     out)))))))))
-              (else (lp (1+ i) out)))))))
+                         (let* ((m (nested-ref the-root-module
+                                               (append '(%app modules) mod)))
+                                (v (and m
+                                        (module-variable
+                                         (if public?
+                                             (module-public-interface m)
+                                             m)
+                                         sym))))
+                           (lp (1+ i)
+                               (if v (cons v out) out))))))))
+               (else (lp (1+ i) out)))))))
    (else '())))
 
-(define (hacky-procedure-callees proc)
-  ;; we could analyze the memoized source or something
-  '())
-
-(define (procedure-callees proc)
+(define (procedure-callee-rev-vars proc)
   (cond
-   ((program? proc) (program-callees proc))
-   ((procedure-source proc) (hacky-procedure-callees proc))
+   ((program? proc) (program-callee-rev-vars proc))
    (else '())))
+
+(define (procedure-callees prog)
+  (let lp ((in (procedure-callee-rev-vars prog)) (out '()))
+    (cond ((null? in) out)
+          ((variable-bound? (car in))
+           (lp (cdr in) (cons (variable-ref (car in)) out)))
+          (else (lp (cdr in) out)))))
 
 (define *callers-db* #f)
 
@@ -94,32 +94,42 @@
 (define (ensure-callers-db)
   (let ((visited '())
         (db #f))
-    (define (visit-procedure proc)
-      (for-each
-       (lambda (x)
-         (hashq-set! db x (cons proc (hashq-ref db x '()))))
-       (procedure-callees proc)))
+    (define (visit-variable var)
+      (if (variable-bound? var)
+          (let ((x (variable-ref var)))
+            (cond
+             ((procedure? x)
+              (for-each
+               (lambda (callee)
+                 (if (variable-bound? callee)
+                     (let ((y (variable-ref callee)))
+                       (hashq-set! db callee (cons x (hashq-ref db callee '()))))))
+               (procedure-callee-rev-vars x)))
+             ((and (module? x) (not (memq x visited)))
+              (visit-module x))))))
 
     (define (visit-module mod)
       (set! visited (cons mod visited))
       (if (not (memq on-module-modified (module-observers mod)))
           (module-observe mod on-module-modified))
-      (module-for-each
-       (lambda (sym var)
-          (if (variable-bound? var)
-              (let ((x (variable-ref var)))
-                (cond
-                 ((procedure? x) (visit-procedure x))
-                 ((module? x) (if (not (memq x visited))
-                                  (visit-module x)))))))
-       mod))
+      (module-for-each (lambda (sym var)
+                         (visit-variable var))
+                       mod))
 
     (if (not *callers-db*)
         (begin
-          (set! db (make-doubly-weak-hash-table))
+          (set! db (make-hash-table))
           (visit-module the-root-module)
           (set! *callers-db* db)))))
 
-(define (procedure-callers proc)
-  (ensure-callers-db)
-  (hashq-ref *callers-db* proc #f))
+(define (procedure-callers var)
+  (let ((v (cond ((variable? var) var)
+                 ((symbol? var) (module-variable (current-module) var))
+                 (else
+                  (pmatch var
+                    ((,modname . ,sym)
+                     (module-variable (resolve-module modname) sym))
+                    (else
+                     (error "expected a variable, symbol, or (modname sym)" var)))))))
+    (ensure-callers-db)
+    (hashq-ref *callers-db* v '())))
