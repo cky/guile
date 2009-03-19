@@ -121,8 +121,8 @@ scm_c_make_objcode_slice (SCM parent, scm_t_uint8 *ptr)
       || ptr >= (parent_data->base + parent_data->len + parent_data->metalen
                  - sizeof (struct scm_objcode)))
     scm_misc_error (FUNC_NAME, "offset out of bounds (~a vs ~a + ~a + ~a)",
-		    SCM_LIST4 (scm_from_ulong ((ulong)ptr),
-                               scm_from_ulong ((ulong)parent_data->base),
+		    SCM_LIST4 (scm_from_ulong ((unsigned long)ptr),
+                               scm_from_ulong ((unsigned long)parent_data->base),
                                scm_from_uint32 (parent_data->len),
                                scm_from_uint32 (parent_data->metalen)));
 
