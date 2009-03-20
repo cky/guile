@@ -185,28 +185,24 @@
          sum)
       (set! sum (+ sum (struct-ref (car classes) hashset-index))))))
 
-;;; FIXME: the throw probably is expensive, given that this function
-;;; might be called an average of 3 or 4 times per rehash...
 (define (cache-try-hash! min-misses hashset cache entries)
   (let ((max-misses 0)
 	(mask (- (vector-length cache) 1)))
-    (catch 'misses
-	   (lambda ()
-	     (do ((ls entries (cdr ls))
-		  (misses 0 0))
-		 ((null? ls) max-misses)
-	       (do ((i (logand mask (cache-hashval hashset (car ls)))
-		       (logand mask (+ i 1))))
-		   ((and (pair? (vector-ref cache i))
-                         (eq? (car (vector-ref cache i)) 'no-method))
-		    (vector-set! cache i (car ls)))
-		 (set! misses (+ 1 misses))
-		 (if (>= misses min-misses)
-		     (throw 'misses misses)))
-	       (if (> misses max-misses)
-		   (set! max-misses misses))))
-	   (lambda (key misses)
-	     misses))))
+    (let outer ((in entries) (max-misses 0))
+      (if (null? in)
+          max-misses
+          (let inner ((i (logand mask (cache-hashval hashset (car in))))
+                      (misses 0))
+            (cond
+             ((and (pair? (vector-ref cache i))
+                   (eq? (car (vector-ref cache i)) 'no-method))
+              (vector-set! cache i (car in))
+              (outer (cdr in) (if (> misses max-misses) misses max-misses)))
+             (else
+              (let ((misses (+ 1 misses)))
+                (if (>= misses min-misses)
+                    misses ;; this is a return, yo.
+                    (inner (logand mask (+ i 1)) misses))))))))))
 
 ;;;
 ;;; Memoization
