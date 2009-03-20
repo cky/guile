@@ -68,7 +68,8 @@
 	   class-direct-methods class-direct-slots class-precedence-list
 	   class-slots class-environment
 	   generic-function-name
-	   generic-function-methods method-generic-function method-specializers
+	   generic-function-methods method-generic-function
+	   method-specializers method-formals
 	   primitive-generic-generic enable-primitive-generic!
 	   method-procedure accessor-method-slot-definition
 	   slot-exists? make find-method get-keyword)
@@ -565,12 +566,16 @@
 ;;;
 (define-method (method-source (m <method>))
   (let* ((spec (map* class-name (slot-ref m 'specializers)))
-	 (proc (procedure-source (slot-ref m 'procedure)))
-	 (args (cadr proc))
-	 (body (cddr proc)))
-    (cons 'method
-	  (cons (map* list args spec)
-		body))))
+	 (src (procedure-source (slot-ref m 'procedure))))
+    (and src
+         (let ((args (cadr src))
+               (body (cddr src)))
+           (cons 'method
+                 (cons (map* list args spec)
+                       body))))))
+
+(define-method (method-formals (m <method>))
+  (slot-ref m 'formals))
 
 ;;;
 ;;; Slots
