@@ -491,7 +491,10 @@
                            ;; contain a call to `next-method'
                           `(lambda ,(formals args)
                              ,@(if (null? body)
-                                   '((begin))
+                                   ;; This used to be '((begin)), but
+                                   ;; guile's memoizer doesn't like
+                                   ;; (lambda args (begin)).
+                                   '((if #f #f))
                                    body)))))))
 
 ;;;
